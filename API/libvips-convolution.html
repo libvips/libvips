@@ -187,9 +187,9 @@ vips_conv (<em class="parameter"><code><a class="link" href="VipsImage.html" tit
 <li class="listitem"><p><em class="parameter"><code>precision</code></em>
 : <a class="link" href="libvips-basic.html#VipsPrecision" title="enum VipsPrecision"><span class="type">VipsPrecision</span></a>, calculation accuracy</p></li>
 <li class="listitem"><p><em class="parameter"><code>layers</code></em>
-: <a href="../glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, number of layers for approximation</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, number of layers for approximation</p></li>
 <li class="listitem"><p><em class="parameter"><code>cluster</code></em>
-: <a href="../glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, cluster lines closer than this distance</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, cluster lines closer than this distance</p></li>
 </ul></div>
 <p>Convolution. </p>
 <p>Perform a convolution of <em class="parameter"><code>in</code></em>
@@ -201,7 +201,7 @@ Each output pixel is calculated as:</p>
     <tbody>
       <tr>
         <td class="listing_lines" align="right"><pre>1</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="normal">sigma</span><span class="symbol">[</span><span class="normal">i</span><span class="symbol">]</span><span class="cbracket">{</span><span class="normal">pixel</span><span class="symbol">[</span><span class="normal">i</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">*</span><span class="normal"> mask</span><span class="symbol">[</span><span class="normal">i</span><span class="symbol">]</span><span class="cbracket">}</span><span class="normal"> </span><span class="symbol">/</span><span class="normal"> scale </span><span class="symbol">+</span><span class="normal"> offset</span></pre></td>
+        <td class="listing_code"><pre class="programlisting">sigma<span class="gtkdoc opt">[</span>i<span class="gtkdoc opt">]{</span>pixel<span class="gtkdoc opt">[</span>i<span class="gtkdoc opt">] *</span> mask<span class="gtkdoc opt">[</span>i<span class="gtkdoc opt">]} /</span> scale <span class="gtkdoc opt">+</span> offset</pre></td>
       </tr>
     </tbody>
   </table>
@@ -247,7 +247,7 @@ this value and accuracy will still be good.</p>
 and use more memory. 10% of the mask radius is a good rule of thumb.</p>
 <p>See also: <a class="link" href="libvips-convolution.html#vips-convsep" title="vips_convsep ()"><code class="function">vips_convsep()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.5.8.2.18"></a><h4>Parameters</h4>
+<a name="vips-conv.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -272,16 +272,15 @@ and use more memory. 10% of the mask radius is a good rule of thumb.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.5.8.2.19"></a><h4>Returns</h4>
+<a name="vips-conv.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -308,7 +307,7 @@ is always <a class="link" href="VipsImage.html#VIPS-FORMAT-FLOAT:CAPS"><span cla
  is also <a class="link" href="VipsImage.html#VIPS-FORMAT-DOUBLE:CAPS"><span class="type">VIPS_FORMAT_DOUBLE</span></a>. </p>
 <p>See also: <a class="link" href="libvips-convolution.html#vips-conv" title="vips_conv ()"><code class="function">vips_conv()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.5.8.3.8"></a><h4>Parameters</h4>
+<a name="vips-convf.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -333,16 +332,15 @@ is always <a class="link" href="VipsImage.html#VIPS-FORMAT-FLOAT:CAPS"><span cla
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.5.8.3.9"></a><h4>Returns</h4>
+<a name="vips-convf.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -363,7 +361,7 @@ scale and rint of offset. Each output pixel is then calculated as </p>
     <tbody>
       <tr>
         <td class="listing_lines" align="right"><pre>1</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="normal">sigma</span><span class="symbol">[</span><span class="normal">i</span><span class="symbol">]</span><span class="cbracket">{</span><span class="normal">pixel</span><span class="symbol">[</span><span class="normal">i</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">*</span><span class="normal"> mask</span><span class="symbol">[</span><span class="normal">i</span><span class="symbol">]</span><span class="cbracket">}</span><span class="normal"> </span><span class="symbol">/</span><span class="normal"> scale </span><span class="symbol">+</span><span class="normal"> offset</span></pre></td>
+        <td class="listing_code"><pre class="programlisting">sigma<span class="gtkdoc opt">[</span>i<span class="gtkdoc opt">]{</span>pixel<span class="gtkdoc opt">[</span>i<span class="gtkdoc opt">] *</span> mask<span class="gtkdoc opt">[</span>i<span class="gtkdoc opt">]} /</span> scale <span class="gtkdoc opt">+</span> offset</pre></td>
       </tr>
     </tbody>
   </table>
@@ -377,7 +375,7 @@ Disable the vector path with <code class="literal">--vips-novector</code> or <co
 <code class="function">vips_vector_set_enabled()</code>.</p>
 <p>See also: <a class="link" href="libvips-convolution.html#vips-conv" title="vips_conv ()"><code class="function">vips_conv()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.5.8.4.11"></a><h4>Parameters</h4>
+<a name="vips-convi.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -402,16 +400,15 @@ Disable the vector path with <code class="literal">--vips-novector</code> or <co
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.5.8.4.12"></a><h4>Returns</h4>
+<a name="vips-convi.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -425,9 +422,9 @@ vips_conva (<em class="parameter"><code><a class="link" href="VipsImage.html" ti
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>layers</code></em>
-: <a href="../glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, number of layers for approximation</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, number of layers for approximation</p></li>
 <li class="listitem"><p><em class="parameter"><code>cluster</code></em>
-: <a href="../glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, cluster lines closer than this distance</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, cluster lines closer than this distance</p></li>
 </ul></div>
 <p>Perform an approximate integer convolution of <em class="parameter"><code>in</code></em>
  with <em class="parameter"><code>mask</code></em>
@@ -452,7 +449,7 @@ this value and accuracy will still be good.</p>
 and use more memory. 10% of the mask radius is a good rule of thumb.</p>
 <p>See also: <a class="link" href="libvips-convolution.html#vips-conv" title="vips_conv ()"><code class="function">vips_conv()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.5.8.5.11"></a><h4>Parameters</h4>
+<a name="vips-conva.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -477,16 +474,15 @@ and use more memory. 10% of the mask radius is a good rule of thumb.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.5.8.5.12"></a><h4>Returns</h4>
+<a name="vips-conva.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -518,7 +514,7 @@ rotated by 90 degrees. This is much faster for certain types of mask
 (gaussian blur, for example) than doing a full 2D convolution.</p>
 <p>See also: <a class="link" href="libvips-convolution.html#vips-conv" title="vips_conv ()"><code class="function">vips_conv()</code></a>, <a class="link" href="libvips-create.html#vips-gaussmat" title="vips_gaussmat ()"><code class="function">vips_gaussmat()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.5.8.6.10"></a><h4>Parameters</h4>
+<a name="vips-convsep.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -543,16 +539,15 @@ rotated by 90 degrees. This is much faster for certain types of mask
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.5.8.6.11"></a><h4>Returns</h4>
+<a name="vips-convsep.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -565,7 +560,7 @@ vips_convasep (<em class="parameter"><code><a class="link" href="VipsImage.html"
                <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>layers</code></em>
-: <a href="../glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, number of layers for approximation</p></li></ul></div>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, number of layers for approximation</p></li></ul></div>
 <p>Approximate separable integer convolution. This is a low-level operation, see 
 <a class="link" href="libvips-convolution.html#vips-convsep" title="vips_convsep ()"><code class="function">vips_convsep()</code></a> for something more convenient. </p>
 <p>The image is convolved twice: once with <em class="parameter"><code>mask</code></em>
@@ -589,7 +584,7 @@ this value and accuracy will still be good.</p>
 always has the same <a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="type">VipsBandFormat</span></a> as the input image. </p>
 <p>See also: <a class="link" href="libvips-convolution.html#vips-convsep" title="vips_convsep ()"><code class="function">vips_convsep()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.5.8.7.11"></a><h4>Parameters</h4>
+<a name="vips-convasep.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -614,16 +609,15 @@ always has the same <a class="link" href="VipsImage.html#VipsBandFormat" title="
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.5.8.7.12"></a><h4>Returns</h4>
+<a name="vips-convasep.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -657,7 +651,7 @@ Set <em class="parameter"><code>min_ampl</code></em>
 larger to make the blur more blurry. </p>
 <p>See also: <a class="link" href="libvips-create.html#vips-gaussmat" title="vips_gaussmat ()"><code class="function">vips_gaussmat()</code></a>, <a class="link" href="libvips-convolution.html#vips-convsep" title="vips_convsep ()"><code class="function">vips_convsep()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.5.8.9.8"></a><h4>Parameters</h4>
+<a name="vips-gaussblur.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -682,16 +676,15 @@ larger to make the blur more blurry. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.5.8.9.9"></a><h4>Returns</h4>
+<a name="vips-gaussblur.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -747,23 +740,23 @@ through a lookup table formed from the five parameters and added back to
 15
 16
 17</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="symbol">^</span>
-<span class="normal">                  y2 </span><span class="symbol">|-</span><span class="normal"> </span><span class="symbol">-</span><span class="normal"> </span><span class="symbol">-</span><span class="normal"> </span><span class="symbol">-</span><span class="normal"> </span><span class="symbol">-</span><span class="normal"> </span><span class="symbol">-----------</span>
-<span class="symbol">|</span><span class="normal">         </span><span class="symbol">/</span><span class="normal"> </span>
-<span class="symbol">|</span><span class="normal">        </span><span class="symbol">/</span><span class="normal"> slope m2</span>
-<span class="symbol">|</span><span class="normal">    </span><span class="symbol">.../</span><span class="normal">    </span>
-<span class="normal">             </span><span class="symbol">-</span><span class="normal">x1     </span><span class="symbol">|</span><span class="normal"> </span><span class="symbol">...</span><span class="normal">   </span><span class="symbol">|</span><span class="normal">    </span>
-<span class="normal"> </span><span class="symbol">-------------------...----------------------&gt;</span>
-<span class="normal">             </span><span class="symbol">|</span><span class="normal">   </span><span class="symbol">...</span><span class="normal"> </span><span class="symbol">|</span><span class="normal">      x1           </span>
-<span class="normal">             </span><span class="symbol">|...</span><span class="normal"> slope m1</span>
-<span class="normal">             </span><span class="symbol">/</span><span class="normal">       </span><span class="symbol">|</span>
-<span class="normal">            </span><span class="symbol">/</span><span class="normal"> m2     </span><span class="symbol">|</span>
-<span class="normal">           </span><span class="symbol">/</span><span class="normal">         </span><span class="symbol">|</span>
-<span class="normal">          </span><span class="symbol">/</span><span class="normal">          </span><span class="symbol">|</span>
-<span class="normal">         </span><span class="symbol">/</span><span class="normal">           </span><span class="symbol">|</span>
-<span class="normal">        </span><span class="symbol">/</span><span class="normal">            </span><span class="symbol">|</span>
-<span class="normal"> ______</span><span class="symbol">/</span><span class="normal"> </span><span class="usertype">_</span><span class="normal"> </span><span class="usertype">_</span><span class="normal"> </span><span class="usertype">_</span><span class="normal"> </span><span class="usertype">_</span><span class="normal"> </span><span class="usertype">_</span><span class="normal"> <a href="../glib/glib-I18N.html#gettext-macro">_</a> </span><span class="symbol">|</span><span class="normal"> </span><span class="symbol">-</span><span class="normal">y3</span>
-<span class="symbol">|</span></pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="gtkdoc opt">^</span>
+                  y2 <span class="gtkdoc opt">|- - - - - -----------</span>
+<span class="gtkdoc opt">|         /</span> 
+<span class="gtkdoc opt">|        /</span> slope m2
+<span class="gtkdoc opt">|    .../</span>    
+             <span class="gtkdoc opt">-</span>x1     <span class="gtkdoc opt">| ...   |</span>    
+ <span class="gtkdoc opt">-------------------...----------------------&gt;</span>
+             <span class="gtkdoc opt">|   ... |</span>      x1           
+             <span class="gtkdoc opt">|...</span> slope m1
+             <span class="gtkdoc opt">/       |</span>
+            <span class="gtkdoc opt">/</span> m2     <span class="gtkdoc opt">|</span>
+           <span class="gtkdoc opt">/         |</span>
+          <span class="gtkdoc opt">/          |</span>
+         <span class="gtkdoc opt">/           |</span>
+        <span class="gtkdoc opt">/            |</span>
+ ______<span class="gtkdoc opt">/</span> _ _ _ _ _ _ <span class="gtkdoc opt">| -</span>y3
+<span class="gtkdoc opt">|</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -781,9 +774,9 @@ through a lookup table formed from the five parameters and added back to
 4
 5
 6</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="normal">sigma </span><span class="symbol">==</span><span class="normal"> </span><span class="number">0.5</span>
-<span class="normal">x1 </span><span class="symbol">==</span><span class="normal"> </span><span class="number">2</span>
-<span class="normal">y2 </span><span class="symbol">==</span><span class="normal"> </span><span class="number">10</span><span class="normal">         </span><span class="symbol">(</span><span class="normal">don</span><span class="string">'t brighten by more than 10 L*)</span>
+        <td class="listing_code"><pre class="programlisting">sigma <span class="gtkdoc opt">==</span> <span class="number">0.5</span>
+x1 <span class="gtkdoc opt">==</span> <span class="number">2</span>
+y2 <span class="gtkdoc opt">==</span> <span class="function">10</span>         <span class="gtkdoc opt">(</span>don<span class="string">'t brighten by more than 10 L*)</span>
 <span class="string">y3 == 20         (can darken by up to 20 L*)</span>
 <span class="string">m1 == 0          (no sharpening in flat areas)</span>
 <span class="string">m2 == 3          (some sharpening in jaggy areas)</span></pre></td>
@@ -804,7 +797,7 @@ pixels/mm). These figures refer to the image raster, not the half-tone
 resolution.</p>
 <p>See also: <a class="link" href="libvips-convolution.html#vips-conv" title="vips_conv ()"><code class="function">vips_conv()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.5.8.10.17"></a><h4>Parameters</h4>
+<a name="vips-sharpen.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -824,16 +817,15 @@ resolution.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.5.8.10.18"></a><h4>Returns</h4>
+<a name="vips-sharpen.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -862,10 +854,10 @@ copying the existing edges outwards. </p>
 2
 3
 4</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="function">sumij</span><span class="normal"> </span><span class="symbol">(</span><span class="function">ref</span><span class="symbol">(</span><span class="normal">i</span><span class="symbol">,</span><span class="normal">j</span><span class="symbol">)-</span><span class="function">mean</span><span class="symbol">(</span><span class="normal">ref</span><span class="symbol">))(</span><span class="function">inkl</span><span class="symbol">(</span><span class="normal">i</span><span class="symbol">,</span><span class="normal">j</span><span class="symbol">)-</span><span class="function">mean</span><span class="symbol">(</span><span class="normal">inkl</span><span class="symbol">))</span>
-<span class="function">c</span><span class="symbol">(</span><span class="normal">k</span><span class="symbol">,</span><span class="normal">l</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">------------------------------------------------</span>
-<span class="function">sqrt</span><span class="symbol">(</span><span class="function">sumij</span><span class="normal"> </span><span class="symbol">(</span><span class="function">ref</span><span class="symbol">(</span><span class="normal">i</span><span class="symbol">,</span><span class="normal">j</span><span class="symbol">)-</span><span class="function">mean</span><span class="symbol">(</span><span class="normal">ref</span><span class="symbol">))^</span><span class="number">2</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">*</span>
-<span class="normal">            </span><span class="function">sqrt</span><span class="symbol">(</span><span class="function">sumij</span><span class="normal"> </span><span class="symbol">(</span><span class="function">inkl</span><span class="symbol">(</span><span class="normal">i</span><span class="symbol">,</span><span class="normal">j</span><span class="symbol">)-</span><span class="function">mean</span><span class="symbol">(</span><span class="normal">inkl</span><span class="symbol">))^</span><span class="number">2</span><span class="symbol">)</span></pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="function">sumij</span> <span class="gtkdoc opt">(</span><span class="function">ref</span><span class="gtkdoc opt">(</span>i<span class="gtkdoc opt">,</span>j<span class="gtkdoc opt">)-</span><span class="function">mean</span><span class="gtkdoc opt">(</span>ref<span class="gtkdoc opt">))(</span><span class="function">inkl</span><span class="gtkdoc opt">(</span>i<span class="gtkdoc opt">,</span>j<span class="gtkdoc opt">)-</span><span class="function">mean</span><span class="gtkdoc opt">(</span>inkl<span class="gtkdoc opt">))</span>
+<span class="function">c</span><span class="gtkdoc opt">(</span>k<span class="gtkdoc opt">,</span>l<span class="gtkdoc opt">) = ------------------------------------------------</span>
+<span class="function">sqrt</span><span class="gtkdoc opt">(</span><span class="function">sumij</span> <span class="gtkdoc opt">(</span><span class="function">ref</span><span class="gtkdoc opt">(</span>i<span class="gtkdoc opt">,</span>j<span class="gtkdoc opt">)-</span><span class="function">mean</span><span class="gtkdoc opt">(</span>ref<span class="gtkdoc opt">))^</span><span class="number">2</span><span class="gtkdoc opt">) *</span>
+            <span class="function">sqrt</span><span class="gtkdoc opt">(</span><span class="function">sumij</span> <span class="gtkdoc opt">(</span><span class="function">inkl</span><span class="gtkdoc opt">(</span>i<span class="gtkdoc opt">,</span>j<span class="gtkdoc opt">)-</span><span class="function">mean</span><span class="gtkdoc opt">(</span>inkl<span class="gtkdoc opt">))^</span><span class="number">2</span><span class="gtkdoc opt">)</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -884,7 +876,7 @@ the two n-band images are operated upon.</p>
 double, in which case the output is also double.</p>
 <p>See also: <a class="link" href="libvips-convolution.html#vips-fastcor" title="vips_fastcor ()"><code class="function">vips_fastcor()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.5.8.11.15"></a><h4>Parameters</h4>
+<a name="vips-spcor.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -909,16 +901,15 @@ double, in which case the output is also double.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.5.8.11.16"></a><h4>Returns</h4>
+<a name="vips-spcor.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -947,7 +938,7 @@ In other words, the output type is just large enough to hold the whole
 range of possible values.</p>
 <p>See also: <a class="link" href="libvips-convolution.html#vips-spcor" title="vips_spcor ()"><code class="function">vips_spcor()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.5.8.12.10"></a><h4>Parameters</h4>
+<a name="vips-fastcor.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -972,16 +963,15 @@ range of possible values.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.5.8.12.11"></a><h4>Returns</h4>
+<a name="vips-fastcor.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
-<p></p>
 </div>
 </div>
 </div>
@@ -991,7 +981,7 @@ range of possible values.</p>
 <a name="VipsCombine"></a><h3>enum VipsCombine</h3>
 <p>How to combine values.</p>
 <div class="refsect3">
-<a name="id-1.4.5.9.2.4"></a><h4>Members</h4>
+<a name="VipsCombine.members"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -1025,8 +1015,7 @@ range of possible values.</p>
 </div>
 </div>
 <div class="footer">
-<hr>
-          Generated by GTK-Doc V1.21</div>
+<hr>Generated by GTK-Doc V1.25</div>
 </section>
 
     <script type="text/javascript">

@@ -166,34 +166,10 @@ justifications.
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">int</span>
-</td>
-<td class="function_name">
-<a class="link" href="VipsRegion.html#vips-region-prepare-many" title="vips_region_prepare_many ()">vips_region_prepare_many</a> <span class="c_punctuation">()</span>
-</td>
-</tr>
-<tr>
-<td class="function_type">
 <span class="returnvalue">void</span>
 </td>
 <td class="function_name">
 <a class="link" href="VipsRegion.html#vips-region-invalidate" title="vips_region_invalidate ()">vips_region_invalidate</a> <span class="c_punctuation">()</span>
-</td>
-</tr>
-<tr>
-<td class="function_type">
-<span class="returnvalue">void</span>
-</td>
-<td class="function_name">
-<a class="link" href="VipsRegion.html#vips-region-dump-all" title="vips_region_dump_all ()">vips_region_dump_all</a> <span class="c_punctuation">()</span>
-</td>
-</tr>
-<tr>
-<td class="function_type">
-<span class="returnvalue">void</span>
-</td>
-<td class="function_name">
-<a class="link" href="VipsRegion.html#vips--region-count-pixels" title="vips__region_count_pixels ()">vips__region_count_pixels</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -237,7 +213,7 @@ justifications.
 </div>
 <div class="refsect1">
 <a name="VipsRegion.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="VipsObject.html" title="VipsObject">VipsObject</a>
         <span class="lineart">╰──</span> VipsRegion
 </pre>
@@ -249,14 +225,14 @@ justifications.
 </div>
 <div class="refsect1">
 <a name="VipsRegion.description"></a><h2>Description</h2>
-<p>A <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> is a small part of an image and some pixels. You use regions to
+<p>A <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> is a small part of an image. You use regions to
 read pixels out of images without having to have the whole image in memory
 at once.</p>
 <p>A region can be a memory buffer, part of a memory-mapped file, part of some
 other image, or part of some other region.</p>
 <p>Regions must be created, used and freed all within the same thread, since
 they can reference private per-thread caches. VIPS sanity-checks region
-ownership in various places, so you are likely to see <a href="../glib/glib-Testing.html#g-assert"><code class="function">g_assert()</code></a> errors if
+ownership in various places, so you are likely to see <a href="/usr/share/gtk-doc/html/glibglib-Testing.html#g-assert"><code class="function">g_assert()</code></a> errors if
 you don't follow this rule.</p>
 <p>There
 is API to transfer ownership of regions between threads, but hopefully this
@@ -272,7 +248,7 @@ vips_region_new (<em class="parameter"><code><a class="link" href="VipsImage.htm
 <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a> to fill them with pixels.</p>
 <p>See also: <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.9.8.2.6"></a><h4>Parameters</h4>
+<a name="vips-region-new.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -295,9 +271,9 @@ vips_region_buffer (<em class="parameter"><code><a class="link" href="VipsRegion
                     <em class="parameter"><code><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r</code></em>);</pre>
 <p>The region is transformed so that at least <em class="parameter"><code>r</code></em>
  pixels are available as a
-memory buffer.</p>
+memory buffer that can be written to.</p>
 <div class="refsect3">
-<a name="id-1.3.9.8.3.5"></a><h4>Parameters</h4>
+<a name="vips-region-buffer.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -319,9 +295,8 @@ memory buffer.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.8.3.6"></a><h4>Returns</h4>
+<a name="vips-region-buffer.returns"></a><h4>Returns</h4>
 <p> 0 on success, or -1 for error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -331,11 +306,11 @@ memory buffer.</p>
 vips_region_image (<em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *reg</code></em>,
                    <em class="parameter"><code><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r</code></em>);</pre>
 <p>The region is transformed so that at least <em class="parameter"><code>r</code></em>
- pixels are available directly
-from the image. The image needs to be a memory buffer or represent a file
+ pixels are available to be read from
+image. The image needs to be a memory buffer or represent a file
 on disc that has been mapped or can be mapped.</p>
 <div class="refsect3">
-<a name="id-1.3.9.8.4.5"></a><h4>Parameters</h4>
+<a name="vips-region-image.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -357,9 +332,8 @@ on disc that has been mapped or can be mapped.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.8.4.6"></a><h4>Returns</h4>
+<a name="vips-region-image.returns"></a><h4>Returns</h4>
 <p> 0 on success, or -1 for error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -385,12 +359,12 @@ corresponding area in <em class="parameter"><code>dest</code></em>
 <p>Performs all clipping necessary to ensure that <em class="parameter"><code>reg-&gt;valid</code></em>
  is indeed
 valid.</p>
-<p>If the region we attach to is modified, we can be left with dangling 
+<p>If the region we attach to is moved or destroyed, we can be left with dangling 
 pointers! If the region we attach to is on another image, the two images 
 must have 
 the same sizeof( pel ).</p>
 <div class="refsect3">
-<a name="id-1.3.9.8.5.8"></a><h4>Parameters</h4>
+<a name="vips-region-region.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -431,9 +405,8 @@ in <em class="parameter"><code>dest</code></em>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.8.5.9"></a><h4>Returns</h4>
+<a name="vips-region-region.returns"></a><h4>Returns</h4>
 <p> 0 on success, or -1 for error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -450,9 +423,9 @@ vips_region_equalsregion (<em class="parameter"><code><a class="link" href="Vips
         <td class="listing_lines" align="right"><pre>1
 2
 3</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="function"><a href="VipsRegion.html#VIPS-REGION-ADDR:CAPS">VIPS_REGION_ADDR</a></span><span class="symbol">(</span><span class="normal"> reg1</span><span class="symbol">,</span><span class="normal"> x</span><span class="symbol">,</span><span class="normal"> y </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">==</span><span class="normal"> </span><span class="function"><a href="VipsRegion.html#VIPS-REGION-ADDR:CAPS">VIPS_REGION_ADDR</a></span><span class="symbol">(</span><span class="normal"> reg2</span><span class="symbol">,</span><span class="normal"> x</span><span class="symbol">,</span><span class="normal"> y </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">&amp;&amp;</span>
-<span class="symbol">*</span><span class="function"><a href="VipsRegion.html#VIPS-REGION-ADDR:CAPS">VIPS_REGION_ADDR</a></span><span class="symbol">(</span><span class="normal"> reg1</span><span class="symbol">,</span><span class="normal"> x</span><span class="symbol">,</span><span class="normal"> y </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">==</span><span class="normal"> </span>
-<span class="normal">    </span><span class="symbol">*</span><span class="function"><a href="VipsRegion.html#VIPS-REGION-ADDR:CAPS">VIPS_REGION_ADDR</a></span><span class="symbol">(</span><span class="normal"> reg2</span><span class="symbol">,</span><span class="normal"> x</span><span class="symbol">,</span><span class="normal"> y </span><span class="symbol">)</span><span class="normal"> </span><span class="keyword">for</span><span class="normal"> </span><span class="usertype">all</span><span class="normal"> x</span><span class="symbol">,</span><span class="normal"> y</span><span class="symbol">,</span><span class="normal"> reg1</span><span class="symbol">,</span><span class="normal"> reg2</span><span class="symbol">.</span></pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="function"><a href="VipsRegion.html#VIPS-REGION-ADDR:CAPS">VIPS_REGION_ADDR</a></span><span class="gtkdoc opt">(</span> reg1<span class="gtkdoc opt">,</span> x<span class="gtkdoc opt">,</span> y <span class="gtkdoc opt">) ==</span> <span class="function"><a href="VipsRegion.html#VIPS-REGION-ADDR:CAPS">VIPS_REGION_ADDR</a></span><span class="gtkdoc opt">(</span> reg2<span class="gtkdoc opt">,</span> x<span class="gtkdoc opt">,</span> y <span class="gtkdoc opt">) &amp;&amp;</span>
+<span class="gtkdoc opt">*</span><span class="function"><a href="VipsRegion.html#VIPS-REGION-ADDR:CAPS">VIPS_REGION_ADDR</a></span><span class="gtkdoc opt">(</span> reg1<span class="gtkdoc opt">,</span> x<span class="gtkdoc opt">,</span> y <span class="gtkdoc opt">) ==</span> 
+	<span class="gtkdoc opt">*</span><span class="function"><a href="VipsRegion.html#VIPS-REGION-ADDR:CAPS">VIPS_REGION_ADDR</a></span><span class="gtkdoc opt">(</span> reg2<span class="gtkdoc opt">,</span> x<span class="gtkdoc opt">,</span> y <span class="gtkdoc opt">)</span> <span class="keyword">for</span> all x<span class="gtkdoc opt">,</span> y<span class="gtkdoc opt">,</span> reg1<span class="gtkdoc opt">,</span> reg2<span class="gtkdoc opt">.</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -460,7 +433,7 @@ vips_region_equalsregion (<em class="parameter"><code><a class="link" href="Vips
 
 <p></p>
 <div class="refsect3">
-<a name="id-1.3.9.8.6.7"></a><h4>Parameters</h4>
+<a name="vips-region-equalsregion.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -482,9 +455,8 @@ vips_region_equalsregion (<em class="parameter"><code><a class="link" href="Vips
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.8.6.8"></a><h4>Returns</h4>
+<a name="vips-region-equalsregion.returns"></a><h4>Returns</h4>
 <p> non-zero on equality.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -499,7 +471,7 @@ pixels are addressed, not reg-&gt;data, the pixels which are addressed. Clip
 against the size of the image. Do not allow negative positions, or
 positions outside the image.</p>
 <div class="refsect3">
-<a name="id-1.3.9.8.7.5"></a><h4>Parameters</h4>
+<a name="vips-region-position.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -526,9 +498,8 @@ positions outside the image.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.8.7.6"></a><h4>Returns</h4>
+<a name="vips-region-position.returns"></a><h4>Returns</h4>
 <p> 0 on success, or -1 for error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -541,7 +512,12 @@ vips_region_paint (<em class="parameter"><code><a class="link" href="VipsRegion.
 <p>Paints <em class="parameter"><code>value</code></em>
  into <em class="parameter"><code>reg</code></em>
  covering rectangle <em class="parameter"><code>r</code></em>
-. For int images, <em class="parameter"><code>value</code></em>
+. 
+<em class="parameter"><code>r</code></em>
+ is clipped against 
+<em class="parameter"><code>reg-&gt;valid</code></em>
+.</p>
+<p>For int images, <em class="parameter"><code>value</code></em>
  is 
 passed to <code class="function">memset()</code>, so it usually needs to be 0 or 255. For float images,
 value is cast to a float and copied in to each band element. </p>
@@ -551,7 +527,7 @@ value is cast to a float and copied in to each band element. </p>
 .</p>
 <p>See also: <a class="link" href="VipsRegion.html#vips-region-black" title="vips_region_black ()"><code class="function">vips_region_black()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.9.8.8.7"></a><h4>Parameters</h4>
+<a name="vips-region-paint.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -597,7 +573,7 @@ vips_region_paint_pel (<em class="parameter"><code><a class="link" href="VipsReg
 the binary value to write into the pixels.</p>
 <p>See also: <a class="link" href="VipsRegion.html#vips-region-paint" title="vips_region_paint ()"><code class="function">vips_region_paint()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.9.8.9.7"></a><h4>Parameters</h4>
+<a name="vips-region-paint-pel.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -633,7 +609,7 @@ vips_region_black (<em class="parameter"><code><a class="link" href="VipsRegion.
 .</p>
 <p>See also: <a class="link" href="VipsRegion.html#vips-region-paint" title="vips_region_paint ()"><code class="function">vips_region_paint()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.9.8.10.6"></a><h4>Parameters</h4>
+<a name="vips-region-black.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -667,7 +643,7 @@ positioning the area of pixels at <em class="parameter"><code>x</code></em>
 which are the same size.</p>
 <p>See also: <a class="link" href="VipsRegion.html#vips-region-paint" title="vips_region_paint ()"><code class="function">vips_region_paint()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.9.8.11.6"></a><h4>Parameters</h4>
+<a name="vips-region-copy.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -723,7 +699,7 @@ Non-complex uncoded images and LABQ only. Images with alpha (see
 <a class="link" href="VipsImage.html#vips-image-hasalpha" title="vips_image_hasalpha ()"><code class="function">vips_image_hasalpha()</code></a>) shrink with pixels scaled by alpha to avoid fringing.</p>
 <p>See also: <a class="link" href="VipsRegion.html#vips-region-copy" title="vips_region_copy ()"><code class="function">vips_region_copy()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.9.8.12.6"></a><h4>Parameters</h4>
+<a name="vips-region-shrink.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -769,7 +745,7 @@ background.</p>
 <p>See also: <a class="link" href="libvips-generate.html#vips-sink-screen" title="vips_sink_screen ()"><code class="function">vips_sink_screen()</code></a>, 
 <a class="link" href="VipsRegion.html#vips-region-prepare-to" title="vips_region_prepare_to ()"><code class="function">vips_region_prepare_to()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.9.8.13.8"></a><h4>Parameters</h4>
+<a name="vips-region-prepare.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -791,9 +767,8 @@ background.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.8.13.9"></a><h4>Returns</h4>
+<a name="vips-region-prepare.returns"></a><h4>Returns</h4>
 <p> 0 on success, or -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -806,15 +781,15 @@ vips_region_prepare_to (<em class="parameter"><code><a class="link" href="VipsRe
                         <em class="parameter"><code><span class="type">int</span> x</code></em>,
                         <em class="parameter"><code><span class="type">int</span> y</code></em>);</pre>
 <p>Like <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>: fill <em class="parameter"><code>reg</code></em>
- with data, ready to be read from by 
-our caller. Unlike <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>, rather than allocating memory 
-local to <em class="parameter"><code>reg</code></em>
- for the result, we guarantee that we will fill the pixels 
-in <em class="parameter"><code>dest</code></em>
- at offset <em class="parameter"><code>x</code></em>
+ with the pixels in area <em class="parameter"><code>r</code></em>
+. 
+Unlike <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>, rather than writing the result to <em class="parameter"><code>reg</code></em>
+, the pixels are
+written into <em class="parameter"><code>dest</code></em>
+
+at offset <em class="parameter"><code>x</code></em>
 , <em class="parameter"><code>y</code></em>
-. In other words, we generate an extra copy 
-operation if necessary. </p>
+. </p>
 <p>Also unlike <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>, <em class="parameter"><code>dest</code></em>
  is not set up for writing for 
 you with
@@ -822,11 +797,10 @@ you with
 point <em class="parameter"><code>dest</code></em>
  at anything, and pixels really will be written there. 
 This makes <a class="link" href="VipsRegion.html#vips-region-prepare-to" title="vips_region_prepare_to ()"><code class="function">vips_region_prepare_to()</code></a> useful for making the ends of 
-pipelines, since
-it (effectively) makes a break in the pipe.</p>
+pipelines.</p>
 <p>See also: <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>, <a class="link" href="libvips-generate.html#vips-sink-disc" title="vips_sink_disc ()"><code class="function">vips_sink_disc()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.9.8.14.7"></a><h4>Parameters</h4>
+<a name="vips-region-prepare-to.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -867,17 +841,9 @@ in <em class="parameter"><code>dest</code></em>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.8.14.8"></a><h4>Returns</h4>
+<a name="vips-region-prepare-to.returns"></a><h4>Returns</h4>
 <p> 0 on success, or -1 on error</p>
-<p></p>
 </div>
-</div>
-<hr>
-<div class="refsect2">
-<a name="vips-region-prepare-many"></a><h3>vips_region_prepare_many ()</h3>
-<pre class="programlisting"><span class="returnvalue">int</span>
-vips_region_prepare_many (<em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> **reg</code></em>,
-                          <em class="parameter"><code><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r</code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">
@@ -891,7 +857,7 @@ recalculated.</p>
 affects a single region. </p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-invalidate-all" title="vips_image_invalidate_all ()"><code class="function">vips_image_invalidate_all()</code></a>, <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.9.8.16.7"></a><h4>Parameters</h4>
+<a name="vips-region-invalidate.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -908,19 +874,6 @@ affects a single region. </p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="vips-region-dump-all"></a><h3>vips_region_dump_all ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>
-vips_region_dump_all (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
-</div>
-<hr>
-<div class="refsect2">
-<a name="vips--region-count-pixels"></a><h3>vips__region_count_pixels ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>
-vips__region_count_pixels (<em class="parameter"><code><a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> *region</code></em>,
-                           <em class="parameter"><code>const <span class="type">char</span> *nickname</code></em>);</pre>
-</div>
-<hr>
-<div class="refsect2">
 <a name="VIPS-COUNT-PIXELS:CAPS"></a><h3>VIPS_COUNT_PIXELS()</h3>
 <pre class="programlisting">#define VIPS_COUNT_PIXELS( R, N ) vips__region_count_pixels( R, N )
 </pre>
@@ -930,7 +883,7 @@ vips__region_count_pixels (<em class="parameter"><code><a class="link" href="Vip
 <a name="VIPS-REGION-LSKIP:CAPS"></a><h3>VIPS_REGION_LSKIP()</h3>
 <pre class="programlisting">#define             VIPS_REGION_LSKIP( R )</pre>
 <div class="refsect3">
-<a name="id-1.3.9.8.20.4"></a><h4>Parameters</h4>
+<a name="VIPS-REGION-LSKIP.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -945,9 +898,8 @@ vips__region_count_pixels (<em class="parameter"><code><a class="link" href="Vip
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.8.20.5"></a><h4>Returns</h4>
+<a name="VIPS-REGION-LSKIP.returns"></a><h4>Returns</h4>
 <p> The number of bytes to add to move down a scanline.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -955,7 +907,7 @@ vips__region_count_pixels (<em class="parameter"><code><a class="link" href="Vip
 <a name="VIPS-REGION-N-ELEMENTS:CAPS"></a><h3>VIPS_REGION_N_ELEMENTS()</h3>
 <pre class="programlisting">#define             VIPS_REGION_N_ELEMENTS( R )</pre>
 <div class="refsect3">
-<a name="id-1.3.9.8.21.4"></a><h4>Parameters</h4>
+<a name="VIPS-REGION-N-ELEMENTS.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -970,9 +922,8 @@ vips__region_count_pixels (<em class="parameter"><code><a class="link" href="Vip
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.8.21.5"></a><h4>Returns</h4>
+<a name="VIPS-REGION-N-ELEMENTS.returns"></a><h4>Returns</h4>
 <p> The number of band elements across a region.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -980,7 +931,7 @@ vips__region_count_pixels (<em class="parameter"><code><a class="link" href="Vip
 <a name="VIPS-REGION-SIZEOF-LINE:CAPS"></a><h3>VIPS_REGION_SIZEOF_LINE()</h3>
 <pre class="programlisting">#define             VIPS_REGION_SIZEOF_LINE( R )</pre>
 <div class="refsect3">
-<a name="id-1.3.9.8.22.4"></a><h4>Parameters</h4>
+<a name="VIPS-REGION-SIZEOF-LINE.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -995,9 +946,8 @@ vips__region_count_pixels (<em class="parameter"><code><a class="link" href="Vip
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.8.22.5"></a><h4>Returns</h4>
+<a name="VIPS-REGION-SIZEOF-LINE.returns"></a><h4>Returns</h4>
 <p> The number of bytes across a region.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -1012,7 +962,7 @@ coordinates need to be within the <a class="link" href="libvips-rect.html#VipsRe
 <p>If DEBUG is defined, you get a version that checks bounds for you.</p>
 <p>See also: <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.9.8.23.7"></a><h4>Parameters</h4>
+<a name="VIPS-REGION-ADDR.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1039,12 +989,11 @@ coordinates need to be within the <a class="link" href="libvips-rect.html#VipsRe
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.8.23.8"></a><h4>Returns</h4>
+<a name="VIPS-REGION-ADDR.returns"></a><h4>Returns</h4>
 <p> The address of pixel (<em class="parameter"><code>X</code></em>
 ,<em class="parameter"><code>Y</code></em>
 ) in <em class="parameter"><code>R</code></em>
 .</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -1058,7 +1007,7 @@ is, the pixel at (<em class="parameter"><code>R-&gt;valid.left</code></em>
 ).</p>
 <p>See also: <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.9.8.24.6"></a><h4>Parameters</h4>
+<a name="VIPS-REGION-ADDR-TOPLEFT.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1073,9 +1022,8 @@ is, the pixel at (<em class="parameter"><code>R-&gt;valid.left</code></em>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.9.8.24.7"></a><h4>Returns</h4>
+<a name="VIPS-REGION-ADDR-TOPLEFT.returns"></a><h4>Returns</h4>
 <p> The address of the top-left pixel in the region.</p>
-<p></p>
 </div>
 </div>
 </div>
@@ -1089,8 +1037,7 @@ is, the pixel at (<em class="parameter"><code>R-&gt;valid.left</code></em>
 </div>
 </div>
 <div class="footer">
-<hr>
-          Generated by GTK-Doc V1.21</div>
+<hr>Generated by GTK-Doc V1.25</div>
 </section>
 
     <script type="text/javascript">

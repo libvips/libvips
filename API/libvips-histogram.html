@@ -221,7 +221,7 @@ the output will have the same number of bands as <em class="parameter"><code>lut
 .</p>
 <p>See also: <a class="link" href="libvips-arithmetic.html#vips-hist-find" title="vips_hist_find ()"><code class="function">vips_hist_find()</code></a>, <a class="link" href="libvips-create.html#vips-identity" title="vips_identity ()"><code class="function">vips_identity()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.8.7.2.12"></a><h4>Parameters</h4>
+<a name="vips-maplut.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -246,16 +246,15 @@ the output will have the same number of bands as <em class="parameter"><code>lut
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.8.7.2.13"></a><h4>Returns</h4>
+<a name="vips-maplut.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -278,7 +277,7 @@ will correspond to 10% of all pels of the image.</p>
 to threshold the scaled result of a filtering operation.</p>
 <p>See also: <a class="link" href="libvips-arithmetic.html#vips-hist-find" title="vips_hist_find ()"><code class="function">vips_hist_find()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-profile" title="vips_profile ()"><code class="function">vips_profile()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.8.7.3.7"></a><h4>Parameters</h4>
+<a name="vips-percent.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -303,16 +302,15 @@ to threshold the scaled result of a filtering operation.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.8.7.3.8"></a><h4>Returns</h4>
+<a name="vips-percent.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -347,8 +345,8 @@ enhancing low-contrast images with lots of detail, such as X-ray plates.</p>
       <tr>
         <td class="listing_lines" align="right"><pre>1
 2</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="function">vout</span><span class="symbol">(</span><span class="normal">i</span><span class="symbol">,</span><span class="normal">j</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> @a </span><span class="symbol">*</span><span class="normal"> @m0 </span><span class="symbol">+</span><span class="normal"> </span><span class="symbol">(</span><span class="number">1</span><span class="normal"> </span><span class="symbol">-</span><span class="normal"> @a</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">*</span><span class="normal"> meanv </span><span class="symbol">+</span><span class="normal"> </span>
-<span class="normal">      </span><span class="symbol">(</span><span class="function">vin</span><span class="symbol">(</span><span class="normal">i</span><span class="symbol">,</span><span class="normal">j</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">-</span><span class="normal"> meanv</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">*</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">@b </span><span class="symbol">*</span><span class="normal"> @s0</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">/</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">@s0 </span><span class="symbol">+</span><span class="normal"> @b </span><span class="symbol">*</span><span class="normal"> stdv</span><span class="symbol">)</span></pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="function">vout</span><span class="gtkdoc opt">(</span>i<span class="gtkdoc opt">,</span>j<span class="gtkdoc opt">) =</span> @a <span class="gtkdoc opt">*</span> @m0 <span class="gtkdoc opt">+ (</span><span class="number">1</span> <span class="gtkdoc opt">-</span> @a<span class="gtkdoc opt">) *</span> meanv <span class="gtkdoc opt">+</span> 
+      <span class="gtkdoc opt">(</span><span class="function">vin</span><span class="gtkdoc opt">(</span>i<span class="gtkdoc opt">,</span>j<span class="gtkdoc opt">) -</span> meanv<span class="gtkdoc opt">) * (</span>@b <span class="gtkdoc opt">*</span> @s0<span class="gtkdoc opt">) / (</span>@s0 <span class="gtkdoc opt">+</span> @b <span class="gtkdoc opt">*</span> stdv<span class="gtkdoc opt">)</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -375,7 +373,7 @@ standard deviation, <em class="parameter"><code>b</code></em>
     <tbody>
       <tr>
         <td class="listing_lines" align="right"><pre>1</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="usertype">vips</span><span class="normal"> stdif $VIPSHOME</span><span class="symbol">/</span><span class="normal">pics</span><span class="symbol">/</span><span class="normal">huysum</span><span class="symbol">.</span><span class="usertype">v</span><span class="normal"> fred</span><span class="symbol">.</span><span class="normal">v </span><span class="number">0.5</span><span class="normal"> </span><span class="number">128</span><span class="normal"> </span><span class="number">0.5</span><span class="normal"> </span><span class="number">50</span><span class="normal"> </span><span class="number">11</span><span class="normal"> </span><span class="number">11</span></pre></td>
+        <td class="listing_code"><pre class="programlisting">vips stdif $VIPSHOME<span class="gtkdoc opt">/</span>pics<span class="gtkdoc opt">/</span>huysum<span class="gtkdoc opt">.</span>v fred<span class="gtkdoc opt">.</span>v <span class="number">0.5 128 0.5 50 11 11</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -387,7 +385,7 @@ uchar image as its result. The output image has the same size as the
 input.</p>
 <p>See also: <a class="link" href="libvips-histogram.html#vips-hist-local" title="vips_hist_local ()"><code class="function">vips_hist_local()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.8.7.4.16"></a><h4>Parameters</h4>
+<a name="vips-stdif.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -417,16 +415,15 @@ input.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.8.7.4.17"></a><h4>Returns</h4>
+<a name="vips-stdif.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -439,7 +436,7 @@ vips_hist_cum (<em class="parameter"><code><a class="link" href="VipsImage.html"
 <p>Form cumulative histogram. </p>
 <p>See also: <a class="link" href="libvips-histogram.html#vips-hist-norm" title="vips_hist_norm ()"><code class="function">vips_hist_norm()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.8.7.5.6"></a><h4>Parameters</h4>
+<a name="vips-hist-cum.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -459,16 +456,15 @@ vips_hist_cum (<em class="parameter"><code><a class="link" href="VipsImage.html"
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.8.7.5.7"></a><h4>Returns</h4>
+<a name="vips-hist-cum.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -482,7 +478,7 @@ vips_hist_norm (<em class="parameter"><code><a class="link" href="VipsImage.html
 number of elements). Normalise each band separately.</p>
 <p>See also: <a class="link" href="libvips-histogram.html#vips-hist-cum" title="vips_hist_cum ()"><code class="function">vips_hist_cum()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.8.7.6.6"></a><h4>Parameters</h4>
+<a name="vips-hist-norm.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -502,16 +498,15 @@ number of elements). Normalise each band separately.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.8.7.6.7"></a><h4>Returns</h4>
+<a name="vips-hist-norm.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -531,7 +526,7 @@ vips_hist_equal (<em class="parameter"><code><a class="link" href="VipsImage.htm
 equalise bands independently.</p>
 <p>See also:</p>
 <div class="refsect3">
-<a name="id-1.4.8.7.7.8"></a><h4>Parameters</h4>
+<a name="vips-hist-equal.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -551,16 +546,15 @@ equalise bands independently.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.8.7.7.9"></a><h4>Returns</h4>
+<a name="vips-hist-equal.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -580,7 +574,7 @@ value of <em class="parameter"><code>in</code></em>
 <p><span class="emphasis"><em>float types</em></span> min moved to 0, max moved to any 
 (square output)</p>
 <div class="refsect3">
-<a name="id-1.4.8.7.8.9"></a><h4>Parameters</h4>
+<a name="vips-hist-plot.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -600,16 +594,15 @@ value of <em class="parameter"><code>in</code></em>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.8.7.8.10"></a><h4>Returns</h4>
+<a name="vips-hist-plot.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -633,7 +626,7 @@ from which <em class="parameter"><code>in</code></em>
 <p>See also: <a class="link" href="libvips-histogram.html#vips-maplut" title="vips_maplut ()"><code class="function">vips_maplut()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-hist-find" title="vips_hist_find ()"><code class="function">vips_hist_find()</code></a>, <a class="link" href="libvips-histogram.html#vips-hist-norm" title="vips_hist_norm ()"><code class="function">vips_hist_norm()</code></a>,
 <a class="link" href="libvips-histogram.html#vips-hist-cum" title="vips_hist_cum ()"><code class="function">vips_hist_cum()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.8.7.9.6"></a><h4>Parameters</h4>
+<a name="vips-hist-match.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -658,16 +651,15 @@ from which <em class="parameter"><code>in</code></em>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.8.7.9.7"></a><h4>Returns</h4>
+<a name="vips-hist-match.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -696,7 +688,7 @@ performed. A value of 3 is often used. Local histogram equalization with
 contrast limiting is usually called CLAHE.</p>
 <p>See also: <a class="link" href="libvips-histogram.html#vips-hist-equal" title="vips_hist_equal ()"><code class="function">vips_hist_equal()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.8.7.10.10"></a><h4>Parameters</h4>
+<a name="vips-hist-local.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -726,16 +718,15 @@ contrast limiting is usually called CLAHE.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.8.7.10.11"></a><h4>Returns</h4>
+<a name="vips-hist-local.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -743,14 +734,14 @@ contrast limiting is usually called CLAHE.</p>
 <a name="vips-hist-ismonotonic"></a><h3>vips_hist_ismonotonic ()</h3>
 <pre class="programlisting"><span class="returnvalue">int</span>
 vips_hist_ismonotonic (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
-                       <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> *out</code></em>,
+                       <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> *out</code></em>,
                        <em class="parameter"><code>...</code></em>);</pre>
 <p>Test <em class="parameter"><code>in</code></em>
  for monotonicity. <em class="parameter"><code>out</code></em>
  is set non-zero if <em class="parameter"><code>in</code></em>
  is monotonic.</p>
 <div class="refsect3">
-<a name="id-1.4.8.7.11.5"></a><h4>Parameters</h4>
+<a name="vips-hist-ismonotonic.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -771,16 +762,15 @@ is monotonic </p></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.8.7.11.6"></a><h4>Returns</h4>
+<a name="vips-hist-ismonotonic.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -796,7 +786,7 @@ vips_hist_entropy (<em class="parameter"><code><a class="link" href="VipsImage.h
     <tbody>
       <tr>
         <td class="listing_lines" align="right"><pre>1</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="symbol">-</span><span class="function">sum</span><span class="symbol">(</span><span class="normal"> p </span><span class="symbol">*</span><span class="normal"> </span><span class="function">log2</span><span class="symbol">(</span><span class="normal"> p </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">)</span></pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="gtkdoc opt">-</span><span class="function">sum</span><span class="gtkdoc opt">(</span> p <span class="gtkdoc opt">*</span> <span class="function">log2</span><span class="gtkdoc opt">(</span> p <span class="gtkdoc opt">) )</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -805,7 +795,7 @@ vips_hist_entropy (<em class="parameter"><code><a class="link" href="VipsImage.h
 <p></p>
 <p>where p is histogram-value / sum-of-histogram-values.</p>
 <div class="refsect3">
-<a name="id-1.4.8.7.12.8"></a><h4>Parameters</h4>
+<a name="vips-hist-entropy.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -825,16 +815,15 @@ vips_hist_entropy (<em class="parameter"><code><a class="link" href="VipsImage.h
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.8.7.12.9"></a><h4>Returns</h4>
+<a name="vips-hist-entropy.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
-<p></p>
 </div>
 </div>
 </div>
@@ -847,8 +836,7 @@ vips_hist_entropy (<em class="parameter"><code><a class="link" href="VipsImage.h
 </div>
 </div>
 <div class="footer">
-<hr>
-          Generated by GTK-Doc V1.21</div>
+<hr>Generated by GTK-Doc V1.25</div>
 </section>
 
     <script type="text/javascript">

@@ -129,7 +129,7 @@ justifications.
 </div>
 <div class="refsect1">
 <a name="VipsThreadState.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="../gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="VipsObject.html" title="VipsObject">VipsObject</a>
         <span class="lineart">╰──</span> VipsThreadState
 </pre>
@@ -175,7 +175,7 @@ vips_thread_state_new (<em class="parameter"><code><a class="link" href="VipsIma
 <pre class="programlisting"><span class="returnvalue">int</span>
 <span class="c_punctuation">(</span>*VipsThreadpoolAllocateFn<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="VipsThreadState.html" title="VipsThreadState"><span class="type">VipsThreadState</span></a> *state</code></em>,
                              <em class="parameter"><code><span class="type">void</span> *a</code></em>,
-                             <em class="parameter"><code><a href="../glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> *stop</code></em>);</pre>
+                             <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> *stop</code></em>);</pre>
 <p>This function is called to allocate a new work unit for the thread. It is
 always single-threaded, so it can modify per-pool state (such as a
 counter). </p>
@@ -185,11 +185,11 @@ counter). </p>
  are the values supplied to the call to 
 <a class="link" href="VipsThreadState.html#vips-threadpool-run" title="vips_threadpool_run ()"><code class="function">vips_threadpool_run()</code></a>.</p>
 <p>It should set <em class="parameter"><code>stop</code></em>
- to <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to indicate that no work could be allocated
+ to <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to indicate that no work could be allocated
 because the job is done.</p>
 <p>See also: <a class="link" href="VipsThreadState.html#vips-threadpool-run" title="vips_threadpool_run ()"><code class="function">vips_threadpool_run()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.13.8.5.8"></a><h4>Parameters</h4>
+<a name="VipsThreadpoolAllocateFn.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -226,9 +226,8 @@ because the job is done.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.13.8.5.9"></a><h4>Returns</h4>
+<a name="VipsThreadpoolAllocateFn.returns"></a><h4>Returns</h4>
 <p> 0 on success, or -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -247,7 +246,7 @@ per-thread state.</p>
 <a class="link" href="VipsThreadState.html#vips-threadpool-run" title="vips_threadpool_run ()"><code class="function">vips_threadpool_run()</code></a>.</p>
 <p>See also: <a class="link" href="VipsThreadState.html#vips-threadpool-run" title="vips_threadpool_run ()"><code class="function">vips_threadpool_run()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.13.8.6.7"></a><h4>Parameters</h4>
+<a name="VipsThreadpoolWorkFn.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -279,9 +278,8 @@ per-thread state.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.13.8.6.8"></a><h4>Returns</h4>
+<a name="VipsThreadpoolWorkFn.returns"></a><h4>Returns</h4>
 <p> 0 on success, or -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -293,7 +291,7 @@ per-thread state.</p>
 processed. It can be used to give the user progress feedback.</p>
 <p>See also: <a class="link" href="VipsThreadState.html#vips-threadpool-run" title="vips_threadpool_run ()"><code class="function">vips_threadpool_run()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.13.8.7.6"></a><h4>Parameters</h4>
+<a name="VipsThreadpoolProgressFn.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -320,9 +318,8 @@ processed. It can be used to give the user progress feedback.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.13.8.7.7"></a><h4>Returns</h4>
+<a name="VipsThreadpoolProgressFn.returns"></a><h4>Returns</h4>
 <p> 0 on success, or -1 on error</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -345,7 +342,7 @@ example), then <em class="parameter"><code>work</code></em>
 processed, <em class="parameter"><code>progress</code></em>
  is called, so that the operation can give
 progress feedback. <em class="parameter"><code>progress</code></em>
- may be <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</p>
+ may be <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</p>
 <p>The object returned by <em class="parameter"><code>start</code></em>
  must be an instance of a subclass of
 <a class="link" href="VipsThreadState.html" title="VipsThreadState"><span class="type">VipsThreadState</span></a>. Use this to communicate between <em class="parameter"><code>allocate</code></em>
@@ -361,7 +358,7 @@ always called by
 the main thread (ie. the thread which called <a class="link" href="VipsThreadState.html#vips-threadpool-run" title="vips_threadpool_run ()"><code class="function">vips_threadpool_run()</code></a>).</p>
 <p>See also: <a class="link" href="VipsOperation.html#vips-concurrency-set" title="vips_concurrency_set ()"><code class="function">vips_concurrency_set()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.13.8.8.8"></a><h4>Parameters</h4>
+<a name="vips-threadpool-run.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -391,7 +388,7 @@ the main thread (ie. the thread which called <a class="link" href="VipsThreadSta
 </tr>
 <tr>
 <td class="parameter_name"><p>progress</p></td>
-<td class="parameter_description"><p>give progress feedback about a work unit, or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a></p></td>
+<td class="parameter_description"><p>give progress feedback about a work unit, or <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a></p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 <tr>
@@ -403,9 +400,8 @@ the main thread (ie. the thread which called <a class="link" href="VipsThreadSta
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.13.8.8.9"></a><h4>Returns</h4>
+<a name="vips-threadpool-run.returns"></a><h4>Returns</h4>
 <p> 0 on success, or -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -420,7 +416,7 @@ vips_get_tile_size (<em class="parameter"><code><a class="link" href="VipsImage.
 value of <a class="link" href="VipsOperation.html#vips-concurrency-get" title="vips_concurrency_get ()"><code class="function">vips_concurrency_get()</code></a>. The buffer height 
 will always be a multiple of tile_height.</p>
 <div class="refsect3">
-<a name="id-1.3.13.8.9.5"></a><h4>Parameters</h4>
+<a name="vips-get-tile-size.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -462,8 +458,7 @@ will always be a multiple of tile_height.</p>
 </div>
 </div>
 <div class="footer">
-<hr>
-          Generated by GTK-Doc V1.21</div>
+<hr>Generated by GTK-Doc V1.25</div>
 </section>
 
     <script type="text/javascript">

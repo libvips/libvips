@@ -57,7 +57,7 @@
       you included. 
     </p>
 <p>
-      You can add the VIPS flags to your <a href="../gobject/gobject-The-Base-Object-Type.html#GObject"><code class="literal">GObject</code></a> command-line processing
+      You can add the VIPS flags to your <a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#GObject-struct"><code class="literal">GObject</code></a> command-line processing
       with <a class="link" href="libvips-vips.html#vips-add-option-entries" title="vips_add_option_entries ()"><code class="function">vips_add_option_entries()</code></a>.
     </p>
 </div>
@@ -75,7 +75,7 @@
 <p>
       Once you have an image, you can get properties from it in the usual way. 
       You can use projection functions, like <a class="link" href="libvips-header.html#vips-image-get-width" title="vips_image_get_width ()"><code class="function">vips_image_get_width()</code></a> or 
-      <a href="../gobject/gobject-The-Base-Object-Type.html#g-object-get"><code class="function">g_object_get()</code></a>, to get <a href="../gobject/gobject-The-Base-Object-Type.html#GObject"><code class="literal">GObject</code></a> properties. All VIPS objects are
+      <a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#g-object-get"><code class="function">g_object_get()</code></a>, to get <a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#GObject-struct"><code class="literal">GObject</code></a> properties. All VIPS objects are
       immutable, meaning you can only get properties, you can't set them.
       See <a class="link" href="libvips-header.html" title="header">VIPS Header</a> to read about 
       image properties.
@@ -84,9 +84,9 @@
 <div class="refsect3">
 <a name="using-C-ref"></a><h4>Reference counting</h4>
 <p>
-      VIPS is based on the <a href="../gobject/gobject-The-Base-Object-Type.html#GObject"><code class="literal">GObject</code></a> library and is therefore reference counted. 
+      VIPS is based on the <a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#GObject-struct"><code class="literal">GObject</code></a> library and is therefore reference counted. 
       <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a> returns an object with a count of 1. 
-      When you are done with an image, use <a href="../gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> to dispose of it. 
+      When you are done with an image, use <a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> to dispose of it. 
       If you pass an image to an operation and that operation needs to keep a 
       copy of the image, it will ref it. So you can unref an image as soon as 
       you no longer need it, you don't need to hang on to it in case anyone 
@@ -253,44 +253,44 @@ operation flags: sequential-unbuffered
 <span class="comment"> *      gcc -g -Wall try211.c `pkg-config vips --cflags --libs`</span>
 <span class="comment"> */</span>
 
-<span class="preproc">#include</span><span class="normal"> </span><span class="string">&lt;stdio.h&gt;</span>
-<span class="preproc">#include</span><span class="normal"> </span><span class="string">&lt;vips/vips.h&gt;</span>
+<span class="gtkdoc ppc">#include &lt;stdio.h&gt;</span>
+<span class="gtkdoc ppc">#include &lt;vips/vips.h&gt;</span>
 
-<span class="type">int</span>
-<span class="function">main</span><span class="symbol">(</span><span class="normal"> </span><span class="type">int</span><span class="normal"> argc</span><span class="symbol">,</span><span class="normal"> </span><span class="type">char</span><span class="normal"> </span><span class="symbol">**</span><span class="normal">argv </span><span class="symbol">)</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="usertype">VipsImage</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">in</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="type">double</span><span class="normal"> mean</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="usertype">VipsImage</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">out</span><span class="symbol">;</span>
+<span class="gtkdoc kwb">int</span>
+<span class="function">main</span><span class="gtkdoc opt">(</span> <span class="gtkdoc kwb">int</span> argc<span class="gtkdoc opt">,</span> <span class="gtkdoc kwb">char</span> <span class="gtkdoc opt">**</span>argv <span class="gtkdoc opt">)</span>
+<span class="gtkdoc opt">{</span>
+  VipsImage <span class="gtkdoc opt">*</span>in<span class="gtkdoc opt">;</span>
+  <span class="gtkdoc kwb">double</span> mean<span class="gtkdoc opt">;</span>
+  VipsImage <span class="gtkdoc opt">*</span>out<span class="gtkdoc opt">;</span>
 
-<span class="normal">  </span><span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="function"><a href="libvips-vips.html#VIPS-INIT:CAPS">VIPS_INIT</a></span><span class="symbol">(</span><span class="normal"> argv</span><span class="symbol">[</span><span class="number">0</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">)</span>
-<span class="normal">    </span><span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="symbol">(</span><span class="normal"> <a href="../glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a> </span><span class="symbol">);</span><span class="normal"> </span>
+  <span class="keyword">if</span><span class="gtkdoc opt">(</span> <span class="function"><a href="libvips-vips.html#VIPS-INIT:CAPS">VIPS_INIT</a></span><span class="gtkdoc opt">(</span> argv<span class="gtkdoc opt">[</span><span class="number">0</span><span class="gtkdoc opt">] ) )</span>
+    <span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="gtkdoc opt">(</span> NULL <span class="gtkdoc opt">);</span> 
 
-<span class="normal">  </span><span class="keyword">if</span><span class="symbol">(</span><span class="normal"> argc </span><span class="symbol">!=</span><span class="normal"> </span><span class="number">3</span><span class="normal"> </span><span class="symbol">)</span>
-<span class="normal">    </span><span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="symbol">(</span><span class="normal"> </span><span class="string">"usage: %s infile outfile"</span><span class="symbol">,</span><span class="normal"> argv</span><span class="symbol">[</span><span class="number">0</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">);</span><span class="normal"> </span>
-<span class="normal">  </span>
-<span class="normal">  </span><span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="symbol">!(</span><span class="normal">in </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="VipsImage.html#vips-image-new-from-file">vips_image_new_from_file</a></span><span class="symbol">(</span><span class="normal"> argv</span><span class="symbol">[</span><span class="number">1</span><span class="symbol">],</span><span class="normal"> <a href="../glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a> </span><span class="symbol">))</span><span class="normal"> </span><span class="symbol">)</span>
-<span class="normal">    </span><span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="symbol">(</span><span class="normal"> <a href="../glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a> </span><span class="symbol">);</span>
+  <span class="keyword">if</span><span class="gtkdoc opt">(</span> argc <span class="gtkdoc opt">!=</span> <span class="number">3</span> <span class="gtkdoc opt">)</span>
+    <span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="gtkdoc opt">(</span> <span class="string">"usage: %s infile outfile"</span><span class="gtkdoc opt">,</span> argv<span class="gtkdoc opt">[</span><span class="number">0</span><span class="gtkdoc opt">] );</span> 
+  
+  <span class="keyword">if</span><span class="gtkdoc opt">( !(</span>in <span class="gtkdoc opt">=</span> <span class="function"><a href="VipsImage.html#vips-image-new-from-file">vips_image_new_from_file</a></span><span class="gtkdoc opt">(</span> argv<span class="gtkdoc opt">[</span><span class="number">1</span><span class="gtkdoc opt">],</span> NULL <span class="gtkdoc opt">)) )</span>
+    <span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="gtkdoc opt">(</span> NULL <span class="gtkdoc opt">);</span>
 
-<span class="normal">  </span><span class="function">printf</span><span class="symbol">(</span><span class="normal"> </span><span class="string">"image width = %d</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="libvips-header.html#vips-image-get-width">vips_image_get_width</a></span><span class="symbol">(</span><span class="normal"> in </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">);</span><span class="normal"> </span>
+  <span class="function">printf</span><span class="gtkdoc opt">(</span> <span class="string">"image width = %d</span><span class="gtkdoc esc">\n</span><span class="string">"</span><span class="gtkdoc opt">,</span> <span class="function"><a href="libvips-header.html#vips-image-get-width">vips_image_get_width</a></span><span class="gtkdoc opt">(</span> in <span class="gtkdoc opt">) );</span> 
 
-<span class="normal">  </span><span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="function"><a href="libvips-arithmetic.html#vips-avg">vips_avg</a></span><span class="symbol">(</span><span class="normal"> in</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">mean</span><span class="symbol">,</span><span class="normal"> <a href="../glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a> </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">)</span>
-<span class="normal">    </span><span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="symbol">(</span><span class="normal"> <a href="../glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a> </span><span class="symbol">);</span>
+  <span class="keyword">if</span><span class="gtkdoc opt">(</span> <span class="function"><a href="libvips-arithmetic.html#vips-avg">vips_avg</a></span><span class="gtkdoc opt">(</span> in<span class="gtkdoc opt">, &amp;</span>mean<span class="gtkdoc opt">,</span> NULL <span class="gtkdoc opt">) )</span>
+    <span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="gtkdoc opt">(</span> NULL <span class="gtkdoc opt">);</span>
 
-<span class="normal">  </span><span class="function">printf</span><span class="symbol">(</span><span class="normal"> </span><span class="string">"mean pixel value = %g</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> mean </span><span class="symbol">);</span><span class="normal"> </span>
+  <span class="function">printf</span><span class="gtkdoc opt">(</span> <span class="string">"mean pixel value = %g</span><span class="gtkdoc esc">\n</span><span class="string">"</span><span class="gtkdoc opt">,</span> mean <span class="gtkdoc opt">);</span> 
 
-<span class="normal">  </span><span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="function"><a href="libvips-arithmetic.html#vips-invert">vips_invert</a></span><span class="symbol">(</span><span class="normal"> in</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">out</span><span class="symbol">,</span><span class="normal"> <a href="../glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a> </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">)</span>
-<span class="normal">    </span><span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="symbol">(</span><span class="normal"> <a href="../glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a> </span><span class="symbol">);</span>
+  <span class="keyword">if</span><span class="gtkdoc opt">(</span> <span class="function"><a href="libvips-arithmetic.html#vips-invert">vips_invert</a></span><span class="gtkdoc opt">(</span> in<span class="gtkdoc opt">, &amp;</span>out<span class="gtkdoc opt">,</span> NULL <span class="gtkdoc opt">) )</span>
+    <span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="gtkdoc opt">(</span> NULL <span class="gtkdoc opt">);</span>
 
-<span class="normal">  </span><span class="function"><a href="../gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="symbol">(</span><span class="normal"> in </span><span class="symbol">);</span><span class="normal"> </span>
+  <span class="function"><a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="gtkdoc opt">(</span> in <span class="gtkdoc opt">);</span> 
 
-<span class="normal">  </span><span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="function"><a href="VipsImage.html#vips-image-write-to-file">vips_image_write_to_file</a></span><span class="symbol">(</span><span class="normal"> out</span><span class="symbol">,</span><span class="normal"> argv</span><span class="symbol">[</span><span class="number">2</span><span class="symbol">],</span><span class="normal"> <a href="../glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a> </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">)</span>
-<span class="normal">    </span><span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="symbol">(</span><span class="normal"> <a href="../glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a> </span><span class="symbol">);</span>
+  <span class="keyword">if</span><span class="gtkdoc opt">(</span> <span class="function"><a href="VipsImage.html#vips-image-write-to-file">vips_image_write_to_file</a></span><span class="gtkdoc opt">(</span> out<span class="gtkdoc opt">,</span> argv<span class="gtkdoc opt">[</span><span class="number">2</span><span class="gtkdoc opt">],</span> NULL <span class="gtkdoc opt">) )</span>
+    <span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="gtkdoc opt">(</span> NULL <span class="gtkdoc opt">);</span>
 
-<span class="normal">  </span><span class="function"><a href="../gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="symbol">(</span><span class="normal"> out </span><span class="symbol">);</span><span class="normal"> </span>
+  <span class="function"><a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="gtkdoc opt">(</span> out <span class="gtkdoc opt">);</span> 
 
-<span class="normal">  </span><span class="keyword">return</span><span class="symbol">(</span><span class="normal"> </span><span class="number">0</span><span class="normal"> </span><span class="symbol">);</span>
-<span class="cbracket">}</span></pre></td>
+  <span class="keyword">return</span><span class="gtkdoc opt">(</span> <span class="number">0</span> <span class="gtkdoc opt">);</span>
+<span class="gtkdoc opt">}</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -301,8 +301,7 @@ operation flags: sequential-unbuffered
 </div>
 </div>
 <div class="footer">
-<hr>
-          Generated by GTK-Doc V1.21</div>
+<hr>Generated by GTK-Doc V1.25</div>
 </section>
 
     <script type="text/javascript">

@@ -70,7 +70,7 @@
 <div class="refsect3">
 <a name="using-threads-errors"></a><h4>Error handling</h4>
 <p>
-      libvips has a single error code (-1 or <a href="../glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>) returned by all functions 
+      libvips has a single error code (-1 or <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>) returned by all functions 
       on error. Error messages are not returned, instead they are logged  
       in a single global error buffer shared by all threads, see 
       <a class="link" href="libvips-error.html#vips-error-buffer" title="vips_error_buffer ()"><code class="function">vips_error_buffer()</code></a>. 
@@ -246,122 +246,122 @@
 <span class="comment"> *</span>
 <span class="comment"> * Compile with:</span>
 <span class="comment"> *</span>
-<span class="comment"> *  gcc -g -Wall soak.c `pkg-config vips --cflags --libs`</span>
+<span class="comment"> * 	gcc -g -Wall soak.c `pkg-config vips --cflags --libs`</span>
 <span class="comment"> *</span>
 <span class="comment"> * Run with:</span>
 <span class="comment"> *</span>
-<span class="comment"> *  rm -rf x</span>
-<span class="comment"> *  mkdir x</span>
-<span class="comment"> *  for i in {0..10}; do ./a.out ~/pics/k2.jpg; done</span>
+<span class="comment"> * 	rm -rf x</span>
+<span class="comment"> * 	mkdir x</span>
+<span class="comment"> * 	for i in {0..10}; do ./a.out ~/pics/k2.jpg; done</span>
 <span class="comment"> *</span>
 <span class="comment"> */</span>
 
-<span class="preproc">#include</span><span class="normal"> </span><span class="string">&lt;stdio.h&gt;</span>
-<span class="preproc">#include</span><span class="normal"> </span><span class="string">&lt;glib.h&gt;</span>
+<span class="gtkdoc ppc">#include &lt;stdio.h&gt;</span>
+<span class="gtkdoc ppc">#include &lt;glib.h&gt;</span>
 
-<span class="preproc">#include</span><span class="normal"> </span><span class="string">&lt;vips/vips.h&gt;</span>
+<span class="gtkdoc ppc">#include &lt;vips/vips.h&gt;</span>
 
 <span class="comment">/* How many pings we run at once.</span>
 <span class="comment"> */</span>
-<span class="preproc">#define</span><span class="normal"> </span><span class="function">NUM_IN_PARALLEL</span><span class="normal"> </span><span class="symbol">(</span><span class="number">50</span><span class="symbol">)</span>
+<span class="gtkdoc ppc">#define NUM_IN_PARALLEL (50)</span>
 
 <span class="comment">/* Number of tests we do in total.</span>
 <span class="comment"> */</span>
-<span class="preproc">#define</span><span class="normal"> </span><span class="function">TOTAL_TESTS</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">NUM_IN_PARALLEL </span><span class="symbol">*</span><span class="normal"> </span><span class="number">20</span><span class="symbol">)</span>
+<span class="gtkdoc ppc">#define TOTAL_TESTS (NUM_IN_PARALLEL * 20)</span>
 
 <span class="comment">/* Workers queue up on this.</span>
 <span class="comment"> */</span>
-<span class="usertype">GMutex</span><span class="normal"> allocation_lock</span><span class="symbol">;</span>
+GMutex allocation_lock<span class="gtkdoc opt">;</span>
 
 <span class="comment">/* Our set of threads.</span>
 <span class="comment"> */</span>
-<span class="usertype">GThread</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">workers</span><span class="symbol">[</span><span class="normal">NUM_IN_PARALLEL</span><span class="symbol">];</span>
+GThread <span class="gtkdoc opt">*</span>workers<span class="gtkdoc opt">[</span>NUM_IN_PARALLEL<span class="gtkdoc opt">];</span>
 
 <span class="comment">/* Number of calls so far.</span>
 <span class="comment"> */</span>
-<span class="type">int</span><span class="normal"> n_calls </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span>
+<span class="gtkdoc kwb">int</span> n_calls <span class="gtkdoc opt">=</span> <span class="number">0</span><span class="gtkdoc opt">;</span>
 
 <span class="comment">/* Our test function. This is called by NUM_IN_PARALLEL threads a total of</span>
 <span class="comment"> * TOTAL_TESTS times. </span>
 <span class="comment"> */</span>
-<span class="keyword">static</span><span class="normal"> </span><span class="type">int</span>
-<span class="function">test</span><span class="normal"> </span><span class="symbol">(</span><span class="keyword">const</span><span class="normal"> </span><span class="type">char</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">filename</span><span class="symbol">)</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="usertype">VipsImage</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">im</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">x</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="type">char</span><span class="normal"> output_file</span><span class="symbol">[</span><span class="number">256</span><span class="symbol">];</span>
+<span class="gtkdoc kwb">static int</span>
+<span class="function">test</span> <span class="gtkdoc opt">(</span><span class="gtkdoc kwb">const char</span> <span class="gtkdoc opt">*</span>filename<span class="gtkdoc opt">)</span>
+<span class="gtkdoc opt">{</span>
+  VipsImage <span class="gtkdoc opt">*</span>im<span class="gtkdoc opt">, *</span>x<span class="gtkdoc opt">;</span>
+  <span class="gtkdoc kwb">char</span> output_file<span class="gtkdoc opt">[</span><span class="number">256</span><span class="gtkdoc opt">];</span>
 
-<span class="normal">  </span><span class="function">snprintf</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">output_file</span><span class="symbol">,</span><span class="normal"> </span><span class="number">256</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"x/tmp-%p.jpg"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="../glib/glib-Threads.html#g-thread-self">g_thread_self</a></span><span class="normal"> </span><span class="symbol">());</span>
+  <span class="function">snprintf</span> <span class="gtkdoc opt">(</span>output_file<span class="gtkdoc opt">,</span> <span class="number">256</span><span class="gtkdoc opt">,</span> <span class="string">"x/tmp-%p.jpg"</span><span class="gtkdoc opt">,</span> <span class="function"><a href="/usr/share/gtk-doc/html/glibglib-Threads.html#g-thread-self">g_thread_self</a></span> <span class="gtkdoc opt">());</span>
 
-<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(!(</span><span class="normal">im </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="VipsImage.html#vips-image-new-from-file">vips_image_new_from_file</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">,</span>
-<span class="normal">                       </span><span class="string">"access"</span><span class="symbol">,</span>
-<span class="normal">                       VIPS_ACCESS_SEQUENTIAL_UNBUFFERED</span><span class="symbol">,</span>
-<span class="normal">                       <a href="../glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">)))</span>
-<span class="normal">    </span><span class="keyword">return</span><span class="normal"> </span><span class="symbol">(-</span><span class="number">1</span><span class="symbol">);</span>
+  <span class="keyword">if</span> <span class="gtkdoc opt">(!(</span>im <span class="gtkdoc opt">=</span> <span class="function"><a href="VipsImage.html#vips-image-new-from-file">vips_image_new_from_file</a></span> <span class="gtkdoc opt">(</span>filename<span class="gtkdoc opt">,</span>
+				       <span class="string">"access"</span><span class="gtkdoc opt">,</span>
+				       VIPS_ACCESS_SEQUENTIAL_UNBUFFERED<span class="gtkdoc opt">,</span>
+				       NULL<span class="gtkdoc opt">)))</span>
+    <span class="keyword">return</span> <span class="gtkdoc opt">(-</span><span class="number">1</span><span class="gtkdoc opt">);</span>
 
-<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="libvips-resample.html#vips-resize">vips_resize</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">im</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">x</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0.1</span><span class="symbol">,</span><span class="normal"> <a href="../glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">))</span>
-<span class="normal">    </span><span class="cbracket">{</span>
-<span class="normal">      </span><span class="function"><a href="../gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">im</span><span class="symbol">);</span>
-<span class="normal">      </span><span class="keyword">return</span><span class="normal"> </span><span class="symbol">(-</span><span class="number">1</span><span class="symbol">);</span>
-<span class="normal">    </span><span class="cbracket">}</span>
-<span class="normal">  </span><span class="function"><a href="../gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">im</span><span class="symbol">);</span>
-<span class="normal">  im </span><span class="symbol">=</span><span class="normal"> x</span><span class="symbol">;</span>
+  <span class="keyword">if</span> <span class="gtkdoc opt">(</span><span class="function"><a href="libvips-resample.html#vips-resize">vips_resize</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">, &amp;</span>x<span class="gtkdoc opt">,</span> <span class="number">0.1</span><span class="gtkdoc opt">,</span> NULL<span class="gtkdoc opt">))</span>
+    <span class="gtkdoc opt">{</span>
+      <span class="function"><a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
+      <span class="keyword">return</span> <span class="gtkdoc opt">(-</span><span class="number">1</span><span class="gtkdoc opt">);</span>
+    <span class="gtkdoc opt">}</span>
+  <span class="function"><a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
+  im <span class="gtkdoc opt">=</span> x<span class="gtkdoc opt">;</span>
 
-<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="VipsImage.html#vips-image-write-to-file">vips_image_write_to_file</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">im</span><span class="symbol">,</span><span class="normal"> output_file</span><span class="symbol">,</span><span class="normal"> <a href="../glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">))</span>
-<span class="normal">    </span><span class="cbracket">{</span>
-<span class="normal">      </span><span class="function"><a href="../gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">im</span><span class="symbol">);</span>
-<span class="normal">      </span><span class="keyword">return</span><span class="normal"> </span><span class="symbol">(-</span><span class="number">1</span><span class="symbol">);</span>
-<span class="normal">    </span><span class="cbracket">}</span>
-<span class="normal">  </span><span class="function"><a href="../gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">im</span><span class="symbol">);</span>
+  <span class="keyword">if</span> <span class="gtkdoc opt">(</span><span class="function"><a href="VipsImage.html#vips-image-write-to-file">vips_image_write_to_file</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">,</span> output_file<span class="gtkdoc opt">,</span> NULL<span class="gtkdoc opt">))</span>
+    <span class="gtkdoc opt">{</span>
+      <span class="function"><a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
+      <span class="keyword">return</span> <span class="gtkdoc opt">(-</span><span class="number">1</span><span class="gtkdoc opt">);</span>
+    <span class="gtkdoc opt">}</span>
+  <span class="function"><a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
 
-<span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="symbol">(</span><span class="number">0</span><span class="symbol">);</span>
-<span class="cbracket">}</span>
+  <span class="keyword">return</span> <span class="gtkdoc opt">(</span><span class="number">0</span><span class="gtkdoc opt">);</span>
+<span class="gtkdoc opt">}</span>
 
 <span class="comment">/* What we run as a thread.</span>
 <span class="comment"> */</span>
-<span class="keyword">static</span><span class="normal"> </span><span class="type">void</span><span class="normal"> </span><span class="symbol">*</span>
-<span class="function">worker</span><span class="normal"> </span><span class="symbol">(</span><span class="type">void</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">data</span><span class="symbol">)</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="keyword">const</span><span class="normal"> </span><span class="type">char</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">filename </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="keyword">const</span><span class="normal"> </span><span class="type">char</span><span class="normal"> </span><span class="symbol">*)</span><span class="normal"> data</span><span class="symbol">;</span>
+<span class="gtkdoc kwb">static void</span> <span class="gtkdoc opt">*</span>
+<span class="function">worker</span> <span class="gtkdoc opt">(</span><span class="gtkdoc kwb">void</span> <span class="gtkdoc opt">*</span>data<span class="gtkdoc opt">)</span>
+<span class="gtkdoc opt">{</span>
+  <span class="gtkdoc kwb">const char</span> <span class="gtkdoc opt">*</span>filename <span class="gtkdoc opt">= (</span><span class="gtkdoc kwb">const char</span> <span class="gtkdoc opt">*)</span> data<span class="gtkdoc opt">;</span>
 
-<span class="normal">  </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(;;)</span>
-<span class="normal">    </span><span class="cbracket">{</span>
-<span class="normal">      </span><span class="usertype">gboolean</span><span class="normal"> done</span><span class="symbol">;</span>
+  <span class="keyword">for</span> <span class="gtkdoc opt">(;;)</span>
+    <span class="gtkdoc opt">{</span>
+      gboolean done<span class="gtkdoc opt">;</span>
 
-<span class="normal">      done </span><span class="symbol">=</span><span class="normal"> <a href="../glib/glib-Standard-Macros.html#FALSE:CAPS">FALSE</a></span><span class="symbol">;</span>
-<span class="normal">      </span><span class="function"><a href="../glib/glib-Threads.html#g-mutex-lock">g_mutex_lock</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">allocation_lock</span><span class="symbol">);</span>
-<span class="normal">      n_calls </span><span class="symbol">+=</span><span class="normal"> </span><span class="number">1</span><span class="symbol">;</span>
-<span class="normal">      </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">n_calls </span><span class="symbol">&gt;</span><span class="normal"> TOTAL_TESTS</span><span class="symbol">)</span>
-<span class="normal">    done </span><span class="symbol">=</span><span class="normal"> <a href="../glib/glib-Standard-Macros.html#TRUE:CAPS">TRUE</a></span><span class="symbol">;</span>
-<span class="normal">      </span><span class="function"><a href="../glib/glib-Threads.html#g-mutex-unlock">g_mutex_unlock</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">allocation_lock</span><span class="symbol">);</span>
+      done <span class="gtkdoc opt">=</span> FALSE<span class="gtkdoc opt">;</span>
+      <span class="function"><a href="/usr/share/gtk-doc/html/glibglib-Threads.html#g-mutex-lock">g_mutex_lock</a></span> <span class="gtkdoc opt">(&amp;</span>allocation_lock<span class="gtkdoc opt">);</span>
+      n_calls <span class="gtkdoc opt">+=</span> <span class="number">1</span><span class="gtkdoc opt">;</span>
+      <span class="keyword">if</span> <span class="gtkdoc opt">(</span>n_calls <span class="gtkdoc opt">&gt;</span> TOTAL_TESTS<span class="gtkdoc opt">)</span>
+	done <span class="gtkdoc opt">=</span> TRUE<span class="gtkdoc opt">;</span>
+      <span class="function"><a href="/usr/share/gtk-doc/html/glibglib-Threads.html#g-mutex-unlock">g_mutex_unlock</a></span> <span class="gtkdoc opt">(&amp;</span>allocation_lock<span class="gtkdoc opt">);</span>
 
-<span class="normal">      </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">done</span><span class="symbol">)</span>
-<span class="normal">    </span><span class="keyword">break</span><span class="symbol">;</span>
+      <span class="keyword">if</span> <span class="gtkdoc opt">(</span>done<span class="gtkdoc opt">)</span>
+	<span class="keyword">break</span><span class="gtkdoc opt">;</span>
 
-<span class="normal">      </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function">test</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">filename</span><span class="symbol">))</span>
-<span class="normal">    </span><span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="../glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
-<span class="normal">    </span><span class="cbracket">}</span>
+      <span class="keyword">if</span> <span class="gtkdoc opt">(</span><span class="function">test</span> <span class="gtkdoc opt">(</span>filename<span class="gtkdoc opt">))</span>
+	<span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span> <span class="gtkdoc opt">(</span>NULL<span class="gtkdoc opt">);</span>
+    <span class="gtkdoc opt">}</span>
 
-<span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="../glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
-<span class="cbracket">}</span>
+  <span class="keyword">return</span> <span class="gtkdoc opt">(</span>NULL<span class="gtkdoc opt">);</span>
+<span class="gtkdoc opt">}</span>
 
-<span class="type">int</span>
-<span class="function">main</span><span class="normal"> </span><span class="symbol">(</span><span class="type">int</span><span class="normal"> argc</span><span class="symbol">,</span><span class="normal"> </span><span class="type">char</span><span class="normal"> </span><span class="symbol">**</span><span class="normal">argv</span><span class="symbol">)</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="type">int</span><span class="normal"> i</span><span class="symbol">;</span>
+<span class="gtkdoc kwb">int</span>
+<span class="function">main</span> <span class="gtkdoc opt">(</span><span class="gtkdoc kwb">int</span> argc<span class="gtkdoc opt">,</span> <span class="gtkdoc kwb">char</span> <span class="gtkdoc opt">**</span>argv<span class="gtkdoc opt">)</span>
+<span class="gtkdoc opt">{</span>
+  <span class="gtkdoc kwb">int</span> i<span class="gtkdoc opt">;</span>
 
-<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="libvips-vips.html#VIPS-INIT:CAPS">VIPS_INIT</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">argv</span><span class="symbol">[</span><span class="number">0</span><span class="symbol">]))</span>
-<span class="normal">    </span><span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="../glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+  <span class="keyword">if</span> <span class="gtkdoc opt">(</span><span class="function"><a href="libvips-vips.html#VIPS-INIT:CAPS">VIPS_INIT</a></span> <span class="gtkdoc opt">(</span>argv<span class="gtkdoc opt">[</span><span class="number">0</span><span class="gtkdoc opt">]))</span>
+    <span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span> <span class="gtkdoc opt">(</span>NULL<span class="gtkdoc opt">);</span>
 
-<span class="normal">  </span><span class="function"><a href="../glib/glib-Threads.html#g-mutex-init">g_mutex_init</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">allocation_lock</span><span class="symbol">);</span>
+  <span class="function"><a href="/usr/share/gtk-doc/html/glibglib-Threads.html#g-mutex-init">g_mutex_init</a></span> <span class="gtkdoc opt">(&amp;</span>allocation_lock<span class="gtkdoc opt">);</span>
 
-<span class="normal">  </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">i </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span><span class="normal"> i </span><span class="symbol">&lt;</span><span class="normal"> NUM_IN_PARALLEL</span><span class="symbol">;</span><span class="normal"> i</span><span class="symbol">++)</span>
-<span class="normal">    workers</span><span class="symbol">[</span><span class="normal">i</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="../glib/glib-Threads.html#g-thread-new">g_thread_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="../glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="../glib/glib-Threads.html#GThreadFunc">GThreadFunc</a></span><span class="symbol">)</span><span class="normal"> worker</span><span class="symbol">,</span><span class="normal"> argv</span><span class="symbol">[</span><span class="number">1</span><span class="symbol">]);</span>
+  <span class="keyword">for</span> <span class="gtkdoc opt">(</span>i <span class="gtkdoc opt">=</span> <span class="number">0</span><span class="gtkdoc opt">;</span> i <span class="gtkdoc opt">&lt;</span> NUM_IN_PARALLEL<span class="gtkdoc opt">;</span> i<span class="gtkdoc opt">++)</span>
+    workers<span class="gtkdoc opt">[</span>i<span class="gtkdoc opt">] =</span> <span class="function"><a href="/usr/share/gtk-doc/html/glibglib-Threads.html#g-thread-new">g_thread_new</a></span> <span class="gtkdoc opt">(</span>NULL<span class="gtkdoc opt">, (</span>GThreadFunc<span class="gtkdoc opt">)</span> worker<span class="gtkdoc opt">,</span> argv<span class="gtkdoc opt">[</span><span class="number">1</span><span class="gtkdoc opt">]);</span>
 
-<span class="normal">  </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">i </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span><span class="normal"> i </span><span class="symbol">&lt;</span><span class="normal"> NUM_IN_PARALLEL</span><span class="symbol">;</span><span class="normal"> i</span><span class="symbol">++)</span>
-<span class="normal">    </span><span class="function"><a href="../glib/glib-Threads.html#g-thread-join">g_thread_join</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">workers</span><span class="symbol">[</span><span class="normal">i</span><span class="symbol">]);</span>
+  <span class="keyword">for</span> <span class="gtkdoc opt">(</span>i <span class="gtkdoc opt">=</span> <span class="number">0</span><span class="gtkdoc opt">;</span> i <span class="gtkdoc opt">&lt;</span> NUM_IN_PARALLEL<span class="gtkdoc opt">;</span> i<span class="gtkdoc opt">++)</span>
+    <span class="function"><a href="/usr/share/gtk-doc/html/glibglib-Threads.html#g-thread-join">g_thread_join</a></span> <span class="gtkdoc opt">(</span>workers<span class="gtkdoc opt">[</span>i<span class="gtkdoc opt">]);</span>
 
-<span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="symbol">(</span><span class="number">0</span><span class="symbol">);</span>
-<span class="cbracket">}</span></pre></td>
+  <span class="keyword">return</span> <span class="gtkdoc opt">(</span><span class="number">0</span><span class="gtkdoc opt">);</span>
+<span class="gtkdoc opt">}</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -372,8 +372,7 @@
 </div>
 </div>
 <div class="footer">
-<hr>
-          Generated by GTK-Doc V1.21</div>
+<hr>Generated by GTK-Doc V1.25</div>
 </section>
 
     <script type="text/javascript">

@@ -328,7 +328,7 @@ justifications.
 </tr>
 <tr>
 <td class="function_type">
-<a href="../gobject/gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> **
+<a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#GObject-struct"><span class="returnvalue">GObject</span></a> **
 </td>
 <td class="function_name">
 <a class="link" href="libvips-type.html#vips-value-get-array-object" title="vips_value_get_array_object ()">vips_value_get_array_object</a> <span class="c_punctuation">()</span>
@@ -347,7 +347,7 @@ justifications.
 </div>
 <a name="VipsArea"></a><a name="VipsArrayDouble"></a><a name="VipsArrayImage"></a><a name="VipsArrayInt"></a><a name="VipsBlob"></a><a name="VipsRefString"></a><a name="VipsThing"></a><div class="refsect1">
 <a name="libvips-type.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    GBoxed
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-Boxed-Types.html">GBoxed</a>
     <span class="lineart">├──</span> VipsArea
     <span class="lineart">├──</span> VipsArrayDouble
     <span class="lineart">├──</span> VipsArrayImage
@@ -364,7 +364,7 @@ justifications.
 </div>
 <div class="refsect1">
 <a name="libvips-type.description"></a><h2>Description</h2>
-<p>A selection of <a href="../gobject/gobject-Type-Information.html#GType"><code class="literal">GType</code></a> defintions used by VIPS.</p>
+<p>A selection of <a href="/usr/share/gtk-doc/html/gobjectgobject-Type-Information.html#GType"><code class="literal">GType</code></a> defintions used by VIPS.</p>
 </div>
 <div class="refsect1">
 <a name="libvips-type.functions_details"></a><h2>Functions</h2>
@@ -373,7 +373,7 @@ justifications.
 <pre class="programlisting"><a class="link" href="libvips-type.html#VipsThing"><span class="returnvalue">VipsThing</span></a> *
 vips_thing_new (<em class="parameter"><code><span class="type">int</span> i</code></em>);</pre>
 <div class="refsect3">
-<a name="id-1.3.10.15.2.4"></a><h4>Returns</h4>
+<a name="vips-thing-new.returns"></a><h4>Returns</h4>
 <p> a new <a class="link" href="libvips-type.html#VipsThing"><span class="type">VipsThing</span></a>. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -397,14 +397,14 @@ vips_area_unref (<em class="parameter"><code><a class="link" href="libvips-type.
 vips_area_new (<em class="parameter"><code><a class="link" href="libvips-basic.html#VipsCallbackFn" title="VipsCallbackFn ()"><span class="type">VipsCallbackFn</span></a> free_fn</code></em>,
                <em class="parameter"><code><span class="type">void</span> *data</code></em>);</pre>
 <p>A VipsArea wraps a chunk of memory. It adds reference counting and a free
-function. It also keeps a count and a <a href="../gobject/gobject-Type-Information.html#GType"><code class="literal">GType</code></a>, so the area can be an array.</p>
+function. It also keeps a count and a <a href="/usr/share/gtk-doc/html/gobjectgobject-Type-Information.html#GType"><code class="literal">GType</code></a>, so the area can be an array.</p>
 <p>This type is used for things like passing an array of double or an array of
 <a class="link" href="VipsObject.html" title="VipsObject"><span class="type">VipsObject</span></a> pointers to operations, and for reference-counted immutable
 strings. </p>
 <p>Inital count == 1, so <code class="function">_unref()</code> after attaching somewhere.</p>
 <p>See also: <a class="link" href="libvips-type.html#vips-area-unref" title="vips_area_unref ()"><code class="function">vips_area_unref()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.5.8"></a><h4>Parameters</h4>
+<a name="vips-area-new.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -427,7 +427,7 @@ will be freed with this function. </p></td>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.5.9"></a><h4>Returns</h4>
+<a name="vips-area-new.returns"></a><h4>Returns</h4>
 <p> the new <a class="link" href="libvips-type.html#VipsArea"><span class="type">VipsArea</span></a>. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -436,14 +436,14 @@ will be freed with this function. </p></td>
 <div class="refsect2">
 <a name="vips-area-new-array"></a><h3>vips_area_new_array ()</h3>
 <pre class="programlisting"><a class="link" href="libvips-type.html#VipsArea"><span class="returnvalue">VipsArea</span></a> *
-vips_area_new_array (<em class="parameter"><code><a href="../gobject/gobject-Type-Information.html#GType"><span class="type">GType</span></a> type</code></em>,
+vips_area_new_array (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobjectgobject-Type-Information.html#GType"><span class="type">GType</span></a> type</code></em>,
                      <em class="parameter"><code><span class="type">size_t</span> sizeof_type</code></em>,
                      <em class="parameter"><code><span class="type">int</span> n</code></em>);</pre>
-<p>An area which holds an array of elements of some <a href="../gobject/gobject-Type-Information.html#GType"><code class="literal">GType</code></a>. To set values for
+<p>An area which holds an array of elements of some <a href="/usr/share/gtk-doc/html/gobjectgobject-Type-Information.html#GType"><code class="literal">GType</code></a>. To set values for
 the elements, get the pointer and write.</p>
 <p>See also: <a class="link" href="libvips-type.html#vips-area-unref" title="vips_area_unref ()"><code class="function">vips_area_unref()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.6.6"></a><h4>Parameters</h4>
+<a name="vips-area-new-array.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -453,7 +453,7 @@ the elements, get the pointer and write.</p>
 <tbody>
 <tr>
 <td class="parameter_name"><p>type</p></td>
-<td class="parameter_description"><p><a href="../gobject/gobject-Type-Information.html#GType"><code class="literal">GType</code></a> of elements to store</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/gobjectgobject-Type-Information.html#GType"><code class="literal">GType</code></a> of elements to store</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 <tr>
@@ -470,7 +470,7 @@ the elements, get the pointer and write.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.6.7"></a><h4>Returns</h4>
+<a name="vips-area-new-array.returns"></a><h4>Returns</h4>
 <p> the new <a class="link" href="libvips-type.html#VipsArea"><span class="type">VipsArea</span></a>. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -480,13 +480,13 @@ the elements, get the pointer and write.</p>
 <a name="vips-area-new-array-object"></a><h3>vips_area_new_array_object ()</h3>
 <pre class="programlisting"><a class="link" href="libvips-type.html#VipsArea"><span class="returnvalue">VipsArea</span></a> *
 vips_area_new_array_object (<em class="parameter"><code><span class="type">int</span> n</code></em>);</pre>
-<p>An area which holds an array of <a href="../gobject/gobject-The-Base-Object-Type.html#GObject"><code class="literal">GObject</code></a> s. See <a class="link" href="libvips-type.html#vips-area-new-array" title="vips_area_new_array ()"><code class="function">vips_area_new_array()</code></a>. When
-the area is freed, each <a href="../gobject/gobject-The-Base-Object-Type.html#GObject"><code class="literal">GObject</code></a> will be unreffed.</p>
+<p>An area which holds an array of <a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#GObject-struct"><code class="literal">GObject</code></a> s. See <a class="link" href="libvips-type.html#vips-area-new-array" title="vips_area_new_array ()"><code class="function">vips_area_new_array()</code></a>. When
+the area is freed, each <a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#GObject-struct"><code class="literal">GObject</code></a> will be unreffed.</p>
 <p>Add an extra NULL element at the end, handy for eg.
 <a class="link" href="libvips-generate.html#vips-image-pipeline-array" title="vips_image_pipeline_array ()"><code class="function">vips_image_pipeline_array()</code></a> etc. </p>
 <p>See also: <a class="link" href="libvips-type.html#vips-area-unref" title="vips_area_unref ()"><code class="function">vips_area_unref()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.7.7"></a><h4>Parameters</h4>
+<a name="vips-area-new-array-object.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -501,7 +501,7 @@ the area is freed, each <a href="../gobject/gobject-The-Base-Object-Type.html#GO
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.7.8"></a><h4>Returns</h4>
+<a name="vips-area-new-array-object.returns"></a><h4>Returns</h4>
 <p> the new <a class="link" href="libvips-type.html#VipsArea"><span class="type">VipsArea</span></a>. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -513,13 +513,13 @@ the area is freed, each <a href="../gobject/gobject-The-Base-Object-Type.html#GO
 vips_area_get_data (<em class="parameter"><code><a class="link" href="libvips-type.html#VipsArea"><span class="type">VipsArea</span></a> *area</code></em>,
                     <em class="parameter"><code><span class="type">size_t</span> *length</code></em>,
                     <em class="parameter"><code><span class="type">int</span> *n</code></em>,
-                    <em class="parameter"><code><a href="../gobject/gobject-Type-Information.html#GType"><span class="type">GType</span></a> *type</code></em>,
+                    <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobjectgobject-Type-Information.html#GType"><span class="type">GType</span></a> *type</code></em>,
                     <em class="parameter"><code><span class="type">size_t</span> *sizeof_type</code></em>);</pre>
 <p>Return the data pointer plus optionally the length in bytes of an area, 
-the number of elements, the <a href="../gobject/gobject-Type-Information.html#GType"><code class="literal">GType</code></a> of each element and the <code class="function">sizeof()</code> each
+the number of elements, the <a href="/usr/share/gtk-doc/html/gobjectgobject-Type-Information.html#GType"><code class="literal">GType</code></a> of each element and the <code class="function">sizeof()</code> each
 element.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.8.5"></a><h4>Parameters</h4>
+<a name="vips-area-get-data.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -556,7 +556,7 @@ element.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.8.6"></a><h4>Returns</h4>
+<a name="vips-area-get-data.returns"></a><h4>Returns</h4>
 <p> The pointer held by <em class="parameter"><code>area</code></em>
 . </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -576,7 +576,7 @@ vips_ref_string_new (<em class="parameter"><code>const <span class="type">char</
 to store string data in vips image metadata.</p>
 <p>See also: <a class="link" href="libvips-type.html#vips-area-unref" title="vips_area_unref ()"><code class="function">vips_area_unref()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.10.6"></a><h4>Parameters</h4>
+<a name="vips-ref-string-new.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -591,7 +591,7 @@ to store string data in vips image metadata.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.10.7"></a><h4>Returns</h4>
+<a name="vips-ref-string-new.returns"></a><h4>Returns</h4>
 <p> the new <a class="link" href="libvips-type.html#VipsRefString"><span class="type">VipsRefString</span></a>. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -606,7 +606,7 @@ vips_ref_string_get (<em class="parameter"><code><a class="link" href="libvips-t
 bindings. </p>
 <p>See also: <a class="link" href="libvips-type.html#vips-value-get-ref-string" title="vips_value_get_ref_string ()"><code class="function">vips_value_get_ref_string()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.11.6"></a><h4>Parameters</h4>
+<a name="vips-ref-string-get.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -628,7 +628,7 @@ bindings. </p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.11.7"></a><h4>Returns</h4>
+<a name="vips-ref-string-get.returns"></a><h4>Returns</h4>
 <p> The C string held by <em class="parameter"><code>refstr</code></em>
 . </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -651,7 +651,7 @@ takes ownership of <em class="parameter"><code>data</code></em>
 like an ICC profile).</p>
 <p>See also: <a class="link" href="libvips-type.html#vips-area-unref" title="vips_area_unref ()"><code class="function">vips_area_unref()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.12.7"></a><h4>Parameters</h4>
+<a name="vips-blob-new.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -680,7 +680,7 @@ will be freed with this function. </p></td>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.12.8"></a><h4>Returns</h4>
+<a name="vips-blob-new.returns"></a><h4>Returns</h4>
 <p> the new <a class="link" href="libvips-type.html#VipsBlob"><span class="type">VipsBlob</span></a>. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -695,7 +695,7 @@ vips_blob_copy (<em class="parameter"><code>const <span class="type">void</span>
 which strugle with callbacks. </p>
 <p>See also: <a class="link" href="libvips-type.html#vips-blob-new" title="vips_blob_new ()"><code class="function">vips_blob_new()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.13.6"></a><h4>Parameters</h4>
+<a name="vips-blob-copy.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -718,7 +718,7 @@ which strugle with callbacks. </p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.13.7"></a><h4>Returns</h4>
+<a name="vips-blob-copy.returns"></a><h4>Returns</h4>
 <p> the new <a class="link" href="libvips-type.html#VipsBlob"><span class="type">VipsBlob</span></a>. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -732,7 +732,7 @@ vips_blob_get (<em class="parameter"><code><a class="link" href="libvips-type.ht
 <p>Get the data from a <a class="link" href="libvips-type.html#VipsBlob"><span class="type">VipsBlob</span></a>. </p>
 <p>See also: <a class="link" href="libvips-type.html#vips-blob-new" title="vips_blob_new ()"><code class="function">vips_blob_new()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.14.6"></a><h4>Parameters</h4>
+<a name="vips-blob-get.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -754,7 +754,7 @@ vips_blob_get (<em class="parameter"><code><a class="link" href="libvips-type.ht
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.14.7"></a><h4>Returns</h4>
+<a name="vips-blob-get.returns"></a><h4>Returns</h4>
 <p> the data. </p>
 <p><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=size][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> guint8][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -770,7 +770,7 @@ vips_array_double_new (<em class="parameter"><code>const <span class="type">doub
 <a class="link" href="libvips-type.html#vips-area-unref" title="vips_area_unref ()"><code class="function">vips_area_unref()</code></a>.</p>
 <p>See also: <a class="link" href="libvips-type.html#VipsArea"><span class="type">VipsArea</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.15.6"></a><h4>Parameters</h4>
+<a name="vips-array-double-new.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -792,7 +792,7 @@ vips_array_double_new (<em class="parameter"><code>const <span class="type">doub
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.15.7"></a><h4>Returns</h4>
+<a name="vips-array-double-new.returns"></a><h4>Returns</h4>
 <p> A new <a class="link" href="libvips-type.html#VipsArrayDouble"><span class="type">VipsArrayDouble</span></a>. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -808,7 +808,7 @@ vips_array_double_newv (<em class="parameter"><code><span class="type">int</span
 <a class="link" href="libvips-type.html#vips-area-unref" title="vips_area_unref ()"><code class="function">vips_area_unref()</code></a>.</p>
 <p>See also: <a class="link" href="libvips-type.html#vips-array-double-new" title="vips_array_double_new ()"><code class="function">vips_array_double_new()</code></a></p>
 <div class="refsect3">
-<a name="id-1.3.10.15.16.6"></a><h4>Parameters</h4>
+<a name="vips-array-double-newv.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -830,7 +830,7 @@ vips_array_double_newv (<em class="parameter"><code><span class="type">int</span
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.16.7"></a><h4>Returns</h4>
+<a name="vips-array-double-newv.returns"></a><h4>Returns</h4>
 <p> A new <a class="link" href="libvips-type.html#VipsArrayDouble"><span class="type">VipsArrayDouble</span></a>. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -843,7 +843,7 @@ vips_array_double_get (<em class="parameter"><code><a class="link" href="libvips
                        <em class="parameter"><code><span class="type">int</span> *n</code></em>);</pre>
 <p>Fetch a double array from a <a class="link" href="libvips-type.html#VipsArrayDouble"><span class="type">VipsArrayDouble</span></a>. Useful for language bindings.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.17.5"></a><h4>Parameters</h4>
+<a name="vips-array-double-get.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -865,7 +865,7 @@ vips_array_double_get (<em class="parameter"><code><a class="link" href="libvips
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.17.6"></a><h4>Returns</h4>
+<a name="vips-array-double-get.returns"></a><h4>Returns</h4>
 <p> array of double. </p>
 <p><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -881,7 +881,7 @@ vips_array_int_new (<em class="parameter"><code>const <span class="type">int</sp
 <a class="link" href="libvips-type.html#vips-area-unref" title="vips_area_unref ()"><code class="function">vips_area_unref()</code></a>.</p>
 <p>See also: <a class="link" href="libvips-type.html#VipsArea"><span class="type">VipsArea</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.18.6"></a><h4>Parameters</h4>
+<a name="vips-array-int-new.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -903,7 +903,7 @@ vips_array_int_new (<em class="parameter"><code>const <span class="type">int</sp
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.18.7"></a><h4>Returns</h4>
+<a name="vips-array-int-new.returns"></a><h4>Returns</h4>
 <p> A new <a class="link" href="libvips-type.html#VipsArrayInt"><span class="type">VipsArrayInt</span></a>. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -919,7 +919,7 @@ vips_array_int_newv (<em class="parameter"><code><span class="type">int</span> n
 <a class="link" href="libvips-type.html#vips-area-unref" title="vips_area_unref ()"><code class="function">vips_area_unref()</code></a>.</p>
 <p>See also: <a class="link" href="libvips-type.html#vips-array-int-new" title="vips_array_int_new ()"><code class="function">vips_array_int_new()</code></a></p>
 <div class="refsect3">
-<a name="id-1.3.10.15.19.6"></a><h4>Parameters</h4>
+<a name="vips-array-int-newv.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -941,7 +941,7 @@ vips_array_int_newv (<em class="parameter"><code><span class="type">int</span> n
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.19.7"></a><h4>Returns</h4>
+<a name="vips-array-int-newv.returns"></a><h4>Returns</h4>
 <p> A new <a class="link" href="libvips-type.html#VipsArrayInt"><span class="type">VipsArrayInt</span></a>. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -954,7 +954,7 @@ vips_array_int_get (<em class="parameter"><code><a class="link" href="libvips-ty
                     <em class="parameter"><code><span class="type">int</span> *n</code></em>);</pre>
 <p>Fetch an int array from a <a class="link" href="libvips-type.html#VipsArrayInt"><span class="type">VipsArrayInt</span></a>. Useful for language bindings.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.20.5"></a><h4>Parameters</h4>
+<a name="vips-array-int-get.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -976,7 +976,7 @@ vips_array_int_get (<em class="parameter"><code><a class="link" href="libvips-ty
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.20.6"></a><h4>Returns</h4>
+<a name="vips-array-int-get.returns"></a><h4>Returns</h4>
 <p> array of int. </p>
 <p><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n][<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -985,12 +985,12 @@ vips_array_int_get (<em class="parameter"><code><a class="link" href="libvips-ty
 <div class="refsect2">
 <a name="vips-value-set-area"></a><h3>vips_value_set_area ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_value_set_area (<em class="parameter"><code><a href="../gobject/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
+vips_value_set_area (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
                      <em class="parameter"><code><a class="link" href="libvips-basic.html#VipsCallbackFn" title="VipsCallbackFn ()"><span class="type">VipsCallbackFn</span></a> free_fn</code></em>,
                      <em class="parameter"><code><span class="type">void</span> *data</code></em>);</pre>
 <p>Set value to be a ref-counted area of memory with a free function.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.21.5"></a><h4>Parameters</h4>
+<a name="vips-value-set-area.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1022,11 +1022,11 @@ to track this pointer</p></td>
 <div class="refsect2">
 <a name="vips-value-get-area"></a><h3>vips_value_get_area ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span> *
-vips_value_get_area (<em class="parameter"><code>const <a href="../gobject/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
+vips_value_get_area (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
                      <em class="parameter"><code><span class="type">size_t</span> *length</code></em>);</pre>
 <p>Get the pointer from an area. Don't touch count (area is static).</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.22.5"></a><h4>Parameters</h4>
+<a name="vips-value-get-area.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1048,7 +1048,7 @@ vips_value_get_area (<em class="parameter"><code>const <a href="../gobject/gobje
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.22.6"></a><h4>Returns</h4>
+<a name="vips-value-get-area.returns"></a><h4>Returns</h4>
 <p> The pointer held by <em class="parameter"><code>value</code></em>
 . </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -1058,10 +1058,10 @@ vips_value_get_area (<em class="parameter"><code>const <a href="../gobject/gobje
 <div class="refsect2">
 <a name="vips-value-get-save-string"></a><h3>vips_value_get_save_string ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
-vips_value_get_save_string (<em class="parameter"><code>const <a href="../gobject/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>);</pre>
+vips_value_get_save_string (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>);</pre>
 <p>Get the C string held internally by the GValue.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.23.5"></a><h4>Parameters</h4>
+<a name="vips-value-get-save-string.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1076,7 +1076,7 @@ vips_value_get_save_string (<em class="parameter"><code>const <a href="../gobjec
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.23.6"></a><h4>Returns</h4>
+<a name="vips-value-get-save-string.returns"></a><h4>Returns</h4>
 <p> The C string held by <em class="parameter"><code>value</code></em>
 . </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -1086,12 +1086,12 @@ vips_value_get_save_string (<em class="parameter"><code>const <a href="../gobjec
 <div class="refsect2">
 <a name="vips-value-set-save-string"></a><h3>vips_value_set_save_string ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_value_set_save_string (<em class="parameter"><code><a href="../gobject/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
+vips_value_set_save_string (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
                             <em class="parameter"><code>const <span class="type">char</span> *str</code></em>);</pre>
 <p>Copies the C string into <em class="parameter"><code>value</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.24.5"></a><h4>Parameters</h4>
+<a name="vips-value-set-save-string.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1117,13 +1117,13 @@ vips_value_set_save_string (<em class="parameter"><code><a href="../gobject/gobj
 <div class="refsect2">
 <a name="vips-value-set-save-stringf"></a><h3>vips_value_set_save_stringf ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_value_set_save_stringf (<em class="parameter"><code><a href="../gobject/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
+vips_value_set_save_stringf (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
                              <em class="parameter"><code>const <span class="type">char</span> *fmt</code></em>,
                              <em class="parameter"><code>...</code></em>);</pre>
 <p>Generates a string and copies it into <em class="parameter"><code>value</code></em>
 .</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.25.5"></a><h4>Parameters</h4>
+<a name="vips-value-set-save-stringf.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1155,11 +1155,11 @@ vips_value_set_save_stringf (<em class="parameter"><code><a href="../gobject/gob
 <div class="refsect2">
 <a name="vips-value-get-ref-string"></a><h3>vips_value_get_ref_string ()</h3>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
-vips_value_get_ref_string (<em class="parameter"><code>const <a href="../gobject/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
+vips_value_get_ref_string (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
                            <em class="parameter"><code><span class="type">size_t</span> *length</code></em>);</pre>
-<p>Get the C string held internally by the <a href="../gobject/gobject-Generic-values.html#GValue"><code class="literal">GValue</code></a>.</p>
+<p>Get the C string held internally by the <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><code class="literal">GValue</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.26.5"></a><h4>Parameters</h4>
+<a name="vips-value-get-ref-string.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1169,7 +1169,7 @@ vips_value_get_ref_string (<em class="parameter"><code>const <a href="../gobject
 <tbody>
 <tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p><a href="../gobject/gobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to get from</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to get from</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 <tr>
@@ -1181,7 +1181,7 @@ vips_value_get_ref_string (<em class="parameter"><code>const <a href="../gobject
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.26.6"></a><h4>Returns</h4>
+<a name="vips-value-get-ref-string.returns"></a><h4>Returns</h4>
 <p> The C string held by <em class="parameter"><code>value</code></em>
 . </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -1191,16 +1191,16 @@ vips_value_get_ref_string (<em class="parameter"><code>const <a href="../gobject
 <div class="refsect2">
 <a name="vips-value-set-ref-string"></a><h3>vips_value_set_ref_string ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_value_set_ref_string (<em class="parameter"><code><a href="../gobject/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
+vips_value_set_ref_string (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
                            <em class="parameter"><code>const <span class="type">char</span> *str</code></em>);</pre>
 <p>Copies the C string <em class="parameter"><code>str</code></em>
  into <em class="parameter"><code>value</code></em>
 . </p>
 <p>vips_ref_string are immutable C strings that are copied between images by
 copying reference-counted pointers, making them much more efficient than
-regular <a href="../gobject/gobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> strings.</p>
+regular <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> strings.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.27.6"></a><h4>Parameters</h4>
+<a name="vips-value-set-ref-string.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1210,7 +1210,7 @@ regular <a href="../gobject/gobject-Generic-values.html#GValue"><code class="lit
 <tbody>
 <tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p> <a href="../gobject/gobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to set. </p></td>
+<td class="parameter_description"><p> <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to set. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
 </tr>
 <tr>
@@ -1226,7 +1226,7 @@ regular <a href="../gobject/gobject-Generic-values.html#GValue"><code class="lit
 <div class="refsect2">
 <a name="vips-value-get-blob"></a><h3>vips_value_get_blob ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span> *
-vips_value_get_blob (<em class="parameter"><code>const <a href="../gobject/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
+vips_value_get_blob (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
                      <em class="parameter"><code><span class="type">size_t</span> *length</code></em>);</pre>
 <p>Returns the data pointer from a blob. Optionally returns the length too.</p>
 <p>blobs are things like ICC profiles or EXIF data. They are relocatable, and
@@ -1234,7 +1234,7 @@ are saved to VIPS files for you coded as base64 inside the XML. They are
 copied by copying reference-counted pointers.</p>
 <p>See also: <a class="link" href="libvips-type.html#vips-value-set-blob" title="vips_value_set_blob ()"><code class="function">vips_value_set_blob()</code></a></p>
 <div class="refsect3">
-<a name="id-1.3.10.15.28.7"></a><h4>Parameters</h4>
+<a name="vips-value-get-blob.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1256,7 +1256,7 @@ copied by copying reference-counted pointers.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.28.8"></a><h4>Returns</h4>
+<a name="vips-value-get-blob.returns"></a><h4>Returns</h4>
 <p> The pointer held by <em class="parameter"><code>value</code></em>
 . </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -1266,7 +1266,7 @@ copied by copying reference-counted pointers.</p>
 <div class="refsect2">
 <a name="vips-value-set-blob"></a><h3>vips_value_set_blob ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_value_set_blob (<em class="parameter"><code><a href="../gobject/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
+vips_value_set_blob (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
                      <em class="parameter"><code><a class="link" href="libvips-basic.html#VipsCallbackFn" title="VipsCallbackFn ()"><span class="type">VipsCallbackFn</span></a> free_fn</code></em>,
                      <em class="parameter"><code><span class="type">void</span> *data</code></em>,
                      <em class="parameter"><code><span class="type">size_t</span> length</code></em>);</pre>
@@ -1284,7 +1284,7 @@ are saved to VIPS files for you coded as base64 inside the XML. They are
 copied by copying reference-counted pointers.</p>
 <p>See also: <a class="link" href="libvips-type.html#vips-value-get-blob" title="vips_value_get_blob ()"><code class="function">vips_value_get_blob()</code></a></p>
 <div class="refsect3">
-<a name="id-1.3.10.15.29.7"></a><h4>Parameters</h4>
+<a name="vips-value-set-blob.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1321,16 +1321,16 @@ copied by copying reference-counted pointers.</p>
 <div class="refsect2">
 <a name="vips-value-set-array"></a><h3>vips_value_set_array ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_value_set_array (<em class="parameter"><code><a href="../gobject/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
+vips_value_set_array (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
                       <em class="parameter"><code><span class="type">int</span> n</code></em>,
-                      <em class="parameter"><code><a href="../gobject/gobject-Type-Information.html#GType"><span class="type">GType</span></a> type</code></em>,
+                      <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobjectgobject-Type-Information.html#GType"><span class="type">GType</span></a> type</code></em>,
                       <em class="parameter"><code><span class="type">size_t</span> sizeof_type</code></em>);</pre>
 <p>Set <em class="parameter"><code>value</code></em>
  to be an array of things. </p>
 <p>This allocates memory but does not 
 initialise the contents: get the pointer and write instead.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.30.6"></a><h4>Parameters</h4>
+<a name="vips-value-set-array.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1340,7 +1340,7 @@ initialise the contents: get the pointer and write instead.</p>
 <tbody>
 <tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p> <a href="../gobject/gobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to set. </p></td>
+<td class="parameter_description"><p> <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to set. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
 </tr>
 <tr>
@@ -1366,9 +1366,9 @@ initialise the contents: get the pointer and write instead.</p>
 <div class="refsect2">
 <a name="vips-value-get-array"></a><h3>vips_value_get_array ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span> *
-vips_value_get_array (<em class="parameter"><code>const <a href="../gobject/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
+vips_value_get_array (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
                       <em class="parameter"><code><span class="type">int</span> *n</code></em>,
-                      <em class="parameter"><code><a href="../gobject/gobject-Type-Information.html#GType"><span class="type">GType</span></a> *type</code></em>,
+                      <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobjectgobject-Type-Information.html#GType"><span class="type">GType</span></a> *type</code></em>,
                       <em class="parameter"><code><span class="type">size_t</span> *sizeof_type</code></em>);</pre>
 <p>Return the pointer to the array held by <em class="parameter"><code>value</code></em>
 .
@@ -1379,7 +1379,7 @@ Optionally return the other properties of the array in <em class="parameter"><co
 .</p>
 <p>See also: <a class="link" href="libvips-type.html#vips-value-set-array" title="vips_value_set_array ()"><code class="function">vips_value_set_array()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.31.6"></a><h4>Parameters</h4>
+<a name="vips-value-get-array.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1389,7 +1389,7 @@ Optionally return the other properties of the array in <em class="parameter"><co
 <tbody>
 <tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p><a href="../gobject/gobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to get from</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to get from</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 <tr>
@@ -1411,7 +1411,7 @@ Optionally return the other properties of the array in <em class="parameter"><co
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.31.7"></a><h4>Returns</h4>
+<a name="vips-value-get-array.returns"></a><h4>Returns</h4>
 <p> The array address. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -1420,7 +1420,7 @@ Optionally return the other properties of the array in <em class="parameter"><co
 <div class="refsect2">
 <a name="vips-value-get-array-double"></a><h3>vips_value_get_array_double ()</h3>
 <pre class="programlisting"><span class="returnvalue">double</span> *
-vips_value_get_array_double (<em class="parameter"><code>const <a href="../gobject/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
+vips_value_get_array_double (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
                              <em class="parameter"><code><span class="type">int</span> *n</code></em>);</pre>
 <p>Return the start of the array of doubles held by <em class="parameter"><code>value</code></em>
 .
@@ -1428,7 +1428,7 @@ optionally return the number of elements in <em class="parameter"><code>n</code>
 .</p>
 <p>See also: <a class="link" href="libvips-type.html#vips-array-double-new" title="vips_array_double_new ()"><code class="function">vips_array_double_new()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.32.6"></a><h4>Parameters</h4>
+<a name="vips-value-get-array-double.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1438,7 +1438,7 @@ optionally return the number of elements in <em class="parameter"><code>n</code>
 <tbody>
 <tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p><a href="../gobject/gobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to get from</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to get from</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 <tr>
@@ -1450,7 +1450,7 @@ optionally return the number of elements in <em class="parameter"><code>n</code>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.32.7"></a><h4>Returns</h4>
+<a name="vips-value-get-array-double.returns"></a><h4>Returns</h4>
 <p> The array address. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -1459,7 +1459,7 @@ optionally return the number of elements in <em class="parameter"><code>n</code>
 <div class="refsect2">
 <a name="vips-value-set-array-double"></a><h3>vips_value_set_array_double ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_value_set_array_double (<em class="parameter"><code><a href="../gobject/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
+vips_value_set_array_double (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
                              <em class="parameter"><code>const <span class="type">double</span> *array</code></em>,
                              <em class="parameter"><code><span class="type">int</span> n</code></em>);</pre>
 <p>Set <em class="parameter"><code>value</code></em>
@@ -1468,7 +1468,7 @@ vips_value_set_array_double (<em class="parameter"><code><a href="../gobject/gob
 . </p>
 <p>See also: <a class="link" href="libvips-type.html#vips-array-double-get" title="vips_array_double_get ()"><code class="function">vips_array_double_get()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.33.6"></a><h4>Parameters</h4>
+<a name="vips-value-set-array-double.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1478,7 +1478,7 @@ vips_value_set_array_double (<em class="parameter"><code><a href="../gobject/gob
 <tbody>
 <tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p> <a href="../gobject/gobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to get from. </p></td>
+<td class="parameter_description"><p> <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to get from. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
 </tr>
 <tr>
@@ -1499,7 +1499,7 @@ vips_value_set_array_double (<em class="parameter"><code><a href="../gobject/gob
 <div class="refsect2">
 <a name="vips-value-get-array-int"></a><h3>vips_value_get_array_int ()</h3>
 <pre class="programlisting"><span class="returnvalue">int</span> *
-vips_value_get_array_int (<em class="parameter"><code>const <a href="../gobject/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
+vips_value_get_array_int (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
                           <em class="parameter"><code><span class="type">int</span> *n</code></em>);</pre>
 <p>Return the start of the array of ints held by <em class="parameter"><code>value</code></em>
 .
@@ -1507,7 +1507,7 @@ optionally return the number of elements in <em class="parameter"><code>n</code>
 .</p>
 <p>See also: <a class="link" href="libvips-type.html#vips-array-int-new" title="vips_array_int_new ()"><code class="function">vips_array_int_new()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.34.6"></a><h4>Parameters</h4>
+<a name="vips-value-get-array-int.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1517,7 +1517,7 @@ optionally return the number of elements in <em class="parameter"><code>n</code>
 <tbody>
 <tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p><a href="../gobject/gobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to get from</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to get from</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 <tr>
@@ -1529,7 +1529,7 @@ optionally return the number of elements in <em class="parameter"><code>n</code>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.34.7"></a><h4>Returns</h4>
+<a name="vips-value-get-array-int.returns"></a><h4>Returns</h4>
 <p> The array address. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -1538,7 +1538,7 @@ optionally return the number of elements in <em class="parameter"><code>n</code>
 <div class="refsect2">
 <a name="vips-value-set-array-int"></a><h3>vips_value_set_array_int ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_value_set_array_int (<em class="parameter"><code><a href="../gobject/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
+vips_value_set_array_int (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
                           <em class="parameter"><code>const <span class="type">int</span> *array</code></em>,
                           <em class="parameter"><code><span class="type">int</span> n</code></em>);</pre>
 <p>Set <em class="parameter"><code>value</code></em>
@@ -1547,7 +1547,7 @@ vips_value_set_array_int (<em class="parameter"><code><a href="../gobject/gobjec
 . </p>
 <p>See also: <a class="link" href="libvips-type.html#vips-array-int-get" title="vips_array_int_get ()"><code class="function">vips_array_int_get()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.35.6"></a><h4>Parameters</h4>
+<a name="vips-value-set-array-int.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1557,7 +1557,7 @@ vips_value_set_array_int (<em class="parameter"><code><a href="../gobject/gobjec
 <tbody>
 <tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p> <a href="../gobject/gobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to get from. </p></td>
+<td class="parameter_description"><p> <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to get from. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
 </tr>
 <tr>
@@ -1577,16 +1577,17 @@ vips_value_set_array_int (<em class="parameter"><code><a href="../gobject/gobjec
 <hr>
 <div class="refsect2">
 <a name="vips-value-get-array-object"></a><h3>vips_value_get_array_object ()</h3>
-<pre class="programlisting"><a href="../gobject/gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> **
-vips_value_get_array_object (<em class="parameter"><code>const <a href="../gobject/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#GObject-struct"><span class="returnvalue">GObject</span></a> **
+vips_value_get_array_object (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
                              <em class="parameter"><code><span class="type">int</span> *n</code></em>);</pre>
-<p>Return the start of the array of <a href="../gobject/gobject-The-Base-Object-Type.html#GObject"><code class="literal">GObject</code></a> held by <em class="parameter"><code>value</code></em>
+<p>Return the start of the array of <a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#GObject-struct"><code class="literal">GObject</code></a> held by <em class="parameter"><code>value</code></em>
 .
 Optionally return the number of elements in <em class="parameter"><code>n</code></em>
 .</p>
 <p>See also: <a class="link" href="libvips-type.html#vips-area-new-array-object" title="vips_area_new_array_object ()"><code class="function">vips_area_new_array_object()</code></a>.</p>
+<p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
 <div class="refsect3">
-<a name="id-1.3.10.15.36.6"></a><h4>Parameters</h4>
+<a name="vips-value-get-array-object.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1596,7 +1597,7 @@ Optionally return the number of elements in <em class="parameter"><code>n</code>
 <tbody>
 <tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p><a href="../gobject/gobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to get from</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to get from</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 <tr>
@@ -1608,7 +1609,7 @@ Optionally return the number of elements in <em class="parameter"><code>n</code>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.3.10.15.36.7"></a><h4>Returns</h4>
+<a name="vips-value-get-array-object.returns"></a><h4>Returns</h4>
 <p> The array address. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -1617,14 +1618,14 @@ Optionally return the number of elements in <em class="parameter"><code>n</code>
 <div class="refsect2">
 <a name="vips-value-set-array-object"></a><h3>vips_value_set_array_object ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_value_set_array_object (<em class="parameter"><code><a href="../gobject/gobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
+vips_value_set_array_object (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
                              <em class="parameter"><code><span class="type">int</span> n</code></em>);</pre>
 <p>Set <em class="parameter"><code>value</code></em>
- to hold an array of <a href="../gobject/gobject-The-Base-Object-Type.html#GObject"><code class="literal">GObject</code></a>. Pass in the array length in <em class="parameter"><code>n</code></em>
+ to hold an array of <a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#GObject-struct"><code class="literal">GObject</code></a>. Pass in the array length in <em class="parameter"><code>n</code></em>
 . </p>
 <p>See also: <a class="link" href="libvips-type.html#vips-value-get-array-object" title="vips_value_get_array_object ()"><code class="function">vips_value_get_array_object()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.3.10.15.37.6"></a><h4>Parameters</h4>
+<a name="vips-value-set-array-object.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1634,7 +1635,7 @@ vips_value_set_array_object (<em class="parameter"><code><a href="../gobject/gob
 <tbody>
 <tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p> <a href="../gobject/gobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to set. </p></td>
+<td class="parameter_description"><p> <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to set. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
 </tr>
 <tr>
@@ -1656,8 +1657,7 @@ vips_value_set_array_object (<em class="parameter"><code><a href="../gobject/gob
 </div>
 </div>
 <div class="footer">
-<hr>
-          Generated by GTK-Doc V1.21</div>
+<hr>Generated by GTK-Doc V1.25</div>
 </section>
 
     <script type="text/javascript">

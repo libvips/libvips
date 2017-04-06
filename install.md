@@ -64,61 +64,6 @@ Debug build:
 	$ make
 	$ make install
 
-Leak check:
-
-	$ export G_DEBUG=gc-friendly
-	$ valgrind --suppressions=libvips.supp \
-		--leak-check=yes \
-		vips ... > vips-vg.log 2>&1
-
-Memory error debug:
-
-	$ valgrind --vgdb=yes --vgdb-error=0 vips  ...
-
-valgrind threading check:
-
-	$ valgrind --tool=helgrind vips ... > vips-vg.log 2>&1
-
-Clang build:
-
-	$ CC=clang CXX=clang++ ./configure --prefix=/home/john/vips
-
-Clang static analysis:
-
-	$ scan-build ./configure --disable-introspection --disable-debug
-	$ scan-build -o scan -v make 
-	$ scan-view scan/2013-11-22-2
-
-Clang dynamic analysis:
-
-	$ FLAGS="-O1 -g -fsanitize=address"
-	$ FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
-	$ CC=clang CXX=clang++ LD=clang \
-		CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" LDFLAGS=-fsanitize=address \
-		./configure --prefix=/home/john/vips 
-
-	$ FLAGS="-O1 -g -fsanitize=thread"
-	$ FLAGS="$FLAGS -fPIC"
-	$ FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
-	$ CC=clang CXX=clang++ LD=clang \
-		CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
-		LDFLAGS="-fsanitize=thread -fPIC" \
-		./configure --prefix=/home/john/vips \
-			--without-magick \
-			--disable-introspection
-	$ G_DEBUG=gc-friendly vips copy ~/pics/k2.jpg x.jpg >& log
-
-Build with the GCC auto-vectorizer and diagnostics (or just -O3):
-
-	$ FLAGS="-O2 -msse4.2 -ffast-math"
-	$ FLAGS="$FLAGS -ftree-vectorize -fdump-tree-vect-details"
-	$ CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
-		./configure --prefix=/home/john/vips 
-
-Static analysis with:
-
-	$ cppcheck --force --enable=style . &> cppcheck.log
-
 ## Dependencies 
 
 libvips has to have `glib2.0-dev`. Other dependencies are optional, see below.
@@ -223,6 +168,8 @@ web-server, for example, you should consider the security implications of
 using a package with such a large attack surface. You might prefer not to
 enable Magick support. 
 
+libvips also supports ImageMagick7. 
+
 ### pangoft2
 
 If available, libvips adds support for text rendering. You need the
@@ -258,10 +205,3 @@ files: Aperio, Hamamatsu, Leica, MIRAX, Sakura, Trestle, and Ventana.
 ### swig, python, python-dev
 
 If available, we build the vips7 python binding.
-
-## Disclaimer
-
-No guarantees of performance accompany this software, nor is any
-responsibility assumed on the part of the authors. Please read the licence
-agreement.
-
