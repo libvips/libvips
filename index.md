@@ -17,9 +17,9 @@ range of image formats, including JPEG, TIFF, PNG, WebP, FITS, Matlab,
 OpenEXR, PDF, SVG, HDR, PPM, CSV, GIF, Analyze, DeepZoom, and OpenSlide.
 It can also load images via ImageMagick or GraphicsMagick.
 
-It has APIs for [C](API/using-from-c.html) and [C++](API/using-from-cpp.html)
-and comes with a [Python binding](API/using-from-python.html) and a 
-[command-line interface](API/using-cli.html). Bindings are available for 
+It has APIs for [C](API/current/using-from-c.html) and [C++](API/current/using-from-cpp.html)
+and comes with a [Python binding](API/current/using-from-python.html) and a 
+[command-line interface](API/current/using-cli.html). Bindings are available for 
 [Ruby](https://rubygems.org/gems/ruby-vips), 
 [PHP](https://github.com/jcupitt/php-vips), and
 [Go](https://github.com/davidbyttow/govips).

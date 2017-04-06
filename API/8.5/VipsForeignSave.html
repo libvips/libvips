@@ -262,6 +262,14 @@ justifications.
 <span class="returnvalue">int</span>
 </td>
 <td class="function_name">
+<a class="link" href="VipsForeignSave.html#vips-tiffsave-buffer" title="vips_tiffsave_buffer ()">vips_tiffsave_buffer</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
 <a class="link" href="VipsForeignSave.html#vips-openexrload" title="vips_openexrload ()">vips_openexrload</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
@@ -2546,6 +2554,93 @@ tag.</p>
 </div>
 <div class="refsect3">
 <a name="vips-tiffsave.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-tiffsave-buffer"></a><h3>vips_tiffsave_buffer ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_tiffsave_buffer (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+                      <em class="parameter"><code><span class="type">void</span> **buf</code></em>,
+                      <em class="parameter"><code><span class="type">size_t</span> *len</code></em>,
+                      <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>compression</code></em>
+: use this <a class="link" href="VipsForeignSave.html#VipsForeignTiffCompression" title="enum VipsForeignTiffCompression"><span class="type">VipsForeignTiffCompression</span></a></p></li>
+<li class="listitem"><p><em class="parameter"><code>Q</code></em>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a> quality factor</p></li>
+<li class="listitem"><p><em class="parameter"><code>predictor</code></em>
+: use this <a class="link" href="VipsForeignSave.html#VipsForeignTiffPredictor" title="enum VipsForeignTiffPredictor"><span class="type">VipsForeignTiffPredictor</span></a></p></li>
+<li class="listitem"><p><em class="parameter"><code>profile</code></em>
+: filename of ICC profile to attach</p></li>
+<li class="listitem"><p><em class="parameter"><code>tile</code></em>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to write a tiled tiff</p></li>
+<li class="listitem"><p><em class="parameter"><code>tile_width</code></em>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a> for tile size</p></li>
+<li class="listitem"><p><em class="parameter"><code>tile_height</code></em>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a> for tile size</p></li>
+<li class="listitem"><p><em class="parameter"><code>pyramid</code></em>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to write an image pyramid</p></li>
+<li class="listitem"><p><em class="parameter"><code>squash</code></em>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to squash 8-bit images down to 1 bit</p></li>
+<li class="listitem"><p><em class="parameter"><code>miniswhite</code></em>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to write 1-bit images as MINISWHITE</p></li>
+<li class="listitem"><p><em class="parameter"><code>resunit</code></em>
+: <a class="link" href="VipsForeignSave.html#VipsForeignTiffResunit" title="enum VipsForeignTiffResunit"><span class="type">VipsForeignTiffResunit</span></a> for resolution unit</p></li>
+<li class="listitem"><p><em class="parameter"><code>xres</code></em>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a> horizontal resolution in pixels/mm</p></li>
+<li class="listitem"><p><em class="parameter"><code>yres</code></em>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a> vertical resolution in pixels/mm</p></li>
+<li class="listitem"><p><em class="parameter"><code>bigtiff</code></em>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to write a BigTiff file</p></li>
+<li class="listitem"><p><em class="parameter"><code>properties</code></em>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to write an IMAGEDESCRIPTION tag</p></li>
+<li class="listitem"><p><em class="parameter"><code>strip</code></em>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to block metadata save</p></li>
+</ul></div>
+<p>As <a class="link" href="VipsForeignSave.html#vips-tiffsave" title="vips_tiffsave ()"><code class="function">vips_tiffsave()</code></a>, but save to a memory buffer. </p>
+<p>The address of the buffer is returned in <em class="parameter"><code>buf</code></em>
+, the length of the buffer in
+<em class="parameter"><code>len</code></em>
+. You are responsible for freeing the buffer with <a href="/usr/share/gtk-doc/html/glibglib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a> when you
+are done with it.</p>
+<p>See also: <a class="link" href="VipsForeignSave.html#vips-tiffsave" title="vips_tiffsave ()"><code class="function">vips_tiffsave()</code></a>, <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a>.</p>
+<div class="refsect3">
+<a name="vips-tiffsave-buffer.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>image to save </p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>buf</p></td>
+<td class="parameter_description"><p>return output buffer here</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>len</p></td>
+<td class="parameter_description"><p>return output length here</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-tiffsave-buffer.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
 </div>
 </div>

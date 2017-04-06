@@ -826,6 +826,7 @@
     <keyword type="function" name="vips_tiffload ()" link="VipsForeignSave.html#vips-tiffload"/>
     <keyword type="function" name="vips_tiffload_buffer ()" link="VipsForeignSave.html#vips-tiffload-buffer"/>
     <keyword type="function" name="vips_tiffsave ()" link="VipsForeignSave.html#vips-tiffsave"/>
+    <keyword type="function" name="vips_tiffsave_buffer ()" link="VipsForeignSave.html#vips-tiffsave-buffer"/>
     <keyword type="function" name="vips_openexrload ()" link="VipsForeignSave.html#vips-openexrload"/>
     <keyword type="function" name="vips_fitsload ()" link="VipsForeignSave.html#vips-fitsload"/>
     <keyword type="function" name="vips_fitssave ()" link="VipsForeignSave.html#vips-fitssave"/>
