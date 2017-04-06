@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+                  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<refentry id="Making-image-pyramids.md">
+
+
+<para>
+  <refmeta> <refentrytitle>Image pyramids</refentrytitle> <manvolnum>3</manvolnum> <refmiscinfo>libvips</refmiscinfo> </refmeta>
+</para>
+<para>
+  <refnamediv> <refname>Pyramids</refname> <refpurpose>How to use libvips to make image pyramids</refpurpose> </refnamediv>
+</para>
+<para>
+  libvips includes <literal>vips_dzsave()</literal>, an operation that can build image pyramids compatible with <ulink url="http://en.wikipedia.org/wiki/Deep_Zoom">DeepZoom</ulink>, Zoomify and <ulink url="https://developers.google.com/maps/">Google Maps</ulink> image viewers. It’s fast and can generate pyramids for large images using only a small amount of memory.
+</para>
+<para>
+  The TIFF writer, <literal>vips_tiffsave()</literal> can also build tiled pyramidal TIFF images, but that’s very simple to use. This page concentrates on the DeepZoom builder.
+</para>
+<para>
+  Run dzsave with no arguments to see a summary:
+</para>
+<programlisting>
+$ vips dzsave
+save image to deepzoom file
+usage:
+   dzsave in filename
+where:
+   in           - Image to save, input VipsImage
+   filename     - Filename to save to, input gchararray
+optional arguments:
+   basename     - Base name to save to, input gchararray
+   layout       - Directory layout, input VipsForeignDzLayout
+            default: dz
+            allowed: dz, zoomify, google
+   suffix       - Filename suffix for tiles, input gchararray
+   overlap      - Tile overlap in pixels, input gint
+            default: 1
+            min: 0, max: 8192
+   tile-size    - Tile size in pixels, input gint
+            default: 254
+            min: 1, max: 8192
+   centre       - Center image in tile, input gboolean
+            default: false
+   depth        - Pyramid depth, input VipsForeignDzDepth
+            default: onepixel
+            allowed: onepixel, onetile, one
+   angle        - Rotate image during save, input VipsAngle
+            default: d0
+            allowed: d0, d90, d180, d270
+   container    - Pyramid container type, input VipsForeignDzContainer
+            default: fs
+            allowed: fs, zip
+   properties   - Write a properties file to the output directory, input
+gboolean
+            default: false
+   compression  - ZIP deflate compression level, input gint
+            default: 0
+            min: -1, max: 9
+   strip        - Strip all metadata from image, input gboolean
+            default: false
+   background   - Background value, input VipsArrayDouble
+operation flags: sequential nocache 
+</programlisting>
+<para>
+  You can also call <literal>vips_dzsave()</literal> from any language with a libvips binding, or by using <literal>.dz</literal> or <literal>.szi</literal> as an output file suffix.
+</para>
+<refsect3 id="writing-deepzoom-pyramids">
+  <title>Writing <ulink url="http://en.wikipedia.org/wiki/Deep_Zoom">DeepZoom</ulink> pyramids</title>
+  <para>
+    The <literal>--layout</literal> option sets the basic mode of operation. With no <literal>--layout</literal>, dzsave writes DeepZoom pyramids. For example:
+  </para>
+  <programlisting>
+$ vips dzsave huge.tif mydz
+</programlisting>
+  <para>
+    This will create a directory called <literal>mydz_files</literal> containing the image tiles, and write a file called <literal>mydz.dzi</literal> containing the image metadata. 
+  </para>
+  <para>
+    You can use the <literal>--suffix</literal> option to control how tiles are written. For example:
+  </para>
+  <programlisting>
+$ vips dzsave huge.tif mydz --suffix .jpg[Q=90]
+</programlisting>
+  <para>
+    will write JPEG tiles with the quality factor set to 90. You can set any format write options you like, see the API docs for <literal>vips_jpegsave()</literal> for details.
+  </para>
+</refsect3>
+<refsect3 id="writing-zoomify-pyramids">
+  <title>Writing Zoomify pyramids</title>
+  <para>
+    Use <literal>--layout zoomify</literal> to put dzsave into zoomify mode. For example:
+  </para>
+  <programlisting>
+$ vips dzsave huge.tif myzoom --layout zoomify
+</programlisting>
+  <para>
+    This will create a directory called <literal>myzoom</literal> containing a file called <literal>ImageProperties.xml</literal> with the image metadata in, and a series of directories called <literal>TileGroupn</literal>, each containing 256 image tiles.
+  </para>
+  <para>
+    As with DeepZoom, you can use <literal>--suffix</literal> to set jpeg quality.
+  </para>
+</refsect3>
+<refsect3 id="writing-google-maps-pyramids">
+  <title>Writing <ulink url="https://developers.google.com/maps/">Google Maps</ulink> pyramids</title>
+  <para>
+    Use <literal>--layout google</literal> to write Google maps-style pyramids. These are compatible with the <ulink url="http://code.google.com/p/virtualmicroscope/wiki/SlideTiler">NYU Pathology pyramid builder</ulink>. For example:
+  </para>
+  <programlisting>
+$ vips dzsave wtc.tif gmapdir --layout google
+</programlisting>
+  <para>
+    Will create a directory called <literal>gmapdir</literal> containing <literal>blank.png</literal>, the file to display for blank tiles, and a set of numbered directories, one for each zoom level. The pyramid can be sparse (blank tiles are not written).
+  </para>
+  <para>
+    As with DeepZoom, you can use <literal>--suffix</literal> to set jpeg quality.
+  </para>
+  <para>
+    Use <literal>--background</literal> to set the background colour. This is the colour displayed for bits of the pyramid not in the image (image edges, for example). By default, the image background is white.
+  </para>
+  <para>
+    Use <literal>--centre</literal> to add a border to the image large enough to centre the image within the lowest resolution tile. By default, images are not centred.
+  </para>
+  <para>
+    For example:
+  </para>
+  <programlisting>
+$ vips dzsave wtc.tif gmapdir --layout google --background 0 --centre
+</programlisting>
+</refsect3>
+<refsect3 id="other-options">
+  <title>Other options</title>
+  <para>
+    You can use <literal>--tile-size</literal> and <literal>--overlap</literal> to control how large the tiles are and how they overlap (obviously). They default to the correct values for the selected layout.
+  </para>
+  <para>
+    You can use <literal>--depth</literal> to control how deep the pyramid should be. Possible values are <literal>onepixel</literal>, <literal>onetile</literal> and <literal>one</literal>. <literal>onepixel</literal> means the image is shrunk until it fits within a single pixel. <literal>onetile</literal> means shrink until it fits with a tile. <literal>one</literal> means only write one pyramid layer (the highest resolution one). It defaults to the correct value for the selected layout. <literal>--depth one</literal> is handy for slicing up a large image into tiles (rather than a pyramid).
+  </para>
+  <para>
+    You can use <literal>--angle</literal> to do a 90, 180 or 270 degree rotate of an image during pyramid write.
+  </para>
+  <para>
+    You can use <literal>--container</literal> to set the container type. Normally dzsave will write a tree of directories, but with <literal>--container zip</literal> you’ll get a zip file instead. Use .zip as the directory suffix to turn on zip format automatically:
+  </para>
+  <programlisting>
+$ vips dzsave wtc.tif mypyr.zip
+</programlisting>
+  <para>
+    to write a zipfile containing the tiles. You can use <literal>.szi</literal> as a suffix to enable zip output as well.
+  </para>
+  <para>
+    Use <literal>--properties</literal> to output an XML file called <literal>vips-properties.xml</literal>. This contains a dump of all the metadata vips has about the image as a set of name-value pairs. It’s handy with openslide image sources.
+  </para>
+</refsect3>
+<refsect3 id="preprocessing-images">
+  <title>Preprocessing images</title>
+  <para>
+    You can use <literal>.dz</literal> as a filename suffix, meaning send the image to <literal>vips_dzsave()</literal>. This means you can write the output of any vips operation to a pyramid. For example:
+  </para>
+  <programlisting>
+$ vips extract_area huge.svs mypy.dz[layout=google] 100 100 10000 10000
+</programlisting>
+  <para>
+    The arguments to <literal>extract_area</literal> are image-in, image-out, left, top, width, height. So this command will cut out a 10,000 by 10,000 pixel area from near the top-left-hand corner of an Aperio slide image, then build a pyramid in Google layout using just those pixels.
+  </para>
+  <para>
+    If you are working from OpenSlide images, you can use the shrink-on-load feature of many of those formats. For example:
+  </para>
+  <programlisting>
+$ vips dzsave CMU-1.mrxs[level=1] x
+</programlisting>
+  <para>
+    Will pull out level 1 (the half-resolution level of an MRXS slide) and make a pyramid from that.
+  </para>
+</refsect3>
+<refsect3 id="troubleshooting">
+  <title>Troubleshooting</title>
+  <para>
+    If you are building vips from source you do need to check the summary at the end of configure carefully. You must have the <literal>libgsf-1-dev</literal> package for <literal>vips_dzsave()</literal> to work.
+  </para>
+</refsect3>
+
+
+</refentry>

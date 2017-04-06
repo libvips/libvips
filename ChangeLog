@@ -1,6 +1,8 @@
 25/3/17 started 8.5.2
 - better behaviour for truncated PNG files, thanks Yury
 - missing proto for vips_tiffsave_buffer(), thanks greut
+- move some docs from the wiki and blog into core libvips docs
+- add support for markdown in docs
 
 25/3/17 started 8.5.1
 - init more classes earlier, thanks David
