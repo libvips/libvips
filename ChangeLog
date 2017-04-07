@@ -1,3 +1,6 @@
+7/4/17 started 8.5.3
+- more link fixing in docs 
+
 25/3/17 started 8.5.2
 - better behaviour for truncated PNG files, thanks Yury
 - missing proto for vips_tiffsave_buffer(), thanks greut

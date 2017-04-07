@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [8.5.2], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [8.5.3], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
@@ -18,7 +18,7 @@ AC_CONFIG_MACRO_DIR([m4])
 # user-visible library versioning
 m4_define([vips_major_version], [8])
 m4_define([vips_minor_version], [5])
-m4_define([vips_micro_version], [2])
+m4_define([vips_micro_version], [3])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
 

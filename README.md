@@ -5,7 +5,7 @@
 
 libvips is a 2D image processing library. Compared to
 similar libraries, [libvips runs quickly and uses little
-memory](http://www.vips.ecs.soton.ac.uk/index.php?title=Speed_and_Memory_Use).
+memory](https://github.com/jcupitt/libvips/wiki/Speed-and-memory-use).
 libvips is licensed under the LGPL 2.1+.
 
 It has around 300 operations covering arithmetic, histograms,
@@ -17,20 +17,20 @@ PDF, SVG, HDR, PPM, CSV, GIF, Analyze, DeepZoom, and OpenSlide.  It can
 also load images via ImageMagick or GraphicsMagick.
 
 It has APIs for
-[C](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/using-from-c.html)
+[C](http://jcupitt.github.io/libvips/API/current/using-from-c.html)
 and
-[C++](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/using-from-cpp.html)
+[C++](http://jcupitt.github.io/libvips/API/current/using-from-cpp.html)
 and comes with a [Python
-binding](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/using-from-python.html)
+binding](http://jcupitt.github.io/libvips/API/current/using-from-python.html)
 and a [command-line
-interface](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/using-cli.html).
+interface](http://jcupitt.github.io/libvips/API/current/using-cli.html).
 Bindings are available for [Ruby](https://rubygems.org/gems/ruby-vips),
 [PHP](https://github.com/jcupitt/php-vips),
 [Go](https://github.com/davidbyttow/govips),
 JavaScript and others. There is full
-[documentation](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/index.html).
+[documentation](http://jcupitt.github.io/libvips/API/current).
 There are several GUIs as well, see the [VIPS
-website](http://www.vips.ecs.soton.ac.uk).
+website](http://jcupitt.github.io/libvips).
 
 There are packages for most unix-like operating systems and binaries for
 Windows and OS X.
@@ -39,7 +39,7 @@ Windows and OS X.
 
 We keep pre-baked tarballs of releases on the vips website:
 
-http://www.vips.ecs.soton.ac.uk/supported/current/
+https://github.com/jcupitt/libvips/releases
 
 Untar, then in the libvips directory you should just be able to do:
 
@@ -65,9 +65,9 @@ Once `configure` is looking OK, compile and install with the usual:
 By default this will install files to `/usr/local`.
 
 We have detailed guides on the wiki for [building on
-Windows](http://www.vips.ecs.soton.ac.uk/index.php?title=Build_on_windows)
+Windows](https://github.com/jcupitt/libvips/wiki/Build_for_Windows)
 and [building on OS
-X](http://www.vips.ecs.soton.ac.uk/index.php?title=Build_on_OS_X).
+X](https://github.com/jcupitt/libvips/wiki/Build_on_OS_X).
 
 # Building libvips from git
 

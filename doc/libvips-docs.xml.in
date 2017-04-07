@@ -12,7 +12,7 @@
       For VIPS @VIPS_VERSION@.
       The latest version of this documentation can be found on the 
       <ulink role="online-location"
-        url="http://www.vips.ecs.soton.ac.uk/index.php?title=Documentation">VIPS website</ulink>.
+        url="http://jcupitt.github.io/libvips/API/current/">VIPS website</ulink>.
     </releaseinfo>
   </bookinfo>
 
