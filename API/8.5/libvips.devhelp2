@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
-<book xmlns="http://www.devhelp.net/book" title="VIPS Reference Manual" link="index.html" author="" name="libvips" version="2" language="c" online="http://www.vips.ecs.soton.ac.uk/index.php?title=Documentation">
+<book xmlns="http://www.devhelp.net/book" title="VIPS Reference Manual" link="index.html" author="" name="libvips" version="2" language="c" online="http://jcupitt.github.io/libvips/API/current/">
   <chapters>
     <sub name="VIPS Overview" link="ch01.html">
       <sub name="VIPS from the command-line" link="using-cli.html"/>
