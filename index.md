@@ -34,14 +34,13 @@ libvips is used as an image processing engine by
 
 ## Cite
 
-[Martinez, K. and Cupitt, J. (2005) VIPS -- a highly tuned
-image processing software architecture. In Proceedings of IEEE
-International Conference on Image Processing 2, pp. 574-577,
-Genova.](http://eprints.ecs.soton.ac.uk/12371)
+Martinez, K. and Cupitt, J. (2005) [VIPS -- a highly tuned image processing
+software architecture](http://eprints.ecs.soton.ac.uk/12371). In Proceedings
+of IEEE International Conference on Image Processing 2, pp. 574-577, Genova.
 
-[Cupitt, J. and Martinez, K. (1996) VIPS: An image
-processing system for large images, Proc. SPIE, vol.  2663,
-pp. 19--28.](http://eprints.soton.ac.uk/252227/1/vipsspie96a.pdf)
+Cupitt, J. and Martinez, K. (1996) [VIPS: An image processing system
+for large images](http://eprints.soton.ac.uk/252227/1/vipsspie96a.pdf),
+Proc. SPIE, vol.  2663, pp. 19--28.
 
 ## News
 
