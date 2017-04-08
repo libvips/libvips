@@ -10,12 +10,11 @@ If the packaged version is too old, you might need to build from source.
 
 ## Building libvips from a source tarball
 
-We keep pre-baked tarballs [in the Download area]({{ site.github.releases_url
-}}). Untar, then in the libvips directory you should just be able to do:
+Download `vips-x.y.z.tar.gz` from the [in the Download area]({{ site.github.releases_url }}), then:
 
-```
-$ ./configure
-```
+	$ tar xf vips-x.y.z.tar.gz
+	$ cd vips-x.y.z
+	$ ./configure
 
 Check the summary at the end of `configure` carefully.  libvips must have
 `build-essential`, `pkg-config`, `glib2.0-dev`, `libexpat1-dev`.
@@ -30,17 +29,14 @@ of the things that libvips can be configured to use.
 
 Once `configure` is looking OK, compile and install with the usual:
 
-```
-$ make
-$ sudo make install
-```
+	$ make
+	$ sudo make install
 
 By default this will install files to `/usr/local`.
 
-We have detailed guides on the wiki for [building on
-Windows](http://www.vips.ecs.soton.ac.uk/index.php?title=Build_on_windows)
-and [building on OS
-X](http://www.vips.ecs.soton.ac.uk/index.php?title=Build_on_OS_X).
+We have detailed guides on the wiki for [building for
+Windows](https://github.com/jcupitt/libvips/wiki/Build-for-Windows)
+and [building for macOS](https://github.com/jcupitt/libvips/wiki/Build-for-macOS).
 
 ## Building libvips from git
 
@@ -49,20 +45,13 @@ Checkout the latest sources with:
 	$ git clone git://github.com/jcupitt/libvips.git
 
 Building from git needs more packages, you'll need at least `swig`, `gtk-doc` 
-and `gobject-introspection`, see the dependencies section below. For example:
+and `gobject-introspection`, see the dependencies section below. 
 
-	$ brew install gtk-doc swig
-
-Then build the build system with:
+Then:
 
 	$ ./autogen.sh
-
-Debug build:
-
-	$ CFLAGS="-g -Wall" CXXFLAGS="-g -Wall" \
-		./configure --prefix=/home/john/vips --enable-debug
 	$ make
-	$ make install
+	$ sudo make install
 
 ## Dependencies 
 
