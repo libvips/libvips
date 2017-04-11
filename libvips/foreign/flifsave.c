@@ -42,9 +42,9 @@
  */
 
 /*
+ */
 #define DEBUG_VERBOSE
 #define DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -184,6 +184,10 @@ vips_foreign_save_flif_write( VipsForeignSaveFlif *flif, VipsImage *image )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( flif );
 
+#ifdef DEBUG
+	printf( "vips_foreign_save_flif_write:\n" ); 
+#endif /*DEBUG*/
+
 	if( !(flif->encoder = flif_create_encoder()) ) {
 		vips_error( class->nickname, "unable to create encoder" );
 		return( -1 );
@@ -248,11 +252,19 @@ vips_foreign_save_flif_write( VipsForeignSaveFlif *flif, VipsImage *image )
 		return( -1 );
 	}
 
-	/*
+#ifdef DEBUG
 	printf( "Xsize = %d\n", image->Xsize );
 	printf( "Ysize = %d\n", image->Ysize );
 	printf( "Bands = %d\n", image->Bands );
-	 */
+	printf( "Format = " ); 
+	if( image->BandFmt == VIPS_FORMAT_UCHAR ) 
+		printf( "8 bit\n" ); 
+	else if( image->BandFmt == VIPS_FORMAT_USHORT ) 
+		printf( "16 bit\n" ); 
+	else 
+		printf( "error\n" ); 
+	printf( "flif->palette_size = %d\n", flif->palette_size );
+#endif /*DEBUG*/
 
 	if( vips_sink_disc( image, 
 		vips_foreign_save_flif_write_flif, flif ) ) 
