@@ -166,10 +166,29 @@ vips_foreign_save_flif_write_flif( VipsRegion *region, VipsRect *area, void *a )
 {
 	VipsForeignSaveFlif *flif = (VipsForeignSaveFlif *) a;
 
+	WriterFn write_fn;
 	int y;
-	WriterFn write_fn = region->im->BandFmt == VIPS_FORMAT_UCHAR ? 
-		flif_image_write_row_RGBA8 : 
-		flif_image_write_row_RGBA16;
+
+#ifdef DEBUG
+	printf( "vips_foreign_save_flif_write_flif: writing %d x %d pixels\n", 
+		area->width, area->height ); 
+#endif /*DEBUG*/
+
+	switch( region->im->BandFmt ) {
+	case VIPS_FORMAT_UCHAR:
+		printf( "flif_image_write_row_RGBA8\n" ); 
+		write_fn = flif_image_write_row_RGBA8;
+		break;
+	
+	case VIPS_FORMAT_USHORT:
+		printf( "flif_image_write_row_RGBA16\n" ); 
+		write_fn = flif_image_write_row_RGBA16;
+		break;
+
+	default:
+		g_assert( 0 );
+		break;
+	}
 
 	for( y = 0; y < area->height; y++ ) 
 		write_fn( flif->image, area->top + y,
@@ -253,6 +272,24 @@ vips_foreign_save_flif_write( VipsForeignSaveFlif *flif, VipsImage *image )
 	}
 
 #ifdef DEBUG
+	printf( "flif->effort = %d\n", flif->effort );
+	printf( "flif->interlaced = %d\n", flif->interlaced );
+	printf( "flif->learn_repeat = %d\n", flif->learn_repeat );
+	printf( "flif->auto_color_buckets = %d\n", flif->auto_color_buckets );
+	printf( "flif->palette_size = %d\n", flif->palette_size );
+	printf( "flif->lookback = %d\n", flif->lookback );
+	printf( "flif->divisor = %d\n", flif->divisor );
+	printf( "flif->min_size = %d\n", flif->min_size );
+	printf( "flif->split_threshold = %d\n", flif->split_threshold );
+	printf( "flif->alpha_zero_lossless = %d\n", flif->alpha_zero_lossless );
+	printf( "flif->chance_cutoff = %d\n", flif->chance_cutoff );
+	printf( "flif->chance_alpha = %d\n", flif->chance_alpha );
+	printf( "flif->crc_check = %d\n", flif->crc_check );
+	printf( "flif->channel_compact = %d\n", flif->channel_compact );
+	printf( "flif->ycocg = %d\n", flif->ycocg );
+	printf( "flif->frame_shape = %d\n", flif->frame_shape );
+	printf( "flif->lossy = %d\n", flif->lossy );
+
 	printf( "Xsize = %d\n", image->Xsize );
 	printf( "Ysize = %d\n", image->Ysize );
 	printf( "Bands = %d\n", image->Bands );
@@ -263,8 +300,12 @@ vips_foreign_save_flif_write( VipsForeignSaveFlif *flif, VipsImage *image )
 		printf( "16 bit\n" ); 
 	else 
 		printf( "error\n" ); 
-	printf( "flif->palette_size = %d\n", flif->palette_size );
 #endif /*DEBUG*/
+
+	/*
+	if( vips_image_write_to_file( image, "x.v", NULL ) )
+		return( -1 ); 
+	 */
 
 	if( vips_sink_disc( image, 
 		vips_foreign_save_flif_write_flif, flif ) ) 
@@ -482,10 +523,19 @@ vips_foreign_save_flif_file_build( VipsObject *object )
 	if( vips_foreign_save_flif_write( flif, save->ready ) )
 		return( -1 ); 
 
+#ifdef DEBUG
+	printf( "vips_foreign_save_flif_file_build: "
+		"starting encode to file ...\n" ); 
+#endif /*DEBUG*/
+
 	if( !flif_encoder_encode_file( flif->encoder, file->filename ) ) {
 		vips_error( class->nickname, "unable to encode file" );
 		return( -1 );
 	}
+
+#ifdef DEBUG
+	printf( "vips_foreign_save_flif_file_build: ... encode done\n" ); 
+#endif /*DEBUG*/
 
 	/* Shut down the encoder as soon as we can to save mem.
 	 */
