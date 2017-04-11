@@ -1661,6 +1661,20 @@ vips_object_init( VipsObject *object )
 	g_mutex_unlock( vips__object_all_lock );
 }
 
+static void *
+traverse_find_required_priority( void *data, void *a, void *b )
+{
+	VipsArgumentClass *argument_class = (VipsArgumentClass *) data;
+	int priority = GPOINTER_TO_INT( a ); 
+
+	if( (argument_class->flags & VIPS_ARGUMENT_REQUIRED) && 
+		!(argument_class->flags & VIPS_ARGUMENT_DEPRECATED) && 
+		argument_class->priority == priority )
+		return( argument_class );
+	
+	return( NULL ); 
+}
+
 static gint
 traverse_sort( gconstpointer a, gconstpointer b )
 {
@@ -1677,7 +1691,9 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 	GParamSpec *pspec, VipsArgumentFlags flags, int priority, guint offset )
 {
 	VipsArgumentClass *argument_class = g_new( VipsArgumentClass, 1 );
+
 	GSList *argument_table_traverse;
+	VipsArgumentClass *ac;
 
 #ifdef DEBUG
 	printf( "vips_object_class_install_argument: %p %s %s\n", 
@@ -1730,6 +1746,21 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 	 */
 	argument_table_traverse = 
 		g_slist_copy( object_class->argument_table_traverse );
+
+	/* We keep traverse sorted by priority, so we musn't have duplicate
+	 * priority values in required args. 
+	 */
+	if( (flags & VIPS_ARGUMENT_REQUIRED) && 
+		!(flags & VIPS_ARGUMENT_DEPRECATED) && 
+		(ac = vips_slist_map2( argument_table_traverse,
+			traverse_find_required_priority, 
+			GINT_TO_POINTER( priority ), NULL )) ) 
+		g_warning( "vips_object_class_install_argument: "
+			"%s.%s, %s.%s duplicate priority", 
+			g_type_name( G_TYPE_FROM_CLASS( object_class ) ),
+			g_param_spec_get_name( pspec ),
+			g_type_name( G_TYPE_FROM_CLASS( ac->object_class ) ),
+			g_param_spec_get_name( ((VipsArgument *) ac)->pspec ) ); 
 
 	argument_table_traverse = g_slist_prepend(
 		argument_table_traverse, argument_class );
@@ -1830,9 +1861,8 @@ vips_object_set_argument_from_string( VipsObject *object,
 
 		/* Read the filename. 
 		 */
-		if( flags & VIPS_OPERATION_SEQUENTIAL_UNBUFFERED ) 
-			access = VIPS_ACCESS_SEQUENTIAL_UNBUFFERED;
-		else if( flags & VIPS_OPERATION_SEQUENTIAL ) 
+		if( flags & (VIPS_OPERATION_SEQUENTIAL_UNBUFFERED |
+			     VIPS_OPERATION_SEQUENTIAL) ) 
 			access = VIPS_ACCESS_SEQUENTIAL;
 		else
 			access = VIPS_ACCESS_RANDOM; 
@@ -1869,9 +1899,8 @@ vips_object_set_argument_from_string( VipsObject *object,
 			flags = vips_operation_get_flags( 
 				VIPS_OPERATION( object ) );
 
-		if( flags & VIPS_OPERATION_SEQUENTIAL_UNBUFFERED ) 
-			access = VIPS_ACCESS_SEQUENTIAL_UNBUFFERED;
-		else if( flags & VIPS_OPERATION_SEQUENTIAL ) 
+		if( flags & (VIPS_OPERATION_SEQUENTIAL_UNBUFFERED |
+			     VIPS_OPERATION_SEQUENTIAL) ) 
 			access = VIPS_ACCESS_SEQUENTIAL;
 		else
 			access = VIPS_ACCESS_RANDOM; 
@@ -2743,20 +2772,20 @@ vips_class_add_hash( VipsObjectClass *class, GHashTable *table )
 	return( NULL ); 
 }
 
-static void *
+static void 
 vips_class_build_hash( void )
 {
-	GHashTable *table;
 	GType base;
 
-	table = g_hash_table_new( g_str_hash, g_str_equal );
+	vips__object_nickname_table = 
+		g_hash_table_new( g_str_hash, g_str_equal );
 
-	if( !(base = g_type_from_name( "VipsObject" )) )
-		return( NULL );
+	base = g_type_from_name( "VipsObject" );
+	g_assert( base ); 
+
 	vips_class_map_all( base, 
-		(VipsClassMapFn) vips_class_add_hash, (void *) table );
-
-	return( table ); 
+		(VipsClassMapFn) vips_class_add_hash, 
+		(void *) vips__object_nickname_table );
 }
 
 /**
@@ -2785,8 +2814,7 @@ vips_type_find( const char *basename, const char *nickname )
 	GType base;
 	GType type;
 
-	vips__object_nickname_table = (GHashTable *) g_once( &once, 
-		(GThreadFunc) vips_class_build_hash, NULL ); 
+	g_once( &once, (GThreadFunc) vips_class_build_hash, NULL ); 
 
 	hit = (NicknameGType *) 
 		g_hash_table_lookup( vips__object_nickname_table, 

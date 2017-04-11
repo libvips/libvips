@@ -379,10 +379,21 @@ int
 vips_image_pipeline_array( VipsImage *image, 
 	VipsDemandStyle hint, VipsImage **in )
 {
+	/* This function can be called more than once per output image. For
+	 * example, jpeg header load will call this once on ->out to set the
+	 * default hint, then later call it again to connect the output image
+	 * up to the real image.
+	 *
+	 * It's only ever called first time with in[0] == NULL and second time
+	 * with a real value for @in.
+	 */
 	vips__demand_hint_array( image, hint, in );
 
 	if( in[0] && 
 		vips__image_copy_fields_array( image, in ) )
+		return( -1 ); 
+
+	if( vips__reorder_set_input( image, in ) )
 		return( -1 ); 
 
 	return( 0 );
@@ -411,7 +422,7 @@ vips_image_pipelinev( VipsImage *image, VipsDemandStyle hint, ... )
 		;
 	va_end( ap );
 	if( i == MAX_IMAGES ) {
-		vips_warn( "vips_image_pipeline", "%s", _( "too many images" ) );
+		g_warning( "%s", _( "too many images" ) );
 
 		/* Make sure we have a sentinel there.
 		 */

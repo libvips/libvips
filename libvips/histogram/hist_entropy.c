@@ -115,7 +115,7 @@ vips_hist_entropy_class_init( VipsHistEntropyClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsHistEntropy, in ) );
 
-	VIPS_ARG_DOUBLE( class, "out", 1, 
+	VIPS_ARG_DOUBLE( class, "out", 2, 
 		_( "Output" ), 
 		_( "Output value" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,

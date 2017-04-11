@@ -1041,12 +1041,18 @@ parse_options( GOptionContext *context, int *argc, char **argv )
 		vips_error_exit( NULL );
 	}
 
+	/* On Windows, argc will not have been updated by
+	 * g_option_context_parse_strv().
+	 */
+	for( *argc = 0; argv[*argc]; (*argc)++ )
+		;
+
 	/* Remove any "--" argument. If one of our arguments is a negative
 	 * number, the user will need to have added the "--" flag to stop
 	 * GOption parsing. But "--" is still passed down to us and we need to
 	 * ignore it.
 	 */
-	for( i = 1; i < *argc - 1; i++ )
+	for( i = 1; i < *argc; i++ )
 		if( strcmp( argv[i], "--" ) == 0 ) {
 			for( j = i; j < *argc; j++ )
 				argv[j] = argv[j + 1];
@@ -1129,11 +1135,15 @@ main( int argc, char **argv )
 	/* "vips" with no arguments does "vips --help".
 	 */
 	if( argc == 1 ) { 
+#ifdef HAVE_CONTEXT_GET_HELP
 		char *help;
 
 		help = g_option_context_get_help( context, TRUE, NULL );
 		printf( "%s", help );
 		g_free( help );
+#else /* !HAVE_CONTEXT_GET_HELP */
+		printf( "help not available, your glib is too old\n" );
+#endif /* HAVE_CONTEXT_GET_HELP */
 
 		exit( 0 );
 	}

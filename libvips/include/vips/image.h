@@ -473,6 +473,7 @@ int vips_image_encode( VipsImage *in, VipsImage **out, VipsCoding coding );
 gboolean vips_image_isMSBfirst( VipsImage *image );
 gboolean vips_image_isfile( VipsImage *image );
 gboolean vips_image_ispartial( VipsImage *image );
+gboolean vips_image_hasalpha( VipsImage *image );
 
 VipsImage *vips_image_copy_memory( VipsImage *image );
 int vips_image_wio_input( VipsImage *image );
@@ -504,6 +505,12 @@ VipsArrayImage *vips_array_image_append( VipsArrayImage *array,
 VipsImage **vips_array_image_get( VipsArrayImage *array, int *n );
 VipsImage **vips_value_get_array_image( const GValue *value, int *n );
 void vips_value_set_array_image( GValue *value, int n );
+
+/* Defined in reorder.c, but really a function on image.
+ */
+int vips_reorder_prepare_many( VipsImage *image, 
+	struct _VipsRegion **regions, VipsRect *r );
+void vips_reorder_margin_hint( VipsImage *image, int margin );
 
 #ifdef __cplusplus
 }

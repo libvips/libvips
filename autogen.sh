@@ -27,6 +27,8 @@ find doc -depth \( \
    -o -path 'doc/images/*' \
    -o -name '*.xml' ! -name libvips-docs.xml ! -path 'doc/xml/*' \
    -o -name '*.py' \
+   -o -name '*.md' \
+   -o -name '*.docbook' \
 \) -prune -or \( \
       -type f \
    -o -type d -empty \

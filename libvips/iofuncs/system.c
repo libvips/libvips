@@ -231,8 +231,7 @@ vips_system_build( VipsObject *object )
 	if( std_error ) {
 		vips__chomp( std_error ); 
 		if( strcmp( std_error, "" ) != 0 )
-			vips_warn( class->nickname, 
-				_( "stderr output: %s" ), std_error ); 
+			g_warning( _( "stderr output: %s" ), std_error ); 
 	}
 	if( std_output ) {
 		vips__chomp( std_output ); 

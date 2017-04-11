@@ -22,6 +22,8 @@
  * 	- more accurate resizing
  * 9/9/16
  * 	- add @centre option
+ * 6/3/17	
+ * 	- moved the cache to shrinkv
  */
 
 /*
@@ -127,7 +129,7 @@ vips_resize_int_shrink( VipsResize *resize, double scale )
 
 	case VIPS_KERNEL_LANCZOS2:
 	case VIPS_KERNEL_LANCZOS3:
-		return( VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (resize->scale * 2) ) ) );
+		return( VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (scale * 2) ) ) );
 	}
 }
 
@@ -155,7 +157,6 @@ vips_resize_interpolate( VipsKernel kernel )
 static int
 vips_resize_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsResize *resize = (VipsResize *) object;
 
@@ -186,7 +187,7 @@ vips_resize_build( VipsObject *object )
 	int_vshrink = vips_resize_int_shrink( resize, vscale );
 
 	if( int_vshrink > 1 ) { 
-		vips_info( class->nickname, "shrinkv by %d", int_vshrink );
+		g_info( "shrinkv by %d", int_vshrink );
 		if( vips_shrinkv( in, &t[0], int_vshrink, NULL ) )
 			return( -1 );
 		in = t[0];
@@ -195,7 +196,7 @@ vips_resize_build( VipsObject *object )
 	}
 
 	if( int_hshrink > 1 ) { 
-		vips_info( class->nickname, "shrinkh by %d", int_hshrink );
+		g_info( "shrinkh by %d", int_hshrink );
 		if( vips_shrinkh( in, &t[1], int_hshrink, NULL ) )
 			return( -1 );
 		in = t[1];
@@ -203,56 +204,10 @@ vips_resize_build( VipsObject *object )
 		hscale *= int_hshrink;
 	}
 
-	/* We will get overcomputation on vips_shrink() from the vips_reduce() 
-	 * coming later, so read into a cache where tiles are scanlines, and 
-	 * make sure we keep enough scanlines.
-	 *
-	 * We use a threaded tilecache to avoid a deadlock: suppose thread1,
-	 * evaluating the top block of the output, is delayed, and thread2, 
-	 * evaluating the second block, gets here first (this can happen on 
-	 * a heavily-loaded system). 
-	 *
-	 * With an unthreaded tilecache, thread2 will get
-	 * the cache lock and start evaling the second block of the shrink. 
-	 * When it reaches the png reader it will stall until the first block 
-	 * has been used ... but it never will, since thread1 will block on 
-	 * this cache lock. 
-	 *
-	 * Cache sizing: we double-buffer writes, so threads can be up to one 
-	 * line of tiles behind. For example, one thread could be allocated
-	 * tile (0,0) and then stall, the whole write system won't stall until
-	 * it tries to allocate tile (0, 2).
-	 *
-	 * We reduce down after this, which can be a scale of up to @residual, 
-	 * perhaps 0.5 or down as low as 0.3. So the number of scanlines we 
-	 * need to keep for the worst case is 2 * @tile_height / @residual, 
-	 * plus a little extra.
-	 */
-	if( int_vshrink > 1 ) { 
-		int tile_width;
-		int tile_height;
-		int n_lines;
-		int need_lines;
-
-		vips_get_tile_size( in, 
-			&tile_width, &tile_height, &n_lines );
-		need_lines = 1.2 * n_lines / vscale;
-		if( vips_tilecache( in, &t[6], 
-			"tile_width", in->Xsize,
-			"tile_height", 10,
-			"max_tiles", 1 + need_lines / 10,
-			"access", VIPS_ACCESS_SEQUENTIAL,
-			"threaded", TRUE, 
-			NULL ) )
-			return( -1 );
-		in = t[6];
-	}
-
 	/* Any residual downsizing.
 	 */
 	if( vscale < 1.0 ) { 
-		vips_info( class->nickname, "residual reducev by %g", 
-			vscale );
+		g_info( "residual reducev by %g", vscale );
 		if( vips_reducev( in, &t[2], 1.0 / vscale, 
 			"kernel", resize->kernel, 
 			"centre", resize->centre, 
@@ -262,7 +217,7 @@ vips_resize_build( VipsObject *object )
 	}
 
 	if( hscale < 1.0 ) { 
-		vips_info( class->nickname, "residual reduceh by %g", 
+		g_info( "residual reduceh by %g", 
 			hscale );
 		if( vips_reduceh( in, &t[3], 1.0 / hscale, 
 			"kernel", resize->kernel, 
@@ -285,8 +240,7 @@ vips_resize_build( VipsObject *object )
 
 		if( hscale > 1.0 && 
 			vscale > 1.0 ) { 
-			vips_info( class->nickname, 
-				"residual scale %g x %g", hscale, vscale );
+			g_info( "residual scale %g x %g", hscale, vscale );
 			if( vips_affine( in, &t[4], 
 				hscale, 0.0, 0.0, vscale, 
 				"interpolate", interpolate, 
@@ -295,8 +249,7 @@ vips_resize_build( VipsObject *object )
 			in = t[4];
 		}
 		else if( hscale > 1.0 ) { 
-			vips_info( class->nickname, 
-				"residual scale %g", hscale );
+			g_info( "residual scale %g", hscale );
 			if( vips_affine( in, &t[4], hscale, 0.0, 0.0, 1.0, 
 				"interpolate", interpolate, 
 				NULL ) )  
@@ -304,8 +257,7 @@ vips_resize_build( VipsObject *object )
 			in = t[4];
 		}
 		else { 
-			vips_info( class->nickname, 
-				"residual scale %g", vscale );
+			g_info( "residual scale %g", vscale );
 			if( vips_affine( in, &t[4], 1.0, 0.0, 0.0, vscale, 
 				"interpolate", interpolate, 
 				NULL ) )  

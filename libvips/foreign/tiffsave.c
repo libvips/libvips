@@ -56,16 +56,14 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
+#include "pforeign.h"
+
 #ifdef HAVE_TIFF
 
 #include "tiff.h"
 
 typedef struct _VipsForeignSaveTiff {
 	VipsForeignSave parent_object;
-
-	/* Filename for save.
-	 */
-	char *filename; 
 
 	/* Many options argh.
 	 */
@@ -89,7 +87,7 @@ typedef struct _VipsForeignSaveTiff {
 
 typedef VipsForeignSaveClass VipsForeignSaveTiffClass;
 
-G_DEFINE_TYPE( VipsForeignSaveTiff, vips_foreign_save_tiff, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveTiff, vips_foreign_save_tiff, 
 	VIPS_TYPE_FOREIGN_SAVE );
 
 #define UC VIPS_FORMAT_UCHAR
@@ -156,20 +154,6 @@ vips_foreign_save_tiff_build( VipsObject *object )
 		tiff->yres *= 2.54;
 	}
 
-	if( vips__tiff_write( save->ready, tiff->filename,
-		tiff->compression, tiff->Q, tiff->predictor,
-		tiff->profile,
-		tiff->tile, tiff->tile_width, tiff->tile_height,
-		tiff->pyramid,
-		tiff->squash,
-		tiff->miniswhite,
-		tiff->resunit, tiff->xres, tiff->yres,
-		tiff->bigtiff,
-		tiff->rgbjpeg,
-		tiff->properties,
-		save->strip ) )
-		return( -1 );
-
 	return( 0 );
 }
 
@@ -184,7 +168,7 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "tiffsave";
+	object_class->nickname = "tiffsave_base";
 	object_class->description = _( "save image to tiff file" );
 	object_class->build = vips_foreign_save_tiff_build;
 
@@ -192,13 +176,6 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
 	save_class->coding[VIPS_CODING_LABQ] = TRUE;
-
-	VIPS_ARG_STRING( class, "filename", 1, 
-		_( "Filename" ),
-		_( "Filename to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignSaveTiff, filename ),
-		NULL );
 
 	VIPS_ARG_ENUM( class, "compression", 6, 
 		_( "Compression" ), 
@@ -329,6 +306,146 @@ vips_foreign_save_tiff_init( VipsForeignSaveTiff *tiff )
 	tiff->yres = 1.0;
 }
 
+typedef struct _VipsForeignSaveTiffFile {
+	VipsForeignSaveTiff parent_object;
+
+	char *filename; 
+} VipsForeignSaveTiffFile;
+
+typedef VipsForeignSaveTiffClass VipsForeignSaveTiffFileClass;
+
+G_DEFINE_TYPE( VipsForeignSaveTiffFile, vips_foreign_save_tiff_file, 
+	vips_foreign_save_tiff_get_type() );
+
+static int
+vips_foreign_save_tiff_file_build( VipsObject *object )
+{
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveTiff *tiff = (VipsForeignSaveTiff *) object;
+	VipsForeignSaveTiffFile *file = (VipsForeignSaveTiffFile *) object;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_tiff_file_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( vips__tiff_write( save->ready, file->filename,
+		tiff->compression, tiff->Q, tiff->predictor,
+		tiff->profile,
+		tiff->tile, tiff->tile_width, tiff->tile_height,
+		tiff->pyramid,
+		tiff->squash,
+		tiff->miniswhite,
+		tiff->resunit, tiff->xres, tiff->yres,
+		tiff->bigtiff,
+		tiff->rgbjpeg,
+		tiff->properties,
+		save->strip ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_tiff_file_class_init( VipsForeignSaveTiffFileClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "tiffsave";
+	object_class->description = _( "save image to tiff file" );
+	object_class->build = vips_foreign_save_tiff_file_build;
+
+	VIPS_ARG_STRING( class, "filename", 1, 
+		_( "Filename" ),
+		_( "Filename to save to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveTiffFile, filename ),
+		NULL );
+}
+
+static void
+vips_foreign_save_tiff_file_init( VipsForeignSaveTiffFile *file )
+{
+}
+
+typedef struct _VipsForeignSaveTiffBuffer {
+	VipsForeignSaveTiff parent_object;
+
+	VipsArea *buf;
+} VipsForeignSaveTiffBuffer;
+
+typedef VipsForeignSaveTiffClass VipsForeignSaveTiffBufferClass;
+
+G_DEFINE_TYPE( VipsForeignSaveTiffBuffer, vips_foreign_save_tiff_buffer, 
+	vips_foreign_save_tiff_get_type() );
+
+static int
+vips_foreign_save_tiff_buffer_build( VipsObject *object )
+{
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveTiff *tiff = (VipsForeignSaveTiff *) object;
+
+	void *obuf;
+	size_t olen;
+	VipsBlob *blob;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_tiff_buffer_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( vips__tiff_write_buf( save->ready, &obuf, &olen,
+		tiff->compression, tiff->Q, tiff->predictor,
+		tiff->profile,
+		tiff->tile, tiff->tile_width, tiff->tile_height,
+		tiff->pyramid,
+		tiff->squash,
+		tiff->miniswhite,
+		tiff->resunit, tiff->xres, tiff->yres,
+		tiff->bigtiff,
+		tiff->rgbjpeg,
+		tiff->properties,
+		save->strip ) )
+		return( -1 );
+
+	/* vips__tiff_write_buf() makes a buffer that needs g_free(), not
+	 * vips_free().
+	 */
+	blob = vips_blob_new( (VipsCallbackFn) g_free, obuf, olen );
+	g_object_set( object, "buffer", blob, NULL );
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_tiff_buffer_class_init( VipsForeignSaveTiffBufferClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "tiffsave_buffer";
+	object_class->description = _( "save image to tiff buffer" );
+	object_class->build = vips_foreign_save_tiff_buffer_build;
+
+	VIPS_ARG_BOXED( class, "buffer", 1, 
+		_( "Buffer" ),
+		_( "Buffer to save to" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveTiffBuffer, buf ),
+		VIPS_TYPE_BLOB );
+}
+
+static void
+vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
+{
+}
+
 #endif /*HAVE_TIFF*/
 
 /**
@@ -357,6 +474,10 @@ vips_foreign_save_tiff_init( VipsForeignSaveTiff *tiff )
  * * @strip: set %TRUE to block metadata save
  *
  * Write a VIPS image to a file as TIFF.
+ *
+ * If @in has the #VIPS_META_PAGE_HEIGHT metadata item, this is assumed to be a
+ * "toilet roll" image. It will be
+ * written as series of pages, each #VIPS_META_PAGE_HEIGHT pixels high. 
  *
  * Use @compression to set the tiff compression. Currently jpeg, packbits,
  * fax4, lzw, none and deflate are supported. The default is no compression.
@@ -437,6 +558,70 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
 	va_start( ap, filename );
 	result = vips_call_split( "tiffsave", ap, in, filename );
 	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_tiffsave_buffer:
+ * @in: image to save 
+ * @buf: return output buffer here
+ * @len: return output length here
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @compression: use this #VipsForeignTiffCompression
+ * * @Q: %gint quality factor
+ * * @predictor: use this #VipsForeignTiffPredictor
+ * * @profile: filename of ICC profile to attach
+ * * @tile: set %TRUE to write a tiled tiff
+ * * @tile_width: %gint for tile size
+ * * @tile_height: %gint for tile size
+ * * @pyramid: set %TRUE to write an image pyramid
+ * * @squash: set %TRUE to squash 8-bit images down to 1 bit
+ * * @miniswhite: set %TRUE to write 1-bit images as MINISWHITE
+ * * @resunit: #VipsForeignTiffResunit for resolution unit
+ * * @xres: %gdouble horizontal resolution in pixels/mm
+ * * @yres: %gdouble vertical resolution in pixels/mm
+ * * @bigtiff: set %TRUE to write a BigTiff file
+ * * @properties: set %TRUE to write an IMAGEDESCRIPTION tag
+ * * @strip: set %TRUE to block metadata save
+ *
+ * As vips_tiffsave(), but save to a memory buffer. 
+ *
+ * The address of the buffer is returned in @buf, the length of the buffer in
+ * @len. You are responsible for freeing the buffer with g_free() when you
+ * are done with it.
+ *
+ * See also: vips_tiffsave(), vips_image_write_to_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_tiffsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	int result;
+
+	area = NULL; 
+
+	va_start( ap, len );
+	result = vips_call_split( "tiffsave_buffer", ap, in, &area );
+	va_end( ap );
+
+	if( !result &&
+		area ) { 
+		if( buf ) {
+			*buf = area->data;
+			area->free_fn = NULL;
+		}
+		if( len ) 
+			*len = area->length;
+
+		vips_area_unref( area );
+	}
 
 	return( result );
 }

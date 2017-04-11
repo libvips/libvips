@@ -234,9 +234,8 @@ vips_colour_gen( VipsRegion *or,
 	int i, y;
 	VipsPel *p[MAX_INPUT_IMAGES], *q;
 
-	for( i = 0; ir[i]; i++ ) 
-		if( vips_region_prepare( ir[i], r ) ) 
-			return( -1 );
+	if( vips_reorder_prepare_many( or->im, ir, r ) )
+		return( -1 );
 
 	VIPS_GATE_START( "vips_colour_gen: work" ); 
 
@@ -422,7 +421,7 @@ vips_colour_class_init( VipsColourClass *class )
 	vobject_class->description = _( "color operations" );
 	vobject_class->build = vips_colour_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "out", 100, 
 		_( "Output" ), 

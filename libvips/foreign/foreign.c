@@ -61,6 +61,8 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
+#include "pforeign.h"
+
 /**
  * SECTION: foreign
  * @short_description: load and save images in a variety of formats
@@ -290,6 +292,10 @@
  * ]|
  */
 
+/* Use this to link images to the load operation that made them. 
+ */
+static GQuark vips__foreign_load_operation = 0; 
+
 /**
  * VipsForeignFlags: 
  * @VIPS_FOREIGN_NONE: no flags set
@@ -466,13 +472,27 @@ vips_foreign_find_load_sub( VipsForeignLoadClass *load_class,
 {
 	VipsForeignClass *class = VIPS_FOREIGN_CLASS( load_class );
 
+#ifdef DEBUG
+	printf( "vips_foreign_find_load_sub: %s\n", 
+		VIPS_OBJECT_CLASS( class )->nickname );
+#endif /*DEBUG*/
+
 	if( load_class->is_a ) {
 		if( load_class->is_a( filename ) ) 
 			return( load_class );
+
+#ifdef DEBUG
+		printf( "vips_foreign_find_load_sub: is_a failed\n" ); 
+#endif /*DEBUG*/
 	}
 	else if( class->suffs && 
 		vips_filename_suffix_match( filename, class->suffs ) )
 		return( load_class );
+	else {
+#ifdef DEBUG
+		printf( "vips_foreign_find_load_sub: suffix match failed\n" ); 
+#endif /*DEBUG*/
+	}
 
 	return( NULL );
 }
@@ -511,6 +531,11 @@ vips_foreign_find_load( const char *name )
 			_( "\"%s\" is not a known file format" ), name );
 		return( NULL );
 	}
+
+#ifdef DEBUG
+	printf( "vips_foreign_find_load: selected %s\n", 
+		VIPS_OBJECT_CLASS( load_class )->nickname );
+#endif /*DEBUG*/
 
 	return( G_OBJECT_CLASS_NAME( load_class ) );
 }
@@ -779,6 +804,13 @@ vips_foreign_load_start( VipsImage *out, void *a, void *b )
 		 */
 		load->real->progress_signal = load->out;
 
+		/* Note the load object on the image. Loaders can use 
+		 * this to signal invalidate if they hit a load error. See
+		 * vips_foreign_load_invalidate() below.
+		 */
+		g_object_set_qdata( G_OBJECT( load->real ), 
+			vips__foreign_load_operation, load ); 
+
 		if( class->load( load ) ||
 			vips_image_pio_input( load->real ) ) 
 			return( NULL );
@@ -846,9 +878,9 @@ vips_foreign_load_build( VipsObject *object )
 
 	if( (flags & VIPS_FOREIGN_PARTIAL) &&
 		(flags & VIPS_FOREIGN_SEQUENTIAL) ) {
-		vips_warn( class->nickname, "%s", 
+		g_warning( "%s", 
 			_( "VIPS_FOREIGN_PARTIAL and VIPS_FOREIGN_SEQUENTIAL "
-			"both set -- using SEQUENTIAL" ) );
+				"both set -- using SEQUENTIAL" ) );
 		flags ^= VIPS_FOREIGN_PARTIAL;
 	}
 
@@ -865,12 +897,10 @@ vips_foreign_load_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( load->sequential ) {
-		vips_warn( class->nickname, "%s", 
-			_( "ignoring deprecated \"sequential\" mode" ) ); 
-		vips_warn( class->nickname, "%s", 
-			_( "please use \"access\" instead" ) ); 
-	}
+	if( load->sequential ) 
+		g_warning( "%s", 
+			_( "ignoring deprecated \"sequential\" mode -- "
+				"please use \"access\" instead" ) ); 
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
@@ -986,6 +1016,13 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoad, sequential ),
 		FALSE );
 
+	VIPS_ARG_BOOL( class, "fail", 11, 
+		_( "Fail" ), 
+		_( "Fail on first warning" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoad, fail ),
+		FALSE );
+
 }
 
 static void
@@ -993,6 +1030,38 @@ vips_foreign_load_init( VipsForeignLoad *load )
 {
 	load->disc = TRUE;
 	load->access = VIPS_ACCESS_RANDOM;
+}
+
+/**
+ * Loaders can call this
+ */
+
+/**
+ * vips_foreign_load_invalidate:
+ * @image: image to invalidate
+ *
+ * Loaders can call this on the image they are making if they see a read error
+ * from the load library. It signals "invalidate" on the load operation and
+ * will cause it to be dropped from cache. 
+ *
+ * If we know a file will cause a read error, we don't want to cache the
+ * failing operation, we want to make sure the image will really be opened 
+ * again if our caller tries again. For example, a broken file might be 
+ * replaced by a working one. 
+ */
+void
+vips_foreign_load_invalidate( VipsImage *image )
+{
+	VipsOperation *operation; 
+
+#ifdef DEBUG
+	printf( "vips_foreign_load_invalidate: %p\n", image ); 
+#endif /*DEBUG*/
+
+	if( (operation = g_object_get_qdata( G_OBJECT( image ), 
+		vips__foreign_load_operation )) ) {
+		vips_operation_invalidate( operation ); 
+	}
 }
 
 /* Abstract base class for image savers.
@@ -1448,11 +1517,11 @@ vips_foreign_save_class_init( VipsForeignSaveClass *class )
 	object_class->nickname = "filesave";
 	object_class->description = _( "file savers" );
 
-	/* All savers are seqential by definition. Things like tiled tiff 
+	/* All savers are sequential by definition. Things like tiled tiff 
 	 * write and interlaced png write, which are not, add extra caches 
 	 * on their input. 
 	 */
-	operation_class->flags |= VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags |= VIPS_OPERATION_SEQUENTIAL;
 
 	/* Must not cache savers.
 	 */
@@ -1659,7 +1728,8 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_jpeg_mime_get_type( void ); 
 	extern GType vips_foreign_load_tiff_file_get_type( void ); 
 	extern GType vips_foreign_load_tiff_buffer_get_type( void ); 
-	extern GType vips_foreign_save_tiff_get_type( void ); 
+	extern GType vips_foreign_save_tiff_file_get_type( void ); 
+	extern GType vips_foreign_save_tiff_buffer_get_type( void ); 
 	extern GType vips_foreign_load_vips_get_type( void ); 
 	extern GType vips_foreign_save_vips_get_type( void ); 
 	extern GType vips_foreign_load_raw_get_type( void ); 
@@ -1669,7 +1739,8 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_magick_buffer_get_type( void ); 
 	extern GType vips_foreign_load_magick7_file_get_type( void ); 
 	extern GType vips_foreign_load_magick7_buffer_get_type( void ); 
-	extern GType vips_foreign_save_dz_get_type( void ); 
+	extern GType vips_foreign_save_dz_file_get_type( void ); 
+	extern GType vips_foreign_save_dz_buffer_get_type( void ); 
 	extern GType vips_foreign_load_webp_file_get_type( void ); 
 	extern GType vips_foreign_load_webp_buffer_get_type( void ); 
 	extern GType vips_foreign_save_webp_file_get_type( void ); 
@@ -1729,7 +1800,8 @@ vips_foreign_operation_init( void )
 #endif /*HAVE_GIFLIB*/
 
 #ifdef HAVE_GSF
-	vips_foreign_save_dz_get_type(); 
+	vips_foreign_save_dz_file_get_type(); 
+	vips_foreign_save_dz_buffer_get_type(); 
 #endif /*HAVE_GSF*/
 
 #ifdef HAVE_PNG
@@ -1768,7 +1840,8 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_TIFF
 	vips_foreign_load_tiff_file_get_type(); 
 	vips_foreign_load_tiff_buffer_get_type(); 
-	vips_foreign_save_tiff_get_type(); 
+	vips_foreign_save_tiff_file_get_type(); 
+	vips_foreign_save_tiff_buffer_get_type(); 
 #endif /*HAVE_TIFF*/
 
 #ifdef HAVE_OPENSLIDE
@@ -1793,4 +1866,7 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_OPENEXR
 	vips_foreign_load_openexr_get_type(); 
 #endif /*HAVE_OPENEXR*/
+
+	vips__foreign_load_operation = 
+		g_quark_from_static_string( "vips-foreign-load-operation" ); 
 }

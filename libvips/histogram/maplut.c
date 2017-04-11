@@ -106,11 +106,8 @@ static void
 vips_maplut_posteval( VipsImage *image, VipsProgress *progress, 
 	VipsMaplut *maplut )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( maplut );
-
 	if( maplut->overflow )
-		vips_warn( class->nickname, 
-			_( "%d overflows detected" ), maplut->overflow );
+		g_warning( _( "%d overflows detected" ), maplut->overflow );
 }
 
 /* Our sequence value: the region this sequence is using, and local stats.
@@ -691,7 +688,7 @@ vips_maplut_class_init( VipsMaplutClass *class )
 	object_class->description = _( "map an image though a lut" );
 	object_class->build = vips_maplut_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 

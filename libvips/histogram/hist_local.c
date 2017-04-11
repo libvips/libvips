@@ -21,6 +21,12 @@
  * 	- redo as a class
  * 9/9/13
  * 	- any number of bands
+ * 20/1/17
+ * 	- add contrast limit
+ * 	- sum to <= target, not < target, since cumulative hists include the
+ * 	  current value
+ * 	- scale result by 255, not 256, to avoid overflow
+ * 	- off by 1 fix for odd window widths
  */
 
 /*
@@ -71,6 +77,8 @@ typedef struct _VipsHistLocal {
 	int width;
 	int height;
 
+	int max_slope;
+
 } VipsHistLocal;
 
 typedef VipsOperationClass VipsHistLocalClass;
@@ -82,7 +90,7 @@ G_DEFINE_TYPE( VipsHistLocal, vips_hist_local, VIPS_TYPE_OPERATION );
 typedef struct {
 	VipsRegion *ir;		/* Input region */
 
-	/* A 256-element hist for evry band.
+	/* A 256-element hist for every band.
 	 */
 	unsigned int **hist;
 } VipsHistLocalSequence;
@@ -143,7 +151,8 @@ vips_hist_local_generate( VipsRegion *or,
 	VipsImage *in = (VipsImage *) a;
 	const VipsHistLocal *local = (VipsHistLocal *) b;
 	VipsRect *r = &or->valid;
-	int bands = in->Bands; 
+	const int bands = in->Bands; 
+	const int max_slope = local->max_slope;
 
 	VipsRect irect;
 	int y;
@@ -160,28 +169,29 @@ vips_hist_local_generate( VipsRegion *or,
 		return( -1 );
 
 	lsk = VIPS_REGION_LSKIP( seq->ir );
-	centre = lsk * (local->height / 2) + bands * local->width / 2;
+	centre = lsk * (local->height / 2) + bands * (local->width / 2);
 
 	for( y = 0; y < r->height; y++ ) {
 		/* Get input and output pointers for this line.
 		 */
-		VipsPel *p = VIPS_REGION_ADDR( seq->ir, r->left, r->top + y );
-		VipsPel *q = VIPS_REGION_ADDR( or, r->left, r->top + y );
+		VipsPel * restrict p = 
+			VIPS_REGION_ADDR( seq->ir, r->left, r->top + y );
+		VipsPel * restrict q = 
+			VIPS_REGION_ADDR( or, r->left, r->top + y );
 
-		VipsPel *p1;
+		VipsPel * restrict p1;
 		int x, i, j, b;
 
-		/* Find histogram for start of this line.
+		/* Find histogram for the start of this line. 
 		 */
 		for( b = 0; b < bands; b++ )
 			memset( seq->hist[b], 0, 256 * sizeof( unsigned int ) );
 		p1 = p;
 		for( j = 0; j < local->height; j++ ) {
-			i = 0; 
-			for( x = 0; x < local->width; x++ )
-				for( b = 0; b < bands; b++ )
-					seq->hist[b][p1[i++]] += 1;
-			
+			for( i = 0, x = 0; x < local->width; x++ )
+				for( b = 0; b < bands; b++, i++ )
+					seq->hist[b][p1[i]] += 1;
+
 			p1 += lsk;
 		}
 
@@ -191,31 +201,77 @@ vips_hist_local_generate( VipsRegion *or,
 			for( b = 0; b < bands; b++ ) {
 				/* Sum histogram up to current pel.
 				 */
-				unsigned int *hist = seq->hist[b]; 
-				int target = p[centre];
+				unsigned int * restrict hist = seq->hist[b]; 
+				const int target = p[centre + b];
+
 				int sum;
 
 				sum = 0;
-				for( i = 0; i < target; i++ )
-					sum += hist[i];
 
-				*q++ = 256 * sum / 
+				/* For CLAHE we need to limit the height of the
+				 * hist to limit the amount we boost the
+				 * contrast by. 
+				 */
+				if( max_slope > 0 ) {
+					int sum_over;
+
+					sum_over = 0;
+
+					/* Must be <= target, since a cum hist
+					 * always includes the current element.
+					 */
+					for( i = 0; i <= target; i++ ) {
+						if( hist[i] > max_slope ) {
+							sum_over += hist[i] - 
+								max_slope;
+							sum += max_slope;
+						}
+						else 
+							sum += hist[i];
+					}
+
+					for( ; i < 256; i++ ) {
+						if( hist[i] > max_slope ) 
+							sum_over += hist[i] - 
+								max_slope;
+					}
+
+					/* The extra clipped off bit from the
+					 * top of the hist is spread over all
+					 * bins equally, then summed to target.
+					 */
+					sum += (target + 1) * sum_over / 256;
+				}
+				else {
+					sum = 0;
+					for( i = 0; i <= target; i++ )
+						sum += hist[i];
+				}
+
+				/* This can't overflow, even in
+				 * contrast-limited mode.
+				 *
+				 * Scale by 255, not 256, or we'll get
+				 * overflow.
+				 */
+				q[b] = 255 * sum / 
 					(local->width * local->height);
 
 				/* Adapt histogram --- remove the pels from 
 				 * the left hand column, add in pels for a 
 				 * new right-hand column.
 				 */
-				p1 = p;
+				p1 = p + b;
 				for( j = 0; j < local->height; j++ ) {
 					hist[p1[0]] -= 1;
 					hist[p1[bands * local->width]] += 1;
 
 					p1 += lsk;
 				}
-
-				p += 1;
 			}
+
+			p += bands;
+			q += bands;
 		}
 	}
 
@@ -254,7 +310,7 @@ vips_hist_local_build( VipsObject *object )
 	if( vips_embed( in, &t[1], 
 		local->width / 2, local->height / 2, 
 		in->Xsize + local->width - 1, in->Ysize + local->height - 1,
-		"extend", VIPS_EXTEND_COPY,
+		"extend", VIPS_EXTEND_MIRROR,
 		NULL ) )
 		return( -1 );
 	in = t[1];
@@ -279,6 +335,8 @@ vips_hist_local_build( VipsObject *object )
 
 	local->out->Xoffset = 0;
 	local->out->Yoffset = 0;
+
+	vips_reorder_margin_hint( local->out, local->width * local->height ); 
 
 	return( 0 );
 }
@@ -321,6 +379,14 @@ vips_hist_local_class_init( VipsHistLocalClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsHistLocal, height ),
 		1, VIPS_MAX_COORD, 1 );
+
+	VIPS_ARG_INT( class, "max_slope", 6, 
+		_( "Max slope" ), 
+		_( "Maximum slope (CLAHE)" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsHistLocal, max_slope ),
+		0, 100, 0 );
+
 }
 
 static void
@@ -336,11 +402,20 @@ vips_hist_local_init( VipsHistLocal *local )
  * @height: height of region
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * * @max_slope: maximum brightening
+ *
  * Performs local histogram equalisation on @in using a
- * window of size @xwin by @ywin centered on the input pixel. 
+ * window of size @width by @height centered on the input pixel. 
  *
  * The output image is the same size as the input image. The edge pixels are
- * created by copy edge pixels of the input image outwards.
+ * created by mirroring the input image outwards.
+ *
+ * If @max_slope is greater than 0, it sets the maximum value for the slope of
+ * the cumulative histogram, that is, the maximum brightening that is
+ * performed. A value of 3 is often used. Local histogram equalization with
+ * contrast limiting is usually called CLAHE.
  *
  * See also: vips_hist_equal().
  *

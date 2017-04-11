@@ -49,7 +49,7 @@
 #include <vips/internal.h>
 #include <vips/thread.h>
 
-#include "../foreign/tiff.h"
+#include "../foreign/pforeign.h"
 
 static int
 tiff2vips( const char *name, IMAGE *out, gboolean header_only )
@@ -94,11 +94,11 @@ tiff2vips( const char *name, IMAGE *out, gboolean header_only )
 	}
 
 	if( header_only ) {
-		if( vips__tiff_read_header( filename, out, page, FALSE ) )
+		if( vips__tiff_read_header( filename, out, page, 1, FALSE ) )
 			return( -1 );
 	}
 	else {
-		if( vips__tiff_read( filename, out, page, FALSE, TRUE ) )
+		if( vips__tiff_read( filename, out, page, 1, FALSE ) )
 			return( -1 );
 	}
 #else

@@ -77,8 +77,14 @@
  * 11/7/16
  * 	- new --fail handling
  * 07/09/16
- *      - Don't use the exif resolution if x_resolution / y_resolution /
+ *      - don't use the exif resolution if x_resolution / y_resolution /
  *        resolution_unit is missing
+ * 7/11/16
+ * 	- exif handling moved out to exif.c
+ * 4/1/17
+ * 	- don't warn for missing exif res, since we fall back to jfif now
+ * 17/1/17
+ * 	- invalidate operation on read error
  */
 
 /*
@@ -125,26 +131,13 @@
 #include <string.h>
 #include <setjmp.h>
 
-#ifdef HAVE_EXIF
-#ifdef UNTAGGED_EXIF
-#include <exif-data.h>
-#include <exif-loader.h>
-#include <exif-ifd.h>
-#include <exif-utils.h>
-#else /*!UNTAGGED_EXIF*/
-#include <libexif/exif-data.h>
-#include <libexif/exif-loader.h>
-#include <libexif/exif-ifd.h>
-#include <libexif/exif-utils.h>
-#endif /*UNTAGGED_EXIF*/
-#endif /*HAVE_EXIF*/
-
 #include <vips/vips.h>
 #include <vips/buf.h>
 #include <vips/internal.h>
 
+#include "pforeign.h"
+
 #include "jpeg.h"
-#include "vipsjpeg.h"
 
 /* Stuff we track during a read.
  */
@@ -159,10 +152,6 @@ typedef struct _ReadJpeg {
 	 */
 	gboolean fail;
 
-	/* Use a read behind buffer.
-	 */
-	gboolean readbehind; 
-
 	/* Used for file input only.
 	 */
 	char *filename;
@@ -175,7 +164,7 @@ typedef struct _ReadJpeg {
 	 */
 	int y_pos;
 
-	/* Use Orientation exif tag to automatically rotate and flip image
+	/* Use orientation tag to automatically rotate and flip image
 	 * during load.
 	 */
 	gboolean autorotate;
@@ -191,10 +180,9 @@ readjpeg_free( ReadJpeg *jpeg )
 	result = 0;
 
 	if( jpeg->eman.pub.num_warnings != 0 ) {
-		vips_warn( "VipsJpeg", 
-			_( "read gave %ld warnings" ), 
+		g_warning( _( "read gave %ld warnings" ), 
 			jpeg->eman.pub.num_warnings );
-		vips_warn( NULL, "%s", vips_error_buffer() );
+		g_warning( "%s", vips_error_buffer() );
 
 		/* Make the message only appear once.
 		 */
@@ -224,8 +212,7 @@ readjpeg_close( VipsObject *object, ReadJpeg *jpeg )
 }
 
 static ReadJpeg *
-readjpeg_new( VipsImage *out, 
-	int shrink, gboolean fail, gboolean readbehind, gboolean autorotate )
+readjpeg_new( VipsImage *out, int shrink, gboolean fail, gboolean autorotate )
 {
 	ReadJpeg *jpeg;
 
@@ -235,7 +222,6 @@ readjpeg_new( VipsImage *out,
 	jpeg->out = out;
 	jpeg->shrink = shrink;
 	jpeg->fail = fail;
-	jpeg->readbehind = readbehind;
 	jpeg->filename = NULL;
         jpeg->cinfo.err = jpeg_std_error( &jpeg->eman.pub );
 	jpeg->eman.pub.error_exit = vips__new_error_exit;
@@ -243,6 +229,11 @@ readjpeg_new( VipsImage *out,
 	jpeg->eman.fp = NULL;
 	jpeg->y_pos = 0;
 	jpeg->autorotate = autorotate;
+
+	/* This is used by the error handlers to signal invalidate on the
+	 * output image.
+	 */
+        jpeg->cinfo.client_data = out;
 
 	/* jpeg_create_decompress() can fail on some sanity checks. Don't
 	 * readjpeg_free() since we don't want to jpeg_destroy_decompress().
@@ -267,424 +258,6 @@ readjpeg_file( ReadJpeg *jpeg, const char *filename )
         if( !(jpeg->eman.fp = vips__file_open_read( filename, NULL, FALSE )) ) 
                 return( -1 );
         jpeg_stdio_src( &jpeg->cinfo, jpeg->eman.fp );
-
-	return( 0 );
-}
-
-#ifdef HAVE_EXIF
-#ifdef DEBUG_VERBOSE
-/* Print exif for debugging ... hacked from exif-0.6.9/actions.c
- */
-static void
-show_tags( ExifData *data )
-{
-	int i;
-	unsigned int tag;
-	const char *name;
-
-	printf( "show EXIF tags:\n" );
-
-        for( i = 0; i < EXIF_IFD_COUNT; i++ )
-                printf( "%-7.7s", exif_ifd_get_name( i ) );
-	printf( "\n" );
-
-        for( tag = 0; tag < 0xffff; tag++ ) {
-                name = exif_tag_get_title( tag );
-                if( !name )      
-                        continue;   
-                printf( "  0x%04x %-29.29s", tag, name );
-                for( i = 0; i < EXIF_IFD_COUNT; i++ )
-                        if( exif_content_get_entry( data->ifd[i], tag ) )
-                                printf( "   *   " );
-                        else
-                                printf( "   -   " );
-		printf( "\n" );
-        }
-}
-
-static void
-show_entry( ExifEntry *entry, void *client )
-{
-	char exif_text[256];
-
-	printf( "%s", exif_tag_get_title( entry->tag ) );
-        printf( "|" );
-	printf( "%s", exif_entry_get_value( entry, exif_text, 256 ) );
-        printf( "|" );
-	printf( "%s", exif_format_get_name( entry->format ) );
-        printf( "|" );
-	printf( "%d bytes", entry->size );
-        printf( "\n" );
-}
-
-static void
-show_ifd( ExifContent *content, void *client )
-{
-	int *ifd = (int *) client;
-
-        printf( "- ifd %d\n", *ifd );
-        exif_content_foreach_entry( content, show_entry, client );
-
-	*ifd += 1;
-}
-
-void
-show_values( ExifData *data )
-{
-        ExifByteOrder order;
-	int ifd;
-
-        order = exif_data_get_byte_order( data );
-        printf( "EXIF tags in '%s' byte order\n", 
-		exif_byte_order_get_name( order ) );
-
-	printf( "Title|Value|Format|Size\n" ); 
-
-	ifd = 0;
-        exif_data_foreach_content( data, show_ifd, &ifd );
-
-        if( data->size ) 
-                printf( "contains thumbnail of %d bytes\n", data->size );
-}
-#endif /*DEBUG_VERBOSE*/
-#endif /*HAVE_EXIF*/
-
-#ifdef HAVE_EXIF
-/* Like exif_data_new_from_data(), but don't default missing fields. 
- * 
- * If we do exif_data_new_from_data(), then missing fields are set to 
- * their default value and we won't know about it. 
- */
-static ExifData *
-vips_exif_load_data_without_fix( void *data, int data_length )
-{
-	ExifData *ed;
-
-	if( !(ed = exif_data_new()) ) {
-		vips_error( "VipsJpeg", "%s", _( "unable to init exif" ) ); 
-		return( NULL );
-	}
-
-	exif_data_unset_option( ed, EXIF_DATA_OPTION_FOLLOW_SPECIFICATION );
-	exif_data_load_data( ed, data, data_length );
-
-	return( ed );
-}
-
-static int
-vips_exif_get_int( ExifData *ed, 
-	ExifEntry *entry, unsigned long component, int *out )
-{
-	ExifByteOrder bo = exif_data_get_byte_order( ed );
-	size_t sizeof_component = entry->size / entry->components;
-	size_t offset = component * sizeof_component;
-
-	if( entry->format == EXIF_FORMAT_SHORT ) 
-		*out = exif_get_short( entry->data + offset, bo );
-	else if( entry->format == EXIF_FORMAT_SSHORT ) 
-		*out = exif_get_sshort( entry->data + offset, bo );
-	else if( entry->format == EXIF_FORMAT_LONG ) 
-		/* This won't work for huge values, but who cares.
-		 */
-		*out = (int) exif_get_long( entry->data + offset, bo );
-	else if( entry->format == EXIF_FORMAT_SLONG ) 
-		*out = exif_get_slong( entry->data + offset, bo );
-	else
-		return( -1 );
-
-	return( 0 );
-}
-
-static int
-vips_exif_get_rational( ExifData *ed, 
-	ExifEntry *entry, unsigned long component, ExifRational *out )
-{
-	if( entry->format == EXIF_FORMAT_RATIONAL ) {
-		ExifByteOrder bo = exif_data_get_byte_order( ed );
-		size_t sizeof_component = entry->size / entry->components;
-		size_t offset = component * sizeof_component;
-
-		*out = exif_get_rational( entry->data + offset, bo );
-	}
-	else
-		return( -1 );
-
-	return( 0 );
-}
-
-static int
-vips_exif_get_srational( ExifData *ed, 
-	ExifEntry *entry, unsigned long component, ExifSRational *out )
-{
-	if( entry->format == EXIF_FORMAT_SRATIONAL ) {
-		ExifByteOrder bo = exif_data_get_byte_order( ed );
-		size_t sizeof_component = entry->size / entry->components;
-		size_t offset = component * sizeof_component;
-
-		*out = exif_get_srational( entry->data + offset, bo );
-	}
-	else
-		return( -1 );
-
-	return( 0 );
-}
-
-static int
-vips_exif_get_double( ExifData *ed, 
-	ExifEntry *entry, unsigned long component, double *out )
-{
-	ExifRational rv;
-	ExifSRational srv;
-
-	if( !vips_exif_get_rational( ed, entry, component, &rv ) ) 
-		*out = (double) rv.numerator / rv.denominator;
-	else if( !vips_exif_get_srational( ed, entry, component, &srv ) ) 
-		*out = (double) srv.numerator / srv.denominator;
-	else
-		return( -1 );
-
-	return( 0 );
-}
-
-/* Save an exif value to a string in a way that we can restore. We only bother
- * for the simple formats (that a client might try to change) though.
- *
- * Keep in sync with vips_exif_from_s() in vips2jpeg.
- */
-static void
-vips_exif_to_s(  ExifData *ed, ExifEntry *entry, VipsBuf *buf )
-{
-	unsigned long i;
-	int iv;
-	ExifRational rv;
-	ExifSRational srv;
-	char txt[256];
-
-	if( entry->format == EXIF_FORMAT_ASCII )  {
-		/* libexif does not null-terminate strings. Copy out and add
-		 * the \0 ourselves.
-		 */
-		int len = VIPS_MIN( 254, entry->size ); 
-
-		memcpy( txt, entry->data, len );
-		txt[len] = '\0';
-		vips_buf_appendf( buf, "%s ", txt );
-	}
-	else if( entry->components < 10 &&
-		!vips_exif_get_int( ed, entry, 0, &iv ) ) {
-		for( i = 0; i < entry->components; i++ ) {
-			vips_exif_get_int( ed, entry, i, &iv );
-			vips_buf_appendf( buf, "%d ", iv );
-		}
-	}
-	else if( entry->components < 10 &&
-		!vips_exif_get_rational( ed, entry, 0, &rv ) ) {
-		for( i = 0; i < entry->components; i++ ) {
-			vips_exif_get_rational( ed, entry, i, &rv );
-			vips_buf_appendf( buf, "%u/%u ", 
-				rv.numerator, rv.denominator );
-		}
-	}
-	else if( entry->components < 10 &&
-		!vips_exif_get_srational( ed, entry, 0, &srv ) ) {
-		for( i = 0; i < entry->components; i++ ) {
-			vips_exif_get_srational( ed, entry, i, &srv );
-			vips_buf_appendf( buf, "%d/%d ", 
-				srv.numerator, srv.denominator );
-		}
-	}
-	else 
-		vips_buf_appendf( buf, "%s ", 
-			exif_entry_get_value( entry, txt, 256 ) );
-
-	vips_buf_appendf( buf, "(%s, %s, %lu components, %d bytes)", 
-		exif_entry_get_value( entry, txt, 256 ),
-		exif_format_get_name( entry->format ),
-		entry->components,
-		entry->size );
-}
-
-typedef struct _VipsExif {
-	VipsImage *image;
-	ExifData *ed;
-} VipsExif;
-
-static void
-attach_exif_entry( ExifEntry *entry, VipsExif *ve )
-{
-	const char *tag_name;
-	char vips_name_txt[256];
-	VipsBuf vips_name = VIPS_BUF_STATIC( vips_name_txt );
-	char value_txt[256];
-	VipsBuf value = VIPS_BUF_STATIC( value_txt );
-
-	if( !(tag_name = exif_tag_get_name( entry->tag )) )
-		return;
-
-	vips_buf_appendf( &vips_name, "exif-ifd%d-%s", 
-		exif_entry_get_ifd( entry ), tag_name );
-	vips_exif_to_s( ve->ed, entry, &value ); 
-
-	/* Can't do anything sensible with the error return.
-	 */
-	(void) vips_image_set_string( ve->image, 
-		vips_buf_all( &vips_name ), vips_buf_all( &value ) );
-}
-
-static void
-attach_exif_content( ExifContent *content, VipsExif *ve )
-{
-        exif_content_foreach_entry( content, 
-		(ExifContentForeachEntryFunc) attach_exif_entry, ve );
-}
-
-static int
-get_entry_double( ExifData *ed, int ifd, ExifTag tag, double *out )
-{
-	ExifEntry *entry;
-
-	if( !(entry = exif_content_get_entry( ed->ifd[ifd], tag )) ||
-		entry->components != 1 )
-		return( -1 );
-
-	return( vips_exif_get_double( ed, entry, 0, out ) );
-}
-
-static int
-get_entry_int( ExifData *ed, int ifd, ExifTag tag, int *out )
-{
-	ExifEntry *entry;
-
-	if( !(entry = exif_content_get_entry( ed->ifd[ifd], tag )) ||
-		entry->components != 1 )
-		return( -1 );
-
-	return( vips_exif_get_int( ed, entry, 0, out ) );
-}
-
-static int
-res_from_exif( VipsImage *im, ExifData *ed )
-{
-	double xres, yres;
-	int unit;
-
-	/* The main image xres/yres are in ifd0. ifd1 has xres/yres of the
-	 * image thumbnail, if any.
-	 */
-	if( get_entry_double( ed, 0, EXIF_TAG_X_RESOLUTION, &xres ) ||
-		get_entry_double( ed, 0, EXIF_TAG_Y_RESOLUTION, &yres ) ||
-		get_entry_int( ed, 0, EXIF_TAG_RESOLUTION_UNIT, &unit ) ) {
-		vips_warn( "VipsJpeg", 
-			"%s", _( "error reading resolution" ) );
-		return( -1 );
-	}
-
-#ifdef DEBUG
-	printf( "res_from_exif: seen exif tags "
-		"xres = %g, yres = %g, unit = %d\n", xres, yres, unit );
-#endif /*DEBUG*/
-
-	switch( unit ) {
-	case 1:
-		/* No unit ... just pass the fields straight to vips.
-		 */
-		vips_image_set_string( im, 
-			VIPS_META_RESOLUTION_UNIT, "none" );
-		break;
-
-	case 2:
-		/* In inches.
-		 */
-		xres /= 25.4;
-		yres /= 25.4;
-		vips_image_set_string( im, 
-			VIPS_META_RESOLUTION_UNIT, "in" );
-		break;
-
-	case 3:
-		/* In cm.
-		 */
-		xres /= 10.0;
-		yres /= 10.0;
-		vips_image_set_string( im, 
-			VIPS_META_RESOLUTION_UNIT, "cm" );
-		break;
-
-	default:
-		vips_warn( "VipsJpeg", 
-			"%s", _( "unknown EXIF resolution unit" ) );
-		return( -1 );
-	}
-
-#ifdef DEBUG
-	printf( "res_from_exif: seen exif resolution %g, %g p/mm\n",
-		       xres, yres );
-#endif /*DEBUG*/
-
-	im->Xres = xres;
-	im->Yres = yres;
-
-	return( 0 );
-}
-
-static int
-attach_thumbnail( VipsImage *im, ExifData *ed )
-{
-	if( ed->size > 0 ) {
-		char *thumb_copy;
-
-		thumb_copy = g_malloc( ed->size );      
-		memcpy( thumb_copy, ed->data, ed->size );
-
-		vips_image_set_blob( im, "jpeg-thumbnail-data", 
-			(VipsCallbackFn) g_free, thumb_copy, ed->size );
-	}
-
-	return( 0 );
-}
-#endif /*HAVE_EXIF*/
-
-static int
-parse_exif( VipsImage *im, void *data, int data_length )
-{
-#ifdef HAVE_EXIF
-{
-	ExifData *ed;
-	VipsExif ve;
-
-	if( !(ed = vips_exif_load_data_without_fix( data, data_length )) )
-		return( -1 );
-
-#ifdef DEBUG_VERBOSE
-	show_tags( ed );
-	show_values( ed );
-#endif /*DEBUG_VERBOSE*/
-
-	/* Look for resolution fields and use them to set the VIPS 
-	 * xres/yres fields.
-	 *
-	 * If the fields are missing, write the ones from jfif.
-	 */
-	if( res_from_exif( im, ed ) &&
-		vips__set_exif_resolution( ed, im ) )
-		return( -1 ); 
-
-	/* Make sure all required fields are there before we attach to vips
-	 * metadata.
-	 */
-	exif_data_fix( ed );
-
-	/* Attach informational fields for what we find.
-	 */
-	ve.image = im;
-	ve.ed = ed;
-	exif_data_foreach_content( ed, 
-		(ExifDataForeachContentFunc) attach_exif_content, &ve );
-
-	attach_thumbnail( im, ed );
-	exif_data_free( ed );
-}
-#endif /*HAVE_EXIF*/
 
 	return( 0 );
 }
@@ -715,27 +288,6 @@ attach_blob( VipsImage *im, const char *field, void *data, int data_length )
 		(VipsCallbackFn) vips_free, data_copy, data_length );
 
 	return( 0 );
-}
-
-static void *
-read_jpeg_orientation_sub( VipsImage *image, 
-	const char *field, GValue *value, void *data )
-{
-	const char *orientation_str;
-
-	if( vips_isprefix( "exif-", field ) &&
-		vips_ispostfix( field, "-Orientation" ) &&
-		!vips_image_get_string( image, field, &orientation_str ) ) {
-		int orientation;
-
-		orientation = atoi( orientation_str );
-		orientation = VIPS_CLIP( 1, orientation, 8 );
-		vips_image_set_int( image, VIPS_META_ORIENTATION, orientation );
-
-		return( image ); 
-	}
-
-	return( NULL );
 }
 
 /* Number of app2 sections we can capture. Each one can be 64k, so 6400k should
@@ -826,8 +378,7 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 			break;
 
 		default:
-			vips_warn( "VipsJpeg", 
-				"%s", _( "unknown JFIF resolution unit" ) );
+			g_warning( "%s", _( "unknown JFIF resolution unit" ) );
 			break;
 		}
 
@@ -874,13 +425,10 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 			/* Possible EXIF or XMP data.
 			 */
 			if( p->data_length > 4 &&
-				vips_isprefix( "Exif", (char *) p->data ) ) {
-				if( parse_exif( out, 
-					p->data, p->data_length ) ||
-					attach_blob( out, VIPS_META_EXIF_NAME, 
-						p->data, p->data_length ) )
+				vips_isprefix( "Exif", (char *) p->data ) &&
+				attach_blob( out, VIPS_META_EXIF_NAME, 
+					p->data, p->data_length ) )
 				return( -1 );
-			}
 
 			if( p->data_length > 4 &&
 				vips_isprefix( "http", (char *) p->data ) &&
@@ -957,11 +505,12 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 			(VipsCallbackFn) vips_free, data, data_length );
 	}
 
-	/* Orientation handling. We look for the first Orientation EXIF tag
-	 * (there can be many of them) and use that to set our own
-	 * VIPS_META_ORIENTATION. 
+	if( vips__exif_parse( out ) )
+		return( -1 );
+
+	/* Tell downstream we are reading sequentially.
 	 */
-	(void) vips_image_map( out, read_jpeg_orientation_sub, NULL );
+	vips_image_set_area( out, VIPS_META_SEQUENTIAL, NULL, NULL ); 
 
 	return( 0 );
 }
@@ -1125,9 +674,6 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 		jpeg, NULL ) ||
 		vips_sequential( t[0], &t[1], 
 			"tile_height", 8,
-			"access", jpeg->readbehind ? 
-				VIPS_ACCESS_SEQUENTIAL : 
-				VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
 			NULL ) )
 		return( -1 );
 
@@ -1196,13 +742,12 @@ vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
  */
 int
 vips__jpeg_read_file( const char *filename, VipsImage *out, 
-	gboolean header_only, int shrink, gboolean fail, gboolean readbehind,
+	gboolean header_only, int shrink, gboolean fail, 
 	gboolean autorotate )
 {
 	ReadJpeg *jpeg;
 
-	if( !(jpeg = readjpeg_new( out, 
-		shrink, fail, readbehind, autorotate )) )
+	if( !(jpeg = readjpeg_new( out, shrink, fail, autorotate )) )
 		return( -1 );
 
 	/* Here for longjmp() from vips__new_error_exit() during startup.
@@ -1403,13 +948,11 @@ readjpeg_buffer (ReadJpeg *jpeg, const void *buf, size_t len)
 
 int
 vips__jpeg_read_buffer( const void *buf, size_t len, VipsImage *out, 
-	gboolean header_only, int shrink, int fail, gboolean readbehind, 
-	gboolean autorotate )
+	gboolean header_only, int shrink, int fail, gboolean autorotate )
 {
 	ReadJpeg *jpeg;
 
-	if( !(jpeg = readjpeg_new( out, 
-		shrink, fail, readbehind, autorotate )) )
+	if( !(jpeg = readjpeg_new( out, shrink, fail, autorotate )) )
 		return( -1 );
 
 	if( setjmp( jpeg->eman.jmp ) ) 

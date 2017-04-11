@@ -23,6 +23,14 @@
  * 	- redo as a set of fns ready for wrapping in a new-style class
  * 23/6/13
  * 	- fix ushort save with values >32k, thanks weaverwb
+ * 4/1/17
+ * 	- load to equivalent data type, not raw image data type ... improves
+ * 	  support for BSCALE / BZERO settings
+ * 17/1/17
+ * 	- invalidate operation on read error
+ * 26/1/17 aferrero2707 
+ * 	- use fits_open_diskfile(), not fits_open_file() ... we don't want the
+ *	  extended filename syntax 
  */
 
 /*
@@ -73,7 +81,7 @@
 
 #include <fitsio.h>
 
-#include "fits.h"
+#include "pforeign.h"
 
 /*
 
@@ -119,7 +127,7 @@ typedef struct {
 	VipsPel *buffer;
 } VipsFits;
 
-const char *vips__fits_suffs[] = { ".fits", NULL };
+const char *vips__fits_suffs[] = { ".fits", ".fit", ".fts", NULL };
 
 static void
 vips_fits_error( int status )
@@ -177,7 +185,7 @@ vips_fits_new_read( const char *filename, VipsImage *out, int band_select )
 		G_CALLBACK( vips_fits_close_cb ), fits );
 
 	status = 0;
-	if( fits_open_file( &fits->fptr, filename, READONLY, &status ) ) {
+	if( fits_open_diskfile( &fits->fptr, filename, READONLY, &status ) ) {
 		vips_error( "fits", _( "unable to open \"%s\"" ), filename );
 		vips_fits_error( status );
 		return( NULL );
@@ -219,10 +227,21 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 		return( -1 );
 	}
 
+	/* cfitsio does automatic conversion from the format stored in
+	 * the file to the equivalent type after scale/offset. We need 
+	 * to allocate a vips image of the equivalent type, not the original
+	 * type.
+	 */
+	if( fits_get_img_equivtype( fits->fptr, &bitpix, &status ) ) {
+		vips_fits_error( status );
+		return( -1 );
+	}
+
 #ifdef VIPS_DEBUG
 	VIPS_DEBUG_MSG( "naxis = %d\n", fits->naxis );
 	for( i = 0; i < fits->naxis; i++ )
 		VIPS_DEBUG_MSG( "%d) %lld\n", i, fits->naxes[i] );
+	VIPS_DEBUG_MSG( "fits2vips: bitpix = %d\n", bitpix );
 #endif /*VIPS_DEBUG*/
 
 	height = 1;
@@ -266,8 +285,8 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 	if( fits->band_select != -1 )
 		bands = 1;
 
-	/* Get image format. We want the 'raw' format of the image, our caller
-	 * can convert using the meta info if they want.
+	/* Get image format. This is the equivalent format, or the format
+	 * stored in the file.
 	 */
 	for( i = 0; i < VIPS_NUMBER( fits2vips_formats ); i++ )
 		if( fits2vips_formats[i][0] == bitpix )
@@ -347,6 +366,30 @@ vips__fits_read_header( const char *filename, VipsImage *out )
 }
 
 static int
+vips_fits_read_subset( VipsFits *fits, 
+	long *fpixel, long *lpixel, long *inc, VipsPel *q )
+{
+	int status;
+
+	/* We must zero this or fits_read_subset() fails.
+	 */
+	status = 0;
+
+	/* Break on ffgsv() for this call.
+	 */
+	if( fits_read_subset( fits->fptr, fits->datatype, 
+		fpixel, lpixel, inc, 
+		NULL, q, NULL, &status ) ) {
+		vips_fits_error( status );
+		vips_foreign_load_invalidate( fits->image );
+
+		return( -1 ); 
+	}
+
+	return( 0 );
+}
+
+static int
 fits2vips_generate( VipsRegion *out, 
 	void *seq, void *a, void *b, gboolean *stop )
 {
@@ -355,13 +398,10 @@ fits2vips_generate( VipsRegion *out,
 
 	VipsPel *q;
 	int z;
-	int status;
 
 	long fpixel[MAX_DIMENSIONS];
 	long lpixel[MAX_DIMENSIONS];
 	long inc[MAX_DIMENSIONS];
-
-	status = 0;
 
 	VIPS_DEBUG_MSG( "fits2vips_generate: "
 		"generating left = %d, top = %d, width = %d, height = %d\n", 
@@ -390,13 +430,8 @@ fits2vips_generate( VipsRegion *out,
 
 		q = VIPS_REGION_ADDR( out, r->left, r->top );
 
-		/* Break on ffgsv() for this call.
-		 */
 		g_mutex_lock( fits->lock );
-		if( fits_read_subset( fits->fptr, fits->datatype, 
-			fpixel, lpixel, inc, 
-			NULL, q, NULL, &status ) ) {
-			vips_fits_error( status );
+		if( vips_fits_read_subset( fits, fpixel, lpixel, inc, q ) ) {
 			g_mutex_unlock( fits->lock );
 			return( -1 );
 		}
@@ -423,13 +458,9 @@ fits2vips_generate( VipsRegion *out,
 
 			q = VIPS_REGION_ADDR( out, r->left, y );
 
-			/* Break on ffgsv() for this call.
-			 */
 			g_mutex_lock( fits->lock );
-			if( fits_read_subset( fits->fptr, fits->datatype, 
-				fpixel, lpixel, inc, 
-				NULL, q, NULL, &status ) ) {
-				vips_fits_error( status );
+			if( vips_fits_read_subset( fits, 
+				fpixel, lpixel, inc, q ) ) { 
 				g_mutex_unlock( fits->lock );
 				return( -1 );
 			}
@@ -528,10 +559,11 @@ vips__fits_isfits( const char *filename )
 
 	status = 0;
 
-	if( fits_open_image( &fptr, filename, READONLY, &status ) ) {
+	if( fits_open_diskfile( &fptr, filename, READONLY, &status ) ) {
 		VIPS_DEBUG_MSG( "isfits: error reading \"%s\"\n", filename );
 #ifdef VIPS_DEBUG
 		vips_fits_error( status );
+		VIPS_DEBUG_MSG( "isfits: %s\n", vips_error_buffer() );
 #endif /*VIPS_DEBUG*/
 
 		return( 0 );

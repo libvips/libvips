@@ -73,7 +73,7 @@ vips_vector_error( VipsVector *vector )
 {
 #ifdef HAVE_ORC_PROGRAM_GET_ERROR
 	if( vector->program )
-		vips_warn( "VipsVector", "orc error: %s", 
+		g_warning( "orc error: %s", 
 			orc_program_get_error( vector->program ) ); 
 #endif /*HAVE_ORC_PROGRAM_GET_ERROR*/
 }

@@ -63,7 +63,6 @@ G_DEFINE_TYPE( VipsConv, vips_conv, VIPS_TYPE_CONVOLUTION );
 static int
 vips_conv_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConvolution *convolution = (VipsConvolution *) object;
 	VipsConv *conv = (VipsConv *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
@@ -113,6 +112,9 @@ vips_conv_build( VipsObject *object )
 	default:
 		g_assert_not_reached();
 	}
+
+	vips_reorder_margin_hint( convolution->out, 
+		convolution->M->Xsize * convolution->M->Ysize );
 
 	return( 0 );
 }

@@ -267,10 +267,6 @@ vips_shrinkh_build( VipsObject *object )
 		return( -1 );
 	in = t[1];
 
-	/* THINSTRIP will work, anything else will break seq mode. If you 
-	 * combine shrink with conv you'll need to use a line cache to maintain
-	 * sequentiality.
-	 */
 	if( vips_image_pipelinev( resample->out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
 		return( -1 );
@@ -283,7 +279,7 @@ vips_shrinkh_build( VipsObject *object )
 	 * fractional part), we just see the integer part here.
 	 */
 	resample->out->Xsize = VIPS_ROUND_UINT( 
-		resample->in->Xsize / shrink->hshrink );
+		(double) resample->in->Xsize / shrink->hshrink );
 	if( resample->out->Xsize <= 0 ) { 
 		vips_error( class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );
@@ -320,7 +316,7 @@ vips_shrinkh_class_init( VipsShrinkhClass *class )
 	vobject_class->description = _( "shrink an image horizontally" );
 	vobject_class->build = vips_shrinkh_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_INT( class, "hshrink", 8, 
 		_( "Hshrink" ), 

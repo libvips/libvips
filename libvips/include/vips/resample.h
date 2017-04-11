@@ -47,6 +47,13 @@ typedef enum {
 	VIPS_KERNEL_LAST
 } VipsKernel;
 
+typedef enum {
+	VIPS_SIZE_BOTH,
+	VIPS_SIZE_UP,
+	VIPS_SIZE_DOWN,
+	VIPS_SIZE_LAST
+} VipsSize;
+
 int vips_shrink( VipsImage *in, VipsImage **out, 
 	double hshrink, double vshrink, ... )
 	__attribute__((sentinel));
@@ -61,6 +68,11 @@ int vips_reduce( VipsImage *in, VipsImage **out,
 int vips_reduceh( VipsImage *in, VipsImage **out, double hshrink, ... )
 	__attribute__((sentinel));
 int vips_reducev( VipsImage *in, VipsImage **out, double vshrink, ... )
+	__attribute__((sentinel));
+
+int vips_thumbnail( const char *filename, VipsImage **out, int width, ... )
+	__attribute__((sentinel));
+int vips_thumbnail_buffer( void *buf, size_t len, VipsImage **out, int width, ... )
 	__attribute__((sentinel));
 
 int vips_similarity( VipsImage *in, VipsImage **out, ... )

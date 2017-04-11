@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [8.5.0], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [8.6.0], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
@@ -17,7 +17,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # user-visible library versioning
 m4_define([vips_major_version], [8])
-m4_define([vips_minor_version], [5])
+m4_define([vips_minor_version], [6])
 m4_define([vips_micro_version], [0])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
@@ -38,7 +38,7 @@ VIPS_VERSION_STRING=$VIPS_VERSION-`date`
 #   binary interface changes not backwards compatible?: reset age to 0
 
 LIBRARY_CURRENT=49
-LIBRARY_REVISION=0
+LIBRARY_REVISION=2
 LIBRARY_AGE=7
 
 # patched into include/vips/version.h
@@ -348,10 +348,20 @@ AC_CHECK_LIB(m,atan2,[AC_DEFINE(HAVE_ATAN2,1,[have atan2() in libm.])])
 
 # have to have these
 # need glib 2.6 for GOption
-PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.6 gmodule-2.0 libxml-2.0 gobject-2.0)
-PACKAGES_USED="$PACKAGES_USED glib-2.0 libxml-2.0 gmodule-2.0 gobject-2.0"
+PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.6 gmodule-2.0 gobject-2.0)
+PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-2.0 gobject-2.0"
 
-# after 2.28 we have a monotonic timer
+# from 2.14 we have g_option_context_get_help()
+PKG_CHECK_MODULES(CONTEXT_GET_HELP, glib-2.0 >= 2.14,
+  [AC_DEFINE(HAVE_CONTEXT_GET_HELP,1,
+	    [define if your glib has g_option_context_get_help().]
+   )
+  ],
+  [:
+  ]
+)
+
+# from 2.28 we have a monotonic timer
 PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,
   [AC_DEFINE(HAVE_MONOTONIC_TIME,1,
 	    [define if your glib has g_get_monotonic_time().]
@@ -361,7 +371,7 @@ PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,
   ]
 )
 
-# after 2.32 there are a new set of thread functions, annoyingly
+# from 2.32 there are a new set of thread functions, annoyingly
 PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
   [AC_DEFINE(HAVE_MUTEX_INIT,1,[define if your glib has g_mutex_init().])
    AC_DEFINE(HAVE_COND_INIT,1,[define if your glib has g_cond_init().])
@@ -377,7 +387,7 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
   ]
 )
 
-# with 2.36 and after the type system inits itself
+# from 2.36 the type system inits itself
 PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,
   [AC_DEFINE(HAVE_TYPE_INIT,1,[define if your glib needs g_type_init().])
   ],
@@ -385,7 +395,7 @@ PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,
   ]
 )
 
-# with 2.40 we have g_win32_get_command_line() on win
+# from 2.40 we have g_win32_get_command_line() on win
 PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 >= 2.40,
   [if test x"$vips_os_win32" = x"yes"; then
      AC_DEFINE(HAVE_G_WIN32_GET_COMMAND_LINE,1,[define if your glib has g_win32_get_command_line().])
@@ -399,14 +409,24 @@ PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 >= 2.40,
 # check for gtk-doc
 GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
 
+# we need expat ... we'd love to use expat.pc, but sadly this is only available
+# for recent linuxes, so we have to use the old and horrible expat.m4
+AM_WITH_EXPAT
+if test x$expat_found = xno; then
+  exit 1
+fi
+
 # optional supporting libraries
 
 AC_ARG_WITH([gsf], 
   AS_HELP_STRING([--without-gsf], [build without libgsf-1 (default: test)]))
 
-# libgsf-1 1.14.21 crashes, .27 is known-good, not sure about 22-26
+# libgsf-1 1.14.21 crashes 
+# .27 is known to work well
+# .26 seems OK but has not been tested much
+# not sure about 22-25
 if test x"$with_gsf" != "xno"; then
-  PKG_CHECK_MODULES(GSF, libgsf-1 >= 1.14.27,
+  PKG_CHECK_MODULES(GSF, libgsf-1 >= 1.14.26,
     [AC_DEFINE(HAVE_GSF,1,[define if you have libgsf-1 installed.])
      with_gsf=yes
      PACKAGES_USED="$PACKAGES_USED libgsf-1"
@@ -794,6 +814,23 @@ if test x"$with_libwebp" != "xno"; then
   )
 fi
 
+# webp has the stuff for pulling out ICC profile etc in a separate library
+# 
+# we can build with libwebpmux back to 0.3, but it's not until libwebp 0.5 that
+# we can read that metadata back successfully ... insist on 0.5 so that tests
+# can work smoothly
+if test x"$with_libwebp" != "xno"; then
+  PKG_CHECK_MODULES(LIBWEBPMUX, libwebpmux >= 0.5.0,
+    [AC_DEFINE(HAVE_LIBWEBPMUX,1,[define if you have libwebpmux installed.])
+     with_libwebpmux=yes
+     PACKAGES_USED="$PACKAGES_USED libwebpmux"
+    ],
+    [AC_MSG_WARN([libwebpmux not found; disabling webp metadata support])
+     with_libwebpmux=no
+    ]
+  )
+fi
+
 # pangoft2
 AC_ARG_WITH([pangoft2], 
   AS_HELP_STRING([--without-pangoft2], 
@@ -822,7 +859,7 @@ AC_ARG_ENABLE([pyvips8],
 )
 
 if test "x$enable_pyvips8" = "xauto"; then
-  PKG_CHECK_EXISTS([pygobject-3.0 >= 3.12.0],
+  PKG_CHECK_EXISTS([pygobject-3.0 >= 3.13.0],
     [enable_pyvips8=yes
     ],
     [AC_MSG_WARN([pygobject-3.0 not found; disabling vips8 python support])
@@ -840,7 +877,7 @@ if test x"$enable_pyvips8" = x"yes"; then
 fi
 
 if test x"$enable_pyvips8" = x"yes"; then
-  PKG_CHECK_MODULES(PYGOBJECT, [pygobject-3.0 >= 3.12.0])
+  PKG_CHECK_MODULES(PYGOBJECT, [pygobject-3.0 >= 3.13.0])
 fi
 
 AM_CONDITIONAL(ENABLE_PYVIPS8, test x"$enable_pyvips8" = x"yes")
@@ -993,14 +1030,14 @@ fi
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS 
 # sort includes to get longer, more specific dirs first
 # helps, for example, selecting graphicsmagick over imagemagick
-VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $LIBFLIF_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
+VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $EXPAT_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $LIBFLIF_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $LIBWEBPMUX_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
 do 
 	echo $i 
 done | sort -ru`
 VIPS_CFLAGS=`echo $VIPS_CFLAGS`
 VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
 VIPS_INCLUDES="$ZLIB_INCLUDES $PNG_INCLUDES $TIFF_INCLUDES $JPEG_INCLUDES" 
-VIPS_LIBS="$ZLIB_LIBS $MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $GIFLIB_LIBS $RSVG_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $LIBFLIF_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
+VIPS_LIBS="$ZLIB_LIBS $MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $EXPAT_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $GIFLIB_LIBS $RSVG_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $LIBFLIF_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $LIBWEBPMUX_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
 
 AC_SUBST(VIPS_LIBDIR)
 
@@ -1076,7 +1113,7 @@ build docs with gtkdoc:			$enable_gtk_doc
 gobject introspection: 			$found_introspection
 build vips7 Python binding:		$with_python
 install vips8 Python overrides:		$enable_pyvips8
-  (requires pygobject-3.12.0 or later)
+  (requires pygobject-3.13.0 or later)
 build radiance support: 		$with_radiance
 build analyze support: 			$with_analyze
 build PPM support: 			$with_ppm
@@ -1101,6 +1138,8 @@ file import with cfitsio: 		$with_cfitsio
 file import with libflif: 		$with_libflif
 file import/export with libwebp:	$with_libwebp
   (requires libwebp-0.1.3 or later)
+support webp metadata:			$with_libwebpmux
+  (requires libwebpmux-0.5 or later)
 text rendering with pangoft2: 		$with_pangoft2
 file import/export with libpng: 	$with_png
   (requires libpng-1.2.9 or later)
@@ -1108,7 +1147,7 @@ file import/export with libtiff:	$with_tiff
 file import/export with giflib:		$with_giflib
 file import/export with libjpeg:	$with_jpeg
 image pyramid export:			$with_gsf
-  (requires libgsf-1 1.14.27 or later)
+  (requires libgsf-1 1.14.26 or later)
 use libexif to load/save JPEG metadata: $with_libexif
 ])
 

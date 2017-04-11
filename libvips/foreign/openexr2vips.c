@@ -86,7 +86,7 @@
 
 #include <ImfCRgbaFile.h>
 
-#include "openexr2vips.h"
+#include "pforeign.h"
 
 /* What we track during a OpenEXR read.
  */
@@ -285,6 +285,7 @@ vips__openexr_generate( VipsRegion *out,
 					(read->window.left + x) -
 					(read->window.top + y) * tw,
 				1, tw ) ) {
+				vips_foreign_load_invalidate( read->out );
 				get_imf_error();
 				return( -1 );
 			}

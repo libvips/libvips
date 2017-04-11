@@ -50,13 +50,6 @@ void vips_verror_system( int err, const char *domain,
 	const char *fmt, va_list ap );
 void vips_error_g( GError **error );
 void vips_g_error( GError **error );
-void vips_warn( const char *domain, const char *fmt, ... )
-	__attribute__((format(printf, 2, 3)));
-void vips_vwarn( const char *domain, const char *fmt, va_list ap );
-void vips_info_set( gboolean info );
-void vips_info( const char *domain, const char *fmt, ... )
-	__attribute__((format(printf, 2, 3)));
-void vips_vinfo( const char *domain, const char *fmt, va_list ap );
 
 void vips_error_exit( const char *fmt, ... )
 	__attribute__((noreturn, format(printf, 1, 2)));

@@ -208,6 +208,14 @@ rm t1.v
             leak-test on exit, and also display an estimate of peak memory use.
           </para>
         </listitem>
+
+        <listitem>
+          <para>
+            Set <code>G_MESSAGES_DEBUG=VIPS</code> and GLib will display 
+            informational and debug messages from libvips. 
+          </para>
+        </listitem>
+
       </itemizedlist>
     </para>
 

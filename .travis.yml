@@ -5,10 +5,11 @@ before_script:
     --disable-dependency-tracking
     --with-jpeg-includes=$JPEG/include
     --with-jpeg-libraries=$JPEG/lib
-  - make -j$JOBS -s V=0
+  - make -j$JOBS -s 
 script:
   - make -Ctest -j$JOBS -s V=0 VERBOSE=1 check
 
+# allow osx to fail since brew so often falls over
 matrix:
   fast_finish: true
   allow_failures:
@@ -29,7 +30,7 @@ matrix:
           automake gtk-doc-tools
           gobject-introspection
           libfftw3-dev libjpeg-turbo8-dev
-          libpng12-dev libwebp-dev libtiff4-dev libxml2-dev
+          libpng12-dev libwebp-dev libtiff4-dev libexpat1-dev
           swig libmagick++-dev bc
           libcfitsio3-dev libgsl0-dev libmatio-dev
           liborc-0.4-dev liblcms2-dev libpoppler-glib-dev
@@ -51,7 +52,7 @@ matrix:
           automake gtk-doc-tools
           gobject-introspection
           libfftw3-dev libjpeg-turbo8-dev
-          libpng12-dev libwebp-dev libtiff4-dev libxml2-dev
+          libpng12-dev libwebp-dev libtiff4-dev libexpat1-dev
           swig libmagick++-dev bc
           libcfitsio3-dev libgsl0-dev libmatio-dev
           liborc-0.4-dev liblcms2-dev libpoppler-glib-dev
@@ -64,7 +65,6 @@ matrix:
       env:
         - PYTHON=/usr/local/bin/python
         - JPEG=/usr/local/opt/mozjpeg
-        - PKG_CONFIG_PATH=/usr/local/opt/libffi/lib/pkgconfig
         - JOBS="`sysctl -n hw.ncpu`"
         - PATH="/usr/local/opt/ccache/libexec:$PATH"
       cache: ccache
@@ -73,13 +73,13 @@ matrix:
         - brew update
         - brew install ccache pkg-config automake
         - brew install --ignore-dependencies gtk-doc
-        - brew reinstall
+        - brew install
           gobject-introspection
           fftw mozjpeg libexif
-          libpng webp libtiff
+          libpng webp 
           swig imagemagick
           cfitsio libmatio
           orc little-cms2 poppler
           pango libgsf openslide
           librsvg giflib openexr
-          python pygobject3
+        - brew install pygobject3

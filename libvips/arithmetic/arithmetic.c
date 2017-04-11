@@ -516,11 +516,10 @@ vips_arithmetic_gen( VipsRegion *or,
 
 	/* Prepare all input regions and make buffer pointers.
 	 */
-	for( i = 0; ir[i]; i++ ) {
-		if( vips_region_prepare( ir[i], r ) ) 
-			return( -1 );
+	if( vips_reorder_prepare_many( or->im, ir, r ) ) 
+		return( -1 );
+	for( i = 0; ir[i]; i++ ) 
 		p[i] = (VipsPel *) VIPS_REGION_ADDR( ir[i], r->left, r->top );
-	}
 	p[i] = NULL;
 	q = (VipsPel *) VIPS_REGION_ADDR( or, r->left, r->top );
 
@@ -634,7 +633,7 @@ vips_arithmetic_class_init( VipsArithmeticClass *class )
 	vobject_class->description = _( "arithmetic operations" );
 	vobject_class->build = vips_arithmetic_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "out", 100, 
 		_( "Output" ), 

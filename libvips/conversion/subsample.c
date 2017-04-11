@@ -248,11 +248,6 @@ vips_subsample_build( VipsObject *object )
 	return( 0 );
 }
 
-/* xy range we sanity check on ... just to stop crazy numbers from divide by 0 
- * etc. causing g_assert() failures later.
- */
-#define RANGE (100000000)
-
 static void
 vips_subsample_class_init( VipsSubsampleClass *class )
 {
@@ -270,27 +265,27 @@ vips_subsample_class_init( VipsSubsampleClass *class )
 	 * scanlines, and that confuses vips_sequential().
 	 */
 
-	VIPS_ARG_IMAGE( class, "input", 0, 
+	VIPS_ARG_IMAGE( class, "input", 1, 
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsSubsample, in ) );
 
-	VIPS_ARG_INT( class, "xfac", 2, 
+	VIPS_ARG_INT( class, "xfac", 3, 
 		_( "Xfac" ), 
 		_( "Horizontal subsample factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsSubsample, xfac ),
-		1, RANGE, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_INT( class, "yfac", 3, 
+	VIPS_ARG_INT( class, "yfac", 4, 
 		_( "Yfac" ), 
 		_( "Vertical subsample factor" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsSubsample, yfac ),
-		1, RANGE, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
-	VIPS_ARG_BOOL( class, "point", 2, 
+	VIPS_ARG_BOOL( class, "point", 5, 
 		_( "Point" ), 
 		_( "Point sample" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,

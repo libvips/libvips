@@ -998,8 +998,6 @@ im__start_merge( IMAGE *out, void *a, void *b )
 	if( !(inf = IM_NEW( NULL, MergeInfo )) )
 		return( NULL );
 
-	/* Clear all ptrs.
-	 */
 	inf->rir = NULL;
 	inf->sir = NULL;
 	inf->from1 = NULL;
@@ -1019,8 +1017,6 @@ im__start_merge( IMAGE *out, void *a, void *b )
 		}
 	}
 
-	/* Make input regions.
-	 */
 	inf->rir = im_region_create( ovlap->ref );
 	inf->sir = im_region_create( ovlap->sec );
 
@@ -1060,27 +1056,19 @@ im__lrmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 		return( 0 );
 	}
 
-	/* Build state for this join.
-	 */
 	if( !(ovlap = build_lrstate( ref, sec, out, dx, dy, mwidth )) )
 		return( -1 );
 
-	/* Prepare the output IMAGE.
-	 */ 
 	if( im_cp_descv( out, ovlap->ref, ovlap->sec, NULL ) )
 		return( -1 );
 	out->Xsize = ovlap->oarea.width;
 	out->Ysize = ovlap->oarea.height;
-	out->Xoffset = ovlap->sarea.left;
-	out->Yoffset = ovlap->sarea.top;
+	out->Xoffset = -dx;
+	out->Yoffset = -dy;
 
-	/* Set demand hints. 
-	 */
 	if( im_demand_hint( out, IM_THINSTRIP, ovlap->ref, ovlap->sec, NULL ) )
 		return( -1 );
 
-	/* Generate!
-	 */
 	if( im_generate( out,
 		im__start_merge, im__merge_gen, im__stop_merge, ovlap, NULL ) )
 		return( -1 );

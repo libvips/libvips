@@ -48,9 +48,9 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
-#ifdef HAVE_RADIANCE
+#include "pforeign.h"
 
-#include "radiance.h"
+#ifdef HAVE_RADIANCE
 
 typedef struct _VipsForeignLoadRad {
 	VipsForeignLoad parent_object;
@@ -100,8 +100,7 @@ vips_foreign_load_rad_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadRad *rad = (VipsForeignLoadRad *) load;
 
-	if( vips__rad_load( rad->filename, load->real,
-		load->access == VIPS_ACCESS_SEQUENTIAL ) )
+	if( vips__rad_load( rad->filename, load->real ) )
 		return( -1 );
 
 	return( 0 );

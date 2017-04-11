@@ -17,6 +17,8 @@
  * 	  readers
  * 23/5/16
  *	- add buffer save functions   
+ * 28/2/17
+ * 	- use dbuf for buffer output
  */
 
 /*
@@ -143,7 +145,7 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-#include "radiance.h"
+#include "pforeign.h"
 
 /* Begin copy-paste from Radiance sources.
  */
@@ -1080,6 +1082,10 @@ rad2vips_get_header( Read *read, VipsImage *out )
 			vips_image_set_double( out, 
 				prims_name[i][j], read->prims[i][j] );
 
+	/* Tell downstream we are reading sequentially.
+	 */
+	vips_image_set_area( out, VIPS_META_SEQUENTIAL, NULL, NULL ); 
+
 	return( 0 );
 }
 
@@ -1134,7 +1140,7 @@ rad2vips_generate( VipsRegion *or,
 }
 
 int
-vips__rad_load( const char *filename, VipsImage *out, gboolean readbehind )
+vips__rad_load( const char *filename, VipsImage *out )
 {
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( out ), 3 );
@@ -1153,14 +1159,8 @@ vips__rad_load( const char *filename, VipsImage *out, gboolean readbehind )
 		return( -1 );
 
 	if( vips_image_generate( t[0], 
-		NULL, rad2vips_generate, NULL, 
-		read, NULL ) ||
-		vips_sequential( t[0], &t[1], 
-			"tile_height", 8,
-			"access", readbehind ? 
-				VIPS_ACCESS_SEQUENTIAL : 
-				VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
-			NULL ) ||
+		NULL, rad2vips_generate, NULL, read, NULL ) ||
+		vips_sequential( t[0], &t[1], "tile_height", 8, NULL ) ||
 		vips_image_write( t[1], out ) )
 		return( -1 );
 
@@ -1175,9 +1175,7 @@ typedef struct {
 	char *filename;
 	FILE *fout;
 
-	char *buf;
-	size_t len;
-	size_t alloc;
+	VipsDbuf dbuf; 
 
 	char format[256];
 	double expos;
@@ -1192,7 +1190,7 @@ write_destroy( Write *write )
 {
 	VIPS_FREE( write->filename );
 	VIPS_FREEF( fclose, write->fout );
-	VIPS_FREE( write->buf );
+	vips_dbuf_destroy( &write->dbuf );
 
 	vips_free( write );
 }
@@ -1211,9 +1209,7 @@ write_new( VipsImage *in )
 	write->filename = NULL;
 	write->fout = NULL;
 
-	write->buf = NULL;
-	write->len = 0;
-	write->alloc = 0;
+	vips_dbuf_init( &write->dbuf ); 
 
 	strcpy( write->format, COLRFMT );
 	write->expos = 1.0;
@@ -1349,91 +1345,30 @@ vips__rad_save( VipsImage *in, const char *filename )
 	return( 0 );
 }
 
-static void
-write_buf_grow( Write *write, size_t grow_len )
-{
-	size_t new_len = write->len + grow_len;
-
-	if( new_len > write->alloc ) {
-		size_t proposed_alloc = (16 + write->alloc) * 3 / 2;
-
-		write->alloc = VIPS_MAX( proposed_alloc, new_len );
-
-		/* Our caller must free with g_free(), so we must use
-		 * g_realloc(). 
-		 */
-		write->buf = g_realloc( write->buf, write->alloc );
-
-		VIPS_DEBUG_MSG( "write_buf_grow: grown to %zd bytes\n",
-			write->alloc );
-	}
-}
-
-static void
-bprintf( Write *write, const char *fmt, ... )
-{
-	int length;
-	char *write_start;
-	va_list ap;
-
-	/* Determine required size.
-	 */
-	va_start( ap, fmt );
-	length = vsnprintf( NULL, 0, fmt, ap );
-	va_end( ap );
-
-	write_buf_grow( write, length + 1 );
-
-	write_start = write->buf + write->len;
-
-	va_start( ap, fmt );
-	length = vsnprintf( write_start, length + 1, fmt, ap );
-	va_end( ap );
-
-	write->len += length;
-
-	g_assert( write->len <= write->alloc );
-}
-
-#define bputformat( write, s ) \
-	bprintf( write, "%s%s\n", FMTSTR, s )
-
-#define bputexpos( write, ex ) \
-	bprintf( write, "%s%e\n", EXPOSSTR, ex )
-
-#define bputcolcor( write, cc ) \
-	bprintf( write, "%s %f %f %f\n", \
-		COLCORSTR, (cc)[RED], (cc)[GRN], (cc)[BLU] )
-
-#define bputaspect( write, pa ) \
-	bprintf( write, "%s%f\n", ASPECTSTR, pa )
-
-#define bputprims( write, p ) \
-	bprintf( write, "%s %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f\n", \
-		PRIMARYSTR, \
-		(p)[RED][CIEX], (p)[RED][CIEY], \
-		(p)[GRN][CIEX], (p)[GRN][CIEY], \
-		(p)[BLU][CIEX], (p)[BLU][CIEY], \
-		(p)[WHT][CIEX], (p)[WHT][CIEY] )
-
-#define bputsresolu( write, rs ) \
-	bprintf( write, "%s", resolu2str( resolu_buf, rs ) )
-
 static int
 vips2rad_put_header_buf( Write *write )
 {
 	vips2rad_make_header( write );
 
-	bprintf( write, "#?RADIANCE\n" );
-
-	bputformat( write, write->format );
-	bputexpos( write, write->expos );
-	bputcolcor( write, write->colcor );
-	bprintf( write, "SOFTWARE=vips %s\n", vips_version_string() );
-	bputaspect( write, write->aspect );
-	bputprims( write, write->prims );
-	bprintf( write, "\n" );
-	bputsresolu( write, &write->rs );
+	vips_dbuf_writef( &write->dbuf, "#?RADIANCE\n" );
+	vips_dbuf_writef( &write->dbuf, "%s%s\n", FMTSTR, write->format );
+	vips_dbuf_writef( &write->dbuf, "%s%e\n", EXPOSSTR, write->expos );
+	vips_dbuf_writef( &write->dbuf, "%s %f %f %f\n", 
+		COLCORSTR, 
+		write->colcor[RED], write->colcor[GRN], write->colcor[BLU] );
+	vips_dbuf_writef( &write->dbuf, "SOFTWARE=vips %s\n", 
+		vips_version_string() );
+	vips_dbuf_writef( &write->dbuf, "%s%f\n", ASPECTSTR, write->aspect );
+	vips_dbuf_writef( &write->dbuf, 
+		"%s %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f\n", 
+		PRIMARYSTR, 
+		write->prims[RED][CIEX], write->prims[RED][CIEY], 
+		write->prims[GRN][CIEX], write->prims[GRN][CIEY], 
+		write->prims[BLU][CIEX], write->prims[BLU][CIEY], 
+		write->prims[WHT][CIEX], write->prims[WHT][CIEY] );
+	vips_dbuf_writef( &write->dbuf, "\n" );
+	vips_dbuf_writef( &write->dbuf, "%s", 
+		resolu2str( resolu_buf, &write->rs ) );
 
 	return( 0 );
 }
@@ -1444,25 +1379,25 @@ static int
 scanline_write_buf( Write *write, COLR *scanline, int width )
 {
 	unsigned char *buffer;
+	size_t size;
+	int length;
 
-	write_buf_grow( write, MAX_LINE );
-	buffer = (unsigned char *) write->buf + write->len;
+	vips_dbuf_allocate( &write->dbuf, MAX_LINE );
+	buffer = vips_dbuf_get_write( &write->dbuf, &size );
 
 	if( width < MINELEN || 
 		width > MAXELEN ) {
 		/* Write as a flat scanline.
 		 */
-		memcpy( buffer, scanline, sizeof( COLR ) * width );
-		write->len += sizeof( COLR ) * width;
+		length = sizeof( COLR ) * width;
+		memcpy( buffer, scanline, length ); 
 	}
-	else {
-		int length;
-
+	else 
 		/* An RLE scanline.
 		 */
 		rle_scanline_write( scanline, width, buffer, &length );
-		write->len += length;
-	}
+
+	vips_dbuf_seek( &write->dbuf, length - size, SEEK_CUR ); 
 
 	return( 0 );
 }
@@ -1513,10 +1448,7 @@ vips__rad_save_buf( VipsImage *in, void **obuf, size_t *olen )
 		return( -1 );
 	}
 
-	*obuf = write->buf;
-	write->buf = NULL;
-	if( olen )
-		*olen = write->len;
+	*obuf = vips_dbuf_steal( &write->dbuf, olen );
 
 	write_destroy( write );
 

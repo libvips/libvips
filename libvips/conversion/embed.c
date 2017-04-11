@@ -357,15 +357,16 @@ vips_embed_build( VipsObject *object )
 		embed->height == embed->in->Ysize )
 		return( vips_image_write( embed->in, conversion->out ) );
 
-	if( !(embed->ink = vips__vector_to_ink( 
-		class->nickname, embed->in,
-		VIPS_AREA( embed->background )->data, NULL, 
-		VIPS_AREA( embed->background )->n )) )
-		return( -1 );
-
 	if( !vips_object_argument_isset( object, "extend" ) &&
 		vips_object_argument_isset( object, "background" ) )
 		embed->extend = VIPS_EXTEND_BACKGROUND; 
+
+	if( embed->extend == VIPS_EXTEND_BACKGROUND ) 
+		if( !(embed->ink = vips__vector_to_ink( 
+			class->nickname, embed->in,
+			VIPS_AREA( embed->background )->data, NULL, 
+			VIPS_AREA( embed->background )->n )) )
+			return( -1 );
 
 	switch( embed->extend ) {
 	case VIPS_EXTEND_REPEAT:
@@ -557,43 +558,43 @@ vips_embed_class_init( VipsEmbedClass *class )
 	vobject_class->description = _( "embed an image in a larger image" );
 	vobject_class->build = vips_embed_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in", -1, 
+	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsEmbed, in ) );
 
-	VIPS_ARG_INT( class, "x", 2, 
+	VIPS_ARG_INT( class, "x", 3, 
 		_( "x" ), 
 		_( "Left edge of input in output" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsEmbed, x ),
 		-1000000000, 1000000000, 0 );
 
-	VIPS_ARG_INT( class, "y", 3, 
+	VIPS_ARG_INT( class, "y", 4, 
 		_( "y" ), 
 		_( "Top edge of input in output" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsEmbed, y ),
 		-1000000000, 1000000000, 0 );
 
-	VIPS_ARG_INT( class, "width", 4, 
+	VIPS_ARG_INT( class, "width", 5, 
 		_( "Width" ), 
 		_( "Image width in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsEmbed, width ),
 		1, 1000000000, 1 );
 
-	VIPS_ARG_INT( class, "height", 5, 
+	VIPS_ARG_INT( class, "height", 6, 
 		_( "Height" ), 
 		_( "Image height in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsEmbed, height ),
 		1, 1000000000, 1 );
 
-	VIPS_ARG_ENUM( class, "extend", 6, 
+	VIPS_ARG_ENUM( class, "extend", 7, 
 		_( "Extend" ), 
 		_( "How to generate the extra pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,

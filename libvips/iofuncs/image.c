@@ -10,6 +10,8 @@
  * 	- add vips_image_new_from_memory_copy()
  * 10/6/16
  * 	- vips_image_write() does not ref input for non-partial images
+ * 29/10/16
+ * 	- add vips_image_hasalpha()
  */
 
 /*
@@ -145,7 +147,6 @@
  * VipsAccess:
  * @VIPS_ACCESS_RANDOM: can read anywhere
  * @VIPS_ACCESS_SEQUENTIAL: top-to-bottom reading only, but with a small buffer
- * @VIPS_ACCESS_SEQUENTIAL_UNBUFFERED: top-to-bottom reading only
  *
  * The type of access an operation has to supply. See vips_tilecache()
  * and #VipsForeign. 
@@ -154,9 +155,6 @@
  *
  * @VIPS_ACCESS_SEQUENTIAL means requests will be top-to-bottom, but with some
  * amount of buffering behind the read point for small non-local accesses. 
- *
- * @VIPS_ACCESS_SEQUENTIAL_UNBUFFERED means requests will be strictly
- * top-to-bottom with no read-behind. This can save some memory. 
  */
 
 /** 
@@ -1004,8 +1002,7 @@ vips_image_build( VipsObject *object )
 		 * still be able to process it without coredumps.
 		 */
 		if( image->file_length > sizeof_image ) 
-			vips_warn( "VipsImage", 
-				_( "%s is longer than expected" ),
+			g_warning( _( "%s is longer than expected" ),
 				image->filename );
 		break;
 
@@ -1621,12 +1618,12 @@ vips_image_set_progress( VipsImage *image, gboolean progress )
  * vips_image_iskilled:
  * @image: image to test
  *
- * If @image has been killed (see vips_image_kill()), set an error message,
+ * If @image has been killed (see vips_image_set_kill()), set an error message,
  * clear the #VipsImage.kill flag and return %FALSE. Otherwise return %TRUE.
  *
  * Handy for loops which need to run sets of threads which can fail. 
  *
- * See also: vips_image_kill().
+ * See also: vips_image_set_kill().
  *
  * Returns: %FALSE if @image has been killed. 
  */
@@ -1855,9 +1852,7 @@ vips_filename_get_options( const char *vips_filename )
  * whole image exactly once, top-to-bottom. In this mode, vips can avoid
  * converting the whole image in one go, for a large memory saving. You are
  * allowed to make small non-local references, so area operations like 
- * convolution will work. #VIPS_ACCESS_SEQUENTIAL_UNBUFFERED does not allow
- * non-local references, so will only work for very strict top-to-bottom
- * operations, but does have very low memory needs. 
+ * convolution will work. 
  *
  * In #VIPS_ACCESS_RANDOM mode, small images are decompressed to memory and
  * then processed from there. Large images are decompressed to temporary
@@ -2588,9 +2583,8 @@ vips_image_write_to_memory( VipsImage *in, size_t *size_out )
 		vips_error( "vips_image_write_to_memory", 
 			_( "out of memory --- size == %dMB" ), 
 			(int) (size / (1024.0 * 1024.0))  );
-		vips_warn( "vips_image_write_to_memory", 
-			_( "out of memory --- size == %dMB" ), 
-			(int) (size / (1024.0*1024.0))  );
+		g_warning( _( "out of memory --- size == %dMB" ), 
+			(int) (size / (1024.0 * 1024.0))  );
 		return( NULL );
 	}
 
@@ -2773,6 +2767,24 @@ vips_image_ispartial( VipsImage *image )
 		return( 1 );
 	else
 		return( 0 );
+}
+
+/**
+ * vips_image_hasalpha:
+ * @image: image to check
+ *
+ * libvips assumes an image has an alpha if it has two bands (ie. it is a
+ * monochrome image with an extra band), if it has four bands (unless it's been
+ * tagged as CMYK), or if it has more than four bands. 
+ *
+ * Return %TRUE if @image has an alpha channel.
+ */
+gboolean
+vips_image_hasalpha( VipsImage *image )
+{
+	return( image->Bands == 2 ||
+		(image->Bands == 4 && image->Type != VIPS_INTERPRETATION_CMYK) ||
+		image->Bands > 4 );
 }
 
 /**
@@ -3123,8 +3135,7 @@ vips_image_wio_input( VipsImage *image )
 		 * generate from this image.
 		 */
 		if( image->regions ) 
-			vips_warn( "vips_image_wio_input", "%s",
-				"rewinding image with active regions" ); 
+			g_warning( "rewinding image with active regions" ); 
 
 		break;
 

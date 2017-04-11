@@ -107,8 +107,9 @@ if (vips_embed (in, &amp;out, x, y, width, height, NULL))
     </para>
 
     <para>
-      Operations can take options. You give these as a set of NULL-terminated
-      name-value pairs at the end of the call. For example, you can write:
+      Operations can take optional arguments. You give these as a set of 
+      NULL-terminated name-value pairs at the end of the call. For example, 
+      you can write:
 
 <programlisting language="C">
 if (vips_embed (in, &amp;out, x, y, width, height, 

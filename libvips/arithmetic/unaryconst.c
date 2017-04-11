@@ -203,7 +203,7 @@ vips_unary_const_class_init( VipsUnaryConstClass *class )
 	object_class->description = _( "unary operations with a constant" );
 	object_class->build = vips_unary_const_build;
 
-	VIPS_ARG_BOXED( class, "c", 200, 
+	VIPS_ARG_BOXED( class, "c", 201, 
 		_( "c" ), 
 		_( "Array of constants" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,

@@ -742,7 +742,7 @@ vips_conva_decompose_boxes( VipsConva *conva )
 	 */
 	sum = 0;
 	for( z = 0; z < size; z++ ) 
-		sum += abs( coeff[z] );
+		sum += fabs( coeff[z] );
 
 	conva->divisor = VIPS_RINT( area * scale / sum );
 	conva->rounding = (conva->divisor + 1) / 2;

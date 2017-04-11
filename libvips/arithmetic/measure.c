@@ -165,9 +165,11 @@ vips_measure_build( VipsObject *object )
 				 */
 				if( dev * 5 > VIPS_FABS( avg ) && 
 					VIPS_FABS( avg ) > 3 )
-					vips_warn( class->nickname,
-						_( "patch %d x %d, band %d: " 
-						   "avg = %g, sdev = %g" ), 
+					g_warning( _( "%s: "
+							"patch %d x %d, "
+							"band %d: " 
+							"avg = %g, sdev = %g" ), 
+						class->nickname,
 						i, j, b, avg, dev );
 
 				*VIPS_MATRIX( measure->out, 
@@ -178,11 +180,6 @@ vips_measure_build( VipsObject *object )
 
 	return( 0 );
 }
-
-/* xy range we sanity check on ... just to stop crazy numbers from 1/0 etc.
- * causing g_assert() failures later.
- */
-#define RANGE (100000000)
 
 static void
 vips_measure_class_init( VipsMeasureClass *class )
@@ -215,42 +212,42 @@ vips_measure_class_init( VipsMeasureClass *class )
 		_( "Number of patches across chart" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMeasure, h ),
-		1, RANGE, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_INT( class, "v", 6, 
 		_( "Down" ), 
 		_( "Number of patches down chart" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMeasure, v ),
-		1, RANGE, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_INT( class, "left", 10, 
 		_( "Left" ), 
 		_( "Left edge of extract area" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMeasure, left ),
-		0, RANGE, 0 );
+		0, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "top", 11, 
 		_( "Top" ), 
 		_( "Top edge of extract area" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMeasure, top ),
-		0, RANGE, 0 );
+		0, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "width", 12, 
 		_( "Width" ), 
 		_( "Width of extract area" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMeasure, width ),
-		1, RANGE, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_INT( class, "height", 13, 
 		_( "Height" ), 
 		_( "Height of extract area" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMeasure, height ),
-		1, RANGE, 1 );
+		1, VIPS_MAX_COORD, 1 );
 
 }
 

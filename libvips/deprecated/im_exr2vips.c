@@ -49,7 +49,7 @@
 #include <vips/thread.h>
 #include <vips/internal.h>
 
-#include "../foreign/openexr2vips.h"
+#include "../foreign/pforeign.h"
 
 int
 im_exr2vips( const char *filename, IMAGE *out )

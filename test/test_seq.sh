@@ -43,3 +43,12 @@ if ! $vipsheader $tmp/x.png > /dev/null 2>&1 ; then
 	exit 1
 fi
 echo "ok"
+
+printf "testing reduce does not make temps ... "
+rm -f $tmp/x.png
+$vips reduce $huge $tmp/x.png 3 3 
+if ! $vipsheader $tmp/x.png > /dev/null 2>&1 ; then
+	echo "reduce made a temp"
+	exit 1
+fi
+echo "ok"

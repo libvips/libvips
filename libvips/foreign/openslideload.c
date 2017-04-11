@@ -55,9 +55,9 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
-#ifdef HAVE_OPENSLIDE
+#include "pforeign.h"
 
-#include "openslide2vips.h"
+#ifdef HAVE_OPENSLIDE
 
 typedef struct _VipsForeignLoadOpenslide {
 	VipsForeignLoad parent_object;
@@ -133,9 +133,8 @@ vips_foreign_load_openslide_load( VipsForeignLoad *load )
 			return( -1 );
 	}
 	else {
-		if( vips__openslide_read_associated( 
-			openslide->filename, load->real, 
-			openslide->associated ) )
+		if( vips__openslide_read_associated( openslide->filename, 
+			load->real, openslide->associated ) )
 			return( -1 );
 	}
 

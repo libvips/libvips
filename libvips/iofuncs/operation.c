@@ -169,7 +169,6 @@
  * VipsOperationFlags:
  * @VIPS_OPERATION_NONE: no flags
  * @VIPS_OPERATION_SEQUENTIAL: can work sequentially with a small buffer
- * @VIPS_OPERATION_SEQUENTIAL_UNBUFFERED: can work sequentially with no buffer
  * @VIPS_OPERATION_NOCACHE: must not be cached
  * @VIPS_OPERATION_DEPRECATED: a compatibility thing
  *
@@ -183,10 +182,6 @@
  * ahead, but as a special case, the very first request can be for a region
  * not at the top of the image. In this case, the first part of the image will
  * be read and discarded
- *
- * @VIPS_OPERATION_SEQUENTIAL_UNBUFFERED means that the operation works like 
- * vips_copy(): it can process images top-to-bottom and makes no 
- * non-local references. 
  *
  * Every scan-line must be requested, you are not allowed to skip
  * ahead, but as a special case, the very first request can be for a region
@@ -221,12 +216,8 @@ vips_operation_finalize( GObject *gobject )
 
 	VIPS_DEBUG_MSG( "vips_operation_finalize: %p\n", gobject );
 
-	if( operation->pixels ) {
-		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gobject );
-
-		vips_info( class->nickname, 
-			_( "%d pixels calculated" ), operation->pixels ); 
-	}
+	if( operation->pixels ) 
+		g_info( _( "%d pixels calculated" ), operation->pixels ); 
 
 	G_OBJECT_CLASS( vips_operation_parent_class )->finalize( gobject );
 }
@@ -628,10 +619,10 @@ vips_operation_class_print_usage( VipsOperationClass *operation_class )
 void
 vips_operation_invalidate( VipsOperation *operation )
 {
-	/*
+#ifdef VIPS_DEBUG
 	printf( "vips_operation_invalidate: %p\n", operation ); 
 	vips_object_print_summary( VIPS_OBJECT( operation ) ); 
-	 */
+#endif /*VIPS_DEBUG*/
 
 	g_signal_emit( operation, vips_operation_signals[SIG_INVALIDATE], 0 );
 }

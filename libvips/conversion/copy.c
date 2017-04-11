@@ -177,7 +177,7 @@ vips_copy_build( VipsObject *object )
 		return( -1 );
 
 	if( copy->swap ) 
-		vips_warn( class->nickname, "%s", 
+		g_warning( "%s", 
 			_( "copy swap is deprecated, use byteswap instead" ) );
 
 	if( vips_image_pipelinev( conversion->out, 
@@ -264,7 +264,7 @@ vips_copy_class_init( VipsCopyClass *class )
 	 * cache it. Plus copy is cheap.
 	 */
 	operation_class->flags = 
-		VIPS_OPERATION_SEQUENTIAL_UNBUFFERED | 
+		VIPS_OPERATION_SEQUENTIAL | 
 		VIPS_OPERATION_NOCACHE;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 

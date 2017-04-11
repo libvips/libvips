@@ -135,6 +135,14 @@ G_STMT_START { \
 	} \
 } G_STMT_END
 
+/* The g_info() macro was added in 2.40.
+ */
+#ifndef g_info
+/* Hopefully we have varargs macros. Maybe revisit this. 
+ */
+#define g_info(...) \
+	 g_log( G_LOG_DOMAIN, G_LOG_LEVEL_INFO, __VA_ARGS__ )
+#endif
 
 /* Various integer range clips. Record over/under flows.
  */
@@ -319,6 +327,9 @@ void vips__change_suffix( const char *name, char *out, int mx,
         const char *new_suff, const char **olds, int nolds );
 
 char *vips_realpath( const char *path );
+
+guint32 vips__random( guint32 seed );
+guint32 vips__random_add( guint32 seed, int value );
 
 #ifdef __cplusplus
 }

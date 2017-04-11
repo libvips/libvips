@@ -1,10 +1,74 @@
-4/10/16 started 8.5.0
+11/4/17 started 8.6
 - added flifload, flifsave + buffer versions
 - added RGBA_STRICT save mode
+
+25/3/17 started 8.5.2
+- better behaviour for truncated PNG files, thanks Yury
+- missing proto for vips_tiffsave_buffer(), thanks greut
+- move some docs from the wiki and blog into core libvips docs
+- add support for markdown in docs
+
+25/3/17 started 8.5.1
+- init more classes earlier, thanks David
+
+13/10/16 started 8.5.0
+- rewritten buffer system is safer and frees memory earlier
+- added tiff save to buffer
+- added dzsave save to buffer (zip only)
+- revise header get/set functions
+- better vipsheader behaviour with complex field types
+- added vips_image_hasalpha()
+- added vips_thumbnail() / vips_thumbnail_buffer()
+- webpload/webpsave read and write icc, xmp, exif metadata
+- better >4gb detect for zip dzsave output [Felix Bünemann]
+- all loaders have a @fail option, meaning fail on first warning, though it
+  only does anything for jpg and csv
+- add vips_image_get_fields() to help bindings
+- add tiff multi-page read/write
+- add VIPS_META_PAGE_HEIGHT metadata
+- IM6/IM7 magickload supports page/n/page-height, all_frames deprecated
+- gifload supports n/page-height
+- added #defines for VIPS_SONAME, VIPS_LIBRARY_CURRENT, VIPS_LIBRARY_REVISION,
+  VIPS_LIBRARY_AGE
+- better support for bscale / bzero in fits images
+- deprecate vips_warn() / vips_info(); use g_warning() / g_info() instead
+- vipsthumbnail supports much fancier geometry strings, thanks tomasc
+- vips_thumbnail() has new @size option
+- fix --vips-cache-max etc. 
+- add compute reordering, plus some new API to support it:
+  vips_reorder_margin_hint() and vips_reorder_prepare_many(), thanks
+  aferrero2707
+- kick load operations from cache on read error, thanks gaillard 
+- fix return from C++ assignment operator overloads (+=, -= etc) 
+- add @max_slope to vips_hist_local() to implement CLAHE, thanks hunter-87
+- vips_gaussnoise() pixels are reproducible on recalc, thanks MvGulik
+- max/min sort values by y and x coordinate
+- tiff read uses libtiff scanline API if rows-per-strip is large
+- vips_region_shrink() knows about alpha, helps dzsave and tiffsave
+- use expat, not libxml, for XML load ... removes a required dependency, since
+  we get expat as part of glib
+- new sequential mode infrastructure is faster and more flexible
+- add vips_smartcrop(), based on sharp's smartcropper
+- vipsthumbnail has a --smartcrop option
+- added vips_rot90() etc. convenience functions
+- fix vips_resize() bug when hscale and vscale were very different
+
+8/12/16 started 8.4.5
+- allow libgsf-1.14.26 to help centos, thanks tdiprima
+
+11/11/16 started 8.4.4
+- fix crash in vips.exe arg parsing on Windows, thanks Yury
+
+18/10/16 started 8.4.3
+- fix error detection in gif_close, thanks aaron42net
+- fix tiny threading memleak
+- improve compatibility with very old glib, see #548
+>>>>>>> master
 
 27/9/16 started 8.4.2
 - small doc improvements
 - fix error message for metadata fetch type mismatch
+- resolve a race condition in thread shutdown, thanks Lovell
 
 1/5/16 started 8.4
 - many more wepsave options [Felix Bünemann]
@@ -64,6 +128,7 @@
 18/5/16 started 8.3.2
 - more robust vips image reading
 - more robust tiff read [Matt Richards]
+>>>>>>> master
 
 15/4/16 started 8.3.1
 - rename vips wrapper script, it was still vips-8.2, thanks Benjamin

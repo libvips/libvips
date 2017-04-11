@@ -107,21 +107,6 @@ typedef struct _Sequence {
 
 } Sequence;
 
-/* A very simple random number generator. See:
- * http://isthe.com/chongo/tech/comp/fnv/#FNV-source
- */
-static guint32
-vips_worley_random( guint32 seed )
-{
-	return( 1103515245u * seed + 12345 );
-}
-
-static guint32 
-vips_worley_seed_add( guint32 seed, int value )
-{
-	return( ((2166136261u ^ seed) * 16777619u) ^ value );
-}
-
 /* Generate a 3 x 3 grid of cells around a point. 
  */
 static void
@@ -154,7 +139,7 @@ vips_worley_create_cells( VipsWorley *worley,
 				value = worley->cells_across - 1;
 			else 
 				value = cell->cell_x;
-			seed = vips_worley_seed_add( seed, value );
+			seed = vips__random_add( seed, value );
 
 			if( cell->cell_y >= worley->cells_down )
 				value = 0;
@@ -162,20 +147,19 @@ vips_worley_create_cells( VipsWorley *worley,
 				value = worley->cells_down - 1;
 			else 
 				value = cell->cell_y;
-			seed = vips_worley_seed_add( seed, value );
+			seed = vips__random_add( seed, value );
 
 			/* [1, MAX_FEATURES)
 			 */
-			seed = vips_worley_random( seed ); 
 			cell->n_features = (seed % (MAX_FEATURES - 1)) + 1;
 
 			for( j = 0; j < cell->n_features; j++ ) {
-				seed = vips_worley_random( seed ); 
+				seed = vips__random( seed ); 
 				cell->feature_x[j] = 
 					cell->cell_x * worley->cell_size + 
 					seed % worley->cell_size;
 
-				seed = vips_worley_random( seed ); 
+				seed = vips__random( seed ); 
 				cell->feature_y[j] = 
 					cell->cell_y * worley->cell_size + 
 					seed % worley->cell_size;

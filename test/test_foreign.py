@@ -15,6 +15,8 @@ import gi
 gi.require_version('Vips', '8.0')
 from gi.repository import Vips 
 
+from gi.repository import GObject
+
 Vips.leak_set(True)
 
 # an expanding zip ... if either of the args is not a list, duplicate it down
@@ -41,6 +43,7 @@ class TestForeign(unittest.TestCase):
         self.jpeg_file = "images/йцук.jpg"
         self.png_file = "images/sample.png"
         self.tiff_file = "images/sample.tif"
+        self.ome_file = "images/multi-channel-z-series.ome.tif"
         self.profile_file = "images/sRGB.icm"
         self.analyze_file = "images/t00740_tr1_segm.hdr"
         self.gif_file = "images/cramps.gif"
@@ -59,9 +62,13 @@ class TestForeign(unittest.TestCase):
 
         self.colour = Vips.Image.jpegload(self.jpeg_file)
         self.mono = self.colour.extract_band(1)
+        # we remove the ICC profile: the RGB one will no longer be appropriate
+        self.mono.remove("icc-profile-data")
         self.rad = self.colour.float2rad()
+        self.rad.remove("icc-profile-data")
         self.cmyk = self.colour.bandjoin(self.mono)
         self.cmyk = self.cmyk.copy(interpretation = Vips.Interpretation.CMYK)
+        self.cmyk.remove("icc-profile-data")
 
         im = Vips.Image.new_from_file(self.gif_file)
         self.onebit = im > 128
@@ -167,17 +174,9 @@ class TestForeign(unittest.TestCase):
         self.save_load("%s.jpg", self.mono)
         self.save_load("%s.jpg", self.colour)
 
-        # see if we have exif parsing
-        have_exif = False
+        # see if we have exif parsing: our test image has this field
         x = Vips.Image.new_from_file(self.jpeg_file)
-        try:
-            # our test image has this field
-            y = x.get_value("exif-ifd0-Orientation")
-            have_exif = True
-        except:
-            pass
-
-        if have_exif:
+        if x.get_typeof("exif-ifd0-Orientation") != GObject.TYPE_INVALID:
             # we need a copy of the image to set the new metadata on
             # otherwise we get caching problems
             x = Vips.Image.new_from_file(self.jpeg_file)
@@ -253,7 +252,7 @@ class TestForeign(unittest.TestCase):
 
         # flifsave currently always saves four bands .. test with a four-band
         # image
-        self.save_load_buffer("flifsave_buffer", "flifload_buffer", self.cmyk)
+        # self.save_load_buffer("flifsave_buffer", "flifload_buffer", self.cmyk)
 
     def test_tiff(self):
         x = Vips.type_find("VipsForeign", "tiffload")
@@ -270,6 +269,7 @@ class TestForeign(unittest.TestCase):
 
         self.file_loader("tiffload", self.tiff_file, tiff_valid)
         self.buffer_loader("tiffload_buffer", self.tiff_file, tiff_valid)
+        self.save_load_buffer("tiffsave_buffer", "tiffload_buffer", self.colour)
         self.save_load("%s.tif", self.mono)
         self.save_load("%s.tif", self.colour)
         self.save_load("%s.tif", self.cmyk)
@@ -331,6 +331,39 @@ class TestForeign(unittest.TestCase):
         self.assertEqual(x1.height, x2.width)
         os.unlink("test-14.tif")
 
+        x = Vips.Image.new_from_file(self.ome_file)
+        self.assertEqual(x.width, 439)
+        self.assertEqual(x.height, 167)
+        page_height = x.height
+
+        x = Vips.Image.new_from_file(self.ome_file, n = -1)
+        self.assertEqual(x.width, 439)
+        self.assertEqual(x.height, page_height * 15)
+
+        x = Vips.Image.new_from_file(self.ome_file, page = 1, n = -1)
+        self.assertEqual(x.width, 439)
+        self.assertEqual(x.height, page_height * 14)
+
+        x = Vips.Image.new_from_file(self.ome_file, page = 1, n = 2)
+        self.assertEqual(x.width, 439)
+        self.assertEqual(x.height, page_height * 2)
+
+        x = Vips.Image.new_from_file(self.ome_file, n = -1)
+        self.assertEqual(x(0,166)[0], 96)
+        self.assertEqual(x(0,167)[0], 0)
+        self.assertEqual(x(0,168)[0], 1)
+
+        x.write_to_file("test-15.tif")
+
+        x = Vips.Image.new_from_file("test-15.tif", n = -1)
+        self.assertEqual(x.width, 439)
+        self.assertEqual(x.height, page_height * 15)
+        self.assertEqual(x(0,166)[0], 96)
+        self.assertEqual(x(0,167)[0], 0)
+        self.assertEqual(x(0,168)[0], 1)
+
+        os.unlink("test-15.tif")
+
     def test_magickload(self):
         x = Vips.type_find("VipsForeign", "magickload")
         if not x.is_instantiatable():
@@ -365,12 +398,23 @@ class TestForeign(unittest.TestCase):
         #self.assertEqual(im.height, height * 2)
 
         # all-frames should load every frame of the animation
+        # (though all-frames is deprecated)
         im = Vips.Image.magickload(self.gif_anim_file)
         width = im.width
         height = im.height
         im = Vips.Image.magickload(self.gif_anim_file, all_frames = True)
         self.assertEqual(im.width, width)
         self.assertEqual(im.height, height * 5)
+
+        # page/n let you pick a range of pages
+        im = Vips.Image.magickload(self.gif_anim_file)
+        width = im.width
+        height = im.height
+        im = Vips.Image.magickload(self.gif_anim_file, page = 1, n = 2)
+        self.assertEqual(im.width, width)
+        self.assertEqual(im.height, height * 2)
+        page_height = im.get_value("page-height")
+        self.assertEqual(page_height, height)
 
         # should work for dicom
         im = Vips.Image.magickload(self.dicom_file)
@@ -394,8 +438,8 @@ class TestForeign(unittest.TestCase):
 
         self.file_loader("webpload", self.webp_file, webp_valid)
         self.buffer_loader("webpload_buffer", self.webp_file, webp_valid)
-        self.save_load_buffer("webpsave_buffer", "webpload_buffer", self.colour,
-                             50)
+        self.save_load_buffer("webpsave_buffer", "webpload_buffer", 
+                              self.colour, 60)
         self.save_load("%s.webp", self.colour)
 
         # test lossless mode
@@ -408,6 +452,27 @@ class TestForeign(unittest.TestCase):
         b1 = im.webpsave_buffer(Q = 10)
         b2 = im.webpsave_buffer(Q = 90)
         self.assertGreater(len(b2), len(b1))
+
+        # try saving an image with an ICC profile and reading it back ... if we
+        # can do it, our webp supports metadata load/save
+        buf = self.colour.webpsave_buffer()
+        im = Vips.Image.new_from_buffer(buf, "")
+        if im.get_typeof("icc-profile-data") != GObject.TYPE_INVALID:
+            # verify that the profile comes back unharmed
+            p1 = self.colour.get_value("icc-profile-data")
+            p2 = im.get_value("icc-profile-data")
+            self.assertEqual(p1, p2)
+
+            # add tests for exif, xmp, exif
+            # the exif test will need us to be able to walk the header, we can't
+            # just check exif-data
+
+            # we can test that exif changes change the output of webpsave
+            x = self.colour.copy()
+            x.set_value("orientation", 6)
+            buf = x.webpsave_buffer()
+            y = Vips.Image.new_from_buffer(buf, "")
+            self.assertEqual(y.get_value("orientation"), 6)
 
     def test_analyzeload(self):
         x = Vips.type_find("VipsForeign", "analyzeload")
@@ -530,6 +595,18 @@ class TestForeign(unittest.TestCase):
 
         self.file_loader("gifload", self.gif_file, gif_valid)
         self.buffer_loader("gifload_buffer", self.gif_file, gif_valid)
+
+        x1 = Vips.Image.new_from_file(self.gif_anim_file )
+        x2 = Vips.Image.new_from_file(self.gif_anim_file, n = 2 )
+        self.assertEqual(x2.height, 2 * x1.height)
+        page_height = x2.get_value("page-height")
+        self.assertEqual(page_height, x1.height)
+
+        x2 = Vips.Image.new_from_file(self.gif_anim_file, n = -1 )
+        self.assertEqual(x2.height, 5 * x1.height)
+
+        x2 = Vips.Image.new_from_file(self.gif_anim_file, page = 1, n = -1 )
+        self.assertEqual(x2.height, 4 * x1.height)
 
     def test_svgload(self):
         x = Vips.type_find("VipsForeign", "svgload")
@@ -722,6 +799,17 @@ class TestForeign(unittest.TestCase):
 
         shutil.rmtree("test_files")
         os.unlink("test.dzi")
+
+        # test save to memory buffer
+        self.colour.dzsave("test-10.zip")
+        with open("test-10.zip", 'rb') as f:
+            buf1 = f.read()
+        os.unlink("test-10.zip")
+        buf2 = self.colour.dzsave_buffer(basename = "test-10")
+        self.assertEqual(len(buf1), len(buf2))
+
+        # we can't test the bytes are exactly equal, the timestamps will be
+        # different
 
 if __name__ == '__main__':
     unittest.main()

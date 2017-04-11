@@ -159,6 +159,27 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 	bounds->height = 1 + max_y - min_y;
 }
 
+#define ULOOKUP( TYPE ) { \
+	TYPE * restrict p1 = (TYPE *) p; \
+	\
+	for( x = 0; x < r->width; x++ ) { \
+		TYPE px = p1[0]; \
+		TYPE py = p1[1]; \
+		\
+		if( px >= resample->in->Xsize || \
+			py >= resample->in->Ysize ) { \
+			for( z = 0; z < ps; z++ )  \
+				q[z] = 0; \
+		} \
+		else \
+			interpolate( mapim->interpolate, q, ir[0], \
+				px + window_offset, py + window_offset ); \
+		\
+		p1 += 2; \
+		q += ps; \
+	} \
+}
+
 #define LOOKUP( TYPE ) { \
 	TYPE * restrict p1 = (TYPE *) p; \
 	\
@@ -265,15 +286,15 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 
 		switch( ir[1]->im->BandFmt ) {
 		case VIPS_FORMAT_UCHAR: 	
-			LOOKUP( unsigned char ); break; 
+			ULOOKUP( unsigned char ); break; 
 		case VIPS_FORMAT_CHAR: 	
 			LOOKUP( signed char ); break; 
 		case VIPS_FORMAT_USHORT: 
-			LOOKUP( unsigned short ); break; 
+			ULOOKUP( unsigned short ); break; 
 		case VIPS_FORMAT_SHORT: 	
 			LOOKUP( signed short ); break; 
 		case VIPS_FORMAT_UINT: 	
-			LOOKUP( unsigned int ); break; 
+			ULOOKUP( unsigned int ); break; 
 		case VIPS_FORMAT_INT: 	
 			LOOKUP( signed int ); break; 
 

@@ -67,7 +67,6 @@ G_DEFINE_TYPE( VipsGaussblur, vips_gaussblur, VIPS_TYPE_OPERATION );
 static int
 vips_gaussblur_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsGaussblur *gaussblur = (VipsGaussblur *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
@@ -85,7 +84,7 @@ vips_gaussblur_build( VipsObject *object )
 	vips_matrixprint( t[0], NULL ); 
 #endif /*DEBUG*/
 
-	vips_info( class->nickname, "gaussblur mask width %d", t[0]->Xsize );
+	g_info( "gaussblur mask width %d", t[0]->Xsize );
 
 	if( vips_convsep( gaussblur->in, &t[1], t[0], 
 		"precision", gaussblur->precision,

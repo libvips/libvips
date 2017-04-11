@@ -1806,6 +1806,7 @@ vips_flags_from_nick( const char *domain, GType type, const char *nick )
 	return( -1 );
 }
 
+
 /* Scan @buf for the first "%ns" (eg. "%12s") and substitute the 
  * lowest-numbered one for @sub. @buf is @len bytes in size.
  *
@@ -1910,4 +1911,21 @@ vips_realpath( const char *path )
 #endif
 
 	return( real );
+}
+
+/* A very simple random number generator. See:
+ * http://isthe.com/chongo/tech/comp/fnv/#FNV-source
+ */
+guint32
+vips__random( guint32 seed )
+{
+	return( 1103515245u * seed + 12345 );
+}
+
+guint32 
+vips__random_add( guint32 seed, int value )
+{
+	seed = ((2166136261u ^ seed) * 16777619u) ^ value;
+
+	return( vips__random( seed ) ); 
 }

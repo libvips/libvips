@@ -172,7 +172,7 @@ gaussnoise_vec( im_object *argv )
 static im_function gaussnoise_desc = {
 	"im_gaussnoise", 		/* Name */
 	"generate image of gaussian noise with specified statistics",
-	IM_FN_PIO,			/* Flags */
+	IM_FN_PIO | IM_FN_NOCACHE,	/* Flags */
 	gaussnoise_vec, 		/* Dispatch function */
 	IM_NUMBER( gaussnoise_args ), 	/* Size of arg list */
 	gaussnoise_args 		/* Arg list */

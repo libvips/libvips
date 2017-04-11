@@ -58,3 +58,32 @@ echo "testing with $(basename $image)"
 for i in nearest bicubic bilinear nohalo lbb; do
 	test_rotate $image $i
 done
+
+test_thumbnail() {
+	geo=$1
+	correct_width=$2
+	correct_height=$3
+
+	printf "testing thumbnail -s $geo ... "
+	$vipsthumbnail $image -s "$geo" -o $tmp/t1.jpg
+	width=$(vipsheader -f width $tmp/t1.jpg)
+	height=$(vipsheader -f height $tmp/t1.jpg)
+	if [ $width -ne $correct_width ]; then
+		echo width is $width, not $correct_width
+		exit 1
+	fi
+	if [ $height -ne $correct_height ]; then
+		echo width is $height, not $correct_height
+		exit 1
+	fi
+
+	echo "ok"
+}
+
+test_thumbnail 100 100 75
+test_thumbnail 100x100 100 75
+test_thumbnail x100 133 100
+test_thumbnail "100x100<" 1024 768
+test_thumbnail "2000<" 2000 1500
+test_thumbnail "100x100>" 100 75
+test_thumbnail "2000>" 1024 768

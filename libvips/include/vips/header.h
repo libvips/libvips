@@ -1,4 +1,4 @@
-/* boolean.h
+/* image header funcs
  *
  * 20/9/09
  * 	- from proto.h
@@ -78,14 +78,6 @@ extern "C" {
 #define VIPS_META_ICC_NAME "icc-profile-data"
 
 /**
- * VIPS_META_XML:
- *
- * The original XML that was used to code the metadata after reading a VIPS
- * format file.
- */
-#define VIPS_META_XML "xml-header"
-
-/**
  * VIPS_META_IMAGEDESCRIPTION:
  *
  * The IMAGEDESCRIPTION tag. Often has useful metadata. 
@@ -107,6 +99,15 @@ extern "C" {
  * and for debugging.
  */
 #define VIPS_META_LOADER "vips-loader"
+
+/**
+ * VIPS_META_SEQUENTIAL:
+ *
+ * Images loaded via vips_sequential() have this int field defined. Some
+ * operations (eg. vips_shrinkv()) add extra caches if they see it on their
+ * input. 
+ */
+#define VIPS_META_SEQUENTIAL "vips-sequential"
 
 /**
  * VIPS_META_ORIENTATION:
@@ -132,6 +133,15 @@ extern "C" {
  *   0th column represents the visual bottom. 
  */
 #define VIPS_META_ORIENTATION "orientation"
+
+/**
+ * VIPS_META_PAGE_HEIGHT:
+ *
+ * If set, the height of each page when this image was loaded. If you save an
+ * image with "page-height" set to a format that supports multiple pages, such
+ * as tiff, the image will be saved as a series of pages. 
+ */
+#define VIPS_META_PAGE_HEIGHT "page-height"
 
 guint64 vips_format_sizeof( VipsBandFormat format );
 guint64 vips_format_sizeof_unsafe( VipsBandFormat format );
@@ -160,35 +170,37 @@ void vips_image_init_fields( VipsImage *image,
 	VipsInterpretation interpretation, 
 	double xres, double yres );
 
-void vips_image_set( VipsImage *image, const char *field, GValue *value );
+void vips_image_set( VipsImage *image, const char *name, GValue *value );
 int vips_image_get( const VipsImage *image, 
-	const char *field, GValue *value_copy );
+	const char *name, GValue *value_copy );
 int vips_image_get_as_string( const VipsImage *image, 
-	const char *field, char **out );
-GType vips_image_get_typeof( const VipsImage *image, const char *field );
-gboolean vips_image_remove( VipsImage *image, const char *field );
+	const char *name, char **out );
+GType vips_image_get_typeof( const VipsImage *image, const char *name );
+gboolean vips_image_remove( VipsImage *image, const char *name );
 typedef void *(*VipsImageMapFn)( VipsImage *image, 
-	const char *field, GValue *value, void *a );
+	const char *name, GValue *value, void *a );
 void *vips_image_map( VipsImage *image, VipsImageMapFn fn, void *a );
+gchar **vips_image_get_fields( VipsImage *image );
 
 void vips_image_set_area( VipsImage *image, 
-	const char *field, VipsCallbackFn free_fn, void *data );
+	const char *name, VipsCallbackFn free_fn, void *data );
 int vips_image_get_area( const VipsImage *image, 
-	const char *field, void **data );
-void vips_image_set_blob( VipsImage *image, const char *field, 
+	const char *name, void **data );
+void vips_image_set_blob( VipsImage *image, const char *name, 
 	VipsCallbackFn free_fn, void *data, size_t length );
-int vips_image_get_blob( const VipsImage *image, const char *field, 
+int vips_image_get_blob( const VipsImage *image, const char *name, 
 	void **data, size_t *length );
 
-int vips_image_get_int( const VipsImage *image, const char *field, int *out );
-void vips_image_set_int( VipsImage *image, const char *field, int i );
+int vips_image_get_int( const VipsImage *image, const char *name, int *out );
+void vips_image_set_int( VipsImage *image, const char *name, int i );
 int vips_image_get_double( const VipsImage *image, 
-	const char *field, double *out );
-void vips_image_set_double( VipsImage *image, const char *field, double d );
+	const char *name, double *out );
+void vips_image_set_double( VipsImage *image, const char *name, double d );
 int vips_image_get_string( const VipsImage *image, 
-	const char *field, const char **out );
+	const char *name, const char **out );
 void vips_image_set_string( VipsImage *image, 
-	const char *field, const char *str );
+	const char *name, const char *str );
+void vips_image_print_field( const VipsImage *image, const char *field );
 
 int vips_image_history_printf( VipsImage *image, const char *format, ... )
 	__attribute__((format(printf, 2, 3)));

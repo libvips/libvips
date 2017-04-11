@@ -1,4 +1,4 @@
-/* horizontal reduce by a float factor with lanczos3
+/* horizontal reduce by a float factor with a kernel
  *
  * 29/1/16
  * 	- from shrinkh.c
@@ -465,7 +465,7 @@ vips_reduceh_build( VipsObject *object )
 	 */
 	reduceh->n_point = 
 		vips_reduce_get_points( reduceh->kernel, reduceh->hshrink ); 
-	vips_info( object_class->nickname, "%d point mask", reduceh->n_point );
+	g_info( "%d point mask", reduceh->n_point );
 	if( reduceh->n_point > MAX_POINT ) {
 		vips_error( object_class->nickname, 
 			"%s", _( "reduce factor too large" ) );
@@ -539,6 +539,8 @@ vips_reduceh_build( VipsObject *object )
 		vips_start_one, vips_reduceh_gen, vips_stop_one, 
 		in, reduceh ) )
 		return( -1 );
+
+	vips_reorder_margin_hint( resample->out, reduceh->n_point ); 
 
 	return( 0 );
 }

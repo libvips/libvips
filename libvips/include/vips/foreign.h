@@ -131,6 +131,10 @@ typedef struct _VipsForeignLoad {
 	 */
 	VipsForeignFlags flags;
 
+	/* Stop load on first warning.
+	 */
+	gboolean fail;
+
 	/* Deprecated and unused, just here for compat.
 	 */
 	gboolean sequential;
@@ -224,6 +228,8 @@ VipsForeignFlags vips_foreign_flags( const char *loader, const char *filename );
 gboolean vips_foreign_is_a( const char *loader, const char *filename );
 gboolean vips_foreign_is_a_buffer( const char *loader, 
 	const void *data, size_t size );
+
+void vips_foreign_load_invalidate( VipsImage *image );
 
 #define VIPS_TYPE_FOREIGN_SAVE (vips_foreign_save_get_type())
 #define VIPS_FOREIGN_SAVE( obj ) \
@@ -438,6 +444,8 @@ int vips_tiffload( const char *filename, VipsImage **out, ... )
 int vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_tiffsave( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
+int vips_tiffsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 	__attribute__((sentinel));
 
 int vips_openexrload( const char *filename, VipsImage **out, ... )

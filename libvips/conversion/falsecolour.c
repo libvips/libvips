@@ -375,7 +375,7 @@ vips_falsecolour_class_init( VipsFalsecolourClass *class )
 	vobject_class->description = _( "false-color an image" );
 	vobject_class->build = vips_falsecolour_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 0, 
 		_( "in" ), 

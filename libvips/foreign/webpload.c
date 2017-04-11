@@ -47,9 +47,9 @@
 
 #include <vips/vips.h>
 
-#ifdef HAVE_LIBWEBP
+#include "pforeign.h"
 
-#include "webp.h"
+#ifdef HAVE_LIBWEBP
 
 typedef struct _VipsForeignLoadWebp {
 	VipsForeignLoad parent_object;
@@ -292,6 +292,9 @@ vips_foreign_load_webp_buffer_init( VipsForeignLoadWebpBuffer *buffer )
  * Read a WebP file into a VIPS image. 
  *
  * Use @shrink to specify a shrink-on-load factor.
+ *
+ * If libwebpmux is available, image metadata is also read. The loader supports 
+ * ICC, EXIF and XMP metadata. 
  *
  * See also: vips_image_new_from_file().
  *

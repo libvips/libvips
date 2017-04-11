@@ -50,7 +50,7 @@
 
 #ifdef HAVE_ANALYZE
 
-#include "analyze2vips.h"
+#include "pforeign.h"
 
 typedef struct _VipsForeignLoadAnalyze {
 	VipsForeignLoad parent_object;

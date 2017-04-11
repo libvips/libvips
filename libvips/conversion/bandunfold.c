@@ -157,7 +157,7 @@ vips_bandunfold_class_init( VipsBandunfoldClass *class )
 	vobject_class->description = _( "unfold image bands into x axis" );
 	vobject_class->build = vips_bandunfold_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 

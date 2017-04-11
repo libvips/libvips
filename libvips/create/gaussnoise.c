@@ -22,6 +22,10 @@
  * 	- redo as a class
  * 8/11/14
  * 	- use g_random_double()
+ * 24/1/17
+ * 	- use g_random_double() once per image, use vips__random() for pixel
+ * 	  values from (x, y) position ... makes pixels reproducible on
+ * 	  recalculation
  */
 
 /*
@@ -71,6 +75,9 @@ typedef struct _VipsGaussnoise {
 	double mean;
 	double sigma;
 
+	/* Per-image seed. 
+	 */
+	guint32 seed;
 } VipsGaussnoise;
 
 typedef VipsCreateClass VipsGaussnoiseClass;
@@ -93,12 +100,19 @@ vips_gaussnoise_gen( VipsRegion *or, void *seq, void *a, void *b,
 		int x;
 
 		for( x = 0; x < sz; x++ ) {
+			guint32 seed;
 			double sum;
 			int i;
 
+			seed = gaussnoise->seed;
+			seed = vips__random_add( seed, or->valid.left + x );
+			seed = vips__random_add( seed, or->valid.top + y );
+
 			sum = 0.0;
-			for( i = 0; i < 12; i++ ) 
-				sum += g_random_double(); 
+			for( i = 0; i < 12; i++ ) {
+				seed = vips__random( seed ); 
+				sum += (double) seed / UINT_MAX;
+			}
 
 			q[x] = (sum - 6.0) * gaussnoise->sigma + 
 				gaussnoise->mean;
@@ -123,6 +137,11 @@ vips_gaussnoise_build( VipsObject *object )
 		VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
 	vips_image_pipelinev( create->out, 
 		VIPS_DEMAND_STYLE_ANY, NULL );
+
+	/* The seed for this image. Each pixel is seeded by this plus the (x,
+	 * y) coordinate.
+	 */
+	gaussnoise->seed = UINT_MAX * g_random_double(); 
 
 	if( vips_image_generate( create->out, 
 		NULL, vips_gaussnoise_gen, NULL, gaussnoise, NULL ) )

@@ -52,7 +52,7 @@
 
 #ifdef HAVE_MATIO
 
-#include "matlab.h"
+#include "pforeign.h"
 
 typedef struct _VipsForeignLoadMat {
 	VipsForeignLoad parent_object;

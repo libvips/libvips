@@ -545,7 +545,7 @@ vips_colourspace_build( VipsObject *object )
 			break;
 	if( i == VIPS_NUMBER( vips_colour_routes ) ) {
 		vips_error( "vips_colourspace", 
-			_( "no known route between '%s' and '%s'" ),
+			_( "no known route from '%s' to '%s'" ),
 			vips_enum_nick( VIPS_TYPE_INTERPRETATION, 
 				interpretation ),
 			vips_enum_nick( VIPS_TYPE_INTERPRETATION, 
@@ -580,7 +580,7 @@ vips_colourspace_class_init( VipsColourspaceClass *class )
 	vobject_class->description = _( "convert to a new colorspace" );
 	vobject_class->build = vips_colourspace_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 

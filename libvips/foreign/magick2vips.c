@@ -51,6 +51,10 @@
  * 	- add @page option, 0 by default
  * 18/4/16
  * 	- fix @page with graphicsmagick
+ * 25/11/16
+ * 	- remove @all_frames, add @n
+ * 23/2/17
+ * 	- try using GetImageChannelDepth() instead of ->depth
  */
 
 /*
@@ -100,7 +104,7 @@
 
 #include <magick/api.h>
 
-#include "magick.h"
+#include "pforeign.h"
 
 /* pre-float Magick used to call this MaxRGB.
  */
@@ -119,8 +123,8 @@
 typedef struct _Read {
 	char *filename;
 	VipsImage *im;
-	gboolean all_frames;
 	int page;
+	int n;
 
 	Image *image;
 	ImageInfo *image_info;
@@ -166,7 +170,7 @@ read_close( VipsImage *im, Read *read )
 
 static Read *
 read_new( const char *filename, VipsImage *im, 
-	gboolean all_frames, const char *density, int page )
+	const char *density, int page, int n )
 {
 	Read *read;
 	static int inited = 0;
@@ -180,11 +184,17 @@ read_new( const char *filename, VipsImage *im,
 		inited = 1;
 	}
 
+	/* IM doesn't use the -1 means end-of-file convention, change it to a
+	 * very large number.
+	 */
+	if( n == -1 )
+		n = 100000;
+
 	if( !(read = VIPS_NEW( im, Read )) )
 		return( NULL );
 	read->filename = filename ? g_strdup( filename ) : NULL;
-	read->all_frames = all_frames;
 	read->page = page;
+	read->n = n;
 	read->im = im;
 	read->image = NULL;
 	read->image_info = CloneImageInfo( NULL );
@@ -218,24 +228,25 @@ read_new( const char *filename, VipsImage *im,
   	SetImageOption( read->image_info, "dcm:display-range", "reset" );
 #endif /*HAVE_SETIMAGEOPTION*/
 
-	if( !all_frames ) {
+	if( read->page > 0 ) { 
 #ifdef HAVE_NUMBER_SCENES 
-		 /* I can't find docs for these fields, but this seems to work.
-		  */
+		/* I can't find docs for these fields, but this seems to work.
+		 */
 		char page[256];
 
 		read->image_info->scene = read->page;
-		read->image_info->number_scenes = 1;
+		read->image_info->number_scenes = read->n;
 
 		/* Some IMs must have the string version set as well.
 		 */
-		vips_snprintf( page, 256, "%d", read->page );
+		vips_snprintf( page, 256, "%d-%d", 
+			read->page, read->page + read->n );
 		read->image_info->scenes = strdup( page );
 #else /*!HAVE_NUMBER_SCENES*/
 		/* This works with GM 1.2.31 and probably others.
 		 */
 		read->image_info->subimage = read->page;
-		read->image_info->subrange = 1;
+		read->image_info->subrange = read->n;
 #endif
 	}
 
@@ -295,6 +306,7 @@ parse_header( Read *read )
 	VipsImage *im = read->im;
 	Image *image = read->image;
 
+	int depth;
 	Image *p;
 	int i;
 
@@ -323,28 +335,33 @@ parse_header( Read *read )
 	if( (im->Bands = get_bands( image )) < 0 )
 		return( -1 );
 
-	/* Depth can be 'fractional'. You'd think we should use
+	/* Depth can be 'fractional'. 
+	 *
+	 * You'd think we should use
 	 * GetImageDepth() but that seems unreliable. 16-bit mono DICOM images 
 	 * are reported as depth 1, for example.
+	 *
+	 * Try GetImageChannelDepth(), maybe that works.
 	 */
+	depth = GetImageChannelDepth( image, AllChannels, &image->exception );
 	im->BandFmt = -1;
-	if( image->depth >= 1 && image->depth <= 8 ) 
+	if( depth >= 1 && depth <= 8 ) 
 		im->BandFmt = VIPS_FORMAT_UCHAR;
-	if( image->depth >= 9 && image->depth <= 16 ) 
+	if( depth >= 9 && depth <= 16 ) 
 		im->BandFmt = VIPS_FORMAT_USHORT;
 #ifdef UseHDRI
-	if( image->depth == 32 )
+	if( depth == 32 )
 		im->BandFmt = VIPS_FORMAT_FLOAT;
-	if( image->depth == 64 )
+	if( depth == 64 )
 		im->BandFmt = VIPS_FORMAT_DOUBLE;
 #else /*!UseHDRI*/
-	if( image->depth == 32 )
+	if( depth == 32 )
 		im->BandFmt = VIPS_FORMAT_UINT;
 #endif /*UseHDRI*/
 
 	if( im->BandFmt == -1 ) {
 		vips_error( "magick2vips", _( "unsupported bit depth %d" ),
-			(int) image->depth );
+			(int) depth );
 		return( -1 );
 	}
 
@@ -465,8 +482,17 @@ parse_header( Read *read )
 	for( p = image; p; (p = GetNextImageInList( p )) ) {
 		if( p->columns != (unsigned int) im->Xsize ||
 			p->rows != (unsigned int) im->Ysize ||
-			get_bands( p ) != im->Bands )
+			get_bands( p ) != im->Bands ) {
+#ifdef DEBUG
+			printf( "frame %d differs\n", read->n_frames );
+			printf( "%zdx%zd, %d bands\n", 
+				p->columns, p->rows, get_bands( p ) );
+			printf( "first frame is %dx%d, %d bands\n", 
+				im->Xsize, im->Ysize, im->Bands );
+#endif /*DEBUG*/
+
 			break;
+		}
 
 		read->n_frames += 1;
 	}
@@ -479,20 +505,22 @@ parse_header( Read *read )
 	printf( "image has %d frames\n", read->n_frames );
 #endif /*DEBUG*/
 
-	/* If all_frames is off, just get the first one.
-	 */
-	if( !read->all_frames )
-		read->n_frames = 1;
+	if( read->n != -1 )
+		read->n_frames = VIPS_MIN( read->n_frames, read->n );
 
 	/* Record frame pointers.
 	 */
-	im->Ysize *= read->n_frames;
 	if( !(read->frames = VIPS_ARRAY( NULL, read->n_frames, Image * )) )
 		return( -1 );
 	p = image;
 	for( i = 0; i < read->n_frames; i++ ) {
 		read->frames[i] = p;
 		p = GetNextImageInList( p );
+	}
+
+	if( read->n_frames > 1 ) {
+		vips_image_set_int( im, VIPS_META_PAGE_HEIGHT, im->Ysize );
+		im->Ysize *= read->n_frames;
 	}
 
 	return( 0 );
@@ -698,6 +726,7 @@ magick_fill_region( VipsRegion *out,
 		g_mutex_unlock( read->lock );
 
 		if( !pixels ) {
+			vips_foreign_load_invalidate( read->im );
 			vips_error( "magick2vips", 
 				"%s", _( "unable to read pixels" ) );
 			return( -1 );
@@ -711,8 +740,8 @@ magick_fill_region( VipsRegion *out,
 }
 
 int
-vips__magick_read( const char *filename, VipsImage *out, 
-	gboolean all_frames, const char *density, int page )
+vips__magick_read( const char *filename, 
+	VipsImage *out, const char *density, int page, int n )
 {
 	Read *read;
 
@@ -720,7 +749,7 @@ vips__magick_read( const char *filename, VipsImage *out,
 	printf( "magick2vips: vips__magick_read: %s\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( filename, out, all_frames, density, page )) )
+	if( !(read = read_new( filename, out, density, page, n )) )
 		return( -1 );
 
 #ifdef DEBUG
@@ -750,8 +779,8 @@ vips__magick_read( const char *filename, VipsImage *out,
  * http://www.imagemagick.org/discourse-server/viewtopic.php?f=1&t=20017
  */
 int
-vips__magick_read_header( const char *filename, VipsImage *im, 
-	gboolean all_frames, const char *density, int page )
+vips__magick_read_header( const char *filename, 
+	VipsImage *out, const char *density, int page, int n )
 {
 	Read *read;
 
@@ -759,7 +788,7 @@ vips__magick_read_header( const char *filename, VipsImage *im,
 	printf( "vips__magick_read_header: %s\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( filename, im, all_frames, density, page )) )
+	if( !(read = read_new( filename, out, density, page, n )) )
 		return( -1 );
 
 #ifdef DEBUG
@@ -778,7 +807,8 @@ vips__magick_read_header( const char *filename, VipsImage *im,
 	if( parse_header( read ) ) 
 		return( -1 );
 
-	if( im->Xsize <= 0 || im->Ysize <= 0 ) {
+	if( out->Xsize <= 0 || 
+		out->Ysize <= 0 ) {
 		vips_error( "magick2vips", "%s", _( "bad image size" ) );
 		return( -1 );
 	}
@@ -791,8 +821,8 @@ vips__magick_read_header( const char *filename, VipsImage *im,
 }
 
 int
-vips__magick_read_buffer( const void *buf, const size_t len, VipsImage *out,
-	gboolean all_frames, const char *density, int page )
+vips__magick_read_buffer( const void *buf, const size_t len, 
+	VipsImage *out, const char *density, int page, int n )
 {
 	Read *read;
 
@@ -800,7 +830,7 @@ vips__magick_read_buffer( const void *buf, const size_t len, VipsImage *out,
 	printf( "magick2vips: vips__magick_read_buffer: %p %zu\n", buf, len );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( NULL, out, all_frames, density, page )) )
+	if( !(read = read_new( NULL, out, density, page, n )) )
 		return( -1 );
 
 #ifdef DEBUG
@@ -827,8 +857,7 @@ vips__magick_read_buffer( const void *buf, const size_t len, VipsImage *out,
 
 int
 vips__magick_read_buffer_header( const void *buf, const size_t len, 
-	VipsImage *im, 
-	gboolean all_frames, const char *density, int page )
+	VipsImage *out, const char *density, int page, int n )
 {
 	Read *read;
 
@@ -836,7 +865,7 @@ vips__magick_read_buffer_header( const void *buf, const size_t len,
 	printf( "vips__magick_read_buffer_header: %p %zu\n", buf, len );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( NULL, im, all_frames, density, page )) )
+	if( !(read = read_new( NULL, out, density, page, n )) )
 		return( -1 );
 
 #ifdef DEBUG
@@ -854,8 +883,8 @@ vips__magick_read_buffer_header( const void *buf, const size_t len,
 	if( parse_header( read ) ) 
 		return( -1 );
 
-	if( im->Xsize <= 0 || 
-		im->Ysize <= 0 ) {
+	if( out->Xsize <= 0 || 
+		out->Ysize <= 0 ) {
 		vips_error( "magick2vips", "%s", _( "bad image size" ) );
 		return( -1 );
 	}

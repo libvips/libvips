@@ -137,15 +137,15 @@ vips_gamma_class_init( VipsGammaClass *class )
 	vobject_class->description = _( "gamma an image" );
 	vobject_class->build = vips_gamma_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in", -1, 
+	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "in" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGamma, in ) );
 
-	VIPS_ARG_DOUBLE( class, "exponent", 0, 
+	VIPS_ARG_DOUBLE( class, "exponent", 2, 
 		_( "exponent" ), 
 		_( "Gamma factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,

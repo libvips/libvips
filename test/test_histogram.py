@@ -74,6 +74,13 @@ class TestHistogram(unittest.TestCase):
         self.assertTrue(im.avg() < im2.avg())
         self.assertTrue(im.deviate() < im2.deviate())
 
+        im3 = im.hist_local(10, 10, max_slope = 3)
+
+        self.assertEqual(im.width, im2.width)
+        self.assertEqual(im.height, im2.height)
+
+        self.assertTrue(im3.deviate() < im2.deviate())
+
     def test_hist_match(self):
         im = Vips.Image.identity()
         im2 = Vips.Image.identity()

@@ -106,6 +106,7 @@ extern "C" {
 #include <vips/basic.h>
 
 #include <vips/buf.h>
+#include <vips/dbuf.h>
 #include <vips/util.h>
 #include <vips/object.h>
 #include <vips/type.h>
@@ -164,14 +165,13 @@ extern "C" {
  * not have _().
  */
 #define VIPS_INIT( ARGV0 ) \
-	(sizeof( VipsObject ) != vips__get_sizeof_vipsobject() ? ( \
-		vips_info( "vips_init", "ABI mismatch" ), \
-		vips_info( "vips_init", \
-			"library has sizeof(VipsObject) == %zd", \
-			vips__get_sizeof_vipsobject() ), \
-		vips_info( "vips_init", \
-			"application has sizeof(VipsObject) == %zd", \
-			sizeof( VipsObject ) ), \
+	(vips_version( 3 ) - vips_version( 5 ) != \
+	 	VIPS_LIBRARY_CURRENT - VIPS_LIBRARY_AGE ? ( \
+		g_warning( "ABI mismatch" ), \
+		g_warning( "library has ABI version %d", \
+			vips_version( 3 ) - vips_version( 5 ) ), \
+		g_warning( "application needs ABI version %d", \
+			VIPS_LIBRARY_CURRENT - VIPS_LIBRARY_AGE ), \
 		vips_error( "vips_init", "ABI mismatch" ), \
 		-1 ) : \
 		vips_init( ARGV0 ))

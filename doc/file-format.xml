@@ -92,21 +92,21 @@ $ vips gamma t.v output.tif
 
             <row>
               <entry>4 -- 7</entry>
-              <entry>%gint</entry>
+              <entry>int32</entry>
               <entry><code>width</code></entry>
               <entry>Width of image, in pixels</entry>
             </row>
 
             <row>
               <entry>8 -- 11</entry>
-              <entry>%gint</entry>
+              <entry>int32</entry>
               <entry><code>height</code></entry>
               <entry>Height of image, in pixels</entry>
             </row>
 
             <row>
               <entry>12 -- 15</entry>
-              <entry>%gint</entry>
+              <entry>int32</entry>
               <entry><code>bands</code></entry>
               <entry>Number of image bands</entry>
             </row>
@@ -141,14 +141,14 @@ $ vips gamma t.v output.tif
 
             <row>
               <entry>32 -- 35</entry>
-              <entry>%gfloat</entry>
+              <entry>float32</entry>
               <entry><code>xres</code></entry>
               <entry>Horizontal resolution, in pixels per millimetre</entry>
             </row>
 
             <row>
               <entry>36 -- 39</entry>
-              <entry>%gfloat</entry>
+              <entry>float32</entry>
               <entry><code>yres</code></entry>
               <entry>Vertical resolution, in pixels per millimetre</entry>
             </row>
@@ -162,14 +162,14 @@ $ vips gamma t.v output.tif
 
             <row>
               <entry>48 -- 51</entry>
-              <entry>%gint</entry>
+              <entry>int32</entry>
               <entry><code>xoffset</code></entry>
               <entry>Horizontal offset of origin, in pixels</entry>
             </row>
 
             <row>
               <entry>52 -- 55</entry>
-              <entry>%gint</entry>
+              <entry>int32</entry>
               <entry><code>yoffset</code></entry>
               <entry>Vertical offset of origin, in pixels</entry>
             </row>

@@ -48,7 +48,7 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
-#include "csv.h"
+#include "pforeign.h"
 
 typedef struct _VipsForeignLoadMatrix {
 	VipsForeignLoad parent_object;

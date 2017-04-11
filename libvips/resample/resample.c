@@ -64,7 +64,15 @@
  * sort of 2D transform which preserves straight lines; so any combination of 
  * stretch, sheer, rotate and translate. You supply an interpolator for it to
  * use to generate pixels, see vips_interpolate_new(). It will not produce
- * good results for very large shrinks.
+ * good results for very large shrinks: you'll see aliasing.
+ *
+ * vips_reduce() is like vips_affine(), but it can only shrink images, it can't
+ * enlarge, rotate, or skew. It's very fast and uses an adaptive kernel for
+ * interpolation. Again, it will give poor results for large size reductions.
+ *
+ * vips_shrink() is a fast block shrinker. It can quickly reduce images by
+ * large integer factors. It will give poor results for small size reductions:
+ * again, you'll see aliasing. 
  *
  * Next, vips_resize() specialises in the common task of image reduce and 
  * enlarge. It strings together combinations of vips_shrink(), vips_reduce(),
@@ -72,6 +80,18 @@
  * resizer.
  *
  * Finally, vips_mapim() can apply arbitrary 2D image transforms to an image.
+ */
+
+/** 
+ * VipsSize:
+ * @VIPS_SIZE_BOTH: size both up and down
+ * @VIPS_SIZE_UP: only upsize
+ * @VIPS_SIZE_DOWN: only downsize
+ *
+ * Controls whether an operation should upsize, downsize, or both up and
+ * downsize. 
+ *
+ * See also: vips_thumbnail().
  */
 
 G_DEFINE_ABSTRACT_TYPE( VipsResample, vips_resample, VIPS_TYPE_OPERATION );
@@ -133,6 +153,8 @@ vips_resample_init( VipsResample *resample )
 void
 vips_resample_operation_init( void )
 {
+	extern GType vips_thumbnail_file_get_type( void ); 
+	extern GType vips_thumbnail_buffer_get_type( void ); 
 	extern GType vips_mapim_get_type( void ); 
 	extern GType vips_shrink_get_type( void ); 
 	extern GType vips_shrinkh_get_type( void ); 
@@ -145,6 +167,8 @@ vips_resample_operation_init( void )
 	extern GType vips_similarity_get_type( void ); 
 	extern GType vips_resize_get_type( void ); 
 
+	vips_thumbnail_file_get_type(); 
+	vips_thumbnail_buffer_get_type(); 
 	vips_mapim_get_type(); 
 	vips_shrink_get_type(); 
 	vips_shrinkh_get_type(); 

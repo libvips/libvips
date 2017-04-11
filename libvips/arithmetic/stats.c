@@ -445,6 +445,9 @@ vips_stats_init( VipsStats *stats )
  * Row 0 has statistics for all 
  * bands together, row 1 has stats for band 1, and so on.
  *
+ * If there is more than one maxima or minima, one of them will be chosen at 
+ * random. 
+ *
  * See also: vips_avg(), vips_min().
  *
  * Returns: 0 on success, -1 on error

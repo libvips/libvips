@@ -649,12 +649,11 @@ process_region( VipsRegion *or, void *seq, void *a, void *b )
 
 	/* Prepare all input regions and make buffer pointers.
 	 */
-	for( i = 0; ir[i]; i++ ) {
-		if( vips_region_prepare( ir[i], &or->valid ) ) 
-			return( -1 );
+	if( vips_reorder_prepare_many( or->im, ir, &or->valid ) ) 
+		return( -1 );
+	for( i = 0; ir[i]; i++ ) 
 		p[i] = (PEL *) VIPS_REGION_ADDR( ir[i], 
 			or->valid.left, or->valid.top );
-	}
 	p[i] = NULL;
 	q = (PEL *) VIPS_REGION_ADDR( or, or->valid.left, or->valid.top );
 
@@ -741,7 +740,13 @@ im_wrapmany( IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b )
 		if( vips_image_pio_input( in[i] ) )
 			return( -1 );
 	}
-        vips__demand_hint_array( out, VIPS_DEMAND_STYLE_THINSTRIP, in );
+
+	/* Don't call vips_image_pipeline_array(), we don't want to copy
+	 * fields.
+	 */
+	vips__demand_hint_array( out, VIPS_DEMAND_STYLE_THINSTRIP, in );
+	if( vips__reorder_set_input( out, in ) )
+		return( -1 ); 
 
 	/* Generate!
 	 */
@@ -2744,7 +2749,7 @@ vips__relational_vec( IMAGE *in, IMAGE *out,
 {
 	VipsImage *t;
 
-	if( vips_relational_const( in, &t, relational, c, n,
+	if( vips_relational_const( in, &t, relational, c, n, 
 		NULL ) )
 		return( -1 );
 	if( vips_image_write( t, out ) ) {
@@ -2916,7 +2921,7 @@ vips__boolean_vec( IMAGE *in, IMAGE *out,
 {
 	VipsImage *t;
 
-	if( vips_boolean_const( in, &t, boolean, c, n,
+	if( vips_boolean_const( in, &t, boolean, c, n, 
 		NULL ) )
 		return( -1 );
 	if( vips_image_write( t, out ) ) {
@@ -3003,7 +3008,7 @@ vips__math2_vec( IMAGE *in, IMAGE *out,
 {
 	VipsImage *t;
 
-	if( vips_math2_const( in, &t, math2, c, n,
+	if( vips_math2_const( in, &t, math2, c, n, 
 		NULL ) )
 		return( -1 );
 	if( vips_image_write( t, out ) ) {

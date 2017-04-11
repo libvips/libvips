@@ -48,9 +48,9 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
-#ifdef HAVE_PNG
+#include "pforeign.h"
 
-#include "vipspng.h"
+#ifdef HAVE_PNG
 
 typedef struct _VipsForeignLoadPng {
 	VipsForeignLoad parent_object;
@@ -106,8 +106,7 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
-	if( vips__png_read( png->filename, load->real, 
-		load->access == VIPS_ACCESS_SEQUENTIAL ) )
+	if( vips__png_read( png->filename, load->real, load->fail ) )
 		return( -1 );
 
 	return( 0 );
@@ -167,12 +166,29 @@ typedef VipsForeignLoadClass VipsForeignLoadPngBufferClass;
 G_DEFINE_TYPE( VipsForeignLoadPngBuffer, vips_foreign_load_png_buffer, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
+static VipsForeignFlags
+vips_foreign_load_png_buffer_get_flags( VipsForeignLoad *load )
+{
+	VipsForeignLoadPngBuffer *buffer = (VipsForeignLoadPngBuffer *) load;
+
+	VipsForeignFlags flags;
+
+	flags = 0;
+	if( vips__png_isinterlaced_buffer( buffer->buf->data, 
+		buffer->buf->length ) )
+		flags |= VIPS_FOREIGN_PARTIAL;
+	else
+		flags |= VIPS_FOREIGN_SEQUENTIAL;
+
+	return( flags );
+}
+
 static int
 vips_foreign_load_png_buffer_header( VipsForeignLoad *load )
 {
-	VipsForeignLoadPngBuffer *png = (VipsForeignLoadPngBuffer *) load;
+	VipsForeignLoadPngBuffer *buffer = (VipsForeignLoadPngBuffer *) load;
 
-	if( vips__png_header_buffer( png->buf->data, png->buf->length, 
+	if( vips__png_header_buffer( buffer->buf->data, buffer->buf->length, 
 		load->out ) )
 		return( -1 );
 
@@ -182,10 +198,10 @@ vips_foreign_load_png_buffer_header( VipsForeignLoad *load )
 static int
 vips_foreign_load_png_buffer_load( VipsForeignLoad *load )
 {
-	VipsForeignLoadPngBuffer *png = (VipsForeignLoadPngBuffer *) load;
+	VipsForeignLoadPngBuffer *buffer = (VipsForeignLoadPngBuffer *) load;
 
-	if( vips__png_read_buffer( png->buf->data, png->buf->length, 
-		load->real, load->access == VIPS_ACCESS_SEQUENTIAL ) )
+	if( vips__png_read_buffer( buffer->buf->data, buffer->buf->length, 
+		load->real, load->fail ) )
 		return( -1 );
 
 	return( 0 );
@@ -205,6 +221,7 @@ vips_foreign_load_png_buffer_class_init( VipsForeignLoadPngBufferClass *class )
 	object_class->description = _( "load png from buffer" );
 
 	load_class->is_a_buffer = vips__png_ispng_buffer;
+	load_class->get_flags = vips_foreign_load_png_buffer_get_flags;
 	load_class->header = vips_foreign_load_png_buffer_header;
 	load_class->load = vips_foreign_load_png_buffer_load;
 
@@ -214,10 +231,11 @@ vips_foreign_load_png_buffer_class_init( VipsForeignLoadPngBufferClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignLoadPngBuffer, buf ),
 		VIPS_TYPE_BLOB );
+
 }
 
 static void
-vips_foreign_load_png_buffer_init( VipsForeignLoadPngBuffer *png )
+vips_foreign_load_png_buffer_init( VipsForeignLoadPngBuffer *buffer )
 {
 }
 

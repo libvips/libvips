@@ -248,11 +248,9 @@ vips_tracked_free( void *s )
 	g_mutex_lock( vips_tracked_mutex );
 
 	if( vips_tracked_allocs <= 0 ) 
-		vips_warn( "vips_tracked", 
-			"%s", _( "vips_free: too many frees" ) );
+		g_warning( "%s", _( "vips_free: too many frees" ) );
 	if( vips_tracked_mem < size )
-		vips_warn( "vips_tracked", 
-			"%s", _( "vips_free: too much free" ) );
+		g_warning( "%s", _( "vips_free: too much free" ) );
 
 	vips_tracked_mem -= size;
 	vips_tracked_allocs -= 1;
@@ -265,12 +263,18 @@ vips_tracked_free( void *s )
 }
 
 static void
+vips_tracked_init_mutex( void )
+{
+	vips_tracked_mutex = vips_g_mutex_new(); 
+}
+
+static void
 vips_tracked_init( void )
 {
 	static GOnce vips_tracked_once = G_ONCE_INIT;
 
-	vips_tracked_mutex = g_once( &vips_tracked_once, 
-		(GThreadFunc) vips_g_mutex_new, NULL );
+	g_once( &vips_tracked_once, 
+		(GThreadFunc) vips_tracked_init_mutex, NULL );
 }
 
 /**
@@ -309,10 +313,9 @@ vips_tracked_malloc( size_t size )
 
 		vips_error( "vips_tracked", 
 			_( "out of memory --- size == %dMB" ), 
-			(int) (size / (1024.0*1024.0))  );
-		vips_warn( "vips_tracked", 
-			_( "out of memory --- size == %dMB" ), 
-			(int) (size / (1024.0*1024.0))  );
+			(int) (size / (1024.0 * 1024.0))  );
+		g_warning( _( "out of memory --- size == %dMB" ), 
+			(int) (size / (1024.0 * 1024.0))  );
 
                 return( NULL );
 	}

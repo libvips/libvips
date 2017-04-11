@@ -62,7 +62,8 @@
  * such as nip2 as plots rather than images.
  *
  * These functions can be broadly grouped as things to find or build 
- * histograms (vips_hist_find(), vips_buildlut(), vips_identity()), 
+ * histograms (vips_hist_find(), vips_hist_find_indexed(),
+ * vips_hist_find_ndim(), vips_buildlut(), vips_identity()), 
  * operations that 
  * manipulate histograms in some way (vips_hist_cum(), vips_hist_norm()), 
  * operations to apply histograms (vips_maplut()), and a variety of utility 

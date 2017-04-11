@@ -4,6 +4,8 @@
  * 	- from svgload.c
  * 1/8/16 felixbuenemann
  * 	- add svgz support
+ * 18/1/17
+ * 	- invalidate operation on read error
  */
 
 /*
@@ -200,6 +202,7 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 	 * running inside a non-threaded tilecache.
 	 */
 	if( !rsvg_handle_render_cairo( svg->page, cr ) ) {
+		vips_operation_invalidate( VIPS_OPERATION( svg ) );
 		vips_error( class->nickname, 
 			"%s", _( "SVG rendering failed" ) );
 		return( -1 );
@@ -467,11 +470,12 @@ vips_foreign_load_svg_is_a_buffer( const void *buf, size_t len )
 	 * <svg xmlns="http://www.w3.org/2000/svg" ...
 	 *
 	 * But there can be a doctype in there too. And case and whitespace can
-	 * vary a lot. And the <?xml can be missing. 
+	 * vary a lot. And the <?xml can be missing. And you can have a comment
+	 * before the <svg line.
 	 *
 	 * Simple rules:
 	 * - first 24 chars are plain ascii
-	 * - first 200 chars contain "<svg", upper or lower case.
+	 * - first 300 chars contain "<svg", upper or lower case.
 	 *
 	 * We could rsvg_handle_new_from_data() on the buffer, but that can be
 	 * horribly slow for large documents. 
@@ -482,7 +486,7 @@ vips_foreign_load_svg_is_a_buffer( const void *buf, size_t len )
 		if( !isascii( str[i] ) )
 			return( FALSE );
 
-	for( i = 0; i < 200 && i < len - 5; i++ ) 
+	for( i = 0; i < 300 && i < len - 5; i++ )
 		if( g_ascii_strncasecmp( str + i, "<svg", 4 ) == 0 )
 			return( TRUE );
 

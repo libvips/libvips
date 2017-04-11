@@ -45,9 +45,9 @@
 
 #include <vips/vips.h>
 
-#ifdef HAVE_LIBWEBP
+#include "pforeign.h"
 
-#include "webp.h"
+#ifdef HAVE_LIBWEBP
 
 typedef struct _VipsForeignSaveWebp {
 	VipsForeignSave parent_object;
@@ -191,7 +191,7 @@ vips_foreign_save_webp_file_build( VipsObject *object )
 	if( vips__webp_write_file( save->ready, file->filename, 
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
-		webp->alpha_q ) )
+		webp->alpha_q, save->strip ) )
 		return( -1 );
 
 	return( 0 );
@@ -255,7 +255,7 @@ vips_foreign_save_webp_buffer_build( VipsObject *object )
 	if( vips__webp_write_buffer( save->ready, &obuf, &olen, 
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
-		webp->alpha_q ) )
+		webp->alpha_q, save->strip ) )
 		return( -1 );
 
 	/* obuf is a g_free() buffer, not vips_free().
@@ -320,7 +320,7 @@ vips_foreign_save_webp_mime_build( VipsObject *object )
 	if( vips__webp_write_buffer( save->ready, &obuf, &olen, 
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
-		webp->alpha_q ) )
+		webp->alpha_q, save->strip ) )
 		return( -1 );
 
 	printf( "Content-length: %zu\r\n", olen );
@@ -363,12 +363,13 @@ vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
  *
  * Optional arguments:
  *
- * * @Q: %gint quality factor
- * * @lossless: %gboolean enables lossless compression
- * * @preset: #VipsForeignWebpPreset choose lossy compression preset
- * * @smart_subsample: %gboolean enables high quality chroma subsampling
- * * @near_lossless: %gboolean preprocess in lossless mode (controlled by Q)
- * * @alpha_q: %gint set alpha quality in lossless mode
+ * * @Q: %gint, quality factor
+ * * @lossless: %gboolean, enables lossless compression
+ * * @preset: #VipsForeignWebpPreset, choose lossy compression preset
+ * * @smart_subsample: %gboolean, enables high quality chroma subsampling
+ * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
+ * * @alpha_q: %gint, set alpha quality in lossless mode
+ * * @strip: %gboolean, remove all metadata from image
  *
  * Write an image to a file in WebP format. 
  *
@@ -385,6 +386,9 @@ vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
  * Set @lossless to use lossless compression, or combine @near_lossless
  * with @Q 80, 60, 40 or 20 to apply increasing amounts of preprocessing
  * which improves the near-lossless compression ratio by up to 50%.
+ *
+ * The writer will attach ICC, EXIF and XMP metadata, unless @strip is set to
+ * %TRUE. 
  *
  * See also: vips_webpload(), vips_image_write_to_file().
  *
@@ -412,12 +416,13 @@ vips_webpsave( VipsImage *in, const char *filename, ... )
  *
  * Optional arguments:
  *
- * * @Q: %gint quality factor
- * * @lossless: %gboolean enables lossless compression
- * * @preset: #VipsForeignWebpPreset choose lossy compression preset
- * * @smart_subsample: %gboolean enables high quality chroma subsampling
- * * @near_lossless: %gboolean preprocess in lossless mode (controlled by Q)
- * * @alpha_q: %gint set alpha quality in lossless mode
+ * * @Q: %gint, quality factor
+ * * @lossless: %gboolean, enables lossless compression
+ * * @preset: #VipsForeignWebpPreset, choose lossy compression preset
+ * * @smart_subsample: %gboolean, enables high quality chroma subsampling
+ * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
+ * * @alpha_q: %gint, set alpha quality in lossless mode
+ * * @strip: %gboolean, remove all metadata from image
  *
  * As vips_webpsave(), but save to a memory buffer.
  *
@@ -464,12 +469,13 @@ vips_webpsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  *
  * Optional arguments:
  *
- * * @Q: %gint quality factor
- * * @lossless: %gboolean enables lossless compression
- * * @preset: #VipsForeignWebpPreset choose lossy compression preset
- * * @smart_subsample: %gboolean enables high quality chroma subsampling
- * * @near_lossless: %gboolean preprocess in lossless mode (controlled by Q)
- * * @alpha_q: %gint set alpha quality in lossless mode
+ * * @Q: %gint, quality factor
+ * * @lossless: %gboolean, enables lossless compression
+ * * @preset: #VipsForeignWebpPreset, choose lossy compression preset
+ * * @smart_subsample: %gboolean, enables high quality chroma subsampling
+ * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
+ * * @alpha_q: %gint, set alpha quality in lossless mode
+ * * @strip: %gboolean, remove all metadata from image
  *
  * As vips_webpsave(), but save as a mime webp on stdout.
  *

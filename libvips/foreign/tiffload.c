@@ -2,6 +2,8 @@
  *
  * 5/12/11
  * 	- from tiffload.c
+ * 27/1/17
+ * 	- add get_flags for buffer loader
  */
 
 /*
@@ -48,9 +50,9 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
-#ifdef HAVE_TIFF
+#include "pforeign.h"
 
-#include "tiff.h"
+#ifdef HAVE_TIFF
 
 typedef struct _VipsForeignLoadTiff {
 	VipsForeignLoad parent_object;
@@ -58,6 +60,10 @@ typedef struct _VipsForeignLoadTiff {
 	/* Load this page. 
 	 */
 	int page;
+
+	/* Load this many pages. 
+	 */
+	int n;
 
 	/* Autorotate using orientation tag.
 	 */
@@ -96,7 +102,14 @@ vips_foreign_load_tiff_class_init( VipsForeignLoadTiffClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoadTiff, page ),
 		0, 100000, 0 );
 
-	VIPS_ARG_BOOL( class, "autorotate", 11, 
+	VIPS_ARG_INT( class, "n", 11,
+		_( "n" ),
+		_( "Load this many pages" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadTiff, n ),
+		-1, 100000, 1 );
+
+	VIPS_ARG_BOOL( class, "autorotate", 12, 
 		_( "Autorotate" ), 
 		_( "Rotate image using orientation tag" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
@@ -108,6 +121,7 @@ static void
 vips_foreign_load_tiff_init( VipsForeignLoadTiff *tiff )
 {
 	tiff->page = 0; 
+	tiff->n = 1; 
 }
 
 typedef struct _VipsForeignLoadTiffFile {
@@ -154,7 +168,7 @@ vips_foreign_load_tiff_file_header( VipsForeignLoad *load )
 	VipsForeignLoadTiffFile *file = (VipsForeignLoadTiffFile *) load;
 
 	if( vips__tiff_read_header( file->filename, load->out, 
-		tiff->page, tiff->autorotate ) )
+		tiff->page, tiff->n, tiff->autorotate ) )
 		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, file->filename );
@@ -168,8 +182,8 @@ vips_foreign_load_tiff_file_load( VipsForeignLoad *load )
 	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
 	VipsForeignLoadTiffFile *file = (VipsForeignLoadTiffFile *) load;
 
-	if( vips__tiff_read( file->filename, load->real, tiff->page, 
-		tiff->autorotate, load->access == VIPS_ACCESS_SEQUENTIAL ) )
+	if( vips__tiff_read( file->filename, load->real, 
+		tiff->page, tiff->n,  tiff->autorotate ) )
 		return( -1 );
 
 	return( 0 );
@@ -231,6 +245,22 @@ typedef VipsForeignLoadTiffClass VipsForeignLoadTiffBufferClass;
 G_DEFINE_TYPE( VipsForeignLoadTiffBuffer, vips_foreign_load_tiff_buffer, 
 	vips_foreign_load_tiff_get_type() );
 
+static VipsForeignFlags
+vips_foreign_load_tiff_buffer_get_flags( VipsForeignLoad *load )
+{
+	VipsForeignLoadTiffBuffer *buffer = (VipsForeignLoadTiffBuffer *) load;
+
+	VipsForeignFlags flags;
+
+	flags = 0;
+	if( vips__istifftiled_buffer( buffer->buf->data, buffer->buf->length ) ) 
+		flags |= VIPS_FOREIGN_PARTIAL;
+	else
+		flags |= VIPS_FOREIGN_SEQUENTIAL;
+
+	return( flags );
+}
+
 static int
 vips_foreign_load_tiff_buffer_header( VipsForeignLoad *load )
 {
@@ -239,7 +269,7 @@ vips_foreign_load_tiff_buffer_header( VipsForeignLoad *load )
 
 	if( vips__tiff_read_header_buffer( 
 		buffer->buf->data, buffer->buf->length, load->out, 
-		tiff->page, tiff->autorotate ) ) 
+		tiff->page, tiff->n, tiff->autorotate ) ) 
 		return( -1 );
 
 	return( 0 );
@@ -253,8 +283,7 @@ vips_foreign_load_tiff_buffer_load( VipsForeignLoad *load )
 
 	if( vips__tiff_read_buffer( 
 		buffer->buf->data, buffer->buf->length, load->real, 
-		tiff->page, tiff->autorotate,
-		load->access == VIPS_ACCESS_SEQUENTIAL ) )
+		tiff->page, tiff->n, tiff->autorotate ) )
 		return( -1 );
 
 	return( 0 );
@@ -275,6 +304,7 @@ vips_foreign_load_tiff_buffer_class_init(
 	object_class->description = _( "load tiff from buffer" );
 
 	load_class->is_a_buffer = vips__istiff_buffer;
+	load_class->get_flags = vips_foreign_load_tiff_buffer_get_flags;
 	load_class->header = vips_foreign_load_tiff_buffer_header;
 	load_class->load = vips_foreign_load_tiff_buffer_load;
 
@@ -302,6 +332,7 @@ vips_foreign_load_tiff_buffer_init( VipsForeignLoadTiffBuffer *buffer )
  * Optional arguments:
  *
  * * @page: %gint, load this page
+ * * @n: %gint, load this many pages
  * * @autorotate: %gboolean, use orientation tag to rotate the image 
  *   during load
  *
@@ -310,7 +341,12 @@ vips_foreign_load_tiff_buffer_init( VipsForeignLoadTiffBuffer *buffer )
  * pyramidal images and JPEG compression. including CMYK and YCbCr.
  *
  * @page means load this page from the file. By default the first page (page
- * 0) is read.
+ * 0) is read. 
+ *
+ * @n means load this many pages. By default a single page is read. All the
+ * pages must have the same dimensions, and they are loaded as a tall, thin
+ * "toilet roll" image. The #VIPS_META_PAGE_HEIGHT metadata 
+ * tag gives the height in pixels of each page. Use -1 to load all pages. 
  *
  * Setting @autorotate to %TRUE will make the loader interpret the 
  * orientation tag and automatically rotate the image appropriately during
@@ -357,6 +393,7 @@ vips_tiffload( const char *filename, VipsImage **out, ... )
  * Optional arguments:
  *
  * * @page: %gint, load this page
+ * * @n: %gint, load this many pages
  * * @autorotate: %gboolean, use orientation tag to rotate the image 
  *   during load
  *

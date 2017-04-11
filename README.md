@@ -25,6 +25,8 @@ binding](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/usin
 and a [command-line
 interface](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/using-cli.html).
 Bindings are available for [Ruby](https://rubygems.org/gems/ruby-vips),
+[PHP](https://github.com/jcupitt/php-vips),
+[Go](https://github.com/davidbyttow/govips),
 JavaScript and others. There is full
 [documentation](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/index.html).
 There are several GUIs as well, see the [VIPS
@@ -44,10 +46,10 @@ Untar, then in the libvips directory you should just be able to do:
 	$ ./configure
 
 Check the summary at the end of `configure` carefully. 
-libvips must have `build-essential`, `pkg-config`, `glib2.0-dev`, and 
-`libxml2-dev`. 
+libvips must have `build-essential`, `pkg-config`, `glib2.0-dev`,
+`libexpat1-dev`.
 
-For the vips8 Python binding, you must have 
+For the vips8 Python binding, you must also have 
 `gobject-introspection`, `python-gi-dev`, and `libgirepository1.0-dev`.
 
 You'll need the dev packages for the file format support you
@@ -96,6 +98,10 @@ Leak check:
 		--leak-check=yes \
 		vips ... > vips-vg.log 2>&1
 
+Memory error debug:
+
+	$ valgrind --vgdb=yes --vgdb-error=0 vips  ...
+
 valgrind threading check:
 
 	$ valgrind --tool=helgrind vips ... > vips-vg.log 2>&1
@@ -106,7 +112,7 @@ Clang build:
 
 Clang static analysis:
 
-	$ scan-build ./configure --disable-introspection
+	$ scan-build ./configure --disable-introspection --disable-debug
 	$ scan-build -o scan -v make 
 	$ scan-view scan/2013-11-22-2
 
@@ -119,12 +125,15 @@ Clang dynamic analysis:
 		./configure --prefix=/home/john/vips 
 
 	$ FLAGS="-O1 -g -fsanitize=thread"
-	$ FLAGS="$FLAGS -fPIC -pie"
+	$ FLAGS="$FLAGS -fPIC"
 	$ FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
 	$ CC=clang CXX=clang++ LD=clang \
 		CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
-		LDFLAGS="-fsanitize=thread -fPIC -pie" \
-		./configure --prefix=/home/john/vips 
+		LDFLAGS="-fsanitize=thread -fPIC" \
+		./configure --prefix=/home/john/vips \
+			--without-magick \
+			--disable-introspection
+	$ G_DEBUG=gc-friendly vips copy ~/pics/k2.jpg x.jpg >& log
 
 Build with the GCC auto-vectorizer and diagnostics (or just -O3):
 
@@ -139,8 +148,7 @@ Static analysis with:
 
 # Dependencies 
 
-libvips has to have `gettext`, `glib2.0-dev` and `libxml2-dev`. Other
-dependencies are optional, see below.
+libvips has to have `glib2.0-dev`. Other dependencies are optional, see below.
 
 # Optional dependencies
 
