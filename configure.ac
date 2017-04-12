@@ -788,7 +788,8 @@ if test x"$with_libflif" != "xno"; then
   LIBFLIF_CFLAGS="-I/home/john/GIT/FLIF/src/library"
   LIBFLIF_LIBS="-L/home/john/GIT/FLIF/src -lflif"
   with_libflif=yes
-  PACKAGES_USED="$PACKAGES_USED libflif"
+  # no proper package for libflif yet
+  # PACKAGES_USED="$PACKAGES_USED libflif"
 fi
 
 # libwebp

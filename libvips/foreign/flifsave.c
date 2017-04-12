@@ -42,9 +42,9 @@
  */
 
 /*
- */
 #define DEBUG_VERBOSE
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -176,12 +176,10 @@ vips_foreign_save_flif_write_flif( VipsRegion *region, VipsRect *area, void *a )
 
 	switch( region->im->BandFmt ) {
 	case VIPS_FORMAT_UCHAR:
-		printf( "flif_image_write_row_RGBA8\n" ); 
 		write_fn = flif_image_write_row_RGBA8;
 		break;
 	
 	case VIPS_FORMAT_USHORT:
-		printf( "flif_image_write_row_RGBA16\n" ); 
 		write_fn = flif_image_write_row_RGBA16;
 		break;
 
