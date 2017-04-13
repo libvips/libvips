@@ -935,7 +935,12 @@ vips_line_cache_build( VipsObject *object )
 	vips_get_tile_size( block_cache->in, 
 		&tile_width, &tile_height, &n_lines );
 	block_cache->tile_width = block_cache->in->Xsize;
-	block_cache->max_tiles = 1 + 2 * n_lines / block_cache->tile_height;
+
+	/* Output has two buffers n_lines height, so 2 * n_lines is the maximum
+	 * non-locality from threading. Add another n_lines for conv / reducev
+	 * etc. 
+	 */
+	block_cache->max_tiles = 3 * n_lines / block_cache->tile_height;
 
 	VIPS_DEBUG_MSG( "vips_line_cache_build: n_lines = %d\n", 
 		n_lines );

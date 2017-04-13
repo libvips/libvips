@@ -48,9 +48,9 @@
  */
 
 /* 
-#define VIPS_DEBUG
 #define VIPS_DEBUG_RED
 #define DEBUG_OUT_OF_THREADS
+#define VIPS_DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -1011,6 +1011,10 @@ vips__threadpool_init( void )
  * Pick a tile size and a buffer height for this image and the current
  * value of vips_concurrency_get(). The buffer height 
  * will always be a multiple of tile_height.
+ *
+ * The buffer height is the height of each buffer we fill in sink disc. Since
+ * we have two buffers, the largest range of input locality is twice the output
+ * buffer size, plus whatever margin we add for things like convolution. 
  */
 void
 vips_get_tile_size( VipsImage *im, 
@@ -1054,9 +1058,10 @@ vips_get_tile_size( VipsImage *im,
 	 * to a multiple of tileheight.
 	 */
 	*n_lines = vips__tile_height * 
-		(1 + nthr / VIPS_MAX( 1, im->Xsize / vips__tile_width )) * 2;
-	*n_lines = VIPS_MAX( *n_lines, vips__fatstrip_height * nthr * 2 );
-	*n_lines = VIPS_MAX( *n_lines, vips__thinstrip_height * nthr * 2 );
+		VIPS_MAX( 1, 
+			nthr / VIPS_MAX( 1, im->Xsize / vips__tile_width ) );
+	*n_lines = VIPS_MAX( *n_lines, vips__fatstrip_height * nthr );
+	*n_lines = VIPS_MAX( *n_lines, vips__thinstrip_height * nthr );
 	*n_lines = VIPS_ROUND_UP( *n_lines, *tile_height );
 
 	/* We make this assumption in several places.
