@@ -1058,8 +1058,7 @@ vips_get_tile_size( VipsImage *im,
 	 * to a multiple of tileheight.
 	 */
 	*n_lines = vips__tile_height * 
-		VIPS_MAX( 1, 
-			nthr / VIPS_MAX( 1, im->Xsize / vips__tile_width ) );
+		VIPS_ROUND_UP( vips__tile_width * nthr, im->Xsize ) / im->Xsize;
 	*n_lines = VIPS_MAX( *n_lines, vips__fatstrip_height * nthr );
 	*n_lines = VIPS_MAX( *n_lines, vips__thinstrip_height * nthr );
 	*n_lines = VIPS_ROUND_UP( *n_lines, *tile_height );
