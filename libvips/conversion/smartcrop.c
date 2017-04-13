@@ -307,6 +307,11 @@ vips_smartcrop_build( VipsObject *object )
 
 	default:
 		g_assert_not_reached();
+
+		/* Stop a compiler warning.
+		 */
+		left = 0;
+		top = 0;
 		break;
 	}
 
