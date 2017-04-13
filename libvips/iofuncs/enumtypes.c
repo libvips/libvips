@@ -4,43 +4,384 @@
 /* auto-generated enums for vips introspection */
 
 #include <vips/vips.h>
-/* enumerations from "../../libvips/include/vips/resample.h" */
+/* enumerations from "../../libvips/include/vips/arithmetic.h" */
 GType
-vips_kernel_get_type( void )
+vips_operation_math_get_type( void )
 {
 	static GType etype = 0;
 
 	if( etype == 0 ) {
 		static const GEnumValue values[] = {
-			{VIPS_KERNEL_NEAREST, "VIPS_KERNEL_NEAREST", "nearest"},
-			{VIPS_KERNEL_LINEAR, "VIPS_KERNEL_LINEAR", "linear"},
-			{VIPS_KERNEL_CUBIC, "VIPS_KERNEL_CUBIC", "cubic"},
-			{VIPS_KERNEL_LANCZOS2, "VIPS_KERNEL_LANCZOS2", "lanczos2"},
-			{VIPS_KERNEL_LANCZOS3, "VIPS_KERNEL_LANCZOS3", "lanczos3"},
-			{VIPS_KERNEL_LAST, "VIPS_KERNEL_LAST", "last"},
+			{VIPS_OPERATION_MATH_SIN, "VIPS_OPERATION_MATH_SIN", "sin"},
+			{VIPS_OPERATION_MATH_COS, "VIPS_OPERATION_MATH_COS", "cos"},
+			{VIPS_OPERATION_MATH_TAN, "VIPS_OPERATION_MATH_TAN", "tan"},
+			{VIPS_OPERATION_MATH_ASIN, "VIPS_OPERATION_MATH_ASIN", "asin"},
+			{VIPS_OPERATION_MATH_ACOS, "VIPS_OPERATION_MATH_ACOS", "acos"},
+			{VIPS_OPERATION_MATH_ATAN, "VIPS_OPERATION_MATH_ATAN", "atan"},
+			{VIPS_OPERATION_MATH_LOG, "VIPS_OPERATION_MATH_LOG", "log"},
+			{VIPS_OPERATION_MATH_LOG10, "VIPS_OPERATION_MATH_LOG10", "log10"},
+			{VIPS_OPERATION_MATH_EXP, "VIPS_OPERATION_MATH_EXP", "exp"},
+			{VIPS_OPERATION_MATH_EXP10, "VIPS_OPERATION_MATH_EXP10", "exp10"},
+			{VIPS_OPERATION_MATH_LAST, "VIPS_OPERATION_MATH_LAST", "last"},
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsKernel", values );
+		etype = g_enum_register_static( "VipsOperationMath", values );
 	}
 
 	return( etype );
 }
 GType
-vips_size_get_type( void )
+vips_operation_math2_get_type( void )
 {
 	static GType etype = 0;
 
 	if( etype == 0 ) {
 		static const GEnumValue values[] = {
-			{VIPS_SIZE_BOTH, "VIPS_SIZE_BOTH", "both"},
-			{VIPS_SIZE_UP, "VIPS_SIZE_UP", "up"},
-			{VIPS_SIZE_DOWN, "VIPS_SIZE_DOWN", "down"},
-			{VIPS_SIZE_LAST, "VIPS_SIZE_LAST", "last"},
+			{VIPS_OPERATION_MATH2_POW, "VIPS_OPERATION_MATH2_POW", "pow"},
+			{VIPS_OPERATION_MATH2_WOP, "VIPS_OPERATION_MATH2_WOP", "wop"},
+			{VIPS_OPERATION_MATH2_LAST, "VIPS_OPERATION_MATH2_LAST", "last"},
 			{0, NULL, NULL}
 		};
 		
-		etype = g_enum_register_static( "VipsSize", values );
+		etype = g_enum_register_static( "VipsOperationMath2", values );
+	}
+
+	return( etype );
+}
+GType
+vips_operation_round_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_OPERATION_ROUND_RINT, "VIPS_OPERATION_ROUND_RINT", "rint"},
+			{VIPS_OPERATION_ROUND_CEIL, "VIPS_OPERATION_ROUND_CEIL", "ceil"},
+			{VIPS_OPERATION_ROUND_FLOOR, "VIPS_OPERATION_ROUND_FLOOR", "floor"},
+			{VIPS_OPERATION_ROUND_LAST, "VIPS_OPERATION_ROUND_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsOperationRound", values );
+	}
+
+	return( etype );
+}
+GType
+vips_operation_relational_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_OPERATION_RELATIONAL_EQUAL, "VIPS_OPERATION_RELATIONAL_EQUAL", "equal"},
+			{VIPS_OPERATION_RELATIONAL_NOTEQ, "VIPS_OPERATION_RELATIONAL_NOTEQ", "noteq"},
+			{VIPS_OPERATION_RELATIONAL_LESS, "VIPS_OPERATION_RELATIONAL_LESS", "less"},
+			{VIPS_OPERATION_RELATIONAL_LESSEQ, "VIPS_OPERATION_RELATIONAL_LESSEQ", "lesseq"},
+			{VIPS_OPERATION_RELATIONAL_MORE, "VIPS_OPERATION_RELATIONAL_MORE", "more"},
+			{VIPS_OPERATION_RELATIONAL_MOREEQ, "VIPS_OPERATION_RELATIONAL_MOREEQ", "moreeq"},
+			{VIPS_OPERATION_RELATIONAL_LAST, "VIPS_OPERATION_RELATIONAL_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsOperationRelational", values );
+	}
+
+	return( etype );
+}
+GType
+vips_operation_boolean_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_OPERATION_BOOLEAN_AND, "VIPS_OPERATION_BOOLEAN_AND", "and"},
+			{VIPS_OPERATION_BOOLEAN_OR, "VIPS_OPERATION_BOOLEAN_OR", "or"},
+			{VIPS_OPERATION_BOOLEAN_EOR, "VIPS_OPERATION_BOOLEAN_EOR", "eor"},
+			{VIPS_OPERATION_BOOLEAN_LSHIFT, "VIPS_OPERATION_BOOLEAN_LSHIFT", "lshift"},
+			{VIPS_OPERATION_BOOLEAN_RSHIFT, "VIPS_OPERATION_BOOLEAN_RSHIFT", "rshift"},
+			{VIPS_OPERATION_BOOLEAN_LAST, "VIPS_OPERATION_BOOLEAN_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsOperationBoolean", values );
+	}
+
+	return( etype );
+}
+GType
+vips_operation_complex_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_OPERATION_COMPLEX_POLAR, "VIPS_OPERATION_COMPLEX_POLAR", "polar"},
+			{VIPS_OPERATION_COMPLEX_RECT, "VIPS_OPERATION_COMPLEX_RECT", "rect"},
+			{VIPS_OPERATION_COMPLEX_CONJ, "VIPS_OPERATION_COMPLEX_CONJ", "conj"},
+			{VIPS_OPERATION_COMPLEX_LAST, "VIPS_OPERATION_COMPLEX_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsOperationComplex", values );
+	}
+
+	return( etype );
+}
+GType
+vips_operation_complex2_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_OPERATION_COMPLEX2_CROSS_PHASE, "VIPS_OPERATION_COMPLEX2_CROSS_PHASE", "cross-phase"},
+			{VIPS_OPERATION_COMPLEX2_LAST, "VIPS_OPERATION_COMPLEX2_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsOperationComplex2", values );
+	}
+
+	return( etype );
+}
+GType
+vips_operation_complexget_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_OPERATION_COMPLEXGET_REAL, "VIPS_OPERATION_COMPLEXGET_REAL", "real"},
+			{VIPS_OPERATION_COMPLEXGET_IMAG, "VIPS_OPERATION_COMPLEXGET_IMAG", "imag"},
+			{VIPS_OPERATION_COMPLEXGET_LAST, "VIPS_OPERATION_COMPLEXGET_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsOperationComplexget", values );
+	}
+
+	return( etype );
+}
+/* enumerations from "../../libvips/include/vips/basic.h" */
+GType
+vips_precision_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_PRECISION_INTEGER, "VIPS_PRECISION_INTEGER", "integer"},
+			{VIPS_PRECISION_FLOAT, "VIPS_PRECISION_FLOAT", "float"},
+			{VIPS_PRECISION_APPROXIMATE, "VIPS_PRECISION_APPROXIMATE", "approximate"},
+			{VIPS_PRECISION_LAST, "VIPS_PRECISION_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsPrecision", values );
+	}
+
+	return( etype );
+}
+/* enumerations from "../../libvips/include/vips/colour.h" */
+GType
+vips_intent_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_INTENT_PERCEPTUAL, "VIPS_INTENT_PERCEPTUAL", "perceptual"},
+			{VIPS_INTENT_RELATIVE, "VIPS_INTENT_RELATIVE", "relative"},
+			{VIPS_INTENT_SATURATION, "VIPS_INTENT_SATURATION", "saturation"},
+			{VIPS_INTENT_ABSOLUTE, "VIPS_INTENT_ABSOLUTE", "absolute"},
+			{VIPS_INTENT_LAST, "VIPS_INTENT_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsIntent", values );
+	}
+
+	return( etype );
+}
+GType
+vips_pcs_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_PCS_LAB, "VIPS_PCS_LAB", "lab"},
+			{VIPS_PCS_XYZ, "VIPS_PCS_XYZ", "xyz"},
+			{VIPS_PCS_LAST, "VIPS_PCS_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsPCS", values );
+	}
+
+	return( etype );
+}
+/* enumerations from "../../libvips/include/vips/conversion.h" */
+GType
+vips_extend_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_EXTEND_BLACK, "VIPS_EXTEND_BLACK", "black"},
+			{VIPS_EXTEND_COPY, "VIPS_EXTEND_COPY", "copy"},
+			{VIPS_EXTEND_REPEAT, "VIPS_EXTEND_REPEAT", "repeat"},
+			{VIPS_EXTEND_MIRROR, "VIPS_EXTEND_MIRROR", "mirror"},
+			{VIPS_EXTEND_WHITE, "VIPS_EXTEND_WHITE", "white"},
+			{VIPS_EXTEND_BACKGROUND, "VIPS_EXTEND_BACKGROUND", "background"},
+			{VIPS_EXTEND_LAST, "VIPS_EXTEND_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsExtend", values );
+	}
+
+	return( etype );
+}
+GType
+vips_direction_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_DIRECTION_HORIZONTAL, "VIPS_DIRECTION_HORIZONTAL", "horizontal"},
+			{VIPS_DIRECTION_VERTICAL, "VIPS_DIRECTION_VERTICAL", "vertical"},
+			{VIPS_DIRECTION_LAST, "VIPS_DIRECTION_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsDirection", values );
+	}
+
+	return( etype );
+}
+GType
+vips_align_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_ALIGN_LOW, "VIPS_ALIGN_LOW", "low"},
+			{VIPS_ALIGN_CENTRE, "VIPS_ALIGN_CENTRE", "centre"},
+			{VIPS_ALIGN_HIGH, "VIPS_ALIGN_HIGH", "high"},
+			{VIPS_ALIGN_LAST, "VIPS_ALIGN_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsAlign", values );
+	}
+
+	return( etype );
+}
+GType
+vips_angle_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_ANGLE_D0, "VIPS_ANGLE_D0", "d0"},
+			{VIPS_ANGLE_D90, "VIPS_ANGLE_D90", "d90"},
+			{VIPS_ANGLE_D180, "VIPS_ANGLE_D180", "d180"},
+			{VIPS_ANGLE_D270, "VIPS_ANGLE_D270", "d270"},
+			{VIPS_ANGLE_LAST, "VIPS_ANGLE_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsAngle", values );
+	}
+
+	return( etype );
+}
+GType
+vips_angle45_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_ANGLE45_D0, "VIPS_ANGLE45_D0", "d0"},
+			{VIPS_ANGLE45_D45, "VIPS_ANGLE45_D45", "d45"},
+			{VIPS_ANGLE45_D90, "VIPS_ANGLE45_D90", "d90"},
+			{VIPS_ANGLE45_D135, "VIPS_ANGLE45_D135", "d135"},
+			{VIPS_ANGLE45_D180, "VIPS_ANGLE45_D180", "d180"},
+			{VIPS_ANGLE45_D225, "VIPS_ANGLE45_D225", "d225"},
+			{VIPS_ANGLE45_D270, "VIPS_ANGLE45_D270", "d270"},
+			{VIPS_ANGLE45_D315, "VIPS_ANGLE45_D315", "d315"},
+			{VIPS_ANGLE45_LAST, "VIPS_ANGLE45_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsAngle45", values );
+	}
+
+	return( etype );
+}
+GType
+vips_interesting_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_INTERESTING_NONE, "VIPS_INTERESTING_NONE", "none"},
+			{VIPS_INTERESTING_CENTRE, "VIPS_INTERESTING_CENTRE", "centre"},
+			{VIPS_INTERESTING_ENTROPY, "VIPS_INTERESTING_ENTROPY", "entropy"},
+			{VIPS_INTERESTING_ATTENTION, "VIPS_INTERESTING_ATTENTION", "attention"},
+			{VIPS_INTERESTING_LAST, "VIPS_INTERESTING_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsInteresting", values );
+	}
+
+	return( etype );
+}
+/* enumerations from "../../libvips/include/vips/convolution.h" */
+GType
+vips_combine_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_COMBINE_MAX, "VIPS_COMBINE_MAX", "max"},
+			{VIPS_COMBINE_SUM, "VIPS_COMBINE_SUM", "sum"},
+			{VIPS_COMBINE_LAST, "VIPS_COMBINE_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsCombine", values );
+	}
+
+	return( etype );
+}
+/* enumerations from "../../libvips/include/vips/draw.h" */
+GType
+vips_combine_mode_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_COMBINE_MODE_SET, "VIPS_COMBINE_MODE_SET", "set"},
+			{VIPS_COMBINE_MODE_ADD, "VIPS_COMBINE_MODE_ADD", "add"},
+			{VIPS_COMBINE_MODE_LAST, "VIPS_COMBINE_MODE_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsCombineMode", values );
 	}
 
 	return( etype );
@@ -246,312 +587,6 @@ vips_foreign_dz_container_get_type( void )
 
 	return( etype );
 }
-/* enumerations from "../../libvips/include/vips/conversion.h" */
-GType
-vips_extend_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_EXTEND_BLACK, "VIPS_EXTEND_BLACK", "black"},
-			{VIPS_EXTEND_COPY, "VIPS_EXTEND_COPY", "copy"},
-			{VIPS_EXTEND_REPEAT, "VIPS_EXTEND_REPEAT", "repeat"},
-			{VIPS_EXTEND_MIRROR, "VIPS_EXTEND_MIRROR", "mirror"},
-			{VIPS_EXTEND_WHITE, "VIPS_EXTEND_WHITE", "white"},
-			{VIPS_EXTEND_BACKGROUND, "VIPS_EXTEND_BACKGROUND", "background"},
-			{VIPS_EXTEND_LAST, "VIPS_EXTEND_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsExtend", values );
-	}
-
-	return( etype );
-}
-GType
-vips_direction_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_DIRECTION_HORIZONTAL, "VIPS_DIRECTION_HORIZONTAL", "horizontal"},
-			{VIPS_DIRECTION_VERTICAL, "VIPS_DIRECTION_VERTICAL", "vertical"},
-			{VIPS_DIRECTION_LAST, "VIPS_DIRECTION_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsDirection", values );
-	}
-
-	return( etype );
-}
-GType
-vips_align_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_ALIGN_LOW, "VIPS_ALIGN_LOW", "low"},
-			{VIPS_ALIGN_CENTRE, "VIPS_ALIGN_CENTRE", "centre"},
-			{VIPS_ALIGN_HIGH, "VIPS_ALIGN_HIGH", "high"},
-			{VIPS_ALIGN_LAST, "VIPS_ALIGN_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsAlign", values );
-	}
-
-	return( etype );
-}
-GType
-vips_angle_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_ANGLE_D0, "VIPS_ANGLE_D0", "d0"},
-			{VIPS_ANGLE_D90, "VIPS_ANGLE_D90", "d90"},
-			{VIPS_ANGLE_D180, "VIPS_ANGLE_D180", "d180"},
-			{VIPS_ANGLE_D270, "VIPS_ANGLE_D270", "d270"},
-			{VIPS_ANGLE_LAST, "VIPS_ANGLE_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsAngle", values );
-	}
-
-	return( etype );
-}
-GType
-vips_angle45_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_ANGLE45_D0, "VIPS_ANGLE45_D0", "d0"},
-			{VIPS_ANGLE45_D45, "VIPS_ANGLE45_D45", "d45"},
-			{VIPS_ANGLE45_D90, "VIPS_ANGLE45_D90", "d90"},
-			{VIPS_ANGLE45_D135, "VIPS_ANGLE45_D135", "d135"},
-			{VIPS_ANGLE45_D180, "VIPS_ANGLE45_D180", "d180"},
-			{VIPS_ANGLE45_D225, "VIPS_ANGLE45_D225", "d225"},
-			{VIPS_ANGLE45_D270, "VIPS_ANGLE45_D270", "d270"},
-			{VIPS_ANGLE45_D315, "VIPS_ANGLE45_D315", "d315"},
-			{VIPS_ANGLE45_LAST, "VIPS_ANGLE45_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsAngle45", values );
-	}
-
-	return( etype );
-}
-GType
-vips_interesting_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_INTERESTING_NONE, "VIPS_INTERESTING_NONE", "none"},
-			{VIPS_INTERESTING_CENTRE, "VIPS_INTERESTING_CENTRE", "centre"},
-			{VIPS_INTERESTING_ENTROPY, "VIPS_INTERESTING_ENTROPY", "entropy"},
-			{VIPS_INTERESTING_ATTENTION, "VIPS_INTERESTING_ATTENTION", "attention"},
-			{VIPS_INTERESTING_LAST, "VIPS_INTERESTING_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsInteresting", values );
-	}
-
-	return( etype );
-}
-/* enumerations from "../../libvips/include/vips/arithmetic.h" */
-GType
-vips_operation_math_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_OPERATION_MATH_SIN, "VIPS_OPERATION_MATH_SIN", "sin"},
-			{VIPS_OPERATION_MATH_COS, "VIPS_OPERATION_MATH_COS", "cos"},
-			{VIPS_OPERATION_MATH_TAN, "VIPS_OPERATION_MATH_TAN", "tan"},
-			{VIPS_OPERATION_MATH_ASIN, "VIPS_OPERATION_MATH_ASIN", "asin"},
-			{VIPS_OPERATION_MATH_ACOS, "VIPS_OPERATION_MATH_ACOS", "acos"},
-			{VIPS_OPERATION_MATH_ATAN, "VIPS_OPERATION_MATH_ATAN", "atan"},
-			{VIPS_OPERATION_MATH_LOG, "VIPS_OPERATION_MATH_LOG", "log"},
-			{VIPS_OPERATION_MATH_LOG10, "VIPS_OPERATION_MATH_LOG10", "log10"},
-			{VIPS_OPERATION_MATH_EXP, "VIPS_OPERATION_MATH_EXP", "exp"},
-			{VIPS_OPERATION_MATH_EXP10, "VIPS_OPERATION_MATH_EXP10", "exp10"},
-			{VIPS_OPERATION_MATH_LAST, "VIPS_OPERATION_MATH_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsOperationMath", values );
-	}
-
-	return( etype );
-}
-GType
-vips_operation_math2_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_OPERATION_MATH2_POW, "VIPS_OPERATION_MATH2_POW", "pow"},
-			{VIPS_OPERATION_MATH2_WOP, "VIPS_OPERATION_MATH2_WOP", "wop"},
-			{VIPS_OPERATION_MATH2_LAST, "VIPS_OPERATION_MATH2_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsOperationMath2", values );
-	}
-
-	return( etype );
-}
-GType
-vips_operation_round_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_OPERATION_ROUND_RINT, "VIPS_OPERATION_ROUND_RINT", "rint"},
-			{VIPS_OPERATION_ROUND_CEIL, "VIPS_OPERATION_ROUND_CEIL", "ceil"},
-			{VIPS_OPERATION_ROUND_FLOOR, "VIPS_OPERATION_ROUND_FLOOR", "floor"},
-			{VIPS_OPERATION_ROUND_LAST, "VIPS_OPERATION_ROUND_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsOperationRound", values );
-	}
-
-	return( etype );
-}
-GType
-vips_operation_relational_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_OPERATION_RELATIONAL_EQUAL, "VIPS_OPERATION_RELATIONAL_EQUAL", "equal"},
-			{VIPS_OPERATION_RELATIONAL_NOTEQ, "VIPS_OPERATION_RELATIONAL_NOTEQ", "noteq"},
-			{VIPS_OPERATION_RELATIONAL_LESS, "VIPS_OPERATION_RELATIONAL_LESS", "less"},
-			{VIPS_OPERATION_RELATIONAL_LESSEQ, "VIPS_OPERATION_RELATIONAL_LESSEQ", "lesseq"},
-			{VIPS_OPERATION_RELATIONAL_MORE, "VIPS_OPERATION_RELATIONAL_MORE", "more"},
-			{VIPS_OPERATION_RELATIONAL_MOREEQ, "VIPS_OPERATION_RELATIONAL_MOREEQ", "moreeq"},
-			{VIPS_OPERATION_RELATIONAL_LAST, "VIPS_OPERATION_RELATIONAL_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsOperationRelational", values );
-	}
-
-	return( etype );
-}
-GType
-vips_operation_boolean_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_OPERATION_BOOLEAN_AND, "VIPS_OPERATION_BOOLEAN_AND", "and"},
-			{VIPS_OPERATION_BOOLEAN_OR, "VIPS_OPERATION_BOOLEAN_OR", "or"},
-			{VIPS_OPERATION_BOOLEAN_EOR, "VIPS_OPERATION_BOOLEAN_EOR", "eor"},
-			{VIPS_OPERATION_BOOLEAN_LSHIFT, "VIPS_OPERATION_BOOLEAN_LSHIFT", "lshift"},
-			{VIPS_OPERATION_BOOLEAN_RSHIFT, "VIPS_OPERATION_BOOLEAN_RSHIFT", "rshift"},
-			{VIPS_OPERATION_BOOLEAN_LAST, "VIPS_OPERATION_BOOLEAN_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsOperationBoolean", values );
-	}
-
-	return( etype );
-}
-GType
-vips_operation_complex_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_OPERATION_COMPLEX_POLAR, "VIPS_OPERATION_COMPLEX_POLAR", "polar"},
-			{VIPS_OPERATION_COMPLEX_RECT, "VIPS_OPERATION_COMPLEX_RECT", "rect"},
-			{VIPS_OPERATION_COMPLEX_CONJ, "VIPS_OPERATION_COMPLEX_CONJ", "conj"},
-			{VIPS_OPERATION_COMPLEX_LAST, "VIPS_OPERATION_COMPLEX_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsOperationComplex", values );
-	}
-
-	return( etype );
-}
-GType
-vips_operation_complex2_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_OPERATION_COMPLEX2_CROSS_PHASE, "VIPS_OPERATION_COMPLEX2_CROSS_PHASE", "cross-phase"},
-			{VIPS_OPERATION_COMPLEX2_LAST, "VIPS_OPERATION_COMPLEX2_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsOperationComplex2", values );
-	}
-
-	return( etype );
-}
-GType
-vips_operation_complexget_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_OPERATION_COMPLEXGET_REAL, "VIPS_OPERATION_COMPLEXGET_REAL", "real"},
-			{VIPS_OPERATION_COMPLEXGET_IMAG, "VIPS_OPERATION_COMPLEXGET_IMAG", "imag"},
-			{VIPS_OPERATION_COMPLEXGET_LAST, "VIPS_OPERATION_COMPLEXGET_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsOperationComplexget", values );
-	}
-
-	return( etype );
-}
-/* enumerations from "../../libvips/include/vips/util.h" */
-GType
-vips_token_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_TOKEN_LEFT, "VIPS_TOKEN_LEFT", "left"},
-			{VIPS_TOKEN_RIGHT, "VIPS_TOKEN_RIGHT", "right"},
-			{VIPS_TOKEN_STRING, "VIPS_TOKEN_STRING", "string"},
-			{VIPS_TOKEN_EQUALS, "VIPS_TOKEN_EQUALS", "equals"},
-			{VIPS_TOKEN_COMMA, "VIPS_TOKEN_COMMA", "comma"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsToken", values );
-	}
-
-	return( etype );
-}
 /* enumerations from "../../libvips/include/vips/image.h" */
 GType
 vips_demand_style_get_type( void )
@@ -699,85 +734,6 @@ vips_access_get_type( void )
 
 	return( etype );
 }
-/* enumerations from "../../libvips/include/vips/colour.h" */
-GType
-vips_intent_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_INTENT_PERCEPTUAL, "VIPS_INTENT_PERCEPTUAL", "perceptual"},
-			{VIPS_INTENT_RELATIVE, "VIPS_INTENT_RELATIVE", "relative"},
-			{VIPS_INTENT_SATURATION, "VIPS_INTENT_SATURATION", "saturation"},
-			{VIPS_INTENT_ABSOLUTE, "VIPS_INTENT_ABSOLUTE", "absolute"},
-			{VIPS_INTENT_LAST, "VIPS_INTENT_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsIntent", values );
-	}
-
-	return( etype );
-}
-GType
-vips_pcs_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_PCS_LAB, "VIPS_PCS_LAB", "lab"},
-			{VIPS_PCS_XYZ, "VIPS_PCS_XYZ", "xyz"},
-			{VIPS_PCS_LAST, "VIPS_PCS_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsPCS", values );
-	}
-
-	return( etype );
-}
-/* enumerations from "../../libvips/include/vips/operation.h" */
-GType
-vips_operation_flags_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GFlagsValue values[] = {
-			{VIPS_OPERATION_NONE, "VIPS_OPERATION_NONE", "none"},
-			{VIPS_OPERATION_SEQUENTIAL, "VIPS_OPERATION_SEQUENTIAL", "sequential"},
-			{VIPS_OPERATION_SEQUENTIAL_UNBUFFERED, "VIPS_OPERATION_SEQUENTIAL_UNBUFFERED", "sequential-unbuffered"},
-			{VIPS_OPERATION_NOCACHE, "VIPS_OPERATION_NOCACHE", "nocache"},
-			{VIPS_OPERATION_DEPRECATED, "VIPS_OPERATION_DEPRECATED", "deprecated"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_flags_register_static( "VipsOperationFlags", values );
-	}
-
-	return( etype );
-}
-/* enumerations from "../../libvips/include/vips/convolution.h" */
-GType
-vips_combine_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_COMBINE_MAX, "VIPS_COMBINE_MAX", "max"},
-			{VIPS_COMBINE_SUM, "VIPS_COMBINE_SUM", "sum"},
-			{VIPS_COMBINE_LAST, "VIPS_COMBINE_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsCombine", values );
-	}
-
-	return( etype );
-}
 /* enumerations from "../../libvips/include/vips/morphology.h" */
 GType
 vips_operation_morphology_get_type( void )
@@ -793,45 +749,6 @@ vips_operation_morphology_get_type( void )
 		};
 		
 		etype = g_enum_register_static( "VipsOperationMorphology", values );
-	}
-
-	return( etype );
-}
-/* enumerations from "../../libvips/include/vips/draw.h" */
-GType
-vips_combine_mode_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_COMBINE_MODE_SET, "VIPS_COMBINE_MODE_SET", "set"},
-			{VIPS_COMBINE_MODE_ADD, "VIPS_COMBINE_MODE_ADD", "add"},
-			{VIPS_COMBINE_MODE_LAST, "VIPS_COMBINE_MODE_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsCombineMode", values );
-	}
-
-	return( etype );
-}
-/* enumerations from "../../libvips/include/vips/basic.h" */
-GType
-vips_precision_get_type( void )
-{
-	static GType etype = 0;
-
-	if( etype == 0 ) {
-		static const GEnumValue values[] = {
-			{VIPS_PRECISION_INTEGER, "VIPS_PRECISION_INTEGER", "integer"},
-			{VIPS_PRECISION_FLOAT, "VIPS_PRECISION_FLOAT", "float"},
-			{VIPS_PRECISION_APPROXIMATE, "VIPS_PRECISION_APPROXIMATE", "approximate"},
-			{VIPS_PRECISION_LAST, "VIPS_PRECISION_LAST", "last"},
-			{0, NULL, NULL}
-		};
-		
-		etype = g_enum_register_static( "VipsPrecision", values );
 	}
 
 	return( etype );
@@ -857,6 +774,89 @@ vips_argument_flags_get_type( void )
 		};
 		
 		etype = g_flags_register_static( "VipsArgumentFlags", values );
+	}
+
+	return( etype );
+}
+/* enumerations from "../../libvips/include/vips/operation.h" */
+GType
+vips_operation_flags_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GFlagsValue values[] = {
+			{VIPS_OPERATION_NONE, "VIPS_OPERATION_NONE", "none"},
+			{VIPS_OPERATION_SEQUENTIAL, "VIPS_OPERATION_SEQUENTIAL", "sequential"},
+			{VIPS_OPERATION_SEQUENTIAL_UNBUFFERED, "VIPS_OPERATION_SEQUENTIAL_UNBUFFERED", "sequential-unbuffered"},
+			{VIPS_OPERATION_NOCACHE, "VIPS_OPERATION_NOCACHE", "nocache"},
+			{VIPS_OPERATION_DEPRECATED, "VIPS_OPERATION_DEPRECATED", "deprecated"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_flags_register_static( "VipsOperationFlags", values );
+	}
+
+	return( etype );
+}
+/* enumerations from "../../libvips/include/vips/resample.h" */
+GType
+vips_kernel_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_KERNEL_NEAREST, "VIPS_KERNEL_NEAREST", "nearest"},
+			{VIPS_KERNEL_LINEAR, "VIPS_KERNEL_LINEAR", "linear"},
+			{VIPS_KERNEL_CUBIC, "VIPS_KERNEL_CUBIC", "cubic"},
+			{VIPS_KERNEL_LANCZOS2, "VIPS_KERNEL_LANCZOS2", "lanczos2"},
+			{VIPS_KERNEL_LANCZOS3, "VIPS_KERNEL_LANCZOS3", "lanczos3"},
+			{VIPS_KERNEL_LAST, "VIPS_KERNEL_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsKernel", values );
+	}
+
+	return( etype );
+}
+GType
+vips_size_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_SIZE_BOTH, "VIPS_SIZE_BOTH", "both"},
+			{VIPS_SIZE_UP, "VIPS_SIZE_UP", "up"},
+			{VIPS_SIZE_DOWN, "VIPS_SIZE_DOWN", "down"},
+			{VIPS_SIZE_LAST, "VIPS_SIZE_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsSize", values );
+	}
+
+	return( etype );
+}
+/* enumerations from "../../libvips/include/vips/util.h" */
+GType
+vips_token_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_TOKEN_LEFT, "VIPS_TOKEN_LEFT", "left"},
+			{VIPS_TOKEN_RIGHT, "VIPS_TOKEN_RIGHT", "right"},
+			{VIPS_TOKEN_STRING, "VIPS_TOKEN_STRING", "string"},
+			{VIPS_TOKEN_EQUALS, "VIPS_TOKEN_EQUALS", "equals"},
+			{VIPS_TOKEN_COMMA, "VIPS_TOKEN_COMMA", "comma"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsToken", values );
 	}
 
 	return( etype );
