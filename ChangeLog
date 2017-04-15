@@ -1,4 +1,5 @@
 15/4/17 started 8.6.0
+- supports fits images with leading non-image HDUs, thanks benepo
 
 7/4/17 started 8.5.3
 - more link fixing in docs 

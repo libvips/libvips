@@ -31,6 +31,8 @@
  * 26/1/17 aferrero2707 
  * 	- use fits_open_diskfile(), not fits_open_file() ... we don't want the
  *	  extended filename syntax 
+ * 15/4/17
+ * 	- skip HDUs with zero dimensions, thanks benepo
  */
 
 /*
@@ -221,10 +223,25 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 
 	status = 0;
 
-	if( fits_get_img_paramll( fits->fptr, 
-		10, &bitpix, &fits->naxis, fits->naxes, &status ) ) {
-		vips_fits_error( status );
-		return( -1 );
+	/* Some FITS images have the first HDU for extra metadata ... skip
+	 * forward until we find a header unit we can load as an image.
+	 */
+	for(;;) { 
+		if( fits_get_img_paramll( fits->fptr, 
+			10, &bitpix, &fits->naxis, fits->naxes, &status ) ) {
+			vips_fits_error( status );
+			return( -1 );
+		}
+
+		if( fits->naxis > 0 )
+			break;
+
+		if( fits_movrel_hdu( fits->fptr, 1, NULL, &status ) ) {
+			vips_fits_error( status );
+			vips_error( "fits", 
+				"%s", _( "no HDU found with naxes > 0" ) );
+			return( -1 );
+		}
 	}
 
 	/* cfitsio does automatic conversion from the format stored in
