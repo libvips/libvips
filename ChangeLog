@@ -1,3 +1,5 @@
+15/4/17 started 8.6.0
+
 7/4/17 started 8.5.3
 - more link fixing in docs 
 - revise cache sizing again to help out of order errors under heavy load, thanks
