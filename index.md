@@ -9,7 +9,7 @@ similar libraries, [libvips runs quickly and uses little
 memory](https://github.com/jcupitt/libvips/wiki/Speed-and-memory-use).
 libvips is licensed under the LGPL 2.1+.
 
-It has around 300 operations covering arithmetic, histograms, convolutions,
+It has around 300 operations covering arithmetic, histograms, convolution,
 morphological operations, frequency filtering, colour, resampling, statistics
 and others. It supports a large range of numeric formats, from 8-bit int to
 128-bit complex. Images can have any number of bands. It supports a good
@@ -29,8 +29,12 @@ libvips is used as an image processing engine by
 [sharp for Go](https://github.com/DAddYE/vips),
 [carrierwave-vips](https://github.com/eltiare/carrierwave-vips),
 [mediawiki](http://www.mediawiki.org/wiki/Extension:VipsScaler),
-[nip2](https://github.com/jcupitt/nip2), 
 [PhotoFlow](https://github.com/aferrero2707/PhotoFlow) and others. 
+
+The official libvips GUI is [nip2](https://github.com/jcupitt/nip2), a strange
+combination of a spreadsheet and an photo editor. You can download macOS and
+Windows binaries from the nip2 releases area, and it's available in most
+package managers. 
 
 ## Cite
 
