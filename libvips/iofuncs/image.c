@@ -119,7 +119,7 @@
  * to formatted memory buffers (with vips_image_write_to_buffer()) and to
  * C-style memory arrays (with vips_image_write_to_memory().
  *
- * You can also write image to other images. Create, for example, a temporary
+ * You can also write images to other images. Create, for example, a temporary
  * disc image with vips_image_new_temp_file(), then write your image to that
  * with vips_image_write(). You can create several other types of image and
  * write to them, see vips_image_new_memory(), for example. 
