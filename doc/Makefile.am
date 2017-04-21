@@ -147,6 +147,7 @@ markdown_content_files = \
 	Using-vipsthumbnail.md \
 	How-it-opens-files.md \
 	Examples.md \
+	Cite.md \
 	Making-image-pyramids.md
 
 # converted to xml in this dir by pandoc
