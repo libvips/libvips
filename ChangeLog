@@ -2,7 +2,7 @@
 - supports fits images with leading non-image HDUs, thanks benepo
 
 23/4/17 started 8.5.4
-- don't depend on image width when setting n_lines
+- don't depend on image width when setting n_lines, thanks kleisauke
 
 7/4/17 started 8.5.3
 - more link fixing in docs 
