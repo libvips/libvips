@@ -71,6 +71,12 @@ VipsOperation (operation), operations
       <literal>VipsForeign</literal> will show some of the extra flags 
       supported by the file load/save operations. 
     </para>
+
+    <para>
+      The API docs have a <link linkend="function-list">handy table of all vips 
+      operations</link>, if you want to find out how to do something, try 
+      searching that. 
+    </para>
   </refsect3>
 
   <refsect3 id="using-command-line-options">

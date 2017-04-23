@@ -156,6 +156,12 @@ operation flags: sequential-unbuffered
     </para>
 
     <para>
+      The API docs have a <link linkend="function-list">handy table of all vips 
+      operations</link>, if you want to find out how to do something, try 
+      searching that. 
+    </para>
+
+    <para>
       When you are done, you can write
       the final image to a disc file, to a formatted memory buffer, or to
       C-style memory array. See vips_image_write_to_file() and friends.

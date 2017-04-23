@@ -19,7 +19,7 @@
 <programlisting language="php">
 $filename = ...;
 $image = Vips\Image::thumbnail($filename, 200, [&quot;height&quot; =&gt; 200]);
-$image.writeToFile(&quot;my-thumbnail.jpg&quot;);
+$image-&gt;writeToFile(&quot;my-thumbnail.jpg&quot;);
 </programlisting>
 <refsect3 id="libvips-options">
   <title>libvips options</title>
@@ -115,7 +115,7 @@ $ vipsthumbnail owl.jpg --smartcrop attention -s 128
 <refsect3 id="linear-light">
   <title>Linear light</title>
   <para>
-    Shrinking images involves combining many pixels into one. Arithmetic averaging really ought to be in terms of the number of photons, but (for historical reasons) the values stored in image files are usually related to the voltage that should be applied to a CRT electron gun.
+    Shrinking images involves combining many pixels into one. Arithmetic averaging really ought to be in terms of the number of photons, but (for historical reasons) the values stored in image files are usually related to the voltage that should be applied to the electron gun in a CRT display.
   </para>
   <para>
     <literal>vipsthumbnail</literal> has an option to perform image shrinking in linear space, that is, a colourspace where values are proportional to photon numbers. For example:

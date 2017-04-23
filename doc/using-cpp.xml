@@ -219,6 +219,12 @@ VImage VImage::add( VImage right, VOption *options = 0 );
       you can write to a memory array, to a formatted image in memory, or to 
       another image. 
     </para>
+
+    <para>
+      The API docs have a <link linkend="function-list">handy table of all vips 
+      operations</link>, if you want to find out how to do something, try 
+      searching that. 
+    </para>
   </refsect3>
 
   <refsect3 id="cpp-expansion">
