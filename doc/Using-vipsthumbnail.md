@@ -17,7 +17,7 @@ The thumbnailing functionality is implemented by `vips_thumbnail()` and
 see the docs for details. You can use these functions from any language
 with a libvips binding. For example, from PHP you could write:
 
-```PHP
+```php?start_inline=1 
 $filename = "image.jpg";
 $image = Vips\Image::thumbnail($filename, 200, ["height" => 200]);
 $image->writeToFile("my-thumbnail.jpg");
