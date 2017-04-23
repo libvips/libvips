@@ -25,3 +25,7 @@ Darwin)
 esac
 
 $PYTHON -m unittest -v test_all 
+
+echo rerunning with VIPS_STALL enabled ...
+export VIPS_STALL=1
+$PYTHON -m unittest -v test_all 
