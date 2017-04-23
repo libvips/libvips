@@ -16,7 +16,7 @@ you can now make a high-quality, high-speed thumbnail in PHP (for example)
 with just:
 
 ```PHP
-$filename = "image.jpg"
+$filename = "image.jpg";
 $image = Vips\Image::thumbnail($filename, 200, ["height" => 200]);
 $image->writeToFile("my-thumbnail.jpg");
 ```
