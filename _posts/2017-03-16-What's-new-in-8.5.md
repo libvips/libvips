@@ -15,8 +15,8 @@ These are very handy for the various scripting languages with vips bindings:
 you can now make a high-quality, high-speed thumbnail in PHP (for example) 
 with just:
 
-```php
-$filename = ...;
+```PHP
+$filename = "image.jpg"
 $image = Vips\Image::thumbnail($filename, 200, ["height" => 200]);
 $image->writeToFile("my-thumbnail.jpg");
 ```
