@@ -117,8 +117,10 @@ vips_sequential_generate( VipsRegion *or,
         VipsRect *r = &or->valid;
 	VipsRegion *ir = (VipsRegion *) seq;
 
-	VIPS_DEBUG_MSG_GREEN( "thread %p request for line %d, height %d\n", 
-		g_thread_self(), r->top, r->height );
+	if( sequential->trace )
+		printf( "vips_sequential_generate %p: "
+			"request for line %d, height %d\n", 
+			sequential, r->top, r->height );
 
 	VIPS_GATE_START( "vips_sequential_generate: wait" );
 
@@ -141,9 +143,10 @@ vips_sequential_generate( VipsRegion *or,
 		 */
 		VipsRect area;
 
-		VIPS_DEBUG_MSG_GREEN( "thread %p skipping to line %d ...\n", 
-			g_thread_self(),
-			r->top );
+		if( sequential->trace )
+			printf( "vips_sequential_generate %p: "
+				"skipping to line %d ...\n", 
+				sequential, r->top );
 
 		area.left = 0;
 		area.top = sequential->y_pos;
@@ -236,7 +239,6 @@ vips_sequential_class_init( VipsSequentialClass *class )
 		G_STRUCT_OFFSET( VipsSequential, tile_height ),
 		1, 1000000, 1 );
 
-
 	VIPS_ARG_ENUM( class, "access", 6, 
 		_( "Strategy" ), 
 		_( "Expected access pattern" ),
@@ -259,6 +261,7 @@ vips_sequential_init( VipsSequential *sequential )
 	sequential->lock = vips_g_mutex_new();
 	sequential->tile_height = 1;
 	sequential->error = 0;
+	sequential->trace = FALSE;
 }
 
 /**
