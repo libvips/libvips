@@ -2,11 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-<<<<<<< HEAD
 AC_INIT([vips], [8.6.0], [vipsip@jiscmail.ac.uk])
-=======
-AC_INIT([vips], [8.5.5], [vipsip@jiscmail.ac.uk])
->>>>>>> 8.5
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
