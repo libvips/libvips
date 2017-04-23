@@ -88,6 +88,11 @@ typedef struct _VipsThreadState {
 	 */
         void *a;
 
+	/* Set in allocate to stall this thread for a moment. Handy for
+	 * debugging race conditions.
+	 */
+	gboolean stall;
+
 } VipsThreadState;
 
 typedef struct _VipsThreadStateClass {
