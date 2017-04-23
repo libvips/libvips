@@ -18,6 +18,9 @@
  * 6/3/17
  * 	- remove single-thread-first-request thing, new seq system makes it
  * 	  unnecessary
+ * 23/4/17
+ * 	- add ->stall
+ * 	- don't depend on image width when setting n_lines
  */
 
 /*
@@ -110,6 +113,10 @@ int vips__n_active_threads = 0;
 /* Set this GPrivate to indicate that this is a vips worker.
  */
 static GPrivate *is_worker_key = NULL;
+
+/* Set to stall threads for debugging.
+ */
+static gboolean vips__stall = FALSE;
 
 /* Glib 2.32 revised the thread API. We need some compat functions.
  */
@@ -466,6 +473,7 @@ vips_thread_state_init( VipsThreadState *state )
 
 	state->reg = NULL;
 	state->stop = FALSE;
+	state->stall = FALSE;
 }
 
 void *
@@ -633,6 +641,17 @@ vips_thread_work_unit( VipsThread *thr )
 	}
 
 	g_mutex_unlock( pool->allocate_lock );
+
+	if( thr->state->stall &&
+		vips__stall ) { 
+		/* Sleep for 0.5s. Handy for stressing the seq system. Stall
+		 * is set by allocate funcs in various places. 
+		 */
+		g_usleep( 500000 ); 
+		thr->state->stall = FALSE;
+		printf( "vips_thread_work_unit: "
+			"stall done, releasing y = %d ...\n", thr->state->y ); 
+	}
 
 	/* Process a work unit.
 	 */
@@ -999,6 +1018,9 @@ vips__threadpool_init( void )
 	if( !is_worker_key ) 
 		is_worker_key = g_private_new( NULL ); 
 #endif
+
+	if( g_getenv( "VIPS_STALL" ) )
+		vips__stall = TRUE;
 }
 
 /**
@@ -1021,6 +1043,7 @@ vips_get_tile_size( VipsImage *im,
 	int *tile_width, int *tile_height, int *n_lines )
 {
 	const int nthr = vips_concurrency_get();
+	const int typical_image_width = 1000;
 
 	/* Compiler warnings.
 	 */
@@ -1054,11 +1077,15 @@ vips_get_tile_size( VipsImage *im,
 	 * the pipeline might see a different hint and we need to synchronise
 	 * buffer sizes everywhere.
 	 *
+	 * We also can't depend on the current image size, since that might
+	 * change down the pipeline too. Pick a typical image width.
+	 *
 	 * Pick the maximum buffer size we might possibly need, then round up
 	 * to a multiple of tileheight.
 	 */
 	*n_lines = vips__tile_height * 
-		VIPS_ROUND_UP( vips__tile_width * nthr, im->Xsize ) / im->Xsize;
+		VIPS_ROUND_UP( vips__tile_width * nthr, typical_image_width ) / 
+			typical_image_width;
 	*n_lines = VIPS_MAX( *n_lines, vips__fatstrip_height * nthr );
 	*n_lines = VIPS_MAX( *n_lines, vips__thinstrip_height * nthr );
 	*n_lines = VIPS_ROUND_UP( *n_lines, *tile_height );
