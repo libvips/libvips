@@ -329,6 +329,11 @@
   <entry>vips_extract_area(), vips_crop()</entry>
 </row>
 <row>
+  <entry>smartcrop</entry>
+  <entry>extract an area from an image</entry>
+  <entry>vips_smartcrop()</entry>
+</row>
+<row>
   <entry>extract_band</entry>
   <entry>extract band from an image</entry>
   <entry>vips_extract_band()</entry>
@@ -592,6 +597,16 @@
   <entry>vips_fractsurf()</entry>
 </row>
 <row>
+  <entry>worley</entry>
+  <entry>make a worley noise image</entry>
+  <entry>vips_worley()</entry>
+</row>
+<row>
+  <entry>perlin</entry>
+  <entry>make a perlin noise image</entry>
+  <entry>vips_perlin()</entry>
+</row>
+<row>
   <entry>radload</entry>
   <entry>load a Radiance image from a file</entry>
   <entry>vips_radload()</entry>
@@ -762,6 +777,11 @@
   <entry>vips_dzsave()</entry>
 </row>
 <row>
+  <entry>dzsave_buffer</entry>
+  <entry>save image to dz buffer</entry>
+  <entry>vips_dzsave_buffer()</entry>
+</row>
+<row>
   <entry>pngsave</entry>
   <entry>save image to png file</entry>
   <entry>vips_pngsave()</entry>
@@ -802,6 +822,11 @@
   <entry>vips_tiffsave()</entry>
 </row>
 <row>
+  <entry>tiffsave_buffer</entry>
+  <entry>save image to tiff buffer</entry>
+  <entry>vips_tiffsave_buffer()</entry>
+</row>
+<row>
   <entry>fitssave</entry>
   <entry>save image to fits file</entry>
   <entry>vips_fitssave()</entry>
@@ -835,6 +860,16 @@
   <entry>reduce</entry>
   <entry>reduce an image</entry>
   <entry>vips_reduce()</entry>
+</row>
+<row>
+  <entry>thumbnail</entry>
+  <entry>generate thumbnail from file</entry>
+  <entry>vips_thumbnail()</entry>
+</row>
+<row>
+  <entry>thumbnail_buffer</entry>
+  <entry>generate thumbnail from buffer</entry>
+  <entry>vips_thumbnail_buffer()</entry>
 </row>
 <row>
   <entry>mapim</entry>
@@ -972,6 +1007,11 @@
   <entry>vips_sRGB2scRGB()</entry>
 </row>
 <row>
+  <entry>scRGB2BW</entry>
+  <entry>convert scRGB to BW</entry>
+  <entry>vips_scRGB2BW()</entry>
+</row>
+<row>
   <entry>scRGB2sRGB</entry>
   <entry>convert an scRGB image to sRGB</entry>
   <entry>vips_scRGB2sRGB()</entry>
@@ -1067,6 +1107,21 @@
   <entry>vips_conv()</entry>
 </row>
 <row>
+  <entry>conva</entry>
+  <entry>approximate integer convolution</entry>
+  <entry>vips_conva()</entry>
+</row>
+<row>
+  <entry>convf</entry>
+  <entry>float convolution operation</entry>
+  <entry>vips_convf()</entry>
+</row>
+<row>
+  <entry>convi</entry>
+  <entry>int convolution operation</entry>
+  <entry>vips_convi()</entry>
+</row>
+<row>
   <entry>compass</entry>
   <entry>convolve with rotating mask</entry>
   <entry>vips_compass()</entry>
@@ -1075,6 +1130,11 @@
   <entry>convsep</entry>
   <entry>seperable convolution operation</entry>
   <entry>vips_convsep()</entry>
+</row>
+<row>
+  <entry>convasep</entry>
+  <entry>approximate separable integer convolution</entry>
+  <entry>vips_convasep()</entry>
 </row>
 <row>
   <entry>fastcor</entry>

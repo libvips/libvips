@@ -1,6 +1,9 @@
 15/4/17 started 8.6.0
 - supports fits images with leading non-image HDUs, thanks benepo
 
+23/4/17 started 8.5.5
+- doc polishing
+
 23/4/17 started 8.5.4
 - don't depend on image width when setting n_lines, thanks kleisauke
 
@@ -134,7 +137,6 @@
 18/5/16 started 8.3.2
 - more robust vips image reading
 - more robust tiff read [Matt Richards]
->>>>>>> master
 
 15/4/16 started 8.3.1
 - rename vips wrapper script, it was still vips-8.2, thanks Benjamin

@@ -20,7 +20,7 @@ with a libvips binding. For example, from PHP you could write:
 ```php
 $filename = ...;
 $image = Vips\Image::thumbnail($filename, 200, ["height" => 200]);
-$image.writeToFile("my-thumbnail.jpg");
+$image->writeToFile("my-thumbnail.jpg");
 ```
 
 # libvips options

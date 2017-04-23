@@ -11,6 +11,8 @@
 #   <entry>vips_gamma()</entry>
 # </row>
 
+import gi
+gi.require_version('Vips', '8.0')
 from gi.repository import Vips, GObject
 
 vips_type_operation = GObject.GType.from_name("VipsOperation")
