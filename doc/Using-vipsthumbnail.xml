@@ -16,8 +16,8 @@
 <para>
   The thumbnailing functionality is implemented by <literal>vips_thumbnail()</literal> and <literal>vips_thumbnail_buffer()</literal> (which thumbnails an image held as a string), see the docs for details. You can use these functions from any language with a libvips binding. For example, from PHP you could write:
 </para>
-<programlisting language="php">
-$filename = ...;
+<programlisting>
+$filename = &quot;image.jpg&quot;;
 $image = Vips\Image::thumbnail($filename, 200, [&quot;height&quot; =&gt; 200]);
 $image-&gt;writeToFile(&quot;my-thumbnail.jpg&quot;);
 </programlisting>
