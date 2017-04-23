@@ -416,6 +416,9 @@ vips_get_tile_size (<em class="parameter"><code><a class="link" href="VipsImage.
 <p>Pick a tile size and a buffer height for this image and the current
 value of <a class="link" href="VipsOperation.html#vips-concurrency-get" title="vips_concurrency_get ()"><code class="function">vips_concurrency_get()</code></a>. The buffer height 
 will always be a multiple of tile_height.</p>
+<p>The buffer height is the height of each buffer we fill in sink disc. Since
+we have two buffers, the largest range of input locality is twice the output
+buffer size, plus whatever margin we add for things like convolution.</p>
 <div class="refsect3">
 <a name="vips-get-tile-size.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">

@@ -388,6 +388,11 @@
 </td>
 </tr>
 <tr>
+<td align="left">smartcrop</td>
+<td align="left">extract an area from an image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-smartcrop" title="vips_smartcrop ()"><code class="function">vips_smartcrop()</code></a></td>
+</tr>
+<tr>
 <td align="left">extract_band</td>
 <td align="left">extract band from an image</td>
 <td align="left"><a class="link" href="libvips-conversion.html#vips-extract-band" title="vips_extract_band ()"><code class="function">vips_extract_band()</code></a></td>
@@ -659,6 +664,16 @@
 <td align="left"><a class="link" href="libvips-create.html#vips-fractsurf" title="vips_fractsurf ()"><code class="function">vips_fractsurf()</code></a></td>
 </tr>
 <tr>
+<td align="left">worley</td>
+<td align="left">make a worley noise image</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-worley" title="vips_worley ()"><code class="function">vips_worley()</code></a></td>
+</tr>
+<tr>
+<td align="left">perlin</td>
+<td align="left">make a perlin noise image</td>
+<td align="left"><a class="link" href="libvips-create.html#vips-perlin" title="vips_perlin ()"><code class="function">vips_perlin()</code></a></td>
+</tr>
+<tr>
 <td align="left">radload</td>
 <td align="left">load a Radiance image from a file</td>
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-radload" title="vips_radload ()"><code class="function">vips_radload()</code></a></td>
@@ -829,6 +844,11 @@
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-dzsave" title="vips_dzsave ()"><code class="function">vips_dzsave()</code></a></td>
 </tr>
 <tr>
+<td align="left">dzsave_buffer</td>
+<td align="left">save image to dz buffer</td>
+<td align="left"><code class="function">vips_dzsave_buffer()</code></td>
+</tr>
+<tr>
 <td align="left">pngsave</td>
 <td align="left">save image to png file</td>
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-pngsave" title="vips_pngsave ()"><code class="function">vips_pngsave()</code></a></td>
@@ -869,6 +889,11 @@
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-tiffsave" title="vips_tiffsave ()"><code class="function">vips_tiffsave()</code></a></td>
 </tr>
 <tr>
+<td align="left">tiffsave_buffer</td>
+<td align="left">save image to tiff buffer</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-tiffsave-buffer" title="vips_tiffsave_buffer ()"><code class="function">vips_tiffsave_buffer()</code></a></td>
+</tr>
+<tr>
 <td align="left">fitssave</td>
 <td align="left">save image to fits file</td>
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-fitssave" title="vips_fitssave ()"><code class="function">vips_fitssave()</code></a></td>
@@ -902,6 +927,16 @@
 <td align="left">reduce</td>
 <td align="left">reduce an image</td>
 <td align="left"><a class="link" href="libvips-resample.html#vips-reduce" title="vips_reduce ()"><code class="function">vips_reduce()</code></a></td>
+</tr>
+<tr>
+<td align="left">thumbnail</td>
+<td align="left">generate thumbnail from file</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-thumbnail" title="vips_thumbnail ()"><code class="function">vips_thumbnail()</code></a></td>
+</tr>
+<tr>
+<td align="left">thumbnail_buffer</td>
+<td align="left">generate thumbnail from buffer</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-thumbnail-buffer" title="vips_thumbnail_buffer ()"><code class="function">vips_thumbnail_buffer()</code></a></td>
 </tr>
 <tr>
 <td align="left">mapim</td>
@@ -1039,6 +1074,11 @@
 <td align="left"><a class="link" href="libvips-colour.html#vips-sRGB2scRGB" title="vips_sRGB2scRGB ()"><code class="function">vips_sRGB2scRGB()</code></a></td>
 </tr>
 <tr>
+<td align="left">scRGB2BW</td>
+<td align="left">convert scRGB to BW</td>
+<td align="left"><a class="link" href="libvips-colour.html#vips-scRGB2BW" title="vips_scRGB2BW ()"><code class="function">vips_scRGB2BW()</code></a></td>
+</tr>
+<tr>
 <td align="left">scRGB2sRGB</td>
 <td align="left">convert an scRGB image to sRGB</td>
 <td align="left"><a class="link" href="libvips-colour.html#vips-scRGB2sRGB" title="vips_scRGB2sRGB ()"><code class="function">vips_scRGB2sRGB()</code></a></td>
@@ -1134,6 +1174,21 @@
 <td align="left"><a class="link" href="libvips-convolution.html#vips-conv" title="vips_conv ()"><code class="function">vips_conv()</code></a></td>
 </tr>
 <tr>
+<td align="left">conva</td>
+<td align="left">approximate integer convolution</td>
+<td align="left"><a class="link" href="libvips-convolution.html#vips-conva" title="vips_conva ()"><code class="function">vips_conva()</code></a></td>
+</tr>
+<tr>
+<td align="left">convf</td>
+<td align="left">float convolution operation</td>
+<td align="left"><a class="link" href="libvips-convolution.html#vips-convf" title="vips_convf ()"><code class="function">vips_convf()</code></a></td>
+</tr>
+<tr>
+<td align="left">convi</td>
+<td align="left">int convolution operation</td>
+<td align="left"><a class="link" href="libvips-convolution.html#vips-convi" title="vips_convi ()"><code class="function">vips_convi()</code></a></td>
+</tr>
+<tr>
 <td align="left">compass</td>
 <td align="left">convolve with rotating mask</td>
 <td align="left"><a class="link" href="libvips-convolution.html#vips-compass" title="vips_compass ()"><code class="function">vips_compass()</code></a></td>
@@ -1142,6 +1197,11 @@
 <td align="left">convsep</td>
 <td align="left">seperable convolution operation</td>
 <td align="left"><a class="link" href="libvips-convolution.html#vips-convsep" title="vips_convsep ()"><code class="function">vips_convsep()</code></a></td>
+</tr>
+<tr>
+<td align="left">convasep</td>
+<td align="left">approximate separable integer convolution</td>
+<td align="left"><a class="link" href="libvips-convolution.html#vips-convasep" title="vips_convasep ()"><code class="function">vips_convasep()</code></a></td>
 </tr>
 <tr>
 <td align="left">fastcor</td>
