@@ -24,6 +24,9 @@ break_threshold() {
 	return $(echo "$diff > $threshold" | bc -l)
 }
 
+# run the test with VIPS_STALL enabled to stress the seq system
+export VIPS_STALL=1
+
 size=1000
 while [ $size -gt 99 ]; do
 	printf "testing size to $size ... "

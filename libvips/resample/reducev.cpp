@@ -835,8 +835,6 @@ vips_reducev_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_reducev_parent_class )->build( object ) )
 		return( -1 );
 
-	g_info( "reducev by factor %g", reducev->vshrink );
-
 	in = resample->in; 
 
 	if( reducev->vshrink < 1 ) { 
@@ -895,6 +893,7 @@ vips_reducev_build( VipsObject *object )
 
 		if( vips_sequential( in, &t[3], 
 			"tile_height", 10,
+			// "trace", TRUE,
 			NULL ) )
 			return( -1 );
 		in = t[3];
