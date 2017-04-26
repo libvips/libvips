@@ -45,6 +45,7 @@
     <xi:include href="xml/Using-vipsthumbnail.xml"/>
     <xi:include href="xml/Cite.xml"/>
     <xi:include href="xml/Examples.xml"/>
+    <xi:include href="xml/Cite.xml"/>
   </chapter>
 
   <chapter>
