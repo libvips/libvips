@@ -211,7 +211,7 @@ vips_sink_base_init( SinkBase *sink_base, VipsImage *image )
 
 	vips_get_tile_size( image, 
 		&sink_base->tile_width, &sink_base->tile_height, 
-		&sink_base->nlines );
+		&sink_base->n_lines );
 
 	sink_base->processed = 0;
 }

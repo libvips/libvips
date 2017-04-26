@@ -211,7 +211,7 @@ sink_memory_area_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 			/* Position buf at the new y.
 			 */
 			sink_memory_area_position( memory->area, 
-				sink_base->y, sink_base->nlines );
+				sink_base->y, sink_base->n_lines );
 		}
 	}
 
@@ -332,7 +332,7 @@ vips_sink_memory( VipsImage *image )
 	vips_image_preeval( image );
 
 	result = 0;
-	sink_memory_area_position( memory.area, 0, memory.sink_base.nlines );
+	sink_memory_area_position( memory.area, 0, memory.sink_base.n_lines );
 	if( vips_threadpool_run( image, 
 		sink_memory_thread_state_new, 
 		sink_memory_area_allocate_fn, 

@@ -571,14 +571,14 @@ vips_mosaic1_class_init( VipsMosaic1Class *class )
 		_( "Half window size" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic1, hwindow ),
-		0, 1000000000, 1 );
+		0, 1000000000, 5 );
 
 	VIPS_ARG_INT( class, "harea", 14, 
 		_( "harea" ), 
 		_( "Half area size" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic1, harea ),
-		0, 1000000000, 1 );
+		0, 1000000000, 15 );
 
 	VIPS_ARG_BOOL( class, "search", 15, 
 		_( "search" ), 
@@ -647,13 +647,9 @@ vips_mosaic1_init( VipsMosaic1 *mosaic1 )
  * given an approximate pair of tie-points. @sec is scaled and rotated as
  * necessary before the join.
  *
- * Before performing the transformation, the tie-points are improved by 
- * searching band @bandno in an area of @sec of size @hsearchsize for a
- * match of size @hwindowsize to @ref. 
- *
  * If @search is %TRUE, before performing the transformation, the tie-points 
  * are improved by searching an area of @sec of size @harea for a
- * mosaic1 of size @hwindow to @ref. 
+ * object of size @hwindow in @ref. 
  *
  * @mblend limits  the  maximum size of the
  * blend area.  A value of "-1" means "unlimited". The two images are blended 

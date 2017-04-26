@@ -234,14 +234,14 @@ vips_mosaic_class_init( VipsMosaicClass *class )
 		_( "Half window size" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic, hwindow ),
-		0, 1000000000, 1 );
+		0, 1000000000, 5 );
 
 	VIPS_ARG_INT( class, "harea", 10, 
 		_( "harea" ), 
 		_( "Half area size" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsMosaic, harea ),
-		0, 1000000000, 1 );
+		0, 1000000000, 15 );
 
 	VIPS_ARG_INT( class, "mblend", 11, 
 		_( "Max blend" ), 
@@ -335,8 +335,8 @@ vips_mosaic_init( VipsMosaic *mosaic )
  * @sec is positioned so that the pixel (@xsec, @ysec) in @sec lies on top of 
  * the pixel (@xref, @yref) in @ref. The overlap area is divided into three
  * sections, 20 high-contrast points in band @bandno of image @ref are found 
- * in each, and each high-contrast point is searched for in @sec using
- * @hwindow and @harea (see vips_correl()). 
+ * in each, and a window of pixels of size @hwindow around each high-contrast 
+ * point is searched for in @sec over an area of @harea. 
  *
  * A linear model is fitted to the 60 tie-points, points a long way from the
  * fit are discarded, and the model refitted until either too few points
