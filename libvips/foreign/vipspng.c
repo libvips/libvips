@@ -63,6 +63,8 @@
  * 	- use dbuf for buffer output
  * 30/3/17
  * 	- better behaviour for truncated png files, thanks Yury
+ * 26/4/17
+ * 	- better @fail handling with truncated PNGs
  */
 
 /*
@@ -127,8 +129,8 @@ user_error_function( png_structp png_ptr, png_const_charp error_msg )
 
 	/* This function must not return or the default error handler will be
 	 * invoked.
-	longjmp( png_jmpbuf( png_ptr ), -1 ); 
 	 */
+	longjmp( png_jmpbuf( png_ptr ), -1 ); 
 }
 
 static void
@@ -409,7 +411,7 @@ png2vips_header( Read *read, VipsImage *out )
 		void *profile_copy;
 
 #ifdef DEBUG
-		printf( "png2vips_header: attaching %zd bytes of ICC profile\n",
+		printf( "png2vips_header: attaching %d bytes of ICC profile\n",
 			proflen );
 		printf( "png2vips_header: name = \"%s\"\n", name );
 #endif /*DEBUG*/
@@ -538,6 +540,11 @@ png2vips_generate( VipsRegion *or,
 			printf( "png2vips_generate: thread %p\n", 
 				g_thread_self() );
 #endif /*DEBUG*/
+
+			/* ... except if fail is on, in which case we bail out.
+			 */
+			if( read->fail )
+				return( -1 );
 		}
 
 		read->y_pos += 1;
