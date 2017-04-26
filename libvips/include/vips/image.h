@@ -452,6 +452,9 @@ VipsImage *vips_image_new_matrix_from_array( int width, int height,
 	const double *array, int size );
 VipsImage *vips_image_matrix_from_array( int width, int height, 
 	const double *array, int size );
+VipsImage *vips_image_new_from_image( VipsImage *image, const double *c, int n );
+VipsImage *vips_image_new_from_image1( VipsImage *image, double c );
+
 void vips_image_set_delete_on_close( VipsImage *image, 
 	gboolean delete_on_close );
 guint64 vips_get_disc_threshold( void );

@@ -134,11 +134,30 @@ main( int argc, char **argv )
 
       There are a series of similar constructors which parallel the other 
       constructors in the C API, see VImage::new_from_memory(),
-      VImage::new_from_buffer(), and VImage::new_matrix(). There's also 
+      VImage::new_from_buffer(), and VImage::new_matrix(). 
+    </para>
+
+    <para>
+      The convenience function `VImage::new_from_image()` makes a constant 
+      image from an existing image. The image it returns will have the same 
+      size, interpretation, resolution and format as the image you call it on, 
+      but with every pixel having the constant value you specify. For example:
+
+<programlisting language="cpp">
+      new_image = image.new_from_image(12);
+</programlisting>
+
+      Now `new_image` has the same size as `image`, but has one band, and every 
+      pixel has the value 12. You can pass a `std::vector<double>` as the 
+      argument to make a constant image with a different number of bands. 
+    </para>
+
+    <para>
+      There's also 
       VImage::new_memory() and VImage::new_temp_file(), which when written to 
       with VImage::write() will create whole images on memory or on disc. 
     </para>
-    
+
     <para>
       The next line finds the average pixel value, it's the equivalent of the 
       vips_avg() function. The differences from the C API are:

@@ -2293,6 +2293,80 @@ vips_image_matrix_from_array( int width, int height,
 }
 
 /**
+ * vips_image_new_from_image:
+ * @image: image to copy
+ * @c: (array length=n) (transfer none): array of constants
+ * @n: number of constants
+ *
+ * Creates a new image with width, height, format, interpretation, resolution
+ * and offset taken from @image, but with number of bands taken from @n and the
+ * value of each band element set from @c.
+ *
+ * See also: vips_image_new_from_image1()
+ *
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
+ */
+VipsImage *
+vips_image_new_from_image( VipsImage *image, const double *c, int n )
+{
+	VipsObject *scope = (VipsObject *) vips_image_new();
+	VipsImage **t = (VipsImage **) vips_object_local_array( scope, 5 );
+
+	double *ones;
+	int i;
+	VipsImage *result;
+
+	if( !(ones = VIPS_ARRAY( scope, n, double )) ) {
+		g_object_unref( scope );
+		return( NULL );
+	}
+	for( i = 0; i < n; i++ )
+		ones[i] = 1.0;
+
+	if( vips_black( &t[0], 1, 1, NULL ) ||
+		vips_linear( t[0], &t[1], ones, (double *) c, n, NULL ) ||
+		vips_cast( t[1], &t[2], image->BandFmt, NULL ) ||
+		vips_embed( t[2], &t[3], 0, 0, image->Xsize, image->Ysize,
+			"extend", VIPS_EXTEND_COPY, NULL ) ||
+		vips_copy( t[3], &t[4], 
+			"interpretation", image->Type,
+			"xres", image->Xres,
+			"yres", image->Yres,
+			"xoffset", image->Xoffset,
+			"yoffset", image->Yoffset,
+			NULL ) ) {
+		g_object_unref( scope );
+		return( NULL );
+	}
+
+	result = t[4];
+	g_object_ref( result );
+
+	g_object_unref( scope );
+
+	return( result ); 
+}
+
+/**
+ * vips_image_new_from_image1:
+ * @image: image to copy
+ * @c: constants
+ *
+ * Creates a new image with width, height, format, interpretation, resolution
+ * and offset taken from @image, but with one band and each pixel having the
+ * value @c.
+ *
+ * See also: vips_image_new_from_image()
+ *
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
+ */
+VipsImage *
+vips_image_new_from_image1( VipsImage *image, double c )
+{
+	return( vips_image_new_from_image( image, (const double *) &c, 1 ) );
+}
+
+/**
  * vips_image_set_delete_on_close:
  * @image: image to set
  * @delete_on_close: format of file

@@ -468,8 +468,21 @@ public:
 
 	static VImage new_matrixv( int width, int height, ... );
 
-	VImage new_from_image( std::vector<double> pixel );
-	VImage new_from_image( double pixel );
+	VImage new_from_image( std::vector<double> pixel )
+	{
+		VipsImage *image;
+
+		if( !(image = vips_image_new_from_image( this->get_image(), 
+			&pixel[0], pixel.size() )) )
+			throw( VError() ); 
+
+		return( VImage( image ) ); 
+	}
+
+	VImage new_from_image( double pixel )
+	{
+		return( new_from_image( to_vectorv( 1, pixel ) ) ); 
+	}
 
 	VImage write( VImage out );
 

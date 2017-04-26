@@ -1,5 +1,7 @@
 15/4/17 started 8.6.0
 - supports fits images with leading non-image HDUs, thanks benepo
+- add vips_image_new_from_image() and vips_image_new_from_image1() ... make a
+  constant image
 
 23/4/17 started 8.5.5
 - doc polishing
