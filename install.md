@@ -10,7 +10,8 @@ If the packaged version is too old, you might need to build from source.
 
 ## Building libvips from a source tarball
 
-Download `vips-x.y.z.tar.gz` from the [in the Download area]({{ site.github.releases_url }}), then:
+Download `vips-x.y.z.tar.gz` from the [Download area]({{
+site.github.releases_url }}), then:
 
 	$ tar xf vips-x.y.z.tar.gz
 	$ cd vips-x.y.z
@@ -35,8 +36,8 @@ Once `configure` is looking OK, compile and install with the usual:
 By default this will install files to `/usr/local`.
 
 We have detailed guides on the wiki for [building for
-Windows](https://github.com/jcupitt/libvips/wiki/Build-for-Windows)
-and [building for macOS](https://github.com/jcupitt/libvips/wiki/Build-for-macOS).
+Windows](https://github.com/jcupitt/libvips/wiki/Build-for-Windows) and
+[building for macOS](https://github.com/jcupitt/libvips/wiki/Build-for-macOS).
 
 ## Building libvips from git
 
@@ -193,4 +194,4 @@ files: Aperio, Hamamatsu, Leica, MIRAX, Sakura, Trestle, and Ventana.
 
 ### swig, python, python-dev
 
-If available, we build the vips7 python binding.
+If available, we build the old vips7 python binding.
