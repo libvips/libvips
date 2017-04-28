@@ -162,8 +162,8 @@ im = Vips.Image.new_from_file(sys.argv[1], access = Vips.Access.SEQUENTIAL)
       for each file format. The C equivalent to this function,
       vips_image_new_from_file(), has more extensive documentation. Try
       <code>help(Vips.Image)</code> to see a list of all the image 
-      constructors --- you can load from memory, or create from an array, 
-      for example. 
+      constructors --- you can load from memory, create from an array, 
+      or create from a constant, for example. 
     </para>
 
     <para>

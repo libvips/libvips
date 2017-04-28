@@ -1,12 +1,13 @@
-- can we change VImage::new_from_image() to not inherit bands? too awkward to
-  make a one-band image
+- Add new_from_image() to C++
 
-  needs some docs
+  needs docs
 
-  add to python, C, ruby, php etc etc
+  also check php, ruby
 
 - does cpp image.bandjoin(12) work? how about 
   bandjoin(std::vector<double>({1, 2}))
+
+  check bandjoin_const use in Python too
 
 - not sure about utf8 error messages on win
 

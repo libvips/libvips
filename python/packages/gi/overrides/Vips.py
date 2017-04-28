@@ -91,13 +91,7 @@ def imageize(match_image, value):
 
     # assume this is a pixel constant ... expand into an image using
     # match as a template
-    pixel = (Vips.Image.black(1, 1) + value).cast(match_image.format)
-    image = pixel.embed(0, 0, match_image.width, match_image.height,
-                        extend = Vips.Extend.COPY)
-    image = image.copy(interpretation = match_image.interpretation,
-                       xres = match_image.xres,
-                       yres = match_image.yres)
-    return image
+    return match_image.new_from_image(value)
 
 # we'd like to use memoryview to avoid copying things like ICC profiles, but
 # unfortunately pygobject does not support this ... so for blobs we just use
@@ -620,6 +614,29 @@ def add_doc(value):
 
 class Image(Vips.Image):
     # for constructors, see class methods above
+
+    def new_from_image(self, value):
+        """Create a new image based on an existing one.
+
+        A new image is created with the same width, height, format,
+        interpretation, resolution and offset as self, but with every pixel
+        having the value of value.
+
+        You can pass an array to create a many-band image.
+        """
+
+        # we'd like to call the vips function vips_image_new_from_image() but we
+        # can't call __getattr__ methods from a subclass 
+        pixel = (Vips.Image.black(1, 1) + value).cast(self.format)
+        image = pixel.embed(0, 0, self.width, self.height,
+                            extend = Vips.Extend.COPY)
+        image = image.copy(interpretation = self.interpretation,
+                           xres = self.xres,
+                           yres = self.yres,
+                           xoffset = self.xoffset,
+                           yoffset = self.yoffset)
+
+        return image
 
     # output
 

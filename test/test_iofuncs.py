@@ -62,5 +62,27 @@ class TestIofuncs(unittest.TestCase):
         for case in cases:
             self.assertEqualObjects(split(case[0]), case[1])
 
+    def test_new_from_image(self):
+        im = Vips.Image.mask_ideal(100, 100, 0.5, reject = True, optical = True)
+
+        im2 = im.new_from_image(12)
+
+        self.assertEqual(im2.width, im.width)
+        self.assertEqual(im2.height, im.height)
+        self.assertEqual(im2.interpretation, im.interpretation)
+        self.assertEqual(im2.format, im.format)
+        self.assertEqual(im2.xres, im.xres)
+        self.assertEqual(im2.yres, im.yres)
+        self.assertEqual(im2.xoffset, im.xoffset)
+        self.assertEqual(im2.yoffset, im.yoffset)
+        self.assertEqual(im2.bands, 1)
+        self.assertEqual(im2.avg(), 12)
+
+        im2 = im.new_from_image([1,2,3])
+
+        self.assertEqual(im2.bands, 3)
+        self.assertEqual(im2.avg(), 2)
+
+
 if __name__ == '__main__':
     unittest.main()
