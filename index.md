@@ -7,7 +7,7 @@
 libvips is a 2D image processing library. Compared to
 similar libraries, [libvips runs quickly and uses little
 memory](https://github.com/jcupitt/libvips/wiki/Speed-and-memory-use).
-The [download area](https://github.com/jcupitt/libvips/releases) has the
+The [download area]({{ site.github.releases_url }}) has the
 source code plus pre-compiled binaries for Windows. You can install on macOS
 with homebrew, MacPorts or Fink, and it's available in most Linux package
 managers, see the [install notes](install.html).  libvips is licensed under

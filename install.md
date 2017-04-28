@@ -6,9 +6,29 @@ manager. For macOS, there are packages in Homebrew, MacPorts and Fink. For
 Windows, there are pre-compiled binaries in the [Download area]({{
 site.github.releases_url }}).
 
-If the packaged version is too old, you might need to build from source. 
+## Installing the Windows binary
+
+Download `vips-dev-w64-web-x.y.z.zip` from the [Download area]({{ 
+site.github.releases_url }}) and unzip somewhere. At the command-prompt, `cd`
+to `vips-x.y.z/bin` and run (for example):
+
+	vips.exe invert some/input/file.jpg some/output/file.jpg
+
+If you want to run `vips.exe` from some other directory on your PC, 
+you'll need to set your `PATH`.
+
+The zipfile includes all the libraries and headers for developing with C with
+any compiler. For C++, you must build with `g++`, or rebuild the C++ API 
+with your compiler. 
+
+The `vips-dev-w64-web-x.y.z.zip` is built with a small set of relatively secure
+file format readers and can be used in a potentially hostile environment. The
+much larger `vips-dev-w64-all-x.y.z.zip` includes all the file format readers
+that libvips supports and care should be taken before public deployment.
 
 ## Building libvips from a source tarball
+
+If the packaged version is too old, you might need to build from source. 
 
 Download `vips-x.y.z.tar.gz` from the [Download area]({{
 site.github.releases_url }}), then:
