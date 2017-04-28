@@ -11,16 +11,18 @@ The [download area](https://github.com/jcupitt/libvips/releases) has the
 source code plus pre-compiled binaries for Windows. You can install on macOS
 with homebrew, MacPorts or Fink, and it's available in most Linux package
 managers, see the [install notes](install.html).  libvips is licensed under
-the LGPL 2.1+.
+the [LGPL 2.1+](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html),
+making it free to use.
 
 It has around [300 operations](API/current/func-list.html) covering
 arithmetic, histograms, convolution, morphological operations, frequency
 filtering, colour, resampling, statistics and others. It supports a large
 range of [numeric formats](API/current/VipsImage.html#VipsBandFormat),
-from 8-bit int to 128-bit complex. Images can have any number of bands. It
-supports a good range of image formats, including JPEG, TIFF, PNG, WebP,
-FITS, Matlab, OpenEXR, PDF, SVG, HDR, PPM, CSV, GIF, Analyze, DeepZoom,
-and OpenSlide.  It can also load images via ImageMagick or GraphicsMagick.
+from 8-bit int to 128-bit complex. Images can have any number of bands.
+It supports a good range of image formats, including JPEG, TIFF,
+PNG, WebP, FITS, Matlab, OpenEXR, PDF, SVG, HDR, PPM, CSV, GIF, Analyze,
+DeepZoom, and OpenSlide.  It can also load images via ImageMagick or
+GraphicsMagick.
 
 It has APIs for [C](API/current/using-from-c.html) and
 [C++](API/current/using-from-cpp.html) and comes with a
