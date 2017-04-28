@@ -19,7 +19,7 @@ you'll need to set your `PATH`.
 
 The zipfile includes all the libraries and headers for developing with C with
 any compiler. For C++, you must build with `g++`, or rebuild the C++ API 
-with your compiler. 
+with your compiler, or just use the C API. 
 
 The `vips-dev-w64-web-x.y.z.zip` is built with a small set of relatively secure
 file format readers and can be used in a potentially hostile environment. The
