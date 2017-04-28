@@ -6,11 +6,32 @@ manager. For macOS, there are packages in Homebrew, MacPorts and Fink. For
 Windows, there are pre-compiled binaries in the [Download area]({{
 site.github.releases_url }}).
 
-If the packaged version is too old, you might need to build from source. 
+## Installing the Windows binary
+
+Download `vips-dev-w64-web-x.y.z.zip` from the [Download area]({{ 
+site.github.releases_url }}) and unzip somewhere. At the command-prompt, `cd`
+to `vips-x.y.z/bin` and run (for example):
+
+	vips.exe invert some/input/file.jpg some/output/file.jpg
+
+If you want to run `vips.exe` from some other directory on your PC, 
+you'll need to set your `PATH`.
+
+The zipfile includes all the libraries and headers for developing with C with
+any compiler. For C++, you must build with `g++`, or rebuild the C++ API 
+with your compiler. 
+
+The `vips-dev-w64-web-x.y.z.zip` is built with a small set of relatively secure
+file format readers and can be used in a potentially hostile environment. The
+much larger `vips-dev-w64-all-x.y.z.zip` includes all the file format readers
+that libvips supports and care should be taken before public deployment.
 
 ## Building libvips from a source tarball
 
-Download `vips-x.y.z.tar.gz` from the [in the Download area]({{ site.github.releases_url }}), then:
+If the packaged version is too old, you might need to build from source. 
+
+Download `vips-x.y.z.tar.gz` from the [Download area]({{
+site.github.releases_url }}), then:
 
 	$ tar xf vips-x.y.z.tar.gz
 	$ cd vips-x.y.z
@@ -35,8 +56,8 @@ Once `configure` is looking OK, compile and install with the usual:
 By default this will install files to `/usr/local`.
 
 We have detailed guides on the wiki for [building for
-Windows](https://github.com/jcupitt/libvips/wiki/Build-for-Windows)
-and [building for macOS](https://github.com/jcupitt/libvips/wiki/Build-for-macOS).
+Windows](https://github.com/jcupitt/libvips/wiki/Build-for-Windows) and
+[building for macOS](https://github.com/jcupitt/libvips/wiki/Build-for-macOS).
 
 ## Building libvips from git
 
@@ -193,4 +214,4 @@ files: Aperio, Hamamatsu, Leica, MIRAX, Sakura, Trestle, and Ventana.
 
 ### swig, python, python-dev
 
-If available, we build the vips7 python binding.
+If available, we build the old vips7 python binding.

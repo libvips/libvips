@@ -15,8 +15,8 @@ These are very handy for the various scripting languages with vips bindings:
 you can now make a high-quality, high-speed thumbnail in PHP (for example) 
 with just:
 
-```php
-$filename = ...;
+```php?start_inline=1
+$filename = "image.jpg";
 $image = Vips\Image::thumbnail($filename, 200, ["height" => 200]);
 $image->writeToFile("my-thumbnail.jpg");
 ```
@@ -75,14 +75,14 @@ including a 4D image of an embryo.
 
 Each TIFF contains 10 slices. Normally you just see page 0:
 
-```
+```shell
 $ vipsheader tubhiswt_C0_TP13.ome.tif
 tubhiswt_C0_TP13.ome.tif: 512x512 uchar, 1 band, b-w, tiffload
 ```
 
 Use `n=-1` and you see all the pages as a very tall strip:
 
-```
+```shell
 $ vipsheader tubhiswt_C0_TP13.ome.tif[n=-1]
 tubhiswt_C0_TP13.ome.tif: 512x5120 uchar, 1 band, b-w, tiffload
 ```
@@ -93,7 +93,7 @@ this way.
 You can write this tall strip to another file, and it will be broken up into
 pages:
 
-```
+```shell
 $ vips copy tubhiswt_C0_TP13.ome.tif[n=-1] x.tif
 $ vipsheader x.tif 
 x.tif: 512x512 uchar, 1 band, b-w, tiffload

@@ -53,9 +53,9 @@
   The thumbnailing functionality is implemented by <code class="literal"><a class="link" href="libvips-resample.html#vips-thumbnail" title="vips_thumbnail ()"><code class="function">vips_thumbnail()</code></a></code> and <code class="literal"><a class="link" href="libvips-resample.html#vips-thumbnail-buffer" title="vips_thumbnail_buffer ()"><code class="function">vips_thumbnail_buffer()</code></a></code> (which thumbnails an image held as a string), see the docs for details. You can use these functions from any language with a libvips binding. For example, from PHP you could write:
 </p>
 <pre class="programlisting">
-$filename = ...;
+$filename = "image.jpg";
 $image = Vips\Image::thumbnail($filename, 200, ["height" =&gt; 200]);
-$image.writeToFile("my-thumbnail.jpg");
+$image-&gt;writeToFile("my-thumbnail.jpg");
 </pre>
 <div class="refsect3">
 <a name="libvips-options"></a><h4>libvips options</h4>
@@ -143,7 +143,7 @@ $ vipsthumbnail owl.jpg --smartcrop attention -s 128
 <div class="refsect3">
 <a name="linear-light"></a><h4>Linear light</h4>
 <p>
-    Shrinking images involves combining many pixels into one. Arithmetic averaging really ought to be in terms of the number of photons, but (for historical reasons) the values stored in image files are usually related to the voltage that should be applied to a CRT electron gun.
+    Shrinking images involves combining many pixels into one. Arithmetic averaging really ought to be in terms of the number of photons, but (for historical reasons) the values stored in image files are usually related to the voltage that should be applied to the electron gun in a CRT display.
   </p>
 <p>
     <code class="literal">vipsthumbnail</code> has an option to perform image shrinking in linear space, that is, a colourspace where values are proportional to photon numbers. For example:

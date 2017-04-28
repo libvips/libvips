@@ -16,6 +16,7 @@
       <sub name="" link="Making-image-pyramids.md.html"/>
       <sub name="" link="Using-vipsthumbnail.md.html"/>
       <sub name="" link="Examples.md.html"/>
+      <sub name="" link="Cite.md.html"/>
     </sub>
     <sub name="Core VIPS API" link="ch02.html">
       <sub name="vips" link="libvips-vips.html"/>
