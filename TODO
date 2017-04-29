@@ -1,13 +1,5 @@
-- Add new_from_image() to C++
-
-  needs docs
-
-  also check php, ruby
-
-- does cpp image.bandjoin(12) work? how about 
-  bandjoin(std::vector<double>({1, 2}))
-
-  check bandjoin_const use in Python too
+- cpp bandjoin should use bandjoin_const() where possibel ... currently 
+  uses new_from_image
 
 - not sure about utf8 error messages on win
 
