@@ -532,13 +532,13 @@ public:
 	VImage
 	bandjoin( double other, VOption *options = 0 )
 	{
-		return( bandjoin( this->new_from_image( other ), options ) ); 
+		return( bandjoin( to_vector( other ), options ) ); 
 	}
 
 	VImage
 	bandjoin( std::vector<double> other, VOption *options = 0 )
 	{
-		return( bandjoin( this->new_from_image( other ), options ) ); 
+		return( bandjoin_const( other, options ) ); 
 	}
 
 	std::complex<double> minpos( VOption *options = 0 );
