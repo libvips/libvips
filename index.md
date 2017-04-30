@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/jcupitt/libvips.svg?branch=master)](https://travis-ci.org/jcupitt/libvips)
 [![Coverity Status](https://scan.coverity.com/projects/6503/badge.svg)](https://scan.coverity.com/projects/jcupitt-libvips)
 
-libvips is a 2D image processing library. Compared to
+libvips is a [demand-driven, horizontally threaded](https://github.com/jcupitt/libvips/wiki/Why-is-libvips-quick) 2D image processing library. Compared to
 similar libraries, [libvips runs quickly and uses little
 memory](https://github.com/jcupitt/libvips/wiki/Speed-and-memory-use).
 The [download area]({{ site.github.releases_url }}) has the
@@ -24,13 +24,13 @@ PNG, WebP, FITS, Matlab, OpenEXR, PDF, SVG, HDR, PPM, CSV, GIF, Analyze,
 DeepZoom, and OpenSlide.  It can also load images via ImageMagick or
 GraphicsMagick.
 
-It has APIs for [C](API/current/using-from-c.html) and
-[C++](API/current/using-from-cpp.html) and comes with a
-[Python binding](API/current/using-from-python.html) and a
-[command-line interface](API/current/using-cli.html). Bindings
+It comes with bindings for [C](API/current/using-from-c.html),
+[C++](API/current/using-from-cpp.html),
+[Python binding](API/current/using-from-python.html) and [the
+command-line](API/current/using-cli.html). Full bindings
 are available for [Ruby](https://rubygems.org/gems/ruby-vips),
 [PHP](https://github.com/jcupitt/php-vips), and
-[Go](https://github.com/davidbyttow/govips).  libvips
+[Go](https://github.com/davidbyttow/govips). libvips
 is used as an image processing engine by [sharp (on
 node.js)](https://www.npmjs.org/package/sharp),
 [bimg](https://github.com/h2non/bimg),
