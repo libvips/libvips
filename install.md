@@ -26,6 +26,11 @@ file format readers and can be used in a potentially hostile environment. The
 much larger `vips-dev-w64-all-x.y.z.zip` includes all the file format readers
 that libvips supports and care should be taken before public deployment.
 
+The Windows binary is built
+by [build-win64](https://github.com/jcupitt/build-win64). This is a
+containerised mingw build system: on any host, install Docker, 
+clone the project, and type `./build.sh 8.5`. The README has notes.
+
 ## Building libvips from a source tarball
 
 If the packaged version is too old, you might need to build from source. 
