@@ -136,9 +136,9 @@ vips_thumbnail_finalize( GObject *gobject )
 /* Calculate the shrink factor, taking into account auto-rotate, the fit mode,
  * and so on.
  */
-static double
+static void
 vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail, 
-	int input_width, int input_height )
+	int input_width, int input_height, double *hshrink, double *vshrink )
 {
 	gboolean rotate = 
 		thumbnail->angle == VIPS_ANGLE_D90 || 
@@ -149,7 +149,6 @@ vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail,
 		input_width : input_height;
 
 	VipsDirection direction;
-	double shrink;
 
 	/* Calculate the horizontal and vertical shrink we'd need to fit the
 	 * image to the bounding box, and pick the biggest. 
@@ -173,17 +172,34 @@ vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail,
 			direction = VIPS_DIRECTION_HORIZONTAL;
 	}
 
-	shrink = direction == VIPS_DIRECTION_HORIZONTAL ?
-		horizontal : vertical;  
-
-	/* Restrict to only upsize, only downsize, or both.
-	 */
-	if( thumbnail->size == VIPS_SIZE_UP )
+	if( thumbnail->size != VIPS_SIZE_FORCE ) {
+		if( direction == VIPS_DIRECTION_HORIZONTAL )
+			vertical = horizontal;
+		else
+			horizontal = vertical;
+	}
+	else if( thumbnail->size == VIPS_SIZE_UP )
 		shrink = VIPS_MIN( 1, shrink );
-	if( thumbnail->size == VIPS_SIZE_DOWN )
+	else if( thumbnail->size == VIPS_SIZE_DOWN )
 		shrink = VIPS_MAX( 1, shrink );
 
-	return( shrink ); 
+
+}
+
+/* Just the common part of the shrink: the bit by which both axies must be
+ * shrunk.
+ */
+static double
+vips_thumbnail_calculate_common_shrink( VipsThumbnail *thumbnail, 
+	int input_width, int input_height )
+{
+	double hshrink;
+	double vshrink;
+
+	vips_thumbnail_calculate_shrink( thumbnail, width, height, 
+		&hshrink, &vshrink ); 
+
+	return( VIPS_MIN( hshrink, vshrink ) );
 }
 
 /* Find the best jpeg preload shrink.
@@ -191,8 +207,8 @@ vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail,
 static int
 vips_thumbnail_find_jpegshrink( VipsThumbnail *thumbnail, int width, int height )
 {
-	double shrink = 
-		vips_thumbnail_calculate_shrink( thumbnail, width, height ); 
+	double shrink = vips_thumbnail_calculate_common_shrink( thumbnail, 
+		width, height ); 
 
 	/* We can't use pre-shrunk images in linear mode. libjpeg shrinks in Y
 	 * (of YCbCR), not linear space.
@@ -243,18 +259,21 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
 		shrink = vips_thumbnail_find_jpegshrink( thumbnail, 
 			thumbnail->input_width, thumbnail->input_height );
-		g_info( "loading jpeg with factor %d pre-shrink", shrink ); 
+		g_info( "loading jpeg with factor %g pre-shrink", shrink ); 
 	}
 	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
 		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) {
-		scale = 1.0 / vips_thumbnail_calculate_shrink( thumbnail, 
-			thumbnail->input_width, thumbnail->input_height ); 
+		scale = 1.0 / 
+			vips_thumbnail_calculate_common_shrink( thumbnail, 
+				width, height );
+
 		g_info( "loading PDF/SVG with factor %g pre-scale", scale ); 
 	}
 	else if( vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
-		shrink = vips_thumbnail_calculate_shrink( thumbnail, 
-			thumbnail->input_width, thumbnail->input_height ); 
-		g_info( "loading webp with factor %d pre-shrink", shrink ); 
+		shrink = vips_thumbnail_calculate_common_shrink( thumbnail, 
+			width, height );
+
+		g_info( "loading webp with factor %g pre-shrink", shrink ); 
 	}
 
 	if( !(im = class->open( thumbnail, shrink, scale )) )
@@ -272,7 +291,8 @@ vips_thumbnail_build( VipsObject *object )
 		VIPS_INTERPRETATION_scRGB : VIPS_INTERPRETATION_sRGB; 
 
 	VipsImage *in;
-	double shrink;
+	double hshrink;
+	double vshrink;
 
 	/* TRUE if we've done the import of an ICC transform and still need to
 	 * export.
@@ -719,12 +739,15 @@ vips_thumbnail_file_init( VipsThumbnailFile *file )
  * @height rectangle, with any excess cropped away. See vips_smartcrop() for
  * details on the cropping strategy.
  *
- * Normally the operation will upsize or downsize as required. If @size is set
+ * Normally the operation will upsize or downsize as required to fit the image
+ * inside or outside the target size. If @size is set
  * to #VIPS_SIZE_UP, the operation will only upsize and will just
  * copy if asked to downsize. 
  * If @size is set
  * to #VIPS_SIZE_DOWN, the operation will only downsize and will just
  * copy if asked to upsize. 
+ * If @size is #VIPS_SIZE_FORCE, the image aspect ratio will be broken and the
+ * image will be forced to fit the target. 
  *
  * Normally any orientation tags on the input image (such as EXIF tags) are
  * interpreted to rotate the image upright. If you set @auto_rotate to %FALSE,
