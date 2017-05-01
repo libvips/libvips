@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/jcupitt/libvips.svg?branch=master)](https://travis-ci.org/jcupitt/libvips)
 [![Coverity Status](https://scan.coverity.com/projects/6503/badge.svg)](https://scan.coverity.com/projects/jcupitt-libvips)
 
-libvips is a [demand-driven, horizontally threaded](https://github.com/jcupitt/libvips/wiki/Why-is-libvips-quick) 2D image processing library. Compared to
+libvips is a [demand-driven, horizontally threaded](https://github.com/jcupitt/libvips/wiki/Why-is-libvips-quick) image processing library. Compared to
 similar libraries, [libvips runs quickly and uses little
 memory](https://github.com/jcupitt/libvips/wiki/Speed-and-memory-use).
 The [download area]({{ site.github.releases_url }}) has the
@@ -19,10 +19,10 @@ arithmetic, histograms, convolution, morphological operations, frequency
 filtering, colour, resampling, statistics and others. It supports a large
 range of [numeric formats](API/current/VipsImage.html#VipsBandFormat),
 from 8-bit int to 128-bit complex. Images can have any number of bands.
-It supports a good range of image formats, including JPEG, TIFF,
+It supports a good range of image formats, including JPEG, TIFF, OME-TIFF,
 PNG, WebP, FITS, Matlab, OpenEXR, PDF, SVG, HDR, PPM, CSV, GIF, Analyze,
 DeepZoom, and OpenSlide.  It can also load images via ImageMagick or
-GraphicsMagick.
+GraphicsMagick, letting it load formats like DICOM. 
 
 It comes with bindings for [C](API/current/using-from-c.html),
 [C++](API/current/using-from-cpp.html),
