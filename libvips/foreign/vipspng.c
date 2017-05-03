@@ -125,7 +125,11 @@
 static void
 user_error_function( png_structp png_ptr, png_const_charp error_msg )
 {
-	vips_error( "vipspng", "%s", error_msg );
+#ifdef DEBUG
+	printf( "user_error_function: %s\n", error_msg );
+#endif /*DEBUG*/
+
+	g_warning( "%s", error_msg );
 
 	/* This function must not return or the default error handler will be
 	 * invoked.
@@ -136,7 +140,11 @@ user_error_function( png_structp png_ptr, png_const_charp error_msg )
 static void
 user_warning_function( png_structp png_ptr, png_const_charp warning_msg )
 {
-	vips_error( "vipspng", "%s", warning_msg );
+#ifdef DEBUG
+	printf( "user_warning_function: %s\n", warning_msg );
+#endif /*DEBUG*/
+
+	g_warning( "%s", warning_msg );
 }
 
 /* What we track during a PNG read.
@@ -523,7 +531,7 @@ png2vips_generate( VipsRegion *or,
 	for( y = 0; y < r->height; y++ ) {
 		png_bytep q = (png_bytep) VIPS_REGION_ADDR( or, 0, r->top + y );
 
-		/* We need to catch and ignore errors from read_row().
+		/* We need to catch errors from read_row().
 		 */
 		if( !setjmp( png_jmpbuf( read->pPng ) ) ) 
 			png_read_row( read->pPng, q, NULL );
@@ -541,21 +549,28 @@ png2vips_generate( VipsRegion *or,
 				g_thread_self() );
 #endif /*DEBUG*/
 
-			/* ... except if fail is on, in which case we bail out.
+			/* And bail if fail is on. We have to add an error
+			 * message, since the handler we install just does
+			 * g_warning().
 			 */
-			if( read->fail )
+			if( read->fail ) {
+				vips_error( "vipspng", 
+					"%s", _( "libpng read error" ) ); 
 				return( -1 );
+			}
 		}
 
 		read->y_pos += 1;
 	}
 
-	/* Turn errors back on. png_read_end() can trigger them too, for
-	 * example for a truncated file.
+	/* Catch errors from png_read_end(). This can fail on a truncated
+	 * file. 
 	 */
 	if( setjmp( png_jmpbuf( read->pPng ) ) ) {
-		if( read->fail )
+		if( read->fail ) {
+			vips_error( "vipspng", "%s", _( "libpng read error" ) ); 
 			return( -1 );
+		}
 
 		return( 0 );
 	}
