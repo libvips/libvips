@@ -102,7 +102,7 @@ example:
 $ vips shrink fred.png jim.png 10 10
 ```
 
-meaning shrink `fred.png` by a factor of 10 in both axies and write as
+meaning shrink `fred.png` by a factor of 10 in both axes and write as
 `jim.png`.
 
 You can imagine this operation running without needing `fred.png` to be

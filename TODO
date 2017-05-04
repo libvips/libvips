@@ -1,4 +1,6 @@
-- cpp bandjoin should use bandjoin_const() where possibel ... currently 
+- need tests for new thumbnail mode
+
+- cpp bandjoin should use bandjoin_const() where possible ... currently 
   uses new_from_image
 
 - not sure about utf8 error messages on win

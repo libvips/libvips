@@ -5,6 +5,8 @@
  * 	- from vipsthumbnail.c
  * 6/1/17
  * 	- add @size parameter
+ * 4/5/17
+ * 	- add FORCE
  */
 
 /*
@@ -156,17 +158,17 @@ vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail,
 	 * In crop mode, we aim to fill the bounding box, so we must use the
 	 * smaller axis.
 	 */
-	double horizontal = (double) width / thumbnail->width;
-	double vertical = (double) height / thumbnail->height;
+	*hshrink = (double) width / thumbnail->width;
+	*vshrink = (double) height / thumbnail->height;
 
 	if( thumbnail->crop != VIPS_INTERESTING_NONE ) {
-		if( horizontal < vertical )
+		if( *hshrink < *vshrink )
 			direction = VIPS_DIRECTION_HORIZONTAL;
 		else
 			direction = VIPS_DIRECTION_VERTICAL;
 	}
 	else {
-		if( horizontal < vertical )
+		if( *hshrink < *vshrink )
 			direction = VIPS_DIRECTION_VERTICAL;
 		else
 			direction = VIPS_DIRECTION_HORIZONTAL;
@@ -174,24 +176,27 @@ vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail,
 
 	if( thumbnail->size != VIPS_SIZE_FORCE ) {
 		if( direction == VIPS_DIRECTION_HORIZONTAL )
-			vertical = horizontal;
+			*vshrink = *hshrink;
 		else
-			horizontal = vertical;
+			*hshrink = *vshrink;
 	}
-	else if( thumbnail->size == VIPS_SIZE_UP )
-		shrink = VIPS_MIN( 1, shrink );
-	else if( thumbnail->size == VIPS_SIZE_DOWN )
-		shrink = VIPS_MAX( 1, shrink );
 
-
+	if( thumbnail->size == VIPS_SIZE_UP ) {
+		*hshrink = VIPS_MIN( 1, *hshrink );
+		*vshrink = VIPS_MIN( 1, *vshrink );
+	}
+	else if( thumbnail->size == VIPS_SIZE_DOWN ) {
+		*hshrink = VIPS_MAX( 1, *hshrink );
+		*vshrink = VIPS_MAX( 1, *vshrink );
+	}
 }
 
-/* Just the common part of the shrink: the bit by which both axies must be
+/* Just the common part of the shrink: the bit by which both axes must be
  * shrunk.
  */
 static double
 vips_thumbnail_calculate_common_shrink( VipsThumbnail *thumbnail, 
-	int input_width, int input_height )
+	int width, int height )
 {
 	double hshrink;
 	double vshrink;
@@ -244,7 +249,7 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 	VipsThumbnailClass *class = VIPS_THUMBNAIL_GET_CLASS( thumbnail );
 
 	VipsImage *im;
-	int shrink;
+	double shrink;
 	double scale;
 
 	if( class->get_info( thumbnail ) )
@@ -253,25 +258,26 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 	g_info( "input size is %d x %d", 
 		thumbnail->input_width, thumbnail->input_height ); 
 
-	shrink = 1;
+	shrink = 1.0;
 	scale = 1.0;
 
 	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
 		shrink = vips_thumbnail_find_jpegshrink( thumbnail, 
 			thumbnail->input_width, thumbnail->input_height );
+
 		g_info( "loading jpeg with factor %g pre-shrink", shrink ); 
 	}
 	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
 		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) {
-		scale = 1.0 / 
-			vips_thumbnail_calculate_common_shrink( thumbnail, 
-				width, height );
+		shrink = vips_thumbnail_calculate_common_shrink( thumbnail, 
+			thumbnail->input_width, thumbnail->input_height );
+		scale = 1.0 / shrink; 
 
 		g_info( "loading PDF/SVG with factor %g pre-scale", scale ); 
 	}
 	else if( vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
 		shrink = vips_thumbnail_calculate_common_shrink( thumbnail, 
-			width, height );
+			thumbnail->input_width, thumbnail->input_height );
 
 		g_info( "loading webp with factor %g pre-shrink", shrink ); 
 	}
@@ -393,12 +399,13 @@ vips_thumbnail_build( VipsObject *object )
 		in = t[3];
 	}
 
-	shrink = vips_thumbnail_calculate_shrink( thumbnail, 
-		in->Xsize, in->Ysize );
+	vips_thumbnail_calculate_shrink( thumbnail, 
+		in->Xsize, in->Ysize, &hshrink, &vshrink );
 
 	/* Use centre convention to better match imagemagick.
 	 */
-	if( vips_resize( in, &t[4], 1.0 / shrink, 
+	if( vips_resize( in, &t[4], 1.0 / hshrink, 
+		"vscale", 1.0 / vshrink, 
 		"centre", TRUE, 
 		NULL ) ) 
 		return( -1 );
@@ -659,8 +666,6 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, int shrink, double scale )
 {
 	VipsThumbnailFile *file = (VipsThumbnailFile *) thumbnail;
 
-	/* We can't use UNBUFERRED safely on very-many-core systems.
-	 */
 	if( shrink != 1 ) 
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
