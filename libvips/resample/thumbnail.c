@@ -137,18 +137,25 @@ vips_thumbnail_finalize( GObject *gobject )
 
 /* Calculate the shrink factor, taking into account auto-rotate, the fit mode,
  * and so on.
+ *
+ * The hshrink/vshrink are the amount to shrink the input image axes by in
+ * order for the output axes (ie. after rotation) to match the required 
+ * thumbnail->width, thumbnail->height and fit mode.
  */
 static void
 vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail, 
 	int input_width, int input_height, double *hshrink, double *vshrink )
 {
+	/* If we will be rotating, swap the target width and height.
+	 */
 	gboolean rotate = 
-		thumbnail->angle == VIPS_ANGLE_D90 || 
-		thumbnail->angle == VIPS_ANGLE_D270;
-	int width = thumbnail->auto_rotate && rotate ? 
-		input_height : input_width;
-	int height = thumbnail->auto_rotate && rotate ? 
-		input_width : input_height;
+		(thumbnail->angle == VIPS_ANGLE_D90 || 
+		 thumbnail->angle == VIPS_ANGLE_D270) &&
+		thumbnail->auto_rotate;
+	int target_width = rotate ? 
+		thumbnail->height : thumbnail->width;
+	int target_height = rotate ? 
+		thumbnail->width : thumbnail->height;
 
 	VipsDirection direction;
 
@@ -158,8 +165,8 @@ vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail,
 	 * In crop mode, we aim to fill the bounding box, so we must use the
 	 * smaller axis.
 	 */
-	*hshrink = (double) width / thumbnail->width;
-	*vshrink = (double) height / thumbnail->height;
+	*hshrink = (double) input_width / target_width;
+	*vshrink = (double) input_height / target_height;
 
 	if( thumbnail->crop != VIPS_INTERESTING_NONE ) {
 		if( *hshrink < *vshrink )
