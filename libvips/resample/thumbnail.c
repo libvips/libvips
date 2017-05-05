@@ -729,7 +729,7 @@ vips_thumbnail_file_init( VipsThumbnailFile *file )
  * Optional arguments:
  *
  * * @height: %gint, target height in pixels
- * * @size: #VipsSize, upsize, downsize or both
+ * * @size: #VipsSize, upsize, downsize, both or force
  * * @auto_rotate: %gboolean, rotate upright using orientation tag
  * * @crop: #VipsInteresting, shrink and crop to fill target
  * * @linear: %gboolean, perform shrink in linear light
@@ -766,7 +766,7 @@ vips_thumbnail_file_init( VipsThumbnailFile *file )
  * these tags will not be interpreted.
  *
  * Shrinking is normally done in sRGB colourspace. Set @linear to shrink in 
- * linear light colourspace instead --- this can give better results, but can
+ * linear light colourspace instead. This can give better results, but can
  * also be far slower, since tricks like JPEG shrink-on-load cannot be used in
  * linear space.
  *
@@ -901,7 +901,7 @@ vips_thumbnail_buffer_init( VipsThumbnailBuffer *buffer )
  * Optional arguments:
  *
  * * @height: %gint, target height in pixels
- * * @size: #VipsSize, upsize, downsize or both
+ * * @size: #VipsSize, upsize, downsize, both or force
  * * @auto_rotate: %gboolean, rotate upright using orientation tag
  * * @crop: #VipsInteresting, shrink and crop to fill target
  * * @linear: %gboolean, perform shrink in linear light
