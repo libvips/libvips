@@ -193,8 +193,12 @@ vips_smartcrop_attention( VipsSmartcrop *smartcrop,
 	/* Sobel edge-detect on L.
 	 */
 	if( vips_extract_band( t[1], &t[2], 0, NULL ) ||
-		vips_conv( t[2], &t[3], t[21], NULL ) ||
-		vips_conv( t[2], &t[4], t[22], NULL ) ||
+		vips_conv( t[2], &t[3], t[21], 
+			"precision", VIPS_PRECISION_INTEGER,
+			NULL ) ||
+		vips_conv( t[2], &t[4], t[22], 
+			"precision", VIPS_PRECISION_INTEGER,
+			NULL ) ||
 		vips_abs( t[3], &t[5], NULL ) ||
 		vips_abs( t[4], &t[6], NULL ) ||
 		vips_add( t[5], t[6], &t[7], NULL ) )

@@ -2283,6 +2283,7 @@ im_compass( VipsImage *in, VipsImage *out, INTMASK *mask )
 	if( vips_compass( in, &t2, t1, 
 		"times", 8, 
 		"angle", VIPS_ANGLE45_D45, 
+		"precision", VIPS_PRECISION_INTEGER,
 		NULL ) ) {
 		g_object_unref( t1 );
 		return( -1 );
@@ -2308,6 +2309,7 @@ im_lindetect( IMAGE *in, IMAGE *out, INTMASK *mask )
 	if( vips_compass( in, &t2, t1, 
 		"times", 4, 
 		"angle", VIPS_ANGLE45_D45, 
+		"precision", VIPS_PRECISION_INTEGER,
 		NULL ) ) {
 		g_object_unref( t1 );
 		return( -1 );
@@ -2334,6 +2336,7 @@ im_gradient( IMAGE *in, IMAGE *out, INTMASK *mask )
 		"times", 2, 
 		"angle", VIPS_ANGLE45_D90, 
 		"combine", VIPS_COMBINE_SUM, 
+		"precision", VIPS_PRECISION_INTEGER,
 		NULL ) ) {
 		g_object_unref( t1 );
 		return( -1 );
@@ -2364,6 +2367,7 @@ im_convsep( IMAGE *in, IMAGE *out, INTMASK *mask )
 		im_imask2vips( mask, t1 ) )
 		return( -1 );
 	if( vips_convsep( in, &t2, t1, 
+		"precision", VIPS_PRECISION_INTEGER,
 		NULL ) ) {
 		g_object_unref( t1 );
 		return( -1 );
@@ -2393,9 +2397,7 @@ im_convsep_f( IMAGE *in, IMAGE *out, DOUBLEMASK *mask )
 	if( !(t1 = vips_image_new()) ||
 		im_mask2vips( mask, t1 ) )
 		return( -1 );
-	if( vips_convsep( in, &t2, t1, 
-		"precision", VIPS_PRECISION_FLOAT,
-		NULL ) ) {
+	if( vips_convsep( in, &t2, t1, NULL ) ) {
 		g_object_unref( t1 );
 		return( -1 );
 	}
@@ -2561,12 +2563,18 @@ im_contrast_surface( IMAGE *in, IMAGE *out, int half_win_size, int spacing )
 		for( x = 0; x < size; x++ )
 			*VIPS_MATRIX( t[8], x, y ) = 1.0;
 
-	if( vips_conv( in, &t[2], t[0], NULL ) ||
-		vips_conv( in, &t[3], t[1], NULL ) ||
+	if( vips_conv( in, &t[2], t[0], 
+			"precision", VIPS_PRECISION_INTEGER,
+			NULL ) ||
+		vips_conv( in, &t[3], t[1], 
+			"precision", VIPS_PRECISION_INTEGER,
+			NULL ) ||
 		vips_abs( t[2], &t[4], NULL ) ||
 		vips_abs( t[3], &t[5], NULL ) ||
 		vips_add( t[4], t[5], &t[6], NULL ) ||
-		vips_conv( t[6], &t[7], t[8], NULL ) ||
+		vips_conv( t[6], &t[7], t[8], 
+			"precision", VIPS_PRECISION_INTEGER,
+			NULL ) ||
 		vips_subsample( t[7], &t[9], spacing, spacing, NULL ) ||
 		vips_image_write( t[9], out ) )
 		return( -1 ); 

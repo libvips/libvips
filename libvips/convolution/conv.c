@@ -2,6 +2,9 @@
  *
  * 12/8/13	
  * 	- from vips_hist_cum()
+ * 8/5/17
+ * 	- default to float ... int will often lose precision and should not be
+ * 	  the default
  */
 
 /*
@@ -137,7 +140,7 @@ vips_conv_class_init( VipsConvClass *class )
 		_( "Convolve with this precision" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsConv, precision ), 
-		VIPS_TYPE_PRECISION, VIPS_PRECISION_INTEGER ); 
+		VIPS_TYPE_PRECISION, VIPS_PRECISION_FLOAT ); 
 
 	VIPS_ARG_INT( class, "layers", 104, 
 		_( "Layers" ), 
@@ -158,7 +161,7 @@ vips_conv_class_init( VipsConvClass *class )
 static void
 vips_conv_init( VipsConv *conv )
 {
-	conv->precision = VIPS_PRECISION_INTEGER;
+	conv->precision = VIPS_PRECISION_FLOAT;
 	conv->layers = 5;
 	conv->cluster = 1;
 }
@@ -187,21 +190,22 @@ vips_conv_init( VipsConv *conv )
  *
  * where scale and offset are part of @mask. 
  *
+ * By default, @precision is 
+ * #VIPS_PRECISION_FLOAT. The output image 
+ * is always #VIPS_FORMAT_FLOAT unless @in is #VIPS_FORMAT_DOUBLE, in which case
+ * @out is also #VIPS_FORMAT_DOUBLE. 
+ *
  * If @precision is #VIPS_PRECISION_INTEGER, then 
  * elements of @mask are converted to
  * integers before convolution, using rint(),
  * and the output image 
  * always has the same #VipsBandFormat as the input image. 
  *
- * For #VIPS_FORMAT_UCHAR images, vips_conv() uses a fast vector path based on
+ * For #VIPS_FORMAT_UCHAR images and #VIPS_PRECISION_INTEGER @precision, 
+ * vips_conv() uses a fast vector path based on
  * fixed-point arithmetic. This can produce slightly different results. 
  * Disable the vector path with `--vips-novector` or `VIPS_NOVECTOR` or
  * vips_vector_set_enabled().
- *
- * If @precision is #VIPS_PRECISION_FLOAT then the convolution is performed
- * with floating-point arithmetic. The output image 
- * is always #VIPS_FORMAT_FLOAT unless @in is #VIPS_FORMAT_DOUBLE, in which case
- * @out is also #VIPS_FORMAT_DOUBLE. 
  *
  * If @precision is #VIPS_PRECISION_APPROXIMATE then, like
  * #VIPS_PRECISION_INTEGER, @mask is converted to int before convolution, and 
