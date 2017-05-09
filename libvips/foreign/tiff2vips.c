@@ -173,6 +173,8 @@
  * 	- invalidate operation on read error
  * 27/1/17
  * 	- if rows_per_strip is large, read with scanline API instead
+ * 9/5/17
+ * 	- remove missing res warning
  */
 
 /*
@@ -394,9 +396,9 @@ get_resolution( TIFF *tiff, VipsImage *out )
 		}
 	}
 	else {
-		g_warning( _( "no resolution information for "
-			"TIFF image \"%s\" -- defaulting to 1 pixel per mm" ), 
-			TIFFFileName( tiff ) );
+		/* We used to warn about missing res data, but it happens so
+		 * often and is so harmless, why bother.
+		 */
 		x = 1.0;
 		y = 1.0;
 	}
