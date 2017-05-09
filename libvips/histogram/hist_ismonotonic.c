@@ -90,7 +90,9 @@ vips_hist_ismonotonic_build( VipsObject *object )
 
 	/* We want >=128 everywhere, ie. no -ve transitions.
 	 */
-	if( vips_conv( ismonotonic->in, &t[1], t[0], NULL ) ||
+	if( vips_conv( ismonotonic->in, &t[1], t[0], 
+			"precision", VIPS_PRECISION_INTEGER,
+			NULL ) ||
 		vips_moreeq_const1( t[1], &t[2], 128, NULL ) ||
 		vips_min( t[2], &m, NULL ) )
 		return( -1 );

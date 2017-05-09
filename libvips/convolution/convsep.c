@@ -2,6 +2,9 @@
  *
  * 23/10/13	
  * 	- from vips_convsep()
+ * 8/5/17
+ *      - default to float ... int will often lose precision and should not be
+ *        the default
  */
 
 /*
@@ -128,7 +131,7 @@ vips_convsep_class_init( VipsConvsepClass *class )
 		_( "Convolve with this precision" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsConvsep, precision ), 
-		VIPS_TYPE_PRECISION, VIPS_PRECISION_INTEGER ); 
+		VIPS_TYPE_PRECISION, VIPS_PRECISION_FLOAT ); 
 
 	VIPS_ARG_INT( class, "layers", 204, 
 		_( "Layers" ), 
@@ -149,7 +152,7 @@ vips_convsep_class_init( VipsConvsepClass *class )
 static void
 vips_convsep_init( VipsConvsep *convsep )
 {
-	convsep->precision = VIPS_PRECISION_INTEGER;
+	convsep->precision = VIPS_PRECISION_FLOAT;
 	convsep->layers = 5;
 	convsep->cluster = 1;
 }

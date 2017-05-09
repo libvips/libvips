@@ -2,6 +2,9 @@
  *
  * 23/10/13	
  * 	- from vips_conv()
+ * 8/5/17
+ *      - default to float ... int will often lose precision and should not be
+ *        the default
  */
 
 /*
@@ -172,7 +175,7 @@ vips_compass_class_init( VipsCompassClass *class )
 		_( "Convolve with this precision" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsCompass, precision ), 
-		VIPS_TYPE_PRECISION, VIPS_PRECISION_INTEGER ); 
+		VIPS_TYPE_PRECISION, VIPS_PRECISION_FLOAT ); 
 
 	VIPS_ARG_INT( class, "layers", 204, 
 		_( "Layers" ), 
@@ -196,7 +199,7 @@ vips_compass_init( VipsCompass *compass )
 	compass->times = 2;
 	compass->angle = VIPS_ANGLE45_D90;
 	compass->combine = VIPS_COMBINE_MAX;
-	compass->precision = VIPS_PRECISION_INTEGER;
+	compass->precision = VIPS_PRECISION_FLOAT;
 	compass->layers = 5;
 	compass->cluster = 1;
 }
