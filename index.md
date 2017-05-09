@@ -11,8 +11,7 @@ The [download area]({{ site.github.releases_url }}) has the
 source code plus pre-compiled binaries for Windows. You can install on macOS
 with homebrew, MacPorts or Fink, and it's available in most Linux package
 managers, see the [install notes](install.html).  libvips is licensed under
-the [LGPL 2.1+](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html),
-making it free to use.
+the [LGPL 2.1+](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html).
 
 It has around [300 operations](API/current/func-list.html) covering
 arithmetic, histograms, convolution, morphological operations, frequency
