@@ -90,6 +90,8 @@
  * 6/1/17
  * 	- fancy geometry strings
  * 	- support VipSize restrictions
+ * 4/5/17
+ * 	- add ! geo modifier
  */
 
 #ifdef HAVE_CONFIG_H
@@ -333,7 +335,7 @@ thumbnail_parse_geometry( const char *geometry )
 			p++;
 	}
 
-	/* Get the final < or >.
+	/* Get the final <>!
 	 */
 	while( isspace( *p ) )
 		p++;
@@ -341,6 +343,8 @@ thumbnail_parse_geometry( const char *geometry )
 		size_restriction = VIPS_SIZE_UP;
 	else if( *p == '>' ) 
 		size_restriction = VIPS_SIZE_DOWN;
+	else if( *p == '!' ) 
+		size_restriction = VIPS_SIZE_FORCE;
 	else if( *p != '\0' ||
 		(thumbnail_width == VIPS_MAX_COORD && 
 			thumbnail_height == VIPS_MAX_COORD) ) {
@@ -348,17 +352,29 @@ thumbnail_parse_geometry( const char *geometry )
 		return( -1 );
 	}
 
-	/* If --crop is set, both width and height must be specified,
-	 * since we'll need a complete bounding box to fill.
+	/* If force is set and one of width or height isn't set, copy from the
+	 * one that is.
 	 */
-	if( (crop_image || smartcrop_image) &&
-		(thumbnail_width == VIPS_MAX_COORD ||
-			thumbnail_height == VIPS_MAX_COORD) ) {
-		vips_error( "thumbnail",
-			"both width and height must be given if "
-			"crop is enabled" );
-		return( -1 );
+	if( size_restriction == VIPS_SIZE_FORCE ) {
+		if( thumbnail_width == VIPS_MAX_COORD )
+			thumbnail_width = thumbnail_height;
+		if( thumbnail_height == VIPS_MAX_COORD )
+			thumbnail_height = thumbnail_width;
 	}
+
+	/* If --crop is set or force is set, both width and height must be 
+	 * specified, since we'll need a complete bounding box to fill.
+	 */
+	if( crop_image || 
+		smartcrop_image || 
+		size_restriction == VIPS_SIZE_FORCE ) 
+		if( thumbnail_width == VIPS_MAX_COORD ||
+			thumbnail_height == VIPS_MAX_COORD ) {
+			vips_error( "thumbnail",
+				"both width and height must be given if "
+				"crop is enabled" );
+			return( -1 );
+		}
 
 	return( 0 );
 }

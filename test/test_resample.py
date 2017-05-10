@@ -107,6 +107,7 @@ class TestResample(unittest.TestCase):
 
     def setUp(self):
         self.jpeg_file = "images/йцук.jpg"
+        self.rotated_jpeg_file = "images/Landscape_6.jpg"
 
     def test_affine(self):
         im = Vips.Image.new_from_file(self.jpeg_file)
@@ -216,11 +217,37 @@ class TestResample(unittest.TestCase):
         self.assertNotEqual(im.width, 300)
         self.assertEqual(im.height, 100)
 
-        # with @crop, should fit both width and height
-        im = Vips.Image.thumbnail(self.jpeg_file, 100, 
-                                  height = 300, crop = True)
+        # force should fit width and height ... although this jpg has an
+        # orientation tag, we ignore it unless autorot is on
+        im = Vips.Image.thumbnail(self.rotated_jpeg_file, 100, height = 300,
+                                  size = "force")
         self.assertEqual(im.width, 100)
         self.assertEqual(im.height, 300)
+
+        # with force + autorot, we spin the image, but the output size should
+        # not change
+        im = Vips.Image.thumbnail(self.rotated_jpeg_file, 100, height = 300,
+                                  size = "force", auto_rotate = True)
+        self.assertEqual(im.width, 100)
+        self.assertEqual(im.height, 300)
+
+        # with @crop, should fit both width and height
+        im = Vips.Image.thumbnail(self.jpeg_file, 100, 
+                                  height = 300, crop = "centre")
+        self.assertEqual(im.width, 100)
+        self.assertEqual(im.height, 300)
+
+        # with size up, should not downsize
+        im = Vips.Image.thumbnail(self.jpeg_file, 100, size = "up")
+        self.assertEqual(im.width, im_orig.width)
+        im = Vips.Image.thumbnail(self.jpeg_file, 10000, size = "up")
+        self.assertEqual(im.width, 10000)
+
+        # with size down, should not upsize
+        im = Vips.Image.thumbnail(self.jpeg_file, 100, size = "down")
+        self.assertEqual(im.width, 100)
+        im = Vips.Image.thumbnail(self.jpeg_file, 10000, size = "down")
+        self.assertEqual(im.width, im_orig.width)
 
         im1 = Vips.Image.thumbnail(self.jpeg_file, 100)
         with open(self.jpeg_file, 'rb') as f:

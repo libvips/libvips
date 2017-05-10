@@ -831,6 +831,7 @@ vips_size_get_type( void )
 			{VIPS_SIZE_BOTH, "VIPS_SIZE_BOTH", "both"},
 			{VIPS_SIZE_UP, "VIPS_SIZE_UP", "up"},
 			{VIPS_SIZE_DOWN, "VIPS_SIZE_DOWN", "down"},
+			{VIPS_SIZE_FORCE, "VIPS_SIZE_FORCE", "force"},
 			{VIPS_SIZE_LAST, "VIPS_SIZE_LAST", "last"},
 			{0, NULL, NULL}
 		};

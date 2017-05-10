@@ -87,9 +87,10 @@
  * @VIPS_SIZE_BOTH: size both up and down
  * @VIPS_SIZE_UP: only upsize
  * @VIPS_SIZE_DOWN: only downsize
+ * @VIPS_SIZE_FORCE: force size, that is, break aspect ratio
  *
- * Controls whether an operation should upsize, downsize, or both up and
- * downsize. 
+ * Controls whether an operation should upsize, downsize, both up and
+ * downsize, or force a size.
  *
  * See also: vips_thumbnail().
  */

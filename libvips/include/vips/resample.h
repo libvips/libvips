@@ -51,6 +51,7 @@ typedef enum {
 	VIPS_SIZE_BOTH,
 	VIPS_SIZE_UP,
 	VIPS_SIZE_DOWN,
+	VIPS_SIZE_FORCE,
 	VIPS_SIZE_LAST
 } VipsSize;
 

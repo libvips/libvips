@@ -1,6 +1,6 @@
 - vips_compass() needs docs
 
-- cpp bandjoin should use bandjoin_const() where possibel ... currently 
+- cpp bandjoin should use bandjoin_const() where possible ... currently 
   uses new_from_image
 
 - not sure about utf8 error messages on win

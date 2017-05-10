@@ -5,6 +5,8 @@
  * 	- from vipsthumbnail.c
  * 6/1/17
  * 	- add @size parameter
+ * 4/5/17
+ * 	- add FORCE
  */
 
 /*
@@ -135,21 +137,27 @@ vips_thumbnail_finalize( GObject *gobject )
 
 /* Calculate the shrink factor, taking into account auto-rotate, the fit mode,
  * and so on.
+ *
+ * The hshrink/vshrink are the amount to shrink the input image axes by in
+ * order for the output axes (ie. after rotation) to match the required 
+ * thumbnail->width, thumbnail->height and fit mode.
  */
-static double
+static void
 vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail, 
-	int input_width, int input_height )
+	int input_width, int input_height, double *hshrink, double *vshrink )
 {
+	/* If we will be rotating, swap the target width and height.
+	 */
 	gboolean rotate = 
-		thumbnail->angle == VIPS_ANGLE_D90 || 
-		thumbnail->angle == VIPS_ANGLE_D270;
-	int width = thumbnail->auto_rotate && rotate ? 
-		input_height : input_width;
-	int height = thumbnail->auto_rotate && rotate ? 
-		input_width : input_height;
+		(thumbnail->angle == VIPS_ANGLE_D90 || 
+		 thumbnail->angle == VIPS_ANGLE_D270) &&
+		thumbnail->auto_rotate;
+	int target_width = rotate ? 
+		thumbnail->height : thumbnail->width;
+	int target_height = rotate ? 
+		thumbnail->width : thumbnail->height;
 
 	VipsDirection direction;
-	double shrink;
 
 	/* Calculate the horizontal and vertical shrink we'd need to fit the
 	 * image to the bounding box, and pick the biggest. 
@@ -157,33 +165,53 @@ vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail,
 	 * In crop mode, we aim to fill the bounding box, so we must use the
 	 * smaller axis.
 	 */
-	double horizontal = (double) width / thumbnail->width;
-	double vertical = (double) height / thumbnail->height;
+	*hshrink = (double) input_width / target_width;
+	*vshrink = (double) input_height / target_height;
 
 	if( thumbnail->crop != VIPS_INTERESTING_NONE ) {
-		if( horizontal < vertical )
+		if( *hshrink < *vshrink )
 			direction = VIPS_DIRECTION_HORIZONTAL;
 		else
 			direction = VIPS_DIRECTION_VERTICAL;
 	}
 	else {
-		if( horizontal < vertical )
+		if( *hshrink < *vshrink )
 			direction = VIPS_DIRECTION_VERTICAL;
 		else
 			direction = VIPS_DIRECTION_HORIZONTAL;
 	}
 
-	shrink = direction == VIPS_DIRECTION_HORIZONTAL ?
-		horizontal : vertical;  
+	if( thumbnail->size != VIPS_SIZE_FORCE ) {
+		if( direction == VIPS_DIRECTION_HORIZONTAL )
+			*vshrink = *hshrink;
+		else
+			*hshrink = *vshrink;
+	}
 
-	/* Restrict to only upsize, only downsize, or both.
-	 */
-	if( thumbnail->size == VIPS_SIZE_UP )
-		shrink = VIPS_MIN( 1, shrink );
-	if( thumbnail->size == VIPS_SIZE_DOWN )
-		shrink = VIPS_MAX( 1, shrink );
+	if( thumbnail->size == VIPS_SIZE_UP ) {
+		*hshrink = VIPS_MIN( 1, *hshrink );
+		*vshrink = VIPS_MIN( 1, *vshrink );
+	}
+	else if( thumbnail->size == VIPS_SIZE_DOWN ) {
+		*hshrink = VIPS_MAX( 1, *hshrink );
+		*vshrink = VIPS_MAX( 1, *vshrink );
+	}
+}
 
-	return( shrink ); 
+/* Just the common part of the shrink: the bit by which both axes must be
+ * shrunk.
+ */
+static double
+vips_thumbnail_calculate_common_shrink( VipsThumbnail *thumbnail, 
+	int width, int height )
+{
+	double hshrink;
+	double vshrink;
+
+	vips_thumbnail_calculate_shrink( thumbnail, width, height, 
+		&hshrink, &vshrink ); 
+
+	return( VIPS_MIN( hshrink, vshrink ) );
 }
 
 /* Find the best jpeg preload shrink.
@@ -191,8 +219,8 @@ vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail,
 static int
 vips_thumbnail_find_jpegshrink( VipsThumbnail *thumbnail, int width, int height )
 {
-	double shrink = 
-		vips_thumbnail_calculate_shrink( thumbnail, width, height ); 
+	double shrink = vips_thumbnail_calculate_common_shrink( thumbnail, 
+		width, height ); 
 
 	/* We can't use pre-shrunk images in linear mode. libjpeg shrinks in Y
 	 * (of YCbCR), not linear space.
@@ -228,7 +256,7 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 	VipsThumbnailClass *class = VIPS_THUMBNAIL_GET_CLASS( thumbnail );
 
 	VipsImage *im;
-	int shrink;
+	double shrink;
 	double scale;
 
 	if( class->get_info( thumbnail ) )
@@ -237,24 +265,28 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 	g_info( "input size is %d x %d", 
 		thumbnail->input_width, thumbnail->input_height ); 
 
-	shrink = 1;
+	shrink = 1.0;
 	scale = 1.0;
 
 	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
 		shrink = vips_thumbnail_find_jpegshrink( thumbnail, 
 			thumbnail->input_width, thumbnail->input_height );
-		g_info( "loading jpeg with factor %d pre-shrink", shrink ); 
+
+		g_info( "loading jpeg with factor %g pre-shrink", shrink ); 
 	}
 	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
 		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) {
-		scale = 1.0 / vips_thumbnail_calculate_shrink( thumbnail, 
-			thumbnail->input_width, thumbnail->input_height ); 
+		shrink = vips_thumbnail_calculate_common_shrink( thumbnail, 
+			thumbnail->input_width, thumbnail->input_height );
+		scale = 1.0 / shrink; 
+
 		g_info( "loading PDF/SVG with factor %g pre-scale", scale ); 
 	}
 	else if( vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
-		shrink = vips_thumbnail_calculate_shrink( thumbnail, 
-			thumbnail->input_width, thumbnail->input_height ); 
-		g_info( "loading webp with factor %d pre-shrink", shrink ); 
+		shrink = vips_thumbnail_calculate_common_shrink( thumbnail, 
+			thumbnail->input_width, thumbnail->input_height );
+
+		g_info( "loading webp with factor %g pre-shrink", shrink ); 
 	}
 
 	if( !(im = class->open( thumbnail, shrink, scale )) )
@@ -272,7 +304,8 @@ vips_thumbnail_build( VipsObject *object )
 		VIPS_INTERPRETATION_scRGB : VIPS_INTERPRETATION_sRGB; 
 
 	VipsImage *in;
-	double shrink;
+	double hshrink;
+	double vshrink;
 
 	/* TRUE if we've done the import of an ICC transform and still need to
 	 * export.
@@ -373,12 +406,13 @@ vips_thumbnail_build( VipsObject *object )
 		in = t[3];
 	}
 
-	shrink = vips_thumbnail_calculate_shrink( thumbnail, 
-		in->Xsize, in->Ysize );
+	vips_thumbnail_calculate_shrink( thumbnail, 
+		in->Xsize, in->Ysize, &hshrink, &vshrink );
 
 	/* Use centre convention to better match imagemagick.
 	 */
-	if( vips_resize( in, &t[4], 1.0 / shrink, 
+	if( vips_resize( in, &t[4], 1.0 / hshrink, 
+		"vscale", 1.0 / vshrink, 
 		"centre", TRUE, 
 		NULL ) ) 
 		return( -1 );
@@ -639,8 +673,6 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, int shrink, double scale )
 {
 	VipsThumbnailFile *file = (VipsThumbnailFile *) thumbnail;
 
-	/* We can't use UNBUFERRED safely on very-many-core systems.
-	 */
 	if( shrink != 1 ) 
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
@@ -697,7 +729,7 @@ vips_thumbnail_file_init( VipsThumbnailFile *file )
  * Optional arguments:
  *
  * * @height: %gint, target height in pixels
- * * @size: #VipsSize, upsize, downsize or both
+ * * @size: #VipsSize, upsize, downsize, both or force
  * * @auto_rotate: %gboolean, rotate upright using orientation tag
  * * @crop: #VipsInteresting, shrink and crop to fill target
  * * @linear: %gboolean, perform shrink in linear light
@@ -719,19 +751,22 @@ vips_thumbnail_file_init( VipsThumbnailFile *file )
  * @height rectangle, with any excess cropped away. See vips_smartcrop() for
  * details on the cropping strategy.
  *
- * Normally the operation will upsize or downsize as required. If @size is set
+ * Normally the operation will upsize or downsize as required to fit the image
+ * inside or outside the target size. If @size is set
  * to #VIPS_SIZE_UP, the operation will only upsize and will just
  * copy if asked to downsize. 
  * If @size is set
  * to #VIPS_SIZE_DOWN, the operation will only downsize and will just
  * copy if asked to upsize. 
+ * If @size is #VIPS_SIZE_FORCE, the image aspect ratio will be broken and the
+ * image will be forced to fit the target. 
  *
  * Normally any orientation tags on the input image (such as EXIF tags) are
  * interpreted to rotate the image upright. If you set @auto_rotate to %FALSE,
  * these tags will not be interpreted.
  *
  * Shrinking is normally done in sRGB colourspace. Set @linear to shrink in 
- * linear light colourspace instead --- this can give better results, but can
+ * linear light colourspace instead. This can give better results, but can
  * also be far slower, since tricks like JPEG shrink-on-load cannot be used in
  * linear space.
  *
@@ -866,7 +901,7 @@ vips_thumbnail_buffer_init( VipsThumbnailBuffer *buffer )
  * Optional arguments:
  *
  * * @height: %gint, target height in pixels
- * * @size: #VipsSize, upsize, downsize or both
+ * * @size: #VipsSize, upsize, downsize, both or force
  * * @auto_rotate: %gboolean, rotate upright using orientation tag
  * * @crop: #VipsInteresting, shrink and crop to fill target
  * * @linear: %gboolean, perform shrink in linear light
