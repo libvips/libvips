@@ -79,7 +79,7 @@ $ vips flip fred.jpg jim.jpg vertical
 $ vips shrink fred.png jim.png 10 10
 </programlisting>
   <para>
-    meaning shrink <literal>fred.png</literal> by a factor of 10 in both axies and write as <literal>jim.png</literal>.
+    meaning shrink <literal>fred.png</literal> by a factor of 10 in both axes and write as <literal>jim.png</literal>.
   </para>
   <para>
     You can imagine this operation running without needing <literal>fred.png</literal> to be completely decompressed first. You just read 10 lines from <literal>fred.png</literal> for every one line you write to <literal>jim.png</literal>.
