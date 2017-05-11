@@ -261,7 +261,7 @@ vips_colour_attach_profile( VipsImage *im, const char *filename )
 	char *data;
 	size_t data_length;
 
-	if( !(data = vips__file_read_name( filename, VIPS_ICC_DIR, 
+	if( !(data = vips__file_read_name( filename, vips__icc_dir(), 
 		&data_length )) ) 
 		return( -1 );
 	vips_image_set_blob( im, VIPS_META_ICC_NAME, 

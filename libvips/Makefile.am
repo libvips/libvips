@@ -109,7 +109,7 @@ INTROSPECTION_GIRS += Vips-8.0.gir
 #   --warn-all --verbose 
 # too annoying
 Vips_8_0_gir_SCANNERFLAGS = \
-	--program=./introspect \
+	--program=./introspect$(EXEEXT) \
 	--identifier-prefix=Vips \
 	--identifier-prefix=vips \
 	--symbol-prefix=vips 

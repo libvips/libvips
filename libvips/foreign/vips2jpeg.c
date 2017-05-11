@@ -357,7 +357,7 @@ static int
 write_profile_file( Write *write, const char *profile )
 {
 	if( !(write->profile_bytes = 
-		vips__file_read_name( profile, VIPS_ICC_DIR, 
+		vips__file_read_name( profile, vips__icc_dir(), 
 		&write->profile_length )) ) 
 		return( -1 );
 	write_profile_data( &write->cinfo, 

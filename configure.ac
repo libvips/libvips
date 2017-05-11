@@ -237,7 +237,8 @@ if test x"$vips_os_darwin" = x"yes"; then
   profile_dir="/Library/ColorSync/Profiles"
 elif test x"$vips_os_win32" = x"yes"; then
   # need double escapes since this will get pasted into a #define in a C
-  # header
+  # header ... the C:\Windows is usually overrwritten with the result of
+  # GetWindowsDirectoryW()
   profile_dir="C:\\\\Windows\\\\System32\\\\spool\\\\drivers\\\\color"
 else
   profile_dir="/usr/share/color/icc"

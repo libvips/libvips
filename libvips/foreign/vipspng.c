@@ -954,7 +954,7 @@ write_vips( Write *write,
 			size_t length;
 
 			if( !(data = vips__file_read_name( profile, 
-				VIPS_ICC_DIR, &length )) ) 
+				vips__icc_dir(), &length )) ) 
 				return( -1 );
 
 #ifdef DEBUG
