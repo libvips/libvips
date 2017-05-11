@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="/libvips/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
   </head>
   <body>
     <section class="page-header">
@@ -103,6 +104,22 @@ justifications.
 </td>
 </tr>
 <tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="VipsInterpolate.html#VIPS-TRANSFORM-SHIFT:CAPS" title="VIPS_TRANSFORM_SHIFT">VIPS_TRANSFORM_SHIFT</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="VipsInterpolate.html#VIPS-TRANSFORM-SCALE:CAPS" title="VIPS_TRANSFORM_SCALE">VIPS_TRANSFORM_SCALE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="VipsInterpolate.html#VIPS-INTERPOLATE-SHIFT:CAPS" title="VIPS_INTERPOLATE_SHIFT">VIPS_INTERPOLATE_SHIFT</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="VipsInterpolate.html#VIPS-INTERPOLATE-SCALE:CAPS" title="VIPS_INTERPOLATE_SCALE">VIPS_INTERPOLATE_SCALE</a></td>
+</tr>
+<tr>
 <td class="function_type">
 <a class="link" href="VipsInterpolate.html" title="VipsInterpolate"><span class="returnvalue">VipsInterpolate</span></a> *
 </td>
@@ -130,35 +147,8 @@ justifications.
 </table></div>
 </div>
 <div class="refsect1">
-<a name="VipsInterpolate.other"></a><h2>Types and Values</h2>
-<div class="informaltable"><table class="informaltable" width="100%" border="0">
-<colgroup>
-<col width="150px" class="name">
-<col class="description">
-</colgroup>
-<tbody>
-<tr>
-<td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="VipsInterpolate.html#VIPS-TRANSFORM-SHIFT:CAPS" title="VIPS_TRANSFORM_SHIFT">VIPS_TRANSFORM_SHIFT</a></td>
-</tr>
-<tr>
-<td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="VipsInterpolate.html#VIPS-TRANSFORM-SCALE:CAPS" title="VIPS_TRANSFORM_SCALE">VIPS_TRANSFORM_SCALE</a></td>
-</tr>
-<tr>
-<td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="VipsInterpolate.html#VIPS-INTERPOLATE-SHIFT:CAPS" title="VIPS_INTERPOLATE_SHIFT">VIPS_INTERPOLATE_SHIFT</a></td>
-</tr>
-<tr>
-<td class="define_keyword">#define</td>
-<td class="function_name"><a class="link" href="VipsInterpolate.html#VIPS-INTERPOLATE-SCALE:CAPS" title="VIPS_INTERPOLATE_SCALE">VIPS_INTERPOLATE_SCALE</a></td>
-</tr>
-</tbody>
-</table></div>
-</div>
-<div class="refsect1">
 <a name="VipsInterpolate.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+<pre class="screen">    GObject
     <span class="lineart">╰──</span> <a class="link" href="VipsObject.html" title="VipsObject">VipsObject</a>
         <span class="lineart">╰──</span> VipsInterpolate
 </pre>
@@ -192,7 +182,7 @@ pixels and it can access pixels in a window of size <em class="parameter"><code>
 .</p>
 <p>See also: <span class="type">VipsInterpolateClass</span>.</p>
 <div class="refsect3">
-<a name="VipsInterpolateMethod.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.10.8.2.7"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -245,9 +235,8 @@ avoid the lookup overhead.</p>
 <p>You need to set <em class="parameter"><code>in</code></em>
  and <em class="parameter"><code>out</code></em>
  up correctly.</p>
-<p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
 <div class="refsect3">
-<a name="vips-interpolate.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.10.8.3.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -292,9 +281,8 @@ vips_interpolate_get_method (<em class="parameter"><code><a class="link" href="V
 <p>Look up the <em class="parameter"><code>interpolate</code></em>
  method in the class and return it. Use this
 instead of <a class="link" href="VipsInterpolate.html#vips-interpolate" title="vips_interpolate ()"><code class="function">vips_interpolate()</code></a> to cache method dispatch.</p>
-<p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
 <div class="refsect3">
-<a name="vips-interpolate-get-method.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.10.8.4.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -309,8 +297,9 @@ instead of <a class="link" href="VipsInterpolate.html#vips-interpolate" title="v
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-interpolate-get-method.returns"></a><h4>Returns</h4>
+<a name="id-1.4.10.8.4.6"></a><h4>Returns</h4>
 <p> a pointer to the interpolation function</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -320,7 +309,7 @@ instead of <a class="link" href="VipsInterpolate.html#vips-interpolate" title="v
 vips_interpolate_get_window_size (<em class="parameter"><code><a class="link" href="VipsInterpolate.html" title="VipsInterpolate"><span class="type">VipsInterpolate</span></a> *interpolate</code></em>);</pre>
 <p>Look up an interpolators desired window size.</p>
 <div class="refsect3">
-<a name="vips-interpolate-get-window-size.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.10.8.5.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -335,8 +324,9 @@ vips_interpolate_get_window_size (<em class="parameter"><code><a class="link" hr
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-interpolate-get-window-size.returns"></a><h4>Returns</h4>
+<a name="id-1.4.10.8.5.6"></a><h4>Returns</h4>
 <p> the interpolators required window size</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -346,7 +336,7 @@ vips_interpolate_get_window_size (<em class="parameter"><code><a class="link" hr
 vips_interpolate_get_window_offset (<em class="parameter"><code><a class="link" href="VipsInterpolate.html" title="VipsInterpolate"><span class="type">VipsInterpolate</span></a> *interpolate</code></em>);</pre>
 <p>Look up an interpolators desired window offset.</p>
 <div class="refsect3">
-<a name="vips-interpolate-get-window-offset.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.10.8.6.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -361,67 +351,12 @@ vips_interpolate_get_window_offset (<em class="parameter"><code><a class="link" 
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-interpolate-get-window-offset.returns"></a><h4>Returns</h4>
+<a name="id-1.4.10.8.6.6"></a><h4>Returns</h4>
 <p> the interpolators required window offset</p>
+<p></p>
 </div>
 </div>
 <hr>
-<div class="refsect2">
-<a name="vips-interpolate-nearest-static"></a><h3>vips_interpolate_nearest_static ()</h3>
-<pre class="programlisting"><a class="link" href="VipsInterpolate.html" title="VipsInterpolate"><span class="returnvalue">VipsInterpolate</span></a> *
-vips_interpolate_nearest_static (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
-<p>A convenience function that returns a nearest-neighbour interpolator you 
-don't need to free.</p>
-<div class="refsect3">
-<a name="vips-interpolate-nearest-static.returns"></a><h4>Returns</h4>
-<p> a nearest-neighbour interpolator. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
-</div>
-</div>
-<hr>
-<div class="refsect2">
-<a name="vips-interpolate-bilinear-static"></a><h3>vips_interpolate_bilinear_static ()</h3>
-<pre class="programlisting"><a class="link" href="VipsInterpolate.html" title="VipsInterpolate"><span class="returnvalue">VipsInterpolate</span></a> *
-vips_interpolate_bilinear_static (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
-<p>A convenience function that returns a bilinear interpolator you 
-don't need to free.</p>
-<div class="refsect3">
-<a name="vips-interpolate-bilinear-static.returns"></a><h4>Returns</h4>
-<p> a bilinear interpolator. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
-</div>
-</div>
-<hr>
-<div class="refsect2">
-<a name="vips-interpolate-new"></a><h3>vips_interpolate_new ()</h3>
-<pre class="programlisting"><a class="link" href="VipsInterpolate.html" title="VipsInterpolate"><span class="returnvalue">VipsInterpolate</span></a> *
-vips_interpolate_new (<em class="parameter"><code>const <span class="type">char</span> *nickname</code></em>);</pre>
-<p>Look up an interpolator from a nickname and make one. You need to free the
-result with <a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> when you're done with it.</p>
-<p>See also: <a class="link" href="VipsObject.html#vips-type-find" title="vips_type_find ()"><code class="function">vips_type_find()</code></a>.</p>
-<div class="refsect3">
-<a name="vips-interpolate-new.parameters"></a><h4>Parameters</h4>
-<div class="informaltable"><table class="informaltable" width="100%" border="0">
-<colgroup>
-<col width="150px" class="parameters_name">
-<col class="parameters_description">
-<col width="200px" class="parameters_annotations">
-</colgroup>
-<tbody><tr>
-<td class="parameter_name"><p>nickname</p></td>
-<td class="parameter_description"><p>nickname for interpolator</p></td>
-<td class="parameter_annotations"> </td>
-</tr></tbody>
-</table></div>
-</div>
-<div class="refsect3">
-<a name="vips-interpolate-new.returns"></a><h4>Returns</h4>
-<p> an interpolator, or <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error.</p>
-</div>
-</div>
-</div>
-<div class="refsect1">
-<a name="VipsInterpolate.other_details"></a><h2>Types and Values</h2>
 <div class="refsect2">
 <a name="VIPS-TRANSFORM-SHIFT:CAPS"></a><h3>VIPS_TRANSFORM_SHIFT</h3>
 <pre class="programlisting">#define VIPS_TRANSFORM_SHIFT (6)
@@ -451,10 +386,69 @@ calcualtion. This is how many bits of precision they use.</p>
 </pre>
 <p><a class="link" href="VipsInterpolate.html#VIPS-INTERPOLATE-SHIFT:CAPS" title="VIPS_INTERPOLATE_SHIFT"><span class="type">VIPS_INTERPOLATE_SHIFT</span></a> as a multiplicative constant.</p>
 </div>
+<hr>
+<div class="refsect2">
+<a name="vips-interpolate-nearest-static"></a><h3>vips_interpolate_nearest_static ()</h3>
+<pre class="programlisting"><a class="link" href="VipsInterpolate.html" title="VipsInterpolate"><span class="returnvalue">VipsInterpolate</span></a> *
+vips_interpolate_nearest_static (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>A convenience function that returns a nearest-neighbour interpolator you 
+don't need to free.</p>
+<div class="refsect3">
+<a name="id-1.4.10.8.11.5"></a><h4>Returns</h4>
+<p> a nearest-neighbour interpolator. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-interpolate-bilinear-static"></a><h3>vips_interpolate_bilinear_static ()</h3>
+<pre class="programlisting"><a class="link" href="VipsInterpolate.html" title="VipsInterpolate"><span class="returnvalue">VipsInterpolate</span></a> *
+vips_interpolate_bilinear_static (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>A convenience function that returns a bilinear interpolator you 
+don't need to free.</p>
+<div class="refsect3">
+<a name="id-1.4.10.8.12.5"></a><h4>Returns</h4>
+<p> a bilinear interpolator. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-interpolate-new"></a><h3>vips_interpolate_new ()</h3>
+<pre class="programlisting"><a class="link" href="VipsInterpolate.html" title="VipsInterpolate"><span class="returnvalue">VipsInterpolate</span></a> *
+vips_interpolate_new (<em class="parameter"><code>const <span class="type">char</span> *nickname</code></em>);</pre>
+<p>Look up an interpolator from a nickname and make one. You need to free the
+result with <code class="function">g_object_unref()</code> when you're done with it.</p>
+<p>See also: <a class="link" href="VipsObject.html#vips-type-find" title="vips_type_find ()"><code class="function">vips_type_find()</code></a>.</p>
+<div class="refsect3">
+<a name="id-1.4.10.8.13.6"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>nickname</p></td>
+<td class="parameter_description"><p>nickname for interpolator</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="id-1.4.10.8.13.7"></a><h4>Returns</h4>
+<p> an interpolator, or <code class="literal">NULL</code> on error.</p>
+<p></p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="VipsInterpolate.other_details"></a><h2>Types and Values</h2>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.25</div>
+<hr>
+          Generated by GTK-Doc V1.21</div>
 </section>
 
     <script type="text/javascript">

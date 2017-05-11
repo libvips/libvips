@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="/libvips/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
   </head>
   <body>
     <section class="page-header">
@@ -208,7 +209,7 @@ and ask for regions of images to be calculated.</p>
 value passed into <a class="link" href="libvips-generate.html#vips-sink-disc" title="vips_sink_disc ()"><code class="function">vips_sink_disc()</code></a>.</p>
 <p>See also: <a class="link" href="libvips-generate.html#vips-sink-disc" title="vips_sink_disc ()"><code class="function">vips_sink_disc()</code></a>.</p>
 <div class="refsect3">
-<a name="VipsRegionWrite.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.5.7.2.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -235,8 +236,9 @@ value passed into <a class="link" href="libvips-generate.html#vips-sink-disc" ti
 </table></div>
 </div>
 <div class="refsect3">
-<a name="VipsRegionWrite.returns"></a><h4>Returns</h4>
+<a name="id-1.3.5.7.2.7"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -259,7 +261,7 @@ disc files. Things like <a class="link" href="VipsForeignSave.html#vips-jpegsave
 images to files in JPEG format. </p>
 <p>See also: <a class="link" href="VipsOperation.html#vips-concurrency-set" title="vips_concurrency_set ()"><code class="function">vips_concurrency_set()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-sink-disc.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.5.7.3.8"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -286,8 +288,9 @@ images to files in JPEG format. </p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-sink-disc.returns"></a><h4>Returns</h4>
+<a name="id-1.3.5.7.3.9"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -311,7 +314,7 @@ pipeline that generated <em class="parameter"><code>im</code></em>
 .</p>
 <p>See also: <a class="link" href="libvips-generate.html#vips-image-generate" title="vips_image_generate ()"><code class="function">vips_image_generate()</code></a>, <a class="link" href="VipsImage.html#vips-image-new" title="vips_image_new ()"><code class="function">vips_image_new()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-sink.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.5.7.4.7"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -353,8 +356,9 @@ pipeline that generated <em class="parameter"><code>im</code></em>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-sink.returns"></a><h4>Returns</h4>
+<a name="id-1.3.5.7.4.8"></a><h4>Returns</h4>
 <p> 0 on success, or -1 on error.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -381,7 +385,7 @@ image edges). This is handy for things like writing a tiled TIFF image,
 where tiles have to be generated with a certain size.</p>
 <p>See also: <a class="link" href="libvips-generate.html#vips-sink" title="vips_sink ()"><code class="function">vips_sink()</code></a>, <a class="link" href="VipsThreadState.html#vips-get-tile-size" title="vips_get_tile_size ()"><code class="function">vips_get_tile_size()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-sink-tile.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.5.7.5.7"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -433,8 +437,9 @@ where tiles have to be generated with a certain size.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-sink-tile.returns"></a><h4>Returns</h4>
+<a name="id-1.3.5.7.5.8"></a><h4>Returns</h4>
 <p> 0 on success, or -1 on error.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -495,16 +500,16 @@ ready.</p>
  callback is run from one of the background threads. In the 
 callback
 you need to somehow send a message to the main thread that the pixels are
-ready. In a glib-based application, this is easily done with <a href="/usr/share/gtk-doc/html/glibglib-The-Main-Event-Loop.html#g-idle-add"><code class="function">g_idle_add()</code></a>.</p>
+ready. In a glib-based application, this is easily done with <code class="function">g_idle_add()</code>.</p>
 <p>If <em class="parameter"><code>notify_fn</code></em>
- is <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> then <a class="link" href="libvips-generate.html#vips-sink-screen" title="vips_sink_screen ()"><code class="function">vips_sink_screen()</code></a> runs synchronously.
+ is <code class="literal">NULL</code> then <a class="link" href="libvips-generate.html#vips-sink-screen" title="vips_sink_screen ()"><code class="function">vips_sink_screen()</code></a> runs synchronously.
 <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a> on <em class="parameter"><code>out</code></em>
  will always block until the pixels have been
 calculated.</p>
 <p>See also: <a class="link" href="libvips-conversion.html#vips-tilecache" title="vips_tilecache ()"><code class="function">vips_tilecache()</code></a>, <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>, 
 <a class="link" href="libvips-generate.html#vips-sink-disc" title="vips_sink_disc ()"><code class="function">vips_sink_disc()</code></a>, <a class="link" href="libvips-generate.html#vips-sink" title="vips_sink ()"><code class="function">vips_sink()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-sink-screen.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.5.7.7.10"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -561,8 +566,9 @@ calculated.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-sink-screen.returns"></a><h4>Returns</h4>
+<a name="id-1.3.5.7.7.11"></a><h4>Returns</h4>
 <p> 0 on sucess, -1 on error.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -576,7 +582,7 @@ vips_sink_memory (<em class="parameter"><code><a class="link" href="VipsImage.ht
 used by vips to implement writing to a memory buffer.</p>
 <p>See also: <a class="link" href="libvips-generate.html#vips-sink" title="vips_sink ()"><code class="function">vips_sink()</code></a>, <a class="link" href="VipsThreadState.html#vips-get-tile-size" title="vips_get_tile_size ()"><code class="function">vips_get_tile_size()</code></a>, <a class="link" href="VipsImage.html#vips-image-new-memory" title="vips_image_new_memory ()"><code class="function">vips_image_new_memory()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-sink-memory.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.5.7.8.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -591,8 +597,9 @@ used by vips to implement writing to a memory buffer.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-sink-memory.returns"></a><h4>Returns</h4>
+<a name="id-1.3.5.7.8.7"></a><h4>Returns</h4>
 <p> 0 on success, or -1 on error.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -606,7 +613,7 @@ vips_start_one (<em class="parameter"><code><a class="link" href="VipsImage.html
 .</p>
 <p>See also: <a class="link" href="libvips-generate.html#vips-image-generate" title="vips_image_generate ()"><code class="function">vips_image_generate()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-start-one.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.5.7.9.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -644,7 +651,7 @@ vips_stop_one (<em class="parameter"><code><span class="type">void</span> *seq</
 .</p>
 <p>See also: <a class="link" href="libvips-generate.html#vips-image-generate" title="vips_image_generate ()"><code class="function">vips_image_generate()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-stop-one.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.5.7.10.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -680,10 +687,10 @@ vips_start_many (<em class="parameter"><code><a class="link" href="VipsImage.htm
                  <em class="parameter"><code><span class="type">void</span> *b</code></em>);</pre>
 <p>Start function for many images in. <em class="parameter"><code>a</code></em>
  is a pointer to 
-a <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of input images.</p>
+a <code class="literal">NULL</code>-terminated array of input images.</p>
 <p>See also: <a class="link" href="libvips-generate.html#vips-image-generate" title="vips_image_generate ()"><code class="function">vips_image_generate()</code></a>, <a class="link" href="libvips-generate.html#vips-allocate-input-array" title="vips_allocate_input_array ()"><code class="function">vips_allocate_input_array()</code></a></p>
 <div class="refsect3">
-<a name="vips-start-many.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.5.7.11.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -719,10 +726,10 @@ vips_stop_many (<em class="parameter"><code><span class="type">void</span> *seq<
                 <em class="parameter"><code><span class="type">void</span> *b</code></em>);</pre>
 <p>Stop function for many images in. <em class="parameter"><code>a</code></em>
  is a pointer to 
-a <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of input images.</p>
+a <code class="literal">NULL</code>-terminated array of input images.</p>
 <p>See also: <a class="link" href="libvips-generate.html#vips-image-generate" title="vips_image_generate ()"><code class="function">vips_image_generate()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-stop-many.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.5.7.12.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -755,11 +762,11 @@ a <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><cod
 <pre class="programlisting"><a class="link" href="VipsImage.html" title="VipsImage"><span class="returnvalue">VipsImage</span></a> **
 vips_allocate_input_array (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *out</code></em>,
                            <em class="parameter"><code>...</code></em>);</pre>
-<p>Convenience function --- make a <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of input images.
+<p>Convenience function --- make a <code class="literal">NULL</code>-terminated array of input images.
 Use with <a class="link" href="libvips-generate.html#vips-start-many" title="vips_start_many ()"><code class="function">vips_start_many()</code></a>.</p>
 <p>See also: <a class="link" href="libvips-generate.html#vips-image-generate" title="vips_image_generate ()"><code class="function">vips_image_generate()</code></a>, <a class="link" href="libvips-generate.html#vips-start-many" title="vips_start_many ()"><code class="function">vips_start_many()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-allocate-input-array.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.5.7.13.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -774,15 +781,16 @@ Use with <a class="link" href="libvips-generate.html#vips-start-many" title="vip
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of input images</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of input images</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-allocate-input-array.returns"></a><h4>Returns</h4>
-<p> <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of images. Do not free the result.</p>
+<a name="id-1.3.5.7.13.7"></a><h4>Returns</h4>
+<p> <code class="literal">NULL</code>-terminated array of images. Do not free the result.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -806,7 +814,7 @@ a few scanlines is allocated and
 chunk is generated, it is written to disc.</p>
 <p>See also: <a class="link" href="libvips-generate.html#vips-sink" title="vips_sink ()"><code class="function">vips_sink()</code></a>, <a class="link" href="VipsImage.html#vips-image-new" title="vips_image_new ()"><code class="function">vips_image_new()</code></a>, <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-image-generate.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.5.7.14.9"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -848,8 +856,9 @@ chunk is generated, it is written to disc.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-generate.returns"></a><h4>Returns</h4>
+<a name="id-1.3.5.7.14.10"></a><h4>Returns</h4>
 <p> 0 on success, or -1 on error.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -893,7 +902,7 @@ pipeline.</p>
 for the cache invalidation system. </p>
 <p>See also: <a class="link" href="libvips-generate.html#vips-image-pipelinev" title="vips_image_pipelinev ()"><code class="function">vips_image_pipelinev()</code></a>, <a class="link" href="libvips-generate.html#vips-image-generate" title="vips_image_generate ()"><code class="function">vips_image_generate()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-image-pipeline-array.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.5.7.15.9"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -914,15 +923,16 @@ for the cache invalidation system. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>in</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of input images </p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated array of input images </p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-pipeline-array.returns"></a><h4>Returns</h4>
+<a name="id-1.3.5.7.15.10"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -935,7 +945,7 @@ vips_image_pipelinev (<em class="parameter"><code><a class="link" href="VipsImag
 <p>Build an array and call <a class="link" href="libvips-generate.html#vips-image-pipeline-array" title="vips_image_pipeline_array ()"><code class="function">vips_image_pipeline_array()</code></a>.</p>
 <p>See also: <a class="link" href="libvips-generate.html#vips-image-generate" title="vips_image_generate ()"><code class="function">vips_image_generate()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-image-pipelinev.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.5.7.16.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -955,7 +965,7 @@ vips_image_pipelinev (<em class="parameter"><code><a class="link" href="VipsImag
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of input images </p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of input images </p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -973,7 +983,8 @@ vips_image_pipelinev (<em class="parameter"><code><a class="link" href="VipsImag
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.25</div>
+<hr>
+          Generated by GTK-Doc V1.21</div>
 </section>
 
     <script type="text/javascript">

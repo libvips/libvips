@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="/libvips/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
   </head>
   <body>
     <section class="page-header">
@@ -438,17 +439,17 @@ add another message.</p>
 9
 10
 11</pre></td>
-        <td class="listing_code"><pre class="programlisting">IMAGE <span class="gtkdoc opt">*</span>im<span class="gtkdoc opt">;</span>
+        <td class="listing_code"><pre class="programlisting"><span class="usertype">IMAGE</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">im</span><span class="symbol">;</span>
 
-<span class="keyword">if</span><span class="gtkdoc opt">( !(</span>im <span class="gtkdoc opt">=</span> <span class="function"><a href="VipsImage.html#vips-image-new-from-file">vips_image_new_from_file</a></span><span class="gtkdoc opt">(</span> filename<span class="gtkdoc opt">,</span> NULL <span class="gtkdoc opt">)) )</span>
-  <span class="gtkdoc slc">// vips_image_new_from_file() will set a message, we don't need to</span>
-  <span class="keyword">return</span><span class="gtkdoc opt">( -</span><span class="number">1</span> <span class="gtkdoc opt">);</span>
+<span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="symbol">!(</span><span class="normal">im </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="VipsImage.html#vips-image-new-from-file">vips_image_new_from_file</a></span><span class="symbol">(</span><span class="normal"> filename</span><span class="symbol">,</span><span class="normal"> NULL </span><span class="symbol">))</span><span class="normal"> </span><span class="symbol">)</span>
+<span class="normal">  </span><span class="comment">// vips_image_new_from_file() will set a message, we don't need to</span>
+<span class="normal">  </span><span class="keyword">return</span><span class="symbol">(</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="normal"> </span><span class="symbol">);</span>
 
-<span class="keyword">if</span><span class="gtkdoc opt">(</span> <span class="function"><a href="libvips-header.html#vips-image-get-width">vips_image_get_width</a></span><span class="gtkdoc opt">(</span> im <span class="gtkdoc opt">) &lt;</span> <span class="number">100</span> <span class="gtkdoc opt">) {</span>
-  <span class="gtkdoc slc">// we have detected an error, we must set a message</span>
-  <span class="function"><a href="libvips-error.html#vips-error">vips_error</a></span><span class="gtkdoc opt">(</span> <span class="string">"myprogram"</span><span class="gtkdoc opt">,</span> <span class="string">"%s"</span><span class="gtkdoc opt">,</span> <span class="function"><a href="/usr/share/gtk-doc/html/glibglib-I18N.html#gettext-macro">_</a></span><span class="gtkdoc opt">(</span> <span class="string">"width too small"</span> <span class="gtkdoc opt">) );</span>
-  <span class="keyword">return</span><span class="gtkdoc opt">( -</span><span class="number">1</span> <span class="gtkdoc opt">);</span>
-<span class="gtkdoc opt">}</span></pre></td>
+<span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="function"><a href="libvips-header.html#vips-image-get-width">vips_image_get_width</a></span><span class="symbol">(</span><span class="normal"> im </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">&lt;</span><span class="normal"> </span><span class="number">100</span><span class="normal"> </span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">  </span><span class="comment">// we have detected an error, we must set a message</span>
+<span class="normal">  </span><span class="function"><a href="libvips-error.html#vips-error">vips_error</a></span><span class="symbol">(</span><span class="normal"> </span><span class="string">"myprogram"</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"%s"</span><span class="symbol">,</span><span class="normal"> </span><span class="function">_</span><span class="symbol">(</span><span class="normal"> </span><span class="string">"width too small"</span><span class="normal"> </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">);</span>
+<span class="normal">  </span><span class="keyword">return</span><span class="symbol">(</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="normal"> </span><span class="symbol">);</span>
+<span class="cbracket">}</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -457,7 +458,7 @@ add another message.</p>
 <p></p>
 <p>The domain argument most of these functions take is not localised and is
 supposed to indicate the component which failed.</p>
-<p>libvips uses <a href="/usr/share/gtk-doc/html/glibglib-Message-Logging.html#g-warning"><code class="function">g_warning()</code></a> and <a class="link" href="libvips-util.html#g-info" title="g_info()"><code class="function">g_info()</code></a> to send warning and information
+<p>libvips uses <code class="function">g_warning()</code> and <a class="link" href="libvips-util.html#g-info" title="g_info()"><code class="function">g_info()</code></a> to send warning and information
 messages to the user. You can use the usual glib mechanisms to display or
 divert these messages. For example, info messages are hidden by default, but
 you can see them with: </p>
@@ -477,18 +478,18 @@ you can see them with: </p>
 10
 11
 12</pre></td>
-        <td class="listing_code"><pre class="programlisting">$ G_MESSAGES_DEBUG<span class="gtkdoc opt">=</span>VIPS vipsthumbnail k2<span class="gtkdoc opt">.</span>jpg 
-VIPS<span class="gtkdoc opt">-</span>INFO<span class="gtkdoc opt">:</span> thumbnailing k2<span class="gtkdoc opt">.</span>jpg
-VIPS<span class="gtkdoc opt">-</span>INFO<span class="gtkdoc opt">:</span> selected loader is VipsForeignLoadJpegFile
-VIPS<span class="gtkdoc opt">-</span>INFO<span class="gtkdoc opt">:</span> input size is <span class="number">1450</span> x <span class="number">2048</span>
-VIPS<span class="gtkdoc opt">-</span>INFO<span class="gtkdoc opt">:</span> loading jpeg with factor <span class="number">8</span> pre<span class="gtkdoc opt">-</span>shrink
-VIPS<span class="gtkdoc opt">-</span>INFO<span class="gtkdoc opt">:</span> converting to processing space srgb
-VIPS<span class="gtkdoc opt">-</span>INFO<span class="gtkdoc opt">:</span> residual reducev by <span class="number">0.5</span>
-VIPS<span class="gtkdoc opt">-</span>INFO<span class="gtkdoc opt">:</span> <span class="number">13</span> point mask
-VIPS<span class="gtkdoc opt">-</span>INFO<span class="gtkdoc opt">:</span> <span class="keyword">using</span> vector path
-VIPS<span class="gtkdoc opt">-</span>INFO<span class="gtkdoc opt">:</span> residual reduceh by <span class="number">0.5</span>
-VIPS<span class="gtkdoc opt">-</span>INFO<span class="gtkdoc opt">:</span> <span class="number">13</span> point mask
-VIPS<span class="gtkdoc opt">-</span>INFO<span class="gtkdoc opt">:</span> thumbnailing k2<span class="gtkdoc opt">.</span>jpg as <span class="gtkdoc opt">./</span>tn_k2<span class="gtkdoc opt">.</span>jpg</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="normal">$ G_MESSAGES_DEBUG</span><span class="symbol">=</span><span class="normal">VIPS </span><span class="usertype">vipsthumbnail</span><span class="normal"> k2</span><span class="symbol">.</span><span class="normal">jpg </span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> </span><span class="usertype">thumbnailing</span><span class="normal"> k2</span><span class="symbol">.</span><span class="normal">jpg</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> selected loader is VipsForeignLoadJpegFile</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> input size is </span><span class="number">1450</span><span class="normal"> x </span><span class="number">2048</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> loading jpeg with factor </span><span class="number">8</span><span class="normal"> pre</span><span class="symbol">-</span><span class="normal">shrink</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> converting to processing space srgb</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> residual reducev by </span><span class="number">0.5</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> </span><span class="number">13</span><span class="normal"> point mask</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> using vector path</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> residual reduceh by </span><span class="number">0.5</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> </span><span class="number">13</span><span class="normal"> point mask</span>
+<span class="normal">VIPS</span><span class="symbol">-</span><span class="normal">INFO</span><span class="symbol">:</span><span class="normal"> </span><span class="usertype">thumbnailing</span><span class="normal"> k2</span><span class="symbol">.</span><span class="usertype">jpg</span><span class="normal"> as </span><span class="symbol">./</span><span class="normal">tn_k2</span><span class="symbol">.</span><span class="normal">jpg</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -506,8 +507,9 @@ vips_error_buffer (<em class="parameter"><code><span class="type">void</span></c
 The string is owned by the error system and must not be freed.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error-clear" title="vips_error_clear ()"><code class="function">vips_error_clear()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-error-buffer.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.2.6"></a><h4>Returns</h4>
 <p> the error buffer as a C string which must not be freed</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -544,7 +546,7 @@ vips_error (<em class="parameter"><code>const <span class="type">char</span> *do
 <p>Format the string in the style of <code class="function">printf()</code> and append to the error buffer.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error-system" title="vips_error_system ()"><code class="function">vips_error_system()</code></a>, <a class="link" href="libvips-error.html#vips-verror" title="vips_verror ()"><code class="function">vips_verror()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-error.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.6.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -581,7 +583,7 @@ vips_verror (<em class="parameter"><code>const <span class="type">char</span> *d
 <p>Append a message to the error buffer.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-verror.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.7.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -621,7 +623,7 @@ Then create and append a localised message based on the system error code,
 usually the value of errno.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-verror-system" title="vips_verror_system ()"><code class="function">vips_verror_system()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-error-system.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.8.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -666,7 +668,7 @@ Then create and append a localised message based on the system error code,
 usually the value of errno.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error-system" title="vips_error_system ()"><code class="function">vips_error_system()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-verror-system.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.9.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -702,13 +704,13 @@ usually the value of errno.</p>
 <div class="refsect2">
 <a name="vips-error-g"></a><h3>vips_error_g ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_error_g (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glibglib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+vips_error_g (<em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>This function sets the glib error pointer from the vips error buffer and
 clears it. It's handy for returning errors to glib functions from vips.</p>
 <p>See <a class="link" href="libvips-error.html#vips-g-error" title="vips_g_error ()"><code class="function">vips_g_error()</code></a> for the inverse operation.</p>
-<p>See also: <a href="/usr/share/gtk-doc/html/glibglib-Error-Reporting.html#g-set-error"><code class="function">g_set_error()</code></a>, <a class="link" href="libvips-error.html#vips-g-error" title="vips_g_error ()"><code class="function">vips_g_error()</code></a>.</p>
+<p>See also: <code class="function">g_set_error()</code>, <a class="link" href="libvips-error.html#vips-g-error" title="vips_g_error ()"><code class="function">vips_g_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-error-g.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.10.7"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -727,12 +729,12 @@ clears it. It's handy for returning errors to glib functions from vips.</p>
 <div class="refsect2">
 <a name="vips-g-error"></a><h3>vips_g_error ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_g_error (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glibglib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
-<p>This function adds the <a href="/usr/share/gtk-doc/html/glibglib-Error-Reporting.html#GError"><code class="literal">GError</code></a> to the vips error buffer and clears it. It's
+vips_g_error (<em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+<p>This function adds the <code class="literal">GError</code> to the vips error buffer and clears it. It's
 the opposite of <a class="link" href="libvips-error.html#vips-error-g" title="vips_error_g ()"><code class="function">vips_error_g()</code></a>.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error-g" title="vips_error_g ()"><code class="function">vips_error_g()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-g-error.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.11.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -757,11 +759,11 @@ vips_error_exit (<em class="parameter"><code>const <span class="type">char</span
 error buffer, if any, then shuts down vips and terminates the program with 
 an error code.</p>
 <p><em class="parameter"><code>fmt</code></em>
- may be <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, in which case only the error buffer is printed before
+ may be <code class="literal">NULL</code>, in which case only the error buffer is printed before
 exiting.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-error-exit.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.12.7"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -794,7 +796,7 @@ If not, set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-uncoded.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.13.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -816,8 +818,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-uncoded.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.13.7"></a><h4>Returns</h4>
 <p> 0 on OK, or -1 on error.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -833,7 +836,7 @@ If not, set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-coding.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.14.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -860,8 +863,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-coding.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.14.7"></a><h4>Returns</h4>
 <p> 0 on OK, or -1 on error.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -875,7 +879,7 @@ If not, set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-coding-known.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.15.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -897,8 +901,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-coding-known.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.15.7"></a><h4>Returns</h4>
 <p> 0 on OK, or -1 on error.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -912,7 +917,7 @@ If not, set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-coding-noneorlabq.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.16.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -934,8 +939,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-coding-noneorlabq.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.16.7"></a><h4>Returns</h4>
 <p> 0 on OK, or -1 on error.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -950,7 +956,7 @@ If not, set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-coding-same.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.17.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -977,8 +983,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-coding-same.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.17.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -992,7 +999,7 @@ Otherwise set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-mono.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.18.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1014,8 +1021,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-mono.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.18.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1031,7 +1039,7 @@ Otherwise set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-bands.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.19.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1058,8 +1066,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-bands.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.19.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1073,7 +1082,7 @@ Otherwise set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-bands-1or3.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.20.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1095,8 +1104,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-bands-1or3.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.20.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1112,7 +1122,7 @@ Otherwise set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-bands-atleast.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.21.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1139,8 +1149,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-bands-atleast.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.21.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1156,7 +1167,7 @@ If not, set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-bands-1orn.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.22.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1183,8 +1194,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-bands-1orn.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.22.7"></a><h4>Returns</h4>
 <p> 0 on OK, or -1 on error.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1201,7 +1213,7 @@ If not, set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-check-bands-1orn" title="vips_check_bands_1orn ()"><code class="function">vips_check_bands_1orn()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-bands-1orn-unary.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.23.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1228,8 +1240,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-bands-1orn-unary.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.23.7"></a><h4>Returns</h4>
 <p> 0 on OK, or -1 on error.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1244,7 +1257,7 @@ If not, set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-bands-same.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.24.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1271,8 +1284,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-bands-same.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.24.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1289,7 +1303,7 @@ If not, set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-bandno.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.25.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1316,8 +1330,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-bandno.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.25.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1331,7 +1346,7 @@ Otherwise set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-int.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.26.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1353,8 +1368,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-int.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.26.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1368,7 +1384,7 @@ Otherwise set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-uint.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.27.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1390,8 +1406,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-uint.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.27.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1404,7 +1421,7 @@ vips_check_uintorf (<em class="parameter"><code>const <span class="type">char</s
 Otherwise set an error message and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-uintorf.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.28.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1426,8 +1443,9 @@ Otherwise set an error message and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-uintorf.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.28.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1441,7 +1459,7 @@ Otherwise set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-noncomplex.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.29.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1463,8 +1481,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-noncomplex.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.29.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1478,7 +1497,7 @@ Otherwise set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-complex.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.30.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1500,8 +1519,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-complex.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.30.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1516,7 +1536,7 @@ Otherwise set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-twocomponents.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.31.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1538,8 +1558,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-twocomponents.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.31.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1554,7 +1575,7 @@ Otherwise set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-format.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.32.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1581,8 +1602,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-format.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.32.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1596,7 +1618,7 @@ Otherwise set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-u8or16.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.33.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1618,8 +1640,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-u8or16.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.33.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1633,7 +1656,7 @@ Otherwise set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-8or16.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.34.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1655,8 +1678,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-8or16.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.34.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1669,7 +1693,7 @@ vips_check_u8or16orf (<em class="parameter"><code>const <span class="type">char<
 Otherwise set an error message and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-u8or16orf.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.35.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1691,8 +1715,9 @@ Otherwise set an error message and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-u8or16orf.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.35.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1707,7 +1732,7 @@ If not, set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-format-same.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.36.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1734,8 +1759,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-format-same.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.36.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1750,7 +1776,7 @@ If not, set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-size-same.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.37.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1777,8 +1803,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-size-same.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.37.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1792,7 +1819,7 @@ If not, set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-oddsquare.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.38.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1814,8 +1841,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-oddsquare.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.38.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1830,7 +1858,7 @@ vips_check_vector_length (<em class="parameter"><code>const <span class="type">c
 . </p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-vector-length.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.39.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1857,8 +1885,9 @@ vips_check_vector_length (<em class="parameter"><code>const <span class="type">c
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-vector-length.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.39.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1872,7 +1901,7 @@ vips_check_vector (<em class="parameter"><code>const <span class="type">char</sp
 the same number of elements as there are bands in the image.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-vector.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.40.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1899,8 +1928,9 @@ the same number of elements as there are bands in the image.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-vector.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.40.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1914,7 +1944,7 @@ vips_check_hist (<em class="parameter"><code>const <span class="type">char</span
 set an error message otherwise.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-hist.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.41.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1936,8 +1966,9 @@ set an error message otherwise.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-hist.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.41.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1959,7 +1990,7 @@ message otherwise.</p>
  when you are done with it.</p>
 <p>See also: <a class="link" href="VipsImage.html#VIPS-MATRIX:CAPS" title="VIPS_MATRIX()"><code class="function">VIPS_MATRIX()</code></a>, <a class="link" href="VipsObject.html#vips-object-local" title="vips_object_local()"><code class="function">vips_object_local()</code></a></p>
 <div class="refsect3">
-<a name="vips-check-matrix.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.42.9"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1986,8 +2017,9 @@ message otherwise.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-matrix.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.42.10"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -2001,7 +2033,7 @@ Return 0 if the image will pass, or -1 and
 set an error message otherwise.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-separable.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.43.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2023,8 +2055,9 @@ set an error message otherwise.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-separable.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.43.7"></a><h4>Returns</h4>
 <p> 0 if OK, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -2039,7 +2072,7 @@ If not, set an error message
 and return non-zero.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-check-precision-intfloat.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.7.7.44.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2061,8 +2094,9 @@ and return non-zero.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-check-precision-intfloat.returns"></a><h4>Returns</h4>
+<a name="id-1.3.7.7.44.7"></a><h4>Returns</h4>
 <p> 0 on OK, or -1 on error.</p>
+<p></p>
 </div>
 </div>
 </div>
@@ -2071,7 +2105,8 @@ and return non-zero.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.25</div>
+<hr>
+          Generated by GTK-Doc V1.21</div>
 </section>
 
     <script type="text/javascript">

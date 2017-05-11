@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="/libvips/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
   </head>
   <body>
     <section class="page-header">
@@ -305,7 +306,7 @@ vips_black (<em class="parameter"><code><a class="link" href="VipsImage.html" ti
 <p>Make a black unsigned char image of a specified size.</p>
 <p>See also: <a class="link" href="libvips-create.html#vips-xyz" title="vips_xyz ()"><code class="function">vips_xyz()</code></a>, <a class="link" href="libvips-create.html#vips-text" title="vips_text ()"><code class="function">vips_text()</code></a>, <a class="link" href="libvips-create.html#vips-gaussnoise" title="vips_gaussnoise ()"><code class="function">vips_gaussnoise()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-black.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.2.8"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -330,15 +331,16 @@ vips_black (<em class="parameter"><code><a class="link" href="VipsImage.html" ti
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-black.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.2.9"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -371,7 +373,7 @@ bands. The extra dimensions are placed down the vertical axis. Use
 <a class="link" href="libvips-conversion.html#vips-grid" title="vips_grid ()"><code class="function">vips_grid()</code></a> to change the layout. </p>
 <p>See also: <a class="link" href="libvips-create.html#vips-grey" title="vips_grey ()"><code class="function">vips_grey()</code></a>, <a class="link" href="libvips-conversion.html#vips-grid" title="vips_grid ()"><code class="function">vips_grid()</code></a>, <a class="link" href="libvips-create.html#vips-identity" title="vips_identity ()"><code class="function">vips_identity()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-xyz.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.3.10"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -396,15 +398,16 @@ bands. The extra dimensions are placed down the vertical axis. Use
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-xyz.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.3.11"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -425,7 +428,7 @@ right-most 1. Intermediate pixels are a linear ramp.</p>
 rightmost 255. </p>
 <p>See also: <a class="link" href="libvips-create.html#vips-xyz" title="vips_xyz ()"><code class="function">vips_xyz()</code></a>, <a class="link" href="libvips-create.html#vips-identity" title="vips_identity ()"><code class="function">vips_identity()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-grey.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.4.9"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -450,15 +453,16 @@ rightmost 255. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-grey.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.4.10"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -499,7 +503,7 @@ This is useful for integer convolutions. </p>
 <p>"scale" is set to the sum of all the mask elements.</p>
 <p>See also: <a class="link" href="libvips-create.html#vips-logmat" title="vips_logmat ()"><code class="function">vips_logmat()</code></a>, <a class="link" href="libvips-convolution.html#vips-conv" title="vips_conv ()"><code class="function">vips_conv()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-gaussmat.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.5.14"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -524,15 +528,16 @@ This is useful for integer convolutions. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-gaussmat.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.5.15"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -579,7 +584,7 @@ This is useful for integer convolutions. </p>
 <p>"scale" is set to the sum of all the mask elements.</p>
 <p>See also: <a class="link" href="libvips-create.html#vips-gaussmat" title="vips_gaussmat ()"><code class="function">vips_gaussmat()</code></a>, <a class="link" href="libvips-convolution.html#vips-conv" title="vips_conv ()"><code class="function">vips_conv()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-logmat.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.6.15"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -604,15 +609,16 @@ This is useful for integer convolutions. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-logmat.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.6.16"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -625,15 +631,15 @@ vips_text (<em class="parameter"><code><a class="link" href="VipsImage.html" tit
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>font</code></em>
-: <a href="/usr/share/gtk-doc/html/gobjectgobject-Standard-Parameter-and-Value-Types.html#gchararray"><code class="literal">gchararray</code></a>, font to render with</p></li>
+: <code class="literal">gchararray</code>, font to render with</p></li>
 <li class="listitem"><p><em class="parameter"><code>width</code></em>
-: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, image should be no wider than this many pixels</p></li>
+: <code class="literal">gint</code>, image should be no wider than this many pixels</p></li>
 <li class="listitem"><p><em class="parameter"><code>align</code></em>
 : <a class="link" href="libvips-conversion.html#VipsAlign" title="enum VipsAlign"><span class="type">VipsAlign</span></a>, left/centre/right alignment</p></li>
 <li class="listitem"><p><em class="parameter"><code>dpi</code></em>
-: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, render at this resolution</p></li>
+: <code class="literal">gint</code>, render at this resolution</p></li>
 <li class="listitem"><p><em class="parameter"><code>spacing</code></em>
-: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, space lines by this in points</p></li>
+: <code class="literal">gint</code>, space lines by this in points</p></li>
 </ul></div>
 <p>Draw the string <em class="parameter"><code>text</code></em>
  to an image. <em class="parameter"><code>out</code></em>
@@ -660,7 +666,7 @@ approximately 12 pixels high.</p>
 like font size times 1.2.</p>
 <p>See also: <a class="link" href="libvips-create.html#vips-xyz" title="vips_xyz ()"><code class="function">vips_xyz()</code></a>, <a class="link" href="libvips-create.html#vips-text" title="vips_text ()"><code class="function">vips_text()</code></a>, <a class="link" href="libvips-create.html#vips-gaussnoise" title="vips_gaussnoise ()"><code class="function">vips_gaussnoise()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-text.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.7.13"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -680,15 +686,16 @@ like font size times 1.2.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-text.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.7.14"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -711,7 +718,7 @@ distribution. The noise distribution is created by averaging 12 random
 numbers with the appropriate weights.</p>
 <p>See also: <a class="link" href="libvips-create.html#vips-black" title="vips_black ()"><code class="function">vips_black()</code></a>, <a class="link" href="libvips-create.html#vips-xyz" title="vips_xyz ()"><code class="function">vips_xyz()</code></a>, <a class="link" href="libvips-create.html#vips-text" title="vips_text ()"><code class="function">vips_text()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-gaussnoise.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.8.8"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -736,15 +743,16 @@ numbers with the appropriate weights.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-gaussnoise.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.8.9"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -770,7 +778,7 @@ maximum spatial frequency.</p>
  to output a uchar image. </p>
 <p>See also: <a class="link" href="libvips-create.html#vips-zone" title="vips_zone ()"><code class="function">vips_zone()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-eye.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.9.9"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -795,15 +803,16 @@ maximum spatial frequency.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-eye.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.9.10"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -837,7 +846,7 @@ and therfore the Fourier transform does not present spikes</p>
  to output [0, 255]. </p>
 <p>See also: <a class="link" href="libvips-create.html#vips-grey" title="vips_grey ()"><code class="function">vips_grey()</code></a>, <a class="link" href="libvips-create.html#vips-xyz" title="vips_xyz ()"><code class="function">vips_xyz()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-sines.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.10.11"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -862,15 +871,16 @@ and therfore the Fourier transform does not present spikes</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-sines.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.10.12"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -889,7 +899,7 @@ vips_zone (<em class="parameter"><code><a class="link" href="VipsImage.html" tit
  to output [0, 255]. </p>
 <p>See also: <a class="link" href="libvips-create.html#vips-eye" title="vips_eye ()"><code class="function">vips_eye()</code></a>, <a class="link" href="libvips-create.html#vips-xyz" title="vips_xyz ()"><code class="function">vips_xyz()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-zone.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.11.9"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -914,15 +924,16 @@ vips_zone (<em class="parameter"><code><a class="link" href="VipsImage.html" tit
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-zone.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.11.10"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -936,7 +947,7 @@ vips_identity (<em class="parameter"><code><a class="link" href="VipsImage.html"
 <li class="listitem"><p><em class="parameter"><code>bands</code></em>
 : number of bands to create</p></li>
 <li class="listitem"><p><em class="parameter"><code>ushort</code></em>
-: <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> for an unsigned short identity</p></li>
+: <code class="literal">TRUE</code> for an unsigned short identity</p></li>
 <li class="listitem"><p><em class="parameter"><code>size</code></em>
 : number of LUT elements for a ushort image</p></li>
 </ul></div>
@@ -952,7 +963,7 @@ arbitrary functions. </p>
 . </p>
 <p>See also: <a class="link" href="libvips-create.html#vips-xyz" title="vips_xyz ()"><code class="function">vips_xyz()</code></a>, <a class="link" href="libvips-histogram.html#vips-maplut" title="vips_maplut ()"><code class="function">vips_maplut()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-identity.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.12.11"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -967,15 +978,16 @@ arbitrary functions. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-identity.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.12.12"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1042,7 +1054,7 @@ several Ys, each becomes a band in the output LUT. You don't need to
 start at zero, any integer will do, including negatives.</p>
 <p>See also: <a class="link" href="libvips-create.html#vips-identity" title="vips_identity ()"><code class="function">vips_identity()</code></a>, <a class="link" href="libvips-create.html#vips-invertlut" title="vips_invertlut ()"><code class="function">vips_invertlut()</code></a>, <a class="link" href="libvips-conversion.html#vips-cast" title="vips_cast ()"><code class="function">vips_cast()</code></a>, <a class="link" href="libvips-histogram.html#vips-maplut" title="vips_maplut ()"><code class="function">vips_maplut()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-buildlut.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.13.12"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1062,15 +1074,16 @@ start at zero, any integer will do, including negatives.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-buildlut.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.13.13"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1131,7 +1144,7 @@ LUT, default to 256 elements.</p>
 do something better really.</p>
 <p>See also: <a class="link" href="libvips-create.html#vips-buildlut" title="vips_buildlut ()"><code class="function">vips_buildlut()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-invertlut.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.14.13"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1151,15 +1164,16 @@ do something better really.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-invertlut.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.14.14"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1206,7 +1220,7 @@ specify the scaling for the input and output images with the <em class="paramete
 <em class="parameter"><code>out_max</code></em>
  parameters.</p>
 <div class="refsect3">
-<a name="vips-tonelut.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.15.9"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1221,15 +1235,16 @@ specify the scaling for the input and output images with the <em class="paramete
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-tonelut.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.15.10"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1281,7 +1296,7 @@ float image. In this case, pixels are in the range [0 - 255].</p>
 <a class="link" href="libvips-create.html#vips-mask-gaussian" title="vips_mask_gaussian ()"><code class="function">vips_mask_gaussian()</code></a>, <a class="link" href="libvips-create.html#vips-mask-gaussian-ring" title="vips_mask_gaussian_ring ()"><code class="function">vips_mask_gaussian_ring()</code></a>, 
 <a class="link" href="libvips-create.html#vips-mask-gaussian-band" title="vips_mask_gaussian_band ()"><code class="function">vips_mask_gaussian_band()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-mask-ideal.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.16.13"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1311,15 +1326,16 @@ float image. In this case, pixels are in the range [0 - 255].</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-mask-ideal.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.16.14"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1352,7 +1368,7 @@ ring positioned at <em class="parameter"><code>frequency_cutoff</code></em>
  are expressed as the range 0 - 1.</p>
 <p>See also: <a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-mask-ideal-ring.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.17.8"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1387,15 +1403,16 @@ ring positioned at <em class="parameter"><code>frequency_cutoff</code></em>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-mask-ideal-ring.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.17.9"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1428,7 +1445,7 @@ of size <em class="parameter"><code>radius</code></em>
 . </p>
 <p>See also: <a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-mask-ideal-band.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.18.8"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1468,15 +1485,16 @@ of size <em class="parameter"><code>radius</code></em>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-mask-ideal-band.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.18.9"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1512,7 +1530,7 @@ range 0 - 1. The shape of the curve is controlled by
 Digital Image Processing, 1987. </p>
 <p>See also: <a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-mask-butterworth.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.19.8"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1552,15 +1570,16 @@ Digital Image Processing, 1987. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-mask-butterworth.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.19.9"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1599,7 +1618,7 @@ in the range 0 - 1. The shape of the curve is controlled by
 Digital Image Processing, 1987. </p>
 <p>See also: <a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-mask-butterworth-ring.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.20.8"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1644,15 +1663,16 @@ Digital Image Processing, 1987. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-mask-butterworth-ring.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.20.9"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1691,7 +1711,7 @@ The shape of the curve is controlled by
 Digital Image Processing, 1987. </p>
 <p>See also: <a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-mask-butterworth-band.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.21.8"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1741,15 +1761,16 @@ Digital Image Processing, 1987. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-mask-butterworth-band.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.21.9"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1778,7 +1799,7 @@ smooth transition positioned at <em class="parameter"><code>frequency_cutoff</co
 .</p>
 <p>See also: <a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-mask-gaussian.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.22.8"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1813,15 +1834,16 @@ smooth transition positioned at <em class="parameter"><code>frequency_cutoff</co
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-mask-gaussian.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.22.9"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1853,7 +1875,7 @@ variable, smooth transition positioned at <em class="parameter"><code>frequency_
 . </p>
 <p>See also: <a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-mask-gaussian-ring.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.23.8"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1893,15 +1915,16 @@ variable, smooth transition positioned at <em class="parameter"><code>frequency_
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-mask-gaussian-ring.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.23.9"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1935,7 +1958,7 @@ variable, smooth transition positioned at <em class="parameter"><code>frequency_
 .</p>
 <p>See also: <a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-mask-gaussian-band.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.24.8"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1980,15 +2003,16 @@ variable, smooth transition positioned at <em class="parameter"><code>frequency_
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-mask-gaussian-band.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.24.9"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -2015,7 +2039,7 @@ vips_mask_fractal (<em class="parameter"><code><a class="link" href="VipsImage.h
 power spectrum of Gaussian white noise. See <a class="link" href="libvips-create.html#vips-gaussnoise" title="vips_gaussnoise ()"><code class="function">vips_gaussnoise()</code></a>. </p>
 <p>See also: <a class="link" href="libvips-create.html#vips-mask-ideal" title="vips_mask_ideal ()"><code class="function">vips_mask_ideal()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-mask-fractal.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.25.8"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2045,15 +2069,16 @@ power spectrum of Gaussian white noise. See <a class="link" href="libvips-create
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-mask-fractal.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.25.9"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -2072,7 +2097,7 @@ vips_fractsurf (<em class="parameter"><code><a class="link" href="VipsImage.html
 . The dimension should be between 2 and 3.</p>
 <p>See also: <a class="link" href="libvips-create.html#vips-gaussnoise" title="vips_gaussnoise ()"><code class="function">vips_gaussnoise()</code></a>, <a class="link" href="libvips-create.html#vips-mask-fractal" title="vips_mask_fractal ()"><code class="function">vips_mask_fractal()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-fractsurf.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.26.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2102,15 +2127,16 @@ vips_fractsurf (<em class="parameter"><code><a class="link" href="VipsImage.html
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-fractsurf.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.26.7"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -2123,7 +2149,7 @@ vips_worley (<em class="parameter"><code><a class="link" href="VipsImage.html" t
              <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>cell_size</code></em>
-: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, size of Worley cells</p></li></ul></div>
+: <code class="literal">gint</code>, size of Worley cells</p></li></ul></div>
 <p>Create a one-band float image of Worley noise. See:</p>
 <p>https://en.wikipedia.org/wiki/Worley_noise</p>
 <p>Use <em class="parameter"><code>cell_size</code></em>
@@ -2135,7 +2161,7 @@ constructed. The default is 256 x 256.</p>
 , the image will tessellate.</p>
 <p>See also: <a class="link" href="libvips-create.html#vips-perlin" title="vips_perlin ()"><code class="function">vips_perlin()</code></a>, <a class="link" href="libvips-create.html#vips-fractsurf" title="vips_fractsurf ()"><code class="function">vips_fractsurf()</code></a>, <a class="link" href="libvips-create.html#vips-gaussnoise" title="vips_gaussnoise ()"><code class="function">vips_gaussnoise()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-worley.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.27.11"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2160,15 +2186,16 @@ constructed. The default is 256 x 256.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-worley.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.27.12"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -2182,7 +2209,7 @@ vips_perlin (<em class="parameter"><code><a class="link" href="VipsImage.html" t
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>cell_size</code></em>
-: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, size of Perlin cells</p></li>
+: <code class="literal">gint</code>, size of Perlin cells</p></li>
 <li class="listitem"><p><em class="parameter"><code>uchar</code></em>
 : output a uchar image</p></li>
 </ul></div>
@@ -2200,7 +2227,7 @@ constructed. The default is 256 x 256.</p>
  to output a uchar image with pixels in [0, 255]. </p>
 <p>See also: <a class="link" href="libvips-create.html#vips-worley" title="vips_worley ()"><code class="function">vips_worley()</code></a>, <a class="link" href="libvips-create.html#vips-fractsurf" title="vips_fractsurf ()"><code class="function">vips_fractsurf()</code></a>, <a class="link" href="libvips-create.html#vips-gaussnoise" title="vips_gaussnoise ()"><code class="function">vips_gaussnoise()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-perlin.parameters"></a><h4>Parameters</h4>
+<a name="id-1.4.13.7.28.12"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2225,15 +2252,16 @@ constructed. The default is 256 x 256.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-perlin.returns"></a><h4>Returns</h4>
+<a name="id-1.4.13.7.28.13"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
+<p></p>
 </div>
 </div>
 </div>
@@ -2242,7 +2270,8 @@ constructed. The default is 256 x 256.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.25</div>
+<hr>
+          Generated by GTK-Doc V1.21</div>
 </section>
 
     <script type="text/javascript">

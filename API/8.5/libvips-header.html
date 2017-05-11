@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="/libvips/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
   </head>
   <body>
     <section class="page-header">
@@ -62,7 +63,7 @@ justifications.
 <tbody>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#guint64"><span class="returnvalue">guint64</span></a>
+<span class="returnvalue">guint64</span>
 </td>
 <td class="function_name">
 <a class="link" href="libvips-header.html#vips-format-sizeof" title="vips_format_sizeof ()">vips_format_sizeof</a> <span class="c_punctuation">()</span>
@@ -70,7 +71,7 @@ justifications.
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#guint64"><span class="returnvalue">guint64</span></a>
+<span class="returnvalue">guint64</span>
 </td>
 <td class="function_name">
 <a class="link" href="libvips-header.html#vips-format-sizeof-unsafe" title="vips_format_sizeof_unsafe ()">vips_format_sizeof_unsafe</a> <span class="c_punctuation">()</span>
@@ -243,7 +244,7 @@ justifications.
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/gobjectgobject-Type-Information.html#GType"><span class="returnvalue">GType</span></a>
+<span class="returnvalue">GType</span>
 </td>
 <td class="function_name">
 <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()">vips_image_get_typeof</a> <span class="c_punctuation">()</span>
@@ -251,7 +252,7 @@ justifications.
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+<span class="returnvalue">gboolean</span>
 </td>
 <td class="function_name">
 <a class="link" href="libvips-header.html#vips-image-remove" title="vips_image_remove ()">vips_image_remove</a> <span class="c_punctuation">()</span>
@@ -275,7 +276,7 @@ justifications.
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> **
+<span class="returnvalue">gchar</span> **
 </td>
 <td class="function_name">
 <a class="link" href="libvips-header.html#vips-image-get-fields" title="vips_image_get_fields ()">vips_image_get_fields</a> <span class="c_punctuation">()</span>
@@ -460,7 +461,7 @@ justifications.
 <p>These functions let you get at image header data (including metadata) in a
 uniform way. </p>
 <p>Use <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a> to test for the 
-existance and <a href="/usr/share/gtk-doc/html/gobjectgobject-Type-Information.html#GType"><span class="type">GType</span></a>
+existance and <span class="type">GType</span>
 of a header field.</p>
 <p>You can attach arbitrary metadata to images. Metadata is copied as images
 are processed, so all images which used this image as input, directly or
@@ -480,11 +481,11 @@ example the ICC profile for an image is known by convention as
 below) is automatically saved for you in a block of XML at the end of the
 file. When you load a VIPS image, the metadata is restored. You can use the
 <code class="literal">vipsedit</code> command-line tool to extract or replace this block of XML.</p>
-<p>VIPS metadata is based on <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><code class="literal">GValue</code></a>. See the docs for that system if you want
+<p>VIPS metadata is based on <code class="literal">GValue</code>. See the docs for that system if you want
 to do fancy stuff such as defining a new metadata type.
-VIPS defines a new <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> called <code class="literal">vips_save_string</code>, a variety of string,
+VIPS defines a new <code class="literal">GValue</code> called <code class="literal">vips_save_string</code>, a variety of string,
 see <a class="link" href="libvips-type.html#vips-value-set-save-string" title="vips_value_set_save_string ()"><code class="function">vips_value_set_save_string()</code></a>. 
-If your <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> can be transformed to <code class="literal">vips_save_string</code>, it will be 
+If your <code class="literal">GValue</code> can be transformed to <code class="literal">vips_save_string</code>, it will be 
 saved and loaded to and from VIPS files for you.</p>
 <p>VIPS provides a couple of base classes which implement
 reference-counted areas of memory. If you base your metadata on one of
@@ -494,10 +495,10 @@ these types, it can be copied between images efficiently.</p>
 <a name="libvips-header.functions_details"></a><h2>Functions</h2>
 <div class="refsect2">
 <a name="vips-format-sizeof"></a><h3>vips_format_sizeof ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#guint64"><span class="returnvalue">guint64</span></a>
+<pre class="programlisting"><span class="returnvalue">guint64</span>
 vips_format_sizeof (<em class="parameter"><code><a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="type">VipsBandFormat</span></a> format</code></em>);</pre>
 <div class="refsect3">
-<a name="vips-format-sizeof.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.2.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -512,21 +513,21 @@ vips_format_sizeof (<em class="parameter"><code><a class="link" href="VipsImage.
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-format-sizeof.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.2.5"></a><h4>Returns</h4>
 <p> number of bytes for a band format.</p>
+<p></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="vips-format-sizeof-unsafe"></a><h3>vips_format_sizeof_unsafe ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#guint64"><span class="returnvalue">guint64</span></a>
+<pre class="programlisting"><span class="returnvalue">guint64</span>
 vips_format_sizeof_unsafe (<em class="parameter"><code><a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="type">VipsBandFormat</span></a> format</code></em>);</pre>
 <p>A fast but dangerous version of <a class="link" href="libvips-header.html#vips-format-sizeof" title="vips_format_sizeof ()"><code class="function">vips_format_sizeof()</code></a>. You must have
 previously range-checked <em class="parameter"><code>format</code></em>
  or you'll crash.</p>
-<p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
 <div class="refsect3">
-<a name="vips-format-sizeof-unsafe.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.3.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -541,8 +542,9 @@ previously range-checked <em class="parameter"><code>format</code></em>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-format-sizeof-unsafe.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.3.6"></a><h4>Returns</h4>
 <p> number of bytes for a band format.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -551,7 +553,7 @@ previously range-checked <em class="parameter"><code>format</code></em>
 <pre class="programlisting"><span class="returnvalue">int</span>
 vips_image_get_width (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
 <div class="refsect3">
-<a name="vips-image-get-width.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.4.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -566,8 +568,9 @@ vips_image_get_width (<em class="parameter"><code>const <a class="link" href="Vi
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-width.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.4.5"></a><h4>Returns</h4>
 <p> the number of pixels across the image.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -576,7 +579,7 @@ vips_image_get_width (<em class="parameter"><code>const <a class="link" href="Vi
 <pre class="programlisting"><span class="returnvalue">int</span>
 vips_image_get_height (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
 <div class="refsect3">
-<a name="vips-image-get-height.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.5.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -591,8 +594,9 @@ vips_image_get_height (<em class="parameter"><code>const <a class="link" href="V
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-height.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.5.5"></a><h4>Returns</h4>
 <p> the number of pixels down the image.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -601,7 +605,7 @@ vips_image_get_height (<em class="parameter"><code>const <a class="link" href="V
 <pre class="programlisting"><span class="returnvalue">int</span>
 vips_image_get_bands (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
 <div class="refsect3">
-<a name="vips-image-get-bands.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.6.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -616,8 +620,9 @@ vips_image_get_bands (<em class="parameter"><code>const <a class="link" href="Vi
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-bands.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.6.5"></a><h4>Returns</h4>
 <p> the number of bands (channels) in the image.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -626,7 +631,7 @@ vips_image_get_bands (<em class="parameter"><code>const <a class="link" href="Vi
 <pre class="programlisting"><a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="returnvalue">VipsBandFormat</span></a>
 vips_image_get_format (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
 <div class="refsect3">
-<a name="vips-image-get-format.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.7.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -641,8 +646,9 @@ vips_image_get_format (<em class="parameter"><code>const <a class="link" href="V
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-format.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.7.5"></a><h4>Returns</h4>
 <p> the format of each band element.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -654,7 +660,7 @@ vips_image_guess_format (<em class="parameter"><code>const <a class="link" href=
 the set value looks crazy.</p>
 <p>For example, for a float image tagged as rgb16, we'd return ushort.</p>
 <div class="refsect3">
-<a name="vips-image-guess-format.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.8.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -669,8 +675,9 @@ the set value looks crazy.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-guess-format.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.8.7"></a><h4>Returns</h4>
 <p> a sensible <a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="type">VipsBandFormat</span></a> for the image.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -679,7 +686,7 @@ the set value looks crazy.</p>
 <pre class="programlisting"><a class="link" href="VipsImage.html#VipsCoding" title="enum VipsCoding"><span class="returnvalue">VipsCoding</span></a>
 vips_image_get_coding (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
 <div class="refsect3">
-<a name="vips-image-get-coding.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.9.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -694,8 +701,9 @@ vips_image_get_coding (<em class="parameter"><code>const <a class="link" href="V
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-coding.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.9.5"></a><h4>Returns</h4>
 <p> the image coding</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -706,7 +714,7 @@ vips_image_get_interpretation (<em class="parameter"><code>const <a class="link"
 <p>Return the <a class="link" href="VipsImage.html#VipsInterpretation" title="enum VipsInterpretation"><span class="type">VipsInterpretation</span></a> set in the image header.
 Use <a class="link" href="libvips-header.html#vips-image-guess-interpretation" title="vips_image_guess_interpretation ()"><code class="function">vips_image_guess_interpretation()</code></a> if you want a sanity-checked value.</p>
 <div class="refsect3">
-<a name="vips-image-get-interpretation.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.10.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -721,8 +729,9 @@ Use <a class="link" href="libvips-header.html#vips-image-guess-interpretation" t
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-interpretation.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.10.6"></a><h4>Returns</h4>
 <p> the <a class="link" href="VipsImage.html#VipsInterpretation" title="enum VipsInterpretation"><span class="type">VipsInterpretation</span></a> from the image header.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -733,7 +742,7 @@ vips_image_guess_interpretation (<em class="parameter"><code>const <a class="lin
 <p>Return the <a class="link" href="VipsImage.html#VipsInterpretation" title="enum VipsInterpretation"><span class="type">VipsInterpretation</span></a> for an image, guessing a sane value if
 the set value looks crazy.</p>
 <div class="refsect3">
-<a name="vips-image-guess-interpretation.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.11.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -748,8 +757,9 @@ the set value looks crazy.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-guess-interpretation.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.11.6"></a><h4>Returns</h4>
 <p> a sensible <a class="link" href="VipsImage.html#VipsInterpretation" title="enum VipsInterpretation"><span class="type">VipsInterpretation</span></a> for the image.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -758,7 +768,7 @@ the set value looks crazy.</p>
 <pre class="programlisting"><span class="returnvalue">double</span>
 vips_image_get_xres (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
 <div class="refsect3">
-<a name="vips-image-get-xres.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.12.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -773,8 +783,9 @@ vips_image_get_xres (<em class="parameter"><code>const <a class="link" href="Vip
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-xres.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.12.5"></a><h4>Returns</h4>
 <p> the horizontal image resolution in pixels per millimeter. </p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -783,7 +794,7 @@ vips_image_get_xres (<em class="parameter"><code>const <a class="link" href="Vip
 <pre class="programlisting"><span class="returnvalue">double</span>
 vips_image_get_yres (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
 <div class="refsect3">
-<a name="vips-image-get-yres.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.13.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -798,8 +809,9 @@ vips_image_get_yres (<em class="parameter"><code>const <a class="link" href="Vip
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-yres.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.13.5"></a><h4>Returns</h4>
 <p> the vertical image resolution in pixels per millimeter. </p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -808,7 +820,7 @@ vips_image_get_yres (<em class="parameter"><code>const <a class="link" href="Vip
 <pre class="programlisting"><span class="returnvalue">int</span>
 vips_image_get_xoffset (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
 <div class="refsect3">
-<a name="vips-image-get-xoffset.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.14.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -823,8 +835,9 @@ vips_image_get_xoffset (<em class="parameter"><code>const <a class="link" href="
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-xoffset.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.14.5"></a><h4>Returns</h4>
 <p> the horizontal position of the image origin, in pixels.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -833,7 +846,7 @@ vips_image_get_xoffset (<em class="parameter"><code>const <a class="link" href="
 <pre class="programlisting"><span class="returnvalue">int</span>
 vips_image_get_yoffset (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
 <div class="refsect3">
-<a name="vips-image-get-yoffset.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.15.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -848,8 +861,9 @@ vips_image_get_yoffset (<em class="parameter"><code>const <a class="link" href="
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-yoffset.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.15.5"></a><h4>Returns</h4>
 <p> the vertical position of the image origin, in pixels.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -858,7 +872,7 @@ vips_image_get_yoffset (<em class="parameter"><code>const <a class="link" href="
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 vips_image_get_filename (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
 <div class="refsect3">
-<a name="vips-image-get-filename.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.16.4"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -873,8 +887,9 @@ vips_image_get_filename (<em class="parameter"><code>const <a class="link" href=
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-filename.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.16.5"></a><h4>Returns</h4>
 <p> the name of the file the image was loaded from. </p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -885,7 +900,7 @@ vips_image_get_mode (<em class="parameter"><code>const <a class="link" href="Vip
 <p>Image modes are things like <code class="literal">"t"</code>, meaning a memory buffer, and <code class="literal">"p"</code>
 meaning a delayed computation.</p>
 <div class="refsect3">
-<a name="vips-image-get-mode.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.17.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -900,8 +915,9 @@ meaning a delayed computation.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-mode.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.17.6"></a><h4>Returns</h4>
 <p> the image mode.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -912,7 +928,7 @@ vips_image_get_scale (<em class="parameter"><code>const <a class="link" href="Vi
 <p>Matrix images can have an optional <code class="literal">scale</code> field for use by integer 
 convolution.</p>
 <div class="refsect3">
-<a name="vips-image-get-scale.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.18.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -927,8 +943,9 @@ convolution.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-scale.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.18.6"></a><h4>Returns</h4>
 <p> the scale.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -939,7 +956,7 @@ vips_image_get_offset (<em class="parameter"><code>const <a class="link" href="V
 <p>Matrix images can have an optional <code class="literal">offset</code> field for use by integer 
 convolution.</p>
 <div class="refsect3">
-<a name="vips-image-get-offset.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.19.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -954,8 +971,9 @@ convolution.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-offset.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.19.6"></a><h4>Returns</h4>
 <p> the offset.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -971,7 +989,7 @@ pixels are laid out in band-packed rows.</p>
 images which you are sure have not been shared with another thread. </p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-wio-input" title="vips_image_wio_input ()"><code class="function">vips_image_wio_input()</code></a>, <a class="link" href="VipsImage.html#vips-image-copy-memory" title="vips_image_copy_memory ()"><code class="function">vips_image_copy_memory()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-image-get-data.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.20.7"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -986,7 +1004,7 @@ images which you are sure have not been shared with another thread. </p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-data.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.20.8"></a><h4>Returns</h4>
 <p> a pointer to pixel data, if possible. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -1012,7 +1030,7 @@ for example <a class="link" href="libvips-create.html#vips-black" title="vips_bl
 fields yourself.</p>
 <p>See also: <a class="link" href="libvips-generate.html#vips-image-pipelinev" title="vips_image_pipelinev ()"><code class="function">vips_image_pipelinev()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-image-init-fields.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.21.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1075,10 +1093,10 @@ fields yourself.</p>
 <pre class="programlisting"><span class="returnvalue">void</span>
 vips_image_set (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
                 <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
-                <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>);</pre>
+                <em class="parameter"><code><span class="type">GValue</span> *value</code></em>);</pre>
 <p>Set a piece of metadata on <em class="parameter"><code>image</code></em>
 . Any old metadata with that name is
-destroyed. The <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> is copied into the image, so you need to unset the
+destroyed. The <code class="literal">GValue</code> is copied into the image, so you need to unset the
 value when you're done with it.</p>
 <p>For example, to set an integer on an image (though you would use the
 convenience function <a class="link" href="libvips-header.html#vips-image-set-int" title="vips_image_set_int ()"><code class="function">vips_image_set_int()</code></a> in practice), you would do:</p>
@@ -1092,12 +1110,12 @@ convenience function <a class="link" href="libvips-header.html#vips-image-set-in
 4
 5
 6</pre></td>
-        <td class="listing_code"><pre class="programlisting">GValue value <span class="gtkdoc opt">= {</span> <span class="number">0</span> <span class="gtkdoc opt">};</span>
+        <td class="listing_code"><pre class="programlisting"><span class="usertype">GValue</span><span class="normal"> value </span><span class="symbol">=</span><span class="normal"> </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">0</span><span class="normal"> </span><span class="cbracket">}</span><span class="symbol">;</span>
 
-<span class="function"><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#g-value-init">g_value_init</a></span> <span class="gtkdoc opt">(&amp;</span>value<span class="gtkdoc opt">,</span> G_TYPE_INT<span class="gtkdoc opt">);</span>
-<span class="function"><a href="/usr/share/gtk-doc/html/gobjectgobject-Standard-Parameter-and-Value-Types.html#g-value-set-int">g_value_set_int</a></span> <span class="gtkdoc opt">(&amp;</span>value<span class="gtkdoc opt">,</span> <span class="number">42</span><span class="gtkdoc opt">);</span>
-<span class="function"><a href="libvips-header.html#vips-image-set">vips_image_set</a></span> <span class="gtkdoc opt">(</span>image<span class="gtkdoc opt">,</span> name<span class="gtkdoc opt">, &amp;</span>value<span class="gtkdoc opt">);</span>
-<span class="function"><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#g-value-unset">g_value_unset</a></span> <span class="gtkdoc opt">(&amp;</span>value<span class="gtkdoc opt">);</span></pre></td>
+<span class="function">g_value_init</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">value</span><span class="symbol">,</span><span class="normal"> G_TYPE_INT</span><span class="symbol">);</span>
+<span class="function">g_value_set_int</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">value</span><span class="symbol">,</span><span class="normal"> </span><span class="number">42</span><span class="symbol">);</span>
+<span class="function"><a href="libvips-header.html#vips-image-set">vips_image_set</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">image</span><span class="symbol">,</span><span class="normal"> name</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">value</span><span class="symbol">);</span>
+<span class="function">g_value_unset</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">value</span><span class="symbol">);</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -1106,7 +1124,7 @@ convenience function <a class="link" href="libvips-header.html#vips-image-set-in
 <p></p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-image-set.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.22.9"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1126,7 +1144,7 @@ convenience function <a class="link" href="libvips-header.html#vips-image-set-in
 </tr>
 <tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p>the <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> to copy into the image</p></td>
+<td class="parameter_description"><p>the <code class="literal">GValue</code> to copy into the image</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1139,7 +1157,7 @@ convenience function <a class="link" href="libvips-header.html#vips-image-set-in
 <pre class="programlisting"><span class="returnvalue">int</span>
 vips_image_get (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
                 <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
-                <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value_copy</code></em>);</pre>
+                <em class="parameter"><code><span class="type">GValue</span> *value_copy</code></em>);</pre>
 <p>Fill <em class="parameter"><code>value_copy</code></em>
  with a copy of the header field. <em class="parameter"><code>value_copy</code></em>
  must be zeroed 
@@ -1170,23 +1188,23 @@ existence of a field first if you are not certain it will be there.</p>
 15
 16
 17</pre></td>
-        <td class="listing_code"><pre class="programlisting">GValue value <span class="gtkdoc opt">= {</span> <span class="number">0</span> <span class="gtkdoc opt">};</span>
-<span class="gtkdoc kwb">double</span> d<span class="gtkdoc opt">;</span>
+        <td class="listing_code"><pre class="programlisting"><span class="usertype">GValue</span><span class="normal"> value </span><span class="symbol">=</span><span class="normal"> </span><span class="cbracket">{</span><span class="normal"> </span><span class="number">0</span><span class="normal"> </span><span class="cbracket">}</span><span class="symbol">;</span>
+<span class="type">double</span><span class="normal"> d</span><span class="symbol">;</span>
 
-<span class="keyword">if</span> <span class="gtkdoc opt">(</span><span class="function"><a href="libvips-header.html#vips-image-get">vips_image_get</a></span> <span class="gtkdoc opt">(</span>image<span class="gtkdoc opt">,</span> name<span class="gtkdoc opt">, &amp;</span>value<span class="gtkdoc opt">))</span>
-  <span class="keyword">return</span> <span class="gtkdoc opt">-</span><span class="number">1</span><span class="gtkdoc opt">;</span>
+<span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="libvips-header.html#vips-image-get">vips_image_get</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">image</span><span class="symbol">,</span><span class="normal"> name</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">value</span><span class="symbol">))</span>
+<span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="symbol">;</span>
 
-<span class="keyword">if</span> <span class="gtkdoc opt">(</span><span class="function"><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#G-VALUE-TYPE:CAPS">G_VALUE_TYPE</a></span> <span class="gtkdoc opt">(&amp;</span>value<span class="gtkdoc opt">) !=</span> G_TYPE_DOUBLE<span class="gtkdoc opt">) {</span>
-  <span class="function"><a href="libvips-error.html#vips-error">vips_error</a></span><span class="gtkdoc opt">(</span> <span class="string">"mydomain"</span><span class="gtkdoc opt">,</span> 
-    <span class="function"><a href="/usr/share/gtk-doc/html/glibglib-I18N.html#gettext-macro">_</a></span><span class="gtkdoc opt">(</span><span class="string">"field</span> <span class="gtkdoc esc">\"</span><span class="string">%s</span><span class="gtkdoc esc">\"</span> <span class="string">is of type %s, not double"</span><span class="gtkdoc opt">),</span>
-    name<span class="gtkdoc opt">,</span> 
-    <span class="function"><a href="/usr/share/gtk-doc/html/gobjectgobject-Type-Information.html#g-type-name">g_type_name</a></span> <span class="gtkdoc opt">(</span><span class="function"><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#G-VALUE-TYPE:CAPS">G_VALUE_TYPE</a></span> <span class="gtkdoc opt">(&amp;</span>value<span class="gtkdoc opt">)));</span>
-  <span class="function"><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#g-value-unset">g_value_unset</a></span> <span class="gtkdoc opt">(&amp;</span>value<span class="gtkdoc opt">);</span>
-  <span class="keyword">return</span> <span class="gtkdoc opt">-</span><span class="number">1</span><span class="gtkdoc opt">;</span>
-<span class="gtkdoc opt">}</span>
+<span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_VALUE_TYPE</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">value</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">!=</span><span class="normal"> G_TYPE_DOUBLE</span><span class="symbol">)</span><span class="normal"> </span><span class="cbracket">{</span>
+<span class="normal">  </span><span class="function"><a href="libvips-error.html#vips-error">vips_error</a></span><span class="symbol">(</span><span class="normal"> </span><span class="string">"mydomain"</span><span class="symbol">,</span><span class="normal"> </span>
+<span class="normal">    </span><span class="function">_</span><span class="symbol">(</span><span class="string">"field </span><span class="specialchar">\"</span><span class="string">%s</span><span class="specialchar">\"</span><span class="string"> is of type %s, not double"</span><span class="symbol">),</span>
+<span class="normal">    name</span><span class="symbol">,</span><span class="normal"> </span>
+<span class="normal">    </span><span class="function">g_type_name</span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_VALUE_TYPE</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">value</span><span class="symbol">)));</span>
+<span class="normal">  </span><span class="function">g_value_unset</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">value</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="symbol">;</span>
+<span class="cbracket">}</span>
 
-d <span class="gtkdoc opt">=</span> <span class="function"><a href="/usr/share/gtk-doc/html/gobjectgobject-Standard-Parameter-and-Value-Types.html#g-value-get-double">g_value_get_double</a></span> <span class="gtkdoc opt">(&amp;</span>value<span class="gtkdoc opt">);</span>
-<span class="function"><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#g-value-unset">g_value_unset</a></span> <span class="gtkdoc opt">(&amp;</span>value<span class="gtkdoc opt">);</span></pre></td>
+<span class="normal">d </span><span class="symbol">=</span><span class="normal"> </span><span class="function">g_value_get_double</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">value</span><span class="symbol">);</span>
+<span class="function">g_value_unset</span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">value</span><span class="symbol">);</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -1195,7 +1213,7 @@ d <span class="gtkdoc opt">=</span> <span class="function"><a href="/usr/share/g
 <p></p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a>, <a class="link" href="libvips-header.html#vips-image-get-double" title="vips_image_get_double ()"><code class="function">vips_image_get_double()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-image-get.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.23.10"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1215,14 +1233,14 @@ d <span class="gtkdoc opt">=</span> <span class="function"><a href="/usr/share/g
 </tr>
 <tr>
 <td class="parameter_name"><p>value_copy</p></td>
-<td class="parameter_description"><p> the <a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><code class="literal">GValue</code></a> is copied into this. </p></td>
+<td class="parameter_description"><p> the <code class="literal">GValue</code> is copied into this. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Out parameter, where caller must allocate storage."><span class="acronym">out caller-allocates</span></acronym>]</span></td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.23.11"></a><h4>Returns</h4>
 <p> 0 on success, -1 otherwise. </p>
 <p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
 </div>
@@ -1239,12 +1257,12 @@ vips_image_get_as_string (<em class="parameter"><code>const <a class="link" href
  under the name <em class="parameter"><code>field</code></em>
 . 
 This function will read any field, returning it as a printable string.
-You need to free the string with <a href="/usr/share/gtk-doc/html/glibglib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a> when you are done with it.</p>
+You need to free the string with <code class="function">g_free()</code> when you are done with it.</p>
 <p>This will base64-encode BLOBs, for example. Use <a class="link" href="libvips-buf.html#vips-buf-appendgv" title="vips_buf_appendgv ()"><code class="function">vips_buf_appendgv()</code></a> to 
 make a string that's for humans. </p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>, <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a>, <a class="link" href="libvips-buf.html#vips-buf-appendgv" title="vips_buf_appendgv ()"><code class="function">vips_buf_appendgv()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-image-get-as-string.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.24.7"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1271,21 +1289,22 @@ make a string that's for humans. </p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-as-string.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.24.8"></a><h4>Returns</h4>
 <p> 0 on success, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="vips-image-get-typeof"></a><h3>vips_image_get_typeof ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gobjectgobject-Type-Information.html#GType"><span class="returnvalue">GType</span></a>
+<pre class="programlisting"><span class="returnvalue">GType</span>
 vips_image_get_typeof (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
                        <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
-<p>Read the <a href="/usr/share/gtk-doc/html/gobjectgobject-Type-Information.html#GType"><code class="literal">GType</code></a> for a header field. Returns zero if there is no
+<p>Read the <code class="literal">GType</code> for a header field. Returns zero if there is no
 field of that name. </p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-image-get-typeof.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.25.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1307,22 +1326,23 @@ field of that name. </p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-typeof.returns"></a><h4>Returns</h4>
-<p> the <a href="/usr/share/gtk-doc/html/gobjectgobject-Type-Information.html#GType"><code class="literal">GType</code></a> of the field, or zero if there is no
+<a name="id-1.3.4.8.25.7"></a><h4>Returns</h4>
+<p> the <code class="literal">GType</code> of the field, or zero if there is no
 field of that name.</p>
+<p></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="vips-image-remove"></a><h3>vips_image_remove ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
 vips_image_remove (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
                    <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
-<p>Find and remove an item of metadata. Return <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if no metadata of that
+<p>Find and remove an item of metadata. Return <code class="literal">FALSE</code> if no metadata of that
 name was found.</p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a>, <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-image-remove.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.26.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1344,8 +1364,9 @@ name was found.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-remove.returns"></a><h4>Returns</h4>
-<p> <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if an item of metadata of that name was found and removed</p>
+<a name="id-1.3.4.8.26.7"></a><h4>Returns</h4>
+<p> <code class="literal">TRUE</code> if an item of metadata of that name was found and removed</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1354,7 +1375,7 @@ name was found.</p>
 <pre class="programlisting"><span class="returnvalue">void</span> *
 <span class="c_punctuation">(</span>*VipsImageMapFn<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
                    <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
-                   <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobjectgobject-Generic-values.html#GValue"><span class="type">GValue</span></a> *value</code></em>,
+                   <em class="parameter"><code><span class="type">GValue</span> *value</code></em>,
                    <em class="parameter"><code><span class="type">void</span> *a</code></em>);</pre>
 </div>
 <hr>
@@ -1367,11 +1388,11 @@ vips_image_map (<em class="parameter"><code><a class="link" href="VipsImage.html
 <p>This function calls <em class="parameter"><code>fn</code></em>
  for every header field, including every item of 
 metadata. </p>
-<p>Like all _map functions, the user function should return <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to continue
-iteration, or a non-<a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> pointer to indicate early termination.</p>
+<p>Like all _map functions, the user function should return <code class="literal">NULL</code> to continue
+iteration, or a non-<code class="literal">NULL</code> pointer to indicate early termination.</p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a>, <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-image-map.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.28.7"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1398,23 +1419,23 @@ iteration, or a non-<a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.ht
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-map.returns"></a><h4>Returns</h4>
-<p> <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on success, the failing pointer otherwise. </p>
+<a name="id-1.3.4.8.28.8"></a><h4>Returns</h4>
+<p> <code class="literal">NULL</code> on success, the failing pointer otherwise. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="vips-image-get-fields"></a><h3>vips_image_get_fields ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> **
+<pre class="programlisting"><span class="returnvalue">gchar</span> **
 vips_image_get_fields (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
-<p>Get a <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array listing all the metadata field names on <em class="parameter"><code>image</code></em>
+<p>Get a <code class="literal">NULL</code>-terminated array listing all the metadata field names on <em class="parameter"><code>image</code></em>
 . 
-Free the return result with <a href="/usr/share/gtk-doc/html/glibglib-String-Utility-Functions.html#g-strfreev"><code class="function">g_strfreev()</code></a>.</p>
+Free the return result with <code class="function">g_strfreev()</code>.</p>
 <p>This is handy for language bindings. From C, it's usually more convenient to
 use <a class="link" href="libvips-header.html#vips-image-map" title="vips_image_map ()"><code class="function">vips_image_map()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-image-get-fields.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.29.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1429,8 +1450,8 @@ use <a class="link" href="libvips-header.html#vips-image-map" title="vips_image_
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-fields.returns"></a><h4>Returns</h4>
-<p> metadata fields in image, as a <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated
+<a name="id-1.3.4.8.29.7"></a><h4>Returns</h4>
+<p> metadata fields in image, as a <code class="literal">NULL</code>-terminated
 array. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -1451,7 +1472,7 @@ VIPS no longer needs the metadata, it will be freed with <em class="parameter"><
 .</p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-get-double" title="vips_image_get_double ()"><code class="function">vips_image_get_double()</code></a>, <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a></p>
 <div class="refsect3">
-<a name="vips-image-set-area.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.30.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1500,7 +1521,7 @@ the existance of a piece of metadata.</p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-set-area" title="vips_image_set_area ()"><code class="function">vips_image_set_area()</code></a>, <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>,
 <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a></p>
 <div class="refsect3">
-<a name="vips-image-get-area.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.31.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1527,8 +1548,9 @@ the existance of a piece of metadata.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-area.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.31.7"></a><h4>Returns</h4>
 <p> 0 on success, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1548,7 +1570,7 @@ convenience
 function over <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a> using a vips_blob.</p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-get-blob" title="vips_image_get_blob ()"><code class="function">vips_image_get_blob()</code></a>, <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-image-set-blob.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.32.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1605,7 +1627,7 @@ existance
 of a piece of metadata.</p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>, <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a>, <a class="link" href="libvips-type.html#vips-blob-get" title="vips_blob_get ()"><code class="function">vips_blob_get()</code></a>,</p>
 <div class="refsect3">
-<a name="vips-image-get-blob.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.33.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1637,8 +1659,9 @@ of a piece of metadata.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-blob.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.33.7"></a><h4>Returns</h4>
 <p> 0 on success, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1656,7 +1679,7 @@ The value will be transformed into
 an int, if possible. </p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>, <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a></p>
 <div class="refsect3">
-<a name="vips-image-get-int.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.34.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1683,8 +1706,9 @@ an int, if possible. </p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-int.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.34.7"></a><h4>Returns</h4>
 <p> 0 on success, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1702,7 +1726,7 @@ convenience
 function over <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a>.</p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-get-int" title="vips_image_get_int ()"><code class="function">vips_image_get_int()</code></a>, <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a></p>
 <div class="refsect3">
-<a name="vips-image-set-int.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.35.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1744,7 +1768,7 @@ The value will be transformed into
 a double, if possible. </p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>, <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a></p>
 <div class="refsect3">
-<a name="vips-image-get-double.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.36.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1771,8 +1795,9 @@ a double, if possible. </p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-double.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.36.7"></a><h4>Returns</h4>
 <p> 0 on success, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1790,7 +1815,7 @@ convenience
 function over <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a>.</p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-get-double" title="vips_image_get_double ()"><code class="function">vips_image_get_double()</code></a>, <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a></p>
 <div class="refsect3">
-<a name="vips-image-set-double.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.37.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1835,7 +1860,7 @@ VIPS_TYPE_REFSTRING.</p>
 <p>Use <a class="link" href="libvips-header.html#vips-image-get-as-string" title="vips_image_get_as_string ()"><code class="function">vips_image_get_as_string()</code></a> to fetch any field as a string.</p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>, <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a></p>
 <div class="refsect3">
-<a name="vips-image-get-string.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.38.8"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1862,8 +1887,9 @@ VIPS_TYPE_REFSTRING.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-string.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.38.9"></a><h4>Returns</h4>
 <p> 0 on success, -1 otherwise.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -1881,7 +1907,7 @@ A convenience
 function over <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a> using an vips_ref_string.</p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-get-double" title="vips_image_get_double ()"><code class="function">vips_image_get_double()</code></a>, <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a>, vips_ref_string</p>
 <div class="refsect3">
-<a name="vips-image-set-string.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.39.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1916,7 +1942,7 @@ vips_image_print_field (<em class="parameter"><code>const <a class="link" href="
                         <em class="parameter"><code>const <span class="type">char</span> *field</code></em>);</pre>
 <p>Prints a field to stdout as ASCII. Handy for debugging.</p>
 <div class="refsect3">
-<a name="vips-image-print-field.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.40.5"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1956,8 +1982,8 @@ string is appended to the image history and terminated with a newline.</p>
       <tr>
         <td class="listing_lines" align="right"><pre>1
 2</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="function"><a href="libvips-header.html#vips-image-history-printf">vips_image_history_printf</a></span> <span class="gtkdoc opt">(</span>image<span class="gtkdoc opt">,</span> <span class="string">"vips invert %s %s"</span><span class="gtkdoc opt">,</span> 
-  in<span class="gtkdoc opt">-&gt;</span>filename<span class="gtkdoc opt">,</span> out<span class="gtkdoc opt">-&gt;</span>filename<span class="gtkdoc opt">);</span></pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="function"><a href="libvips-header.html#vips-image-history-printf">vips_image_history_printf</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">image</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"vips invert %s %s"</span><span class="symbol">,</span><span class="normal"> </span>
+<span class="normal">  in</span><span class="symbol">-&gt;</span><span class="normal">filename</span><span class="symbol">,</span><span class="normal"> out</span><span class="symbol">-&gt;</span><span class="normal">filename</span><span class="symbol">);</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -1970,7 +1996,7 @@ string is appended to the image history and terminated with a newline.</p>
     <tbody>
       <tr>
         <td class="listing_lines" align="right"><pre>1</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="string">"vips invert /home/john/fred.v /home/john/jim.v # Fri Apr 3 23:30:35 2009</span><span class="gtkdoc esc">\n</span><span class="string">"</span></pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="string">"vips invert /home/john/fred.v /home/john/jim.v # Fri Apr 3 23:30:35 2009</span><span class="specialchar">\n</span><span class="string">"</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -1981,7 +2007,7 @@ string is appended to the image history and terminated with a newline.</p>
 the application level might involve many VIPS operations. History must be
 recorded by the application.</p>
 <div class="refsect3">
-<a name="vips-image-history-printf.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.41.12"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2008,8 +2034,9 @@ recorded by the application.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-history-printf.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.41.13"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -2025,7 +2052,7 @@ vips_image_history_args (<em class="parameter"><code><a class="link" href="VipsI
 convenience function for command-line prorams.</p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-get-history" title="vips_image_get_history ()"><code class="function">vips_image_get_history()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-image-history-args.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.42.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2057,8 +2084,9 @@ convenience function for command-line prorams.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-history-args.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.42.7"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -2074,7 +2102,7 @@ that generated that image. Applications built on VIPS need to call
 command-line equivalent for the action.</p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-history-printf" title="vips_image_history_printf ()"><code class="function">vips_image_history_printf()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-image-get-history.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.4.8.43.7"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2089,7 +2117,7 @@ command-line equivalent for the action.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-image-get-history.returns"></a><h4>Returns</h4>
+<a name="id-1.3.4.8.43.8"></a><h4>Returns</h4>
 <p> The history of <em class="parameter"><code>image</code></em>
 as a C string. Do not free!. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
@@ -2210,7 +2238,8 @@ as tiff, the image will be saved as a series of pages.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.25</div>
+<hr>
+          Generated by GTK-Doc V1.21</div>
 </section>
 
     <script type="text/javascript">

@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="/libvips/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
   </head>
   <body>
     <section class="page-header">
@@ -208,15 +209,15 @@ major and minor version numbers for this VIPS.</p></li>
 7
 8
 9</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="gtkdoc kwb">int</span> <span class="function">main</span> <span class="gtkdoc opt">(</span><span class="gtkdoc kwb">int</span> argc<span class="gtkdoc opt">,</span> <span class="gtkdoc kwb">char</span> <span class="gtkdoc opt">**</span>argv<span class="gtkdoc opt">)</span>
-<span class="gtkdoc opt">{</span>
-  <span class="keyword">if</span> <span class="gtkdoc opt">(</span><span class="function"><a href="libvips-vips.html#VIPS-INIT:CAPS">VIPS_INIT</a></span> <span class="gtkdoc opt">(</span>argv<span class="gtkdoc opt">[</span><span class="number">0</span><span class="gtkdoc opt">]))</span>
-    <span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span> <span class="gtkdoc opt">(</span><span class="string">"unable to start VIPS"</span><span class="gtkdoc opt">);</span>
+        <td class="listing_code"><pre class="programlisting"><span class="type">int</span><span class="normal"> </span><span class="function">main</span><span class="normal"> </span><span class="symbol">(</span><span class="type">int</span><span class="normal"> argc</span><span class="symbol">,</span><span class="normal"> </span><span class="type">char</span><span class="normal"> </span><span class="symbol">**</span><span class="normal">argv</span><span class="symbol">)</span>
+<span class="cbracket">{</span>
+<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="libvips-vips.html#VIPS-INIT:CAPS">VIPS_INIT</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">argv</span><span class="symbol">[</span><span class="number">0</span><span class="symbol">]))</span>
+<span class="normal">    </span><span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"unable to start VIPS"</span><span class="symbol">);</span>
 
-  <span class="function"><a href="libvips-vips.html#vips-shutdown">vips_shutdown</a></span> <span class="gtkdoc opt">();</span>
+<span class="normal">  </span><span class="function"><a href="libvips-vips.html#vips-shutdown">vips_shutdown</a></span><span class="normal"> </span><span class="symbol">();</span>
 
-  <span class="keyword">return</span> <span class="number">0</span><span class="gtkdoc opt">;</span>
-<span class="gtkdoc opt">}</span></pre></td>
+<span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span>
+<span class="cbracket">}</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -226,7 +227,7 @@ major and minor version numbers for this VIPS.</p></li>
 <p>See also: <a class="link" href="libvips-vips.html#vips-shutdown" title="vips_shutdown ()"><code class="function">vips_shutdown()</code></a>, <a class="link" href="libvips-vips.html#vips-add-option-entries" title="vips_add_option_entries ()"><code class="function">vips_add_option_entries()</code></a>, <a class="link" href="libvips-vips.html#vips-version" title="vips_version ()"><code class="function">vips_version()</code></a>, 
 <a class="link" href="libvips-vips.html#vips-guess-prefix" title="vips_guess_prefix ()"><code class="function">vips_guess_prefix()</code></a>, <a class="link" href="libvips-vips.html#vips-guess-libdir" title="vips_guess_libdir ()"><code class="function">vips_guess_libdir()</code></a>.</p>
 <div class="refsect3">
-<a name="VIPS-INIT.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.2.7.2.15"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -241,8 +242,9 @@ major and minor version numbers for this VIPS.</p></li>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="VIPS-INIT.returns"></a><h4>Returns</h4>
+<a name="id-1.3.2.7.2.16"></a><h4>Returns</h4>
 <p> 0 on success, -1 otherwise</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -255,7 +257,7 @@ vips_init (<em class="parameter"><code>const <span class="type">char</span> *arg
 should use the <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a> macro, which does some extra checks. </p>
 <p>See also: <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-init.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.2.7.3.7"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -270,8 +272,9 @@ should use the <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VI
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-init.returns"></a><h4>Returns</h4>
+<a name="id-1.3.2.7.3.8"></a><h4>Returns</h4>
 <p> 0 on success, -1 otherwise</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -281,9 +284,10 @@ should use the <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VI
 vips_get_argv0 (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>See also: <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-get-argv0.returns"></a><h4>Returns</h4>
+<a name="id-1.3.2.7.4.5"></a><h4>Returns</h4>
 <p> a pointer to an internal copy of the argv0 string passed to
 <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a>. Do not free this value</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -316,11 +320,11 @@ calling it. Calling it too often will reduce performance.</p>
 <div class="refsect2">
 <a name="vips-add-option-entries"></a><h3>vips_add_option_entries ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_add_option_entries (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glibglib-Commandline-option-parser.html#GOptionGroup"><span class="type">GOptionGroup</span></a> *option_group</code></em>);</pre>
-<p>Add the standard vips <a href="/usr/share/gtk-doc/html/glibglib-Commandline-option-parser.html#GOptionEntry"><code class="literal">GOptionEntry</code></a> to a <a href="/usr/share/gtk-doc/html/glibglib-Commandline-option-parser.html#GOptionGroup"><code class="literal">GOptionGroup</code></a>. </p>
-<p>See also: <a href="/usr/share/gtk-doc/html/glibglib-Commandline-option-parser.html#g-option-group-new"><code class="function">g_option_group_new()</code></a>.</p>
+vips_add_option_entries (<em class="parameter"><code><span class="type">GOptionGroup</span> *option_group</code></em>);</pre>
+<p>Add the standard vips <code class="literal">GOptionEntry</code> to a <code class="literal">GOptionGroup</code>. </p>
+<p>See also: <code class="function">g_option_group_new()</code>.</p>
 <div class="refsect3">
-<a name="vips-add-option-entries.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.2.7.7.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -339,12 +343,12 @@ vips_add_option_entries (<em class="parameter"><code><a href="/usr/share/gtk-doc
 <div class="refsect2">
 <a name="vips-leak-set"></a><h3>vips_leak_set ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_leak_set (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> leak</code></em>);</pre>
+vips_leak_set (<em class="parameter"><code><span class="type">gboolean</span> leak</code></em>);</pre>
 <p>Turn on or off vips leak checking. See also --vips-leak and
 <a class="link" href="libvips-vips.html#vips-add-option-entries" title="vips_add_option_entries ()"><code class="function">vips_add_option_entries()</code></a>. </p>
 <p>You should call this very early in your program.</p>
 <div class="refsect3">
-<a name="vips-leak-set.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.2.7.8.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -367,7 +371,7 @@ vips_version_string (<em class="parameter"><code><span class="type">void</span><
 <p>Get the VIPS version as a static string, including a build date and time.
 Do not free.</p>
 <div class="refsect3">
-<a name="vips-version-string.returns"></a><h4>Returns</h4>
+<a name="id-1.3.2.7.9.5"></a><h4>Returns</h4>
 <p> a static version string. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -384,7 +388,7 @@ vips_version (<em class="parameter"><code><span class="type">int</span> flag</co
  
 values 3, 4, 5.</p>
 <div class="refsect3">
-<a name="vips-version.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.2.7.10.6"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -399,8 +403,9 @@ values 3, 4, 5.</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-version.returns"></a><h4>Returns</h4>
+<a name="id-1.3.2.7.10.7"></a><h4>Returns</h4>
 <p> library version number</p>
+<p></p>
 </div>
 </div>
 <hr>
@@ -418,7 +423,7 @@ side effect, sets the environment variable (if it's not set).</p>
 <p>Don't free the return string!</p>
 <p>See also: <a class="link" href="libvips-vips.html#vips-guess-libdir" title="vips_guess_libdir ()"><code class="function">vips_guess_libdir()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-guess-prefix.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.2.7.11.8"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -440,7 +445,7 @@ side effect, sets the environment variable (if it's not set).</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-guess-prefix.returns"></a><h4>Returns</h4>
+<a name="id-1.3.2.7.11.9"></a><h4>Returns</h4>
 <p> the install prefix as a static string, do not free. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -461,7 +466,7 @@ side effect, sets the prefix environment variable (if it's not set).</p>
 <p>Don't free the return string!</p>
 <p>See also: <a class="link" href="libvips-vips.html#vips-guess-prefix" title="vips_guess_prefix ()"><code class="function">vips_guess_prefix()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-guess-libdir.parameters"></a><h4>Parameters</h4>
+<a name="id-1.3.2.7.12.8"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -483,7 +488,7 @@ side effect, sets the prefix environment variable (if it's not set).</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-guess-libdir.returns"></a><h4>Returns</h4>
+<a name="id-1.3.2.7.12.9"></a><h4>Returns</h4>
 <p> the libdir as a static string, do not free. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -498,7 +503,8 @@ side effect, sets the prefix environment variable (if it's not set).</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.25</div>
+<hr>
+          Generated by GTK-Doc V1.21</div>
 </section>
 
     <script type="text/javascript">
