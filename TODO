@@ -1,5 +1,7 @@
 - fix gtk-doc, again
 
+  look at sharpen graph
+
 - cpp bandjoin should use bandjoin_const() where possible ... currently 
   uses new_from_image
 
