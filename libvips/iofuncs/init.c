@@ -267,7 +267,6 @@ vips_init( const char *argv0 )
 	char *prgname;
 	const char *prefix;
 	const char *libdir;
-	char name[256];
 
 	/* Two stage done handling: 'done' means we've completed, 'started'
 	 * means we're currently initialising. Use this to prevent recursive
@@ -342,10 +341,7 @@ vips_init( const char *argv0 )
 
 	/* Get i18n .mo files from $VIPSHOME/share/locale/.
 	 */
-	vips_snprintf( name, 256,
-		"%s" G_DIR_SEPARATOR_S "share" G_DIR_SEPARATOR_S "locale",
-		prefix );
-	bindtextdomain( GETTEXT_PACKAGE, name );
+	bindtextdomain( GETTEXT_PACKAGE, vips__locale_dir() );
 	bind_textdomain_codeset( GETTEXT_PACKAGE, "UTF-8" );
 
 	/* Deprecated, this is just for compat.
