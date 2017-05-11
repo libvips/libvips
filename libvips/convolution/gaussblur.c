@@ -167,7 +167,7 @@ vips_gaussblur_init( VipsGaussblur *gaussblur )
  *
  * Optional arguments:
  *
- * * @precision: #VipsPrecision for blur, default VIPS_PRECISION_INTEGER
+ * * @precision: #VipsPrecision, precision for blur, default int
  * * @min_ampl: minimum amplitude, default 0.2
  *
  * This operator runs vips_gaussmat() and vips_convsep() for you on an image.

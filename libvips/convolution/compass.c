@@ -204,6 +204,30 @@ vips_compass_init( VipsCompass *compass )
 	compass->cluster = 1;
 }
 
+/**
+ * vips_compass:
+ * @in: input image
+ * @out: output image
+ * @mask: convolve with this mask
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @times: %gint, how many times to rotate and convolve
+ * * @angle: #VipsAngle45, rotate mask by this much between colvolutions
+ * * @combine: #VipsCombine, combine results like this
+ * * @precision: #VipsPrecision, precision for blur, default float
+ * * @layers: %gint, number of layers for approximation
+ * * @cluster: %gint, cluster lines closer than this distance
+ *
+ * This convolves @in with @mask @times times, rotating @mask by @angle
+ * each time. By default, it comvolves twice, rotating by 90 degrees, taking
+ * the maximum result.
+ *
+ * See also: vips_conv().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
 int 
 vips_compass( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 {
