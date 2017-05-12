@@ -1016,7 +1016,7 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 
 	VIPS_ARG_BOOL( class, "fail", 11, 
 		_( "Fail" ), 
-		_( "Fail on first warning" ),
+		_( "Fail on first error" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoad, fail ),
 		FALSE );

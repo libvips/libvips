@@ -85,6 +85,8 @@
  * 	- don't warn for missing exif res, since we fall back to jfif now
  * 17/1/17
  * 	- invalidate operation on read error
+ * 12/5/17
+ * 	- fail aborts on error, not warning
  */
 
 /*
@@ -148,7 +150,7 @@ typedef struct _ReadJpeg {
 	 */
 	int shrink;
 
-	/* Fail on warnings.
+	/* Fail on errors.
 	 */
 	gboolean fail;
 
@@ -526,10 +528,10 @@ read_jpeg_generate( VipsRegion *or,
 
 	int y;
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "read_jpeg_generate: %p line %d, %d rows\n", 
 		g_thread_self(), r->top, r->height );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	VIPS_GATE_START( "read_jpeg_generate: work" );
 
@@ -565,23 +567,14 @@ read_jpeg_generate( VipsRegion *or,
 	if( setjmp( jpeg->eman.jmp ) ) {
 		VIPS_GATE_STOP( "read_jpeg_generate: work" );
 
-		return( -1 );
-	}
+#ifdef DEBUG
+		printf( "read_jpeg_generate: lonjmp() exit\n" ); 
+#endif /*DEBUG*/
 
-	/* If --fail is set, we make read fail on any warnings. This will stop
-	 * on any errors from the previous jpeg_read_scanlines().
-	 */
-	if( jpeg->eman.pub.num_warnings > 0 &&
-		jpeg->fail ) {
-		VIPS_GATE_STOP( "read_jpeg_generate: work" );
+		if( jpeg->fail ) 
+			return( -1 );
 
-		/* Only fail once.
-		 */
-		jpeg->eman.pub.num_warnings = 0;
-
-		*stop = TRUE;
-
-		return( -1 );
+		return( 0 );
 	}
 
 	for( y = 0; y < r->height; y++ ) {

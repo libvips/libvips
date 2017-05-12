@@ -193,7 +193,7 @@ vips_foreign_load_csv_init( VipsForeignLoadCsv *csv )
  * * @lines: read this many lines from file
  * * @whitespace: set of whitespace characters
  * * @separator: set of separator characters
- * * @fail: %gboolean, fail on warnings
+ * * @fail: %gboolean, fail on errors
  *
  * Load a CSV (comma-separated values) file. The output image is always 1 
  * band (monochrome), #VIPS_FORMAT_DOUBLE. Use vips_bandfold() to turn
@@ -221,7 +221,7 @@ vips_foreign_load_csv_init( VipsForeignLoadCsv *csv )
  * @separator sets the characters that separate fields. 
  * Default ;,<emphasis>tab</emphasis>. Separators are never run together.
  *
- * Setting @fail to %TRUE makes the reader fail on any warnings. 
+ * Setting @fail to %TRUE makes the reader fail on any errors. 
  *
  * See also: vips_image_new_from_file(), vips_bandfold().
  *

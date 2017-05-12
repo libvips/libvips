@@ -328,7 +328,7 @@ vips_foreign_load_jpeg_buffer_init( VipsForeignLoadJpegBuffer *buffer )
  * Optional arguments:
  *
  * * @shrink: %gint, shrink by this much on load
- * * @fail: %gboolean, fail on warnings
+ * * @fail: %gboolean, fail on errors
  * * @autorotate: %gboolean, use exif Orientation tag to rotate the image 
  *   during load
  *
@@ -339,7 +339,7 @@ vips_foreign_load_jpeg_buffer_init( VipsForeignLoadJpegBuffer *buffer )
  * are 1, 2, 4 and 8. Shrinking during read is very much faster than 
  * decompressing the whole image and then shrinking later.
  *
- * Setting @fail to %TRUE makes the JPEG reader fail on any warnings. 
+ * Setting @fail to %TRUE makes the JPEG reader fail on any errors. 
  * This can be useful for detecting truncated files, for example. Normally 
  * reading these produces a warning, but no fatal error.  
  *
@@ -406,7 +406,7 @@ vips_jpegload( const char *filename, VipsImage **out, ... )
  * Optional arguments:
  *
  * * @shrink: %gint, shrink by this much on load
- * * @fail: %gboolean, fail on warnings
+ * * @fail: %gboolean, fail on errors
  * * @autorotate: %gboolean, use exif Orientation tag to rotate the image 
  *   during load
  *
