@@ -6,6 +6,7 @@
 - slight change to cpp new_from_image() to match py/C behaviour
 - vips_conv(), vips_compass(), vips_convsep() default to FLOAT precision
 - add FORCE resize mode to break aspect ratio
+- add vips_thumbnail_image()
 
 23/4/17 started 8.5.5
 - doc polishing

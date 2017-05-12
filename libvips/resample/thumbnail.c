@@ -905,8 +905,8 @@ vips_thumbnail_buffer_init( VipsThumbnailBuffer *buffer )
  * * @auto_rotate: %gboolean, rotate upright using orientation tag
  * * @crop: #VipsInteresting, shrink and crop to fill target
  * * @linear: %gboolean, perform shrink in linear light
- * * @import_probuffer: %gchararray, fallback import ICC probuffer
- * * @export_probuffer: %gchararray, export ICC probuffer
+ * * @import_profile: %gchararray, fallback import ICC profile
+ * * @export_profile: %gchararray, export ICC profile
  *
  * Exacty as vips_thumbnail(), but read from a memory buffer. 
  *
@@ -930,6 +930,113 @@ vips_thumbnail_buffer( void *buf, size_t len, VipsImage **out, int width, ... )
 	va_end( ap );
 
 	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
+
+typedef struct _VipsThumbnailImage {
+	VipsThumbnail parent_object;
+
+	VipsImage *in;
+} VipsThumbnailImage;
+
+typedef VipsThumbnailClass VipsThumbnailImageClass;
+
+G_DEFINE_TYPE( VipsThumbnailImage, vips_thumbnail_image, 
+	vips_thumbnail_get_type() );
+
+/* Get the info from a image.
+ */
+static int
+vips_thumbnail_image_get_info( VipsThumbnail *thumbnail )
+{
+	VipsThumbnailImage *image = (VipsThumbnailImage *) thumbnail;
+
+	/* Doesn't really matter what we put here.
+	 */
+	thumbnail->loader = "image source";
+
+	thumbnail->input_width = image->in->Xsize;
+	thumbnail->input_height = image->in->Ysize;
+	thumbnail->angle = vips_autorot_get_angle( image->in );
+
+	return( 0 );
+}
+
+/* Open an image. We can't pre-shrink with an image source, sadly.
+ */
+static VipsImage *
+vips_thumbnail_image_open( VipsThumbnail *thumbnail, 
+	int shrink, double scale )
+{
+	VipsThumbnailImage *image = (VipsThumbnailImage *) thumbnail;
+
+	g_object_ref( image->in ); 
+
+	return( image->in ); 
+}
+
+static void
+vips_thumbnail_image_class_init( VipsThumbnailClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsThumbnailClass *thumbnail_class = VIPS_THUMBNAIL_CLASS( class );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	vobject_class->nickname = "thumbnail_image";
+	vobject_class->description = _( "generate thumbnail from image" );
+
+	thumbnail_class->get_info = vips_thumbnail_image_get_info;
+	thumbnail_class->open = vips_thumbnail_image_open;
+
+	VIPS_ARG_IMAGE( class, "in", 1, 
+		_( "Input" ), 
+		_( "Input image argument" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsThumbnailImage, in ) );
+
+}
+
+static void
+vips_thumbnail_image_init( VipsThumbnailImage *image )
+{
+}
+
+/**
+ * vips_thumbnail_image:
+ * @in: input image
+ * @out: output image
+ * @width: target width in pixels
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @height: %gint, target height in pixels
+ * * @size: #VipsSize, upsize, downsize, both or force
+ * * @auto_rotate: %gboolean, rotate upright using orientation tag
+ * * @crop: #VipsInteresting, shrink and crop to fill target
+ * * @linear: %gboolean, perform shrink in linear light
+ * * @import_profile: %gchararray, fallback import ICC profile
+ * * @export_profile: %gchararray, export ICC profile
+ *
+ * Exacty as vips_thumbnail(), but read from an existing image.
+ *
+ * See also: vips_thumbnail().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_thumbnail_image( VipsImage *in, VipsImage **out, int width, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, width );
+	result = vips_call_split( "thumbnail_image", ap, in, out, width );
+	va_end( ap );
 
 	return( result );
 }
