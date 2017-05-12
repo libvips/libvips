@@ -219,14 +219,14 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 		_( "Tile width in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, tile_width ),
-		1, 1024, 128 );
+		1, 32768, 128 );
 
 	VIPS_ARG_INT( class, "tile_height", 12, 
 		_( "Tile height" ), 
 		_( "Tile height in pixels" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, tile_height ),
-		1, 1024, 128 );
+		1, 32768, 128 );
 
 	VIPS_ARG_BOOL( class, "pyramid", 13, 
 		_( "Pyramid" ), 
