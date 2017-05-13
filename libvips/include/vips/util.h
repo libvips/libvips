@@ -332,7 +332,7 @@ guint32 vips__random( guint32 seed );
 guint32 vips__random_add( guint32 seed, int value );
 
 const char *vips__icc_dir( void );
-const char *vips__locale_dir( void );
+const char *vips__windows_prefix( void );
 
 #ifdef __cplusplus
 }

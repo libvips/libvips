@@ -267,6 +267,7 @@ vips_init( const char *argv0 )
 	char *prgname;
 	const char *prefix;
 	const char *libdir;
+	char *locale;
 
 	/* Two stage done handling: 'done' means we've completed, 'started'
 	 * means we're currently initialising. Use this to prevent recursive
@@ -341,7 +342,9 @@ vips_init( const char *argv0 )
 
 	/* Get i18n .mo files from $VIPSHOME/share/locale/.
 	 */
-	bindtextdomain( GETTEXT_PACKAGE, vips__locale_dir() );
+	locale = g_build_filename( prefix, "share", "locale", NULL );
+	bindtextdomain( GETTEXT_PACKAGE, locale );
+	g_free( locale );
 	bind_textdomain_codeset( GETTEXT_PACKAGE, "UTF-8" );
 
 	/* Deprecated, this is just for compat.
@@ -953,8 +956,6 @@ const char *
 vips_guess_prefix( const char *argv0, const char *env_name )
 {
         const char *prefix;
-        char *basename;
-        char name[VIPS_PATH_MAX];
 
 	/* Already set?
 	 */
@@ -966,29 +967,18 @@ vips_guess_prefix( const char *argv0, const char *env_name )
                 return( prefix );
 	}
 
-	/* Get the program name from argv0.
-	 */
+#ifdef OS_WIN32
+	prefix = vips__windows_prefix();
+#else
+{
+        char *basename;
+
 	basename = g_path_get_basename( argv0 );
-
-	/* Add the exe suffix, if it's missing.
-	 */
-	if( strlen( VIPS_EXEEXT ) > 0 ) {
-		const char *olds[] = { VIPS_EXEEXT };
-
-		vips__change_suffix( basename, name, 
-			VIPS_PATH_MAX, VIPS_EXEEXT, olds, 1 );
-	}
-	else
-		vips_strncpy( name, basename, VIPS_PATH_MAX );
-
+	prefix = guess_prefix( argv0, basename );
 	g_free( basename ); 
+}
+#endif
 
-#ifdef DEBUG
-	printf( "vips_guess_prefix: argv0 = %s\n", argv0 );
-	printf( "vips_guess_prefix: name = %s\n", name );
-#endif /*DEBUG*/
-
-	prefix = guess_prefix( argv0, name );
 	g_setenv( env_name, prefix, TRUE );
 
 	return( prefix );

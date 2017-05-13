@@ -1970,13 +1970,13 @@ vips__icc_dir( void )
 }
 
 #ifdef OS_WIN32
-static HMODULE vips_dll = NULL;
+static HMODULE vips__dll = NULL;
 #ifdef DLL_EXPORT
 BOOL WINAPI
 DllMain( HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved )
 {
 	if( fdwReason == DLL_PROCESS_ATTACH )
-		vips_dll = hinstDLL;
+		vips__dll = hinstDLL;
 
 	return( TRUE );
 }
@@ -1984,25 +1984,25 @@ DllMain( HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved )
 #endif
 
 static void *
-vips_locale_dir_once( void *null )
+vips__windows_prefix_once( void *null )
 {
 	char *prefix;
 
 #ifdef OS_WIN32
 	prefix = g_win32_get_package_installation_directory_of_module( 
-		vips_dll ),
+		vips__dll ),
 #else
         prefix = (char *) g_getenv( "VIPSHOME" );
 #endif
 
-	return( (void *) g_build_filename( prefix, "share", "locale", NULL ) );
+	return( (void *) prefix ); 
 }
 
 const char *
-vips__locale_dir( void )
+vips__windows_prefix( void )
 {
 	static GOnce once = G_ONCE_INIT;
 
 	return( (const char *) g_once( &once, 
-		(GThreadFunc) vips_locale_dir_once, NULL ) );
+		(GThreadFunc) vips__windows_prefix_once, NULL ) );
 }
