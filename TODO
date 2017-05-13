@@ -1,12 +1,3 @@
-- use g_win32_get_package_installation_directory_of_module() for prefix on win
-
-- fix gtk-doc, again
-
-  look at sharpen graph
-
-- cpp bandjoin should use bandjoin_const() where possible ... currently 
-  uses new_from_image
-
 - not sure about utf8 error messages on win
 
 - strange: 
