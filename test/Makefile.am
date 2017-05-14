@@ -20,7 +20,7 @@ EXTRA_DIST = \
 	test_seq.sh \
 	test_thumbnail.sh \
 	test_threading.sh \
-	test_python.sh
+	test_python.sh \
 	test_all.py \
 	test_arithmetic.py \
 	test_colour.py \
