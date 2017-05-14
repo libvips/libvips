@@ -120,7 +120,7 @@ class TestHistogram(unittest.TestCase):
 
         ent = im.hist_find().hist_entropy()
 
-        self.assertAlmostEqual(ent, 4.367, places = 3)
+        self.assertAlmostEqual(ent, 4.37, places = 2)
 
     def test_stdif(self):
         im = Vips.Image.new_from_file("images/йцук.jpg")
