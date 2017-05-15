@@ -169,7 +169,7 @@ class TestForeign(unittest.TestCase):
         self.file_loader("jpegload", self.jpeg_file, jpeg_valid)
         self.buffer_loader("jpegload_buffer", self.jpeg_file, jpeg_valid)
         self.save_load_buffer("jpegsave_buffer", "jpegload_buffer", self.colour,
-                             60)
+                             80)
         self.save_load("%s.jpg", self.mono)
         self.save_load("%s.jpg", self.colour)
 
@@ -264,9 +264,9 @@ class TestForeign(unittest.TestCase):
         self.save_load_file("test-5.tif", "[tile]", self.colour, 0)
         self.save_load_file("test-6.tif", "[tile,pyramid]", self.colour, 0)
         self.save_load_file("test-7.tif", 
-                            "[tile,pyramid,compression=jpeg]", self.colour, 60)
+                            "[tile,pyramid,compression=jpeg]", self.colour, 80)
         self.save_load_file("test-8.tif", "[bigtiff]", self.colour, 0)
-        self.save_load_file("test-9.tif", "[compression=jpeg]", self.colour, 60)
+        self.save_load_file("test-9.tif", "[compression=jpeg]", self.colour, 80)
         self.save_load_file("test-10.tif", 
                             "[tile,tile-width=256]", self.colour, 10)
 
