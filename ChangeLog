@@ -2,6 +2,7 @@
 - doc polishing
 - more improvements for truncated PNG files, thanks juyunsang 
 - improve corrupted jpg handling, thanks juyunsang
+- fix small test suite issues on os x
 
 23/4/17 started 8.5.4
 - don't depend on image width when setting n_lines, thanks kleisauke
