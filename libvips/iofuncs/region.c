@@ -1149,7 +1149,7 @@ vips_region_shrink_labpack( VipsRegion *from, VipsRegion *to, VipsRect *target )
 			int b = sp[2] + sp[6] + 
 				sp[ls + 2] + sp[ls + 6];
 
-			q[0] = l >> 2;
+			q[0] = (l + 2) >> 2;
 			q[1] = a >> 2;
 			q[2] = b >> 2;
 			q[3] = 0;
@@ -1170,7 +1170,7 @@ vips_region_shrink_labpack( VipsRegion *from, VipsRegion *to, VipsRect *target )
 			int tot = tp[z] + tp[z + nb] +  \
 				tp1[z] + tp1[z + nb]; \
 			\
-			tq[z] = tot >> 2; \
+			tq[z] = (tot + 2) >> 2; \
 		} \
 		\
 		/* Move on two pels in input. \
