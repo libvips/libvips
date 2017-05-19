@@ -8,11 +8,11 @@ ChangeLog if you need more details.
 ## New operators
 
 Almost all of the logic from the `vipsthumbnail` program is now in a pair of
-new operators, [`vips_thumbnail()`](/API/libvips-resample.html#vips-thumbnail) 
-and
-[`vips_thumbnail_buffer()`](/API/libvips-resample.html#vips-thumbnail-buffer). 
-These are very handy for the various scripting languages with vips bindings: 
-you can now make a high-quality, high-speed thumbnail in PHP (for example) 
+new operators,
+[`vips_thumbnail()`](/API/current/libvips-resample.html#vips-thumbnail) and
+[`vips_thumbnail_buffer()`](/API/current/libvips-resample.html#vips-thumbnail-buffer).
+These are very handy for the various scripting languages with vips bindings:
+you can now make a high-quality, high-speed thumbnail in PHP (for example)
 with just:
 
 ```php?start_inline=1
@@ -26,7 +26,7 @@ The new thumbnail operator has also picked up some useful features:
 * **Smart crop** A new cropping mode called `attention` searches the image for
   edges, skin tones and areas of saturated colour, and attempts to position the
   crop box over the most significant feature. There's a
-  [`vips_smartcrop()`](/API/libvips-conversion.html#vips-smartcrop)
+  [`vips_smartcrop()`](/API/current/libvips-conversion.html#vips-smartcrop)
   operator as well.
 
 * **Crop constraints** Thanks to tomasc, libvips has crop constraints. You 
@@ -34,18 +34,18 @@ The new thumbnail operator has also picked up some useful features:
   (the `<` and `>` modifiers in imagemagick), and to crop to a width or height. 
 
 * **Buffer sources** 
-  [`vips_thumbnail_buffer()`](/API/libvips-resample.html#vips-thumbnail-buffer) 
-  will thumbnail an image held as a formatted block of data in memory. This is 
-  useful for cloud services, where the filesystem is often rather slow.
+  [`vips_thumbnail_buffer()`](/API/current/libvips-resample.html#vips-thumbnail-buffer)
+  will thumbnail an image held as a formatted block of data in memory. This
+  is useful for cloud services, where the filesystem is often rather slow.
 
 CLAHE, or Contrast-Limited Adaptive Histogram Equalisation, is a simple way to
 make local histogram equalisation more useful. 
 
 Plain local equalization removes
 all global brightness variation and can make images hard to understand. 
-[`vips_hist_local()`](/API/libvips-histogram.html#vips-hist-local) now has a 
-`max-slope` parameter you can use to limit
-how much equalisation can alter your image. A value of 3 generally works well.
+[`vips_hist_local()`](/API/current/libvips-histogram.html#vips-hist-local)
+now has a `max-slope` parameter you can use to limit how much equalisation
+can alter your image. A value of 3 generally works well.
 
 For example, here's the famous NASA image of Io on the left, straight
 local-histogram equalization in the centre, and CLAHE on the right.
