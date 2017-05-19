@@ -173,6 +173,8 @@
  * 	- invalidate operation on read error
  * 27/1/17
  * 	- if rows_per_strip is large, read with scanline API instead
+ * 19/5/17
+ * 	- page > 0 could break edge tiles or strips
  */
 
 /*
@@ -1469,8 +1471,11 @@ rtiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop 
 
 		x = 0;
 		while( x < r->width ) { 
-			int page_no = rtiff->page + (r->top + y) / 
-				rtiff->header.height;
+			/* page_no is within this toilet roll image, not tiff
+			 * file page number ... add the number of the start
+			 * page to get that.
+			 */
+			int page_no = (r->top + y) / rtiff->header.height;
 			int page_y = (r->top + y) % rtiff->header.height;
 
 			/* Coordinate of the tile on this page that xy falls in.
@@ -1478,7 +1483,7 @@ rtiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop 
 			int xs = ((r->left + x) / tile_width) * tile_width;
 			int ys = (page_y / tile_height) * tile_height;
 
-			if( rtiff_set_page( rtiff, page_no ) ||
+			if( rtiff_set_page( rtiff, rtiff->page + page_no ) ||
 				rtiff_read_tile( rtiff, buf, xs, ys ) ) { 
 				VIPS_GATE_STOP( "rtiff_fill_region: work" ); 
 				return( -1 );
@@ -1744,9 +1749,11 @@ rtiff_stripwise_generate( VipsRegion *or,
 
 	y = 0;
 	while( y < r->height ) { 
-		/* Page number, position within this page.
+		/* page_no is within this toilet roll image, not tiff
+		 * file page number ... add the number of the start
+		 * page to get that.
 		 */
-		int page_no = rtiff->page + (r->top + y) / page_height;
+		int page_no = (r->top + y) / page_height;
 		int y_page = (r->top + y) % page_height;
 
 		/* Strip number.
@@ -1785,7 +1792,7 @@ rtiff_stripwise_generate( VipsRegion *or,
 
 		g_assert( hit.height > 0 ); 
 
-		if( rtiff_set_page( rtiff, page_no ) ) {
+		if( rtiff_set_page( rtiff, rtiff->page + page_no ) ) {
 			VIPS_GATE_STOP( "rtiff_stripwise_generate: work" ); 
 			return( -1 );
 		}

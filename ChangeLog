@@ -1,3 +1,6 @@
+19/5/17 started 8.5.6
+- tiff read with start page > 0 could break edge tiles or strips
+
 23/4/17 started 8.5.5
 - doc polishing
 - more improvements for truncated PNG files, thanks juyunsang 
