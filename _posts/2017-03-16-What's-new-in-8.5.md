@@ -7,13 +7,13 @@ ChangeLog if you need more details.
 
 ## New operators
 
-Almost all of the logic from the `vipsthumbnail` program is now in a pair of
-new operators,
-[`vips_thumbnail()`](/API/current/libvips-resample.html#vips-thumbnail) and
-[`vips_thumbnail_buffer()`](/API/current/libvips-resample.html#vips-thumbnail-buffer).
-These are very handy for the various scripting languages with vips bindings:
-you can now make a high-quality, high-speed thumbnail in PHP (for example)
-with just:
+Almost all of the logic from the `vipsthumbnail` program is now in
+a pair of new operators, [`vips_thumbnail()`]({{ site.baseurl
+}}/API/current/libvips-resample.html#vips-thumbnail)
+and [`vips_thumbnail_buffer()`]({{ site.baseurl
+}}/API/current/libvips-resample.html#vips-thumbnail-buffer).  These are
+very handy for the various scripting languages with vips bindings: you can
+now make a high-quality, high-speed thumbnail in PHP (for example) with just:
 
 ```php?start_inline=1
 $filename = "image.jpg";
@@ -24,33 +24,36 @@ $image->writeToFile("my-thumbnail.jpg");
 The new thumbnail operator has also picked up some useful features:
 
 * **Smart crop** A new cropping mode called `attention` searches the image for
-  edges, skin tones and areas of saturated colour, and attempts to position the
-  crop box over the most significant feature. There's a
-  [`vips_smartcrop()`](/API/current/libvips-conversion.html#vips-smartcrop)
-  operator as well.
+  edges, skin tones and areas of saturated colour, and
+  attempts to position the crop box over the most significant
+  feature. There's a [`vips_smartcrop()`]({{ site.baseurl
+  }}/API/current/libvips-conversion.html#vips-smartcrop) operator as well.
 
 * **Crop constraints** Thanks to tomasc, libvips has crop constraints. You 
   can set it to only thumbnail if the image is larger or smaller than the target 
   (the `<` and `>` modifiers in imagemagick), and to crop to a width or height. 
 
 * **Buffer sources** 
-  [`vips_thumbnail_buffer()`](/API/current/libvips-resample.html#vips-thumbnail-buffer)
-  will thumbnail an image held as a formatted block of data in memory. This
-  is useful for cloud services, where the filesystem is often rather slow.
+  [`vips_thumbnail_buffer()`]({{ site.baseurl
+  }}/API/current/libvips-resample.html#vips-thumbnail-buffer) will thumbnail
+  an image held as a formatted block of data in memory. This is useful for
+  cloud services, where the filesystem is often rather slow.
 
 CLAHE, or Contrast-Limited Adaptive Histogram Equalisation, is a simple way to
 make local histogram equalisation more useful. 
 
 Plain local equalization removes
-all global brightness variation and can make images hard to understand. 
-[`vips_hist_local()`](/API/current/libvips-histogram.html#vips-hist-local)
-now has a `max-slope` parameter you can use to limit how much equalisation
-can alter your image. A value of 3 generally works well.
+all global brightness variation and can make images
+hard to understand.  [`vips_hist_local()`]({{ site.baseurl
+}}/API/current/libvips-histogram.html#vips-hist-local) now has a `max-slope`
+parameter you can use to limit how much equalisation can alter your image. A
+value of 3 generally works well.
 
 For example, here's the famous NASA image of Io on the left, straight
 local-histogram equalization in the centre, and CLAHE on the right.
 
-[![Io with CLAHE]({{ site.baseurl }}/assets/images/tn_clahe.jpg)]({{ site.baseurl }}/assets/images/clahe.jpg)
+[![Io with CLAHE]({{ site.baseurl }}/assets/images/tn_clahe.jpg)]({{
+site.baseurl }}/assets/images/clahe.jpg)
 
 The centre image looks horrible, but it does have a lot of local detail. The
 CLAHE one is a interesting compromise: it still looks like the original, but
@@ -68,10 +71,10 @@ gives the number of pages to load, or -1 to load all pages.
 
 For example, [OME-
 TIFF](https://www.openmicroscopy.org/site/support/ome-model/ome-tiff)
-is a standard for microscopy data that stores volumetric images as multi-page
-TIFFs. They have some [sample
+is a standard for microscopy data that stores
+volumetric images as multi-page TIFFs. They have some [sample
 data](https://www.openmicroscopy.org/site/support/ome-model/ome-tiff/data.html)
-including a 4D image of an embryo. 
+including a 4D image of an embryo.
 
 Each TIFF contains 10 slices. Normally you just see page 0:
 
@@ -118,11 +121,11 @@ Thanks to the developer of
 editor with a libvips backend, libvips can now reorder computations to reduce
 recalculation. This can (sometimes) produce a dramatic speedup.
 
-This has been [discussed on the libvips 
-blog](http://libvips.blogspot.co.uk/2017/01/automatic-computation-reordering.html), 
-but briefly, the order in which operator arguments are evaluated can have a
-big effect on runtime due to the way libvips tries to cache and reuse results
-behind the scenes. 
+This has been [discussed on the libvips
+blog](http://libvips.blogspot.co.uk/2017/01/automatic-computation-reordering.html),
+but briefly, the order in which operator arguments are evaluated can have
+a big effect on runtime due to the way libvips tries to cache and reuse
+results behind the scenes.
 
 The blog post has some examples and some graphs.
 
