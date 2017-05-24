@@ -162,6 +162,7 @@ vips_block_cache_dispose( GObject *gobject )
 	vips_block_cache_drop_all( cache );
 	VIPS_FREEF( vips_g_mutex_free, cache->lock );
 	VIPS_FREEF( vips_g_cond_free, cache->new_tile );
+	VIPS_FREEF( g_hash_table_destroy, cache->tiles );
 
 	if( cache->tiles )
 		g_assert( g_hash_table_size( cache->tiles ) == 0 );
