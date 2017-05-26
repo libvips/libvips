@@ -692,7 +692,7 @@ transform_save_string_blob( const GValue *src_value, GValue *dest_value )
 		/* No error return from transform, but we should set it to
 		 * something.
 		 */
-		vips_value_set_save_string( dest_value, "" ); 
+		vips_value_set_blob( dest_value, NULL, NULL, 0 ); 
 }
 
 GType

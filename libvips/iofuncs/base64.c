@@ -65,7 +65,7 @@ Modified on:
 	- move to vips_ namespace
 
 31/5/15
-	- oops siged/unsignned mess-up meant we were not padding correctly
+	- oops siged/unsigned mess-up meant we were not padding correctly
 
  */
 
@@ -237,7 +237,9 @@ vips__b64_decode( const char *buffer, size_t *data_length )
 	int nbits;
 	int i;
 
-	if( output_data_length > 1024 * 1024 ) {
+	/* A large ICC profile can be a couple of MB, so 10 should be plenty.
+	 */
+	if( output_data_length > 10 * 1024 * 1024 ) {
 		/* We shouldn't really be used for large amounts of data, plus
 		 * we are using an int for offset.
 		 */
