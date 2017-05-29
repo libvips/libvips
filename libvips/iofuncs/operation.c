@@ -489,6 +489,8 @@ vips_operation_dump( VipsObject *object, VipsBuf *buf )
 	VipsOperation *operation = VIPS_OPERATION( object );
 	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
 
+	if( operation->found_hash )
+		printf( "hash = %x\n", operation->hash ); 
 	printf( "%s args:\n", object_class->nickname );
 	vips_argument_map( VIPS_OBJECT( operation ),
 		vips_operation_call_argument, NULL, NULL );

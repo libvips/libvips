@@ -14,6 +14,8 @@
  * 	- rewrite as a class
  * 20/9/15 leiyangyou 
  * 	- add @spacing 
+ * 29/5/17
+ * 	- don't set "font" if unset, it breaks caching
  */
 
 /*
@@ -171,9 +173,6 @@ vips_text_build( VipsObject *object )
 		return( -1 );
 	}
 
-	if( !text->font )
-		g_object_set( text, "font", "sans 12", NULL ); 
-
 	g_mutex_lock( vips_text_lock ); 
 
 	if( !vips_text_fontmap )
@@ -329,6 +328,7 @@ vips_text_init( VipsText *text )
 	text->align = VIPS_ALIGN_LOW;
 	text->dpi = 72;
 	text->bitmap.buffer = NULL;
+	VIPS_SETSTR( text->font, "sans 12" ); 
 }
 
 #endif /*HAVE_PANGOFT2*/

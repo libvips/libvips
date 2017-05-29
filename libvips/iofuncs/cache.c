@@ -601,6 +601,10 @@ vips_cache_insert( VipsOperation *operation )
 {
 	VipsOperationCacheEntry *entry = g_new( VipsOperationCacheEntry, 1 );
 
+#ifdef VIPS_DEBUG
+	printf( "vips_cache_insert: adding %p to cache\n", operation );
+#endif /*VIPS_DEBUG*/
+
 	entry->operation = operation;
 	entry->time = 0;
 	entry->invalidate_id = 0;
@@ -756,6 +760,10 @@ vips_cache_operation_lookup( VipsOperation *operation )
 
 	g_mutex_unlock( vips_cache_lock );
 
+#ifdef VIPS_DEBUG
+	printf( "vips_cache_operation_lookup: result = %p\n", result );
+#endif /*VIPS_DEBUG*/
+
 	return( result );
 }
 
@@ -771,6 +779,11 @@ vips_cache_operation_add( VipsOperation *operation )
 	g_assert( VIPS_OBJECT( operation )->constructed ); 
 
 	g_mutex_lock( vips_cache_lock );
+
+#ifdef VIPS_DEBUG
+	printf( "vips_cache_operation_add: adding " );
+	vips_object_print_dump( VIPS_OBJECT( operation ) );
+#endif /*VIPS_DEBUG*/
 
 	/* If two threads call the same operation at the same time, 
 	 * we can get multiple adds. Let the first one win. See
@@ -824,10 +837,18 @@ vips_cache_operation_buildp( VipsOperation **operation )
 #endif /*VIPS_DEBUG*/
 
 	if( (hit = vips_cache_operation_lookup( *operation )) ) {
+#ifdef VIPS_DEBUG
+		printf( "vips_cache_operation_buildp: cache hit %p\n", hit );
+#endif /*VIPS_DEBUG*/
+
 		g_object_unref( *operation );
 		*operation = hit;
 	}
 	else {
+#ifdef VIPS_DEBUG
+		printf( "vips_cache_operation_buildp: cache miss, building\n" );
+#endif /*VIPS_DEBUG*/
+
 		if( vips_object_build( VIPS_OBJECT( *operation ) ) ) 
 			return( -1 );
 
