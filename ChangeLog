@@ -3,6 +3,7 @@
 - raise b64 limit to allow for huge profiles (thanks jaume)
 - fix error return in blob save (thanks jaume)
 - tag vipsprofile as py2 (thanks ioquatix)
+- don't cache thumbnail (thanks tomasc)
 
 23/4/17 started 8.5.5
 - doc polishing
