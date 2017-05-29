@@ -506,12 +506,12 @@ vips_reduceh_build( VipsObject *object )
 		reduceh->n_point / 2 - 1, 0, 
 		width, in->Ysize,
 		"extend", VIPS_EXTEND_COPY,
-		NULL ) )
+		(void *) NULL ) )
 		return( -1 );
 	in = t[1];
 
 	if( vips_image_pipelinev( resample->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
+		VIPS_DEMAND_STYLE_THINSTRIP, in, (void *) NULL ) )
 		return( -1 );
 
 	/* Size output. We need to always round to nearest, so round(), not
