@@ -7,6 +7,8 @@
  * 	- add @size parameter
  * 4/5/17
  * 	- add FORCE
+ * 29/5/17
+ * 	- don't cache (thanks tomasc)
  */
 
 /*
@@ -548,6 +550,7 @@ vips_thumbnail_class_init( VipsThumbnailClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	gobject_class->dispose = vips_thumbnail_dispose;
 	gobject_class->finalize = vips_thumbnail_finalize;
@@ -557,6 +560,11 @@ vips_thumbnail_class_init( VipsThumbnailClass *class )
 	vobject_class->nickname = "thumbnail_base";
 	vobject_class->description = _( "thumbnail generation" );
 	vobject_class->build = vips_thumbnail_build;
+
+	/* We mustn't cache these calls, since we open the file or buffer in 
+	 * sequential mode.
+	 */
+	operation_class->flags = VIPS_OPERATION_NOCACHE;
 
 	VIPS_ARG_IMAGE( class, "out", 2, 
 		_( "Output" ), 
