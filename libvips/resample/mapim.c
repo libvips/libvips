@@ -342,25 +342,6 @@ vips_mapim_build( VipsObject *object )
 		return( -1 );
 	in = t[0];
 
-	/* We can't use vips_object_argument_isset(), since it may have been
-	 * set to NULL, see vips_similarity().
-	 */
-	if( !mapim->interpolate ) {
-		VipsInterpolate *interpolate;
-
-		interpolate = vips_interpolate_new( "bilinear" );
-		g_object_set( object, 
-			"interpolate", interpolate,
-			NULL ); 
-		g_object_unref( interpolate );
-
-		/* coverity gets confused by this, it thinks
-		 * mapim->interpolate may still be null. Assign ourselves,
-		 * even though we don't need to.
-		 */
-		mapim->interpolate = interpolate;
-	}
-
 	window_size = vips_interpolate_get_window_size( mapim->interpolate );
 	window_offset = 
 		vips_interpolate_get_window_offset( mapim->interpolate );
@@ -425,6 +406,7 @@ vips_mapim_class_init( VipsMapimClass *class )
 static void
 vips_mapim_init( VipsMapim *mapim )
 {
+	mapim->interpolate = vips_interpolate_new( "bilinear" );
 }
 
 /**

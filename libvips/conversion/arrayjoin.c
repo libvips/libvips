@@ -159,15 +159,15 @@ vips_arrayjoin_build( VipsObject *object )
 	}
 
 	if( !vips_object_argument_isset( object, "hspacing" ) ) 
-		g_object_set( object, "hspacing", hspacing, NULL );
+		join->hspacing = hspacing;
 	if( !vips_object_argument_isset( object, "vspacing" ) ) 
-		g_object_set( object, "vspacing", vspacing, NULL );
+		join->vspacing = vspacing;
 
 	hspacing = join->hspacing;
 	vspacing = join->vspacing;
 
 	if( !vips_object_argument_isset( object, "across" ) ) 
-		g_object_set( object, "across", n, NULL );
+		join->across = n;
 
 	/* How many images down the grid?
 	 */

@@ -478,11 +478,16 @@ png2vips_interlace( Read *read, VipsImage *out )
 
 	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
 		return( -1 );
-
+ 
 	if( !(read->row_pointer = VIPS_ARRAY( NULL, out->Ysize, png_bytep )) )
 		return( -1 );
 	for( y = 0; y < out->Ysize; y++ )
 		read->row_pointer[y] = VIPS_IMAGE_ADDR( out, 0, y );
+
+	/* With some libpng you get a warning unless you call this, even though
+	 * it's unnecessary.
+	 */
+	png_set_interlace_handling( read->pPng );
 
 	png_read_image( read->pPng, read->row_pointer );
 

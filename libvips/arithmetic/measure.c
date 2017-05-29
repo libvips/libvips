@@ -117,13 +117,9 @@ vips_measure_build( VipsObject *object )
 	/* left/top/width/height default to the size of the image.
 	 */
 	if( !vips_object_argument_isset( object, "width" ) )
-		g_object_set( object, 
-			"width", vips_image_get_width( ready ),
-			NULL );
+		measure->width = vips_image_get_width( ready );
 	if( !vips_object_argument_isset( object, "height" ) )
-		g_object_set( object, 
-			"height", vips_image_get_height( ready ),
-			NULL );
+		measure->height = vips_image_get_height( ready );
 
 	/* How large are the patches we are to measure?
 	 */

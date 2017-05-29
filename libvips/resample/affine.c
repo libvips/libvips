@@ -398,24 +398,11 @@ vips_affine_build( VipsObject *object )
 		vips_check_vector_length( class->nickname, 
 			affine->oarea->n, 4 ) )
 		return( -1 );
-	/* We can't use vips_object_argument_isset(), since it may have been
-	 * set to NULL, see vips_similarity().
+
+	/* Can be set explicitly to NULL to mean default setting. 
 	 */
-	if( !affine->interpolate ) {
-		VipsInterpolate *interpolate;
-
-		interpolate = vips_interpolate_new( "bilinear" );
-		g_object_set( object, 
-			"interpolate", interpolate,
-			NULL ); 
-		g_object_unref( interpolate );
-
-		/* coverity gets confused by this, it thinks
-		 * affine->interpolate may still be null. Assign ourselves,
-		 * even though we don't need to.
-		 */
-		affine->interpolate = interpolate;
-	}
+	if( !affine->interpolate )
+		affine->interpolate = vips_interpolate_new( "bilinear" );
 
 	in = resample->in;
 

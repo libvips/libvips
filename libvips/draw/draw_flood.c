@@ -468,6 +468,9 @@ vips_draw_flood_build( VipsObject *object )
 	/* @test defaults to @image.
 	 */
 	if( !vips_object_argument_isset( object, "test" ) )
+		/* Setting input params like this will break caching, but we
+		 * don't cache draw ops anyway.
+		 */
 		g_object_set( object, "test", draw->image, NULL ); 
 
 	if( vips_image_wio_input( drawflood->test ) ||
