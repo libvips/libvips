@@ -787,7 +787,7 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in, VipsImage **out )
 
 	*out = vips_image_new();
 	if( vips_image_pipelinev( *out, 
-		VIPS_DEMAND_STYLE_FATSTRIP, in, NULL ) )
+		VIPS_DEMAND_STYLE_FATSTRIP, in, (void *) NULL ) )
 		return( -1 );
 
 	/* Size output. We need to always round to nearest, so round(), not
@@ -870,7 +870,7 @@ vips_reducev_build( VipsObject *object )
 		0, reducev->n_point / 2 - 1, 
 		in->Xsize, height, 
 		"extend", VIPS_EXTEND_COPY,
-		NULL ) )
+		(void *) NULL ) )
 		return( -1 );
 	in = t[1];
 
@@ -894,7 +894,7 @@ vips_reducev_build( VipsObject *object )
 		if( vips_sequential( in, &t[3], 
 			"tile_height", 10,
 			// "trace", TRUE,
-			NULL ) )
+			(void *) NULL ) )
 			return( -1 );
 		in = t[3];
 	}
