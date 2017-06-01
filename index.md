@@ -25,11 +25,12 @@ GraphicsMagick, letting it load formats like DICOM.
 
 It comes with bindings for [C](API/current/using-from-c.html),
 [C++](API/current/using-from-cpp.html),
-[Python binding](API/current/using-from-python.html) and [the
+[Python](API/current/using-from-python.html) and [the
 command-line](API/current/using-cli.html). Full bindings
 are available for [Ruby](https://rubygems.org/gems/ruby-vips),
-[PHP](https://github.com/jcupitt/php-vips), and
-[Go](https://github.com/davidbyttow/govips). libvips
+[PHP](https://github.com/jcupitt/php-vips), 
+[Go](https://github.com/davidbyttow/govips), and
+[Lua](https://github.com/jcupitt/lua-vips). libvips
 is used as an image processing engine by [sharp (on
 node.js)](https://www.npmjs.org/package/sharp),
 [bimg](https://github.com/h2non/bimg),
