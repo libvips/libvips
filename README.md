@@ -27,6 +27,7 @@ interface](http://jcupitt.github.io/libvips/API/current/using-cli.html).
 Bindings are available for [Ruby](https://rubygems.org/gems/ruby-vips),
 [PHP](https://github.com/jcupitt/php-vips),
 [Go](https://github.com/davidbyttow/govips),
+[Lua](https://github.com/jcupitt/lua-vips),
 JavaScript and others. There is full
 [documentation](http://jcupitt.github.io/libvips/API/current).
 There are several GUIs as well, see the [VIPS
