@@ -13,7 +13,7 @@ As long as you have a libvips binary on your system, just:
 should be all you need. The README in the repository for the binding has more
 details:
 
-https://github.com/jcupitt/lua-vips
+[https://github.com/jcupitt/lua-vips](https://github.com/jcupitt/lua-vips)
 
 Here's an example program:
 
@@ -57,7 +57,7 @@ image:write_to_file("tiny.jpg")
 There's a small repo here which benchmarks it against `magick`, the ImageMagick
 binding for Lua:
 
-https://github.com/jcupitt/lua-vips-bench
+[https://github.com/jcupitt/lua-vips-bench](https://github.com/jcupitt/lua-vips-bench)
 
 On that test and on my laptop, `lua-vips` is 7.5x faster and needs 10x less 
 memory.
