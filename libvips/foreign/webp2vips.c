@@ -191,8 +191,8 @@ read_new( const char *filename, const void *data, size_t length, int shrink )
 
 	read->config.options.use_threads = 1;
 
-	read->width = read->config.input.width / read->shrink;
-	read->height = read->config.input.height / read->shrink;
+	read->width = VIPS_RINT( (float) read->config.input.width / read->shrink );
+	read->height = VIPS_RINT( (float) read->config.input.height / read->shrink );
 
 	if( read->width == 0 ||
 		read->height == 0 ) {
