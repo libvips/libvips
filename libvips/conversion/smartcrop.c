@@ -1,7 +1,5 @@
 /* crop an image down to a specified size by removing boring parts
  *
- * Copyright: 2017, J. Cupitt
- *
  * Adapted from sharp's smartcrop feature, with kind permission.
  *
  * 1/3/17
@@ -159,14 +157,53 @@ vips_smartcrop_entropy( VipsSmartcrop *smartcrop,
 	return( 0 );
 }
 
+/* Calculate sqrt(b1^2 + b2^2 ...)
+ */
+static int
+pythagoras( VipsSmartcrop *smartcrop, VipsImage *in, VipsImage **out )
+{
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( smartcrop ), 
+			2 * in->Bands + 1 );
+
+	int i;
+
+	for( i = 0; i < in->Bands; i++ ) 
+		if( vips_extract_band( in, &t[i], i, NULL ) )
+			return( -1 );
+
+	for( i = 0; i < in->Bands; i++ ) 
+		if( vips_multiply( t[i], t[i], &t[i + in->Bands], NULL ) )
+			return( -1 );
+
+	if( vips_sum( &t[in->Bands], &t[2 * in->Bands], in->Bands, NULL ) ||
+		vips_pow_const1( t[2 * in->Bands], out, 0.5, NULL ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+view_image( VipsImage *image )
+{
+	VipsArrayImage *array; 
+	int result;
+
+	array = vips_array_image_new( &image, 1 );
+	result = vips_system( "nip2 %s", "in", array, NULL ); 
+	vips_area_unref( VIPS_AREA( array ) );
+
+	return( result ); 
+}
+
 static int
 vips_smartcrop_attention( VipsSmartcrop *smartcrop, 
 	VipsImage *in, int *left, int *top )
 {
-	/* ab ranges for skin colours. Trained with http://humanae.tumblr.com/
+	/* From smartcrop.js.
 	 */
-	static double ab_low[2] = { 3.0, 4.0 }; 
-	static double ab_high[2] = { 22.0, 31.0 }; 
+	static double skin_vector[] = {-0.78, -0.57, -0.44};
+	static double ones[] = {1.0, 1.0, 1.0};
 
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( smartcrop ), 24 );
@@ -178,45 +215,54 @@ vips_smartcrop_attention( VipsSmartcrop *smartcrop,
 	int x_pos;
 	int y_pos;
 
-	if( !(t[21] = vips_image_new_matrixv( 3, 3,
-		-1.0, 0.0, 1.0, -2.0, 0.0, 2.0, -1.0, 0.0, 1.0 )) )
-		return( -1 );
-	if( vips_rot( t[21], &t[22], VIPS_ANGLE_D90, NULL ) )
-		return( -1 ); 
-
-	/* Convert to LAB and just use the first three bands.
+	/* Simple laplacian.
 	 */
-	if( vips_colourspace( in, &t[0], VIPS_INTERPRETATION_LAB, NULL ) ||
+	if( !(t[21] = vips_image_new_matrixv( 3, 3,
+		-1.0, -1.0, -1.0, 
+		-1.0,  8.0, -1.0, 
+		-1.0, -1.0, -1.0 )) )
+		return( -1 );
+
+	/* Convert to XYZ and just use the first three bands.
+	 */
+	if( vips_colourspace( in, &t[0], VIPS_INTERPRETATION_XYZ, NULL ) ||
 		vips_extract_band( t[0], &t[1], 0, "n", 3, NULL ) )
 		return( -1 );
 
-	/* Sobel edge-detect on L.
+	/* Laplacian on Y. 
 	 */
-	if( vips_extract_band( t[1], &t[2], 0, NULL ) ||
-		vips_conv( t[2], &t[3], t[21], NULL ) ||
-		vips_conv( t[2], &t[4], t[22], NULL ) ||
-		vips_abs( t[3], &t[5], NULL ) ||
-		vips_abs( t[4], &t[6], NULL ) ||
-		vips_add( t[5], t[6], &t[7], NULL ) )
+	if( vips_extract_band( t[1], &t[2], 1, NULL ) ||
+		vips_conv( t[2], &t[3], t[21], 
+			"precision", VIPS_PRECISION_INTEGER,
+			NULL ) ||
+		vips_linear1( t[3], &t[12], 2, 0, NULL ) )
 		return( -1 );
 
-	/* Look for skin colours, plus L > 15.
+	view_image( t[12] );
+
+	/* Look for skin colours. Taken from smartcrop.js.
 	 */
-	if( vips_extract_band( t[1], &t[8], 1, "n", 2, NULL ) ||
-		vips_moreeq_const( t[8], &t[9], ab_low, 2, NULL ) ||
-		vips_lesseq_const( t[8], &t[10], ab_high, 2, NULL ) ||
-		vips_andimage( t[9], t[10], &t[11], NULL ) ||
-		vips_bandand( t[11], &t[12], NULL ) ||
-		vips_moreeq_const1( t[2], &t[18], 15.0, NULL ) ||
-		vips_andimage( t[12], t[18], &t[19], NULL ) )
-		return( -1 ); 
+	if( 
+		/* Normalise to magnitude of colour in XYZ.
+		 */
+		pythagoras( smartcrop, t[1], &t[5] ) ||
+		vips_divide( t[1], t[5], &t[6], NULL ) ||
+
+		/* Distance from skin point.
+		 */
+		vips_linear( t[6], &t[7], ones, skin_vector, 3, NULL ) ||
+		pythagoras( smartcrop, t[7], &t[8] ) ||
+
+		/* Rescale to 100 - 0 score.
+		 */
+		vips_linear1( t[8], &t[13], -100.0, 100.0, NULL ) )
+		return( -1 );
 
 	/* Look for saturated areas.
 	 */
-	if( vips_colourspace( t[1], &t[13], 
+	if( vips_colourspace( t[1], &t[10], 
 		VIPS_INTERPRETATION_LCH, NULL ) ||
-		vips_extract_band( t[13], &t[14], 1, NULL ) ||
-		vips_more_const1( t[14], &t[15], 60.0, NULL ) )
+		vips_extract_band( t[10], &t[11], 1, NULL ) )
 		return( -1 );
 
 	/* Sum, shrink, blur and find maxpos. 
@@ -230,11 +276,10 @@ vips_smartcrop_attention( VipsSmartcrop *smartcrop,
 	vshrink = in->Ysize / 32.0;
 	sigma = sqrt( pow( smartcrop->width / hshrink, 2 ) + 
 			pow( smartcrop->height / vshrink, 2 ) ) / 6; 
-	if( vips_add( t[7], t[19], &t[16], NULL ) ||
-		vips_add( t[16], t[15], &t[17], NULL ) ||
-		vips_shrink( t[17], &t[20], hshrink, vshrink, NULL ) ||
-		vips_gaussblur( t[20], &t[23], sigma, NULL ) ||
-		vips_max( t[23], &max, "x", &x_pos, "y", &y_pos, NULL ) )
+	if( vips_sum( &t[11], &t[14], 3, NULL ) ||
+		vips_shrink( t[14], &t[15], hshrink, vshrink, NULL ) ||
+		vips_gaussblur( t[15], &t[16], sigma, NULL ) ||
+		vips_max( t[16], &max, "x", &x_pos, "y", &y_pos, NULL ) )
 		return( -1 ); 
 
 	/* Centre the crop over the max.
