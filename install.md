@@ -6,6 +6,29 @@ manager. For macOS, there are packages in Homebrew, MacPorts and Fink. For
 Windows, there are pre-compiled binaries in the [Download area]({{
 site.github.releases_url }}).
 
+## Installing on macOS with homebrew
+
+Install [homebrew](https://brew.sh/), then enter:
+
+	brew install vips
+
+That will install vips with most optional add-ons included. It won't include
+ImageMagick/GraphicsMagick support (used for loading things like BMP) you have
+to enable that if you need it:
+
+	brew install vips --with-imagemagick
+
+or:
+
+	brew install vips --with-graphicsmagick
+
+It also won't include things like openslide, cfitsio and matlab support. You
+must install those packages first, then install libvips with:
+
+	brew install vips --env=std
+
+Meaning, pick up packages from the environment. 
+
 ## Installing the Windows binary
 
 Download `vips-dev-w64-web-x.y.z.zip` from the [Download area]({{ 
