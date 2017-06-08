@@ -3626,3 +3626,21 @@ vips_band_format_iscomplex( VipsBandFormat format )
 		return( FALSE );
 	}
 }
+
+/* Handy for debugging: view an image in nip2.
+ */
+int
+vips__view_image( VipsImage *image )
+{
+	VipsArrayImage *array; 
+	int result;
+
+	array = vips_array_image_new( &image, 1 );
+	result = vips_system( "nip2 %s", 
+		"in", array, 
+		"in-format", "%s.v", 
+		NULL ); 
+	vips_area_unref( VIPS_AREA( array ) );
+
+	return( result ); 
+}
