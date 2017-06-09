@@ -185,6 +185,58 @@ pythagoras( VipsSmartcrop *smartcrop, VipsImage *in, VipsImage **out )
 	return( 0 );
 }
 
+/* FIXME 
+ *
+ * Needed until 8.6, when this is in iofuncs/image.c
+ */
+
+static VipsImage *
+vips_image_new_from_image( VipsImage *image, const double *c, int n )
+{
+	VipsObject *scope = (VipsObject *) vips_image_new();
+	VipsImage **t = (VipsImage **) vips_object_local_array( scope, 5 );
+
+	double *ones;
+	int i;
+	VipsImage *result;
+
+	if( !(ones = VIPS_ARRAY( scope, n, double )) ) {
+		g_object_unref( scope );
+		return( NULL );
+	}
+	for( i = 0; i < n; i++ )
+		ones[i] = 1.0;
+
+	if( vips_black( &t[0], 1, 1, NULL ) ||
+		vips_linear( t[0], &t[1], ones, (double *) c, n, NULL ) ||
+		vips_cast( t[1], &t[2], image->BandFmt, NULL ) ||
+		vips_embed( t[2], &t[3], 0, 0, image->Xsize, image->Ysize,
+			"extend", VIPS_EXTEND_COPY, NULL ) ||
+		vips_copy( t[3], &t[4], 
+			"interpretation", image->Type,
+			"xres", image->Xres,
+			"yres", image->Yres,
+			"xoffset", image->Xoffset,
+			"yoffset", image->Yoffset,
+			NULL ) ) {
+		g_object_unref( scope );
+		return( NULL );
+	}
+
+	result = t[4];
+	g_object_ref( result );
+
+	g_object_unref( scope );
+
+	return( result ); 
+}
+
+static VipsImage *
+vips_image_new_from_image1( VipsImage *image, double c )
+{
+	return( vips_image_new_from_image( image, (const double *) &c, 1 ) );
+}
+
 static int
 vips_smartcrop_attention( VipsSmartcrop *smartcrop, 
 	VipsImage *in, int *left, int *top )
