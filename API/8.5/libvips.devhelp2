@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
-<!DOCTYPE book PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "">
-<book xmlns="http://www.devhelp.net/book" title="VIPS Reference Manual" link="index.html" author="" name="libvips" version="2" language="c">
+<book xmlns="http://www.devhelp.net/book" title="VIPS Reference Manual" link="index.html" author="" name="libvips" version="2" language="c" online="http://jcupitt.github.io/libvips/API/current/">
   <chapters>
     <sub name="VIPS Overview" link="ch01.html">
       <sub name="VIPS from the command-line" link="using-cli.html"/>
@@ -72,9 +71,6 @@
     <keyword type="function" name="vips_version ()" link="libvips-vips.html#vips-version"/>
     <keyword type="function" name="vips_guess_prefix ()" link="libvips-vips.html#vips-guess-prefix"/>
     <keyword type="function" name="vips_guess_libdir ()" link="libvips-vips.html#vips-guess-libdir"/>
-    <keyword type="macro" name="VIPS_MAGIC_INTEL" link="VipsImage.html#VIPS-MAGIC-INTEL:CAPS"/>
-    <keyword type="macro" name="VIPS_MAGIC_SPARC" link="VipsImage.html#VIPS-MAGIC-SPARC:CAPS"/>
-    <keyword type="macro" name="VIPS_MAX_COORD" link="VipsImage.html#VIPS-MAX-COORD:CAPS"/>
     <keyword type="function" name="VipsStartFn ()" link="VipsImage.html#VipsStartFn"/>
     <keyword type="function" name="VipsGenerateFn ()" link="VipsImage.html#VipsGenerateFn"/>
     <keyword type="function" name="VipsStopFn ()" link="VipsImage.html#VipsStopFn"/>
@@ -141,6 +137,9 @@
     <keyword type="function" name="vips_value_set_array_image ()" link="VipsImage.html#vips-value-set-array-image"/>
     <keyword type="function" name="vips_reorder_prepare_many ()" link="VipsImage.html#vips-reorder-prepare-many"/>
     <keyword type="function" name="vips_reorder_margin_hint ()" link="VipsImage.html#vips-reorder-margin-hint"/>
+    <keyword type="macro" name="VIPS_MAGIC_INTEL" link="VipsImage.html#VIPS-MAGIC-INTEL:CAPS"/>
+    <keyword type="macro" name="VIPS_MAGIC_SPARC" link="VipsImage.html#VIPS-MAGIC-SPARC:CAPS"/>
+    <keyword type="macro" name="VIPS_MAX_COORD" link="VipsImage.html#VIPS-MAX-COORD:CAPS"/>
     <keyword type="enum" name="enum VipsDemandStyle" link="VipsImage.html#VipsDemandStyle"/>
     <keyword type="enum" name="enum VipsImageType" link="VipsImage.html#VipsImageType"/>
     <keyword type="enum" name="enum VipsInterpretation" link="VipsImage.html#VipsInterpretation"/>
@@ -634,36 +633,6 @@
     <keyword type="enum" name="enum VipsOperationComplex" link="libvips-arithmetic.html#VipsOperationComplex"/>
     <keyword type="enum" name="enum VipsOperationComplex2" link="libvips-arithmetic.html#VipsOperationComplex2"/>
     <keyword type="enum" name="enum VipsOperationComplexget" link="libvips-arithmetic.html#VipsOperationComplexget"/>
-    <keyword type="macro" name="VIPS_D93_X0" link="libvips-colour.html#VIPS-D93-X0:CAPS"/>
-    <keyword type="macro" name="VIPS_D93_Y0" link="libvips-colour.html#VIPS-D93-Y0:CAPS"/>
-    <keyword type="macro" name="VIPS_D93_Z0" link="libvips-colour.html#VIPS-D93-Z0:CAPS"/>
-    <keyword type="macro" name="VIPS_D75_X0" link="libvips-colour.html#VIPS-D75-X0:CAPS"/>
-    <keyword type="macro" name="VIPS_D75_Y0" link="libvips-colour.html#VIPS-D75-Y0:CAPS"/>
-    <keyword type="macro" name="VIPS_D75_Z0" link="libvips-colour.html#VIPS-D75-Z0:CAPS"/>
-    <keyword type="macro" name="VIPS_D65_X0" link="libvips-colour.html#VIPS-D65-X0:CAPS"/>
-    <keyword type="macro" name="VIPS_D65_Y0" link="libvips-colour.html#VIPS-D65-Y0:CAPS"/>
-    <keyword type="macro" name="VIPS_D65_Z0" link="libvips-colour.html#VIPS-D65-Z0:CAPS"/>
-    <keyword type="macro" name="VIPS_D55_X0" link="libvips-colour.html#VIPS-D55-X0:CAPS"/>
-    <keyword type="macro" name="VIPS_D55_Y0" link="libvips-colour.html#VIPS-D55-Y0:CAPS"/>
-    <keyword type="macro" name="VIPS_D55_Z0" link="libvips-colour.html#VIPS-D55-Z0:CAPS"/>
-    <keyword type="macro" name="VIPS_D50_X0" link="libvips-colour.html#VIPS-D50-X0:CAPS"/>
-    <keyword type="macro" name="VIPS_D50_Y0" link="libvips-colour.html#VIPS-D50-Y0:CAPS"/>
-    <keyword type="macro" name="VIPS_D50_Z0" link="libvips-colour.html#VIPS-D50-Z0:CAPS"/>
-    <keyword type="macro" name="VIPS_A_X0" link="libvips-colour.html#VIPS-A-X0:CAPS"/>
-    <keyword type="macro" name="VIPS_A_Y0" link="libvips-colour.html#VIPS-A-Y0:CAPS"/>
-    <keyword type="macro" name="VIPS_A_Z0" link="libvips-colour.html#VIPS-A-Z0:CAPS"/>
-    <keyword type="macro" name="VIPS_B_X0" link="libvips-colour.html#VIPS-B-X0:CAPS"/>
-    <keyword type="macro" name="VIPS_B_Y0" link="libvips-colour.html#VIPS-B-Y0:CAPS"/>
-    <keyword type="macro" name="VIPS_B_Z0" link="libvips-colour.html#VIPS-B-Z0:CAPS"/>
-    <keyword type="macro" name="VIPS_C_X0" link="libvips-colour.html#VIPS-C-X0:CAPS"/>
-    <keyword type="macro" name="VIPS_C_Y0" link="libvips-colour.html#VIPS-C-Y0:CAPS"/>
-    <keyword type="macro" name="VIPS_C_Z0" link="libvips-colour.html#VIPS-C-Z0:CAPS"/>
-    <keyword type="macro" name="VIPS_E_X0" link="libvips-colour.html#VIPS-E-X0:CAPS"/>
-    <keyword type="macro" name="VIPS_E_Y0" link="libvips-colour.html#VIPS-E-Y0:CAPS"/>
-    <keyword type="macro" name="VIPS_E_Z0" link="libvips-colour.html#VIPS-E-Z0:CAPS"/>
-    <keyword type="macro" name="VIPS_D3250_X0" link="libvips-colour.html#VIPS-D3250-X0:CAPS"/>
-    <keyword type="macro" name="VIPS_D3250_Y0" link="libvips-colour.html#VIPS-D3250-Y0:CAPS"/>
-    <keyword type="macro" name="VIPS_D3250_Z0" link="libvips-colour.html#VIPS-D3250-Z0:CAPS"/>
     <keyword type="function" name="vips_colourspace_issupported ()" link="libvips-colour.html#vips-colourspace-issupported"/>
     <keyword type="function" name="vips_colourspace ()" link="libvips-colour.html#vips-colourspace"/>
     <keyword type="function" name="vips_LabQ2sRGB ()" link="libvips-colour.html#vips-LabQ2sRGB"/>
@@ -722,6 +691,36 @@
     <keyword type="function" name="vips_col_scRGB2BW_8 ()" link="libvips-colour.html#vips-col-scRGB2BW-8"/>
     <keyword type="function" name="vips_pythagoras ()" link="libvips-colour.html#vips-pythagoras"/>
     <keyword type="function" name="vips_col_dE00 ()" link="libvips-colour.html#vips-col-dE00"/>
+    <keyword type="macro" name="VIPS_D93_X0" link="libvips-colour.html#VIPS-D93-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_D93_Y0" link="libvips-colour.html#VIPS-D93-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_D93_Z0" link="libvips-colour.html#VIPS-D93-Z0:CAPS"/>
+    <keyword type="macro" name="VIPS_D75_X0" link="libvips-colour.html#VIPS-D75-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_D75_Y0" link="libvips-colour.html#VIPS-D75-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_D75_Z0" link="libvips-colour.html#VIPS-D75-Z0:CAPS"/>
+    <keyword type="macro" name="VIPS_D65_X0" link="libvips-colour.html#VIPS-D65-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_D65_Y0" link="libvips-colour.html#VIPS-D65-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_D65_Z0" link="libvips-colour.html#VIPS-D65-Z0:CAPS"/>
+    <keyword type="macro" name="VIPS_D55_X0" link="libvips-colour.html#VIPS-D55-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_D55_Y0" link="libvips-colour.html#VIPS-D55-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_D55_Z0" link="libvips-colour.html#VIPS-D55-Z0:CAPS"/>
+    <keyword type="macro" name="VIPS_D50_X0" link="libvips-colour.html#VIPS-D50-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_D50_Y0" link="libvips-colour.html#VIPS-D50-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_D50_Z0" link="libvips-colour.html#VIPS-D50-Z0:CAPS"/>
+    <keyword type="macro" name="VIPS_A_X0" link="libvips-colour.html#VIPS-A-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_A_Y0" link="libvips-colour.html#VIPS-A-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_A_Z0" link="libvips-colour.html#VIPS-A-Z0:CAPS"/>
+    <keyword type="macro" name="VIPS_B_X0" link="libvips-colour.html#VIPS-B-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_B_Y0" link="libvips-colour.html#VIPS-B-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_B_Z0" link="libvips-colour.html#VIPS-B-Z0:CAPS"/>
+    <keyword type="macro" name="VIPS_C_X0" link="libvips-colour.html#VIPS-C-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_C_Y0" link="libvips-colour.html#VIPS-C-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_C_Z0" link="libvips-colour.html#VIPS-C-Z0:CAPS"/>
+    <keyword type="macro" name="VIPS_E_X0" link="libvips-colour.html#VIPS-E-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_E_Y0" link="libvips-colour.html#VIPS-E-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_E_Z0" link="libvips-colour.html#VIPS-E-Z0:CAPS"/>
+    <keyword type="macro" name="VIPS_D3250_X0" link="libvips-colour.html#VIPS-D3250-X0:CAPS"/>
+    <keyword type="macro" name="VIPS_D3250_Y0" link="libvips-colour.html#VIPS-D3250-Y0:CAPS"/>
+    <keyword type="macro" name="VIPS_D3250_Z0" link="libvips-colour.html#VIPS-D3250-Z0:CAPS"/>
     <keyword type="enum" name="enum VipsIntent" link="libvips-colour.html#VipsIntent"/>
     <keyword type="enum" name="enum VipsPCS" link="libvips-colour.html#VipsPCS"/>
     <keyword type="function" name="vips_copy ()" link="libvips-conversion.html#vips-copy"/>
@@ -915,13 +914,13 @@
     <keyword type="function" name="vips_interpolate_get_method ()" link="VipsInterpolate.html#vips-interpolate-get-method"/>
     <keyword type="function" name="vips_interpolate_get_window_size ()" link="VipsInterpolate.html#vips-interpolate-get-window-size"/>
     <keyword type="function" name="vips_interpolate_get_window_offset ()" link="VipsInterpolate.html#vips-interpolate-get-window-offset"/>
+    <keyword type="function" name="vips_interpolate_nearest_static ()" link="VipsInterpolate.html#vips-interpolate-nearest-static"/>
+    <keyword type="function" name="vips_interpolate_bilinear_static ()" link="VipsInterpolate.html#vips-interpolate-bilinear-static"/>
+    <keyword type="function" name="vips_interpolate_new ()" link="VipsInterpolate.html#vips-interpolate-new"/>
     <keyword type="macro" name="VIPS_TRANSFORM_SHIFT" link="VipsInterpolate.html#VIPS-TRANSFORM-SHIFT:CAPS"/>
     <keyword type="macro" name="VIPS_TRANSFORM_SCALE" link="VipsInterpolate.html#VIPS-TRANSFORM-SCALE:CAPS"/>
     <keyword type="macro" name="VIPS_INTERPOLATE_SHIFT" link="VipsInterpolate.html#VIPS-INTERPOLATE-SHIFT:CAPS"/>
     <keyword type="macro" name="VIPS_INTERPOLATE_SCALE" link="VipsInterpolate.html#VIPS-INTERPOLATE-SCALE:CAPS"/>
-    <keyword type="function" name="vips_interpolate_nearest_static ()" link="VipsInterpolate.html#vips-interpolate-nearest-static"/>
-    <keyword type="function" name="vips_interpolate_bilinear_static ()" link="VipsInterpolate.html#vips-interpolate-bilinear-static"/>
-    <keyword type="function" name="vips_interpolate_new ()" link="VipsInterpolate.html#vips-interpolate-new"/>
     <keyword type="function" name="vips_morph ()" link="libvips-morphology.html#vips-morph"/>
     <keyword type="function" name="vips_rank ()" link="libvips-morphology.html#vips-rank"/>
     <keyword type="function" name="vips_median ()" link="libvips-morphology.html#vips-median"/>
@@ -988,7 +987,6 @@
     <keyword type="function" name="vips__transform_set_area ()" link="libvips-transform.html#vips--transform-set-area"/>
     <keyword type="function" name="vips__affine ()" link="libvips-transform.html#vips--affine"/>
     <keyword type="struct" name="VipsTransformation" link="libvips-transform.html#VipsTransformation"/>
-    <keyword type="macro" name="VIPS_PI" link="libvips-util.html#VIPS-PI:CAPS"/>
     <keyword type="macro" name="VIPS_RAD()" link="libvips-util.html#VIPS-RAD:CAPS"/>
     <keyword type="macro" name="VIPS_DEG()" link="libvips-util.html#VIPS-DEG:CAPS"/>
     <keyword type="macro" name="VIPS_MAX()" link="libvips-util.html#VIPS-MAX:CAPS"/>
@@ -1019,7 +1017,6 @@
     <keyword type="macro" name="VIPS_CLIP_SHORT()" link="libvips-util.html#VIPS-CLIP-SHORT:CAPS"/>
     <keyword type="macro" name="VIPS_CLIP_UINT()" link="libvips-util.html#VIPS-CLIP-UINT:CAPS"/>
     <keyword type="macro" name="VIPS_CLIP_NONE()" link="libvips-util.html#VIPS-CLIP-NONE:CAPS"/>
-    <keyword type="macro" name="VIPS_PATH_MAX" link="libvips-util.html#VIPS-PATH-MAX:CAPS"/>
     <keyword type="function" name="vips_enum_string ()" link="libvips-util.html#vips-enum-string"/>
     <keyword type="function" name="vips_enum_nick ()" link="libvips-util.html#vips-enum-nick"/>
     <keyword type="function" name="vips_enum_from_nick ()" link="libvips-util.html#vips-enum-from-nick"/>
@@ -1081,6 +1078,8 @@
     <keyword type="function" name="vips_realpath ()" link="libvips-util.html#vips-realpath"/>
     <keyword type="function" name="vips__random ()" link="libvips-util.html#vips--random"/>
     <keyword type="function" name="vips__random_add ()" link="libvips-util.html#vips--random-add"/>
+    <keyword type="macro" name="VIPS_PI" link="libvips-util.html#VIPS-PI:CAPS"/>
+    <keyword type="macro" name="VIPS_PATH_MAX" link="libvips-util.html#VIPS-PATH-MAX:CAPS"/>
     <keyword type="enum" name="enum VipsToken" link="libvips-util.html#VipsToken"/>
     <keyword type="macro" name="VIPS_VERSION" link="libvips-version.html#VIPS-VERSION:CAPS"/>
     <keyword type="macro" name="VIPS_VERSION_STRING" link="libvips-version.html#VIPS-VERSION-STRING:CAPS"/>
@@ -1099,5 +1098,244 @@
     <keyword type="function" name="vips_semaphore_destroy ()" link="libvips-semaphore.html#vips-semaphore-destroy"/>
     <keyword type="function" name="vips_semaphore_init ()" link="libvips-semaphore.html#vips-semaphore-init"/>
     <keyword type="struct" name="VipsSemaphore" link="libvips-semaphore.html#VipsSemaphore"/>
+    <keyword type="constant" name="VIPS_DEMAND_STYLE_ERROR" link="VipsImage.html#VIPS-DEMAND-STYLE-ERROR:CAPS"/>
+    <keyword type="constant" name="VIPS_DEMAND_STYLE_SMALLTILE" link="VipsImage.html#VIPS-DEMAND-STYLE-SMALLTILE:CAPS"/>
+    <keyword type="constant" name="VIPS_DEMAND_STYLE_FATSTRIP" link="VipsImage.html#VIPS-DEMAND-STYLE-FATSTRIP:CAPS"/>
+    <keyword type="constant" name="VIPS_DEMAND_STYLE_THINSTRIP" link="VipsImage.html#VIPS-DEMAND-STYLE-THINSTRIP:CAPS"/>
+    <keyword type="constant" name="VIPS_DEMAND_STYLE_ANY" link="VipsImage.html#VIPS-DEMAND-STYLE-ANY:CAPS"/>
+    <keyword type="constant" name="VIPS_IMAGE_ERROR" link="VipsImage.html#VIPS-IMAGE-ERROR:CAPS"/>
+    <keyword type="constant" name="VIPS_IMAGE_NONE" link="VipsImage.html#VIPS-IMAGE-NONE:CAPS"/>
+    <keyword type="constant" name="VIPS_IMAGE_SETBUF" link="VipsImage.html#VIPS-IMAGE-SETBUF:CAPS"/>
+    <keyword type="constant" name="VIPS_IMAGE_SETBUF_FOREIGN" link="VipsImage.html#VIPS-IMAGE-SETBUF-FOREIGN:CAPS"/>
+    <keyword type="constant" name="VIPS_IMAGE_OPENIN" link="VipsImage.html#VIPS-IMAGE-OPENIN:CAPS"/>
+    <keyword type="constant" name="VIPS_IMAGE_MMAPIN" link="VipsImage.html#VIPS-IMAGE-MMAPIN:CAPS"/>
+    <keyword type="constant" name="VIPS_IMAGE_MMAPINRW" link="VipsImage.html#VIPS-IMAGE-MMAPINRW:CAPS"/>
+    <keyword type="constant" name="VIPS_IMAGE_OPENOUT" link="VipsImage.html#VIPS-IMAGE-OPENOUT:CAPS"/>
+    <keyword type="constant" name="VIPS_IMAGE_PARTIAL" link="VipsImage.html#VIPS-IMAGE-PARTIAL:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_ERROR" link="VipsImage.html#VIPS-INTERPRETATION-ERROR:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_MULTIBAND" link="VipsImage.html#VIPS-INTERPRETATION-MULTIBAND:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_B_W" link="VipsImage.html#VIPS-INTERPRETATION-B-W:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_HISTOGRAM" link="VipsImage.html#VIPS-INTERPRETATION-HISTOGRAM:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_XYZ" link="VipsImage.html#VIPS-INTERPRETATION-XYZ:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_LAB" link="VipsImage.html#VIPS-INTERPRETATION-LAB:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_CMYK" link="VipsImage.html#VIPS-INTERPRETATION-CMYK:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_LABQ" link="VipsImage.html#VIPS-INTERPRETATION-LABQ:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_RGB" link="VipsImage.html#VIPS-INTERPRETATION-RGB:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_CMC" link="VipsImage.html#VIPS-INTERPRETATION-CMC:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_LCH" link="VipsImage.html#VIPS-INTERPRETATION-LCH:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_LABS" link="VipsImage.html#VIPS-INTERPRETATION-LABS:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_sRGB" link="VipsImage.html#VIPS-INTERPRETATION-sRGB"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_YXY" link="VipsImage.html#VIPS-INTERPRETATION-YXY:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_FOURIER" link="VipsImage.html#VIPS-INTERPRETATION-FOURIER:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_RGB16" link="VipsImage.html#VIPS-INTERPRETATION-RGB16:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_GREY16" link="VipsImage.html#VIPS-INTERPRETATION-GREY16:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_MATRIX" link="VipsImage.html#VIPS-INTERPRETATION-MATRIX:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_scRGB" link="VipsImage.html#VIPS-INTERPRETATION-scRGB"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_HSV" link="VipsImage.html#VIPS-INTERPRETATION-HSV:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERPRETATION_LAST" link="VipsImage.html#VIPS-INTERPRETATION-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_FORMAT_NOTSET" link="VipsImage.html#VIPS-FORMAT-NOTSET:CAPS"/>
+    <keyword type="constant" name="VIPS_FORMAT_UCHAR" link="VipsImage.html#VIPS-FORMAT-UCHAR:CAPS"/>
+    <keyword type="constant" name="VIPS_FORMAT_CHAR" link="VipsImage.html#VIPS-FORMAT-CHAR:CAPS"/>
+    <keyword type="constant" name="VIPS_FORMAT_USHORT" link="VipsImage.html#VIPS-FORMAT-USHORT:CAPS"/>
+    <keyword type="constant" name="VIPS_FORMAT_SHORT" link="VipsImage.html#VIPS-FORMAT-SHORT:CAPS"/>
+    <keyword type="constant" name="VIPS_FORMAT_UINT" link="VipsImage.html#VIPS-FORMAT-UINT:CAPS"/>
+    <keyword type="constant" name="VIPS_FORMAT_INT" link="VipsImage.html#VIPS-FORMAT-INT:CAPS"/>
+    <keyword type="constant" name="VIPS_FORMAT_FLOAT" link="VipsImage.html#VIPS-FORMAT-FLOAT:CAPS"/>
+    <keyword type="constant" name="VIPS_FORMAT_COMPLEX" link="VipsImage.html#VIPS-FORMAT-COMPLEX:CAPS"/>
+    <keyword type="constant" name="VIPS_FORMAT_DOUBLE" link="VipsImage.html#VIPS-FORMAT-DOUBLE:CAPS"/>
+    <keyword type="constant" name="VIPS_FORMAT_DPCOMPLEX" link="VipsImage.html#VIPS-FORMAT-DPCOMPLEX:CAPS"/>
+    <keyword type="constant" name="VIPS_FORMAT_LAST" link="VipsImage.html#VIPS-FORMAT-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_CODING_ERROR" link="VipsImage.html#VIPS-CODING-ERROR:CAPS"/>
+    <keyword type="constant" name="VIPS_CODING_NONE" link="VipsImage.html#VIPS-CODING-NONE:CAPS"/>
+    <keyword type="constant" name="VIPS_CODING_LABQ" link="VipsImage.html#VIPS-CODING-LABQ:CAPS"/>
+    <keyword type="constant" name="VIPS_CODING_RAD" link="VipsImage.html#VIPS-CODING-RAD:CAPS"/>
+    <keyword type="constant" name="VIPS_CODING_LAST" link="VipsImage.html#VIPS-CODING-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_ACCESS_RANDOM" link="VipsImage.html#VIPS-ACCESS-RANDOM:CAPS"/>
+    <keyword type="constant" name="VIPS_ACCESS_SEQUENTIAL" link="VipsImage.html#VIPS-ACCESS-SEQUENTIAL:CAPS"/>
+    <keyword type="constant" name="VIPS_ACCESS_SEQUENTIAL_UNBUFFERED" link="VipsImage.html#VIPS-ACCESS-SEQUENTIAL-UNBUFFERED:CAPS"/>
+    <keyword type="constant" name="VIPS_ACCESS_LAST" link="VipsImage.html#VIPS-ACCESS-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_NONE" link="VipsOperation.html#VIPS-OPERATION-NONE:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_SEQUENTIAL" link="VipsOperation.html#VIPS-OPERATION-SEQUENTIAL:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_SEQUENTIAL_UNBUFFERED" link="VipsOperation.html#VIPS-OPERATION-SEQUENTIAL-UNBUFFERED:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_NOCACHE" link="VipsOperation.html#VIPS-OPERATION-NOCACHE:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_DEPRECATED" link="VipsOperation.html#VIPS-OPERATION-DEPRECATED:CAPS"/>
+    <keyword type="constant" name="VIPS_ARGUMENT_NONE" link="VipsObject.html#VIPS-ARGUMENT-NONE:CAPS"/>
+    <keyword type="constant" name="VIPS_ARGUMENT_REQUIRED" link="VipsObject.html#VIPS-ARGUMENT-REQUIRED:CAPS"/>
+    <keyword type="constant" name="VIPS_ARGUMENT_CONSTRUCT" link="VipsObject.html#VIPS-ARGUMENT-CONSTRUCT:CAPS"/>
+    <keyword type="constant" name="VIPS_ARGUMENT_SET_ONCE" link="VipsObject.html#VIPS-ARGUMENT-SET-ONCE:CAPS"/>
+    <keyword type="constant" name="VIPS_ARGUMENT_SET_ALWAYS" link="VipsObject.html#VIPS-ARGUMENT-SET-ALWAYS:CAPS"/>
+    <keyword type="constant" name="VIPS_ARGUMENT_INPUT" link="VipsObject.html#VIPS-ARGUMENT-INPUT:CAPS"/>
+    <keyword type="constant" name="VIPS_ARGUMENT_OUTPUT" link="VipsObject.html#VIPS-ARGUMENT-OUTPUT:CAPS"/>
+    <keyword type="constant" name="VIPS_ARGUMENT_DEPRECATED" link="VipsObject.html#VIPS-ARGUMENT-DEPRECATED:CAPS"/>
+    <keyword type="constant" name="VIPS_ARGUMENT_MODIFY" link="VipsObject.html#VIPS-ARGUMENT-MODIFY:CAPS"/>
+    <keyword type="constant" name="VIPS_PRECISION_INTEGER" link="libvips-basic.html#VIPS-PRECISION-INTEGER:CAPS"/>
+    <keyword type="constant" name="VIPS_PRECISION_FLOAT" link="libvips-basic.html#VIPS-PRECISION-FLOAT:CAPS"/>
+    <keyword type="constant" name="VIPS_PRECISION_APPROXIMATE" link="libvips-basic.html#VIPS-PRECISION-APPROXIMATE:CAPS"/>
+    <keyword type="constant" name="VIPS_PRECISION_LAST" link="libvips-basic.html#VIPS-PRECISION-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH_SIN" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-SIN:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH_COS" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-COS:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH_TAN" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-TAN:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH_ASIN" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-ASIN:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH_ACOS" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-ACOS:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH_ATAN" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-ATAN:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH_LOG" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-LOG:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH_LOG10" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-LOG10:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH_EXP" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-EXP:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH_EXP10" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-EXP10:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH_LAST" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH2_POW" link="libvips-arithmetic.html#VIPS-OPERATION-MATH2-POW:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH2_WOP" link="libvips-arithmetic.html#VIPS-OPERATION-MATH2-WOP:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH2_LAST" link="libvips-arithmetic.html#VIPS-OPERATION-MATH2-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_ROUND_RINT" link="libvips-arithmetic.html#VIPS-OPERATION-ROUND-RINT:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_ROUND_CEIL" link="libvips-arithmetic.html#VIPS-OPERATION-ROUND-CEIL:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_ROUND_FLOOR" link="libvips-arithmetic.html#VIPS-OPERATION-ROUND-FLOOR:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_ROUND_LAST" link="libvips-arithmetic.html#VIPS-OPERATION-ROUND-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_RELATIONAL_EQUAL" link="libvips-arithmetic.html#VIPS-OPERATION-RELATIONAL-EQUAL:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_RELATIONAL_NOTEQ" link="libvips-arithmetic.html#VIPS-OPERATION-RELATIONAL-NOTEQ:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_RELATIONAL_LESS" link="libvips-arithmetic.html#VIPS-OPERATION-RELATIONAL-LESS:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_RELATIONAL_LESSEQ" link="libvips-arithmetic.html#VIPS-OPERATION-RELATIONAL-LESSEQ:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_RELATIONAL_MORE" link="libvips-arithmetic.html#VIPS-OPERATION-RELATIONAL-MORE:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_RELATIONAL_MOREEQ" link="libvips-arithmetic.html#VIPS-OPERATION-RELATIONAL-MOREEQ:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_RELATIONAL_LAST" link="libvips-arithmetic.html#VIPS-OPERATION-RELATIONAL-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_BOOLEAN_AND" link="libvips-arithmetic.html#VIPS-OPERATION-BOOLEAN-AND:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_BOOLEAN_OR" link="libvips-arithmetic.html#VIPS-OPERATION-BOOLEAN-OR:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_BOOLEAN_EOR" link="libvips-arithmetic.html#VIPS-OPERATION-BOOLEAN-EOR:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_BOOLEAN_LSHIFT" link="libvips-arithmetic.html#VIPS-OPERATION-BOOLEAN-LSHIFT:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_BOOLEAN_RSHIFT" link="libvips-arithmetic.html#VIPS-OPERATION-BOOLEAN-RSHIFT:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_BOOLEAN_LAST" link="libvips-arithmetic.html#VIPS-OPERATION-BOOLEAN-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_COMPLEX_POLAR" link="libvips-arithmetic.html#VIPS-OPERATION-COMPLEX-POLAR:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_COMPLEX_RECT" link="libvips-arithmetic.html#VIPS-OPERATION-COMPLEX-RECT:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_COMPLEX_CONJ" link="libvips-arithmetic.html#VIPS-OPERATION-COMPLEX-CONJ:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_COMPLEX_LAST" link="libvips-arithmetic.html#VIPS-OPERATION-COMPLEX-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_COMPLEX2_CROSS_PHASE" link="libvips-arithmetic.html#VIPS-OPERATION-COMPLEX2-CROSS-PHASE:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_COMPLEX2_LAST" link="libvips-arithmetic.html#VIPS-OPERATION-COMPLEX2-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_COMPLEXGET_REAL" link="libvips-arithmetic.html#VIPS-OPERATION-COMPLEXGET-REAL:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_COMPLEXGET_IMAG" link="libvips-arithmetic.html#VIPS-OPERATION-COMPLEXGET-IMAG:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_COMPLEXGET_LAST" link="libvips-arithmetic.html#VIPS-OPERATION-COMPLEXGET-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_INTENT_PERCEPTUAL" link="libvips-colour.html#VIPS-INTENT-PERCEPTUAL:CAPS"/>
+    <keyword type="constant" name="VIPS_INTENT_RELATIVE" link="libvips-colour.html#VIPS-INTENT-RELATIVE:CAPS"/>
+    <keyword type="constant" name="VIPS_INTENT_SATURATION" link="libvips-colour.html#VIPS-INTENT-SATURATION:CAPS"/>
+    <keyword type="constant" name="VIPS_INTENT_ABSOLUTE" link="libvips-colour.html#VIPS-INTENT-ABSOLUTE:CAPS"/>
+    <keyword type="constant" name="VIPS_INTENT_LAST" link="libvips-colour.html#VIPS-INTENT-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_PCS_LAB" link="libvips-colour.html#VIPS-PCS-LAB:CAPS"/>
+    <keyword type="constant" name="VIPS_PCS_XYZ" link="libvips-colour.html#VIPS-PCS-XYZ:CAPS"/>
+    <keyword type="constant" name="VIPS_PCS_LAST" link="libvips-colour.html#VIPS-PCS-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_EXTEND_BLACK" link="libvips-conversion.html#VIPS-EXTEND-BLACK:CAPS"/>
+    <keyword type="constant" name="VIPS_EXTEND_COPY" link="libvips-conversion.html#VIPS-EXTEND-COPY:CAPS"/>
+    <keyword type="constant" name="VIPS_EXTEND_REPEAT" link="libvips-conversion.html#VIPS-EXTEND-REPEAT:CAPS"/>
+    <keyword type="constant" name="VIPS_EXTEND_MIRROR" link="libvips-conversion.html#VIPS-EXTEND-MIRROR:CAPS"/>
+    <keyword type="constant" name="VIPS_EXTEND_WHITE" link="libvips-conversion.html#VIPS-EXTEND-WHITE:CAPS"/>
+    <keyword type="constant" name="VIPS_EXTEND_BACKGROUND" link="libvips-conversion.html#VIPS-EXTEND-BACKGROUND:CAPS"/>
+    <keyword type="constant" name="VIPS_EXTEND_LAST" link="libvips-conversion.html#VIPS-EXTEND-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_DIRECTION_HORIZONTAL" link="libvips-conversion.html#VIPS-DIRECTION-HORIZONTAL:CAPS"/>
+    <keyword type="constant" name="VIPS_DIRECTION_VERTICAL" link="libvips-conversion.html#VIPS-DIRECTION-VERTICAL:CAPS"/>
+    <keyword type="constant" name="VIPS_DIRECTION_LAST" link="libvips-conversion.html#VIPS-DIRECTION-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_ALIGN_LOW" link="libvips-conversion.html#VIPS-ALIGN-LOW:CAPS"/>
+    <keyword type="constant" name="VIPS_ALIGN_CENTRE" link="libvips-conversion.html#VIPS-ALIGN-CENTRE:CAPS"/>
+    <keyword type="constant" name="VIPS_ALIGN_HIGH" link="libvips-conversion.html#VIPS-ALIGN-HIGH:CAPS"/>
+    <keyword type="constant" name="VIPS_ALIGN_LAST" link="libvips-conversion.html#VIPS-ALIGN-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_ANGLE_D0" link="libvips-conversion.html#VIPS-ANGLE-D0:CAPS"/>
+    <keyword type="constant" name="VIPS_ANGLE_D90" link="libvips-conversion.html#VIPS-ANGLE-D90:CAPS"/>
+    <keyword type="constant" name="VIPS_ANGLE_D180" link="libvips-conversion.html#VIPS-ANGLE-D180:CAPS"/>
+    <keyword type="constant" name="VIPS_ANGLE_D270" link="libvips-conversion.html#VIPS-ANGLE-D270:CAPS"/>
+    <keyword type="constant" name="VIPS_ANGLE_LAST" link="libvips-conversion.html#VIPS-ANGLE-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_ANGLE45_D0" link="libvips-conversion.html#VIPS-ANGLE45-D0:CAPS"/>
+    <keyword type="constant" name="VIPS_ANGLE45_D45" link="libvips-conversion.html#VIPS-ANGLE45-D45:CAPS"/>
+    <keyword type="constant" name="VIPS_ANGLE45_D90" link="libvips-conversion.html#VIPS-ANGLE45-D90:CAPS"/>
+    <keyword type="constant" name="VIPS_ANGLE45_D135" link="libvips-conversion.html#VIPS-ANGLE45-D135:CAPS"/>
+    <keyword type="constant" name="VIPS_ANGLE45_D180" link="libvips-conversion.html#VIPS-ANGLE45-D180:CAPS"/>
+    <keyword type="constant" name="VIPS_ANGLE45_D225" link="libvips-conversion.html#VIPS-ANGLE45-D225:CAPS"/>
+    <keyword type="constant" name="VIPS_ANGLE45_D270" link="libvips-conversion.html#VIPS-ANGLE45-D270:CAPS"/>
+    <keyword type="constant" name="VIPS_ANGLE45_D315" link="libvips-conversion.html#VIPS-ANGLE45-D315:CAPS"/>
+    <keyword type="constant" name="VIPS_ANGLE45_LAST" link="libvips-conversion.html#VIPS-ANGLE45-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERESTING_NONE" link="libvips-conversion.html#VIPS-INTERESTING-NONE:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERESTING_CENTRE" link="libvips-conversion.html#VIPS-INTERESTING-CENTRE:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERESTING_ENTROPY" link="libvips-conversion.html#VIPS-INTERESTING-ENTROPY:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERESTING_ATTENTION" link="libvips-conversion.html#VIPS-INTERESTING-ATTENTION:CAPS"/>
+    <keyword type="constant" name="VIPS_INTERESTING_LAST" link="libvips-conversion.html#VIPS-INTERESTING-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_COMBINE_MAX" link="libvips-convolution.html#VIPS-COMBINE-MAX:CAPS"/>
+    <keyword type="constant" name="VIPS_COMBINE_SUM" link="libvips-convolution.html#VIPS-COMBINE-SUM:CAPS"/>
+    <keyword type="constant" name="VIPS_COMBINE_LAST" link="libvips-convolution.html#VIPS-COMBINE-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_NONE" link="VipsForeignSave.html#VIPS-FOREIGN-NONE:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_PARTIAL" link="VipsForeignSave.html#VIPS-FOREIGN-PARTIAL:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_BIGENDIAN" link="VipsForeignSave.html#VIPS-FOREIGN-BIGENDIAN:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_SEQUENTIAL" link="VipsForeignSave.html#VIPS-FOREIGN-SEQUENTIAL:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_ALL" link="VipsForeignSave.html#VIPS-FOREIGN-ALL:CAPS"/>
+    <keyword type="constant" name="VIPS_SAVEABLE_MONO" link="VipsForeignSave.html#VIPS-SAVEABLE-MONO:CAPS"/>
+    <keyword type="constant" name="VIPS_SAVEABLE_RGB" link="VipsForeignSave.html#VIPS-SAVEABLE-RGB:CAPS"/>
+    <keyword type="constant" name="VIPS_SAVEABLE_RGBA" link="VipsForeignSave.html#VIPS-SAVEABLE-RGBA:CAPS"/>
+    <keyword type="constant" name="VIPS_SAVEABLE_RGBA_ONLY" link="VipsForeignSave.html#VIPS-SAVEABLE-RGBA-ONLY:CAPS"/>
+    <keyword type="constant" name="VIPS_SAVEABLE_RGB_CMYK" link="VipsForeignSave.html#VIPS-SAVEABLE-RGB-CMYK:CAPS"/>
+    <keyword type="constant" name="VIPS_SAVEABLE_ANY" link="VipsForeignSave.html#VIPS-SAVEABLE-ANY:CAPS"/>
+    <keyword type="constant" name="VIPS_SAVEABLE_LAST" link="VipsForeignSave.html#VIPS-SAVEABLE-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_WEBP_PRESET_DEFAULT" link="VipsForeignSave.html#VIPS-FOREIGN-WEBP-PRESET-DEFAULT:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_WEBP_PRESET_PICTURE" link="VipsForeignSave.html#VIPS-FOREIGN-WEBP-PRESET-PICTURE:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_WEBP_PRESET_PHOTO" link="VipsForeignSave.html#VIPS-FOREIGN-WEBP-PRESET-PHOTO:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_WEBP_PRESET_DRAWING" link="VipsForeignSave.html#VIPS-FOREIGN-WEBP-PRESET-DRAWING:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_WEBP_PRESET_ICON" link="VipsForeignSave.html#VIPS-FOREIGN-WEBP-PRESET-ICON:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_WEBP_PRESET_TEXT" link="VipsForeignSave.html#VIPS-FOREIGN-WEBP-PRESET-TEXT:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_WEBP_PRESET_LAST" link="VipsForeignSave.html#VIPS-FOREIGN-WEBP-PRESET-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_TIFF_COMPRESSION_NONE" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-COMPRESSION-NONE:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_TIFF_COMPRESSION_JPEG" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-COMPRESSION-JPEG:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_TIFF_COMPRESSION_DEFLATE" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-COMPRESSION-DEFLATE:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_TIFF_COMPRESSION_PACKBITS" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-COMPRESSION-PACKBITS:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_TIFF_COMPRESSION_CCITTFAX4" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-COMPRESSION-CCITTFAX4:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_TIFF_COMPRESSION_LZW" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-COMPRESSION-LZW:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_TIFF_COMPRESSION_LAST" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-COMPRESSION-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_TIFF_PREDICTOR_NONE" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-PREDICTOR-NONE:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-PREDICTOR-HORIZONTAL:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_TIFF_PREDICTOR_FLOAT" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-PREDICTOR-FLOAT:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_TIFF_PREDICTOR_LAST" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-PREDICTOR-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_TIFF_RESUNIT_CM" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-RESUNIT-CM:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_TIFF_RESUNIT_INCH" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-RESUNIT-INCH:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_TIFF_RESUNIT_LAST" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-RESUNIT-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_PNG_FILTER_NONE" link="VipsForeignSave.html#VIPS-FOREIGN-PNG-FILTER-NONE:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_PNG_FILTER_SUB" link="VipsForeignSave.html#VIPS-FOREIGN-PNG-FILTER-SUB:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_PNG_FILTER_UP" link="VipsForeignSave.html#VIPS-FOREIGN-PNG-FILTER-UP:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_PNG_FILTER_AVG" link="VipsForeignSave.html#VIPS-FOREIGN-PNG-FILTER-AVG:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_PNG_FILTER_PAETH" link="VipsForeignSave.html#VIPS-FOREIGN-PNG-FILTER-PAETH:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_PNG_FILTER_ALL" link="VipsForeignSave.html#VIPS-FOREIGN-PNG-FILTER-ALL:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_DZ_LAYOUT_DZ" link="VipsForeignSave.html#VIPS-FOREIGN-DZ-LAYOUT-DZ:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY" link="VipsForeignSave.html#VIPS-FOREIGN-DZ-LAYOUT-ZOOMIFY:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_DZ_LAYOUT_GOOGLE" link="VipsForeignSave.html#VIPS-FOREIGN-DZ-LAYOUT-GOOGLE:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_DZ_LAYOUT_LAST" link="VipsForeignSave.html#VIPS-FOREIGN-DZ-LAYOUT-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL" link="VipsForeignSave.html#VIPS-FOREIGN-DZ-DEPTH-ONEPIXEL:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_DZ_DEPTH_ONETILE" link="VipsForeignSave.html#VIPS-FOREIGN-DZ-DEPTH-ONETILE:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_DZ_DEPTH_ONE" link="VipsForeignSave.html#VIPS-FOREIGN-DZ-DEPTH-ONE:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_DZ_DEPTH_LAST" link="VipsForeignSave.html#VIPS-FOREIGN-DZ-DEPTH-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_DZ_CONTAINER_FS" link="VipsForeignSave.html#VIPS-FOREIGN-DZ-CONTAINER-FS:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_DZ_CONTAINER_ZIP" link="VipsForeignSave.html#VIPS-FOREIGN-DZ-CONTAINER-ZIP:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_DZ_CONTAINER_LAST" link="VipsForeignSave.html#VIPS-FOREIGN-DZ-CONTAINER-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_COMBINE_MODE_SET" link="libvips-draw.html#VIPS-COMBINE-MODE-SET:CAPS"/>
+    <keyword type="constant" name="VIPS_COMBINE_MODE_ADD" link="libvips-draw.html#VIPS-COMBINE-MODE-ADD:CAPS"/>
+    <keyword type="constant" name="VIPS_COMBINE_MODE_LAST" link="libvips-draw.html#VIPS-COMBINE-MODE-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MORPHOLOGY_ERODE" link="libvips-morphology.html#VIPS-OPERATION-MORPHOLOGY-ERODE:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MORPHOLOGY_DILATE" link="libvips-morphology.html#VIPS-OPERATION-MORPHOLOGY-DILATE:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MORPHOLOGY_LAST" link="libvips-morphology.html#VIPS-OPERATION-MORPHOLOGY-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_KERNEL_NEAREST" link="libvips-resample.html#VIPS-KERNEL-NEAREST:CAPS"/>
+    <keyword type="constant" name="VIPS_KERNEL_LINEAR" link="libvips-resample.html#VIPS-KERNEL-LINEAR:CAPS"/>
+    <keyword type="constant" name="VIPS_KERNEL_CUBIC" link="libvips-resample.html#VIPS-KERNEL-CUBIC:CAPS"/>
+    <keyword type="constant" name="VIPS_KERNEL_LANCZOS2" link="libvips-resample.html#VIPS-KERNEL-LANCZOS2:CAPS"/>
+    <keyword type="constant" name="VIPS_KERNEL_LANCZOS3" link="libvips-resample.html#VIPS-KERNEL-LANCZOS3:CAPS"/>
+    <keyword type="constant" name="VIPS_KERNEL_LAST" link="libvips-resample.html#VIPS-KERNEL-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_SIZE_BOTH" link="libvips-resample.html#VIPS-SIZE-BOTH:CAPS"/>
+    <keyword type="constant" name="VIPS_SIZE_UP" link="libvips-resample.html#VIPS-SIZE-UP:CAPS"/>
+    <keyword type="constant" name="VIPS_SIZE_DOWN" link="libvips-resample.html#VIPS-SIZE-DOWN:CAPS"/>
+    <keyword type="constant" name="VIPS_SIZE_LAST" link="libvips-resample.html#VIPS-SIZE-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_TOKEN_LEFT" link="libvips-util.html#VIPS-TOKEN-LEFT:CAPS"/>
+    <keyword type="constant" name="VIPS_TOKEN_RIGHT" link="libvips-util.html#VIPS-TOKEN-RIGHT:CAPS"/>
+    <keyword type="constant" name="VIPS_TOKEN_STRING" link="libvips-util.html#VIPS-TOKEN-STRING:CAPS"/>
+    <keyword type="constant" name="VIPS_TOKEN_EQUALS" link="libvips-util.html#VIPS-TOKEN-EQUALS:CAPS"/>
+    <keyword type="constant" name="VIPS_TOKEN_COMMA" link="libvips-util.html#VIPS-TOKEN-COMMA:CAPS"/>
+    <keyword type="member" name="VipsProgress.run" link="VipsImage.html#VipsProgress.run"/>
+    <keyword type="member" name="VipsProgress.eta" link="VipsImage.html#VipsProgress.eta"/>
+    <keyword type="member" name="VipsProgress.tpels" link="VipsImage.html#VipsProgress.tpels"/>
+    <keyword type="member" name="VipsProgress.npels" link="VipsImage.html#VipsProgress.npels"/>
+    <keyword type="member" name="VipsProgress.percent" link="VipsImage.html#VipsProgress.percent"/>
+    <keyword type="member" name="VipsProgress.start" link="VipsImage.html#VipsProgress.start"/>
+    <keyword type="member" name="VipsRect.left" link="libvips-rect.html#VipsRect.left"/>
+    <keyword type="member" name="VipsRect.top" link="libvips-rect.html#VipsRect.top"/>
+    <keyword type="member" name="VipsRect.width" link="libvips-rect.html#VipsRect.width"/>
+    <keyword type="member" name="VipsRect.height" link="libvips-rect.html#VipsRect.height"/>
   </functions>
 </book>

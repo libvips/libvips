@@ -16,11 +16,14 @@
     <section class="page-header">
       <h1 class="project-name"><a href="/libvips">libvips</a></h1>
       <h2 class="project-tagline">A fast image processing library with low memory needs.</h2>
-      <a href="https://github.com/jcupitt/libvips/releases" class="btn">Download</a>
-      <a href="/libvips/install.html" class="btn">Install</a>
-      <a href="/libvips/API/current" class="btn">Documentation</a>
-      <a href="https://github.com/jcupitt/libvips/issues" class="btn">Issues</a>
-      <a href="https://github.com/jcupitt/libvips/wiki" class="btn">Wiki</a>
+
+      <a href="%7B%7B%20site.github.repository_url%20%7D%7D" class="btn">Project on GitHub</a>
+      <a href="%7B%7B%20site.github.releases_url%20%7D%7D" class="btn">Download</a>
+      <a href="%7B%7B%20site.baseurl%20%7D%7D/install.html" class="btn">Install</a>
+      <a href="%7B%7B%20site.baseurl%20%7D%7D/API/current" class="btn">Documentation</a>
+      <a href="%7B%7B%20site.github.issues_url%20%7D%7D" class="btn">Issues</a>
+      <a href="%7B%7B%20site.github.wiki_url%20%7D%7D" class="btn">Wiki</a>
+
     </section>
 
     <section class="main-content">
@@ -95,7 +98,7 @@ justifications.
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="VipsForeignSave.html#vips-foreign-is-a" title="vips_foreign_is_a ()">vips_foreign_is_a</a> <span class="c_punctuation">()</span>
@@ -103,7 +106,7 @@ justifications.
 </tr>
 <tr>
 <td class="function_type">
-<span class="returnvalue">gboolean</span>
+<a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 </td>
 <td class="function_name">
 <a class="link" href="VipsForeignSave.html#vips-foreign-is-a-buffer" title="vips_foreign_is_a_buffer ()">vips_foreign_is_a_buffer</a> <span class="c_punctuation">()</span>
@@ -533,12 +536,12 @@ justifications.
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_type"><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="VipsForeignSave.html#VipsForeignLoad--disc" title="The “disc” property">disc</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_type"><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="VipsForeignSave.html#VipsForeignLoad--fail" title="The “fail” property">fail</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -554,7 +557,7 @@ justifications.
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_type"><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="VipsForeignSave.html#VipsForeignLoad--sequential" title="The “sequential” property">sequential</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -571,7 +574,7 @@ justifications.
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
-<td class="property_type"><span class="type">gboolean</span></td>
+<td class="property_type"><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
 <td class="property_name"><a class="link" href="VipsForeignSave.html#VipsForeignSave--strip" title="The “strip” property">strip</a></td>
 <td class="property_flags">Read / Write</td>
 </tr>
@@ -631,15 +634,12 @@ justifications.
 </div>
 <div class="refsect1">
 <a name="VipsForeignSave.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    GObject
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
     <span class="lineart">╰──</span> <a class="link" href="VipsObject.html" title="VipsObject">VipsObject</a>
         <span class="lineart">╰──</span> <a class="link" href="VipsOperation.html" title="VipsOperation">VipsOperation</a>
-            <span class="lineart">├──</span> <a class="link" href="VipsForeignSave.html#VipsForeign">VipsForeign</a>
-            <span class="lineart">│</span>   <span class="lineart">├──</span> VipsForeignLoad
-            <span class="lineart">│</span>   <span class="lineart">╰──</span> VipsForeignSave
             <span class="lineart">╰──</span> VipsForeign
-                <span class="lineart">├──</span> <a class="link" href="VipsForeignSave.html#VipsForeignLoad">VipsForeignLoad</a>
-                <span class="lineart">╰──</span> <a class="link" href="VipsForeignSave.html" title="VipsForeignSave">VipsForeignSave</a>
+                <span class="lineart">├──</span> VipsForeignLoad
+                <span class="lineart">╰──</span> VipsForeignSave
 </pre>
 </div>
 <div class="refsect1">
@@ -667,9 +667,9 @@ these functions to automate file load and save. </p>
         <td class="listing_lines" align="right"><pre>1
 2
 3</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="function"><a href="VipsForeignSave.html#vips-tiffsave">vips_tiffsave</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">my_image</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"frank.anything"</span><span class="symbol">,</span><span class="normal"> </span>
-<span class="normal">    </span><span class="string">"compression"</span><span class="symbol">,</span><span class="normal"> VIPS_FOREIGN_TIFF_COMPRESSION_JPEG</span><span class="symbol">,</span>
-<span class="normal">    NULL</span><span class="symbol">);</span></pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="function"><a href="VipsForeignSave.html#vips-tiffsave">vips_tiffsave</a></span> <span class="gtkdoc opt">(</span>my_image<span class="gtkdoc opt">,</span> <span class="string">"frank.anything"</span><span class="gtkdoc opt">,</span> 
+    <span class="string">"compression"</span><span class="gtkdoc opt">,</span> VIPS_FOREIGN_TIFF_COMPRESSION_JPEG<span class="gtkdoc opt">,</span>
+    NULL<span class="gtkdoc opt">);</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -796,96 +796,96 @@ calls to libpng.</p>
 88
 89
 90</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="keyword">typedef</span><span class="normal"> </span><span class="keyword">struct</span><span class="normal"> </span><span class="classname">_VipsForeignLoadPng</span><span class="normal"> </span><span class="cbracket">{</span>
-<span class="normal">  </span><span class="usertype">VipsForeignLoad</span><span class="normal"> parent_object</span><span class="symbol">;</span>
+        <td class="listing_code"><pre class="programlisting"><span class="gtkdoc kwc">typedef</span> <span class="gtkdoc kwb">struct</span> _VipsForeignLoadPng <span class="gtkdoc opt">{</span>
+  VipsForeignLoad parent_object<span class="gtkdoc opt">;</span>
 
-<span class="normal">  </span><span class="type">char</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">filename</span><span class="symbol">;</span><span class="normal"> </span>
-<span class="cbracket">}</span><span class="normal"> VipsForeignLoadPng</span><span class="symbol">;</span>
+  <span class="gtkdoc kwb">char</span> <span class="gtkdoc opt">*</span>filename<span class="gtkdoc opt">;</span> 
+<span class="gtkdoc opt">}</span> VipsForeignLoadPng<span class="gtkdoc opt">;</span>
 
-<span class="keyword">typedef</span><span class="normal"> </span><span class="usertype">VipsForeignLoadClass</span><span class="normal"> VipsForeignLoadPngClass</span><span class="symbol">;</span>
+<span class="gtkdoc kwc">typedef</span> VipsForeignLoadClass VipsForeignLoadPngClass<span class="gtkdoc opt">;</span>
 
-<span class="function">G_DEFINE_TYPE</span><span class="symbol">(</span><span class="normal"> VipsForeignLoadPng</span><span class="symbol">,</span><span class="normal"> vips_foreign_load_png</span><span class="symbol">,</span><span class="normal"> </span>
-<span class="normal">  VIPS_TYPE_FOREIGN_LOAD </span><span class="symbol">);</span>
+<span class="function"><a href="/usr/share/gtk-doc/html/gobjectgobject-Type-Information.html#G-DEFINE-TYPE:CAPS">G_DEFINE_TYPE</a></span><span class="gtkdoc opt">(</span> VipsForeignLoadPng<span class="gtkdoc opt">,</span> vips_foreign_load_png<span class="gtkdoc opt">,</span> 
+  VIPS_TYPE_FOREIGN_LOAD <span class="gtkdoc opt">);</span>
 
-<span class="keyword">static</span><span class="normal"> <a href="VipsForeignSave.html#VipsForeignFlags">VipsForeignFlags</a></span>
-<span class="function">vips_foreign_load_png_get_flags_filename</span><span class="symbol">(</span><span class="normal"> </span><span class="keyword">const</span><span class="normal"> </span><span class="type">char</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">filename </span><span class="symbol">)</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="usertype">VipsForeignFlags</span><span class="normal"> flags</span><span class="symbol">;</span>
+<span class="gtkdoc kwb">static</span> VipsForeignFlags
+<span class="function">vips_foreign_load_png_get_flags_filename</span><span class="gtkdoc opt">(</span> <span class="gtkdoc kwb">const char</span> <span class="gtkdoc opt">*</span>filename <span class="gtkdoc opt">)</span>
+<span class="gtkdoc opt">{</span>
+  VipsForeignFlags flags<span class="gtkdoc opt">;</span>
 
-<span class="normal">  flags </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="function">vips__png_isinterlaced</span><span class="symbol">(</span><span class="normal"> filename </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">)</span>
-<span class="normal">    flags </span><span class="symbol">=</span><span class="normal"> VIPS_FOREIGN_PARTIAL</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="keyword">else</span>
-<span class="normal">    flags </span><span class="symbol">=</span><span class="normal"> VIPS_FOREIGN_SEQUENTIAL</span><span class="symbol">;</span>
+  flags <span class="gtkdoc opt">=</span> <span class="number">0</span><span class="gtkdoc opt">;</span>
+  <span class="keyword">if</span><span class="gtkdoc opt">(</span> <span class="function">vips__png_isinterlaced</span><span class="gtkdoc opt">(</span> filename <span class="gtkdoc opt">) )</span>
+  	flags <span class="gtkdoc opt">=</span> VIPS_FOREIGN_PARTIAL<span class="gtkdoc opt">;</span>
+  <span class="keyword">else</span>
+  	flags <span class="gtkdoc opt">=</span> VIPS_FOREIGN_SEQUENTIAL<span class="gtkdoc opt">;</span>
 
-<span class="normal">  </span><span class="keyword">return</span><span class="symbol">(</span><span class="normal"> flags </span><span class="symbol">);</span>
-<span class="cbracket">}</span>
+  <span class="keyword">return</span><span class="gtkdoc opt">(</span> flags <span class="gtkdoc opt">);</span>
+<span class="gtkdoc opt">}</span>
 
-<span class="keyword">static</span><span class="normal"> <a href="VipsForeignSave.html#VipsForeignFlags">VipsForeignFlags</a></span>
-<span class="function">vips_foreign_load_png_get_flags</span><span class="symbol">(</span><span class="normal"> </span><span class="usertype">VipsForeignLoad</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">load </span><span class="symbol">)</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="usertype">VipsForeignLoadPng</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">png </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">VipsForeignLoadPng </span><span class="symbol">*)</span><span class="normal"> load</span><span class="symbol">;</span>
+<span class="gtkdoc kwb">static</span> VipsForeignFlags
+<span class="function">vips_foreign_load_png_get_flags</span><span class="gtkdoc opt">(</span> VipsForeignLoad <span class="gtkdoc opt">*</span>load <span class="gtkdoc opt">)</span>
+<span class="gtkdoc opt">{</span>
+  VipsForeignLoadPng <span class="gtkdoc opt">*</span>png <span class="gtkdoc opt">= (</span>VipsForeignLoadPng <span class="gtkdoc opt">*)</span> load<span class="gtkdoc opt">;</span>
 
-<span class="normal">  </span><span class="keyword">return</span><span class="symbol">(</span><span class="normal"> </span><span class="function">vips_foreign_load_png_get_flags_filename</span><span class="symbol">(</span><span class="normal"> png</span><span class="symbol">-&gt;</span><span class="normal">filename </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">);</span>
-<span class="cbracket">}</span>
+  <span class="keyword">return</span><span class="gtkdoc opt">(</span> <span class="function">vips_foreign_load_png_get_flags_filename</span><span class="gtkdoc opt">(</span> png<span class="gtkdoc opt">-&gt;</span>filename <span class="gtkdoc opt">) );</span>
+<span class="gtkdoc opt">}</span>
 
-<span class="keyword">static</span><span class="normal"> </span><span class="type">int</span>
-<span class="function">vips_foreign_load_png_header</span><span class="symbol">(</span><span class="normal"> </span><span class="usertype">VipsForeignLoad</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">load </span><span class="symbol">)</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="usertype">VipsForeignLoadPng</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">png </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">VipsForeignLoadPng </span><span class="symbol">*)</span><span class="normal"> load</span><span class="symbol">;</span>
+<span class="gtkdoc kwb">static int</span>
+<span class="function">vips_foreign_load_png_header</span><span class="gtkdoc opt">(</span> VipsForeignLoad <span class="gtkdoc opt">*</span>load <span class="gtkdoc opt">)</span>
+<span class="gtkdoc opt">{</span>
+  VipsForeignLoadPng <span class="gtkdoc opt">*</span>png <span class="gtkdoc opt">= (</span>VipsForeignLoadPng <span class="gtkdoc opt">*)</span> load<span class="gtkdoc opt">;</span>
 
-<span class="normal">  </span><span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="function">vips__png_header</span><span class="symbol">(</span><span class="normal"> png</span><span class="symbol">-&gt;</span><span class="normal">filename</span><span class="symbol">,</span><span class="normal"> load</span><span class="symbol">-&gt;</span><span class="normal">out </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">)</span>
-<span class="normal">    </span><span class="keyword">return</span><span class="symbol">(</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="normal"> </span><span class="symbol">);</span>
+  <span class="keyword">if</span><span class="gtkdoc opt">(</span> <span class="function">vips__png_header</span><span class="gtkdoc opt">(</span> png<span class="gtkdoc opt">-&gt;</span>filename<span class="gtkdoc opt">,</span> load<span class="gtkdoc opt">-&gt;</span>out <span class="gtkdoc opt">) )</span>
+  	<span class="keyword">return</span><span class="gtkdoc opt">( -</span><span class="number">1</span> <span class="gtkdoc opt">);</span>
 
-<span class="normal">  </span><span class="keyword">return</span><span class="symbol">(</span><span class="normal"> </span><span class="number">0</span><span class="normal"> </span><span class="symbol">);</span>
-<span class="cbracket">}</span>
+  <span class="keyword">return</span><span class="gtkdoc opt">(</span> <span class="number">0</span> <span class="gtkdoc opt">);</span>
+<span class="gtkdoc opt">}</span>
 
-<span class="keyword">static</span><span class="normal"> </span><span class="type">int</span>
-<span class="function">vips_foreign_load_png_load</span><span class="symbol">(</span><span class="normal"> </span><span class="usertype">VipsForeignLoad</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">load </span><span class="symbol">)</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="usertype">VipsForeignLoadPng</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">png </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">VipsForeignLoadPng </span><span class="symbol">*)</span><span class="normal"> load</span><span class="symbol">;</span>
+<span class="gtkdoc kwb">static int</span>
+<span class="function">vips_foreign_load_png_load</span><span class="gtkdoc opt">(</span> VipsForeignLoad <span class="gtkdoc opt">*</span>load <span class="gtkdoc opt">)</span>
+<span class="gtkdoc opt">{</span>
+  VipsForeignLoadPng <span class="gtkdoc opt">*</span>png <span class="gtkdoc opt">= (</span>VipsForeignLoadPng <span class="gtkdoc opt">*)</span> load<span class="gtkdoc opt">;</span>
 
-<span class="normal">  </span><span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="function">vips__png_read</span><span class="symbol">(</span><span class="normal"> png</span><span class="symbol">-&gt;</span><span class="normal">filename</span><span class="symbol">,</span><span class="normal"> load</span><span class="symbol">-&gt;</span><span class="normal">real </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">)</span>
-<span class="normal">    </span><span class="keyword">return</span><span class="symbol">(</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="normal"> </span><span class="symbol">);</span>
+  <span class="keyword">if</span><span class="gtkdoc opt">(</span> <span class="function">vips__png_read</span><span class="gtkdoc opt">(</span> png<span class="gtkdoc opt">-&gt;</span>filename<span class="gtkdoc opt">,</span> load<span class="gtkdoc opt">-&gt;</span>real <span class="gtkdoc opt">) )</span>
+  	<span class="keyword">return</span><span class="gtkdoc opt">( -</span><span class="number">1</span> <span class="gtkdoc opt">);</span>
 
-<span class="normal">  </span><span class="keyword">return</span><span class="symbol">(</span><span class="normal"> </span><span class="number">0</span><span class="normal"> </span><span class="symbol">);</span>
-<span class="cbracket">}</span>
+  <span class="keyword">return</span><span class="gtkdoc opt">(</span> <span class="number">0</span> <span class="gtkdoc opt">);</span>
+<span class="gtkdoc opt">}</span>
 
-<span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
-<span class="function">vips_foreign_load_png_class_init</span><span class="symbol">(</span><span class="normal"> </span><span class="usertype">VipsForeignLoadPngClass</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">class </span><span class="symbol">)</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="usertype">GObjectClass</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">gobject_class </span><span class="symbol">=</span><span class="normal"> </span><span class="function">G_OBJECT_CLASS</span><span class="symbol">(</span><span class="normal"> class </span><span class="symbol">);</span>
-<span class="normal">  </span><span class="usertype">VipsObjectClass</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">object_class </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">VipsObjectClass </span><span class="symbol">*)</span><span class="normal"> class</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="usertype">VipsForeignClass</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">foreign_class </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">VipsForeignClass </span><span class="symbol">*)</span><span class="normal"> class</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="usertype">VipsForeignLoadClass</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">load_class </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">VipsForeignLoadClass </span><span class="symbol">*)</span><span class="normal"> class</span><span class="symbol">;</span>
+<span class="gtkdoc kwb">static void</span>
+<span class="function">vips_foreign_load_png_class_init</span><span class="gtkdoc opt">(</span> VipsForeignLoadPngClass <span class="gtkdoc opt">*</span><span class="gtkdoc kwc">class</span> <span class="gtkdoc opt">)</span>
+<span class="gtkdoc opt">{</span>
+  GObjectClass <span class="gtkdoc opt">*</span>gobject_class <span class="gtkdoc opt">=</span> <span class="function"><a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#G-OBJECT-CLASS:CAPS">G_OBJECT_CLASS</a></span><span class="gtkdoc opt">(</span> <span class="gtkdoc kwc">class</span> <span class="gtkdoc opt">);</span>
+  VipsObjectClass <span class="gtkdoc opt">*</span>object_class <span class="gtkdoc opt">= (</span>VipsObjectClass <span class="gtkdoc opt">*)</span> <span class="gtkdoc kwc">class</span><span class="gtkdoc opt">;</span>
+  VipsForeignClass <span class="gtkdoc opt">*</span>foreign_class <span class="gtkdoc opt">= (</span>VipsForeignClass <span class="gtkdoc opt">*)</span> <span class="gtkdoc kwc">class</span><span class="gtkdoc opt">;</span>
+  VipsForeignLoadClass <span class="gtkdoc opt">*</span>load_class <span class="gtkdoc opt">= (</span>VipsForeignLoadClass <span class="gtkdoc opt">*)</span> <span class="gtkdoc kwc">class</span><span class="gtkdoc opt">;</span>
 
-<span class="normal">  gobject_class</span><span class="symbol">-&gt;</span><span class="normal">set_property </span><span class="symbol">=</span><span class="normal"> <a href="VipsObject.html#vips-object-set-property">vips_object_set_property</a></span><span class="symbol">;</span>
-<span class="normal">  gobject_class</span><span class="symbol">-&gt;</span><span class="normal">get_property </span><span class="symbol">=</span><span class="normal"> <a href="VipsObject.html#vips-object-get-property">vips_object_get_property</a></span><span class="symbol">;</span>
+  gobject_class<span class="gtkdoc opt">-&gt;</span>set_property <span class="gtkdoc opt">=</span> vips_object_set_property<span class="gtkdoc opt">;</span>
+  gobject_class<span class="gtkdoc opt">-&gt;</span>get_property <span class="gtkdoc opt">=</span> vips_object_get_property<span class="gtkdoc opt">;</span>
 
-<span class="normal">  object_class</span><span class="symbol">-&gt;</span><span class="normal">nickname </span><span class="symbol">=</span><span class="normal"> </span><span class="string">"pngload"</span><span class="symbol">;</span>
-<span class="normal">  object_class</span><span class="symbol">-&gt;</span><span class="normal">description </span><span class="symbol">=</span><span class="normal"> </span><span class="function">_</span><span class="symbol">(</span><span class="normal"> </span><span class="string">"load png from file"</span><span class="normal"> </span><span class="symbol">);</span>
+  object_class<span class="gtkdoc opt">-&gt;</span>nickname <span class="gtkdoc opt">=</span> <span class="string">"pngload"</span><span class="gtkdoc opt">;</span>
+  object_class<span class="gtkdoc opt">-&gt;</span>description <span class="gtkdoc opt">=</span> <span class="function"><a href="/usr/share/gtk-doc/html/glibglib-I18N.html#gettext-macro">_</a></span><span class="gtkdoc opt">(</span> <span class="string">"load png from file"</span> <span class="gtkdoc opt">);</span>
 
-<span class="normal">  foreign_class</span><span class="symbol">-&gt;</span><span class="normal">suffs </span><span class="symbol">=</span><span class="normal"> vips__png_suffs</span><span class="symbol">;</span>
+  foreign_class<span class="gtkdoc opt">-&gt;</span>suffs <span class="gtkdoc opt">=</span> vips__png_suffs<span class="gtkdoc opt">;</span>
 
-<span class="normal">  load_class</span><span class="symbol">-&gt;</span><span class="normal">is_a </span><span class="symbol">=</span><span class="normal"> vips__png_ispng</span><span class="symbol">;</span>
-<span class="normal">  load_class</span><span class="symbol">-&gt;</span><span class="normal">get_flags_filename </span><span class="symbol">=</span><span class="normal"> </span>
-<span class="normal">    vips_foreign_load_png_get_flags_filename</span><span class="symbol">;</span>
-<span class="normal">  load_class</span><span class="symbol">-&gt;</span><span class="normal">get_flags </span><span class="symbol">=</span><span class="normal"> vips_foreign_load_png_get_flags</span><span class="symbol">;</span>
-<span class="normal">  load_class</span><span class="symbol">-&gt;</span><span class="normal">header </span><span class="symbol">=</span><span class="normal"> vips_foreign_load_png_header</span><span class="symbol">;</span>
-<span class="normal">  load_class</span><span class="symbol">-&gt;</span><span class="normal">load </span><span class="symbol">=</span><span class="normal"> vips_foreign_load_png_load</span><span class="symbol">;</span>
+  load_class<span class="gtkdoc opt">-&gt;</span>is_a <span class="gtkdoc opt">=</span> vips__png_ispng<span class="gtkdoc opt">;</span>
+  load_class<span class="gtkdoc opt">-&gt;</span>get_flags_filename <span class="gtkdoc opt">=</span> 
+  	vips_foreign_load_png_get_flags_filename<span class="gtkdoc opt">;</span>
+  load_class<span class="gtkdoc opt">-&gt;</span>get_flags <span class="gtkdoc opt">=</span> vips_foreign_load_png_get_flags<span class="gtkdoc opt">;</span>
+  load_class<span class="gtkdoc opt">-&gt;</span>header <span class="gtkdoc opt">=</span> vips_foreign_load_png_header<span class="gtkdoc opt">;</span>
+  load_class<span class="gtkdoc opt">-&gt;</span>load <span class="gtkdoc opt">=</span> vips_foreign_load_png_load<span class="gtkdoc opt">;</span>
 
-<span class="normal">  </span><span class="function"><a href="VipsObject.html#VIPS-ARG-STRING:CAPS">VIPS_ARG_STRING</a></span><span class="symbol">(</span><span class="normal"> class</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"filename"</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1</span><span class="symbol">,</span><span class="normal"> </span>
-<span class="normal">    </span><span class="function">_</span><span class="symbol">(</span><span class="normal"> </span><span class="string">"Filename"</span><span class="normal"> </span><span class="symbol">),</span>
-<span class="normal">    </span><span class="function">_</span><span class="symbol">(</span><span class="normal"> </span><span class="string">"Filename to load from"</span><span class="normal"> </span><span class="symbol">),</span>
-<span class="normal">    <a href="VipsObject.html#VIPS-ARGUMENT-REQUIRED-INPUT:CAPS">VIPS_ARGUMENT_REQUIRED_INPUT</a></span><span class="symbol">,</span><span class="normal"> </span>
-<span class="normal">    </span><span class="function">G_STRUCT_OFFSET</span><span class="symbol">(</span><span class="normal"> VipsForeignLoadPng</span><span class="symbol">,</span><span class="normal"> filename </span><span class="symbol">),</span>
-<span class="normal">    NULL </span><span class="symbol">);</span>
-<span class="cbracket">}</span>
+  <span class="function"><a href="VipsObject.html#VIPS-ARG-STRING:CAPS">VIPS_ARG_STRING</a></span><span class="gtkdoc opt">(</span> <span class="gtkdoc kwc">class</span><span class="gtkdoc opt">,</span> <span class="string">"filename"</span><span class="gtkdoc opt">,</span> <span class="number">1</span><span class="gtkdoc opt">,</span> 
+  	<span class="function"><a href="/usr/share/gtk-doc/html/glibglib-I18N.html#gettext-macro">_</a></span><span class="gtkdoc opt">(</span> <span class="string">"Filename"</span> <span class="gtkdoc opt">),</span>
+  	<span class="function"><a href="/usr/share/gtk-doc/html/glibglib-I18N.html#gettext-macro">_</a></span><span class="gtkdoc opt">(</span> <span class="string">"Filename to load from"</span> <span class="gtkdoc opt">),</span>
+  	VIPS_ARGUMENT_REQUIRED_INPUT<span class="gtkdoc opt">,</span> 
+  	<span class="function"><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#G-STRUCT-OFFSET:CAPS">G_STRUCT_OFFSET</a></span><span class="gtkdoc opt">(</span> VipsForeignLoadPng<span class="gtkdoc opt">,</span> filename <span class="gtkdoc opt">),</span>
+  	NULL <span class="gtkdoc opt">);</span>
+<span class="gtkdoc opt">}</span>
 
-<span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
-<span class="function">vips_foreign_load_png_init</span><span class="symbol">(</span><span class="normal"> </span><span class="usertype">VipsForeignLoadPng</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">png </span><span class="symbol">)</span>
-<span class="cbracket">{</span>
-<span class="cbracket">}</span></pre></td>
+<span class="gtkdoc kwb">static void</span>
+<span class="function">vips_foreign_load_png_init</span><span class="gtkdoc opt">(</span> VipsForeignLoadPng <span class="gtkdoc opt">*</span>png <span class="gtkdoc opt">)</span>
+<span class="gtkdoc opt">{</span>
+<span class="gtkdoc opt">}</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -974,75 +974,75 @@ to the actual save routines.</p>
 67
 68
 69</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="keyword">typedef</span><span class="normal"> </span><span class="keyword">struct</span><span class="normal"> </span><span class="classname">_VipsForeignSaveCsv</span><span class="normal"> </span><span class="cbracket">{</span>
-<span class="normal">  </span><span class="usertype">VipsForeignSave</span><span class="normal"> parent_object</span><span class="symbol">;</span>
+        <td class="listing_code"><pre class="programlisting"><span class="gtkdoc kwc">typedef</span> <span class="gtkdoc kwb">struct</span> _VipsForeignSaveCsv <span class="gtkdoc opt">{</span>
+  VipsForeignSave parent_object<span class="gtkdoc opt">;</span>
 
-<span class="normal">  </span><span class="type">char</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">filename</span><span class="symbol">;</span><span class="normal"> </span>
-<span class="normal">  </span><span class="keyword">const</span><span class="normal"> </span><span class="type">char</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">separator</span><span class="symbol">;</span>
-<span class="cbracket">}</span><span class="normal"> VipsForeignSaveCsv</span><span class="symbol">;</span>
+  <span class="gtkdoc kwb">char</span> <span class="gtkdoc opt">*</span>filename<span class="gtkdoc opt">;</span> 
+  <span class="gtkdoc kwb">const char</span> <span class="gtkdoc opt">*</span>separator<span class="gtkdoc opt">;</span>
+<span class="gtkdoc opt">}</span> VipsForeignSaveCsv<span class="gtkdoc opt">;</span>
 
-<span class="keyword">typedef</span><span class="normal"> </span><span class="usertype">VipsForeignSaveClass</span><span class="normal"> VipsForeignSaveCsvClass</span><span class="symbol">;</span>
+<span class="gtkdoc kwc">typedef</span> VipsForeignSaveClass VipsForeignSaveCsvClass<span class="gtkdoc opt">;</span>
 
-<span class="function">G_DEFINE_TYPE</span><span class="symbol">(</span><span class="normal"> VipsForeignSaveCsv</span><span class="symbol">,</span><span class="normal"> vips_foreign_save_csv</span><span class="symbol">,</span><span class="normal"> </span>
-<span class="normal">  VIPS_TYPE_FOREIGN_SAVE </span><span class="symbol">);</span>
+<span class="function"><a href="/usr/share/gtk-doc/html/gobjectgobject-Type-Information.html#G-DEFINE-TYPE:CAPS">G_DEFINE_TYPE</a></span><span class="gtkdoc opt">(</span> VipsForeignSaveCsv<span class="gtkdoc opt">,</span> vips_foreign_save_csv<span class="gtkdoc opt">,</span> 
+  VIPS_TYPE_FOREIGN_SAVE <span class="gtkdoc opt">);</span>
 
-<span class="keyword">static</span><span class="normal"> </span><span class="type">int</span>
-<span class="function">vips_foreign_save_csv_build</span><span class="symbol">(</span><span class="normal"> </span><span class="usertype">VipsObject</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">object </span><span class="symbol">)</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="usertype">VipsForeignSave</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">save </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="VipsForeignSave.html">VipsForeignSave</a> </span><span class="symbol">*)</span><span class="normal"> object</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="usertype">VipsForeignSaveCsv</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">csv </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">VipsForeignSaveCsv </span><span class="symbol">*)</span><span class="normal"> object</span><span class="symbol">;</span>
+<span class="gtkdoc kwb">static int</span>
+<span class="function">vips_foreign_save_csv_build</span><span class="gtkdoc opt">(</span> VipsObject <span class="gtkdoc opt">*</span>object <span class="gtkdoc opt">)</span>
+<span class="gtkdoc opt">{</span>
+  VipsForeignSave <span class="gtkdoc opt">*</span>save <span class="gtkdoc opt">= (</span>VipsForeignSave <span class="gtkdoc opt">*)</span> object<span class="gtkdoc opt">;</span>
+  VipsForeignSaveCsv <span class="gtkdoc opt">*</span>csv <span class="gtkdoc opt">= (</span>VipsForeignSaveCsv <span class="gtkdoc opt">*)</span> object<span class="gtkdoc opt">;</span>
 
-<span class="normal">  </span><span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="function">VIPS_OBJECT_CLASS</span><span class="symbol">(</span><span class="normal"> vips_foreign_save_csv_parent_class </span><span class="symbol">)-&gt;</span>
-<span class="normal">    </span><span class="function">build</span><span class="symbol">(</span><span class="normal"> object </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">)</span>
-<span class="normal">    </span><span class="keyword">return</span><span class="symbol">(</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="normal"> </span><span class="symbol">);</span>
+  <span class="keyword">if</span><span class="gtkdoc opt">(</span> <span class="function">VIPS_OBJECT_CLASS</span><span class="gtkdoc opt">(</span> vips_foreign_save_csv_parent_class <span class="gtkdoc opt">)-&gt;</span>
+  	<span class="function">build</span><span class="gtkdoc opt">(</span> object <span class="gtkdoc opt">) )</span>
+  	<span class="keyword">return</span><span class="gtkdoc opt">( -</span><span class="number">1</span> <span class="gtkdoc opt">);</span>
 
-<span class="normal">  </span><span class="keyword">if</span><span class="symbol">(</span><span class="normal"> </span><span class="function">vips__csv_write</span><span class="symbol">(</span><span class="normal"> save</span><span class="symbol">-&gt;</span><span class="normal">ready</span><span class="symbol">,</span><span class="normal"> csv</span><span class="symbol">-&gt;</span><span class="normal">filename</span><span class="symbol">,</span><span class="normal"> csv</span><span class="symbol">-&gt;</span><span class="normal">separator </span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">)</span>
-<span class="normal">    </span><span class="keyword">return</span><span class="symbol">(</span><span class="normal"> </span><span class="symbol">-</span><span class="number">1</span><span class="normal"> </span><span class="symbol">);</span>
+  <span class="keyword">if</span><span class="gtkdoc opt">(</span> <span class="function">vips__csv_write</span><span class="gtkdoc opt">(</span> save<span class="gtkdoc opt">-&gt;</span>ready<span class="gtkdoc opt">,</span> csv<span class="gtkdoc opt">-&gt;</span>filename<span class="gtkdoc opt">,</span> csv<span class="gtkdoc opt">-&gt;</span>separator <span class="gtkdoc opt">) )</span>
+  	<span class="keyword">return</span><span class="gtkdoc opt">( -</span><span class="number">1</span> <span class="gtkdoc opt">);</span>
 
-<span class="normal">  </span><span class="keyword">return</span><span class="symbol">(</span><span class="normal"> </span><span class="number">0</span><span class="normal"> </span><span class="symbol">);</span>
-<span class="cbracket">}</span>
+  <span class="keyword">return</span><span class="gtkdoc opt">(</span> <span class="number">0</span> <span class="gtkdoc opt">);</span>
+<span class="gtkdoc opt">}</span>
 
-<span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
-<span class="function">vips_foreign_save_csv_class_init</span><span class="symbol">(</span><span class="normal"> </span><span class="usertype">VipsForeignSaveCsvClass</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">class </span><span class="symbol">)</span>
-<span class="cbracket">{</span>
-<span class="normal">  </span><span class="usertype">GObjectClass</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">gobject_class </span><span class="symbol">=</span><span class="normal"> </span><span class="function">G_OBJECT_CLASS</span><span class="symbol">(</span><span class="normal"> class </span><span class="symbol">);</span>
-<span class="normal">  </span><span class="usertype">VipsObjectClass</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">object_class </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">VipsObjectClass </span><span class="symbol">*)</span><span class="normal"> class</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="usertype">VipsForeignClass</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">foreign_class </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">VipsForeignClass </span><span class="symbol">*)</span><span class="normal"> class</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="usertype">VipsForeignSaveClass</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">save_class </span><span class="symbol">=</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">VipsForeignSaveClass </span><span class="symbol">*)</span><span class="normal"> class</span><span class="symbol">;</span>
+<span class="gtkdoc kwb">static void</span>
+<span class="function">vips_foreign_save_csv_class_init</span><span class="gtkdoc opt">(</span> VipsForeignSaveCsvClass <span class="gtkdoc opt">*</span><span class="gtkdoc kwc">class</span> <span class="gtkdoc opt">)</span>
+<span class="gtkdoc opt">{</span>
+  GObjectClass <span class="gtkdoc opt">*</span>gobject_class <span class="gtkdoc opt">=</span> <span class="function"><a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#G-OBJECT-CLASS:CAPS">G_OBJECT_CLASS</a></span><span class="gtkdoc opt">(</span> <span class="gtkdoc kwc">class</span> <span class="gtkdoc opt">);</span>
+  VipsObjectClass <span class="gtkdoc opt">*</span>object_class <span class="gtkdoc opt">= (</span>VipsObjectClass <span class="gtkdoc opt">*)</span> <span class="gtkdoc kwc">class</span><span class="gtkdoc opt">;</span>
+  VipsForeignClass <span class="gtkdoc opt">*</span>foreign_class <span class="gtkdoc opt">= (</span>VipsForeignClass <span class="gtkdoc opt">*)</span> <span class="gtkdoc kwc">class</span><span class="gtkdoc opt">;</span>
+  VipsForeignSaveClass <span class="gtkdoc opt">*</span>save_class <span class="gtkdoc opt">= (</span>VipsForeignSaveClass <span class="gtkdoc opt">*)</span> <span class="gtkdoc kwc">class</span><span class="gtkdoc opt">;</span>
 
-<span class="normal">  gobject_class</span><span class="symbol">-&gt;</span><span class="normal">set_property </span><span class="symbol">=</span><span class="normal"> <a href="VipsObject.html#vips-object-set-property">vips_object_set_property</a></span><span class="symbol">;</span>
-<span class="normal">  gobject_class</span><span class="symbol">-&gt;</span><span class="normal">get_property </span><span class="symbol">=</span><span class="normal"> <a href="VipsObject.html#vips-object-get-property">vips_object_get_property</a></span><span class="symbol">;</span>
+  gobject_class<span class="gtkdoc opt">-&gt;</span>set_property <span class="gtkdoc opt">=</span> vips_object_set_property<span class="gtkdoc opt">;</span>
+  gobject_class<span class="gtkdoc opt">-&gt;</span>get_property <span class="gtkdoc opt">=</span> vips_object_get_property<span class="gtkdoc opt">;</span>
 
-<span class="normal">  object_class</span><span class="symbol">-&gt;</span><span class="normal">nickname </span><span class="symbol">=</span><span class="normal"> </span><span class="string">"csvsave"</span><span class="symbol">;</span>
-<span class="normal">  object_class</span><span class="symbol">-&gt;</span><span class="normal">description </span><span class="symbol">=</span><span class="normal"> </span><span class="function">_</span><span class="symbol">(</span><span class="normal"> </span><span class="string">"save image to csv file"</span><span class="normal"> </span><span class="symbol">);</span>
-<span class="normal">  object_class</span><span class="symbol">-&gt;</span><span class="normal">build </span><span class="symbol">=</span><span class="normal"> vips_foreign_save_csv_build</span><span class="symbol">;</span>
+  object_class<span class="gtkdoc opt">-&gt;</span>nickname <span class="gtkdoc opt">=</span> <span class="string">"csvsave"</span><span class="gtkdoc opt">;</span>
+  object_class<span class="gtkdoc opt">-&gt;</span>description <span class="gtkdoc opt">=</span> <span class="function"><a href="/usr/share/gtk-doc/html/glibglib-I18N.html#gettext-macro">_</a></span><span class="gtkdoc opt">(</span> <span class="string">"save image to csv file"</span> <span class="gtkdoc opt">);</span>
+  object_class<span class="gtkdoc opt">-&gt;</span>build <span class="gtkdoc opt">=</span> vips_foreign_save_csv_build<span class="gtkdoc opt">;</span>
 
-<span class="normal">  foreign_class</span><span class="symbol">-&gt;</span><span class="normal">suffs </span><span class="symbol">=</span><span class="normal"> vips__foreign_csv_suffs</span><span class="symbol">;</span>
+  foreign_class<span class="gtkdoc opt">-&gt;</span>suffs <span class="gtkdoc opt">=</span> vips__foreign_csv_suffs<span class="gtkdoc opt">;</span>
 
-<span class="normal">  save_class</span><span class="symbol">-&gt;</span><span class="normal">saveable </span><span class="symbol">=</span><span class="normal"> VIPS_SAVEABLE_MONO</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="comment">// no need to define -&gt;format_table, we don't want the input </span>
-<span class="normal">  </span><span class="comment">// cast for us</span>
+  save_class<span class="gtkdoc opt">-&gt;</span>saveable <span class="gtkdoc opt">=</span> VIPS_SAVEABLE_MONO<span class="gtkdoc opt">;</span>
+  <span class="gtkdoc slc">// no need to define -&gt;format_table, we don't want the input </span>
+  <span class="gtkdoc slc">// cast for us</span>
 
-<span class="normal">  </span><span class="function"><a href="VipsObject.html#VIPS-ARG-STRING:CAPS">VIPS_ARG_STRING</a></span><span class="symbol">(</span><span class="normal"> class</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"filename"</span><span class="symbol">,</span><span class="normal"> </span><span class="number">1</span><span class="symbol">,</span><span class="normal"> </span>
-<span class="normal">    </span><span class="function">_</span><span class="symbol">(</span><span class="normal"> </span><span class="string">"Filename"</span><span class="normal"> </span><span class="symbol">),</span>
-<span class="normal">    </span><span class="function">_</span><span class="symbol">(</span><span class="normal"> </span><span class="string">"Filename to save to"</span><span class="normal"> </span><span class="symbol">),</span>
-<span class="normal">    <a href="VipsObject.html#VIPS-ARGUMENT-REQUIRED-INPUT:CAPS">VIPS_ARGUMENT_REQUIRED_INPUT</a></span><span class="symbol">,</span><span class="normal"> </span>
-<span class="normal">    </span><span class="function">G_STRUCT_OFFSET</span><span class="symbol">(</span><span class="normal"> VipsForeignSaveCsv</span><span class="symbol">,</span><span class="normal"> filename </span><span class="symbol">),</span>
-<span class="normal">    NULL </span><span class="symbol">);</span>
+  <span class="function"><a href="VipsObject.html#VIPS-ARG-STRING:CAPS">VIPS_ARG_STRING</a></span><span class="gtkdoc opt">(</span> <span class="gtkdoc kwc">class</span><span class="gtkdoc opt">,</span> <span class="string">"filename"</span><span class="gtkdoc opt">,</span> <span class="number">1</span><span class="gtkdoc opt">,</span> 
+  	<span class="function"><a href="/usr/share/gtk-doc/html/glibglib-I18N.html#gettext-macro">_</a></span><span class="gtkdoc opt">(</span> <span class="string">"Filename"</span> <span class="gtkdoc opt">),</span>
+  	<span class="function"><a href="/usr/share/gtk-doc/html/glibglib-I18N.html#gettext-macro">_</a></span><span class="gtkdoc opt">(</span> <span class="string">"Filename to save to"</span> <span class="gtkdoc opt">),</span>
+  	VIPS_ARGUMENT_REQUIRED_INPUT<span class="gtkdoc opt">,</span> 
+  	<span class="function"><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#G-STRUCT-OFFSET:CAPS">G_STRUCT_OFFSET</a></span><span class="gtkdoc opt">(</span> VipsForeignSaveCsv<span class="gtkdoc opt">,</span> filename <span class="gtkdoc opt">),</span>
+  	NULL <span class="gtkdoc opt">);</span>
 
-<span class="normal">  </span><span class="function"><a href="VipsObject.html#VIPS-ARG-STRING:CAPS">VIPS_ARG_STRING</a></span><span class="symbol">(</span><span class="normal"> class</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"separator"</span><span class="symbol">,</span><span class="normal"> </span><span class="number">13</span><span class="symbol">,</span><span class="normal"> </span>
-<span class="normal">    </span><span class="function">_</span><span class="symbol">(</span><span class="normal"> </span><span class="string">"Separator"</span><span class="normal"> </span><span class="symbol">),</span><span class="normal"> </span>
-<span class="normal">    </span><span class="function">_</span><span class="symbol">(</span><span class="normal"> </span><span class="string">"Separator characters"</span><span class="normal"> </span><span class="symbol">),</span>
-<span class="normal">    <a href="VipsObject.html#VIPS-ARGUMENT-OPTIONAL-INPUT:CAPS">VIPS_ARGUMENT_OPTIONAL_INPUT</a></span><span class="symbol">,</span>
-<span class="normal">    </span><span class="function">G_STRUCT_OFFSET</span><span class="symbol">(</span><span class="normal"> VipsForeignSaveCsv</span><span class="symbol">,</span><span class="normal"> separator </span><span class="symbol">),</span>
-<span class="normal">    </span><span class="string">"</span><span class="specialchar">\t</span><span class="string">"</span><span class="normal"> </span><span class="symbol">);</span><span class="normal"> </span>
-<span class="cbracket">}</span>
+  <span class="function"><a href="VipsObject.html#VIPS-ARG-STRING:CAPS">VIPS_ARG_STRING</a></span><span class="gtkdoc opt">(</span> <span class="gtkdoc kwc">class</span><span class="gtkdoc opt">,</span> <span class="string">"separator"</span><span class="gtkdoc opt">,</span> <span class="number">13</span><span class="gtkdoc opt">,</span> 
+  	<span class="function"><a href="/usr/share/gtk-doc/html/glibglib-I18N.html#gettext-macro">_</a></span><span class="gtkdoc opt">(</span> <span class="string">"Separator"</span> <span class="gtkdoc opt">),</span> 
+  	<span class="function"><a href="/usr/share/gtk-doc/html/glibglib-I18N.html#gettext-macro">_</a></span><span class="gtkdoc opt">(</span> <span class="string">"Separator characters"</span> <span class="gtkdoc opt">),</span>
+  	VIPS_ARGUMENT_OPTIONAL_INPUT<span class="gtkdoc opt">,</span>
+  	<span class="function"><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#G-STRUCT-OFFSET:CAPS">G_STRUCT_OFFSET</a></span><span class="gtkdoc opt">(</span> VipsForeignSaveCsv<span class="gtkdoc opt">,</span> separator <span class="gtkdoc opt">),</span>
+  	<span class="string">"</span><span class="gtkdoc esc">\t</span><span class="string">"</span> <span class="gtkdoc opt">);</span> 
+<span class="gtkdoc opt">}</span>
 
-<span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
-<span class="function">vips_foreign_save_csv_init</span><span class="symbol">(</span><span class="normal"> </span><span class="usertype">VipsForeignSaveCsv</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">csv </span><span class="symbol">)</span>
-<span class="cbracket">{</span>
-<span class="normal">  csv</span><span class="symbol">-&gt;</span><span class="normal">separator </span><span class="symbol">=</span><span class="normal"> </span><span class="function">g_strdup</span><span class="symbol">(</span><span class="normal"> </span><span class="string">"</span><span class="specialchar">\t</span><span class="string">"</span><span class="normal"> </span><span class="symbol">);</span>
-<span class="cbracket">}</span></pre></td>
+<span class="gtkdoc kwb">static void</span>
+<span class="function">vips_foreign_save_csv_init</span><span class="gtkdoc opt">(</span> VipsForeignSaveCsv <span class="gtkdoc opt">*</span>csv <span class="gtkdoc opt">)</span>
+<span class="gtkdoc opt">{</span>
+  csv<span class="gtkdoc opt">-&gt;</span>separator <span class="gtkdoc opt">=</span> <span class="function"><a href="/usr/share/gtk-doc/html/glibglib-String-Utility-Functions.html#g-strdup">g_strdup</a></span><span class="gtkdoc opt">(</span> <span class="string">"</span><span class="gtkdoc esc">\t</span><span class="string">"</span> <span class="gtkdoc opt">);</span>
+<span class="gtkdoc opt">}</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -1063,12 +1063,12 @@ vips_foreign_map (<em class="parameter"><code>const <span class="type">char</spa
 <p>Apply a function to every <span class="type">VipsForeignClass</span> that VIPS knows about. Foreigns
 are presented to the function in priority order. </p>
 <p>Like all VIPS map functions, if <em class="parameter"><code>fn</code></em>
- returns <code class="literal">NULL</code>, iteration continues. If
-it returns non-<code class="literal">NULL</code>, iteration terminates and that value is returned. The
-map function returns <code class="literal">NULL</code> if all calls return <code class="literal">NULL</code>.</p>
+ returns <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, iteration continues. If
+it returns non-<a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, iteration terminates and that value is returned. The
+map function returns <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if all calls return <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</p>
 <p>See also: <code class="function">vips_slist_map()</code>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.2.7"></a><h4>Parameters</h4>
+<a name="vips-foreign-map.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1100,7 +1100,7 @@ map function returns <code class="literal">NULL</code> if all calls return <code
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.2.8"></a><h4>Returns</h4>
+<a name="vips-foreign-map.returns"></a><h4>Returns</h4>
 <p> the result of iteration. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -1116,7 +1116,7 @@ options on <em class="parameter"><code>filename</code></em>
  are stripped and ignored. </p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-foreign-find-load-buffer" title="vips_foreign_find_load_buffer ()"><code class="function">vips_foreign_find_load_buffer()</code></a>, <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.3.6"></a><h4>Parameters</h4>
+<a name="vips-foreign-find-load.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1131,9 +1131,8 @@ options on <em class="parameter"><code>filename</code></em>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.3.7"></a><h4>Returns</h4>
-<p> the name of an operation on success, <code class="literal">NULL</code> on error</p>
-<p></p>
+<a name="vips-foreign-find-load.returns"></a><h4>Returns</h4>
+<p> the name of an operation on success, <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error</p>
 </div>
 </div>
 <hr>
@@ -1147,7 +1146,7 @@ range of buffer loaders supported by your vips, try something like:</p>
 <p>	vips -l | grep load_buffer</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-buffer" title="vips_image_new_from_buffer ()"><code class="function">vips_image_new_from_buffer()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.4.7"></a><h4>Parameters</h4>
+<a name="vips-foreign-find-load-buffer.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1171,8 +1170,8 @@ memory buffer. </p></td>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.4.8"></a><h4>Returns</h4>
-<p> the name of an operation on success, <code class="literal">NULL</code> on
+<a name="vips-foreign-find-load-buffer.returns"></a><h4>Returns</h4>
+<p> the name of an operation on success, <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on
 error. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -1189,7 +1188,7 @@ vips_foreign_flags (<em class="parameter"><code>const <span class="type">char</s
 <em class="parameter"><code>loader</code></em>
  is something like "tiffload" or "VipsForeignLoadTiff".</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.5.5"></a><h4>Parameters</h4>
+<a name="vips-foreign-flags.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1211,25 +1210,24 @@ vips_foreign_flags (<em class="parameter"><code>const <span class="type">char</s
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.5.6"></a><h4>Returns</h4>
+<a name="vips-foreign-flags.returns"></a><h4>Returns</h4>
 <p> the flags for <em class="parameter"><code>filename</code></em>
 .</p>
-<p></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="vips-foreign-is-a"></a><h3>vips_foreign_is_a ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 vips_foreign_is_a (<em class="parameter"><code>const <span class="type">char</span> *loader</code></em>,
                    <em class="parameter"><code>const <span class="type">char</span> *filename</code></em>);</pre>
-<p>Return <code class="literal">TRUE</code> if <em class="parameter"><code>filename</code></em>
+<p>Return <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>filename</code></em>
  can be loaded by <em class="parameter"><code>loader</code></em>
 . <em class="parameter"><code>loader</code></em>
  is something
 like "tiffload" or "VipsForeignLoadTiff".</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.6.5"></a><h4>Parameters</h4>
+<a name="vips-foreign-is-a.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1251,27 +1249,26 @@ like "tiffload" or "VipsForeignLoadTiff".</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.6.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if <em class="parameter"><code>filename</code></em>
+<a name="vips-foreign-is-a.returns"></a><h4>Returns</h4>
+<p> <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>filename</code></em>
 can be loaded by <em class="parameter"><code>loader</code></em>
 .</p>
-<p></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="vips-foreign-is-a-buffer"></a><h3>vips_foreign_is_a_buffer ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
 vips_foreign_is_a_buffer (<em class="parameter"><code>const <span class="type">char</span> *loader</code></em>,
                           <em class="parameter"><code>const <span class="type">void</span> *data</code></em>,
                           <em class="parameter"><code><span class="type">size_t</span> size</code></em>);</pre>
-<p>Return <code class="literal">TRUE</code> if <em class="parameter"><code>data</code></em>
+<p>Return <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>data</code></em>
  can be loaded by <em class="parameter"><code>loader</code></em>
 . <em class="parameter"><code>loader</code></em>
  is something
 like "tiffload_buffer" or "VipsForeignLoadTiffBuffer".</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.7.5"></a><h4>Parameters</h4>
+<a name="vips-foreign-is-a-buffer.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1298,11 +1295,10 @@ like "tiffload_buffer" or "VipsForeignLoadTiffBuffer".</p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.7.6"></a><h4>Returns</h4>
-<p> <code class="literal">TRUE</code> if <em class="parameter"><code>data</code></em>
+<a name="vips-foreign-is-a-buffer.returns"></a><h4>Returns</h4>
+<p> <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>data</code></em>
 can be loaded by <em class="parameter"><code>loader</code></em>
 .</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -1318,7 +1314,7 @@ failing operation, we want to make sure the image will really be opened
 again if our caller tries again. For example, a broken file might be 
 replaced by a working one.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.8.6"></a><h4>Parameters</h4>
+<a name="vips-foreign-load-invalidate.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1344,7 +1340,7 @@ Any trailing options on <em class="parameter"><code>filename</code></em>
  are stripped and ignored. </p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-foreign-find-save-buffer" title="vips_foreign_find_save_buffer ()"><code class="function">vips_foreign_find_save_buffer()</code></a>, <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.9.6"></a><h4>Parameters</h4>
+<a name="vips-foreign-find-save.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1359,9 +1355,8 @@ Any trailing options on <em class="parameter"><code>filename</code></em>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.9.7"></a><h4>Returns</h4>
-<p> the name of an operation on success, <code class="literal">NULL</code> on error</p>
-<p></p>
+<a name="vips-foreign-find-save.returns"></a><h4>Returns</h4>
+<p> the name of an operation on success, <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error</p>
 </div>
 </div>
 <hr>
@@ -1374,7 +1369,7 @@ vips_foreign_find_save_buffer (<em class="parameter"><code>const <span class="ty
 format. </p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-write-to-buffer" title="vips_image_write_to_buffer ()"><code class="function">vips_image_write_to_buffer()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.10.6"></a><h4>Parameters</h4>
+<a name="vips-foreign-find-save-buffer.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1389,9 +1384,8 @@ format. </p>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.10.7"></a><h4>Returns</h4>
-<p> the name of an operation on success, <code class="literal">NULL</code> on error</p>
-<p></p>
+<a name="vips-foreign-find-save-buffer.returns"></a><h4>Returns</h4>
+<p> the name of an operation on success, <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error</p>
 </div>
 </div>
 <hr>
@@ -1404,7 +1398,7 @@ vips_vipsload (<em class="parameter"><code>const <span class="type">char</span> 
 <p>Read in a vips image. </p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-vipssave" title="vips_vipssave ()"><code class="function">vips_vipssave()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.11.6"></a><h4>Parameters</h4>
+<a name="vips-vipsload.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1424,16 +1418,15 @@ vips_vipsload (<em class="parameter"><code>const <span class="type">char</span> 
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.11.7"></a><h4>Returns</h4>
+<a name="vips-vipsload.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -1448,7 +1441,7 @@ vips_vipssave (<em class="parameter"><code><a class="link" href="VipsImage.html"
  in VIPS format.</p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-vipsload" title="vips_vipsload ()"><code class="function">vips_vipsload()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.12.6"></a><h4>Parameters</h4>
+<a name="vips-vipssave.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1468,16 +1461,15 @@ vips_vipssave (<em class="parameter"><code><a class="link" href="VipsImage.html"
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.12.7"></a><h4>Returns</h4>
+<a name="vips-vipssave.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -1514,7 +1506,7 @@ A slide's associated images are listed in the
 <p>The output of this operator is always RGBA.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.13.11"></a><h4>Parameters</h4>
+<a name="vips-openslideload.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1534,16 +1526,15 @@ A slide's associated images are listed in the
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.13.12"></a><h4>Returns</h4>
+<a name="vips-openslideload.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -1556,11 +1547,11 @@ vips_jpegload (<em class="parameter"><code>const <span class="type">char</span> 
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>shrink</code></em>
-: <code class="literal">gint</code>, shrink by this much on load</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, shrink by this much on load</p></li>
 <li class="listitem"><p><em class="parameter"><code>fail</code></em>
-: <code class="literal">gboolean</code>, fail on warnings</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, fail on errors</p></li>
 <li class="listitem"><p><em class="parameter"><code>autorotate</code></em>
-: <code class="literal">gboolean</code>, use exif Orientation tag to rotate the image 
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, use exif Orientation tag to rotate the image 
 during load</p></li>
 </ul></div>
 <p>Read a JPEG file into a VIPS image. It can read most 8-bit JPEG images, 
@@ -1570,15 +1561,15 @@ including CMYK and YCbCr.</p>
 are 1, 2, 4 and 8. Shrinking during read is very much faster than 
 decompressing the whole image and then shrinking later.</p>
 <p>Setting <em class="parameter"><code>fail</code></em>
- to <code class="literal">TRUE</code> makes the JPEG reader fail on any warnings. 
+ to <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> makes the JPEG reader fail on any errors. 
 This can be useful for detecting truncated files, for example. Normally 
 reading these produces a warning, but no fatal error.  </p>
 <p>Setting <em class="parameter"><code>autorotate</code></em>
- to <code class="literal">TRUE</code> will make the loader interpret the 
+ to <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> will make the loader interpret the 
 orientation tag and automatically rotate the image appropriately during
 load. </p>
 <p>If <em class="parameter"><code>autorotate</code></em>
- is <code class="literal">FALSE</code>, the metadata field <a class="link" href="libvips-header.html#VIPS-META-ORIENTATION:CAPS" title="VIPS_META_ORIENTATION"><span class="type">VIPS_META_ORIENTATION</span></a> is set 
+ is <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>, the metadata field <a class="link" href="libvips-header.html#VIPS-META-ORIENTATION:CAPS" title="VIPS_META_ORIENTATION"><span class="type">VIPS_META_ORIENTATION</span></a> is set 
 to the value of the orientation tag. Applications may read and interpret 
 this field
 as they wish later in processing. See <a class="link" href="libvips-conversion.html#vips-autorot" title="vips_autorot ()"><code class="function">vips_autorot()</code></a>. Save
@@ -1593,10 +1584,10 @@ orientation of output images. </p>
 2
 3
 4</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="function"><a href="VipsForeignSave.html#vips-jpegload">vips_jpegload</a></span><span class="symbol">(</span><span class="normal"> </span><span class="string">"fred.jpg"</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">out</span><span class="symbol">,</span>
-<span class="normal">    </span><span class="string">"shrink"</span><span class="symbol">,</span><span class="normal"> </span><span class="number">8</span><span class="symbol">,</span>
-<span class="normal">    </span><span class="string">"fail"</span><span class="symbol">,</span><span class="normal"> TRUE</span><span class="symbol">,</span>
-<span class="normal">    NULL </span><span class="symbol">);</span></pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="function"><a href="VipsForeignSave.html#vips-jpegload">vips_jpegload</a></span><span class="gtkdoc opt">(</span> <span class="string">"fred.jpg"</span><span class="gtkdoc opt">, &amp;</span>out<span class="gtkdoc opt">,</span>
+	<span class="string">"shrink"</span><span class="gtkdoc opt">,</span> <span class="number">8</span><span class="gtkdoc opt">,</span>
+	<span class="string">"fail"</span><span class="gtkdoc opt">,</span> TRUE<span class="gtkdoc opt">,</span>
+	NULL <span class="gtkdoc opt">);</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -1617,7 +1608,7 @@ images differently.</p>
 "jpeg-thumbnail-data". See <a class="link" href="libvips-header.html#vips-image-get-blob" title="vips_image_get_blob ()"><code class="function">vips_image_get_blob()</code></a>.</p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-jpegload-buffer" title="vips_jpegload_buffer ()"><code class="function">vips_jpegload_buffer()</code></a>, <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>, <a class="link" href="libvips-conversion.html#vips-autorot" title="vips_autorot ()"><code class="function">vips_autorot()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.14.19"></a><h4>Parameters</h4>
+<a name="vips-jpegload.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1637,16 +1628,15 @@ images differently.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.14.20"></a><h4>Returns</h4>
+<a name="vips-jpegload.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -1660,11 +1650,11 @@ vips_jpegload_buffer (<em class="parameter"><code><span class="type">void</span>
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>shrink</code></em>
-: <code class="literal">gint</code>, shrink by this much on load</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, shrink by this much on load</p></li>
 <li class="listitem"><p><em class="parameter"><code>fail</code></em>
-: <code class="literal">gboolean</code>, fail on warnings</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, fail on errors</p></li>
 <li class="listitem"><p><em class="parameter"><code>autorotate</code></em>
-: <code class="literal">gboolean</code>, use exif Orientation tag to rotate the image 
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, use exif Orientation tag to rotate the image 
 during load</p></li>
 </ul></div>
 <p>Read a JPEG-formatted memory block into a VIPS image. Exactly as
@@ -1675,7 +1665,7 @@ during load</p></li>
  is a good place to free. </p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-jpegload" title="vips_jpegload ()"><code class="function">vips_jpegload()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.15.9"></a><h4>Parameters</h4>
+<a name="vips-jpegload-buffer.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1700,16 +1690,15 @@ during load</p></li>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.15.10"></a><h4>Returns</h4>
+<a name="vips-jpegload-buffer.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -1722,25 +1711,25 @@ vips_jpegsave (<em class="parameter"><code><a class="link" href="VipsImage.html"
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>Q</code></em>
-: <code class="literal">gint</code>, quality factor</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, quality factor</p></li>
 <li class="listitem"><p><em class="parameter"><code>profile</code></em>
 : filename of ICC profile to attach</p></li>
 <li class="listitem"><p><em class="parameter"><code>optimize_coding</code></em>
-: <code class="literal">gboolean</code>, compute optimal Huffman coding tables</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, compute optimal Huffman coding tables</p></li>
 <li class="listitem"><p><em class="parameter"><code>interlace</code></em>
-: <code class="literal">gboolean</code>, write an interlaced (progressive) jpeg</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, write an interlaced (progressive) jpeg</p></li>
 <li class="listitem"><p><em class="parameter"><code>strip</code></em>
-: <code class="literal">gboolean</code>, remove all metadata from image</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, remove all metadata from image</p></li>
 <li class="listitem"><p><em class="parameter"><code>no_subsample</code></em>
-: <code class="literal">gboolean</code>, disable chroma subsampling</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, disable chroma subsampling</p></li>
 <li class="listitem"><p><em class="parameter"><code>trellis_quant</code></em>
-: <code class="literal">gboolean</code>, apply trellis quantisation to each 8x8 block</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, apply trellis quantisation to each 8x8 block</p></li>
 <li class="listitem"><p><em class="parameter"><code>overshoot_deringing</code></em>
-: <code class="literal">gboolean</code>, overshoot samples with extreme values</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, overshoot samples with extreme values</p></li>
 <li class="listitem"><p><em class="parameter"><code>optimize_scans</code></em>
-: <code class="literal">gboolean</code>, split DCT coefficients into separate scans</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, split DCT coefficients into separate scans</p></li>
 <li class="listitem"><p><em class="parameter"><code>quant_table</code></em>
-: <code class="literal">gint</code>, quantization table index</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, quantization table index</p></li>
 </ul></div>
 <p>Write a VIPS image to a file as JPEG.</p>
 <p>Use <em class="parameter"><code>Q</code></em>
@@ -1817,7 +1806,7 @@ unit. <a class="link" href="libvips-header.html#VIPS-META-ORIENTATION:CAPS" titl
 are coded and attached. </p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-jpegsave-buffer" title="vips_jpegsave_buffer ()"><code class="function">vips_jpegsave_buffer()</code></a>, <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.16.24"></a><h4>Parameters</h4>
+<a name="vips-jpegsave.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1837,16 +1826,15 @@ are coded and attached. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.16.25"></a><h4>Returns</h4>
+<a name="vips-jpegsave.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -1860,35 +1848,35 @@ vips_jpegsave_buffer (<em class="parameter"><code><a class="link" href="VipsImag
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>Q</code></em>
-: <code class="literal">gint</code>, quality factor</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, quality factor</p></li>
 <li class="listitem"><p><em class="parameter"><code>profile</code></em>
 : filename of ICC profile to attach</p></li>
 <li class="listitem"><p><em class="parameter"><code>optimize_coding</code></em>
-: <code class="literal">gboolean</code>, compute optimal Huffman coding tables</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, compute optimal Huffman coding tables</p></li>
 <li class="listitem"><p><em class="parameter"><code>interlace</code></em>
-: <code class="literal">gboolean</code>, write an interlaced (progressive) jpeg</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, write an interlaced (progressive) jpeg</p></li>
 <li class="listitem"><p><em class="parameter"><code>strip</code></em>
-: <code class="literal">gboolean</code>, remove all metadata from image</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, remove all metadata from image</p></li>
 <li class="listitem"><p><em class="parameter"><code>no_subsample</code></em>
-: <code class="literal">gboolean</code>, disable chroma subsampling</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, disable chroma subsampling</p></li>
 <li class="listitem"><p><em class="parameter"><code>trellis_quant</code></em>
-: <code class="literal">gboolean</code>, apply trellis quantisation to each 8x8 block</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, apply trellis quantisation to each 8x8 block</p></li>
 <li class="listitem"><p><em class="parameter"><code>overshoot_deringing</code></em>
-: <code class="literal">gboolean</code>, overshoot samples with extreme values</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, overshoot samples with extreme values</p></li>
 <li class="listitem"><p><em class="parameter"><code>optimize_scans</code></em>
-: <code class="literal">gboolean</code>, split DCT coefficients into separate scans</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, split DCT coefficients into separate scans</p></li>
 <li class="listitem"><p><em class="parameter"><code>quant_table</code></em>
-: <code class="literal">gint</code>, quantization table index</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, quantization table index</p></li>
 </ul></div>
 <p>As <a class="link" href="VipsForeignSave.html#vips-jpegsave" title="vips_jpegsave ()"><code class="function">vips_jpegsave()</code></a>, but save to a memory buffer. </p>
 <p>The address of the buffer is returned in <em class="parameter"><code>obuf</code></em>
 , the length of the buffer in
 <em class="parameter"><code>olen</code></em>
-. You are responsible for freeing the buffer with <code class="function">g_free()</code> when you
+. You are responsible for freeing the buffer with <a href="/usr/share/gtk-doc/html/glibglib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a> when you
 are done with it.</p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-jpegsave" title="vips_jpegsave ()"><code class="function">vips_jpegsave()</code></a>, <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.17.9"></a><h4>Parameters</h4>
+<a name="vips-jpegsave-buffer.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1913,16 +1901,15 @@ are done with it.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.17.10"></a><h4>Returns</h4>
+<a name="vips-jpegsave-buffer.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -1934,30 +1921,30 @@ vips_jpegsave_mime (<em class="parameter"><code><a class="link" href="VipsImage.
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>Q</code></em>
-: <code class="literal">gint</code>, quality factor</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, quality factor</p></li>
 <li class="listitem"><p><em class="parameter"><code>profile</code></em>
 : filename of ICC profile to attach</p></li>
 <li class="listitem"><p><em class="parameter"><code>optimize_coding</code></em>
-: <code class="literal">gboolean</code>, compute optimal Huffman coding tables</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, compute optimal Huffman coding tables</p></li>
 <li class="listitem"><p><em class="parameter"><code>interlace</code></em>
-: <code class="literal">gboolean</code>, write an interlaced (progressive) jpeg</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, write an interlaced (progressive) jpeg</p></li>
 <li class="listitem"><p><em class="parameter"><code>strip</code></em>
-: <code class="literal">gboolean</code>, remove all metadata from image</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, remove all metadata from image</p></li>
 <li class="listitem"><p><em class="parameter"><code>no_subsample</code></em>
-: <code class="literal">gboolean</code>, disable chroma subsampling</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, disable chroma subsampling</p></li>
 <li class="listitem"><p><em class="parameter"><code>trellis_quant</code></em>
-: <code class="literal">gboolean</code>, apply trellis quantisation to each 8x8 block</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, apply trellis quantisation to each 8x8 block</p></li>
 <li class="listitem"><p><em class="parameter"><code>overshoot_deringing</code></em>
-: <code class="literal">gboolean</code>, overshoot samples with extreme values</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, overshoot samples with extreme values</p></li>
 <li class="listitem"><p><em class="parameter"><code>optimize_scans</code></em>
-: <code class="literal">gboolean</code>, split DCT coefficients into separate scans</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, split DCT coefficients into separate scans</p></li>
 <li class="listitem"><p><em class="parameter"><code>quant_table</code></em>
-: <code class="literal">gint</code>, quantization table index</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, quantization table index</p></li>
 </ul></div>
 <p>As <a class="link" href="VipsForeignSave.html#vips-jpegsave" title="vips_jpegsave ()"><code class="function">vips_jpegsave()</code></a>, but save as a mime jpeg on stdout.</p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-jpegsave" title="vips_jpegsave ()"><code class="function">vips_jpegsave()</code></a>, <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.18.8"></a><h4>Parameters</h4>
+<a name="vips-jpegsave-mime.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -1972,16 +1959,15 @@ vips_jpegsave_mime (<em class="parameter"><code><a class="link" href="VipsImage.
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.18.9"></a><h4>Returns</h4>
+<a name="vips-jpegsave-mime.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -1993,7 +1979,7 @@ vips_webpload (<em class="parameter"><code>const <span class="type">char</span> 
                <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>shrink</code></em>
-: <code class="literal">gint</code>, shrink by this much on load</p></li></ul></div>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, shrink by this much on load</p></li></ul></div>
 <p>Read a WebP file into a VIPS image. </p>
 <p>Use <em class="parameter"><code>shrink</code></em>
  to specify a shrink-on-load factor.</p>
@@ -2001,7 +1987,7 @@ vips_webpload (<em class="parameter"><code>const <span class="type">char</span> 
 ICC, EXIF and XMP metadata. </p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.19.10"></a><h4>Parameters</h4>
+<a name="vips-webpload.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2021,16 +2007,15 @@ ICC, EXIF and XMP metadata. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.19.11"></a><h4>Returns</h4>
+<a name="vips-webpload.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -2043,7 +2028,7 @@ vips_webpload_buffer (<em class="parameter"><code><span class="type">void</span>
                       <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>shrink</code></em>
-: <code class="literal">gint</code>, shrink by this much on load</p></li></ul></div>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, shrink by this much on load</p></li></ul></div>
 <p>Read a WebP-formatted memory block into a VIPS image. Exactly as
 <a class="link" href="VipsForeignSave.html#vips-webpload" title="vips_webpload ()"><code class="function">vips_webpload()</code></a>, but read from a memory buffer. </p>
 <p>You must not free the buffer while <em class="parameter"><code>out</code></em>
@@ -2052,7 +2037,7 @@ vips_webpload_buffer (<em class="parameter"><code><span class="type">void</span>
  is a good place to free. </p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-webpload" title="vips_webpload ()"><code class="function">vips_webpload()</code></a></p>
 <div class="refsect3">
-<a name="id-1.4.6.12.20.9"></a><h4>Parameters</h4>
+<a name="vips-webpload-buffer.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2077,16 +2062,15 @@ vips_webpload_buffer (<em class="parameter"><code><span class="type">void</span>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.20.10"></a><h4>Returns</h4>
+<a name="vips-webpload-buffer.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -2099,19 +2083,19 @@ vips_webpsave (<em class="parameter"><code><a class="link" href="VipsImage.html"
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>Q</code></em>
-: <code class="literal">gint</code>, quality factor</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, quality factor</p></li>
 <li class="listitem"><p><em class="parameter"><code>lossless</code></em>
-: <code class="literal">gboolean</code>, enables lossless compression</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, enables lossless compression</p></li>
 <li class="listitem"><p><em class="parameter"><code>preset</code></em>
 : <a class="link" href="VipsForeignSave.html#VipsForeignWebpPreset" title="enum VipsForeignWebpPreset"><span class="type">VipsForeignWebpPreset</span></a>, choose lossy compression preset</p></li>
 <li class="listitem"><p><em class="parameter"><code>smart_subsample</code></em>
-: <code class="literal">gboolean</code>, enables high quality chroma subsampling</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, enables high quality chroma subsampling</p></li>
 <li class="listitem"><p><em class="parameter"><code>near_lossless</code></em>
-: <code class="literal">gboolean</code>, preprocess in lossless mode (controlled by Q)</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, preprocess in lossless mode (controlled by Q)</p></li>
 <li class="listitem"><p><em class="parameter"><code>alpha_q</code></em>
-: <code class="literal">gint</code>, set alpha quality in lossless mode</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, set alpha quality in lossless mode</p></li>
 <li class="listitem"><p><em class="parameter"><code>strip</code></em>
-: <code class="literal">gboolean</code>, remove all metadata from image</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, remove all metadata from image</p></li>
 </ul></div>
 <p>Write an image to a file in WebP format. </p>
 <p>By default, images are saved in lossy format, with 
@@ -2134,10 +2118,10 @@ with <em class="parameter"><code>Q</code></em>
 which improves the near-lossless compression ratio by up to 50%.</p>
 <p>The writer will attach ICC, EXIF and XMP metadata, unless <em class="parameter"><code>strip</code></em>
  is set to
-<code class="literal">TRUE</code>. </p>
+<a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>. </p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-webpload" title="vips_webpload ()"><code class="function">vips_webpload()</code></a>, <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.21.12"></a><h4>Parameters</h4>
+<a name="vips-webpsave.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2157,16 +2141,15 @@ which improves the near-lossless compression ratio by up to 50%.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.21.13"></a><h4>Returns</h4>
+<a name="vips-webpsave.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -2180,29 +2163,29 @@ vips_webpsave_buffer (<em class="parameter"><code><a class="link" href="VipsImag
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>Q</code></em>
-: <code class="literal">gint</code>, quality factor</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, quality factor</p></li>
 <li class="listitem"><p><em class="parameter"><code>lossless</code></em>
-: <code class="literal">gboolean</code>, enables lossless compression</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, enables lossless compression</p></li>
 <li class="listitem"><p><em class="parameter"><code>preset</code></em>
 : <a class="link" href="VipsForeignSave.html#VipsForeignWebpPreset" title="enum VipsForeignWebpPreset"><span class="type">VipsForeignWebpPreset</span></a>, choose lossy compression preset</p></li>
 <li class="listitem"><p><em class="parameter"><code>smart_subsample</code></em>
-: <code class="literal">gboolean</code>, enables high quality chroma subsampling</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, enables high quality chroma subsampling</p></li>
 <li class="listitem"><p><em class="parameter"><code>near_lossless</code></em>
-: <code class="literal">gboolean</code>, preprocess in lossless mode (controlled by Q)</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, preprocess in lossless mode (controlled by Q)</p></li>
 <li class="listitem"><p><em class="parameter"><code>alpha_q</code></em>
-: <code class="literal">gint</code>, set alpha quality in lossless mode</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, set alpha quality in lossless mode</p></li>
 <li class="listitem"><p><em class="parameter"><code>strip</code></em>
-: <code class="literal">gboolean</code>, remove all metadata from image</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, remove all metadata from image</p></li>
 </ul></div>
 <p>As <a class="link" href="VipsForeignSave.html#vips-webpsave" title="vips_webpsave ()"><code class="function">vips_webpsave()</code></a>, but save to a memory buffer.</p>
 <p>The address of the buffer is returned in <em class="parameter"><code>buf</code></em>
 , the length of the buffer in
 <em class="parameter"><code>len</code></em>
-. You are responsible for freeing the buffer with <code class="function">g_free()</code> when you
+. You are responsible for freeing the buffer with <a href="/usr/share/gtk-doc/html/glibglib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a> when you
 are done with it. </p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-webpsave" title="vips_webpsave ()"><code class="function">vips_webpsave()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.22.9"></a><h4>Parameters</h4>
+<a name="vips-webpsave-buffer.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2227,16 +2210,15 @@ are done with it. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.22.10"></a><h4>Returns</h4>
+<a name="vips-webpsave-buffer.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -2248,24 +2230,24 @@ vips_webpsave_mime (<em class="parameter"><code><a class="link" href="VipsImage.
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>Q</code></em>
-: <code class="literal">gint</code>, quality factor</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, quality factor</p></li>
 <li class="listitem"><p><em class="parameter"><code>lossless</code></em>
-: <code class="literal">gboolean</code>, enables lossless compression</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, enables lossless compression</p></li>
 <li class="listitem"><p><em class="parameter"><code>preset</code></em>
 : <a class="link" href="VipsForeignSave.html#VipsForeignWebpPreset" title="enum VipsForeignWebpPreset"><span class="type">VipsForeignWebpPreset</span></a>, choose lossy compression preset</p></li>
 <li class="listitem"><p><em class="parameter"><code>smart_subsample</code></em>
-: <code class="literal">gboolean</code>, enables high quality chroma subsampling</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, enables high quality chroma subsampling</p></li>
 <li class="listitem"><p><em class="parameter"><code>near_lossless</code></em>
-: <code class="literal">gboolean</code>, preprocess in lossless mode (controlled by Q)</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, preprocess in lossless mode (controlled by Q)</p></li>
 <li class="listitem"><p><em class="parameter"><code>alpha_q</code></em>
-: <code class="literal">gint</code>, set alpha quality in lossless mode</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, set alpha quality in lossless mode</p></li>
 <li class="listitem"><p><em class="parameter"><code>strip</code></em>
-: <code class="literal">gboolean</code>, remove all metadata from image</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, remove all metadata from image</p></li>
 </ul></div>
 <p>As <a class="link" href="VipsForeignSave.html#vips-webpsave" title="vips_webpsave ()"><code class="function">vips_webpsave()</code></a>, but save as a mime webp on stdout.</p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-webpsave" title="vips_webpsave ()"><code class="function">vips_webpsave()</code></a>, <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.23.8"></a><h4>Parameters</h4>
+<a name="vips-webpsave-mime.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2280,16 +2262,15 @@ vips_webpsave_mime (<em class="parameter"><code><a class="link" href="VipsImage.
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.23.9"></a><h4>Returns</h4>
+<a name="vips-webpsave-mime.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -2302,11 +2283,11 @@ vips_tiffload (<em class="parameter"><code>const <span class="type">char</span> 
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>page</code></em>
-: <code class="literal">gint</code>, load this page</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this page</p></li>
 <li class="listitem"><p><em class="parameter"><code>n</code></em>
-: <code class="literal">gint</code>, load this many pages</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this many pages</p></li>
 <li class="listitem"><p><em class="parameter"><code>autorotate</code></em>
-: <code class="literal">gboolean</code>, use orientation tag to rotate the image 
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, use orientation tag to rotate the image 
 during load</p></li>
 </ul></div>
 <p>Read a TIFF file into a VIPS image. It is a full baseline TIFF 6 reader, 
@@ -2321,11 +2302,11 @@ pages must have the same dimensions, and they are loaded as a tall, thin
 "toilet roll" image. The <a class="link" href="libvips-header.html#VIPS-META-PAGE-HEIGHT:CAPS" title="VIPS_META_PAGE_HEIGHT"><span class="type">VIPS_META_PAGE_HEIGHT</span></a> metadata 
 tag gives the height in pixels of each page. Use -1 to load all pages. </p>
 <p>Setting <em class="parameter"><code>autorotate</code></em>
- to <code class="literal">TRUE</code> will make the loader interpret the 
+ to <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> will make the loader interpret the 
 orientation tag and automatically rotate the image appropriately during
 load. </p>
 <p>If <em class="parameter"><code>autorotate</code></em>
- is <code class="literal">FALSE</code>, the metadata field <a class="link" href="libvips-header.html#VIPS-META-ORIENTATION:CAPS" title="VIPS_META_ORIENTATION"><span class="type">VIPS_META_ORIENTATION</span></a> is set 
+ is <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>, the metadata field <a class="link" href="libvips-header.html#VIPS-META-ORIENTATION:CAPS" title="VIPS_META_ORIENTATION"><span class="type">VIPS_META_ORIENTATION</span></a> is set 
 to the value of the orientation tag. Applications may read and interpret 
 this field
 as they wish later in processing. See <a class="link" href="libvips-conversion.html#vips-autorot" title="vips_autorot ()"><code class="function">vips_autorot()</code></a>. Save
@@ -2339,7 +2320,7 @@ attached as <a class="link" href="libvips-header.html#VIPS-META-IMAGEDESCRIPTION
 attached as <a class="link" href="libvips-header.html#VIPS-META-PHOTOSHOP-NAME:CAPS" title="VIPS_META_PHOTOSHOP_NAME"><span class="type">VIPS_META_PHOTOSHOP_NAME</span></a>.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>, <a class="link" href="libvips-conversion.html#vips-autorot" title="vips_autorot ()"><code class="function">vips_autorot()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.24.13"></a><h4>Parameters</h4>
+<a name="vips-tiffload.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2359,16 +2340,15 @@ attached as <a class="link" href="libvips-header.html#VIPS-META-PHOTOSHOP-NAME:C
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.24.14"></a><h4>Returns</h4>
+<a name="vips-tiffload.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -2382,11 +2362,11 @@ vips_tiffload_buffer (<em class="parameter"><code><span class="type">void</span>
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>page</code></em>
-: <code class="literal">gint</code>, load this page</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this page</p></li>
 <li class="listitem"><p><em class="parameter"><code>n</code></em>
-: <code class="literal">gint</code>, load this many pages</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this many pages</p></li>
 <li class="listitem"><p><em class="parameter"><code>autorotate</code></em>
-: <code class="literal">gboolean</code>, use orientation tag to rotate the image 
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, use orientation tag to rotate the image 
 during load</p></li>
 </ul></div>
 <p>Read a TIFF-formatted memory block into a VIPS image. Exactly as
@@ -2397,7 +2377,7 @@ during load</p></li>
  is a good place to free. </p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-tiffload" title="vips_tiffload ()"><code class="function">vips_tiffload()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.25.9"></a><h4>Parameters</h4>
+<a name="vips-tiffload-buffer.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2422,16 +2402,15 @@ during load</p></li>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.25.10"></a><h4>Returns</h4>
+<a name="vips-tiffload-buffer.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -2446,35 +2425,35 @@ vips_tiffsave (<em class="parameter"><code><a class="link" href="VipsImage.html"
 <li class="listitem"><p><em class="parameter"><code>compression</code></em>
 : use this <a class="link" href="VipsForeignSave.html#VipsForeignTiffCompression" title="enum VipsForeignTiffCompression"><span class="type">VipsForeignTiffCompression</span></a></p></li>
 <li class="listitem"><p><em class="parameter"><code>Q</code></em>
-: <code class="literal">gint</code> quality factor</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a> quality factor</p></li>
 <li class="listitem"><p><em class="parameter"><code>predictor</code></em>
 : use this <a class="link" href="VipsForeignSave.html#VipsForeignTiffPredictor" title="enum VipsForeignTiffPredictor"><span class="type">VipsForeignTiffPredictor</span></a></p></li>
 <li class="listitem"><p><em class="parameter"><code>profile</code></em>
 : filename of ICC profile to attach</p></li>
 <li class="listitem"><p><em class="parameter"><code>tile</code></em>
-: set <code class="literal">TRUE</code> to write a tiled tiff</p></li>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to write a tiled tiff</p></li>
 <li class="listitem"><p><em class="parameter"><code>tile_width</code></em>
-: <code class="literal">gint</code> for tile size</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a> for tile size</p></li>
 <li class="listitem"><p><em class="parameter"><code>tile_height</code></em>
-: <code class="literal">gint</code> for tile size</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a> for tile size</p></li>
 <li class="listitem"><p><em class="parameter"><code>pyramid</code></em>
-: set <code class="literal">TRUE</code> to write an image pyramid</p></li>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to write an image pyramid</p></li>
 <li class="listitem"><p><em class="parameter"><code>squash</code></em>
-: set <code class="literal">TRUE</code> to squash 8-bit images down to 1 bit</p></li>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to squash 8-bit images down to 1 bit</p></li>
 <li class="listitem"><p><em class="parameter"><code>miniswhite</code></em>
-: set <code class="literal">TRUE</code> to write 1-bit images as MINISWHITE</p></li>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to write 1-bit images as MINISWHITE</p></li>
 <li class="listitem"><p><em class="parameter"><code>resunit</code></em>
 : <a class="link" href="VipsForeignSave.html#VipsForeignTiffResunit" title="enum VipsForeignTiffResunit"><span class="type">VipsForeignTiffResunit</span></a> for resolution unit</p></li>
 <li class="listitem"><p><em class="parameter"><code>xres</code></em>
-: <code class="literal">gdouble</code> horizontal resolution in pixels/mm</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a> horizontal resolution in pixels/mm</p></li>
 <li class="listitem"><p><em class="parameter"><code>yres</code></em>
-: <code class="literal">gdouble</code> vertical resolution in pixels/mm</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a> vertical resolution in pixels/mm</p></li>
 <li class="listitem"><p><em class="parameter"><code>bigtiff</code></em>
-: set <code class="literal">TRUE</code> to write a BigTiff file</p></li>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to write a BigTiff file</p></li>
 <li class="listitem"><p><em class="parameter"><code>properties</code></em>
-: set <code class="literal">TRUE</code> to write an IMAGEDESCRIPTION tag</p></li>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to write an IMAGEDESCRIPTION tag</p></li>
 <li class="listitem"><p><em class="parameter"><code>strip</code></em>
-: set <code class="literal">TRUE</code> to block metadata save</p></li>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to block metadata save</p></li>
 </ul></div>
 <p>Write a VIPS image to a file as TIFF.</p>
 <p>If <em class="parameter"><code>in</code></em>
@@ -2552,7 +2531,7 @@ tag. <span class="type">VIPS_META_IPCT</span> (if set) is used to set the value 
 tag.</p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-tiffload" title="vips_tiffload ()"><code class="function">vips_tiffload()</code></a>, <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.26.23"></a><h4>Parameters</h4>
+<a name="vips-tiffsave.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2572,16 +2551,15 @@ tag.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.26.24"></a><h4>Returns</h4>
+<a name="vips-tiffsave.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -2597,45 +2575,45 @@ vips_tiffsave_buffer (<em class="parameter"><code><a class="link" href="VipsImag
 <li class="listitem"><p><em class="parameter"><code>compression</code></em>
 : use this <a class="link" href="VipsForeignSave.html#VipsForeignTiffCompression" title="enum VipsForeignTiffCompression"><span class="type">VipsForeignTiffCompression</span></a></p></li>
 <li class="listitem"><p><em class="parameter"><code>Q</code></em>
-: <code class="literal">gint</code> quality factor</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a> quality factor</p></li>
 <li class="listitem"><p><em class="parameter"><code>predictor</code></em>
 : use this <a class="link" href="VipsForeignSave.html#VipsForeignTiffPredictor" title="enum VipsForeignTiffPredictor"><span class="type">VipsForeignTiffPredictor</span></a></p></li>
 <li class="listitem"><p><em class="parameter"><code>profile</code></em>
 : filename of ICC profile to attach</p></li>
 <li class="listitem"><p><em class="parameter"><code>tile</code></em>
-: set <code class="literal">TRUE</code> to write a tiled tiff</p></li>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to write a tiled tiff</p></li>
 <li class="listitem"><p><em class="parameter"><code>tile_width</code></em>
-: <code class="literal">gint</code> for tile size</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a> for tile size</p></li>
 <li class="listitem"><p><em class="parameter"><code>tile_height</code></em>
-: <code class="literal">gint</code> for tile size</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a> for tile size</p></li>
 <li class="listitem"><p><em class="parameter"><code>pyramid</code></em>
-: set <code class="literal">TRUE</code> to write an image pyramid</p></li>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to write an image pyramid</p></li>
 <li class="listitem"><p><em class="parameter"><code>squash</code></em>
-: set <code class="literal">TRUE</code> to squash 8-bit images down to 1 bit</p></li>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to squash 8-bit images down to 1 bit</p></li>
 <li class="listitem"><p><em class="parameter"><code>miniswhite</code></em>
-: set <code class="literal">TRUE</code> to write 1-bit images as MINISWHITE</p></li>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to write 1-bit images as MINISWHITE</p></li>
 <li class="listitem"><p><em class="parameter"><code>resunit</code></em>
 : <a class="link" href="VipsForeignSave.html#VipsForeignTiffResunit" title="enum VipsForeignTiffResunit"><span class="type">VipsForeignTiffResunit</span></a> for resolution unit</p></li>
 <li class="listitem"><p><em class="parameter"><code>xres</code></em>
-: <code class="literal">gdouble</code> horizontal resolution in pixels/mm</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a> horizontal resolution in pixels/mm</p></li>
 <li class="listitem"><p><em class="parameter"><code>yres</code></em>
-: <code class="literal">gdouble</code> vertical resolution in pixels/mm</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a> vertical resolution in pixels/mm</p></li>
 <li class="listitem"><p><em class="parameter"><code>bigtiff</code></em>
-: set <code class="literal">TRUE</code> to write a BigTiff file</p></li>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to write a BigTiff file</p></li>
 <li class="listitem"><p><em class="parameter"><code>properties</code></em>
-: set <code class="literal">TRUE</code> to write an IMAGEDESCRIPTION tag</p></li>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to write an IMAGEDESCRIPTION tag</p></li>
 <li class="listitem"><p><em class="parameter"><code>strip</code></em>
-: set <code class="literal">TRUE</code> to block metadata save</p></li>
+: set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to block metadata save</p></li>
 </ul></div>
 <p>As <a class="link" href="VipsForeignSave.html#vips-tiffsave" title="vips_tiffsave ()"><code class="function">vips_tiffsave()</code></a>, but save to a memory buffer. </p>
 <p>The address of the buffer is returned in <em class="parameter"><code>buf</code></em>
 , the length of the buffer in
 <em class="parameter"><code>len</code></em>
-. You are responsible for freeing the buffer with <code class="function">g_free()</code> when you
+. You are responsible for freeing the buffer with <a href="/usr/share/gtk-doc/html/glibglib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a> when you
 are done with it.</p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-tiffsave" title="vips_tiffsave ()"><code class="function">vips_tiffsave()</code></a>, <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.27.9"></a><h4>Parameters</h4>
+<a name="vips-tiffsave-buffer.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2660,16 +2638,15 @@ are done with it.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.27.10"></a><h4>Returns</h4>
+<a name="vips-tiffsave-buffer.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -2687,7 +2664,7 @@ other than RGBA.</p>
 redone in C++.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.28.8"></a><h4>Parameters</h4>
+<a name="vips-openexrload.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2707,16 +2684,15 @@ redone in C++.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.28.9"></a><h4>Returns</h4>
+<a name="vips-openexrload.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -2734,7 +2710,7 @@ double. </p>
 <p>FITS metadata is attached with the "fits-" prefix.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.29.9"></a><h4>Parameters</h4>
+<a name="vips-fitsload.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2754,16 +2730,15 @@ double. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.29.10"></a><h4>Returns</h4>
+<a name="vips-fitsload.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -2776,7 +2751,7 @@ vips_fitssave (<em class="parameter"><code><a class="link" href="VipsImage.html"
 <p>Write a VIPS image to a file in FITS format.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.30.6"></a><h4>Parameters</h4>
+<a name="vips-fitssave.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2796,16 +2771,15 @@ vips_fitssave (<em class="parameter"><code><a class="link" href="VipsImage.html"
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.30.7"></a><h4>Returns</h4>
+<a name="vips-fitssave.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -2824,7 +2798,7 @@ loaded lazilly and byte-swapped, if necessary. The Analyze metadata is read
 and attached.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.31.7"></a><h4>Parameters</h4>
+<a name="vips-analyzeload.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2844,16 +2818,15 @@ and attached.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.31.8"></a><h4>Returns</h4>
+<a name="vips-analyzeload.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -2868,7 +2841,7 @@ vips_rawload (<em class="parameter"><code>const <span class="type">char</span> *
               <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>offset</code></em>
-: <code class="literal">guint64</code>, offset in bytes from start of file</p></li></ul></div>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#guint64"><code class="literal">guint64</code></a>, offset in bytes from start of file</p></li></ul></div>
 <p>This operation mmaps the file, setting up <em class="parameter"><code>out</code></em>
  so that access to that 
 image will read from the file. </p>
@@ -2881,7 +2854,7 @@ like <a class="link" href="libvips-conversion.html#vips-copy" title="vips_copy 
 and so on. Use <a class="link" href="libvips-conversion.html#vips-byteswap" title="vips_byteswap ()"><code class="function">vips_byteswap()</code></a> to reverse the byte ordering. </p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>, <a class="link" href="libvips-conversion.html#vips-copy" title="vips_copy ()"><code class="function">vips_copy()</code></a>, <a class="link" href="libvips-conversion.html#vips-byteswap" title="vips_byteswap ()"><code class="function">vips_byteswap()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.32.9"></a><h4>Parameters</h4>
+<a name="vips-rawload.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2916,16 +2889,15 @@ and so on. Use <a class="link" href="libvips-conversion.html#vips-byteswap" titl
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.32.10"></a><h4>Returns</h4>
+<a name="vips-rawload.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -2941,7 +2913,7 @@ vips_rawsave (<em class="parameter"><code><a class="link" href="VipsImage.html" 
 metadata. </p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.33.6"></a><h4>Parameters</h4>
+<a name="vips-rawsave.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -2961,16 +2933,15 @@ metadata. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.33.7"></a><h4>Returns</h4>
+<a name="vips-rawsave.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -2986,7 +2957,7 @@ vips_rawsave_fd (<em class="parameter"><code><a class="link" href="VipsImage.htm
 metadata.  Handy for implementing other savers.</p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-rawsave" title="vips_rawsave ()"><code class="function">vips_rawsave()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.34.6"></a><h4>Parameters</h4>
+<a name="vips-rawsave-fd.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3006,16 +2977,15 @@ metadata.  Handy for implementing other savers.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.34.7"></a><h4>Returns</h4>
+<a name="vips-rawsave-fd.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -3036,7 +3006,7 @@ vips_csvload (<em class="parameter"><code>const <span class="type">char</span> *
 <li class="listitem"><p><em class="parameter"><code>separator</code></em>
 : set of separator characters</p></li>
 <li class="listitem"><p><em class="parameter"><code>fail</code></em>
-: <code class="literal">gboolean</code>, fail on warnings</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, fail on errors</p></li>
 </ul></div>
 <p>Load a CSV (comma-separated values) file. The output image is always 1 
 band (monochrome), <a class="link" href="VipsImage.html#VIPS-FORMAT-DOUBLE:CAPS"><span class="type">VIPS_FORMAT_DOUBLE</span></a>. Use <a class="link" href="libvips-conversion.html#vips-bandfold" title="vips_bandfold ()"><code class="function">vips_bandfold()</code></a> to turn
@@ -3062,10 +3032,10 @@ Whitespace characters are always run together.</p>
  sets the characters that separate fields. 
 Default ;,<span class="emphasis"><em>tab</em></span>. Separators are never run together.</p>
 <p>Setting <em class="parameter"><code>fail</code></em>
- to <code class="literal">TRUE</code> makes the reader fail on any warnings. </p>
+ to <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> makes the reader fail on any errors. </p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>, <a class="link" href="libvips-conversion.html#vips-bandfold" title="vips_bandfold ()"><code class="function">vips_bandfold()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.35.15"></a><h4>Parameters</h4>
+<a name="vips-csvload.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3085,16 +3055,15 @@ Default ;,<span class="emphasis"><em>tab</em></span>. Separators are never run t
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.35.16"></a><h4>Returns</h4>
+<a name="vips-csvload.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -3119,7 +3088,7 @@ is written. </p>
 The default is "\t" (tab).</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.36.9"></a><h4>Parameters</h4>
+<a name="vips-csvsave.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3139,16 +3108,15 @@ The default is "\t" (tab).</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.36.10"></a><h4>Returns</h4>
+<a name="vips-csvsave.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -3177,7 +3145,7 @@ as a decimal separator.</p>
 ignored.</p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-csvload" title="vips_csvload ()"><code class="function">vips_csvload()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.37.10"></a><h4>Parameters</h4>
+<a name="vips-matrixload.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3197,16 +3165,15 @@ ignored.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.37.11"></a><h4>Returns</h4>
+<a name="vips-matrixload.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -3222,7 +3189,7 @@ vips_matrixsave (<em class="parameter"><code><a class="link" href="VipsImage.htm
 description of the format.</p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-matrixload" title="vips_matrixload ()"><code class="function">vips_matrixload()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.38.6"></a><h4>Parameters</h4>
+<a name="vips-matrixsave.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3242,16 +3209,15 @@ description of the format.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.38.7"></a><h4>Returns</h4>
+<a name="vips-matrixsave.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -3265,7 +3231,7 @@ vips_matrixprint (<em class="parameter"><code><a class="link" href="VipsImage.ht
 description of the format.</p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-matrixload" title="vips_matrixload ()"><code class="function">vips_matrixload()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.39.6"></a><h4>Parameters</h4>
+<a name="vips-matrixprint.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3280,16 +3246,15 @@ description of the format.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.39.7"></a><h4>Returns</h4>
+<a name="vips-matrixprint.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -3302,9 +3267,9 @@ vips_magickload (<em class="parameter"><code>const <span class="type">char</span
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>page</code></em>
-: <code class="literal">gint</code>, load from this page</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load from this page</p></li>
 <li class="listitem"><p><em class="parameter"><code>n</code></em>
-: <code class="literal">gint</code>, load this many pages</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this many pages</p></li>
 <li class="listitem"><p><em class="parameter"><code>density</code></em>
 : string, canvas resolution for rendering vector formats like SVG</p></li>
 </ul></div>
@@ -3330,7 +3295,7 @@ docs</a>
 on the imagemagick website.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.40.11"></a><h4>Parameters</h4>
+<a name="vips-magickload.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3350,16 +3315,15 @@ on the imagemagick website.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.40.12"></a><h4>Returns</h4>
+<a name="vips-magickload.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -3373,9 +3337,9 @@ vips_magickload_buffer (<em class="parameter"><code><span class="type">void</spa
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>page</code></em>
-: <code class="literal">gint</code>, load from this page</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load from this page</p></li>
 <li class="listitem"><p><em class="parameter"><code>n</code></em>
-: <code class="literal">gint</code>, load this many pages</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this many pages</p></li>
 <li class="listitem"><p><em class="parameter"><code>density</code></em>
 : string, canvas resolution for rendering vector formats like SVG</p></li>
 </ul></div>
@@ -3387,7 +3351,7 @@ vips_magickload_buffer (<em class="parameter"><code><span class="type">void</spa
  is a good place to free. </p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-magickload" title="vips_magickload ()"><code class="function">vips_magickload()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.41.9"></a><h4>Parameters</h4>
+<a name="vips-magickload-buffer.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3412,16 +3376,15 @@ vips_magickload_buffer (<em class="parameter"><code><span class="type">void</spa
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.41.10"></a><h4>Returns</h4>
+<a name="vips-magickload-buffer.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -3436,7 +3399,7 @@ and 16-bit images, 1 and 3 channel, with and without an alpha channel.</p>
 <p>Any ICC profile is read and attached to the VIPS image.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.42.7"></a><h4>Parameters</h4>
+<a name="vips-pngload.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3456,16 +3419,15 @@ and 16-bit images, 1 and 3 channel, with and without an alpha channel.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.42.8"></a><h4>Returns</h4>
+<a name="vips-pngload.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -3486,7 +3448,7 @@ an alpha channel.</p>
  is a good place to free. </p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-pngload" title="vips_pngload ()"><code class="function">vips_pngload()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.43.8"></a><h4>Parameters</h4>
+<a name="vips-pngload-buffer.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3511,16 +3473,15 @@ an alpha channel.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.43.9"></a><h4>Returns</h4>
+<a name="vips-pngload-buffer.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -3545,7 +3506,7 @@ vips_pngsave (<em class="parameter"><code><a class="link" href="VipsImage.html" 
 <p><em class="parameter"><code>compression</code></em>
  means compress with this much effort (0 - 9). Default 6.</p>
 <p>Set <em class="parameter"><code>interlace</code></em>
- to <code class="literal">TRUE</code> to interlace the image with ADAM7 
+ to <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to interlace the image with ADAM7 
 interlacing. Beware
 than an interlaced PNG can be up to 7 times slower to write than a
 non-interlaced image.</p>
@@ -3566,7 +3527,7 @@ alpha before saving. Images with more than one byte per band element are
 saved as 16-bit PNG, others are saved as 8-bit PNG.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.44.14"></a><h4>Parameters</h4>
+<a name="vips-pngsave.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3586,16 +3547,15 @@ saved as 16-bit PNG, others are saved as 8-bit PNG.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.44.15"></a><h4>Returns</h4>
+<a name="vips-pngsave.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -3621,11 +3581,11 @@ vips_pngsave_buffer (<em class="parameter"><code><a class="link" href="VipsImage
 <p>The address of the buffer is returned in <em class="parameter"><code>buf</code></em>
 , the length of the buffer in
 <em class="parameter"><code>len</code></em>
-. You are responsible for freeing the buffer with <code class="function">g_free()</code> when you
+. You are responsible for freeing the buffer with <a href="/usr/share/gtk-doc/html/glibglib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a> when you
 are done with it.</p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-pngsave" title="vips_pngsave ()"><code class="function">vips_pngsave()</code></a>, <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.45.9"></a><h4>Parameters</h4>
+<a name="vips-pngsave-buffer.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3650,16 +3610,15 @@ are done with it.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.45.10"></a><h4>Returns</h4>
+<a name="vips-pngsave-buffer.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -3675,7 +3634,7 @@ stored in binary or in ASCII. One bit images become 8 bit VIPS images,
 with 0 and 255 for 0 and 1.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.46.7"></a><h4>Parameters</h4>
+<a name="vips-ppmload.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3695,16 +3654,15 @@ with 0 and 255 for 0 and 1.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.46.8"></a><h4>Returns</h4>
+<a name="vips-ppmload.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -3728,14 +3686,14 @@ Integer images of more than 8 bits can only be stored in ASCII.</p>
 <p>When writing float (PFM) images the scale factor is set from the 
 "pfm-scale" metadata.</p>
 <p>Set <em class="parameter"><code>ascii</code></em>
- to <code class="literal">TRUE</code> to write as human-readable ASCII. Normally data is
+ to <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to write as human-readable ASCII. Normally data is
 written in binary. </p>
 <p>Set <em class="parameter"><code>squash</code></em>
- to <code class="literal">TRUE</code> to squash 8-bit images down to one bit. The saver does
+ to <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to squash 8-bit images down to one bit. The saver does
 no dithering, that's up to you.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.47.11"></a><h4>Parameters</h4>
+<a name="vips-ppmsave.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3755,16 +3713,15 @@ no dithering, that's up to you.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.47.12"></a><h4>Returns</h4>
+<a name="vips-ppmsave.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -3781,7 +3738,7 @@ it as an image. It will not handle complex images. It does not handle
 sparse matrices. </p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.48.7"></a><h4>Parameters</h4>
+<a name="vips-matload.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3801,16 +3758,15 @@ sparse matrices. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.48.8"></a><h4>Returns</h4>
+<a name="vips-matload.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -3832,7 +3788,7 @@ rotate/flip as the FORMAT string asks.</p>
 <p>Sections of this reader from Greg Ward and Radiance with kind permission. </p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.49.9"></a><h4>Parameters</h4>
+<a name="vips-radload.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3852,16 +3808,15 @@ rotate/flip as the FORMAT string asks.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.49.10"></a><h4>Returns</h4>
+<a name="vips-radload.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -3875,7 +3830,7 @@ vips_radsave (<em class="parameter"><code><a class="link" href="VipsImage.html" 
 <p>Sections of this reader from Greg Ward and Radiance with kind permission. </p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.50.7"></a><h4>Parameters</h4>
+<a name="vips-radsave.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3895,16 +3850,15 @@ vips_radsave (<em class="parameter"><code><a class="link" href="VipsImage.html" 
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.50.8"></a><h4>Returns</h4>
+<a name="vips-radsave.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -3919,11 +3873,11 @@ vips_radsave_buffer (<em class="parameter"><code><a class="link" href="VipsImage
 <p>The address of the buffer is returned in <em class="parameter"><code>buf</code></em>
 , the length of the buffer in
 <em class="parameter"><code>len</code></em>
-. You are responsible for freeing the buffer with <code class="function">g_free()</code> when you
+. You are responsible for freeing the buffer with <a href="/usr/share/gtk-doc/html/glibglib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a> when you
 are done with it.</p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-radsave" title="vips_radsave ()"><code class="function">vips_radsave()</code></a>, <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.51.7"></a><h4>Parameters</h4>
+<a name="vips-radsave-buffer.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -3948,16 +3902,15 @@ are done with it.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.51.8"></a><h4>Returns</h4>
+<a name="vips-radsave-buffer.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -3970,13 +3923,13 @@ vips_pdfload (<em class="parameter"><code>const <span class="type">char</span> *
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>page</code></em>
-: <code class="literal">gint</code>, load this page, numbered from zero</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this page, numbered from zero</p></li>
 <li class="listitem"><p><em class="parameter"><code>n</code></em>
-: <code class="literal">gint</code>, load this many pages</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this many pages</p></li>
 <li class="listitem"><p><em class="parameter"><code>dpi</code></em>
-: <code class="literal">gdouble</code>, render at this DPI</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, render at this DPI</p></li>
 <li class="listitem"><p><em class="parameter"><code>scale</code></em>
-: <code class="literal">gdouble</code>, scale render by this factor</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, scale render by this factor</p></li>
 </ul></div>
 <p>Render a PDF file into a VIPS image. Rendering uses the libpoppler library
 and should be fast. </p>
@@ -3992,7 +3945,7 @@ times. To fix this, increase the the tile height, for example:</p>
     <tbody>
       <tr>
         <td class="listing_lines" align="right"><pre>1</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="normal">vips </span><span class="usertype">copy</span><span class="normal"> huge</span><span class="symbol">.</span><span class="usertype">pdf</span><span class="normal"> x</span><span class="symbol">.</span><span class="normal">png </span><span class="symbol">--</span><span class="normal">vips</span><span class="symbol">-</span><span class="normal">tile</span><span class="symbol">-</span><span class="normal">height</span><span class="symbol">=</span><span class="number">1024</span></pre></td>
+        <td class="listing_code"><pre class="programlisting">vips copy huge<span class="gtkdoc opt">.</span>pdf x<span class="gtkdoc opt">.</span>png <span class="gtkdoc opt">--</span>vips<span class="gtkdoc opt">-</span>tile<span class="gtkdoc opt">-</span>height<span class="gtkdoc opt">=</span><span class="number">1024</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -4019,7 +3972,7 @@ setting <em class="parameter"><code>scale</code></em>
 data. Rendering occurs when pixels are accessed.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>, <a class="link" href="VipsForeignSave.html#vips-magickload" title="vips_magickload ()"><code class="function">vips_magickload()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.52.18"></a><h4>Parameters</h4>
+<a name="vips-pdfload.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -4039,16 +3992,15 @@ data. Rendering occurs when pixels are accessed.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.52.19"></a><h4>Returns</h4>
+<a name="vips-pdfload.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -4062,13 +4014,13 @@ vips_pdfload_buffer (<em class="parameter"><code><span class="type">void</span> 
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>page</code></em>
-: <code class="literal">gint</code>, load this page, numbered from zero</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this page, numbered from zero</p></li>
 <li class="listitem"><p><em class="parameter"><code>n</code></em>
-: <code class="literal">gint</code>, load this many pages</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this many pages</p></li>
 <li class="listitem"><p><em class="parameter"><code>dpi</code></em>
-: <code class="literal">gdouble</code>, render at this DPI</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, render at this DPI</p></li>
 <li class="listitem"><p><em class="parameter"><code>scale</code></em>
-: <code class="literal">gdouble</code>, scale render by this factor</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, scale render by this factor</p></li>
 </ul></div>
 <p>Read a PDF-formatted memory block into a VIPS image. Exactly as
 <a class="link" href="VipsForeignSave.html#vips-pdfload" title="vips_pdfload ()"><code class="function">vips_pdfload()</code></a>, but read from a memory buffer. </p>
@@ -4078,7 +4030,7 @@ vips_pdfload_buffer (<em class="parameter"><code><span class="type">void</span> 
  is a good place to free. </p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-pdfload" title="vips_pdfload ()"><code class="function">vips_pdfload()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.53.9"></a><h4>Parameters</h4>
+<a name="vips-pdfload-buffer.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -4103,16 +4055,15 @@ vips_pdfload_buffer (<em class="parameter"><code><span class="type">void</span> 
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.53.10"></a><h4>Returns</h4>
+<a name="vips-pdfload-buffer.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -4125,9 +4076,9 @@ vips_svgload (<em class="parameter"><code>const <span class="type">char</span> *
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>dpi</code></em>
-: <code class="literal">gdouble</code>, render at this DPI</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, render at this DPI</p></li>
 <li class="listitem"><p><em class="parameter"><code>scale</code></em>
-: <code class="literal">gdouble</code>, scale render by this factor</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, scale render by this factor</p></li>
 </ul></div>
 <p>Render a SVG file into a VIPS image.  Rendering uses the librsvg library
 and should be fast.</p>
@@ -4139,7 +4090,7 @@ you can scale the rendering from the default 1 point == 1 pixel by <em class="pa
 data. Rendering occurs when pixels are accessed.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.54.10"></a><h4>Parameters</h4>
+<a name="vips-svgload.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -4159,16 +4110,15 @@ data. Rendering occurs when pixels are accessed.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.54.11"></a><h4>Returns</h4>
+<a name="vips-svgload.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -4182,9 +4132,9 @@ vips_svgload_buffer (<em class="parameter"><code><span class="type">void</span> 
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>dpi</code></em>
-: <code class="literal">gdouble</code>, render at this DPI</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, render at this DPI</p></li>
 <li class="listitem"><p><em class="parameter"><code>scale</code></em>
-: <code class="literal">gdouble</code>, scale render by this factor</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, scale render by this factor</p></li>
 </ul></div>
 <p>Read a SVG-formatted memory block into a VIPS image. Exactly as
 <a class="link" href="VipsForeignSave.html#vips-svgload" title="vips_svgload ()"><code class="function">vips_svgload()</code></a>, but read from a memory buffer. </p>
@@ -4194,7 +4144,7 @@ vips_svgload_buffer (<em class="parameter"><code><span class="type">void</span> 
  is a good place to free. </p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-svgload" title="vips_svgload ()"><code class="function">vips_svgload()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.55.9"></a><h4>Parameters</h4>
+<a name="vips-svgload-buffer.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -4219,16 +4169,15 @@ vips_svgload_buffer (<em class="parameter"><code><span class="type">void</span> 
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.55.10"></a><h4>Returns</h4>
+<a name="vips-svgload-buffer.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -4241,9 +4190,9 @@ vips_gifload (<em class="parameter"><code>const <span class="type">char</span> *
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>page</code></em>
-: <code class="literal">gint</code>, page (frame) to read</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, page (frame) to read</p></li>
 <li class="listitem"><p><em class="parameter"><code>n</code></em>
-: <code class="literal">gint</code>, load this many pages</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this many pages</p></li>
 </ul></div>
 <p>Read a GIF file into a VIPS image.  Rendering uses the giflib library.</p>
 <p>Use <em class="parameter"><code>page</code></em>
@@ -4257,7 +4206,7 @@ to change page layout.</p>
 will be 1, 2, 3 or 4 bands depending on what the reader finds in the file. </p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.56.11"></a><h4>Parameters</h4>
+<a name="vips-gifload.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -4277,16 +4226,15 @@ will be 1, 2, 3 or 4 bands depending on what the reader finds in the file. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.56.12"></a><h4>Returns</h4>
+<a name="vips-gifload.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -4300,9 +4248,9 @@ vips_gifload_buffer (<em class="parameter"><code><span class="type">void</span> 
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>page</code></em>
-: <code class="literal">gint</code>, page (frame) to read</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, page (frame) to read</p></li>
 <li class="listitem"><p><em class="parameter"><code>n</code></em>
-: <code class="literal">gint</code>, load this many pages</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this many pages</p></li>
 </ul></div>
 <p>Read a GIF-formatted memory block into a VIPS image. Exactly as
 <a class="link" href="VipsForeignSave.html#vips-gifload" title="vips_gifload ()"><code class="function">vips_gifload()</code></a>, but read from a memory buffer. </p>
@@ -4312,7 +4260,7 @@ vips_gifload_buffer (<em class="parameter"><code><span class="type">void</span> 
  is a good place to free. </p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-gifload" title="vips_gifload ()"><code class="function">vips_gifload()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.57.9"></a><h4>Parameters</h4>
+<a name="vips-gifload-buffer.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -4337,16 +4285,15 @@ vips_gifload_buffer (<em class="parameter"><code><span class="type">void</span> 
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.57.10"></a><h4>Returns</h4>
+<a name="vips-gifload-buffer.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 <hr>
@@ -4359,29 +4306,29 @@ vips_dzsave (<em class="parameter"><code><a class="link" href="VipsImage.html" t
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>basename</code></em>
-: <code class="literal">gchar</code>, base part of name</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gchar"><code class="literal">gchar</code></a>, base part of name</p></li>
 <li class="listitem"><p><em class="parameter"><code>layout</code></em>
 : <a class="link" href="VipsForeignSave.html#VipsForeignDzLayout" title="enum VipsForeignDzLayout"><span class="type">VipsForeignDzLayout</span></a> directory layout convention</p></li>
 <li class="listitem"><p><em class="parameter"><code>suffix</code></em>
 : suffix for tile tiles </p></li>
 <li class="listitem"><p><em class="parameter"><code>overlap</code></em>
-: <code class="literal">gint</code> set tile overlap </p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a> set tile overlap </p></li>
 <li class="listitem"><p><em class="parameter"><code>tile_size</code></em>
-: <code class="literal">gint</code> set tile size </p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a> set tile size </p></li>
 <li class="listitem"><p><em class="parameter"><code>background</code></em>
 : <a class="link" href="libvips-type.html#VipsArrayDouble"><span class="type">VipsArrayDouble</span></a> background colour</p></li>
 <li class="listitem"><p><em class="parameter"><code>depth</code></em>
 : <a class="link" href="VipsForeignSave.html#VipsForeignDzDepth" title="enum VipsForeignDzDepth"><span class="type">VipsForeignDzDepth</span></a> how deep to make the pyramid</p></li>
 <li class="listitem"><p><em class="parameter"><code>centre</code></em>
-: <code class="literal">gboolean</code> centre the tiles </p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a> centre the tiles </p></li>
 <li class="listitem"><p><em class="parameter"><code>angle</code></em>
 : <a class="link" href="libvips-conversion.html#VipsAngle" title="enum VipsAngle"><span class="type">VipsAngle</span></a> rotate the image by this much</p></li>
 <li class="listitem"><p><em class="parameter"><code>container</code></em>
 : <a class="link" href="VipsForeignSave.html#VipsForeignDzContainer" title="enum VipsForeignDzContainer"><span class="type">VipsForeignDzContainer</span></a> set container type</p></li>
 <li class="listitem"><p><em class="parameter"><code>properties</code></em>
-: <code class="literal">gboolean</code> write a properties file</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a> write a properties file</p></li>
 <li class="listitem"><p><em class="parameter"><code>compression</code></em>
-: <code class="literal">gint</code> zip deflate compression level</p></li>
+: <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gint"><code class="literal">gint</code></a> zip deflate compression level</p></li>
 </ul></div>
 <p>Save an image as a set of tiles at various resolutions. By default dzsave
 uses DeepZoom layout -- use <em class="parameter"><code>layout</code></em>
@@ -4420,7 +4367,7 @@ size.</p>
 correct setting for the <em class="parameter"><code>layout</code></em>
  you select.</p>
 <p>If <em class="parameter"><code>properties</code></em>
- is <code class="literal">TRUE</code>, <a class="link" href="VipsForeignSave.html#vips-dzsave" title="vips_dzsave ()"><code class="function">vips_dzsave()</code></a> will write a file called
+ is <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, <a class="link" href="VipsForeignSave.html#vips-dzsave" title="vips_dzsave ()"><code class="function">vips_dzsave()</code></a> will write a file called
 <code class="literal">vips-properties.xml</code> to the output directory. This file lists all of the
 metadata attached to <em class="parameter"><code>in</code></em>
  in an obvious manner. It can be useful for viewing
@@ -4432,7 +4379,7 @@ programs which wish to use fields from source files loaded via
 If no value is given, the default is to store files without compression.</p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-tiffsave" title="vips_tiffsave ()"><code class="function">vips_tiffsave()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.12.58.16"></a><h4>Parameters</h4>
+<a name="vips-dzsave.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -4452,16 +4399,15 @@ If no value is given, the default is to store files without compression.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
 </table></div>
 </div>
 <div class="refsect3">
-<a name="id-1.4.6.12.58.17"></a><h4>Returns</h4>
+<a name="vips-dzsave.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
-<p></p>
 </div>
 </div>
 </div>
@@ -4481,7 +4427,7 @@ image read. Setting both PARTIAL and SEQUENTIAL is an error.</p>
 first. Depending on the native byte order of the host machine, you may
 need to swap bytes. See <a class="link" href="libvips-conversion.html#vips-copy" title="vips_copy ()"><code class="function">vips_copy()</code></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.13.2.8"></a><h4>Members</h4>
+<a name="VipsForeignFlags.members"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4531,7 +4477,7 @@ need to swap bytes. See <a class="link" href="libvips-conversion.html#vips-copy"
 <a name="VipsSaveable"></a><h3>enum VipsSaveable</h3>
 <p>See also: <a class="link" href="VipsForeignSave.html" title="VipsForeignSave"><span class="type">VipsForeignSave</span></a>.</p>
 <div class="refsect3">
-<a name="id-1.4.6.13.3.4"></a><h4>Members</h4>
+<a name="VipsSaveable.members"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4595,7 +4541,7 @@ need to swap bytes. See <a class="link" href="libvips-conversion.html#vips-copy"
 <a name="VipsForeignWebpPreset"></a><h3>enum VipsForeignWebpPreset</h3>
 <p>Tune lossy encoder settings for different image types.</p>
 <div class="refsect3">
-<a name="id-1.4.6.13.4.4"></a><h4>Members</h4>
+<a name="VipsForeignWebpPreset.members"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4663,7 +4609,7 @@ need to swap bytes. See <a class="link" href="libvips-conversion.html#vips-copy"
 <p>Use <em class="parameter"><code>prediction</code></em>
  to set the lzw or deflate prediction, default none.</p>
 <div class="refsect3">
-<a name="id-1.4.6.13.5.6"></a><h4>Members</h4>
+<a name="VipsForeignTiffCompression.members"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4728,7 +4674,7 @@ need to swap bytes. See <a class="link" href="libvips-conversion.html#vips-copy"
 <p>The predictor can help deflate and lzw compression. The values are fixed by
 the tiff library.</p>
 <div class="refsect3">
-<a name="id-1.4.6.13.6.4"></a><h4>Members</h4>
+<a name="VipsForeignTiffPredictor.members"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4771,7 +4717,7 @@ the tiff library.</p>
 <a name="VipsForeignTiffResunit"></a><h3>enum VipsForeignTiffResunit</h3>
 <p>Use inches or centimeters as the resolution unit for a tiff file.</p>
 <div class="refsect3">
-<a name="id-1.4.6.13.7.4"></a><h4>Members</h4>
+<a name="VipsForeignTiffResunit.members"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4808,7 +4754,7 @@ the tiff library.</p>
 <p>http://www.w3.org/TR/PNG-Filters.html
 The values mirror those of png.h in libpng.</p>
 <div class="refsect3">
-<a name="id-1.4.6.13.8.4"></a><h4>Members</h4>
+<a name="VipsForeignPngFilter.members"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4867,7 +4813,7 @@ The values mirror those of png.h in libpng.</p>
 <a name="VipsForeignDzLayout"></a><h3>enum VipsForeignDzLayout</h3>
 <p>What directory layout and metadata standard to use.</p>
 <div class="refsect3">
-<a name="id-1.4.6.13.9.4"></a><h4>Members</h4>
+<a name="VipsForeignDzLayout.members"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4910,7 +4856,7 @@ The values mirror those of png.h in libpng.</p>
 <a name="VipsForeignDzDepth"></a><h3>enum VipsForeignDzDepth</h3>
 <p>How many pyramid layers to create.</p>
 <div class="refsect3">
-<a name="id-1.4.6.13.10.4"></a><h4>Members</h4>
+<a name="VipsForeignDzDepth.members"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4953,7 +4899,7 @@ The values mirror those of png.h in libpng.</p>
 <a name="VipsForeignDzContainer"></a><h3>enum VipsForeignDzContainer</h3>
 <p>How many pyramid layers to create.</p>
 <div class="refsect3">
-<a name="id-1.4.6.13.11.4"></a><h4>Members</h4>
+<a name="VipsForeignDzContainer.members"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4997,7 +4943,7 @@ The values mirror those of png.h in libpng.</p>
 <hr>
 <div class="refsect2">
 <a name="VipsForeignLoad--disc"></a><h3>The <code class="literal">“disc”</code> property</h3>
-<pre class="programlisting">  “disc”                     <span class="type">gboolean</span></pre>
+<pre class="programlisting">  “disc”                     <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Open to disc.</p>
 <p>Flags: Read / Write</p>
 <p>Default value: TRUE</p>
@@ -5005,8 +4951,8 @@ The values mirror those of png.h in libpng.</p>
 <hr>
 <div class="refsect2">
 <a name="VipsForeignLoad--fail"></a><h3>The <code class="literal">“fail”</code> property</h3>
-<pre class="programlisting">  “fail”                     <span class="type">gboolean</span></pre>
-<p>Fail on first warning.</p>
+<pre class="programlisting">  “fail”                     <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
+<p>Fail on first error.</p>
 <p>Flags: Read / Write</p>
 <p>Default value: FALSE</p>
 </div>
@@ -5027,7 +4973,7 @@ The values mirror those of png.h in libpng.</p>
 <hr>
 <div class="refsect2">
 <a name="VipsForeignLoad--sequential"></a><h3>The <code class="literal">“sequential”</code> property</h3>
-<pre class="programlisting">  “sequential”               <span class="type">gboolean</span></pre>
+<pre class="programlisting">  “sequential”               <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Sequential read only.</p>
 <p>Flags: Read / Write</p>
 <p>Default value: FALSE</p>
@@ -5049,7 +4995,7 @@ The values mirror those of png.h in libpng.</p>
 <hr>
 <div class="refsect2">
 <a name="VipsForeignSave--strip"></a><h3>The <code class="literal">“strip”</code> property</h3>
-<pre class="programlisting">  “strip”                    <span class="type">gboolean</span></pre>
+<pre class="programlisting">  “strip”                    <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
 <p>Strip all metadata from image.</p>
 <p>Flags: Read / Write</p>
 <p>Default value: FALSE</p>
@@ -5061,8 +5007,7 @@ image
 </div>
 </div>
 <div class="footer">
-<hr>
-          Generated by GTK-Doc V1.21</div>
+<hr>Generated by GTK-Doc V1.25</div>
 </section>
 
     <script type="text/javascript">
