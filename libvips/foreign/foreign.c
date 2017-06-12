@@ -14,6 +14,8 @@
  * 	- forward progress signals from load
  * 23/5/16
  * 	- remove max-alpha stuff, this is now automatic
+ * 12/6/17
+ * 	- transform cmyk->rgb if there's an embedded profile
  */
 
 /*
@@ -1188,6 +1190,37 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 
 			in = out;
 		}
+	}
+
+	/* If this image is CMYK and the saver is RGB-only, use lcms to try to
+	 * import to XYZ. This will only work if the image has an embedded
+	 * profile. 
+	 */
+	if( in->Type == VIPS_INTERPRETATION_CMYK &&
+		in->Bands >= 4 &&
+		(saveable == VIPS_SAVEABLE_RGB ||
+		 saveable == VIPS_SAVEABLE_RGBA ||
+		 saveable == VIPS_SAVEABLE_RGBA_ONLY) ) { 
+		VipsImage *out;
+
+		if( vips_icc_import( in, &out, 
+			"pcs", VIPS_PCS_XYZ,
+			NULL ) ) {
+			g_object_unref( in );
+			return( -1 );
+		}
+		g_object_unref( in );
+
+		in = out;
+
+		/* We've imported to PCS, we must remove the embedded profile,
+		 * since it no longer matches the image.
+		 *
+		 * For example, when converting CMYK JPG to RGB PNG, we need 
+		 * to remove the CMYK profile on import, or the png writer will 
+		 * try to attach it when we write the image as RGB.
+		 */
+		vips_image_remove( in, VIPS_META_ICC_NAME );
 	}
 
 	/* If this is something other than CMYK or RAD, eg. maybe a LAB image,

@@ -9,6 +9,10 @@
 - add vips_thumbnail_image()
 - better prefix guessing on Windows, thanks tumagonx
 
+12/6/17 started 8.5.7
+- transform cmyk->rgb automatically on write if there's an embedded profile
+  and the saver does not support cmyk
+
 19/5/17 started 8.5.6
 - tiff read with start page > 0 could break edge tiles or strips
 - raise b64 limit to allow for huge profiles (thanks jaume)
