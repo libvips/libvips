@@ -2,6 +2,8 @@
  *
  * 22/5/14
  * 	- from vips_merge()
+ * 13/6/17
+ * 	- tag as SEQUENTIAL
  */
 
 /*
@@ -97,6 +99,7 @@ vips_merge_class_init( VipsMergeClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -104,6 +107,8 @@ vips_merge_class_init( VipsMergeClass *class )
 	object_class->nickname = "merge";
 	object_class->description = _( "merge two images" );
 	object_class->build = vips_merge_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "ref", 1, 
 		_( "Reference" ), 
