@@ -173,8 +173,6 @@
  * 	  AndreasSchmid1 
  * 20/5/17
  * 	- round pyramid layer sizes up rather than down
- * 	- avoid accumulation of rounding errors by always calcing layer 
- * 	  sizes from base size rather than by repeated division
  */
 
 /*
@@ -405,15 +403,13 @@ wtiff_layer_new( Wtiff *wtiff, Layer *above, int width, int height )
 	if( wtiff->pyramid )
 		if( layer->width > wtiff->tilew || 
 			layer->height > wtiff->tileh ) 
-			/* We round up to make sure we don't clip pixels off
-			 * the right and bottom edge. Always calculate from the
-			 * full-res image dimensions to make sure we don't 
-			 * accumulate rounding errors.
+			/* Round to nearest, though we will always have 0.0 or
+			 * 0.5, so really it's round up.
 			 */
 			layer->below = wtiff_layer_new( wtiff, layer, 
-				ceil( (float) wtiff->im->Xsize / 
+				VIPS_RINT( (float) wtiff->im->Xsize / 
 					(layer->sub * 2) ),
-				ceil( (float) wtiff->im->Ysize / 
+				VIPS_RINT( (float) wtiff->im->Ysize / 
 					(layer->sub * 2) ) );
 
 	/* The name for the top layer is the output filename.
@@ -764,17 +760,25 @@ wtiff_allocate_layers( Wtiff *wtiff )
 			VIPS_DEMAND_STYLE_ANY, wtiff->im, NULL ) ) 
 			return( -1 );
 
-		/* We make the image large enough to be able to exactly x2 
-		 * shrink into the width/height of the layer below.
+		layer->image->Xsize = layer->width;
+		layer->image->Ysize = layer->height;
+
+		/* If we rounded up the size of the layer below, we will need
+		 * to enlarge this layer by one pixel.
 		 */
 		if( layer->below ) {
-			layer->image->Xsize = layer->below->width * 2;
-			layer->image->Ysize = layer->below->height * 2;
+			layer->image->Xsize = VIPS_MAX( 
+				layer->image->Xsize, 
+				layer->below->width * 2 );
+			layer->image->Ysize = VIPS_MAX( 
+				layer->image->Ysize, 
+				layer->below->height * 2 );
 		}
-		else {
-			layer->image->Xsize = layer->width;
-			layer->image->Ysize = layer->height;
-		}
+
+#ifdef DEBUG
+		printf( "wtiff_allocate_layers: allocated %d x %d pixels\n", 
+			layer->image->Xsize, layer->image->Ysize ); 
+#endif /*DEBUG*/
 
 		layer->strip = vips_region_new( layer->image );
 		layer->copy = vips_region_new( layer->image );
@@ -1398,6 +1402,11 @@ layer_generate_extras( Layer *layer )
 
 		int b, y;
 
+#ifdef DEBUG
+		printf( "layer_generate_extras: extra column for sub %d\n", 
+			layer->sub );
+#endif /*DEBUG*/
+
 		/* Need to add a right-most column.
 		 */
 		for( y = 0; y < strip->valid.height; y++ ) {
@@ -1412,6 +1421,11 @@ layer_generate_extras( Layer *layer )
 
 	if( layer->height < layer->image->Ysize ) {
 		VipsRect last;
+
+#ifdef DEBUG
+		printf( "layer_generate_extras: extra row for sub %d\n", 
+			layer->sub );
+#endif /*DEBUG*/
 
 		/* The last two lines of the image: we need to copy the next to
 		 * last into the last.
