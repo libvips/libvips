@@ -16,6 +16,8 @@
  * 	- remove max-alpha stuff, this is now automatic
  * 12/6/17
  * 	- transform cmyk->rgb if there's an embedded profile
+ * 16/6/17
+ * 	- add page_height
  */
 
 /*
@@ -1485,6 +1487,10 @@ vips_foreign_save_build( VipsObject *object )
 			save->background ) )
 			return( -1 );
 
+		if( save->page_height )
+			vips_image_set_int( ready, 
+				VIPS_META_PAGE_HEIGHT, save->page_height );
+
 		VIPS_UNREF( save->ready );
 		save->ready = ready;
 	}
@@ -1570,6 +1576,13 @@ vips_foreign_save_class_init( VipsForeignSaveClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSave, background ),
 		VIPS_TYPE_ARRAY_DOUBLE );
+
+	VIPS_ARG_INT( class, "page_height", 8, 
+		_( "Page height" ), 
+		_( "Set page height for multipage save" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSave, page_height ),
+		0, VIPS_MAX_COORD, 0 ); 
 }
 
 static void

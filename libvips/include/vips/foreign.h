@@ -279,6 +279,10 @@ typedef struct _VipsForeignSave {
 	 */
 	VipsArrayDouble *background;
 
+	/* Set to non-zero to set the page size for multi-page save.
+	 */
+	int page_height;
+
 	/*< public >*/
 
 	/* The image we are to save, as supplied by our caller. 

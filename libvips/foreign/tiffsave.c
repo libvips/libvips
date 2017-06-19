@@ -472,6 +472,7 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * * @bigtiff: set %TRUE to write a BigTiff file
  * * @properties: set %TRUE to write an IMAGEDESCRIPTION tag
  * * @strip: set %TRUE to block metadata save
+ * * @page_height: %gint for page height for multi-page save
  *
  * Write a VIPS image to a file as TIFF.
  *
@@ -587,6 +588,7 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
  * * @bigtiff: set %TRUE to write a BigTiff file
  * * @properties: set %TRUE to write an IMAGEDESCRIPTION tag
  * * @strip: set %TRUE to block metadata save
+ * * @page_height: %gint for page height for multi-page save
  *
  * As vips_tiffsave(), but save to a memory buffer. 
  *
