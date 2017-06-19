@@ -15,6 +15,8 @@
  * 	- gtkdoc
  * 12/8/13	
  * 	- redone as a class
+ * 19/6/17
+ * 	- make output format always == input format, thanks Simon
  */
 
 /*
@@ -72,20 +74,24 @@ static int
 vips_hist_equal_build( VipsObject *object )
 {
 	VipsHistEqual *equal = (VipsHistEqual *) object; 
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 5 );
 
 	g_object_set( equal, "out", vips_image_new(), NULL ); 
 
 	if( VIPS_OBJECT_CLASS( vips_hist_equal_parent_class )->build( object ) )
 		return( -1 );
 
+	/* norm can return a uchar output for a ushort input if the range is
+	 * small, so make sure we cast back to the input type again.
+	 */
 	if( vips_hist_find( equal->in, &t[0], 
 			"band", equal->which,
 			NULL ) ||
 		vips_hist_cum( t[0], &t[1], NULL ) ||
 		vips_hist_norm( t[1], &t[2], NULL ) ||
-		vips_maplut( equal->in, &t[3], t[2], NULL ) ||
-		vips_image_write( t[3], equal->out ) )
+		vips_cast( t[2], &t[3], equal->in->BandFmt, NULL ) ||
+		vips_maplut( equal->in, &t[4], t[3], NULL ) ||
+		vips_image_write( t[4], equal->out ) )
 		return( -1 );
 
 	return( 0 );
@@ -141,7 +147,8 @@ vips_hist_equal_init( VipsHistEqual *equal )
  * * @band: band to equalise
  *
  * Histogram-equalise @in. Equalise using band @bandno, or if @bandno is -1,
- * equalise bands independently.
+ * equalise bands independently. The output format is always the same as the
+ * input format. 
  *
  * See also: 
  *
