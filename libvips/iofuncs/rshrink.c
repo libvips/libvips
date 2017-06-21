@@ -489,7 +489,7 @@ vips_region_shrink_lanczos3( VipsRegion *from, VipsRegion *to, VipsRect *target 
 	need.top = target->top * 2;
 	need.width = 10 + target->width * 2;
 	need.height = 10 + target->height * 2;
-	if( !vips_rect_includesrect( from->valid, &need ) ) {
+	if( !vips_rect_includesrect( &from->valid, &need ) ) {
 		printf( "argh not enough pixels!!\n" );
 		return( -1 ); 
 	}
