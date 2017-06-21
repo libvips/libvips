@@ -248,9 +248,15 @@ struct _Layer {
 	void *buf;
 	size_t len;
 
-	int width, height;		/* Layer size */
 	int sub;			/* Subsample factor for this layer */
 	TIFF *tif;			/* TIFF file we write this layer to */
+
+	/* The size of the image we write for this layer. image->Xsize and 
+	 * image->Ysize are often larger, since we need exactly 2* as many 
+	 * pixels in this layer as in the layer below to make x2 shrink easy. 
+	 */
+	int width;
+	int height;
 
 	/* The image we build. We only keep a few scanlines of this around in
 	 * @strip. 
@@ -376,6 +382,11 @@ wtiff_layer_new( Wtiff *wtiff, Layer *above, int width, int height )
 	else
 		layer->sub = above->sub * 2;
 
+#ifdef DEBUG
+	printf( "wtiff_layer_new: %d x %d, sub = %d\n", 
+		width, height, layer->sub );
+#endif /*DEBUG*/
+
 	layer->lname = NULL;
 	layer->buf = NULL;
 	layer->len = 0;
@@ -392,8 +403,14 @@ wtiff_layer_new( Wtiff *wtiff, Layer *above, int width, int height )
 	if( wtiff->pyramid )
 		if( layer->width > wtiff->tilew || 
 			layer->height > wtiff->tileh ) 
+			/* Round to nearest, though we will always have 0.0 or
+			 * 0.5, so really it's round up.
+			 */
 			layer->below = wtiff_layer_new( wtiff, layer, 
-				width / 2, height / 2 );
+				VIPS_RINT( (float) wtiff->im->Xsize / 
+					(layer->sub * 2) ),
+				VIPS_RINT( (float) wtiff->im->Ysize / 
+					(layer->sub * 2) ) );
 
 	/* The name for the top layer is the output filename.
 	 *
@@ -742,8 +759,26 @@ wtiff_allocate_layers( Wtiff *wtiff )
 		if( vips_image_pipelinev( layer->image, 
 			VIPS_DEMAND_STYLE_ANY, wtiff->im, NULL ) ) 
 			return( -1 );
+
 		layer->image->Xsize = layer->width;
 		layer->image->Ysize = layer->height;
+
+		/* If we rounded up the size of the layer below, we will need
+		 * to enlarge this layer by one pixel.
+		 */
+		if( layer->below ) {
+			layer->image->Xsize = VIPS_MAX( 
+				layer->image->Xsize, 
+				layer->below->width * 2 );
+			layer->image->Ysize = VIPS_MAX( 
+				layer->image->Ysize, 
+				layer->below->height * 2 );
+		}
+
+#ifdef DEBUG
+		printf( "wtiff_allocate_layers: allocated %d x %d pixels\n", 
+			layer->image->Xsize, layer->image->Ysize ); 
+#endif /*DEBUG*/
 
 		layer->strip = vips_region_new( layer->image );
 		layer->copy = vips_region_new( layer->image );
@@ -1261,7 +1296,6 @@ wtiff_pack2tiff( Wtiff *wtiff, Layer *layer,
 static int
 wtiff_layer_write_tile( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 {
-	VipsImage *im = layer->image;
 	VipsRect *area = &strip->valid;
 
 	VipsRect image;
@@ -1269,10 +1303,10 @@ wtiff_layer_write_tile( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 
 	image.left = 0;
 	image.top = 0;
-	image.width = im->Xsize;
-	image.height = im->Ysize;
+	image.width = layer->width;
+	image.height = layer->height;
 
-	for( x = 0; x < im->Xsize; x += wtiff->tilew ) {
+	for( x = 0; x < layer->width; x += wtiff->tilew ) {
 		VipsRect tile;
 
 		tile.left = x;
@@ -1324,21 +1358,21 @@ wtiff_layer_write_strip( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 		/* Any repacking necessary.
 		 */
 		if( im->Coding == VIPS_CODING_LABQ ) {
-			LabQ2LabC( wtiff->tbuf, p, im->Xsize );
+			LabQ2LabC( wtiff->tbuf, p, layer->width );
 			p = wtiff->tbuf;
 		}
 		else if( im->BandFmt == VIPS_FORMAT_SHORT &&
 			im->Type == VIPS_INTERPRETATION_LABS ) {
-			LabS2Lab16( wtiff->tbuf, p, im->Xsize );
+			LabS2Lab16( wtiff->tbuf, p, layer->width );
 			p = wtiff->tbuf;
 		}
 		else if( wtiff->onebit ) {
-			eightbit2onebit( wtiff, wtiff->tbuf, p, im->Xsize );
+			eightbit2onebit( wtiff, wtiff->tbuf, p, layer->width );
 			p = wtiff->tbuf;
 		}
 		else if( (im->Bands == 1 || im->Bands == 2) && 
 			wtiff->miniswhite ) {
-			invert_band0( wtiff, wtiff->tbuf, p, im->Xsize );
+			invert_band0( wtiff, wtiff->tbuf, p, layer->width );
 			p = wtiff->tbuf;
 		}
 
@@ -1347,6 +1381,70 @@ wtiff_layer_write_strip( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 	}
 
 	return( 0 );
+}
+
+/* A strip has filled, but the rightmost column and the bottom-most row may
+ * not have been if we've rounded the size up.
+ *
+ * Fill them, if necessary, by copying the previous row/column.
+ */
+static void
+layer_generate_extras( Layer *layer )
+{
+	VipsRegion *strip = layer->strip;
+
+	/* We only work for full-width strips.
+	 */
+	g_assert( strip->valid.width == layer->image->Xsize );
+
+	if( layer->width < layer->image->Xsize ) {
+		int ps = VIPS_IMAGE_SIZEOF_PEL( strip->im );
+
+		int b, y;
+
+#ifdef DEBUG
+		printf( "layer_generate_extras: extra column for sub %d\n", 
+			layer->sub );
+#endif /*DEBUG*/
+
+		/* Need to add a right-most column.
+		 */
+		for( y = 0; y < strip->valid.height; y++ ) {
+			VipsPel *p = VIPS_REGION_ADDR( strip, 
+				layer->width - 1, strip->valid.top + y );
+			VipsPel *q = p + ps;
+
+			for( b = 0; b < ps; b++ )
+				q[b] = p[b];
+		}
+	}
+
+	if( layer->height < layer->image->Ysize ) {
+		VipsRect last;
+
+#ifdef DEBUG
+		printf( "layer_generate_extras: extra row for sub %d\n", 
+			layer->sub );
+#endif /*DEBUG*/
+
+		/* The last two lines of the image: we need to copy the next to
+		 * last into the last.
+		 */
+		last.left = 0;
+		last.top = layer->image->Ysize - 2;
+		last.width = layer->image->Xsize;
+		last.height = 2;
+	
+		/* Do we have them both? Fill the last with the next-to-last.
+		 */
+		vips_rect_intersectrect( &last, &strip->valid, &last );
+		if( last.height == 2 ) {
+			last.height = 1;
+
+			vips_region_copy( strip, strip, &last, 
+				0, last.top + 1 );
+		}
+	}
 }
 
 static int layer_strip_arrived( Layer *layer );
@@ -1363,6 +1461,11 @@ layer_strip_shrink( Layer *layer )
 
 	VipsRect target;
 	VipsRect source;
+
+	/* We may have an extra column of pixels on the right or
+	 * bottom that need filling: generate them.
+	 */
+	layer_generate_extras( layer );
 
 	/* Our pixels might cross a strip boundary in the layer below, so we
 	 * have to write repeatedly until we run out of pixels.

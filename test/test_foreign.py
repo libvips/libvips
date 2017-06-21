@@ -343,6 +343,17 @@ class TestForeign(unittest.TestCase):
 
         os.unlink("test-15.tif")
 
+        # test pyr write
+        x = Vips.Image.new_from_file(self.tiff_file)
+        buf = x.write_to_file("test-16.tif", pyramid = True, tile = True)
+
+        # won't be exactly equal since shrink does two 1d shrinks
+        p2 = Vips.Image.new_from_file("test-16.tif", page = 1)
+        s2 = x.shrink(2, 2)
+        self.assertLess((p2 - s2).abs().max(), 2)
+
+        os.unlink("test-16.tif")
+
     def test_magickload(self):
         x = Vips.type_find("VipsForeign", "magickload")
         if not x.is_instantiatable():
