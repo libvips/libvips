@@ -171,6 +171,8 @@
  * 29/1/17
  * 	- enable bigtiff automatically for large, uncompressed writes, thanks 
  * 	  AndreasSchmid1 
+ * 21/6/17
+ * 	- add a lanczos3 shrink option
  */
 
 /*

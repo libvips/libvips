@@ -26,6 +26,7 @@ libiofuncs_la_SOURCES = \
 	header.c \
 	operation.c \
 	region.c \
+	rshrink.c \
 	rect.c \
 	semaphore.c \
 	threadpool.c \
