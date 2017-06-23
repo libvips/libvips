@@ -252,11 +252,16 @@ struct _Layer {
 	TIFF *tif;			/* TIFF file we write this layer to */
 
 	/* The size of the image we write for this layer. image->Xsize and 
-	 * image->Ysize are often larger, since we need exactly 2* as many 
-	 * pixels in this layer as in the layer below to make x2 shrink easy. 
+	 * image->Ysize are often larger, since we need extra pixels around the
+	 * edges for the downsizer. 
 	 */
 	int width;
 	int height;
+
+	/* Where in image->Xsize, Ysize we extract width/height.
+	 */
+	int left;
+	int top;
 
 	/* The image we build. We only keep a few scanlines of this around in
 	 * @strip. 
@@ -374,6 +379,8 @@ wtiff_layer_new( Wtiff *wtiff, Layer *above, int width, int height )
 	layer->wtiff = wtiff;
 	layer->width = width;
 	layer->height = height; 
+	layer->left = 5;
+	layer->top = 5; 
 
 	if( !above )
 		/* Top of pyramid.
@@ -403,14 +410,11 @@ wtiff_layer_new( Wtiff *wtiff, Layer *above, int width, int height )
 	if( wtiff->pyramid )
 		if( layer->width > wtiff->tilew || 
 			layer->height > wtiff->tileh ) 
-			/* Round to nearest, though we will always have 0.0 or
-			 * 0.5, so really it's round up.
+			/* Round down. Most IIP clients expect this behaviour. 
 			 */
 			layer->below = wtiff_layer_new( wtiff, layer, 
-				VIPS_RINT( (float) wtiff->im->Xsize / 
-					(layer->sub * 2) ),
-				VIPS_RINT( (float) wtiff->im->Ysize / 
-					(layer->sub * 2) ) );
+				wtiff->im->Xsize / (layer->sub * 2),
+				wtiff->im->Ysize / (layer->sub * 2) );
 
 	/* The name for the top layer is the output filename.
 	 *
@@ -763,17 +767,10 @@ wtiff_allocate_layers( Wtiff *wtiff )
 		layer->image->Xsize = layer->width;
 		layer->image->Ysize = layer->height;
 
-		/* If we rounded up the size of the layer below, we will need
-		 * to enlarge this layer by one pixel.
+		/* We need another 5 pixels all around for the lanczos mask.
 		 */
-		if( layer->below ) {
-			layer->image->Xsize = VIPS_MAX( 
-				layer->image->Xsize, 
-				layer->below->width * 2 );
-			layer->image->Ysize = VIPS_MAX( 
-				layer->image->Ysize, 
-				layer->below->height * 2 );
-		}
+		layer->image->Xsize += 10;
+		layer->image->Ysize += 10;
 
 #ifdef DEBUG
 		printf( "wtiff_allocate_layers: allocated %d x %d pixels\n", 
@@ -1447,7 +1444,7 @@ layer_generate_extras( Layer *layer )
 	}
 }
 
-static int layer_strip_arrived( Layer *layer );
+static int layer_strip_filled( Layer *layer );
 
 /* Shrink what pixels we can from this strip into the layer below. If the
  * strip below fills, recurse.
@@ -1513,7 +1510,7 @@ layer_strip_shrink( Layer *layer )
 		 */
 		if( below->write_y == VIPS_RECT_BOTTOM( &to->valid ) ||
 			below->write_y == below->height ) {
-			if( layer_strip_arrived( below ) )
+			if( layer_strip_filled( below ) )
 				return( -1 );
 		}
 	}
@@ -1521,8 +1518,7 @@ layer_strip_shrink( Layer *layer )
 	return( 0 );
 }
 
-/* A new strip has arrived! The strip has at least enough pixels in to 
- * write a line of tiles or a set of scanlines.  
+/* The strip has been filled!
  *
  * - write a line of tiles / set of scanlines
  * - shrink what we can to the layer below
@@ -1530,7 +1526,7 @@ layer_strip_shrink( Layer *layer )
  * - copy the overlap with the previous strip
  */
 static int
-layer_strip_arrived( Layer *layer )
+layer_strip_filled( Layer *layer )
 {
 	Wtiff *wtiff = layer->wtiff;
 
@@ -1552,8 +1548,8 @@ layer_strip_arrived( Layer *layer )
 
 	/* Position our strip down the image.  
 	 *
-	 * Expand the strip if necessary to make sure we have an even 
-	 * number of lines. 
+	 * We move down layer->top pixels less than we could, since we want to
+	 * leave a margin for the interpolator. 
 	 */
 	layer->y += wtiff->tileh;
 	new_strip.left = 0;
@@ -1611,7 +1607,18 @@ write_strip( VipsRegion *region, VipsRect *area, void *a )
 
 	for(;;) {
 		VipsRect *to = &layer->strip->valid;
+		VipsRect source;
 		VipsRect target;
+
+		/* The pixels we have available.
+		 */
+		source = *area;
+
+		/* Map to strip's coordinates ... we write into the centre
+		 * area.
+		 */
+		source.left += layer->left;
+		source.top += layer->top;
 
 		/* The bit of strip that needs filling.
 		 */
@@ -1623,7 +1630,13 @@ write_strip( VipsRegion *region, VipsRect *area, void *a )
 
 		/* Clip against what we have available.
 		 */
-		vips_rect_intersectrect( &target, area, &target );
+		vips_rect_intersectrect( &target, &source, &target );
+
+		/* And back to the region's coordinate space.
+		 */
+		source = target;
+		source.left -= layer->left;
+		source.left -= layer->top;
 
 		/* Are we empty? All done.
 		 */
@@ -1637,7 +1650,8 @@ write_strip( VipsRegion *region, VipsRect *area, void *a )
 		 * often? Unclear.
 		 */
 		vips_region_copy( region, layer->strip, 
-			&target, target.left, target.top );
+			&source, 
+			source.left + layer->left, source.top + layer->top );
 
 		layer->write_y += target.height;
 
@@ -1647,7 +1661,7 @@ write_strip( VipsRegion *region, VipsRect *area, void *a )
 		 */
 		if( layer->write_y == VIPS_RECT_BOTTOM( to ) ||
 			layer->write_y == layer->height ) {
-			if( layer_strip_arrived( layer ) ) 
+			if( layer_strip_filled( layer ) ) 
 				return( -1 );
 		}
 	}
