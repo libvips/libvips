@@ -268,11 +268,12 @@ struct _Layer {
 	 */
 	VipsImage *image;
 
-	/* The y position of strip in image.
+	/* The y position this line of tiles will write at, in output image
+	 * coordinates. 
 	 */
 	int y;
 
-	/* The next line we write to in strip. 
+	/* The next line we write to in strip. This is in layer coordinates. 
 	 */
 	int write_y;
 
@@ -1310,6 +1311,8 @@ wtiff_layer_write_tile( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 	VipsRect image;
 	int x;
 
+	/* Size of layer.
+	 */
 	image.left = 0;
 	image.top = 0;
 	image.width = layer->width;
@@ -1318,14 +1321,18 @@ wtiff_layer_write_tile( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 	for( x = 0; x < layer->width; x += wtiff->tilew ) {
 		VipsRect tile;
 
-		tile.left = x + layer->left;
-
-		this isn't right: we should be more careful about mapping the two oordfionate spaces
-
-		tile.top = area->top + layer->top;
+		/* Tile in layer cods.
+		 */
+		tile.left = x;
+		tile.top = layer->y;
 		tile.width = wtiff->tilew;
 		tile.height = wtiff->tileh;
 		vips_rect_intersectrect( &tile, &image, &tile );
+
+		/* Map to strip cods.
+		 */
+		tile.left += layer->left;
+		tile.top += layer->top;
 
 		/* Have to repack pixels.
 		 */
@@ -1338,7 +1345,7 @@ wtiff_layer_write_tile( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 #endif /*DEBUG_VERBOSE*/
 
 		if( TIFFWriteTile( layer->tif, wtiff->tbuf, 
-			tile.left, tile.top, 0, 0 ) < 0 ) {
+			x, layer->y, 0, 0 ) < 0 ) {
 			vips_error( "vips2tiff", 
 				"%s", _( "TIFF write tile failed" ) );
 			return( -1 );
@@ -1354,8 +1361,7 @@ static int
 wtiff_layer_write_strip( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 {
 	VipsImage *im = layer->image;
-	VipsRect *area = &strip->valid;
-	int height = VIPS_MIN( wtiff->tileh, area->height ); 
+	int height = VIPS_MIN( wtiff->tileh, layer->height - layer->y ); 
 
 	int y;
 
@@ -1365,7 +1371,8 @@ wtiff_layer_write_strip( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 #endif /*DEBUG_VERBOSE*/
 
 	for( y = 0; y < height; y++ ) {
-		VipsPel *p = VIPS_REGION_ADDR( strip, 0, area->top + y );
+		VipsPel *p = VIPS_REGION_ADDR( strip, 
+			layer->left, layer->top + layer->y + y );
 
 		/* Any repacking necessary.
 		 */
@@ -1388,7 +1395,7 @@ wtiff_layer_write_strip( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 			p = wtiff->tbuf;
 		}
 
-		if( TIFFWriteScanline( layer->tif, p, area->top + y, 0 ) < 0 ) 
+		if( TIFFWriteScanline( layer->tif, p, layer->y + y, 0 ) < 0 ) 
 			return( -1 );
 	}
 
@@ -1580,7 +1587,8 @@ layer_strip_filled( Layer *layer )
 		layer_strip_shrink( layer ) ) 
 		return( -1 );
 
-	/* Position our strip down the image. Leave some stuff around the 
+	/* Position our strip down the image. We have to leave the stencil
+	 * margin. 
 	 */
 	layer->y += wtiff->tileh;
 	new_strip.left = 0;
