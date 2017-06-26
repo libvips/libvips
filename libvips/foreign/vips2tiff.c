@@ -268,14 +268,15 @@ struct _Layer {
 	 */
 	VipsImage *image;
 
-	/* The y position this line of tiles will write at, in output image
-	 * coordinates. 
+	/* Track y for writing here. The y position of a strip of tiles in 
+	 * output image coordinates. 
 	 */
-	int y;
+	int strip_y;
 
-	/* The next line we write to in strip. This is in layer coordinates. 
+	/* Track y for pixels coming in from the layer above (or the source
+	 * image) here. Again, in output image coordinates. 
 	 */
-	int write_y;
+	int image_y;
 
 	VipsRegion *strip;		/* The current strip of pixels */
 	VipsRegion *copy;		/* Pixels we copy to the next strip */
@@ -408,8 +409,8 @@ wtiff_layer_new( Wtiff *wtiff, Layer *above, int width, int height )
 	layer->len = 0;
 	layer->tif = NULL;
 	layer->image = NULL;
-	layer->write_y = 0;
-	layer->y = 0;
+	layer->image_y = 0;
+	layer->strip_y = 0;
 	layer->strip = NULL;
 	layer->copy = NULL;
 
@@ -742,22 +743,15 @@ wtiff_layer_rewind( Wtiff *wtiff, Layer *layer )
 {
 	VipsRect strip_size;
 
-	/* Build a line of tiles here. 
-	 *
-	 * Expand the strip if necessary to make sure we have an even 
-	 * number of lines. 
-	 */
 	strip_size.left = 0;
 	strip_size.top = 0;
 	strip_size.width = layer->image->Xsize;
-	strip_size.height = wtiff->tileh;
-	if( (strip_size.height & 1) == 1 )
-		strip_size.height += 1;
+	strip_size.height = wtiff->tileh + wtiff->stencil_size - 1;
 	if( vips_region_buffer( layer->strip, &strip_size ) ) 
 		return( -1 );
 
-	layer->y = 0;
-	layer->write_y = 0;
+	layer->strip_y = 0;
+	layer->image_y = 0;
 
 	return( 0 );
 }
@@ -1306,12 +1300,10 @@ wtiff_pack2tiff( Wtiff *wtiff, Layer *layer,
 static int
 wtiff_layer_write_tile( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 {
-	VipsRect *area = &strip->valid;
-
 	VipsRect image;
 	int x;
 
-	/* Size of layer.
+	/* Size of this layer of the output image.
 	 */
 	image.left = 0;
 	image.top = 0;
@@ -1324,7 +1316,7 @@ wtiff_layer_write_tile( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 		/* Tile in layer cods.
 		 */
 		tile.left = x;
-		tile.top = layer->y;
+		tile.top = layer->strip_y;
 		tile.width = wtiff->tilew;
 		tile.height = wtiff->tileh;
 		vips_rect_intersectrect( &tile, &image, &tile );
@@ -1345,7 +1337,7 @@ wtiff_layer_write_tile( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 #endif /*DEBUG_VERBOSE*/
 
 		if( TIFFWriteTile( layer->tif, wtiff->tbuf, 
-			x, layer->y, 0, 0 ) < 0 ) {
+			x, layer->strip_y, 0, 0 ) < 0 ) {
 			vips_error( "vips2tiff", 
 				"%s", _( "TIFF write tile failed" ) );
 			return( -1 );
@@ -1361,18 +1353,18 @@ static int
 wtiff_layer_write_strip( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 {
 	VipsImage *im = layer->image;
-	int height = VIPS_MIN( wtiff->tileh, layer->height - layer->y ); 
+	int height = VIPS_MIN( wtiff->tileh, layer->height - layer->strip_y ); 
 
 	int y;
 
 #ifdef DEBUG_VERBOSE
-	printf( "Writing %d pixel strip at height %d to image %s\n",
-		height, area->top, TIFFFileName( layer->tif ) );
+	printf( "wtiff_layer_write_strip: y == %d, %d pixels to %s\n", 
+		layer->strip_y, height, TIFFFileName( layer->tif ) );
 #endif /*DEBUG_VERBOSE*/
 
 	for( y = 0; y < height; y++ ) {
 		VipsPel *p = VIPS_REGION_ADDR( strip, 
-			layer->left, layer->top + layer->y + y );
+			layer->left, layer->top + layer->strip_y + y );
 
 		/* Any repacking necessary.
 		 */
@@ -1395,15 +1387,16 @@ wtiff_layer_write_strip( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 			p = wtiff->tbuf;
 		}
 
-		if( TIFFWriteScanline( layer->tif, p, layer->y + y, 0 ) < 0 ) 
+		if( TIFFWriteScanline( layer->tif, p, 
+			layer->strip_y + y, 0 ) < 0 ) 
 			return( -1 );
 	}
 
 	return( 0 );
 }
 
-/* A strip has filled with real pixels. Add any extra pixels at the edges by
- * copying the real edge pixels outwards. 
+/* The centre of strip has filled with real pixels. Set any extra pixels at the 
+ * edges by copying the real edge pixels outwards. 
  */
 static void
 layer_generate_extras( Layer *layer )
@@ -1494,8 +1487,8 @@ static int
 layer_strip_shrink( Layer *layer )
 {
 	Wtiff *wtiff = layer->wtiff;
-	int stencil_size = wtiff->stencil_size;
-	int stencil_hsize = (stencil_size - 1) / 2;
+	int stencil_size = wtiff->stencil_size - 1;
+	int stencil_hsize = stencil_size / 2;
 	Layer *below = layer->below;
 	VipsRegion *from = layer->strip;
 	VipsRegion *to = below->strip;
@@ -1511,16 +1504,16 @@ layer_strip_shrink( Layer *layer )
 	for(;;) {
 		/* The pixels the layer below needs.
 		 */
-		target.left = 0;
-		target.top = below->write_y;
-		target.width = below->image->Xsize;
+		target.left = layer->left;
+		target.top = below->image_y + layer->top;
+		target.width = below->width;
 		target.height = to->valid.height;
 		vips_rect_intersectrect( &target, &to->valid, &target );
 
 		/* Those pixels need this area of this layer. 
 		 */
-		source.left = target.left * 2 - stencil_hsize;
-		source.top = target.top * 2 - stencil_hsize;
+		source.left = (target.left - stencil_hsize) * 2;
+		source.top = (target.top - stencil_hsize) * 2;
 		source.width = target.width * 2 + stencil_size;
 		source.height = target.height * 2 + stencil_size;
 
@@ -1530,8 +1523,8 @@ layer_strip_shrink( Layer *layer )
 
 		/* So these are the pixels in the layer below we can provide.
 		 */
-		target.left = (source.left + stencil_hsize) / 2;
-		target.top = (source.top + stencil_hsize) / 2;
+		target.left = (source.left - stencil_hsize) / 2 + stencil_hsize; 
+		target.top = (source.top - stencil_hsize) / 2 + stencil_hsize; 
 		target.width = (source.width - stencil_size) / 2;
 		target.height = (source.height - stencil_size) / 2;
 
@@ -1542,15 +1535,15 @@ layer_strip_shrink( Layer *layer )
 
 		(void) vips_region_shrink_lanczos3( from, to, &target );
 
-		below->write_y += target.height;
+		below->image_y += target.height;
 
 		/* If we've filled the strip below, let it know.
 		 * We can either fill the region, if it's somewhere half-way
 		 * down the image, or, if it's at the bottom, get to the last
 		 * real line of pixels.
 		 */
-		if( below->write_y == VIPS_RECT_BOTTOM( &to->valid ) ||
-			below->write_y == below->height ) {
+		if( below->image_y == VIPS_RECT_BOTTOM( &to->valid ) ||
+			below->image_y == below->height ) {
 			if( layer_strip_filled( below ) )
 				return( -1 );
 		}
@@ -1590,9 +1583,9 @@ layer_strip_filled( Layer *layer )
 	/* Position our strip down the image. We have to leave the stencil
 	 * margin. 
 	 */
-	layer->y += wtiff->tileh;
+	layer->strip_y += wtiff->tileh;
 	new_strip.left = 0;
-	new_strip.top = layer->y - (wtiff->stencil_size - 1) / 2;
+	new_strip.top = layer->strip_y - (wtiff->stencil_size - 1) / 2;
 	new_strip.width = layer->image->Xsize;
 	new_strip.height = wtiff->tileh + wtiff->stencil_size - 1;
 
@@ -1658,9 +1651,9 @@ write_strip( VipsRegion *region, VipsRect *area, void *a )
 
 		/* The bit of strip that needs filling.
 		 */
-		target.left = 0;
-		target.top = layer->write_y;
-		target.width = layer->image->Xsize;
+		target.left = layer->left;
+		target.top = layer->image_y;
+		target.width = layer->width;
 		target.height = to->height;
 		vips_rect_intersectrect( &target, to, &target );
 
@@ -1689,14 +1682,14 @@ write_strip( VipsRegion *region, VipsRect *area, void *a )
 			&source, 
 			source.left + layer->left, source.top + layer->top );
 
-		layer->write_y += target.height;
+		layer->image_y += target.height;
 
 		/* We can either fill the strip, if it's somewhere half-way
 		 * down the image, or, if it's at the bottom, get to the last
 		 * real line of pixels.
 		 */
-		if( layer->write_y == VIPS_RECT_BOTTOM( to ) ||
-			layer->write_y == layer->height ) {
+		if( layer->image_y == VIPS_RECT_BOTTOM( to ) ||
+			layer->image_y == layer->height ) {
 			if( layer_strip_filled( layer ) ) 
 				return( -1 );
 		}
