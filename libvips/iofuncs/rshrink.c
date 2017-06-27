@@ -391,7 +391,7 @@ vips_region_shrink( VipsRegion *from, VipsRegion *to, VipsRect *target )
  */
 static void
 vips_region_shrink_uncoded_lanczos3( VipsRegion *from, VipsRegion *to, 
-	VipsRect *target )
+	VipsRect *target, int margin )
 {
 	int ls = VIPS_REGION_LSKIP( from );
 	int ps = VIPS_IMAGE_SIZEOF_PEL( from->im );
@@ -403,6 +403,10 @@ vips_region_shrink_uncoded_lanczos3( VipsRegion *from, VipsRegion *to,
 
 	/* We shrink in two orthogonal passes, so we need a half-size
 	 * intermediate buffer.
+	 *
+	 * We try hard in the rest of vips to avoid malloc()/free() on the
+	 * main path, but it seems unavoidable here, and it's going to be slow
+	 * anyway. 
 	 */
 	intermediate = g_malloc( 2 * target->width * target->height * ps );
 
@@ -410,7 +414,8 @@ vips_region_shrink_uncoded_lanczos3( VipsRegion *from, VipsRegion *to,
 	 */
 	for( y = 0; y < target->height; y++ ) {
 		VipsPel *p = VIPS_REGION_ADDR( from, 
-			target->left * 2 - 5, (target->top + y) * 2 - 5 );
+			(target->left - margin) * 2,
+			(target->top - margin + y) * 2 );
 		VipsPel *q = intermediate + y * ps * target->width; 
 
 		switch( from->im->BandFmt ) {
@@ -471,35 +476,41 @@ vips_region_shrink_uncoded_lanczos3( VipsRegion *from, VipsRegion *to,
  * vips_region_shrink_lanczos3:
  * @from: source region 
  * @to: destination region 
- * @target: #VipsRect of pixels you need to copy
+ * @target: #VipsRect of @to to write
+ * @margin: @target is offset by this much in @to
  *
- * Write the pixels @target in @to from the x2 plus a bit larger area in @from.
- * Non-complex uncoded images only. No alpha handling. 
+ * Write to the pixels in @target in @to using the in @from as the source.
+ * @target includes a margin of @margin pixels. Non-complex uncoded images 
+ * only. No alpha handling. 
+ *
+ * We need a margin, since we want to be able to have some space in the output
+ * at the left/top so we can call this function repeatedly.
  *
  * See also: vips_region_shrink(), vips_region_copy().
  */
 int
-vips_region_shrink_lanczos3( VipsRegion *from, VipsRegion *to, VipsRect *target )
+vips_region_shrink_lanczos3( VipsRegion *from, VipsRegion *to, 
+	VipsRect *target, int margin )
 {
 	VipsImage *image = from->im;
 
-	VipsRect need;
+	VipsRect source;
 
 	if( vips_check_noncomplex( "vips_region_shrink_lanczos3", image ) )
 		return( -1 );
 
-	/* Lanczos3 is 11x11, so we need a hefty margin on the input.
+	/* Lanczos3 is 11x11.
 	 */
-	need.left = target->left * 2 - 5;
-	need.top = target->top * 2 - 5;
-	need.width = 10 + target->width * 2;
-	need.height = 10 + target->height * 2;
-	if( !vips_rect_includesrect( &from->valid, &need ) ) {
+	source.left = (target->left - margin) * 2;
+	source.top = (target->top - margin) * 2;
+	source.width = target->width * 2 + 10;
+	source.height = target->height * 2 + 10;
+	if( !vips_rect_includesrect( &from->valid, &source ) ) {
 		printf( "argh not enough pixels!!\n" );
 		return( -1 ); 
 	}
 
-	vips_region_shrink_uncoded_lanczos3( from, to, target );
+	vips_region_shrink_uncoded_lanczos3( from, to, target, margin );
 
 	return( 0 );
 }

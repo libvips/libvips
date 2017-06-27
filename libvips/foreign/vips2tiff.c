@@ -1321,6 +1321,12 @@ wtiff_layer_write_tile( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 		tile.height = wtiff->tileh;
 		vips_rect_intersectrect( &tile, &image, &tile );
 
+#ifdef DEBUG_VERBOSE
+		printf( "Writing %dx%d tile at position %dx%d to image %s\n",
+			tile.width, tile.height, tile.left, tile.top,
+			TIFFFileName( layer->tif ) );
+#endif /*DEBUG_VERBOSE*/
+
 		/* Map to strip cods.
 		 */
 		tile.left += layer->left;
@@ -1329,12 +1335,6 @@ wtiff_layer_write_tile( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 		/* Have to repack pixels.
 		 */
 		wtiff_pack2tiff( wtiff, layer, strip, &tile, wtiff->tbuf );
-
-#ifdef DEBUG_VERBOSE
-		printf( "Writing %dx%d tile at position %dx%d to image %s\n",
-			tile.width, tile.height, tile.left, tile.top,
-			TIFFFileName( layer->tif ) );
-#endif /*DEBUG_VERBOSE*/
 
 		if( TIFFWriteTile( layer->tif, wtiff->tbuf, 
 			x, layer->strip_y, 0, 0 ) < 0 ) {
@@ -1502,13 +1502,19 @@ layer_strip_shrink( Layer *layer )
 	 * have to write repeatedly until we run out of pixels.
 	 */
 	for(;;) {
+		printf( "from: left = %d, top = %d, width = %d, height = %d\n",
+			from->valid.left, from->valid.top, from->valid.width, from->valid.height ); 
+
 		/* The pixels the layer below needs.
 		 */
-		target.left = layer->left;
-		target.top = layer->top + below->image_y;
+		target.left = below->left;
+		target.top = below->top + below->image_y;
 		target.width = below->width;
 		target.height = to->valid.height;
 		vips_rect_intersectrect( &target, &to->valid, &target );
+
+		printf( "target: left = %d, top = %d, width = %d, height = %d\n",
+			target.left, target.top, target.width, target.height ); 
 
 		/* Those pixels need this area of this layer. 
 		 */
@@ -1521,21 +1527,30 @@ layer_strip_shrink( Layer *layer )
 		 */
 		vips_rect_intersectrect( &source, &from->valid, &source );
 
+		printf( "source: left = %d, top = %d, width = %d, height = %d\n",
+			source.left, source.top, source.width, source.height ); 
+
 		/* So these are the pixels in the layer below we can provide.
 		 */
-		target.left = (source.left - stencil_hsize) / 2 + stencil_hsize; 
-		target.top = (source.top - stencil_hsize) / 2 + stencil_hsize; 
+		target.left = source.left / 2 + stencil_hsize;
+		target.top = source.top / 2 + stencil_hsize;
 		target.width = (source.width - stencil_size) / 2;
 		target.height = (source.height - stencil_size) / 2;
+
+		printf( "target2: left = %d, top = %d, width = %d, height = %d\n",
+			target.left, target.top, target.width, target.height ); 
 
 		/* None? All done.
 		 */
 		if( vips_rect_isempty( &target ) ) 
 			break;
 
-		(void) vips_region_shrink_lanczos3( from, to, &target );
+		(void) vips_region_shrink_lanczos3( from, to, 
+			&target, stencil_hsize );
 
 		below->image_y += target.height;
+
+		printf( "below->image_y advanced to %d\n", below->image_y ); 
 
 		/* If we've filled the strip below, let it know.
 		 * We can either fill the region, if it's somewhere half-way
@@ -1544,6 +1559,7 @@ layer_strip_shrink( Layer *layer )
 		 */
 		if( below->image_y == VIPS_RECT_BOTTOM( &to->valid ) ||
 			below->image_y == below->height ) {
+			printf( "below has filled! recursing\n" ); 
 			if( layer_strip_filled( below ) )
 				return( -1 );
 		}
