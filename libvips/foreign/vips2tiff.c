@@ -1652,7 +1652,7 @@ write_strip( VipsRegion *region, VipsRect *area, void *a )
 		/* The bit of strip that needs filling.
 		 */
 		target.left = layer->left;
-		target.top = layer->image_y;
+		target.top = layer->top + layer->image_y;
 		target.width = layer->width;
 		target.height = to->height;
 		vips_rect_intersectrect( &target, to, &target );
@@ -1661,16 +1661,16 @@ write_strip( VipsRegion *region, VipsRect *area, void *a )
 		 */
 		vips_rect_intersectrect( &target, &source, &target );
 
-		/* And back to the region's coordinate space.
-		 */
-		source = target;
-		source.left -= layer->left;
-		source.left -= layer->top;
-
 		/* Are we empty? All done.
 		 */
 		if( vips_rect_isempty( &target ) ) 
 			break;
+
+		/* And back to the region's coordinate space.
+		 */
+		source = target;
+		source.left -= layer->left;
+		source.top -= layer->top;
 
 		/* And copy those pixels in.
 		 *
@@ -1688,7 +1688,7 @@ write_strip( VipsRegion *region, VipsRect *area, void *a )
 		 * down the image, or, if it's at the bottom, get to the last
 		 * real line of pixels.
 		 */
-		if( layer->image_y == VIPS_RECT_BOTTOM( to ) ||
+		if( layer->top + layer->image_y == VIPS_RECT_BOTTOM( to ) ||
 			layer->image_y == layer->height ) {
 			if( layer_strip_filled( layer ) ) 
 				return( -1 );
