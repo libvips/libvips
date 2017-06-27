@@ -1505,7 +1505,7 @@ layer_strip_shrink( Layer *layer )
 		/* The pixels the layer below needs.
 		 */
 		target.left = layer->left;
-		target.top = below->image_y + layer->top;
+		target.top = layer->top + below->image_y;
 		target.width = below->width;
 		target.height = to->valid.height;
 		vips_rect_intersectrect( &target, &to->valid, &target );
