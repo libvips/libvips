@@ -6,6 +6,8 @@
  * 	- add @n ... number of pages to load
  * 23/11/16
  * 	- set page-height, if we can
+ * 28/6/17
+ * 	- use a much larger strip size, thanks bubba
  */
 
 /*
@@ -408,18 +410,9 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( (VipsObject *) load, 2 );
 
-	int tile_width;
-	int tile_height;
-	int n_lines;
-
 #ifdef DEBUG
 	printf( "vips_foreign_load_pdf_load: %p\n", pdf );
 #endif /*DEBUG*/
-
-	/* Use this to pick a tile height for our strip cache.
-	 */
-	vips_get_tile_size( load->real,
-		&tile_width, &tile_height, &n_lines );
 
 	/* Read to this image, then cache to out, see below.
 	 */
@@ -432,10 +425,11 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 
 	/* Don't use tilecache to keep the number of calls to
 	 * pdf_page_render() low. Don't thread the cache, we rely on
-	 * locking to keep pdf single-threaded.
+	 * locking to keep pdf single-threaded. Use a large strip size to
+	 * (again) keep the number of calls to page_render low. 
 	 */
 	if( vips_linecache( t[0], &t[1],
-		"tile_height", tile_height,
+		"tile_height", 5000,
 		NULL ) ) 
 		return( -1 );
 	if( vips_image_write( t[1], load->real ) ) 
