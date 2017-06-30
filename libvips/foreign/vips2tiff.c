@@ -1423,6 +1423,11 @@ layer_generate_extras( Layer *layer )
 	g_assert( strip->valid.top == 0 ||
 		strip->valid.top > layer->top ); 
 
+#ifdef DEBUG_VERBOSE
+	printf( "layer_generate_extras: layer %d, valid.top %d\n", 
+		layer->sub, strip->valid.top ); 
+#endif /*DEBUG_VERBOSE*/
+
 	/* Left edge.
 	 */
 	for( i = layer->left - 1; i >= 0; i-- ) {
@@ -1495,6 +1500,10 @@ layer_strip_shrink( Layer *layer )
 
 	VipsRect target;
 	VipsRect source;
+
+#ifdef DEBUG
+	printf( "layer_strip_shrink: shrinking into layer %d\n", below->sub );
+#endif/*DEBUG*/
 
 	layer_generate_extras( layer );
 
@@ -1585,6 +1594,10 @@ layer_strip_filled( Layer *layer )
 	VipsRect overlap;
 	VipsRect image_area;
 
+#ifdef DEBUG
+	printf( "layer_strip_filled: strip on layer %d filled\n", layer->sub );
+#endif/*DEBUG*/
+
 	if( wtiff->tile ) 
 		result = wtiff_layer_write_tile( wtiff, layer, layer->strip );
 	else
@@ -1596,12 +1609,12 @@ layer_strip_filled( Layer *layer )
 		layer_strip_shrink( layer ) ) 
 		return( -1 );
 
-	/* Position our strip down the image. We have to leave the stencil
-	 * margin. 
+	/* Position our strip down the image. strip_y is in image cods, so it
+	 * already includes the top margin.
 	 */
 	layer->strip_y += wtiff->tileh;
 	new_strip.left = 0;
-	new_strip.top = layer->strip_y - (wtiff->stencil_size - 1) / 2;
+	new_strip.top = layer->strip_y;
 	new_strip.width = layer->image->Xsize;
 	new_strip.height = wtiff->tileh + wtiff->stencil_size - 1;
 
@@ -1610,6 +1623,11 @@ layer_strip_filled( Layer *layer )
 	image_area.width = layer->image->Xsize;
 	image_area.height = layer->image->Ysize;
 	vips_rect_intersectrect( &new_strip, &image_area, &new_strip ); 
+
+#ifdef DEBUG
+	printf( "layer_strip_filled: layer %d, new strip_y %d, top %d\n", 
+		layer->sub, layer->strip_y, new_strip.top );
+#endif/*DEBUG*/
 
 	/* What pixels that we will need do we already have? Save them in 
 	 * overlap.
@@ -1694,6 +1712,11 @@ write_strip( VipsRegion *region, VipsRect *area, void *a )
 		 * received, we could skip the copy. Will this happen very
 		 * often? Unclear.
 		 */
+#ifdef DEBUG
+		printf( "write_strip: %d lines to strip at %d, line %d\n", 
+			source.height, layer->strip->valid.top, layer->image_y ); 
+#endif/*DEBUG*/
+
 		vips_region_copy( region, layer->strip, 
 			&source, 
 			source.left + layer->left, source.top + layer->top );
