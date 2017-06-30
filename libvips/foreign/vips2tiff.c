@@ -1566,7 +1566,8 @@ layer_strip_shrink( Layer *layer )
 		 * down the image, or, if it's at the bottom, get to the last
 		 * real line of pixels.
 		 */
-		if( below->image_y == VIPS_RECT_BOTTOM( &to->valid ) ||
+		if( below->top + below->image_y == 
+			VIPS_RECT_BOTTOM( &to->valid ) ||
 			below->image_y == below->height ) {
 			printf( "below has filled! recursing\n" ); 
 			if( layer_strip_filled( below ) )
@@ -1625,8 +1626,8 @@ layer_strip_filled( Layer *layer )
 	vips_rect_intersectrect( &new_strip, &image_area, &new_strip ); 
 
 #ifdef DEBUG
-	printf( "layer_strip_filled: layer %d, new strip_y %d, top %d\n", 
-		layer->sub, layer->strip_y, new_strip.top );
+	printf( "layer_strip_filled: layer %d, new top %d, height %d\n", 
+		layer->sub, new_strip.top, new_strip.height );
 #endif/*DEBUG*/
 
 	/* What pixels that we will need do we already have? Save them in 
@@ -1714,7 +1715,9 @@ write_strip( VipsRegion *region, VipsRect *area, void *a )
 		 */
 #ifdef DEBUG
 		printf( "write_strip: %d lines to strip at %d, line %d\n", 
-			source.height, layer->strip->valid.top, layer->image_y ); 
+			source.height, 
+			layer->strip->valid.top, 
+			source.top + layer->top ); 
 #endif/*DEBUG*/
 
 		vips_region_copy( region, layer->strip, 

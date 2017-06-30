@@ -485,11 +485,17 @@ vips_reduceh_build( VipsObject *object )
 			(float) x / VIPS_TRANSFORM_SCALE );
 
 		for( int i = 0; i < reduceh->n_point; i++ )
-			reduceh->matrixi[x][i] = reduceh->matrixf[x][i] * 
-				VIPS_INTERPOLATE_SCALE;
+			reduceh->matrixi[x][i] = VIPS_RINT( 
+				reduceh->matrixf[x][i] * 
+				VIPS_INTERPOLATE_SCALE );
 
 #ifdef DEBUG
-		printf( "vips_reduceh_build: mask %d:\n    ", x );
+		printf( "vips_reduceh_build: mask %d:\n", x );
+		printf( "    " ); 
+		for( int i = 0; i < reduceh->n_point; i++ )
+			printf( "%g ", reduceh->matrixf[x][i] );
+		printf( "\n" );
+		printf( "    " ); 
 		for( int i = 0; i < reduceh->n_point; i++ )
 			printf( "%d ", reduceh->matrixi[x][i] );
 		printf( "\n" );

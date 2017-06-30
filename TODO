@@ -1,3 +1,7 @@
+- why doesn't reduceh use vips_vector_to_fixed_point()? reducev uses it
+
+  right now we are just rint()ing
+
 - remove execption specs from libvipsCC, gcc 7.1 will complain about them
 
 - not sure about utf8 error messages on win
