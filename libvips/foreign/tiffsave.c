@@ -10,6 +10,8 @@
  * 	- add properties flag
  * 31/5/16
  * 	- convert for jpg if jpg compression is on
+ * 1/7/17
+ * 	- add "fancy" option
  */
 
 /*
@@ -83,6 +85,7 @@ typedef struct _VipsForeignSaveTiff {
 	gboolean bigtiff;
 	gboolean rgbjpeg;
 	gboolean properties;
+	gboolean fancy;
 } VipsForeignSaveTiff;
 
 typedef VipsForeignSaveClass VipsForeignSaveTiffClass;
@@ -291,6 +294,13 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, properties ),
 		FALSE );
 
+	VIPS_ARG_BOOL( class, "fancy", 22, 
+		_( "Fancy" ), 
+		_( "Downsample with lanczos3" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveTiff, fancy ),
+		FALSE );
+
 }
 
 static void
@@ -339,7 +349,8 @@ vips_foreign_save_tiff_file_build( VipsObject *object )
 		tiff->bigtiff,
 		tiff->rgbjpeg,
 		tiff->properties,
-		save->strip ) )
+		save->strip,
+		tiff->fancy ) )
 		return( -1 );
 
 	return( 0 );
@@ -407,7 +418,8 @@ vips_foreign_save_tiff_buffer_build( VipsObject *object )
 		tiff->bigtiff,
 		tiff->rgbjpeg,
 		tiff->properties,
-		save->strip ) )
+		save->strip,
+		tiff->fancy ) )
 		return( -1 );
 
 	/* vips__tiff_write_buf() makes a buffer that needs g_free(), not
