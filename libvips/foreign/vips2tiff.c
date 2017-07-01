@@ -203,9 +203,9 @@
  */
 
 /* 
- */
 #define DEBUG_VERBOSE
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -335,7 +335,7 @@ struct _Wtiff {
 	 * (stencil - 1) to each axis, and put ((stencil - 1) / 2) on the 
 	 * left and top.
 	 *
-	 * 2 for a 2x2 box filter, 11 for lanczos3.
+	 * 2 for a 2x2 box filter, 11 for lanczos3, 12 for lanczos3 + shift.
 	 */
 	int stencil_size;
 };
@@ -960,7 +960,7 @@ wtiff_new( VipsImage *im, const char *filename,
 
 	/* Or 2 for a box filter.
 	 */
-	wtiff->stencil_size = 11;
+	wtiff->stencil_size = 12;
 
 	/* Check for a toilet roll image.
 	 */
@@ -1554,8 +1554,11 @@ layer_strip_shrink( Layer *layer )
 		if( vips_rect_isempty( &target ) ) 
 			break;
 
-		(void) vips_region_shrink_lanczos3( from, to, 
+		(void) vips_region_shrink_lanczos3_shift( from, to, 
 			&target, stencil_hsize );
+		/*
+		(void) vips_region_shrink( from, to, &target ); 
+		 */
 
 		below->image_y += target.height;
 
