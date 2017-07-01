@@ -9,7 +9,7 @@
 - add vips_thumbnail_image()
 - better prefix guessing on Windows, thanks tumagonx
 - savers support a "page_height" option for multipage save
-- lanczos3 option for tiff pyr create
+- --fancy option to tiffsave turns on lanczos3 shrinking
 
 12/6/17 started 8.5.7
 - transform cmyk->rgb automatically on write if there's an embedded profile
