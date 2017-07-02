@@ -47,6 +47,8 @@
  * 	- remove Duff for a 25% speedup
  * 23/6/16
  * 	- redone as a class
+ * 2/7/17
+ * 	- remove pts for a small speedup
  */
 
 /*
@@ -110,7 +112,6 @@ typedef struct {
 	VipsRegion *ir;		/* Input region */
 
 	int *offsets;		/* Offsets for each non-zero matrix element */
-	VipsPel **pts;		/* Per-non-zero mask element image pointers */
 
 	int last_bpl;		/* Avoid recalcing offsets, if we can */
 } VipsConvfSequence;
@@ -141,12 +142,10 @@ vips_convf_start( VipsImage *out, void *a, void *b )
 
 	seq->convf = convf;
 	seq->ir = NULL;
-	seq->pts = NULL;
 	seq->last_bpl = -1;
 
 	seq->ir = vips_region_new( in );
-	if( !(seq->offsets = VIPS_ARRAY( out, convf->nnz, int )) ||
-		!(seq->pts = VIPS_ARRAY( out, convf->nnz, VipsPel * )) ) {
+	if( !(seq->offsets = VIPS_ARRAY( out, convf->nnz, int )) ) { 
 		vips_convf_stop( seq, in, convf );
 		return( NULL );
 	}
@@ -155,8 +154,9 @@ vips_convf_start( VipsImage *out, void *a, void *b )
 }
 
 #define CONV_FLOAT( ITYPE, OTYPE ) { \
-	ITYPE ** restrict p = (ITYPE **) seq->pts; \
+	ITYPE * restrict p = (ITYPE *) VIPS_REGION_ADDR( ir, le, y ); \
 	OTYPE * restrict q = (OTYPE *) VIPS_REGION_ADDR( or, le, y ); \
+	int * restrict offsets = seq->offsets; \
 	\
 	for( x = 0; x < sz; x++ ) {  \
 		double sum; \
@@ -164,13 +164,14 @@ vips_convf_start( VipsImage *out, void *a, void *b )
 		\
 		sum = 0; \
 		for ( i = 0; i < nnz; i++ ) \
-			sum += t[i] * p[i][x]; \
+			sum += t[i] * p[offsets[i]]; \
  		\
 		sum = (sum / scale) + offset; \
 		\
-		q[x] = sum;  \
-	}  \
-} 
+		q[x] = sum; \
+		p += 1; \
+	} \
+}
 
 /* Convolve!
  */
@@ -218,20 +219,15 @@ vips_convf_gen( REGION *or, void *vseq, void *a, void *b, gboolean *stop )
 			y = z / M->Xsize;
 
 			seq->offsets[i] = 
-				VIPS_REGION_ADDR( ir, x + le, y + to ) -
-				VIPS_REGION_ADDR( ir, le, to );
+				(VIPS_REGION_ADDR( ir, x + le, y + to ) -
+				 VIPS_REGION_ADDR( ir, le, to )) / 
+					VIPS_IMAGE_SIZEOF_ELEMENT( ir->im ); 
 		}
 	}
 
 	VIPS_GATE_START( "vips_convf_gen: work" ); 
 
 	for( y = to; y < bo; y++ ) { 
-		/* Init pts for this line of PELs.
-		 */
-		for( z = 0; z < nnz; z++ )
-			seq->pts[z] = seq->offsets[z] +
-				VIPS_REGION_ADDR( ir, le, y ); 
-
 		switch( in->BandFmt ) {
 		case VIPS_FORMAT_UCHAR: 	
 			CONV_FLOAT( unsigned char, float ); 

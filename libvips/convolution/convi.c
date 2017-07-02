@@ -72,6 +72,8 @@
  * 23/6/16
  * 	- rewritten as a class
  * 	- new fixed-point vector path, up to 2x faster
+ * 2/7/17
+ * 	- remove pts for a small speedup
  */
 
 /*
@@ -184,7 +186,6 @@ typedef struct {
 	VipsRegion *ir;		/* Input region */
 
 	int *offsets;		/* Offsets for each non-zero matrix element */
-	VipsPel **pts;		/* Per-non-zero mask element image pointers */
 
 	int last_bpl;		/* Avoid recalcing offsets, if we can */
 
@@ -204,7 +205,6 @@ vips_convi_stop( void *vseq, void *a, void *b )
 
 	VIPS_UNREF( seq->ir );
 	VIPS_FREE( seq->offsets );
-	VIPS_FREE( seq->pts );
 	VIPS_FREE( seq->t1 );
 	VIPS_FREE( seq->t2 );
 
@@ -226,7 +226,6 @@ vips_convi_start( VipsImage *out, void *a, void *b )
 	seq->convi = convi;
 	seq->ir = NULL;
 	seq->offsets = NULL;
-	seq->pts = NULL;
 	seq->last_bpl = -1;
 	seq->t1 = NULL;
 	seq->t2 = NULL;
@@ -236,11 +235,7 @@ vips_convi_start( VipsImage *out, void *a, void *b )
 	/* C mode.
 	 */
 	if( convi->nnz ) {
-		seq->offsets = VIPS_ARRAY( NULL, convi->nnz, int );
-		seq->pts = VIPS_ARRAY( NULL, convi->nnz, VipsPel * );
-
-		if( !seq->offsets ||
-			!seq->pts ) { 
+		if( !(seq->offsets = VIPS_ARRAY( NULL, convi->nnz, int )) ) { 
 			vips_convi_stop( seq, in, convi );
 			return( NULL );
 		}
@@ -568,8 +563,9 @@ vips_convi_gen_vector( VipsRegion *or,
 /* INT inner loops.
  */
 #define CONV_INT( TYPE, CLIP ) { \
-	TYPE ** restrict p = (TYPE **) seq->pts; \
+	TYPE * restrict p = (TYPE *) VIPS_REGION_ADDR( ir, le, y ); \
 	TYPE * restrict q = (TYPE *) VIPS_REGION_ADDR( or, le, y ); \
+	int * restrict offsets = seq->offsets; \
 	\
 	for( x = 0; x < sz; x++ ) {  \
 		int sum; \
@@ -577,21 +573,23 @@ vips_convi_gen_vector( VipsRegion *or,
 		\
 		sum = 0; \
 		for ( i = 0; i < nnz; i++ ) \
-			sum += t[i] * p[i][x]; \
+			sum += t[i] * p[offsets[i]]; \
 		\
 		sum = ((sum + rounding) / scale) + offset; \
 		\
 		CLIP; \
 		\
 		q[x] = sum;  \
+		p += 1; \
 	}  \
 } 
 
 /* FLOAT inner loops.
  */
 #define CONV_FLOAT( TYPE ) { \
-	TYPE ** restrict p = (TYPE **) seq->pts; \
+	TYPE * restrict p = (TYPE *) VIPS_REGION_ADDR( ir, le, y ); \
 	TYPE * restrict q = (TYPE *) VIPS_REGION_ADDR( or, le, y ); \
+	int * restrict offsets = seq->offsets; \
 	\
 	for( x = 0; x < sz; x++ ) {  \
 		double sum; \
@@ -599,11 +597,12 @@ vips_convi_gen_vector( VipsRegion *or,
 		\
 		sum = 0; \
 		for ( i = 0; i < nnz; i++ ) \
-			sum += t[i] * p[i][x]; \
+			sum += t[i] * p[offsets[i]]; \
  		\
 		sum = (sum / scale) + offset; \
 		\
 		q[x] = sum;  \
+		p += 1; \
 	}  \
 } 
 
@@ -691,20 +690,15 @@ vips_convi_gen( VipsRegion *or,
 			y = z / M->Xsize;
 
 			seq->offsets[i] = 
-				VIPS_REGION_ADDR( ir, x + le, y + to ) -
-				VIPS_REGION_ADDR( ir, le, to );
+				(VIPS_REGION_ADDR( ir, x + le, y + to ) -
+				 VIPS_REGION_ADDR( ir, le, to )) / 
+					VIPS_IMAGE_SIZEOF_ELEMENT( ir->im ); 
 		}
 	}
 
 	VIPS_GATE_START( "vips_convi_gen: work" ); 
 
 	for( y = to; y < bo; y++ ) { 
-		/* Init pts for this line of PELs.
-		 */
-		for( z = 0; z < nnz; z++ )
-			seq->pts[z] = seq->offsets[z] +
-				VIPS_REGION_ADDR( ir, le, y ); 
-
 		switch( in->BandFmt ) {
 		case VIPS_FORMAT_UCHAR: 	
 			CONV_INT( unsigned char, CLIP_UCHAR( sum ) ); 
