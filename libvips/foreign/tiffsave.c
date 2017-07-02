@@ -12,6 +12,8 @@
  * 	- convert for jpg if jpg compression is on
  * 1/7/17
  * 	- add "fancy" option
+ * 2/7/17
+ * 	- add "round_up" option
  */
 
 /*
@@ -86,6 +88,7 @@ typedef struct _VipsForeignSaveTiff {
 	gboolean rgbjpeg;
 	gboolean properties;
 	gboolean fancy;
+	gboolean round_up;
 } VipsForeignSaveTiff;
 
 typedef VipsForeignSaveClass VipsForeignSaveTiffClass;
@@ -301,6 +304,13 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, fancy ),
 		FALSE );
 
+	VIPS_ARG_BOOL( class, "round_up", 22, 
+		_( "Round up" ), 
+		_( "ROund layer sizes up rather than down" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveTiff, round_up ),
+		FALSE );
+
 }
 
 static void
@@ -350,7 +360,8 @@ vips_foreign_save_tiff_file_build( VipsObject *object )
 		tiff->rgbjpeg,
 		tiff->properties,
 		save->strip,
-		tiff->fancy ) )
+		tiff->fancy,
+		tiff->round_up ) )
 		return( -1 );
 
 	return( 0 );
@@ -419,7 +430,8 @@ vips_foreign_save_tiff_buffer_build( VipsObject *object )
 		tiff->rgbjpeg,
 		tiff->properties,
 		save->strip,
-		tiff->fancy ) )
+		tiff->fancy,
+		tiff->round_up ) )
 		return( -1 );
 
 	/* vips__tiff_write_buf() makes a buffer that needs g_free(), not
@@ -485,6 +497,8 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * * @properties: set %TRUE to write an IMAGEDESCRIPTION tag
  * * @strip: set %TRUE to block metadata save
  * * @page_height: %gint for page height for multi-page save
+ * * @fancy: %gboolean fancy downsampling
+ * * @round_up: %gboolean round layer sizes up
  *
  * Write a VIPS image to a file as TIFF.
  *
@@ -558,6 +572,11 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * #VIPS_META_PHOTOSHOP_NAME (if set) is used to set the value of the PHOTOSHOP
  * tag.
  *
+ * Set @fancy to use lanczos3 downsampling on pyramid layers. This is slower
+ * than the default box filter, but can look a little sharper.
+ *
+ * Set @round_up to round pyramid layer sizes up rather than down.
+ *
  * See also: vips_tiffload(), vips_image_write_to_file().
  *
  * Returns: 0 on success, -1 on error.
@@ -601,6 +620,8 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
  * * @properties: set %TRUE to write an IMAGEDESCRIPTION tag
  * * @strip: set %TRUE to block metadata save
  * * @page_height: %gint for page height for multi-page save
+ * * @fancy: %gboolean fancy downsampling
+ * * @round_up: %gboolean round layer sizes up
  *
  * As vips_tiffsave(), but save to a memory buffer. 
  *

@@ -10,6 +10,7 @@
 - better prefix guessing on Windows, thanks tumagonx
 - savers support a "page_height" option for multipage save
 - --fancy option to tiffsave turns on lanczos3 shrinking
+- --round_up option to tiffsave rounds pyr layer sizes up rather than down
 
 12/6/17 started 8.5.7
 - transform cmyk->rgb automatically on write if there's an embedded profile

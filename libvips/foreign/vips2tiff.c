@@ -340,6 +340,10 @@ struct _Wtiff {
 	/* TRUE for fancy interpolation.
 	 */
 	gboolean fancy;
+
+	/* TRUE to round layer sizes up rather than down.
+	 */
+	gboolean round_up;
 };
 
 /* Embed an ICC profile from a file.
@@ -419,12 +423,22 @@ wtiff_layer_new( Wtiff *wtiff, Layer *above, int width, int height )
 
 	if( wtiff->pyramid )
 		if( layer->width > wtiff->tilew || 
-			layer->height > wtiff->tileh ) 
+			layer->height > wtiff->tileh ) {
 			/* Round down. Most IIP clients expect this behaviour. 
 			 */
+			double new_width = (double) wtiff->im->Xsize / 
+				(layer->sub * 2);
+			double new_height = (double) wtiff->im->Ysize / 
+				(layer->sub * 2);
+
 			layer->below = wtiff_layer_new( wtiff, layer, 
-				wtiff->im->Xsize / (layer->sub * 2),
-				wtiff->im->Ysize / (layer->sub * 2) );
+				wtiff->round_up ? 
+					ceil( new_width ) : 
+					floor( new_width ),
+				wtiff->round_up ? 
+					ceil( new_height ) : 
+					floor( new_height ) ); 
+		}
 
 	/* The name for the top layer is the output filename.
 	 *
@@ -771,9 +785,11 @@ wtiff_allocate_layers( Wtiff *wtiff )
 		layer->image->Ysize = layer->height;
 
 		/* We need another few pixels all around for the interpolator.
+		 * That would be (stencil_size - 1), but add one more to allow
+		 * for round up.
 		 */
-		layer->image->Xsize += wtiff->stencil_size - 1;
-		layer->image->Ysize += wtiff->stencil_size - 1;
+		layer->image->Xsize += wtiff->stencil_size;
+		layer->image->Ysize += wtiff->stencil_size;
 
 #ifdef DEBUG
 		printf( "wtiff_allocate_layers: allocated %d x %d pixels\n", 
@@ -924,7 +940,7 @@ wtiff_new( VipsImage *im, const char *filename,
 	gboolean rgbjpeg,
 	gboolean properties,
 	gboolean strip,
-	gboolean fancy )
+	gboolean fancy, gboolean round_up )
 {
 	Wtiff *wtiff;
 
@@ -953,6 +969,7 @@ wtiff_new( VipsImage *im, const char *filename,
 	wtiff->properties = properties;
 	wtiff->strip = strip;
 	wtiff->fancy = fancy;
+	wtiff->round_up = round_up;
 	wtiff->toilet_roll = FALSE;
 	wtiff->page_height = -1;
 
@@ -1951,7 +1968,7 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
 	gboolean properties, gboolean strip,
-	gboolean fancy )
+	gboolean fancy, gboolean round_up )
 {
 	Wtiff *wtiff;
 
@@ -1968,7 +1985,7 @@ vips__tiff_write( VipsImage *in, const char *filename,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
-		properties, strip, fancy )) )
+		properties, strip, fancy, round_up )) )
 		return( -1 );
 
 	if( wtiff_write_image( wtiff ) ) { 
@@ -1995,7 +2012,7 @@ vips__tiff_write_buf( VipsImage *in,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
 	gboolean properties, gboolean strip,
-	gboolean fancy )
+	gboolean fancy, gboolean round_up )
 {
 	Wtiff *wtiff;
 
@@ -2008,7 +2025,7 @@ vips__tiff_write_buf( VipsImage *in,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
-		properties, strip, fancy )) )
+		properties, strip, fancy, round_up )) )
 		return( -1 );
 
 	wtiff->obuf = obuf;

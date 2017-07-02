@@ -50,7 +50,7 @@ int vips__tiff_write( VipsImage *in, const char *filename,
 	gboolean rgbjpeg,
 	gboolean properties,
 	gboolean strip,
-	gboolean fancy );
+	gboolean fancy, gboolean round_up );
 
 int vips__tiff_write_buf( VipsImage *in, 
 	void **obuf, size_t *olen, 
@@ -66,7 +66,7 @@ int vips__tiff_write_buf( VipsImage *in,
 	gboolean rgbjpeg,
 	gboolean properties, 
 	gboolean strip,
-	gboolean fancy );
+	gboolean fancy, gboolean round_up );
 
 int vips__tiff_read_header( const char *filename, VipsImage *out, 
 	int page, int n, gboolean autorotate );
