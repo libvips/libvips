@@ -1831,7 +1831,7 @@ vips_filename_get_options( const char *vips_filename )
  * Optional arguments:
  *
  * * @access: hint #VipsAccess mode to loader
- * * @disc: load via a temporary disc file
+ * * @memory: force load via memory 
  *
  * vips_image_new_from_file() opens @name for reading. It can load files
  * in many image formats, including VIPS, TIFF, PNG, JPEG, FITS, Matlab,
@@ -1856,12 +1856,15 @@ vips_filename_get_options( const char *vips_filename )
  *
  * In #VIPS_ACCESS_RANDOM mode, small images are decompressed to memory and
  * then processed from there. Large images are decompressed to temporary
- * random-access files on disc and then processed from there. Set @disc to
- * %TRUE to force loading via disc. See vips_image_new_temp_file() for an 
+ * random-access files on disc and then processed from there. 
+ *
+ * Set @memory to %TRUE to force loading via memory. The default is to load 
+ * large random access images via temporary disc files. See 
+ * vips_image_new_temp_file() for an 
  * explanation of how VIPS selects a location for the temporary file.
  *
  * The disc threshold can be set with the "--vips-disc-threshold"
- * command-line argument, or the VIPS_DISC_THRESHOLD environment variable.
+ * command-line argument, or the `VIPS_DISC_THRESHOLD` environment variable.
  * The value is a simple integer, but can take a unit postfix of "k", 
  * "m" or "g" to indicate kilobytes, megabytes or gigabytes.
  * The default threshold is 100 MB.

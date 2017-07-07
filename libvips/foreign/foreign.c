@@ -740,12 +740,18 @@ vips_foreign_load_temp( VipsForeignLoad *load )
 		return( vips_image_new() );
 	}
 
+	/* ->memory used to be called ->disc and default TRUE. If it's been
+	 * forced FALSE, set memory TRUE.
+	 */
+	if( !load->disc )
+		load->memory = TRUE;
+
 	/* We open via disc if:
-	 * - 'disc' is set
+	 * - 'memory' is off
 	 * - the uncompressed image will be larger than 
 	 *   vips_get_disc_threshold()
 	 */
-	if( load->disc && 
+	if( !load->memory && 
 		image_size > disc_threshold ) {
 #ifdef DEBUG
 		printf( "vips_foreign_load_temp: disc temp\n" );
@@ -997,12 +1003,12 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoad, flags ),
 		VIPS_TYPE_FOREIGN_FLAGS, VIPS_FOREIGN_NONE ); 
 
-	VIPS_ARG_BOOL( class, "disc", 7, 
-		_( "Disc" ), 
-		_( "Open to disc" ),
+	VIPS_ARG_BOOL( class, "memory", 7, 
+		_( "Memory" ), 
+		_( "Force open via memory" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignLoad, disc ),
-		TRUE );
+		G_STRUCT_OFFSET( VipsForeignLoad, memory ),
+		FALSE );
 
 	VIPS_ARG_ENUM( class, "access", 8, 
 		_( "Access" ), 
@@ -1024,6 +1030,13 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoad, fail ),
 		FALSE );
+
+	VIPS_ARG_BOOL( class, "disc", 12, 
+		_( "Disc" ), 
+		_( "Open to disc" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsForeignLoad, disc ),
+		TRUE );
 
 }
 

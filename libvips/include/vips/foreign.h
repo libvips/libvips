@@ -119,9 +119,9 @@ typedef struct _VipsForeignLoad {
 	VipsForeign parent_object;
 	/*< private >*/
 
-	/* Open to disc (default is to open to memory).
+	/* Set TRUE to force open via memory. 
 	 */
-	gboolean disc;
+	gboolean memory;
 
 	/* Type of access upstream wants and the loader must supply. 
 	 */
@@ -153,6 +153,11 @@ typedef struct _VipsForeignLoad {
 	/* Set this to tag the operation as nocache.
 	 */
 	gboolean nocache;
+
+	/* Deprecated: the memory option used to be called disc and default
+	 * TRUE.
+	 */
+	gboolean disc;
 } VipsForeignLoad;
 
 typedef struct _VipsForeignLoadClass {
