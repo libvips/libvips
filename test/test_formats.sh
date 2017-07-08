@@ -139,13 +139,14 @@ test_loader() {
 	ref=$1
 	in=$2
 	format=$3
+	thresh=$4
 
 	printf "testing $(basename $in) $format ... "
 
 	$vips copy $ref $tmp/before.v
 	$vips copy $in $tmp/after.v
 
-	test_difference $tmp/before.v $tmp/after.v 0
+	test_difference $tmp/before.v $tmp/after.v $thresh
 
 	echo "ok"
 }
@@ -229,19 +230,20 @@ test_raw $mono
 test_raw $image 
 
 if test_supported pdfload; then
-	test_loader $poppler_ref $poppler pdfload
+	test_loader $poppler_ref $poppler pdfload 0
 fi
 
 if test_supported svgload; then
-	test_loader $rsvg_ref $rsvg svgload
+	# librsvg can give small differences on some platforms
+	test_loader $rsvg_ref $rsvg svgload 10
 fi
 
 if test_supported gifload; then
-	test_loader $giflib_ref $giflib gifload
+	test_loader $giflib_ref $giflib gifload 0
 fi
 
 if test_supported matload; then
-	test_loader $matlab_ref $matlab matlab
+	test_loader $matlab_ref $matlab matlab 0
 fi
 
 if test_supported dzsave; then
