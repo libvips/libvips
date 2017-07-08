@@ -6,6 +6,8 @@
  * 	- add svgz support
  * 18/1/17
  * 	- invalidate operation on read error
+ * 8/7/17
+ * 	- fix DPI mixup, thanks Fosk
  */
 
 /*
@@ -114,6 +116,11 @@ vips_foreign_load_svg_build( VipsObject *object )
 
 	if( !vips_object_argument_isset( object, "scale" ) )
 		svg->scale = svg->dpi / 72.0;
+
+	/* librsvg defaults to 90 DPI, but vips defaults to 72. We need to
+	 * adjust the scale down.
+	 */
+	svg->scale *= 72.0 / 90.0;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_svg_parent_class )->
 		build( object ) )
