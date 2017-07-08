@@ -595,9 +595,9 @@ class TestForeign(unittest.TestCase):
 
         def svg_valid(self, im):
             a = im(10, 10)
-            self.assertAlmostEqualObjects(a, [0, 0, 77, 255])
-            self.assertEqual(im.width, 360)
-            self.assertEqual(im.height, 588)
+            self.assertAlmostEqualObjects(a, [79, 79, 132, 255])
+            self.assertEqual(im.width, 288)
+            self.assertEqual(im.height, 470)
             self.assertEqual(im.bands, 4)
 
         self.file_loader("svgload", self.svg_file, svg_valid)
