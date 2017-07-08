@@ -10,11 +10,11 @@ set -e
 
 # poppler / pdfload reference image
 poppler=$test_images/blankpage.pdf
-poppler_ref=$test_images/blankpage.png
+poppler_ref=$test_images/blankpage.pdf.png
 
 # rsvg / svgload reference image
 rsvg=$test_images/blankpage.svg
-rsvg_ref=$test_images/blankpage.png
+rsvg_ref=$test_images/blankpage.svg.png
 
 # giflib / gifload reference image
 giflib=$test_images/trans-x.gif
