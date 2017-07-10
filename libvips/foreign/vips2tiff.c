@@ -1522,6 +1522,7 @@ layer_strip_shrink( Layer *layer )
 
 	VipsRect target;
 	VipsRect source;
+	VipsRect image;
 
 #ifdef DEBUG
 	printf( "layer_strip_shrink: shrinking into layer %d\n", below->sub );
@@ -1540,6 +1541,15 @@ layer_strip_shrink( Layer *layer )
 		target.width = below->width;
 		target.height = to->valid.height;
 		vips_rect_intersectrect( &target, &to->valid, &target );
+
+		/* That can extend off the bottom of the area we will write. 
+		 * Clip against the size of the output image.
+		 */
+		image.left = wtiff->margin;
+		image.top = wtiff->margin;
+		image.width = below->width;
+		image.height = below->height;
+		vips_rect_intersectrect( &target, &image, &target );
 
 		/* Those pixels need this area of this layer. 
 		 */
@@ -1766,7 +1776,7 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 	float f;
 	tdata_t buf;
 	ttile_t tile;
-	ttile_t n;
+	ttile_t n_tiles;
 
 	/* All the fields we might have set.
 	 */
@@ -1828,8 +1838,8 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 			return( -1 );
 
 	buf = vips_malloc( NULL, TIFFTileSize( in ) );
-	n = TIFFNumberOfTiles( in );
-	for( tile = 0; tile < n; tile++ ) {
+	n_tiles = TIFFNumberOfTiles( in );
+	for( tile = 0; tile < n_tiles; tile++ ) {
 		tsize_t len;
 
 		/* It'd be good to use TIFFReadRawTile()/TIFFWtiffRawTile() 
@@ -1840,6 +1850,7 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 		if( len < 0 ||
 			TIFFWriteEncodedTile( out, tile, buf, len ) < 0 ) {
 			vips_free( buf );
+			printf( "copy failed for tile %d ..\n", tile ); 
 			return( -1 );
 		}
 	}
@@ -1862,7 +1873,8 @@ wtiff_gather( Wtiff *wtiff )
 			TIFF *in;
 
 #ifdef DEBUG
-			printf( "Appending layer %s ...\n", layer->lname );
+			printf( "wtiff_gather: appending layer %d, %s ...\n", 
+				layer->sub, layer->lname );
 #endif /*DEBUG*/
 
 			if( !(in = vips__tiff_openin( layer->lname )) ) 
