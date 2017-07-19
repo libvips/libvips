@@ -107,8 +107,7 @@ As with DeepZoom, you can use `--suffix` to set jpeg quality.
 # Writing [Google Maps](https://developers.google.com/maps/) pyramids
 
 Use `--layout google` to write Google maps-style pyramids. These are
-compatible with the [NYU Pathology pyramid
-builder](http://code.google.com/p/virtualmicroscope/wiki/SlideTiler).
+compatible with the [leaflet](http://leafletjs.com/). 
 For example:
 
 ```
