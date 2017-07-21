@@ -980,7 +980,7 @@ wtiff_new( VipsImage *im, const char *filename,
 	/* 11 for lanczos3, 2 for a box filter, 12 for lanczos3 + shift.
 	 */
 	if( wtiff->fancy )
-		wtiff->stencil_size = 11;
+		wtiff->stencil_size = 12;
 	else
 		wtiff->stencil_size = 2;
 	wtiff->margin = (wtiff->stencil_size - 2) / 2;
@@ -1575,7 +1575,7 @@ layer_strip_shrink( Layer *layer )
 			break;
 
 		if( wtiff->fancy )
-			(void) vips_region_shrink_lanczos3( from, to, 
+			(void) vips_region_shrink_lanczos3_shift( from, to, 
 				&target, wtiff->margin );
 		else
 			(void) vips_region_shrink( from, to, &target ); 
