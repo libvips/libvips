@@ -87,11 +87,14 @@ static int
 vips_find_trim_build( VipsObject *object )
 {
 	VipsFindTrim *find_trim = (VipsFindTrim *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 20 );
 
 	int i;
 	double *ones;
-	double d;
+	double left;
+	double top;
+	double right;
+	double bottom;
 
 	if( VIPS_OBJECT_CLASS( vips_find_trim_parent_class )->build( object ) )
 		return( -1 );
@@ -132,26 +135,29 @@ vips_find_trim_build( VipsObject *object )
 	/* t[8] == search column sums in from left.
 	 */
 	if( vips_profile( t[5], &t[7], &t[8], NULL ) ||
-		vips_avg( t[8], &d, NULL ) )
+		vips_avg( t[8], &left, NULL ) )
 		return( -1 );
-	find_trim->left = d;
 	if( vips_flip( t[5], &t[9], VIPS_DIRECTION_HORIZONTAL, NULL ) ||
 		vips_profile( t[9], &t[10], &t[11], NULL ) ||
-		vips_avg( t[11], &d, NULL ) )
+		vips_avg( t[11], &right, NULL ) )
 		return( -1 );
-	find_trim->width = (t[5]->Xsize - d) - find_trim->left;
 
 	/* t[8] == search column sums in from left.
 	 */
 	if( vips_profile( t[6], &t[12], &t[13], NULL ) ||
-		vips_avg( t[12], &d, NULL ) )
+		vips_avg( t[12], &top, NULL ) )
 		return( -1 );
-	find_trim->top = d;
 	if( vips_flip( t[6], &t[14], VIPS_DIRECTION_VERTICAL, NULL ) ||
 		vips_profile( t[14], &t[15], &t[16], NULL ) ||
-		vips_avg( t[15], &d, NULL ) )
+		vips_avg( t[15], &bottom, NULL ) )
 		return( -1 );
-	find_trim->height = (t[6]->Ysize - d) - find_trim->left;
+
+	g_object_set( find_trim,
+		"left", (int) left,
+		"top", (int) top,
+		"width", (int) ((t[5]->Xsize - right) - left),
+		"height", (int) ((t[6]->Ysize - bottom) - top),
+		NULL ); 
 
 	return( 0 );
 }
@@ -171,7 +177,7 @@ vips_find_trim_class_init( VipsFindTrimClass *class )
 	object_class->description = _( "search an image for non-edge areas" );
 	object_class->build = vips_find_trim_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	//operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 1,
 		_( "in" ), 
@@ -191,26 +197,26 @@ vips_find_trim_class_init( VipsFindTrimClass *class )
 		_( "Left edge of image" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsFindTrim, left ),
-		1, VIPS_MAX_COORD, 1 );
+		0, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_INT( class, "top", 11, 
 		_( "Top" ), 
 		_( "Top edge of extract area" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsFindTrim, top ),
 		0, VIPS_MAX_COORD, 0 );
 
 	VIPS_ARG_INT( class, "width", 12, 
 		_( "Width" ), 
 		_( "Width of extract area" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsFindTrim, width ),
 		1, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_INT( class, "height", 13, 
 		_( "Height" ), 
 		_( "Height of extract area" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsFindTrim, height ),
 		1, VIPS_MAX_COORD, 1 );
 
