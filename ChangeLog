@@ -10,6 +10,7 @@
 - better prefix guessing on Windows, thanks tumagonx
 - savers support a "page_height" option for multipage save
 - rename 'disc' as 'memory' and default off
+- add vips_find_trim(), search for non-background areas 
 
 12/6/17 started 8.5.7
 - transform cmyk->rgb automatically on write if there's an embedded profile

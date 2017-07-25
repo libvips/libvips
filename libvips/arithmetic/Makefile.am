@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libarithmetic.la
 
 libarithmetic_la_SOURCES = \
+	find_trim.c \
 	sum.c \
 	hough.c \
 	hough.h \

@@ -778,6 +778,7 @@ vips_arithmetic_operation_init( void )
 	extern GType vips_complex2_get_type( void ); 
 	extern GType vips_complexget_get_type( void ); 
 	extern GType vips_complexform_get_type( void ); 
+	extern GType vips_find_trim_get_type( void ); 
 
 	vips_add_get_type();
 	vips_sum_get_type();
@@ -816,4 +817,5 @@ vips_arithmetic_operation_init( void )
 	vips_complex2_get_type(); 
 	vips_complexget_get_type(); 
 	vips_complexform_get_type(); 
+	vips_find_trim_get_type(); 
 }
