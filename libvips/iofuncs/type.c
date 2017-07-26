@@ -276,7 +276,7 @@ vips__type_leak( void )
 		fprintf( stderr, "%d VipsArea alive\n", 
 			g_slist_length( vips_area_all ) );
 		for( p = vips_area_all; p; p = p->next ) {
-			VipsArea *area = (VipsArea *) p->data;
+			VipsArea *area = VIPS_AREA( p->data );
 
 			fprintf( stderr, "\t%p count = %d, bytes = %zd\n", 
 				area, area->count, area->length );
@@ -1325,7 +1325,7 @@ transform_g_string_array_image( const GValue *src_value, GValue *dest_value )
 	g_free( str );
 
 	g_value_set_boxed( dest_value, array_image );
-	vips_area_unref( (VipsArea *) array_image );
+	vips_area_unref( VIPS_AREA( array_image ) );
 }
 
 GType

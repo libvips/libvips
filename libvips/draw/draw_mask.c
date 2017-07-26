@@ -353,7 +353,7 @@ vips_draw_maskv( VipsImage *image,
 	VipsArea *area_ink;
 	int result;
 
-	area_ink = (VipsArea *) vips_array_double_new( ink, n );
+	area_ink = VIPS_AREA( vips_array_double_new( ink, n ) );
 	result = vips_call_split( "draw_mask", ap, 
 		image, area_ink, mask, x, y );
 	vips_area_unref( area_ink );

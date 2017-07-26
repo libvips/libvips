@@ -113,7 +113,7 @@ vips_getpoint_build( VipsObject *object )
 	g_object_set( object, 
 		"out_array", out_array,
 		NULL );
-	vips_area_unref( (VipsArea *) out_array );
+	vips_area_unref( VIPS_AREA( out_array ) );
 
 	return( 0 );
 }

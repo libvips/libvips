@@ -1915,7 +1915,7 @@ vips_object_set_argument_from_string( VipsObject *object,
 		/* Setting gvalue will have upped @array_image's count again,
 		 * go back to 1 so that gvalue has the only ref.
 		 */
-		vips_area_unref( (VipsArea *) array_image );
+		vips_area_unref( VIPS_AREA( array_image ) );
 	}
 	else if( g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
 		(oclass = g_type_class_ref( otype )) ) { 

@@ -3383,7 +3383,7 @@ im_Lab2XYZ_temp( IMAGE *in, IMAGE *out, double X0, double Y0, double Z0 )
 	VipsArea *temp;
 	VipsImage *x;
 
-	temp = (VipsArea *) vips_array_double_newv( 3, X0, Y0, Z0 ); 
+	temp = VIPS_AREA( vips_array_double_newv( 3, X0, Y0, Z0 ) );
 	if( vips_Lab2XYZ( in, &x, "temp", temp, NULL ) ) {
 		vips_area_unref( temp );
 		return( -1 );
@@ -3425,7 +3425,7 @@ im_XYZ2Lab_temp( IMAGE *in, IMAGE *out, double X0, double Y0, double Z0 )
 	ary[0] = X0;
 	ary[1] = Y0;
 	ary[2] = Z0;
-	temp = (VipsArea *) vips_array_double_new( ary, 3 ); 
+	temp = VIPS_AREA( vips_array_double_new( ary, 3 ) ); 
 	if( vips_XYZ2Lab( in, &x, "temp", temp, NULL ) ) {
 		vips_area_unref( temp );
 		return( -1 );
@@ -4562,9 +4562,9 @@ im__affinei( VipsImage *in, VipsImage *out,
 	VipsArea *oarea;
 	gboolean repack;
 
-	oarea = (VipsArea *) vips_array_int_newv( 4, 
+	oarea = VIPS_AREA( vips_array_int_newv( 4, 
 		trn->oarea.left, trn->oarea.top,
-		trn->oarea.width, trn->oarea.height );
+		trn->oarea.width, trn->oarea.height ) );
 
 	/* vips7 affine would repack labq and im_benchmark() depends upon
 	 * this.

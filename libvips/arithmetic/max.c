@@ -241,9 +241,9 @@ vips_max_build( VipsObject *object )
 			"y_array", y_array,
 			NULL );
 
-		vips_area_unref( (VipsArea *) out_array );
-		vips_area_unref( (VipsArea *) x_array );
-		vips_area_unref( (VipsArea *) y_array );
+		vips_area_unref( VIPS_AREA( out_array ) );
+		vips_area_unref( VIPS_AREA( x_array ) );
+		vips_area_unref( VIPS_AREA( y_array ) );
 	}
 
 #ifdef DEBUG
