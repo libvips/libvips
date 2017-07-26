@@ -147,8 +147,8 @@ vips_find_trim_build( VipsObject *object )
 	g_object_set( find_trim,
 		"left", (int) left,
 		"top", (int) top,
-		"width", (int) ((t[5]->Xsize - right) - left),
-		"height", (int) ((t[6]->Ysize - bottom) - top),
+		"width", (int) VIPS_MAX( 0, (t[5]->Xsize - right) - left ),
+		"height", (int) VIPS_MAX( 0, (t[6]->Ysize - bottom) - top ),
 		NULL ); 
 
 	return( 0 );
@@ -208,14 +208,14 @@ vips_find_trim_class_init( VipsFindTrimClass *class )
 		_( "Width of extract area" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsFindTrim, width ),
-		1, VIPS_MAX_COORD, 1 );
+		0, VIPS_MAX_COORD, 1 );
 
 	VIPS_ARG_INT( class, "height", 13, 
 		_( "Height" ), 
 		_( "Height of extract area" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsFindTrim, height ),
-		1, VIPS_MAX_COORD, 1 );
+		0, VIPS_MAX_COORD, 1 );
 
 }
 
@@ -248,6 +248,9 @@ vips_find_trim_init( VipsFindTrim *find_trim )
  * single pass, then the first row or column in each of the
  * four directions where the sum is greater than @threshold gives the bounding
  * box.
+ *
+ * If the image is entirely background, vips_find_trim() returns @width == 0
+ * and @height == 0.
  *
  * @background defaults to 255, or 65535 for 16-bit images. Set another value, 
  * or use vips_getpoint() to pick a value from an edge. 

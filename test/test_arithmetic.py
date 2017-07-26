@@ -645,8 +645,6 @@ class TestArithmetic(unittest.TestCase):
         im = Vips.Image.black(50, 60) + 100
         test = im.embed(10, 20, 200, 300, extend = "white")
 
-        test.write_to_file("x.v")
-
         for x in unsigned_formats + float_formats:
             a = test.cast(x)
             left, top, width, height = a.find_trim()
