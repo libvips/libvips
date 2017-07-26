@@ -805,7 +805,7 @@ write_blank( VipsForeignSaveDz *dz )
 	 * vips_black() to make sure we set Type correctly, otherwise we can
 	 * try saving a B_W image as PNG, with disasterous results.
 	 */
-	bg = (double *) vips_area_get_data( (VipsArea *) save->background, 
+	bg = (double *) vips_area_get_data( VIPS_AREA( save->background ), 
 		NULL, &n, NULL, NULL );
 
 	if( vips_black( &x, dz->tile_size, dz->tile_size, "bands", n, NULL ) ) 

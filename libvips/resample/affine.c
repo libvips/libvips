@@ -652,7 +652,7 @@ vips_affine( VipsImage *in, VipsImage **out,
 	VipsArea *matrix;
 	int result;
 
-	matrix = (VipsArea *) vips_array_double_newv( 4, a, b, c, d );
+	matrix = VIPS_AREA( vips_array_double_newv( 4, a, b, c, d ) );
 
 	va_start( ap, d );
 	result = vips_call_split( "affine", ap, in, out, matrix );

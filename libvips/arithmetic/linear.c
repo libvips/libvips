@@ -426,8 +426,8 @@ vips_linearv( VipsImage *in, VipsImage **out,
 	VipsArea *area_b;
 	int result;
 
-	area_a = (VipsArea *) vips_array_double_new( a, n );
-	area_b = (VipsArea *) vips_array_double_new( b, n );
+	area_a = VIPS_AREA( vips_array_double_new( a, n ) );
+	area_b = VIPS_AREA( vips_array_double_new( b, n ) );
 
 	result = vips_call_split( "linear", ap, in, out, area_a, area_b );
 

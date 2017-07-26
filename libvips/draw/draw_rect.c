@@ -219,7 +219,7 @@ vips_draw_rectv( VipsImage *image,
 	VipsArea *area_ink;
 	int result;
 
-	area_ink = (VipsArea *) vips_array_double_new( ink, n );
+	area_ink = VIPS_AREA( vips_array_double_new( ink, n ) );
 	result = vips_call_split( "draw_rect", ap, 
 		image, area_ink, left, top, width, height ); 
 	vips_area_unref( area_ink );

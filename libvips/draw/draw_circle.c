@@ -274,7 +274,7 @@ vips_draw_circlev( VipsImage *image,
 	VipsArea *area_ink;
 	int result;
 
-	area_ink = (VipsArea *) vips_array_double_new( ink, n );
+	area_ink = VIPS_AREA( vips_array_double_new( ink, n ) );
 	result = vips_call_split( "draw_circle", ap, 
 		image, area_ink, cx, cy, radius );
 	vips_area_unref( area_ink );

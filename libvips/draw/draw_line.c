@@ -322,7 +322,7 @@ vips_draw_linev( VipsImage *image,
 	VipsArea *area_ink;
 	int result;
 
-	area_ink = (VipsArea *) vips_array_double_new( ink, n );
+	area_ink = VIPS_AREA( vips_array_double_new( ink, n ) );
 	result = vips_call_split( "draw_line", ap, 
 		image, area_ink, x1, y1, x2, y2 );
 	vips_area_unref( area_ink );

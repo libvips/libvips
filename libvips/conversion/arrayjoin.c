@@ -80,7 +80,7 @@ vips_arrayjoin_gen( VipsRegion *or, void *seq,
 	VipsRegion **ir = (VipsRegion **) seq;
 	VipsArrayjoin *join = (VipsArrayjoin *) b;
 	VipsRect *r = &or->valid;
-	int n = ((VipsArea *) join->in)->n;
+	int n = VIPS_AREA( join->in )->n;
 
 	int i;
 
