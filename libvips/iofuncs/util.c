@@ -1989,7 +1989,7 @@ vips__windows_prefix_once( void *null )
 
 #ifdef OS_WIN32
 	prefix = g_win32_get_package_installation_directory_of_module( 
-		vips__dll ),
+		vips__dll );
 #else
         prefix = (char *) g_getenv( "VIPSHOME" );
 #endif
