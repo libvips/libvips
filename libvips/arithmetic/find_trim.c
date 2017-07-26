@@ -82,7 +82,22 @@ vips_find_trim_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_find_trim_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_image_decode( find_trim->in, &t[0] ) )
+	/* Is "background" unset? Default to the correct value 
+	 * for this interpretation.
+	 */
+	if( !vips_object_argument_isset( object, "background" ) ) 
+		if( find_trim->in->Type == VIPS_INTERPRETATION_GREY16 ||
+			find_trim->in->Type == VIPS_INTERPRETATION_RGB16 ) {
+			vips_area_unref( VIPS_AREA( find_trim->background ) );
+			find_trim->background = 
+				vips_array_double_newv( 1, 65535.0 );
+		}
+
+	/* Flatten out any alpha.
+	 */
+	if( vips_flatten( find_trim->in, &t[0], 
+		"background", find_trim->background,
+		NULL ) )
 		return( -1 ); 
 
 	/* We want to subtract the bg.
@@ -223,17 +238,21 @@ vips_find_trim_init( VipsFindTrim *find_trim )
  * Optional arguments:
  *
  * * @threshold: %gdouble, background / object threshold
- * * @background: #VipsArrayDouble, background colour, default 255
+ * * @background: #VipsArrayDouble, background colour
  *
  * Search @in for the bounding box of the non-background area. 
  *
- * @in is median-filtered, then all the row and column sums of the absolute
+ * Any alpha is flattened out, then the image is median-filtered, all the row 
+ * and column sums of the absolute
  * difference from @background are calculated in a
- * single pass through the image, then the first row or column in each of the
- * four directions is found where the sum is greater than @threshold.
+ * single pass, then the first row or column in each of the
+ * four directions where the sum is greater than @threshold gives the bounding
+ * box.
  *
- * @background defaults to 255. Set another value, or use vips_getpoint() to 
- * pick a value from an edge. @threshold defaults to 10. 
+ * @background defaults to 255, or 65535 for 16-bit images. Set another value, 
+ * or use vips_getpoint() to pick a value from an edge. 
+ *
+ * @threshold defaults to 10. 
  *
  * See also: vips_getpoint(), vips_extract_area(), vips_smartcrop().
  *
