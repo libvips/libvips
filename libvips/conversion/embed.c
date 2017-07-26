@@ -607,6 +607,7 @@ vips_embed_class_init( VipsEmbedClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsEmbed, background ),
 		VIPS_TYPE_ARRAY_DOUBLE );
+
 }
 
 static void

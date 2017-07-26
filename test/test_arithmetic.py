@@ -641,6 +641,21 @@ class TestArithmetic(unittest.TestCase):
             self.assertAlmostEqual(p1, 0)
             self.assertAlmostEqual(p2, 10)
 
+    def test_find_trim(self):
+        im = Vips.Image.black(50, 60) + 100
+        test = im.embed(10, 20, 200, 300, extend = "white")
+
+        test.write_to_file("x.v")
+
+        for x in unsigned_formats + float_formats:
+            a = test.cast(x)
+            left, top, width, height = a.find_trim()
+
+            self.assertEqual(left, 10)
+            self.assertEqual(top, 20)
+            self.assertEqual(width, 50)
+            self.assertEqual(height, 60)
+
     def test_profile(self):
         test = Vips.Image.black(100, 100).draw_rect(100, 40, 50, 1, 1)
 

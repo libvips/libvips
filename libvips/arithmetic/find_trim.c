@@ -51,37 +51,17 @@ typedef struct _VipsFindTrim {
 
 	VipsImage *in;
 	double threshold;
+	VipsArrayDouble *background;
 
 	int left;
 	int top;
 	int width;
 	int height;
-
-	double *ones;
-	double *background;
-	int n;
 } VipsFindTrim;
 
 typedef VipsOperationClass VipsFindTrimClass;
 
 G_DEFINE_TYPE( VipsFindTrim, vips_find_trim, VIPS_TYPE_OPERATION );
-
-static void
-vips_find_trim_finalize( GObject *gobject )
-{
-	VipsFindTrim *find_trim = (VipsFindTrim *) gobject;
-
-#ifdef DEBUG
-	printf( "vips_find_trim_finalize: " );
-	vips_object_print_name( VIPS_OBJECT( gobject ) );
-	printf( "\n" );
-#endif /*DEBUG*/
-
-	VIPS_FREE( find_trim->background ); 
-	VIPS_FREE( find_trim->ones ); 
-
-	G_OBJECT_CLASS( vips_find_trim_parent_class )->finalize( gobject );
-}
 
 static int
 vips_find_trim_build( VipsObject *object )
@@ -89,8 +69,11 @@ vips_find_trim_build( VipsObject *object )
 	VipsFindTrim *find_trim = (VipsFindTrim *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 20 );
 
-	int i;
+	double *background;
+	int n;
+	double *neg_bg;
 	double *ones;
+	int i;
 	double left;
 	double top;
 	double right;
@@ -102,27 +85,21 @@ vips_find_trim_build( VipsObject *object )
 	if( vips_image_decode( find_trim->in, &t[0] ) )
 		return( -1 ); 
 
-	/* Fetch pixel (0, 0) as the background value.
-	 */
-	if( vips_getpoint( t[0], 
-		&find_trim->background, &find_trim->n, 
-		0, 0, NULL ) )
-		return( -1 );
-
 	/* We want to subtract the bg.
 	 */
-	if( !(ones = VIPS_ARRAY( find_trim, find_trim->n, double )) )
+	background = vips_array_double_get( find_trim->background, &n );
+	if( !(neg_bg = VIPS_ARRAY( find_trim, n, double )) ||
+		!(ones = VIPS_ARRAY( find_trim, n, double )) )
 		return( -1 ); 
-	for( i = 0; i < find_trim->n; i++ ) {
+	for( i = 0; i < n; i++ ) {
+		neg_bg[i] = -1 * background[i];
 		ones[i] = 1.0;
-		find_trim->background[i] *= -1;
 	}
 
 	/* Smooth, find difference from bg, abs, threshold.
 	 */
 	if( vips_median( t[0], &t[1], 3, NULL ) ||
-		vips_linear( t[1], &t[2], 
-			ones, find_trim->background, find_trim->n, NULL ) ||
+		vips_linear( t[1], &t[2], ones, neg_bg, n, NULL ) ||
 		vips_abs( t[2], &t[3], NULL ) ||
 		vips_more_const1( t[3], &t[4], find_trim->threshold, NULL ) )
 		return( -1 ); 
@@ -167,9 +144,7 @@ vips_find_trim_class_init( VipsFindTrimClass *class )
 {
 	GObjectClass *gobject_class = (GObjectClass *) class;
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
-	gobject_class->finalize = vips_find_trim_finalize;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
@@ -191,6 +166,13 @@ vips_find_trim_class_init( VipsFindTrimClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsFindTrim, threshold ),
 		0, INFINITY, 10.0 );
+
+	VIPS_ARG_BOXED( class, "background", 3, 
+		_( "Background" ), 
+		_( "Color for background pixels" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsFindTrim, background ),
+		VIPS_TYPE_ARRAY_DOUBLE );
 
 	VIPS_ARG_INT( class, "left", 5, 
 		_( "Left" ), 
@@ -226,6 +208,7 @@ static void
 vips_find_trim_init( VipsFindTrim *find_trim )
 {
 	find_trim->threshold = 10;
+	find_trim->background = vips_array_double_newv( 1, 255.0 );
 }
 
 /**
@@ -239,9 +222,20 @@ vips_find_trim_init( VipsFindTrim *find_trim )
  *
  * Optional arguments:
  *
- * * @threshold: background / object threshold
+ * * @threshold: %gdouble, background / object threshold
+ * * @background: #VipsArrayDouble, background colour, default 255
  *
- * See also: vips_extract_area(), vips_smartcrop().
+ * Search @in for the bounding box of the non-background area. 
+ *
+ * @in is median-filtered, then all the row and column sums of the absolute
+ * difference from @background are calculated in a
+ * single pass through the image, then the first row or column in each of the
+ * four directions is found where the sum is greater than @threshold.
+ *
+ * @background defaults to 255. Set another value, or use vips_getpoint() to 
+ * pick a value from an edge. @threshold defaults to 10. 
+ *
+ * See also: vips_getpoint(), vips_extract_area(), vips_smartcrop().
  *
  * Returns: 0 on success, -1 on error
  */
