@@ -6,6 +6,8 @@
  * 	- add svgz support
  * 18/1/17
  * 	- invalidate operation on read error
+ * 8/7/17
+ * 	- fix DPI mixup, thanks Fosk
  */
 
 /*
@@ -107,21 +109,6 @@ vips_foreign_load_svg_dispose( GObject *gobject )
 		dispose( gobject );
 }
 
-static int
-vips_foreign_load_svg_build( VipsObject *object )
-{
-	VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) object;
-
-	if( !vips_object_argument_isset( object, "scale" ) )
-		svg->scale = svg->dpi / 72.0;
-
-	if( VIPS_OBJECT_CLASS( vips_foreign_load_svg_parent_class )->
-		build( object ) )
-		return( -1 );
-
-	return( 0 );
-}
-
 static VipsForeignFlags
 vips_foreign_load_svg_get_flags_filename( const char *filename )
 {
@@ -143,6 +130,7 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg,
 	RsvgDimensionData dimensions;
 	double res;
 
+	rsvg_handle_set_dpi( svg->page, svg->dpi * svg->scale );
 	rsvg_handle_get_dimensions( svg->page, &dimensions ); 
 
 	/* We need pixels/mm for vips.
@@ -150,7 +138,7 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg,
 	res = svg->dpi / 25.4;
 
 	vips_image_init_fields( out, 
-		dimensions.width * svg->scale, dimensions.height * svg->scale, 
+		dimensions.width, dimensions.height,
 		4, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, res, res );
 
@@ -194,9 +182,7 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 	cr = cairo_create( surface );
 	cairo_surface_destroy( surface );
 
-	cairo_scale( cr, svg->scale, svg->scale );
-	cairo_translate( cr, 
-		-r->left / svg->scale, -r->top / svg->scale );
+	cairo_translate( cr, -r->left, -r->top );
 
 	/* rsvg is single-threaded, but we don't need to lock since we're
 	 * running inside a non-threaded tilecache.
@@ -272,7 +258,6 @@ vips_foreign_load_svg_class_init( VipsForeignLoadSvgClass *class )
 
 	object_class->nickname = "svgload";
 	object_class->description = _( "load SVG with rsvg" );
-	object_class->build = vips_foreign_load_svg_build;
 
 	load_class->get_flags_filename = 
 		vips_foreign_load_svg_get_flags_filename;
@@ -557,8 +542,8 @@ vips_foreign_load_svg_buffer_init( VipsForeignLoadSvgBuffer *buffer )
  * Render a SVG file into a VIPS image.  Rendering uses the librsvg library
  * and should be fast.
  *
- * Use @dpi to set the rendering resolution. The default is 72. Alternatively,
- * you can scale the rendering from the default 1 point == 1 pixel by @scale.
+ * Use @dpi to set the rendering resolution. The default is 72. You can also
+ * scale the rendering by @scale. 
  *
  * This function only reads the image header and does not render any pixel
  * data. Rendering occurs when pixels are accessed.
