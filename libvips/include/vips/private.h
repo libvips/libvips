@@ -187,6 +187,10 @@ int vips__init( const char *argv0 );
 size_t vips__get_sizeof_vipsobject( void );
 int vips_region_prepare_many( struct _VipsRegion **reg, VipsRect *r );
 
+/* Handy for debugging.
+ */
+int vips__view_image( struct _VipsImage *image );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

@@ -12,7 +12,8 @@
 - rename 'disc' as 'memory' and default off
 - add vips_find_trim(), search for non-background areas 
 
-12/6/17 started 8.5.7
+9/6/17 started 8.5.7
+- better smartcrop
 - transform cmyk->rgb automatically on write if there's an embedded profile
   and the saver does not support cmyk
 - fix DPI mixup in svgload ... we were writing images about 20% too large,
