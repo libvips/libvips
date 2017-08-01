@@ -38,6 +38,18 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+typedef enum {
+	VIPS_GRAVITY_CENTER,
+	VIPS_GRAVITY_NORTH,
+	VIPS_GRAVITY_EAST,
+	VIPS_GRAVITY_SOUTH,
+	VIPS_GRAVITY_WEST,
+	VIPS_GRAVITY_NORTH_EAST,
+	VIPS_GRAVITY_SOUTH_EAST,
+	VIPS_GRAVITY_SOUTH_WEST,
+	VIPS_GRAVITY_NORTH_WEST
+} VipsGravity;
+
 int vips_black( VipsImage **out, int width, int height, ... )
 	__attribute__((sentinel));
 
