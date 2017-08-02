@@ -12,6 +12,9 @@
 - rename 'disc' as 'memory' and default off
 - add vips_find_trim(), search for non-background areas 
 
+2/8/17 started 8.5.8
+- fix transparency detection in merge, thanks Haida
+
 9/6/17 started 8.5.7
 - better smartcrop
 - transform cmyk->rgb automatically on write if there's an embedded profile

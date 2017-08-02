@@ -335,7 +335,7 @@ make_firstlast( MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
 	int ii; \
 	\
 	for( ii = 0; ii < cb; ii++ ) \
-		if( tt[i] ) \
+		if( tt[i + ii] ) \
 			break; \
 	if( ii == cb )  \
 		(RESULT) = 1; \
