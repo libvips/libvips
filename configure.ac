@@ -599,7 +599,7 @@ if test x"$with_orc" != "xno"; then
   )
 fi
 
-# lcms ... look for lcms2 first, it has better threading support
+# lcms ... refuse to use lcms1
 AC_ARG_WITH([lcms], 
   AS_HELP_STRING([--without-lcms], [build without lcms (default: test)]))
 
@@ -609,15 +609,8 @@ if test x"$with_lcms" != "xno"; then
      with_lcms="yes (lcms2)"
      PACKAGES_USED="$PACKAGES_USED lcms2"
     ],
-    [PKG_CHECK_MODULES(LCMS, lcms,
-       [AC_DEFINE(HAVE_LCMS,1,[define if you have lcms installed.])
-        with_lcms="yes (lcms1)"
-        PACKAGES_USED="$PACKAGES_USED lcms"
-       ],
-       [AC_MSG_WARN([lcms2/lcms not found; disabling lcms support])
-        with_lcms=no
-       ]
-     )   
+    [AC_MSG_WARN([lcms2 not found; disabling ICC profile support])
+     with_lcms=no
     ]
   )
 fi

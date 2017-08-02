@@ -11,6 +11,7 @@
 - savers support a "page_height" option for multipage save
 - rename 'disc' as 'memory' and default off
 - add vips_find_trim(), search for non-background areas 
+- remove lcms1 support, it had bitrotted
 
 2/8/17 started 8.5.8
 - fix transparency detection in merge, thanks Haida

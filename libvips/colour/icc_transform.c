@@ -32,6 +32,8 @@
  * 	  James
  * 26/6/15
  *	- better profile sanity checking for icc import
+ * 2/8/17
+ * 	- remove lcms1 support, it was untested
  */
 
 /*
@@ -66,7 +68,7 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#if defined( HAVE_LCMS ) || defined( HAVE_LCMS2 )
+#ifdef HAVE_LCMS2
 
 #include <stdio.h>
 #include <math.h>
@@ -74,18 +76,7 @@
 
 /* Has to be before VIPS to avoid nameclashes.
  */
-#ifdef HAVE_LCMS2
 #include <lcms2.h>
-#else /*HAVE_LCMS*/
-#include <lcms.h>
-
-/* Use the lcms2 names.
- */
-#define cmsSigRgbData icSigRgbData 
-#define cmsSigLabData icSigLabData 
-#define cmsSigCmykData icSigCmykData 
-#define cmsSigXYZData icSigXYZData 
-#endif
 
 #include <vips/vips.h>
 
@@ -94,16 +85,6 @@
 /* Call lcms with up to this many pixels at once.
  */
 #define PIXEL_BUFFER_SIZE (10000)
-
-/* LCMS1 was missing some stuff.
- */
-#ifdef HAVE_LCMS
-typedef DWORD cmsUInt32Number;
-
-/* This doesn't exist in lcms1, just set it to zero.
- */
-#define cmsFLAGS_NOCACHE (0)
-#endif
 
 /**
  * VipsIntent:
@@ -169,10 +150,6 @@ typedef struct _VipsIcc {
 	cmsUInt32Number out_icc_format;
 	cmsHTRANSFORM trans;
 
-	/* We need to single-thread calls to LCMS 1.
-	 */
-	GMutex *lock;
-
 } VipsIcc;
 
 typedef VipsColourCodeClass VipsIccClass;
@@ -182,24 +159,11 @@ G_DEFINE_ABSTRACT_TYPE( VipsIcc, vips_icc, VIPS_TYPE_COLOUR_CODE );
 /* Error from lcms.
  */
 
-#ifdef HAVE_LCMS2
 static void
 icc_error( cmsContext context, cmsUInt32Number code, const char *text )
 {
 	vips_error( "VipsIcc", "%s", text );
 }
-#else
-static int 
-icc_error( int code, const char *text )
-{
-	if( code == LCMS_ERRC_WARNING )
-		g_warning( "%s", text );
-	else
-		vips_error( "VipsIcc", text );
-
-	return( 0 );
-}
-#endif
 
 static void
 vips_icc_dispose( GObject *gobject )
@@ -209,7 +173,6 @@ vips_icc_dispose( GObject *gobject )
 	VIPS_FREEF( cmsDeleteTransform, icc->trans );
 	VIPS_FREEF( cmsCloseProfile, icc->in_profile );
 	VIPS_FREEF( cmsCloseProfile, icc->out_profile );
-	VIPS_FREEF( vips_g_mutex_free, icc->lock );
 
 	G_OBJECT_CLASS( vips_icc_parent_class )->dispose( gobject );
 }
@@ -251,7 +214,6 @@ vips_icc_build( VipsObject *object )
 				TYPE_RGB_16 : TYPE_RGB_8;
 			break;
 
-#ifdef HAVE_LCMS2
 		case cmsSigGrayData:
 			colour->input_bands = 1;
 			code->input_format = 
@@ -261,7 +223,6 @@ vips_icc_build( VipsObject *object )
 				code->in->BandFmt == VIPS_FORMAT_USHORT ? 
 				TYPE_GRAY_16 : TYPE_GRAY_8;
 			break;
-#endif /*HAVE_LCMS2*/
 
 		case cmsSigCmykData:
 			colour->input_bands = 4;
@@ -311,7 +272,6 @@ vips_icc_build( VipsObject *object )
 				TYPE_RGB_16 : TYPE_RGB_8;
 			break;
 
-#ifdef HAVE_LCMS2
 		case cmsSigGrayData:
 			colour->interpretation = 
 				icc->depth == 8 ? 
@@ -325,7 +285,6 @@ vips_icc_build( VipsObject *object )
 				icc->depth == 16 ? 
 				TYPE_GRAY_16 : TYPE_GRAY_8;
 			break;
-#endif /*HAVE_LCMS2*/
 
 		case cmsSigCmykData:
 			colour->interpretation = VIPS_INTERPRETATION_CMYK;
@@ -414,21 +373,12 @@ vips_icc_class_init( VipsIccClass *class )
 		G_STRUCT_OFFSET( VipsIcc, pcs ),
 		VIPS_TYPE_PCS, VIPS_PCS_LAB );
 
-#ifdef HAVE_LCMS2
 	cmsSetLogErrorHandler( icc_error );
-#else
-	/* Ask lcms not to abort on error.
-	 */
-	cmsErrorAction( LCMS_ERROR_IGNORE );
-	cmsSetErrorHandler( icc_error );
-#endif
-
 }
 
 static void
 vips_icc_init( VipsIcc *icc )
 {
-	icc->lock = vips_g_mutex_new();
 	icc->intent = VIPS_INTENT_RELATIVE;
 	icc->pcs = VIPS_PCS_LAB;
 	icc->depth = 8;
@@ -466,11 +416,9 @@ vips_icc_profile_needs_bands( cmsHPROFILE profile )
 	int needs_bands;
 
 	switch( cmsGetColorSpace( profile ) ) {
-#ifdef HAVE_LCMS2
 	case cmsSigGrayData:
 		needs_bands = 1;
 		break;
-#endif /*HAVE_LCMS2*/
 
 	case cmsSigRgbData:
 	case cmsSigLabData:
@@ -631,14 +579,10 @@ vips_icc_import_build( VipsObject *object )
 		icc->in_profile, icc->intent, LCMS_USED_AS_INPUT );
 
 	if( icc->pcs == VIPS_PCS_LAB ) { 
-#ifdef HAVE_LCMS2
 		cmsCIExyY white;
 		cmsWhitePointFromTemp( &white, 6500 );
 
 		icc->out_profile = cmsCreateLab4Profile( &white );
-#else
-		icc->out_profile = cmsCreateLabProfile( NULL );
-#endif
 	}
 	else 
 		icc->out_profile = cmsCreateXYZProfile();
@@ -704,13 +648,7 @@ vips_icc_import_line( VipsColour *colour,
 	for( i = 0; i < width; i += PIXEL_BUFFER_SIZE ) {
 		const int chunk = VIPS_MIN( width - i, PIXEL_BUFFER_SIZE );
 
-#ifdef HAVE_LCMS2
 		cmsDoTransform( icc->trans, p, encoded, chunk );
-#else
-		g_mutex_lock( icc->lock );
-		cmsDoTransform( icc->trans, p, encoded, chunk );
-		g_mutex_unlock( icc->lock );
-#endif
 
 		if( icc->pcs == VIPS_PCS_LAB ) 
 			decode_lab( encoded, q, chunk );
@@ -788,14 +726,10 @@ vips_icc_export_build( VipsObject *object )
 		icc->pcs = VIPS_PCS_XYZ; 
 
 	if( icc->pcs == VIPS_PCS_LAB ) { 
-#ifdef HAVE_LCMS2
 		cmsCIExyY white;
 		cmsWhitePointFromTemp( &white, 6500 );
 
 		icc->in_profile = cmsCreateLab4Profile( &white );
-#else
-		icc->in_profile = cmsCreateLabProfile( NULL );
-#endif
 	}
 	else 
 		icc->in_profile = cmsCreateXYZProfile();
@@ -940,13 +874,7 @@ vips_icc_export_line( VipsColour *colour,
 		else
 			encode_xyz( p, encoded, chunk );
 
-#ifdef HAVE_LCMS2
 		cmsDoTransform( icc->trans, encoded, q, chunk );
-#else
-		g_mutex_lock( icc->lock );
-		cmsDoTransform( icc->trans, encoded, q, chunk );
-		g_mutex_unlock( icc->lock );
-#endif
 
 		p += PIXEL_BUFFER_SIZE * 3;
 		q += PIXEL_BUFFER_SIZE * VIPS_IMAGE_SIZEOF_PEL( colour->out );
@@ -1070,13 +998,7 @@ vips_icc_transform_line( VipsColour *colour,
 {
 	VipsIcc *icc = (VipsIcc *) colour;
 
-#ifdef HAVE_LCMS2
 	cmsDoTransform( icc->trans, in[0], out, width );
-#else
-	g_mutex_lock( icc->lock );
-	cmsDoTransform( icc->trans, in[0], out, width );
-	g_mutex_unlock( icc->lock );
-#endif
 }
 
 static void
@@ -1149,6 +1071,7 @@ vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
 {
 	VipsImage *t;
 	cmsHPROFILE profile;
+	cmsCIEXYZ *media;
 	double X, Y, Z;
 	double *add;
 	double *mul;
@@ -1156,10 +1079,6 @@ vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
 
 	if( !(profile = cmsOpenProfileFromFile( profile_filename, "r" )) )
 		return( -1 );
-
-#ifdef HAVE_LCMS2
-{
-	cmsCIEXYZ *media;
 
 	if( !(media = cmsReadTag( profile, cmsSigMediaWhitePointTag )) ) {
 		vips_error( "vips_icc_ac2rc", 
@@ -1170,22 +1089,6 @@ vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
 	X = media->X;
 	Y = media->Y;
 	Z = media->Z;
-}
-#else /*HAVE_LCMS*/
-{
-	cmsCIEXYZ media;
-
-	if( !cmsTakeMediaWhitePoint( &media, profile ) ) {
-		vips_error( "vips_icc_ac2rc", 
-			"%s", _( "unable to get media white point" ) );
-		return( -1 );
-	}
-
-	X = media.X;
-	Y = media.Y;
-	Z = media.Z;
-}
-#endif
 
 	cmsCloseProfile( profile );
 
@@ -1223,7 +1126,7 @@ vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
 	return( 0 );
 }
 
-#else /*!HAVE_LCMS*/
+#else /*!HAVE_LCMS2*/
 
 #include <vips/vips.h>
 
