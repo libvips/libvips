@@ -26,6 +26,8 @@
  * 	  constructed before we go parallel
  * 18/9/16
  * 	- call _setmaxstdio() on win32
+ * 4/8/17
+ * 	- hide warnings is VIPS_WARNING is set
  */
 
 /*
@@ -241,6 +243,15 @@ vips_load_plugins( const char *fmt, ... )
 	return( result );
 }
 
+/* Install this log handler to hide warning messages.
+ */
+static void
+empty_log_handler( const gchar *log_domain, GLogLevelFlags log_level,
+	const gchar *message, gpointer user_data )
+{       
+}
+
+
 /**
  * vips_init:
  * @argv0: name of application
@@ -441,6 +452,18 @@ vips_init( const char *argv0 )
 #endif /*DEBUG_LEAK*/
 
 	done = TRUE;
+
+	/* If VIPS_WARNING is defined, suppress all warning messages from vips.
+	 *
+	 * Libraries should not call g_log_set_handler(), it is
+	 * supposed to be for the application layer, but this can be awkward to
+	 * set up if you are using libvips from something like Ruby. Allow this
+	 * env var hack as a workaround. 
+	 */
+	if( g_getenv( "VIPS_WARNING" ) ||
+		g_getenv( "IM_WARNING" ) ) 
+		g_log_set_handler( "VIPS", G_LOG_LEVEL_WARNING, 
+			empty_log_handler, NULL );
 
 	vips__thread_gate_stop( "init: startup" ); 
 
