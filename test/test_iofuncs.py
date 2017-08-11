@@ -83,6 +83,5 @@ class TestIofuncs(unittest.TestCase):
         self.assertEqual(im2.bands, 3)
         self.assertEqual(im2.avg(), 2)
 
-
 if __name__ == '__main__':
     unittest.main()
