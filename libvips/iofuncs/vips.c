@@ -19,6 +19,8 @@
  * 	- moved to vips_ namespace
  * 25/2/17
  * 	- use expat for xml read, printf for xml write
+ * 16/8/17
+ * 	- validate strs as being utf-8 before we write
  */
 
 /*
@@ -796,13 +798,19 @@ build_xml_meta( VipsMeta *meta, VipsDbuf *dbuf )
 			return( meta );
 		}
 
+		/* We need to validate the str to make sure we'll be able to
+		 * read it back. 
+		 */
 		str = vips_value_get_save_string( &save_value );
-		vips_dbuf_writef( dbuf, "    <field type=\"%s\" name=\"", 
-			g_type_name( type ) ); 
-		dbuf_write_quotes( dbuf, meta->name );
-		vips_dbuf_writef( dbuf, "\">" );  
-		dbuf_write_amp( dbuf, str );
-		vips_dbuf_writef( dbuf, "</field>\n" );  
+		if( g_utf8_validate( str, -1, NULL ) ) { 
+			vips_dbuf_writef( dbuf, 
+				"    <field type=\"%s\" name=\"", 
+				g_type_name( type ) ); 
+			dbuf_write_quotes( dbuf, meta->name );
+			vips_dbuf_writef( dbuf, "\">" );  
+			dbuf_write_amp( dbuf, str );
+			vips_dbuf_writef( dbuf, "</field>\n" );  
+		}
 
 		g_value_unset( &save_value );
 	}
@@ -827,10 +835,13 @@ build_xml( VipsImage *image )
 	vips_dbuf_writef( &dbuf, "  <header>\n" );  
 
 	str = vips_image_get_history( image );
-	vips_dbuf_writef( &dbuf, "    <field type=\"%s\" name=\"Hist\">", 
-		g_type_name( VIPS_TYPE_REF_STRING ) );
-	dbuf_write_amp( &dbuf, str );
-	vips_dbuf_writef( &dbuf, "</field>\n" ); 
+	if( g_utf8_validate( str, -1, NULL ) ) { 
+		vips_dbuf_writef( &dbuf, 
+			"    <field type=\"%s\" name=\"Hist\">", 
+			g_type_name( VIPS_TYPE_REF_STRING ) );
+		dbuf_write_amp( &dbuf, str );
+		vips_dbuf_writef( &dbuf, "</field>\n" ); 
+	}
 
 	vips_dbuf_writef( &dbuf, "  </header>\n" ); 
 	vips_dbuf_writef( &dbuf, "  <meta>\n" );  
@@ -940,7 +951,7 @@ vips__writehist( VipsImage *image )
         }
 
 #ifdef DEBUG
-	printf( "vips__writehist: saved XML is: \"%s\"", xml );
+	printf( "vips__writehist: saved XML is: \"%s\"\n", xml );
 #endif /*DEBUG*/
 
 	g_free( xml );

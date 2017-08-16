@@ -7,6 +7,8 @@
  * 	- from header.c
  * 16/7/13
  * 	- leakcheck VipsArea
+ * 16/8/17
+ * 	- validate strings as utf-8 on set
  */
 
 /*
@@ -507,16 +509,21 @@ transform_save_string_ref_string( const GValue *src_value, GValue *dest_value )
  * @str: (transfer none): string to store
  *
  * Create a new refstring. These are reference-counted immutable strings, used
- * to store string data in vips image metadata.
+ * to store string data in vips image metadata. 
+ *
+ * Strings must be valid utf-8; use blob for binary data.
  *
  * See also: vips_area_unref().
  *
- * Returns: (transfer full): the new #VipsRefString.
+ * Returns: (transfer full): the new #VipsRefString, or NULL on error.
  */
 VipsRefString *
 vips_ref_string_new( const char *str )
 {
 	VipsArea *area;
+
+	if( !g_utf8_validate( str, -1, NULL ) ) 
+		str = "<invalid utf-8 string>";
 
 	area = vips_area_new( (VipsCallbackFn) g_free, g_strdup( str ) );
 
@@ -1402,11 +1409,16 @@ vips_value_get_save_string( const GValue *value )
  * @str: C string to copy into the GValue
  *
  * Copies the C string into @value.
+ *
+ * @str should be a valid utf-8 string.
  */
 void
 vips_value_set_save_string( GValue *value, const char *str )
 {
 	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_SAVE_STRING );
+
+	if( !g_utf8_validate( str, -1, NULL ) ) 
+		str = "<invalid utf-8 string>";
 
 	g_value_set_boxed( value, str );
 }
@@ -1459,6 +1471,8 @@ vips_value_get_ref_string( const GValue *value, size_t *length )
  * vips_ref_string are immutable C strings that are copied between images by
  * copying reference-counted pointers, making them much more efficient than
  * regular %GValue strings.
+ *
+ * @str should be a valid utf-8 string.
  */
 void
 vips_value_set_ref_string( GValue *value, const char *str )
