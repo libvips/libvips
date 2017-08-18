@@ -409,13 +409,15 @@ class TestCreate(unittest.TestCase):
         self.assertEqual(im.format, Vips.BandFormat.FLOAT)
 
     def test_text(self):
-        im = Vips.Image.text("Hello, world!")
-        self.assertTrue(im.width > 10)
-        self.assertTrue(im.height > 10)
-        self.assertEqual(im.bands, 1)
-        self.assertEqual(im.format, Vips.BandFormat.UCHAR)
-        self.assertEqual(im.max(), 255)
-        self.assertEqual(im.min(), 0)
+        x = Vips.type_find("VipsOperation", "text")
+        if x.is_instantiatable():
+            im = Vips.Image.text("Hello, world!")
+            self.assertTrue(im.width > 10)
+            self.assertTrue(im.height > 10)
+            self.assertEqual(im.bands, 1)
+            self.assertEqual(im.format, Vips.BandFormat.UCHAR)
+            self.assertEqual(im.max(), 255)
+            self.assertEqual(im.min(), 0)
 
     def test_tonelut(self):
         im = Vips.Image.tonelut()
