@@ -71,6 +71,8 @@
  * 	- add dzsave_buffer
  * 11/11/16 Felix Bünemann
  * 	- better >4gb detection for zip output on older libgsfs
+ * 18/8/17
+ * 	- shut down the output earlier to flush zip output
  */
 
 /*
@@ -210,46 +212,27 @@ vips_gsf_tree_close( VipsGsfDirectory *tree )
 	vips_slist_map2( tree->children, 
 		(VipsSListMap2Fn) vips_gsf_tree_close, NULL, NULL );
 
-	if( tree->out &&
-		!gsf_output_is_closed( tree->out ) && 
-		!gsf_output_close( tree->out ) ) {
-		vips_error( "vips_gsf", "%s", _( "unable to close stream" ) ); 
-		return( tree );
-	}
-	if( tree->container &&
-		!gsf_output_is_closed( tree->container ) && 
-		!gsf_output_close( tree->container ) ) {
-		vips_error( "vips_gsf", "%s", _( "unable to close stream" ) ); 
-		return( tree );
-	}
+	if( tree->out ) {
+		if( !gsf_output_is_closed( tree->out ) &&
+			!gsf_output_close( tree->out ) ) {
+			vips_error( "vips_gsf", 
+				"%s", _( "unable to close stream" ) ); 
+			return( tree );
+		}
 
-	return( NULL ); 
-}
-
-/* Close and unref everything, can't fail. Call vips_gsf_tree_close() to get
- * an error return.
- */
-static void *
-vips_gsf_tree_free( VipsGsfDirectory *tree )
-{
-	vips_slist_map2( tree->children, 
-		(VipsSListMap2Fn) vips_gsf_tree_free, NULL, NULL );
-	g_slist_free( tree->children );
-	g_free( (char *) tree->name );
-
-	if( tree->out ) { 
-		if( !gsf_output_is_closed( tree->out ) )
-			(void) gsf_output_close( tree->out );
 		g_object_unref( tree->out );
 	}
 
 	if( tree->container ) { 
-		if( !gsf_output_is_closed( tree->container ) )
-			(void) gsf_output_close( tree->container );
+		if( !gsf_output_is_closed( tree->container ) && 
+			!gsf_output_close( tree->container ) ) {
+			vips_error( "vips_gsf", 
+				"%s", _( "unable to close stream" ) ); 
+			return( tree );
+		}
+
 		g_object_unref( tree->container );
 	}
-
-	g_free( tree );
 
 	return( NULL ); 
 }
@@ -562,7 +545,7 @@ vips_foreign_save_dz_dispose( GObject *gobject )
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) gobject;
 
 	VIPS_FREEF( layer_free, dz->layer );
-	VIPS_FREEF( vips_gsf_tree_free,  dz->tree );
+	VIPS_FREEF( vips_gsf_tree_close,  dz->tree );
 	VIPS_FREEF( g_object_unref, dz->out );
 	VIPS_FREE( dz->basename );
 	VIPS_FREE( dz->dirname );
@@ -1908,9 +1891,6 @@ vips_foreign_save_dz_build( VipsObject *object )
 		write_vips_meta( dz ) )
 		return( -1 );
 
-	if( vips_gsf_tree_close( dz->tree ) )
-		return( -1 ); 
-
 	/* This is so ugly. In earlier versions of dzsave, we wrote x.dzi and
 	 * x_files. Now we write x/x.dzi and x/x_files to make it possible to
 	 * create zip files. 
@@ -1941,6 +1921,19 @@ vips_foreign_save_dz_build( VipsObject *object )
 		if( vips_rmdirf( "%s", dz->tempdir ) )
 			return( -1 ); 
 	}
+
+	/* Shut down the output to flush everything.
+	 */
+	if( vips_gsf_tree_close( dz->tree ) )
+		return( -1 ); 
+	dz->tree = NULL; 
+
+	/* If we are writing a zip to the filesystem, we must unref out to
+	 * force it to disc.
+	 */
+	if( dz->container == VIPS_FOREIGN_DZ_CONTAINER_ZIP &&
+		dz->dirname != NULL ) 
+		VIPS_FREEF( g_object_unref, dz->out );
 
 	return( 0 );
 }

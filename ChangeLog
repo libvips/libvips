@@ -1,6 +1,7 @@
 2/8/17 started 8.5.8
 - fix transparency detection in merge, thanks Haida
 - define env var VIPS_WARNING to hide warning messages
+- shut down dzsave output earlier to help mark-sweep bindings
 
 9/6/17 started 8.5.7
 - better smartcrop
