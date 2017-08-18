@@ -254,8 +254,11 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 		g_info( "loading PDF/SVG with factor %g pre-scale", scale ); 
 	}
 	else if( vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
-		shrink = vips_thumbnail_calculate_shrink( thumbnail, 
-			thumbnail->input_width, thumbnail->input_height ); 
+		shrink = VIPS_MAX( 1.0, 
+			vips_thumbnail_calculate_shrink( thumbnail, 
+				thumbnail->input_width, 
+				thumbnail->input_height ) ); 
+
 		g_info( "loading webp with factor %d pre-shrink", shrink ); 
 	}
 
