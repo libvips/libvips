@@ -290,7 +290,7 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 				thumbnail->input_width, 
 				thumbnail->input_height ) ); 
 
-		g_info( "loading webp with factor %d pre-shrink", shrink ); 
+		g_info( "loading webp with factor %g pre-shrink", shrink ); 
 	}
 
 	if( !(im = class->open( thumbnail, shrink, scale )) )
