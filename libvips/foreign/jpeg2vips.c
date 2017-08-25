@@ -840,7 +840,7 @@ fill_input_buffer (j_decompress_ptr cinfo)
 
   InputBuffer *src = (InputBuffer *) cinfo->src;
 
-  if (src->start_of_file) {
+  if (src->start_of_file && src->len > 0) {
     src->pub.next_input_byte = src->buf;
     src->pub.bytes_in_buffer = src->len;
     src->start_of_file = FALSE;
