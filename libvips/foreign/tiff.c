@@ -2,6 +2,9 @@
  *
  * 14/10/16
  * 	- from vips2tiff.c
+ *
+ * 26/8/17
+ * 	- add openout_read, to help tiffsave_buffer for pyramids
  */
 
 /*
@@ -309,9 +312,26 @@ typedef struct _VipsTiffOpenoutBuffer {
 static tsize_t 
 openout_buffer_read( thandle_t st, tdata_t data, tsize_t size )
 {
-	g_assert_not_reached(); 
-	
-	return( 0 ); 
+	VipsTiffOpenoutBuffer *buffer = (VipsTiffOpenoutBuffer *) st;
+
+	off_t write_point;
+	size_t available;
+	unsigned char *from;
+
+	write_point = vips_dbuf_tell( &buffer->dbuf ); 
+	from = vips_dbuf_get_write( &buffer->dbuf, &available );
+	vips_dbuf_seek( &buffer->dbuf, write_point, SEEK_SET ); 
+
+	if( available < size ) { 
+		vips_error( "openout_buffer_read", 
+			"%s", _( "read beyond end of buffer" ) );
+		return( 0 );
+	}
+
+	memcpy( data, from, size ); 
+
+	vips_dbuf_seek( &buffer->dbuf, size, SEEK_CUR );                                 
+	return( size );
 }
 
 static tsize_t 

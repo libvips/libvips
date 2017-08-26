@@ -171,6 +171,8 @@
  * 29/1/17
  * 	- enable bigtiff automatically for large, uncompressed writes, thanks 
  * 	  AndreasSchmid1 
+ * 26/8/17
+ * 	- support pyramid creation to buffer, thanks bubba
  */
 
 /*
@@ -1665,8 +1667,16 @@ wtiff_gather( Wtiff *wtiff )
 			printf( "Appending layer %s ...\n", layer->lname );
 #endif /*DEBUG*/
 
-			if( !(in = vips__tiff_openin( layer->lname )) ) 
-				return( -1 );
+			if( layer->lname ) {
+				if( !(in = vips__tiff_openin( layer->lname )) ) 
+					return( -1 );
+			}
+			else {
+				if( !(in = vips__tiff_openin_buffer( wtiff->im,
+					layer->buf, layer->len )) ) 
+					return( -1 );
+			}
+
 			if( wtiff_copy_tiff( wtiff, wtiff->layer->tif, in ) ) {
 				TIFFClose( in );
 				return( -1 );

@@ -299,10 +299,10 @@ vips_dbuf_truncate( VipsDbuf *dbuf )
 }
 
 /**
- * vips_dbuf_truncate:
+ * vips_dbuf_tell:
  * @dbuf: the buffer
  *
- * Truncate the data so that it ends at the write point. No memory is freed. 
+ * Returns: the current write point
  */
 off_t
 vips_dbuf_tell( VipsDbuf *dbuf )
