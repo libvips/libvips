@@ -69,7 +69,7 @@ gboolean
 vips_dbuf_minimum_size( VipsDbuf *dbuf, size_t size )
 {
 	if( size > dbuf->allocated_size ) { 
-		size_t new_allocated_size = 3 * (16 + size) / 2;
+		const size_t new_allocated_size = 3 * (16 + size) / 2;
 
 		unsigned char *new_data;
 
@@ -102,25 +102,26 @@ vips_dbuf_allocate( VipsDbuf *dbuf, size_t size )
 }
 
 /**
- * vips_dbuf_null_terminate:
+ * vips_dbuf_read:
  * @dbuf: the buffer
+ * @data: read to this area
+ * @size: read up to this many bytes
  *
- * Make sure the byte after the last data byte is `\0`. This extra byte is not
- * included in the data size and the write point is not moved.
+ * Up to @size bytes are read from the buffer and copied to @data. The number
+ * of bytes transferred is returned.
  *
- * This makes it safe to treat the dbuf contents as a C string. 
- * 
- * Returns: %FALSE on out of memory, %TRUE otherwise.
+ * Returns: the number of bytes transferred.
  */
-static gboolean
-vips_dbuf_null_terminate( VipsDbuf *dbuf )
+size_t
+vips_dbuf_read( VipsDbuf *dbuf, unsigned char *data, size_t size )
 {
-	if( !vips_dbuf_minimum_size( dbuf, dbuf->data_size + 1 ) )
-		return( FALSE );
+	const size_t available = dbuf->data_size - dbuf->write_point;
+	const size_t copied = VIPS_MIN( size, available );
 
-	dbuf->data[dbuf->data_size] = 0;
+	memcpy( data, dbuf->data + dbuf->write_point, copied );
+	dbuf->write_point += copied;
 
-	return( TRUE ); 
+	return( copied );
 }
 
 /**
@@ -141,14 +142,14 @@ unsigned char *
 vips_dbuf_get_write( VipsDbuf *dbuf, size_t *size )
 {
 	unsigned char *write = dbuf->data + dbuf->write_point;
-	size_t length = dbuf->data + dbuf->allocated_size - write;
+	const size_t available = dbuf->allocated_size - dbuf->write_point;
 
-	memset( write, 0, length ); 
+	memset( write, 0, available ); 
 	dbuf->write_point = dbuf->allocated_size;
 	dbuf->data_size = dbuf->allocated_size;
 
 	if( size )
-		*size = length;
+		*size = available;
 
 	return( write ); 
 }
@@ -308,6 +309,28 @@ off_t
 vips_dbuf_tell( VipsDbuf *dbuf )
 {
 	return( dbuf->write_point ); 
+}
+
+/**
+ * vips_dbuf_null_terminate:
+ * @dbuf: the buffer
+ *
+ * Make sure the byte after the last data byte is `\0`. This extra byte is not
+ * included in the data size and the write point is not moved.
+ *
+ * This makes it safe to treat the dbuf contents as a C string. 
+ * 
+ * Returns: %FALSE on out of memory, %TRUE otherwise.
+ */
+static gboolean
+vips_dbuf_null_terminate( VipsDbuf *dbuf )
+{
+	if( !vips_dbuf_minimum_size( dbuf, dbuf->data_size + 1 ) )
+		return( FALSE );
+
+	dbuf->data[dbuf->data_size] = 0;
+
+	return( TRUE ); 
 }
 
 /**

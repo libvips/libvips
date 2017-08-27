@@ -64,6 +64,7 @@ typedef struct _VipsDbuf {
 void vips_dbuf_destroy( VipsDbuf *buf );
 void vips_dbuf_init( VipsDbuf *buf );
 gboolean vips_dbuf_allocate( VipsDbuf *dbuf, size_t size );
+size_t vips_dbuf_read( VipsDbuf *dbuf, unsigned char *data, size_t size );
 unsigned char *vips_dbuf_get_write( VipsDbuf *dbuf, size_t *size );
 gboolean vips_dbuf_write( VipsDbuf *dbuf, 
 	const unsigned char *data, size_t size );
