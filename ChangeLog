@@ -15,6 +15,9 @@
 - `join` tagged as seq
 - support tiffsave_buffer for pyramids, thanks bubba
 
+29/8/17 started 8.5.9
+- make --fail stop jpeg read on any libjpeg warning, thanks @mceachen
+
 2/8/17 started 8.5.8
 - fix transparency detection in merge, thanks Haida
 - define env var VIPS_WARNING to hide warning messages
