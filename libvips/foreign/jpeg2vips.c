@@ -87,6 +87,10 @@
  * 	- invalidate operation on read error
  * 12/5/17
  * 	- fail aborts on error, not warning
+ * 29/8/17
+ * 	- revert previous warning change: libvips reports serious corruption, 
+ * 	  like a truncated file, as a warning and we need to be able to catch
+ * 	  that
  */
 
 /*
@@ -150,7 +154,7 @@ typedef struct _ReadJpeg {
 	 */
 	int shrink;
 
-	/* Fail on errors.
+	/* Fail on warning.
 	 */
 	gboolean fail;
 
@@ -571,10 +575,23 @@ read_jpeg_generate( VipsRegion *or,
 		printf( "read_jpeg_generate: lonjmp() exit\n" ); 
 #endif /*DEBUG*/
 
-		if( jpeg->fail ) 
-			return( -1 );
+		return( -1 );
+	}
 
-		return( 0 );
+	/* If --fail is set, we make read fail on any warnings. This
+	 * will stop on any errors from the previous jpeg_read_scanlines().
+	 * libjpeg warnings are used for serious image corruption, like
+	 * truncated files. 
+	 */
+	if( jpeg->eman.pub.num_warnings > 0 &&
+		jpeg->fail ) {
+		VIPS_GATE_STOP( "read_jpeg_generate: work" );
+
+		/* Only fail once.
+		 */
+		jpeg->eman.pub.num_warnings = 0;
+
+		return( -1 );
 	}
 
 	for( y = 0; y < r->height; y++ ) {
