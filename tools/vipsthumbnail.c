@@ -92,6 +92,8 @@
  * 	- support VipSize restrictions
  * 4/5/17
  * 	- add ! geo modifier
+ * 30/8/17
+ * 	- add --intent
  */
 
 #ifdef HAVE_CONFIG_H
@@ -125,6 +127,7 @@ static gboolean linear_processing = FALSE;
 static gboolean crop_image = FALSE;
 static char *smartcrop_image = NULL;
 static gboolean rotate_image = FALSE;
+static char *thumbnail_intent = NULL;
 
 /* Deprecated and unused.
  */
@@ -162,6 +165,10 @@ static GOptionEntry options[] = {
 		G_OPTION_ARG_STRING, &smartcrop_image, 
 		N_( "shrink and crop to fill SIZE using STRATEGY" ), 
 		N_( "STRATEGY" ) },
+	{ "intent", 'n', 0, 
+		G_OPTION_ARG_STRING, &thumbnail_intent, 
+		N_( "ICC transform with INTENT" ), 
+		N_( "INTENT" ) },
 	{ "rotate", 't', 0, 
 		G_OPTION_ARG_NONE, &rotate_image, 
 		N_( "auto-rotate" ), NULL },
@@ -245,17 +252,27 @@ thumbnail_process( VipsObject *process, const char *filename )
 {
 	VipsInteresting interesting;
 	VipsImage *image;
+	VipsIntent intent;
 
 	interesting = VIPS_INTERESTING_NONE;
 	if( crop_image )
 		interesting = VIPS_INTERESTING_CENTRE;
 	if( smartcrop_image ) {
 		int n;
-		
+
 		if( (n = vips_enum_from_nick( "vipsthumbnail", 
 			VIPS_TYPE_INTERESTING, smartcrop_image )) < 0 ) 
 			return( -1 ); 
 		interesting = n;
+	}
+	intent = VIPS_INTENT_RELATIVE;
+	if( thumbnail_intent ) {
+		int n;
+
+		if( (n = vips_enum_from_nick( "vipsthumbnail", 
+			VIPS_TYPE_INTENT, thumbnail_intent )) < 0 ) 
+			return( -1 ); 
+		intent = n;
 	}
 
 	if( vips_thumbnail( filename, &image, thumbnail_width, 
@@ -266,6 +283,7 @@ thumbnail_process( VipsObject *process, const char *filename )
 		"linear", linear_processing, 
 		"import_profile", import_profile, 
 		"export_profile", export_profile, 
+		"intent", intent, 
 		NULL ) )
 		return( -1 );
 

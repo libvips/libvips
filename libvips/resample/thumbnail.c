@@ -9,6 +9,8 @@
  * 	- add FORCE
  * 29/5/17
  * 	- don't cache (thanks tomasc)
+ * 30/8/17
+ * 	- add intent option, thanks kleisauke
  */
 
 /*
@@ -81,6 +83,7 @@ typedef struct _VipsThumbnail {
 	gboolean linear;
 	char *export_profile;
 	char *import_profile;
+	VipsIntent intent;
 
 	/* Set by subclasses to the input image.
 	 */
@@ -375,6 +378,7 @@ vips_thumbnail_build( VipsObject *object )
 		if( vips_icc_import( in, &t[1], 
 			"input_profile", thumbnail->import_profile,
 			"embedded", TRUE,
+			"intent", thumbnail->intent,
 			"pcs", VIPS_PCS_XYZ,
 			NULL ) )  
 			return( -1 );
@@ -442,6 +446,7 @@ vips_thumbnail_build( VipsObject *object )
 			g_info( "exporting to device space with a profile" );
 			if( vips_icc_export( in, &t[7], 
 				"output_profile", thumbnail->export_profile,
+				"intent", thumbnail->intent,
 				NULL ) )  
 				return( -1 );
 			in = t[7];
@@ -470,6 +475,7 @@ vips_thumbnail_build( VipsObject *object )
 
 			if( vips_icc_transform( in, &t[7], 
 				thumbnail->export_profile,
+				"intent", thumbnail->intent,
 				"embedded", TRUE,
 				NULL ) ) {
 				g_warning( _( "unable to import with "
@@ -489,6 +495,7 @@ vips_thumbnail_build( VipsObject *object )
 			if( vips_icc_transform( in, &t[7], 
 				thumbnail->export_profile,
 				"input_profile", thumbnail->import_profile,
+				"intent", thumbnail->intent,
 				"embedded", FALSE,
 				NULL ) )  
 				return( -1 );
@@ -630,6 +637,13 @@ vips_thumbnail_class_init( VipsThumbnailClass *class )
 		G_STRUCT_OFFSET( VipsThumbnail, export_profile ),
 		NULL ); 
 
+	VIPS_ARG_ENUM( class, "intent", 120, 
+		_( "Intent" ), 
+		_( "Rendering intent" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsThumbnail, intent ),
+		VIPS_TYPE_INTENT, VIPS_INTENT_RELATIVE );
+
 }
 
 static void
@@ -638,6 +652,7 @@ vips_thumbnail_init( VipsThumbnail *thumbnail )
 	thumbnail->width = 1;
 	thumbnail->height = 1;
 	thumbnail->auto_rotate = TRUE;
+	thumbnail->intent = VIPS_INTENT_RELATIVE;
 }
 
 typedef struct _VipsThumbnailFile {
@@ -745,6 +760,7 @@ vips_thumbnail_file_init( VipsThumbnailFile *file )
  * * @linear: %gboolean, perform shrink in linear light
  * * @import_profile: %gchararray, fallback import ICC profile
  * * @export_profile: %gchararray, export ICC profile
+ * * @intent: #VipsIntent, rendering intent
  *
  * Make a thumbnail from a file. Shrinking is done in three stages: using any
  * shrink-on-load features available in the file import library, using a block
@@ -785,6 +801,9 @@ vips_thumbnail_file_init( VipsThumbnailFile *file )
  * output. You can also give an @import_profile which will be used if the 
  * input image has no ICC profile, or if the profile embedded in the 
  * input image is broken.
+ *
+ * Use @intent to set the rendering intent for any ICC transform. The default
+ * is #VIPS_INTENT_RELATIVE.
  *
  * See also: vips_thumbnail_buffer().
  *
@@ -917,6 +936,7 @@ vips_thumbnail_buffer_init( VipsThumbnailBuffer *buffer )
  * * @linear: %gboolean, perform shrink in linear light
  * * @import_profile: %gchararray, fallback import ICC profile
  * * @export_profile: %gchararray, export ICC profile
+ * * @intent: #VipsIntent, rendering intent
  *
  * Exacty as vips_thumbnail(), but read from a memory buffer. 
  *
@@ -1031,6 +1051,7 @@ vips_thumbnail_image_init( VipsThumbnailImage *image )
  * * @linear: %gboolean, perform shrink in linear light
  * * @import_profile: %gchararray, fallback import ICC profile
  * * @export_profile: %gchararray, export ICC profile
+ * * @intent: #VipsIntent, rendering intent
  *
  * Exacty as vips_thumbnail(), but read from an existing image.
  *

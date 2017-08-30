@@ -14,6 +14,7 @@
 - remove lcms1 support, it had bitrotted
 - `join` tagged as seq
 - support tiffsave_buffer for pyramids, thanks bubba
+- thumbnail and vipsthumbnail have an option for rendering intent, thanks kleisauke 
 
 29/8/17 started 8.5.9
 - make --fail stop jpeg read on any libjpeg warning, thanks @mceachen
