@@ -17,6 +17,7 @@
 
 29/8/17 started 8.5.9
 - make --fail stop jpeg read on any libjpeg warning, thanks @mceachen
+- don't build enumtypes so often, removing perl as a compile dependancy
 
 2/8/17 started 8.5.8
 - fix transparency detection in merge, thanks Haida
