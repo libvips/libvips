@@ -72,11 +72,7 @@ vips_scan_headers = \
 	${top_srcdir}/libvips/include/vips/morphology.h \
 	${top_srcdir}/libvips/include/vips/draw.h \
 	${top_srcdir}/libvips/include/vips/basic.h \
-	${top_srcdir}/libvips/include/vips/version.h \
 	${top_srcdir}/libvips/include/vips/object.h
 
-enumtypes.h: $(vips_scan_headers) Makefile
-	glib-mkenums --template enumtemplate \
-		$(vips_scan_headers) > xgen-geth && \
-	( cmp -s xgen-geth enumtypes.h || cp xgen-geth enumtypes.h ) && \
-	rm -f xgen-geth 
+enumtypes.h: $(vips_scan_headers) Makefile.am
+	glib-mkenums --template enumtemplate $(vips_scan_headers) > enumtypes.h
