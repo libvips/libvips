@@ -7,12 +7,12 @@ comes with libvips (it passes the same test suite), it's very easy to install
 on Linux, macOS and Windows, it works with any Python, it should be 
 smaller and more stable, and it has nice new documentation:
 
-https://jcupitt.github.io/pyvips/
+[https://jcupitt.github.io/pyvips/](https://jcupitt.github.io/pyvips/)
 
 The README in the repository for the binding has more details, including some
 install notes and an example:
 
-https://github.com/jcupitt/phpvips
+[https://github.com/jcupitt/phpvips](https://github.com/jcupitt/phpvips)
 
 But briefly, just get the libvips shared library on your system and enter:
 
