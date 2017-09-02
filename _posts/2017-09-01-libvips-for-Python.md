@@ -12,7 +12,7 @@ smaller and more stable, and it has nice new documentation:
 The README in the repository for the binding has more details, including some
 install notes and an example:
 
-[https://github.com/jcupitt/phpvips](https://github.com/jcupitt/phpvips)
+[https://github.com/jcupitt/pyvips](https://github.com/jcupitt/pyvips)
 
 But briefly, just get the libvips shared library on your system and enter:
 
