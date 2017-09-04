@@ -407,7 +407,7 @@ vips_operation_usage( VipsOperationClass *class, VipsBuf *buf )
 	vips_argument_class_map( object_class,
 		(VipsArgumentClassMapFn) vips_operation_class_usage_arg, 
 			buf, &usage );
-	vips_buf_appends( buf, "\n" );
+	vips_buf_appends( buf, " [--option-name option-value ...]\n" );
 
 	/* Show required types.
 	 */
