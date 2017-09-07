@@ -544,25 +544,21 @@ vips__write( int fd, const void *buf, size_t count )
 }
 
 #ifdef OS_WIN32
-/* Deletes and resets the create date on the named file. This is necessary on
- * Windows, or the create date may be copied over from an existing file of the
- * same name. 
+/* Set the create date on a file. On Windows, the create date may be copied 
+ * over from an existing file of the same name, unless you reset it. 
  *
  * See https://blogs.msdn.microsoft.com/oldnewthing/20050715-14/?p=34923
  */
-int
-vips__delete_create( const char *path16 )
+void
+vips__set_create_time( int fd )
 {
 	HANDLE handle;
+	FILETIME current_time;
 
-	/* Even though we're only writing, ask for read as well to
-	 * speed up operation over network shares.
-	 */
-	handle = CreateFileW( path16, GENERIC_READ | GENERIC_WRITE, 
-		0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL );
-
-	if( handle != INVALID_HANDLE_VALUE )
-		CloseHandle( handle );
+	if( (handle = _get_osfhandle( fd )) == INVALID_HANDLE_VALUE )
+		return;
+	GetSystemTime( &current_time );
+	SetFileTime( handle, &current_time, NULL, NULL );
 }
 #endif /*OS_WIN32*/
 
@@ -589,10 +585,10 @@ vips__open( const char *filename, int flags, ... )
 		return( -1 );
 	}
 
-	if( mode & O_CREAT )
-		vips__delete_create( path16 ); 
-
 	fd = _wopen( path16, flags, mode );
+
+	if( mode & O_CREAT )
+		vips__set_create_time( fd ); 
 
 	g_free( path16 );
 }
@@ -632,13 +628,13 @@ vips__fopen( const char *filename, const char *mode )
 		return( NULL );
 	}
 
-	if( mode[0] == 'w' )
-		vips__delete_create( path16 ); 
-
 	fp = _wfopen( path16, mode16 );
 
 	g_free( path16 );
 	g_free( mode16 );
+
+	if( mode[0] == 'w' )
+		vips__set_create_time( _fileno( fp ) ); 
 #else /*!OS_WIN32*/
 	fp = fopen( filename, mode );
 #endif
