@@ -543,6 +543,29 @@ vips__write( int fd, const void *buf, size_t count )
 	return( 0 );
 }
 
+#ifdef OS_WIN32
+/* Deletes and resets the create date on the named file. This is necessary on
+ * Windows, or the create date may be copied over from an existing file of the
+ * same name. 
+ *
+ * See https://blogs.msdn.microsoft.com/oldnewthing/20050715-14/?p=34923
+ */
+int
+vips__delete_create( const char *path16 )
+{
+	HANDLE handle;
+
+	/* Even though we're only writing, ask for read as well to
+	 * speed up operation over network shares.
+	 */
+	handle = CreateFileW( path16, GENERIC_READ | GENERIC_WRITE, 
+		0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL );
+
+	if( handle != INVALID_HANDLE_VALUE )
+		CloseHandle( handle );
+}
+#endif /*OS_WIN32*/
+
 /* open() with a utf8 filename, setting errno.
  */
 int
@@ -565,6 +588,9 @@ vips__open( const char *filename, int flags, ... )
 		errno = EACCES;
 		return( -1 );
 	}
+
+	if( mode & O_CREAT )
+		vips__delete_create( path16 ); 
 
 	fd = _wopen( path16, flags, mode );
 
@@ -605,6 +631,9 @@ vips__fopen( const char *filename, const char *mode )
 		errno = EACCES;
 		return( NULL );
 	}
+
+	if( mode[0] == 'w' )
+		vips__delete_create( path16 ); 
 
 	fp = _wfopen( path16, mode16 );
 
