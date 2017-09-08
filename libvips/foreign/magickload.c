@@ -10,6 +10,8 @@
  * 	- add @page option, 0 by default
  * 25/11/16
  * 	- add @n, deprecate @all_frames (just sets n = -1)
+ * 8/9/17
+ * 	- don't cache magickload
  */
 
 /*
@@ -95,6 +97,7 @@ vips_foreign_load_magick_class_init( VipsForeignLoadMagickClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
@@ -103,6 +106,10 @@ vips_foreign_load_magick_class_init( VipsForeignLoadMagickClass *class )
 
 	object_class->nickname = "magickload_base";
 	object_class->description = _( "load with ImageMagick" );
+
+	/* Don't cache magickload: it can gobble up memory and disc. 
+	 */
+	operation_class->flags = VIPS_OPERATION_NOCACHE;
 
 	/* We need to be well to the back of the queue since vips's
 	 * dedicated loaders are usually preferable.
