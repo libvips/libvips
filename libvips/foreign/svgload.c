@@ -8,6 +8,8 @@
  * 	- invalidate operation on read error
  * 8/7/17
  * 	- fix DPI mixup, thanks Fosk
+ * 9/9/17
+ * 	- limit max tile width to 30k pixels to prevent overflow in render
  */
 
 /*
