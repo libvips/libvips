@@ -8,6 +8,8 @@
  * 	- invalidate operation on read error
  * 8/7/17
  * 	- fix DPI mixup, thanks Fosk
+ * 9/9/17
+ * 	- limit max tile width to 30k pixels to prevent overflow in render
  */
 
 /*
@@ -216,6 +218,7 @@ vips_foreign_load_svg_load( VipsForeignLoad *load )
 	int tile_width;
 	int tile_height;
 	int n_lines;
+	int max_tiles;
 
 	/* Use this to pick a tile height for our strip cache.
 	 */
@@ -231,12 +234,19 @@ vips_foreign_load_svg_load( VipsForeignLoad *load )
 		NULL, vips_foreign_load_svg_generate, NULL, svg, NULL ) )
 		return( -1 );
 
-	/* Don't use tilecache to keep the number of calls to
-	 * rsvg_handle_render_cairo() low. Don't thread the cache, we rely on
-	 * locking to keep rsvg single-threaded.
+	/* librsvg starts to fail if any axis in a single render call is over 
+	 * 32767. Use a tilecache so we can render very wide images, though we
+	 * set it up like a linecache. 
+	 *
+	 * Don't thread the cache: we rely on this to keep calls to rsvg 
+	 * single-threaded.
 	 */
-	if( vips_linecache( t[0], &t[1],
+	max_tiles = 3 * VIPS_ROUND_UP( t[0]->Xsize, 30000 ) / 30000;
+	if( vips_tilecache( t[0], &t[1],
+		"tile_width", 30000,
 		"tile_height", tile_height,
+		"max_tiles", max_tiles,
+		"access", VIPS_ACCESS_SEQUENTIAL,
 		NULL ) ) 
 		return( -1 );
 	if( vips_image_write( t[1], load->real ) ) 
