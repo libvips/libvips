@@ -553,12 +553,14 @@ void
 vips__set_create_time( int fd )
 {
 	HANDLE handle;
-	FILETIME current_time;
+	SYSTEMTIME st;
+	FILETIME ft;
 
 	if( (handle = _get_osfhandle( fd )) == INVALID_HANDLE_VALUE )
 		return;
-	GetSystemTime( &current_time );
-	SetFileTime( handle, &current_time, NULL, NULL );
+	GetSystemTime( &st );
+	SystemTimeToFileTime( &st, &ft );
+	SetFileTime( handle, &ft, NULL, NULL );
 }
 #endif /*OS_WIN32*/
 
