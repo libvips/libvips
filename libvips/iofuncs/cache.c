@@ -908,6 +908,10 @@ vips_cache_set_max( int max )
  * Set the maximum amount of tracked memory we allow before we start dropping
  * cached operations. See vips_tracked_get_mem().
  *
+ * libvips only tracks memory it allocates, it can't track memory allocated by
+ * external libraries. If you use an operation like vips_magickload(), most of
+ * the memory it uses won't be included. 
+ *
  * See also: vips_tracked_get_mem(). 
  */
 void
@@ -974,6 +978,10 @@ vips_cache_get_max_mem( void )
  *
  * Get the maximum number of tracked files we allow before we start dropping
  * cached operations. See vips_tracked_get_files().
+ *
+ * libvips only tracks file descriptors it allocates, it can't track ones 
+ * allocated by external libraries. If you use an operation like 
+ * vips_magickload(), most of the descriptors it uses won't be included. 
  *
  * See also: vips_tracked_get_files(). 
  *
