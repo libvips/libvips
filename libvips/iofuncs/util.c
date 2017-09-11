@@ -560,7 +560,7 @@ vips__set_create_time( int fd )
 		return;
 	GetSystemTime( &st );
 	SystemTimeToFileTime( &st, &ft );
-	SetFileTime( handle, &ft, NULL, NULL );
+	SetFileTime( handle, &ft, &ft, &ft );
 }
 #endif /*OS_WIN32*/
 
