@@ -66,8 +66,8 @@ test_thumbnail() {
 
 	printf "testing thumbnail -s $geo ... "
 	$vipsthumbnail $image -s "$geo" -o $tmp/t1.jpg
-	width=$(vipsheader -f width $tmp/t1.jpg)
-	height=$(vipsheader -f height $tmp/t1.jpg)
+	width=$($vipsheader -f width $tmp/t1.jpg)
+	height=$($vipsheader -f height $tmp/t1.jpg)
 	if [ $width -ne $correct_width ]; then
 		echo width is $width, not $correct_width
 		exit 1

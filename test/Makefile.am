@@ -1,12 +1,5 @@
-TESTS = 
-
-if ENABLE_PYVIPS8
-TESTS += \
-	test_python.sh 
-endif
-
 # don't run test_thumbnail.sh by default, it takes ages
-TESTS += \
+TESTS = \
 	test_cli.sh \
 	test_formats.sh \
 	test_seq.sh \
@@ -19,22 +12,8 @@ EXTRA_DIST = \
 	test_formats.sh \
 	test_seq.sh \
 	test_thumbnail.sh \
-	test_threading.sh \
-	test_python.sh \
-	test_all.py \
-	test_arithmetic.py \
-	test_colour.py \
-	test_conversion.py \
-	test_convolution.py \
-	test_iofuncs.py \
-	test_create.py \
-	test_foreign.py \
-	test_draw.py \
-	test_histogram.py \
-	test_morphology.py \
-	test_resample.py 
+	test_threading.sh 
 
 clean-local: 
 	-rm -rf tmp-*
-	-rm -f *.pyc
 
