@@ -833,10 +833,10 @@ fi
 # install vips8 python
 AC_ARG_ENABLE([pyvips8],
   AS_HELP_STRING([--enable-pyvips8],
-    [install vips8 Python overrides (default: test)]),
+    [install vips8 Python overrides (default: no)]),
   [enable_pyvips8=$enableval
   ], 
-  [enable_pyvips8="auto"
+  [enable_pyvips8="no (default)"
   ]
 )
 
@@ -962,11 +962,12 @@ if test x"$with_libexif" != "xno"; then
 fi
 
 # make python binding?
+with_python="no (default)"
 AC_ARG_WITH([python], 
-  AS_HELP_STRING([--without-python], 
-    [build without vips7 Python bindings (default: test)]))
+  AS_HELP_STRING([--with-python], 
+    [build with vips7 Python bindings (default: no)]))
 
-if test x"$with_python" != x"no"; then
+if test x"$with_python" = x"yes"; then
   if test x"$enable_cxx" = x"no"; then
     # if C++ is off, we can't do Python
     with_python=no
@@ -974,7 +975,7 @@ if test x"$with_python" != x"no"; then
   fi
 fi
 
-if test x"$with_python" != x"no"; then
+if test x"$with_python" = x"yes"; then
   JD_PATH_PYTHON(2.7,,
     [with_python=no
      AC_MSG_WARN([Python >= 2.7 not found; disabling vips7 Python binding])
@@ -982,7 +983,7 @@ if test x"$with_python" != x"no"; then
   )
 fi
 
-if test x"$with_python" != x"no"; then
+if test x"$with_python" = x"yes"; then
   # The SWIG bindings don't compile on python3 (see issue #334).
   AM_PYTHON_CHECK_VERSION([$PYTHON], [3.0],
     [with_python=no
@@ -991,7 +992,7 @@ if test x"$with_python" != x"no"; then
   )
 fi
 
-if test x"$with_python" != x"no"; then
+if test x"$with_python" = x"yes"; then
   AM_CHECK_PYTHON_HEADERS(,
     [with_python=no
      AC_MSG_WARN([Python headers not found; disabling vips7 Python binding])
@@ -1002,9 +1003,8 @@ fi
 # we don't check for swig: we include the generated bindings in the
 # distribution
 
-if test x"$with_python" != x"no"; then
+if test x"$with_python" = x"yes"; then
   AM_CONDITIONAL(HAVE_PYTHON, true)
-  with_python=yes
 else
   AM_CONDITIONAL(HAVE_PYTHON, false)
 fi

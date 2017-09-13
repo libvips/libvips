@@ -18,6 +18,8 @@
   kleisauke 
 - set file create time on Windows, thanks dlong500
 - remove python tests ... moved to pyvips test suite
+- vips7 and vips8 python bindings default to off ... use the new pyvips
+  binding instead
 
 29/8/17 started 8.5.9
 - make --fail stop jpeg read on any libjpeg warning, thanks @mceachen
