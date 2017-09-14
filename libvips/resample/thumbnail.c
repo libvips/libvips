@@ -281,9 +281,9 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 	}
 	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
 		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) {
-		shrink = vips_thumbnail_calculate_common_shrink( thumbnail, 
+		scale = 1.0 / 
+			vips_thumbnail_calculate_common_shrink( thumbnail, 
 			thumbnail->input_width, thumbnail->input_height );
-		scale = 1.0 / shrink; 
 
 		g_info( "loading PDF/SVG with factor %g pre-scale", scale ); 
 	}
