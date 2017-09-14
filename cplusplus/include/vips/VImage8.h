@@ -307,13 +307,13 @@ public:
 		return( vips_image_get_yres( get_image() ) ); 
 	}
 
-	double 
+	int
 	xoffset()
 	{
 		return( vips_image_get_xoffset( get_image() ) ); 
 	}
 
-	double 
+	int
 	yoffset()
 	{
 		return( vips_image_get_yoffset( get_image() ) ); 
