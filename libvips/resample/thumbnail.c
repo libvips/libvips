@@ -281,8 +281,7 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 	}
 	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
 		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) {
-		scale = 1.0 / 
-			vips_thumbnail_calculate_common_shrink( thumbnail, 
+		scale = 1.0 / vips_thumbnail_calculate_common_shrink( thumbnail, 
 			thumbnail->input_width, thumbnail->input_height );
 
 		g_info( "loading PDF/SVG with factor %g pre-scale", scale ); 
@@ -697,6 +696,11 @@ static VipsImage *
 vips_thumbnail_file_open( VipsThumbnail *thumbnail, int shrink, double scale )
 {
 	VipsThumbnailFile *file = (VipsThumbnailFile *) thumbnail;
+
+	/* If both shrink and scale have been set, something is wrong. It
+	 * should be one or the other (or neither).
+	 */
+	g_assert( shrink == 1 || scale == 1.0 );
 
 	if( shrink != 1 ) 
 		return( vips_image_new_from_file( file->filename, 

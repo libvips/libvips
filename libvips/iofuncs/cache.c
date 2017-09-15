@@ -445,16 +445,22 @@ vips_operation_equal( VipsOperation *a, VipsOperation *b )
 	return( FALSE );
 }
 
+void *
+vips__cache_once_init( void )
+{
+	vips_cache_lock = vips_g_mutex_new();
+
+	vips_cache_table = g_hash_table_new( 
+		(GHashFunc) vips_operation_hash, 
+		(GEqualFunc) vips_operation_equal );
+}
+
 void
 vips__cache_init( void )
 {
-	if( !vips_cache_table ) {
-		vips_cache_lock = vips_g_mutex_new();
+	static GOnce once = G_ONCE_INIT;
 
-		vips_cache_table = g_hash_table_new( 
-			(GHashFunc) vips_operation_hash, 
-			(GEqualFunc) vips_operation_equal );
-	}
+	g_once( &once, (GThreadFunc) vips__cache_once_init, NULL );
 }
 
 static void *
