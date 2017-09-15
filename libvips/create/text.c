@@ -108,6 +108,12 @@ static PangoFontMap *vips_text_fontmap = NULL;
  */
 static GMutex *vips_text_lock = NULL; 
 
+/* The maximum deviation to tolerate for autofitting the text
+ *
+ * TODO: Should the user be able to change this?
+ */
+static int const MAX_TOLERANCE = 10;
+
 static void
 vips_text_dispose( GObject *gobject )
 {
@@ -232,8 +238,7 @@ append_to_flist( FontSizeList *flist, FontSizeList *nflist )
 
 static PangoRectangle
 fit_to_bounds( VipsText *text,
-	int tolerance, char *name, int size, PangoRectangle rect,
-	FontSizeList *flist, bool coarse )
+	char *name, int size, PangoRectangle rect, FontSizeList *flist, bool coarse )
 {
 	int buf_size = strlen( name ) + digits_in_num( size ) + 2;
 	int deviation;
@@ -261,7 +266,7 @@ fit_to_bounds( VipsText *text,
 	text->layout = text_layout_new( text->context,
 		text->text, buf, text->width, text->spacing, text->align );
 
-	pango_layout_get_extents( text->layout, &rect, NULL );
+	pango_layout_get_extents( text->layout, NULL, &rect );
 
 	deviation = determine_deviation( text->width, text->height, rect );
 
@@ -275,7 +280,7 @@ fit_to_bounds( VipsText *text,
 	// smallest deviation and then fit in small adjustments
 	if( search_flist( flist, size ) ) {
 		if( coarse ) {
-			return fit_to_bounds( text, tolerance, name, size, rect,
+			return fit_to_bounds( text, name, size, rect,
 				least_deviation_flist( flist ), false );
 		} else {
 			// We cannot do better than this because we will
@@ -284,8 +289,8 @@ fit_to_bounds( VipsText *text,
 		}
 	}
 
-	if( deviation > tolerance )  {
-		return fit_to_bounds( text, tolerance, name, size, rect, flist, coarse );
+	if( deviation > MAX_TOLERANCE )  {
+		return fit_to_bounds( text, name, size, rect, flist, coarse );
 	} else {
 		return rect;
 	}
@@ -300,7 +305,6 @@ vips_text_build( VipsObject *object )
 	FontSizeList *flist = (FontSizeList *) malloc( sizeof( FontSizeList ) );
 
 	PangoRectangle logical_rect;
-	PangoRectangle ink_rect;
 	int left;
 	int top;
 	int width;
@@ -310,9 +314,6 @@ vips_text_build( VipsObject *object )
 	int font_size = 0;
 	char *last;
 	bool is_font_size_provided = true;
-
-	// TODO: Should user be allowed to change this?
-	const int TOLERANCE = 100; // 10% * 10% for width, height
 
 	if( VIPS_OBJECT_CLASS( vips_text_parent_class )->build( object ) )
 		return( -1 );
@@ -335,7 +336,7 @@ vips_text_build( VipsObject *object )
 	if( font_size ) {
 		strncat( font_name, text->font, last - text->font );
 	} else {
-		// Font was more than 1 word. "Fira Code" would have last
+		// Font was more than 1 MAX_word. "Fira Code" would have last
 		// pointing to "Code", leading atol to output 0
 		// Fix font_name back to the original in this case
 		strcpy( font_name, text->font );
@@ -360,25 +361,24 @@ vips_text_build( VipsObject *object )
 		return( -1 );
 	}
 
-	pango_layout_get_extents( text->layout, &ink_rect, &logical_rect );
+	pango_layout_get_extents( text->layout, NULL, &logical_rect );
 
 	if( !is_font_size_provided ) {
 		if( text->height && text->width ) {
-			deviation = determine_deviation( text->width, text->height, ink_rect );
+			deviation = determine_deviation( text->width, text->height, logical_rect );
 		}
 
-		if( deviation > TOLERANCE ) {
+		if( deviation > MAX_TOLERANCE ) {
 			flist->size = font_size;
 			flist->deviation = deviation;
-			flist->area = PANGO_PIXELS( ink_rect.width ) * PANGO_PIXELS( ink_rect.height );
+			flist->area = PANGO_PIXELS( logical_rect.width ) * PANGO_PIXELS( logical_rect.height );
 			flist->next = NULL;
 
-			logical_rect = fit_to_bounds( text, TOLERANCE, font_name,
-				font_size, ink_rect, flist, true );
+			logical_rect = fit_to_bounds( text, font_name, font_size, logical_rect, flist, true );
 		}
 
 		// Logical rect does not help us with exact bounds of the text
-		pango_layout_get_extents( text->layout, &ink_rect, NULL );
+		pango_layout_get_extents( text->layout, NULL, &logical_rect );
 	}
 
 
@@ -388,11 +388,6 @@ vips_text_build( VipsObject *object )
 		PANGO_PIXELS( logical_rect.y ),
 		PANGO_PIXELS( logical_rect.width ),
 		PANGO_PIXELS( logical_rect.height ) );
-	printf( "ink left = %d, top = %d, width = %d, height = %d\n",
-		PANGO_PIXELS( ink_rect.x ),
-		PANGO_PIXELS( ink_rect.y ),
-		PANGO_PIXELS( ink_rect.width ),
-		PANGO_PIXELS( ink_rect.height ) );
 #endif /*DEBUG*/
 
 	left = PANGO_PIXELS( logical_rect.x );
@@ -405,8 +400,8 @@ vips_text_build( VipsObject *object )
 	if( !is_font_size_provided && text->width && text->height ) {
 		left = 0;
 		top = 0;
-		width = PANGO_PIXELS( ink_rect.width );
-		height = PANGO_PIXELS( ink_rect.height );
+		width = PANGO_PIXELS( logical_rect.width );
+		height = PANGO_PIXELS( logical_rect.height );
 		
 		// Since the layout is bigger than the requested dimensions, we
 		// scale the layout font description by the same scale
@@ -424,46 +419,48 @@ vips_text_build( VipsObject *object )
 			pango_layout_set_font_description( text->layout, temp_fd );
 			pango_font_description_free( temp_fd );
 
-			pango_layout_get_extents( text->layout, &ink_rect, NULL );
+			// Overloading logical_rect as an ink rectangle here to determine the
+			// best gravity
+			// For most cases, gravities with north, south components are completely
+			// useless if we do positioning with logical rect
+			pango_layout_get_extents( text->layout, &logical_rect, NULL );
 
-			width = PANGO_PIXELS( ink_rect.width );
-			height = PANGO_PIXELS( ink_rect.height );
+			width = PANGO_PIXELS( logical_rect.width );
+			height = PANGO_PIXELS( logical_rect.height );
 		}
 
 		switch( text->gravity ) {
 			case VIPS_GRAVITY_CENTER:
 				left = ( text->width - width ) / 2;
-				top = ( text->height - height ) / 2;
 				break;
 			case VIPS_GRAVITY_NORTH:
+				top = ( height - text->height ) / 2;
 				left = ( text->width - width ) / 2;
 				break;
 			case VIPS_GRAVITY_EAST:
 				left = text->width - width;
-				top = ( text->height - height ) / 2;
 				break;
 			case VIPS_GRAVITY_SOUTH:
+				top = ( text->height - height ) / 2;
 				left = ( text->width - width ) / 2;
-				top = text->height - height;
 				break;
 			case VIPS_GRAVITY_WEST:
-				top = ( text->height - height ) / 2;
 				break;
 			case VIPS_GRAVITY_NORTH_EAST:
+				top = ( height - text->height ) / 2;
 				left = text->width - width;
 				break;
 			case VIPS_GRAVITY_SOUTH_EAST:
+				top = ( text->height - height ) / 2;
 				left = text->width - width;
-				top = text->height - height;
 				break;
 			case VIPS_GRAVITY_SOUTH_WEST:
-				top = text->height - height;
+				top = ( text->height - height ) / 2;
 				break;
 			case VIPS_GRAVITY_NORTH_WEST:
+				top = ( height - text->height ) / 2;
 				break;
 			default:
-				left = ( text->width - width ) / 2;
-				top = ( text->height - height ) / 2;
 				break;
 		}
 		left = -1 * left;
