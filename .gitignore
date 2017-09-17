@@ -46,6 +46,8 @@ autom4te.cache/
 install-sh
 libtool
 libvips/include/vips/version.h
+libvips/include/vips/enumtypes.h
+libvips/iofuncs/enumtypes.c
 fred
 ltmain.sh
 m4/gtk-doc.m4

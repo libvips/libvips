@@ -76,3 +76,5 @@ vips_scan_headers = \
 
 enumtypes.h: $(vips_scan_headers) Makefile.am
 	glib-mkenums --template enumtemplate $(vips_scan_headers) > enumtypes.h
+
+CLEANFILES = enumtypes.h
