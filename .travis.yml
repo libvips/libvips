@@ -24,6 +24,7 @@ matrix:
         - sudo apt-get update -qq
         - sudo apt-get install -y
           automake gtk-doc-tools
+          gobject-introspection
           libfftw3-dev libjpeg-turbo8-dev
           libpng12-dev libwebp-dev libtiff4-dev libexpat1-dev
           swig libmagick++-dev bc
@@ -43,6 +44,7 @@ matrix:
         - sudo apt-get update -qq
         - sudo apt-get install -y
           automake gtk-doc-tools
+          gobject-introspection
           libfftw3-dev libjpeg-turbo8-dev
           libpng12-dev libwebp-dev libtiff4-dev libexpat1-dev
           swig libmagick++-dev bc
@@ -64,6 +66,7 @@ matrix:
         - brew install ccache
         - brew install --ignore-dependencies gtk-doc
         - brew install
+          gobject-introspection
           fftw mozjpeg libexif
           libpng webp 
           swig imagemagick
