@@ -225,9 +225,9 @@ vips_avg_init( VipsAvg *avg )
 
 
 /**
- * vips_avg:
+ * vips_avg: (method)
  * @in: input #VipsImage
- * @out: output pixel average
+ * @out: (out): output pixel average
  * @...: %NULL-terminated list of optional named arguments
  *
  * This operation finds the average value in an image. It operates on all 
