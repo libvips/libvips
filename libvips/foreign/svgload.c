@@ -10,6 +10,8 @@
  * 	- fix DPI mixup, thanks Fosk
  * 9/9/17
  * 	- limit max tile width to 30k pixels to prevent overflow in render
+ * 17/9/17 lovell
+ * 	- handle scaling of svg files missing width and height attributes
  */
 
 /*
@@ -130,8 +132,7 @@ vips_foreign_load_svg_get_flags( VipsForeignLoad *load )
 }
 
 static void
-vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, 
-	VipsImage *out )
+vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
 {
 	RsvgDimensionData dimensions;
 	int width;
@@ -154,14 +155,16 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg,
 		rsvg_handle_get_dimensions( svg->page, &dimensions );
 
 		if( width == dimensions.width && height == dimensions.height ) {
-			/* SVG without width and height always reports same dimensions
-			 * regardless of dpi. Apply dpi/scale using cairo instead.
+			/* SVG without width and height always reports the same 
+			 * dimensions regardless of dpi. Apply dpi/scale using 
+			 * cairo instead.
 			 */
 			svg->cairo_scale = scale;
 			width = width * scale;
 			height = height * scale;
 		} else {
-			/* SVG with width and height reports correctly scaled dimensions.
+			/* SVG with width and height reports correctly scaled 
+			 * dimensions.
 			 */
 			width = dimensions.width;
 			height = dimensions.height;
@@ -516,7 +519,6 @@ vips_foreign_load_svg_is_a_buffer( const void *buf, size_t len )
 	for( i = 0; i < 24; i++ )
 		if( !isascii( str[i] ) )
 			return( FALSE );
-
 	for( i = 0; i < 300 && i < len - 5; i++ )
 		if( g_ascii_strncasecmp( str + i, "<svg", 4 ) == 0 )
 			return( TRUE );
