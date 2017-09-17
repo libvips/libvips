@@ -61,7 +61,7 @@ matrix:
       before_install:
         - brew tap homebrew/science
         - brew update
-        - brew install ccache pkg-config automake
+        - brew install ccache
         - brew install --ignore-dependencies gtk-doc
         - brew install
           fftw mozjpeg libexif
@@ -70,4 +70,5 @@ matrix:
           cfitsio libmatio
           orc little-cms2 poppler
           pango libgsf openslide
-          librsvg giflib openexr
+          librsvg openexr
+
