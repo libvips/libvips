@@ -91,6 +91,10 @@ typedef struct _VipsForeignLoadSvg {
 	 */
 	double scale;
 
+	/* Scale using cairo when SVG has no width and height attributes.
+	 */
+	double cairo_scale;
+
 	RsvgHandle *page;
 
 } VipsForeignLoadSvg;
@@ -130,17 +134,46 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg,
 	VipsImage *out )
 {
 	RsvgDimensionData dimensions;
+	int width;
+	int height;
+	double scale;
 	double res;
 
-	rsvg_handle_set_dpi( svg->page, svg->dpi * svg->scale );
-	rsvg_handle_get_dimensions( svg->page, &dimensions ); 
+	/* Calculate dimensions at default dpi/scale.
+	 */
+	rsvg_handle_set_dpi( svg->page, 72.0 );
+	rsvg_handle_get_dimensions( svg->page, &dimensions );
+	width = dimensions.width;
+	height = dimensions.height;
+
+	/* Calculate dimensions at required dpi/scale.
+	 */
+	scale = svg->scale * svg->dpi / 72.0;
+	if( scale != 1.0 ) {
+		rsvg_handle_set_dpi( svg->page, svg->dpi * svg->scale );
+		rsvg_handle_get_dimensions( svg->page, &dimensions );
+
+		if( width == dimensions.width && height == dimensions.height ) {
+			/* SVG without width and height always reports same dimensions
+			 * regardless of dpi. Apply dpi/scale using cairo instead.
+			 */
+			svg->cairo_scale = scale;
+			width = width * scale;
+			height = height * scale;
+		} else {
+			/* SVG with width and height reports correctly scaled dimensions.
+			 */
+			width = dimensions.width;
+			height = dimensions.height;
+		}
+	}
 
 	/* We need pixels/mm for vips.
 	 */
 	res = svg->dpi / 25.4;
 
 	vips_image_init_fields( out, 
-		dimensions.width, dimensions.height,
+		width, height,
 		4, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, res, res );
 
@@ -184,7 +217,9 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 	cr = cairo_create( surface );
 	cairo_surface_destroy( surface );
 
-	cairo_translate( cr, -r->left, -r->top );
+	cairo_scale( cr, svg->cairo_scale, svg->cairo_scale );
+	cairo_translate( cr, -r->left / svg->cairo_scale,
+		-r->top / svg->cairo_scale );
 
 	/* rsvg is single-threaded, but we don't need to lock since we're
 	 * running inside a non-threaded tilecache.
@@ -295,6 +330,7 @@ vips_foreign_load_svg_init( VipsForeignLoadSvg *svg )
 {
 	svg->dpi = 72.0;
 	svg->scale = 1.0;
+	svg->cairo_scale = 1.0;
 }
 
 typedef struct _VipsForeignLoadSvgFile {
