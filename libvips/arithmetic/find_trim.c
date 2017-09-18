@@ -256,7 +256,8 @@ vips_find_trim_init( VipsFindTrim *find_trim )
  * and @height == 0.
  *
  * @background defaults to 255, or 65535 for 16-bit images. Set another value, 
- * or use vips_getpoint() to pick a value from an edge. 
+ * or use vips_getpoint() to pick a value from an edge. You'll need to flatten
+ * before vips_getpoint() to get a correct background value.
  *
  * @threshold defaults to 10. 
  *
