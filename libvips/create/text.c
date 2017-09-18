@@ -54,7 +54,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
 
 #include <vips/vips.h>
 
@@ -197,23 +196,24 @@ determine_deviation( int width, int height, PangoRectangle rect ) {
 	return dw ? dw : dh;
 }
 
-static bool
+static gboolean
 search_flist( FontSizeList *flist, int size )
 {
 	FontSizeList *entry = flist;
 	while( entry->next != NULL ) {
 		if( entry->size == size )
-			return true;
+			return TRUE;
 		entry = entry->next;
 	}
-	return false;
+	return FALSE;
 }
 
 static FontSizeList *
 least_deviation_flist( FontSizeList *flist )
 {
 	FontSizeList *entry = flist;
-	// This works for all practical purposes
+	/* This works for all practical purposes
+	 */
 	long smallest = 1999999999;
 	FontSizeList *least;
 	while( entry->next != NULL ) {
@@ -238,7 +238,7 @@ append_to_flist( FontSizeList *flist, FontSizeList *nflist )
 
 static PangoRectangle
 fit_to_bounds( VipsText *text,
-	char *name, int size, PangoRectangle rect, FontSizeList *flist, bool coarse )
+	char *name, int size, PangoRectangle rect, FontSizeList *flist, gboolean coarse )
 {
 	int buf_size = strlen( name ) + digits_in_num( size ) + 2;
 	int deviation;
@@ -250,8 +250,9 @@ fit_to_bounds( VipsText *text,
 	FontSizeList *nflist = (FontSizeList *) malloc( sizeof( FontSizeList ) );
 
 	if( coarse ) {
-		// A factor of X increase in font size causes X^2 increase in the area
-		// occupied by the text
+		/* A factor of X increase in font size causes X^2 increase in the area
+		 * occupied by the text
+		 */
 		size = (int)((double)size * sqrt( (double)allowed_area / font_area ));
 	} else {
 		if( allowed_area > font_area ) {
@@ -276,15 +277,17 @@ fit_to_bounds( VipsText *text,
 	nflist->next = NULL;
 	append_to_flist( flist, nflist );
 
-	// If we have been through this font size before, find the one with the
-	// smallest deviation and then fit in small adjustments
+	/* If we have been through this font size before, find the one with the
+	 * smallest deviation and then fit in small adjustments
+	 */
 	if( search_flist( flist, size ) ) {
 		if( coarse ) {
 			return fit_to_bounds( text, name, size, rect,
-				least_deviation_flist( flist ), false );
+				least_deviation_flist( flist ), FALSE );
 		} else {
-			// We cannot do better than this because we will
-			// cycle through sizes again
+			/* We cannot do better than this because we will
+			 * cycle through sizes again
+			 */
 			return rect;
 		}
 	}
@@ -313,7 +316,7 @@ vips_text_build( VipsObject *object )
 	int deviation = 0;
 	int font_size = 0;
 	char *last;
-	bool is_font_size_provided = true;
+	gboolean is_font_size_provided = TRUE;
 
 	if( VIPS_OBJECT_CLASS( vips_text_parent_class )->build( object ) )
 		return( -1 );
@@ -325,10 +328,12 @@ vips_text_build( VipsObject *object )
 	}
 
 	char *font_name[ strlen( text->font ) + 1 ];
-	// Extract font size from provided argument
+	/* Extract font size from provided argument
+	 */
 	last = strrchr( text->font, ' ' );
 
-	// Happens for a single word font names
+	/* Happens for a single word font names
+	 */
 	if( last != '\0' ) {
 		font_size = atol( last );
 	}
@@ -336,12 +341,13 @@ vips_text_build( VipsObject *object )
 	if( font_size ) {
 		strncat( font_name, text->font, last - text->font );
 	} else {
-		// Font was more than 1 MAX_word. "Fira Code" would have last
-		// pointing to "Code", leading atol to output 0
-		// Fix font_name back to the original in this case
+		/* Font was more than 1 word. "Fira Code" would have last
+		 * pointing to "Code", leading atol to output 0
+		 * Fix font_name back to the original in this case
+		 */
 		strcpy( font_name, text->font );
 		font_size = text->height;
-		is_font_size_provided = false;
+		is_font_size_provided = FALSE;
 	}
 
 	g_mutex_lock( vips_text_lock ); 
@@ -374,10 +380,9 @@ vips_text_build( VipsObject *object )
 			flist->area = PANGO_PIXELS( logical_rect.width ) * PANGO_PIXELS( logical_rect.height );
 			flist->next = NULL;
 
-			logical_rect = fit_to_bounds( text, font_name, font_size, logical_rect, flist, true );
+			logical_rect = fit_to_bounds( text, font_name, font_size, logical_rect, flist, TRUE );
 		}
 
-		// Logical rect does not help us with exact bounds of the text
 		pango_layout_get_extents( text->layout, NULL, &logical_rect );
 	}
 
@@ -395,20 +400,18 @@ vips_text_build( VipsObject *object )
 	width = PANGO_PIXELS( logical_rect.width );
 	height = PANGO_PIXELS( logical_rect.height );
 
-	// Match the layout to fit the exact dimensions requested
-	// We also apply gravity here
-	if( !is_font_size_provided && text->width && text->height ) {
-		left = 0;
-		top = 0;
-		width = PANGO_PIXELS( logical_rect.width );
-		height = PANGO_PIXELS( logical_rect.height );
-		
-		// Since the layout is bigger than the requested dimensions, we
-		// scale the layout font description by the same scale
-		// This seems like the only way to resize the layout before it
-		// is rendered. We cannot reliably do resizing after rendering
-		// because we lose the lock, and we need to rely on vips_resize
-		if( width > text->width || height > text->height ) {
+	/* Match the layout to fit the exact dimensions requested
+	 * We also apply gravity here
+	 */
+	if( text->width && text->height ) {
+
+		/* Since the layout is bigger than the requested dimensions, we
+		 * scale the layout font description by the same scale
+		 * This seems like the only way to resize the layout before it
+		 * is rendered. We cannot reliably do resizing after rendering
+		 * because we lose the lock, and we need to rely on vips_resize
+		 */
+		if( !is_font_size_provided && ( width > text->width || height > text->height ) ) {
 			double scale_w = (double)text->width / width;
 			double scale_h = (double)text->height / height;
 			double scale = scale_w > scale_h ? scale_h : scale_w;
@@ -419,54 +422,60 @@ vips_text_build( VipsObject *object )
 			pango_layout_set_font_description( text->layout, temp_fd );
 			pango_font_description_free( temp_fd );
 
-			// Overloading logical_rect as an ink rectangle here to determine the
-			// best gravity
-			// For most cases, gravities with north, south components are completely
-			// useless if we do positioning with logical rect
 			pango_layout_get_extents( text->layout, &logical_rect, NULL );
 
 			width = PANGO_PIXELS( logical_rect.width );
 			height = PANGO_PIXELS( logical_rect.height );
 		}
 
+		int padl = 0;
+		int padt = 0;
+
 		switch( text->gravity ) {
 			case VIPS_GRAVITY_CENTER:
-				left = ( text->width - width ) / 2;
+				padl = ( text->width - width ) / 2;
+				padt = ( text->height - height ) / 2;
 				break;
 			case VIPS_GRAVITY_NORTH:
-				top = ( height - text->height ) / 2;
-				left = ( text->width - width ) / 2;
+				padl = ( text->width - width ) / 2;
+				padt = 0;
 				break;
 			case VIPS_GRAVITY_EAST:
-				left = text->width - width;
+				padl = text->width - width;
+				padt = ( text->height - height ) / 2;
 				break;
 			case VIPS_GRAVITY_SOUTH:
-				top = ( text->height - height ) / 2;
-				left = ( text->width - width ) / 2;
+				padl = ( text->width - width ) / 2;
+				padt = text->height - height;
 				break;
 			case VIPS_GRAVITY_WEST:
+				padl = 0;
+				padt = ( text->height - height ) / 2;
 				break;
 			case VIPS_GRAVITY_NORTH_EAST:
-				top = ( height - text->height ) / 2;
-				left = text->width - width;
+				padl = text->width - width;
+				padt = 0;
 				break;
 			case VIPS_GRAVITY_SOUTH_EAST:
-				top = ( text->height - height ) / 2;
-				left = text->width - width;
+				padl = text->width - width;
+				padt = text->height - height;
 				break;
 			case VIPS_GRAVITY_SOUTH_WEST:
-				top = ( text->height - height ) / 2;
+				padl = 0;
+				padt = text->height - height;
 				break;
 			case VIPS_GRAVITY_NORTH_WEST:
-				top = ( height - text->height ) / 2;
+				padl = 0;
+				padt = 0;
 				break;
 			default:
 				break;
 		}
-		left = -1 * left;
-		top = -1 * top;
-		width = text->width;
-		height = text->height;
+
+		left = left - ( width > text->width ? 0 : padl ) + PANGO_PIXELS( logical_rect.x );
+		top = top - ( height > text->height ? 0 : padt ) + PANGO_PIXELS( logical_rect.y );
+		width = text->width > width ? text->width : width;
+		height = text->height > height ? text->height : height;
 	}
 
 	/* Can happen for "", for example.

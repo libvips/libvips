@@ -47,7 +47,8 @@ typedef enum {
 	VIPS_GRAVITY_NORTH_EAST,
 	VIPS_GRAVITY_SOUTH_EAST,
 	VIPS_GRAVITY_SOUTH_WEST,
-	VIPS_GRAVITY_NORTH_WEST
+	VIPS_GRAVITY_NORTH_WEST,
+	VIPS_GRAVITY_LAST
 } VipsGravity;
 
 int vips_black( VipsImage **out, int width, int height, ... )
