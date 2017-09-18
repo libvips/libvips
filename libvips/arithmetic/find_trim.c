@@ -4,6 +4,7 @@
  * 	- from a ruby example
  * 18/9/17 kleisauke 
  * 	- missing bandor
+ * 	- only flatten if there is an alpha
  */
 
 /*
@@ -71,6 +72,7 @@ vips_find_trim_build( VipsObject *object )
 	VipsFindTrim *find_trim = (VipsFindTrim *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 20 );
 
+	VipsImage *in;
 	double *background;
 	int n;
 	double *neg_bg;
@@ -95,12 +97,16 @@ vips_find_trim_build( VipsObject *object )
 				vips_array_double_newv( 1, 65535.0 );
 		}
 
-	/* Flatten out any alpha.
+	/* Flatten out alpha, if any. 
 	 */
-	if( vips_flatten( find_trim->in, &t[0], 
-		"background", find_trim->background,
-		NULL ) )
-		return( -1 ); 
+	in = find_trim->in;
+	if( vips_image_hasalpha( in ) ) {
+		if( vips_flatten( in, &t[0], 
+			"background", find_trim->background,
+			NULL ) )
+			return( -1 ); 
+		in = t[0];
+	}
 
 	/* We want to subtract the bg.
 	 */
@@ -115,16 +121,17 @@ vips_find_trim_build( VipsObject *object )
 
 	/* Smooth, find difference from bg, abs, threshold.
 	 */
-	if( vips_median( t[0], &t[1], 3, NULL ) ||
+	if( vips_median( in, &t[1], 3, NULL ) ||
 		vips_linear( t[1], &t[2], ones, neg_bg, n, NULL ) ||
 		vips_abs( t[2], &t[3], NULL ) ||
 		vips_more_const1( t[3], &t[4], find_trim->threshold, NULL ) ||
 		vips_bandor( t[4], &t[5], NULL ) )
 		return( -1 ); 
+	in = t[5];
 
 	/* t[6] == column sums, t[7] == row sums. 
 	 */
-	if( vips_project( t[5], &t[6], &t[7], NULL ) )
+	if( vips_project( in, &t[6], &t[7], NULL ) )
 		return( -1 );
 
 	/* t[8] == search column sums in from left.

@@ -453,6 +453,8 @@ vips__cache_once_init( void )
 	vips_cache_table = g_hash_table_new( 
 		(GHashFunc) vips_operation_hash, 
 		(GEqualFunc) vips_operation_equal );
+
+	return( NULL ); 
 }
 
 void
