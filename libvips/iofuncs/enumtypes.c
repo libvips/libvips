@@ -63,6 +63,7 @@ vips_gravity_get_type( void )
 			{VIPS_GRAVITY_SOUTH_EAST, "VIPS_GRAVITY_SOUTH_EAST", "south-east"},
 			{VIPS_GRAVITY_SOUTH_WEST, "VIPS_GRAVITY_SOUTH_WEST", "south-west"},
 			{VIPS_GRAVITY_NORTH_WEST, "VIPS_GRAVITY_NORTH_WEST", "north-west"},
+			{VIPS_GRAVITY_LAST, "VIPS_GRAVITY_LAST", "last"},
 			{0, NULL, NULL}
 		};
 		
