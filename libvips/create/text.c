@@ -411,7 +411,7 @@ vips_text_build( VipsObject *object )
 		 * is rendered. We cannot reliably do resizing after rendering
 		 * because we lose the lock, and we need to rely on vips_resize
 		 */
-		if( width > text->width || height > text->height ) {
+		if( !is_font_size_provided && ( width > text->width || height > text->height ) ) {
 			double scale_w = (double)text->width / width;
 			double scale_h = (double)text->height / height;
 			double scale = scale_w > scale_h ? scale_h : scale_w;
