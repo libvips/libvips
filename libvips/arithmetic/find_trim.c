@@ -2,6 +2,8 @@
  *
  * 26/7/17
  * 	- from a ruby example
+ * 18/9/17 kleisauke 
+ * 	- missing bandor
  */
 
 /*
@@ -116,39 +118,40 @@ vips_find_trim_build( VipsObject *object )
 	if( vips_median( t[0], &t[1], 3, NULL ) ||
 		vips_linear( t[1], &t[2], ones, neg_bg, n, NULL ) ||
 		vips_abs( t[2], &t[3], NULL ) ||
-		vips_more_const1( t[3], &t[4], find_trim->threshold, NULL ) )
+		vips_more_const1( t[3], &t[4], find_trim->threshold, NULL ) ||
+		vips_bandor( t[4], &t[5], NULL ) )
 		return( -1 ); 
 
-	/* t[5] == column sums, t[6] == row sums. 
+	/* t[6] == column sums, t[7] == row sums. 
 	 */
-	if( vips_project( t[4], &t[5], &t[6], NULL ) )
+	if( vips_project( t[5], &t[6], &t[7], NULL ) )
 		return( -1 );
 
 	/* t[8] == search column sums in from left.
 	 */
-	if( vips_profile( t[5], &t[7], &t[8], NULL ) ||
-		vips_avg( t[8], &left, NULL ) )
+	if( vips_profile( t[6], &t[8], &t[9], NULL ) ||
+		vips_avg( t[9], &left, NULL ) )
 		return( -1 );
-	if( vips_flip( t[5], &t[9], VIPS_DIRECTION_HORIZONTAL, NULL ) ||
-		vips_profile( t[9], &t[10], &t[11], NULL ) ||
-		vips_avg( t[11], &right, NULL ) )
+	if( vips_flip( t[6], &t[10], VIPS_DIRECTION_HORIZONTAL, NULL ) ||
+		vips_profile( t[10], &t[11], &t[12], NULL ) ||
+		vips_avg( t[12], &right, NULL ) )
 		return( -1 );
 
 	/* t[8] == search column sums in from left.
 	 */
-	if( vips_profile( t[6], &t[12], &t[13], NULL ) ||
-		vips_avg( t[12], &top, NULL ) )
+	if( vips_profile( t[7], &t[13], &t[14], NULL ) ||
+		vips_avg( t[13], &top, NULL ) )
 		return( -1 );
-	if( vips_flip( t[6], &t[14], VIPS_DIRECTION_VERTICAL, NULL ) ||
-		vips_profile( t[14], &t[15], &t[16], NULL ) ||
-		vips_avg( t[15], &bottom, NULL ) )
+	if( vips_flip( t[7], &t[15], VIPS_DIRECTION_VERTICAL, NULL ) ||
+		vips_profile( t[15], &t[16], &t[17], NULL ) ||
+		vips_avg( t[16], &bottom, NULL ) )
 		return( -1 );
 
 	g_object_set( find_trim,
 		"left", (int) left,
 		"top", (int) top,
-		"width", (int) VIPS_MAX( 0, (t[5]->Xsize - right) - left ),
-		"height", (int) VIPS_MAX( 0, (t[6]->Ysize - bottom) - top ),
+		"width", (int) VIPS_MAX( 0, (t[6]->Xsize - right) - left ),
+		"height", (int) VIPS_MAX( 0, (t[7]->Ysize - bottom) - top ),
 		NULL ); 
 
 	return( 0 );
