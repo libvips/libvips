@@ -48,8 +48,8 @@
  */
 
 /*
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -189,119 +189,116 @@ vips_text_get_extents( VipsText *text, VipsRect *extents )
 	return( 0 );
 }
 
-/* Compare two rects and return a number estimating their difference. 0 for
- * the same, negative for first smaller, positive for first larger. One rect
- * must enclose the other. 
+/* Return -ve for extents too small, 0 for a fit, +ve for extents too large.
  */
 static int
-vips_text_rect_difference( VipsRect *a, VipsRect *b )
+vips_text_rect_difference( VipsRect *target, VipsRect *extents )
 {
-	int w_diff = a->width - b->width;
-	int h_diff = a->height - b->height;
+	if( vips_rect_includesrect( target, extents ) ) {
+		if( target->width == extents->width ||
+			target->height == extents->height )
+			return( 0 );
 
-	g_assert( vips_rect_includesrect( a, b ) ||
-		vips_rect_includesrect( b, a ) );
-
-	/* We need the difference closest to zero.
-	 */
-	if( vips_rect_includesrect( a, b ) ) 
-		/* So w and h diff must both be positive. We want the smaller
-		 * one.
-		 */
-		return( VIPS_MIN( w_diff, h_diff ) );
-	else 
-		/* Both negative.
-		 */
-		return( VIPS_MAX( w_diff, h_diff ) );
+		return( -1 );
+	}
+	else
+		return( 1 );
 }
 
 /* Adjust text->dpi to try to fit to the bounding box.
  */
 static int
-vips_text_autofit( VipsText *text ) 
+vips_text_autofit( VipsText *text, VipsRect *out_extents ) 
 {
 	VipsRect target;
 	VipsRect extents;
-	int previous_dpi;
+	VipsRect previous_extents;
 	int difference;
 	int previous_difference;
+	int previous_dpi;
+
 	int lower_dpi;
 	int upper_dpi;
-	int lower_difference;
-	int upper_difference;
+	VipsRect lower_extents;
+	VipsRect upper_extents;
 
 	/* First, repeatedly double or halve dpi until we pass the correct
 	 * value. This will give us a lower and upper bound.
 	 */
 	target.width = text->width;
 	target.height = text->height;
-	previous_dpi = text->dpi;
-	previous_difference = -1;
+	previous_dpi = -1;
 
 	for(;;) { 
 		if( vips_text_get_extents( text, &extents ) )
 			return( -1 ); 
-
 		target.left = extents.left;
 		target.top = extents.top;
-		difference = vips_text_rect_difference( &extents, &target );
+		difference = vips_text_rect_difference( &target, &extents );
 
-		if( previous_difference == -1 ) 
+		if( previous_dpi == -1 ) {
+			previous_dpi = text->dpi;
 			previous_difference = difference;
+			previous_extents = extents;
+		}
 
-		/* Too small last time, still too small.
+		/* Hit the size, or we straddle the target.
 		 */
-		if( difference < 0 &&
-			previous_difference < 0 )  
-			text->dpi *= 2;
-		/* Too big last time, still too big.
-		 */
-		else if( difference > 0 && 
-			previous_difference > 0 ) 
-			text->dpi /= 2;
-		/* We now straddle the target! Or both zero.
-		 */
-		else
+		if( difference == 0 ||
+			difference != previous_difference ) 
 			break;
+
+		previous_difference = difference;
+		previous_extents = extents;
+		previous_dpi = text->dpi;
+
+		text->dpi = difference < 0 ? text->dpi * 2 : text->dpi / 2;
 	}
 
-	lower_dpi = VIPS_MIN( text->dpi, previous_dpi );
-	lower_difference = VIPS_MIN( difference, previous_difference );
-	upper_dpi = VIPS_MAX( text->dpi, previous_dpi );
-	upper_difference = VIPS_MAX( difference, previous_difference );
+	if( difference < 0 ) {
+		/* We've been coming down.
+		 */
+		lower_dpi = text->dpi;
+		lower_extents = extents;
+		upper_dpi = previous_dpi;
+		upper_extents = previous_extents;
+	}
+	else {
+		lower_dpi = previous_dpi;
+		lower_extents = previous_extents;
+		upper_dpi = text->dpi;
+		upper_extents = extents;
+	}
 
-	/* Refine lower and upper until they are almost touching, or until we
-	 * fit exactly.
+	/* Refine lower and upper until they are almost touching.
 	 */
 	while( upper_dpi - lower_dpi > 1 &&
-		lower_difference < 0 &&
-		upper_difference > 0 ) { 
-		int total_difference = upper_difference - lower_difference;
-		double x = (double) upper_difference / total_difference;
-		int guess_dpi = (upper_dpi - lower_dpi) * x + lower_dpi;
-		// guess_dpi = (upper_dpi + lower_dpi) / 2;
-
-		text->dpi = guess_dpi;
+		difference != 0 ) { 
+		text->dpi = (upper_dpi + lower_dpi) / 2;
 		if( vips_text_get_extents( text, &extents ) )
 			return( -1 ); 
-
 		target.left = extents.left;
 		target.top = extents.top;
-		difference = vips_text_rect_difference( &extents, &target );
-		if( difference < 0 ) {
-			lower_dpi = guess_dpi;
-			lower_difference = difference;
+		difference = vips_text_rect_difference( &target, &extents );
+
+		if( difference < 0 ) { 
+			lower_dpi = text->dpi;
+			lower_extents = extents;
 		}
 		else {
-			upper_dpi = guess_dpi;
-			upper_difference = difference;
+			upper_dpi = text->dpi;
+			upper_extents = extents;
 		}
 	}
 
-	if( upper_difference == 0 )
-		text->dpi = upper_dpi;
-	else
+	if( difference > 0 ) {
 		text->dpi = lower_dpi;
+		*out_extents = lower_extents;
+	}
+	else {
+		text->dpi = upper_dpi;
+		*out_extents = upper_extents;
+	}
 
 	return( 0 ); 
 }
@@ -334,12 +331,13 @@ vips_text_build( VipsObject *object )
 	 * we get a fit.
 	 */
 	if( vips_object_argument_isset( object, "height" ) &&
-		!vips_object_argument_isset( object, "dpi" ) &&
-		vips_text_autofit( text ) )
-		return( -1 );
-
-	if( vips_text_get_extents( text, &extents ) )
-		return( -1 );
+		!vips_object_argument_isset( object, "dpi" ) ) {
+		if( vips_text_autofit( text, &extents ) )
+			return( -1 );
+	}
+	else
+		if( vips_text_get_extents( text, &extents ) )
+			return( -1 );
 
 	/* Can happen for "", for example.
 	 */
@@ -498,7 +496,6 @@ vips_text_init( VipsText *text )
  * * @align: #VipsAlign, left/centre/right alignment
  * * @dpi: %gint, render at this resolution
  * * @spacing: %gint, space lines by this in points
- * * @gravity: #VipsGravity, gravity of text
  *
  * Draw the string @text to an image. @out is a one-band 8-bit
  * unsigned char image, with 0 for no text and 255 for text. Values inbetween
@@ -510,25 +507,22 @@ vips_text_init( VipsText *text )
  * @font is the font to render with, as a fontconfig name. Examples might be
  * "sans 12" or perhaps "bitstream charter bold 10".
  *
- * @width is the maximum number of pixels across to draw within. If the
- * generated text is wider than this, it will wrap to a new line. In this
- * case, @align can be used to set the alignment style for multi-line
- * text. 
+ * @width is the number of pixels to word-wrap at. Lines of text wider than
+ * this will be broken at word bounaries. 
+ * @align can be used to set the alignment style for multi-line
+ * text. Note that the output image can be wider than @width if there are no
+ * word breaks. 
  *
  * @height is the maximum number of pixels high the generated text can be. This
- * only takes effect when there is no font size specified, and a width is
- * provided, making a box. If a font size is provided, we render the font size
- * without any fitting to box. Bounds might be exceeded if the font size is too
- * big to be fit or wrapped inside.
+ * only takes effect when @dpi is not set, and @width is set, making a box. 
+ * In this case, vips_text() will search for a @dpi which will just fit the 
+ * text into @width and @height.
  *
  * @dpi sets the resolution to render at. "sans 12" at 72 dpi draws characters
- * approximately 12 pixels high.
+ * approximately 12 pixels high. 
  *
  * @spacing sets the line spacing, in points. It would typicallly be something
  * like font size times 1.2.
- *
- * @gravity determines the position of the text inside the bounds. This is only
- * applied opportunistically if the bounds are bigger than the text
  *
  * See also: vips_xyz(), vips_text(), vips_gaussnoise().
  *
