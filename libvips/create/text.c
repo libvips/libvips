@@ -273,12 +273,13 @@ vips_text_autofit( VipsText *text )
 	/* Refine lower and upper until they are almost touching, or until we
 	 * fit exactly.
 	 */
-	while( upper_dpi - lower_dpi > 2 &&
+	while( upper_dpi - lower_dpi > 1 &&
 		lower_difference < 0 &&
 		upper_difference > 0 ) { 
 		int total_difference = upper_difference - lower_difference;
-		double x = (double) -lower_difference / total_difference;
+		double x = (double) upper_difference / total_difference;
 		int guess_dpi = (upper_dpi - lower_dpi) * x + lower_dpi;
+		// guess_dpi = (upper_dpi + lower_dpi) / 2;
 
 		text->dpi = guess_dpi;
 		if( vips_text_get_extents( text, &extents ) )
