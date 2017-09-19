@@ -49,6 +49,19 @@ typedef enum {
 } VipsExtend;
 
 typedef enum {
+	VIPS_COMPASS_DIRECTION_CENTRE,
+	VIPS_COMPASS_DIRECTION_NORTH,
+	VIPS_COMPASS_DIRECTION_EAST,
+	VIPS_COMPASS_DIRECTION_SOUTH,
+	VIPS_COMPASS_DIRECTION_WEST,
+	VIPS_COMPASS_DIRECTION_NORTH_EAST,
+	VIPS_COMPASS_DIRECTION_SOUTH_EAST,
+	VIPS_COMPASS_DIRECTION_SOUTH_WEST,
+	VIPS_COMPASS_DIRECTION_NORTH_WEST,
+	VIPS_COMPASS_DIRECTION_LAST
+} VipsCompassDirection;
+
+typedef enum {
 	VIPS_DIRECTION_HORIZONTAL,
 	VIPS_DIRECTION_VERTICAL,
 	VIPS_DIRECTION_LAST
@@ -104,6 +117,9 @@ int vips_copy_file( VipsImage *in, VipsImage **out, ... )
 
 int vips_embed( VipsImage *in, VipsImage **out, 
 	int x, int y, int width, int height, ... )
+	__attribute__((sentinel));
+int vips_gravity( VipsImage *in, VipsImage **out, 
+	VipsCompassDirection direction, int width, int height, ... )
 	__attribute__((sentinel));
 int vips_flip( VipsImage *in, VipsImage **out, VipsDirection direction, ... )
 	__attribute__((sentinel));

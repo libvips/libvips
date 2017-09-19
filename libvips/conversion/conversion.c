@@ -112,6 +112,21 @@
  */
 
 /**
+ * VipsCompassDirection:
+ * @VIPS_COMPASS_DIRECTION_CENTRE:
+ * @VIPS_COMPASS_DIRECTION_NORTH:
+ * @VIPS_COMPASS_DIRECTION_EAST:
+ * @VIPS_COMPASS_DIRECTION_SOUTH:
+ * @VIPS_COMPASS_DIRECTION_WEST:
+ * @VIPS_COMPASS_DIRECTION_NORTH_EAST:
+ * @VIPS_COMPASS_DIRECTION_SOUTH_EAST:
+ * @VIPS_COMPASS_DIRECTION_SOUTH_WEST:
+ * @VIPS_COMPASS_DIRECTION_NORTH_WEST:
+ *
+ * A direction on a compass. Used for vips_gravity(), for example. 
+ */
+
+/**
  * VipsAngle45:
  * @VIPS_ANGLE45_D0: no rotate
  * @VIPS_ANGLE45_D45: 45 degrees clockwise 
@@ -234,6 +249,7 @@ vips_conversion_operation_init( void )
 	extern GType vips_sequential_get_type( void ); 
 	extern GType vips_cache_get_type( void ); 
 	extern GType vips_embed_get_type( void ); 
+	extern GType vips_gravity_get_type( void ); 
 	extern GType vips_flip_get_type( void ); 
 	extern GType vips_insert_get_type( void ); 
 	extern GType vips_join_get_type( void ); 
@@ -281,6 +297,7 @@ vips_conversion_operation_init( void )
 	vips_sequential_get_type(); 
 	vips_cache_get_type(); 
 	vips_embed_get_type();
+	vips_gravity_get_type();
 	vips_flip_get_type();
 	vips_insert_get_type();
 	vips_join_get_type();

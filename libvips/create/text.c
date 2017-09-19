@@ -78,7 +78,6 @@ typedef struct _VipsText {
 	int spacing;
 	VipsAlign align;
 	int dpi;
-	VipsGravity gravity;
 
 	FT_Bitmap bitmap;
 	PangoContext *context;
@@ -461,13 +460,6 @@ vips_text_class_init( VipsTextClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsText, spacing ),
 		0, 1000000, 0 );
-
-	VIPS_ARG_ENUM( class, "gravity", 11, 
-		_( "Gravity" ), 
-		_( "Gravity to use while auto fitting text in bounds" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsText, gravity ),
-		VIPS_TYPE_GRAVITY, VIPS_GRAVITY_CENTER );
 
 }
 

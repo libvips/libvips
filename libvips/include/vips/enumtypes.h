@@ -34,6 +34,8 @@ GType vips_pcs_get_type (void) G_GNUC_CONST;
 /* enumerations from "../../../libvips/include/vips/conversion.h" */
 GType vips_extend_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_EXTEND (vips_extend_get_type())
+GType vips_compass_direction_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_COMPASS_DIRECTION (vips_compass_direction_get_type())
 GType vips_direction_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_DIRECTION (vips_direction_get_type())
 GType vips_align_get_type (void) G_GNUC_CONST;
@@ -47,9 +49,6 @@ GType vips_interesting_get_type (void) G_GNUC_CONST;
 /* enumerations from "../../../libvips/include/vips/convolution.h" */
 GType vips_combine_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_COMBINE (vips_combine_get_type())
-/* enumerations from "../../../libvips/include/vips/create.h" */
-GType vips_gravity_get_type (void) G_GNUC_CONST;
-#define VIPS_TYPE_GRAVITY (vips_gravity_get_type())
 /* enumerations from "../../../libvips/include/vips/draw.h" */
 GType vips_combine_mode_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_COMBINE_MODE (vips_combine_mode_get_type())

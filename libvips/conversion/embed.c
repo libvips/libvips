@@ -25,6 +25,8 @@
  * 	- rewrite as a class
  * 10/10/12
  *	- add @background
+ * 19/9/17
+ * 	- break into embed and gravity
  */
 
 /*
@@ -74,7 +76,7 @@
 
 #include "pconversion.h"
 
-typedef struct _VipsEmbed {
+typedef struct _VipsEmbedBase {
 	VipsConversion parent_instance;
 
 	/* The input image.
@@ -83,8 +85,6 @@ typedef struct _VipsEmbed {
 
 	VipsExtend extend;
 	VipsArrayDouble *background;
-	int x;
-	int y;
 	int width;
 	int height;
 
@@ -101,26 +101,32 @@ typedef struct _VipsEmbed {
 	 * the main image, and the 4 corner pieces.
 	 */
 	VipsRect border[8];
-} VipsEmbed;
 
-typedef VipsConversionClass VipsEmbedClass;
+	/* Passed to us by subclasses.
+	 */
+	int x;
+	int y;
+} VipsEmbedBase;
 
-G_DEFINE_TYPE( VipsEmbed, vips_embed, VIPS_TYPE_CONVERSION );
+typedef VipsConversionClass VipsEmbedBaseClass;
+
+G_DEFINE_ABSTRACT_TYPE( VipsEmbedBase, vips_embed_base, VIPS_TYPE_CONVERSION );
 
 /* r is the bit we are trying to paint, guaranteed to be entirely within
  * border area i. Set out to be the edge of the image we need to paint the
  * pixels in r.
  */
 static void
-vips_embed_find_edge( VipsEmbed *embed, VipsRect *r, int i, VipsRect *out )
+vips_embed_base_find_edge( VipsEmbedBase *base, 
+	VipsRect *r, int i, VipsRect *out )
 {
 	/* Expand the border by 1 pixel, intersect with the image area, and we
 	 * get the edge. Usually too much though: eg. we could make the entire
 	 * right edge.
 	 */
-	*out = embed->border[i];
+	*out = base->border[i];
 	vips_rect_marginadjust( out, 1 );
-	vips_rect_intersectrect( out, &embed->rsub, out );
+	vips_rect_intersectrect( out, &base->rsub, out );
 
 	/* Usually too much though: eg. we could make the entire
 	 * right edge. If we're strictly up/down/left/right of the image, we
@@ -134,7 +140,7 @@ vips_embed_find_edge( VipsEmbed *embed, VipsRect *r, int i, VipsRect *out )
 		 */
 		extend = *r;
 		extend.top = 0;
-		extend.height = embed->height;
+		extend.height = base->height;
 		vips_rect_intersectrect( out, &extend, out );
 	}
 	if( i == 1 || 
@@ -145,7 +151,7 @@ vips_embed_find_edge( VipsEmbed *embed, VipsRect *r, int i, VipsRect *out )
 		 */
 		extend = *r;
 		extend.left = 0;
-		extend.width = embed->width;
+		extend.width = base->width;
 		vips_rect_intersectrect( out, &extend, out );
 	}
 }
@@ -153,9 +159,10 @@ vips_embed_find_edge( VipsEmbed *embed, VipsRect *r, int i, VipsRect *out )
 /* Copy a single pixel sideways into a line of pixels.
  */
 static void
-vips_embed_copy_pixel( VipsEmbed *embed, VipsPel *q, VipsPel *p, int n )
+vips_embed_base_copy_pixel( VipsEmbedBase *base, 
+	VipsPel *q, VipsPel *p, int n )
 {
-	const int bs = VIPS_IMAGE_SIZEOF_PEL( embed->in );
+	const int bs = VIPS_IMAGE_SIZEOF_PEL( base->in );
 
 	int x, b;
 
@@ -165,20 +172,20 @@ vips_embed_copy_pixel( VipsEmbed *embed, VipsPel *q, VipsPel *p, int n )
 }
 
 /* Paint r of region or. It's a border area, lying entirely within 
- * embed->border[i]. p points to the top-left source pixel to fill with. 
+ * base->border[i]. p points to the top-left source pixel to fill with. 
  * plsk is the line stride.
  */
 static void
-vips_embed_paint_edge( VipsEmbed *embed, 
+vips_embed_base_paint_edge( VipsEmbedBase *base, 
 	VipsRegion *or, int i, VipsRect *r, VipsPel *p, int plsk )
 {
-	const int bs = VIPS_IMAGE_SIZEOF_PEL( embed->in );
+	const int bs = VIPS_IMAGE_SIZEOF_PEL( base->in );
 
 	VipsRect todo;
 	VipsPel *q;
 	int y;
 
-	VIPS_GATE_START( "vips_embed_paint_edge: work" );
+	VIPS_GATE_START( "vips_embed_base_paint_edge: work" );
 
 	/* Pixels left to paint.
 	 */
@@ -189,7 +196,7 @@ vips_embed_paint_edge( VipsEmbed *embed,
 	 */
 	if( i > 3 ) {
 		q = VIPS_REGION_ADDR( or, todo.left, todo.top );
-		vips_embed_copy_pixel( embed, q, p, todo.width );
+		vips_embed_base_copy_pixel( base, q, p, todo.width );
 
 		p = q;
 		todo.top += 1;
@@ -201,7 +208,7 @@ vips_embed_paint_edge( VipsEmbed *embed,
 		 */
 		for( y = 0; y < todo.height; y++ ) {
 			q = VIPS_REGION_ADDR( or, todo.left, todo.top + y );
-			vips_embed_copy_pixel( embed, q, p, todo.width );
+			vips_embed_base_copy_pixel( base, q, p, todo.width );
 			p += plsk;
 		}
 	}
@@ -214,14 +221,15 @@ vips_embed_paint_edge( VipsEmbed *embed,
 		}
 	}
 
-	VIPS_GATE_STOP( "vips_embed_paint_edge: work" );
+	VIPS_GATE_STOP( "vips_embed_base_paint_edge: work" );
 }
 
 static int
-vips_embed_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
+vips_embed_base_gen( VipsRegion *or, 
+	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion *ir = (VipsRegion *) seq;
-	VipsEmbed *embed = (VipsEmbed *) b;
+	VipsEmbedBase *base = (VipsEmbedBase *) b;
 	VipsRect *r = &or->valid;
 
 	VipsRect ovl;
@@ -232,12 +240,12 @@ vips_embed_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	/* Entirely within the input image? Generate the subimage and copy
 	 * pointers.
 	 */
-	if( vips_rect_includesrect( &embed->rsub, r ) ) {
+	if( vips_rect_includesrect( &base->rsub, r ) ) {
 		VipsRect need;
 
 		need = *r;
-		need.left -= embed->x;
-		need.top -= embed->y;
+		need.left -= base->x;
+		need.top -= base->y;
 		if( vips_region_prepare( ir, &need ) ||
 			vips_region_region( or, ir, r, need.left, need.top ) )
 			return( -1 );
@@ -248,44 +256,43 @@ vips_embed_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	/* Does any of the input image appear in the area we have been asked 
 	 * to make? Paste it in.
 	 */
-	vips_rect_intersectrect( r, &embed->rsub, &ovl );
+	vips_rect_intersectrect( r, &base->rsub, &ovl );
 	if( !vips_rect_isempty( &ovl ) ) {
 		/* Paint the bits coming from the input image.
 		 */
-		ovl.left -= embed->x;
-		ovl.top -= embed->y;
+		ovl.left -= base->x;
+		ovl.top -= base->y;
 		if( vips_region_prepare_to( ir, or, &ovl, 
-			ovl.left + embed->x, ovl.top + embed->y ) )
+			ovl.left + base->x, ovl.top + base->y ) )
 			return( -1 );
-		ovl.left += embed->x;
-		ovl.top += embed->y;
+		ovl.left += base->x;
+		ovl.top += base->y;
 	}
 
-	switch( embed->extend ) {
+	switch( base->extend ) {
 	case VIPS_EXTEND_BLACK:
 	case VIPS_EXTEND_WHITE:
-		VIPS_GATE_START( "vips_embed_gen: work1" );
+		VIPS_GATE_START( "vips_embed_base_gen: work1" );
 
 		/* Paint the borders a solid value.
 		 */
 		for( i = 0; i < 8; i++ )
-			vips_region_paint( or, &embed->border[i], 
-				embed->extend == 0 ? 0 : 255 );
+			vips_region_paint( or, &base->border[i], 
+				base->extend == 0 ? 0 : 255 );
 
-		VIPS_GATE_STOP( "vips_embed_gen: work1" );
+		VIPS_GATE_STOP( "vips_embed_base_gen: work1" );
 
 		break;
 
 	case VIPS_EXTEND_BACKGROUND:
-		VIPS_GATE_START( "vips_embed_gen: work2" );
+		VIPS_GATE_START( "vips_embed_base_gen: work2" );
 
 		/* Paint the borders a solid value.
 		 */
 		for( i = 0; i < 8; i++ )
-			vips_region_paint_pel( or, &embed->border[i], 
-				embed->ink ); 
+			vips_region_paint_pel( or, &base->border[i], base->ink ); 
 
-		VIPS_GATE_STOP( "vips_embed_gen: work2" );
+		VIPS_GATE_STOP( "vips_embed_base_gen: work2" );
 
 		break;
 
@@ -296,9 +303,10 @@ vips_embed_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 			VipsRect todo;
 			VipsRect edge;
 
-			vips_rect_intersectrect( r, &embed->border[i], &todo );
+			vips_rect_intersectrect( r, &base->border[i], &todo );
 			if( !vips_rect_isempty( &todo ) ) {
-				vips_embed_find_edge( embed, &todo, i, &edge );
+				vips_embed_base_find_edge( base, 
+					&todo, i, &edge );
 
 				/* Did we paint any of the input image? If we
 				 * did, we can fetch the edge pixels from
@@ -313,8 +321,8 @@ vips_embed_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 					/* No pixels painted ... fetch
 					 * directly from the input image.
 					 */
-					edge.left -= embed->x;
-					edge.top -= embed->y;
+					edge.left -= base->x;
+					edge.top -= base->y;
 					if( vips_region_prepare( ir, &edge ) )
 						return( -1 );
 					p = VIPS_REGION_ADDR( ir,
@@ -322,7 +330,7 @@ vips_embed_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 					plsk = VIPS_REGION_LSKIP( ir );
 				}
 
-				vips_embed_paint_edge( embed, 
+				vips_embed_base_paint_edge( base, 
 					or, i, &todo, p, plsk );
 			}
 		}
@@ -337,55 +345,55 @@ vips_embed_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 }
 
 static int
-vips_embed_build( VipsObject *object )
+vips_embed_base_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConversion *conversion = VIPS_CONVERSION( object );
-	VipsEmbed *embed = (VipsEmbed *) object;
+	VipsEmbedBase *base = (VipsEmbedBase *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 7 );
 
 	VipsRect want;
 
-	if( VIPS_OBJECT_CLASS( vips_embed_parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_embed_base_parent_class )->build( object ) )
 		return( -1 );
 
 	/* nip2 can generate this quite often ... just copy.
 	 */
-	if( embed->x == 0 && 
-		embed->y == 0 && 
-		embed->width == embed->in->Xsize && 
-		embed->height == embed->in->Ysize )
-		return( vips_image_write( embed->in, conversion->out ) );
+	if( base->x == 0 && 
+		base->y == 0 && 
+		base->width == base->in->Xsize && 
+		base->height == base->in->Ysize )
+		return( vips_image_write( base->in, conversion->out ) );
 
 	if( !vips_object_argument_isset( object, "extend" ) &&
 		vips_object_argument_isset( object, "background" ) )
-		embed->extend = VIPS_EXTEND_BACKGROUND; 
+		base->extend = VIPS_EXTEND_BACKGROUND; 
 
-	if( embed->extend == VIPS_EXTEND_BACKGROUND ) 
-		if( !(embed->ink = vips__vector_to_ink( 
-			class->nickname, embed->in,
-			VIPS_AREA( embed->background )->data, NULL, 
-			VIPS_AREA( embed->background )->n )) )
+	if( base->extend == VIPS_EXTEND_BACKGROUND ) 
+		if( !(base->ink = vips__vector_to_ink( 
+			class->nickname, base->in,
+			VIPS_AREA( base->background )->data, NULL, 
+			VIPS_AREA( base->background )->n )) )
 			return( -1 );
 
-	switch( embed->extend ) {
+	switch( base->extend ) {
 	case VIPS_EXTEND_REPEAT:
 {
 		/* Clock arithmetic: we want negative x/y to wrap around
 		 * nicely.
 		 */
-		const int nx = embed->x < 0 ?
-			-embed->x % embed->in->Xsize : 
-			embed->in->Xsize - embed->x % embed->in->Xsize;
-		const int ny = embed->y < 0 ?
-			-embed->y % embed->in->Ysize : 
-			embed->in->Ysize - embed->y % embed->in->Ysize;
+		const int nx = base->x < 0 ?
+			-base->x % base->in->Xsize : 
+			base->in->Xsize - base->x % base->in->Xsize;
+		const int ny = base->y < 0 ?
+			-base->y % base->in->Ysize : 
+			base->in->Ysize - base->y % base->in->Ysize;
 
-		if( vips_replicate( embed->in, &t[0],
-			embed->width / embed->in->Xsize + 2, 
-			embed->height / embed->in->Ysize + 2, NULL ) ||
+		if( vips_replicate( base->in, &t[0],
+			base->width / base->in->Xsize + 2, 
+			base->height / base->in->Ysize + 2, NULL ) ||
 			vips_extract_area( t[0], &t[1], 
-				nx, ny, embed->width, embed->height, NULL ) || 
+				nx, ny, base->width, base->height, NULL ) || 
 			vips_image_write( t[1], conversion->out ) )
 			return( -1 );
 
@@ -397,21 +405,18 @@ vips_embed_build( VipsObject *object )
 		/* As repeat, but the tiles are twice the size because of
 		 * mirroring.
 		 */
-		const int w2 = embed->in->Xsize * 2;
-		const int h2 = embed->in->Ysize * 2;
+		const int w2 = base->in->Xsize * 2;
+		const int h2 = base->in->Ysize * 2;
 
-		const int nx = embed->x < 0 ?  
-			-embed->x % w2 : w2 - embed->x % w2;
-		const int ny = embed->y < 0 ?  
-			-embed->y % h2 : h2 - embed->y % h2;
-
+		const int nx = base->x < 0 ? -base->x % w2 : w2 - base->x % w2;
+		const int ny = base->y < 0 ? -base->y % h2 : h2 - base->y % h2;
 
 		if( 
 			/* Make a 2x2 mirror tile.
 			 */
-			vips_flip( embed->in, &t[0], 
+			vips_flip( base->in, &t[0], 
 				VIPS_DIRECTION_HORIZONTAL, NULL ) ||
-			vips_join( embed->in, t[0], &t[1], 
+			vips_join( base->in, t[0], &t[1], 
 				VIPS_DIRECTION_HORIZONTAL, NULL ) ||
 			vips_flip( t[1], &t[2], 
 				VIPS_DIRECTION_VERTICAL, NULL ) ||
@@ -421,16 +426,16 @@ vips_embed_build( VipsObject *object )
 			/* Repeat, then cut out the centre.
 			 */
 			vips_replicate( t[3], &t[4], 
-				embed->width / t[3]->Xsize + 2, 
-				embed->height / t[3]->Ysize + 2, NULL ) ||
+				base->width / t[3]->Xsize + 2, 
+				base->height / t[3]->Ysize + 2, NULL ) ||
 			vips_extract_area( t[4], &t[5], 
-				nx, ny, embed->width, embed->height, NULL ) ||
+				nx, ny, base->width, base->height, NULL ) ||
 
 			/* Overwrite the centre with the in, much faster
 			 * for centre pixels.
 			 */
-			vips_insert( t[5], embed->in, &t[6], 
-				embed->x, embed->y, NULL ) ||
+			vips_insert( t[5], base->in, &t[6], 
+				base->x, base->y, NULL ) ||
 
 			vips_image_write( t[6], conversion->out ) )
 				return( -1 );
@@ -445,32 +450,32 @@ vips_embed_build( VipsObject *object )
 		 * geometry, so use ANY to avoid disturbing all pipelines. 
 		 */
 		if( vips_image_pipelinev( conversion->out, 
-			VIPS_DEMAND_STYLE_ANY, embed->in, NULL ) )
+			VIPS_DEMAND_STYLE_ANY, base->in, NULL ) )
 			return( -1 );
 
-		conversion->out->Xsize = embed->width;
-		conversion->out->Ysize = embed->height;
+		conversion->out->Xsize = base->width;
+		conversion->out->Ysize = base->height;
 
 		/* Whole output area.
 		 */
-		embed->rout.left = 0;
-		embed->rout.top = 0;
-		embed->rout.width = conversion->out->Xsize;
-		embed->rout.height = conversion->out->Ysize;
+		base->rout.left = 0;
+		base->rout.top = 0;
+		base->rout.width = conversion->out->Xsize;
+		base->rout.height = conversion->out->Ysize;
 
 		/* Rect occupied by image (can be clipped to nothing).
 		 */
-		want.left = embed->x;
-		want.top = embed->y;
-		want.width = embed->in->Xsize;
-		want.height = embed->in->Ysize;
-		vips_rect_intersectrect( &want, &embed->rout, &embed->rsub );
+		want.left = base->x;
+		want.top = base->y;
+		want.width = base->in->Xsize;
+		want.height = base->in->Ysize;
+		vips_rect_intersectrect( &want, &base->rout, &base->rsub );
 
-		/* FIXME ... actually, it can't. embed_find_edge() will fail 
+		/* FIXME ... actually, it can't. base_find_edge() will fail 
 		 * if rsub is empty. Make this more general at some point 
 		 * and remove this test.
 		 */
-		if( vips_rect_isempty( &embed->rsub ) ) {
+		if( vips_rect_isempty( &base->rsub ) ) {
 			vips_error( class->nickname, 
 				"%s", _( "bad dimensions" ) );
 			return( -1 );
@@ -479,58 +484,58 @@ vips_embed_build( VipsObject *object )
 		/* Edge rects of new pixels ... top, right, bottom, left. Order
 		 * important. Can be empty.
 		 */
-		embed->border[0].left = embed->rsub.left;
-		embed->border[0].top = 0;
-		embed->border[0].width = embed->rsub.width;
-		embed->border[0].height = embed->rsub.top;
+		base->border[0].left = base->rsub.left;
+		base->border[0].top = 0;
+		base->border[0].width = base->rsub.width;
+		base->border[0].height = base->rsub.top;
 
-		embed->border[1].left = VIPS_RECT_RIGHT( &embed->rsub );
-		embed->border[1].top = embed->rsub.top;
-		embed->border[1].width = conversion->out->Xsize - 
-			VIPS_RECT_RIGHT( &embed->rsub );
-		embed->border[1].height = embed->rsub.height;
+		base->border[1].left = VIPS_RECT_RIGHT( &base->rsub );
+		base->border[1].top = base->rsub.top;
+		base->border[1].width = conversion->out->Xsize - 
+			VIPS_RECT_RIGHT( &base->rsub );
+		base->border[1].height = base->rsub.height;
 
-		embed->border[2].left = embed->rsub.left;	
-		embed->border[2].top = VIPS_RECT_BOTTOM( &embed->rsub );
-		embed->border[2].width = embed->rsub.width;
-		embed->border[2].height = conversion->out->Ysize - 
-			VIPS_RECT_BOTTOM( &embed->rsub );
+		base->border[2].left = base->rsub.left;	
+		base->border[2].top = VIPS_RECT_BOTTOM( &base->rsub );
+		base->border[2].width = base->rsub.width;
+		base->border[2].height = conversion->out->Ysize - 
+			VIPS_RECT_BOTTOM( &base->rsub );
 
-		embed->border[3].left = 0;	
-		embed->border[3].top = embed->rsub.top;
-		embed->border[3].width = embed->rsub.left;
-		embed->border[3].height = embed->rsub.height;
+		base->border[3].left = 0;	
+		base->border[3].top = base->rsub.top;
+		base->border[3].width = base->rsub.left;
+		base->border[3].height = base->rsub.height;
 
 		/* Corner rects. Top-left, top-right, bottom-right, 
 		 * bottom-left. Order important.
 		 */
-		embed->border[4].left = 0;
-		embed->border[4].top = 0;
-		embed->border[4].width = embed->rsub.left;
-		embed->border[4].height = embed->rsub.top;
+		base->border[4].left = 0;
+		base->border[4].top = 0;
+		base->border[4].width = base->rsub.left;
+		base->border[4].height = base->rsub.top;
 
-		embed->border[5].left = VIPS_RECT_RIGHT( &embed->rsub );
-		embed->border[5].top = 0;
-		embed->border[5].width = conversion->out->Xsize - 
-			VIPS_RECT_RIGHT( &embed->rsub );
-		embed->border[5].height = embed->rsub.top;
+		base->border[5].left = VIPS_RECT_RIGHT( &base->rsub );
+		base->border[5].top = 0;
+		base->border[5].width = conversion->out->Xsize - 
+			VIPS_RECT_RIGHT( &base->rsub );
+		base->border[5].height = base->rsub.top;
 
-		embed->border[6].left = VIPS_RECT_RIGHT( &embed->rsub );
-		embed->border[6].top = VIPS_RECT_BOTTOM( &embed->rsub );
-		embed->border[6].width = conversion->out->Xsize - 
-			VIPS_RECT_RIGHT( &embed->rsub );
-		embed->border[6].height = conversion->out->Ysize - 
-			VIPS_RECT_BOTTOM( &embed->rsub );
+		base->border[6].left = VIPS_RECT_RIGHT( &base->rsub );
+		base->border[6].top = VIPS_RECT_BOTTOM( &base->rsub );
+		base->border[6].width = conversion->out->Xsize - 
+			VIPS_RECT_RIGHT( &base->rsub );
+		base->border[6].height = conversion->out->Ysize - 
+			VIPS_RECT_BOTTOM( &base->rsub );
 
-		embed->border[7].left = 0;
-		embed->border[7].top = VIPS_RECT_BOTTOM( &embed->rsub );
-		embed->border[7].width = embed->rsub.left;
-		embed->border[7].height = conversion->out->Ysize - 
-			VIPS_RECT_BOTTOM( &embed->rsub );
+		base->border[7].left = 0;
+		base->border[7].top = VIPS_RECT_BOTTOM( &base->rsub );
+		base->border[7].width = base->rsub.left;
+		base->border[7].height = conversion->out->Ysize - 
+			VIPS_RECT_BOTTOM( &base->rsub );
 
 		if( vips_image_generate( conversion->out,
-			vips_start_one, vips_embed_gen, vips_stop_one, 
-			embed->in, embed ) )
+			vips_start_one, vips_embed_base_gen, vips_stop_one, 
+			base->in, base ) )
 			return( -1 );
 
 		break;
@@ -543,11 +548,102 @@ vips_embed_build( VipsObject *object )
 }
 
 static void
+vips_embed_base_class_init( VipsEmbedBaseClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+
+	VIPS_DEBUG_MSG( "vips_embed_base_class_init\n" );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	vobject_class->nickname = "embed_base";
+	vobject_class->description = _( "embed an image in a larger image" );
+	vobject_class->build = vips_embed_base_build;
+
+	/* Not seq with mirror.
+	 */
+
+	VIPS_ARG_IMAGE( class, "in", 1, 
+		_( "Input" ), 
+		_( "Input image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsEmbedBase, in ) );
+
+	VIPS_ARG_INT( class, "width", 5, 
+		_( "Width" ), 
+		_( "Image width in pixels" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsEmbedBase, width ),
+		1, 1000000000, 1 );
+
+	VIPS_ARG_INT( class, "height", 6, 
+		_( "Height" ), 
+		_( "Image height in pixels" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsEmbedBase, height ),
+		1, 1000000000, 1 );
+
+	VIPS_ARG_ENUM( class, "extend", 7, 
+		_( "Extend" ), 
+		_( "How to generate the extra pixels" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsEmbedBase, extend ),
+		VIPS_TYPE_EXTEND, VIPS_EXTEND_BLACK );
+
+	VIPS_ARG_BOXED( class, "background", 12, 
+		_( "Background" ), 
+		_( "Color for background pixels" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsEmbedBase, background ),
+		VIPS_TYPE_ARRAY_DOUBLE );
+
+}
+
+static void
+vips_embed_base_init( VipsEmbedBase *base )
+{
+	base->extend = VIPS_EXTEND_BLACK;
+	base->background = vips_array_double_newv( 1, 0.0 );
+}
+
+/* Embed with specified x, y
+ */
+
+typedef struct _VipsEmbed {
+	VipsEmbedBase parent_instance;
+
+	int x;
+	int y;
+} VipsEmbed;
+
+typedef VipsConversionClass VipsEmbedClass;
+
+G_DEFINE_TYPE( VipsEmbed, vips_embed, vips_embed_base_get_type() );
+
+static int
+vips_embed_build( VipsObject *object )
+{
+	VipsEmbedBase *base = (VipsEmbedBase *) object;
+	VipsEmbed *embed = (VipsEmbed *) object;
+
+	/* Just pass the specified x, y down.
+	 */
+	base->x = embed->x;
+	base->y = embed->y;
+
+	if( VIPS_OBJECT_CLASS( vips_embed_parent_class )->build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
 vips_embed_class_init( VipsEmbedClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
-	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	VIPS_DEBUG_MSG( "vips_embed_class_init\n" );
 
@@ -557,14 +653,6 @@ vips_embed_class_init( VipsEmbedClass *class )
 	vobject_class->nickname = "embed";
 	vobject_class->description = _( "embed an image in a larger image" );
 	vobject_class->build = vips_embed_build;
-
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
-
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
-		_( "Input image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsEmbed, in ) );
 
 	VIPS_ARG_INT( class, "x", 3, 
 		_( "x" ), 
@@ -580,41 +668,11 @@ vips_embed_class_init( VipsEmbedClass *class )
 		G_STRUCT_OFFSET( VipsEmbed, y ),
 		-1000000000, 1000000000, 0 );
 
-	VIPS_ARG_INT( class, "width", 5, 
-		_( "Width" ), 
-		_( "Image width in pixels" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsEmbed, width ),
-		1, 1000000000, 1 );
-
-	VIPS_ARG_INT( class, "height", 6, 
-		_( "Height" ), 
-		_( "Image height in pixels" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsEmbed, height ),
-		1, 1000000000, 1 );
-
-	VIPS_ARG_ENUM( class, "extend", 7, 
-		_( "Extend" ), 
-		_( "How to generate the extra pixels" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsEmbed, extend ),
-		VIPS_TYPE_EXTEND, VIPS_EXTEND_BLACK );
-
-	VIPS_ARG_BOXED( class, "background", 12, 
-		_( "Background" ), 
-		_( "Color for background pixels" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsEmbed, background ),
-		VIPS_TYPE_ARRAY_DOUBLE );
-
 }
 
 static void
 vips_embed_init( VipsEmbed *embed )
 {
-	embed->extend = VIPS_EXTEND_BLACK;
-	embed->background = vips_array_double_newv( 1, 0.0 );
 }
 
 /**
@@ -651,6 +709,156 @@ vips_embed( VipsImage *in, VipsImage **out,
 
 	va_start( ap, height );
 	result = vips_call_split( "embed", ap, in, out, x, y, width, height );
+	va_end( ap );
+
+	return( result );
+}
+
+/* Embed with a general direction.
+ */
+
+typedef struct _VipsGravity {
+	VipsEmbedBase parent_instance;
+
+	VipsCompassDirection direction;
+} VipsGravity;
+
+typedef VipsConversionClass VipsGravityClass;
+
+G_DEFINE_TYPE( VipsGravity, vips_gravity, vips_embed_base_get_type() );
+
+static int
+vips_gravity_build( VipsObject *object )
+{
+	VipsEmbedBase *base = (VipsEmbedBase *) object;
+	VipsGravity *gravity = (VipsGravity *) object;
+
+	if( vips_object_argument_isset( object, "in" ) &&
+		vips_object_argument_isset( object, "width" ) &&
+		vips_object_argument_isset( object, "height" ) &&
+		vips_object_argument_isset( object, "direction" ) ) {
+		switch( gravity->direction ) {
+		case VIPS_COMPASS_DIRECTION_CENTRE:
+			base->x = (base->width - base->in->Xsize) / 2;
+			base->y = (base->height - base->in->Ysize) / 2;
+			break;
+
+		case VIPS_COMPASS_DIRECTION_NORTH:
+			base->x = (base->width - base->in->Xsize) / 2;
+			base->y = 0;
+			break;
+
+		case VIPS_COMPASS_DIRECTION_EAST:
+			base->x = base->width - base->in->Xsize;
+			base->y = (base->height - base->in->Ysize) / 2;
+			break;
+
+		case VIPS_COMPASS_DIRECTION_SOUTH:
+			base->x = (base->width - base->in->Xsize) / 2;
+			base->y = base->height - base->in->Ysize;
+			break;
+
+		case VIPS_COMPASS_DIRECTION_WEST:
+			base->x = 0;
+			base->y = (base->height - base->in->Ysize) / 2;
+			break;
+
+		case VIPS_COMPASS_DIRECTION_NORTH_EAST:
+			base->x = base->width - base->in->Xsize;
+			base->y = 0;
+			break;
+
+		case VIPS_COMPASS_DIRECTION_SOUTH_EAST:
+			base->x = base->width - base->in->Xsize;
+			base->y = base->height - base->in->Ysize;
+			break;
+
+		case VIPS_COMPASS_DIRECTION_SOUTH_WEST:
+			base->x = 0;
+			base->y = base->height - base->in->Ysize;
+			break;
+
+		case VIPS_COMPASS_DIRECTION_NORTH_WEST:
+			base->x = 0;
+			base->y = 0;
+			break;
+
+		default:
+			g_assert_not_reached();
+
+		}
+	}
+
+	if( VIPS_OBJECT_CLASS( vips_gravity_parent_class )->build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_gravity_class_init( VipsGravityClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+
+	VIPS_DEBUG_MSG( "vips_gravity_class_init\n" );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	vobject_class->nickname = "gravity";
+	vobject_class->description = _( "place an image within a larger "
+		"image with a certain gravity" );
+	vobject_class->build = vips_gravity_build;
+
+	VIPS_ARG_ENUM( class, "direction", 3, 
+		_( "Direction" ), 
+		_( "direction to place image within width/height" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsGravity, direction ),
+		VIPS_TYPE_COMPASS_DIRECTION, VIPS_COMPASS_DIRECTION_CENTRE );
+}
+
+static void
+vips_gravity_init( VipsGravity *gravity )
+{
+	gravity->direction = VIPS_COMPASS_DIRECTION_CENTRE;
+}
+
+/**
+ * vips_gravity:
+ * @in: input image
+ * @out: output image
+ * @direction: place @in at this direction in @out
+ * @width: @out should be this many pixels across
+ * @height: @out should be this many pixels down
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @extend: #VipsExtend to generate the edge pixels (default: black)
+ * * @background: #VipsArrayDouble colour for edge pixels
+ *
+ * The opposite of vips_extract_area(): place @in within an image of size 
+ * @width by @height at a certain gravity. 
+ *
+ * @extend
+ * controls what appears in the new pels, see #VipsExtend. 
+ *
+ * See also: vips_extract_area(), vips_insert().
+ * 
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_gravity( VipsImage *in, VipsImage **out, 
+	VipsCompassDirection direction, int width, int height, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, height );
+	result = vips_call_split( "gravity", ap, in, out, 
+		direction, width, height );
 	va_end( ap );
 
 	return( result );
