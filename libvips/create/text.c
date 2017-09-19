@@ -159,7 +159,7 @@ text_layout_new( PangoContext *context,
 }
 
 static int
-text_get_extents( VipsText *text, VipsRect *extents )
+vips_text_get_extents( VipsText *text, VipsRect *extents )
 {
 	PangoRectangle logical_rect;
 
@@ -180,7 +180,7 @@ text_get_extents( VipsText *text, VipsRect *extents )
 	extents->height = PANGO_PIXELS( logical_rect.height );
 
 #ifdef DEBUG
-	printf( "text_get_extents: dpi = %d, "
+	printf( "vips_text_get_extents: dpi = %d, "
 		"left = %d, top = %d, width = %d, height = %d\n",
 		text->dpi, 
 		extents->left, extents->top, extents->width, extents->height );
@@ -189,76 +189,118 @@ text_get_extents( VipsText *text, VipsRect *extents )
 	return( 0 );
 }
 
+/* Compare two rects and return a number estimating their difference. 0 for
+ * the same, negative for first smaller, positive for first larger. One rect
+ * must enclose the other. 
+ */
+static int
+vips_text_rect_difference( VipsRect *a, VipsRect *b )
+{
+	int w_diff = a->width - b->width;
+	int h_diff = a->height - b->height;
+
+	g_assert( vips_rect_includesrect( a, b ) ||
+		vips_rect_includesrect( b, a ) );
+
+	/* We need the difference closest to zero.
+	 */
+	if( vips_rect_includesrect( a, b ) ) 
+		/* So w and h diff must both be positive. We want the smaller
+		 * one.
+		 */
+		return( VIPS_MIN( w_diff, h_diff ) );
+	else 
+		/* Both negative.
+		 */
+		return( VIPS_MAX( w_diff, h_diff ) );
+}
+
 /* Adjust text->dpi to try to fit to the bounding box.
  */
 static int
 vips_text_autofit( VipsText *text ) 
 {
 	VipsRect target;
-	VipsRect previous_target;
 	VipsRect extents;
-	VipsRect previous_extents;
 	int previous_dpi;
-	int lower;
-	int upper;
+	int difference;
+	int previous_difference;
+	int lower_dpi;
+	int upper_dpi;
+	int lower_difference;
+	int upper_difference;
 
 	/* First, repeatedly double or halve dpi until we pass the correct
 	 * value. This will give us a lower and upper bound.
 	 */
 	target.width = text->width;
 	target.height = text->height;
-	previous_dpi = -1;
+	previous_dpi = text->dpi;
+	previous_difference = -1;
 
 	for(;;) { 
-		if( text_get_extents( text, &extents ) )
+		if( vips_text_get_extents( text, &extents ) )
 			return( -1 ); 
 
 		target.left = extents.left;
 		target.top = extents.top;
+		difference = vips_text_rect_difference( &extents, &target );
 
-		if( previous_dpi == -1 ) {
-			previous_dpi = text->dpi;
-			previous_extents = extents;
-			previous_target = target;
-		}
+		if( previous_difference == -1 ) 
+			previous_difference = difference;
 
 		/* Too small last time, still too small.
 		 */
-		if( vips_rect_includesrect( &target, &extents ) &&
-			vips_rect_includesrect( &previous_target, 
-				&previous_extents ) ) 
+		if( difference < 0 &&
+			previous_difference < 0 )  
 			text->dpi *= 2;
 		/* Too big last time, still too big.
 		 */
-		else if( vips_rect_includesrect( &extents, &target ) &&
-			vips_rect_includesrect( &previous_extents, 
-				&previous_target ) ) 
+		else if( difference > 0 && 
+			previous_difference > 0 ) 
 			text->dpi /= 2;
-		/* We now straddle the target!
+		/* We now straddle the target! Or both zero.
 		 */
 		else
 			break;
 	}
 
-	lower = VIPS_MIN( text->dpi, previous_dpi );
-	upper = VIPS_MAX( text->dpi, previous_dpi );
+	lower_dpi = VIPS_MIN( text->dpi, previous_dpi );
+	lower_difference = VIPS_MIN( difference, previous_difference );
+	upper_dpi = VIPS_MAX( text->dpi, previous_dpi );
+	upper_difference = VIPS_MAX( difference, previous_difference );
 
-	/* Refine lower and upper until they are almost touching.
+	/* Refine lower and upper until they are almost touching, or until we
+	 * fit exactly.
 	 */
-	while( upper - lower > 2 ) { 
-		text->dpi = (upper + lower) / 2;
-		if( text_get_extents( text, &extents ) )
+	while( upper_dpi - lower_dpi > 2 &&
+		lower_difference < 0 &&
+		upper_difference > 0 ) { 
+		int total_difference = upper_difference - lower_difference;
+		double x = (double) -lower_difference / total_difference;
+		int guess_dpi = (upper_dpi - lower_dpi) * x + lower_dpi;
+
+		text->dpi = guess_dpi;
+		if( vips_text_get_extents( text, &extents ) )
 			return( -1 ); 
 
 		target.left = extents.left;
 		target.top = extents.top;
-		if( vips_rect_includesrect( &target, &extents ) )
-			lower = text->dpi;
-		else
-			upper = text->dpi;
+		difference = vips_text_rect_difference( &extents, &target );
+		if( difference < 0 ) {
+			lower_dpi = guess_dpi;
+			lower_difference = difference;
+		}
+		else {
+			upper_dpi = guess_dpi;
+			upper_difference = difference;
+		}
 	}
 
-	text->dpi = lower;
+	if( upper_difference == 0 )
+		text->dpi = upper_dpi;
+	else
+		text->dpi = lower_dpi;
 
 	return( 0 ); 
 }
@@ -291,12 +333,11 @@ vips_text_build( VipsObject *object )
 	 * we get a fit.
 	 */
 	if( vips_object_argument_isset( object, "height" ) &&
-		!vips_object_argument_isset( object, "dpi" ) ) {
-		if( vips_text_autofit( text ) )
-			return( -1 );
-	}
+		!vips_object_argument_isset( object, "dpi" ) &&
+		vips_text_autofit( text ) )
+		return( -1 );
 
-	if( text_get_extents( text, &extents ) )
+	if( vips_text_get_extents( text, &extents ) )
 		return( -1 );
 
 	/* Can happen for "", for example.
