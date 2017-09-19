@@ -2,6 +2,9 @@
  *
  * 26/7/17
  * 	- from a ruby example
+ * 18/9/17 kleisauke 
+ * 	- missing bandor
+ * 	- only flatten if there is an alpha
  */
 
 /*
@@ -69,6 +72,7 @@ vips_find_trim_build( VipsObject *object )
 	VipsFindTrim *find_trim = (VipsFindTrim *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 20 );
 
+	VipsImage *in;
 	double *background;
 	int n;
 	double *neg_bg;
@@ -93,12 +97,16 @@ vips_find_trim_build( VipsObject *object )
 				vips_array_double_newv( 1, 65535.0 );
 		}
 
-	/* Flatten out any alpha.
+	/* Flatten out alpha, if any. 
 	 */
-	if( vips_flatten( find_trim->in, &t[0], 
-		"background", find_trim->background,
-		NULL ) )
-		return( -1 ); 
+	in = find_trim->in;
+	if( vips_image_hasalpha( in ) ) {
+		if( vips_flatten( in, &t[0], 
+			"background", find_trim->background,
+			NULL ) )
+			return( -1 ); 
+		in = t[0];
+	}
 
 	/* We want to subtract the bg.
 	 */
@@ -113,42 +121,44 @@ vips_find_trim_build( VipsObject *object )
 
 	/* Smooth, find difference from bg, abs, threshold.
 	 */
-	if( vips_median( t[0], &t[1], 3, NULL ) ||
+	if( vips_median( in, &t[1], 3, NULL ) ||
 		vips_linear( t[1], &t[2], ones, neg_bg, n, NULL ) ||
 		vips_abs( t[2], &t[3], NULL ) ||
-		vips_more_const1( t[3], &t[4], find_trim->threshold, NULL ) )
+		vips_more_const1( t[3], &t[4], find_trim->threshold, NULL ) ||
+		vips_bandor( t[4], &t[5], NULL ) )
 		return( -1 ); 
+	in = t[5];
 
-	/* t[5] == column sums, t[6] == row sums. 
+	/* t[6] == column sums, t[7] == row sums. 
 	 */
-	if( vips_project( t[4], &t[5], &t[6], NULL ) )
-		return( -1 );
-
-	/* t[8] == search column sums in from left.
-	 */
-	if( vips_profile( t[5], &t[7], &t[8], NULL ) ||
-		vips_avg( t[8], &left, NULL ) )
-		return( -1 );
-	if( vips_flip( t[5], &t[9], VIPS_DIRECTION_HORIZONTAL, NULL ) ||
-		vips_profile( t[9], &t[10], &t[11], NULL ) ||
-		vips_avg( t[11], &right, NULL ) )
+	if( vips_project( in, &t[6], &t[7], NULL ) )
 		return( -1 );
 
 	/* t[8] == search column sums in from left.
 	 */
-	if( vips_profile( t[6], &t[12], &t[13], NULL ) ||
-		vips_avg( t[12], &top, NULL ) )
+	if( vips_profile( t[6], &t[8], &t[9], NULL ) ||
+		vips_avg( t[9], &left, NULL ) )
 		return( -1 );
-	if( vips_flip( t[6], &t[14], VIPS_DIRECTION_VERTICAL, NULL ) ||
-		vips_profile( t[14], &t[15], &t[16], NULL ) ||
-		vips_avg( t[15], &bottom, NULL ) )
+	if( vips_flip( t[6], &t[10], VIPS_DIRECTION_HORIZONTAL, NULL ) ||
+		vips_profile( t[10], &t[11], &t[12], NULL ) ||
+		vips_avg( t[12], &right, NULL ) )
+		return( -1 );
+
+	/* t[8] == search column sums in from left.
+	 */
+	if( vips_profile( t[7], &t[13], &t[14], NULL ) ||
+		vips_avg( t[13], &top, NULL ) )
+		return( -1 );
+	if( vips_flip( t[7], &t[15], VIPS_DIRECTION_VERTICAL, NULL ) ||
+		vips_profile( t[15], &t[16], &t[17], NULL ) ||
+		vips_avg( t[16], &bottom, NULL ) )
 		return( -1 );
 
 	g_object_set( find_trim,
 		"left", (int) left,
 		"top", (int) top,
-		"width", (int) VIPS_MAX( 0, (t[5]->Xsize - right) - left ),
-		"height", (int) VIPS_MAX( 0, (t[6]->Ysize - bottom) - top ),
+		"width", (int) VIPS_MAX( 0, (t[6]->Xsize - right) - left ),
+		"height", (int) VIPS_MAX( 0, (t[7]->Ysize - bottom) - top ),
 		NULL ); 
 
 	return( 0 );
@@ -253,7 +263,8 @@ vips_find_trim_init( VipsFindTrim *find_trim )
  * and @height == 0.
  *
  * @background defaults to 255, or 65535 for 16-bit images. Set another value, 
- * or use vips_getpoint() to pick a value from an edge. 
+ * or use vips_getpoint() to pick a value from an edge. You'll need to flatten
+ * before vips_getpoint() to get a correct background value.
  *
  * @threshold defaults to 10. 
  *

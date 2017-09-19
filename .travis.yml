@@ -9,17 +9,13 @@ before_script:
 script:
   - make -Ctest -j$JOBS -s V=0 VERBOSE=1 check
 
-# allow osx to fail since brew so often falls over
 matrix:
   fast_finish: true
-  allow_failures:
-    - os: osx
   include:
     - os: linux
       sudo: required
       dist: precise
       env:
-        - PYTHON=/usr/bin/python
         - JPEG=/usr
         - JOBS=`nproc`
         - LIBTOOLFLAGS=--quiet
@@ -36,13 +32,11 @@ matrix:
           liborc-0.4-dev liblcms2-dev libpoppler-glib-dev
           librsvg2-dev libgif-dev
           libpango1.0-dev
-          python-dev
 
     - os: linux
       sudo: required
       dist: trusty
       env:
-        - PYTHON=/usr/bin/python
         - JPEG=/usr
         - JOBS=`nproc`
       cache: ccache
@@ -58,12 +52,10 @@ matrix:
           liborc-0.4-dev liblcms2-dev libpoppler-glib-dev
           librsvg2-dev libgif-dev
           libpango1.0-dev libgsf-1-dev libopenslide-dev
-          python-dev python-gi-dev libgirepository1.0-dev
 
     - os: osx
       osx_image: xcode7.3
       env:
-        - PYTHON=/usr/local/bin/python
         - JPEG=/usr/local/opt/mozjpeg
         - JOBS="`sysctl -n hw.ncpu`"
         - PATH="/usr/local/opt/ccache/libexec:$PATH"
@@ -71,7 +63,7 @@ matrix:
       before_install:
         - brew tap homebrew/science
         - brew update
-        - brew install ccache pkg-config automake
+        - brew install ccache
         - brew install --ignore-dependencies gtk-doc
         - brew install
           gobject-introspection
@@ -81,5 +73,5 @@ matrix:
           cfitsio libmatio
           orc little-cms2 poppler
           pango libgsf openslide
-          librsvg giflib openexr
-        - brew install pygobject3
+          librsvg openexr
+
