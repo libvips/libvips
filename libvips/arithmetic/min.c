@@ -492,9 +492,9 @@ vips_min_init( VipsMin *min )
 }
 
 /**
- * vips_min:
+ * vips_min: (method)
  * @in: input #VipsImage
- * @out: output pixel minimum
+ * @out: (out): output pixel minimum
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

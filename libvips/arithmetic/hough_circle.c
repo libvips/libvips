@@ -268,9 +268,9 @@ vips_hough_circle_init( VipsHoughCircle *hough_circle )
 }
 
 /**
- * vips_hough_circle:
+ * vips_hough_circle: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

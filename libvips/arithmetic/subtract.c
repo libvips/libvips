@@ -175,7 +175,7 @@ vips_subtract_init( VipsSubtract *subtract )
  * vips_subtract:
  * @in1: input image 
  * @in2: input image 
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * This operation calculates @in1 - @in2 and writes the result to @out. 

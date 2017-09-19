@@ -253,9 +253,9 @@ vips_abs_init( VipsAbs *abs )
 }
 
 /** 
- * vips_abs:
+ * vips_abs: (method)
  * @in: input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * This operation finds the absolute value of an image. It does a copy for 

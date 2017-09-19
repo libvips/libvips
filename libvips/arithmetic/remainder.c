@@ -189,7 +189,7 @@ vips_remainder_init( VipsRemainder *remainder )
  * vips_remainder:
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * This operation calculates @left % @right (remainder after integer division) 
@@ -357,10 +357,10 @@ vips_remainder_constv( VipsImage *in, VipsImage **out,
 }
 
 /**
- * vips_remainder_const:
+ * vips_remainder_const: (method)
  * @in: input image
- * @out: output image
- * @c: array of constants 
+ * @out: (out): output image
+ * @c: (array length=n): array of constants
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -396,9 +396,9 @@ vips_remainder_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 }
 
 /**
- * vips_remainder_const1:
+ * vips_remainder_const1: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @c: constant 
  * @...: %NULL-terminated list of optional named arguments
  *

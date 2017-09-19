@@ -346,10 +346,10 @@ vips_project_init( VipsProject *project )
 }
 
 /**
- * vips_project:
+ * vips_project: (method)
  * @in: input image
- * @columns: sums of columns
- * @rows: sums of rows
+ * @columns: (out): sums of columns
+ * @rows: (out): sums of rows
  * @...: %NULL-terminated list of optional named arguments
  *
  * Find the horizontal and vertical projections of an image, ie. the sum

@@ -185,7 +185,7 @@ vips_add_init( VipsAdd *add )
  * vips_add:
  * @left: input image 
  * @right: input image 
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * This operation calculates @in1 + @in2 and writes the result to @out. 

@@ -316,10 +316,10 @@ vips_profile_init( VipsProfile *profile )
 }
 
 /**
- * vips_profile:
+ * vips_profile: (method)
  * @in: input image
- * @columns: distances from top edge
- * @rows: distances from left edge
+ * @columns: (out): distances from top edge
+ * @rows: (out): distances from left edge
  * @...: %NULL-terminated list of optional named arguments
  *
  * vips_profile() searches inward from the edge of @in and finds the 

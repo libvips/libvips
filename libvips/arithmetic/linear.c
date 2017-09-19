@@ -438,9 +438,9 @@ vips_linearv( VipsImage *in, VipsImage **out,
 }
 
 /**
- * vips_linear:
+ * vips_linear: (method)
  * @in: image to transform
- * @out: output image
+ * @out: (out): output image
  * @a: (array length=n): array of constants for multiplication
  * @b: (array length=n): array of constants for addition
  * @n: length of constant arrays
@@ -480,9 +480,9 @@ vips_linear( VipsImage *in, VipsImage **out, double *a, double *b, int n, ... )
 }
 
 /**
- * vips_linear1:
+ * vips_linear1: (method)
  * @in: image to transform
- * @out: output image
+ * @out: (out): output image
  * @a: constant for multiplication
  * @b: constant for addition
  * @...: %NULL-terminated list of optional named arguments
