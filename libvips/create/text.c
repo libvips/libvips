@@ -462,7 +462,7 @@ vips_text_class_init( VipsTextClass *class )
 
 	VIPS_ARG_INT( class, "autofit_dpi", 10, 
 		_( "Autofit DPI" ), 
-		_( "DPI selected bu autofit" ),
+		_( "DPI selected by autofit" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsText, dpi ),
 		1, 1000000, 72 );
