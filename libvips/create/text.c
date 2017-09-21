@@ -48,8 +48,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -290,13 +290,17 @@ vips_text_autofit( VipsText *text, VipsRect *out_extents )
 		}
 	}
 
-	if( difference > 0 ) {
-		text->dpi = lower_dpi;
-		*out_extents = lower_extents;
-	}
-	else {
+	/* If we've hit the target exactly and quit the loop, diff will be 0
+	 * and we can use upper. Otherwise we are straddling the target and we
+	 * must take lower.
+	 */
+	if( difference == 0 ) {
 		text->dpi = upper_dpi;
 		*out_extents = upper_extents;
+	}
+	else {
+		text->dpi = lower_dpi;
+		*out_extents = lower_extents;
 	}
 
 	return( 0 ); 
