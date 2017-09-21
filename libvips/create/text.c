@@ -48,8 +48,8 @@
  */
 
 /*
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -303,6 +303,8 @@ vips_text_autofit( VipsText *text, VipsRect *out_extents )
 		*out_extents = lower_extents;
 	}
 
+	g_object_set( text, "autofit_dpi", text->dpi, NULL ); 
+
 	return( 0 ); 
 }
 
@@ -458,7 +460,14 @@ vips_text_class_init( VipsTextClass *class )
 		G_STRUCT_OFFSET( VipsText, dpi ),
 		1, 1000000, 72 );
 
-	VIPS_ARG_INT( class, "spacing", 10, 
+	VIPS_ARG_INT( class, "autofit_dpi", 10, 
+		_( "Autofit DPI" ), 
+		_( "DPI selected bu autofit" ),
+		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
+		G_STRUCT_OFFSET( VipsText, dpi ),
+		1, 1000000, 72 );
+
+	VIPS_ARG_INT( class, "spacing", 11, 
 		_( "Spacing" ), 
 		_( "Line spacing" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
