@@ -9,8 +9,8 @@
     <refpurpose>Writing bindings for libvips</refpurpose>
   </refnamediv>
 
-There are full libvips bindings for quite a few languages now: C, C++, Ruby,
-PHP, Python and JavaScript. 
+There are full libvips bindings for quite a few environments now: C, C++,
+command-line, Ruby, PHP, Python and JavaScript (node). 
 
 This chapter runs through the four main styles that have been found to work
 well. If you want to write a new binding, one of these should be close
@@ -182,21 +182,17 @@ it's as simple as:
 from gi.repository import Vips
 ```
 
-libvips used in this way is likely to be rather bare-bones. For Python, we
-wrote a set of overrides which layer a more Pythonesque interface on top
-of the one provided for libvips by pygobject. These overrides are simply
-a set of Python classes.
+You can now use all of the libvips introspection machinery, as noted above. 
 
-To call a vips operation, you'll need to make a new operation with
-vips_operation_new() (all it does is look up the operation by name
-with vips_type_find(), then call g_object_new() for you), then use
-vips_argument_map() and friends to loop over the operation's arguments setting
-them. Once you have set all arguments, use vips_cache_operation_build()
-to look up the operation in the cache and either build or dup it. If
-something goes wrong, you'll need to use vips_object_unref_outputs() and
-g_object_unref() to free the partially-built object.  The Python binding uses
-this technique to implement a function which can call any vips operation,
-turning optional vips arguments into Python keyword arguments.
+Unfortunately g-o-i has some strong disadvantages. It is not very portable,
+since you will need a g-o-i layer for whatever platform you are targetting, 
+it does not cross-compile well since typelibs include a lot of very-low level
+data (such as exact structure layouts), and installation for your users is
+likely to be tricky.
+
+If you have a choice, I would recommend simply using FFI. 
+
+# Documentation
 
 You can generate searchable docs from a <code>.gir</code> (the thing that 
 is built from scanning libvips and which in turn turn the typelib is 
