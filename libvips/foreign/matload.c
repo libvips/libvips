@@ -147,7 +147,7 @@ vips_foreign_load_mat_init( VipsForeignLoadMat *mat )
 /**
  * vips_matload:
  * @filename: file to load
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Read a Matlab save file into a VIPS image. 

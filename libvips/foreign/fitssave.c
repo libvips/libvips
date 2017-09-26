@@ -150,7 +150,7 @@ vips_foreign_save_fits_init( VipsForeignSaveFits *fits )
 #endif /*HAVE_CFITSIO*/
 
 /**
- * vips_fitssave:
+ * vips_fitssave: (method)
  * @in: image to save 
  * @filename: file to write to 
  * @...: %NULL-terminated list of optional named arguments

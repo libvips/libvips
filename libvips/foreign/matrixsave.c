@@ -131,7 +131,7 @@ vips_foreign_save_matrix_init( VipsForeignSaveMatrix *matrix )
 }
 
 /**
- * vips_matrixsave:
+ * vips_matrixsave: (method)
  * @in: image to save 
  * @filename: file to write to
  * @...: %NULL-terminated list of optional named arguments
@@ -204,7 +204,7 @@ vips_foreign_print_matrix_init( VipsForeignPrintMatrix *matrix )
 }
 
 /**
- * vips_matrixprint:
+ * vips_matrixprint: (method)
  * @in: image to print 
  * @...: %NULL-terminated list of optional named arguments
  *

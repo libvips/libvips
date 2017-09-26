@@ -412,7 +412,7 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
 #endif /*HAVE_JPEG*/
 
 /**
- * vips_jpegsave:
+ * vips_jpegsave: (method)
  * @in: image to save 
  * @filename: file to write to 
  * @...: %NULL-terminated list of optional named arguments
@@ -526,10 +526,10 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
 }
 
 /**
- * vips_jpegsave_buffer:
+ * vips_jpegsave_buffer: (method)
  * @in: image to save 
- * @buf: return output buffer here
- * @len: return output length here
+ * @buf: (array length=len) (element-type guint8): return output buffer here
+ * @len: (type gsize): return output length here
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -584,7 +584,7 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 }
 
 /**
- * vips_jpegsave_mime:
+ * vips_jpegsave_mime: (method)
  * @in: image to save 
  * @...: %NULL-terminated list of optional named arguments
  *
