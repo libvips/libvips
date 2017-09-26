@@ -222,9 +222,9 @@ vips_recomb_init( VipsRecomb *recomb )
 }
 
 /** 
- * vips_recomb:
+ * vips_recomb: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @m: recombination matrix
  * @...: %NULL-terminated list of optional named arguments
  *

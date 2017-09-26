@@ -383,9 +383,9 @@ vips_rotv( VipsImage *in, VipsImage **out, VipsAngle angle, va_list ap )
 }
 
 /**
- * vips_rot:
+ * vips_rot: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @angle: rotation angle
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -437,9 +437,9 @@ vips_rot90( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_rot180:
+ * vips_rot180: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Rotate @in by 180 degress. A convenience function over vips_rot().
@@ -462,9 +462,9 @@ vips_rot180( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_rot270:
+ * vips_rot270: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Rotate @in by 270 degress clockwise. A convenience function over vips_rot().

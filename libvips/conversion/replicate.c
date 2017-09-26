@@ -220,9 +220,9 @@ vips_replicate_init( VipsReplicate *replicate )
 }
 
 /**
- * vips_replicate:
+ * vips_replicate: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @across: repeat input this many times across
  * @down: repeat input this many times down
  * @...: %NULL-terminated list of optional named arguments

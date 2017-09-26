@@ -256,9 +256,9 @@ vips_flip_init( VipsFlip *flip )
 }
 
 /**
- * vips_flip:
+ * vips_flip: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @direction: flip horizontally or vertically
  * @...: %NULL-terminated list of optional named arguments
  *

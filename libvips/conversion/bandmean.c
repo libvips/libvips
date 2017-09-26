@@ -207,9 +207,9 @@ vips_bandmean_init( VipsBandmean *bandmean )
 }
 
 /**
- * vips_bandmean:
+ * vips_bandmean: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * This operation writes a one-band image where each pixel is the average of 

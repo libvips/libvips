@@ -359,9 +359,9 @@ vips_copy_init( VipsCopy *copy )
 }
 
 /**
- * vips_copy:
+ * vips_copy: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -403,9 +403,9 @@ vips_copy( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_copy_file:
+ * vips_copy_file: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * A simple convenience function to copy an image to a file, then copy 

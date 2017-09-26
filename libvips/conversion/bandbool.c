@@ -239,9 +239,9 @@ vips_bandboolv( VipsImage *in, VipsImage **out,
 }
 
 /**
- * vips_bandbool:
+ * vips_bandbool: (method)
  * @in: left-hand input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @boolean: boolean operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -279,9 +279,9 @@ vips_bandbool( VipsImage *in, VipsImage **out,
 }
 
 /**
- * vips_bandand:
+ * vips_bandand: (method)
  * @in: left-hand input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_BOOLEAN_AND on an image. See
@@ -303,9 +303,9 @@ vips_bandand( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_bandor:
+ * vips_bandor: (method)
  * @in: left-hand input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_BOOLEAN_OR on an image. See
@@ -327,9 +327,9 @@ vips_bandor( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_bandeor:
+ * vips_bandeor: (method)
  * @in: left-hand input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_BOOLEAN_EOR on an image. See

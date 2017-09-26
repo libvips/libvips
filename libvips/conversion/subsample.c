@@ -300,9 +300,9 @@ vips_subsample_init( VipsSubsample *subsample )
 }
 
 /**
- * vips_subsample:
+ * vips_subsample: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @xfac: horizontal shrink factor
  * @yfac: vertical shrink factor
  * @...: %NULL-terminated list of optional named arguments
