@@ -225,7 +225,7 @@ vips_math2v( VipsImage *left, VipsImage *right, VipsImage **out,
  * vips_math2:
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @math2: math operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -272,7 +272,7 @@ vips_math2( VipsImage *left, VipsImage *right, VipsImage **out,
  * vips_pow:
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_MATH2_POW on a pair of images. See
@@ -297,7 +297,7 @@ vips_pow( VipsImage *left, VipsImage *right, VipsImage **out, ... )
  * vips_wop:
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_MATH2_WOP on a pair of images. See
@@ -441,11 +441,11 @@ vips_math2_constv( VipsImage *in, VipsImage **out,
 }
 
 /**
- * vips_math2_const:
+ * vips_math2_const: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @math2: math operation to perform
- * @c: array of constants 
+ * @c: (array length=n): array of constants
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -484,10 +484,10 @@ vips_math2_const( VipsImage *in, VipsImage **out,
 }
 
 /**
- * vips_pow_const:
+ * vips_pow_const: (method)
  * @in: left-hand input #VipsImage
- * @out: output #VipsImage
- * @c: array of constants 
+ * @out: (out): output #VipsImage
+ * @c: (array length=n): array of constants
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -511,10 +511,10 @@ vips_pow_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 }
 
 /**
- * vips_wop_const:
+ * vips_wop_const: (method)
  * @in: left-hand input #VipsImage
- * @out: output #VipsImage
- * @c: array of constants 
+ * @out: (out): output #VipsImage
+ * @c: (array length=n): array of constants
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -538,9 +538,9 @@ vips_wop_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 }
 
 /**
- * vips_math2_const1:
+ * vips_math2_const1: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @math2: math operation to perform
  * @c: constant 
  * @...: %NULL-terminated list of optional named arguments
@@ -565,9 +565,9 @@ vips_math2_const1( VipsImage *in, VipsImage **out,
 }
 
 /**
- * vips_pow_const1:
+ * vips_pow_const1: (method)
  * @in: left-hand input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @c: constant 
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -591,9 +591,9 @@ vips_pow_const1( VipsImage *in, VipsImage **out, double c, ... )
 }
 
 /**
- * vips_wop_const1:
+ * vips_wop_const1: (method)
  * @in: left-hand input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @c: constant 
  * @...: %NULL-terminated list of optional named arguments
  *

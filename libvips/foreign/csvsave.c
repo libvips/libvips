@@ -121,7 +121,7 @@ vips_foreign_save_csv_init( VipsForeignSaveCsv *csv )
 }
 
 /**
- * vips_csvsave:
+ * vips_csvsave: (method)
  * @in: image to save 
  * @filename: file to write to
  * @...: %NULL-terminated list of optional named arguments

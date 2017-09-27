@@ -151,7 +151,7 @@ vips_foreign_load_rad_init( VipsForeignLoadRad *rad )
 /**
  * vips_radload:
  * @filename: file to load
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Read a Radiance (HDR) file into a VIPS image. 

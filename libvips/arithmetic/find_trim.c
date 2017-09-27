@@ -237,12 +237,12 @@ vips_find_trim_init( VipsFindTrim *find_trim )
 }
 
 /**
- * vips_find_trim:
+ * vips_find_trim: (method)
  * @in: image to find_trim
- * @left: output left edge
- * @top: output top edge
- * @width: output width
- * @height: output height
+ * @left: (out): output left edge
+ * @top: (out): output top edge
+ * @width: (out): output width
+ * @height: (out): output height
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

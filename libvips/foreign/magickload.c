@@ -329,7 +329,7 @@ vips_foreign_load_magick_buffer_init( VipsForeignLoadMagickBuffer *buffer )
 /**
  * vips_magickload:
  * @filename: file to load
- * @out: decompressed image
+ * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -376,9 +376,9 @@ vips_magickload( const char *filename, VipsImage **out, ... )
 
 /**
  * vips_magickload_buffer:
- * @buf: memory area to load
+ * @buf: (array length=len) (element-type guint8): memory area to load
  * @len: size of memory area
- * @out: image to write
+ * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

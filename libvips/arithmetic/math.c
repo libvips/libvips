@@ -230,9 +230,9 @@ vips_mathv( VipsImage *in, VipsImage **out, VipsOperationMath math, va_list ap )
 }
 
 /**
- * vips_math:
+ * vips_math: (method)
  * @in: input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @math: math operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -261,9 +261,9 @@ vips_math( VipsImage *in, VipsImage **out, VipsOperationMath math, ... )
 }
 
 /**
- * vips_sin:
+ * vips_sin: (method)
  * @in: input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_MATH_SIN on an image. See vips_math().
@@ -284,9 +284,9 @@ vips_sin( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_cos:
+ * vips_cos: (method)
  * @in: input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_MATH_COS on an image. See vips_math().
@@ -307,9 +307,9 @@ vips_cos( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_tan:
+ * vips_tan: (method)
  * @in: input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_MATH_TAN on an image. See vips_math().
@@ -330,9 +330,9 @@ vips_tan( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_asin:
+ * vips_asin: (method)
  * @in: input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_MATH_ASIN on an image. See vips_math().
@@ -353,9 +353,9 @@ vips_asin( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_acos:
+ * vips_acos: (method)
  * @in: input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_MATH_ACOS on an image. See vips_math().
@@ -376,9 +376,9 @@ vips_acos( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_atan:
+ * vips_atan: (method)
  * @in: input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_MATH_ATAN on an image. See vips_math().
@@ -399,9 +399,9 @@ vips_atan( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_log:
+ * vips_log: (method)
  * @in: input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_MATH_LOG on an image. See vips_math().
@@ -422,9 +422,9 @@ vips_log( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_log10:
+ * vips_log10: (method)
  * @in: input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_MATH_LOG10 on an image. See vips_math().
@@ -445,9 +445,9 @@ vips_log10( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_exp:
+ * vips_exp: (method)
  * @in: input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_MATH_EXP on an image. See vips_math().
@@ -468,9 +468,9 @@ vips_exp( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_exp10:
+ * vips_exp10: (method)
  * @in: input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_MATH_EXP10 on an image. See vips_math().

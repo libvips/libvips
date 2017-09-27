@@ -222,7 +222,7 @@ vips_foreign_load_openslide_init( VipsForeignLoadOpenslide *openslide )
 /**
  * vips_openslideload:
  * @filename: file to load
- * @out: decompressed image
+ * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

@@ -401,10 +401,10 @@ vips_hist_find_indexed_init( VipsHistFindIndexed *hist_find )
 }
 
 /**
- * vips_hist_find_indexed:
- * @in: input image
- * @index: input index image 
- * @out: output image
+ * vips_hist_find_indexed: (method)
+ * @in: input #VipsImage
+ * @index: input index #VipsImage
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Make a histogram of @in, but use image @index to pick the bins. In other

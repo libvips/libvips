@@ -449,7 +449,7 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
 #endif /*HAVE_TIFF*/
 
 /**
- * vips_tiffsave:
+ * vips_tiffsave: (method)
  * @in: image to save 
  * @filename: file to write to 
  * @...: %NULL-terminated list of optional named arguments
@@ -564,10 +564,10 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
 }
 
 /**
- * vips_tiffsave_buffer:
+ * vips_tiffsave_buffer: (method)
  * @in: image to save 
- * @buf: return output buffer here
- * @len: return output length here
+ * @buf: (array length=len) (element-type guint8): return output buffer here
+ * @len: (type gsize): return output length here
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

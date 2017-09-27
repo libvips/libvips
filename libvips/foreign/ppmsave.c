@@ -149,7 +149,7 @@ vips_foreign_save_ppm_init( VipsForeignSavePpm *ppm )
 #endif /*HAVE_PPM*/
 
 /**
- * vips_ppmsave:
+ * vips_ppmsave: (method)
  * @in: image to save 
  * @filename: file to write to
  * @...: %NULL-terminated list of optional named arguments

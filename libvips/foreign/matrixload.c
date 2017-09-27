@@ -165,7 +165,7 @@ vips_foreign_load_matrix_init( VipsForeignLoadMatrix *matrix )
 /**
  * vips_matrixload:
  * @filename: file to load
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Reads a matrix from a file.

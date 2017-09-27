@@ -149,7 +149,7 @@ vips_foreign_load_ppm_init( VipsForeignLoadPpm *ppm )
 /**
  * vips_ppmload:
  * @filename: file to load
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Read a PPM/PBM/PGM/PFM file into a VIPS image. 
