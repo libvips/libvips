@@ -72,11 +72,16 @@
  *
  * https://en.wikipedia.org/wiki/Alpha_compositing
  *
- * composite -compose over PNG_transparency_demonstration_1.png \
- * 	Opera-icon-high-res.png x.png
+ * Benchmark:
  *
- * vips composite "PNG_transparency_demonstration_1.png \
- * 	Opera-icon-high-res.png" x.png 0
+ * vips replicate PNG_transparency_demonstration_1.png x.png 15 15
+ * vips crop x.png wtc_overlay.png 0 0 9372 9372
+ *
+ * composite -compose over wtc_overlay.png.png wtc.jpg x.jpg
+ *
+ * vips composite "wtc_overlay.png.png wtc.jpg" x.jpg 0
+ *
+ * convert -compose over -composite wtc.jpg wtc_overlay.png x.jpg
  *
  */
 
@@ -100,6 +105,10 @@ typedef struct _VipsComposite {
 	 */
 	gboolean premultiplied;
 
+	/* The maximum value of the alpha channel. Defaults to 255 or 65535.
+	 */
+	double max_alpha;
+
 	/* The number of inputs. This can be less than the number of images in
 	 * @in.
 	 */
@@ -115,48 +124,115 @@ typedef VipsConversionClass VipsCompositeClass;
 
 G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 
-#define BLEND( OUT, AOUT, SRC1, A1, SRC2, A2 ) { \
-	if( AOUT == 0 ) \
-		OUT = 0; \
-	else \
-		switch( mode ) { \
-		case VIPS_BLEND_MODE_OVER: \
-			OUT = (SRC1 + SRC2 * (1 - A1)) / AOUT; \
-			break; \
-		\
-		default: \
-			 g_assert_not_reached(); \
-		} \
+#define BLEND_PREMULTIPLIED( MODE, OUT, AOUT, SRC1, A1, SRC2, A2 ) { \
+	switch( MODE ) { \
+	case VIPS_BLEND_MODE_OVER: \
+		OUT = (SRC1 + SRC2 * (1 - A1)) / AOUT; \
+		break; \
+	\
+	default: \
+		 g_assert_not_reached(); \
+	} \
 }
 
-#define COMBINE( TYPE ) { \
+#define COMBINE_PREMULTIPLIED( TYPE ) { \
 	TYPE **tp = (TYPE **) p; \
 	TYPE *tq = (TYPE *) q; \
 	\
 	for( x = 0; x < width; x++ ) { \
-		int o = x * (bands + 1); \
-		\
 		for( b = 0; b < bands; b++ ) \
-			pixel[b] = tp[n - 1][o + b]; \
-		alpha = tp[n - 1][o + bands] / 255.0; \
+			pixel[b] = tp[0][b]; \
+		alpha = tp[0][bands] / composite->max_alpha; \
+		tp[0] += bands + 1; \
 		\
-		for( i = n - 2; i >= 0; i-- ) { \
-			TYPE *src1 = tp[i] + o; \
-			double a1 = src1[bands] / 255.0; \
+		for( i = 1; i < n; i++ ) { \
+			TYPE * restrict src1 = tp[i]; \
+			double a1 = src1[bands] / composite->max_alpha; \
 			double aout = a1 + alpha * (1 - a1); \
-			VipsBlendMode mode = ((VipsBlendMode *) \
-				composite->mode->area.data)[i]; \
+			VipsBlendMode modei = mode[(n - 1) - i]; \
 			\
-			for( b = 0; b < bands; b++ ) \
-				BLEND( pixel[b], aout, \
-					src1[b], a1, pixel[b], alpha ); \
-			\
+			if( aout == 0 ) \
+				for( b = 0; b < bands; b++ ) \
+					pixel[b] = 0; \
+			else { \
+				for( b = 0; b < bands; b++ ) \
+					BLEND_PREMULTIPLIED( modei, \
+						pixel[b], aout, \
+						src1[b], a1, \
+						pixel[b], alpha ); \
+			} \
 			alpha = aout; \
+			\
+			tp[i] += bands + 1; \
 		} \
 		\
 		for( b = 0; b < bands; b++ ) \
-			tq[o + b] = pixel[b]; \
-		tq[o + bands] = alpha * 255; \
+			tq[b] = pixel[b]; \
+		tq[bands] = alpha * composite->max_alpha; \
+		\
+		tq += bands + 1; \
+	} \
+}
+
+#define BLEND_MULTIPLY( MODE, OUT, AOUT, SRC1, A1, SRC2, A2 ) { \
+	switch( MODE ) { \
+	case VIPS_BLEND_MODE_OVER: \
+		OUT = (A1 * SRC1 + A2 * SRC2 * (1 - A1)) / AOUT; \
+		break; \
+	\
+	default: \
+		 g_assert_not_reached(); \
+	} \
+}
+
+#define COMBINE_MULTIPLY( TYPE ) { \
+	TYPE **tp = (TYPE **) p; \
+	TYPE *tq = (TYPE *) q; \
+	\
+	for( x = 0; x < width; x++ ) { \
+		for( b = 0; b < bands; b++ ) \
+			pixel[b] = tp[0][b]; \
+		alpha = tp[0][bands] / composite->max_alpha; \
+		tp[0] += bands + 1; \
+		\
+		for( i = 1; i < n; i++ ) { \
+			TYPE * restrict src1 = tp[i]; \
+			double a1 = src1[bands] / composite->max_alpha; \
+			double aout = a1 + alpha * (1 - a1); \
+			VipsBlendMode modei = mode[(n - 1) - i]; \
+			\
+			if( aout == 0 ) \
+				for( b = 0; b < bands; b++ ) \
+					pixel[b] = 0; \
+			else \
+				for( b = 0; b < bands; b++ ) \
+					BLEND_MULTIPLY( modei, \
+						pixel[b], aout, \
+						src1[b], a1, \
+						pixel[b], alpha ); \
+			alpha = aout; \
+			\
+			tp[i] += bands + 1; \
+		} \
+		\
+		if( alpha == 0 ) \
+			for( b = 0; b < bands; b++ ) \
+				tq[b] = 0; \
+		else \
+			for( b = 0; b < bands; b++ ) \
+				tq[b] = pixel[b] * alpha; \
+		tq[bands] = alpha * composite->max_alpha; \
+		\
+		tq += bands + 1; \
+	} \
+}
+
+#define COMBINE( TYPE ) { \
+	if( composite->premultiplied ) { \
+		COMBINE_PREMULTIPLIED( TYPE ); \
+	} \
+	else { \
+		COMBINE_MULTIPLY( TYPE ); \
 	} \
 }
 
@@ -166,6 +242,8 @@ vips_composite_process_line( VipsComposite *composite, VipsBandFormat format,
 {
 	int n = composite->n;
 	int bands = composite->bands;
+	VipsBlendMode * restrict mode = 
+		(VipsBlendMode *) composite->mode->area.data; 
 
 	double pixel[MAX_BANDS];
 	double alpha;
@@ -218,25 +296,26 @@ vips_composite_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop 
 	VipsComposite *composite = (VipsComposite *) b;
 	VipsRect *r = &or->valid;
 
-	VipsPel *p[MAX_INPUT_IMAGES], *q;
-	int y, i;
+	int y;
 
 	if( vips_reorder_prepare_many( or->im, ir, r ) )
 		return( -1 );
-	for( i = 0; i < composite->n; i++ ) 
-		p[i] = VIPS_REGION_ADDR( ir[i], r->left, r->top );
-	p[i] = NULL;
-	q = VIPS_REGION_ADDR( or, r->left, r->top );
 
 	VIPS_GATE_START( "vips_composite_gen: work" ); 
 
 	for( y = 0; y < r->height; y++ ) {
+		VipsPel *p[MAX_INPUT_IMAGES];
+		VipsPel *q;
+		int i;
+
+		for( i = 0; i < composite->n; i++ ) 
+			p[(composite->n - 1) - i] = 
+				VIPS_REGION_ADDR( ir[i], r->left, r->top + y );
+		p[i] = NULL;
+		q = VIPS_REGION_ADDR( or, r->left, r->top + y );
+
 		vips_composite_process_line( composite, ir[0]->im->BandFmt, 
 			q, p, r->width );
-
-		for( i = 0; i < composite->n; i++ )
-			p[i] += VIPS_REGION_LSKIP( ir[i] );
-		q += VIPS_REGION_LSKIP( or );
 	}
 
 	VIPS_GATE_STOP( "vips_composite_gen: work" ); 
@@ -258,10 +337,6 @@ vips_composite_build( VipsObject *object )
 	VipsImage **compositing;
 	VipsImage **format;
 	VipsImage **size;
-	VipsImage **ready;
-	VipsInterpretation compositing_space;
-	int max_bands;
-	VipsInterpretation max_interpretation;
 	VipsBlendMode *mode;
 	VipsImage *out;
 
@@ -292,18 +367,6 @@ vips_composite_build( VipsObject *object )
 	}
 
 	in = (VipsImage **) composite->in->area.data;
-
-	/* Premultiply alpha, if it hasn't been.
-	 */
-	if( !composite->premultiplied ) { 
-		VipsImage **premultiply = (VipsImage **) 
-			vips_object_local_array( object, composite->n );
-
-		for( i = 0; i < composite->n; i++ )
-			if( vips_premultiply( in[i], &premultiply[i], NULL ) )
-				return( -1 );
-		in = premultiply;
-	}
 
 	decode = (VipsImage **) vips_object_local_array( object, composite->n );
 	for( i = 0; i < composite->n; i++ )
@@ -356,6 +419,15 @@ vips_composite_build( VipsObject *object )
 			return( -1 );
 	in = compositing;
 
+	/* Is max-alpha unset? Default to the correct value for this
+	 * interpretation.
+	 */
+	if( !vips_object_argument_isset( object, "max_alpha" ) ) 
+		if( composite->compositing_space == VIPS_INTERPRETATION_GREY16 ||
+			composite->compositing_space == 
+			VIPS_INTERPRETATION_RGB16 )
+			composite->max_alpha = 65535;
+
 	/* Transform the input images to match in size and format.
 	 */
 	format = (VipsImage **) vips_object_local_array( object, composite->n );
@@ -396,14 +468,6 @@ vips_composite_build( VipsObject *object )
 		in, composite ) )
 		return( -1 );
 
-	/* And unpremultiply alpha, if we need to.
-	 */
-	if( !composite->premultiplied ) { 
-		if( vips_unpremultiply( out, &t[1], NULL ) )
-			return( -1 );
-		out = t[1];
-	}
-
 	if( vips_image_write( out, conversion->out ) )
 		return( -1 ); 
 
@@ -423,7 +487,8 @@ vips_composite_class_init( VipsCompositeClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "composite";
-	vobject_class->description = _( "blend an array of images according to an array of blend modes" );
+	vobject_class->description = 
+		_( "blend an array of images with an array of blend modes" );
 	vobject_class->build = vips_composite_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
@@ -456,12 +521,20 @@ vips_composite_class_init( VipsCompositeClass *class )
 		G_STRUCT_OFFSET( VipsComposite, premultiplied ),
 		FALSE ); 
 
+	VIPS_ARG_DOUBLE( class, "max_alpha", 115, 
+		_( "Maximum alpha" ), 
+		_( "Maximum value of alpha channel" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsComposite, max_alpha ),
+		0, 100000000, 255 );
+
 }
 
 static void
 vips_composite_init( VipsComposite *composite )
 {
 	composite->compositing_space = VIPS_INTERPRETATION_sRGB;
+	composite->max_alpha = 255.0;
 }
 
 static int
