@@ -355,7 +355,12 @@ vips_blend_mode_get_type( void )
 
 	if( etype == 0 ) {
 		static const GEnumValue values[] = {
+			{VIPS_BLEND_MODE_CLEAR, "VIPS_BLEND_MODE_CLEAR", "clear"},
+			{VIPS_BLEND_MODE_SOURCE, "VIPS_BLEND_MODE_SOURCE", "source"},
 			{VIPS_BLEND_MODE_OVER, "VIPS_BLEND_MODE_OVER", "over"},
+			{VIPS_BLEND_MODE_IN, "VIPS_BLEND_MODE_IN", "in"},
+			{VIPS_BLEND_MODE_OUT, "VIPS_BLEND_MODE_OUT", "out"},
+			{VIPS_BLEND_MODE_ATOP, "VIPS_BLEND_MODE_ATOP", "atop"},
 			{VIPS_BLEND_MODE_LAST, "VIPS_BLEND_MODE_LAST", "last"},
 			{0, NULL, NULL}
 		};

@@ -61,7 +61,12 @@
 
 /**
  * VipsBlendMode:
+ * VIPS_BLEND_MODE_CLEAR: 
+ * VIPS_BLEND_MODE_SOURCE: 
  * VIPS_BLEND_MODE_OVER: 
+ * VIPS_BLEND_MODE_IN: 
+ * VIPS_BLEND_MODE_OUT: 
+ * VIPS_BLEND_MODE_ATOP: 
  *
  * The various Porter-Duff blend modes. See vips_composite(), for example. 
  */
@@ -71,6 +76,8 @@
  * @gasi's composite example https://gist.github.com/jcupitt/abacc012e2991f332e8b
  *
  * https://en.wikipedia.org/wiki/Alpha_compositing
+ *
+ * https://www.cairographics.org/operators/
  *
  * Benchmark:
  *
@@ -127,8 +134,8 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 /* Cairo naming conventions:
  *
  * aR	alpha of result			
- * aA	alpha of source A
- * aB	alpha of source B
+ * aA	alpha of source A	(the new pixel)
+ * aB	alpha of source B	(the thing we accumulate)
  * xR	colour channel of result	
  * xA	colour channel of source A
  * xB	colour channel of source B
@@ -136,8 +143,28 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 
 #define ALPHA( MODE, aR, aA, aB ) { \
 	switch( MODE ) { \
+	case VIPS_BLEND_MODE_CLEAR: \
+		aR = 1 - aA; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_SOURCE: \
+		aR = aA; \
+		break; \
+	\
 	case VIPS_BLEND_MODE_OVER: \
 		aR = aA + aB * (1.0 - aA); \
+		break; \
+	\
+	case VIPS_BLEND_MODE_IN: \
+		aR = aA * aB; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_OUT: \
+		aR = aA * (1 - aB); \
+		break; \
+	\
+	case VIPS_BLEND_MODE_ATOP: \
+		aR = aB; \
 		break; \
 	\
 	default: \
@@ -148,7 +175,27 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 
 #define BLEND_PREMULTIPLIED( MODE, xR, xA, aA, xB, aB ) { \
 	switch( MODE ) { \
+	case VIPS_BLEND_MODE_CLEAR: \
+		xR = 1 - aA; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_SOURCE: \
+		aR = xA; \
+		break; \
+	\
 	case VIPS_BLEND_MODE_OVER: \
+		xR = xA + xB * (1 - aA); \
+		break; \
+	\
+	case VIPS_BLEND_MODE_IN: \
+		xR = xA; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_OUT: \
+		xR = xA; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_ATOP: \
 		xR = xA + xB * (1 - aA); \
 		break; \
 	\
@@ -160,8 +207,28 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 
 #define BLEND_MULTIPLY( MODE, xR, aR, xA, aA, xB, aB ) { \
 	switch( MODE ) { \
+	case VIPS_BLEND_MODE_CLEAR: \
+		xR = 1 - aA; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_SOURCE: \
+		aR = xA; \
+		break; \
+	\
 	case VIPS_BLEND_MODE_OVER: \
 		xR = (aA * xA + aB * xB * (1 - aA)) / aR; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_IN: \
+		xR = xA; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_OUT: \
+		xR = xA; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_ATOP: \
+		xR = aA * xA + xB * (1 - aA); \
 		break; \
 	\
 	default: \
