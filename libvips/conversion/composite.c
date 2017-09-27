@@ -79,7 +79,7 @@
  *
  * composite -compose over wtc_overlay.png.png wtc.jpg x.jpg
  *
- * vips composite "wtc_overlay.png.png wtc.jpg" x.jpg 0
+ * vips composite "wtc_overlay.png wtc.jpg" x.jpg 0
  *
  * convert -compose over -composite wtc.jpg wtc_overlay.png x.jpg
  *
@@ -174,6 +174,56 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 	} \
 }
 
+#define COMBINE_PREMULTIPLIED_3_BAND( TYPE ) { \
+	TYPE **tp = (TYPE **) p; \
+	TYPE *tq = (TYPE *) q; \
+	\
+	for( x = 0; x < width; x++ ) { \
+		pixel[0] = tp[0][0]; \
+		pixel[1] = tp[0][1]; \
+		pixel[2] = tp[0][2]; \
+		alpha = tp[0][3] / composite->max_alpha; \
+		tp[0] += 4; \
+		\
+		for( i = 1; i < n; i++ ) { \
+			TYPE * restrict src1 = tp[i]; \
+			double a1 = src1[3] / composite->max_alpha; \
+			double aout = a1 + alpha * (1 - a1); \
+			VipsBlendMode modei = mode[(n - 1) - i]; \
+			\
+			if( aout == 0 ) { \
+				pixel[0] = 0; \
+				pixel[1] = 0; \
+				pixel[2] = 0; \
+			} \
+			else { \
+				BLEND_PREMULTIPLIED( modei, \
+					pixel[0], \
+					src1[0], a1, \
+					pixel[0], alpha ); \
+				BLEND_PREMULTIPLIED( modei, \
+					pixel[1], \
+					src1[1], a1, \
+					pixel[1], alpha ); \
+				BLEND_PREMULTIPLIED( modei, \
+					pixel[2], \
+					src1[2], a1, \
+					pixel[2], alpha ); \
+			} \
+			alpha = aout; \
+			\
+			tp[i] += 4; \
+		} \
+		\
+		tq[0] = pixel[0]; \
+		tq[1] = pixel[1]; \
+		tq[2] = pixel[2]; \
+		tq[3] = alpha * composite->max_alpha; \
+		\
+		tq += bands + 1; \
+	} \
+}
+
 #define BLEND_MULTIPLY( MODE, OUT, AOUT, SRC1, A1, SRC2, A2 ) { \
 	switch( MODE ) { \
 	case VIPS_BLEND_MODE_OVER: \
@@ -227,12 +277,79 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 	} \
 }
 
+#define COMBINE_MULTIPLY_3_BAND( TYPE ) { \
+	TYPE **tp = (TYPE **) p; \
+	TYPE *tq = (TYPE *) q; \
+	\
+	for( x = 0; x < width; x++ ) { \
+		pixel[0] = tp[0][0]; \
+		pixel[1] = tp[0][1]; \
+		pixel[2] = tp[0][2]; \
+		alpha = tp[0][3] / composite->max_alpha; \
+		tp[0] += 4; \
+		\
+		for( i = 1; i < n; i++ ) { \
+			TYPE * restrict src1 = tp[i]; \
+			double a1 = src1[bands] / composite->max_alpha; \
+			double aout = a1 + alpha * (1 - a1); \
+			VipsBlendMode modei = mode[(n - 1) - i]; \
+			\
+			if( aout == 0 ) { \
+				pixel[0] = 0; \
+				pixel[1] = 0; \
+				pixel[2] = 0; \
+			} \
+			else { \
+				BLEND_MULTIPLY( modei, \
+					pixel[0], aout, \
+					src1[0], a1, \
+					pixel[0], alpha ); \
+				BLEND_MULTIPLY( modei, \
+					pixel[1], aout, \
+					src1[1], a1, \
+					pixel[1], alpha ); \
+				BLEND_MULTIPLY( modei, \
+					pixel[2], aout, \
+					src1[2], a1, \
+					pixel[2], alpha ); \
+			} \
+			alpha = aout; \
+			\
+			tp[i] += 4; \
+		} \
+		\
+		if( alpha == 0 ) { \
+			tq[0] = 0; \
+			tq[1] = 0; \
+			tq[2] = 0; \
+		} \
+		else { \
+			tq[0] = pixel[0] * alpha; \
+			tq[1] = pixel[1] * alpha; \
+			tq[2] = pixel[2] * alpha; \
+		} \
+		tq[3] = alpha * composite->max_alpha; \
+		\
+		tq += bands + 1; \
+	} \
+}
+
 #define COMBINE( TYPE ) { \
-	if( composite->premultiplied ) { \
-		COMBINE_PREMULTIPLIED( TYPE ); \
+	if( bands == 3 ) { \
+		if( composite->premultiplied ) { \
+			COMBINE_PREMULTIPLIED( TYPE ); \
+		} \
+		else { \
+			COMBINE_MULTIPLY( TYPE ); \
+		} \
 	} \
 	else { \
-		COMBINE_MULTIPLY( TYPE ); \
+		if( composite->premultiplied ) { \
+			COMBINE_PREMULTIPLIED( TYPE ); \
+		} \
+		else { \
+			COMBINE_MULTIPLY( TYPE ); \
+		} \
 	} \
 }
 
