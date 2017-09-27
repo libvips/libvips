@@ -124,13 +124,48 @@ typedef VipsConversionClass VipsCompositeClass;
 
 G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 
-#define BLEND_PREMULTIPLIED( MODE, OUT, SRC1, A1, SRC2, A2 ) { \
+/* Cairo naming conventions:
+ *
+ * aR	alpha of result			
+ * aA	alpha of source A
+ * aB	alpha of source B
+ * xR	colour channel of result	
+ * xA	colour channel of source A
+ * xB	colour channel of source B
+ */
+
+#define ALPHA( MODE, aR, aA, aB ) { \
 	switch( MODE ) { \
 	case VIPS_BLEND_MODE_OVER: \
-		OUT = (SRC1 + SRC2 * (1 - A1)); \
+		aR = aA + aB * (1.0 - aA); \
 		break; \
 	\
 	default: \
+		 aR = 0; \
+		 g_assert_not_reached(); \
+	} \
+}
+
+#define BLEND_PREMULTIPLIED( MODE, xR, xA, aA, xB, aB ) { \
+	switch( MODE ) { \
+	case VIPS_BLEND_MODE_OVER: \
+		xR = xA + xB * (1 - aA); \
+		break; \
+	\
+	default: \
+		 xR = 0; \
+		 g_assert_not_reached(); \
+	} \
+}
+
+#define BLEND_MULTIPLY( MODE, xR, aR, xA, aA, xB, aB ) { \
+	switch( MODE ) { \
+	case VIPS_BLEND_MODE_OVER: \
+		xR = (aA * xA + aB * xB * (1 - aA)) / aR; \
+		break; \
+	\
+	default: \
+		 xR = 0; \
 		 g_assert_not_reached(); \
 	} \
 }
@@ -146,22 +181,24 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 		tp[0] += bands + 1; \
 		\
 		for( i = 1; i < n; i++ ) { \
-			TYPE * restrict src1 = tp[i]; \
-			double a1 = src1[bands] / composite->max_alpha; \
-			double aout = a1 + alpha * (1 - a1); \
+			TYPE * restrict xA = tp[i]; \
+			double aA = xA[bands] / composite->max_alpha; \
 			VipsBlendMode modei = mode[(n - 1) - i]; \
 			\
-			if( aout == 0 ) \
+			double aR; \
+			\
+			ALPHA( modei, aR, aA, alpha ); \
+			if( aR == 0 ) \
 				for( b = 0; b < bands; b++ ) \
 					pixel[b] = 0; \
 			else { \
 				for( b = 0; b < bands; b++ ) \
 					BLEND_PREMULTIPLIED( modei, \
 						pixel[b], \
-						src1[b], a1, \
+						xA[b], aA, \
 						pixel[b], alpha ); \
 			} \
-			alpha = aout; \
+			alpha = aR; \
 			\
 			tp[i] += bands + 1; \
 		} \
@@ -186,11 +223,13 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 		tp[0] += 4; \
 		\
 		for( i = 1; i < n; i++ ) { \
-			TYPE * restrict src1 = tp[i]; \
-			double a1 = src1[3] / composite->max_alpha; \
-			double aout = a1 + alpha * (1 - a1); \
+			TYPE * restrict xA = tp[i]; \
+			double aA = xA[3] / composite->max_alpha; \
 			VipsBlendMode modei = mode[(n - 1) - i]; \
 			\
+			double aR; \
+			\
+			ALPHA( modei, aR, aA, alpha ); \
 			if( aout == 0 ) { \
 				pixel[0] = 0; \
 				pixel[1] = 0; \
@@ -199,18 +238,18 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 			else { \
 				BLEND_PREMULTIPLIED( modei, \
 					pixel[0], \
-					src1[0], a1, \
+					xA[0], aA, \
 					pixel[0], alpha ); \
 				BLEND_PREMULTIPLIED( modei, \
 					pixel[1], \
-					src1[1], a1, \
+					xA[1], aA, \
 					pixel[1], alpha ); \
 				BLEND_PREMULTIPLIED( modei, \
 					pixel[2], \
-					src1[2], a1, \
+					xA[2], aA, \
 					pixel[2], alpha ); \
 			} \
-			alpha = aout; \
+			alpha = aR; \
 			\
 			tp[i] += 4; \
 		} \
@@ -221,17 +260,6 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 		tq[3] = alpha * composite->max_alpha; \
 		\
 		tq += bands + 1; \
-	} \
-}
-
-#define BLEND_MULTIPLY( MODE, OUT, AOUT, SRC1, A1, SRC2, A2 ) { \
-	switch( MODE ) { \
-	case VIPS_BLEND_MODE_OVER: \
-		OUT = (A1 * SRC1 + A2 * SRC2 * (1 - A1)) / AOUT; \
-		break; \
-	\
-	default: \
-		 g_assert_not_reached(); \
 	} \
 }
 
@@ -246,21 +274,23 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 		tp[0] += bands + 1; \
 		\
 		for( i = 1; i < n; i++ ) { \
-			TYPE * restrict src1 = tp[i]; \
-			double a1 = src1[bands] / composite->max_alpha; \
-			double aout = a1 + alpha * (1 - a1); \
+			TYPE * restrict xA = tp[i]; \
+			double aA = xA[bands] / composite->max_alpha; \
 			VipsBlendMode modei = mode[(n - 1) - i]; \
 			\
-			if( aout == 0 ) \
+			double aR; \
+			\
+			ALPHA( modei, aR, aA, alpha ); \
+			if( aR == 0 ) \
 				for( b = 0; b < bands; b++ ) \
 					pixel[b] = 0; \
 			else \
 				for( b = 0; b < bands; b++ ) \
 					BLEND_MULTIPLY( modei, \
-						pixel[b], aout, \
-						src1[b], a1, \
+						pixel[b], aR, \
+						xA[b], aA, \
 						pixel[b], alpha ); \
-			alpha = aout; \
+			alpha = aR; \
 			\
 			tp[i] += bands + 1; \
 		} \
@@ -289,11 +319,13 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 		tp[0] += 4; \
 		\
 		for( i = 1; i < n; i++ ) { \
-			TYPE * restrict src1 = tp[i]; \
-			double a1 = src1[bands] / composite->max_alpha; \
-			double aout = a1 + alpha * (1 - a1); \
+			TYPE * restrict xA = tp[i]; \
+			double aA = xA[bands] / composite->max_alpha; \
 			VipsBlendMode modei = mode[(n - 1) - i]; \
 			\
+			double aR; \
+			\
+			ALPHA( modei, aR, aA, alpha ); \
 			if( aout == 0 ) { \
 				pixel[0] = 0; \
 				pixel[1] = 0; \
@@ -301,19 +333,19 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 			} \
 			else { \
 				BLEND_MULTIPLY( modei, \
-					pixel[0], aout, \
-					src1[0], a1, \
+					pixel[0], aR, \
+					xA[0], aA, \
 					pixel[0], alpha ); \
 				BLEND_MULTIPLY( modei, \
-					pixel[1], aout, \
-					src1[1], a1, \
+					pixel[1], aR, \
+					xA[1], aA, \
 					pixel[1], alpha ); \
 				BLEND_MULTIPLY( modei, \
-					pixel[2], aout, \
-					src1[2], a1, \
+					pixel[2], aR, \
+					xA[2], aA, \
 					pixel[2], alpha ); \
 			} \
-			alpha = aout; \
+			alpha = aR; \
 			\
 			tp[i] += 4; \
 		} \
