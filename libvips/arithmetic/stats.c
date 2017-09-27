@@ -429,9 +429,9 @@ vips_stats_init( VipsStats *stats )
 }
 
 /**
- * vips_stats:
+ * vips_stats: (method)
  * @in: image to scan
- * @out: image of statistics
+ * @out: (out): image of statistics
  * @...: %NULL-terminated list of optional named arguments
  *
  * Find many image statistics in a single pass through the data. @out is a

@@ -253,9 +253,9 @@ vips_measure_init( VipsMeasure *measure )
 }
 
 /**
- * vips_measure:
+ * vips_measure: (method)
  * @in: image to measure
- * @out: array of measurements
+ * @out: (out): array of measurements
  * @h: patches across chart
  * @v: patches down chart
  * @...: %NULL-terminated list of optional named arguments

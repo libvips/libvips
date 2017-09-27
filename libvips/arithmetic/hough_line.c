@@ -162,9 +162,9 @@ vips_hough_line_init( VipsHoughLine *hough_line )
 }
 
 /**
- * vips_hough_line:
+ * vips_hough_line: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

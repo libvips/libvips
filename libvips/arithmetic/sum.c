@@ -165,8 +165,8 @@ vips_sumv( VipsImage **in, VipsImage **out, int n, va_list ap )
 
 /**
  * vips_sum:
- * @in: array of input images
- * @out: output image
+ * @in: (array length=n): array of input images
+ * @out: (out): output image
  * @n: number of input images
  * @...: %NULL-terminated list of optional named arguments
  *

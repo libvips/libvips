@@ -186,9 +186,9 @@ vips_roundv( VipsImage *in, VipsImage **out,
 }
 
 /**
- * vips_round:
+ * vips_round: (method)
  * @in: input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @round: #VipsOperationRound rounding operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -218,9 +218,9 @@ vips_round( VipsImage *in, VipsImage **out, VipsOperationRound round, ... )
 }
 
 /**
- * vips_floor:
+ * vips_floor: (method)
  * @in: input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Round to an integral value with #VIPS_OPERATION_ROUND_FLOOR. See 
@@ -242,9 +242,9 @@ vips_floor( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_ceil:
+ * vips_ceil: (method)
  * @in: input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Round to an integral value with #VIPS_OPERATION_ROUND_CEIL. See 
@@ -266,9 +266,9 @@ vips_ceil( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_rint:
+ * vips_rint: (method)
  * @in: input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Round to an integral value with #VIPS_OPERATION_ROUND_RINT. See 

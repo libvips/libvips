@@ -231,9 +231,9 @@ vips_deviate_init( VipsDeviate *deviate )
 }
 
 /**
- * vips_deviate:
+ * vips_deviate: (method)
  * @in: input #VipsImage
- * @out: output pixel standard deviation
+ * @out: (out): output pixel standard deviation
  * @...: %NULL-terminated list of optional named arguments
  *
  * This operation finds the standard deviation of all pixels in @in. It 

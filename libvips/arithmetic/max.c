@@ -491,9 +491,9 @@ vips_max_init( VipsMax *max )
 }
 
 /**
- * vips_max:
+ * vips_max: (method)
  * @in: input #VipsImage
- * @out: output pixel maximum
+ * @out: (out): output pixel maximum
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
