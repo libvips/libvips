@@ -124,10 +124,10 @@ typedef VipsConversionClass VipsCompositeClass;
 
 G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 
-#define BLEND_PREMULTIPLIED( MODE, OUT, AOUT, SRC1, A1, SRC2, A2 ) { \
+#define BLEND_PREMULTIPLIED( MODE, OUT, SRC1, A1, SRC2, A2 ) { \
 	switch( MODE ) { \
 	case VIPS_BLEND_MODE_OVER: \
-		OUT = (SRC1 + SRC2 * (1 - A1)) / AOUT; \
+		OUT = (SRC1 + SRC2 * (1 - A1)); \
 		break; \
 	\
 	default: \
@@ -157,7 +157,7 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 			else { \
 				for( b = 0; b < bands; b++ ) \
 					BLEND_PREMULTIPLIED( modei, \
-						pixel[b], aout, \
+						pixel[b], \
 						src1[b], a1, \
 						pixel[b], alpha ); \
 			} \
