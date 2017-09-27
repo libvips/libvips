@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libconversion.la
 
 libconversion_la_SOURCES = \
+	composite.c \
 	smartcrop.c \
 	conversion.c \
 	pconversion.h \

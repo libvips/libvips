@@ -348,6 +348,23 @@ vips_interesting_get_type( void )
 
 	return( etype );
 }
+GType
+vips_blend_mode_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_BLEND_MODE_OVER, "VIPS_BLEND_MODE_OVER", "over"},
+			{VIPS_BLEND_MODE_LAST, "VIPS_BLEND_MODE_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsBlendMode", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/convolution.h" */
 GType
 vips_combine_get_type( void )

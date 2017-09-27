@@ -89,6 +89,11 @@ typedef enum {
 	VIPS_INTERESTING_LAST
 } VipsInteresting;
 
+typedef enum {
+	VIPS_BLEND_MODE_OVER,
+	VIPS_BLEND_MODE_LAST
+} VipsBlendMode;
+
 int vips_copy( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_tilecache( VipsImage *in, VipsImage **out, ... )

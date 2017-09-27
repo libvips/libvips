@@ -44,6 +44,8 @@ GType vips_angle45_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_ANGLE45 (vips_angle45_get_type())
 GType vips_interesting_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_INTERESTING (vips_interesting_get_type())
+GType vips_blend_mode_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_BLEND_MODE (vips_blend_mode_get_type())
 /* enumerations from "../../../libvips/include/vips/convolution.h" */
 GType vips_combine_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_COMBINE (vips_combine_get_type())
