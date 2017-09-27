@@ -137,7 +137,7 @@ vips_foreign_load_fits_init( VipsForeignLoadFits *fits )
 /**
  * vips_fitsload:
  * @filename: file to load
- * @out: decompressed image
+ * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Read a FITS image file into a VIPS image. 

@@ -267,7 +267,7 @@ vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
 #endif /*HAVE_PNG*/
 
 /**
- * vips_pngsave:
+ * vips_pngsave: (method)
  * @in: image to save 
  * @filename: file to write to 
  * @...: %NULL-terminated list of optional named arguments
@@ -322,10 +322,10 @@ vips_pngsave( VipsImage *in, const char *filename, ... )
 }
 
 /**
- * vips_pngsave_buffer:
+ * vips_pngsave_buffer: (method)
  * @in: image to save 
- * @buf: return output buffer here
- * @len: return output length here
+ * @buf: (array length=len) (element-type guint8): return output buffer here
+ * @len: (type gsize): return output length here
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

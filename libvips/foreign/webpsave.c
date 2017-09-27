@@ -356,7 +356,7 @@ vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
 #endif /*HAVE_LIBWEBP*/
 
 /**
- * vips_webpsave:
+ * vips_webpsave: (method)
  * @in: image to save 
  * @filename: file to write to 
  * @...: %NULL-terminated list of optional named arguments
@@ -408,9 +408,9 @@ vips_webpsave( VipsImage *in, const char *filename, ... )
 }
 
 /**
- * vips_webpsave_buffer:
+ * vips_webpsave_buffer: (method)
  * @in: image to save 
- * @buf: return output buffer here
+ * @buf: (out) (array length=len) (element-type guint8): return output buffer here
  * @len: return output length here
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -463,7 +463,7 @@ vips_webpsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 }
 
 /**
- * vips_webpsave_mime:
+ * vips_webpsave_mime: (method)
  * @in: image to save 
  * @...: %NULL-terminated list of optional named arguments
  *

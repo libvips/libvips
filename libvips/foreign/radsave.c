@@ -229,7 +229,7 @@ vips_foreign_save_rad_buffer_init( VipsForeignSaveRadBuffer *buffer )
 #endif /*HAVE_RADIANCE*/
 
 /**
- * vips_radsave:
+ * vips_radsave: (method)
  * @in: image to save 
  * @filename: file to write to
  * @...: %NULL-terminated list of optional named arguments
@@ -256,10 +256,10 @@ vips_radsave( VipsImage *in, const char *filename, ... )
 }
 
 /**
- * vips_radsave_buffer:
+ * vips_radsave_buffer: (method)
  * @in: image to save 
- * @buf: return output buffer here
- * @len: return output length here
+ * @buf: (array length=len) (element-type guint8): return output buffer here
+ * @len: (type gsize): return output length here
  * @...: %NULL-terminated list of optional named arguments
  *
  * As vips_radsave(), but save to a memory buffer. 

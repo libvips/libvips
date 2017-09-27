@@ -326,7 +326,7 @@ vips_foreign_load_tiff_buffer_init( VipsForeignLoadTiffBuffer *buffer )
 /**
  * vips_tiffload:
  * @filename: file to load
- * @out: decompressed image
+ * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -385,9 +385,9 @@ vips_tiffload( const char *filename, VipsImage **out, ... )
 
 /**
  * vips_tiffload_buffer:
- * @buf: memory area to load
- * @len: size of memory area
- * @out: image to write
+ * @buf: (array length=len) (element-type guint8): memory area to load
+ * @len: (type gsize): size of memory area
+ * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

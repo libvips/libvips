@@ -124,7 +124,7 @@ vips_foreign_save_vips_init( VipsForeignSaveVips *vips )
 }
 
 /**
- * vips_vipssave:
+ * vips_vipssave: (method)
  * @in: image to save 
  * @filename: file to write to 
  * @...: %NULL-terminated list of optional named arguments

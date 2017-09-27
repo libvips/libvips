@@ -184,7 +184,7 @@ vips_foreign_load_csv_init( VipsForeignLoadCsv *csv )
 /**
  * vips_csvload:
  * @filename: file to load
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

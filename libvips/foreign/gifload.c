@@ -1004,7 +1004,7 @@ vips_foreign_load_gif_buffer_init( VipsForeignLoadGifBuffer *buffer )
 /**
  * vips_gifload:
  * @filename: file to load
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -1043,9 +1043,9 @@ vips_gifload( const char *filename, VipsImage **out, ... )
 
 /**
  * vips_gifload_buffer:
- * @buf: memory area to load
- * @len: size of memory area
- * @out: image to write
+ * @buf: (array length=len) (element-type guint8): memory area to load
+ * @len: (type gsize): size of memory area
+ * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
