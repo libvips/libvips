@@ -428,8 +428,8 @@ vips_bandjoin_constv( VipsImage *in, VipsImage **out,
 }
 
 /**
- * vips_bandjoin_const:
- * @in: (array length=n) (transfer none): array of input images
+ * vips_bandjoin_const: (method)
+ * @in: input image
  * @out: (out): output image
  * @c: (array length=n): array of constants to append
  * @n: number of constants
