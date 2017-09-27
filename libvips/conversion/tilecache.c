@@ -819,9 +819,9 @@ vips_tile_cache_init( VipsTileCache *cache )
 }
 
 /**
- * vips_tilecache:
+ * vips_tilecache: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -988,9 +988,9 @@ vips_line_cache_init( VipsLineCache *cache )
 }
 
 /**
- * vips_linecache:
+ * vips_linecache: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

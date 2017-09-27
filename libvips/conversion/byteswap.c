@@ -216,9 +216,9 @@ vips_byteswap_init( VipsByteswap *byteswap )
 }
 
 /**
- * vips_byteswap:
+ * vips_byteswap: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Swap the byte order in an image. 

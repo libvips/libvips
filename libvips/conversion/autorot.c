@@ -125,7 +125,7 @@ vips_autorot_remove_angle_sub( VipsImage *image,
 }
 
 /**
- * vips_autorot_remove_angle:
+ * vips_autorot_remove_angle: (method)
  * @image: image to remove orientation from
  *
  * Remove the orientation tag on @image. Also remove any exif orientation tags. 
@@ -195,9 +195,9 @@ vips_autorot_init( VipsAutorot *autorot )
 }
 
 /**
- * vips_autorot:
+ * vips_autorot: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

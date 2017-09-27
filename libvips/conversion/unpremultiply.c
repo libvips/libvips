@@ -286,9 +286,9 @@ vips_unpremultiply_init( VipsUnpremultiply *unpremultiply )
 }
 
 /**
- * vips_unpremultiply:
+ * vips_unpremultiply: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

@@ -417,9 +417,9 @@ vips_smartcrop_init( VipsSmartcrop *smartcrop )
 }
 
 /**
- * vips_smartcrop:
+ * vips_smartcrop: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @width: width of area to extract
  * @height: height of area to extract
  * @...: %NULL-terminated list of optional named arguments

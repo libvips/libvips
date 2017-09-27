@@ -412,9 +412,9 @@ vips_flatten_init( VipsFlatten *flatten )
 }
 
 /**
- * vips_flatten:
+ * vips_flatten: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
