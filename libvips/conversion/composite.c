@@ -75,19 +75,11 @@
  * VIPS_BLEND_MODE_XOR:
  * VIPS_BLEND_MODE_ADD:
  * VIPS_BLEND_MODE_SATURATE:
- * VIPS_BLEND_MODE_MULTIPLY:
- * VIPS_BLEND_MODE_SCREEN:
- * VIPS_BLEND_MODE_OVERLAY:
- * VIPS_BLEND_MODE_DARKEN:
- * VIPS_BLEND_MODE_LIGHTEN:
- * VIPS_BLEND_MODE_COLOUR_DODGE:
- * VIPS_BLEND_MODE_COLOUR_BURN:
- * VIPS_BLEND_MODE_HARD_LIGHT:
- * VIPS_BLEND_MODE_SOFT_LIGHT:
- * VIPS_BLEND_MODE_DIFFERENCE:
- * VIPS_BLEND_MODE_EXCLUSION:
  *
  * The various Porter-Duff blend modes. See vips_composite(), for example. 
+ *
+ * The PDF blend modes require channels all in [0, 1], so they only work
+ * for spaces like RGB where all channels have the same range. 
  */
 
 /* References:
@@ -248,6 +240,9 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
  */
 
 #define BLEND_MULTIPLY( MODE, xR, aR, xA, aA, xB, aB, CODE ) { \
+	double t1; \
+	double t2; \
+	\
 	switch( MODE ) { \
 	case VIPS_BLEND_MODE_CLEAR: \
 		CODE( xR = 1 - aA ); \
@@ -258,7 +253,8 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 		break; \
 	\
 	case VIPS_BLEND_MODE_OVER: \
-		CODE( xR = (aA * xA + aB * xB * (1 - aA)) / aR ); \
+		t1 = aB * (1 - aA); \
+		CODE( xR = (aA * xA + t1 * xB) / aR ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_IN: \
@@ -278,7 +274,8 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 		break; \
 	\
 	case VIPS_BLEND_MODE_DEST_OVER: \
-		CODE( xR = (aB * xB + aA * xA * (1 - aB)) / aR ); \
+		t1 = aA * (1 - aB); \
+		CODE( xR = (aB * xB + t1 * xA) / aR ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_DEST_IN: \
@@ -294,7 +291,9 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 		break; \
 	\
 	case VIPS_BLEND_MODE_XOR: \
-		CODE( xR = (xA * aA * (1 - aB) + xB * aB * (1 - aA)) / aR ); \
+		t1 = aA * (1 - aB); \
+		t2 = aB * (1 - aA); \
+		CODE( xR = (t1 * xA + t2 * xB) / aR ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_ADD: \
@@ -302,7 +301,8 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 		break; \
 	\
 	case VIPS_BLEND_MODE_SATURATE: \
-		CODE( xR = (VIPS_MIN( aA, 1 - aB ) * xA + xB * aB) / aR ); \
+		t1 = VIPS_MIN( aA, 1 - aB ); \
+		CODE( xR = (t1 * xA + xB * aB) / aR ); \
 		break; \
 	\
 	default: \
@@ -312,6 +312,8 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 }
 
 #define BLEND_PREMULTIPLIED( MODE, xR, xA, aA, xB, aB, CODE ) { \
+	double t1; \
+	\
 	switch( MODE ) { \
 	case VIPS_BLEND_MODE_CLEAR: \
 		CODE( xR = 1 - aA ); \
@@ -366,7 +368,8 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 		break; \
 	\
 	case VIPS_BLEND_MODE_SATURATE: \
-		CODE( xR = VIPS_MIN( aA, 1 - aB ) * xA + xB ); \
+		t1 = VIPS_MIN( aA, 1 - aB ); \
+		CODE( xR = t1 * xA + xB ); \
 		break; \
 	\
 	default: \
