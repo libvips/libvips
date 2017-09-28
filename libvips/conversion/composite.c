@@ -1,4 +1,4 @@
-/* compose a set of images together with porter-duff operators
+/* composite an array of images with PDF operators
  *
  * 25/9/17
  * 	- from bandjoin.c
@@ -67,6 +67,25 @@
  * VIPS_BLEND_MODE_IN: 
  * VIPS_BLEND_MODE_OUT: 
  * VIPS_BLEND_MODE_ATOP: 
+ * VIPS_BLEND_MODE_DEST:
+ * VIPS_BLEND_MODE_DEST_OVER:
+ * VIPS_BLEND_MODE_DEST_IN:
+ * VIPS_BLEND_MODE_DEST_OUT:
+ * VIPS_BLEND_MODE_DEST_ATOP:
+ * VIPS_BLEND_MODE_XOR:
+ * VIPS_BLEND_MODE_ADD:
+ * VIPS_BLEND_MODE_SATURATE:
+ * VIPS_BLEND_MODE_MULTIPLY:
+ * VIPS_BLEND_MODE_SCREEN:
+ * VIPS_BLEND_MODE_OVERLAY:
+ * VIPS_BLEND_MODE_DARKEN:
+ * VIPS_BLEND_MODE_LIGHTEN:
+ * VIPS_BLEND_MODE_COLOUR_DODGE:
+ * VIPS_BLEND_MODE_COLOUR_BURN:
+ * VIPS_BLEND_MODE_HARD_LIGHT:
+ * VIPS_BLEND_MODE_SOFT_LIGHT:
+ * VIPS_BLEND_MODE_DIFFERENCE:
+ * VIPS_BLEND_MODE_EXCLUSION:
  *
  * The various Porter-Duff blend modes. See vips_composite(), for example. 
  */
@@ -143,6 +162,10 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 
 #define ALPHA( MODE, aR, aA, aB ) { \
 	switch( MODE ) { \
+	/* CLEAR and SOURCE are bounded operators and don't really make sense \
+	 * here, since we are always unbounded. Replace them with something \
+	 * similar that uses alpha.\
+	 */ \
 	case VIPS_BLEND_MODE_CLEAR: \
 		aR = 1 - aA; \
 		break; \
@@ -167,8 +190,104 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 		aR = aB; \
 		break; \
 	\
+	case VIPS_BLEND_MODE_DEST: \
+		aR = aB; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_DEST_OVER: \
+		aR = aB + aA * (1.0 - aB); \
+		break; \
+	\
+	case VIPS_BLEND_MODE_DEST_IN: \
+		aR = aA * aB; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_DEST_OUT: \
+		aR = (1 - aA) * aB; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_DEST_ATOP: \
+		aR = aA; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_XOR: \
+		aR = aA + aB - 2 * aA * aB; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_ADD: \
+		aR = VIPS_MIN( 1, aA + aB ); \
+		break; \
+	\
+	case VIPS_BLEND_MODE_SATURATE: \
+		aR = VIPS_MIN( 1, aA + aB ); \
+		break; \
+	\
 	default: \
 		 aR = 0; \
+		 g_assert_not_reached(); \
+	} \
+}
+
+#define BLEND_MULTIPLY( MODE, xR, aR, xA, aA, xB, aB ) { \
+	switch( MODE ) { \
+	case VIPS_BLEND_MODE_CLEAR: \
+		xR = 1 - aA; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_SOURCE: \
+		aR = xA; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_OVER: \
+		xR = (aA * xA + aB * xB * (1 - aA)) / aR; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_IN: \
+		xR = xA; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_OUT: \
+		xR = xA; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_ATOP: \
+		xR = xA * aA + xB * (1 - aA); \
+		break; \
+	\
+	case VIPS_BLEND_MODE_DEST: \
+		xR = xB; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_DEST_OVER: \
+		xR = (aB * xB + aA * xA * (1 - aB)) / aR; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_DEST_IN: \
+		xR = xB; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_DEST_OUT: \
+		xR = xB; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_DEST_ATOP: \
+		xR = xA * (1 - aB) + xB * aB; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_XOR: \
+		xR = (xA * aA * (1 - aB) + xB * aB * (1 - aA)) / aR; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_ADD: \
+		xR = (xA * aA + xB * aB) / aR; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_SATURATE: \
+		xR = (VIPS_MIN( aA, 1 - aB ) * xA + xB * aB) / aR; \
+		break; \
+	\
+	default: \
+		 xR = 0; \
 		 g_assert_not_reached(); \
 	} \
 }
@@ -199,36 +318,36 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 		xR = xA + xB * (1 - aA); \
 		break; \
 	\
-	default: \
-		 xR = 0; \
-		 g_assert_not_reached(); \
-	} \
-}
-
-#define BLEND_MULTIPLY( MODE, xR, aR, xA, aA, xB, aB ) { \
-	switch( MODE ) { \
-	case VIPS_BLEND_MODE_CLEAR: \
-		xR = 1 - aA; \
+	case VIPS_BLEND_MODE_DEST: \
+		xR = xB; \
 		break; \
 	\
-	case VIPS_BLEND_MODE_SOURCE: \
-		aR = xA; \
+	case VIPS_BLEND_MODE_DEST_OVER: \
+		xR = xB + xA * (1 - aB); \
 		break; \
 	\
-	case VIPS_BLEND_MODE_OVER: \
-		xR = (aA * xA + aB * xB * (1 - aA)) / aR; \
+	case VIPS_BLEND_MODE_DEST_IN: \
+		xR = xB; \
 		break; \
 	\
-	case VIPS_BLEND_MODE_IN: \
-		xR = xA; \
+	case VIPS_BLEND_MODE_DEST_OUT: \
+		xR = xB; \
 		break; \
 	\
-	case VIPS_BLEND_MODE_OUT: \
-		xR = xA; \
+	case VIPS_BLEND_MODE_DEST_ATOP: \
+		xR = xA * (1 - aB) + xB; \
 		break; \
 	\
-	case VIPS_BLEND_MODE_ATOP: \
-		xR = aA * xA + xB * (1 - aA); \
+	case VIPS_BLEND_MODE_XOR: \
+		xR = xA * (1 - aB) + xB * (1 - aA); \
+		break; \
+	\
+	case VIPS_BLEND_MODE_ADD: \
+		xR = xA + xB; \
+		break; \
+	\
+	case VIPS_BLEND_MODE_SATURATE: \
+		xR = VIPS_MIN( aA, 1 - aB ) * xA + xB; \
 		break; \
 	\
 	default: \
