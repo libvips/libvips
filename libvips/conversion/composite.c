@@ -228,224 +228,156 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 	} \
 }
 
-#define BLEND_MULTIPLY( MODE, xR, aR, xA, aA, xB, aB ) { \
+/* We don't want to switch and calculate, since that would put a switch in the
+ * inner loop. Instead, pass the macro a section of code
+ * which should be expanded with the calculation pasted into it.
+ *
+ * Use like this (for example):
+ *
+ * 	#define INNER( CALC ) { \
+ * 		for( i = 0; i < n; i++ ) {
+ * 			CALC;
+ * 		}
+ * 	}
+ *
+ * 	BLEND_MULTIPLY( modei, xR[i], aR, xA[i], aA, xB[i], aB, INNER );
+ *
+ * Now the switch is outside the loop.
+ *
+ * The alphas aR, aA and aB are constant, the xes can change in CODE.
+ */
+
+#define BLEND_MULTIPLY( MODE, xR, aR, xA, aA, xB, aB, CODE ) { \
 	switch( MODE ) { \
 	case VIPS_BLEND_MODE_CLEAR: \
-		xR = 1 - aA; \
+		CODE( xR = 1 - aA ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_SOURCE: \
-		aR = xA; \
+		CODE( xR = xA ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_OVER: \
-		xR = (aA * xA + aB * xB * (1 - aA)) / aR; \
+		CODE( xR = (aA * xA + aB * xB * (1 - aA)) / aR ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_IN: \
-		xR = xA; \
+		CODE( xR = xA ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_OUT: \
-		xR = xA; \
+		CODE( xR = xA ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_ATOP: \
-		xR = xA * aA + xB * (1 - aA); \
+		CODE( xR = xA * aA + xB * (1 - aA) ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_DEST: \
-		xR = xB; \
+		CODE( xR = xB ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_DEST_OVER: \
-		xR = (aB * xB + aA * xA * (1 - aB)) / aR; \
+		CODE( xR = (aB * xB + aA * xA * (1 - aB)) / aR ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_DEST_IN: \
-		xR = xB; \
+		CODE( xR = xB ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_DEST_OUT: \
-		xR = xB; \
+		CODE( xR = xB ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_DEST_ATOP: \
-		xR = xA * (1 - aB) + xB * aB; \
+		CODE( xR = xA * (1 - aB) + xB * aB ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_XOR: \
-		xR = (xA * aA * (1 - aB) + xB * aB * (1 - aA)) / aR; \
+		CODE( xR = (xA * aA * (1 - aB) + xB * aB * (1 - aA)) / aR ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_ADD: \
-		xR = (xA * aA + xB * aB) / aR; \
+		CODE( xR = (xA * aA + xB * aB) / aR ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_SATURATE: \
-		xR = (VIPS_MIN( aA, 1 - aB ) * xA + xB * aB) / aR; \
+		CODE( xR = (VIPS_MIN( aA, 1 - aB ) * xA + xB * aB) / aR ); \
 		break; \
 	\
 	default: \
-		 xR = 0; \
+		 CODE( xR = 0 ); \
 		 g_assert_not_reached(); \
 	} \
 }
 
-#define BLEND_PREMULTIPLIED( MODE, xR, xA, aA, xB, aB ) { \
+#define BLEND_PREMULTIPLIED( MODE, xR, xA, aA, xB, aB, CODE ) { \
 	switch( MODE ) { \
 	case VIPS_BLEND_MODE_CLEAR: \
-		xR = 1 - aA; \
+		CODE( xR = 1 - aA ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_SOURCE: \
-		aR = xA; \
+		CODE( aR = xA ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_OVER: \
-		xR = xA + xB * (1 - aA); \
+		CODE( xR = xA + xB * (1 - aA) ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_IN: \
-		xR = xA; \
+		CODE( xR = xA ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_OUT: \
-		xR = xA; \
+		CODE( xR = xA ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_ATOP: \
-		xR = xA + xB * (1 - aA); \
+		CODE( xR = xA + xB * (1 - aA) ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_DEST: \
-		xR = xB; \
+		CODE( xR = xB ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_DEST_OVER: \
-		xR = xB + xA * (1 - aB); \
+		CODE( xR = xB + xA * (1 - aB) ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_DEST_IN: \
-		xR = xB; \
+		CODE( xR = xB ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_DEST_OUT: \
-		xR = xB; \
+		CODE( xR = xB ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_DEST_ATOP: \
-		xR = xA * (1 - aB) + xB; \
+		CODE( xR = xA * (1 - aB) + xB ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_XOR: \
-		xR = xA * (1 - aB) + xB * (1 - aA); \
+		CODE( xR = xA * (1 - aB) + xB * (1 - aA) ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_ADD: \
-		xR = xA + xB; \
+		CODE( xR = xA + xB ); \
 		break; \
 	\
 	case VIPS_BLEND_MODE_SATURATE: \
-		xR = VIPS_MIN( aA, 1 - aB ) * xA + xB; \
+		CODE( xR = VIPS_MIN( aA, 1 - aB ) * xA + xB ); \
 		break; \
 	\
 	default: \
-		 xR = 0; \
+		 CODE( xR = 0 ); \
 		 g_assert_not_reached(); \
 	} \
 }
 
-#define COMBINE_PREMULTIPLIED( TYPE ) { \
-	TYPE **tp = (TYPE **) p; \
-	TYPE *tq = (TYPE *) q; \
-	\
-	for( x = 0; x < width; x++ ) { \
-		for( b = 0; b < bands; b++ ) \
-			pixel[b] = tp[0][b]; \
-		alpha = tp[0][bands] / composite->max_alpha; \
-		tp[0] += bands + 1; \
-		\
-		for( i = 1; i < n; i++ ) { \
-			TYPE * restrict xA = tp[i]; \
-			double aA = xA[bands] / composite->max_alpha; \
-			VipsBlendMode modei = mode[(n - 1) - i]; \
-			\
-			double aR; \
-			\
-			ALPHA( modei, aR, aA, alpha ); \
-			if( aR == 0 ) \
-				for( b = 0; b < bands; b++ ) \
-					pixel[b] = 0; \
-			else { \
-				for( b = 0; b < bands; b++ ) \
-					BLEND_PREMULTIPLIED( modei, \
-						pixel[b], \
-						xA[b], aA, \
-						pixel[b], alpha ); \
-			} \
-			alpha = aR; \
-			\
-			tp[i] += bands + 1; \
-		} \
-		\
-		for( b = 0; b < bands; b++ ) \
-			tq[b] = pixel[b]; \
-		tq[bands] = alpha * composite->max_alpha; \
-		\
-		tq += bands + 1; \
-	} \
-}
-
-#define COMBINE_PREMULTIPLIED_3_BAND( TYPE ) { \
-	TYPE **tp = (TYPE **) p; \
-	TYPE *tq = (TYPE *) q; \
-	\
-	for( x = 0; x < width; x++ ) { \
-		pixel[0] = tp[0][0]; \
-		pixel[1] = tp[0][1]; \
-		pixel[2] = tp[0][2]; \
-		alpha = tp[0][3] / composite->max_alpha; \
-		tp[0] += 4; \
-		\
-		for( i = 1; i < n; i++ ) { \
-			TYPE * restrict xA = tp[i]; \
-			double aA = xA[3] / composite->max_alpha; \
-			VipsBlendMode modei = mode[(n - 1) - i]; \
-			\
-			double aR; \
-			\
-			ALPHA( modei, aR, aA, alpha ); \
-			if( aout == 0 ) { \
-				pixel[0] = 0; \
-				pixel[1] = 0; \
-				pixel[2] = 0; \
-			} \
-			else { \
-				BLEND_PREMULTIPLIED( modei, \
-					pixel[0], \
-					xA[0], aA, \
-					pixel[0], alpha ); \
-				BLEND_PREMULTIPLIED( modei, \
-					pixel[1], \
-					xA[1], aA, \
-					pixel[1], alpha ); \
-				BLEND_PREMULTIPLIED( modei, \
-					pixel[2], \
-					xA[2], aA, \
-					pixel[2], alpha ); \
-			} \
-			alpha = aR; \
-			\
-			tp[i] += 4; \
-		} \
-		\
-		tq[0] = pixel[0]; \
-		tq[1] = pixel[1]; \
-		tq[2] = pixel[2]; \
-		tq[3] = alpha * composite->max_alpha; \
-		\
-		tq += bands + 1; \
+#define FOR_b( CODE ) { \
+	for( b = 0; b < bands; b++ ) { \
+		CODE; \
 	} \
 }
 
@@ -454,126 +386,123 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 	TYPE *tq = (TYPE *) q; \
 	\
 	for( x = 0; x < width; x++ ) { \
-		for( b = 0; b < bands; b++ ) \
-			pixel[b] = tp[0][b]; \
+		FOR_b( pixel[b] = tp[0][b] ); \
 		alpha = tp[0][bands] / composite->max_alpha; \
 		tp[0] += bands + 1; \
 		\
 		for( i = 1; i < n; i++ ) { \
 			TYPE * restrict xA = tp[i]; \
-			double aA = xA[bands] / composite->max_alpha; \
-			VipsBlendMode modei = mode[(n - 1) - i]; \
 			\
-			double aR; \
+			aA = xA[bands] / composite->max_alpha; \
+			modei = mode[(n - 1) - i]; \
 			\
 			ALPHA( modei, aR, aA, alpha ); \
-			if( aR == 0 ) \
-				for( b = 0; b < bands; b++ ) \
-					pixel[b] = 0; \
+			if( aR == 0 ) { \
+				FOR_b( pixel[b] = 0 ); \
+			} \
 			else \
-				for( b = 0; b < bands; b++ ) \
-					BLEND_MULTIPLY( modei, \
-						pixel[b], aR, \
-						xA[b], aA, \
-						pixel[b], alpha ); \
+				BLEND_MULTIPLY( modei, \
+					pixel[b], aR, \
+					xA[b], aA, \
+					pixel[b], alpha, FOR_b ); \
 			alpha = aR; \
 			\
 			tp[i] += bands + 1; \
 		} \
 		\
-		if( alpha == 0 ) \
-			for( b = 0; b < bands; b++ ) \
-				tq[b] = 0; \
+		if( alpha == 0 ) { \
+			FOR_b( tq[b] = 0 ); \
+		} \
 		else \
-			for( b = 0; b < bands; b++ ) \
-				tq[b] = pixel[b] * alpha; \
+			FOR_b( tq[b] = pixel[b] * alpha ); \
+		\
 		tq[bands] = alpha * composite->max_alpha; \
 		\
 		tq += bands + 1; \
 	} \
 }
 
-#define COMBINE_MULTIPLY_3_BAND( TYPE ) { \
+#define COMBINE_PREMULTIPLIED( TYPE ) { \
 	TYPE **tp = (TYPE **) p; \
 	TYPE *tq = (TYPE *) q; \
 	\
 	for( x = 0; x < width; x++ ) { \
-		pixel[0] = tp[0][0]; \
-		pixel[1] = tp[0][1]; \
-		pixel[2] = tp[0][2]; \
-		alpha = tp[0][3] / composite->max_alpha; \
-		tp[0] += 4; \
+		FOR_b( pixel[b] = tp[0][b] ); \
+		alpha = tp[0][bands] / composite->max_alpha; \
+		tp[0] += bands + 1; \
 		\
 		for( i = 1; i < n; i++ ) { \
 			TYPE * restrict xA = tp[i]; \
-			double aA = xA[bands] / composite->max_alpha; \
-			VipsBlendMode modei = mode[(n - 1) - i]; \
 			\
-			double aR; \
+			aA = xA[bands] / composite->max_alpha; \
+			modei = mode[(n - 1) - i]; \
 			\
 			ALPHA( modei, aR, aA, alpha ); \
-			if( aout == 0 ) { \
-				pixel[0] = 0; \
-				pixel[1] = 0; \
-				pixel[2] = 0; \
+			if( aR == 0 ) { \
+				FOR_b( pixel[b] = 0 ); \
 			} \
 			else { \
-				BLEND_MULTIPLY( modei, \
-					pixel[0], aR, \
-					xA[0], aA, \
-					pixel[0], alpha ); \
-				BLEND_MULTIPLY( modei, \
-					pixel[1], aR, \
-					xA[1], aA, \
-					pixel[1], alpha ); \
-				BLEND_MULTIPLY( modei, \
-					pixel[2], aR, \
-					xA[2], aA, \
-					pixel[2], alpha ); \
+				BLEND_PREMULTIPLIED( modei, \
+					pixel[b], \
+					xA[b], aA, \
+					pixel[b], alpha, FOR_b ); \
 			} \
 			alpha = aR; \
 			\
-			tp[i] += 4; \
+			tp[i] += bands + 1; \
 		} \
 		\
-		if( alpha == 0 ) { \
-			tq[0] = 0; \
-			tq[1] = 0; \
-			tq[2] = 0; \
-		} \
-		else { \
-			tq[0] = pixel[0] * alpha; \
-			tq[1] = pixel[1] * alpha; \
-			tq[2] = pixel[2] * alpha; \
-		} \
-		tq[3] = alpha * composite->max_alpha; \
+		FOR_b( tq[b] = pixel[b] ); \
+		tq[bands] = alpha * composite->max_alpha; \
 		\
 		tq += bands + 1; \
 	} \
 }
 
-#define COMBINE( TYPE ) { \
-	if( bands == 3 ) { \
-		if( composite->premultiplied ) { \
-			COMBINE_PREMULTIPLIED( TYPE ); \
-		} \
-		else { \
-			COMBINE_MULTIPLY( TYPE ); \
-		} \
-	} \
-	else { \
-		if( composite->premultiplied ) { \
-			COMBINE_PREMULTIPLIED( TYPE ); \
-		} \
-		else { \
-			COMBINE_MULTIPLY( TYPE ); \
-		} \
+#define SWITCH_format( CODE ) { \
+	switch( format ) { \
+	case VIPS_FORMAT_UCHAR: \
+		CODE( unsigned char ); \
+		break; \
+	\
+	case VIPS_FORMAT_CHAR: \
+		CODE( signed char ); \
+		break; \
+	\
+	case VIPS_FORMAT_USHORT: \
+		CODE( unsigned short ); \
+		break; \
+	\
+	case VIPS_FORMAT_SHORT: \
+		CODE( signed short ); \
+		break; \
+	\
+	case VIPS_FORMAT_UINT: \
+		CODE( unsigned int ); \
+		break; \
+	\
+	case VIPS_FORMAT_INT: \
+		CODE( signed int ); \
+		break; \
+	\
+	case VIPS_FORMAT_FLOAT: \
+		CODE( float ); \
+		break; \
+	\
+	case VIPS_FORMAT_DOUBLE: \
+		CODE( double ); \
+		break; \
+	\
+	case VIPS_FORMAT_COMPLEX: \
+	case VIPS_FORMAT_DPCOMPLEX: \
+	default: \
+		return; \
 	} \
 }
 
 static void
-vips_composite_process_line( VipsComposite *composite, VipsBandFormat format,
-	VipsPel *q, VipsPel **p, int width )
+vips_composite_premultiplied_process_line( VipsComposite *composite, 
+	VipsBandFormat format, VipsPel *q, VipsPel **p, int width )
 {
 	int n = composite->n;
 	int bands = composite->bands;
@@ -582,46 +511,31 @@ vips_composite_process_line( VipsComposite *composite, VipsBandFormat format,
 
 	double pixel[MAX_BANDS];
 	double alpha;
+	double aA;
+	double aR;
+	VipsBlendMode modei;
 	int x, i, b;
 
-	switch( format ) {
-	case VIPS_FORMAT_UCHAR:
-		COMBINE( unsigned char );
-		break;
+	SWITCH_format( COMBINE_PREMULTIPLIED ); 
+}
 
-	case VIPS_FORMAT_CHAR:
-		COMBINE( signed char );
-		break;
+static void
+vips_composite_multiply_process_line( VipsComposite *composite, 
+	VipsBandFormat format, VipsPel *q, VipsPel **p, int width )
+{
+	int n = composite->n;
+	int bands = composite->bands;
+	VipsBlendMode * restrict mode = 
+		(VipsBlendMode *) composite->mode->area.data; 
 
-	case VIPS_FORMAT_USHORT:
-		COMBINE( unsigned short );
-		break;
+	double pixel[MAX_BANDS];
+	double alpha;
+	double aA;
+	double aR;
+	VipsBlendMode modei;
+	int x, i, b;
 
-	case VIPS_FORMAT_SHORT:
-		COMBINE( signed short );
-		break;
-
-	case VIPS_FORMAT_UINT:
-		COMBINE( unsigned int );
-		break;
-
-	case VIPS_FORMAT_INT:
-		COMBINE( signed int );
-		break;
-
-	case VIPS_FORMAT_FLOAT:
-		COMBINE( float );
-		break;
-
-	case VIPS_FORMAT_DOUBLE:
-		COMBINE( double );
-		break;
-
-	case VIPS_FORMAT_COMPLEX:
-	case VIPS_FORMAT_DPCOMPLEX:
-	default:
-		return;
-	}
+	SWITCH_format( COMBINE_MULTIPLY ); 
 }
 
 static int
@@ -649,8 +563,12 @@ vips_composite_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop 
 		p[i] = NULL;
 		q = VIPS_REGION_ADDR( or, r->left, r->top + y );
 
-		vips_composite_process_line( composite, ir[0]->im->BandFmt, 
-			q, p, r->width );
+		if( composite->premultiplied ) 
+			vips_composite_premultiplied_process_line( composite, 
+				ir[0]->im->BandFmt, q, p, r->width );
+		else
+			vips_composite_multiply_process_line( composite, 
+				ir[0]->im->BandFmt, q, p, r->width );
 	}
 
 	VIPS_GATE_STOP( "vips_composite_gen: work" ); 
