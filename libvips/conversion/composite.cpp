@@ -7,7 +7,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -55,18 +55,18 @@
  */
 #define MAX_INPUT_IMAGES (64)
 
-/* Maximum number of image bands. 
+/* Maximum number of image bands.
  */
 #define MAX_BANDS (64)
 
 /**
  * VipsBlendMode:
- * VIPS_BLEND_MODE_CLEAR: 
- * VIPS_BLEND_MODE_SOURCE: 
- * VIPS_BLEND_MODE_OVER: 
- * VIPS_BLEND_MODE_IN: 
- * VIPS_BLEND_MODE_OUT: 
- * VIPS_BLEND_MODE_ATOP: 
+ * VIPS_BLEND_MODE_CLEAR:
+ * VIPS_BLEND_MODE_SOURCE:
+ * VIPS_BLEND_MODE_OVER:
+ * VIPS_BLEND_MODE_IN:
+ * VIPS_BLEND_MODE_OUT:
+ * VIPS_BLEND_MODE_ATOP:
  * VIPS_BLEND_MODE_DEST:
  * VIPS_BLEND_MODE_DEST_OVER:
  * VIPS_BLEND_MODE_DEST_IN:
@@ -76,10 +76,10 @@
  * VIPS_BLEND_MODE_ADD:
  * VIPS_BLEND_MODE_SATURATE:
  *
- * The various Porter-Duff blend modes. See vips_composite(), for example. 
+ * The various Porter-Duff blend modes. See vips_composite(), for example.
  *
  * The PDF blend modes require channels all in [0, 1], so they only work
- * for spaces like RGB where all channels have the same range. 
+ * for spaces like RGB where all channels have the same range.
  */
 
 /* References:
@@ -148,280 +148,277 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
 
 /* Cairo naming conventions:
  *
- * aR	alpha of result			
+ * aR	alpha of result
  * aA	alpha of source A	(the new pixel)
  * aB	alpha of source B	(the thing we accumulate)
- * xR	colour channel of result	
+ * xR	colour channel of result
  * xA	colour channel of source A
  * xB	colour channel of source B
  */
 
 static double
-vips_composite_alpha( VipsBlendMode mode, double aA, double aB ) 
+vips_composite_alpha( VipsBlendMode mode, double aA, double aB )
 {
 	double aR;
 
-	switch( mode ) { 
-	/* CLEAR and SOURCE are bounded operators and don't really make sense 
-	 * here, since we are always unbounded. Replace them with something 
+	switch( mode ) {
+	/* CLEAR and SOURCE are bounded operators and don't really make sense
+	 * here, since we are always unbounded. Replace them with something
 	 * similar that uses alpha.
-	 */ 
-	case VIPS_BLEND_MODE_CLEAR: 
-		aR = 1 - aA; 
-		break; 
-	
-	case VIPS_BLEND_MODE_SOURCE: 
-		aR = aA; 
-		break; 
-	
-	case VIPS_BLEND_MODE_OVER: 
-		aR = aA + aB * (1.0 - aA); 
-		break; 
-	
-	case VIPS_BLEND_MODE_IN: 
-		aR = aA * aB; 
-		break; 
-	
-	case VIPS_BLEND_MODE_OUT: 
-		aR = aA * (1 - aB); 
-		break; 
-	
-	case VIPS_BLEND_MODE_ATOP: 
-		aR = aB; 
-		break; 
-	
-	case VIPS_BLEND_MODE_DEST: 
-		aR = aB; 
-		break; 
-	
-	case VIPS_BLEND_MODE_DEST_OVER: 
-		aR = aB + aA * (1.0 - aB); 
-		break; 
-	
-	case VIPS_BLEND_MODE_DEST_IN: 
-		aR = aA * aB; 
-		break; 
-	
-	case VIPS_BLEND_MODE_DEST_OUT: 
-		aR = (1 - aA) * aB; 
-		break; 
-	
-	case VIPS_BLEND_MODE_DEST_ATOP: 
-		aR = aA; 
-		break; 
-	
-	case VIPS_BLEND_MODE_XOR: 
-		aR = aA + aB - 2 * aA * aB; 
-		break; 
-	
-	case VIPS_BLEND_MODE_ADD: 
-		aR = VIPS_MIN( 1, aA + aB ); 
-		break; 
-	
-	case VIPS_BLEND_MODE_SATURATE: 
-		aR = VIPS_MIN( 1, aA + aB ); 
-		break; 
-	
-	default: 
-		 aR = 0; 
-		 g_assert_not_reached(); 
-	} 
+	 */
+	case VIPS_BLEND_MODE_CLEAR:
+		aR = 1 - aA;
+		break;
 
-	return( aR ); 
+	case VIPS_BLEND_MODE_SOURCE:
+		aR = aA;
+		break;
+
+	case VIPS_BLEND_MODE_OVER:
+		aR = aA + aB * (1.0 - aA);
+		break;
+
+	case VIPS_BLEND_MODE_IN:
+		aR = aA * aB;
+		break;
+
+	case VIPS_BLEND_MODE_OUT:
+		aR = aA * (1 - aB);
+		break;
+
+	case VIPS_BLEND_MODE_ATOP:
+		aR = aB;
+		break;
+
+	case VIPS_BLEND_MODE_DEST:
+		aR = aB;
+		break;
+
+	case VIPS_BLEND_MODE_DEST_OVER:
+		aR = aB + aA * (1.0 - aB);
+		break;
+
+	case VIPS_BLEND_MODE_DEST_IN:
+		aR = aA * aB;
+		break;
+
+	case VIPS_BLEND_MODE_DEST_OUT:
+		aR = (1 - aA) * aB;
+		break;
+
+	case VIPS_BLEND_MODE_DEST_ATOP:
+		aR = aA;
+		break;
+
+	case VIPS_BLEND_MODE_XOR:
+		aR = aA + aB - 2 * aA * aB;
+		break;
+
+	case VIPS_BLEND_MODE_ADD:
+		aR = VIPS_MIN( 1, aA + aB );
+		break;
+
+	case VIPS_BLEND_MODE_SATURATE:
+		aR = VIPS_MIN( 1, aA + aB );
+		break;
+
+	default:
+		 aR = 0;
+		 g_assert_not_reached();
+	}
+
+	return( aR );
 }
 
 /* xA is the new pixel coming in, xB is the double pixel we are accumulating.
  */
-template <typename T> 
-static void 
-vips_composite_blend_pixel_multiply( VipsBlendMode mode, 
-	double aR, double *xB, double aB, T * restrict xA, double aA, 
-	int bands ) 
+template <typename T>
+static void
+vips_composite_blend_pixel_multiply( VipsBlendMode mode,
+	double aR, double *xB, double aB, T * restrict xA, double aA,
+	int bands )
 {
-	double t1; 
-	double t2; 
+	double t1;
+	double t2;
 	int b;
 
-	switch( mode ) { 
-	case VIPS_BLEND_MODE_CLEAR: 
+	switch( mode ) {
+	case VIPS_BLEND_MODE_CLEAR:
 		for( b = 0; b < bands; b++ )
-			xB[b] = 1 - aA; 
-		break; 
+			xB[b] = 1 - aA;
+		break;
 
-	case VIPS_BLEND_MODE_SOURCE: 
+	case VIPS_BLEND_MODE_SOURCE:
 		for( b = 0; b < bands; b++ )
-			xB[b] = xA[b]; 
-		break; 
+			xB[b] = xA[b];
+		break;
 
-	case VIPS_BLEND_MODE_OVER: 
-		t1 = aB * (1 - aA); 
+	case VIPS_BLEND_MODE_OVER:
+		t1 = aB * (1 - aA);
 		for( b = 0; b < bands; b++ )
-			xB[b] = (aA * xA[b] + t1 * xB[b]) / aR; 
-		break; 
+			xB[b] = (aA * xA[b] + t1 * xB[b]) / aR;
+		break;
 
-	case VIPS_BLEND_MODE_IN: 
+	case VIPS_BLEND_MODE_IN:
 		for( b = 0; b < bands; b++ )
-			xB[b] = xA[b]; 
-		break; 
+			xB[b] = xA[b];
+		break;
 
-	case VIPS_BLEND_MODE_OUT: 
+	case VIPS_BLEND_MODE_OUT:
 		for( b = 0; b < bands; b++ )
-			xB[b] = xA[b]; 
-		break; 
-	
-	case VIPS_BLEND_MODE_ATOP: 
+			xB[b] = xA[b];
+		break;
+
+	case VIPS_BLEND_MODE_ATOP:
 		for( b = 0; b < bands; b++ )
-			xB[b] = xA[b] * aA + xB[b] * (1 - aA); 
-		break; 
-	
-	case VIPS_BLEND_MODE_DEST: 
+			xB[b] = xA[b] * aA + xB[b] * (1 - aA);
+		break;
+
+	case VIPS_BLEND_MODE_DEST:
 		for( b = 0; b < bands; b++ )
-			xB[b] = xB[b]; 
-		break; 
-	
-	case VIPS_BLEND_MODE_DEST_OVER: 
-		t1 = aA * (1 - aB); 
+			xB[b] = xB[b];
+		break;
+
+	case VIPS_BLEND_MODE_DEST_OVER:
+		t1 = aA * (1 - aB);
 		for( b = 0; b < bands; b++ )
-			xB[b] = (aB * xB[b] + t1 * xA[b]) / aR; 
-		break; 
-	
-	case VIPS_BLEND_MODE_DEST_IN: 
+			xB[b] = (aB * xB[b] + t1 * xA[b]) / aR;
+		break;
+
+	case VIPS_BLEND_MODE_DEST_IN:
 		for( b = 0; b < bands; b++ )
-			xB[b] = xB[b]; 
-		break; 
-	
-	case VIPS_BLEND_MODE_DEST_OUT: 
+			xB[b] = xB[b];
+		break;
+
+	case VIPS_BLEND_MODE_DEST_OUT:
 		for( b = 0; b < bands; b++ )
-			xB[b] = xB[b]; 
-		break; 
-	
+			xB[b] = xB[b];
+		break;
+
 	case VIPS_BLEND_MODE_DEST_ATOP:
 		for( b = 0; b < bands; b++ )
-			xB[b] = xA[b] * (1 - aB) + xB[b] * aB; 
-		break; 
-	
-	case VIPS_BLEND_MODE_XOR: 
-		t1 = aA * (1 - aB); 
-		t2 = aB * (1 - aA); 
+			xB[b] = xA[b] * (1 - aB) + xB[b] * aB;
+		break;
+
+	case VIPS_BLEND_MODE_XOR:
+		t1 = aA * (1 - aB);
+		t2 = aB * (1 - aA);
 		for( b = 0; b < bands; b++ )
-			xB[b] = (t1 * xA[b] + t2 * xB[b]) / aR; 
-		break; 
-	
-	case VIPS_BLEND_MODE_ADD: 
+			xB[b] = (t1 * xA[b] + t2 * xB[b]) / aR;
+		break;
+
+	case VIPS_BLEND_MODE_ADD:
 		for( b = 0; b < bands; b++ )
-			xB[b] = (xA[b] * aA + xB[b] * aB) / aR; 
-		break; 
-	
-	case VIPS_BLEND_MODE_SATURATE: 
-		t1 = VIPS_MIN( aA, 1 - aB ); 
+			xB[b] = (xA[b] * aA + xB[b] * aB) / aR;
+		break;
+
+	case VIPS_BLEND_MODE_SATURATE:
+		t1 = VIPS_MIN( aA, 1 - aB );
 		for( b = 0; b < bands; b++ )
-			xB[b] = (t1 * xA[b] + xB[b] * aB) / aR; 
-		break; 
-	
-	default: 
+			xB[b] = (t1 * xA[b] + xB[b] * aB) / aR;
+		break;
+
+	default:
 		for( b = 0; b < bands; b++ )
-			xB[b] = 0; 
-		 g_assert_not_reached(); 
-	} 
+			xB[b] = 0;
+		 g_assert_not_reached();
+	}
 }
-
-template <typename T> 
-static void 
-vips_composite_blend_pixel_premultiplied( VipsBlendMode mode, 
-	double *xB, double aB, T * restrict xA, double aA, 
-	int bands ) 
-{
-	double t1; 
-	int b;
-
-	switch( mode ) { 
-	case VIPS_BLEND_MODE_CLEAR: 
-		for( b = 0; b < bands; b++ )
-			xB[b] = 1 - aA; 
-		break; 
-	
-	case VIPS_BLEND_MODE_SOURCE: 
-		for( b = 0; b < bands; b++ )
-			xB[b] = xA[b]; 
-		break; 
-	
-	case VIPS_BLEND_MODE_OVER: 
-		for( b = 0; b < bands; b++ )
-			xB[b] = xA[b] + xB[b] * (1 - aA); 
-		break; 
-	
-	case VIPS_BLEND_MODE_IN: 
-		for( b = 0; b < bands; b++ )
-			xB[b] = xA[b]; 
-		break; 
-	
-	case VIPS_BLEND_MODE_OUT: 
-		for( b = 0; b < bands; b++ )
-			xB[b] = xA[b]; 
-		break; 
-	
-	case VIPS_BLEND_MODE_ATOP: 
-		for( b = 0; b < bands; b++ )
-			xB[b] = xA[b] + xB[b] * (1 - aA); 
-		break; 
-	
-	case VIPS_BLEND_MODE_DEST: 
-		for( b = 0; b < bands; b++ )
-			xB[b] = xB[b]; 
-		break; 
-	
-	case VIPS_BLEND_MODE_DEST_OVER: 
-		for( b = 0; b < bands; b++ )
-			xB[b] = xB[b] + xA[b] * (1 - aB); 
-		break; 
-	
-	case VIPS_BLEND_MODE_DEST_IN: 
-		for( b = 0; b < bands; b++ )
-			xB[b] = xB[b]; 
-		break; 
-	
-	case VIPS_BLEND_MODE_DEST_OUT: 
-		for( b = 0; b < bands; b++ )
-			xB[b] = xB[b]; 
-		break; 
-	
-	case VIPS_BLEND_MODE_DEST_ATOP: 
-		for( b = 0; b < bands; b++ )
-			xB[b] = xA[b] * (1 - aB) + xB[b]; 
-		break; 
-	
-	case VIPS_BLEND_MODE_XOR: 
-		for( b = 0; b < bands; b++ )
-			xB[b] = xA[b] * (1 - aB) + xB[b] * (1 - aA); 
-		break; 
-	
-	case VIPS_BLEND_MODE_ADD: 
-		for( b = 0; b < bands; b++ )
-			xB[b] = xA[b] + xB[b]; 
-		break; 
-	
-	case VIPS_BLEND_MODE_SATURATE: 
-		t1 = VIPS_MIN( aA, 1 - aB ); 
-		for( b = 0; b < bands; b++ )
-			xB[b] = t1 * xA[b] + xB[b]; 
-		break; 
-
-	default: 
-		for( b = 0; b < bands; b++ )
-			xB[b] = 0; 
-		 g_assert_not_reached(); 
-	} 
-}
-
-/* I tried a 3-band special case, but it only makes a few percent difference.
- */
 
 template <typename T>
-static void vips_combine_pixels( VipsComposite *composite, 
+static void
+vips_composite_blend_pixel_premultiplied( VipsBlendMode mode,
+	double *xB, double aB, T * restrict xA, double aA,
+	int bands )
+{
+	double t1;
+	int b;
+
+	switch( mode ) {
+	case VIPS_BLEND_MODE_CLEAR:
+		for( b = 0; b < bands; b++ )
+			xB[b] = 1 - aA;
+		break;
+
+	case VIPS_BLEND_MODE_SOURCE:
+		for( b = 0; b < bands; b++ )
+			xB[b] = xA[b];
+		break;
+
+	case VIPS_BLEND_MODE_OVER:
+		for( b = 0; b < bands; b++ )
+			xB[b] = xA[b] + xB[b] * (1 - aA);
+		break;
+
+	case VIPS_BLEND_MODE_IN:
+		for( b = 0; b < bands; b++ )
+			xB[b] = xA[b];
+		break;
+
+	case VIPS_BLEND_MODE_OUT:
+		for( b = 0; b < bands; b++ )
+			xB[b] = xA[b];
+		break;
+
+	case VIPS_BLEND_MODE_ATOP:
+		for( b = 0; b < bands; b++ )
+			xB[b] = xA[b] + xB[b] * (1 - aA);
+		break;
+
+	case VIPS_BLEND_MODE_DEST:
+		for( b = 0; b < bands; b++ )
+			xB[b] = xB[b];
+		break;
+
+	case VIPS_BLEND_MODE_DEST_OVER:
+		for( b = 0; b < bands; b++ )
+			xB[b] = xB[b] + xA[b] * (1 - aB);
+		break;
+
+	case VIPS_BLEND_MODE_DEST_IN:
+		for( b = 0; b < bands; b++ )
+			xB[b] = xB[b];
+		break;
+
+	case VIPS_BLEND_MODE_DEST_OUT:
+		for( b = 0; b < bands; b++ )
+			xB[b] = xB[b];
+		break;
+
+	case VIPS_BLEND_MODE_DEST_ATOP:
+		for( b = 0; b < bands; b++ )
+			xB[b] = xA[b] * (1 - aB) + xB[b];
+		break;
+
+	case VIPS_BLEND_MODE_XOR:
+		for( b = 0; b < bands; b++ )
+			xB[b] = xA[b] * (1 - aB) + xB[b] * (1 - aA);
+		break;
+
+	case VIPS_BLEND_MODE_ADD:
+		for( b = 0; b < bands; b++ )
+			xB[b] = xA[b] + xB[b];
+		break;
+
+	case VIPS_BLEND_MODE_SATURATE:
+		t1 = VIPS_MIN( aA, 1 - aB );
+		for( b = 0; b < bands; b++ )
+			xB[b] = t1 * xA[b] + xB[b];
+		break;
+
+	default:
+		for( b = 0; b < bands; b++ )
+			xB[b] = 0;
+		 g_assert_not_reached();
+	}
+}
+
+template <typename T>
+static void vips_combine_pixels( VipsComposite *composite,
 	VipsPel *q, VipsPel **p )
 {
-	VipsBlendMode * restrict mode = 
-		(VipsBlendMode *) composite->mode->area.data; 
+	VipsBlendMode * restrict mode =
+		(VipsBlendMode *) composite->mode->area.data;
 	int n = composite->n;
 	int bands = composite->bands;
 	T * restrict tq = (T * restrict) q;
@@ -434,41 +431,41 @@ static void vips_combine_pixels( VipsComposite *composite,
 	VipsBlendMode modei;
 	int i, b;
 
-	for( b = 0; b < bands; b++ ) 
-		pixel[b] = tp[0][b]; 
-	alpha = tp[0][bands] / composite->max_alpha; 
+	for( b = 0; b < bands; b++ )
+		pixel[b] = tp[0][b];
+	alpha = tp[0][bands] / composite->max_alpha;
 
-	for( i = 1; i < n; i++ ) { 
-		T * restrict xA = tp[i]; 
+	for( i = 1; i < n; i++ ) {
+		T * restrict xA = tp[i];
 
-		aA = xA[bands] / composite->max_alpha; 
-		modei = mode[(n - 1) - i]; 
+		aA = xA[bands] / composite->max_alpha;
+		modei = mode[(n - 1) - i];
 
-		aR = vips_composite_alpha( modei, aA, alpha ); 
-		if( aR == 0 ) 
-			for( b = 0; b < bands; b++ ) 
-				pixel[b] = 0; 
+		aR = vips_composite_alpha( modei, aA, alpha );
+		if( aR == 0 )
+			for( b = 0; b < bands; b++ )
+				pixel[b] = 0;
 		else if( composite->premultiplied )
-			vips_composite_blend_pixel_premultiplied<T>( modei, 
+			vips_composite_blend_pixel_premultiplied<T>( modei,
 				pixel, alpha, xA, aA, bands );
 		else
-			vips_composite_blend_pixel_multiply<T>( modei, 
+			vips_composite_blend_pixel_multiply<T>( modei,
 				aR, pixel, alpha, xA, aA, bands );
 
-		alpha = aR; 
-	} 
+		alpha = aR;
+	}
 
 	if( composite->premultiplied )
-		for( b = 0; b < bands; b++ ) 
-			tq[b] = pixel[b]; 
+		for( b = 0; b < bands; b++ )
+			tq[b] = pixel[b];
 	else
-		for( b = 0; b < bands; b++ ) 
-			tq[b] = pixel[b] * alpha; 
-	tq[bands] = alpha * composite->max_alpha; 
+		for( b = 0; b < bands; b++ )
+			tq[b] = pixel[b] * alpha;
+	tq[bands] = alpha * composite->max_alpha;
 }
 
 static int
-vips_composite_gen( VipsRegion *output_region, 
+vips_composite_gen( VipsRegion *output_region,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion **input_regions = (VipsRegion **) seq;
@@ -481,74 +478,74 @@ vips_composite_gen( VipsRegion *output_region,
 	if( vips_reorder_prepare_many( output_region->im, input_regions, r ) )
 		return( -1 );
 
-	VIPS_GATE_START( "vips_composite_gen: work" ); 
+	VIPS_GATE_START( "vips_composite_gen: work" );
 
 	for( y = 0; y < r->height; y++ ) {
 		VipsPel *p[MAX_INPUT_IMAGES];
 		VipsPel *q;
 		int x, i;
 
-		for( i = 0; i < composite->n; i++ ) 
-			p[(composite->n - 1) - i] = 
-				VIPS_REGION_ADDR( input_regions[i], 
+		for( i = 0; i < composite->n; i++ )
+			p[(composite->n - 1) - i] =
+				VIPS_REGION_ADDR( input_regions[i],
 					r->left, r->top + y );
 		p[i] = NULL;
 		q = VIPS_REGION_ADDR( output_region, r->left, r->top + y );
 
 		for( x = 0; x < r->width; x++ ) {
-			switch( input_regions[0]->im->BandFmt ) { 
-			case VIPS_FORMAT_UCHAR: 
-				vips_combine_pixels<unsigned char>( composite, 
-					q, p ); 
-				break; 
-			
-			case VIPS_FORMAT_CHAR: 
-				vips_combine_pixels<signed char>( composite, 
+			switch( input_regions[0]->im->BandFmt ) {
+			case VIPS_FORMAT_UCHAR:
+				vips_combine_pixels<unsigned char>( composite,
 					q, p );
-				break; 
-			
-			case VIPS_FORMAT_USHORT: 
-				vips_combine_pixels<unsigned short>( composite, 
-					q, p );
-				break; 
-			
-			case VIPS_FORMAT_SHORT: 
-				vips_combine_pixels<signed short>( composite, 
-					q, p );
-				break; 
-			
-			case VIPS_FORMAT_UINT: 
-				vips_combine_pixels<unsigned int>( composite, 
-					q, p );
-				break; 
-			
-			case VIPS_FORMAT_INT: 
-				vips_combine_pixels<signed int>( composite, 
-					q, p );
-				break; 
-			
-			case VIPS_FORMAT_FLOAT: 
-				vips_combine_pixels<float>( composite, q, p );
-				break; 
-			
-			case VIPS_FORMAT_DOUBLE: 
-				vips_combine_pixels<double>( composite, q, p );
-				break; 
-			
-			case VIPS_FORMAT_COMPLEX: 
-			case VIPS_FORMAT_DPCOMPLEX: 
-			default: 
-				g_assert_not_reached();
-				return( -1 ); 
-			} 
+				break;
 
-			for( i = 0; i < composite->n; i++ ) 
+			case VIPS_FORMAT_CHAR:
+				vips_combine_pixels<signed char>( composite,
+					q, p );
+				break;
+
+			case VIPS_FORMAT_USHORT:
+				vips_combine_pixels<unsigned short>( composite,
+					q, p );
+				break;
+
+			case VIPS_FORMAT_SHORT:
+				vips_combine_pixels<signed short>( composite,
+					q, p );
+				break;
+
+			case VIPS_FORMAT_UINT:
+				vips_combine_pixels<unsigned int>( composite,
+					q, p );
+				break;
+
+			case VIPS_FORMAT_INT:
+				vips_combine_pixels<signed int>( composite,
+					q, p );
+				break;
+
+			case VIPS_FORMAT_FLOAT:
+				vips_combine_pixels<float>( composite, q, p );
+				break;
+
+			case VIPS_FORMAT_DOUBLE:
+				vips_combine_pixels<double>( composite, q, p );
+				break;
+
+			case VIPS_FORMAT_COMPLEX:
+			case VIPS_FORMAT_DPCOMPLEX:
+			default:
+				g_assert_not_reached();
+				return( -1 );
+			}
+
+			for( i = 0; i < composite->n; i++ )
 				p[i] += ps;
 			q += ps;
 		}
 	}
 
-	VIPS_GATE_STOP( "vips_composite_gen: work" ); 
+	VIPS_GATE_STOP( "vips_composite_gen: work" );
 
 	return( 0 );
 }
@@ -575,23 +572,23 @@ vips_composite_build( VipsObject *object )
 
 	composite->n = composite->in->area.n;
 
-	if( composite->n <= 0 ) { 
-		vips_error( klass->nickname, "%s", _( "no input images" ) ); 
+	if( composite->n <= 0 ) {
+		vips_error( klass->nickname, "%s", _( "no input images" ) );
 		return( -1 );
 	}
 	if( composite->mode->area.n != composite->n - 1 ) {
-		vips_error( klass->nickname, 
+		vips_error( klass->nickname,
 			_( "for %d input images there must be %d blend modes" ),
-			composite->n, composite->n - 1 ); 
+			composite->n, composite->n - 1 );
 		return( -1 );
 	}
 	mode = (VipsBlendMode *) composite->mode->area.data;
 	for( i = 0; i < composite->n - 1; i++ ) {
-		if( mode[i] < 0 || 
+		if( mode[i] < 0 ||
 			mode[i] >= VIPS_BLEND_MODE_LAST ) {
-			vips_error( klass->nickname, 
+			vips_error( klass->nickname,
 				_( "blend mode index %d (%d) invalid" ),
-				i, mode[i] ); 
+				i, mode[i] );
 			return( -1 );
 		}
 	}
@@ -608,7 +605,7 @@ vips_composite_build( VipsObject *object )
 	 * given a solid 255 and becomes the background image, shortening n.
 	 */
 	for( i = 0; i < composite->n; i++ )
-		if( !vips_image_hasalpha( in[i] ) ) { 
+		if( !vips_image_hasalpha( in[i] ) ) {
 			VipsImage *x;
 
 			if( vips_bandjoin_const1( in[i], &x, 255, NULL ) )
@@ -620,31 +617,31 @@ vips_composite_build( VipsObject *object )
 		}
 
 	if( composite->n > MAX_INPUT_IMAGES ) {
-		vips_error( klass->nickname, 
-			"%s", _( "too many input images" ) ); 
+		vips_error( klass->nickname,
+			"%s", _( "too many input images" ) );
 		return( -1 );
 	}
 
-	/* Transform to compositing space. It defaults to sRGB or B_W. 
+	/* Transform to compositing space. It defaults to sRGB or B_W.
 	 */
 	if( !vips_object_argument_isset( object, "compositing_space" ) ) {
 		gboolean all_grey;
 
 		all_grey = TRUE;
-		for( i = 0; i < composite->n; i++ ) 
+		for( i = 0; i < composite->n; i++ )
 			if( in[i]->Bands > 2 ) {
 				all_grey = FALSE;
 				break;
 			}
 
-		composite->compositing_space = all_grey ? 
+		composite->compositing_space = all_grey ?
 			VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_sRGB;
 	}
 
-	compositing = (VipsImage **) 
+	compositing = (VipsImage **)
 		vips_object_local_array( object, composite->n );
 	for( i = 0; i < composite->n; i++ )
-		if( vips_colourspace( in[i], &compositing[i], 
+		if( vips_colourspace( in[i], &compositing[i],
 			composite->compositing_space, NULL ) )
 			return( -1 );
 	in = compositing;
@@ -652,9 +649,9 @@ vips_composite_build( VipsObject *object )
 	/* Is max-alpha unset? Default to the correct value for this
 	 * interpretation.
 	 */
-	if( !vips_object_argument_isset( object, "max_alpha" ) ) 
+	if( !vips_object_argument_isset( object, "max_alpha" ) )
 		if( composite->compositing_space == VIPS_INTERPRETATION_GREY16 ||
-			composite->compositing_space == 
+			composite->compositing_space ==
 			VIPS_INTERPRETATION_RGB16 )
 			composite->max_alpha = 65535;
 
@@ -672,15 +669,15 @@ vips_composite_build( VipsObject *object )
 	 */
 	for( i = 1; i < composite->n; i++ )
 		if( in[i]->Bands != in[0]->Bands ) {
-			vips_error( klass->nickname, 
-				_( "image %d does not have %d bands" ), 
-				i, in[0]->Bands ); 
+			vips_error( klass->nickname,
+				_( "image %d does not have %d bands" ),
+				i, in[0]->Bands );
 			return( -1 );
 		}
 
 	if( in[0]->Bands > MAX_BANDS ) {
-		vips_error( klass->nickname, 
-			"%s", _( "too many input bands" ) ); 
+		vips_error( klass->nickname,
+			"%s", _( "too many input bands" ) );
 		return( -1 );
 	}
 
@@ -689,17 +686,17 @@ vips_composite_build( VipsObject *object )
 	t[0] = vips_image_new();
 	out = t[0];
 
-	if( vips_image_pipeline_array( out, 
+	if( vips_image_pipeline_array( out,
 		VIPS_DEMAND_STYLE_THINSTRIP, in ) )
 		return( -1 );
 
 	if( vips_image_generate( out,
-		vips_start_many, vips_composite_gen, vips_stop_many, 
+		vips_start_many, vips_composite_gen, vips_stop_many,
 		in, composite ) )
 		return( -1 );
 
 	if( vips_image_write( out, conversion->out ) )
-		return( -1 ); 
+		return( -1 );
 
 	return( 0 );
 }
@@ -717,42 +714,42 @@ vips_composite_class_init( VipsCompositeClass *klass )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "composite";
-	vobject_class->description = 
+	vobject_class->description =
 		_( "blend an array of images with an array of blend modes" );
 	vobject_class->build = vips_composite_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_BOXED( klass, "in", 0, 
-		_( "Inputs" ), 
+	VIPS_ARG_BOXED( klass, "in", 0,
+		_( "Inputs" ),
 		_( "Array of input images" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsComposite, in ),
 		VIPS_TYPE_ARRAY_IMAGE );
 
-	VIPS_ARG_BOXED( klass, "mode", 3, 
-		_( "Blend modes" ), 
+	VIPS_ARG_BOXED( klass, "mode", 3,
+		_( "Blend modes" ),
 		_( "Array of VipsBlendMode to join with" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsComposite, mode ),
 		VIPS_TYPE_ARRAY_INT );
 
-	VIPS_ARG_ENUM( klass, "compositing_space", 10, 
-		_( "Compositing space" ), 
+	VIPS_ARG_ENUM( klass, "compositing_space", 10,
+		_( "Compositing space" ),
 		_( "Composite images in this colour space" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsComposite, compositing_space ),
-		VIPS_TYPE_INTERPRETATION, VIPS_INTERPRETATION_sRGB ); 
+		VIPS_TYPE_INTERPRETATION, VIPS_INTERPRETATION_sRGB );
 
-	VIPS_ARG_BOOL( klass, "premultiplied", 11, 
-		_( "Premultiplied" ), 
+	VIPS_ARG_BOOL( klass, "premultiplied", 11,
+		_( "Premultiplied" ),
 		_( "Images have premultiplied alpha" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsComposite, premultiplied ),
-		FALSE ); 
+		FALSE );
 
-	VIPS_ARG_DOUBLE( klass, "max_alpha", 115, 
-		_( "Maximum alpha" ), 
+	VIPS_ARG_DOUBLE( klass, "max_alpha", 115,
+		_( "Maximum alpha" ),
 		_( "Maximum value of alpha channel" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsComposite, max_alpha ),
@@ -770,13 +767,13 @@ vips_composite_init( VipsComposite *composite )
 static int
 vips_compositev( VipsImage **in, VipsImage **out, int n, int *mode, va_list ap )
 {
-	VipsArrayImage *image_array; 
-	VipsArrayInt *mode_array; 
+	VipsArrayImage *image_array;
+	VipsArrayInt *mode_array;
 	int result;
 
-	image_array = vips_array_image_new( in, n ); 
-	mode_array = vips_array_int_new( mode, n - 1 ); 
-	result = vips_call_split( "composite", ap, 
+	image_array = vips_array_image_new( in, n );
+	mode_array = vips_array_int_new( mode, n - 1 );
+	result = vips_call_split( "composite", ap,
 		image_array, out, mode_array );
 	vips_area_unref( VIPS_AREA( image_array ) );
 	vips_area_unref( VIPS_AREA( mode_array ) );
@@ -792,7 +789,7 @@ vips_compositev( VipsImage **in, VipsImage **out, int n, int *mode, va_list ap )
  * @mode: array of (@n - 1) #VipsBlendMode
  * @...: %NULL-terminated list of optional named arguments
  *
- * Composite an array of images together. 
+ * Composite an array of images together.
  *
  * See also: vips_insert().
  *
@@ -824,7 +821,7 @@ vips_composite( VipsImage **in, VipsImage **out, int n, int *mode, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_composite2( VipsImage *in1, VipsImage *in2, VipsImage **out, 
+vips_composite2( VipsImage *in1, VipsImage *in2, VipsImage **out,
 	VipsBlendMode mode1, ... )
 {
 	va_list ap;
