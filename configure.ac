@@ -113,6 +113,7 @@ headers="\
 	morphology.h \
 	type.h \
 	rect.h \
+	resample.h \
 	memory.h \
 	region.h"
 

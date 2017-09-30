@@ -171,9 +171,9 @@ vips_shrink_init( VipsShrink *shrink )
 }
 
 /**
- * vips_shrink:
+ * vips_shrink: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @hshrink: horizontal shrink
  * @vshrink: vertical shrink
  * @...: %NULL-terminated list of optional named arguments

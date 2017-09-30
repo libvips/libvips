@@ -617,7 +617,7 @@ vips__interpolate_init( void )
 }
 
 /**
- * vips_interpolate_new:
+ * vips_interpolate_new: (constructor)
  * @nickname: nickname for interpolator
  *
  * Look up an interpolator from a nickname and make one. You need to free the
