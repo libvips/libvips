@@ -331,7 +331,7 @@ vips_draw_linev( VipsImage *image,
 }
 
 /**
- * vips_draw_line:
+ * vips_draw_line: (method)
  * @image: image to draw on
  * @ink: (array length=n): value to draw
  * @n: length of ink array
@@ -364,7 +364,7 @@ vips_draw_line( VipsImage *image,
 }
 
 /**
- * vips_draw_line1:
+ * vips_draw_line1: (method)
  * @image: image to draw on
  * @ink: value to draw
  * @x1: start of draw_line
