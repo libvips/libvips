@@ -315,7 +315,7 @@ vips_match_init( VipsMatch *match )
  * vips_match:
  * @ref: reference image
  * @sec: secondary image
- * @out: output image
+ * @out: (out): output image
  * @xr1: first reference tie-point
  * @yr1: first reference tie-point
  * @xs1: first secondary tie-point

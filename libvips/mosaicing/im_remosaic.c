@@ -194,9 +194,9 @@ vips_remosaic_init( VipsRemosaic *remosaic )
 }
 
 /**
- * vips_remosaic:
+ * vips_remosaic: (method)
  * @in: mosaic to rebuild
- * @out: output image
+ * @out: (out): output image
  * @old_str: gamma of source images
  * @new_str: gamma of source images
  * @...: %NULL-terminated list of optional named arguments

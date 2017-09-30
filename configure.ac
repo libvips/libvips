@@ -111,6 +111,7 @@ headers="\
 	convolution.h \
 	draw.h \
 	morphology.h \
+	mosaicing.h \
 	type.h \
 	rect.h \
 	memory.h \
