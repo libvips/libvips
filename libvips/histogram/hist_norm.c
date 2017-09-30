@@ -156,9 +156,9 @@ vips_hist_norm_init( VipsHistNorm *hist_norm )
 }
 
 /**
- * vips_hist_norm:
+ * vips_hist_norm: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  * 
  * Normalise histogram ... normalise range to make it square (ie. max ==

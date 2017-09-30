@@ -395,9 +395,9 @@ vips_hist_local_init( VipsHistLocal *local )
 }
 
 /**
- * vips_hist_local:
+ * vips_hist_local: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @width: width of region
  * @height: height of region
  * @...: %NULL-terminated list of optional named arguments
