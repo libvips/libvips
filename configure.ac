@@ -101,6 +101,7 @@ headers="\
 	image.h \
 	error.h \
 	foreign.h \
+	freqfilt.h \
 	interpolate.h \
 	header.h \
 	operation.h \
