@@ -630,7 +630,7 @@ vips_operation_invalidate( VipsOperation *operation )
 }
 
 /**
- * vips_operation_new:
+ * vips_operation_new: (constructor)
  * @name: nickname of operation to create
  *
  * Return a new #VipsOperation with the specified nickname. Useful for

@@ -1024,11 +1024,11 @@ vips__threadpool_init( void )
 }
 
 /**
- * vips_get_tile_size:
+ * vips_get_tile_size: (method)
  * @im: image to guess for
- * @tile_width: return selected tile width 
- * @tile_height: return selected tile height 
- * @n_lines: return buffer height in scanlines
+ * @tile_width: (out): return selected tile width 
+ * @tile_height: (out): return selected tile height 
+ * @n_lines: (out): return buffer height in scanlines
  *
  * Pick a tile size and a buffer height for this image and the current
  * value of vips_concurrency_get(). The buffer height 

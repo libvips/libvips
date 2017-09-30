@@ -145,7 +145,7 @@ vips_malloc_cb( VipsObject *object, char *buf )
 
 /**
  * vips_malloc:
- * @object: allocate memory local to this #VipsObject, or %NULL
+ * @object: (nullable): allocate memory local to this #VipsObject, or %NULL
  * @size: number of bytes to allocate
  *
  * g_malloc() local to @object, that is, the memory will be automatically 
@@ -177,7 +177,7 @@ vips_malloc( VipsObject *object, size_t size )
 
 /**
  * vips_strdup:
- * @object: allocate memory local to this #VipsObject, or %NULL
+ * @object: (nullable): allocate memory local to this #VipsObject, or %NULL
  * @str: string to copy
  *
  * g_strdup() a string. When @object is freed, the string will be freed for

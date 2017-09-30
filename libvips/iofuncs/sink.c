@@ -325,7 +325,7 @@ vips_sink_base_progress( void *a )
 }
 
 /**
- * vips_sink_tile:
+ * vips_sink_tile: (method)
  * @im: scan over this image
  * @tile_width: tile width
  * @tile_height: tile height
@@ -391,7 +391,7 @@ vips_sink_tile( VipsImage *im,
 }
 
 /**
- * vips_sink:
+ * vips_sink: (method)
  * @im: scan over this image
  * @start_fn: start sequences with this function
  * @generate_fn: generate pixels with this function

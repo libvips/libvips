@@ -221,7 +221,7 @@ vips_area_unref( VipsArea *area )
 }
 
 /**
- * vips_area_new: 
+ * vips_area_new: (constructor)
  * @free_fn: (scope async): @data will be freed with this function
  * @data: data will be freed with this function
  *
@@ -287,7 +287,7 @@ vips__type_leak( void )
 }
 
 /**
- * vips_area_new_array: 
+ * vips_area_new_array:
  * @type: %GType of elements to store
  * @sizeof_type: sizeof() an element in the array
  * @n: number of elements in the array
@@ -328,7 +328,7 @@ vips_area_free_array_object( GObject **array, VipsArea *area )
 }
 
 /**
- * vips_area_new_array_object:
+ * vips_area_new_array_object: (constructor)
  * @n: number of elements in the array
  *
  * An area which holds an array of %GObject s. See vips_area_new_array(). When
@@ -359,12 +359,12 @@ vips_area_new_array_object( int n )
 }
 
 /**
- * vips_area_get_data:
+ * vips_area_get_data: (method)
  * @area: #VipsArea to fetch from
- * @length: (allow-none): optionally return length in bytes here
- * @n: (allow-none): optionally return number of elements here
- * @type: (allow-none): optionally return element type here
- * @sizeof_type: (allow-none): optionally return sizeof() element type here
+ * @length: (optional): optionally return length in bytes here
+ * @n: (optional): optionally return number of elements here
+ * @type: (optional): optionally return element type here
+ * @sizeof_type: (optional): optionally return sizeof() element type here
  *
  * Return the data pointer plus optionally the length in bytes of an area, 
  * the number of elements, the %GType of each element and the sizeof() each
@@ -1107,7 +1107,7 @@ vips_array_double_get_type( void )
 }
 
 /**
- * vips_array_image_new:
+ * vips_array_image_new: (constructor)
  * @array: (array length=n): array of #VipsImage
  * @n: number of images
  *
@@ -1145,7 +1145,7 @@ vips_array_image_new( VipsImage **array, int n )
 }
 
 /**
- * vips_array_image_newv:
+ * vips_array_image_newv: (constructor)
  * @n: number of images
  * @...: list of #VipsImage arguments
  *
@@ -1232,7 +1232,7 @@ vips_array_image_new_from_string( const char *string, VipsAccess access )
 }
 
 /**
- * vips_array_image_empty:
+ * vips_array_image_empty: (constructor)
  *
  * Make an empty image array. 
  * Handy with vips_array_image_add() for bindings
@@ -1249,7 +1249,7 @@ vips_array_image_empty( void )
 }
 
 /**
- * vips_array_image_append:
+ * vips_array_image_append: (method)
  * @array: (transfer none): append to this
  * @image: add this
  *
@@ -1289,7 +1289,7 @@ vips_array_image_append( VipsArrayImage *array, VipsImage *image )
 }
 
 /**
- * vips_array_image_get:
+ * vips_array_image_get: (method)
  * @array: the #VipsArrayImage to fetch from
  * @n: length of array
  *
