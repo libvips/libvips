@@ -1054,9 +1054,9 @@ vips_icc_transform_init( VipsIccTransform *transform )
 }
 
 /**
- * vips_icc_ac2rc:
+ * vips_icc_ac2rc: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @profile_filename: use this profile
  *
  * Transform an image from absolute to relative colorimetry using the
@@ -1148,9 +1148,9 @@ vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
 #endif /*HAVE_LCMS*/
 
 /**
- * vips_icc_import:
+ * vips_icc_import: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -1191,9 +1191,9 @@ vips_icc_import( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_icc_export:
+ * vips_icc_export: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -1226,9 +1226,9 @@ vips_icc_export( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_icc_transform:
+ * vips_icc_transform: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @output_profile: get the output profile from here
  * @...: %NULL-terminated list of optional named arguments
  *

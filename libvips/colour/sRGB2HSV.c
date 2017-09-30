@@ -153,9 +153,9 @@ vips_sRGB2HSV_init( VipssRGB2HSV *sRGB2HSV )
 }
 
 /**
- * vips_sRGB2HSV:
+ * vips_sRGB2HSV: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Convert to HSV.
