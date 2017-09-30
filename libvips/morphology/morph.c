@@ -168,9 +168,9 @@ vips_morph_init( VipsMorph *morph )
 }
 
 /**
- * vips_morph:
+ * vips_morph: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @mask: morphology with this mask
  * @morph: operation to perform
  * @...: %NULL-terminated list of optional named arguments
