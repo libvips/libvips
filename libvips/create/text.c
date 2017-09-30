@@ -335,7 +335,7 @@ vips_text_init( VipsText *text )
 
 /**
  * vips_text:
- * @out: output image
+ * @out: (out): output image
  * @text: utf-8 text string to render
  * @...: %NULL-terminated list of optional named arguments
  *

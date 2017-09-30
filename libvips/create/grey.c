@@ -100,7 +100,7 @@ vips_grey_init( VipsGrey *grey )
 
 /**
  * vips_grey:
- * @out: output image
+ * @out: (out): output image
  * @width: image size
  * @height: image size
  * @...: %NULL-terminated list of optional named arguments

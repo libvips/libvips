@@ -120,7 +120,7 @@ vips_mask_butterworth_ring_init(
 
 /**
  * vips_mask_butterworth_ring:
- * @out: output image
+ * @out: (out): output image
  * @width: image size
  * @height: image size
  * @order: filter order

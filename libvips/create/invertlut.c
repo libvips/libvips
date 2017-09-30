@@ -307,9 +307,9 @@ vips_invertlut_init( VipsInvertlut *lut )
 }
 
 /**
- * vips_invertlut:
+ * vips_invertlut: (method)
  * @in: input mask
- * @out: output LUT
+ * @out: (out): utput LUT
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
