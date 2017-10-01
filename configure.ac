@@ -113,6 +113,7 @@ headers="\
 	convolution.h \
 	draw.h \
 	morphology.h \
+	mosaicing.h \
 	type.h \
 	rect.h \
 	resample.h \

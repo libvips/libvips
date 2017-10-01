@@ -314,7 +314,7 @@ vips_mosaic_init( VipsMosaic *mosaic )
  * vips_mosaic:
  * @ref: reference image
  * @sec: secondary image
- * @out: output image
+ * @out: (out): output image
  * @direction: horizontal or vertical join
  * @xref: position in reference image
  * @yref: position in reference image

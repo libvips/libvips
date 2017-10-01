@@ -1802,9 +1802,9 @@ vips_globalbalance_init( VipsGlobalbalance *globalbalance )
 }
 
 /**
- * vips_globalbalance:
+ * vips_globalbalance: (method)
  * @in: mosaic to rebuild
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  * 
  * Optional arguments:
