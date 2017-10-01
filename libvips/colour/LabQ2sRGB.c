@@ -531,9 +531,9 @@ vips_LabQ2sRGB_init( VipsLabQ2sRGB *LabQ2sRGB )
 }
 
 /**
- * vips_LabQ2sRGB:
+ * vips_LabQ2sRGB: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Unpack a LabQ (#VIPS_CODING_LABQ) image to a three-band short image.

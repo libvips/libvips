@@ -229,7 +229,7 @@ vips_draw_smudge_init( VipsDrawSmudge *draw_smudge )
 }
 
 /**
- * vips_draw_smudge:
+ * vips_draw_smudge: (method)
  * @image: image to draw on
  * @left: point to paint
  * @top: point to paint

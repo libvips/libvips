@@ -179,9 +179,9 @@ vips_bandfold_init( VipsBandfold *bandfold )
 }
 
 /**
- * vips_bandfold:
+ * vips_bandfold: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

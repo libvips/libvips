@@ -617,9 +617,9 @@ vips_colourspace_init( VipsColourspace *colourspace )
 }
 
 /**
- * vips_colourspace:
+ * vips_colourspace: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @space: convert to this colour space
  * @...: %NULL-terminated list of optional named arguments
  *

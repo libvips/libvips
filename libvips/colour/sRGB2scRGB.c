@@ -259,9 +259,9 @@ vips_sRGB2scRGB_init( VipssRGB2scRGB *sRGB2scRGB )
 }
 
 /**
- * vips_sRGB2scRGB:
+ * vips_sRGB2scRGB: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Convert an sRGB image to scRGB. The input image can be 8 or 16-bit.

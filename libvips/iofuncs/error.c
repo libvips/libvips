@@ -324,7 +324,7 @@ vips_error_system( int err, const char *domain, const char *fmt, ... )
 
 /**
  * vips_error_g:
- * @error: glib error pointer
+ * @error: (out): glib error pointer
  *
  * This function sets the glib error pointer from the vips error buffer and
  * clears it. It's handy for returning errors to glib functions from vips.
@@ -1188,7 +1188,7 @@ vips_check_hist( const char *domain, VipsImage *im )
  * vips_check_matrix: 
  * @domain: the originating domain for the error message
  * @im: image to check 
- * @out: put image as in-memory doubles here
+ * @out: (out): put image as in-memory doubles here
  *
  * Matrix images must have width and height less than 100000 and have 1 band.
  *

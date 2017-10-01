@@ -295,7 +295,7 @@ vips_join_init( VipsJoin *join )
  * vips_join:
  * @in1: first input image 
  * @in2: second input image 
- * @out: output image
+ * @out: (out): output image
  * @direction: join horizontally or vertically
  * @...: %NULL-terminated list of optional named arguments
  *

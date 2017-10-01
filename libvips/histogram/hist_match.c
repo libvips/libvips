@@ -177,10 +177,10 @@ vips_hist_match_init( VipsHistMatch *match )
 }
 
 /**
- * vips_hist_match:
+ * vips_hist_match: (method)
  * @in: input histogram
  * @ref: reference histogram 
- * @out: output histogram
+ * @out: (out): output histogram
  * @...: %NULL-terminated list of optional named arguments
  *
  * Adjust @in to match @ref. If @in and @ref are normalised

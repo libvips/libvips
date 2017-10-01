@@ -143,9 +143,9 @@ vips_wrap_init( VipsWrap *wrap )
 }
 
 /**
- * vips_wrap:
+ * vips_wrap: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

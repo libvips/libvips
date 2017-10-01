@@ -577,9 +577,9 @@ vips_castv( VipsImage *in, VipsImage **out, VipsBandFormat format, va_list ap )
 }
 
 /**
- * vips_cast:
+ * vips_cast: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @format: format to convert to
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -616,9 +616,9 @@ vips_cast( VipsImage *in, VipsImage **out, VipsBandFormat format, ... )
 }
 
 /**
- * vips_cast_uchar:
+ * vips_cast_uchar: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Convert @in to #VIPS_FORMAT_UCHAR. See vips_cast(). 
@@ -639,9 +639,9 @@ vips_cast_uchar( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_cast_char:
+ * vips_cast_char: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Convert @in to #VIPS_FORMAT_CHAR. See vips_cast(). 
@@ -662,9 +662,9 @@ vips_cast_char( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_cast_ushort:
+ * vips_cast_ushort: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Convert @in to #VIPS_FORMAT_USHORT. See vips_cast(). 
@@ -685,9 +685,9 @@ vips_cast_ushort( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_cast_short:
+ * vips_cast_short: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Convert @in to #VIPS_FORMAT_SHORT. See vips_cast(). 
@@ -708,9 +708,9 @@ vips_cast_short( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_cast_uint:
+ * vips_cast_uint: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Convert @in to #VIPS_FORMAT_UINT. See vips_cast(). 
@@ -731,9 +731,9 @@ vips_cast_uint( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_cast_int:
+ * vips_cast_int: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Convert @in to #VIPS_FORMAT_INT. See vips_cast(). 
@@ -754,9 +754,9 @@ vips_cast_int( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_cast_float:
+ * vips_cast_float: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Convert @in to #VIPS_FORMAT_FLOAT. See vips_cast(). 
@@ -777,9 +777,9 @@ vips_cast_float( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_cast_double:
+ * vips_cast_double: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Convert @in to #VIPS_FORMAT_DOUBLE. See vips_cast(). 
@@ -800,9 +800,9 @@ vips_cast_double( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_cast_complex:
+ * vips_cast_complex: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Convert @in to #VIPS_FORMAT_COMPLEX. See vips_cast(). 
@@ -823,9 +823,9 @@ vips_cast_complex( VipsImage *in, VipsImage **out, ... )
 }
 
 /**
- * vips_cast_dpcomplex:
+ * vips_cast_dpcomplex: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Convert @in to #VIPS_FORMAT_DPCOMPLEX. See vips_cast(). 

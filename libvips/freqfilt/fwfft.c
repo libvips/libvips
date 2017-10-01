@@ -345,9 +345,9 @@ vips_fwfft_init( VipsFwfft *fwfft )
 #endif /*HAVE_FFTW*/
 
 /**
- * vips_fwfft:
+ * vips_fwfft: (method)
  * @in: input image 
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Transform an image to Fourier space.

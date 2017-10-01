@@ -556,10 +556,10 @@ vips_insert_init( VipsInsert *insert )
 }
 
 /**
- * vips_insert:
+ * vips_insert: (method)
  * @main: big image
  * @sub: small image
- * @out: output image
+ * @out: (out): output image
  * @x: left position of @sub
  * @y: top position of @sub
  * @...: %NULL-terminated list of optional named arguments

@@ -183,9 +183,9 @@ vips_reduce_init( VipsReduce *reduce )
 }
 
 /**
- * vips_reduce:
+ * vips_reduce: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @hshrink: horizontal shrink
  * @vshrink: vertical shrink
  * @...: %NULL-terminated list of optional named arguments

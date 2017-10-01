@@ -182,9 +182,9 @@ vips_bandunfold_init( VipsBandunfold *bandunfold )
 }
 
 /**
- * vips_bandunfold:
+ * vips_bandunfold: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

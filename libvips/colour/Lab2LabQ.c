@@ -156,9 +156,9 @@ vips_Lab2LabQ_init( VipsLab2LabQ *Lab2LabQ )
 }
 
 /**
- * vips_Lab2LabQ:
+ * vips_Lab2LabQ: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Convert a Lab three-band float image to LabQ (#VIPS_CODING_LABQ).

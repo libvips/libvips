@@ -205,9 +205,9 @@ vips_compass_init( VipsCompass *compass )
 }
 
 /**
- * vips_compass:
+ * vips_compass: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @mask: convolve with this mask
  * @...: %NULL-terminated list of optional named arguments
  *

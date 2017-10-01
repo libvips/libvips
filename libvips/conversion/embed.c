@@ -618,9 +618,9 @@ vips_embed_init( VipsEmbed *embed )
 }
 
 /**
- * vips_embed:
+ * vips_embed: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @x: place @in at this x position in @out
  * @y: place @in at this y position in @out
  * @width: @out should be this many pixels across

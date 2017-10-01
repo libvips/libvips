@@ -724,9 +724,9 @@ vips_maplut_init( VipsMaplut *maplut )
 }
 
 /**
- * vips_maplut:
+ * vips_maplut: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @lut: look-up table
  * @...: %NULL-terminated list of optional named arguments
  *

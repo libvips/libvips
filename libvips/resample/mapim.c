@@ -410,9 +410,9 @@ vips_mapim_init( VipsMapim *mapim )
 }
 
 /**
- * vips_mapim:
+ * vips_mapim: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @index: index image
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -447,7 +447,7 @@ vips_mapim_init( VipsMapim *mapim )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_mapim( VipsImage *in, VipsImage **out, VipsImage *index, ... ) 
+vips_mapim( VipsImage *in, VipsImage **out, VipsImage *index, ... )
 {
 	va_list ap;
 	int result;

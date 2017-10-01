@@ -751,7 +751,7 @@ vips_thumbnail_file_init( VipsThumbnailFile *file )
 /**
  * vips_thumbnail:
  * @filename: file to read from
- * @out: output image
+ * @out: (out): output image
  * @width: target width in pixels
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -925,9 +925,9 @@ vips_thumbnail_buffer_init( VipsThumbnailBuffer *buffer )
 
 /**
  * vips_thumbnail_buffer:
- * @buf: memory area to load
- * @len: size of memory area
- * @out: output image
+ * @buf: (array length=len) (element-type guint8): memory area to load
+ * @len: (type gsize): size of memory area
+ * @out: (out): output image
  * @width: target width in pixels
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -1040,9 +1040,9 @@ vips_thumbnail_image_init( VipsThumbnailImage *image )
 }
 
 /**
- * vips_thumbnail_image:
+ * vips_thumbnail_image: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @width: target width in pixels
  * @...: %NULL-terminated list of optional named arguments
  *

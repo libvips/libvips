@@ -109,9 +109,9 @@ vips_spectrum_init( VipsSpectrum *spectrum )
 }
 
 /**
- * vips_spectrum:
+ * vips_spectrum: (method)
  * @in: input image 
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Make a displayable (ie. 8-bit unsigned int) power spectrum.

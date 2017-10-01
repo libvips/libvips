@@ -345,9 +345,9 @@ vips__demand_hint_array( VipsImage *image,
 
 /**
  * vips_image_pipeline_array: 
- * @image: output image
+ * @image: (out): output image
  * @hint: demand hint for @image
- * @in: %NULL-terminated array of input images 
+ * @in: (array zero-terminated=1): %NULL-terminated array of input images 
  *
  * Add an image to a pipeline. @image depends on all of the images in @in,
  * @image prefers to supply pixels according to @hint.

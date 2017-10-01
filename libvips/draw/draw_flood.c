@@ -678,7 +678,7 @@ vips_draw_floodv( VipsImage *image,
 }
 
 /**
- * vips_draw_flood:
+ * vips_draw_flood: (method)
  * @image: image to draw on
  * @ink: (array length=n): value to draw
  * @n: length of ink array
@@ -730,7 +730,7 @@ vips_draw_flood( VipsImage *image,
 }
 
 /**
- * vips_draw_flood1:
+ * vips_draw_flood1: (method)
  * @image: image to draw on
  * @ink: value to draw
  * @x: centre of circle

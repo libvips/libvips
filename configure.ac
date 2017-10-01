@@ -60,8 +60,8 @@ GOBJECT_INTROSPECTION_CHECK([1.30.0])
 #
 # build with a glob and a list of files to exclude from scanning
 # see also IGNORE_HFILES in doc/Makefile.am
-introspection_sources=$(cd libvips ; find . -name "*.c")
-filter_list="deprecated "
+introspection_sources=$(cd libvips ; find . -name "*.c"; find . -name "*.cpp")
+filter_list="deprecated introspect.c dummy.c fuzz "
 
 # contains(string, substring)
 #
@@ -101,8 +101,10 @@ headers="\
 	image.h \
 	error.h \
 	foreign.h \
+	freqfilt.h \
 	interpolate.h \
 	header.h \
+	histogram.h \
 	operation.h \
 	enumtypes.h \
 	conversion.h \
@@ -111,8 +113,10 @@ headers="\
 	convolution.h \
 	draw.h \
 	morphology.h \
+	mosaicing.h \
 	type.h \
 	rect.h \
+	resample.h \
 	memory.h \
 	region.h"
 

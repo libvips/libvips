@@ -402,9 +402,9 @@ vips_zoom_init( VipsZoom *zoom )
 }
 
 /**
- * vips_zoom:
+ * vips_zoom: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @xfac: horizontal scale factor
  * @yfac: vertical scale factor
  * @...: %NULL-terminated list of optional named arguments

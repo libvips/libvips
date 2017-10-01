@@ -161,9 +161,9 @@ vips_gamma_init( VipsGamma *gamma )
 }
 
 /**
- * vips_gamma:
+ * vips_gamma: (method)
  * @in: input image 
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

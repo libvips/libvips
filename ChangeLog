@@ -22,6 +22,7 @@
   binding instead
 - better svgload: larger output, handle missing width/height, thanks lovell
 - add vips_composite(): merge an array of images with porter-duff
+- better gobject-introspection annotations, thanks astavale 
 
 29/8/17 started 8.5.9
 - make --fail stop jpeg read on any libjpeg warning, thanks @mceachen

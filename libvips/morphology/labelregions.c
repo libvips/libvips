@@ -142,7 +142,7 @@ vips_labelregions_init( VipsLabelregions *labelregions )
 }
 
 /**
- * vips_labelregions:
+ * vips_labelregions: (method)
  * @in: image to test
  * @mask: write labelled regions here
  * @...: %NULL-terminated list of optional named arguments
