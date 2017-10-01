@@ -136,9 +136,9 @@ vips_hist_ismonotonic_init( VipsHistIsmonotonic *ismonotonic )
 }
 
 /**
- * vips_hist_ismonotonic:
+ * vips_hist_ismonotonic: (method)
  * @in: lookup-table to test
- * @out: set non-zero if @in is monotonic 
+ * @out: (out): set non-zero if @in is monotonic
  * @...: %NULL-terminated list of optional named arguments
  *
  * Test @in for monotonicity. @out is set non-zero if @in is monotonic.

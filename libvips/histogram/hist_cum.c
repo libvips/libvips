@@ -157,9 +157,9 @@ vips_hist_cum_init( VipsHistCum *hist_cum )
 }
 
 /**
- * vips_hist_cum:
+ * vips_hist_cum: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Form cumulative histogram. 

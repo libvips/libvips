@@ -134,10 +134,10 @@ vips_percent_init( VipsPercent *percent )
 }
 
 /**
- * vips_percent:
+ * vips_percent: (method)
  * @in: input image
  * @percent: threshold percentage
- * @threshold: output threshold value
+ * @threshold: (out): output threshold value
  * @...: %NULL-terminated list of optional named arguments
  *
  * vips_percent() returns (through the @threshold parameter) the threshold 

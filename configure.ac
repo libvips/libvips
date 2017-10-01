@@ -104,6 +104,7 @@ headers="\
 	freqfilt.h \
 	interpolate.h \
 	header.h \
+	histogram.h \
 	operation.h \
 	enumtypes.h \
 	conversion.h \
