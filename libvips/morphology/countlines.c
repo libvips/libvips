@@ -157,9 +157,9 @@ vips_countlines_init( VipsCountlines *countlines )
 }
 
 /**
- * vips_countlines:
+ * vips_countlines: (method)
  * @in: input image
- * @nolines: output average number of lines
+ * @nolines: (out): output average number of lines
  * @direction: count lines horizontally or vertically
  * @...: %NULL-terminated list of optional named arguments
  *
