@@ -465,8 +465,7 @@ VImage::call_option_string( const char *operation_name,
 		operation_name );
 
 	if( !(operation = vips_operation_new( operation_name )) ) {
-		if( options )
-			delete options;
+		delete options;
 		throw( VError() ); 
 	}
 
