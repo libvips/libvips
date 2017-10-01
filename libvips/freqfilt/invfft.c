@@ -269,9 +269,9 @@ vips_invfft_init( VipsInvfft *invfft )
 #endif /*HAVE_FFTW*/
 
 /**
- * vips_invfft:
+ * vips_invfft: (method)
  * @in: input image 
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

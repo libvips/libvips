@@ -125,7 +125,7 @@ vips_phasecor_init( VipsPhasecor *phasecor )
  * vips_phasecor:
  * @in1: first input image
  * @in2: second input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Convert the two input images to Fourier space, calculate phase-correlation,
