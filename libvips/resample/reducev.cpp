@@ -964,9 +964,9 @@ vips_reducev_init( VipsReducev *reducev )
 }
 
 /**
- * vips_reducev:
+ * vips_reducev: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @vshrink: horizontal reduce
  * @...: %NULL-terminated list of optional named arguments
  *

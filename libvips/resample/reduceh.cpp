@@ -610,9 +610,9 @@ vips_reduceh_init( VipsReduceh *reduceh )
 }
 
 /**
- * vips_reduceh:
+ * vips_reduceh: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @hshrink: horizontal reduce
  * @...: %NULL-terminated list of optional named arguments
  *

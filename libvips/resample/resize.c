@@ -352,9 +352,9 @@ vips_resize_init( VipsResize *resize )
 }
 
 /**
- * vips_resize:
+ * vips_resize: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @scale: scale factor
  * @...: %NULL-terminated list of optional named arguments
  *
