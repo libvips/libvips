@@ -185,10 +185,10 @@ from gi.repository import Vips
 You can now use all of the libvips introspection machinery, as noted above. 
 
 Unfortunately g-o-i has some strong disadvantages. It is not very portable,
-since you will need a g-o-i layer for whatever platform you are targetting, 
-it does not cross-compile well since typelibs include a lot of very-low level
-data (such as exact structure layouts), and installation for your users is
-likely to be tricky.
+since you will need a g-o-i layer for whatever platform you are targetting;
+it does not cross-compile well, since typelibs include a lot of very-low
+level data (such as exact structure layouts); and installation for your
+users is likely to be tricky.
 
 If you have a choice, I would recommend simply using FFI. 
 

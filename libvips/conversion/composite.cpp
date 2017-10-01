@@ -699,9 +699,9 @@ static void vips_combine_pixels( VipsComposite *composite,
 	double B[MAX_BANDS + 1];
 
 	for( int b = 0; b <= bands; b++ )
-		B[b] = tp[n][b];
+		B[b] = tp[n - 1][b];
 
-	for( int i = n - 1; i >= 0; i-- ) {
+	for( int i = n - 2; i >= 0; i-- ) {
 		if( composite->premultiplied )
 			vips_composite_blend_premul<T>( m[i], B, tp[i], bands ); 
 		else
@@ -727,8 +727,8 @@ vips_combine_pixels_3float( VipsComposite *composite,
 
 	v4f B, R;
 
-	B = *((v4f *) tp[n]);
-	for( int i = n - 1; i >= 0; i-- ) 
+	B = *((v4f *) tp[n - 1]);
+	for( int i = n - 2; i >= 0; i-- ) 
 		vips_composite_blend_mul_3float( m[i], B, tp[i] );
 
 	float rescale = 1.0;
