@@ -146,9 +146,9 @@ vips_LabS2LabQ_init( VipsLabS2LabQ *LabS2LabQ )
 }
 
 /**
- * vips_LabS2LabQ:
+ * vips_LabS2LabQ: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Convert a LabS three-band signed short image to LabQ

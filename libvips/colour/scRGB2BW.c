@@ -261,9 +261,9 @@ vips_scRGB2BW_init( VipsscRGB2BW *scRGB2BW )
 }
 
 /**
- * vips_scRGB2BW:
+ * vips_scRGB2BW: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
