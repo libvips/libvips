@@ -40,10 +40,11 @@
  * 	- removed the 1-ary constant path, no faster
  * 30/11/13
  * 	- 1ary is back, faster with gcc 4.8
- * 3/12/13
- * 	- try an ORC path with the band loop unrolled
  * 14/1/14
  * 	- add uchar output option
+ * 30/9/17
+ * 	- squash constants with all elements equal so we use 1ary path more
+ * 	  often
  */
 
 /*
@@ -124,7 +125,7 @@ vips_linear_build( VipsObject *object )
 
 	int i;
 
-	/* If we have a three-element vector we need to bandup the image to
+	/* If we have a three-element vector, we need to bandup the image to
 	 * match.
 	 */
 	linear->n = 1;
@@ -148,6 +149,38 @@ vips_linear_build( VipsObject *object )
 			vips_check_vector( class->nickname, 
 				linear->b->n, unary->in ) )
 		return( -1 );
+	}
+
+	/* If all elements of the constants are equal, we can shrink them down
+	 * to a single element.
+	 */
+	if( linear->a ) {
+		double *ary = (double *) linear->a->data;
+		gboolean all_equal;
+
+		all_equal = TRUE;
+		for( i = 1; i < linear->a->n; i++ )
+			if( ary[i] != ary[0] ) {
+				all_equal = FALSE;
+				break;
+			}
+
+		if( all_equal )
+			linear->a->n = 1;
+	}
+	if( linear->b ) {
+		double *ary = (double *) linear->b->data;
+		gboolean all_equal;
+
+		all_equal = TRUE;
+		for( i = 1; i < linear->b->n; i++ )
+			if( ary[i] != ary[0] ) {
+				all_equal = FALSE;
+				break;
+			}
+
+		if( all_equal )
+			linear->b->n = 1;
 	}
 
 	/* Make up-banded versions of our constants.

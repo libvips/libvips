@@ -477,3 +477,30 @@ vips_bandjoin_const1( VipsImage *in, VipsImage **out, double c, ... )
 
 	return( result );
 }
+
+/* vips_addalpha:
+ * @in: input image
+ * @out: output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Append an alpha channel.
+ *
+ * See also: vips_image_hasalpha().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_addalpha( VipsImage *in, VipsImage **out, ... )
+{
+	double max_alpha;
+
+	max_alpha = 255.0;
+	if( in->Type == VIPS_INTERPRETATION_GREY16 ||
+		in->Type == VIPS_INTERPRETATION_RGB16 )
+		max_alpha = 65535;
+
+	if( vips_bandjoin_const1( in, out, max_alpha, NULL ) )
+		return( -1 );
+
+	return( 0 );
+}
