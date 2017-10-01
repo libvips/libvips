@@ -167,9 +167,9 @@ vips_conv_init( VipsConv *conv )
 }
 
 /**
- * vips_conv:
+ * vips_conv: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @mask: convolve with this mask
  * @...: %NULL-terminated list of optional named arguments
  *

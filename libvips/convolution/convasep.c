@@ -914,9 +914,9 @@ vips_convasep_init( VipsConvasep *convasep )
 }
 
 /**
- * vips_convasep:
+ * vips_convasep: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @mask: convolve with this mask
  * @...: %NULL-terminated list of optional named arguments
  *
