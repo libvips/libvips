@@ -60,8 +60,8 @@ GOBJECT_INTROSPECTION_CHECK([1.30.0])
 #
 # build with a glob and a list of files to exclude from scanning
 # see also IGNORE_HFILES in doc/Makefile.am
-introspection_sources=$(cd libvips ; find . -name "*.c")
-filter_list="deprecated "
+introspection_sources=$(cd libvips ; find . -name "*.c"; find . -name "*.cpp")
+filter_list="deprecated introspect.c dummy.c fuzz "
 
 # contains(string, substring)
 #
