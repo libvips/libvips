@@ -228,7 +228,7 @@ vips_draw_rectv( VipsImage *image,
 }
 
 /**
- * vips_draw_rect:
+ * vips_draw_rect: (method)
  * @image: image to draw on
  * @ink: (array length=n): value to draw
  * @n: length of ink array
@@ -265,7 +265,7 @@ vips_draw_rect( VipsImage *image,
 }
 
 /**
- * vips_draw_rect1:
+ * vips_draw_rect1: (method)
  * @image: image to draw on
  * @ink: value to draw
  * @left: area to paint
@@ -303,7 +303,7 @@ vips_draw_rect1( VipsImage *image,
 }
 
 /**
- * vips_draw_point:
+ * vips_draw_point: (method)
  * @image: image to draw on
  * @ink: (array length=n): value to draw
  * @n: length of ink array
@@ -331,7 +331,7 @@ vips_draw_point( VipsImage *image, double *ink, int n, int x, int y, ... )
 }
 
 /**
- * vips_draw_point1:
+ * vips_draw_point1: (method)
  * @image: image to draw on
  * @ink: value to draw
  * @x: point to draw

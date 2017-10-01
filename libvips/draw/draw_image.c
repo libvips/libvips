@@ -291,7 +291,7 @@ vips_draw_image_init( VipsDrawImage *draw_image )
 }
 
 /**
- * vips_draw_image:
+ * vips_draw_image: (method)
  * @image: image to draw on
  * @sub: image to paint
  * @x: draw @sub here
