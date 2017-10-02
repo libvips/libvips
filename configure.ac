@@ -1011,40 +1011,43 @@ if test x"$with_libexif" != "xno"; then
   CPPFLAGS="$save_CPPFLAGS"
 fi
 
-# make python binding?
-with_python="no (default)"
-AC_ARG_WITH([python], 
-  AS_HELP_STRING([--with-python], 
-    [build with vips7 Python bindings (default: no)]))
+# make vips7 (swig-based) py binding
+AC_ARG_ENABLE([pyvips7],
+  AS_HELP_STRING([--enable-pyvips7], [build vips7 Python binding (default: no)]),
+  [enable_pyvips7=$enableval
+  ], 
+  [enable_pyvips7="no (default)"
+  ]
+)
 
-if test x"$with_python" = x"yes"; then
+if test x"$enable_pyvips7" = x"yes"; then
   if test x"$enable_cxx" = x"no"; then
     # if C++ is off, we can't do Python
-    with_python=no
+    enable_pyvips7=no
     AC_MSG_WARN([C++ is off, disabling vips7 Python binding])
   fi
 fi
 
-if test x"$with_python" = x"yes"; then
+if test x"$enable_pyvips7" = x"yes"; then
   JD_PATH_PYTHON(2.7,,
-    [with_python=no
+    [enable_pyvips7=no
      AC_MSG_WARN([Python >= 2.7 not found; disabling vips7 Python binding])
     ]
   )
 fi
 
-if test x"$with_python" = x"yes"; then
+if test x"$enable_pyvips7" = x"yes"; then
   # The SWIG bindings don't compile on python3 (see issue #334).
   AM_PYTHON_CHECK_VERSION([$PYTHON], [3.0],
-    [with_python=no
+    [enable_pyvips7=no
      AC_MSG_WARN([Python >= 3.0 found; disabling vips7 Python binding])
     ]
   )
 fi
 
-if test x"$with_python" = x"yes"; then
+if test x"$enable_pyvips7" = x"yes"; then
   AM_CHECK_PYTHON_HEADERS(,
-    [with_python=no
+    [enable_pyvips7=no
      AC_MSG_WARN([Python headers not found; disabling vips7 Python binding])
     ]
   )
@@ -1053,7 +1056,7 @@ fi
 # we don't check for swig: we include the generated bindings in the
 # distribution
 
-if test x"$with_python" = x"yes"; then
+if test x"$enable_pyvips7" = x"yes"; then
   AM_CONDITIONAL(HAVE_PYTHON, true)
 else
   AM_CONDITIONAL(HAVE_PYTHON, false)
@@ -1143,7 +1146,7 @@ enable debug:				$enable_debug
 build deprecated components:		$enable_deprecated
 build docs with gtkdoc:			$enable_gtk_doc
 gobject introspection: 			$found_introspection
-build vips7 Python binding:		$with_python
+build vips7 Python binding:		$enable_pyvips7
 install vips8 Python overrides:		$enable_pyvips8
   (requires pygobject-3.13.0 or later)
 build radiance support: 		$with_radiance
