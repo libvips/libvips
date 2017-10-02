@@ -89,9 +89,6 @@
  *
  * The various Porter-Duff and PDF blend modes. See vips_composite(), 
  * for example.
- *
- * The PDF blend modes (MULTPLY onwards) require channels all in [0, 1], so 
- * they only work for spaces like RGB where all channels have the same range.
  */
 
 /* References:
@@ -101,18 +98,6 @@
  * https://en.wikipedia.org/wiki/Alpha_compositing
  *
  * https://www.cairographics.org/operators/
- *
- * Benchmark:
- *
- * vips replicate PNG_transparency_demonstration_1.png x.png 15 15
- * vips crop x.png wtc_overlay.png 0 0 9372 9372
- *
- * composite -compose over wtc_overlay.png.png wtc.jpg x.jpg
- *
- * vips composite "wtc_overlay.png wtc.jpg" x.jpg 2
- *
- * convert -compose over -composite wtc.jpg wtc_overlay.png x.jpg
- *
  */
 
 typedef struct _VipsComposite {
@@ -159,9 +144,9 @@ G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
  * aR	alpha of result
  * aA	alpha of source A	(the new pixel)
  * aB	alpha of source B	(the thing we accumulate)
- * xR	colour channel of result
- * xA	colour channel of source A
- * xB	colour channel of source B
+ * xR	colour band of result
+ * xA	colour band of source A
+ * xB	colour band of source B
  */
 
 static double inline
@@ -380,10 +365,6 @@ vips_composite_blend_mul( VipsBlendMode mode,
 	default:
 		/* The PDF modes are a bit different.
 		 */
-		t1 = (1 - aB) * aA;
-		t2 = (1 - aA) * aB;
-		t3 = aA * aB;
-
 		switch( mode ) {
 		case VIPS_BLEND_MODE_MULTIPLY:
 			for( b = 0; b < bands; b++ ) 
@@ -478,6 +459,10 @@ vips_composite_blend_mul( VipsBlendMode mode,
 				B[b] = 0;
 		}
 		else {
+			t1 = (1 - aB) * aA;
+			t2 = (1 - aA) * aB;
+			t3 = aA * aB;
+
 			for( b = 0; b < bands; b++ ) 
 				B[b] = (t1 * A[b] + t2 * B[b] + t3 * f[b]) / aR;
 		}
@@ -518,15 +503,6 @@ vips_composite_blend_mul_3float( VipsBlendMode mode, v4f &B, float *A_memory )
 	aB = B[3];
 	aR = vips_composite_alpha( mode, aA, aB );
 
-	if( aR == 0 ) {
-		B[0] = 0;
-		B[1] = 0;
-		B[2] = 0;
-		B[3] = 0;
-
-		return;
-	}
-
 	switch( mode ) {
 	case VIPS_BLEND_MODE_CLEAR:
 		B[0] = 0;
@@ -539,8 +515,15 @@ vips_composite_blend_mul_3float( VipsBlendMode mode, v4f &B, float *A_memory )
 		break;
 
 	case VIPS_BLEND_MODE_OVER:
-		t1 = aB * (1 - aA);
-		B = (aA * A + t1 * B) / aR;
+		if( aR == 0 ) {
+			B[0] = 0;
+			B[1] = 0;
+			B[2] = 0;
+		}
+		else {
+			t1 = aB * (1 - aA);
+			B = (aA * A + t1 * B) / aR;
+		}
 		break;
 
 	case VIPS_BLEND_MODE_IN:
@@ -559,8 +542,15 @@ vips_composite_blend_mul_3float( VipsBlendMode mode, v4f &B, float *A_memory )
 		break;
 
 	case VIPS_BLEND_MODE_DEST_OVER:
-		t1 = aA * (1 - aB);
-		B = (t1 * A + aB * B) / aR;
+		if( aR == 0 ) {
+			B[0] = 0;
+			B[1] = 0;
+			B[2] = 0;
+		}
+		else {
+			t1 = aA * (1 - aB);
+			B = (t1 * A + aB * B) / aR;
+		}
 		break;
 
 	case VIPS_BLEND_MODE_DEST_IN:
@@ -576,27 +566,43 @@ vips_composite_blend_mul_3float( VipsBlendMode mode, v4f &B, float *A_memory )
 		break;
 
 	case VIPS_BLEND_MODE_XOR:
-		t1 = aA * (1 - aB);
-		t2 = aB * (1 - aA);
-		B = (t1 * A + t2 * B) / aR;
+		if( aR == 0 ) {
+			B[0] = 0;
+			B[1] = 0;
+			B[2] = 0;
+		}
+		else {
+			t1 = aA * (1 - aB);
+			t2 = aB * (1 - aA);
+			B = (t1 * A + t2 * B) / aR;
+		}
 		break;
 
 	case VIPS_BLEND_MODE_ADD:
-		B = (aA * A + aB * B) / aR;
+		if( aR == 0 ) {
+			B[0] = 0;
+			B[1] = 0;
+			B[2] = 0;
+		}
+		else 
+			B = (aA * A + aB * B) / aR;
 		break;
 
 	case VIPS_BLEND_MODE_SATURATE:
-		t1 = VIPS_MIN( aA, 1 - aB );
-		B = (t1 * A + aB * B) / aR;
+		if( aR == 0 ) {
+			B[0] = 0;
+			B[1] = 0;
+			B[2] = 0;
+		}
+		else {
+			t1 = VIPS_MIN( aA, 1 - aB );
+			B = (t1 * A + aB * B) / aR;
+		}
 		break;
 
 	default:
 		/* The PDF modes are a bit different.
 		 */
-		t1 = (1 - aB) * aA;
-		t2 = (1 - aA) * aB;
-		t3 = aA * aB;
-
 		switch( mode ) {
 		case VIPS_BLEND_MODE_MULTIPLY:
 			f = A * B;
@@ -643,8 +649,10 @@ vips_composite_blend_mul_3float( VipsBlendMode mode, v4f &B, float *A_memory )
 				if( B[b] <= 0.25 ) 
 					g[b] = ((16 * B[b] - 12) * 
 						B[b] + 4) * B[b];
-				else 
+				else if( B[b] >= 0 )
 					g[b] = sqrt( B[b] );
+				else
+					g[b] = 0;
 
 				if( A[b] <= 0.5 )
 					f[b] = B[b] - (1 - 2 * A[b]) * 
@@ -672,7 +680,17 @@ vips_composite_blend_mul_3float( VipsBlendMode mode, v4f &B, float *A_memory )
 			break;
 		}
 
-		B = (t1 * A + t2 * B + t3 * f) / aR;
+		if( aR == 0 ) {
+			B[0] = 0;
+			B[1] = 0;
+			B[2] = 0;
+		}
+		else {
+			t1 = (1 - aB) * aA;
+			t2 = (1 - aA) * aB;
+			t3 = aA * aB;
+			B = (t1 * A + t2 * B + t3 * f) / aR;
+		}
 	}
 
 	B[3] = aR;
@@ -680,14 +698,208 @@ vips_composite_blend_mul_3float( VipsBlendMode mode, v4f &B, float *A_memory )
 #endif /*HAVE_VECTOR_ARITH*/
 
 /* A is the new pixel coming in, B is the double pixel we are accumulating.
+ * Assume pixels are premultiplied.
  */
 template <typename T>
 static void
 vips_composite_blend_premul( VipsBlendMode mode,
 	double * restrict B, T * restrict A, int bands ) 
 {
-	// adapt multiply case once it's done
-	g_assert_not_reached();
+	double aA;
+	double aB;
+	double aR;
+	double t1;
+	double t2;
+	double t3;
+	double f[MAX_BANDS + 1];
+	int b;
+
+	aA = A[bands];
+	aB = B[bands];
+	aR = vips_composite_alpha( mode, aA, aB );
+
+	switch( mode ) {
+	case VIPS_BLEND_MODE_CLEAR:
+		for( b = 0; b < bands; b++ )
+			B[b] = 1 - aA;
+		break;
+
+	case VIPS_BLEND_MODE_SOURCE:
+		for( b = 0; b < bands; b++ )
+			B[b] = A[b];
+		break;
+
+	case VIPS_BLEND_MODE_OVER:
+		t1 = 1 - aA;
+		for( b = 0; b < bands; b++ )
+			B[b] = A[b] + t1 * B[b];
+		break;
+
+	case VIPS_BLEND_MODE_IN:
+		for( b = 0; b < bands; b++ )
+			B[b] = A[b];
+		break;
+
+	case VIPS_BLEND_MODE_OUT:
+		for( b = 0; b < bands; b++ )
+			B[b] = A[b];
+		break;
+
+	case VIPS_BLEND_MODE_ATOP:
+		if( aB == 0 ) 
+			for( b = 0; b < bands; b++ )
+				B[b] = A[b];
+		else
+			for( b = 0; b < bands; b++ )
+				B[b] = A[b] + (B[b] / aB) * (1 - aA);
+		break;
+
+	case VIPS_BLEND_MODE_DEST:
+		// B = B
+		break;
+
+	case VIPS_BLEND_MODE_DEST_OVER:
+		t1 = 1 - aB;
+		for( b = 0; b < bands; b++ )
+			B[b] = B[b] + t1 * A[b];
+		break;
+
+	case VIPS_BLEND_MODE_DEST_IN:
+		// B = B
+		break;
+
+	case VIPS_BLEND_MODE_DEST_OUT:
+		// B = B
+		break;
+
+	case VIPS_BLEND_MODE_DEST_ATOP:
+		if( aB != 0 ) 
+			for( b = 0; b < bands; b++ )
+				B[b] = (A[b] / aB) * (1 - aB) + B[b];
+		break;
+
+	case VIPS_BLEND_MODE_XOR:
+		t1 = 1 - aB;
+		t2 = 1 - aA;
+		for( b = 0; b < bands; b++ )
+			B[b] = t1 * A[b] + t2 * B[b];
+		break;
+
+	case VIPS_BLEND_MODE_ADD:
+		for( b = 0; b < bands; b++ )
+			B[b] = A[b] + B[b];
+		break;
+
+	case VIPS_BLEND_MODE_SATURATE:
+		if( aA != 0 ) {
+			t1 = VIPS_MIN( aA, 1 - aB );
+			for( b = 0; b < bands; b++ )
+				B[b] = t1 * (A[b] / aA) + B[b];
+		}
+		break;
+
+	default:
+		/* The PDF modes are a bit different.
+		 */
+		switch( mode ) {
+		case VIPS_BLEND_MODE_MULTIPLY:
+			for( b = 0; b < bands; b++ ) 
+				f[b] = A[b] * B[b];
+			break;
+
+		case VIPS_BLEND_MODE_SCREEN:
+			for( b = 0; b < bands; b++ ) 
+				f[b] = A[b] + B[b] - A[b] * B[b];
+			break;
+
+		case VIPS_BLEND_MODE_OVERLAY:
+			for( b = 0; b < bands; b++ ) 
+				if( B[b] <= 0.5 ) 
+					f[b] = 2 * A[b] * B[b];
+				else 
+					f[b] = 1 - 2 * (1 - A[b]) * (1 - B[b]);
+			break;
+
+		case VIPS_BLEND_MODE_DARKEN:
+			for( b = 0; b < bands; b++ ) 
+				f[b] = VIPS_MIN( A[b], B[b] );
+			break;
+
+		case VIPS_BLEND_MODE_LIGHTEN:
+			for( b = 0; b < bands; b++ ) 
+				f[b] = VIPS_MAX( A[b], B[b] );
+			break;
+
+		case VIPS_BLEND_MODE_COLOUR_DODGE:
+			for( b = 0; b < bands; b++ ) 
+				if( A[b] < 1 ) 
+					f[b] = VIPS_MIN( 1, B[b] / (1 - A[b]) );
+				else 
+					f[b] = 1;
+			break;
+
+		case VIPS_BLEND_MODE_COLOUR_BURN:
+			for( b = 0; b < bands; b++ ) 
+				if( A[b] > 0 ) 
+					f[b] = 1 - VIPS_MIN( 1, 
+						(1 - B[b]) / A[b] );
+				else 
+					f[b] = 0;
+			break;
+
+		case VIPS_BLEND_MODE_HARD_LIGHT:
+			for( b = 0; b < bands; b++ ) 
+				if( A[b] < 0.5 ) 
+					f[b] = 2 * A[b] * B[b];
+				else 
+					f[b] = 1 - 2 * (1 - A[b]) * (1 - B[b]);
+			break;
+
+		case VIPS_BLEND_MODE_SOFT_LIGHT:
+			for( b = 0; b < bands; b++ ) {
+				double g;
+
+				if( B[b] <= 0.25 ) 
+					g = ((16 * B[b] - 12) * B[b] + 4) * 
+						B[b];
+				else 
+					g = sqrt( B[b] );
+
+				if( A[b] <= 0.5 )
+					f[b] = B[b] - (1 - 2 * A[b]) * 
+						B[b] * (1 - B[b]);
+				else
+					f[b] = B[b] + (2 * A[b] - 1) * 
+						(g - B[b]);
+			}
+			break;
+
+		case VIPS_BLEND_MODE_DIFFERENCE:
+			for( b = 0; b < bands; b++ ) 
+				f[b] = abs( B[b] - A[b] );
+			break;
+
+		case VIPS_BLEND_MODE_EXCLUSION:
+			for( b = 0; b < bands; b++ ) 
+				f[b] = A[b] + B[b] - 2 * A[b] * B[b];
+			break;
+
+		default:
+			g_assert_not_reached();
+			for( b = 0; b < bands; b++ )
+				B[b] = 0;
+		}
+
+		t1 = 1 - aB;
+		t2 = 1 - aA;
+		t3 = aA * aB;
+
+		for( b = 0; b < bands; b++ ) 
+			B[b] = t1 * A[b] + t2 * B[b] + t3 * f[b];
+		break;
+	}
+
+	B[bands] = aR;
 }
 
 template <typename T>
@@ -973,10 +1185,12 @@ vips_composite_build( VipsObject *object )
 		return( -1 );
 	}
 
-	/* Transform to compositing space. It defaults to sRGB or B_W.
+	/* Transform to compositing space. It defaults to sRGB or B_W, usually 
+	 * 8 bit, but 16 bit if any inputs are 16 bit.
 	 */
 	if( !vips_object_argument_isset( object, "compositing_space" ) ) {
 		gboolean all_grey;
+		gboolean any_16;
 
 		all_grey = TRUE;
 		for( i = 0; i < composite->n; i++ )
@@ -985,8 +1199,21 @@ vips_composite_build( VipsObject *object )
 				break;
 			}
 
-		composite->compositing_space = all_grey ?
-			VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_sRGB;
+		any_16 = FALSE;
+		for( i = 0; i < composite->n; i++ )
+			if( in[i]->Type == VIPS_INTERPRETATION_GREY16 ||
+				in[i]->Type == VIPS_INTERPRETATION_RGB16 ) {
+				any_16 = TRUE;
+				break;
+			}
+
+		composite->compositing_space = any_16 ?
+			(all_grey ?
+			 VIPS_INTERPRETATION_GREY16 : 
+			 VIPS_INTERPRETATION_RGB16) :
+			(all_grey ?
+			 VIPS_INTERPRETATION_B_W : 
+			 VIPS_INTERPRETATION_sRGB);
 	}
 
 	compositing = (VipsImage **)
@@ -1150,7 +1377,39 @@ vips_compositev( VipsImage **in, VipsImage **out, int n, int *mode, va_list ap )
  * @mode: array of (@n - 1) #VipsBlendMode
  * @...: %NULL-terminated list of optional named arguments
  *
- * Composite an array of images together.
+ * Optional arguments:
+ *
+ * * @compositing_space: #VipsInterpretation to composite in
+ * * @premultiplied: %gboolean, images are already premultiplied
+ *
+ * Composite an array of images together. 
+ *
+ * Images are placed in a stack, with @in[@n - 1] at the bottom and @in[0] at
+ * the top. Pixels are blended together working from the bottom upwards, with 
+ * the blend mode at each step being set by the corresponding #VipsBlendMode
+ * in @mode.
+ *
+ * Images are transformed to a compositing space before processing. This is
+ * #VIPS_INTERPRETATION_sRGB, #VIPS_INTERPRETATION_B_W,
+ * #VIPS_INTERPRETATION_RGB16, or #VIPS_INTERPRETATION_GREY16 
+ * by default, depending on 
+ * how many bands and bits the input images have. You select any other space, 
+ * such as #VIPS_INTERPRETATION_LAB or #VIPS_INTERPRETATION_scRGB.
+ *
+ * The output image will always be #VIPS_FORMAT_FLOAT unless one of the inputs
+ * is #VIPS_FORMAT_DOUBLE, which which case the output will be double as well.
+ *
+ * Complex images are not supported.
+ *
+ * The output image will always have an alpha band. A solid alpha is
+ * added to any input missing an alpha. 
+ *
+ * The images do not need to match in size or format. They will be expanded to
+ * the smallest common size and format in the usual way.
+ *
+ * Image are normally treated as unpremultiplied, so this oepration can be used
+ * directly on PNG images. If your images have been through vips_premultiply(),
+ * set @premultiplied. 
  *
  * See also: vips_insert().
  *

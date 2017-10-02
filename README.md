@@ -138,7 +138,7 @@ Clang dynamic analysis:
 
 Build with the GCC auto-vectorizer and diagnostics (or just -O3):
 
-	$ FLAGS="-O2 -msse4.2 -ffast-math"
+	$ FLAGS="-O2 -march=native -ffast-math"
 	$ FLAGS="$FLAGS -ftree-vectorize -fdump-tree-vect-details"
 	$ CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
 		./configure --prefix=/home/john/vips 

@@ -322,17 +322,35 @@ vips_bandjoin_const_buffer( VipsBandary *bandary,
 	q1 = q;
 	p1 = p[0];
 
-	for( x = 0; x < width; x++ ) {
-		for( z = 0; z < ips; z++ )
-			q1[z] = p1[z];
+	/* Special path for 8-bit RGB -> RGBA ... it's a common case.
+	 */
+	if( ips == 3 &&
+		ebs == 1 ) {
+		int c = bandjoin->c_ready[0];
 
-		p1 += ips;
-		q1 += ips;
+		for( x = 0; x < width; x++ ) {
+			q1[0] = p1[0];
+			q1[1] = p1[1];
+			q1[2] = p1[2];
+			q1[3] = c;
 
-		for( z = 0; z < ebs; z++ )
-			q1[z] = bandjoin->c_ready[z];
+			p1 += 3;
+			q1 += 4;
+		}
+	}
+	else {
+		for( x = 0; x < width; x++ ) {
+			for( z = 0; z < ips; z++ )
+				q1[z] = p1[z];
 
-		q1 += ebs;
+			p1 += ips;
+			q1 += ips;
+
+			for( z = 0; z < ebs; z++ )
+				q1[z] = bandjoin->c_ready[z];
+
+			q1 += ebs;
+		}
 	}
 }
 
