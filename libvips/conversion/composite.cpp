@@ -487,6 +487,9 @@ vips_composite_blend_mul( VipsBlendMode mode,
 	B[bands] = aR;
 }
 
+/* We have a vector path with gcc's vector attr.
+ */
+#ifdef HAVE_VAR_ATTRIBUTE_VECTOR_SIZE
 /* A vector of four floats.
  */
 typedef float v4f __attribute__((vector_size(4 * sizeof(float))));
@@ -674,6 +677,7 @@ vips_composite_blend_mul_3float( VipsBlendMode mode, v4f &B, float *A_memory )
 
 	B[3] = aR;
 }
+#endif /*HAVE_VAR_ATTRIBUTE_VECTOR_SIZE*/
 
 /* A is the new pixel coming in, B is the double pixel we are accumulating.
  */
@@ -716,6 +720,7 @@ static void vips_combine_pixels( VipsComposite *composite,
 	tq[bands] = B[bands];
 }
 
+#ifdef HAVE_VAR_ATTRIBUTE_VECTOR_SIZE
 static void 
 vips_combine_pixels_3float( VipsComposite *composite,
 	VipsPel *q, VipsPel **p )
@@ -738,6 +743,7 @@ vips_combine_pixels_3float( VipsComposite *composite,
 	*((v4f *) tq) = R;
 	tq[3] = B[3];
 }
+#endif /*HAVE_VAR_ATTRIBUTE_VECTOR_SIZE*/
 
 static int
 vips_composite_gen( VipsRegion *output_region,
@@ -767,10 +773,12 @@ vips_composite_gen( VipsRegion *output_region,
 		for( x = 0; x < r->width; x++ ) {
 			switch( input_regions[0]->im->BandFmt ) {
 			case VIPS_FORMAT_FLOAT:
+#ifdef HAVE_VAR_ATTRIBUTE_VECTOR_SIZE
 				if( composite->bands == 3 ) 
 					vips_combine_pixels_3float( composite, 
 						q, p ); 
 				else
+#endif /*HAVE_VAR_ATTRIBUTE_VECTOR_SIZE*/
 					vips_combine_pixels<float>( composite, 
 						q, p );
 				break;
