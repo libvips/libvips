@@ -344,7 +344,8 @@ AC_TYPE_SIZE_T
 
 # we need to be able to shuffle vectors in C++
 if test x$ax_cv_have_var_attribute_vector_size = x"yes"; then
-  AC_MSG_CHECKING([for vector shuffle])
+  AC_MSG_CHECKING([for C++ vector shuffle])
+  AC_LANG_PUSH([C++])
   AC_TRY_COMPILE([
     typedef float v4f __attribute__((vector_size(4 * sizeof(float))));
   ],[
@@ -356,6 +357,7 @@ if test x$ax_cv_have_var_attribute_vector_size = x"yes"; then
     AC_MSG_RESULT([no])
     have_vector_shuffle=no
   ])
+  AC_LANG_POP([C++])
 
   if test x$have_vector_shuffle = x"yes"; then
     AC_DEFINE_UNQUOTED(HAVE_VECTOR_SHUFFLE, 1,
