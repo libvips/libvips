@@ -257,9 +257,6 @@ AC_PROG_AWK
 AC_PROG_CC
 AC_PROG_CC_STDC
 AC_PROG_CXX
-AC_C_CONST
-AC_C_RESTRICT
-AX_GCC_VAR_ATTRIBUTE(vector_size)
 AC_PROG_RANLIB
 AC_PROG_INSTALL
 AC_PROG_LN_S
@@ -338,10 +335,33 @@ AC_PROVIDE([AC_LIBTOOL_WIN32_DLL])
 AC_PROG_LIBTOOL
 
 # Checks for typedefs, structures, and compiler characteristics.
+AC_C_RESTRICT
+AX_GCC_VAR_ATTRIBUTE(vector_size)
 AC_C_CONST
 AC_TYPE_MODE_T
 AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
+
+# we need to be able to shuffle vectors in C++
+if test x$ax_cv_have_var_attribute_vector_size = x"yes"; then
+  AC_MSG_CHECKING([for vector shuffle])
+  AC_TRY_COMPILE([
+    typedef float v4f __attribute__((vector_size(4 * sizeof(float))));
+  ],[
+    v4f f; f[3] = 99;
+  ],[
+    AC_MSG_RESULT([yes])
+    have_vector_shuffle=yes
+  ], [
+    AC_MSG_RESULT([no])
+    have_vector_shuffle=no
+  ])
+
+  if test x$have_vector_shuffle = x"yes"; then
+    AC_DEFINE_UNQUOTED(HAVE_VECTOR_SHUFFLE, 1,
+      [define if your C++ can shuffle vectors])
+  fi
+fi
 
 # Checks for library functions.
 AC_FUNC_MEMCMP
