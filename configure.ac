@@ -365,6 +365,29 @@ if test x$ax_cv_have_var_attribute_vector_size = x"yes"; then
   fi
 fi
 
+# we also need to be able to mix vector and scalar arithmetic
+if test x$have_vector_shuffle = x"yes"; then
+  AC_MSG_CHECKING([for C++ vector arithmetic])
+  AC_LANG_PUSH([C++])
+  AC_TRY_COMPILE([
+    typedef float v4f __attribute__((vector_size(4 * sizeof(float))));
+  ],[
+    v4f f = {1, 2, 3, 4}; f *= 12.0;
+  ],[
+    AC_MSG_RESULT([yes])
+    have_vector_arith=yes
+  ], [
+    AC_MSG_RESULT([no])
+    have_vector_arith=no
+  ])
+  AC_LANG_POP([C++])
+
+  if test x$have_vector_arith = x"yes"; then
+    AC_DEFINE_UNQUOTED(HAVE_VECTOR_ARITH, 1,
+      [define if your C++ can mix vector and scalar arithmetic])
+  fi
+fi
+
 # Checks for library functions.
 AC_FUNC_MEMCMP
 AC_FUNC_MMAP
