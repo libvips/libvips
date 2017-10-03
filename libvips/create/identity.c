@@ -173,7 +173,7 @@ vips_identity_init( VipsIdentity *identity )
 
 /**
  * vips_identity:
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

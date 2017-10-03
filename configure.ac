@@ -111,6 +111,7 @@ headers="\
 	arithmetic.h \
 	colour.h \
 	convolution.h \
+	create.h \
 	draw.h \
 	morphology.h \
 	mosaicing.h \

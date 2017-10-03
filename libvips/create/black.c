@@ -155,7 +155,7 @@ vips_black_init( VipsBlack *black )
 
 /**
  * vips_black:
- * @out: output image
+ * @out: (out): output image
  * @width: output width
  * @height: output height
  * @...: %NULL-terminated list of optional named arguments

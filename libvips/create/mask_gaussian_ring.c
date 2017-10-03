@@ -114,7 +114,7 @@ vips_mask_gaussian_ring_init( VipsMaskGaussianRing *gaussian_ring )
 
 /**
  * vips_mask_gaussian_ring:
- * @out: output image
+ * @out: (out): output image
  * @width: image size
  * @height: image size
  * @frequency_cutoff: frequency threshold

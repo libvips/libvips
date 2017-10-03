@@ -207,7 +207,7 @@ vips_gaussnoise_init( VipsGaussnoise *gaussnoise )
 
 /**
  * vips_gaussnoise:
- * @out: output image
+ * @out: (out): output image
  * @width: output width
  * @height: output height
  * @...: %NULL-terminated list of optional named arguments

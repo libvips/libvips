@@ -144,7 +144,7 @@ vips_mask_gaussian_band_init( VipsMaskGaussianBand *gaussian_band )
 
 /**
  * vips_mask_gaussian_band:
- * @out: output image
+ * @out: (out): output image
  * @width: image size
  * @height: image size
  * @frequency_cutoff_x: band position 

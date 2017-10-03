@@ -117,7 +117,7 @@ vips_mask_butterworth_init( VipsMaskButterworth *butterworth )
 
 /**
  * vips_mask_butterworth:
- * @out: output image
+ * @out: (out): output image
  * @width: image size
  * @height: image size
  * @order: filter order
