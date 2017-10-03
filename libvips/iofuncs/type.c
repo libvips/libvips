@@ -893,6 +893,20 @@ transform_double_array_int( const GValue *src_value, GValue *dest_value )
 	array[0] = g_value_get_double( src_value ); 
 }
 
+static void
+transform_array_double_array_int( const GValue *src_value, GValue *dest_value )
+{
+	int n;
+	double *array_double = vips_value_get_array_double( src_value, &n );
+	int *array_int;
+	int i;
+
+	vips_value_set_array_int( dest_value, NULL, n ); 
+	array_int = vips_value_get_array_int( dest_value, NULL ); 
+	for( i = 0; i < n; i++ )
+		array_int[i] = array_double[i];
+}
+
 GType
 vips_array_int_get_type( void )
 {
@@ -910,6 +924,8 @@ vips_array_int_get_type( void )
 			transform_int_array_int );
 		g_value_register_transform_func( G_TYPE_DOUBLE, type,
 			transform_double_array_int );
+		g_value_register_transform_func( VIPS_TYPE_ARRAY_DOUBLE, type,
+			transform_array_double_array_int );
 	}
 
 	return( type );
@@ -1084,6 +1100,28 @@ transform_int_array_double( const GValue *src_value, GValue *dest_value )
 	array[0] = g_value_get_int( src_value ); 
 }
 
+static void
+transform_array_int_array_double( const GValue *src_value, GValue *dest_value )
+{
+	int n;
+	int *array_int = vips_value_get_array_int( src_value, &n );
+	double *array_double;
+	int i;
+
+	vips_value_set_array_double( dest_value, NULL, n ); 
+	array_double = vips_value_get_array_double( dest_value, NULL ); 
+	for( i = 0; i < n; i++ )
+		array_double[i] = array_int[i];
+}
+
+/* You can set enums from ints, but not doubles. Add a double converter too. 
+ */
+static void
+transform_double_enum( const GValue *src_value, GValue *dest_value )
+{
+	g_value_set_enum( dest_value, g_value_get_double( src_value ) ); 
+}
+
 GType
 vips_array_double_get_type( void )
 {
@@ -1101,6 +1139,10 @@ vips_array_double_get_type( void )
 			transform_double_array_double );
 		g_value_register_transform_func( G_TYPE_INT, type,
 			transform_int_array_double );
+		g_value_register_transform_func( VIPS_TYPE_ARRAY_INT, type,
+			transform_array_int_array_double );
+		g_value_register_transform_func( G_TYPE_DOUBLE, G_TYPE_ENUM,
+			transform_double_enum );
 	}
 
 	return( type );
