@@ -57,17 +57,6 @@
 #include "presample.h"
 #include "templates.h"
 
-/**
- * VipsKernel: 
- * @VIPS_KERNEL_NEAREST: nearest-neighbour
- * @VIPS_KERNEL_LINEAR: linear interpolation
- * @VIPS_KERNEL_CUBIC: cubic interpolation
- * @VIPS_KERNEL_LANCZOS2: lanczos2 interpolation
- * @VIPS_KERNEL_LANCZOS3: lanczos3 interpolation
- *
- * 1D resampling kernels. 
- */
-
 typedef struct _VipsReduceh {
 	VipsResample parent_instance;
 
