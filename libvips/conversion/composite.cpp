@@ -1228,7 +1228,7 @@ vips_composite_build( VipsObject *object )
 	 */
 	format = (VipsImage **) vips_object_local_array( object, composite->n );
 	size = (VipsImage **) vips_object_local_array( object, composite->n );
-	if( vips__formatalike_vec( decode, format, composite->n ) ||
+	if( vips__formatalike_vec( in, format, composite->n ) ||
 		vips__sizealike_vec( format, size, composite->n ) )
 		return( -1 );
 	in = size;
