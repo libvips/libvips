@@ -337,7 +337,7 @@ vips_worley_init( VipsWorley *worley )
 
 /**
  * vips_worley:
- * @out: output image
+ * @out: (out): output image
  * @width: horizontal size
  * @height: vertical size
  * @...: %NULL-terminated list of optional named arguments

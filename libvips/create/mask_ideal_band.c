@@ -127,7 +127,7 @@ vips_mask_ideal_band_init( VipsMaskIdealBand *ideal_band )
 
 /**
  * vips_mask_ideal_band:
- * @out: output image
+ * @out: (out): output image
  * @width: image size
  * @height: image size
  * @frequency_cutoff_x: position of band

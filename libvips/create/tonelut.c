@@ -310,7 +310,7 @@ vips_tonelut_init( VipsTonelut *lut )
 
 /**
  * vips_tonelut:
- * @out: output image 
+ * @out: (out): output image 
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

@@ -1,7 +1,7 @@
 /* invert a lut
  *
  * Written on: 5/6/01
- * Modified on : 
+ * Modified on :
  *
  * 7/7/03 JC
  * 	- generate image rather than doublemask (arrg)
@@ -17,7 +17,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -65,7 +65,7 @@ typedef struct _VipsInvertlut {
 
 	/* Input image.
 	 */
-	VipsImage *in;	
+	VipsImage *in;
 
 	/* .. and cast to a matrix.
 	 */
@@ -119,31 +119,31 @@ vips_invertlut_build_init( VipsInvertlut *lut )
 	int x, y;
 
 	if( !lut->mat ||
-		lut->mat->Xsize < 2 || 
+		lut->mat->Xsize < 2 ||
 		lut->mat->Ysize < 1 ) {
 		vips_error( class->nickname, "%s", _( "bad input matrix" ) );
 		return( -1 );
 	}
-	if( lut->size < 1 || 
+	if( lut->size < 1 ||
 		lut->size > 65536 ) {
 		vips_error( class->nickname, "%s", _( "bad size" ) );
 		return( -1 );
 	}
 
-	if( !(lut->buf = 
+	if( !(lut->buf =
 		VIPS_ARRAY( NULL, lut->size * (lut->mat->Xsize - 1), double )) )
 		return( -1 );
 
 	if( !(lut->data = VIPS_ARRAY( NULL, lut->mat->Ysize, double * )) )
 		return( -1 );
-	for( y = 0; y < lut->mat->Ysize; y++ ) 
+	for( y = 0; y < lut->mat->Ysize; y++ )
 		lut->data[y] = VIPS_MATRIX( lut->mat, 0, y );
 
 	/* Sanity check for data range.
 	 */
-	for( y = 0; y < lut->mat->Ysize; y++ ) 
-		for( x = 0; x < lut->mat->Xsize; x++ ) 
-			if( lut->data[y][x] > 1.0 || 
+	for( y = 0; y < lut->mat->Ysize; y++ )
+		for( x = 0; x < lut->mat->Xsize; x++ )
+			if( lut->data[y][x] > 1.0 ||
 				lut->data[y][x] < 0.0 ) {
 				vips_error( class->nickname,
 					_( "element (%d, %d) is %g, "
@@ -204,10 +204,10 @@ vips_invertlut_build_create( VipsInvertlut *lut )
 			/* Inside the loop to avoid /0 errors for last ==
 			 * (size - 1).
 			 */
-			double fac = (1 - lut->data[height - 1][0]) / 
+			double fac = (1 - lut->data[height - 1][0]) /
 				((lut->size - 1) - last);
 
-			lut->buf[b + k * bands] = 
+			lut->buf[b + k * bands] =
 				lut->data[height - 1][0] + (k - last) * fac;
 		}
 
@@ -255,17 +255,17 @@ vips_invertlut_build( VipsObject *object )
 		return( -1 );
 
 	if( vips_check_matrix( class->nickname, lut->in, &lut->mat ) )
-		return( -1 ); 
+		return( -1 );
 
 	if( vips_invertlut_build_init( lut ) ||
 		vips_invertlut_build_create( lut ) )
-		return( -1 ); 
+		return( -1 );
 
         vips_image_init_fields( create->out,
-                lut->size, 1, lut->mat->Xsize - 1, 
-		VIPS_FORMAT_DOUBLE, VIPS_CODING_NONE, 
+                lut->size, 1, lut->mat->Xsize - 1,
+		VIPS_FORMAT_DOUBLE, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_HISTOGRAM, 1.0, 1.0 );
-        if( vips_image_write_line( create->out, 0, (VipsPel *) lut->buf ) ) 
+        if( vips_image_write_line( create->out, 0, (VipsPel *) lut->buf ) )
 		return( -1 );
 
 	return( 0 );
@@ -285,14 +285,14 @@ vips_invertlut_class_init( VipsInvertlutClass *class )
 	vobject_class->description = _( "build an inverted look-up table" );
 	vobject_class->build = vips_invertlut_build;
 
-	VIPS_ARG_IMAGE( class, "in", 0, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 0,
+		_( "Input" ),
 		_( "Matrix of XY coordinates" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsInvertlut, in ) ); 
+		G_STRUCT_OFFSET( VipsInvertlut, in ) );
 
-	VIPS_ARG_INT( class, "size", 5, 
-		_( "Size" ), 
+	VIPS_ARG_INT( class, "size", 5,
+		_( "Size" ),
 		_( "LUT size to generate" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsInvertlut, size ),
@@ -303,13 +303,13 @@ vips_invertlut_class_init( VipsInvertlutClass *class )
 static void
 vips_invertlut_init( VipsInvertlut *lut )
 {
-	lut->size = 256; 
+	lut->size = 256;
 }
 
 /**
- * vips_invertlut:
+ * vips_invertlut: (method)
  * @in: input mask
- * @out: output LUT
+ * @out: (out): output LUT
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -320,9 +320,9 @@ vips_invertlut_init( VipsInvertlut *lut )
  * will map reals to targets. Handy for linearising images from
  * measurements of a colour chart. All values in [0,1]. Piecewise linear
  * interpolation, extrapolate head and tail to 0 and 1.
- * 
+ *
  * Eg. input like this:
- * 
+ *
  *   <tgroup cols='4' align='left' colsep='1' rowsep='1'>
  *     <tbody>
  *       <row>
@@ -352,12 +352,12 @@ vips_invertlut_init( VipsInvertlut *lut )
  *
  * Means a patch with 10% reflectance produces an image with 20% in
  * channel 1, 30% in channel 2, and 10% in channel 3, and so on.
- * 
+ *
  * Inputs don't need to be sorted (we do that). Generate any precision
  * LUT, default to 256 elements.
  *
- * It won't work too well for non-monotonic camera responses 
- * (we should fix this). Interpolation is simple piecewise linear; we ought to 
+ * It won't work too well for non-monotonic camera responses
+ * (we should fix this). Interpolation is simple piecewise linear; we ought to
  * do something better really.
  *
  * See also: vips_buildlut().

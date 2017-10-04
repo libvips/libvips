@@ -1047,7 +1047,7 @@ vips_foreign_load_init( VipsForeignLoad *load )
 	load->access = VIPS_ACCESS_RANDOM;
 }
 
-/**
+/*
  * Loaders can call this
  */
 

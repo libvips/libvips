@@ -331,7 +331,7 @@ vips_perlin_init( VipsPerlin *perlin )
 
 /**
  * vips_perlin:
- * @out: output image
+ * @out: (out): output image
  * @width: horizontal size
  * @height: vertical size
  * @...: %NULL-terminated list of optional named arguments

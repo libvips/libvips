@@ -159,7 +159,7 @@ vips_mask_butterworth_band_init(
 
 /**
  * vips_mask_butterworth_band:
- * @out: output image
+ * @out: (out): output image
  * @width: image size
  * @height: image size
  * @order: filter order
