@@ -238,7 +238,17 @@ vips_resize_build( VipsObject *object )
 			return( -1 ); 
 		vips_object_local( object, interpolate );
 
-		if( hscale > 1.0 && 
+		if( resize->kernel == VIPS_KERNEL_NEAREST &&
+			hscale == VIPS_FLOOR( hscale ) &&
+			vscale == VIPS_FLOOR( vscale ) ) {
+			/* Fast, integral nearest neighbour enlargement
+			 */
+			if( vips_zoom( in, &t[4], VIPS_FLOOR( hscale ),
+				VIPS_FLOOR( vscale ), NULL ) )
+				return( -1 );
+			in = t[4];
+		}
+		else if( hscale > 1.0 &&
 			vscale > 1.0 ) { 
 			g_info( "residual scale %g x %g", hscale, vscale );
 			if( vips_affine( in, &t[4], 
