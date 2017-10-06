@@ -206,7 +206,7 @@ vips_composite_prescale_gen( VipsRegion *output_region,
 	VipsRegion *input_region = (VipsRegion *) seq;
 	VipsImage *in = (VipsImage *) a; 
 	int bands = in->Bands; 
-	double *scale = (VipsComposite *) b;
+	double *scale = (double *) b;
 	VipsRect *r = &output_region->valid;
 	int sz = r->width * in->Bands; 
 
@@ -225,21 +225,36 @@ vips_composite_prescale_gen( VipsRegion *output_region,
 
 		switch( input_region->im->BandFmt ) {
 		case VIPS_FORMAT_UCHAR: 	
-			LOOP_PRESCALE( unsigned char, float ); break;
+			LOOP_PRESCALE( unsigned char, float ); 
+			break;
+
 		case VIPS_FORMAT_CHAR: 		
-			LOOP_PRESCALE( signed char, float ); break; 
+			LOOP_PRESCALE( signed char, float ); 
+			break; 
+
 		case VIPS_FORMAT_USHORT: 	
-			LOOP_PRESCALE( unsigned short, float ); break; 
+			LOOP_PRESCALE( unsigned short, float ); 
+			break; 
+
 		case VIPS_FORMAT_SHORT: 	
-			LOOP_PRESCALE( signed short, float ); break; 
+			LOOP_PRESCALE( signed short, float ); 
+			break; 
+
 		case VIPS_FORMAT_UINT: 		
-			LOOP_PRESCALE( unsigned int, float ); break; 
+			LOOP_PRESCALE( unsigned int, float ); 
+			break; 
+
 		case VIPS_FORMAT_INT: 		
-			LOOP_PRESCALE( signed int, float );  break; 
+			LOOP_PRESCALE( signed int, float );  
+			break; 
+
 		case VIPS_FORMAT_FLOAT: 	
-			LOOP_PRESCALE( float, float ); break; 
+			LOOP_PRESCALE( float, float ); 
+			break; 
+
 		case VIPS_FORMAT_DOUBLE:	
-			LOOP_PRESCALE( double, double ); break; 
+			LOOP_PRESCALE( double, double ); 
+			break; 
 
 		default:
 			g_assert_not_reached();
@@ -248,6 +263,87 @@ vips_composite_prescale_gen( VipsRegion *output_region,
 	}
 
 	VIPS_GATE_STOP( "vips_composite_prescale_gen: work" );
+
+	return( 0 );
+}
+
+#define LOOP_PRESCALE_PREMULTIPLY( IN, OUT ) { \
+	IN *tp = (IN ) p; \
+	OUT *tq = (OUT ) q; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		for( b = 0; b < bands; b++ ) \
+			tq[b] = tp[b] * scale[b]; \
+ 		\
+		tq += bands; \
+		tp += bands; \
+	} \
+}
+
+static int
+vips_composite_prescale_premultiply_gen( VipsRegion *output_region,
+	void *seq, void *a, void *b, gboolean *stop )
+{
+	VipsRegion *input_region = (VipsRegion *) seq;
+	VipsImage *in = (VipsImage *) a; 
+	int bands = in->Bands; 
+	double *scale = (double *) b;
+	VipsRect *r = &output_region->valid;
+	int sz = r->width * in->Bands; 
+
+	int x, b;
+
+	if( vips_region_prepare( input_region, r ) )
+		return( -1 );
+
+	VIPS_GATE_START( "vips_composite_prescale_premultiply_gen: work" );
+
+	for( int y = 0; y < r->height; y++ ) {
+		VipsPel *p = VIPS_REGION_ADDR( input_region, 
+			r->left, r->top + y );
+		VipsPel *q = VIPS_REGION_ADDR( output_region,
+			r->left, r->top + y );
+
+		switch( input_region->im->BandFmt ) {
+		case VIPS_FORMAT_UCHAR: 	
+			LOOP_PRESCALE_PREMULTIPLY( unsigned char, float ); 
+			break;
+
+		case VIPS_FORMAT_CHAR: 		
+			LOOP_PRESCALE_PREMULTIPLY( signed char, float ); 
+			break; 
+
+		case VIPS_FORMAT_USHORT: 	
+			LOOP_PRESCALE_PREMULTIPLY( unsigned short, float ); 
+			break; 
+
+		case VIPS_FORMAT_SHORT: 	
+			LOOP_PRESCALE_PREMULTIPLY( signed short, float ); 
+			break; 
+
+		case VIPS_FORMAT_UINT: 		
+			LOOP_PRESCALE_PREMULTIPLY( unsigned int, float ); 
+			break; 
+
+		case VIPS_FORMAT_INT: 		
+			LOOP_PRESCALE_PREMULTIPLY( signed int, float );  
+			break; 
+
+		case VIPS_FORMAT_FLOAT: 	
+			LOOP_PRESCALE_PREMULTIPLY( float, float ); 
+			break; 
+
+		case VIPS_FORMAT_DOUBLE:	
+			LOOP_PRESCALE_PREMULTIPLY( double, double ); 
+			break; 
+
+		default:
+			g_assert_not_reached();
+			return( -1 );
+		}
+	}
+
+	VIPS_GATE_STOP( "vips_composite_prescale_premultiply_gen: work" );
 
 	return( 0 );
 }
@@ -306,7 +402,7 @@ vips_composite_unprescale_gen( VipsRegion *output_region,
 	VipsRegion *input_region = (VipsRegion *) seq;
 	VipsImage *in = (VipsImage *) a; 
 	int bands = in->Bands; 
-	double *scale = (VipsComposite *) b;
+	double *scale = (double *) b;
 	VipsRect *r = &output_region->valid;
 	int sz = r->width * in->Bands; 
 
