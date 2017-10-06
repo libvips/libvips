@@ -373,7 +373,8 @@ if test x$have_vector_shuffle = x"yes"; then
   AC_TRY_COMPILE([
     typedef float v4f __attribute__((vector_size(4 * sizeof(float))));
   ],[
-    v4f f = {1, 2, 3, 4}; f *= 12.0; f = f > 0 ? f : -1 * f;
+    v4f f = {1, 2, 3, 4}; f *= 12.0; 
+    v4f g = {5, 6, 7, 8}; f = g > 0 ? g : -1 * g;
   ],[
     AC_MSG_RESULT([yes])
     have_vector_arith=yes
