@@ -59,7 +59,7 @@
  */
 #define MAX_BANDS (64)
 
-/* Uncomment to disable vector path ... handy for debugging. 
+/* Uncomment to disable the vector path ... handy for debugging. 
 #undef HAVE_VECTOR_ARITH
  */
 
@@ -93,15 +93,10 @@
  *
  * The various Porter-Duff and PDF blend modes. See vips_composite(), 
  * for example.
- */
-
-/* References:
  *
- * @gasi's composite example https://gist.github.com/jcupitt/abacc012e2991f332e8b
+ * The Cairo docs have a nice explanation of all the blend modes:
  *
- * https://en.wikipedia.org/wiki/Alpha_compositing
- *
- * https://www.cairographics.org/operators/
+ * https://www.cairographics.org/operators
  */
 
 /* We have a vector path with gcc's vector attr.

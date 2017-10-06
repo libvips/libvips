@@ -1,5 +1,5 @@
 // headers for vips operations
-// Mon 13 Mar 13:22:09 GMT 2017
+// Fri  6 Oct 16:31:27 BST 2017
 // this file is generated automatically, do not edit!
 
 static void system( char * cmd_format , VOption *options = 0 );
@@ -40,6 +40,7 @@ VImage project( VImage * rows , VOption *options = 0 );
 VImage profile( VImage * rows , VOption *options = 0 );
 VImage measure( int h , int v , VOption *options = 0 );
 std::vector<double> getpoint( int x , int y , VOption *options = 0 );
+int find_trim( int * top , int * width , int * height , VOption *options = 0 );
 VImage copy( VOption *options = 0 );
 VImage tilecache( VOption *options = 0 );
 VImage linecache( VOption *options = 0 );
@@ -79,6 +80,7 @@ VImage msb( VOption *options = 0 );
 VImage byteswap( VOption *options = 0 );
 VImage falsecolour( VOption *options = 0 );
 VImage gamma( VOption *options = 0 );
+static VImage composite( std::vector<VImage> in , std::vector<int> mode , VOption *options = 0 );
 static VImage black( int width , int height , VOption *options = 0 );
 static VImage gaussnoise( int width , int height , VOption *options = 0 );
 static VImage text( char * text , VOption *options = 0 );
@@ -156,6 +158,7 @@ VipsBlob * tiffsave_buffer( VOption *options = 0 );
 void fitssave( char * filename , VOption *options = 0 );
 static VImage thumbnail( char * filename , int width , VOption *options = 0 );
 static VImage thumbnail_buffer( VipsBlob * buffer , int width , VOption *options = 0 );
+VImage thumbnail_image( int width , VOption *options = 0 );
 VImage mapim( VImage index , VOption *options = 0 );
 VImage shrink( double hshrink , double vshrink , VOption *options = 0 );
 VImage shrinkh( int hshrink , VOption *options = 0 );
