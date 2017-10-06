@@ -219,6 +219,7 @@ public:
 	VOption *set( const char *name, VInterpolate value ); 
 	VOption *set( const char *name, std::vector<VImage> value );
 	VOption *set( const char *name, std::vector<double> value );
+	VOption *set( const char *name, std::vector<int> value );
 	VOption *set( const char *name, VipsBlob *value ); 
 
 	VOption *set( const char *name, bool *value ); 
@@ -540,6 +541,9 @@ public:
 	{
 		return( bandjoin_const( other, options ) ); 
 	}
+
+	VImage composite( VImage other, VipsBlendMode mode, 
+		VOption *options = 0 );
 
 	std::complex<double> minpos( VOption *options = 0 );
 
