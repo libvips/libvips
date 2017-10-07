@@ -305,6 +305,29 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE",
 ALL_LINGUAS="en_GB de"
 AM_GLIB_GNU_GETTEXT
 
+# we need to disable some features on some known-bad gcc versions
+# these will be "" for clang etc. 
+#
+# I couldn't get this to work, mysterious! do it ourselves
+# 
+# AX_CHECK_COMPILE_FLAG([-dumpversion],
+#   [ax_gcc_version_option=yes],
+#   [ax_gcc_version_option=no]
+# )
+AC_MSG_CHECKING([for gcc version])
+GCC_VERSION=""
+version=$($CC -dumpversion)
+if test $? = 0; then 
+  GCC_VERSION=$version
+  AC_MSG_RESULT([$GCC_VERSION])
+else
+  AC_MSG_RESULT([-dumpversion not supported])
+fi
+
+GCC_VERSION_MAJOR=$(echo $GCC_VERSION | cut -d'.' -f1)
+GCC_VERSION_MINOR=$(echo $GCC_VERSION | cut -d'.' -f2)
+GCC_VERSION_PATCH=$(echo $GCC_VERSION | cut -d'.' -f3)
+
 # Checks for libraries.
 
 # build list of pkg-config packages we used here
@@ -342,6 +365,15 @@ AC_C_CONST
 AC_TYPE_MODE_T
 AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
+
+# g++/gcc 4.x have rather broken vector support
+AC_MSG_CHECKING([for gcc with working vector support])
+if test x$GCC_VERSION_MAJOR != x"4"; then
+  AC_MSG_RESULT([yes])
+else
+  ax_cv_have_var_attribute_vector_size=no
+  AC_MSG_RESULT([no])
+fi
 
 # we need to be able to shuffle vectors in C++
 if test x$ax_cv_have_var_attribute_vector_size = x"yes"; then
