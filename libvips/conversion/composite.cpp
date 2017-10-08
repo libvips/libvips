@@ -716,15 +716,15 @@ vips_combine_pixels( VipsComposite *composite, VipsPel *q, VipsPel **p )
 	/* Load and scale the base pixel to 0 - 1.
 	 */
 	for( int b = 0; b <= bands; b++ )
-		B[b] = tp[n - 1][b] / composite->max_band[b];
+		B[b] = tp[0][b] / composite->max_band[b];
 
 	aB = B[bands];
 	if( !composite->premultiplied )
 		for( int b = 0; b < bands; b++ )
 			B[b] *= aB;
 
-	for( int i = n - 2; i >= 0; i-- ) 
-		vips_composite_blend<T>( composite, m[i], B, tp[i] ); 
+	for( int i = 1; i < n; i++ ) 
+		vips_composite_blend<T>( composite, m[i - 1], B, tp[i] ); 
 
 	/* Unpremultiply, if necessary.
 	 */
@@ -771,10 +771,10 @@ vips_combine_pixels3( VipsComposite *composite, VipsPel *q, VipsPel **p )
 	v4f B;
 	float aB;
 
-	B[0] = tp[n - 1][0];
-	B[1] = tp[n - 1][1];
-	B[2] = tp[n - 1][2];
-	B[3] = tp[n - 1][3];
+	B[0] = tp[0][0];
+	B[1] = tp[0][1];
+	B[2] = tp[0][2];
+	B[3] = tp[0][3];
 
 	/* Scale the base pixel to 0 - 1.
 	 */
@@ -786,8 +786,8 @@ vips_combine_pixels3( VipsComposite *composite, VipsPel *q, VipsPel **p )
 		B[3] = aB;
 	}
 
-	for( int i = n - 2; i >= 0; i-- ) 
-		vips_composite_blend3<T>( composite, m[i], B, tp[i] ); 
+	for( int i = 1; i < n; i++ ) 
+		vips_composite_blend3<T>( composite, m[i - 1], B, tp[i] ); 
 
 	/* Unpremultiply, if necessary.
 	 */
@@ -980,24 +980,21 @@ vips_composite_build( VipsObject *object )
 			return( -1 );
 	in = decode;
 
-	/* Are any of the images missing alpha? The first missing alpha is
+	/* Are any of the images missing an alpha? The first missing alpha is
 	 * given a solid 255 and becomes the background image, shortening n.
 	 */
-	for( int i = 0; i < composite->n; i++ )
+	for( int i = composite->n - 1; i >= 0; i-- )
 		if( !vips_image_hasalpha( in[i] ) ) {
 			VipsImage *x;
-			double solid;
 
-			solid = 255;
-			if( in[i]->Type == VIPS_INTERPRETATION_GREY16 ||
-				in[i]->Type == VIPS_INTERPRETATION_RGB16 )
-				solid = 65535;
-
-			if( vips_bandjoin_const1( in[i], &x, solid, NULL ) )
+			if( vips_addalpha( in[i], &x, NULL ) )
 				return( -1 );
 			g_object_unref( in[i] );
 			in[i] = x;
-			composite->n = i + 1;
+
+			composite->n -= i;
+			in += i;
+
 			break;
 		}
 
@@ -1051,9 +1048,9 @@ vips_composite_build( VipsObject *object )
 	 */
 	for( int i = 1; i < composite->n; i++ )
 		if( in[i]->Bands != in[0]->Bands ) {
-			vips_error( klass->nickname,
-				_( "image %d does not have %d bands" ),
-				i, in[0]->Bands );
+			vips_error( klass->nickname, 
+				"%s", _( "images do not have same "
+					 "numbers of bands" ) );
 			return( -1 );
 		}
 
@@ -1074,6 +1071,8 @@ vips_composite_build( VipsObject *object )
 	}
 
 #ifdef HAVE_VECTOR_ARITH
+	/* We need a float version for the vector path.
+	 */
 	if( composite->bands == 3 ) 
 		for( int b = 0; b <= 3; b++ )
 			composite->max_band_vec[b] = composite->max_band[b];
@@ -1188,7 +1187,7 @@ vips_compositev( VipsImage **in, VipsImage **out, int n, int *mode, va_list ap )
  *
  * Composite an array of images together. 
  *
- * Images are placed in a stack, with @in[@n - 1] at the bottom and @in[0] at
+ * Images are placed in a stack, with @in[0] at the bottom and @in[@n - 1] at
  * the top. Pixels are blended together working from the bottom upwards, with 
  * the blend mode at each step being set by the corresponding #VipsBlendMode
  * in @mode.
@@ -1197,11 +1196,12 @@ vips_compositev( VipsImage **in, VipsImage **out, int n, int *mode, va_list ap )
  * #VIPS_INTERPRETATION_sRGB, #VIPS_INTERPRETATION_B_W,
  * #VIPS_INTERPRETATION_RGB16, or #VIPS_INTERPRETATION_GREY16 
  * by default, depending on 
- * how many bands and bits the input images have. You select any other space, 
- * such as #VIPS_INTERPRETATION_LAB or #VIPS_INTERPRETATION_scRGB.
+ * how many bands and bits the input images have. You can select any other 
+ * space, such as #VIPS_INTERPRETATION_LAB or #VIPS_INTERPRETATION_scRGB.
  *
- * The output image will always be #VIPS_FORMAT_FLOAT unless one of the inputs
- * is #VIPS_FORMAT_DOUBLE, which which case the output will be double as well.
+ * The output image is in the compositing space. It will always be 
+ * #VIPS_FORMAT_FLOAT unless one of the inputs is #VIPS_FORMAT_DOUBLE, in 
+ * which case the output will be double as well.
  *
  * Complex images are not supported.
  *
@@ -1234,31 +1234,31 @@ vips_composite( VipsImage **in, VipsImage **out, int n, int *mode, ... )
 
 /**
  * vips_composite2: (method)
- * @in1: first input image
- * @in2: second input image
+ * @base: first input image
+ * @overlay: second input image
  * @out: (out): output image
  * @mode: composite with this blend mode
  * @...: %NULL-terminated list of optional named arguments
  *
- * Composite a pair of images together. See vips_composite().
+ * Composite @overlay on top of @base with @mode. See vips_composite().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_composite2( VipsImage *in1, VipsImage *in2, VipsImage **out,
-	VipsBlendMode mode1, ... )
+vips_composite2( VipsImage *base, VipsImage *overlay, VipsImage **out,
+	VipsBlendMode mode, ... )
 {
 	va_list ap;
 	int result;
-	VipsImage *in[2];
-	int mode[1];
+	VipsImage *imagev[2];
+	int modev[1];
 
-	in[0] = in1;
-	in[1] = in2;
-	mode[0] = mode1;
+	imagev[0] = base;
+	imagev[1] = overlay;
+	modev[0] = mode;
 
-	va_start( ap, mode1 );
-	result = vips_compositev( in, out, 2, mode, ap );
+	va_start( ap, mode );
+	result = vips_compositev( imagev, out, 2, modev, ap );
 	va_end( ap );
 
 	return( result );

@@ -525,10 +525,23 @@ vips_image_default_interpretation( const VipsImage *image )
 		break;
 	}
 
-	if( image->Bands == 1 )
-		return( VIPS_INTERPRETATION_B_W );
-	else
-		return( VIPS_INTERPRETATION_MULTIBAND );
+	/* 1 and 2 bands -> greyscale. The extra band could be alpha.
+	 */
+	if( image->Bands < 3 ) {
+		if( image->BandFmt == VIPS_FORMAT_USHORT )
+			return( VIPS_INTERPRETATION_GREY16 );
+		else
+			return( VIPS_INTERPRETATION_B_W );
+	} 
+	else {
+		/* 3 or more -> some sort of RGB. You'll need to set CMYK 
+		 * explicitly if you want that.
+		 */
+		if( image->BandFmt == VIPS_FORMAT_USHORT )
+			return( VIPS_INTERPRETATION_RGB16 );
+		else
+			return( VIPS_INTERPRETATION_sRGB );
+	}
 }
 
 /**
@@ -566,8 +579,9 @@ vips_image_guess_interpretation( const VipsImage *image )
 
 	switch( image->Type ) {
 	case VIPS_INTERPRETATION_MULTIBAND: 
-		if( image->Bands == 1 )
-			sane = FALSE;
+		/* This is a pretty useless generic tag. Always reset it.
+		 */
+		sane = FALSE;
 		break;
 
 	case VIPS_INTERPRETATION_B_W: 
