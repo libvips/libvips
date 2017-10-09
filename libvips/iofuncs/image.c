@@ -2458,6 +2458,8 @@ vips_image_write( VipsImage *image, VipsImage *out )
 		g_object_ref( image );
 		vips_object_local( out, image );
 	}
+	else {
+	}
 
 	return( 0 );
 }
@@ -3010,6 +3012,9 @@ VipsImage *
 vips_image_copy_memory( VipsImage *image )
 {
 	VipsImage *new;
+	VipsImage *image_array[2];
+	size_t length;
+	void *data;
 
 	switch( image->dtype ) {
 	case VIPS_IMAGE_SETBUF:
@@ -3025,13 +3030,36 @@ vips_image_copy_memory( VipsImage *image )
 	case VIPS_IMAGE_OPENOUT:
 	case VIPS_IMAGE_OPENIN:
 	case VIPS_IMAGE_PARTIAL:
-		/* Copy to a new memory image.
+		/* We don't use vips_image_new_memory() and vips_image_write()
+		 * since we want to make a break in the pipeline and we want
+		 * to avoid all the machinery around reordering and dependancy
+		 * links.
+		 *
+		 * We especially want to be able to unref input and have output
+		 * survive. Things like the progress signal must be cleared,
+		 * for example. 
 		 */
-		new = vips_image_new_memory();
-		if( vips_image_write( image, new ) ) {
-			g_object_unref( new );
+
+		/* Write to a new memory image.
+		 */
+		if( !(data = vips_image_write_to_memory( image, &length )) )
+			return( NULL );
+		if( !(new = vips_image_new_from_memory( data, length,
+			image->Xsize, image->Ysize, image->Bands, 
+			image->BandFmt )) ) {
+			g_free( data );
 			return( NULL );
 		}
+
+		/* Copy over other fields and the metadata.
+		 */
+		image_array[0] = image;
+		image_array[1] = NULL;
+		if( vips__image_copy_fields_array( new, image_array ) ) {
+			VIPS_UNREF( new );
+			return( NULL );
+		}
+
 		break;
 
 	default:
