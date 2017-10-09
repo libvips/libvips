@@ -115,22 +115,26 @@ G_DEFINE_TYPE( VipsResize, vips_resize, VIPS_TYPE_RESAMPLE );
 static int
 vips_resize_int_shrink( VipsResize *resize, double scale )
 {
+	int shrink;
+
 	if( scale > 1.0 )
-		return( 1 ); 
+		shrink = 1;
+	else
+		switch( resize->kernel ) { 
+		case VIPS_KERNEL_NEAREST:
+		     shrink = 1; 
 
-	switch( resize->kernel ) { 
-	case VIPS_KERNEL_NEAREST:
-	     return( 1 ); 
+		case VIPS_KERNEL_LINEAR:
+		case VIPS_KERNEL_CUBIC:
+		default:
+			shrink = VIPS_FLOOR( 1.0 / scale );
 
-	case VIPS_KERNEL_LINEAR:
-	case VIPS_KERNEL_CUBIC:
-	default:
-		return( VIPS_FLOOR( 1.0 / scale ) );
+		case VIPS_KERNEL_LANCZOS2:
+		case VIPS_KERNEL_LANCZOS3:
+			shrink = VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (scale * 2) ) );
+		}
 
-	case VIPS_KERNEL_LANCZOS2:
-	case VIPS_KERNEL_LANCZOS3:
-		return( VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (scale * 2) ) ) );
-	}
+	return( shrink );
 }
 
 /* Suggest a VipsInterpolate which corresponds to a VipsKernel. We use
@@ -392,7 +396,7 @@ vips_resize_init( VipsResize *resize )
  * a #VipsInterpolate selected depending on @kernel. It will use
  * #VipsInterpolateBicubic for #VIPS_KERNEL_CUBIC and above.
  *
- * vips_resize() normally maintains the image apect ratio. If you set
+ * vips_resize() normally maintains the image aspect ratio. If you set
  * @vscale, that factor is used for the vertical scale and @scale for the
  * horizontal.
  *
