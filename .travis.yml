@@ -11,7 +11,7 @@ script:
 
 matrix:
   allow_failures:
-    os: osx
+    - os: osx
   fast_finish: true
   include:
     - os: linux
