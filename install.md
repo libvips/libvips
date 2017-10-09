@@ -80,6 +80,7 @@ Once `configure` is looking OK, compile and install with the usual:
 
 	$ make
 	$ sudo make install
+	$ sudo ldconfig
 
 By default this will install files to `/usr/local`.
 
@@ -101,6 +102,7 @@ Then:
 	$ ./autogen.sh
 	$ make
 	$ sudo make install
+	$ sudo ldconfig
 
 ## Dependencies 
 
