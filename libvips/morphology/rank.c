@@ -447,9 +447,9 @@ vips_rank_init( VipsRank *rank )
 }
 
 /**
- * vips_rank:
+ * vips_rank: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @width: width of region
  * @height: height of region
  * @index: select pixel
@@ -491,9 +491,9 @@ vips_rank( VipsImage *in, VipsImage **out,
 }
 
 /**
- * vips_median:
+ * vips_median: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @size: size of region
  * @...: %NULL-terminated list of optional named arguments
  *

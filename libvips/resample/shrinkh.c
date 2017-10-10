@@ -342,9 +342,9 @@ vips_shrinkh_init( VipsShrinkh *shrink )
 }
 
 /**
- * vips_shrinkh:
+ * vips_shrinkh: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @hshrink: horizontal shrink
  * @...: %NULL-terminated list of optional named arguments
  *

@@ -103,9 +103,9 @@ vips_XYZ2Yxy_init( VipsXYZ2Yxy *XYZ2Yxy )
 }
 
 /**
- * vips_XYZ2Yxy:
+ * vips_XYZ2Yxy: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Turn XYZ to Yxy.

@@ -60,8 +60,8 @@ GOBJECT_INTROSPECTION_CHECK([1.30.0])
 #
 # build with a glob and a list of files to exclude from scanning
 # see also IGNORE_HFILES in doc/Makefile.am
-introspection_sources=$(cd libvips ; find . -name "*.c")
-filter_list="deprecated "
+introspection_sources=$(cd libvips ; find . -name "*.c"; find . -name "*.cpp")
+filter_list="deprecated introspect.c dummy.c fuzz "
 
 # contains(string, substring)
 #
@@ -101,18 +101,23 @@ headers="\
 	image.h \
 	error.h \
 	foreign.h \
+	freqfilt.h \
 	interpolate.h \
 	header.h \
+	histogram.h \
 	operation.h \
 	enumtypes.h \
 	conversion.h \
 	arithmetic.h \
 	colour.h \
 	convolution.h \
+	create.h \
 	draw.h \
 	morphology.h \
+	mosaicing.h \
 	type.h \
 	rect.h \
+	resample.h \
 	memory.h \
 	region.h"
 
@@ -253,8 +258,6 @@ AC_PROG_AWK
 AC_PROG_CC
 AC_PROG_CC_STDC
 AC_PROG_CXX
-AC_C_CONST
-AC_C_RESTRICT
 AC_PROG_RANLIB
 AC_PROG_INSTALL
 AC_PROG_LN_S
@@ -302,6 +305,29 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE",
 ALL_LINGUAS="en_GB de"
 AM_GLIB_GNU_GETTEXT
 
+# we need to disable some features on some known-bad gcc versions
+# these will be "" for clang etc. 
+#
+# I couldn't get this to work, mysterious! do it ourselves
+# 
+# AX_CHECK_COMPILE_FLAG([-dumpversion],
+#   [ax_gcc_version_option=yes],
+#   [ax_gcc_version_option=no]
+# )
+AC_MSG_CHECKING([for gcc version])
+GCC_VERSION=""
+version=$($CC -dumpversion)
+if test $? = 0; then 
+  GCC_VERSION=$version
+  AC_MSG_RESULT([$GCC_VERSION])
+else
+  AC_MSG_RESULT([-dumpversion not supported])
+fi
+
+GCC_VERSION_MAJOR=$(echo $GCC_VERSION | cut -d'.' -f1)
+GCC_VERSION_MINOR=$(echo $GCC_VERSION | cut -d'.' -f2)
+GCC_VERSION_PATCH=$(echo $GCC_VERSION | cut -d'.' -f3)
+
 # Checks for libraries.
 
 # build list of pkg-config packages we used here
@@ -333,10 +359,68 @@ AC_PROVIDE([AC_LIBTOOL_WIN32_DLL])
 AC_PROG_LIBTOOL
 
 # Checks for typedefs, structures, and compiler characteristics.
+AC_C_RESTRICT
+AX_GCC_VAR_ATTRIBUTE(vector_size)
 AC_C_CONST
 AC_TYPE_MODE_T
 AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
+
+# g++/gcc 4.x have rather broken vector support
+AC_MSG_CHECKING([for gcc with working vector support])
+if test x$GCC_VERSION_MAJOR != x"4"; then
+  AC_MSG_RESULT([yes])
+else
+  ax_cv_have_var_attribute_vector_size=no
+  AC_MSG_RESULT([no])
+fi
+
+# we need to be able to shuffle vectors in C++
+if test x$ax_cv_have_var_attribute_vector_size = x"yes"; then
+  AC_MSG_CHECKING([for C++ vector shuffle])
+  AC_LANG_PUSH([C++])
+  AC_TRY_COMPILE([
+    typedef float v4f __attribute__((vector_size(4 * sizeof(float))));
+  ],[
+    v4f f; f[3] = 99;
+  ],[
+    AC_MSG_RESULT([yes])
+    have_vector_shuffle=yes
+  ], [
+    AC_MSG_RESULT([no])
+    have_vector_shuffle=no
+  ])
+  AC_LANG_POP([C++])
+
+  if test x$have_vector_shuffle = x"yes"; then
+    AC_DEFINE_UNQUOTED(HAVE_VECTOR_SHUFFLE, 1,
+      [define if your C++ can shuffle vectors])
+  fi
+fi
+
+# we also need to be able to mix vector and scalar arithmetic
+if test x$have_vector_shuffle = x"yes"; then
+  AC_MSG_CHECKING([for C++ vector arithmetic])
+  AC_LANG_PUSH([C++])
+  AC_TRY_COMPILE([
+    typedef float v4f __attribute__((vector_size(4 * sizeof(float))));
+  ],[
+    v4f f = {1, 2, 3, 4}; f *= 12.0; 
+    v4f g = {5, 6, 7, 8}; f = g > 0 ? g : -1 * g;
+  ],[
+    AC_MSG_RESULT([yes])
+    have_vector_arith=yes
+  ], [
+    AC_MSG_RESULT([no])
+    have_vector_arith=no
+  ])
+  AC_LANG_POP([C++])
+
+  if test x$have_vector_arith = x"yes"; then
+    AC_DEFINE_UNQUOTED(HAVE_VECTOR_ARITH, 1,
+      [define if your C++ can mix vector and scalar arithmetic])
+  fi
+fi
 
 # Checks for library functions.
 AC_FUNC_MEMCMP
@@ -961,40 +1045,43 @@ if test x"$with_libexif" != "xno"; then
   CPPFLAGS="$save_CPPFLAGS"
 fi
 
-# make python binding?
-with_python="no (default)"
-AC_ARG_WITH([python], 
-  AS_HELP_STRING([--with-python], 
-    [build with vips7 Python bindings (default: no)]))
+# make vips7 (swig-based) py binding
+AC_ARG_ENABLE([pyvips7],
+  AS_HELP_STRING([--enable-pyvips7], [build vips7 Python binding (default: no)]),
+  [enable_pyvips7=$enableval
+  ], 
+  [enable_pyvips7="no (default)"
+  ]
+)
 
-if test x"$with_python" = x"yes"; then
+if test x"$enable_pyvips7" = x"yes"; then
   if test x"$enable_cxx" = x"no"; then
     # if C++ is off, we can't do Python
-    with_python=no
+    enable_pyvips7=no
     AC_MSG_WARN([C++ is off, disabling vips7 Python binding])
   fi
 fi
 
-if test x"$with_python" = x"yes"; then
+if test x"$enable_pyvips7" = x"yes"; then
   JD_PATH_PYTHON(2.7,,
-    [with_python=no
+    [enable_pyvips7=no
      AC_MSG_WARN([Python >= 2.7 not found; disabling vips7 Python binding])
     ]
   )
 fi
 
-if test x"$with_python" = x"yes"; then
+if test x"$enable_pyvips7" = x"yes"; then
   # The SWIG bindings don't compile on python3 (see issue #334).
   AM_PYTHON_CHECK_VERSION([$PYTHON], [3.0],
-    [with_python=no
+    [enable_pyvips7=no
      AC_MSG_WARN([Python >= 3.0 found; disabling vips7 Python binding])
     ]
   )
 fi
 
-if test x"$with_python" = x"yes"; then
+if test x"$enable_pyvips7" = x"yes"; then
   AM_CHECK_PYTHON_HEADERS(,
-    [with_python=no
+    [enable_pyvips7=no
      AC_MSG_WARN([Python headers not found; disabling vips7 Python binding])
     ]
   )
@@ -1003,7 +1090,7 @@ fi
 # we don't check for swig: we include the generated bindings in the
 # distribution
 
-if test x"$with_python" = x"yes"; then
+if test x"$enable_pyvips7" = x"yes"; then
   AM_CONDITIONAL(HAVE_PYTHON, true)
 else
   AM_CONDITIONAL(HAVE_PYTHON, false)
@@ -1093,7 +1180,7 @@ enable debug:				$enable_debug
 build deprecated components:		$enable_deprecated
 build docs with gtkdoc:			$enable_gtk_doc
 gobject introspection: 			$found_introspection
-build vips7 Python binding:		$with_python
+build vips7 Python binding:		$enable_pyvips7
 install vips8 Python overrides:		$enable_pyvips8
   (requires pygobject-3.13.0 or later)
 build radiance support: 		$with_radiance

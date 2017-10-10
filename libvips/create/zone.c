@@ -99,7 +99,7 @@ vips_zone_init( VipsZone *zone )
 
 /**
  * vips_zone:
- * @out: output image
+ * @out: (out): output image
  * @width: image size
  * @height: image size
  * @...: %NULL-terminated list of optional named arguments

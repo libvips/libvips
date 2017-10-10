@@ -599,9 +599,9 @@ vips_affine_init( VipsAffine *affine )
 }
 
 /**
- * vips_affine:
+ * vips_affine: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @a: transformation matrix coefficient
  * @b: transformation matrix coefficient
  * @c: transformation matrix coefficient

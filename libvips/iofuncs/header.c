@@ -351,7 +351,7 @@ meta_init( VipsImage *im )
 }
 
 /**
- * vips_image_get_width:
+ * vips_image_get_width: (method)
  * @image: image to get from
  *
  * Returns: the number of pixels across the image.
@@ -363,7 +363,7 @@ vips_image_get_width( const VipsImage *image )
 }
 
 /**
- * vips_image_get_height:
+ * vips_image_get_height: (method)
  * @image: image to get from
  *
  * Returns: the number of pixels down the image.
@@ -375,7 +375,7 @@ vips_image_get_height( const VipsImage *image )
 }
 
 /**
- * vips_image_get_bands:
+ * vips_image_get_bands: (method)
  * @image: image to get from
  *
  * Returns: the number of bands (channels) in the image.
@@ -387,7 +387,7 @@ vips_image_get_bands( const VipsImage *image )
 }
 
 /**
- * vips_image_get_format:
+ * vips_image_get_format: (method)
  * @image: image to get from
  *
  * Returns: the format of each band element.
@@ -399,7 +399,7 @@ vips_image_get_format( const VipsImage *image )
 }
 
 /**
- * vips_image_guess_format:
+ * vips_image_guess_format: (method)
  * @image: image to guess for
  *
  * Return the #VipsBandFormat for an image, guessing a sane value if
@@ -484,7 +484,7 @@ vips_image_guess_format( const VipsImage *image )
 }
 
 /**
- * vips_image_get_coding:
+ * vips_image_get_coding: (method)
  * @image: image to get from
  *
  * Returns: the image coding
@@ -496,7 +496,7 @@ vips_image_get_coding( const VipsImage *image )
 }
 
 /**
- * vips_image_get_interpretation:
+ * vips_image_get_interpretation: (method)
  * @image: image to get from
  *
  * Return the #VipsInterpretation set in the image header.
@@ -525,14 +525,27 @@ vips_image_default_interpretation( const VipsImage *image )
 		break;
 	}
 
-	if( image->Bands == 1 )
-		return( VIPS_INTERPRETATION_B_W );
-	else
-		return( VIPS_INTERPRETATION_MULTIBAND );
+	/* 1 and 2 bands -> greyscale. The extra band could be alpha.
+	 */
+	if( image->Bands < 3 ) {
+		if( image->BandFmt == VIPS_FORMAT_USHORT )
+			return( VIPS_INTERPRETATION_GREY16 );
+		else
+			return( VIPS_INTERPRETATION_B_W );
+	} 
+	else {
+		/* 3 or more -> some sort of RGB. You'll need to set CMYK 
+		 * explicitly if you want that.
+		 */
+		if( image->BandFmt == VIPS_FORMAT_USHORT )
+			return( VIPS_INTERPRETATION_RGB16 );
+		else
+			return( VIPS_INTERPRETATION_sRGB );
+	}
 }
 
 /**
- * vips_image_guess_interpretation:
+ * vips_image_guess_interpretation: (method)
  * @image: image to guess for
  *
  * Return the #VipsInterpretation for an image, guessing a sane value if
@@ -566,8 +579,9 @@ vips_image_guess_interpretation( const VipsImage *image )
 
 	switch( image->Type ) {
 	case VIPS_INTERPRETATION_MULTIBAND: 
-		if( image->Bands == 1 )
-			sane = FALSE;
+		/* This is a pretty useless generic tag. Always reset it.
+		 */
+		sane = FALSE;
 		break;
 
 	case VIPS_INTERPRETATION_B_W: 
@@ -643,7 +657,7 @@ vips_image_guess_interpretation( const VipsImage *image )
 }
 
 /**
- * vips_image_get_xres:
+ * vips_image_get_xres: (method)
  * @image: image to get from
  *
  * Returns: the horizontal image resolution in pixels per millimeter. 
@@ -655,7 +669,7 @@ vips_image_get_xres( const VipsImage *image )
 }
 
 /**
- * vips_image_get_yres:
+ * vips_image_get_yres: (method)
  * @image: image to get from
  *
  * Returns: the vertical image resolution in pixels per millimeter. 
@@ -667,7 +681,7 @@ vips_image_get_yres( const VipsImage *image )
 }
 
 /**
- * vips_image_get_xoffset:
+ * vips_image_get_xoffset: (method)
  * @image: image to get from
  *
  * Returns: the horizontal position of the image origin, in pixels.
@@ -679,7 +693,7 @@ vips_image_get_xoffset( const VipsImage *image )
 }
 
 /**
- * vips_image_get_yoffset:
+ * vips_image_get_yoffset: (method)
  * @image: image to get from
  *
  * Returns: the vertical position of the image origin, in pixels.
@@ -691,7 +705,7 @@ vips_image_get_yoffset( const VipsImage *image )
 }
 
 /**
- * vips_image_get_filename:
+ * vips_image_get_filename: (method)
  * @image: image to get from
  *
  * Returns: the name of the file the image was loaded from. 
@@ -703,7 +717,7 @@ vips_image_get_filename( const VipsImage *image )
 }
 
 /**
- * vips_image_get_mode:
+ * vips_image_get_mode: (method)
  * @image: image to get from
  *
  * Image modes are things like `"t"`, meaning a memory buffer, and `"p"`
@@ -718,7 +732,7 @@ vips_image_get_mode( const VipsImage *image )
 }
 
 /**
- * vips_image_get_scale:
+ * vips_image_get_scale: (method)
  * @image: image to get from
  *
  * Matrix images can have an optional `scale` field for use by integer 
@@ -739,7 +753,7 @@ vips_image_get_scale( const VipsImage *image )
 }
 
 /**
- * vips_image_get_offset:
+ * vips_image_get_offset: (method)
  * @image: image to get from
  *
  * Matrix images can have an optional `offset` field for use by integer 
@@ -760,7 +774,7 @@ vips_image_get_offset( const VipsImage *image )
 }
 
 /**
- * vips_image_get_data:
+ * vips_image_get_data: (method)
  * @image: image to get data for
  *
  * Return a pointer to the image's pixel data, if possible. This can involve
@@ -784,7 +798,7 @@ vips_image_get_data( VipsImage *image )
 }
 
 /**
- * vips_image_init_fields:
+ * vips_image_init_fields: (method)
  * @image: image to init
  * @xsize: image width
  * @ysize: image height
@@ -916,7 +930,7 @@ vips__image_copy_fields_array( VipsImage *out, VipsImage *in[] )
 }
 
 /** 
- * vips_image_set:
+ * vips_image_set: (method)
  * @image: image to set the metadata on
  * @name: the name to give the metadata
  * @value: the %GValue to copy into the image
@@ -982,7 +996,7 @@ vips_set_value_from_pointer( GValue *value, void *data )
 }
 
 /**
- * vips_image_get:
+ * vips_image_get: (method)
  * @image: image to get the field from from
  * @name: the name to fetch
  * @value_copy: (transfer full) (out caller-allocates): the %GValue is copied into this
@@ -1070,7 +1084,7 @@ vips_image_get( const VipsImage *image, const char *name, GValue *value_copy )
 }
 
 /**
- * vips_image_get_typeof:
+ * vips_image_get_typeof: (method)
  * @image: image to test
  * @name: the name to search for
  *
@@ -1114,7 +1128,7 @@ vips_image_get_typeof( const VipsImage *image, const char *name )
 }
 
 /**
- * vips_image_remove:
+ * vips_image_remove: (method)
  * @image: image to test
  * @name: the name to search for
  *
@@ -1142,10 +1156,10 @@ vips_image_map_fn( VipsMeta *meta, VipsImageMapFn fn, void *a )
 }
 
 /**
- * vips_image_map: 
+ * vips_image_map: (method)
  * @image: image to map over
  * @fn: (scope call): function to call for each header field
- * @a: user data for function
+ * @a: (closure fn): user data for function
  *
  * This function calls @fn for every header field, including every item of 
  * metadata. 
@@ -1205,7 +1219,7 @@ add_fields( VipsImage *image, const char *field, GValue *value, void *a )
 }
 
 /**
- * vips_image_get_fields:
+ * vips_image_get_fields: (method)
  * @image: image to get fields from
  *
  * Get a %NULL-terminated array listing all the metadata field names on @image. 
@@ -1234,7 +1248,7 @@ vips_image_get_fields( VipsImage *image )
 }
 
 /**
- * vips_image_set_area:
+ * vips_image_set_area: (method)
  * @image: image to attach the metadata to
  * @name: metadata name
  * @free_fn: (scope async): free function for @data
@@ -1281,10 +1295,10 @@ meta_get_value( const VipsImage *image,
 }
 
 /**
- * vips_image_get_area:
+ * vips_image_get_area: (method)
  * @image: image to get the metadata from
  * @name: metadata name
- * @data: return metadata value
+ * @data: (out): return metadata value
  *
  * Gets @data from @image under the name @name. A convenience
  * function over vips_image_get(). Use vips_image_get_typeof() to test for
@@ -1310,7 +1324,7 @@ vips_image_get_area( const VipsImage *image, const char *name, void **data )
 }
 
 /** 
- * vips_image_set_blob:
+ * vips_image_set_blob: (method)
  * @image: image to attach the metadata to
  * @name: metadata name
  * @free_fn: (scope async): free function for @data
@@ -1336,7 +1350,7 @@ vips_image_set_blob( VipsImage *image, const char *name,
 }
 
 /** 
- * vips_image_get_blob: 
+ * vips_image_get_blob: (method)
  * @image: image to get the metadata from
  * @name: metadata name
  * @data: pointer to area of memory
@@ -1368,10 +1382,10 @@ vips_image_get_blob( const VipsImage *image, const char *name,
 }
 
 /** 
- * vips_image_get_int:
+ * vips_image_get_int: (method)
  * @image: image to get the header field from
  * @name: field name
- * @out: return field value
+ * @out: (out): return field value
  *
  * Gets @out from @im under the name @name. 
  * The value will be transformed into
@@ -1395,7 +1409,7 @@ vips_image_get_int( const VipsImage *image, const char *name, int *out )
 }
 
 /** 
- * vips_image_set_int:
+ * vips_image_set_int: (method)
  * @image: image to attach the metadata to
  * @field: metadata name
  * @i: metadata value
@@ -1418,7 +1432,7 @@ vips_image_set_int( VipsImage *image, const char *field, int i )
 }
 
 /** 
- * vips_image_get_double:
+ * vips_image_get_double: (method)
  * @image: image to get the header field from
  * @name: field name
  * @out: return field value
@@ -1445,7 +1459,7 @@ vips_image_get_double( const VipsImage *image, const char *name, double *out )
 }
 
 /** 
- * vips_image_set_double:
+ * vips_image_set_double: (method)
  * @image: image to attach the metadata to
  * @field: metadata name
  * @d: metadata value
@@ -1468,7 +1482,7 @@ vips_image_set_double( VipsImage *image, const char *field, double d )
 }
 
 /** 
- * vips_image_get_string:
+ * vips_image_get_string: (method)
  * @image: image to get the header field from
  * @name: field name
  * @out: (transfer none): return field value
@@ -1511,7 +1525,7 @@ vips_image_get_string( const VipsImage *image, const char *name,
 }
 
 /** 
- * vips_image_set_string:
+ * vips_image_set_string: (method)
  * @image: image to attach the metadata to
  * @field: metadata name
  * @str: metadata value
@@ -1534,7 +1548,7 @@ vips_image_set_string( VipsImage *image, const char *field, const char *str )
 }
 
 /** 
- * vips_image_get_as_string:
+ * vips_image_get_as_string: (method)
  * @image: image to get the header field from
  * @field: field name
  * @out: (transfer full): return field value as string
@@ -1582,7 +1596,7 @@ vips_image_get_as_string( const VipsImage *image,
 }
 
 /**
- * vips_image_print_field:
+ * vips_image_print_field: (method)
  * @image: image to get the header field from
  * @field: field name
  *
@@ -1604,7 +1618,7 @@ vips_image_print_field( const VipsImage *image, const char *field )
 }
 
 /**
- * vips_image_history_printf:
+ * vips_image_history_printf: (method)
  * @image: add history line to this image
  * @format: printf() format string
  * @...: arguments to format string
@@ -1664,11 +1678,11 @@ vips_image_history_printf( VipsImage *image, const char *fmt, ... )
 }
 
 /**
- * vips_image_history_args:
+ * vips_image_history_args: (method)
  * @image: image to attach history line to
  * @name: program name
  * @argc: number of program arguments
- * @argv: program arguments
+ * @argv: (array length=argc) (element-type char*): program arguments
  *
  * Formats the name/argv as a single string and calls
  * vips_image_history_printf(). A
@@ -1700,7 +1714,7 @@ vips_image_history_args( VipsImage *image,
 }
 
 /**
- * vips_image_get_history:
+ * vips_image_get_history: (method)
  * @image: get history from here
  *
  * This function reads the image history as a C string. The string is owned

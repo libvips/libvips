@@ -601,7 +601,7 @@ vips_colourspace_class_init( VipsColourspaceClass *class )
 		G_STRUCT_OFFSET( VipsColourspace, space ),
 		VIPS_TYPE_INTERPRETATION, VIPS_INTERPRETATION_sRGB );
 
-	VIPS_ARG_ENUM( class, "source-space", 6, 
+	VIPS_ARG_ENUM( class, "source_space", 6, 
 		_( "Source space" ), 
 		_( "Source color space" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
@@ -617,9 +617,9 @@ vips_colourspace_init( VipsColourspace *colourspace )
 }
 
 /**
- * vips_colourspace:
+ * vips_colourspace: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @space: convert to this colour space
  * @...: %NULL-terminated list of optional named arguments
  *

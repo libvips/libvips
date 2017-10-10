@@ -112,8 +112,7 @@ G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 		int b; \
 		\
 		for( b = 0; b < bands - 1; b++ ) \
-			q[b] = (p[b] * alpha) / max_alpha + \
-				(bg[b] * nalpha) / max_alpha; \
+			q[b] = (p[b] * alpha + bg[b] * nalpha) / max_alpha; \
 		\
 		p += bands; \
 		q += bands - 1; \
@@ -150,8 +149,8 @@ G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 		int b; \
 		\
 		for( b = 0; b < bands - 1; b++ ) \
-			q[b] = ((double) p[b] * alpha) / max_alpha + \
-				((double) bg[b] * nalpha) / max_alpha; \
+			q[b] = ((double) p[b] * alpha + \
+				(double) bg[b] * nalpha) / max_alpha; \
 		\
 		p += bands; \
 		q += bands - 1; \
@@ -412,9 +411,9 @@ vips_flatten_init( VipsFlatten *flatten )
 }
 
 /**
- * vips_flatten:
+ * vips_flatten: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

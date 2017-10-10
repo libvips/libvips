@@ -313,9 +313,9 @@ vips__reorder_set_input( VipsImage *image, VipsImage **in )
 }
 
 /**
- * vips_reorder_prepare_many:
+ * vips_reorder_prepare_many: (method)
  * @image: the image that's being written
- * @regions: the set of regions to prepare
+ * @regions: (array) (element-type VipsRegion): the set of regions to prepare
  * @r: the #VipsRect to prepare on each region
  *
  * vips_reorder_prepare_many() runs vips_region_prepare() on each region in
@@ -346,7 +346,7 @@ vips_reorder_prepare_many( VipsImage *image, VipsRegion **regions, VipsRect *r )
 }
 
 /**
- * vips_reorder_margin_hint:
+ * vips_reorder_margin_hint: (method)
  * @image: the image to hint on
  * @margin: the size of the margin this operation has added
  *

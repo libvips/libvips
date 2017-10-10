@@ -192,9 +192,9 @@ vips_Lab2XYZ_init( VipsLab2XYZ *Lab2XYZ )
 }
 
 /**
- * vips_Lab2XYZ:
+ * vips_Lab2XYZ: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -224,9 +224,9 @@ vips_Lab2XYZ( VipsImage *in, VipsImage **out, ... )
  * @L: Input CIE Lab value
  * @a: Input CIE Lab value
  * @b: Input CIE Lab value
- * @X: Return CIE XYZ colour
- * @Y: Return CIE XYZ colour
- * @Z: Return CIE XYZ colour
+ * @X: (out): Return CIE XYZ colour
+ * @Y: (out): Return CIE XYZ colour
+ * @Z: (out): Return CIE XYZ colour
  *
  * Calculate XYZ from Lab, D65.
  * 

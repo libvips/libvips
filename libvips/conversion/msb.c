@@ -262,9 +262,9 @@ vips_msb_init( VipsMsb *msb )
 }
 
 /**
- * vips_msb:
+ * vips_msb: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

@@ -102,6 +102,35 @@ typedef enum {
 	VIPS_INTERESTING_LAST
 } VipsInteresting;
 
+typedef enum {
+	VIPS_BLEND_MODE_CLEAR,
+	VIPS_BLEND_MODE_SOURCE,
+	VIPS_BLEND_MODE_OVER,
+	VIPS_BLEND_MODE_IN,
+	VIPS_BLEND_MODE_OUT,
+	VIPS_BLEND_MODE_ATOP,
+	VIPS_BLEND_MODE_DEST,
+	VIPS_BLEND_MODE_DEST_OVER,
+	VIPS_BLEND_MODE_DEST_IN,
+	VIPS_BLEND_MODE_DEST_OUT,
+	VIPS_BLEND_MODE_DEST_ATOP,
+	VIPS_BLEND_MODE_XOR,
+	VIPS_BLEND_MODE_ADD,
+	VIPS_BLEND_MODE_SATURATE,
+	VIPS_BLEND_MODE_MULTIPLY,
+	VIPS_BLEND_MODE_SCREEN,
+	VIPS_BLEND_MODE_OVERLAY,
+	VIPS_BLEND_MODE_DARKEN,
+	VIPS_BLEND_MODE_LIGHTEN,
+	VIPS_BLEND_MODE_COLOUR_DODGE,
+	VIPS_BLEND_MODE_COLOUR_BURN,
+	VIPS_BLEND_MODE_HARD_LIGHT,
+	VIPS_BLEND_MODE_SOFT_LIGHT,
+	VIPS_BLEND_MODE_DIFFERENCE,
+	VIPS_BLEND_MODE_EXCLUSION,
+	VIPS_BLEND_MODE_LAST
+} VipsBlendMode;
+
 int vips_copy( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_tilecache( VipsImage *in, VipsImage **out, ... )
@@ -232,9 +261,16 @@ int vips_ifthenelse( VipsImage *cond, VipsImage *in1, VipsImage *in2,
 
 int vips_flatten( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_addalpha( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_premultiply( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_unpremultiply( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_composite( VipsImage **in, VipsImage **out, int n, int *mode, ... )
+	__attribute__((sentinel));
+int vips_composite2( VipsImage *in1, VipsImage *in2, VipsImage **out,
+	VipsBlendMode mode1, ... )
 	__attribute__((sentinel));
 
 int vips_falsecolour( VipsImage *in, VipsImage **out, ... )

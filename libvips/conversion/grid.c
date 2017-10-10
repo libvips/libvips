@@ -233,9 +233,9 @@ vips_grid_init( VipsGrid *grid )
 }
 
 /**
- * vips_grid:
+ * vips_grid: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @tile_height: chop into tiles this high
  * @across: tiles across
  * @down: tiles down

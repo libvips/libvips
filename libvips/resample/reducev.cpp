@@ -781,7 +781,7 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in, VipsImage **out )
 	if( in->BandFmt == VIPS_FORMAT_UCHAR &&
 		vips_vector_isenabled() &&
 		!vips_reducev_compile( reducev ) ) {
-		g_info( "using vector path" ); 
+		g_info( "reducev: using vector path" ); 
 		generate = vips_reducev_vector_gen;
 	}
 
@@ -848,12 +848,12 @@ vips_reducev_build( VipsObject *object )
 
 	reducev->n_point = 
 		vips_reduce_get_points( reducev->kernel, reducev->vshrink ); 
+	g_info( "reducev: %d point mask", reducev->n_point );
 	if( reducev->n_point > MAX_POINT ) {
 		vips_error( object_class->nickname, 
 			"%s", _( "reduce factor too large" ) );
 		return( -1 );
 	}
-	g_info( "%d point mask", reducev->n_point );
 
 	/* Unpack for processing.
 	 */
@@ -964,9 +964,9 @@ vips_reducev_init( VipsReducev *reducev )
 }
 
 /**
- * vips_reducev:
+ * vips_reducev: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @vshrink: horizontal reduce
  * @...: %NULL-terminated list of optional named arguments
  *

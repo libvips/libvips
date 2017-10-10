@@ -508,7 +508,7 @@ vips_region_init( VipsRegion *region )
 }
 
 /**
- * vips_region_new:
+ * vips_region_new: (constructor)
  * @image: image to create this region on
  *
  * Create a region. #VipsRegion s start out empty, you need to call 
@@ -553,7 +553,7 @@ vips_region_new( VipsImage *image )
  */
 
 /**
- * vips_region_buffer:
+ * vips_region_buffer: (method)
  * @reg: region to operate upon
  * @r: #VipsRect of pixels you need to be able to address
  *
@@ -622,7 +622,7 @@ vips_region_buffer( VipsRegion *reg, VipsRect *r )
 }
 
 /**
- * vips_region_image:
+ * vips_region_image: (method)
  * @reg: region to operate upon
  * @r: #VipsRect of pixels you need to be able to address
  *
@@ -709,7 +709,7 @@ vips_region_image( VipsRegion *reg, VipsRect *r )
 }
 
 /**
- * vips_region_region:
+ * vips_region_region: (method)
  * @reg: region to operate upon
  * @dest: region to connect to
  * @r: #VipsRect of pixels you need to be able to address
@@ -845,7 +845,7 @@ vips_region_equalsregion( VipsRegion *reg1, VipsRegion *reg2 )
 }
 
 /**
- * vips_region_position:
+ * vips_region_position: (method)
  * @reg: region to operate upon
  * @x: position to move to
  * @y: position to move to
@@ -928,7 +928,7 @@ vips_region_fill( VipsRegion *reg, VipsRect *r, VipsRegionFillFn fn, void *a )
 }
 
 /**
- * vips_region_paint:
+ * vips_region_paint: (method)
  * @reg: region to operate upon
  * @r: area to paint
  * @value: value to paint
@@ -997,7 +997,7 @@ vips_region_paint( VipsRegion *reg, VipsRect *r, int value )
 }
 
 /**
- * vips_region_paint_pel:
+ * vips_region_paint_pel: (method)
  * @reg: region to operate upon
  * @r: area to paint
  * @ink: value to paint
@@ -1048,7 +1048,7 @@ vips_region_paint_pel( VipsRegion *reg, VipsRect *r, VipsPel *ink )
 }
 
 /**
- * vips_region_black:
+ * vips_region_black: (method)
  * @reg: region to operate upon
  *
  * Paints 0 into the valid part of @reg.
@@ -1064,7 +1064,7 @@ vips_region_black( VipsRegion *reg )
 /**
  * vips_region_copy:
  * @reg: source region 
- * @dest: destination region 
+ * @dest: (inout): destination region 
  * @r: #VipsRect of pixels you need to copy
  * @x: postion of @r in @dest
  * @y: postion of @r in @dest
@@ -1326,7 +1326,7 @@ vips_region_shrink_alpha( VipsRegion *from, VipsRegion *to, VipsRect *target )
 /**
  * vips_region_shrink:
  * @from: source region 
- * @to: destination region 
+ * @to: (inout): destination region 
  * @target: #VipsRect of pixels you need to copy
  *
  * Write the pixels @target in @to from the x2 larger area in @from.
@@ -1387,7 +1387,7 @@ vips_region_generate( VipsRegion *reg )
 }
 
 /** 
- * vips_region_prepare:
+ * vips_region_prepare: (method)
  * @reg: region to prepare
  * @r: #VipsRect of pixels you need to be able to address
  *
@@ -1515,9 +1515,9 @@ vips_region_prepare_to_generate( VipsRegion *reg,
 }
 
 /** 
- * vips_region_prepare_to:
+ * vips_region_prepare_to: (method)
  * @reg: region to prepare
- * @dest: region to write to
+ * @dest: (inout): region to write to
  * @r: #VipsRect of pixels you need to be able to address
  * @x: postion of @r in @dest
  * @y: postion of @r in @dest
@@ -1685,7 +1685,7 @@ vips_region_prepare_many( VipsRegion **reg, VipsRect *r )
 }
 
 /** 
- * vips_region_invalidate: 
+ * vips_region_invalidate: (method)
  * @reg: region to invalidate
  *
  * Mark a region as containing invalid pixels. Calling this function means

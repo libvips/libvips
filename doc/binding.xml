@@ -1,94 +1,208 @@
-<?xml version="1.0"?>
-<!-- vim: set ts=2 sw=2 expandtab: --> 
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
-               "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
-]>
-<refentry id="binding">
-  <refmeta>
-    <refentrytitle>Writing bindings for libvips</refentrytitle>
-    <manvolnum>3</manvolnum>
-    <refmiscinfo>VIPS Library</refmiscinfo>
-  </refmeta>
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+                  "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
+<refentry id="binding.md">
 
-  <refnamediv>
-    <refname>Binding</refname>
-    <refpurpose>How to write bindings for libvips</refpurpose>
-  </refnamediv>
 
-  <refsect3 id="binding-goi">
-    <title>Binding and gobject-introspection</title>
-    <para>
-      The C source code 
-      to libvips has been marked up with special comments describing the 
-      interface in a standard way. These comments are read by 
-      gobject-introspection
-      when libvips is compiled and used to generate a 
-      typelib, a description of how to call the library. Many languages have 
-      gobject-introspection packages: all you need to do to call libvips
-      from your favorite language is to start g-o-i, load the libvips typelib,
-      and you should have the whole library available. For example, from 
-      Python it's as simple as:
+<para>
+  <refmeta> <refentrytitle>How to write bindings</refentrytitle> <manvolnum>3</manvolnum> <refmiscinfo>libvips</refmiscinfo> </refmeta>
+</para>
+<para>
+  <refnamediv> <refname>Binding</refname> <refpurpose>Writing bindings for libvips</refpurpose> </refnamediv>
+</para>
+<para>
+  There are full libvips bindings for quite a few environments now: C, C++, command-line, Ruby, PHP, Python and JavaScript (node).
+</para>
+<para>
+  This chapter runs through the four main styles that have been found to work well. If you want to write a new binding, one of these should be close to what you need.
+</para>
+<refsect3 id="c-api">
+  <title>C API</title>
+  <para>
+    The libvips C API (vips_add() and so on) is very inconvenient to use from other languages due to its heavy use of varargs.
+  </para>
+  <para>
+    It’s much better to use the layer below. This lower layer is structured as: create operator, set parameters, execute, extract results. For example, you can execute vips_invert() like this:
+  </para>
+  <programlisting language="c">
+/* compile with
+ *
+ * gcc -g -Wall callvips.c `pkg-config vips --cflags --libs`
+ *
+ */
 
-<programlisting language="Python">
+#include &lt;vips/vips.h&gt;
+
+int
+main( int argc, char **argv )
+{
+    VipsImage *in;
+    VipsImage *out;
+    VipsOperation *op;
+    VipsOperation *new_op;
+    GValue gvalue = { 0 };
+
+    if( VIPS_INIT( argv[0] ) ) 
+        /* This shows the vips error buffer and quits with a fail exit
+         * code.
+         */
+        vips_error_exit( NULL ); 
+
+    /* This will print a table of any ref leaks on exit, very handy for
+     * development.
+     */
+    vips_leak_set( TRUE );
+
+    if( argc != 3 )
+        vips_error_exit( &quot;usage: %s input-filename output-filename&quot;, 
+            argv[0] );
+
+    if( !(in = vips_image_new_from_file( argv[1], NULL )) )
+        vips_error_exit( NULL ); 
+
+    /* Create a new operator from a nickname. NULL for unknown operator.
+     */
+    op = vips_operation_new( &quot;invert&quot; );
+
+    /* Init a gvalue as an image, set it to in, use the gvalue to set the
+     * operator property.
+     */
+    g_value_init( &amp;gvalue, VIPS_TYPE_IMAGE );
+    g_value_set_object( &amp;gvalue, in );
+    g_object_set_property( G_OBJECT( op ), &quot;in&quot;, &amp;gvalue );
+    g_value_unset( &amp;gvalue );
+
+    /* We no longer need in: op will hold a ref to it as long as it needs
+     * it. 
+     */
+    g_object_unref( in ); 
+
+    /* Call the operation. This will look up the operation+args in the vips
+     * operation cache and either return a previous operation, or build
+     * this one. In either case, we have a new ref we mst release.
+     */
+    if( !(new_op = vips_cache_operation_build( op )) ) {
+        g_object_unref( op );
+        vips_error_exit( NULL ); 
+    }
+    g_object_unref( op );
+    op = new_op;
+
+    /* Now get the result from op. g_value_get_object() does not ref the
+     * object, so we need to make a ref for out to hold.
+     */
+    g_value_init( &amp;gvalue, VIPS_TYPE_IMAGE );
+    g_object_get_property( G_OBJECT( op ), &quot;out&quot;, &amp;gvalue );
+    out = VIPS_IMAGE( g_value_get_object( &amp;gvalue ) );
+    g_object_ref( out ); 
+    g_value_unset( &amp;gvalue );
+
+    /* All done: we can unref op. The output objects from op actually hold
+     * refs back to it, so before we can unref op, we must unref them. 
+     */
+    vips_object_unref_outputs( VIPS_OBJECT( op ) ); 
+    g_object_unref( op );
+
+    if( vips_image_write_to_file( out, argv[2], NULL ) )
+        vips_error_exit( NULL ); 
+
+    g_object_unref( out );
+
+    return( 0 ); 
+}
+</programlisting>
+  <para>
+    libvips has a couple of extra things to let you fetch the arguments and types of an operator. Use vips_lib.vips_argument_map() to loop over all the arguments of an operator, and vips_object_get_argument() to fetch the type and flags of a specific argument.
+  </para>
+  <para>
+    Use vips_operation_get_flags() to get general information about an operator.
+  </para>
+</refsect3>
+<refsect3 id="compiled-language-which-can-call-c">
+  <title>Compiled language which can call C</title>
+  <para>
+    The C++ binding uses this lower layer to define a function called <literal>VImage::call()</literal> which can call any libvips operator with a not-varargs set of variable arguments.
+  </para>
+  <para>
+    A small Python program walks the set of all libvips operators and generates a set of static bindings. For example:
+  </para>
+  <programlisting language="cpp">
+VImage VImage::invert( VOption *options )
+{
+    VImage out;
+
+    call( &quot;invert&quot;, (options ? options : VImage::option()) -&gt;
+        set( &quot;in&quot;, *this ) -&gt;
+        set( &quot;out&quot;, &amp;out ) );
+
+    return( out );
+}
+</programlisting>
+  <para>
+    So from C++ you can call any libvips operator, though without type-safety, with <literal>VImage::call()</literal>, or use the member functions on <literal>VImage</literal> to get type-safe calls for at least the required operator arguments.
+  </para>
+  <para>
+    The <literal>VImage</literal> class also adds automatic reference counting, constant expansion, operator overloads, and various other useful features.
+  </para>
+</refsect3>
+<refsect3 id="dynamic-language-with-ffi">
+  <title>Dynamic language with FFI</title>
+  <para>
+    Languages like Ruby, Python, JavaScript and Lua can’t call C directly, but they do support FFI. The bindings for these languages work rather like C++, but use FFI to call into libvips and run operations.
+  </para>
+  <para>
+    Since these languages are dynamic, they can add another trick: they intercept the method-missing hook and attempt to run any method calls not implemented by the <literal>Image</literal> class as libvips operators. This makes these bindings self-writing: they only contain a small amount of codeand just expose everything they find in the libvips class hierarchy.
+  </para>
+</refsect3>
+<refsect3 id="dynamic-langauge-without-ffi">
+  <title>Dynamic langauge without FFI</title>
+  <para>
+    PHP does not have FFI, unfortunately, so for this language a small native module implements the general <literal>vips_call()</literal> function for PHP language types, and a larger pure PHP layer makes it convenient to use.
+  </para>
+</refsect3>
+<refsect3 id="gobject-introspection">
+  <title><literal>gobject-introspection</literal></title>
+  <para>
+    The C source code to libvips has been marked up with special comments describing the interface in a standard way. These comments are read by the <literal>gobject-introspection</literal> package when libvips is compiled and used to generate a typelib, a description of how to call the library. Many languages have gobject-introspection packages: all you need to do to call libvips from your favorite language is to start g-o-i, load the libvips typelib, and you should have the whole library available. For example, from Python it’s as simple as:
+  </para>
+  <programlisting language="python">
 from gi.repository import Vips
 </programlisting>
-    </para>
-
-    <para>
-      libvips used in this way is likely to be rather bare-bones. For Python,
-      we wrote a set of overrides which layer a more Pythonesque interface
-      on top of the one provided for libvips by pygobject. These overrides
-      are simply a set of Python classes.
-    </para>
-
-    <para>
-      To call a vips operation, you'll need to make a new operation with
-      vips_operation_new() (all it does is look up the operation by name
-      with vips_type_find(), then call g_object_new() for you), then
-      use vips_argument_map() and friends to loop over the operation's
-      arguments setting them. Once you have set all arguments, use
-      vips_cache_operation_build() to look up the operation in the cache
-      and either build or dup it. If something goes wrong, you'll need
-      to use vips_object_unref_outputs() and g_object_unref() to free the
-      partially-built object.
-      The Python binding uses this technique to implement a function which
-      can call any vips operation, turning optional vips arguments into
-      Python keyword arguments.
-    </para>
-
-    <para>
-      If your language does not have a gobject-introspection package, you'll 
-      need to write something in C or C++ doing approximately the same thing. 
-      The C++ API takes this route.
-    </para>
-
-    <para>
-      You can generate searchable docs from a <code>.gir</code> (the thing that 
-      is built from scanning libvips and which in turn turn the typelib is 
-      made from) with <command>g-ir-doc-tool</command>, for example:
-
-<programlisting language="bash">
+  <para>
+    You can now use all of the libvips introspection machinery, as noted above.
+  </para>
+  <para>
+    Unfortunately g-o-i has some strong disadvantages. It is not very portable, since you will need a g-o-i layer for whatever platform you are targetting; it does not cross-compile well, since typelibs include a lot of very-low level data (such as exact structure layouts); and installation for your users is likely to be tricky.
+  </para>
+  <para>
+    If you have a choice, I would recommend simply using FFI.
+  </para>
+</refsect3>
+<refsect3 id="documentation">
+  <title>Documentation</title>
+  <para>
+    You can generate searchable docs from a <code>.gir</code> (the thing that is built from scanning libvips and which in turn turn the typelib is made from) with <command>g-ir-doc-tool</command>, for example:
+  </para>
+  <programlisting>
 $ g-ir-doc-tool --language=Python -o ~/mydocs Vips-8.0.gir
 </programlisting>
-
-      Then to view them, either:
-
-<programlisting language="bash">
+  <para>
+    Then to view them, either:
+  </para>
+  <programlisting>
 $ yelp ~/mydocs 
 </programlisting>
-
-      Or perhaps
-
-<programlisting language="bash">
+  <para>
+    Or perhaps:
+  </para>
+  <programlisting>
 $ cd ~/mydocs 
 $ yelp-build html .
 </programlisting>
+  <para>
+    To make HTML docs. This is an easy way to see what you can call in the library.
+  </para>
+</refsect3>
 
-      To make HTML docs. This is an easy way to see what you can call in the 
-      library. 
-    </para>
-
-
-  </refsect3>
 
 </refentry>

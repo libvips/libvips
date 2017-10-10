@@ -159,9 +159,9 @@ vips_gaussblur_init( VipsGaussblur *gaussblur )
 }
 
 /**
- * vips_gaussblur:
+ * vips_gaussblur: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @sigma: how large a mask to use
  * @...: %NULL-terminated list of optional named arguments
  *

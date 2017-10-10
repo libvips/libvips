@@ -149,7 +149,7 @@ vips_foreign_load_analyze_init( VipsForeignLoadAnalyze *analyze )
 /**
  * vips_analyzeload:
  * @filename: file to load
- * @out: decompressed image
+ * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Load an Analyze 6.0 file. If @filename is "fred.img", this will look for

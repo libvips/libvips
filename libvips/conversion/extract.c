@@ -232,9 +232,9 @@ vips_extract_area_init( VipsExtractArea *extract )
 }
 
 /**
- * vips_extract_area:
+ * vips_extract_area: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @left: left edge of area to extract
  * @top: top edge of area to extract
  * @width: width of area to extract
@@ -291,9 +291,9 @@ vips_crop_get_type( void )
 }
 
 /**
- * vips_crop:
+ * vips_crop: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @left: left edge of area to extract
  * @top: top edge of area to extract
  * @width: width of area to extract
@@ -442,9 +442,9 @@ vips_extract_band_init( VipsExtractBand *extract )
 }
 
 /**
- * vips_extract_band:
+ * vips_extract_band: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @band: band to extract
  * @...: %NULL-terminated list of optional named arguments
  *

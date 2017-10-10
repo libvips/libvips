@@ -1021,16 +1021,16 @@ vips_sink_screen_init( void )
 }
 
 /**
- * vips_sink_screen:
+ * vips_sink_screen: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @mask: mask image indicating valid pixels
  * @tile_width: tile width
  * @tile_height: tile height
  * @max_tiles: maximum tiles to cache
  * @priority: rendering priority
- * @notify_fn: pixels are ready notification callback
- * @a: client data for callback
+ * @notify_fn: (scope call) (nullable): pixels are ready notification callback
+ * @a: (closure notify_fn) (nullable): client data for callback
  *
  * This operation renders @in in the background, making pixels available on
  * @out as they are calculated. The @notify_fn callback is run every time a new

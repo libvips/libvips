@@ -115,22 +115,26 @@ G_DEFINE_TYPE( VipsResize, vips_resize, VIPS_TYPE_RESAMPLE );
 static int
 vips_resize_int_shrink( VipsResize *resize, double scale )
 {
+	int shrink;
+
 	if( scale > 1.0 )
-		return( 1 ); 
+		shrink = 1;
+	else
+		switch( resize->kernel ) { 
+		case VIPS_KERNEL_NEAREST:
+		     shrink = 1; 
 
-	switch( resize->kernel ) { 
-	case VIPS_KERNEL_NEAREST:
-	     return( 1 ); 
+		case VIPS_KERNEL_LINEAR:
+		case VIPS_KERNEL_CUBIC:
+		default:
+			shrink = VIPS_FLOOR( 1.0 / scale );
 
-	case VIPS_KERNEL_LINEAR:
-	case VIPS_KERNEL_CUBIC:
-	default:
-		return( VIPS_FLOOR( 1.0 / scale ) );
+		case VIPS_KERNEL_LANCZOS2:
+		case VIPS_KERNEL_LANCZOS3:
+			shrink = VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (scale * 2) ) );
+		}
 
-	case VIPS_KERNEL_LANCZOS2:
-	case VIPS_KERNEL_LANCZOS3:
-		return( VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (scale * 2) ) ) );
-	}
+	return( shrink );
 }
 
 /* Suggest a VipsInterpolate which corresponds to a VipsKernel. We use
@@ -238,7 +242,17 @@ vips_resize_build( VipsObject *object )
 			return( -1 ); 
 		vips_object_local( object, interpolate );
 
-		if( hscale > 1.0 && 
+		if( resize->kernel == VIPS_KERNEL_NEAREST &&
+			hscale == VIPS_FLOOR( hscale ) &&
+			vscale == VIPS_FLOOR( vscale ) ) {
+			/* Fast, integral nearest neighbour enlargement
+			 */
+			if( vips_zoom( in, &t[4], VIPS_FLOOR( hscale ),
+				VIPS_FLOOR( vscale ), NULL ) )
+				return( -1 );
+			in = t[4];
+		}
+		else if( hscale > 1.0 &&
 			vscale > 1.0 ) { 
 			g_info( "residual scale %g x %g", hscale, vscale );
 			if( vips_affine( in, &t[4], 
@@ -352,9 +366,9 @@ vips_resize_init( VipsResize *resize )
 }
 
 /**
- * vips_resize:
+ * vips_resize: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @scale: scale factor
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -382,7 +396,7 @@ vips_resize_init( VipsResize *resize )
  * a #VipsInterpolate selected depending on @kernel. It will use
  * #VipsInterpolateBicubic for #VIPS_KERNEL_CUBIC and above.
  *
- * vips_resize() normally maintains the image apect ratio. If you set
+ * vips_resize() normally maintains the image aspect ratio. If you set
  * @vscale, that factor is used for the vertical scale and @scale for the
  * horizontal.
  *

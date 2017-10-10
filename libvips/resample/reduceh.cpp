@@ -57,17 +57,6 @@
 #include "presample.h"
 #include "templates.h"
 
-/**
- * VipsKernel: 
- * @VIPS_KERNEL_NEAREST: nearest-neighbour
- * @VIPS_KERNEL_LINEAR: linear interpolation
- * @VIPS_KERNEL_CUBIC: cubic interpolation
- * @VIPS_KERNEL_LANCZOS2: lanczos2 interpolation
- * @VIPS_KERNEL_LANCZOS3: lanczos3 interpolation
- *
- * 1D resampling kernels. 
- */
-
 typedef struct _VipsReduceh {
 	VipsResample parent_instance;
 
@@ -465,7 +454,7 @@ vips_reduceh_build( VipsObject *object )
 	 */
 	reduceh->n_point = 
 		vips_reduce_get_points( reduceh->kernel, reduceh->hshrink ); 
-	g_info( "%d point mask", reduceh->n_point );
+	g_info( "reduceh: %d point mask", reduceh->n_point );
 	if( reduceh->n_point > MAX_POINT ) {
 		vips_error( object_class->nickname, 
 			"%s", _( "reduce factor too large" ) );
@@ -610,9 +599,9 @@ vips_reduceh_init( VipsReduceh *reduceh )
 }
 
 /**
- * vips_reduceh:
+ * vips_reduceh: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @hshrink: horizontal reduce
  * @...: %NULL-terminated list of optional named arguments
  *

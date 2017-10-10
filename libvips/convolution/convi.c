@@ -938,7 +938,7 @@ vips_convi_build( VipsObject *object )
 			!intize_to_fixed_point( M, convi->fixed ) &&
 			!vips_convi_compile( convi, in ) ) {
 			generate = vips_convi_gen_vector;
-			g_info( "using vector path" ); 
+			g_info( "convi: using vector path" ); 
 		}
 		else
 			vips_convi_compile_free( convi );
@@ -947,7 +947,7 @@ vips_convi_build( VipsObject *object )
 	/* Make the data for the C path.
 	 */
 	if( generate == vips_convi_gen ) { 
-		g_info( "using C path" ); 
+		g_info( "convi: using C path" ); 
 
 		/* Make an int version of our mask.
 		 */
@@ -1019,9 +1019,9 @@ vips_convi_init( VipsConvi *convi )
 }
 
 /**
- * vips_convi:
+ * vips_convi: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @mask: convolve with this mask
  * @...: %NULL-terminated list of optional named arguments
  *

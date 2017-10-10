@@ -515,7 +515,7 @@ vips_ifthenelse_init( VipsIfthenelse *ifthenelse )
  * @cond: condition #VipsImage
  * @in1: then #VipsImage
  * @in2: else #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

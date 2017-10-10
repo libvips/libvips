@@ -175,9 +175,9 @@ vips_invert_init( VipsInvert *invert )
 }
 
 /**
- * vips_invert:
+ * vips_invert: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * For unsigned formats, this operation calculates (max - @in), eg. (255 -

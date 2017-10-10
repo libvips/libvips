@@ -2279,7 +2279,7 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
 #endif /*HAVE_GSF*/
 
 /**
- * vips_dzsave:
+ * vips_dzsave: (method)
  * @in: image to save 
  * @name: name to save to 
  * @...: %NULL-terminated list of optional named arguments
@@ -2353,10 +2353,10 @@ vips_dzsave( VipsImage *in, const char *name, ... )
 }
 
 /**
- * vips_dzsave_buffer:
+ * vips_dzsave_buffer: (method)
  * @in: image to save 
- * @buf: return output buffer here
- * @len: return output length here
+ * @buf: (array length=len) (element-type guint8): return output buffer here
+ * @len: (type gsize): return output length here
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

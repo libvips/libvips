@@ -373,6 +373,47 @@ vips_interesting_get_type( void )
 
 	return( etype );
 }
+GType
+vips_blend_mode_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_BLEND_MODE_CLEAR, "VIPS_BLEND_MODE_CLEAR", "clear"},
+			{VIPS_BLEND_MODE_SOURCE, "VIPS_BLEND_MODE_SOURCE", "source"},
+			{VIPS_BLEND_MODE_OVER, "VIPS_BLEND_MODE_OVER", "over"},
+			{VIPS_BLEND_MODE_IN, "VIPS_BLEND_MODE_IN", "in"},
+			{VIPS_BLEND_MODE_OUT, "VIPS_BLEND_MODE_OUT", "out"},
+			{VIPS_BLEND_MODE_ATOP, "VIPS_BLEND_MODE_ATOP", "atop"},
+			{VIPS_BLEND_MODE_DEST, "VIPS_BLEND_MODE_DEST", "dest"},
+			{VIPS_BLEND_MODE_DEST_OVER, "VIPS_BLEND_MODE_DEST_OVER", "dest-over"},
+			{VIPS_BLEND_MODE_DEST_IN, "VIPS_BLEND_MODE_DEST_IN", "dest-in"},
+			{VIPS_BLEND_MODE_DEST_OUT, "VIPS_BLEND_MODE_DEST_OUT", "dest-out"},
+			{VIPS_BLEND_MODE_DEST_ATOP, "VIPS_BLEND_MODE_DEST_ATOP", "dest-atop"},
+			{VIPS_BLEND_MODE_XOR, "VIPS_BLEND_MODE_XOR", "xor"},
+			{VIPS_BLEND_MODE_ADD, "VIPS_BLEND_MODE_ADD", "add"},
+			{VIPS_BLEND_MODE_SATURATE, "VIPS_BLEND_MODE_SATURATE", "saturate"},
+			{VIPS_BLEND_MODE_MULTIPLY, "VIPS_BLEND_MODE_MULTIPLY", "multiply"},
+			{VIPS_BLEND_MODE_SCREEN, "VIPS_BLEND_MODE_SCREEN", "screen"},
+			{VIPS_BLEND_MODE_OVERLAY, "VIPS_BLEND_MODE_OVERLAY", "overlay"},
+			{VIPS_BLEND_MODE_DARKEN, "VIPS_BLEND_MODE_DARKEN", "darken"},
+			{VIPS_BLEND_MODE_LIGHTEN, "VIPS_BLEND_MODE_LIGHTEN", "lighten"},
+			{VIPS_BLEND_MODE_COLOUR_DODGE, "VIPS_BLEND_MODE_COLOUR_DODGE", "colour-dodge"},
+			{VIPS_BLEND_MODE_COLOUR_BURN, "VIPS_BLEND_MODE_COLOUR_BURN", "colour-burn"},
+			{VIPS_BLEND_MODE_HARD_LIGHT, "VIPS_BLEND_MODE_HARD_LIGHT", "hard-light"},
+			{VIPS_BLEND_MODE_SOFT_LIGHT, "VIPS_BLEND_MODE_SOFT_LIGHT", "soft-light"},
+			{VIPS_BLEND_MODE_DIFFERENCE, "VIPS_BLEND_MODE_DIFFERENCE", "difference"},
+			{VIPS_BLEND_MODE_EXCLUSION, "VIPS_BLEND_MODE_EXCLUSION", "exclusion"},
+			{VIPS_BLEND_MODE_LAST, "VIPS_BLEND_MODE_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsBlendMode", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/convolution.h" */
 GType
 vips_combine_get_type( void )

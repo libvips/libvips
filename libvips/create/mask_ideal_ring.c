@@ -111,7 +111,7 @@ vips_mask_ideal_ring_init( VipsMaskIdealRing *ideal_ring )
 
 /**
  * vips_mask_ideal_ring:
- * @out: output image
+ * @out: (out): output image
  * @width: image size
  * @height: image size
  * @frequency_cutoff: threshold at which filter ends

@@ -240,7 +240,7 @@ vips_booleanv( VipsImage *left, VipsImage *right, VipsImage **out,
  * vips_boolean:
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @boolean: boolean operation to perform
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -284,7 +284,7 @@ vips_boolean( VipsImage *left, VipsImage *right, VipsImage **out,
  * vips_andimage:
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_BOOLEAN_AND on a pair of images. See
@@ -310,7 +310,7 @@ vips_andimage( VipsImage *left, VipsImage *right, VipsImage **out, ... )
  * vips_orimage:
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_BOOLEAN_OR on a pair of images. See
@@ -336,7 +336,7 @@ vips_orimage( VipsImage *left, VipsImage *right, VipsImage **out, ... )
  * vips_eorimage:
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_BOOLEAN_EOR on a pair of images. See
@@ -362,7 +362,7 @@ vips_eorimage( VipsImage *left, VipsImage *right, VipsImage **out, ... )
  * vips_lshift:
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_BOOLEAN_LSHIFT on a pair of images. See
@@ -388,7 +388,7 @@ vips_lshift( VipsImage *left, VipsImage *right, VipsImage **out, ... )
  * vips_rshift:
  * @left: left-hand input #VipsImage
  * @right: right-hand input #VipsImage
- * @out: output #VipsImage
+ * @out: (out): output #VipsImage
  * @...: %NULL-terminated list of optional named arguments
  *
  * Perform #VIPS_OPERATION_BOOLEAN_RSHIFT on a pair of images. See
@@ -554,11 +554,11 @@ vips_boolean_constv( VipsImage *in, VipsImage **out,
 }
 
 /**
- * vips_boolean_const:
+ * vips_boolean_const: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @boolean: boolean operation to perform
- * @c: array of constants 
+ * @c: (array length=n): array of constants
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -593,10 +593,10 @@ vips_boolean_const( VipsImage *in, VipsImage **out,
 }
 
 /**
- * vips_andimage_const:
+ * vips_andimage_const: (method)
  * @in: input image
- * @out: output image
- * @c: array of constants 
+ * @out: (out): output image
+ * @c: (array length=n): array of constants
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -622,10 +622,10 @@ vips_andimage_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 }
 
 /**
- * vips_orimage_const:
+ * vips_orimage_const: (method)
  * @in: input image
- * @out: output image
- * @c: array of constants 
+ * @out: (out): output image
+ * @c: (array length=n): array of constants
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -651,10 +651,10 @@ vips_orimage_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 }
 
 /**
- * vips_eorimage_const:
+ * vips_eorimage_const: (method)
  * @in: input image
- * @out: output image
- * @c: array of constants 
+ * @out: (out): output image
+ * @c: (array length=n): array of constants
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -680,10 +680,10 @@ vips_eorimage_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 }
 
 /**
- * vips_lshift_const:
+ * vips_lshift_const: (method)
  * @in: input image
- * @out: output image
- * @c: array of constants 
+ * @out: (out): output image
+ * @c: (array length=n): array of constants
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -709,10 +709,10 @@ vips_lshift_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 }
 
 /**
- * vips_rshift_const:
+ * vips_rshift_const: (method)
  * @in: input image
- * @out: output image
- * @c: array of constants 
+ * @out: (out): output image
+ * @c: (array length=n): array of constants
  * @n: number of constants in @c
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -738,9 +738,9 @@ vips_rshift_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
 }
 
 /**
- * vips_boolean_const1:
+ * vips_boolean_const1: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @boolean: boolean operation to perform
  * @c: constant 
  * @...: %NULL-terminated list of optional named arguments
@@ -767,9 +767,9 @@ vips_boolean_const1( VipsImage *in, VipsImage **out,
 }
 
 /**
- * vips_andimage_const1:
+ * vips_andimage_const1: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @c: constant 
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -795,9 +795,9 @@ vips_andimage_const1( VipsImage *in, VipsImage **out, double c, ... )
 }
 
 /**
- * vips_orimage_const1:
+ * vips_orimage_const1: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @c: constant 
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -823,9 +823,9 @@ vips_orimage_const1( VipsImage *in, VipsImage **out, double c, ... )
 }
 
 /**
- * vips_eorimage_const1:
+ * vips_eorimage_const1: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @c: constant 
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -851,9 +851,9 @@ vips_eorimage_const1( VipsImage *in, VipsImage **out, double c, ... )
 }
 
 /**
- * vips_lshift_const1:
+ * vips_lshift_const1: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @c: constant 
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -879,9 +879,9 @@ vips_lshift_const1( VipsImage *in, VipsImage **out, double c, ... )
 }
 
 /**
- * vips_rshift_const1:
+ * vips_rshift_const1: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @c: constant 
  * @...: %NULL-terminated list of optional named arguments
  *

@@ -148,6 +148,7 @@ markdown_content_files = \
 	How-it-opens-files.md \
 	Examples.md \
 	Cite.md \
+	binding.md \
 	Making-image-pyramids.md
 
 # converted to xml in this dir by pandoc
@@ -159,13 +160,11 @@ content_files = \
 	using-command-line.xml \
 	using-C.xml \
 	using-threads.xml \
-	using-python.xml \
 	using-cpp.xml \
 	extending.xml \
 	function-list.xml \
 	file-format.xml \
-	${markdown_content_files_docbook} \
-	binding.xml
+	${markdown_content_files_docbook} 
 
 # SGML files where gtk-doc abbrevations (#GtkWidget) are expanded
 # These files must be listed here *and* in content_files
@@ -174,13 +173,11 @@ expand_content_files = \
 	using-command-line.xml \
 	using-C.xml \
 	using-threads.xml \
-	using-python.xml \
 	using-cpp.xml \
 	extending.xml \
 	function-list.xml \
 	file-format.xml \
-	${markdown_content_files_docbook} \
-	binding.xml
+	${markdown_content_files_docbook} 
 
 # CFLAGS and LDFLAGS for compiling gtkdoc-scangobj with your library.
 # Only needed if you are using gtkdoc-scangobj to dynamically query widget

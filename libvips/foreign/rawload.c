@@ -157,7 +157,7 @@ vips_foreign_load_raw_init( VipsForeignLoadRaw *raw )
 /**
  * vips_rawload:
  * @filename: file to load
- * @out: output image
+ * @out: (out): output image
  * @width: width of image in pixels
  * @height: height of image in pixels
  * @bands: number of image bands

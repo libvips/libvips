@@ -584,7 +584,7 @@ vips_foreign_find_load_buffer_sub( VipsForeignLoadClass *load_class,
  * vips_foreign_find_load_buffer:
  * @data: (array length=size) (element-type guint8) (transfer none): start of 
  * memory buffer
- * @size: number of bytes in @data
+ * @size: (type gsize): number of bytes in @data
  *
  * Searches for an operation you could use to load a memory buffer. To see the
  * range of buffer loaders supported by your vips, try something like:
@@ -642,8 +642,8 @@ vips_foreign_is_a( const char *loader, const char *filename )
 /**
  * vips_foreign_is_a_buffer:
  * @loader: name of loader to use for test
- * @data: pointer to the buffer to test
- * @size: size of the buffer to test
+ * @data: (array length=size) (element-type guint8): pointer to the buffer to test
+ * @size: (type gsize): size of the buffer to test
  *
  * Return %TRUE if @data can be loaded by @loader. @loader is something
  * like "tiffload_buffer" or "VipsForeignLoadTiffBuffer".
@@ -1047,12 +1047,12 @@ vips_foreign_load_init( VipsForeignLoad *load )
 	load->access = VIPS_ACCESS_RANDOM;
 }
 
-/**
+/*
  * Loaders can call this
  */
 
 /**
- * vips_foreign_load_invalidate:
+ * vips_foreign_load_invalidate: (method)
  * @image: image to invalidate
  *
  * Loaders can call this on the image they are making if they see a read error

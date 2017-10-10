@@ -130,6 +130,9 @@ vips_get_argv0( void )
  * VIPS_INIT:
  * @ARGV0: name of application
  *
+ * gtk-doc mistakenly tags this macro as deprecated for unknown reasons. It is
+ * *NOT* deprecated, please ignore the warning above. 
+ *
  * VIPS_INIT() starts up the world of VIPS. You should call this on
  * program startup before using any other VIPS operations. If you do not call
  * VIPS_INIT(), VIPS will call it for you when you use your first VIPS 

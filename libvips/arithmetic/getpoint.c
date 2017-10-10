@@ -166,9 +166,9 @@ vips_getpoint_init( VipsGetpoint *getpoint )
 }
 
 /**
- * vips_getpoint:
+ * vips_getpoint: (method)
  * @in: image to read from
- * @vector: array length=n: output pixel value here
+ * @vector: (out)(array length=n): output pixel value here
  * @n: length of output vector
  * @x: position to read
  * @y: position to read

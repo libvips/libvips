@@ -284,9 +284,9 @@ vips_rot45_init( VipsRot45 *rot45 )
 }
 
 /**
- * vips_rot45:
+ * vips_rot45: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

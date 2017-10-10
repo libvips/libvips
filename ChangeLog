@@ -23,10 +23,14 @@
 - better svgload: larger output, handle missing width/height, thanks lovell
 - add vips_gravity() ... embed, but with direction rather than position
 - vips_text() can autofit text to a box, thanks gargsms
+- add vips_composite(): merge an array of images with porter-duff
+- better gobject-introspection annotations, thanks astavale 
 
 29/8/17 started 8.5.9
 - make --fail stop jpeg read on any libjpeg warning, thanks @mceachen
-- don't build enumtypes so often, removing perl as a compile dependancy
+- don't build enumtypes so often -- helps remove perl as a compile dependency
+- fix a crash with havy use of draw operations from language bindings, 
+  thanks @Nakilon 
 
 2/8/17 started 8.5.8
 - fix transparency detection in merge, thanks Haida
@@ -540,7 +544,7 @@
 - vips_system() now supports many input images and you can change image
   argument order
 - support 16-bit palette TIFFs, plus palette TIFFs can have an alpha
-- libgsf-1 is now an optional dependancy 
+- libgsf-1 is now an optional dependency 
 - dzsave can directly write a ZIP file 
 - add ".vips" as an alternative suffix for vips files
 - added vips_tiffload_buffer()
@@ -1204,9 +1208,9 @@
 - fix gtk-doc warnings
 - small mask load/save improvements
 - mask gtk-doc done
-- add cfitsio dependancy
+- add cfitsio dependency
 - add FITS reader
-- land the vector branch and the orc dependancy ... we have SSE
+- land the vector branch and the orc dependency ... we have SSE
   erode/dilate/add/conv
 - add IM_SWAP
 - dilate/erode do (!=0) on non-uchar images
@@ -2059,7 +2063,7 @@
 - "," allowed as column separator in mask read
 - better at spotting singular matricies
 - small im_render() tidies
-- glib dependancy reduced to just 2.0, but untested ... helps people building
+- glib dependency reduced to just 2.0, but untested ... helps people building
   on older systems who aren't interested in nip2
 - removing leading spaces from IMAGEVEC arguments
 - load non-interlaced PNGs more efficiently

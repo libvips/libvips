@@ -221,7 +221,7 @@ vips_area_unref( VipsArea *area )
 }
 
 /**
- * vips_area_new: 
+ * vips_area_new: (constructor)
  * @free_fn: (scope async): @data will be freed with this function
  * @data: data will be freed with this function
  *
@@ -287,7 +287,7 @@ vips__type_leak( void )
 }
 
 /**
- * vips_area_new_array: 
+ * vips_area_new_array:
  * @type: %GType of elements to store
  * @sizeof_type: sizeof() an element in the array
  * @n: number of elements in the array
@@ -328,7 +328,7 @@ vips_area_free_array_object( GObject **array, VipsArea *area )
 }
 
 /**
- * vips_area_new_array_object:
+ * vips_area_new_array_object: (constructor)
  * @n: number of elements in the array
  *
  * An area which holds an array of %GObject s. See vips_area_new_array(). When
@@ -359,12 +359,12 @@ vips_area_new_array_object( int n )
 }
 
 /**
- * vips_area_get_data:
+ * vips_area_get_data: (method)
  * @area: #VipsArea to fetch from
- * @length: (allow-none): optionally return length in bytes here
- * @n: (allow-none): optionally return number of elements here
- * @type: (allow-none): optionally return element type here
- * @sizeof_type: (allow-none): optionally return sizeof() element type here
+ * @length: (optional): optionally return length in bytes here
+ * @n: (optional): optionally return number of elements here
+ * @type: (optional): optionally return element type here
+ * @sizeof_type: (optional): optionally return sizeof() element type here
  *
  * Return the data pointer plus optionally the length in bytes of an area, 
  * the number of elements, the %GType of each element and the sizeof() each
@@ -893,6 +893,20 @@ transform_double_array_int( const GValue *src_value, GValue *dest_value )
 	array[0] = g_value_get_double( src_value ); 
 }
 
+static void
+transform_array_double_array_int( const GValue *src_value, GValue *dest_value )
+{
+	int n;
+	double *array_double = vips_value_get_array_double( src_value, &n );
+	int *array_int;
+	int i;
+
+	vips_value_set_array_int( dest_value, NULL, n ); 
+	array_int = vips_value_get_array_int( dest_value, NULL ); 
+	for( i = 0; i < n; i++ )
+		array_int[i] = array_double[i];
+}
+
 GType
 vips_array_int_get_type( void )
 {
@@ -910,6 +924,8 @@ vips_array_int_get_type( void )
 			transform_int_array_int );
 		g_value_register_transform_func( G_TYPE_DOUBLE, type,
 			transform_double_array_int );
+		g_value_register_transform_func( VIPS_TYPE_ARRAY_DOUBLE, type,
+			transform_array_double_array_int );
 	}
 
 	return( type );
@@ -1084,6 +1100,28 @@ transform_int_array_double( const GValue *src_value, GValue *dest_value )
 	array[0] = g_value_get_int( src_value ); 
 }
 
+static void
+transform_array_int_array_double( const GValue *src_value, GValue *dest_value )
+{
+	int n;
+	int *array_int = vips_value_get_array_int( src_value, &n );
+	double *array_double;
+	int i;
+
+	vips_value_set_array_double( dest_value, NULL, n ); 
+	array_double = vips_value_get_array_double( dest_value, NULL ); 
+	for( i = 0; i < n; i++ )
+		array_double[i] = array_int[i];
+}
+
+/* You can set enums from ints, but not doubles. Add a double converter too. 
+ */
+static void
+transform_double_enum( const GValue *src_value, GValue *dest_value )
+{
+	g_value_set_enum( dest_value, g_value_get_double( src_value ) ); 
+}
+
 GType
 vips_array_double_get_type( void )
 {
@@ -1101,13 +1139,17 @@ vips_array_double_get_type( void )
 			transform_double_array_double );
 		g_value_register_transform_func( G_TYPE_INT, type,
 			transform_int_array_double );
+		g_value_register_transform_func( VIPS_TYPE_ARRAY_INT, type,
+			transform_array_int_array_double );
+		g_value_register_transform_func( G_TYPE_DOUBLE, G_TYPE_ENUM,
+			transform_double_enum );
 	}
 
 	return( type );
 }
 
 /**
- * vips_array_image_new:
+ * vips_array_image_new: (constructor)
  * @array: (array length=n): array of #VipsImage
  * @n: number of images
  *
@@ -1145,7 +1187,7 @@ vips_array_image_new( VipsImage **array, int n )
 }
 
 /**
- * vips_array_image_newv:
+ * vips_array_image_newv: (constructor)
  * @n: number of images
  * @...: list of #VipsImage arguments
  *
@@ -1232,7 +1274,7 @@ vips_array_image_new_from_string( const char *string, VipsAccess access )
 }
 
 /**
- * vips_array_image_empty:
+ * vips_array_image_empty: (constructor)
  *
  * Make an empty image array. 
  * Handy with vips_array_image_add() for bindings
@@ -1249,7 +1291,7 @@ vips_array_image_empty( void )
 }
 
 /**
- * vips_array_image_append:
+ * vips_array_image_append: (method)
  * @array: (transfer none): append to this
  * @image: add this
  *
@@ -1289,7 +1331,7 @@ vips_array_image_append( VipsArrayImage *array, VipsImage *image )
 }
 
 /**
- * vips_array_image_get:
+ * vips_array_image_get: (method)
  * @array: the #VipsArrayImage to fetch from
  * @n: length of array
  *

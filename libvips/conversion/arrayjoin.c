@@ -384,7 +384,7 @@ vips_arrayjoinv( VipsImage **in, VipsImage **out, int n, va_list ap )
 /**
  * vips_arrayjoin:
  * @in: (array length=n) (transfer none): array of input images
- * @out: output image
+ * @out: (out): output image
  * @n: number of input images
  * @...: %NULL-terminated list of optional named arguments
  *

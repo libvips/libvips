@@ -37,6 +37,7 @@ gtype_to_cpp = {
     "gdouble" : "double",
     "gboolean" : "bool",
     "gchararray" : "char *",
+    "VipsArrayInt" : "std::vector<int>",
     "VipsArrayDouble" : "std::vector<double>",
     "VipsArrayImage" : "std::vector<VImage>",
     "VipsBlob" : "VipsBlob *"

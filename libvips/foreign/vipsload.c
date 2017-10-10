@@ -150,7 +150,7 @@ vips_foreign_load_vips_init( VipsForeignLoadVips *vips )
 /**
  * vips_vipsload:
  * @filename: file to load
- * @out: decompressed image
+ * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Read in a vips image. 

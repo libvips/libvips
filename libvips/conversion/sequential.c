@@ -265,9 +265,9 @@ vips_sequential_init( VipsSequential *sequential )
 }
 
 /**
- * vips_sequential:
+ * vips_sequential: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

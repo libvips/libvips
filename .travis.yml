@@ -10,6 +10,8 @@ script:
   - make -Ctest -j$JOBS -s V=0 VERBOSE=1 check
 
 matrix:
+  allow_failures:
+    - os: osx
   fast_finish: true
   include:
     - os: linux

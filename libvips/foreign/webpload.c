@@ -282,7 +282,7 @@ vips_foreign_load_webp_buffer_init( VipsForeignLoadWebpBuffer *buffer )
 /**
  * vips_webpload:
  * @filename: file to load
- * @out: decompressed image
+ * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -315,9 +315,9 @@ vips_webpload( const char *filename, VipsImage **out, ... )
 
 /**
  * vips_webpload_buffer:
- * @buf: memory area to load
- * @len: size of memory area
- * @out: image to write
+ * @buf: (array length=len) (element-type guint8): memory area to load
+ * @len: (type gsize): size of memory area
+ * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

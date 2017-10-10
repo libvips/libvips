@@ -158,9 +158,9 @@ vips_convsep_init( VipsConvsep *convsep )
 }
 
 /**
- * vips_convsep:
+ * vips_convsep: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @mask: convolution mask
  * @...: %NULL-terminated list of optional named arguments
  *

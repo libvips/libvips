@@ -224,10 +224,10 @@ vips_fastcor_init( VipsFastcor *fastcor )
 }
 
 /**
- * vips_fastcor:
+ * vips_fastcor: (method)
  * @in: input image
  * @ref: reference image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Calculate a fast correlation surface.

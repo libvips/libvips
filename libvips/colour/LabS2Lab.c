@@ -96,9 +96,9 @@ vips_LabS2Lab_init( VipsLabS2Lab *LabS2Lab )
 }
 
 /**
- * vips_LabS2Lab:
+ * vips_LabS2Lab: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Convert a LabS three-band signed short image to a three-band float image.

@@ -176,9 +176,9 @@ vips_scale_init( VipsScale *scale )
 }
 
 /**
- * vips_scale:
+ * vips_scale: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

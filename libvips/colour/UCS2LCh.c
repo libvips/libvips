@@ -284,9 +284,9 @@ vips_CMC2LCh_init( VipsCMC2LCh *CMC2LCh )
 }
 
 /**
- * vips_CMC2LCh:
+ * vips_CMC2LCh: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Turn LCh to CMC.

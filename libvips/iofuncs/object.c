@@ -770,7 +770,7 @@ vips_object_get_argument( VipsObject *object, const char *name,
 }
 
 /**
- * vips_object_argument_isset:
+ * vips_object_argument_isset: 
  * @object: the object to fetch the args from
  * @name: arg to fetch
  *
@@ -793,7 +793,7 @@ vips_object_argument_isset( VipsObject *object, const char *name )
 }
 
 /**
- * vips_object_get_argument_flags:
+ * vips_object_get_argument_flags: 
  * @object: the object to fetch the args from
  * @name: arg to fetch
  *
@@ -816,7 +816,7 @@ vips_object_get_argument_flags( VipsObject *object, const char *name )
 }
 
 /**
- * vips_object_get_argument_priority:
+ * vips_object_get_argument_priority: 
  * @object: the object to fetch the args from
  * @name: arg to fetch
  *

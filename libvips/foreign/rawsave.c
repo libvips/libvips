@@ -155,7 +155,7 @@ vips_foreign_save_raw_init( VipsForeignSaveRaw *raw )
 }
 
 /**
- * vips_rawsave:
+ * vips_rawsave: (method)
  * @in: image to save 
  * @filename: file to write to
  * @...: %NULL-terminated list of optional named arguments
@@ -261,7 +261,7 @@ vips_foreign_save_raw_fd_init( VipsForeignSaveRawFd *fd )
 }
 
 /**
- * vips_rawsave_fd:
+ * vips_rawsave_fd: (method)
  * @in: image to save 
  * @fd: file to write to
  * @...: %NULL-terminated list of optional named arguments

@@ -106,7 +106,7 @@ vips_mask_fractal_init( VipsMaskFractal *fractal )
 
 /**
  * vips_mask_fractal:
- * @out: output image
+ * @out: (out): output image
  * @width: image size
  * @height: image size
  * @fractal_dimension: fractal dimension

@@ -276,9 +276,9 @@ vips_premultiply_init( VipsPremultiply *premultiply )
 }
 
 /**
- * vips_premultiply:
+ * vips_premultiply: (method)
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:

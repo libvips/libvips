@@ -131,7 +131,7 @@ vips_fractsurf_init( VipsFractsurf *fractsurf )
 
 /**
  * vips_fractsurf:
- * @out: output image
+ * @out: (out): output image
  * @width: output width
  * @height: output height
  * @fractal_dimension: fractal dimension

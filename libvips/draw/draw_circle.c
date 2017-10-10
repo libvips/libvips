@@ -283,7 +283,7 @@ vips_draw_circlev( VipsImage *image,
 }
 
 /**
- * vips_draw_circle:
+ * vips_draw_circle: (method)
  * @image: image to draw on
  * @ink: (array length=n): value to draw
  * @n: length of ink array
@@ -320,7 +320,7 @@ vips_draw_circle( VipsImage *image,
 }
 
 /**
- * vips_draw_circle1:
+ * vips_draw_circle1: (method)
  * @image: image to draw on
  * @ink: value to draw
  * @cx: centre of draw_circle

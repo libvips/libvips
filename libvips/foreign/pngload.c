@@ -244,7 +244,7 @@ vips_foreign_load_png_buffer_init( VipsForeignLoadPngBuffer *buffer )
 /**
  * vips_pngload:
  * @filename: file to load
- * @out: decompressed image
+ * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Read a PNG file into a VIPS image. It can read all png images, including 8-
@@ -271,9 +271,9 @@ vips_pngload( const char *filename, VipsImage **out, ... )
 
 /**
  * vips_pngload_buffer:
- * @buf: memory area to load
- * @len: size of memory area
- * @out: image to write
+ * @buf: (array length=len) (element-type guint8): memory area to load
+ * @len: (type gsize): size of memory area
+ * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
  * Read a PNG-formatted memory block into a VIPS image. It can read all png 

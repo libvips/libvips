@@ -362,7 +362,7 @@ vips_draw_maskv( VipsImage *image,
 }
 
 /**
- * vips_draw_mask:
+ * vips_draw_mask: (method)
  * @image: image to draw on
  * @ink: (array length=n): value to draw
  * @n: size of ink array
@@ -397,7 +397,7 @@ vips_draw_mask( VipsImage *image,
 }
 
 /**
- * vips_draw_mask1:
+ * vips_draw_mask1: (method)
  * @image: image to draw on
  * @ink: value to draw
  * @mask: mask of 0/255 values showing where to plot

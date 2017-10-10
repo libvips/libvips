@@ -168,7 +168,7 @@ vips_merge_init( VipsMerge *merge )
  * vips_merge:
  * @ref: reference image
  * @sec: secondary image
- * @out: output image
+ * @out: (out): output image
  * @direction: horizontal or vertical merge
  * @dx: displacement of ref from sec
  * @dy: displacement of ref from sec
