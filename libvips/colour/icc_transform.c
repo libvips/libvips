@@ -34,6 +34,8 @@
  *	- better profile sanity checking for icc import
  * 2/8/17
  * 	- remove lcms1 support, it was untested
+ * 10/10/17
+ * 	- more input profile sanity tests
  */
 
 /*
@@ -489,6 +491,63 @@ vips_image_expected_bands( VipsImage *image )
 	return( expected_bands );
 }
 
+/* What cmsColorSpaceSignature do we expect this image to be (roughly) after 
+ * preprocessing. Again, fragile :( see the FIXME above.
+ */
+static cmsColorSpaceSignature
+vips_image_expected_sig( VipsImage *image )
+{
+	cmsColorSpaceSignature expected_sig;
+
+	switch( image->Type ) { 
+	case VIPS_INTERPRETATION_B_W:
+	case VIPS_INTERPRETATION_GREY16:
+		expected_sig = cmsSigGrayData;
+		break;
+
+	case VIPS_INTERPRETATION_LAB:
+	case VIPS_INTERPRETATION_LABQ:
+	case VIPS_INTERPRETATION_LABS:
+		expected_sig = cmsSigLabData;
+		break;
+
+	case VIPS_INTERPRETATION_sRGB:
+	case VIPS_INTERPRETATION_RGB:
+	case VIPS_INTERPRETATION_RGB16:
+	case VIPS_INTERPRETATION_scRGB:
+		expected_sig = cmsSigRgbData;
+		break;
+
+	case VIPS_INTERPRETATION_XYZ:
+		expected_sig = cmsSigXYZData;
+		break;
+
+	case VIPS_INTERPRETATION_CMYK:
+		expected_sig = cmsSigCmykData;
+		break;
+
+	case VIPS_INTERPRETATION_HSV:
+		expected_sig = cmsSigHsvData;
+		break;
+
+	case VIPS_INTERPRETATION_YXY:
+		expected_sig = cmsSigYxyData;
+		break;
+
+	case VIPS_INTERPRETATION_LCH:
+	case VIPS_INTERPRETATION_CMC:
+	case VIPS_INTERPRETATION_MULTIBAND:
+	case VIPS_INTERPRETATION_HISTOGRAM:
+	case VIPS_INTERPRETATION_MATRIX:
+	case VIPS_INTERPRETATION_FOURIER:
+	default:
+		expected_sig = -1;
+		break;
+	}
+
+	return( expected_sig );
+}
+
 static cmsHPROFILE
 vips_icc_load_profile_image( VipsImage *image )
 {
@@ -513,6 +572,12 @@ vips_icc_load_profile_image( VipsImage *image )
 			_( "embedded profile incompatible with image" ) );
 		return( NULL );
 	}
+	if( vips_image_expected_sig( image ) != cmsGetColorSpace( profile ) ) {
+		VIPS_FREEF( cmsCloseProfile, profile );
+		g_warning( "%s", 
+			_( "embedded profile colourspace differs from image" ) );
+		return( NULL );
+	}
 
 	return( profile );
 }
@@ -534,6 +599,12 @@ vips_icc_load_profile_file( const char *domain,
 		VIPS_FREEF( cmsCloseProfile, profile );
 		g_warning( _( "profile \"%s\" incompatible with image" ),
 			filename );
+		return( NULL );
+	}
+	if( vips_image_expected_sig( image ) != cmsGetColorSpace( profile ) ) {
+		VIPS_FREEF( cmsCloseProfile, profile );
+		g_warning( _( "profile \"%s\" colourspace "
+			"differs from image" ), filename );
 		return( NULL );
 	}
 
