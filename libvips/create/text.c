@@ -500,6 +500,7 @@ vips_text_init( VipsText *text )
  * * @height: %gint, image should be no higher than this many pixels
  * * @align: #VipsAlign, left/centre/right alignment
  * * @dpi: %gint, render at this resolution
+ * * @autofit_dpi: %gint, read out auto-fitted DPI 
  * * @spacing: %gint, space lines by this in points
  *
  * Draw the string @text to an image. @out is a one-band 8-bit
@@ -522,6 +523,8 @@ vips_text_init( VipsText *text )
  * only takes effect when @dpi is not set, and @width is set, making a box. 
  * In this case, vips_text() will search for a @dpi which will just fit the 
  * text into @width and @height.
+ *
+ * You can use @autofit_dpi to read out the DPI selected by auto fit. 
  *
  * @dpi sets the resolution to render at. "sans 12" at 72 dpi draws characters
  * approximately 12 pixels high. 
