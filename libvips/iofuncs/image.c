@@ -12,6 +12,8 @@
  * 	- vips_image_write() does not ref input for non-partial images
  * 29/10/16
  * 	- add vips_image_hasalpha()
+ * 11/10/1
+ * 	- more severing for vips_image_write()
  */
 
 /*
@@ -2528,7 +2530,7 @@ vips_image_write( VipsImage *image, VipsImage *out )
 	/* If @out is a partial image, we need to make sure that @image stays
 	 * alive as long as @out is alive.
 	 *
-	 * If it's not partial, perhaps a file we write to, or a memory image,
+	 * If it's not partial, perhaps a file we write to or a memory image,
 	 * we need to break any links between @image and @out created by
 	 * vips_image_pipelinev().
 	 */

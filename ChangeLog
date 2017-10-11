@@ -25,6 +25,8 @@
 - vips_text() can autofit text to a box, thanks gargsms
 - add vips_composite(): merge an array of images with porter-duff
 - better gobject-introspection annotations, thanks astavale 
+- vips_image_write() severs all links between images, when it can ... thanks
+  Warren and Nakilon
 
 29/8/17 started 8.5.9
 - make --fail stop jpeg read on any libjpeg warning, thanks @mceachen
