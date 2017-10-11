@@ -30,8 +30,8 @@
 
 29/8/17 started 8.5.9
 - make --fail stop jpeg read on any libjpeg warning, thanks @mceachen
-- don't build enumtypes so often -- helps remove perl as a compile dependency
-- fix a crash with havy use of draw operations from language bindings, 
+- don't build enumtypes so often, removing perl as a compile dependency
+- fix a crash with heavy use of draw operations from language bindings, 
   thanks @Nakilon 
 
 2/8/17 started 8.5.8
