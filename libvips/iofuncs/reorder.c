@@ -372,6 +372,12 @@ vips_reorder_margin_hint( VipsImage *image, int margin )
 }
 
 void
+vips__reorder_clear( VipsImage *image )
+{
+	g_object_set_qdata( G_OBJECT( image ), vips__image_reorder_quark, NULL );
+}
+
+void
 vips__reorder_init( void )
 {
 	if( !vips__image_reorder_quark )

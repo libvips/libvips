@@ -252,6 +252,7 @@ int vips__image_intize( VipsImage *in, VipsImage **out );
 
 void vips__reorder_init( void );
 int vips__reorder_set_input( VipsImage *image, VipsImage **in );
+void vips__reorder_clear( VipsImage *image );
 
 #ifdef __cplusplus
 }

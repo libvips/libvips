@@ -2529,13 +2529,16 @@ vips_image_write( VipsImage *image, VipsImage *out )
 	 * alive as long as @out is alive.
 	 *
 	 * If it's not partial, perhaps a file we write to, or a memory image,
-	 * it's fine for @image to go away.
+	 * we need to break any links between @image and @out created by
+	 * vips_image_pipelinev().
 	 */
 	if( vips_image_ispartial( out ) ) { 
 		g_object_ref( image );
 		vips_object_local( out, image );
 	}
 	else {
+		vips__reorder_clear( image );
+		vips__link_break_all( out );
 	}
 
 	return( 0 );
@@ -3071,12 +3074,12 @@ vips_image_rewind_output( VipsImage *image )
  * vips_image_copy_memory: (method)
  * @image: image to copy to a memory buffer
  *
- * Allocate a memory buffer and copy @image to it. This is a thread-safe
- * equivalent of vips_image_wio_input(), useful if @image is small and from an
- * unknown source.
+ * Make an image which is an area of memory. 
  *
- * If @image is already in memory (perhaps a mmaped file on disc),
- * vips_image_copy_memory() will just ref @image and return that.
+ * If @image is already a memory buffer, just ref and return. If it's a file on
+ * disc or a partial, allocate memory and copy the image to it. 
+ *
+ * This operation is thread-safe, unlike vips_image_wio_input(). 
  *
  * If you are sure that @image is not shared with another thread (perhaps you
  * have made it yourself), use vips_image_wio_input() instead.
@@ -3089,9 +3092,6 @@ VipsImage *
 vips_image_copy_memory( VipsImage *image )
 {
 	VipsImage *new;
-	VipsImage *image_array[2];
-	size_t length;
-	void *data;
 
 	switch( image->dtype ) {
 	case VIPS_IMAGE_SETBUF:
@@ -3107,36 +3107,11 @@ vips_image_copy_memory( VipsImage *image )
 	case VIPS_IMAGE_OPENOUT:
 	case VIPS_IMAGE_OPENIN:
 	case VIPS_IMAGE_PARTIAL:
-		/* We don't use vips_image_new_memory() and vips_image_write()
-		 * since we want to make a break in the pipeline and we want
-		 * to avoid all the machinery around reordering and dependancy
-		 * links.
-		 *
-		 * We especially want to be able to unref input and have output
-		 * survive. Things like the progress signal must be cleared,
-		 * for example. 
-		 */
-
-		/* Write to a new memory image.
-		 */
-		if( !(data = vips_image_write_to_memory( image, &length )) )
-			return( NULL );
-		if( !(new = vips_image_new_from_memory( data, length,
-			image->Xsize, image->Ysize, image->Bands, 
-			image->BandFmt )) ) {
-			g_free( data );
-			return( NULL );
+		new = vips_image_new_memory();
+		if( vips_image_write( image, new ) ) {
+			g_object_unref( new );
+			return( NULL ); 
 		}
-
-		/* Copy over other fields and the metadata.
-		 */
-		image_array[0] = image;
-		image_array[1] = NULL;
-		if( vips__image_copy_fields_array( new, image_array ) ) {
-			VIPS_UNREF( new );
-			return( NULL );
-		}
-
 		break;
 
 	default:
