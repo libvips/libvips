@@ -3032,7 +3032,7 @@ vips_image_copy_memory( VipsImage *image )
 	case VIPS_IMAGE_PARTIAL:
 		/* We don't use vips_image_new_memory() and vips_image_write()
 		 * since we want to make a break in the pipeline and we want
-		 * to avoid all the machinery around reordering and dependancy
+		 * to avoid all the machinery around reordering and dependency
 		 * links.
 		 *
 		 * We especially want to be able to unref input and have output
