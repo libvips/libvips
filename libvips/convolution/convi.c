@@ -74,6 +74,8 @@
  * 	- new fixed-point vector path, up to 2x faster
  * 2/7/17
  * 	- remove pts for a small speedup
+ * 12/10/17
+ * 	- fix leak of vectors, thanks MHeimbuc 
  */
 
 /*
@@ -196,6 +198,33 @@ typedef struct {
 	short *t2;
 } VipsConviSequence;
 
+static void
+vips_convi_compile_free( VipsConvi *convi )
+{
+	int i;
+
+	for( i = 0; i < convi->n_pass; i++ )
+		VIPS_FREEF( vips_vector_free, convi->pass[i].vector );
+	convi->n_pass = 0;
+	VIPS_FREEF( vips_vector_free, convi->vector );
+}
+
+static void
+vips_convi_dispose( GObject *gobject )
+{
+	VipsConvi *convi = (VipsConvi *) gobject;
+
+#ifdef DEBUG
+	printf( "vips_convi_dispose: " );
+	vips_object_print_name( VIPS_OBJECT( gobject ) );
+	printf( "\n" );
+#endif /*DEBUG*/
+
+	vips_convi_compile_free( convi ); 
+
+	G_OBJECT_CLASS( vips_convi_parent_class )->dispose( gobject );
+}
+
 /* Free a sequence value.
  */
 static int
@@ -255,17 +284,6 @@ vips_convi_start( VipsImage *out, void *a, void *b )
 	}
 
 	return( (void *) seq );
-}
-
-static void
-vips_convi_compile_free( VipsConvi *convi )
-{
-	int i;
-
-	for( i = 0; i < convi->n_pass; i++ )
-		VIPS_FREEF( vips_vector_free, convi->pass[i].vector );
-	convi->n_pass = 0;
-	VIPS_FREEF( vips_vector_free, convi->vector );
 }
 
 #define TEMP( N, S ) vips_vector_temporary( v, (char *) N, S )
@@ -1003,7 +1021,10 @@ vips_convi_build( VipsObject *object )
 static void
 vips_convi_class_init( VipsConviClass *class )
 {
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->dispose = vips_convi_dispose;
 
 	object_class->nickname = "convi";
 	object_class->description = _( "int convolution operation" );
