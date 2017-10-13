@@ -108,8 +108,8 @@
 /* 
 #define DEBUG
 #define DEBUG_PIXELS
-#define DEBUG_COMPILE
  */
+#define DEBUG_COMPILE
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -161,9 +161,11 @@ typedef struct {
 	int *coeff;		/* Array of non-zero mask coefficients */
 	int *coeff_pos;		/* Index of each nnz element in mask->coeff */
 
-	/* And a fixed-point version for a vector path.
+	/* And a half float version for a vector path.
 	 */
 	int *fixed;
+	int *mant;
+	int exp;
 	int n_point;		/* Number of points in fixed-point array */
 
 	/* The set of passes we need for this mask.
@@ -835,27 +837,28 @@ vips__image_intize( VipsImage *in, VipsImage **out )
 	return( 0 );
 }
 
-/* Make an int version of a mask.
- *
- * This makes a fixed-point version ready for the vector path: instead of an 
- * output scale, we have x.y for each element.
+/* Make an int version of a mask. Each element is 8.8 float, with the same
+ * exponent for each element (so just 8 bits in @out).
  *
  * @out is a w x h int array.
  */
 static int
-intize_to_fixed_point( VipsImage *in, int *out )
+intize_to_half_float( VipsImage *in, int *out, int *exp )
 {
 	VipsImage *t;
 	double scale;
 	int ne;
 	double *scaled;
+	double mx;
+	double above;
+	int shift;
 	double total_error;
 	int i;
 
 	if( vips_check_matrix( "vips2imask", in, &t ) )
 		return( -1 ); 
 
-	/* Bake the scale into the mask.
+	/* Bake the scale into the mask to make a double version.
 	 */
 	scale = vips_image_get_scale( t );
 	ne = t->Xsize * t->Ysize; 
@@ -867,42 +870,54 @@ intize_to_fixed_point( VipsImage *in, int *out )
 		scaled[i] = VIPS_MATRIX( t, 0, 0 )[i] / scale;
 	g_object_unref( t ); 
 
-	/* The scaled mask must fit in 3.5 bits, so we can handle -4 to +3.99
-	 */
-	for( i = 0; i < ne; i++ ) 
-		if( scaled[i] >= 4.0 ||
-			scaled[i] < -4 ) {
-			g_info( "intize_to_fixed_point: "
-				"out of range for vector path" );
-			return( -1 ); 
-		}
+#ifdef DEBUG_COMPILE
+{
+	int x, y;
 
-	/* The smallest coefficient we can manage is 1/32nd, we'll just turn
-	 * that into zero.
-	 *
-	 * Find the total error we'll get by rounding down to zero and bail if
-	 * it's significant.
-	 */
-	total_error = 0.0;
-	for( i = 0; i < ne; i++ ) 
-		if( scaled[i] != 0.0 &&
-			VIPS_FABS( scaled[i] ) < 1.0 / FIXED_SCALE ) 
-			total_error += VIPS_FABS( scaled[i] ); 
-
-	/* 0.1 is a 10% error.
-	 */
-	if( total_error > 0.1 ) {
-		g_info( "intize_to_fixed_point: too many underflows" );
-		return( -1 ); 
+	printf( "intize_to_half_float: double version\n" ); 
+	for( y = 0; y < t->Ysize; y++ ) {
+		printf( "\t" ); 
+		for( x = 0; x < t->Xsize; x++ ) 
+			printf( "%g ", scaled[y * t->Xsize + x] ); 
+		printf( "\n" ); 
 	}
+}
+#endif /*DEBUG_COMPILE*/
 
-	vips_vector_to_fixed_point( scaled, out, ne, FIXED_SCALE );
+	/* The mask max rounded up to the next power of two gives the exponent
+	 * all elements share.
+	 */
+	mx = scaled[0];
+	for( i = 1; i < ne; i++ ) 
+		if( scaled[i] > mx )
+			mx = scaled[i];
+	
+	/* So eg. -3 for 1/8, 3 for 8.
+	 */
+	shift = ceil( log2( mx ) );
+
+	/* Mask elements are schar. We convolve as:
+	 *   1.  8s*8u->16s
+	 *   2.  shift down to make sure we have enough bits to sum all
+	 *       elements --- ceil(log2(ne))
+	 *   3.  16s+16s->16s
+	 *   4.  shift again by exp and take the top 8 bits 
+	 *   5.  clip to 0 - 255
+	 */
+
+	if( shift
+
+	/* We do the exp by shifting after the mask sum
+	 */
+	*exp = above;
+	for( i = 0; i < ne; i++ ) 
+		out[i] = 256 * scaled[i] / above;
 
 #ifdef DEBUG_COMPILE
 {
 	int x, y;
 
-	printf( "intize_to_fixed_point:\n" ); 
+	printf( "intize_to_half_float: exp = %d\n", *exp ); 
 	for( y = 0; y < t->Ysize; y++ ) {
 		printf( "\t" ); 
 		for( x = 0; x < t->Xsize; x++ ) 
@@ -911,6 +926,25 @@ intize_to_fixed_point( VipsImage *in, int *out )
 	}
 }
 #endif /*DEBUG_COMPILE*/
+
+	/* Convolve with 255 and calculate the total error.
+	 */
+	total_error = 0.0;
+	for( i = 0; i < ne; i++ ) {
+		double true_value = 255 * scaled[i];
+		double approx_value = 255 * out[i] / (256 * above);
+		double error = VIPS_FABS( true_value - approx_value );
+
+		total_error += error;
+	}
+
+	/* 0.1 is a 10% error.
+	 */
+	if( total_error > 0.1 ) {
+		g_info( "intize_to_half_float: too many underflows - "
+			"%d%%i error", (int) (100 * total_error) );
+		return( -1 ); 
+	}
 
 	return( 0 );
 }
@@ -952,8 +986,8 @@ vips_convi_build( VipsObject *object )
 	 */
 	if( vips_vector_isenabled() &&
 		in->BandFmt == VIPS_FORMAT_UCHAR ) {
-		if( (convi->fixed = VIPS_ARRAY( object, n_point, int )) &&
-			!intize_to_fixed_point( M, convi->fixed ) &&
+		if( (convi->mant = VIPS_ARRAY( object, n_point, int )) &&
+			!intize_to_half_float( M, convi->mant, &convi->exp ) &&
 			!vips_convi_compile( convi, in ) ) {
 			generate = vips_convi_gen_vector;
 			g_info( "convi: using vector path" ); 
