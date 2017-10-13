@@ -122,16 +122,19 @@ vips_resize_int_shrink( VipsResize *resize, double scale )
 	else
 		switch( resize->kernel ) { 
 		case VIPS_KERNEL_NEAREST:
-		     shrink = 1; 
+			shrink = 1; 
+			break;
 
 		case VIPS_KERNEL_LINEAR:
 		case VIPS_KERNEL_CUBIC:
 		default:
 			shrink = VIPS_FLOOR( 1.0 / scale );
+			break;
 
 		case VIPS_KERNEL_LANCZOS2:
 		case VIPS_KERNEL_LANCZOS3:
 			shrink = VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (scale * 2) ) );
+			break;
 		}
 
 	return( shrink );
