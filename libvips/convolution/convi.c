@@ -161,10 +161,13 @@ typedef struct {
 	int *coeff;		/* Array of non-zero mask coefficients */
 	int *coeff_pos;		/* Index of each nnz element in mask->coeff */
 
-	/* And a half float version for a vector path.
+	/* And a half float version for a vector path. mant has the signed
+	 * 8-bit mantissas in [-1, +1), sexp has the exponent shift after the
+	 * mul and before the add, and exp has the final exponent shift before
+	 * write-back.
 	 */
-	int *fixed;
 	int *mant;
+	int sexp;
 	int exp;
 	int n_point;		/* Number of points in fixed-point array */
 
@@ -177,6 +180,10 @@ typedef struct {
 	 */
 	int r;			
         VipsVector *vector;
+
+	/* Remove later.
+	 */
+	int *fixed;
 } VipsConvi;
 
 typedef VipsConvolutionClass VipsConviClass;
@@ -843,30 +850,29 @@ vips__image_intize( VipsImage *in, VipsImage **out )
  * @out is a w x h int array.
  */
 static int
-intize_to_half_float( VipsImage *in, int *out, int *exp )
+vips_convi_intize( VipsConvi *convi, VipsImage *M )
 {
+	int n_point = M->Xsize * M->Ysize;
+
 	VipsImage *t;
 	double scale;
-	int ne;
 	double *scaled;
 	double mx;
-	double above;
+	double mn;
 	int shift;
-	double total_error;
 	int i;
 
-	if( vips_check_matrix( "vips2imask", in, &t ) )
+	if( vips_check_matrix( "vips2imask", M, &t ) )
 		return( -1 ); 
 
 	/* Bake the scale into the mask to make a double version.
 	 */
 	scale = vips_image_get_scale( t );
-	ne = t->Xsize * t->Ysize; 
-        if( !(scaled = VIPS_ARRAY( in, ne, double )) ) {
+        if( !(scaled = VIPS_ARRAY( convi, n_point, double )) ) {
 		g_object_unref( t ); 
 		return( -1 );
 	}
-	for( i = 0; i < ne; i++ ) 
+	for( i = 0; i < n_point; i++ ) 
 		scaled[i] = VIPS_MATRIX( t, 0, 0 )[i] / scale;
 	g_object_unref( t ); 
 
@@ -874,7 +880,7 @@ intize_to_half_float( VipsImage *in, int *out, int *exp )
 {
 	int x, y;
 
-	printf( "intize_to_half_float: double version\n" ); 
+	printf( "vips_convi_intize: double version\n" ); 
 	for( y = 0; y < t->Ysize; y++ ) {
 		printf( "\t" ); 
 		for( x = 0; x < t->Xsize; x++ ) 
@@ -884,67 +890,86 @@ intize_to_half_float( VipsImage *in, int *out, int *exp )
 }
 #endif /*DEBUG_COMPILE*/
 
-	/* The mask max rounded up to the next power of two gives the exponent
-	 * all elements share.
-	 */
 	mx = scaled[0];
-	for( i = 1; i < ne; i++ ) 
+	mn = scaled[0];
+	for( i = 1; i < n_point; i++ ) {
 		if( scaled[i] > mx )
 			mx = scaled[i];
-	
-	/* So eg. -3 for 1/8, 3 for 8.
+		if( scaled[i] < mn )
+			mn = scaled[i];
+	}
+
+	/* The mask max rounded up to the next power of two gives the exponent
+	 * all elements share. Values are eg. -3 for 1/8, 3 for 8.
 	 */
 	shift = ceil( log2( mx ) );
 
-	/* Mask elements are schar. We convolve as:
-	 *   1.  8s*8u->16s
-	 *   2.  shift down to make sure we have enough bits to sum all
-	 *       elements --- ceil(log2(ne))
-	 *   3.  16s+16s->16s
-	 *   4.  shift again by exp and take the top 8 bits 
-	 *   5.  clip to 0 - 255
+	/* We need to sum n_points, so we have to shift right before adding a
+	 * new value to make sure we have enough range. More than 8 bits of
+	 * shift means we would have less than 8 bits of precision in the final
+	 * result.
 	 */
+	convi->sexp = ceil( log2( n_point ) );
+	if( convi->sexp > 8 ) {
+		g_info( "vips_convi_intize: mask too large" ); 
+		return( -1 ); 
+	}
 
-	if( shift
-
-	/* We do the exp by shifting after the mask sum
+	/* With that already done, the final shift must be ...
 	 */
-	*exp = above;
-	for( i = 0; i < ne; i++ ) 
-		out[i] = 256 * scaled[i] / above;
+	convi->exp = convi->sexp - shift;
+
+	if( (convi->mant = VIPS_ARRAY( convi, n_point, int )) )
+		return( -1 );
+	for( i = 0; i < n_point; i++ ) {
+		convi->mant[i] = ((int) (256 * scaled[i])) >> shift;
+
+		if( convi->mant[i] < -128 ||
+			convi->mant[i] > 128 ) {
+			g_info( "vips_convi_intize: mask range too large" ); 
+			return( -1 );
+		}
+	}
+
+	/* Verify accuracy.
+	 */
+{
+	double true_sum;
+	int int_sum;
+	int true_value;
+	int int_value;
+
+	true_sum = 0.0;
+	int_sum = 0;
+	for( i = 0; i < n_point; i++ ) {
+		true_sum += 128 * scaled[i];
+		int_sum += (128 * convi->mant[i]) >> convi->sexp;
+	}
+
+	true_value = VIPS_CLIP( 0, true_sum, 255 ); 
+	int_value = VIPS_CLIP( 0, int_sum >> (convi->exp + 8), 255 ); 
+
+	if( VIPS_ABS( true_value - int_value ) > 20 ) {
+		g_info( "vips_convi_intize: too inaccurate" );
+		return( -1 ); 
+	}
+}
 
 #ifdef DEBUG_COMPILE
 {
 	int x, y;
 
-	printf( "intize_to_half_float: exp = %d\n", *exp ); 
+	printf( "vips_convi_intize:\n" ); 
+	printf( "sexp = %d\n", convi->sexp ); 
+	printf( "exp = %d\n", convi->exp ); 
 	for( y = 0; y < t->Ysize; y++ ) {
 		printf( "\t" ); 
 		for( x = 0; x < t->Xsize; x++ ) 
-			printf( "%4d ", out[y * t->Xsize + x] ); 
+			printf( "%4d ", convi->mant[y * t->Xsize + x] ); 
 		printf( "\n" ); 
 	}
 }
 #endif /*DEBUG_COMPILE*/
-
-	/* Convolve with 255 and calculate the total error.
-	 */
-	total_error = 0.0;
-	for( i = 0; i < ne; i++ ) {
-		double true_value = 255 * scaled[i];
-		double approx_value = 255 * out[i] / (256 * above);
-		double error = VIPS_FABS( true_value - approx_value );
-
-		total_error += error;
-	}
-
-	/* 0.1 is a 10% error.
-	 */
-	if( total_error > 0.1 ) {
-		g_info( "intize_to_half_float: too many underflows - "
-			"%d%%i error", (int) (100 * total_error) );
-		return( -1 ); 
-	}
 
 	return( 0 );
 }
@@ -986,8 +1011,7 @@ vips_convi_build( VipsObject *object )
 	 */
 	if( vips_vector_isenabled() &&
 		in->BandFmt == VIPS_FORMAT_UCHAR ) {
-		if( (convi->mant = VIPS_ARRAY( object, n_point, int )) &&
-			!intize_to_half_float( M, convi->mant, &convi->exp ) &&
+		if( !vips_convi_intize( convi, M ) &&
 			!vips_convi_compile( convi, in ) ) {
 			generate = vips_convi_gen_vector;
 			g_info( "convi: using vector path" ); 
