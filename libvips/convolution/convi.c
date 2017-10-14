@@ -905,55 +905,31 @@ vips_convi_intize( VipsConvi *convi, VipsImage *M )
 	shift = ceil( log2( mx ) );
 
 	/* We need to sum n_points, so we have to shift right before adding a
-	 * new value to make sure we have enough range. More than 8 bits of
-	 * shift means we would have less than 8 bits of precision in the final
-	 * result.
+	 * new value to make sure we have enough range. 
 	 */
 	convi->sexp = ceil( log2( n_point ) );
-	if( convi->sexp > 8 ) {
+	if( convi->sexp > 10 ) {
 		g_info( "vips_convi_intize: mask too large" ); 
 		return( -1 ); 
 	}
 
 	/* With that already done, the final shift must be ...
 	 */
-	convi->exp = convi->sexp - shift;
+	convi->exp = 7 - shift - convi->sexp;
 
-	if( (convi->mant = VIPS_ARRAY( convi, n_point, int )) )
+	if( !(convi->mant = VIPS_ARRAY( convi, n_point, int )) )
 		return( -1 );
 	for( i = 0; i < n_point; i++ ) {
-		convi->mant[i] = ((int) (256 * scaled[i])) >> shift;
+		/* 128 since this is signed. 
+		 */
+		convi->mant[i] = VIPS_RINT( 128 * scaled[i] * pow(2, -shift) );
 
 		if( convi->mant[i] < -128 ||
-			convi->mant[i] > 128 ) {
+			convi->mant[i] > 127 ) {
 			g_info( "vips_convi_intize: mask range too large" ); 
 			return( -1 );
 		}
 	}
-
-	/* Verify accuracy.
-	 */
-{
-	double true_sum;
-	int int_sum;
-	int true_value;
-	int int_value;
-
-	true_sum = 0.0;
-	int_sum = 0;
-	for( i = 0; i < n_point; i++ ) {
-		true_sum += 128 * scaled[i];
-		int_sum += (128 * convi->mant[i]) >> convi->sexp;
-	}
-
-	true_value = VIPS_CLIP( 0, true_sum, 255 ); 
-	int_value = VIPS_CLIP( 0, int_sum >> (convi->exp + 8), 255 ); 
-
-	if( VIPS_ABS( true_value - int_value ) > 20 ) {
-		g_info( "vips_convi_intize: too inaccurate" );
-		return( -1 ); 
-	}
-}
 
 #ifdef DEBUG_COMPILE
 {
@@ -970,6 +946,40 @@ vips_convi_intize( VipsConvi *convi, VipsImage *M )
 	}
 }
 #endif /*DEBUG_COMPILE*/
+
+	/* Verify accuracy.
+	 */
+{
+	double true_sum;
+	int int_sum;
+	int true_value;
+	int int_value;
+
+	true_sum = 0.0;
+	int_sum = 0;
+	for( i = 0; i < n_point; i++ ) {
+		int value;
+
+		true_sum += 128 * scaled[i];
+		value = 128 * convi->mant[i];
+		value = (value + (1 << (convi->sexp - 1))) >> convi->sexp;
+		int_sum += value;
+		int_sum = VIPS_CLIP( SHRT_MIN, int_sum, SHRT_MAX ); 
+	}
+
+	true_value = VIPS_CLIP( 0, true_sum, 255 ); 
+
+	if( convi->exp > 0 )
+		int_value = (int_sum + (1 << (convi->exp - 1))) >> convi->exp;
+	else
+		int_value = int_sum << convi->exp;
+	int_value = VIPS_CLIP( 0, int_value, 255 ); 
+
+	if( VIPS_ABS( true_value - int_value ) > 2 ) {
+		g_info( "vips_convi_intize: too inaccurate" );
+		return( -1 ); 
+	}
+}
 
 	return( 0 );
 }
