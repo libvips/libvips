@@ -3,6 +3,8 @@
  *
  * 7/11/16
  *      - from jpeg2vips
+ * 14/10/17
+ * 	- only read orientation from ifd0
  */
 
 /*
@@ -441,27 +443,6 @@ vips_exif_get_thumbnail( VipsImage *im, ExifData *ed )
 	return( 0 );
 }
 
-static void *
-vips_exif_get_orientation( VipsImage *image, 
-	const char *field, GValue *value, void *data )
-{
-	const char *orientation_str;
-
-	if( vips_isprefix( "exif-", field ) &&
-		vips_ispostfix( field, "-Orientation" ) &&
-		!vips_image_get_string( image, field, &orientation_str ) ) {
-		int orientation;
-
-		orientation = atoi( orientation_str );
-		orientation = VIPS_CLIP( 1, orientation, 8 );
-		vips_image_set_int( image, VIPS_META_ORIENTATION, orientation );
-
-		return( image ); 
-	}
-
-	return( NULL );
-}
-
 /* Need to fwd ref this.
  */
 static int
@@ -477,6 +458,7 @@ vips__exif_parse( VipsImage *image )
 	size_t length;
 	ExifData *ed;
 	VipsExifParams params;
+	const char *str;
 
 	if( !vips_image_get_typeof( image, VIPS_META_EXIF_NAME ) )
 		return( 0 );
@@ -517,13 +499,18 @@ vips__exif_parse( VipsImage *image )
 	vips_exif_get_thumbnail( image, ed );
 	exif_data_free( ed );
 
-	/* Orientation handling. We look for the first Orientation EXIF tag
-	 * (there can be many of them) and use that to set our own
-	 * VIPS_META_ORIENTATION. 
-	 *
-	 * ifd0 is usually the image, ifd1 the thumbnail. 
+	/* Orientation handling. ifd0 has the Orientation tag for the main
+	 * image. 
 	 */
-	(void) vips_image_map( image, vips_exif_get_orientation, NULL );
+	if( vips_image_get_typeof( image, "exif-ifd0-Orientation" ) != 0 &&
+		!vips_image_get_string( image, 
+			"exif-ifd0-Orientation", &str ) ) {
+		int orientation;
+
+		orientation = atoi( str );
+		orientation = VIPS_CLIP( 1, orientation, 8 );
+		vips_image_set_int( image, VIPS_META_ORIENTATION, orientation );
+	}
 
 	return( 0 );
 }
