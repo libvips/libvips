@@ -28,6 +28,7 @@
 - vips_image_write() severs all links between images, when it can ... thanks
   Warren and Nakilon
 - vector path for convolution is more accurate and can handle larger masks
+- linear and cubic kernels for reduce are higer quality
 
 29/8/17 started 8.5.9
 - make --fail stop jpeg read on any libjpeg warning, thanks @mceachen

@@ -1,9 +1,4 @@
-- vips_image_write() to a temp file is rather broken
-
-  things like reorder and upstream/downstream will still be keeping links after
-  write, so unreffing the input will eventually trigger a crash
-
-  rewind should break more things ... does it remove upsteam/downstream? does it
+- rewind should break more things ... does it remove upsteam/downstream? does it
   just need to remove reorder links?
 
   perhaps reorder should use upstream/downstream, then it will be broken anyway

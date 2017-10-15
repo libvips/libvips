@@ -24,6 +24,8 @@
  * 	- add @centre option
  * 6/3/17	
  * 	- moved the cache to shrinkv
+ * 15/10/17
+ * 	- make LINEAR and CUBIC adaptive
  */
 
 /*
@@ -101,13 +103,10 @@ G_DEFINE_TYPE( VipsResize, vips_resize, VIPS_TYPE_RESAMPLE );
  * This depends on the scale and the kernel we will use for residual resizing.
  * For upsizing and nearest-neighbour downsize, we want no shrinking. 
  *
- * Linear and cubic are fixed-size kernels and for a 0 offset are point
- * samplers. We will get aliasing if we do more than a x2 shrink with them.
- *
- * Lanczos is adaptive: the size of the kernel changes with the shrink factor.
- * We will get the best quality (but be the slowest) if we let reduce do all
- * the work. Leave it the final 200 - 300% to do as a compromise for
- * efficiency. 
+ * The others are adaptive: the size of the kernel changes with the shrink 
+ * factor. We will get the best quality (but be the slowest) if we let 
+ * reduce do all the work. Leave it the final 200 - 300% to do as a compromise 
+ * for efficiency. 
  *
  * FIXME: this is rather ugly. Kernel should be a class and this info should be
  * stored in there. 
@@ -127,12 +126,9 @@ vips_resize_int_shrink( VipsResize *resize, double scale )
 
 		case VIPS_KERNEL_LINEAR:
 		case VIPS_KERNEL_CUBIC:
-		default:
-			shrink = VIPS_FLOOR( 1.0 / scale );
-			break;
-
 		case VIPS_KERNEL_LANCZOS2:
 		case VIPS_KERNEL_LANCZOS3:
+		default:
 			shrink = VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (scale * 2) ) );
 			break;
 		}

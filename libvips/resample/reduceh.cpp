@@ -101,10 +101,10 @@ vips_reduce_get_points( VipsKernel kernel, double shrink )
 		return( 1 ); 
 
 	case VIPS_KERNEL_LINEAR:
-		return( 2 ); 
+		return( rint( 2 * shrink ) + 1 ); 
 
 	case VIPS_KERNEL_CUBIC:
-		return( 4 ); 
+		return( rint( 4 * shrink ) + 1 ); 
 
 	case VIPS_KERNEL_LANCZOS2:
 		/* Needs to be in sync with calculate_coefficients_lanczos().
@@ -131,12 +131,11 @@ vips_reduce_make_mask( double *c, VipsKernel kernel, double shrink, double x )
 		break;
 
 	case VIPS_KERNEL_LINEAR:
-		c[0] = 1.0 - x;
-		c[1] = x;
+		calculate_coefficients_triangle( c, shrink, x ); 
 		break;
 
 	case VIPS_KERNEL_CUBIC:
-		calculate_coefficients_catmull( c, x ); 
+		calculate_coefficients_adaptive_catmull( c, shrink, x ); 
 		break;
 
 	case VIPS_KERNEL_LANCZOS2:

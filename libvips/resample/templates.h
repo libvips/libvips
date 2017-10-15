@@ -311,6 +311,48 @@ calculate_coefficients_catmull( double c[4], const double x )
 	c[2] = cthr;
 }
 
+/* Calculate a catmull kernel for shrinking. 
+ */
+static void inline
+calculate_coefficients_adaptive_catmull( double *c, 
+	const double shrink, const double x )
+{
+	/* Needs to be in sync with vips_reduce_get_points().
+	 */
+	const int n_points = rint( 4 * shrink ) + 1; 
+
+	int i;
+	double sum; 
+
+	sum = 0;
+	for( i = 0; i < n_points; i++ ) {
+		const double xp = (i - (2 * shrink - 1) - x) / shrink;
+		const double axp = VIPS_FABS( xp ); 
+		const double axp2 = axp * axp;
+		const double axp3 = axp2 * axp;
+		const double a = -0.5;
+
+		double l;
+
+		if( axp <= 1 ) 
+			l = (a + 2) * axp3 - 
+				(a + 3) * axp2 + 1;
+		else if( axp <= 2 )
+			l = a * axp3 - 
+				5 * a * axp2 + 
+				8 * a * axp - 
+				4 * a;
+		else 
+			l = 0.0;
+
+		c[i] = l;
+		sum += l;
+	}
+
+	for( i = 0; i < n_points; i++ ) 
+		c[i] /= sum;
+}
+
 /* Given an x in [0,1] (we can have x == 1 when building tables),
  * calculate c0 .. c(@a * @shrink + 1), the lanczos coefficients. This is called
  * from the interpolator as well as from the table builder.
@@ -346,6 +388,37 @@ calculate_coefficients_lanczos( double *c,
 			l = (double) a * sin( VIPS_PI * xp ) * 
 				sin( VIPS_PI * xp / (double) a ) / 
 				(VIPS_PI * VIPS_PI * xp * xp);
+
+		c[i] = l;
+		sum += l;
+	}
+
+	for( i = 0; i < n_points; i++ ) 
+		c[i] /= sum;
+}
+
+/* Given an x in [0,1] (we can have x == 1 when building tables),
+ * calculate c0 .. c(@shrink + 1), the triangle coefficients. This is called
+ * from the interpolator as well as from the table builder.
+ */
+static void inline
+calculate_coefficients_triangle( double *c, const double shrink, const double x )
+{
+	/* Needs to be in sync with vips_reduce_get_points().
+	 */
+	const int n_points = rint( 2 * shrink ) + 1;
+
+	int i;
+	double sum; 
+
+	sum = 0;
+	for( i = 0; i < n_points; i++ ) {
+		double xp = (i - (shrink - 1) - x) / shrink;
+
+		double l;
+
+		l = 1.0 - VIPS_FABS( xp );
+		l = VIPS_MAX( 0.0, l ); 
 
 		c[i] = l;
 		sum += l;
