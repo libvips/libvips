@@ -13,6 +13,8 @@
  * 	- better transparency detection, thanks diegocsandrim
  * 25/11/16
  * 	- support @n, page-height
+ * 5/10/17
+ * 	- colormap can be missing thanks Kleis
  */
 
 /*
@@ -367,15 +369,20 @@ vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif,
 	for( x = 0; x < width; x++ ) {
 		VipsPel v = p[x];
 
-		if( v >= map->ColorCount ) {
-			g_warning( "%s", _( "pixel value out of range" ) );
-			continue;
-		}
-
-		if( v != gif->transparency ) { 
+		if( map &&
+			v < map->ColorCount &&
+			v != gif->transparency ) {
 			q[0] = map->Colors[v].Red;
 			q[1] = map->Colors[v].Green;
 			q[2] = map->Colors[v].Blue;
+			q[3] = 255;
+		}
+		else if( v != gif->transparency ) {
+			/* If there's no map, just save the index.
+			 */
+			q[0] = v;
+			q[1] = v;
+			q[2] = v;
 			q[3] = 255;
 		}
 		else {
@@ -414,7 +421,8 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif, VipsImage *out )
 
 	/* Check if we have a non-greyscale colourmap for this frame.
 	 */
-	if( !gif->has_colour ) {
+	if( !gif->has_colour &&
+		map ) {
 		int i;
 
 		for( i = 0; i < map->ColorCount; i++ ) 
