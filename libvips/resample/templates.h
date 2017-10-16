@@ -438,8 +438,10 @@ reduce_sum( const T * restrict in, int stride, const IT * restrict c, int n )
 	IT sum;
 
 	sum = 0; 
-	for( int i = 0; i < n; i++ )
-		sum += c[i] * in[i * stride];
+	for( int i = 0; i < n; i++ ) {
+		sum += c[i] * in[0];
+		in += stride;
+	}
 
 	return( sum ); 
 }

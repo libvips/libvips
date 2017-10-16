@@ -1111,12 +1111,23 @@ vips_region_copy( VipsRegion *reg, VipsRegion *dest, VipsRect *r, int x, int y )
 		VIPS_IMAGE_SIZEOF_PEL( dest->im ) );
 #endif /*DEBUG*/
 
-	for( z = 0; z < r->height; z++ ) {
-		memcpy( q, p, len );
+	/* Copy the scanlines. 
+	 *
+	 * Special case: if the two sets of scanlines are end-to-end (this
+	 * happens if we are copying complete regions) we can do a single
+	 * memcpy() for the whole thing. This is a little faster since we 
+	 * won't have to do unaligned copies.
+	 */
+	if( len == plsk &&
+		len == qlsk ) 
+		memcpy( q, p, len * r->height );
+	else
+		for( z = 0; z < r->height; z++ ) {
+			memcpy( q, p, len );
 
-		p += plsk;
-		q += qlsk;
-	}
+			p += plsk;
+			q += qlsk;
+		}
 }
 
 /* Generate area @target in @to using pixels in @from. 
