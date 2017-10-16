@@ -116,10 +116,6 @@ vips_gaussmat_build( VipsObject *object )
 		!gaussmat->integer ) 
 		gaussmat->precision = VIPS_PRECISION_FLOAT;
 
-	if( vips_check_precision_intfloat( class->nickname, 
-		gaussmat->precision ) )
-		return( -1 ); 
-
 	/* Find the size of the mask. Limit the mask size to 10k x 10k for 
 	 * sanity. We allow x == 0, meaning a 1x1 mask.
 	 */
@@ -153,7 +149,7 @@ vips_gaussmat_build( VipsObject *object )
 			double distance = xo * xo + yo * yo;
 			double v = exp( -distance / sig2 );
 
-			if( gaussmat->precision == VIPS_PRECISION_INTEGER )
+			if( gaussmat->precision != VIPS_PRECISION_FLOAT )
 				v = VIPS_RINT( 20 * v );
 
 			*VIPS_MATRIX( create->out, x, y ) = v;
