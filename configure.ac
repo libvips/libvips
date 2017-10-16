@@ -366,9 +366,10 @@ AC_TYPE_MODE_T
 AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
 
-# g++/gcc 4.x have rather broken vector support
+# g++/gcc 4.x and 5.x have rather broken vector support ... 5.4.1 seems to
+# work, but 5.4.0 fails to even compile
 AC_MSG_CHECKING([for gcc with working vector support])
-if test x$GCC_VERSION_MAJOR != x"4"; then
+if test x$GCC_VERSION_MAJOR != x"4" -a x$GCC_VERSION_MAJOR != x"5"; then
   AC_MSG_RESULT([yes])
 else
   ax_cv_have_var_attribute_vector_size=no
