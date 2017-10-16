@@ -311,6 +311,37 @@ calculate_coefficients_catmull( double c[4], const double x )
 	c[2] = cthr;
 }
 
+/* Given an x in [0,1] (we can have x == 1 when building tables),
+ * calculate c0 .. c(@shrink + 1), the triangle coefficients. This is called
+ * from the interpolator as well as from the table builder.
+ */
+static void inline
+calculate_coefficients_triangle( double *c, const double shrink, const double x )
+{
+	/* Needs to be in sync with vips_reduce_get_points().
+	 */
+	const int n_points = rint( 2 * shrink ) + 1;
+
+	int i;
+	double sum; 
+
+	sum = 0;
+	for( i = 0; i < n_points; i++ ) {
+		double xp = (i - (shrink - 0.5) - x) / shrink;
+
+		double l;
+
+		l = 1.0 - VIPS_FABS( xp );
+		l = VIPS_MAX( 0.0, l ); 
+
+		c[i] = l;
+		sum += l;
+	}
+
+	for( i = 0; i < n_points; i++ ) 
+		c[i] /= sum;
+}
+
 /* Calculate a catmull kernel for shrinking. 
  */
 static void inline
@@ -388,37 +419,6 @@ calculate_coefficients_lanczos( double *c,
 			l = (double) a * sin( VIPS_PI * xp ) * 
 				sin( VIPS_PI * xp / (double) a ) / 
 				(VIPS_PI * VIPS_PI * xp * xp);
-
-		c[i] = l;
-		sum += l;
-	}
-
-	for( i = 0; i < n_points; i++ ) 
-		c[i] /= sum;
-}
-
-/* Given an x in [0,1] (we can have x == 1 when building tables),
- * calculate c0 .. c(@shrink + 1), the triangle coefficients. This is called
- * from the interpolator as well as from the table builder.
- */
-static void inline
-calculate_coefficients_triangle( double *c, const double shrink, const double x )
-{
-	/* Needs to be in sync with vips_reduce_get_points().
-	 */
-	const int n_points = rint( 2 * shrink ) + 1;
-
-	int i;
-	double sum; 
-
-	sum = 0;
-	for( i = 0; i < n_points; i++ ) {
-		double xp = (i - (shrink - 1) - x) / shrink;
-
-		double l;
-
-		l = 1.0 - VIPS_FABS( xp );
-		l = VIPS_MAX( 0.0, l ); 
 
 		c[i] = l;
 		sum += l;
