@@ -8,6 +8,8 @@
  * 	- add @shrink
  * 7/11/16
  * 	- support XMP/ICC/EXIF metadata
+ * 18/10/17
+ * 	- sniff file type from magic number
  */
 
 /*
@@ -62,13 +64,6 @@
 
 #include "pforeign.h"
 
-/* How many bytes do we need to read from the start of the file to be able to
- * validate the header?
- *
- * This doesn't seem to be documented anywhere :-( guess a value.
- */
-#define MINIMAL_HEADER (100)
-
 /* What we track during a read.
  */
 typedef struct {
@@ -107,8 +102,11 @@ typedef struct {
 int
 vips__iswebp_buffer( const void *buf, size_t len )
 {
-	if( len >= MINIMAL_HEADER &&
-		WebPGetInfo( buf, MINIMAL_HEADER, NULL, NULL ) )
+	/* WebP is "RIFF xxxx WEBP" at the start, so we need 12 bytes.
+	 */
+	if( len >= 12 &&
+		vips_isprefix( "RIFF", (char *) buf ) &&
+		vips_isprefix( "WEBP", (char *) buf + 8 ) )
 		return( 1 );
 
 	return( 0 );
@@ -117,10 +115,12 @@ vips__iswebp_buffer( const void *buf, size_t len )
 int
 vips__iswebp( const char *filename )
 {
-	unsigned char header[MINIMAL_HEADER];
+	/* Magic number, see above.
+	 */
+	unsigned char header[12];
 
-	if( vips__get_bytes( filename, header, MINIMAL_HEADER ) &&
-		vips__iswebp_buffer( header, MINIMAL_HEADER ) )
+	if( vips__get_bytes( filename, header, 12 ) &&
+		vips__iswebp_buffer( header, 12 ) )
 		return( 1 );
 
 	return( 0 );
@@ -178,7 +178,7 @@ read_new( const char *filename, const void *data, size_t length, int shrink )
 	}
 
 	WebPInitDecoderConfig( &read->config );
-	if( WebPGetFeatures( read->data, MINIMAL_HEADER, 
+	if( WebPGetFeatures( read->data, read->length, 
 		&read->config.input ) != VP8_STATUS_OK ) {
 		read_free( read );
 		return( NULL );
