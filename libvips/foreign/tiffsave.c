@@ -10,6 +10,8 @@
  * 	- add properties flag
  * 31/5/16
  * 	- convert for jpg if jpg compression is on
+ * 19/10/17
+ * 	- predictor defaults to horizontal, reducing file size, usually
  */
 
 /*
@@ -198,7 +200,7 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, predictor ),
 		VIPS_TYPE_FOREIGN_TIFF_PREDICTOR, 
-			VIPS_FOREIGN_TIFF_PREDICTOR_NONE ); 
+			VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL ); 
 
 	VIPS_ARG_STRING( class, "profile", 9, 
 		_( "profile" ), 
@@ -298,7 +300,7 @@ vips_foreign_save_tiff_init( VipsForeignSaveTiff *tiff )
 {
 	tiff->compression = VIPS_FOREIGN_TIFF_COMPRESSION_NONE;
 	tiff->Q = 75;
-	tiff->predictor = VIPS_FOREIGN_TIFF_PREDICTOR_NONE;
+	tiff->predictor = VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL;
 	tiff->tile_width = 128;
 	tiff->tile_height = 128;
 	tiff->resunit = VIPS_FOREIGN_TIFF_RESUNIT_CM;
@@ -488,15 +490,10 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  *
  * Use @Q to set the JPEG compression factor. Default 75.
  *
- * Use @predictor to set the predictor for lzw and deflate compression. 
- *
- * Predictor is not set by default. There are three predictor values recognised
- * at the moment (2007, July): 1 is no prediction, 2 is a horizontal 
- * differencing and 3 is a floating point predictor. Refer to the libtiff 
- * specifications for further discussion of various predictors. In short, 
- * predictor helps to better compress image, especially in case of digital 
- * photos or scanned images and bit depths > 8. Try it to find whether it 
- * works for your images.
+ * Use @predictor to set the predictor for lzw and deflate compression. It
+ * defaults to #VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL, meaning horizontal
+ * differencing. Please refer to the libtiff 
+ * specifications for further discussion of various predictors. 
  *
  * Use @profile to give the filename of a profile to be embedded in the TIFF.
  * This does not affect the pixels which are written, just the way 
