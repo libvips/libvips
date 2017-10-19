@@ -1559,6 +1559,32 @@ vips_value_set_blob( GValue *value,
 }
 
 /** 
+ * vips_value_set_blob_free:
+ * @value: (out): GValue to set
+ * @data: pointer to area of memory
+ * @length: length of memory area
+ *
+ * Just like vips_value_set_blob(), but when 
+ * @value is freed, @data will be
+ * freed with g_free(). 
+ *
+ * This can be easier to call for language bindings.
+ *
+ * See also: vips_value_set_blob()
+ */
+void
+vips_value_set_blob_free( GValue *value, void *data, size_t length ) 
+{
+	VipsBlob *blob;
+
+	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_BLOB );
+
+	blob = vips_blob_new( g_free, data, length );
+	g_value_set_boxed( value, blob );
+	vips_area_unref( VIPS_AREA( blob ) );
+}
+
+/** 
  * vips_value_get_blob:
  * @value: GValue to set
  * @length: (allow-none): optionally return length of memory area
