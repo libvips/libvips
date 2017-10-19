@@ -1579,7 +1579,7 @@ vips_value_set_blob_free( GValue *value, void *data, size_t length )
 
 	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_BLOB );
 
-	blob = vips_blob_new( g_free, data, length );
+	blob = vips_blob_new( (VipsCallbackFn) g_free, data, length );
 	g_value_set_boxed( value, blob );
 	vips_area_unref( VIPS_AREA( blob ) );
 }
