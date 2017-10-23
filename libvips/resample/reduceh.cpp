@@ -53,9 +53,32 @@
 #include <vips/vips.h>
 #include <vips/debug.h>
 #include <vips/internal.h>
+#include <vips/vector.h>
 
 #include "presample.h"
 #include "templates.h"
+
+/* Uncomment to disable the vector path ... handy for debugging. 
+#undef HAVE_VECTOR_ARITH
+ */
+
+/* We have a vector path with gcc's vector attr. AVX2 (haswell -- 2013 onwards) 
+ * has 256-bit vectors, ie. 16 shorts. 
+ *
+ * This is just about large enough for small kernels: eg. a triangle kernel 
+ * is three numbers, with an RGB image that's 9 values. 
+ */
+#ifdef HAVE_VECTOR_ARITH
+#define VECTOR_SIZE (16)
+
+/* A vector of shorts.
+ */
+typedef short vecs __attribute__((vector_size(VECTOR_SIZE * sizeof(short))));
+
+/* A vector of bytes.
+ */
+typedef VipsPel vecb __attribute__((vector_size(VECTOR_SIZE * sizeof(VipsPel))));
+#endif /*HAVE_VECTOR_ARITH*/
 
 typedef struct _VipsReduceh {
 	VipsResample parent_instance;
@@ -80,6 +103,13 @@ typedef struct _VipsReduceh {
 	 */
 	int *matrixi[VIPS_TRANSFORM_SCALE + 1];
 	double *matrixf[VIPS_TRANSFORM_SCALE + 1];
+
+	/* And another set as vectors ready for multiplication, so unpacked and
+	 * band-expanded. 
+	 */
+#ifdef HAVE_VECTOR_ARITH
+	vecs matrixv[VIPS_TRANSFORM_SCALE + 1];
+#endif /*HAVE_VECTOR_ARITH*/
 
 } VipsReduceh;
 
@@ -281,7 +311,7 @@ reduceh_notab( VipsReduceh *reduceh,
 	}
 }
 
-/* Tried a vector path (see reducev) but it was slower. The vectors for
+/* Tried an Orc vector path (see reducev) but it was slower. The vectors for
  * horizontal reduce are just too small to get a useful speedup.
  */
 
@@ -423,6 +453,102 @@ vips_reduceh_gen( VipsRegion *out_region, void *seq,
 	return( 0 );
 }
 
+/* This path is just for uchar images with kernel * bands <= VECTOR_SIZE, ie.
+ * we can do all the multiply and shift in a single instruction.
+ */
+static int
+vips_reduceh_vec_gen( VipsRegion *out_region, void *seq, 
+	void *a, void *b, gboolean *stop )
+{
+	VipsImage *in = (VipsImage *) a;
+	VipsReduceh *reduceh = (VipsReduceh *) b;
+	const int ps = VIPS_IMAGE_SIZEOF_PEL( in );
+	VipsRegion *ir = (VipsRegion *) seq;
+	VipsRect *r = &out_region->valid;
+	int bands = in->Bands;
+	int ne = in->Bands * reduceh->n_point;
+
+	VipsRect s;
+
+#ifdef DEBUG
+	printf( "vips_reduceh_vec_gen: generating %d x %d at %d x %d\n",
+		r->width, r->height, r->left, r->top ); 
+#endif /*DEBUG*/
+
+	s.left = r->left * reduceh->hshrink;
+	s.top = r->top;
+	s.width = r->width * reduceh->hshrink + reduceh->n_point;
+	s.height = r->height;
+	if( reduceh->centre )
+		s.width += 1;
+	if( vips_region_prepare( ir, &s ) )
+		return( -1 );
+
+	VIPS_GATE_START( "vips_reduceh_vec_gen: work" ); 
+
+	for( int y = 0; y < r->height; y ++ ) { 
+		VipsPel *p0;
+		VipsPel *q;
+
+		double X;
+
+		q = VIPS_REGION_ADDR( out_region, r->left, r->top + y );
+
+		X = r->left * reduceh->hshrink;
+		if( reduceh->centre )
+			X += 0.5;
+
+		/* We want p0 to be the start (ie. x == 0) of the input 
+		 * scanline we are reading from. We can then calculate the p we
+		 * need for each pixel with a single mul and avoid calling ADDR
+		 * for each pixel. 
+		 *
+		 * We can't get p0 directly with ADDR since it could be outside
+		 * valid, so get the leftmost pixel in valid and subtract a
+		 * bit.
+		 */
+		p0 = VIPS_REGION_ADDR( ir, ir->valid.left, r->top + y ) - 
+			ir->valid.left * ps;
+
+		for( int x = 0; x < r->width; x++ ) {
+			int ix = (int) X;
+			VipsPel *p = p0 + ix * ps;
+			const int sx = X * VIPS_TRANSFORM_SCALE * 2;
+			const int six = sx & (VIPS_TRANSFORM_SCALE * 2 - 1);
+			const int tx = (six + 1) >> 1;
+
+			vecs val;
+			int sum;
+
+			for( int i = 0; i < ne; i++ ) 
+				val[i] = p[i];
+
+			val *= reduceh->matrixv[tx]; 
+			val += 32;
+
+			for( int b = 0; b < bands; b++ ) {
+				int sum;
+				int i;
+
+				sum = val[b];
+				for( i = b + bands; i < ne; i += bands )
+					sum += val[i];
+				sum >>= 6;
+				q[b] = sum;
+			}
+
+			X += reduceh->hshrink;
+			q += ps;
+		}
+	}
+
+	VIPS_GATE_STOP( "vips_reduceh_vec_gen: work" ); 
+
+	VIPS_COUNT_PIXELS( out_region, "vips_reduceh_vec_gen" ); 
+
+	return( 0 );
+}
+
 static int
 vips_reduceh_build( VipsObject *object )
 {
@@ -433,12 +559,19 @@ vips_reduceh_build( VipsObject *object )
 		vips_object_local_array( object, 2 );
 
 	VipsImage *in;
+	VipsGenerateFn generate;
 	int width;
 
 	if( VIPS_OBJECT_CLASS( vips_reduceh_parent_class )->build( object ) )
 		return( -1 );
 
 	in = resample->in; 
+
+	/* Unpack for processing.
+	 */
+	if( vips_image_decode( in, &t[0] ) )
+		return( -1 );
+	in = t[0];
 
 	if( reduceh->hshrink < 1 ) { 
 		vips_error( object_class->nickname, 
@@ -484,11 +617,26 @@ vips_reduceh_build( VipsObject *object )
 #endif /*DEBUG*/
 	}
 
-	/* Unpack for processing.
-	 */
-	if( vips_image_decode( in, &t[0] ) )
-		return( -1 );
-	in = t[0];
+	generate = vips_reduceh_gen;
+	if( in->BandFmt == VIPS_FORMAT_UCHAR &&
+		reduceh->n_point * in->Bands <= VECTOR_SIZE ) {
+		g_info( "reduceh: vector path" ); 
+
+		for( int x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++ ) { 
+			int fixedp[VECTOR_SIZE];
+
+			vips_vector_to_fixed_point( 
+				reduceh->matrixf[x], fixedp, 
+				reduceh->n_point, 64 );
+
+			for( int i = 0; i < reduceh->n_point; i++ )
+				for( int j = 0; j < in->Bands; j++ )
+					reduceh->matrixv[x][j + i * in->Bands] =
+						fixedp[i];
+		}
+
+		//generate = vips_reduceh_vec_gen;
+	}
 
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 * In centre mode, we read 0.5 pixels more to the right, so we must
@@ -531,7 +679,7 @@ vips_reduceh_build( VipsObject *object )
 #endif /*DEBUG*/
 
 	if( vips_image_generate( resample->out,
-		vips_start_one, vips_reduceh_gen, vips_stop_one, 
+		vips_start_one, generate, vips_stop_one, 
 		in, reduceh ) )
 		return( -1 );
 
