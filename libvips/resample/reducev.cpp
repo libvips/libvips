@@ -923,7 +923,7 @@ vips_reducev_class_init( VipsReducevClass *reducev_class )
 	vobject_class->description = _( "shrink an image vertically" );
 	vobject_class->build = vips_reducev_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL_UNBUFFERED;
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_DOUBLE( reducev_class, "vshrink", 3, 
 		_( "Vshrink" ), 
@@ -967,7 +967,7 @@ vips_reducev_init( VipsReducev *reducev )
  * vips_reducev: (method)
  * @in: input image
  * @out: (out): output image
- * @vshrink: horizontal reduce
+ * @vshrink: vertical reduce
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
