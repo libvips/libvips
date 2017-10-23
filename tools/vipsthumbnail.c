@@ -94,6 +94,8 @@
  * 	- add ! geo modifier
  * 30/8/17
  * 	- add --intent
+ * 23/10/17
+ * 	- --size Nx didn't work, argh ... thanks jrochkind 
  */
 
 #ifdef HAVE_CONFIG_H
@@ -310,6 +312,7 @@ thumbnail_parse_geometry( const char *geometry )
 	 */
 
 	const char *p;
+	gboolean had_x;
 
 	/* w or h missing means replace with a huuuge value to prevent 
 	 * reduction or enlargement in that axis.
@@ -324,13 +327,8 @@ thumbnail_parse_geometry( const char *geometry )
 	while( isspace( *p ) )
 		p++;
 	if( isdigit ( *p ) ) {
-		/* We have a number! vipsthumbnail history means that "-s 200"
-		 * means "200x200", not "200xhuge"
-		 */
-		thumbnail_width = thumbnail_height = atoi( p );
+		thumbnail_width = atoi( p );
 
-		/* And skip over it.
-		 */
 		while( isdigit( *p ) )
 			p++;
 	}
@@ -339,8 +337,11 @@ thumbnail_parse_geometry( const char *geometry )
 	 */
 	while( isspace( *p ) )
 		p++;
-	if( *p == 'x' ) 
+	had_x = FALSE;
+	if( *p == 'x' ) {
 		p += 1;
+		had_x = TRUE;
+	}
 	while( isspace( *p ) )
 		p++;
 
@@ -369,6 +370,12 @@ thumbnail_parse_geometry( const char *geometry )
 		vips_error( "thumbnail", "%s", _( "bad geometry spec" ) ); 
 		return( -1 );
 	}
+
+	/* If there was no 'x' we have just width. vipsthumbnail history means
+	 * this is a square bounding box.
+	 */
+	if( !had_x ) 
+		thumbnail_height = thumbnail_width;
 
 	/* If force is set and one of width or height isn't set, copy from the
 	 * one that is.
