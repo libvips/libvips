@@ -94,7 +94,7 @@ void VMask::ostream_print( std::ostream &file ) const
 }
 
 // Embed INTMASK in VIMask
-void VIMask::embed( INTMASK *i ) throw( VError )
+void VIMask::embed( INTMASK *i ) 
 {
 	if( ref->pmask )
 		verror( "embed: VIMask not empty" );
@@ -134,7 +134,7 @@ VDMask::operator VIMask()
 }
 
 // Type conversions: implicit DOUBLEMASK to VImage
-VDMask::operator VImage() throw( VError )
+VDMask::operator VImage() 
 {
 	VImage out;
 
@@ -148,7 +148,7 @@ VDMask::operator VImage() throw( VError )
 VIMask::operator VImage() { return( VImage( VDMask( *this ) ) ); }
 
 // Embed DOUBLEMASK in VDMask
-void VDMask::embed( DOUBLEMASK *i ) throw( VError )
+void VDMask::embed( DOUBLEMASK *i ) 
 {
 	if( ref->pmask )
 		verror( "embed: VDMask not empty" );
@@ -159,7 +159,7 @@ void VDMask::embed( DOUBLEMASK *i ) throw( VError )
  */
 
 // Create empty imask
-_private_detail::VPIMask::VPIMask( int xsize, int ysize ) throw( VError )
+_private_detail::VPIMask::VPIMask( int xsize, int ysize ) 
 {
 	if( !(data.iptr = im_create_imask( "VPIMask::VPIMask", xsize, ysize )) )
 		verror();
@@ -169,7 +169,6 @@ _private_detail::VPIMask::VPIMask( int xsize, int ysize ) throw( VError )
 // Init from vector
 _private_detail::VPIMask::VPIMask( int xsize, int ysize, 
 	int scale, int offset, std::vector<int> coeff )
-	throw( VError )
 {
 	int i;
 
@@ -184,7 +183,7 @@ _private_detail::VPIMask::VPIMask( int xsize, int ysize,
 }
 
 // Create from filename
-_private_detail::VPIMask::VPIMask( const char *name ) throw( VError )
+_private_detail::VPIMask::VPIMask( const char *name ) 
 {
 	if( !(data.iptr = im_read_imask( (char *) name )) )
 		verror();
@@ -216,7 +215,7 @@ _private_detail::VPIMask::~VPIMask()
 
 // Duplicate -- we are a VPIMask, return a new VPIMask which is a copy of us.
 // Return as a VPMask tho'.
-_private_detail::VPMask *_private_detail::VPIMask::dup() const throw( VError )
+_private_detail::VPMask *_private_detail::VPIMask::dup() const 
 {
 	_private_detail::VPIMask *out = new _private_detail::VPIMask();
 
@@ -231,7 +230,7 @@ _private_detail::VPMask *_private_detail::VPIMask::dup() const throw( VError )
 }
 
 // Insert INTMASK pointer
-void _private_detail::VPIMask::embed( INTMASK *msk ) throw( VError )
+void _private_detail::VPIMask::embed( INTMASK *msk ) 
 {
 	if( type != _private_detail::VPMask::UNASSIGNED )
 		verror( "VPIMask::embed: VPIMask not empty" );
@@ -240,7 +239,7 @@ void _private_detail::VPIMask::embed( INTMASK *msk ) throw( VError )
 	type = _private_detail::VPMask::INT;
 }
 
-int _private_detail::VPIMask::xsize() const throw( VError )
+int _private_detail::VPIMask::xsize() const 
 {
 	if( !data.iptr ) 
 		verror( "xsize: mask not set" );
@@ -248,7 +247,7 @@ int _private_detail::VPIMask::xsize() const throw( VError )
 	return( data.iptr->xsize );
 }
 
-int _private_detail::VPIMask::ysize() const throw( VError )
+int _private_detail::VPIMask::ysize() const 
 {
 	if( !data.iptr ) 
 		verror( "ysize: mask not set" );
@@ -256,7 +255,7 @@ int _private_detail::VPIMask::ysize() const throw( VError )
 	return( data.iptr->ysize );
 }
 
-int _private_detail::VPIMask::scale() const throw( VError )
+int _private_detail::VPIMask::scale() const 
 {
 	if( !data.iptr ) 
 		verror( "scale: mask not set" );
@@ -264,7 +263,7 @@ int _private_detail::VPIMask::scale() const throw( VError )
 	return( data.iptr->scale );
 }
 
-int _private_detail::VPIMask::offset() const throw( VError )
+int _private_detail::VPIMask::offset() const 
 {
 	if( !data.iptr ) 
 		verror( "offset: mask not set" );
@@ -272,7 +271,7 @@ int _private_detail::VPIMask::offset() const throw( VError )
 	return( data.iptr->offset );
 }
 
-const char *_private_detail::VPIMask::filename() const throw( VError )
+const char *_private_detail::VPIMask::filename() const 
 {
 	if( !data.iptr ) 
 		verror( "filename: mask not set" );
@@ -281,7 +280,6 @@ const char *_private_detail::VPIMask::filename() const throw( VError )
 }
 
 void _private_detail::VPIMask::ostream_print( std::ostream &file ) const 
-	throw( VError )
 {
 	if( !data.iptr )
 		verror( "internal error #7447234" );
@@ -307,7 +305,7 @@ int *_private_detail::VPIMask::array() const
 }
 
 // Create empty dmask
-_private_detail::VPDMask::VPDMask( int xsize, int ysize ) throw( VError )
+_private_detail::VPDMask::VPDMask( int xsize, int ysize ) 
 {
 	if( !(data.dptr = im_create_dmask( "VPDMask::VPDMask", xsize, ysize )) )
 		verror();
@@ -316,7 +314,7 @@ _private_detail::VPDMask::VPDMask( int xsize, int ysize ) throw( VError )
 
 // Create from vector
 _private_detail::VPDMask::VPDMask( int xsize, int ysize, 
-	double scale, double offset, std::vector<double> coeff ) throw( VError )
+	double scale, double offset, std::vector<double> coeff ) 
 {
 	int i;
 
@@ -331,7 +329,7 @@ _private_detail::VPDMask::VPDMask( int xsize, int ysize,
 }
 
 // Create from filename
-_private_detail::VPDMask::VPDMask( const char *name ) throw( VError )
+_private_detail::VPDMask::VPDMask( const char *name ) 
 {
 	if( !(data.dptr = im_read_dmask( (char *) name )) )
 		verror();
@@ -363,7 +361,7 @@ _private_detail::VPDMask::~VPDMask()
 
 // Duplicate -- we are a VPIMask, return a new VPIMask which is a copy of us.
 // Return as a VPMask tho'.
-_private_detail::VPMask *_private_detail::VPDMask::dup() const throw( VError )
+_private_detail::VPMask *_private_detail::VPDMask::dup() const 
 {
 	_private_detail::VPDMask *out = new _private_detail::VPDMask();
 
@@ -378,7 +376,7 @@ _private_detail::VPMask *_private_detail::VPDMask::dup() const throw( VError )
 }
 
 // Insert DOUBLEMASK pointer
-void _private_detail::VPDMask::embed( DOUBLEMASK *msk ) throw( VError )
+void _private_detail::VPDMask::embed( DOUBLEMASK *msk ) 
 {
 	if( type != _private_detail::VPMask::UNASSIGNED )
 		verror( "VPDMask::embed: VPDMask not empty" );
@@ -387,7 +385,7 @@ void _private_detail::VPDMask::embed( DOUBLEMASK *msk ) throw( VError )
 	type = _private_detail::VPMask::DOUBLE;
 }
 
-int _private_detail::VPDMask::xsize() const throw( VError )
+int _private_detail::VPDMask::xsize() const 
 {
 	if( !data.dptr ) 
 		verror( "xsize: mask not set" );
@@ -395,7 +393,7 @@ int _private_detail::VPDMask::xsize() const throw( VError )
 	return( data.dptr->xsize );
 }
 
-int _private_detail::VPDMask::ysize() const throw( VError )
+int _private_detail::VPDMask::ysize() const 
 {
 	if( !data.dptr ) 
 		verror( "ysize: mask not set" );
@@ -403,7 +401,7 @@ int _private_detail::VPDMask::ysize() const throw( VError )
 	return( data.dptr->ysize );
 }
 
-double _private_detail::VPDMask::scale() const throw( VError )
+double _private_detail::VPDMask::scale() const 
 {
 	if( !data.dptr ) 
 		verror( "scale: mask not set" );
@@ -411,7 +409,7 @@ double _private_detail::VPDMask::scale() const throw( VError )
 	return( data.dptr->scale );
 }
 
-double _private_detail::VPDMask::offset() const throw( VError )
+double _private_detail::VPDMask::offset() const 
 {
 	if( !data.dptr ) 
 		verror( "offset: mask not set" );
@@ -419,7 +417,7 @@ double _private_detail::VPDMask::offset() const throw( VError )
 	return( data.dptr->offset );
 }
 
-const char *_private_detail::VPDMask::filename() const throw( VError )
+const char *_private_detail::VPDMask::filename() const 
 {
 	if( !data.dptr ) 
 		verror( "filename: mask not set" );
@@ -428,7 +426,6 @@ const char *_private_detail::VPDMask::filename() const throw( VError )
 }
 
 void _private_detail::VPDMask::ostream_print( std::ostream &file ) const 
-	throw( VError )
 {
 	if( !data.dptr )
 		verror( "internal error #7447234" );
@@ -454,7 +451,7 @@ double *_private_detail::VPDMask::array() const
 }
 
 // Build functions
-VIMask VIMask::gauss( double sig, double minamp ) throw( VError )
+VIMask VIMask::gauss( double sig, double minamp ) 
 {
 	VIMask out;
 	INTMASK *msk;
@@ -466,7 +463,7 @@ VIMask VIMask::gauss( double sig, double minamp ) throw( VError )
 	return( out );
 }
 
-VIMask VIMask::gauss_sep( double sig, double minamp ) throw( VError )
+VIMask VIMask::gauss_sep( double sig, double minamp ) 
 {
 	VIMask out;
 	INTMASK *msk;
@@ -478,7 +475,7 @@ VIMask VIMask::gauss_sep( double sig, double minamp ) throw( VError )
 	return( out );
 }
 
-VDMask VDMask::gauss( double sig, double minamp ) throw( VError )
+VDMask VDMask::gauss( double sig, double minamp ) 
 {
 	VDMask out;
 	DOUBLEMASK *msk;
@@ -490,7 +487,7 @@ VDMask VDMask::gauss( double sig, double minamp ) throw( VError )
 	return( out );
 }
 
-VIMask VIMask::log( double sig, double minamp ) throw( VError )
+VIMask VIMask::log( double sig, double minamp ) 
 {
 	VIMask out;
 	INTMASK *msk;
@@ -502,7 +499,7 @@ VIMask VIMask::log( double sig, double minamp ) throw( VError )
 	return( out );
 }
 
-VDMask VDMask::log( double sig, double minamp ) throw( VError )
+VDMask VDMask::log( double sig, double minamp ) 
 {
 	VDMask out;
 	DOUBLEMASK *msk;
@@ -515,7 +512,7 @@ VDMask VDMask::log( double sig, double minamp ) throw( VError )
 }
 
 // Manipulation functions
-VIMask VIMask::rotate45() throw( VError )
+VIMask VIMask::rotate45() 
 {
 	VIMask out;
 	INTMASK *msk;
@@ -527,7 +524,7 @@ VIMask VIMask::rotate45() throw( VError )
 	return( out );
 }
 
-VIMask VIMask::rotate90() throw( VError )
+VIMask VIMask::rotate90() 
 {
 	VIMask out;
 	INTMASK *msk;
@@ -539,7 +536,7 @@ VIMask VIMask::rotate90() throw( VError )
 	return( out );
 }
 
-VDMask VDMask::rotate45() throw( VError )
+VDMask VDMask::rotate45() 
 {
 	VDMask out;
 	DOUBLEMASK *msk;
@@ -551,7 +548,7 @@ VDMask VDMask::rotate45() throw( VError )
 	return( out );
 }
 
-VDMask VDMask::rotate90() throw( VError )
+VDMask VDMask::rotate90() 
 {
 	VDMask out;
 	DOUBLEMASK *msk;
@@ -563,7 +560,7 @@ VDMask VDMask::rotate90() throw( VError )
 	return( out );
 }
 
-VDMask VDMask::trn() throw( VError )
+VDMask VDMask::trn() 
 {
 	VDMask out;
 	DOUBLEMASK *msk;
@@ -575,7 +572,7 @@ VDMask VDMask::trn() throw( VError )
 	return( out );
 }
 
-VDMask VDMask::inv() throw( VError )
+VDMask VDMask::inv() 
 {
 	VDMask out;
 	DOUBLEMASK *msk;
@@ -587,7 +584,7 @@ VDMask VDMask::inv() throw( VError )
 	return( out );
 }
 
-VDMask VDMask::mul( VDMask m ) throw( VError )
+VDMask VDMask::mul( VDMask m ) 
 {
 	VDMask out;
 	DOUBLEMASK *msk;
@@ -599,7 +596,7 @@ VDMask VDMask::mul( VDMask m ) throw( VError )
 	return( out );
 }
 
-VDMask VDMask::cat( VDMask m ) throw( VError )
+VDMask VDMask::cat( VDMask m ) 
 {
 	VDMask out;
 	DOUBLEMASK *msk;
@@ -611,7 +608,7 @@ VDMask VDMask::cat( VDMask m ) throw( VError )
 	return( out );
 }
 
-VIMask VDMask::scalei() throw( VError )
+VIMask VDMask::scalei() 
 {
 	VIMask out;
 	INTMASK *msk;
@@ -624,20 +621,16 @@ VIMask VDMask::scalei() throw( VError )
 }
 
 // Arithmetic on a VIMask ... just cast and use VDMask
-VDMask VIMask::trn() throw( VError ) 
-	{ return( ((VDMask)*this).trn() ); }
-VDMask VIMask::inv() throw( VError ) 
-	{ return( ((VDMask)*this).inv() ); }
-VDMask VIMask::cat( VDMask a ) throw( VError ) 
-	{ return( ((VDMask)*this).cat( a ) ); }
-VDMask VIMask::mul( VDMask a ) throw( VError ) 
-	{ return( ((VDMask)*this).mul( a ) ); }
+VDMask VIMask::trn() { return( ((VDMask)*this).trn() ); }
+VDMask VIMask::inv() { return( ((VDMask)*this).inv() ); }
+VDMask VIMask::cat( VDMask a ) { return( ((VDMask)*this).cat( a ) ); }
+VDMask VIMask::mul( VDMask a ) { return( ((VDMask)*this).mul( a ) ); }
 
 // Overload [] to get linear array subscript.
 // Our caller may write to the result, so make sure we have a private
 // copy.
 // Involves function call, slow anyway, so do range checking
-int &VIMask::operator[]( int x ) throw( VError )
+int &VIMask::operator[]( int x ) 
 { 
 	if( ref->nrefs != 1 )
 		make_private();
@@ -648,7 +641,7 @@ int &VIMask::operator[]( int x ) throw( VError )
 	return( ((_private_detail::VPIMask *)ref->pmask)->array()[x] ); 
 }
 
-double &VDMask::operator[]( int x ) throw( VError )
+double &VDMask::operator[]( int x ) 
 { 
 	if( ref->nrefs != 1 )
 		make_private();

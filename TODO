@@ -3,8 +3,6 @@
 
   perhaps reorder should use upstream/downstream, then it will be broken anyway
 
-- remove execption specs from libvipsCC, gcc 7.1 will complain about them
-
 - not sure about utf8 error messages on win
 
 - strange: 

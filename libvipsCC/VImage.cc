@@ -118,7 +118,7 @@ VImage::refblock::refblock()
 }
 
 // Add a ref - this (output image) depends upon VipsImage in
-void VImage::refblock::addref( refblock *in ) throw( VError )
+void VImage::refblock::addref( refblock *in ) 
 {
 	if( this == in )
 		verror( "sanity failure" );
@@ -127,7 +127,7 @@ void VImage::refblock::addref( refblock *in ) throw( VError )
 	orefs.push_front( in );
 }
 
-VImage::refblock::~refblock() throw( VError )
+VImage::refblock::~refblock() 
 {
 #ifdef DEBUG
 	printf( "VImage::refblock::removeref(): death!\n" );
@@ -152,7 +152,7 @@ VImage::refblock::~refblock() throw( VError )
 }
 
 // Remove a ref
-void VImage::refblock::removeref() throw( VError )
+void VImage::refblock::removeref() 
 {
 	nrefs--;
 	if( nrefs < 0 )
@@ -162,7 +162,7 @@ void VImage::refblock::removeref() throw( VError )
 }
 
 // Init with name ... mode defaults to "rd"
-VImage::VImage( const char *name, const char *mode ) throw( VError )
+VImage::VImage( const char *name, const char *mode ) 
 {
 	_ref = new refblock;
 
@@ -191,8 +191,7 @@ VImage::VImage( _VipsImage *in )
 }
 
 // Build from memory buffer
-VImage::VImage( void *buffer, int width, int height, 
-	int bands, TBandFmt format ) throw( VError )
+VImage::VImage( void *buffer, int width, int height, int bands, TBandFmt format )
 {
 	_ref = new refblock;
 
@@ -209,7 +208,7 @@ VImage::VImage( void *buffer, int width, int height,
 }
 
 // Empty init ... means open intermediate
-VImage::VImage() throw( VError )
+VImage::VImage() 
 {
 	static int id = 0;
 	char filename[256];
@@ -238,7 +237,7 @@ VImage::VImage( const VImage &a )
 }
 
 // Assignment
-VImage &VImage::operator=( const VImage &a ) throw( VError )
+VImage &VImage::operator=( const VImage &a ) 
 { 
 	_ref->removeref(); 
 	_ref = a._ref; 
@@ -248,7 +247,7 @@ VImage &VImage::operator=( const VImage &a ) throw( VError )
 }
 
 // Extract underlying data pointer
-void *VImage::data() const throw( VError )
+void *VImage::data() const 
 {
 	if( im_incheck( _ref->im ) )
 		verror();
@@ -264,7 +263,7 @@ void VImage::debug_print()
 // Like jpeg2vips, but convert to a disc file rather than to memory
 // We can handle huge files without running out of RAM
 VImage VImage::convert2disc( const char* convert, 
-	const char* in, const char* disc ) throw( VError )
+	const char* in, const char* disc ) 
 {
 	VImage out( disc, "w" );
 
@@ -278,7 +277,7 @@ VImage VImage::convert2disc( const char* convert,
 }
 
 // Write this to a VImage
-VImage VImage::write( VImage out ) throw( VError )
+VImage VImage::write( VImage out ) 
 {
 	if( im_copy( _ref->im, out._ref->im ) )
 		verror();
@@ -287,7 +286,7 @@ VImage VImage::write( VImage out ) throw( VError )
 	return( out );
 }
 
-VImage VImage::write( const char *name ) throw( VError )
+VImage VImage::write( const char *name ) 
 {
 	VImage out( name, "w" );
 
@@ -298,7 +297,7 @@ VImage VImage::write( const char *name ) throw( VError )
 	return( out );
 }
 
-VImage VImage::write() throw( VError )
+VImage VImage::write() 
 {
 	VImage out( "VImage:w1", "t" );
 
@@ -332,7 +331,6 @@ const char *VImage::filename() { return( _ref->im->filename ); }
 const char *VImage::Hist() { return( im_history_get( _ref->im ) ); }
 
 VImage VImage::hough_circle( int scale, int min_radius, int max_radius ) 
-	throw( VError )
 {
 	VImage in = *this;
 	VipsImage *x;
@@ -357,7 +355,7 @@ VImage VImage::hough_circle( int scale, int min_radius, int max_radius )
 // metadata
 
 // base functionality
-void VImage::meta_set( const char *field, GValue *value ) throw( VError )
+void VImage::meta_set( const char *field, GValue *value ) 
 {
 	if( im_meta_set( _ref->im, field, value ) )
 		verror();
@@ -368,7 +366,7 @@ gboolean VImage::meta_remove( const char *field )
 	return( im_meta_remove( _ref->im, field ) );
 }
 
-void VImage::meta_get( const char *field, GValue *value_copy ) throw( VError )
+void VImage::meta_get( const char *field, GValue *value_copy ) 
 {
 	if( im_meta_get( _ref->im, field, value_copy ) )
 		verror();
@@ -381,7 +379,6 @@ GType VImage::meta_get_typeof( const char *field )
 
 // convenience functions
 int VImage::meta_get_int( const char *field ) 
-	throw( VError )
 {
 	int result;
 
@@ -392,7 +389,6 @@ int VImage::meta_get_int( const char *field )
 }
 
 double VImage::meta_get_double( const char *field ) 
-	throw( VError )
 {
 	double result;
 
@@ -403,7 +399,6 @@ double VImage::meta_get_double( const char *field )
 }
 
 const char *VImage::meta_get_string( const char *field ) 
-	throw( VError )
 {
 	const char *result;
 
@@ -413,7 +408,7 @@ const char *VImage::meta_get_string( const char *field )
 	return( result );
 }
 
-void *VImage::meta_get_area( const char *field ) throw( VError )
+void *VImage::meta_get_area( const char *field ) 
 {
 	void *result;
 
@@ -423,7 +418,7 @@ void *VImage::meta_get_area( const char *field ) throw( VError )
 	return( result );
 }
 
-void *VImage::meta_get_blob( const char *field, size_t *length ) throw( VError )
+void *VImage::meta_get_blob( const char *field, size_t *length ) 
 {
 	void *result;
 
@@ -434,29 +429,24 @@ void *VImage::meta_get_blob( const char *field, size_t *length ) throw( VError )
 }
 
 void VImage::meta_set( const char *field, int value ) 
-	throw( VError )
 {
 	if( im_meta_set_int( _ref->im, field, value ) )
 		verror();
 }
 
 void VImage::meta_set( const char *field, double value ) 
-	throw( VError )
 {
 	if( im_meta_set_double( _ref->im, field, value ) )
 		verror();
 }
 
 void VImage::meta_set( const char *field, const char *value ) 
-	throw( VError )
 {
 	if( im_meta_set_string( _ref->im, field, value ) )
 		verror();
 }
 
-void VImage::meta_set( const char *field, 
-	VCallback free_fn, void *value ) 
-	throw( VError )
+void VImage::meta_set( const char *field, VCallback free_fn, void *value ) 
 {
 	if( im_meta_set_area( _ref->im, field, free_fn, value ) )
 		verror();
@@ -464,7 +454,6 @@ void VImage::meta_set( const char *field,
 
 void VImage::meta_set( const char *field, 
 	VCallback free_fn, void *value, size_t length ) 
-	throw( VError )
 {
 	if( im_meta_set_blob( _ref->im, field, free_fn, value, length ) )
 		verror();
@@ -473,7 +462,6 @@ void VImage::meta_set( const char *field,
 // Set header fields and setbuf() in one go.
 void VImage::initdesc( int x, int y, int b,
 	TBandFmt f, TCoding c, TType t, float xr, float yr, int xo, int yo )
-	throw( VError )
 {
 	im_initdesc( _ref->im, x, y, b, 0, 
 		VipsBandFmt( f ), VipsCoding( c ), VipsType( t ), 

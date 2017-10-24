@@ -76,7 +76,7 @@ inline std::ostream &operator<<( std::ostream &file, const VError &err )
 	return( file );
 }
 
-void verror( std::string str = "" ) throw( VError );
+void verror( std::string str = "" );
 
 VIPS_NAMESPACE_END
 

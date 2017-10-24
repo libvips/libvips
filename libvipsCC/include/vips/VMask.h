@@ -104,26 +104,25 @@ public:
 // Specialise for INTMASK
 class VPIMask : public VPMask {
 public:
-	VPIMask( int xsize, int ysize ) throw( VError );
+	VPIMask( int xsize, int ysize );
 	VPIMask( int xsize, int ysize, int scale, int offset, 
-		std::vector<int> coeff ) throw( VError );
-	VPIMask( const char * )
-		throw( VError );
+		std::vector<int> coeff );
+	VPIMask( const char * );
 	VPIMask( im__INTMASK * );
 	VPIMask();
 	virtual ~VPIMask();
 
-	VPMask *dup() const throw( VError );
-	void embed( im__INTMASK * ) throw( VError );
+	VPMask *dup() const;
+	void embed( im__INTMASK * );
 
-	int xsize() const throw( VError );
-	int ysize() const throw( VError );
-	int scale() const throw( VError );
-	int offset() const throw( VError );
-	const char *filename() const throw( VError );
+	int xsize() const;
+	int ysize() const;
+	int scale() const;
+	int offset() const;
+	const char *filename() const;
 
 	// Output
-	virtual void ostream_print( std::ostream & ) const throw( VError );
+	virtual void ostream_print( std::ostream & ) const;
 
 	// Extract start of array of ints
 	int *array() const;
@@ -132,26 +131,25 @@ public:
 // Specialise for DOUBLEMASK
 class VPDMask : public VPMask {
 public:
-	VPDMask( int xsize, int ysize ) throw( VError );
+	VPDMask( int xsize, int ysize );
 	VPDMask( int xsize, int ysize, 
-		double scale, double offset, std::vector<double> coeff ) 
-		throw( VError );
-	VPDMask( const char * ) throw( VError );
+		double scale, double offset, std::vector<double> coeff );
+	VPDMask( const char * );
 	VPDMask( im__DOUBLEMASK * );
 	VPDMask();
 	virtual ~VPDMask();
 
-	VPMask *dup() const throw( VError );
-	void embed( im__DOUBLEMASK * ) throw( VError );
+	VPMask *dup() const;
+	void embed( im__DOUBLEMASK * );
 
-	int xsize() const throw( VError );
-	int ysize() const throw( VError );
-	double scale() const throw( VError );
-	double offset() const throw( VError );
-	const char *filename() const throw( VError );
+	int xsize() const;
+	int ysize() const;
+	double scale() const;
+	double offset() const;
+	const char *filename() const;
 
 	// Output
-	virtual void ostream_print( std::ostream & ) const throw( VError );
+	virtual void ostream_print( std::ostream & ) const;
 
 	// Extract start of array of doubles
 	double *array() const;
@@ -197,13 +195,13 @@ public:
 	// Destructor
 	virtual ~VMask();
 
-	int xsize() const throw( VError ) 
+	int xsize() const
 		{ return( ref->pmask->xsize() ); }
-	int ysize() const throw( VError ) 
+	int ysize() const
 		{ return( ref->pmask->ysize() ); }
-	int size() const throw( VError ) 
+	int size() const
 		{ return( xsize() * ysize() ); }
-	const char *filename() const throw( VError ) 
+	const char *filename() const
 		{ return( ref->pmask->filename() ); }
 
 	// Extract underlying type
@@ -279,17 +277,16 @@ public:
 	}
 
 	// Embed INTMASK in VIMask
-	void embed( im__INTMASK * ) throw( VError );
+	void embed( im__INTMASK * );
 
 	// Overload [] to get linear array subscript.
-	int &operator[]( int ) throw( VError );
+	int &operator[]( int );
 
 	// Overload () to get matrix subscript.
-	int &operator()( int x, int y ) throw( VError ) 
-		{ return( (*this)[x + y*xsize()] ); }
+	int &operator()( int x, int y ) { return( (*this)[x + y*xsize()] ); }
 
 	// and as a function call that SWIG can wrap
-	int get( int i ) throw( VError ) 
+	int get( int i )
 		{ return( (*this)[i] ); }
 
 	// Type conversion: INTMASK->DOUBLEMASK
@@ -299,21 +296,21 @@ public:
 	operator VImage();
 
 	// VIMask build functions
-	static VIMask gauss( double, double ) throw( VError );
-	static VIMask gauss_sep( double, double ) throw( VError );
-	static VIMask log( double, double ) throw( VError );
+	static VIMask gauss( double, double );
+	static VIMask gauss_sep( double, double );
+	static VIMask log( double, double );
 
 	// VIMask manipulation
-	VIMask rotate45() throw( VError );
-	VIMask rotate90() throw( VError );
+	VIMask rotate45();
+	VIMask rotate90();
 
 	// Arithmetic ... cast to double, and use VDMask funcs. For some
 	// reason, the compiler won't let us do casts to VDImage yet, so no
 	// inlines.
-	VDMask trn() throw( VError );
-	VDMask inv() throw( VError );
-	VDMask cat( VDMask ) throw( VError );
-	VDMask mul( VDMask ) throw( VError );
+	VDMask trn();
+	VDMask inv();
+	VDMask cat( VDMask );
+	VDMask mul( VDMask );
 };
 
 // Wrapper over _private_detail::VPDMask with ref counting
@@ -359,51 +356,50 @@ public:
 	VDMask() { }
 
 	// Embed DOUBLEMASK in VDMask
-	void embed( im__DOUBLEMASK * ) throw( VError );
+	void embed( im__DOUBLEMASK * );
 
-	double scale() throw( VError )
+	double scale()
 	{ 
 		return( ((_private_detail::VPDMask *)ref->pmask)->scale() ); 
 	}
 
-	double offset() throw( VError )
+	double offset()
 	{ 
 		return( ((_private_detail::VPDMask *)ref->pmask)->offset() ); 
 	}
 
 	// Overload [] to get linear array subscript.
-	double &operator[]( int ) throw( VError );
+	double &operator[]( int );
 
 	// Overload () to get matrix subscript.
-	double &operator()( int x, int y ) throw( VError )
+	double &operator()( int x, int y )
 		{ return( (*this)[x + y*xsize()] ); }
 
 	// and as a function call that SWIG can wrap
-	double get( int i ) throw( VError ) 
-		{ return( (*this)[i] ); }
+	double get( int i ) { return( (*this)[i] ); }
 
 	// Type conversion: double->int
 	operator VIMask();
 
 	// Type conversion: DOUBLEMASK->image
-	operator VImage() throw( VError );
+	operator VImage();
 
 	// VDMask build functions
-	static VDMask gauss( double, double ) throw( VError );
-	static VDMask log( double, double ) throw( VError );
+	static VDMask gauss( double, double );
+	static VDMask log( double, double );
 
 	// VDMask manipulation
-	VDMask rotate45() throw( VError );
-	VDMask rotate90() throw( VError ); 
+	VDMask rotate45();
+	VDMask rotate90();
 
 	// Scale to intmask
-	VIMask scalei() throw( VError );
+	VIMask scalei();
 
 	// Simple arithmetic
-	VDMask trn() throw( VError );
-	VDMask inv() throw( VError );
-	VDMask cat( VDMask ) throw( VError );
-	VDMask mul( VDMask ) throw( VError );
+	VDMask trn();
+	VDMask inv();
+	VDMask cat( VDMask );
+	VDMask mul( VDMask );
 };
 
 VIPS_NAMESPACE_END

@@ -97,13 +97,13 @@ public:
 
 		// Construct/destruct
 		refblock();
-		virtual ~refblock() throw( VError );
+		virtual ~refblock();
 
 		// Add a ref - this (output image) depends upon IMAGE in
-		void addref( refblock *in ) throw( VError );
+		void addref( refblock *in );
 
 		// Remove a ref
-		void removeref() throw( VError );
+		void removeref();
 
 		// Debugging
 		void debug_print();
@@ -198,11 +198,10 @@ public:
 	 */
 
 	// Plain constructors
-	VImage( const char *name, const char *mode = "rd" ) throw( VError );
-	VImage( void *data, int width, int height, 
-		int bands, TBandFmt format ) throw( VError );
+	VImage( const char *name, const char *mode = "rd" );
+	VImage( void *data, int width, int height, int bands, TBandFmt format );
 	VImage( _VipsImage *image );
-	VImage() throw( VError );
+	VImage();
 
 	// Convert to a disc file, eg:
 	// 	VImage fred = VImage::convert2disc( "im_jpeg2vips", 
@@ -213,27 +212,27 @@ public:
 	// C++
 	// Also replaced by the new default "rd" mode
 	static VImage convert2disc( const char* convert, 
-		const char* in, const char* disc ) throw( VError );
+		const char* in, const char* disc );
 
 	// Copy constructor 
 	VImage( const VImage &a );
 
 	// Assignment - delete old ref
-	VImage &operator=( const VImage &a ) throw( VError );
+	VImage &operator=( const VImage &a );
 
 	// Destructor
-	virtual ~VImage() throw( VError ) { _ref->removeref(); }
+	virtual ~VImage() { _ref->removeref(); }
 
 	// Extract underlying IMAGE* pointer
 	_VipsImage *image() const { return( _ref->im ); }
 
 	// Extract underlying data pointer
-	void *data() const throw( VError );
+	void *data() const;
 
 	// Write this to another VImage, to a file, or to a mem buffer
-	VImage write( VImage out ) throw( VError );
-	VImage write( const char *name ) throw( VError );
-	VImage write() throw( VError );
+	VImage write( VImage out );
+	VImage write( const char *name );
+	VImage write();
 
 	// Debugging ... print header fields
 	void debug_print();
@@ -258,14 +257,14 @@ public:
 	const char *Hist();
 
 	// need the hough circle stuff for the rode python GUI
-	VImage hough_circle( int scale, int min_radius, int max_radius ) throw( VError );
+	VImage hough_circle( int scale, int min_radius, int max_radius );
 
 	// metadata
 #ifndef SWIG
 	// base functionality
 	// we don't wrap GValue, so we can't wrap these for now
-	void meta_set( const char *field, GValue *value ) throw( VError );
-	void meta_get( const char *field, GValue *value_copy ) throw( VError );
+	void meta_set( const char *field, GValue *value );
+	void meta_get( const char *field, GValue *value_copy );
 #endif /*SWIG*/
 
 	// We can wrap these, fwiw
@@ -273,30 +272,26 @@ public:
 	GType meta_get_typeof( const char *field );
 
 	// convenience functions
-	int meta_get_int( const char *field ) throw( VError );
-	double meta_get_double( const char *field ) throw( VError );
-	const char *meta_get_string( const char *field ) throw( VError );
-	void *meta_get_area( const char *field ) throw( VError );
-	void *meta_get_blob( const char *field, size_t *length ) 
-		throw( VError );
+	int meta_get_int( const char *field );
+	double meta_get_double( const char *field );
+	const char *meta_get_string( const char *field );
+	void *meta_get_area( const char *field );
+	void *meta_get_blob( const char *field, size_t *length );
 
-	void meta_set( const char *field, int value ) throw( VError );
-	void meta_set( const char *field, double value ) throw( VError );
-	void meta_set( const char *field, const char *value ) throw( VError );
+	void meta_set( const char *field, int value );
+	void meta_set( const char *field, double value );
+	void meta_set( const char *field, const char *value );
 
 #ifndef SWIG
 	// we don't wrap callbacks yet, so we can't wrap these for now
+	void meta_set( const char *field, VCallback free_fn, void *value );
 	void meta_set( const char *field, 
-		VCallback free_fn, void *value ) 
-		throw( VError );
-	void meta_set( const char *field, 
-		VCallback free_fn, void *value, size_t length ) 
-		throw( VError );
+		VCallback free_fn, void *value, size_t length );
 #endif /*SWIG*/
 
 	// Set header fields
 	void initdesc( int, int, int, TBandFmt, TCoding, TType, 
-		float = 1.0, float = 1.0, int = 0, int = 0 ) throw( VError );
+		float = 1.0, float = 1.0, int = 0, int = 0 );
 
 	/* Insert automatically generated headers.
 	 */
@@ -307,115 +302,113 @@ public:
  */
 #ifndef SWIG
 	// And some in-line operator equivalences done by hand
-	friend VImage operator+( VImage a, VImage b ) throw( VError ) 
+	friend VImage operator+( VImage a, VImage b )
 		{ return( a.add( b ) ); }
-	friend VImage operator+( double a, VImage b ) throw( VError )
+	friend VImage operator+( double a, VImage b )
 		{ return( b.lin( 1.0, a ) ); }
-	friend VImage operator+( VImage a, double b ) throw( VError )
+	friend VImage operator+( VImage a, double b )
 		{ return( a.lin( 1.0, b ) ); }
 
-	friend VImage operator-( VImage a, VImage b ) throw( VError )
+	friend VImage operator-( VImage a, VImage b )
 		{ return( a.subtract( b ) ); }
-	friend VImage operator-( double a, VImage b ) throw( VError )
+	friend VImage operator-( double a, VImage b )
 		{ return( b.lin( -1.0, a ) ); }
-	friend VImage operator-( VImage a, double b ) throw( VError )
+	friend VImage operator-( VImage a, double b )
 		{ return( a.lin( 1.0, -b ) ); }
 
-	friend VImage operator*( VImage a, VImage b ) throw( VError )
+	friend VImage operator*( VImage a, VImage b )
 		{ return( a.multiply( b ) ); }
-	friend VImage operator*( double a, VImage b ) throw( VError )
+	friend VImage operator*( double a, VImage b )
 		{ return( b.lin( a, 0.0 ) ); }
-	friend VImage operator*( VImage a, double b ) throw( VError )
+	friend VImage operator*( VImage a, double b )
 		{ return( a.lin( b, 0.0 ) ); }
 
-	friend VImage operator/( VImage a, VImage b ) throw( VError )
+	friend VImage operator/( VImage a, VImage b )
 		{ return( a.divide( b ) ); }
-	friend VImage operator/( double a, VImage b ) throw( VError )
+	friend VImage operator/( double a, VImage b )
 		{ return( b.pow( -1.0 ).lin( a, 0.0 ) ); }
-	friend VImage operator/( VImage a, double b ) throw( VError )
+	friend VImage operator/( VImage a, double b )
 		{ return( a.lin( 1.0/b, 0.0 ) ); }
 
-	friend VImage operator%( VImage a, VImage b ) throw( VError )
+	friend VImage operator%( VImage a, VImage b )
 		{ return( a.remainder( b ) ); }
-	friend VImage operator%( VImage a, double b ) throw( VError )
+	friend VImage operator%( VImage a, double b )
 		{ return( a.remainder( b ) ); }
 
-	friend VImage operator<( VImage a, VImage b ) throw( VError )
+	friend VImage operator<( VImage a, VImage b )
 		{ return( a.less( b ) ); }
-	friend VImage operator<( double a, VImage b ) throw( VError )
+	friend VImage operator<( double a, VImage b )
 		{ return( b.more( a ) ); }
-	friend VImage operator<( VImage a, double b ) throw( VError )
+	friend VImage operator<( VImage a, double b )
 		{ return( a.less( b ) ); }
 
-	friend VImage operator<=( VImage a, VImage b ) throw( VError )
+	friend VImage operator<=( VImage a, VImage b )
 		{ return( a.lesseq( b ) ); }
-	friend VImage operator<=( double a, VImage b ) throw( VError )
+	friend VImage operator<=( double a, VImage b )
 		{ return( b.moreeq( a ) ); }
-	friend VImage operator<=( VImage a, double b ) throw( VError )
+	friend VImage operator<=( VImage a, double b )
 		{ return( a.lesseq( b ) ); }
 
-	friend VImage operator>( VImage a, VImage b ) throw( VError )
+	friend VImage operator>( VImage a, VImage b )
 		{ return( a.more( b ) ); }
-	friend VImage operator>( double a, VImage b ) throw( VError )
+	friend VImage operator>( double a, VImage b )
 		{ return( b.less( a ) ); }
-	friend VImage operator>( VImage a, double b ) throw( VError )
+	friend VImage operator>( VImage a, double b )
 		{ return( a.more( b ) ); }
 
-	friend VImage operator>=( VImage a, VImage b ) throw( VError )
+	friend VImage operator>=( VImage a, VImage b )
 		{ return( a.moreeq( b ) ); }
-	friend VImage operator>=( double a, VImage b ) throw( VError )
+	friend VImage operator>=( double a, VImage b )
 		{ return( b.lesseq( a ) ); }
-	friend VImage operator>=( VImage a, double b ) throw( VError )
+	friend VImage operator>=( VImage a, double b )
 		{ return( a.moreeq( b ) ); }
 
-	friend VImage operator==( VImage a, VImage b ) throw( VError )
+	friend VImage operator==( VImage a, VImage b )
 		{ return( a.equal( b ) ); }
-	friend VImage operator==( double a, VImage b ) throw( VError )
+	friend VImage operator==( double a, VImage b )
 		{ return( b.equal( a ) ); }
-	friend VImage operator==( VImage a, double b ) throw( VError )
+	friend VImage operator==( VImage a, double b )
 		{ return( a.equal( b ) ); }
 
-	friend VImage operator!=( VImage a, VImage b ) throw( VError )
+	friend VImage operator!=( VImage a, VImage b )
 		{ return( a.notequal( b ) ); }
-	friend VImage operator!=( double a, VImage b ) throw( VError )
+	friend VImage operator!=( double a, VImage b )
 		{ return( b.notequal( a ) ); }
-	friend VImage operator!=( VImage a, double b ) throw( VError )
+	friend VImage operator!=( VImage a, double b )
 		{ return( a.notequal( b ) ); }
 
-	friend VImage operator&( VImage a, VImage b ) throw( VError )
+	friend VImage operator&( VImage a, VImage b )
 		{ return( a.andimage( b ) ); }
-	friend VImage operator&( int a, VImage b ) throw( VError )
+	friend VImage operator&( int a, VImage b )
 		{ return( b.andimage( a ) ); }
-	friend VImage operator&( VImage a, int b ) throw( VError )
+	friend VImage operator&( VImage a, int b )
 		{ return( a.andimage( b ) ); }
 
-	friend VImage operator|( VImage a, VImage b ) throw( VError )
+	friend VImage operator|( VImage a, VImage b )
 		{ return( a.orimage( b ) ); }
-	friend VImage operator|( int a, VImage b ) throw( VError )
+	friend VImage operator|( int a, VImage b )
 		{ return( b.orimage( a ) ); }
-	friend VImage operator|( VImage a, int b ) throw( VError )
+	friend VImage operator|( VImage a, int b )
 		{ return( a.orimage( b ) ); }
 
-	friend VImage operator^( VImage a, VImage b ) throw( VError )
+	friend VImage operator^( VImage a, VImage b )
 		{ return( a.eorimage( b ) ); }
-	friend VImage operator^( int a, VImage b ) throw( VError )
+	friend VImage operator^( int a, VImage b )
 		{ return( b.eorimage( a ) ); }
-	friend VImage operator^( VImage a, int b ) throw( VError )
+	friend VImage operator^( VImage a, int b )
 		{ return( a.eorimage( b ) ); }
 
-	friend VImage operator<<( VImage a, int b ) throw( VError )
+	friend VImage operator<<( VImage a, int b )
 		{ return( a.shiftleft( b ) ); }
-	friend VImage operator>>( VImage a, int b ) throw( VError )
+	friend VImage operator>>( VImage a, int b )
 		{ return( a.shiftright( b ) ); }
 
-	friend VImage operator-( VImage a ) throw( VError )
+	friend VImage operator-( VImage a )
 		{ return( a * -1 ); }
 
 	// Type conversion: VImage to VDMask and VIMask
-	operator VDMask() throw( VError ) 
-		{ return( this->vips2mask() ); }
-	operator VIMask() throw( VError ) 
-		{ return( VIMask( VDMask( *this ) ) ); }
+	operator VDMask() { return( this->vips2mask() ); }
+	operator VIMask() { return( VIMask( VDMask( *this ) ) ); }
 #endif /*!SWIG*/
 };
 

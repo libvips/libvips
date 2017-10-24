@@ -66,10 +66,10 @@ class VDisplay {
 		void cleanref();
 
 		// Get ready to write
-		void wready() throw( VError );
+		void wready();
 
 		// Check that luts are up-to-date
-		void cluts() throw( VError );
+		void cluts();
 
 		refblock() : disp(0), luts(0), priv(0), nrefs(1) {}
 		~refblock() { cleanref(); }
@@ -84,7 +84,7 @@ public:
 	};
 
 	// Get named display
-	VDisplay( const char *name ) throw( VError );
+	VDisplay( const char *name );
 
 	// Get default display
 	VDisplay();
@@ -105,8 +105,7 @@ public:
 	void *disp() const { return( ref->disp ); }
 
 	// Extract luts pointer, rebuilding luts if necessary
-	im_col_tab_disp *luts() const throw( VError ) 
-		{ ref->cluts(); return( ref->luts ); }
+	im_col_tab_disp *luts() const { ref->cluts(); return( ref->luts ); }
 };
 
 VIPS_NAMESPACE_END

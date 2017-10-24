@@ -57,7 +57,7 @@ free_display( im_col_display *d )
 
 // Dupe an im_col_display
 static im_col_display *
-dup_display( im_col_display *in ) throw( VError )
+dup_display( im_col_display *in ) 
 {
 	return( in );
 }
@@ -83,7 +83,7 @@ void VDisplay::refblock::cleanref()
 }
 
 // Get ready to write to disp
-void VDisplay::refblock::wready() throw( VError )
+void VDisplay::refblock::wready() 
 {
 	cleanlut();
 	if( !priv ) {
@@ -93,7 +93,7 @@ void VDisplay::refblock::wready() throw( VError )
 }
 
 // Check that luts are up-to-date
-void VDisplay::refblock::cluts() throw( VError )
+void VDisplay::refblock::cluts() 
 {
 }
 
@@ -121,7 +121,7 @@ VDisplay &VDisplay::operator=( const VDisplay &a )
 	return( *this ); 
 }
 
-VDisplay::VDisplay( const char *name ) throw( VError )
+VDisplay::VDisplay( const char *name ) 
 {
 	// Install display
 	ref = new refblock;

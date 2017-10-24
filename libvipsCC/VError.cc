@@ -82,7 +82,7 @@ void VError::ostream_print( std::ostream &file ) const
 	file << _what;
 }
 
-void verror( std::string str ) throw( VError )
+void verror( std::string str ) 
 {
 	VError err;
 
