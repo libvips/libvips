@@ -1,0 +1,1015 @@
+/* vertical reduce by a float factor with a kernel, followed by a transpose
+ *
+ * 29/1/16
+ * 	- from shrinkv.c
+ * 10/3/16
+ * 	- add other kernels
+ * 21/3/16
+ * 	- add vector path
+ * 2/4/16
+ * 	- better int mask creation ... we now adjust the scale to keep the sum
+ * 	  equal to the target scale
+ * 15/6/16
+ * 	- better accuracy with smarter multiplication
+ * 15/8/16
+ * 	- rename yshrink as vshrink for consistency
+ * 9/9/16
+ * 	- add @centre option
+ * 7/3/17
+ * 	- add a seq line cache
+ * 23/10/17
+ * 	- from reducevt.cpp
+ */
+
+/*
+
+    This file is part of VIPS.
+    
+    VIPS is free software; you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+    02110-1301  USA
+
+ */
+
+/*
+
+    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+
+ */
+
+/*
+#define DEBUG_PIXELS
+#define DEBUG_COMPILE
+#define DEBUG
+ */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /*HAVE_CONFIG_H*/
+#include <vips/intl.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+#include <vips/vips.h>
+#include <vips/debug.h>
+#include <vips/internal.h>
+#include <vips/vector.h>
+
+#include "presample.h"
+#include "templates.h"
+
+/* We can't run more than this many passes. Larger than this and we
+ * fall back to C.
+ */
+#define MAX_PASS (10)
+
+/* The number of params we pass for coeffs. Orc limits this rather. 
+ */
+#define MAX_PARAM (8)
+
+/* A pass with a vector. 
+ */
+typedef struct {
+	int first;		/* The index of the first mask coff we use */
+	int last;		/* The index of the last mask coff we use */
+
+	int r;			/* Set previous result in this var */
+	int d2;			/* Write new temp result here */
+
+	int p[MAX_PARAM];	/* Mask coeffs passed in these */
+	int n_param;
+
+        /* The code we generate for this section of this mask. 
+	 */
+        VipsVector *vector;
+} Pass;
+
+typedef struct _VipsReducevt {
+	VipsResample parent_instance;
+
+	double vshrink;		/* Shrink factor */
+
+	/* The thing we use to make the kernel.
+	 */
+	VipsKernel kernel;
+
+	/* Use centre rather than corner sampling convention.
+	 */
+	gboolean centre;
+
+	/* Number of points in kernel.
+	 */
+	int n_point;
+
+	/* Precalculated interpolation matrices. int (used for pel
+	 * sizes up to short), and double (for all others). We go to
+	 * scale + 1 so we can round-to-nearest safely.
+	 */
+	int *matrixi[VIPS_TRANSFORM_SCALE + 1];
+	double *matrixf[VIPS_TRANSFORM_SCALE + 1];
+
+	/* And another set for orc: we want 2.6 precision.
+	 */
+	int *matrixo[VIPS_TRANSFORM_SCALE + 1];
+
+	/* The passes we generate for this mask.
+	 */
+	int n_pass;	
+	Pass pass[MAX_PASS];
+
+} VipsReducevt;
+
+typedef VipsResampleClass VipsReducevtClass;
+
+/* We need C linkage for this.
+ */
+extern "C" {
+G_DEFINE_TYPE( VipsReducevt, vips_reducevt, VIPS_TYPE_RESAMPLE );
+}
+
+static void
+vips_reducevt_finalize( GObject *gobject )
+{
+	VipsReducevt *reducevt = (VipsReducevt *) gobject; 
+
+	for( int i = 0; i < reducevt->n_pass; i++ )
+		VIPS_FREEF( vips_vector_free, reducevt->pass[i].vector );
+	reducevt->n_pass = 0;
+	for( int i = 0; i < VIPS_TRANSFORM_SCALE + 1; i++ ) {
+		VIPS_FREE( reducevt->matrixf[i] );
+		VIPS_FREE( reducevt->matrixi[i] );
+		VIPS_FREE( reducevt->matrixo[i] );
+	}
+
+	G_OBJECT_CLASS( vips_reducevt_parent_class )->finalize( gobject );
+}
+
+#define TEMP( N, S ) vips_vector_temporary( v, (char *) N, S )
+#define PARAM( N, S ) vips_vector_parameter( v, (char *) N, S )
+#define SCANLINE( N, P, S ) vips_vector_source_scanline( v, (char *) N, P, S )
+#define CONST( N, V, S ) vips_vector_constant( v, (char *) N, V, S )
+#define ASM2( OP, A, B ) vips_vector_asm2( v, (char *) OP, A, B )
+#define ASM3( OP, A, B, C ) vips_vector_asm3( v, (char *) OP, A, B, C )
+
+/* Generate code for a section of the mask. first is the index we start
+ * at, we set last to the index of the last one we use before we run 
+ * out of intermediates / constants / parameters / sources or mask
+ * coefficients.
+ *
+ * 0 for success, -1 on error.
+ */
+static int
+vips_reducevt_compile_section( VipsReducevt *reducevt, Pass *pass, gboolean first )
+{
+	VipsVector *v;
+	int i;
+
+#ifdef DEBUG_COMPILE
+	printf( "starting pass %d\n", pass->first ); 
+#endif /*DEBUG_COMPILE*/
+
+	pass->vector = v = vips_vector_new( "reducevt", 1 );
+
+	/* We have two destinations: the final output image (8-bit) and the
+	 * intermediate buffer if this is not the final pass (16-bit).
+	 */
+	pass->d2 = vips_vector_destination( v, "d2", 2 );
+
+	/* "r" is the array of sums from the previous pass (if any).
+	 */
+	pass->r = vips_vector_source_name( v, "r", 2 );
+
+	/* The value we fetch from the image, the accumulated sum.
+	 */
+	TEMP( "value", 2 );
+	TEMP( "sum", 2 );
+
+	/* Init the sum. If this is the first pass, it's a constant. If this
+	 * is a later pass, we have to init the sum from the result 
+	 * of the previous pass. 
+	 */
+	if( first ) {
+		char c0[256];
+
+		CONST( c0, 0, 2 );
+		ASM2( "loadpw", "sum", c0 );
+	}
+	else 
+		ASM2( "loadw", "sum", "r" );
+
+	for( i = pass->first; i < reducevt->n_point; i++ ) {
+		char source[256];
+		char coeff[256];
+
+		SCANLINE( source, i, 1 );
+
+		/* This mask coefficient.
+		 */
+		vips_snprintf( coeff, 256, "p%d", i );
+		pass->p[pass->n_param] = PARAM( coeff, 2 );
+		pass->n_param += 1;
+		if( pass->n_param >= MAX_PARAM )
+			return( -1 );
+
+		/* Mask coefficients are 2.6 bits fixed point. We need to hold
+		 * about -0.5 to 1.0, so -2 to +1.999 is as close as we can
+		 * get. 
+		 *
+		 * We need a signed multiply, so the image pixel needs to
+		 * become a signed 16-bit value. We know only the bottom 8 bits
+		 * of the image and coefficient are interesting, so we can take
+		 * the bottom bits of a 16x16->32 multiply. 
+		 *
+		 * We accumulate the signed 16-bit result in sum.
+		 */
+		ASM2( "convubw", "value", source );
+		ASM3( "mullw", "value", "value", coeff );
+		ASM3( "addssw", "sum", "sum", "value" );
+
+		/* We've used this coeff.
+		 */
+		pass->last = i;
+
+		if( vips_vector_full( v ) )
+			break;
+
+		/* orc 0.4.24 and earlier hate more than about five lines at
+		 * once :( 
+		 */
+		if( i - pass->first > 3 )
+			break;
+	}
+
+	/* If this is the end of the mask, we write the 8-bit result to the
+	 * image, otherwise write the 16-bit intermediate to our temp buffer. 
+	 */
+	if( pass->last >= reducevt->n_point - 1 ) {
+		char c32[256];
+		char c6[256];
+		char c0[256];
+		char c255[256];
+
+		CONST( c32, 32, 2 );
+		ASM3( "addw", "sum", "sum", c32 );
+		CONST( c6, 6, 2 );
+		ASM3( "shrsw", "sum", "sum", c6 );
+
+		/* You'd think "convsuswb", convert signed 16-bit to unsigned
+		 * 8-bit with saturation, would be quicker, but it's a lot
+		 * slower.
+		 */
+		CONST( c0, 0, 2 );
+		ASM3( "maxsw", "sum", c0, "sum" ); 
+		CONST( c255, 255, 2 );
+		ASM3( "minsw", "sum", c255, "sum" ); 
+
+		ASM2( "convwb", "d1", "sum" );
+	}
+	else 
+		ASM2( "copyw", "d2", "sum" );
+
+	if( !vips_vector_compile( v ) ) 
+		return( -1 );
+
+#ifdef DEBUG_COMPILE
+	printf( "done coeffs %d to %d\n", pass->first, pass->last );
+	vips_vector_print( v );
+#endif /*DEBUG_COMPILE*/
+
+	return( 0 );
+}
+
+static int
+vips_reducevt_compile( VipsReducevt *reducevt )
+{
+	Pass *pass;
+
+	/* Generate passes until we've used up the whole mask.
+	 */
+	for( int i = 0;; ) {
+		/* Allocate space for another pass.
+		 */
+		if( reducevt->n_pass == MAX_PASS ) 
+			return( -1 );
+		pass = &reducevt->pass[reducevt->n_pass];
+		reducevt->n_pass += 1;
+
+		pass->first = i;
+		pass->r = -1;
+		pass->d2 = -1;
+		pass->n_param = 0;
+
+		if( vips_reducevt_compile_section( reducevt,
+			pass, reducevt->n_pass == 1 ) )
+			return( -1 );
+		i = pass->last + 1;
+
+		if( i >= reducevt->n_point )
+			break;
+	}
+
+	return( 0 );
+}
+
+/* Our sequence value.
+ */
+typedef struct {
+	VipsReducevt *reducevt;
+	VipsRegion *ir;		/* Input region */
+
+	/* In vector mode we need a pair of intermediate buffers to keep the 
+	 * results of each pass in.
+	 */
+	signed short *t1;
+	signed short *t2;
+} Sequence;
+
+static int
+vips_reducevt_stop( void *vseq, void *a, void *b )
+{
+	Sequence *seq = (Sequence *) vseq;
+
+	VIPS_UNREF( seq->ir );
+	VIPS_FREE( seq->t1 );
+	VIPS_FREE( seq->t2 );
+
+	return( 0 );
+}
+
+static void *
+vips_reducevt_start( VipsImage *out, void *a, void *b )
+{
+	VipsImage *in = (VipsImage *) a;
+	VipsReducevt *reducevt = (VipsReducevt *) b;
+	int sz = VIPS_IMAGE_N_ELEMENTS( in );
+
+	Sequence *seq;
+
+	if( !(seq = VIPS_NEW( out, Sequence )) )
+		return( NULL );
+
+	/* Init!
+	 */
+	seq->reducevt = reducevt;
+	seq->ir = NULL;
+	seq->t1 = NULL;
+	seq->t2 = NULL;
+
+	/* Attach region and arrays.
+	 */
+	seq->ir = vips_region_new( in );
+	seq->t1 = VIPS_ARRAY( NULL, sz, signed short );
+	seq->t2 = VIPS_ARRAY( NULL, sz, signed short );
+	if( !seq->ir || 
+		!seq->t1 || 
+		!seq->t2  ) {
+		vips_reducevt_stop( seq, NULL, NULL );
+		return( NULL );
+	}
+
+	return( seq );
+}
+
+/* You'd think this would vectorise, but gcc hates mixed types in nested loops
+ * :-(
+ */
+template <typename T, int max_value>
+static void inline
+reducevt_unsigned_int_tab( VipsReducevt *reducevt,
+	VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip, const int * restrict cy )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+	const int n = reducevt->n_point;
+	const int l1 = lskip / sizeof( T );
+
+	for( int z = 0; z < ne; z++ ) {
+		int sum;
+
+		sum = reduce_sum<T, int>( in + z, l1, cy, n );
+		sum = unsigned_fixed_round( sum ); 
+		sum = VIPS_CLIP( 0, sum, max_value ); 
+
+		out[z] = sum;
+	}
+}
+
+template <typename T, int min_value, int max_value>
+static void inline
+reducevt_signed_int_tab( VipsReducevt *reducevt,
+	VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip, const int * restrict cy )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+	const int n = reducevt->n_point;
+	const int l1 = lskip / sizeof( T );
+
+	for( int z = 0; z < ne; z++ ) {
+		int sum;
+
+		sum = reduce_sum<T, int>( in + z, l1, cy, n );
+		sum = signed_fixed_round( sum ); 
+		sum = VIPS_CLIP( min_value, sum, max_value ); 
+
+		out[z] = sum;
+	}
+}
+
+/* Floating-point version.
+ */
+template <typename T>
+static void inline
+reducevt_float_tab( VipsReducevt *reducevt,
+	VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip, const double * restrict cy )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+	const int n = reducevt->n_point;
+	const int l1 = lskip / sizeof( T );
+
+	for( int z = 0; z < ne; z++ ) 
+		out[z] = reduce_sum<T, double>( in + z, l1, cy, n );
+}
+
+/* 32-bit int output needs a double intermediate.
+ */
+
+template <typename T, int max_value>
+static void inline
+reducevt_unsigned_int32_tab( VipsReducevt *reducevt,
+	VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip, const double * restrict cy )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+	const int n = reducevt->n_point;
+	const int l1 = lskip / sizeof( T );
+
+	for( int z = 0; z < ne; z++ ) {
+		double sum;
+
+		sum = reduce_sum<T, double>( in + z, l1, cy, n );
+		out[z] = VIPS_CLIP( 0, sum, max_value ); 
+	}
+}
+
+template <typename T, int min_value, int max_value>
+static void inline
+reducevt_signed_int32_tab( VipsReducevt *reducevt,
+	VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip, const double * restrict cy )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+	const int n = reducevt->n_point;
+	const int l1 = lskip / sizeof( T );
+
+	for( int z = 0; z < ne; z++ ) {
+		double sum;
+
+		sum = reduce_sum<T, double>( in + z, l1, cy, n );
+		out[z] = VIPS_CLIP( min_value, sum, max_value ); 
+	}
+}
+
+/* Ultra-high-quality version for double images.
+ */
+template <typename T>
+static void inline
+reducevt_notab( VipsReducevt *reducevt,
+	VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip, double y )
+{
+	T* restrict out = (T *) pout;
+	const T* restrict in = (T *) pin;
+	const int n = reducevt->n_point;
+	const int l1 = lskip / sizeof( T );
+
+	double cy[MAX_POINT];
+
+	vips_reduce_make_mask( cy, reducevt->kernel, reducevt->vshrink, y ); 
+
+	for( int z = 0; z < ne; z++ ) 
+		out[z] = reduce_sum<T, double>( in + z, l1, cy, n );
+}
+
+static int
+vips_reducevt_gen( VipsRegion *out_region, void *vseq, 
+	void *a, void *b, gboolean *stop )
+{
+	VipsImage *in = (VipsImage *) a;
+	VipsReducevt *reducevt = (VipsReducevt *) b;
+	Sequence *seq = (Sequence *) vseq;
+	VipsRegion *ir = seq->ir;
+	VipsRect *r = &out_region->valid;
+
+	/* Double bands for complex.
+	 */
+	const int bands = in->Bands * 
+		(vips_band_format_iscomplex( in->BandFmt ) ?  2 : 1);
+	int ne = r->width * bands;
+
+	VipsRect s;
+
+#ifdef DEBUG
+	printf( "vips_reducevt_gen: generating %d x %d at %d x %d\n",
+		r->width, r->height, r->left, r->top ); 
+#endif /*DEBUG*/
+
+	s.left = r->left;
+	s.top = r->top * reducevt->vshrink;
+	s.width = r->width;
+	s.height = r->height * reducevt->vshrink + reducevt->n_point;
+	if( reducevt->centre )
+		s.height += 1;
+	if( vips_region_prepare( ir, &s ) )
+		return( -1 );
+
+	VIPS_GATE_START( "vips_reducevt_gen: work" ); 
+
+	for( int y = 0; y < r->height; y ++ ) { 
+		VipsPel *q = 
+			VIPS_REGION_ADDR( out_region, r->left, r->top + y );
+		const double Y = (r->top + y) * reducevt->vshrink + 
+			(reducevt->centre ? 0.5 : 0.0); 
+		VipsPel *p = VIPS_REGION_ADDR( ir, r->left, (int) Y ); 
+		const int sy = Y * VIPS_TRANSFORM_SCALE * 2;
+		const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
+		const int ty = (siy + 1) >> 1;
+		const int *cyi = reducevt->matrixi[ty];
+		const double *cyf = reducevt->matrixf[ty];
+		const int lskip = VIPS_REGION_LSKIP( ir );
+
+		switch( in->BandFmt ) {
+		case VIPS_FORMAT_UCHAR:
+			reducevt_unsigned_int_tab
+				<unsigned char, UCHAR_MAX>(
+				reducevt,
+				q, p, ne, lskip, cyi );
+			break;
+
+		case VIPS_FORMAT_CHAR:
+			reducevt_signed_int_tab
+				<signed char, SCHAR_MIN, SCHAR_MAX>(
+				reducevt,
+				q, p, ne, lskip, cyi );
+			break;
+
+		case VIPS_FORMAT_USHORT:
+			reducevt_unsigned_int_tab
+				<unsigned short, USHRT_MAX>(
+				reducevt,
+				q, p, ne, lskip, cyi );
+			break;
+
+		case VIPS_FORMAT_SHORT:
+			reducevt_signed_int_tab
+				<signed short, SHRT_MIN, SHRT_MAX>(
+				reducevt,
+				q, p, ne, lskip, cyi );
+			break;
+
+		case VIPS_FORMAT_UINT:
+			reducevt_unsigned_int32_tab
+				<unsigned int, INT_MAX>(
+				reducevt,
+				q, p, ne, lskip, cyf );
+			break;
+
+		case VIPS_FORMAT_INT:
+			reducevt_signed_int32_tab
+				<signed int, INT_MIN, INT_MAX>(
+				reducevt,
+				q, p, ne, lskip, cyf );
+			break;
+
+		case VIPS_FORMAT_FLOAT:
+		case VIPS_FORMAT_COMPLEX:
+			reducevt_float_tab<float>( reducevt,
+				q, p, ne, lskip, cyf );
+			break;
+
+		case VIPS_FORMAT_DPCOMPLEX:
+		case VIPS_FORMAT_DOUBLE:
+			reducevt_notab<double>( reducevt,
+				q, p, ne, lskip, Y - (int) Y );
+			break;
+
+		default:
+			g_assert_not_reached();
+			break;
+		}
+	}
+
+	VIPS_GATE_STOP( "vips_reducevt_gen: work" ); 
+
+	VIPS_COUNT_PIXELS( out_region, "vips_reducevt_gen" ); 
+
+	return( 0 );
+}
+
+/* Process uchar images with a vector path.
+ */
+static int
+vips_reducevt_vector_gen( VipsRegion *out_region, void *vseq, 
+	void *a, void *b, gboolean *stop )
+{
+	VipsImage *in = (VipsImage *) a;
+	VipsReducevt *reducevt = (VipsReducevt *) b;
+	Sequence *seq = (Sequence *) vseq;
+	VipsRegion *ir = seq->ir;
+	VipsRect *r = &out_region->valid;
+	int ne = r->width * in->Bands;
+
+	VipsExecutor executor[MAX_PASS];
+	VipsRect s;
+
+#ifdef DEBUG_PIXELS
+	printf( "vips_reducevt_vector_gen: generating %d x %d at %d x %d\n",
+		r->width, r->height, r->left, r->top ); 
+#endif /*DEBUG_PIXELS*/
+
+	s.left = r->top * reducevt->vshrink;
+	s.top = r->left;
+	s.width = r->height * reducevt->vshrink + reducevt->n_point;
+	s.height = r->width;
+	if( reducevt->centre )
+		s.height += 1;
+	if( vips_region_prepare( ir, &s ) )
+		return( -1 );
+
+#ifdef DEBUG_PIXELS
+	printf( "vips_reducevt_vector_gen: preparing %d x %d at %d x %d\n",
+		s.width, s.height, s.left, s.top ); 
+#endif /*DEBUG_PIXELS*/
+
+	for( int i = 0; i < reducevt->n_pass; i++ ) 
+		vips_executor_set_program( &executor[i], 
+			reducevt->pass[i].vector, ne );
+
+	VIPS_GATE_START( "vips_reducevt_vector_gen: work" ); 
+
+	for( int y = 0; y < r->height; y ++ ) { 
+		VipsPel *q = 
+			VIPS_REGION_ADDR( out_region, r->left, r->top + y );
+		const double Y = (r->top + y) * reducevt->vshrink + 
+			(reducevt->centre ? 0.5 : 0.0); 
+		const int py = (int) Y; 
+		const int sy = Y * VIPS_TRANSFORM_SCALE * 2;
+		const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
+		const int ty = (siy + 1) >> 1;
+		const int *cyo = reducevt->matrixo[ty];
+
+#ifdef DEBUG_PIXELS
+		printf( "starting row %d\n", y + r->top ); 
+		printf( "coefficients:\n" );
+		for( int i = 0; i < reducevt->n_point; i++ ) 
+			printf( "\t%d - %d\n", i, cyo[i] );
+		printf( "first column of pixel values:\n" ); 
+		for( int i = 0; i < reducevt->n_point; i++ ) 
+			printf( "\t%d - %d\n", i, 
+				*VIPS_REGION_ADDR( ir, r->left, r->top + y + i ) ); 
+#endif /*DEBUG_PIXELS*/
+
+		/* We run our n passes to generate this scanline.
+		 */
+		for( int i = 0; i < reducevt->n_pass; i++ ) {
+			Pass *pass = &reducevt->pass[i]; 
+
+			vips_executor_set_scanline( &executor[i], 
+				ir, r->left, py );
+			vips_executor_set_array( &executor[i],
+				pass->r, seq->t1 );
+			vips_executor_set_array( &executor[i],
+				pass->d2, seq->t2 );
+			for( int j = 0; j < pass->n_param; j++ ) 
+				vips_executor_set_parameter( &executor[i],
+					pass->p[j], cyo[j + pass->first] ); 
+			vips_executor_set_destination( &executor[i], q );
+			vips_executor_run( &executor[i] );
+
+			VIPS_SWAP( signed short *, seq->t1, seq->t2 );
+		}
+
+#ifdef DEBUG_PIXELS
+		printf( "pixel result:\n" );
+		printf( "\t%d\n", *q ); 
+#endif /*DEBUG_PIXELS*/
+	}
+
+	VIPS_GATE_STOP( "vips_reducevt_vector_gen: work" ); 
+
+	VIPS_COUNT_PIXELS( out_region, "vips_reducevt_vector_gen" ); 
+
+	return( 0 );
+}
+
+static int
+vips_reducevt_raw( VipsReducevt *reducevt, VipsImage *in, VipsImage **out ) 
+{
+	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( reducevt );
+	VipsResample *resample = VIPS_RESAMPLE( reducevt );
+
+	VipsGenerateFn generate;
+
+	/* Build masks.
+	 */
+	for( int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++ ) {
+		reducevt->matrixf[y] = 
+			VIPS_ARRAY( NULL, reducevt->n_point, double ); 
+		if( !reducevt->matrixf[y] )
+			return( -1 ); 
+
+		vips_reduce_make_mask( reducevt->matrixf[y],
+			reducevt->kernel, reducevt->vshrink, 
+			(float) y / VIPS_TRANSFORM_SCALE ); 
+
+#ifdef DEBUG
+		printf( "%6.2g", (double) y / VIPS_TRANSFORM_SCALE ); 
+		for( int i = 0; i < reducevt->n_point; i++ ) 
+			printf( ", %6.2g", reducevt->matrixf[y][i] );
+		printf( "\n" ); 
+#endif /*DEBUG*/
+	}
+
+	/* uchar and ushort need an int version of the masks.
+	 */
+	if( VIPS_IMAGE_SIZEOF_ELEMENT( in ) <= 2 ) 
+		for( int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++ ) {
+			reducevt->matrixi[y] = 
+				VIPS_ARRAY( NULL, reducevt->n_point, int ); 
+			if( !reducevt->matrixi[y] )
+				return( -1 ); 
+
+			vips_vector_to_fixed_point( 
+				reducevt->matrixf[y], reducevt->matrixi[y], 
+				reducevt->n_point, VIPS_INTERPOLATE_SCALE );
+		}
+
+	/* And we need an 2.6 version if we will use the vector path.
+	 */
+	if( in->BandFmt == VIPS_FORMAT_UCHAR &&
+		vips_vector_isenabled() ) 
+		for( int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++ ) {
+			reducevt->matrixo[y] = 
+				VIPS_ARRAY( NULL, reducevt->n_point, int ); 
+			if( !reducevt->matrixo[y] )
+				return( -1 ); 
+
+			vips_vector_to_fixed_point( 
+				reducevt->matrixf[y], reducevt->matrixo[y], 
+				reducevt->n_point, 64 );
+		}
+
+	/* Try to build a vector version, if we can.
+	 */
+	generate = vips_reducevt_gen;
+	if( in->BandFmt == VIPS_FORMAT_UCHAR &&
+		vips_vector_isenabled() &&
+		!vips_reducevt_compile( reducevt ) ) {
+		g_info( "reducevt: using vector path" ); 
+		generate = vips_reducevt_vector_gen;
+	}
+
+	*out = vips_image_new();
+	if( vips_image_pipelinev( *out, 
+		VIPS_DEMAND_STYLE_SMALLTILE, in, (void *) NULL ) )
+		return( -1 );
+
+	/* Swap xy for the transpose on write.
+	 */
+	VIPS_SWAP( out->Xsize, out->Ysize, int ); 
+
+	/* Size output. We need to always round to nearest, so round(), not
+	 * rint().
+	 *
+	 * Don't change xres/yres, leave that to the application layer. For
+	 * example, vipsthumbnail knows the true reduce factor (including the
+	 * fractional part), we just see the integer part here.
+	 */
+	(*out)->Xsize = VIPS_ROUND_UINT( 
+		resample->in->Ysize / reducevt->vshrink );
+	if( (*out)->Xsize <= 0 ) { 
+		vips_error( object_class->nickname, 
+			"%s", _( "image has shrunk to nothing" ) );
+		return( -1 );
+	}
+
+#ifdef DEBUG
+	printf( "vips_reducevt_build: reducing and transpose %d x %d image "
+		"to %d x %d\n", 
+		in->Xsize, in->Ysize, 
+		(*out)->Xsize, (*out)->Ysize );  
+#endif /*DEBUG*/
+
+	if( vips_image_generate( *out,
+		vips_reducevt_start, generate, vips_reducevt_stop, 
+		in, reducevt ) )
+		return( -1 );
+
+	vips_reorder_margin_hint( *out, reducevt->n_point ); 
+
+	return( 0 );
+}
+
+static int
+vips_reducevt_build( VipsObject *object )
+{
+	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
+	VipsResample *resample = VIPS_RESAMPLE( object );
+	VipsReducevt *reducevt = (VipsReducevt *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
+
+	VipsImage *in;
+	int height;
+
+	if( VIPS_OBJECT_CLASS( vips_reducevt_parent_class )->build( object ) )
+		return( -1 );
+
+	in = resample->in; 
+
+	if( reducevt->vshrink < 1 ) { 
+		vips_error( object_class->nickname, 
+			"%s", _( "reduce factor should be >= 1" ) );
+		return( -1 );
+	}
+
+	if( reducevt->vshrink == 1 ) 
+		return( vips_image_write( in, resample->out ) );
+
+	reducevt->n_point = 
+		vips_reduce_get_points( reducevt->kernel, reducevt->vshrink ); 
+	g_info( "reducevt: %d point mask", reducevt->n_point );
+	if( reducevt->n_point > MAX_POINT ) {
+		vips_error( object_class->nickname, 
+			"%s", _( "reduce factor too large" ) );
+		return( -1 );
+	}
+
+	/* Unpack for processing.
+	 */
+	if( vips_image_decode( in, &t[0] ) )
+		return( -1 );
+	in = t[0];
+
+	/* Add new pixels around the input so we can interpolate at the edges.
+	 */
+	height = in->Ysize + reducevt->n_point - 1;
+	if( reducevt->centre )
+		height += 1;
+	if( vips_embed( in, &t[1], 
+		0, reducevt->n_point / 2 - 1, 
+		in->Xsize, height, 
+		"extend", VIPS_EXTEND_COPY,
+		(void *) NULL ) )
+		return( -1 );
+	in = t[1];
+
+	if( vips_reducevt_raw( reducevt, in, &t[2] ) )
+		return( -1 );
+	in = t[2];
+
+	/* Large reducevt will throw off sequential mode. Suppose thread1 is
+	 * generating tile (0, 0), but stalls. thread2 generates tile
+	 * (0, 1), 128 lines further down the output. After it has done,
+	 * thread1 tries to generate (0, 0), but by then the pixels it needs
+	 * have gone from the input image line cache if the reducevt is large.
+	 *
+	 * To fix this, put another seq on the output of reducevt. Now we'll
+	 * always have the previous XX lines of the shrunk image, and we won't
+	 * fetch out of order. 
+	 */
+	if( vips_image_get_typeof( in, VIPS_META_SEQUENTIAL ) ) { 
+		g_info( "reducevt sequential line cache" ); 
+
+		if( vips_sequential( in, &t[3], 
+			"tile_height", 10,
+			// "trace", TRUE,
+			(void *) NULL ) )
+			return( -1 );
+		in = t[3];
+	}
+
+	if( vips_image_write( in, resample->out ) )
+		return( -1 ); 
+
+	return( 0 );
+}
+
+static void
+vips_reducevt_class_init( VipsReducevtClass *reducevt_class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( reducevt_class );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( reducevt_class );
+	VipsOperationClass *operation_class = 
+		VIPS_OPERATION_CLASS( reducevt_class );
+
+	VIPS_DEBUG_MSG( "vips_reducevt_class_init\n" );
+
+	gobject_class->finalize = vips_reducevt_finalize;
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	vobject_class->nickname = "reducevt";
+	vobject_class->description = _( "shrink an image vertically" );
+	vobject_class->build = vips_reducevt_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+
+	VIPS_ARG_DOUBLE( reducevt_class, "vshrink", 3, 
+		_( "Vshrink" ), 
+		_( "Vertical shrink factor" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsReducevt, vshrink ),
+		1, 1000000, 1 );
+
+	VIPS_ARG_ENUM( reducevt_class, "kernel", 4, 
+		_( "Kernel" ), 
+		_( "Resampling kernel" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsReducevt, kernel ),
+		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
+
+	VIPS_ARG_BOOL( reducevt_class, "centre", 7, 
+		_( "Centre" ), 
+		_( "Use centre sampling convention" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsReducevt, centre ),
+		FALSE );
+
+	/* Old name.
+	 */
+	VIPS_ARG_DOUBLE( reducevt_class, "yshrink", 3, 
+		_( "Yshrink" ), 
+		_( "Vertical shrink factor" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsReducevt, vshrink ),
+		1, 1000000, 1 );
+
+}
+
+static void
+vips_reducevt_init( VipsReducevt *reducevt )
+{
+	reducevt->kernel = VIPS_KERNEL_LANCZOS3;
+}
+
+/**
+ * vips_reducevt: (method)
+ * @in: input image
+ * @out: (out): output image
+ * @vshrink: vertical reduce
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @kernel: #VipsKernel to use to interpolate (default: lanczos3)
+ * * @centre: %gboolean use centre rather than corner sampling convention
+ *
+ * Reduce @in vertically by a float factor. The pixels in @out are
+ * interpolated with a 1D mask generated by @kernel. The output is transposed,
+ * so rows are written as columns. You can therefore do a horizontal reduction
+ * by running vips_reducevt() a second time. This means you must run this
+ * operation with #VIPS_DEMAND_STYLE_SMALLTILE for good performance. 
+ *
+ * Set @centre to use centre rather than corner sampling convention. Centre
+ * convention can be useful to match the behaviour of other systems. 
+ *
+ * This is a very low-level operation: see vips_resize() for a more
+ * convenient way to resize images. 
+ *
+ * This operation does not change xres or yres. The image resolution needs to
+ * be updated by the application. 
+ *
+ * See also: vips_shrink(), vips_resize(), vips_affine().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_reducevt( VipsImage *in, VipsImage **out, double vshrink, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, vshrink );
+	result = vips_call_split( "reducevt", ap, in, out, vshrink );
+	va_end( ap );
+
+	return( result );
+}
