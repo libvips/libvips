@@ -383,14 +383,12 @@ vips_reducevt_start( VipsImage *out, void *a, void *b )
 	return( seq );
 }
 
-/* You'd think this would vectorise, but gcc hates mixed types in nested loops
- * :-(
- */
 template <typename T, int max_value>
 static void inline
 reducevt_unsigned_int_tab( VipsReducevt *reducevt,
 	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip, const int * restrict cy )
+	const int ne, const int out_stride, 
+	const int lskip, const int * restrict cy )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
@@ -404,7 +402,7 @@ reducevt_unsigned_int_tab( VipsReducevt *reducevt,
 		sum = unsigned_fixed_round( sum ); 
 		sum = VIPS_CLIP( 0, sum, max_value ); 
 
-		out[z] = sum;
+		out[z * out_stride] = sum;
 	}
 }
 
@@ -532,10 +530,10 @@ vips_reducevt_gen( VipsRegion *out_region, void *vseq,
 		r->width, r->height, r->left, r->top ); 
 #endif /*DEBUG*/
 
-	s.left = r->left;
-	s.top = r->top * reducevt->vshrink;
-	s.width = r->width;
-	s.height = r->height * reducevt->vshrink + reducevt->n_point;
+	s.left = r->top;
+	s.top = r->left * reducevt->vshrink;
+	s.width = r->height;
+	s.height = r->width * reducevt->vshrink + reducevt->n_point;
 	if( reducevt->centre )
 		s.height += 1;
 	if( vips_region_prepare( ir, &s ) )
@@ -543,12 +541,19 @@ vips_reducevt_gen( VipsRegion *out_region, void *vseq,
 
 	VIPS_GATE_START( "vips_reducevt_gen: work" ); 
 
-	for( int y = 0; y < r->height; y ++ ) { 
+	/* We write columns of the output from rows of the input.
+	 */
+	for( int x = 0; x < r->width; x++ ) { 
+		/* Top of the column we write.
+		 */
 		VipsPel *q = 
-			VIPS_REGION_ADDR( out_region, r->left, r->top + y );
-		const double Y = (r->top + y) * reducevt->vshrink + 
+			VIPS_REGION_ADDR( out_region, r->left + x, r->top );
+
+		/* Y of the row we read in the input.
+		 */
+		const double Y = (r->left + x) * reducevt->vshrink + 
 			(reducevt->centre ? 0.5 : 0.0); 
-		VipsPel *p = VIPS_REGION_ADDR( ir, r->left, (int) Y ); 
+		VipsPel *p = VIPS_REGION_ADDR( ir, r->top, (int) Y ); 
 		const int sy = Y * VIPS_TRANSFORM_SCALE * 2;
 		const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
 		const int ty = (siy + 1) >> 1;
@@ -721,12 +726,58 @@ vips_reducevt_vector_gen( VipsRegion *out_region, void *vseq,
 }
 
 static int
-vips_reducevt_raw( VipsReducevt *reducevt, VipsImage *in, VipsImage **out ) 
+vips_reducevt_build( VipsObject *object )
 {
-	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( reducevt );
-	VipsResample *resample = VIPS_RESAMPLE( reducevt );
+	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
+	VipsResample *resample = VIPS_RESAMPLE( object );
+	VipsReducevt *reducevt = (VipsReducevt *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
+	VipsImage *in;
+	int height;
 	VipsGenerateFn generate;
+
+	if( VIPS_OBJECT_CLASS( vips_reducevt_parent_class )->build( object ) )
+		return( -1 );
+
+	in = resample->in; 
+
+	if( reducevt->vshrink < 1 ) { 
+		vips_error( object_class->nickname, 
+			"%s", _( "reduce factor should be >= 1" ) );
+		return( -1 );
+	}
+
+	if( reducevt->vshrink == 1 ) 
+		return( vips_image_write( in, resample->out ) );
+
+	reducevt->n_point = 
+		vips_reduce_get_points( reducevt->kernel, reducevt->vshrink ); 
+	g_info( "reducevt: %d point mask", reducevt->n_point );
+	if( reducevt->n_point > MAX_POINT ) {
+		vips_error( object_class->nickname, 
+			"%s", _( "reduce factor too large" ) );
+		return( -1 );
+	}
+
+	/* Unpack for processing.
+	 */
+	if( vips_image_decode( in, &t[0] ) )
+		return( -1 );
+	in = t[0];
+
+	/* Add new pixels around the input so we can interpolate at the edges.
+	 */
+	height = in->Ysize + reducevt->n_point - 1;
+	if( reducevt->centre )
+		height += 1;
+	if( vips_embed( in, &t[1], 
+		0, reducevt->n_point / 2 - 1, 
+		in->Xsize, height, 
+		"extend", VIPS_EXTEND_COPY,
+		(void *) NULL ) )
+		return( -1 );
+	in = t[1];
 
 	/* Build masks.
 	 */
@@ -778,7 +829,6 @@ vips_reducevt_raw( VipsReducevt *reducevt, VipsImage *in, VipsImage **out )
 		}
 
 	/* Try to build a vector version, if we can.
-	 */
 	generate = vips_reducevt_gen;
 	if( in->BandFmt == VIPS_FORMAT_UCHAR &&
 		vips_vector_isenabled() &&
@@ -786,15 +836,15 @@ vips_reducevt_raw( VipsReducevt *reducevt, VipsImage *in, VipsImage **out )
 		g_info( "reducevt: using vector path" ); 
 		generate = vips_reducevt_vector_gen;
 	}
+	 */
 
-	*out = vips_image_new();
-	if( vips_image_pipelinev( *out, 
+	if( vips_image_pipelinev( resample->out, 
 		VIPS_DEMAND_STYLE_SMALLTILE, in, (void *) NULL ) )
 		return( -1 );
 
 	/* Swap xy for the transpose on write.
 	 */
-	VIPS_SWAP( out->Xsize, out->Ysize, int ); 
+	VIPS_SWAP( resample->out->Xsize, resample->out->Ysize, int ); 
 
 	/* Size output. We need to always round to nearest, so round(), not
 	 * rint().
@@ -803,9 +853,8 @@ vips_reducevt_raw( VipsReducevt *reducevt, VipsImage *in, VipsImage **out )
 	 * example, vipsthumbnail knows the true reduce factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	(*out)->Xsize = VIPS_ROUND_UINT( 
-		resample->in->Ysize / reducevt->vshrink );
-	if( (*out)->Xsize <= 0 ) { 
+	resample->out->Xsize = VIPS_ROUND_UINT( in->Ysize / reducevt->vshrink );
+	if( resample->out->Xsize <= 0 ) { 
 		vips_error( object_class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );
 		return( -1 );
@@ -815,99 +864,15 @@ vips_reducevt_raw( VipsReducevt *reducevt, VipsImage *in, VipsImage **out )
 	printf( "vips_reducevt_build: reducing and transpose %d x %d image "
 		"to %d x %d\n", 
 		in->Xsize, in->Ysize, 
-		(*out)->Xsize, (*out)->Ysize );  
+		resample->out->Xsize, resample->out->Ysize );  
 #endif /*DEBUG*/
 
-	if( vips_image_generate( *out,
+	if( vips_image_generate( resample->out,
 		vips_reducevt_start, generate, vips_reducevt_stop, 
 		in, reducevt ) )
 		return( -1 );
 
-	vips_reorder_margin_hint( *out, reducevt->n_point ); 
-
-	return( 0 );
-}
-
-static int
-vips_reducevt_build( VipsObject *object )
-{
-	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
-	VipsResample *resample = VIPS_RESAMPLE( object );
-	VipsReducevt *reducevt = (VipsReducevt *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
-
-	VipsImage *in;
-	int height;
-
-	if( VIPS_OBJECT_CLASS( vips_reducevt_parent_class )->build( object ) )
-		return( -1 );
-
-	in = resample->in; 
-
-	if( reducevt->vshrink < 1 ) { 
-		vips_error( object_class->nickname, 
-			"%s", _( "reduce factor should be >= 1" ) );
-		return( -1 );
-	}
-
-	if( reducevt->vshrink == 1 ) 
-		return( vips_image_write( in, resample->out ) );
-
-	reducevt->n_point = 
-		vips_reduce_get_points( reducevt->kernel, reducevt->vshrink ); 
-	g_info( "reducevt: %d point mask", reducevt->n_point );
-	if( reducevt->n_point > MAX_POINT ) {
-		vips_error( object_class->nickname, 
-			"%s", _( "reduce factor too large" ) );
-		return( -1 );
-	}
-
-	/* Unpack for processing.
-	 */
-	if( vips_image_decode( in, &t[0] ) )
-		return( -1 );
-	in = t[0];
-
-	/* Add new pixels around the input so we can interpolate at the edges.
-	 */
-	height = in->Ysize + reducevt->n_point - 1;
-	if( reducevt->centre )
-		height += 1;
-	if( vips_embed( in, &t[1], 
-		0, reducevt->n_point / 2 - 1, 
-		in->Xsize, height, 
-		"extend", VIPS_EXTEND_COPY,
-		(void *) NULL ) )
-		return( -1 );
-	in = t[1];
-
-	if( vips_reducevt_raw( reducevt, in, &t[2] ) )
-		return( -1 );
-	in = t[2];
-
-	/* Large reducevt will throw off sequential mode. Suppose thread1 is
-	 * generating tile (0, 0), but stalls. thread2 generates tile
-	 * (0, 1), 128 lines further down the output. After it has done,
-	 * thread1 tries to generate (0, 0), but by then the pixels it needs
-	 * have gone from the input image line cache if the reducevt is large.
-	 *
-	 * To fix this, put another seq on the output of reducevt. Now we'll
-	 * always have the previous XX lines of the shrunk image, and we won't
-	 * fetch out of order. 
-	 */
-	if( vips_image_get_typeof( in, VIPS_META_SEQUENTIAL ) ) { 
-		g_info( "reducevt sequential line cache" ); 
-
-		if( vips_sequential( in, &t[3], 
-			"tile_height", 10,
-			// "trace", TRUE,
-			(void *) NULL ) )
-			return( -1 );
-		in = t[3];
-	}
-
-	if( vips_image_write( in, resample->out ) )
-		return( -1 ); 
+	vips_reorder_margin_hint( resample->out, reducevt->n_point ); 
 
 	return( 0 );
 }
@@ -927,10 +892,14 @@ vips_reducevt_class_init( VipsReducevtClass *reducevt_class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "reducevt";
-	vobject_class->description = _( "shrink an image vertically" );
+	vobject_class->description = 
+		_( "shrink and transpose an image vertically" );
 	vobject_class->build = vips_reducevt_build;
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+	/* Not VIPS_OPERATION_SEQUENTIAL since we do a transpose. But
+	 * run as SMALLTILE and put two of these together and it becomes seq
+	 * again. See vips_reduce().
+	 */
 
 	VIPS_ARG_DOUBLE( reducevt_class, "vshrink", 3, 
 		_( "Vshrink" ), 
