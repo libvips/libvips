@@ -173,6 +173,9 @@
  * 	  AndreasSchmid1 
  * 26/8/17
  * 	- support pyramid creation to buffer, thanks bubba
+ * 24/10/17
+ * 	- no error on page-height not a factor of image height, just don't
+ * 	  write multipage
  */
 
 /*
@@ -932,32 +935,22 @@ wtiff_new( VipsImage *im, const char *filename,
 		return( NULL );
 	}
 
-	/* If page_height <= Ysize, treat as a single-page image.
+	/* If page_height <= Ysize and it's a factor of image height, save 
+	 * as a toilet roll image.
 	 */
 	if( wtiff->page_height > 0 &&
-		wtiff->page_height < im->Ysize ) { 
+		wtiff->page_height < im->Ysize &&
+		im->Ysize % wtiff->page_height == 0 ) { 
 #ifdef DEBUG
 		printf( "wtiff_new: detected toilet roll image, "
 			"page-height=%d\n", 
 			wtiff->page_height );
+		printf( "wtiff_new: pages=%d\n", 
+			im->Ysize / wtiff->page_height );
 #endif/*DEBUG*/
 
 		wtiff->toilet_roll = TRUE;
 		wtiff->image_height = wtiff->page_height;
-
-		if( im->Ysize % wtiff->page_height != 0 ) { 
-			vips_error( "vips2tiff",
-				_( "image height %d is not a factor of "
-					"page-height %d" ),
-				im->Ysize, wtiff->page_height );
-			wtiff_free( wtiff );
-			return( NULL );
-		}
-
-#ifdef DEBUG
-		printf( "wtiff_new: pages=%d\n", 
-			im->Ysize / wtiff->page_height );
-#endif/*DEBUG*/
 
 		/* We can't pyramid toilet roll images.
 		 */
