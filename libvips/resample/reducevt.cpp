@@ -172,7 +172,8 @@ vips_reducevt_finalize( GObject *gobject )
  * 0 for success, -1 on error.
  */
 static int
-vips_reducevt_compile_section( VipsReducevt *reducevt, Pass *pass, gboolean first )
+vips_reducevt_compile_section( VipsReducevt *reducevt, 
+	Pass *pass, gboolean first )
 {
 	VipsVector *v;
 	int i;
@@ -387,13 +388,14 @@ template <typename T, int max_value>
 static void inline
 reducevt_unsigned_int_tab( VipsReducevt *reducevt,
 	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int out_stride, 
-	const int lskip, const int * restrict cy )
+	const int ne, const int out_stride, const int in_stride, 
+	const int * restrict cy )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
 	const int n = reducevt->n_point;
-	const int l1 = lskip / sizeof( T );
+	const int l1 = in_stride / sizeof( T );
+	const int l2 = out_stride / sizeof( T );
 
 	for( int z = 0; z < ne; z++ ) {
 		int sum;
@@ -402,7 +404,7 @@ reducevt_unsigned_int_tab( VipsReducevt *reducevt,
 		sum = unsigned_fixed_round( sum ); 
 		sum = VIPS_CLIP( 0, sum, max_value ); 
 
-		out[z * out_stride] = sum;
+		out[z * l2] = sum;
 	}
 }
 
@@ -410,12 +412,12 @@ template <typename T, int min_value, int max_value>
 static void inline
 reducevt_signed_int_tab( VipsReducevt *reducevt,
 	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip, const int * restrict cy )
+	const int ne, const int in_stride, const int * restrict cy )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
 	const int n = reducevt->n_point;
-	const int l1 = lskip / sizeof( T );
+	const int l1 = in_stride / sizeof( T );
 
 	for( int z = 0; z < ne; z++ ) {
 		int sum;
@@ -434,12 +436,12 @@ template <typename T>
 static void inline
 reducevt_float_tab( VipsReducevt *reducevt,
 	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip, const double * restrict cy )
+	const int ne, const int in_stride, const double * restrict cy )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
 	const int n = reducevt->n_point;
-	const int l1 = lskip / sizeof( T );
+	const int l1 = in_stride / sizeof( T );
 
 	for( int z = 0; z < ne; z++ ) 
 		out[z] = reduce_sum<T, double>( in + z, l1, cy, n );
@@ -452,12 +454,12 @@ template <typename T, int max_value>
 static void inline
 reducevt_unsigned_int32_tab( VipsReducevt *reducevt,
 	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip, const double * restrict cy )
+	const int ne, const int in_stride, const double * restrict cy )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
 	const int n = reducevt->n_point;
-	const int l1 = lskip / sizeof( T );
+	const int l1 = in_stride / sizeof( T );
 
 	for( int z = 0; z < ne; z++ ) {
 		double sum;
@@ -471,12 +473,12 @@ template <typename T, int min_value, int max_value>
 static void inline
 reducevt_signed_int32_tab( VipsReducevt *reducevt,
 	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip, const double * restrict cy )
+	const int ne, const int in_stride, const double * restrict cy )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
 	const int n = reducevt->n_point;
-	const int l1 = lskip / sizeof( T );
+	const int l1 = in_stride / sizeof( T );
 
 	for( int z = 0; z < ne; z++ ) {
 		double sum;
@@ -492,12 +494,12 @@ template <typename T>
 static void inline
 reducevt_notab( VipsReducevt *reducevt,
 	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip, double y )
+	const int ne, const int in_stride, double y )
 {
 	T* restrict out = (T *) pout;
 	const T* restrict in = (T *) pin;
 	const int n = reducevt->n_point;
-	const int l1 = lskip / sizeof( T );
+	const int l1 = in_stride / sizeof( T );
 
 	double cy[MAX_POINT];
 
@@ -559,61 +561,62 @@ vips_reducevt_gen( VipsRegion *out_region, void *vseq,
 		const int ty = (siy + 1) >> 1;
 		const int *cyi = reducevt->matrixi[ty];
 		const double *cyf = reducevt->matrixf[ty];
-		const int lskip = VIPS_REGION_LSKIP( ir );
+		const int in_stride = VIPS_REGION_LSKIP( ir );
+		const int out_stride = VIPS_REGION_LSKIP( out_region );
 
 		switch( in->BandFmt ) {
 		case VIPS_FORMAT_UCHAR:
 			reducevt_unsigned_int_tab
 				<unsigned char, UCHAR_MAX>(
 				reducevt,
-				q, p, ne, lskip, cyi );
+				q, p, ne, out_stride, in_stride, cyi );
 			break;
 
 		case VIPS_FORMAT_CHAR:
 			reducevt_signed_int_tab
 				<signed char, SCHAR_MIN, SCHAR_MAX>(
 				reducevt,
-				q, p, ne, lskip, cyi );
+				q, p, ne, in_stride, cyi );
 			break;
 
 		case VIPS_FORMAT_USHORT:
 			reducevt_unsigned_int_tab
 				<unsigned short, USHRT_MAX>(
 				reducevt,
-				q, p, ne, lskip, cyi );
+				q, p, ne, out_stride, in_stride, cyi );
 			break;
 
 		case VIPS_FORMAT_SHORT:
 			reducevt_signed_int_tab
 				<signed short, SHRT_MIN, SHRT_MAX>(
 				reducevt,
-				q, p, ne, lskip, cyi );
+				q, p, ne, in_stride, cyi );
 			break;
 
 		case VIPS_FORMAT_UINT:
 			reducevt_unsigned_int32_tab
 				<unsigned int, INT_MAX>(
 				reducevt,
-				q, p, ne, lskip, cyf );
+				q, p, ne, in_stride, cyf );
 			break;
 
 		case VIPS_FORMAT_INT:
 			reducevt_signed_int32_tab
 				<signed int, INT_MIN, INT_MAX>(
 				reducevt,
-				q, p, ne, lskip, cyf );
+				q, p, ne, in_stride, cyf );
 			break;
 
 		case VIPS_FORMAT_FLOAT:
 		case VIPS_FORMAT_COMPLEX:
 			reducevt_float_tab<float>( reducevt,
-				q, p, ne, lskip, cyf );
+				q, p, ne, in_stride, cyf );
 			break;
 
 		case VIPS_FORMAT_DPCOMPLEX:
 		case VIPS_FORMAT_DOUBLE:
 			reducevt_notab<double>( reducevt,
-				q, p, ne, lskip, Y - (int) Y );
+				q, p, ne, in_stride, Y - (int) Y );
 			break;
 
 		default:
@@ -828,8 +831,8 @@ vips_reducevt_build( VipsObject *object )
 				reducevt->n_point, 64 );
 		}
 
-	/* Try to build a vector version, if we can.
 	generate = vips_reducevt_gen;
+	/* Try to build a vector version, if we can.
 	if( in->BandFmt == VIPS_FORMAT_UCHAR &&
 		vips_vector_isenabled() &&
 		!vips_reducevt_compile( reducevt ) ) {
@@ -844,7 +847,7 @@ vips_reducevt_build( VipsObject *object )
 
 	/* Swap xy for the transpose on write.
 	 */
-	VIPS_SWAP( resample->out->Xsize, resample->out->Ysize, int ); 
+	VIPS_SWAP( int, resample->out->Xsize, resample->out->Ysize ); 
 
 	/* Size output. We need to always round to nearest, so round(), not
 	 * rint().
@@ -882,8 +885,6 @@ vips_reducevt_class_init( VipsReducevtClass *reducevt_class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( reducevt_class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( reducevt_class );
-	VipsOperationClass *operation_class = 
-		VIPS_OPERATION_CLASS( reducevt_class );
 
 	VIPS_DEBUG_MSG( "vips_reducevt_class_init\n" );
 
