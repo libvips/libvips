@@ -523,7 +523,7 @@ vips_reducevt_gen( VipsRegion *out_region, void *vseq,
 	 */
 	const int bands = in->Bands * 
 		(vips_band_format_iscomplex( in->BandFmt ) ?  2 : 1);
-	int ne = r->width * bands;
+	int ne = r->height * bands;
 
 	VipsRect s;
 
