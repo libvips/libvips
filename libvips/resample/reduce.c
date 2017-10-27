@@ -93,9 +93,14 @@ vips_reduce_build( VipsObject *object )
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( object, 3 );
 
+	VipsImage *in;
+
 	if( VIPS_OBJECT_CLASS( vips_reduce_parent_class )->build( object ) )
 		return( -1 );
 
+	in = resample->in;
+
+	/*
 	if( vips_reducev( resample->in, &t[0], reduce->vshrink, 
 		"kernel", reduce->kernel, 
 		"centre", reduce->centre, 
@@ -103,8 +108,45 @@ vips_reduce_build( VipsObject *object )
 		vips_reduceh( t[0], &t[1], reduce->hshrink, 
 			"kernel", reduce->kernel, 
 			"centre", reduce->centre, 
-			NULL ) ||
-		vips_image_write( t[1], resample->out ) )
+			NULL ) )
+		return( -1 );
+	 */
+
+	/*
+	 */
+	if( vips_reducevt( in, &t[0], reduce->vshrink, 
+		"kernel", reduce->kernel, 
+		"centre", reduce->centre, 
+		NULL ) ||
+		vips_reducevt( t[0], &t[1], reduce->hshrink, 
+			"kernel", reduce->kernel, 
+			"centre", reduce->centre, 
+			NULL ) )
+		return( -1 );
+	in = t[1];
+
+	/* Large reducev will throw off sequential mode. Suppose thread1 is
+	 * generating tile (0, 0), but stalls. thread2 generates tile
+	 * (0, 1), 128 lines further down the output. After it has done,
+	 * thread1 tries to generate (0, 0), but by then the pixels it needs
+	 * have gone from the input image line cache if the reducev is large.
+	 *
+	 * To fix this, put another seq on the output of reducev. Now we'll
+	 * always have the previous XX lines of the shrunk image, and we won't
+	 * fetch out of order. 
+	if( vips_image_get_typeof( in, VIPS_META_SEQUENTIAL ) ) { 
+		g_info( "reducev sequential line cache" ); 
+
+		if( vips_sequential( in, &t[2], 
+			"tile_height", 10,
+			// "trace", TRUE,
+			(void *) NULL ) )
+			return( -1 );
+		in = t[2];
+	}
+	 */
+
+	if( vips_image_write( in, resample->out ) )
 		return( -1 );
 
 	return( 0 );
