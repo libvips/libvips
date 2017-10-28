@@ -1,3 +1,20 @@
+- make seq work better with smalltile
+
+  it can run many tiles at once on the same row, we just need to make the input
+  buffer more
+
+  the first reducevt will ask for 128 * 2.5 lines, so seq must adjust its
+  buffer to hold at least 2.5 * 128 * 2 lines
+
+  doesn't it do this? check
+
+  how many tiles do we run at once at the moment?
+
+  could we use a better seq to speed up the reduce in master? we could get more
+  threading
+
+
+
 - rewind should break more things ... does it remove upsteam/downstream? does it
   just need to remove reorder links?
 

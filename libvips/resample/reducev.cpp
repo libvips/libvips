@@ -889,7 +889,7 @@ vips_reducev_build( VipsObject *object )
 	 * fetch out of order. 
 	 */
 	if( vips_image_get_typeof( in, VIPS_META_SEQUENTIAL ) ) { 
-		g_info( "reducev sequential line cache" ); 
+		g_info( "reducev: sequential line cache" ); 
 
 		if( vips_sequential( in, &t[3], 
 			"tile_height", 10,

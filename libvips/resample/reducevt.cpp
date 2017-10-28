@@ -689,6 +689,7 @@ vips_reducevt_vector_gen( VipsRegion *out_region, void *vseq,
 	VipsRect *r = &out_region->valid;
 	int bands = in->Bands;
 	int ne = r->height * bands; 
+	const int out_stride = VIPS_REGION_LSKIP( out_region );
 
 	VipsExecutor executor[MAX_PASS];
 	VipsRect s;
@@ -712,9 +713,11 @@ vips_reducevt_vector_gen( VipsRegion *out_region, void *vseq,
 		s.width, s.height, s.left, s.top ); 
 #endif /*DEBUG_PIXELS*/
 
-	for( int i = 0; i < reducevt->n_pass; i++ ) 
+	for( int i = 0; i < reducevt->n_pass; i++ ) {
 		vips_executor_set_program( &executor[i], 
 			reducevt->pass[i].vector, ne );
+		vips_executor_set_destination( &executor[i], seq->db );
+	}
 
 	VIPS_GATE_START( "vips_reducevt_vector_gen: work" ); 
 
@@ -730,7 +733,6 @@ vips_reducevt_vector_gen( VipsRegion *out_region, void *vseq,
 		const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
 		const int ty = (siy + 1) >> 1;
 		const int *cyo = reducevt->matrixo[ty];
-		const int out_stride = VIPS_REGION_LSKIP( out_region );
 
 		VipsPel *q;
 		VipsPel *buf;
@@ -760,7 +762,6 @@ vips_reducevt_vector_gen( VipsRegion *out_region, void *vseq,
 			for( int j = 0; j < pass->n_param; j++ ) 
 				vips_executor_set_parameter( &executor[i],
 					pass->p[j], cyo[j + pass->first] ); 
-			vips_executor_set_destination( &executor[i], seq->db );
 			vips_executor_run( &executor[i] );
 
 			VIPS_SWAP( signed short *, seq->t1, seq->t2 );
