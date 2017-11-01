@@ -188,7 +188,7 @@ int vips__draw_mask_direct( VipsImage *image, VipsImage *mask,
 typedef void (*VipsDrawPoint)( VipsImage *image, 
 	int x, int y, void *client ); 
 typedef void (*VipsDrawScanline)( VipsImage *image, 
-	int y, int x1, int x2, void *client );
+	int y, int x1, int x2, int quadrant, void *client );
 
 void vips__draw_line_direct( VipsImage *image, int x1, int y1, int x2, int y2,
 	VipsDrawPoint draw_point, void *client );

@@ -162,7 +162,7 @@ vips_hough_circle_vote_point( VipsImage *image, int x, int y, void *client )
  */
 static void 
 vips_hough_circle_vote_endpoints_clip( VipsImage *image,
-	int y, int x1, int x2, void *client )
+	int y, int x1, int x2, int quadrant, void *client )
 {
 	if( y >= 0 &&
 		y < image->Ysize ) {
@@ -179,7 +179,7 @@ vips_hough_circle_vote_endpoints_clip( VipsImage *image,
  */
 static void 
 vips_hough_circle_vote_endpoints_noclip( VipsImage *image,
-	int y, int x1, int x2, void *client )
+	int y, int x1, int x2, int quadrant, void *client )
 {
 	vips_hough_circle_vote_point( image, x1, y, client );
 	vips_hough_circle_vote_point( image, x2, y, client );

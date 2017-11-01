@@ -50,11 +50,12 @@
 typedef struct _Seed {
 	int x;
 	int y;
-	int radius;
+	int r;
 
-	/* Set when we know this seed cannot contribute any more values.
+	/* Bits saying which octant can still grow. When they are all zero, the
+	 * seed is dead.
 	 */
-	gboolean dead;
+	int octant_mask;
 } Seed;
 
 typedef struct _VipsNearest {
@@ -88,14 +89,118 @@ vips_nearest_finalize( GObject *gobject )
 	G_OBJECT_CLASS( vips_nearest_parent_class )->finalize( gobject );
 }
 
-static void
-vips_nearest_seed( VipsNearest *nearest, Seed *seed )
+struct _Circle;
+typedef void (*VipsNearestPixel)( struct _Circle *circle, 
+	int x, int y, int r, int octant );
+
+typedef struct _Circle {
+	VipsNearest *nearest;
+	Seed *seed;
+	int octant_mask;
+	VipsNearestPixel nearest_pixel;
+} Circle;
+
+static void 
+vips_nearest_pixel( Circle *circle, int x, int y, int r, int octant )
 {
+	guint *p;
 
+	if( (circle->seed->octant_mask & (1 << octant)) == 0 )
+		return;
 
-	vips__draw_circle_direct( VipsImage *image, int cx, int cy, int r,
-		VipsDrawScanline draw_scanline, void *client )
+	p = (guint *) VIPS_IMAGE_ADDR( circle->nearest->distance, x, y );
 
+	if( p[0] == 0 ||
+		p[0] > r ) {
+		VipsMorphology *morphology = VIPS_MORPHOLOGY( circle->nearest );
+		VipsImage *in = morphology->in;
+		int ps = VIPS_IMAGE_SIZEOF_PEL( in );
+		VipsPel *pi = VIPS_IMAGE_ADDR( in,
+			circle->seed->x, circle->seed->y );
+		VipsPel *qi = VIPS_IMAGE_ADDR( circle->nearest->out, 
+			x, y ); 
+
+		int i;
+
+		p[0] = r;
+		circle->octant_mask |= 1 << octant;
+
+		for( i = 0; i < ps; i++ )
+			qi[i] = pi[i];
+	}
+}
+
+static void 
+vips_nearest_pixel_clip( Circle *circle, int x, int y, int r, int octant )
+{
+	if( (circle->seed->octant_mask & (1 << octant)) == 0 )
+		return;
+
+	if( y >= 0 &&
+		y < circle->nearest->distance->Ysize &&
+		x >= 0 &&
+		x < circle->nearest->distance->Xsize )
+		vips_nearest_pixel( circle, x, y, r, octant );
+}
+
+static void
+vips_nearest_scanline( VipsImage *image, 
+	int y, int x1, int x2, int quadrant, void *client )
+{
+	Circle *circle = (Circle *) client;
+
+	circle->nearest_pixel( circle, x1, y, circle->seed->r, quadrant );
+	circle->nearest_pixel( circle, x2, y, circle->seed->r, quadrant + 4 );
+
+	/* We have to do one point back as well, or we'll leave gaps at 
+	 * around 45 degrees.
+	 */
+	if( quadrant == 0 ) {
+		circle->nearest_pixel( circle, 
+			x1, y - 1, circle->seed->r - 1, quadrant );
+		circle->nearest_pixel( circle, 
+			x2, y - 1, circle->seed->r - 1, quadrant + 4 );
+	}
+	else if( quadrant == 1 ) {
+		circle->nearest_pixel( circle, 
+			x1, y + 1, circle->seed->r - 1, quadrant );
+		circle->nearest_pixel( circle, 
+			x2, y + 1, circle->seed->r - 1, quadrant + 4 );
+	}
+	else {
+		circle->nearest_pixel( circle, 
+			x1 + 1, y, circle->seed->r - 1, quadrant );
+		circle->nearest_pixel( circle, 
+			x2 - 1, y, circle->seed->r - 1, quadrant + 4 );
+	}
+}
+
+static void
+vips_nearest_grow_seed( VipsNearest *nearest, Seed *seed )
+{
+	Circle circle;
+
+	circle.nearest = nearest;
+	circle.seed = seed;
+	circle.octant_mask = 0;
+
+	if( seed->x - seed->r >= 0 &&
+		seed->x + seed->r < nearest->distance->Xsize &&
+		seed->y - seed->r >= 0 &&
+		seed->y + seed->r < nearest->distance->Ysize )
+		circle.nearest_pixel = vips_nearest_pixel;
+	else
+		circle.nearest_pixel = vips_nearest_pixel_clip;
+
+	vips__draw_circle_direct( nearest->distance, 
+		seed->x, seed->y, seed->r, vips_nearest_scanline, &circle );
+
+	/* Update the action_mask for this seed. Next time, we can skip any 
+	 * octants where we failed to act this time. 
+	 */
+	seed->octant_mask = circle.octant_mask; 
+
+	seed->r += 1;
 }
 
 static int
@@ -104,20 +209,16 @@ vips_nearest_build( VipsObject *object )
 	VipsMorphology *morphology = VIPS_MORPHOLOGY( object );
 	VipsNearest *nearest = (VipsNearest *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
+	VipsImage *in = morphology->in;
 
-	VipsImage *in;
 	int ps;
 	int x, y, i;
 
 	if( VIPS_OBJECT_CLASS( vips_nearest_parent_class )->build( object ) )
 		return( -1 );
 
-	in = morphology->in;
-
-	if( vips_image_decode( in, &t[0] ) ||
-		vips_image_wio_input( t[0] ) )
+	if( vips_image_wio_input( in ) )
 		return( -1 ); 
-	in = t[0];
 
 	ps = VIPS_IMAGE_SIZEOF_PEL( in );
 	nearest->seeds = g_array_new( FALSE, FALSE, sizeof( Seed ) );
@@ -139,41 +240,44 @@ vips_nearest_build( VipsObject *object )
 					Seed, nearest->seeds->len - 1 );
 				seed->x = x;
 				seed->y = y;
-				seed->radius = 0;
-				seed->dead = FALSE;
+				seed->r = 1;
+				seed->octant_mask = 255;
 			}
 
 			p += ps;
 		}
 	}
 
-#ifdef DEBUG
-	printf( "found %d seeds\n", nearest->seeds->len );
-#endif /*DEBUG*/
-
 	/* Create the output and distance images in memory.
 	 */
-	g_object_set( object, "out", vips_image_new_memory(), NULL );
 	g_object_set( object, "distance", vips_image_new_memory(), NULL );
-
 	if( vips_black( &t[1], in->Xsize, in->Ysize, NULL ) ||
 		vips_cast( t[1], &t[2], VIPS_FORMAT_UINT, NULL ) || 
 		vips_image_write( t[2], nearest->distance ) )
 		return( -1 );
 
+	g_object_set( object, "out", vips_image_new_memory(), NULL );
 	if( vips_image_write( in, nearest->out ) )
 		return( -1 );
 
 	while( nearest->seeds->len > 0 ) {
+#ifdef DEBUG
+		printf( "looping for %d seeds ...\n", nearest->seeds->len );
+#endif /*DEBUG*/
+
+		/* Grow all seeds by one pixel.
+		 */
 		for( i = 0; i < nearest->seeds->len; i++ ) 
-			vips_nearest_seed( nearest, 
+			vips_nearest_grow_seed( nearest, 
 				&g_array_index( nearest->seeds, Seed, i ) );
 
+		/* Remove dead seeds.
+		 */
 		i = 0; 
 		while( i < nearest->seeds->len )  {
 			Seed *seed = &g_array_index( nearest->seeds, Seed, i );
 
-			if( seed->dead )
+			if( seed->octant_mask == 0 )
 				g_array_remove_index_fast( nearest->seeds, i );
 			else
 				i += 1;
@@ -224,7 +328,7 @@ vips_nearest_init( VipsNearest *nearest )
  *
  * Optional arguments:
  *
- * * @distance: distance to nearest image pixel
+ * * @distance: output image of distance to nearest image pixel
  *
  * Flood outwards from every non-zero pixel in @in, setting pixels in @distance
  * and @value. 
