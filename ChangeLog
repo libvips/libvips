@@ -32,6 +32,7 @@
 - added vips_value_set_blob_free()
 - "--size Nx" to vipsthumbnail was broken, thanks jrochkind 
 - fix build with gcc 7
+- add vips_nearest() ... fill pixels with nearest colour
 
 29/8/17 started 8.5.9
 - make --fail stop jpeg read on any libjpeg warning, thanks @mceachen

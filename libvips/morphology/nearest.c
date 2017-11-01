@@ -1,7 +1,7 @@
 /* nearest.c
  *
  * 31/10/17
- * 	- from labelregion and draw_circle
+ * 	- from labelregion 
  */
 
 /*
@@ -31,7 +31,9 @@
 
  */
 
+/*
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -64,6 +66,11 @@ typedef struct _VipsNearest {
 	VipsImage *out;
 	VipsImage *distance;
 
+	/* Size of our image.
+	 */
+	int width;
+	int height;
+
 	/* All our seed pixels. There can be a lot of these.
 	 */
 	GArray *seeds;
@@ -91,7 +98,7 @@ vips_nearest_finalize( GObject *gobject )
 
 struct _Circle;
 typedef void (*VipsNearestPixel)( struct _Circle *circle, 
-	int x, int y, int r, int octant );
+	int x, int y, int octant );
 
 typedef struct _Circle {
 	VipsNearest *nearest;
@@ -101,17 +108,24 @@ typedef struct _Circle {
 } Circle;
 
 static void 
-vips_nearest_pixel( Circle *circle, int x, int y, int r, int octant )
+vips_nearest_pixel( Circle *circle, int x, int y, int octant )
 {
-	guint *p;
+	float *p;
+	float radius;
+	int dx, dy;
 
 	if( (circle->seed->octant_mask & (1 << octant)) == 0 )
 		return;
 
-	p = (guint *) VIPS_IMAGE_ADDR( circle->nearest->distance, x, y );
+	/* We need to do this as float, or we'll have dithering along edges.
+	 */
+	p = (float *) VIPS_IMAGE_ADDR( circle->nearest->distance, x, y );
+	dx = x - circle->seed->x;
+	dy = y - circle->seed->y;
+	radius = sqrt( dx * dx + dy * dy );
 
 	if( p[0] == 0 ||
-		p[0] > r ) {
+		p[0] > radius ) {
 		VipsMorphology *morphology = VIPS_MORPHOLOGY( circle->nearest );
 		VipsImage *in = morphology->in;
 		int ps = VIPS_IMAGE_SIZEOF_PEL( in );
@@ -122,7 +136,7 @@ vips_nearest_pixel( Circle *circle, int x, int y, int r, int octant )
 
 		int i;
 
-		p[0] = r;
+		p[0] = radius;
 		circle->octant_mask |= 1 << octant;
 
 		for( i = 0; i < ps; i++ )
@@ -131,16 +145,16 @@ vips_nearest_pixel( Circle *circle, int x, int y, int r, int octant )
 }
 
 static void 
-vips_nearest_pixel_clip( Circle *circle, int x, int y, int r, int octant )
+vips_nearest_pixel_clip( Circle *circle, int x, int y, int octant )
 {
 	if( (circle->seed->octant_mask & (1 << octant)) == 0 )
 		return;
 
-	if( y >= 0 &&
-		y < circle->nearest->distance->Ysize &&
-		x >= 0 &&
-		x < circle->nearest->distance->Xsize )
-		vips_nearest_pixel( circle, x, y, r, octant );
+	if( x >= 0 &&
+		x < circle->nearest->width &&
+		y >= 0 &&
+		y < circle->nearest->height )
+		vips_nearest_pixel( circle, x, y, octant );
 }
 
 static void
@@ -149,29 +163,23 @@ vips_nearest_scanline( VipsImage *image,
 {
 	Circle *circle = (Circle *) client;
 
-	circle->nearest_pixel( circle, x1, y, circle->seed->r, quadrant );
-	circle->nearest_pixel( circle, x2, y, circle->seed->r, quadrant + 4 );
+	circle->nearest_pixel( circle, x1, y, quadrant );
+	circle->nearest_pixel( circle, x2, y, quadrant + 4 );
 
 	/* We have to do one point back as well, or we'll leave gaps at 
 	 * around 45 degrees.
 	 */
 	if( quadrant == 0 ) {
-		circle->nearest_pixel( circle, 
-			x1, y - 1, circle->seed->r - 1, quadrant );
-		circle->nearest_pixel( circle, 
-			x2, y - 1, circle->seed->r - 1, quadrant + 4 );
+		circle->nearest_pixel( circle, x1, y - 1, quadrant );
+		circle->nearest_pixel( circle, x2, y - 1, quadrant + 4 );
 	}
 	else if( quadrant == 1 ) {
-		circle->nearest_pixel( circle, 
-			x1, y + 1, circle->seed->r - 1, quadrant );
-		circle->nearest_pixel( circle, 
-			x2, y + 1, circle->seed->r - 1, quadrant + 4 );
+		circle->nearest_pixel( circle, x1, y + 1, quadrant );
+		circle->nearest_pixel( circle, x2, y + 1, quadrant + 4 );
 	}
 	else {
-		circle->nearest_pixel( circle, 
-			x1 + 1, y, circle->seed->r - 1, quadrant );
-		circle->nearest_pixel( circle, 
-			x2 - 1, y, circle->seed->r - 1, quadrant + 4 );
+		circle->nearest_pixel( circle, x1 + 1, y, quadrant );
+		circle->nearest_pixel( circle, x2 - 1, y, quadrant + 4 );
 	}
 }
 
@@ -185,9 +193,9 @@ vips_nearest_grow_seed( VipsNearest *nearest, Seed *seed )
 	circle.octant_mask = 0;
 
 	if( seed->x - seed->r >= 0 &&
-		seed->x + seed->r < nearest->distance->Xsize &&
+		seed->x + seed->r < nearest->width &&
 		seed->y - seed->r >= 0 &&
-		seed->y + seed->r < nearest->distance->Ysize )
+		seed->y + seed->r < nearest->height )
 		circle.nearest_pixel = vips_nearest_pixel;
 	else
 		circle.nearest_pixel = vips_nearest_pixel_clip;
@@ -209,7 +217,6 @@ vips_nearest_build( VipsObject *object )
 	VipsMorphology *morphology = VIPS_MORPHOLOGY( object );
 	VipsNearest *nearest = (VipsNearest *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
-	VipsImage *in = morphology->in;
 
 	int ps;
 	int x, y, i;
@@ -217,16 +224,18 @@ vips_nearest_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_nearest_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_image_wio_input( in ) )
+	if( vips_image_wio_input( morphology->in ) )
 		return( -1 ); 
+	nearest->width = morphology->in->Xsize;
+	nearest->height = morphology->in->Ysize;
 
-	ps = VIPS_IMAGE_SIZEOF_PEL( in );
+	ps = VIPS_IMAGE_SIZEOF_PEL( morphology->in );
 	nearest->seeds = g_array_new( FALSE, FALSE, sizeof( Seed ) );
-	for( y = 0; y < in->Ysize; y++ )  {
+	for( y = 0; y < nearest->height; y++ )  {
 		VipsPel *p;
 
-		p = VIPS_IMAGE_ADDR( in, 0, y ); 
-		for( x = 0; x < in->Xsize; x++ ) {
+		p = VIPS_IMAGE_ADDR( morphology->in, 0, y ); 
+		for( x = 0; x < nearest->width; x++ ) {
 			for( i = 0; i < ps; i++ )
 				if( p[i] )
 					break;
@@ -251,13 +260,13 @@ vips_nearest_build( VipsObject *object )
 	/* Create the output and distance images in memory.
 	 */
 	g_object_set( object, "distance", vips_image_new_memory(), NULL );
-	if( vips_black( &t[1], in->Xsize, in->Ysize, NULL ) ||
-		vips_cast( t[1], &t[2], VIPS_FORMAT_UINT, NULL ) || 
+	if( vips_black( &t[1], nearest->width, nearest->height, NULL ) ||
+		vips_cast( t[1], &t[2], VIPS_FORMAT_FLOAT, NULL ) || 
 		vips_image_write( t[2], nearest->distance ) )
 		return( -1 );
 
 	g_object_set( object, "out", vips_image_new_memory(), NULL );
-	if( vips_image_write( in, nearest->out ) )
+	if( vips_image_write( morphology->in, nearest->out ) )
 		return( -1 );
 
 	while( nearest->seeds->len > 0 ) {
@@ -337,7 +346,7 @@ vips_nearest_init( VipsNearest *nearest )
  * the nearest non-zero pixel in @in, and @value contains the value of that
  * pixel.
  *
- * @distance is a one-band uint image. @value has the same number of bands and
+ * @distance is a one-band float image. @value has the same number of bands and
  * format as @in.
  *
  * See also: vips_hist_find_indexed().
