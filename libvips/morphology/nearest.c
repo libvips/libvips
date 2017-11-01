@@ -60,7 +60,7 @@ typedef struct _Seed {
 	int octant_mask;
 } Seed;
 
-typedef struct _VipsNearest {
+typedef struct _VipsFillNearest {
 	VipsMorphology parent_instance;
 
 	VipsImage *out;
@@ -74,41 +74,41 @@ typedef struct _VipsNearest {
 	/* All our seed pixels. There can be a lot of these.
 	 */
 	GArray *seeds;
-} VipsNearest;
+} VipsFillNearest;
 
-typedef VipsMorphologyClass VipsNearestClass;
+typedef VipsMorphologyClass VipsFillNearestClass;
 
-G_DEFINE_TYPE( VipsNearest, vips_nearest, VIPS_TYPE_MORPHOLOGY );
+G_DEFINE_TYPE( VipsFillNearest, vips_fill_nearest, VIPS_TYPE_MORPHOLOGY );
 
 static void
-vips_nearest_finalize( GObject *gobject )
+vips_fill_nearest_finalize( GObject *gobject )
 {
-	VipsNearest *nearest = (VipsNearest *) gobject;
+	VipsFillNearest *nearest = (VipsFillNearest *) gobject;
 
 #ifdef DEBUG
-	printf( "vips_nearest_finalize: " );
+	printf( "vips_fill_nearest_finalize: " );
 	vips_object_print_name( VIPS_OBJECT( gobject ) );
 	printf( "\n" );
 #endif /*DEBUG*/
 
 	VIPS_FREEF( g_array_unref, nearest->seeds ); 
 
-	G_OBJECT_CLASS( vips_nearest_parent_class )->finalize( gobject );
+	G_OBJECT_CLASS( vips_fill_nearest_parent_class )->finalize( gobject );
 }
 
 struct _Circle;
-typedef void (*VipsNearestPixel)( struct _Circle *circle, 
+typedef void (*VipsFillNearestPixel)( struct _Circle *circle, 
 	int x, int y, int octant );
 
 typedef struct _Circle {
-	VipsNearest *nearest;
+	VipsFillNearest *nearest;
 	Seed *seed;
 	int octant_mask;
-	VipsNearestPixel nearest_pixel;
+	VipsFillNearestPixel nearest_pixel;
 } Circle;
 
 static void 
-vips_nearest_pixel( Circle *circle, int x, int y, int octant )
+vips_fill_nearest_pixel( Circle *circle, int x, int y, int octant )
 {
 	float *p;
 	float radius;
@@ -145,7 +145,7 @@ vips_nearest_pixel( Circle *circle, int x, int y, int octant )
 }
 
 static void 
-vips_nearest_pixel_clip( Circle *circle, int x, int y, int octant )
+vips_fill_nearest_pixel_clip( Circle *circle, int x, int y, int octant )
 {
 	if( (circle->seed->octant_mask & (1 << octant)) == 0 )
 		return;
@@ -154,11 +154,11 @@ vips_nearest_pixel_clip( Circle *circle, int x, int y, int octant )
 		x < circle->nearest->width &&
 		y >= 0 &&
 		y < circle->nearest->height )
-		vips_nearest_pixel( circle, x, y, octant );
+		vips_fill_nearest_pixel( circle, x, y, octant );
 }
 
 static void
-vips_nearest_scanline( VipsImage *image, 
+vips_fill_nearest_scanline( VipsImage *image, 
 	int y, int x1, int x2, int quadrant, void *client )
 {
 	Circle *circle = (Circle *) client;
@@ -184,7 +184,7 @@ vips_nearest_scanline( VipsImage *image,
 }
 
 static void
-vips_nearest_grow_seed( VipsNearest *nearest, Seed *seed )
+vips_fill_nearest_grow_seed( VipsFillNearest *nearest, Seed *seed )
 {
 	Circle circle;
 
@@ -196,12 +196,12 @@ vips_nearest_grow_seed( VipsNearest *nearest, Seed *seed )
 		seed->x + seed->r < nearest->width &&
 		seed->y - seed->r >= 0 &&
 		seed->y + seed->r < nearest->height )
-		circle.nearest_pixel = vips_nearest_pixel;
+		circle.nearest_pixel = vips_fill_nearest_pixel;
 	else
-		circle.nearest_pixel = vips_nearest_pixel_clip;
+		circle.nearest_pixel = vips_fill_nearest_pixel_clip;
 
 	vips__draw_circle_direct( nearest->distance, 
-		seed->x, seed->y, seed->r, vips_nearest_scanline, &circle );
+		seed->x, seed->y, seed->r, vips_fill_nearest_scanline, &circle );
 
 	/* Update the action_mask for this seed. Next time, we can skip any 
 	 * octants where we failed to act this time. 
@@ -212,16 +212,17 @@ vips_nearest_grow_seed( VipsNearest *nearest, Seed *seed )
 }
 
 static int
-vips_nearest_build( VipsObject *object )
+vips_fill_nearest_build( VipsObject *object )
 {
 	VipsMorphology *morphology = VIPS_MORPHOLOGY( object );
-	VipsNearest *nearest = (VipsNearest *) object;
+	VipsFillNearest *nearest = (VipsFillNearest *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
 	int ps;
 	int x, y, i;
 
-	if( VIPS_OBJECT_CLASS( vips_nearest_parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_fill_nearest_parent_class )->
+		build( object ) )
 		return( -1 );
 
 	if( vips_image_wio_input( morphology->in ) )
@@ -277,7 +278,7 @@ vips_nearest_build( VipsObject *object )
 		/* Grow all seeds by one pixel.
 		 */
 		for( i = 0; i < nearest->seeds->len; i++ ) 
-			vips_nearest_grow_seed( nearest, 
+			vips_fill_nearest_grow_seed( nearest, 
 				&g_array_index( nearest->seeds, Seed, i ) );
 
 		/* Remove dead seeds.
@@ -297,49 +298,50 @@ vips_nearest_build( VipsObject *object )
 }
 
 static void
-vips_nearest_class_init( VipsNearestClass *class )
+vips_fill_nearest_class_init( VipsFillNearestClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
 
-	gobject_class->finalize = vips_nearest_finalize;
+	gobject_class->finalize = vips_fill_nearest_finalize;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->nickname = "nearest";
-	vobject_class->description = _( "find nearest pixel in an image" ); 
-	vobject_class->build = vips_nearest_build;
+	vobject_class->nickname = "fill_nearest";
+	vobject_class->description = 
+		_( "fill image zeros with nearest non-zero pixel" ); 
+	vobject_class->build = vips_fill_nearest_build;
 
 	VIPS_ARG_IMAGE( class, "out", 2, 
 		_( "Out" ), 
-		_( "Value of nearest image point" ),
+		_( "Value of nearest non-zero pixel" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
-		G_STRUCT_OFFSET( VipsNearest, out ) ); 
+		G_STRUCT_OFFSET( VipsFillNearest, out ) ); 
 
 	VIPS_ARG_IMAGE( class, "distance", 3, 
 		_( "Distance" ), 
-		_( "Distance to nearest image point" ),
+		_( "Distance to nearest non-zero pixel" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
-		G_STRUCT_OFFSET( VipsNearest, distance ) ); 
+		G_STRUCT_OFFSET( VipsFillNearest, distance ) ); 
 
 }
 
 static void
-vips_nearest_init( VipsNearest *nearest )
+vips_fill_nearest_init( VipsFillNearest *nearest )
 {
 }
 
 /**
- * vips_nearest: (method)
+ * vips_fill_nearest: (method)
  * @in: image to test
- * @out: image with zero values filled with nearest pixel
+ * @out: image with zero pixels filled with the nearest non-zero pixel
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
  *
- * * @distance: output image of distance to nearest image pixel
+ * * @distance: output image of distance to nearest non-zero pixel
  *
- * Flood outwards from every non-zero pixel in @in, setting pixels in @distance
+ * Fill outwards from every non-zero pixel in @in, setting pixels in @distance
  * and @value. 
  *
  * At the position of zero pixels in @in, @distance contains the distance to
@@ -354,13 +356,13 @@ vips_nearest_init( VipsNearest *nearest )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_nearest( VipsImage *in, VipsImage **out, ... ) 
+vips_fill_nearest( VipsImage *in, VipsImage **out, ... ) 
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "nearest", ap, in, out );
+	result = vips_call_split( "fill_nearest", ap, in, out );
 	va_end( ap );
 
 	return( result );

@@ -57,7 +57,7 @@ int vips_countlines( VipsImage *in, double *nolines,
 	__attribute__((sentinel));
 int vips_labelregions( VipsImage *in, VipsImage **mask, ... )
 	__attribute__((sentinel));
-int vips_nearest( VipsImage *in, VipsImage **out, ... ) 
+int vips_fill_nearest( VipsImage *in, VipsImage **out, ... ) 
 	__attribute__((sentinel));
 
 #ifdef __cplusplus
