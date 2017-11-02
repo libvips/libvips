@@ -41,6 +41,7 @@ extern "C" {
 typedef enum {
 	VIPS_COMBINE_MAX,
 	VIPS_COMBINE_SUM,
+	VIPS_COMBINE_MIN,
 	VIPS_COMBINE_LAST
 } VipsCombine;
 

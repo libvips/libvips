@@ -836,6 +836,7 @@ vips_combine_get_type( void )
 		static const GEnumValue values[] = {
 			{VIPS_COMBINE_MAX, "VIPS_COMBINE_MAX", "max"},
 			{VIPS_COMBINE_SUM, "VIPS_COMBINE_SUM", "sum"},
+			{VIPS_COMBINE_MIN, "VIPS_COMBINE_MIN", "min"},
 			{VIPS_COMBINE_LAST, "VIPS_COMBINE_LAST", "last"},
 			{0, NULL, NULL}
 		};

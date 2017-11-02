@@ -75,8 +75,9 @@
  * VipsCombine:
  * @VIPS_COMBINE_MAX: take the maximum of the possible values
  * @VIPS_COMBINE_SUM: sum all the values
+ * @VIPS_COMBINE_MIN: take the minimum value
  *
- * How to combine values. 
+ * How to combine values. See vips_compass(), for example.
  */
 
 G_DEFINE_ABSTRACT_TYPE( VipsConvolution, vips_convolution, 

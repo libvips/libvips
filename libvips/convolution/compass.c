@@ -5,6 +5,8 @@
  * 8/5/17
  *      - default to float ... int will often lose precision and should not be
  *        the default
+ * 2/11/17
+ * 	- add MIN mode
  */
 
 /*
@@ -111,6 +113,14 @@ vips_compass_build( VipsObject *object )
 	case VIPS_COMBINE_MAX:
 		if( vips_bandrank( abs, &combine[0], compass->times,
 			"index", compass->times - 1,
+			NULL ) )
+			return( -1 ); 
+		x = combine[0];
+		break;
+
+	case VIPS_COMBINE_MIN:
+		if( vips_bandrank( abs, &combine[0], compass->times,
+			"index", 0, 
 			NULL ) )
 			return( -1 ); 
 		x = combine[0];

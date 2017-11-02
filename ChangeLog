@@ -33,6 +33,7 @@
 - "--size Nx" to vipsthumbnail was broken, thanks jrochkind 
 - fix build with gcc 7
 - add vips_fill_nearest() ... fill pixels with nearest colour
+- add VIPS_COMBINE_MIN, a new combining mode for vips_compass()
 
 29/8/17 started 8.5.9
 - make --fail stop jpeg read on any libjpeg warning, thanks @mceachen
