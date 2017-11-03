@@ -34,6 +34,7 @@
 - fix build with gcc 7
 - add vips_fill_nearest() ... fill pixels with nearest colour
 - add VIPS_COMBINE_MIN, a new combining mode for vips_compass()
+- vips_hist_find_indexed() now has a @combine parameter
 
 29/8/17 started 8.5.9
 - make --fail stop jpeg read on any libjpeg warning, thanks @mceachen
