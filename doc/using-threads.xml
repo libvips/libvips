@@ -60,7 +60,7 @@
 
     <para>
       This makes error handling very simple but the obvious downside is that
-      because error returns and error messages are separate when you 
+      because error returns and error messages are separate, when you 
       detect an error return you can't be 
       sure that what's in the error buffer is the message that matches your
       error. 
@@ -161,8 +161,7 @@ test (const char *filename)
   snprintf (output_file, 256, "x/tmp-%p.jpg", g_thread_self ());
 
   if (!(im = vips_image_new_from_file (filename,
-				       "access",
-				       VIPS_ACCESS_SEQUENTIAL_UNBUFFERED,
+				       "access", VIPS_ACCESS_SEQUENTIAL,
 				       NULL)))
     return (-1);
 

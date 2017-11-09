@@ -60,7 +60,7 @@ main( int argc, char **argv )
 
   VImage in = VImage::new_from_file( argv[1], 
     VImage::option()->
-      set( "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED ) ); 
+      set( "access", VIPS_ACCESS_SEQUENTIAL ) ); 
 
   double avg = in.avg(); 
 
@@ -69,7 +69,7 @@ main( int argc, char **argv )
 
   VImage in = VImage::new_from_file( argv[1],
     VImage::option()->
-      set( "access", VIPS_ACCESS_SEQUENTIAL_UNBUFFERED ) ); 
+      set( "access", VIPS_ACCESS_SEQUENTIAL ) ); 
 
   VImage out = in.embed( 10, 10, 1000, 1000, 
     VImage::option()->
