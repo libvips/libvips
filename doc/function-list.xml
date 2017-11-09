@@ -304,6 +304,11 @@
   <entry>vips_embed()</entry>
 </row>
 <row>
+  <entry>gravity</entry>
+  <entry>expand an image with a specified gravity</entry>
+  <entry>vips_gravity()</entry>
+</row>
+<row>
   <entry>flip</entry>
   <entry>flip an image</entry>
   <entry>vips_flip()</entry>
@@ -332,6 +337,11 @@
   <entry>smartcrop</entry>
   <entry>extract an area from an image</entry>
   <entry>vips_smartcrop()</entry>
+</row>
+<row>
+  <entry>find_trim</entry>
+  <entry>search an image for non-background pixels</entry>
+  <entry>vips_find_trim()</entry>
 </row>
 <row>
   <entry>extract_band</entry>
@@ -405,6 +415,11 @@
   <entry>bandfold</entry>
   <entry>fold up x axis into bands</entry>
   <entry>vips_bandfold()</entry>
+</row>
+<row>
+  <entry>composite</entry>
+  <entry>composite a set of images with a PDF blend mode</entry>
+  <entry>vips_composite()</entry>
 </row>
 <row>
   <entry>bandunfold</entry>
@@ -872,6 +887,11 @@
   <entry>vips_thumbnail_buffer()</entry>
 </row>
 <row>
+  <entry>thumbnail_image</entry>
+  <entry>generate thumbnail from image</entry>
+  <entry>vips_thumbnail_image()</entry>
+</row>
+<row>
   <entry>mapim</entry>
   <entry>resample an image with an arbitrary warp</entry>
   <entry>vips_mapim()</entry>
@@ -1183,7 +1203,7 @@
 </row>
 <row>
   <entry>morph</entry>
-  <entry>morphology operation</entry>
+  <entry>morphology operation: dilate, erode, hitmiss</entry>
   <entry>vips_morph()</entry>
 </row>
 <row>
@@ -1200,6 +1220,11 @@
   <entry>labelregions</entry>
   <entry>label regions in an image</entry>
   <entry>vips_labelregions()</entry>
+</row>
+<row>
+  <entry>fill_nearest</entry>
+  <entry>replace each zero pixel with the nearest non-zero pixel</entry>
+  <entry>vips_fill_nearest()</entry>
 </row>
 <row>
   <entry>draw_rect</entry>
