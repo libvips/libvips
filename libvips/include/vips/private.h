@@ -162,7 +162,7 @@ void vips__region_no_ownership( struct _VipsRegion *reg );
 
 typedef int (*VipsRegionFillFn)( struct _VipsRegion *, void * );
 int vips_region_fill( struct _VipsRegion *reg, 
-	VipsRect *r, VipsRegionFillFn fn, void *a );
+	const VipsRect *r, VipsRegionFillFn fn, void *a );
 
 int vips__image_wio_output( struct _VipsImage *image );
 int vips__image_pio_output( struct _VipsImage *image );
@@ -185,7 +185,7 @@ void vips_region_dump_all( void );
  */
 int vips__init( const char *argv0 );
 size_t vips__get_sizeof_vipsobject( void );
-int vips_region_prepare_many( struct _VipsRegion **reg, VipsRect *r );
+int vips_region_prepare_many( struct _VipsRegion **reg, const VipsRect *r );
 
 /* Handy for debugging.
  */

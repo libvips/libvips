@@ -10,6 +10,9 @@
  * 	- oops, missing scale from b, thanks Topochicho
  * 7/2/16
  * 	- use vips_reduce(), if we can
+ * 17/11/17
+ * `	- add optional "background" param
+ * `	- don't use vips_reduce() since it has no "background" param
  */
 
 /*
@@ -65,25 +68,13 @@ typedef struct _VipsSimilarity {
 	double ody;
 	double idx;
 	double idy;
+	VipsArrayDouble *background;
 
 } VipsSimilarity;
 
 typedef VipsResampleClass VipsSimilarityClass;
 
 G_DEFINE_TYPE( VipsSimilarity, vips_similarity, VIPS_TYPE_RESAMPLE );
-
-/* Map interpolator names to vips kernels.
- */
-typedef struct _VipsInterpolateKernel {
-	const char *nickname;
-	VipsKernel kernel;
-} VipsInterpolateKernel;
-
-static VipsInterpolateKernel vips_similarity_kernel[] = {
-	{ "bicubic", VIPS_KERNEL_CUBIC },
-	{ "bilinear", VIPS_KERNEL_LINEAR },
-	{ "nearest", VIPS_KERNEL_NEAREST }
-}; 
 
 static int
 vips_similarity_build( VipsObject *object )
@@ -92,61 +83,23 @@ vips_similarity_build( VipsObject *object )
 	VipsSimilarity *similarity = (VipsSimilarity *) object;
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( object, 4 );
-
-	gboolean handled;
+	double a = similarity->scale * cos( VIPS_RAD( similarity->angle ) ); 
+	double b = similarity->scale * -sin( VIPS_RAD( similarity->angle ) );
+	double c = -b;
+	double d = a;
 
 	if( VIPS_OBJECT_CLASS( vips_similarity_parent_class )->build( object ) )
 		return( -1 );
 
-	handled = FALSE;
-
-	/* Use vips_reduce(), if we can.
-	 */
-	if( similarity->interpolate &&
-		similarity->angle == 0.0 &&
-		similarity->idx == 0.0 &&
-		similarity->idy == 0.0 &&
-		similarity->odx == 0.0 &&
-		similarity->ody == 0.0 ) {
-		const char *nickname = VIPS_OBJECT_GET_CLASS( 
-			similarity->interpolate )->nickname;
-
-		int i; 
-
-		for( i = 0; i < VIPS_NUMBER( vips_similarity_kernel ); i++ ) {
-			VipsInterpolateKernel *ik = &vips_similarity_kernel[i];
-
-			if( strcmp( nickname, ik->nickname ) == 0 ) {
-				if( vips_reduce( resample->in, &t[0], 
-					1.0 / similarity->scale, 
-					1.0 / similarity->scale, 
-					"kernel", ik->kernel,
-					NULL ) )
-					return( -1 );
-
-				handled = TRUE;
-				break;
-			}
-		}
-	}
-
-	if( !handled ) { 
-		double a = similarity->scale * 
-			cos( VIPS_RAD( similarity->angle ) ); 
-		double b = similarity->scale * 
-			-sin( VIPS_RAD( similarity->angle ) );
-		double c = -b;
-		double d = a;
-
-		if( vips_affine( resample->in, &t[0], a, b, c, d, 
-			"interpolate", similarity->interpolate,
-			"odx", similarity->odx,
-			"ody", similarity->ody,
-			"idx", similarity->idx,
-			"idy", similarity->idy,
-			NULL ) )
-			return( -1 );
-	}
+	if( vips_affine( resample->in, &t[0], a, b, c, d, 
+		"interpolate", similarity->interpolate,
+		"odx", similarity->odx,
+		"ody", similarity->ody,
+		"idx", similarity->idx,
+		"idy", similarity->idy,
+		"background", similarity->background,
+		NULL ) )
+		return( -1 );
 
 	if( vips_image_write( t[0], resample->out ) )
 		return( -1 ); 
@@ -214,6 +167,13 @@ vips_similarity_class_init( VipsSimilarityClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsSimilarity, idy ),
 		-10000000, 10000000, 0 );
+
+	VIPS_ARG_BOXED( class, "background", 2, 
+		_( "Background" ), 
+		_( "Background value" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsSimilarity, background ),
+		VIPS_TYPE_ARRAY_DOUBLE );
 }
 
 static void
@@ -226,6 +186,7 @@ vips_similarity_init( VipsSimilarity *similarity )
 	similarity->ody = 0; 
 	similarity->idx = 0; 
 	similarity->idy = 0; 
+	similarity->background = vips_array_double_newv( 1, 0.0 );
 }
 
 /**
@@ -243,6 +204,8 @@ vips_similarity_init( VipsSimilarity *similarity )
  * * @idy: %gdouble, input vertical offset
  * * @odx: %gdouble, output horizontal offset
  * * @ody: %gdouble, output vertical offset
+ * * @ody: %gdouble, output vertical offset
+ * * @background: #VipsArrayDouble colour for new pixels 
  *
  * This operator calls vips_affine() for you, calculating the matrix for the
  * affine transform from @scale and @angle. Other parameters are passed on to

@@ -104,23 +104,25 @@ GType vips_region_get_type(void);
 
 VipsRegion *vips_region_new( VipsImage *image );
 
-int vips_region_buffer( VipsRegion *reg, VipsRect *r );
-int vips_region_image( VipsRegion *reg, VipsRect *r );
+int vips_region_buffer( VipsRegion *reg, const VipsRect *r );
+int vips_region_image( VipsRegion *reg, const VipsRect *r );
 int vips_region_region( VipsRegion *reg, VipsRegion *dest, 
-	VipsRect *r, int x, int y );
+	const VipsRect *r, int x, int y );
 int vips_region_equalsregion( VipsRegion *reg1, VipsRegion *reg2 );
 int vips_region_position( VipsRegion *reg, int x, int y );
 
-void vips_region_paint( VipsRegion *reg, VipsRect *r, int value );
-void vips_region_paint_pel( VipsRegion *reg, VipsRect *r, VipsPel *ink );
+void vips_region_paint( VipsRegion *reg, const VipsRect *r, int value );
+void vips_region_paint_pel( VipsRegion *reg, 
+	const VipsRect *r, const VipsPel *ink );
 void vips_region_black( VipsRegion *reg );
 void vips_region_copy( VipsRegion *reg, VipsRegion *dest, 
-	VipsRect *r, int x, int y );
-int vips_region_shrink( VipsRegion *from, VipsRegion *to, VipsRect *target );
+	const VipsRect *r, int x, int y );
+int vips_region_shrink( VipsRegion *from, 
+	VipsRegion *to, const VipsRect *target );
 
-int vips_region_prepare( VipsRegion *reg, VipsRect *r );
+int vips_region_prepare( VipsRegion *reg, const VipsRect *r );
 int vips_region_prepare_to( VipsRegion *reg, 
-	VipsRegion *dest, VipsRect *r, int x, int y );
+	VipsRegion *dest, const VipsRect *r, int x, int y );
 
 void vips_region_invalidate( VipsRegion *reg );
 

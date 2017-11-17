@@ -1,6 +1,5 @@
 /* affine transform with a supplied interpolator.
  *
- * 
  * Copyright N. Dessipris
  * Written on: 01/11/1991
  * Modified on: 12/3/92 JC
@@ -84,6 +83,9 @@
  * 1/8/14
  * 	- revise transform ... again
  * 	- see new stress test in nip2/test/extras
+ * 7/11/17
+ * 	- add "background" parameter
+ * 	- better clipping means we have no jaggies on edges
  */
 
 /*
@@ -116,6 +118,7 @@
 /*
 #define DEBUG_VERBOSE
 #define DEBUG
+#define VIPS_DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -148,6 +151,14 @@ typedef struct _VipsAffine {
 	double idy;
 
 	VipsTransformation trn;
+
+	/* Background colour.
+	 */
+	VipsArrayDouble *background;
+
+	/* The [double] converted to the input image format.
+	 */
+	VipsPel *ink;
 
 } VipsAffine;
 
@@ -275,7 +286,7 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 #endif /*DEBUG_VERBOSE*/
 
 	if( vips_rect_isempty( &clipped ) ) {
-		vips_region_black( or );
+		vips_region_paint_pel( or, r, affine->ink );
 		return( 0 );
 	}
 	if( vips_region_prepare( ir, &clipped ) )
@@ -336,9 +347,9 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 			/* Clip against iarea.
 			 */
 			if( fx >= ile &&
-				fx < iri &&
+				fx <= iri &&
 				fy >= ito &&
-				fy < ibo ) {
+				fy <= ibo ) {
 				/* Verify that we can read the whole stencil.
 				 * With DEBUG on this will range-check.
 				 */
@@ -355,8 +366,10 @@ vips_affine_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 					q, ir, ix, iy );
 			}
 			else {
+				/* Out of range: paint the background.
+				 */
 				for( z = 0; z < ps; z++ ) 
-					q[z] = 0;
+					q[z] = affine->ink[z];
 			}
 
 			ix += ddx;
@@ -478,15 +491,35 @@ vips_affine_build( VipsObject *object )
 		return( -1 );
 	in = t[0];
 
+	/* Convert the background to the image's format.
+	 */
+	if( !(affine->ink = vips__vector_to_ink( class->nickname, 
+		resample->out,
+		VIPS_AREA( affine->background )->data, NULL, 
+		VIPS_AREA( affine->background )->n )) )
+		return( -1 );
+
 	/* Add new pixels around the input so we can interpolate at the edges.
+	 *
+	 * We add the interpolate stencil, plus one extra pixel on all the
+	 * edges. This means when we clip in generate (above) we can be sure 
+	 * we clip outside the real pixels and don't get jaggies on edges.
 	 */
 	if( vips_embed( in, &t[2], 
-		window_offset, window_offset, 
-		in->Xsize + window_size - 1, in->Ysize + window_size - 1,
-		"extend", VIPS_EXTEND_COPY,
+		window_offset + 1, window_offset + 1, 
+		in->Xsize + window_size - 1 + 2, 
+		in->Ysize + window_size - 1 + 2,
+		"extend", VIPS_EXTEND_BACKGROUND,
+		"background", affine->background,
 		NULL ) )
 		return( -1 );
 	in = t[2];
+
+	/* We've added a one-pixel border to the input: displace the transform
+	 * to compensate.
+	 */
+	affine->trn.idx -= 1;
+	affine->trn.idy -= 1;
 
 	/* Normally SMALLTILE ... except if this is strictly a size 
 	 * up/down affine.
@@ -591,11 +624,19 @@ vips_affine_class_init( VipsAffineClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsAffine, idy ),
 		-10000000, 10000000, 0 );
+
+	VIPS_ARG_BOXED( class, "background", 2, 
+		_( "Background" ), 
+		_( "Background value" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsAffine, background ),
+		VIPS_TYPE_ARRAY_DOUBLE );
 }
 
 static void
 vips_affine_init( VipsAffine *affine )
 {
+	affine->background = vips_array_double_newv( 1, 0.0 );
 }
 
 /**
@@ -616,6 +657,7 @@ vips_affine_init( VipsAffine *affine )
  * * @idy: %gdouble, input vertical offset
  * * @odx: %gdouble, output horizontal offset
  * * @ody: %gdouble, output vertical offset
+ * * @background: #VipsArrayDouble colour for new pixels 
  *
  * This operator performs an affine transform on an image using @interpolate.
  *
@@ -632,6 +674,8 @@ vips_affine_init( VipsAffine *affine )
  * @out. @oarea is a four-element int array of left, top, width, height. 
  * By default @oarea is just large enough to cover the whole of the 
  * transformed input image.
+ *
+ * New pixels are filled with @background. This defaults to zero (black). 
  *
  * @interpolate defaults to bilinear. 
  *

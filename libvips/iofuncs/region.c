@@ -563,7 +563,7 @@ vips_region_new( VipsImage *image )
  * Returns: 0 on success, or -1 for error.
  */
 int
-vips_region_buffer( VipsRegion *reg, VipsRect *r )
+vips_region_buffer( VipsRegion *reg, const VipsRect *r )
 {
 	VipsImage *im = reg->im;
 
@@ -626,14 +626,14 @@ vips_region_buffer( VipsRegion *reg, VipsRect *r )
  * @reg: region to operate upon
  * @r: #VipsRect of pixels you need to be able to address
  *
- * The region is transformed so that at least @r pixels are available to be read from
- * image. The image needs to be a memory buffer or represent a file
- * on disc that has been mapped or can be mapped. 
+ * The region is transformed so that at least @r pixels are available to be 
+ * read from the image. The image needs to be a memory buffer or represent a 
+ * file on disc that has been mapped or can be mapped. 
  *
  * Returns: 0 on success, or -1 for error.
  */
 int
-vips_region_image( VipsRegion *reg, VipsRect *r )
+vips_region_image( VipsRegion *reg, const VipsRect *r )
 {
 	VipsImage *image = reg->im;
 
@@ -725,16 +725,15 @@ vips_region_image( VipsRegion *reg, VipsRect *r )
  * Performs all clipping necessary to ensure that @reg->valid is indeed
  * valid.
  *
- * If the region we attach to is moved or destroyed, we can be left with dangling 
- * pointers! If the region we attach to is on another image, the two images 
- * must have 
- * the same sizeof( pel ).
+ * If the region we attach to is moved or destroyed, we can be left with 
+ * dangling pointers! If the region we attach to is on another image, the 
+ * two images must have the same sizeof( pel ).
  *
  * Returns: 0 on success, or -1 for error.
  */
 int
 vips_region_region( VipsRegion *reg, 
-	VipsRegion *dest, VipsRect *r, int x, int y )
+	VipsRegion *dest, const VipsRect *r, int x, int y )
 {
 	VipsRect image;
 	VipsRect wanted;
@@ -885,7 +884,8 @@ vips_region_position( VipsRegion *reg, int x, int y )
 }
 
 int
-vips_region_fill( VipsRegion *reg, VipsRect *r, VipsRegionFillFn fn, void *a )
+vips_region_fill( VipsRegion *reg, 
+	const VipsRect *r, VipsRegionFillFn fn, void *a )
 {
 	g_assert( reg->im->dtype == VIPS_IMAGE_PARTIAL );
 	g_assert( reg->im->generate_fn );
@@ -947,7 +947,7 @@ vips_region_fill( VipsRegion *reg, VipsRect *r, VipsRegionFillFn fn, void *a )
  * See also: vips_region_black().
  */
 void
-vips_region_paint( VipsRegion *reg, VipsRect *r, int value )
+vips_region_paint( VipsRegion *reg, const VipsRect *r, int value )
 {
 	VipsRect clipped;
 
@@ -1011,7 +1011,7 @@ vips_region_paint( VipsRegion *reg, VipsRect *r, int value )
  * See also: vips_region_paint().
  */
 void
-vips_region_paint_pel( VipsRegion *reg, VipsRect *r, VipsPel *ink )
+vips_region_paint_pel( VipsRegion *reg, const VipsRect *r, const VipsPel *ink )
 {
 	VipsRect ovl;
 
@@ -1076,7 +1076,8 @@ vips_region_black( VipsRegion *reg )
  * See also: vips_region_paint().
  */
 void
-vips_region_copy( VipsRegion *reg, VipsRegion *dest, VipsRect *r, int x, int y )
+vips_region_copy( VipsRegion *reg, 
+	VipsRegion *dest, const VipsRect *r, int x, int y )
 {
 	int z;
 	int len = VIPS_IMAGE_SIZEOF_PEL( reg->im ) * r->width;
@@ -1135,7 +1136,8 @@ vips_region_copy( VipsRegion *reg, VipsRegion *dest, VipsRect *r, int x, int y )
  * VIPS_CODING_LABQ only.
  */
 static void
-vips_region_shrink_labpack( VipsRegion *from, VipsRegion *to, VipsRect *target )
+vips_region_shrink_labpack( VipsRegion *from, 
+	VipsRegion *to, const VipsRect *target )
 {
 	int ls = VIPS_REGION_LSKIP( from );
 
@@ -1212,7 +1214,8 @@ vips_region_shrink_labpack( VipsRegion *from, VipsRegion *to, VipsRect *target )
 /* Generate area @target in @to using pixels in @from. Non-complex.
  */
 static void
-vips_region_shrink_uncoded( VipsRegion *from, VipsRegion *to, VipsRect *target )
+vips_region_shrink_uncoded( VipsRegion *from, 
+	VipsRegion *to, const VipsRect *target )
 {
 	int ls = VIPS_REGION_LSKIP( from );
 	int ps = VIPS_IMAGE_SIZEOF_PEL( from->im );
@@ -1295,7 +1298,8 @@ vips_region_shrink_uncoded( VipsRegion *from, VipsRegion *to, VipsRect *target )
  * last band as alpha.
  */
 static void
-vips_region_shrink_alpha( VipsRegion *from, VipsRegion *to, VipsRect *target )
+vips_region_shrink_alpha( VipsRegion *from, 
+	VipsRegion *to, const VipsRect *target )
 {
 	int ls = VIPS_REGION_LSKIP( from );
 	int nb = from->im->Bands;
@@ -1347,7 +1351,7 @@ vips_region_shrink_alpha( VipsRegion *from, VipsRegion *to, VipsRect *target )
  * See also: vips_region_copy().
  */
 int
-vips_region_shrink( VipsRegion *from, VipsRegion *to, VipsRect *target )
+vips_region_shrink( VipsRegion *from, VipsRegion *to, const VipsRect *target )
 {
 	VipsImage *image = from->im;
 
@@ -1419,7 +1423,7 @@ vips_region_generate( VipsRegion *reg )
  * Returns: 0 on success, or -1 on error.
  */
 int
-vips_region_prepare( VipsRegion *reg, VipsRect *r )
+vips_region_prepare( VipsRegion *reg, const VipsRect *r )
 {	
 	VipsImage *im = reg->im;
 
@@ -1492,7 +1496,7 @@ vips_region_prepare( VipsRegion *reg, VipsRect *r )
  */
 static int
 vips_region_prepare_to_generate( VipsRegion *reg, 
-	VipsRegion *dest, VipsRect *r, int x, int y )
+	VipsRegion *dest, const VipsRect *r, int x, int y )
 {
 	VipsImage *im = reg->im;
 	VipsPel *p;
@@ -1551,7 +1555,7 @@ vips_region_prepare_to_generate( VipsRegion *reg,
  */
 int
 vips_region_prepare_to( VipsRegion *reg, 
-	VipsRegion *dest, VipsRect *r, int x, int y )
+	VipsRegion *dest, const VipsRect *r, int x, int y )
 {
 	VipsImage *im = reg->im;
 	VipsRect image;
@@ -1686,7 +1690,7 @@ vips_region_prepare_to( VipsRegion *reg,
 /* Don't use this, use vips_reorder_prepare_many() instead.
  */
 int
-vips_region_prepare_many( VipsRegion **reg, VipsRect *r )
+vips_region_prepare_many( VipsRegion **reg, const VipsRect *r )
 {
 	for( ; *reg; ++reg )
 		if( vips_region_prepare( *reg, r ) )
