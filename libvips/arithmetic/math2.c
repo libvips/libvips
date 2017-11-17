@@ -139,7 +139,9 @@ vips_math2_build( VipsObject *object )
 	\
 	/* Division by zero! Difficult to report tho' \
 	 */ \
-	(Y) = (left == 0.0 && right < 0.0) ? 0.0 : pow( left, right ); \
+	(Y) = (right == 0.5) \
+		? sqrt( left ) \
+		: (left == 0.0 && right < 0.0) ? 0.0 : pow( left, right ); \
 }
 
 #define WOP( Y, X, E ) POW( Y, E, X )
