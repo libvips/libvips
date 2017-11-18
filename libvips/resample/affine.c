@@ -86,6 +86,7 @@
  * 7/11/17
  * 	- add "background" parameter
  * 	- better clipping means we have no jaggies on edges
+ * 	- premultiply alpha 
  */
 
 /*
@@ -391,13 +392,18 @@ vips_affine_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsAffine *affine = (VipsAffine *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 7 );
 
 	VipsImage *in;
 	VipsDemandStyle hint; 
 	int window_size;
 	int window_offset;
 	double edge;
+
+	/* TRUE if we've premultiplied and need to unpremultiply.
+	 */
+	gboolean have_premultiplied;
+	VipsBandFormat unpremultiplied_format;
 
 	if( VIPS_OBJECT_CLASS( vips_affine_parent_class )->build( object ) )
 		return( -1 );
@@ -521,6 +527,23 @@ vips_affine_build( VipsObject *object )
 	affine->trn.idx -= 1;
 	affine->trn.idy -= 1;
 
+	/* If there's an alpha, we have to premultiply before resampling. See
+	 * https://github.com/jcupitt/libvips/issues/291
+	 */
+	have_premultiplied = FALSE;
+	if( vips_image_hasalpha( in ) ) { 
+		if( vips_premultiply( in, &t[3], NULL ) ) 
+			return( -1 );
+		have_premultiplied = TRUE;
+
+		/* vips_premultiply() makes a float image. When we
+		 * vips_unpremultiply() below, we need to cast back to the
+		 * pre-premultiply format.
+		 */
+		unpremultiplied_format = in->BandFmt;
+		in = t[3];
+	}
+
 	/* Normally SMALLTILE ... except if this is strictly a size 
 	 * up/down affine.
 	 */
@@ -530,11 +553,12 @@ vips_affine_build( VipsObject *object )
 	else 
 		hint = VIPS_DEMAND_STYLE_SMALLTILE;
 
-	if( vips_image_pipelinev( resample->out, hint, in, NULL ) )
+	t[4] = vips_image_new();
+	if( vips_image_pipelinev( t[4], hint, in, NULL ) )
 		return( -1 );
 
-	resample->out->Xsize = affine->trn.oarea.width;
-	resample->out->Ysize = affine->trn.oarea.height;
+	t[4]->Xsize = affine->trn.oarea.width;
+	t[4]->Ysize = affine->trn.oarea.height;
 
 #ifdef DEBUG
 	printf( "vips_affine_build: transform: " ); 
@@ -544,20 +568,32 @@ vips_affine_build( VipsObject *object )
 	printf( " input image width = %d, height = %d\n", 
 		in->Xsize, in->Ysize ); 
 	printf( " output image width = %d, height = %d\n", 
-		resample->out->Xsize, resample->out->Ysize ); 
+		t[4]->Xsize, t[4]->Ysize ); 
 #endif /*DEBUG*/
 
 	/* Generate!
 	 */
-	if( vips_image_generate( resample->out, 
+	if( vips_image_generate( t[4], 
 		vips_start_one, vips_affine_gen, vips_stop_one, 
 		in, affine ) )
 		return( -1 );
 
 	/* Finally: can now set Xoffset/Yoffset.
 	 */
-	resample->out->Xoffset = affine->trn.odx - affine->trn.oarea.left;
-	resample->out->Yoffset = affine->trn.ody - affine->trn.oarea.top;
+	t[4]->Xoffset = affine->trn.odx - affine->trn.oarea.left;
+	t[4]->Yoffset = affine->trn.ody - affine->trn.oarea.top;
+
+	in = t[4];
+
+	if( have_premultiplied ) {
+		if( vips_unpremultiply( in, &t[5], NULL ) || 
+			vips_cast( t[5], &t[6], unpremultiplied_format, NULL ) )
+			return( -1 );
+		in = t[6];
+	}
+
+	if( vips_image_write( in, resample->out ) )
+		return( -1 );
 
 	return( 0 );
 }

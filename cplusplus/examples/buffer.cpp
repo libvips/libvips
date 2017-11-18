@@ -38,7 +38,7 @@ main( int argc, char **argv )
 
 	// load an image from a file
 	VImage im = VImage::new_from_file( argv[1], 
-		VImage::option()->set( "access", "sequential-unbuffered" ) ); 
+		VImage::option()->set( "access", "sequential" ) ); 
 	printf( "loaded %d x %d pixel image from %s\n", 
 		im.width(), im.height(), argv[1] ); 
 
