@@ -36,7 +36,7 @@
 - add VIPS_COMBINE_MIN, a new combining mode for vips_compass()
 - vips_hist_find_indexed() now has a @combine parameter
 - vips_affine() and vips_similarity() have a "background" parameter
-- fix nasty jaggies on the edge of affine output
+- fix nasty jaggies on the edge of affine output, thanks chregu
 
 29/8/17 started 8.5.9
 - make --fail stop jpeg read on any libjpeg warning, thanks @mceachen
