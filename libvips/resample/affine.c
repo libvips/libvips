@@ -497,14 +497,6 @@ vips_affine_build( VipsObject *object )
 		return( -1 );
 	in = t[0];
 
-	/* Convert the background to the image's format.
-	 */
-	if( !(affine->ink = vips__vector_to_ink( class->nickname, 
-		resample->out,
-		VIPS_AREA( affine->background )->data, NULL, 
-		VIPS_AREA( affine->background )->n )) )
-		return( -1 );
-
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 *
 	 * We add the interpolate stencil, plus one extra pixel on all the
@@ -543,6 +535,14 @@ vips_affine_build( VipsObject *object )
 		unpremultiplied_format = in->BandFmt;
 		in = t[3];
 	}
+
+	/* Convert the background to the image's format.
+	 */
+	if( !(affine->ink = vips__vector_to_ink( class->nickname, 
+		in,
+		VIPS_AREA( affine->background )->data, NULL, 
+		VIPS_AREA( affine->background )->n )) )
+		return( -1 );
 
 	/* Normally SMALLTILE ... except if this is strictly a size 
 	 * up/down affine.
