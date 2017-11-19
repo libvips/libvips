@@ -269,8 +269,8 @@ vips_smartcrop_attention( VipsSmartcrop *smartcrop,
 	 */
 	hscale = 32.0 / in->Xsize;
 	vscale = 32.0 / in->Ysize;
-	sigma = sqrt( pow( smartcrop->width * hscale, 2 ) + 
-		pow( smartcrop->height * vscale, 2 ) ) / 10; 
+	sigma = VIPS_MAX( sqrt( pow( smartcrop->width * hscale, 2 ) +
+		pow( smartcrop->height * vscale, 2 ) ) / 10, 1.0 );
 	if( vips_sum( &t[14], &t[17], 3, NULL ) ||
 		vips_resize( t[17], &t[18], hscale, 
 			"vscale", vscale, 
