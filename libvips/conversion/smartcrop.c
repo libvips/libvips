@@ -255,7 +255,7 @@ vips_smartcrop_attention( VipsSmartcrop *smartcrop,
 	/* Look for saturated areas.
 	 */
 	if( vips_colourspace( t[1], &t[12], 
-		VIPS_INTERPRETATION_LCH, NULL ) ||
+		VIPS_INTERPRETATION_LAB, NULL ) ||
 		vips_extract_band( t[12], &t[13], 1, NULL ) ||
 		vips_ifthenelse( t[10], t[13], t[11], &t[16], NULL ) )
 		return( -1 );
