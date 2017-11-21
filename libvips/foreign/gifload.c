@@ -579,10 +579,24 @@ vips_foreign_load_gif_page( VipsForeignLoadGif *gif, VipsImage *out )
 			if( ext_code == APPLICATION_EXT_FUNC_CODE &&
 				extension &&
 				extension[0] == 11 &&
-				/* Then 'NETSCAPE2.0', then */
-				extension[12] == 3 &&
-				extension[13] == 1 ) 
-				gif->loop = extension[14] | (extension[15] << 8);
+				vips_isprefix( "NETSCAPE2.0", 
+					(const char *) (extension + 1) ) ) {
+				while( extension != NULL ) {
+					if( DGifGetExtensionNext( gif->file, 
+						&extension ) == GIF_ERROR ) {
+						vips_foreign_load_gif_error( 
+							gif ); 
+						return( -1 ); 
+					}
+
+					if( extension &&
+						extension[0] == 3 &&
+						extension[1] == 1 ) {
+						gif->loop = extension[2] | 
+							(extension[3] << 8);
+					}
+				}
+			}
 
 			while( extension != NULL ) {
 				if( DGifGetExtensionNext( gif->file, 
