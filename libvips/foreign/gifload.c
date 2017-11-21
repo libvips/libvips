@@ -117,6 +117,10 @@ typedef struct _VipsForeignLoadGif {
 	gboolean has_transparency;
 	gboolean has_colour;
 
+	/* Delay in ms. We only track a single delay value for the whole file.
+	 */
+	int delay;
+
 	/* The FILE* we read from.
 	 */
 	FILE *fp;
@@ -553,6 +557,7 @@ vips_foreign_load_gif_page( VipsForeignLoadGif *gif, VipsImage *out )
 				 * transparency. Bit 1 means transparency
 				 * is being set.
 				 */
+				gif->delay = extension[2] | (extension[3] << 8);
 				gif->transparency = extension[4];
 				gif->has_transparency = TRUE;
 
@@ -755,7 +760,8 @@ vips_foreign_load_gif_pages( VipsForeignLoadGif *gif, VipsImage **out )
 	unref_array( frames );
 
 	if( n_frames > 1 )
-		vips_image_set_int( *out, VIPS_META_PAGE_HEIGHT, frame->Ysize );
+		vips_image_set_int( *out, VIPS_META_PAGE_HEIGHT, t[0]->Ysize );
+	vips_image_set_int( *out, "gif-delay", gif->delay );
 
 	return( 0 );
 }
@@ -853,6 +859,7 @@ vips_foreign_load_gif_init( VipsForeignLoadGif *gif )
 {
 	gif->n = 1;
 	gif->transparency = -1;
+	gif->delay = 16;
 }
 
 typedef struct _VipsForeignLoadGifFile {
