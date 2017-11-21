@@ -15,6 +15,8 @@
  * 	- support @n, page-height
  * 5/10/17
  * 	- colormap can be missing thanks Kleis
+ * 21/11/17
+ * 	- add "gif-delay" metadata
  */
 
 /*
@@ -117,7 +119,8 @@ typedef struct _VipsForeignLoadGif {
 	gboolean has_transparency;
 	gboolean has_colour;
 
-	/* Delay in ms. We only track a single delay value for the whole file.
+	/* Delay in 1/100ths of a second. We only track a single delay 
+	 * value for the whole file.
 	 */
 	int delay;
 
@@ -550,16 +553,16 @@ vips_foreign_load_gif_page( VipsForeignLoadGif *gif, VipsImage *out )
 			}
 
 			if( ext_code == GRAPHICS_EXT_FUNC_CODE &&
-				extension &&
-				extension[0] == 4 && 
-				(extension[1] & 0x1) ) {
-				/* Bytes are 4, 1, delay low, delay high,
+				extension ) { 
+				/* Bytes are flags, delay low, delay high,
 				 * transparency. Bit 1 means transparency
 				 * is being set.
 				 */
+				if( extension[1] & 0x1 ) {
+					gif->transparency = extension[4];
+					gif->has_transparency = TRUE;
+				}
 				gif->delay = extension[2] | (extension[3] << 8);
-				gif->transparency = extension[4];
-				gif->has_transparency = TRUE;
 
 				VIPS_DEBUG_MSG( "gifload: "
 					"seen transparency %d\n", 
