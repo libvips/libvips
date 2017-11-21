@@ -16,7 +16,7 @@
  * 5/10/17
  * 	- colormap can be missing thanks Kleis
  * 21/11/17
- * 	- add "gif-delay" metadata
+ * 	- add "gif-delay" and "gif-loop" metadata
  */
 
 /*
@@ -123,6 +123,10 @@ typedef struct _VipsForeignLoadGif {
 	 * value for the whole file.
 	 */
 	int delay;
+
+	/* Number of times to loop the animation.
+	 */
+	int loop;
 
 	/* The FILE* we read from.
 	 */
@@ -553,21 +557,32 @@ vips_foreign_load_gif_page( VipsForeignLoadGif *gif, VipsImage *out )
 			}
 
 			if( ext_code == GRAPHICS_EXT_FUNC_CODE &&
-				extension ) { 
+				extension &&
+				extension[0] == 4 ) { 
 				/* Bytes are flags, delay low, delay high,
-				 * transparency. Bit 1 means transparency
+				 * transparency. Flag bit 1 means transparency
 				 * is being set.
 				 */
 				if( extension[1] & 0x1 ) {
 					gif->transparency = extension[4];
 					gif->has_transparency = TRUE;
+					VIPS_DEBUG_MSG( "gifload: "
+						"seen transparency %d\n", 
+						gif->transparency );
 				}
-				gif->delay = extension[2] | (extension[3] << 8);
 
-				VIPS_DEBUG_MSG( "gifload: "
-					"seen transparency %d\n", 
-					gif->transparency );
+				gif->delay = extension[2] | (extension[3] << 8);
 			}
+
+			/* The 11-byte NETSCAPE extension.
+			 */
+			if( ext_code == APPLICATION_EXT_FUNC_CODE &&
+				extension &&
+				extension[0] == 11 &&
+				/* Then 'NETSCAPE2.0', then */
+				extension[12] == 3 &&
+				extension[13] == 1 ) 
+				gif->loop = extension[14] | (extension[15] << 8);
 
 			while( extension != NULL ) {
 				if( DGifGetExtensionNext( gif->file, 
@@ -765,6 +780,7 @@ vips_foreign_load_gif_pages( VipsForeignLoadGif *gif, VipsImage **out )
 	if( n_frames > 1 )
 		vips_image_set_int( *out, VIPS_META_PAGE_HEIGHT, t[0]->Ysize );
 	vips_image_set_int( *out, "gif-delay", gif->delay );
+	vips_image_set_int( *out, "gif-loop", gif->loop );
 
 	return( 0 );
 }
@@ -862,7 +878,8 @@ vips_foreign_load_gif_init( VipsForeignLoadGif *gif )
 {
 	gif->n = 1;
 	gif->transparency = -1;
-	gif->delay = 16;
+	gif->delay = 10;
+	gif->loop = 0;
 }
 
 typedef struct _VipsForeignLoadGifFile {
