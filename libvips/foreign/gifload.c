@@ -17,6 +17,7 @@
  * 	- colormap can be missing thanks Kleis
  * 21/11/17
  * 	- add "gif-delay", "gif-loop", "gif-comment" metadata
+ * 	- add dispose handling
  */
 
 /*
@@ -133,6 +134,10 @@ typedef struct _VipsForeignLoadGif {
 	/* The GIF comment, if any.
 	 */
 	char *comment; 
+
+	/* The current dispose method.
+	 */
+	int dispose;
 
 	/* The FILE* we read from.
 	 */
@@ -387,7 +392,7 @@ vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif,
 
 	for( x = 0; x < width; x++ ) {
 		VipsPel v = p[x];
-
+		
 		if( map &&
 			v < map->ColorCount &&
 			v != gif->transparency ) {
@@ -404,7 +409,14 @@ vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif,
 			q[2] = v;
 			q[3] = 255;
 		}
+		else if( gif->dispose == DISPOSE_DO_NOT ) {
+			/* Transparent pixels let the previous frame show
+			 * through, ie., do nothing.
+			 */
+		}
 		else {
+			/* All other modes are just transparent. 
+			 */
 			q[0] = 0;
 			q[1] = 0;
 			q[2] = 0;
@@ -415,12 +427,12 @@ vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif,
 	}
 }
 
-/* Render the current gif frame into an RGBA buffer. GIFs 
- * accumulate, so don't clear the buffer first, we need to paint a 
- * series of frames on top of each other. 
+/* Render the current gif frame into an RGBA buffer. GIFs can accumulate, 
+ * depending on the current dispose mode.
  */
 static int
-vips_foreign_load_gif_render( VipsForeignLoadGif *gif, VipsImage *out ) 
+vips_foreign_load_gif_render( VipsForeignLoadGif *gif, 
+	VipsImage *previous, VipsImage *out )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
 	GifFileType *file = gif->file;
@@ -544,9 +556,15 @@ vips_foreign_load_gif_graphics_ext( VipsForeignLoadGif *gif,
 		if( extension[1] & 0x1 ) {
 			gif->transparency = extension[4];
 			gif->has_transparency = TRUE;
-			VIPS_DEBUG_MSG( "gifload: "
-				"seen transparency %d\n", gif->transparency );
+			VIPS_DEBUG_MSG( "gifload: transparency %d\n", 
+				gif->transparency );
 		}
+
+		/* Set the current dispose mode. This is read during frame load
+		 * to set the meaning of background and transparent pixels.
+		 */
+		gif->dispose = (extension[1] >> 2) & 0x7;
+		VIPS_DEBUG_MSG( "gifload: dispose %d\n", gif->dispose );
 
 		if( !gif->has_delay ) { 
 			gif->has_delay = TRUE;
@@ -662,10 +680,12 @@ vips_foreign_load_gif_extension( VipsForeignLoadGif *gif )
 }
 
 /* Write the next page, if there is one, to @page. Set EOF if we hit the end of
- * the file. @page must be a memory image of the right size. 
+ * the file. @page must be a memory image of the right size. @previous is the
+ * previous frame, if any. 
  */
 static int
-vips_foreign_load_gif_page( VipsForeignLoadGif *gif, VipsImage *out )
+vips_foreign_load_gif_page( VipsForeignLoadGif *gif, 
+	VipsImage *previous, VipsImage *out )
 {
 	GifRecordType record;
 	int n_pages;
@@ -687,7 +707,7 @@ vips_foreign_load_gif_page( VipsForeignLoadGif *gif, VipsImage *out )
 				return( -1 ); 
 			}
 
-			if( vips_foreign_load_gif_render( gif, out ) )
+			if( vips_foreign_load_gif_render( gif, previous, out ) )
 				return( -1 ); 
 
 			n_pages += 1;
@@ -795,7 +815,7 @@ vips_foreign_load_gif_pages( VipsForeignLoadGif *gif, VipsImage **out )
 	if( !(frame = vips_foreign_load_gif_new_page( gif )) ) 
 		return( -1 );
 	do { 
-		if( vips_foreign_load_gif_page( gif, frame ) ) {
+		if( vips_foreign_load_gif_page( gif, NULL, frame ) ) {
 			g_object_unref( frame );
 			return( -1 );
 		}
@@ -821,14 +841,19 @@ vips_foreign_load_gif_pages( VipsForeignLoadGif *gif, VipsImage **out )
 			return( -1 );
 		}
 
-		/* And init with the previous frame, if any.
-		 */
-		if( previous ) 
+		if( gif->dispose == DISPOSE_BACKGROUND )
+			/* BACKGROUND means the bg shows through, ie. (in web
+			 * terms) everything is transparent.
+			 */
+			memset( VIPS_IMAGE_ADDR( frame, 0, 0 ),
+				0,
+				VIPS_IMAGE_SIZEOF_IMAGE( frame ) );
+		else 
 			memcpy( VIPS_IMAGE_ADDR( frame, 0, 0 ),
 				VIPS_IMAGE_ADDR( previous, 0, 0 ),
 				VIPS_IMAGE_SIZEOF_IMAGE( frame ) );
 
-		if( vips_foreign_load_gif_page( gif, frame ) ) {
+		if( vips_foreign_load_gif_page( gif, previous, frame ) ) {
 			g_object_unref( frame ); 
 			unref_array( frames );
 			return( -1 );
@@ -842,7 +867,12 @@ vips_foreign_load_gif_pages( VipsForeignLoadGif *gif, VipsImage **out )
 		}
 		else {
 			frames = g_slist_append( frames, frame );
-			previous = frame;
+
+			/* These two dispose modes set new background frames.
+			 */
+			if( gif->dispose == DISPOSAL_UNSPECIFIED ||
+				gif->dispose == DISPOSE_DO_NOT ) 
+				previous = frame;
 		}
 	}
 
@@ -985,6 +1015,7 @@ vips_foreign_load_gif_init( VipsForeignLoadGif *gif )
 	gif->delay = 4;
 	gif->loop = 0;
 	gif->comment = NULL;
+	gif->dispose = 0;
 }
 
 typedef struct _VipsForeignLoadGifFile {

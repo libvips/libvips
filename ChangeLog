@@ -38,6 +38,7 @@
 - vips_affine() and vips_similarity() have a "background" parameter
 - fix nasty jaggies on the edges of affine output, thanks chregu
 - add gif-delay, gif-comment and gif-loop metadata
+- add dispose handling to gifload
 
 29/8/17 started 8.5.9
 - make --fail stop jpeg read on any libjpeg warning, thanks @mceachen
