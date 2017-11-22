@@ -82,6 +82,15 @@
 #  endif
 #endif
 
+/* Added in giflib5.
+ */
+#ifndef HAVE_GIFLIB_5
+#define DISPOSAL_UNSPECIFIED      0       
+#define DISPOSE_DO_NOT            1      
+#define DISPOSE_BACKGROUND        2     
+#define DISPOSE_PREVIOUS          3    
+#endif
+
 typedef struct _VipsForeignLoadGif {
 	VipsForeignLoad parent_object;
 
