@@ -120,8 +120,10 @@ typedef struct _VipsForeignLoadGif {
 	gboolean has_colour;
 
 	/* Delay in 1/100ths of a second. We only track a single delay 
-	 * value for the whole file.
+	 * value for the whole file, and we report the first delay we see. Some
+	 * GIFs have a long delay on the final frame.
 	 */
+	gboolean has_delay;
 	int delay;
 
 	/* Number of times to loop the animation.
@@ -571,7 +573,11 @@ vips_foreign_load_gif_page( VipsForeignLoadGif *gif, VipsImage *out )
 						gif->transparency );
 				}
 
-				gif->delay = extension[2] | (extension[3] << 8);
+				if( !gif->has_delay ) { 
+					gif->has_delay = TRUE;
+					gif->delay = extension[2] | 
+						(extension[3] << 8);
+				}
 			}
 
 			/* The 11-byte NETSCAPE extension.
