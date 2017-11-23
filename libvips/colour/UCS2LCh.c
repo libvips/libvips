@@ -228,7 +228,7 @@ vips_col_make_tables_CMC( void )
 {
 	static GOnce once = G_ONCE_INIT;
 
-	(void) g_once( &once, tables_init, NULL );
+	VIPS_ONCE( &once, tables_init, NULL );
 }
 
 /* Process a buffer of data.

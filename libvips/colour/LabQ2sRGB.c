@@ -171,8 +171,7 @@ vips_col_make_tables_RGB_8( void )
 {
 	static GOnce once = G_ONCE_INIT;
 
-	if( G_UNLIKELY( once.status != G_ONCE_STATUS_READY ) )
-		(void) g_once( &once, calcul_tables_8, NULL );
+	VIPS_ONCE( &once, calcul_tables_8, NULL ); 
 }
 
 int
@@ -196,8 +195,7 @@ vips_col_make_tables_RGB_16( void )
 {
 	static GOnce once = G_ONCE_INIT;
 
-	if( G_UNLIKELY( once.status != G_ONCE_STATUS_READY ) )
-		(void) g_once( &once, calcul_tables_16, NULL );
+	VIPS_ONCE( &once, calcul_tables_16, NULL ); 
 }
 
 int
@@ -448,7 +446,7 @@ vips_col_make_tables_LabQ2sRGB( void )
 {
 	static GOnce once = G_ONCE_INIT;
 
-	(void) g_once( &once, build_tables, NULL );
+	VIPS_ONCE( &once, build_tables, NULL );
 }
 
 /* Process a buffer of data.

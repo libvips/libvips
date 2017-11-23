@@ -462,7 +462,7 @@ vips__cache_init( void )
 {
 	static GOnce once = G_ONCE_INIT;
 
-	g_once( &once, (GThreadFunc) vips__cache_once_init, NULL );
+	VIPS_ONCE( &once, (GThreadFunc) vips__cache_once_init, NULL );
 }
 
 static void *

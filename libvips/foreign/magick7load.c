@@ -293,7 +293,7 @@ vips_foreign_load_magick7_genesis( void )
 {
 	static GOnce once = G_ONCE_INIT;
 
-	(void) g_once( &once, vips_foreign_load_magick7_genesis_cb, NULL );
+	VIPS_ONCE( &once, vips_foreign_load_magick7_genesis_cb, NULL );
 }
 
 static int

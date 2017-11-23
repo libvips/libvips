@@ -120,7 +120,7 @@ vips_XYZ2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 
 	int x;
 
-	(void) g_once( &once, table_init, NULL );
+	VIPS_ONCE( &once, table_init, NULL );
 
 	for( x = 0; x < width; x++ ) {
 		float nX, nY, nZ;

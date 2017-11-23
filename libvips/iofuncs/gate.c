@@ -245,7 +245,7 @@ vips__thread_profile_attach( const char *thread_name )
 
 	VipsThreadProfile *profile;
 
-	g_once( &once, (GThreadFunc) vips__thread_profile_init, NULL );
+	VIPS_ONCE( &once, (GThreadFunc) vips__thread_profile_init, NULL );
 
 	VIPS_DEBUG_MSG( "vips__thread_profile_attach: %s\n", thread_name ); 
 

@@ -284,7 +284,7 @@ vips_perlin_class_init( VipsPerlinClass *class )
 
 	static GOnce once = G_ONCE_INIT;
 
-	(void) g_once( &once, vips_perlin_make_tables, NULL );
+	VIPS_ONCE( &once, vips_perlin_make_tables, NULL );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;

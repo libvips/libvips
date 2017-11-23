@@ -1081,7 +1081,7 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 
 	Render *render;
 
-	g_once( &once, (GThreadFunc) vips_sink_screen_init, NULL );
+	VIPS_ONCE( &once, (GThreadFunc) vips_sink_screen_init, NULL );
 
 	if( tile_width <= 0 || tile_height <= 0 || 
 		max_tiles < -1 ) {

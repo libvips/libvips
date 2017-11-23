@@ -408,7 +408,7 @@ vips_text_class_init( VipsTextClass *class )
 
 	static GOnce once = G_ONCE_INIT;
 
-	(void) g_once( &once, vips_text_make_lock, NULL );
+	VIPS_ONCE( &once, vips_text_make_lock, NULL );
 
 	gobject_class->dispose = vips_text_dispose;
 	gobject_class->set_property = vips_object_set_property;

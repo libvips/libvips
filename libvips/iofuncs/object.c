@@ -2814,7 +2814,7 @@ vips_type_find( const char *basename, const char *nickname )
 	GType base;
 	GType type;
 
-	g_once( &once, (GThreadFunc) vips_class_build_hash, NULL ); 
+	VIPS_ONCE( &once, (GThreadFunc) vips_class_build_hash, NULL ); 
 
 	hit = (NicknameGType *) 
 		g_hash_table_lookup( vips__object_nickname_table, 
