@@ -39,6 +39,8 @@
 - fix nasty jaggies on the edges of affine output, thanks chregu
 - add gif-delay, gif-comment and gif-loop metadata
 - add dispose handling to gifload
+- dzsave outputs extra right and bottom overlap-only tiles, for closer spec
+  adherence
 
 29/8/17 started 8.5.9
 - make --fail stop jpeg read on any libjpeg warning, thanks @mceachen
