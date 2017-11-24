@@ -78,7 +78,7 @@ G_DEFINE_TYPE( VipsPremultiply, vips_premultiply, VIPS_TYPE_CONVERSION );
 	for( x = 0; x < width; x++ ) { \
 		IN alpha = p[bands - 1]; \
 		IN clip_alpha = VIPS_CLIP( 0, alpha, max_alpha ); \
-		double nalpha = (double) clip_alpha / max_alpha; \
+		OUT nalpha = (OUT) clip_alpha / max_alpha; \
 		\
 		for( i = 0; i < bands - 1; i++ ) \
 			q[i] = p[i] * nalpha; \
@@ -98,7 +98,7 @@ G_DEFINE_TYPE( VipsPremultiply, vips_premultiply, VIPS_TYPE_CONVERSION );
 	for( x = 0; x < width; x++ ) { \
 		IN alpha = p[3]; \
 		IN clip_alpha = VIPS_CLIP( 0, alpha, max_alpha ); \
-		double nalpha = (double) clip_alpha / max_alpha; \
+		OUT nalpha = (OUT) clip_alpha / max_alpha; \
 		\
 		q[0] = p[0] * nalpha; \
 		q[1] = p[1] * nalpha; \
