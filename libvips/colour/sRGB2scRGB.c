@@ -17,6 +17,8 @@
  * 	- add 16-bit alpha handling
  * 26/2/16
  * 	- look for RGB16 tag, not just ushort, for the 16-bit path
+ * 24/11/17 lovell
+ * 	- special path for 3 and 4 band images
  */
 
 /*

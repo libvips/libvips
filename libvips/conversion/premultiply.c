@@ -7,6 +7,8 @@
  * 	- fix RGBA path
  * 25/5/16
  * 	- max_alpha defaults to 65535 for RGB16/GREY16
+ * 24/11/17 lovell
+ * 	- match normalised alpha to output type
  */
 
 /*
