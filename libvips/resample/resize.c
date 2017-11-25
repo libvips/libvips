@@ -27,7 +27,7 @@
  * 15/10/17
  * 	- make LINEAR and CUBIC adaptive
  * 25/11/17
- * 	- apply --centre to upsize as well, thanks tback 
+ * 	- deprecate --centre ... it's now automatic, thanks tback
  */
 
 /*
@@ -86,13 +86,13 @@ typedef struct _VipsResize {
 	double scale;
 	double vscale;
 	VipsKernel kernel;
-	gboolean centre;
 
 	/* Deprecated.
 	 */
 	VipsInterpolate *interpolate;
 	double idx;
 	double idy;
+	gboolean centre;
 
 } VipsResize;
 
@@ -215,7 +215,6 @@ vips_resize_build( VipsObject *object )
 		g_info( "residual reducev by %g", vscale );
 		if( vips_reducev( in, &t[2], 1.0 / vscale, 
 			"kernel", resize->kernel, 
-			"centre", resize->centre, 
 			NULL ) )  
 			return( -1 );
 		in = t[2];
@@ -226,7 +225,6 @@ vips_resize_build( VipsObject *object )
 			hscale );
 		if( vips_reduceh( in, &t[3], 1.0 / hscale, 
 			"kernel", resize->kernel, 
-			"centre", resize->centre, 
 			NULL ) )  
 			return( -1 );
 		in = t[3];
@@ -241,7 +239,7 @@ vips_resize_build( VipsObject *object )
 		/* Input displacement. For centre sampling, shift by 0.5 down
 		 * and right.
 		 */
-		double id = resize->centre ? 0.5 : 0.0;
+		const double id = 0.5;
 
 		VipsInterpolate *interpolate;
 
@@ -338,13 +336,6 @@ vips_resize_class_init( VipsResizeClass *class )
 		G_STRUCT_OFFSET( VipsResize, kernel ),
 		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
 
-	VIPS_ARG_BOOL( class, "centre", 7, 
-		_( "Centre" ), 
-		_( "Use centre sampling convention" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsResize, centre ),
-		FALSE );
-
 	/* We used to let people set the input offset so you could pick centre
 	 * or corner interpolation, but it's not clear this was useful. 
 	 */
@@ -370,6 +361,15 @@ vips_resize_class_init( VipsResizeClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED, 
 		G_STRUCT_OFFSET( VipsResize, interpolate ) );
 
+	/* We used to let people pick centre or corner, but it's automatic now.
+	 */
+	VIPS_ARG_BOOL( class, "centre", 7, 
+		_( "Centre" ), 
+		_( "Use centre sampling convention" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsResize, centre ),
+		FALSE );
+
 }
 
 static void
@@ -389,7 +389,6 @@ vips_resize_init( VipsResize *resize )
  *
  * * @vscale: %gdouble vertical scale factor
  * * @kernel: #VipsKernel to reduce with 
- * * @centre: %gboolean use centre rather than corner sampling convention
  *
  * Resize an image. 
  *
@@ -399,11 +398,11 @@ vips_resize_init( VipsResize *resize )
  * target size with vips_reduce(). How much is done by vips_shrink() vs.
  * vips_reduce() varies with the @kernel setting. 
  *
+ * This operation uses corner convention for doansampling, and centre
+ * convention for upsampling.
+ *
  * vips_resize() normally uses #VIPS_KERNEL_LANCZOS3 for the final reduce, you
  * can change this with @kernel.
- *
- * Set @centre to use centre rather than corner sampling convention. Centre
- * convention can be useful to match the behaviour of other systems. 
  *
  * When upsizing (@scale > 1), the operation uses vips_affine() with
  * a #VipsInterpolate selected depending on @kernel. It will use
