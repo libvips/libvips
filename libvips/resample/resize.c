@@ -396,17 +396,16 @@ vips_resize_init( VipsResize *resize )
  * image is block-shrunk with vips_shrink(), 
  * then the image is shrunk again to the 
  * target size with vips_reduce(). How much is done by vips_shrink() vs.
- * vips_reduce() varies with the @kernel setting. 
- *
- * This operation uses corner convention for doansampling, and centre
- * convention for upsampling.
+ * vips_reduce() varies with the @kernel setting. Downsizing is done with
+ * corner convention.
  *
  * vips_resize() normally uses #VIPS_KERNEL_LANCZOS3 for the final reduce, you
  * can change this with @kernel.
  *
  * When upsizing (@scale > 1), the operation uses vips_affine() with
  * a #VipsInterpolate selected depending on @kernel. It will use
- * #VipsInterpolateBicubic for #VIPS_KERNEL_CUBIC and above.
+ * #VipsInterpolateBicubic for #VIPS_KERNEL_CUBIC and above. It adds a
+ * 0.5 pixel displacement to the input pixels to get centre convention scaling.
  *
  * vips_resize() normally maintains the image aspect ratio. If you set
  * @vscale, that factor is used for the vertical scale and @scale for the
