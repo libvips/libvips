@@ -26,6 +26,8 @@
  * 	- moved the cache to shrinkv
  * 15/10/17
  * 	- make LINEAR and CUBIC adaptive
+ * 25/11/17
+ * 	- apply --centre to upsize as well, thanks tback 
  */
 
 /*
@@ -235,6 +237,12 @@ vips_resize_build( VipsObject *object )
 	if( hscale > 1.0 ||
 		vscale > 1.0 ) { 
 		const char *nickname = vips_resize_interpolate( resize->kernel );
+
+		/* Input displacement. For centre sampling, shift by 0.5 down
+		 * and right.
+		 */
+		double id = resize->centre ? 0.5 : 0.0;
+
 		VipsInterpolate *interpolate;
 
 		if( !(interpolate = vips_interpolate_new( nickname )) )
@@ -257,6 +265,8 @@ vips_resize_build( VipsObject *object )
 			if( vips_affine( in, &t[4], 
 				hscale, 0.0, 0.0, vscale, 
 				"interpolate", interpolate, 
+				"idx", id, 
+				"idy", id, 
 				NULL ) )  
 				return( -1 );
 			in = t[4];
@@ -265,6 +275,8 @@ vips_resize_build( VipsObject *object )
 			g_info( "residual scale %g", hscale );
 			if( vips_affine( in, &t[4], hscale, 0.0, 0.0, 1.0, 
 				"interpolate", interpolate, 
+				"idx", id, 
+				"idy", id, 
 				NULL ) )  
 				return( -1 );
 			in = t[4];
@@ -273,6 +285,8 @@ vips_resize_build( VipsObject *object )
 			g_info( "residual scale %g", vscale );
 			if( vips_affine( in, &t[4], 1.0, 0.0, 0.0, vscale, 
 				"interpolate", interpolate, 
+				"idx", id, 
+				"idy", id, 
 				NULL ) )  
 				return( -1 );
 			in = t[4];
