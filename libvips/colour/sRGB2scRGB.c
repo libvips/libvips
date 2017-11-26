@@ -75,24 +75,6 @@ typedef VipsOperationClass VipssRGB2scRGBClass;
 
 G_DEFINE_TYPE( VipssRGB2scRGB, vips_sRGB2scRGB, VIPS_TYPE_OPERATION );
 
-/* Convert an 8-bit pixel.
- */
-static void
-vips_sRGB2scRGB_pel_rgb_8( float * restrict q,
-	VipsPel * restrict p )
-{
-	const int r = p[0];
-	const int g = p[1];
-	const int b = p[2];
-
-	float R, G, B;
-	vips_col_sRGB2scRGB_8( r, g, b, &R, &G, &B );
-
-	q[0] = R;
-	q[1] = G;
-	q[2] = B;
-}
-
 /* Convert a buffer of 8-bit pixels.
  */
 static void
@@ -103,22 +85,31 @@ vips_sRGB2scRGB_line_8( float * restrict q, VipsPel * restrict p,
 
 	if( extra_bands == 0 ) {
 		for( i = 0; i < width; i++ ) {
-			vips_sRGB2scRGB_pel_rgb_8(q, p);
+			q[0] = vips_v2Y_8[p[0]];
+			q[1] = vips_v2Y_8[p[1]];
+			q[2] = vips_v2Y_8[p[2]];
+
 			p += 3;
 			q += 3;
 		}
 	}
 	else if( extra_bands == 1 ) {
 		for( i = 0; i < width; i++ ) {
-			vips_sRGB2scRGB_pel_rgb_8(q, p);
+			q[0] = vips_v2Y_8[p[0]];
+			q[1] = vips_v2Y_8[p[1]];
+			q[2] = vips_v2Y_8[p[2]];
 			q[3] = p[3];
+
 			p += 4;
 			q += 4;
 		}
 	}
 	else {
 		for( i = 0; i < width; i++ ) {
-			vips_sRGB2scRGB_pel_rgb_8(q, p);
+			q[0] = vips_v2Y_8[p[0]];
+			q[1] = vips_v2Y_8[p[1]];
+			q[2] = vips_v2Y_8[p[2]];
+
 			p += 3;
 			q += 3;
 
@@ -128,24 +119,6 @@ vips_sRGB2scRGB_line_8( float * restrict q, VipsPel * restrict p,
 			q += extra_bands;
 		}
 	}
-}
-
-/* Convert a 16-bit pixel.
- */
-static void
-vips_sRGB2scRGB_pel_rgb_16( float * restrict q,
-	unsigned short * restrict p )
-{
-	const int r = p[0];
-	const int g = p[1];
-	const int b = p[2];
-
-	float R, G, B;
-	vips_col_sRGB2scRGB_16( r, g, b, &R, &G, &B );
-
-	q[0] = R;
-	q[1] = G;
-	q[2] = B;
 }
 
 /* Convert a buffer of 16-bit pixels.
@@ -158,22 +131,31 @@ vips_sRGB2scRGB_line_16( float * restrict q, unsigned short * restrict p,
 
 	if( extra_bands == 0 ) {
 		for( i = 0; i < width; i++ ) {
-			vips_sRGB2scRGB_pel_rgb_16(q, p);
+			q[0] = vips_v2Y_16[p[0]];
+			q[1] = vips_v2Y_16[p[1]];
+			q[2] = vips_v2Y_16[p[2]];
+
 			p += 3;
 			q += 3;
 		}
 	}
 	else if( extra_bands == 1 ) {
 		for( i = 0; i < width; i++ ) {
-			vips_sRGB2scRGB_pel_rgb_16(q, p);
+			q[0] = vips_v2Y_16[p[0]];
+			q[1] = vips_v2Y_16[p[1]];
+			q[2] = vips_v2Y_16[p[2]];
 			q[3] = p[3] / 256.0;
+
 			p += 4;
 			q += 4;
 		}
 	}
 	else {
 		for( i = 0; i < width; i++ ) {
-			vips_sRGB2scRGB_pel_rgb_16(q, p);
+			q[0] = vips_v2Y_16[p[0]];
+			q[1] = vips_v2Y_16[p[1]];
+			q[2] = vips_v2Y_16[p[2]];
+
 			p += 3;
 			q += 3;
 
@@ -201,16 +183,19 @@ vips_sRGB2scRGB_gen( VipsRegion *or,
 	VIPS_GATE_START( "vips_sRGB2scRGB_gen: work" ); 
 
 	if( in->BandFmt == VIPS_FORMAT_UCHAR ) {
+		vips_col_make_tables_RGB_8();
+
 		for( y = 0; y < r->height; y++ ) {
 			VipsPel *p = VIPS_REGION_ADDR( ir, r->left, r->top + y );
 			float *q = (float *)
 				VIPS_REGION_ADDR( or, r->left, r->top + y );
 
-			vips_sRGB2scRGB_line_8( q, p, 
-				in->Bands - 3, r->width );
+			vips_sRGB2scRGB_line_8( q, p, in->Bands - 3, r->width );
 		}
 	}
 	else {
+		vips_col_make_tables_RGB_16();
+
 		for( y = 0; y < r->height; y++ ) {
 			VipsPel *p = VIPS_REGION_ADDR( ir, r->left, r->top + y );
 			float *q = (float *)

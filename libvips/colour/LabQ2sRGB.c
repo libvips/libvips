@@ -75,21 +75,21 @@ G_DEFINE_TYPE( VipsLabQ2sRGB, vips_LabQ2sRGB, VIPS_TYPE_COLOUR_CODE );
  *
  * There's an extra element at the end to let us do a +1 for interpolation.
  */
-static int vips_Y2v_8[256 + 1];
+int vips_Y2v_8[256 + 1];
 
 /* 8-bit sRGB -> linear lut.
  */
-static float vips_v2Y_8[256];
+float vips_v2Y_8[256];
 
 /* 16-bit linear -> sRGB lut. 
  *
  * There's an extra element at the end to let us do a +1 for interpolation.
  */
-static int vips_Y2v_16[65536 + 1];
+int vips_Y2v_16[65536 + 1];
 
 /* 16-bit sRGB -> linear lut.
  */
-static float vips_v2Y_16[65536];
+float vips_v2Y_16[65536];
 
 /* Do our own indexing of the arrays below to make sure we get efficient mults.
  */
@@ -166,7 +166,7 @@ calcul_tables_8( void *client )
 	return( NULL );
 }
 
-static void
+void
 vips_col_make_tables_RGB_8( void )
 {
 	static GOnce once = G_ONCE_INIT;
@@ -190,7 +190,7 @@ calcul_tables_16( void *client )
 	return( NULL );
 }
 
-static void
+void
 vips_col_make_tables_RGB_16( void )
 {
 	static GOnce once = G_ONCE_INIT;
