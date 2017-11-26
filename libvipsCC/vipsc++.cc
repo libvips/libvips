@@ -1,9 +1,9 @@
 
 // bodies for package arithmetic
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:26:29 GMT 2017
 // im_abs: absolute value
-VImage VImage::abs()
+VImage VImage::abs() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -19,7 +19,7 @@ VImage VImage::abs()
 }
 
 // im_acostra: acos of image (result in degrees)
-VImage VImage::acos()
+VImage VImage::acos() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -35,7 +35,7 @@ VImage VImage::acos()
 }
 
 // im_add: add two images
-VImage VImage::add( VImage in2 )
+VImage VImage::add( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -53,7 +53,7 @@ VImage VImage::add( VImage in2 )
 }
 
 // im_asintra: asin of image (result in degrees)
-VImage VImage::asin()
+VImage VImage::asin() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -69,7 +69,7 @@ VImage VImage::asin()
 }
 
 // im_atantra: atan of image (result in degrees)
-VImage VImage::atan()
+VImage VImage::atan() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -85,7 +85,7 @@ VImage VImage::atan()
 }
 
 // im_avg: average value of image
-double VImage::avg()
+double VImage::avg() throw( VError )
 {
 	VImage in = *this;
 	double value;
@@ -100,7 +100,7 @@ double VImage::avg()
 }
 
 // im_point: interpolate value at single point
-double VImage::point( char* interpolate, double x, double y, int band )
+double VImage::point( char* interpolate, double x, double y, int band ) throw( VError )
 {
 	VImage in = *this;
 	double out;
@@ -120,7 +120,7 @@ double VImage::point( char* interpolate, double x, double y, int band )
 }
 
 // im_point_bilinear: interpolate value at single point, linearly
-double VImage::point_bilinear( double x, double y, int band )
+double VImage::point_bilinear( double x, double y, int band ) throw( VError )
 {
 	VImage in = *this;
 	double val;
@@ -138,7 +138,7 @@ double VImage::point_bilinear( double x, double y, int band )
 }
 
 // im_bandmean: average image bands
-VImage VImage::bandmean()
+VImage VImage::bandmean() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -154,7 +154,7 @@ VImage VImage::bandmean()
 }
 
 // im_ceil: round to smallest integer value not less than
-VImage VImage::ceil()
+VImage VImage::ceil() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -170,7 +170,7 @@ VImage VImage::ceil()
 }
 
 // im_costra: cos of image (angles in degrees)
-VImage VImage::cos()
+VImage VImage::cos() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -186,7 +186,7 @@ VImage VImage::cos()
 }
 
 // im_cross_phase: phase of cross power spectrum of two complex images
-VImage VImage::cross_phase( VImage in2 )
+VImage VImage::cross_phase( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -204,7 +204,7 @@ VImage VImage::cross_phase( VImage in2 )
 }
 
 // im_deviate: standard deviation of image
-double VImage::deviate()
+double VImage::deviate() throw( VError )
 {
 	VImage in = *this;
 	double value;
@@ -219,7 +219,7 @@ double VImage::deviate()
 }
 
 // im_divide: divide two images
-VImage VImage::divide( VImage in2 )
+VImage VImage::divide( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -237,7 +237,7 @@ VImage VImage::divide( VImage in2 )
 }
 
 // im_exp10tra: 10^pel of image
-VImage VImage::exp10()
+VImage VImage::exp10() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -253,7 +253,7 @@ VImage VImage::exp10()
 }
 
 // im_expntra: x^pel of image
-VImage VImage::expn( double x )
+VImage VImage::expn( double x ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -270,7 +270,7 @@ VImage VImage::expn( double x )
 }
 
 // im_expntra_vec: [x,y,z]^pel of image
-VImage VImage::expn( std::vector<double> v )
+VImage VImage::expn( std::vector<double> v ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -290,7 +290,7 @@ VImage VImage::expn( std::vector<double> v )
 }
 
 // im_exptra: e^pel of image
-VImage VImage::exp()
+VImage VImage::exp() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -306,7 +306,7 @@ VImage VImage::exp()
 }
 
 // im_floor: round to largest integer value not greater than
-VImage VImage::floor()
+VImage VImage::floor() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -322,7 +322,7 @@ VImage VImage::floor()
 }
 
 // im_invert: photographic negative
-VImage VImage::invert()
+VImage VImage::invert() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -338,7 +338,7 @@ VImage VImage::invert()
 }
 
 // im_lintra: calculate a*in + b = outfile
-VImage VImage::lin( double a, double b )
+VImage VImage::lin( double a, double b ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -356,7 +356,7 @@ VImage VImage::lin( double a, double b )
 }
 
 // im_linreg: pixelwise linear regression
-VImage VImage::linreg( std::vector<VImage> ins, std::vector<double> xs )
+VImage VImage::linreg( std::vector<VImage> ins, std::vector<double> xs ) throw( VError )
 {
 	VImage out;
 
@@ -379,7 +379,7 @@ VImage VImage::linreg( std::vector<VImage> ins, std::vector<double> xs )
 }
 
 // im_lintra_vec: calculate a*in + b -> out, a and b vectors
-VImage VImage::lin( std::vector<double> a, std::vector<double> b )
+VImage VImage::lin( std::vector<double> a, std::vector<double> b ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -403,7 +403,7 @@ VImage VImage::lin( std::vector<double> a, std::vector<double> b )
 }
 
 // im_log10tra: log10 of image
-VImage VImage::log10()
+VImage VImage::log10() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -419,7 +419,7 @@ VImage VImage::log10()
 }
 
 // im_logtra: ln of image
-VImage VImage::log()
+VImage VImage::log() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -435,7 +435,7 @@ VImage VImage::log()
 }
 
 // im_max: maximum value of image
-double VImage::max()
+double VImage::max() throw( VError )
 {
 	VImage in = *this;
 	double value;
@@ -450,7 +450,7 @@ double VImage::max()
 }
 
 // im_maxpos: position of maximum value of image
-std::complex<double> VImage::maxpos()
+std::complex<double> VImage::maxpos() throw( VError )
 {
 	VImage in = *this;
 	std::complex<double> position;
@@ -465,7 +465,7 @@ std::complex<double> VImage::maxpos()
 }
 
 // im_maxpos_avg: position of maximum value of image, averaging in case of draw
-double VImage::maxpos_avg( double& y, double& out )
+double VImage::maxpos_avg( double& y, double& out ) throw( VError )
 {
 	VImage in = *this;
 	double x;
@@ -482,7 +482,7 @@ double VImage::maxpos_avg( double& y, double& out )
 }
 
 // im_measure: measure averages of a grid of patches
-VDMask VImage::measure( int x, int y, int w, int h, int h_patches, int v_patches )
+VDMask VImage::measure( int x, int y, int w, int h, int h_patches, int v_patches ) throw( VError )
 {
 	VImage in = *this;
 	VDMask mask;
@@ -504,7 +504,7 @@ VDMask VImage::measure( int x, int y, int w, int h, int h_patches, int v_patches
 }
 
 // im_min: minimum value of image
-double VImage::min()
+double VImage::min() throw( VError )
 {
 	VImage in = *this;
 	double value;
@@ -519,7 +519,7 @@ double VImage::min()
 }
 
 // im_minpos: position of minimum value of image
-std::complex<double> VImage::minpos()
+std::complex<double> VImage::minpos() throw( VError )
 {
 	VImage in = *this;
 	std::complex<double> position;
@@ -534,7 +534,7 @@ std::complex<double> VImage::minpos()
 }
 
 // im_multiply: multiply two images
-VImage VImage::multiply( VImage in2 )
+VImage VImage::multiply( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -552,7 +552,7 @@ VImage VImage::multiply( VImage in2 )
 }
 
 // im_powtra: pel^x of image
-VImage VImage::pow( double x )
+VImage VImage::pow( double x ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -569,7 +569,7 @@ VImage VImage::pow( double x )
 }
 
 // im_powtra_vec: pel^[x,y,z] of image
-VImage VImage::pow( std::vector<double> v )
+VImage VImage::pow( std::vector<double> v ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -589,7 +589,7 @@ VImage VImage::pow( std::vector<double> v )
 }
 
 // im_recomb: linear recombination with mask
-VImage VImage::recomb( VDMask matrix )
+VImage VImage::recomb( VDMask matrix ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -606,7 +606,7 @@ VImage VImage::recomb( VDMask matrix )
 }
 
 // im_remainder: remainder after integer division
-VImage VImage::remainder( VImage in2 )
+VImage VImage::remainder( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -624,7 +624,7 @@ VImage VImage::remainder( VImage in2 )
 }
 
 // im_remainderconst: remainder after integer division by a constant
-VImage VImage::remainder( double x )
+VImage VImage::remainder( double x ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -641,7 +641,7 @@ VImage VImage::remainder( double x )
 }
 
 // im_remainder_vec: remainder after integer division by a vector of constants
-VImage VImage::remainder( std::vector<double> x )
+VImage VImage::remainder( std::vector<double> x ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -661,7 +661,7 @@ VImage VImage::remainder( std::vector<double> x )
 }
 
 // im_rint: round to nearest integer value
-VImage VImage::rint()
+VImage VImage::rint() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -677,7 +677,7 @@ VImage VImage::rint()
 }
 
 // im_sign: unit vector in direction of value
-VImage VImage::sign()
+VImage VImage::sign() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -693,7 +693,7 @@ VImage VImage::sign()
 }
 
 // im_sintra: sin of image (angles in degrees)
-VImage VImage::sin()
+VImage VImage::sin() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -709,7 +709,7 @@ VImage VImage::sin()
 }
 
 // im_stats: many image statistics in one pass
-VDMask VImage::stats()
+VDMask VImage::stats() throw( VError )
 {
 	VImage in = *this;
 	VDMask statistics;
@@ -725,7 +725,7 @@ VDMask VImage::stats()
 }
 
 // im_subtract: subtract two images
-VImage VImage::subtract( VImage in2 )
+VImage VImage::subtract( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -743,7 +743,7 @@ VImage VImage::subtract( VImage in2 )
 }
 
 // im_tantra: tan of image (angles in degrees)
-VImage VImage::tan()
+VImage VImage::tan() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -761,9 +761,9 @@ VImage VImage::tan()
 
 // bodies for package cimg
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:26:29 GMT 2017
 // im_greyc: noise-removing filter
-VImage VImage::greyc( int iterations, double amplitude, double sharpness, double anisotropy, double alpha, double sigma, double dl, double da, double gauss_prec, int interpolation, int fast_approx )
+VImage VImage::greyc( int iterations, double amplitude, double sharpness, double anisotropy, double alpha, double sigma, double dl, double da, double gauss_prec, int interpolation, int fast_approx ) throw( VError )
 {
 	VImage src = *this;
 	VImage dst;
@@ -790,7 +790,7 @@ VImage VImage::greyc( int iterations, double amplitude, double sharpness, double
 }
 
 // im_greyc_mask: noise-removing filter, with a mask
-VImage VImage::greyc_mask( VImage mask, int iterations, double amplitude, double sharpness, double anisotropy, double alpha, double sigma, double dl, double da, double gauss_prec, int interpolation, int fast_approx )
+VImage VImage::greyc_mask( VImage mask, int iterations, double amplitude, double sharpness, double anisotropy, double alpha, double sigma, double dl, double da, double gauss_prec, int interpolation, int fast_approx ) throw( VError )
 {
 	VImage src = *this;
 	VImage dst;
@@ -821,9 +821,9 @@ VImage VImage::greyc_mask( VImage mask, int iterations, double amplitude, double
 
 // bodies for package colour
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:26:29 GMT 2017
 // im_LCh2Lab: convert LCh to Lab
-VImage VImage::LCh2Lab()
+VImage VImage::LCh2Lab() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -839,7 +839,7 @@ VImage VImage::LCh2Lab()
 }
 
 // im_LCh2UCS: convert LCh to UCS
-VImage VImage::LCh2UCS()
+VImage VImage::LCh2UCS() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -855,7 +855,7 @@ VImage VImage::LCh2UCS()
 }
 
 // im_Lab2LCh: convert Lab to LCh
-VImage VImage::Lab2LCh()
+VImage VImage::Lab2LCh() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -871,7 +871,7 @@ VImage VImage::Lab2LCh()
 }
 
 // im_Lab2LabQ: convert Lab to LabQ
-VImage VImage::Lab2LabQ()
+VImage VImage::Lab2LabQ() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -887,7 +887,7 @@ VImage VImage::Lab2LabQ()
 }
 
 // im_Lab2LabS: convert Lab to LabS
-VImage VImage::Lab2LabS()
+VImage VImage::Lab2LabS() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -903,7 +903,7 @@ VImage VImage::Lab2LabS()
 }
 
 // im_Lab2UCS: convert Lab to UCS
-VImage VImage::Lab2UCS()
+VImage VImage::Lab2UCS() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -919,7 +919,7 @@ VImage VImage::Lab2UCS()
 }
 
 // im_Lab2XYZ: convert D65 Lab to XYZ
-VImage VImage::Lab2XYZ()
+VImage VImage::Lab2XYZ() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -935,7 +935,7 @@ VImage VImage::Lab2XYZ()
 }
 
 // im_Lab2XYZ_temp: convert Lab to XYZ, with a specified colour temperature
-VImage VImage::Lab2XYZ_temp( double X0, double Y0, double Z0 )
+VImage VImage::Lab2XYZ_temp( double X0, double Y0, double Z0 ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -954,7 +954,7 @@ VImage VImage::Lab2XYZ_temp( double X0, double Y0, double Z0 )
 }
 
 // im_Lab2disp: convert Lab to displayable
-VImage VImage::Lab2disp( VDisplay disp )
+VImage VImage::Lab2disp( VDisplay disp ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -971,7 +971,7 @@ VImage VImage::Lab2disp( VDisplay disp )
 }
 
 // im_LabQ2LabS: convert LabQ to LabS
-VImage VImage::LabQ2LabS()
+VImage VImage::LabQ2LabS() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -987,7 +987,7 @@ VImage VImage::LabQ2LabS()
 }
 
 // im_LabQ2Lab: convert LabQ to Lab
-VImage VImage::LabQ2Lab()
+VImage VImage::LabQ2Lab() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1003,7 +1003,7 @@ VImage VImage::LabQ2Lab()
 }
 
 // im_LabQ2XYZ: convert LabQ to XYZ
-VImage VImage::LabQ2XYZ()
+VImage VImage::LabQ2XYZ() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1019,7 +1019,7 @@ VImage VImage::LabQ2XYZ()
 }
 
 // im_LabQ2disp: convert LabQ to displayable
-VImage VImage::LabQ2disp( VDisplay disp )
+VImage VImage::LabQ2disp( VDisplay disp ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1036,7 +1036,7 @@ VImage VImage::LabQ2disp( VDisplay disp )
 }
 
 // im_LabS2LabQ: convert LabS to LabQ
-VImage VImage::LabS2LabQ()
+VImage VImage::LabS2LabQ() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1052,7 +1052,7 @@ VImage VImage::LabS2LabQ()
 }
 
 // im_LabS2Lab: convert LabS to Lab
-VImage VImage::LabS2Lab()
+VImage VImage::LabS2Lab() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1068,7 +1068,7 @@ VImage VImage::LabS2Lab()
 }
 
 // im_UCS2LCh: convert UCS to LCh
-VImage VImage::UCS2LCh()
+VImage VImage::UCS2LCh() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1084,7 +1084,7 @@ VImage VImage::UCS2LCh()
 }
 
 // im_UCS2Lab: convert UCS to Lab
-VImage VImage::UCS2Lab()
+VImage VImage::UCS2Lab() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1100,7 +1100,7 @@ VImage VImage::UCS2Lab()
 }
 
 // im_UCS2XYZ: convert UCS to XYZ
-VImage VImage::UCS2XYZ()
+VImage VImage::UCS2XYZ() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1116,7 +1116,7 @@ VImage VImage::UCS2XYZ()
 }
 
 // im_XYZ2Lab: convert D65 XYZ to Lab
-VImage VImage::XYZ2Lab()
+VImage VImage::XYZ2Lab() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1132,7 +1132,7 @@ VImage VImage::XYZ2Lab()
 }
 
 // im_XYZ2Lab_temp: convert XYZ to Lab, with a specified colour temperature
-VImage VImage::XYZ2Lab_temp( double X0, double Y0, double Z0 )
+VImage VImage::XYZ2Lab_temp( double X0, double Y0, double Z0 ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1151,7 +1151,7 @@ VImage VImage::XYZ2Lab_temp( double X0, double Y0, double Z0 )
 }
 
 // im_XYZ2UCS: convert XYZ to UCS
-VImage VImage::XYZ2UCS()
+VImage VImage::XYZ2UCS() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1167,7 +1167,7 @@ VImage VImage::XYZ2UCS()
 }
 
 // im_XYZ2Yxy: convert XYZ to Yxy
-VImage VImage::XYZ2Yxy()
+VImage VImage::XYZ2Yxy() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1183,7 +1183,7 @@ VImage VImage::XYZ2Yxy()
 }
 
 // im_XYZ2disp: convert XYZ to displayble
-VImage VImage::XYZ2disp( VDisplay disp )
+VImage VImage::XYZ2disp( VDisplay disp ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1200,7 +1200,7 @@ VImage VImage::XYZ2disp( VDisplay disp )
 }
 
 // im_XYZ2sRGB: convert XYZ to sRGB
-VImage VImage::XYZ2sRGB()
+VImage VImage::XYZ2sRGB() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1216,7 +1216,7 @@ VImage VImage::XYZ2sRGB()
 }
 
 // im_Yxy2XYZ: convert Yxy to XYZ
-VImage VImage::Yxy2XYZ()
+VImage VImage::Yxy2XYZ() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1232,7 +1232,7 @@ VImage VImage::Yxy2XYZ()
 }
 
 // im_dE00_fromLab: calculate delta-E CIE2000 for two Lab images
-VImage VImage::dE00_fromLab( VImage in2 )
+VImage VImage::dE00_fromLab( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -1250,7 +1250,7 @@ VImage VImage::dE00_fromLab( VImage in2 )
 }
 
 // im_dECMC_fromLab: calculate delta-E CMC(1:1) for two Lab images
-VImage VImage::dECMC_fromLab( VImage in2 )
+VImage VImage::dECMC_fromLab( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -1268,7 +1268,7 @@ VImage VImage::dECMC_fromLab( VImage in2 )
 }
 
 // im_dECMC_fromdisp: calculate delta-E CMC(1:1) for two displayable images
-VImage VImage::dECMC_fromdisp( VImage in2, VDisplay disp )
+VImage VImage::dECMC_fromdisp( VImage in2, VDisplay disp ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -1287,7 +1287,7 @@ VImage VImage::dECMC_fromdisp( VImage in2, VDisplay disp )
 }
 
 // im_dE_fromLab: calculate delta-E for two Lab images
-VImage VImage::dE_fromLab( VImage in2 )
+VImage VImage::dE_fromLab( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -1305,7 +1305,7 @@ VImage VImage::dE_fromLab( VImage in2 )
 }
 
 // im_dE_fromXYZ: calculate delta-E for two XYZ images
-VImage VImage::dE_fromXYZ( VImage in2 )
+VImage VImage::dE_fromXYZ( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -1323,7 +1323,7 @@ VImage VImage::dE_fromXYZ( VImage in2 )
 }
 
 // im_dE_fromdisp: calculate delta-E for two displayable images
-VImage VImage::dE_fromdisp( VImage in2, VDisplay disp )
+VImage VImage::dE_fromdisp( VImage in2, VDisplay disp ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -1342,7 +1342,7 @@ VImage VImage::dE_fromdisp( VImage in2, VDisplay disp )
 }
 
 // im_disp2Lab: convert displayable to Lab
-VImage VImage::disp2Lab( VDisplay disp )
+VImage VImage::disp2Lab( VDisplay disp ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1359,7 +1359,7 @@ VImage VImage::disp2Lab( VDisplay disp )
 }
 
 // im_disp2XYZ: convert displayable to XYZ
-VImage VImage::disp2XYZ( VDisplay disp )
+VImage VImage::disp2XYZ( VDisplay disp ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1376,7 +1376,7 @@ VImage VImage::disp2XYZ( VDisplay disp )
 }
 
 // im_float2rad: convert float to Radiance packed
-VImage VImage::float2rad()
+VImage VImage::float2rad() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1392,7 +1392,7 @@ VImage VImage::float2rad()
 }
 
 // im_icc_ac2rc: convert LAB from AC to RC using an ICC profile
-VImage VImage::icc_ac2rc( char* profile )
+VImage VImage::icc_ac2rc( char* profile ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1409,7 +1409,7 @@ VImage VImage::icc_ac2rc( char* profile )
 }
 
 // im_icc_export_depth: convert a float LAB to device space with an ICC profile
-VImage VImage::icc_export_depth( int depth, char* output_profile, int intent )
+VImage VImage::icc_export_depth( int depth, char* output_profile, int intent ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1428,7 +1428,7 @@ VImage VImage::icc_export_depth( int depth, char* output_profile, int intent )
 }
 
 // im_icc_import: convert a device image to float LAB with an ICC profile
-VImage VImage::icc_import( char* input_profile, int intent )
+VImage VImage::icc_import( char* input_profile, int intent ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1446,7 +1446,7 @@ VImage VImage::icc_import( char* input_profile, int intent )
 }
 
 // im_icc_import_embedded: convert a device image to float LAB using the embedded profile
-VImage VImage::icc_import_embedded( int intent )
+VImage VImage::icc_import_embedded( int intent ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1463,7 +1463,7 @@ VImage VImage::icc_import_embedded( int intent )
 }
 
 // im_icc_transform: convert between two device images with a pair of ICC profiles
-VImage VImage::icc_transform( char* input_profile, char* output_profile, int intent )
+VImage VImage::icc_transform( char* input_profile, char* output_profile, int intent ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1482,7 +1482,7 @@ VImage VImage::icc_transform( char* input_profile, char* output_profile, int int
 }
 
 // im_lab_morph: morph colourspace of a LAB image
-VImage VImage::lab_morph( VDMask greyscale, double L_offset, double L_scale, double a_scale, double b_scale )
+VImage VImage::lab_morph( VDMask greyscale, double L_offset, double L_scale, double a_scale, double b_scale ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1503,7 +1503,7 @@ VImage VImage::lab_morph( VDMask greyscale, double L_offset, double L_scale, dou
 }
 
 // im_rad2float: convert Radiance packed to float
-VImage VImage::rad2float()
+VImage VImage::rad2float() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1519,7 +1519,7 @@ VImage VImage::rad2float()
 }
 
 // im_sRGB2XYZ: convert sRGB to XYZ
-VImage VImage::sRGB2XYZ()
+VImage VImage::sRGB2XYZ() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1537,9 +1537,9 @@ VImage VImage::sRGB2XYZ()
 
 // bodies for package conversion
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:26:29 GMT 2017
 // im_gaussnoise: generate image of gaussian noise with specified statistics
-VImage VImage::gaussnoise( int xsize, int ysize, double mean, double sigma )
+VImage VImage::gaussnoise( int xsize, int ysize, double mean, double sigma ) throw( VError )
 {
 	VImage out;
 
@@ -1556,7 +1556,7 @@ VImage VImage::gaussnoise( int xsize, int ysize, double mean, double sigma )
 }
 
 // im_bandjoin: bandwise join of two images
-VImage VImage::bandjoin( VImage in2 )
+VImage VImage::bandjoin( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -1574,7 +1574,7 @@ VImage VImage::bandjoin( VImage in2 )
 }
 
 // im_black: generate black image
-VImage VImage::black( int x_size, int y_size, int bands )
+VImage VImage::black( int x_size, int y_size, int bands ) throw( VError )
 {
 	VImage output;
 
@@ -1590,7 +1590,7 @@ VImage VImage::black( int x_size, int y_size, int bands )
 }
 
 // im_c2amph: convert real and imaginary to phase and amplitude
-VImage VImage::c2amph()
+VImage VImage::c2amph() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1606,7 +1606,7 @@ VImage VImage::c2amph()
 }
 
 // im_c2imag: extract imaginary part of complex image
-VImage VImage::c2imag()
+VImage VImage::c2imag() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1622,7 +1622,7 @@ VImage VImage::c2imag()
 }
 
 // im_c2real: extract real part of complex image
-VImage VImage::c2real()
+VImage VImage::c2real() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1638,7 +1638,7 @@ VImage VImage::c2real()
 }
 
 // im_c2rect: convert phase and amplitude to real and imaginary
-VImage VImage::c2rect()
+VImage VImage::c2rect() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1654,7 +1654,7 @@ VImage VImage::c2rect()
 }
 
 // im_clip2fmt: convert image format to ofmt
-VImage VImage::clip2fmt( int ofmt )
+VImage VImage::clip2fmt( int ofmt ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1671,7 +1671,7 @@ VImage VImage::clip2fmt( int ofmt )
 }
 
 // im_copy: copy image
-VImage VImage::copy()
+VImage VImage::copy() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1687,7 +1687,7 @@ VImage VImage::copy()
 }
 
 // im_copy_file: copy image to a file and return that
-VImage VImage::copy_file()
+VImage VImage::copy_file() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1703,7 +1703,7 @@ VImage VImage::copy_file()
 }
 
 // im_copy_morph: copy image, setting pixel layout
-VImage VImage::copy_morph( int Bands, int BandFmt, int Coding )
+VImage VImage::copy_morph( int Bands, int BandFmt, int Coding ) throw( VError )
 {
 	VImage input = *this;
 	VImage output;
@@ -1722,7 +1722,7 @@ VImage VImage::copy_morph( int Bands, int BandFmt, int Coding )
 }
 
 // im_copy_swap: copy image, swapping byte order
-VImage VImage::copy_swap()
+VImage VImage::copy_swap() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1738,7 +1738,7 @@ VImage VImage::copy_swap()
 }
 
 // im_copy_set: copy image, setting informational fields
-VImage VImage::copy_set( int Type, double Xres, double Yres, int Xoffset, int Yoffset )
+VImage VImage::copy_set( int Type, double Xres, double Yres, int Xoffset, int Yoffset ) throw( VError )
 {
 	VImage input = *this;
 	VImage output;
@@ -1759,7 +1759,7 @@ VImage VImage::copy_set( int Type, double Xres, double Yres, int Xoffset, int Yo
 }
 
 // im_extract_area: extract area
-VImage VImage::extract_area( int left, int top, int width, int height )
+VImage VImage::extract_area( int left, int top, int width, int height ) throw( VError )
 {
 	VImage input = *this;
 	VImage output;
@@ -1779,7 +1779,7 @@ VImage VImage::extract_area( int left, int top, int width, int height )
 }
 
 // im_extract_areabands: extract area and bands
-VImage VImage::extract_areabands( int left, int top, int width, int height, int band, int nbands )
+VImage VImage::extract_areabands( int left, int top, int width, int height, int band, int nbands ) throw( VError )
 {
 	VImage input = *this;
 	VImage output;
@@ -1801,7 +1801,7 @@ VImage VImage::extract_areabands( int left, int top, int width, int height, int 
 }
 
 // im_extract_band: extract band
-VImage VImage::extract_band( int band )
+VImage VImage::extract_band( int band ) throw( VError )
 {
 	VImage input = *this;
 	VImage output;
@@ -1818,7 +1818,7 @@ VImage VImage::extract_band( int band )
 }
 
 // im_extract_bands: extract several bands
-VImage VImage::extract_bands( int band, int nbands )
+VImage VImage::extract_bands( int band, int nbands ) throw( VError )
 {
 	VImage input = *this;
 	VImage output;
@@ -1836,7 +1836,7 @@ VImage VImage::extract_bands( int band, int nbands )
 }
 
 // im_extract: extract area/band
-VImage VImage::extract( int left, int top, int width, int height, int band )
+VImage VImage::extract( int left, int top, int width, int height, int band ) throw( VError )
 {
 	VImage input = *this;
 	VImage output;
@@ -1857,7 +1857,7 @@ VImage VImage::extract( int left, int top, int width, int height, int band )
 }
 
 // im_falsecolour: turn luminance changes into chrominance changes
-VImage VImage::falsecolour()
+VImage VImage::falsecolour() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1873,7 +1873,7 @@ VImage VImage::falsecolour()
 }
 
 // im_fliphor: flip image left-right
-VImage VImage::fliphor()
+VImage VImage::fliphor() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1889,7 +1889,7 @@ VImage VImage::fliphor()
 }
 
 // im_flipver: flip image top-bottom
-VImage VImage::flipver()
+VImage VImage::flipver() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1905,7 +1905,7 @@ VImage VImage::flipver()
 }
 
 // im_gbandjoin: bandwise join of many images
-VImage VImage::gbandjoin( std::vector<VImage> in )
+VImage VImage::gbandjoin( std::vector<VImage> in ) throw( VError )
 {
 	VImage out;
 
@@ -1924,7 +1924,7 @@ VImage VImage::gbandjoin( std::vector<VImage> in )
 }
 
 // im_grid: chop a tall thin image into a grid of images
-VImage VImage::grid( int tile_height, int across, int down )
+VImage VImage::grid( int tile_height, int across, int down ) throw( VError )
 {
 	VImage input = *this;
 	VImage output;
@@ -1943,7 +1943,7 @@ VImage VImage::grid( int tile_height, int across, int down )
 }
 
 // im_insert: insert sub-image into main image at position
-VImage VImage::insert( VImage sub, int x, int y )
+VImage VImage::insert( VImage sub, int x, int y ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -1963,7 +1963,7 @@ VImage VImage::insert( VImage sub, int x, int y )
 }
 
 // im_insertset: insert sub into main at every position in x, y
-VImage VImage::insert( VImage sub, std::vector<int> x, std::vector<int> y )
+VImage VImage::insert( VImage sub, std::vector<int> x, std::vector<int> y ) throw( VError )
 {
 	VImage main = *this;
 	VImage out;
@@ -1987,7 +1987,7 @@ VImage VImage::insert( VImage sub, std::vector<int> x, std::vector<int> y )
 }
 
 // im_insert_noexpand: insert sub-image into main image at position, no expansion
-VImage VImage::insert_noexpand( VImage sub, int x, int y )
+VImage VImage::insert_noexpand( VImage sub, int x, int y ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2007,7 +2007,7 @@ VImage VImage::insert_noexpand( VImage sub, int x, int y )
 }
 
 // im_embed: embed in within a set of borders
-VImage VImage::embed( int type, int x, int y, int width, int height )
+VImage VImage::embed( int type, int x, int y, int width, int height ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2028,7 +2028,7 @@ VImage VImage::embed( int type, int x, int y, int width, int height )
 }
 
 // im_lrjoin: join two images left-right
-VImage VImage::lrjoin( VImage in2 )
+VImage VImage::lrjoin( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -2046,7 +2046,7 @@ VImage VImage::lrjoin( VImage in2 )
 }
 
 // im_msb: convert to uchar by discarding bits
-VImage VImage::msb()
+VImage VImage::msb() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2062,7 +2062,7 @@ VImage VImage::msb()
 }
 
 // im_msb_band: convert to single band uchar by discarding bits
-VImage VImage::msb_band( int band )
+VImage VImage::msb_band( int band ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2079,7 +2079,7 @@ VImage VImage::msb_band( int band )
 }
 
 // im_replicate: replicate an image horizontally and vertically
-VImage VImage::replicate( int across, int down )
+VImage VImage::replicate( int across, int down ) throw( VError )
 {
 	VImage input = *this;
 	VImage output;
@@ -2097,7 +2097,7 @@ VImage VImage::replicate( int across, int down )
 }
 
 // im_ri2c: join two non-complex images to form complex
-VImage VImage::ri2c( VImage in2 )
+VImage VImage::ri2c( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -2115,7 +2115,7 @@ VImage VImage::ri2c( VImage in2 )
 }
 
 // im_rot180: rotate image 180 degrees
-VImage VImage::rot180()
+VImage VImage::rot180() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2131,7 +2131,7 @@ VImage VImage::rot180()
 }
 
 // im_rot270: rotate image 270 degrees clockwise
-VImage VImage::rot270()
+VImage VImage::rot270() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2147,7 +2147,7 @@ VImage VImage::rot270()
 }
 
 // im_rot90: rotate image 90 degrees clockwise
-VImage VImage::rot90()
+VImage VImage::rot90() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2163,7 +2163,7 @@ VImage VImage::rot90()
 }
 
 // im_scale: scale image linearly to fit range 0-255
-VImage VImage::scale()
+VImage VImage::scale() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2179,7 +2179,7 @@ VImage VImage::scale()
 }
 
 // im_scaleps: logarithmic scale of image to fit range 0-255
-VImage VImage::scaleps()
+VImage VImage::scaleps() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2194,7 +2194,7 @@ VImage VImage::scaleps()
 }
 
 // im_subsample: subsample image by integer factors
-VImage VImage::subsample( int xshrink, int yshrink )
+VImage VImage::subsample( int xshrink, int yshrink ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2212,7 +2212,7 @@ VImage VImage::subsample( int xshrink, int yshrink )
 }
 
 // im_system: run command on image
-char* VImage::system( char* command )
+char* VImage::system( char* command ) throw( VError )
 {
 	VImage im = *this;
 	char* output;
@@ -2228,7 +2228,7 @@ char* VImage::system( char* command )
 }
 
 // im_system_image: run command on image, with image output
-VImage VImage::system_image( char* in_format, char* out_format, char* command, char*& log )
+VImage VImage::system_image( char* in_format, char* out_format, char* command, char*& log ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2247,7 +2247,7 @@ VImage VImage::system_image( char* in_format, char* out_format, char* command, c
 }
 
 // im_tbjoin: join two images top-bottom
-VImage VImage::tbjoin( VImage in2 )
+VImage VImage::tbjoin( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -2265,7 +2265,7 @@ VImage VImage::tbjoin( VImage in2 )
 }
 
 // im_text: generate text image
-VImage VImage::text( char* text, char* font, int width, int alignment, int dpi )
+VImage VImage::text( char* text, char* font, int width, int alignment, int dpi ) throw( VError )
 {
 	VImage out;
 
@@ -2283,7 +2283,7 @@ VImage VImage::text( char* text, char* font, int width, int alignment, int dpi )
 }
 
 // im_wrap: shift image origin, wrapping at sides
-VImage VImage::wrap( int x, int y )
+VImage VImage::wrap( int x, int y ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2301,7 +2301,7 @@ VImage VImage::wrap( int x, int y )
 }
 
 // im_zoom: simple zoom of an image by integer factors
-VImage VImage::zoom( int xfac, int yfac )
+VImage VImage::zoom( int xfac, int yfac ) throw( VError )
 {
 	VImage input = *this;
 	VImage output;
@@ -2321,9 +2321,9 @@ VImage VImage::zoom( int xfac, int yfac )
 
 // bodies for package convolution
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:26:29 GMT 2017
 // im_aconvsep: approximate separable convolution
-VImage VImage::aconvsep( VDMask matrix, int n_layers )
+VImage VImage::aconvsep( VDMask matrix, int n_layers ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2341,7 +2341,7 @@ VImage VImage::aconvsep( VDMask matrix, int n_layers )
 }
 
 // im_aconv: approximate convolution
-VImage VImage::aconv( VDMask matrix, int n_layers, int cluster )
+VImage VImage::aconv( VDMask matrix, int n_layers, int cluster ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2360,7 +2360,7 @@ VImage VImage::aconv( VDMask matrix, int n_layers, int cluster )
 }
 
 // im_addgnoise: add gaussian noise with mean 0 and std. dev. sigma
-VImage VImage::addgnoise( double sigma )
+VImage VImage::addgnoise( double sigma ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2377,7 +2377,7 @@ VImage VImage::addgnoise( double sigma )
 }
 
 // im_compass: convolve with 8-way rotating integer mask
-VImage VImage::compass( VIMask matrix )
+VImage VImage::compass( VIMask matrix ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2394,7 +2394,7 @@ VImage VImage::compass( VIMask matrix )
 }
 
 // im_contrast_surface: find high-contrast points in an image
-VImage VImage::contrast_surface( int half_win_size, int spacing )
+VImage VImage::contrast_surface( int half_win_size, int spacing ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2412,7 +2412,7 @@ VImage VImage::contrast_surface( int half_win_size, int spacing )
 }
 
 // im_conv: convolve
-VImage VImage::conv( VIMask matrix )
+VImage VImage::conv( VIMask matrix ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2429,7 +2429,7 @@ VImage VImage::conv( VIMask matrix )
 }
 
 // im_conv_f: convolve, with DOUBLEMASK
-VImage VImage::conv( VDMask matrix )
+VImage VImage::conv( VDMask matrix ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2446,7 +2446,7 @@ VImage VImage::conv( VDMask matrix )
 }
 
 // im_convsep: seperable convolution
-VImage VImage::convsep( VIMask matrix )
+VImage VImage::convsep( VIMask matrix ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2463,7 +2463,7 @@ VImage VImage::convsep( VIMask matrix )
 }
 
 // im_convsep_f: seperable convolution, with DOUBLEMASK
-VImage VImage::convsep( VDMask matrix )
+VImage VImage::convsep( VDMask matrix ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2480,7 +2480,7 @@ VImage VImage::convsep( VDMask matrix )
 }
 
 // im_fastcor: fast correlate in2 within in1
-VImage VImage::fastcor( VImage in2 )
+VImage VImage::fastcor( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -2498,7 +2498,7 @@ VImage VImage::fastcor( VImage in2 )
 }
 
 // im_gradcor: non-normalised correlation of gradient of in2 within in1
-VImage VImage::gradcor( VImage in2 )
+VImage VImage::gradcor( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -2516,7 +2516,7 @@ VImage VImage::gradcor( VImage in2 )
 }
 
 // im_gradient: convolve with 2-way rotating mask
-VImage VImage::gradient( VIMask matrix )
+VImage VImage::gradient( VIMask matrix ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2533,7 +2533,7 @@ VImage VImage::gradient( VIMask matrix )
 }
 
 // im_grad_x: horizontal difference image
-VImage VImage::grad_x()
+VImage VImage::grad_x() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2549,7 +2549,7 @@ VImage VImage::grad_x()
 }
 
 // im_grad_y: vertical difference image
-VImage VImage::grad_y()
+VImage VImage::grad_y() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2565,7 +2565,7 @@ VImage VImage::grad_y()
 }
 
 // im_lindetect: convolve with 4-way rotating mask
-VImage VImage::lindetect( VIMask matrix )
+VImage VImage::lindetect( VIMask matrix ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2582,7 +2582,7 @@ VImage VImage::lindetect( VIMask matrix )
 }
 
 // im_sharpen: sharpen high frequencies of L channel of LabQ
-VImage VImage::sharpen( int mask_size, double x1, double y2, double y3, double m1, double m2 )
+VImage VImage::sharpen( int mask_size, double x1, double y2, double y3, double m1, double m2 ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2604,7 +2604,7 @@ VImage VImage::sharpen( int mask_size, double x1, double y2, double y3, double m
 }
 
 // im_spcor: normalised correlation of in2 within in1
-VImage VImage::spcor( VImage in2 )
+VImage VImage::spcor( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -2624,9 +2624,9 @@ VImage VImage::spcor( VImage in2 )
 
 // bodies for package deprecated
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:26:29 GMT 2017
 // im_argb2rgba: convert pre-multipled argb to png-style rgba
-VImage VImage::argb2rgba()
+VImage VImage::argb2rgba() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2642,7 +2642,7 @@ VImage VImage::argb2rgba()
 }
 
 // im_flood_copy: flood with ink from start_x, start_y while pixel == start pixel
-VImage VImage::flood_copy( int start_x, int start_y, std::vector<double> ink )
+VImage VImage::flood_copy( int start_x, int start_y, std::vector<double> ink ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2663,7 +2663,7 @@ VImage VImage::flood_copy( int start_x, int start_y, std::vector<double> ink )
 }
 
 // im_flood_blob_copy: flood with ink from start_x, start_y while pixel == start pixel
-VImage VImage::flood_blob_copy( int start_x, int start_y, std::vector<double> ink )
+VImage VImage::flood_blob_copy( int start_x, int start_y, std::vector<double> ink ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2684,7 +2684,7 @@ VImage VImage::flood_blob_copy( int start_x, int start_y, std::vector<double> in
 }
 
 // im_flood_other_copy: flood mark with serial from start_x, start_y while pixel == start pixel
-VImage VImage::flood_other_copy( VImage mark, int start_x, int start_y, int serial )
+VImage VImage::flood_other_copy( VImage mark, int start_x, int start_y, int serial ) throw( VError )
 {
 	VImage test = *this;
 	VImage out;
@@ -2703,7 +2703,7 @@ VImage VImage::flood_other_copy( VImage mark, int start_x, int start_y, int seri
 }
 
 // im_clip: convert to unsigned 8-bit integer
-VImage VImage::clip()
+VImage VImage::clip() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2719,7 +2719,7 @@ VImage VImage::clip()
 }
 
 // im_c2ps: find power spectrum of complex image
-VImage VImage::c2ps()
+VImage VImage::c2ps() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2735,7 +2735,7 @@ VImage VImage::c2ps()
 }
 
 // im_resize_linear: resize to X by Y pixels with linear interpolation
-VImage VImage::resize_linear( int X, int Y )
+VImage VImage::resize_linear( int X, int Y ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2752,7 +2752,7 @@ VImage VImage::resize_linear( int X, int Y )
 }
 
 // im_cmulnorm: multiply two complex images, normalising output
-VImage VImage::cmulnorm( VImage in2 )
+VImage VImage::cmulnorm( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -2770,7 +2770,7 @@ VImage VImage::cmulnorm( VImage in2 )
 }
 
 // im_fav4: average of 4 images
-VImage VImage::fav4( VImage in2, VImage in3, VImage in4 )
+VImage VImage::fav4( VImage in2, VImage in3, VImage in4 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -2788,7 +2788,7 @@ VImage VImage::fav4( VImage in2, VImage in3, VImage in4 )
 }
 
 // im_gadd: calculate a*in1 + b*in2 + c = outfile
-VImage VImage::gadd( double a, double b, VImage in2, double c )
+VImage VImage::gadd( double a, double b, VImage in2, double c ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -2807,7 +2807,7 @@ VImage VImage::gadd( double a, double b, VImage in2, double c )
 }
 
 // im_icc_export: convert a float LAB to an 8-bit device image with an ICC profile
-VImage VImage::icc_export( char* output_profile, int intent )
+VImage VImage::icc_export( char* output_profile, int intent ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2825,7 +2825,7 @@ VImage VImage::icc_export( char* output_profile, int intent )
 }
 
 // im_litecor: calculate max(white)*factor*(in/white), if clip == 1
-VImage VImage::litecor( VImage white, int clip, double factor )
+VImage VImage::litecor( VImage white, int clip, double factor ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2843,7 +2843,7 @@ VImage VImage::litecor( VImage white, int clip, double factor )
 }
 
 // im_affine: affine transform
-VImage VImage::affine( double a, double b, double c, double d, double dx, double dy, int x, int y, int w, int h )
+VImage VImage::affine( double a, double b, double c, double d, double dx, double dy, int x, int y, int w, int h ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2869,7 +2869,7 @@ VImage VImage::affine( double a, double b, double c, double d, double dx, double
 }
 
 // im_clip2c: convert to signed 8-bit integer
-VImage VImage::clip2c()
+VImage VImage::clip2c() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2885,7 +2885,7 @@ VImage VImage::clip2c()
 }
 
 // im_clip2cm: convert to complex
-VImage VImage::clip2cm()
+VImage VImage::clip2cm() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2901,7 +2901,7 @@ VImage VImage::clip2cm()
 }
 
 // im_clip2d: convert to double-precision float
-VImage VImage::clip2d()
+VImage VImage::clip2d() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2917,7 +2917,7 @@ VImage VImage::clip2d()
 }
 
 // im_clip2dcm: convert to double complex
-VImage VImage::clip2dcm()
+VImage VImage::clip2dcm() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2933,7 +2933,7 @@ VImage VImage::clip2dcm()
 }
 
 // im_clip2f: convert to single-precision float
-VImage VImage::clip2f()
+VImage VImage::clip2f() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2949,7 +2949,7 @@ VImage VImage::clip2f()
 }
 
 // im_clip2i: convert to signed 32-bit integer
-VImage VImage::clip2i()
+VImage VImage::clip2i() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2965,7 +2965,7 @@ VImage VImage::clip2i()
 }
 
 // im_convsub: convolve uchar to uchar, sub-sampling by xskip, yskip
-VImage VImage::convsub( VIMask matrix, int xskip, int yskip )
+VImage VImage::convsub( VIMask matrix, int xskip, int yskip ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -2983,7 +2983,7 @@ VImage VImage::convsub( VIMask matrix, int xskip, int yskip )
 }
 
 // im_convf: convolve, with DOUBLEMASK
-VImage VImage::convf( VDMask matrix )
+VImage VImage::convf( VDMask matrix ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3000,7 +3000,7 @@ VImage VImage::convf( VDMask matrix )
 }
 
 // im_convsepf: seperable convolution, with DOUBLEMASK
-VImage VImage::convsepf( VDMask matrix )
+VImage VImage::convsepf( VDMask matrix ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3017,7 +3017,7 @@ VImage VImage::convsepf( VDMask matrix )
 }
 
 // im_clip2s: convert to signed 16-bit integer
-VImage VImage::clip2s()
+VImage VImage::clip2s() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3033,7 +3033,7 @@ VImage VImage::clip2s()
 }
 
 // im_clip2ui: convert to unsigned 32-bit integer
-VImage VImage::clip2ui()
+VImage VImage::clip2ui() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3049,7 +3049,7 @@ VImage VImage::clip2ui()
 }
 
 // im_insertplaceset: insert sub into main at every position in x, y
-VImage VImage::insertplace( VImage sub, std::vector<int> x, std::vector<int> y )
+VImage VImage::insertplace( VImage sub, std::vector<int> x, std::vector<int> y ) throw( VError )
 {
 	VImage main = *this;
 	VImage out;
@@ -3073,7 +3073,7 @@ VImage VImage::insertplace( VImage sub, std::vector<int> x, std::vector<int> y )
 }
 
 // im_clip2us: convert to unsigned 16-bit integer
-VImage VImage::clip2us()
+VImage VImage::clip2us() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3089,7 +3089,7 @@ VImage VImage::clip2us()
 }
 
 // im_slice: slice an image using two thresholds
-VImage VImage::slice( double thresh1, double thresh2 )
+VImage VImage::slice( double thresh1, double thresh2 ) throw( VError )
 {
 	VImage input = *this;
 	VImage output;
@@ -3106,7 +3106,7 @@ VImage VImage::slice( double thresh1, double thresh2 )
 }
 
 // im_segment: number continuous regions in an image
-VImage VImage::segment( int& segments )
+VImage VImage::segment( int& segments ) throw( VError )
 {
 	VImage test = *this;
 	VImage mask;
@@ -3122,7 +3122,7 @@ VImage VImage::segment( int& segments )
 }
 
 // im_line: draw line between points (x1,y1) and (x2,y2)
-void VImage::line( int x1, int y1, int x2, int y2, int pelval )
+void VImage::line( int x1, int y1, int x2, int y2, int pelval ) throw( VError )
 {
 	VImage im = *this;
 	Vargv _vec( "im_line" );
@@ -3137,7 +3137,7 @@ void VImage::line( int x1, int y1, int x2, int y2, int pelval )
 }
 
 // im_thresh: slice an image at a threshold
-VImage VImage::thresh( double threshold )
+VImage VImage::thresh( double threshold ) throw( VError )
 {
 	VImage input = *this;
 	VImage output;
@@ -3153,7 +3153,7 @@ VImage VImage::thresh( double threshold )
 }
 
 // im_convf_raw: convolve, with DOUBLEMASK, no border
-VImage VImage::convf_raw( VDMask matrix )
+VImage VImage::convf_raw( VDMask matrix ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3170,7 +3170,7 @@ VImage VImage::convf_raw( VDMask matrix )
 }
 
 // im_conv_raw: convolve, no border
-VImage VImage::conv_raw( VIMask matrix )
+VImage VImage::conv_raw( VIMask matrix ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3187,7 +3187,7 @@ VImage VImage::conv_raw( VIMask matrix )
 }
 
 // im_contrast_surface_raw: find high-contrast points in an image
-VImage VImage::contrast_surface_raw( int half_win_size, int spacing )
+VImage VImage::contrast_surface_raw( int half_win_size, int spacing ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3205,7 +3205,7 @@ VImage VImage::contrast_surface_raw( int half_win_size, int spacing )
 }
 
 // im_convsepf_raw: seperable convolution, with DOUBLEMASK, no border
-VImage VImage::convsepf_raw( VDMask matrix )
+VImage VImage::convsepf_raw( VDMask matrix ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3222,7 +3222,7 @@ VImage VImage::convsepf_raw( VDMask matrix )
 }
 
 // im_convsep_raw: seperable convolution, no border
-VImage VImage::convsep_raw( VIMask matrix )
+VImage VImage::convsep_raw( VIMask matrix ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3239,7 +3239,7 @@ VImage VImage::convsep_raw( VIMask matrix )
 }
 
 // im_fastcor_raw: fast correlate in2 within in1, no border
-VImage VImage::fastcor_raw( VImage in2 )
+VImage VImage::fastcor_raw( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -3257,7 +3257,7 @@ VImage VImage::fastcor_raw( VImage in2 )
 }
 
 // im_gradcor_raw: non-normalised correlation of gradient of in2 within in1, no padding
-VImage VImage::gradcor_raw( VImage in2 )
+VImage VImage::gradcor_raw( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -3275,7 +3275,7 @@ VImage VImage::gradcor_raw( VImage in2 )
 }
 
 // im_spcor_raw: normalised correlation of in2 within in1, no black padding
-VImage VImage::spcor_raw( VImage in2 )
+VImage VImage::spcor_raw( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -3293,7 +3293,7 @@ VImage VImage::spcor_raw( VImage in2 )
 }
 
 // im_lhisteq_raw: local histogram equalisation, no border
-VImage VImage::lhisteq_raw( int width, int height )
+VImage VImage::lhisteq_raw( int width, int height ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3311,7 +3311,7 @@ VImage VImage::lhisteq_raw( int width, int height )
 }
 
 // im_stdif_raw: statistical differencing, no border
-VImage VImage::stdif_raw( double a, double m0, double b, double s0, int xw, int yw )
+VImage VImage::stdif_raw( double a, double m0, double b, double s0, int xw, int yw ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3333,7 +3333,7 @@ VImage VImage::stdif_raw( double a, double m0, double b, double s0, int xw, int 
 }
 
 // im_rank_raw: rank filter nth element of xsize/ysize window, no border
-VImage VImage::rank_raw( int xsize, int ysize, int n )
+VImage VImage::rank_raw( int xsize, int ysize, int n ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3352,7 +3352,7 @@ VImage VImage::rank_raw( int xsize, int ysize, int n )
 }
 
 // im_dilate_raw: dilate image with mask
-VImage VImage::dilate_raw( VIMask mask )
+VImage VImage::dilate_raw( VIMask mask ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3369,7 +3369,7 @@ VImage VImage::dilate_raw( VIMask mask )
 }
 
 // im_erode_raw: erode image with mask
-VImage VImage::erode_raw( VIMask mask )
+VImage VImage::erode_raw( VIMask mask ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3386,7 +3386,7 @@ VImage VImage::erode_raw( VIMask mask )
 }
 
 // im_similarity_area: output area xywh of similarity transformation
-VImage VImage::similarity_area( double a, double b, double dx, double dy, int x, int y, int w, int h )
+VImage VImage::similarity_area( double a, double b, double dx, double dy, int x, int y, int w, int h ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3410,7 +3410,7 @@ VImage VImage::similarity_area( double a, double b, double dx, double dy, int x,
 }
 
 // im_similarity: similarity transformation
-VImage VImage::similarity( double a, double b, double dx, double dy )
+VImage VImage::similarity( double a, double b, double dx, double dy ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3430,7 +3430,7 @@ VImage VImage::similarity( double a, double b, double dx, double dy )
 }
 
 // im_mask2vips: convert DOUBLEMASK to VIPS image
-VImage VImage::mask2vips( VDMask input )
+VImage VImage::mask2vips( VDMask input ) throw( VError )
 {
 	VImage output;
 
@@ -3444,7 +3444,7 @@ VImage VImage::mask2vips( VDMask input )
 }
 
 // im_vips2mask: convert VIPS image to DOUBLEMASK
-VDMask VImage::vips2mask()
+VDMask VImage::vips2mask() throw( VError )
 {
 	VImage input = *this;
 	VDMask output;
@@ -3460,7 +3460,7 @@ VDMask VImage::vips2mask()
 }
 
 // im_insertplace: draw image sub inside image main at position (x,y)
-void VImage::insertplace( VImage sub, int x, int y )
+void VImage::insertplace( VImage sub, int x, int y ) throw( VError )
 {
 	VImage main = *this;
 	Vargv _vec( "im_insertplace" );
@@ -3473,7 +3473,7 @@ void VImage::insertplace( VImage sub, int x, int y )
 }
 
 // im_circle: plot circle on image
-void VImage::circle( int cx, int cy, int radius, int intensity )
+void VImage::circle( int cx, int cy, int radius, int intensity ) throw( VError )
 {
 	VImage image = *this;
 	Vargv _vec( "im_circle" );
@@ -3487,7 +3487,7 @@ void VImage::circle( int cx, int cy, int radius, int intensity )
 }
 
 // im_andimage: bitwise and of two images
-VImage VImage::andimage( VImage in2 )
+VImage VImage::andimage( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -3505,7 +3505,7 @@ VImage VImage::andimage( VImage in2 )
 }
 
 // im_andimageconst: bitwise and of an image with a constant
-VImage VImage::andimage( int c )
+VImage VImage::andimage( int c ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -3522,7 +3522,7 @@ VImage VImage::andimage( int c )
 }
 
 // im_andimage_vec: bitwise and of an image with a vector constant
-VImage VImage::andimage( std::vector<double> vec )
+VImage VImage::andimage( std::vector<double> vec ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3542,7 +3542,7 @@ VImage VImage::andimage( std::vector<double> vec )
 }
 
 // im_orimage: bitwise or of two images
-VImage VImage::orimage( VImage in2 )
+VImage VImage::orimage( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -3560,7 +3560,7 @@ VImage VImage::orimage( VImage in2 )
 }
 
 // im_orimageconst: bitwise or of an image with a constant
-VImage VImage::orimage( int c )
+VImage VImage::orimage( int c ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -3577,7 +3577,7 @@ VImage VImage::orimage( int c )
 }
 
 // im_orimage_vec: bitwise or of an image with a vector constant
-VImage VImage::orimage( std::vector<double> vec )
+VImage VImage::orimage( std::vector<double> vec ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3597,7 +3597,7 @@ VImage VImage::orimage( std::vector<double> vec )
 }
 
 // im_eorimage: bitwise eor of two images
-VImage VImage::eorimage( VImage in2 )
+VImage VImage::eorimage( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -3615,7 +3615,7 @@ VImage VImage::eorimage( VImage in2 )
 }
 
 // im_eorimageconst: bitwise eor of an image with a constant
-VImage VImage::eorimage( int c )
+VImage VImage::eorimage( int c ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -3632,7 +3632,7 @@ VImage VImage::eorimage( int c )
 }
 
 // im_eorimage_vec: bitwise eor of an image with a vector constant
-VImage VImage::eorimage( std::vector<double> vec )
+VImage VImage::eorimage( std::vector<double> vec ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3652,7 +3652,7 @@ VImage VImage::eorimage( std::vector<double> vec )
 }
 
 // im_shiftleft_vec: shift image array bits to left
-VImage VImage::shiftleft( std::vector<double> vec )
+VImage VImage::shiftleft( std::vector<double> vec ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3672,7 +3672,7 @@ VImage VImage::shiftleft( std::vector<double> vec )
 }
 
 // im_shiftleft: shift image n bits to left
-VImage VImage::shiftleft( int c )
+VImage VImage::shiftleft( int c ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -3689,7 +3689,7 @@ VImage VImage::shiftleft( int c )
 }
 
 // im_shiftright_vec: shift image array bits to right
-VImage VImage::shiftright( std::vector<double> vec )
+VImage VImage::shiftright( std::vector<double> vec ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3709,7 +3709,7 @@ VImage VImage::shiftright( std::vector<double> vec )
 }
 
 // im_shiftright: shift integer image n bits to right
-VImage VImage::shiftright( int c )
+VImage VImage::shiftright( int c ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -3726,7 +3726,7 @@ VImage VImage::shiftright( int c )
 }
 
 // im_blend: use cond image to blend between images in1 and in2
-VImage VImage::blend( VImage in1, VImage in2 )
+VImage VImage::blend( VImage in1, VImage in2 ) throw( VError )
 {
 	VImage cond = *this;
 	VImage out;
@@ -3746,7 +3746,7 @@ VImage VImage::blend( VImage in1, VImage in2 )
 }
 
 // im_equal: two images equal in value
-VImage VImage::equal( VImage in2 )
+VImage VImage::equal( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -3764,7 +3764,7 @@ VImage VImage::equal( VImage in2 )
 }
 
 // im_equal_vec: image equals doublevec
-VImage VImage::equal( std::vector<double> vec )
+VImage VImage::equal( std::vector<double> vec ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3784,7 +3784,7 @@ VImage VImage::equal( std::vector<double> vec )
 }
 
 // im_equalconst: image equals const
-VImage VImage::equal( double c )
+VImage VImage::equal( double c ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -3801,7 +3801,7 @@ VImage VImage::equal( double c )
 }
 
 // im_ifthenelse: use cond image to choose pels from image in1 or in2
-VImage VImage::ifthenelse( VImage in1, VImage in2 )
+VImage VImage::ifthenelse( VImage in1, VImage in2 ) throw( VError )
 {
 	VImage cond = *this;
 	VImage out;
@@ -3821,7 +3821,7 @@ VImage VImage::ifthenelse( VImage in1, VImage in2 )
 }
 
 // im_less: in1 less than in2 in value
-VImage VImage::less( VImage in2 )
+VImage VImage::less( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -3839,7 +3839,7 @@ VImage VImage::less( VImage in2 )
 }
 
 // im_less_vec: in less than doublevec
-VImage VImage::less( std::vector<double> vec )
+VImage VImage::less( std::vector<double> vec ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3859,7 +3859,7 @@ VImage VImage::less( std::vector<double> vec )
 }
 
 // im_lessconst: in less than const
-VImage VImage::less( double c )
+VImage VImage::less( double c ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -3876,7 +3876,7 @@ VImage VImage::less( double c )
 }
 
 // im_lesseq: in1 less than or equal to in2 in value
-VImage VImage::lesseq( VImage in2 )
+VImage VImage::lesseq( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -3894,7 +3894,7 @@ VImage VImage::lesseq( VImage in2 )
 }
 
 // im_lesseq_vec: in less than or equal to doublevec
-VImage VImage::lesseq( std::vector<double> vec )
+VImage VImage::lesseq( std::vector<double> vec ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3914,7 +3914,7 @@ VImage VImage::lesseq( std::vector<double> vec )
 }
 
 // im_lesseqconst: in less than or equal to const
-VImage VImage::lesseq( double c )
+VImage VImage::lesseq( double c ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -3931,7 +3931,7 @@ VImage VImage::lesseq( double c )
 }
 
 // im_more: in1 more than in2 in value
-VImage VImage::more( VImage in2 )
+VImage VImage::more( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -3949,7 +3949,7 @@ VImage VImage::more( VImage in2 )
 }
 
 // im_more_vec: in more than doublevec
-VImage VImage::more( std::vector<double> vec )
+VImage VImage::more( std::vector<double> vec ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -3969,7 +3969,7 @@ VImage VImage::more( std::vector<double> vec )
 }
 
 // im_moreconst: in more than const
-VImage VImage::more( double c )
+VImage VImage::more( double c ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -3986,7 +3986,7 @@ VImage VImage::more( double c )
 }
 
 // im_moreeq: in1 more than or equal to in2 in value
-VImage VImage::moreeq( VImage in2 )
+VImage VImage::moreeq( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -4004,7 +4004,7 @@ VImage VImage::moreeq( VImage in2 )
 }
 
 // im_moreeq_vec: in more than or equal to doublevec
-VImage VImage::moreeq( std::vector<double> vec )
+VImage VImage::moreeq( std::vector<double> vec ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4024,7 +4024,7 @@ VImage VImage::moreeq( std::vector<double> vec )
 }
 
 // im_moreeqconst: in more than or equal to const
-VImage VImage::moreeq( double c )
+VImage VImage::moreeq( double c ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -4041,7 +4041,7 @@ VImage VImage::moreeq( double c )
 }
 
 // im_notequal: two images not equal in value
-VImage VImage::notequal( VImage in2 )
+VImage VImage::notequal( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -4059,7 +4059,7 @@ VImage VImage::notequal( VImage in2 )
 }
 
 // im_notequal_vec: image does not equal doublevec
-VImage VImage::notequal( std::vector<double> vec )
+VImage VImage::notequal( std::vector<double> vec ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4079,7 +4079,7 @@ VImage VImage::notequal( std::vector<double> vec )
 }
 
 // im_notequalconst: image does not equal const
-VImage VImage::notequal( double c )
+VImage VImage::notequal( double c ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -4096,7 +4096,7 @@ VImage VImage::notequal( double c )
 }
 
 // im_quadratic: transform via quadratic
-VImage VImage::quadratic( VImage coeff )
+VImage VImage::quadratic( VImage coeff ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4116,9 +4116,9 @@ VImage VImage::quadratic( VImage coeff )
 
 // bodies for package format
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:26:29 GMT 2017
 // im_csv2vips: read a file in csv format
-VImage VImage::csv2vips( char* filename )
+VImage VImage::csv2vips( char* filename ) throw( VError )
 {
 	VImage im;
 
@@ -4132,7 +4132,7 @@ VImage VImage::csv2vips( char* filename )
 }
 
 // im_fits2vips: convert from fits
-VImage VImage::fits2vips( char* in )
+VImage VImage::fits2vips( char* in ) throw( VError )
 {
 	VImage out;
 
@@ -4146,7 +4146,7 @@ VImage VImage::fits2vips( char* in )
 }
 
 // im_jpeg2vips: convert from jpeg
-VImage VImage::jpeg2vips( char* in )
+VImage VImage::jpeg2vips( char* in ) throw( VError )
 {
 	VImage out;
 
@@ -4160,7 +4160,7 @@ VImage VImage::jpeg2vips( char* in )
 }
 
 // im_magick2vips: load file with libMagick
-VImage VImage::magick2vips( char* in )
+VImage VImage::magick2vips( char* in ) throw( VError )
 {
 	VImage out;
 
@@ -4174,7 +4174,7 @@ VImage VImage::magick2vips( char* in )
 }
 
 // im_png2vips: convert PNG file to VIPS image
-VImage VImage::png2vips( char* in )
+VImage VImage::png2vips( char* in ) throw( VError )
 {
 	VImage out;
 
@@ -4188,7 +4188,7 @@ VImage VImage::png2vips( char* in )
 }
 
 // im_exr2vips: convert an OpenEXR file to VIPS
-VImage VImage::exr2vips( char* in )
+VImage VImage::exr2vips( char* in ) throw( VError )
 {
 	VImage out;
 
@@ -4202,7 +4202,7 @@ VImage VImage::exr2vips( char* in )
 }
 
 // im_ppm2vips: read a file in pbm/pgm/ppm format
-VImage VImage::ppm2vips( char* filename )
+VImage VImage::ppm2vips( char* filename ) throw( VError )
 {
 	VImage im;
 
@@ -4216,7 +4216,7 @@ VImage VImage::ppm2vips( char* filename )
 }
 
 // im_analyze2vips: read a file in analyze format
-VImage VImage::analyze2vips( char* filename )
+VImage VImage::analyze2vips( char* filename ) throw( VError )
 {
 	VImage im;
 
@@ -4230,7 +4230,7 @@ VImage VImage::analyze2vips( char* filename )
 }
 
 // im_tiff2vips: convert TIFF file to VIPS image
-VImage VImage::tiff2vips( char* in )
+VImage VImage::tiff2vips( char* in ) throw( VError )
 {
 	VImage out;
 
@@ -4244,7 +4244,7 @@ VImage VImage::tiff2vips( char* in )
 }
 
 // im_vips2csv: write an image in csv format
-void VImage::vips2csv( char* filename )
+void VImage::vips2csv( char* filename ) throw( VError )
 {
 	VImage in = *this;
 	Vargv _vec( "im_vips2csv" );
@@ -4255,7 +4255,7 @@ void VImage::vips2csv( char* filename )
 }
 
 // im_vips2dz: save as deepzoom
-void VImage::vips2dz( char* out )
+void VImage::vips2dz( char* out ) throw( VError )
 {
 	VImage in = *this;
 	Vargv _vec( "im_vips2dz" );
@@ -4266,7 +4266,7 @@ void VImage::vips2dz( char* out )
 }
 
 // im_vips2jpeg: convert to jpeg
-void VImage::vips2jpeg( char* out )
+void VImage::vips2jpeg( char* out ) throw( VError )
 {
 	VImage in = *this;
 	Vargv _vec( "im_vips2jpeg" );
@@ -4277,7 +4277,7 @@ void VImage::vips2jpeg( char* out )
 }
 
 // im_vips2mimejpeg: convert to jpeg as mime type on stdout
-void VImage::vips2mimejpeg( int qfac )
+void VImage::vips2mimejpeg( int qfac ) throw( VError )
 {
 	VImage in = *this;
 	Vargv _vec( "im_vips2mimejpeg" );
@@ -4288,7 +4288,7 @@ void VImage::vips2mimejpeg( int qfac )
 }
 
 // im_vips2png: convert VIPS image to PNG file
-void VImage::vips2png( char* out )
+void VImage::vips2png( char* out ) throw( VError )
 {
 	VImage in = *this;
 	Vargv _vec( "im_vips2png" );
@@ -4299,7 +4299,7 @@ void VImage::vips2png( char* out )
 }
 
 // im_vips2ppm: write a file in pbm/pgm/ppm format
-void VImage::vips2ppm( char* filename )
+void VImage::vips2ppm( char* filename ) throw( VError )
 {
 	VImage im = *this;
 	Vargv _vec( "im_vips2ppm" );
@@ -4310,7 +4310,7 @@ void VImage::vips2ppm( char* filename )
 }
 
 // im_vips2tiff: convert VIPS image to TIFF file
-void VImage::vips2tiff( char* out )
+void VImage::vips2tiff( char* out ) throw( VError )
 {
 	VImage in = *this;
 	Vargv _vec( "im_vips2tiff" );
@@ -4323,9 +4323,9 @@ void VImage::vips2tiff( char* out )
 
 // bodies for package freq_filt
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:26:29 GMT 2017
 // im_create_fmask: create frequency domain filter mask
-VImage VImage::create_fmask( int width, int height, int type, double p1, double p2, double p3, double p4, double p5 )
+VImage VImage::create_fmask( int width, int height, int type, double p1, double p2, double p3, double p4, double p5 ) throw( VError )
 {
 	VImage out;
 
@@ -4346,7 +4346,7 @@ VImage VImage::create_fmask( int width, int height, int type, double p1, double 
 }
 
 // im_disp_ps: make displayable power spectrum
-VImage VImage::disp_ps()
+VImage VImage::disp_ps() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4361,7 +4361,7 @@ VImage VImage::disp_ps()
 }
 
 // im_flt_image_freq: frequency domain filter image
-VImage VImage::flt_image_freq( int type, double p1, double p2, double p3, double p4, double p5 )
+VImage VImage::flt_image_freq( int type, double p1, double p2, double p3, double p4, double p5 ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4382,7 +4382,7 @@ VImage VImage::flt_image_freq( int type, double p1, double p2, double p3, double
 }
 
 // im_fractsurf: generate a fractal surface of given dimension
-VImage VImage::fractsurf( int size, double dimension )
+VImage VImage::fractsurf( int size, double dimension ) throw( VError )
 {
 	VImage out;
 
@@ -4397,7 +4397,7 @@ VImage VImage::fractsurf( int size, double dimension )
 }
 
 // im_freqflt: frequency-domain filter of in with mask
-VImage VImage::freqflt( VImage mask )
+VImage VImage::freqflt( VImage mask ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4413,7 +4413,7 @@ VImage VImage::freqflt( VImage mask )
 }
 
 // im_fwfft: forward fast-fourier transform
-VImage VImage::fwfft()
+VImage VImage::fwfft() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4428,7 +4428,7 @@ VImage VImage::fwfft()
 }
 
 // im_rotquad: rotate image quadrants to move origin to centre
-VImage VImage::rotquad()
+VImage VImage::rotquad() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4443,7 +4443,7 @@ VImage VImage::rotquad()
 }
 
 // im_invfft: inverse fast-fourier transform
-VImage VImage::invfft()
+VImage VImage::invfft() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4458,7 +4458,7 @@ VImage VImage::invfft()
 }
 
 // im_phasecor_fft: non-normalised correlation of gradient of in2 within in1
-VImage VImage::phasecor_fft( VImage in2 )
+VImage VImage::phasecor_fft( VImage in2 ) throw( VError )
 {
 	VImage in1 = *this;
 	VImage out;
@@ -4474,7 +4474,7 @@ VImage VImage::phasecor_fft( VImage in2 )
 }
 
 // im_invfftr: real part of inverse fast-fourier transform
-VImage VImage::invfftr()
+VImage VImage::invfftr() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4491,9 +4491,9 @@ VImage VImage::invfftr()
 
 // bodies for package histograms_lut
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:26:29 GMT 2017
 // im_gammacorrect: gamma-correct image
-VImage VImage::gammacorrect( double exponent )
+VImage VImage::gammacorrect( double exponent ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4510,7 +4510,7 @@ VImage VImage::gammacorrect( double exponent )
 }
 
 // im_heq: histogram-equalise image
-VImage VImage::heq( int band_number )
+VImage VImage::heq( int band_number ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4527,7 +4527,7 @@ VImage VImage::heq( int band_number )
 }
 
 // im_hist: find and graph histogram of image
-VImage VImage::hist( int band_number )
+VImage VImage::hist( int band_number ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4544,7 +4544,7 @@ VImage VImage::hist( int band_number )
 }
 
 // im_histcum: turn histogram to cumulative histogram
-VImage VImage::histcum()
+VImage VImage::histcum() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4560,7 +4560,7 @@ VImage VImage::histcum()
 }
 
 // im_histeq: form histogram equalistion LUT
-VImage VImage::histeq()
+VImage VImage::histeq() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4576,7 +4576,7 @@ VImage VImage::histeq()
 }
 
 // im_hist_indexed: make a histogram with an index image
-VImage VImage::hist_indexed( VImage value )
+VImage VImage::hist_indexed( VImage value ) throw( VError )
 {
 	VImage index = *this;
 	VImage out;
@@ -4594,7 +4594,7 @@ VImage VImage::hist_indexed( VImage value )
 }
 
 // im_histgr: find histogram of image
-VImage VImage::histgr( int band_number )
+VImage VImage::histgr( int band_number ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4610,7 +4610,7 @@ VImage VImage::histgr( int band_number )
 }
 
 // im_histnD: find 1D, 2D or 3D histogram of image
-VImage VImage::histnD( int bins )
+VImage VImage::histnD( int bins ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4626,7 +4626,7 @@ VImage VImage::histnD( int bins )
 }
 
 // im_histnorm: form normalised histogram
-VImage VImage::histnorm()
+VImage VImage::histnorm() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4642,7 +4642,7 @@ VImage VImage::histnorm()
 }
 
 // im_histplot: plot graph of histogram
-VImage VImage::histplot()
+VImage VImage::histplot() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4658,7 +4658,7 @@ VImage VImage::histplot()
 }
 
 // im_histspec: find histogram which will make pdf of in match ref
-VImage VImage::histspec( VImage ref )
+VImage VImage::histspec( VImage ref ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4674,7 +4674,7 @@ VImage VImage::histspec( VImage ref )
 }
 
 // im_hsp: match stats of in to stats of ref
-VImage VImage::hsp( VImage ref )
+VImage VImage::hsp( VImage ref ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4690,7 +4690,7 @@ VImage VImage::hsp( VImage ref )
 }
 
 // im_identity: generate identity histogram
-VImage VImage::identity( int nbands )
+VImage VImage::identity( int nbands ) throw( VError )
 {
 	VImage out;
 
@@ -4704,7 +4704,7 @@ VImage VImage::identity( int nbands )
 }
 
 // im_identity_ushort: generate ushort identity histogram
-VImage VImage::identity_ushort( int nbands, int size )
+VImage VImage::identity_ushort( int nbands, int size ) throw( VError )
 {
 	VImage out;
 
@@ -4719,7 +4719,7 @@ VImage VImage::identity_ushort( int nbands, int size )
 }
 
 // im_ismonotonic: test LUT for monotonicity
-int VImage::ismonotonic()
+int VImage::ismonotonic() throw( VError )
 {
 	VImage lut = *this;
 	int mono;
@@ -4734,7 +4734,7 @@ int VImage::ismonotonic()
 }
 
 // im_lhisteq: local histogram equalisation
-VImage VImage::lhisteq( int width, int height )
+VImage VImage::lhisteq( int width, int height ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4752,7 +4752,7 @@ VImage VImage::lhisteq( int width, int height )
 }
 
 // im_mpercent: find threshold above which there are percent values
-int VImage::mpercent( double percent )
+int VImage::mpercent( double percent ) throw( VError )
 {
 	VImage in = *this;
 	int thresh;
@@ -4768,7 +4768,7 @@ int VImage::mpercent( double percent )
 }
 
 // im_invertlut: generate correction table from set of measures
-VImage VImage::invertlut( VDMask measures, int lut_size )
+VImage VImage::invertlut( VDMask measures, int lut_size ) throw( VError )
 {
 	VImage lut;
 
@@ -4783,7 +4783,7 @@ VImage VImage::invertlut( VDMask measures, int lut_size )
 }
 
 // im_buildlut: generate LUT table from set of x/y positions
-VImage VImage::buildlut( VDMask xyes )
+VImage VImage::buildlut( VDMask xyes ) throw( VError )
 {
 	VImage lut;
 
@@ -4797,7 +4797,7 @@ VImage VImage::buildlut( VDMask xyes )
 }
 
 // im_maplut: map image through LUT
-VImage VImage::maplut( VImage lut )
+VImage VImage::maplut( VImage lut ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4815,7 +4815,7 @@ VImage VImage::maplut( VImage lut )
 }
 
 // im_project: find horizontal and vertical projections of an image
-VImage VImage::project( VImage& vout )
+VImage VImage::project( VImage& vout ) throw( VError )
 {
 	VImage in = *this;
 	VImage hout;
@@ -4831,7 +4831,7 @@ VImage VImage::project( VImage& vout )
 }
 
 // im_stdif: statistical differencing
-VImage VImage::stdif( double a, double m0, double b, double s0, int xw, int yw )
+VImage VImage::stdif( double a, double m0, double b, double s0, int xw, int yw ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4853,7 +4853,7 @@ VImage VImage::stdif( double a, double m0, double b, double s0, int xw, int yw )
 }
 
 // im_tone_analyse: analyse in and create LUT for tone adjustment
-VImage VImage::tone_analyse( double Ps, double Pm, double Ph, double S, double M, double H )
+VImage VImage::tone_analyse( double Ps, double Pm, double Ph, double S, double M, double H ) throw( VError )
 {
 	VImage in = *this;
 	VImage hist;
@@ -4874,7 +4874,7 @@ VImage VImage::tone_analyse( double Ps, double Pm, double Ph, double S, double M
 }
 
 // im_tone_build: create LUT for tone adjustment of LabS images
-VImage VImage::tone_build( double Lb, double Lw, double Ps, double Pm, double Ph, double S, double M, double H )
+VImage VImage::tone_build( double Lb, double Lw, double Ps, double Pm, double Ph, double S, double M, double H ) throw( VError )
 {
 	VImage hist;
 
@@ -4895,7 +4895,7 @@ VImage VImage::tone_build( double Lb, double Lw, double Ps, double Pm, double Ph
 }
 
 // im_tone_build_range: create LUT for tone adjustment
-VImage VImage::tone_build_range( int in_max, int out_max, double Lb, double Lw, double Ps, double Pm, double Ph, double S, double M, double H )
+VImage VImage::tone_build_range( int in_max, int out_max, double Lb, double Lw, double Ps, double Pm, double Ph, double S, double M, double H ) throw( VError )
 {
 	VImage hist;
 
@@ -4918,7 +4918,7 @@ VImage VImage::tone_build_range( int in_max, int out_max, double Lb, double Lw, 
 }
 
 // im_tone_map: map L channel of LabS or LabQ image through LUT
-VImage VImage::tone_map( VImage lut )
+VImage VImage::tone_map( VImage lut ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -4938,9 +4938,9 @@ VImage VImage::tone_map( VImage lut )
 
 // bodies for package inplace
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:26:29 GMT 2017
 // im_draw_circle: draw circle on image
-void VImage::draw_circle( int cx, int cy, int radius, int fill, std::vector<double> ink )
+void VImage::draw_circle( int cx, int cy, int radius, int fill, std::vector<double> ink ) throw( VError )
 {
 	VImage image = *this;
 	Vargv _vec( "im_draw_circle" );
@@ -4958,7 +4958,7 @@ void VImage::draw_circle( int cx, int cy, int radius, int fill, std::vector<doub
 }
 
 // im_draw_rect: draw rect on image
-void VImage::draw_rect( int left, int top, int width, int height, int fill, std::vector<double> ink )
+void VImage::draw_rect( int left, int top, int width, int height, int fill, std::vector<double> ink ) throw( VError )
 {
 	VImage image = *this;
 	Vargv _vec( "im_draw_rect" );
@@ -4977,7 +4977,7 @@ void VImage::draw_rect( int left, int top, int width, int height, int fill, std:
 }
 
 // im_draw_line: draw line on image
-void VImage::draw_line( int x1, int y1, int x2, int y2, std::vector<double> ink )
+void VImage::draw_line( int x1, int y1, int x2, int y2, std::vector<double> ink ) throw( VError )
 {
 	VImage image = *this;
 	Vargv _vec( "im_draw_line" );
@@ -4995,7 +4995,7 @@ void VImage::draw_line( int x1, int y1, int x2, int y2, std::vector<double> ink 
 }
 
 // im_draw_point: draw point on image
-void VImage::draw_point( int x, int y, std::vector<double> ink )
+void VImage::draw_point( int x, int y, std::vector<double> ink ) throw( VError )
 {
 	VImage image = *this;
 	Vargv _vec( "im_draw_point" );
@@ -5011,7 +5011,7 @@ void VImage::draw_point( int x, int y, std::vector<double> ink )
 }
 
 // im_draw_smudge: smudge part of an image
-void VImage::draw_smudge( int left, int top, int width, int height )
+void VImage::draw_smudge( int left, int top, int width, int height ) throw( VError )
 {
 	VImage image = *this;
 	Vargv _vec( "im_draw_smudge" );
@@ -5025,7 +5025,7 @@ void VImage::draw_smudge( int left, int top, int width, int height )
 }
 
 // im_draw_flood: flood with ink from x, y while pixel != ink
-void VImage::draw_flood( int x, int y, std::vector<double> ink )
+void VImage::draw_flood( int x, int y, std::vector<double> ink ) throw( VError )
 {
 	VImage image = *this;
 	Vargv _vec( "im_draw_flood" );
@@ -5041,7 +5041,7 @@ void VImage::draw_flood( int x, int y, std::vector<double> ink )
 }
 
 // im_draw_flood_blob: flood with ink from x, y while pixel == start
-void VImage::draw_flood_blob( int x, int y, std::vector<double> ink )
+void VImage::draw_flood_blob( int x, int y, std::vector<double> ink ) throw( VError )
 {
 	VImage image = *this;
 	Vargv _vec( "im_draw_flood_blob" );
@@ -5057,7 +5057,7 @@ void VImage::draw_flood_blob( int x, int y, std::vector<double> ink )
 }
 
 // im_draw_flood_other: flood image with serial from x, y while pixel == start
-void VImage::draw_flood_other( VImage test, int x, int y, int serial )
+void VImage::draw_flood_other( VImage test, int x, int y, int serial ) throw( VError )
 {
 	VImage image = *this;
 	Vargv _vec( "im_draw_flood_other" );
@@ -5071,7 +5071,7 @@ void VImage::draw_flood_other( VImage test, int x, int y, int serial )
 }
 
 // im_draw_image: draw image sub inside image main at position (x,y)
-void VImage::draw_image( VImage sub, int x, int y )
+void VImage::draw_image( VImage sub, int x, int y ) throw( VError )
 {
 	VImage image = *this;
 	Vargv _vec( "im_draw_image" );
@@ -5084,7 +5084,7 @@ void VImage::draw_image( VImage sub, int x, int y )
 }
 
 // im_draw_mask: draw mask sub inside image main at position (x,y)
-void VImage::draw_mask( VImage mask, int x, int y, std::vector<double> ink )
+void VImage::draw_mask( VImage mask, int x, int y, std::vector<double> ink ) throw( VError )
 {
 	VImage image = *this;
 	Vargv _vec( "im_draw_mask" );
@@ -5101,7 +5101,7 @@ void VImage::draw_mask( VImage mask, int x, int y, std::vector<double> ink )
 }
 
 // im_lineset: draw line between points (x1,y1) and (x2,y2)
-VImage VImage::line( VImage mask, VImage ink, std::vector<int> x1, std::vector<int> y1, std::vector<int> x2, std::vector<int> y2 )
+VImage VImage::line( VImage mask, VImage ink, std::vector<int> x1, std::vector<int> y1, std::vector<int> x2, std::vector<int> y2 ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -5136,9 +5136,9 @@ VImage VImage::line( VImage mask, VImage ink, std::vector<int> x1, std::vector<i
 
 // bodies for package iofuncs
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:26:29 GMT 2017
 // im_binfile: open a headerless binary file
-VImage VImage::binfile( char* filename, int width, int height, int bands, int offset )
+VImage VImage::binfile( char* filename, int width, int height, int bands, int offset ) throw( VError )
 {
 	VImage out;
 
@@ -5156,7 +5156,7 @@ VImage VImage::binfile( char* filename, int width, int height, int bands, int of
 }
 
 // im_cache: cache results of an operation
-VImage VImage::cache( int tile_width, int tile_height, int max_tiles )
+VImage VImage::cache( int tile_width, int tile_height, int max_tiles ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -5173,8 +5173,26 @@ VImage VImage::cache( int tile_width, int tile_height, int max_tiles )
 	return( out );
 }
 
+// im_tile_cache_random: cache results of an operation
+VImage VImage::tile_cache_random( int tile_width, int tile_height, int max_tiles ) throw( VError )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_tile_cache_random" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	*((int*) _vec.data(2)) = tile_width;
+	*((int*) _vec.data(3)) = tile_height;
+	*((int*) _vec.data(4)) = max_tiles;
+	_vec.call();
+
+	return( out );
+}
+
 // im_getext: return the image metadata XML as a string
-char* VImage::getext()
+char* VImage::getext() throw( VError )
 {
 	VImage image = *this;
 	char* history;
@@ -5189,7 +5207,7 @@ char* VImage::getext()
 }
 
 // im_header_get_typeof: return field type
-int VImage::header_get_typeof( char* field )
+int VImage::header_get_typeof( char* field ) throw( VError )
 {
 	VImage image = *this;
 	int gtype;
@@ -5205,7 +5223,7 @@ int VImage::header_get_typeof( char* field )
 }
 
 // im_header_int: extract int fields from header
-int VImage::header_int( char* field )
+int VImage::header_int( char* field ) throw( VError )
 {
 	VImage image = *this;
 	int value;
@@ -5221,7 +5239,7 @@ int VImage::header_int( char* field )
 }
 
 // im_header_double: extract double fields from header
-double VImage::header_double( char* field )
+double VImage::header_double( char* field ) throw( VError )
 {
 	VImage image = *this;
 	double value;
@@ -5237,7 +5255,7 @@ double VImage::header_double( char* field )
 }
 
 // im_header_string: extract fields from headers as strings
-char* VImage::header_string( char* field )
+char* VImage::header_string( char* field ) throw( VError )
 {
 	VImage image = *this;
 	char* value;
@@ -5253,7 +5271,7 @@ char* VImage::header_string( char* field )
 }
 
 // im_history_get: return the image history as a string
-char* VImage::history_get()
+char* VImage::history_get() throw( VError )
 {
 	VImage image = *this;
 	char* history;
@@ -5268,7 +5286,7 @@ char* VImage::history_get()
 }
 
 // im_printdesc: print an image header to stdout
-void VImage::printdesc()
+void VImage::printdesc() throw( VError )
 {
 	VImage image = *this;
 	Vargv _vec( "im_printdesc" );
@@ -5280,13 +5298,13 @@ void VImage::printdesc()
 
 // bodies for package mask
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:26:29 GMT 2017
 
 // bodies for package morphology
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:26:29 GMT 2017
 // im_cntlines: count horizontal or vertical lines
-double VImage::cntlines( int direction )
+double VImage::cntlines( int direction ) throw( VError )
 {
 	VImage in = *this;
 	double nlines;
@@ -5302,7 +5320,7 @@ double VImage::cntlines( int direction )
 }
 
 // im_dilate: dilate image with mask, adding a black border
-VImage VImage::dilate( VIMask mask )
+VImage VImage::dilate( VIMask mask ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -5319,7 +5337,7 @@ VImage VImage::dilate( VIMask mask )
 }
 
 // im_rank: rank filter nth element of xsize/ysize window
-VImage VImage::rank( int xsize, int ysize, int n )
+VImage VImage::rank( int xsize, int ysize, int n ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -5338,7 +5356,7 @@ VImage VImage::rank( int xsize, int ysize, int n )
 }
 
 // im_rank_image: point-wise pixel rank
-VImage VImage::rank_image( std::vector<VImage> in, int index )
+VImage VImage::rank_image( std::vector<VImage> in, int index ) throw( VError )
 {
 	VImage out;
 
@@ -5358,7 +5376,7 @@ VImage VImage::rank_image( std::vector<VImage> in, int index )
 }
 
 // im_maxvalue: point-wise maximum value
-VImage VImage::maxvalue( std::vector<VImage> in )
+VImage VImage::maxvalue( std::vector<VImage> in ) throw( VError )
 {
 	VImage out;
 
@@ -5377,7 +5395,7 @@ VImage VImage::maxvalue( std::vector<VImage> in )
 }
 
 // im_label_regions: number continuous regions in an image
-VImage VImage::label_regions( int& segments )
+VImage VImage::label_regions( int& segments ) throw( VError )
 {
 	VImage test = *this;
 	VImage mask;
@@ -5393,7 +5411,7 @@ VImage VImage::label_regions( int& segments )
 }
 
 // im_zerox: find +ve or -ve zero crossings in image
-VImage VImage::zerox( int flag )
+VImage VImage::zerox( int flag ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -5410,7 +5428,7 @@ VImage VImage::zerox( int flag )
 }
 
 // im_erode: erode image with mask, adding a black border
-VImage VImage::erode( VIMask mask )
+VImage VImage::erode( VIMask mask ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -5427,7 +5445,7 @@ VImage VImage::erode( VIMask mask )
 }
 
 // im_profile: find first horizontal/vertical edge
-VImage VImage::profile( int direction )
+VImage VImage::profile( int direction ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -5445,9 +5463,9 @@ VImage VImage::profile( int direction )
 
 // bodies for package mosaicing
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:26:29 GMT 2017
 // im_align_bands: align the bands of an image
-VImage VImage::align_bands()
+VImage VImage::align_bands() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -5462,7 +5480,7 @@ VImage VImage::align_bands()
 }
 
 // im_correl: search area around sec for match for area around ref
-double VImage::correl( VImage sec, int xref, int yref, int xsec, int ysec, int hwindowsize, int hsearchsize, int& x, int& y )
+double VImage::correl( VImage sec, int xref, int yref, int xsec, int ysec, int hwindowsize, int hsearchsize, int& x, int& y ) throw( VError )
 {
 	VImage ref = *this;
 	double correlation;
@@ -5486,7 +5504,7 @@ double VImage::correl( VImage sec, int xref, int yref, int xsec, int ysec, int h
 }
 
 // im__find_lroverlap: search for left-right overlap of ref and sec
-int VImage::_find_lroverlap( VImage sec, int bandno, int xr, int yr, int xs, int ys, int halfcorrelation, int halfarea, int& dy0, double& scale1, double& angle1, double& dx1, double& dy1 )
+int VImage::_find_lroverlap( VImage sec, int bandno, int xr, int yr, int xs, int ys, int halfcorrelation, int halfarea, int& dy0, double& scale1, double& angle1, double& dx1, double& dy1 ) throw( VError )
 {
 	VImage ref = *this;
 	int dx0;
@@ -5514,7 +5532,7 @@ int VImage::_find_lroverlap( VImage sec, int bandno, int xr, int yr, int xs, int
 }
 
 // im__find_tboverlap: search for top-bottom overlap of ref and sec
-int VImage::_find_tboverlap( VImage sec, int bandno, int xr, int yr, int xs, int ys, int halfcorrelation, int halfarea, int& dy0, double& scale1, double& angle1, double& dx1, double& dy1 )
+int VImage::_find_tboverlap( VImage sec, int bandno, int xr, int yr, int xs, int ys, int halfcorrelation, int halfarea, int& dy0, double& scale1, double& angle1, double& dx1, double& dy1 ) throw( VError )
 {
 	VImage ref = *this;
 	int dx0;
@@ -5542,7 +5560,7 @@ int VImage::_find_tboverlap( VImage sec, int bandno, int xr, int yr, int xs, int
 }
 
 // im_global_balance: automatically rebuild mosaic with balancing
-VImage VImage::global_balance( double gamma )
+VImage VImage::global_balance( double gamma ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -5559,7 +5577,7 @@ VImage VImage::global_balance( double gamma )
 }
 
 // im_global_balancef: automatically rebuild mosaic with balancing, float output
-VImage VImage::global_balancef( double gamma )
+VImage VImage::global_balancef( double gamma ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -5576,7 +5594,7 @@ VImage VImage::global_balancef( double gamma )
 }
 
 // im_lrmerge: left-right merge of in1 and in2
-VImage VImage::lrmerge( VImage sec, int dx, int dy, int mwidth )
+VImage VImage::lrmerge( VImage sec, int dx, int dy, int mwidth ) throw( VError )
 {
 	VImage ref = *this;
 	VImage out;
@@ -5597,7 +5615,7 @@ VImage VImage::lrmerge( VImage sec, int dx, int dy, int mwidth )
 }
 
 // im_lrmerge1: first-order left-right merge of ref and sec
-VImage VImage::lrmerge1( VImage sec, int xr1, int yr1, int xs1, int ys1, int xr2, int yr2, int xs2, int ys2, int mwidth )
+VImage VImage::lrmerge1( VImage sec, int xr1, int yr1, int xs1, int ys1, int xr2, int yr2, int xs2, int ys2, int mwidth ) throw( VError )
 {
 	VImage ref = *this;
 	VImage out;
@@ -5624,7 +5642,7 @@ VImage VImage::lrmerge1( VImage sec, int xr1, int yr1, int xs1, int ys1, int xr2
 }
 
 // im_lrmosaic: left-right mosaic of ref and sec
-VImage VImage::lrmosaic( VImage sec, int bandno, int xr, int yr, int xs, int ys, int halfcorrelation, int halfarea, int balancetype, int mwidth )
+VImage VImage::lrmosaic( VImage sec, int bandno, int xr, int yr, int xs, int ys, int halfcorrelation, int halfarea, int balancetype, int mwidth ) throw( VError )
 {
 	VImage ref = *this;
 	VImage out;
@@ -5651,7 +5669,7 @@ VImage VImage::lrmosaic( VImage sec, int bandno, int xr, int yr, int xs, int ys,
 }
 
 // im_lrmosaic1: first-order left-right mosaic of ref and sec
-VImage VImage::lrmosaic1( VImage sec, int bandno, int xr1, int yr1, int xs1, int ys1, int xr2, int yr2, int xs2, int ys2, int halfcorrelation, int halfarea, int balancetype, int mwidth )
+VImage VImage::lrmosaic1( VImage sec, int bandno, int xr1, int yr1, int xs1, int ys1, int xr2, int yr2, int xs2, int ys2, int halfcorrelation, int halfarea, int balancetype, int mwidth ) throw( VError )
 {
 	VImage ref = *this;
 	VImage out;
@@ -5682,7 +5700,7 @@ VImage VImage::lrmosaic1( VImage sec, int bandno, int xr1, int yr1, int xs1, int
 }
 
 // im_match_linear: resample ref so that tie-points match
-VImage VImage::match_linear( VImage sec, int xref1, int yref1, int xsec1, int ysec1, int xref2, int yref2, int xsec2, int ysec2 )
+VImage VImage::match_linear( VImage sec, int xref1, int yref1, int xsec1, int ysec1, int xref2, int yref2, int xsec2, int ysec2 ) throw( VError )
 {
 	VImage ref = *this;
 	VImage out;
@@ -5708,7 +5726,7 @@ VImage VImage::match_linear( VImage sec, int xref1, int yref1, int xsec1, int ys
 }
 
 // im_match_linear_search: search sec, then resample so that tie-points match
-VImage VImage::match_linear_search( VImage sec, int xref1, int yref1, int xsec1, int ysec1, int xref2, int yref2, int xsec2, int ysec2, int hwindowsize, int hsearchsize )
+VImage VImage::match_linear_search( VImage sec, int xref1, int yref1, int xsec1, int ysec1, int xref2, int yref2, int xsec2, int ysec2, int hwindowsize, int hsearchsize ) throw( VError )
 {
 	VImage ref = *this;
 	VImage out;
@@ -5736,7 +5754,7 @@ VImage VImage::match_linear_search( VImage sec, int xref1, int yref1, int xsec1,
 }
 
 // im_maxpos_subpel: subpixel position of maximum of (phase correlation) image
-double VImage::maxpos_subpel( double& y )
+double VImage::maxpos_subpel( double& y ) throw( VError )
 {
 	VImage im = *this;
 	double x;
@@ -5752,7 +5770,7 @@ double VImage::maxpos_subpel( double& y )
 }
 
 // im_remosaic: automatically rebuild mosaic with new files
-VImage VImage::remosaic( char* old_str, char* new_str )
+VImage VImage::remosaic( char* old_str, char* new_str ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -5770,7 +5788,7 @@ VImage VImage::remosaic( char* old_str, char* new_str )
 }
 
 // im_tbmerge: top-bottom merge of in1 and in2
-VImage VImage::tbmerge( VImage sec, int dx, int dy, int mwidth )
+VImage VImage::tbmerge( VImage sec, int dx, int dy, int mwidth ) throw( VError )
 {
 	VImage ref = *this;
 	VImage out;
@@ -5791,7 +5809,7 @@ VImage VImage::tbmerge( VImage sec, int dx, int dy, int mwidth )
 }
 
 // im_tbmerge1: first-order top-bottom merge of in1 and in2
-VImage VImage::tbmerge1( VImage sec, int xr1, int yr1, int xs1, int ys1, int xr2, int yr2, int xs2, int ys2, int mwidth )
+VImage VImage::tbmerge1( VImage sec, int xr1, int yr1, int xs1, int ys1, int xr2, int yr2, int xs2, int ys2, int mwidth ) throw( VError )
 {
 	VImage ref = *this;
 	VImage out;
@@ -5818,7 +5836,7 @@ VImage VImage::tbmerge1( VImage sec, int xr1, int yr1, int xs1, int ys1, int xr2
 }
 
 // im_tbmosaic: top-bottom mosaic of in1 and in2
-VImage VImage::tbmosaic( VImage sec, int bandno, int xr, int yr, int xs, int ys, int halfcorrelation, int halfarea, int balancetype, int mwidth )
+VImage VImage::tbmosaic( VImage sec, int bandno, int xr, int yr, int xs, int ys, int halfcorrelation, int halfarea, int balancetype, int mwidth ) throw( VError )
 {
 	VImage ref = *this;
 	VImage out;
@@ -5845,7 +5863,7 @@ VImage VImage::tbmosaic( VImage sec, int bandno, int xr, int yr, int xs, int ys,
 }
 
 // im_tbmosaic1: first-order top-bottom mosaic of ref and sec
-VImage VImage::tbmosaic1( VImage sec, int bandno, int xr1, int yr1, int xs1, int ys1, int xr2, int yr2, int xs2, int ys2, int halfcorrelation, int halfarea, int balancetype, int mwidth )
+VImage VImage::tbmosaic1( VImage sec, int bandno, int xr1, int yr1, int xs1, int ys1, int xr2, int yr2, int xs2, int ys2, int halfcorrelation, int halfarea, int balancetype, int mwidth ) throw( VError )
 {
 	VImage ref = *this;
 	VImage out;
@@ -5878,9 +5896,9 @@ VImage VImage::tbmosaic1( VImage sec, int bandno, int xr1, int yr1, int xs1, int
 
 // bodies for package other
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:26:29 GMT 2017
 // im_benchmark: do something complicated for testing
-VImage VImage::benchmark()
+VImage VImage::benchmark() throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -5896,7 +5914,7 @@ VImage VImage::benchmark()
 }
 
 // im_benchmark2: do something complicated for testing
-double VImage::benchmark2()
+double VImage::benchmark2() throw( VError )
 {
 	VImage in = *this;
 	double value;
@@ -5911,7 +5929,7 @@ double VImage::benchmark2()
 }
 
 // im_benchmarkn: do something complicated for testing
-VImage VImage::benchmarkn( int n )
+VImage VImage::benchmarkn( int n ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -5928,7 +5946,7 @@ VImage VImage::benchmarkn( int n )
 }
 
 // im_eye: generate IM_BANDFMT_UCHAR [0,255] frequency/amplitude image
-VImage VImage::eye( int xsize, int ysize, double factor )
+VImage VImage::eye( int xsize, int ysize, double factor ) throw( VError )
 {
 	VImage out;
 
@@ -5944,7 +5962,7 @@ VImage VImage::eye( int xsize, int ysize, double factor )
 }
 
 // im_grey: generate IM_BANDFMT_UCHAR [0,255] grey scale image
-VImage VImage::grey( int xsize, int ysize )
+VImage VImage::grey( int xsize, int ysize ) throw( VError )
 {
 	VImage out;
 
@@ -5959,7 +5977,7 @@ VImage VImage::grey( int xsize, int ysize )
 }
 
 // im_feye: generate IM_BANDFMT_FLOAT [-1,1] frequency/amplitude image
-VImage VImage::feye( int xsize, int ysize, double factor )
+VImage VImage::feye( int xsize, int ysize, double factor ) throw( VError )
 {
 	VImage out;
 
@@ -5975,7 +5993,7 @@ VImage VImage::feye( int xsize, int ysize, double factor )
 }
 
 // im_fgrey: generate IM_BANDFMT_FLOAT [0,1] grey scale image
-VImage VImage::fgrey( int xsize, int ysize )
+VImage VImage::fgrey( int xsize, int ysize ) throw( VError )
 {
 	VImage out;
 
@@ -5990,7 +6008,7 @@ VImage VImage::fgrey( int xsize, int ysize )
 }
 
 // im_fzone: generate IM_BANDFMT_FLOAT [-1,1] zone plate image
-VImage VImage::fzone( int size )
+VImage VImage::fzone( int size ) throw( VError )
 {
 	VImage out;
 
@@ -6004,7 +6022,7 @@ VImage VImage::fzone( int size )
 }
 
 // im_make_xy: generate image with pixel value equal to coordinate
-VImage VImage::make_xy( int xsize, int ysize )
+VImage VImage::make_xy( int xsize, int ysize ) throw( VError )
 {
 	VImage out;
 
@@ -6019,7 +6037,7 @@ VImage VImage::make_xy( int xsize, int ysize )
 }
 
 // im_sines: generate 2D sine image
-VImage VImage::sines( int xsize, int ysize, double horfreq, double verfreq )
+VImage VImage::sines( int xsize, int ysize, double horfreq, double verfreq ) throw( VError )
 {
 	VImage out;
 
@@ -6036,7 +6054,7 @@ VImage VImage::sines( int xsize, int ysize, double horfreq, double verfreq )
 }
 
 // im_zone: generate IM_BANDFMT_UCHAR [0,255] zone plate image
-VImage VImage::zone( int size )
+VImage VImage::zone( int size ) throw( VError )
 {
 	VImage out;
 
@@ -6052,9 +6070,9 @@ VImage VImage::zone( int size )
 
 // bodies for package resample
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:26:29 GMT 2017
 // im_rightshift_size: decrease size by a power-of-two factor
-VImage VImage::rightshift_size( int xshift, int yshift, int band_fmt )
+VImage VImage::rightshift_size( int xshift, int yshift, int band_fmt ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -6073,7 +6091,7 @@ VImage VImage::rightshift_size( int xshift, int yshift, int band_fmt )
 }
 
 // im_shrink: shrink image by xfac, yfac times
-VImage VImage::shrink( double xfac, double yfac )
+VImage VImage::shrink( double xfac, double yfac ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -6091,7 +6109,7 @@ VImage VImage::shrink( double xfac, double yfac )
 }
 
 // im_stretch3: stretch 3%, sub-pixel displace by xdisp/ydisp
-VImage VImage::stretch3( double xdisp, double ydisp )
+VImage VImage::stretch3( double xdisp, double ydisp ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -6109,7 +6127,7 @@ VImage VImage::stretch3( double xdisp, double ydisp )
 }
 
 // im_affinei: affine transform
-VImage VImage::affinei( char* interpolate, double a, double b, double c, double d, double dx, double dy, int x, int y, int w, int h )
+VImage VImage::affinei( char* interpolate, double a, double b, double c, double d, double dx, double dy, int x, int y, int w, int h ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -6137,7 +6155,7 @@ VImage VImage::affinei( char* interpolate, double a, double b, double c, double 
 }
 
 // im_affinei_all: affine transform of whole image
-VImage VImage::affinei_all( char* interpolate, double a, double b, double c, double d, double dx, double dy )
+VImage VImage::affinei_all( char* interpolate, double a, double b, double c, double d, double dx, double dy ) throw( VError )
 {
 	VImage in = *this;
 	VImage out;
@@ -6163,9 +6181,9 @@ VImage VImage::affinei_all( char* interpolate, double a, double b, double c, dou
 
 // bodies for package video
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:26:29 GMT 2017
 // im_video_test: test video grabber
-VImage VImage::video_test( int brightness, int error )
+VImage VImage::video_test( int brightness, int error ) throw( VError )
 {
 	VImage out;
 
@@ -6180,7 +6198,7 @@ VImage VImage::video_test( int brightness, int error )
 }
 
 // im_video_v4l1: grab a video frame with v4l1
-VImage VImage::video_v4l1( char* device, int channel, int brightness, int colour, int contrast, int hue, int ngrabs )
+VImage VImage::video_v4l1( char* device, int channel, int brightness, int colour, int contrast, int hue, int ngrabs ) throw( VError )
 {
 	VImage out;
 

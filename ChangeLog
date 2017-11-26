@@ -28,7 +28,7 @@
 - vips_image_write() severs all links between images, when it can ... thanks
   Warren and Nakilon
 - vector path for convolution is more accurate and can handle larger masks
-- linear and cubic kernels for reduce are higer quality
+- linear and cubic kernels for reduce are higher quality
 - added vips_value_set_blob_free()
 - "--size Nx" to vipsthumbnail was broken, thanks jrochkind 
 - fix build with gcc 7
