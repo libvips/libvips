@@ -40,6 +40,8 @@
  * 	- don't wrap im_remainderconst_vec()
  * 31/12/12
  * 	- parse options in two passes (thanks Haida)
+ * 26/11/17
+ * 	- remove throw() decls, they are now deprecated everywhere
  */
 
 /*
@@ -574,7 +576,7 @@ c2cpp_name( const char *in, char *out )
 /* Print prototype for a function (ie. will be followed by code). 
  *
  * Eg.:
- *	VImage VImage::lin( double a, double b ) throw( VError )
+ *	VImage VImage::lin( double a, double b ) 
  */
 static void *
 print_cppproto( im_function *fn )
@@ -641,7 +643,7 @@ print_cppproto( im_function *fn )
 	 */
 	if( flg )
 		printf( " " );
-	printf( ") throw( VError )\n" );
+	printf( ")\n" );
 
 	return( NULL );
 }
@@ -649,7 +651,7 @@ print_cppproto( im_function *fn )
 /* Print cpp decl for a function. 
  *
  * Eg.
- *	VImage lin( double, double ) throw( VError );
+ *	VImage lin( double, double ) 
  */
 static void *
 print_cppdecl( im_function *fn )
@@ -728,7 +730,7 @@ print_cppdecl( im_function *fn )
 	if( flg )
 		printf( " " );
 
-	printf( ") throw( VError );\n" );
+	printf( ");\n" );
 
 	return( NULL );
 }
