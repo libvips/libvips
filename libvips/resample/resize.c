@@ -27,7 +27,7 @@
  * 15/10/17
  * 	- make LINEAR and CUBIC adaptive
  * 25/11/17
- * 	- deprecate --centre ... it's now automatic, thanks tback
+ * 	- deprecate --centre ... it's now always on, thanks tback
  */
 
 /*
@@ -215,6 +215,7 @@ vips_resize_build( VipsObject *object )
 		g_info( "residual reducev by %g", vscale );
 		if( vips_reducev( in, &t[2], 1.0 / vscale, 
 			"kernel", resize->kernel, 
+			"centre", TRUE, 
 			NULL ) )  
 			return( -1 );
 		in = t[2];
@@ -225,6 +226,7 @@ vips_resize_build( VipsObject *object )
 			hscale );
 		if( vips_reduceh( in, &t[3], 1.0 / hscale, 
 			"kernel", resize->kernel, 
+			"centre", TRUE, 
 			NULL ) )  
 			return( -1 );
 		in = t[3];
@@ -397,7 +399,7 @@ vips_resize_init( VipsResize *resize )
  * then the image is shrunk again to the 
  * target size with vips_reduce(). How much is done by vips_shrink() vs.
  * vips_reduce() varies with the @kernel setting. Downsizing is done with
- * corner convention.
+ * centre convention. 
  *
  * vips_resize() normally uses #VIPS_KERNEL_LANCZOS3 for the final reduce, you
  * can change this with @kernel.
