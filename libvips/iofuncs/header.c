@@ -962,6 +962,16 @@ vips_image_set( VipsImage *image, const char *name, GValue *value )
 	meta_init( image );
 	(void) meta_new( image, name, value );
 
+	/* If we're setting an EXIF data block, we need to automatically expand 
+	 * out all the tags. This will set things like xres/yres too.
+	 *
+	 * We do this herfe rather than in meta_new() since we don't want to
+	 * trigger on copy_fields.
+	 */
+	if( strcmp( name, VIPS_META_EXIF_NAME ) == 0 ) 
+		if( vips__exif_parse( image ) ) 
+			g_warning( "image_set: bad exif data" );
+
 #ifdef DEBUG
 	meta_sanity( image );
 #endif /*DEBUG*/

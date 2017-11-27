@@ -52,6 +52,9 @@ typedef struct _VipsMeta {
 	GValue value;			/* copy of value */
 } VipsMeta;
 
+int vips__exif_parse( VipsImage *image );
+int vips__exif_update( VipsImage *image );
+
 void vips_check_init( void );
 
 void vips__meta_init_types( void );

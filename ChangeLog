@@ -40,6 +40,7 @@
 - add gif-delay, gif-comment and gif-loop metadata
 - add dispose handling to gifload
 - deprecate the "centre" option for vips_resize(): it's now always on
+- setting the EXIF data block automatically sets other image tags
 
 29/8/17 started 8.5.9
 - make --fail stop jpeg read on any libjpeg warning, thanks @mceachen

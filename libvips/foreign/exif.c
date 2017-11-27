@@ -484,7 +484,7 @@ vips__exif_parse( VipsImage *image )
 		return( -1 ); 
 	}
 
-	/* Make sure all required fields are there before we attach to vips
+	/* Make sure all required fields are there before we attach the vips
 	 * metadata.
 	 */
 	exif_data_fix( ed );

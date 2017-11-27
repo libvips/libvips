@@ -53,6 +53,7 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pforeign.h"
 
