@@ -965,7 +965,7 @@ vips_image_set( VipsImage *image, const char *name, GValue *value )
 	/* If we're setting an EXIF data block, we need to automatically expand 
 	 * out all the tags. This will set things like xres/yres too.
 	 *
-	 * We do this herfe rather than in meta_new() since we don't want to
+	 * We do this here rather than in meta_new() since we don't want to
 	 * trigger on copy_fields.
 	 */
 	if( strcmp( name, VIPS_META_EXIF_NAME ) == 0 ) 
