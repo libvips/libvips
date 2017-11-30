@@ -7,23 +7,37 @@ libvips 8.6 is done! Though it's a bit late. This post summarizes what's new
 
 ## New operators
 
-There are five new operators. The largest is `vips_composite()`: this will
-composite a stack of transparent images together using PDF-style blending modes. For example, given the standard libtiff and libpng demo images:
+There are five new operators. The largest is
+[`vips_composite2()`](link-to-docs): this will composite a stack of
+transparent images together using PDF-style blending modes. For example,
+given the standard libtiff and libpng demo images:
 
 [![PNG and TIFF demo images]({{ site.baseurl }}/assets/images/tn_pngtiff.jpg)]({{ site.baseurl }}/assets/images/pngtiff.png)
 
 Running:
 
 ```
-$ vips composite "cramps.png png_demo1.png" x.png 2
+$ vips composite2 cramps.png png_demo1.png x.png over
 ```
 
 Gives:
 
 [![Composite of PNG and TIFF demo images]({{ site.baseurl }}/assets/images/tn_composite.jpg)]({{ site.baseurl }}/assets/images/composite.png)
 
+`over` is probably the most useful, but `composite2` supports all the [PDF blend
+modes](link-to-docs-when-we-have-them-up).
 
+`composite2` joins a pair of images, but you can join a whole array of images
+using an array of blend modes in a single operation with `composite`. Options
+let you control the compositing space and premultiplication.
 
+[`vips_fill_nearest()`](docs) Replaces every zero pixel in an image with the
+nearest non-zero pixel. For example:
+
+[![Fill nearest image]({{ site.baseurl }}/assets/images/tn_fill-nearest.jpg)]({{ site.baseurl }}/assets/images/fill-nearest.png)
+
+The zero pixels on the left have all been replaced. It's reasonably quick
+(under a second for that example on this old laptop):wq
 
 
 
