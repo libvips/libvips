@@ -7,7 +7,27 @@ libvips 8.6 is done! Though it's a bit late. This post summarizes what's new
 
 ## New operators
 
-There are five new operators. The largest is `vips_composite()`
+There are five new operators. The largest is `vips_composite()`: this will
+composite a stack of transparent images together using PDF-style blending modes. For example, given the standard libtiff and libpng demo images:
+
+[![PNG and TIFF demo images]({{ site.baseurl }}/assets/images/tn_pngtiff.jpg)]({{ site.baseurl }}/assets/images/pngtiff.png)
+
+Running:
+
+```
+$ vips composite "cramps.png png_demo1.png" x.png 2
+```
+
+Gives:
+
+[![Composite of PNG and TIFF demo images]({{ site.baseurl }}/assets/images/tn_composite.jpg)]({{ site.baseurl }}/assets/images/composite.png)
+
+
+
+
+
+
+stack of
 
 - add vips_find_trim(), search for non-background areas 
 - add vips_thumbnail_image()
