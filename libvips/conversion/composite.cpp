@@ -2,6 +2,8 @@
  *
  * 25/9/17
  * 	- from bandjoin.c
+ * 30/11/17
+ * 	- add composite2 class, to make a nice CLI interface
  */
 
 /*
@@ -91,7 +93,7 @@
  * VIPS_BLEND_MODE_DIFFERENCE:
  * VIPS_BLEND_MODE_EXCLUSION:
  *
- * The various Porter-Duff and PDF blend modes. See vips_composite(), 
+ * The various Porter-Duff and PDF blend modes. See vips_composite_base(), 
  * for example.
  *
  * The Cairo docs have a nice explanation of all the blend modes:
@@ -107,7 +109,7 @@
 typedef float v4f __attribute__((vector_size(4 * sizeof(float))));
 #endif /*HAVE_VECTOR_ARITH*/
 
-typedef struct _VipsComposite {
+typedef struct _VipsCompositeBase {
 	VipsConversion parent_instance;
 
 	/* The input images.
@@ -147,20 +149,38 @@ typedef struct _VipsComposite {
 	v4f max_band_vec;
 #endif /*HAVE_VECTOR_ARITH*/
 
-} VipsComposite;
+} VipsCompositeBase;
 
-typedef VipsConversionClass VipsCompositeClass;
+typedef VipsConversionClass VipsCompositeBaseClass;
 
 /* We need C linkage for this.
  */
 extern "C" {
-G_DEFINE_TYPE( VipsComposite, vips_composite, VIPS_TYPE_CONVERSION );
+G_DEFINE_ABSTRACT_TYPE( VipsCompositeBase, vips_composite_base, 
+	VIPS_TYPE_CONVERSION );
+}
+
+static void
+vips_composite_base_dispose( GObject *gobject )
+{
+	VipsCompositeBase *composite = (VipsCompositeBase *) gobject;
+
+	if( composite->in ) {
+		vips_area_unref( (VipsArea *) composite->in );
+		composite->in = NULL;
+	}
+	if( composite->mode ) {
+		vips_area_unref( (VipsArea *) composite->mode );
+		composite->mode = NULL;
+	}
+
+	G_OBJECT_CLASS( vips_composite_base_parent_class )->dispose( gobject );
 }
 
 /* For each of the supported interpretations, the maximum value of each band.
  */
 static int
-vips_composite_max_band( VipsComposite *composite, double *max_band )
+vips_composite_base_max_band( VipsCompositeBase *composite, double *max_band )
 {
 	double max_alpha;
 	int b;
@@ -263,7 +283,7 @@ vips_composite_max_band( VipsComposite *composite, double *max_band )
  */
 template <typename T>
 static void
-vips_composite_blend( VipsComposite *composite, 
+vips_composite_base_blend( VipsCompositeBase *composite, 
 	VipsBlendMode mode, double * restrict B, T * restrict p )
 {
 	const int bands = composite->bands;
@@ -495,7 +515,7 @@ vips_composite_blend( VipsComposite *composite,
  */
 template <typename T>
 static void
-vips_composite_blend3( VipsComposite *composite, 
+vips_composite_base_blend3( VipsCompositeBase *composite, 
 	VipsBlendMode mode, v4f &B, T * restrict p )
 {
 	v4f A;
@@ -702,7 +722,7 @@ vips_composite_blend3( VipsComposite *composite,
  */
 template <typename T, gint64 min_T, gint64 max_T>
 static void 
-vips_combine_pixels( VipsComposite *composite, VipsPel *q, VipsPel **p )
+vips_combine_pixels( VipsCompositeBase *composite, VipsPel *q, VipsPel **p )
 {
 	VipsBlendMode *m = (VipsBlendMode *) composite->mode->area.data;
 	int n = composite->n;
@@ -724,7 +744,7 @@ vips_combine_pixels( VipsComposite *composite, VipsPel *q, VipsPel **p )
 			B[b] *= aB;
 
 	for( int i = 1; i < n; i++ ) 
-		vips_composite_blend<T>( composite, m[i - 1], B, tp[i] ); 
+		vips_composite_base_blend<T>( composite, m[i - 1], B, tp[i] ); 
 
 	/* Unpremultiply, if necessary.
 	 */
@@ -761,7 +781,7 @@ vips_combine_pixels( VipsComposite *composite, VipsPel *q, VipsPel **p )
  */
 template <typename T, gint64 min_T, gint64 max_T>
 static void 
-vips_combine_pixels3( VipsComposite *composite, VipsPel *q, VipsPel **p )
+vips_combine_pixels3( VipsCompositeBase *composite, VipsPel *q, VipsPel **p )
 {
 	VipsBlendMode *m = (VipsBlendMode *) composite->mode->area.data;
 	int n = composite->n;
@@ -787,7 +807,7 @@ vips_combine_pixels3( VipsComposite *composite, VipsPel *q, VipsPel **p )
 	}
 
 	for( int i = 1; i < n; i++ ) 
-		vips_composite_blend3<T>( composite, m[i - 1], B, tp[i] ); 
+		vips_composite_base_blend3<T>( composite, m[i - 1], B, tp[i] ); 
 
 	/* Unpremultiply, if necessary.
 	 */
@@ -822,18 +842,18 @@ vips_combine_pixels3( VipsComposite *composite, VipsPel *q, VipsPel **p )
 #endif /*HAVE_VECTOR_ARITH*/
 
 static int
-vips_composite_gen( VipsRegion *output_region,
+vips_composite_base_gen( VipsRegion *output_region,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion **input_regions = (VipsRegion **) seq;
-	VipsComposite *composite = (VipsComposite *) b;
+	VipsCompositeBase *composite = (VipsCompositeBase *) b;
 	VipsRect *r = &output_region->valid;
 	int ps = VIPS_IMAGE_SIZEOF_PEL( output_region->im );
 
 	if( vips_reorder_prepare_many( output_region->im, input_regions, r ) )
 		return( -1 );
 
-	VIPS_GATE_START( "vips_composite_gen: work" );
+	VIPS_GATE_START( "vips_composite_base_gen: work" );
 
 	for( int y = 0; y < r->height; y++ ) {
 		VipsPel *p[MAX_INPUT_IMAGES];
@@ -927,17 +947,17 @@ vips_composite_gen( VipsRegion *output_region,
 		}
 	}
 
-	VIPS_GATE_STOP( "vips_composite_gen: work" );
+	VIPS_GATE_STOP( "vips_composite_base_gen: work" );
 
 	return( 0 );
 }
 
 static int
-vips_composite_build( VipsObject *object )
+vips_composite_base_build( VipsObject *object )
 {
 	VipsObjectClass *klass = VIPS_OBJECT_GET_CLASS( object );
 	VipsConversion *conversion = VIPS_CONVERSION( object );
-	VipsComposite *composite = (VipsComposite *) object;
+	VipsCompositeBase *composite = (VipsCompositeBase *) object;
 
 	VipsImage **in;
 	VipsImage **decode;
@@ -946,7 +966,8 @@ vips_composite_build( VipsObject *object )
 	VipsImage **size;
 	VipsBlendMode *mode;
 
-	if( VIPS_OBJECT_CLASS( vips_composite_parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_composite_base_parent_class )->
+		build( object ) )
 		return( -1 );
 
 	composite->n = composite->in->area.n;
@@ -1064,7 +1085,7 @@ vips_composite_build( VipsObject *object )
 
 	/* Set the max for each band now we know bands and compositing space.
 	 */
-	if( vips_composite_max_band( composite, composite->max_band ) ) {
+	if( vips_composite_base_max_band( composite, composite->max_band ) ) {
 		vips_error( klass->nickname, 
 			"%s", _( "unsupported compositing space" ) );
 		return( -1 ); 
@@ -1093,11 +1114,65 @@ vips_composite_build( VipsObject *object )
 		return( -1 );
 
 	if( vips_image_generate( conversion->out,
-		vips_start_many, vips_composite_gen, vips_stop_many,
+		vips_start_many, vips_composite_base_gen, vips_stop_many,
 		in, composite ) )
 		return( -1 );
 
 	return( 0 );
+}
+
+static void
+vips_composite_base_class_init( VipsCompositeBaseClass *klass )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( klass );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( klass );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( klass );
+
+	VIPS_DEBUG_MSG( "vips_composite_base_class_init\n" );
+
+	gobject_class->dispose = vips_composite_base_dispose;
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	vobject_class->nickname = "composite_base";
+	vobject_class->description = _( "blend images together" );
+	vobject_class->build = vips_composite_base_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+
+	VIPS_ARG_ENUM( klass, "compositing_space", 10,
+		_( "Compositing space" ),
+		_( "Composite images in this colour space" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsCompositeBase, compositing_space ),
+		VIPS_TYPE_INTERPRETATION, VIPS_INTERPRETATION_sRGB );
+
+	VIPS_ARG_BOOL( klass, "premultiplied", 11,
+		_( "Premultiplied" ),
+		_( "Images have premultiplied alpha" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsCompositeBase, premultiplied ),
+		FALSE );
+
+}
+
+static void
+vips_composite_base_init( VipsCompositeBase *composite )
+{
+	composite->compositing_space = VIPS_INTERPRETATION_sRGB;
+}
+
+typedef struct _VipsComposite {
+	VipsCompositeBase parent_instance;
+
+} VipsComposite;
+
+typedef VipsCompositeBaseClass VipsCompositeClass;
+
+/* We need C linkage for this.
+ */
+extern "C" {
+G_DEFINE_TYPE( VipsComposite, vips_composite, vips_composite_base_get_type() );
 }
 
 static void
@@ -1115,7 +1190,7 @@ vips_composite_class_init( VipsCompositeClass *klass )
 	vobject_class->nickname = "composite";
 	vobject_class->description =
 		_( "blend an array of images with an array of blend modes" );
-	vobject_class->build = vips_composite_build;
+	vobject_class->build = vips_composite_base_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
@@ -1123,36 +1198,21 @@ vips_composite_class_init( VipsCompositeClass *klass )
 		_( "Inputs" ),
 		_( "Array of input images" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsComposite, in ),
+		G_STRUCT_OFFSET( VipsCompositeBase, in ),
 		VIPS_TYPE_ARRAY_IMAGE );
 
 	VIPS_ARG_BOXED( klass, "mode", 3,
 		_( "Blend modes" ),
 		_( "Array of VipsBlendMode to join with" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsComposite, mode ),
+		G_STRUCT_OFFSET( VipsCompositeBase, mode ),
 		VIPS_TYPE_ARRAY_INT );
-
-	VIPS_ARG_ENUM( klass, "compositing_space", 10,
-		_( "Compositing space" ),
-		_( "Composite images in this colour space" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsComposite, compositing_space ),
-		VIPS_TYPE_INTERPRETATION, VIPS_INTERPRETATION_sRGB );
-
-	VIPS_ARG_BOOL( klass, "premultiplied", 11,
-		_( "Premultiplied" ),
-		_( "Images have premultiplied alpha" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsComposite, premultiplied ),
-		FALSE );
 
 }
 
 static void
 vips_composite_init( VipsComposite *composite )
 {
-	composite->compositing_space = VIPS_INTERPRETATION_sRGB;
 }
 
 static int
@@ -1232,6 +1292,94 @@ vips_composite( VipsImage **in, VipsImage **out, int n, int *mode, ... )
 	return( result );
 }
 
+typedef struct _VipsComposite2 {
+	VipsCompositeBase parent_instance;
+
+	VipsImage *base;
+	VipsImage *overlay;
+	VipsBlendMode mode;
+
+} VipsComposite2;
+
+typedef VipsCompositeBaseClass VipsComposite2Class;
+
+/* We need C linkage for this.
+ */
+extern "C" {
+G_DEFINE_TYPE( VipsComposite2, vips_composite2, vips_composite_base_get_type() );
+}
+
+static int
+vips_composite2_build( VipsObject *object )
+{
+	VipsCompositeBase *base = (VipsCompositeBase *) object;
+	VipsComposite2 *composite2 = (VipsComposite2 *) object;
+
+	if( composite2->overlay &&
+		composite2->base ) { 
+		VipsImage *in[3];
+		int mode[1];
+
+		in[0] = composite2->base;
+		in[1] = composite2->overlay;
+		in[2] = NULL;
+		base->in = vips_array_image_new( in, 2 );
+
+		mode[0] = (int) composite2->mode;
+		base->mode = vips_array_int_new( mode, 1 );
+	}
+
+	if( VIPS_OBJECT_CLASS( vips_composite2_parent_class )->build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_composite2_class_init( VipsCompositeClass *klass )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( klass );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( klass );
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( klass );
+
+	VIPS_DEBUG_MSG( "vips_composite_class_init\n" );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	vobject_class->nickname = "composite2";
+	vobject_class->description =
+		_( "blend a pair of images with a blend mode" );
+	vobject_class->build = vips_composite2_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+
+	VIPS_ARG_IMAGE( klass, "base", 0,
+		_( "Base" ),
+		_( "Base image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsComposite2, base ) );
+
+	VIPS_ARG_IMAGE( klass, "overlay", 1,
+		_( "Overlay" ),
+		_( "Overlay image" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsComposite2, overlay ) );
+
+	VIPS_ARG_ENUM( klass, "mode", 3,
+		_( "Blend mode" ),
+		_( "VipsBlendMode to join with" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsComposite2, mode ),
+		VIPS_TYPE_BLEND_MODE, VIPS_BLEND_MODE_OVER );
+
+}
+
+static void
+vips_composite2_init( VipsComposite2 *composite2 )
+{
+}
+
 /**
  * vips_composite2: (method)
  * @base: first input image
@@ -1240,7 +1388,7 @@ vips_composite( VipsImage **in, VipsImage **out, int n, int *mode, ... )
  * @mode: composite with this blend mode
  * @...: %NULL-terminated list of optional named arguments
  *
- * Composite @overlay on top of @base with @mode. See vips_composite().
+ * Composite @overlay on top of @base with @mode. See vips_composite_base().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -1250,16 +1398,11 @@ vips_composite2( VipsImage *base, VipsImage *overlay, VipsImage **out,
 {
 	va_list ap;
 	int result;
-	VipsImage *imagev[2];
-	int modev[1];
-
-	imagev[0] = base;
-	imagev[1] = overlay;
-	modev[0] = mode;
 
 	va_start( ap, mode );
-	result = vips_compositev( imagev, out, 2, modev, ap );
+	result = vips_call_split( "composite2", ap, base, overlay, out, mode );
 	va_end( ap );
 
 	return( result );
 }
+
