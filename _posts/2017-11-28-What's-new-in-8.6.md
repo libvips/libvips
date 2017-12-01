@@ -22,7 +22,7 @@ $ vips composite2 cramps.png png_demo1.png x.png over
 
 Gives:
 
-[![Composite of PNG and TIFF demo images]({{ site.baseurl }}/assets/images/tn_composite.jpg)]({{ site.baseurl }}/assets/images/composite.png)
+[![Composite of PNG and TIFF demo images]({{ site.baseurl }}/assets/images/tn_composite.png)]({{ site.baseurl }}/assets/images/composite.png)
 
 `over` is probably the most useful, but `composite2` supports all the [PDF blend
 modes](link-to-docs-when-we-have-them-up).
