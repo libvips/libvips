@@ -73,6 +73,8 @@
  * 	- better >4gb detection for zip output on older libgsfs
  * 18/8/17
  * 	- shut down the output earlier to flush zip output
+ * 24/11/17
+ * 	- output overlap-only tiles on edges, for better deepzoom spec 
  */
 
 /*
@@ -442,10 +444,10 @@ struct _VipsForeignSaveDz {
 	int compression;
 
 	/* Tile and overlap geometry. The members above are the parameters we
-	 * accept, this nest set are the derived values which are actually 
+	 * accept, this next set are the derived values which are actually 
 	 * used in pyramid generation.
 	 *
-	 * Tiles have a base size. Imagine a square placed at the top left.
+	 * Tiles have a base tile_size. Imagine a square placed at the top left.
 	 * This is the size of that square.
 	 *
 	 * Tiles have a margin. The square from tile_size is expanded outward 
@@ -569,8 +571,6 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	VipsForeignSave *save = VIPS_FOREIGN_SAVE( dz );
 	Layer *layer = VIPS_NEW( dz, Layer );
 
-	int right;
-	int bottom;
 	VipsRect strip;
 	int limit; 
 
@@ -578,17 +578,12 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 	layer->width = width;
 	layer->height = height;
 
-	/* The 0 position of the right-most possible tile.
+	/* We need to output all possible tiles, even if they give no new pixels.
 	 */
-	right = VIPS_MAX( 0, width - dz->tile_margin - dz->tile_size ); 
-
-	/* Tiles from that to the left edge will be spaced by tile step. The +1
-	 * is the tile we subtracted above. 
-	 */
-	layer->tiles_across = ceil( (double) right / dz->tile_step ) + 1; 
-
-	bottom = VIPS_MAX( 0, height - dz->tile_margin - dz->tile_size );
-	layer->tiles_down = ceil( (double) bottom / dz->tile_step ) + 1;
+	layer->tiles_across = VIPS_ROUND_UP( width, dz->tile_step ) / 
+		dz->tile_step;
+	layer->tiles_down = VIPS_ROUND_UP( height, dz->tile_step ) / 
+		dz->tile_step;
 
 	layer->real_pixels = *real_pixels; 
 
@@ -1508,6 +1503,23 @@ strip_arrived( Layer *layer )
 	return( 0 );
 }
 
+/* The image has been completely written. Flush any strips which might have
+ * overlaps in.
+ */
+static int
+strip_flush( Layer *layer )
+{
+	if( layer->y < layer->height )
+		if( strip_save( layer ) )
+			return( -1 );
+
+	if( layer->below )
+		if( strip_flush( layer->below ) )
+			return( -1 );
+
+	return( 0 );
+}
+
 /* Another strip of image pixels from vips_sink_disc(). Write into the top
  * pyramid layer. 
  */
@@ -1538,7 +1550,7 @@ pyramid_strip( VipsRegion *region, VipsRect *area, void *a )
 		 */
 		vips_rect_intersectrect( &target, area, &target );
 
-		/* Are we empty? All done.
+		/* Have we written all the pixels we were given? We are done. 
 		 */
 		if( vips_rect_isempty( &target ) ) 
 			break;
@@ -1563,6 +1575,23 @@ pyramid_strip( VipsRegion *region, VipsRect *area, void *a )
 			if( strip_arrived( layer ) ) 
 				return( -1 );
 		}
+	}
+
+	/* If we've reached the bottom of the image, we won't get called again.
+	 *
+	 * However, there may be some unwritten pixels in the pyramid still!
+	 * Suppose a layer is exactly a multiple of tile_step in height.
+	 * When we finished that last strip, we will have copied the last few
+	 * lines of overlap over into the top of the next row. Deepzoom says we
+	 * must flush these half-written strips to the output.
+	 */
+	if( layer->write_y == layer->height ) {
+#ifdef DEBUG
+		printf( "pyramid_strip: flushing ..\n" ); 
+#endif/*DEBUG*/
+
+		if( strip_flush( layer ) )
+			return( -1 );
 	}
 
 	return( 0 );
