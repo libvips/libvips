@@ -37,19 +37,24 @@ nearest non-zero pixel. For example:
 [![Fill nearest image]({{ site.baseurl }}/assets/images/tn_fill-nearest.jpg)]({{ site.baseurl }}/assets/images/fill-nearest.png)
 
 The zero pixels on the left have all been replaced. It's reasonably quick
-(under a second for that example on this old laptop):wq
+(about a second for that example on this old laptop) and doesn't need that much
+memory. It's handy for things like cell counting, where you want to assign cell
+pixels to the nearest nucleus.
 
+[`vips_find_trim()`](docs) searches an image in from the edges and returns the
+bounding box of the non-background pixels. It's handy for automatically 
+trimming away the edges from scanned images.
 
+[`vips_gravity()`](docs) places an image within a larger canvas, positioning
+the image according to a compass direction. It's just `vips_embed()` with a
+convenient interface.
 
-stack of
-
-- add vips_find_trim(), search for non-background areas 
-- add vips_thumbnail_image()
-- add vips_gravity() ... embed, but with direction rather than position
-- add vips_composite(): merge an array of images with porter-duff
-- add vips_fill_nearest() ... fill pixels with nearest colour
+[`vips_thumbnail_image()`](docs) lets you thumbnail any image source. It can be
+useful if you need to do something to an image before making a thumbnail.
 
 ## New features
+
+There are a few new options for existing operations.
 
 - add FORCE resize mode to break aspect ratio
 - thumbnail and vipsthumbnail have an option for rendering intent, thanks 
