@@ -31,7 +31,7 @@ modes](link-to-docs-when-we-have-them-up).
 using an array of blend modes in a single operation with `composite`. Options
 let you control the compositing space and premultiplication handling.
 
-[`vips_fill_nearest()`](docs) Replaces every zero pixel in an image with the
+[`vips_fill_nearest()`](docs) replaces every zero pixel in an image with the
 nearest non-zero pixel. For example:
 
 [![Fill nearest image]({{ site.baseurl }}/assets/images/tn_fill-nearest.jpg)]({{ site.baseurl }}/assets/images/fill-nearest.png)
