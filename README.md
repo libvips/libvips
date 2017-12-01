@@ -20,11 +20,11 @@ It has APIs for
 [C](http://jcupitt.github.io/libvips/API/current/using-from-c.html)
 and
 [C++](http://jcupitt.github.io/libvips/API/current/using-from-cpp.html)
-and comes with a [Python
-binding](http://jcupitt.github.io/libvips/API/current/using-from-python.html)
 and a [command-line
 interface](http://jcupitt.github.io/libvips/API/current/using-cli.html).
-Bindings are available for [Ruby](https://rubygems.org/gems/ruby-vips),
+Bindings are available for 
+[Python](https://pypi.python.org/pypi/pyvips),
+[Ruby](https://rubygems.org/gems/ruby-vips),
 [PHP](https://github.com/jcupitt/php-vips),
 [Go](https://github.com/davidbyttow/govips),
 [Lua](https://github.com/jcupitt/lua-vips),
