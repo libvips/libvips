@@ -23,7 +23,8 @@
 - better svgload: larger output, handle missing width/height, thanks lovell
 - add vips_gravity() ... embed, but with direction rather than position
 - vips_text() can autofit text to a box, thanks gargsms
-- add vips_composite(): merge an array of images with porter-duff
+- add vips_composite() / vips_composite2(): merge a set of images with 
+  a set of blend modes
 - better gobject-introspection annotations, thanks astavale 
 - vips_image_write() severs all links between images, when it can ... thanks
   Warren and Nakilon
