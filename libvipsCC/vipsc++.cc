@@ -1,7 +1,7 @@
 
 // bodies for package arithmetic
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 // im_abs: absolute value
 VImage VImage::abs()
 {
@@ -761,7 +761,7 @@ VImage VImage::tan()
 
 // bodies for package cimg
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 // im_greyc: noise-removing filter
 VImage VImage::greyc( int iterations, double amplitude, double sharpness, double anisotropy, double alpha, double sigma, double dl, double da, double gauss_prec, int interpolation, int fast_approx )
 {
@@ -821,7 +821,7 @@ VImage VImage::greyc_mask( VImage mask, int iterations, double amplitude, double
 
 // bodies for package colour
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 // im_LCh2Lab: convert LCh to Lab
 VImage VImage::LCh2Lab()
 {
@@ -1537,7 +1537,7 @@ VImage VImage::sRGB2XYZ()
 
 // bodies for package conversion
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 // im_gaussnoise: generate image of gaussian noise with specified statistics
 VImage VImage::gaussnoise( int xsize, int ysize, double mean, double sigma )
 {
@@ -2321,7 +2321,7 @@ VImage VImage::zoom( int xfac, int yfac )
 
 // bodies for package convolution
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 // im_aconvsep: approximate separable convolution
 VImage VImage::aconvsep( VDMask matrix, int n_layers )
 {
@@ -2624,7 +2624,7 @@ VImage VImage::spcor( VImage in2 )
 
 // bodies for package deprecated
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 // im_argb2rgba: convert pre-multipled argb to png-style rgba
 VImage VImage::argb2rgba()
 {
@@ -4116,7 +4116,7 @@ VImage VImage::quadratic( VImage coeff )
 
 // bodies for package format
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 // im_csv2vips: read a file in csv format
 VImage VImage::csv2vips( char* filename )
 {
@@ -4323,7 +4323,7 @@ void VImage::vips2tiff( char* out )
 
 // bodies for package freq_filt
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 // im_create_fmask: create frequency domain filter mask
 VImage VImage::create_fmask( int width, int height, int type, double p1, double p2, double p3, double p4, double p5 )
 {
@@ -4491,7 +4491,7 @@ VImage VImage::invfftr()
 
 // bodies for package histograms_lut
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 // im_gammacorrect: gamma-correct image
 VImage VImage::gammacorrect( double exponent )
 {
@@ -4938,7 +4938,7 @@ VImage VImage::tone_map( VImage lut )
 
 // bodies for package inplace
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 // im_draw_circle: draw circle on image
 void VImage::draw_circle( int cx, int cy, int radius, int fill, std::vector<double> ink )
 {
@@ -5136,7 +5136,7 @@ VImage VImage::line( VImage mask, VImage ink, std::vector<int> x1, std::vector<i
 
 // bodies for package iofuncs
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 // im_binfile: open a headerless binary file
 VImage VImage::binfile( char* filename, int width, int height, int bands, int offset )
 {
@@ -5162,6 +5162,24 @@ VImage VImage::cache( int tile_width, int tile_height, int max_tiles )
 	VImage out;
 
 	Vargv _vec( "im_cache" );
+
+	_vec.data(0) = in.image();
+	_vec.data(1) = out.image();
+	*((int*) _vec.data(2)) = tile_width;
+	*((int*) _vec.data(3)) = tile_height;
+	*((int*) _vec.data(4)) = max_tiles;
+	_vec.call();
+
+	return( out );
+}
+
+// im_tile_cache_random: cache results of an operation
+VImage VImage::tile_cache_random( int tile_width, int tile_height, int max_tiles )
+{
+	VImage in = *this;
+	VImage out;
+
+	Vargv _vec( "im_tile_cache_random" );
 
 	_vec.data(0) = in.image();
 	_vec.data(1) = out.image();
@@ -5280,11 +5298,11 @@ void VImage::printdesc()
 
 // bodies for package mask
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 
 // bodies for package morphology
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 // im_cntlines: count horizontal or vertical lines
 double VImage::cntlines( int direction )
 {
@@ -5445,7 +5463,7 @@ VImage VImage::profile( int direction )
 
 // bodies for package mosaicing
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 // im_align_bands: align the bands of an image
 VImage VImage::align_bands()
 {
@@ -5878,7 +5896,7 @@ VImage VImage::tbmosaic1( VImage sec, int bandno, int xr1, int yr1, int xs1, int
 
 // bodies for package other
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 // im_benchmark: do something complicated for testing
 VImage VImage::benchmark()
 {
@@ -6052,7 +6070,7 @@ VImage VImage::zone( int size )
 
 // bodies for package resample
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 // im_rightshift_size: decrease size by a power-of-two factor
 VImage VImage::rightshift_size( int xshift, int yshift, int band_fmt )
 {
@@ -6163,7 +6181,7 @@ VImage VImage::affinei_all( char* interpolate, double a, double b, double c, dou
 
 // bodies for package video
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 // im_video_test: test video grabber
 VImage VImage::video_test( int brightness, int error )
 {

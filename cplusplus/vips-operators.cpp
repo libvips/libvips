@@ -1,5 +1,5 @@
 // bodies for vips operations
-// Fri  6 Oct 16:30:42 BST 2017
+// Sun 26 Nov 17:44:23 GMT 2017
 // this file is generated automatically, do not edit!
 
 void VImage::system( char * cmd_format , VOption *options )
@@ -572,6 +572,21 @@ VImage VImage::embed( int x , int y , int width , int height , VOption *options 
             set( "out", &out ) ->
             set( "x", x ) ->
             set( "y", y ) ->
+            set( "width", width ) ->
+            set( "height", height ) );
+
+    return( out );
+}
+
+VImage VImage::gravity( VipsCompassDirection direction , int width , int height , VOption *options )
+{
+    VImage out;
+
+    call( "gravity" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "out", &out ) ->
+            set( "direction", direction ) ->
             set( "width", width ) ->
             set( "height", height ) );
 
@@ -2861,6 +2876,18 @@ VImage VImage::labelregions( VOption *options )
             set( "mask", &mask ) );
 
     return( mask );
+}
+
+VImage VImage::fill_nearest( VOption *options )
+{
+    VImage out;
+
+    call( "fill_nearest" ,
+        (options ? options : VImage::option()) ->
+            set( "in", *this ) ->
+            set( "out", &out ) );
+
+    return( out );
 }
 
 void VImage::draw_rect( std::vector<double> ink , int left , int top , int width , int height , VOption *options )

@@ -484,7 +484,7 @@ vips__exif_parse( VipsImage *image )
 		return( -1 ); 
 	}
 
-	/* Make sure all required fields are there before we attach to vips
+	/* Make sure all required fields are there before we attach the vips
 	 * metadata.
 	 */
 	exif_data_fix( ed );
@@ -1002,19 +1002,22 @@ vips_exif_update( ExifData *ed, VipsImage *image )
 
 	VIPS_DEBUG_MSG( "vips_exif_update: \n" );
 
-	/* Walk the image and update any stuff that's been changed in image
-	 * metadata.
+	/* Walk the image and add any exif- that's set in image metadata.
 	 */
 	vips_image_map( image, vips_exif_image_field, ed );
 
-	/* Walk the exif and look for any fields which are NOT in image
-	 * metadata. They must have been removed ... remove them from exif as
-	 * well.
+	/* If this exif came from the image (rather than being an exif block we
+	 * have made afresh), then any fields which are in the block but not on
+	 * the image must have been deliberately removed. Remove them from the
+	 * block as well.
 	 */
-	ve.image = image;
-	ve.ed = ed;
-	exif_data_foreach_content( ed, 
-		(ExifDataForeachContentFunc) vips_exif_exif_content, &ve );
+	if( vips_image_get_typeof( image, VIPS_META_EXIF_NAME ) ) {
+		ve.image = image;
+		ve.ed = ed;
+		exif_data_foreach_content( ed, 
+			(ExifDataForeachContentFunc) vips_exif_exif_content, 
+			&ve );
+	}
 }
 
 /* Examine the metadata tags on the image and update the EXIF block.

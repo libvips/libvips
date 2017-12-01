@@ -5,6 +5,8 @@
  *
  * 25/5/16
  * 	- max_alpha defaults to 65535 for RGB16/GREY16
+ * 24/11/17 lovell
+ * 	- match normalised alpha to output type
  */
 
 /*
@@ -75,8 +77,8 @@ G_DEFINE_TYPE( VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION );
 	\
 	for( x = 0; x < width; x++ ) { \
 		IN alpha = p[bands - 1]; \
-		int clip_alpha = VIPS_CLIP( 0, alpha, max_alpha ); \
-		double nalpha = (double) clip_alpha / max_alpha; \
+		IN clip_alpha = VIPS_CLIP( 0, alpha, max_alpha ); \
+		OUT nalpha = (OUT) clip_alpha / max_alpha; \
 		\
 		if( clip_alpha == 0 ) \
 			for( i = 0; i < bands - 1; i++ ) \
@@ -99,8 +101,8 @@ G_DEFINE_TYPE( VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION );
 	\
 	for( x = 0; x < width; x++ ) { \
 		IN alpha = p[3]; \
-		int clip_alpha = VIPS_CLIP( 0, alpha, max_alpha ); \
-		double nalpha = (double) clip_alpha / max_alpha; \
+		IN clip_alpha = VIPS_CLIP( 0, alpha, max_alpha ); \
+		OUT nalpha = (OUT) clip_alpha / max_alpha; \
 		\
 		if( clip_alpha == 0 ) { \
 			q[0] = 0; \

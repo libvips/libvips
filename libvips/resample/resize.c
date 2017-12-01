@@ -26,6 +26,8 @@
  * 	- moved the cache to shrinkv
  * 15/10/17
  * 	- make LINEAR and CUBIC adaptive
+ * 25/11/17
+ * 	- deprecate --centre ... it's now always on, thanks tback
  */
 
 /*
@@ -84,13 +86,13 @@ typedef struct _VipsResize {
 	double scale;
 	double vscale;
 	VipsKernel kernel;
-	gboolean centre;
 
 	/* Deprecated.
 	 */
 	VipsInterpolate *interpolate;
 	double idx;
 	double idy;
+	gboolean centre;
 
 } VipsResize;
 
@@ -213,7 +215,7 @@ vips_resize_build( VipsObject *object )
 		g_info( "residual reducev by %g", vscale );
 		if( vips_reducev( in, &t[2], 1.0 / vscale, 
 			"kernel", resize->kernel, 
-			"centre", resize->centre, 
+			"centre", TRUE, 
 			NULL ) )  
 			return( -1 );
 		in = t[2];
@@ -224,7 +226,7 @@ vips_resize_build( VipsObject *object )
 			hscale );
 		if( vips_reduceh( in, &t[3], 1.0 / hscale, 
 			"kernel", resize->kernel, 
-			"centre", resize->centre, 
+			"centre", TRUE, 
 			NULL ) )  
 			return( -1 );
 		in = t[3];
@@ -235,6 +237,12 @@ vips_resize_build( VipsObject *object )
 	if( hscale > 1.0 ||
 		vscale > 1.0 ) { 
 		const char *nickname = vips_resize_interpolate( resize->kernel );
+
+		/* Input displacement. For centre sampling, shift by 0.5 down
+		 * and right.
+		 */
+		const double id = 0.5;
+
 		VipsInterpolate *interpolate;
 
 		if( !(interpolate = vips_interpolate_new( nickname )) )
@@ -257,6 +265,8 @@ vips_resize_build( VipsObject *object )
 			if( vips_affine( in, &t[4], 
 				hscale, 0.0, 0.0, vscale, 
 				"interpolate", interpolate, 
+				"idx", id, 
+				"idy", id, 
 				NULL ) )  
 				return( -1 );
 			in = t[4];
@@ -265,6 +275,8 @@ vips_resize_build( VipsObject *object )
 			g_info( "residual scale %g", hscale );
 			if( vips_affine( in, &t[4], hscale, 0.0, 0.0, 1.0, 
 				"interpolate", interpolate, 
+				"idx", id, 
+				"idy", id, 
 				NULL ) )  
 				return( -1 );
 			in = t[4];
@@ -273,6 +285,8 @@ vips_resize_build( VipsObject *object )
 			g_info( "residual scale %g", vscale );
 			if( vips_affine( in, &t[4], 1.0, 0.0, 0.0, vscale, 
 				"interpolate", interpolate, 
+				"idx", id, 
+				"idy", id, 
 				NULL ) )  
 				return( -1 );
 			in = t[4];
@@ -324,13 +338,6 @@ vips_resize_class_init( VipsResizeClass *class )
 		G_STRUCT_OFFSET( VipsResize, kernel ),
 		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
 
-	VIPS_ARG_BOOL( class, "centre", 7, 
-		_( "Centre" ), 
-		_( "Use centre sampling convention" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsResize, centre ),
-		FALSE );
-
 	/* We used to let people set the input offset so you could pick centre
 	 * or corner interpolation, but it's not clear this was useful. 
 	 */
@@ -356,6 +363,15 @@ vips_resize_class_init( VipsResizeClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED, 
 		G_STRUCT_OFFSET( VipsResize, interpolate ) );
 
+	/* We used to let people pick centre or corner, but it's automatic now.
+	 */
+	VIPS_ARG_BOOL( class, "centre", 7, 
+		_( "Centre" ), 
+		_( "Use centre sampling convention" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsResize, centre ),
+		FALSE );
+
 }
 
 static void
@@ -375,7 +391,6 @@ vips_resize_init( VipsResize *resize )
  *
  * * @vscale: %gdouble vertical scale factor
  * * @kernel: #VipsKernel to reduce with 
- * * @centre: %gboolean use centre rather than corner sampling convention
  *
  * Resize an image. 
  *
@@ -383,17 +398,16 @@ vips_resize_init( VipsResize *resize )
  * image is block-shrunk with vips_shrink(), 
  * then the image is shrunk again to the 
  * target size with vips_reduce(). How much is done by vips_shrink() vs.
- * vips_reduce() varies with the @kernel setting. 
+ * vips_reduce() varies with the @kernel setting. Downsizing is done with
+ * centre convention. 
  *
  * vips_resize() normally uses #VIPS_KERNEL_LANCZOS3 for the final reduce, you
  * can change this with @kernel.
  *
- * Set @centre to use centre rather than corner sampling convention. Centre
- * convention can be useful to match the behaviour of other systems. 
- *
  * When upsizing (@scale > 1), the operation uses vips_affine() with
  * a #VipsInterpolate selected depending on @kernel. It will use
- * #VipsInterpolateBicubic for #VIPS_KERNEL_CUBIC and above.
+ * #VipsInterpolateBicubic for #VIPS_KERNEL_CUBIC and above. It adds a
+ * 0.5 pixel displacement to the input pixels to get centre convention scaling.
  *
  * vips_resize() normally maintains the image aspect ratio. If you set
  * @vscale, that factor is used for the vertical scale and @scale for the

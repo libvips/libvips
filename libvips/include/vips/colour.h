@@ -204,6 +204,10 @@ float vips_col_Chcmc2h( float C, float hcmc );
 
 int vips_col_sRGB2scRGB_8( int r, int g, int b, float *R, float *G, float *B );
 int vips_col_sRGB2scRGB_16( int r, int g, int b, float *R, float *G, float *B );
+int vips_col_sRGB2scRGB_8_noclip( int r, int g, int b, 
+	float *R, float *G, float *B );
+int vips_col_sRGB2scRGB_16_noclip( int r, int g, int b, 
+	float *R, float *G, float *B );
 
 int vips_col_scRGB2XYZ( float R, float G, float B, 
 	float *X, float *Y, float *Z );

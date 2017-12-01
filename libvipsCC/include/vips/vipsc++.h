@@ -1,7 +1,7 @@
 
 // headers for package arithmetic
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 VImage abs();
 VImage acos();
 VImage add( VImage add_in2 );
@@ -49,13 +49,13 @@ VImage tan();
 
 // headers for package cimg
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 VImage greyc( int greyc_iterations, double greyc_amplitude, double greyc_sharpness, double greyc_anisotropy, double greyc_alpha, double greyc_sigma, double greyc_dl, double greyc_da, double greyc_gauss_prec, int greyc_interpolation, int greyc_fast_approx );
 VImage greyc_mask( VImage greyc_mask_mask, int greyc_mask_iterations, double greyc_mask_amplitude, double greyc_mask_sharpness, double greyc_mask_anisotropy, double greyc_mask_alpha, double greyc_mask_sigma, double greyc_mask_dl, double greyc_mask_da, double greyc_mask_gauss_prec, int greyc_mask_interpolation, int greyc_mask_fast_approx );
 
 // headers for package colour
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 VImage LCh2Lab();
 VImage LCh2UCS();
 VImage Lab2LCh();
@@ -101,7 +101,7 @@ VImage sRGB2XYZ();
 
 // headers for package conversion
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 static VImage gaussnoise( int gaussnoise_xsize, int gaussnoise_ysize, double gaussnoise_mean, double gaussnoise_sigma );
 VImage bandjoin( VImage bandjoin_in2 );
 static VImage black( int black_x_size, int black_y_size, int black_bands );
@@ -149,7 +149,7 @@ VImage zoom( int zoom_xfac, int zoom_yfac );
 
 // headers for package convolution
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 VImage aconvsep( VDMask aconvsep_matrix, int aconvsep_n_layers );
 VImage aconv( VDMask aconv_matrix, int aconv_n_layers, int aconv_cluster );
 VImage addgnoise( double addgnoise_sigma );
@@ -170,7 +170,7 @@ VImage spcor( VImage spcor_in2 );
 
 // headers for package deprecated
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 VImage argb2rgba();
 VImage flood_copy( int flood_copy_start_x, int flood_copy_start_y, std::vector<double> flood_copy_ink );
 VImage flood_blob_copy( int flood_blob_copy_start_x, int flood_blob_copy_start_y, std::vector<double> flood_blob_copy_ink );
@@ -257,7 +257,7 @@ VImage quadratic( VImage quadratic_coeff );
 
 // headers for package format
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 static VImage csv2vips( char* csv2vips_filename );
 static VImage fits2vips( char* fits2vips_in );
 static VImage jpeg2vips( char* jpeg2vips_in );
@@ -277,7 +277,7 @@ void vips2tiff( char* vips2tiff_out );
 
 // headers for package freq_filt
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 static VImage create_fmask( int create_fmask_width, int create_fmask_height, int create_fmask_type, double create_fmask_p1, double create_fmask_p2, double create_fmask_p3, double create_fmask_p4, double create_fmask_p5 );
 VImage disp_ps();
 VImage flt_image_freq( int flt_image_freq_type, double flt_image_freq_p1, double flt_image_freq_p2, double flt_image_freq_p3, double flt_image_freq_p4, double flt_image_freq_p5 );
@@ -291,7 +291,7 @@ VImage invfftr();
 
 // headers for package histograms_lut
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 VImage gammacorrect( double gammacorrect_exponent );
 VImage heq( int heq_band_number );
 VImage hist( int hist_band_number );
@@ -321,7 +321,7 @@ VImage tone_map( VImage tone_map_lut );
 
 // headers for package inplace
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 void draw_circle( int draw_circle_cx, int draw_circle_cy, int draw_circle_radius, int draw_circle_fill, std::vector<double> draw_circle_ink );
 void draw_rect( int draw_rect_left, int draw_rect_top, int draw_rect_width, int draw_rect_height, int draw_rect_fill, std::vector<double> draw_rect_ink );
 void draw_line( int draw_line_x1, int draw_line_y1, int draw_line_x2, int draw_line_y2, std::vector<double> draw_line_ink );
@@ -336,9 +336,10 @@ VImage line( VImage line_mask, VImage line_ink, std::vector<int> line_x1, std::v
 
 // headers for package iofuncs
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 static VImage binfile( char* binfile_filename, int binfile_width, int binfile_height, int binfile_bands, int binfile_offset );
 VImage cache( int cache_tile_width, int cache_tile_height, int cache_max_tiles );
+VImage tile_cache_random( int tile_cache_random_tile_width, int tile_cache_random_tile_height, int tile_cache_random_max_tiles );
 char* getext();
 int header_get_typeof( char* header_get_typeof_field );
 int header_int( char* header_int_field );
@@ -349,11 +350,11 @@ void printdesc();
 
 // headers for package mask
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 
 // headers for package morphology
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 double cntlines( int cntlines_direction );
 VImage dilate( VIMask dilate_mask );
 VImage rank( int rank_xsize, int rank_ysize, int rank_n );
@@ -366,7 +367,7 @@ VImage profile( int profile_direction );
 
 // headers for package mosaicing
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 VImage align_bands();
 double correl( VImage correl_sec, int correl_xref, int correl_yref, int correl_xsec, int correl_ysec, int correl_hwindowsize, int correl_hsearchsize, int& correl_x, int& correl_y );
 int _find_lroverlap( VImage _find_lroverlap_sec, int _find_lroverlap_bandno, int _find_lroverlap_xr, int _find_lroverlap_yr, int _find_lroverlap_xs, int _find_lroverlap_ys, int _find_lroverlap_halfcorrelation, int _find_lroverlap_halfarea, int& _find_lroverlap_dy0, double& _find_lroverlap_scale1, double& _find_lroverlap_angle1, double& _find_lroverlap_dx1, double& _find_lroverlap_dy1 );
@@ -388,7 +389,7 @@ VImage tbmosaic1( VImage tbmosaic1_sec, int tbmosaic1_bandno, int tbmosaic1_xr1,
 
 // headers for package other
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 VImage benchmark();
 double benchmark2();
 VImage benchmarkn( int benchmarkn_n );
@@ -403,7 +404,7 @@ static VImage zone( int zone_size );
 
 // headers for package resample
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 VImage rightshift_size( int rightshift_size_xshift, int rightshift_size_yshift, int rightshift_size_band_fmt );
 VImage shrink( double shrink_xfac, double shrink_yfac );
 VImage stretch3( double stretch3_xdisp, double stretch3_ydisp );
@@ -412,7 +413,7 @@ VImage affinei_all( char* affinei_all_interpolate, double affinei_all_a, double 
 
 // headers for package video
 // this file automatically generated from
-// VIPS library 7.34.0-Tue Jun 11 11:18:24 BST 2013
+// VIPS library 8.6.0-Sun Nov 26 17:45:39 GMT 2017
 static VImage video_test( int video_test_brightness, int video_test_error );
 static VImage video_v4l1( char* video_v4l1_device, int video_v4l1_channel, int video_v4l1_brightness, int video_v4l1_colour, int video_v4l1_contrast, int video_v4l1_hue, int video_v4l1_ngrabs );
 

@@ -416,11 +416,8 @@ vips_thumbnail_build( VipsObject *object )
 	vips_thumbnail_calculate_shrink( thumbnail, 
 		in->Xsize, in->Ysize, &hshrink, &vshrink );
 
-	/* Use centre convention to better match imagemagick.
-	 */
 	if( vips_resize( in, &t[4], 1.0 / hshrink, 
 		"vscale", 1.0 / vshrink, 
-		"centre", TRUE, 
 		NULL ) ) 
 		return( -1 );
 	in = t[4];

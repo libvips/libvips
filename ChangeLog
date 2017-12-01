@@ -28,7 +28,7 @@
 - vips_image_write() severs all links between images, when it can ... thanks
   Warren and Nakilon
 - vector path for convolution is more accurate and can handle larger masks
-- linear and cubic kernels for reduce are higer quality
+- linear and cubic kernels for reduce are higher quality
 - added vips_value_set_blob_free()
 - "--size Nx" to vipsthumbnail was broken, thanks jrochkind 
 - fix build with gcc 7
@@ -41,6 +41,8 @@
 - add dispose handling to gifload
 - dzsave outputs extra right and bottom overlap-only tiles, for closer spec
   adherence
+- deprecate the "centre" option for vips_resize(): it's now always on
+- setting the EXIF data block automatically sets other image tags
 
 29/8/17 started 8.5.9
 - make --fail stop jpeg read on any libjpeg warning, thanks @mceachen

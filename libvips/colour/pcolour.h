@@ -205,6 +205,17 @@ GType vips_colour_difference_get_type( void );
 void vips__pythagoras_line( VipsColour *colour, 
 	VipsPel *out, VipsPel **in, int width );
 
+/* Colour tables for Y<->v conversion. Call vips_col_make_tables_RGB_8() and
+ * vips_col_make_tables_RGB_16() before use to initialize.
+ */
+extern int vips_Y2v_8[256 + 1];
+extern float vips_v2Y_8[256];
+extern int vips_Y2v_16[65536 + 1];
+extern float vips_v2Y_16[65536];
+
+void vips_col_make_tables_RGB_8( void );
+void vips_col_make_tables_RGB_16( void );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
