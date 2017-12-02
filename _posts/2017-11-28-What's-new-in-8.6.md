@@ -2,15 +2,17 @@
 title: What's new in 8.6
 ---
 
-libvips 8.6 is done! Though it's a bit late. This post summarizes what's new
--- check the [ChangeLog](link) if you need more details. 
+libvips 8.6 is done! Though it's a bit
+late. This post summarizes what's new -- check the
+[ChangeLog](https://github.com/jcupitt/libvips/blob/master/ChangeLog)
+if you need more details.
 
 ## New operators
 
-There are five new operators. The largest is
-[`vips_composite2()`](link-to-docs): this will composite a pair of
-transparent images together using PDF-style blending modes. For example,
-given the standard libtiff and libpng demo images:
+There are five new operators. The largest is [`vips_composite2()`]({{
+site.baseurl }}/API/8.6/libvips-conversion.html#vips-composite2): this will
+composite a pair of transparent images together using PDF-style blending
+modes. For example, given the standard libtiff and libpng demo images:
 
 [![PNG and TIFF demo images]({{ site.baseurl }}/assets/images/tn_pngtiff.png)]({{ site.baseurl }}/assets/images/pngtiff.png)
 
@@ -25,14 +27,15 @@ Gives:
 [![Composite of PNG and TIFF demo images]({{ site.baseurl }}/assets/images/tn_composite.jpg)]({{ site.baseurl }}/assets/images/composite.png)
 
 `over` is probably the most useful, but `composite2` supports all the [PDF blend
-modes](link-to-docs-when-we-have-them-up).
+modes]({{ site.baseurl }}/API/8.6/libvips-conversion.html#VipsBlendMode).
 
 `composite2` joins a pair of images, but you can join a whole array of images
 using an array of blend modes in a single operation with `composite`. Options
 let you control the compositing space and premultiplication handling.
 
-[`vips_fill_nearest()`](docs) replaces every zero pixel in an image with the
-nearest non-zero pixel. For example:
+[`vips_fill_nearest()`]({{ site.baseurl
+}}/API/8.6/libvips-morphology.html#vips-fill-nearest) replaces every zero
+pixel in an image with the nearest non-zero pixel. For example:
 
 [![Fill nearest image]({{ site.baseurl }}/assets/images/tn_fill-nearest.jpg)]({{ site.baseurl }}/assets/images/fill-nearest.png)
 
@@ -41,40 +44,50 @@ The zero pixels on the left have all been replaced. It's reasonably quick
 memory. It's handy for things like cell counting, where you want to assign cell
 pixels to the nearest nucleus.
 
-[`vips_find_trim()`](docs) searches an image in from the edges and returns the
-bounding box of the non-background pixels. It's useful for automatically 
-trimming away the edges from scanned images.
+[`vips_find_trim()`]({{ site.baseurl
+}}/API/8.6/libvips-arithmetic.html#vips-find-trim) searches an image in from
+the edges and returns the bounding box of the non-background pixels. It's
+useful for automatically trimming away the edges from scanned images.
 
-[`vips_gravity()`](docs) places an image within a larger canvas, positioning
-the image according to a compass direction. It's just `vips_embed()` with a
-convenient interface.
+[`vips_gravity()`]({{ site.baseurl
+}}/API/8.6/libvips-conversion.html#vips-gravity) places an image within a
+larger canvas, positioning the image according to a compass direction. It's
+just `vips_embed()` with a convenient interface.
 
-[`vips_thumbnail_image()`](docs) lets you thumbnail any image source. It can be
+[`vips_thumbnail_image()`]({{ site.baseurl }}/API/8.6/libvips-resample.html#vips-thumbnail-image) lets you thumbnail any image source. It can be
 useful if you need to do something to an image before making a thumbnail.
 
 ## New features
 
 There are a few new options for existing operations.
 
-* A `FORCE` resize mode lets you break the image aspect ratio in resizing. 
+* A `FORCE` [resize
+  mode]({{ site.baseurl }}/API/8.6/libvips-resample.html#VipsSize) lets
+  you break the image aspect ratio in resizing.
 
-* `thumbnail` and `vipsthumbnail` have an option for rendering intent, credit
-  to kleisauke.
+* `thumbnail` and `vipsthumbnail` have an [option for rendering
+  intent]({{ site.baseurl }}/API/8.6/libvips-resample.html#vips-thumbnail),
+  credit to kleisauke.
 
-* `vips_text()` can autofit text to a box. You give the size of the box to
-  fill, and it'll automatically search for a DPI that just fills that area. 
+* [`vips_text()`]({{ site.baseurl }}/API/8.6/libvips-create.html#vips-text)
+  can autofit text to a box. You give the size of the box to fill,
+  and it'll automatically search for a DPI that just fills that area.
   Credit to gargsms.
 
-* `VIPS_COMBINE_MIN` is a new combining mode for `vips_compass()`, handy for
-  estimating gradients. 
+* [`VIPS_COMBINE_MIN`]({{ site.baseurl
+  }}/API/8.6/libvips-convolution.html#VipsCombine) is a new combining mode
+  for `vips_compass()`, handy for estimating gradients.
 
-* `vips_hist_find_indexed()` now has a `combine` parameter. This makes it
-  possible to quickly find the bounding boxes of a large number of objects, for
-  example.
+* [`vips_hist_find_indexed()`]({{ site.baseurl
+  }}/API/8.6/libvips-arithmetic.html#vips-hist-find-indexed) now has a
+  `combine` parameter. This makes it possible to quickly find the bounding
+  boxes of a large number of objects, for example.
 
-* `vips_affine()` and `vips_similarity()` have a `background` parameter.
-  Previously, they always used 0 for new pixels and you had to composite on
-  something else somehow.
+* [`vips_affine()`]({{ site.baseurl
+  }}/API/8.6/libvips-resample.html#vips-affine) and [`vips_similarity()`]({{
+  site.baseurl }}/API/8.6/libvips-resample.html#vips-similarity) have a
+  `background` parameter.  Previously, they always used 0 for new pixels
+  and you had to composite on something else somehow.
 
 * The nasty jaggies on the edges of affine output have been fixed, credit to
   chregu.
