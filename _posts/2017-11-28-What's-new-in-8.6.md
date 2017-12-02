@@ -42,7 +42,7 @@ memory. It's handy for things like cell counting, where you want to assign cell
 pixels to the nearest nucleus.
 
 [`vips_find_trim()`](docs) searches an image in from the edges and returns the
-bounding box of the non-background pixels. It's handy for automatically 
+bounding box of the non-background pixels. It's useful for automatically 
 trimming away the edges from scanned images.
 
 [`vips_gravity()`](docs) places an image within a larger canvas, positioning
