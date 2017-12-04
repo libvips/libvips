@@ -1388,7 +1388,7 @@ vips_composite2_init( VipsComposite2 *composite2 )
  * @mode: composite with this blend mode
  * @...: %NULL-terminated list of optional named arguments
  *
- * Composite @overlay on top of @base with @mode. See vips_composite_base().
+ * Composite @overlay on top of @base with @mode. See vips_composite().
  *
  * Returns: 0 on success, -1 on error
  */
