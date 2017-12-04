@@ -132,38 +132,40 @@
 
 /**
  * VipsBlendMode:
- * VIPS_BLEND_MODE_CLEAR:
- * VIPS_BLEND_MODE_SOURCE:
- * VIPS_BLEND_MODE_OVER:
- * VIPS_BLEND_MODE_IN:
- * VIPS_BLEND_MODE_OUT:
- * VIPS_BLEND_MODE_ATOP:
- * VIPS_BLEND_MODE_DEST:
- * VIPS_BLEND_MODE_DEST_OVER:
- * VIPS_BLEND_MODE_DEST_IN:
- * VIPS_BLEND_MODE_DEST_OUT:
- * VIPS_BLEND_MODE_DEST_ATOP:
- * VIPS_BLEND_MODE_XOR:
- * VIPS_BLEND_MODE_ADD:
- * VIPS_BLEND_MODE_SATURATE:
- * VIPS_BLEND_MODE_MULTIPLY:
- * VIPS_BLEND_MODE_SCREEN:
- * VIPS_BLEND_MODE_OVERLAY:
- * VIPS_BLEND_MODE_DARKEN:
- * VIPS_BLEND_MODE_LIGHTEN:
- * VIPS_BLEND_MODE_COLOUR_DODGE:
- * VIPS_BLEND_MODE_COLOUR_BURN:
- * VIPS_BLEND_MODE_HARD_LIGHT:
- * VIPS_BLEND_MODE_SOFT_LIGHT:
- * VIPS_BLEND_MODE_DIFFERENCE:
- * VIPS_BLEND_MODE_EXCLUSION:
+ * VIPS_BLEND_MODE_CLEAR: Where the second object is drawn, the first is removed.
+ * VIPS_BLEND_MODE_SOURCE: The second object is drawn as if nothing were below.
+ * VIPS_BLEND_MODE_OVER: The image shows what you would expect if you held two semi-transparent slides on top of each other.
+ * VIPS_BLEND_MODE_IN: The first object is removed completely, the second is only drawn where the first was.
+ * VIPS_BLEND_MODE_OUT: The second is drawn only where the first isn't. 
+ * VIPS_BLEND_MODE_ATOP: This leaves the first object mostly intact, but mixes both objects in the overlapping area.
+ * VIPS_BLEND_MODE_DEST: Leaves the first object untouched, the second is discarded completely.
+ * VIPS_BLEND_MODE_DEST_OVER: Like OVER, but swaps the arguments.
+ * VIPS_BLEND_MODE_DEST_IN: Like IN, but swaps the arguments. 
+ * VIPS_BLEND_MODE_DEST_OUT: Like OUT, but swaps the arguments. 
+ * VIPS_BLEND_MODE_DEST_ATOP: Like ATOP, but swaps the arguments. 
+ * VIPS_BLEND_MODE_XOR: Something like a difference operator. 
+ * VIPS_BLEND_MODE_ADD: A bit like adding the two images. 
+ * VIPS_BLEND_MODE_SATURATE: A bit like the darker of the two.
+ * VIPS_BLEND_MODE_MULTIPLY: At least as dark as the darker of the two inputs.
+ * VIPS_BLEND_MODE_SCREEN: At least as light as the lighter of the inputs.
+ * VIPS_BLEND_MODE_OVERLAY: Multiplies or screens colors, depending on the lightness.
+ * VIPS_BLEND_MODE_DARKEN: The darker of each component.
+ * VIPS_BLEND_MODE_LIGHTEN: The lighter of each component. 
+ * VIPS_BLEND_MODE_COLOUR_DODGE: Brighten first by a factor second. 
+ * VIPS_BLEND_MODE_COLOUR_BURN: Darken first by a factor of second. 
+ * VIPS_BLEND_MODE_HARD_LIGHT: Multiply or screen, depending on lightness. 
+ * VIPS_BLEND_MODE_SOFT_LIGHT: Darken or lighten, depending on lightness. 
+ * VIPS_BLEND_MODE_DIFFERENCE: Difference of the two.
+ * VIPS_BLEND_MODE_EXCLUSION: Somewhat like DIFFERENCE, but lower-contrast. 
  *
- * The various Porter-Duff and PDF blend modes. See vips_composite_base(), 
+ * The various Porter-Duff and PDF blend modes. See vips_composite(), 
  * for example.
  *
  * The Cairo docs have a nice explanation of all the blend modes:
  *
  * https://www.cairographics.org/operators
+ *
+ * The non-separable modes are not implemented. 
  */
 
 /** 
