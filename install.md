@@ -91,7 +91,7 @@ Checkout the latest sources with:
 
 	$ git clone git://github.com/jcupitt/libvips.git
 
-Building from git needs more packages, you'll need at least `swig`, `gtk-doc` 
+Building from git needs more packages, you'll need at least `gtk-doc` 
 and `gobject-introspection`, see the dependencies section below. 
 
 Then:
@@ -136,7 +136,10 @@ to get libvips to see your builds.
 ### vips8 Python binding
 
 If `gobject-introspection`, `python-gi-dev`, and `libgirepository1.0-dev` are
-available, libvips will install the vips8 Python binding. 
+available, libvips will install the deprecated vips8 Python binding. 
+
+This has been replaced by the compatible `pyvips` binding in pip. Only enable it
+if you must have it. 
 
 ### libjpeg
 
