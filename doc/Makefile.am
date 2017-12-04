@@ -50,7 +50,7 @@ FIXXREF_OPTIONS=
 # e.g. HFILE_GLOB=$(top_srcdir)/gtk/*.h
 # e.g. CFILE_GLOB=$(top_srcdir)/gtk/*.c
 HFILE_GLOB=$(top_srcdir)/libvips/include/vips/*.h
-CFILE_GLOB=$(top_srcdir)/libvips/*/*.c
+CFILE_GLOB=$(top_srcdir)/libvips/*/*.c $(top_srcdir)/libvips/*/*.cpp
 
 # Extra header to include when scanning, which are not under DOC_SOURCE_DIR
 # e.g. EXTRA_HFILES=$(top_srcdir}/contrib/extra.h
