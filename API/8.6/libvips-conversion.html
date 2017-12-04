@@ -4663,7 +4663,7 @@ low or high coordinate edge, or centre.</p>
 <a name="VipsInteresting"></a><h3>enum VipsInteresting</h3>
 <p>Pick the algorithm vips uses to decide image "interestingness". This is used
 by <a class="link" href="libvips-conversion.html#vips-smartcrop" title="vips_smartcrop ()"><code class="function">vips_smartcrop()</code></a>, for example, to decide what parts of the image to
-keep. </p>
+keep.</p>
 <p>See also: <a class="link" href="libvips-conversion.html#vips-smartcrop" title="vips_smartcrop ()"><code class="function">vips_smartcrop()</code></a>.</p>
 <div class="refsect3">
 <a name="id-1.4.4.9.8.5"></a><h4>Members</h4>
@@ -4714,12 +4714,13 @@ keep. </p>
 <hr>
 <div class="refsect2">
 <a name="VipsBlendMode"></a><h3>enum VipsBlendMode</h3>
-<p>The various Porter-Duff and PDF blend modes. See <code class="function">vips_composite_base()</code>, 
+<p>The various Porter-Duff and PDF blend modes. See <a class="link" href="libvips-conversion.html#vips-composite" title="vips_composite ()"><code class="function">vips_composite()</code></a>, 
 for example.</p>
 <p>The Cairo docs have a nice explanation of all the blend modes:</p>
 <p>https://www.cairographics.org/operators</p>
+<p>The non-separable modes are not implemented.</p>
 <div class="refsect3">
-<a name="id-1.4.4.9.9.6"></a><h4>Members</h4>
+<a name="id-1.4.4.9.9.7"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="300px" class="enum_members_name">
@@ -4729,128 +4730,178 @@ for example.</p>
 <tbody>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-CLEAR:CAPS"></a>VIPS_BLEND_MODE_CLEAR</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>where the second object is drawn, the first is removed</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-SOURCE:CAPS"></a>VIPS_BLEND_MODE_SOURCE</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>the second object is drawn as if nothing were below</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-OVER:CAPS"></a>VIPS_BLEND_MODE_OVER</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>the image shows what you would expect if you held two semi-transparent slides on top of each other</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-IN:CAPS"></a>VIPS_BLEND_MODE_IN</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>the first object is removed completely, the second is only drawn where the first was</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-OUT:CAPS"></a>VIPS_BLEND_MODE_OUT</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>the second is drawn only where the first isn't</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-ATOP:CAPS"></a>VIPS_BLEND_MODE_ATOP</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>this leaves the first object mostly intact, but mixes both objects in the overlapping area</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-DEST:CAPS"></a>VIPS_BLEND_MODE_DEST</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>leaves the first object untouched, the second is discarded completely</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-DEST-OVER:CAPS"></a>VIPS_BLEND_MODE_DEST_OVER</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>like OVER, but swaps the arguments</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-DEST-IN:CAPS"></a>VIPS_BLEND_MODE_DEST_IN</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>like IN, but swaps the arguments</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-DEST-OUT:CAPS"></a>VIPS_BLEND_MODE_DEST_OUT</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>like OUT, but swaps the arguments</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-DEST-ATOP:CAPS"></a>VIPS_BLEND_MODE_DEST_ATOP</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>like ATOP, but swaps the arguments</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-XOR:CAPS"></a>VIPS_BLEND_MODE_XOR</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>something like a difference operator</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-ADD:CAPS"></a>VIPS_BLEND_MODE_ADD</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>a bit like adding the two images</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-SATURATE:CAPS"></a>VIPS_BLEND_MODE_SATURATE</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>a bit like the darker of the two</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-MULTIPLY:CAPS"></a>VIPS_BLEND_MODE_MULTIPLY</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>at least as dark as the darker of the two inputs</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-SCREEN:CAPS"></a>VIPS_BLEND_MODE_SCREEN</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>at least as light as the lighter of the inputs</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-OVERLAY:CAPS"></a>VIPS_BLEND_MODE_OVERLAY</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>multiplies or screens colors, depending on the lightness</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-DARKEN:CAPS"></a>VIPS_BLEND_MODE_DARKEN</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>the darker of each component</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-LIGHTEN:CAPS"></a>VIPS_BLEND_MODE_LIGHTEN</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>the lighter of each component</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-COLOUR-DODGE:CAPS"></a>VIPS_BLEND_MODE_COLOUR_DODGE</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>brighten first by a factor second</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-COLOUR-BURN:CAPS"></a>VIPS_BLEND_MODE_COLOUR_BURN</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>darken first by a factor of second</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-HARD-LIGHT:CAPS"></a>VIPS_BLEND_MODE_HARD_LIGHT</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>multiply or screen, depending on lightness</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-SOFT-LIGHT:CAPS"></a>VIPS_BLEND_MODE_SOFT_LIGHT</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>darken or lighten, depending on lightness</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-DIFFERENCE:CAPS"></a>VIPS_BLEND_MODE_DIFFERENCE</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>difference of the two</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-EXCLUSION:CAPS"></a>VIPS_BLEND_MODE_EXCLUSION</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>somewhat like DIFFERENCE, but lower-contrast</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-BLEND-MODE-LAST:CAPS"></a>VIPS_BLEND_MODE_LAST</p></td>
