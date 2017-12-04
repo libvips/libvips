@@ -13,7 +13,7 @@ Install [homebrew](https://brew.sh/), then enter:
 	brew install vips
 
 That will install vips with most optional add-ons included. It won't include
-ImageMagick/GraphicsMagick support (used for loading things like BMP) you have
+ImageMagick/GraphicsMagick support (used for loading things like BMP), you have
 to enable that if you need it:
 
 	brew install vips --with-imagemagick
@@ -67,9 +67,6 @@ site.github.releases_url }}), then:
 
 Check the summary at the end of `configure` carefully.  libvips must have
 `build-essential`, `pkg-config`, `glib2.0-dev`, `libexpat1-dev`.
-
-For the vips8 Python binding, you must also have `gobject-introspection`,
-`python-gi-dev`, and `libgirepository1.0-dev`.
 
 You'll need the dev packages for the file format support you want. For basic
 jpeg and tiff support, you'll need `libtiff5-dev`, `libjpeg-turbo8-dev`,
