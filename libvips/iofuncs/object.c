@@ -2268,7 +2268,7 @@ vips_object_set_valist( VipsObject *object, va_list ap )
  * |[
  * vips_object_set (operation,
  *   "input", in,
- *   "output", &amp;out,
+ *   "output", &out,
  *   NULL);
  * ]|
  *
@@ -2908,9 +2908,9 @@ vips_object_local_array_cb( GObject *parent, VipsObjectLocal *local )
  *
  * t = vips_object_local_array( a, 5 );
  * if( 
- *   vips_add( a, b, &amp;t[0], NULL ) ||
- *   vips_invert( t[0], &amp;t[1], NULL ) ||
- *   vips_add( t[1], t[0], &amp;t[2], NULL ) ||
+ *   vips_add( a, b, &t[0], NULL ) ||
+ *   vips_invert( t[0], &t[1], NULL ) ||
+ *   vips_add( t[1], t[0], &t[2], NULL ) ||
  *   vips_costra( t[2], out, NULL ) )
  *   return( -1 );
  * ]|

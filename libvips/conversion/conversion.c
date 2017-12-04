@@ -69,6 +69,103 @@
  *
  */
 
+/**
+ * vips_composite: (method)
+ * @in: (array length=n) (transfer none): array of input images
+ * @out: (out): output image
+ * @n: number of input images
+ * @mode: array of (@n - 1) #VipsBlendMode
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @compositing_space: #VipsInterpretation to composite in
+ * * @premultiplied: %gboolean, images are already premultiplied
+ *
+ * Composite an array of images together. 
+ *
+ * Images are placed in a stack, with @in[0] at the bottom and @in[@n - 1] at
+ * the top. Pixels are blended together working from the bottom upwards, with 
+ * the blend mode at each step being set by the corresponding #VipsBlendMode
+ * in @mode.
+ *
+ * Images are transformed to a compositing space before processing. This is
+ * #VIPS_INTERPRETATION_sRGB, #VIPS_INTERPRETATION_B_W,
+ * #VIPS_INTERPRETATION_RGB16, or #VIPS_INTERPRETATION_GREY16 
+ * by default, depending on 
+ * how many bands and bits the input images have. You can select any other 
+ * space, such as #VIPS_INTERPRETATION_LAB or #VIPS_INTERPRETATION_scRGB.
+ *
+ * The output image is in the compositing space. It will always be 
+ * #VIPS_FORMAT_FLOAT unless one of the inputs is #VIPS_FORMAT_DOUBLE, in 
+ * which case the output will be double as well.
+ *
+ * Complex images are not supported.
+ *
+ * The output image will always have an alpha band. A solid alpha is
+ * added to any input missing an alpha. 
+ *
+ * The images do not need to match in size or format. They will be expanded to
+ * the smallest common size and format in the usual way.
+ *
+ * Image are normally treated as unpremultiplied, so this operation can be used
+ * directly on PNG images. If your images have been through vips_premultiply(),
+ * set @premultiplied. 
+ *
+ * See also: vips_insert().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+
+/**
+ * vips_composite2: (method)
+ * @base: first input image
+ * @overlay: second input image
+ * @out: (out): output image
+ * @mode: composite with this blend mode
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Composite @overlay on top of @base with @mode. See vips_composite().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+
+/**
+ * VipsBlendMode:
+ * VIPS_BLEND_MODE_CLEAR:
+ * VIPS_BLEND_MODE_SOURCE:
+ * VIPS_BLEND_MODE_OVER:
+ * VIPS_BLEND_MODE_IN:
+ * VIPS_BLEND_MODE_OUT:
+ * VIPS_BLEND_MODE_ATOP:
+ * VIPS_BLEND_MODE_DEST:
+ * VIPS_BLEND_MODE_DEST_OVER:
+ * VIPS_BLEND_MODE_DEST_IN:
+ * VIPS_BLEND_MODE_DEST_OUT:
+ * VIPS_BLEND_MODE_DEST_ATOP:
+ * VIPS_BLEND_MODE_XOR:
+ * VIPS_BLEND_MODE_ADD:
+ * VIPS_BLEND_MODE_SATURATE:
+ * VIPS_BLEND_MODE_MULTIPLY:
+ * VIPS_BLEND_MODE_SCREEN:
+ * VIPS_BLEND_MODE_OVERLAY:
+ * VIPS_BLEND_MODE_DARKEN:
+ * VIPS_BLEND_MODE_LIGHTEN:
+ * VIPS_BLEND_MODE_COLOUR_DODGE:
+ * VIPS_BLEND_MODE_COLOUR_BURN:
+ * VIPS_BLEND_MODE_HARD_LIGHT:
+ * VIPS_BLEND_MODE_SOFT_LIGHT:
+ * VIPS_BLEND_MODE_DIFFERENCE:
+ * VIPS_BLEND_MODE_EXCLUSION:
+ *
+ * The various Porter-Duff and PDF blend modes. See vips_composite_base(), 
+ * for example.
+ *
+ * The Cairo docs have a nice explanation of all the blend modes:
+ *
+ * https://www.cairographics.org/operators
+ */
+
 /** 
  * VipsAlign:
  * @VIPS_ALIGN_LOW: align low coordinate edge
@@ -113,15 +210,15 @@
 
 /**
  * VipsCompassDirection:
- * @VIPS_COMPASS_DIRECTION_CENTRE:
- * @VIPS_COMPASS_DIRECTION_NORTH:
- * @VIPS_COMPASS_DIRECTION_EAST:
- * @VIPS_COMPASS_DIRECTION_SOUTH:
- * @VIPS_COMPASS_DIRECTION_WEST:
- * @VIPS_COMPASS_DIRECTION_NORTH_EAST:
- * @VIPS_COMPASS_DIRECTION_SOUTH_EAST:
- * @VIPS_COMPASS_DIRECTION_SOUTH_WEST:
- * @VIPS_COMPASS_DIRECTION_NORTH_WEST:
+ * @VIPS_COMPASS_DIRECTION_CENTRE: centre
+ * @VIPS_COMPASS_DIRECTION_NORTH: north
+ * @VIPS_COMPASS_DIRECTION_EAST: east
+ * @VIPS_COMPASS_DIRECTION_SOUTH: south
+ * @VIPS_COMPASS_DIRECTION_WEST: west
+ * @VIPS_COMPASS_DIRECTION_NORTH_EAST: north-east
+ * @VIPS_COMPASS_DIRECTION_SOUTH_EAST: south-east
+ * @VIPS_COMPASS_DIRECTION_SOUTH_WEST: south-west
+ * @VIPS_COMPASS_DIRECTION_NORTH_WEST: north-west
  *
  * A direction on a compass. Used for vips_gravity(), for example. 
  */

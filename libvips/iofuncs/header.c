@@ -84,8 +84,7 @@
  * uniform way. 
  *
  * Use vips_image_get_typeof() to test for the 
- * existance and #GType
- * of a header field.
+ * existance and #GType of a header field.
  *
  * You can attach arbitrary metadata to images. Metadata is copied as images
  * are processed, so all images which used this image as input, directly or
@@ -945,10 +944,10 @@ vips__image_copy_fields_array( VipsImage *out, VipsImage *in[] )
  * |[
  * GValue value = { 0 };
  *
- * g_value_init (&amp;value, G_TYPE_INT);
- * g_value_set_int (&amp;value, 42);
- * vips_image_set (image, name, &amp;value);
- * g_value_unset (&amp;value);
+ * g_value_init (&value, G_TYPE_INT);
+ * g_value_set_int (&value, 42);
+ * vips_image_set (image, name, &value);
+ * g_value_unset (&value);
  * ]|
  *
  * See also: vips_image_get().
@@ -1025,20 +1024,20 @@ vips_set_value_from_pointer( GValue *value, void *data )
  * GValue value = { 0 };
  * double d;
  *
- * if (vips_image_get (image, name, &amp;value))
+ * if (vips_image_get (image, name, &value))
  *   return -1;
  *
- * if (G_VALUE_TYPE (&amp;value) != G_TYPE_DOUBLE) {
+ * if (G_VALUE_TYPE (&value) != G_TYPE_DOUBLE) {
  *   vips_error( "mydomain", 
  *     _("field \"%s\" is of type %s, not double"),
  *     name, 
- *     g_type_name (G_VALUE_TYPE (&amp;value)));
- *   g_value_unset (&amp;value);
+ *     g_type_name (G_VALUE_TYPE (&value)));
+ *   g_value_unset (&value);
  *   return -1;
  * }
  *
- * d = g_value_get_double (&amp;value);
- * g_value_unset (&amp;value);
+ * d = g_value_get_double (&value);
+ * g_value_unset (&value);
  * ]|
  *
  * See also: vips_image_get_typeof(), vips_image_get_double().
@@ -1421,23 +1420,23 @@ vips_image_get_int( const VipsImage *image, const char *name, int *out )
 /** 
  * vips_image_set_int: (method)
  * @image: image to attach the metadata to
- * @field: metadata name
+ * @name: metadata name
  * @i: metadata value
  *
- * Attaches @i as a metadata item on @image under the name @field. A 
+ * Attaches @i as a metadata item on @image under the name @name. A 
  * convenience
  * function over vips_image_set().
  *
  * See also: vips_image_get_int(), vips_image_set()
  */
 void
-vips_image_set_int( VipsImage *image, const char *field, int i )
+vips_image_set_int( VipsImage *image, const char *name, int i )
 {
 	GValue value = { 0 };
 
 	g_value_init( &value, G_TYPE_INT );
 	g_value_set_int( &value, i );
-	vips_image_set( image, field, &value );
+	vips_image_set( image, name, &value );
 	g_value_unset( &value );
 }
 
@@ -1471,23 +1470,23 @@ vips_image_get_double( const VipsImage *image, const char *name, double *out )
 /** 
  * vips_image_set_double: (method)
  * @image: image to attach the metadata to
- * @field: metadata name
+ * @name: metadata name
  * @d: metadata value
  *
- * Attaches @d as a metadata item on @image under the name @field. A 
+ * Attaches @d as a metadata item on @image as @name. A 
  * convenience
  * function over vips_image_set().
  *
  * See also: vips_image_get_double(), vips_image_set()
  */
 void
-vips_image_set_double( VipsImage *image, const char *field, double d )
+vips_image_set_double( VipsImage *image, const char *name, double d )
 {
 	GValue value = { 0 };
 
 	g_value_init( &value, G_TYPE_DOUBLE );
 	g_value_set_double( &value, d );
-	vips_image_set( image, field, &value );
+	vips_image_set( image, name, &value );
 	g_value_unset( &value );
 }
 
@@ -1537,33 +1536,33 @@ vips_image_get_string( const VipsImage *image, const char *name,
 /** 
  * vips_image_set_string: (method)
  * @image: image to attach the metadata to
- * @field: metadata name
+ * @name: metadata name
  * @str: metadata value
  *
- * Attaches @str as a metadata item on @image under the name @field. 
+ * Attaches @str as a metadata item on @image as @name. 
  * A convenience
  * function over vips_image_set() using an vips_ref_string.
  *
  * See also: vips_image_get_double(), vips_image_set(), vips_ref_string
  */
 void
-vips_image_set_string( VipsImage *image, const char *field, const char *str )
+vips_image_set_string( VipsImage *image, const char *name, const char *str )
 {
 	GValue value = { 0 };
 
 	g_value_init( &value, VIPS_TYPE_REF_STRING );
 	vips_value_set_ref_string( &value, str );
-	vips_image_set( image, field, &value );
+	vips_image_set( image, name, &value );
 	g_value_unset( &value );
 }
 
 /** 
  * vips_image_get_as_string: (method)
  * @image: image to get the header field from
- * @field: field name
+ * @name: field name
  * @out: (transfer full): return field value as string
  *
- * Gets @out from @im under the name @field. 
+ * Returns @name from @image in @out. 
  * This function will read any field, returning it as a printable string.
  * You need to free the string with g_free() when you are done with it.
  *
@@ -1576,12 +1575,12 @@ vips_image_set_string( VipsImage *image, const char *field, const char *str )
  */
 int
 vips_image_get_as_string( const VipsImage *image, 
-	const char *field, char **out )
+	const char *name, char **out )
 {
 	GValue value = { 0 };
 	GType type;
 
-	if( vips_image_get( image, field, &value ) )
+	if( vips_image_get( image, name, &value ) )
 		return( -1 );
 
 	/* Display the save form, if there is one. This way we display
@@ -1608,21 +1607,21 @@ vips_image_get_as_string( const VipsImage *image,
 /**
  * vips_image_print_field: (method)
  * @image: image to get the header field from
- * @field: field name
+ * @name: field name
  *
- * Prints a field to stdout as ASCII. Handy for debugging. 
+ * Prints field @name to stdout as ASCII. Handy for debugging. 
  */
 void
-vips_image_print_field( const VipsImage *image, const char *field )
+vips_image_print_field( const VipsImage *image, const char *name )
 {
 	char *str;
 
-	if( vips_image_get_as_string( image, field, &str ) ) {
+	if( vips_image_get_as_string( image, name, &str ) ) {
 		printf( "vips_image_print_field: unable to read field\n" );
 		return;
 	}
 
-	printf( ".%s: %s\n", field, str );
+	printf( ".%s: %s\n", name, str );
 
 	g_free( str ); 
 }

@@ -45,7 +45,7 @@
  * vips_dbuf_init:
  * @dbuf: the buffer
  *
- * Initialize a buffer.
+ * Initialize @dbuf.
  */
 void
 vips_dbuf_init( VipsDbuf *dbuf )
@@ -224,7 +224,7 @@ vips_dbuf_reset( VipsDbuf *dbuf )
  * vips_dbuf_destroy:
  * @dbuf: the buffer
  *
- * Destroy a buffer. This frees any allocated memory.
+ * Destroy @dbuf. This frees any allocated memory.
  */
 void
 vips_dbuf_destroy( VipsDbuf *dbuf )
