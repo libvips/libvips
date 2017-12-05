@@ -196,8 +196,7 @@ if test_supported tiffload; then
 fi
 if test_supported pngload; then
 	test_format $image png 0
-# sadly broken in libpng 1.6.28 and 29
-#	test_format $image png 0 [compression=9,interlace=1]
+ 	test_format $image png 0 [compression=9,interlace=1]
 fi
 if test_supported jpegload; then
 	test_format $image jpg 90
