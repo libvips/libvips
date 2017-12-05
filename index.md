@@ -7,12 +7,6 @@
 libvips is a [demand-driven, horizontally threaded](https://github.com/jcupitt/libvips/wiki/Why-is-libvips-quick) image processing library. Compared to
 similar libraries, [libvips runs quickly and uses little
 memory](https://github.com/jcupitt/libvips/wiki/Speed-and-memory-use).
-The [download area]({{ site.github.releases_url }}) has the
-source code plus pre-compiled binaries for Windows. You can install on macOS
-with homebrew, MacPorts or Fink, and it's available in most Linux package
-managers, see the [install notes](install.html).  libvips is licensed under
-the [LGPL 2.1+](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html).
-
 It has around [300 operations](API/current/func-list.html) covering
 arithmetic, histograms, convolution, morphological operations, frequency
 filtering, colour, resampling, statistics and others. It supports a large
@@ -25,9 +19,9 @@ GraphicsMagick, letting it load formats like DICOM.
 
 It comes with bindings for [C](API/current/using-from-c.html),
 [C++](API/current/using-from-cpp.html),
-[Python](API/current/using-from-python.html) and [the
-command-line](API/current/using-cli.html). Full bindings
+and the [command-line](API/current/using-cli.html). Full bindings
 are available for [Ruby](https://rubygems.org/gems/ruby-vips),
+[Python](https://pypi.python.org/pypi/pyvips),
 [PHP](https://github.com/jcupitt/php-vips), 
 [Go](https://github.com/davidbyttow/govips), and
 [Lua](https://github.com/jcupitt/lua-vips). libvips
@@ -40,6 +34,12 @@ node.js)](https://www.npmjs.org/package/sharp),
 [PhotoFlow](https://github.com/aferrero2707/PhotoFlow) and others.
 The official libvips GUI is [nip2](https://github.com/jcupitt/nip2),
 a strange combination of a spreadsheet and an photo editor.
+
+The [download area]({{ site.github.releases_url }}) has the
+source code plus pre-compiled binaries for Windows; you can install on macOS
+with homebrew, MacPorts or Fink; and it's available in most Linux package
+managers. See the [install notes](install.html).  libvips is licensed under
+the [LGPL 2.1+](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html).
 
 ## News
 
