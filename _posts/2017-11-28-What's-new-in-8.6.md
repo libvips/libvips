@@ -94,7 +94,7 @@ There are a few new options for existing operations.
 
 ## Image format improvements
 
-As usual the image load and save operations have had a large set of
+As usual, the image load and save operations have had a large number of
 improvements:
 
 * The FITS loader supports images with leading non-image HDUs, credit to
@@ -110,7 +110,7 @@ improvements:
 * The GIF loader adds `gif-delay`, `gif-comment` and `gif-loop` metadata.
 
 * The GIF loader knows about dispose handling, so it can correctly load complex
-  animated GIFs.
+  animated GIFs, credit to chregu.
 
 ## Changes 
 
@@ -124,15 +124,18 @@ There have been a few changes to existing features.
   `pyvips`.
 
 * `vips_conv()`, `vips_compass()`, `vips_convsep()` default to `FLOAT` 
-  precision. This prevents bad and unexpected behaviour in a few obvious cases. 
+  precision. This prevents unexpected behaviour in a few common cases. 
 
-* The `centre` option for `ips_resize()` is deprecated -- it's now always on.
+* The `centre` option for `vips_resize()` is deprecated -- it's now always on.
 
 ## Fixes and small improvements
 
 Finally there are a range of smaller improvements:
 
-* New C API: `vips_image_new_from_image()` and `vips_image_new_from_image1()` 
+* New C API:
+  [`vips_image_new_from_image()`](http://jcupitt.github.io/libvips/API/8.6/VipsImage.html#vips-image-new-from-image)
+  and
+  [`vips_image_new_from_image1()`](http://jcupitt.github.io/libvips/API/8.6/VipsImage.html#vips-image-new-from-image1)
   make a constant image. This has been added to all the language bindings too.
 
 * Better prefix guessing on Windows, credit to tumagonx.
@@ -144,13 +147,15 @@ Finally there are a range of smaller improvements:
 * libvips has much better gobject-introspection annotations, credit to astavale.
 
 * `vips_image_write()` severs all links between images, when it can. This fixes
-  a range of annoying problems in large programs. Credit to Warren and Nakilon.
+  a range of annoying problems in large programs. Credit to warren and nakilon.
 
 * The vector path for convolution is more accurate and can handle larger masks.
 
 * Linear and cubic kernels for reduce are much higher quality.
 
-* Setting the EXIF data block automatically sets the derived image tags.
+* Setting the EXIF data block automatically sets the derived image tags, credit
+  to monostefan.
 
 Plus many even smaller bug fixes and improvements. As usual, the 
-ChangeLog has more detail, if you're interested.
+[ChangeLog](https://github.com/jcupitt/libvips/blob/master/ChangeLog)
+has more details, if you're interested.
