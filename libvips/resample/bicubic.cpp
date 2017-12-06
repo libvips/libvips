@@ -659,7 +659,7 @@ vips_interpolate_bicubic_init( VipsInterpolateBicubic *bicubic )
 {
 #ifdef DEBUG
 	printf( "vips_interpolate_bicubic_init: " );
-	vips_object_print( VIPS_OBJECT( bicubic ) );
+	vips_object_print_dump( VIPS_OBJECT( bicubic ) );
 #endif /*DEBUG*/
 
 }
