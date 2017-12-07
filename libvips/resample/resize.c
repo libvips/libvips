@@ -267,6 +267,7 @@ vips_resize_build( VipsObject *object )
 				"interpolate", interpolate, 
 				"idx", id, 
 				"idy", id, 
+				"extend", VIPS_EXTEND_COPY, 
 				NULL ) )  
 				return( -1 );
 			in = t[4];
@@ -277,6 +278,7 @@ vips_resize_build( VipsObject *object )
 				"interpolate", interpolate, 
 				"idx", id, 
 				"idy", id, 
+				"extend", VIPS_EXTEND_COPY, 
 				NULL ) )  
 				return( -1 );
 			in = t[4];
@@ -287,6 +289,7 @@ vips_resize_build( VipsObject *object )
 				"interpolate", interpolate, 
 				"idx", id, 
 				"idy", id, 
+				"extend", VIPS_EXTEND_COPY, 
 				NULL ) )  
 				return( -1 );
 			in = t[4];

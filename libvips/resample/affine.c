@@ -84,6 +84,7 @@
  * 	- revise transform ... again
  * 	- see new stress test in nip2/test/extras
  * 7/11/17
+ * 	- add "extend" param
  * 	- add "background" parameter
  * 	- better clipping means we have no jaggies on edges
  * 	- premultiply alpha 
@@ -152,6 +153,10 @@ typedef struct _VipsAffine {
 	double idy;
 
 	VipsTransformation trn;
+
+	/* How to generate extra edge pixels.
+	 */
+	VipsExtend extend;
 
 	/* Background colour.
 	 */
@@ -507,7 +512,7 @@ vips_affine_build( VipsObject *object )
 		window_offset + 1, window_offset + 1, 
 		in->Xsize + window_size - 1 + 2, 
 		in->Ysize + window_size - 1 + 2,
-		"extend", VIPS_EXTEND_BACKGROUND,
+		"extend", affine->extend,
 		"background", affine->background,
 		NULL ) )
 		return( -1 );
@@ -661,17 +666,26 @@ vips_affine_class_init( VipsAffineClass *class )
 		G_STRUCT_OFFSET( VipsAffine, idy ),
 		-10000000, 10000000, 0 );
 
-	VIPS_ARG_BOXED( class, "background", 2, 
+	VIPS_ARG_ENUM( class, "extend", 117, 
+		_( "Extend" ), 
+		_( "How to generate the extra pixels" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsAffine, extend ),
+		VIPS_TYPE_EXTEND, VIPS_EXTEND_BACKGROUND );
+
+	VIPS_ARG_BOXED( class, "background", 116, 
 		_( "Background" ), 
 		_( "Background value" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsAffine, background ),
 		VIPS_TYPE_ARRAY_DOUBLE );
+
 }
 
 static void
 vips_affine_init( VipsAffine *affine )
 {
+	affine->extend = VIPS_EXTEND_BACKGROUND;
 	affine->background = vips_array_double_newv( 1, 0.0 );
 }
 
@@ -693,25 +707,31 @@ vips_affine_init( VipsAffine *affine )
  * * @idy: %gdouble, input vertical offset
  * * @odx: %gdouble, output horizontal offset
  * * @ody: %gdouble, output vertical offset
+ * * @extend: #VipsExtend how to generate new pixels 
  * * @background: #VipsArrayDouble colour for new pixels 
  *
  * This operator performs an affine transform on an image using @interpolate.
  *
  * The transform is:
  *
+ * |[
  *   X = @a * (x + @idx) + @b * (y + @idy) + @odx
  *   Y = @c * (x + @idx) + @d * (y + @idy) + @doy
  * 
- *   x and y are the coordinates in input image.  
- *   X and Y are the coordinates in output image.
- *   (0,0) is the upper left corner.
+ *   where: 
+ *     x and y are the coordinates in input image.  
+ *     X and Y are the coordinates in output image.
+ *     (0,0) is the upper left corner.
+ * ]|
  *
  * The section of the output space defined by @oarea is written to
  * @out. @oarea is a four-element int array of left, top, width, height. 
  * By default @oarea is just large enough to cover the whole of the 
  * transformed input image.
  *
- * New pixels are filled with @background. This defaults to zero (black). 
+ * By default, new pixels are filled with @background. This defaults to 
+ * zero (black). You can set other extend types with @extend. #VIPS_EXTEND_COPY 
+ * is better for image upsizing.
  *
  * @interpolate defaults to bilinear. 
  *

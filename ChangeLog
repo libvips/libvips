@@ -44,6 +44,7 @@
   adherence
 - deprecate the "centre" option for vips_resize(): it's now always on
 - setting the EXIF data block automatically sets other image tags
+- add "extend" option to affine; resize uses it to stop black edges
 
 29/8/17 started 8.5.9
 - make --fail stop jpeg read on any libjpeg warning, thanks @mceachen
