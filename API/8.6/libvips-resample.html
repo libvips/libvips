@@ -942,27 +942,38 @@ vips_affine (<em class="parameter"><code><a class="link" href="VipsImage.html" t
 : <code class="literal">gdouble</code>, output horizontal offset</p></li>
 <li class="listitem"><p><em class="parameter"><code>ody</code></em>
 : <code class="literal">gdouble</code>, output vertical offset</p></li>
+<li class="listitem"><p><em class="parameter"><code>extend</code></em>
+: <a class="link" href="libvips-conversion.html#VipsExtend" title="enum VipsExtend"><span class="type">VipsExtend</span></a> how to generate new pixels </p></li>
 <li class="listitem"><p><em class="parameter"><code>background</code></em>
 : <a class="link" href="libvips-type.html#VipsArrayDouble"><span class="type">VipsArrayDouble</span></a> colour for new pixels </p></li>
 </ul></div>
 <p>This operator performs an affine transform on an image using <em class="parameter"><code>interpolate</code></em>
 .</p>
 <p>The transform is:</p>
-<p>  X = <em class="parameter"><code>a</code></em>
- * (x + <em class="parameter"><code>idx</code></em>
-) + <em class="parameter"><code>b</code></em>
- * (y + <em class="parameter"><code>idy</code></em>
-) + <em class="parameter"><code>odx</code></em>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="normal">X </span><span class="symbol">=</span><span class="normal"> @a </span><span class="symbol">*</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">x </span><span class="symbol">+</span><span class="normal"> @idx</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">+</span><span class="normal"> @b </span><span class="symbol">*</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">y </span><span class="symbol">+</span><span class="normal"> @idy</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">+</span><span class="normal"> @odx</span>
+<span class="normal">Y </span><span class="symbol">=</span><span class="normal"> @c </span><span class="symbol">*</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">x </span><span class="symbol">+</span><span class="normal"> @idx</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">+</span><span class="normal"> @d </span><span class="symbol">*</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">y </span><span class="symbol">+</span><span class="normal"> @idy</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">+</span><span class="normal"> @doy</span>
 
-  Y = <em class="parameter"><code>c</code></em>
- * (x + <em class="parameter"><code>idx</code></em>
-) + <em class="parameter"><code>d</code></em>
- * (y + <em class="parameter"><code>idy</code></em>
-) + <em class="parameter"><code>doy</code></em>
-</p>
-<p>  x and y are the coordinates in input image.  
-  X and Y are the coordinates in output image.
-  (0,0) is the upper left corner.</p>
+<span class="label">where: </span>
+<span class="normal">  x and y are the coordinates in </span><span class="usertype">input</span><span class="normal"> image</span><span class="symbol">.</span><span class="normal">  </span>
+<span class="normal">  X and Y are the coordinates in </span><span class="usertype">output</span><span class="normal"> image</span><span class="symbol">.</span>
+<span class="normal">  </span><span class="symbol">(</span><span class="number">0</span><span class="symbol">,</span><span class="number">0</span><span class="symbol">)</span><span class="normal"> is the upper </span><span class="usertype">left</span><span class="normal"> corner</span><span class="symbol">.</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
 <p>The section of the output space defined by <em class="parameter"><code>oarea</code></em>
  is written to
 <em class="parameter"><code>out</code></em>
@@ -971,8 +982,11 @@ vips_affine (<em class="parameter"><code><a class="link" href="VipsImage.html" t
 By default <em class="parameter"><code>oarea</code></em>
  is just large enough to cover the whole of the 
 transformed input image.</p>
-<p>New pixels are filled with <em class="parameter"><code>background</code></em>
-. This defaults to zero (black). </p>
+<p>By default, new pixels are filled with <em class="parameter"><code>background</code></em>
+. This defaults to 
+zero (black). You can set other extend types with <em class="parameter"><code>extend</code></em>
+. <a class="link" href="libvips-conversion.html#VIPS-EXTEND-COPY:CAPS"><span class="type">VIPS_EXTEND_COPY</span></a> 
+is better for image upsizing.</p>
 <p><em class="parameter"><code>interpolate</code></em>
  defaults to bilinear. </p>
 <p><em class="parameter"><code>idx</code></em>
