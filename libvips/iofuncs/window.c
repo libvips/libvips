@@ -237,6 +237,9 @@ vips_window_set( VipsWindow *window, int top, int height )
 		return( -1 );
 	}
 
+	if( vips_window_unmap( window ) )
+		return( -1 );
+
 	if( !(baseaddr = vips__mmap( window->im->fd, 
 		0, pagelength, pagestart )) )
 		return( -1 ); 
