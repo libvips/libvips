@@ -659,11 +659,11 @@ vips_region_image( VipsRegion *reg, const VipsRect *r )
 	}
 
 	reg->invalid = FALSE;
+	VIPS_FREEF( vips_buffer_unref, reg->buffer );
 
 	if( image->data ) {
 		/* We have the whole image available ... easy!
 		 */
-		VIPS_FREEF( vips_buffer_unref, reg->buffer );
 		VIPS_FREEF( vips_window_unref, reg->window );
 
 		/* We can't just set valid = whole image, since this may be an
@@ -675,8 +675,6 @@ vips_region_image( VipsRegion *reg, const VipsRect *r )
 		reg->type = VIPS_REGION_OTHER_IMAGE;
 	}
 	else if( image->dtype == VIPS_IMAGE_OPENIN ) {
-		VIPS_FREEF( vips_buffer_unref, reg->buffer );
-
 		/* No complete image data ... but we can use a rolling window.
 		 */
 		reg->type = VIPS_REGION_WINDOW;
@@ -694,7 +692,6 @@ vips_region_image( VipsRegion *reg, const VipsRect *r )
 		reg->data = reg->window->data;
 	}
 	else {
-		VIPS_FREEF( vips_buffer_unref, reg->buffer );
 		VIPS_FREEF( vips_window_unref, reg->window );
 
 		vips_error( "VipsRegion", "%s", _( "bad image type" ) );
