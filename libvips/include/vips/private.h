@@ -73,7 +73,8 @@ typedef struct {
 
 /* window manager.
  */
-VipsWindow *vips_window_ref( struct _VipsImage *im, int top, int height );
+VipsWindow *vips_window_ref( VipsWindow *window, 
+	struct _VipsImage *im, int top, int height );
 int vips_window_unref( VipsWindow *window );
 void vips_window_print( VipsWindow *window );
 

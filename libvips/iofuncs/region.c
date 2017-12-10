@@ -652,23 +652,21 @@ vips_region_image( VipsRegion *reg, const VipsRect *r )
 	all.height = image->Ysize;
 	vips_rect_intersectrect( r, &all, &clipped );
 
-	/* Test for empty.
-	 */
 	if( vips_rect_isempty( &clipped ) ) {
 		vips_error( "VipsRegion", 
 			"%s", _( "valid clipped to nothing" ) );
 		return( -1 );
 	}
 
-	VIPS_FREEF( vips_buffer_unref, reg->buffer );
-	VIPS_FREEF( vips_window_unref, reg->window );
 	reg->invalid = FALSE;
 
 	if( image->data ) {
 		/* We have the whole image available ... easy!
 		 */
+		VIPS_FREEF( vips_buffer_unref, reg->buffer );
+		VIPS_FREEF( vips_window_unref, reg->window );
 
-		/* We can't just set valid = clipped, since this may be an
+		/* We can't just set valid = whole image, since this may be an
 		 * incompletely calculated memory buffer. Just set valid to r.
 		 */
 		reg->valid = clipped;
@@ -677,19 +675,14 @@ vips_region_image( VipsRegion *reg, const VipsRect *r )
 		reg->type = VIPS_REGION_OTHER_IMAGE;
 	}
 	else if( image->dtype == VIPS_IMAGE_OPENIN ) {
+		VIPS_FREEF( vips_buffer_unref, reg->buffer );
+
 		/* No complete image data ... but we can use a rolling window.
 		 */
-		if( reg->type != VIPS_REGION_WINDOW || 
-			!reg->window ||
-			reg->window->top > clipped.top ||
-			reg->window->top + reg->window->height < 
-				clipped.top + clipped.height ) {
-			if( !(reg->window = vips_window_ref( image, 
-				clipped.top, clipped.height )) )
-				return( -1 );
-
-			reg->type = VIPS_REGION_WINDOW;
-		}
+		reg->type = VIPS_REGION_WINDOW;
+		if( !(reg->window = vips_window_ref( reg->window, image, 
+			clipped.top, clipped.height )) )
+			return( -1 );
 
 		/* Note the area the window actually represents.
 		 */
@@ -701,6 +694,9 @@ vips_region_image( VipsRegion *reg, const VipsRect *r )
 		reg->data = reg->window->data;
 	}
 	else {
+		VIPS_FREEF( vips_buffer_unref, reg->buffer );
+		VIPS_FREEF( vips_window_unref, reg->window );
+
 		vips_error( "VipsRegion", "%s", _( "bad image type" ) );
 		return( -1 );
 	}

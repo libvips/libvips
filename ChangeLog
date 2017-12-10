@@ -1,3 +1,6 @@
+10/12/17 started 8.6.1
+- stop window new/free cycling .. faster zoom out on large images in nip2
+
 15/4/17 started 8.6.0
 - supports fits images with leading non-image HDUs, thanks benepo
 - add vips_image_new_from_image() and vips_image_new_from_image1() ... make a

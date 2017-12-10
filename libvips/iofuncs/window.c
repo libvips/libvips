@@ -53,7 +53,6 @@
 #ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>
 #endif
-#include <assert.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -96,7 +95,7 @@ vips_window_unmap( VipsWindow *window )
 #ifdef DEBUG_TOTAL
 		g_mutex_lock( vips__global_lock );
 		total_mmap_usage -= window->length;
-		assert( total_mmap_usage >= 0 );
+		g_assert( total_mmap_usage >= 0 );
 		g_mutex_unlock( vips__global_lock );
 #endif /*DEBUG_TOTAL*/
 
@@ -111,12 +110,19 @@ vips_window_unmap( VipsWindow *window )
 static int
 vips_window_free( VipsWindow *window )
 {
-	assert( window->ref_count == 0 );
+	VipsImage *im = window->im;
+
+	g_assert( window->ref_count == 0 );
 
 #ifdef DEBUG
 	printf( "** vips_window_free: window top = %d, height = %d (%p)\n",
 		window->top, window->height, window );
+	printf( "vips_window_unref: %d windows left\n",
+		g_slist_length( im->windows ) );
 #endif /*DEBUG*/
+
+	g_assert( g_slist_find( im->windows, window ) );
+	im->windows = g_slist_remove( im->windows, window );
 
 	if( vips_window_unmap( window ) )
 		return( -1 );
@@ -140,19 +146,11 @@ vips_window_unref( VipsWindow *window )
 		window->top, window->height, window->ref_count );
 #endif /*DEBUG*/
 
-	assert( window->ref_count > 0 );
+	g_assert( window->ref_count > 0 );
 
 	window->ref_count -= 1;
 
 	if( window->ref_count == 0 ) {
-		assert( g_slist_find( im->windows, window ) );
-		im->windows = g_slist_remove( im->windows, window );
-
-#ifdef DEBUG
-		printf( "vips_window_unref: %d windows left\n",
-			g_slist_length( im->windows ) );
-#endif /*DEBUG*/
-
 		if( vips_window_free( window ) ) {
 			g_mutex_unlock( im->sslock );
 			return( -1 );
@@ -276,21 +274,19 @@ vips_window_new( VipsImage *im, int top, int height )
 	if( !(window = VIPS_NEW( NULL, VipsWindow )) )
 		return( NULL );
 
-	window->ref_count = 0;
+	window->ref_count = 1;
 	window->im = im;
 	window->top = 0;
 	window->height = 0;
 	window->data = NULL;
 	window->baseaddr = NULL;
 	window->length = 0;
+	im->windows = g_slist_prepend( im->windows, window );
 
 	if( vips_window_set( window, top, height ) ) {
 		vips_window_free( window );
 		return( NULL );
 	}
-
-	im->windows = g_slist_prepend( im->windows, window );
-	window->ref_count += 1;
 
 #ifdef DEBUG
 	printf( "** vips_window_new: window top = %d, height = %d (%p)\n",
@@ -343,34 +339,65 @@ vips_window_find( VipsImage *im, int top, int height )
 	return( window );
 }
 
-/* Return a ref to a window that encloses top/height.
+/* Update a ref to a window to make it enclose top/height.
  */
 VipsWindow *
-vips_window_ref( VipsImage *im, int top, int height )
+vips_window_ref( VipsWindow *window, VipsImage *im, int top, int height )
 {
-	VipsWindow *window;
+	int margin;
+
+	/* We have a window and it has the pixels we need.
+	 */
+	if( window &&
+		window->top <= top &&
+		window->top + window->height >= top + height ) 
+		return( window );
 
 	g_mutex_lock( im->sslock );
 
-	if( !(window = vips_window_find( im, top, height )) ) {
-		/* No existing window ... make a new one. Ask for a larger
-		 * window than we strictly need. There's no point making tiny
-		 * windows.
-		 */
-		int margin = VIPS_MIN( vips__window_margin_pixels,
-			vips__window_margin_bytes / 
-				VIPS_IMAGE_SIZEOF_LINE( im ) );
-
-		top -= margin;
-		height += margin * 2;
-
-		top = VIPS_CLIP( 0, top, im->Ysize - 1 );
-		height = VIPS_CLIP( 0, height, im->Ysize - top );
-
-		if( !(window = vips_window_new( im, top, height )) ) {
+	/* We have a window and we are the only ref to it ... scroll.
+	 */
+	if( window &&
+		window->ref_count == 1 ) {
+		if( vips_window_set( window, top, height ) ) {
 			g_mutex_unlock( im->sslock );
+			vips_window_unref( window );
+
 			return( NULL );
 		}
+
+		g_mutex_unlock( im->sslock );
+
+		return( window );
+	}
+
+	/* There's more than one ref to the window. We can just decrement.
+	 * Don't call _unref, since we've inside the lock.
+	 */
+	if( window ) 
+		window->ref_count -= 1;
+
+	/* Is there an existing window we can reuse?
+	 */
+	if( (window = vips_window_find( im, top, height )) ) {
+		g_mutex_unlock( im->sslock );
+
+		return( window );
+	}
+
+	/* We have to make a new window. Make it a bit bigger than strictly 
+	 * necessary.
+	 */
+	margin = VIPS_MIN( vips__window_margin_pixels,
+		vips__window_margin_bytes / VIPS_IMAGE_SIZEOF_LINE( im ) );
+	top -= margin;
+	height += margin * 2;
+	top = VIPS_CLIP( 0, top, im->Ysize - 1 );
+	height = VIPS_CLIP( 0, height, im->Ysize - top );
+
+	if( !(window = vips_window_new( im, top, height )) ) {
+		g_mutex_unlock( im->sslock );
+		return( NULL );
 	}
 
 	g_mutex_unlock( im->sslock );
