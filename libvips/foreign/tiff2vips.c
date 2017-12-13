@@ -2068,6 +2068,12 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 			!tfget32( rtiff->tiff, 
 				TIFFTAG_TILELENGTH, &header->tile_height ) )
 			return( -1 );
+
+		/* Stop some compiler warnings.
+		 */
+		header->rows_per_strip = 0; 
+		header->strip_size = 0; 
+		header->number_of_strips = 0; 
 	}
 	else {
 		if( !tfget32( rtiff->tiff, 
@@ -2100,6 +2106,11 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 			header->number_of_strips = header->height;
 			header->read_scanlinewise = TRUE;
 		}
+
+		/* Stop some compiler warnings.
+		 */
+		header->tile_width = 0;
+		header->tile_height = 0;
 	}
 
 	return( 0 );

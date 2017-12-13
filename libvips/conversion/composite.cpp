@@ -265,6 +265,10 @@ vips_composite_base_blend( VipsCompositeBase *composite,
 	 */
 	for( int b = 0; b <= bands; b++ )
 		A[b] = p[b] / composite->max_band[b];
+	/* Not necessary, but it stops a compiler warning.
+	 */
+	for( int b = bands + 1; b < MAX_BANDS + 1; b++ )
+		A[b] = 0.0;
 
 	aA = A[bands];
 	aB = B[bands];
@@ -666,8 +670,12 @@ vips_composite_base_blend3( VipsCompositeBase *composite,
 
 		default:
 			g_assert_not_reached();
+
+			/* Stop compiler warnings.
+			 */
 			for( int b = 0; b < 3; b++ ) 
 				B[b] = 0;
+			f = A;
 		}
 
 		t1 = 1 - aB;
