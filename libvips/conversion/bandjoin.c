@@ -88,8 +88,10 @@ typedef VipsBandaryClass VipsBandjoinClass;
 G_DEFINE_TYPE( VipsBandjoin, vips_bandjoin, VIPS_TYPE_BANDARY );
 
 static void
-vips_bandjoin_buffer( VipsBandary *bandary, VipsPel *q, VipsPel **p, int width )
+vips_bandjoin_buffer( VipsBandarySequence *seq, 
+	VipsPel *q, VipsPel **p, int width )
 {
+	VipsBandary *bandary = seq->bandary;
 	VipsConversion *conversion = (VipsConversion *) bandary;
 	VipsImage **in = bandary->ready;
 
@@ -296,9 +298,10 @@ vips_bandjoin_const_finalize( GObject *object )
 }
 
 static void
-vips_bandjoin_const_buffer( VipsBandary *bandary, 
+vips_bandjoin_const_buffer( VipsBandarySequence *seq,
 	VipsPel *q, VipsPel **p, int width )
 {
+	VipsBandary *bandary = seq->bandary;
 	VipsConversion *conversion = (VipsConversion *) bandary;
 	VipsBandjoinConst *bandjoin = (VipsBandjoinConst *) bandary;
 	VipsImage *in = bandary->ready[0];

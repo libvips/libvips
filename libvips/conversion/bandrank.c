@@ -147,18 +147,18 @@ G_DEFINE_TYPE( VipsBandrank, vips_bandrank, VIPS_TYPE_BANDARY );
 /* Sort input band elements in the stack. Needs to be big enough for
  * sizeof(band-element) * number-of-images.
  */
-#define SORT_BUFFER (1024)
-
 static void
-vips_bandrank_buffer( VipsBandary *bandary, VipsPel *q, VipsPel **p, int width )
+vips_bandrank_buffer( VipsBandarySequence *seq, 
+	VipsPel *q, VipsPel **p, int width )
 {
+	VipsBandary *bandary = seq->bandary;
 	VipsBandrank *bandrank = (VipsBandrank *) bandary;
 	VipsImage **in = bandary->ready;
 	int sz = width * in[0]->Bands; 
+	VipsPel *sort_buffer = seq->pixels;
 
 	int i, j, k;
 	int x;
-	VipsPel sort_buffer[SORT_BUFFER]; 
 
 	/* Special-case max and min.
 	 */
@@ -194,15 +194,6 @@ vips_bandrank_build( VipsObject *object )
 			bandary->n = 1;
 
 			return( vips_bandary_copy( bandary ) );
-		}
-
-		/* We need to keep one band element for every input image 
-		 * on the stack.
-		 */
-		if( sizeof( double ) * n > SORT_BUFFER ) {
-			vips_error( class->nickname, 
-				"%s", _( "too many input images" ) );
-			return( -1 );
 		}
 
 		if( vips__bandalike_vec( class->nickname, in, band, n, 0 ) )

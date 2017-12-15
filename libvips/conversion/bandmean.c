@@ -120,9 +120,10 @@ G_DEFINE_TYPE( VipsBandmean, vips_bandmean, VIPS_TYPE_BANDARY );
 }
 
 static void
-vips_bandmean_buffer( VipsBandary *bandary, 
+vips_bandmean_buffer( VipsBandarySequence *seq, 
 	VipsPel *out, VipsPel **in, int width )
 {
+	VipsBandary *bandary = seq->bandary;
 	VipsImage *im = bandary->ready[0];
 	const int bands = im->Bands;
 	const int sz = width * 

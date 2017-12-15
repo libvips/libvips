@@ -53,7 +53,27 @@ extern "C" {
 		VIPS_TYPE_BANDARY, VipsBandaryClass ))
 
 struct _VipsBandary;
-typedef void (*VipsBandaryProcessFn)( struct _VipsBandary *bandary, 
+
+/* Our sequence value.
+ */
+typedef struct {
+	struct _VipsBandary *bandary;
+
+	/* Set of input regions.
+	 */
+	VipsRegion **ir;
+
+	/* For each input, an input pointer.
+	 */
+	VipsPel **p;
+
+	/* A memory area large enough to hold one pixel from each input image.
+	 */
+	VipsPel *pixels;
+
+} VipsBandarySequence;
+
+typedef void (*VipsBandaryProcessFn)( VipsBandarySequence *seq, 
 	VipsPel *out, VipsPel **in, int width );
 
 typedef struct _VipsBandary {

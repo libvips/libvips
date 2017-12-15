@@ -146,9 +146,10 @@ vips_bandbool_build( VipsObject *object )
 }
 
 static void
-vips_bandbool_buffer( VipsBandary *bandary, 
+vips_bandbool_buffer( VipsBandarySequence *seq,
 	VipsPel *out, VipsPel **in, int width )
 {
+	VipsBandary *bandary = seq->bandary;
 	VipsBandbool *bandbool = (VipsBandbool *) bandary;
 	VipsImage *im = bandary->ready[0];
 	int bands = im->Bands;

@@ -337,9 +337,10 @@ typedef VipsBandaryClass VipsExtractBandClass;
 G_DEFINE_TYPE( VipsExtractBand, vips_extract_band, VIPS_TYPE_BANDARY );
 
 static void
-vips_extract_band_buffer( VipsBandary *bandary, 
+vips_extract_band_buffer( VipsBandarySequence *seq,
 	VipsPel *out, VipsPel **in, int width )
 {
+	VipsBandary *bandary = seq->bandary;
 	VipsConversion *conversion = (VipsConversion *) bandary;
 	VipsExtractBand *extract = (VipsExtractBand *) bandary;
 	VipsImage *im = bandary->ready[0];

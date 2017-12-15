@@ -79,21 +79,6 @@
 
 G_DEFINE_ABSTRACT_TYPE( VipsBandary, vips_bandary, VIPS_TYPE_CONVERSION );
 
-/* Our sequence value.
- */
-typedef struct {
-	VipsBandary *bandary;
-
-	/* Set of input regions.
-	 */
-	VipsRegion **ir;
-
-	/* For each input, an input pointer.
-	 */
-	VipsPel **p;
-
-} VipsBandarySequence;
-
 static int
 vips_bandary_stop( void *vseq, void *a, void *b )
 {
@@ -108,6 +93,7 @@ vips_bandary_stop( void *vseq, void *a, void *b )
 	}
 
 	VIPS_FREE( seq->p );
+	VIPS_FREE( seq->pixels );
 
 	VIPS_FREE( seq );
 
@@ -129,6 +115,7 @@ vips_bandary_start( VipsImage *out, void *a, void *b )
 	seq->bandary = bandary;
 	seq->ir = NULL;
 	seq->p = NULL;
+	seq->pixels = NULL;
 
 	/* How many images?
 	 */
@@ -158,6 +145,14 @@ vips_bandary_start( VipsImage *out, void *a, void *b )
 		return( NULL );
 	}
 
+	/* Pixel buffer. This is used as working space by some subclasses.
+	 */
+	if( !(seq->pixels = VIPS_ARRAY( NULL, 
+		n * VIPS_IMAGE_SIZEOF_PEL( bandary->ready[0] ), VipsPel )) ) {
+		vips_bandary_stop( seq, NULL, NULL );
+		return( NULL );
+	}
+
 	return( seq );
 }
 
@@ -182,7 +177,7 @@ vips_bandary_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 	VIPS_GATE_START( "vips_bandary_gen: work" ); 
 
 	for( y = 0; y < r->height; y++ ) {
-		class->process_line( bandary, q, seq->p, r->width );
+		class->process_line( seq, q, seq->p, r->width );
 
 		for( i = 0; i < bandary->n; i++ )
 			seq->p[i] += VIPS_REGION_LSKIP( seq->ir[i] );
