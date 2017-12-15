@@ -26,6 +26,8 @@
  * 	- rewrite as a class
  * 20/11/11
  * 	- from bandjoin
+ * 15/12/17
+ * 	- remove max images restriction
  */
 
 /*
@@ -77,35 +79,113 @@
 
 G_DEFINE_ABSTRACT_TYPE( VipsBandary, vips_bandary, VIPS_TYPE_CONVERSION );
 
-/* Maximum number of input images -- why not?
+/* Our sequence value.
  */
-#define MAX_INPUT_IMAGES (64)
+typedef struct {
+	VipsBandary *bandary;
+
+	/* Set of input regions.
+	 */
+	VipsRegion **ir;
+
+	/* For each input, an input pointer.
+	 */
+	VipsPel **p;
+
+} VipsBandarySequence;
 
 static int
-vips_bandary_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
+vips_bandary_stop( void *vseq, void *a, void *b )
 {
-	VipsRegion **ir = (VipsRegion **) seq;
+	VipsBandarySequence *seq = (VipsBandarySequence *) vseq;
+
+        if( seq->ir ) {
+		int i;
+
+		for( i = 0; seq->ir[i]; i++ )
+			VIPS_UNREF( seq->ir[i] );
+		VIPS_FREE( seq->ir );
+	}
+
+	VIPS_FREE( seq->p );
+
+	VIPS_FREE( seq );
+
+	return( 0 );
+}
+
+static void *
+vips_bandary_start( VipsImage *out, void *a, void *b )
+{
+	VipsImage **in = (VipsImage **) a;
+	VipsBandary *bandary = (VipsBandary *) b;
+
+	VipsBandarySequence *seq;
+	int i, n;
+
+	if( !(seq = VIPS_NEW( NULL, VipsBandarySequence )) )
+		return( NULL );
+
+	seq->bandary = bandary;
+	seq->ir = NULL;
+	seq->p = NULL;
+
+	/* How many images?
+	 */
+	for( n = 0; in[n]; n++ )
+		;
+
+	/* Alocate space for region array.
+	 */
+	if( !(seq->ir = VIPS_ARRAY( NULL, n + 1, VipsRegion * )) ) {
+		vips_bandary_stop( seq, NULL, NULL );
+		return( NULL );
+	}
+
+	/* Create a set of regions.
+	 */
+	for( i = 0; i < n; i++ )
+		if( !(seq->ir[i] = vips_region_new( in[i] )) ) {
+			vips_bandary_stop( seq, NULL, NULL );
+			return( NULL );
+		}
+	seq->ir[n] = NULL;
+
+	/* Input pointers.
+	 */
+	if( !(seq->p = VIPS_ARRAY( NULL, n + 1, VipsPel * )) ) {
+		vips_bandary_stop( seq, NULL, NULL );
+		return( NULL );
+	}
+
+	return( seq );
+}
+
+static int
+vips_bandary_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
+{
+	VipsBandarySequence *seq = (VipsBandarySequence *) vseq;
 	VipsBandary *bandary = (VipsBandary *) b;
 	VipsBandaryClass *class = VIPS_BANDARY_GET_CLASS( bandary ); 
 	VipsRect *r = &or->valid;
 
-	VipsPel *p[MAX_INPUT_IMAGES], *q;
+	VipsPel *q;
 	int y, i;
 
-	if( vips_reorder_prepare_many( or->im, ir, r ) )
+	if( vips_reorder_prepare_many( or->im, seq->ir, r ) )
 		return( -1 );
 	for( i = 0; i < bandary->n; i++ ) 
-		p[i] = VIPS_REGION_ADDR( ir[i], r->left, r->top );
-	p[i] = NULL;
+		seq->p[i] = VIPS_REGION_ADDR( seq->ir[i], r->left, r->top );
+	seq->p[i] = NULL;
 	q = VIPS_REGION_ADDR( or, r->left, r->top );
 
 	VIPS_GATE_START( "vips_bandary_gen: work" ); 
 
 	for( y = 0; y < r->height; y++ ) {
-		class->process_line( bandary, q, p, r->width );
+		class->process_line( bandary, q, seq->p, r->width );
 
 		for( i = 0; i < bandary->n; i++ )
-			p[i] += VIPS_REGION_LSKIP( ir[i] );
+			seq->p[i] += VIPS_REGION_LSKIP( seq->ir[i] );
 		q += VIPS_REGION_LSKIP( or );
 	}
 
@@ -135,11 +215,6 @@ vips_bandary_build( VipsObject *object )
 			"%s", _( "no input images" ) );
 		return( -1 );
 	}
-	if( bandary->n > MAX_INPUT_IMAGES ) {
-		vips_error( object_class->nickname, 
-			"%s", _( "too many input images" ) );
-		return( -1 );
-	}
 
 	decode = (VipsImage **) vips_object_local_array( object, bandary->n );
 	format = (VipsImage **) vips_object_local_array( object, bandary->n );
@@ -163,7 +238,7 @@ vips_bandary_build( VipsObject *object )
 			class->format_table[bandary->ready[0]->BandFmt];
 
 	if( vips_image_generate( conversion->out,
-		vips_start_many, vips_bandary_gen, vips_stop_many, 
+		vips_bandary_start, vips_bandary_gen, vips_bandary_stop, 
 		bandary->ready, bandary ) )
 		return( -1 );
 
