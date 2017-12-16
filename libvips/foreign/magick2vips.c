@@ -93,8 +93,6 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_MAGICK
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -102,14 +100,17 @@
 
 #include <vips/vips.h>
 
-#include <magick/api.h>
+#if HAVE_MAGICK || HAVE_MAGICK7
 
-#include "pforeign.h"
-
-/* pre-float Magick used to call this MaxRGB.
- */
-#if !defined(QuantumRange)
-#  define QuantumRange MaxRGB
+#if HAVE_MAGICK
+	#include <magick/api.h>
+	/* pre-float Magick used to call this MaxRGB.
+ 	*/
+	#if !defined(QuantumRange)
+	#  define QuantumRange MaxRGB
+	#endif
+#elif HAVE_MAGICK7
+	#include <MagickCore/MagickCore.h>
 #endif
 
 /* And this used to be UseHDRI.
@@ -117,6 +118,25 @@
 #if MAGICKCORE_HDRI_SUPPORT
 #  define UseHDRI 1
 #endif
+
+/* What we track during a write call.
+ */
+typedef struct _Write {
+	char *filename;
+	VipsImage *im;
+
+	Image *image;
+	ImageInfo *image_info;
+	ExceptionInfo *exception;
+
+	Image *current_image;
+	char *map;
+	StorageType storageType;
+} Write;
+
+#if HAVE_MAGICK
+
+#include "pforeign.h"
 
 /* What we track during a read call.
  */
@@ -893,4 +913,223 @@ vips__magick_read_buffer_header( const void *buf, const size_t len,
 }
 
 #endif /*HAVE_MAGICK*/
+
+/* Can be called many times.
+ */
+static void
+write_free( Write *write )
+{
+	VIPS_FREE( write->filename );
+	VIPS_FREE( write->map );
+	VIPS_FREEF( DestroyImageList, write->image );
+	VIPS_FREEF( DestroyImageInfo, write->image_info );
+	VIPS_FREEF( DestroyExceptionInfo, write->exception );
+}
+
+/* Can be called many times.
+ */
+static int
+write_close( VipsImage *im, Write *write )
+{
+	write_free( write );
+
+	return( 0 );
+}
+
+static Write *
+write_new( const char *filename, VipsImage *im)
+{
+	Write *write;
+	static int inited = 0;
+
+	if( !inited ) {
+		MagickCoreGenesis( vips_get_argv0(), MagickFalse );
+		inited = 1;
+	}
+
+	if( !(write = VIPS_NEW( im, Write )) )
+		return( NULL );
+	write->filename = filename ? g_strdup( filename ) : NULL;
+	write->im = im;
+	write->image = NULL;
+
+	write->storageType = UndefinedPixel;
+	switch( im->BandFmt ) {
+		case VIPS_FORMAT_UCHAR:
+			write->storageType = CharPixel;
+			break;
+		case VIPS_FORMAT_USHORT:
+			write->storageType = ShortPixel;
+			break;
+		case VIPS_FORMAT_UINT:
+			write->storageType = LongPixel;
+			break;
+		case VIPS_FORMAT_FLOAT:
+			write->storageType = FloatPixel;
+			break;
+		case VIPS_FORMAT_DOUBLE:
+			write->storageType = DoublePixel;
+			break;
+
+		default:
+			write_free(write);
+			return( NULL );
+	}
+
+	write->map = NULL;
+	switch( im->Bands ) {
+		case 1:
+			write->map = g_strdup("R");
+			break;
+		case 2:
+			write->map = g_strdup("RA");
+			break;
+		case 3:
+			write->map = g_strdup("RGB");
+			break;
+		case 4:
+			if( im->Type == VIPS_INTERPRETATION_CMYK )
+				write->map = g_strdup("CMYK");
+			else
+				write->map = g_strdup("RGBA");
+			break;
+		case 5:
+			write->map = g_strdup("CMYKA");
+			break;
+
+		default:
+			write_free(write);
+			return( NULL );
+	}
+
+	write->image_info = CloneImageInfo( NULL );
+	if( !write->image_info) {
+		write_free(write);
+		return( NULL );
+	}
+
+	write->exception = AcquireExceptionInfo();
+	if( !write->exception) {
+		write_free(write);
+		return( NULL );
+	}
+
+	g_signal_connect( im, "close", G_CALLBACK( write_close ), write );
+
+	return( write );
+}
+
+#ifdef HAVE_MAGICK7
+
+static int
+magick_write_block( VipsRegion *region, VipsRect *area, void *a )
+{
+	Write *write = (Write *) a;
+	MagickBooleanType status;
+	void *p;
+
+	p = VIPS_REGION_ADDR(region, area->left, area->top);
+
+	status=ImportImagePixels( write->current_image, area->left, area->top,
+			area->width, area->height, write->map, write->storageType, p,
+			write->exception );
+
+	return( status == MagickFalse ? -1 : 0 );
+}
+
+static int
+magick_create_image( Write *write, VipsImage *im )
+{
+	Image *image;
+
+	if( write->image == NULL ) {
+		image = AcquireImage( write->image_info, write->exception );
+		if( image == NULL )
+			return( -1 );
+
+		write->image = image;
+	}
+	else {
+		image=GetLastImageInList( write->image );
+		AcquireNextImage( write->image_info, image, write->exception );
+		if( GetNextImageInList( image ) == NULL )
+			return( -1 );
+
+		image=SyncNextImageInList( image );
+	}
+
+	if( !SetImageExtent( image, im->Xsize, im->Ysize, write->exception ) )
+		return( -1 );
+
+	write->current_image=image;
+	return( vips_sink_disc( im, magick_write_block, write ) );
+}
+
+static int
+magick_create_images( Write *write )
+{
+	int height;
+	int count;
+	int status;
+
+	height = 0;
+	if( vips_image_get_int( write->im, VIPS_META_PAGE_HEIGHT, &height ) )
+		return( magick_create_image( write, write->im ) );
+
+	for( int top=0; top < write->im->Ysize ; top+=height ) {
+		VipsImage *im;
+
+		if( vips_crop( write->im, &im, 0, top, write->im->Xsize, height, NULL ) )
+			return( -1 );
+
+		status = magick_create_image( write, im );
+
+		g_object_unref( im );
+
+		if( status )
+			break;
+	}
+
+	return( status );
+}
+
+static int
+magick_write_images( Write *write )
+{
+	if( !WriteImages( write->image_info, write->image, write->filename, write->exception ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+#endif /*HAVE_MAGICK7 */
+
+int
+vips__magick_write( VipsImage *im, const char *filename )
+{
+	Write *write;
+
+	if( !(write = write_new( filename, im )) )
+		return( -1 );
+
+	if ( magick_create_images( write ) ) {
+		vips_error( "magick2vips", _( "unable to write file \"%s\"\n"
+			"libMagick error: %s %s" ),
+			filename,
+			write->exception->reason, write->exception->description );
+		return( -1 );
+	}
+
+	if( magick_write_images( write ) ) {
+		vips_error( "magick2vips", _( "unable to write file \"%s\"\n"
+			"libMagick error: %s %s" ),
+			filename,
+			write->exception->reason, write->exception->description );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+#endif /*HAVE_MAGICK | HAVE_MAGICK7*/
 

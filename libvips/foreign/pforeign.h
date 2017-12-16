@@ -132,6 +132,8 @@ int vips__magick_read_buffer( const void *buf, const size_t len,
 int vips__magick_read_buffer_header( const void *buf, const size_t len,
 	VipsImage *out, const char *density, int page, int n );
 
+int vips__magick_write( VipsImage *in, const char *filename);
+
 extern const char *vips__mat_suffs[];
 
 int vips__mat_load( const char *filename, VipsImage *out );

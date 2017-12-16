@@ -1775,6 +1775,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_magick_buffer_get_type( void ); 
 	extern GType vips_foreign_load_magick7_file_get_type( void ); 
 	extern GType vips_foreign_load_magick7_buffer_get_type( void ); 
+	extern GType vips_foreign_save_magick_file_get_type( void );
 	extern GType vips_foreign_save_dz_file_get_type( void ); 
 	extern GType vips_foreign_save_dz_buffer_get_type( void ); 
 	extern GType vips_foreign_load_webp_file_get_type( void ); 
@@ -1880,11 +1881,13 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_MAGICK
 	vips_foreign_load_magick_file_get_type(); 
 	vips_foreign_load_magick_buffer_get_type(); 
+	vips_foreign_save_magick_file_get_type();
 #endif /*HAVE_MAGICK*/
 
 #ifdef HAVE_MAGICK7
 	vips_foreign_load_magick7_file_get_type(); 
 	vips_foreign_load_magick7_buffer_get_type(); 
+	vips_foreign_save_magick_file_get_type();
 #endif /*HAVE_MAGICK7*/
 
 #ifdef HAVE_CFITSIO
