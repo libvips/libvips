@@ -109,8 +109,10 @@
 	#if !defined(QuantumRange)
 	#  define QuantumRange MaxRGB
 	#endif
+	#define TextExtent MagickTextExtent
 #elif HAVE_MAGICK7
 	#include <MagickCore/MagickCore.h>
+	#define TextExtent MagickPathExtent
 #endif
 
 /* And this used to be UseHDRI.
@@ -122,10 +124,9 @@
 /* What we track during a write call.
  */
 typedef struct _Write {
-	char *filename;
 	VipsImage *im;
 
-	Image *image;
+	Image *images;
 	ImageInfo *image_info;
 	ExceptionInfo *exception;
 
@@ -919,9 +920,8 @@ vips__magick_read_buffer_header( const void *buf, const size_t len,
 static void
 write_free( Write *write )
 {
-	VIPS_FREE( write->filename );
 	VIPS_FREE( write->map );
-	VIPS_FREEF( DestroyImageList, write->image );
+	VIPS_FREEF( DestroyImageList, write->images );
 	VIPS_FREEF( DestroyImageInfo, write->image_info );
 	VIPS_FREEF( DestroyExceptionInfo, write->exception );
 }
@@ -937,7 +937,7 @@ write_close( VipsImage *im, Write *write )
 }
 
 static Write *
-write_new( const char *filename, VipsImage *im)
+write_new( VipsImage *im, const char *filename, const char *format )
 {
 	Write *write;
 	static int inited = 0;
@@ -949,9 +949,8 @@ write_new( const char *filename, VipsImage *im)
 
 	if( !(write = VIPS_NEW( im, Write )) )
 		return( NULL );
-	write->filename = filename ? g_strdup( filename ) : NULL;
 	write->im = im;
-	write->image = NULL;
+	write->images = NULL;
 
 	write->storageType = UndefinedPixel;
 	switch( im->BandFmt ) {
@@ -1008,6 +1007,21 @@ write_new( const char *filename, VipsImage *im)
 		return( NULL );
 	}
 
+	if( format ) {
+		vips_strncpy( write->image_info->magick,
+			format, TextExtent );
+		if ( filename ) {
+			va_list ap;
+
+			(void) vips_snprintf( write->image_info->filename, 
+				TextExtent, "%s:%s", format, filename );
+		}
+	}
+	else if ( filename ) {
+		vips_strncpy( write->image_info->filename,
+			filename, TextExtent );
+	}
+
 	write->exception = AcquireExceptionInfo();
 	if( !write->exception) {
 		write_free(write);
@@ -1042,15 +1056,15 @@ magick_create_image( Write *write, VipsImage *im )
 {
 	Image *image;
 
-	if( write->image == NULL ) {
+	if( write->images == NULL ) {
 		image = AcquireImage( write->image_info, write->exception );
 		if( image == NULL )
 			return( -1 );
 
-		write->image = image;
+		write->images = image;
 	}
 	else {
-		image=GetLastImageInList( write->image );
+		image=GetLastImageInList( write->images );
 		AcquireNextImage( write->image_info, image, write->exception );
 		if( GetNextImageInList( image ) == NULL )
 			return( -1 );
@@ -1096,7 +1110,20 @@ magick_create_images( Write *write )
 static int
 magick_write_images( Write *write )
 {
-	if( !WriteImages( write->image_info, write->image, write->filename, write->exception ) )
+	if( !WriteImages( write->image_info, write->images,
+			write->image_info->filename, write->exception ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+magick_write_images_buf( Write *write, void **obuf, size_t *olen )
+{
+	*obuf=ImagesToBlob( write->image_info, write->images, olen,
+		write->exception );
+
+	if( !*obuf )
 		return( -1 );
 
 	return( 0 );
@@ -1105,11 +1132,12 @@ magick_write_images( Write *write )
 #endif /*HAVE_MAGICK7 */
 
 int
-vips__magick_write( VipsImage *im, const char *filename )
+vips__magick_write( VipsImage *im, const char *filename,
+	const char *format )
 {
 	Write *write;
 
-	if( !(write = write_new( filename, im )) )
+	if( !(write = write_new( im, filename, format )) )
 		return( -1 );
 
 	if ( magick_create_images( write ) ) {
@@ -1124,6 +1152,32 @@ vips__magick_write( VipsImage *im, const char *filename )
 		vips_error( "magick2vips", _( "unable to write file \"%s\"\n"
 			"libMagick error: %s %s" ),
 			filename,
+			write->exception->reason, write->exception->description );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+int
+vips__magick_write_buf( VipsImage *im, void **obuf, size_t *olen,
+	const char *format )
+{
+	Write *write;
+
+	if( !(write = write_new( im, NULL, format )) )
+		return( -1 );
+
+	if ( magick_create_images( write ) ) {
+		vips_error( "magick2vips", _( "unable to write buffer \n"
+			"libMagick error: %s %s" ),
+			write->exception->reason, write->exception->description );
+		return( -1 );
+	}
+
+	if( magick_write_images_buf( write, obuf, olen ) ) {
+		vips_error( "magick2vips", _( "unable to write buffer \n"
+			"libMagick error: %s %s" ),
 			write->exception->reason, write->exception->description );
 		return( -1 );
 	}

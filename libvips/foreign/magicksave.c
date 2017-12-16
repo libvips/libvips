@@ -98,6 +98,7 @@ typedef struct _VipsForeignSaveMagickFile {
 	VipsForeignSaveMagick parent_object;
 
 	char *filename;
+	char *format;
 
 } VipsForeignSaveMagickFile;
 
@@ -111,13 +112,13 @@ vips_foreign_save_magick_file_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) object;
-	VipsForeignSaveMagickFile *magick_file = (VipsForeignSaveMagickFile *) object;
+	VipsForeignSaveMagickFile *file = (VipsForeignSaveMagickFile *) object;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_magick_file_parent_class )->
-		build( object ) )
+			build( object ) )
 		return( -1 );
 
-	if( vips__magick_write( save->ready, magick_file->filename ) )
+	if( vips__magick_write( save->ready, file->filename, file->format ) )
 		return( -1 );
 
 	return( 0 );
@@ -137,17 +138,100 @@ vips_foreign_save_magick_file_class_init(
 	object_class->description = _( "save file with ImageMagick" );
 	object_class->build = vips_foreign_save_magick_file_build;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1,
 		_( "Filename" ),
 		_( "Filename to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveMagickFile, filename ),
+		NULL );
+
+	VIPS_ARG_STRING( class, "format", 2,
+		_( "Format" ),
+		_( "Format to save in" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveMagickFile, format ),
 		NULL );
 
 }
 
 static void
 vips_foreign_save_magick_file_init( VipsForeignSaveMagickFile *file )
+{
+}
+
+typedef struct _VipsForeignSaveMagickBuffer {
+	VipsForeignSaveMagick parent_object;
+
+	/* Save to a buffer.
+	 */
+	VipsArea *buf;
+	char *format;
+
+} VipsForeignSaveMagickBuffer;
+
+typedef VipsForeignSaveMagickClass VipsForeignSaveMagickBufferClass;
+
+G_DEFINE_TYPE( VipsForeignSaveMagickBuffer, vips_foreign_save_magick_buffer, 
+	vips_foreign_save_magick_get_type() );
+
+static int
+vips_foreign_save_magick_buffer_build( VipsObject *object )
+{
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) object;
+	VipsForeignSaveMagickBuffer *buffer = (VipsForeignSaveMagickBuffer *) object;
+
+	void *obuf;
+	size_t olen;
+	VipsBlob *blob;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_magick_buffer_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( vips__magick_write_buf( save->ready, &obuf, &olen,
+			buffer->format ) )
+		return( -1 );
+
+	/* obuf is a g_free() buffer, not vips_free().
+	 */
+	blob = vips_blob_new( (VipsCallbackFn) g_free, obuf, olen );
+	g_object_set( buffer, "buffer", blob, NULL );
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_magick_buffer_class_init( VipsForeignSaveMagickBufferClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "magicksave_buffer";
+	object_class->description = _( "save image to magick buffer" );
+	object_class->build = vips_foreign_save_magick_buffer_build;
+
+	VIPS_ARG_BOXED( class, "buffer", 1,
+		_( "Buffer" ),
+		_( "Buffer to save to" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveMagickBuffer, buf ),
+		VIPS_TYPE_BLOB );
+
+	VIPS_ARG_STRING( class, "format", 2,
+		_( "Format" ),
+		_( "Format to save in" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveMagickFile, format ),
+		NULL );
+}
+
+static void
+vips_foreign_save_magick_buffer_init( VipsForeignSaveMagickBuffer *buffer )
 {
 }
 
