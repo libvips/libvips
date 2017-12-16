@@ -7,7 +7,7 @@
  * 	- cleanups
  * 	- any mix of formats and bands
  * 23/10/13
- * 	- redo as a class, from bandrank.c
+ * 	- redo as a class, from bandjoin.c
  */
 
 /*
