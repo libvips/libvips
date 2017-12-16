@@ -26,7 +26,7 @@ VIPS_MAJOR_VERSION=vips_major_version()
 VIPS_MINOR_VERSION=vips_minor_version()
 VIPS_MICRO_VERSION=vips_micro_version()
 VIPS_VERSION=vips_version()
-VIPS_VERSION_STRING=$VIPS_VERSION-`date`
+VIPS_VERSION_STRING=$VIPS_VERSION-`date -u -r ChangeLog`
 
 # libtool library versioning ... not user-visible (except as part of the
 # library file name) and does not correspond to major/minor/micro above
