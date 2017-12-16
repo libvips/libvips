@@ -1036,6 +1036,23 @@ write_new( VipsImage *im, const char *filename, const char *format )
 #ifdef HAVE_MAGICK7
 
 static int
+magick_set_properties( Write *write )
+{
+	int number;
+	const char *str;
+
+	if( !vips_image_get_int( write->im, "gif-delay", &number ) )
+		write->current_image->delay = (size_t) number;
+
+	if( !vips_image_get_int( write->im, "gif-loop", &number ) )
+		write->current_image->iterations = (size_t) number;
+
+	if( !vips_image_get_string( write->im, "gif-comment", &str ) )
+		(void) SetImageProperty( write->current_image, "comment",
+			str, write->exception );
+}
+
+static int
 magick_write_block( VipsRegion *region, VipsRect *area, void *a )
 {
 	Write *write = (Write *) a;
@@ -1076,6 +1093,7 @@ magick_create_image( Write *write, VipsImage *im )
 		return( -1 );
 
 	write->current_image=image;
+	magick_set_properties( write );
 	return( vips_sink_disc( im, magick_write_block, write ) );
 }
 
