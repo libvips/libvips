@@ -3,6 +3,7 @@
 - fix some compiler warnings
 - remove the 64-image limit on bandary operations
 - better version date, thanks bmwiedemann
+- bump wrapper script version, thanks bgilbert
 
 15/4/17 started 8.6.0
 - supports fits images with leading non-image HDUs, thanks benepo

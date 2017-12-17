@@ -7,6 +7,15 @@
 
 . ./variables.sh
 
+# verify that the version number on the wrapper script is correct
+version=$($vips --version)
+major=$(echo $version | cut -b6- | cut -d. -f1)
+minor=$(echo $version | cut -b6- | cut -d. -f2)
+if ! test -f $top_srcdir/tools/vips-$major.$minor; then
+	echo version number in vips wrapper is not correct
+	exit 1
+fi
+
 # is a difference beyond a threshold? return 0 (meaning all ok) or 1 (meaning
 # error, or outside threshold)
 # 
@@ -87,3 +96,4 @@ test_thumbnail "100x100<" 1024 768
 test_thumbnail "2000<" 2000 1500
 test_thumbnail "100x100>" 100 75
 test_thumbnail "2000>" 1024 768
+
