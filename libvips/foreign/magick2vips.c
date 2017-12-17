@@ -1033,7 +1033,8 @@ write_close( VipsImage *im, Write *write )
 }
 
 static Write *
-write_new( VipsImage *im, const char *filename, const char *format )
+write_new( VipsImage *im, const char *filename, const char *format,
+	const size_t quality )
 {
 	Write *write;
 	static int inited = 0;
@@ -1107,15 +1108,17 @@ write_new( VipsImage *im, const char *filename, const char *format )
 		vips_strncpy( write->image_info->magick,
 			format, MaxPathExtent );
 		if ( filename ) {
-			va_list ap;
-
-			(void) vips_snprintf( write->image_info->filename, 
+			(void) vips_snprintf( write->image_info->filename,
 				MaxPathExtent, "%s:%s", format, filename );
 		}
 	}
 	else if ( filename ) {
 		vips_strncpy( write->image_info->filename,
 			filename, MaxPathExtent );
+	}
+
+	if ( quality > 0 ) {
+		write->image_info->quality = quality;
 	}
 
 	write->exception = AcquireExceptionInfo();
@@ -1250,11 +1253,11 @@ magick_write_images_buf( Write *write, void **obuf, size_t *olen )
 
 int
 vips__magick_write( VipsImage *im, const char *filename,
-	const char *format )
+	const char *format, const size_t quality )
 {
 	Write *write;
 
-	if( !(write = write_new( im, filename, format )) )
+	if( !(write = write_new( im, filename, format, quality )) )
 		return( -1 );
 
 	if ( magick_create_images( write ) ) {
@@ -1279,11 +1282,11 @@ vips__magick_write( VipsImage *im, const char *filename,
 
 int
 vips__magick_write_buf( VipsImage *im, void **obuf, size_t *olen,
-	const char *format )
+	const char *format, const size_t quality )
 {
 	Write *write;
 
-	if( !(write = write_new( im, NULL, format )) )
+	if( !(write = write_new( im, NULL, format, quality )) )
 		return( -1 );
 
 	if ( magick_create_images( write ) ) {

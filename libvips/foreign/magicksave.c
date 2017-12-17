@@ -99,6 +99,7 @@ typedef struct _VipsForeignSaveMagickFile {
 
 	char *filename;
 	char *format;
+	int quality;
 
 } VipsForeignSaveMagickFile;
 
@@ -118,7 +119,8 @@ vips_foreign_save_magick_file_build( VipsObject *object )
 			build( object ) )
 		return( -1 );
 
-	if( vips__magick_write( save->ready, file->filename, file->format ) )
+	if( vips__magick_write( save->ready, file->filename, file->format,
+			file->quality ) )
 		return( -1 );
 
 	return( 0 );
@@ -152,6 +154,13 @@ vips_foreign_save_magick_file_class_init(
 		G_STRUCT_OFFSET( VipsForeignSaveMagickFile, format ),
 		NULL );
 
+	VIPS_ARG_INT( class, "quality", 3,
+		_( "Quality" ),
+		_( "Quality to use" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveMagickFile, quality ),
+		0, 100, 0 );
+
 }
 
 static void
@@ -166,6 +175,7 @@ typedef struct _VipsForeignSaveMagickBuffer {
 	 */
 	VipsArea *buf;
 	char *format;
+	int quality;
 
 } VipsForeignSaveMagickBuffer;
 
@@ -190,7 +200,7 @@ vips_foreign_save_magick_buffer_build( VipsObject *object )
 		return( -1 );
 
 	if( vips__magick_write_buf( save->ready, &obuf, &olen,
-			buffer->format ) )
+			buffer->format, buffer->quality ) )
 		return( -1 );
 
 	/* obuf is a g_free() buffer, not vips_free().
@@ -226,8 +236,15 @@ vips_foreign_save_magick_buffer_class_init( VipsForeignSaveMagickBufferClass *cl
 		_( "Format" ),
 		_( "Format to save in" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveMagickFile, format ),
+		G_STRUCT_OFFSET( VipsForeignSaveMagickBuffer, format ),
 		NULL );
+
+	VIPS_ARG_INT( class, "quality", 3,
+		_( "Quality" ),
+		_( "Quality to use" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveMagickBuffer, quality ),
+		0, 100, 0 );
 }
 
 static void
