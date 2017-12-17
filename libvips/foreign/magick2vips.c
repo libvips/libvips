@@ -109,16 +109,10 @@
 	#if !defined(QuantumRange)
 	#  define QuantumRange MaxRGB
 	#endif
-	#define TextExtent MagickTextExtent
+	#define MaxPathExtent MaxTextExtent
 #elif HAVE_MAGICK7
 	#include <MagickCore/MagickCore.h>
-	#define TextExtent MagickPathExtent
-#endif
-
-/* And this used to be UseHDRI.
- */
-#if MAGICKCORE_HDRI_SUPPORT
-#  define UseHDRI 1
+	#define MaxPathExtent MagickPathExtent
 #endif
 
 /* What we track during a write call.
@@ -136,6 +130,12 @@ typedef struct _Write {
 } Write;
 
 #if HAVE_MAGICK
+
+/* And this used to be UseHDRI.
+ */
+#if MAGICKCORE_HDRI_SUPPORT
+#  define UseHDRI 1
+#endif
 
 #include "pforeign.h"
 
@@ -232,7 +232,7 @@ read_new( const char *filename, VipsImage *im,
 
 	if( filename ) 
 		vips_strncpy( read->image_info->filename, 
-			filename, MaxTextExtent );
+			filename, MaxPathExtent );
 
 	/* Canvas resolution for rendering vector formats like SVG.
 	 */
@@ -915,6 +915,101 @@ vips__magick_read_buffer_header( const void *buf, const size_t len,
 
 #endif /*HAVE_MAGICK*/
 
+#ifdef HAVE_MAGICK7
+
+static Image*
+magick_acquire_image( const ImageInfo *image_info, ExceptionInfo *exception )
+{
+	return AcquireImage( image_info, exception );
+}
+
+static void
+magick_acquire_next_image( const ImageInfo *image_info, Image *image,
+	ExceptionInfo *exception)
+{
+	AcquireNextImage( image_info, image, exception );
+}
+
+static int
+magick_set_image_size( Image *image, const size_t width, const size_t height,
+	ExceptionInfo *exception)
+{
+	return SetImageExtent( image, width, height, exception );
+}
+
+static int
+magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
+	const size_t width, const size_t height, const char *map,
+	const StorageType type,const void *pixels, ExceptionInfo *exception )
+{
+	return ImportImagePixels( image, x, y, width, height, map,
+		type, pixels, exception );
+}
+
+static void
+magick_set_property( Image *image, const char *property, const char *value,
+	ExceptionInfo *exception )
+{
+	(void) SetImageProperty( image, property, value, exception );
+}
+
+static void
+magick_inherit_exception( Write *write ) {
+	(void) write;
+}
+
+#endif /*HAVE_MAGICK7 */
+
+#ifdef HAVE_MAGICK
+
+static Image*
+magick_acquire_image(const ImageInfo *image_info, ExceptionInfo *exception)
+{
+	(void) exception;
+	return AcquireImage( image_info );
+}
+
+static void
+magick_acquire_next_image( const ImageInfo *image_info, Image *image,
+	ExceptionInfo *exception )
+{
+	(void) exception;
+	AcquireNextImage( image_info, image );
+}
+
+static int
+magick_set_image_size( Image *image, const size_t width, const size_t height,
+	ExceptionInfo *exception )
+{
+	(void) exception;
+	return SetImageExtent( image, width, height );
+}
+
+static int
+magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
+	const size_t width, const size_t height, const char *map,
+	const StorageType type,const void *pixels, ExceptionInfo *exception )
+{
+	(void) exception;
+	return ImportImagePixels( image, x, y, width, height, map,
+		type, pixels );
+}
+
+static void
+magick_set_property( Image *image, const char *property, const char *value,
+	ExceptionInfo *exception )
+{
+	(void) exception;
+	(void) SetImageProperty( image, property, value );
+}
+
+static void
+magick_inherit_exception( Write *write ) {
+	InheritException( write->exception, &write->current_image->exception );
+}
+
+#endif
+
 /* Can be called many times.
  */
 static void
@@ -1009,17 +1104,17 @@ write_new( VipsImage *im, const char *filename, const char *format )
 
 	if( format ) {
 		vips_strncpy( write->image_info->magick,
-			format, TextExtent );
+			format, MaxPathExtent );
 		if ( filename ) {
 			va_list ap;
 
 			(void) vips_snprintf( write->image_info->filename, 
-				TextExtent, "%s:%s", format, filename );
+				MaxPathExtent, "%s:%s", format, filename );
 		}
 	}
 	else if ( filename ) {
 		vips_strncpy( write->image_info->filename,
-			filename, TextExtent );
+			filename, MaxPathExtent );
 	}
 
 	write->exception = AcquireExceptionInfo();
@@ -1032,8 +1127,6 @@ write_new( VipsImage *im, const char *filename, const char *format )
 
 	return( write );
 }
-
-#ifdef HAVE_MAGICK7
 
 static int
 magick_set_properties( Write *write )
@@ -1048,7 +1141,7 @@ magick_set_properties( Write *write )
 		write->current_image->iterations = (size_t) number;
 
 	if( !vips_image_get_string( write->im, "gif-comment", &str ) )
-		(void) SetImageProperty( write->current_image, "comment",
+		magick_set_property( write->current_image, "comment",
 			str, write->exception );
 }
 
@@ -1061,7 +1154,7 @@ magick_write_block( VipsRegion *region, VipsRect *area, void *a )
 
 	p = VIPS_REGION_ADDR(region, area->left, area->top);
 
-	status=ImportImagePixels( write->current_image, area->left, area->top,
+	status=magick_import_pixels( write->current_image, area->left, area->top,
 			area->width, area->height, write->map, write->storageType, p,
 			write->exception );
 
@@ -1072,9 +1165,10 @@ static int
 magick_create_image( Write *write, VipsImage *im )
 {
 	Image *image;
+	int status;
 
 	if( write->images == NULL ) {
-		image = AcquireImage( write->image_info, write->exception );
+		image = magick_acquire_image( write->image_info, write->exception );
 		if( image == NULL )
 			return( -1 );
 
@@ -1082,19 +1176,21 @@ magick_create_image( Write *write, VipsImage *im )
 	}
 	else {
 		image=GetLastImageInList( write->images );
-		AcquireNextImage( write->image_info, image, write->exception );
+		magick_acquire_next_image( write->image_info, image, write->exception );
 		if( GetNextImageInList( image ) == NULL )
 			return( -1 );
 
 		image=SyncNextImageInList( image );
 	}
 
-	if( !SetImageExtent( image, im->Xsize, im->Ysize, write->exception ) )
+	if( !magick_set_image_size( image, im->Xsize, im->Ysize, write->exception ) )
 		return( -1 );
 
 	write->current_image=image;
 	magick_set_properties( write );
-	return( vips_sink_disc( im, magick_write_block, write ) );
+	status =  vips_sink_disc( im, magick_write_block, write );
+	magick_inherit_exception( write );
+	return( status );
 }
 
 static int
@@ -1146,8 +1242,6 @@ magick_write_images_buf( Write *write, void **obuf, size_t *olen )
 
 	return( 0 );
 }
-
-#endif /*HAVE_MAGICK7 */
 
 int
 vips__magick_write( VipsImage *im, const char *filename,
