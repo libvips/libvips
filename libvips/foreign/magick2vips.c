@@ -954,8 +954,9 @@ magick_set_property( Image *image, const char *property, const char *value,
 }
 
 static void
-magick_inherit_exception( Write *write ) {
+magick_inherit_exception( Write *write, Image *image ) {
 	(void) write;
+	(void) image;
 }
 
 #endif /*HAVE_MAGICK7 */
@@ -1004,8 +1005,8 @@ magick_set_property( Image *image, const char *property, const char *value,
 }
 
 static void
-magick_inherit_exception( Write *write ) {
-	InheritException( write->exception, &write->current_image->exception );
+magick_inherit_exception( Write *write, Image *image ) {
+	InheritException( write->exception, &image->exception );
 }
 
 #endif
@@ -1192,7 +1193,7 @@ magick_create_image( Write *write, VipsImage *im )
 	write->current_image=image;
 	magick_set_properties( write );
 	status =  vips_sink_disc( im, magick_write_block, write );
-	magick_inherit_exception( write );
+	magick_inherit_exception( write, write->current_image );
 	return( status );
 }
 
@@ -1265,6 +1266,7 @@ vips__magick_write( VipsImage *im, const char *filename,
 	}
 
 	if( magick_write_images( write ) ) {
+		magick_inherit_exception( write, write->images );
 		vips_error( "magick2vips", _( "unable to write file \"%s\"\n"
 			"libMagick error: %s %s" ),
 			filename,
