@@ -1134,13 +1134,16 @@ magick_set_properties( Write *write )
 	int number;
 	const char *str;
 
-	if( !vips_image_get_int( write->im, "gif-delay", &number ) )
+	if( vips_image_get_typeof( write->im, "gif-delay" ) &&
+		!vips_image_get_int( write->im, "gif-delay", &number ) )
 		write->current_image->delay = (size_t) number;
 
-	if( !vips_image_get_int( write->im, "gif-loop", &number ) )
+	if( vips_image_get_typeof( write->im, "gif-loop" ) &&
+		!vips_image_get_int( write->im, "gif-loop", &number ) )
 		write->current_image->iterations = (size_t) number;
 
-	if( !vips_image_get_string( write->im, "gif-comment", &str ) )
+	if( vips_image_get_typeof( write->im, "gif-comment" ) &&
+		!vips_image_get_string( write->im, "gif-comment", &str ) )
 		magick_set_property( write->current_image, "comment",
 			str, write->exception );
 }
@@ -1201,7 +1204,8 @@ magick_create_images( Write *write )
 	int status;
 
 	height = 0;
-	if( vips_image_get_int( write->im, VIPS_META_PAGE_HEIGHT, &height ) )
+	if( vips_image_get_typeof( write->im, VIPS_META_PAGE_HEIGHT ) &&
+		vips_image_get_int( write->im, VIPS_META_PAGE_HEIGHT, &height ) )
 		return( magick_create_image( write, write->im ) );
 
 	for( int top=0; top < write->im->Ysize ; top+=height ) {
