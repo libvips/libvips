@@ -66,9 +66,9 @@ Once `configure` is looking OK, compile and install with the usual:
 By default this will install files to `/usr/local`.
 
 We have detailed guides on the wiki for [building on
-Windows](https://github.com/jcupitt/libvips/wiki/Build_for_Windows)
+Windows](https://github.com/jcupitt/libvips/wiki/Build-for-Windows)
 and [building on OS
-X](https://github.com/jcupitt/libvips/wiki/Build_on_OS_X).
+X](https://github.com/jcupitt/libvips/wiki/Build-for-macOS).
 
 # Building libvips from git
 
