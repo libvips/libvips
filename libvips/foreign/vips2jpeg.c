@@ -816,6 +816,9 @@ vips__jpeg_write_buffer( VipsImage *in,
 		Q, profile, optimize_coding, progressive, strip, no_subsample,
 		trellis_quant, overshoot_deringing, optimize_scans, 
 		quant_table ) ) {
+		term_destination( &write->cinfo );
+		VIPS_FREE( *obuf );
+		*olen = 0;
 		write_destroy( write );
 
 		return( -1 );
