@@ -1775,6 +1775,8 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_magick_buffer_get_type( void ); 
 	extern GType vips_foreign_load_magick7_file_get_type( void ); 
 	extern GType vips_foreign_load_magick7_buffer_get_type( void ); 
+	extern GType vips_foreign_save_magick_file_get_type( void );
+	extern GType vips_foreign_save_magick_buffer_get_type( void );
 	extern GType vips_foreign_save_dz_file_get_type( void ); 
 	extern GType vips_foreign_save_dz_buffer_get_type( void ); 
 	extern GType vips_foreign_load_webp_file_get_type( void ); 
@@ -1877,15 +1879,27 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_openslide_get_type(); 
 #endif /*HAVE_OPENSLIDE*/
 
-#ifdef HAVE_MAGICK
-	vips_foreign_load_magick_file_get_type(); 
-	vips_foreign_load_magick_buffer_get_type(); 
-#endif /*HAVE_MAGICK*/
+/* Should be removed and added as a configure option */
+#define HAVE_MAGICKLOAD 1
+#define HAVE_MAGICKSAVE 1
+/* Should be removed and added as a configure option */
 
-#ifdef HAVE_MAGICK7
-	vips_foreign_load_magick7_file_get_type(); 
-	vips_foreign_load_magick7_buffer_get_type(); 
-#endif /*HAVE_MAGICK7*/
+#ifdef HAVE_MAGICKLOAD
+	#ifdef HAVE_MAGICK
+		vips_foreign_load_magick_file_get_type();
+		vips_foreign_load_magick_buffer_get_type();
+	#endif /*HAVE_MAGICK*/
+
+	#ifdef HAVE_MAGICK7
+		vips_foreign_load_magick7_file_get_type();
+		vips_foreign_load_magick7_buffer_get_type();
+	#endif /*HAVE_MAGICK7*/
+#endif /*HAVE_MAGICKLOAD*/
+
+#ifdef HAVE_MAGICKSAVE
+	vips_foreign_save_magick_file_get_type();
+	vips_foreign_save_magick_buffer_get_type();
+#endif /*HAVE_MAGICKSAVE*/
 
 #ifdef HAVE_CFITSIO
 	vips_foreign_load_fits_get_type(); 

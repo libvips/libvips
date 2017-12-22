@@ -50,6 +50,11 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
+/* Should be removed and added as a configure option */
+#define HAVE_MAGICKLOAD 1
+/* Should be removed and added as a configure option */
+
+#ifdef HAVE_MAGICKLOAD
 #ifdef HAVE_MAGICK7
 
 #include <MagickCore/MagickCore.h>
@@ -911,3 +916,4 @@ vips_foreign_load_magick7_buffer_init( VipsForeignLoadMagick7Buffer *buffer )
 }
 
 #endif /*HAVE_MAGICK7*/
+#endif /*HAVE_MAGICKLOAD*/
