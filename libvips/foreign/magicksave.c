@@ -95,6 +95,13 @@ magick_set_image_size( Image *image, const size_t width, const size_t height,
 }
 
 static int
+magick_set_image_colorspace( Image *image, const ColorspaceType colorspace,
+	ExceptionInfo *exception)
+{
+	return SetImageColorspace( image, colorspace, exception );
+}
+
+static int
 magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
 	const size_t width, const size_t height, const char *map,
 	const StorageType type,const void *pixels, ExceptionInfo *exception )
@@ -141,6 +148,14 @@ magick_set_image_size( Image *image, const size_t width, const size_t height,
 {
 	(void) exception;
 	return SetImageExtent( image, width, height );
+}
+
+static int
+magick_set_image_colorspace( Image *image, const ColorspaceType colorspace,
+	ExceptionInfo *exception)
+{
+	(void) exception;
+	return SetImageColorspace( image, colorspace );
 }
 
 static int
@@ -349,6 +364,11 @@ magick_create_image( Write *write, VipsImage *im )
 
 	if( !magick_set_image_size( image, im->Xsize, im->Ysize, write->exception ) )
 		return( -1 );
+
+	if( im->Bands < 3) {
+		if (! magick_set_image_colorspace( image, GRAYColorspace, write->exception ) )
+			return( -1 );
+	}
 
 	write->current_image=image;
 	magick_set_properties( write );
