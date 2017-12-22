@@ -1882,16 +1882,17 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_MAGICK
 	vips_foreign_load_magick_file_get_type();
 	vips_foreign_load_magick_buffer_get_type();
-	vips_foreign_save_magick_file_get_type();
-	vips_foreign_save_magick_buffer_get_type();
 #endif /*HAVE_MAGICK*/
 
 #ifdef HAVE_MAGICK7
 	vips_foreign_load_magick7_file_get_type();
 	vips_foreign_load_magick7_buffer_get_type();
+#endif /*HAVE_MAGICK7*/
+
+#ifdef HAVE_MAGICKSAVE
 	vips_foreign_save_magick_file_get_type();
 	vips_foreign_save_magick_buffer_get_type();
-#endif /*HAVE_MAGICK7*/
+#endif /*HAVE_MAGICKSAVE*/
 
 #ifdef HAVE_CFITSIO
 	vips_foreign_load_fits_get_type(); 
