@@ -369,6 +369,9 @@ magick_create_images( Write *write )
 		vips_image_get_int( write->im, VIPS_META_PAGE_HEIGHT, &height ) )
 		return( magick_create_image( write, write->im ) );
 
+	if( height == 0 )
+		return( magick_create_image( write, write->im ) );
+
 	for( int top=0; top < write->im->Ysize ; top+=height ) {
 		VipsImage *im;
 
