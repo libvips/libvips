@@ -586,7 +586,7 @@ if test x"$with_magick" != x"no"; then
      PACKAGES_USED="$PACKAGES_USED $with_magickpackage"
     ],
     [PKG_CHECK_MODULES(MAGICK, $with_magickpackage,  
-       [AC_DEFINE(HAVE_MAGICK,1,[define if you have libMagick installed.])
+       [AC_DEFINE(HAVE_MAGICK6,1,[define if you have libMagick6 installed.])
         with_magick=yes
         magick6=yes
         magick_version=magick6

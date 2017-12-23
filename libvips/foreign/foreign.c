@@ -1880,10 +1880,10 @@ vips_foreign_operation_init( void )
 #endif /*HAVE_OPENSLIDE*/
 
 #ifdef ENABLE_MAGICKLOAD
-#ifdef HAVE_MAGICK
+#ifdef HAVE_MAGICK6
 	vips_foreign_load_magick_file_get_type();
 	vips_foreign_load_magick_buffer_get_type();
-#endif /*HAVE_MAGICK*/
+#endif /*HAVE_MAGICK6*/
 
 #ifdef HAVE_MAGICK7
 	vips_foreign_load_magick7_file_get_type();

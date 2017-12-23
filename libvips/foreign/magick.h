@@ -30,12 +30,12 @@
 
  */
 
-#if defined(HAVE_MAGICK) || defined (HAVE_MAGICK7)
+#if defined(HAVE_MAGICK6) || defined (HAVE_MAGICK7)
 
-#ifdef HAVE_MAGICK
+#ifdef HAVE_MAGICK6
 #include <magick/api.h>
 #define MaxPathExtent MaxTextExtent
-#endif /*HAVE_MAGICK*/
+#endif /*HAVE_MAGICK6*/
 
 #ifdef HAVE_MAGICK7
 #include <MagickCore/MagickCore.h>
@@ -59,4 +59,4 @@ void magick_vips_error( const char *domain, ExceptionInfo *exception );
 
 void magick_genesis( void );
 
-#endif /*HAVE_MAGICK*/
+#endif /*HAVE_MAGICK6*/

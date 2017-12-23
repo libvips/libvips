@@ -98,7 +98,7 @@ magick_inherit_exception( ExceptionInfo *exception, Image *image )
 
 #endif /*HAVE_MAGICK7*/
 
-#ifdef HAVE_MAGICK
+#ifdef HAVE_MAGICK6
 
 Image*
 magick_acquire_image(const ImageInfo *image_info, ExceptionInfo *exception)
@@ -155,9 +155,9 @@ magick_inherit_exception( ExceptionInfo *exception, Image *image )
 	InheritException( exception, &image->exception );
 }
 
-#endif /*HAVE_MAGICK*/
+#endif /*HAVE_MAGICK6*/
 
-#if defined(HAVE_MAGICK) || defined(HAVE_MAGICK7)
+#if defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)
 
 void
 magick_vips_error( const char *domain, ExceptionInfo *exception )
