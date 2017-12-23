@@ -1,4 +1,6 @@
 /* save with libMagick
+ *
+ * 22/12/17 dlemstra 
  */
 
 /*
@@ -35,7 +37,6 @@
 
 /* Should be removed and added as a configure option */
 #define HAVE_MAGICKSAVE 1
-/* Should be removed and added as a configure option */
 
 #ifdef HAVE_MAGICKSAVE
 
@@ -46,22 +47,16 @@
 #include <vips/vips.h>
 
 #include "pforeign.h"
+#include "magick.h"
 
-#ifdef HAVE_MAGICK
-	#include <magick/api.h>
-	/* pre-float Magick used to call this MaxRGB.
- 	*/
-	#define MaxPathExtent MaxTextExtent
-#endif
-#ifdef HAVE_MAGICK7
-	#include <MagickCore/MagickCore.h>
-	#define MaxPathExtent MagickPathExtent
-#endif
+typedef struct _VipsForeignSaveMagick {
+	VipsForeignSave parent_object;
 
-/* What we track during a write call.
- */
-typedef struct _Write {
-	VipsImage *im;
+	/* Parameters.
+	 */
+	char *filename;		/* NULL during buffer output */
+	char *format;
+	int quality;
 
 	Image *images;
 	ImageInfo *image_info;
@@ -69,318 +64,132 @@ typedef struct _Write {
 
 	Image *current_image;
 	char *map;
-	StorageType storageType;
-} Write;
+	StorageType storage_type;
+} VipsForeignSaveMagick;
 
-#ifdef HAVE_MAGICK7
+typedef VipsForeignSaveClass VipsForeignSaveMagickClass;
 
-static Image*
-magick_acquire_image( const ImageInfo *image_info, ExceptionInfo *exception )
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveMagick, vips_foreign_save_magick,
+	VIPS_TYPE_FOREIGN_SAVE );
+
+static void
+vips_foreign_save_magick_dispose( GObject *gobject )
 {
-	return AcquireImage( image_info, exception );
+	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) gobject;
+
+#ifdef DEBUG
+	printf( "vips_foreign_save_magick_dispose: %p\n", gobject ); 
+#endif /*DEBUG*/
+
+	VIPS_FREE( magick->map );
+	VIPS_FREEF( DestroyImageList, magick->images );
+	VIPS_FREEF( DestroyImageInfo, magick->image_info );
+	VIPS_FREEF( DestroyExceptionInfo, magick->exception );
+
+	G_OBJECT_CLASS( vips_foreign_save_magick_parent_class )->
+		dispose( gobject );
 }
 
 static void
-magick_acquire_next_image( const ImageInfo *image_info, Image *image,
-	ExceptionInfo *exception)
-{
-	AcquireNextImage( image_info, image, exception );
-}
-
-static int
-magick_set_image_size( Image *image, const size_t width, const size_t height,
-	ExceptionInfo *exception)
-{
-	return SetImageExtent( image, width, height, exception );
-}
-
-static int
-magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
-	const size_t width, const size_t height, const char *map,
-	const StorageType type,const void *pixels, ExceptionInfo *exception )
-{
-	return ImportImagePixels( image, x, y, width, height, map,
-		type, pixels, exception );
-}
-
-static void
-magick_set_property( Image *image, const char *property, const char *value,
-	ExceptionInfo *exception )
-{
-	(void) SetImageProperty( image, property, value, exception );
-}
-
-static void
-magick_inherit_exception( Write *write, Image *image ) {
-	(void) write;
-	(void) image;
-}
-
-#endif /*HAVE_MAGICK7 */
-
-#ifdef HAVE_MAGICK
-
-static Image*
-magick_acquire_image(const ImageInfo *image_info, ExceptionInfo *exception)
-{
-	(void) exception;
-	return AcquireImage( image_info );
-}
-
-static void
-magick_acquire_next_image( const ImageInfo *image_info, Image *image,
-	ExceptionInfo *exception )
-{
-	(void) exception;
-	AcquireNextImage( image_info, image );
-}
-
-static int
-magick_set_image_size( Image *image, const size_t width, const size_t height,
-	ExceptionInfo *exception )
-{
-	(void) exception;
-	return SetImageExtent( image, width, height );
-}
-
-static int
-magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
-	const size_t width, const size_t height, const char *map,
-	const StorageType type,const void *pixels, ExceptionInfo *exception )
-{
-	(void) exception;
-	return ImportImagePixels( image, x, y, width, height, map,
-		type, pixels );
-}
-
-static void
-magick_set_property( Image *image, const char *property, const char *value,
-	ExceptionInfo *exception )
-{
-	(void) exception;
-	(void) SetImageProperty( image, property, value );
-}
-
-static void
-magick_inherit_exception( Write *write, Image *image ) {
-	InheritException( write->exception, &image->exception );
-}
-
-#endif /*HAVE_MAGICK */
-
-/* Can be called many times.
- */
-static void
-write_free( Write *write )
-{
-	VIPS_FREE( write->map );
-	VIPS_FREEF( DestroyImageList, write->images );
-	VIPS_FREEF( DestroyImageInfo, write->image_info );
-	VIPS_FREEF( DestroyExceptionInfo, write->exception );
-}
-
-/* Can be called many times.
- */
-static int
-write_close( VipsImage *im, Write *write )
-{
-	write_free( write );
-
-	return( 0 );
-}
-
-static Write *
-write_new( VipsImage *im, const char *filename, const char *format,
-	const size_t quality )
-{
-	Write *write;
-	static int inited = 0;
-
-	if( !inited ) {
-		MagickCoreGenesis( vips_get_argv0(), MagickFalse );
-		inited = 1;
-	}
-
-	if( !(write = VIPS_NEW( im, Write )) )
-		return( NULL );
-	write->im = im;
-	write->images = NULL;
-
-	write->storageType = UndefinedPixel;
-	switch( im->BandFmt ) {
-		case VIPS_FORMAT_UCHAR:
-			write->storageType = CharPixel;
-			break;
-		case VIPS_FORMAT_USHORT:
-			write->storageType = ShortPixel;
-			break;
-		case VIPS_FORMAT_UINT:
-			write->storageType = LongPixel;
-			break;
-		case VIPS_FORMAT_FLOAT:
-			write->storageType = FloatPixel;
-			break;
-		case VIPS_FORMAT_DOUBLE:
-			write->storageType = DoublePixel;
-			break;
-
-		default:
-			write_free(write);
-			return( NULL );
-	}
-
-	write->map = NULL;
-	switch( im->Bands ) {
-		case 1:
-			write->map = g_strdup("R");
-			break;
-		case 2:
-			write->map = g_strdup("RA");
-			break;
-		case 3:
-			write->map = g_strdup("RGB");
-			break;
-		case 4:
-			if( im->Type == VIPS_INTERPRETATION_CMYK )
-				write->map = g_strdup("CMYK");
-			else
-				write->map = g_strdup("RGBA");
-			break;
-		case 5:
-			write->map = g_strdup("CMYKA");
-			break;
-
-		default:
-			write_free(write);
-			return( NULL );
-	}
-
-	write->image_info = CloneImageInfo( NULL );
-	if( !write->image_info) {
-		write_free(write);
-		return( NULL );
-	}
-
-	if( format ) {
-		vips_strncpy( write->image_info->magick,
-			format, MaxPathExtent );
-		if ( filename ) {
-			(void) vips_snprintf( write->image_info->filename,
-				MaxPathExtent, "%s:%s", format, filename );
-		}
-	}
-	else if ( filename ) {
-		vips_strncpy( write->image_info->filename,
-			filename, MaxPathExtent );
-	}
-
-	if ( quality > 0 ) {
-		write->image_info->quality = quality;
-	}
-
-	write->exception = AcquireExceptionInfo();
-	if( !write->exception) {
-		write_free(write);
-		return( NULL );
-	}
-
-	g_signal_connect( im, "close", G_CALLBACK( write_close ), write );
-
-	return( write );
-}
-
-static int
-magick_set_properties( Write *write )
+vips_foreign_save_magick_set_properties( VipsForeignSaveMagick *magick, 
+	VipsImage *im )
 {
 	int number;
 	const char *str;
 
-	if( vips_image_get_typeof( write->im, "gif-delay" ) &&
-		!vips_image_get_int( write->im, "gif-delay", &number ) )
-		write->current_image->delay = (size_t) number;
+	if( vips_image_get_typeof( im, "gif-delay" ) &&
+		!vips_image_get_int( im, "gif-delay", &number ) )
+		magick->current_image->delay = (size_t) number;
 
-	if( vips_image_get_typeof( write->im, "gif-loop" ) &&
-		!vips_image_get_int( write->im, "gif-loop", &number ) )
-		write->current_image->iterations = (size_t) number;
+	if( vips_image_get_typeof( im, "gif-loop" ) &&
+		!vips_image_get_int( im, "gif-loop", &number ) )
+		magick->current_image->iterations = (size_t) number;
 
-	if( vips_image_get_typeof( write->im, "gif-comment" ) &&
-		!vips_image_get_string( write->im, "gif-comment", &str ) )
-		magick_set_property( write->current_image, "comment",
-			str, write->exception );
+	if( vips_image_get_typeof( im, "gif-comment" ) &&
+		!vips_image_get_string( im, "gif-comment", &str ) )
+		magick_set_property( magick->current_image, "comment",
+			str, magick->exception );
 }
 
 static int
 magick_write_block( VipsRegion *region, VipsRect *area, void *a )
 {
-	Write *write = (Write *) a;
+	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) a;
+
 	MagickBooleanType status;
 	void *p;
 
-	p = VIPS_REGION_ADDR(region, area->left, area->top);
+	p = VIPS_REGION_ADDR( region, area->left, area->top );
 
-	status=magick_import_pixels( write->current_image, area->left, area->top,
-			area->width, area->height, write->map, write->storageType, p,
-			write->exception );
+	status = magick_import_pixels( magick->current_image, 
+		area->left, area->top, area->width, area->height, 
+		magick->map, magick->storage_type, 
+		p,
+		magick->exception );
 
 	return( status == MagickFalse ? -1 : 0 );
 }
 
 static int
-magick_create_image( Write *write, VipsImage *im )
+vips_foreign_save_magick_create_one( VipsForeignSaveMagick *magick, 
+	VipsImage *im )
 {
 	Image *image;
 	int status;
 
-	if( write->images == NULL ) {
-		image = magick_acquire_image( write->image_info, write->exception );
-		if( image == NULL )
+	if( magick->images == NULL ) {
+		if( !(image = magick_acquire_image( magick->image_info, 
+			magick->exception )) )
 			return( -1 );
 
-		write->images = image;
+		magick->images = image;
 	}
 	else {
-		image=GetLastImageInList( write->images );
-		magick_acquire_next_image( write->image_info, image, write->exception );
+		image = GetLastImageInList( magick->images );
+		magick_acquire_next_image( magick->image_info, image, 
+			magick->exception );
 		if( GetNextImageInList( image ) == NULL )
 			return( -1 );
 
-		image=SyncNextImageInList( image );
+		image = SyncNextImageInList( image );
 	}
 
-	if( !magick_set_image_size( image, im->Xsize, im->Ysize, write->exception ) )
+	if( !magick_set_image_size( image, im->Xsize, im->Ysize, 
+		magick->exception ) )
 		return( -1 );
 
-	write->current_image=image;
-	magick_set_properties( write );
-	status =  vips_sink_disc( im, magick_write_block, write );
-	magick_inherit_exception( write, write->current_image );
+	magick->current_image = image;
+	vips_foreign_save_magick_set_properties( magick, im );
+	status = vips_sink_disc( im, magick_write_block, magick );
+	magick_inherit_exception( magick->exception, magick->current_image );
+
 	return( status );
 }
 
 static int
-magick_create_images( Write *write )
+vips_foreign_save_magick_create( VipsForeignSaveMagick *magick, VipsImage *im )
 {
-	int height;
-	int count;
+	int page_height;
 	int status;
+	int top;
 
-	height = 0;
-	if( vips_image_get_typeof( write->im, VIPS_META_PAGE_HEIGHT ) &&
-		vips_image_get_int( write->im, VIPS_META_PAGE_HEIGHT, &height ) )
-		return( magick_create_image( write, write->im ) );
+	page_height = 0;
+	if( vips_image_get_typeof( im, VIPS_META_PAGE_HEIGHT ) &&
+		vips_image_get_int( im, VIPS_META_PAGE_HEIGHT, &page_height ) )
+		;
+	if( page_height <= 0 )
+		page_height = im->Ysize;
 
-	if( height == 0 )
-		return( magick_create_image( write, write->im ) );
+	status = 0;
+	for( top = 0; top < im->Ysize; top += page_height ) {
+		VipsImage *x;
 
-	for( int top=0; top < write->im->Ysize ; top+=height ) {
-		VipsImage *im;
-
-		if( vips_crop( write->im, &im, 0, top, write->im->Xsize, height, NULL ) )
+		if( vips_crop( im, &x, 0, top, im->Xsize, page_height, NULL ) )
 			return( -1 );
 
-		status = magick_create_image( write, im );
+		status = vips_foreign_save_magick_create_one( magick, x );
 
-		g_object_unref( im );
+		g_object_unref( x );
 
 		if( status )
 			break;
@@ -390,93 +199,106 @@ magick_create_images( Write *write )
 }
 
 static int
-magick_write_images( Write *write )
+vips_foreign_save_magick_build( VipsObject *object )
 {
-	if( !WriteImages( write->image_info, write->images,
-			write->image_info->filename, write->exception ) )
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) object;
+
+	VipsImage *im;
+
+#ifdef DEBUG
+	printf( "vips_foreign_save_magick_build: %p\n", object ); 
+#endif /*DEBUG*/
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_magick_parent_class )->
+		build( object ) )
 		return( -1 );
 
-	return( 0 );
-}
+	magick_genesis();
 
-static int
-magick_write_images_buf( Write *write, void **obuf, size_t *olen )
-{
-	*obuf=ImagesToBlob( write->image_info, write->images, olen,
-		write->exception );
+	/* The image to save.
+	 */
+	im = save->ready;
 
-	if( !*obuf )
-		return( -1 );
+	magick->exception = AcquireExceptionInfo();
+	magick->image_info = CloneImageInfo( NULL );
 
-	return( 0 );
-}
+	magick->storage_type = UndefinedPixel;
+	switch( im->BandFmt ) {
+	case VIPS_FORMAT_UCHAR:
+		magick->storage_type = CharPixel;
+		break;
 
-static int
-magick_write( VipsImage *im, const char *filename,
-	const char *format, const size_t quality )
-{
-	Write *write;
+	case VIPS_FORMAT_USHORT:
+		magick->storage_type = ShortPixel;
+		break;
 
-	if( !(write = write_new( im, filename, format, quality )) )
-		return( -1 );
+	case VIPS_FORMAT_UINT:
+		magick->storage_type = LongPixel;
+		break;
 
-	if ( magick_create_images( write ) ) {
-		vips_error( "magick2vips", _( "unable to write file \"%s\"\n"
-			"libMagick error: %s %s" ),
-			filename,
-			write->exception->reason, write->exception->description );
+	case VIPS_FORMAT_FLOAT:
+		magick->storage_type = FloatPixel;
+		break;
+
+	case VIPS_FORMAT_DOUBLE:
+		magick->storage_type = DoublePixel;
+		break;
+
+	default:
 		return( -1 );
 	}
 
-	if( magick_write_images( write ) ) {
-		magick_inherit_exception( write, write->images );
-		vips_error( "magick2vips", _( "unable to write file \"%s\"\n"
-			"libMagick error: %s %s" ),
-			filename,
-			write->exception->reason, write->exception->description );
+	magick->map = NULL;
+	switch( im->Bands ) {
+	case 1:
+		magick->map = g_strdup( "R" );
+		break;
+
+	case 2:
+		magick->map = g_strdup( "RA" );
+		break;
+
+	case 3:
+		magick->map = g_strdup( "RGB" );
+		break;
+
+	case 4:
+		if( im->Type == VIPS_INTERPRETATION_CMYK )
+			magick->map = g_strdup( "CMYK" );
+		else
+			magick->map = g_strdup( "RGBA" );
+		break;
+
+	case 5:
+		magick->map = g_strdup( "CMYKA" );
+		break;
+
+	default:
 		return( -1 );
 	}
+
+	if( magick->format ) {
+		vips_strncpy( magick->image_info->magick,
+			magick->format, MaxPathExtent );
+		if( magick->filename ) 
+			(void) vips_snprintf( magick->image_info->filename,
+				MaxPathExtent, "%s:%s", 
+				magick->format, magick->filename );
+	}
+	else if( magick->filename ) {
+		vips_strncpy( magick->image_info->filename,
+			magick->filename, MaxPathExtent );
+	}
+
+	if( magick->quality > 0 ) 
+		magick->image_info->quality = magick->quality;
+
+	if( vips_foreign_save_magick_create( magick, im ) )
+		return( -1 ); 
 
 	return( 0 );
 }
-
-static int
-magick_write_buf( VipsImage *im, void **obuf, size_t *olen,
-	const char *format, const size_t quality )
-{
-	Write *write;
-
-	if( !(write = write_new( im, NULL, format, quality )) )
-		return( -1 );
-
-	if ( magick_create_images( write ) ) {
-		vips_error( "magick2vips", _( "unable to write buffer \n"
-			"libMagick error: %s %s" ),
-			write->exception->reason, write->exception->description );
-		return( -1 );
-	}
-
-	if( magick_write_images_buf( write, obuf, olen ) ) {
-		vips_error( "magick2vips", _( "unable to write buffer \n"
-			"libMagick error: %s %s" ),
-			write->exception->reason, write->exception->description );
-		return( -1 );
-	}
-
-	return( 0 );
-}
-
-
-
-typedef struct _VipsForeignSaveMagick {
-	VipsForeignSave parent_object;
-
-} VipsForeignSaveMagick;
-
-typedef VipsForeignSaveClass VipsForeignSaveMagickClass;
-
-G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveMagick, vips_foreign_save_magick,
-	VIPS_TYPE_FOREIGN_SAVE );
 
 /* Save a bit of typing.
  */
@@ -499,19 +321,35 @@ vips_foreign_save_magick_class_init( VipsForeignSaveMagickClass *class )
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
+	gobject_class->dispose = vips_foreign_save_magick_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "magicksave_base";
 	object_class->description = _( "save with ImageMagick" );
+	object_class->build = vips_foreign_save_magick_build;
 
 	/* We need to be well to the back of the queue since vips's
-	* dedicated savers are usually preferable.
-	*/
+	 * dedicated savers are usually preferable.
+	 */
 	foreign_class->priority = -100;
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
 	save_class->format_table = bandfmt_magick;
+
+	VIPS_ARG_STRING( class, "format", 2,
+		_( "Format" ),
+		_( "Format to save in" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveMagick, format ),
+		NULL );
+
+	VIPS_ARG_INT( class, "quality", 3,
+		_( "Quality" ),
+		_( "Quality to use" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveMagick, quality ),
+		0, 100, 0 );
 }
 
 static void
@@ -523,8 +361,6 @@ typedef struct _VipsForeignSaveMagickFile {
 	VipsForeignSaveMagick parent_object;
 
 	char *filename;
-	char *format;
-	int quality;
 
 } VipsForeignSaveMagickFile;
 
@@ -536,17 +372,28 @@ G_DEFINE_TYPE( VipsForeignSaveMagickFile, vips_foreign_save_magick_file,
 static int
 vips_foreign_save_magick_file_build( VipsObject *object )
 {
-	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
 	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) object;
 	VipsForeignSaveMagickFile *file = (VipsForeignSaveMagickFile *) object;
 
+	magick->filename = file->filename;
+
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_magick_file_parent_class )->
-			build( object ) )
+		build( object ) )
 		return( -1 );
 
-	if( magick_write( save->ready, file->filename, file->format,
-			file->quality ) )
+	if( !WriteImages( magick->image_info, magick->images,
+		magick->image_info->filename, magick->exception ) ) {
+		magick_inherit_exception( magick->exception, magick->images );
+		vips_error( class->nickname, 
+			_( "unable to write file \"%s\"\n" 
+				"libMagick error: %s %s" ),
+			file->filename,
+			magick->exception->reason, 
+			magick->exception->description );
+
 		return( -1 );
+	}
 
 	return( 0 );
 }
@@ -572,20 +419,6 @@ vips_foreign_save_magick_file_class_init(
 		G_STRUCT_OFFSET( VipsForeignSaveMagickFile, filename ),
 		NULL );
 
-	VIPS_ARG_STRING( class, "format", 2,
-		_( "Format" ),
-		_( "Format to save in" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveMagickFile, format ),
-		NULL );
-
-	VIPS_ARG_INT( class, "quality", 3,
-		_( "Quality" ),
-		_( "Quality to use" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveMagickFile, quality ),
-		0, 100, 0 );
-
 }
 
 static void
@@ -599,8 +432,6 @@ typedef struct _VipsForeignSaveMagickBuffer {
 	/* Save to a buffer.
 	 */
 	VipsArea *buf;
-	char *format;
-	int quality;
 
 } VipsForeignSaveMagickBuffer;
 
@@ -612,9 +443,10 @@ G_DEFINE_TYPE( VipsForeignSaveMagickBuffer, vips_foreign_save_magick_buffer,
 static int
 vips_foreign_save_magick_buffer_build( VipsObject *object )
 {
-	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
 	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) object;
-	VipsForeignSaveMagickBuffer *buffer = (VipsForeignSaveMagickBuffer *) object;
+	VipsForeignSaveMagickBuffer *buffer = 
+		(VipsForeignSaveMagickBuffer *) object;
 
 	void *obuf;
 	size_t olen;
@@ -624,9 +456,17 @@ vips_foreign_save_magick_buffer_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( magick_write_buf( save->ready, &obuf, &olen,
-			buffer->format, buffer->quality ) )
+	if( !(obuf = ImagesToBlob( magick->image_info, magick->images, 
+		&olen, magick->exception )) ) { 
+		magick_inherit_exception( magick->exception, magick->images );
+		vips_error( class->nickname, 
+			_( "unable to write buffer\n"
+				"libMagick error: %s %s" ),
+			magick->exception->reason, 
+			magick->exception->description );
+
 		return( -1 );
+	}
 
 	/* obuf is a g_free() buffer, not vips_free().
 	 */
@@ -638,7 +478,8 @@ vips_foreign_save_magick_buffer_build( VipsObject *object )
 }
 
 static void
-vips_foreign_save_magick_buffer_class_init( VipsForeignSaveMagickBufferClass *class )
+vips_foreign_save_magick_buffer_class_init( 
+	VipsForeignSaveMagickBufferClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -657,19 +498,6 @@ vips_foreign_save_magick_buffer_class_init( VipsForeignSaveMagickBufferClass *cl
 		G_STRUCT_OFFSET( VipsForeignSaveMagickBuffer, buf ),
 		VIPS_TYPE_BLOB );
 
-	VIPS_ARG_STRING( class, "format", 2,
-		_( "Format" ),
-		_( "Format to save in" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveMagickBuffer, format ),
-		NULL );
-
-	VIPS_ARG_INT( class, "quality", 3,
-		_( "Quality" ),
-		_( "Quality to use" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveMagickBuffer, quality ),
-		0, 100, 0 );
 }
 
 static void
