@@ -53,6 +53,8 @@ int magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
 	const StorageType type,const void *pixels, ExceptionInfo *exception );
 void magick_set_property( Image *image, const char *property, const char *value,
 	ExceptionInfo *exception );
+int magick_set_image_colorspace( Image *image, const ColorspaceType colorspace,
+	ExceptionInfo *exception );
 void magick_inherit_exception( ExceptionInfo *exception, Image *image );
 
 void magick_genesis( void );

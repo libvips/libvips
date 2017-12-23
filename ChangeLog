@@ -1,3 +1,6 @@
+23/12/17 started 8.7.0
+- add magicksave, save image with libMagick [dlemstra]
+
 10/12/17 started 8.6.1
 - stop window new/free cycling .. faster zoom out on large images in nip2
 - fix some compiler warnings

@@ -82,6 +82,13 @@ magick_set_property( Image *image, const char *property, const char *value,
 	(void) SetImageProperty( image, property, value, exception );
 }
 
+int
+magick_set_image_colorspace( Image *image, const ColorspaceType colorspace,
+	ExceptionInfo *exception)
+{
+	return( SetImageColorspace( image, colorspace, exception ) );
+}
+
 void
 magick_inherit_exception( ExceptionInfo *exception, Image *image ) 
 {
@@ -109,7 +116,7 @@ magick_genesis( void )
 	VIPS_ONCE( &once, magick_genesis_cb, NULL );
 }
 
-#endif /*HAVE_MAGICK7 */
+#endif /*HAVE_MAGICK7*/
 
 #ifdef HAVE_MAGICK
 
@@ -154,12 +161,19 @@ magick_set_property( Image *image, const char *property, const char *value,
 	(void) SetImageProperty( image, property, value );
 }
 
+int
+magick_set_image_colorspace( Image *image, const ColorspaceType colorspace,
+	ExceptionInfo *exception )
+{
+	(void) exception;
+	return( SetImageColorspace( image, colorspace ) );
+}
+
 void
 magick_inherit_exception( ExceptionInfo *exception, Image *image ) 
 {
 	InheritException( exception, &image->exception );
 }
-
 
 static void *
 magick_genesis_cb( void *client )
@@ -185,4 +199,4 @@ magick_genesis( void )
 	VIPS_ONCE( &once, magick_genesis_cb, NULL );
 }
 
-#endif /*HAVE_MAGICK */
+#endif /*HAVE_MAGICK*/

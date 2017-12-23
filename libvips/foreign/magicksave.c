@@ -92,23 +92,22 @@ vips_foreign_save_magick_dispose( GObject *gobject )
 
 static void
 vips_foreign_save_magick_set_properties( VipsForeignSaveMagick *magick, 
-	VipsImage *im )
+	Image *image, VipsImage *im )
 {
 	int number;
 	const char *str;
 
 	if( vips_image_get_typeof( im, "gif-delay" ) &&
 		!vips_image_get_int( im, "gif-delay", &number ) )
-		magick->current_image->delay = (size_t) number;
+		image->delay = (size_t) number;
 
 	if( vips_image_get_typeof( im, "gif-loop" ) &&
 		!vips_image_get_int( im, "gif-loop", &number ) )
-		magick->current_image->iterations = (size_t) number;
+		image->iterations = (size_t) number;
 
 	if( vips_image_get_typeof( im, "gif-comment" ) &&
 		!vips_image_get_string( im, "gif-comment", &str ) )
-		magick_set_property( magick->current_image, "comment",
-			str, magick->exception );
+		magick_set_property( image, "comment", str, magick->exception );
 }
 
 static int
@@ -157,11 +156,16 @@ vips_foreign_save_magick_create_one( VipsForeignSaveMagick *magick,
 	if( !magick_set_image_size( image, im->Xsize, im->Ysize, 
 		magick->exception ) )
 		return( -1 );
+	if( im->Bands < 3 )
+		if( !magick_set_image_colorspace( image, GRAYColorspace, 
+			magick->exception ) )
+			return( -1 );
+	vips_foreign_save_magick_set_properties( magick, image, im );
 
 	magick->current_image = image;
-	vips_foreign_save_magick_set_properties( magick, im );
 	status = vips_sink_disc( im, magick_write_block, magick );
-	magick_inherit_exception( magick->exception, magick->current_image );
+
+	magick_inherit_exception( magick->exception, image );
 
 	return( status );
 }
