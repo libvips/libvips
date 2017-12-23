@@ -201,6 +201,7 @@ vips_foreign_save_magick_create( VipsForeignSaveMagick *magick, VipsImage *im )
 static int
 vips_foreign_save_magick_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) object;
 
@@ -246,6 +247,8 @@ vips_foreign_save_magick_build( VipsObject *object )
 		break;
 
 	default:
+		vips_error( class->nickname, 
+			"%s", _( "unsupported image format" ) );
 		return( -1 );
 	}
 
@@ -275,6 +278,8 @@ vips_foreign_save_magick_build( VipsObject *object )
 		break;
 
 	default:
+		vips_error( class->nickname, 
+			"%s", _( "unsupported number of image bands" ) );
 		return( -1 );
 	}
 
@@ -294,8 +299,10 @@ vips_foreign_save_magick_build( VipsObject *object )
 	if( magick->quality > 0 ) 
 		magick->image_info->quality = magick->quality;
 
-	if( vips_foreign_save_magick_create( magick, im ) )
+	if( vips_foreign_save_magick_create( magick, im ) ) {
+		magick_vips_error( class->nickname, magick->exception ); 
 		return( -1 ); 
+	}
 
 	return( 0 );
 }
@@ -385,12 +392,7 @@ vips_foreign_save_magick_file_build( VipsObject *object )
 	if( !WriteImages( magick->image_info, magick->images,
 		magick->image_info->filename, magick->exception ) ) {
 		magick_inherit_exception( magick->exception, magick->images );
-		vips_error( class->nickname, 
-			_( "unable to write file \"%s\"\n" 
-				"libMagick error: %s %s" ),
-			file->filename,
-			magick->exception->reason, 
-			magick->exception->description );
+		magick_vips_error( class->nickname, magick->exception );
 
 		return( -1 );
 	}
@@ -459,11 +461,7 @@ vips_foreign_save_magick_buffer_build( VipsObject *object )
 	if( !(obuf = ImagesToBlob( magick->image_info, magick->images, 
 		&olen, magick->exception )) ) { 
 		magick_inherit_exception( magick->exception, magick->images );
-		vips_error( class->nickname, 
-			_( "unable to write buffer\n"
-				"libMagick error: %s %s" ),
-			magick->exception->reason, 
-			magick->exception->description );
+		magick_vips_error( class->nickname, magick->exception );
 
 		return( -1 );
 	}

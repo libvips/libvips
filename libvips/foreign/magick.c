@@ -96,26 +96,6 @@ magick_inherit_exception( ExceptionInfo *exception, Image *image )
 	(void) image;
 }
 
-static void *
-magick_genesis_cb( void *client )
-{
-#ifdef DEBUG
-	printf( "magick_genesis_cb:\n" ); 
-#endif /*DEBUG*/
-
-	MagickCoreGenesis( vips_get_argv0(), MagickFalse );
-
-	return( NULL );
-}
-
-void
-magick_genesis( void )
-{
-	static GOnce once = G_ONCE_INIT;
-
-	VIPS_ONCE( &once, magick_genesis_cb, NULL );
-}
-
 #endif /*HAVE_MAGICK7*/
 
 #ifdef HAVE_MAGICK
@@ -173,6 +153,20 @@ void
 magick_inherit_exception( ExceptionInfo *exception, Image *image ) 
 {
 	InheritException( exception, &image->exception );
+}
+
+#endif /*HAVE_MAGICK*/
+
+#if defined(HAVE_MAGICK) || defined(HAVE_MAGICK7)
+
+void
+magick_vips_error( const char *domain, ExceptionInfo *exception )
+{
+	if( exception &&
+		exception->reason &&
+		exception->description )
+		vips_error( domain, _( "libMagick error: %s %s" ),
+			exception->reason, exception->description );
 }
 
 static void *
