@@ -35,10 +35,7 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-/* Should be removed and added as a configure option */
-#define HAVE_MAGICKSAVE 1
-
-#ifdef HAVE_MAGICKSAVE
+#ifdef ENABLE_MAGICKSAVE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -503,4 +500,4 @@ vips_foreign_save_magick_buffer_init( VipsForeignSaveMagickBuffer *buffer )
 {
 }
 
-#endif /*HAVE_MAGICKSAVE*/
+#endif /*ENABLE_MAGICKSAVE*/

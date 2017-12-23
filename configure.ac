@@ -551,6 +551,7 @@ fi
 # ImageMagick 
 AC_ARG_WITH([magick], 
   AS_HELP_STRING([--without-magick], [build without libMagic (default: test)]))
+
 AC_ARG_WITH([magickpackage], 
   AS_HELP_STRING([--with-magickpackage], 
     [magickpackage to use (default: MagickCore; try GraphicsMagick to build against gm instead)]))
@@ -575,17 +576,20 @@ fi
 # we have a separate loader for magick7 with fewer ifdef
 # options; only test for features on the magick6 case
 
+magick_version=
 if test x"$with_magick" != x"no"; then
   PKG_CHECK_MODULES(MAGICK, $with_magickpackage >= 7.0,  
     [AC_DEFINE(HAVE_MAGICK7,1,[define if you have libMagick7 installed.])
-     with_magick="yes (magick7)"
+     with_magick=yes
      magick7=yes
+     magick_version=magick7
      PACKAGES_USED="$PACKAGES_USED $with_magickpackage"
     ],
     [PKG_CHECK_MODULES(MAGICK, $with_magickpackage,  
        [AC_DEFINE(HAVE_MAGICK,1,[define if you have libMagick installed.])
-        with_magick="yes (magick6)"
+        with_magick=yes
         magick6=yes
+        magick_version=magick6
         PACKAGES_USED="$PACKAGES_USED $with_magickpackage"
        ],
        [AC_MSG_WARN([$with_magickpackage not found; disabling Magick support])
@@ -659,6 +663,24 @@ if test x"$magick6" = x"yes"; then
     [],
     [#include <magick/api.h>])
   CFLAGS="$save_CFLAGS"
+fi
+
+# have flags to turn load and save off independently ... some people will want
+# save but not load, for example
+AC_ARG_ENABLE([magickload], 
+  AS_HELP_STRING([--disable-magickload], 
+		 [disable libMagic load (default: enabled)]))
+if test x"$enable_magickload" != x"no"; then
+    AC_DEFINE(ENABLE_MAGICKLOAD,1,[define to enable load with libMagick])
+    enable_magickload=yes
+fi
+
+AC_ARG_ENABLE([magicksave], 
+  AS_HELP_STRING([--disable-magicksave], 
+		 [disable libMagic save (default: enabled)]))
+if test x"$enable_magicksave" != x"no"; then
+    AC_DEFINE(ENABLE_MAGICKSAVE,1,[define to enable save with libMagick])
+    enable_magicksave=yes
 fi
 
 # orc
@@ -1191,7 +1213,9 @@ build PPM support: 			$with_ppm
 * optional dependencies
 use fftw3 for FFT: 			$with_fftw
 Magick package: 			$with_magickpackage
-file import with libMagick: 		$with_magick
+Magick API version: 			$magick_version
+load with libMagick: 			$enable_magickload
+save with libMagick: 			$enable_magicksave
 accelerate loops with orc: 		$with_orc
   (requires orc-0.4.11 or later)
 ICC profile support with lcms: 		$with_lcms

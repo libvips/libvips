@@ -93,11 +93,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-/* Should be removed and added as a configure option */
-#define HAVE_MAGICKLOAD 1
-/* Should be removed and added as a configure option */
+#ifdef ENABLE_MAGICKLOAD
 
-#ifdef HAVE_MAGICKLOAD
 #ifdef HAVE_MAGICK
 
 #include <stdio.h>
@@ -898,4 +895,5 @@ vips__magick_read_buffer_header( const void *buf, const size_t len,
 }
 
 #endif /*HAVE_MAGICK*/
-#endif /*HAVE_MAGICKLOAD*/
+
+#endif /*ENABLE_MAGICKLOAD*/

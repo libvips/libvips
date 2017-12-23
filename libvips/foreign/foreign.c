@@ -1879,27 +1879,22 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_openslide_get_type(); 
 #endif /*HAVE_OPENSLIDE*/
 
-/* Should be removed and added as a configure option */
-#define HAVE_MAGICKLOAD 1
-#define HAVE_MAGICKSAVE 1
-/* Should be removed and added as a configure option */
+#ifdef ENABLE_MAGICKLOAD
+#ifdef HAVE_MAGICK
+	vips_foreign_load_magick_file_get_type();
+	vips_foreign_load_magick_buffer_get_type();
+#endif /*HAVE_MAGICK*/
 
-#ifdef HAVE_MAGICKLOAD
-	#ifdef HAVE_MAGICK
-		vips_foreign_load_magick_file_get_type();
-		vips_foreign_load_magick_buffer_get_type();
-	#endif /*HAVE_MAGICK*/
+#ifdef HAVE_MAGICK7
+	vips_foreign_load_magick7_file_get_type();
+	vips_foreign_load_magick7_buffer_get_type();
+#endif /*HAVE_MAGICK7*/
+#endif /*ENABLE_MAGICKLOAD*/
 
-	#ifdef HAVE_MAGICK7
-		vips_foreign_load_magick7_file_get_type();
-		vips_foreign_load_magick7_buffer_get_type();
-	#endif /*HAVE_MAGICK7*/
-#endif /*HAVE_MAGICKLOAD*/
-
-#ifdef HAVE_MAGICKSAVE
+#ifdef ENABLE_MAGICKSAVE
 	vips_foreign_save_magick_file_get_type();
 	vips_foreign_save_magick_buffer_get_type();
-#endif /*HAVE_MAGICKSAVE*/
+#endif /*ENABLE_MAGICKSAVE*/
 
 #ifdef HAVE_CFITSIO
 	vips_foreign_load_fits_get_type(); 
