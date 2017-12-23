@@ -501,3 +501,88 @@ vips_foreign_save_magick_buffer_init( VipsForeignSaveMagickBuffer *buffer )
 }
 
 #endif /*ENABLE_MAGICKSAVE*/
+
+/**
+ * vips_magicksave: (method)
+ * @in: image to save 
+ * @filename: file to write to 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @quality: %gint, quality factor
+ * * @format: %gchararray, format to save as
+ *
+ * Write an image using libMagick.
+ *
+ * Use @quality to set the quality factor. Default 0.
+ *
+ * Use @format to explicitly set the save format, for example, "BMP". Otherwise
+ * the format is guessed from the filename suffix.
+ *
+ * See also: vips_magicksave_buffer(), vips_magickload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_magicksave( VipsImage *in, const char *filename, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, filename );
+	result = vips_call_split( "magicksave", ap, in, filename );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_magicksave_buffer: (method)
+ * @in: image to save 
+ * @buf: (array length=len) (element-type guint8): return output buffer here
+ * @len: (type gsize): return output length here
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @quality: %gint, quality factor
+ * * @format: %gchararray, format to save as
+ *
+ * As vips_magicksave(), but save to a memory buffer. 
+ *
+ * The address of the buffer is returned in @obuf, the length of the buffer in
+ * @olen. You are responsible for freeing the buffer with g_free() when you
+ * are done with it.
+ *
+ * See also: vips_magicksave(), vips_image_write_to_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_magicksave_buffer( VipsImage *in, void **buf, size_t *len, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	int result;
+
+	area = NULL; 
+
+	va_start( ap, len );
+	result = vips_call_split( "magicksave_buffer", ap, in, &area );
+	va_end( ap );
+
+	if( !result &&
+		area ) { 
+		if( buf ) {
+			*buf = area->data;
+			area->free_fn = NULL;
+		}
+		if( len ) 
+			*len = area->length;
+
+		vips_area_unref( area );
+	}
+
+	return( result );
+}

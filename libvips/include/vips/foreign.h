@@ -490,6 +490,10 @@ int vips_magickload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_magickload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_magicksave( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
+int vips_magicksave_buffer( VipsImage *in, void **buf, size_t *len, ... )
+	__attribute__((sentinel));
 
 /**
  * VipsForeignPngFilter:
