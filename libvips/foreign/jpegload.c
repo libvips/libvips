@@ -201,8 +201,6 @@ vips_foreign_load_jpeg_file_load( VipsForeignLoad *load )
 	return( 0 );
 }
 
-static const char *jpeg_suffs[] = { ".jpg", ".jpeg", ".jpe", NULL };
-
 static void
 vips_foreign_load_jpeg_file_class_init( VipsForeignLoadJpegFileClass *class )
 {
@@ -217,7 +215,7 @@ vips_foreign_load_jpeg_file_class_init( VipsForeignLoadJpegFileClass *class )
 	object_class->nickname = "jpegload";
 	object_class->description = _( "load jpeg from file" );
 
-	foreign_class->suffs = jpeg_suffs;
+	foreign_class->suffs = vips__jpeg_suffs;
 
 	/* We are fast at is_a(), so high priority.
 	 */
