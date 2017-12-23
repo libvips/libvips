@@ -156,10 +156,6 @@ vips_foreign_save_magick_create_one( VipsForeignSaveMagick *magick,
 	if( !magick_set_image_size( image, im->Xsize, im->Ysize, 
 		magick->exception ) )
 		return( -1 );
-	if( im->Bands < 3 )
-		if( !magick_set_image_colorspace( image, GRAYColorspace, 
-			magick->exception ) )
-			return( -1 );
 	vips_foreign_save_magick_set_properties( magick, image, im );
 
 	magick->current_image = image;
@@ -256,11 +252,11 @@ vips_foreign_save_magick_build( VipsObject *object )
 	magick->map = NULL;
 	switch( im->Bands ) {
 	case 1:
-		magick->map = g_strdup( "R" );
+		magick->map = g_strdup( "I" );
 		break;
 
 	case 2:
-		magick->map = g_strdup( "RA" );
+		magick->map = g_strdup( "IA" );
 		break;
 
 	case 3:
