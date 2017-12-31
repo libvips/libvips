@@ -53,11 +53,11 @@ extern "C" {
 #define VIPS_META_XMP_NAME "xmp-data"
 
 /**
- * VIPS_META_IPCT_NAME:
+ * VIPS_META_IPTC_NAME:
  *
- * The name that read and write operations use for the image's IPCT data.
+ * The name that read and write operations use for the image's IPTC data.
  */
-#define VIPS_META_IPCT_NAME "ipct-data"
+#define VIPS_META_IPTC_NAME "iptc-data"
 
 /**
  * VIPS_META_PHOTOSHOP_NAME:

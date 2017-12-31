@@ -41,6 +41,10 @@ extern "C" {
 /* Renamed types.
  */
 
+/* We have this misspelt in earlier versions :(
+ */
+#define VIPS_META_IPCT_NAME VIPS_META_IPTC_NAME 
+
 #define IM_D93_X0 VIPS_D93_X0 
 #define IM_D93_Y0 VIPS_D93_Y0 
 #define IM_D93_Z0 VIPS_D93_Z0 
