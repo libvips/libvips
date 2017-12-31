@@ -52,7 +52,7 @@
  * 	- attach rationals as a/b, don't convert to double
  * 21/11/12
  * 	- don't insist exif must have data
- * 	- attach IPCT data (app13), thanks Gary
+ * 	- attach IPTC data (app13), thanks Gary
  * 6/7/13
  * 	- null-terminate exif strings, thanks Mike
  * 24/2/14
@@ -468,11 +468,11 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 			break;
 
 		case JPEG_APP0 + 13:
-			/* Possible IPCT data block.
+			/* Possible IPTC data block.
 			 */
 			if( p->data_length > 5 &&
 				vips_isprefix( "Photo", (char *) p->data ) &&
-				attach_blob( out, VIPS_META_IPCT_NAME,
+				attach_blob( out, VIPS_META_IPTC_NAME,
 					p->data, p->data_length ) )
 				return( -1 );
 			break;
@@ -703,7 +703,7 @@ static int
 vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 {
 	/* Need to read in APP1 (EXIF metadata), APP2 (ICC profile), APP13
-	 * (photoshop IPCT).
+	 * (photoshop IPTC).
 	 */
 	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 1, 0xffff );
 	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 2, 0xffff );

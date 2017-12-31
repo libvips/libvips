@@ -361,7 +361,7 @@ vips_foreign_load_tiff_buffer_init( VipsForeignLoadTiffBuffer *buffer )
  *
  * Any ICC profile is read and attached to the VIPS image as
  * #VIPS_META_ICC_NAME. Any XMP metadata is read and attached to the image
- * as #VIPS_META_XMP_NAME. Any IPCT is attached as #VIPS_META_IPCT_NAME. The
+ * as #VIPS_META_XMP_NAME. Any IPTC is attached as #VIPS_META_IPTC_NAME. The
  * image description is
  * attached as #VIPS_META_IMAGEDESCRIPTION. Data in the photoshop tag is 
  * attached as #VIPS_META_PHOTOSHOP_NAME.

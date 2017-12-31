@@ -1,10 +1,11 @@
 10/12/17 started 8.6.1
-- stop window new/free cycling .. faster zoom out on large images in nip2
+- stop window new/free cycling .. faster zoom out on some large images in nip2
 - fix some compiler warnings
 - remove the 64-image limit on bandary operations
 - better version date [bmwiedemann]
 - bump wrapper script version [bgilbert]
-- fix a memleak with an error during jpeg buffer write [lovell]
+- fix a memleak on error during jpeg buffer write [lovell]
+- fix misspelling of IPTC as IPCT [lovell]
 
 15/4/17 started 8.6.0
 - supports fits images with leading non-image HDUs, thanks benepo

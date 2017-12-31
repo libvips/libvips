@@ -450,7 +450,7 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * in jpg parlance). These files may be better for display over a slow network
  * conection, but need much more memory to encode and decode. 
  *
- * If @strip is set, no EXIF data, IPCT data, ICC profile or XMP metadata is 
+ * If @strip is set, no EXIF data, IPTC data, ICC profile or XMP metadata is 
  * written into the output file. 
  *
  * If @no_subsample is set, chrominance subsampling is disabled. This will 
@@ -505,7 +505,7 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * the file. #VIPS_META_RESOLUTION_UNIT is used to set the EXIF resolution
  * unit. #VIPS_META_ORIENTATION is used to set the EXIF orientation tag. 
  *
- * IPCT as #VIPS_META_IPCT_NAME and XMP as #VIPS_META_XMP_NAME
+ * IPTC as #VIPS_META_IPTC_NAME and XMP as #VIPS_META_XMP_NAME
  * are coded and attached. 
  *
  * See also: vips_jpegsave_buffer(), vips_image_write_to_file().

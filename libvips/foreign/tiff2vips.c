@@ -158,7 +158,7 @@
  * 	- close the read down early for a header read ... this saves an
  * 	  fd during file read, handy for large numbers of input images 
  * 29/9/15
- * 	- load IPCT metadata
+ * 	- load IPTC metadata
  * 	- load photoshop metadata
  * 21/12/15
  * 	- load TIFFTAG_IMAGEDESCRIPTION
@@ -1283,7 +1283,7 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 			(VipsCallbackFn) vips_free, data_copy, data_length );
 	}
 
-	/* Read any IPCT metadata.
+	/* Read any IPTC metadata.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
 		TIFFTAG_RICHTIFFIPTC, &data_length, &data ) &&
@@ -1291,7 +1291,7 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 		data_length ) {
 		void *data_copy;
 
-		/* For no very good reason, libtiff stores IPCT as an array of
+		/* For no very good reason, libtiff stores IPTC as an array of
 		 * long, not byte.
 		 */
 		data_length *= 4;
@@ -1299,7 +1299,7 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 		if( !(data_copy = vips_malloc( NULL, data_length )) ) 
 			return( -1 );
 		memcpy( data_copy, data, data_length );
-		vips_image_set_blob( out, VIPS_META_IPCT_NAME, 
+		vips_image_set_blob( out, VIPS_META_IPTC_NAME, 
 			(VipsCallbackFn) vips_free, data_copy, data_length );
 	}
 

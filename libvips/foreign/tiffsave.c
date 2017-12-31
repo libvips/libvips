@@ -539,7 +539,7 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * The value of #VIPS_META_XMP_NAME is written to
  * the XMP tag. #VIPS_META_ORIENTATION (if set) is used to set the value of 
  * the orientation
- * tag. #VIPS_META_IPCT (if set) is used to set the value of the IPCT tag.  
+ * tag. #VIPS_META_IPTC (if set) is used to set the value of the IPTC tag.  
  * #VIPS_META_PHOTOSHOP_NAME (if set) is used to set the value of the PHOTOSHOP
  * tag.
  *

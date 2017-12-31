@@ -55,7 +55,7 @@
  * 	- optionally parse rationals as a/b
  * 	- update exif image dimensions
  * 21/11/12
- * 	- attach IPCT data (app13), thanks Gary
+ * 	- attach IPTC data (app13), thanks Gary
  * 2/10/13 Lovell Fuller
  * 	- add optimize_coding parameter
  * 	- add progressive mode
@@ -594,7 +594,7 @@ write_vips( Write *write, int qfac, const char *profile,
 			write_blob( write, 
 				VIPS_META_XMP_NAME, JPEG_APP0 + 1 ) ||
 			write_blob( write, 
-				VIPS_META_IPCT_NAME, JPEG_APP0 + 13 ) )
+				VIPS_META_IPTC_NAME, JPEG_APP0 + 13 ) )
 			return( -1 );
 
 		/* A profile supplied as an argument overrides an embedded 

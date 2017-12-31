@@ -368,8 +368,8 @@ vips_foreign_load_jpeg_buffer_init( VipsForeignLoadJpegBuffer *buffer )
  * #VIPS_META_ICC_NAME. You need to use something like 
  * vips_icc_import() to get CIE values from the file. 
  *
- * EXIF metadata is attached as #VIPS_META_EXIF_NAME, IPCT as
- * #VIPS_META_IPCT_NAME, and XMP as #VIPS_META_XMP_NAME.
+ * EXIF metadata is attached as #VIPS_META_EXIF_NAME, IPTC as
+ * #VIPS_META_IPTC_NAME, and XMP as #VIPS_META_XMP_NAME.
  *
  * The int metadata item "jpeg-multiscan" is set to the result of 
  * jpeg_has_multiple_scans(). Interlaced jpeg images need a large amount of

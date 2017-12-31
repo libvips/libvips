@@ -154,7 +154,7 @@
  * 	- squash >128 rather than >0, nicer results for shrink
  * 	- add miniswhite option
  * 29/9/15
- * 	- try to write IPCT metadata
+ * 	- try to write IPTC metadata
  * 	- try to write photoshop metadata
  * 11/11/15
  * 	- better alpha handling, thanks sadaqatullahn
@@ -462,17 +462,17 @@ wtiff_embed_ipct( Wtiff *wtiff, TIFF *tif )
 	void *data;
 	size_t data_length;
 
-	if( !vips_image_get_typeof( wtiff->im, VIPS_META_IPCT_NAME ) )
+	if( !vips_image_get_typeof( wtiff->im, VIPS_META_IPTC_NAME ) )
 		return( 0 );
-	if( vips_image_get_blob( wtiff->im, VIPS_META_IPCT_NAME, 
+	if( vips_image_get_blob( wtiff->im, VIPS_META_IPTC_NAME, 
 		&data, &data_length ) )
 		return( -1 );
 
-	/* For no very good reason, libtiff stores IPCT as an array of
+	/* For no very good reason, libtiff stores IPTC as an array of
 	 * long, not byte.
 	 */
 	if( data_length & 3 ) {
-		g_warning( "%s", _( "rounding up IPCT data length" ) );
+		g_warning( "%s", _( "rounding up IPTC data length" ) );
 		data_length /= 4;
 		data_length += 1;
 	}
@@ -482,7 +482,7 @@ wtiff_embed_ipct( Wtiff *wtiff, TIFF *tif )
 	TIFFSetField( tif, TIFFTAG_RICHTIFFIPTC, data_length, data );
 
 #ifdef DEBUG
-	printf( "vips2tiff: attached IPCT from meta\n" );
+	printf( "vips2tiff: attached IPTC from meta\n" );
 #endif /*DEBUG*/
 
 	return( 0 );
