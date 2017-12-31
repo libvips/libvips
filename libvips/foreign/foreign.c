@@ -838,7 +838,6 @@ vips_foreign_load_start( VipsImage *out, void *a, void *b )
 		 */
 		vips_image_pipelinev( load->out, load->out->dhint, 
 			load->real, NULL );
-
 	}
 
 	return( vips_region_new( load->real ) );
@@ -951,6 +950,14 @@ vips_foreign_load_build( VipsObject *object )
 			vips_stop_one, 
 			NULL, load ) ) 
 			return( -1 );
+
+		/* We have delayed load. This must mean that the loader will
+		 * load to a memory buffer or temp file, and will therefore
+		 * support random access. 
+		 *
+		 * Make sure there's no seq flag set on the output image. 
+		 */
+		(void) vips_image_remove( load->out, VIPS_META_SEQUENTIAL );
 	}
 
 	return( 0 );

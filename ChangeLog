@@ -9,6 +9,7 @@
 - bump wrapper script version [bgilbert]
 - fix a memleak on error during jpeg buffer write [lovell]
 - fix misspelling of IPTC as IPCT [lovell]
+- seq could be set on small images opened in random-access mode [aferrero2707]
 
 15/4/17 started 8.6.0
 - supports fits images with leading non-image HDUs, thanks benepo
