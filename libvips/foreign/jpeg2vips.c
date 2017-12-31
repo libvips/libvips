@@ -471,10 +471,19 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 			/* Possible IPTC data block.
 			 */
 			if( p->data_length > 5 &&
-				vips_isprefix( "Photo", (char *) p->data ) &&
-				attach_blob( out, VIPS_META_IPTC_NAME,
+				vips_isprefix( "Photo", (char *) p->data ) ) {
+				if( attach_blob( out, VIPS_META_IPTC_NAME,
 					p->data, p->data_length ) )
-				return( -1 );
+					return( -1 );
+
+				/* Older versions of libvips used this misspelt
+				 * name :-( attach under this name too for
+				 * compatibility.
+				 */
+				if( attach_blob( out, "ipct-data",
+					p->data, p->data_length ) )
+					return( -1 );
+			}
 			break;
 
 		default:

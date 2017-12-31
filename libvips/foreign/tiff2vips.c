@@ -1291,8 +1291,7 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 		data_length ) {
 		void *data_copy;
 
-		/* For no very good reason, libtiff stores IPTC as an array of
-		 * long, not byte.
+		/* libtiff stores IPTC as an array of long, not byte.
 		 */
 		data_length *= 4;
 
@@ -1300,6 +1299,15 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 			return( -1 );
 		memcpy( data_copy, data, data_length );
 		vips_image_set_blob( out, VIPS_META_IPTC_NAME, 
+			(VipsCallbackFn) vips_free, data_copy, data_length );
+
+		/* Older versions of libvips used this misspelt name :-( attach 
+		 * under this name too for compatibility.
+		 */
+		if( !(data_copy = vips_malloc( NULL, data_length )) ) 
+			return( -1 );
+		memcpy( data_copy, data, data_length );
+		vips_image_set_blob( out, "ipct-data", 
 			(VipsCallbackFn) vips_free, data_copy, data_length );
 	}
 
