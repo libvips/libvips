@@ -3139,7 +3139,8 @@ vips_image_copy_memory( VipsImage *image )
  * image might have been shared, use the less efficient
  * vips_image_copy_memory() instead.
  *
- * See also: vips_image_copy_memory(), vips_image_pio_input(), vips_image_inplace(), VIPS_IMAGE_ADDR().
+ * See also: vips_image_copy_memory(), vips_image_pio_input(), 
+ * vips_image_inplace(), VIPS_IMAGE_ADDR().
  *
  * Returns: 0 on succeess, or -1 on error.
  */
