@@ -18,6 +18,8 @@
  * 	- transform cmyk->rgb if there's an embedded profile
  * 16/6/17
  * 	- add page_height
+ * 1/1/18
+ * 	- META_SEQ support moved here
  */
 
 /*
@@ -874,6 +876,7 @@ vips_foreign_load_build( VipsObject *object )
 	VipsForeignLoadClass *fclass = VIPS_FOREIGN_LOAD_GET_CLASS( object );
 
 	VipsForeignFlags flags;
+	gboolean sequential;
 
 #ifdef DEBUG
 	printf( "vips_foreign_load_build:\n" );
@@ -893,11 +896,14 @@ vips_foreign_load_build( VipsObject *object )
 
 	g_object_set( load, "flags", flags, NULL );
 
-	/* If the loader can do sequential mode and sequential has been
-	 * requested, we need to block caching.
+	/* Seq access has been requested and the loader supports seq.
 	 */
-	if( (load->flags & VIPS_FOREIGN_SEQUENTIAL) && 
-		load->access != VIPS_ACCESS_RANDOM ) 
+	sequential = (load->flags & VIPS_FOREIGN_SEQUENTIAL) && 
+		load->access != VIPS_ACCESS_RANDOM;
+
+	/* We must block caching of seq loads.
+	 */
+	if( sequential )
 		load->nocache = TRUE;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_parent_class )->
@@ -952,11 +958,11 @@ vips_foreign_load_build( VipsObject *object )
 			return( -1 );
 	}
 
-	/* If random access has been requested, make sure that we don't have a
-	 * SEQ tag left from a sequential loader.
+	/* Tell downstream if we are reading sequentially.
 	 */
-	if( load->access == VIPS_ACCESS_RANDOM ) 
-		(void) vips_image_remove( load->out, VIPS_META_SEQUENTIAL );
+	if( sequential )
+		vips_image_set_area( load->out, 
+			VIPS_META_SEQUENTIAL, NULL, NULL ); 
 
 	return( 0 );
 }
