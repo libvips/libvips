@@ -368,10 +368,9 @@ vips_thumbnail_build( VipsObject *object )
 		 in->BandFmt == VIPS_FORMAT_USHORT) &&
 		(vips_image_get_typeof( in, VIPS_META_ICC_NAME ) || 
 		 thumbnail->import_profile) ) {
-		if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) )
-			g_info( "importing with embedded profile" );
-		else
-			g_info( "importing with profile %s", 
+		g_info( "importing to XYZ PCS" );
+		if( thumbnail->import_profile ) 
+			g_info( "fallback input profile %s", 
 				thumbnail->import_profile );
 
 		if( vips_icc_import( in, &t[1], 
@@ -458,52 +457,19 @@ vips_thumbnail_build( VipsObject *object )
 	else if( thumbnail->export_profile &&
 		(vips_image_get_typeof( in, VIPS_META_ICC_NAME ) || 
 		 thumbnail->import_profile) ) {
-		VipsImage *out;
+		g_info( "transforming to %s", thumbnail->export_profile );
+		if( thumbnail->import_profile ) 
+			g_info( "fallback input profile %s", 
+				thumbnail->import_profile );
 
-		g_info( "exporting with profile %s", thumbnail->export_profile );
-
-		/* We first try with the embedded profile, if any, then if
-		 * that fails try again with the supplied fallback profile.
-		 */
-		out = NULL; 
-		if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
-			g_info( "importing with embedded profile" );
-
-			if( vips_icc_transform( in, &t[7], 
-				thumbnail->export_profile,
-				"intent", thumbnail->intent,
-				"embedded", TRUE,
-				NULL ) ) {
-				g_warning( _( "unable to import with "
-						"embedded profile: %s" ),
-					vips_error_buffer() );
-
-				vips_error_clear();
-			}
-			else
-				out = t[7];
-		}
-
-		if( !out &&
-			thumbnail->import_profile ) { 
-			g_info( "importing with fallback profile" );
-
-			if( vips_icc_transform( in, &t[7], 
-				thumbnail->export_profile,
-				"input_profile", thumbnail->import_profile,
-				"intent", thumbnail->intent,
-				"embedded", FALSE,
-				NULL ) )  
-				return( -1 );
-
-			out = t[7];
-		}
-
-		/* If the embedded profile failed and there's no fallback or
-		 * the fallback failed, out will still be NULL.
-		 */
-		if( out )
-			in = out;
+		if( vips_icc_transform( in, &t[7], 
+			thumbnail->export_profile,
+			"input_profile", thumbnail->import_profile,
+			"intent", thumbnail->intent,
+			"embedded", TRUE,
+			NULL ) ) 
+			return( -1 );
+		in = t[7];
 	}
 
 	if( thumbnail->auto_rotate &&
