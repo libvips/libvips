@@ -350,23 +350,18 @@ vips_col_scRGB2BW( int range, int *lut, float R, float G, float B,
 	int Yi;
 	float v;
 
-	/* RGB can be Nan, Inf etc. Throw those values out, they will break
-	 * our clipping.
-	 *
-	 * Don't use isnormal(), it is false for 0.0 and for subnormal
-	 * numbers. 
+	/* The usual ratio. We do this in linear space before we gamma.
 	 */
-	if( VIPS_ISNAN( R ) || VIPS_ISINF( R ) ||
-		VIPS_ISNAN( G ) || VIPS_ISINF( G ) ||
-		VIPS_ISNAN( B ) || VIPS_ISINF( B ) ) {
+	Y = 0.2 * R + 0.7 * G + 0.1 * B;
+
+	/* Y can be Nan, Inf etc. Throw those values out, they will break
+	 * our clipping.
+	 */
+	if( VIPS_ISNAN( Y ) || VIPS_ISINF( Y ) ) {
 		*g = 0; 
 
 		return( -1 );
 	}
-
-	/* The usual ratio. We do this in linear space before we gamma.
-	 */
-	Y = 0.2 * R + 0.7 * G + 0.1 * B;
 
 	/* Look up with a float index: interpolate between the nearest two
 	 * points.
