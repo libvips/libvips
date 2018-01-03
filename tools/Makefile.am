@@ -24,7 +24,7 @@ bin_SCRIPTS = \
 
 EXTRA_DIST = \
 	vipsprofile \
-	vips-8.5 \
+	vips-8.6 \
 	light_correct.in \
 	shrink_width.in \
 	batch_image_convert.in \
