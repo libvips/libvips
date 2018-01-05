@@ -234,6 +234,8 @@ render_free( Render *render )
 	VIPS_FREEF( g_slist_free, render->dirty );
 	VIPS_FREEF( g_hash_table_destroy, render->tiles );
 
+	VIPS_UNREF( render->in ); 
+
 	vips_free( render );
 
 #ifdef VIPS_DEBUG_AMBER
@@ -607,6 +609,10 @@ render_new( VipsImage *in, VipsImage *out, VipsImage *mask,
 	 */
 	if( !(render = VIPS_NEW( NULL, Render )) )
 		return( NULL );
+
+	/* render must hold a ref to in. This is dropped in render_free().
+	 */
+	g_object_ref( in );
 
 	render->ref_count = 1;
 	render->ref_count_lock = vips_g_mutex_new();
@@ -1126,7 +1132,19 @@ void
 vips__print_renders( void )
 {
 #ifdef VIPS_DEBUG_AMBER
-	printf( "%d active renders\n", render_num_renders );
+	if( render_num_renders > 0 )
+		printf( "%d active renders\n", render_num_renders );
 #endif /*VIPS_DEBUG_AMBER*/
-	printf( "%d dirty renders\n", g_slist_length( render_dirty_all ) );
+
+	if( render_dirty_lock ) { 
+		int n_dirty;
+
+		g_mutex_lock( render_dirty_lock );
+
+		n_dirty = g_slist_length( render_dirty_all );
+		if( n_dirty > 0 ) 
+			printf( "%d dirty renders\n", n_dirty );
+
+		g_mutex_unlock( render_dirty_lock );
+	}
 }

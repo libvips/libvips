@@ -74,7 +74,8 @@
  * 18/8/17
  * 	- shut down the output earlier to flush zip output
  * 24/11/17
- * 	- output overlap-only tiles on edges, for better deepzoom spec 
+ * 	- output overlap-only tiles on edges for better deepzoom spec
+ * 	  compliance
  */
 
 /*
@@ -179,7 +180,7 @@
  */
 typedef struct _VipsGsfDirectory { 
 	struct _VipsGsfDirectory *parent;
-	const char *name;
+	char *name;
 
 	/* List of child directories, if any.
 	 */
@@ -222,7 +223,7 @@ vips_gsf_tree_close( VipsGsfDirectory *tree )
 			return( tree );
 		}
 
-		g_object_unref( tree->out );
+		VIPS_UNREF( tree->out );
 	}
 
 	if( tree->container ) { 
@@ -233,8 +234,12 @@ vips_gsf_tree_close( VipsGsfDirectory *tree )
 			return( tree );
 		}
 
-		g_object_unref( tree->container );
+		VIPS_UNREF( tree->container );
 	}
+
+	VIPS_FREEF( g_slist_free, tree->children );
+	VIPS_FREE( tree->name );
+	VIPS_FREE( tree );
 
 	return( NULL ); 
 }

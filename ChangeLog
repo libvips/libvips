@@ -1,8 +1,11 @@
 23/12/17 started 8.7.0
 - add magicksave, save image with libMagick [dlemstra]
 
+5/1/18 started 8.6.2
+- vips_sink_screen() keeps a ref to the input image ... stops a rare race
+
 10/12/17 started 8.6.1
-- stop window new/free cycling .. faster zoom out on some large images in nip2
+- fix mmap window new/free cycling 
 - fix some compiler warnings
 - remove the 64-image limit on bandary operations
 - better version date [bmwiedemann]
@@ -10,6 +13,8 @@
 - fix a memleak on error during jpeg buffer write [lovell]
 - fix misspelling of IPTC as IPCT [lovell]
 - seq could be set on small images opened in random-access mode [aferrero2707]
+- fix small memleak in dzsave [lovell]
+- small speedup for rgb->g [lovell]
 
 15/4/17 started 8.6.0
 - supports fits images with leading non-image HDUs, thanks benepo
