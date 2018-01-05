@@ -1,3 +1,6 @@
+5/1/18 started 8.6.2
+- vips_sink_screen() keeps a ref to the input image ... stops a rare race
+
 10/12/17 started 8.6.1
 - fix mmap window new/free cycling 
 - fix some compiler warnings

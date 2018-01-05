@@ -516,6 +516,7 @@ vips_leak( void )
 
 	fprintf( stderr, "%s", vips_buf_all( &buf ) );
 
+	vips__print_renders();
 
 #ifdef DEBUG
 	vips_buffer_dump_all();
