@@ -51,9 +51,9 @@
  */
 
 /* 
-#define VIPS_DEBUG_RED
 #define DEBUG_OUT_OF_THREADS
 #define VIPS_DEBUG
+#define VIPS_DEBUG_RED
  */
 
 #ifdef HAVE_CONFIG_H
@@ -242,8 +242,8 @@ vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
 	thread = g_thread_create( vips_thread_run, info, TRUE, &error );
 #endif
 
-	VIPS_DEBUG_MSG_RED( "vips_g_thread_new: g_thread_create() = %p\n",
-		thread );
+	VIPS_DEBUG_MSG_RED( "vips_g_thread_new: g_thread_create( %s ) = %p\n",
+		domain, thread );
 
 #ifdef DEBUG_OUT_OF_THREADS
 	}
