@@ -2517,30 +2517,39 @@ vips_image_write_gen( VipsRegion *or,
 int
 vips_image_write( VipsImage *image, VipsImage *out )
 {
+	/* image needs to stay alive for this call. It can be unreffed during
+	 * the generate.
+	 */
+	g_object_ref( image );
+
 	if( vips_image_pio_input( image ) || 
 		vips_image_pipelinev( out, 
-			VIPS_DEMAND_STYLE_THINSTRIP, image, NULL ) )
+			VIPS_DEMAND_STYLE_THINSTRIP, image, NULL ) ) {
+		g_object_unref( image );
 		return( -1 );
+	}
 
 	if( vips_image_generate( out,
 		vips_start_one, vips_image_write_gen, vips_stop_one, 
-		image, NULL ) )
+		image, NULL ) ) {
+		g_object_unref( image );
 		return( -1 );
+	}
 
-	/* If @out is a partial image, we need to make sure that @image stays
-	 * alive as long as @out is alive.
+	/* If @out is a partial image, we need to unref @image when out is
+	 * unreffed.
 	 *
 	 * If it's not partial, perhaps a file we write to or a memory image,
 	 * we need to break any links between @image and @out created by
 	 * vips_image_pipelinev().
 	 */
 	if( vips_image_ispartial( out ) ) { 
-		g_object_ref( image );
 		vips_object_local( out, image );
 	}
 	else {
 		vips__reorder_clear( image );
 		vips__link_break_all( out );
+		g_object_unref( image );
 	}
 
 	return( 0 );

@@ -162,7 +162,8 @@ typedef struct _RenderThreadStateClass {
 
 G_DEFINE_TYPE( RenderThreadState, render_thread_state, VIPS_TYPE_THREAD_STATE );
 
-/* The BG thread which sits waiting to do some calculations.
+/* The BG thread which sits waiting to do some calculations, and the semaphore
+ * it waits on holding the number of renders with dirty tiles. 
  */
 static GThread *render_thread = NULL;
 
@@ -170,10 +171,12 @@ static GThread *render_thread = NULL;
  */
 static gboolean render_kill = FALSE;
 
-/* All the renders with dirty tiles.
+/* All the renders with dirty tiles, and a semaphore that the bg render thread
+ * waits on.
  */
 static GMutex *render_dirty_lock = NULL;
 static GSList *render_dirty_all = NULL;
+static VipsSemaphore n_render_dirty_sem; 
 
 /* Set this to make the bg thread stop and reschedule.
  */
@@ -221,8 +224,14 @@ render_free( Render *render )
 	g_assert( render->ref_count == 0 );
 
 	g_mutex_lock( render_dirty_lock );
-	if( g_slist_find( render_dirty_all, render ) ) 
+	if( g_slist_find( render_dirty_all, render ) ) {
 		render_dirty_all = g_slist_remove( render_dirty_all, render );
+
+		/* We don't need to adjust the semaphore: if it's too high, 
+		 * the render thread will just loop and decrement next time 
+		 * render_dirty_all is NULL.
+		 */
+	}
 	g_mutex_unlock( render_dirty_lock );
 
 	vips_g_mutex_free( render->ref_count_lock );
@@ -273,34 +282,6 @@ render_unref( Render *render )
 		render_free( render );
 
 	return( 0 );
-}
-
-/* Get the first render with dirty tiles. 
- */
-static Render *
-render_dirty_get( void )
-{
-	Render *render;
-
-	g_mutex_lock( render_dirty_lock );
-
-	/* Just take the head of the jobs list ... we sort when we add. 
-	 */
-	render = NULL;
-	if( render_dirty_all ) {
-		render = (Render *) render_dirty_all->data;
-
-		/* Ref the render to make sure it can't die while we're
-		 * working on it.
-		 */
-		render_ref( render );
-
-		render_dirty_all = g_slist_remove( render_dirty_all, render );
-	}
-
-	g_mutex_unlock( render_dirty_lock );
-
-	return( render );
 }
 
 /* Get the next tile to paint off the dirty list.
@@ -444,49 +425,6 @@ render_work( VipsThreadState *state, void *a )
 
 static void render_dirty_put( Render *render );
 
-/* Main loop for RenderThreads.
- */
-static void *
-render_thread_main( void *client )
-{
-	Render *render;
-
-	while( (render = render_dirty_get()) &&
-		!render_kill ) {
-		VIPS_DEBUG_MSG_GREEN( "render_thread_main: "
-			"threadpool start\n" );
-
-		render_reschedule = FALSE;
-		if( vips_threadpool_run( render->in,
-			render_thread_state_new,
-			render_allocate,
-			render_work,
-			NULL,
-			render ) )
-			VIPS_DEBUG_MSG_RED( "render_thread_main: "
-				"threadpool_run failed\n" );
-
-		VIPS_DEBUG_MSG_GREEN( "render_thread_main: "
-			"threadpool return\n" );
-
-		/* Add back to the jobs list, if we need to.
-		 */
-		render_dirty_put( render );
-
-		/* _get() does a ref to make sure we keep the render
-		 * alive during processing ... unref before we loop.
-		 * This can kill off the render.
-		 */
-		render_unref( render );
-	}
-
-	/* We are exiting, so render_thread must now be NULL.
-	 */
-	render_thread = NULL; 
-
-	return( NULL );
-}
-
 /* Called from vips_shutdown().
  */
 void
@@ -494,24 +432,25 @@ vips__render_shutdown( void )
 {
 	/* We may come here without having inited.
 	 */
-	if( !render_dirty_lock )
-		return;
+	if( render_dirty_lock ) {
+		g_mutex_lock( render_dirty_lock );
 
-	g_mutex_lock( render_dirty_lock );
+		if( render_thread ) { 
+			GThread *thread;
 
-	if( render_thread ) { 
-		GThread *thread;
+			thread = render_thread;
+			render_reschedule = TRUE;
+			render_kill = TRUE;
 
-		thread = render_thread;
+			g_mutex_unlock( render_dirty_lock );
 
-		g_mutex_unlock( render_dirty_lock );
+			vips_semaphore_up( &n_render_dirty_sem ); 
 
-		render_reschedule = TRUE;
-		render_kill = TRUE;
-		(void) vips_g_thread_join( thread );
+			(void) vips_g_thread_join( thread );
+		}
+		else
+			g_mutex_unlock( render_dirty_lock );
 	}
-	else
-		g_mutex_unlock( render_dirty_lock );
 }
 
 static int       
@@ -534,17 +473,10 @@ render_dirty_put( Render *render )
 			render_dirty_all = g_slist_sort( render_dirty_all,
 				(GCompareFunc) render_dirty_sort );
 
-			/* Make sure there is a bg render thread, and get it to
-			 * reschedule. 
+			/* Tell the bg render thread we have one more dirty
+			 * render on there.
 			 */
-			if( !render_thread ) {
-				render_thread = vips_g_thread_new( "sink_screen",
-					render_thread_main, NULL );
-				g_assert( render_thread ); 
-			}
-			VIPS_DEBUG_MSG_GREEN( "render_dirty_put: "
-				"reschedule\n" );
-			render_reschedule = TRUE;
+			vips_semaphore_up( &n_render_dirty_sem ); 
 		}
 	}
 
@@ -1020,10 +952,96 @@ mask_fill( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
 	return( 0 );
 }
 
+/* Get the first render with dirty tiles. 
+ */
+static Render *
+render_dirty_get( void )
+{
+	Render *render;
+
+	/* Wait for a render with dirty tiles.
+	 */
+	vips_semaphore_down( &n_render_dirty_sem ); 
+
+	g_mutex_lock( render_dirty_lock );
+
+	/* Just take the head of the jobs list ... we sort when we add. 
+	 */
+	render = NULL;
+	if( render_dirty_all ) {
+		render = (Render *) render_dirty_all->data;
+
+		/* Ref the render to make sure it can't die while we're
+		 * working on it.
+		 */
+		render_ref( render );
+
+		render_dirty_all = g_slist_remove( render_dirty_all, render );
+	}
+
+	g_mutex_unlock( render_dirty_lock );
+
+	return( render );
+}
+
+/* Loop for the background render mananger thread.
+ */
+static void *
+render_thread_main( void *client )
+{
+	Render *render;
+
+	while( !render_kill ) {
+		VIPS_DEBUG_MSG_GREEN( "render_thread_main: "
+			"threadpool start\n" );
+
+		render_reschedule = FALSE;
+
+		if( (render = render_dirty_get()) ) {
+			if( vips_threadpool_run( render->in,
+				render_thread_state_new,
+				render_allocate,
+				render_work,
+				NULL,
+				render ) )
+				VIPS_DEBUG_MSG_RED( "render_thread_main: "
+					"threadpool_run failed\n" );
+
+			VIPS_DEBUG_MSG_GREEN( "render_thread_main: "
+				"threadpool return\n" );
+
+			/* Add back to the jobs list, if we need to.
+			 */
+			render_dirty_put( render );
+
+			/* _get() does a ref to make sure we keep the render
+			 * alive during processing ... unref before we loop.
+			 * This can kill off the render.
+			 */
+			render_unref( render );
+		}
+	}
+
+	/* We are exiting, so render_thread must now be NULL.
+	 */
+	render_thread = NULL; 
+
+	return( NULL );
+}
+
 static void
 vips_sink_screen_init( void )
 {
+	g_assert( !render_thread ); 
+	g_assert( !render_dirty_lock ); 
+
 	render_dirty_lock = vips_g_mutex_new();
+	render_thread = vips_g_thread_new( "sink_screen",
+		render_thread_main, NULL );
+	vips_semaphore_init( &n_render_dirty_sem, 0, "n_render_dirty" );
+
+	g_assert( render_thread ); 
+	g_assert( render_dirty_lock ); 
 }
 
 /**
