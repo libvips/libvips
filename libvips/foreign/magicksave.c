@@ -304,6 +304,15 @@ vips_foreign_save_magick_build( VipsObject *object )
 	return( 0 );
 }
 
+/* We could call into libMagick and discover what save formats it supports, but
+ * that would mean starting up libMagick on libvips init, and that would add a
+ * lot of time.
+ *
+ * Instead, just list the commonly-used formats that all libMagicks support and 
+ * that libvips does not.
+ */
+static const char *vips__save_magick_suffs[] = { ".gif", ".bmp", NULL };
+
 /* Save a bit of typing.
  */
 #define UC VIPS_FORMAT_UCHAR
@@ -337,6 +346,7 @@ vips_foreign_save_magick_class_init( VipsForeignSaveMagickClass *class )
 	 * dedicated savers are usually preferable.
 	 */
 	foreign_class->priority = -100;
+	foreign_class->suffs = vips__save_magick_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
 	save_class->format_table = bandfmt_magick;
