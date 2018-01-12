@@ -35,13 +35,13 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef ENABLE_MAGICKSAVE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <vips/vips.h>
+
+#ifdef ENABLE_MAGICKSAVE
 
 #include "pforeign.h"
 #include "magick.h"
