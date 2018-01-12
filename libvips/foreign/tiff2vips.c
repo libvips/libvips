@@ -1430,7 +1430,8 @@ rtiff_fill_region_aligned( VipsRegion *out, void *seq, void *a, void *b )
 /* Loop over the output region painting in tiles from the file.
  */
 static int
-rtiff_fill_region( VipsRegion *out, void *seq, void *a, void *b, gboolean *stop )
+rtiff_fill_region( VipsRegion *out, 
+	void *seq, void *a, void *b, gboolean *stop )
 {
 	tdata_t *buf = (tdata_t *) seq;
 	Rtiff *rtiff = (Rtiff *) a;
@@ -2102,8 +2103,12 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 		 *
 		 * If this image has a strip size of over 128 lines, fall back
 		 * to TIFFReadScanline(), otherwise use TIFFReadEncodedStrip().
+		 *
+		 * Don't do this in plane-separate mode. TIFFReadScanline() is
+		 * too fiddly to use in this case.
 		 */
-		if( header->rows_per_strip > 128 ) {
+		if( header->rows_per_strip > 128 &&
+			!header->separate ) {
 			header->rows_per_strip = 1;
 			header->strip_size = TIFFScanlineSize( rtiff->tiff );
 			header->number_of_strips = header->height;
