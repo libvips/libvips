@@ -678,7 +678,7 @@ vips_region_image( VipsRegion *reg, const VipsRect *r )
 		/* No complete image data ... but we can use a rolling window.
 		 */
 		reg->type = VIPS_REGION_WINDOW;
-		if( !(reg->window = vips_window_ref( reg->window, image, 
+		if( !(reg->window = vips_window_take( reg->window, image, 
 			clipped.top, clipped.height )) )
 			return( -1 );
 

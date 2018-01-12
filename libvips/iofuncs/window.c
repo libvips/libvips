@@ -342,10 +342,18 @@ vips_window_find( VipsImage *im, int top, int height )
 	return( window );
 }
 
-/* Update a ref to a window to make it enclose top/height.
+/* Old API. Just a compat stub now.
  */
 VipsWindow *
-vips_window_ref( VipsWindow *window, VipsImage *im, int top, int height )
+vips_window_ref( VipsImage *im, int top, int height )
+{
+	return( NULL );
+}
+
+/* Update a window to make it enclose top/height. 
+ */
+VipsWindow *
+vips_window_take( VipsWindow *window, VipsImage *im, int top, int height )
 {
 	int margin;
 

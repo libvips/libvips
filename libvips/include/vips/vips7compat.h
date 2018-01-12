@@ -1227,6 +1227,10 @@ int vips_check_dmask_1d( const char *domain, DOUBLEMASK *mask );
 
 GOptionGroup *vips_get_option_group( void );
 
+/* old window manager API
+ */
+VipsWindow *vips_window_ref( VipsImage *im, int top, int height );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
