@@ -598,6 +598,11 @@ if test x"$with_magick" != x"no"; then
      )
     ]  
   )
+else
+  with_magick=no
+  magick6=no
+  magick_version=none
+  with_magickpackage=none
 fi
 
 if test x"$magick6" = x"yes"; then
@@ -670,17 +675,24 @@ fi
 AC_ARG_ENABLE([magickload], 
   AS_HELP_STRING([--disable-magickload], 
 		 [disable libMagic load (default: enabled)]))
-if test x"$enable_magickload" != x"no"; then
-    AC_DEFINE(ENABLE_MAGICKLOAD,1,[define to enable load with libMagick])
-    enable_magickload=yes
-fi
 
 AC_ARG_ENABLE([magicksave], 
   AS_HELP_STRING([--disable-magicksave], 
 		 [disable libMagic save (default: enabled)]))
-if test x"$enable_magicksave" != x"no"; then
+
+if test x"$with_magick" != x"no"; then
+  if test x"$enable_magickload" != x"no"; then
+    AC_DEFINE(ENABLE_MAGICKLOAD,1,[define to enable load with libMagick])
+    enable_magickload=yes
+  fi
+
+  if test x"$enable_magicksave" != x"no"; then
     AC_DEFINE(ENABLE_MAGICKSAVE,1,[define to enable save with libMagick])
     enable_magicksave=yes
+  fi
+else
+  enable_magickload=no
+  enable_magicksave=no
 fi
 
 # orc
