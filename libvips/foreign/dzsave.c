@@ -527,6 +527,11 @@ struct _VipsForeignSaveDz {
 	 */
 	VipsPel *ink;
 
+	/* TRUE if we are writing a .szi file. These are zips with a few 
+	 * extra files inside. 
+	 */
+	gboolean write_szi;
+
 };
 
 typedef VipsForeignSaveClass VipsForeignSaveDzClass;
@@ -1857,9 +1862,11 @@ vips_foreign_save_dz_build( VipsObject *object )
 		/* Output to a file or memory?
 		 */
 		if( dz->dirname ) { 
-			vips_snprintf( name, VIPS_PATH_MAX, "%s/%s.zip", 
-				dz->dirname, dz->basename ); 
-			if( !(dz->out = gsf_output_stdio_new( name, &error )) ) {
+			const char *suffix = dz->write_szi ? "szi" : "zip"; 
+			vips_snprintf( name, VIPS_PATH_MAX, "%s/%s.%s", 
+				dz->dirname, dz->basename, suffix ); 
+			if( !(dz->out = 
+				gsf_output_stdio_new( name, &error )) ) {
 				vips_g_error( &error );
 				return( -1 );
 			}
@@ -2176,10 +2183,16 @@ vips_foreign_save_dz_file_build( VipsObject *object )
 	 * container.
 	 */
 	if( (p = strrchr( dz->basename, '.' )) ) {
-		if( !vips_object_argument_isset( object, "container" ) ) 
+		if( !vips_object_argument_isset( object, "container" ) ) {
 			if( strcasecmp( p + 1, "zip" ) == 0 ||
 				strcasecmp( p + 1, "szi" ) == 0 ) 
 				dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
+
+			/* Note we are building a .szi object.
+			 */
+			if( strcasecmp( p + 1, "szi" ) == 0 ) 
+				dz->write_szi = TRUE;
+		}
 
 		/* Remove any legal suffix. We don't remove all suffixes
 		 * since we might be writing to a dirname with a dot in.
