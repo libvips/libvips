@@ -270,7 +270,27 @@ $ ls -l tn_shark.jpg
     It’ll look identical to a user, but be almost half the size.
   </para>
   <para>
-    You can also specify a fallback input profile to use if the image has no embedded one, but this is less useful.
+    You can also specify a fallback input profile to use if the image has no embedded one. This can often happen with CMYK images, producing an error message like:
+  </para>
+  <programlisting>
+$ vipsthumbnail kgdev.jpg
+vipsthumbnail: unable to thumbnail kgdev.jpg
+vips_colourspace: no known route from 'cmyk' to 'srgb'
+</programlisting>
+  <para>
+    If you supply a CMYK profile, it will be able to convert the image, for example:
+  </para>
+  <programlisting>
+$ vipsthumbnail kgdev.jpg --iprofile /usr/share/color/icc/colord/FOGRA28L_webcoated.icc 
+</programlisting>
+  <para>
+    I’ve had good results with this profile:
+  </para>
+  <para>
+    https://github.com/jcupitt/nip2/blob/master/share/nip2/data/cmyk.icm
+  </para>
+  <para>
+    It makes nice-looking images from most CMYK files, and is completely free.
   </para>
 </refsect3>
 <refsect3 id="auto-rotate">
