@@ -980,7 +980,7 @@ vips_composite_base_build( VipsObject *object )
 		if( !vips_image_hasalpha( in[i] ) ) {
 			VipsImage *x;
 
-			if( vips_addalpha( in[i], &x, NULL ) )
+			if( vips_addalpha( in[i], &x, (void *) NULL ) )
 				return( -1 );
 			g_object_unref( in[i] );
 			in[i] = x;
@@ -1032,7 +1032,7 @@ vips_composite_base_build( VipsObject *object )
 		vips_object_local_array( object, composite->n );
 	for( int i = 0; i < composite->n; i++ )
 		if( vips_colourspace( in[i], &compositing[i],
-			composite->compositing_space, NULL ) )
+			composite->compositing_space, (void *) NULL ) )
 			return( -1 );
 	in = compositing;
 
