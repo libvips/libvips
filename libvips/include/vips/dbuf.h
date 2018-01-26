@@ -69,6 +69,7 @@ unsigned char *vips_dbuf_get_write( VipsDbuf *dbuf, size_t *size );
 gboolean vips_dbuf_write( VipsDbuf *dbuf, 
 	const unsigned char *data, size_t size );
 gboolean vips_dbuf_writef( VipsDbuf *dbuf, const char *fmt, ... );
+gboolean vips_dbuf_write_amp( VipsDbuf *dbuf, const char *str );
 void vips_dbuf_reset( VipsDbuf *dbuf );
 void vips_dbuf_destroy( VipsDbuf *dbuf );
 gboolean vips_dbuf_seek( VipsDbuf *dbuf, off_t offset, int whence );

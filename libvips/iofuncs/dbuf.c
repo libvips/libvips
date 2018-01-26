@@ -207,6 +207,52 @@ vips_dbuf_writef( VipsDbuf *dbuf, const char *fmt, ... )
 }
 
 /**
+ * vips_dbuf_write_amp: 
+ * @dbuf: the buffer
+ * @str: string to write
+ *
+ * Write @str to @dbuf, but escape <>&.
+ *
+ * Returns: %FALSE on out of memory, %TRUE otherwise.
+ */
+gboolean
+vips_dbuf_write_amp( VipsDbuf *dbuf, const char *str )
+{
+	const char *p;
+	size_t len;
+
+	for( p = str; *p; p += len ) {
+		len = strcspn( p, "&<>" );
+
+		vips_dbuf_write( dbuf, (unsigned char *) p, len );
+		switch( p[len] ) {
+		case '&': 
+			if( vips_dbuf_writef( dbuf, "&amp;" ) )
+				return( FALSE ); 
+			len += 1;
+			break;
+
+		case '<': 
+			if( vips_dbuf_writef( dbuf, "&lt;" ) )
+				return( FALSE );
+			len += 1;
+			break;
+
+		case '>': 
+			if( vips_dbuf_writef( dbuf, "&gt;" ) )
+				return( FALSE );
+			len += 1;
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	return( TRUE ); 
+}
+
+/**
  * vips_dbuf_reset:
  * @dbuf: the buffer
  *

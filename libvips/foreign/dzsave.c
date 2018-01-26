@@ -76,6 +76,8 @@
  * 24/11/17
  * 	- output overlap-only tiles on edges for better deepzoom spec
  * 	  compliance
+ * 6/1/18
+ * 	- add scan-properties.xml for szi output
  */
 
 /*
@@ -849,6 +851,81 @@ write_vips_meta( VipsForeignSaveDz *dz )
 	else
 		out = vips_gsf_path( dz->tree, "vips-properties.xml", NULL );
 
+	gsf_output_write( out, strlen( dump ), (guchar *) dump ); 
+	(void) gsf_output_close( out );
+	g_object_unref( out );
+
+	g_free( dump );
+
+	return( 0 );
+}
+
+static void
+build_scan_property( VipsDbuf *dbuf, VipsImage *image, 
+	const char *vips_name, const char *szi_name )
+{
+	const char *str;
+
+	if( vips_image_get_typeof( image, vips_name ) &&
+		!vips_image_get_string( image, vips_name, &str ) ) { 
+		vips_dbuf_writef( dbuf, "    <property>\n" );  
+		vips_dbuf_writef( dbuf, "      <name>" ); 
+		vips_dbuf_write_amp( dbuf, szi_name );
+		vips_dbuf_writef( dbuf, "</name>\n" ); 
+		vips_dbuf_writef( dbuf, "      <value type=\"str\">" ); 
+		vips_dbuf_write_amp( dbuf, str );
+		vips_dbuf_writef( dbuf, "</value>\n" ); 
+		vips_dbuf_writef( dbuf, "    </property>\n" );  
+	}
+}
+
+/* Make the xml we write to scan-properties.xml in szi write. 
+ * Free with g_free().
+ */
+char *
+build_scan_properties( VipsImage *image )
+{
+	VipsDbuf dbuf;
+	GTimeVal now;
+	char *date;
+
+	vips_dbuf_init( &dbuf ); 
+
+	g_get_current_time( &now );
+	date = g_time_val_to_iso8601( &now ); 
+	vips_dbuf_writef( &dbuf, "<?xml version=\"1.0\"?>\n" ); 
+	vips_dbuf_writef( &dbuf, "<image xmlns=\"http://www.pathozoom.com/szi\""
+		" date=\"%s\" version=\"1.0\">\n", date ); 
+	g_free( date ); 
+	vips_dbuf_writef( &dbuf, "  <properties>\n" );  
+
+	build_scan_property( &dbuf, image, 
+		"openslide.vendor", "Vendor" );
+	build_scan_property( &dbuf, image, 
+		"openslide.objective-power", "ObjectiveMagnification" );
+	build_scan_property( &dbuf, image, 
+		"openslide.mpp-x", "MicronsPerPixelX" );
+	build_scan_property( &dbuf, image, 
+		"openslide.mpp-y", "MicronsPerPixelY" );
+
+	vips_dbuf_writef( &dbuf, "  </properties>\n" );  
+	vips_dbuf_writef( &dbuf, "</image>\n" );  
+
+	return( (char *) vips_dbuf_steal( &dbuf, NULL ) ); 
+}
+
+static int
+write_scan_properties( VipsForeignSaveDz *dz )
+{
+	VipsForeignSave *save = (VipsForeignSave *) dz;
+
+	char *dump;
+	GsfOutput *out;
+
+	if( !(dump = build_scan_properties( save->ready )) )
+                return( -1 );
+
+	out = vips_gsf_path( dz->tree, "scan-properties.xml", NULL );
 	gsf_output_write( out, strlen( dump ), (guchar *) dump ); 
 	(void) gsf_output_close( out );
 	g_object_unref( out );
@@ -1934,6 +2011,10 @@ vips_foreign_save_dz_build( VipsObject *object )
 
 	if( dz->properties &&
 		write_vips_meta( dz ) )
+		return( -1 );
+
+	if( dz->write_szi &&
+		write_scan_properties( dz ) )
 		return( -1 );
 
 	/* This is so ugly. In earlier versions of dzsave, we wrote x.dzi and

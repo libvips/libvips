@@ -743,40 +743,6 @@ dbuf_write_quotes( VipsDbuf *dbuf, const char *str )
 	}
 }
 
-/* Append a string to a buffer, but escape &<>.
- */
-static void
-dbuf_write_amp( VipsDbuf *dbuf, const char *str )
-{
-	const char *p;
-	size_t len;
-
-	for( p = str; *p; p += len ) {
-		len = strcspn( p, "&<>" );
-
-		vips_dbuf_write( dbuf, (unsigned char *) p, len );
-		switch( p[len] ) {
-		case '&': 
-			vips_dbuf_writef( dbuf, "&amp;" );
-			len += 1;
-			break;
-
-		case '<': 
-			vips_dbuf_writef( dbuf, "&lt;" );
-			len += 1;
-			break;
-
-		case '>': 
-			vips_dbuf_writef( dbuf, "&gt;" );
-			len += 1;
-			break;
-
-		default:
-			break;
-		}
-	}
-}
-
 static void *
 build_xml_meta( VipsMeta *meta, VipsDbuf *dbuf )
 {
@@ -808,7 +774,7 @@ build_xml_meta( VipsMeta *meta, VipsDbuf *dbuf )
 				g_type_name( type ) ); 
 			dbuf_write_quotes( dbuf, meta->name );
 			vips_dbuf_writef( dbuf, "\">" );  
-			dbuf_write_amp( dbuf, str );
+			vips_dbuf_write_amp( dbuf, str );
 			vips_dbuf_writef( dbuf, "</field>\n" );  
 		}
 
@@ -839,7 +805,7 @@ build_xml( VipsImage *image )
 		vips_dbuf_writef( &dbuf, 
 			"    <field type=\"%s\" name=\"Hist\">", 
 			g_type_name( VIPS_TYPE_REF_STRING ) );
-		dbuf_write_amp( &dbuf, str );
+		vips_dbuf_write_amp( &dbuf, str );
 		vips_dbuf_writef( &dbuf, "</field>\n" ); 
 	}
 
@@ -884,11 +850,11 @@ vips__xml_properties_meta( VipsImage *image,
 
 		vips_dbuf_writef( dbuf, "    <property>\n" );  
 		vips_dbuf_writef( dbuf, "      <name>" ); 
-		dbuf_write_amp( dbuf, field );
+		vips_dbuf_write_amp( dbuf, field );
 		vips_dbuf_writef( dbuf, "</name>\n" ); 
 		vips_dbuf_writef( dbuf, "      <value type=\"%s\">",
 			g_type_name( type ) );  
-		dbuf_write_amp( dbuf, str );
+		vips_dbuf_write_amp( dbuf, str );
 		vips_dbuf_writef( dbuf, "</value>\n" ); 
 		vips_dbuf_writef( dbuf, "    </property>\n" );  
 
