@@ -84,7 +84,7 @@
  * uniform way. 
  *
  * Use vips_image_get_typeof() to test for the 
- * existance and #GType of a header field.
+ * existence and #GType of a header field.
  *
  * You can attach arbitrary metadata to images. Metadata is copied as images
  * are processed, so all images which used this image as input, directly or
@@ -1311,7 +1311,7 @@ meta_get_value( const VipsImage *image,
  *
  * Gets @data from @image under the name @name. A convenience
  * function over vips_image_get(). Use vips_image_get_typeof() to test for
- * the existance of a piece of metadata.
+ * the existence of a piece of metadata.
  *
  * See also: vips_image_set_area(), vips_image_get(),
  * vips_image_get_typeof()
@@ -1368,7 +1368,7 @@ vips_image_set_blob( VipsImage *image, const char *name,
  * Gets @blob from @image under the name @name, optionally returns its length in
  * @length. A convenience
  * function over vips_image_get(). Use vips_image_get_typeof() to test for the 
- * existance
+ * existence
  * of a piece of metadata.
  *
  * See also: vips_image_get(), vips_image_get_typeof(), vips_blob_get(), 
@@ -1624,6 +1624,59 @@ vips_image_print_field( const VipsImage *image, const char *name )
 	printf( ".%s: %s\n", name, str );
 
 	g_free( str ); 
+}
+
+/** 
+ * vips_image_get_image: (method)
+ * @image: image to get the metadata from
+ * @name: metadata name
+ * @out: (transfer full): return metadata value
+ *
+ * Gets @out from @im under the name @name. 
+ * The field must be of type
+ * #VIPS_TYPE_IMAGE. You must unref @out with g_object_unref().
+ *
+ * Use vips_image_get_typeof() to test for the 
+ * existence of a piece of metadata.
+ *
+ * See also: vips_image_get(), vips_image_set_image()
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int 
+vips_image_get_image( const VipsImage *image, 
+	const char *name, VipsImage **out )
+{
+	GValue value = { 0 };
+
+	if( meta_get_value( image, name, VIPS_TYPE_IMAGE, &value ) ) 
+		return( -1 ); 
+	*out = g_value_dup_object( &value );
+	g_value_unset( &value );
+
+	return( 0 );
+}
+
+/**
+ * vips_image_set_image: (method)
+ * @image: image to attach the metadata to
+ * @name: metadata name
+ * @im: metadata value
+ *
+ * Attaches @im as a metadata item on @image as @name. 
+ * A convenience function over vips_image_set().
+ *
+ * See also: vips_image_get_image(), vips_image_set().
+ */
+void 
+vips_image_set_image( VipsImage *image, const char *name, VipsImage *im )
+{
+	GValue value = { 0 };
+
+	g_value_init( &value, VIPS_TYPE_IMAGE );
+	g_value_set_object( &value, im );
+	vips_image_set( image, name, &value );
+	g_value_unset( &value );
 }
 
 /**
