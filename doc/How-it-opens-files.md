@@ -70,7 +70,7 @@ image decompress happens on the first pixel access.
 
 You can control this process with environment variables, command-line
 flags and API calls as you choose, see
-`vips_image_new_from_file()`.
+vips_image_new_from_file().
 They let you set the threshold at which libvips switches between memory
 and disc and where on disc the temporary files are held.
 
@@ -115,28 +115,6 @@ this hint set, libvips will hook up the pipeline of operations directly
 to the read-a-line interface provided by the image library, and add a
 small cache of the most recent 100 or so lines.
 
-There's an extra unbuffered sequential mode where vips does not keep a
-cache of recent lines. This gives a useful memory saving for operations
-like copy which do not need any non-local access. 
-
-# Debugging
-
-There are a few flags you can use to find out what libvips is doing.
-
-`--vips-leak` This makes libvips test for leaks on program exit. It checks
-for images which haven't been closed and also (usefully) shows the memory
-high-water mark. It counts all memory allocated in libvips for pixel buffers.
-
-`--vips-progress` This makes libvips show a crude progress bar for every major
-image loop, with destination and elapsed time. You can see whether images
-are going to disc or to memory and how long the decompression is taking.
-
-`--vips-cache-trace This shows a line for every vips operation that executes,
-with arguments. It's part of vips8, so it doesn't display vips7 operations,
-sadly.
-
-# Summary
-
-libvips tries hard to do the quickest thing in every case, but will
-sometimes fail. You can prod it in the right direction with a mixture of
-hints and flags to the load system.
+This is done automatically in command-line operation. In programs, you need to
+set `access` to #VIPS_ACCESS_SEQUENTIAL in calls to functions like
+vips_image_new_from_file().
