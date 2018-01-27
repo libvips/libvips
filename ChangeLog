@@ -3,6 +3,7 @@
 - dzsave to szi sets suffix correctly [martinweihrauch]
 - dzsave szi writes "scan-properties.xml"
 - add vips_image_(get|set)_image()
+- add openslideload option to attach all associated images as metadata
 
 5/1/18 started 8.6.2
 - vips_sink_screen() keeps a ref to the input image ... stops a rare race

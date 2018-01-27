@@ -49,6 +49,8 @@
  * 	- unpremultiplication speedups for fully opaque/transparent pixels
  * 18/1/17
  * 	- reorganise to support invalidate on read error
+ * 27/1/18
+ * 	- option to attach associated images as metadata
  */
 
 /*
@@ -103,6 +105,7 @@ typedef struct {
 	int32_t level;
 	gboolean autocrop;
 	char *associated;
+	gboolean attach_associated;
 
 	openslide_t *osr;
 
@@ -229,15 +232,24 @@ get_bounds( openslide_t *osr, VipsRect *rect )
 
 static ReadSlide *
 readslide_new( const char *filename, VipsImage *out, 
-	int level, gboolean autocrop, const char *associated )
+	int level, gboolean autocrop, 
+	const char *associated, gboolean attach_associated )
 {
 	ReadSlide *rslide;
 
 	if( level && 
 		associated ) {
 		vips_error( "openslide2vips",
-			"%s", _( "specify only one of level or associated "
-			"image" ) );
+			"%s", _( "specify only one of level and "
+			"associated image" ) );
+		return( NULL );
+	}
+
+	if( attach_associated && 
+		associated ) {
+		vips_error( "openslide2vips",
+			"%s", _( "specify only one of attach_assicated and "
+			"associated image" ) );
 		return( NULL );
 	}
 
@@ -251,6 +263,7 @@ readslide_new( const char *filename, VipsImage *out,
 	rslide->level = level;
 	rslide->autocrop = autocrop;
 	rslide->associated = g_strdup( associated );
+	rslide->attach_associated = attach_associated;
 
 	/* Non-crazy defaults, override in _parse() if we can.
 	 */
@@ -258,6 +271,94 @@ readslide_new( const char *filename, VipsImage *out,
 	rslide->tile_height = 256;
 
 	return( rslide );
+}
+
+/* Convert from ARGB to RGBA and undo premultiplication. 
+ *
+ * We throw away transparency. Formats like Mirax use transparent + bg
+ * colour for areas with no useful pixels. But if we output
+ * transparent pixels and then convert to RGB for jpeg write later, we
+ * would have to pass the bg colour down the pipe somehow. The
+ * structure of dzsave makes this tricky.
+ *
+ * We could output plain RGB instead, but that would break
+ * compatibility with older vipses.
+ */
+static void
+argb2rgba( uint32_t * restrict buf, int n, uint32_t bg )
+{
+	const uint32_t pbg = GUINT32_TO_BE( (bg << 8) | 255 );
+
+	int i;
+
+	for( i = 0; i < n; i++ ) {
+		uint32_t * restrict p = buf + i;
+		uint32_t x = *p;
+		uint8_t a = x >> 24;
+		VipsPel * restrict out = (VipsPel *) p;
+
+		if( a == 255 ) 
+			*p = GUINT32_TO_BE( (x << 8) | 255 );
+		else if( a == 0 ) 
+			/* Use background color.
+			 */
+			*p = pbg;
+		else {
+			/* Undo premultiplication.
+			 */
+			out[0] = 255 * ((x >> 16) & 255) / a;
+			out[1] = 255 * ((x >> 8) & 255) / a;
+			out[2] = 255 * (x & 255) / a;
+			out[3] = 255;
+		}
+	}
+}
+
+static int
+readslide_attach_associated( ReadSlide *rslide, VipsImage *image )
+{
+	const char * const *associated_name;
+
+	for( associated_name = 
+		openslide_get_associated_image_names( rslide->osr );
+		*associated_name != NULL; associated_name++ ) {
+		int64_t w, h;
+		VipsImage *associated;
+		uint32_t *p;
+		const char *error;
+		char buf[256];
+
+		associated = vips_image_new_memory();
+		openslide_get_associated_image_dimensions( rslide->osr,
+			*associated_name, &w, &h );
+		vips_image_init_fields( associated, w, h, 4, VIPS_FORMAT_UCHAR,
+			VIPS_CODING_NONE, VIPS_INTERPRETATION_RGB, 1.0, 1.0 );
+		vips_image_pipelinev( associated, 
+			VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+
+		if( vips_image_write_prepare( associated ) ) {
+			g_object_unref( associated );
+			return( -1 );
+		}
+		p = (uint32_t *) VIPS_IMAGE_ADDR( associated, 0, 0 );
+		openslide_read_associated_image( rslide->osr, 
+			*associated_name, p );
+		error = openslide_get_error( rslide->osr );
+		if( error ) {
+			vips_error( "openslide2vips",
+				_( "reading associated image: %s" ), error );
+			g_object_unref( associated );
+			return( -1 );
+		}
+		argb2rgba( p, w * h, rslide->bg );
+
+		vips_snprintf( buf, 256, 
+			"openslide.associated.%s", *associated_name );
+		vips_image_set_image( image, buf, associated );
+		g_object_unref( associated );
+	}
+
+	return( 0 );
 }
 
 static int
@@ -358,6 +459,12 @@ readslide_parse( ReadSlide *rslide, VipsImage *image )
 			w = rslide->bounds.width;
 			h = rslide->bounds.height;
 		}
+
+		/* Attach all associated images.
+		 */
+		if( rslide->attach_associated &&
+			readslide_attach_associated( rslide, image ) )
+			return( -1 ); 
 	}
 
 	rslide->bg = 0xffffff;
@@ -406,55 +513,17 @@ readslide_parse( ReadSlide *rslide, VipsImage *image )
 
 int
 vips__openslide_read_header( const char *filename, VipsImage *out, 
-	int level, gboolean autocrop, char *associated )
+	int level, gboolean autocrop, 
+	char *associated, gboolean attach_associated )
 {
 	ReadSlide *rslide;
 
 	if( !(rslide = readslide_new( filename, 
-		out, level, autocrop, associated )) ||
+		out, level, autocrop, associated, attach_associated )) ||
 		readslide_parse( rslide, out ) )
 		return( -1 );
 
 	return( 0 );
-}
-
-/* Convert from ARGB to RGBA and undo premultiplication. 
- *
- * We throw away transparency. Formats like Mirax use transparent + bg
- * colour for areas with no useful pixels. But if we output
- * transparent pixels and then convert to RGB for jpeg write later, we
- * would have to pass the bg colour down the pipe somehow. The
- * structure of dzsave makes this tricky.
- *
- * We could output plain RGB instead, but that would break
- * compatibility with older vipses.
- */
-static void
-argb2rgba( uint32_t * restrict buf, int n, uint32_t bg )
-{
-	int i;
-
-	for( i = 0; i < n; i++ ) {
-		uint32_t * restrict p = buf + i;
-		uint32_t x = *p;
-		uint8_t a = x >> 24;
-		VipsPel * restrict out = (VipsPel *) p;
-
-		if( a == 255 ) 
-			*p = GUINT32_TO_BE( (x << 8) | 255 );
-		else if( a == 0 ) 
-			/* Use background color.
-			 */
-			*p = GUINT32_TO_BE( (bg << 8) | 255 );
-		else {
-			/* Undo premultiplication.
-			 */
-			out[0] = 255 * ((x >> 16) & 255) / a;
-			out[1] = 255 * ((x >> 8) & 255) / a;
-			out[2] = 255 * (x & 255) / a;
-			out[3] = 255;
-		}
-	}
 }
 
 static int
@@ -515,7 +584,7 @@ vips__openslide_generate( VipsRegion *out,
 
 int
 vips__openslide_read( const char *filename, VipsImage *out, 
-	int level, gboolean autocrop )
+	int level, gboolean autocrop, gboolean attach_associated )
 {
 	ReadSlide *rslide;
 	VipsImage *raw;
@@ -524,7 +593,8 @@ vips__openslide_read( const char *filename, VipsImage *out,
 	VIPS_DEBUG_MSG( "vips__openslide_read: %s %d\n", 
 		filename, level );
 
-	if( !(rslide = readslide_new( filename, out, level, autocrop, NULL )) )
+	if( !(rslide = readslide_new( filename, out, level, autocrop, 
+		NULL, attach_associated )) )
 		return( -1 );
 
 	raw = vips_image_new();
@@ -567,7 +637,8 @@ vips__openslide_read_associated( const char *filename, VipsImage *out,
 	VIPS_DEBUG_MSG( "vips__openslide_read_associated: %s %s\n", 
 		filename, associated );
 
-	if( !(rslide = readslide_new( filename, out, 0, FALSE, associated )) )
+	if( !(rslide = readslide_new( filename, out, 0, FALSE, 
+		associated, FALSE )) )
 		return( -1 );
 
 	/* Memory buffer. Get associated directly to this, then copy to out.
