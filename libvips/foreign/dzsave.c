@@ -529,17 +529,27 @@ struct _VipsForeignSaveDz {
 	 */
 	VipsPel *ink;
 
-	/* TRUE if we are writing a .szi file. These are zips with a few 
-	 * extra files inside. 
-	 */
-	gboolean write_szi;
-
 };
 
 typedef VipsForeignSaveClass VipsForeignSaveDzClass;
 
 G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveDz, vips_foreign_save_dz, 
 	VIPS_TYPE_FOREIGN_SAVE );
+
+/* ZIP and SZI are both written as zip files.
+ */
+static gboolean
+iszip( VipsForeignDzContainer container )
+{
+	switch( container ) {
+	case VIPS_FOREIGN_DZ_CONTAINER_ZIP:
+	case VIPS_FOREIGN_DZ_CONTAINER_SZI:
+		return( TRUE );
+	
+	default:
+		return( FALSE );
+	}
+}
 
 /* Free a pyramid.
  */
@@ -865,19 +875,60 @@ build_scan_property( VipsDbuf *dbuf, VipsImage *image,
 	const char *vips_name, const char *szi_name )
 {
 	const char *str;
+	GValue value = { 0 };
+	GValue save_value = { 0 };
+	GType type;
 
-	if( vips_image_get_typeof( image, vips_name ) &&
-		!vips_image_get_string( image, vips_name, &str ) ) { 
-		vips_dbuf_writef( dbuf, "    <property>\n" );  
-		vips_dbuf_writef( dbuf, "      <name>" ); 
-		vips_dbuf_write_amp( dbuf, szi_name );
-		vips_dbuf_writef( dbuf, "</name>\n" ); 
-		vips_dbuf_writef( dbuf, "      <value type=\"str\">" ); 
-		vips_dbuf_write_amp( dbuf, str );
-		vips_dbuf_writef( dbuf, "</value>\n" ); 
-		vips_dbuf_writef( dbuf, "    </property>\n" );  
+	if( !vips_image_get_typeof( image, vips_name ) )
+		return;
+
+	if( vips_image_get( image, vips_name, &value ) )
+		return;
+	type = G_VALUE_TYPE( &value );
+
+	if( !g_value_type_transformable( type, VIPS_TYPE_SAVE_STRING ) ) {
+		g_value_unset( &value );
+		return;
 	}
+
+	g_value_init( &save_value, VIPS_TYPE_SAVE_STRING );
+	if( !g_value_transform( &value, &save_value ) ) {
+		g_value_unset( &value );
+		return;
+	}
+	g_value_unset( &value );
+
+	if( !(str = vips_value_get_save_string( &save_value )) ) {
+		g_value_unset( &save_value );
+		return;
+	}
+
+	if( !g_utf8_validate( str, -1, NULL ) ) { 
+		g_value_unset( &save_value );
+		return;
+	}
+
+	vips_dbuf_writef( dbuf, "    <property>\n" );  
+	vips_dbuf_writef( dbuf, "      <name>" ); 
+	vips_dbuf_write_amp( dbuf, szi_name );
+	vips_dbuf_writef( dbuf, "</name>\n" ); 
+	vips_dbuf_writef( dbuf, "      <value type=\"%s\">", 
+		g_type_name( type )  ); 
+	vips_dbuf_write_amp( dbuf, str );
+	vips_dbuf_writef( dbuf, "</value>\n" ); 
+	vips_dbuf_writef( dbuf, "    </property>\n" );  
+
+	g_value_unset( &save_value );
 }
+
+static char *scan_property_names[][2] = {
+	{ "openslide.vendor", "Vendor" }, 
+	{ "openslide.objective-power", "ObjectiveMagnification" }, 
+	{ "openslide.mpp-x", "MicronsPerPixelX" }, 
+	{ "openslide.mpp-y", "MicronsPerPixelY" }, 
+	{ "width", "ImageWidth" }, 
+	{ "height", "ImageHeight" }
+};
 
 /* Make the xml we write to scan-properties.xml in szi write. 
  * Free with g_free().
@@ -888,6 +939,7 @@ build_scan_properties( VipsImage *image )
 	VipsDbuf dbuf;
 	GTimeVal now;
 	char *date;
+	int i;
 
 	vips_dbuf_init( &dbuf ); 
 
@@ -899,14 +951,10 @@ build_scan_properties( VipsImage *image )
 	g_free( date ); 
 	vips_dbuf_writef( &dbuf, "  <properties>\n" );  
 
-	build_scan_property( &dbuf, image, 
-		"openslide.vendor", "Vendor" );
-	build_scan_property( &dbuf, image, 
-		"openslide.objective-power", "ObjectiveMagnification" );
-	build_scan_property( &dbuf, image, 
-		"openslide.mpp-x", "MicronsPerPixelX" );
-	build_scan_property( &dbuf, image, 
-		"openslide.mpp-y", "MicronsPerPixelY" );
+	for( i = 0; i < VIPS_NUMBER( scan_property_names ); i++ )
+		build_scan_property( &dbuf, image, 
+			scan_property_names[i][0], 
+			scan_property_names[i][1] );  
 
 	vips_dbuf_writef( &dbuf, "  </properties>\n" );  
 	vips_dbuf_writef( &dbuf, "</image>\n" );  
@@ -1314,7 +1362,7 @@ strip_work( VipsThreadState *state, void *a )
 	}
 
 #ifndef HAVE_GSF_ZIP64
-	if( dz->container == VIPS_FOREIGN_DZ_CONTAINER_ZIP ) { 
+	if( iszip( dz->container ) ) { 
 		/* Leave 3 entry headroom for blank.png and metadata files. 
 		 */
 		if( dz->tree->file_count + 3 >= (unsigned int) USHRT_MAX ) {
@@ -1930,6 +1978,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 		break;
 
 	case VIPS_FOREIGN_DZ_CONTAINER_ZIP:
+	case VIPS_FOREIGN_DZ_CONTAINER_SZI:
 {
 		GsfOutput *zip;
 		GsfOutput *out2;
@@ -1939,7 +1988,10 @@ vips_foreign_save_dz_build( VipsObject *object )
 		/* Output to a file or memory?
 		 */
 		if( dz->dirname ) { 
-			const char *suffix = dz->write_szi ? "szi" : "zip"; 
+			const char *suffix = 
+				dz->container == VIPS_FOREIGN_DZ_CONTAINER_SZI ?
+					"szi" : "zip"; 
+
 			vips_snprintf( name, VIPS_PATH_MAX, "%s/%s.%s", 
 				dz->dirname, dz->basename, suffix ); 
 			if( !(dz->out = 
@@ -2013,7 +2065,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 		write_vips_meta( dz ) )
 		return( -1 );
 
-	if( dz->write_szi &&
+	if( dz->container == VIPS_FOREIGN_DZ_CONTAINER_SZI &&
 		write_scan_properties( dz ) )
 		return( -1 );
 
@@ -2057,7 +2109,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 	/* If we are writing a zip to the filesystem, we must unref out to
 	 * force it to disc.
 	 */
-	if( dz->container == VIPS_FOREIGN_DZ_CONTAINER_ZIP &&
+	if( iszip( dz->container ) &&
 		dz->dirname != NULL ) 
 		VIPS_FREEF( g_object_unref, dz->out );
 
@@ -2265,14 +2317,10 @@ vips_foreign_save_dz_file_build( VipsObject *object )
 	 */
 	if( (p = strrchr( dz->basename, '.' )) ) {
 		if( !vips_object_argument_isset( object, "container" ) ) {
-			if( strcasecmp( p + 1, "zip" ) == 0 ||
-				strcasecmp( p + 1, "szi" ) == 0 ) 
+			if( strcasecmp( p + 1, "zip" ) == 0 )
 				dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
-
-			/* Note we are building a .szi object.
-			 */
 			if( strcasecmp( p + 1, "szi" ) == 0 ) 
-				dz->write_szi = TRUE;
+				dz->container = VIPS_FOREIGN_DZ_CONTAINER_SZI;
 		}
 
 		/* Remove any legal suffix. We don't remove all suffixes
@@ -2337,10 +2385,6 @@ vips_foreign_save_dz_buffer_build( VipsObject *object )
 	size_t olen;
 	VipsBlob *blob;
 
-	/* Memory output must always be zip.
-	 */
-	dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
-
 	if( !vips_object_argument_isset( object, "basename" ) ) 
 		dz->basename = g_strdup( "untitled" ); 
 
@@ -2402,6 +2446,11 @@ vips_foreign_save_dz_buffer_class_init( VipsForeignSaveDzBufferClass *class )
 static void
 vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
 {
+	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) buffer;
+
+	/* zip default for memory output.
+	 */
+	dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
 }
 
 #endif /*HAVE_GSF*/
