@@ -49,7 +49,7 @@
     For small images (less than 100mb when decompressed), libvips allocates a large area of memory and decompresses the entire image to that. It then uses that memory buffer of decompressed pixels to feed the pipeline. For large images, libvips decompresses to a temporary file on disc, then loads that temporary file in direct access mode (see above). Note that on open libvips just reads the image header and is quick: the image decompress happens on the first pixel access.
   </para>
   <para>
-    You can control this process with environment variables, command-line flags and API calls as you choose, see <literal>vips_image_new_from_file()</literal>. They let you set the threshold at which libvips switches between memory and disc and where on disc the temporary files are held.
+    You can control this process with environment variables, command-line flags and API calls as you choose, see vips_image_new_from_file(). They let you set the threshold at which libvips switches between memory and disc and where on disc the temporary files are held.
   </para>
   <para>
     This is the slowest and most memory-hungry way to read files, but it’s unavoidable for many file formats. Unless you can use the next one!
@@ -88,7 +88,7 @@ $ vips shrink fred.png jim.png 10 10
     To help in this case, libvips has a hint you can give to loaders to say <quote>I will only need pixels from this image in top-to-bottom order</quote>. With this hint set, libvips will hook up the pipeline of operations directly to the read-a-line interface provided by the image library, and add a small cache of the most recent 100 or so lines.
   </para>
   <para>
-    There’s an extra unbuffered sequential mode where vips does not keep a cache of recent lines. This gives a useful memory saving for operations like copy which do not need any non-local access. 
+    This is done automatically in command-line operation. In programs, you need to set <literal>access</literal> to #VIPS_ACCESS_SEQUENTIAL in calls to functions like vips_image_new_from_file().
   </para>
 </refsect3>
 <refsect3 id="debugging">
