@@ -551,6 +551,73 @@ iszip( VipsForeignDzContainer container )
 	}
 }
 
+static int
+write_image( VipsForeignSaveDz *dz, 
+	GsfOutput *out, VipsImage *image, const char *format )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz ); 
+
+	void *buf;
+	size_t len;
+
+	/* Hopefully, no one will want the same metadata on all the images.
+	 * Strip them.
+	 */
+	vips_image_set_int( image, "hide-progress", 1 );
+	if( vips_image_write_to_buffer( image, format, &buf, &len, 
+		"strip", TRUE, 
+		NULL ) ) 
+		return( -1 );
+
+	/* gsf doesn't like more than one write active at once.
+	 */
+	g_mutex_lock( vips__global_lock );
+
+	if( !gsf_output_write( out, len, buf ) ) {
+		gsf_output_close( out );
+		g_mutex_unlock( vips__global_lock );
+		g_free( buf );
+		vips_error( class->nickname,
+			"%s", gsf_output_error( out )->message ); 
+
+		return( -1 );
+	}
+
+	dz->bytes_written += len;
+
+	gsf_output_close( out );
+
+#ifndef HAVE_GSF_ZIP64
+	if( iszip( dz->container ) ) { 
+		/* Leave 3 entry headroom for blank.png and metadata files. 
+		 */
+		if( dz->tree->file_count + 3 >= (unsigned int) USHRT_MAX ) {
+			g_mutex_unlock( vips__global_lock );
+
+			vips_error( class->nickname,
+				"%s", _( "too many files in zip" ) ); 
+			return( -1 );
+		}
+
+		/* Leave 16k headroom for blank.png and metadata files. 
+		 */
+		if( estimate_zip_size( dz ) > (size_t) UINT_MAX - 16384) {
+			g_mutex_unlock( vips__global_lock );
+
+			vips_error( class->nickname,
+				"%s", _( "output file too large" ) ); 
+			return( -1 ); 
+		}
+	}
+#endif /*HAVE_GSF_ZIP64*/
+
+	g_mutex_unlock( vips__global_lock );
+
+	g_free( buf );
+
+	return( 0 );
+}
+
 /* Free a pyramid.
  */
 static void
@@ -979,6 +1046,58 @@ write_scan_properties( VipsForeignSaveDz *dz )
 	g_object_unref( out );
 
 	g_free( dump );
+
+	return( 0 );
+}
+
+static void *
+write_associated_properties( VipsImage *image, 
+	const char *field, GValue *value, void *a )
+{
+	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) a;
+
+	if( vips_isprefix( "openslide.associated.", field ) ) {
+		VipsImage *associated;
+		const char *p;
+		const char *q;
+		GsfOutput *out;
+		char buf[VIPS_PATH_MAX];
+
+		p = field + strlen( "openslide.associated." );
+
+		/* Make sure there are no '/' in the filename.
+		 */
+		if( (q = strrchr( p, '/' )) ) 
+			p = q + 1;
+
+		if( vips_image_get_image( image, field, &associated ) )
+			return( image );
+
+		vips_snprintf( buf, VIPS_PATH_MAX, "%s.jpg", p );
+		out = vips_gsf_path( dz->tree, buf, "associated_images", NULL );
+
+		if( write_image( dz, out, associated, ".jpg" ) ) {
+			g_object_unref( out );
+			g_object_unref( associated );
+
+			return( image );
+		}
+
+		g_object_unref( out );
+
+		g_object_unref( associated );
+	}
+
+	return( NULL );
+}
+
+static int
+write_associated( VipsForeignSaveDz *dz )
+{
+	VipsForeignSave *save = (VipsForeignSave *) dz;
+
+	if( vips_image_map( save->ready, write_associated_properties, dz ) )
+		return( -1 );
 
 	return( 0 );
 }
@@ -2067,6 +2186,10 @@ vips_foreign_save_dz_build( VipsObject *object )
 
 	if( dz->container == VIPS_FOREIGN_DZ_CONTAINER_SZI &&
 		write_scan_properties( dz ) )
+		return( -1 );
+
+	if( dz->container == VIPS_FOREIGN_DZ_CONTAINER_SZI &&
+		write_associated( dz ) )
 		return( -1 );
 
 	/* This is so ugly. In earlier versions of dzsave, we wrote x.dzi and
