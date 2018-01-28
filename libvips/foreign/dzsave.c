@@ -78,6 +78,7 @@
  * 	  compliance
  * 6/1/18
  * 	- add scan-properties.xml for szi output
+ * 	- write all associated images
  */
 
 /*
@@ -864,8 +865,6 @@ write_blank( VipsForeignSaveDz *dz )
 	double *d;
 	double *bg;
 	int i;
-	void *buf;
-	size_t len;
 	GsfOutput *out; 
 
 	/* Number of bands we will end up making. We need to set this in
@@ -892,18 +891,18 @@ write_blank( VipsForeignSaveDz *dz )
 	g_object_unref( x );
 	x = t;
 
-	if( vips_pngsave_buffer( x, &buf, &len, NULL ) ) {
+	out = vips_gsf_path( dz->tree, "blank.png", NULL ); 
+
+	if( write_image( dz, out, x, ".png" ) ) {
+		g_object_unref( out );
 		g_object_unref( x );
+
 		return( -1 );
 	}
-	g_object_unref( x );
 
-	out = vips_gsf_path( dz->tree, "blank.png", NULL ); 
-	gsf_output_write( out, len, buf );
-	gsf_output_close( out );
 	g_object_unref( out );
 
-	g_free( buf );
+	g_object_unref( x );
 
 	return( 0 );
 }
@@ -1051,7 +1050,7 @@ write_scan_properties( VipsForeignSaveDz *dz )
 }
 
 static void *
-write_associated_properties( VipsImage *image, 
+write_associated_images( VipsImage *image, 
 	const char *field, GValue *value, void *a )
 {
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) a;
@@ -1096,7 +1095,7 @@ write_associated( VipsForeignSaveDz *dz )
 {
 	VipsForeignSave *save = (VipsForeignSave *) dz;
 
-	if( vips_image_map( save->ready, write_associated_properties, dz ) )
+	if( vips_image_map( save->ready, write_associated_images, dz ) )
 		return( -1 );
 
 	return( 0 );
@@ -1369,14 +1368,10 @@ strip_work( VipsThreadState *state, void *a )
 	Layer *layer = strip->layer;
 	VipsForeignSaveDz *dz = layer->dz;
 	VipsForeignSave *save = (VipsForeignSave *) dz;
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz ); 
 
 	VipsImage *x;
 	VipsImage *t;
-	void *buf;
-	size_t len;
 	GsfOutput *out; 
-	gboolean status;
 
 #ifdef DEBUG_VERBOSE
 	printf( "strip_work\n" );
@@ -1445,66 +1440,22 @@ strip_work( VipsThreadState *state, void *a )
 		x = t;
 	}
 
-	/* Hopefully, no one will want the same metadata on all the tiles.
-	 * Strip them.
-	 */
-	vips_image_set_int( x, "hide-progress", 1 );
-	if( vips_image_write_to_buffer( x, dz->suffix, &buf, &len, 
-		"strip", TRUE, 
-		NULL ) ) {
-		g_object_unref( x );
-		return( -1 );
-	}
-	g_object_unref( x );
-
-	/* gsf doesn't like more than one write active at once.
+	/* we need to single-thread around calls to gsf.
 	 */
 	g_mutex_lock( vips__global_lock );
 
 	out = tile_name( layer, 
 		state->x / dz->tile_step, state->y / dz->tile_step );
 
-	status = gsf_output_write( out, len, buf );
-	dz->bytes_written += len;
-
-	gsf_output_close( out );
-	g_object_unref( out );
-
-	g_free( buf );
-
-	if( !status ) {
-		g_mutex_unlock( vips__global_lock );
-
-		vips_error( class->nickname,
-			"%s", gsf_output_error( out )->message ); 
-		return( -1 ); 
-	}
-
-#ifndef HAVE_GSF_ZIP64
-	if( iszip( dz->container ) ) { 
-		/* Leave 3 entry headroom for blank.png and metadata files. 
-		 */
-		if( dz->tree->file_count + 3 >= (unsigned int) USHRT_MAX ) {
-			g_mutex_unlock( vips__global_lock );
-
-			vips_error( class->nickname,
-				"%s", _( "too many files in zip" ) ); 
-			return( -1 );
-		}
-
-		/* Leave 16k headroom for blank.png and metadata files. 
-		 */
-		if( estimate_zip_size( dz ) > (size_t) UINT_MAX - 16384) {
-			g_mutex_unlock( vips__global_lock );
-
-			vips_error( class->nickname,
-				"%s", _( "output file too large" ) ); 
-			return( -1 ); 
-		}
-	}
-#endif /*HAVE_GSF_ZIP64*/
-
 	g_mutex_unlock( vips__global_lock );
+
+	if( write_image( dz, out, x, dz->suffix ) ) {
+		g_object_unref( x );
+
+		return( -1 );
+	}
+
+	g_object_unref( out );
 
 #ifdef DEBUG_VERBOSE
 	printf( "strip_work: success\n" );
