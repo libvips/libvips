@@ -552,6 +552,29 @@ iszip( VipsForeignDzContainer container )
 	}
 }
 
+#define VIPS_ZIP_FIXED_LH_SIZE (30 + 29)
+#define VIPS_ZIP_FIXED_CD_SIZE (46 + 9)
+#define VIPS_ZIP_EOCD_SIZE 22
+
+#ifndef HAVE_GSF_ZIP64
+static size_t
+estimate_zip_size( VipsForeignSaveDz *dz )
+{
+	size_t estimated_zip_size = dz->bytes_written + 
+		dz->tree->file_count * VIPS_ZIP_FIXED_LH_SIZE + 
+		dz->tree->filename_lengths + 
+		dz->tree->file_count * VIPS_ZIP_FIXED_CD_SIZE + 
+		dz->tree->filename_lengths + 
+		VIPS_ZIP_EOCD_SIZE;
+
+#ifdef DEBUG_VERBOSE
+	printf( "estimate_zip_size: %zd\n", estimated_zip_size );
+#endif /*DEBUG_VERBOSE*/
+
+	return( estimated_zip_size );
+}
+#endif /*HAVE_GSF_ZIP64*/
+
 static int
 write_image( VipsForeignSaveDz *dz, 
 	GsfOutput *out, VipsImage *image, const char *format )
@@ -1337,29 +1360,6 @@ tile_equal( VipsImage *image, VipsPel * restrict ink )
 
 	return( TRUE );
 }
-
-#define VIPS_ZIP_FIXED_LH_SIZE (30 + 29)
-#define VIPS_ZIP_FIXED_CD_SIZE (46 + 9)
-#define VIPS_ZIP_EOCD_SIZE 22
-
-#ifndef HAVE_GSF_ZIP64
-static size_t
-estimate_zip_size( VipsForeignSaveDz *dz )
-{
-	size_t estimated_zip_size = dz->bytes_written + 
-		dz->tree->file_count * VIPS_ZIP_FIXED_LH_SIZE + 
-		dz->tree->filename_lengths + 
-		dz->tree->file_count * VIPS_ZIP_FIXED_CD_SIZE + 
-		dz->tree->filename_lengths + 
-		VIPS_ZIP_EOCD_SIZE;
-
-#ifdef DEBUG_VERBOSE
-	printf( "estimate_zip_size: %zd\n", estimated_zip_size );
-#endif /*DEBUG_VERBOSE*/
-
-	return( estimated_zip_size );
-}
-#endif /*HAVE_GSF_ZIP64*/
 
 static int
 strip_work( VipsThreadState *state, void *a )
