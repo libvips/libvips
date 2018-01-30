@@ -4,6 +4,7 @@
 - fix read of plane-separate TIFFs with large strips [remicollet]
 - fix a C++ warning in composite.cpp [lovell]
 - remove number of images limit in composite
+- composite allows 1 mode ... reused for all joins
 
 10/12/17 started 8.6.1
 - fix mmap window new/free cycling 

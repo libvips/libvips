@@ -6,6 +6,7 @@
  * 	- add composite2 class, to make a nice CLI interface
  * 30/1/18
  * 	- remove number of images limit
+ * 	- allow one mode ... reused for all joins
  */
 
 /*
@@ -78,7 +79,7 @@ typedef struct _VipsCompositeBase {
 	 */
 	VipsArrayImage *in;
 
-	/* For N input images, N - 1 blend modes.
+	/* For N input images, 1 blend mode or N - 1 blend modes.
 	 */
 	VipsArrayInt *mode;
 
@@ -776,7 +777,8 @@ template <typename T, gint64 min_T, gint64 max_T>
 static void 
 vips_combine_pixels( VipsCompositeBase *composite, VipsPel *q, VipsPel **p )
 {
-	VipsBlendMode *m = (VipsBlendMode *) composite->mode->area.data;
+	VipsBlendMode *mode = (VipsBlendMode *) composite->mode->area.data;
+	int n_mode = composite->mode->area.n;
 	int n = composite->n;
 	int bands = composite->bands;
 	T * restrict tq = (T * restrict) q;
@@ -795,8 +797,11 @@ vips_combine_pixels( VipsCompositeBase *composite, VipsPel *q, VipsPel **p )
 		for( int b = 0; b < bands; b++ )
 			B[b] *= aB;
 
-	for( int i = 1; i < n; i++ ) 
-		vips_composite_base_blend<T>( composite, m[i - 1], B, tp[i] ); 
+	for( int i = 1; i < n; i++ ) {
+		VipsBlendMode m = n_mode == 1 ? mode[0] : mode[i - 1];
+
+		vips_composite_base_blend<T>( composite, m, B, tp[i] ); 
+	}
 
 	/* Unpremultiply, if necessary.
 	 */
@@ -835,7 +840,8 @@ template <typename T, gint64 min_T, gint64 max_T>
 static void 
 vips_combine_pixels3( VipsCompositeBase *composite, VipsPel *q, VipsPel **p )
 {
-	VipsBlendMode *m = (VipsBlendMode *) composite->mode->area.data;
+	VipsBlendMode *mode = (VipsBlendMode *) composite->mode->area.data;
+	int n_mode = composite->mode->area.n;
 	int n = composite->n;
 	T * restrict tq = (T * restrict) q;
 	T ** restrict tp = (T ** restrict) p;
@@ -858,8 +864,11 @@ vips_combine_pixels3( VipsCompositeBase *composite, VipsPel *q, VipsPel **p )
 		B[3] = aB;
 	}
 
-	for( int i = 1; i < n; i++ ) 
-		vips_composite_base_blend3<T>( composite, m[i - 1], B, tp[i] ); 
+	for( int i = 1; i < n; i++ ) {
+		VipsBlendMode m = n_mode == 1 ? mode[0] : mode[i - 1];
+
+		vips_composite_base_blend3<T>( composite, m, B, tp[i] ); 
+	}
 
 	/* Unpremultiply, if necessary.
 	 */
@@ -1027,14 +1036,14 @@ vips_composite_base_build( VipsObject *object )
 		vips_error( klass->nickname, "%s", _( "no input images" ) );
 		return( -1 );
 	}
-	if( composite->mode->area.n != composite->n - 1 ) {
-		vips_error( klass->nickname,
-			_( "for %d input images there must be %d blend modes" ),
-			composite->n, composite->n - 1 );
+	if( composite->mode->area.n != composite->n - 1 &&
+		composite->mode->area.n != 1 ) {
+		vips_error( klass->nickname, _( "must be 1 or %d blend modes" ),
+			composite->n - 1 );
 		return( -1 );
 	}
 	mode = (VipsBlendMode *) composite->mode->area.data;
-	for( int i = 0; i < composite->n - 1; i++ ) {
+	for( int i = 0; i < composite->mode->area.n; i++ ) {
 		if( mode[i] < 0 ||
 			mode[i] >= VIPS_BLEND_MODE_LAST ) {
 			vips_error( klass->nickname,
