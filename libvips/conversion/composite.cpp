@@ -4,6 +4,9 @@
  * 	- from bandjoin.c
  * 30/11/17
  * 	- add composite2 class, to make a nice CLI interface
+ * 30/1/18
+ * 	- remove number of images limit
+ * 	- allow one mode ... reused for all joins
  */
 
 /*
@@ -53,10 +56,6 @@
 
 #include "pconversion.h"
 
-/* Maximum number of input images -- why not?
- */
-#define MAX_INPUT_IMAGES (64)
-
 /* Maximum number of image bands.
  */
 #define MAX_BANDS (64)
@@ -80,7 +79,7 @@ typedef struct _VipsCompositeBase {
 	 */
 	VipsArrayImage *in;
 
-	/* For N input images, N - 1 blend modes.
+	/* For N input images, 1 blend mode or N - 1 blend modes.
 	 */
 	VipsArrayInt *mode;
 
@@ -139,6 +138,88 @@ vips_composite_base_dispose( GObject *gobject )
 	}
 
 	G_OBJECT_CLASS( vips_composite_base_parent_class )->dispose( gobject );
+}
+
+/* Our sequence value.
+ */
+typedef struct {
+	VipsCompositeBase *composite;
+
+	/* Set of input regions.
+	 */
+	VipsRegion **ir;
+
+	/* For each input, an input pointer.
+	 */
+	VipsPel **p;
+
+} VipsCompositeSequence;
+
+static int
+vips_composite_stop( void *vseq, void *a, void *b )
+{
+	VipsCompositeSequence *seq = (VipsCompositeSequence *) vseq;
+
+        if( seq->ir ) {
+		int i;
+
+		for( i = 0; seq->ir[i]; i++ )
+			VIPS_UNREF( seq->ir[i] );
+		VIPS_FREE( seq->ir );
+	}
+
+	VIPS_FREE( seq->p );
+
+	VIPS_FREE( seq );
+
+	return( 0 );
+}
+
+static void *
+vips_composite_start( VipsImage *out, void *a, void *b )
+{
+	VipsImage **in = (VipsImage **) a;
+	VipsCompositeBase *composite = (VipsCompositeBase *) b;
+
+	VipsCompositeSequence *seq;
+	int i, n;
+
+	if( !(seq = VIPS_NEW( NULL, VipsCompositeSequence )) )
+		return( NULL );
+
+	seq->composite = composite;
+	seq->ir = NULL;
+	seq->p = NULL;
+
+	/* How many images?
+	 */
+	for( n = 0; in[n]; n++ )
+		;
+
+	/* Alocate space for region array.
+	 */
+	if( !(seq->ir = VIPS_ARRAY( NULL, n + 1, VipsRegion * )) ) {
+		vips_composite_stop( seq, NULL, NULL );
+		return( NULL );
+	}
+
+	/* Create a set of regions.
+	 */
+	for( i = 0; i < n; i++ )
+		if( !(seq->ir[i] = vips_region_new( in[i] )) ) {
+			vips_composite_stop( seq, NULL, NULL );
+			return( NULL );
+		}
+	seq->ir[n] = NULL;
+
+	/* Input pointers.
+	 */
+	if( !(seq->p = VIPS_ARRAY( NULL, n + 1, VipsPel * )) ) {
+		vips_composite_stop( seq, NULL, NULL );
+		return( NULL );
+	}
+
+	return( seq );
 }
 
 /* For each of the supported interpretations, the maximum value of each band.
@@ -696,7 +777,8 @@ template <typename T, gint64 min_T, gint64 max_T>
 static void 
 vips_combine_pixels( VipsCompositeBase *composite, VipsPel *q, VipsPel **p )
 {
-	VipsBlendMode *m = (VipsBlendMode *) composite->mode->area.data;
+	VipsBlendMode *mode = (VipsBlendMode *) composite->mode->area.data;
+	int n_mode = composite->mode->area.n;
 	int n = composite->n;
 	int bands = composite->bands;
 	T * restrict tq = (T * restrict) q;
@@ -715,8 +797,11 @@ vips_combine_pixels( VipsCompositeBase *composite, VipsPel *q, VipsPel **p )
 		for( int b = 0; b < bands; b++ )
 			B[b] *= aB;
 
-	for( int i = 1; i < n; i++ ) 
-		vips_composite_base_blend<T>( composite, m[i - 1], B, tp[i] ); 
+	for( int i = 1; i < n; i++ ) {
+		VipsBlendMode m = n_mode == 1 ? mode[0] : mode[i - 1];
+
+		vips_composite_base_blend<T>( composite, m, B, tp[i] ); 
+	}
 
 	/* Unpremultiply, if necessary.
 	 */
@@ -755,7 +840,8 @@ template <typename T, gint64 min_T, gint64 max_T>
 static void 
 vips_combine_pixels3( VipsCompositeBase *composite, VipsPel *q, VipsPel **p )
 {
-	VipsBlendMode *m = (VipsBlendMode *) composite->mode->area.data;
+	VipsBlendMode *mode = (VipsBlendMode *) composite->mode->area.data;
+	int n_mode = composite->mode->area.n;
 	int n = composite->n;
 	T * restrict tq = (T * restrict) q;
 	T ** restrict tp = (T ** restrict) p;
@@ -778,8 +864,11 @@ vips_combine_pixels3( VipsCompositeBase *composite, VipsPel *q, VipsPel **p )
 		B[3] = aB;
 	}
 
-	for( int i = 1; i < n; i++ ) 
-		vips_composite_base_blend3<T>( composite, m[i - 1], B, tp[i] ); 
+	for( int i = 1; i < n; i++ ) {
+		VipsBlendMode m = n_mode == 1 ? mode[0] : mode[i - 1];
+
+		vips_composite_base_blend3<T>( composite, m, B, tp[i] ); 
+	}
 
 	/* Unpremultiply, if necessary.
 	 */
@@ -815,47 +904,46 @@ vips_combine_pixels3( VipsCompositeBase *composite, VipsPel *q, VipsPel **p )
 
 static int
 vips_composite_base_gen( VipsRegion *output_region,
-	void *seq, void *a, void *b, gboolean *stop )
+	void *vseq, void *a, void *b, gboolean *stop )
 {
-	VipsRegion **input_regions = (VipsRegion **) seq;
+	VipsCompositeSequence *seq = (VipsCompositeSequence *) vseq;
 	VipsCompositeBase *composite = (VipsCompositeBase *) b;
 	VipsRect *r = &output_region->valid;
 	int ps = VIPS_IMAGE_SIZEOF_PEL( output_region->im );
 
-	if( vips_reorder_prepare_many( output_region->im, input_regions, r ) )
+	if( vips_reorder_prepare_many( output_region->im, seq->ir, r ) )
 		return( -1 );
 
 	VIPS_GATE_START( "vips_composite_base_gen: work" );
 
 	for( int y = 0; y < r->height; y++ ) {
-		VipsPel *p[MAX_INPUT_IMAGES];
 		VipsPel *q;
 
 		for( int i = 0; i < composite->n; i++ )
-			p[i] = VIPS_REGION_ADDR( input_regions[i],
+			seq->p[i] = VIPS_REGION_ADDR( seq->ir[i],
 				r->left, r->top + y );
-		p[composite->n] = NULL;
+		seq->p[composite->n] = NULL;
 		q = VIPS_REGION_ADDR( output_region, r->left, r->top + y );
 
 		for( int x = 0; x < r->width; x++ ) {
-			switch( input_regions[0]->im->BandFmt ) {
+			switch( seq->ir[0]->im->BandFmt ) {
 			case VIPS_FORMAT_UCHAR: 	
 #ifdef HAVE_VECTOR_ARITH
 				if( composite->bands == 3 ) 
 					vips_combine_pixels3
 						<unsigned char, 0, UCHAR_MAX>
-						( composite, q, p );
+						( composite, q, seq->p );
 				else
 #endif 
 					vips_combine_pixels
 						<unsigned char, 0, UCHAR_MAX>
-						( composite, q, p );
+						( composite, q, seq->p );
 				break;
 
 			case VIPS_FORMAT_CHAR: 		
 				vips_combine_pixels
 					<signed char, SCHAR_MIN, SCHAR_MAX>
-					( composite, q, p );
+					( composite, q, seq->p );
 				break; 
 
 			case VIPS_FORMAT_USHORT: 	
@@ -863,30 +951,30 @@ vips_composite_base_gen( VipsRegion *output_region,
 				if( composite->bands == 3 ) 
 					vips_combine_pixels3
 						<unsigned short, 0, USHRT_MAX>
-						( composite, q, p );
+						( composite, q, seq->p );
 				else
 #endif 
 					vips_combine_pixels
 						<unsigned short, 0, USHRT_MAX>
-						( composite, q, p );
+						( composite, q, seq->p );
 				break; 
 
 			case VIPS_FORMAT_SHORT: 	
 				vips_combine_pixels
 					<signed short, SHRT_MIN, SHRT_MAX>
-					( composite, q, p );
+					( composite, q, seq->p );
 				break; 
 
 			case VIPS_FORMAT_UINT: 		
 				vips_combine_pixels
 					<unsigned int, 0, UINT_MAX>
-					( composite, q, p );
+					( composite, q, seq->p );
 				break; 
 
 			case VIPS_FORMAT_INT: 		
 				vips_combine_pixels
 					<signed int, INT_MIN, INT_MAX>
-					( composite, q, p );
+					( composite, q, seq->p );
 				break; 
 
 			case VIPS_FORMAT_FLOAT:
@@ -894,18 +982,18 @@ vips_composite_base_gen( VipsRegion *output_region,
 				if( composite->bands == 3 ) 
 					vips_combine_pixels3
 						<float, 0, USHRT_MAX>
-						( composite, q, p );
+						( composite, q, seq->p );
 				else
 #endif 
 					vips_combine_pixels
 						<float, 0, 0>
-						( composite, q, p );
+						( composite, q, seq->p );
 				break;
 
 			case VIPS_FORMAT_DOUBLE:
 				vips_combine_pixels
 					<double, 0, 0>
-					( composite, q, p );
+					( composite, q, seq->p );
 				break;
 
 			default:
@@ -914,7 +1002,7 @@ vips_composite_base_gen( VipsRegion *output_region,
 			}
 
 			for( int i = 0; i < composite->n; i++ )
-				p[i] += ps;
+				seq->p[i] += ps;
 			q += ps;
 		}
 	}
@@ -948,14 +1036,14 @@ vips_composite_base_build( VipsObject *object )
 		vips_error( klass->nickname, "%s", _( "no input images" ) );
 		return( -1 );
 	}
-	if( composite->mode->area.n != composite->n - 1 ) {
-		vips_error( klass->nickname,
-			_( "for %d input images there must be %d blend modes" ),
-			composite->n, composite->n - 1 );
+	if( composite->mode->area.n != composite->n - 1 &&
+		composite->mode->area.n != 1 ) {
+		vips_error( klass->nickname, _( "must be 1 or %d blend modes" ),
+			composite->n - 1 );
 		return( -1 );
 	}
 	mode = (VipsBlendMode *) composite->mode->area.data;
-	for( int i = 0; i < composite->n - 1; i++ ) {
+	for( int i = 0; i < composite->mode->area.n; i++ ) {
 		if( mode[i] < 0 ||
 			mode[i] >= VIPS_BLEND_MODE_LAST ) {
 			vips_error( klass->nickname,
@@ -990,12 +1078,6 @@ vips_composite_base_build( VipsObject *object )
 
 			break;
 		}
-
-	if( composite->n > MAX_INPUT_IMAGES ) {
-		vips_error( klass->nickname,
-			"%s", _( "too many input images" ) );
-		return( -1 );
-	}
 
 	/* Transform to compositing space. It defaults to sRGB or B_W, usually 
 	 * 8 bit, but 16 bit if any inputs are 16 bit.
@@ -1086,7 +1168,9 @@ vips_composite_base_build( VipsObject *object )
 		return( -1 );
 
 	if( vips_image_generate( conversion->out,
-		vips_start_many, vips_composite_base_gen, vips_stop_many,
+		vips_composite_start, 
+		vips_composite_base_gen, 
+		vips_composite_stop,
 		in, composite ) )
 		return( -1 );
 

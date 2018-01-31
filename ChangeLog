@@ -5,6 +5,10 @@
 - vips_sink_screen() keeps a ref to the input image ... stops a rare race
 - fix a minor accidental ABI break in 8.6.0 -> 8.6.1 [remicollet]
 - fix read of plane-separate TIFFs with large strips [remicollet]
+- fix a C++ warning in composite.cpp [lovell]
+- remove number of images limit in composite
+- composite allows 1 mode ... reused for all joins
+- fix race in vips_sink() for seq read 
 
 10/12/17 started 8.6.1
 - fix mmap window new/free cycling 
