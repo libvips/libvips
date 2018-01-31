@@ -5,6 +5,7 @@
 - fix a C++ warning in composite.cpp [lovell]
 - remove number of images limit in composite
 - composite allows 1 mode ... reused for all joins
+- vips_sink() has locks to prevent any threads falling too far behind
 
 10/12/17 started 8.6.1
 - fix mmap window new/free cycling 
