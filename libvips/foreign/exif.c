@@ -5,6 +5,8 @@
  *      - from jpeg2vips
  * 14/10/17
  * 	- only read orientation from ifd0
+ * 1/2/18
+ * 	- remove exif thumbnail if "jpeg-thumbnail-data" has been removed
  */
 
 /*
@@ -827,6 +829,48 @@ vips_exif_set_orientation( ExifData *ed, VipsImage *im )
 	return( 0 );
 }
 
+/* And thumbnail. 
+ */
+static int
+vips_exif_set_thumbnail( ExifData *ed, VipsImage *im )
+{
+	/* Delete any old thumbnail data. We should use the exif free func,
+	 * but the memory allocator is not exposed by libexif! Hopefully they
+	 * are just using free().
+	 *
+	 * exif.c makes this assumption too when it tries to update a
+	 * thumbnail. 
+	 */
+	if( ed->data ) {
+		free( ed->data );
+		ed->data = NULL;
+	}
+	ed->size = 0;
+
+	/* Update EXIF thumbnail from metadata, if any. 
+	 */
+	if( vips_image_get_typeof( im, "jpeg-thumbnail-data" ) ) { 
+		void *data;
+		size_t length;
+
+		if( !vips_image_get_blob( im, "jpeg-thumbnail-data", 
+			&data, &length ) ) 
+			return( -1 );
+
+		/* Again, we should use the exif allocator attached to this
+		 * entry, but it is not exposed!
+		 */
+		if( length > 0 && 
+			data ) { 
+			ed->data = malloc( length );
+			memcpy( ed->data, data, length );
+			ed->size = length;
+		}
+	}
+
+	return( 0 );
+}
+
 /* See also vips_exif_to_s() ... keep in sync.
  */
 static void
@@ -1075,6 +1119,13 @@ vips__exif_update( VipsImage *image )
 	/* Update EXIF orientation from the vips image header.
 	 */
 	if( vips_exif_set_orientation( ed, image ) ) {
+		exif_data_free( ed );
+		return( -1 );
+	}
+
+	/* Update the thumbnail.
+	 */
+	if( vips_exif_set_thumbnail( ed, image ) ) {
 		exif_data_free( ed );
 		return( -1 );
 	}
