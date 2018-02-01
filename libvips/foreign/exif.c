@@ -853,7 +853,7 @@ vips_exif_set_thumbnail( ExifData *ed, VipsImage *im )
 		void *data;
 		size_t length;
 
-		if( !vips_image_get_blob( im, "jpeg-thumbnail-data", 
+		if( vips_image_get_blob( im, "jpeg-thumbnail-data", 
 			&data, &length ) ) 
 			return( -1 );
 
