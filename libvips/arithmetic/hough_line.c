@@ -72,13 +72,13 @@ vips_hough_line_build( VipsObject *object )
 
 	int i;
 
-	if( !(hough_line->sin = VIPS_ARRAY( object, width, double )) )
+	if( !(hough_line->sin = VIPS_ARRAY( object, 2 * width, double )) )
 		return( -1 ); 
 
-	/* Map width to 180 degrees.
+	/* Map width to 180 degrees, width * 2 to 360.
 	 */
-	for( i = 0; i < width; i++ )  
-		hough_line->sin[i] = sin( VIPS_PI * i / width );  
+	for( i = 0; i < 2 * width; i++ )  
+		hough_line->sin[i] = sin( 2 * VIPS_PI * i / (2 * width) );  
 
 	if( VIPS_OBJECT_CLASS( vips_hough_line_parent_class )->build( object ) )
 		return( -1 );
@@ -111,13 +111,12 @@ vips_hough_line_vote( VipsHough *hough, VipsImage *accumulator, int x, int y )
 	double yd = (double) y / statistic->ready->Ysize;
 	int width = hough_line->width;
 	int height = hough_line->height;
-	unsigned int *data =
-		(unsigned int *) VIPS_IMAGE_ADDR( accumulator, 0, 0 ); 
+	guint *data = (guint *) accumulator->data;
 
 	int i;
 
 	for( i = 0; i < width; i++ ) {
-		int i90 = (i + width / 2) % width;
+		int i90 = i + width / 2;
 		double r = xd * hough_line->sin[i90] + yd * hough_line->sin[i];
 		int ri = height * r;
 

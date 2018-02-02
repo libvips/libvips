@@ -3,7 +3,8 @@
 - remove jpeg thumbnail from EXIF if "jpeg-thumbnail-data" has been removed by
   user
 - hough_line scales width to 0 - 180, not 0 - 360
-- hough_line is 2x faster
+- hough_line is 4x faster
+- hough_circle is 2x faster
 
 5/1/18 started 8.6.2
 - vips_sink_screen() keeps a ref to the input image ... stops a rare race
