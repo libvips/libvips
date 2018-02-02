@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libconvolution.la
 
 libconvolution_la_SOURCES = \
+	canny.c \
 	convolution.c \
 	pconvolution.h \
 	correlation.c \
