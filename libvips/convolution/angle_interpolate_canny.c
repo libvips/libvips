@@ -88,13 +88,14 @@ vips_canny_polar_generate( VipsRegion *or,
 			for( band = 0; band < Gx->Bands; band++ ) { 
 				int x = p1[band] - 128;
 				int y = p2[band] - 128;
-				int a = 360 + VIPS_DEG( atan2( x, y ) ); 
 
 				/* Faster than hypot() for int args. Scale down
-				 * or we'll clip on very hard edges.
+				 * or we'll clip on very hard edgaes.
+				 *
+				 * Code theta as 0 - 255 for 0 - 360.
 				 */
 				q[0] = 0.5 * sqrt( x * x + y * y );
-				q[1] = ((a + 22) / 45) & 0x3;
+				q[1] = 255.0 * atan2( x, y ) / (2 * VIPS_PI);
 
 				q += 2;
 			}
@@ -108,16 +109,11 @@ vips_canny_polar_generate( VipsRegion *or,
 }
 
 /* Calculate G/theta from Gx/Gy -- rather like rect -> polar, except that we
- * code theta as below. Scale G down by 0.5 so that we
+ * code theta as 0 - 255 for 0 - 360 degrees. Scale G down by 0.5 so that we
  * don't clip on hard edges. 
  *
- * For a white disc on a black background, theta is:
- *
- *    1 | 0 | 3
- *    --+---+--
- *    2 | X | 2
- *    --+---+--
- *    3 | 0 | 1
+ * For a white disc on a black background, the top edge will be 128, right 64,
+ * bottom 255/0, left 192. 
  */
 static int
 vips_canny_polar( VipsImage **args, VipsImage **out )
@@ -149,8 +145,16 @@ vips_canny_nonmax_generate( VipsRegion *or,
 	int x, y, band; 
 	int lsk;
 	int psk;
-	int offseta[4];
-	int offsetb[4];
+
+	/* For each of the 256 angles, the offsets to the four neighbours we 
+	 * fetch, and the two weights we use.
+	 */
+	int offset_lowa[256];
+	int offset_lowb[256];
+	int offset_higha[256];
+	int offset_highb[256];
+	int weighta[256];
+	int weightb[256];
 
 	rect = *r;
 	rect.width += 2;
@@ -160,18 +164,26 @@ vips_canny_nonmax_generate( VipsRegion *or,
 	lsk = VIPS_REGION_LSKIP( in ); 
 	psk = VIPS_IMAGE_SIZEOF_PEL( im ); 
 
+	for( angle = 0; angle < 256; angle++ ) {
+		/* For a white disc on a black bg, angles run anti-clockwise 
+		 * from 0 at the bottom.
+		 */
+
+	}
+
+
 	/* For each of the four directions, the offset to get to that pixel
 	 * from the top-left of our 3x3. offseta is the left/up direction, or
 	 * the lower memory address.
 	 */
 	offseta[0] = psk;
 	offsetb[0] = psk + 2 * lsk;
-	offseta[1] = 0;
-	offsetb[1] = 2 * psk + 2 * lsk;
+	offseta[1] = 2 * psk;
+	offsetb[1] = 2 * lsk;
 	offseta[2] = lsk;
 	offsetb[2] = 2 * psk + lsk;
-	offseta[3] = 2 * psk;
-	offsetb[3] = 2 * lsk;
+	offseta[3] = 0;
+	offsetb[3] = 2 * psk + 2 * lsk;
 
 	for( y = 0; y < r->height; y++ ) {
 		VipsPel *p = (VipsPel * restrict) 
@@ -288,13 +300,13 @@ vips_canny_build( VipsObject *object )
 	in = t[9];
 
 	/* Expand by two pixels all around, then thin.
-	 */
 	if( vips_embed( in, &t[10], 1, 1, in->Xsize + 2, in->Ysize + 2,
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) ||
 		vips_canny_nonmax( t[10], &t[11] ) )
 		return( -1 );
 	in = t[11];
+	 */
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
