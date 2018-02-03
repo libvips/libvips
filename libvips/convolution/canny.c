@@ -144,7 +144,9 @@ vips_canny_nonmax_generate( VipsRegion *or,
 	VipsRect rect;
 	int x, y, band; 
 	int lsk;
-	int 
+	int psk;
+	int offseta[4];
+	int offsetb[4];
 
 	rect = *r;
 	rect.width += 2;
@@ -152,6 +154,19 @@ vips_canny_nonmax_generate( VipsRegion *or,
 	if( vips_region_prepare( in, &rect ) )
 		return( -1 );
 	lsk = VIPS_REGION_LSKIP( in ); 
+	psk = VIPS_IMAGE_SIZEOF_PEL( im ); 
+
+	/* For each of the four directions, the offset to get to that pixel
+	 * from the top-left of our 3x3.
+	 */
+	offseta[0] = psk;
+	offsetb[0] = psk + 2 * lsk;
+	offseta[1] = 2 * psk;
+	offsetb[1] = 2 * lsk;
+	offseta[2] = 2 * psk + lsk;
+	offsetb[2] = lsk;
+	offseta[3] = 0;
+	offsetb[3] = 2 * psk + 2 * lsk;
 
 	for( y = 0; y < r->height; y++ ) {
 		VipsPel *p = (VipsPel * restrict) 
@@ -161,20 +176,19 @@ vips_canny_nonmax_generate( VipsRegion *or,
 
 		for( x = 0; x < r->width; x++ ) {
 			for( band = 0; band < im->Bands; band++ ) { 
-				int G = p[0];
-				int theta = p[1];
+				int G = p[lsk + psk];
+				int theta = p[lsk + psk + 1];
+				VipsPel low = p[offseta[theta]];
+				VipsPel high = p[offsetb[theta]];
 
-				int v1, v2;
+				/* Set G to 0 if it's not the local maxima in
+				 * the direction of the gradient. 
+				 */
+				if( G < low ||
+					G < high )
+					G = 0;
 
-				if( theta == 0 ) {
-					v1 = p[
-
-
-
-				switch( theta ) {
-				case 0:
-
-				q[band] = x;
+				q[band] = G;
 
 				p += 2;
 			}
@@ -193,7 +207,7 @@ static int
 vips_canny_nonmax( VipsImage *in, VipsImage **out )
 {
 	*out = vips_image_new();
-	if( vips_image_pipeline_arrayv( *out, 
+	if( vips_image_pipelinev( *out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
 		return( -1 );
 	(*out)->Bands /= 2;
@@ -261,6 +275,15 @@ vips_canny_build( VipsObject *object )
 	if( vips_canny_polar( canny->args, &t[9] ) )
 		return( -1 ); 
 	in = t[9];
+
+	/* Expand by two pixels all around, then thin.
+	 */
+	if( vips_embed( in, &t[10], 1, 1, in->Xsize, in->Ysize,
+		"extend", VIPS_EXTEND_COPY,
+		NULL ) ||
+		vips_canny_nonmax( t[10], &t[11] ) )
+		return( -1 );
+	in = t[11];
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
