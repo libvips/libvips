@@ -88,13 +88,13 @@ vips_canny_polar_generate( VipsRegion *or,
 			for( band = 0; band < Gx->Bands; band++ ) { 
 				int x = p1[band] - 128;
 				int y = p2[band] - 128;
-				int a = 360 + VIPS_DEG( atan2( x, y ) ); 
+				int a = VIPS_DEG( atan2( x, y ) ) + 360;
 
 				/* Faster than hypot() for int args. Scale down
 				 * or we'll clip on very hard edges.
 				 */
 				q[0] = 0.5 * sqrt( x * x + y * y );
-				q[1] = ((a + 22) / 45) & 0x3;
+				q[1] = 256 * a / 360;
 
 				q += 2;
 			}
@@ -111,13 +111,8 @@ vips_canny_polar_generate( VipsRegion *or,
  * code theta as below. Scale G down by 0.5 so that we
  * don't clip on hard edges. 
  *
- * For a white disc on a black background, theta is:
- *
- *    1 | 0 | 3
- *    --+---+--
- *    2 | X | 2
- *    --+---+--
- *    3 | 0 | 1
+ * For a white disc on a black background, theta is 0 at the bottom, 64 on the
+ * right, 128 at the top and 192 on the left edge. 
  */
 static int
 vips_canny_polar( VipsImage **args, VipsImage **out )
@@ -163,6 +158,12 @@ vips_canny_nonmax_generate( VipsRegion *or,
 	/* For each of the four directions, the offset to get to that pixel
 	 * from the top-left of our 3x3. offseta is the left/up direction, or
 	 * the lower memory address.
+	 *
+	 *   1 | 0 | 3
+	 *   --+---+--
+	 *   2 | X | 2
+	 *   --+---+--
+	 *   3 | 0 | 1
 	 */
 	offseta[0] = psk;
 	offsetb[0] = psk + 2 * lsk;
@@ -183,8 +184,9 @@ vips_canny_nonmax_generate( VipsRegion *or,
 			for( band = 0; band < out_bands; band++ ) { 
 				int G = p[lsk + psk];
 				int theta = p[lsk + psk + 1];
-				VipsPel low = p[offseta[theta]];
-				VipsPel high = p[offsetb[theta]];
+				int a = ((theta + 16) / 32) & 0x3;
+				VipsPel low = p[offseta[a]];
+				VipsPel high = p[offsetb[a]];
 
 				/* Set G to 0 if it's not the local maxima in
 				 * the direction of the gradient. If G is equal
@@ -224,6 +226,111 @@ vips_canny_nonmax( VipsImage *in, VipsImage **out )
 
 	if( vips_image_generate( *out, 
 		vips_start_one, vips_canny_nonmax_generate, vips_stop_one, 
+		in, NULL ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_canny_nonmaxi_generate( VipsRegion *or, 
+	void *vseq, void *a, void *b, gboolean *stop )
+{
+	VipsRegion *in = (VipsRegion *) vseq;
+	VipsRect *r = &or->valid;
+	VipsImage *im = in->im;
+	int out_bands = or->im->Bands;
+
+	VipsRect rect;
+	int x, y, band; 
+	int lsk;
+	int psk;
+
+	int offset[8];
+
+	rect = *r;
+	rect.width += 2;
+	rect.height += 2;
+	if( vips_region_prepare( in, &rect ) )
+		return( -1 );
+	lsk = VIPS_REGION_LSKIP( in ); 
+	psk = VIPS_IMAGE_SIZEOF_PEL( im ); 
+
+	/* For each of the 8 directions, the offset to get to that pixel from
+	 * the top-left of the 3x3.
+	 *
+	 *   5 | 4 | 3
+	 *   --+---+--
+	 *   6 | X | 2
+	 *   --+---+--
+	 *   7 | 0 | 1
+	 */
+	offset[0] = psk + 2 * lsk;
+	offset[1] = 2 * psk + 2 * lsk;
+	offset[2] = 2 * psk + lsk;
+	offset[3] = 2 * psk;
+	offset[4] = psk;
+	offset[5] = 0;
+	offset[6] = lsk;
+	offset[7] = 2 * lsk;
+
+	for( y = 0; y < r->height; y++ ) {
+		VipsPel *p = (VipsPel * restrict) 
+			VIPS_REGION_ADDR( in, r->left, r->top + y );
+		VipsPel *q = (VipsPel * restrict) 
+			VIPS_REGION_ADDR( or, r->left, r->top + y );
+
+		for( x = 0; x < r->width; x++ ) {
+			for( band = 0; band < out_bands; band++ ) { 
+				int G = p[lsk + psk];
+				int theta = p[lsk + psk + 1];
+				int low_theta = (theta / 32) & 0x7;
+				int high_theta = (low_theta + 1) & 0x7;
+				int residual = theta - low_theta * 32;
+				int lowa = p[offset[low_theta]];
+				int lowb = p[offset[high_theta]];
+				int low = (lowa * (32 - residual) + 
+						lowb * residual) / 32;
+				int higha = p[offset[(low_theta + 4) & 0x7]];
+				int highb = p[offset[(high_theta + 4) & 0x7]];
+				int high = (higha * (32 - residual) + 
+						highb * residual) / 32;
+				
+				/* Set G to 0 if it's not the local maxima in
+				 * the direction of the gradient. 
+				 */
+				if( G <= low ||
+					G < high )
+					G = 0;
+
+				q[band] = G;
+
+				p += 2;
+			}
+
+			q += out_bands;
+		}
+	}
+
+	return( 0 );
+}
+
+/* Remove non-maximal edges. At each point, compare the G to the G in either
+ * direction and 0 it if it's not the largest.
+ */
+static int
+vips_canny_nonmaxi( VipsImage *in, VipsImage **out )
+{
+	*out = vips_image_new();
+	if( vips_image_pipelinev( *out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
+		return( -1 );
+	(*out)->Bands /= 2;
+	(*out)->Xsize -= 2;
+	(*out)->Ysize -= 2;
+
+	if( vips_image_generate( *out, 
+		vips_start_one, vips_canny_nonmaxi_generate, vips_stop_one, 
 		in, NULL ) )
 		return( -1 );
 
@@ -292,7 +399,8 @@ vips_canny_build( VipsObject *object )
 	if( vips_embed( in, &t[10], 1, 1, in->Xsize + 2, in->Ysize + 2,
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) ||
-		vips_canny_nonmax( t[10], &t[11] ) )
+		//vips_canny_nonmax( t[10], &t[11] ) )
+		vips_canny_nonmaxi( t[10], &t[11] ) )
 		return( -1 );
 	in = t[11];
 
@@ -344,7 +452,7 @@ vips_canny_class_init( VipsCannyClass *class )
 static void
 vips_canny_init( VipsCanny *canny )
 {
-	canny->sigma = 1.4; 
+	canny->sigma = 1.5; 
 }
 
 /**
