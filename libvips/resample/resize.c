@@ -236,7 +236,8 @@ vips_resize_build( VipsObject *object )
 	 */
 	if( hscale > 1.0 ||
 		vscale > 1.0 ) { 
-		const char *nickname = vips_resize_interpolate( resize->kernel );
+		const char *nickname = 
+			vips_resize_interpolate( resize->kernel );
 
 		/* Input displacement. For centre sampling, shift by 0.5 down
 		 * and right.

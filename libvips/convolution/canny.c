@@ -64,6 +64,88 @@ typedef VipsOperationClass VipsCannyClass;
 G_DEFINE_TYPE( VipsCanny, vips_canny, VIPS_TYPE_OPERATION );
 
 static int
+vips_canny_gradient_sobel( VipsImage *in, VipsImage **Gx, VipsImage **Gy )
+{
+	VipsImage *scope;
+	VipsImage **t;
+
+	scope = vips_image_new();
+	t = (VipsImage **) vips_object_local_array( (VipsObject *) scope, 20 );
+
+	/* Separated Sobel gives Gx / Gy. Aim for vector path. Scale down by 2
+	 * to try to avoid clipping.
+	 */
+	t[1] = vips_image_new_matrixv( 1, 3, 1.0, 2.0, 1.0 );
+	vips_image_set_double( t[1], "scale", 2.0 ); 
+	t[2] = vips_image_new_matrixv( 3, 1, 1.0, 0.0, -1.0 );
+	vips_image_set_double( t[2], "offset", 128.0 ); 
+	if( vips_conv( in, &t[3], t[1], 
+		"precision", VIPS_PRECISION_INTEGER,
+		NULL ) ||
+		vips_conv( t[3], Gx, t[2], 
+			"precision", VIPS_PRECISION_INTEGER,
+			NULL ) ) {
+		g_object_unref( scope ); 
+		return( -1 );
+	}
+
+	t[5] = vips_image_new_matrixv( 3, 1, 1.0, 2.0, 1.0 );
+	vips_image_set_double( t[5], "scale", 2.0 ); 
+	t[6] = vips_image_new_matrixv( 1, 3, 1.0, 0.0, -1.0 );
+	vips_image_set_double( t[6], "offset", 128.0 ); 
+	if( vips_conv( in, &t[7], t[5], 
+		"precision", VIPS_PRECISION_INTEGER,
+		NULL ) ||
+		vips_conv( t[7], Gy, t[6], 
+			"precision", VIPS_PRECISION_INTEGER,
+			NULL ) ) {
+		g_object_unref( scope ); 
+		return( -1 );
+	}
+
+	g_object_unref( scope ); 
+
+	return( 0 ); 
+}
+
+/* Simple -1/+1 difference. The sobel version above does an edge
+ * detect as well.
+ */
+static int
+vips_canny_gradient_simple( VipsImage *in, VipsImage **Gx, VipsImage **Gy )
+{
+	VipsImage *scope;
+	VipsImage **t;
+
+	scope = vips_image_new();
+	t = (VipsImage **) vips_object_local_array( (VipsObject *) scope, 20 );
+
+	t[1] = vips_image_new_matrixv( 2, 1, -1.0, 1.0 );
+	vips_image_set_double( t[1], "scale", 2.0 ); 
+	vips_image_set_double( t[1], "offset", 128.0 ); 
+	if( vips_conv( in, Gx, t[1], 
+		"precision", VIPS_PRECISION_INTEGER,
+		NULL ) ) {
+		g_object_unref( scope ); 
+		return( -1 );
+	}
+
+	t[5] = vips_image_new_matrixv( 1, 2, -1.0, 1.0 );
+	vips_image_set_double( t[5], "scale", 2.0 ); 
+	vips_image_set_double( t[5], "offset", 128.0 ); 
+	if( vips_conv( in, Gy, t[5], 
+		"precision", VIPS_PRECISION_INTEGER,
+		NULL ) ) { 
+		g_object_unref( scope ); 
+		return( -1 );
+	}
+
+	g_object_unref( scope ); 
+
+	return( 0 ); 
+}
+
+static int
 vips_canny_polar_generate( VipsRegion *or, 
 	void *vseq, void *a, void *b, gboolean *stop )
 {
@@ -356,34 +438,8 @@ vips_canny_build( VipsObject *object )
 		return( -1 );
 	in = t[0];
 
-	/* Separated Sobel gives Gx / Gy. Aim for vector path. Scale down by 2
-	 * to try to avoid clipping.
-	 */
-	t[1] = vips_image_new_matrixv( 1, 3, 1.0, 2.0, 1.0 );
-	vips_image_set_double( t[1], "scale", 2.0 ); 
-	t[2] = vips_image_new_matrixv( 3, 1, 1.0, 0.0, -1.0 );
-	vips_image_set_double( t[2], "offset", 128.0 ); 
-	if( vips_conv( in, &t[3], t[1], 
-		"precision", VIPS_PRECISION_INTEGER,
-		NULL ) ||
-		vips_conv( t[3], &t[4], t[2], 
-			"precision", VIPS_PRECISION_INTEGER,
-			NULL ) )
-		return( -1 );
-	Gx = t[4];
-
-	t[5] = vips_image_new_matrixv( 3, 1, 1.0, 2.0, 1.0 );
-	vips_image_set_double( t[5], "scale", 2.0 ); 
-	t[6] = vips_image_new_matrixv( 1, 3, 1.0, 0.0, -1.0 );
-	vips_image_set_double( t[6], "offset", 128.0 ); 
-	if( vips_conv( in, &t[7], t[5], 
-		"precision", VIPS_PRECISION_INTEGER,
-		NULL ) ||
-		vips_conv( t[7], &t[8], t[6], 
-			"precision", VIPS_PRECISION_INTEGER,
-			NULL ) )
-		return( -1 );
-	Gy = t[8];
+	if( vips_canny_gradient_simple( in, &Gx, &Gy ) )
+		return( -1 ); 
 
 	/* Form (G, theta), with theta coded.
 	 */
