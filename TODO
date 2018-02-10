@@ -1,3 +1,14 @@
+- try
+
+	$ vips gaussmat x.mat 0.1 0.1
+	(vips:28376): GLib-GObject-WARNING **: value "-1" of type 'gint' is invalid or out of range for property 'width' of type 'gint'
+	(vips:28376): GLib-GObject-WARNING **: value "-1" of type 'gint' is invalid or out of range for property 'height' of type 'gint'
+	$ more x.mat 
+	1 1 0 0 
+	5.55604e+180 
+
+  check numeric range of SIGMA args, we should standardize
+
 - rewind should break more things ... does it remove upsteam/downstream? does it
   just need to remove reorder links?
 

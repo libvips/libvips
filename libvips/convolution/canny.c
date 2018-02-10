@@ -52,7 +52,9 @@ typedef struct _VipsCanny {
 	VipsImage *in;
 	VipsImage *out;
 
-	gdouble sigma; 
+	double sigma; 
+	double low;
+	double high;
 
 	/* Need an image vector for start_many.
 	 */
@@ -72,11 +74,9 @@ vips_canny_gradient_sobel( VipsImage *in, VipsImage **Gx, VipsImage **Gy )
 	scope = vips_image_new();
 	t = (VipsImage **) vips_object_local_array( (VipsObject *) scope, 20 );
 
-	/* Separated Sobel gives Gx / Gy. Aim for vector path. Scale down by 2
-	 * to try to avoid clipping.
+	/* Separated Sobel gives Gx / Gy. 
 	 */
 	t[1] = vips_image_new_matrixv( 1, 3, 1.0, 2.0, 1.0 );
-	vips_image_set_double( t[1], "scale", 2.0 ); 
 	t[2] = vips_image_new_matrixv( 3, 1, 1.0, 0.0, -1.0 );
 	vips_image_set_double( t[2], "offset", 128.0 ); 
 	if( vips_conv( in, &t[3], t[1], 
@@ -90,7 +90,6 @@ vips_canny_gradient_sobel( VipsImage *in, VipsImage **Gx, VipsImage **Gy )
 	}
 
 	t[5] = vips_image_new_matrixv( 3, 1, 1.0, 2.0, 1.0 );
-	vips_image_set_double( t[5], "scale", 2.0 ); 
 	t[6] = vips_image_new_matrixv( 1, 3, 1.0, 0.0, -1.0 );
 	vips_image_set_double( t[6], "offset", 128.0 ); 
 	if( vips_conv( in, &t[7], t[5], 
@@ -120,8 +119,9 @@ vips_canny_gradient_simple( VipsImage *in, VipsImage **Gx, VipsImage **Gy )
 	scope = vips_image_new();
 	t = (VipsImage **) vips_object_local_array( (VipsObject *) scope, 20 );
 
-	t[1] = vips_image_new_matrixv( 2, 1, -1.0, 1.0 );
-	vips_image_set_double( t[1], "scale", 2.0 ); 
+	t[1] = vips_image_new_matrixv( 2, 2, 
+		-1.0, 1.0,
+		-1.0, 1.0 );
 	vips_image_set_double( t[1], "offset", 128.0 ); 
 	if( vips_conv( in, Gx, t[1], 
 		"precision", VIPS_PRECISION_INTEGER,
@@ -130,8 +130,9 @@ vips_canny_gradient_simple( VipsImage *in, VipsImage **Gx, VipsImage **Gy )
 		return( -1 );
 	}
 
-	t[5] = vips_image_new_matrixv( 1, 2, -1.0, 1.0 );
-	vips_image_set_double( t[5], "scale", 2.0 ); 
+	t[5] = vips_image_new_matrixv( 2, 2, 
+		-1.0, -1.0,
+		 1.0,  1.0 );
 	vips_image_set_double( t[5], "offset", 128.0 ); 
 	if( vips_conv( in, Gy, t[5], 
 		"precision", VIPS_PRECISION_INTEGER,
@@ -420,6 +421,60 @@ vips_canny_nonmaxi( VipsImage *in, VipsImage **out )
 }
 
 static int
+vips_canny_thresh_generate( VipsRegion *or, 
+	void *vseq, void *a, void *b, gboolean *stop )
+{
+	VipsRegion *in = (VipsRegion *) vseq;
+	VipsCanny *canny = (VipsCanny *) b;
+	VipsRect *r = &or->valid;
+	int sz = r->width * in->im->Bands;
+
+	int x, y;
+
+	if( vips_region_prepare( in, r ) )
+		return( -1 );
+
+	for( y = 0; y < r->height; y++ ) {
+		VipsPel *p = (VipsPel * restrict) 
+			VIPS_REGION_ADDR( in, r->left, r->top + y );
+		VipsPel *q = (VipsPel * restrict) 
+			VIPS_REGION_ADDR( or, r->left, r->top + y );
+
+		for( x = 0; x < sz; x++ ) {
+			int v;
+
+			v = p[x];
+			if( v <= canny->low )
+				v = 0;
+			else if( v <= canny->high )
+				v = 128;
+			else 
+				v = 255;
+
+			q[x] = v;
+		}
+	}
+
+	return( 0 );
+}
+
+static int
+vips_canny_thresh( VipsCanny *canny, VipsImage *in, VipsImage **out )
+{
+	*out = vips_image_new();
+	if( vips_image_pipelinev( *out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
+		return( -1 );
+
+	if( vips_image_generate( *out, 
+		vips_start_one, vips_canny_thresh_generate, vips_stop_one, 
+		in, canny ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
 vips_canny_build( VipsObject *object )
 {
 	VipsCanny *canny = (VipsCanny *) object;
@@ -455,10 +510,16 @@ vips_canny_build( VipsObject *object )
 	if( vips_embed( in, &t[10], 1, 1, in->Xsize + 2, in->Ysize + 2,
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) ||
-		//vips_canny_nonmax( t[10], &t[11] ) )
-		vips_canny_nonmaxi( t[10], &t[11] ) )
+		vips_canny_nonmax( t[10], &t[11] ) )
+		//vips_canny_nonmaxi( t[10], &t[11] ) )
 		return( -1 );
 	in = t[11];
+
+	/* Double threshold.
+	 */
+	if( vips_canny_thresh( canny, in, &t[12] ) )
+		return( -1 );
+	in = t[12];
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
@@ -503,12 +564,28 @@ vips_canny_class_init( VipsCannyClass *class )
 		G_STRUCT_OFFSET( VipsCanny, sigma ),
 		0.01, 1000, 1.4 );
 
+	VIPS_ARG_DOUBLE( class, "low", 11, 
+		_( "Low" ), 
+		_( "Low threshold" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsCanny, low ),
+		-INFINITY, INFINITY, 3.0 );
+
+	VIPS_ARG_DOUBLE( class, "high", 12, 
+		_( "High" ), 
+		_( "High threshold" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsCanny, high ),
+		-INFINITY, INFINITY, 7.0 );
+
 }
 
 static void
 vips_canny_init( VipsCanny *canny )
 {
-	canny->sigma = 1.5; 
+	canny->sigma = 1.4; 
+	canny->low = 3.0;
+	canny->high = 7.0;
 }
 
 /**
