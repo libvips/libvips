@@ -1000,23 +1000,40 @@ if test x"$with_png" != "xno"; then
   )
 fi
 
-FIND_JPEG(
-  [with_jpeg=yes
-   EXTRA_LIBS_USED="$EXTRA_LIBS_USED -ljpeg"
-  ],
-  [AC_MSG_WARN([libjpeg not found; disabling JPEG support])
-   with_jpeg=no
-  ]
-)
+# look for libjpeg with pkg-config ... fall back to our tester
+AC_ARG_WITH([jpeg], 
+  AS_HELP_STRING([--without-jpeg], [build without libjpeg (default: test)]))
 
-# JPEG extension parameters available in libjpeg-turbo >=1.5.0, mozjpeg >=3.0
+if test x"$with_jpeg" != x"no"; then
+  PKG_CHECK_MODULES(JPEG, libjpeg,
+    [with_jpeg="yes (pkg-config)"
+     PACKAGES_USED="$PACKAGES_USED libjpeg"
+    ],
+    [FIND_JPEG(
+       [with_jpeg="yes (found by search)"
+	EXTRA_LIBS_USED="$EXTRA_LIBS_USED -ljpeg"
+       ],
+       [AC_MSG_WARN([libjpeg not found; disabling JPEG support])
+        with_jpeg=no
+       ]
+     )
+    ]
+  )
+fi
+
+# features like trellis quant are exposed as extension parameters ...
+# mozjpeg 3.2 and later have #define JPEG_C_PARAM_SUPPORTED, but we must 
+# work with earlier versions
 if test x"$with_jpeg" != "xno"; then
   save_LIBS="$LIBS"
-  LIBS="$LIBS $JPEG_LIBS"
+  save_CFLAGS="$CFLAGS"
+  LIBS="$JPEG_LIBS $LIBS"
+  CFLAGS="$JPEG_INCLUDES $CFLAGS"
   AC_CHECK_FUNCS(jpeg_c_bool_param_supported,
     AC_DEFINE(HAVE_JPEG_EXT_PARAMS,1,
 	      [define if your libjpeg has extension parameters.]))
   LIBS="$save_LIBS"
+  CFLAGS="$save_CFLAGS"
 fi
 
 # libexif
