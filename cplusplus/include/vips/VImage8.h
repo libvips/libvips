@@ -474,7 +474,7 @@ public:
 		VipsImage *image;
 
 		if( !(image = vips_image_new_from_image( this->get_image(), 
-			&pixel[0], pixel.size() )) )
+			&pixel[0], static_cast<int>( pixel.size() ) )) )
 			throw( VError() ); 
 
 		return( VImage( image ) ); 
