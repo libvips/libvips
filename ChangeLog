@@ -6,6 +6,9 @@
 - hough_line is 4x faster
 - hough_circle is 2x faster
 
+12/2/18 started 8.6.3
+- use pkg-config to find libjpeg, if we can
+
 5/1/18 started 8.6.2
 - vips_sink_screen() keeps a ref to the input image ... stops a rare race
 - fix a minor accidental ABI break in 8.6.0 -> 8.6.1 [remicollet]
