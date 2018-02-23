@@ -10,18 +10,18 @@
   </refnamediv>
 
 There are full libvips bindings for quite a few environments now: C, C++,
-command-line, Ruby, PHP, Python and JavaScript (node). 
+command-line, Ruby, PHP, Lua, Python and JavaScript (node). 
 
 This chapter runs through the four main styles that have been found to work
 well. If you want to write a new binding, one of these should be close
 to what you need. 
 
-# C API
+# Don't bind the top-level C API
 
-The libvips C API (vips_add() and so on) is very inconvenient to use from other
-languages due to its heavy use of varargs. 
+The libvips C API (vips_add() and so on) is very inconvenient and dangerous
+to use from other languages due to its heavy use of varargs.
 
-It's much better to use the layer below. This lower layer is structured as:
+It's much better to use the layer below. This lower layer is structured as
 create operator, set parameters, execute, extract results. For example, you can
 execute vips_invert() like this:
 
@@ -113,10 +113,10 @@ main( int argc, char **argv )
 }
 ```
 
-libvips has a couple of extra things to let you fetch the arguments and types
-of an operator. Use vips_lib.vips_argument_map() to loop over all the arguments 
-of an operator, and vips_object_get_argument() to fetch the type and flags 
-of a specific argument. 
+libvips has a couple of extra things to let you examine the arguments and
+types of an operator at runtime. Use vips_lib.vips_argument_map() to loop
+over all the arguments of an operator, and vips_object_get_argument()
+to fetch the type and flags of a specific argument.
 
 Use vips_operation_get_flags() to get general information about an operator. 
 
@@ -124,7 +124,7 @@ Use vips_operation_get_flags() to get general information about an operator.
 
 The C++ binding uses this lower layer to define a function called
 `VImage::call()` which can call any libvips operator with a not-varargs set of
-variable arguments.  
+variable arguments. 
 
 A small Python program walks the set of all libvips operators and generates a
 set of static bindings. For example:
@@ -142,7 +142,7 @@ VImage VImage::invert( VOption *options )
 }
 ```
 
-So from C++ you can call any libvips operator, though without type-safety, with
+So from C++ you can call any libvips operator (though without type-safety) with
 `VImage::call()`, or use the member functions on `VImage` to get type-safe
 calls for at least the required operator arguments.
 
@@ -158,7 +158,7 @@ but use FFI to call into libvips and run operations.
 Since these languages are dynamic, they can add another trick: they intercept
 the method-missing hook and attempt to run any method calls not implemented by
 the `Image` class as libvips operators. This makes these bindings self-writing:
-they only contain a small amount of codeand just expose everything they find in
+they only contain a small amount of code and just expose everything they find in
 the libvips class hierarchy. 
 
 # Dynamic langauge without FFI
@@ -167,7 +167,7 @@ PHP does not have FFI, unfortunately, so for this language a small native
 module implements the general `vips_call()` function for PHP language types,
 and a larger pure PHP layer makes it convenient to use. 
 
-# `gobject-introspection`
+# gobject-introspection
 
 The C source code to libvips has been marked up with special comments
 describing the interface in a standard way. These comments are read by
