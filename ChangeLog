@@ -5,6 +5,7 @@
 - hough_line scales width to 0 - 180, not 0 - 360
 - hough_line is 4x faster
 - hough_circle is 2x faster
+- add vips_sobel() and vips_canny() edge detectors
 
 12/2/18 started 8.6.3
 - use pkg-config to find libjpeg, if we can
