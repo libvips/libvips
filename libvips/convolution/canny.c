@@ -35,6 +35,17 @@
 #define DEBUG
  */
 
+/* TODO
+ *	- verify that our interpolating max edge works
+ *	- does it actually help much?
+ *	- can skip the sqrt() 
+ *	- support other image types
+ * 	- swap atan2 for a LUT with perhaps +/- 2 or 4 bits
+ *	- check sobel speed with separated and non-sep masks
+ *	- add autothreshold with otsu's method
+ *	- leave blob analysis to a separate pass
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -53,6 +64,7 @@ typedef struct _VipsCanny {
 	VipsImage *out;
 
 	double sigma; 
+	gboolean interpolate;
 	double low;
 	double high;
 
@@ -65,50 +77,7 @@ typedef VipsOperationClass VipsCannyClass;
 
 G_DEFINE_TYPE( VipsCanny, vips_canny, VIPS_TYPE_OPERATION );
 
-static int
-vips_canny_gradient_sobel( VipsImage *in, VipsImage **Gx, VipsImage **Gy )
-{
-	VipsImage *scope;
-	VipsImage **t;
-
-	scope = vips_image_new();
-	t = (VipsImage **) vips_object_local_array( (VipsObject *) scope, 20 );
-
-	/* Separated Sobel gives Gx / Gy. 
-	 */
-	t[1] = vips_image_new_matrixv( 1, 3, 1.0, 2.0, 1.0 );
-	t[2] = vips_image_new_matrixv( 3, 1, 1.0, 0.0, -1.0 );
-	vips_image_set_double( t[2], "offset", 128.0 ); 
-	if( vips_conv( in, &t[3], t[1], 
-		"precision", VIPS_PRECISION_INTEGER,
-		NULL ) ||
-		vips_conv( t[3], Gx, t[2], 
-			"precision", VIPS_PRECISION_INTEGER,
-			NULL ) ) {
-		g_object_unref( scope ); 
-		return( -1 );
-	}
-
-	t[5] = vips_image_new_matrixv( 3, 1, 1.0, 2.0, 1.0 );
-	t[6] = vips_image_new_matrixv( 1, 3, 1.0, 0.0, -1.0 );
-	vips_image_set_double( t[6], "offset", 128.0 ); 
-	if( vips_conv( in, &t[7], t[5], 
-		"precision", VIPS_PRECISION_INTEGER,
-		NULL ) ||
-		vips_conv( t[7], Gy, t[6], 
-			"precision", VIPS_PRECISION_INTEGER,
-			NULL ) ) {
-		g_object_unref( scope ); 
-		return( -1 );
-	}
-
-	g_object_unref( scope ); 
-
-	return( 0 ); 
-}
-
-/* Simple -1/+1 difference. The sobel version above does an edge
- * detect as well.
+/* Simple 2x2 -1/+1 difference. 
  */
 static int
 vips_canny_gradient_simple( VipsImage *in, VipsImage **Gx, VipsImage **Gy )
@@ -173,10 +142,14 @@ vips_canny_polar_generate( VipsRegion *or,
 				int y = p2[band] - 128;
 				int a = VIPS_DEG( atan2( x, y ) ) + 360;
 
-				/* Faster than hypot() for int args. Scale down
-				 * or we'll clip on very hard edges.
+				/* We should calculate 
+				 * 	0.5 * sqrt( x * x + y * y )
+				 * ie. length of hypot, scaled down to avoid
+				 * clipping. We are only interested in relative
+				 * magnitude, so we can skip the sqrt and just
+				 * shift down 9 bits.
 				 */
-				q[0] = 0.5 * sqrt( x * x + y * y );
+				q[0] = (x * x + y * y + 256) >> 9;
 				q[1] = 256 * a / 360;
 
 				q += 2;
@@ -428,6 +401,8 @@ vips_canny_thresh_generate( VipsRegion *or,
 	VipsCanny *canny = (VipsCanny *) b;
 	VipsRect *r = &or->valid;
 	int sz = r->width * in->im->Bands;
+	VipsPel low = canny->low;
+	VipsPel high = canny->high;
 
 	int x, y;
 
@@ -444,9 +419,9 @@ vips_canny_thresh_generate( VipsRegion *or,
 			int v;
 
 			v = p[x];
-			if( v <= canny->low )
+			if( v <= low )
 				v = 0;
-			else if( v <= canny->high )
+			else if( v <= high )
 				v = 128;
 			else 
 				v = 255;
@@ -509,10 +484,16 @@ vips_canny_build( VipsObject *object )
 	 */
 	if( vips_embed( in, &t[10], 1, 1, in->Xsize + 2, in->Ysize + 2,
 		"extend", VIPS_EXTEND_COPY,
-		NULL ) ||
-		vips_canny_nonmax( t[10], &t[11] ) )
-		//vips_canny_nonmaxi( t[10], &t[11] ) )
+		NULL ) )
 		return( -1 );
+	if( canny->interpolate ) {
+		if( vips_canny_nonmaxi( t[10], &t[11] ) )
+			return( -1 );
+	}
+	else {
+		if( vips_canny_nonmax( t[10], &t[11] ) )
+			return( -1 );
+	}
 	in = t[11];
 
 	/* Double threshold.
@@ -577,6 +558,13 @@ vips_canny_class_init( VipsCannyClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsCanny, high ),
 		-INFINITY, INFINITY, 7.0 );
+
+	VIPS_ARG_BOOL( class, "interpolate", 13, 
+		_( "Interpolate" ), 
+		_( "Interpolate gradient angles" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsCanny, interpolate ),
+		FALSE );
 
 }
 
