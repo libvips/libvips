@@ -57,6 +57,9 @@ typedef struct _VipsSobel {
 	VipsImage *in;
 	VipsImage *out;
 
+	/* Need an image vector for start_many.
+	 */
+	VipsImage *args[3];
 } VipsSobel;
 
 typedef VipsOperationClass VipsSobelClass;
@@ -64,10 +67,91 @@ typedef VipsOperationClass VipsSobelClass;
 G_DEFINE_TYPE( VipsSobel, vips_sobel, VIPS_TYPE_OPERATION );
 
 static int
-vips_sobel_build( VipsObject *object )
+vips_sobel_uchar_gen( VipsRegion *or, 
+	void *vseq, void *a, void *b, gboolean *stop )
 {
-	VipsSobel *sobel = (VipsSobel *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 20 );
+	VipsRegion **in = (VipsRegion **) vseq;
+	VipsRect *r = &or->valid;
+	int sz = r->width * in[0]->im->Bands;
+
+	int x, y;
+
+	if( vips_reorder_prepare_many( or->im, in, r ) )
+		return( -1 );
+
+	for( y = 0; y < r->height; y++ ) {
+		VipsPel *p1 = (VipsPel * restrict) 
+			VIPS_REGION_ADDR( in[0], r->left, r->top + y );
+		VipsPel *p2 = (VipsPel * restrict) 
+			VIPS_REGION_ADDR( in[1], r->left, r->top + y );
+		VipsPel *q = (VipsPel * restrict) 
+			VIPS_REGION_ADDR( or, r->left, r->top + y );
+
+		for( x = 0; x < sz; x++ ) {
+			int v1 = p1[x] - 128;
+			int v2 = p2[x] - 128;
+
+			q[x] = VIPS_ABS( v1 ) + VIPS_ABS( v2 );
+		}
+	}
+
+	return( 0 );
+}
+
+/* Fast uchar path.
+ */
+static int
+vips_sobel_build_uchar( VipsSobel *sobel )
+{
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( sobel ), 20 );
+
+	t[1] = vips_image_new_matrixv( 1, 3, 1.0, 2.0, 1.0 );
+	t[2] = vips_image_new_matrixv( 3, 1, 1.0, 0.0, -1.0 );
+	vips_image_set_double( t[2], "offset", 128.0 ); 
+	if( vips_conv( sobel->in, &t[3], t[1], 
+		"precision", VIPS_PRECISION_INTEGER,
+		NULL ) ||
+		vips_conv( t[3], &t[4], t[2], 
+			"precision", VIPS_PRECISION_INTEGER,
+			NULL ) ) 
+		return( -1 );
+
+	t[5] = vips_image_new_matrixv( 3, 1, 1.0, 2.0, 1.0 );
+	t[6] = vips_image_new_matrixv( 1, 3, 1.0, 0.0, -1.0 );
+	vips_image_set_double( t[6], "offset", 128.0 ); 
+	if( vips_conv( sobel->in, &t[7], t[5], 
+		"precision", VIPS_PRECISION_INTEGER,
+		NULL ) ||
+		vips_conv( t[7], &t[8], t[6], 
+			"precision", VIPS_PRECISION_INTEGER,
+			NULL ) ) 
+		return( -1 );
+
+	g_object_set( sobel, "out", vips_image_new(), NULL ); 
+
+	sobel->args[0] = t[4];
+	sobel->args[1] = t[8];
+	sobel->args[2] = NULL;
+	if( vips_image_pipeline_array( sobel->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, sobel->args ) )
+		return( -1 );
+
+	if( vips_image_generate( sobel->out, 
+		vips_start_many, vips_sobel_uchar_gen, vips_stop_many, 
+		sobel->args, NULL ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+/* Works for any format, but slower.
+ */
+static int
+vips_sobel_build_float( VipsSobel *sobel )
+{
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( sobel ), 20 );
 
 	t[1] = vips_image_new_matrixv( 1, 3, 1.0, 2.0, 1.0 );
 	t[2] = vips_image_new_matrixv( 3, 1, 1.0, 0.0, -1.0 );
@@ -87,10 +171,27 @@ vips_sobel_build( VipsObject *object )
 		vips_cast( t[11], &t[12], sobel->in->BandFmt, NULL ) )
 		return( -1 ); 
 
-	g_object_set( object, "out", vips_image_new(), NULL ); 
+	g_object_set( sobel, "out", vips_image_new(), NULL ); 
 
 	if( vips_image_write( t[12], sobel->out ) )
 		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_sobel_build( VipsObject *object )
+{
+	VipsSobel *sobel = (VipsSobel *) object;
+
+	if( sobel->in->BandFmt == VIPS_FORMAT_UCHAR ) {
+		if( vips_sobel_build_uchar( sobel ) )
+			return( -1 ); 
+	}
+	else {
+		if( vips_sobel_build_float( sobel ) )
+			return( -1 );
+	}
 
 	return( 0 );
 }
