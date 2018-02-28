@@ -46,11 +46,6 @@
 
 #include <vips/vips.h>
 
-/* TODO
- *	- check sobel speed with separated and non-sep masks
- *	- add an 8-bit sobel path, with offset 128 and code for abs() + abs()
- */
-
 typedef struct _VipsSobel {
 	VipsOperation parent_instance;
 
@@ -88,10 +83,11 @@ vips_sobel_uchar_gen( VipsRegion *or,
 			VIPS_REGION_ADDR( or, r->left, r->top + y );
 
 		for( x = 0; x < sz; x++ ) {
-			int v1 = p1[x] - 128;
-			int v2 = p2[x] - 128;
+			int v1 = 2 * (p1[x] - 128);
+			int v2 = 2 * (p2[x] - 128);
+			int v = VIPS_ABS( v1 ) + VIPS_ABS( v2 );
 
-			q[x] = VIPS_ABS( v1 ) + VIPS_ABS( v2 );
+			q[x] = v > 255 ? 255 : v;
 		}
 	}
 
@@ -106,35 +102,38 @@ vips_sobel_build_uchar( VipsSobel *sobel )
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( sobel ), 20 );
 
-	t[1] = vips_image_new_matrixv( 1, 3, 1.0, 2.0, 1.0 );
-	t[2] = vips_image_new_matrixv( 3, 1, 1.0, 0.0, -1.0 );
-	vips_image_set_double( t[2], "offset", 128.0 ); 
+	g_info( "vips_sobel: uchar path" ); 
+
+	/* Sobel is separable, but it's so small there's no speed to be gained,
+	 * and doing it one pass lets us keep more precision.
+	 *
+	 * Divide the result by 2 to prevent overflow, since our result will be
+	 * just 8 bits.
+	 */
+	t[1] = vips_image_new_matrixv( 3, 3, 
+		 1.0,  2.0,  1.0,
+		 0.0,  0.0,  0.0,
+		-1.0, -2.0, -1.0 );
+	vips_image_set_double( t[1], "offset", 128.0 ); 
+	vips_image_set_double( t[1], "scale", 2.0 ); 
 	if( vips_conv( sobel->in, &t[3], t[1], 
 		"precision", VIPS_PRECISION_INTEGER,
-		NULL ) ||
-		vips_conv( t[3], &t[4], t[2], 
-			"precision", VIPS_PRECISION_INTEGER,
-			NULL ) ) 
+		NULL ) )
 		return( -1 );
 
-	t[5] = vips_image_new_matrixv( 3, 1, 1.0, 2.0, 1.0 );
-	t[6] = vips_image_new_matrixv( 1, 3, 1.0, 0.0, -1.0 );
-	vips_image_set_double( t[6], "offset", 128.0 ); 
-	if( vips_conv( sobel->in, &t[7], t[5], 
-		"precision", VIPS_PRECISION_INTEGER,
-		NULL ) ||
-		vips_conv( t[7], &t[8], t[6], 
+	if( vips_rot90( t[1], &t[5], NULL ) ||
+		vips_conv( sobel->in, &t[7], t[5], 
 			"precision", VIPS_PRECISION_INTEGER,
-			NULL ) ) 
+			NULL ) )
 		return( -1 );
 
 	g_object_set( sobel, "out", vips_image_new(), NULL ); 
 
-	sobel->args[0] = t[4];
-	sobel->args[1] = t[8];
+	sobel->args[0] = t[3];
+	sobel->args[1] = t[7];
 	sobel->args[2] = NULL;
 	if( vips_image_pipeline_array( sobel->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, sobel->args ) )
+		VIPS_DEMAND_STYLE_FATSTRIP, sobel->args ) )
 		return( -1 );
 
 	if( vips_image_generate( sobel->out, 
@@ -153,20 +152,19 @@ vips_sobel_build_float( VipsSobel *sobel )
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( sobel ), 20 );
 
-	t[1] = vips_image_new_matrixv( 1, 3, 1.0, 2.0, 1.0 );
-	t[2] = vips_image_new_matrixv( 3, 1, 1.0, 0.0, -1.0 );
-	if( vips_conv( sobel->in, &t[3], t[1], NULL ) ||
-		vips_conv( t[3], &t[4], t[2], NULL ) ) 
+	g_info( "vips_sobel: float path" ); 
+
+	t[1] = vips_image_new_matrixv( 3, 3, 
+		 1.0,  2.0,  1.0,
+		 0.0,  0.0,  0.0,
+		-1.0, -2.0, -1.0 );
+	if( vips_rot90( t[1], &t[2], NULL ) ||
+		vips_conv( sobel->in, &t[3], t[1], NULL ) ||
+		vips_conv( sobel->in, &t[7], t[2], NULL ) )
 		return( -1 );
 
-	t[5] = vips_image_new_matrixv( 3, 1, 1.0, 2.0, 1.0 );
-	t[6] = vips_image_new_matrixv( 1, 3, 1.0, 0.0, -1.0 );
-	if( vips_conv( sobel->in, &t[7], t[5], NULL ) ||
-		vips_conv( t[7], &t[8], t[6], NULL ) ) 
-		return( -1 );
-
-	if( vips_abs( t[4], &t[9], NULL ) ||
-		vips_abs( t[8], &t[10], NULL ) ||
+	if( vips_abs( t[3], &t[9], NULL ) ||
+		vips_abs( t[7], &t[10], NULL ) ||
 		vips_add( t[9], t[10], &t[11], NULL ) ||
 		vips_cast( t[11], &t[12], sobel->in->BandFmt, NULL ) )
 		return( -1 ); 
@@ -201,7 +199,6 @@ vips_sobel_class_init( VipsSobelClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -209,8 +206,6 @@ vips_sobel_class_init( VipsSobelClass *class )
 	object_class->nickname = "sobel";
 	object_class->description = _( "Sobel edge detector" );
 	object_class->build = vips_sobel_build;
-
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
 		_( "Input" ), 
