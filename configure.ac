@@ -1006,7 +1006,8 @@ AC_ARG_WITH([jpeg],
 
 if test x"$with_jpeg" != x"no"; then
   PKG_CHECK_MODULES(JPEG, libjpeg,
-    [with_jpeg="yes (pkg-config)"
+    [AC_DEFINE(HAVE_JPEG,1,[define if you have libjpeg installed.])
+     with_jpeg="yes (pkg-config)"
      PACKAGES_USED="$PACKAGES_USED libjpeg"
     ],
     [FIND_JPEG(
