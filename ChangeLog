@@ -9,6 +9,8 @@
 
 12/2/18 started 8.6.3
 - use pkg-config to find libjpeg, if we can
+- better clean of output image in vips_image_write() fixes a crash 
+  writing twice to memory
 
 5/1/18 started 8.6.2
 - vips_sink_screen() keeps a ref to the input image ... stops a rare race

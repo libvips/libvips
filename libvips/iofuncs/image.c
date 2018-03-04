@@ -2547,7 +2547,7 @@ vips_image_write( VipsImage *image, VipsImage *out )
 		vips_object_local( out, image );
 	}
 	else {
-		vips__reorder_clear( image );
+		vips__reorder_clear( out );
 		vips__link_break_all( out );
 		g_object_unref( image );
 	}
