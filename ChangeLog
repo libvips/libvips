@@ -12,6 +12,7 @@
   writing twice to memory
 - better rounding behaviour in convolution means we hit the vector path more
   often
+- fix a crash if a delayed load failed [gsharpsh00ter]
 
 5/1/18 started 8.6.2
 - vips_sink_screen() keeps a ref to the input image ... stops a rare race

@@ -158,6 +158,11 @@ typedef struct _VipsForeignLoad {
 	 * TRUE.
 	 */
 	gboolean disc;
+
+	/* Set if a start function fails. We want to prevent the other starts
+	 * from also triggering the load.
+	 */
+	gboolean error;
 } VipsForeignLoad;
 
 typedef struct _VipsForeignLoadClass {
