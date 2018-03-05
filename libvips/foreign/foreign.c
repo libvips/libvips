@@ -839,7 +839,7 @@ vips_foreign_load_start( VipsImage *out, void *a, void *b )
 		 */
 		if( class->load( load ) ||
 			vips_image_pio_input( load->real ) || 
-			vips_foreign_load_iscompat( load->real, out ) ) {
+			!vips_foreign_load_iscompat( load->real, out ) ) {
 			vips_operation_invalidate( VIPS_OPERATION( load ) ); 
 			load->error = TRUE;
 
