@@ -18,6 +18,8 @@
  * 	- transform cmyk->rgb if there's an embedded profile
  * 16/6/17
  * 	- add page_height
+ * 5/3/18
+ * 	- block _start if one start fails, see #893
  */
 
 /*
@@ -796,6 +798,11 @@ vips_foreign_load_start( VipsImage *out, void *a, void *b )
 	VipsForeignLoad *load = VIPS_FOREIGN_LOAD( b );
 	VipsForeignLoadClass *class = VIPS_FOREIGN_LOAD_GET_CLASS( load );
 
+	/* If this start has failed before in another thread, we can fail now.
+	 */
+	if( load->error )
+		return( NULL );
+
 	if( !load->real ) {
 		if( !(load->real = vips_foreign_load_temp( load )) )
 			return( NULL );
@@ -819,19 +826,25 @@ vips_foreign_load_start( VipsImage *out, void *a, void *b )
 		g_object_set_qdata( G_OBJECT( load->real ), 
 			vips__foreign_load_operation, load ); 
 
-		if( class->load( load ) ||
-			vips_image_pio_input( load->real ) ) 
-			return( NULL );
-
-		/* ->header() read the header into @out, load has read the
+		/* Load the image and check the result.
+		 *
+		 * ->header() read the header into @out, load has read the
 		 * image into @real. They must match exactly in size, bands,
 		 * format and coding for the copy to work.  
 		 *
 		 * Some versions of ImageMagick give different results between
 		 * Ping and Load for some formats, for example.
+		 *
+		 * If the load fails, we need to stop
 		 */
-		if( !vips_foreign_load_iscompat( load->real, out ) )
+		if( class->load( load ) ||
+			vips_image_pio_input( load->real ) || 
+			vips_foreign_load_iscompat( load->real, out ) ) {
+			vips_operation_invalidate( VIPS_OPERATION( load ) ); 
+			load->error = TRUE;
+
 			return( NULL );
+		}
 
 		/* We have to tell vips that out depends on real. We've set
 		 * the demand hint below, but not given an input there.
