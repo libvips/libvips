@@ -38,10 +38,8 @@
 /* TODO
  *	- verify that our interpolating max edge works
  *	- does it actually help much?
- *	- can skip the sqrt() 
  *	- support other image types
  * 	- swap atan2 for a LUT with perhaps +/- 2 or 4 bits
- *	- check sobel speed with separated and non-sep masks
  *	- add autothreshold with otsu's method
  *	- leave blob analysis to a separate pass
  */
