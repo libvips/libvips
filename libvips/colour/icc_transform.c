@@ -36,6 +36,8 @@
  * 	- remove lcms1 support, it was untested
  * 10/10/17
  * 	- more input profile sanity tests
+ * 8/3/18
+ * 	- attach fallback profile on import if we used it
  */
 
 /*
@@ -392,6 +394,10 @@ typedef struct _VipsIccImport {
 	gboolean embedded;
 	char *input_profile_filename;
 
+	/* Set if we ended up using the fallback input profile. 
+	 */
+	gboolean used_fallback;
+
 } VipsIccImport;
 
 typedef VipsIccClass VipsIccImportClass;
@@ -615,6 +621,7 @@ static int
 vips_icc_import_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
+	VipsColour *colour = (VipsColour *) object;
 	VipsColourCode *code = (VipsColourCode *) object;
 	VipsIcc *icc = (VipsIcc *) object;
 	VipsIccImport *import = (VipsIccImport *) object;
@@ -637,9 +644,11 @@ vips_icc_import_build( VipsObject *object )
 
 	if( !icc->in_profile &&
 		code->in &&
-		import->input_profile_filename ) 
+		import->input_profile_filename ) {
 		icc->in_profile = vips_icc_load_profile_file( class->nickname,
 			code->in, import->input_profile_filename );
+	 	import->used_fallback = TRUE;
+	}
 
 	if( !icc->in_profile ) {
 		vips_error( class->nickname, "%s", _( "no input profile" ) ); 
@@ -660,6 +669,26 @@ vips_icc_import_build( VipsObject *object )
 
 	if( VIPS_OBJECT_CLASS( vips_icc_import_parent_class )->build( object ) )
 		return( -1 );
+
+	/* If we used the fallback profile, we need to attach it to the PCS
+	 * image since the PCS image needs to know about a route back to 
+	 * device space.
+	 *
+	 * In the same way, we don't remove the embedded input profile on
+	 * import.
+	 */
+	if( import->used_fallback ) {
+		char *data;
+		size_t length;
+
+		if( !(data = vips__file_read_name( 
+			import->input_profile_filename, 
+			vips__icc_dir(), &length )) )
+			return( -1 );
+
+		vips_image_set_blob( colour->out, VIPS_META_ICC_NAME, 
+			(VipsCallbackFn) vips_free, data, length );
+	}
 
 	return( 0 );
 }
