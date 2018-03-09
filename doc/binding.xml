@@ -126,7 +126,7 @@ main( int argc, char **argv )
   <para>
     A small Python program walks the set of all libvips operators and generates a set of static bindings. For example:
   </para>
-  <programlisting language="cpp">
+  <programlisting language="c++">
 VImage VImage::invert( VOption *options )
 {
     VImage out;
