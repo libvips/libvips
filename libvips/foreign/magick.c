@@ -162,11 +162,17 @@ magick_inherit_exception( ExceptionInfo *exception, Image *image )
 void
 magick_vips_error( const char *domain, ExceptionInfo *exception )
 {
-	if( exception &&
-		exception->reason &&
-		exception->description )
-		vips_error( domain, _( "libMagick error: %s %s" ),
-			exception->reason, exception->description );
+	if( exception ) {
+		if( exception->reason && 
+			exception->description ) 
+			vips_error( domain, _( "libMagick error: %s %s" ),
+				exception->reason, exception->description );
+		else if( exception->reason ) 
+			vips_error( domain, _( "libMagick error: %s" ),
+				exception->reason );
+		else 
+			vips_error( domain, "%s", _( "libMagick error:" ) );
+	}
 }
 
 static void *
