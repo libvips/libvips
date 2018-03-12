@@ -18,6 +18,8 @@
  * 	- don't set "font" if unset, it breaks caching
  * 16/7/17 gargsms
  * 	- implement auto fitting of text inside bounds
+ * 12/3/18
+ * 	- better fitting of fonts with overhanging edges, thanks Adrià 
  */
 
 /*
@@ -160,6 +162,7 @@ text_layout_new( PangoContext *context,
 static int
 vips_text_get_extents( VipsText *text, VipsRect *extents )
 {
+	PangoRectangle ink_rect;
 	PangoRectangle logical_rect;
 
 	pango_ft2_font_map_set_resolution( 
@@ -172,11 +175,13 @@ vips_text_get_extents( VipsText *text, VipsRect *extents )
 		text->width, text->spacing, text->align )) ) 
 		return( -1 );
 
-	pango_layout_get_extents( text->layout, NULL, &logical_rect );
-	extents->left = PANGO_PIXELS( logical_rect.x );
-	extents->top = PANGO_PIXELS( logical_rect.y );
-	extents->width = PANGO_PIXELS( logical_rect.width );
-	extents->height = PANGO_PIXELS( logical_rect.height );
+	pango_layout_get_pixel_extents( text->layout, 
+		&ink_rect, &logical_rect );
+
+	extents->left = ink_rect.x;
+	extents->top = ink_rect.y;
+	extents->width = ink_rect.width;
+	extents->height = ink_rect.height;
 
 #ifdef DEBUG
 	printf( "vips_text_get_extents: dpi = %d, "
@@ -367,11 +372,8 @@ vips_text_build( VipsObject *object )
 	memset( text->bitmap.buffer, 0x00, 
 		text->bitmap.pitch * text->bitmap.rows );
 
-	if( pango_layout_get_width( text->layout ) != -1 )
-		pango_ft2_render_layout( &text->bitmap, text->layout, 
-			-extents.left, -extents.top );
-	else
-		pango_ft2_render_layout( &text->bitmap, text->layout, 0, 0 );
+	pango_ft2_render_layout( &text->bitmap, text->layout, 
+		-extents.left, -extents.top );
 
 	g_mutex_unlock( vips_text_lock ); 
 
