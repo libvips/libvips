@@ -7,6 +7,9 @@
 - hough_circle is 2x faster
 - add vips_rotate() ... a convenience method for vips_similarity()
 
+12/3/18 started 8.6.4
+- better fitting of fonts with overhanging edges, thanks Adrià 
+
 12/2/18 started 8.6.3
 - use pkg-config to find libjpeg, if we can
 - better clean of output image in vips_image_write() fixes a crash 
