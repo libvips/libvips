@@ -31,17 +31,17 @@
 
  */
 
-/*
-#define DEBUG
- */
-
 /* TODO
- *	- verify that our interpolating max edge works
  *	- does it actually help much?
  *	- support other image types
  * 	- swap atan2 for a LUT with perhaps +/- 2 or 4 bits
  *	- add autothreshold with otsu's method
  *	- leave blob analysis to a separate pass
+ *	- add sobel option?
+ */
+
+/*
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -54,6 +54,10 @@
 #include <math.h>
 
 #include <vips/vips.h>
+
+/* LUT for calculating atan2() with +/- 4 bits of precision in each axis.
+ */
+static VipsPel vips__atan2[256];
 
 typedef struct _VipsCanny {
 	VipsOperation parent_instance;
@@ -136,9 +140,9 @@ vips_canny_polar_generate( VipsRegion *or,
 
 		for( x = 0; x < r->width; x++ ) {
 			for( band = 0; band < Gx->Bands; band++ ) { 
-				int x = p1[band] - 128;
-				int y = p2[band] - 128;
-				int a = VIPS_DEG( atan2( x, y ) ) + 360;
+				int gx = p1[band] - 128;
+				int gy = p2[band] - 128;
+				int i = ((gx >> 4) | (gy & 0xf0)) & 0xff;
 
 				/* We should calculate 
 				 * 	0.5 * sqrt( x * x + y * y )
@@ -147,8 +151,8 @@ vips_canny_polar_generate( VipsRegion *or,
 				 * magnitude, so we can skip the sqrt and just
 				 * shift down 9 bits.
 				 */
-				q[0] = (x * x + y * y + 256) >> 9;
-				q[1] = 256 * a / 360;
+				q[0] = (gx * gx + gy * gy + 256) >> 9;
+				q[1] = vips__atan2[i];
 
 				q += 2;
 			}
@@ -162,8 +166,8 @@ vips_canny_polar_generate( VipsRegion *or,
 }
 
 /* Calculate G/theta from Gx/Gy -- rather like rect -> polar, except that we
- * code theta as below. Scale G down by 0.5 so that we
- * don't clip on hard edges. 
+ * code theta as below. Scale G down by 0.5 so that we don't clip on hard 
+ * edges. 
  *
  * For a white disc on a black background, theta is 0 at the bottom, 64 on the
  * right, 128 at the top and 192 on the left edge. 
@@ -349,7 +353,42 @@ vips_canny_nonmaxi_generate( VipsRegion *or,
 				int highb = p[offset[(high_theta + 4) & 0x7]];
 				int high = (higha * (32 - residual) + 
 						highb * residual) / 32;
-				
+
+#ifdef DEBUG
+if( G > 0 ) { 
+	int i, j;
+
+	printf( "Gradient:\n" ); 
+	for( j = 0; j < 3; j++ ) {
+		for( i = 0; i < 3; i++ ) 
+			printf( "%3d ", p[j * lsk + i * psk] );
+		printf("\n");
+	}
+
+	printf( "Theta:\n" ); 
+	for( j = 0; j < 3; j++ ) {
+		for( i = 0; i < 3; i++ ) 
+			printf( "%3d ", p[j * lsk + i * psk + 1] );
+		printf("\n");
+	}
+
+	printf( "G = %d\n", G ); 
+	printf( "theta = %d\n", theta ); 
+	printf( "low_theta = %d\n", low_theta ); 
+	printf( "high_theta = %d\n", high_theta ); 
+	printf( "residual = %d\n", residual ); 
+	printf( "lowa = %d\n", lowa ); 
+	printf( "lowb = %d\n", lowb ); 
+	printf( "low = %d\n", low ); 
+	printf( "higha = %d\n", higha ); 
+	printf( "highb = %d\n", highb ); 
+	printf( "high = %d\n", high ); 
+	if( G <= low || G < high )
+		printf( "thin\n" ); 
+	printf( "\n" ); 
+}
+#endif /*DEBUG*/
+
 				/* Set G to 0 if it's not the local maxima in
 				 * the direction of the gradient. 
 				 */
@@ -447,15 +486,38 @@ vips_canny_thresh( VipsCanny *canny, VipsImage *in, VipsImage **out )
 	return( 0 );
 }
 
+static void *
+vips_atan2_init( void *null )
+{
+	int i;
+
+	for( i = 0; i < 256; i++ ) {
+		/* Use the bottom 4 bits for x, the top 4 for y.
+		 */
+		int x = (i & 0xf) - 8;
+		int y = ((i >> 4) & 0xf) - 8;
+		double theta = VIPS_DEG( atan2( x, y ) ) + 360;
+
+		vips__atan2[i] = 256 * theta / 360;
+	}
+
+	return( NULL ); 
+}
+
+
 static int
 vips_canny_build( VipsObject *object )
 {
+	static GOnce once = G_ONCE_INIT;
+
 	VipsCanny *canny = (VipsCanny *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 20 );
 
 	VipsImage *in;
 	VipsImage *Gx;
 	VipsImage *Gy;
+
+	g_once( &once, (GThreadFunc) vips_atan2_init, NULL );
 
 	if( VIPS_OBJECT_CLASS( vips_canny_parent_class )->build( object ) )
 		return( -1 );
