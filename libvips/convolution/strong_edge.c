@@ -1,5 +1,7 @@
 /* Canny edge detector
  * 
+ * 2/2/18
+ * 	- from vips_canny()
  */
 
 /*
@@ -30,7 +32,10 @@
  */
 
 /* TODO
+ *	- add autothreshold with otsu's method
  *	- support other image types
+ *
+ *	- leave blob analysis to a separate pass
  */
 
 /*
@@ -56,6 +61,8 @@ typedef struct _VipsCanny {
 
 	double sigma; 
 	gboolean interpolate;
+	double low;
+	double high;
 
 	/* Need an image vector for start_many.
 	 */
@@ -453,10 +460,67 @@ vips_canny_nonmaxi( VipsImage *in, VipsImage **out )
 }
 
 static int
+vips_canny_thresh_generate( VipsRegion *or, 
+	void *vseq, void *a, void *b, gboolean *stop )
+{
+	VipsRegion *in = (VipsRegion *) vseq;
+	VipsCanny *canny = (VipsCanny *) b;
+	VipsRect *r = &or->valid;
+	int sz = r->width * in->im->Bands;
+	VipsPel low = canny->low;
+	VipsPel high = canny->high;
+
+	int x, y;
+
+	if( vips_region_prepare( in, r ) )
+		return( -1 );
+
+	for( y = 0; y < r->height; y++ ) {
+		VipsPel *p = (VipsPel * restrict) 
+			VIPS_REGION_ADDR( in, r->left, r->top + y );
+		VipsPel *q = (VipsPel * restrict) 
+			VIPS_REGION_ADDR( or, r->left, r->top + y );
+
+		for( x = 0; x < sz; x++ ) {
+			int v;
+
+			v = p[x];
+			if( v <= low )
+				v = 0;
+			else if( v <= high )
+				v = 128;
+			else 
+				v = 255;
+
+			q[x] = v;
+		}
+	}
+
+	return( 0 );
+}
+
+static int
+vips_canny_thresh( VipsCanny *canny, VipsImage *in, VipsImage **out )
+{
+	*out = vips_image_new();
+	if( vips_image_pipelinev( *out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
+		return( -1 );
+
+	if( vips_image_generate( *out, 
+		vips_start_one, vips_canny_thresh_generate, vips_stop_one, 
+		in, canny ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+
+static int
 vips_canny_build( VipsObject *object )
 {
 	VipsCanny *canny = (VipsCanny *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 5 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 20 );
 
 	VipsImage *in;
 	VipsImage *Gx;
@@ -466,12 +530,6 @@ vips_canny_build( VipsObject *object )
 		return( -1 );
 
 	in = canny->in;
-
-	/* We are 8-bit only.
-	 */
-	if( vips_cast_uchar( in, &t[4], NULL ) )
-		return( -1 );
-	in = t[4];
 
 	if( vips_gaussblur( in, &t[0], canny->sigma, NULL ) )
 		return( -1 );
@@ -485,25 +543,31 @@ vips_canny_build( VipsObject *object )
 	canny->args[0] = Gx;
 	canny->args[1] = Gy;
 	canny->args[2] = NULL;
-	if( vips_canny_polar( canny->args, &t[1] ) )
+	if( vips_canny_polar( canny->args, &t[9] ) )
 		return( -1 ); 
-	in = t[1];
+	in = t[9];
 
 	/* Expand by two pixels all around, then thin.
 	 */
-	if( vips_embed( in, &t[2], 1, 1, in->Xsize + 2, in->Ysize + 2,
+	if( vips_embed( in, &t[10], 1, 1, in->Xsize + 2, in->Ysize + 2,
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
 		return( -1 );
 	if( canny->interpolate ) {
-		if( vips_canny_nonmaxi( t[2], &t[3] ) )
+		if( vips_canny_nonmaxi( t[10], &t[11] ) )
 			return( -1 );
 	}
 	else {
-		if( vips_canny_nonmax( t[2], &t[3] ) )
+		if( vips_canny_nonmax( t[10], &t[11] ) )
 			return( -1 );
 	}
-	in = t[3];
+	in = t[11];
+
+	/* Double threshold.
+	 */
+	if( vips_canny_thresh( canny, in, &t[12] ) )
+		return( -1 );
+	in = t[12];
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
@@ -548,6 +612,20 @@ vips_canny_class_init( VipsCannyClass *class )
 		G_STRUCT_OFFSET( VipsCanny, sigma ),
 		0.01, 1000, 1.4 );
 
+	VIPS_ARG_DOUBLE( class, "low", 11, 
+		_( "Low" ), 
+		_( "Low threshold" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsCanny, low ),
+		-INFINITY, INFINITY, 3.0 );
+
+	VIPS_ARG_DOUBLE( class, "high", 12, 
+		_( "High" ), 
+		_( "High threshold" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsCanny, high ),
+		-INFINITY, INFINITY, 7.0 );
+
 	VIPS_ARG_BOOL( class, "interpolate", 13, 
 		_( "Interpolate" ), 
 		_( "Interpolate gradient angles" ),
@@ -561,6 +639,8 @@ static void
 vips_canny_init( VipsCanny *canny )
 {
 	canny->sigma = 1.4; 
+	canny->low = 3.0;
+	canny->high = 7.0;
 }
 
 /**
@@ -573,22 +653,8 @@ vips_canny_init( VipsCanny *canny )
  * Optional arguments:
  *
  * * @sigma: %gdouble, sigma for gaussian blur
- * * @interpolate: %gboolean, interpolate gradient on corners 
  *
- * Find edges by Canny's method: The maximum of the derivative of the gradient
- * in the direction of the gradient. This operation will only work well on
- * 8-bit luminance images. 
- *
- * Use @sigma to control the scale over which gradient is measured. 1.4 is
- * usually a good value.
- *
- * Set @interpolate to smoothly interpolate the gradient around corners. This
- * slows down edge detection, but can improve the result.
- *
- * You will probably need to process the output further to eliminate weak 
- * edges. 
- *
- * See also: vips_sobel().
+ * See also: vips_gaussblur().
  * 
  * Returns: 0 on success, -1 on error.
  */
