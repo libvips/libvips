@@ -32,12 +32,11 @@
  */
 
 /* TODO
- *	- does it actually help much?
- *	- support other image types
- * 	- swap atan2 for a LUT with perhaps +/- 2 or 4 bits
  *	- add autothreshold with otsu's method
- *	- leave blob analysis to a separate pass
  *	- add sobel option?
+ *	- support other image types
+ *
+ *	- leave blob analysis to a separate pass
  */
 
 /*
@@ -54,10 +53,6 @@
 #include <math.h>
 
 #include <vips/vips.h>
-
-/* LUT for calculating atan2() with +/- 4 bits of precision in each axis.
- */
-static VipsPel vips__atan2[256];
 
 typedef struct _VipsCanny {
 	VipsOperation parent_instance;
@@ -117,6 +112,10 @@ vips_canny_gradient_simple( VipsImage *in, VipsImage **Gx, VipsImage **Gy )
 	return( 0 ); 
 }
 
+/* LUT for calculating atan2() with +/- 4 bits of precision in each axis.
+ */
+static VipsPel vips_canny_polar_atan2[256];
+
 static int
 vips_canny_polar_generate( VipsRegion *or, 
 	void *vseq, void *a, void *b, gboolean *stop )
@@ -142,7 +141,11 @@ vips_canny_polar_generate( VipsRegion *or,
 			for( band = 0; band < Gx->Bands; band++ ) { 
 				int gx = p1[band] - 128;
 				int gy = p2[band] - 128;
-				int i = ((gx >> 4) | (gy & 0xf0)) & 0xff;
+
+				/* gx/gy are -128 to +127, we need -8 to +7
+				 * for the atan2 LUT.
+				 */
+				int i = ((gx >> 4) & 0xf) | (gy & 0xf0);
 
 				/* We should calculate 
 				 * 	0.5 * sqrt( x * x + y * y )
@@ -150,9 +153,12 @@ vips_canny_polar_generate( VipsRegion *or,
 				 * clipping. We are only interested in relative
 				 * magnitude, so we can skip the sqrt and just
 				 * shift down 9 bits.
+				 *
+				 * Try "256 * (VIPS_DEG( atan2( gx, gy ) ) + 
+				 * 360) / 360;" to test LUT.
 				 */
 				q[0] = (gx * gx + gy * gy + 256) >> 9;
-				q[1] = vips__atan2[i];
+				q[1] = vips_canny_polar_atan2[i];
 
 				q += 2;
 			}
@@ -165,6 +171,26 @@ vips_canny_polar_generate( VipsRegion *or,
 	return( 0 );
 }
 
+static void *
+vips_atan2_init( void *null )
+{
+	int i;
+
+	for( i = 0; i < 256; i++ ) {
+		/* Use the bottom 4 bits for x, the top 4 for y. The double
+		 * shift does sign extension, assuming 2s complement.
+		 */
+		int bits = sizeof( int ) * 8 - 4;
+		int x = ((i & 0xf) << bits) >> bits;
+		int y = ((i >> 4) & 0x0f) << bits >> bits;
+		double theta = VIPS_DEG( atan2( x, y ) ) + 360;
+
+		vips_canny_polar_atan2[i] = 256 * theta / 360;
+	}
+
+	return( NULL ); 
+}
+
 /* Calculate G/theta from Gx/Gy -- rather like rect -> polar, except that we
  * code theta as below. Scale G down by 0.5 so that we don't clip on hard 
  * edges. 
@@ -175,6 +201,10 @@ vips_canny_polar_generate( VipsRegion *or,
 static int
 vips_canny_polar( VipsImage **args, VipsImage **out )
 {
+	static GOnce once = G_ONCE_INIT;
+
+	g_once( &once, (GThreadFunc) vips_atan2_init, NULL );
+
 	*out = vips_image_new();
 	if( vips_image_pipeline_array( *out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, args ) )
@@ -486,38 +516,16 @@ vips_canny_thresh( VipsCanny *canny, VipsImage *in, VipsImage **out )
 	return( 0 );
 }
 
-static void *
-vips_atan2_init( void *null )
-{
-	int i;
-
-	for( i = 0; i < 256; i++ ) {
-		/* Use the bottom 4 bits for x, the top 4 for y.
-		 */
-		int x = (i & 0xf) - 8;
-		int y = ((i >> 4) & 0xf) - 8;
-		double theta = VIPS_DEG( atan2( x, y ) ) + 360;
-
-		vips__atan2[i] = 256 * theta / 360;
-	}
-
-	return( NULL ); 
-}
-
 
 static int
 vips_canny_build( VipsObject *object )
 {
-	static GOnce once = G_ONCE_INIT;
-
 	VipsCanny *canny = (VipsCanny *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 20 );
 
 	VipsImage *in;
 	VipsImage *Gx;
 	VipsImage *Gy;
-
-	g_once( &once, (GThreadFunc) vips_atan2_init, NULL );
 
 	if( VIPS_OBJECT_CLASS( vips_canny_parent_class )->build( object ) )
 		return( -1 );
