@@ -101,8 +101,7 @@ vips_canny_gradient( VipsImage *in, VipsImage **Gx, VipsImage **Gy )
 static VipsPel vips_canny_polar_atan2[256];
 
 /* For the uchar path, gx/gy are -128 to +127, and we need -8 to +7 for the 
- * atan2 LUT. Try "256 * (VIPS_DEG( atan2( gx, gy ) ) + 360) / 360;" to test  
- * the LUT. 
+ * atan2 LUT. 
  *
  * For G, we should calculate sqrt( gx * gx + gy * gy ), however we are only
  * interested in relative magnitude (max of sqrt), so we can skip the sqrt
@@ -141,7 +140,7 @@ static VipsPel vips_canny_polar_atan2[256];
 			double gy = tp2[band]; \
 			double theta = VIPS_DEG( atan2( gx, gy ) ); \
 			\
-			tq[0] = (gx * gx + gy * gy) / 512.0; \
+			tq[0] = (gx * gx + gy * gy + 256.0) / 512.0; \
 			tq[1] = 256.0 * fmod( theta + 360.0, 360.0 ) / 360.0; \
 			\
 			tq += 2; \
@@ -241,38 +240,6 @@ vips_canny_polar( VipsImage **args, VipsImage **out )
 	return( 0 );
 }
 
-/* Set G to 0 if it's not the local maxima in the direction of the gradient. 
- */
-#define THIN_UCHAR { \
-	for( x = 0; x < r->width; x++ ) { \
-		for( band = 0; band < out_bands; band++ ) {  \
-			int G = p[lsk + psk]; \
-			int theta = p[lsk + psk + 1]; \
-			int low_theta = (theta / 32) & 0x7; \
-			int high_theta = (low_theta + 1) & 0x7; \
-			int residual = theta - low_theta * 32; \
-			int lowa = p[offset[low_theta]]; \
-			int lowb = p[offset[high_theta]]; \
-			int low = (lowa * (32 - residual) +  \
-				lowb * residual) / 32; \
-			int higha = p[offset[(low_theta + 4) & 0x7]]; \
-			int highb = p[offset[(high_theta + 4) & 0x7]]; \
-			int high = (higha * (32 - residual) + \
-				highb * residual) / 32; \
-			\
-			if( G <= low || \
-				G < high ) \
-				G = 0; \
-			\
-			q[band] = G; \
-			\
-			p += 2; \
-		} \
-		\
-		q += out_bands; \
-	} \
-}
-
 #define THIN( TYPE ) { \
 	TYPE *tp = (TYPE *) p; \
 	TYPE *tq = (TYPE *) q; \
@@ -359,7 +326,6 @@ vips_canny_thin_generate( VipsRegion *or,
 
 		switch( im->BandFmt ) {
 		case VIPS_FORMAT_UCHAR:
-			//THIN_UCHAR;
 			THIN( unsigned char );
 			break;
 
@@ -507,8 +473,9 @@ vips_canny_init( VipsCanny *canny )
  * * @sigma: %gdouble, sigma for gaussian blur
  *
  * Find edges by Canny's method: The maximum of the derivative of the gradient
- * in the direction of the gradient. This operation will only work well on
- * 8-bit luminance images. 
+ * in the direction of the gradient. Output is float, except for uchar input,
+ * where output is uchar, and double input, where output is double. Non-complex
+ * images only. 
  *
  * Use @sigma to control the scale over which gradient is measured. 1.4 is
  * usually a good value.
