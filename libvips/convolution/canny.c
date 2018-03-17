@@ -28,10 +28,6 @@
 
  */
 
-/* TODO
- *	- support other image types
- */
-
 /*
 #define DEBUG
  */
