@@ -50,6 +50,7 @@ typedef struct _VipsCanny {
 	VipsImage *out;
 
 	double sigma; 
+	VipsPrecision precision; 
 
 	/* Need an image vector for start_many.
 	 */
@@ -382,7 +383,9 @@ vips_canny_build( VipsObject *object )
 
 	in = canny->in;
 
-	if( vips_gaussblur( in, &t[0], canny->sigma, NULL ) )
+	if( vips_gaussblur( in, &t[0], canny->sigma, 
+		"precision", canny->precision,
+		NULL ) )
 		return( -1 );
 	in = t[0];
 
@@ -453,12 +456,20 @@ vips_canny_class_init( VipsCannyClass *class )
 		G_STRUCT_OFFSET( VipsCanny, sigma ),
 		0.01, 1000, 1.4 );
 
+	VIPS_ARG_ENUM( class, "precision", 103, 
+		_( "Precision" ), 
+		_( "Convolve with this precision" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		G_STRUCT_OFFSET( VipsCanny, precision ), 
+		VIPS_TYPE_PRECISION, VIPS_PRECISION_FLOAT ); 
+
 }
 
 static void
 vips_canny_init( VipsCanny *canny )
 {
 	canny->sigma = 1.4; 
+	canny->precision = VIPS_PRECISION_FLOAT;
 }
 
 /**
@@ -471,6 +482,7 @@ vips_canny_init( VipsCanny *canny )
  * Optional arguments:
  *
  * * @sigma: %gdouble, sigma for gaussian blur
+ * * @precision: #VipsPrecision, calculation accuracy
  *
  * Find edges by Canny's method: The maximum of the derivative of the gradient
  * in the direction of the gradient. Output is float, except for uchar input,
@@ -479,6 +491,10 @@ vips_canny_init( VipsCanny *canny )
  *
  * Use @sigma to control the scale over which gradient is measured. 1.4 is
  * usually a good value.
+ *
+ * Use @precision to set the precision of edge detection. For uchar images,
+ * setting this to #VIPS_PRECISION_INTEGER will make edge detection much 
+ * faster, but sacrifice some sensitivity. 
  *
  * You will probably need to process the output further to eliminate weak 
  * edges. 
