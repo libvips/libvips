@@ -94,6 +94,10 @@
 #define DEBUG
  */
 
+/* Track malloc/free and open/close.
+#define DEBUG_VERBOSE
+ */
+
 #ifdef DEBUG
 #  warning DEBUG on in libsrc/iofuncs/memory.c
 #endif /*DEBUG*/
@@ -237,15 +241,17 @@ vips_free( void *buf )
 void
 vips_tracked_free( void *s )
 {
-	size_t size;
-
 	/* Keep the size of the alloc in the previous 16 bytes. Ensures
 	 * alignment rules are kept.
 	 */
-	s = (void *) ((char*)s - 16);
-	size = *((size_t*)s);
+	void *start = (void *) ((char *) s - 16);
+	size_t size = *((size_t *) start);
 
 	g_mutex_lock( vips_tracked_mutex );
+
+#ifdef DEBUG_VERBOSE
+	printf( "vips_tracked_free: %p, %zd bytes\n", s, size ); 
+#endif /*DEBUG_VERBOSE*/
 
 	if( vips_tracked_allocs <= 0 ) 
 		g_warning( "%s", _( "vips_free: too many frees" ) );
@@ -257,7 +263,7 @@ vips_tracked_free( void *s )
 
 	g_mutex_unlock( vips_tracked_mutex );
 
-	g_free( s );
+	g_free( start );
 
 	VIPS_GATE_FREE( size ); 
 }
@@ -330,6 +336,10 @@ vips_tracked_malloc( size_t size )
 		vips_tracked_mem_highwater = vips_tracked_mem;
 	vips_tracked_allocs += 1;
 
+#ifdef DEBUG_VERBOSE
+	printf( "vips_tracked_malloc: %p, %zd bytes\n", buf, size ); 
+#endif /*DEBUG_VERBOSE*/
+
 	g_mutex_unlock( vips_tracked_mutex );
 
 	VIPS_GATE_MALLOC( size ); 
@@ -376,10 +386,10 @@ vips_tracked_open( const char *pathname, int flags, ... )
 	g_mutex_lock( vips_tracked_mutex );
 
 	vips_tracked_files += 1;
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "vips_tracked_open: %s = %d (%d)\n", 
 		pathname, fd, vips_tracked_files );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	g_mutex_unlock( vips_tracked_mutex );
 
@@ -411,9 +421,9 @@ vips_tracked_close( int fd )
 	g_assert( vips_tracked_files > 0 );
 
 	vips_tracked_files -= 1;
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "vips_tracked_close: %d (%d)\n", fd, vips_tracked_files );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	g_mutex_unlock( vips_tracked_mutex );
 
