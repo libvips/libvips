@@ -46,8 +46,7 @@ the [LGPL 2.1+](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html).
 <a class="twitter-timeline"
   href="https://twitter.com/search?q=libvips"
   data-widget-id="976419088347037696">Tweets about libvips</a>
-<script>!function(d,s,id){var
-js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
 
 ## News
 
