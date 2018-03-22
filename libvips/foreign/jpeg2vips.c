@@ -968,7 +968,7 @@ vips__isjpeg( const char *filename )
 {
 	unsigned char buf[2];
 
-	if( vips__get_bytes( filename, buf, 2 ) &&
+	if( vips__get_bytes( filename, buf, 2 ) == 2 &&
 		vips__isjpeg_buffer( buf, 2 ) )
 		return( 1 );
 

@@ -255,9 +255,9 @@ vips__file_magic( const char *filename )
 {
 	guint32 magic;
 
-	if( vips__get_bytes( filename, (unsigned char *) &magic, 4 ) &&
+	if( vips__get_bytes( filename, (unsigned char *) &magic, 4 ) == 4 &&
 		(magic == VIPS_MAGIC_INTEL || 
-		 magic == VIPS_MAGIC_SPARC ) )
+		 magic == VIPS_MAGIC_SPARC) )
 		return( magic );
 
 	return( 0 );

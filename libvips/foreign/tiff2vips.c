@@ -2362,7 +2362,7 @@ vips__istiff( const char *filename )
 {
 	unsigned char buf[4];
 
-	if( vips__get_bytes( filename, buf, 4 ) &&
+	if( vips__get_bytes( filename, buf, 4 ) == 4 &&
 		vips__istiff_buffer( buf, 4 ) )
 		return( TRUE );
 

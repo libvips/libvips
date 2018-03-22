@@ -458,9 +458,10 @@ static gboolean
 vips_foreign_load_svg_file_is_a( const char *filename )
 {
 	unsigned char buf[300];
+	guint64 bytes;
 
-	return( vips__get_bytes( filename, buf, 300 ) &&
-		vips_foreign_load_svg_is_a( buf, 300 ) );
+	return( (bytes = vips__get_bytes( filename, buf, 300 )) > 0 &&
+		vips_foreign_load_svg_is_a( buf, bytes ) );
 }
 
 static int

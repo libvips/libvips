@@ -107,7 +107,7 @@ vips__openexr_isexr( const char *filename )
 {
 	unsigned char buf[4];
 
-	if( vips__get_bytes( filename, buf, 4 ) )
+	if( vips__get_bytes( filename, buf, 4 ) == 4 )
 		if( buf[0] == 0x76 && buf[1] == 0x2f &&
 			buf[2] == 0x31 && buf[3] == 0x01 )
 			return( TRUE );

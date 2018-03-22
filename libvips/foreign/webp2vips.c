@@ -119,7 +119,7 @@ vips__iswebp( const char *filename )
 	 */
 	unsigned char header[12];
 
-	if( vips__get_bytes( filename, header, 12 ) &&
+	if( vips__get_bytes( filename, header, 12 ) == 12 &&
 		vips__iswebp_buffer( header, 12 ) )
 		return( 1 );
 

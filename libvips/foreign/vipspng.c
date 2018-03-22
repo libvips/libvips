@@ -677,7 +677,7 @@ vips__png_ispng( const char *filename )
 {
 	unsigned char buf[8];
 
-	return( vips__get_bytes( filename, buf, 8 ) &&
+	return( vips__get_bytes( filename, buf, 8 ) == 8 &&
 		vips__png_ispng_buffer( buf, 8 ) ); 
 }
 

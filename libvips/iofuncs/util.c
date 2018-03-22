@@ -844,33 +844,28 @@ vips__file_write( void *data, size_t size, size_t nmemb, FILE *stream )
 	return( 0 );
 }
 
-/* Read a few bytes from the start of a file. For sniffing file types.
- * Filename may contain a mode. 
+/* Read a few bytes from the start of a file. This is used for sniffing file 
+ * types, so we must read binary. 
+ *
+ * Return the number of bytes actually read (the file might be shorter than
+ * len), or 0 for error.
  */
-int
-vips__get_bytes( const char *filename, unsigned char buf[], int len )
+guint64
+vips__get_bytes( const char *filename, unsigned char buf[], guint64 len )
 {
-	char name[FILENAME_MAX];
-	char mode[FILENAME_MAX];
 	int fd;
-
-	/* Split off the mode part.
-	 */
-	im_filename_split( filename, name, mode );
+	guint64 bytes_read;
 
 	/* File may not even exist (for tmp images for example!)
 	 * so no hasty messages. And the file might be truncated, so no error
 	 * on read either.
 	 */
-	if( (fd = vips__open_read( name )) == -1 )
+	if( (fd = vips__open_read( filename )) == -1 )
 		return( 0 );
-	if( read( fd, buf, len ) != len ) {
-		close( fd );
-		return( 0 );
-	}
+	bytes_read = read( fd, buf, len );
 	close( fd );
 
-	return( 1 );
+	return( bytes_read );
 }
 
 /* We try to support stupid DOS files too. These have \r\n (13, 10) as line
