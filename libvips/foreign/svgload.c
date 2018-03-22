@@ -350,82 +350,6 @@ typedef VipsForeignLoadSvgClass VipsForeignLoadSvgFileClass;
 G_DEFINE_TYPE( VipsForeignLoadSvgFile, vips_foreign_load_svg_file, 
 	vips_foreign_load_svg_get_type() );
 
-static int
-vips_foreign_load_svg_file_header( VipsForeignLoad *load )
-{
-	VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) load;
-	VipsForeignLoadSvgFile *file = (VipsForeignLoadSvgFile *) load;
-
-	GError *error = NULL;
-
-	if( !(svg->page = rsvg_handle_new_from_file( 
-		file->filename, &error )) ) { 
-		vips_g_error( &error );
-		return( -1 ); 
-	}
-
-	VIPS_SETSTR( load->out->filename, file->filename );
-
-	return( vips_foreign_load_svg_header( load ) );
-}
-
-static const char *vips_foreign_svg_suffs[] = {
-	".svg",
-	/* librsvg supports svgz directly, no need to check for zlib here.
-	 */
-#if LIBRSVG_CHECK_FEATURE(SVGZ)
-	".svgz",
-	".svg.gz",
-#endif
-	NULL
-};
-
-static void
-vips_foreign_load_svg_file_class_init( 
-	VipsForeignLoadSvgFileClass *class )
-{
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
-	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
-
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
-
-	object_class->nickname = "svgload";
-
-	foreign_class->suffs = vips_foreign_svg_suffs;
-
-	load_class->header = vips_foreign_load_svg_file_header;
-
-	VIPS_ARG_STRING( class, "filename", 1, 
-		_( "Filename" ),
-		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadSvgFile, filename ),
-		NULL );
-
-}
-
-static void
-vips_foreign_load_svg_file_init( VipsForeignLoadSvgFile *file )
-{
-}
-
-typedef struct _VipsForeignLoadSvgBuffer {
-	VipsForeignLoadSvg parent_object;
-
-	/* Load from a buffer.
-	 */
-	VipsArea *buf;
-
-} VipsForeignLoadSvgBuffer;
-
-typedef VipsForeignLoadSvgClass VipsForeignLoadSvgBufferClass;
-
-G_DEFINE_TYPE( VipsForeignLoadSvgBuffer, vips_foreign_load_svg_buffer, 
-	vips_foreign_load_svg_get_type() );
-
 #ifdef HANDLE_SVGZ
 static void *
 vips_foreign_load_svg_zalloc( void *opaque, unsigned items, unsigned size )
@@ -525,6 +449,92 @@ vips_foreign_load_svg_is_a_buffer( const void *buf, size_t len )
 
 	return( FALSE );
 }
+
+static gboolean
+vips_foreign_load_svg_is_a( const char *filename )
+{
+	unsigned char buf[300];
+
+	return( vips__get_bytes( filename, buf, 300 ) &&
+		vips_foreign_load_svg_is_a_buffer( buf, 300 ) );
+}
+
+static int
+vips_foreign_load_svg_file_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) load;
+	VipsForeignLoadSvgFile *file = (VipsForeignLoadSvgFile *) load;
+
+	GError *error = NULL;
+
+	if( !(svg->page = rsvg_handle_new_from_file( 
+		file->filename, &error )) ) { 
+		vips_g_error( &error );
+		return( -1 ); 
+	}
+
+	VIPS_SETSTR( load->out->filename, file->filename );
+
+	return( vips_foreign_load_svg_header( load ) );
+}
+
+static const char *vips_foreign_svg_suffs[] = {
+	".svg",
+	/* librsvg supports svgz directly, no need to check for zlib here.
+	 */
+#if LIBRSVG_CHECK_FEATURE(SVGZ)
+	".svgz",
+	".svg.gz",
+#endif
+	NULL
+};
+
+static void
+vips_foreign_load_svg_file_class_init( 
+	VipsForeignLoadSvgFileClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "svgload";
+
+	foreign_class->suffs = vips_foreign_svg_suffs;
+
+	load_class->is_a = vips_foreign_load_svg_is_a;
+	load_class->header = vips_foreign_load_svg_file_header;
+
+	VIPS_ARG_STRING( class, "filename", 1, 
+		_( "Filename" ),
+		_( "Filename to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadSvgFile, filename ),
+		NULL );
+
+}
+
+static void
+vips_foreign_load_svg_file_init( VipsForeignLoadSvgFile *file )
+{
+}
+
+typedef struct _VipsForeignLoadSvgBuffer {
+	VipsForeignLoadSvg parent_object;
+
+	/* Load from a buffer.
+	 */
+	VipsArea *buf;
+
+} VipsForeignLoadSvgBuffer;
+
+typedef VipsForeignLoadSvgClass VipsForeignLoadSvgBufferClass;
+
+G_DEFINE_TYPE( VipsForeignLoadSvgBuffer, vips_foreign_load_svg_buffer, 
+	vips_foreign_load_svg_get_type() );
 
 static int
 vips_foreign_load_svg_buffer_header( VipsForeignLoad *load )
