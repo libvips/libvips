@@ -7,6 +7,7 @@
 - hough_circle is 2x faster
 - add vips_sobel() and vips_canny() edge detectors
 - add vips_rotate() ... a convenience method for vips_similarity()
+- svgload was missing is_a [lovell]
 
 12/3/18 started 8.6.4
 - better fitting of fonts with overhanging edges, thanks Adrià 

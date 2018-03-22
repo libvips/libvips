@@ -12,6 +12,8 @@
  * 	- limit max tile width to 30k pixels to prevent overflow in render
  * 17/9/17 lovell
  * 	- handle scaling of svg files missing width and height attributes
+ * 22/3/18 lovell
+ * 	- svgload was missing is_a
  */
 
 /*
@@ -105,6 +107,108 @@ typedef VipsForeignLoadClass VipsForeignLoadSvgClass;
 
 G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadSvg, vips_foreign_load_svg, 
 	VIPS_TYPE_FOREIGN_LOAD );
+
+#ifdef HANDLE_SVGZ
+static void *
+vips_foreign_load_svg_zalloc( void *opaque, unsigned items, unsigned size )
+{
+	return( g_malloc0_n( items, size ) );
+}
+
+static void
+vips_foreign_load_svg_zfree( void *opaque, void *ptr )
+{
+	return( g_free( ptr ) );
+}
+#endif /*HANDLE_SVGZ*/
+
+/* This is used by both the file and buffer subclasses.
+ */
+static gboolean
+vips_foreign_load_svg_is_a( const void *buf, size_t len )
+{
+	char *str;
+
+#ifdef HANDLE_SVGZ
+	/* If the buffer looks like a zip, deflate to here and then search
+	 * that for <svg.
+	 */
+	char obuf[224];
+#endif /*HANDLE_SVGZ*/
+
+	int i;
+
+	/* Start with str pointing at the argument buffer, swap to it pointing
+	 * into obuf if we see zip data.
+	 */
+	str = (char *) buf;
+
+#ifdef HANDLE_SVGZ
+	/* Check for SVGZ gzip signature and inflate.
+	 *
+	 * Minimum gzip size is 18 bytes, starting with 1F 8B.
+	 */
+	if( len >= 18 && 
+		str[0] == '\037' && 
+		str[1] == '\213' ) {
+		z_stream zs;
+		size_t opos;
+
+		zs.zalloc = (alloc_func) vips_foreign_load_svg_zalloc;
+		zs.zfree = (free_func) vips_foreign_load_svg_zfree;
+		zs.opaque = Z_NULL;
+		zs.next_in = (unsigned char *) str;
+		zs.avail_in = len;
+
+		/* There isn't really an error return from is_a_buffer()
+		 */
+		if( inflateInit2( &zs, 15 | 32 ) != Z_OK ) 
+			return( FALSE );
+
+		opos = 0;
+		do {
+			zs.avail_out = sizeof( obuf ) - opos;
+			zs.next_out = (unsigned char *) obuf + opos;
+			if( inflate( &zs, Z_NO_FLUSH ) < Z_OK ) 
+				return( FALSE );
+			opos = sizeof( obuf ) - zs.avail_out;
+		} while( opos < sizeof( obuf ) && 
+			zs.avail_in > 0 );
+
+		inflateEnd( &zs );
+
+		str = obuf;
+		len = opos;
+	}
+#endif /*HANDLE_SVGZ*/
+
+	/* SVG documents are very freeform. They normally look like:
+	 *
+	 * <?xml version="1.0" encoding="UTF-8"?>
+	 * <svg xmlns="http://www.w3.org/2000/svg" ...
+	 *
+	 * But there can be a doctype in there too. And case and whitespace can
+	 * vary a lot. And the <?xml can be missing. And you can have a comment
+	 * before the <svg line.
+	 *
+	 * Simple rules:
+	 * - first 24 chars are plain ascii
+	 * - first 300 chars contain "<svg", upper or lower case.
+	 *
+	 * We could rsvg_handle_new_from_data() on the buffer, but that can be
+	 * horribly slow for large documents. 
+	 */
+	if( len < 24 )
+		return( 0 );
+	for( i = 0; i < 24; i++ )
+		if( !isascii( str[i] ) )
+			return( FALSE );
+	for( i = 0; i < 300 && i < len - 5; i++ )
+		if( g_ascii_strncasecmp( str + i, "<svg", 4 ) == 0 )
+			return( TRUE );
+
+	return( FALSE );
+}
 
 static void
 vips_foreign_load_svg_dispose( GObject *gobject )
@@ -350,113 +454,13 @@ typedef VipsForeignLoadSvgClass VipsForeignLoadSvgFileClass;
 G_DEFINE_TYPE( VipsForeignLoadSvgFile, vips_foreign_load_svg_file, 
 	vips_foreign_load_svg_get_type() );
 
-#ifdef HANDLE_SVGZ
-static void *
-vips_foreign_load_svg_zalloc( void *opaque, unsigned items, unsigned size )
-{
-	return( g_malloc0_n( items, size ) );
-}
-
-static void
-vips_foreign_load_svg_zfree( void *opaque, void *ptr )
-{
-	return( g_free( ptr ) );
-}
-#endif /*HANDLE_SVGZ*/
-
 static gboolean
-vips_foreign_load_svg_is_a_buffer( const void *buf, size_t len )
-{
-	char *str;
-
-#ifdef HANDLE_SVGZ
-	/* If the buffer looks like a zip, deflate to here and then search
-	 * that for <svg.
-	 */
-	char obuf[224];
-#endif /*HANDLE_SVGZ*/
-
-	int i;
-
-	/* Start with str pointing at the argument buffer, swap to it pointing
-	 * into obuf if we see zip data.
-	 */
-	str = (char *) buf;
-
-#ifdef HANDLE_SVGZ
-	/* Check for SVGZ gzip signature and inflate.
-	 *
-	 * Minimum gzip size is 18 bytes, starting with 1F 8B.
-	 */
-	if( len >= 18 && 
-		str[0] == '\037' && 
-		str[1] == '\213' ) {
-		z_stream zs;
-		size_t opos;
-
-		zs.zalloc = (alloc_func) vips_foreign_load_svg_zalloc;
-		zs.zfree = (free_func) vips_foreign_load_svg_zfree;
-		zs.opaque = Z_NULL;
-		zs.next_in = (unsigned char *) str;
-		zs.avail_in = len;
-
-		/* There isn't really an error return from is_a_buffer()
-		 */
-		if( inflateInit2( &zs, 15 | 32 ) != Z_OK ) 
-			return( FALSE );
-
-		opos = 0;
-		do {
-			zs.avail_out = sizeof( obuf ) - opos;
-			zs.next_out = (unsigned char *) obuf + opos;
-			if( inflate( &zs, Z_NO_FLUSH ) < Z_OK ) 
-				return( FALSE );
-			opos = sizeof( obuf ) - zs.avail_out;
-		} while( opos < sizeof( obuf ) && 
-			zs.avail_in > 0 );
-
-		inflateEnd( &zs );
-
-		str = obuf;
-		len = opos;
-	}
-#endif /*HANDLE_SVGZ*/
-
-	/* SVG documents are very freeform. They normally look like:
-	 *
-	 * <?xml version="1.0" encoding="UTF-8"?>
-	 * <svg xmlns="http://www.w3.org/2000/svg" ...
-	 *
-	 * But there can be a doctype in there too. And case and whitespace can
-	 * vary a lot. And the <?xml can be missing. And you can have a comment
-	 * before the <svg line.
-	 *
-	 * Simple rules:
-	 * - first 24 chars are plain ascii
-	 * - first 300 chars contain "<svg", upper or lower case.
-	 *
-	 * We could rsvg_handle_new_from_data() on the buffer, but that can be
-	 * horribly slow for large documents. 
-	 */
-	if( len < 24 )
-		return( 0 );
-	for( i = 0; i < 24; i++ )
-		if( !isascii( str[i] ) )
-			return( FALSE );
-	for( i = 0; i < 300 && i < len - 5; i++ )
-		if( g_ascii_strncasecmp( str + i, "<svg", 4 ) == 0 )
-			return( TRUE );
-
-	return( FALSE );
-}
-
-static gboolean
-vips_foreign_load_svg_is_a( const char *filename )
+vips_foreign_load_svg_file_is_a( const char *filename )
 {
 	unsigned char buf[300];
 
 	return( vips__get_bytes( filename, buf, 300 ) &&
-		vips_foreign_load_svg_is_a_buffer( buf, 300 ) );
+		vips_foreign_load_svg_is_a( buf, 300 ) );
 }
 
 static int
@@ -505,7 +509,7 @@ vips_foreign_load_svg_file_class_init(
 
 	foreign_class->suffs = vips_foreign_svg_suffs;
 
-	load_class->is_a = vips_foreign_load_svg_is_a;
+	load_class->is_a = vips_foreign_load_svg_file_is_a;
 	load_class->header = vips_foreign_load_svg_file_header;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
@@ -567,7 +571,7 @@ vips_foreign_load_svg_buffer_class_init(
 
 	object_class->nickname = "svgload_buffer";
 
-	load_class->is_a_buffer = vips_foreign_load_svg_is_a_buffer;
+	load_class->is_a_buffer = vips_foreign_load_svg_is_a;
 	load_class->header = vips_foreign_load_svg_buffer_header;
 
 	VIPS_ARG_BOXED( class, "buffer", 1, 
