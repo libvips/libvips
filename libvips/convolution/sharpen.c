@@ -405,10 +405,9 @@ vips_sharpen_init( VipsSharpen *sharpen )
  * Selectively sharpen the L channel of a LAB image. The input image is
  * transformed to #VIPS_INTERPRETATION_LABS. 
  *
- * The operation performs a gaussian blur of radius @radius and subtracts 
- * from @in to generate a high-frequency signal. This signal is passed 
- * through a lookup table formed from the five parameters and added back to 
- * @in.
+ * The operation performs a gaussian blur and subtracts from @in to generate a
+ * high-frequency signal. This signal is passed through a lookup table formed
+ * from the five parameters and added back to @in.
  *
  * The lookup table is formed like this:
  *
