@@ -70,7 +70,8 @@ vips_scan_headers = \
 	${top_srcdir}/libvips/include/vips/morphology.h \
 	${top_srcdir}/libvips/include/vips/draw.h \
 	${top_srcdir}/libvips/include/vips/basic.h \
-	${top_srcdir}/libvips/include/vips/object.h
+	${top_srcdir}/libvips/include/vips/object.h \
+	${top_srcdir}/libvips/include/vips/region.h
 
 enumtypes.c: $(vips_scan_headers) Makefile.am
 	glib-mkenums --template enumtemplate $(vips_scan_headers) > enumtypes.c
