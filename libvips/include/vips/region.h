@@ -55,6 +55,12 @@ extern "C" {
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 	VIPS_TYPE_REGION, VipsRegionClass ))
 
+typedef enum {
+	VIPS_REGION_SHRINK_MEAN,
+	VIPS_REGION_SHRINK_MEDIAN,
+	VIPS_REGION_SHRINK_LAST
+} VipsRegionShrink;
+
 /* Sub-area of image.
  */
 typedef struct _VipsRegion {
@@ -115,13 +121,14 @@ void vips_region_paint( VipsRegion *reg, const VipsRect *r, int value );
 void vips_region_paint_pel( VipsRegion *reg, 
 	const VipsRect *r, const VipsPel *ink );
 void vips_region_black( VipsRegion *reg );
-void vips_region_copy( VipsRegion *reg, VipsRegion *dest, 
+void vips_region_copy( VipsRegion *reg, VipsRegion *dest,
 	const VipsRect *r, int x, int y );
-int vips_region_shrink( VipsRegion *from, 
-	VipsRegion *to, const VipsRect *target );
+int vips_region_shrink( VipsRegion *from,
+	VipsRegion *to, const VipsRect *target,
+	VipsRegionShrink method );
 
 int vips_region_prepare( VipsRegion *reg, const VipsRect *r );
-int vips_region_prepare_to( VipsRegion *reg, 
+int vips_region_prepare_to( VipsRegion *reg,
 	VipsRegion *dest, const VipsRect *r, int x, int y );
 
 void vips_region_invalidate( VipsRegion *reg );
