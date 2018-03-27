@@ -501,7 +501,7 @@ vips_bandjoin_const1( VipsImage *in, VipsImage **out, double c, ... )
 
 /* vips_addalpha:
  * @in: input image
- * @out: output image
+ * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
  * Append an alpha channel.
