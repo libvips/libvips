@@ -1392,7 +1392,8 @@ layer_strip_shrink( Layer *layer )
 		if( vips_rect_isempty( &target ) )
 			break;
 
-		(void) vips_region_shrink( from, to, &target, VIPS_REGION_SHRINK_MEAN );
+		(void) vips_region_shrink( from, to, &target,
+			VIPS_REGION_SHRINK_MEAN );
 
 		below->write_y += target.height;
 

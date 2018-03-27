@@ -1204,10 +1204,16 @@ vips_region_shrink_labpack( VipsRegion *from,
 		q += ps; \
 	}
 
-// This *DOES* gurantee the result is taken from one of the input values
-// It therefore does *NOT* interpolate between the two middle values
-// It is *NOT* stable with respect to the set of values
-// It *IS* however stable with respect to the initial arrangement of values
+/* This method is implemented so as to perform well and to always select an
+ * output pixel from one of the input pixels. As such we make only the
+ * following guarantees:
+ *
+ * ONLY works for non-complex uncoded images pixel types
+ * ALWAYS draws from the input values
+ * NEVER interpolates
+ * NOT stable with respect to the ordered set of input values
+ * IS stable with respect to the initial arrangement of input values
+ */
 #define SHRINK_TYPE_MEDIAN( TYPE ) \
 	for( x = 0; x < target->width; x++ ) { \
 		TYPE *tp = (TYPE *) p; \
@@ -1215,7 +1221,10 @@ vips_region_shrink_labpack( VipsRegion *from,
 		TYPE *tq = (TYPE *) q; \
 		\
 		for( z = 0; z < nb; z++ ) { \
-            tq[z] = VIPS_MIN( VIPS_MAX( tp[z], tp[z + nb] ), VIPS_MAX( tp1[z], tp1[z + nb] ) ); \
+        		tq[z] = VIPS_MIN( \
+					VIPS_MAX( tp[z], tp[z + nb] ), \
+					VIPS_MAX( tp1[z], tp1[z + nb] ) \
+				); \
 		} \
 		\
 		/* Move on two pels in input. \
@@ -1320,9 +1329,11 @@ vips_region_shrink_uncoded( VipsRegion *from,
 {
 	switch( method ) {
 		case VIPS_REGION_SHRINK_MEAN:
-			vips_region_shrink_uncoded_mean( from, to, target );  break;
+			vips_region_shrink_uncoded_mean( from, to, target );
+			break;
 		case VIPS_REGION_SHRINK_MEDIAN:
-			vips_region_shrink_uncoded_median( from, to, target );  break;
+			vips_region_shrink_uncoded_median( from, to, target );
+			break;
 
 		default:
 			g_assert_not_reached();
@@ -1426,7 +1437,8 @@ vips_region_shrink_alpha( VipsRegion *from,
  * See also: vips_region_copy().
  */
 int
-vips_region_shrink( VipsRegion *from, VipsRegion *to, const VipsRect *target, VipsRegionShrink method )
+vips_region_shrink( VipsRegion *from, VipsRegion *to, const VipsRect *target,
+	VipsRegionShrink method )
 {
 	VipsImage *image = from->im;
 
