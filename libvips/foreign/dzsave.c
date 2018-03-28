@@ -1356,6 +1356,8 @@ strip_shrink( Layer *layer )
 	Layer *below = layer->below;
 	VipsRegion *from = layer->strip;
 	VipsRegion *to = below->strip;
+	VipsForeignSaveDz *dz = layer->dz;
+	VipsRegionShrink region_shrink = dz->region_shrink;
 
 	VipsRect target;
 	VipsRect source;
@@ -1406,7 +1408,7 @@ strip_shrink( Layer *layer )
 			break;
 
 		(void) vips_region_shrink( from, to, &target,
-			VIPS_REGION_SHRINK_MEAN );
+			region_shrink );
 
 		below->write_y += target.height;
 
