@@ -1233,6 +1233,36 @@ vips_region_shrink_labpack( VipsRegion *from,
 		q += ps; \
 	}
 
+/* This method is implemented so as to perform well and to always select an
+ * output pixel from one of the input pixels. As such we make only the
+ * following guarantees:
+ *
+ * ONLY works for non-complex uncoded images pixel types
+ * ALWAYS draws from the input values
+ * NEVER interpolates
+ * NOT stable with respect to the ordered set of input values
+ * IS stable with respect to the initial arrangement of input values
+ */
+#define SHRINK_TYPE_MODE( TYPE ) \
+	for( x = 0; x < target->width; x++ ) { \
+		TYPE *tp = (TYPE *) p; \
+		TYPE *tp1 = (TYPE *) (p + ls); \
+		TYPE *tq = (TYPE *) q; \
+		\
+		for( z = 0; z < nb; z++ ) { \
+			TYPE v[] = {tp[z], tp[z + nb], tp1[z], tp1[z + nb]}; \
+		    	int b0 = (v[0] == v[1]) | (v[0] == v[2]) | (v[0] == v[3]); \
+    			int b1 = (v[1] == v[0]) | (v[1] == v[2]) | (v[1] == v[3]); \
+    			int index = ((~b0) & 0x1) + (~(b0 ^ b1) & 0x1); \
+        		tq[z] = v[index]; \
+		} \
+		\
+		/* Move on two pels in input. \
+		 */ \
+		p += ps << 1; \
+		q += ps; \
+	}
+
 /* Generate area @target in @to using pixels in @from. Non-complex.
  */
 static void
@@ -1324,6 +1354,50 @@ vips_region_shrink_uncoded_median( VipsRegion *from,
 /* Generate area @target in @to using pixels in @from. Non-complex.
  */
 static void
+vips_region_shrink_uncoded_mode( VipsRegion *from,
+	VipsRegion *to, const VipsRect *target )
+{
+	int ls = VIPS_REGION_LSKIP( from );
+	int ps = VIPS_IMAGE_SIZEOF_PEL( from->im );
+	int nb = from->im->Bands;
+
+	int x, y, z;
+
+	for( y = 0; y < target->height; y++ ) {
+		VipsPel *p = VIPS_REGION_ADDR( from,
+			target->left * 2, (target->top + y) * 2 );
+		VipsPel *q = VIPS_REGION_ADDR( to,
+			target->left, target->top + y );
+
+		/* Process this line of pels.
+		 */
+		switch( from->im->BandFmt ) {
+		case VIPS_FORMAT_UCHAR:
+			SHRINK_TYPE_MODE( unsigned char );  break;
+		case VIPS_FORMAT_CHAR:
+			SHRINK_TYPE_MODE( signed char );  break;
+		case VIPS_FORMAT_USHORT:
+			SHRINK_TYPE_MODE( unsigned short );  break;
+		case VIPS_FORMAT_SHORT:
+			SHRINK_TYPE_MODE( signed short );  break;
+		case VIPS_FORMAT_UINT:
+			SHRINK_TYPE_MODE( unsigned int );  break;
+		case VIPS_FORMAT_INT:
+			SHRINK_TYPE_MODE( signed int );  break;
+		case VIPS_FORMAT_FLOAT:
+			SHRINK_TYPE_MODE( float );  break;
+		case VIPS_FORMAT_DOUBLE:
+			SHRINK_TYPE_MODE( double );  break;
+
+		default:
+			g_assert_not_reached();
+		}
+	}
+}
+
+/* Generate area @target in @to using pixels in @from. Non-complex.
+ */
+static void
 vips_region_shrink_uncoded( VipsRegion *from,
 	VipsRegion *to, const VipsRect *target, VipsRegionShrink method )
 {
@@ -1333,6 +1407,9 @@ vips_region_shrink_uncoded( VipsRegion *from,
 			break;
 		case VIPS_REGION_SHRINK_MEDIAN:
 			vips_region_shrink_uncoded_median( from, to, target );
+			break;
+		case VIPS_REGION_SHRINK_MODE:
+			vips_region_shrink_uncoded_mode( from, to, target );
 			break;
 
 		default:

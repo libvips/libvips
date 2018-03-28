@@ -59,12 +59,14 @@ extern "C" {
  * VipsRegionShrink:
  * @VIPS_REGION_SHRINK_MEAN: use the average
  * @VIPS_REGION_SHRINK_MEDIAN: use the median
+ * @VIPS_REGION_SHRINK_MODE: use the mode
  *
  * How to calculate the output pixels when shrinking a 2x2 region.
  */
 typedef enum {
 	VIPS_REGION_SHRINK_MEAN,
 	VIPS_REGION_SHRINK_MEDIAN,
+	VIPS_REGION_SHRINK_MODE,
 	VIPS_REGION_SHRINK_LAST
 } VipsRegionShrink;
 

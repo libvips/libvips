@@ -876,6 +876,7 @@ vips_region_shrink_get_type( void )
 		static const GEnumValue values[] = {
 			{VIPS_REGION_SHRINK_MEAN, "VIPS_REGION_SHRINK_MEAN", "mean"},
 			{VIPS_REGION_SHRINK_MEDIAN, "VIPS_REGION_SHRINK_MEDIAN", "median"},
+			{VIPS_REGION_SHRINK_MODE, "VIPS_REGION_SHRINK_MODE", "mode"},
 			{VIPS_REGION_SHRINK_LAST, "VIPS_REGION_SHRINK_LAST", "last"},
 			{0, NULL, NULL}
 		};
