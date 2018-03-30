@@ -757,13 +757,15 @@ AC_ARG_WITH([pdfium],
 
 if test x"$with_pdfium" != x"no"; then
   FIND_PDFIUM([
-    AC_MSG_WARN([PDFium found, disabling poppler])
-    with_pdfium=yes
-    with_poppler=no
-  ],[
-    AC_MSG_WARN([PDFium not found])
-    with_pdfium=no
-  ])
+     if test x"$with_poppler" != x"no"; then
+       AC_MSG_WARN([PDFium found, disabling poppler])
+       with_poppler=no
+     fi
+     with_pdfium=yes
+    ],[
+     with_pdfium=no
+    ]
+  )
 fi
 
 # poppler

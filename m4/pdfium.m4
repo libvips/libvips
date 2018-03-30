@@ -28,12 +28,10 @@ fi
 # -L/-l as usual, since the libjpeg.a here will break our -ljpeg later.
 # Instead, just add these .a files plus their path to the list of objects to 
 # link.
-pdfium_objects="libbigint.a libchrome_zlib.a libfdrm.a libformfiller.a \
-	libfpdfapi.a libfpdfdoc.a libfpdftext.a libfx_agg.a libfxcodec.a \
-	libfxcrt.a libfx_freetype.a libfxge.a libfxjs.a libfx_lcms2.a \
-	libfx_libopenjpeg.a libfx_lpng.a libgmock_main.a libimage_diff.a \
-	libjpeg.a libminizip.a libpdfium.a libpwl.a libsimd.a \
-	libsimd_asm.a libyasm_utils.a libzlib_x86_simd.a"
+pdfium_objects="libpdfium.a libfpdfapi.a libfxge.a libfpdfdoc.a \
+	libfxcrt.a libfx_agg.a libfxcodec.a libfx_lpng.a libfx_libopenjpeg.a  \
+	libfx_lcms2.a libfx_freetype.a libjpeg.a libfdrm.a libpwl.a \
+	libbigint.a libformfiller.a"
 
 AC_ARG_WITH(pdfium-includes,
   AS_HELP_STRING([--with-pdfium-includes=DIR], [pdfium includes are in DIR]),
@@ -52,10 +50,11 @@ if test "$PDFIUM_INCLUDES" = ""; then
   CPPFLAGS="-I${prefix}/include $CPPFLAGS"
 
   AC_TRY_COMPILE([#include <fpdfview.h>],[int a;],[
-    PDFIUM_INCLUDES="-I${prefix}/include"
-  ], [
-    PDFIUM_INCLUDES="no"
-  ])
+     PDFIUM_INCLUDES="-I${prefix}/include"
+    ], [
+     PDFIUM_INCLUDES="no"
+    ]
+  )
 
   CPPFLAGS="$pdfium_save_CPPFLAGS"
 fi
@@ -68,16 +67,16 @@ if test "$PDFIUM_LIBS" = ""; then
   for i in $pdfium_objects; do
     LIBS="$prefix/lib/$i $LIBS"
   done
+  LIBS="$LIBS -L$prefix/lib -lc++ -licuuc -lm -lpthread"
   CPPFLAGS="$PDFIUM_INCLUDES $CPPFLAGS"
 
   AC_TRY_LINK([#include <fpdfview.h>],
     [FPDF_DOCUMENT doc; doc = FPDF_LoadDocument("", "")], [
-      echo link success
-      PDFIUM_LIBS="${prefix}/lib"
+     PDFIUM_LIBS="${prefix}/lib"
     ], [
-      echo link fail
-      PDFIUM_LIBS=no
-  ])
+     PDFIUM_LIBS=no
+    ]
+  )
 
   LIBS="$pdfium_save_LIBS"
   CPPFLAGS="$pdfium_save_CPPFLAGS"
@@ -109,6 +108,8 @@ if test x"$PDFIUM_LIBS" != x"no"; then
   for i in $pdfium_objects; do
     PDFIUM_LIBS="$PDFIUM_LIBS $dir/$i"
   done
+  # needs -lm -lpthread too, but they will be added by other packages
+  PDFIUM_LIBS="$PDFIUM_LIBS -L$dir/lib -lc++ -licuuc"
 fi
 
 AC_SUBST(PDFIUM_LIBS)
@@ -116,7 +117,8 @@ AC_SUBST(PDFIUM_INCLUDES)
 
 # Finally, execute ACTION-IF-FOUND/ACTION-IF-NOT-FOUND:
 if test "$PDFIUM_INCLUDES" != "no" && test "$PDFIUM_LIBS" != "no"; then
-  AC_DEFINE(HAVE_PDFIUM,1,[Define if you have pdfium libraries and header files.])
+  AC_DEFINE(HAVE_PDFIUM,1,
+    [Define if you have pdfium libraries and header files.])
   $1
 else
   PDFIUM_INCLUDES=""
