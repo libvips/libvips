@@ -69,12 +69,12 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <fcntl.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #ifdef HAVE_SYS_FILE_H
 #include <sys/file.h>
 #endif /*HAVE_SYS_FILE_H*/
-#include <sys/stat.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
@@ -189,6 +189,15 @@ vips__open_image_write( const char *filename, gboolean temp )
 	if( temp )
 		flags |= _O_TEMPORARY;
 #endif /*_O_TEMPORARY*/
+
+#ifdef O_TMPFILE
+	/* Added in linux 3.11, but still not available in most glibc. We
+	 * unlink the file ourselves anyway, so it doesn't matter if this
+	 * fails. 
+	 */
+	if( temp ) 
+		flags |= O_TMPFILE;
+#endif /*O_TMPFILE*/
 
 	if( (fd = vips_tracked_open( filename, flags, 0666 )) < 0 ) {
 		vips_error_system( errno, "VipsImage", 

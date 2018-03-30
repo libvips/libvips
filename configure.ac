@@ -751,6 +751,21 @@ if test x"$with_OpenEXR" != "xno"; then
   )
 fi
 
+# pdfium
+AC_ARG_WITH([pdfium],
+  AS_HELP_STRING([--without-pdfium], [build without pdfium (default: test)]))
+
+if test x"$with_pdfium" != x"no"; then
+  FIND_PDFIUM([
+    AC_MSG_WARN([PDFium found, disabling poppler])
+    with_pdfium=yes
+    with_poppler=no
+  ],[
+    AC_MSG_WARN([PDFium not found])
+    with_pdfium=no
+  ])
+fi
+
 # poppler
 AC_ARG_WITH([poppler],
   AS_HELP_STRING([--without-poppler], [build without poppler (default: test)]))
@@ -1253,6 +1268,7 @@ file import with OpenEXR: 		$with_OpenEXR
 file import with OpenSlide:		$with_openslide
   (requires openslide-3.3.0 or later)
 file import with matio: 		$with_matio
+PDF import with PDFium 			$with_pdfium
 PDF import with poppler-glib: 		$with_poppler
   (requires poppler-glib 0.16.0 or later)
 SVG import with librsvg-2.0: 		$with_rsvg
