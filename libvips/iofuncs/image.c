@@ -12,8 +12,10 @@
  * 	- vips_image_write() does not ref input for non-partial images
  * 29/10/16
  * 	- add vips_image_hasalpha()
- * 11/10/1
+ * 11/10/17
  * 	- more severing for vips_image_write()
+ * 3/4/18
+ * 	- better rules for hasalpha
  */
 
 /*
@@ -2866,18 +2868,47 @@ vips_image_ispartial( VipsImage *image )
  * vips_image_hasalpha: (method)
  * @image: image to check
  *
- * libvips assumes an image has an alpha if it has two bands (ie. it is a
- * monochrome image with an extra band), if it has four bands (unless it's been
- * tagged as CMYK), or if it has more than four bands. 
+ * Look at an image's interpretation and see if it has extra alpha bands. For
+ * example, a 4-band #VIPS_INTERPRETATION_RGB would, but a six-band 
+ * #VIPS_INTERPRETATION_MULTIBAND would not. 
  *
  * Return %TRUE if @image has an alpha channel.
  */
 gboolean
 vips_image_hasalpha( VipsImage *image )
 {
-	return( image->Bands == 2 ||
-		(image->Bands == 4 && image->Type != VIPS_INTERPRETATION_CMYK) ||
-		image->Bands > 4 );
+	/* The result of hasalpha is used to turn on things like
+	 * premultiplication, so we are rather conservative about when we
+	 * signal this. We don't want to premultiply things that should not be
+	 * premultiplied.
+	 */
+	switch( image->Type ) { 
+	case VIPS_INTERPRETATION_B_W:
+	case VIPS_INTERPRETATION_GREY16:
+		return( image->Bands > 1 ); 
+
+	case VIPS_INTERPRETATION_RGB:
+	case VIPS_INTERPRETATION_CMC:
+	case VIPS_INTERPRETATION_LCH:
+	case VIPS_INTERPRETATION_LABS:
+	case VIPS_INTERPRETATION_sRGB:
+	case VIPS_INTERPRETATION_YXY:
+	case VIPS_INTERPRETATION_XYZ:
+	case VIPS_INTERPRETATION_LAB:
+	case VIPS_INTERPRETATION_RGB16:
+	case VIPS_INTERPRETATION_scRGB:
+	case VIPS_INTERPRETATION_HSV:
+		return( image->Bands > 3 ); 
+
+	case VIPS_INTERPRETATION_CMYK:
+		return( image->Bands > 4 ); 
+
+	default:
+		/* We can't really infer anything about bands from things like
+		 * HISTOGRAM or FOURIER.
+		 */
+		return( FALSE ); 
+	}
 }
 
 /**
