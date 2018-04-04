@@ -11,6 +11,7 @@
 - better header sniffing for small files
 - drop incompatible ICC profiles before save
 - better hasalpha rules
+- create funcs always make MULTIBAND (ie. no alpha)
 
 12/3/18 started 8.6.4
 - better fitting of fonts with overhanging edges, thanks Adrià 

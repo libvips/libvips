@@ -15,6 +15,9 @@
  * 	- gtkdoc
  * 31/10/11
  * 	- redo as a class
+ * 3/4/18
+ * 	- always write MULTIBAND, otherwise when we join up these things it'll
+ * 	  look like we have an alpha
  */
 
 /*
@@ -97,8 +100,7 @@ vips_black_build( VipsObject *object )
 	vips_image_init_fields( create->out,
 		black->width, black->height, black->bands, 
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
-                black->bands == 1 ? 
-			VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_MULTIBAND,
+                VIPS_INTERPRETATION_MULTIBAND,
 		1.0, 1.0 );
 	vips_image_pipelinev( create->out, 
 		VIPS_DEMAND_STYLE_ANY, NULL );
