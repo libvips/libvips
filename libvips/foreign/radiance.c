@@ -19,6 +19,8 @@
  *	- add buffer save functions   
  * 28/2/17
  * 	- use dbuf for buffer output
+ * 4/4/17
+ * 	- reduce stack use to help musl
  */
 
 /*
@@ -885,10 +887,12 @@ rle_scanline_write( COLR *scanline, int width,
 	}
 }
 
-/* Write a single scanline.
+/* Write a single scanline. buffer is at least MAX_LINE bytes and is used to
+ * construct the RLE scanline. Don't allocate this on the stack so we don't
+ * die too horribly on small-stack libc.
  */
 static int
-scanline_write( COLR *scanline, int width, FILE *fp )
+scanline_write( unsigned char *buffer, COLR *scanline, int width, FILE *fp )
 {
 	if( width < MINELEN || 
 		width > MAXELEN )
@@ -898,10 +902,11 @@ scanline_write( COLR *scanline, int width, FILE *fp )
 	else {
 		/* An RLE scanline.
 		 */
-		unsigned char buffer[MAX_LINE];
 		int length;
 
 		rle_scanline_write( scanline, width, buffer, &length );
+
+		g_assert( length <= MAX_LINE ); 
 
 		return( fwrite( buffer, 1, length, fp ) - length );
 	}
@@ -1290,12 +1295,18 @@ static int
 vips2rad_put_data_block( VipsRegion *region, VipsRect *area, void *a )
 {
 	Write *write = (Write *) a;
+	size_t size;
+	unsigned char *buffer = vips_dbuf_get_write( &write->dbuf, &size );
+
 	int i;
+
+	g_assert( size >= MAX_LINE ); 
 
 	for( i = 0; i < area->height; i++ ) {
 		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + i );
 
-		if( scanline_write( (COLR *) p, area->width, write->fout ) ) 
+		if( scanline_write( buffer, 
+			(COLR *) p, area->width, write->fout ) ) 
 			return( -1 );
 	}
 
@@ -1328,6 +1339,11 @@ vips__rad_save( VipsImage *in, const char *filename )
 
 	write->filename = vips_strdup( NULL, filename );
 	write->fout = vips__file_open_write( filename, FALSE );
+
+	/* scanline_write() needs a buffer to write compressed scanlines to.
+	 * We use the dbuf ... why not.
+	 */
+	vips_dbuf_allocate( &write->dbuf, MAX_LINE );
 
 	if( !write->filename || 
 		!write->fout ||
