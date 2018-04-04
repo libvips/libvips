@@ -1299,10 +1299,15 @@ static int
 vips2rad_put_data_block( VipsRegion *region, VipsRect *area, void *a )
 {
 	Write *write = (Write *) a;
-	size_t size;
-	unsigned char *buffer = vips_dbuf_get_write( &write->dbuf, &size );
 
+	size_t size;
+	unsigned char *buffer;
 	int i;
+
+	/* You have to seek back after a write.
+	 */
+	buffer = vips_dbuf_get_write( &write->dbuf, &size );
+	vips_dbuf_seek( &write->dbuf, 0, SEEK_SET ); 
 
 	g_assert( size >= MAX_LINE ); 
 
