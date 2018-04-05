@@ -24,15 +24,6 @@ if test "$with_pdfium" = "no"; then
   PDFIUM_LIBS=no
 fi
 
-# pdfium has a huge set of libraries, including its own jpeg ... we can't use
-# -L/-l as usual, since the libjpeg.a here will break our -ljpeg later.
-# Instead, just add these .a files plus their path to the list of objects to 
-# link.
-pdfium_objects="libpdfium.a libfpdfapi.a libfxge.a libfpdfdoc.a \
-	libfxcrt.a libfx_agg.a libfxcodec.a libfx_lpng.a libfx_libopenjpeg.a  \
-	libfx_lcms2.a libfx_freetype.a libjpeg.a libfdrm.a libpwl.a \
-	libbigint.a libformfiller.a"
-
 AC_ARG_WITH(pdfium-includes,
   AS_HELP_STRING([--with-pdfium-includes=DIR], [pdfium includes are in DIR]),
   PDFIUM_INCLUDES="-I$withval")
@@ -43,7 +34,9 @@ AC_ARG_WITH(pdfium-libraries,
 AC_MSG_CHECKING(for PDFIUM)
 
 # Look for fpdfview.h ... this is a documented header, so it should be a good
-# target ... it won't be in the standard search path, but try $PREFIX
+# target 
+#
+# it won't be in the standard search path, but try $PREFIX
 if test "$PDFIUM_INCLUDES" = ""; then
   pdfium_save_CPPFLAGS="$CPPFLAGS"
 
@@ -59,14 +52,13 @@ if test "$PDFIUM_INCLUDES" = ""; then
   CPPFLAGS="$pdfium_save_CPPFLAGS"
 fi
 
-# Now for the libraries ... if there's nothing set, try $PREFIX/lib
+# Now for the libraries ... if there's nothing set, try $PREFIX/lib and
+# $PREFIX/obj
 if test "$PDFIUM_LIBS" = ""; then
   pdfium_save_LIBS="$LIBS"
   pdfium_save_CPPFLAGS="$CPPFLAGS"
 
-  for i in $pdfium_objects; do
-    LIBS="$prefix/lib/$i $LIBS"
-  done
+  LIBS="$prefix/lib/pdfium-obj/*.a $LIBS"
   LIBS="$LIBS -L$prefix/lib -lc++ -licuuc -lm -lpthread"
   CPPFLAGS="$PDFIUM_INCLUDES $CPPFLAGS"
 
@@ -104,10 +96,7 @@ AC_MSG_RESULT([libraries $pdfium_libraries_result, headers $pdfium_includes_resu
 
 if test x"$PDFIUM_LIBS" != x"no"; then
   dir="$PDFIUM_LIBS"
-  PDFIUM_LIBS=""
-  for i in $pdfium_objects; do
-    PDFIUM_LIBS="$PDFIUM_LIBS $dir/$i"
-  done
+  PDFIUM_LIBS="$prefix/lib/pdfium-obj/*.a"
   # needs -lm -lpthread too, but they will be added by other packages
   PDFIUM_LIBS="$PDFIUM_LIBS -L$dir/lib -lc++ -licuuc"
 fi
