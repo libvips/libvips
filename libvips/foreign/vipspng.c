@@ -992,7 +992,8 @@ write_vips( Write *write,
 	/* If we're an intel byte order CPU and this is a 16bit image, we need
 	 * to swap bytes.
 	 */
-	if( bit_depth > 8 && !vips_amiMSBfirst() ) 
+	if( bit_depth > 8 && 
+		!vips_amiMSBfirst() ) 
 		png_set_swap( write->pPng ); 
 
 	if( interlace )	

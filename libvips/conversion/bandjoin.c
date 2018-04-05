@@ -499,7 +499,7 @@ vips_bandjoin_const1( VipsImage *in, VipsImage **out, double c, ... )
 	return( result );
 }
 
-/* vips_addalpha:
+/* vips_addalpha: (method)
  * @in: input image
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments

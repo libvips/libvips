@@ -9,9 +9,13 @@
 - add vips_rotate() ... a convenience method for vips_similarity()
 - svgload was missing is_a [lovell]
 - better header sniffing for small files
+- drop incompatible ICC profiles before save
+- better hasalpha rules
+- create funcs always make MULTIBAND (ie. no alpha)
 
 12/3/18 started 8.6.4
 - better fitting of fonts with overhanging edges, thanks Adrià 
+- lower stack use in radsave to help musl [Jacob Thrane Lund]
 
 12/2/18 started 8.6.3
 - use pkg-config to find libjpeg, if we can
