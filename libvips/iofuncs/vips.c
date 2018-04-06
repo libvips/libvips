@@ -50,6 +50,8 @@
 
  */
 
+#define _GNU_SOURCE
+
 /*
 #define SHOW_HEADER
 #define DEBUG
@@ -69,12 +71,12 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <fcntl.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #ifdef HAVE_SYS_FILE_H
 #include <sys/file.h>
 #endif /*HAVE_SYS_FILE_H*/
-#include <sys/stat.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
@@ -181,7 +183,16 @@ vips__open_image_write( const char *filename, gboolean temp )
 
 	flags = MODE_WRITE;
 
-#ifdef _O_TEMPORARY
+#ifdef O_TMPFILE
+        if( temp ) {
+		// open() with O_TMPFILE accepts directory name instead of file name
+		filename = g_path_get_dirname( filename );
+
+		flags |= O_TMPFILE;
+		flags &= ~O_CREAT;
+		flags &= ~O_TRUNC;
+	}
+#elif defined _O_TEMPORARY
 	/* On Windows, setting O_TEMP gets the file automatically
 	 * deleted on process exit, even if the processes crashes. See
 	 * vips_image_rewind() for what we do to help on *nix.
@@ -194,8 +205,20 @@ vips__open_image_write( const char *filename, gboolean temp )
 		vips_error_system( errno, "VipsImage", 
 			_( "unable to write to \"%s\"" ), 
 			filename );
-		return( -1 );
+		fd = -1;
 	}
+
+end:
+
+#if !defined O_TMPFILE
+	if( temp ) {
+		// hack: reset delete-on-close flag, because O_TMPFILE
+		// files don't have directory entry and thus can't be deleted
+		vips_image_set_delete_on_close( image, FALSE );
+
+		free( filename );
+	}
+#endif /* O_TMPFILE */
 
 	return( fd );
 }

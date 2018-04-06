@@ -43,6 +43,8 @@
 
  */
 
+#define _GNU_SOURCE
+
 /*
 #define VIPS_DEBUG
  */
@@ -58,6 +60,7 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
+#include <fcntl.h>
 #include <ctype.h>
 
 #include <vips/vips.h>
@@ -2459,11 +2462,28 @@ vips_get_disc_threshold( void )
 VipsImage *
 vips_image_new_temp_file( const char *format )
 {
-	char *name;
-	VipsImage *image;
+	char *name = NULL;
+	VipsImage *image = NULL;
 
 	vips_check_init();
 
+#ifdef O_TMPFILE
+
+#define TMP_NAME "unused.v"
+
+	char* tempdir = getenv("TMPDIR");
+	if (tempdir == NULL) {
+		tempdir = "/tmp";
+	}
+
+	size_t tmpnamlen = strlen(tempdir);
+
+	name = g_malloc(tmpnamlen + sizeof(TMP_NAME));
+	memcpy(name, tempdir, tmpnamlen);
+	memcpy(name + tmpnamlen, TMP_NAME, sizeof(TMP_NAME));
+
+	image = vips_image_new_mode( name, "w" );
+#else
 	if( !(name = vips__temp_name( format )) )
 		return( NULL );
 
@@ -2471,7 +2491,7 @@ vips_image_new_temp_file( const char *format )
 		g_free( name );
 		return( NULL );
 	}
-
+#endif
 	g_free( name );
 
 	vips_image_set_delete_on_close( image, TRUE );
