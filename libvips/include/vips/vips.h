@@ -82,6 +82,13 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+#define VIPS_EINTR_RETRY(expression) \
+  (__extension__                                                              \
+    ({ long int __result;                                                     \
+       do __result = (long int) (expression);                                 \
+       while (__result == -1L && errno == EINTR);                             \
+       __result; }))
+
 #include <glib.h>
 #include <glib/gstdio.h>
 #include <gmodule.h>

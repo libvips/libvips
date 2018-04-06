@@ -80,6 +80,8 @@
 #define BINARYIZE(M) (M)
 #endif /*O_BINARY*/
 
+#define PROC_FD_LEN (sizeof("/proc/self/fd/") - 1)
+
 /* Open mode for image write ... on some systems, have to set BINARY too.
  */
 #define MODE_WRITE BINARYIZE (O_WRONLY | O_CREAT | O_TRUNC)
@@ -595,7 +597,23 @@ vips__open( const char *filename, int flags, ... )
 	g_free( path16 );
 }
 #else /*!OS_WIN32*/
-	fd = open( filename, flags, mode );
+	if ( strncmp( "/proc/self/fd/", filename, PROC_FD_LEN ) ) {
+		fd = open( filename, flags, mode );
+	} else {
+		// duplicate existing file descriptor
+		char* failCheck = NULL;
+
+                char* newpos = filename + PROC_FD_LEN;
+
+		fd = strtoll( newpos, &failCheck, 10 );
+		if (failCheck == newpos) {
+			return -1;
+		}
+
+		vips__seek(fd, 0);
+
+		fd = dup( fd );
+        }
 #endif
 
 	return( fd );
@@ -638,7 +656,28 @@ vips__fopen( const char *filename, const char *mode )
 	if( mode[0] == 'w' )
 		vips__set_create_time( _fileno( fp ) ); 
 #else /*!OS_WIN32*/
-	fp = fopen( filename, mode );
+	if ( strncmp( "/proc/self/fd/", filename, PROC_FD_LEN ) ) {
+		fp = fopen( filename, mode );
+	} else {
+		// use existing file descriptor
+		char* failCheck = NULL;
+
+		char* newpos = filename + PROC_FD_LEN;
+
+		int fdInt = strtoll( newpos, &failCheck, 10 );
+		if (failCheck == newpos) {
+			return NULL;
+		}
+
+		fdInt = dup( fdInt );
+		if ( fdInt == -1 ) {
+			return NULL;
+		}
+
+		fp = fdopen( fdInt, mode );
+
+		rewind(fp);
+	}
 #endif
 
 	return( fp );
@@ -736,6 +775,8 @@ vips__file_read( FILE *fp, const char *filename, size_t *length_out )
         gint64 len;
 	size_t read;
         char *str;
+
+	rewind( fp );
 
 	len = vips_file_length( fileno( fp ) ); 
 	if( len > 1024 * 1024 * 1024 ) {
@@ -856,14 +897,28 @@ vips__get_bytes( const char *filename, unsigned char buf[], guint64 len )
 	int fd;
 	guint64 bytes_read;
 
-	/* File may not even exist (for tmp images for example!)
-	 * so no hasty messages. And the file might be truncated, so no error
-	 * on read either.
-	 */
-	if( (fd = vips__open_read( filename )) == -1 )
-		return( 0 );
-	bytes_read = read( fd, buf, len );
-	close( fd );
+	if ( !strncmp( "/proc/self/fd/", filename, PROC_FD_LEN ) ) {
+		// use existing file descriptor
+                char* failCheck = NULL;
+
+                char* newpos = filename + PROC_FD_LEN;
+
+                fd = strtoll( newpos, &failCheck, 10 );
+                if (failCheck == newpos) {
+                        return 0;
+                }
+
+		bytes_read = VIPS_EINTR_RETRY(pread( fd, buf, len, 0 ));
+	} else {
+		/* File may not even exist (for tmp images for example!)
+		 * so no hasty messages. And the file might be truncated, so no error
+		 * on read either.
+		 */
+		if( (fd = vips__open_read( filename )) == -1 )
+			return( 0 );
+		bytes_read = VIPS_EINTR_RETRY(read( fd, buf, len ));
+		close( fd );
+	}
 
 	return( bytes_read );
 }
