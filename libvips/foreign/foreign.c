@@ -523,12 +523,6 @@ vips_foreign_find_load( const char *name )
 
 	vips__filename_split8( name, filename, option_string );
 
-	if( !vips_existsf( "%s", filename ) ) {
-		vips_error( "VipsForeignLoad", 
-			_( "file \"%s\" not found" ), name );
-		return( NULL );
-	}
-
 	if( !(load_class = (VipsForeignLoadClass *) vips_foreign_map( 
 		"VipsForeignLoad",
 		(VipsSListMap2Fn) vips_foreign_find_load_sub, 
