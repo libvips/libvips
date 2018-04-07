@@ -83,6 +83,14 @@ typedef struct _VipsCompositeBase {
 	 */
 	VipsArrayInt *mode;
 
+	/* For N input images, N - 1 x coordinates.
+	 */
+	VipsArrayInt *x;
+
+	/* For N input images, N - 1 y coordinates.
+	 */
+	VipsArrayInt *y;
+
 	/* Compositing space. This defaults to RGB, or B_W if we only have
 	 * G and GA inputs.
 	 */
@@ -136,6 +144,14 @@ vips_composite_base_dispose( GObject *gobject )
 		vips_area_unref( (VipsArea *) composite->mode );
 		composite->mode = NULL;
 	}
+	if( composite->x ) {
+		vips_area_unref( (VipsArea *) composite->x );
+		composite->x = NULL;
+	}
+	if( composite->y ) {
+		vips_area_unref( (VipsArea *) composite->y );
+		composite->y = NULL;
+	}
 
 	G_OBJECT_CLASS( vips_composite_base_parent_class )->dispose( gobject );
 }
@@ -160,7 +176,7 @@ vips_composite_stop( void *vseq, void *a, void *b )
 {
 	VipsCompositeSequence *seq = (VipsCompositeSequence *) vseq;
 
-        if( seq->ir ) {
+	if( seq->ir ) {
 		int i;
 
 		for( i = 0; seq->ir[i]; i++ )
@@ -196,7 +212,7 @@ vips_composite_start( VipsImage *out, void *a, void *b )
 	for( n = 0; in[n]; n++ )
 		;
 
-	/* Alocate space for region array.
+	/* Allocate space for region array.
 	 */
 	if( !(seq->ir = VIPS_ARRAY( NULL, n + 1, VipsRegion * )) ) {
 		vips_composite_stop( seq, NULL, NULL );
@@ -205,11 +221,12 @@ vips_composite_start( VipsImage *out, void *a, void *b )
 
 	/* Create a set of regions.
 	 */
-	for( i = 0; i < n; i++ )
+	for( i = 0; i < n; i++ ) {
 		if( !(seq->ir[i] = vips_region_new( in[i] )) ) {
 			vips_composite_stop( seq, NULL, NULL );
 			return( NULL );
 		}
+	}
 	seq->ir[n] = NULL;
 
 	/* Input pointers.
@@ -916,12 +933,21 @@ vips_composite_base_gen( VipsRegion *output_region,
 
 	VIPS_GATE_START( "vips_composite_base_gen: work" );
 
+	// printf("r: %d %d\n", r->width, r->height);
+	// printf("seq0: %d %d\n", seq->ir[0]->valid.width, seq->ir[0]->valid.height);
+	// printf("seq1: %d %d\n", seq->ir[1]->valid.width, seq->ir[1]->valid.height);
+	// printf("seq2: %d %d\n", seq->ir[2]->valid.width, seq->ir[2]->valid.height);
+
 	for( int y = 0; y < r->height; y++ ) {
 		VipsPel *q;
 
-		for( int i = 0; i < composite->n; i++ )
+		int *x_offsets = (int *) composite->x->area.data;
+		int *y_offsets = (int *) composite->y->area.data;
+
+		for( int i = 0; i < composite->n; i++ ) {
 			seq->p[i] = VIPS_REGION_ADDR( seq->ir[i],
 				r->left, r->top + y );
+		}
 		seq->p[composite->n] = NULL;
 		q = VIPS_REGION_ADDR( output_region, r->left, r->top + y );
 
@@ -1049,6 +1075,22 @@ vips_composite_base_build( VipsObject *object )
 			vips_error( klass->nickname,
 				_( "blend mode index %d (%d) invalid" ),
 				i, mode[i] );
+			return( -1 );
+		}
+	}
+
+	if( vips_object_argument_isset( object, "x" ) ) {
+		if( composite->x->area.n != composite->n - 1 ) {
+			vips_error( klass->nickname, _( "must be %d x coordinates" ),
+				composite->n - 1 );
+			return( -1 );
+		}
+	}
+
+	if( vips_object_argument_isset( object, "y" ) ) {
+		if( composite->y->area.n != composite->n - 1 ) {
+			vips_error( klass->nickname, _( "must be %d y coordinates" ),
+				composite->n - 1 );
 			return( -1 );
 		}
 	}
@@ -1210,6 +1252,20 @@ vips_composite_base_class_init( VipsCompositeBaseClass *klass )
 		G_STRUCT_OFFSET( VipsCompositeBase, premultiplied ),
 		FALSE );
 
+	VIPS_ARG_BOXED( klass, "x", 12,
+		_( "x coordinates" ),
+		_( "Array of x coordinates to join at" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsCompositeBase, x ),
+		VIPS_TYPE_ARRAY_INT );
+
+	VIPS_ARG_BOXED( klass, "y", 13,
+		_( "y coordinates" ),
+		_( "Array of y coordinates to join at" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsCompositeBase, y ),
+		VIPS_TYPE_ARRAY_INT );
+
 }
 
 static void
@@ -1310,6 +1366,8 @@ typedef struct _VipsComposite2 {
 	VipsImage *base;
 	VipsImage *overlay;
 	VipsBlendMode mode;
+	int x;
+	int y;
 
 } VipsComposite2;
 
@@ -1384,6 +1442,20 @@ vips_composite2_class_init( VipsCompositeClass *klass )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsComposite2, mode ),
 		VIPS_TYPE_BLEND_MODE, VIPS_BLEND_MODE_OVER );
+
+	VIPS_ARG_INT( klass, "x", 60,
+		_( "x coordinate" ),
+		_( "y coordinate to join with" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsComposite2, x ),
+		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
+
+	VIPS_ARG_INT( klass, "y", 61,
+		_( "y coordinate" ),
+		_( "y coordinate to join with" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsComposite2, y ),
+		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
 }
 
