@@ -31,6 +31,20 @@
 
  */
 
+/* TODO 
+ *
+ * - more code sharing with pdfload.c, eg. vips_foreign_load_pdf_is_a_buffer()
+ *   and get_flags etc.
+ * - could share the page layout code too
+ * - make pdf.c with base stuff in?
+ * - FPDF_GetMetaText() results needs mapping from utf16 to utf8
+ * - what about filename encodings
+ * - do we need to clear the background to white in generate()?
+ * - I guess we must write RGBA to match poppler output
+ * - new_from_buffer stuff
+ *
+ */
+
 /*
 #define DEBUG
  */
@@ -45,6 +59,10 @@
 #include <string.h>
 #include <errno.h>
 
+/* Just until we get rid of the final bits of poppler
+ */
+#include <cairo.h>
+
 #include <vips/vips.h>
 #include <vips/buf.h>
 #include <vips/internal.h>
@@ -52,6 +70,7 @@
 #ifdef HAVE_PDFIUM
 
 #include <fpdfview.h>
+#include <fpdf_doc.h>
 
 typedef struct _VipsForeignLoadPdf {
 	VipsForeignLoad parent_object;
@@ -93,27 +112,6 @@ typedef VipsForeignLoadClass VipsForeignLoadPdfClass;
 G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadPdf, vips_foreign_load_pdf, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
-static void *
-vips_pdfium_init_cb( void *dummy )
-{
-	FPDF_LIBRARY_CONFIG config;
-
-	config.version = 2;
-	config.m_pUserFontPaths = NULL;
-	config.m_pIsolate = NULL;
-	config.m_v8EmbedderSlot = 0;
-
-	FPDF_InitLibraryWithConfig( &config );
-}
-
-static void
-vips_pdfium_init( void *dummy )
-{
-	static GOnce once = G_ONCE_INIT;
-
-	VIPS_ONCE( &once, vips_pdfium_init_cb, NULL );
-}
-
 static char *vips_pdfium_errors[] = {
 	"no error",
 	"unknown error",
@@ -123,7 +121,6 @@ static char *vips_pdfium_errors[] = {
 	"unsupported security scheme",
 	"page not found or content error"
 };
-static int vips_pdfium_n_errors = VIPS_NUMBER( vips_pdfium_errors );
 
 static void
 vips_pdfium_error( void )
@@ -145,14 +142,38 @@ vips_foreign_load_pdf_dispose( GObject *gobject )
 	VIPS_FREEF( FPDF_CloseDocument, pdf->doc ); 
 	VIPS_FREEF( FPDF_ClosePage, pdf->page ); 
 
-	G_OBJECT_CLASS( vips_foreign_load_pdf_parent_class )->
-		dispose( gobject );
+	G_OBJECT_CLASS( vips_foreign_load_pdf_parent_class )->dispose( gobject );
+}
+
+static void *
+vips_pdfium_init_cb( void *dummy )
+{
+	FPDF_LIBRARY_CONFIG config;
+
+	config.version = 2;
+	config.m_pUserFontPaths = NULL;
+	config.m_pIsolate = NULL;
+	config.m_v8EmbedderSlot = 0;
+
+	FPDF_InitLibraryWithConfig( &config );
+
+	return( NULL );
+}
+
+static void
+vips_pdfium_init( void )
+{
+	static GOnce once = G_ONCE_INIT;
+
+	VIPS_ONCE( &once, vips_pdfium_init_cb, NULL );
 }
 
 static int
 vips_foreign_load_pdf_build( VipsObject *object )
 {
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) object;
+
+	vips_pdfium_init();
 
 	if( !vips_object_argument_isset( object, "scale" ) )
 		pdf->scale = pdf->dpi / 72.0;
@@ -328,17 +349,14 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 	pdf->image.width = 0;
 	pdf->image.height = 0;
 	for( i = 0; i < pdf->n; i++ ) {
-		double width;
-		double height;
-
 		if( vips_foreign_load_pdf_get_page( pdf, pdf->page_no + i ) )
 			return( -1 );
 		pdf->pages[i].left = 0;
 		pdf->pages[i].top = top;
-		pdf->pages[i].width = FPDF_GetPageWidth( pdf->page ) * 
-			pdf->scale;
-		pdf->pages[i].height = FPDF_GetPageHeight( pdf->page ) * 
-			pdf->scale;
+		pdf->pages[i].width = 
+			FPDF_GetPageWidth( pdf->page ) * pdf->scale;
+		pdf->pages[i].height = 
+			FPDF_GetPageHeight( pdf->page ) * pdf->scale;
 
 		if( pdf->pages[i].width > pdf->image.width )
 			pdf->image.width = pdf->pages[i].width;
@@ -381,7 +399,7 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 	 */
 
 	/* Poppler won't always paint the background. Use 255 (white) for the
-	 * bg, PDFs generally assume a paper backgrocund colour.
+	 * bg, PDFs generally assume a paper background colour.
 	 */
 	vips_region_paint( or, r, 255 ); 
 
@@ -419,7 +437,7 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		 */
 		if( vips_foreign_load_pdf_get_page( pdf, pdf->page_no + i ) )
 			return( -1 ); 
-		poppler_page_render( pdf->page, cr );
+		//poppler_page_render( pdf->page, cr );
 
 		cairo_destroy( cr );
 
@@ -566,6 +584,7 @@ vips_foreign_load_pdf_file_header( VipsForeignLoad *load )
 	VipsForeignLoadPdfFile *file = (VipsForeignLoadPdfFile *) load;
 
 	char *path;
+	GError *error = NULL; 
 
 	/* We need an absolute path for a URI.
 	 */
@@ -645,11 +664,11 @@ G_DEFINE_TYPE( VipsForeignLoadPdfBuffer, vips_foreign_load_pdf_buffer,
 static int
 vips_foreign_load_pdf_buffer_header( VipsForeignLoad *load )
 {
+	/*
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) load;
 	VipsForeignLoadPdfBuffer *buffer = 
 		(VipsForeignLoadPdfBuffer *) load;
 
-	/*
 	if( !(pdf->doc = poppler_document_new_from_data( 
 		buffer->buf->data, buffer->buf->length, NULL, &error )) ) { 
 		vips_g_error( &error );

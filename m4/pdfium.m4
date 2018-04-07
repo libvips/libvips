@@ -6,7 +6,7 @@ dnl
 dnl Find pdfium libraries and headers 
 dnl
 dnl Put -I stuff in PDFIUM_INCLUDES
-dnl Put PDFium objects in PDFIUM_LIBS (add this to link line untouched!)
+dnl Put PDFium objects in PDFIUM_LIBS (add this to the link line untouched!)
 dnl Define HAVE_PDFIUM if found
 dnl
 AC_DEFUN([FIND_PDFIUM], [
@@ -14,6 +14,29 @@ AC_REQUIRE([AC_PATH_XTRA])
 
 ZLIB_INCLUDES=""
 ZLIB_LIBS=""
+
+# PDFium has a set of object archives that must be linked firectly into your
+# app, and a couple of true libraries. The objects must be linked in this
+# order.
+pdfium_objects="\
+	libpdfium.a \
+	libfpdfapi.a \
+	libfxge.a \
+	libfpdfdoc.a \
+	libfxcrt.a \
+	libfx_agg.a \
+	libfxcodec.a \
+	libfx_lpng.a \
+	libfx_libopenjpeg.a \
+	libfx_lcms2.a \
+	libfx_freetype.a \
+	libjpeg.a \
+	libfdrm.a \
+	libpwl.a \
+	libbigint.a \
+	libformfiller.a \
+	libjavascript.a \
+	libfxedit.a"
 
 AC_ARG_WITH(pdfium, 
   AS_HELP_STRING([--without-pdfium], [build without pdfium (default: test)]))
@@ -52,13 +75,15 @@ if test "$PDFIUM_INCLUDES" = ""; then
   CPPFLAGS="$pdfium_save_CPPFLAGS"
 fi
 
-# Now for the libraries ... if there's nothing set, try $PREFIX/lib and
-# $PREFIX/obj
+# Now for the libraries ... if there's nothing set, try $PREFIX/lib 
 if test "$PDFIUM_LIBS" = ""; then
   pdfium_save_LIBS="$LIBS"
   pdfium_save_CPPFLAGS="$CPPFLAGS"
 
-  LIBS="$prefix/lib/pdfium-obj/*.a $LIBS"
+  LIBS=""
+  for i in $pdfium_objects; do
+    LIBS="$LIBS $prefix/lib/pdfium-obj/$i"
+  done
   LIBS="$LIBS -L$prefix/lib -lc++ -licuuc -lm -lpthread"
   CPPFLAGS="$PDFIUM_INCLUDES $CPPFLAGS"
 
@@ -96,9 +121,11 @@ AC_MSG_RESULT([libraries $pdfium_libraries_result, headers $pdfium_includes_resu
 
 if test x"$PDFIUM_LIBS" != x"no"; then
   dir="$PDFIUM_LIBS"
-  PDFIUM_LIBS="$prefix/lib/pdfium-obj/*.a"
-  # needs -lm -lpthread too, but they will be added by other packages
-  PDFIUM_LIBS="$PDFIUM_LIBS -L$dir/lib -lc++ -licuuc"
+  PDFIUM_LIBS=""
+  for i in $pdfium_objects; do
+    PDFIUM_LIBS="$PDFIUM_LIBS $prefix/lib/pdfium-obj/$i"
+  done
+  PDFIUM_LIBS="$PDFIUM_LIBS -L$dir -lc++ -licuuc -lm -lpthread"
 fi
 
 AC_SUBST(PDFIUM_LIBS)
