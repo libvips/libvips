@@ -1866,6 +1866,12 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_pdf_buffer_get_type(); 
 #endif /*HAVE_POPPLER*/
 
+#ifdef HAVE_PDFIUM
+	vips_foreign_load_pdf_get_type(); 
+	vips_foreign_load_pdf_file_get_type(); 
+	vips_foreign_load_pdf_buffer_get_type(); 
+#endif /*HAVE_PDFIUM*/
+
 #ifdef HAVE_RSVG
 	vips_foreign_load_svg_get_type(); 
 	vips_foreign_load_svg_file_get_type(); 

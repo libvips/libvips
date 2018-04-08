@@ -34,9 +34,7 @@ pdfium_objects="\
 	libfdrm.a \
 	libpwl.a \
 	libbigint.a \
-	libformfiller.a \
-	libjavascript.a \
-	libfxedit.a"
+	libformfiller.a"
 
 AC_ARG_WITH(pdfium, 
   AS_HELP_STRING([--without-pdfium], [build without pdfium (default: test)]))

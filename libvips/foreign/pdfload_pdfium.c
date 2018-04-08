@@ -37,9 +37,7 @@
  *   and get_flags etc.
  * - could share the page layout code too
  * - make pdf.c with base stuff in?
- * - FPDF_GetMetaText() results needs mapping from utf16 to utf8
  * - what about filename encodings
- * - do we need to clear the background to white in generate()?
  * - I guess we must write RGBA to match poppler output
  * - new_from_buffer stuff
  *
@@ -160,20 +158,14 @@ vips_pdfium_init_cb( void *dummy )
 	return( NULL );
 }
 
-static void
-vips_pdfium_init( void )
-{
-	static GOnce once = G_ONCE_INIT;
-
-	VIPS_ONCE( &once, vips_pdfium_init_cb, NULL );
-}
-
 static int
 vips_foreign_load_pdf_build( VipsObject *object )
 {
+	static GOnce once = G_ONCE_INIT;
+
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) object;
 
-	vips_pdfium_init();
+	VIPS_ONCE( &once, vips_pdfium_init_cb, NULL );
 
 	if( !vips_object_argument_isset( object, "scale" ) )
 		pdf->scale = pdf->dpi / 72.0;
@@ -292,10 +284,20 @@ vips_foreign_load_pdf_set_image( VipsForeignLoadPdf *pdf, VipsImage *out )
 			&vips_foreign_load_pdf_metadata[i];
 
 		char text[1024];
+		int len;
 
-		if( FPDF_GetMetaText( pdf->doc, metadata->tag, text, 1024 ) ) {
-			// FPDF is utf16, we must swap to utf8
-			vips_image_set_string( out, metadata->field, text ); 
+		len = FPDF_GetMetaText( pdf->doc, metadata->tag, text, 1024 );
+		if( len > 0 ) { 
+			char *str;
+
+			/* Silently ignore coding errors.
+			 */
+			if( (str = g_utf16_to_utf8( (gunichar2 *) text, len, 
+				NULL, NULL, NULL )) ) {
+				vips_image_set_string( out, 
+					metadata->field, str ); 
+				g_free( str );
+			}
 		}
 	}
 
@@ -399,7 +401,7 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 	 */
 
 	/* Poppler won't always paint the background. Use 255 (white) for the
-	 * bg, PDFs generally assume a paper background colour.
+	 * bg, PDFs generally assume a paper backgrocund colour.
 	 */
 	vips_region_paint( or, r, 255 ); 
 
@@ -414,43 +416,41 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 	top = r->top; 
 	while( top < VIPS_RECT_BOTTOM( r ) ) {
 		VipsRect rect;
-		cairo_surface_t *surface;
-		cairo_t *cr;
+		FPDF_BITMAP bitmap;
 
 		vips_rect_intersectrect( r, &pdf->pages[i], &rect );
 
-		surface = cairo_image_surface_create_for_data( 
-			VIPS_REGION_ADDR( or, rect.left, rect.top ), 
-			CAIRO_FORMAT_ARGB32, 
-			rect.width, rect.height, 
-			VIPS_REGION_LSKIP( or ) );
-		cr = cairo_create( surface );
-		cairo_surface_destroy( surface );
-
-		cairo_scale( cr, pdf->scale, pdf->scale );
-		cairo_translate( cr, 
-			(pdf->pages[i].left - rect.left) / pdf->scale, 
-			(pdf->pages[i].top - rect.top) / pdf->scale );
-
-		/* poppler is single-threaded, but we don't need to lock since 
-		 * we're running inside a non-threaded tilecache.
-		 */
 		if( vips_foreign_load_pdf_get_page( pdf, pdf->page_no + i ) )
 			return( -1 ); 
-		//poppler_page_render( pdf->page, cr );
 
-		cairo_destroy( cr );
+		/* 4 means RGBA.
+		 */
+		bitmap = FPDFBitmap_CreateEx( rect.width, rect.height, 4, 
+			VIPS_REGION_ADDR( or, rect.left, rect.top ), 
+			VIPS_REGION_LSKIP( or ) );  
+
+		FPDF_RenderPageBitmap( bitmap, pdf->page, 
+			0, 0, rect.width, rect.height,
+			0, 0 ); 
+
+		FPDFBitmap_Destroy( bitmap ); 
 
 		top += rect.height;
 		i += 1;
 	}
 
-	/* Cairo makes pre-multipled BRGA, we must byteswap and unpremultiply.
+	/* PDFium writes BRGA, we must swap.
 	 */
-	for( y = 0; y < r->height; y++ ) 
-		vips__cairo2rgba( 
-			(guint32 *) VIPS_REGION_ADDR( or, r->left, r->top + y ), 
-			r->width ); 
+	for( y = 0; y < r->height; y++ ) {
+		VipsPel *p;
+		int x;
+
+		p = VIPS_REGION_ADDR( or, r->left, r->top + y );
+		for( x = 0; x < r->width; x++ ) { 
+			VIPS_SWAP( VipsPel, p[0], p[2] );
+			p += 4;
+		}
+	}
 
 	return( 0 ); 
 }
@@ -475,13 +475,11 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 		NULL, vips_foreign_load_pdf_generate, NULL, pdf, NULL ) )
 		return( -1 );
 
-	/* Don't use tilecache to keep the number of calls to
-	 * pdf_page_render() low. Don't thread the cache, we rely on
-	 * locking to keep pdf single-threaded. Use a large strip size to
-	 * (again) keep the number of calls to page_render low. 
+	/* PDFium does not like rendering parts of pages :-( always render
+	 * complete ones. 
 	 */
 	if( vips_linecache( t[0], &t[1],
-		"tile_height", 5000,
+		"tile_height", pdf->pages[0].height, 
 		NULL ) ) 
 		return( -1 );
 	if( vips_image_write( t[1], load->real ) ) 
@@ -556,8 +554,6 @@ typedef struct _VipsForeignLoadPdfFile {
 	 */
 	char *filename; 
 
-	char *uri;
-
 } VipsForeignLoadPdfFile;
 
 typedef VipsForeignLoadPdfClass VipsForeignLoadPdfFileClass;
@@ -565,41 +561,16 @@ typedef VipsForeignLoadPdfClass VipsForeignLoadPdfFileClass;
 G_DEFINE_TYPE( VipsForeignLoadPdfFile, vips_foreign_load_pdf_file, 
 	vips_foreign_load_pdf_get_type() );
 
-static void
-vips_foreign_load_pdf_file_dispose( GObject *gobject )
-{
-	VipsForeignLoadPdfFile *file = 
-		(VipsForeignLoadPdfFile *) gobject;
-
-	VIPS_FREE( file->uri );
-
-	G_OBJECT_CLASS( vips_foreign_load_pdf_file_parent_class )->
-		dispose( gobject );
-}
-
 static int
 vips_foreign_load_pdf_file_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) load;
 	VipsForeignLoadPdfFile *file = (VipsForeignLoadPdfFile *) load;
 
-	char *path;
-	GError *error = NULL; 
-
-	/* We need an absolute path for a URI.
-	 */
-	path = vips_realpath( file->filename );
-	if( !(file->uri = g_filename_to_uri( path, NULL, &error )) ) { 
-		g_free( path );
-		vips_g_error( &error );
-		return( -1 ); 
-	}
-	g_free( path );
-
-	if( !(pdf->doc = FPDF_LoadDocument( file->uri, NULL )) ) { 
+	if( !(pdf->doc = FPDF_LoadDocument( file->filename, NULL )) ) { 
 		vips_pdfium_error();
 		vips_error( "pdfload", 
-			_( "unable to load \"%s\"" ), file->uri ); 
+			_( "unable to load \"%s\"" ), file->filename ); 
 		return( -1 ); 
 	}
 
@@ -622,7 +593,6 @@ vips_foreign_load_pdf_file_class_init(
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
-	gobject_class->dispose = vips_foreign_load_pdf_file_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
