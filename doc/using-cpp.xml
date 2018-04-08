@@ -26,7 +26,7 @@
 
 <programlisting language="cpp">
 /* compile with:
- *      g++ -g -Wall try.cc `pkg-config vips-cpp --cflags --libs`
+ *      g++ -g -Wall example.cc `pkg-config vips-cpp --cflags --libs`
  */
 
 #include &lt;vips/vips8&gt;
@@ -34,64 +34,47 @@
 using namespace vips;
 
 int
-main( int argc, char **argv )
-{
-  GOptionContext *context;
-  GOptionGroup *main_group;
-  GError *error = NULL;
+main (int argc, char **argv)
+{ 
+  if (VIPS_INIT (argv[0])) 
+    vips_error_exit (NULL);
+  
+  if (argc != 3)
+    vips_error_exit ("usage: %s input-file output-file", argv[0]);
 
-  if( VIPS_INIT( argv[0] ) )
-    vips_error_exit( NULL ); 
-
-  context = g_option_context_new( "" ); 
-
-  main_group = g_option_group_new( NULL, NULL, NULL, NULL, NULL );
-  g_option_context_set_main_group( context, main_group );
-  g_option_context_add_group( context, vips_get_option_group() );
-
-  if( !g_option_context_parse( context, &amp;argc, &amp;argv, &amp;error ) ) {
-    if( error ) {
-      fprintf( stderr, "%s\n", error->message );
-      g_error_free( error );
-    }
-
-    vips_error_exit( NULL );
-  }
-
-  VImage in = VImage::new_from_file( argv[1], 
-    VImage::option()->
-      set( "access", VIPS_ACCESS_SEQUENTIAL ) ); 
-
-  double avg = in.avg(); 
-
-  printf( "avg = %g\n", avg ); 
-  printf( "width = %d\n", in.width() ); 
-
-  VImage in = VImage::new_from_file( argv[1],
-    VImage::option()->
-      set( "access", VIPS_ACCESS_SEQUENTIAL ) ); 
-
-  VImage out = in.embed( 10, 10, 1000, 1000, 
-    VImage::option()->
-      set( "extend", "background" )->
-      set( "background", 128 ) );
-
-  out.write_to_file( argv[2] );
-
-  vips_shutdown();
-
-  return( 0 );
+  VImage in = VImage::new_from_file (argv[1],
+    VImage::option ()-&gt;set ("access", VIPS_ACCESS_SEQUENTIAL));
+  
+  double avg = in.avg ();
+  
+  printf ("avg = %g\n", avg);
+  printf ("width = %d\n", in.width ());
+  
+  in = VImage::new_from_file (argv[1],
+    VImage::option ()-&gt;set ("access", VIPS_ACCESS_SEQUENTIAL));
+  
+  VImage out = in.embed (10, 10, 1000, 1000,
+    VImage::option ()-&gt;
+      set ("extend", "background")-&gt;
+      set ("background", 128));
+  
+  out.write_to_file (argv[2]);
+  
+  vips_shutdown ();
+  
+  return (0);
 }
 </programlisting>
 
     <para>
       Everything before <code>VImage in = VImage::..</code> is exactly
-      as the C API. This boilerplate gives the example a set of standard
-      command-line flags.
+      as the C API. vips_error_exit() just prints the arguments plus the 
+      libvips error log and exits with an error code. 
     </para>
 
     <para>
-      This line is the C++ equivalent of vips_image_new_from_file(). It works 
+      <code>VImage in = VImage::..</code> is the C++ equivalent of 
+      vips_image_new_from_file(). It works 
       in the same way, the differences being:
 
       <itemizedlist>
