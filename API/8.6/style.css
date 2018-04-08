@@ -60,7 +60,7 @@ a:hover
 div.informaltable table
 {
   border-collapse: separate;
-  border-spacing: 1em 0.5em;
+  border-spacing: 1em 0.3em;
   border: none;
 }
 
@@ -148,6 +148,8 @@ div.table table th
 h4
 {
   color: #555753;
+  margin-top: 1em;
+  margin-bottom: 1em;
 }
 
 hr
@@ -166,17 +168,16 @@ dl.toc dt
   padding-bottom: 0.25em;
 }
 
-dl.toc > dd > dl > dt
+dl.toc > dt
 {
   padding-top: 0.25em;
   padding-bottom: 0.25em;
+  font-weight: bold;
 }
 
-dl.toc > dt
+dl.toc > dl
 {
-  padding-top: 1em;
   padding-bottom: 0.5em;
-  font-weight: bold;
 }
 
 .parameter
@@ -346,7 +347,9 @@ acronym,abbr
 }
 
 @media screen {
-  sup a.footnote
+  /* these have a <sup> as a first child, but since there are no parent selectors
+   * we can't use that. */
+  a.footnote
   {
     position: relative;
     top: 0em ! important;
