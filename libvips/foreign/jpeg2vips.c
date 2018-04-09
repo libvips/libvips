@@ -94,6 +94,8 @@
  * 	- revert previous warning change: libvips reports serious corruption, 
  * 	  like a truncated file, as a warning and we need to be able to catch
  * 	  that
+ * 9/4/18
+ * 	- set interlaced=1 for interlaced images
  */
 
 /*
@@ -413,6 +415,11 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 	 */
 	(void) vips_image_set_int( out, "jpeg-multiscan", 
 		jpeg_has_multiple_scans( cinfo ) );
+
+	/* 8.7 adds this for PNG as well, so we have a new format-neutral name.
+	 */
+	if( jpeg_has_multiple_scans( cinfo ) )
+		vips_image_set_int( out, "interlaced", 1 ); 
 
 	/* Look for EXIF and ICC profile.
 	 */
