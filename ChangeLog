@@ -12,6 +12,7 @@
 - drop incompatible ICC profiles before save
 - better hasalpha rules
 - create funcs always make MULTIBAND (ie. no alpha)
+- use O_TMPFILE, if available [Alexander--]
 
 12/3/18 started 8.6.4
 - better fitting of fonts with overhanging edges, thanks Adrià 
