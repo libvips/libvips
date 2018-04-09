@@ -221,12 +221,12 @@ vips_composite_start( VipsImage *out, void *a, void *b )
 
 	/* Create a set of regions.
 	 */
-	for( i = 0; i < n; i++ ) {
+	for( i = 0; i < n; i++ )
 		if( !(seq->ir[i] = vips_region_new( in[i] )) ) {
 			vips_composite_stop( seq, NULL, NULL );
 			return( NULL );
 		}
-	}
+	
 	seq->ir[n] = NULL;
 
 	/* Input pointers.
@@ -939,7 +939,6 @@ vips_composite_base_gen( VipsRegion *output_region,
 		for( int i = 0; i < composite->n; i++ )
 			seq->p[i] = VIPS_REGION_ADDR( seq->ir[i],
 				r->left, r->top + y );
-
 		seq->p[composite->n] = NULL;
 		q = VIPS_REGION_ADDR( output_region, r->left, r->top + y );
 
@@ -1092,7 +1091,6 @@ vips_composite_base_build( VipsObject *object )
 	if( vips_object_argument_isset( object, "x" ) && vips_object_argument_isset( object, "y" ) ) {
 		int width, height;
 
-		//TODO: How to ensure that these two lines do not fail?
 		width = vips_image_get_width( in[0] );
 		height = vips_image_get_height( in[0] );
 
@@ -1379,8 +1377,6 @@ typedef struct _VipsComposite2 {
 	VipsImage *base;
 	VipsImage *overlay;
 	VipsBlendMode mode;
-	int x;
-	int y;
 
 } VipsComposite2;
 
@@ -1455,20 +1451,6 @@ vips_composite2_class_init( VipsCompositeClass *klass )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsComposite2, mode ),
 		VIPS_TYPE_BLEND_MODE, VIPS_BLEND_MODE_OVER );
-
-	VIPS_ARG_INT( klass, "x", 60,
-		_( "x coordinate" ),
-		_( "y coordinate to join with" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsComposite2, x ),
-		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
-
-	VIPS_ARG_INT( klass, "y", 61,
-		_( "y coordinate" ),
-		_( "y coordinate to join with" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsComposite2, y ),
-		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
 }
 
