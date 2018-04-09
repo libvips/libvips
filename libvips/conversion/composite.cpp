@@ -933,21 +933,13 @@ vips_composite_base_gen( VipsRegion *output_region,
 
 	VIPS_GATE_START( "vips_composite_base_gen: work" );
 
-	// printf("r: %d %d\n", r->width, r->height);
-	// printf("seq0: %d %d\n", seq->ir[0]->valid.width, seq->ir[0]->valid.height);
-	// printf("seq1: %d %d\n", seq->ir[1]->valid.width, seq->ir[1]->valid.height);
-	// printf("seq2: %d %d\n", seq->ir[2]->valid.width, seq->ir[2]->valid.height);
-
 	for( int y = 0; y < r->height; y++ ) {
 		VipsPel *q;
 
-		int *x_offsets = (int *) composite->x->area.data;
-		int *y_offsets = (int *) composite->y->area.data;
-
-		for( int i = 0; i < composite->n; i++ ) {
+		for( int i = 0; i < composite->n; i++ )
 			seq->p[i] = VIPS_REGION_ADDR( seq->ir[i],
 				r->left, r->top + y );
-		}
+
 		seq->p[composite->n] = NULL;
 		q = VIPS_REGION_ADDR( output_region, r->left, r->top + y );
 
@@ -1096,6 +1088,27 @@ vips_composite_base_build( VipsObject *object )
 	}
 
 	in = (VipsImage **) composite->in->area.data;
+
+	if( vips_object_argument_isset( object, "x" ) && vips_object_argument_isset( object, "y" ) ) {
+		int width, height;
+
+		//TODO: How to ensure that these two lines do not fail?
+		width = vips_image_get_width( in[0] );
+		height = vips_image_get_height( in[0] );
+
+		int *x_offsets = (int *) composite->x->area.data;
+		int *y_offsets = (int *) composite->y->area.data;
+
+		for( int i = 1; i < composite->n; i++ ) {
+			VipsImage *e;
+
+			if( vips_embed( in[i], &e, x_offsets[i - 1], y_offsets[i - 1], width, height, NULL ) )
+				return( -1 );
+			
+			g_object_unref( in[i] );
+			in[i] = e;
+		}
+	}
 
 	decode = (VipsImage **) vips_object_local_array( object, composite->n );
 	for( int i = 0; i < composite->n; i++ )
