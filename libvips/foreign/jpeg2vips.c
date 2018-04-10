@@ -706,14 +706,17 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 	printf( "read_jpeg_image: starting decompress\n" );
 #endif /*DEBUG*/
 
+	/* We must crop after the seq, or our generate may not be asked for
+	 * full lines of pixels and will attempt to write beyond the buffer.
+	 */
 	if( vips_image_generate( t[0], 
 		NULL, read_jpeg_generate, NULL, 
 		jpeg, NULL ) ||
-		vips_extract_area( t[0], &t[1], 
-			0, 0, jpeg->output_width, jpeg->output_height, NULL ) ||
-		vips_sequential( t[1], &t[2], 
+		vips_sequential( t[0], &t[1], 
 			"tile_height", 8,
-			NULL ) )
+			NULL ) ||
+		vips_extract_area( t[1], &t[2], 
+			0, 0, jpeg->output_width, jpeg->output_height, NULL ) )
 		return( -1 );
 
 	im = t[2];
