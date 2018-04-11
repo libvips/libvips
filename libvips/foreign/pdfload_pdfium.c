@@ -33,14 +33,8 @@
 
 /* TODO 
  *
- * - more code sharing with pdfload.c, eg. vips_foreign_load_pdf_is_a_buffer()
- *   and get_flags etc.
- * - could share the page layout code too
- * - make pdf.c with base stuff in?
  * - what about filename encodings
- * - I guess we must write RGBA to match poppler output
- * - new_from_buffer stuff
- *
+ * - need to test on Windows
  */
 
 /*
@@ -57,13 +51,11 @@
 #include <string.h>
 #include <errno.h>
 
-/* Just until we get rid of the final bits of poppler
- */
-#include <cairo.h>
-
 #include <vips/vips.h>
 #include <vips/buf.h>
 #include <vips/internal.h>
+
+#include "pforeign.h"
 
 #ifdef HAVE_PDFIUM
 
@@ -97,7 +89,7 @@ typedef struct _VipsForeignLoadPdf {
 	 */
 	int n_pages;
 
-	/* We need to read out the side of each page we will render, and lay
+	/* We need to read out the size of each page we will render, and lay
 	 * them out in the final image.
 	 */
 	VipsRect image;
@@ -137,8 +129,8 @@ vips_foreign_load_pdf_dispose( GObject *gobject )
 {
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) gobject;
 
-	VIPS_FREEF( FPDF_CloseDocument, pdf->doc ); 
 	VIPS_FREEF( FPDF_ClosePage, pdf->page ); 
+	VIPS_FREEF( FPDF_CloseDocument, pdf->doc ); 
 
 	G_OBJECT_CLASS( vips_foreign_load_pdf_parent_class )->dispose( gobject );
 }
@@ -180,7 +172,8 @@ vips_foreign_load_pdf_build( VipsObject *object )
 static VipsForeignFlags
 vips_foreign_load_pdf_get_flags_filename( const char *filename )
 {
-	/* We can render any part of the page on demand.
+	/* We can't render any part of the page on demand, but we can render
+	 * separate pages. Might as well call ourselves partial.
 	 */
 	return( VIPS_FOREIGN_PARTIAL );
 }
@@ -189,33 +182,6 @@ static VipsForeignFlags
 vips_foreign_load_pdf_get_flags( VipsForeignLoad *load )
 {
 	return( VIPS_FOREIGN_PARTIAL );
-}
-
-static gboolean
-vips_foreign_load_pdf_is_a_buffer( const void *buf, size_t len )
-{
-	const guchar *str = (const guchar *) buf;
-
-	if( len >= 4 &&
-		str[0] == '%' && 
-		str[1] == 'P' &&
-		str[2] == 'D' &&
-		str[3] == 'F' )
-		return( 1 );
-
-	return( 0 );
-}
-
-static gboolean
-vips_foreign_load_pdf_is_a( const char *filename )
-{
-	unsigned char buf[4];
-
-	if( vips__get_bytes( filename, buf, 4 ) == 4 &&
-		vips_foreign_load_pdf_is_a_buffer( buf, 4 ) )
-		return( 1 );
-
-	return( 0 );
 }
 
 static int
@@ -246,8 +212,8 @@ vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 /* String-based metadata fields we extract.
  */
 typedef struct _VipsForeignLoadPdfMetadata {
-	char *tag;		// as understood by PDFium
-	char *field;		// as understood by libvips
+	char *tag;		/* as understood by PDFium */
+	char *field;		/* as understood by libvips */
 } VipsForeignLoadPdfMetadata;
 
 static VipsForeignLoadPdfMetadata vips_foreign_load_pdf_metadata[] = {
@@ -257,7 +223,7 @@ static VipsForeignLoadPdfMetadata vips_foreign_load_pdf_metadata[] = {
 	{ "Keywords", "pdf-keywords" },
 	{ "Creator", "pdf-creator" },
 	{ "Producer", "pdf-producer" },
-	// poppler has "metadata" as well, but pdfium does not support this
+	/* poppler has "metadata" as well, but pdfium does not support this */
 };
 static int n_metadata = VIPS_NUMBER( vips_foreign_load_pdf_metadata );
 
@@ -440,6 +406,8 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 	}
 
 	/* PDFium writes BRGA, we must swap.
+	 *
+	 * FIXME ... this is a bit slow.
 	 */
 	for( y = 0; y < r->height; y++ ) {
 		VipsPel *p;
@@ -634,17 +602,17 @@ G_DEFINE_TYPE( VipsForeignLoadPdfBuffer, vips_foreign_load_pdf_buffer,
 static int
 vips_foreign_load_pdf_buffer_header( VipsForeignLoad *load )
 {
-	/*
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) load;
 	VipsForeignLoadPdfBuffer *buffer = 
 		(VipsForeignLoadPdfBuffer *) load;
 
-	if( !(pdf->doc = poppler_document_new_from_data( 
-		buffer->buf->data, buffer->buf->length, NULL, &error )) ) { 
-		vips_g_error( &error );
+	if( !(pdf->doc = FPDF_LoadMemDocument( buffer->buf->data, 
+		buffer->buf->length, NULL )) ) { 
+		vips_pdfium_error();
+		vips_error( "pdfload", 
+			"%s", _( "unable to load from buffer" ) );
 		return( -1 ); 
 	}
-	 */
 
 	return( vips_foreign_load_pdf_header( load ) );
 }

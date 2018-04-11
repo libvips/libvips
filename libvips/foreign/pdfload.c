@@ -55,6 +55,8 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
+#include "pforeign.h"
+
 #ifdef HAVE_POPPLER
 
 #include <cairo.h>
@@ -91,7 +93,7 @@ typedef struct _VipsForeignLoadPdf {
 	 */
 	int n_pages;
 
-	/* We need to read out the side of each page we will render, and lay
+	/* We need to read out the size of each page we will render, and lay
 	 * them out in the final image.
 	 */
 	VipsRect image;
@@ -143,33 +145,6 @@ static VipsForeignFlags
 vips_foreign_load_pdf_get_flags( VipsForeignLoad *load )
 {
 	return( VIPS_FOREIGN_PARTIAL );
-}
-
-static gboolean
-vips_foreign_load_pdf_is_a_buffer( const void *buf, size_t len )
-{
-	const guchar *str = (const guchar *) buf;
-
-	if( len >= 4 &&
-		str[0] == '%' && 
-		str[1] == 'P' &&
-		str[2] == 'D' &&
-		str[3] == 'F' )
-		return( 1 );
-
-	return( 0 );
-}
-
-static gboolean
-vips_foreign_load_pdf_is_a( const char *filename )
-{
-	unsigned char buf[4];
-
-	if( vips__get_bytes( filename, buf, 4 ) == 4 &&
-		vips_foreign_load_pdf_is_a_buffer( buf, 4 ) )
-		return( 1 );
-
-	return( 0 );
 }
 
 static int
@@ -429,7 +404,7 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 	 * (again) keep the number of calls to page_render low. 
 	 */
 	if( vips_linecache( t[0], &t[1],
-		"tile_height", 5000,
+		"tile_height", VIPS_MIN( 5000, pdf->pages[0].height ), 
 		NULL ) ) 
 		return( -1 );
 	if( vips_image_write( t[1], load->real ) ) 
@@ -657,6 +632,37 @@ vips_foreign_load_pdf_buffer_init( VipsForeignLoadPdfBuffer *buffer )
 }
 
 #endif /*HAVE_POPPLER*/
+
+/* Also used by the pdfium loader.
+ */
+gboolean
+vips_foreign_load_pdf_is_a_buffer( const void *buf, size_t len )
+{
+	const guchar *str = (const guchar *) buf;
+
+	if( len >= 4 &&
+		str[0] == '%' && 
+		str[1] == 'P' &&
+		str[2] == 'D' &&
+		str[3] == 'F' )
+		return( 1 );
+
+	return( 0 );
+}
+
+/* Also used by the pdfium loader.
+ */
+gboolean
+vips_foreign_load_pdf_is_a( const char *filename )
+{
+	unsigned char buf[4];
+
+	if( vips__get_bytes( filename, buf, 4 ) == 4 &&
+		vips_foreign_load_pdf_is_a_buffer( buf, 4 ) )
+		return( 1 );
+
+	return( 0 );
+}
 
 /**
  * vips_pdfload:

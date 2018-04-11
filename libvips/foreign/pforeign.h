@@ -239,6 +239,9 @@ int vips__openslide_read( const char *filename, VipsImage *out,
 int vips__openslide_read_associated( const char *filename, VipsImage *out, 
 	const char *associated );
 
+gboolean vips_foreign_load_pdf_is_a_buffer( const void *buf, size_t len );
+gboolean vips_foreign_load_pdf_is_a( const char *filename );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
