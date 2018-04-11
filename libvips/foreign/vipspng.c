@@ -65,6 +65,8 @@
  * 	- better behaviour for truncated png files, thanks Yury
  * 26/4/17
  * 	- better @fail handling with truncated PNGs
+ * 9/4/18
+ * 	- set interlaced=1 for interlaced images
  */
 
 /*
@@ -437,6 +439,11 @@ png2vips_header( Read *read, VipsImage *out )
 			"%s", _( "unable to read PNG header" ) );
 		return( -1 );
 	}
+
+	/* Let our caller know. These are very expensive to decode.
+	 */
+	if( interlace_type != PNG_INTERLACE_NONE ) 
+		vips_image_set_int( out, "interlaced", 1 ); 
 
 	return( 0 );
 }

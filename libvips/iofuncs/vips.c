@@ -21,6 +21,8 @@
  * 	- use expat for xml read, printf for xml write
  * 16/8/17
  * 	- validate strs as being utf-8 before we write
+ * 9/4/18 Alexander--
+ * 	- use O_TMPFILE, if available
  */
 
 /*
@@ -54,6 +56,10 @@
 #define SHOW_HEADER
 #define DEBUG
  */
+
+/* Enable linux extensions like O_TMPFILE, if available.
+ */
+#define _GNU_SOURCE
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -181,28 +187,37 @@ vips__open_image_write( const char *filename, gboolean temp )
 
 	flags = MODE_WRITE;
 
+#ifdef O_TMPFILE
+	/* Linux-only extension creates an unlinked file. CREAT and TRUNC must
+	 * be clear. The filename arg to open() must name a directory.
+	 */
+	if( temp ) {
+		char *dirname;
+
+		flags |= O_TMPFILE;
+		flags &= ~O_CREAT;
+		flags &= ~O_TRUNC;
+
+		dirname = g_path_get_dirname( filename ); 
+		fd = vips_tracked_open( dirname, flags, 0666 );
+		g_free( dirname ); 
+	}
+	else
+		fd = vips_tracked_open( filename, flags, 0666 );
+#else /*!O_TMPFILE*/
 #ifdef _O_TEMPORARY
-	/* On Windows, setting O_TEMP gets the file automatically
+	/* On Windows, setting _O_TEMPORARY gets the file automatically
 	 * deleted on process exit, even if the processes crashes. See
 	 * vips_image_rewind() for what we do to help on *nix.
 	 */
 	if( temp )
 		flags |= _O_TEMPORARY;
 #endif /*_O_TEMPORARY*/
-
-#ifdef O_TMPFILE
-	/* Added in linux 3.11, but still not available in most glibc. We
-	 * unlink the file ourselves anyway, so it doesn't matter if this
-	 * fails. 
-	 */
-	if( temp ) 
-		flags |= O_TMPFILE;
 #endif /*O_TMPFILE*/
 
-	if( (fd = vips_tracked_open( filename, flags, 0666 )) < 0 ) {
+	if( fd < 0 ) {
 		vips_error_system( errno, "VipsImage", 
-			_( "unable to write to \"%s\"" ), 
-			filename );
+			_( "unable to write to \"%s\"" ), filename );
 		return( -1 );
 	}
 

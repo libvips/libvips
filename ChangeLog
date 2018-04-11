@@ -12,10 +12,13 @@
 - drop incompatible ICC profiles before save
 - better hasalpha rules
 - create funcs always make MULTIBAND (ie. no alpha)
+- use O_TMPFILE, if available [Alexander--]
+- set "interlaced=1" for interlaced JPG and PNG images
 
 12/3/18 started 8.6.4
-- better fitting of fonts with overhanging edges, thanks Adrià 
-- lower stack use in radsave to help musl [Jacob Thrane Lund]
+- better fitting of fonts with overhanging edges [Adrià]
+- revise C++ example [fangqiao]
+- strict round down on jpeg shrink on load [davidwood]
 
 12/2/18 started 8.6.3
 - use pkg-config to find libjpeg, if we can
