@@ -82,7 +82,7 @@ if test "$PDFIUM_LIBS" = ""; then
   for i in $pdfium_objects; do
     LIBS="$LIBS $prefix/lib/pdfium-obj/$i"
   done
-  LIBS="$LIBS -L$prefix/lib -lc++ -licuuc -lm -lpthread"
+  LIBS="$LIBS -L$prefix/lib -lm -lpthread"
   CPPFLAGS="$PDFIUM_INCLUDES $CPPFLAGS"
 
   AC_TRY_LINK([#include <fpdfview.h>],
@@ -123,7 +123,7 @@ if test x"$PDFIUM_LIBS" != x"no"; then
   for i in $pdfium_objects; do
     PDFIUM_LIBS="$PDFIUM_LIBS $prefix/lib/pdfium-obj/$i"
   done
-  PDFIUM_LIBS="$PDFIUM_LIBS -L$dir -lc++ -licuuc -lm -lpthread"
+  PDFIUM_LIBS="$PDFIUM_LIBS -L$dir -lm -lpthread"
 fi
 
 AC_SUBST(PDFIUM_LIBS)
