@@ -684,18 +684,6 @@ vips_foreign_load_pdf_is_a( const char *filename )
  * converted. If you need CMYK bitmaps, you should use vips_magickload()
  * instead.
  *
- * Rendering is progressive, that is, the image is rendered in strips equal in 
- * height to the tile height. If your PDF contains large image files and 
- * they span several strips in the output image, they will be decoded multiple 
- * times. To fix this, increase the the tile height, for example:
- *
- * |[
- * vips copy huge.pdf x.png --vips-tile-height=1024
- * ]|
- *
- * Will process images in 1024-pixel high strips, potentially much faster,
- * though of course also using a lot more memory.
- *
  * Use @page to select a page to render, numbering from zero.
  *
  * Use @n to select the number of pages to render. The default is 1. Pages are
