@@ -104,7 +104,13 @@ Image*
 magick_acquire_image(const ImageInfo *image_info, ExceptionInfo *exception)
 {
 	(void) exception;
+#ifdef HAVE_ACQUIREIMAGE
 	return( AcquireImage( image_info ) );
+#else /*!HAVE_ACQUIREIMAGE*/
+	/* IM5-ish and GraphicsMagick use AllocateImage().
+	 */
+	return( AllocateImage( image_info ) );
+#endif
 }
 
 void
@@ -112,7 +118,13 @@ magick_acquire_next_image( const ImageInfo *image_info, Image *image,
 	ExceptionInfo *exception )
 {
 	(void) exception;
+#ifdef HAVE_ACQUIREIMAGE
 	AcquireNextImage( image_info, image );
+#else /*!HAVE_ACQUIREIMAGE*/
+	/* IM5-ish and GraphicsMagick use AllocateNextImage().
+	 */
+	AllocateNextImage( image_info, image );
+#endif
 }
 
 int
@@ -120,7 +132,18 @@ magick_set_image_size( Image *image, const size_t width, const size_t height,
 	ExceptionInfo *exception )
 {
 	(void) exception;
+#ifdef HAVE_SETIMAGEEXTENT
 	return( SetImageExtent( image, width, height ) );
+#else /*!HAVE_SETIMAGEEXTENT*/
+	image->columns = width;
+	image->rows = height;
+
+	/* imagemagick does a SyncImagePixelCache() at the end of
+	 * SetImageExtent(), but GM does not really have an equivalent. Just
+	 * always return True.
+	 */
+	return( MagickTrue );
+#endif /*HAVE_SETIMAGEEXTENT*/
 }
 
 int
@@ -129,6 +152,17 @@ magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
 	const StorageType type,const void *pixels, ExceptionInfo *exception )
 {
 	(void) exception;
+
+	/* GM does not seem to have a simple equivalent, unfortunately.
+	 *
+	 *   extern MagickExport PixelPacket
+	 *     *SetImagePixels(Image *image,const long x,const long y,
+	 *                       const unsigned long columns,const unsigned
+	 *                       long rows);
+	 *
+	 * gets a pointer into the image which we can then write to, use that
+	 * perhaps?
+	 */
 	return( ImportImagePixels( image, x, y, width, height, map,
 		type, pixels ) );
 }

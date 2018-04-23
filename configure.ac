@@ -670,6 +670,26 @@ if test x"$magick6" = x"yes"; then
   CFLAGS="$save_CFLAGS"
 fi
 
+if test x"$magick6" = x"yes"; then
+  # more recent magick6s have AcquireImage rather than AllocateImage argh
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $MAGICK_LIBS"
+  AC_CHECK_FUNCS(AcquireImage,
+    AC_DEFINE(HAVE_ACQUIREIMAGE,1,
+	      [define if your magick has AcquireImage.]))
+  LIBS="$save_LIBS"
+fi
+
+if test x"$magick6" = x"yes"; then
+  # more recent magick6s have SetImageExtent 
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $MAGICK_LIBS"
+  AC_CHECK_FUNCS(SetImageExtent,
+    AC_DEFINE(HAVE_SETIMAGEEXTENT,1,
+	      [define if your magick has SetImageExtent.]))
+  LIBS="$save_LIBS"
+fi
+
 # have flags to turn load and save off independently ... some people will want
 # save but not load, for example
 AC_ARG_ENABLE([magickload], 
