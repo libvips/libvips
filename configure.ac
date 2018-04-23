@@ -482,7 +482,7 @@ PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,
 )
 
 # from 2.40 we have g_win32_get_command_line() on win
-PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 >= 2.40,
+PKG_CHECK_MODULES(WIN32_GET_COMMAND_LINE, glib-2.0 >= 2.40,
   [if test x"$vips_os_win32" = x"yes"; then
      AC_DEFINE(HAVE_G_WIN32_GET_COMMAND_LINE,1,[define if your glib has g_win32_get_command_line().])
      have_g_win32_get_command_line=yes

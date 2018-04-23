@@ -5,6 +5,7 @@
 #define VIPS_ENUM_TYPES_H
 
 G_BEGIN_DECLS
+
 /* enumerations from "../../../libvips/include/vips/resample.h" */
 GType vips_kernel_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_KERNEL (vips_kernel_get_type())
