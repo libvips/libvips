@@ -2,9 +2,9 @@
 title: libvips for .NET
 ---
 
-There's a new full libvips binding for .NET. It has a test-suite which passes 
-with no memory leaks, and it's in `NuGet` so it's easy to install on Linux, macOS 
-and Windows, and it has nice documentation:
+There's a new full libvips binding for .NET. It has a test-suite which passes
+with no memory leaks, it's in `NuGet`, so it's easy to install on Linux,
+macOS and Windows, and it has nice documentation:
 
 [https://kleisauke.github.io/net-vips](https://kleisauke.github.io/net-vips)
 
@@ -13,7 +13,8 @@ install notes and an example:
 
 [https://github.com/kleisauke/net-vips](https://github.com/kleisauke/net-vips)
 
-But briefly, just get the libvips shared library on your system and enter:
+But briefly, just [get the libvips shared library on your
+system](/install.html) and enter:
 
 	Install-Package NetVips
 
@@ -77,18 +78,15 @@ image.WriteToFile("x.png", new VOption
 });
 ```
 
-Inside the repo are benchmarks which demonstrate the performance against 
-`Magick.NET`, the ImageMagick binding for .NET:
-
-[NetVips.Benchmarks](https://github.com/kleisauke/net-vips/tree/master/tests/NetVips.Benchmarks)
-
-On that test and on my pc, `NetVips` is 8x faster than `Magick.NET`.
+The repo includes [benchmarks which test the performance against
+`Magick.NET`](https://github.com/kleisauke/net-vips/tree/master/tests/NetVips.Benchmarks),
+the ImageMagick binding for .NET. On that test and on my pc, `NetVips`
+is 8x faster than `Magick.NET`.
 
 # How it works
 
-There are quite a few bindings for libvips now. This one takes a slightly 
-different approach: it uses the P/Invoke (Platform Invocation Services) 
-system in .NET and uses that to invoke directly into libvips. Once inside, 
+This binding uses the P/Invoke (Platform Invocation Services) 
+system in .NET to call directly into the libvips DLL. Once inside, 
 it uses GObject and libvips' introspection facilities to link operations 
 on C# objects to operations in the libvips library.
 
@@ -111,9 +109,10 @@ public Image HoughCircle(int? scale = null, int? minRadius = null, int? maxRadiu
 ```
 
 When `HoughCircle` is called it jumps into libvips and searches for an operation 
-of `hough_circle` (the non PascalCase variant). It then examines the operation 
-and discovers what arguments it needs, what type they are, and what options the 
-operation supports (no required args, but quite a few options, in this example).
+called `hough_circle` (the non PascalCase variant). It then examines the
+operation and discovers what arguments it needs, what type they are, and what
+options the operation supports (no required args, but quite a few options,
+in this example).
 
 It then walks the arguments that were supplied, setting what it can, and 
 invokes the operation. On return, it extracts the results and repackages them 
