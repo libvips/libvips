@@ -216,7 +216,7 @@ magick_genesis_cb( void *client )
 	printf( "magick_genesis_cb:\n" ); 
 #endif /*DEBUG*/
 
-#ifdef HAVE_MAGICKCOREGENESIS
+#if defined(HAVE_MAGICKCOREGENESIS) || defined(HAVE_MAGICK7) 
 	MagickCoreGenesis( vips_get_argv0(), MagickFalse );
 #else /*!HAVE_MAGICKCOREGENESIS*/
 	InitializeMagick( "" );

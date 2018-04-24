@@ -123,14 +123,18 @@ int vips__fits_read( const char *filename, VipsImage *out );
 int vips__fits_write( VipsImage *in, const char *filename );
 
 int vips__magick_read( const char *filename, 
-	VipsImage *out, const char *density, int page, int n );
+	VipsImage *out, const char *format, const char *density, 
+	int page, int n );
 int vips__magick_read_header( const char *filename, 
-	VipsImage *out, const char *density, int page, int n );
+	VipsImage *out, const char *format, const char *density, 
+	int page, int n );
 
 int vips__magick_read_buffer( const void *buf, const size_t len,
-	VipsImage *out, const char *density, int page, int n );
+	VipsImage *out, const char *format, const char *density, 
+	int page, int n );
 int vips__magick_read_buffer_header( const void *buf, const size_t len,
-	VipsImage *out, const char *density, int page, int n );
+	VipsImage *out, const char *format, const char *density, 
+	int page, int n );
 
 extern const char *vips__mat_suffs[];
 
@@ -162,12 +166,14 @@ int vips__jpeg_write_file( VipsImage *in,
 	const char *filename, int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip,
 	gboolean no_subsample, gboolean trellis_quant,
-	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table );
+	gboolean overshoot_deringing, gboolean optimize_scans, 
+	int quant_table );
 int vips__jpeg_write_buffer( VipsImage *in, 
 	void **obuf, size_t *olen, int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip,
 	gboolean no_subsample, gboolean trellis_quant,
-	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table );
+	gboolean overshoot_deringing, gboolean optimize_scans, 
+	int quant_table );
 
 int vips__isjpeg_buffer( const void *buf, size_t len );
 int vips__isjpeg( const char *filename );

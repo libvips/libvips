@@ -4,6 +4,8 @@
  * 	- from magickload
  * 25/11/16
  * 	- add @n, deprecate @all_frames (just sets n = -1)
+ * 24/4/18
+ * 	- add format hint
  */
 
 /*
@@ -56,6 +58,8 @@
 
 #include <MagickCore/MagickCore.h>
 
+#include "magick.h"
+
 typedef struct _VipsForeignLoadMagick7 {
 	VipsForeignLoad parent_object;
 
@@ -63,6 +67,7 @@ typedef struct _VipsForeignLoadMagick7 {
 	 */
 	gboolean all_frames;
 
+	char *format;			/* Format hint */
 	char *density;			/* Load at this resolution */
 	int page;			/* Load this page (frame) */
 	int n;				/* Load this many pages */
@@ -307,7 +312,7 @@ vips_foreign_load_magick7_build( VipsObject *object )
 	printf( "vips_foreign_load_magick7_build: %p\n", object ); 
 #endif /*DEBUG*/
 
-	vips_foreign_load_magick7_genesis();
+	magick_genesis();
 
 	magick7->image_info = CloneImageInfo( NULL );
 	magick7->exception = AcquireExceptionInfo();
@@ -318,6 +323,12 @@ vips_foreign_load_magick7_build( VipsObject *object )
 
 	if( magick7->all_frames )
 		magick7->n = -1;
+
+	/* The file format hint, eg. "ICO".
+	 */
+	if( magick7->format ) 
+		vips_strncpy( magick7->image_info->magick, 
+			magick7->format, MaxTextExtent );
 
 	/* Canvas resolution for rendering vector formats like SVG.
 	 */
@@ -377,12 +388,12 @@ vips_foreign_load_magick7_class_init( VipsForeignLoadMagick7Class *class )
 		vips_foreign_load_magick7_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_magick7_get_flags;
 
-	VIPS_ARG_BOOL( class, "all_frames", 3, 
-		_( "all_frames" ), 
-		_( "Read all frames from an image" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
-		G_STRUCT_OFFSET( VipsForeignLoadMagick7, all_frames ),
-		FALSE );
+	VIPS_ARG_STRING( class, "format", 3,
+		_( "Format" ),
+		_( "Image format hint" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadMagick7, format ),
+		NULL );
 
 	VIPS_ARG_STRING( class, "density", 4,
 		_( "Density" ),
@@ -404,6 +415,13 @@ vips_foreign_load_magick7_class_init( VipsForeignLoadMagick7Class *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadMagick7, n ),
 		-1, 100000, 1 );
+
+	VIPS_ARG_BOOL( class, "all_frames", 7, 
+		_( "all_frames" ), 
+		_( "Read all frames from an image" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsForeignLoadMagick7, all_frames ),
+		FALSE );
 
 }
 
@@ -579,7 +597,7 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	return( 0 );
 }
 
-/* We don't bother with GetPixelReadMask((), assume it's everywhere. Don't
+/* We don't bother with GetPixelReadMask(), assume it's everywhere. Don't
  * bother with traits, assume taht's always update.
  *
  * We do skip index channels. Palette images add extra index channels
