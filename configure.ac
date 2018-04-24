@@ -690,6 +690,26 @@ if test x"$magick6" = x"yes"; then
   LIBS="$save_LIBS"
 fi
 
+if test x"$magick6" = x"yes"; then
+  # GM uses SetImageAttribute(), IM uses SetImageProperty()
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $MAGICK_LIBS"
+  AC_CHECK_FUNCS(SetImageProperty,
+    AC_DEFINE(HAVE_SETIMAGEPROPERTY,1,
+	      [define if your magick has SetImageProperty.]))
+  LIBS="$save_LIBS"
+fi
+
+if test x"$magick6" = x"yes"; then
+  # GM is missing InheritException
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $MAGICK_LIBS"
+  AC_CHECK_FUNCS(InheritException,
+    AC_DEFINE(HAVE_INHERITEXCEPTION,1,
+	      [define if your magick has InheritException.]))
+  LIBS="$save_LIBS"
+fi
+
 # have flags to turn load and save off independently ... some people will want
 # save but not load, for example
 AC_ARG_ENABLE([magickload], 

@@ -46,8 +46,8 @@ Image *magick_acquire_image( const ImageInfo *image_info,
 	ExceptionInfo *exception );
 void magick_acquire_next_image( const ImageInfo *image_info, 
 	Image *image, ExceptionInfo *exception );
-int magick_set_image_size( Image *image, const size_t width, const size_t height,
-	ExceptionInfo *exception );
+int magick_set_image_size( Image *image, 
+	const size_t width, const size_t height, ExceptionInfo *exception );
 int magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
 	const size_t width, const size_t height, const char *map,
 	const StorageType type,const void *pixels, ExceptionInfo *exception );

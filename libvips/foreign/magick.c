@@ -82,13 +82,6 @@ magick_set_property( Image *image, const char *property, const char *value,
 	(void) SetImageProperty( image, property, value, exception );
 }
 
-int
-magick_set_image_colorspace( Image *image, const ColorspaceType colorspace,
-	ExceptionInfo *exception)
-{
-	return( SetImageColorspace( image, colorspace, exception ) );
-}
-
 void
 magick_inherit_exception( ExceptionInfo *exception, Image *image ) 
 {
@@ -149,19 +142,20 @@ magick_set_image_size( Image *image, const size_t width, const size_t height,
 int
 magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
 	const size_t width, const size_t height, const char *map,
-	const StorageType type,const void *pixels, ExceptionInfo *exception )
+	const StorageType type, const void *pixels, ExceptionInfo *exception )
 {
 	(void) exception;
 
 	/* GM does not seem to have a simple equivalent, unfortunately.
+	 *
+	 * Looks like we'd need to call 
 	 *
 	 *   extern MagickExport PixelPacket
 	 *     *SetImagePixels(Image *image,const long x,const long y,
 	 *                       const unsigned long columns,const unsigned
 	 *                       long rows);
 	 *
-	 * gets a pointer into the image which we can then write to, use that
-	 * perhaps?
+	 * then repack pixels into that area using map and storage_type. 
 	 */
 	return( ImportImagePixels( image, x, y, width, height, map,
 		type, pixels ) );
@@ -172,21 +166,19 @@ magick_set_property( Image *image, const char *property, const char *value,
 	ExceptionInfo *exception )
 {
 	(void) exception;
+#ifdef HAVE_SETIMAGEPROPERTY
 	(void) SetImageProperty( image, property, value );
-}
-
-int
-magick_set_image_colorspace( Image *image, const ColorspaceType colorspace,
-	ExceptionInfo *exception )
-{
-	(void) exception;
-	return( SetImageColorspace( image, colorspace ) );
+#else /*!HAVE_SETIMAGEPROPERTY*/
+	(void) SetImageAttribute( image, property, value );
+#endif /*HAVE_SETIMAGEPROPERTY*/
 }
 
 void
 magick_inherit_exception( ExceptionInfo *exception, Image *image ) 
 {
+#ifdef HAVE_INHERITEXCEPTION
 	InheritException( exception, &image->exception );
+#endif /*HAVE_INHERITEXCEPTION*/
 }
 
 #endif /*HAVE_MAGICK6*/
