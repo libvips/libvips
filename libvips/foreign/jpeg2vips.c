@@ -279,6 +279,25 @@ readjpeg_file( ReadJpeg *jpeg, const char *filename )
 	return( 0 );
 }
 
+static const char *
+find_chroma_subsample( struct jpeg_decompress_struct *cinfo )
+{
+	gboolean has_subsample;
+
+	/* libjpeg only uses 4:4:4 and 4:2:0, confusingly. 
+	 *
+	 * http://poynton.ca/PDFs/Chroma_subsampling_notation.pdf
+	 */
+	has_subsample = cinfo->max_h_samp_factor > 1 ||
+		cinfo->max_v_samp_factor > 1;
+	if( cinfo->num_components > 3 )
+		/* A cmyk image.
+		 */
+		return( has_subsample ? "4:2:0:4" : "4:4:4:4" );
+	else
+		return( has_subsample ? "4:2:0" : "4:4:4" );
+}
+
 static int
 attach_blob( VipsImage *im, const char *field, void *data, int data_length )
 {
@@ -438,6 +457,9 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 	 */
 	if( jpeg_has_multiple_scans( cinfo ) )
 		vips_image_set_int( out, "interlaced", 1 ); 
+
+	(void) vips_image_set_string( out, "jpeg-chroma-subsample", 
+		find_chroma_subsample( cinfo ) );
 
 	/* Look for EXIF and ICC profile.
 	 */
