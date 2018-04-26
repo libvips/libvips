@@ -2451,9 +2451,6 @@ vips_get_disc_threshold( void )
  * will default to /tmp. On Windows, vips uses GetTempPath() to find the
  * temporary directory. 
  *
- * vips uses g_mkstemp() to make the temporary filename. They generally look
- * something like "vips-12-EJKJFGH.v".
- *
  * See also: vips_image_new().
  *
  * Returns: the new #VipsImage, or %NULL on error.
