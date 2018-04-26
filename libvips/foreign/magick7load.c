@@ -426,13 +426,33 @@ vips_foreign_load_magick7_error( VipsForeignLoadMagick7 *magick7 )
 }
 
 static int
+magick7_get_bands( Image *image )
+{
+	int bands;
+	int i;
+
+	/* We skip all index channels. Lots of images can have these, it's not
+	 * just the palette ones.
+	 */
+	bands = 0;
+	for( i = 0; i < GetPixelChannels( image ); i++ ) { 
+		PixelChannel channel = GetPixelChannelChannel( image, i ); 
+
+		if( channel != IndexPixelChannel ) 
+			bands += 1;
+	} 
+
+	return( bands );
+}
+
+static int
 vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7, 
 	Image *image, VipsImage *out )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( magick7 );
 
 	const char *key;
-	int i;
+	Image *p;
 
 #ifdef DEBUG
 	printf( "image->depth = %zd\n", image->depth ); 
@@ -448,17 +468,7 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	out->Xsize = image->columns;
 	out->Ysize = image->rows;
 	magick7->frame_height = image->rows;
-
-	/* We skip all index channels. Lots of images can have these, it's not
-	 * just the palette ones.
-	 */
-	out->Bands = 0;
-	for( i = 0; i < GetPixelChannels( image ); i++ ) { 
-		PixelChannel channel = GetPixelChannelChannel( image, i ); 
-		
-		if( channel != IndexPixelChannel ) 
-			out->Bands += 1;
-	} 
+	out->Bands = magick7_get_bands( image ); 
 
 	/* Depth can be 'fractional'. You'd think we should use
 	 * GetImageDepth() but that seems to compute something very complex. 
@@ -556,21 +566,46 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 		vips_image_set_string( out, vips_buf_all( &name ), value );
 	}
 
+	magick7->n_pages = GetImageListLength( GetFirstImageInList( image ) );
+#ifdef DEBUG
+	printf( "image has %d pages\n", magick7->n_pages );
+#endif /*DEBUG*/
+
 	/* Do we have a set of equal-sized frames? Append them.
 
 	   	FIXME ... there must be an attribute somewhere from dicom read 
 		which says this is a volumetric image
 
 	 */
-	magick7->n_pages = GetImageListLength( GetFirstImageInList( image ) );
-
+	magick7->n_frames = 0;
+	for( p = image; p; (p = GetNextImageInList( p )) ) {
+		if( p->columns != (unsigned int) out->Xsize ||
+			p->rows != (unsigned int) out->Ysize ||
+			magick7_get_bands( p ) != out->Bands ) {
 #ifdef DEBUG
-	printf( "image has %d pages\n", magick7->n_pages );
+			printf( "frame %d differs\n", magick7->n_frames );
+			printf( "%zdx%zd, %d bands\n", 
+				p->columns, p->rows, magick7_get_bands( p ) );
+			printf( "first frame is %dx%d, %d bands\n", 
+				out->Xsize, out->Ysize, out->Bands );
 #endif /*DEBUG*/
 
-	magick7->n_frames = magick7->n != -1 ?
-		VIPS_MIN( magick7->n_pages, magick7->n ) :
-		magick7->n_pages;
+			break;
+		}
+
+		magick7->n_frames += 1;
+	}
+	if( p ) 
+		/* Nope ... just do the first image in the list.
+		 */
+		magick7->n_frames = 1;
+
+#ifdef DEBUG
+	printf( "will read %d frames\n", magick7->n_frames );
+#endif /*DEBUG*/
+
+	if( magick7->n != -1 )
+		magick7->n_frames = VIPS_MIN( magick7->n_frames, magick7->n );
 
 	/* So we can finally set the height.
 	 */
