@@ -76,7 +76,11 @@ typedef struct _VipsForeignLoadMagick7 {
 	ImageInfo *image_info;
 	ExceptionInfo *exception;
 
-	int n_frames;			/* Number of frames in file */
+	/* Number of pages in image.
+	 */
+	int n_pages;
+
+	int n_frames;			/* Number of frames we will read */
 	Image **frames;			/* An Image* for each frame */
 	CacheView **cache_view; 	/* A CacheView for each frame */
 	int frame_height;	
@@ -281,26 +285,6 @@ vips_foreign_load_magick7_dispose( GObject *gobject )
 
 	G_OBJECT_CLASS( vips_foreign_load_magick7_parent_class )->
 		dispose( gobject );
-}
-
-static void *
-vips_foreign_load_magick7_genesis_cb( void *client )
-{
-#ifdef DEBUG
-	printf( "vips_foreign_load_magick7_genesis:\n" ); 
-#endif /*DEBUG*/
-
-	MagickCoreGenesis( vips_get_argv0(), MagickFalse );
-
-	return( NULL );
-}
-
-static void
-vips_foreign_load_magick7_genesis( void )
-{
-	static GOnce once = G_ONCE_INIT;
-
-	VIPS_ONCE( &once, vips_foreign_load_magick7_genesis_cb, NULL );
 }
 
 static int
@@ -578,14 +562,15 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 		which says this is a volumetric image
 
 	 */
-	magick7->n_frames = GetImageListLength( GetFirstImageInList( image ) );
+	magick7->n_pages = GetImageListLength( GetFirstImageInList( image ) );
 
 #ifdef DEBUG
-	printf( "image has %d frames\n", magick7->n_frames );
+	printf( "image has %d pages\n", magick7->n_pages );
 #endif /*DEBUG*/
 
-	if( magick7->n != -1 )
-		magick7->n_frames = VIPS_MIN( magick7->n_frames, magick7->n );
+	magick7->n_frames = magick7->n != -1 ?
+		VIPS_MIN( magick7->n_frames, magick7->n ) :
+		magick7->n_pages;
 
 	/* So we can finally set the height.
 	 */
@@ -594,11 +579,13 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 		out->Ysize *= magick7->n_frames;
 	}
 
+	vips_image_set_int( out, VIPS_META_N_PAGES, magick7->n_pages );
+
 	return( 0 );
 }
 
 /* We don't bother with GetPixelReadMask(), assume it's everywhere. Don't
- * bother with traits, assume taht's always update.
+ * bother with traits, assume that's always updated.
  *
  * We do skip index channels. Palette images add extra index channels
  * containing the index value from the file before colourmap lookup.
@@ -753,7 +740,7 @@ ismagick7( const char *filename )
 	ExceptionInfo *exception;
 	int result;
 
-	vips_foreign_load_magick7_genesis();
+	magick_genesis();
 
 	/* Horribly slow :-(
 	 */
@@ -853,7 +840,7 @@ vips_foreign_load_magick7_buffer_is_a_buffer( const void *buf, size_t len )
 	ExceptionInfo *exception;
 	int result;
 
-	vips_foreign_load_magick7_genesis();
+	magick_genesis();
 
 	/* Horribly slow :-(
 	 */

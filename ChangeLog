@@ -18,6 +18,7 @@
 - add @format option to magickload
 - jpegload adds a jpeg-chroma-subsample field with eg. 4:4:4 for no
   chrominance subsampling. 
+- tiffload, pdfload, magickload set VIPS_META_N_PAGES "n-pages" metadata item
 
 12/3/18 started 8.6.4
 - better fitting of fonts with overhanging edges [Adrià]

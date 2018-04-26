@@ -204,9 +204,10 @@ vips_foreign_load_pdf_set_image( VipsForeignLoadPdf *pdf, VipsImage *out )
 	 */
         vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 
-	/* Extract and attach metadata.
+	/* Extract and attach metadata. Set the old name too for compat.
 	 */
 	vips_image_set_int( out, "pdf-n_pages", pdf->n_pages ); 
+	vips_image_set_int( out, VIPS_META_N_PAGES, pdf->n_pages );
 
 	for( i = 0; i < n_metadata; i++ ) {
 		VipsForeignLoadPdfMetadata *metadata = 

@@ -143,6 +143,13 @@ extern "C" {
  */
 #define VIPS_META_PAGE_HEIGHT "page-height"
 
+/**
+ * VIPS_META_N_PAGES:
+ *
+ * If set, the number of pages in the original file. 
+ */
+#define VIPS_META_N_PAGES "n-pages"
+
 guint64 vips_format_sizeof( VipsBandFormat format );
 guint64 vips_format_sizeof_unsafe( VipsBandFormat format );
 

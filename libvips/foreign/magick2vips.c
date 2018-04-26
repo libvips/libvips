@@ -134,7 +134,14 @@ typedef struct _Read {
 	ImageInfo *image_info;
 	ExceptionInfo exception;
 
+	/* Number of pages in image.
+	 */
+	int n_pages;
+
+	/* Number of pages we will read.
+	 */
 	int n_frames;
+
 	Image **frames;
 	int frame_height;
 
@@ -203,6 +210,7 @@ read_new( const char *filename, VipsImage *im,
 	read->image = NULL;
 	read->image_info = CloneImageInfo( NULL );
 	GetExceptionInfo( &read->exception );
+	read->n_pages = 0;
 	read->n_frames = 0;
 	read->frames = NULL;
 	read->frame_height = 0;
@@ -488,6 +496,7 @@ parse_header( Read *read )
 		which says this is a volumetric image
 
 	 */
+	read->n_pages = GetImageListLength( image );
 	read->n_frames = 0;
 	for( p = image; p; (p = GetNextImageInList( p )) ) {
 		if( p->columns != (unsigned int) im->Xsize ||
@@ -512,7 +521,7 @@ parse_header( Read *read )
 		read->n_frames = 1;
 
 #ifdef DEBUG
-	printf( "image has %d frames\n", read->n_frames );
+	printf( "will read %d frames\n", read->n_frames );
 #endif /*DEBUG*/
 
 	if( read->n != -1 )
@@ -532,6 +541,8 @@ parse_header( Read *read )
 		vips_image_set_int( im, VIPS_META_PAGE_HEIGHT, im->Ysize );
 		im->Ysize *= read->n_frames;
 	}
+
+	vips_image_set_int( im, VIPS_META_N_PAGES, read->n_pages );
 
 	return( 0 );
 }

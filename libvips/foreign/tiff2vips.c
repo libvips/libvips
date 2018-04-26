@@ -177,6 +177,8 @@
  * 	- remove missing res warning
  * 19/5/17
  * 	- page > 0 could break edge tiles or strips
+ * 26/4/18
+ * 	- add n-pages metadata item
  */
 
 /*
@@ -282,6 +284,10 @@ typedef struct _Rtiff {
 	/* The TIFF we read.
 	 */
 	TIFF *tiff;
+
+	/* Number of pages (directories) in image.
+	 */
+	int n_pages;
 
 	/* The current page we have set.
 	 */
@@ -1230,6 +1236,8 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 		vips_image_set_int( out, 
 			VIPS_META_PAGE_HEIGHT, rtiff->header.height );
 
+	vips_image_set_int( out, VIPS_META_N_PAGES, rtiff->n_pages );
+
 	/* Even though we could end up serving tiled data, always hint
 	 * THINSTRIP, since we're quite happy doing that too, and it could need
 	 * a lot less memory.
@@ -1984,6 +1992,7 @@ rtiff_new( VipsImage *out, int page, int n, gboolean autorotate )
 	rtiff->n = n;
 	rtiff->autorotate = autorotate;
 	rtiff->tiff = NULL;
+	rtiff->n_pages = 0;
 	rtiff->current_page = -1;
 	rtiff->sfn = NULL;
 	rtiff->client = NULL;
@@ -2167,8 +2176,9 @@ rtiff_header_read_all( Rtiff *rtiff )
 
 	/* -1 means "to the end".
 	 */
+	rtiff->n_pages = rtiff_n_pages( rtiff );
 	if( rtiff->n == -1 )
-		rtiff->n = rtiff_n_pages( rtiff ) - rtiff->page;
+		rtiff->n = rtiff->n_pages - rtiff->page;
 
 	/* If we're to read many pages, verify that they are all identical. 
 	 */
