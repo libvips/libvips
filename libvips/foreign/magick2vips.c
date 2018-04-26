@@ -499,9 +499,13 @@ parse_header( Read *read )
 	read->n_pages = GetImageListLength( image );
 	read->n_frames = 0;
 	for( p = image; p; (p = GetNextImageInList( p )) ) {
+		int p_depth = 
+			GetImageChannelDepth( p, AllChannels, &p->exception );
+
 		if( p->columns != (unsigned int) im->Xsize ||
 			p->rows != (unsigned int) im->Ysize ||
-			get_bands( p ) != im->Bands ) {
+			get_bands( p ) != im->Bands ||
+			p_depth != depth ) {
 #ifdef DEBUG
 			printf( "frame %d differs\n", read->n_frames );
 			printf( "%zdx%zd, %d bands\n", 

@@ -581,7 +581,8 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	for( p = image; p; (p = GetNextImageInList( p )) ) {
 		if( p->columns != (unsigned int) out->Xsize ||
 			p->rows != (unsigned int) out->Ysize ||
-			magick7_get_bands( p ) != out->Bands ) {
+			magick7_get_bands( p ) != out->Bands ||
+			p->depth != image->depth ) {
 #ifdef DEBUG
 			printf( "frame %d differs\n", magick7->n_frames );
 			printf( "%zdx%zd, %d bands\n", 
