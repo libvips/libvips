@@ -20,6 +20,8 @@
  * 	- implement auto fitting of text inside bounds
  * 12/3/18
  * 	- better fitting of fonts with overhanging edges, thanks Adrià 
+ * 26/4/18 fangqiao 
+ * 	- add fontfile option
  */
 
 /*
@@ -80,6 +82,7 @@ typedef struct _VipsText {
 	int spacing;
 	VipsAlign align;
 	int dpi;
+	char *fontfile;
 
 	FT_Bitmap bitmap;
 	PangoContext *context;
@@ -337,6 +340,15 @@ vips_text_build( VipsObject *object )
 	if( !vips_text_fontmap )
 		vips_text_fontmap = pango_ft2_font_map_new();
 
+	if( text->fontfile &&
+		!FcConfigAppFontAddFile( NULL, 
+			(const FcChar8 *) text->fontfile ) ) {
+		vips_error( class->nickname, 
+			_( "unable to load font \"%s\"" ), text->fontfile );
+		g_mutex_unlock( vips_text_lock ); 
+		return( -1 );
+	}
+
 	/* If our caller set height and not dpi, we adjust dpi until 
 	 * we get a fit.
 	 */
@@ -477,6 +489,13 @@ vips_text_class_init( VipsTextClass *class )
 		G_STRUCT_OFFSET( VipsText, spacing ),
 		0, 1000000, 0 );
 
+	VIPS_ARG_STRING( class, "fontfile", 12, 
+		_( "Font file" ), 
+		_( "Load this font file" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsText, fontfile ),
+		NULL ); 
+
 }
 
 static void
@@ -499,6 +518,7 @@ vips_text_init( VipsText *text )
  * Optional arguments:
  *
  * * @font: %gchararray, font to render with
+ * * @fontfile: %gchararray, load this font file
  * * @width: %gint, image should be no wider than this many pixels
  * * @height: %gint, image should be no higher than this many pixels
  * * @align: #VipsAlign, left/centre/right alignment
@@ -516,6 +536,9 @@ vips_text_init( VipsText *text )
  * @font is the font to render with, as a fontconfig name. Examples might be
  * "sans 12" or perhaps "bitstream charter bold 10".
  *
+ * You can specify a font to load with @fontfile. You'll need to also set the
+ * name of the font with @font.
+ *
  * @width is the number of pixels to word-wrap at. Lines of text wider than
  * this will be broken at word bounaries. 
  * @align can be used to set the alignment style for multi-line
@@ -532,7 +555,7 @@ vips_text_init( VipsText *text )
  * @dpi sets the resolution to render at. "sans 12" at 72 dpi draws characters
  * approximately 12 pixels high. 
  *
- * @spacing sets the line spacing, in points. It would typicallly be something
+ * @spacing sets the line spacing, in points. It would typically be something
  * like font size times 1.2.
  *
  * See also: vips_xyz(), vips_text(), vips_gaussnoise().
