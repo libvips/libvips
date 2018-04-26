@@ -569,7 +569,7 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 #endif /*DEBUG*/
 
 	magick7->n_frames = magick7->n != -1 ?
-		VIPS_MIN( magick7->n_frames, magick7->n ) :
+		VIPS_MIN( magick7->n_pages, magick7->n ) :
 		magick7->n_pages;
 
 	/* So we can finally set the height.
@@ -686,7 +686,8 @@ vips_foreign_load_magick7_load( VipsForeignLoadMagick7 *magick7 )
 	/* Record frame pointers.
 	 */
 	g_assert( !magick7->frames ); 
-	if( !(magick7->frames = VIPS_ARRAY( NULL, magick7->n_frames, Image * )) )
+	if( !(magick7->frames = 
+		VIPS_ARRAY( NULL, magick7->n_frames, Image * )) )
 		return( -1 );
 	p = magick7->image;
 	for( i = 0; i < magick7->n_frames; i++ ) {
