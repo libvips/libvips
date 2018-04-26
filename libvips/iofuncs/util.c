@@ -1118,9 +1118,9 @@ vips__ftruncate( int fd, gint64 pos )
 	return( 0 );
 }
 
-/* Test for file exists.
+/* TRUE if file exists.
  */
-int
+gboolean
 vips_existsf( const char *name, ... )
 {
         va_list ap;
@@ -1135,7 +1135,12 @@ vips_existsf( const char *name, ... )
 
 	g_free( path ); 
 
-        return( !result );
+	/* access() can fail for various reasons, especially under things 
+	 * like selinux. Only return FALSE if we are certain the file does not
+	 * exist.
+	 */
+	return( result == 0 || 
+		errno != ENOENT );
 }
 
 #ifdef OS_WIN32
@@ -1624,32 +1629,30 @@ vips__temp_dir( void )
 /* Make a temporary file name. The format parameter is something like "%s.jpg" 
  * and will be expanded to something like "/tmp/vips-12-34587.jpg".
  *
- * You need to free the result. A real file will also be created, though we
- * delete it for you.
+ * You need to free the result. 
  */
 char *
 vips__temp_name( const char *format )
 {
-	static int serial = 1;
+	static int serial = 0;
 
 	char file[FILENAME_MAX];
 	char file2[FILENAME_MAX];
-
 	char *name;
-	int fd;
 
-	vips_snprintf( file, FILENAME_MAX, "vips-%d-XXXXXX", serial++ );
+	vips_snprintf( file, FILENAME_MAX, "vips-%d-%u", 
+		serial++, g_random_int() );
 	vips_snprintf( file2, FILENAME_MAX, format, file );
 	name = g_build_filename( vips__temp_dir(), file2, NULL );
 
-	if( (fd = g_mkstemp( name )) == -1 ) {
-		vips_error( "tempfile", 
-			_( "unable to make temporary file %s" ), name );
-		g_free( name );
-		return( NULL );
-	}
-	close( fd );
-	g_unlink( name );
+	/* We could use something like g_mkstemp() to guarantee uniqueness
+	 * across processes, but the extra FS calls can be difficult for 
+	 * selinux.
+	 *
+	 * g_random_int() should be safe enough -- it's seeded from time(), so
+	 * it ought not to collide often -- and on linux at least we never 
+	 * actually use these filenames in the filesystem anyway.
+	 */
 
 	return( name );
 }
