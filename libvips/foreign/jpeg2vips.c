@@ -94,6 +94,10 @@
  * 	- revert previous warning change: libvips reports serious corruption, 
  * 	  like a truncated file, as a warning and we need to be able to catch
  * 	  that
+ * 9/4/18
+ * 	- set interlaced=1 for interlaced images
+ * 10/4/18
+ * 	- strict round down on shrink-on-load
  */
 
 /*
@@ -151,8 +155,6 @@
 /* Stuff we track during a read.
  */
 typedef struct _ReadJpeg {
-	VipsImage *out;
-
 	/* Shrink by this much during load. 1, 2, 4, 8.
 	 */
 	int shrink;
@@ -177,6 +179,13 @@ typedef struct _ReadJpeg {
 	 * during load.
 	 */
 	gboolean autorotate;
+
+	/* cinfo->output_width and height can be larger than we want since
+	 * libjpeg rounds up on shrink-on-load. This is the real size we will
+	 * output, as opposed to the size we decompress to.
+	 */
+	int output_width;
+	int output_height;
 } ReadJpeg;
 
 /* This can be called many times.
@@ -228,7 +237,6 @@ readjpeg_new( VipsImage *out, int shrink, gboolean fail, gboolean autorotate )
 	if( !(jpeg = VIPS_NEW( out, ReadJpeg )) )
 		return( NULL );
 
-	jpeg->out = out;
 	jpeg->shrink = shrink;
 	jpeg->fail = fail;
 	jpeg->filename = NULL;
@@ -269,6 +277,25 @@ readjpeg_file( ReadJpeg *jpeg, const char *filename )
         jpeg_stdio_src( &jpeg->cinfo, jpeg->eman.fp );
 
 	return( 0 );
+}
+
+static const char *
+find_chroma_subsample( struct jpeg_decompress_struct *cinfo )
+{
+	gboolean has_subsample;
+
+	/* libjpeg only uses 4:4:4 and 4:2:0, confusingly. 
+	 *
+	 * http://poynton.ca/PDFs/Chroma_subsampling_notation.pdf
+	 */
+	has_subsample = cinfo->max_h_samp_factor > 1 ||
+		cinfo->max_v_samp_factor > 1;
+	if( cinfo->num_components > 3 )
+		/* A cmyk image.
+		 */
+		return( has_subsample ? "4:2:0:4" : "4:4:4:4" );
+	else
+		return( has_subsample ? "4:2:0" : "4:4:4" );
 }
 
 static int
@@ -408,11 +435,31 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 
+	/* cinfo->output_width and cinfo->output_height round up with
+	 * shrink-on-load. For example, if the image is 1801 pixels across and
+	 * we shrink by 4, the output will be 450.25 pixels across, 
+	 * cinfo->output_width with be 451, and libjpeg will write a black
+	 * column of pixels down the right.
+	 *
+	 * We must strictly round down, since we don't want fractional pixels
+	 * along the bottom and right.
+	 */
+	jpeg->output_width = cinfo->image_width / jpeg->shrink;
+	jpeg->output_height = cinfo->image_height / jpeg->shrink;
+
 	/* Interlaced jpegs need lots of memory to read, so our caller needs
 	 * to know.
 	 */
 	(void) vips_image_set_int( out, "jpeg-multiscan", 
 		jpeg_has_multiple_scans( cinfo ) );
+
+	/* 8.7 adds this for PNG as well, so we have a new format-neutral name.
+	 */
+	if( jpeg_has_multiple_scans( cinfo ) )
+		vips_image_set_int( out, "interlaced", 1 ); 
+
+	(void) vips_image_set_string( out, "jpeg-chroma-subsample", 
+		find_chroma_subsample( cinfo ) );
 
 	/* Look for EXIF and ICC profile.
 	 */
@@ -684,15 +731,20 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 	printf( "read_jpeg_image: starting decompress\n" );
 #endif /*DEBUG*/
 
+	/* We must crop after the seq, or our generate may not be asked for
+	 * full lines of pixels and will attempt to write beyond the buffer.
+	 */
 	if( vips_image_generate( t[0], 
 		NULL, read_jpeg_generate, NULL, 
 		jpeg, NULL ) ||
 		vips_sequential( t[0], &t[1], 
 			"tile_height", 8,
-			NULL ) )
+			NULL ) ||
+		vips_extract_area( t[1], &t[2], 
+			0, 0, jpeg->output_width, jpeg->output_height, NULL ) )
 		return( -1 );
 
-	im = t[1];
+	im = t[2];
 	if( jpeg->autorotate )
 		im = read_jpeg_rotate( VIPS_OBJECT( out ), im );
 
@@ -730,6 +782,11 @@ vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 	if( header_only ) {
 		if( read_jpeg_header( jpeg, out ) )
 			return( -1 ); 
+
+		/* Patch in the correct size.
+		 */
+		out->Xsize = jpeg->output_width;
+		out->Ysize = jpeg->output_height;
 
 		/* Swap width and height if we're going to rotate this image.
 		 */

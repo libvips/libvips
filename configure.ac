@@ -482,7 +482,7 @@ PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,
 )
 
 # from 2.40 we have g_win32_get_command_line() on win
-PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 >= 2.40,
+PKG_CHECK_MODULES(WIN32_GET_COMMAND_LINE, glib-2.0 >= 2.40,
   [if test x"$vips_os_win32" = x"yes"; then
      AC_DEFINE(HAVE_G_WIN32_GET_COMMAND_LINE,1,[define if your glib has g_win32_get_command_line().])
      have_g_win32_get_command_line=yes
@@ -670,6 +670,46 @@ if test x"$magick6" = x"yes"; then
   CFLAGS="$save_CFLAGS"
 fi
 
+if test x"$magick6" = x"yes"; then
+  # more recent magick6s have AcquireImage rather than AllocateImage argh
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $MAGICK_LIBS"
+  AC_CHECK_FUNCS(AcquireImage,
+    AC_DEFINE(HAVE_ACQUIREIMAGE,1,
+	      [define if your magick has AcquireImage.]))
+  LIBS="$save_LIBS"
+fi
+
+if test x"$magick6" = x"yes"; then
+  # more recent magick6s have SetImageExtent 
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $MAGICK_LIBS"
+  AC_CHECK_FUNCS(SetImageExtent,
+    AC_DEFINE(HAVE_SETIMAGEEXTENT,1,
+	      [define if your magick has SetImageExtent.]))
+  LIBS="$save_LIBS"
+fi
+
+if test x"$magick6" = x"yes"; then
+  # GM uses SetImageAttribute(), IM uses SetImageProperty()
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $MAGICK_LIBS"
+  AC_CHECK_FUNCS(SetImageProperty,
+    AC_DEFINE(HAVE_SETIMAGEPROPERTY,1,
+	      [define if your magick has SetImageProperty.]))
+  LIBS="$save_LIBS"
+fi
+
+if test x"$magick6" = x"yes"; then
+  # GM is missing InheritException
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $MAGICK_LIBS"
+  AC_CHECK_FUNCS(InheritException,
+    AC_DEFINE(HAVE_INHERITEXCEPTION,1,
+	      [define if your magick has InheritException.]))
+  LIBS="$save_LIBS"
+fi
+
 # have flags to turn load and save off independently ... some people will want
 # save but not load, for example
 AC_ARG_ENABLE([magickload], 
@@ -747,6 +787,23 @@ if test x"$with_OpenEXR" != "xno"; then
     ],
     [AC_MSG_WARN([OpenEXR not found; disabling OpenEXR support])
      with_OpenEXR=no
+    ]
+  )
+fi
+
+# pdfium
+AC_ARG_WITH([pdfium],
+  AS_HELP_STRING([--without-pdfium], [build without pdfium (default: test)]))
+
+if test x"$with_pdfium" != x"no"; then
+  FIND_PDFIUM([
+     if test x"$with_poppler" != x"no"; then
+       AC_MSG_WARN([PDFium found, disabling poppler])
+       with_poppler=no
+     fi
+     with_pdfium=yes
+    ],[
+     with_pdfium=no
     ]
   )
 fi
@@ -1152,14 +1209,14 @@ fi
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS 
 # sort includes to get longer, more specific dirs first
 # helps, for example, selecting graphicsmagick over imagemagick
-VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $EXPAT_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $LIBWEBPMUX_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
+VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $EXPAT_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $LIBWEBPMUX_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $PDFIUM_INCLUDES $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
 do 
 	echo $i 
 done | sort -ru`
 VIPS_CFLAGS=`echo $VIPS_CFLAGS`
 VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
 VIPS_INCLUDES="$ZLIB_INCLUDES $PNG_INCLUDES $TIFF_INCLUDES $JPEG_INCLUDES" 
-VIPS_LIBS="$ZLIB_LIBS $MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $EXPAT_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $GIFLIB_LIBS $RSVG_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $LIBWEBPMUX_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
+VIPS_LIBS="$ZLIB_LIBS $MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $EXPAT_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $GIFLIB_LIBS $RSVG_LIBS $PDFIUM_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $LIBWEBPMUX_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
 
 AC_SUBST(VIPS_LIBDIR)
 
@@ -1253,6 +1310,7 @@ file import with OpenEXR: 		$with_OpenEXR
 file import with OpenSlide:		$with_openslide
   (requires openslide-3.3.0 or later)
 file import with matio: 		$with_matio
+PDF import with PDFium 			$with_pdfium
 PDF import with poppler-glib: 		$with_poppler
   (requires poppler-glib 0.16.0 or later)
 SVG import with librsvg-2.0: 		$with_rsvg

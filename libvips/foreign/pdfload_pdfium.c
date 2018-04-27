@@ -1,13 +1,7 @@
-/* load PDF with libpoppler
+/* load PDF with PDFium
  *
- * 7/2/16
- * 	- from openslideload.c
- * 12/5/16
- * 	- add @n ... number of pages to load
- * 23/11/16
- * 	- set page-height, if we can
- * 28/6/17
- * 	- use a much larger strip size, thanks bubba
+ * 5/4/18
+ * 	- from pdfload.c
  */
 
 /*
@@ -37,6 +31,12 @@
 
  */
 
+/* TODO 
+ *
+ * - what about filename encodings
+ * - need to test on Windows
+ */
+
 /*
 #define DEBUG
  */
@@ -57,10 +57,10 @@
 
 #include "pforeign.h"
 
-#ifdef HAVE_POPPLER
+#ifdef HAVE_PDFIUM
 
-#include <cairo.h>
-#include <poppler.h>
+#include <fpdfview.h>
+#include <fpdf_doc.h>
 
 typedef struct _VipsForeignLoadPdf {
 	VipsForeignLoad parent_object;
@@ -77,16 +77,12 @@ typedef struct _VipsForeignLoadPdf {
 	 */
 	double dpi;
 
-	/* Calculate this from DPI. At 72 DPI, we render 1:1 with cairo.
+	/* Calculate this from DPI. At 72 DPI, we render 1:1.
 	 */
 	double scale;
 
-	/* Poppler is not thread-safe, so we run inside a single-threaded
-	 * cache. On the plus side, this means we only need one @page pointer,
-	 * even though we change this during _generate().
-	 */
-	PopplerDocument *doc;
-	PopplerPage *page;
+	FPDF_DOCUMENT *doc;
+	FPDF_PAGE *page;
 	int current_page;
 
 	/* Doc has this many pages. 
@@ -106,22 +102,62 @@ typedef VipsForeignLoadClass VipsForeignLoadPdfClass;
 G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadPdf, vips_foreign_load_pdf, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
+static char *vips_pdfium_errors[] = {
+	"no error",
+	"unknown error",
+	"file not found or could not be opened",
+	"file not in PDF format or corrupted",
+	"password required or incorrect password",
+	"unsupported security scheme",
+	"page not found or content error"
+};
+
+static void
+vips_pdfium_error( void )
+{
+	int err = FPDF_GetLastError();
+
+	if( err >= 0 && 
+		err < VIPS_NUMBER( vips_pdfium_errors ) )
+		vips_error( "pdfload", "%s", _( vips_pdfium_errors[err] ) );
+	else
+		vips_error( "pdfload", "%s", _( "unknown error" ) ); 
+}
+
 static void
 vips_foreign_load_pdf_dispose( GObject *gobject )
 {
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) gobject;
 
-	VIPS_UNREF( pdf->page );
-	VIPS_UNREF( pdf->doc );
+	VIPS_FREEF( FPDF_ClosePage, pdf->page ); 
+	VIPS_FREEF( FPDF_CloseDocument, pdf->doc ); 
 
-	G_OBJECT_CLASS( vips_foreign_load_pdf_parent_class )->
-		dispose( gobject );
+	G_OBJECT_CLASS( vips_foreign_load_pdf_parent_class )->dispose( gobject );
+}
+
+static void *
+vips_pdfium_init_cb( void *dummy )
+{
+	FPDF_LIBRARY_CONFIG config;
+
+	config.version = 2;
+	config.m_pUserFontPaths = NULL;
+	config.m_pIsolate = NULL;
+	config.m_v8EmbedderSlot = 0;
+
+	FPDF_InitLibraryWithConfig( &config );
+
+	return( NULL );
 }
 
 static int
 vips_foreign_load_pdf_build( VipsObject *object )
 {
+	static GOnce once = G_ONCE_INIT;
+
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) object;
+
+	VIPS_ONCE( &once, vips_pdfium_init_cb, NULL );
 
 	if( !vips_object_argument_isset( object, "scale" ) )
 		pdf->scale = pdf->dpi / 72.0;
@@ -136,7 +172,8 @@ vips_foreign_load_pdf_build( VipsObject *object )
 static VipsForeignFlags
 vips_foreign_load_pdf_get_flags_filename( const char *filename )
 {
-	/* We can render any part of the page on demand.
+	/* We can't render any part of the page on demand, but we can render
+	 * separate pages. Might as well call ourselves partial.
 	 */
 	return( VIPS_FOREIGN_PARTIAL );
 }
@@ -153,15 +190,15 @@ vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 	if( pdf->current_page != page_no ) { 
 		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( pdf );
 
-		VIPS_UNREF( pdf->page );
+		VIPS_FREEF( FPDF_ClosePage, pdf->page ); 
 		pdf->current_page = -1;
 
 #ifdef DEBUG
 		printf( "vips_foreign_load_pdf_get_page: %d\n", page_no );
 #endif /*DEBUG*/
 
-		if( !(pdf->page = poppler_document_get_page( pdf->doc, 
-			page_no )) ) {
+		if( !(pdf->page = FPDF_LoadPage( pdf->doc, page_no )) ) {
+			vips_pdfium_error();
 			vips_error( class->nickname, 
 				_( "unable to load page %d" ), page_no );
 			return( -1 ); 
@@ -175,18 +212,18 @@ vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 /* String-based metadata fields we extract.
  */
 typedef struct _VipsForeignLoadPdfMetadata {
-	char *(*pdf_fetch)( PopplerDocument *doc );
-	char *field;
+	char *tag;		/* as understood by PDFium */
+	char *field;		/* as understood by libvips */
 } VipsForeignLoadPdfMetadata;
 
 static VipsForeignLoadPdfMetadata vips_foreign_load_pdf_metadata[] = {
-	{ poppler_document_get_title, "pdf-title" },
-	{ poppler_document_get_author, "pdf-author" },
-	{ poppler_document_get_subject, "pdf-subject" },
-	{ poppler_document_get_keywords, "pdf-keywords" },
-	{ poppler_document_get_creator, "pdf-creator" },
-	{ poppler_document_get_producer, "pdf-producer" },
-	{ poppler_document_get_metadata, "pdf-metadata" },
+	{ "Title", "pdf-title" },
+	{ "Author", "pdf-author" },
+	{ "Subject", "pdf-subject" },
+	{ "Keywords", "pdf-keywords" },
+	{ "Creator", "pdf-creator" },
+	{ "Producer", "pdf-producer" },
+	/* poppler has "metadata" as well, but pdfium does not support this */
 };
 static int n_metadata = VIPS_NUMBER( vips_foreign_load_pdf_metadata );
 
@@ -207,17 +244,27 @@ vips_foreign_load_pdf_set_image( VipsForeignLoadPdf *pdf, VipsImage *out )
 	/* Extract and attach metadata. Set the old name too for compat.
 	 */
 	vips_image_set_int( out, "pdf-n_pages", pdf->n_pages ); 
-	vips_image_set_int( out, VIPS_META_N_PAGES, pdf->n_pages );
+	vips_image_set_int( out, VIPS_META_N_PAGES, pdf->n_pages ); 
 
 	for( i = 0; i < n_metadata; i++ ) {
 		VipsForeignLoadPdfMetadata *metadata = 
 			&vips_foreign_load_pdf_metadata[i];
 
-		char *str;
+		char text[1024];
+		int len;
 
-		if( (str = metadata->pdf_fetch( pdf->doc )) ) { 
-			vips_image_set_string( out, metadata->field, str ); 
-			g_free( str );
+		len = FPDF_GetMetaText( pdf->doc, metadata->tag, text, 1024 );
+		if( len > 0 ) { 
+			char *str;
+
+			/* Silently ignore coding errors.
+			 */
+			if( (str = g_utf16_to_utf8( (gunichar2 *) text, len, 
+				NULL, NULL, NULL )) ) {
+				vips_image_set_string( out, 
+					metadata->field, str ); 
+				g_free( str );
+			}
 		}
 	}
 
@@ -246,7 +293,7 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 	printf( "vips_foreign_load_pdf_header: %p\n", pdf );
 #endif /*DEBUG*/
 
-	pdf->n_pages = poppler_document_get_n_pages( pdf->doc );
+	pdf->n_pages = FPDF_GetPageCount( pdf->doc );
 
 	/* @n == -1 means until the end of the doc.
 	 */
@@ -271,16 +318,14 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 	pdf->image.width = 0;
 	pdf->image.height = 0;
 	for( i = 0; i < pdf->n; i++ ) {
-		double width;
-		double height;
-
 		if( vips_foreign_load_pdf_get_page( pdf, pdf->page_no + i ) )
 			return( -1 );
-		poppler_page_get_size( pdf->page, &width, &height ); 
 		pdf->pages[i].left = 0;
 		pdf->pages[i].top = top;
-		pdf->pages[i].width = width * pdf->scale;
-		pdf->pages[i].height = height * pdf->scale;
+		pdf->pages[i].width = 
+			FPDF_GetPageWidth( pdf->page ) * pdf->scale;
+		pdf->pages[i].height = 
+			FPDF_GetPageHeight( pdf->page ) * pdf->scale;
 
 		if( pdf->pages[i].width > pdf->image.width )
 			pdf->image.width = pdf->pages[i].width;
@@ -338,43 +383,43 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 	top = r->top; 
 	while( top < VIPS_RECT_BOTTOM( r ) ) {
 		VipsRect rect;
-		cairo_surface_t *surface;
-		cairo_t *cr;
+		FPDF_BITMAP bitmap;
 
 		vips_rect_intersectrect( r, &pdf->pages[i], &rect );
 
-		surface = cairo_image_surface_create_for_data( 
-			VIPS_REGION_ADDR( or, rect.left, rect.top ), 
-			CAIRO_FORMAT_ARGB32, 
-			rect.width, rect.height, 
-			VIPS_REGION_LSKIP( or ) );
-		cr = cairo_create( surface );
-		cairo_surface_destroy( surface );
-
-		cairo_scale( cr, pdf->scale, pdf->scale );
-		cairo_translate( cr, 
-			(pdf->pages[i].left - rect.left) / pdf->scale, 
-			(pdf->pages[i].top - rect.top) / pdf->scale );
-
-		/* poppler is single-threaded, but we don't need to lock since 
-		 * we're running inside a non-threaded tilecache.
-		 */
 		if( vips_foreign_load_pdf_get_page( pdf, pdf->page_no + i ) )
 			return( -1 ); 
-		poppler_page_render( pdf->page, cr );
 
-		cairo_destroy( cr );
+		/* 4 means RGBA.
+		 */
+		bitmap = FPDFBitmap_CreateEx( rect.width, rect.height, 4, 
+			VIPS_REGION_ADDR( or, rect.left, rect.top ), 
+			VIPS_REGION_LSKIP( or ) );  
+
+		FPDF_RenderPageBitmap( bitmap, pdf->page, 
+			0, 0, rect.width, rect.height,
+			0, 0 ); 
+
+		FPDFBitmap_Destroy( bitmap ); 
 
 		top += rect.height;
 		i += 1;
 	}
 
-	/* Cairo makes pre-multipled BRGA, we must byteswap and unpremultiply.
+	/* PDFium writes BRGA, we must swap.
+	 *
+	 * FIXME ... this is a bit slow.
 	 */
-	for( y = 0; y < r->height; y++ ) 
-		vips__cairo2rgba( 
-			(guint32 *) VIPS_REGION_ADDR( or, r->left, r->top + y ), 
-			r->width ); 
+	for( y = 0; y < r->height; y++ ) {
+		VipsPel *p;
+		int x;
+
+		p = VIPS_REGION_ADDR( or, r->left, r->top + y );
+		for( x = 0; x < r->width; x++ ) { 
+			VIPS_SWAP( VipsPel, p[0], p[2] );
+			p += 4;
+		}
+	}
 
 	return( 0 ); 
 }
@@ -399,13 +444,11 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 		NULL, vips_foreign_load_pdf_generate, NULL, pdf, NULL ) )
 		return( -1 );
 
-	/* Don't use tilecache to keep the number of calls to
-	 * pdf_page_render() low. Don't thread the cache, we rely on
-	 * locking to keep pdf single-threaded. Use a large strip size to
-	 * (again) keep the number of calls to page_render low. 
+	/* PDFium does not like rendering parts of pages :-( always render
+	 * complete ones. 
 	 */
 	if( vips_linecache( t[0], &t[1],
-		"tile_height", VIPS_MIN( 5000, pdf->pages[0].height ), 
+		"tile_height", pdf->pages[0].height, 
 		NULL ) ) 
 		return( -1 );
 	if( vips_image_write( t[1], load->real ) ) 
@@ -480,8 +523,6 @@ typedef struct _VipsForeignLoadPdfFile {
 	 */
 	char *filename; 
 
-	char *uri;
-
 } VipsForeignLoadPdfFile;
 
 typedef VipsForeignLoadPdfClass VipsForeignLoadPdfFileClass;
@@ -489,40 +530,16 @@ typedef VipsForeignLoadPdfClass VipsForeignLoadPdfFileClass;
 G_DEFINE_TYPE( VipsForeignLoadPdfFile, vips_foreign_load_pdf_file, 
 	vips_foreign_load_pdf_get_type() );
 
-static void
-vips_foreign_load_pdf_file_dispose( GObject *gobject )
-{
-	VipsForeignLoadPdfFile *file = 
-		(VipsForeignLoadPdfFile *) gobject;
-
-	VIPS_FREE( file->uri );
-
-	G_OBJECT_CLASS( vips_foreign_load_pdf_file_parent_class )->
-		dispose( gobject );
-}
-
 static int
 vips_foreign_load_pdf_file_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) load;
 	VipsForeignLoadPdfFile *file = (VipsForeignLoadPdfFile *) load;
 
-	char *path;
-	GError *error = NULL;
-
-	/* We need an absolute path for a URI.
-	 */
-	path = vips_realpath( file->filename );
-	if( !(file->uri = g_filename_to_uri( path, NULL, &error )) ) { 
-		g_free( path );
-		vips_g_error( &error );
-		return( -1 ); 
-	}
-	g_free( path );
-
-	if( !(pdf->doc = poppler_document_new_from_file( 
-		file->uri, NULL, &error )) ) { 
-		vips_g_error( &error );
+	if( !(pdf->doc = FPDF_LoadDocument( file->filename, NULL )) ) { 
+		vips_pdfium_error();
+		vips_error( "pdfload", 
+			_( "unable to load \"%s\"" ), file->filename ); 
 		return( -1 ); 
 	}
 
@@ -545,7 +562,6 @@ vips_foreign_load_pdf_file_class_init(
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
-	gobject_class->dispose = vips_foreign_load_pdf_file_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
@@ -591,11 +607,11 @@ vips_foreign_load_pdf_buffer_header( VipsForeignLoad *load )
 	VipsForeignLoadPdfBuffer *buffer = 
 		(VipsForeignLoadPdfBuffer *) load;
 
-	GError *error = NULL;
-
-	if( !(pdf->doc = poppler_document_new_from_data( 
-		buffer->buf->data, buffer->buf->length, NULL, &error )) ) { 
-		vips_g_error( &error );
+	if( !(pdf->doc = FPDF_LoadMemDocument( buffer->buf->data, 
+		buffer->buf->length, NULL )) ) { 
+		vips_pdfium_error();
+		vips_error( "pdfload", 
+			"%s", _( "unable to load from buffer" ) );
 		return( -1 ); 
 	}
 
@@ -632,134 +648,4 @@ vips_foreign_load_pdf_buffer_init( VipsForeignLoadPdfBuffer *buffer )
 {
 }
 
-#endif /*HAVE_POPPLER*/
-
-/* Also used by the pdfium loader.
- */
-gboolean
-vips_foreign_load_pdf_is_a_buffer( const void *buf, size_t len )
-{
-	const guchar *str = (const guchar *) buf;
-
-	if( len >= 4 &&
-		str[0] == '%' && 
-		str[1] == 'P' &&
-		str[2] == 'D' &&
-		str[3] == 'F' )
-		return( 1 );
-
-	return( 0 );
-}
-
-/* Also used by the pdfium loader.
- */
-gboolean
-vips_foreign_load_pdf_is_a( const char *filename )
-{
-	unsigned char buf[4];
-
-	if( vips__get_bytes( filename, buf, 4 ) == 4 &&
-		vips_foreign_load_pdf_is_a_buffer( buf, 4 ) )
-		return( 1 );
-
-	return( 0 );
-}
-
-/**
- * vips_pdfload:
- * @filename: file to load
- * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
- *
- * Optional arguments:
- *
- * * @page: %gint, load this page, numbered from zero
- * * @n: %gint, load this many pages
- * * @dpi: %gdouble, render at this DPI
- * * @scale: %gdouble, scale render by this factor
- *
- * Render a PDF file into a VIPS image. Rendering uses the libpoppler library
- * and should be fast. 
- *
- * The output image is always RGBA --- CMYK PDFs will be
- * converted. If you need CMYK bitmaps, you should use vips_magickload()
- * instead.
- *
- * Use @page to select a page to render, numbering from zero.
- *
- * Use @n to select the number of pages to render. The default is 1. Pages are
- * rendered in a vertical column, with each individual page aligned to the
- * left. Set to -1 to mean "until the end of the document". Use vips_grid() 
- * to change page layout.
- *
- * Use @dpi to set the rendering resolution. The default is 72. Alternatively,
- * you can scale the rendering from the default 1 point == 1 pixel by 
- * setting @scale.
- *
- * The operation fills a number of header fields with metadata, for example
- * "pdf-author". They may be useful. 
- *
- * This function only reads the image header and does not render any pixel
- * data. Rendering occurs when pixels are accessed.
- *
- * See also: vips_image_new_from_file(), vips_magickload().
- *
- * Returns: 0 on success, -1 on error.
- */
-int
-vips_pdfload( const char *filename, VipsImage **out, ... )
-{
-	va_list ap;
-	int result;
-
-	va_start( ap, out );
-	result = vips_call_split( "pdfload", ap, filename, out );
-	va_end( ap );
-
-	return( result );
-}
-
-/**
- * vips_pdfload_buffer:
- * @buf: (array length=len) (element-type guint8): memory area to load
- * @len: (type gsize): size of memory area
- * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
- *
- * Optional arguments:
- *
- * * @page: %gint, load this page, numbered from zero
- * * @n: %gint, load this many pages
- * * @dpi: %gdouble, render at this DPI
- * * @scale: %gdouble, scale render by this factor
- *
- * Read a PDF-formatted memory block into a VIPS image. Exactly as
- * vips_pdfload(), but read from a memory buffer. 
- *
- * You must not free the buffer while @out is active. The 
- * #VipsObject::postclose signal on @out is a good place to free. 
- *
- * See also: vips_pdfload().
- *
- * Returns: 0 on success, -1 on error.
- */
-int
-vips_pdfload_buffer( void *buf, size_t len, VipsImage **out, ... )
-{
-	va_list ap;
-	VipsBlob *blob;
-	int result;
-
-	/* We don't take a copy of the data or free it.
-	 */
-	blob = vips_blob_new( NULL, buf, len );
-
-	va_start( ap, out );
-	result = vips_call_split( "pdfload_buffer", ap, blob, out );
-	va_end( ap );
-
-	vips_area_unref( VIPS_AREA( blob ) );
-
-	return( result );
-}
-
+#endif /*HAVE_PDFIUM*/

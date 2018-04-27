@@ -134,7 +134,7 @@ vips_gaussnoise_build( VipsObject *object )
 	vips_image_init_fields( create->out,
 		gaussnoise->width, gaussnoise->height, 1,
 		VIPS_FORMAT_FLOAT, VIPS_CODING_NONE,
-		VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
+		VIPS_INTERPRETATION_MULTIBAND, 1.0, 1.0 );
 	vips_image_pipelinev( create->out, 
 		VIPS_DEMAND_STYLE_ANY, NULL );
 

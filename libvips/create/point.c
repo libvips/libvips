@@ -109,10 +109,9 @@ vips_point_build( VipsObject *object )
 			return( -1 );
 		in = t[2];
 
-		/* uchar mode always does B_W. We don't want FOURIER or
-		 * whatever in this case.
+		/* We don't want FOURIER or whatever in this case.
 		 */
-		in->Type = VIPS_INTERPRETATION_B_W;
+		in->Type = VIPS_INTERPRETATION_MULTIBAND;
 	}
 
 	if( vips_image_write( in, create->out ) )
@@ -137,7 +136,7 @@ vips_point_class_init( VipsPointClass *class )
 	class->point = NULL; 
 	class->min = -1.0; 
 	class->max = 1.0; 
-	class->interpretation = VIPS_INTERPRETATION_B_W;
+	class->interpretation = VIPS_INTERPRETATION_MULTIBAND;
 
 	VIPS_ARG_INT( class, "width", 2, 
 		_( "Width" ), 

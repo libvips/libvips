@@ -22,6 +22,8 @@
  * 	- META_SEQ support moved here
  * 5/3/18
  * 	- block _start if one start fails, see #893
+ * 1/4/18
+ * 	- drop incompatible ICC profiles before save
  */
 
 /*
@@ -1504,6 +1506,21 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
+	/* Some format libraries, like libpng, will throw a hard error if the 
+	 * profile is inappropriate for this image type. With profiles inherited
+	 * from a source image, this can happen all the time, so we 
+	 * want to just drop the profile in this case.
+	 */
+	if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
+		void *data;
+		size_t length;
+
+		if( !vips_image_get_blob( in, VIPS_META_ICC_NAME, 
+			&data, &length ) &&
+			!vips_icc_is_compatible_profile( in, data, length ) ) 
+			vips_image_remove( in, VIPS_META_ICC_NAME );
+	}
+
 	*ready = in;
 
 	return( 0 );
@@ -1848,6 +1865,12 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_pdf_file_get_type(); 
 	vips_foreign_load_pdf_buffer_get_type(); 
 #endif /*HAVE_POPPLER*/
+
+#ifdef HAVE_PDFIUM
+	vips_foreign_load_pdf_get_type(); 
+	vips_foreign_load_pdf_file_get_type(); 
+	vips_foreign_load_pdf_buffer_get_type(); 
+#endif /*HAVE_PDFIUM*/
 
 #ifdef HAVE_RSVG
 	vips_foreign_load_svg_get_type(); 

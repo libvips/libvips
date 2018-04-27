@@ -134,7 +134,8 @@ vips_gaussmat_build( VipsObject *object )
 
 	vips_image_init_fields( create->out,
 		width, height, 1, 
-		VIPS_FORMAT_DOUBLE, VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W,
+		VIPS_FORMAT_DOUBLE, VIPS_CODING_NONE, 
+		VIPS_INTERPRETATION_MULTIBAND,
 		1.0, 1.0 ); 
 	vips_image_pipelinev( create->out, 
 		VIPS_DEMAND_STYLE_ANY, NULL );

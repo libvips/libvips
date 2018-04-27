@@ -82,13 +82,6 @@ magick_set_property( Image *image, const char *property, const char *value,
 	(void) SetImageProperty( image, property, value, exception );
 }
 
-int
-magick_set_image_colorspace( Image *image, const ColorspaceType colorspace,
-	ExceptionInfo *exception)
-{
-	return( SetImageColorspace( image, colorspace, exception ) );
-}
-
 void
 magick_inherit_exception( ExceptionInfo *exception, Image *image ) 
 {
@@ -104,7 +97,13 @@ Image*
 magick_acquire_image(const ImageInfo *image_info, ExceptionInfo *exception)
 {
 	(void) exception;
+#ifdef HAVE_ACQUIREIMAGE
 	return( AcquireImage( image_info ) );
+#else /*!HAVE_ACQUIREIMAGE*/
+	/* IM5-ish and GraphicsMagick use AllocateImage().
+	 */
+	return( AllocateImage( image_info ) );
+#endif
 }
 
 void
@@ -112,7 +111,13 @@ magick_acquire_next_image( const ImageInfo *image_info, Image *image,
 	ExceptionInfo *exception )
 {
 	(void) exception;
+#ifdef HAVE_ACQUIREIMAGE
 	AcquireNextImage( image_info, image );
+#else /*!HAVE_ACQUIREIMAGE*/
+	/* IM5-ish and GraphicsMagick use AllocateNextImage().
+	 */
+	AllocateNextImage( image_info, image );
+#endif
 }
 
 int
@@ -120,15 +125,38 @@ magick_set_image_size( Image *image, const size_t width, const size_t height,
 	ExceptionInfo *exception )
 {
 	(void) exception;
+#ifdef HAVE_SETIMAGEEXTENT
 	return( SetImageExtent( image, width, height ) );
+#else /*!HAVE_SETIMAGEEXTENT*/
+	image->columns = width;
+	image->rows = height;
+
+	/* imagemagick does a SyncImagePixelCache() at the end of
+	 * SetImageExtent(), but GM does not really have an equivalent. Just
+	 * always return True.
+	 */
+	return( MagickTrue );
+#endif /*HAVE_SETIMAGEEXTENT*/
 }
 
 int
 magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
 	const size_t width, const size_t height, const char *map,
-	const StorageType type,const void *pixels, ExceptionInfo *exception )
+	const StorageType type, const void *pixels, ExceptionInfo *exception )
 {
 	(void) exception;
+
+	/* GM does not seem to have a simple equivalent, unfortunately.
+	 *
+	 * Looks like we'd need to call 
+	 *
+	 *   extern MagickExport PixelPacket
+	 *     *SetImagePixels(Image *image,const long x,const long y,
+	 *                       const unsigned long columns,const unsigned
+	 *                       long rows);
+	 *
+	 * then repack pixels into that area using map and storage_type. 
+	 */
 	return( ImportImagePixels( image, x, y, width, height, map,
 		type, pixels ) );
 }
@@ -138,21 +166,19 @@ magick_set_property( Image *image, const char *property, const char *value,
 	ExceptionInfo *exception )
 {
 	(void) exception;
+#ifdef HAVE_SETIMAGEPROPERTY
 	(void) SetImageProperty( image, property, value );
-}
-
-int
-magick_set_image_colorspace( Image *image, const ColorspaceType colorspace,
-	ExceptionInfo *exception )
-{
-	(void) exception;
-	return( SetImageColorspace( image, colorspace ) );
+#else /*!HAVE_SETIMAGEPROPERTY*/
+	(void) SetImageAttribute( image, property, value );
+#endif /*HAVE_SETIMAGEPROPERTY*/
 }
 
 void
 magick_inherit_exception( ExceptionInfo *exception, Image *image ) 
 {
+#ifdef HAVE_INHERITEXCEPTION
 	InheritException( exception, &image->exception );
+#endif /*HAVE_INHERITEXCEPTION*/
 }
 
 #endif /*HAVE_MAGICK6*/
@@ -182,7 +208,7 @@ magick_genesis_cb( void *client )
 	printf( "magick_genesis_cb:\n" ); 
 #endif /*DEBUG*/
 
-#ifdef HAVE_MAGICKCOREGENESIS
+#if defined(HAVE_MAGICKCOREGENESIS) || defined(HAVE_MAGICK7) 
 	MagickCoreGenesis( vips_get_argv0(), MagickFalse );
 #else /*!HAVE_MAGICKCOREGENESIS*/
 	InitializeMagick( "" );

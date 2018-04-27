@@ -202,10 +202,17 @@ via imagemagick instead.
 The usual SVG loader. If this is not present, vips will try to load SVGs
 via imagemagick instead.
 
+### PDFium
+
+If present, libvips will attempt to load PDFs via PDFium. This library must be
+packaged by https://github.com/jcupitt/docker-builds/tree/master/pdfium
+
+If PDFium is not detected, libvips will look for poppler-glib instead.
+
 ### libpoppler
 
 The usual PDF loader. If this is not present, vips will try to load PDFs
-via imagemagick instead.
+via imagemagick.
 
 ### libgsf-1
 

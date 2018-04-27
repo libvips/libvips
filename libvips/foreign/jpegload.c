@@ -374,6 +374,11 @@ vips_foreign_load_jpeg_buffer_init( VipsForeignLoadJpegBuffer *buffer )
  * memory to load, so this field gives callers a chance to handle these
  * images differently.
  *
+ * The string-valued field "jpeg-chroma-subsample" gives the chroma subsample
+ * in standard notation. 4:4:4 means no subsample, 4:2:0 means YCbCr with
+ * Cb and Cr subsampled horizontally and vertically, 4:4:4:4 means a CMYK
+ * image with no subsampling. 
+ *
  * The EXIF thumbnail, if present, is attached to the image as 
  * "jpeg-thumbnail-data". See vips_image_get_blob().
  *

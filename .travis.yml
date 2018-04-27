@@ -16,27 +16,6 @@ matrix:
   include:
     - os: linux
       sudo: required
-      dist: precise
-      env:
-        - JPEG=/usr
-        - JOBS=`nproc`
-        - LIBTOOLFLAGS=--quiet
-      cache: ccache
-      before_install:
-        - sudo apt-get update -qq
-        - sudo apt-get install -y
-          automake gtk-doc-tools
-          gobject-introspection
-          libfftw3-dev libjpeg-turbo8-dev
-          libpng12-dev libwebp-dev libtiff4-dev libexpat1-dev
-          swig libmagick++-dev bc
-          libcfitsio3-dev libgsl0-dev libmatio-dev
-          liborc-0.4-dev liblcms2-dev libpoppler-glib-dev
-          librsvg2-dev libgif-dev
-          libpango1.0-dev
-
-    - os: linux
-      sudo: required
       dist: trusty
       env:
         - JPEG=/usr
@@ -58,18 +37,14 @@ matrix:
     - os: osx
       osx_image: xcode7.3
       env:
-        - JPEG=/usr/local/opt/mozjpeg
         - JOBS="`sysctl -n hw.ncpu`"
         - PATH="/usr/local/opt/ccache/libexec:$PATH"
       cache: ccache
       before_install:
-        - brew tap homebrew/science
         - brew update
         - brew install ccache
-        - brew install --ignore-dependencies gtk-doc
         - brew install
-          gobject-introspection
-          fftw mozjpeg libexif
+          fftw libexif
           libpng webp 
           swig imagemagick
           cfitsio libmatio

@@ -1226,6 +1226,36 @@ vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
 	return( 0 );
 }
 
+/* TRUE if a profile is compatible with an image.
+ */
+gboolean
+vips_icc_is_compatible_profile( VipsImage *image, 
+	void *data, size_t data_length )
+{
+	cmsHPROFILE profile;
+
+	if( !(profile = cmsOpenProfileFromMem( data, data_length )) ) {
+		g_warning( "%s", _( "corrupt profile" ) );
+		return( FALSE ); 
+	}
+
+	if( vips_image_expected_bands( image ) != 
+		vips_icc_profile_needs_bands( profile ) ) {
+		VIPS_FREEF( cmsCloseProfile, profile );
+		g_warning( "%s", 
+			_( "profile incompatible with image" ) );
+		return( FALSE );
+	}
+	if( vips_image_expected_sig( image ) != cmsGetColorSpace( profile ) ) {
+		VIPS_FREEF( cmsCloseProfile, profile );
+		g_warning( "%s", 
+			_( "profile colourspace differs from image" ) );
+		return( FALSE );
+	}
+
+	return( TRUE );
+}
+
 #else /*!HAVE_LCMS2*/
 
 #include <vips/vips.h>
@@ -1243,6 +1273,13 @@ vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
 		_( "libvips configured without lcms support" ) );
 
 	return( -1 );
+}
+
+gboolean
+vips_icc_is_compatible_profile( VipsImage *image, 
+	void *data, size_t data_length )
+{
+	return( TRUE ); 
 }
 
 #endif /*HAVE_LCMS*/
