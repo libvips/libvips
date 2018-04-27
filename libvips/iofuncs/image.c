@@ -2657,7 +2657,7 @@ vips_image_write_to_buffer( VipsImage *in,
  *
  * Writes @in to memory as a simple, unformatted C-style array. 
  *
- * The caller is responsible for freeing this memory. 
+ * The caller is responsible for freeing this memory with g_free(). 
  *
  * See also: vips_image_write_to_buffer().
  *
