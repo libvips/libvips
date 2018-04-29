@@ -14,7 +14,7 @@ install notes and an example:
 [https://github.com/kleisauke/net-vips](https://github.com/kleisauke/net-vips)
 
 But briefly, just [get the libvips shared library on your
-system](/install.html) and enter:
+system]({{ site.baseurl }}/install.html) and enter:
 
 	Install-Package NetVips
 
