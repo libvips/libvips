@@ -20,6 +20,7 @@
   chrominance subsampling. 
 - tiffload, pdfload, magickload set VIPS_META_N_PAGES "n-pages" metadata item
 - add fontfile option to vips_text() [fangqiao]
+- add vips_transpose3d() -- swap major dimensions in a volumetric image
 
 12/3/18 started 8.6.4
 - better fitting of fonts with overhanging edges [Adrià]

@@ -377,6 +377,7 @@ vips_conversion_operation_init( void )
 	extern GType vips_bandbool_get_type( void ); 
 	extern GType vips_gaussnoise_get_type( void ); 
 	extern GType vips_grid_get_type( void ); 
+	extern GType vips_transpose3d_get_type( void ); 
 	extern GType vips_scale_get_type( void ); 
 	extern GType vips_wrap_get_type( void ); 
 	extern GType vips_zoom_get_type( void ); 
@@ -427,6 +428,7 @@ vips_conversion_operation_init( void )
 	vips_bandbool_get_type(); 
 	vips_gaussnoise_get_type(); 
 	vips_grid_get_type(); 
+	vips_transpose3d_get_type(); 
 	vips_scale_get_type(); 
 	vips_wrap_get_type(); 
 	vips_zoom_get_type(); 

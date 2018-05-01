@@ -1,7 +1,7 @@
 /* vips_transpose3d
  *
  * 30/4/18
- * 	- from grid.c as a class
+ * 	- from grid.c 
  */
 
 /*
@@ -49,7 +49,7 @@ typedef struct _VipsTranspose3d {
 
 	VipsImage *in;
 
-	int tile_height;
+	int page_height;
 
 } VipsTranspose3d;
 
@@ -68,7 +68,7 @@ vips_transpose3d_gen( VipsRegion *or, void *vseq, void *a, void *b,
 
 	int output_page_height = in->Ysize / transpose3d->page_height;
 
-	int x, y;
+	int y;
 	VipsRect tile;
 	
 	tile = *r;
@@ -93,13 +93,13 @@ vips_transpose3d_gen( VipsRegion *or, void *vseq, void *a, void *b,
 
 		/* y of input line.
 		 */
-		yi = yip + yop;
+		int yi = yip + yop;
 
-		tile.top = yo;
+		tile.top = yi;
 
 		/* Render into or.
 		 */
-		if( vips_region_prepare_to( ir, or, &tile, tile.left, yi ) 
+		if( vips_region_prepare_to( ir, or, &tile, tile.left, yo ) )
 			return( -1 );
 	}
 
@@ -197,12 +197,18 @@ vips_transpose3d_init( VipsTranspose3d *transpose3d )
  * Transpose a volumetric image. 
  *
  * Volumetric images are very tall, thin images, with the metadata item
- * `page-height` set to the height of each sub-image. 
+ * #VIPS_META_PAGE_HEIGHT set to the height of each sub-image. 
  *
- * This operation swaps two dimensions around so that one row in each input
- * page becomes one row in a single output page.
+ * This operation swaps the two major dimensions, so that page N in the
+ * output contains the Nth scanline, in order, from each input page.
  *
- * See also: vips_transpose3d().
+ * You can override the #VIPS_META_PAGE_HEIGHT metadata item with the optional
+ * @page_height parameter. 
+ *
+ * #VIPS_META_PAGE_HEIGHT in the output image is the number of pages in the
+ * input image. 
+ *
+ * See also: vips_grid().
  *
  * Returns: 0 on success, -1 on error
  */
@@ -212,7 +218,7 @@ vips_transpose3d( VipsImage *in, VipsImage **out, ... )
 	va_list ap;
 	int result;
 
-	va_start( ap, down );
+	va_start( ap, out );
 	result = vips_call_split( "transpose3d", ap, in, out );
 	va_end( ap );
 
