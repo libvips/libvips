@@ -480,7 +480,7 @@ vips_cache_print_fn( void *value, void *a, void *b )
 	return( NULL );
 }
 
-void
+static void
 vips_cache_print_nolock( void )
 {
 	if( vips_cache_table ) {
