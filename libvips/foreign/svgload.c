@@ -67,6 +67,10 @@
 #include <cairo.h>
 #include <librsvg/rsvg.h>
 
+/* The maximum pixel width librsvg is able to render.
+ */
+#define RSVG_MAX_WIDTH 32767
+
 /* Old librsvg versions don't include librsvg-features.h by default.
  * Newer versions deprecate direct inclusion.
  */
@@ -359,13 +363,7 @@ vips_foreign_load_svg_load( VipsForeignLoad *load )
 
 	int tile_width;
 	int tile_height;
-	int n_lines;
 	int max_tiles;
-
-	/* Use this to pick a tile height for our strip cache.
-	 */
-	vips_get_tile_size( load->real,
-		&tile_width, &tile_height, &n_lines );
 
 	/* Read to this image, then cache to out, see below.
 	 */
@@ -383,9 +381,11 @@ vips_foreign_load_svg_load( VipsForeignLoad *load )
 	 * Don't thread the cache: we rely on this to keep calls to rsvg 
 	 * single-threaded.
 	 */
-	max_tiles = 3 * VIPS_ROUND_UP( t[0]->Xsize, 30000 ) / 30000;
+	tile_width = VIPS_MIN( t[0]->Xsize, RSVG_MAX_WIDTH );
+	tile_height = t[0]->Ysize;
+	max_tiles = VIPS_ROUND_UP( t[0]->Xsize, RSVG_MAX_WIDTH ) / RSVG_MAX_WIDTH;
 	if( vips_tilecache( t[0], &t[1],
-		"tile_width", 30000,
+		"tile_width", tile_width,
 		"tile_height", tile_height,
 		"max_tiles", max_tiles,
 		"access", VIPS_ACCESS_SEQUENTIAL,
