@@ -380,10 +380,15 @@ vips_foreign_load_svg_load( VipsForeignLoad *load )
 	 *
 	 * Don't thread the cache: we rely on this to keep calls to rsvg 
 	 * single-threaded.
+	 *
+	 * Make tiles 2000 pixels high to limit overcomputation. Make sure we
+	 * have two rows of tiles so we don't recompute requests that cross
+	 * tile boundaries. 
 	 */
 	tile_width = VIPS_MIN( t[0]->Xsize, RSVG_MAX_WIDTH );
-	tile_height = t[0]->Ysize;
-	max_tiles = VIPS_ROUND_UP( t[0]->Xsize, RSVG_MAX_WIDTH ) / RSVG_MAX_WIDTH;
+	max_tiles = 2 * VIPS_ROUND_UP( t[0]->Xsize, RSVG_MAX_WIDTH ) / 
+		RSVG_MAX_WIDTH;
+	tile_height = 2000;
 	if( vips_tilecache( t[0], &t[1],
 		"tile_width", tile_width,
 		"tile_height", tile_height,
