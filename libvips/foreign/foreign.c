@@ -724,6 +724,20 @@ vips_foreign_load_temp( VipsForeignLoad *load )
 	const guint64 disc_threshold = vips_get_disc_threshold();
 	const guint64 image_size = VIPS_IMAGE_SIZEOF_IMAGE( load->out );
 
+	/* ->memory used to be called ->disc and default TRUE. If it's been
+	 * forced FALSE, set memory TRUE.
+	 */
+	if( !load->disc )
+		load->memory = TRUE;
+
+	if( load->memory ) {
+#ifdef DEBUG
+		printf( "vips_foreign_load_temp: forced memory temp\n" );
+#endif /*DEBUG*/
+
+		return( vips_image_new_memory() );
+	}
+
 	/* If this is a partial operation, we can open directly.
 	 */
 	if( load->flags & VIPS_FOREIGN_PARTIAL ) {
@@ -746,19 +760,10 @@ vips_foreign_load_temp( VipsForeignLoad *load )
 		return( vips_image_new() );
 	}
 
-	/* ->memory used to be called ->disc and default TRUE. If it's been
-	 * forced FALSE, set memory TRUE.
+	/* We open via disc if the uncompressed image will be larger than 
+	 * vips_get_disc_threshold()
 	 */
-	if( !load->disc )
-		load->memory = TRUE;
-
-	/* We open via disc if:
-	 * - 'memory' is off
-	 * - the uncompressed image will be larger than 
-	 *   vips_get_disc_threshold()
-	 */
-	if( !load->memory && 
-		image_size > disc_threshold ) {
+	if( image_size > disc_threshold ) {
 #ifdef DEBUG
 		printf( "vips_foreign_load_temp: disc temp\n" );
 #endif /*DEBUG*/
@@ -767,12 +772,13 @@ vips_foreign_load_temp( VipsForeignLoad *load )
 	}
 
 #ifdef DEBUG
-	printf( "vips_foreign_load_temp: memory temp\n" );
+	printf( "vips_foreign_load_temp: fallback memory temp\n" );
 #endif /*DEBUG*/
 
 	/* Otherwise, fall back to a memory buffer.
 	 */
 	return( vips_image_new_memory() );
+
 }
 
 /* Check two images for compatibility: their geometries need to match.
