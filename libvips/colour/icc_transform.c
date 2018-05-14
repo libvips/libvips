@@ -546,6 +546,7 @@ vips_image_expected_sig( VipsImage *image )
 		 */
 		switch( image->Bands ) {
 		case 1:
+		case 2:
 			expected_sig = cmsSigGrayData;
 			break;
 
@@ -554,6 +555,7 @@ vips_image_expected_sig( VipsImage *image )
 			break;
 
 		case 4:
+		case 5:
 			expected_sig = cmsSigCmykData;
 			break;
 
