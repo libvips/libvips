@@ -109,6 +109,7 @@
 #include <magick/api.h>
 
 #include "pforeign.h"
+#include "magick.h"
 
 /* pre-float Magick used to call this MaxRGB.
  */

@@ -205,11 +205,12 @@ vips_hist_plot_build( VipsObject *object )
 		vips_check_hist( class->nickname, in ) )
 		return( -1 );
 
-	if( vips_band_format_isint( in->BandFmt ) ) {
+	if( !vips_band_format_isuint( in->BandFmt ) &&
+		vips_band_format_isint( in->BandFmt ) ) {
+		/* A signed int type. Move min up to 0. 
+		 */
 		double min;
 
-		/* Move min up to 0. 
-		 */
 		if( vips_min( in, &min, NULL ) ||
 			vips_linear1( in, &t[0], 1.0, -min, NULL ) )
 			return( -1 );
