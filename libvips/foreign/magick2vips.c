@@ -184,22 +184,14 @@ read_new( const char *filename, VipsImage *im,
 	const char *format, const char *density, int page, int n )
 {
 	Read *read;
-	static int inited = 0;
 
-	if( !inited ) {
-#ifdef HAVE_MAGICKCOREGENESIS
-		MagickCoreGenesis( vips_get_argv0(), MagickFalse );
-#else /*!HAVE_MAGICKCOREGENESIS*/
-		InitializeMagick( "" );
-#endif /*HAVE_MAGICKCOREGENESIS*/
-		inited = 1;
-	}
+	magick_genesis();
 
 	/* IM doesn't use the -1 means end-of-file convention, change it to a
 	 * very large number.
 	 */
 	if( n == -1 )
-		n = 100000;
+		n = 10000000;
 
 	if( !(read = VIPS_NEW( im, Read )) )
 		return( NULL );
@@ -784,10 +776,9 @@ vips__magick_read( const char *filename,
 
 	read->image = ReadImage( read->image_info, &read->exception );
 	if( !read->image ) {
-		vips_error( "magick2vips", _( "unable to read file \"%s\"\n"
-			"libMagick error: %s %s" ),
-			filename, 
-			read->exception.reason, read->exception.description );
+		magick_vips_error( "magick2vips", &read->exception );
+		vips_error( "magick2vips", 
+			_( "unable to read file \"%s\"" ), filename );
 		return( -1 );
 	}
 
@@ -824,10 +815,9 @@ vips__magick_read_header( const char *filename,
 
 	read->image = PingImage( read->image_info, &read->exception );
 	if( !read->image ) {
-		vips_error( "magick2vips", _( "unable to ping file "
-			"\"%s\"\nlibMagick error: %s %s" ),
-			filename, 
-			read->exception.reason, read->exception.description );
+		magick_vips_error( "magick2vips", &read->exception );
+		vips_error( "magick2vips", 
+			_( "unable to ping file \"%s\"" ), filename ); 
 		return( -1 );
 	}
 
@@ -868,9 +858,8 @@ vips__magick_read_buffer( const void *buf, const size_t len,
 	read->image = BlobToImage( read->image_info, 
 		buf, len, &read->exception );
 	if( !read->image ) {
-		vips_error( "magick2vips", _( "unable to read buffer\n"
-			"libMagick error: %s %s" ),
-			read->exception.reason, read->exception.description );
+		magick_vips_error( "magick2vips", &read->exception );
+		vips_error( "magick2vips", "%s", _( "unable to read buffer" ) );
 		return( -1 );
 	}
 
@@ -903,9 +892,8 @@ vips__magick_read_buffer_header( const void *buf, const size_t len,
 
 	read->image = PingBlob( read->image_info, buf, len, &read->exception );
 	if( !read->image ) {
-		vips_error( "magick2vips", _( "unable to ping blob\n"
-			"libMagick error: %s %s" ),
-			read->exception.reason, read->exception.description );
+		magick_vips_error( "magick2vips", &read->exception );
+		vips_error( "magick2vips", "%s", _( "unable to ping blob" ) );
 		return( -1 );
 	}
 
