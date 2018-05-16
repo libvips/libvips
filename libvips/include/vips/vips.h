@@ -46,6 +46,8 @@
  * 	- include <time.h>, thanks nicola
  * 30/6/09
  * 	- move deprecated stuff to its own header
+ * 16/5/18
+ * 	- remove old vips7 stuff, you must explicitly include it now
  */
 
 /*
@@ -146,20 +148,6 @@ extern "C" {
 #include <vips/create.h>
 #include <vips/video.h>
 #include <vips/cimg_funcs.h>
-
-/* This stuff is very, very old and should not be used by anyone now.
- */
-#ifdef VIPS_ENABLE_ANCIENT
-#include <vips/deprecated.h>
-#endif /*VIPS_ENABLE_ANCIENT*/
-
-/* Still in use, but can be turned off.
- */
-#ifdef VIPS_ENABLE_DEPRECATED
-#include <vips/vips7compat.h>
-#include <vips/dispatch.h>
-#include <vips/almostdeprecated.h>
-#endif /*VIPS_ENABLE_DEPRECATED*/
 
 /* We can't use _ here since this will be compiled by our clients and they may
  * not have _().

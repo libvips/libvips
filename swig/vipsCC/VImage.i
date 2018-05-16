@@ -21,6 +21,7 @@
  * frombuffer/tobuffer stuff.
  */
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 %}
 
 /* Need to override assignment to get refcounting working.

@@ -41,6 +41,7 @@
 #include <vips/intl.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 
 #include "../foreign/pforeign.h"
 

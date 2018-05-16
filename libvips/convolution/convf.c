@@ -176,7 +176,7 @@ vips_convf_start( VipsImage *out, void *a, void *b )
 /* Convolve!
  */
 static int
-vips_convf_gen( REGION *or, void *vseq, void *a, void *b, gboolean *stop )
+vips_convf_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 {
 	VipsConvfSequence *seq = (VipsConvfSequence *) vseq;
 	VipsConvf *convf = (VipsConvf *) b;
@@ -337,8 +337,8 @@ vips_convf_build( VipsObject *object )
 	/* Prepare output. Consider a 7x7 mask and a 7x7 image --- the output
 	 * would be 1x1.
 	 */
-	if( vips_bandfmt_isint( in->BandFmt ) ) 
-		convolution->out->BandFmt = IM_BANDFMT_FLOAT;
+	if( vips_band_format_isint( in->BandFmt ) ) 
+		convolution->out->BandFmt = VIPS_FORMAT_FLOAT;
 	convolution->out->Xsize -= M->Xsize - 1;
 	convolution->out->Ysize -= M->Ysize - 1;
 

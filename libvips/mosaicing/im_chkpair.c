@@ -54,6 +54,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 
 #include "pmosaicing.h"
 

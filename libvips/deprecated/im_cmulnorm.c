@@ -47,6 +47,7 @@
 #include <vips/intl.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 
 #include <stdio.h>
 #include <stdlib.h>

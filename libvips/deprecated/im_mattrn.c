@@ -39,6 +39,7 @@
 #include <stdio.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 
 /**
  * im_mattrn:

@@ -57,6 +57,7 @@
 #include <assert.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 
 int im_gfadd(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out);
 int im_gaddim(double a, IMAGE *in1, double b, IMAGE *in2, double c, IMAGE *out);

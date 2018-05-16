@@ -233,6 +233,8 @@ int vips__byteswap_bool( VipsImage *in, VipsImage **out, gboolean swap );
 char *vips__xml_properties( VipsImage *image );
 
 void vips__cairo2rgba( guint32 *buf, int n );
+void vips__Lab2LabQ_vec( VipsPel *out, float *in, int width );
+void vips__LabQ2Lab_vec( float *out, VipsPel *in, int width );
 
 #ifdef DEBUG_LEAK
 extern GQuark vips__image_pixels_quark;
@@ -250,6 +252,11 @@ typedef struct _VipsImagePixels {
 int vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 	VipsSaveable saveable, VipsBandFormat *format, VipsCoding *coding,
 	VipsArrayDouble *background );
+
+int vips_foreign_load( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_foreign_save( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
 
 int vips__image_intize( VipsImage *in, VipsImage **out );
 

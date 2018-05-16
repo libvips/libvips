@@ -41,6 +41,7 @@
 #include <vips/intl.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 
 int
 im_raw2vips( const char *filename, IMAGE *out, 

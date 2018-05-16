@@ -372,7 +372,7 @@ vips_convasep_stop( void *vseq, void *a, void *b )
 static void *
 vips_convasep_start( VipsImage *out, void *a, void *b )
 {
-	VipsImage *in = (IMAGE *) a;
+	VipsImage *in = (VipsImage *) a;
 	VipsConvasep *convasep = (VipsConvasep *) b;
 
 	VipsConvasepSeq *seq;

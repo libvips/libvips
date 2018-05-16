@@ -24,8 +24,7 @@ SUBDIRS = \
 	iofuncs \
 	morphology \
 	mosaicing \
-	create \
-	video \
+	create 
 	.
 
 lib_LTLIBRARIES = libvips.la
@@ -52,7 +51,6 @@ libvips_la_LIBADD = \
 	morphology/libmorphology.la \
 	mosaicing/libmosaicing.la \
 	create/libcreate.la \
-	video/libvideo.la \
 	@VIPS_LIBS@
 
 libvips_la_LDFLAGS = \

@@ -413,8 +413,7 @@ vips_image_resolution_from_exif( VipsImage *image, ExifData *ed )
 		break;
 
 	default:
-		vips_warn( "exif", 
-			"%s", _( "unknown EXIF resolution unit" ) );
+		g_warning( "%s", _( "unknown EXIF resolution unit" ) );
 		return( -1 );
 	}
 
@@ -773,8 +772,7 @@ vips_exif_resolution_from_image( ExifData *ed, VipsImage *image )
 		break;
 
 	default:
-		vips_warn( "exif", 
-			"%s", _( "unknown EXIF resolution unit" ) );
+		g_warning( "%s", _( "unknown EXIF resolution unit" ) );
 		return( 0 );
 	}
 
@@ -946,7 +944,7 @@ vips_exif_image_field( VipsImage *image,
 	/* value must be a string.
 	 */
 	if( vips_image_get_string( image, field, &string ) ) {
-		vips_warn( "exif", _( "bad exif meta \"%s\"" ), field );
+		g_warning( _( "bad exif meta \"%s\"" ), field );
 		return( NULL ); 
 	}
 
@@ -956,12 +954,12 @@ vips_exif_image_field( VipsImage *image,
 	for( ; isdigit( *p ); p++ )
 		;
 	if( *p != '-' ) {
-		vips_warn( "exif", _( "bad exif meta \"%s\"" ), field );
+		g_warning( _( "bad exif meta \"%s\"" ), field );
 		return( NULL ); 
 	}
 
 	if( !(tag = exif_tag_from_name( p + 1 )) ) {
-		vips_warn( "exif", _( "bad exif meta \"%s\"" ), field );
+		g_warning( _( "bad exif meta \"%s\"" ), field );
 		return( NULL ); 
 	}
 

@@ -1278,7 +1278,6 @@ AC_OUTPUT([
 	libvips/mosaicing/Makefile 
 	libvips/create/Makefile 
 	libvips/resample/Makefile 
-	libvips/video/Makefile 
 	libvipsCC/include/Makefile 
 	libvipsCC/include/vips/Makefile 
 	libvipsCC/Makefile 

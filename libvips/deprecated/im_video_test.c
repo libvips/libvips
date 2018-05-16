@@ -34,6 +34,7 @@
 #include <vips/intl.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 
 /**
  * im_video_test:
