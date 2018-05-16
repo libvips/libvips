@@ -416,6 +416,30 @@ if test x$have_vector_shuffle = x"yes"; then
     have_vector_arith=no
   ])
   AC_LANG_POP([C++])
+fi
+
+# gcc 7.2 seems to work, but then gets confused by signed constants in 
+# templates
+if test x$have_vector_arith = x"yes"; then
+  AC_MSG_CHECKING([for C++ signed constants in vector templates])
+  AC_LANG_PUSH([C++])
+  AC_TRY_COMPILE([
+    typedef float v4f __attribute__((vector_size(4 * sizeof(float))));
+    template <typename T>
+    static void
+    h( v4f B )
+    {
+        v4f f;
+        f = -1 * B;
+    }
+  ],[
+  ],[
+    AC_MSG_RESULT([yes])
+  ], [
+    AC_MSG_RESULT([no])
+    have_vector_arith=no
+  ])
+  AC_LANG_POP([C++])
 
   if test x$have_vector_arith = x"yes"; then
     AC_DEFINE_UNQUOTED(HAVE_VECTOR_ARITH, 1,

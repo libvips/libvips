@@ -26,6 +26,7 @@
 - better fitting of fonts with overhanging edges [Adrià]
 - revise C++ example [fangqiao]
 - strict round down on jpeg shrink on load [davidwood]
+- configure test for g++ 7.2 and composite.cpp
 
 12/2/18 started 8.6.3
 - use pkg-config to find libjpeg, if we can
