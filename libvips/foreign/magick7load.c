@@ -325,20 +325,12 @@ vips_foreign_load_magick7_build( VipsObject *object )
 	 * These window settings are attached as vips metadata, so our caller
 	 * can interpret them if it wants.
 	 */
-  	SetImageOption( magick7->image_info, "dcm:display-range", "reset" );
+  	magick_set_image_option( magick7->image_info, 
+		"dcm:display-range", "reset" );
 
-	if( magick7->page > 0 ) { 
-		 /* I can't find docs for these fields, but this seems to work.
-		  */
-		char page[256];
-
-		magick7->image_info->scene = magick7->page;
-		magick7->image_info->number_scenes = magick7->n;
-
-		vips_snprintf( page, 256, "%d-%d", 
-			magick7->page, magick7->page + magick7->n );
-		magick7->image_info->scenes = strdup( page );
-	}
+	if( magick7->page > 0 ) 
+		magick_set_number_scenes( magick7->image_info,
+			magick7->page, magick7->n );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_magick7_parent_class )->
 		build( object ) )

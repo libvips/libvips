@@ -744,6 +744,21 @@ AC_ARG_ENABLE([magicksave],
   AS_HELP_STRING([--disable-magicksave], 
 		 [disable libMagic save (default: enabled)]))
 
+if test x"$enable_magicksave" != x"yes"; then
+  # we need ImportImagePixels ... GM is missing this sadly
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $MAGICK_LIBS"
+  AC_CHECK_FUNCS(ImportImagePixels,[
+     AC_DEFINE(HAVE_IMPORTIMAGEPIXELS,1,
+	       [define if you have ImportImagePixels.])
+   ],[
+     AC_MSG_WARN([ImportImagePixels not found; disabling magicksave])
+     enable_magicksave=no
+   ]
+  )
+  LIBS="$save_LIBS"
+fi
+
 if test x"$with_magick" != x"no"; then
   if test x"$enable_magickload" != x"no"; then
     AC_DEFINE(ENABLE_MAGICKLOAD,1,[define to enable load with libMagick])

@@ -228,7 +228,6 @@ read_new( const char *filename, VipsImage *im,
 	 */
 	VIPS_SETSTR( read->image_info->density, density );
 
-#ifdef HAVE_SETIMAGEOPTION
 	/* When reading DICOM images, we want to ignore any
 	 * window_center/_width setting, since it may put pixels outside the
 	 * 0-65535 range and lose data. 
@@ -236,30 +235,12 @@ read_new( const char *filename, VipsImage *im,
 	 * These window settings are attached as vips metadata, so our caller
 	 * can interpret them if it wants.
 	 */
-  	SetImageOption( read->image_info, "dcm:display-range", "reset" );
-#endif /*HAVE_SETIMAGEOPTION*/
+  	magick_set_image_option( read->image_info, 
+		"dcm:display-range", "reset" );
 
-	if( read->page > 0 ) { 
-#ifdef HAVE_NUMBER_SCENES 
-		/* I can't find docs for these fields, but this seems to work.
-		 */
-		char page[256];
-
-		read->image_info->scene = read->page;
-		read->image_info->number_scenes = read->n;
-
-		/* Some IMs must have the string version set as well.
-		 */
-		vips_snprintf( page, 256, "%d-%d", 
-			read->page, read->page + read->n );
-		read->image_info->scenes = strdup( page );
-#else /*!HAVE_NUMBER_SCENES*/
-		/* This works with GM 1.2.31 and probably others.
-		 */
-		read->image_info->subimage = read->page;
-		read->image_info->subrange = read->n;
-#endif
-	}
+	if( read->page > 0 )  
+		magick_set_number_scenes( read->image_info,
+			read->page, read->n );
 
 #ifdef DEBUG
 	printf( "magick2vips: read_new: %s\n", read->filename );
@@ -703,7 +684,9 @@ get_pixels( Image *image, int left, int top, int width, int height )
 		IndexPacket *indexes = (IndexPacket *) 
 			GetVirtualIndexQueue( image );
 #else
-		IndexPacket *indexes = GetIndexes( image );
+		/* Was GetIndexes(), but that's now deprecated.
+		 */
+		IndexPacket *indexes = AccessMutableIndexes( image );
 #endif
 
 		int i;
