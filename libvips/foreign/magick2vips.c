@@ -57,6 +57,8 @@
  * 	- try using GetImageChannelDepth() instead of ->depth
  * 24/4/18
  * 	- add format hint
+ * 25/5/18
+ * 	- acquire an image colormap if none set
  */
 
 /*
@@ -326,6 +328,15 @@ parse_header( Read *read )
 	read->frame_height = image->rows;
 	if( (im->Bands = get_bands( image )) < 0 )
 		return( -1 );
+
+	/* Some ImageMagick loaders (eg. TGA) fail to set the ->colormap
+	 * field on Ping. GetImageChannelDepth() needs this and
+	 * will crash if it's not set.
+	 *
+	 * If there's no colormap, set an empty one.
+	 */
+	if( !image->colormap ) 
+		magick_acquire_image_colormap( image, image->colors );
 
 	/* Depth can be 'fractional'. 
 	 *

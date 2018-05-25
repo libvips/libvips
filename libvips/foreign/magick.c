@@ -53,6 +53,12 @@ magick_acquire_image( const ImageInfo *image_info, ExceptionInfo *exception )
 }
 
 void
+magick_acquire_image_colormap( Image *image, int colors )
+{
+	AcquireImageColormap( image, colors )
+}
+
+void
 magick_acquire_next_image( const ImageInfo *image_info, Image *image,
 	ExceptionInfo *exception )
 {
@@ -105,6 +111,16 @@ magick_acquire_image( const ImageInfo *image_info, ExceptionInfo *exception )
 	 */
 	return( AllocateImage( image_info ) );
 #endif
+}
+
+void
+magick_acquire_image_colormap( Image *image, int colors )
+{
+#ifdef HAVE_ACQUIREIMAGECOLORMAP
+	AcquireImageColormap( image, colors ); 
+#else /*!HAVE_ACQUIREIMAGECOLORMAP*/
+	AllocateImageColormap( image, colors ); 
+#endif /*HAVE_ACQUIREIMAGECOLORMAP*/
 }
 
 void
