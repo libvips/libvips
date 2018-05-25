@@ -663,6 +663,17 @@ if test x"$magick6" = x"yes"; then
 fi
 
 if test x"$magick6" = x"yes"; then
+  # more recent magick6s have AcquireImageColormap rather than 
+  # AllocateImageColormap groan
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $MAGICK_LIBS"
+  AC_CHECK_FUNCS(AcquireImageColormap,
+    AC_DEFINE(HAVE_ACQUIREIMAGECOLORMAP,1,
+	      [define if your magick has AcquireImageColormap.]))
+  LIBS="$save_LIBS"
+fi
+
+if test x"$magick6" = x"yes"; then
   # more recent magicks have GetVirtualPixels rather than GetImagePixels
   save_LIBS="$LIBS"
   LIBS="$LIBS $MAGICK_LIBS"
