@@ -335,19 +335,6 @@ parse_header( Read *read )
 	if( (im->Bands = get_bands( image )) < 0 )
 		return( -1 );
 
- 	/* Some ImageMagick loaders (eg. TGA) fail to set the ->colormap
- 	 * field on Ping. GetImageChannelDepth() needs this and
- 	 * will crash if it's not set.
- 	 *
- 	 * If there's no colormap, set an empty one.
- 	 */
-	if( !image->colormap ) 
-#ifdef HAVE_ACQUIREIMAGECOLORMAP
-		AcquireImageColormap( image, image->colors ); 
-#else /*!HAVE_ACQUIREIMAGECOLORMAP*/
-		AllocateImageColormap( image, image->colors ); 
-#endif /*HAVE_ACQUIREIMAGECOLORMAP*/
-
 	/* Depth can be 'fractional'. 
 	 *
 	 * You'd think we should use
@@ -808,7 +795,7 @@ vips__magick_read_header( const char *filename,
 	printf( "vips__magick_read_header: pinging image ...\n" );
 #endif /*DEBUG*/
 
-	read->image = PingImage( read->image_info, &read->exception );
+	read->image = ReadImage( read->image_info, &read->exception );
 	if( !read->image ) {
 		vips_error( "magick2vips", _( "unable to ping file "
 			"\"%s\"\nlibMagick error: %s %s" ),
@@ -885,7 +872,8 @@ vips__magick_read_buffer_header( const void *buf, const size_t len,
 	printf( "vips__magick_read_buffer_header: pinging blob ...\n" );
 #endif /*DEBUG*/
 
-	read->image = PingBlob( read->image_info, buf, len, &read->exception );
+	read->image = BlobToImage( read->image_info, 
+		buf, len, &read->exception );
 	if( !read->image ) {
 		vips_error( "magick2vips", _( "unable to ping blob\n"
 			"libMagick error: %s %s" ),
