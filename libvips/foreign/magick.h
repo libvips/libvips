@@ -44,7 +44,6 @@
 
 Image *magick_acquire_image( const ImageInfo *image_info, 
 	ExceptionInfo *exception );
-void magick_acquire_image_colormap( Image *image, int colors );
 void magick_acquire_next_image( const ImageInfo *image_info, 
 	Image *image, ExceptionInfo *exception );
 int magick_set_image_size( Image *image, 

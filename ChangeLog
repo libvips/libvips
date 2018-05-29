@@ -22,7 +22,6 @@
 - add fontfile option to vips_text() [fangqiao]
 - add vips_transpose3d() -- swap major dimensions in a volumetric image
 - remove vips7 stuff from default API ... you must now #include it explicitly
-- acquire an image colormap if none set [jtorresfabra]
 - added vips_argument_get_id() to fix derived classes on win32 [angelmixu]
 
 12/3/18 started 8.6.4
