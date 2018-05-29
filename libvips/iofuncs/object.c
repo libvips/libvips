@@ -1,6 +1,9 @@
 /* abstract base class for all vips objects
  *
  * Edited from nip's base class, 15/10/08
+ *
+ * 29/5/18
+ * 	- added vips_argument_get_id()
  */
 
 /*
@@ -209,6 +212,8 @@ static GMutex *vips__object_all_lock = NULL;
 
 static guint vips_object_signals[SIG_LAST] = { 0 };
 
+/* This has to be externally visible for compatibility with older libvipses.
+ */
 int _vips__argument_id = 1;
 
 /* Keep a cache of nickname -> GType lookups.
@@ -216,6 +221,26 @@ int _vips__argument_id = 1;
 static GHashTable *vips__object_nickname_table = NULL;
 
 G_DEFINE_ABSTRACT_TYPE( VipsObject, vips_object, G_TYPE_OBJECT );
+
+/**
+ * vips_argument_get_id: (skip)
+ *
+ * Allocate a new property id. See g_object_class_install_property().
+ *
+ * Returns: a new property id > 0
+ */
+int 
+vips_argument_get_id( void )
+{
+	int id;
+
+	/* We probably don't need to lock: glib seems to single-thread class
+	 * creation.
+	 */
+	id = _vips__argument_id++;
+
+	return( id );
+}
 
 /* Don't call this directly, see vips_object_build().
  */
