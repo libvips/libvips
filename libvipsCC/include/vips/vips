@@ -35,6 +35,18 @@
 // VImage.h uses GValue for metadata
 #include <glib-object.h>
 
+/* Define VIPS_CC_EXPORTS to build a DLL using MSVC.
+ */
+#ifdef _MSC_VER
+#  ifdef VIPS_CC_EXPORTS
+#    define VIPS_CC_API __declspec(dllexport)
+#  else
+#    define VIPS_CC_API __declspec(dllimport)
+#  endif
+#else
+#  define VIPS_CC_API
+#endif
+
 // If we have already #included the C vips headers, we have to undef a load of
 // stuff to stop vips's stupid macros messing up our enums
 #ifdef IM_VIPS_H

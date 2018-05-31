@@ -73,7 +73,7 @@ union MASKUNION {
 }; 
 
 // Private wrapper over *MASK - user does not see this
-class VPMask {
+class VIPS_CC_API VPMask {
 	friend class VMask;
 
 public:
@@ -102,7 +102,7 @@ public:
 };
 
 // Specialise for INTMASK
-class VPIMask : public VPMask {
+class VIPS_CC_API VPIMask : public VPMask {
 public:
 	VPIMask( int xsize, int ysize );
 	VPIMask( int xsize, int ysize, int scale, int offset, 
@@ -129,7 +129,7 @@ public:
 };
 
 // Specialise for DOUBLEMASK
-class VPDMask : public VPMask {
+class VIPS_CC_API VPDMask : public VPMask {
 public:
 	VPDMask( int xsize, int ysize );
 	VPDMask( int xsize, int ysize, 
@@ -167,7 +167,7 @@ inline std::ostream &operator<<( std::ostream &file,
 #endif /*!SWIG*/
 
 // Wrapper over VP?Mask with ref counting
-class VMask {
+class VIPS_CC_API VMask {
 protected:
 	struct refblock {
 		_private_detail::VPMask *pmask;	// Mask: double or int
@@ -221,11 +221,11 @@ inline std::ostream &operator<<( std::ostream &file, const VMask &msk )
 }
 
 // Need to forward ref these
-class VDMask;
-class VImage;
+class VIPS_CC_API VDMask;
+class VIPS_CC_API VImage;
 
 // Wrapper over _private_detail::VPIMask with ref counting
-class VIMask : public VMask {
+class VIPS_CC_API VIMask : public VMask {
 public:
 	VIMask( int xsize, int ysize )
 	{
@@ -314,7 +314,7 @@ public:
 };
 
 // Wrapper over _private_detail::VPDMask with ref counting
-class VDMask : public VMask {
+class VIPS_CC_API VDMask : public VMask {
 public:
 	VDMask( int xsize, int ysize )
 	{
