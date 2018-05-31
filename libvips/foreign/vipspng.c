@@ -700,7 +700,7 @@ vips_png_read_buffer( png_structp pPng, png_bytep data, png_size_t length )
 	if( read->read_pos + length > read->length )
 		png_error( pPng, "not enough data in buffer" );
 
-	memcpy( data, read->buffer + read->read_pos, length );
+	memcpy( data, (const char*)(read->buffer) + read->read_pos, length );
 	read->read_pos += length;
 }
 
