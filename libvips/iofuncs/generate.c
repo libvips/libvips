@@ -102,6 +102,9 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif /*HAVE_IO_H*/
 
 #include <vips/vips.h>
 #include <vips/internal.h>

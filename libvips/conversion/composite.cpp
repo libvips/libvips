@@ -47,7 +47,11 @@
 
 #include <stdio.h>
 #include <string.h>
+#if _MSC_VER
+#include <cstdlib>
+#else
 #include <stdlib.h>
+#endif
 #include <math.h>
 
 #include <vips/vips.h>
