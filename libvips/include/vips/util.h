@@ -79,7 +79,7 @@ extern "C" {
 #define VIPS_ISINF( V ) isinf( V )
 #define VIPS_FLOOR( V ) floor( V )
 #define VIPS_CEIL( V ) ceil( V )
-#define VIPS_RINT( R ) rint( V )
+#define VIPS_RINT( V ) rint( V )
 #define VIPS_ROUND( V ) round( V )
 #define VIPS_FABS( V ) VIPS_ABS( V )
 #define VIPS_FMAX( A, B ) VIPS_MAX( A, B )

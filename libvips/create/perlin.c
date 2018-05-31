@@ -267,7 +267,7 @@ vips_perlin_make_tables( void *client )
 	int i;
 
 	for( i = 0; i < 256; i++ ) {
-		double angle = 2 * M_PI * i / 256.0;
+		double angle = 2 * VIPS_PI * i / 256.0;
 
 		vips_perlin_cos[i] = cos( angle );
 		vips_perlin_sin[i] = sin( angle );
