@@ -441,7 +441,7 @@ vips_webp_add_metadata( VipsWebPWriter *writer, VipsImage *image )
 	if( is_vp8x ) {
 		/* Copy the existing VP8X body and update the flag bits.
 		 */
-		if( vips_webp_writer_append( &new, writer->mem + 20, 10 ) ) {
+		if( !vips_webp_writer_append( &new, writer->mem + 20, 10 ) ) {
 			vips_webp_writer_unset( &new );
 			return( -1 );
 		}
