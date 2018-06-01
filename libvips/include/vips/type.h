@@ -101,7 +101,7 @@ void *vips_area_get_data( VipsArea *area,
 #define VIPS_ARRAY_ADDR( X, I ) \
 	(((I) >= 0 && (I) < VIPS_AREA( X )->n) ? \
 	 (void *) ((VipsPel *) VIPS_AREA( X )->data + \
-	  	VIPS_AREA( X )->sizeof_type * (I)) : \
+		VIPS_AREA( X )->sizeof_type * (I)) : \
 	 (fprintf( stderr, \
 		"VIPS_ARRAY_ADDR: index out of bounds, " \
 		"file \"%s\", line %d\n" \
