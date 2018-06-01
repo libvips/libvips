@@ -52,7 +52,7 @@ extern "C" {
 VIPS_NAMESPACE_START
 
 // Wrapper over im_col_display with ref counting
-class VDisplay {
+class VIPS_CC_API VDisplay {
 	struct refblock {
 		im_col_display *disp;	// im_col_display struct
 		im_col_tab_disp *luts;	// luts built from this display

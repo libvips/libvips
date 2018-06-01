@@ -77,7 +77,7 @@ typedef int (*VCallback)( void *, void * );
  * and several other refblocks can have IMAGEs which depend upon this IMAGE
  * for their result.
  */
-class VImage {
+class VIPS_CC_API VImage {
 	/* We'd like this to be protected so that user subclasses can define
 	 * their own member wrappers. But sadly C++ doesn't work like that:
 	 * subclasses of VImage can only refer to protected members via
@@ -89,7 +89,7 @@ public:
  */
 #ifndef SWIG
 	// Count ref etc. in one of these. One for each open VIPS image.
-	struct refblock {
+	VIPS_CC_API struct refblock {
 		_VipsImage *im;			// IMAGE pointer
 		int close_on_delete;		// Set if we must im_close()
 		int nrefs;			// Number of refs to us
@@ -100,7 +100,7 @@ public:
 		virtual ~refblock();
 
 		// Add a ref - this (output image) depends upon IMAGE in
-		void addref( refblock *in );
+		VIPS_CC_API void addref( refblock *in );
 
 		// Remove a ref
 		void removeref();
@@ -420,7 +420,7 @@ public:
  * be part of the public API in case people subclass VImage and add their own
  * members.
  */
-class Vargv {
+class VIPS_CC_API Vargv {
 	// Function we are args to
 	im__function *fn;
 

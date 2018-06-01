@@ -49,7 +49,7 @@
 VIPS_NAMESPACE_START
 
 // Error type
-class VError : public std::exception {
+class VIPS_CC_API VError : public std::exception {
 	std::string _what;
 
 public:
@@ -76,7 +76,7 @@ inline std::ostream &operator<<( std::ostream &file, const VError &err )
 	return( file );
 }
 
-void verror( std::string str = "" );
+void VIPS_CC_API verror( std::string str = "" );
 
 VIPS_NAMESPACE_END
 

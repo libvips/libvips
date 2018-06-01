@@ -87,6 +87,7 @@
 
 #ifdef OS_WIN32
 #include <windows.h>
+#include <io.h>
 #endif /*OS_WIN32*/
 
 void *
