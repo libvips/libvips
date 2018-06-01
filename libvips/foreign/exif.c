@@ -570,7 +570,7 @@ vips_exif_double_to_srational( double value, ExifSRational *srv )
 	srv->denominator = 1000;
 }
 
-/* Parse a char* into an ExifRational. We allow floats as well.
+/* Parse a char * into an ExifRational. We allow floats as well.
  */
 static void
 vips_exif_parse_rational( const char *str, ExifRational *rv )
@@ -580,7 +580,7 @@ vips_exif_parse_rational( const char *str, ExifRational *rv )
 	vips_exif_double_to_rational( g_ascii_strtod( str, NULL ), rv );
 }
 
-/* Parse a char* into an ExifSRational. We allow floats as well.
+/* Parse a char * into an ExifSRational. We allow floats as well.
  */
 static void
 vips_exif_parse_srational( const char *str, ExifSRational *srv )
@@ -591,7 +591,7 @@ vips_exif_parse_srational( const char *str, ExifSRational *srv )
 	vips_exif_double_to_srational( g_ascii_strtod( str, NULL ), srv );
 }
 
-/* Does both signed and unsigned rationals from a char*.
+/* Does both signed and unsigned rationals from a char *.
  */
 static void
 vips_exif_set_rational( ExifData *ed, 

@@ -717,7 +717,7 @@ VDMask VImage::stats()
 	Vargv _vec( "im_stats" );
 
 	_vec.data(0) = in.image();
-	((im_mask_object*) _vec.data(1))->name = (char*)"noname";
+	((im_mask_object*) _vec.data(1))->name = (char*) "noname";
 	_vec.call();
 	statistics.embed( (DOUBLEMASK *)((im_mask_object*)_vec.data(1))->mask );
 

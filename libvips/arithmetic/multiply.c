@@ -13,7 +13,7 @@
  * 19/10/93 JC
  *	- coredump-inducing bug in complex*complex fixed
  * 13/12/93
- *	- char*short bug fixed
+ *	- char * short bug fixed
  * 12/6/95 JC
  *	- new im_add adapted to make new im_multiply
  * 27/9/04
