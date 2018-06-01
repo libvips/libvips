@@ -31,6 +31,7 @@
 - strict round down on jpeg shrink on load [davidwood]
 - configure test for g++ 7.2 and composite.cpp
 - don't Ping in magickload, too unreliable
+- ensure WebP can add metadata when compiled with libwebpmux [lovell]
 
 12/2/18 started 8.6.3
 - use pkg-config to find libjpeg, if we can
