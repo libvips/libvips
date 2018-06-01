@@ -106,7 +106,7 @@ vips_webp_writer_init( VipsWebPWriter *writer )
 	writer->max_size = 0;
 }
 
-static int
+static gboolean
 vips_webp_writer_append( VipsWebPWriter *writer, 
 	const uint8_t *data, guint64 data_size )
 {
@@ -155,7 +155,7 @@ vips_webp_writer_append( VipsWebPWriter *writer,
  * lots of our tests start failing.
  */
 #ifdef HAVE_LIBWEBPMUX
-static int
+static gboolean
 vips_webp_writer_appendle( VipsWebPWriter *writer, uint32_t val, int n )
 {
 	unsigned char buf[4];
@@ -171,19 +171,19 @@ vips_webp_writer_appendle( VipsWebPWriter *writer, uint32_t val, int n )
 	return( vips_webp_writer_append( writer, buf, n ) ); 
 }
 
-static int
+static gboolean
 vips_webp_writer_appendle32( VipsWebPWriter *writer, uint32_t val )
 {
 	return( vips_webp_writer_appendle( writer, val, 4 ) ); 
 }
 
-static int
+static gboolean
 vips_webp_writer_appendle24( VipsWebPWriter *writer, uint32_t val )
 {
 	return( vips_webp_writer_appendle( writer, val, 3 ) ); 
 }
 
-static int
+static gboolean
 vips_webp_writer_appendcc( VipsWebPWriter *writer, const char buf[4] )
 {
 	return( vips_webp_writer_append( writer, (const uint8_t *) buf, 4 ) ); 
@@ -215,7 +215,7 @@ vips_webp_writer_unset( VipsWebPWriter *writer )
 	VIPS_FREE( writer->mem );
 }
 
-static int
+static gboolean
 memory_write( const uint8_t *data, size_t data_size,
 	const WebPPicture *picture ) 
 {
@@ -441,7 +441,7 @@ vips_webp_add_metadata( VipsWebPWriter *writer, VipsImage *image )
 	if( is_vp8x ) {
 		/* Copy the existing VP8X body and update the flag bits.
 		 */
-		if( vips_webp_writer_append( &new, writer->mem + 20, 10 ) ) {
+		if( !vips_webp_writer_append( &new, writer->mem + 20, 10 ) ) {
 			vips_webp_writer_unset( &new );
 			return( -1 );
 		}
