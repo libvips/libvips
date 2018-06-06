@@ -67,9 +67,13 @@
 #include <cairo.h>
 #include <librsvg/rsvg.h>
 
+/* The <svg tag must appear within this many bytes of the start of the file.
+ */
+#define SVG_HEADER_SIZE (1000)
+
 /* The maximum pixel width librsvg is able to render.
  */
-#define RSVG_MAX_WIDTH 32767
+#define RSVG_MAX_WIDTH (32767)
 
 /* Old librsvg versions don't include librsvg-features.h by default.
  * Newer versions deprecate direct inclusion.
@@ -197,7 +201,7 @@ vips_foreign_load_svg_is_a( const void *buf, size_t len )
 	 *
 	 * Simple rules:
 	 * - first 24 chars are plain ascii
-	 * - first 300 chars contain "<svg", upper or lower case.
+	 * - first SVG_HEADER_SIZE chars contain "<svg", upper or lower case.
 	 *
 	 * We could rsvg_handle_new_from_data() on the buffer, but that can be
 	 * horribly slow for large documents. 
@@ -207,7 +211,7 @@ vips_foreign_load_svg_is_a( const void *buf, size_t len )
 	for( i = 0; i < 24; i++ )
 		if( !isascii( str[i] ) )
 			return( FALSE );
-	for( i = 0; i < 300 && i < len - 5; i++ )
+	for( i = 0; i < SVG_HEADER_SIZE && i < len - 5; i++ )
 		if( g_ascii_strncasecmp( str + i, "<svg", 4 ) == 0 )
 			return( TRUE );
 
@@ -462,10 +466,11 @@ G_DEFINE_TYPE( VipsForeignLoadSvgFile, vips_foreign_load_svg_file,
 static gboolean
 vips_foreign_load_svg_file_is_a( const char *filename )
 {
-	unsigned char buf[300];
+	unsigned char buf[SVG_HEADER_SIZE];
 	guint64 bytes;
 
-	return( (bytes = vips__get_bytes( filename, buf, 300 )) > 0 &&
+	return( (bytes = vips__get_bytes( filename, 
+			buf, SVG_HEADER_SIZE )) > 0 &&
 		vips_foreign_load_svg_is_a( buf, bytes ) );
 }
 
