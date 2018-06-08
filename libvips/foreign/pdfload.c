@@ -8,6 +8,8 @@
  * 	- set page-height, if we can
  * 28/6/17
  * 	- use a much larger strip size, thanks bubba
+ * 8/6/18
+ * 	- add background param
  */
 
 /*
@@ -81,6 +83,10 @@ typedef struct _VipsForeignLoadPdf {
 	 */
 	double scale;
 
+	/* Background colour.
+	 */
+	VipsArrayDouble *background;
+
 	/* Poppler is not thread-safe, so we run inside a single-threaded
 	 * cache. On the plus side, this means we only need one @page pointer,
 	 * even though we change this during _generate().
@@ -98,6 +104,10 @@ typedef struct _VipsForeignLoadPdf {
 	 */
 	VipsRect image;
 	VipsRect *pages;
+
+	/* The [double] background converted to the image format.
+	 */
+	VipsPel *ink;
 
 } VipsForeignLoadPdf;
 
@@ -302,6 +312,14 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 
 	vips_foreign_load_pdf_set_image( pdf, load->out ); 
 
+	/* Convert the background to the image format.
+	 */
+	if( !(pdf->ink = vips__vector_to_ink( class->nickname, 
+		load->out, 
+		VIPS_AREA( pdf->background )->data, NULL, 
+		VIPS_AREA( pdf->background )->n )) )
+		return( -1 );
+
 	return( 0 );
 }
 
@@ -322,10 +340,9 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		r->left, r->top, r->width, r->height ); 
 	 */
 
-	/* Poppler won't always paint the background. Use 255 (white) for the
-	 * bg, PDFs generally assume a paper backgrocund colour.
+	/* Poppler won't always paint the background. 
 	 */
-	vips_region_paint( or, r, 255 ); 
+	vips_region_paint_pel( or, r, pdf->ink ); 
 
 	/* Search through the pages we are drawing for the first containing
 	 * this rect. This could be quicker, perhaps a binary search, but who 
@@ -462,6 +479,13 @@ vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoadPdf, scale ),
 		0.001, 100000.0, 1.0 );
 
+	VIPS_ARG_BOXED( class, "background", 14, 
+		_( "Background" ), 
+		_( "Background value" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadPdf, background ),
+		VIPS_TYPE_ARRAY_DOUBLE );
+
 }
 
 static void
@@ -471,6 +495,7 @@ vips_foreign_load_pdf_init( VipsForeignLoadPdf *pdf )
 	pdf->scale = 1.0;
 	pdf->n = 1;
 	pdf->current_page = -1;
+	pdf->background = vips_array_double_newv( 1, 255.0 );
 }
 
 typedef struct _VipsForeignLoadPdfFile {
@@ -677,6 +702,7 @@ vips_foreign_load_pdf_is_a( const char *filename )
  * * @n: %gint, load this many pages
  * * @dpi: %gdouble, render at this DPI
  * * @scale: %gdouble, scale render by this factor
+ * * @background: #VipsArrayDouble background colour
  *
  * Render a PDF file into a VIPS image. Rendering uses the libpoppler library
  * and should be fast. 
@@ -695,6 +721,9 @@ vips_foreign_load_pdf_is_a( const char *filename )
  * Use @dpi to set the rendering resolution. The default is 72. Alternatively,
  * you can scale the rendering from the default 1 point == 1 pixel by 
  * setting @scale.
+ *
+ * Use @background to set the background colour, including transparency. The
+ * default is 255 (solid white).
  *
  * The operation fills a number of header fields with metadata, for example
  * "pdf-author". They may be useful. 
@@ -732,6 +761,7 @@ vips_pdfload( const char *filename, VipsImage **out, ... )
  * * @n: %gint, load this many pages
  * * @dpi: %gdouble, render at this DPI
  * * @scale: %gdouble, scale render by this factor
+ * * @background: #VipsArrayDouble background colour
  *
  * Read a PDF-formatted memory block into a VIPS image. Exactly as
  * vips_pdfload(), but read from a memory buffer. 
