@@ -682,8 +682,7 @@ if test x"$magick6" = x"yes"; then
 fi
 
 if test x"$magick6" = x"yes"; then
-  # do we have number_scenes in image_info ... imagemagick uses this, gm
-  # still uses subrange
+  # do we have number_scenes in image_info ... imagemagick uses this
   save_CFLAGS="$CFLAGS"
   CFLAGS="$CFLAGS $MAGICK_CFLAGS"
   AC_CHECK_MEMBER([struct _ImageInfo.number_scenes],

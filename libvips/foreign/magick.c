@@ -89,6 +89,22 @@ magick_inherit_exception( ExceptionInfo *exception, Image *image )
 	(void) image;
 }
 
+void
+magick_set_number_scenes( ImageInfo *image_info, int scene, int number_scenes )
+{
+	/* I can't find docs for these fields, but this seems to work.
+	 */
+	char page[256];
+
+	image_info->scene = scene;
+	image_info->number_scenes = number_scenes;
+
+	/* Some IMs must have the string version set as well.
+	 */
+	vips_snprintf( page, 256, "%d-%d", scene, scene + number_scenes );
+	image_info->scenes = strdup( page );
+}
+
 #endif /*HAVE_MAGICK7*/
 
 #ifdef HAVE_MAGICK6
@@ -186,19 +202,6 @@ magick_inherit_exception( ExceptionInfo *exception, Image *image )
 #endif /*HAVE_INHERITEXCEPTION*/
 }
 
-#endif /*HAVE_MAGICK6*/
-
-#if defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)
-
-void
-magick_set_image_option( ImageInfo *image_info, 
-	const char *name, const char *value )
-{
-#ifdef HAVE_SETIMAGEOPTION
-  	SetImageOption( image_info, name, value );
-#endif /*HAVE_SETIMAGEOPTION*/
-}
-
 void
 magick_set_number_scenes( ImageInfo *image_info, int scene, int number_scenes )
 {
@@ -220,6 +223,19 @@ magick_set_number_scenes( ImageInfo *image_info, int scene, int number_scenes )
 	image_info->subimage = scene;
 	image_info->subrange = number_scenes;
 #endif
+}
+
+#endif /*HAVE_MAGICK6*/
+
+#if defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)
+
+void
+magick_set_image_option( ImageInfo *image_info, 
+	const char *name, const char *value )
+{
+#ifdef HAVE_SETIMAGEOPTION
+  	SetImageOption( image_info, name, value );
+#endif /*HAVE_SETIMAGEOPTION*/
 }
 
 void
