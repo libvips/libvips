@@ -36,6 +36,7 @@
 #ifdef SWIG
 #define VIPS_NAMESPACE_START namespace vips {
 #define VIPS_NAMESPACE_END }
+#define VIPS_CC_API  
 #endif /*SWIG*/
 
 /* Don't include these when parsing for SWIG.
