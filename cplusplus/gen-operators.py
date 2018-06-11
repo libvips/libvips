@@ -152,7 +152,11 @@ def gen_operation(cls):
 
     gen_arg_list(op, required)
 
-    print ')'
+    print ')',
+    if this != None:
+        print 'const',
+    print
+
     print '{'
     if result != None:
         print '    %s %s;' % (get_ctype(result), cppize(result.name))

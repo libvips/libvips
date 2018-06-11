@@ -146,7 +146,13 @@ def gen_operation(cls):
 
     gen_arg_list(op, required)
 
-    print ');'
+    print ')',
+
+    # if no "this" available, it's a class method and they are all const
+    if this != None:
+        print ' const',
+
+    print ';'
 
 # we have a few synonyms ... don't generate twice
 generated = {}

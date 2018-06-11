@@ -613,7 +613,7 @@ VImage::new_matrixv( int width, int height, ... )
 }
 
 VImage
-VImage::write( VImage out )
+VImage::write( VImage out ) const
 {
 	if( vips_image_write( this->get_image(), out.get_image() ) )
 		throw VError(); 
@@ -622,7 +622,7 @@ VImage::write( VImage out )
 }
 
 void 
-VImage::write_to_file( const char *name, VOption *options )
+VImage::write_to_file( const char *name, VOption *options ) const
 {
 	char filename[VIPS_PATH_MAX];
 	char option_string[VIPS_PATH_MAX];
@@ -642,7 +642,7 @@ VImage::write_to_file( const char *name, VOption *options )
 
 void 
 VImage::write_to_buffer( const char *suffix, void **buf, size_t *size, 
-	VOption *options )
+	VOption *options ) const
 {
 	char filename[VIPS_PATH_MAX];
 	char option_string[VIPS_PATH_MAX];
@@ -675,7 +675,7 @@ VImage::write_to_buffer( const char *suffix, void **buf, size_t *size,
 #include "vips-operators.cpp"
 
 std::vector<VImage> 
-VImage::bandsplit( VOption *options )
+VImage::bandsplit( VOption *options ) const
 {
 	std::vector<VImage> b; 
 
@@ -686,7 +686,7 @@ VImage::bandsplit( VOption *options )
 }
 
 VImage 
-VImage::bandjoin( VImage other, VOption *options )
+VImage::bandjoin( VImage other, VOption *options ) const
 {
 	VImage v[2] = { *this, other }; 
 	std::vector<VImage> vec( v, v + VIPS_NUMBER( v ) );
@@ -695,7 +695,7 @@ VImage::bandjoin( VImage other, VOption *options )
 }
 
 VImage 
-VImage::composite( VImage other, VipsBlendMode mode, VOption *options )
+VImage::composite( VImage other, VipsBlendMode mode, VOption *options ) const
 {
 	VImage v[2] = { *this, other }; 
 	std::vector<VImage> ivec( v, v + VIPS_NUMBER( v ) );
@@ -706,7 +706,7 @@ VImage::composite( VImage other, VipsBlendMode mode, VOption *options )
 }
 
 std::complex<double> 
-VImage::minpos( VOption *options )
+VImage::minpos( VOption *options ) const
 {
 	double x, y;
 
@@ -719,7 +719,7 @@ VImage::minpos( VOption *options )
 }
 
 std::complex<double> 
-VImage::maxpos( VOption *options )
+VImage::maxpos( VOption *options ) const
 {
 	double x, y;
 
