@@ -526,6 +526,19 @@ if test x$expat_found = xno; then
   exit 1
 fi
 
+# enable vips7 C++ binding ... this defaults off, the vips8 C++ binding
+# defaults on
+AC_ARG_ENABLE([cpp7],
+  AS_HELP_STRING([--enable-cpp7],
+    [enable deprecated vips7 C++ binding (default: no)]),
+  [enable_cpp7=$enableval
+   AM_CONDITIONAL(ENABLE_CPP7, true)
+  ], 
+  [enable_cpp7="no (default)"
+   AM_CONDITIONAL(ENABLE_CPP7, false)
+  ]
+)
+
 # optional supporting libraries
 
 AC_ARG_WITH([gsf], 
@@ -1324,15 +1337,16 @@ native win32:				$vips_os_win32
 native OS X:				$vips_os_darwin
 open files in binary mode: 		$vips_binary_open
 enable debug:				$enable_debug
-build deprecated components:		$enable_deprecated
-build docs with gtkdoc:			$enable_gtk_doc
+enable deprecated library components:	$enable_deprecated
+enable docs with gtkdoc:		$enable_gtk_doc
 gobject introspection: 			$found_introspection
-build vips7 Python binding:		$enable_pyvips7
-install vips8 Python overrides:		$enable_pyvips8
+enable vips7 C++ API: 			$enable_cpp7
+enable vips7 Python binding:		$enable_pyvips7
+enable vips8 Python overrides:		$enable_pyvips8
   (requires pygobject-3.13.0 or later)
-build radiance support: 		$with_radiance
-build analyze support: 			$with_analyze
-build PPM support: 			$with_ppm
+enable radiance support: 		$with_radiance
+enable analyze support: 		$with_analyze
+enable PPM support: 			$with_ppm
 
 * optional dependencies
 use fftw3 for FFT: 			$with_fftw
