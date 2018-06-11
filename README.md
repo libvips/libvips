@@ -50,9 +50,6 @@ Check the summary at the end of `configure` carefully.
 libvips must have `build-essential`, `pkg-config`, `glib2.0-dev`,
 `libexpat1-dev`.
 
-For the vips8 Python binding, you must also have 
-`gobject-introspection`, `python-gi-dev`, and `libgirepository1.0-dev`.
-
 You'll need the dev packages for the file format support you
 want. For basic jpeg and tiff support, you'll need `libtiff5-dev`,
 `libjpeg-turbo8-dev`, and `libgsf-1-dev`.  See the **Dependencies** section
@@ -179,11 +176,6 @@ or perhaps:
 
 to get libvips to see your builds.
 
-### vips8 Python binding
-
-If `gobject-introspection`, `python-gi-dev`, and `libgirepository1.0-dev` are
-available, libvips will install the vips8 Python binding. 
-
 ### libjpeg
 
 The IJG JPEG library. Use the `-turbo` version if you can. 
@@ -250,8 +242,7 @@ image file types. Use `--with-magickpackage=GraphicsMagick` to build against
 graphicsmagick instead.
 
 Imagemagick 6.9+ needs to have been built with `--with-modules`. Most packaged
-IMs are, I think, but if you are rolling your own, you'll need to pass
-this flag to configure. 
+IMs are, I think.
 
 If you are going to be using libvips with untrusted images, perhaps in a
 web-server, for example, you should consider the security implications of
@@ -289,10 +280,6 @@ OpenEXR images.
 
 If available, libvips can load OpenSlide-supported virtual slide
 files: Aperio, Hamamatsu, Leica, MIRAX, Sakura, Trestle, and Ventana.
-
-### swig, python, python-dev
-
-If available, we build the vips7 python binding.
 
 # Disclaimer
 
