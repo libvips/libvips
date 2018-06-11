@@ -27,6 +27,7 @@
 - pdfload has a option for background 
 - vips7 C++ interface defaults off
 - make members, getters and operators "const" in cpp API
+- composite has params for x/y position of sub-images [medakk]
 
 12/3/18 started 8.6.4
 - better fitting of fonts with overhanging edges [Adrià]
