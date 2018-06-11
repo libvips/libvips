@@ -52,7 +52,7 @@ public:
 	VInterpolate new_from_name( const char *name, VOption *options = 0 );
 
 	VipsInterpolate *
-	get_interpolate()
+	get_interpolate() const
 	{
 		return( (VipsInterpolate *) VObject::get_object() );
 	}
