@@ -98,6 +98,13 @@ typedef struct _VipsCompositeBase {
 	 */
 	gboolean premultiplied;
 
+	/* The x and y positions for each image in the stack. There are n - 1 
+	 * of these, since image 0 is always positioned at (0, 0). Set by
+	 * subclasses. Can be NULL.
+	 */
+	int *x_offset;
+	int *y_offset;
+
 	/* The number of inputs. This can be less than the number of images in
 	 * @in.
 	 */
@@ -111,12 +118,6 @@ typedef struct _VipsCompositeBase {
 	 * This is used to scale each band to 0 - 1.
 	 */
 	double max_band[MAX_BANDS + 1];
-
-	/* The x and y positions for each image in the stack. There are n - 1 
-	 * of these, since image 0 is always positioned at (0, 0).
-	 */
-	int *x_offset;
-	int *y_offset;
 
 #ifdef HAVE_VECTOR_ARITH
 	/* max_band as a vector, for the RGBA case.
