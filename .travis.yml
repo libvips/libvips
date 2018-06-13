@@ -1,6 +1,9 @@
 language: cpp
 
 before_script:
+  - $PYTHON -m pip download --no-deps https://github.com/jcupitt/pyvips/archive/$PYVIPS_VERSION.tar.gz
+  - tar xf $PYVIPS_VERSION.tar.gz
+  - $PYTHON -m pip install --user --upgrade pyvips-$PYVIPS_VERSION/[test]
   - ./autogen.sh
     --disable-dependency-tracking
     --with-jpeg-includes=$JPEG/include
@@ -8,47 +11,57 @@ before_script:
   - make -j$JOBS -s 
 script:
   - make -Ctest -j$JOBS -s V=0 VERBOSE=1 check
+  - LD_LIBRARY_PATH=$PWD/libvips/.libs
+    DYLD_LIBRARY_PATH=$PWD/libvips/.libs
+    $PYTHON -m pytest pyvips-master
 
 matrix:
-  allow_failures:
-    - os: osx
   fast_finish: true
   include:
     - os: linux
       sudo: required
       dist: trusty
       env:
+        - PYTHON=python2
+        - PYVIPS_VERSION=master
         - JPEG=/usr
         - JOBS=`nproc`
       cache: ccache
       before_install:
         - sudo apt-get update -qq
         - sudo apt-get install -y
-          automake gtk-doc-tools
-          gobject-introspection
-          libfftw3-dev libjpeg-turbo8-dev
+          automake gtk-doc-tools gobject-introspection
+          libfftw3-dev libexif-dev libjpeg-turbo8-dev
           libpng12-dev libwebp-dev libtiff4-dev libexpat1-dev
           swig libmagick++-dev bc
           libcfitsio3-dev libgsl0-dev libmatio-dev
           liborc-0.4-dev liblcms2-dev libpoppler-glib-dev
-          librsvg2-dev libgif-dev
+          librsvg2-dev libgif-dev libopenexr-dev
           libpango1.0-dev libgsf-1-dev libopenslide-dev
+          libffi-dev
 
     - os: osx
-      osx_image: xcode7.3
+      osx_image: xcode9.3
       env:
+        - PYTHON=python2
+        - PYVIPS_VERSION=master
+        - JPEG=/usr/local
         - JOBS="`sysctl -n hw.ncpu`"
         - PATH="/usr/local/opt/ccache/libexec:$PATH"
+        - HOMEBREW_NO_AUTO_UPDATE=1
       cache: ccache
       before_install:
-        - brew update
+        # oclint cask conflicts with gcc formula, see:
+        # https://github.com/travis-ci/travis-ci/issues/8826
+        - brew cask uninstall oclint
         - brew install ccache
         - brew install
+          gtk-doc gobject-introspection
           fftw libexif
-          libpng webp 
+          webp
           swig imagemagick
-          cfitsio libmatio
+          cfitsio gsl libmatio
           orc little-cms2 poppler
-          pango libgsf openslide
           librsvg openexr
+          pango libgsf openslide
 
