@@ -447,6 +447,7 @@ struct _VipsForeignSaveDz {
 	VipsAngle angle;
 	VipsForeignDzContainer container; 
 	int compression;
+	VipsRegionShrink region_shrink;
 
 	/* Tile and overlap geometry. The members above are the parameters we
 	 * accept, this next set are the derived values which are actually 
@@ -1355,6 +1356,8 @@ strip_shrink( Layer *layer )
 	Layer *below = layer->below;
 	VipsRegion *from = layer->strip;
 	VipsRegion *to = below->strip;
+	VipsForeignSaveDz *dz = layer->dz;
+	VipsRegionShrink region_shrink = dz->region_shrink;
 
 	VipsRect target;
 	VipsRect source;
@@ -1401,10 +1404,11 @@ strip_shrink( Layer *layer )
 
 		/* None? All done.
 		 */
-		if( vips_rect_isempty( &target ) ) 
+		if( vips_rect_isempty( &target ) )
 			break;
 
-		(void) vips_region_shrink( from, to, &target );
+		(void) vips_region_shrink( from, to, &target,
+			region_shrink );
 
 		below->write_y += target.height;
 
@@ -2098,6 +2102,14 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveDz, compression ),
 		-1, 9, 0 );
 
+	VIPS_ARG_ENUM( class, "region_shrink", 18, 
+		_( "Region shrink" ), 
+		_( "Method for blah" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, region_shrink ),
+		VIPS_TYPE_REGION_SHRINK, 
+			VIPS_REGION_SHRINK_MEAN ); 
+
 	/* How annoying. We stupidly had these in earlier versions.
 	 */
 
@@ -2136,6 +2148,7 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
 	dz->angle = VIPS_ANGLE_D0; 
 	dz->container = VIPS_FOREIGN_DZ_CONTAINER_FS; 
 	dz->compression = 0;
+	dz->region_shrink = VIPS_REGION_SHRINK_MEAN;
 }
 
 typedef struct _VipsForeignSaveDzFile {
@@ -2332,6 +2345,7 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  * * @container: #VipsForeignDzContainer set container type
  * * @properties: %gboolean write a properties file
  * * @compression: %gint zip deflate compression level
+ * * @shrink_region: #VipsRegionShrink How to shrink each 2x2 region.
  *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.
@@ -2375,6 +2389,10 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  * (use zlib default), 0 (store, compression disabled) to 9 (max compression).
  * If no value is given, the default is to store files without compression.
  *
+ * You can use @region_shrink to control the method for shrinking each 2x2
+ * region. This defaults to using the average of the 4 input pixels but you can
+ * also use the median in cases where you want to preseve the range of values.
+ * 
  * See also: vips_tiffsave().
  *
  * Returns: 0 on success, -1 on error.
