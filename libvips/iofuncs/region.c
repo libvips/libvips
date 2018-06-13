@@ -43,6 +43,8 @@
  * 	- move on top of VipsObject, rename as VipsRegion
  * 23/2/17
  * 	- multiply transparent images through alpha in vips_region_shrink()
+ * 13/6/18 harukizaemon
+ * 	- add VipsRegionShrink parameter to vips_region_shrink()
  */
 
 /*
@@ -1204,65 +1206,6 @@ vips_region_shrink_labpack( VipsRegion *from,
 		q += ps; \
 	}
 
-/* This method is implemented so as to perform well and to always select an
- * output pixel from one of the input pixels. As such we make only the
- * following guarantees:
- *
- * ONLY works for non-complex uncoded images pixel types
- * ALWAYS draws from the input values
- * NEVER interpolates
- * NOT stable with respect to the ordered set of input values
- * IS stable with respect to the initial arrangement of input values
- */
-#define SHRINK_TYPE_MEDIAN( TYPE ) \
-	for( x = 0; x < target->width; x++ ) { \
-		TYPE *tp = (TYPE *) p; \
-		TYPE *tp1 = (TYPE *) (p + ls); \
-		TYPE *tq = (TYPE *) q; \
-		\
-		for( z = 0; z < nb; z++ ) { \
-        		tq[z] = VIPS_MIN( \
-					VIPS_MAX( tp[z], tp[z + nb] ), \
-					VIPS_MAX( tp1[z], tp1[z + nb] ) \
-				); \
-		} \
-		\
-		/* Move on two pels in input. \
-		 */ \
-		p += ps << 1; \
-		q += ps; \
-	}
-
-/* This method is implemented so as to perform well and to always select an
- * output pixel from one of the input pixels. As such we make only the
- * following guarantees:
- *
- * ONLY works for non-complex uncoded images pixel types
- * ALWAYS draws from the input values
- * NEVER interpolates
- * NOT stable with respect to the ordered set of input values
- * IS stable with respect to the initial arrangement of input values
- */
-#define SHRINK_TYPE_MODE( TYPE ) \
-	for( x = 0; x < target->width; x++ ) { \
-		TYPE *tp = (TYPE *) p; \
-		TYPE *tp1 = (TYPE *) (p + ls); \
-		TYPE *tq = (TYPE *) q; \
-		\
-		for( z = 0; z < nb; z++ ) { \
-			TYPE v[] = {tp[z], tp[z + nb], tp1[z], tp1[z + nb]}; \
-		    	int b0 = (v[0] == v[1]) | (v[0] == v[2]) | (v[0] == v[3]); \
-    			int b1 = (v[1] == v[0]) | (v[1] == v[2]) | (v[1] == v[3]); \
-    			int index = ((~b0) & 0x1) + (~(b0 ^ b1) & 0x1); \
-        		tq[z] = v[index]; \
-		} \
-		\
-		/* Move on two pels in input. \
-		 */ \
-		p += ps << 1; \
-		q += ps; \
-	}
-
 /* Generate area @target in @to using pixels in @from. Non-complex.
  */
 static void
@@ -1307,6 +1250,36 @@ vips_region_shrink_uncoded_mean( VipsRegion *from,
 	}
 }
 
+/* This method is implemented so as to perform well and to always select an
+ * output pixel from one of the input pixels. As such we make only the
+ * following guarantees:
+ *
+ * ONLY works for non-complex uncoded images pixel types
+ * ALWAYS draws from the input values
+ * NEVER interpolates
+ * NOT stable with respect to the ordered set of input values
+ * IS stable with respect to the initial arrangement of input values
+ */
+#define SHRINK_TYPE_MEDIAN( TYPE ) { \
+	for( x = 0; x < target->width; x++ ) { \
+		TYPE *tp = (TYPE *) p; \
+		TYPE *tp1 = (TYPE *) (p + ls); \
+		TYPE *tq = (TYPE *) q; \
+		\
+		for( z = 0; z < nb; z++ ) { \
+        		tq[z] = VIPS_MIN( \
+					VIPS_MAX( tp[z], tp[z + nb] ), \
+					VIPS_MAX( tp1[z], tp1[z + nb] ) \
+				); \
+		} \
+		\
+		/* Move on two pels in input. \
+		 */ \
+		p += ps << 1; \
+		q += ps; \
+	} \
+}
+
 /* Generate area @target in @to using pixels in @from. Non-complex.
  */
 static void
@@ -1349,6 +1322,42 @@ vips_region_shrink_uncoded_median( VipsRegion *from,
 			g_assert_not_reached();
 		}
 	}
+}
+
+/* This method is implemented so as to perform well and to always select an
+ * output pixel from one of the input pixels. As such we make only the
+ * following guarantees:
+ *
+ * ONLY works for non-complex uncoded images pixel types
+ * ALWAYS draws from the input values
+ * NEVER interpolates
+ * NOT stable with respect to the ordered set of input values
+ * IS stable with respect to the initial arrangement of input values
+ */
+#define SHRINK_TYPE_MODE( TYPE ) { \
+	for( x = 0; x < target->width; x++ ) { \
+		TYPE *tp = (TYPE *) p; \
+		TYPE *tp1 = (TYPE *) (p + ls); \
+		TYPE *tq = (TYPE *) q; \
+		\
+		for( z = 0; z < nb; z++ ) { \
+			TYPE v[] = {tp[z], tp[z + nb], tp1[z], tp1[z + nb]}; \
+		    	int b0 = (v[0] == v[1]) | \
+				(v[0] == v[2]) | \
+				(v[0] == v[3]); \
+    			int b1 = (v[1] == v[0]) | \
+				(v[1] == v[2]) | \
+				(v[1] == v[3]); \
+    			int index = ((~b0) & 0x1) + (~(b0 ^ b1) & 0x1); \
+			\
+        		tq[z] = v[index]; \
+		} \
+		\
+		/* Move on two pels in input. \
+		 */ \
+		p += ps << 1; \
+		q += ps; \
+	} \
 }
 
 /* Generate area @target in @to using pixels in @from. Non-complex.
@@ -1505,11 +1514,13 @@ vips_region_shrink_alpha( VipsRegion *from,
  * @from: source region
  * @to: (inout): destination region
  * @target: #VipsRect of pixels you need to copy
- * @method: #VipsRegionShrink method to use when generating target pixels
+ * @method: method to use when generating target pixels
  *
  * Write the pixels @target in @to from the x2 larger area in @from.
  * Non-complex uncoded images and LABQ only. Images with alpha (see
  * vips_image_hasalpha()) shrink with pixels scaled by alpha to avoid fringing.
+ *
+ * @method selects the method used to do the 2x2 shrink. 
  *
  * See also: vips_region_copy().
  */
@@ -1523,7 +1534,7 @@ vips_region_shrink( VipsRegion *from, VipsRegion *to, const VipsRect *target,
 		return( -1 );
 
 	if( from->im->Coding == VIPS_CODING_NONE ) {
-		if( vips_check_noncomplex(  "vips_region_shrink", image ) )
+		if( vips_check_noncomplex( "vips_region_shrink", image ) )
 			return( -1 );
 
 		if( vips_image_hasalpha( image ) )

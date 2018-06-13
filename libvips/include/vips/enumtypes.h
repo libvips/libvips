@@ -96,6 +96,9 @@ GType vips_argument_flags_get_type (void) G_GNUC_CONST;
 /* enumerations from "../../../libvips/include/vips/operation.h" */
 GType vips_operation_flags_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_OPERATION_FLAGS (vips_operation_flags_get_type())
+/* enumerations from "../../../libvips/include/vips/region.h" */
+GType vips_region_shrink_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_REGION_SHRINK (vips_region_shrink_get_type())
 /* enumerations from "../../../libvips/include/vips/resample.h" */
 GType vips_kernel_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_KERNEL (vips_kernel_get_type())
