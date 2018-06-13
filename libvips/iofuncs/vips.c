@@ -205,6 +205,8 @@ vips__open_image_write( const char *filename, gboolean temp )
 	else
 		fd = vips_tracked_open( filename, flags, 0666 );
 #else /*!O_TMPFILE*/
+	fd = vips_tracked_open( filename, flags, 0666 );
+
 #ifdef _O_TEMPORARY
 	/* On Windows, setting _O_TEMPORARY gets the file automatically
 	 * deleted on process exit, even if the processes crashes. See
