@@ -909,7 +909,7 @@ vips_convi_intize( VipsConvi *convi, VipsImage *M )
 	 * later, so 1.0 (for example) would become 128, which is outside
 	 * signed 8 bit. 
 	 */
-	shift = ceil( log2( mx + 1 ) );
+	shift = ceil( log2( mx ) + 1 );
 
 	/* We need to sum n_points, so we have to shift right before adding a
 	 * new value to make sure we have enough range. 
