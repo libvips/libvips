@@ -65,6 +65,7 @@
 #include <limits.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 #include <vips/vector.h>
 
 /* The two operators we implement. They are more hit-miss, really.

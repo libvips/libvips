@@ -316,7 +316,8 @@ calculate_coefficients_catmull( double c[4], const double x )
  * from the interpolator as well as from the table builder.
  */
 static void inline
-calculate_coefficients_triangle( double *c, const double shrink, const double x )
+calculate_coefficients_triangle( double *c, 
+	const double shrink, const double x )
 {
 	/* Needs to be in sync with vips_reduce_get_points().
 	 */
@@ -342,11 +343,18 @@ calculate_coefficients_triangle( double *c, const double shrink, const double x 
 		c[i] /= sum;
 }
 
-/* Calculate a catmull kernel for shrinking. 
+/* Generate a cubic filter. See:
+ *
+ * Mitchell and Netravali, Reconstruction Filters in Computer Graphics 
+ * Computer Graphics, Volume 22, Number 4, August 1988.
+ *
+ * B = 1,   C = 0   - cubic B-spline
+ * B = 1/3, C = 1/3 - Mitchell
+ * B = 0,   C = 1/2 - Catmull-Rom spline
  */
 static void inline
-calculate_coefficients_adaptive_catmull( double *c, 
-	const double shrink, const double x )
+calculate_coefficients_cubic( double *c, 
+	const double shrink, const double x, double B, double C )
 {
 	/* Needs to be in sync with vips_reduce_get_points().
 	 */
@@ -361,18 +369,18 @@ calculate_coefficients_adaptive_catmull( double *c,
 		const double axp = VIPS_FABS( xp ); 
 		const double axp2 = axp * axp;
 		const double axp3 = axp2 * axp;
-		const double a = -0.5;
 
 		double l;
 
 		if( axp <= 1 ) 
-			l = (a + 2) * axp3 - 
-				(a + 3) * axp2 + 1;
+			l = ((12 - 9 * B - 6 * C) * axp3 +
+			     (-18 + 12 * B + 6 * C) * axp2 + 
+			     (6 - 2 * B)) / 6;
 		else if( axp <= 2 )
-			l = a * axp3 - 
-				5 * a * axp2 + 
-				8 * a * axp - 
-				4 * a;
+			l = ((-B - 6 * C) * axp3 +
+			     (6 * B + 30 * C) * axp2 + 
+			     (-12 * B - 48 * C) * axp + 
+			     (8 * B + 24 * C)) / 6;
 		else 
 			l = 0.0;
 

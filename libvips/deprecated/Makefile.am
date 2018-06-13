@@ -1,6 +1,8 @@
 noinst_LTLIBRARIES = libdeprecated.la
 
 libdeprecated_la_SOURCES = \
+	video_dispatch.c \
+	im_video_test.c \
 	cimg_dispatch.c \
 	inplace_dispatch.c \
 	tone.c \

@@ -128,6 +128,7 @@
  */
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 #include <vips/thread.h>
 #include <vips/transform.h>
 #include <vips/internal.h>
@@ -164,7 +165,7 @@ im__make_blend_luts( void )
 		return( -1 ); 
 
 	for( x = 0; x < BLEND_SIZE; x++ ) {
-		double a = IM_PI * x / (BLEND_SIZE - 1.0);
+		double a = VIPS_PI * x / (BLEND_SIZE - 1.0);
 
 		im__coef1[x] = (cos( a ) + 1.0) / 2.0;
 		im__coef2[x] = 1.0 - im__coef1[x];

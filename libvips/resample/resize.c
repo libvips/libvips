@@ -128,6 +128,7 @@ vips_resize_int_shrink( VipsResize *resize, double scale )
 
 		case VIPS_KERNEL_LINEAR:
 		case VIPS_KERNEL_CUBIC:
+		case VIPS_KERNEL_MITCHELL:
 		case VIPS_KERNEL_LANCZOS2:
 		case VIPS_KERNEL_LANCZOS3:
 		default:

@@ -17,6 +17,7 @@ libvips/arithmetic/multiply.c
 libvips/arithmetic/hough_circle.c
 libvips/arithmetic/measure.c
 libvips/arithmetic/hist_find.c
+libvips/arithmetic/find_trim.c
 libvips/arithmetic/getpoint.c
 libvips/arithmetic/add.c
 libvips/arithmetic/divide.c
@@ -68,6 +69,7 @@ libvips/colour/colourspace.c
 libvips/conversion/conversion.c
 libvips/conversion/embed.c
 libvips/conversion/zoom.c
+libvips/conversion/transpose3d.c
 libvips/conversion/replicate.c
 libvips/conversion/bandfold.c
 libvips/conversion/wrap.c
@@ -84,6 +86,7 @@ libvips/conversion/cast.c
 libvips/conversion/bandunfold.c
 libvips/conversion/tilecache.c
 libvips/conversion/sequential.c
+libvips/conversion/smartcrop.c
 libvips/conversion/premultiply.c
 libvips/conversion/bandmean.c
 libvips/conversion/falsecolour.c
@@ -105,6 +108,8 @@ libvips/conversion/bandrank.c
 libvips/convolution/spcor.c
 libvips/convolution/conva.c
 libvips/convolution/fastcor.c
+libvips/convolution/sobel.c
+libvips/convolution/canny.c
 libvips/convolution/convi.c
 libvips/convolution/compass.c
 libvips/convolution/convolution.c
@@ -154,6 +159,7 @@ libvips/draw/drawink.c
 libvips/draw/draw_circle.c
 libvips/draw/draw_flood.c
 libvips/draw/draw_rect.c
+libvips/dummy.c
 libvips/foreign/foreign.c
 libvips/foreign/ppm.c
 libvips/foreign/csvsave.c
@@ -162,6 +168,7 @@ libvips/foreign/pngload.c
 libvips/foreign/matlab.c
 libvips/foreign/webpload.c
 libvips/foreign/pngsave.c
+libvips/foreign/magicksave.c
 libvips/foreign/tiff2vips.c
 libvips/foreign/fitsload.c
 libvips/foreign/matrixsave.c
@@ -179,6 +186,7 @@ libvips/foreign/gifload.c
 libvips/foreign/magick7load.c
 libvips/foreign/openslide2vips.c
 libvips/foreign/exif.c
+libvips/foreign/pdfload_pdfium.c
 libvips/foreign/fitssave.c
 libvips/foreign/pdfload.c
 libvips/foreign/magick2vips.c
@@ -201,6 +209,7 @@ libvips/foreign/jpegsave.c
 libvips/foreign/analyze2vips.c
 libvips/foreign/matrixload.c
 libvips/foreign/jpegload.c
+libvips/foreign/magick.c
 libvips/foreign/analyzeload.c
 libvips/foreign/vips2tiff.c
 libvips/foreign/matload.c
@@ -212,6 +221,7 @@ libvips/freqfilt/fwfft.c
 libvips/freqfilt/freqmult.c
 libvips/freqfilt/freqfilt.c
 libvips/freqfilt/invfft.c
+libvips/fuzz/fuzz_new_from_buffer.c
 libvips/histogram/hist_match.c
 libvips/histogram/hist_cum.c
 libvips/histogram/hist_equal.c
@@ -240,6 +250,7 @@ libvips/iofuncs/vector.c
 libvips/iofuncs/operation.c
 libvips/iofuncs/sinkmemory.c
 libvips/iofuncs/generate.c
+libvips/iofuncs/dbuf.c
 libvips/iofuncs/window.c
 libvips/iofuncs/system.c
 libvips/iofuncs/header.c
@@ -260,6 +271,7 @@ libvips/iofuncs/base64.c
 libvips/morphology/morph.c
 libvips/morphology/rank.c
 libvips/morphology/countlines.c
+libvips/morphology/nearest.c
 libvips/morphology/labelregions.c
 libvips/morphology/morphology.c
 libvips/morphology/hitmiss.c
@@ -294,17 +306,10 @@ libvips/resample/thumbnail.c
 libvips/resample/shrink.c
 libvips/resample/similarity.c
 libvips/resample/interpolate.c
-libvips/video/im_video_test.c
-libvips/video/video_dispatch.c
 tools/vips.c
 tools/vipsedit.c
 tools/vipsheader.c
 tools/vipsthumbnail.c
-libvipsCC/VDisplay.cc
-libvipsCC/VError.cc
-libvipsCC/VImage.cc
-libvipsCC/vipsc++.cc
-libvipsCC/VMask.cc
 cplusplus/include/vips/VImage8.h
 cplusplus/include/vips/VInterpolate8.h
 cplusplus/include/vips/VError8.h
@@ -334,6 +339,7 @@ libvips/draw/drawink.h
 libvips/draw/pdraw.h
 libvips/foreign/dbh.h
 libvips/foreign/pforeign.h
+libvips/foreign/magick.h
 libvips/foreign/tiff.h
 libvips/foreign/jpeg.h
 libvips/freqfilt/pfreqfilt.h
@@ -371,6 +377,7 @@ libvips/include/vips/header.h
 libvips/include/vips/type.h
 libvips/include/vips/semaphore.h
 libvips/include/vips/image.h
+libvips/include/vips/dbuf.h
 libvips/include/vips/vector.h
 libvips/include/vips/intl.h
 libvips/include/vips/gate.h
@@ -396,10 +403,19 @@ libvips/mosaicing/pmosaicing.h
 libvips/mosaicing/global_balance.h
 libvips/resample/templates.h
 libvips/resample/presample.h
+cplusplus/examples/avg.cpp
+cplusplus/examples/invert.cpp
+cplusplus/examples/profile.cpp
+cplusplus/examples/test_overloads.cpp
+cplusplus/examples/buffer.cpp
+cplusplus/examples/test.cpp
+cplusplus/examples/embed.cpp
+cplusplus/examples/resize.cpp
 cplusplus/VError.cpp
 cplusplus/VImage.cpp
 cplusplus/VInterpolate.cpp
 cplusplus/vips-operators.cpp
+libvips/conversion/composite.cpp
 libvips/resample/reduceh.cpp
 libvips/resample/bicubic.cpp
 libvips/resample/vsqbs.cpp

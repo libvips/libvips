@@ -67,6 +67,14 @@
 #include <cairo.h>
 #include <librsvg/rsvg.h>
 
+/* The <svg tag must appear within this many bytes of the start of the file.
+ */
+#define SVG_HEADER_SIZE (1000)
+
+/* The maximum pixel width librsvg is able to render.
+ */
+#define RSVG_MAX_WIDTH (32767)
+
 /* Old librsvg versions don't include librsvg-features.h by default.
  * Newer versions deprecate direct inclusion.
  */
@@ -193,7 +201,7 @@ vips_foreign_load_svg_is_a( const void *buf, size_t len )
 	 *
 	 * Simple rules:
 	 * - first 24 chars are plain ascii
-	 * - first 300 chars contain "<svg", upper or lower case.
+	 * - first SVG_HEADER_SIZE chars contain "<svg", upper or lower case.
 	 *
 	 * We could rsvg_handle_new_from_data() on the buffer, but that can be
 	 * horribly slow for large documents. 
@@ -203,7 +211,7 @@ vips_foreign_load_svg_is_a( const void *buf, size_t len )
 	for( i = 0; i < 24; i++ )
 		if( !isascii( str[i] ) )
 			return( FALSE );
-	for( i = 0; i < 300 && i < len - 5; i++ )
+	for( i = 0; i < SVG_HEADER_SIZE && i < len - 5; i++ )
 		if( g_ascii_strncasecmp( str + i, "<svg", 4 ) == 0 )
 			return( TRUE );
 
@@ -359,13 +367,7 @@ vips_foreign_load_svg_load( VipsForeignLoad *load )
 
 	int tile_width;
 	int tile_height;
-	int n_lines;
 	int max_tiles;
-
-	/* Use this to pick a tile height for our strip cache.
-	 */
-	vips_get_tile_size( load->real,
-		&tile_width, &tile_height, &n_lines );
 
 	/* Read to this image, then cache to out, see below.
 	 */
@@ -382,10 +384,17 @@ vips_foreign_load_svg_load( VipsForeignLoad *load )
 	 *
 	 * Don't thread the cache: we rely on this to keep calls to rsvg 
 	 * single-threaded.
+	 *
+	 * Make tiles 2000 pixels high to limit overcomputation. Make sure we
+	 * have two rows of tiles so we don't recompute requests that cross
+	 * tile boundaries. 
 	 */
-	max_tiles = 3 * VIPS_ROUND_UP( t[0]->Xsize, 30000 ) / 30000;
+	tile_width = VIPS_MIN( t[0]->Xsize, RSVG_MAX_WIDTH );
+	max_tiles = 2 * VIPS_ROUND_UP( t[0]->Xsize, RSVG_MAX_WIDTH ) / 
+		RSVG_MAX_WIDTH;
+	tile_height = 2000;
 	if( vips_tilecache( t[0], &t[1],
-		"tile_width", 30000,
+		"tile_width", tile_width,
 		"tile_height", tile_height,
 		"max_tiles", max_tiles,
 		"access", VIPS_ACCESS_SEQUENTIAL,
@@ -457,10 +466,11 @@ G_DEFINE_TYPE( VipsForeignLoadSvgFile, vips_foreign_load_svg_file,
 static gboolean
 vips_foreign_load_svg_file_is_a( const char *filename )
 {
-	unsigned char buf[300];
+	unsigned char buf[SVG_HEADER_SIZE];
 	guint64 bytes;
 
-	return( (bytes = vips__get_bytes( filename, buf, 300 )) > 0 &&
+	return( (bytes = vips__get_bytes( filename, 
+			buf, SVG_HEADER_SIZE )) > 0 &&
 		vips_foreign_load_svg_is_a( buf, bytes ) );
 }
 

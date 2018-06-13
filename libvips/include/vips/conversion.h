@@ -175,6 +175,8 @@ int vips_replicate( VipsImage *in, VipsImage **out, int across, int down, ... )
 int vips_grid( VipsImage *in, VipsImage **out, 
 	int tile_height, int across, int down, ... )
 	__attribute__((sentinel));
+int vips_transpose3d( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_wrap( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_rot( VipsImage *in, VipsImage **out, VipsAngle angle, ... )

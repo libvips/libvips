@@ -53,6 +53,10 @@ int magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
 	const StorageType type,const void *pixels, ExceptionInfo *exception );
 void magick_set_property( Image *image, const char *property, const char *value,
 	ExceptionInfo *exception );
+void magick_set_image_option( ImageInfo *image_info, 
+	const char *name, const char *value );
+void magick_set_number_scenes( ImageInfo *image_info, 
+	int scene, int number_scenes );
 
 void magick_inherit_exception( ExceptionInfo *exception, Image *image );
 void magick_vips_error( const char *domain, ExceptionInfo *exception );

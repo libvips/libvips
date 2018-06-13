@@ -36,6 +36,7 @@
 #include <stdio.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 
 /* Print a string to stdout, with a "\n". Sometimes useful for debugging
  * language bindings.

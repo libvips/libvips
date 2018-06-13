@@ -70,52 +70,16 @@
 
 #include "phistogram.h"
 
-static int
-plotalise( IMAGE *in, IMAGE *out )
-{
-	if( im_check_uncoded( "im_histplot", in ) ||
-		im_check_noncomplex( "im_histplot", in ) )
-		return( -1 );
+typedef struct _VipsHistPlot {
+	VipsOperation parent_instance;
 
-	if( vips_bandfmt_isuint( in->BandFmt ) ) {
-		if( im_copy( in, out ) )
-			return( -1 );
-	}
-	else if( vips_bandfmt_isint( in->BandFmt ) ) {
-		double min;
+	VipsImage *in;
+	VipsImage *out;
+} VipsHistPlot;
 
-		/* Move min up to 0. 
-		 */
-		if( im_min( in, &min ) ||
-			im_lintra( 1.0, in, -min, out ) )
-			return( -1 );
-	}
-	else {
-		/* Float image: scale min--max to 0--any. Output square
-		 * graph.
-		 */
-		DOUBLEMASK *stats;
-		double min, max;
-		int any;
+typedef VipsOperationClass VipsHistPlotClass;
 
-		if( in->Xsize == 1 )
-			any = in->Ysize;
-		else
-			any = in->Xsize;
-
-		if( !(stats = im_stats( in )) )
-			return( -1 );
-		min = IM_MASK( stats, 0, 0 );
-		max = IM_MASK( stats, 1, 0 );
-		im_free_dmask( stats );
-
-		if( im_lintra( any / (max - min), in, 
-			-min * any / (max - min), out ) )
-			return( -1 );
-	}
-
-	return( 0 );
-}
+G_DEFINE_TYPE( VipsHistPlot, vips_hist_plot, VIPS_TYPE_OPERATION );
 
 #define VERT( TYPE ) { \
 	TYPE *p1 = (TYPE *) p; \
@@ -131,31 +95,32 @@ plotalise( IMAGE *in, IMAGE *out )
 /* Generate function.
  */
 static int
-make_vert_gen( REGION *or, void *seq, void *a, void *b )
+vips_hist_plot_vert_gen( VipsRegion *or, void *seq, void *a, void *b,
+	gboolean *stop )
 {
-	IMAGE *in = (IMAGE *) a;
-	Rect *r = &or->valid;
+	VipsImage *in = (VipsImage *) a;
+	VipsRect *r = &or->valid;
 	int le = r->left;
 	int to = r->top;
-	int ri = IM_RECT_RIGHT( r );
-	int bo = IM_RECT_BOTTOM( r );
+	int ri = VIPS_RECT_RIGHT( r );
+	int bo = VIPS_RECT_BOTTOM( r );
 	int nb = in->Bands;
 
 	int x, y, z;
 
 	for( y = to; y < bo; y++ ) {
-		VipsPel *q = IM_REGION_ADDR( or, le, y );
-		VipsPel *p = IM_IMAGE_ADDR( in, 0, y );
+		VipsPel *q = VIPS_REGION_ADDR( or, le, y );
+		VipsPel *p = VIPS_IMAGE_ADDR( in, 0, y );
 
 		switch( in->BandFmt ) {
-		case IM_BANDFMT_UCHAR: 	VERT( unsigned char ); break;
-		case IM_BANDFMT_CHAR: 	VERT( signed char ); break; 
-		case IM_BANDFMT_USHORT: VERT( unsigned short ); break; 
-		case IM_BANDFMT_SHORT: 	VERT( signed short ); break; 
-		case IM_BANDFMT_UINT: 	VERT( unsigned int ); break; 
-		case IM_BANDFMT_INT: 	VERT( signed int );  break; 
-		case IM_BANDFMT_FLOAT: 	VERT( float ); break; 
-		case IM_BANDFMT_DOUBLE:	VERT( double ); break; 
+		case VIPS_FORMAT_UCHAR: 	VERT( unsigned char ); break;
+		case VIPS_FORMAT_CHAR: 		VERT( signed char ); break; 
+		case VIPS_FORMAT_USHORT: 	VERT( unsigned short ); break; 
+		case VIPS_FORMAT_SHORT: 	VERT( signed short ); break; 
+		case VIPS_FORMAT_UINT: 		VERT( unsigned int ); break; 
+		case VIPS_FORMAT_INT: 		VERT( signed int );  break; 
+		case VIPS_FORMAT_FLOAT: 	VERT( float ); break; 
+		case VIPS_FORMAT_DOUBLE:	VERT( double ); break; 
 
 		default:
 			g_assert_not_reached(); 
@@ -179,33 +144,34 @@ make_vert_gen( REGION *or, void *seq, void *a, void *b )
 /* Generate function.
  */
 static int
-make_horz_gen( REGION *or, void *seq, void *a, void *b )
+vips_hist_plot_horz_gen( VipsRegion *or, void *seq, void *a, void *b,
+	gboolean *stop )
 {
-	IMAGE *in = (IMAGE *) a;
-	Rect *r = &or->valid;
+	VipsImage *in = (VipsImage *) a;
+	VipsRect *r = &or->valid;
 	int le = r->left;
 	int to = r->top;
-	int ri = IM_RECT_RIGHT( r );
-	int bo = IM_RECT_BOTTOM( r );
+	int ri = VIPS_RECT_RIGHT( r );
+	int bo = VIPS_RECT_BOTTOM( r );
 	int nb = in->Bands;
-	int lsk = IM_REGION_LSKIP( or );
+	int lsk = VIPS_REGION_LSKIP( or );
 	int ht = or->im->Ysize;
 
 	int x, y, z;
 
 	for( x = le; x < ri; x++ ) {
-		VipsPel *q = IM_REGION_ADDR( or, x, to );
-		VipsPel *p = IM_IMAGE_ADDR( in, x, 0 );
+		VipsPel *q = VIPS_REGION_ADDR( or, x, to );
+		VipsPel *p = VIPS_IMAGE_ADDR( in, x, 0 );
 
 		switch( in->BandFmt ) {
-		case IM_BANDFMT_UCHAR: 	HORZ( unsigned char ); break;
-		case IM_BANDFMT_CHAR: 	HORZ( signed char ); break; 
-		case IM_BANDFMT_USHORT: HORZ( unsigned short ); break; 
-		case IM_BANDFMT_SHORT: 	HORZ( signed short ); break; 
-		case IM_BANDFMT_UINT: 	HORZ( unsigned int ); break; 
-		case IM_BANDFMT_INT: 	HORZ( signed int );  break; 
-		case IM_BANDFMT_FLOAT: 	HORZ( float ); break; 
-		case IM_BANDFMT_DOUBLE:	HORZ( double ); break; 
+		case VIPS_FORMAT_UCHAR: 	HORZ( unsigned char ); break;
+		case VIPS_FORMAT_CHAR: 		HORZ( signed char ); break; 
+		case VIPS_FORMAT_USHORT:	HORZ( unsigned short ); break; 
+		case VIPS_FORMAT_SHORT: 	HORZ( signed short ); break; 
+		case VIPS_FORMAT_UINT: 		HORZ( unsigned int ); break; 
+		case VIPS_FORMAT_INT: 		HORZ( signed int );  break; 
+		case VIPS_FORMAT_FLOAT: 	HORZ( float ); break; 
+		case VIPS_FORMAT_DOUBLE:	HORZ( double ); break; 
 
 		default:
 			g_assert_not_reached();
@@ -215,26 +181,69 @@ make_horz_gen( REGION *or, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Plot image.
- */
 static int
-plot( IMAGE *in, IMAGE *out )
+vips_hist_plot_build( VipsObject *object )
 {
-	double max;
-	int tsize;
-	int xsize;
-	int ysize;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	VipsHistPlot *plot = (VipsHistPlot *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
-	if( im_incheck( in ) ||
-		im_poutcheck( out ) )
+	VipsImage *in;
+	double min, max;
+	int width, height, tsize;
+	VipsGenerateFn generate_fn;
+
+	g_object_set( plot, "out", vips_image_new(), NULL ); 
+
+	if( VIPS_OBJECT_CLASS( vips_hist_plot_parent_class )->build( object ) )
+		return( -1 );
+
+	in = plot->in;
+
+	if( vips_check_uncoded( class->nickname, in ) ||
+		vips_check_noncomplex( class->nickname, in ) ||
+		vips_check_hist( class->nickname, in ) )
+		return( -1 );
+
+	if( !vips_band_format_isuint( in->BandFmt ) &&
+		vips_band_format_isint( in->BandFmt ) ) {
+		/* A signed int type. Move min up to 0. 
+		 */
+		double min;
+
+		if( vips_min( in, &min, NULL ) ||
+			vips_linear1( in, &t[0], 1.0, -min, NULL ) )
+			return( -1 );
+
+		in = t[0];
+	}
+	else if( vips_band_format_isfloat( in->BandFmt ) ) {
+		/* Float image: scale min--max to 0--any. Output square
+		 * graph.
+		 */
+		int any = in->Xsize * in->Ysize;
+
+		if( vips_stats( in, &t[0], NULL ) )
+			return( -1 );
+		min = *VIPS_MATRIX( t[0], 0, 0 );
+		max = *VIPS_MATRIX( t[0], 1, 0 );
+
+		if( vips_linear1( in, &t[1], 
+			any / (max - min), -min * any / (max - min), NULL ) )
+			return( -1 );
+
+		in = t[1];
+	}
+
+	if( vips_image_wio_input( in ) )
 		return( -1 );
 
 	/* Find range we will plot.
 	 */
-	if( im_max( in, &max ) )
+	if( vips_max( in, &max, NULL ) )
 		return( -1 );
 	g_assert( max >= 0 );
-	if( in->BandFmt == IM_BANDFMT_UCHAR )
+	if( in->BandFmt == VIPS_FORMAT_UCHAR )
 		tsize = 256;
 	else
 		tsize = VIPS_CEIL( max );
@@ -247,80 +256,30 @@ plot( IMAGE *in, IMAGE *out )
 	if( in->Xsize == 1 ) {
 		/* Vertical graph.
 		 */
-		xsize = tsize;
-		ysize = in->Ysize;
+		width = tsize;
+		height = in->Ysize;
+		generate_fn = vips_hist_plot_vert_gen;
 	}
 	else {
 		/* Horizontal graph.
 		 */
-		xsize = in->Xsize;
-		ysize = tsize;
+		width = in->Xsize;
+		height = tsize;
+		generate_fn = vips_hist_plot_horz_gen;
 	}
 
 	/* Set image.
 	 */
-	im_initdesc( out, xsize, ysize, in->Bands, 
-		IM_BBITS_BYTE, IM_BANDFMT_UCHAR, 
-		IM_CODING_NONE, IM_TYPE_HISTOGRAM, 1.0, 1.0, 0, 0 );
+	vips_image_init_fields( plot->out, width, height, in->Bands, 
+		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, 
+		VIPS_INTERPRETATION_HISTOGRAM, 
+		1.0, 1.0 ); 
+	vips_image_pipelinev( plot->out, 
+		VIPS_DEMAND_STYLE_ANY, NULL );
 
-	/* Set hints - ANY is ok with us.
-	 */
-	if( im_demand_hint( out, IM_ANY, NULL ) )
+	if( vips_image_generate( plot->out, 
+		NULL, generate_fn, NULL, in, NULL ) )
 		return( -1 );
-	
-	/* Generate image.
-	 */
-	if( in->Xsize == 1 ) {
-		if( im_generate( out, NULL, make_vert_gen, NULL, in, NULL ) )
-			return( -1 );
-	}
-	else {
-		if( im_generate( out, NULL, make_horz_gen, NULL, in, NULL ) )
-			return( -1 );
-	}
-
-	return( 0 );
-}
-
-int 
-im_histplot( IMAGE *in, IMAGE *out )
-{
-	IMAGE *t1;
-
-	if( im_check_hist( "im_histplot", in ) )
-		return( -1 );
-
-	if( !(t1 = im_open_local( out, "im_histplot:1", "p" )) ||
-		plotalise( in, t1 ) ||
-		plot( t1, out ) )
-		return( -1 );
-	
-	return( 0 );
-}
-
-typedef struct _VipsHistPlot {
-	VipsOperation parent_instance;
-
-	VipsImage *in;
-	VipsImage *out;
-} VipsHistPlot;
-
-typedef VipsOperationClass VipsHistPlotClass;
-
-G_DEFINE_TYPE( VipsHistPlot, vips_hist_plot, VIPS_TYPE_OPERATION );
-
-static int
-vips_hist_plot_build( VipsObject *object )
-{
-	VipsHistPlot *plot = (VipsHistPlot *) object;
-
-	g_object_set( plot, "out", vips_image_new(), NULL ); 
-
-	if( VIPS_OBJECT_CLASS( vips_hist_plot_parent_class )->build( object ) )
-		return( -1 );
-
-	if( im_histplot( plot->in, plot->out ) )
-		return( -1 ); 
 
 	return( 0 );
 }

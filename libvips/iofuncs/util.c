@@ -48,6 +48,9 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif /*HAVE_IO_H*/
 #include <fcntl.h>
 
 #ifdef OS_WIN32
@@ -1002,7 +1005,7 @@ vips__gslist_gvalue_merge( GSList *a, const GSList *b )
 	return( a );
 }
 
-/* Make a char* from GSList of GValue. Each GValue should be a ref_string.
+/* Make a char * from GSList of GValue. Each GValue should be a ref_string.
  * free the result. Empty list -> "", not NULL. Join strings with '\n'.
  */
 char *

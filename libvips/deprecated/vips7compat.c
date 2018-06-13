@@ -46,6 +46,7 @@
 #include <ctype.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 #include <vips/internal.h>
 #include <vips/debug.h>
 #include <vips/vector.h>
@@ -5179,6 +5180,23 @@ im_global_balance( IMAGE *in, IMAGE *out, double gamma )
 		"gamma", gamma,
 		"int_output", TRUE,
 		NULL ) )
+		return( -1 );
+
+	if( vips_image_write( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int 
+im_histplot( IMAGE *in, IMAGE *out )
+{
+	VipsImage *x;
+
+	if( vips_hist_plot( in, &x, NULL ) )
 		return( -1 );
 
 	if( vips_image_write( x, out ) ) {

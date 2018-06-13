@@ -416,6 +416,30 @@ if test x$have_vector_shuffle = x"yes"; then
     have_vector_arith=no
   ])
   AC_LANG_POP([C++])
+fi
+
+# gcc 7.2 seems to work, but then gets confused by signed constants in 
+# templates
+if test x$have_vector_arith = x"yes"; then
+  AC_MSG_CHECKING([for C++ signed constants in vector templates])
+  AC_LANG_PUSH([C++])
+  AC_TRY_COMPILE([
+    typedef float v4f __attribute__((vector_size(4 * sizeof(float))));
+    template <typename T>
+    static void
+    h( v4f B )
+    {
+        v4f f;
+        f = -1 * B;
+    }
+  ],[
+  ],[
+    AC_MSG_RESULT([yes])
+  ], [
+    AC_MSG_RESULT([no])
+    have_vector_arith=no
+  ])
+  AC_LANG_POP([C++])
 
   if test x$have_vector_arith = x"yes"; then
     AC_DEFINE_UNQUOTED(HAVE_VECTOR_ARITH, 1,
@@ -501,6 +525,19 @@ AM_WITH_EXPAT
 if test x$expat_found = xno; then
   exit 1
 fi
+
+# enable vips7 C++ binding ... this defaults off, the vips8 C++ binding
+# defaults on
+AC_ARG_ENABLE([cpp7],
+  AS_HELP_STRING([--enable-cpp7],
+    [enable deprecated vips7 C++ binding (default: no)]),
+  [enable_cpp7=$enableval
+   AM_CONDITIONAL(ENABLE_CPP7, true)
+  ], 
+  [enable_cpp7="no (default)"
+   AM_CONDITIONAL(ENABLE_CPP7, false)
+  ]
+)
 
 # optional supporting libraries
 
@@ -658,8 +695,7 @@ if test x"$magick6" = x"yes"; then
 fi
 
 if test x"$magick6" = x"yes"; then
-  # do we have number_scenes in image_info ... imagemagick uses this, gm
-  # still uses subrange
+  # do we have number_scenes in image_info ... imagemagick uses this
   save_CFLAGS="$CFLAGS"
   CFLAGS="$CFLAGS $MAGICK_CFLAGS"
   AC_CHECK_MEMBER([struct _ImageInfo.number_scenes],
@@ -719,6 +755,21 @@ AC_ARG_ENABLE([magickload],
 AC_ARG_ENABLE([magicksave], 
   AS_HELP_STRING([--disable-magicksave], 
 		 [disable libMagic save (default: enabled)]))
+
+if test x"$enable_magicksave" != x"yes"; then
+  # we need ImportImagePixels ... GM is missing this sadly
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $MAGICK_LIBS"
+  AC_CHECK_FUNCS(ImportImagePixels,[
+     AC_DEFINE(HAVE_IMPORTIMAGEPIXELS,1,
+	       [define if you have ImportImagePixels.])
+   ],[
+     AC_MSG_WARN([ImportImagePixels not found; disabling magicksave])
+     enable_magicksave=no
+   ]
+  )
+  LIBS="$save_LIBS"
+fi
 
 if test x"$with_magick" != x"no"; then
   if test x"$enable_magickload" != x"no"; then
@@ -1209,7 +1260,7 @@ fi
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS 
 # sort includes to get longer, more specific dirs first
 # helps, for example, selecting graphicsmagick over imagemagick
-VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $EXPAT_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $LIBWEBPMUX_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $PDFIUM_INCLUDES $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
+VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $EXPAT_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $JPEG_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $LIBWEBPMUX_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $PDFIUM_INCLUDES $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
 do 
 	echo $i 
 done | sort -ru`
@@ -1254,7 +1305,6 @@ AC_OUTPUT([
 	libvips/mosaicing/Makefile 
 	libvips/create/Makefile 
 	libvips/resample/Makefile 
-	libvips/video/Makefile 
 	libvipsCC/include/Makefile 
 	libvipsCC/include/vips/Makefile 
 	libvipsCC/Makefile 
@@ -1287,15 +1337,16 @@ native win32:				$vips_os_win32
 native OS X:				$vips_os_darwin
 open files in binary mode: 		$vips_binary_open
 enable debug:				$enable_debug
-build deprecated components:		$enable_deprecated
-build docs with gtkdoc:			$enable_gtk_doc
+enable deprecated library components:	$enable_deprecated
+enable docs with gtkdoc:		$enable_gtk_doc
 gobject introspection: 			$found_introspection
-build vips7 Python binding:		$enable_pyvips7
-install vips8 Python overrides:		$enable_pyvips8
+enable vips7 C++ API: 			$enable_cpp7
+enable vips7 Python binding:		$enable_pyvips7
+enable vips8 Python overrides:		$enable_pyvips8
   (requires pygobject-3.13.0 or later)
-build radiance support: 		$with_radiance
-build analyze support: 			$with_analyze
-build PPM support: 			$with_ppm
+enable radiance support: 		$with_radiance
+enable analyze support: 		$with_analyze
+enable PPM support: 			$with_ppm
 
 * optional dependencies
 use fftw3 for FFT: 			$with_fftw

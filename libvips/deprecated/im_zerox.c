@@ -51,6 +51,7 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 
 #define LOOP( TYPE ) { \
 	for( i = 0; i < ne; i++ ) { \

@@ -7,6 +7,8 @@
  * 30/1/18
  * 	- remove number of images limit
  * 	- allow one mode ... reused for all joins
+ * 11/8/18 [medakk]
+ * 	- x/y params let you position images
  */
 
 /*
@@ -47,7 +49,11 @@
 
 #include <stdio.h>
 #include <string.h>
+#if _MSC_VER
+#include <cstdlib>
+#else
 #include <stdlib.h>
+#endif
 #include <math.h>
 
 #include <vips/vips.h>
@@ -91,6 +97,13 @@ typedef struct _VipsCompositeBase {
 	/* Set if the input images have already been premultiplied.
 	 */
 	gboolean premultiplied;
+
+	/* The x and y positions for each image in the stack. There are n - 1 
+	 * of these, since image 0 is always positioned at (0, 0). Set by
+	 * subclasses. Can be NULL.
+	 */
+	int *x_offset;
+	int *y_offset;
 
 	/* The number of inputs. This can be less than the number of images in
 	 * @in.
@@ -160,7 +173,7 @@ vips_composite_stop( void *vseq, void *a, void *b )
 {
 	VipsCompositeSequence *seq = (VipsCompositeSequence *) vseq;
 
-        if( seq->ir ) {
+	if( seq->ir ) {
 		int i;
 
 		for( i = 0; seq->ir[i]; i++ )
@@ -196,7 +209,7 @@ vips_composite_start( VipsImage *out, void *a, void *b )
 	for( n = 0; in[n]; n++ )
 		;
 
-	/* Alocate space for region array.
+	/* Allocate space for region array.
 	 */
 	if( !(seq->ir = VIPS_ARRAY( NULL, n + 1, VipsRegion * )) ) {
 		vips_composite_stop( seq, NULL, NULL );
@@ -210,6 +223,7 @@ vips_composite_start( VipsImage *out, void *a, void *b )
 			vips_composite_stop( seq, NULL, NULL );
 			return( NULL );
 		}
+	
 	seq->ir[n] = NULL;
 
 	/* Input pointers.
@@ -1153,13 +1167,43 @@ vips_composite_base_build( VipsObject *object )
 			composite->max_band_vec[b] = composite->max_band[b];
 #endif /*HAVE_VECTOR_ARITH*/
 
-	/* Transform the input images to match in size and format. We may have
+	/* Transform the input images to match format. We may have
 	 * mixed float and double, for example.  
 	 */
 	format = (VipsImage **) vips_object_local_array( object, composite->n );
+	if( vips__formatalike_vec( in, format, composite->n ) )
+		return( -1 );
+	in = format;
+
+	/* Position all images, if x/y is set.
+	 */
+	if( composite->x_offset &&
+		composite->y_offset ) { 
+		int width = vips_image_get_width( in[0] );
+		int height = vips_image_get_height( in[0] );
+		VipsImage **position = (VipsImage **) 
+			vips_object_local_array( object, composite->n );
+
+		/* The zero image does not move.
+		 */
+		g_object_ref( in[0] );
+		position[0] = in[0];
+
+		for( int i = 1; i < composite->n; i++ ) 
+			if( vips_embed( in[i], &position[i], 
+				composite->x_offset[i - 1], 
+				composite->y_offset[i - 1], 
+				width, height, NULL ) )
+				return( -1 );
+
+		in = position;
+	}
+
+	/* Transform the input images to match in size. They can be mismatched
+	 * if there was no supplied x/y.
+	 */
 	size = (VipsImage **) vips_object_local_array( object, composite->n );
-	if( vips__formatalike_vec( in, format, composite->n ) ||
-		vips__sizealike_vec( format, size, composite->n ) )
+	if( vips__sizealike_vec( in, size, composite->n ) )
 		return( -1 );
 	in = size;
 
@@ -1221,6 +1265,14 @@ vips_composite_base_init( VipsCompositeBase *composite )
 typedef struct _VipsComposite {
 	VipsCompositeBase parent_instance;
 
+	/* For N input images, N - 1 x coordinates.
+	 */
+	VipsArrayInt *x;
+
+	/* For N input images, N - 1 y coordinates.
+	 */
+	VipsArrayInt *y;
+
 } VipsComposite;
 
 typedef VipsCompositeBaseClass VipsCompositeClass;
@@ -1229,6 +1281,44 @@ typedef VipsCompositeBaseClass VipsCompositeClass;
  */
 extern "C" {
 G_DEFINE_TYPE( VipsComposite, vips_composite, vips_composite_base_get_type() );
+}
+
+static int
+vips_composite_build( VipsObject *object )
+{
+	VipsObjectClass *klass = VIPS_OBJECT_GET_CLASS( object );
+	VipsCompositeBase *base = (VipsCompositeBase *) object;
+	VipsComposite *composite = (VipsComposite *) object;
+
+	int n;
+
+	n = 0;
+	if( vips_object_argument_isset( object, "in" ) ) 
+		n = base->in->area.n;
+
+	if( vips_object_argument_isset( object, "x" ) ) {
+		if( composite->x->area.n != n - 1 ) {
+			vips_error( klass->nickname, 
+				_( "must be %d x coordinates" ), n - 1 );
+			return( -1 );
+		}
+		base->x_offset = (int *) composite->x->area.data;
+	}
+
+	if( vips_object_argument_isset( object, "y" ) ) {
+		if( composite->y->area.n != n - 1 ) {
+			vips_error( klass->nickname, 
+				_( "must be %d y coordinates" ), n - 1 );
+			return( -1 );
+		}
+		base->y_offset = (int *) composite->y->area.data;
+	}
+
+	if( VIPS_OBJECT_CLASS( vips_composite_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
 }
 
 static void
@@ -1246,7 +1336,7 @@ vips_composite_class_init( VipsCompositeClass *klass )
 	vobject_class->nickname = "composite";
 	vobject_class->description =
 		_( "blend an array of images with an array of blend modes" );
-	vobject_class->build = vips_composite_base_build;
+	vobject_class->build = vips_composite_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
@@ -1262,6 +1352,20 @@ vips_composite_class_init( VipsCompositeClass *klass )
 		_( "Array of VipsBlendMode to join with" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsCompositeBase, mode ),
+		VIPS_TYPE_ARRAY_INT );
+
+	VIPS_ARG_BOXED( klass, "x", 4,
+		_( "x coordinates" ),
+		_( "Array of x coordinates to join at" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsComposite, x ),
+		VIPS_TYPE_ARRAY_INT );
+
+	VIPS_ARG_BOXED( klass, "y", 5,
+		_( "y coordinates" ),
+		_( "Array of y coordinates to join at" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsComposite, y ),
 		VIPS_TYPE_ARRAY_INT );
 
 }
@@ -1310,6 +1414,8 @@ typedef struct _VipsComposite2 {
 	VipsImage *base;
 	VipsImage *overlay;
 	VipsBlendMode mode;
+	int x;
+	int y;
 
 } VipsComposite2;
 
@@ -1340,6 +1446,9 @@ vips_composite2_build( VipsObject *object )
 		mode[0] = (int) composite2->mode;
 		base->mode = vips_array_int_new( mode, 1 );
 	}
+
+	base->x_offset = &composite2->x;
+	base->y_offset = &composite2->y;
 
 	if( VIPS_OBJECT_CLASS( vips_composite2_parent_class )->build( object ) )
 		return( -1 );
@@ -1384,6 +1493,20 @@ vips_composite2_class_init( VipsCompositeClass *klass )
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsComposite2, mode ),
 		VIPS_TYPE_BLEND_MODE, VIPS_BLEND_MODE_OVER );
+
+	VIPS_ARG_INT( klass, "x", 4,
+		_( "x" ),
+		_( "x position of overlay" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsComposite2, x ),
+		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
+
+	VIPS_ARG_INT( klass, "y", 5,
+		_( "y" ),
+		_( "y position of overlay" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsComposite2, y ),
+		-VIPS_MAX_COORD, VIPS_MAX_COORD, 0 );
 
 }
 

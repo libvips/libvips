@@ -244,7 +244,7 @@ read_header( Read *read, VipsImage *out )
 	bitstream.bytes = read->data;
 	bitstream.size = read->length;
 	if( !(mux = WebPMuxCreate( &bitstream, 0 )) ) {
-		vips_warn( "webp", "%s", _( "unable to read image metadata" ) ); 
+		g_warning( "%s", _( "unable to read image metadata" ) ); 
 		return( 0 ); 
 	}
 

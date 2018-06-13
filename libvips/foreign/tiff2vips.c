@@ -1843,7 +1843,7 @@ rtiff_stripwise_generate( VipsRegion *or,
 
 			/* Do any repacking to generate pixels in vips layout.
 			 */
-			p = rtiff->contig_buf + 
+			p = (VipsPel *) rtiff->contig_buf + 
 				(hit.top - strip.top) * scanline_size;
 			q = VIPS_REGION_ADDR( or, 0, r->top + y );
 			for( z = 0; z < hit.height; z++ ) { 

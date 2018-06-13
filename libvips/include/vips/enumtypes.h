@@ -5,32 +5,6 @@
 #define VIPS_ENUM_TYPES_H
 
 G_BEGIN_DECLS
-/* enumerations from "../../../libvips/include/vips/resample.h" */
-GType vips_kernel_get_type (void) G_GNUC_CONST;
-#define VIPS_TYPE_KERNEL (vips_kernel_get_type())
-GType vips_size_get_type (void) G_GNUC_CONST;
-#define VIPS_TYPE_SIZE (vips_size_get_type())
-/* enumerations from "../../../libvips/include/vips/foreign.h" */
-GType vips_foreign_flags_get_type (void) G_GNUC_CONST;
-#define VIPS_TYPE_FOREIGN_FLAGS (vips_foreign_flags_get_type())
-GType vips_saveable_get_type (void) G_GNUC_CONST;
-#define VIPS_TYPE_SAVEABLE (vips_saveable_get_type())
-GType vips_foreign_webp_preset_get_type (void) G_GNUC_CONST;
-#define VIPS_TYPE_FOREIGN_WEBP_PRESET (vips_foreign_webp_preset_get_type())
-GType vips_foreign_tiff_compression_get_type (void) G_GNUC_CONST;
-#define VIPS_TYPE_FOREIGN_TIFF_COMPRESSION (vips_foreign_tiff_compression_get_type())
-GType vips_foreign_tiff_predictor_get_type (void) G_GNUC_CONST;
-#define VIPS_TYPE_FOREIGN_TIFF_PREDICTOR (vips_foreign_tiff_predictor_get_type())
-GType vips_foreign_tiff_resunit_get_type (void) G_GNUC_CONST;
-#define VIPS_TYPE_FOREIGN_TIFF_RESUNIT (vips_foreign_tiff_resunit_get_type())
-GType vips_foreign_png_filter_get_type (void) G_GNUC_CONST;
-#define VIPS_TYPE_FOREIGN_PNG_FILTER (vips_foreign_png_filter_get_type())
-GType vips_foreign_dz_layout_get_type (void) G_GNUC_CONST;
-#define VIPS_TYPE_FOREIGN_DZ_LAYOUT (vips_foreign_dz_layout_get_type())
-GType vips_foreign_dz_depth_get_type (void) G_GNUC_CONST;
-#define VIPS_TYPE_FOREIGN_DZ_DEPTH (vips_foreign_dz_depth_get_type())
-GType vips_foreign_dz_container_get_type (void) G_GNUC_CONST;
-#define VIPS_TYPE_FOREIGN_DZ_CONTAINER (vips_foreign_dz_container_get_type())
 /* enumerations from "../../../libvips/include/vips/arithmetic.h" */
 GType vips_operation_math_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_OPERATION_MATH (vips_operation_math_get_type())
@@ -122,9 +96,6 @@ GType vips_argument_flags_get_type (void) G_GNUC_CONST;
 /* enumerations from "../../../libvips/include/vips/operation.h" */
 GType vips_operation_flags_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_OPERATION_FLAGS (vips_operation_flags_get_type())
-/* enumerations from "../../../libvips/include/vips/region.h" */
-GType vips_region_shrink_get_type (void) G_GNUC_CONST;
-#define VIPS_TYPE_REGION_SHRINK (vips_region_shrink_get_type())
 /* enumerations from "../../../libvips/include/vips/resample.h" */
 GType vips_kernel_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_KERNEL (vips_kernel_get_type())

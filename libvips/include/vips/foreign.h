@@ -518,7 +518,7 @@ typedef enum /*< flags >*/ {
 	VIPS_FOREIGN_PNG_FILTER_UP = 0x20,
 	VIPS_FOREIGN_PNG_FILTER_AVG = 0x40,
 	VIPS_FOREIGN_PNG_FILTER_PAETH = 0x80,
-	VIPS_FOREIGN_PNG_FILTER_ALL = 0xEA
+	VIPS_FOREIGN_PNG_FILTER_ALL = 0xF8
 } VipsForeignPngFilter;
 
 int vips_pngload( const char *filename, VipsImage **out, ... )

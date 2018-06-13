@@ -540,9 +540,33 @@ vips_image_expected_sig( VipsImage *image )
 		expected_sig = cmsSigYxyData;
 		break;
 
+	case VIPS_INTERPRETATION_MULTIBAND:
+		/* A generic many-band image. Try to guess from the number of 
+		 * image bands instead.
+		 */
+		switch( image->Bands ) {
+		case 1:
+		case 2:
+			expected_sig = cmsSigGrayData;
+			break;
+
+		case 3:
+			expected_sig = cmsSigRgbData;
+			break;
+
+		case 4:
+		case 5:
+			expected_sig = cmsSigCmykData;
+			break;
+
+		default:
+			expected_sig = -1;
+			break;
+		}
+		break;
+
 	case VIPS_INTERPRETATION_LCH:
 	case VIPS_INTERPRETATION_CMC:
-	case VIPS_INTERPRETATION_MULTIBAND:
 	case VIPS_INTERPRETATION_HISTOGRAM:
 	case VIPS_INTERPRETATION_MATRIX:
 	case VIPS_INTERPRETATION_FOURIER:

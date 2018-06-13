@@ -52,6 +52,7 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 
 static int
 extract( IMAGE *in, int x, int y, int w, int h )

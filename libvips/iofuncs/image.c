@@ -3269,7 +3269,8 @@ vips_image_wio_input( VipsImage *image )
 		 */
 		if( vips_mapfile( image ) ) 
 			return( -1 );
-		image->data = image->baseaddr + image->sizeof_header;
+		image->data = (VipsPel *) image->baseaddr + 
+			image->sizeof_header;
 		image->dtype = VIPS_IMAGE_MMAPIN;
 
 		break;

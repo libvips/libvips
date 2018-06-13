@@ -2373,6 +2373,12 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  * Use @depth to control how low the pyramid goes. This defaults to the
  * correct setting for the @layout you select.
  *
+ * You can rotate the image during write with the @angle argument. However,
+ * this will only work for images which support random access, like openslide,
+ * and not for things like JPEG. You'll need to rotate these images
+ * yourself with vips_rot(). Note that the `autorotate` option to the loader 
+ * may do what you need.
+ *
  * If @properties is %TRUE, vips_dzsave() will write a file called
  * `vips-properties.xml` to the output directory. This file lists all of the
  * metadata attached to @in in an obvious manner. It can be useful for viewing

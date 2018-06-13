@@ -105,7 +105,7 @@ vips_rank_stop( void *vseq, void *a, void *b )
 }
 
 static void *
-vips_rank_start( IMAGE *out, void *a, void *b )
+vips_rank_start( VipsImage *out, void *a, void *b )
 {
 	VipsImage *in = (VipsImage *) a;
 	VipsRank *rank = (VipsRank *) b;

@@ -37,6 +37,7 @@
 #include <vips/intl.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 
 int
 im_rad2vips( const char *filename, IMAGE *out )

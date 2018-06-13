@@ -89,14 +89,31 @@ magick_inherit_exception( ExceptionInfo *exception, Image *image )
 	(void) image;
 }
 
+void
+magick_set_number_scenes( ImageInfo *image_info, int scene, int number_scenes )
+{
+	/* I can't find docs for these fields, but this seems to work.
+	 */
+	char page[256];
+
+	image_info->scene = scene;
+	image_info->number_scenes = number_scenes;
+
+	/* Some IMs must have the string version set as well.
+	 */
+	vips_snprintf( page, 256, "%d-%d", scene, scene + number_scenes );
+	image_info->scenes = strdup( page );
+}
+
 #endif /*HAVE_MAGICK7*/
 
 #ifdef HAVE_MAGICK6
 
-Image*
-magick_acquire_image(const ImageInfo *image_info, ExceptionInfo *exception)
+Image *
+magick_acquire_image( const ImageInfo *image_info, ExceptionInfo *exception )
 {
 	(void) exception;
+
 #ifdef HAVE_ACQUIREIMAGE
 	return( AcquireImage( image_info ) );
 #else /*!HAVE_ACQUIREIMAGE*/
@@ -157,8 +174,12 @@ magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
 	 *
 	 * then repack pixels into that area using map and storage_type. 
 	 */
+#ifdef HAVE_IMPORTIMAGEPIXELS
 	return( ImportImagePixels( image, x, y, width, height, map,
 		type, pixels ) );
+#else /*!HAVE_IMPORTIMAGEPIXELS*/
+	return( MagickFalse );
+#endif /*HAVE_IMPORTIMAGEPIXELS*/
 }
 
 void
@@ -181,9 +202,41 @@ magick_inherit_exception( ExceptionInfo *exception, Image *image )
 #endif /*HAVE_INHERITEXCEPTION*/
 }
 
+void
+magick_set_number_scenes( ImageInfo *image_info, int scene, int number_scenes )
+{
+#ifdef HAVE_NUMBER_SCENES 
+	/* I can't find docs for these fields, but this seems to work.
+	 */
+	char page[256];
+
+	image_info->scene = scene;
+	image_info->number_scenes = number_scenes;
+
+	/* Some IMs must have the string version set as well.
+	 */
+	vips_snprintf( page, 256, "%d-%d", scene, scene + number_scenes );
+	image_info->scenes = strdup( page );
+#else /*!HAVE_NUMBER_SCENES*/
+	/* This works with GM 1.2.31 and probably others.
+	 */
+	image_info->subimage = scene;
+	image_info->subrange = number_scenes;
+#endif
+}
+
 #endif /*HAVE_MAGICK6*/
 
 #if defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)
+
+void
+magick_set_image_option( ImageInfo *image_info, 
+	const char *name, const char *value )
+{
+#ifdef HAVE_SETIMAGEOPTION
+  	SetImageOption( image_info, name, value );
+#endif /*HAVE_SETIMAGEOPTION*/
+}
 
 void
 magick_vips_error( const char *domain, ExceptionInfo *exception )

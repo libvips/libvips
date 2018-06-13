@@ -53,6 +53,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 #include <vips/buf.h>
 #include <vips/transform.h>
 

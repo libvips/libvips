@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libconversion.la
 
 libconversion_la_SOURCES = \
+	transpose3d.c \
 	composite.cpp \
 	smartcrop.c \
 	conversion.c \
