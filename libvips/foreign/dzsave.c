@@ -1407,8 +1407,7 @@ strip_shrink( Layer *layer )
 		if( vips_rect_isempty( &target ) )
 			break;
 
-		(void) vips_region_shrink( from, to, &target,
-			region_shrink );
+		(void) vips_region_shrink( from, to, &target, region_shrink );
 
 		below->write_y += target.height;
 
@@ -2034,8 +2033,7 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		_( "Directory layout" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, layout ),
-		VIPS_TYPE_FOREIGN_DZ_LAYOUT, 
-			VIPS_FOREIGN_DZ_LAYOUT_DZ ); 
+		VIPS_TYPE_FOREIGN_DZ_LAYOUT, VIPS_FOREIGN_DZ_LAYOUT_DZ ); 
 
 	VIPS_ARG_STRING( class, "suffix", 9, 
 		_( "suffix" ), 
@@ -2063,8 +2061,7 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		_( "Pyramid depth" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, depth ),
-		VIPS_TYPE_FOREIGN_DZ_DEPTH, 
-			VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL ); 
+		VIPS_TYPE_FOREIGN_DZ_DEPTH, VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL ); 
 
 	VIPS_ARG_BOOL( class, "centre", 13, 
 		_( "Center" ), 
@@ -2085,8 +2082,7 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		_( "Pyramid container type" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, container ),
-		VIPS_TYPE_FOREIGN_DZ_CONTAINER, 
-			VIPS_FOREIGN_DZ_CONTAINER_FS ); 
+		VIPS_TYPE_FOREIGN_DZ_CONTAINER, VIPS_FOREIGN_DZ_CONTAINER_FS ); 
 
 	VIPS_ARG_BOOL( class, "properties", 16, 
 		_( "Properties" ), 
@@ -2104,11 +2100,10 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 
 	VIPS_ARG_ENUM( class, "region_shrink", 18, 
 		_( "Region shrink" ), 
-		_( "Method for blah" ),
+		_( "Method to shrink regions" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, region_shrink ),
-		VIPS_TYPE_REGION_SHRINK, 
-			VIPS_REGION_SHRINK_MEAN ); 
+		VIPS_TYPE_REGION_SHRINK, VIPS_REGION_SHRINK_MEAN ); 
 
 	/* How annoying. We stupidly had these in earlier versions.
 	 */
@@ -2375,7 +2370,7 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  *
  * You can rotate the image during write with the @angle argument. However,
  * this will only work for images which support random access, like openslide,
- * and not for things like JPEG. You'll need to rotate these images
+ * and not for things like JPEG. You'll need to rotate those images
  * yourself with vips_rot(). Note that the `autorotate` option to the loader 
  * may do what you need.
  *
@@ -2391,7 +2386,7 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  *
  * You can use @region_shrink to control the method for shrinking each 2x2
  * region. This defaults to using the average of the 4 input pixels but you can
- * also use the median in cases where you want to preseve the range of values.
+ * also use the median in cases where you want to preserve the range of values.
  * 
  * See also: vips_tiffsave().
  *
@@ -2431,6 +2426,7 @@ vips_dzsave( VipsImage *in, const char *name, ... )
  * * @container: #VipsForeignDzContainer set container type
  * * @properties: %gboolean write a properties file
  * * @compression: %gint zip deflate compression level
+ * * @shrink_region: #VipsRegionShrink How to shrink each 2x2 region.
  *
  * As vips_dzsave(), but save to a memory buffer. 
  *

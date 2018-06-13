@@ -309,6 +309,7 @@ struct _Wtiff {
 	int rgbjpeg;			/* True for RGB not YCbCr */
 	int properties;			/* Set to save XML props */
 	int strip;			/* Don't write metadata */
+	VipsRegionShrink region_shrink; /* How to shrink regions */
 
 	/* True if we've detected a toilet-roll image, plus the page height,
 	 * which has been checked to be a factor of im->Ysize.
@@ -891,7 +892,8 @@ wtiff_new( VipsImage *im, const char *filename,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
 	gboolean properties,
-	gboolean strip )
+	gboolean strip,
+	VipsRegionShrink region_shrink )
 {
 	Wtiff *wtiff;
 
@@ -919,6 +921,7 @@ wtiff_new( VipsImage *im, const char *filename,
 	wtiff->rgbjpeg = rgbjpeg;
 	wtiff->properties = properties;
 	wtiff->strip = strip;
+	wtiff->region_shrink = region_shrink;
 	wtiff->toilet_roll = FALSE;
 	wtiff->page_height = -1;
 
@@ -1771,7 +1774,8 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
-	gboolean properties, gboolean strip )
+	gboolean properties, gboolean strip,
+	VipsRegionShrink region_shrink )
 {
 	Wtiff *wtiff;
 
@@ -1788,7 +1792,7 @@ vips__tiff_write( VipsImage *in, const char *filename,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
-		properties, strip )) )
+		properties, strip, region_shrink )) )
 		return( -1 );
 
 	if( wtiff_write_image( wtiff ) ) { 
@@ -1814,7 +1818,8 @@ vips__tiff_write_buf( VipsImage *in,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
-	gboolean properties, gboolean strip )
+	gboolean properties, gboolean strip, 
+	VipsRegionShrink region_shrink )
 {
 	Wtiff *wtiff;
 
@@ -1827,7 +1832,7 @@ vips__tiff_write_buf( VipsImage *in,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
-		properties, strip )) )
+		properties, strip, region_shrink )) )
 		return( -1 );
 
 	wtiff->obuf = obuf;
