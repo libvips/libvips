@@ -60,6 +60,9 @@ typedef struct _VipsForeignSavePng {
 	gboolean interlace;
 	char *profile;
 	VipsForeignPngFilter filter;
+	int colors;
+	int Q;
+	double dither;
 } VipsForeignSavePng;
 
 typedef VipsForeignSaveClass VipsForeignSavePngClass;
@@ -133,6 +136,27 @@ vips_foreign_save_png_class_init( VipsForeignSavePngClass *class )
 		VIPS_TYPE_FOREIGN_PNG_FILTER,
 		VIPS_FOREIGN_PNG_FILTER_ALL );
 
+	VIPS_ARG_INT( class, "colors", 13,
+		_( "Colors" ),
+		_( "Number of palette entries" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSavePng, colors ),
+		2, 256, 256 );
+
+	VIPS_ARG_INT( class, "Q", 14,
+		_( "Q" ),
+		_( "Q factor" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSavePng, Q ),
+		0, 100, 75 );
+
+	VIPS_ARG_DOUBLE( class, "dither", 15,
+		_( "Dithering" ),
+		_( "Amount of dithering" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSavePng, dither ),
+		0.0, 1.0, 1.0 );
+
 }
 
 static void
@@ -140,6 +164,9 @@ vips_foreign_save_png_init( VipsForeignSavePng *png )
 {
 	png->compression = 6;
 	png->filter = VIPS_FOREIGN_PNG_FILTER_ALL;
+	png->colors = 0;
+	png->Q = 75;
+	png->dither = 1.0;
 }
 
 typedef struct _VipsForeignSavePngFile {
@@ -166,7 +193,8 @@ vips_foreign_save_png_file_build( VipsObject *object )
 
 	if( vips__png_write( save->ready, 
 		png_file->filename, png->compression, png->interlace, 
-		png->profile, png->filter, save->strip ) )
+		png->profile, png->filter, save->strip, png->colors, png->Q,
+		png->dither ) )
 		return( -1 );
 
 	return( 0 );
@@ -225,7 +253,7 @@ vips_foreign_save_png_buffer_build( VipsObject *object )
 
 	if( vips__png_write_buf( save->ready, &obuf, &olen,
 		png->compression, png->interlace, png->profile, png->filter,
-		save->strip ) )
+		save->strip, png->colors, png->Q, png->dither ) )
 		return( -1 );
 
 	/* vips__png_write_buf() makes a buffer that needs g_free(), not
@@ -278,6 +306,9 @@ vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
  * * @interlace: interlace image
  * * @profile: ICC profile to embed
  * * @filter: #VipsForeignPngFilter row filter flag(s)
+ * * @colors: enable 8bpp quantization with max n colors
+ * * @Q: quality for 8bpp quantization (does not exceed @colors)
+ * * @dither: amount of dithering for 8bpp quantization
  *
  * Write a VIPS image to a file as PNG.
  *
@@ -303,6 +334,13 @@ vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
  * The image is automatically converted to RGB, RGBA, Monochrome or Mono +
  * alpha before saving. Images with more than one byte per band element are
  * saved as 16-bit PNG, others are saved as 8-bit PNG.
+ *
+ * If @colors is given, it limits the maximum number of colors in the image
+ * and the source image will be quantized down to an 8-Bit one band indexed
+ * image with palette based alpha transparency. Similar to JPEG the quality
+ * can be controlled with the @Q parameter and the amount of Floyd-Steinberg
+ * dithering is set with @dither.
+ * This feature requires libvips to be compiled with libimagequant.
  *
  * See also: vips_image_new_from_file().
  *
