@@ -896,7 +896,7 @@ quantise_image( VipsImage *in, VipsImage *out, VipsImage *palette_out,
 		VIPS_UNREF( srgb );
 	}
 	/* Add alpha channel if missing. */
-	if( in->Bands == 3 ) {
+	if( !vips_image_hasalpha(in) ) {
 		VipsImage *srgba;
 		if( vips_bandjoin_const1( in, &srgba, 255, NULL ) )
 			return( -1 );
@@ -976,15 +976,15 @@ quantise_image( VipsImage *in, VipsImage *out, VipsImage *palette_out,
 
 	return( 0 );
 }
-#endif
+#endif /*HAVE_IMAGEQUANT*/
 
 /* Write a VIPS image to PNG.
  */
 static int
 write_vips( Write *write, 
 	int compress, int interlace, const char *profile,
-	VipsForeignPngFilter filter, gboolean strip, int colours, int Q,
-	double dither )
+	VipsForeignPngFilter filter, gboolean strip,
+	gboolean palette, int colours, int Q, double dither )
 {
 	VipsImage *in = write->in;
 
@@ -1047,15 +1047,16 @@ write_vips( Write *write,
 #ifdef HAVE_IMAGEQUANT
 	/* Enable image quantisation to paletted 8bpp PNG if colours is set.
 	 */
-	if( colours ) {
+	if( palette ) {
 		g_assert( colours >= 2 && colours <= 256 );
 		bit_depth = 8;
 		color_type = PNG_COLOR_TYPE_PALETTE;
 	}
 #else
-	if( colours )
-		g_warning( "%s", _( "ignoring colours" ) );
-#endif
+	if( palette )
+		g_warning( "%s",
+			_( "ignoring palette (no quantisation support)" ) );
+#endif /*HAVE_IMAGEQUANT*/
 
 	interlace_type = interlace ? PNG_INTERLACE_ADAM7 : PNG_INTERLACE_NONE;
 
@@ -1110,19 +1111,19 @@ write_vips( Write *write,
 	}
 
 #ifdef HAVE_IMAGEQUANT
-	if( colours ) {
-		VipsImage *quantised = vips_image_new_memory();
-		VipsImage *palette = vips_image_new_memory();
-		if( quantise_image( in, quantised, palette, colours, Q,
+	if( palette ) {
+		VipsImage *im_quantised = vips_image_new_memory();
+		VipsImage *im_palette = vips_image_new_memory();
+		if( quantise_image( in, im_quantised, im_palette, colours, Q,
 			dither ) ) {
 			vips_error( "vips2png", 
 				"%s", _( "quantisation failed" ) );
-			VIPS_UNREF( quantised );
-			VIPS_UNREF( palette );
+			VIPS_UNREF( im_quantised );
+			VIPS_UNREF( im_palette );
 			return( -1 );
 		}
 
-		int palette_count = palette->Xsize;
+		int palette_count = im_palette->Xsize;
 		g_assert( palette_count <= PNG_MAX_PALETTE_LENGTH);
 
 		png_color *png_palette = (png_color *) png_malloc( write->pPng,
@@ -1132,8 +1133,8 @@ write_vips( Write *write,
 		int trans_count = 0;
 
 		for( i = 0; i < palette_count; i++ ) {
-			png_byte *p = (png_byte *) VIPS_IMAGE_ADDR( palette, i,
-				0 );
+			png_byte *p = (png_byte *) VIPS_IMAGE_ADDR( im_palette,
+				i, 0 );
 			png_color *col = &png_palette[i];
 			col->red = p[0];
 			col->green = p[1];
@@ -1161,13 +1162,13 @@ write_vips( Write *write,
 			png_set_tRNS( write->pPng, write->pInfo, png_trans,
 				trans_count, NULL );
 		}
-		VIPS_UNREF( palette );
+		VIPS_UNREF( im_palette );
 
 		VIPS_UNREF( write->memory );
-		write->memory = quantised;
+		write->memory = im_quantised;
 		in = write->memory;
 	}
-#endif
+#endif /*HAVE_IMAGEQUANT*/
 	png_write_info( write->pPng, write->pInfo );
 
 	/* If we're an intel byte order CPU and this is a 16bit image, we need
@@ -1202,7 +1203,7 @@ int
 vips__png_write( VipsImage *in, const char *filename, 
 	int compress, int interlace, const char *profile,
 	VipsForeignPngFilter filter, gboolean strip,
-	int colours, int Q, double dither )
+	gboolean palette, int colours, int Q, double dither )
 {
 	Write *write;
 
@@ -1222,8 +1223,8 @@ vips__png_write( VipsImage *in, const char *filename,
 	/* Convert it!
 	 */
 	if( write_vips( write, 
-		compress, interlace, profile, filter, strip, colours, Q,
-		dither ) ) {
+		compress, interlace, profile, filter, strip, palette,
+		colours, Q, dither ) ) {
 		vips_error( "vips2png", 
 			_( "unable to write \"%s\"" ), filename );
 
@@ -1251,7 +1252,7 @@ int
 vips__png_write_buf( VipsImage *in, 
 	void **obuf, size_t *olen, int compression, int interlace,
 	const char *profile, VipsForeignPngFilter filter, gboolean strip,
-	int colours, int Q, double dither )
+	gboolean palette, int colours, int Q, double dither )
 {
 	Write *write;
 
@@ -1263,11 +1264,11 @@ vips__png_write_buf( VipsImage *in,
 	/* Convert it!
 	 */
 	if( write_vips( write, 
-		compression, interlace, profile, filter, strip, colours, Q,
-		dither ) ) {
+		compression, interlace, profile, filter, strip, palette,
+		colours, Q, dither ) ) {
 		vips_error( "vips2png", 
 			"%s", _( "unable to write to buffer" ) );
-	      
+
 		return( -1 );
 	}
 

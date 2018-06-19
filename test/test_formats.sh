@@ -197,7 +197,7 @@ fi
 if test_supported pngload; then
 	test_format $image png 0
 	test_format $image png 0 [compression=9,interlace=1]
-	test_format $image png 90 [colours=256,Q=100,dither=0,compression=9,interlace=1]
+	test_format $image png 90 [palette,colours=256,Q=100,dither=0,interlace=1]
 fi
 if test_supported jpegload; then
 	test_format $image jpg 90
