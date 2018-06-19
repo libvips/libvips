@@ -144,11 +144,11 @@ vips_foreign_save_png_class_init( VipsForeignSavePngClass *class )
 		2, 256, 256 );
 
 	VIPS_ARG_INT( class, "Q", 14,
-		_( "Q" ),
-		_( "Q factor" ),
+		_( "Quality" ),
+		_( "Quantization quality" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSavePng, Q ),
-		0, 100, 75 );
+		0, 100, 100 );
 
 	VIPS_ARG_DOUBLE( class, "dither", 15,
 		_( "Dithering" ),
@@ -165,7 +165,7 @@ vips_foreign_save_png_init( VipsForeignSavePng *png )
 	png->compression = 6;
 	png->filter = VIPS_FOREIGN_PNG_FILTER_ALL;
 	png->colors = 0;
-	png->Q = 75;
+	png->Q = 100;
 	png->dither = 1.0;
 }
 
