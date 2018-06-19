@@ -883,8 +883,8 @@ write_png_block( VipsRegion *region, VipsRect *area, void *a )
 
 #ifdef HAVE_IMAGEQUANT
 static int
-quantize_image( VipsImage *in, VipsImage *out, VipsImage *palette_out,
-	int colors, int Q, double dither )
+quantise_image( VipsImage *in, VipsImage *out, VipsImage *palette_out,
+	int colours, int Q, double dither )
 {
 	/* Ensure input is sRGB. */
 	if( in->Type != VIPS_INTERPRETATION_sRGB) {
@@ -909,51 +909,51 @@ quantize_image( VipsImage *in, VipsImage *out, VipsImage *palette_out,
 	in = memory;
 
 	liq_attr *attr = liq_attr_create();
-	liq_set_max_colors( attr, colors );
+	liq_set_max_colors( attr, colours );
 	liq_set_quality( attr, 0, Q );
 
 	liq_image *input_image = liq_image_create_rgba( attr,
 		VIPS_IMAGE_ADDR( in, 0, 0 ), in->Xsize, in->Ysize, 0 );
 
-	liq_result *quantization_result;
-	if ( liq_image_quantize( input_image, attr, &quantization_result ) ) {
-		liq_result_destroy( quantization_result );
+	liq_result *quantisation_result;
+	if ( liq_image_quantize( input_image, attr, &quantisation_result ) ) {
+		liq_result_destroy( quantisation_result );
 		liq_image_destroy( input_image );
 		liq_attr_destroy( attr );
 		VIPS_UNREF( memory );
 		return( -1 );
 	}
 
-	liq_set_dithering_level( quantization_result, (float) dither );
+	liq_set_dithering_level( quantisation_result, (float) dither );
 
 	vips_image_init_fields( out, in->Xsize, in->Ysize, 1, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
 
 	if( vips_image_write_prepare( out ) ) {
-		liq_result_destroy( quantization_result );
+		liq_result_destroy( quantisation_result );
 		liq_image_destroy( input_image );
 		liq_attr_destroy( attr );
 		VIPS_UNREF( memory );
 		return( -1 );
 	}
 
-	if( liq_write_remapped_image( quantization_result, input_image,
+	if( liq_write_remapped_image( quantisation_result, input_image,
 		VIPS_IMAGE_ADDR( out, 0, 0 ), VIPS_IMAGE_N_PELS( out ) ) ) {
-		liq_result_destroy( quantization_result );
+		liq_result_destroy( quantisation_result );
 		liq_image_destroy( input_image );
 		liq_attr_destroy( attr );
 		VIPS_UNREF( memory );
 		return( -1 );
 	}
 
-	const liq_palette *palette = liq_get_palette( quantization_result );
+	const liq_palette *palette = liq_get_palette( quantisation_result );
 
 	vips_image_init_fields( palette_out, palette->count, 1, 4,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0 );
 
 	if( vips_image_write_prepare( palette_out ) ) {
-		liq_result_destroy( quantization_result );
+		liq_result_destroy( quantisation_result );
 		liq_image_destroy( input_image );
 		liq_attr_destroy( attr );
 		VIPS_UNREF( memory );
@@ -969,7 +969,7 @@ quantize_image( VipsImage *in, VipsImage *out, VipsImage *palette_out,
 		p[3] = palette->entries[i].a;
 	}
 
-	liq_result_destroy( quantization_result );
+	liq_result_destroy( quantisation_result );
 	liq_image_destroy( input_image );
 	liq_attr_destroy( attr );
 	VIPS_UNREF( memory );
@@ -983,7 +983,7 @@ quantize_image( VipsImage *in, VipsImage *out, VipsImage *palette_out,
 static int
 write_vips( Write *write, 
 	int compress, int interlace, const char *profile,
-	VipsForeignPngFilter filter, gboolean strip, int colors, int Q,
+	VipsForeignPngFilter filter, gboolean strip, int colours, int Q,
 	double dither )
 {
 	VipsImage *in = write->in;
@@ -1045,16 +1045,16 @@ write_vips( Write *write,
 	}
 
 #ifdef HAVE_IMAGEQUANT
-	/* Enable image quantization to paletted 8bpp PNG if colors is set.
+	/* Enable image quantisation to paletted 8bpp PNG if colours is set.
 	 */
-	if( colors ) {
-		g_assert( colors >= 2 && colors <= 256 );
+	if( colours ) {
+		g_assert( colours >= 2 && colours <= 256 );
 		bit_depth = 8;
 		color_type = PNG_COLOR_TYPE_PALETTE;
 	}
 #else
-	if( colors )
-		g_warning( "%s", _( "ignoring colors" ) );
+	if( colours )
+		g_warning( "%s", _( "ignoring colours" ) );
 #endif
 
 	interlace_type = interlace ? PNG_INTERLACE_ADAM7 : PNG_INTERLACE_NONE;
@@ -1110,14 +1110,14 @@ write_vips( Write *write,
 	}
 
 #ifdef HAVE_IMAGEQUANT
-	if( colors ) {
-		VipsImage *quantized = vips_image_new_memory();
+	if( colours ) {
+		VipsImage *quantised = vips_image_new_memory();
 		VipsImage *palette = vips_image_new_memory();
-		if( quantize_image( in, quantized, palette, colors, Q,
+		if( quantise_image( in, quantised, palette, colours, Q,
 			dither ) ) {
 			vips_error( "vips2png", 
-				"%s", _( "quantization failed" ) );
-			VIPS_UNREF( quantized );
+				"%s", _( "quantisation failed" ) );
+			VIPS_UNREF( quantised );
 			VIPS_UNREF( palette );
 			return( -1 );
 		}
@@ -1164,7 +1164,7 @@ write_vips( Write *write,
 		VIPS_UNREF( palette );
 
 		VIPS_UNREF( write->memory );
-		write->memory = quantized;
+		write->memory = quantised;
 		in = write->memory;
 	}
 #endif
@@ -1202,7 +1202,7 @@ int
 vips__png_write( VipsImage *in, const char *filename, 
 	int compress, int interlace, const char *profile,
 	VipsForeignPngFilter filter, gboolean strip,
-	int colors, int Q, double dither )
+	int colours, int Q, double dither )
 {
 	Write *write;
 
@@ -1222,7 +1222,7 @@ vips__png_write( VipsImage *in, const char *filename,
 	/* Convert it!
 	 */
 	if( write_vips( write, 
-		compress, interlace, profile, filter, strip, colors, Q,
+		compress, interlace, profile, filter, strip, colours, Q,
 		dither ) ) {
 		vips_error( "vips2png", 
 			_( "unable to write \"%s\"" ), filename );
@@ -1251,7 +1251,7 @@ int
 vips__png_write_buf( VipsImage *in, 
 	void **obuf, size_t *olen, int compression, int interlace,
 	const char *profile, VipsForeignPngFilter filter, gboolean strip,
-	int colors, int Q, double dither )
+	int colours, int Q, double dither )
 {
 	Write *write;
 
@@ -1263,7 +1263,7 @@ vips__png_write_buf( VipsImage *in,
 	/* Convert it!
 	 */
 	if( write_vips( write, 
-		compression, interlace, profile, filter, strip, colors, Q,
+		compression, interlace, profile, filter, strip, colours, Q,
 		dither ) ) {
 		vips_error( "vips2png", 
 			"%s", _( "unable to write to buffer" ) );

@@ -1393,7 +1393,7 @@ support webp metadata:			$with_libwebpmux
 text rendering with pangoft2: 		$with_pangoft2
 file import/export with libpng: 	$with_png
   (requires libpng-1.2.9 or later)
-support 8bpp PNG quantization:		$with_imagequant
+support 8bpp PNG quantisation:		$with_imagequant
 file import/export with libtiff:	$with_tiff
 file import/export with giflib:		$with_giflib
 file import/export with libjpeg:	$with_jpeg
