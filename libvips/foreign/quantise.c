@@ -41,9 +41,9 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_IMAGEQUANT
-
 #include <vips/vips.h>
+
+#ifdef HAVE_IMAGEQUANT
 
 #include "pforeign.h"
 
