@@ -124,6 +124,10 @@
 #error "PNG library too old."
 #endif
 
+#ifdef HAVE_IMAGEQUANT
+#include <libimagequant.h>
+#endif
+
 static void
 user_error_function( png_structp png_ptr, png_const_charp error_msg )
 {
@@ -877,12 +881,110 @@ write_png_block( VipsRegion *region, VipsRect *area, void *a )
 	return( 0 );
 }
 
+#ifdef HAVE_IMAGEQUANT
+static int
+quantise_image( VipsImage *in, VipsImage *out, VipsImage *palette_out,
+	int colours, int Q, double dither )
+{
+	/* Ensure input is sRGB. */
+	if( in->Type != VIPS_INTERPRETATION_sRGB) {
+		VipsImage *srgb;
+		if( vips_colourspace( in, &srgb, VIPS_INTERPRETATION_sRGB,
+			NULL ) )
+			return( -1 );
+		in = srgb;
+		VIPS_UNREF( srgb );
+	}
+	/* Add alpha channel if missing. */
+	if( !vips_image_hasalpha(in) ) {
+		VipsImage *srgba;
+		if( vips_bandjoin_const1( in, &srgba, 255, NULL ) )
+			return( -1 );
+		in = srgba;
+		VIPS_UNREF( srgba );
+	}
+	VipsImage *memory;
+	if( !(memory = vips_image_copy_memory( in )) )
+		return( -1 );
+	in = memory;
+
+	liq_attr *attr = liq_attr_create();
+	liq_set_max_colors( attr, colours );
+	liq_set_quality( attr, 0, Q );
+
+	liq_image *input_image = liq_image_create_rgba( attr,
+		VIPS_IMAGE_ADDR( in, 0, 0 ), in->Xsize, in->Ysize, 0 );
+
+	liq_result *quantisation_result;
+	if ( liq_image_quantize( input_image, attr, &quantisation_result ) ) {
+		liq_result_destroy( quantisation_result );
+		liq_image_destroy( input_image );
+		liq_attr_destroy( attr );
+		VIPS_UNREF( memory );
+		return( -1 );
+	}
+
+	liq_set_dithering_level( quantisation_result, (float) dither );
+
+	vips_image_init_fields( out, in->Xsize, in->Ysize, 1, VIPS_FORMAT_UCHAR,
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
+
+	if( vips_image_write_prepare( out ) ) {
+		liq_result_destroy( quantisation_result );
+		liq_image_destroy( input_image );
+		liq_attr_destroy( attr );
+		VIPS_UNREF( memory );
+		return( -1 );
+	}
+
+	if( liq_write_remapped_image( quantisation_result, input_image,
+		VIPS_IMAGE_ADDR( out, 0, 0 ), VIPS_IMAGE_N_PELS( out ) ) ) {
+		liq_result_destroy( quantisation_result );
+		liq_image_destroy( input_image );
+		liq_attr_destroy( attr );
+		VIPS_UNREF( memory );
+		return( -1 );
+	}
+
+	const liq_palette *palette = liq_get_palette( quantisation_result );
+
+	vips_image_init_fields( palette_out, palette->count, 1, 4,
+		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB,
+		1.0, 1.0 );
+
+	if( vips_image_write_prepare( palette_out ) ) {
+		liq_result_destroy( quantisation_result );
+		liq_image_destroy( input_image );
+		liq_attr_destroy( attr );
+		VIPS_UNREF( memory );
+		return( -1 );
+	}
+
+	int i;
+	for( i = 0; i < palette->count; i++ ) {
+		unsigned char *p = VIPS_IMAGE_ADDR( palette_out, i, 0 );
+		p[0] = palette->entries[i].r;
+		p[1] = palette->entries[i].g;
+		p[2] = palette->entries[i].b;
+		p[3] = palette->entries[i].a;
+	}
+
+	liq_result_destroy( quantisation_result );
+	liq_image_destroy( input_image );
+	liq_attr_destroy( attr );
+	VIPS_UNREF( memory );
+
+	return( 0 );
+}
+#endif /*HAVE_IMAGEQUANT*/
+
 /* Write a VIPS image to PNG.
  */
 static int
 write_vips( Write *write, 
 	int compress, int interlace, const char *profile,
-	VipsForeignPngFilter filter, gboolean strip )
+	VipsForeignPngFilter filter, gboolean strip,
+	gboolean palette, int colours, int Q, double dither )
 {
 	VipsImage *in = write->in;
 
@@ -942,6 +1044,20 @@ write_vips( Write *write,
 		return( -1 );
 	}
 
+#ifdef HAVE_IMAGEQUANT
+	/* Enable image quantisation to paletted 8bpp PNG if colours is set.
+	 */
+	if( palette ) {
+		g_assert( colours >= 2 && colours <= 256 );
+		bit_depth = 8;
+		color_type = PNG_COLOR_TYPE_PALETTE;
+	}
+#else
+	if( palette )
+		g_warning( "%s",
+			_( "ignoring palette (no quantisation support)" ) );
+#endif /*HAVE_IMAGEQUANT*/
+
 	interlace_type = interlace ? PNG_INTERLACE_ADAM7 : PNG_INTERLACE_NONE;
 
 	png_set_IHDR( write->pPng, write->pInfo, 
@@ -994,7 +1110,66 @@ write_vips( Write *write,
 			PNG_COMPRESSION_TYPE_BASE, data, length );
 	}
 
-	png_write_info( write->pPng, write->pInfo ); 
+#ifdef HAVE_IMAGEQUANT
+	if( palette ) {
+		VipsImage *im_quantised = vips_image_new_memory();
+		VipsImage *im_palette = vips_image_new_memory();
+		if( quantise_image( in, im_quantised, im_palette, colours, Q,
+			dither ) ) {
+			vips_error( "vips2png", 
+				"%s", _( "quantisation failed" ) );
+			VIPS_UNREF( im_quantised );
+			VIPS_UNREF( im_palette );
+			return( -1 );
+		}
+
+		int palette_count = im_palette->Xsize;
+		g_assert( palette_count <= PNG_MAX_PALETTE_LENGTH);
+
+		png_color *png_palette = (png_color *) png_malloc( write->pPng,
+			palette_count * sizeof( png_color ) );
+		png_byte *png_trans = (png_byte *) png_malloc( write->pPng,
+			palette_count * sizeof( png_byte ) );
+		int trans_count = 0;
+
+		for( i = 0; i < palette_count; i++ ) {
+			png_byte *p = (png_byte *) VIPS_IMAGE_ADDR( im_palette,
+				i, 0 );
+			png_color *col = &png_palette[i];
+			col->red = p[0];
+			col->green = p[1];
+			col->blue = p[2];
+			png_trans[i] = p[3];
+			if( p[3] != 255 )
+				trans_count = i + 1;
+#ifdef DEBUG
+			printf( "write_vips: palette[%d] %d %d %d %d\n",
+				i + 1, p[0], p[1], p[2], p[3] );
+#endif /*DEBUG*/
+		}
+
+#ifdef DEBUG
+		printf( "write_vips: attaching %d color palette\n",
+			palette_count );
+#endif /*DEBUG*/
+		png_set_PLTE( write->pPng, write->pInfo, png_palette,
+			palette_count );
+		if( trans_count ) {
+#ifdef DEBUG
+			printf( "write_vips: attaching %d alpha values\n",
+				trans_count );
+#endif /*DEBUG*/
+			png_set_tRNS( write->pPng, write->pInfo, png_trans,
+				trans_count, NULL );
+		}
+		VIPS_UNREF( im_palette );
+
+		VIPS_UNREF( write->memory );
+		write->memory = im_quantised;
+		in = write->memory;
+	}
+#endif /*HAVE_IMAGEQUANT*/
+	png_write_info( write->pPng, write->pInfo );
 
 	/* If we're an intel byte order CPU and this is a 16bit image, we need
 	 * to swap bytes.
@@ -1027,7 +1202,8 @@ write_vips( Write *write,
 int
 vips__png_write( VipsImage *in, const char *filename, 
 	int compress, int interlace, const char *profile,
-	VipsForeignPngFilter filter, gboolean strip )
+	VipsForeignPngFilter filter, gboolean strip,
+	gboolean palette, int colours, int Q, double dither )
 {
 	Write *write;
 
@@ -1047,7 +1223,8 @@ vips__png_write( VipsImage *in, const char *filename,
 	/* Convert it!
 	 */
 	if( write_vips( write, 
-		compress, interlace, profile, filter, strip ) ) {
+		compress, interlace, profile, filter, strip, palette,
+		colours, Q, dither ) ) {
 		vips_error( "vips2png", 
 			_( "unable to write \"%s\"" ), filename );
 
@@ -1074,7 +1251,8 @@ user_write_data( png_structp png_ptr, png_bytep data, png_size_t length )
 int
 vips__png_write_buf( VipsImage *in, 
 	void **obuf, size_t *olen, int compression, int interlace,
-	const char *profile, VipsForeignPngFilter filter, gboolean strip )
+	const char *profile, VipsForeignPngFilter filter, gboolean strip,
+	gboolean palette, int colours, int Q, double dither )
 {
 	Write *write;
 
@@ -1086,10 +1264,11 @@ vips__png_write_buf( VipsImage *in,
 	/* Convert it!
 	 */
 	if( write_vips( write, 
-		compression, interlace, profile, filter, strip ) ) {
+		compression, interlace, profile, filter, strip, palette,
+		colours, Q, dither ) ) {
 		vips_error( "vips2png", 
 			"%s", _( "unable to write to buffer" ) );
-	      
+
 		return( -1 );
 	}
 

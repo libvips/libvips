@@ -1142,6 +1142,24 @@ if test x"$with_png" != "xno"; then
   )
 fi
 
+# look for libimagequant with pkg-config (only if libpng is enabled)
+AC_ARG_WITH([imagequant],
+  AS_HELP_STRING([--without-imagequant], [build without imagequant (default: test)]))
+
+if test x"$with_imagequant" != "xno" && test x"$with_png" != "xno"; then
+  PKG_CHECK_MODULES(IMAGEQUANT, imagequant,
+    [AC_DEFINE(HAVE_IMAGEQUANT,1,[define if you have imagequant installed.])
+     with_imagequant=yes
+     PACKAGES_USED="$PACKAGES_USED imagequant"
+    ],
+    [AC_MSG_WARN([libimagequant not found; disabling 8bpp PNG support])
+     with_imagequant=no
+    ]
+  )
+else
+  with_imagequant=no
+fi
+
 # look for libjpeg with pkg-config ... fall back to our tester
 AC_ARG_WITH([jpeg], 
   AS_HELP_STRING([--without-jpeg], [build without libjpeg (default: test)]))
@@ -1260,14 +1278,14 @@ fi
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS 
 # sort includes to get longer, more specific dirs first
 # helps, for example, selecting graphicsmagick over imagemagick
-VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $EXPAT_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $JPEG_CFLAGS $PNG_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $LIBWEBPMUX_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $PDFIUM_INCLUDES $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
+VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $EXPAT_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $JPEG_CFLAGS $PNG_CFLAGS $IMAGEQUANT_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $LIBWEBPMUX_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $PDFIUM_INCLUDES $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS 
 do 
 	echo $i 
 done | sort -ru`
 VIPS_CFLAGS=`echo $VIPS_CFLAGS`
 VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
 VIPS_INCLUDES="$ZLIB_INCLUDES $PNG_INCLUDES $TIFF_INCLUDES $JPEG_INCLUDES" 
-VIPS_LIBS="$ZLIB_LIBS $MAGICK_LIBS $PNG_LIBS $TIFF_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $EXPAT_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $GIFLIB_LIBS $RSVG_LIBS $PDFIUM_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $LIBWEBPMUX_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
+VIPS_LIBS="$ZLIB_LIBS $MAGICK_LIBS $PNG_LIBS $IMAGEQUANT_LIBS $TIFF_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $EXPAT_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $GIFLIB_LIBS $RSVG_LIBS $PDFIUM_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $LIBWEBPMUX_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
 
 AC_SUBST(VIPS_LIBDIR)
 
@@ -1375,6 +1393,7 @@ support webp metadata:			$with_libwebpmux
 text rendering with pangoft2: 		$with_pangoft2
 file import/export with libpng: 	$with_png
   (requires libpng-1.2.9 or later)
+support 8bpp PNG quantisation:		$with_imagequant
 file import/export with libtiff:	$with_tiff
 file import/export with giflib:		$with_giflib
 file import/export with libjpeg:	$with_jpeg
