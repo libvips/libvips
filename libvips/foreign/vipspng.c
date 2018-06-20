@@ -67,6 +67,8 @@
  * 	- better @fail handling with truncated PNGs
  * 9/4/18
  * 	- set interlaced=1 for interlaced images
+ * 20/6/18 [felixbuenemann]
+ * 	- support png8 palette write with palette, colours, Q, dither
  */
 
 /*
@@ -886,36 +888,46 @@ static int
 quantise_image( VipsImage *in, VipsImage *out, VipsImage *palette_out,
 	int colours, int Q, double dither )
 {
-	/* Ensure input is sRGB. */
+	VipsImage *memory;
+	liq_attr *attr;
+	liq_image *input_image;
+	liq_result *quantisation_result;
+	int i;
+
+	/* Ensure input is sRGB. 
+	 */
 	if( in->Type != VIPS_INTERPRETATION_sRGB) {
 		VipsImage *srgb;
+
 		if( vips_colourspace( in, &srgb, VIPS_INTERPRETATION_sRGB,
 			NULL ) )
 			return( -1 );
 		in = srgb;
 		VIPS_UNREF( srgb );
 	}
-	/* Add alpha channel if missing. */
-	if( !vips_image_hasalpha(in) ) {
+
+	/* Add alpha channel if missing. 
+	 */
+	if( !vips_image_hasalpha( in ) ) {
 		VipsImage *srgba;
+
 		if( vips_bandjoin_const1( in, &srgba, 255, NULL ) )
 			return( -1 );
 		in = srgba;
 		VIPS_UNREF( srgba );
 	}
-	VipsImage *memory;
+
 	if( !(memory = vips_image_copy_memory( in )) )
 		return( -1 );
 	in = memory;
 
-	liq_attr *attr = liq_attr_create();
+	attr = liq_attr_create();
 	liq_set_max_colors( attr, colours );
 	liq_set_quality( attr, 0, Q );
 
-	liq_image *input_image = liq_image_create_rgba( attr,
+	input_image = liq_image_create_rgba( attr,
 		VIPS_IMAGE_ADDR( in, 0, 0 ), in->Xsize, in->Ysize, 0 );
 
-	liq_result *quantisation_result;
 	if ( liq_image_quantize( input_image, attr, &quantisation_result ) ) {
 		liq_result_destroy( quantisation_result );
 		liq_image_destroy( input_image );
@@ -960,9 +972,9 @@ quantise_image( VipsImage *in, VipsImage *out, VipsImage *palette_out,
 		return( -1 );
 	}
 
-	int i;
 	for( i = 0; i < palette->count; i++ ) {
 		unsigned char *p = VIPS_IMAGE_ADDR( palette_out, i, 0 );
+
 		p[0] = palette->entries[i].r;
 		p[1] = palette->entries[i].g;
 		p[2] = palette->entries[i].b;
@@ -1048,7 +1060,8 @@ write_vips( Write *write,
 	/* Enable image quantisation to paletted 8bpp PNG if colours is set.
 	 */
 	if( palette ) {
-		g_assert( colours >= 2 && colours <= 256 );
+		g_assert( colours >= 2 && 
+			colours <= 256 );
 		bit_depth = 8;
 		color_type = PNG_COLOR_TYPE_PALETTE;
 	}
@@ -1112,8 +1125,15 @@ write_vips( Write *write,
 
 #ifdef HAVE_IMAGEQUANT
 	if( palette ) {
-		VipsImage *im_quantised = vips_image_new_memory();
-		VipsImage *im_palette = vips_image_new_memory();
+		VipsImage *im_quantised;
+		VipsImage *im_palette;
+		int palette_count;
+		png_color *png_palette;
+		png_byte *png_trans;
+		int trans_count;
+
+		im_quantised = vips_image_new_memory();
+		im_palette = vips_image_new_memory();
 		if( quantise_image( in, im_quantised, im_palette, colours, Q,
 			dither ) ) {
 			vips_error( "vips2png", 
@@ -1123,19 +1143,20 @@ write_vips( Write *write,
 			return( -1 );
 		}
 
-		int palette_count = im_palette->Xsize;
-		g_assert( palette_count <= PNG_MAX_PALETTE_LENGTH);
+		palette_count = im_palette->Xsize;
 
-		png_color *png_palette = (png_color *) png_malloc( write->pPng,
+		g_assert( palette_count <= PNG_MAX_PALETTE_LENGTH );
+
+		png_palette = (png_color *) png_malloc( write->pPng,
 			palette_count * sizeof( png_color ) );
-		png_byte *png_trans = (png_byte *) png_malloc( write->pPng,
+		png_trans = (png_byte *) png_malloc( write->pPng,
 			palette_count * sizeof( png_byte ) );
-		int trans_count = 0;
-
+		trans_count = 0;
 		for( i = 0; i < palette_count; i++ ) {
 			png_byte *p = (png_byte *) VIPS_IMAGE_ADDR( im_palette,
 				i, 0 );
 			png_color *col = &png_palette[i];
+
 			col->red = p[0];
 			col->green = p[1];
 			col->blue = p[2];
@@ -1162,13 +1183,17 @@ write_vips( Write *write,
 			png_set_tRNS( write->pPng, write->pInfo, png_trans,
 				trans_count, NULL );
 		}
-		VIPS_UNREF( im_palette );
 
+		png_free( write->pPng, (void *) png_palette );
+		png_free( write->pPng, (void *) png_trans );
+		VIPS_UNREF( im_palette );
 		VIPS_UNREF( write->memory );
+
 		write->memory = im_quantised;
 		in = write->memory;
 	}
 #endif /*HAVE_IMAGEQUANT*/
+
 	png_write_info( write->pPng, write->pInfo );
 
 	/* If we're an intel byte order CPU and this is a 16bit image, we need

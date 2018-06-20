@@ -4,6 +4,8 @@
  * 	- wrap a class around the png writer
  * 16/7/12
  * 	- compression should be 0-9, not 1-10
+ * 20/6/18 [felixbuenemann]
+ * 	- support png8 palette write with palette, colours, Q, dither
  */
 
 /*
@@ -381,6 +383,10 @@ vips_pngsave( VipsImage *in, const char *filename, ... )
  * * @interlace: interlace image
  * * @profile: ICC profile to embed
  * * @filter: libpng row filter flag(s)
+ * * @palette: enable quantisation to 8bpp palette
+ * * @colours: max number of palette colours for quantisation
+ * * @Q: quality for 8bpp quantisation (does not exceed @colours)
+ * * @dither: amount of dithering for 8bpp quantization
  *
  * As vips_pngsave(), but save to a memory buffer. 
  *

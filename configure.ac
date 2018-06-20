@@ -70,7 +70,7 @@ filter_list="deprecated introspect.c dummy.c fuzz "
 contains() {
   string="$1"
   substring="$2"
-  if test "${string#*$substring}" != "$string"; then
+  if test x"${string#*$substring}" != x"$string"; then
     return 0    # $substring is in $string
   else
     return 1 	# $substring is not in $string
@@ -137,12 +137,12 @@ AC_ARG_ENABLE(debug,
     [turn on debugging @<:@default=debug_default()@:>@]),,
   enable_debug=debug_default())
 
-if test "x$enable_debug" = "xyes"; then
+if test x"$enable_debug" = x"yes"; then
   VIPS_DEBUG_FLAGS="-DDEBUG_FATAL -DDEBUG_LEAK"
 else
   VIPS_DEBUG_FLAGS="-DG_DISABLE_CAST_CHECKS"
 
-  if test "x$enable_debug" = "xno"; then
+  if test x"$enable_debug" = x"no"; then
     VIPS_DEBUG_FLAGS="-DG_DISABLE_ASSERT -DG_DISABLE_CHECKS"
   fi
 fi
@@ -192,7 +192,7 @@ case "$host" in
 esac
 AC_MSG_RESULT([$vips_os_win32])
 
-if test x"$vips_os_win32" = "xyes"; then
+if test x"$vips_os_win32" = x"yes"; then
   AC_DEFINE(OS_WIN32,1,[native win32])
 
   # makes gcc use win native alignment
@@ -200,7 +200,7 @@ if test x"$vips_os_win32" = "xyes"; then
 fi
 
 # CImg needs flags changed on win32
-if test x"$vips_os_win32" = "xyes"; then
+if test x"$vips_os_win32" = x"yes"; then
   AM_CONDITIONAL(OS_WIN32, true)
 else
   AM_CONDITIONAL(OS_WIN32, false)
@@ -218,7 +218,7 @@ case "$host_os" in
     ;;
 esac
 AC_MSG_RESULT([$vips_binary_open])
-if test x"$vips_binary_open" = "xyes"; then
+if test x"$vips_binary_open" = x"yes"; then
   AC_DEFINE(BINARY_OPEN,1,[define to open non-text files in binary mode])
 fi
 
@@ -267,8 +267,8 @@ AM_WITH_DMALLOC
 # without this we get something like
 #    define VIPS_LIBDIR ${exec_prefix}/lib
 # argh
-test "x$prefix" = xNONE && prefix=$ac_default_prefix
-test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
+test x"$prefix" = x"NONE" && prefix=$ac_default_prefix
+test x"$exec_prefix" = x"NONE" && exec_prefix='${prefix}'
 
 # set $expanded_value to the fully-expanded value of the argument
 expand () {
@@ -369,7 +369,7 @@ AC_TYPE_SIZE_T
 # g++/gcc 4.x and 5.x have rather broken vector support ... 5.4.1 seems to
 # work, but 5.4.0 fails to even compile
 AC_MSG_CHECKING([for gcc with working vector support])
-if test x$GCC_VERSION_MAJOR != x"4" -a x$GCC_VERSION_MAJOR != x"5"; then
+if test x"$GCC_VERSION_MAJOR" != x"4" -a x"$GCC_VERSION_MAJOR" != x"5"; then
   AC_MSG_RESULT([yes])
 else
   ax_cv_have_var_attribute_vector_size=no
@@ -377,7 +377,7 @@ else
 fi
 
 # we need to be able to shuffle vectors in C++
-if test x$ax_cv_have_var_attribute_vector_size = x"yes"; then
+if test x"$ax_cv_have_var_attribute_vector_size" = x"yes"; then
   AC_MSG_CHECKING([for C++ vector shuffle])
   AC_LANG_PUSH([C++])
   AC_TRY_COMPILE([
@@ -393,14 +393,14 @@ if test x$ax_cv_have_var_attribute_vector_size = x"yes"; then
   ])
   AC_LANG_POP([C++])
 
-  if test x$have_vector_shuffle = x"yes"; then
+  if test x"$have_vector_shuffle" = x"yes"; then
     AC_DEFINE_UNQUOTED(HAVE_VECTOR_SHUFFLE, 1,
       [define if your C++ can shuffle vectors])
   fi
 fi
 
 # we also need to be able to mix vector and scalar arithmetic
-if test x$have_vector_shuffle = x"yes"; then
+if test x"$have_vector_shuffle" = x"yes"; then
   AC_MSG_CHECKING([for C++ vector arithmetic])
   AC_LANG_PUSH([C++])
   AC_TRY_COMPILE([
@@ -420,7 +420,7 @@ fi
 
 # gcc 7.2 seems to work, but then gets confused by signed constants in 
 # templates
-if test x$have_vector_arith = x"yes"; then
+if test x"$have_vector_arith" = x"yes"; then
   AC_MSG_CHECKING([for C++ signed constants in vector templates])
   AC_LANG_PUSH([C++])
   AC_TRY_COMPILE([
@@ -441,7 +441,7 @@ if test x$have_vector_arith = x"yes"; then
   ])
   AC_LANG_POP([C++])
 
-  if test x$have_vector_arith = x"yes"; then
+  if test x"$have_vector_arith" = x"yes"; then
     AC_DEFINE_UNQUOTED(HAVE_VECTOR_ARITH, 1,
       [define if your C++ can mix vector and scalar arithmetic])
   fi
@@ -522,7 +522,7 @@ GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
 # we need expat ... we'd love to use expat.pc, but sadly this is only available
 # for recent linuxes, so we have to use the old and horrible expat.m4
 AM_WITH_EXPAT
-if test x$expat_found = xno; then
+if test x"$expat_found" = x"no"; then
   exit 1
 fi
 
@@ -548,7 +548,7 @@ AC_ARG_WITH([gsf],
 # .27 is known to work well
 # .26 seems OK but has not been tested much
 # not sure about 22-25
-if test x"$with_gsf" != "xno"; then
+if test x"$with_gsf" != x"no"; then
   PKG_CHECK_MODULES(GSF, libgsf-1 >= 1.14.26,
     [AC_DEFINE(HAVE_GSF,1,[define if you have libgsf-1 installed.])
      with_gsf=yes
@@ -573,7 +573,7 @@ fi
 AC_ARG_WITH([fftw], 
   AS_HELP_STRING([--without-fftw], [build without fftw (default: test)]))
 
-if test x"$with_fftw" != "xno"; then
+if test x"$with_fftw" != x"no"; then
   PKG_CHECK_MODULES(FFTW, fftw3,
     [AC_DEFINE(HAVE_FFTW,1,[define if you have fftw3 installed.])
      with_fftw=yes
@@ -595,7 +595,7 @@ AC_ARG_WITH([magickpackage],
 
 # set the default magick package ... very old imagemagicks called it
 # ImageMagick
-if test x"$with_magickpackage" = "x"; then
+if test x"$with_magickpackage" = x""; then
   PKG_CHECK_MODULES(MAGICK_WAND, MagickCore,
     [with_magickpackage=MagickCore
     ],
@@ -790,7 +790,7 @@ fi
 AC_ARG_WITH([orc], 
   AS_HELP_STRING([--without-orc], [build without orc (default: test)]))
 
-if test x"$with_orc" != "xno"; then
+if test x"$with_orc" != x"no"; then
   # we use loadpw etc.
   PKG_CHECK_MODULES(ORC, orc-0.4 >= 0.4.11,
     [AC_DEFINE(HAVE_ORC,1,[define if you have orc-0.4.11 or later installed.])
@@ -813,7 +813,7 @@ fi
 AC_ARG_WITH([lcms], 
   AS_HELP_STRING([--without-lcms], [build without lcms (default: test)]))
 
-if test x"$with_lcms" != "xno"; then
+if test x"$with_lcms" != x"no"; then
   PKG_CHECK_MODULES(LCMS, lcms2,
     [AC_DEFINE(HAVE_LCMS2,1,[define if you have lcms2 installed.])
      with_lcms="yes (lcms2)"
@@ -830,7 +830,7 @@ AC_ARG_WITH([OpenEXR],
   AS_HELP_STRING([--without-OpenEXR], [build without OpenEXR (default: test)]))
 
 # require 1.2.2 since 1.2.1 has a broken ImfCloseTiledInputFile()
-if test x"$with_OpenEXR" != "xno"; then
+if test x"$with_OpenEXR" != x"no"; then
   PKG_CHECK_MODULES(OPENEXR, OpenEXR >= 1.2.2,
     [AC_DEFINE(HAVE_OPENEXR,1,[define if you have OpenEXR >=1.2.2 installed.])
      with_OpenEXR=yes
@@ -897,7 +897,7 @@ fi
 AC_ARG_WITH([zlib], 
   AS_HELP_STRING([--without-zlib], [build without zlib (default: test)]))
 
-if test x"$with_zlib" != "xno"; then
+if test x"$with_zlib" != x"no"; then
   PKG_CHECK_MODULES(ZLIB, zlib >= 0.4,
     [AC_DEFINE(HAVE_ZLIB,1,[define if you have zlib installed.])
      with_zlib=yes
@@ -945,7 +945,7 @@ fi
 AC_ARG_WITH([matio], 
   AS_HELP_STRING([--without-matio], [build without matio (default: test)]))
 
-if test x"$with_matio" != "xno"; then
+if test x"$with_matio" != x"no"; then
   PKG_CHECK_MODULES(MATIO, matio,
     [AC_DEFINE(HAVE_MATIO,1,[define if you have matio installed.])
      with_matio=yes
@@ -963,7 +963,7 @@ fi
 AC_ARG_WITH([ppm], 
   AS_HELP_STRING([--without-ppm], [build without ppm (default: with)]))
 
-if test x"$with_ppm" != "xno"; then
+if test x"$with_ppm" != x"no"; then
   AC_DEFINE(HAVE_PPM,1,[define to build ppm support.])
   with_ppm=yes
 fi
@@ -971,7 +971,7 @@ fi
 AC_ARG_WITH([analyze], 
   AS_HELP_STRING([--without-analyze], [build without analyze (default: with)]))
 
-if test x"$with_analyze" != "xno"; then
+if test x"$with_analyze" != x"no"; then
   AC_DEFINE(HAVE_ANALYZE,1,[define to build analyze support.])
   with_analyze=yes
 fi
@@ -979,7 +979,7 @@ fi
 AC_ARG_WITH([radiance], 
   AS_HELP_STRING([--without-radiance], [build without radiance (default: with)]))
 
-if test x"$with_radiance" != "xno"; then
+if test x"$with_radiance" != x"no"; then
   AC_DEFINE(HAVE_RADIANCE,1,[define to build radiance support.])
   with_radiance=yes
 fi
@@ -988,7 +988,7 @@ fi
 AC_ARG_WITH([cfitsio], 
   AS_HELP_STRING([--without-cfitsio], [build without cfitsio (default: test)]))
 
-if test x"$with_cfitsio" != "xno"; then
+if test x"$with_cfitsio" != x"no"; then
   PKG_CHECK_MODULES(CFITSIO, cfitsio,
     [AC_DEFINE(HAVE_CFITSIO,1,[define if you have cfitsio installed.])
      with_cfitsio=yes
@@ -1006,7 +1006,7 @@ fi
 AC_ARG_WITH([libwebp], 
   AS_HELP_STRING([--without-libwebp], [build without libwebp (default: test)]))
 
-if test x"$with_libwebp" != "xno"; then
+if test x"$with_libwebp" != x"no"; then
   PKG_CHECK_MODULES(LIBWEBP, libwebp >= 0.1.3,
     [AC_DEFINE(HAVE_LIBWEBP,1,[define if you have libwebp installed.])
      with_libwebp=yes
@@ -1028,7 +1028,7 @@ fi
 # we can build with libwebpmux back to 0.3, but it's not until libwebp 0.5 that
 # we can read that metadata back successfully ... insist on 0.5 so that tests
 # can work smoothly
-if test x"$with_libwebp" != "xno"; then
+if test x"$with_libwebp" != x"no"; then
   PKG_CHECK_MODULES(LIBWEBPMUX, libwebpmux >= 0.5.0,
     [AC_DEFINE(HAVE_LIBWEBPMUX,1,[define if you have libwebpmux installed.])
      with_libwebpmux=yes
@@ -1045,7 +1045,7 @@ AC_ARG_WITH([pangoft2],
   AS_HELP_STRING([--without-pangoft2], 
     [build without pangoft2 (default: test)]))
 
-if test x"$with_pangoft2" != "xno"; then
+if test x"$with_pangoft2" != x"no"; then
   PKG_CHECK_MODULES(PANGOFT2, pangoft2,
     [AC_DEFINE(HAVE_PANGOFT2,1,[define if you have pangoft2 installed.])
      with_pangoft2=yes
@@ -1067,7 +1067,7 @@ AC_ARG_ENABLE([pyvips8],
   ]
 )
 
-if test "x$enable_pyvips8" = "xauto"; then
+if test x"$enable_pyvips8" = x"auto"; then
   PKG_CHECK_EXISTS([pygobject-3.0 >= 3.13.0],
     [enable_pyvips8=yes
     ],
@@ -1096,7 +1096,7 @@ AM_CONDITIONAL(ENABLE_PYVIPS8, test x"$enable_pyvips8" = x"yes")
 AC_ARG_WITH([tiff], 
   AS_HELP_STRING([--without-tiff], [build without libtiff (default: test)]))
 
-if test x"$with_tiff" != "xno"; then
+if test x"$with_tiff" != x"no"; then
   PKG_CHECK_MODULES(TIFF, libtiff-4,
     [AC_DEFINE(HAVE_TIFF,1,[define if you have libtiff installed.])
      with_tiff="yes (pkg-config libtiff-4)"
@@ -1125,7 +1125,7 @@ FIND_GIFLIB(
 AC_ARG_WITH([png], 
   AS_HELP_STRING([--without-png], [build without libpng (default: test)]))
 
-if test x"$with_png" != "xno"; then
+if test x"$with_png" != x"no"; then
   PKG_CHECK_MODULES(PNG, libpng >= 1.2.9, 
     [AC_DEFINE(HAVE_PNG,1,[define if you have libpng installed.])
      with_png="yes (pkg-config libpng >= 1.2.9)"
@@ -1146,7 +1146,7 @@ fi
 AC_ARG_WITH([imagequant],
   AS_HELP_STRING([--without-imagequant], [build without imagequant (default: test)]))
 
-if test x"$with_imagequant" != "xno" && test x"$with_png" != "xno"; then
+if test x"$with_imagequant" != x"no" && test x"$with_png" != x"no"; then
   PKG_CHECK_MODULES(IMAGEQUANT, imagequant,
     [AC_DEFINE(HAVE_IMAGEQUANT,1,[define if you have imagequant installed.])
      with_imagequant=yes
@@ -1185,7 +1185,7 @@ fi
 # features like trellis quant are exposed as extension parameters ...
 # mozjpeg 3.2 and later have #define JPEG_C_PARAM_SUPPORTED, but we must 
 # work with earlier versions
-if test x"$with_jpeg" != "xno"; then
+if test x"$with_jpeg" != x"no"; then
   save_LIBS="$LIBS"
   save_CFLAGS="$CFLAGS"
   LIBS="$JPEG_LIBS $LIBS"
@@ -1201,7 +1201,7 @@ fi
 AC_ARG_WITH([libexif], 
   AS_HELP_STRING([--without-libexif], [build without libexif (default: test)]))
 
-if test x"$with_libexif" != "xno"; then
+if test x"$with_libexif" != x"no"; then
   PKG_CHECK_MODULES(EXIF, libexif >= 0.6,
     [AC_DEFINE(HAVE_EXIF,1,[define if you have libexif >= 0.6 installed.])
      with_libexif=yes
@@ -1215,7 +1215,7 @@ fi
 
 # some libexif packages need include <libexif/poop.h>, some just <poop.h>
 # how annoying
-if test x"$with_libexif" != "xno"; then
+if test x"$with_libexif" != x"no"; then
   # cppflags not cflags because we want the preproc to see the -I as well
   save_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$EXIF_CFLAGS $CPPFLAGS"
@@ -1394,6 +1394,7 @@ text rendering with pangoft2: 		$with_pangoft2
 file import/export with libpng: 	$with_png
   (requires libpng-1.2.9 or later)
 support 8bpp PNG quantisation:		$with_imagequant
+  (requires libimagequant)
 file import/export with libtiff:	$with_tiff
 file import/export with giflib:		$with_giflib
 file import/export with libjpeg:	$with_jpeg
@@ -1402,7 +1403,7 @@ image pyramid export:			$with_gsf
 use libexif to load/save JPEG metadata: $with_libexif
 ])
 
-if test x"$found_introspection" = xyes -a "$VIPS_LIBDIR/girepository-1.0" != "$INTROSPECTION_TYPELIBDIR"; then
+if test x"$found_introspection" = x"yes" -a "$VIPS_LIBDIR/girepository-1.0" != "$INTROSPECTION_TYPELIBDIR"; then
   case "$VIPS_LIBDIR" in
     /usr/local/Cellar/vips/*)
       ;; # ignore for homebrew
@@ -1418,7 +1419,7 @@ You may need to add this directory to your typelib path, for example:
   esac
 fi
 
-if test x"$enable_pyvips8" = xyes; then
+if test x"$enable_pyvips8" = x"yes"; then
   expand $pyexecdir
   VIPS_PYEXECDIR=$expanded_value
   case "$VIPS_PYEXECDIR" in
@@ -1430,7 +1431,7 @@ import sys
 sys.path.append('$VIPS_PYEXECDIR')
 try: import gi; print(gi._overridesdir)
 except: pass"`
-      if test x"$syspygipath" = x; then
+      if test x"$syspygipath" = x""; then
         AC_MSG_RESULT([dnl
 Your python gi module could not be loaded.
 
