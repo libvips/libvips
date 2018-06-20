@@ -252,6 +252,10 @@ int vips__openslide_read_associated( const char *filename, VipsImage *out,
 gboolean vips_foreign_load_pdf_is_a_buffer( const void *buf, size_t len );
 gboolean vips_foreign_load_pdf_is_a( const char *filename );
 
+int vips__quantise_image( VipsImage *in, 
+	VipsImage **index_out, VipsImage **palette_out,
+	int colours, int Q, double dither );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

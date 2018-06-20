@@ -126,10 +126,6 @@
 #error "PNG library too old."
 #endif
 
-#ifdef HAVE_IMAGEQUANT
-#include <libimagequant.h>
-#endif
-
 static void
 user_error_function( png_structp png_ptr, png_const_charp error_msg )
 {
@@ -883,113 +879,6 @@ write_png_block( VipsRegion *region, VipsRect *area, void *a )
 	return( 0 );
 }
 
-#ifdef HAVE_IMAGEQUANT
-static int
-quantise_image( VipsImage *in, VipsImage *out, VipsImage *palette_out,
-	int colours, int Q, double dither )
-{
-	VipsImage *memory;
-	liq_attr *attr;
-	liq_image *input_image;
-	liq_result *quantisation_result;
-	int i;
-
-	/* Ensure input is sRGB. 
-	 */
-	if( in->Type != VIPS_INTERPRETATION_sRGB) {
-		VipsImage *srgb;
-
-		if( vips_colourspace( in, &srgb, VIPS_INTERPRETATION_sRGB,
-			NULL ) )
-			return( -1 );
-		in = srgb;
-		VIPS_UNREF( srgb );
-	}
-
-	/* Add alpha channel if missing. 
-	 */
-	if( !vips_image_hasalpha( in ) ) {
-		VipsImage *srgba;
-
-		if( vips_bandjoin_const1( in, &srgba, 255, NULL ) )
-			return( -1 );
-		in = srgba;
-		VIPS_UNREF( srgba );
-	}
-
-	if( !(memory = vips_image_copy_memory( in )) )
-		return( -1 );
-	in = memory;
-
-	attr = liq_attr_create();
-	liq_set_max_colors( attr, colours );
-	liq_set_quality( attr, 0, Q );
-
-	input_image = liq_image_create_rgba( attr,
-		VIPS_IMAGE_ADDR( in, 0, 0 ), in->Xsize, in->Ysize, 0 );
-
-	if ( liq_image_quantize( input_image, attr, &quantisation_result ) ) {
-		liq_result_destroy( quantisation_result );
-		liq_image_destroy( input_image );
-		liq_attr_destroy( attr );
-		VIPS_UNREF( memory );
-		return( -1 );
-	}
-
-	liq_set_dithering_level( quantisation_result, (float) dither );
-
-	vips_image_init_fields( out, in->Xsize, in->Ysize, 1, VIPS_FORMAT_UCHAR,
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
-
-	if( vips_image_write_prepare( out ) ) {
-		liq_result_destroy( quantisation_result );
-		liq_image_destroy( input_image );
-		liq_attr_destroy( attr );
-		VIPS_UNREF( memory );
-		return( -1 );
-	}
-
-	if( liq_write_remapped_image( quantisation_result, input_image,
-		VIPS_IMAGE_ADDR( out, 0, 0 ), VIPS_IMAGE_N_PELS( out ) ) ) {
-		liq_result_destroy( quantisation_result );
-		liq_image_destroy( input_image );
-		liq_attr_destroy( attr );
-		VIPS_UNREF( memory );
-		return( -1 );
-	}
-
-	const liq_palette *palette = liq_get_palette( quantisation_result );
-
-	vips_image_init_fields( palette_out, palette->count, 1, 4,
-		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB,
-		1.0, 1.0 );
-
-	if( vips_image_write_prepare( palette_out ) ) {
-		liq_result_destroy( quantisation_result );
-		liq_image_destroy( input_image );
-		liq_attr_destroy( attr );
-		VIPS_UNREF( memory );
-		return( -1 );
-	}
-
-	for( i = 0; i < palette->count; i++ ) {
-		unsigned char *p = VIPS_IMAGE_ADDR( palette_out, i, 0 );
-
-		p[0] = palette->entries[i].r;
-		p[1] = palette->entries[i].g;
-		p[2] = palette->entries[i].b;
-		p[3] = palette->entries[i].a;
-	}
-
-	liq_result_destroy( quantisation_result );
-	liq_image_destroy( input_image );
-	liq_attr_destroy( attr );
-	VIPS_UNREF( memory );
-
-	return( 0 );
-}
-#endif /*HAVE_IMAGEQUANT*/
-
 /* Write a VIPS image to PNG.
  */
 static int
@@ -1125,23 +1014,16 @@ write_vips( Write *write,
 
 #ifdef HAVE_IMAGEQUANT
 	if( palette ) {
-		VipsImage *im_quantised;
+		VipsImage *im_index;
 		VipsImage *im_palette;
 		int palette_count;
 		png_color *png_palette;
 		png_byte *png_trans;
 		int trans_count;
 
-		im_quantised = vips_image_new_memory();
-		im_palette = vips_image_new_memory();
-		if( quantise_image( in, im_quantised, im_palette, colours, Q,
-			dither ) ) {
-			vips_error( "vips2png", 
-				"%s", _( "quantisation failed" ) );
-			VIPS_UNREF( im_quantised );
-			VIPS_UNREF( im_palette );
+		if( vips__quantise_image( in, &im_index, &im_palette, 
+			colours, Q, dither ) ) 
 			return( -1 );
-		}
 
 		palette_count = im_palette->Xsize;
 
@@ -1153,8 +1035,8 @@ write_vips( Write *write,
 			palette_count * sizeof( png_byte ) );
 		trans_count = 0;
 		for( i = 0; i < palette_count; i++ ) {
-			png_byte *p = (png_byte *) VIPS_IMAGE_ADDR( im_palette,
-				i, 0 );
+			VipsPel *p = (VipsPel *) 
+				VIPS_IMAGE_ADDR( im_palette, i, 0 );
 			png_color *col = &png_palette[i];
 
 			col->red = p[0];
@@ -1186,10 +1068,11 @@ write_vips( Write *write,
 
 		png_free( write->pPng, (void *) png_palette );
 		png_free( write->pPng, (void *) png_trans );
-		VIPS_UNREF( im_palette );
-		VIPS_UNREF( write->memory );
 
-		write->memory = im_quantised;
+		VIPS_UNREF( im_palette );
+
+		VIPS_UNREF( write->memory );
+		write->memory = im_index;
 		in = write->memory;
 	}
 #endif /*HAVE_IMAGEQUANT*/
