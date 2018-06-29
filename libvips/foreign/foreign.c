@@ -1836,6 +1836,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_svg_get_type( void ); 
 	extern GType vips_foreign_load_svg_file_get_type( void ); 
 	extern GType vips_foreign_load_svg_buffer_get_type( void ); 
+	extern GType vips_foreign_load_nifti_get_type( void ); 
 	extern GType vips_foreign_load_gif_get_type( void ); 
 	extern GType vips_foreign_load_gif_file_get_type( void ); 
 	extern GType vips_foreign_load_gif_buffer_get_type( void ); 
@@ -1957,6 +1958,10 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_OPENEXR
 	vips_foreign_load_openexr_get_type(); 
 #endif /*HAVE_OPENEXR*/
+
+#ifdef HAVE_NIFTI
+	vips_foreign_load_nifti_get_type(); 
+#endif /*HAVE_NIFTI*/
 
 	vips__foreign_load_operation = 
 		g_quark_from_static_string( "vips-foreign-load-operation" ); 
