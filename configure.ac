@@ -842,6 +842,19 @@ if test x"$with_OpenEXR" != x"no"; then
   )
 fi
 
+# nifti
+AC_ARG_WITH([nifti],
+  AS_HELP_STRING([--without-nifti], [build without nifti (default: test)]))
+
+if test x"$with_nifti" != x"no"; then
+  FIND_NIFTI([
+     with_nifti=yes
+    ],[
+     with_nifti=no
+    ]
+  )
+fi
+
 # pdfium
 AC_ARG_WITH([pdfium],
   AS_HELP_STRING([--without-pdfium], [build without pdfium (default: test)]))
@@ -1375,6 +1388,7 @@ save with libMagick: 			$enable_magicksave
 accelerate loops with orc: 		$with_orc
   (requires orc-0.4.11 or later)
 ICC profile support with lcms: 		$with_lcms
+file import with niftiio: 		$with_nifti
 file import with OpenEXR: 		$with_OpenEXR
 file import with OpenSlide:		$with_openslide
   (requires openslide-3.3.0 or later)
