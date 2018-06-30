@@ -516,6 +516,14 @@ PKG_CHECK_MODULES(WIN32_GET_COMMAND_LINE, glib-2.0 >= 2.40,
   ]
 )
 
+# from 2.48 we have g_uint_checked_mul() etc.
+PKG_CHECK_MODULES(HAVE_CHECKED_MUL, glib-2.0 >= 2.48,
+  [AC_DEFINE(HAVE_CHECKED_MUL,1,[define if your glib has checked multiply.])
+  ],
+  [:
+  ]
+)
+
 # check for gtk-doc
 GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
 
