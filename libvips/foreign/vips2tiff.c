@@ -176,6 +176,8 @@
  * 24/10/17
  * 	- no error on page-height not a factor of image height, just don't
  * 	  write multipage
+ * 2/7/18
+ * 	- copy EXTRASAMPLES to pyramid layers
  */
 
 /*
@@ -1566,6 +1568,7 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 	tdata_t buf;
 	ttile_t tile;
 	ttile_t n;
+	uint16 *a;
 
 	/* All the fields we might have set.
 	 */
@@ -1586,8 +1589,8 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 	CopyField( TIFFTAG_ROWSPERSTRIP, i32 );
 	CopyField( TIFFTAG_SUBFILETYPE, i32 );
 
-	if( wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE ) 
-		TIFFSetField( out, TIFFTAG_PREDICTOR, wtiff->predictor );
+	if( TIFFGetField( in, TIFFTAG_EXTRASAMPLES, &i16, &a ) ) 
+		TIFFSetField( out, TIFFTAG_EXTRASAMPLES, i16, a );
 
 	/* TIFFTAG_JPEGQUALITY is a pesudo-tag, so we can't copy it.
 	 * Set explicitly from Wtiff.
