@@ -40,9 +40,9 @@ if test "$GIFLIB_INCLUDES" = ""; then
   ], [
     # gif_lib.h is not in the standard search path, try
     # $prefix
-    giflib_save_INCLUDES="$INCLUDES"
+    giflib_save_CFLAGS="$CFLAGS"
 
-    INCLUDES="-I${prefix}/include $INCLUDES"
+    CFLAGS="-I${prefix}/include $CFLAGS"
 
     AC_TRY_COMPILE([#include <gif_lib.h>],[int a;],[
       GIFLIB_INCLUDES="-I${prefix}/include"
@@ -50,17 +50,17 @@ if test "$GIFLIB_INCLUDES" = ""; then
       GIFLIB_INCLUDES="no"
     ])
 
-    INCLUDES=$giflib_save_INCLUDES
+    CFLAGS=$giflib_save_CFLAGS
   ])
 fi
 
 # Now for the libraries
 if test "$GIFLIB_LIBS" = ""; then
   giflib_save_LIBS="$LIBS"
-  giflib_save_INCLUDES="$INCLUDES"
+  giflib_save_CFLAGS="$CFLAGS"
 
   LIBS="-lgif $LIBS"
-  INCLUDES="$GIFLIB_INCLUDES $INCLUDES"
+  CFLAGS="$GIFLIB_INCLUDES $CFLAGS"
 
   # Try the standard search path first
   AC_TRY_LINK([#include <gif_lib.h>],[DGifSlurp(0)], [
@@ -78,7 +78,7 @@ if test "$GIFLIB_LIBS" = ""; then
   ])
 
   LIBS="$giflib_save_LIBS"
-  INCLUDES="$giflib_save_INCLUDES"
+  CFLAGS="$giflib_save_CFLAGS"
 fi
 
 AC_SUBST(GIFLIB_LIBS)

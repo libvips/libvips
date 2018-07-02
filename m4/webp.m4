@@ -41,9 +41,9 @@ if test "$LIBWEBP_INCLUDES" = ""; then
   ], [
     # webp/decode.h is not in the standard search path, try
     # $prefix
-    libwebp_save_INCLUDES="$INCLUDES"
+    libwebp_save_CFLAGS="$CFLAGS"
 
-    INCLUDES="-I${prefix}/include $INCLUDES"
+    CFLAGS="-I${prefix}/include $CFLAGS"
 
     AC_TRY_COMPILE([#include <webp/decode.h>],[int a;],[
       LIBWEBP_INCLUDES="-I${prefix}/include"
@@ -51,17 +51,17 @@ if test "$LIBWEBP_INCLUDES" = ""; then
       LIBWEBP_INCLUDES="no"
     ])
 
-    INCLUDES=$libwebp_save_INCLUDES
+    CFLAGS=$libwebp_save_CFLAGS
   ])
 fi
 
 # Now for the libraries
 if test "$LIBWEBP_LIBS" = ""; then
   libwebp_save_LIBS="$LIBS"
-  libwebp_save_INCLUDES="$INCLUDES"
+  libwebp_save_CFLAGS="$CFLAGS"
 
   LIBS="-lwebp $LIBS"
-  INCLUDES="$LIBWEBP_INCLUDES $INCLUDES"
+  CFLAGS="$LIBWEBP_INCLUDES $CFLAGS"
 
   # Try the standard search path first
   AC_TRY_LINK([#include <webp/decode.h>],[WebPInitDecoderConfig(0)], [
@@ -79,7 +79,7 @@ if test "$LIBWEBP_LIBS" = ""; then
   ])
 
   LIBS="$libwebp_save_LIBS"
-  INCLUDES="$libwebp_save_INCLUDES"
+  CFLAGS="$libwebp_save_CFLAGS"
 fi
 
 AC_SUBST(LIBWEBP_LIBS)
