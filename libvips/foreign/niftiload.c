@@ -1,7 +1,7 @@
 /* load nifti from a file
  *
  * 29/6/18
- * 	- from niftiload.c
+ * 	- from fitsload.c
  */
 
 /*
@@ -33,8 +33,13 @@
 
 /*
 #define DEBUG
- */
 #define VIPS_DEBUG
+ */
+
+/* TODO
+ * - for uncompressed images, we could offer direct mapping of the input
+ * - could stream the image perhaps?
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -62,12 +67,25 @@ typedef struct _VipsForeignLoadNifti {
 	 */
 	char *filename; 
 
+	nifti_image *nim;
+
 } VipsForeignLoadNifti;
 
 typedef VipsForeignLoadClass VipsForeignLoadNiftiClass;
 
 G_DEFINE_TYPE( VipsForeignLoadNifti, vips_foreign_load_nifti, 
 	VIPS_TYPE_FOREIGN_LOAD );
+
+static void
+vips_foreign_load_nifti_dispose( GObject *gobject )
+{
+	VipsForeignLoadNifti *nifti = (VipsForeignLoadNifti *) gobject;
+
+	VIPS_FREEF( nifti_image_free, nifti->nim );
+
+	G_OBJECT_CLASS( vips_foreign_load_nifti_parent_class )->
+		dispose( gobject );
+}
 
 /* Map DT_* datatype values to VipsBandFormat.
  */
@@ -246,7 +264,7 @@ vips_gvalue_read( GValue *value, void *p )
 }
 
 static int
-vips_foreign_load_nifti_get_header( VipsForeignLoadNifti *nifti,
+vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
 	nifti_image *nim, VipsImage *out )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( nifti );
@@ -255,6 +273,8 @@ vips_foreign_load_nifti_get_header( VipsForeignLoadNifti *nifti,
 	guint height;
 	guint bands;
 	VipsBandFormat fmt;
+	double xres;
+	double yres;
 	int i;
 	char txt[256];
 
@@ -265,11 +285,23 @@ vips_foreign_load_nifti_get_header( VipsForeignLoadNifti *nifti,
 			nim->ndim ); 
 		return( 0 );
 	}
-	for( i = 1; i < 8; i++ )
+	for( i = 1; i < 8; i++ ) {
 		if( nim->dim[i] <= 0 ) {
 			vips_error( class->nickname, 
 				"%s", _( "invalid dimension" ) ); 
 			return( 0 );
+		}
+
+		/* If we have several images in a dimension, the spacing must
+		 * be non-zero, or we'll get a /0 error in resolution
+		 * calculation.
+		 */
+		if( nim->dim[i] > 1 && 
+			nim->pixdim[i] == 0 ) {
+			vips_error( class->nickname, 
+				"%s", _( "invalid resolution" ) ); 
+			return( 0 );
+		}
 	}
 
 	/* Unfold higher dimensions vertically. bands is updated below for
@@ -308,6 +340,31 @@ vips_foreign_load_nifti_get_header( VipsForeignLoadNifti *nifti,
 	if( nim->datatype == DT_RGBA32 )
 		bands = 4;
 
+	/* We fold y and z together, so they must have the same resolution..
+	 */
+	xres = 1.0;
+	yres = 1.0;
+	if( nim->nz == 1 ||
+		nim->dz == nim->dy ) 
+		switch( nim->xyz_units ) {
+		case NIFTI_UNITS_METER:
+			xres = 1000.0 / nim->dx; 
+			yres = 1000.0 / nim->dy; 
+			break; 
+		case NIFTI_UNITS_MM:
+			xres = 1.0 / nim->dx; 
+			yres = 1.0 / nim->dy; 
+			break;
+
+		case NIFTI_UNITS_MICRON:
+			xres = 1.0 / (1000.0 * nim->dx); 
+			yres = 1.0 / (1000.0 * nim->dy); 
+			break;
+
+		default:
+			break;
+		}
+
 #ifdef DEBUG
 	printf( "get_vips_properties: width = %d\n", width );
 	printf( "get_vips_properties: height = %d\n", height );
@@ -315,12 +372,13 @@ vips_foreign_load_nifti_get_header( VipsForeignLoadNifti *nifti,
 	printf( "get_vips_properties: fmt = %d\n", fmt );
 #endif /*DEBUG*/
 
+	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 	vips_image_init_fields( out,
 		width, height, bands, fmt, 
 		VIPS_CODING_NONE, 
 		bands == 1 ? 
 			VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_sRGB, 
-		1.0, 1.0 );
+		xres, yres );
 
 	for( i = 0; i < VIPS_NUMBER( other_fields ); i++ ) {
 		GValue value = { 0 };
@@ -333,12 +391,12 @@ vips_foreign_load_nifti_get_header( VipsForeignLoadNifti *nifti,
 		g_value_unset( &value );
 	}
 
-	vips_strncpy( txt, nim->intent_name, 16 );
-	txt[16] = '\0';
+	/* One byte longer than the spec to leave space for any extra
+	 * '\0' termination.
+	 */
+	vips_strncpy( txt, nim->intent_name, 17 );
 	vips_image_set_string( out, "nifti-intent_name", txt );
-
-	vips_strncpy( txt, nim->descrip, 80 );
-	txt[80] = '\0';
+	vips_strncpy( txt, nim->descrip, 81 );
 	vips_image_set_string( out, "nifti-descrip", txt );
 
 	for( i = 0; i < nim->num_ext; i++ ) {
@@ -362,25 +420,82 @@ vips_foreign_load_nifti_header( VipsForeignLoad *load )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadNifti *nifti = (VipsForeignLoadNifti *) load;
 
-	nifti_image *nim;
+
+	/* We can't use the (much faster) nifti_read_header() since it just
+	 * reads the 348 bytes iof the analyze struct and does not read any of
+	 * the extension fields.
+	 */
 
 	/* FALSE means don't read data, just the header. Use
 	 * nifti_image_load() later to pull the data in.
 	 */
-	if( !(nim = nifti_image_read( nifti->filename, FALSE )) ) { 
+	if( !(nifti->nim = nifti_image_read( nifti->filename, FALSE )) ) { 
 		vips_error( class->nickname, 
-			"%s", _( "unable to read NIFTI file" ) );
+			"%s", _( "unable to read NIFTI header" ) );
 		return( 0 );
 	}
 
-	if( vips_foreign_load_nifti_get_header( nifti, nim, load->out ) ) {
-		nifti_image_free( nim );
+	if( vips_foreign_load_nifti_set_header( nifti, 
+		nifti->nim, load->out ) ) {
 		return( -1 );
 	}
 
-	nifti_image_free( nim );
-
 	VIPS_SETSTR( load->out->filename, nifti->filename );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_load_nifti_generate( VipsRegion *out, 
+	void *seq, void *a, void *b, gboolean *stop )
+{
+	VipsForeignLoadNifti *nifti = (VipsForeignLoadNifti *) a;
+	VipsRect *r = &out->valid;
+	size_t len = VIPS_REGION_SIZEOF_LINE( out );
+	size_t line_stride = VIPS_IMAGE_SIZEOF_LINE( out->im );
+	size_t pixel_stride = VIPS_IMAGE_SIZEOF_PEL( out->im );
+
+	int y;
+
+	VIPS_DEBUG_MSG( "vips_foreign_load_nifti_generate: "
+		"generating left = %d, top = %d, width = %d, height = %d\n", 
+		r->left, r->top, r->width, r->height );
+
+	for( y = r->top; y < VIPS_RECT_BOTTOM( r ); y++ ) {
+		VipsPel *q = VIPS_REGION_ADDR( out, r->left, y );
+		VipsPel *p = (VipsPel *) nifti->nim->data + 
+			y * line_stride + 
+			r->left * pixel_stride;
+
+		memcpy( q, p, len );
+	}
+
+	return( 0 );
+}
+
+static int
+vips_foreign_load_nifti_load( VipsForeignLoad *load )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
+	VipsForeignLoadNifti *nifti = (VipsForeignLoadNifti *) load;
+
+#ifdef DEBUG
+	printf( "vips_foreign_load_nifti_load: loading image\n" );
+#endif /*DEBUG*/
+
+	if( nifti_image_load( nifti->nim ) ) {
+		vips_error( class->nickname, 
+			"%s", _( "unable to load NIFTI file" ) );
+		return( -1 );
+	}
+
+	if( vips_foreign_load_nifti_set_header( nifti, 
+		nifti->nim, load->real ) ) 
+		return( -1 );
+
+	if( vips_image_generate( load->real, 
+		NULL, vips_foreign_load_nifti_generate, NULL, nifti, NULL ) ) 
+		return( -1 );
 
 	return( 0 );
 }
@@ -400,6 +515,7 @@ vips_foreign_load_nifti_class_init( VipsForeignLoadNiftiClass *class )
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
+	gobject_class->dispose = vips_foreign_load_nifti_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
@@ -414,6 +530,7 @@ vips_foreign_load_nifti_class_init( VipsForeignLoadNiftiClass *class )
 
 	load_class->is_a = is_nifti_file;
 	load_class->header = vips_foreign_load_nifti_header;
+	load_class->load = vips_foreign_load_nifti_load;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
