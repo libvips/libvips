@@ -37,8 +37,14 @@
  */
 
 /* TODO
- * - for uncompressed images, we could offer direct mapping of the input
- * - could stream the image perhaps?
+ *
+ * - for uncompressed images, we could do direct mapping of the input
+ * - perhaps we could stream compressed images? but only if ext is defined at 
+ *   the start of the file
+ * - we could use the much faster byteswap in glib?
+ * - I have not been able to test the ext stuff :( 
+ *
+ * There should be at least a x2 speedup possible.
  */
 
 #ifdef HAVE_CONFIG_H
