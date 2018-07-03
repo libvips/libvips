@@ -877,45 +877,92 @@ vips_exif_from_s( ExifData *ed, ExifEntry *entry, const char *value )
 	unsigned long i;
 	const char *p;
 
-	if( entry->format != EXIF_FORMAT_SHORT &&
-		entry->format != EXIF_FORMAT_SSHORT &&
-		entry->format != EXIF_FORMAT_LONG &&
-		entry->format != EXIF_FORMAT_SLONG &&
-		entry->format != EXIF_FORMAT_RATIONAL &&
-		entry->format != EXIF_FORMAT_SRATIONAL )
-		return;
-	if( entry->components >= 10 )
-		return;
+	if( entry->format == EXIF_FORMAT_SHORT ||
+		entry->format == EXIF_FORMAT_SSHORT ||
+		entry->format == EXIF_FORMAT_LONG ||
+		entry->format == EXIF_FORMAT_SLONG ) {
+		if( entry->components >= 10 )
+			return;
 
-	/* Skip any leading spaces.
-	 */
-	p = value;
-	while( *p == ' ' )
-		p += 1;
+		/* Skip any leading spaces.
+		 */
+		p = value;
+		while( *p == ' ' )
+			p += 1;
 
-	for( i = 0; i < entry->components; i++ ) {
-		if( entry->format == EXIF_FORMAT_SHORT || 
-			entry->format == EXIF_FORMAT_SSHORT || 
-			entry->format == EXIF_FORMAT_LONG || 
-			entry->format == EXIF_FORMAT_SLONG ) {
+		for( i = 0; i < entry->components; i++ ) {
 			int value = atof( p );
 
 			vips_exif_set_int( ed, entry, i, &value );
-		}
-		else if( entry->format == EXIF_FORMAT_RATIONAL || 
-			entry->format == EXIF_FORMAT_SRATIONAL ) 
-			vips_exif_set_rational( ed, entry, i, (void *) p );
 
-		/* Skip to the next set of spaces, then to the beginning of
-		 * the next item.
+			/* Skip to the next set of spaces, then to the 
+			 * beginning of the next item.
+			 */
+			while( *p && *p != ' ' )
+				p += 1;
+			while( *p == ' ' )
+				p += 1;
+			if( !*p )
+				break;
+		}
+	}
+	else if( entry->format == EXIF_FORMAT_RATIONAL ||
+		entry->format == EXIF_FORMAT_SRATIONAL ) {
+		if( entry->components >= 10 )
+			return;
+
+		/* Skip any leading spaces.
 		 */
-		while( *p && *p != ' ' )
-			p += 1;
+		p = value;
 		while( *p == ' ' )
 			p += 1;
-		if( !*p )
-			break;
+
+		for( i = 0; i < entry->components; i++ ) {
+			vips_exif_set_rational( ed, entry, i, (void *) p );
+
+			/* Skip to the next set of spaces, then to the 
+			 * beginning of the next item.
+			 */
+			while( *p && *p != ' ' )
+				p += 1;
+			while( *p == ' ' )
+				p += 1;
+			if( !*p )
+				break;
+		}
 	}
+	else if( entry->format == EXIF_FORMAT_ASCII ) {
+		int len;
+		char *q;
+
+		/* A copy of value which we may have to free.
+		 */
+		q = NULL;
+
+		/* The final " (xx, ASCII, yy, zz)" part of the string was
+		 * added by us in _to_s(), we must remove it before setting
+		 * the string back again.
+		 *
+		 * It may not be there if the user has changed the string.
+		 *
+		 * Leave p as poointing to the trimmed string.
+		 */
+		len = strlen( value );
+		if( len > 0 &&
+			value[len - 1] == ')' &&
+			(p = strrchr( value, '(' )) &&
+			p - value > 0 &&
+			p[-1] == ' ' ) {
+			q = g_strdup( value );
+			q[p - value - 1] = '\0';
+			p = q;
+		}
+		else 
+			p = value;
+
+		for( p = value + strlen( value ) - 1; p >= value; p-- ) 
+	}
+
 }
 
 static void 
