@@ -706,6 +706,69 @@ vips_exif_set_double( ExifData *ed,
 typedef void (*write_fn)( ExifData *ed, 
 	ExifEntry *entry, unsigned long component, void *data );
 
+/* special header required for EXIF_TAG_USER_COMMENT.
+ */
+#define ASCII_COMMENT "ASCII\0\0\0"
+
+/* data is a null-terminated utf-8 string.
+ */
+static void
+vips_exif_set_string( ExifData *ed, 
+	ExifEntry *entry, unsigned long component, const char *data )
+{
+	ExifMem *mem = exif_mem_new_default();
+
+	void *buf;
+	int len;
+	const char *p;
+	char *q;
+
+	/* A copy of data which we may have to free.
+	 */
+	q = NULL;
+
+	/* The final " (xx, ASCII, yy, zz)" part of the string (if present) was
+	 * added by us in _to_s(), we must remove it before setting the string 
+	 * back again.
+	 *
+	 * It may not be there if the user has changed the string.
+	 *
+	 * Leave p pointing to the trimmed string.
+	 */
+	len = strlen( data );
+	if( len > 0 &&
+		data[len - 1] == ')' &&
+		(p = strrchr( data, '(' )) &&
+		p - data > 0 &&
+		p[-1] == ' ' ) {
+		q = g_strdup( data );
+		q[p - data - 1] = '\0';
+		p = q;
+	}
+	else 
+		p = data;
+	len = strlen( p );
+
+	/* The string in the entry must be allocated with the same allocator
+	 * that was used to allocate the entry itself. We assume the entry was
+	 * created with the default one.
+	 *
+	 * We have to write the ASCII charset tag and not write a
+	 * null-terminator.
+	 */
+	buf = exif_mem_alloc( mem, len + sizeof( ASCII_COMMENT ) - 1 );
+	entry->data = buf;
+        entry->size = len;
+        entry->components = len;
+        entry->format = EXIF_FORMAT_ASCII;
+
+	memcpy( entry->data, ASCII_COMMENT, sizeof( ASCII_COMMENT ) - 1 );
+        memcpy( entry->data + sizeof(ASCII_COMMENT) - 1, p, len - 1 );
+
+	VIPS_FREEF( g_free, q ); 
+	VIPS_FREEF( exif_mem_unref, mem );
+}
+
 /* Write a tag. Update what's there, or make a new one.
  */
 static void
@@ -722,12 +785,19 @@ vips_exif_set_tag( ExifData *ed, int ifd, ExifTag tag, write_fn fn, void *data )
 		/* tag must be set before calling exif_content_add_entry.
 		 */
 		entry->tag = tag; 
-
 		exif_content_add_entry( ed->ifd[ifd], entry );
-		exif_entry_initialize( entry, tag );
 		exif_entry_unref( entry );
 
-		fn( ed, entry, 0, data );
+		/* libexif makes us have a special path for string-valued
+		 * fields :(
+		 */
+		if( tag == EXIF_TAG_USER_COMMENT ) {
+			vips_exif_set_string( ed, entry, 0, data );
+		}
+		else {
+			exif_entry_initialize( entry, tag );
+			fn( ed, entry, 0, data );
+		}
 	}
 }
 
@@ -869,13 +939,38 @@ vips_exif_set_thumbnail( ExifData *ed, VipsImage *im )
 	return( 0 );
 }
 
-/* See also vips_exif_to_s() ... keep in sync.
+/* Skip any spaces.
+ */
+static const char *
+skip_space( const char *p )
+{
+	while( p && *p == ' ' )
+		p += 1;
+
+	return( p );
+}
+
+/* Skip to the end of this non-space sequence.
+ */
+static const char *
+skip_nonspace( const char *p )
+{
+	while( p && *p && *p != ' ' )
+		p += 1;
+
+	return( p );
+}
+
+/* See also vips_exif_to_s() ... keep in sync. Only the numeric types are
+ * handled here, since they can be updated. For string types, we have to
+ * destroy and recreate, see above. 
  */
 static void
 vips_exif_from_s( ExifData *ed, ExifEntry *entry, const char *value )
 {
 	unsigned long i;
 	const char *p;
+	int v;
 
 	if( entry->format == EXIF_FORMAT_SHORT ||
 		entry->format == EXIF_FORMAT_SSHORT ||
@@ -884,26 +979,15 @@ vips_exif_from_s( ExifData *ed, ExifEntry *entry, const char *value )
 		if( entry->components >= 10 )
 			return;
 
-		/* Skip any leading spaces.
-		 */
 		p = value;
-		while( *p == ' ' )
-			p += 1;
-
 		for( i = 0; i < entry->components; i++ ) {
-			int value = atof( p );
+			if( !(p = skip_space( p )) )
+			       break;	
 
-			vips_exif_set_int( ed, entry, i, &value );
+			v = atof( p );
+			vips_exif_set_int( ed, entry, i, &v );
 
-			/* Skip to the next set of spaces, then to the 
-			 * beginning of the next item.
-			 */
-			while( *p && *p != ' ' )
-				p += 1;
-			while( *p == ' ' )
-				p += 1;
-			if( !*p )
-				break;
+			p = skip_nonspace( p );
 		}
 	}
 	else if( entry->format == EXIF_FORMAT_RATIONAL ||
@@ -911,56 +995,15 @@ vips_exif_from_s( ExifData *ed, ExifEntry *entry, const char *value )
 		if( entry->components >= 10 )
 			return;
 
-		/* Skip any leading spaces.
-		 */
 		p = value;
-		while( *p == ' ' )
-			p += 1;
-
 		for( i = 0; i < entry->components; i++ ) {
+			if( !(p = skip_space( p )) )
+			       break;	
+
 			vips_exif_set_rational( ed, entry, i, (void *) p );
 
-			/* Skip to the next set of spaces, then to the 
-			 * beginning of the next item.
-			 */
-			while( *p && *p != ' ' )
-				p += 1;
-			while( *p == ' ' )
-				p += 1;
-			if( !*p )
-				break;
+			p = skip_nonspace( p );
 		}
-	}
-	else if( entry->format == EXIF_FORMAT_ASCII ) {
-		int len;
-		char *q;
-
-		/* A copy of value which we may have to free.
-		 */
-		q = NULL;
-
-		/* The final " (xx, ASCII, yy, zz)" part of the string was
-		 * added by us in _to_s(), we must remove it before setting
-		 * the string back again.
-		 *
-		 * It may not be there if the user has changed the string.
-		 *
-		 * Leave p as poointing to the trimmed string.
-		 */
-		len = strlen( value );
-		if( len > 0 &&
-			value[len - 1] == ')' &&
-			(p = strrchr( value, '(' )) &&
-			p - value > 0 &&
-			p[-1] == ' ' ) {
-			q = g_strdup( value );
-			q[p - value - 1] = '\0';
-			p = q;
-		}
-		else 
-			p = value;
-
-		for( p = value + strlen( value ) - 1; p >= value; p-- ) 
 	}
 
 }
@@ -1048,6 +1091,12 @@ vips_exif_exif_entry( ExifEntry *entry, VipsExifRemove *ve )
 	if( strcmp( tag_name, "Orientation" ) == 0 &&
 		vips_image_get_typeof( ve->image, VIPS_META_ORIENTATION ) )
 		ve->to_remove = g_slist_prepend( ve->to_remove, entry );
+
+	/* If this is a string tag, we must also remove it ready for
+	 * recreation, see the comment below.
+	 */
+	if( entry->format == EXIF_FORMAT_ASCII )
+		ve->to_remove = g_slist_prepend( ve->to_remove, entry );
 }
 
 static void *
@@ -1091,14 +1140,17 @@ vips_exif_update( ExifData *ed, VipsImage *image )
 
 	VIPS_DEBUG_MSG( "vips_exif_update: \n" );
 
-	/* Walk the image and add any exif- that's set in image metadata.
-	 */
-	vips_image_map( image, vips_exif_image_field, ed );
-
 	/* If this exif came from the image (rather than being an exif block we
 	 * have made afresh), then any fields which are in the block but not on
 	 * the image must have been deliberately removed. Remove them from the
 	 * block as well.
+	 *
+	 * If there are any string-valued fields (eg. comment etc.) which
+	 * exist as libvips metadata tags, we must also remove those from the
+	 * exif block.
+	 *
+	 * libexif does not allow you to change string lengths, you must make
+	 * new tags, so we have to remove ready to re-add.
 	 */
 	if( vips_image_get_typeof( image, VIPS_META_EXIF_NAME ) ) {
 		ve.image = image;
@@ -1107,6 +1159,10 @@ vips_exif_update( ExifData *ed, VipsImage *image )
 			(ExifDataForeachContentFunc) vips_exif_exif_content, 
 			&ve );
 	}
+
+	/* Walk the image and add any exif- that's set in image metadata.
+	 */
+	vips_image_map( image, vips_exif_image_field, ed );
 }
 
 /* Examine the metadata tags on the image and update the EXIF block.
