@@ -7,6 +7,8 @@
  * 	- only read orientation from ifd0
  * 1/2/18
  * 	- remove exif thumbnail if "jpeg-thumbnail-data" has been removed
+ * 3/7/18
+ * 	- add support for writing string-valued fields
  */
 
 /*
@@ -706,67 +708,135 @@ vips_exif_set_double( ExifData *ed,
 typedef void (*write_fn)( ExifData *ed, 
 	ExifEntry *entry, unsigned long component, void *data );
 
+/* String-valued tags need special treatment, sadly.
+ */
+static gboolean
+tag_is_ascii( ExifTag tag )
+{
+	return( tag == EXIF_TAG_MAKE ||
+		tag == EXIF_TAG_MODEL ||
+		tag == EXIF_TAG_USER_COMMENT ||
+		tag == EXIF_TAG_IMAGE_DESCRIPTION ||
+		tag == EXIF_TAG_ARTIST );
+}
+
+static gboolean
+tag_is_utf16( ExifTag tag )
+{
+	return( tag == EXIF_TAG_XP_TITLE || 
+		tag == EXIF_TAG_XP_COMMENT || 
+		tag == EXIF_TAG_XP_AUTHOR || 
+		tag == EXIF_TAG_XP_KEYWORDS ||
+		tag == EXIF_TAG_XP_SUBJECT );
+}
+
 /* special header required for EXIF_TAG_USER_COMMENT.
  */
 #define ASCII_COMMENT "ASCII\0\0\0"
 
-/* data is a null-terminated utf-8 string.
+/* Set a libexif-formatted string entry. 
  */
 static void
-vips_exif_set_string( ExifData *ed, 
-	ExifEntry *entry, unsigned long component, const char *data )
+vips_exif_alloc_string( ExifEntry *entry, unsigned long components )
 {
-	ExifMem *mem = exif_mem_new_default();
+	ExifMem *mem;
 
-	void *buf;
-	int len;
-	const char *p;
-	char *q;
-
-	/* A copy of data which we may have to free.
-	 */
-	q = NULL;
-
-	/* The final " (xx, ASCII, yy, zz)" part of the string (if present) was
-	 * added by us in _to_s(), we must remove it before setting the string 
-	 * back again.
-	 *
-	 * It may not be there if the user has changed the string.
-	 *
-	 * Leave p pointing to the trimmed string.
-	 */
-	len = strlen( data );
-	if( len > 0 &&
-		data[len - 1] == ')' &&
-		(p = strrchr( data, '(' )) &&
-		p - data > 0 &&
-		p[-1] == ' ' ) {
-		q = g_strdup( data );
-		q[p - data - 1] = '\0';
-		p = q;
-	}
-	else 
-		p = data;
-	len = strlen( p );
+	g_assert( !entry->data );
 
 	/* The string in the entry must be allocated with the same allocator
-	 * that was used to allocate the entry itself. We assume the entry was
+	 * that was used to allocate the entry itself. We can't do this
+	 * because the allocator is private :( so we must assume the entry was
 	 * created with the default one.
-	 *
-	 * We have to write the ASCII charset tag and not write a
-	 * null-terminator.
 	 */
-	buf = exif_mem_alloc( mem, len + sizeof( ASCII_COMMENT ) - 1 );
-	entry->data = buf;
-        entry->size = len;
-        entry->components = len;
-        entry->format = EXIF_FORMAT_ASCII;
+	mem = exif_mem_new_default();
 
-	memcpy( entry->data, ASCII_COMMENT, sizeof( ASCII_COMMENT ) - 1 );
-        memcpy( entry->data + sizeof(ASCII_COMMENT) - 1, p, len - 1 );
+	/* EXIF_FORMAT_UNDEFINED is correct for EXIF_TAG_USER_COMMENT, our 
+	 * caller should change this if it wishes.
+	 */
+	entry->data = exif_mem_alloc( mem, components );
+        entry->size = components;
+        entry->components = components;
+        entry->format = EXIF_FORMAT_UNDEFINED;
 
-	VIPS_FREEF( g_free, q ); 
 	VIPS_FREEF( exif_mem_unref, mem );
+}
+
+/* The final " (xx, yy, zz, kk)" part of the string (if present) was
+ * added by us in _to_s(), we must remove it before setting the string 
+ * back again.
+ *
+ * It may not be there if the user has changed the string.
+ */
+static char *
+drop_tail( const char *data )
+{
+	char *str;
+	char *p;
+
+	str = g_strdup( data );
+
+	p = str + strlen( str );
+	if( p > str &&
+		*(p = g_utf8_prev_char( p )) == ')' &&
+		(p = g_utf8_strrchr( p, -1, (gunichar) '(')) &&
+		p > str &&
+		*(p = g_utf8_prev_char( p )) == ' ' )
+		*p = '\0';
+
+	return( str );
+}
+
+/* Write a libvips NULL-terminated utf-8 string into an ASCII entry. Tags like
+ * UserComment are really ASCII-only.
+ */
+static void
+vips_exif_set_string_ascii( ExifData *ed, 
+	ExifEntry *entry, unsigned long component, const char *data )
+{
+	char *str;
+	char *ascii;
+	int len;
+
+	str = drop_tail( data );
+
+	/* libexif can only really save ASCII to things like UserComment.
+	 */
+	ascii = g_str_to_ascii( str, NULL );
+
+	/* libexif comment strings are not NULL-terminated, and have an 
+	 * encoding tag (always ASCII) in the first 8 bytes.
+	 */
+	len = strlen( ascii );
+	vips_exif_alloc_string( entry, sizeof( ASCII_COMMENT ) - 1 + len );
+	memcpy( entry->data, ASCII_COMMENT, sizeof( ASCII_COMMENT ) - 1 );
+        memcpy( entry->data + sizeof( ASCII_COMMENT ) - 1, ascii, len );
+
+	g_free( ascii ); 
+	g_free( str );
+}
+
+/* Write a libvips NULL-terminated utf-8 string into an entry.
+ */
+static void
+vips_exif_set_string_utf16( ExifData *ed, 
+	ExifEntry *entry, unsigned long component, const char *data )
+{
+	char *str;
+	gunichar2 *utf16;
+	glong len;
+
+	str = drop_tail( data );
+
+	utf16 = g_utf8_to_utf16( str, -1, NULL, &len, NULL );
+
+	/* libexif utf16 strings are not NULL-terminated.
+	 */
+	vips_exif_alloc_string( entry, len * 2 );
+	memcpy( entry->data, utf16, len * 2 ); 
+        entry->format = EXIF_FORMAT_BYTE;
+
+	g_free( utf16 ); 
+	g_free( str );
 }
 
 /* Write a tag. Update what's there, or make a new one.
@@ -791,9 +861,10 @@ vips_exif_set_tag( ExifData *ed, int ifd, ExifTag tag, write_fn fn, void *data )
 		/* libexif makes us have a special path for string-valued
 		 * fields :(
 		 */
-		if( tag == EXIF_TAG_USER_COMMENT ) {
-			vips_exif_set_string( ed, entry, 0, data );
-		}
+		if( tag_is_ascii( tag ) ) 
+			vips_exif_set_string_ascii( ed, entry, 0, data );
+		else if( tag_is_utf16( tag ) )
+			vips_exif_set_string_utf16( ed, entry, 0, data );
 		else {
 			exif_entry_initialize( entry, tag );
 			fn( ed, entry, 0, data );
@@ -1095,7 +1166,8 @@ vips_exif_exif_entry( ExifEntry *entry, VipsExifRemove *ve )
 	/* If this is a string tag, we must also remove it ready for
 	 * recreation, see the comment below.
 	 */
-	if( entry->format == EXIF_FORMAT_ASCII )
+	if( tag_is_ascii( entry->tag ) ||
+		tag_is_utf16( entry->tag ) )
 		ve->to_remove = g_slist_prepend( ve->to_remove, entry );
 }
 
