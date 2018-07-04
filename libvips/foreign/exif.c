@@ -709,13 +709,26 @@ typedef void (*write_fn)( ExifData *ed,
 	ExifEntry *entry, unsigned long component, void *data );
 
 /* String-valued tags need special treatment, sadly.
+ *
+ * Strings are written in three ways: 
+ *
+ * 1. As ASCII, but with an 8-byte preamble giving the encoding (it's always
+ * ASCII though) and the format undefined.
+ * 2. As plain ASCII, with the format giving the encoding.
+ * 3. As UTF16 in the MS tags.
  */
+
+static gboolean
+tag_is_encoding( ExifTag tag )
+{
+	return( tag == EXIF_TAG_USER_COMMENT );
+}
+
 static gboolean
 tag_is_ascii( ExifTag tag )
 {
 	return( tag == EXIF_TAG_MAKE ||
 		tag == EXIF_TAG_MODEL ||
-		tag == EXIF_TAG_USER_COMMENT ||
 		tag == EXIF_TAG_IMAGE_DESCRIPTION ||
 		tag == EXIF_TAG_ARTIST );
 }
@@ -729,10 +742,6 @@ tag_is_utf16( ExifTag tag )
 		tag == EXIF_TAG_XP_KEYWORDS ||
 		tag == EXIF_TAG_XP_SUBJECT );
 }
-
-/* special header required for EXIF_TAG_USER_COMMENT.
- */
-#define ASCII_COMMENT "ASCII\0\0\0"
 
 /* Set a libexif-formatted string entry. 
  */
@@ -786,11 +795,15 @@ drop_tail( const char *data )
 	return( str );
 }
 
-/* Write a libvips NULL-terminated utf-8 string into an ASCII entry. Tags like
- * UserComment are really ASCII-only.
+/* special header required for EXIF_TAG_USER_COMMENT.
+ */
+#define ASCII_COMMENT "ASCII\0\0\0"
+
+/* Write a libvips NULL-terminated utf-8 string into a entry tagged with a
+ * encoding. UserComment is like this, for example.
  */
 static void
-vips_exif_set_string_ascii( ExifData *ed, 
+vips_exif_set_string_encoding( ExifData *ed, 
 	ExifEntry *entry, unsigned long component, const char *data )
 {
 	char *str;
@@ -815,7 +828,32 @@ vips_exif_set_string_ascii( ExifData *ed,
 	g_free( str );
 }
 
-/* Write a libvips NULL-terminated utf-8 string into an entry.
+/* Write a libvips NULL-terminated utf-8 string into an ASCII entry. Tags like
+ * ImageDescription work like this.
+ */
+static void
+vips_exif_set_string_ascii( ExifData *ed, 
+	ExifEntry *entry, unsigned long component, const char *data )
+{
+	char *str;
+	char *ascii;
+	int len;
+
+	str = drop_tail( data );
+	ascii = g_str_to_ascii( str, NULL );
+
+	/* ASCII strings are NULL-terminated.
+	 */
+	len = strlen( ascii );
+	vips_exif_alloc_string( entry, len + 1 );
+        memcpy( entry->data, ascii, len + 1 );
+        entry->format = EXIF_FORMAT_ASCII;
+
+	g_free( ascii ); 
+	g_free( str );
+}
+
+/* Write a libvips NULL-terminated utf-8 string into a utf16 entry.
  */
 static void
 vips_exif_set_string_utf16( ExifData *ed, 
@@ -829,10 +867,10 @@ vips_exif_set_string_utf16( ExifData *ed,
 
 	utf16 = g_utf8_to_utf16( str, -1, NULL, &len, NULL );
 
-	/* libexif utf16 strings are not NULL-terminated.
+	/* libexif utf16 strings are NULL-terminated.
 	 */
-	vips_exif_alloc_string( entry, len * 2 );
-	memcpy( entry->data, utf16, len * 2 ); 
+	vips_exif_alloc_string( entry, (len + 1) * 2 );
+	memcpy( entry->data, utf16, (len + 1) * 2 ); 
         entry->format = EXIF_FORMAT_BYTE;
 
 	g_free( utf16 ); 
@@ -861,7 +899,9 @@ vips_exif_set_tag( ExifData *ed, int ifd, ExifTag tag, write_fn fn, void *data )
 		/* libexif makes us have a special path for string-valued
 		 * fields :(
 		 */
-		if( tag_is_ascii( tag ) ) 
+		if( tag_is_encoding( tag ) ) 
+			vips_exif_set_string_encoding( ed, entry, 0, data );
+		else if( tag_is_ascii( tag ) ) 
 			vips_exif_set_string_ascii( ed, entry, 0, data );
 		else if( tag_is_utf16( tag ) )
 			vips_exif_set_string_utf16( ed, entry, 0, data );
@@ -1166,7 +1206,8 @@ vips_exif_exif_entry( ExifEntry *entry, VipsExifRemove *ve )
 	/* If this is a string tag, we must also remove it ready for
 	 * recreation, see the comment below.
 	 */
-	if( tag_is_ascii( entry->tag ) ||
+	if( tag_is_encoding( entry->tag ) ||
+		tag_is_ascii( entry->tag ) ||
 		tag_is_utf16( entry->tag ) )
 		ve->to_remove = g_slist_prepend( ve->to_remove, entry );
 }
