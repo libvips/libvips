@@ -119,7 +119,7 @@ class TestForeign:
 
         x = None
 
-    @skip_if_no('jpegload')
+    @skip_if_no("jpegload")
     def test_jpeg(self):
         def jpeg_valid(im):
             a = im(10, 10)
@@ -147,9 +147,12 @@ class TestForeign:
             # can set, save and load new orientation
             x = pyvips.Image.new_from_file(JPEG_FILE)
             x = x.copy()
+
             x.set("orientation", 2)
+
             filename = temp_filename(self.tempdir, '.jpg')
             x.write_to_file(filename)
+
             x = pyvips.Image.new_from_file(filename)
             y = x.get("orientation")
             assert y == 2
@@ -157,26 +160,80 @@ class TestForeign:
             # can remove orientation, save, load again, orientation
             # has reset
             x.remove("orientation")
+
             filename = temp_filename(self.tempdir, '.jpg')
             x.write_to_file(filename)
+
             x = pyvips.Image.new_from_file(filename)
             y = x.get("orientation")
             assert y == 1
 
             # autorotate load works
-            filename = temp_filename(self.tempdir, '.jpg')
             x = pyvips.Image.new_from_file(JPEG_FILE)
             x = x.copy()
+
             x.set("orientation", 6)
+
+            filename = temp_filename(self.tempdir, '.jpg')
             x.write_to_file(filename)
+
             x1 = pyvips.Image.new_from_file(filename)
             x2 = pyvips.Image.new_from_file(filename, autorotate=True)
             assert x1.width == x2.height
             assert x1.height == x2.width
 
-    @pytest.mark.skipif(not have("pngload") or
-                        not os.path.isfile(PNG_FILE),
-                        reason="no png support, skipping test")
+            # can set, save and reload ASCII string fields
+            x = pyvips.Image.new_from_file(JPEG_FILE)
+            x = x.copy()
+
+            x.set_type(pyvips.GValue.gstr_type, 
+                       "exif-ifd0-ImageDescription", "hello world")
+
+            filename = temp_filename(self.tempdir, '.jpg')
+            x.write_to_file(filename)
+
+            x = pyvips.Image.new_from_file(filename)
+            y = x.get("exif-ifd0-ImageDescription")
+            # can't use == since the string will have an extra " (xx, yy, zz)" 
+            # format area at the end
+            assert y.startswith("hello world")
+
+            # can set, save and reload UTF16 string fields ... pyvips is 
+            # utf8, but it will be coded as utf16 and back for the XP* fields
+            x = pyvips.Image.new_from_file(JPEG_FILE)
+            x = x.copy()
+
+            x.set_type(pyvips.GValue.gstr_type, "exif-ifd0-XPComment", "йцук")
+
+            filename = temp_filename(self.tempdir, '.jpg')
+            x.write_to_file(filename)
+
+            x = pyvips.Image.new_from_file(filename)
+            y = x.get("exif-ifd0-XPComment")
+            # can't use == since the string will have an extra " (xx, yy, zz)" 
+            # format area at the end
+            assert y.startswith("йцук")
+
+            # can set/save/load UserComment, a tag which has the
+            # encoding in the first 8 bytes ... though libexif only supports
+            # ASCII for this
+            x = pyvips.Image.new_from_file(JPEG_FILE)
+            x = x.copy()
+
+            x.set_type(pyvips.GValue.gstr_type, 
+                       "exif-ifd2-UserComment", "hello world")
+
+            filename = temp_filename(self.tempdir, '.jpg')
+            x.write_to_file(filename)
+
+            x = pyvips.Image.new_from_file(filename)
+            y = x.get("exif-ifd2-UserComment")
+            # can't use == since the string will have an extra " (xx, yy, zz)" 
+            # format area at the end
+            assert y.startswith("hello world")
+
+
+    @skip_if_no("pngload")
     def test_png(self):
         def png_valid(im):
             a = im(10, 10)
@@ -191,9 +248,7 @@ class TestForeign:
         self.save_load("%s.png", self.mono)
         self.save_load("%s.png", self.colour)
 
-    @pytest.mark.skipif(not have("tiffload") or
-                        not os.path.isfile(TIF_FILE),
-                        reason="no tiff support, skipping test")
+    @skip_if_no("tiffload")
     def test_tiff(self):
         def tiff_valid(im):
             a = im(10, 10)
@@ -314,9 +369,7 @@ class TestForeign:
             assert a.height == b.height
             assert a.avg() == b.avg()
 
-    @pytest.mark.skipif(not have("magickload") or
-                        not os.path.isfile(BMP_FILE),
-                        reason="no magick support, skipping test")
+    @skip_if_no("magickload")
     def test_magickload(self):
         def bmp_valid(im):
             a = im(100, 100)
@@ -377,8 +430,7 @@ class TestForeign:
                                   self.colour, 0, format="BMP")
             self.save_load("%s.bmp", self.colour)
 
-    @pytest.mark.skipif(not have("webpload") or not os.path.isfile(WEBP_FILE),
-                        reason="no webp support, skipping test")
+    @skip_if_no("webpload")
     def test_webp(self):
         def webp_valid(im):
             a = im(10, 10)
@@ -428,9 +480,7 @@ class TestForeign:
                 y = pyvips.Image.new_from_buffer(buf, "")
                 assert y.get("orientation") == 6
 
-    @pytest.mark.skipif(not have("analyzeload") or
-                        not os.path.isfile(ANALYZE_FILE),
-                        reason="no analyze support, skipping test")
+    @skip_if_no("analyzeload")
     def test_analyzeload(self):
         def analyze_valid(im):
             a = im(10, 10)
@@ -441,9 +491,7 @@ class TestForeign:
 
         self.file_loader("analyzeload", ANALYZE_FILE, analyze_valid)
 
-    @pytest.mark.skipif(not have("matload") or
-                        not os.path.isfile(MATLAB_FILE),
-                        reason="no matlab support, skipping test")
+    @skip_if_no("matload")
     def test_matload(self):
         def matlab_valid(im):
             a = im(10, 10)
@@ -454,9 +502,7 @@ class TestForeign:
 
         self.file_loader("matload", MATLAB_FILE, matlab_valid)
 
-    @pytest.mark.skipif(not have("openexrload") or
-                        not os.path.isfile(EXR_FILE),
-                        reason="no openexr support, skipping test")
+    @skip_if_no("openexrload")
     def test_openexrload(self):
         def exr_valid(im):
             a = im(10, 10)
@@ -469,9 +515,7 @@ class TestForeign:
 
         self.file_loader("openexrload", EXR_FILE, exr_valid)
 
-    @pytest.mark.skipif(not have("fitsload") or
-                        not os.path.isfile(FITS_FILE),
-                        reason="no fits support, skipping test")
+    @skip_if_no("fitsload")
     def test_fitsload(self):
         def fits_valid(im):
             a = im(10, 10)
@@ -484,9 +528,7 @@ class TestForeign:
         self.file_loader("fitsload", FITS_FILE, fits_valid)
         self.save_load("%s.fits", self.mono)
 
-    @pytest.mark.skipif(not have("openslideload") or  # noqa: E501
-                        not os.path.isfile(OPENSLIDE_FILE),
-                        reason="no openslide support, skipping test")
+    @skip_if_no("openslideload")
     def test_openslideload(self):
         def openslide_valid(im):
             a = im(10, 10)
@@ -497,9 +539,7 @@ class TestForeign:
 
         self.file_loader("openslideload", OPENSLIDE_FILE, openslide_valid)
 
-    @pytest.mark.skipif(not have("pdfload") or
-                        not os.path.isfile(PDF_FILE),
-                        reason="no pdf support, skipping test")
+    @skip_if_no("pdfload")
     def test_pdfload(self):
         def pdf_valid(im):
             a = im(10, 10)
@@ -521,9 +561,7 @@ class TestForeign:
         assert abs(im.width * 2 - x.width) < 2
         assert abs(im.height * 2 - x.height) < 2
 
-    @pytest.mark.skipif(not have("gifload") or
-                        not os.path.isfile(GIF_FILE),
-                        reason="no gif support, skipping test")
+    @skip_if_no("gifload")
     def test_gifload(self):
         def gif_valid(im):
             a = im(10, 10)
@@ -549,9 +587,7 @@ class TestForeign:
             x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, page=1, n=-1)
             assert x2.height == 4 * x1.height
 
-    @pytest.mark.skipif(not have("svgload") or
-                        not os.path.isfile(SVG_FILE),
-                        reason="no svg support, skipping test")
+    @skip_if_no("svgload")
     def test_svgload(self):
         def svg_valid(im):
             a = im(10, 10)
@@ -590,21 +626,18 @@ class TestForeign:
     def test_matrix(self):
         self.save_load("%s.mat", self.mono)
 
-    @pytest.mark.skipif(not have("ppmload"),
-                        reason="no PPM support, skipping test")
+    @skip_if_no("ppmload")
     def test_ppm(self):
         self.save_load("%s.ppm", self.mono)
         self.save_load("%s.ppm", self.colour)
 
-    @pytest.mark.skipif(not have("radload"),
-                        reason="no Radiance support, skipping test")
+    @skip_if_no("radload")
     def test_rad(self):
         self.save_load("%s.hdr", self.colour)
         self.save_buffer_tempfile("radsave_buffer", ".hdr",
                                   self.rad, max_diff=0)
 
-    @pytest.mark.skipif(not have("dzsave"),
-                        reason="no dzsave support, skipping test")
+    @skip_if_no("dzsaveload")
     def test_dzsave(self):
         # dzsave is hard to test, there are so many options
         # test each option separately and hope they all function together
