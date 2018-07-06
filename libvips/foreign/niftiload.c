@@ -41,6 +41,8 @@
  * - for uncompressed images, we could do direct mapping of the input
  * - perhaps we could stream compressed images? but only if ext is defined at 
  *   the start of the file
+ *   	(yes, file format is magic number, 348-byte header, extension data,
+ *   	pixel data, then all gz'd)
  * - we could use the much faster byteswap in glib?
  * - I have not been able to test the ext stuff :( 
  *

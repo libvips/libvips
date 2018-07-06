@@ -58,12 +58,34 @@ typedef struct _VipsForeignSaveNifti {
 	 */
 	char *filename; 
 
+	nifti_image *nim;
+
 } VipsForeignSaveNifti;
 
 typedef VipsForeignSaveClass VipsForeignSaveNiftiClass;
 
 G_DEFINE_TYPE( VipsForeignSaveNifti, vips_foreign_save_nifti, 
 	VIPS_TYPE_FOREIGN_SAVE );
+
+static void
+vips_foreign_save_nifti_dispose( GObject *gobject )
+{
+	VipsForeignLoadNifti *nifti = (VipsForeignLoadNifti *) gobject;
+
+	VIPS_FREEF( nifti_image_free, nifti->nim );
+
+	G_OBJECT_CLASS( vips_foreign_load_nifti_parent_class )->
+		dispose( gobject );
+}
+
+static int
+vips_foreign_save_nifti_make_header( VipsForeignSaveNifti *nifti, 
+	struct nifti_1_header *nhdr )
+{
+
+
+	return( 0 );
+}
 
 static int
 vips_foreign_save_nifti_build( VipsObject *object )
@@ -73,9 +95,32 @@ vips_foreign_save_nifti_build( VipsObject *object )
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( nifti ), 2 );
 
+	struct nifti_1_header nhdr;
+
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_nifti_parent_class )->
 		build( object ) )
 		return( -1 );
+
+	if( vips_foreign_save_nifti_make_header( nifti, &nhdr ) )
+		return( -1 );
+
+	if( !(nifti->nim = nifti_convert_nhdr2nim( nhdr, nifti->filename )) )
+		return( -1 );
+
+	/* set ext, plus other stuff
+	 */
+
+	if( !(nim->data = vips_image_write_memory( save->ready, NULL )) )
+		return( -1 );
+
+	/* No return code!??!?!!
+	 */
+	nifti_image_write( nifti->nim );
+
+	/* We must free and NULL the pointer or nifti will try to free it for
+	 * us.
+	 */
+	VIPS_FREE( nim->data );
 
 	return( 0 );
 }
@@ -106,6 +151,7 @@ vips_foreign_save_nifti_class_init( VipsForeignSaveNiftiClass *class )
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
+	gobject_class->dispose = vips_foreign_save_nifti_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
