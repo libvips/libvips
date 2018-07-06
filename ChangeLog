@@ -32,6 +32,7 @@
 - pyramid builders have a choice of 2x2 shrinkers [harukizaemon]
 - add `palette` option to pngsave [felixbuenemann]
 - support writing string-valued fields via libexif
+- paste in the test suite from pyvips
 
 12/3/18 started 8.6.4
 - better fitting of fonts with overhanging edges [Adrià]

@@ -1,4 +1,5 @@
 compile
+.pytest_cache
 a.out
 *.log
 *.trs
