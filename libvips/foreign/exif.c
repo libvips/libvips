@@ -730,7 +730,15 @@ tag_is_ascii( ExifTag tag )
 	return( tag == EXIF_TAG_MAKE ||
 		tag == EXIF_TAG_MODEL ||
 		tag == EXIF_TAG_IMAGE_DESCRIPTION ||
-		tag == EXIF_TAG_ARTIST );
+		tag == EXIF_TAG_ARTIST ||
+		tag == EXIF_TAG_SOFTWARE ||
+		tag == EXIF_TAG_COPYRIGHT ||
+		tag == EXIF_TAG_DATE_TIME ||
+		tag == EXIF_TAG_DATE_TIME_ORIGINAL ||
+		tag == EXIF_TAG_DATE_TIME_DIGITIZED ||
+		tag == EXIF_TAG_SUB_SEC_TIME ||
+		tag == EXIF_TAG_SUB_SEC_TIME_ORIGINAL ||
+		tag == EXIF_TAG_SUB_SEC_TIME_DIGITIZED );
 }
 
 static gboolean
