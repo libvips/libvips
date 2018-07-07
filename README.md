@@ -8,28 +8,25 @@ similar libraries, [libvips runs quickly and uses little
 memory](https://github.com/jcupitt/libvips/wiki/Speed-and-memory-use).
 libvips is licensed under the LGPL 2.1+.
 
-It has around 300 operations covering arithmetic, histograms,
-convolutions, morphological operations, frequency filtering, colour,
-resampling, statistics and others. It supports a large range of numeric
-formats, from 8-bit int to 128-bit complex. It supports a good range of
-image formats, including JPEG, TIFF, PNG, WebP, FITS, Matlab, OpenEXR,
-PDF, SVG, HDR, PPM, CSV, GIF, Analyze, DeepZoom, and OpenSlide.  It can
-also load images via ImageMagick or GraphicsMagick.
+It has around 300 operations covering arithmetic, histograms, convolutions,
+morphological operations, frequency filtering, colour, resampling, statistics
+and others. It supports a large range of numeric formats, from 8-bit int
+to 128-bit complex. It supports a good range of image formats, including
+JPEG, TIFF, PNG, WebP, FITS, Matlab, OpenEXR, PDF, SVG, HDR, PPM, CSV, GIF,
+Analyze, DeepZoom, and OpenSlide.  It can also load images via ImageMagick
+or GraphicsMagick.
 
 It has APIs for
-[C](http://jcupitt.github.io/libvips/API/current/using-from-c.html)
-and
+[C](http://jcupitt.github.io/libvips/API/current/using-from-c.html) and
 [C++](http://jcupitt.github.io/libvips/API/current/using-from-cpp.html)
 and a [command-line
 interface](http://jcupitt.github.io/libvips/API/current/using-cli.html).
-Bindings are available for 
-[Python](https://pypi.python.org/pypi/pyvips),
+Bindings are available for [Python](https://pypi.python.org/pypi/pyvips),
 [Ruby](https://rubygems.org/gems/ruby-vips),
 [PHP](https://github.com/jcupitt/php-vips),
 [Go](https://github.com/davidbyttow/govips),
-[Lua](https://github.com/jcupitt/lua-vips),
-JavaScript and others. There is full
-[documentation](http://jcupitt.github.io/libvips/API/current).
+[Lua](https://github.com/jcupitt/lua-vips), JavaScript and others. There is
+full [documentation](http://jcupitt.github.io/libvips/API/current).
 There are several GUIs as well, see the [VIPS
 website](http://jcupitt.github.io/libvips).
 
@@ -46,14 +43,13 @@ Untar, then in the libvips directory you should just be able to do:
 
 	$ ./configure
 
-Check the summary at the end of `configure` carefully. 
-libvips must have `build-essential`, `pkg-config`, `glib2.0-dev`,
-`libexpat1-dev`.
+Check the summary at the end of `configure` carefully.  libvips must have
+`build-essential`, `pkg-config`, `glib2.0-dev`, `libexpat1-dev`.
 
-You'll need the dev packages for the file format support you
-want. For basic jpeg and tiff support, you'll need `libtiff5-dev`,
-`libjpeg-turbo8-dev`, and `libgsf-1-dev`.  See the **Dependencies** section
-below for a full list of the things that libvips can be configured to use.
+You'll need the dev packages for the file format support you want. For basic
+jpeg and tiff support, you'll need `libtiff5-dev`, `libjpeg-turbo8-dev`,
+and `libgsf-1-dev`.  See the **Dependencies** section below for a full list
+of the things that libvips can be configured to use.
 
 Once `configure` is looking OK, compile and install with the usual:
 
@@ -63,9 +59,21 @@ Once `configure` is looking OK, compile and install with the usual:
 By default this will install files to `/usr/local`.
 
 We have detailed guides on the wiki for [building on
-Windows](https://github.com/jcupitt/libvips/wiki/Build-for-Windows)
-and [building on OS
-X](https://github.com/jcupitt/libvips/wiki/Build-for-macOS).
+Windows](https://github.com/jcupitt/libvips/wiki/Build-for-Windows) and
+[building on OS X](https://github.com/jcupitt/libvips/wiki/Build-for-macOS).
+
+# Testing
+
+Do a basic test of your build with:
+
+	$ make check
+
+Run the libvips test suite with:
+
+	$ pytest
+
+YOu will need to install a variety of Python packages for this, including
+pyvips, the libvips Python binding.
 
 # Building libvips from git
 
