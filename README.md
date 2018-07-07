@@ -41,7 +41,7 @@ https://github.com/jcupitt/libvips/releases
 
 Untar, then in the libvips directory you should just be able to do:
 
-	$ ./configure
+    $ ./configure
 
 Check the summary at the end of `configure` carefully.  libvips must have
 `build-essential`, `pkg-config`, `glib2.0-dev`, `libexpat1-dev`.
@@ -53,8 +53,8 @@ of the things that libvips can be configured to use.
 
 Once `configure` is looking OK, compile and install with the usual:
 
-	$ make
-	$ sudo make install
+    $ make
+    $ sudo make install
 
 By default this will install files to `/usr/local`.
 
@@ -66,11 +66,15 @@ Windows](https://github.com/jcupitt/libvips/wiki/Build-for-Windows) and
 
 Do a basic test of your build with:
 
-	$ make check
+    $ make check
 
 Run the libvips test suite with:
 
-	$ pytest
+    $ pytest
+
+Run a specific test with:
+
+    $ pytest test/test-suite/test_foreign.py -k test_tiff
 
 YOu will need to install a variety of Python packages for this, including
 pyvips, the libvips Python binding.
@@ -79,78 +83,78 @@ pyvips, the libvips Python binding.
 
 Checkout the latest sources with:
 
-	$ git clone git://github.com/jcupitt/libvips.git
+    $ git clone git://github.com/jcupitt/libvips.git
 
 Building from git needs more packages, you'll need at least `swig`, `gtk-doc` 
 and `gobject-introspection`, see the dependencies section below. For example:
 
-	$ brew install gtk-doc swig
+    $ brew install gtk-doc swig
 
 Then build the build system with:
 
-	$ ./autogen.sh
+    $ ./autogen.sh
 
 Debug build:
 
-	$ CFLAGS="-g -Wall" CXXFLAGS="-g -Wall" \
-		./configure --prefix=/home/john/vips --enable-debug
-	$ make
-	$ make install
+    $ CFLAGS="-g -Wall" CXXFLAGS="-g -Wall" \
+        ./configure --prefix=/home/john/vips --enable-debug
+    $ make
+    $ make install
 
 Leak check:
 
-	$ export G_DEBUG=gc-friendly
-	$ valgrind --suppressions=libvips.supp \
-		--leak-check=yes \
-		vips ... > vips-vg.log 2>&1
+    $ export G_DEBUG=gc-friendly
+    $ valgrind --suppressions=libvips.supp \
+	       --leak-check=yes \
+        vips ... > vips-vg.log 2>&1
 
 Memory error debug:
 
-	$ valgrind --vgdb=yes --vgdb-error=0 vips  ...
+    $ valgrind --vgdb=yes --vgdb-error=0 vips  ...
 
 valgrind threading check:
 
-	$ valgrind --tool=helgrind vips ... > vips-vg.log 2>&1
+    $ valgrind --tool=helgrind vips ... > vips-vg.log 2>&1
 
 Clang build:
 
-	$ CC=clang CXX=clang++ ./configure --prefix=/home/john/vips
+    $ CC=clang CXX=clang++ ./configure --prefix=/home/john/vips
 
 Clang static analysis:
 
-	$ scan-build ./configure --disable-introspection --disable-debug
-	$ scan-build -o scan -v make 
-	$ scan-view scan/2013-11-22-2
+    $ scan-build ./configure --disable-introspection --disable-debug
+    $ scan-build -o scan -v make 
+    $ scan-view scan/2013-11-22-2
 
 Clang dynamic analysis:
 
-	$ FLAGS="-O1 -g -fsanitize=address"
-	$ FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
-	$ CC=clang CXX=clang++ LD=clang \
-		CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" LDFLAGS=-fsanitize=address \
-		./configure --prefix=/home/john/vips 
+    $ FLAGS="-O1 -g -fsanitize=address"
+    $ FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+    $ CC=clang CXX=clang++ LD=clang \
+        CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" LDFLAGS=-fsanitize=address \
+        ./configure --prefix=/home/john/vips 
 
-	$ FLAGS="-O1 -g -fsanitize=thread"
-	$ FLAGS="$FLAGS -fPIC"
-	$ FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
-	$ CC=clang CXX=clang++ LD=clang \
-		CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
-		LDFLAGS="-fsanitize=thread -fPIC" \
-		./configure --prefix=/home/john/vips \
-			--without-magick \
-			--disable-introspection
-	$ G_DEBUG=gc-friendly vips copy ~/pics/k2.jpg x.jpg >& log
+    $ FLAGS="-O1 -g -fsanitize=thread"
+    $ FLAGS="$FLAGS -fPIC"
+    $ FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+    $ CC=clang CXX=clang++ LD=clang \
+      CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
+      LDFLAGS="-fsanitize=thread -fPIC" \
+      ./configure --prefix=/home/john/vips \
+        --without-magick \
+        --disable-introspection
+    $ G_DEBUG=gc-friendly vips copy ~/pics/k2.jpg x.jpg >& log
 
 Build with the GCC auto-vectorizer and diagnostics (or just -O3):
 
-	$ FLAGS="-O2 -march=native -ffast-math"
-	$ FLAGS="$FLAGS -ftree-vectorize -fdump-tree-vect-details"
-	$ CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
-		./configure --prefix=/home/john/vips 
+    $ FLAGS="-O2 -march=native -ffast-math"
+    $ FLAGS="$FLAGS -ftree-vectorize -fdump-tree-vect-details"
+    $ CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
+      ./configure --prefix=/home/john/vips 
 
 Static analysis with:
 
-	$ cppcheck --force --enable=style . &> cppcheck.log
+    $ cppcheck --force --enable=style . &> cppcheck.log
 
 # Dependencies 
 
@@ -168,19 +172,19 @@ them in the default path and in `$prefix`. If you have installed your own
 versions of these libraries in a different location, libvips will not see
 them. Use switches to libvips configure like:
 
-	./configure --prefix=/Users/john/vips \
-		--with-giflib-includes=/opt/local/include \
-		--with-giflib-libraries=/opt/local/lib \
-		--with-tiff-includes=/opt/local/include \
-		--with-tiff-libraries=/opt/local/lib \
-		--with-jpeg-includes=/opt/local/include \
-		--with-jpeg-libraries=/opt/local/lib
+    ./configure --prefix=/Users/john/vips \
+        --with-giflib-includes=/opt/local/include \
+        --with-giflib-libraries=/opt/local/lib \
+        --with-tiff-includes=/opt/local/include \
+        --with-tiff-libraries=/opt/local/lib \
+        --with-jpeg-includes=/opt/local/include \
+        --with-jpeg-libraries=/opt/local/lib
 
 or perhaps:
 
-	CFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
-		CXXFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
-		./configure --without-python --prefix=/Users/john/vips 
+    CFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
+    CXXFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
+    ./configure --without-python --prefix=/Users/john/vips 
 
 to get libvips to see your builds.
 

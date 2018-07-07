@@ -320,54 +320,58 @@ class TestForeign:
         assert x1.height == x2.width
 
         # OME support in 8.5
-        if pyvips.at_least_libvips(8, 5):
-            x = pyvips.Image.new_from_file(OME_FILE)
-            assert x.width == 439
-            assert x.height == 167
-            page_height = x.height
+        x = pyvips.Image.new_from_file(OME_FILE)
+        assert x.width == 439
+        assert x.height == 167
+        page_height = x.height
 
-            x = pyvips.Image.new_from_file(OME_FILE, n=-1)
-            assert x.width == 439
-            assert x.height == page_height * 15
+        x = pyvips.Image.new_from_file(OME_FILE, n=-1)
+        assert x.width == 439
+        assert x.height == page_height * 15
 
-            x = pyvips.Image.new_from_file(OME_FILE, page=1, n=-1)
-            assert x.width == 439
-            assert x.height == page_height * 14
+        x = pyvips.Image.new_from_file(OME_FILE, page=1, n=-1)
+        assert x.width == 439
+        assert x.height == page_height * 14
 
-            x = pyvips.Image.new_from_file(OME_FILE, page=1, n=2)
-            assert x.width == 439
-            assert x.height == page_height * 2
+        x = pyvips.Image.new_from_file(OME_FILE, page=1, n=2)
+        assert x.width == 439
+        assert x.height == page_height * 2
 
-            x = pyvips.Image.new_from_file(OME_FILE, n=-1)
-            assert x(0, 166)[0] == 96
-            assert x(0, 167)[0] == 0
-            assert x(0, 168)[0] == 1
+        x = pyvips.Image.new_from_file(OME_FILE, n=-1)
+        assert x(0, 166)[0] == 96
+        assert x(0, 167)[0] == 0
+        assert x(0, 168)[0] == 1
 
-            filename = temp_filename(self.tempdir, '.tif')
-            x.write_to_file(filename)
+        filename = temp_filename(self.tempdir, '.tif')
+        x.write_to_file(filename)
 
-            x = pyvips.Image.new_from_file(filename, n=-1)
-            assert x.width == 439
-            assert x.height == page_height * 15
-            assert x(0, 166)[0] == 96
-            assert x(0, 167)[0] == 0
-            assert x(0, 168)[0] == 1
+        x = pyvips.Image.new_from_file(filename, n=-1)
+        assert x.width == 439
+        assert x.height == page_height * 15
+        assert x(0, 166)[0] == 96
+        assert x(0, 167)[0] == 0
+        assert x(0, 168)[0] == 1
 
         # pyr save to buffer added in 8.6
-        if pyvips.at_least_libvips(8, 6):
-            x = pyvips.Image.new_from_file(TIF_FILE)
-            buf = x.tiffsave_buffer(tile=True, pyramid=True)
-            filename = temp_filename(self.tempdir, '.tif')
-            x.tiffsave(filename, tile=True, pyramid=True)
-            with open(filename, 'rb') as f:
-                buf2 = f.read()
-            assert len(buf) == len(buf2)
+        x = pyvips.Image.new_from_file(TIF_FILE)
+        buf = x.tiffsave_buffer(tile=True, pyramid=True)
+        filename = temp_filename(self.tempdir, '.tif')
+        x.tiffsave(filename, tile=True, pyramid=True)
+        with open(filename, 'rb') as f:
+            buf2 = f.read()
+        assert len(buf) == len(buf2)
 
-            a = pyvips.Image.new_from_buffer(buf, "", page=2)
-            b = pyvips.Image.new_from_buffer(buf2, "", page=2)
-            assert a.width == b.width
-            assert a.height == b.height
-            assert a.avg() == b.avg()
+        a = pyvips.Image.new_from_buffer(buf, "", page=2)
+        b = pyvips.Image.new_from_buffer(buf2, "", page=2)
+        assert a.width == b.width
+        assert a.height == b.height
+        assert a.avg() == b.avg()
+
+        # region-shrink added in 8.7
+        x = pyvips.Image.new_from_file(TIF_FILE)
+        buf = x.tiffsave_buffer(tile=True, pyramid=True, region_shrink="mean")
+        buf = x.tiffsave_buffer(tile=True, pyramid=True, region_shrink="mode")
+        buf = x.tiffsave_buffer(tile=True, pyramid=True, region_shrink="median")
 
     @skip_if_no("magickload")
     def test_magickload(self):
@@ -637,7 +641,7 @@ class TestForeign:
         self.save_buffer_tempfile("radsave_buffer", ".hdr",
                                   self.rad, max_diff=0)
 
-    @skip_if_no("dzsaveload")
+    @skip_if_no("dzsave")
     def test_dzsave(self):
         # dzsave is hard to test, there are so many options
         # test each option separately and hope they all function together
@@ -706,16 +710,14 @@ class TestForeign:
 
         # with 511x511, it'll fit exactly into 2x2 -- we we actually generate
         # 3x3, since we output the overlaps
-        # 8.6 revised the rules on overlaps, so don't test earlier than that
-        if pyvips.base.at_least_libvips(8, 6):
-            filename = temp_filename(self.tempdir, '')
-            self.colour.crop(0, 0, 511, 511).dzsave(filename, layout="google",
-                                                    overlap=1, depth="one")
+        filename = temp_filename(self.tempdir, '')
+        self.colour.crop(0, 0, 511, 511).dzsave(filename, layout="google",
+                                                overlap=1, depth="one")
 
-            x = pyvips.Image.new_from_file(filename + "/0/2/2.jpg")
-            assert x.width == 256
-            assert x.height == 256
-            assert not os.path.exists(filename + "/0/3/3.jpg")
+        x = pyvips.Image.new_from_file(filename + "/0/2/2.jpg")
+        assert x.width == 256
+        assert x.height == 256
+        assert not os.path.exists(filename + "/0/3/3.jpg")
 
         # default zoomify layout
         filename = temp_filename(self.tempdir, '')
@@ -730,10 +732,6 @@ class TestForeign:
         # test zip output
         filename = temp_filename(self.tempdir, '.zip')
         self.colour.dzsave(filename)
-        # before 8.5.8, you needed a gc on pypy to flush small zip output to
-        # disc
-        if not pyvips.base.at_least_libvips(8, 6):
-            gc.collect()
         assert os.path.exists(filename)
         assert not os.path.exists(filename + "_files")
         assert not os.path.exists(filename + ".dzi")
@@ -741,10 +739,6 @@ class TestForeign:
         # test compressed zip output
         filename2 = temp_filename(self.tempdir, '.zip')
         self.colour.dzsave(filename2, compression=-1)
-        # before 8.5.8, you needed a gc on pypy to flush small zip output to
-        # disc
-        if not pyvips.base.at_least_libvips(8, 6):
-            gc.collect()
         assert os.path.exists(filename2)
         assert os.path.getsize(filename2) < os.path.getsize(filename)
 
@@ -771,24 +765,23 @@ class TestForeign:
         assert y.height == 513
 
         # test save to memory buffer
-        if have("dzsave_buffer"):
-            filename = temp_filename(self.tempdir, '.zip')
-            base = os.path.basename(filename)
-            root, ext = os.path.splitext(base)
+        filename = temp_filename(self.tempdir, '.zip')
+        base = os.path.basename(filename)
+        root, ext = os.path.splitext(base)
 
-            self.colour.dzsave(filename)
-            # before 8.5.8, you needed a gc on pypy to flush small zip
-            # output to disc
-            if not pyvips.base.at_least_libvips(8, 6):
-                gc.collect()
-            with open(filename, 'rb') as f:
-                buf1 = f.read()
-            buf2 = self.colour.dzsave_buffer(basename=root)
-            assert len(buf1) == len(buf2)
+        self.colour.dzsave(filename)
+        with open(filename, 'rb') as f:
+            buf1 = f.read()
+        buf2 = self.colour.dzsave_buffer(basename=root)
+        assert len(buf1) == len(buf2)
 
-            # we can't test the bytes are exactly equal -- the timestamps will
-            # be different
+        # we can't test the bytes are exactly equal -- the timestamps will
+        # be different
 
+        # added in 8.7
+        buf = self.colour.dzsave_buffer(region_shrink="mean")
+        buf = self.colour.dzsave_buffer(region_shrink="mode")
+        buf = self.colour.dzsave_buffer(region_shrink="median")
 
 if __name__ == '__main__':
     pytest.main()
