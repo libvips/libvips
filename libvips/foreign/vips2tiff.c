@@ -565,7 +565,9 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 	if( wtiff->compression == COMPRESSION_JPEG ) 
 		TIFFSetField( tif, TIFFTAG_JPEGQUALITY, wtiff->jpqual );
 
-	if( wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE ) 
+	if( (wtiff->compression == VIPS_FOREIGN_TIFF_COMPRESSION_DEFLATE ||
+		wtiff->compression == VIPS_FOREIGN_TIFF_COMPRESSION_LZW) &&
+		wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE ) 
 		TIFFSetField( tif, TIFFTAG_PREDICTOR, wtiff->predictor );
 
 	/* Don't write mad resolutions (eg. zero), it confuses some programs.
