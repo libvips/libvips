@@ -317,8 +317,9 @@ vips_exif_attach_entry( ExifEntry *entry, VipsExifParams *params )
 	VipsBuf vips_name = VIPS_BUF_STATIC( vips_name_txt );
 	char value_txt[256];
 	VipsBuf value = VIPS_BUF_STATIC( value_txt );
+	ExifIfd ifd = exif_entry_get_ifd( entry );
 
-	if( !(tag_name = exif_tag_get_name( entry->tag )) )
+	if( !(tag_name = exif_tag_get_name_in_ifd( entry->tag, ifd )) )
 		return;
 
 	vips_buf_appendf( &vips_name, "exif-ifd%d-%s", 
