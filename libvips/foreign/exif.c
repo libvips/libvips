@@ -9,6 +9,8 @@
  * 	- remove exif thumbnail if "jpeg-thumbnail-data" has been removed
  * 3/7/18
  * 	- add support for writing string-valued fields
+ * 9/7/18 [@Nan619]
+ * 	- get tag name from tag plus ifd 
  */
 
 /*
@@ -309,6 +311,21 @@ typedef struct _VipsExifParams {
 	ExifData *ed;
 } VipsExifParams;
 
+/* tags do not uniquely set tag names: the same tag can have different
+ * names in different ifds.
+ *
+ * As long as this entry has been linked to an ifd, get the tag name.
+ */
+static const char *
+vips_exif_entry_get_name( ExifEntry *entry )
+{
+	if( !entry->parent )
+		return( NULL );
+
+	return( exif_tag_get_name_in_ifd( entry->tag, 
+		exif_entry_get_ifd( entry ) ) );
+}
+
 static void
 vips_exif_attach_entry( ExifEntry *entry, VipsExifParams *params )
 {
@@ -317,9 +334,8 @@ vips_exif_attach_entry( ExifEntry *entry, VipsExifParams *params )
 	VipsBuf vips_name = VIPS_BUF_STATIC( vips_name_txt );
 	char value_txt[256];
 	VipsBuf value = VIPS_BUF_STATIC( value_txt );
-	ExifIfd ifd = exif_entry_get_ifd( entry );
 
-	if( !(tag_name = exif_tag_get_name_in_ifd( entry->tag, ifd )) )
+	if( !(tag_name = vips_exif_entry_get_name( entry )) )
 		return;
 
 	vips_buf_appendf( &vips_name, "exif-ifd%d-%s", 
@@ -541,7 +557,7 @@ vips_exif_set_int( ExifData *ed,
 	offset = component * sizeof_component;
 
 	VIPS_DEBUG_MSG( "vips_exif_set_int: %s = %d\n",
-		exif_tag_get_name( entry->tag ), value );
+		vips_exif_entry_get_name( entry ), value );
 
 	if( entry->format == EXIF_FORMAT_SHORT ) 
 		exif_set_short( entry->data + offset, bo, value );
@@ -619,7 +635,7 @@ vips_exif_set_rational( ExifData *ed,
 	offset = component * sizeof_component;
 
 	VIPS_DEBUG_MSG( "vips_exif_set_rational: %s = \"%s\"\n",
-		exif_tag_get_name( entry->tag ), value );
+		vips_exif_entry_get_name( entry ), value );
 
 	if( entry->format == EXIF_FORMAT_RATIONAL ) {
 		ExifRational rv;
@@ -673,7 +689,7 @@ vips_exif_set_double( ExifData *ed,
 	offset = component * sizeof_component;
 
 	VIPS_DEBUG_MSG( "vips_exif_set_double: %s = %g\n",
-		exif_tag_get_name( entry->tag ), value );
+		vips_exif_entry_get_name( entry ), value );
 
 	if( entry->format == EXIF_FORMAT_RATIONAL ) {
 		ExifRational rv;
@@ -1192,7 +1208,7 @@ vips_exif_exif_entry( ExifEntry *entry, VipsExifRemove *ve )
 	char vips_name_txt[256];
 	VipsBuf vips_name = VIPS_BUF_STATIC( vips_name_txt );
 
-	if( !(tag_name = exif_tag_get_name( entry->tag )) )
+	if( !(tag_name = vips_exif_entry_get_name( entry )) )
 		return;
 
 	vips_buf_appendf( &vips_name, "exif-ifd%d-%s", 
@@ -1230,7 +1246,7 @@ vips_exif_exif_remove( ExifEntry *entry, VipsExifRemove *ve )
 	char vips_name_txt[256];
 	VipsBuf vips_name = VIPS_BUF_STATIC( vips_name_txt );
 
-	tag_name = exif_tag_get_name( entry->tag );
+	tag_name = vips_exif_entry_get_name( entry );
 	vips_buf_appendf( &vips_name, "exif-ifd%d-%s", 
 		exif_entry_get_ifd( entry ), tag_name );
 
