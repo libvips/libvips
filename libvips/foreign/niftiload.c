@@ -103,14 +103,7 @@ vips_foreign_load_nifti_dispose( GObject *gobject )
 		dispose( gobject );
 }
 
-/* Map DT_* datatype values to VipsBandFormat.
- */
-typedef struct _DT2Vips {
-	int datatype;
-	VipsBandFormat fmt;
-} DT2Vips;
-
-static DT2Vips vips_DT2Vips[] = {
+VipsForeignDT2Vips vips_foreign_DT2Vips[] = {
 	{ DT_UINT8, VIPS_FORMAT_UCHAR },
 	{ DT_INT8, VIPS_FORMAT_CHAR },
 	{ DT_UINT16, VIPS_FORMAT_USHORT },
@@ -135,15 +128,10 @@ static DT2Vips vips_DT2Vips[] = {
 )
 #endif /*HAVE_CHECKED_MUL*/
 
-/* All the header fields we attach as metadata.
- */
-typedef struct _Field {
-	char *name;
-	GType type;
-	glong offset;
-} Field;
-
-static Field other_fields[] = {
+VipsForeignNiftiFields vips_foreign_nifti_fields[] = {
+	/* The first 8 must be the dims[] fields, see
+	 * vips_foreign_save_nifti_make_nim().
+	 */
 	{ "ndim", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, ndim ) }, 
 	{ "nx", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, nx ) }, 
 	{ "ny", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, ny ) }, 
@@ -401,13 +389,14 @@ vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
 			VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_sRGB, 
 		xres, yres );
 
-	for( i = 0; i < VIPS_NUMBER( other_fields ); i++ ) {
+	for( i = 0; i < VIPS_NUMBER( vips_foreign_nifti_fields ); i++ ) {
 		GValue value = { 0 };
 
-		g_value_init( &value, other_fields[i].type );
+		g_value_init( &value, vips_foreign_nifti_fields[i].type );
 		vips_gvalue_read( &value, 
-			(gpointer) nim + other_fields[i].offset );
-		vips_snprintf( txt, 256, "nifti-%s", other_fields[i].name );
+			(gpointer) nim + vips_foreign_nifti_fields[i].offset );
+		vips_snprintf( txt, 256, "nifti-%s", 
+			vips_foreign_nifti_fields[i].name );
 		vips_image_set( out, txt, &value );
 		g_value_unset( &value );
 	}
