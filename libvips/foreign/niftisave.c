@@ -78,8 +78,19 @@ vips_foreign_save_nifti_dispose( GObject *gobject )
 		dispose( gobject );
 }
 
+/* Make ->nim from the vips header fields.
+ */
 static int
-vips_foreign_save_nifti_make_nim( VipsForeignSaveNifti *nifti, 
+vips_foreign_save_nifti_header_vips( VipsForeignSaveNifti *nifti, 
+	VipsImage *image )
+{
+	return( 0 );
+}
+
+/* Make ->nim from the nifti- fields.
+ */
+static int
+vips_foreign_save_nifti_header_nifti( VipsForeignSaveNifti *nifti, 
 	VipsImage *image )
 {
 	int dims[8];
@@ -135,17 +146,24 @@ vips_foreign_save_nifti_build( VipsObject *object )
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( nifti ), 2 );
 
-	struct nifti_1_header nhdr;
-
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_nifti_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips_foreign_save_nifti_make_header( nifti, save->ready, &nhdr ) )
-		return( -1 );
-
-	if( !(nifti->nim = nifti_convert_nhdr2nim( nhdr, nifti->filename )) )
-		return( -1 );
+	/* This could be an image (indirectly) from niftiload, or something 
+	 * like OME_TIFF, which does not have all the "nifti-ndim" fields.
+	 *
+	 * If it doesn't look like a nifti, try to make a nifti header from
+	 * what we have.
+	 */
+	if( vips_image_get_typeof( save->ready, "nifti-ndim" ) ) {
+		if( vips_foreign_save_nifti_header_nifti( nifti, save->ready ) )
+			return( -1 );
+	}
+	else {
+		if( vips_foreign_save_nifti_header_vips( nifti, save->ready ) )
+			return( -1 );
+	}
 
 	/* set ext, plus other stuff
 	 */

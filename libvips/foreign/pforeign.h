@@ -256,24 +256,12 @@ int vips__quantise_image( VipsImage *in,
 	VipsImage **index_out, VipsImage **palette_out,
 	int colours, int Q, double dither );
 
-/* Map DT_* datatype values to VipsBandFormat.
- */
-typedef struct _VipsForeignDT2Vips {
-	int datatype;
-	VipsBandFormat fmt;
-} VipsForeignDT2Vips 
+VipsBandFormat vips__foreign_nifti_datatype2BandFmt( int datatype );
+int vips__foreign_nifti_BandFmt2datatype( VipsBandFormat fmt );
 
-extern VipsForeignDT2Vips vips_foreign_DT2Vips[];
-
-/* All the header fields we attach as metadata.
- */
-typedef struct _VipsForeignNiftiFields {
-	char *name;
-	GType type;
-	glong offset;
-} VipsForeignNiftiFields;
-
-VipsForeignNiftiFields vips_foreign_nifti_fields[];
+typedef void *(*VipsNiftiMapFn)( const char *name, GValue *value, glong offset, 
+	void *a, void *b );
+void *vips__foreign_nifti_map( VipsNiftiMapFn fn, void *a, void *b );
 
 #ifdef __cplusplus
 }

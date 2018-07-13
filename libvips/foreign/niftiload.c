@@ -103,7 +103,14 @@ vips_foreign_load_nifti_dispose( GObject *gobject )
 		dispose( gobject );
 }
 
-VipsForeignDT2Vips vips_foreign_DT2Vips[] = {
+/* Map DT_* datatype values to VipsBandFormat.
+ */
+typedef struct _VipsForeignDT2Vips {
+	int datatype;
+	VipsBandFormat fmt;
+} VipsForeignDT2Vips ;
+
+static VipsForeignDT2Vips vips_foreign_nifti_DT2Vips[] = {
 	{ DT_UINT8, VIPS_FORMAT_UCHAR },
 	{ DT_INT8, VIPS_FORMAT_CHAR },
 	{ DT_UINT16, VIPS_FORMAT_USHORT },
@@ -118,17 +125,39 @@ VipsForeignDT2Vips vips_foreign_DT2Vips[] = {
 	{ DT_RGBA32, VIPS_FORMAT_UCHAR }
 };
 
-/* Slow and horrid version if there's no recent glib.
- */
-#ifndef HAVE_CHECKED_MUL
-#define g_uint_checked_mul( dest, a, b ) ( \
-	((guint64) a * b) > UINT_MAX ? \
-		(*dest = UINT_MAX, FALSE) : \
-		(*dest = a * b, TRUE) \
-)
-#endif /*HAVE_CHECKED_MUL*/
+VipsBandFormat
+vips__foreign_nifti_datatype2BandFmt( int datatype )
+{
+	int i;
 
-VipsForeignNiftiFields vips_foreign_nifti_fields[] = {
+	for( i = 0; i < VIPS_NUMBER( vips_foreign_nifti_DT2Vips ); i++ )
+		if( vips_foreign_nifti_DT2Vips[i].datatype == datatype )
+			return( vips_foreign_nifti_DT2Vips[i].fmt );
+
+	return( VIPS_FORMAT_NOTSET );
+}
+
+int
+vips__foreign_nifti_BandFmt2datatype( VipsBandFormat fmt )
+{
+	int i;
+
+	for( i = 0; i < VIPS_NUMBER( vips_foreign_nifti_DT2Vips ); i++ )
+		if( vips_foreign_nifti_DT2Vips[i].fmt == fmt )
+			return( vips_foreign_nifti_DT2Vips[i].datatype );
+
+	return( -1 );
+}
+
+/* All the header fields we attach as metadata.
+ */
+typedef struct _VipsForeignNiftiFields {
+	char *name;
+	GType type;
+	glong offset;
+} VipsForeignNiftiFields;
+
+static VipsForeignNiftiFields vips_foreign_nifti_fields[] = {
 	/* The first 8 must be the dims[] fields, see
 	 * vips_foreign_save_nifti_make_nim().
 	 */
@@ -251,8 +280,29 @@ VipsForeignNiftiFields vips_foreign_nifti_fields[] = {
 		G_STRUCT_OFFSET( nifti_image, intent_p3 ) }, 
 };
 
+void *
+vips__foreign_nifti_map( VipsNiftiMapFn fn, void *a, void *b )
+{
+	int i;
+	void *result;
+
+	for( i = 0; i < VIPS_NUMBER( vips_foreign_nifti_fields ); i++ ) {
+		GValue value = { 0 };
+
+		g_value_init( &value, vips_foreign_nifti_fields[i].type );
+		result = fn( vips_foreign_nifti_fields[i].name, &value, 
+			vips_foreign_nifti_fields[i].offset, a, b );
+		g_value_unset( &value );
+
+		if( result )
+			return( result );
+	}
+
+	return( NULL );
+}
+
 /* How I wish glib had something like this :( Just implement the ones we need
- * for Field above.
+ * for vips_foreign_nifti_fields above.
  */
 static void
 vips_gvalue_read( GValue *value, void *p )
@@ -271,6 +321,32 @@ vips_gvalue_read( GValue *value, void *p )
 			g_type_name( G_VALUE_TYPE( value ) ) );
 	}
 }
+
+static void *
+vips_foreign_load_nifti_set( const char *name, GValue *value, glong offset,
+	void *a, void *b )
+{
+	nifti_image *nim = (nifti_image *) a;
+	VipsImage *out = VIPS_IMAGE( b );
+
+	char vips_name[256];
+
+	vips_gvalue_read( value, (gpointer) nim + offset );
+	vips_snprintf( vips_name, 256, "nifti-%s", name );
+	vips_image_set( out, vips_name, value );
+
+	return( NULL );
+}
+
+/* Slow and horrid version if there's no recent glib.
+ */
+#ifndef HAVE_CHECKED_MUL
+#define g_uint_checked_mul( dest, a, b ) ( \
+	((guint64) a * b) > UINT_MAX ? \
+		(*dest = UINT_MAX, FALSE) : \
+		(*dest = a * b, TRUE) \
+)
+#endif /*HAVE_CHECKED_MUL*/
 
 static int
 vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
@@ -330,15 +406,7 @@ vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
 		return( 0 );
 	}
 
-	/* Decode voxel format.
-	 */
-	fmt = VIPS_FORMAT_UCHAR;
-	for( i = 0; i < VIPS_NUMBER( vips_DT2Vips ); i++ ) 
-		if( nim->datatype == vips_DT2Vips[i].datatype ) {
-			fmt = vips_DT2Vips[i].fmt;
-			break;
-		}
-	if( i == VIPS_NUMBER( vips_DT2Vips ) ) {
+	if( !(fmt = vips__foreign_nifti_BandFmt2datatype( nim->datatype )) ) {
 		vips_error( class->nickname, 
 			_( "datatype %d not supported" ), nim->datatype );
 		return( -1 );
@@ -389,17 +457,9 @@ vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
 			VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_sRGB, 
 		xres, yres );
 
-	for( i = 0; i < VIPS_NUMBER( vips_foreign_nifti_fields ); i++ ) {
-		GValue value = { 0 };
-
-		g_value_init( &value, vips_foreign_nifti_fields[i].type );
-		vips_gvalue_read( &value, 
-			(gpointer) nim + vips_foreign_nifti_fields[i].offset );
-		vips_snprintf( txt, 256, "nifti-%s", 
-			vips_foreign_nifti_fields[i].name );
-		vips_image_set( out, txt, &value );
-		g_value_unset( &value );
-	}
+	/* Set some vips metadata for every nifti header field.
+	 */
+	vips__foreign_nifti_map( vips_foreign_load_nifti_set, nim, out ); 
 
 	/* One byte longer than the spec to leave space for any extra
 	 * '\0' termination.
