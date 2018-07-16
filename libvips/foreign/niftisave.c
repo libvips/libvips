@@ -84,7 +84,36 @@ static int
 vips_foreign_save_nifti_header_vips( VipsForeignSaveNifti *nifti, 
 	VipsImage *image )
 {
+	g_assert( FALSE );
+
 	return( 0 );
+}
+
+typedef struct _VipsNdimInfo {
+	VipsImage *image;
+	int *dims;
+	int n;
+} VipsNdimInfo;
+
+static void *
+vips_foreign_save_nifti_set_dims( const char *name, GValue *value, glong offset,
+	void *a, void *b )
+{
+	VipsNdimInfo *info = (VipsNdimInfo *) a;
+
+	/* The first 8 members are the dims fields. 
+	 */
+	if( info->n < 7 ) {
+		char txt[256];
+
+		vips_snprintf( txt, 256, "nifti-%s", name );
+		if( vips_image_get_int( image, name, &info->dims[i] ) )
+			return( info );
+	}
+
+	info->n += 1;
+
+	return( NULL ); 
 }
 
 /* Make ->nim from the nifti- fields.
@@ -93,22 +122,22 @@ static int
 vips_foreign_save_nifti_header_nifti( VipsForeignSaveNifti *nifti, 
 	VipsImage *image )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( nifti );
+
+	VipsNdimInfo info;
 	int dims[8];
 	int datatype;
 	int height;
 	int i;
 
-	/* The first 8 members of vips_foreign_nifti_fields[] are the dims
-	 * fields.
-	 */
-	for( i = 0; i < VIPS_NUMBER( dims ); i++ ) {
-		static char name[256];
+	info.image = image;
+	info.dims = dims;
+	info.n = 0;
+	if( vips__foreign_nifti_map( 
+		vips_foreign_save_nifti_set_dims, &info, NULL ) )
+		return( -1 ); 
 
-		vips_snprintf( name, 256, "nifti-%s", 
-			vips_foreign_nifti_fields[i].name );
-		if( vips_image_get_int( image, name, &dims[i] ) )
-			return( -1 );
-	}
+
 
 	height = 1;
 	for( i = 2; i < VIPS_NUMBER( dims ) && i < dims[0]; i++ )
@@ -120,12 +149,7 @@ vips_foreign_save_nifti_header_nifti( VipsForeignSaveNifti *nifti,
 		return( -1 );
 	}
 
-	datatype = -1;
-	for( i = 0; i < vips_foreign_DT2Vips; i++ )
-		if( vips_foreign_DT2Vips[i].format == image.format ) {
-			datatype = vips_foreign_DT2Vips[i].datatype;
-			break;
-		}
+	datatype = vips__foreign_nifti_BandFmt2datatype( image->BandFmt ); 
 	if( datatype == -1 ) {
 		vips_error( class->nickname, 
 			"%s", _( "unsupported libvips image type" ) );
