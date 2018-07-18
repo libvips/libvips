@@ -47,7 +47,9 @@
 
 #include <vips/vips.h>
 
-#ifdef HAVE_CFITSIO
+#ifdef HAVE_NIFTI
+
+#include <nifti1_io.h>
 
 #include "pforeign.h"
 
@@ -70,11 +72,11 @@ G_DEFINE_TYPE( VipsForeignSaveNifti, vips_foreign_save_nifti,
 static void
 vips_foreign_save_nifti_dispose( GObject *gobject )
 {
-	VipsForeignLoadNifti *nifti = (VipsForeignLoadNifti *) gobject;
+	VipsForeignSaveNifti *nifti = (VipsForeignSaveNifti *) gobject;
 
 	VIPS_FREEF( nifti_image_free, nifti->nim );
 
-	G_OBJECT_CLASS( vips_foreign_load_nifti_parent_class )->
+	G_OBJECT_CLASS( vips_foreign_save_nifti_parent_class )->
 		dispose( gobject );
 }
 
@@ -91,24 +93,75 @@ vips_foreign_save_nifti_header_vips( VipsForeignSaveNifti *nifti,
 
 typedef struct _VipsNdimInfo {
 	VipsImage *image;
+	nifti_image *nim;
 	int *dims;
 	int n;
 } VipsNdimInfo;
 
 static void *
-vips_foreign_save_nifti_set_dims( const char *name, GValue *value, glong offset,
-	void *a, void *b )
+vips_foreign_save_nifti_set_dims( const char *name, 
+	GValue *value, glong offset, void *a, void *b )
 {
 	VipsNdimInfo *info = (VipsNdimInfo *) a;
 
 	/* The first 8 members are the dims fields. 
 	 */
-	if( info->n < 7 ) {
-		char txt[256];
+	if( info->n < 8 ) {
+		char vips_name[256];
+		int i;
 
-		vips_snprintf( txt, 256, "nifti-%s", name );
-		if( vips_image_get_int( image, name, &info->dims[i] ) )
+		vips_snprintf( vips_name, 256, "nifti-%s", name );
+		if( vips_image_get_int( info->image, vips_name, &i ) ||
+			i <= 0 ||
+			i > VIPS_MAX_COORD ) 
 			return( info );
+		info->dims[info->n] = i;
+	}
+
+	info->n += 1;
+
+	return( NULL ); 
+}
+
+/* How I wish glib had something like this :( Just implement the ones we need
+ * for vips_foreign_nifti_fields above.
+ */
+static void
+vips_gvalue_write( GValue *value, void *p )
+{
+	switch( G_VALUE_TYPE( value ) ) {
+	case G_TYPE_INT:
+		*((int *) p) = g_value_get_int( value );
+		break;
+
+	case G_TYPE_FLOAT:
+		*((float *) p) = g_value_get_float( value );
+		break;
+
+	default:
+		g_warning( "vips_gvalue_write: unsupported GType %s", 
+			g_type_name( G_VALUE_TYPE( value ) ) );
+	}
+}
+
+static void *
+vips_foreign_save_nifti_set_fields( const char *name, 
+	GValue *value, glong offset, void *a, void *b )
+{
+	VipsNdimInfo *info = (VipsNdimInfo *) a;
+
+	/* The first 8 members are the dims fields. We set them above ^^^ --
+	 * do the others in this pass.
+	 */
+	if( info->n >= 8 ) {
+		char vips_name[256];
+		GValue value_copy = { 0 };
+
+		vips_snprintf( vips_name, 256, "nifti-%s", name );
+		if( vips_image_get( info->image, vips_name, &value_copy ) )
+			return( info );
+		vips_gvalue_write( &value_copy, (gpointer) info->nim + offset );
+		g_value_unset( &value_copy );
 	}
 
 	info->n += 1;
@@ -127,7 +180,7 @@ vips_foreign_save_nifti_header_nifti( VipsForeignSaveNifti *nifti,
 	VipsNdimInfo info;
 	int dims[8];
 	int datatype;
-	int height;
+	guint height;
 	int i;
 
 	info.image = image;
@@ -137,13 +190,18 @@ vips_foreign_save_nifti_header_nifti( VipsForeignSaveNifti *nifti,
 		vips_foreign_save_nifti_set_dims, &info, NULL ) )
 		return( -1 ); 
 
-
+	/* FIXME what about page-height? should check that too.
+	 */
 
 	height = 1;
-	for( i = 2; i < VIPS_NUMBER( dims ) && i < dims[0]; i++ )
-		height *= dims[i];
-	if( images->Xsize != dims[1] ||
-		images->Ysize != height ) {
+	for( i = 2; i < VIPS_NUMBER( dims ) && i < dims[0] + 1; i++ )
+		if( !g_uint_checked_mul( &height, height, dims[i] ) ) {
+			vips_error( class->nickname, 
+				"%s", _( "dimension overflow" ) ); 
+			return( 0 );
+		}
+	if( image->Xsize != dims[1] ||
+		image->Ysize != height ) {
 		vips_error( class->nickname, 
 			"%s", _( "bad image dimensions" ) );
 		return( -1 );
@@ -156,8 +214,15 @@ vips_foreign_save_nifti_header_nifti( VipsForeignSaveNifti *nifti,
 		return( -1 );
 	}
 
-	if( !(nnifti->nim = nifti_make_new_nim( dims, datatype, FALSE )) )
+	if( !(nifti->nim = nifti_make_new_nim( dims, datatype, FALSE )) )
 		return( -1 );
+
+	info.image = image;
+	info.nim = nifti->nim;
+	info.n = 0;
+	if( vips__foreign_nifti_map( 
+		vips_foreign_save_nifti_set_fields, &info, NULL ) )
+		return( -1 ); 
 
 	return( 0 );
 }
@@ -167,8 +232,6 @@ vips_foreign_save_nifti_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveNifti *nifti = (VipsForeignSaveNifti *) object;
-	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( VIPS_OBJECT( nifti ), 2 );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_nifti_parent_class )->
 		build( object ) )
@@ -192,7 +255,8 @@ vips_foreign_save_nifti_build( VipsObject *object )
 	/* set ext, plus other stuff
 	 */
 
-	if( !(nim->data = vips_image_write_memory( save->ready, NULL )) )
+	if( !(nifti->nim->data = 
+		vips_image_write_to_memory( save->ready, NULL )) )
 		return( -1 );
 
 	/* No return code!??!?!!
@@ -202,7 +266,7 @@ vips_foreign_save_nifti_build( VipsObject *object )
 	/* We must free and NULL the pointer or nifti will try to free it for
 	 * us.
 	 */
-	VIPS_FREE( nim->data );
+	VIPS_FREE( nifti->nim->data );
 
 	return( 0 );
 }
@@ -259,7 +323,7 @@ vips_foreign_save_nifti_init( VipsForeignSaveNifti *nifti )
 {
 }
 
-#endif /*HAVE_CFITSIO*/
+#endif /*HAVE_NIFTI*/
 
 /**
  * vips_niftisave: (method)

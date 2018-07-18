@@ -35,6 +35,16 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+/* Slow and horrid version if there's no recent glib.
+ */
+#ifndef HAVE_CHECKED_MUL
+#define g_uint_checked_mul( dest, a, b ) ( \
+	((guint64) a * b) > UINT_MAX ? \
+		(*dest = UINT_MAX, FALSE) : \
+		(*dest = a * b, TRUE) \
+)
+#endif /*HAVE_CHECKED_MUL*/
+
 void vips__tiff_init( void );
 
 int vips__tiff_write( VipsImage *in, const char *filename, 
@@ -255,6 +265,8 @@ gboolean vips_foreign_load_pdf_is_a( const char *filename );
 int vips__quantise_image( VipsImage *in, 
 	VipsImage **index_out, VipsImage **palette_out,
 	int colours, int Q, double dither );
+
+extern const char *vips__nifti_suffs[];
 
 VipsBandFormat vips__foreign_nifti_datatype2BandFmt( int datatype );
 int vips__foreign_nifti_BandFmt2datatype( VipsBandFormat fmt );

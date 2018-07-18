@@ -338,16 +338,6 @@ vips_foreign_load_nifti_set( const char *name, GValue *value, glong offset,
 	return( NULL );
 }
 
-/* Slow and horrid version if there's no recent glib.
- */
-#ifndef HAVE_CHECKED_MUL
-#define g_uint_checked_mul( dest, a, b ) ( \
-	((guint64) a * b) > UINT_MAX ? \
-		(*dest = UINT_MAX, FALSE) : \
-		(*dest = a * b, TRUE) \
-)
-#endif /*HAVE_CHECKED_MUL*/
-
 static int
 vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
 	nifti_image *nim, VipsImage *out )
@@ -406,7 +396,8 @@ vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
 		return( 0 );
 	}
 
-	if( !(fmt = vips__foreign_nifti_BandFmt2datatype( nim->datatype )) ) {
+	fmt = vips__foreign_nifti_datatype2BandFmt( nim->datatype );
+	if( fmt == VIPS_FORMAT_NOTSET ) { 
 		vips_error( class->nickname, 
 			_( "datatype %d not supported" ), nim->datatype );
 		return( -1 );
@@ -459,7 +450,8 @@ vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
 
 	/* Set some vips metadata for every nifti header field.
 	 */
-	vips__foreign_nifti_map( vips_foreign_load_nifti_set, nim, out ); 
+	if( vips__foreign_nifti_map( vips_foreign_load_nifti_set, nim, out ) )
+		return( -1 ); 
 
 	/* One byte longer than the spec to leave space for any extra
 	 * '\0' termination.
@@ -494,7 +486,7 @@ vips_foreign_load_nifti_header( VipsForeignLoad *load )
 	VipsForeignLoadNifti *nifti = (VipsForeignLoadNifti *) load;
 
 	/* We can't use the (much faster) nifti_read_header() since it just
-	 * reads the 348 bytes iof the analyze struct and does not read any of
+	 * reads the 348 bytes of the analyze struct and does not read any of
 	 * the extension fields.
 	 */
 
@@ -552,7 +544,8 @@ const char *vips__nifti_suffs[] = {
 	".hdr", ".hdr.gz", 
 	".img", ".img.gz", 
 	".nia", ".nia.gz", 
-	NULL };
+	NULL 
+};
 
 static void
 vips_foreign_load_nifti_class_init( VipsForeignLoadNiftiClass *class )
