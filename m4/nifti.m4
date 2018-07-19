@@ -24,11 +24,14 @@ if test "$with_nifti" = "no"; then
 fi
 
 AC_ARG_WITH(nifti-includes,
-  AS_HELP_STRING([--with-nifti-includes=DIR], [libnifti includes are in DIR]),
-  NIFTI_INCLUDES="-I$withval")
+  AS_HELP_STRING([--with-nifti-includes=DIR], [libniftiio includes are in DIR]),
+  NIFTI_INCLUDES="-I$withval"
+)
 AC_ARG_WITH(nifti-libraries,
-  AS_HELP_STRING([--with-nifti-libraries=DIR], [libnifti libraries are in DIR]),
-  NIFTI_LIBS="-L$withval -lnifti")
+  AS_HELP_STRING([--with-nifti-libraries=DIR], 
+    [libniftiio libraries are in DIR]),
+  NIFTI_LIBS="-L$withval -lniftiio"
+)
 
 AC_MSG_CHECKING(for NIFTI)
 

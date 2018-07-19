@@ -840,6 +840,10 @@ build_xml_meta( VipsMeta *meta, VipsDbuf *dbuf )
 
 		g_value_unset( &save_value );
 	}
+	else {
+		printf( "unable to convert %s for save\n", 
+				g_type_name( type ) );
+	}
 
 	return( NULL );
 }

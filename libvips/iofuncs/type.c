@@ -454,6 +454,26 @@ transform_save_string_double( const GValue *src_value, GValue *dest_value )
 			NULL ) );
 }
 
+static void
+transform_float_save_string( const GValue *src_value, GValue *dest_value )
+{
+	char buf[G_ASCII_DTOSTR_BUF_SIZE];
+
+	/* Need to be locale independent.
+	 */
+	g_ascii_dtostr( buf, G_ASCII_DTOSTR_BUF_SIZE, 
+		g_value_get_float( src_value ) );
+	vips_value_set_save_string( dest_value, buf );
+}
+
+static void
+transform_save_string_float( const GValue *src_value, GValue *dest_value )
+{
+	g_value_set_float( dest_value, 
+		g_ascii_strtod( vips_value_get_save_string( src_value ), 
+			NULL ) );
+}
+
 /* Save meta fields to the header. We have a new string type for header fields
  * to save to XML and define transform functions to go from our meta types to
  * this string type.
@@ -1847,4 +1867,8 @@ vips__meta_init_types( void )
 		transform_double_save_string );
 	g_value_register_transform_func( VIPS_TYPE_SAVE_STRING, G_TYPE_DOUBLE,
 		transform_save_string_double );
+	g_value_register_transform_func( G_TYPE_FLOAT, VIPS_TYPE_SAVE_STRING,
+		transform_float_save_string );
+	g_value_register_transform_func( VIPS_TYPE_SAVE_STRING, G_TYPE_FLOAT,
+		transform_save_string_float );
 }

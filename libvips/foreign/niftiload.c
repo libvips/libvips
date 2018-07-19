@@ -290,7 +290,7 @@ vips__foreign_nifti_map( VipsNiftiMapFn fn, void *a, void *b )
 		GValue value = { 0 };
 
 		g_value_init( &value, vips_foreign_nifti_fields[i].type );
-		result = fn( vips_foreign_nifti_fields[i].name, &value, 
+		result = fn( vips_foreign_nifti_fields[i].name, &value,
 			vips_foreign_nifti_fields[i].offset, a, b );
 		g_value_unset( &value );
 

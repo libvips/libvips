@@ -230,6 +230,7 @@ vips_foreign_save_nifti_header_nifti( VipsForeignSaveNifti *nifti,
 static int
 vips_foreign_save_nifti_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveNifti *nifti = (VipsForeignSaveNifti *) object;
 
@@ -254,6 +255,12 @@ vips_foreign_save_nifti_build( VipsObject *object )
 
 	/* set ext, plus other stuff
 	 */
+
+	if( nifti_set_filenames( nifti->nim, nifti->filename, FALSE, TRUE ) ) {
+		vips_error( class->nickname, 
+			"%s", _( "unable to set nifti filename" ) );
+		return( -1 );
+	}
 
 	if( !(nifti->nim->data = 
 		vips_image_write_to_memory( save->ready, NULL )) )
