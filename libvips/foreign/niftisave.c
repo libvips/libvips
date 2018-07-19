@@ -86,7 +86,73 @@ static int
 vips_foreign_save_nifti_header_vips( VipsForeignSaveNifti *nifti, 
 	VipsImage *image )
 {
-	g_assert( FALSE );
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( nifti );
+
+	int dims[8];
+	int datatype;
+	int i;
+
+	/* Most nifti images have this defaulted as 1.
+	 */
+	for( i = 0; i < VIPS_NUMBER( dims ); i++ )
+		dims[i] = 1;
+
+	dims[0] = 2;
+	dims[1] = image->Xsize;
+	dims[2] = image->Ysize;
+
+	if( vips_image_get_typeof( image, VIPS_META_PAGE_HEIGHT ) ) { 
+		int page_height;
+
+		if( vips_image_get_int( image, 
+			VIPS_META_PAGE_HEIGHT, &page_height ) ) 
+			return( -1 ); 	
+
+		if( image->Ysize % page_height == 0 ) {
+			dims[0] = 3;
+			dims[2] = page_height;
+			dims[3] = image->Ysize / page_height;
+		}
+	}
+
+	datatype = vips__foreign_nifti_BandFmt2datatype( image->BandFmt ); 
+	if( datatype == -1 ) {
+		vips_error( class->nickname, 
+			"%s", _( "unsupported libvips image type" ) );
+		return( -1 );
+	}
+
+	if( image->Bands > 1 ) {
+		if( image->BandFmt != VIPS_FORMAT_UCHAR ) {
+			vips_error( class->nickname, 
+				"%s", _( "8-bit colour images only" ) );
+			return( -1 );
+		}
+
+		if( image->Bands == 3 ) 
+			datatype = DT_RGB;
+		else if( image->Bands == 4 ) 
+			datatype = DT_RGBA32;
+		else {
+			vips_error( class->nickname, 
+				"%s", _( "3 or 4 band colour images only" ) );
+			return( -1 );
+		}
+	}
+
+	if( !(nifti->nim = nifti_make_new_nim( dims, datatype, FALSE )) )
+		return( -1 );
+
+	nifti->nim->dx = 1.0 / image->Xres;
+	nifti->nim->dy = 1.0 / image->Yres;
+	nifti->nim->dz = 1.0 / image->Yres;
+	nifti->nim->xyz_units = NIFTI_UNITS_MM;
+
+	vips_snprintf( nifti->nim->descrip, sizeof( nifti->nim->descrip ),
+		"libvips-%s", VIPS_VERSION ); 
+
+	/* All other fields can stay at their default value.
+	 */
 
 	return( 0 );
 }
@@ -183,6 +249,11 @@ vips_foreign_save_nifti_header_nifti( VipsForeignSaveNifti *nifti,
 	guint height;
 	int i;
 
+	/* Most nifti images have this defaulted as 1.
+	 */
+	for( i = 0; i < VIPS_NUMBER( dims ); i++ )
+		dims[i] = 1;
+
 	info.image = image;
 	info.dims = dims;
 	info.n = 0;
@@ -190,8 +261,22 @@ vips_foreign_save_nifti_header_nifti( VipsForeignSaveNifti *nifti,
 		vips_foreign_save_nifti_set_dims, &info, NULL ) )
 		return( -1 ); 
 
-	/* FIXME what about page-height? should check that too.
+	/* page-height overrides ny if it makes sense. This might not be
+	 * correct :( 
 	 */
+	if( vips_image_get_typeof( image, VIPS_META_PAGE_HEIGHT ) ) { 
+		int page_height;
+
+		if( vips_image_get_int( image, 
+			VIPS_META_PAGE_HEIGHT, &page_height ) ) 
+			return( -1 ); 	
+
+		if( image->Ysize % page_height == 0 ) {
+			dims[0] = 3;
+			dims[2] = page_height;
+			dims[3] = image->Ysize / page_height;
+		}
+	}
 
 	height = 1;
 	for( i = 2; i < VIPS_NUMBER( dims ) && i < dims[0] + 1; i++ )

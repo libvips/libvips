@@ -103,6 +103,43 @@ vips_foreign_load_nifti_dispose( GObject *gobject )
 		dispose( gobject );
 }
 
+static int
+vips_foreign_load_nifti_is_a( const char *filename )
+{
+	char *hfile;
+	znzFile fp;
+	nifti_1_header nhdr;
+
+	/* Unfortunately is_nifti_file() is very slow and produces lots of
+	 * output. We have to make our own.
+	 */
+
+	if( !(hfile = nifti_findhdrname( filename )) )
+		return( 0 );
+
+	fp = znzopen( hfile, "rb", nifti_is_gzfile( hfile ));
+	if( znz_isnull( fp ) ) { 
+		free( hfile );
+		return( 0 );
+	}
+	free( hfile );
+
+	(void) znzread( &nhdr, 1, sizeof( nhdr ), fp );
+
+	znzclose( fp );
+
+	/* Test for sanity both ways around. There's a thing to test for byte
+	 * order in niftilib, but it's static :(
+	 */
+	if( nifti_hdr_looks_good( &nhdr ) ) 
+		return( 1 );
+	swap_nifti_header( &nhdr, FALSE );
+	if( nifti_hdr_looks_good( &nhdr ) ) 
+		return( 1 );
+
+	return( 0 );
+}
+
 /* Map DT_* datatype values to VipsBandFormat.
  */
 typedef struct _VipsForeignDT2Vips {
@@ -360,7 +397,7 @@ vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
 			nim->ndim ); 
 		return( 0 );
 	}
-	for( i = 1; i < 8; i++ ) {
+	for( i = 1; i < 8 && i < nim->ndim + 1; i++ ) {
 		if( nim->dim[i] <= 0 ) {
 			vips_error( class->nickname, 
 				"%s", _( "invalid dimension" ) ); 
@@ -368,7 +405,7 @@ vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
 		}
 
 		/* If we have several images in a dimension, the spacing must
-		 * be non-zero, or we'll get a /0 error in resolution
+		 * be non-zero or we'll get a /0 error in resolution
 		 * calculation.
 		 */
 		if( nim->dim[i] > 1 && 
@@ -385,7 +422,7 @@ vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
 	bands = 1;
 	width = (guint) nim->nx;
 	height = (guint) nim->ny;
-	for( i = 3; i < 8; i++ )
+	for( i = 3; i < 8 && i < nim->ndim + 1; i++ )
 		if( !g_uint_checked_mul( &height, height, nim->dim[i] ) ) {
 			vips_error( class->nickname, 
 				"%s", _( "dimension overflow" ) ); 
@@ -568,7 +605,7 @@ vips_foreign_load_nifti_class_init( VipsForeignLoadNiftiClass *class )
 
 	foreign_class->suffs = vips__nifti_suffs;
 
-	load_class->is_a = is_nifti_file;
+	load_class->is_a = vips_foreign_load_nifti_is_a;
 	load_class->header = vips_foreign_load_nifti_header;
 	load_class->load = vips_foreign_load_nifti_load;
 

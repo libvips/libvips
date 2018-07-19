@@ -31,6 +31,7 @@
 - add Mitchell kernel
 - pyramid builders have a choice of 2x2 shrinkers [harukizaemon]
 - add `palette` option to pngsave [felixbuenemann]
+- add basic nifti load/save support
 
 12/3/18 started 8.6.4
 - better fitting of fonts with overhanging edges [Adrià]
