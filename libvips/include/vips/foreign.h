@@ -562,6 +562,8 @@ int vips_gifload_buffer( void *buf, size_t len, VipsImage **out, ... )
 
 int vips_niftiload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_niftisave( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
 
 /**
  * VipsForeignDzLayout:

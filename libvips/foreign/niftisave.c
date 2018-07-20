@@ -235,6 +235,41 @@ vips_foreign_save_nifti_set_fields( const char *name,
 	return( NULL ); 
 }
 
+static void *
+vips_foreign_save_nifti_ext( VipsImage *image, 
+	const char *field, GValue *value, void *a )
+{
+	nifti_image *nim = (nifti_image *) a;
+
+	int i;
+	int ecode;
+	char *data;
+	size_t length;
+
+	if( !vips_isprefix( "nifti-ext-", field ) )
+		return( NULL );
+
+	/* The name is "nifti-ext-N-XX" where N is the index (discard this)
+	 * and XX is the nifti ext ecode.
+	 */
+	if( sscanf( field, "nifti-ext-%d-%d", &i, &ecode ) != 2 ) {
+		vips_error( "niftisave", 
+			"%s", _( "bad nifti-ext- field name" ) ); 
+		return( image );
+	}
+
+	if( vips_image_get_blob( image, field, (void *) &data, &length ) )
+		return( image );
+
+	if( nifti_add_extension( nim, data, length, ecode ) ) {
+		vips_error( "niftisave", 
+			"%s", _( "unable to attach nifti ext" ) ); 
+		return( image );
+	}
+
+	return( NULL );
+}
+
 /* Make ->nim from the nifti- fields.
  */
 static int
@@ -308,6 +343,12 @@ vips_foreign_save_nifti_header_nifti( VipsForeignSaveNifti *nifti,
 	if( vips__foreign_nifti_map( 
 		vips_foreign_save_nifti_set_fields, &info, NULL ) )
 		return( -1 ); 
+
+	/* Attach any ext blocks.
+	 */
+	if( vips_image_map( image,
+		(VipsImageMapFn) vips_foreign_save_nifti_ext, nifti->nim ) )
+		return( -1 );
 
 	return( 0 );
 }
@@ -423,9 +464,11 @@ vips_foreign_save_nifti_init( VipsForeignSaveNifti *nifti )
  * @filename: file to write to 
  * @...: %NULL-terminated list of optional named arguments
  *
- * Write a VIPS image to a file in NIFTI format.
+ * Write a VIPS image to a file in NIFTI format. 
  *
- * See also: vips_image_write_to_file().
+ * Use the various NIFTI suffixes to pick the nifti save format.
+ *
+ * See also: vips_image_write_to_file(), vips_niftiload().
  *
  * Returns: 0 on success, -1 on error.
  */
