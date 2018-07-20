@@ -6,12 +6,12 @@ import tempfile
 import pytest
 
 import pyvips
-from helpers import JPEG_FILE, SRGB_FILE, \
-    MATLAB_FILE, PNG_FILE, TIF_FILE, OME_FILE, ANALYZE_FILE, \
-    GIF_FILE, WEBP_FILE, EXR_FILE, FITS_FILE, OPENSLIDE_FILE, \
-    PDF_FILE, SVG_FILE, SVGZ_FILE, SVG_GZ_FILE, GIF_ANIM_FILE, \
-    DICOM_FILE, BMP_FILE, temp_filename, assert_almost_equal_objects, have, \
-    skip_if_no
+from helpers import \
+    JPEG_FILE, SRGB_FILE, MATLAB_FILE, PNG_FILE, TIF_FILE, OME_FILE, \
+    ANALYZE_FILE, GIF_FILE, WEBP_FILE, EXR_FILE, FITS_FILE, OPENSLIDE_FILE, \
+    PDF_FILE, SVG_FILE, SVGZ_FILE, SVG_GZ_FILE, GIF_ANIM_FILE, DICOM_FILE, \
+    BMP_FILE, NIFTI_FILE, \
+    temp_filename, assert_almost_equal_objects, have, skip_if_no
 
 
 class TestForeign:
@@ -531,6 +531,25 @@ class TestForeign:
 
         self.file_loader("fitsload", FITS_FILE, fits_valid)
         self.save_load("%s.fits", self.mono)
+
+    @skip_if_no("niftiload")
+    def test_niftiload(self):
+        def nifti_valid(im):
+            a = im(30, 26)
+            assert_almost_equal_objects(a, [131])
+            assert im.width == 91
+            assert im.height == 9919
+            assert im.bands == 1
+
+        print("NIFTI_FILE =", NIFTI_FILE)
+        im = pyvips.Operation.call("niftiload", NIFTI_FILE)
+        print("width = ", im.width)
+
+        im = pyvips.Operation.call("niftiload", "test/images/avg152T1_LR_nifti.nii.gz")
+        print("width = ", im.width)
+
+        self.file_loader("niftiload", NIFTI_FILE, nifti_valid)
+        self.save_load("%s.nii.gz", self.mono)
 
     @skip_if_no("openslideload")
     def test_openslideload(self):

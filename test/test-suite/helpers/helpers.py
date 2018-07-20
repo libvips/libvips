@@ -27,6 +27,7 @@ SVG_GZ_FILE = os.path.join(IMAGES, "vips-profile.svg.gz")
 GIF_ANIM_FILE = os.path.join(IMAGES, "cogs.gif")
 DICOM_FILE = os.path.join(IMAGES, "dicom_test_image.dcm")
 BMP_FILE = os.path.join(IMAGES, "MARBLES.BMP")
+NIFTI_FILE = os.path.join(IMAGES, "avg152T1_LR_nifti.nii.gz")
 
 unsigned_formats = [pyvips.BandFormat.UCHAR,
                     pyvips.BandFormat.USHORT,
