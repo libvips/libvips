@@ -31,13 +31,10 @@
 - add Mitchell kernel
 - pyramid builders have a choice of 2x2 shrinkers [harukizaemon]
 - add `palette` option to pngsave [felixbuenemann]
-<<<<<<< HEAD
 - add basic nifti load/save support
-=======
 - support writing string-valued fields via libexif
 - paste in the test suite from pyvips
 - get EXIF tag names from tag plus ifd [@Nan619]
->>>>>>> master
 
 12/3/18 started 8.6.4
 - better fitting of fonts with overhanging edges [Adrià]
