@@ -516,6 +516,14 @@ PKG_CHECK_MODULES(WIN32_GET_COMMAND_LINE, glib-2.0 >= 2.40,
   ]
 )
 
+# from 2.48 we have g_uint_checked_mul() etc.
+PKG_CHECK_MODULES(HAVE_CHECKED_MUL, glib-2.0 >= 2.48,
+  [AC_DEFINE(HAVE_CHECKED_MUL,1,[define if your glib has checked multiply.])
+  ],
+  [:
+  ]
+)
+
 # check for gtk-doc
 GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
 
@@ -838,6 +846,19 @@ if test x"$with_OpenEXR" != x"no"; then
     ],
     [AC_MSG_WARN([OpenEXR not found; disabling OpenEXR support])
      with_OpenEXR=no
+    ]
+  )
+fi
+
+# nifti
+AC_ARG_WITH([nifti],
+  AS_HELP_STRING([--without-nifti], [build without nifti (default: test)]))
+
+if test x"$with_nifti" != x"no"; then
+  FIND_NIFTI([
+     with_nifti=yes
+    ],[
+     with_nifti=no
     ]
   )
 fi
@@ -1284,8 +1305,8 @@ do
 done | sort -ru`
 VIPS_CFLAGS=`echo $VIPS_CFLAGS`
 VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
-VIPS_INCLUDES="$ZLIB_INCLUDES $PNG_INCLUDES $TIFF_INCLUDES $JPEG_INCLUDES" 
-VIPS_LIBS="$ZLIB_LIBS $MAGICK_LIBS $PNG_LIBS $IMAGEQUANT_LIBS $TIFF_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $EXPAT_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $GIFLIB_LIBS $RSVG_LIBS $PDFIUM_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $LIBWEBPMUX_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
+VIPS_INCLUDES="$ZLIB_INCLUDES $PNG_INCLUDES $TIFF_INCLUDES $JPEG_INCLUDES $NIFTI_INCLUDES" 
+VIPS_LIBS="$ZLIB_LIBS $MAGICK_LIBS $PNG_LIBS $IMAGEQUANT_LIBS $TIFF_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $EXPAT_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $GIFLIB_LIBS $RSVG_LIBS $NIFTI_LIBS $PDFIUM_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $LIBWEBPMUX_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
 
 AC_SUBST(VIPS_LIBDIR)
 
@@ -1375,6 +1396,7 @@ save with libMagick: 			$enable_magicksave
 accelerate loops with orc: 		$with_orc
   (requires orc-0.4.11 or later)
 ICC profile support with lcms: 		$with_lcms
+file import with niftiio: 		$with_nifti
 file import with OpenEXR: 		$with_OpenEXR
 file import with OpenSlide:		$with_openslide
   (requires openslide-3.3.0 or later)
