@@ -40,9 +40,9 @@ if test "$PNG_INCLUDES" = ""; then
   ], [
     # png.h is not in the standard search path, try
     # $prefix
-    png_save_INCLUDES="$INCLUDES"
+    png_save_CFLAGS="$CFLAGS"
 
-    INCLUDES="-I${prefix}/include $INCLUDES"
+    CFLAGS="-I${prefix}/include $CFLAGS"
 
     AC_TRY_COMPILE([#include <png.h>],[int a;],[
       PNG_INCLUDES="-I${prefix}/include"
@@ -50,17 +50,17 @@ if test "$PNG_INCLUDES" = ""; then
       PNG_INCLUDES="no"
     ])
 
-    INCLUDES=$png_save_INCLUDES
+    CFLAGS=$png_save_CFLAGS
   ])
 fi
 
 # Now for the libraries
 if test "$PNG_LIBS" = ""; then
   png_save_LIBS="$LIBS"
-  png_save_INCLUDES="$INCLUDES"
+  png_save_CFLAGS="$CFLAGS"
 
   LIBS="-lpng $LIBS"
-  INCLUDES="$PNG_INCLUDES $INCLUDES"
+  CFLAGS="$PNG_INCLUDES $CFLAGS"
 
   # Try the standard search path first
   AC_TRY_LINK([#include <png.h>],[png_access_version_number()], [
@@ -78,7 +78,7 @@ if test "$PNG_LIBS" = ""; then
   ])
 
   LIBS="$png_save_LIBS"
-  INCLUDES="$png_save_INCLUDES"
+  CFLAGS="$png_save_CFLAGS"
 fi
 
 AC_SUBST(PNG_LIBS)

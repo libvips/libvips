@@ -40,9 +40,9 @@ if test "$TIFF_INCLUDES" = ""; then
   ], [
     # tiff.h is not in the standard search path, try
     # $prefix
-    tiff_save_INCLUDES="$INCLUDES"
+    tiff_save_CFLAGS="$CFLAGS"
 
-    INCLUDES="-I${prefix}/include $INCLUDES"
+    CFLAGS="-I${prefix}/include $CFLAGS"
 
     AC_TRY_COMPILE([#include <tiff.h>],[int a;],[
       TIFF_INCLUDES="-I${prefix}/include"
@@ -50,17 +50,17 @@ if test "$TIFF_INCLUDES" = ""; then
       TIFF_INCLUDES="no"
     ])
 
-    INCLUDES=$tiff_save_INCLUDES
+    CFLAGS=$tiff_save_CFLAGS
   ])
 fi
 
 # Now for the libraries
 if test "$TIFF_LIBS" = ""; then
   tiff_save_LIBS="$LIBS"
-  tiff_save_INCLUDES="$INCLUDES"
+  tiff_save_CFLAGS="$CFLAGS"
 
   LIBS="-ltiff -lm $LIBS"
-  INCLUDES="$TIFF_INCLUDES $INCLUDES"
+  CFLAGS="$TIFF_INCLUDES $CFLAGS"
 
   # Try the standard search path first
   AC_TRY_LINK([#include <tiff.h>],[TIFFGetVersion()], [
@@ -78,7 +78,7 @@ if test "$TIFF_LIBS" = ""; then
   ])
 
   LIBS="$tiff_save_LIBS"
-  INCLUDES="$tiff_save_INCLUDES"
+  CFLAGS="$tiff_save_CFLAGS"
 fi
 
 AC_SUBST(TIFF_LIBS)

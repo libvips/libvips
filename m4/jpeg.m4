@@ -41,9 +41,9 @@ if test "$JPEG_INCLUDES" = ""; then
   ], [
     # jpeglib.h is not in the standard search path, try
     # $prefix
-    jpeg_save_INCLUDES="$INCLUDES"
+    jpeg_save_CFLAGS="$CFLAGS"
 
-    INCLUDES="-I${prefix}/include $INCLUDES"
+    CFLAGS="-I${prefix}/include $CFLAGS"
 
     AC_TRY_COMPILE([#include <stdio.h>
       #include <jpeglib.h>],[int a;],[
@@ -52,17 +52,17 @@ if test "$JPEG_INCLUDES" = ""; then
       JPEG_INCLUDES="no"
     ])
 
-    INCLUDES=$jpeg_save_INCLUDES
+    CFLAGS=$jpeg_save_CFLAGS
   ])
 fi
 
 # Now for the libraries
 if test "$JPEG_LIBS" = ""; then
   jpeg_save_LIBS="$LIBS"
-  jpeg_save_INCLUDES="$INCLUDES"
+  jpeg_save_CFLAGS="$CFLAGS"
 
   LIBS="-ljpeg $LIBS"
-  INCLUDES="$JPEG_INCLUDES $INCLUDES"
+  CFLAGS="$JPEG_INCLUDES $CFLAGS"
 
   # Try the standard search path first
   AC_TRY_LINK([#include <stdio.h>
@@ -84,7 +84,7 @@ if test "$JPEG_LIBS" = ""; then
   ])
 
   LIBS="$jpeg_save_LIBS"
-  INCLUDES="$jpeg_save_INCLUDES"
+  CFLAGS="$jpeg_save_CFLAGS"
 fi
 
 AC_SUBST(JPEG_LIBS)
