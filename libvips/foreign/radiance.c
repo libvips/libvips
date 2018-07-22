@@ -23,6 +23,7 @@
  * 	- reduce stack use to help musl
  * 22/7/18
  * 	- update code from radiance ... pasted in from rad5R1
+ * 	- expand fs[] buffer to prevent out of bounds write
  */
 
 /*
@@ -168,6 +169,8 @@
  * 4. make all functions static
  * 5. reorder to remove forward refs
  * 6. remove unused funcs, mostly related to HDR write
+ * 7. "char fs[64];" needs to be MAXLINE to stop out of bounds write on long
+ * lines
  */
 
 #define  RED		0
@@ -535,7 +538,11 @@ getheader(		/* get header from file */
 
 struct check {
 	FILE	*fp;
-	char	fs[64];
+
+	/* This was 64. Expand to MAXLINE to prevent an out of bounds write
+	 * for very long lines.
+	 */
+	char	fs[MAXLINE];
 };
 
 
@@ -545,9 +552,10 @@ mycheck(			/* check a header line for format info. */
 	void  *cp
 )
 {
-	if (!formatval(((struct check*)cp)->fs, s)
-			&& ((struct check*)cp)->fp != NULL) {
-		fputs(s, ((struct check*)cp)->fp);
+	struct check *p = (struct check *) cp;
+
+	if (!formatval(p->fs, s) && p->fp != NULL) {
+		fputs(s, p->fp);
 	}
 	return(0);
 }
