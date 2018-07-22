@@ -23,7 +23,7 @@
  * 	- reduce stack use to help musl
  * 22/7/18
  * 	- update code from radiance ... pasted in from rad5R1
- * 	- expand fs[] buffer to prevent out of bounds write
+ * 	- expand fs[] buffer to prevent out of bounds write [HongxuChen]
  */
 
 /*
