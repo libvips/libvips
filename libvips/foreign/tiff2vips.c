@@ -177,6 +177,8 @@
  * 	- remove missing res warning
  * 19/5/17
  * 	- page > 0 could break edge tiles or strips
+ * 21/7/18
+ * 	- check for non-byte-multiple bits_per_sample [HongxuChen]
  */
 
 /*
@@ -538,6 +540,21 @@ rtiff_check_min_samples( Rtiff *rtiff, int samples_per_pixel )
 	return( 0 );
 }
 
+/* Only allow samples which are whole bytes in size.
+ */
+static int
+rtiff_non_fractional( Rtiff *rtiff )
+{
+	if( rtiff->header.bits_per_sample % 8 != 0 ||
+		rtiff->header.bits_per_sample == 0 ) {
+		vips_error( "tiff2vips", "%s", _( "samples_per_pixel "
+			"not a whole number of bytes" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
 static int
 rtiff_check_interpretation( Rtiff *rtiff, int photometric_interpretation )
 {
@@ -805,7 +822,8 @@ rtiff_parse_onebit( Rtiff *rtiff, VipsImage *out )
 /* Per-scanline process function for greyscale images.
  */
 static void
-rtiff_greyscale_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client )
+rtiff_greyscale_line( Rtiff *rtiff, 
+	VipsPel *q, VipsPel *p, int n, void *client )
 {
 	int samples_per_pixel = rtiff->header.samples_per_pixel;
 	int photometric_interpretation = 
@@ -856,7 +874,8 @@ rtiff_greyscale_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client 
 static int
 rtiff_parse_greyscale( Rtiff *rtiff, VipsImage *out )
 {
-	if( rtiff_check_min_samples( rtiff, 1 ) )
+	if( rtiff_check_min_samples( rtiff, 1 ) ||
+		rtiff_non_fractional( rtiff ) )
 		return( -1 );
 
 	out->Bands = rtiff->header.samples_per_pixel; 
@@ -1137,6 +1156,9 @@ rtiff_parse_copy( Rtiff *rtiff, VipsImage *out )
 	int samples_per_pixel = rtiff->header.samples_per_pixel;
 	int photometric_interpretation = 
 		rtiff->header.photometric_interpretation;
+
+	if( rtiff_non_fractional( rtiff ) )
+		return( -1 );
 
 	out->Bands = samples_per_pixel; 
 	out->BandFmt = rtiff_guess_format( rtiff );
