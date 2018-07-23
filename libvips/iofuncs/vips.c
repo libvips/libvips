@@ -782,15 +782,14 @@ dbuf_write_amp( VipsDbuf *dbuf, const char *str )
 	for( p = str; *p; p++ ) 
 		if( *p < 32 )
 			/* You'd think we could output "&#x02%x;", but xml
-			 * 1.0 parsers barf on that. Perhaps we should use '?',
-			 * but this is frankly better. 
+			 * 1.0 parsers barf on that. xml 1.1 allows this, but
+			 * there are almost no parsers. 
 			 *
-			 * xml 1.1 allows this, but expat does not support
-			 * it.
-			 *
-			 * vips_dbuf_writef( dbuf, "&#x%02x;", *p ); 
+			 * U+2400 onwards are unicode glyphs for the ASCII 
+			 * control characters, so we can use them -- thanks
+			 * electroly.
 			 */
-			vips_dbuf_write( dbuf, (guchar *) "&#128004;", 9 ); 
+			vips_dbuf_writef( dbuf, "&#x%04x;", 0x2400 + *p ); 
 		else if( *p == '<' )
 			vips_dbuf_write( dbuf, (guchar *) "&lt;", 4 );
 		else if( *p == '>' )
