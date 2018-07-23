@@ -760,7 +760,8 @@ scanline_read_old( Buffer *buffer, COLR *scanline, int width )
 			scanline[0][BLU] == 1 ) {
 			int i;
 
-			for( i = scanline[0][EXP] << rshift; i > 0; i-- ) {
+			for( i = scanline[0][EXP] << rshift; 
+				i > 0 && width > 0; i-- ) {
 				copycolr( scanline[0], scanline[-1] );
 				scanline += 1;
 				width -= 1;
