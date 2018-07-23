@@ -23,6 +23,8 @@
  * 	- validate strs as being utf-8 before we write
  * 9/4/18 Alexander--
  * 	- use O_TMPFILE, if available
+ * 23/7/18
+ * 	- escape ASCII control characters in XML
  */
 
 /*
@@ -769,38 +771,34 @@ dbuf_write_quotes( VipsDbuf *dbuf, const char *str )
 	}
 }
 
-/* Append a string to a buffer, but escape &<>.
+/* Append a string to a buffer, but escape &<> and the ASCII escape codes. Our
+ * argument string is utf-8.
  */
 static void
 dbuf_write_amp( VipsDbuf *dbuf, const char *str )
 {
 	const char *p;
-	size_t len;
 
-	for( p = str; *p; p += len ) {
-		len = strcspn( p, "&<>" );
-
-		vips_dbuf_write( dbuf, (unsigned char *) p, len );
-		switch( p[len] ) {
-		case '&': 
-			vips_dbuf_writef( dbuf, "&amp;" );
-			len += 1;
-			break;
-
-		case '<': 
-			vips_dbuf_writef( dbuf, "&lt;" );
-			len += 1;
-			break;
-
-		case '>': 
-			vips_dbuf_writef( dbuf, "&gt;" );
-			len += 1;
-			break;
-
-		default:
-			break;
-		}
-	}
+	for( p = str; *p; p++ ) 
+		if( *p < 32 )
+			/* You'd think we could output "&#x02%x;", but xml
+			 * 1.0 parsers barf on that. Perhaps we should use '?',
+			 * but this is frankly better. 
+			 *
+			 * xml 1.1 allows this, but expat does not support
+			 * it.
+			 *
+			 * vips_dbuf_writef( dbuf, "&#x%02x;", *p ); 
+			 */
+			vips_dbuf_write( dbuf, (guchar *) "&#128004;", 9 ); 
+		else if( *p == '<' )
+			vips_dbuf_write( dbuf, (guchar *) "&lt;", 4 );
+		else if( *p == '>' )
+			vips_dbuf_write( dbuf, (guchar *) "&gt;", 4 );
+		else if( *p == '&' )
+			vips_dbuf_write( dbuf, (guchar *) "&amp;", 5 );
+		else 
+			vips_dbuf_write( dbuf, (guchar *) p, 1 );
 }
 
 static void *
