@@ -1021,6 +1021,7 @@ read_new( const char *filename, VipsImage *out )
 	read->prims[2][1] = CIE_y_b;
 	read->prims[3][0] = CIE_x_w;
 	read->prims[3][1] = CIE_y_w;
+	read->buffer = NULL;
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( read_destroy ), read );
