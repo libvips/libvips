@@ -4,6 +4,8 @@
  * 	- from magickload
  * 25/11/16
  * 	- add @n, deprecate @all_frames (just sets n = -1)
+ * 24/7/18
+ * 	- sniff extra filetypes
  */
 
 /*
@@ -304,14 +306,6 @@ vips_foreign_load_magick7_build( VipsObject *object )
 
 	if( magick7->all_frames )
 		magick7->n = -1;
-
-	/* The file format hint, eg. "ICO".
-	 *
-	if( magick7->format ) 
-		vips_strncpy( magick7->image_info->magick, 
-			magick7->format, MaxTextExtent );
-	 *
-	 */
 
 	/* Canvas resolution for rendering vector formats like SVG.
 	 */
@@ -768,6 +762,7 @@ ismagick7( const char *filename )
 	image_info = CloneImageInfo( NULL );
 	exception = AcquireExceptionInfo();
 	vips_strncpy( image_info->filename, filename, MagickPathExtent );
+	magick_sniff_file( image_info, filename );
 	image = PingImage( image_info, exception );
 	result = image != NULL;
 	VIPS_FREEF( DestroyImageList, image );
@@ -789,6 +784,8 @@ vips_foreign_load_magick7_file_header( VipsForeignLoad *load )
 
 	vips_strncpy( magick7->image_info->filename, file->filename, 
 		MagickPathExtent );
+
+	magick_sniff_file( magick7->image_info, file->filename );
 
 	/* It would be great if we could PingImage and just read the header,
 	 * but sadly many IM coders do not support ping. The critical one for
@@ -867,6 +864,7 @@ vips_foreign_load_magick7_buffer_is_a_buffer( const void *buf, size_t len )
 	 */
 	image_info = CloneImageInfo( NULL );
 	exception = AcquireExceptionInfo();
+	magick_sniff_bytes( image_info, buf, len );
 	image = PingBlob( image_info, buf, len, exception );
 	result = image != NULL;
 	VIPS_FREEF( DestroyImageList, image );
@@ -893,6 +891,8 @@ vips_foreign_load_magick7_buffer_header( VipsForeignLoad *load )
 	 * 
 	 * We have to read the whole image in _header.
 	 */
+	magick_sniff_bytes( magick7->image_info, 
+		magick7_buffer->buf->data, magick7_buffer->buf->length );
 	magick7->image = BlobToImage( magick7->image_info, 
 		magick7_buffer->buf->data, magick7_buffer->buf->length,
 		magick7->exception );

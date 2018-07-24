@@ -59,6 +59,9 @@ void magick_set_number_scenes( ImageInfo *image_info,
 	int scene, int number_scenes );
 
 void magick_inherit_exception( ExceptionInfo *exception, Image *image );
+void magick_sniff_bytes( ImageInfo *image_info, 
+		const unsigned char *bytes, size_t length );
+void magick_sniff_file( ImageInfo *image_info, const char *filename );
 void magick_vips_error( const char *domain, ExceptionInfo *exception );
 
 void magick_genesis( void );

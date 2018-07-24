@@ -1,6 +1,9 @@
 /* Common functions for interfacing with ImageMagick.
  *
  * 22/12/17 dlemstra 
+ *
+ * 24/7/18
+ * 	- add the sniffer
  */
 
 /*
@@ -236,6 +239,46 @@ magick_set_image_option( ImageInfo *image_info,
 #ifdef HAVE_SETIMAGEOPTION
   	SetImageOption( image_info, name, value );
 #endif /*HAVE_SETIMAGEOPTION*/
+}
+
+/* ImageMagick can't detect some formats, like ICO, by examining the contents --
+ * ico.c simply does not have a recogniser.
+ *
+ * For these formats, do the detection ourselves.
+ *
+ * Set image_info->magick if we spot one of the things we can spot. 
+ */
+static const char *
+magick_sniff( const unsigned char *bytes, size_t length )
+{
+	if( length >= 4 &&
+		bytes[0] == 0 &&
+		bytes[1] == 0 &&
+		bytes[2] == 1 &&
+		bytes[3] == 0 )
+		return( "ICO" );
+
+	return( NULL );
+}
+
+void
+magick_sniff_bytes( ImageInfo *image_info, 
+	const unsigned char *bytes, size_t length )
+{
+	const char *format;
+
+	if( (format = magick_sniff( bytes, length )) )
+		vips_strncpy( image_info->magick, format, MaxTextExtent );
+}
+
+void
+magick_sniff_file( ImageInfo *image_info, const char *filename )
+{
+	unsigned char bytes[256];
+	size_t length;
+
+	if( (length = vips__get_bytes( filename, bytes, 256 )) >= 4 )
+		magick_sniff_bytes( image_info, bytes, 256 );
 }
 
 void

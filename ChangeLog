@@ -35,6 +35,7 @@
 - paste in the test suite from pyvips
 - get EXIF tag names from tag plus ifd [@Nan619]
 - escape ASCII control characters in XML
+- magickload now sniffs some file types itself
 
 12/3/18 started 8.6.4
 - better fitting of fonts with overhanging edges [Adrià]
