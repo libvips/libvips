@@ -4,8 +4,6 @@
  * 	- from magickload
  * 25/11/16
  * 	- add @n, deprecate @all_frames (just sets n = -1)
- * 24/4/18
- * 	- add format hint
  */
 
 /*
@@ -67,7 +65,6 @@ typedef struct _VipsForeignLoadMagick7 {
 	 */
 	gboolean all_frames;
 
-	char *format;			/* Format hint */
 	char *density;			/* Load at this resolution */
 	int page;			/* Load this page (frame) */
 	int n;				/* Load this many pages */
@@ -309,10 +306,12 @@ vips_foreign_load_magick7_build( VipsObject *object )
 		magick7->n = -1;
 
 	/* The file format hint, eg. "ICO".
-	 */
+	 *
 	if( magick7->format ) 
 		vips_strncpy( magick7->image_info->magick, 
 			magick7->format, MaxTextExtent );
+	 *
+	 */
 
 	/* Canvas resolution for rendering vector formats like SVG.
 	 */
@@ -363,13 +362,6 @@ vips_foreign_load_magick7_class_init( VipsForeignLoadMagick7Class *class )
 	load_class->get_flags_filename = 
 		vips_foreign_load_magick7_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_magick7_get_flags;
-
-	VIPS_ARG_STRING( class, "format", 3,
-		_( "Format" ),
-		_( "Image format hint" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignLoadMagick7, format ),
-		NULL );
 
 	VIPS_ARG_STRING( class, "density", 4,
 		_( "Density" ),

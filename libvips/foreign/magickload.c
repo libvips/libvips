@@ -12,8 +12,6 @@
  * 	- add @n, deprecate @all_frames (just sets n = -1)
  * 8/9/17
  * 	- don't cache magickload
- * 24/4/18
- * 	- add format hint
  */
 
 /*
@@ -74,7 +72,6 @@ typedef struct _VipsForeignLoadMagick {
 	gboolean all_frames;
 
 	char *density;			/* Load at this resolution */
-	char *format;			/* Load format hint */
 	int page;			/* Load this page (frame) */
 	int n;				/* Load this many pages */
 
@@ -124,13 +121,6 @@ vips_foreign_load_magick_class_init( VipsForeignLoadMagickClass *class )
 	load_class->get_flags_filename = 
 		vips_foreign_load_magick_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_magick_get_flags;
-
-	VIPS_ARG_STRING( class, "format", 3,
-		_( "Format" ),
-		_( "Image format hint" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignLoadMagick, format ),
-		NULL );
 
 	VIPS_ARG_BOOL( class, "all_frames", 4, 
 		_( "all_frames" ), 
@@ -187,7 +177,7 @@ ismagick( const char *filename )
 
 	t = vips_image_new();
 	vips_error_freeze();
-	result = vips__magick_read_header( filename, t, NULL, NULL, 0, 1 );
+	result = vips__magick_read_header( filename, t, NULL, 0, 1 );
 	g_object_unref( t );
 	vips_error_thaw();
 
@@ -212,7 +202,7 @@ vips_foreign_load_magick_file_header( VipsForeignLoad *load )
 		magick->n = -1;
 
 	if( vips__magick_read( magick_file->filename, 
-		load->out, magick->format, magick->density, 
+		load->out, magick->density, 
 		magick->page, magick->n ) )
 		return( -1 );
 
@@ -273,8 +263,7 @@ vips_foreign_load_magick_buffer_is_a_buffer( const void *buf, size_t len )
 
 	t = vips_image_new();
 	vips_error_freeze();
-	result = vips__magick_read_buffer_header( buf, len, t, 
-		NULL, NULL, 0, 1 );
+	result = vips__magick_read_buffer_header( buf, len, t, NULL, 0, 1 );
 	g_object_unref( t );
 	vips_error_thaw();
 
@@ -300,7 +289,7 @@ vips_foreign_load_magick_buffer_header( VipsForeignLoad *load )
 
 	if( vips__magick_read_buffer( 
 		magick_buffer->buf->data, magick_buffer->buf->length, 
-		load->out, magick->format, magick->density, magick->page, 
+		load->out, magick->density, magick->page, 
 		magick->n ) )
 		return( -1 );
 
@@ -351,7 +340,6 @@ vips_foreign_load_magick_buffer_init( VipsForeignLoadMagickBuffer *buffer )
  *
  * Optional arguments:
  *
- * * @format: string, format hint, eg. "JPG"
  * * @page: %gint, load from this page
  * * @n: %gint, load this many pages
  * * @density: string, canvas resolution for rendering vector formats like SVG
@@ -366,9 +354,8 @@ vips_foreign_load_magick_buffer_init( VipsForeignLoadMagickBuffer *buffer )
  * The reader should also work with most versions of GraphicsMagick. See the
  * "--with-magickpackage" configure option.
  *
- * The file format is usually guessed from the filename suffix. You can 
- * override this with @format -- for example `"ICO"` selects Windows icon
- * format. See the ImageMagick documentation for a list of format names. 
+ * The file format is usually guessed from the filename suffix, or sniffed
+ * from the file contents.
  *
  * Normally it will only load the first image in a many-image sequence (such
  * as a GIF or a PDF). Use @page and @n to set the start page and number of
@@ -405,19 +392,12 @@ vips_magickload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * * @format: string, format hint, eg. "JPG"
  * * @page: %gint, load from this page
  * * @n: %gint, load this many pages
  * * @density: string, canvas resolution for rendering vector formats like SVG
  *
  * Read an image memory block using libMagick into a VIPS image. Exactly as
  * vips_magickload(), but read from a memory source. 
- *
- * The file format is usually guessed from the buffer contents, but this does
- * not work for all image formats. You can 
- * set the format explicitly with @format -- for example `"ICO"` selects 
- * Windows icon
- * format. See the ImageMagick documentation for a list of format names. 
  *
  * You must not free the buffer while @out is active. The 
  * #VipsObject::postclose signal on @out is a good place to free. 

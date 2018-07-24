@@ -55,8 +55,6 @@
  * 	- remove @all_frames, add @n
  * 23/2/17
  * 	- try using GetImageChannelDepth() instead of ->depth
- * 24/4/18
- * 	- add format hint
  * 25/5/18
  * 	- don't use Ping, it's too unreliable
  */
@@ -184,7 +182,7 @@ read_close( VipsImage *im, Read *read )
 
 static Read *
 read_new( const char *filename, VipsImage *im, 
-	const char *format, const char *density, int page, int n )
+	const char *density, int page, int n )
 {
 	Read *read;
 
@@ -221,10 +219,14 @@ read_new( const char *filename, VipsImage *im,
 			filename, MaxTextExtent );
 
 	/* The file format hint, eg. "ICO".
-	 */
+	 *
 	if( format ) 
 		vips_strncpy( read->image_info->magick, 
 			format, MaxTextExtent );
+	 *
+	 */
+	printf( "magick2vips: insert format stuff here\n" ); 
+
 
 	/* Canvas resolution for rendering vector formats like SVG.
 	 */
@@ -744,8 +746,7 @@ magick_fill_region( VipsRegion *out,
 
 int
 vips__magick_read( const char *filename, 
-	VipsImage *out, const char *format, const char *density, 
-	int page, int n )
+	VipsImage *out, const char *density, int page, int n )
 {
 	Read *read;
 
@@ -753,7 +754,7 @@ vips__magick_read( const char *filename,
 	printf( "magick2vips: vips__magick_read: %s\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( filename, out, format, density, page, n )) )
+	if( !(read = read_new( filename, out, density, page, n )) )
 		return( -1 );
 
 #ifdef DEBUG
@@ -779,8 +780,7 @@ vips__magick_read( const char *filename,
 
 int
 vips__magick_read_header( const char *filename, 
-	VipsImage *out, const char *format, const char *density, 
-	int page, int n )
+	VipsImage *out, const char *density, int page, int n )
 {
 	Read *read;
 
@@ -788,7 +788,7 @@ vips__magick_read_header( const char *filename,
 	printf( "vips__magick_read_header: %s\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( filename, out, format, density, page, n )) )
+	if( !(read = read_new( filename, out, density, page, n )) )
 		return( -1 );
 
 #ifdef DEBUG
@@ -825,8 +825,7 @@ vips__magick_read_header( const char *filename,
 
 int
 vips__magick_read_buffer( const void *buf, const size_t len, 
-	VipsImage *out, const char *format, const char *density, 
-	int page, int n )
+	VipsImage *out, const char *density, int page, int n )
 {
 	Read *read;
 
@@ -834,7 +833,7 @@ vips__magick_read_buffer( const void *buf, const size_t len,
 	printf( "magick2vips: vips__magick_read_buffer: %p %zu\n", buf, len );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( NULL, out, format, density, page, n )) )
+	if( !(read = read_new( NULL, out, density, page, n )) )
 		return( -1 );
 
 #ifdef DEBUG
@@ -860,8 +859,7 @@ vips__magick_read_buffer( const void *buf, const size_t len,
 
 int
 vips__magick_read_buffer_header( const void *buf, const size_t len, 
-	VipsImage *out, const char *format, const char *density, 
-	int page, int n )
+	VipsImage *out, const char *density, int page, int n )
 {
 	Read *read;
 
@@ -869,7 +867,7 @@ vips__magick_read_buffer_header( const void *buf, const size_t len,
 	printf( "vips__magick_read_buffer_header: %p %zu\n", buf, len );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( NULL, out, format, density, page, n )) )
+	if( !(read = read_new( NULL, out, density, page, n )) )
 		return( -1 );
 
 #ifdef DEBUG
