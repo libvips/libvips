@@ -246,7 +246,7 @@ magick_set_image_option( ImageInfo *image_info,
  *
  * For these formats, do the detection ourselves.
  *
- * Set image_info->magick if we spot one of the things we can spot. 
+ * Return an IM format specifier, or NULL to let IM do the detection.
  */
 static const char *
 magick_sniff( const unsigned char *bytes, size_t length )
