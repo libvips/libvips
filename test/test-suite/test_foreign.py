@@ -10,7 +10,7 @@ from helpers import \
     JPEG_FILE, SRGB_FILE, MATLAB_FILE, PNG_FILE, TIF_FILE, OME_FILE, \
     ANALYZE_FILE, GIF_FILE, WEBP_FILE, EXR_FILE, FITS_FILE, OPENSLIDE_FILE, \
     PDF_FILE, SVG_FILE, SVGZ_FILE, SVG_GZ_FILE, GIF_ANIM_FILE, DICOM_FILE, \
-    BMP_FILE, NIFTI_FILE, \
+    BMP_FILE, NIFTI_FILE, ICO_FILE, \
     temp_filename, assert_almost_equal_objects, have, skip_if_no
 
 
@@ -428,11 +428,18 @@ class TestForeign:
         # assert im.bands == 1
 
         # added in 8.7
-        if have("magicksave"):
-            self.save_load_file(".bmp", "", self.colour, 0)
-            self.save_load_buffer("magicksave_buffer", "magickload_buffer",
-                                  self.colour, 0, format="BMP")
-            self.save_load("%s.bmp", self.colour)
+        self.save_load_file(".bmp", "", self.colour, 0)
+        self.save_load_buffer("magicksave_buffer", "magickload_buffer",
+                              self.colour, 0, format="BMP")
+        self.save_load("%s.bmp", self.colour)
+
+        # libvips has its own sniffer for ICO, test that
+        with open(ICO_FILE, 'rb') as f:
+            buf = f.read()
+
+        im = pyvips.Image.new_from_buffer(buf, "")
+        assert im.width == 16
+        assert im.height == 16
 
     @skip_if_no("webpload")
     def test_webp(self):
