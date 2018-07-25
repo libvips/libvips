@@ -6,7 +6,7 @@ TESTS = \
 	test_threading.sh 
 
 EXTRA_DIST = \
-	images \
+	test-suite \
 	variables.sh.in \
 	test_cli.sh \
 	test_formats.sh \
