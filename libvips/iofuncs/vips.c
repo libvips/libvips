@@ -771,8 +771,14 @@ dbuf_write_quotes( VipsDbuf *dbuf, const char *str )
 	}
 }
 
-/* Append a string to a buffer, but escape &<> and the ASCII escape codes. Our
+/* Append a string to a buffer, but escape stuff that xml hates in text. Our
  * argument string is utf-8.
+ *
+ * XML rules:
+ *
+ * 	We must escape &<> 
+ * 	Don't escape \n, \t, \r
+ * 	Do escape the other ASCII codes. 
  */
 static void
 dbuf_write_amp( VipsDbuf *dbuf, const char *str )
@@ -780,7 +786,10 @@ dbuf_write_amp( VipsDbuf *dbuf, const char *str )
 	const char *p;
 
 	for( p = str; *p; p++ ) 
-		if( *p < 32 )
+		if( *p < 32 &&
+			*p != '\n' &&
+			*p != '\t' &&
+			*p != '\r' )
 			/* You'd think we could output "&#x02%x;", but xml
 			 * 1.0 parsers barf on that. xml 1.1 allows this, but
 			 * there are almost no parsers. 
