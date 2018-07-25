@@ -1362,6 +1362,8 @@ AC_OUTPUT([
 	python/packages/gi/overrides/Makefile 
 	test/Makefile 
 	test/variables.sh
+	test/test-suite/Makefile
+	test/test-suite/helpers/Makefile
 	swig/Makefile 
 	swig/vipsCC/Makefile 
 	man/Makefile
