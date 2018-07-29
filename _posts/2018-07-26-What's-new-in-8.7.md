@@ -25,7 +25,7 @@ part of the Canny algorithm. Thresholding and connectivity are up to you.
 }}/API/8.7/libvips-conversion.html#vips-transpose3d) is useful for volumetric
 images. libvips loads volumes as a single very tall, thin image with all
 the image slices one above the other.  This new operation swaps the outer
-two dimensions, so output page N is made from all the scanline N in the
+two dimensions, so output page N is made from all the Nth scanlines in the
 input pages.
 
 Finally, [`vips_rotate()`]({{ site.baseurl
@@ -51,14 +51,14 @@ is 4x faster, and [`vips_hough_circle()`]({{ site.baseurl
 }}/API/8.7/libvips-arithmetic.html#vips-hough-circle) is 2x faster.
 
 There's now a [Mitchell interpolation kernel]({{ site.baseurl
-}}/API/8.7/libvips-resample.html#VipsKernel). you can use for image resizing.
+}}/API/8.7/libvips-resample.html#VipsKernel) you can use for image resizing.
 
 # New format support
 
 Work by dlemstra has resulted in [`vips_magicksave()`]({{ site.baseurl
 }}/API/8.7/VipsForeignSave.html#vips-magicksave). This new operation can
 write an image via libMagick in any format that libMagick supports. It's
-still missing some features like compression control and ICC profile support,
+still missing some features like ICC profile support,
 but it works well for things like animated GIF write.
 
 There's a new, optional PDF loader based on Google's PDFium project. libvips has
