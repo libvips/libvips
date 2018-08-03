@@ -172,8 +172,6 @@
  * 4. make all functions static
  * 5. reorder to remove forward refs
  * 6. remove unused funcs, mostly related to HDR write
- * 7. "char fs[64];" needs to be MAXLINE to stop out of bounds write on long
- * lines
  */
 
 #define  RED		0
@@ -472,6 +470,7 @@ char  *buf;
 }
 
 #define	 MAXLINE	2048
+#define	 MAXFMTLEN	2048
 
 static const char  FMTSTR[] = "FORMAT=";	/* format identifier */
 
@@ -481,11 +480,12 @@ static gethfunc mycheck;
 
 static int
 formatval(			/* get format value (return true if format) */
-	char  *r,
+	char fmt[MAXFMTLEN],
 	const char  *s
 )
 {
 	const char  *cp = FMTSTR;
+	char  *r = fmt;
 
 	while (*cp) if (*cp++ != *s++) return(0);
 	while (isspace(*s)) s++;
@@ -493,7 +493,7 @@ formatval(			/* get format value (return true if format) */
 	if (r == NULL) return(1);
 	do
 		*r++ = *s++;
-	while (*s && !isspace(*s));
+	while (*s && !isspace(*s) && r-fmt < MAXFMTLEN-1);
 	*r = '\0';
 	return(1);
 }
@@ -541,11 +541,7 @@ getheader(		/* get header from file */
 
 struct check {
 	FILE	*fp;
-
-	/* This was 64. Expand to MAXLINE to prevent an out of bounds write
-	 * for very long lines.
-	 */
-	char	fs[MAXLINE];
+	char	fs[MAXFMTLEN];
 };
 
 
@@ -635,7 +631,7 @@ globmatch(			/* check for match of s against pattern p */
 static int
 checkheader(
 	FILE  *fin,
-	char  *fmt,
+	char  fmt[MAXFMTLEN],
 	FILE  *fout
 )
 {
