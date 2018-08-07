@@ -76,7 +76,7 @@ Run a specific test with:
 
     $ pytest test/test-suite/test_foreign.py -k test_tiff
 
-YOu will need to install a variety of Python packages for this, including
+You will need to install a variety of Python packages for this, including
 pyvips, the libvips Python binding.
 
 # Building libvips from git
