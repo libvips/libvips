@@ -184,7 +184,7 @@ or perhaps:
 
     CFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
     CXXFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
-    ./configure --without-python --prefix=/Users/john/vips 
+    ./configure --prefix=/Users/john/vips 
 
 to get libvips to see your builds.
 
@@ -247,6 +247,10 @@ be OK.
 
 If present, libvips can load and save png files. 
 
+### libimagequant
+
+If present, libvips can write 8-bit palette-ised PNGs.
+
 ### ImageMagick, or optionally GraphicsMagick
 
 If available, libvips adds support for loading all libMagick-supported
@@ -282,6 +286,10 @@ If available, vips can load FITS images.
 ### libwebp
 
 If available, vips can load and save WebP images.
+
+### libniftiio
+
+If available, vips can load and save NIFTI images.
 
 ### OpenEXR
 
