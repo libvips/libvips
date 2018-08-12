@@ -2,6 +2,9 @@
  *
  * 15/11/15
  * 	- from affine.c
+ * 12/8/18
+ * 	- prevent float->int overflow
+ * 	- a bit quicker
  */
 
 /*
@@ -70,34 +73,89 @@ typedef VipsResampleClass VipsMapimClass;
 
 G_DEFINE_TYPE( VipsMapim, vips_mapim, VIPS_TYPE_RESAMPLE );
 
-#define MINMAX( TYPE ) { \
+/* Minmax for integer types.
+ */
+#define MINMAXI( TYPE ) { \
 	TYPE * restrict p1 = (TYPE *) p; \
+	TYPE t_max_x = max_x; \
+	TYPE t_min_x = min_x; \
+	TYPE t_max_y = max_y; \
+	TYPE t_min_y = min_y; \
 	\
 	for( x = 0; x < r->width; x++ ) { \
 		TYPE px = p1[0]; \
 		TYPE py = p1[1]; \
 		\
 		if( first ) { \
-			min_x = px; \
-			max_x = px; \
-			min_y = py; \
-			max_y = py; \
+			t_min_x = px; \
+			t_max_x = px; \
+			t_min_y = py; \
+			t_max_y = py; \
 			\
 			first = FALSE; \
 		} \
 		else { \
-			if( px > max_x ) \
-				max_x = px; \
-			if( px < min_x ) \
-				min_x = px; \
-			if( py > max_y ) \
-				max_y = py; \
-			if( py < min_y ) \
-				min_y = py; \
+			if( px > t_max_x ) \
+				t_max_x = px; \
+			else if( px < t_min_x ) \
+				t_min_x = px; \
+			\
+			if( py > t_max_y ) \
+				t_max_y = py; \
+			else if( py < t_min_y ) \
+				t_min_y = py; \
 		} \
 		\
 		p1 += 2; \
 	} \
+	\
+	max_x = VIPS_CLIP( 0, t_max_x, VIPS_MAX_COORD ); \
+	min_x = VIPS_CLIP( 0, t_min_x, VIPS_MAX_COORD ); \
+	max_y = VIPS_CLIP( 0, t_max_y, VIPS_MAX_COORD ); \
+	min_y = VIPS_CLIP( 0, t_min_y, VIPS_MAX_COORD ); \
+}
+
+/* Minmax for float types. Look out for overflow when we go back to integer
+ * coordinates.
+ */
+#define MINMAXF( TYPE ) { \
+	TYPE * restrict p1 = (TYPE *) p; \
+	TYPE t_max_x = max_x; \
+	TYPE t_min_x = min_x; \
+	TYPE t_max_y = max_y; \
+	TYPE t_min_y = min_y; \
+	\
+	for( x = 0; x < r->width; x++ ) { \
+		TYPE px = p1[0]; \
+		TYPE py = p1[1]; \
+		\
+		if( first ) { \
+			t_min_x = px; \
+			t_max_x = px; \
+			t_min_y = py; \
+			t_max_y = py; \
+			\
+			first = FALSE; \
+		} \
+		else { \
+			if( px > t_max_x ) \
+				t_max_x = px; \
+			else if( px < t_min_x ) \
+				t_min_x = px; \
+			\
+			if( py > t_max_y ) \
+				t_max_y = py; \
+			else if( py < t_min_y ) \
+				t_min_y = py; \
+		} \
+		\
+		p1 += 2; \
+	} \
+	\
+	max_x = VIPS_CLIP( 0, ceil( t_max_x ), VIPS_MAX_COORD ); \
+	min_x = VIPS_CLIP( 0, floor( t_min_x ), VIPS_MAX_COORD ); \
+	max_y = VIPS_CLIP( 0, ceil( t_max_y ), VIPS_MAX_COORD ); \
+	min_y = VIPS_CLIP( 0, floor( t_min_y ), VIPS_MAX_COORD ); \
 }
 
 /* Scan a region and find min/max in the two axes.
@@ -112,51 +170,59 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 	gboolean first;
 	int x, y;
 
-	/* Stop compiler warnings.
-	 */
 	min_x = 0;
 	max_x = 0;
 	min_y = 0;
 	max_y = 0;
-
 	first = TRUE;
 	for( y = 0; y < r->height; y++ ) {
 		VipsPel * restrict p = 
-			VIPS_REGION_ADDR( region, r->left, y + r->top );
+			VIPS_REGION_ADDR( region, r->left, r->top + y );
 
 		switch( region->im->BandFmt ) {
 		case VIPS_FORMAT_UCHAR: 	
-			MINMAX( unsigned char ); break; 
+			MINMAXI( unsigned char ); 
+			break; 
+
 		case VIPS_FORMAT_CHAR: 	
-			MINMAX( signed char ); break; 
+			MINMAXI( signed char ); 
+			break; 
+
 		case VIPS_FORMAT_USHORT: 
-			MINMAX( unsigned short ); break; 
+			MINMAXI( unsigned short ); 
+			break; 
+
 		case VIPS_FORMAT_SHORT: 	
-			MINMAX( signed short ); break; 
+			MINMAXI( signed short ); 
+			break; 
+
 		case VIPS_FORMAT_UINT: 	
-			MINMAX( unsigned int ); break; 
+			MINMAXI( unsigned int ); 
+			break; 
+
 		case VIPS_FORMAT_INT: 	
-			MINMAX( signed int ); break; 
+			MINMAXI( signed int ); 
+			break; 
 
 		case VIPS_FORMAT_FLOAT: 		
 		case VIPS_FORMAT_COMPLEX: 
-			MINMAX( float ); break; 
+			MINMAXF( float ); 
+			break; 
 
 		case VIPS_FORMAT_DOUBLE:	
 		case VIPS_FORMAT_DPCOMPLEX: 
-			MINMAX( double ); break;
+			MINMAXF( double ); 
+			break;
 
 		default:
 			g_assert_not_reached();
 		}
 	}
 
-	/* Add 1 to width/height, since we are rounding float down.
-	 */
 	bounds->left = min_x;
 	bounds->top = min_y;
-	bounds->width = 1 + max_x - min_x;
-	bounds->height = 1 + max_y - min_y;
+	bounds->width = max_x - min_x + 1;
+	bounds->height = max_y - min_y + 1;
 }
 
 #define ULOOKUP( TYPE ) { \
@@ -166,14 +232,13 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 		TYPE px = p1[0]; \
 		TYPE py = p1[1]; \
 		\
-		if( px >= resample->in->Xsize || \
-			py >= resample->in->Ysize ) { \
+		if( px >= clip_width || \
+			py >= clip_height ) { \
 			for( z = 0; z < ps; z++ )  \
 				q[z] = 0; \
 		} \
 		else \
-			interpolate( mapim->interpolate, q, ir[0], \
-				px + window_offset, py + window_offset ); \
+			interpolate( mapim->interpolate, q, ir[0], px, py ); \
 		\
 		p1 += 2; \
 		q += ps; \
@@ -188,15 +253,14 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 		TYPE py = p1[1]; \
 		\
 		if( px < 0 || \
-			px >= resample->in->Xsize || \
+			px >= clip_width || \
 			py < 0 || \
-			py >= resample->in->Ysize ) { \
+			py >= clip_height ) { \
 			for( z = 0; z < ps; z++ )  \
 				q[z] = 0; \
 		} \
 		else \
-			interpolate( mapim->interpolate, q, ir[0], \
-				px + window_offset, py + window_offset ); \
+			interpolate( mapim->interpolate, q, ir[0], px, py ); \
 		\
 		p1 += 2; \
 		q += ps; \
@@ -214,11 +278,11 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	const VipsImage *in = in_array[0];
 	const int window_size = 
 		vips_interpolate_get_window_size( mapim->interpolate );
-	const int window_offset = 
-		vips_interpolate_get_window_offset( mapim->interpolate );
 	const VipsInterpolateMethod interpolate = 
 		vips_interpolate_get_method( mapim->interpolate );
 	const int ps = VIPS_IMAGE_SIZEOF_PEL( in );
+	const int clip_width = resample->in->Xsize;
+	const int clip_height = resample->in->Ysize;
 
 	VipsRect bounds, image, clipped;
 	int x, y, z;
@@ -250,7 +314,7 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	bounds.width += window_size - 1;
 	bounds.height += window_size - 1;
 
-	/* Clip against the source image.
+	/* Clip against the expanded image.
 	 */
 	image.left = 0;
 	image.top = 0;
