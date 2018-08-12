@@ -203,7 +203,7 @@ class TestForeign:
             x = pyvips.Image.new_from_file(JPEG_FILE)
             x = x.copy()
 
-            x.set_type(pyvips.GValue.gstr_type, "exif-ifd0-XPComment", "йцук")
+            x.set_type(pyvips.GValue.gstr_type, "exif-ifd0-XPComment", u"йцук")
 
             filename = temp_filename(self.tempdir, '.jpg')
             x.write_to_file(filename)
@@ -212,7 +212,7 @@ class TestForeign:
             y = x.get("exif-ifd0-XPComment")
             # can't use == since the string will have an extra " (xx, yy, zz)" 
             # format area at the end
-            assert y.startswith("йцук")
+            assert y.startswith(u"йцук")
 
             # can set/save/load UserComment, a tag which has the
             # encoding in the first 8 bytes ... though libexif only supports
