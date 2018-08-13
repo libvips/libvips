@@ -18,6 +18,8 @@
  * 21/11/17
  * 	- add "gif-delay", "gif-loop", "gif-comment" metadata
  * 	- add dispose handling
+ * 13/8/18
+ * 	- init pages to 0 before load
  */
 
 /*
@@ -778,6 +780,13 @@ vips_foreign_load_gif_new_page( VipsForeignLoadGif *gif )
 		g_object_unref( out ); 
 		return( NULL );
 	}
+
+	/* Some GIFs may not clear the background, so we must start
+	 * transparent.
+	 */
+	memset( VIPS_IMAGE_ADDR( out, 0, 0 ), 
+		0, 
+		VIPS_IMAGE_SIZEOF_IMAGE( out ) );
 
 	return( out );
 }
