@@ -207,6 +207,7 @@ vips_getpoint( VipsImage *in, double **vector, int *n, int x, int y, ... )
 	}
 	memcpy( *vector, area->data, area->n * area->sizeof_type ); 
 	*n = area->n;
+        vips_area_unref( area );
 
 	return( 0 );
 }
