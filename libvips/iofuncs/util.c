@@ -580,25 +580,11 @@ vips__open( const char *filename, int flags, ... )
 	mode = va_arg( ap, int );
 	va_end( ap );
 
+	fd = g_open( filename, flags, mode );
+
 #ifdef OS_WIN32
-{
-	wchar_t *path16;
-
-	if( !(path16 = (wchar_t *) 
-		g_utf8_to_utf16( filename, -1, NULL, NULL, NULL )) ) { 
-		errno = EACCES;
-		return( -1 );
-	}
-
-	fd = _wopen( path16, flags, mode );
-
 	if( mode & O_CREAT )
 		vips__set_create_time( fd ); 
-
-	g_free( path16 );
-}
-#else /*!OS_WIN32*/
-	fd = open( filename, flags, mode );
 #endif
 
 	return( fd );
@@ -617,31 +603,11 @@ vips__fopen( const char *filename, const char *mode )
 {
 	FILE *fp;
 
+	fp = g_fopen( filename, mode );
+
 #ifdef OS_WIN32
-	wchar_t *path16, *mode16;
-	
-	if( !(path16 = (wchar_t *) 
-		g_utf8_to_utf16( filename, -1, NULL, NULL, NULL )) ) { 
-		errno = EACCES;
-		return( NULL );
-	}
-
-	if( !(mode16 = (wchar_t *) 
-		g_utf8_to_utf16( mode, -1, NULL, NULL, NULL )) ) { 
-		g_free( path16 );
-		errno = EACCES;
-		return( NULL );
-	}
-
-	fp = _wfopen( path16, mode16 );
-
-	g_free( path16 );
-	g_free( mode16 );
-
 	if( mode[0] == 'w' )
 		vips__set_create_time( _fileno( fp ) ); 
-#else /*!OS_WIN32*/
-	fp = fopen( filename, mode );
 #endif
 
 	return( fp );
