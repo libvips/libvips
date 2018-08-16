@@ -385,9 +385,10 @@ class TestForeign:
         self.file_loader("magickload", BMP_FILE, bmp_valid)
         self.buffer_loader("magickload_buffer", BMP_FILE, bmp_valid)
 
-        # we should have rgba for svg files
+        # we should have rgb or rgba for svg files ... different versions of
+        # IM handle this differently
         im = pyvips.Image.magickload(SVG_FILE)
-        assert im.bands == 4
+        assert im.bands == 3 or im.bands == 4
 
         # density should change size of generated svg
         im = pyvips.Image.magickload(SVG_FILE, density='100')

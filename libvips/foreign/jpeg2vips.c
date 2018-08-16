@@ -188,15 +188,30 @@ typedef struct _ReadJpeg {
 	int output_height;
 } ReadJpeg;
 
+/* This can be called many times. It's called directly at the end of image
+ * read.
+ */
+static void
+readjpeg_close_input( ReadJpeg *jpeg )
+{
+	VIPS_FREEF( fclose, jpeg->eman.fp );
+
+	/* Don't call jpeg_finish_decompress(). It just checks the tail of the
+	 * file and who cares about that. All mem is freed in
+	 * jpeg_destroy_decompress().
+	 */
+
+	/* I don't think this can fail. It's harmless to call many times. 
+	 */
+	jpeg_destroy_decompress( &jpeg->cinfo );
+
+}
+
 /* This can be called many times.
  */
 static int
 readjpeg_free( ReadJpeg *jpeg )
 {
-	int result;
-
-	result = 0;
-
 	if( jpeg->eman.pub.num_warnings != 0 ) {
 		g_warning( _( "read gave %ld warnings" ), 
 			jpeg->eman.pub.num_warnings );
@@ -207,24 +222,15 @@ readjpeg_free( ReadJpeg *jpeg )
 		jpeg->eman.pub.num_warnings = 0;
 	}
 
-	/* Don't call jpeg_finish_decompress(). It just checks the tail of the
-	 * file and who cares about that. All mem is freed in
-	 * jpeg_destroy_decompress().
-	 */
+	readjpeg_close_input( jpeg );
 
-	VIPS_FREEF( fclose, jpeg->eman.fp );
 	VIPS_FREE( jpeg->filename );
-	jpeg->eman.fp = NULL;
 
-	/* I don't think this can fail. It's harmless to call many times. 
-	 */
-	jpeg_destroy_decompress( &jpeg->cinfo );
-
-	return( result );
+	return( 0 );
 }
 
 static void
-readjpeg_close( VipsObject *object, ReadJpeg *jpeg )
+readjpeg_close_cb( VipsObject *object, ReadJpeg *jpeg )
 {
 	(void) readjpeg_free( jpeg );
 }
@@ -261,7 +267,7 @@ readjpeg_new( VipsImage *out, int shrink, gboolean fail, gboolean autorotate )
         jpeg_create_decompress( &jpeg->cinfo );
 
 	g_signal_connect( out, "close", 
-		G_CALLBACK( readjpeg_close ), jpeg ); 
+		G_CALLBACK( readjpeg_close_cb ), jpeg ); 
 
 	return( jpeg );
 }
@@ -664,11 +670,10 @@ read_jpeg_generate( VipsRegion *or,
 		jpeg->y_pos += 1; 
 	}
 
-	/* Progressive images can have a lot of memory in the decompress
-	 * object, destroy as soon as we can. Safe to call many times. 
+	/* Shut down the input file as soon as we can. 
 	 */
 	if( jpeg->y_pos >= or->im->Ysize ) 
-		jpeg_destroy_decompress( &jpeg->cinfo );
+		readjpeg_close_input( jpeg );
 
 	VIPS_GATE_STOP( "read_jpeg_generate: work" );
 
