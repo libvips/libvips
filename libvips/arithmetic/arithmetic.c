@@ -500,7 +500,7 @@ vips__bandalike( const char *domain,
 
 /* Maximum number of input images -- why not?
  */
-#define MAX_INPUT_IMAGES (64)
+#define MAX_INPUT_IMAGES (1024)
 
 static int
 vips_arithmetic_gen( VipsRegion *or, 
