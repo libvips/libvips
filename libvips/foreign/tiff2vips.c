@@ -181,6 +181,8 @@
  * 	- add n-pages metadata item
  * 21/7/18
  * 	- check for non-byte-multiple bits_per_sample [HongxuChen]
+ * 16/8/18
+ * 	- shut down the input file as soon as we can [kleisauke]
  */
 
 /*
@@ -453,6 +455,64 @@ get_orientation( TIFF *tiff )
 		orientation = VIPS_CLIP( 1, v, 8 );
 
 	return( orientation );
+}
+
+/* Can be called many times.
+ */
+static void
+rtiff_free( Rtiff *rtiff )
+{
+	VIPS_FREEF( TIFFClose, rtiff->tiff );
+}
+
+static void
+rtiff_close_cb( VipsObject *object, Rtiff *rtiff )
+{
+	rtiff_free( rtiff ); 
+}
+
+static Rtiff *
+rtiff_new( VipsImage *out, int page, int n, gboolean autorotate )
+{
+	Rtiff *rtiff;
+
+	if( !(rtiff = VIPS_NEW( out, Rtiff )) )
+		return( NULL );
+
+	rtiff->filename = NULL;
+	rtiff->out = out;
+	rtiff->page = page;
+	rtiff->n = n;
+	rtiff->autorotate = autorotate;
+	rtiff->tiff = NULL;
+	rtiff->n_pages = 0;
+	rtiff->current_page = -1;
+	rtiff->sfn = NULL;
+	rtiff->client = NULL;
+	rtiff->memcpy = FALSE;
+	rtiff->plane_buf = NULL;
+	rtiff->contig_buf = NULL;
+
+	g_signal_connect( out, "close", 
+		G_CALLBACK( rtiff_close_cb ), rtiff ); 
+
+	if( rtiff->page < 0 || rtiff->page > 1000000 ) {
+		vips_error( "tiff2vips", _( "bad page number %d" ),
+			rtiff->page );
+		return( NULL );
+	}
+
+	/* We allow n == -1, meaning all pages. It gets swapped for a real n
+	 * value when we open the TIFF.
+	 */
+	if( rtiff->n != -1 &&
+		(rtiff->n < 1 || rtiff->n > 1000000) ) {
+		vips_error( "tiff2vips", _( "bad number of pages %d" ),
+			rtiff->n );
+		return( NULL );
+	}
+
+	return( rtiff );
 }
 
 static int
@@ -1880,6 +1940,11 @@ rtiff_stripwise_generate( VipsRegion *or,
 		y += hit.height;
 	}
 
+	/* Shut down the input file as soon as we can. 
+	 */
+	if( y >= or->im->Ysize )
+		rtiff_free( rtiff );
+
 	VIPS_GATE_STOP( "rtiff_stripwise_generate: work" ); 
 
 	return( 0 );
@@ -1984,64 +2049,6 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 		return( -1 );
 
 	return( 0 );
-}
-
-/* Can be called many times.
- */
-static void
-rtiff_free( Rtiff *rtiff )
-{
-	VIPS_FREEF( TIFFClose, rtiff->tiff );
-}
-
-static void
-rtiff_close( VipsObject *object, Rtiff *rtiff )
-{
-	rtiff_free( rtiff ); 
-}
-
-static Rtiff *
-rtiff_new( VipsImage *out, int page, int n, gboolean autorotate )
-{
-	Rtiff *rtiff;
-
-	if( !(rtiff = VIPS_NEW( out, Rtiff )) )
-		return( NULL );
-
-	rtiff->filename = NULL;
-	rtiff->out = out;
-	rtiff->page = page;
-	rtiff->n = n;
-	rtiff->autorotate = autorotate;
-	rtiff->tiff = NULL;
-	rtiff->n_pages = 0;
-	rtiff->current_page = -1;
-	rtiff->sfn = NULL;
-	rtiff->client = NULL;
-	rtiff->memcpy = FALSE;
-	rtiff->plane_buf = NULL;
-	rtiff->contig_buf = NULL;
-
-	g_signal_connect( out, "close", 
-		G_CALLBACK( rtiff_close ), rtiff ); 
-
-	if( rtiff->page < 0 || rtiff->page > 1000000 ) {
-		vips_error( "tiff2vips", _( "bad page number %d" ),
-			rtiff->page );
-		return( NULL );
-	}
-
-	/* We allow n == -1, meaning all pages. It gets swapped for a real n
-	 * value when we open the TIFF.
-	 */
-	if( rtiff->n != -1 &&
-		(rtiff->n < 1 || rtiff->n > 1000000) ) {
-		vips_error( "tiff2vips", _( "bad number of pages %d" ),
-			rtiff->n );
-		return( NULL );
-	}
-
-	return( rtiff );
 }
 
 /* Load from a tiff dir into one of our tiff header structs.
@@ -2341,7 +2348,8 @@ vips__tiff_read_header( const char *filename, VipsImage *out,
 
 	vips__tiff_init();
 
-	if( !(rtiff = rtiff_new_filename( filename, out, page, n, autorotate )) )
+	if( !(rtiff = 
+		rtiff_new_filename( filename, out, page, n, autorotate )) )
 		return( -1 );
 
 	if( rtiff_set_header( rtiff, out ) )

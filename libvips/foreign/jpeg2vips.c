@@ -98,6 +98,8 @@
  * 	- set interlaced=1 for interlaced images
  * 10/4/18
  * 	- strict round down on shrink-on-load
+ * 16/8/18
+ * 	- shut down the input file as soon as we can [kleisauke]
  */
 
 /*
