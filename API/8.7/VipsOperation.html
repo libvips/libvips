@@ -66,7 +66,7 @@ justifications.
 <tbody>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+<span class="returnvalue">gboolean</span>
 </td>
 <td class="function_name">
 <span class="c_punctuation">(</span><a class="link" href="VipsOperation.html#VipsOperationBuildFn" title="VipsOperationBuildFn ()">*VipsOperationBuildFn</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
@@ -310,7 +310,7 @@ justifications.
 <tbody><tr>
 <td class="signal_type"><span class="returnvalue">void</span></td>
 <td class="signal_name"><a class="link" href="VipsOperation.html#VipsOperation-invalidate" title="The “invalidate” signal">invalidate</a></td>
-<td class="signal_flags"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS">Run Last</a></td>
+<td class="signal_flags">Run Last</td>
 </tr></tbody>
 </table></div>
 </div>
@@ -329,7 +329,7 @@ justifications.
 </div>
 <div class="refsect1">
 <a name="VipsOperation.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+<pre class="screen">    GObject
     <span class="lineart">╰──</span> <a class="link" href="VipsObject.html" title="VipsObject">VipsObject</a>
         <span class="lineart">╰──</span> VipsOperation
             <span class="lineart">╰──</span> <a class="link" href="VipsForeignSave.html#VipsForeign">VipsForeign</a>
@@ -458,16 +458,16 @@ is unreffed.</p>
 VipsImage <span class="gtkdoc opt">*</span>t1<span class="gtkdoc opt">, *</span>t2<span class="gtkdoc opt">;</span>
 
 <span class="keyword">if</span> <span class="gtkdoc opt">(</span><span class="function"><a href="libvips-arithmetic.html#vips-invert">vips_invert</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">, &amp;</span>t1<span class="gtkdoc opt">,</span> NULL<span class="gtkdoc opt">)) {</span>
-  <span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
+  <span class="function">g_object_unref</span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
   <span class="keyword">return</span> <span class="gtkdoc opt">-</span><span class="number">1</span><span class="gtkdoc opt">;</span>
 <span class="gtkdoc opt">}</span>
-<span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
+<span class="function">g_object_unref</span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
 
 <span class="keyword">if</span> <span class="gtkdoc opt">(</span><span class="function"><a href="libvips-conversion.html#vips-flip">vips_flip</a></span> <span class="gtkdoc opt">(</span>t1<span class="gtkdoc opt">, &amp;</span>t2<span class="gtkdoc opt">,</span> VIPS_DIRECTION_HORIZONTAL<span class="gtkdoc opt">,</span> NULL<span class="gtkdoc opt">)) {</span>
-  <span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span> <span class="gtkdoc opt">(</span>t1<span class="gtkdoc opt">);</span>
+  <span class="function">g_object_unref</span> <span class="gtkdoc opt">(</span>t1<span class="gtkdoc opt">);</span>
   <span class="keyword">return</span> <span class="gtkdoc opt">-</span><span class="number">1</span><span class="gtkdoc opt">;</span>
 <span class="gtkdoc opt">}</span>
-<span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span> <span class="gtkdoc opt">(</span>t1<span class="gtkdoc opt">);</span></pre></td>
+<span class="function">g_object_unref</span> <span class="gtkdoc opt">(</span>t1<span class="gtkdoc opt">);</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -522,7 +522,7 @@ operation reffed, and the old operation returned in place of the new one.</p>
 <a name="VipsOperation.functions_details"></a><h2>Functions</h2>
 <div class="refsect2">
 <a name="VipsOperationBuildFn"></a><h3>VipsOperationBuildFn ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
 <span class="c_punctuation">(</span>*VipsOperationBuildFn<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="VipsObject.html" title="VipsObject"><span class="type">VipsObject</span></a> *object</code></em>);</pre>
 </div>
 <hr>
@@ -728,7 +728,7 @@ type-safety for the required arguments. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p>required args, then a <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of argument/value pairs</p></td>
+<td class="parameter_description"><p>required args, then a <code class="literal">NULL</code>-terminated list of argument/value pairs</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -760,7 +760,7 @@ vips_call_split_option_string (<em class="parameter"><code>const <span class="ty
 <div class="refsect2">
 <a name="vips-call-options"></a><h3>vips_call_options ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_call_options (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Commandline-option-parser.html#GOptionGroup"><span class="type">GOptionGroup</span></a> *group</code></em>,
+vips_call_options (<em class="parameter"><code><span class="type">GOptionGroup</span> *group</code></em>,
                    <em class="parameter"><code><a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> *operation</code></em>);</pre>
 </div>
 <hr>
@@ -871,7 +871,7 @@ vips_cache_operation_build (<em class="parameter"><code><a class="link" href="Vi
 <p>After calling this, <em class="parameter"><code>operation</code></em>
  has the same ref count as when it went in,
 and the result must be freed with <a class="link" href="VipsObject.html#vips-object-unref-outputs" title="vips_object_unref_outputs ()"><code class="function">vips_object_unref_outputs()</code></a> and
-<a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>.</p>
+<code class="function">g_object_unref()</code>.</p>
 <div class="refsect3">
 <a name="vips-cache-operation-build.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -1028,7 +1028,7 @@ cached operations. See <a class="link" href="libvips-memory.html#vips-tracked-ge
 <div class="refsect2">
 <a name="vips-cache-set-dump"></a><h3>vips_cache_set_dump ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_cache_set_dump (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> dump</code></em>);</pre>
+vips_cache_set_dump (<em class="parameter"><code><span class="type">gboolean</span> dump</code></em>);</pre>
 <p>Handy for debugging. Print the operation cache to stdout just before exit.</p>
 <p>See also: <a class="link" href="VipsOperation.html#vips-cache-set-trace" title="vips_cache_set_trace ()"><code class="function">vips_cache_set_trace()</code></a>.</p>
 <div class="refsect3">
@@ -1041,7 +1041,7 @@ vips_cache_set_dump (<em class="parameter"><code><a href="/usr/share/gtk-doc/htm
 </colgroup>
 <tbody><tr>
 <td class="parameter_name"><p>dump</p></td>
-<td class="parameter_description"><p>if <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, dump the operation cache on exit</p></td>
+<td class="parameter_description"><p>if <code class="literal">TRUE</code>, dump the operation cache on exit</p></td>
 <td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
@@ -1051,7 +1051,7 @@ vips_cache_set_dump (<em class="parameter"><code><a href="/usr/share/gtk-doc/htm
 <div class="refsect2">
 <a name="vips-cache-set-trace"></a><h3>vips_cache_set_trace ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_cache_set_trace (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> trace</code></em>);</pre>
+vips_cache_set_trace (<em class="parameter"><code><span class="type">gboolean</span> trace</code></em>);</pre>
 <p>Handy for debugging. Print operation cache actions to stdout as we run.</p>
 <p>You can set the environment variable <code class="literal">VIPS_TRACE</code> to turn this option on, or
 use the command-line flag <code class="literal">--vips-cache-trace</code>.</p>
@@ -1066,7 +1066,7 @@ use the command-line flag <code class="literal">--vips-cache-trace</code>.</p>
 </colgroup>
 <tbody><tr>
 <td class="parameter_name"><p>trace</p></td>
-<td class="parameter_description"><p>if <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, trace the operation cache </p></td>
+<td class="parameter_description"><p>if <code class="literal">TRUE</code>, trace the operation cache </p></td>
 <td class="parameter_annotations"> </td>
 </tr></tbody>
 </table></div>
@@ -1198,8 +1198,8 @@ compatibility only and should be hidden from users.</p>
 <a name="VipsOperation-invalidate"></a><h3>The <code class="literal">“invalidate”</code> signal</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 user_function (<a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> *vipsoperation,
-               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>       user_data)</pre>
-<p>Flags: <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS">Run Last</a></p>
+               <span class="type">gpointer</span>       user_data)</pre>
+<p>Flags: Run Last</p>
 </div>
 </div>
 <div class="refsect1">

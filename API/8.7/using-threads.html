@@ -73,7 +73,7 @@
 <div class="refsect3">
 <a name="using-threads-errors"></a><h4>Error handling</h4>
 <p>
-      libvips has a single error code (-1 or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>) returned by all functions 
+      libvips has a single error code (-1 or <code class="literal">NULL</code>) returned by all functions 
       on error. Error messages are not returned, instead they are logged  
       in a single global error buffer shared by all threads, see 
       <a class="link" href="libvips-error.html#vips-error-buffer" title="vips_error_buffer ()"><code class="function">vips_error_buffer()</code></a>. 
@@ -292,7 +292,7 @@ GThread <span class="gtkdoc opt">*</span>workers<span class="gtkdoc opt">[</span
   VipsImage <span class="gtkdoc opt">*</span>im<span class="gtkdoc opt">, *</span>x<span class="gtkdoc opt">;</span>
   <span class="gtkdoc kwb">char</span> output_file<span class="gtkdoc opt">[</span><span class="number">256</span><span class="gtkdoc opt">];</span>
 
-  <span class="function">snprintf</span> <span class="gtkdoc opt">(</span>output_file<span class="gtkdoc opt">,</span> <span class="number">256</span><span class="gtkdoc opt">,</span> <span class="string">"x/tmp-%p.jpg"</span><span class="gtkdoc opt">,</span> <span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Threads.html#g-thread-self">g_thread_self</a></span> <span class="gtkdoc opt">());</span>
+  <span class="function">snprintf</span> <span class="gtkdoc opt">(</span>output_file<span class="gtkdoc opt">,</span> <span class="number">256</span><span class="gtkdoc opt">,</span> <span class="string">"x/tmp-%p.jpg"</span><span class="gtkdoc opt">,</span> <span class="function">g_thread_self</span> <span class="gtkdoc opt">());</span>
 
   <span class="keyword">if</span> <span class="gtkdoc opt">(!(</span>im <span class="gtkdoc opt">=</span> <span class="function"><a href="VipsImage.html#vips-image-new-from-file">vips_image_new_from_file</a></span> <span class="gtkdoc opt">(</span>filename<span class="gtkdoc opt">,</span>
 				       <span class="string">"access"</span><span class="gtkdoc opt">,</span> VIPS_ACCESS_SEQUENTIAL<span class="gtkdoc opt">,</span>
@@ -301,18 +301,18 @@ GThread <span class="gtkdoc opt">*</span>workers<span class="gtkdoc opt">[</span
 
   <span class="keyword">if</span> <span class="gtkdoc opt">(</span><span class="function"><a href="libvips-resample.html#vips-resize">vips_resize</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">, &amp;</span>x<span class="gtkdoc opt">,</span> <span class="number">0.1</span><span class="gtkdoc opt">,</span> NULL<span class="gtkdoc opt">))</span>
     <span class="gtkdoc opt">{</span>
-      <span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
+      <span class="function">g_object_unref</span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
       <span class="keyword">return</span> <span class="gtkdoc opt">(-</span><span class="number">1</span><span class="gtkdoc opt">);</span>
     <span class="gtkdoc opt">}</span>
-  <span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
+  <span class="function">g_object_unref</span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
   im <span class="gtkdoc opt">=</span> x<span class="gtkdoc opt">;</span>
 
   <span class="keyword">if</span> <span class="gtkdoc opt">(</span><span class="function"><a href="VipsImage.html#vips-image-write-to-file">vips_image_write_to_file</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">,</span> output_file<span class="gtkdoc opt">,</span> NULL<span class="gtkdoc opt">))</span>
     <span class="gtkdoc opt">{</span>
-      <span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
+      <span class="function">g_object_unref</span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
       <span class="keyword">return</span> <span class="gtkdoc opt">(-</span><span class="number">1</span><span class="gtkdoc opt">);</span>
     <span class="gtkdoc opt">}</span>
-  <span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
+  <span class="function">g_object_unref</span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
 
   <span class="keyword">return</span> <span class="gtkdoc opt">(</span><span class="number">0</span><span class="gtkdoc opt">);</span>
 <span class="gtkdoc opt">}</span>
@@ -329,11 +329,11 @@ GThread <span class="gtkdoc opt">*</span>workers<span class="gtkdoc opt">[</span
       gboolean done<span class="gtkdoc opt">;</span>
 
       done <span class="gtkdoc opt">=</span> FALSE<span class="gtkdoc opt">;</span>
-      <span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Threads.html#g-mutex-lock">g_mutex_lock</a></span> <span class="gtkdoc opt">(&amp;</span>allocation_lock<span class="gtkdoc opt">);</span>
+      <span class="function">g_mutex_lock</span> <span class="gtkdoc opt">(&amp;</span>allocation_lock<span class="gtkdoc opt">);</span>
       n_calls <span class="gtkdoc opt">+=</span> <span class="number">1</span><span class="gtkdoc opt">;</span>
       <span class="keyword">if</span> <span class="gtkdoc opt">(</span>n_calls <span class="gtkdoc opt">&gt;</span> TOTAL_TESTS<span class="gtkdoc opt">)</span>
 	done <span class="gtkdoc opt">=</span> TRUE<span class="gtkdoc opt">;</span>
-      <span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Threads.html#g-mutex-unlock">g_mutex_unlock</a></span> <span class="gtkdoc opt">(&amp;</span>allocation_lock<span class="gtkdoc opt">);</span>
+      <span class="function">g_mutex_unlock</span> <span class="gtkdoc opt">(&amp;</span>allocation_lock<span class="gtkdoc opt">);</span>
 
       <span class="keyword">if</span> <span class="gtkdoc opt">(</span>done<span class="gtkdoc opt">)</span>
 	<span class="keyword">break</span><span class="gtkdoc opt">;</span>
@@ -353,13 +353,13 @@ GThread <span class="gtkdoc opt">*</span>workers<span class="gtkdoc opt">[</span
   <span class="keyword">if</span> <span class="gtkdoc opt">(</span><span class="function"><a href="libvips-vips.html#VIPS-INIT:CAPS">VIPS_INIT</a></span> <span class="gtkdoc opt">(</span>argv<span class="gtkdoc opt">[</span><span class="number">0</span><span class="gtkdoc opt">]))</span>
     <span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span> <span class="gtkdoc opt">(</span>NULL<span class="gtkdoc opt">);</span>
 
-  <span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Threads.html#g-mutex-init">g_mutex_init</a></span> <span class="gtkdoc opt">(&amp;</span>allocation_lock<span class="gtkdoc opt">);</span>
+  <span class="function">g_mutex_init</span> <span class="gtkdoc opt">(&amp;</span>allocation_lock<span class="gtkdoc opt">);</span>
 
   <span class="keyword">for</span> <span class="gtkdoc opt">(</span>i <span class="gtkdoc opt">=</span> <span class="number">0</span><span class="gtkdoc opt">;</span> i <span class="gtkdoc opt">&lt;</span> NUM_IN_PARALLEL<span class="gtkdoc opt">;</span> i<span class="gtkdoc opt">++)</span>
-    workers<span class="gtkdoc opt">[</span>i<span class="gtkdoc opt">] =</span> <span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Threads.html#g-thread-new">g_thread_new</a></span> <span class="gtkdoc opt">(</span>NULL<span class="gtkdoc opt">, (</span>GThreadFunc<span class="gtkdoc opt">)</span> worker<span class="gtkdoc opt">,</span> argv<span class="gtkdoc opt">[</span><span class="number">1</span><span class="gtkdoc opt">]);</span>
+    workers<span class="gtkdoc opt">[</span>i<span class="gtkdoc opt">] =</span> <span class="function">g_thread_new</span> <span class="gtkdoc opt">(</span>NULL<span class="gtkdoc opt">, (</span>GThreadFunc<span class="gtkdoc opt">)</span> worker<span class="gtkdoc opt">,</span> argv<span class="gtkdoc opt">[</span><span class="number">1</span><span class="gtkdoc opt">]);</span>
 
   <span class="keyword">for</span> <span class="gtkdoc opt">(</span>i <span class="gtkdoc opt">=</span> <span class="number">0</span><span class="gtkdoc opt">;</span> i <span class="gtkdoc opt">&lt;</span> NUM_IN_PARALLEL<span class="gtkdoc opt">;</span> i<span class="gtkdoc opt">++)</span>
-    <span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Threads.html#g-thread-join">g_thread_join</a></span> <span class="gtkdoc opt">(</span>workers<span class="gtkdoc opt">[</span>i<span class="gtkdoc opt">]);</span>
+    <span class="function">g_thread_join</span> <span class="gtkdoc opt">(</span>workers<span class="gtkdoc opt">[</span>i<span class="gtkdoc opt">]);</span>
 
   <span class="keyword">return</span> <span class="gtkdoc opt">(</span><span class="number">0</span><span class="gtkdoc opt">);</span>
 <span class="gtkdoc opt">}</span></pre></td>
