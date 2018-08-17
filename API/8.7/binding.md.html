@@ -49,18 +49,18 @@
 <p>
 </p>
 <p>
-  There are full libvips bindings for quite a few environments now: C, C++, command-line, Ruby, PHP, Python and JavaScript (node).
+  There are full libvips bindings for quite a few environments now: C, C++, command-line, Ruby, PHP, Lua, Python and JavaScript (node).
 </p>
 <p>
   This chapter runs through the four main styles that have been found to work well. If you want to write a new binding, one of these should be close to what you need.
 </p>
 <div class="refsect3">
-<a name="c-api"></a><h4>C API</h4>
+<a name="dont-bind-the-top-level-c-api"></a><h4>Don’t bind the top-level C API</h4>
 <p>
-    The libvips C API (<a class="link" href="libvips-arithmetic.html#vips-add" title="vips_add ()"><code class="function">vips_add()</code></a> and so on) is very inconvenient to use from other languages due to its heavy use of varargs.
+    The libvips C API (<a class="link" href="libvips-arithmetic.html#vips-add" title="vips_add ()"><code class="function">vips_add()</code></a> and so on) is very inconvenient and dangerous to use from other languages due to its heavy use of varargs.
   </p>
 <p>
-    It’s much better to use the layer below. This lower layer is structured as: create operator, set parameters, execute, extract results. For example, you can execute <a class="link" href="libvips-arithmetic.html#vips-invert" title="vips_invert ()"><code class="function">vips_invert()</code></a> like this:
+    It’s much better to use the layer below. This lower layer is structured as create operator, set parameters, execute, extract results. For example, you can execute <a class="link" href="libvips-arithmetic.html#vips-invert" title="vips_invert ()"><code class="function">vips_invert()</code></a> like this:
   </p>
 <pre class="programlisting">
 /* compile with
@@ -150,7 +150,7 @@ main( int argc, char **argv )
 }
 </pre>
 <p>
-    libvips has a couple of extra things to let you fetch the arguments and types of an operator. Use vips_lib.vips_argument_map() to loop over all the arguments of an operator, and <a class="link" href="VipsObject.html#vips-object-get-argument" title="vips_object_get_argument ()"><code class="function">vips_object_get_argument()</code></a> to fetch the type and flags of a specific argument.
+    libvips has a couple of extra things to let you examine the arguments and types of an operator at runtime. Use vips_lib.vips_argument_map() to loop over all the arguments of an operator, and <a class="link" href="VipsObject.html#vips-object-get-argument" title="vips_object_get_argument ()"><code class="function">vips_object_get_argument()</code></a> to fetch the type and flags of a specific argument.
   </p>
 <p>
     Use <a class="link" href="VipsOperation.html#vips-operation-get-flags" title="vips_operation_get_flags ()"><code class="function">vips_operation_get_flags()</code></a> to get general information about an operator.
@@ -177,7 +177,7 @@ VImage VImage::invert( VOption *options )
 }
 </pre>
 <p>
-    So from C++ you can call any libvips operator, though without type-safety, with <code class="literal">VImage::<code class="function">call()</code></code>, or use the member functions on <code class="literal">VImage</code> to get type-safe calls for at least the required operator arguments.
+    So from C++ you can call any libvips operator (though without type-safety) with <code class="literal">VImage::<code class="function">call()</code></code>, or use the member functions on <code class="literal">VImage</code> to get type-safe calls for at least the required operator arguments.
   </p>
 <p>
     The <code class="literal">VImage</code> class also adds automatic reference counting, constant expansion, operator overloads, and various other useful features.
@@ -189,7 +189,7 @@ VImage VImage::invert( VOption *options )
     Languages like Ruby, Python, JavaScript and Lua can’t call C directly, but they do support FFI. The bindings for these languages work rather like C++, but use FFI to call into libvips and run operations.
   </p>
 <p>
-    Since these languages are dynamic, they can add another trick: they intercept the method-missing hook and attempt to run any method calls not implemented by the <code class="literal">Image</code> class as libvips operators. This makes these bindings self-writing: they only contain a small amount of codeand just expose everything they find in the libvips class hierarchy.
+    Since these languages are dynamic, they can add another trick: they intercept the method-missing hook and attempt to run any method calls not implemented by the <code class="literal">Image</code> class as libvips operators. This makes these bindings self-writing: they only contain a small amount of code and just expose everything they find in the libvips class hierarchy.
   </p>
 </div>
 <div class="refsect3">
@@ -199,7 +199,7 @@ VImage VImage::invert( VOption *options )
   </p>
 </div>
 <div class="refsect3">
-<a name="gobject-introspection"></a><h4><code class="literal">gobject-introspection</code></h4>
+<a name="gobject-introspection"></a><h4>gobject-introspection</h4>
 <p>
     The C source code to libvips has been marked up with special comments describing the interface in a standard way. These comments are read by the <code class="literal">gobject-introspection</code> package when libvips is compiled and used to generate a typelib, a description of how to call the library. Many languages have gobject-introspection packages: all you need to do to call libvips from your favorite language is to start g-o-i, load the libvips typelib, and you should have the whole library available. For example, from Python it’s as simple as:
   </p>

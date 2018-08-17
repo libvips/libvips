@@ -115,6 +115,9 @@ $ vipsthumbnail shark.jpg --size 200x
 <p>
     You can append <code class="literal">&lt;</code> or <code class="literal">&gt;</code> to mean only resize if the image is smaller or larger than the target.
   </p>
+<p>
+    You can append <code class="literal">!</code> to force a resize to the exact target size, breaking the aspect ratio.
+  </p>
 </div>
 <div class="refsect3">
 <a name="cropping"></a><h4>Cropping</h4>
@@ -215,7 +218,7 @@ $ vipsthumbnail fred.jpg ../jim.tif -o tn_%s.png
     You can give options to the image write operation as a list of comma-separated arguments in square brackets. For example:
   </p>
 <pre class="programlisting">
-$ vipsthumbnail fred.jpg ../jim.tif -o &gt; tn_%s.jpg[Q=90,optimize_coding]
+$ vipsthumbnail fred.jpg ../jim.tif -o tn_%s.jpg[Q=90,optimize_coding]
 </pre>
 <p>
     will write jpeg images with quality 90, and will turn on the libjpeg coding optimizer.
