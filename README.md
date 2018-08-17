@@ -3,32 +3,43 @@
 [![Build Status](https://travis-ci.org/jcupitt/libvips.svg?branch=master)](https://travis-ci.org/jcupitt/libvips)
 [![Coverity Status](https://scan.coverity.com/projects/6503/badge.svg)](https://scan.coverity.com/projects/jcupitt-libvips)
 
-libvips is a 2D image processing library. Compared to
-similar libraries, [libvips runs quickly and uses little
+libvips is a [demand-driven, horizontally
+threaded](https://github.com/jcupitt/libvips/wiki/Why-is-libvips-quick)
+image processing library. Compared to similar
+libraries, [libvips runs quickly and uses little
 memory](https://github.com/jcupitt/libvips/wiki/Speed-and-memory-use).
-libvips is licensed under the LGPL 2.1+.
+libvips is licensed under the [LGPL
+2.1+](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html).
 
-It has around 300 operations covering arithmetic, histograms, convolutions,
-morphological operations, frequency filtering, colour, resampling, statistics
-and others. It supports a large range of numeric formats, from 8-bit int
-to 128-bit complex. It supports a good range of image formats, including
-JPEG, TIFF, PNG, WebP, FITS, Matlab, OpenEXR, PDF, SVG, HDR, PPM, CSV, GIF,
-Analyze, DeepZoom, and OpenSlide.  It can also load images via ImageMagick
-or GraphicsMagick.
+It has around [300 operations](API/current/func-list.html) covering
+arithmetic, histograms, convolution, morphological operations, frequency
+filtering, colour, resampling, statistics and others. It supports a large
+range of [numeric formats](API/current/VipsImage.html#VipsBandFormat),
+from 8-bit int to 128-bit complex. Images can have any number of bands.
+It supports a good range of image formats, including JPEG, TIFF, 
+PNG, WebP, FITS, Matlab, OpenEXR, PDF, SVG, HDR, PPM, CSV, GIF, Analyze,
+NIfTI, DeepZoom, and OpenSlide.  It can also load images via ImageMagick or
+GraphicsMagick, letting it load formats like DICOM. 
 
-It has APIs for
-[C](http://jcupitt.github.io/libvips/API/current/using-from-c.html) and
-[C++](http://jcupitt.github.io/libvips/API/current/using-from-cpp.html)
-and a [command-line
-interface](http://jcupitt.github.io/libvips/API/current/using-cli.html).
-Bindings are available for [Python](https://pypi.python.org/pypi/pyvips),
-[Ruby](https://rubygems.org/gems/ruby-vips),
-[PHP](https://github.com/jcupitt/php-vips),
-[Go](https://github.com/davidbyttow/govips),
-[Lua](https://github.com/jcupitt/lua-vips), JavaScript and others. There is
-full [documentation](http://jcupitt.github.io/libvips/API/current).
-There are several GUIs as well, see the [VIPS
-website](http://jcupitt.github.io/libvips).
+It comes with bindings for [C](API/current/using-from-c.html),
+[C++](API/current/using-from-cpp.html),
+and the [command-line](API/current/using-cli.html). Full bindings
+are available for [Ruby](https://rubygems.org/gems/ruby-vips),
+[Python](https://pypi.python.org/pypi/pyvips),
+[PHP](https://github.com/jcupitt/php-vips), 
+[.NET](https://www.nuget.org/packages/NetVips), 
+[Go](https://github.com/davidbyttow/govips), and
+[Lua](https://github.com/jcupitt/lua-vips). libvips
+is used as an image processing engine by [sharp (on
+node.js)](https://www.npmjs.org/package/sharp),
+[bimg](https://github.com/h2non/bimg),
+[sharp for Go](https://github.com/DAddYE/vips),
+[Ruby on Rails](http://edgeguides.rubyonrails.org/active_storage_overview.html),
+[carrierwave-vips](https://github.com/eltiare/carrierwave-vips),
+[mediawiki](http://www.mediawiki.org/wiki/Extension:VipsScaler),
+[PhotoFlow](https://github.com/aferrero2707/PhotoFlow) and others.
+The official libvips GUI is [nip2](https://github.com/jcupitt/nip2),
+a strange combination of a spreadsheet and an photo editor.
 
 There are packages for most unix-like operating systems and binaries for
 Windows and OS X.
