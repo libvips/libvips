@@ -13,8 +13,8 @@ morphological operations, frequency filtering, colour, resampling, statistics
 and others. It supports a large range of numeric formats, from 8-bit int
 to 128-bit complex. It supports a good range of image formats, including
 JPEG, TIFF, PNG, WebP, FITS, Matlab, OpenEXR, PDF, SVG, HDR, PPM, CSV, GIF,
-Analyze, DeepZoom, and OpenSlide.  It can also load images via ImageMagick
-or GraphicsMagick.
+Analyze, Nifti, DeepZoom, and OpenSlide.  It can also load and save images via
+ImageMagick or GraphicsMagick.
 
 It has APIs for
 [C](http://jcupitt.github.io/libvips/API/current/using-from-c.html) and

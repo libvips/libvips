@@ -981,7 +981,7 @@ vips_foreign_load_build( VipsObject *object )
 
 	/* Tell downstream if we are reading sequentially.
 	 */
-	if( sequential )
+	if( sequential ) 
 		vips_image_set_area( load->out, 
 			VIPS_META_SEQUENTIAL, NULL, NULL ); 
 
