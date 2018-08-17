@@ -4,17 +4,22 @@
 [![Build Status](https://travis-ci.org/jcupitt/libvips.svg?branch=master)](https://travis-ci.org/jcupitt/libvips)
 [![Coverity Status](https://scan.coverity.com/projects/6503/badge.svg)](https://scan.coverity.com/projects/jcupitt-libvips)
 
-libvips is a [demand-driven, horizontally threaded](https://github.com/jcupitt/libvips/wiki/Why-is-libvips-quick) image processing library. Compared to
-similar libraries, [libvips runs quickly and uses little
+libvips is a [demand-driven, horizontally
+threaded](https://github.com/jcupitt/libvips/wiki/Why-is-libvips-quick)
+image processing library. Compared to similar
+libraries, [libvips runs quickly and uses little
 memory](https://github.com/jcupitt/libvips/wiki/Speed-and-memory-use).
+libvips is licensed under
+the [LGPL 2.1+](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html).
+
 It has around [300 operations](API/current/func-list.html) covering
 arithmetic, histograms, convolution, morphological operations, frequency
 filtering, colour, resampling, statistics and others. It supports a large
 range of [numeric formats](API/current/VipsImage.html#VipsBandFormat),
 from 8-bit int to 128-bit complex. Images can have any number of bands.
-It supports a good range of image formats, including JPEG, TIFF, OME-TIFF,
+It supports a good range of image formats, including JPEG, TIFF, 
 PNG, WebP, FITS, Matlab, OpenEXR, PDF, SVG, HDR, PPM, CSV, GIF, Analyze,
-DeepZoom, and OpenSlide.  It can also load images via ImageMagick or
+NIfTI, DeepZoom, and OpenSlide.  It can also load images via ImageMagick or
 GraphicsMagick, letting it load formats like DICOM. 
 
 It comes with bindings for [C](API/current/using-from-c.html),
@@ -40,8 +45,7 @@ a strange combination of a spreadsheet and an photo editor.
 The [download area]({{ site.github.releases_url }}) has the
 source code plus pre-compiled binaries for Windows; you can install on macOS
 with homebrew, MacPorts or Fink; and it's available in most Linux package
-managers. See the [install notes](install.html).  libvips is licensed under
-the [LGPL 2.1+](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html).
+managers. See the [install notes](install.html).  
 
 ## Twitter 
 
