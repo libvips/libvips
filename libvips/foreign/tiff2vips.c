@@ -1942,7 +1942,7 @@ rtiff_stripwise_generate( VipsRegion *or,
 
 	/* Shut down the input file as soon as we can. 
 	 */
-	if( y >= or->im->Ysize )
+	if( r->top + y >= or->im->Ysize ) 
 		rtiff_free( rtiff );
 
 	VIPS_GATE_STOP( "rtiff_stripwise_generate: work" ); 
