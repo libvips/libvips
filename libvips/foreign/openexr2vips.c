@@ -14,6 +14,8 @@
  * 	- redo as a set of fns ready for wrapping in a new-style class
  * 17/9/16
  * 	- tag output as scRGB
+ * 16/8/18
+ * 	- shut down the input file as soon as we can [kleisauke]
  */
 
 /*
@@ -122,12 +124,18 @@ get_imf_error( void )
 }
 
 static void
+read_close( Read *read )
+{
+	VIPS_FREEF( ImfCloseTiledInputFile, read->tiles );
+	VIPS_FREEF( ImfCloseInputFile, read->lines );
+}
+
+static void
 read_destroy( VipsImage *out, Read *read )
 {
 	VIPS_FREE( read->filename );
 
-	VIPS_FREEF( ImfCloseTiledInputFile, read->tiles );
-	VIPS_FREEF( ImfCloseInputFile, read->lines );
+	read_close( read ); 
 
 	vips_free( read );
 }
@@ -329,6 +337,11 @@ vips__openexr_generate( VipsRegion *out,
 			}
 		}
 
+	/* We can't shut down the input file early for tile read, even if we
+	 * know load is in sequential mode, since we are not inside a
+	 * vips_sequential() and requests are not guaranteed to be in order.
+	 */
+
 	return( 0 );
 }
 
@@ -408,6 +421,8 @@ vips__openexr_read( const char *filename, VipsImage *out )
 				(VipsPel *) vips_buffer ) )
 				return( -1 );
 		}
+
+		read_close( read ); 
 	}
 
 	return( 0 );
