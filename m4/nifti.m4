@@ -30,7 +30,7 @@ AC_ARG_WITH(nifti-includes,
 AC_ARG_WITH(nifti-libraries,
   AS_HELP_STRING([--with-nifti-libraries=DIR], 
     [libniftiio libraries are in DIR]),
-  NIFTI_LIBS="-L$withval -lniftiio"
+  NIFTI_LIBS="-L$withval -lniftiio -lznz"
 )
 
 AC_MSG_CHECKING(for NIFTI)
@@ -64,19 +64,19 @@ if test "$NIFTI_LIBS" = ""; then
   nifti_save_LIBS="$LIBS"
   nifti_save_CFLAGS="$CFLAGS"
 
-  LIBS="-lniftiio -lm $nifti_save_LIBS"
+  LIBS="-lniftiio -lznz -lm $nifti_save_LIBS"
   CFLAGS="$NIFTI_INCLUDES $CFLAGS"
 
   # Try the standard search path first
   AC_TRY_LINK([#include <nifti1_io.h>],[is_nifti_file("")], [
-    NIFTI_LIBS="-lniftiio"
+    NIFTI_LIBS="-lniftiio -lznz"
   ], [
     # libniftiio is not in the standard search path, try $prefix
 
     LIBS="-L${prefix}/lib $LIBS"
 
     AC_TRY_LINK([#include <nifti1_io.h>],[is_nifti_file("")], [
-      NIFTI_LIBS="-L${prefix}/lib -lniftiio"
+      NIFTI_LIBS="-L${prefix}/lib -lniftiio -lznz"
     ], [
       NIFTI_LIBS=no
     ])
