@@ -239,6 +239,7 @@ vips__openexr_read_header( const char *filename, VipsImage *out )
 	if( !(read = read_new( filename, out )) )
 		return( -1 );
 	read_header( read, out );
+	read_close( read );
 
 	return( 0 );
 }
