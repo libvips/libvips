@@ -2210,6 +2210,66 @@ vips_object_find_required( VipsObject *object )
 		vips_argument_is_required, NULL, NULL ) );
 }
 
+typedef struct _VipsNameFlagsPair {
+	const char **names;
+	int *flags;
+} VipsNameFlagsPair;
+
+static void *
+vips_object_find_args( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	VipsNameFlagsPair *pair = (VipsNameFlagsPair *) a;
+	int *i = (int *) b;
+
+	pair->names[*i] = g_param_spec_get_name( pspec );
+	pair->flags[*i] = (int) argument_class->flags;
+
+	*i += 1;
+
+	return( NULL );
+}
+
+/**
+ * vips_object_get_args: (skip)
+ * @object: object whose args should be retrieved
+ * @names: (out)(array length=n_args): output array of GParamSpec names
+ * @flags: (out)(array length=n_args): output array of VipsArgumentFlags
+ * @n_args: length of output arrays
+ *
+ * Get all GParamSpec names and VipsArgumentFlags for an object.
+ *
+ * This is handy for language bindings. From C, it's usually more convenient to
+ * use vips_argument_map().
+ */
+void
+vips_object_get_args( VipsObject *object,
+	const char ***names, int **flags, int *n_args)
+{
+	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
+
+	int n = g_slist_length( object_class->argument_table_traverse );
+
+	VipsNameFlagsPair pair;
+	pair.names = VIPS_ARRAY( object, n, const char * );
+	pair.flags = VIPS_ARRAY( object, n, int );
+
+	int i = 0;
+
+	(void) vips_argument_map( object,
+		vips_object_find_args, &pair, &i );
+
+	if( names )
+		*names = pair.names;
+	if( flags )
+		*flags = pair.flags;
+	if( n_args )
+		*n_args = n;
+}
+
 /**
  * vips_object_new: (skip)
  * @type: object to create

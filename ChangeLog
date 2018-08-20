@@ -40,6 +40,7 @@
 - mapim could fail for float index images with coordinates out of int range
 - scale openexr alpha to 0 - 255
 - close input earlier, when we can [kleisauke]
+- add vips_object_get_args() for language bindings [kleisauke]
 
 12/3/18 started 8.6.4
 - better fitting of fonts with overhanging edges [Adrià]
