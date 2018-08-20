@@ -417,6 +417,7 @@
     <keyword type="function" name="vips__object_set_member ()" link="VipsObject.html#vips--object-set-member"/>
     <keyword type="function" name="VipsArgumentMapFn ()" link="VipsObject.html#VipsArgumentMapFn"/>
     <keyword type="function" name="vips_argument_map ()" link="VipsObject.html#vips-argument-map"/>
+    <keyword type="function" name="vips_object_get_args ()" link="VipsObject.html#vips-object-get-args"/>
     <keyword type="function" name="VipsArgumentClassMapFn ()" link="VipsObject.html#VipsArgumentClassMapFn"/>
     <keyword type="function" name="vips_argument_class_map ()" link="VipsObject.html#vips-argument-class-map"/>
     <keyword type="function" name="vips_argument_class_needsstring ()" link="VipsObject.html#vips-argument-class-needsstring"/>

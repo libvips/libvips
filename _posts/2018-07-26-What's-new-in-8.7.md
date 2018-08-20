@@ -66,7 +66,7 @@ had a PDF loader based on poppler-glib for a while, but the poppler GPL
 licence is unsuitable for some projects. This new PDFium loader should be more
 widely useful.
 
-libvips now has support for [Nifti](https://nifti.nimh.nih.gov/nifti-1/) load 
+libvips now has support for [NIfTI](https://nifti.nimh.nih.gov/nifti-1/) load 
 and save. This is a popular format for brain imaging.
 
 # Improvements to file format support

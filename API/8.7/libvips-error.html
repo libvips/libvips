@@ -459,7 +459,7 @@ add another message.</p>
 <p></p>
 <p>The domain argument most of these functions take is not localised and is
 supposed to indicate the component which failed.</p>
-<p>libvips uses <code class="function">g_warning()</code> and <a class="link" href="libvips-util.html#g-info" title="g_info()"><code class="function">g_info()</code></a> to send warning and information
+<p>libvips uses <a href="/usr/share/gtk-doc/html/glib/glib-Message-Logging.html#g-warning"><code class="function">g_warning()</code></a> and <a class="link" href="libvips-util.html#g-info" title="g_info()"><code class="function">g_info()</code></a> to send warning and information
 messages to the user. You can use the usual glib mechanisms to display or
 divert these messages. For example, info messages are hidden by default, but
 you can see them with: </p>
@@ -704,11 +704,11 @@ usually the value of errno.</p>
 <div class="refsect2">
 <a name="vips-error-g"></a><h3>vips_error_g ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_error_g (<em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+vips_error_g (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>This function sets the glib error pointer from the vips error buffer and
 clears it. It's handy for returning errors to glib functions from vips.</p>
 <p>See <a class="link" href="libvips-error.html#vips-g-error" title="vips_g_error ()"><code class="function">vips_g_error()</code></a> for the inverse operation.</p>
-<p>See also: <code class="function">g_set_error()</code>, <a class="link" href="libvips-error.html#vips-g-error" title="vips_g_error ()"><code class="function">vips_g_error()</code></a>.</p>
+<p>See also: <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#g-set-error"><code class="function">g_set_error()</code></a>, <a class="link" href="libvips-error.html#vips-g-error" title="vips_g_error ()"><code class="function">vips_g_error()</code></a>.</p>
 <div class="refsect3">
 <a name="vips-error-g.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -729,8 +729,8 @@ clears it. It's handy for returning errors to glib functions from vips.</p>
 <div class="refsect2">
 <a name="vips-g-error"></a><h3>vips_g_error ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_g_error (<em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
-<p>This function adds the <code class="literal">GError</code> to the vips error buffer and clears it. It's
+vips_g_error (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>This function adds the <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><code class="literal">GError</code></a> to the vips error buffer and clears it. It's
 the opposite of <a class="link" href="libvips-error.html#vips-error-g" title="vips_error_g ()"><code class="function">vips_error_g()</code></a>.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error-g" title="vips_error_g ()"><code class="function">vips_error_g()</code></a>.</p>
 <div class="refsect3">
@@ -759,7 +759,7 @@ vips_error_exit (<em class="parameter"><code>const <span class="type">char</span
 error buffer, if any, then shuts down vips and terminates the program with 
 an error code.</p>
 <p><em class="parameter"><code>fmt</code></em>
- may be <code class="literal">NULL</code>, in which case only the error buffer is printed before
+ may be <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, in which case only the error buffer is printed before
 exiting.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
