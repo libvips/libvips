@@ -302,7 +302,7 @@ typedef void *(*VipsArgumentMapFn)( VipsObject *object, GParamSpec *pspec,
 	VipsArgumentInstance *argument_instance, void *a, void *b );
 void *vips_argument_map( VipsObject *object, 
 	VipsArgumentMapFn fn, void *a, void *b );
-void vips_object_get_args( VipsObject *object, 
+int vips_object_get_args( VipsObject *object, 
 	const char ***names, int **flags, int *n_args );
 typedef void *(*VipsArgumentClassMapFn)( VipsObjectClass *object_class, 
 	GParamSpec *pspec,
