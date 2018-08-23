@@ -1277,6 +1277,8 @@ vips_icc_is_compatible_profile( VipsImage *image,
 		return( FALSE );
 	}
 
+	VIPS_FREEF( cmsCloseProfile, profile );
+
 	return( TRUE );
 }
 
