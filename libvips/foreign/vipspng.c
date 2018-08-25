@@ -69,6 +69,8 @@
  * 	- set interlaced=1 for interlaced images
  * 20/6/18 [felixbuenemann]
  * 	- support png8 palette write with palette, colours, Q, dither
+ * 25/8/18
+ * 	- support xmp read
  */
 
 /*
@@ -265,6 +267,34 @@ read_new_filename( VipsImage *out, const char *name, gboolean fail )
 	return( read );
 }
 
+static int
+vips__png_set_text( VipsImage *out, int i, const char *key, const char *text ) 
+{
+	if( strcmp( key, "XML:com.adobe.xmp") == 0 ) {
+		/* Save as an XMP tag.
+		 */
+		size_t len = strlen( text );
+
+		void *text_copy;
+
+		if( !(text_copy = vips_malloc( NULL, len )) ) 
+			return( -1 );
+		memcpy( text_copy, text, len );
+		vips_image_set_blob( out, VIPS_META_XMP_NAME, 
+			(VipsCallbackFn) vips_free, text_copy, len );
+	}
+	else {
+		/* Save as a comment.
+		 */
+		char name[256];
+
+		vips_snprintf( name, 256, "png-comment-%d-%s", i, key );
+		vips_image_set_string( out, name, text );
+	}
+
+	return( 0 );
+}
+
 /* Read a png header.
  */
 static int
@@ -279,6 +309,9 @@ png2vips_header( Read *read, VipsImage *out )
 
 	png_charp name;
 	int compression_type;
+
+	png_textp text_ptr;
+        int num_text;
 
 	/* Well thank you, libpng.
 	 */
@@ -446,6 +479,18 @@ png2vips_header( Read *read, VipsImage *out )
 	 */
 	if( interlace_type != PNG_INTERLACE_NONE ) 
 		vips_image_set_int( out, "interlaced", 1 ); 
+
+	if( png_get_text( read->pPng, read->pInfo, 
+		&text_ptr, &num_text ) > 0 ) {
+		int i;
+
+		for( i = 0; i < num_text; i++ ) 
+			/* .text is always a null-terminated C string.
+			 */
+			if( vips__png_set_text( out, i, 
+				text_ptr[i].key, text_ptr[i].text ) ) 
+				return( -1 ); 
+	}
 
 	return( 0 );
 }
