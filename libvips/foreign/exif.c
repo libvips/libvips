@@ -811,8 +811,8 @@ drop_tail( const char *data )
 
 	p = str + strlen( str );
 	if( p > str &&
-		*(p = g_utf8_prev_char( p )) == ')' &&
-		(p = g_utf8_strrchr( p, -1, (gunichar) '(')) &&
+		*g_utf8_prev_char( p ) == ')' &&
+		(p = g_utf8_strrchr( str, -1, (gunichar) '(')) &&
 		p > str &&
 		*(p = g_utf8_prev_char( p )) == ' ' )
 		*p = '\0';
