@@ -518,8 +518,8 @@ class TestForeign:
     def test_openexrload(self):
         def exr_valid(im):
             a = im(10, 10)
-            assert_almost_equal_objects(a, [0.124512, 0.159668,
-                                            0.040375, 1.0],
+            assert_almost_equal_objects(a, [0.124512, 0.159668, 0.040375, 
+                                            255.0],
                                         threshold=0.00001)
             assert im.width == 610
             assert im.height == 406
