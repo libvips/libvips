@@ -1510,7 +1510,7 @@ vips_region_shrink_alpha( VipsRegion *from,
 }
 
 /**
- * vips_region_shrink:
+ * vips_region_shrink_method:
  * @from: source region
  * @to: (inout): destination region
  * @target: #VipsRect of pixels you need to copy
@@ -1525,16 +1525,17 @@ vips_region_shrink_alpha( VipsRegion *from,
  * See also: vips_region_copy().
  */
 int
-vips_region_shrink( VipsRegion *from, VipsRegion *to, const VipsRect *target,
-	VipsRegionShrink method )
+vips_region_shrink_method( VipsRegion *from, VipsRegion *to, 
+	const VipsRect *target, VipsRegionShrink method )
 {
 	VipsImage *image = from->im;
 
-	if( vips_check_coding_noneorlabq( "vips_region_shrink", image ) )
+	if( vips_check_coding_noneorlabq( "vips_region_shrink_method", image ) )
 		return( -1 );
 
 	if( from->im->Coding == VIPS_CODING_NONE ) {
-		if( vips_check_noncomplex( "vips_region_shrink", image ) )
+		if( vips_check_noncomplex( "vips_region_shrink_method", 
+			image ) )
 			return( -1 );
 
 		if( vips_image_hasalpha( image ) )
@@ -1546,6 +1547,27 @@ vips_region_shrink( VipsRegion *from, VipsRegion *to, const VipsRect *target,
 		vips_region_shrink_labpack( from, to, target );
 
 	return( 0 );
+}
+
+/**
+ * vips_region_shrink: (skip)
+ * @from: source region
+ * @to: (inout): destination region
+ * @target: #VipsRect of pixels you need to copy
+ *
+ * Write the pixels @target in @to from the x2 larger area in @from.
+ * Non-complex uncoded images and LABQ only. Images with alpha (see
+ * vips_image_hasalpha()) shrink with pixels scaled by alpha to avoid fringing.
+ *
+ * This is a compatibility stub that just calls vips_region_shrink_method().
+ *
+ * See also: vips_region_shrink_method().
+ */
+int
+vips_region_shrink( VipsRegion *from, VipsRegion *to, const VipsRect *target )
+{
+	return( vips_region_shrink_method( from, to, target, 
+		VIPS_REGION_SHRINK_MEAN ) ); 
 }
 
 /* Generate into a region. 

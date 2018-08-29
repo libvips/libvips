@@ -1407,7 +1407,8 @@ strip_shrink( Layer *layer )
 		if( vips_rect_isempty( &target ) )
 			break;
 
-		(void) vips_region_shrink( from, to, &target, region_shrink );
+		(void) vips_region_shrink_method( from, to, 
+			&target, region_shrink );
 
 		below->write_y += target.height;
 
