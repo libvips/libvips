@@ -70,7 +70,7 @@
  * 20/6/18 [felixbuenemann]
  * 	- support png8 palette write with palette, colours, Q, dither
  * 25/8/18
- * 	- support xmp read
+ * 	- support xmp read/write
  */
 
 /*
@@ -267,8 +267,10 @@ read_new_filename( VipsImage *out, const char *name, gboolean fail )
 	return( read );
 }
 
+/* Set the png text data as metadata on the vips image.
+ */
 static int
-vips__png_set_text( VipsImage *out, int i, const char *key, const char *text ) 
+vips__set_text( VipsImage *out, int i, const char *key, const char *text ) 
 {
 	if( strcmp( key, "XML:com.adobe.xmp") == 0 ) {
 		/* Save as an XMP tag.
@@ -277,9 +279,9 @@ vips__png_set_text( VipsImage *out, int i, const char *key, const char *text )
 
 		void *text_copy;
 
-		if( !(text_copy = vips_malloc( NULL, len )) ) 
+		if( !(text_copy = vips_malloc( NULL, len + 1 )) ) 
 			return( -1 );
-		memcpy( text_copy, text, len );
+		memcpy( text_copy, text, len + 1 );
 		vips_image_set_blob( out, VIPS_META_XMP_NAME, 
 			(VipsCallbackFn) vips_free, text_copy, len );
 	}
@@ -487,7 +489,7 @@ png2vips_header( Read *read, VipsImage *out )
 		for( i = 0; i < num_text; i++ ) 
 			/* .text is always a null-terminated C string.
 			 */
-			if( vips__png_set_text( out, i, 
+			if( vips__set_text( out, i, 
 				text_ptr[i].key, text_ptr[i].text ) ) 
 				return( -1 ); 
 	}
@@ -924,6 +926,53 @@ write_png_block( VipsRegion *region, VipsRect *area, void *a )
 	return( 0 );
 }
 
+static void
+vips__png_set_text( png_structp pPng, png_infop pInfo, 
+	const char *key, const char *value )
+{
+	png_text text;
+
+	text.compression = 0;
+	text.key = (char *) key;
+	text.text = (char *) value;
+	text.text_length = strlen( value );
+
+	/* Before 1.4, these fields were only there if explicitly enabled.
+	 */
+#if PNG_LIBPNG_VER > 10400
+	text.itxt_length = 0;
+	text.lang = NULL;
+#endif
+
+	png_set_text( pPng, pInfo, &text, 1 );
+}
+
+static void *
+write_png_comment( VipsImage *image, 
+	const char *field, GValue *value, void *data )
+{
+	Write *write = (Write *) data;
+
+	if( vips_isprefix( "png-comment-", field ) ) { 
+		const char *str;
+		int i;
+		char key[80];
+
+		if( vips_image_get_string( write->in, field, &str ) )
+			return( image );
+
+		if( sscanf( field, "png-comment-%d-%80s", &i, key ) != 2 ) {
+			vips_error( "vips2png", 
+				"%s", _( "bad png comment key" ) );
+			return( image );
+		}
+
+		vips__png_set_text( write->pPng, write->pInfo, key, str );
+	}
+
+	return( NULL );
+}
+
 /* Write a VIPS image to PNG.
  */
 static int
@@ -1056,6 +1105,32 @@ write_vips( Write *write,
 		png_set_iCCP( write->pPng, write->pInfo, "icc", 
 			PNG_COMPRESSION_TYPE_BASE, data, length );
 	}
+
+	if( vips_image_get_typeof( in, VIPS_META_XMP_NAME ) ) {
+		void *data;
+		size_t data_length;
+
+		if( vips_image_get_blob( in, VIPS_META_XMP_NAME, 
+			&data, &data_length ) )
+			return( -1 );
+
+		/* libpng must have a regular C string.
+		 */
+		if( ((char *) data)[data_length] != '\0' ) {
+			vips_error( "vips2png", "%s", 
+				_( "XMP metadata not NULL terminated" ) );
+			return( -1 );
+		}
+
+		vips__png_set_text( write->pPng, write->pInfo, 
+			"XML:com.adobe.xmp", (char *) data );
+	}
+
+	/* Set any "png-comment-xx-yyy" metadata items.
+	 */
+	if( vips_image_map( in, 
+		write_png_comment, write ) )
+		return( -1 );
 
 #ifdef HAVE_IMAGEQUANT
 	if( palette ) {
