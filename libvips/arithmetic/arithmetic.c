@@ -498,20 +498,99 @@ vips__bandalike( const char *domain,
 	return( 0 );
 }
 
-/* Maximum number of input images -- why not?
+/* Our sequence value.
  */
-#define MAX_INPUT_IMAGES (1024)
+typedef struct {
+	VipsArithmetic *arithmetic;
+
+	/* Set of input regions.
+	 */
+	VipsRegion **ir;
+
+	/* For each input, an input pointer.
+	 */
+	VipsPel **p;
+
+} VipsArithmeticSequence;
+
+static int
+vips_arithmetic_stop( void *vseq, void *a, void *b )
+{
+	VipsArithmeticSequence *seq = (VipsArithmeticSequence *) vseq;
+
+        if( seq->ir ) {
+		int i;
+
+		for( i = 0; seq->ir[i]; i++ )
+			VIPS_UNREF( seq->ir[i] );
+		VIPS_FREE( seq->ir );
+	}
+
+	VIPS_FREE( seq->p );
+
+	VIPS_FREE( seq );
+
+	return( 0 );
+}
+
+static void *
+vips_arithmetic_start( VipsImage *out, void *a, void *b )
+{
+	VipsImage **in = (VipsImage **) a;
+	VipsArithmetic *arithmetic = (VipsArithmetic *) b;
+
+	VipsArithmeticSequence *seq;
+	int i, n;
+
+	if( !(seq = VIPS_NEW( NULL, VipsArithmeticSequence )) )
+		return( NULL );
+
+	seq->arithmetic = arithmetic;
+	seq->ir = NULL;
+	seq->p = NULL;
+
+	/* How many images?
+	 */
+	for( n = 0; in[n]; n++ )
+		;
+
+	/* Alocate space for region array.
+	 */
+	if( !(seq->ir = VIPS_ARRAY( NULL, n + 1, VipsRegion * )) ) {
+		vips_arithmetic_stop( seq, NULL, NULL );
+		return( NULL );
+	}
+
+	/* Create a set of regions.
+	 */
+	for( i = 0; i < n; i++ )
+		if( !(seq->ir[i] = vips_region_new( in[i] )) ) {
+			vips_arithmetic_stop( seq, NULL, NULL );
+			return( NULL );
+		}
+	seq->ir[n] = NULL;
+
+	/* Input pointers.
+	 */
+	if( !(seq->p = VIPS_ARRAY( NULL, n + 1, VipsPel * )) ) {
+		vips_arithmetic_stop( seq, NULL, NULL );
+		return( NULL );
+	}
+
+	return( seq );
+}
 
 static int
 vips_arithmetic_gen( VipsRegion *or, 
-	void *seq, void *a, void *b, gboolean *stop )
+	void *vseq, void *a, void *b, gboolean *stop )
 {
-	VipsRegion **ir = (VipsRegion **) seq;
+	VipsArithmeticSequence *seq = (VipsArithmeticSequence *) vseq;
+	VipsRegion **ir = seq->ir;
 	VipsArithmetic *arithmetic = VIPS_ARITHMETIC( b ); 
 	VipsArithmeticClass *class = VIPS_ARITHMETIC_GET_CLASS( arithmetic ); 
 	VipsRect *r = &or->valid;
 
-	VipsPel *p[MAX_INPUT_IMAGES], *q;
+	VipsPel *q;
 	int i, y;
 
 	/* Prepare all input regions and make buffer pointers.
@@ -519,17 +598,18 @@ vips_arithmetic_gen( VipsRegion *or,
 	if( vips_reorder_prepare_many( or->im, ir, r ) ) 
 		return( -1 );
 	for( i = 0; ir[i]; i++ ) 
-		p[i] = (VipsPel *) VIPS_REGION_ADDR( ir[i], r->left, r->top );
-	p[i] = NULL;
+		seq->p[i] = (VipsPel *) 
+			VIPS_REGION_ADDR( ir[i], r->left, r->top );
+	seq->p[i] = NULL;
 	q = (VipsPel *) VIPS_REGION_ADDR( or, r->left, r->top );
 
 	VIPS_GATE_START( "vips_arithmetic_gen: work" );
 
 	for( y = 0; y < r->height; y++ ) {
-		class->process_line( arithmetic, q, p, r->width );
+		class->process_line( arithmetic, q, seq->p, r->width );
 
 		for( i = 0; ir[i]; i++ )
-			p[i] += VIPS_REGION_LSKIP( ir[i] );
+			seq->p[i] += VIPS_REGION_LSKIP( ir[i] );
 		q += VIPS_REGION_LSKIP( or );
 	}
 
@@ -564,14 +644,6 @@ vips_arithmetic_build( VipsObject *object )
 		return( -1 );
 
 	g_object_set( arithmetic, "out", vips_image_new(), NULL ); 
-
-	/* No need to check input bands, bandalike will do this for us.
-	 */
-	if( arithmetic->n > MAX_INPUT_IMAGES ) {
-		vips_error( class->nickname,
-			"%s", _( "too many input images" ) );
-		return( -1 );
-	}
 
 	decode = (VipsImage **) 
 		vips_object_local_array( object, arithmetic->n );
@@ -612,7 +684,9 @@ vips_arithmetic_build( VipsObject *object )
 			aclass->format_table[arithmetic->ready[0]->BandFmt];
 
 	if( vips_image_generate( arithmetic->out,
-		vips_start_many, vips_arithmetic_gen, vips_stop_many, 
+		vips_arithmetic_start, 
+		vips_arithmetic_gen, 
+		vips_arithmetic_stop, 
 		arithmetic->ready, arithmetic ) ) 
 		return( -1 );
 
