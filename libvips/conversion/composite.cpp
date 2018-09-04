@@ -1193,7 +1193,7 @@ vips_composite_base_build( VipsObject *object )
 			if( vips_embed( in[i], &position[i], 
 				composite->x_offset[i - 1], 
 				composite->y_offset[i - 1], 
-				width, height, NULL ) )
+				width, height, (void *) NULL ) )
 				return( -1 );
 
 		in = position;
