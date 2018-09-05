@@ -286,7 +286,9 @@ vips__set_text( VipsImage *out, int i, const char *key, const char *text )
 			(VipsCallbackFn) vips_free, text_copy, len );
 	}
 	else {
-		/* Save as a comment.
+		/* Save as a comment. Some PNGs have EXIF data as
+		 * text segments, but the correct way to support this is with
+		 * png_get_eXIf_1().
 		 */
 		char name[256];
 
