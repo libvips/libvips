@@ -307,6 +307,8 @@ im__format_init( void )
 #endif /*HAVE_TIFF*/
 	extern GType vips_format_openslide_get_type( void );
 	vips_format_openslide_get_type();
+	extern GType vips_format_nifti_get_type( void );
+	vips_format_nifti_get_type();
 }
 
 /* Can this format open this file?
