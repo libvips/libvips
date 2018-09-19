@@ -2,7 +2,7 @@
 title: What's new in 8.7
 ---
 
-libvips 8.7 is almost done! About another week.
+libvips 8.7 is finally done! 
 
 This post summarizes what's new -- check the
 [ChangeLog](https://github.com/jcupitt/libvips/blob/master/ChangeLog)
