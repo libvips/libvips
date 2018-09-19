@@ -165,7 +165,7 @@ vips_merge (<em class="parameter"><code><a class="link" href="VipsImage.html" ti
             <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>mblend</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, maximum blend size </p></li></ul></div>
+: <code class="literal">gint</code>, maximum blend size </p></li></ul></div>
 <p>This operation joins two images left-right (with <em class="parameter"><code>ref</code></em>
  on the left) or
 up-down (with <em class="parameter"><code>ref</code></em>
@@ -236,7 +236,7 @@ This makes it possible to join non-rectangular images.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -263,13 +263,25 @@ vips_mosaic (<em class="parameter"><code><a class="link" href="VipsImage.html" t
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>bandno</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, band to search for features</p></li>
+: <code class="literal">gint</code>, band to search for features</p></li>
 <li class="listitem"><p><em class="parameter"><code>hwindow</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, half window size</p></li>
+: <code class="literal">gint</code>, half window size</p></li>
 <li class="listitem"><p><em class="parameter"><code>harea</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, half search size </p></li>
+: <code class="literal">gint</code>, half search size </p></li>
 <li class="listitem"><p><em class="parameter"><code>mblend</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, maximum blend size</p></li>
+: <code class="literal">gint</code>, maximum blend size</p></li>
+<li class="listitem"><p><em class="parameter"><code>dx0</code></em>
+: <code class="literal">gint</code>, output, detected displacement</p></li>
+<li class="listitem"><p><em class="parameter"><code>dy0</code></em>
+: <code class="literal">gint</code>, output, detected displacement</p></li>
+<li class="listitem"><p><em class="parameter"><code>scale1</code></em>
+: <code class="literal">gdouble</code>, output, detected first order scale</p></li>
+<li class="listitem"><p><em class="parameter"><code>angle1</code></em>
+: <code class="literal">gdouble</code>, output, detected first order rotation</p></li>
+<li class="listitem"><p><em class="parameter"><code>dx1</code></em>
+: <code class="literal">gdouble</code>, output, detected first order displacement</p></li>
+<li class="listitem"><p><em class="parameter"><code>dy1</code></em>
+: <code class="literal">gdouble</code>, output, detected first order displacement</p></li>
 </ul></div>
 <p>This operation joins two images left-right (with <em class="parameter"><code>ref</code></em>
  on the left) or
@@ -297,6 +309,14 @@ fit are discarded, and the model refitted until either too few points
 remain or the model reaches good agreement. </p>
 <p>The detected displacement is used with <a class="link" href="libvips-mosaicing.html#vips-merge" title="vips_merge ()"><code class="function">vips_merge()</code></a> to join the two images
 together. </p>
+<p>You can read out the detected transform with <em class="parameter"><code>dx0</code></em>
+, <em class="parameter"><code>dy0</code></em>
+, <em class="parameter"><code>scale1</code></em>
+, <em class="parameter"><code>angle1</code></em>
+,
+<em class="parameter"><code>dx1</code></em>
+, <em class="parameter"><code>dy1</code></em>
+.</p>
 <p>See also: <a class="link" href="libvips-mosaicing.html#vips-merge" title="vips_merge ()"><code class="function">vips_merge()</code></a>, <a class="link" href="libvips-conversion.html#vips-insert" title="vips_insert ()"><code class="function">vips_insert()</code></a>.</p>
 <div class="refsect3">
 <a name="vips-mosaic.parameters"></a><h4>Parameters</h4>
@@ -349,7 +369,7 @@ together. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -400,7 +420,7 @@ given an approximate pair of tie-points. <em class="parameter"><code>sec</code><
  is scaled and rotated as
 necessary before the join.</p>
 <p>If <em class="parameter"><code>search</code></em>
- is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, before performing the transformation, the tie-points 
+ is <code class="literal">TRUE</code>, before performing the transformation, the tie-points 
 are improved by searching an area of <em class="parameter"><code>sec</code></em>
  of size <em class="parameter"><code>harea</code></em>
  for a
@@ -493,7 +513,7 @@ Smallest common format in </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -534,7 +554,7 @@ vips_match (<em class="parameter"><code><a class="link" href="VipsImage.html" ti
 <p>Scale, rotate and translate <em class="parameter"><code>sec</code></em>
  so that the tie-points line up.</p>
 <p>If <em class="parameter"><code>search</code></em>
- is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, before performing the transformation, the tie-points 
+ is <code class="literal">TRUE</code>, before performing the transformation, the tie-points 
 are improved by searching an area of <em class="parameter"><code>sec</code></em>
  of size <em class="parameter"><code>harea</code></em>
  for a
@@ -608,7 +628,7 @@ match of size <em class="parameter"><code>hwindow</code></em>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -631,7 +651,7 @@ vips_globalbalance (<em class="parameter"><code><a class="link" href="VipsImage.
 <li class="listitem"><p><em class="parameter"><code>gamma</code></em>
 : gamma of source images</p></li>
 <li class="listitem"><p><em class="parameter"><code>int_output</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> for integer image output</p></li>
+: <code class="literal">TRUE</code> for integer image output</p></li>
 </ul></div>
 <p>vips_globalbalance() can be used to remove contrast differences in 
 an assembled mosaic.</p>
@@ -680,7 +700,7 @@ this package.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -744,7 +764,7 @@ use that mosaic as a template for mosaicing the others automatically.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>

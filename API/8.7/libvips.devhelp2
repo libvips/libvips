@@ -339,6 +339,7 @@
     <keyword type="function" name="vips_region_paint_pel ()" link="VipsRegion.html#vips-region-paint-pel"/>
     <keyword type="function" name="vips_region_black ()" link="VipsRegion.html#vips-region-black"/>
     <keyword type="function" name="vips_region_copy ()" link="VipsRegion.html#vips-region-copy"/>
+    <keyword type="function" name="vips_region_shrink_method ()" link="VipsRegion.html#vips-region-shrink-method"/>
     <keyword type="function" name="vips_region_shrink ()" link="VipsRegion.html#vips-region-shrink"/>
     <keyword type="function" name="vips_region_prepare ()" link="VipsRegion.html#vips-region-prepare"/>
     <keyword type="function" name="vips_region_prepare_to ()" link="VipsRegion.html#vips-region-prepare-to"/>

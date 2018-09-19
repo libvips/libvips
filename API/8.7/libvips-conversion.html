@@ -663,11 +663,11 @@ vips_copy (<em class="parameter"><code><a class="link" href="VipsImage.html" tit
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>width</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, set image width</p></li>
+: <code class="literal">gint</code>, set image width</p></li>
 <li class="listitem"><p><em class="parameter"><code>height</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, set image height</p></li>
+: <code class="literal">gint</code>, set image height</p></li>
 <li class="listitem"><p><em class="parameter"><code>bands</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, set image bands</p></li>
+: <code class="literal">gint</code>, set image bands</p></li>
 <li class="listitem"><p><em class="parameter"><code>format</code></em>
 : <a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="type">VipsBandFormat</span></a>, set image format</p></li>
 <li class="listitem"><p><em class="parameter"><code>coding</code></em>
@@ -675,13 +675,13 @@ vips_copy (<em class="parameter"><code><a class="link" href="VipsImage.html" tit
 <li class="listitem"><p><em class="parameter"><code>interpretation</code></em>
 : <a class="link" href="VipsImage.html#VipsInterpretation" title="enum VipsInterpretation"><span class="type">VipsInterpretation</span></a>, set image interpretation</p></li>
 <li class="listitem"><p><em class="parameter"><code>xres</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, set image xres</p></li>
+: <code class="literal">gdouble</code>, set image xres</p></li>
 <li class="listitem"><p><em class="parameter"><code>yres</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, set image yres</p></li>
+: <code class="literal">gdouble</code>, set image yres</p></li>
 <li class="listitem"><p><em class="parameter"><code>xoffset</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, set image xoffset</p></li>
+: <code class="literal">gint</code>, set image xoffset</p></li>
 <li class="listitem"><p><em class="parameter"><code>yoffset</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, set image yoffset</p></li>
+: <code class="literal">gint</code>, set image yoffset</p></li>
 </ul></div>
 <p>Copy an image, optionally modifying the header. VIPS copies images by 
 copying pointers, so this operation is instant, even for very large images.</p>
@@ -712,7 +712,7 @@ cannot change a 100 x 100 RGB image into a 300 x 100 mono image.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -770,11 +770,11 @@ will cache up to 1,000 tiles. <em class="parameter"><code>access</code></em>
  defaults to <a class="link" href="VipsImage.html#VIPS-ACCESS-RANDOM:CAPS"><span class="type">VIPS_ACCESS_RANDOM</span></a>.</p>
 <p>Normally, only a single thread at once is allowed to calculate tiles. If
 you set <em class="parameter"><code>threaded</code></em>
- to <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, <a class="link" href="libvips-conversion.html#vips-tilecache" title="vips_tilecache ()"><code class="function">vips_tilecache()</code></a> will allow many threads to
+ to <code class="literal">TRUE</code>, <a class="link" href="libvips-conversion.html#vips-tilecache" title="vips_tilecache ()"><code class="function">vips_tilecache()</code></a> will allow many threads to
 calculate tiles at once, and share the cache between them.</p>
 <p>Normally the cache is dropped when computation finishes. Set <em class="parameter"><code>persistent</code></em>
  to
-<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to keep the cache between computations.</p>
+<code class="literal">TRUE</code> to keep the cache between computations.</p>
 <p>See also: <a class="link" href="libvips-conversion.html#vips-cache" title="vips_cache ()"><code class="function">vips_cache()</code></a>, <a class="link" href="libvips-conversion.html#vips-linecache" title="vips_linecache ()"><code class="function">vips_linecache()</code></a>.</p>
 <p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
 <div class="refsect3">
@@ -798,7 +798,7 @@ calculate tiles at once, and share the cache between them.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -845,7 +845,7 @@ the top-most tile is reused. <em class="parameter"><code>access</code></em>
 <a class="link" href="libvips-conversion.html#vips-linecache" title="vips_linecache ()"><code class="function">vips_linecache()</code></a> uses. The default is 1 (a single scanline).</p>
 <p>Normally, only a single thread at once is allowed to calculate tiles. If
 you set <em class="parameter"><code>threaded</code></em>
- to <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, <a class="link" href="libvips-conversion.html#vips-linecache" title="vips_linecache ()"><code class="function">vips_linecache()</code></a> will allow many threads to
+ to <code class="literal">TRUE</code>, <a class="link" href="libvips-conversion.html#vips-linecache" title="vips_linecache ()"><code class="function">vips_linecache()</code></a> will allow many threads to
 calculate tiles at once and share the cache between them.</p>
 <p>See also: <a class="link" href="libvips-conversion.html#vips-cache" title="vips_cache ()"><code class="function">vips_cache()</code></a>, <a class="link" href="libvips-conversion.html#vips-tilecache" title="vips_tilecache ()"><code class="function">vips_tilecache()</code></a>.</p>
 <p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
@@ -870,7 +870,7 @@ calculate tiles at once and share the cache between them.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -924,7 +924,7 @@ strictly top-to-bottom, like PNG. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -992,7 +992,7 @@ threads. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1039,7 +1039,7 @@ The file is automatically deleted when <em class="parameter"><code>out</code></e
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1127,7 +1127,7 @@ should be this many pixels down</p></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1204,7 +1204,7 @@ should be this many pixels down</p></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1252,7 +1252,7 @@ vips_flip (<em class="parameter"><code><a class="link" href="VipsImage.html" tit
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1288,7 +1288,7 @@ vips_insert (<em class="parameter"><code><a class="link" href="VipsImage.html" t
 <p>Normally <em class="parameter"><code>out</code></em>
  shows the whole of <em class="parameter"><code>main</code></em>
 . If <em class="parameter"><code>expand</code></em>
- is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><span class="type">TRUE</span></a> then <em class="parameter"><code>out</code></em>
+ is <span class="type">TRUE</span> then <em class="parameter"><code>out</code></em>
  is
 made large enough to hold all of <em class="parameter"><code>main</code></em>
  and <em class="parameter"><code>sub</code></em>
@@ -1352,7 +1352,7 @@ Smallest common format in </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1375,7 +1375,7 @@ vips_join (<em class="parameter"><code><a class="link" href="VipsImage.html" tit
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>expand</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to expand the output image to hold all of the input pixels</p></li>
+: <code class="literal">TRUE</code> to expand the output image to hold all of the input pixels</p></li>
 <li class="listitem"><p><em class="parameter"><code>shim</code></em>
 : space between images, in pixels</p></li>
 <li class="listitem"><p><em class="parameter"><code>background</code></em>
@@ -1391,7 +1391,7 @@ of <em class="parameter"><code>direction</code></em>
 <p>If one is taller or wider than the
 other, <em class="parameter"><code>out</code></em>
  will be has high as the smaller. If <em class="parameter"><code>expand</code></em>
- is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, then
+ is <code class="literal">TRUE</code>, then
 the output will be expanded to contain all of the input pixels.</p>
 <p>Use <em class="parameter"><code>align</code></em>
  to set the edge that the images align on. By default, they align
@@ -1445,7 +1445,7 @@ grid, <a class="link" href="libvips-conversion.html#vips-arrayjoin" title="vips_
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1467,9 +1467,9 @@ vips_arrayjoin (<em class="parameter"><code><a class="link" href="VipsImage.html
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>across</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, number of images per row</p></li>
+: <code class="literal">gint</code>, number of images per row</p></li>
 <li class="listitem"><p><em class="parameter"><code>shim</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, space between images, in pixels</p></li>
+: <code class="literal">gint</code>, space between images, in pixels</p></li>
 <li class="listitem"><p><em class="parameter"><code>background</code></em>
 : <a class="link" href="libvips-type.html#VipsArrayDouble"><span class="type">VipsArrayDouble</span></a>, background ink colour</p></li>
 <li class="listitem"><p><em class="parameter"><code>halign</code></em>
@@ -1477,9 +1477,9 @@ vips_arrayjoin (<em class="parameter"><code><a class="link" href="VipsImage.html
 <li class="listitem"><p><em class="parameter"><code>valign</code></em>
 : <a class="link" href="libvips-conversion.html#VipsAlign" title="enum VipsAlign"><span class="type">VipsAlign</span></a>, low, centre or high alignment</p></li>
 <li class="listitem"><p><em class="parameter"><code>hspacing</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, horizontal distance between images</p></li>
+: <code class="literal">gint</code>, horizontal distance between images</p></li>
 <li class="listitem"><p><em class="parameter"><code>vspacing</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, vertical distance between images</p></li>
+: <code class="literal">gint</code>, vertical distance between images</p></li>
 </ul></div>
 <p>Lay out the images in <em class="parameter"><code>in</code></em>
  in a grid. The grid is <em class="parameter"><code>across</code></em>
@@ -1540,7 +1540,7 @@ Smallest common format in </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1607,7 +1607,7 @@ vips_extract_area (<em class="parameter"><code><a class="link" href="VipsImage.h
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1673,7 +1673,7 @@ vips_crop (<em class="parameter"><code><a class="link" href="VipsImage.html" tit
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1736,7 +1736,7 @@ within the input image. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1787,7 +1787,7 @@ vips_extract_band (<em class="parameter"><code><a class="link" href="VipsImage.h
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1841,7 +1841,7 @@ vips_replicate (<em class="parameter"><code><a class="link" href="VipsImage.html
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1916,7 +1916,7 @@ image has the expected geometry. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1936,7 +1936,7 @@ vips_transpose3d (<em class="parameter"><code><a class="link" href="VipsImage.ht
                   <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
 <p><em class="parameter"><code>page_height</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, size of each input page</p>
+: <code class="literal">gint</code>, size of each input page</p>
 <p>Transpose a volumetric image. </p>
 <p>Volumetric images are very tall, thin images, with the metadata item
 <a class="link" href="libvips-header.html#VIPS-META-PAGE-HEIGHT:CAPS" title="VIPS_META_PAGE_HEIGHT"><span class="type">VIPS_META_PAGE_HEIGHT</span></a> set to the height of each sub-image. </p>
@@ -1970,7 +1970,7 @@ input image. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2025,7 +2025,7 @@ centre of the image. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2076,7 +2076,7 @@ useful for rotating convolution masks by 45 degrees. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2118,7 +2118,7 @@ vips_rot90 (<em class="parameter"><code><a class="link" href="VipsImage.html" ti
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2161,7 +2161,7 @@ vips_rot180 (<em class="parameter"><code><a class="link" href="VipsImage.html" t
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2204,7 +2204,7 @@ vips_rot270 (<em class="parameter"><code><a class="link" href="VipsImage.html" t
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2253,7 +2253,7 @@ only. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2359,7 +2359,7 @@ various mirror modes. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2414,7 +2414,7 @@ zoom.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2480,7 +2480,7 @@ if the previous operations in the pipeline are very slow.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2501,14 +2501,14 @@ vips_cast (<em class="parameter"><code><a class="link" href="VipsImage.html" tit
            <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>shift</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, integer values are shifted</p></li></ul></div>
+: <code class="literal">gboolean</code>, integer values are shifted</p></li></ul></div>
 <p>Convert <em class="parameter"><code>in</code></em>
  to <em class="parameter"><code>format</code></em>
 . You can convert between any pair of formats.
 Floats are truncated (not rounded). Out of range values are clipped.</p>
 <p>Casting from complex to real returns the real part. </p>
 <p>If <em class="parameter"><code>shift</code></em>
- is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, integer values are shifted up and down. For example,
+ is <code class="literal">TRUE</code>, integer values are shifted up and down. For example,
 casting from unsigned 8 bit to unsigned 16 bit would
 shift every value left by 8 bits. The bottom bit is copied into the new
 bits, so 255 would become 65535.  </p>
@@ -2541,7 +2541,7 @@ bits, so 255 would become 65535.  </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2583,7 +2583,7 @@ vips_cast_uchar (<em class="parameter"><code><a class="link" href="VipsImage.htm
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2625,7 +2625,7 @@ vips_cast_char (<em class="parameter"><code><a class="link" href="VipsImage.html
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2667,7 +2667,7 @@ vips_cast_ushort (<em class="parameter"><code><a class="link" href="VipsImage.ht
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2709,7 +2709,7 @@ vips_cast_short (<em class="parameter"><code><a class="link" href="VipsImage.htm
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2751,7 +2751,7 @@ vips_cast_uint (<em class="parameter"><code><a class="link" href="VipsImage.html
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2793,7 +2793,7 @@ vips_cast_int (<em class="parameter"><code><a class="link" href="VipsImage.html"
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2835,7 +2835,7 @@ vips_cast_float (<em class="parameter"><code><a class="link" href="VipsImage.htm
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2877,7 +2877,7 @@ vips_cast_double (<em class="parameter"><code><a class="link" href="VipsImage.ht
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2919,7 +2919,7 @@ vips_cast_complex (<em class="parameter"><code><a class="link" href="VipsImage.h
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -2961,7 +2961,7 @@ vips_cast_dpcomplex (<em class="parameter"><code><a class="link" href="VipsImage
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3017,7 +3017,7 @@ then scale so max == 255. By default, <em class="parameter"><code>exp</code></em
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3037,7 +3037,7 @@ vips_msb (<em class="parameter"><code><a class="link" href="VipsImage.html" titl
           <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>band</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, msb just this band</p></li></ul></div>
+: <code class="literal">gint</code>, msb just this band</p></li></ul></div>
 <p>Turn any integer image to 8-bit unsigned char by discarding all but the most
 significant byte. Signed values are converted to unsigned by adding 128.</p>
 <p>Use <em class="parameter"><code>band</code></em>
@@ -3066,7 +3066,7 @@ significant byte. Signed values are converted to unsigned by adding 128.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3108,7 +3108,7 @@ vips_byteswap (<em class="parameter"><code><a class="link" href="VipsImage.html"
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3164,7 +3164,7 @@ Smallest common format in </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3210,7 +3210,7 @@ vips_bandjoin2 (<em class="parameter"><code><a class="link" href="VipsImage.html
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3264,7 +3264,7 @@ vips_bandjoin_const (<em class="parameter"><code><a class="link" href="VipsImage
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3311,7 +3311,7 @@ vips_bandjoin_const1 (<em class="parameter"><code><a class="link" href="VipsImag
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3376,7 +3376,7 @@ make n-band images.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3426,7 +3426,7 @@ as many bands. By default the whole of the input width is folded up. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3476,7 +3476,7 @@ as many bands. By default, all bands are unfolded.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3534,7 +3534,7 @@ it to see if all image bands match exactly. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3576,7 +3576,7 @@ vips_bandand (<em class="parameter"><code><a class="link" href="VipsImage.html" 
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3618,7 +3618,7 @@ vips_bandor (<em class="parameter"><code><a class="link" href="VipsImage.html" t
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3660,7 +3660,7 @@ vips_bandeor (<em class="parameter"><code><a class="link" href="VipsImage.html" 
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3705,7 +3705,7 @@ averaging.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3765,7 +3765,7 @@ too. No complex images allowed.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3809,7 +3809,7 @@ cast to uchar.</p>
 <p>If the images differ in size, the smaller images are enlarged to match the
 largest by adding zero pixels along the bottom and right.</p>
 <p>If <em class="parameter"><code>blend</code></em>
- is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, then values in <em class="parameter"><code>out</code></em>
+ is <code class="literal">TRUE</code>, then values in <em class="parameter"><code>out</code></em>
  are smoothly blended between <em class="parameter"><code>in1</code></em>
 
 and <em class="parameter"><code>in2</code></em>
@@ -3852,7 +3852,7 @@ and <em class="parameter"><code>in2</code></em>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3875,7 +3875,7 @@ vips_flatten (<em class="parameter"><code><a class="link" href="VipsImage.html" 
 <li class="listitem"><p><em class="parameter"><code>background</code></em>
 : <a class="link" href="libvips-type.html#VipsArrayDouble"><span class="type">VipsArrayDouble</span></a> colour for new pixels </p></li>
 <li class="listitem"><p><em class="parameter"><code>max_alpha</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, maximum value for alpha</p></li>
+: <code class="literal">gdouble</code>, maximum value for alpha</p></li>
 </ul></div>
 <p>Take the last band of <em class="parameter"><code>in</code></em>
  as an alpha and use it to blend the
@@ -3916,7 +3916,7 @@ Non-complex images only.
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3958,7 +3958,7 @@ vips_addalpha (<em class="parameter"><code><a class="link" href="VipsImage.html"
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -3978,7 +3978,7 @@ vips_premultiply (<em class="parameter"><code><a class="link" href="VipsImage.ht
                   <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>max_alpha</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, maximum value for alpha</p></li></ul></div>
+: <code class="literal">gdouble</code>, maximum value for alpha</p></li></ul></div>
 <p>Premultiplies any alpha channel. 
 The final band is taken to be the alpha
 and the bands are transformed as:</p>
@@ -4033,7 +4033,7 @@ case the output is double as well.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -4053,7 +4053,7 @@ vips_unpremultiply (<em class="parameter"><code><a class="link" href="VipsImage.
                     <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>max_alpha</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, maximum value for alpha</p></li></ul></div>
+: <code class="literal">gdouble</code>, maximum value for alpha</p></li></ul></div>
 <p>Unpremultiplies any alpha channel. 
 The final band is taken to be the alpha
 and the bands are transformed as:</p>
@@ -4114,7 +4114,7 @@ case the output is double as well.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -4139,7 +4139,7 @@ vips_composite (<em class="parameter"><code><a class="link" href="VipsImage.html
 <li class="listitem"><p><em class="parameter"><code>compositing_space</code></em>
 : <a class="link" href="VipsImage.html#VipsInterpretation" title="enum VipsInterpretation"><span class="type">VipsInterpretation</span></a> to composite in</p></li>
 <li class="listitem"><p><em class="parameter"><code>premultiplied</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, images are already premultiplied</p></li>
+: <code class="literal">gboolean</code>, images are already premultiplied</p></li>
 <li class="listitem"><p><em class="parameter"><code>x</code></em>
 : <a class="link" href="libvips-type.html#VipsArrayInt"><span class="type">VipsArrayInt</span></a>, position of subimages</p></li>
 <li class="listitem"><p><em class="parameter"><code>y</code></em>
@@ -4209,7 +4209,7 @@ set <em class="parameter"><code>premultiplied</code></em>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -4234,11 +4234,11 @@ vips_composite2 (<em class="parameter"><code><a class="link" href="VipsImage.htm
 <li class="listitem"><p><em class="parameter"><code>compositing_space</code></em>
 : <a class="link" href="VipsImage.html#VipsInterpretation" title="enum VipsInterpretation"><span class="type">VipsInterpretation</span></a> to composite in</p></li>
 <li class="listitem"><p><em class="parameter"><code>premultiplied</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, images are already premultiplied</p></li>
+: <code class="literal">gboolean</code>, images are already premultiplied</p></li>
 <li class="listitem"><p><em class="parameter"><code>x</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, position of overlay</p></li>
+: <code class="literal">gint</code>, position of overlay</p></li>
 <li class="listitem"><p><em class="parameter"><code>y</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, position of overlay</p></li>
+: <code class="literal">gint</code>, position of overlay</p></li>
 </ul></div>
 <p>Composite <em class="parameter"><code>overlay</code></em>
  on top of <em class="parameter"><code>base</code></em>
@@ -4276,7 +4276,7 @@ vips_composite2 (<em class="parameter"><code><a class="link" href="VipsImage.htm
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -4322,7 +4322,7 @@ obvious.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -4370,7 +4370,7 @@ input type. For float types use 1.0 as the maximum. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
