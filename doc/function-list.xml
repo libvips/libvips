@@ -314,6 +314,11 @@
   <entry>vips_flip()</entry>
 </row>
 <row>
+  <entry>transpose3d</entry>
+  <entry>transpose a volumetric image</entry>
+  <entry>vips_transpose3d()</entry>
+</row>
+<row>
   <entry>insert</entry>
   <entry>insert image @sub into @main at @x, @y</entry>
   <entry>vips_insert()</entry>
@@ -742,6 +747,21 @@
   <entry>vips_magickload_buffer()</entry>
 </row>
 <row>
+  <entry>magicksave</entry>
+  <entry>save file with ImageMagick</entry>
+  <entry>vips_magicksave()</entry>
+</row>
+<row>
+  <entry>niftiload</entry>
+  <entry>load a NIfTI image</entry>
+  <entry>vips_niftiload()</entry>
+</row>
+<row>
+  <entry>niftisave</entry>
+  <entry>save image in NIfTI format</entry>
+  <entry>vips_niftisave()</entry>
+</row>
+<row>
   <entry>fitsload</entry>
   <entry>load a FITS image</entry>
   <entry>vips_fitsload()</entry>
@@ -905,6 +925,11 @@
   <entry>similarity</entry>
   <entry>similarity transform of an image</entry>
   <entry>vips_similarity()</entry>
+</row>
+<row>
+  <entry>rotate</entry>
+  <entry>rotate an image by a number of degrees</entry>
+  <entry>vips_rotate()</entry>
 </row>
 <row>
   <entry>resize</entry>
@@ -1155,6 +1180,16 @@
   <entry>convasep</entry>
   <entry>approximate separable integer convolution</entry>
   <entry>vips_convasep()</entry>
+</row>
+<row>
+  <entry>sobel</entry>
+  <entry>Sobel edge detector</entry>
+  <entry>vips_sobel()</entry>
+</row>
+<row>
+  <entry>canny</entry>
+  <entry>Canny edge detector</entry>
+  <entry>vips_canny()</entry>
 </row>
 <row>
   <entry>fastcor</entry>
