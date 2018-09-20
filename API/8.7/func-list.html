@@ -46,7 +46,7 @@
 <p>
       VIPS has a set of operators each of which computes some useful image 
       processing operation. Each operator is 
-      implemented as a <code class="literal">GObject</code> class, for example <code class="code">VipsGamma</code>. 
+      implemented as a <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject-struct"><code class="literal">GObject</code></a> class, for example <code class="code">VipsGamma</code>. 
       Classes are identified by their unique <code class="code">nickname</code>, in this 
       case <code class="code">gamma</code>. 
 
@@ -370,6 +370,11 @@
 <td align="left">flip</td>
 <td align="left">flip an image</td>
 <td align="left"><a class="link" href="libvips-conversion.html#vips-flip" title="vips_flip ()"><code class="function">vips_flip()</code></a></td>
+</tr>
+<tr>
+<td align="left">transpose3d</td>
+<td align="left">transpose a volumetric image</td>
+<td align="left"><a class="link" href="libvips-conversion.html#vips-transpose3d" title="vips_transpose3d ()"><code class="function">vips_transpose3d()</code></a></td>
 </tr>
 <tr>
 <td align="left">insert</td>
@@ -811,6 +816,21 @@
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-magickload-buffer" title="vips_magickload_buffer ()"><code class="function">vips_magickload_buffer()</code></a></td>
 </tr>
 <tr>
+<td align="left">magicksave</td>
+<td align="left">save file with ImageMagick</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-magicksave" title="vips_magicksave ()"><code class="function">vips_magicksave()</code></a></td>
+</tr>
+<tr>
+<td align="left">niftiload</td>
+<td align="left">load a NIfTI image</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-niftiload" title="vips_niftiload ()"><code class="function">vips_niftiload()</code></a></td>
+</tr>
+<tr>
+<td align="left">niftisave</td>
+<td align="left">save image in NIfTI format</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-niftisave" title="vips_niftisave ()"><code class="function">vips_niftisave()</code></a></td>
+</tr>
+<tr>
 <td align="left">fitsload</td>
 <td align="left">load a FITS image</td>
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-fitsload" title="vips_fitsload ()"><code class="function">vips_fitsload()</code></a></td>
@@ -974,6 +994,11 @@
 <td align="left">similarity</td>
 <td align="left">similarity transform of an image</td>
 <td align="left"><a class="link" href="libvips-resample.html#vips-similarity" title="vips_similarity ()"><code class="function">vips_similarity()</code></a></td>
+</tr>
+<tr>
+<td align="left">rotate</td>
+<td align="left">rotate an image by a number of degrees</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-rotate" title="vips_rotate ()"><code class="function">vips_rotate()</code></a></td>
 </tr>
 <tr>
 <td align="left">resize</td>
@@ -1224,6 +1249,16 @@
 <td align="left">convasep</td>
 <td align="left">approximate separable integer convolution</td>
 <td align="left"><a class="link" href="libvips-convolution.html#vips-convasep" title="vips_convasep ()"><code class="function">vips_convasep()</code></a></td>
+</tr>
+<tr>
+<td align="left">sobel</td>
+<td align="left">Sobel edge detector</td>
+<td align="left"><a class="link" href="libvips-convolution.html#vips-sobel" title="vips_sobel ()"><code class="function">vips_sobel()</code></a></td>
+</tr>
+<tr>
+<td align="left">canny</td>
+<td align="left">Canny edge detector</td>
+<td align="left"><a class="link" href="libvips-convolution.html#vips-canny" title="vips_canny ()"><code class="function">vips_canny()</code></a></td>
 </tr>
 <tr>
 <td align="left">fastcor</td>

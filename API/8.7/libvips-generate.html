@@ -500,9 +500,9 @@ ready.</p>
  callback is run from one of the background threads. In the 
 callback
 you need to somehow send a message to the main thread that the pixels are
-ready. In a glib-based application, this is easily done with <code class="function">g_idle_add()</code>.</p>
+ready. In a glib-based application, this is easily done with <a href="/usr/share/gtk-doc/html/glib/glib-The-Main-Event-Loop.html#g-idle-add"><code class="function">g_idle_add()</code></a>.</p>
 <p>If <em class="parameter"><code>notify_fn</code></em>
- is <code class="literal">NULL</code> then <a class="link" href="libvips-generate.html#vips-sink-screen" title="vips_sink_screen ()"><code class="function">vips_sink_screen()</code></a> runs synchronously.
+ is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> then <a class="link" href="libvips-generate.html#vips-sink-screen" title="vips_sink_screen ()"><code class="function">vips_sink_screen()</code></a> runs synchronously.
 <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a> on <em class="parameter"><code>out</code></em>
  will always block until the pixels have been
 calculated.</p>
@@ -686,7 +686,7 @@ vips_start_many (<em class="parameter"><code><a class="link" href="VipsImage.htm
                  <em class="parameter"><code><span class="type">void</span> *b</code></em>);</pre>
 <p>Start function for many images in. <em class="parameter"><code>a</code></em>
  is a pointer to 
-a <code class="literal">NULL</code>-terminated array of input images.</p>
+a <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of input images.</p>
 <p>See also: <a class="link" href="libvips-generate.html#vips-image-generate" title="vips_image_generate ()"><code class="function">vips_image_generate()</code></a>, <a class="link" href="libvips-generate.html#vips-allocate-input-array" title="vips_allocate_input_array ()"><code class="function">vips_allocate_input_array()</code></a></p>
 <div class="refsect3">
 <a name="vips-start-many.parameters"></a><h4>Parameters</h4>
@@ -725,7 +725,7 @@ vips_stop_many (<em class="parameter"><code><span class="type">void</span> *seq<
                 <em class="parameter"><code><span class="type">void</span> *b</code></em>);</pre>
 <p>Stop function for many images in. <em class="parameter"><code>a</code></em>
  is a pointer to 
-a <code class="literal">NULL</code>-terminated array of input images.</p>
+a <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of input images.</p>
 <p>See also: <a class="link" href="libvips-generate.html#vips-image-generate" title="vips_image_generate ()"><code class="function">vips_image_generate()</code></a>.</p>
 <div class="refsect3">
 <a name="vips-stop-many.parameters"></a><h4>Parameters</h4>
@@ -761,7 +761,7 @@ a <code class="literal">NULL</code>-terminated array of input images.</p>
 <pre class="programlisting"><a class="link" href="VipsImage.html" title="VipsImage"><span class="returnvalue">VipsImage</span></a> **
 vips_allocate_input_array (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *out</code></em>,
                            <em class="parameter"><code>...</code></em>);</pre>
-<p>Convenience function --- make a <code class="literal">NULL</code>-terminated array of input images.
+<p>Convenience function --- make a <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of input images.
 Use with <a class="link" href="libvips-generate.html#vips-start-many" title="vips_start_many ()"><code class="function">vips_start_many()</code></a>.</p>
 <p>See also: <a class="link" href="libvips-generate.html#vips-image-generate" title="vips_image_generate ()"><code class="function">vips_image_generate()</code></a>, <a class="link" href="libvips-generate.html#vips-start-many" title="vips_start_many ()"><code class="function">vips_start_many()</code></a>.</p>
 <div class="refsect3">
@@ -780,7 +780,7 @@ Use with <a class="link" href="libvips-generate.html#vips-start-many" title="vip
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of input images</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of input images</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -788,7 +788,7 @@ Use with <a class="link" href="libvips-generate.html#vips-start-many" title="vip
 </div>
 <div class="refsect3">
 <a name="vips-allocate-input-array.returns"></a><h4>Returns</h4>
-<p> <code class="literal">NULL</code>-terminated array of images. Do not free the result.</p>
+<p> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of images. Do not free the result.</p>
 </div>
 </div>
 <hr>
@@ -920,7 +920,7 @@ for the cache invalidation system. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>in</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated array of input images. </p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of input images. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> zero-terminated=1]</span></td>
 </tr>
 </tbody>
@@ -961,7 +961,7 @@ vips_image_pipelinev (<em class="parameter"><code><a class="link" href="VipsImag
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of input images </p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of input images </p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
