@@ -2,7 +2,7 @@
 
 # resize a 1000x1000 image to every size in [100,1000], check for black 
 
-# see https://github.com/jcupitt/libvips/issues/131
+# see https://github.com/libvips/libvips/issues/131
 
 # set -x
 

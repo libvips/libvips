@@ -44,7 +44,7 @@
  * 	  philipgiuliani
  * 25/6/14
  * 	- stop on zip write >4gb, thanks bgilbert
- * 	- save metadata, see https://github.com/jcupitt/libvips/issues/137
+ * 	- save metadata, see https://github.com/libvips/libvips/issues/137
  * 18/8/14
  * 	- use g_ date funcs, helps Windows
  * 14/2/15

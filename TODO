@@ -129,7 +129,7 @@
 
 - add porter-duff compositing, see
 
-	https://github.com/jcupitt/ruby-vips/issues/28
+	https://github.com/libvips/ruby-vips/issues/28
 
 - now vips_linear() has uchar output, can we do something with orc?
 

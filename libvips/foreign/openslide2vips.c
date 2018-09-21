@@ -497,7 +497,7 @@ vips__openslide_generate( VipsRegion *out,
 	 * somehow marking this tile as unreadable.
 	 *
 	 * See
-	 * https://github.com/jcupitt/libvips/commit/bb0a6643f94e69294e36d2b253f9bdd60c8c40ed#commitcomment-19838911
+	 * https://github.com/libvips/libvips/commit/bb0a6643f94e69294e36d2b253f9bdd60c8c40ed#commitcomment-19838911
 	 */
 	error = openslide_get_error( rslide->osr );
 	if( error ) {

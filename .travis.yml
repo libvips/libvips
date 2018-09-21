@@ -1,7 +1,7 @@
 language: cpp
 
 before_script:
-  - $PYTHON -m pip download --no-deps https://github.com/jcupitt/pyvips/archive/$PYVIPS_VERSION.tar.gz
+  - $PYTHON -m pip download --no-deps https://github.com/libvips/pyvips/archive/$PYVIPS_VERSION.tar.gz
   - tar xf $PYVIPS_VERSION.tar.gz
   - $PYTHON -m pip install --user --upgrade pyvips-$PYVIPS_VERSION/[test]
   - ./autogen.sh
