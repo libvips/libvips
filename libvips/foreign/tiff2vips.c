@@ -1130,7 +1130,7 @@ rtiff_parse_palette( Rtiff *rtiff, VipsImage *out )
 	/* Old-style colourmaps were 8-bit. If all the top bytes are zero,
 	 * assume we have one of these.
 	 *
-	 * See: https://github.com/jcupitt/libvips/issues/220
+	 * See: https://github.com/libvips/libvips/issues/220
 	 */
 	for( i = 0; i < len; i++ ) 
 		if( (read->red16[i] >> 8) | 

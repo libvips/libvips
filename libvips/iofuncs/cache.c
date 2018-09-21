@@ -801,7 +801,7 @@ vips_cache_operation_add( VipsOperation *operation )
 
 	/* If two threads call the same operation at the same time, 
 	 * we can get multiple adds. Let the first one win. See
-	 * https://github.com/jcupitt/libvips/pull/181
+	 * https://github.com/libvips/libvips/pull/181
 	 */
 	if( !g_hash_table_lookup( vips_cache_table, operation ) ) {
 		VipsOperationFlags flags = 

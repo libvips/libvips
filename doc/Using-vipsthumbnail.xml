@@ -290,7 +290,7 @@ $ vipsthumbnail kgdev.jpg --iprofile /usr/share/color/icc/colord/FOGRA28L_webcoa
     I’ve had good results with this profile:
   </para>
   <para>
-    https://github.com/jcupitt/nip2/blob/master/share/nip2/data/cmyk.icm
+    https://github.com/libvips/nip2/blob/master/share/nip2/data/cmyk.icm
   </para>
   <para>
     It makes nice-looking images from most CMYK files, and is completely free.

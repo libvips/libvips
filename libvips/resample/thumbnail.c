@@ -395,7 +395,7 @@ vips_thumbnail_build( VipsObject *object )
 	in = t[2];
 
 	/* If there's an alpha, we have to premultiply before shrinking. See
-	 * https://github.com/jcupitt/libvips/issues/291
+	 * https://github.com/libvips/libvips/issues/291
 	 */
 	have_premultiplied = FALSE;
 	if( vips_image_hasalpha( in ) ) { 
