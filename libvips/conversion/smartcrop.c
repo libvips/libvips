@@ -204,6 +204,18 @@ vips_smartcrop_attention( VipsSmartcrop *smartcrop,
 	int x_pos;
 	int y_pos;
 
+	/* The size we shrink to gives the precision with which we can place
+	 * the crop
+	 */
+	hscale = 32.0 / in->Xsize;
+	vscale = 32.0 / in->Ysize;
+	sigma = VIPS_MAX( sqrt( pow( smartcrop->width * hscale, 2 ) +
+		pow( smartcrop->height * vscale, 2 ) ) / 10, 1.0 );
+	if ( vips_resize( in, &t[17], hscale,
+		"vscale", vscale,
+		NULL ) )
+		return( -1 );
+
 	/* Simple edge detect.
 	 */
 	if( !(t[21] = vips_image_new_matrixv( 3, 3,
@@ -214,7 +226,7 @@ vips_smartcrop_attention( VipsSmartcrop *smartcrop,
 
 	/* Convert to XYZ and just use the first three bands.
 	 */
-	if( vips_colourspace( in, &t[0], VIPS_INTERPRETATION_XYZ, NULL ) ||
+	if( vips_colourspace( t[17], &t[0], VIPS_INTERPRETATION_XYZ, NULL ) ||
 		vips_extract_band( t[0], &t[1], 0, "n", 3, NULL ) )
 		return( -1 );
 
@@ -260,22 +272,14 @@ vips_smartcrop_attention( VipsSmartcrop *smartcrop,
 		vips_ifthenelse( t[10], t[13], t[11], &t[16], NULL ) )
 		return( -1 );
 
-	/* Sum, shrink, blur and find maxpos. 
+	/* Sum, blur and find maxpos.
 	 *
-	 * The size we shrink to gives the precision with which we can place 
-	 * the crop, the amount of blur is related to the size of the crop
+	 * The amount of blur is related to the size of the crop
 	 * area: how large an area we want to consider for the scoring
 	 * function.
 	 */
-	hscale = 32.0 / in->Xsize;
-	vscale = 32.0 / in->Ysize;
-	sigma = VIPS_MAX( sqrt( pow( smartcrop->width * hscale, 2 ) +
-		pow( smartcrop->height * vscale, 2 ) ) / 10, 1.0 );
-	if( vips_sum( &t[14], &t[17], 3, NULL ) ||
-		vips_resize( t[17], &t[18], hscale, 
-			"vscale", vscale, 
-			"kernel", VIPS_KERNEL_LINEAR, 
-			NULL ) ||
+
+	if( vips_sum( &t[14], &t[18], 3, NULL ) ||
 		vips_gaussblur( t[18], &t[19], sigma, NULL ) ||
 		vips_max( t[19], &max, "x", &x_pos, "y", &y_pos, NULL ) )
 		return( -1 ); 
