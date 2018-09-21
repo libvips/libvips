@@ -13,7 +13,7 @@ As long as you have a libvips binary on your system, just:
 should be all you need. The README in the repository for the binding has more
 details:
 
-[https://github.com/jcupitt/lua-vips](https://github.com/jcupitt/lua-vips)
+[https://github.com/libvips/lua-vips](https://github.com/libvips/lua-vips)
 
 Here's an example program:
 

@@ -5,7 +5,7 @@ title: What's new in 8.7
 libvips 8.7 is finally done! 
 
 This post summarizes what's new -- check the
-[ChangeLog](https://github.com/jcupitt/libvips/blob/master/ChangeLog)
+[ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
 if you need more details.
 
 # New operators
@@ -140,5 +140,5 @@ you should use [`pyvips`](https://pypi.org/project/pyvips) instead: it's 100%
 compatible and can be installed with a simple `pip install pyvips`.
 
 Plus many even smaller bug fixes and improvements. As usual, the 
-[ChangeLog](https://github.com/jcupitt/libvips/blob/master/ChangeLog)
+[ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
 has more details, if you're interested.

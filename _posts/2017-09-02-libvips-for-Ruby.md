@@ -7,7 +7,7 @@ it's now version 2.0. It has the same API (it passes the same test suite),
 but it's simpler to install, works on Linux, macOS and Windows, it works
 with any Ruby (including JRuby), it's smaller, more stable, and faster.
 
-[https://github.com/jcupitt/ruby-vips](https://github.com/jcupitt/ruby-vips)
+[https://github.com/libvips/ruby-vips](https://github.com/libvips/ruby-vips)
 
 ## Why a new version?
 
