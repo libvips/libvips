@@ -4,7 +4,7 @@ title: What's new in 8.6
 
 libvips 8.6 is done! Though it's a bit
 late. This post summarizes what's new -- check the
-[ChangeLog](https://github.com/jcupitt/libvips/blob/master/ChangeLog)
+[ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
 if you need more details.
 
 ## New operators
@@ -133,9 +133,9 @@ There have been a few changes to existing features.
 Finally there are a range of smaller improvements:
 
 * New C API:
-  [`vips_image_new_from_image()`](http://jcupitt.github.io/libvips/API/8.6/VipsImage.html#vips-image-new-from-image)
+  [`vips_image_new_from_image()`](http://libvips.github.io/libvips/API/8.6/VipsImage.html#vips-image-new-from-image)
   and
-  [`vips_image_new_from_image1()`](http://jcupitt.github.io/libvips/API/8.6/VipsImage.html#vips-image-new-from-image1)
+  [`vips_image_new_from_image1()`](http://libvips.github.io/libvips/API/8.6/VipsImage.html#vips-image-new-from-image1)
   make a constant image. This has been added to all the language bindings too.
 
 * Better prefix guessing on Windows, credit to tumagonx.
@@ -157,5 +157,5 @@ Finally there are a range of smaller improvements:
   to monostefan.
 
 Plus many even smaller bug fixes and improvements. As usual, the 
-[ChangeLog](https://github.com/jcupitt/libvips/blob/master/ChangeLog)
+[ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
 has more details, if you're interested.
