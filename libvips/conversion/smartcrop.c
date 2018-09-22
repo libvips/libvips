@@ -8,6 +8,10 @@
  * 	- revised attention smartcrop
  * 8/6/17
  * 	- revised again
+ * 15/9/18 lovell
+ * 	- move shrink to start of processing
+ * 22/9/18 jcupitt
+ * 	- add low and high
  */
 
 /*
@@ -350,6 +354,16 @@ vips_smartcrop_build( VipsObject *object )
 	case VIPS_INTERESTING_ATTENTION:
 		if( vips_smartcrop_attention( smartcrop, in, &left, &top ) )
 			return( -1 );
+		break;
+
+	case VIPS_INTERESTING_LOW:
+		left = 0;
+		top = 0;
+		break;
+
+	case VIPS_INTERESTING_HIGH:
+		left = smartcrop->in->Xsize - smartcrop->width;
+		top = smartcrop->in->Ysize - smartcrop->height;
 		break;
 
 	default:
