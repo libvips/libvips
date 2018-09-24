@@ -212,10 +212,16 @@
  * @VIPS_INTERESTING_CENTRE: just take the centre
  * @VIPS_INTERESTING_ENTROPY: use an entropy measure
  * @VIPS_INTERESTING_ATTENTION: look for features likely to draw human attention
+ * @VIPS_INTERESTING_LOW: position the crop towards the low coordinate
+ * @VIPS_INTERESTING_HIGH: position the crop towards the high coordinate
  *
  * Pick the algorithm vips uses to decide image "interestingness". This is used
  * by vips_smartcrop(), for example, to decide what parts of the image to
  * keep.
+ *
+ * #VIPS_INTERESTING_NONE and #VIPS_INTERESTING_LOW mean the same -- the
+ * crop is positioned at the top or left. #VIPS_INTERESTING_HIGH positions at
+ * the bottom or right. 
  *
  * See also: vips_smartcrop().
  */

@@ -8,6 +8,10 @@
  * 	- revised attention smartcrop
  * 8/6/17
  * 	- revised again
+ * 15/9/18 lovell
+ * 	- move shrink to start of processing
+ * 22/9/18 jcupitt
+ * 	- add low and high
  */
 
 /*
@@ -124,7 +128,8 @@ vips_smartcrop_entropy( VipsSmartcrop *smartcrop,
 			double right_score;
 
 			if( vips_smartcrop_score( smartcrop, in, 
-				*left, *top, slice_width, height, &left_score ) )
+				*left, *top, 
+				slice_width, height, &left_score ) )
 				return( -1 );
 
 			if( vips_smartcrop_score( smartcrop, in, 
@@ -142,7 +147,8 @@ vips_smartcrop_entropy( VipsSmartcrop *smartcrop,
 			double bottom_score;
 
 			if( vips_smartcrop_score( smartcrop, in, 
-				*left, *top, width, slice_height, &top_score ) )
+				*left, *top, 
+				width, slice_height, &top_score ) )
 				return( -1 );
 
 			if( vips_smartcrop_score( smartcrop, in, 
@@ -333,6 +339,7 @@ vips_smartcrop_build( VipsObject *object )
 
 	switch( smartcrop->interesting ) {
 	case VIPS_INTERESTING_NONE:
+	case VIPS_INTERESTING_LOW:
 		left = 0;
 		top = 0;
 		break;
@@ -352,6 +359,11 @@ vips_smartcrop_build( VipsObject *object )
 			return( -1 );
 		break;
 
+	case VIPS_INTERESTING_HIGH:
+		left = smartcrop->in->Xsize - smartcrop->width;
+		top = smartcrop->in->Ysize - smartcrop->height;
+		break;
+
 	default:
 		g_assert_not_reached();
 
@@ -363,7 +375,8 @@ vips_smartcrop_build( VipsObject *object )
 	}
 
 	if( vips_extract_area( smartcrop->in, &t[1], 
-			left, top, smartcrop->width, smartcrop->height, NULL ) ||
+			left, top, 
+			smartcrop->width, smartcrop->height, NULL ) ||
 		vips_image_write( t[1], conversion->out ) )
 		return( -1 ); 
 
