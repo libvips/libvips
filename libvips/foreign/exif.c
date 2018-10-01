@@ -832,24 +832,30 @@ vips_exif_set_string_encoding( ExifData *ed,
 	ExifEntry *entry, unsigned long component, const char *data )
 {
 	char *str;
-	char *ascii;
 	int len;
 
 	str = drop_tail( data );
 
 	/* libexif can only really save ASCII to things like UserComment.
 	 */
+#ifdef HAVE_G_STR_TO_ASCII
+{
+	char *ascii;
+
 	ascii = g_str_to_ascii( str, NULL );
+	g_free( str );
+	str = ascii;
+}
+#endif /*HAVE_G_STR_TO_ASCII*/
 
 	/* libexif comment strings are not NULL-terminated, and have an 
 	 * encoding tag (always ASCII) in the first 8 bytes.
 	 */
-	len = strlen( ascii );
+	len = strlen( str );
 	vips_exif_alloc_string( entry, sizeof( ASCII_COMMENT ) - 1 + len );
 	memcpy( entry->data, ASCII_COMMENT, sizeof( ASCII_COMMENT ) - 1 );
-        memcpy( entry->data + sizeof( ASCII_COMMENT ) - 1, ascii, len );
+        memcpy( entry->data + sizeof( ASCII_COMMENT ) - 1, str, len );
 
-	g_free( ascii ); 
 	g_free( str );
 }
 
@@ -861,20 +867,29 @@ vips_exif_set_string_ascii( ExifData *ed,
 	ExifEntry *entry, unsigned long component, const char *data )
 {
 	char *str;
-	char *ascii;
 	int len;
 
 	str = drop_tail( data );
+
+	/* libexif can only really save ASCII to things like UserComment.
+	 */
+#ifdef HAVE_G_STR_TO_ASCII
+{
+	char *ascii;
+
 	ascii = g_str_to_ascii( str, NULL );
+	g_free( str );
+	str = ascii;
+}
+#endif /*HAVE_G_STR_TO_ASCII*/
 
 	/* ASCII strings are NULL-terminated.
 	 */
-	len = strlen( ascii );
+	len = strlen( str );
 	vips_exif_alloc_string( entry, len + 1 );
-        memcpy( entry->data, ascii, len + 1 );
+        memcpy( entry->data, str, len + 1 );
         entry->format = EXIF_FORMAT_ASCII;
 
-	g_free( ascii ); 
 	g_free( str );
 }
 
