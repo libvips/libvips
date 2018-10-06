@@ -224,7 +224,7 @@ via imagemagick instead.
 ### PDFium
 
 If present, libvips will attempt to load PDFs via PDFium. This library must be
-packaged by https://github.com/libvips/docker-builds/tree/master/pdfium
+packaged by https://github.com/jcupitt/docker-builds/tree/master/pdfium
 
 If PDFium is not detected, libvips will look for poppler-glib instead.
 
