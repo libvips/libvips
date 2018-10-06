@@ -1,6 +1,7 @@
 21/9/18 started 8.8.0
 - much faster smartcrop [lovell]
 - add low/high to smartcrop [jcupitt]
+- add XMP support to png read/write [jcupitt]
 
 23/9/18 started 8.7.1
 - update function list in docs [janko-m] 
