@@ -16,6 +16,8 @@
  * 	- more severing for vips_image_write()
  * 3/4/18
  * 	- better rules for hasalpha
+ * 9/10/18
+ * 	- fix up vips_image_dump(), it was still using ints not enums
  */
 
 /*
@@ -579,29 +581,8 @@ print_field_fn( VipsImage *image, const char *field, GValue *value, void *a )
 {
 	VipsBuf *buf = (VipsBuf *) a;
 
-	const char *extra;
-	char *str_value;
-
-	/* Look for known enums and decode them.
-	 */
-	extra = NULL;
-	if( strcmp( field, "coding" ) == 0 )
-		extra = vips_enum_nick( 
-			VIPS_TYPE_CODING, g_value_get_int( value ) );
-	else if( strcmp( field, "format" ) == 0 )
-		extra = vips_enum_nick( 
-			VIPS_TYPE_BAND_FORMAT, g_value_get_int( value ) );
-	else if( strcmp( field, "interpretation" ) == 0 )
-		extra = vips_enum_nick( 
-			VIPS_TYPE_INTERPRETATION, g_value_get_int( value ) );
-
-	str_value = g_strdup_value_contents( value );
-	vips_buf_appendf( buf, "%s: %s", field, str_value );
-	g_free( str_value );
-
-	if( extra )
-		vips_buf_appendf( buf, " - %s", extra );
-
+	vips_buf_appendf( buf, "%s: ", field );
+	vips_buf_appendgv( buf, value );
 	vips_buf_appendf( buf, "\n" );
 
 	return( NULL );
