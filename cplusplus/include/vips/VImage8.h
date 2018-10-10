@@ -162,7 +162,7 @@ public:
 
 	bool is_null() const
 	{
-		return vobject == nullptr;
+		return vobject == 0;
 	}
 
 };
