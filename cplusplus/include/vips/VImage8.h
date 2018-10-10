@@ -160,6 +160,11 @@ public:
 		return( vobject ); 
 	}
 
+	bool is_null() const
+	{
+		return vobject == 0;
+	}
+
 };
 
 class VIPS_CPLUSPLUS_API VImage;
@@ -237,6 +242,8 @@ public:
 class VImage : VObject
 {
 public:
+	using VObject::is_null;
+
 	VImage( VipsImage *image, VSteal steal = STEAL ) : 
 		VObject( (VipsObject *) image, steal )
 	{
