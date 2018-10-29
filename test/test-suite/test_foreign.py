@@ -241,6 +241,7 @@ class TestForeign:
             assert im.width == 290
             assert im.height == 442
             assert im.bands == 3
+            assert im.get("xmp-data") == "sample xmp string"
 
         self.file_loader("pngload", PNG_FILE, png_valid)
         self.buffer_loader("pngload_buffer", PNG_FILE, png_valid)
