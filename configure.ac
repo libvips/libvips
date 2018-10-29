@@ -1029,42 +1029,20 @@ if test x"$with_cfitsio" != x"no"; then
   )
 fi
 
-# libwebp
-# some platforms, like ubuntu 12.04, are missing the .pc files for libwebp, so
-# we fall back to FIND_LIBWEBP
+# libwebp ... target 0.5+ to reduce complication
+# webp has the stuff for handling metadata in two separate libraries  -- we
+# insit on having all of them
 AC_ARG_WITH([libwebp], 
   AS_HELP_STRING([--without-libwebp], [build without libwebp (default: test)]))
 
 if test x"$with_libwebp" != x"no"; then
-  PKG_CHECK_MODULES(LIBWEBP, libwebp >= 0.1.3,
-    [AC_DEFINE(HAVE_LIBWEBP,1,[define if you have libwebp installed.])
+  PKG_CHECK_MODULES(LIBWEBP, libwebp >= 0.5 libwebpmux >= 0.5 libwebpdemux >= 0.5,
+    [AC_DEFINE(HAVE_LIBWEBP,1,[define if you have libwebp/libwebpmux/libwebpdemux installed.])
      with_libwebp=yes
-     PACKAGES_USED="$PACKAGES_USED libwebp"
+     PACKAGES_USED="$PACKAGES_USED libwebp libwebpmux libwebpdemux"
     ],
-    [FIND_LIBWEBP(
-       [with_libwebp="yes (found by search)"
-       ], 
-       [AC_MSG_WARN([libwebp not found; disabling WEBP support])
-        with_libwebp=no
-       ]
-     )
-    ]
-  )
-fi
-
-# webp has the stuff for pulling out ICC profile etc in a separate library
-# 
-# we can build with libwebpmux back to 0.3, but it's not until libwebp 0.5 that
-# we can read that metadata back successfully ... insist on 0.5 so that tests
-# can work smoothly
-if test x"$with_libwebp" != x"no"; then
-  PKG_CHECK_MODULES(LIBWEBPMUX, libwebpmux >= 0.5.0,
-    [AC_DEFINE(HAVE_LIBWEBPMUX,1,[define if you have libwebpmux installed.])
-     with_libwebpmux=yes
-     PACKAGES_USED="$PACKAGES_USED libwebpmux"
-    ],
-    [AC_MSG_WARN([libwebpmux not found; disabling webp metadata support])
-     with_libwebpmux=no
+    [AC_MSG_WARN([libwebp, mux, demux not found; disabling WEBP support])
+     with_libwebp=no
     ]
   )
 fi
@@ -1419,9 +1397,7 @@ SVG import with librsvg-2.0: 		$with_rsvg
 zlib: 					$with_zlib
 file import with cfitsio: 		$with_cfitsio
 file import/export with libwebp:	$with_libwebp
-  (requires libwebp-0.1.3 or later)
-support webp metadata:			$with_libwebpmux
-  (requires libwebpmux-0.5 or later)
+  (requires libwebp, libwebpmux, libwebpdemux 0.5.0 or later)
 text rendering with pangoft2: 		$with_pangoft2
 file import/export with libpng: 	$with_png
   (requires libpng-1.2.9 or later)
