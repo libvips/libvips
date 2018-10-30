@@ -4,6 +4,7 @@
 - add XMP support to png read/write [jcupitt]
 - deprecate thumbnail auto_rotate, add no_rotate [jcupitt]
 - implement thumbnail shrink-on-load for openslide images [jcupitt]
+- add animated webp write [jcupitt]
 
 23/9/18 started 8.7.1
 - update function list in docs [janko-m] 
