@@ -183,13 +183,13 @@ vips_webp_write_append( VipsWebPWrite *write,
 	/* Yuk! Sadly libwebp does not have a proper interface to this type.
 	 */
 	pic.custom_ptr = (void *) &write->memory_writer;
-	if( WebPMemoryWrite( data, data_size, &pic ) ) {
+	if( !WebPMemoryWrite( data, data_size, &pic ) ) {
 		vips_error( "webp", 
 			"%s", _( "output webp image too large" ) );
-		return( 0 );
+		return( FALSE );
 	}
 
-	return( 1 );
+	return( TRUE );
 }
 
 /* We don't actually use libwebpmux here, but we shouldn't attach metadata we
@@ -391,8 +391,13 @@ write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 
 	/* Add a last fake frame to signal the last duration.
 	 */
-	if( !WebPAnimEncoderAdd( write->enc, NULL, timestamp_ms, NULL ) ||
-		WebPAnimEncoderAssemble( write->enc, &webp_data ) ) {
+	if( !WebPAnimEncoderAdd( write->enc, NULL, timestamp_ms, NULL ) ) {
+		vips_error( "vips2webp",
+			"%s", _( "anim build error" ) );
+		return( -1 );
+	}
+
+	if( !WebPAnimEncoderAssemble( write->enc, &webp_data ) ) {
 		vips_error( "vips2webp",
 			"%s", _( "anim build error" ) );
 		return( -1 );
@@ -547,9 +552,9 @@ vips_webp_add_metadata( VipsWebPWrite *write, VipsImage *image )
 	 */
 	new_size = old_size - 8 + (is_vp8x ? 0 : 18) + metadata_size;
 
-	write->memory_writer.mem = NULL;
-	write->memory_writer.size = 0;
-	write->memory_writer.max_size = 0;
+	/* We've taken a copy of the pointer already.
+	 */
+	WebPMemoryWriterInit( &write->memory_writer );
 
 	if( !vips_webp_write_appendcc( write, "RIFF" ) ||
 		!vips_webp_write_appendle32( write, new_size ) ||
