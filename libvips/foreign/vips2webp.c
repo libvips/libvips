@@ -10,6 +10,7 @@
  * 	- add metadata write
  * 29/10/18
  * 	- target libwebp 0.5+ and remove some ifdefs
+ * 	- add animated webp write
  */
 
 /*
@@ -342,9 +343,13 @@ write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 	int top;
 	int timestamp_ms;
 
-	/* FIXME get delay
+	/* 100ms is the webp default.
 	 */
-	delay = 16;
+	delay = 100;
+	if( vips_image_get_typeof( image, "gif-delay" ) &&
+		vips_image_get_int( image, "gif-delay", &delay ) )
+		;
+	delay = VIPS_CLIP( 0, delay, 100000 );
 
 	if( !WebPAnimEncoderOptionsInit( &anim_config ) ) {
 		vips_error( "vips2webp",
@@ -427,7 +432,9 @@ write_webp( VipsWebPWrite *write, VipsImage *image )
 			&page_height ) )
 		;
 
-	if( page_height > 0 )
+	if( page_height > 0 &&
+		page_height < image->Ysize &&
+		image->Ysize % page_height == 0 ) 
 		return( write_webp_anim( write, image, page_height ) );
 	else
 		return( write_webp_single( write, image ) );
