@@ -1364,7 +1364,7 @@ vips_call_argv( VipsOperation *operation, int argc, char **argv )
 
 	/* Any unused arguments? We must fail. Consider eg. "vips bandjoin a b
 	 * c". This would overwrite b with a and ignore c, potentially
-	 * disasterous.
+	 * disastrous.
 	 */
 	if( argc > call.i ) {
 		vips_error( VIPS_OBJECT_GET_CLASS( operation )->nickname, 
