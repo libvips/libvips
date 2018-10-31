@@ -703,7 +703,7 @@ vips_thumbnail_class_init( VipsThumbnailClass *class )
 		VIPS_TYPE_INTENT, VIPS_INTENT_RELATIVE );
 
 	/* BOOL args which default TRUE arguments don't work with the 
-	 * command-line -- GOption does ot allow --auto-rotate=false.
+	 * command-line -- GOption does not allow --auto-rotate=false.
 	 *
 	 * This is now replaced (though still functional) with "no-rotate",
 	 * see above.
