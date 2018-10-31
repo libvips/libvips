@@ -1785,7 +1785,20 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 			g_type_name( G_TYPE_FROM_CLASS( object_class ) ),
 			g_param_spec_get_name( pspec ),
 			g_type_name( G_TYPE_FROM_CLASS( ac->object_class ) ),
-			g_param_spec_get_name( ((VipsArgument *) ac)->pspec ) ); 
+			g_param_spec_get_name( ((VipsArgument *) ac)->pspec ) );
+
+	/* Warn about optional boolean args which default TRUE. These won't
+	 * work from the CLI, since simple GOption switches don't allow
+	 * `=false`.
+	 */
+	if( !(flags & VIPS_ARGUMENT_REQUIRED) && 
+		!(flags & VIPS_ARGUMENT_DEPRECATED) && 
+		G_IS_PARAM_SPEC_BOOLEAN( pspec ) &&
+		G_PARAM_SPEC_BOOLEAN( pspec )->default_value ) 
+		g_warning( "vips_object_class_install_argument: "
+			"default TRUE BOOL arg %s.%s", 
+			g_type_name( G_TYPE_FROM_CLASS( object_class ) ),
+			g_param_spec_get_name( pspec ) );
 
 	argument_table_traverse = g_slist_prepend(
 		argument_table_traverse, argument_class );
