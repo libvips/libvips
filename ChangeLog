@@ -2,6 +2,7 @@
 - much faster smartcrop [lovell]
 - add low/high to smartcrop [jcupitt]
 - add XMP support to png read/write [jcupitt]
+- deprecate thumbnail auto_rotate, add no_rotate [jcupitt]
 
 23/9/18 started 8.7.1
 - update function list in docs [janko-m] 

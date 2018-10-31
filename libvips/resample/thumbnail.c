@@ -11,6 +11,8 @@
  * 	- don't cache (thanks tomasc)
  * 30/8/17
  * 	- add intent option, thanks kleisauke
+ * 31/10/18
+ * 	- deprecate auto_rotate, add no_rotate
  */
 
 /*
@@ -79,6 +81,7 @@ typedef struct _VipsThumbnail {
 	VipsSize size;
 
 	gboolean auto_rotate;
+	gboolean no_rotate;
 	VipsInteresting crop;
 	gboolean linear;
 	char *export_profile;
@@ -332,6 +335,15 @@ vips_thumbnail_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_thumbnail_parent_class )->build( object ) )
 		return( -1 );
 
+	/* We have to support both no_rotate and auto_rotate optional args,
+	 * with no_rotate being the new and not-deprecated one.
+	 *
+	 * If the new no_rotate flag has been set, that value overrides
+	 * auto_rotate.
+	 */
+	if( vips_object_argument_isset( object, "no_rotate" ) ) 
+		thumbnail->auto_rotate = !thumbnail->no_rotate;
+
 	if( !vips_object_argument_isset( object, "height" ) )
 		thumbnail->height = thumbnail->width;
 
@@ -564,12 +576,12 @@ vips_thumbnail_class_init( VipsThumbnailClass *class )
 		G_STRUCT_OFFSET( VipsThumbnail, size ),
 		VIPS_TYPE_SIZE, VIPS_SIZE_BOTH ); 
 
-	VIPS_ARG_BOOL( class, "auto_rotate", 115, 
-		_( "Auto rotate" ), 
-		_( "Use orientation tags to rotate image upright" ),
+	VIPS_ARG_BOOL( class, "no_rotate", 115, 
+		_( "No rotate" ), 
+		_( "Don't use orientation tags to rotate image upright" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsThumbnail, auto_rotate ),
-		TRUE ); 
+		G_STRUCT_OFFSET( VipsThumbnail, no_rotate ),
+		FALSE ); 
 
 	VIPS_ARG_ENUM( class, "crop", 116, 
 		_( "Crop" ), 
@@ -605,6 +617,19 @@ vips_thumbnail_class_init( VipsThumbnailClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsThumbnail, intent ),
 		VIPS_TYPE_INTENT, VIPS_INTENT_RELATIVE );
+
+	/* BOOL args which default TRUE arguments don't work with the 
+	 * command-line -- GOption does ot allow --auto-rotate=false.
+	 *
+	 * This is now replaced (though still functional) with "no-rotate",
+	 * see above.
+	 */
+	VIPS_ARG_BOOL( class, "auto_rotate", 121, 
+		_( "Auto rotate" ), 
+		_( "Use orientation tags to rotate image upright" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsThumbnail, auto_rotate ),
+		TRUE ); 
 
 }
 
@@ -722,7 +747,7 @@ vips_thumbnail_file_init( VipsThumbnailFile *file )
  *
  * * @height: %gint, target height in pixels
  * * @size: #VipsSize, upsize, downsize, both or force
- * * @auto_rotate: %gboolean, rotate upright using orientation tag
+ * * @no_rotate: %gboolean, don't rotate upright using orientation tag
  * * @crop: #VipsInteresting, shrink and crop to fill target
  * * @linear: %gboolean, perform shrink in linear light
  * * @import_profile: %gchararray, fallback import ICC profile
@@ -755,7 +780,7 @@ vips_thumbnail_file_init( VipsThumbnailFile *file )
  * image will be forced to fit the target. 
  *
  * Normally any orientation tags on the input image (such as EXIF tags) are
- * interpreted to rotate the image upright. If you set @auto_rotate to %FALSE,
+ * interpreted to rotate the image upright. If you set @no_rotate to %TRUE,
  * these tags will not be interpreted.
  *
  * Shrinking is normally done in sRGB colourspace. Set @linear to shrink in 
@@ -898,7 +923,7 @@ vips_thumbnail_buffer_init( VipsThumbnailBuffer *buffer )
  *
  * * @height: %gint, target height in pixels
  * * @size: #VipsSize, upsize, downsize, both or force
- * * @auto_rotate: %gboolean, rotate upright using orientation tag
+ * * @no_rotate: %gboolean, don't rotate upright using orientation tag
  * * @crop: #VipsInteresting, shrink and crop to fill target
  * * @linear: %gboolean, perform shrink in linear light
  * * @import_profile: %gchararray, fallback import ICC profile
@@ -1013,7 +1038,7 @@ vips_thumbnail_image_init( VipsThumbnailImage *image )
  *
  * * @height: %gint, target height in pixels
  * * @size: #VipsSize, upsize, downsize, both or force
- * * @auto_rotate: %gboolean, rotate upright using orientation tag
+ * * @no_rotate: %gboolean, don't rotate upright using orientation tag
  * * @crop: #VipsInteresting, shrink and crop to fill target
  * * @linear: %gboolean, perform shrink in linear light
  * * @import_profile: %gchararray, fallback import ICC profile
