@@ -13,6 +13,7 @@
  * 	- add intent option, thanks kleisauke
  * 31/10/18
  * 	- deprecate auto_rotate, add no_rotate
+ * 	- implement shrink-on-load for openslide images
  */
 
 /*
@@ -72,6 +73,10 @@
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 		VIPS_TYPE_THUMBNAIL, VipsThumbnailClass ))
 
+/* Should be plenty.
+ */
+#define MAX_LEVELS (256)
+
 typedef struct _VipsThumbnail {
 	VipsOperation parent_instance;
 
@@ -88,17 +93,19 @@ typedef struct _VipsThumbnail {
 	char *import_profile;
 	VipsIntent intent;
 
-	/* Set by subclasses to the input image.
-	 */
-	VipsImage *in;
-
 	/* Bits of info we read from the input image when we get the header of
 	 * the original.
 	 */
-	const char *loader;		/* Eg. "jpegload_buffer" */
+	const char *loader;		/* Eg. "VipsForeignLoadJpeg*" */
 	int input_width;
 	int input_height;
 	VipsAngle angle; 		/* From vips_autorot_get_angle() */
+
+	/* For openslide, we need to read out the size of each level too.
+	 */
+	int level_count;
+	int level_width[MAX_LEVELS];
+	int level_height[MAX_LEVELS];
 
 } VipsThumbnail;
 
@@ -109,11 +116,13 @@ typedef struct _VipsThumbnailClass {
 	 */
 	int (*get_info)( VipsThumbnail *thumbnail );  
 
-	/* Open, giving either a scale or a shrink. @shrink is an integer shrink
-	 * factor suitable for vips_jpegload() or equivalent, @scale is a
-	 * double scale factor, suitable for vips_svgload() or similar.
+	/* Open with some kind of shrink or scale factor. Exactly what we pass 
+	 * and to what param depends on the loader. It'll be an integer shrink
+	 * factor for vips_jpegload(), a double scale factor for vips_svgload().
+	 *
+	 * See VipsThumbnail::loader
 	 */
-	VipsImage *(*open)( VipsThumbnail *thumbnail, int shrink, double scale );
+	VipsImage *(*open)( VipsThumbnail *thumbnail, double factor );
 
 } VipsThumbnailClass;
 
@@ -141,6 +150,53 @@ vips_thumbnail_finalize( GObject *gobject )
 #endif /*DEBUG*/
 
 	G_OBJECT_CLASS( vips_thumbnail_parent_class )->finalize( gobject );
+}
+
+/* Fetch an int openslide field from metadata. These are all represented as
+ * strings. Return the defaulyt value if there's any problem.
+ */
+static int
+get_int( VipsImage *image, const char *field, int default_value )
+{
+	const char *str;
+
+	if( vips_image_get_typeof( image, field ) &&
+		!vips_image_get_string( image, field, &str ) ) 
+		return( atoi( str ) );
+
+	return( default_value );
+}
+
+static void
+vips_thumbnail_read_header( VipsThumbnail *thumbnail, VipsImage *image )
+{
+	thumbnail->input_width = image->Xsize;
+	thumbnail->input_height = image->Ysize;
+	thumbnail->angle = vips_autorot_get_angle( image );
+
+	/* For openslide, read out the level structure too.
+	 */
+	if( vips_isprefix( "VipsForeignLoadOpenslide", thumbnail->loader ) ) {
+		int level_count;
+		int level;
+
+		level_count = get_int( image, "openslide.level-count", 1 );
+		level_count = VIPS_CLIP( 1, level_count, MAX_LEVELS );
+		thumbnail->level_count = level_count;
+
+		for( level = 0; level < level_count; level++ ) {
+			char name[256];
+
+			vips_snprintf( name, 256, 
+				"openslide.level[%d].width", level );
+			thumbnail->level_width[level] =
+				 get_int( image, name, 0 );
+			vips_snprintf( name, 256, 
+				"openslide.level[%d].height", level );
+			thumbnail->level_height[level] =
+				get_int( image, name, 0 );
+		}
+	}
 }
 
 /* Calculate the shrink factor, taking into account auto-rotate, the fit mode,
@@ -225,7 +281,8 @@ vips_thumbnail_calculate_common_shrink( VipsThumbnail *thumbnail,
 /* Find the best jpeg preload shrink.
  */
 static int
-vips_thumbnail_find_jpegshrink( VipsThumbnail *thumbnail, int width, int height )
+vips_thumbnail_find_jpegshrink( VipsThumbnail *thumbnail, 
+	int width, int height )
 {
 	double shrink = vips_thumbnail_calculate_common_shrink( thumbnail, 
 		width, height ); 
@@ -253,6 +310,26 @@ vips_thumbnail_find_jpegshrink( VipsThumbnail *thumbnail, int width, int height 
 		return( 1 );
 }
 
+/* Find the best openslide level.
+ */
+static int
+vips_thumbnail_find_openslidelevel( VipsThumbnail *thumbnail, 
+	int width, int height )
+{
+	int level;
+
+	g_assert( thumbnail->level_count > 0 );
+	g_assert( thumbnail->level_count <= MAX_LEVELS );
+
+	for( level = thumbnail->level_count - 1; level >= 0; level-- ) 
+		if( vips_thumbnail_calculate_common_shrink( thumbnail, 
+			thumbnail->level_width[level], 
+			thumbnail->level_height[level] ) >= 1.0 ) 
+			return( level );
+
+	return( 0 );
+}
+
 /* Open the image, returning the best version for thumbnailing. 
  *
  * For example, libjpeg supports fast shrink-on-read, so if we have a JPEG, 
@@ -264,8 +341,7 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 	VipsThumbnailClass *class = VIPS_THUMBNAIL_GET_CLASS( thumbnail );
 
 	VipsImage *im;
-	double shrink;
-	double scale;
+	double factor;
 
 	if( class->get_info( thumbnail ) )
 		return( NULL );
@@ -273,32 +349,40 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 	g_info( "input size is %d x %d", 
 		thumbnail->input_width, thumbnail->input_height ); 
 
-	shrink = 1.0;
-	scale = 1.0;
+	factor = 1.0;
 
 	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
-		shrink = vips_thumbnail_find_jpegshrink( thumbnail, 
+		factor = vips_thumbnail_find_jpegshrink( thumbnail, 
 			thumbnail->input_width, thumbnail->input_height );
 
-		g_info( "loading jpeg with factor %g pre-shrink", shrink ); 
+		g_info( "loading jpeg with factor %g pre-shrink", factor ); 
+	}
+	else if( vips_isprefix( "VipsForeignLoadOpenslide", 
+		thumbnail->loader ) ) {
+		factor = vips_thumbnail_find_openslidelevel( thumbnail, 
+			thumbnail->input_width, thumbnail->input_height );
+
+		g_info( "loading openslide level %g", factor ); 
 	}
 	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
 		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) {
-		scale = 1.0 / vips_thumbnail_calculate_common_shrink( thumbnail, 
-			thumbnail->input_width, thumbnail->input_height );
+		factor = 1.0 / 
+			vips_thumbnail_calculate_common_shrink( thumbnail, 
+				thumbnail->input_width, 
+				thumbnail->input_height );
 
-		g_info( "loading PDF/SVG with factor %g pre-scale", scale ); 
+		g_info( "loading PDF/SVG with factor %g pre-scale", factor ); 
 	}
 	else if( vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
-		shrink = VIPS_MAX( 1.0, 
+		factor = VIPS_MAX( 1.0, 
 			vips_thumbnail_calculate_common_shrink( thumbnail, 
 				thumbnail->input_width, 
 				thumbnail->input_height ) ); 
 
-		g_info( "loading webp with factor %g pre-shrink", shrink ); 
+		g_info( "loading webp with factor %g pre-shrink", factor ); 
 	}
 
-	if( !(im = class->open( thumbnail, shrink, scale )) )
+	if( !(im = class->open( thumbnail, factor )) )
 		return( NULL );
 
 	return( im ); 
@@ -668,42 +752,46 @@ vips_thumbnail_file_get_info( VipsThumbnail *thumbnail )
 		!(image = vips_image_new_from_file( file->filename, NULL )) )
 		return( -1 );
 
-	thumbnail->input_width = image->Xsize;
-	thumbnail->input_height = image->Ysize;
-	thumbnail->angle = vips_autorot_get_angle( image );
+	vips_thumbnail_read_header( thumbnail, image );
 
 	g_object_unref( image );
 
 	return( 0 );
 }
 
-/* Open an image, pre-shrinking as appropriate. Some formats use shrink, some
- * scale, never both. 
+/* Open an image, pre-shrinking as appropriate. 
  */
 static VipsImage *
-vips_thumbnail_file_open( VipsThumbnail *thumbnail, int shrink, double scale )
+vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 {
 	VipsThumbnailFile *file = (VipsThumbnailFile *) thumbnail;
 
-	/* If both shrink and scale have been set, something is wrong. It
-	 * should be one or the other (or neither).
-	 */
-	g_assert( shrink == 1 || scale == 1.0 );
-
-	if( shrink != 1 ) 
+	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
-			"shrink", shrink,
+			"shrink", (int) factor,
 			NULL ) );
-	else if( scale != 1.0 )
+	}
+	else if( vips_isprefix( "VipsForeignLoadOpenslide", 
+		thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
-			"scale", scale,
+			"level", (int) factor,
 			NULL ) );
-	else
+	}
+	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
+		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ||
+		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
+		return( vips_image_new_from_file( file->filename, 
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"scale", factor,
+			NULL ) );
+	}
+	else {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			NULL ) );
+	}
 }
 
 static void
@@ -842,43 +930,50 @@ vips_thumbnail_buffer_get_info( VipsThumbnail *thumbnail )
 			buffer->buf->data, buffer->buf->length, "", NULL )) )
 		return( -1 );
 
-	thumbnail->input_width = image->Xsize;
-	thumbnail->input_height = image->Ysize;
-	thumbnail->angle = vips_autorot_get_angle( image );
+	vips_thumbnail_read_header( thumbnail, image );
 
 	g_object_unref( image );
 
 	return( 0 );
 }
 
-/* Open an image, pre-shrinking as appropriate. Some formats use shrink, some
- * scale, never both. 
+/* Open an image, scaling as appropriate. 
  */
 static VipsImage *
-vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, 
-	int shrink, double scale )
+vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 {
 	VipsThumbnailBuffer *buffer = (VipsThumbnailBuffer *) thumbnail;
 
-	/* We can't use UNBUFERRED safely on very-many-core systems.
-	 */
-	if( shrink != 1 ) 
+	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
 			buffer->buf->data, buffer->buf->length, "", 
 			"access", VIPS_ACCESS_SEQUENTIAL,
-			"shrink", shrink,
+			"shrink", (int) factor,
 			NULL ) );
-	else if( scale != 1.0 )
+	}
+	else if( vips_isprefix( "VipsForeignLoadOpenslide", 
+		thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
 			buffer->buf->data, buffer->buf->length, "", 
 			"access", VIPS_ACCESS_SEQUENTIAL,
-			"scale", scale,
+			"level", (int) factor,
 			NULL ) );
-	else
+	}
+	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
+		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ||
+		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
+		return( vips_image_new_from_buffer( 
+			buffer->buf->data, buffer->buf->length, "", 
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"scale", factor,
+			NULL ) );
+	}
+	else {
 		return( vips_image_new_from_buffer( 
 			buffer->buf->data, buffer->buf->length, "", 
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			NULL ) );
+	}
 }
 
 static void
@@ -978,9 +1073,7 @@ vips_thumbnail_image_get_info( VipsThumbnail *thumbnail )
 	 */
 	thumbnail->loader = "image source";
 
-	thumbnail->input_width = image->in->Xsize;
-	thumbnail->input_height = image->in->Ysize;
-	thumbnail->angle = vips_autorot_get_angle( image->in );
+	vips_thumbnail_read_header( thumbnail, image->in );
 
 	return( 0 );
 }
@@ -988,8 +1081,7 @@ vips_thumbnail_image_get_info( VipsThumbnail *thumbnail )
 /* Open an image. We can't pre-shrink with an image source, sadly.
  */
 static VipsImage *
-vips_thumbnail_image_open( VipsThumbnail *thumbnail, 
-	int shrink, double scale )
+vips_thumbnail_image_open( VipsThumbnail *thumbnail, double factor )
 {
 	VipsThumbnailImage *image = (VipsThumbnailImage *) thumbnail;
 
