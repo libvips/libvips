@@ -75,6 +75,14 @@ typedef struct {
 	const void *data;
 	gint64 length;
 
+	/* Load this page (frame number).
+	 */
+	int page;
+
+	/* Load this many pages.
+	 */
+	int n;
+
 	/* Shrink-on-load factor. Use this to set scaled_width.
 	 */
 	int shrink;
@@ -146,7 +154,8 @@ read_free( Read *read )
 }
 
 static Read *
-read_new( const char *filename, const void *data, size_t length, int shrink )
+read_new( const char *filename, const void *data, size_t length, 
+	int page, int n, int shrink )
 {
 	Read *read;
 
@@ -156,6 +165,8 @@ read_new( const char *filename, const void *data, size_t length, int shrink )
 	read->filename = g_strdup( filename );
 	read->data = data;
 	read->length = length;
+	read->page = page;
+	read->n = n;
 	read->shrink = shrink;
 	read->fd = 0;
 	read->idec = NULL;
@@ -274,11 +285,12 @@ read_header( Read *read, VipsImage *out )
 }
 
 int
-vips__webp_read_file_header( const char *filename, VipsImage *out, int shrink ) 
+vips__webp_read_file_header( const char *filename, VipsImage *out, 
+	int page, int n, int shrink )
 {
 	Read *read;
 
-	if( !(read = read_new( filename, NULL, 0, shrink )) ) {
+	if( !(read = read_new( filename, NULL, 0, page, n, shrink )) ) {
 		vips_error( "webp2vips",
 			_( "unable to open \"%s\"" ), filename ); 
 		return( -1 );
@@ -324,11 +336,12 @@ read_image( Read *read, VipsImage *out )
 }
 
 int
-vips__webp_read_file( const char *filename, VipsImage *out, int shrink ) 
+vips__webp_read_file( const char *filename, VipsImage *out, 
+	int page, int n, int shrink )
 {
 	Read *read;
 
-	if( !(read = read_new( filename, NULL, 0, shrink )) ) {
+	if( !(read = read_new( filename, NULL, 0, page, n, shrink )) ) {
 		vips_error( "webp2vips",
 			_( "unable to open \"%s\"" ), filename ); 
 		return( -1 );
@@ -344,11 +357,11 @@ vips__webp_read_file( const char *filename, VipsImage *out, int shrink )
 
 int
 vips__webp_read_buffer_header( const void *buf, size_t len, VipsImage *out,
-	int shrink ) 
+	int page, int n, int shrink )
 {
 	Read *read;
 
-	if( !(read = read_new( NULL, buf, len, shrink )) ) {
+	if( !(read = read_new( NULL, buf, len, page, n, shrink )) ) {
 		vips_error( "webp2vips",
 			"%s", _( "unable to open buffer" ) ); 
 		return( -1 );
@@ -366,11 +379,11 @@ vips__webp_read_buffer_header( const void *buf, size_t len, VipsImage *out,
 
 int
 vips__webp_read_buffer( const void *buf, size_t len, VipsImage *out, 
-	int shrink ) 
+	int page, int n, int shrink )
 {
 	Read *read;
 
-	if( !(read = read_new( NULL, buf, len, shrink )) ) {
+	if( !(read = read_new( NULL, buf, len, page, n, shrink )) ) {
 		vips_error( "webp2vips",
 			"%s", _( "unable to open buffer" ) ); 
 		return( -1 );

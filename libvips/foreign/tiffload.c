@@ -95,21 +95,21 @@ vips_foreign_load_tiff_class_init( VipsForeignLoadTiffClass *class )
 	object_class->nickname = "tiffload_base";
 	object_class->description = _( "load tiff" );
 
-	VIPS_ARG_INT( class, "page", 10, 
+	VIPS_ARG_INT( class, "page", 20, 
 		_( "Page" ), 
 		_( "Load this page from the image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadTiff, page ),
 		0, 100000, 0 );
 
-	VIPS_ARG_INT( class, "n", 11,
+	VIPS_ARG_INT( class, "n", 21,
 		_( "n" ),
 		_( "Load this many pages" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadTiff, n ),
 		-1, 100000, 1 );
 
-	VIPS_ARG_BOOL( class, "autorotate", 12, 
+	VIPS_ARG_BOOL( class, "autorotate", 22, 
 		_( "Autorotate" ), 
 		_( "Rotate image using orientation tag" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,

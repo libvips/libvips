@@ -228,24 +228,24 @@ extern const char *vips__webp_suffs[];
 int vips__iswebp_buffer( const void *buf, size_t len );
 int vips__iswebp( const char *filename );
 
-int vips__webp_read_file_header( const char *name, VipsImage *out, int shrink );
-int vips__webp_read_file( const char *name, VipsImage *out, int shrink ); 
+int vips__webp_read_file_header( const char *name, VipsImage *out, 
+	int page, int n, int shrink ); 
+int vips__webp_read_file( const char *name, VipsImage *out, 
+	int page, int n, int shrink ); 
 
-int vips__webp_read_buffer_header( const void *buf, size_t len, 
-	VipsImage *out, int shrink ); 
-int vips__webp_read_buffer( const void *buf, size_t len, 
-	VipsImage *out, int shrink ); 
+int vips__webp_read_buffer_header( const void *buf, size_t len, VipsImage *out,
+	int page, int n, int shrink ); 
+int vips__webp_read_buffer( const void *buf, size_t len, VipsImage *out, 
+	int page, int n, int shrink ); 
 
 int vips__webp_write_file( VipsImage *out, const char *filename, 
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
-	int alpha_q,
-	gboolean strip );
+	int alpha_q, gboolean strip );
 int vips__webp_write_buffer( VipsImage *out, void **buf, size_t *len, 
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
-	int alpha_q,
-	gboolean strip );
+	int alpha_q, gboolean strip );
 
 int vips__openslide_isslide( const char *filename );
 int vips__openslide_read_header( const char *filename, VipsImage *out, 

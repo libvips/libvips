@@ -1009,14 +1009,14 @@ vips_foreign_load_gif_class_init( VipsForeignLoadGifClass *class )
 		vips_foreign_load_gif_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_gif_get_flags;
 
-	VIPS_ARG_INT( class, "page", 10,
+	VIPS_ARG_INT( class, "page", 20,
 		_( "Page" ),
 		_( "Load this page from the file" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadGif, page ),
 		0, 100000, 0 );
 
-	VIPS_ARG_INT( class, "n", 6,
+	VIPS_ARG_INT( class, "n", 21,
 		_( "n" ),
 		_( "Load this many pages" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,

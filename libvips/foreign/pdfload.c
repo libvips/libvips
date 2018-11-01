@@ -467,35 +467,35 @@ vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 	load_class->get_flags = vips_foreign_load_pdf_get_flags;
 	load_class->load = vips_foreign_load_pdf_load;
 
-	VIPS_ARG_INT( class, "page", 10,
+	VIPS_ARG_INT( class, "page", 20,
 		_( "Page" ),
 		_( "Load this page from the file" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPdf, page_no ),
 		0, 100000, 0 );
 
-	VIPS_ARG_INT( class, "n", 11,
+	VIPS_ARG_INT( class, "n", 21,
 		_( "n" ),
 		_( "Load this many pages" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPdf, n ),
 		-1, 100000, 1 );
 
-	VIPS_ARG_DOUBLE( class, "dpi", 12,
+	VIPS_ARG_DOUBLE( class, "dpi", 22,
 		_( "DPI" ),
 		_( "Render at this DPI" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPdf, dpi ),
 		0.001, 100000.0, 72.0 );
 
-	VIPS_ARG_DOUBLE( class, "scale", 13,
+	VIPS_ARG_DOUBLE( class, "scale", 23,
 		_( "Scale" ),
 		_( "Scale output by this factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPdf, scale ),
 		0.001, 100000.0, 1.0 );
 
-	VIPS_ARG_BOXED( class, "background", 14, 
+	VIPS_ARG_BOXED( class, "background", 24, 
 		_( "Background" ), 
 		_( "Background value" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,

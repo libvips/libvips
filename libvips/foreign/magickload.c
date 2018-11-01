@@ -122,28 +122,28 @@ vips_foreign_load_magick_class_init( VipsForeignLoadMagickClass *class )
 		vips_foreign_load_magick_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_magick_get_flags;
 
-	VIPS_ARG_BOOL( class, "all_frames", 4, 
+	VIPS_ARG_BOOL( class, "all_frames", 20, 
 		_( "all_frames" ), 
 		_( "Read all frames from an image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignLoadMagick, all_frames ),
 		FALSE );
 
-	VIPS_ARG_STRING( class, "density", 5,
+	VIPS_ARG_STRING( class, "density", 21,
 		_( "Density" ),
 		_( "Canvas resolution for rendering vector formats like SVG" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadMagick, density ),
 		NULL );
 
-	VIPS_ARG_INT( class, "page", 6,
+	VIPS_ARG_INT( class, "page", 22,
 		_( "Page" ),
 		_( "Load this page from the file" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadMagick, page ),
 		0, 100000, 0 );
 
-	VIPS_ARG_INT( class, "n", 7,
+	VIPS_ARG_INT( class, "n", 23,
 		_( "n" ),
 		_( "Load this many pages" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,

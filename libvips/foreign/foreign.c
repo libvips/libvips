@@ -1028,42 +1028,42 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
 		G_STRUCT_OFFSET( VipsForeignLoad, out ) );
 
-	VIPS_ARG_FLAGS( class, "flags", 6, 
+	VIPS_ARG_FLAGS( class, "flags", 106, 
 		_( "Flags" ), 
 		_( "Flags for this file" ),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET( VipsForeignLoad, flags ),
 		VIPS_TYPE_FOREIGN_FLAGS, VIPS_FOREIGN_NONE ); 
 
-	VIPS_ARG_BOOL( class, "memory", 7, 
+	VIPS_ARG_BOOL( class, "memory", 107, 
 		_( "Memory" ), 
 		_( "Force open via memory" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoad, memory ),
 		FALSE );
 
-	VIPS_ARG_ENUM( class, "access", 8, 
+	VIPS_ARG_ENUM( class, "access", 108, 
 		_( "Access" ), 
 		_( "Required access pattern for this file" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoad, access ),
 		VIPS_TYPE_ACCESS, VIPS_ACCESS_RANDOM ); 
 
-	VIPS_ARG_BOOL( class, "sequential", 10, 
+	VIPS_ARG_BOOL( class, "sequential", 109, 
 		_( "Sequential" ), 
 		_( "Sequential read only" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignLoad, sequential ),
 		FALSE );
 
-	VIPS_ARG_BOOL( class, "fail", 11, 
+	VIPS_ARG_BOOL( class, "fail", 110, 
 		_( "Fail" ), 
 		_( "Fail on first error" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoad, fail ),
 		FALSE );
 
-	VIPS_ARG_BOOL( class, "disc", 12, 
+	VIPS_ARG_BOOL( class, "disc", 111, 
 		_( "Disc" ), 
 		_( "Open to disc" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,

@@ -425,14 +425,14 @@ vips_foreign_load_svg_class_init( VipsForeignLoadSvgClass *class )
 	load_class->get_flags = vips_foreign_load_svg_get_flags;
 	load_class->load = vips_foreign_load_svg_load;
 
-	VIPS_ARG_DOUBLE( class, "dpi", 11,
+	VIPS_ARG_DOUBLE( class, "dpi", 21,
 		_( "DPI" ),
 		_( "Render at this DPI" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadSvg, dpi ),
 		0.001, 100000.0, 72.0 );
 
-	VIPS_ARG_DOUBLE( class, "scale", 12,
+	VIPS_ARG_DOUBLE( class, "scale", 22,
 		_( "Scale" ),
 		_( "Scale output by this factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
