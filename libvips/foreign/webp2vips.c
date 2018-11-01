@@ -232,6 +232,7 @@ read_header( Read *read, VipsImage *out )
 {
 	WebPData bitstream;
 	WebPMux *mux;
+	WebPMuxAnimParams params;
 	int i;
 
 	vips_image_init_fields( out,
@@ -246,7 +247,7 @@ read_header( Read *read, VipsImage *out )
 	/* We have to parse the whole file again to get the metadata out.
 	 *
 	 * Don't make parse failure an error. We don't want to refuse to read
-	 * any pixels because of some malformed metadata.
+	 * pixels because of some malformed metadata.
 	 */
 	bitstream.bytes = read->data;
 	bitstream.size = read->length;
@@ -254,6 +255,9 @@ read_header( Read *read, VipsImage *out )
 		g_warning( "%s", _( "unable to read image metadata" ) ); 
 		return( 0 ); 
 	}
+
+	if( WebPMuxGetAnimationParams( mux, &params ) == WEBP_MUX_OK ) 
+		vips_image_set_int( out, "gif-loop", params.loop_count );
 
 	for( i = 0; i < vips__n_webp_names; i++ ) { 
 		const char *vips = vips__webp_names[i].vips;
