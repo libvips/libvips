@@ -55,9 +55,7 @@
 #include <string.h>
 
 #include <webp/decode.h>
-#ifdef HAVE_LIBWEBPMUX
 #include <webp/mux.h>
-#endif /*HAVE_LIBWEBPMUX*/
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -221,6 +219,10 @@ const int vips__n_webp_names = VIPS_NUMBER( vips__webp_names );
 static int
 read_header( Read *read, VipsImage *out )
 {
+	WebPData bitstream;
+	WebPMux *mux;
+	int i;
+
 	vips_image_init_fields( out,
 		read->width, read->height,
 		read->config.input.has_alpha ? 4 : 3,
@@ -229,12 +231,6 @@ read_header( Read *read, VipsImage *out )
 		1.0, 1.0 );
 
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
-
-#ifdef HAVE_LIBWEBPMUX
-{
-	WebPData bitstream;
-	WebPMux *mux;
-	int i;
 
 	/* We have to parse the whole file again to get the metadata out.
 	 *
@@ -254,8 +250,12 @@ read_header( Read *read, VipsImage *out )
 
 		WebPData data;
 
+		printf( "webp2vips: checking for %s ...\n", webp );
+
 		if( WebPMuxGetChunk( mux, webp, &data ) == WEBP_MUX_OK ) { 
 			void *blob;
+
+			printf( "webp2vips: found\n" ); 
 
 			if( !(blob = vips_malloc( NULL, data.size )) ) {
 				WebPMuxDelete( mux ); 
@@ -269,8 +269,6 @@ read_header( Read *read, VipsImage *out )
 	}
 
 	WebPMuxDelete( mux ); 
-}
-#endif /*HAVE_LIBWEBPMUX*/
 
 	return( 0 );
 }
