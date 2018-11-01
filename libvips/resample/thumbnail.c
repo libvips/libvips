@@ -153,7 +153,7 @@ vips_thumbnail_finalize( GObject *gobject )
 }
 
 /* Fetch an int openslide field from metadata. These are all represented as
- * strings. Return the defaulyt value if there's any problem.
+ * strings. Return the default value if there's any problem.
  */
 static int
 get_int( VipsImage *image, const char *field, int default_value )
