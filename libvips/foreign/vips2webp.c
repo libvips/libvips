@@ -89,6 +89,10 @@ typedef struct {
 	/* Write animated webp here.
 	 */
 	WebPAnimEncoder *enc;
+
+	/* Add metadata with this.
+	 */
+	WebPMux *mux;
 } VipsWebPWrite;
 
 static WebPPreset
@@ -122,6 +126,7 @@ vips_webp_write_unset( VipsWebPWrite *write )
 {
 	WebPMemoryWriterClear( &write->memory_writer );
 	VIPS_FREEF( WebPAnimEncoderDelete, write->enc );
+	VIPS_FREEF( WebPMuxDelete, write->mux );
 }
 
 static int
@@ -373,26 +378,49 @@ write_webp( VipsWebPWrite *write, VipsImage *image )
 		return( write_webp_single( write, image ) );
 }
 
+static void
+vips_webp_set_count( VipsWebPWrite *write, int loop_count )
+{
+	uint32_t features;
+
+	if( WebPMuxGetFeatures( write->mux, &features ) == WEBP_MUX_OK &&
+		(features & ANIMATION_FLAG) ) {
+		WebPMuxAnimParams params;
+
+		if( WebPMuxGetAnimationParams( write->mux, &params ) == 
+			WEBP_MUX_OK ) {
+			params.loop_count = loop_count;
+			WebPMuxSetAnimationParams( write->mux, &params );
+		}
+	}
+}
+
+static int
+vips_webp_set_chunk( VipsWebPWrite *write, 
+	const char *webp_name, void *data, size_t length )
+{
+	WebPData chunk;
+
+	chunk.bytes = data;
+	chunk.size = length;
+
+	if( WebPMuxSetChunk( write->mux, webp_name, &chunk, 1 ) != 
+		WEBP_MUX_OK ) { 
+		vips_error( "vips2webp", 
+			"%s", _( "chunk add error" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
 static int 
-vips_webp_add_chunks( VipsWebPWrite *write, VipsImage *image, WebPMux *mux )
+vips_webp_add_chunks( VipsWebPWrite *write, VipsImage *image )
 {
 	int i;
 
-	if( vips_image_get_typeof( image, "gif-count" ) ) { 
-		uint32_t features;
-
-		if( WebPMuxGetFeatures( mux, &features ) == WEBP_MUX_OK &&
-			(features & ANIMATION_FLAG) ) {
-			WebPMuxAnimParams params;
-
-			if( WebPMuxGetAnimationParams( mux, &params ) == 
-				WEBP_MUX_OK ) {
-				params.loop_count = 
-					get_int( image, "gif-count", 0 );
-				WebPMuxSetAnimationParams( mux, &params );
-			}
-		}
-	}
+	if( vips_image_get_typeof( image, "gif-count" ) ) 
+		vips_webp_set_count( write, get_int( image, "gif-count", 0 ) );
 
 	for( i = 0; i < vips__n_webp_names; i++ ) { 
 		const char *vips_name = vips__webp_names[i].vips;
@@ -401,24 +429,12 @@ vips_webp_add_chunks( VipsWebPWrite *write, VipsImage *image, WebPMux *mux )
 		if( vips_image_get_typeof( image, vips_name ) ) {
 			void *data;
 			size_t length;
-			WebPData chunk;
 
-#ifdef DEBUG
-			printf( "vips2webp: adding %s chunk\n", webp_name );
-#endif/*DEBUG*/
-
-			if( vips_image_get_blob( image, vips_name, 
-				&data, &length ) )
+			if( vips_image_get_blob( image, 
+				vips_name, &data, &length ) ||
+				vips_webp_set_chunk( write, 
+					webp_name, data, length ) )
 				return( -1 ); 
-			chunk.bytes = data;
-			chunk.size = length;
-
-			if( WebPMuxSetChunk( mux, webp_name, &chunk, 1 ) != 
-				WEBP_MUX_OK ) { 
-				vips_error( "vips2webp", 
-					"%s", _( "chunk add error" ) );
-				return( -1 );
-			}
 		}
 	}
 
@@ -429,7 +445,6 @@ static int
 vips_webp_add_metadata( VipsWebPWrite *write, VipsImage *image )
 {
 	WebPData data;
-	WebPMux *mux;
 
 	/* Rebuild the EXIF block, if any, ready for writing. 
 	 */
@@ -441,27 +456,23 @@ vips_webp_add_metadata( VipsWebPWrite *write, VipsImage *image )
 
 	/* Parse what we have.
 	 */
-	if( !(mux = WebPMuxCreate( &data, 1 )) ) {
+	if( !(write->mux = WebPMuxCreate( &data, 1 )) ) {
 		vips_error( "vips2webp", "%s", _( "mux error" ) );
 		return( -1 );
 	}
 
 	/* Add extra metadata.
 	 */
-	if( vips_webp_add_chunks( write, image, mux ) ) {
-		WebPMuxDelete( mux );
+	if( vips_webp_add_chunks( write, image ) ) 
 		return( -1 );
-	}
 
-	if( WebPMuxAssemble( mux, &data ) != WEBP_MUX_OK ) {
-		WebPMuxDelete( mux );
+	if( WebPMuxAssemble( write->mux, &data ) != WEBP_MUX_OK ) {
 		vips_error( "vips2webp", "%s", _( "mux error" ) );
 		return( -1 );
 	}
 
 	/* Free old stuff, reinit with new stuff.
 	 */
-	WebPMuxDelete( mux );
 	WebPMemoryWriterClear( &write->memory_writer );
 	write->memory_writer.mem = (uint8_t *) data.bytes;
 	write->memory_writer.size = data.size;
