@@ -44,8 +44,8 @@
 
 /*
 #define DEBUG_VERBOSE
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -78,7 +78,6 @@ typedef struct {
 	const void *data;
 	gint64 length;
 
-
 	/* Load this page (frame number).
 	 */
 	int page;
@@ -91,10 +90,23 @@ typedef struct {
 	 */
 	int shrink;
 
-	/* Size we are decoding to.
+	/* Size of final output image. 
 	 */
 	int width;
 	int height;
+
+	/* Size of each frame.
+	 */
+	int frame_width;
+	int frame_height;
+
+	/* TRUE for RGBA.
+	 */
+	int alpha;
+
+	/* Number of frames we will decode.
+	 */
+	int frame_count;
 
 	/* If we are opening a file object, the fd.
 	 */
@@ -111,6 +123,10 @@ typedef struct {
 	/* Incremental decoder state.
 	 */
 	WebPIDecoder *idec;
+
+	/* Each decoded frame, as a vips memory image.
+	 */
+	GArray *frames;
 } Read;
 
 int
@@ -143,6 +159,12 @@ vips__iswebp( const char *filename )
 static int
 read_free( Read *read )
 {
+	int i;
+
+	for( i = 0; i < read->frames->len; i++ ) 
+		VIPS_UNREF( g_array_index( read->frames, VipsImage *, i ) );
+	VIPS_FREEF( g_array_unref, read->frames );
+
 	VIPS_FREEF( WebPIDelete, read->idec );
 	VIPS_FREEF( WebPDemuxDelete, read->demux );
 	WebPFreeDecBuffer( &read->config.output );
@@ -180,6 +202,7 @@ read_new( const char *filename, const void *data, size_t length,
 	read->fd = 0;
 	read->idec = NULL;
 	read->demux = NULL;
+	read->frames = NULL;
 
 	if( read->filename ) { 
 		/* libwebp makes streaming from a file source very hard. We 
@@ -218,8 +241,6 @@ read_header( Read *read, VipsImage *out )
 	int canvas_width;
 	int canvas_height;
 	int flags;
-	int frame_count;
-	WebPIterator iter;
 	int i;
 
 	data.bytes = read->data;
@@ -231,44 +252,59 @@ read_header( Read *read, VipsImage *out )
 
 	canvas_width = WebPDemuxGetI( read->demux, WEBP_FF_CANVAS_WIDTH );
 	canvas_height = WebPDemuxGetI( read->demux, WEBP_FF_CANVAS_HEIGHT );
-	read->width = canvas_width / read->shrink;
-	read->height = canvas_height / read->shrink;
+	read->frame_width = canvas_width / read->shrink;
+	read->frame_height = canvas_height / read->shrink;
 
 	if( read->shrink > 1 ) { 
 		read->config.options.use_scaling = 1;
-		read->config.options.scaled_width = read->width;
-		read->config.options.scaled_height = read->height; 
+		read->config.options.scaled_width = read->frame_width;
+		read->config.options.scaled_height = read->frame_height; 
 	}
 
 	flags = WebPDemuxGetI( read->demux, WEBP_FF_FORMAT_FLAGS );
 
-	if( flags & ALPHA_FLAG )  
+	read->alpha = flags & ALPHA_FLAG;
+	if( read->alpha )  
 		read->config.output.colorspace = MODE_RGBA;
 	else
 		read->config.output.colorspace = MODE_RGB;
 
 	if( flags & ANIMATION_FLAG ) { 
 		int loop_count;
+		WebPIterator iter;
 
 		loop_count = WebPDemuxGetI( read->demux, WEBP_FF_LOOP_COUNT );
-		frame_count = WebPDemuxGetI( read->demux, WEBP_FF_FRAME_COUNT );
+		read->frame_count = WebPDemuxGetI( read->demux, WEBP_FF_FRAME_COUNT );
 
+#ifdef DEBUG
 		printf( "webp2vips: animation\n" );
 		printf( "webp2vips: loop_count = %d\n", loop_count );
-		printf( "webp2vips: frame_count = %d\n", frame_count );
+		printf( "webp2vips: frame_count = %d\n", read->frame_count );
+#endif /*DEBUG*/
 
 		vips_image_set_int( out, "gif-loop", loop_count );
-		vips_image_set_int( out, "page-height", read->height );
-		read->height *= frame_count;
+		vips_image_set_int( out, "page-height", read->frame_height );
+		read->frames = g_array_sized_new( FALSE, TRUE, 
+			sizeof( void * ), read->frame_count ); 
 
 		/* We must get the first frame to get the delay.
 		 */
 		if( WebPDemuxGetFrame( read->demux, 1, &iter ) ) {
+#ifdef DEBUG
 			printf( "webp2vips: duration = %d\n", iter.duration );
+#endif /*DEBUG*/
 
 			vips_image_set_int( out, "gif-delay", iter.duration );
 			WebPDemuxReleaseIterator( &iter );
 		}
+
+		read->width = read->frame_width;
+		read->height = read->frame_count * read->frame_height;
+	}
+	else {
+		read->width = read->frame_width;
+		read->height = read->frame_height;
+		read->frame_count = 1;
 	}
 
 	if( read->width <= 0 ||
@@ -302,7 +338,7 @@ read_header( Read *read, VipsImage *out )
 
 	vips_image_init_fields( out,
 		read->width, read->height,
-		(flags & ALPHA_FLAG) ? 4 : 3,
+		read->alpha ? 4 : 3,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0 );
@@ -334,30 +370,96 @@ vips__webp_read_file_header( const char *filename, VipsImage *out,
 	return( 0 );
 }
 
+static VipsImage *
+read_frame( Read *read, const uint8_t *data, size_t length )
+{
+	VipsImage *frame;
+
+	frame = vips_image_new_memory();
+	vips_image_init_fields( frame,
+		read->frame_width, read->frame_height,
+		read->alpha ? 4 : 3,
+		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
+		VIPS_INTERPRETATION_sRGB,
+		1.0, 1.0 );
+	vips_image_pipelinev( frame, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+
+	if( vips_image_write_prepare( frame ) ) {
+		g_object_unref( frame );
+		return( NULL );
+	}
+
+	read->config.output.u.RGBA.rgba = VIPS_IMAGE_ADDR( frame, 0, 0 );
+	read->config.output.u.RGBA.stride = VIPS_IMAGE_SIZEOF_LINE( frame );
+	read->config.output.u.RGBA.size = VIPS_IMAGE_SIZEOF_IMAGE( frame );
+
+	if( WebPDecode( data, length, &read->config ) != VP8_STATUS_OK ) {
+		g_object_unref( frame );
+		vips_error( "webp2vips", "%s", _( "unable to read pixels" ) ); 
+		return( NULL );
+	}
+
+	return( frame );
+}
+
 static int
 read_image( Read *read, VipsImage *out )
 {
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( out ), 3 );
 
-	t[0] = vips_image_new_memory();
-	if( read_header( read, t[0] ) )
-		return( -1 );
-	if( vips_image_write_prepare( t[0] ) ) 
+	WebPIterator iter;
+
+	if( read_header( read, out ) )
 		return( -1 );
 
-	read->config.output.u.RGBA.rgba = VIPS_IMAGE_ADDR( t[0], 0, 0 );
-	read->config.output.u.RGBA.stride = VIPS_IMAGE_SIZEOF_LINE( t[0] );
-	read->config.output.u.RGBA.size = VIPS_IMAGE_SIZEOF_IMAGE( t[0] );
 	read->config.output.is_external_memory = 1;
 
-	if( WebPDecode( (uint8_t *) read->data, read->length, 
-		&read->config) != VP8_STATUS_OK ) {
-		vips_error( "webp2vips", "%s", _( "unable to read pixels" ) ); 
-		return( -1 );
+	/* Decode all frames.
+	 */
+	if( WebPDemuxGetFrame( read->demux, 1, &iter ) ) {
+		do {
+			VipsImage *frame;
+
+#ifdef DEBUG
+			printf( "webp2vips: frame_num = %d\n", iter.frame_num );
+			printf( "webp2vips: x_offset = %d\n", iter.x_offset );
+			printf( "webp2vips: y_offset = %d\n", iter.y_offset );
+			printf( "webp2vips: width = %d\n", iter.width );
+			printf( "webp2vips: height = %d\n", iter.height );
+			printf( "webp2vips: duration = %d\n", iter.duration );
+			printf( "webp2vips: dispose = " ); 
+			if( iter.dispose_method == WEBP_MUX_DISPOSE_BACKGROUND )
+				printf( "clear to background\n" ); 
+			else
+				printf( "none\n" ); 
+			printf( "webp2vips: has_alpha = %d\n", iter.has_alpha );
+			printf( "webp2vips: blend_method = " ); 
+			if( iter.blend_method == WEBP_MUX_BLEND )
+				printf( "blend with previous\n" ); 
+			else
+				printf( "don't blend\n" ); 
+#endif /*DEBUG*/
+
+			if( !(frame = read_frame( read, 
+				iter.fragment.bytes, iter.fragment.size )) ) {
+				WebPDemuxReleaseIterator( &iter );
+				return( -1 );
+			}
+
+			g_array_append_val( read->frames, frame );
+		} while( WebPDemuxNextFrame( &iter ) );
+
+		WebPDemuxReleaseIterator( &iter );
 	}
 
-	if( vips_image_write( t[0], out ) )
+	/* Join all frames vertically to the output.
+	 */
+	if( vips_arrayjoin( &g_array_index( read->frames, VipsImage *, 0 ),
+		&t[0], read->frame_count, 
+		"across", 1,
+		NULL ) ||
+		vips_image_write( t[0], out ) )
 		return( -1 );
 
 	return( 0 );
