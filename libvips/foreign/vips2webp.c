@@ -145,6 +145,7 @@ vips_webp_write_init( VipsWebPWrite *write, VipsImage *image,
 	write->strip = strip;
 	WebPMemoryWriterInit( &write->memory_writer );
 	write->enc = NULL;
+	write->mux = NULL;
 
 	if( !WebPConfigInit( &write->config ) ) {
 		vips_webp_write_unset( write );

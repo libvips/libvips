@@ -10,6 +10,9 @@
  * 	- support XMP/ICC/EXIF metadata
  * 18/10/17
  * 	- sniff file type from magic number
+ * 2/11/18
+ * 	- rework for demux API
+ * 	- add animation read
  */
 
 /*
@@ -55,7 +58,7 @@
 #include <string.h>
 
 #include <webp/decode.h>
-#include <webp/mux.h>
+#include <webp/demux.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -74,6 +77,7 @@ typedef struct {
 	 */
 	const void *data;
 	gint64 length;
+
 
 	/* Load this page (frame number).
 	 */
@@ -95,6 +99,10 @@ typedef struct {
 	/* If we are opening a file object, the fd.
 	 */
 	int fd;
+
+	/* Parse with this.
+	 */
+	WebPDemuxer *demux;
 
 	/* Decoder config.
 	 */
@@ -136,6 +144,7 @@ static int
 read_free( Read *read )
 {
 	VIPS_FREEF( WebPIDelete, read->idec );
+	VIPS_FREEF( WebPDemuxDelete, read->demux );
 	WebPFreeDecBuffer( &read->config.output );
 
 	if( read->fd > 0 &&
@@ -170,6 +179,7 @@ read_new( const char *filename, const void *data, size_t length,
 	read->shrink = shrink;
 	read->fd = 0;
 	read->idec = NULL;
+	read->demux = NULL;
 
 	if( read->filename ) { 
 		/* libwebp makes streaming from a file source very hard. We 
@@ -187,33 +197,7 @@ read_new( const char *filename, const void *data, size_t length,
 	}
 
 	WebPInitDecoderConfig( &read->config );
-	if( WebPGetFeatures( read->data, read->length, 
-		&read->config.input ) != VP8_STATUS_OK ) {
-		read_free( read );
-		return( NULL );
-	}
-
-	if( read->config.input.has_alpha )
-		read->config.output.colorspace = MODE_RGBA;
-	else
-		read->config.output.colorspace = MODE_RGB;
-
 	read->config.options.use_threads = 1;
-
-	read->width = read->config.input.width / read->shrink;
-	read->height = read->config.input.height / read->shrink;
-
-	if( read->width == 0 ||
-		read->height == 0 ) {
-		vips_error( "webp", "%s", _( "bad setting for shrink" ) ); 
-		return( NULL ); 
-	}
-
-	if( read->shrink > 1 ) { 
-		read->config.options.use_scaling = 1;
-		read->config.options.scaled_width = read->width;
-		read->config.options.scaled_height = read->height; 
-	}
 
 	return( read );
 }
@@ -221,69 +205,95 @@ read_new( const char *filename, const void *data, size_t length,
 /* Map vips metadata names to webp names.
  */
 const VipsWebPNames vips__webp_names[] = {
-	{ VIPS_META_ICC_NAME, "ICCP", 0x20 },
-	{ VIPS_META_XMP_NAME, "XMP ", 0x04 },
-	{ VIPS_META_EXIF_NAME, "EXIF", 0x08 }
+	{ VIPS_META_ICC_NAME, "ICCP", ICCP_FLAG },
+	{ VIPS_META_EXIF_NAME, "EXIF", EXIF_FLAG },
+	{ VIPS_META_XMP_NAME, "XMP ", XMP_FLAG }
 };
 const int vips__n_webp_names = VIPS_NUMBER( vips__webp_names ); 
 
 static int
 read_header( Read *read, VipsImage *out )
 {
-	WebPData bitstream;
-	WebPMux *mux;
-	WebPMuxAnimParams params;
+	WebPData data;
+	int canvas_width;
+	int canvas_height;
+	int flags;
+	int frame_count;
 	int i;
+
+	data.bytes = read->data;
+	data.size = read->length;
+	if( !(read->demux = WebPDemux( &data )) ) {
+		vips_error( "webp", "%s", _( "unable to parse image" ) ); 
+		return( -1 ); 
+	}
+
+	canvas_width = WebPDemuxGetI( read->demux, WEBP_FF_CANVAS_WIDTH );
+	canvas_height = WebPDemuxGetI( read->demux, WEBP_FF_CANVAS_HEIGHT );
+	read->width = canvas_width / read->shrink;
+	read->height = canvas_height / read->shrink;
+
+	if( read->shrink > 1 ) { 
+		read->config.options.use_scaling = 1;
+		read->config.options.scaled_width = read->width;
+		read->config.options.scaled_height = read->height; 
+	}
+
+	flags = WebPDemuxGetI( read->demux, WEBP_FF_FORMAT_FLAGS );
+
+	if( flags & ALPHA_FLAG )  
+		read->config.output.colorspace = MODE_RGBA;
+	else
+		read->config.output.colorspace = MODE_RGB;
+
+	if( flags & ANIMATION_FLAG ) { 
+		int loop_count;
+
+		loop_count = WebPDemuxGetI( read->demux, WEBP_FF_LOOP_COUNT );
+		frame_count = WebPDemuxGetI( read->demux, WEBP_FF_FRAME_COUNT );
+
+		vips_image_set_int( out, "gif-loop", loop_count );
+		vips_image_set_int( out, "page-height", read->height );
+		read->height *= frame_count;
+	}
+
+	if( read->width <= 0 ||
+		read->height <= 0 ) {
+		vips_error( "webp", "%s", _( "bad image dimensions" ) ); 
+		return( -1 ); 
+	}
 
 	vips_image_init_fields( out,
 		read->width, read->height,
-		read->config.input.has_alpha ? 4 : 3,
+		(flags & ALPHA_FLAG) ? 4 : 3,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0 );
 
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
-	/* We have to parse the whole file again to get the metadata out.
-	 *
-	 * Don't make parse failure an error. We don't want to refuse to read
-	 * pixels because of some malformed metadata.
-	 */
-	bitstream.bytes = read->data;
-	bitstream.size = read->length;
-	if( !(mux = WebPMuxCreate( &bitstream, 0 )) ) {
-		g_warning( "%s", _( "unable to read image metadata" ) ); 
-		return( 0 ); 
-	}
-
-	if( WebPMuxGetAnimationParams( mux, &params ) == WEBP_MUX_OK ) 
-		vips_image_set_int( out, "gif-loop", params.loop_count );
-
 	for( i = 0; i < vips__n_webp_names; i++ ) { 
 		const char *vips = vips__webp_names[i].vips;
 		const char *webp = vips__webp_names[i].webp;
 
-		WebPData data;
-
-		printf( "webp2vips: checking for %s ...\n", webp );
-
-		if( WebPMuxGetChunk( mux, webp, &data ) == WEBP_MUX_OK ) { 
+		if( flags & vips__webp_names[i].flags ) {
+			WebPChunkIterator iter;
 			void *blob;
 
-			printf( "webp2vips: found\n" ); 
+			WebPDemuxGetChunk( read->demux, webp, 1, &iter );
 
-			if( !(blob = vips_malloc( NULL, data.size )) ) {
-				WebPMuxDelete( mux ); 
+			if( !(blob = vips_malloc( NULL, iter.chunk.size )) ) {
+				WebPDemuxReleaseChunkIterator( &iter );
 				return( -1 ); 
 			}
-
-			memcpy( blob, data.bytes, data.size );
+			memcpy( blob, iter.chunk.bytes, iter.chunk.size );
 			vips_image_set_blob( out, vips, 
-				(VipsCallbackFn) vips_free, blob, data.size );
+				(VipsCallbackFn) vips_free, 
+				blob, iter.chunk.size );
+
+			WebPDemuxReleaseChunkIterator( &iter );
 		}
 	}
-
-	WebPMuxDelete( mux ); 
 
 	return( 0 );
 }
