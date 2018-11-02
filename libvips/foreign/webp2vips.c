@@ -219,6 +219,7 @@ read_header( Read *read, VipsImage *out )
 	int canvas_height;
 	int flags;
 	int frame_count;
+	WebPIterator iter;
 	int i;
 
 	data.bytes = read->data;
@@ -252,9 +253,22 @@ read_header( Read *read, VipsImage *out )
 		loop_count = WebPDemuxGetI( read->demux, WEBP_FF_LOOP_COUNT );
 		frame_count = WebPDemuxGetI( read->demux, WEBP_FF_FRAME_COUNT );
 
+		printf( "webp2vips: animation\n" );
+		printf( "webp2vips: loop_count = %d\n", loop_count );
+		printf( "webp2vips: frame_count = %d\n", frame_count );
+
 		vips_image_set_int( out, "gif-loop", loop_count );
 		vips_image_set_int( out, "page-height", read->height );
 		read->height *= frame_count;
+
+		/* We must get the first frame to get the delay.
+		 */
+		if( WebPDemuxGetFrame( read->demux, 1, &iter ) ) {
+			printf( "webp2vips: duration = %d\n", iter.duration );
+
+			vips_image_set_int( out, "gif-delay", iter.duration );
+			WebPDemuxReleaseIterator( &iter );
+		}
 	}
 
 	if( read->width <= 0 ||
@@ -262,15 +276,6 @@ read_header( Read *read, VipsImage *out )
 		vips_error( "webp", "%s", _( "bad image dimensions" ) ); 
 		return( -1 ); 
 	}
-
-	vips_image_init_fields( out,
-		read->width, read->height,
-		(flags & ALPHA_FLAG) ? 4 : 3,
-		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
-		VIPS_INTERPRETATION_sRGB,
-		1.0, 1.0 );
-
-	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	for( i = 0; i < vips__n_webp_names; i++ ) { 
 		const char *vips = vips__webp_names[i].vips;
@@ -294,6 +299,15 @@ read_header( Read *read, VipsImage *out )
 			WebPDemuxReleaseChunkIterator( &iter );
 		}
 	}
+
+	vips_image_init_fields( out,
+		read->width, read->height,
+		(flags & ALPHA_FLAG) ? 4 : 3,
+		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
+		VIPS_INTERPRETATION_sRGB,
+		1.0, 1.0 );
+
+	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	return( 0 );
 }
