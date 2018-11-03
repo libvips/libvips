@@ -108,6 +108,10 @@ typedef struct {
 	 */
 	int frame_count;
 
+	/* Delay between frames. We don't let this change between frames.
+	 */
+	int delay;
+
 	/* If we are opening a file object, the fd.
 	 */
 	int fd;
@@ -159,10 +163,14 @@ vips__iswebp( const char *filename )
 static int
 read_free( Read *read )
 {
-	int i;
 
-	for( i = 0; i < read->frames->len; i++ ) 
-		VIPS_UNREF( g_array_index( read->frames, VipsImage *, i ) );
+	if( read->frames ) {
+		int i;
+
+		for( i = 0; i < read->frames->len; i++ ) 
+			VIPS_UNREF( g_array_index( 
+				read->frames, VipsImage *, i ) );
+	}
 	VIPS_FREEF( g_array_unref, read->frames );
 
 	VIPS_FREEF( WebPIDelete, read->idec );
@@ -199,6 +207,7 @@ read_new( const char *filename, const void *data, size_t length,
 	read->page = page;
 	read->n = n;
 	read->shrink = shrink;
+	read->delay = 100;
 	read->fd = 0;
 	read->idec = NULL;
 	read->demux = NULL;
@@ -274,7 +283,8 @@ read_header( Read *read, VipsImage *out )
 		WebPIterator iter;
 
 		loop_count = WebPDemuxGetI( read->demux, WEBP_FF_LOOP_COUNT );
-		read->frame_count = WebPDemuxGetI( read->demux, WEBP_FF_FRAME_COUNT );
+		read->frame_count = WebPDemuxGetI( read->demux, 
+			WEBP_FF_FRAME_COUNT );
 
 #ifdef DEBUG
 		printf( "webp2vips: animation\n" );
@@ -284,8 +294,6 @@ read_header( Read *read, VipsImage *out )
 
 		vips_image_set_int( out, "gif-loop", loop_count );
 		vips_image_set_int( out, "page-height", read->frame_height );
-		read->frames = g_array_sized_new( FALSE, TRUE, 
-			sizeof( void * ), read->frame_count ); 
 
 		/* We must get the first frame to get the delay.
 		 */
@@ -306,6 +314,9 @@ read_header( Read *read, VipsImage *out )
 		read->height = read->frame_height;
 		read->frame_count = 1;
 	}
+
+	read->frames = g_array_sized_new( FALSE, TRUE, 
+		sizeof( void * ), read->frame_count ); 
 
 	if( read->width <= 0 ||
 		read->height <= 0 ) {
