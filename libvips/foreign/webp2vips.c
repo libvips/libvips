@@ -124,10 +124,6 @@ typedef struct {
 	 */
 	WebPDecoderConfig config;
 
-	/* Incremental decoder state.
-	 */
-	WebPIDecoder *idec;
-
 	/* Each decoded frame, as a vips memory image.
 	 */
 	GArray *frames;
@@ -173,7 +169,6 @@ read_free( Read *read )
 	}
 	VIPS_FREEF( g_array_unref, read->frames );
 
-	VIPS_FREEF( WebPIDelete, read->idec );
 	VIPS_FREEF( WebPDemuxDelete, read->demux );
 	WebPFreeDecBuffer( &read->config.output );
 
@@ -209,7 +204,6 @@ read_new( const char *filename, const void *data, size_t length,
 	read->shrink = shrink;
 	read->delay = 100;
 	read->fd = 0;
-	read->idec = NULL;
 	read->demux = NULL;
 	read->frames = NULL;
 
@@ -298,11 +292,13 @@ read_header( Read *read, VipsImage *out )
 		/* We must get the first frame to get the delay.
 		 */
 		if( WebPDemuxGetFrame( read->demux, 1, &iter ) ) {
+			read->delay = iter.duration;
+
 #ifdef DEBUG
-			printf( "webp2vips: duration = %d\n", iter.duration );
+			printf( "webp2vips: duration = %d\n", read->delay );
 #endif /*DEBUG*/
 
-			vips_image_set_int( out, "gif-delay", iter.duration );
+			vips_image_set_int( out, "gif-delay", read->delay );
 			WebPDemuxReleaseIterator( &iter );
 		}
 
@@ -432,20 +428,24 @@ read_image( Read *read, VipsImage *out )
 		do {
 			VipsImage *frame;
 
+			if( iter.duration != read->delay ) 
+				g_warning( "webp2vips: "
+					"not all frames have equal duration" );
+
 #ifdef DEBUG
 			printf( "webp2vips: frame_num = %d\n", iter.frame_num );
-			printf( "webp2vips: x_offset = %d\n", iter.x_offset );
-			printf( "webp2vips: y_offset = %d\n", iter.y_offset );
-			printf( "webp2vips: width = %d\n", iter.width );
-			printf( "webp2vips: height = %d\n", iter.height );
-			printf( "webp2vips: duration = %d\n", iter.duration );
-			printf( "webp2vips: dispose = " ); 
+			printf( "   x_offset = %d\n", iter.x_offset );
+			printf( "   y_offset = %d\n", iter.y_offset );
+			printf( "   width = %d\n", iter.width );
+			printf( "   height = %d\n", iter.height );
+			printf( "   duration = %d\n", iter.duration );
+			printf( "   dispose = " ); 
 			if( iter.dispose_method == WEBP_MUX_DISPOSE_BACKGROUND )
 				printf( "clear to background\n" ); 
 			else
 				printf( "none\n" ); 
-			printf( "webp2vips: has_alpha = %d\n", iter.has_alpha );
-			printf( "webp2vips: blend_method = " ); 
+			printf( "   has_alpha = %d\n", iter.has_alpha );
+			printf( "   blend_method = " ); 
 			if( iter.blend_method == WEBP_MUX_BLEND )
 				printf( "blend with previous\n" ); 
 			else
