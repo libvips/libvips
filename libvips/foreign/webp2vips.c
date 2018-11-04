@@ -100,9 +100,9 @@ typedef struct {
 	int frame_width;
 	int frame_height;
 
-	/* BG colour as a 32-bit int
+	/* RGBA background colour.
 	 */
-	int background;
+	uint32_t background;
 
 	/* TRUE for RGBA.
 	 */
@@ -450,7 +450,8 @@ vips_image_paint_pel( VipsImage *image, const VipsRect *r, const VipsPel *ink )
 		int x, y, z;
 
 		/* We plot the first line pointwise, then memcpy() it for the
-		 * subsequent lines.
+		 * subsequent lines. We need to work for RGB and RGBA, so we
+		 * can't just write uint32s.
 		 */
 		to = VIPS_IMAGE_ADDR( image, ovl.left, ovl.top );
 
@@ -472,17 +473,64 @@ vips_image_paint_pel( VipsImage *image, const VipsRect *r, const VipsPel *ink )
 	}
 }
 
+/* Blend two uint8s.
+ */
+#define BLEND( X, aX, Y, aY, scale ) \
+	((X * aX + Y * aY) * scale >> 24)
+
+/* Extract R, G, B, A, assuming little-endian.
+ */
+#define getR( V ) (V & 0xff)
+#define getG( V ) ((V >> 8) & 0xff)
+#define getB( V ) ((V >> 16) & 0xff)
+#define getA( V ) ((V >> 24) & 0xff)
+
+/* Rebuild RGBA, assuming little-endian.
+ */
+#define setRGBA( R, G, B, A ) (R | (G << 8) | (B << 16) | (A << 24))
+
+/* OVER blend of two unpremultiplied RGBA uint32_t
+ *
+ * We assume little-endian (x86), add a byteswap before this if necessary.
+ */
+
+static uint32_t
+blend_pixel( uint32_t A, uint32_t B )
+{
+	uint8_t aA = getA( A );
+
+	if( aA == 0 )
+		return( B );
+
+	uint8_t aB = getA( B );
+
+	uint8_t fac = (aB * (256 - aA)) >> 8;
+	uint8_t aR =  aA + fac;
+	int scale = (1 << 24) / aR;
+
+	uint8_t rR = BLEND( getR( A ), aA, getR( B ), fac, scale );
+	uint8_t gR = BLEND( getG( A ), aA, getG( B ), fac, scale );
+	uint8_t bR = BLEND( getB( A ), aA, getB( B ), fac, scale );
+
+	return( setRGBA( rR, gR, bR, aR ) ); 
+}
+
 static void
 vips_image_paint_image( VipsImage *image, 
 	VipsImage *ink, int x, int y, gboolean blend )
 {
 	VipsRect valid = { 0, 0, image->Xsize, image->Ysize };
 	VipsRect sub = { x, y, ink->Xsize, ink->Ysize };
+	int ps = VIPS_IMAGE_SIZEOF_PEL( image );
 
 	VipsRect ovl;
 
-	g_assert( VIPS_IMAGE_SIZEOF_PEL( image ) == 
-		VIPS_IMAGE_SIZEOF_PEL( ink ) );
+	g_assert( VIPS_IMAGE_SIZEOF_PEL( ink ) == ps );
+
+	/* Disable blend if we are not RGBA.
+	 */
+	if( image->Bands != 4 )
+		blend = FALSE;
 
 	vips_rect_intersectrect( &valid, &sub, &ovl );
 	if( !vips_rect_isempty( &ovl ) ) {
@@ -493,8 +541,16 @@ vips_image_paint_image( VipsImage *image,
 		q = VIPS_IMAGE_ADDR( image, ovl.left, ovl.top ); 
 
 		for( i = 0; i < ovl.height; i++ ) { 
-			memcpy( (char *) q, (char *) p, 
-				ovl.width * VIPS_IMAGE_SIZEOF_PEL( image ) );
+			if( blend ) {
+				uint32_t *A = (uint32_t *) p;
+				uint32_t *B = (uint32_t *) q;
+
+				for( x = 0; x < ovl.width; x++ )
+					B[x] = blend_pixel( A[x], B[x] );
+			}
+			else
+				memcpy( (char *) q, (char *) p, 
+					ovl.width * ps );
 
 			p += VIPS_IMAGE_SIZEOF_LINE( ink );
 			q += VIPS_IMAGE_SIZEOF_LINE( image );
