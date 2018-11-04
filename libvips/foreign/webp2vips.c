@@ -12,7 +12,7 @@
  * 	- sniff file type from magic number
  * 2/11/18
  * 	- rework for demux API
- * 	- add animation read
+ * 	- add animated read
  */
 
 /*
@@ -43,8 +43,8 @@
  */
 
 /*
-#define DEBUG_VERBOSE
  */
+#define DEBUG_VERBOSE
 #define DEBUG
 
 #ifdef HAVE_CONFIG_H
@@ -100,6 +100,10 @@ typedef struct {
 	int frame_width;
 	int frame_height;
 
+	/* BG colour as a 32-bit int
+	 */
+	int background;
+
 	/* TRUE for RGBA.
 	 */
 	int alpha;
@@ -124,9 +128,16 @@ typedef struct {
 	 */
 	WebPDecoderConfig config;
 
-	/* Each decoded frame, as a vips memory image.
+	/* The current accumulated frame as a VipsImage. These are the pixels
+	 * we send to the output. It's a frame_width * frame_height memory
+	 * image.
 	 */
-	GArray *frames;
+	VipsImage *frame;
+
+	/* Iterate through the frames with this. iter.frame_num is the number
+	 * of the current loaded frame.
+	 */
+	WebPIterator iter;
 } Read;
 
 int
@@ -159,16 +170,8 @@ vips__iswebp( const char *filename )
 static int
 read_free( Read *read )
 {
-
-	if( read->frames ) {
-		int i;
-
-		for( i = 0; i < read->frames->len; i++ ) 
-			VIPS_UNREF( g_array_index( 
-				read->frames, VipsImage *, i ) );
-	}
-	VIPS_FREEF( g_array_unref, read->frames );
-
+	WebPDemuxReleaseIterator( &read->iter );
+	VIPS_UNREF( read->frame );
 	VIPS_FREEF( WebPDemuxDelete, read->demux );
 	WebPFreeDecBuffer( &read->config.output );
 
@@ -205,7 +208,7 @@ read_new( const char *filename, const void *data, size_t length,
 	read->delay = 100;
 	read->fd = 0;
 	read->demux = NULL;
-	read->frames = NULL;
+	read->frame = NULL;
 
 	if( read->filename ) { 
 		/* libwebp makes streaming from a file source very hard. We 
@@ -224,6 +227,7 @@ read_new( const char *filename, const void *data, size_t length,
 
 	WebPInitDecoderConfig( &read->config );
 	read->config.options.use_threads = 1;
+	read->config.output.is_external_memory = 1;
 
 	return( read );
 }
@@ -265,6 +269,12 @@ read_header( Read *read, VipsImage *out )
 	}
 
 	flags = WebPDemuxGetI( read->demux, WEBP_FF_FORMAT_FLAGS );
+
+	/* FIXME ... do we need to byteswap, or can we use &background as the
+	 * ink?
+	 */
+	read->background = WebPDemuxGetI( read->demux, 
+		WEBP_FF_BACKGROUND_COLOR );
 
 	read->alpha = flags & ALPHA_FLAG;
 	if( read->alpha )  
@@ -311,9 +321,6 @@ read_header( Read *read, VipsImage *out )
 		read->frame_count = 1;
 	}
 
-	read->frames = g_array_sized_new( FALSE, TRUE, 
-		sizeof( void * ), read->frame_count ); 
-
 	if( read->width <= 0 ||
 		read->height <= 0 ) {
 		vips_error( "webp", "%s", _( "bad image dimensions" ) ); 
@@ -343,14 +350,31 @@ read_header( Read *read, VipsImage *out )
 		}
 	}
 
+	read->frame = vips_image_new_memory();
+	vips_image_init_fields( read->frame,
+		read->frame_width, read->frame_height,
+		read->alpha ? 4 : 3,
+		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
+		VIPS_INTERPRETATION_sRGB,
+		1.0, 1.0 );
+	vips_image_pipelinev( read->frame, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+
+	if( vips_image_write_prepare( read->frame ) ) 
+		return( -1 );
+
 	vips_image_init_fields( out,
 		read->width, read->height,
 		read->alpha ? 4 : 3,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0 );
-
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+
+	if( !WebPDemuxGetFrame( read->demux, 1, &read->iter ) ) {
+		vips_error( "webp", 
+			"%s", _( "unable to loop through frames" ) ); 
+		return( -1 );
+	}
 
 	return( 0 );
 }
@@ -378,13 +402,14 @@ vips__webp_read_file_header( const char *filename, VipsImage *out,
 }
 
 static VipsImage *
-read_frame( Read *read, const uint8_t *data, size_t length )
+read_frame( Read *read, 
+	int width, int height, const uint8_t *data, size_t length )
 {
 	VipsImage *frame;
 
 	frame = vips_image_new_memory();
 	vips_image_init_fields( frame,
-		read->frame_width, read->frame_height,
+		width, height,
 		read->alpha ? 4 : 3,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB,
@@ -409,68 +434,183 @@ read_frame( Read *read, const uint8_t *data, size_t length )
 	return( frame );
 }
 
+static void
+vips_image_paint_pel( VipsImage *image, const VipsRect *r, const VipsPel *ink )
+{
+	VipsRect valid = { 0, 0, image->Xsize, image->Ysize };
+	VipsRect ovl;
+
+	vips_rect_intersectrect( r, &valid, &ovl );
+	if( !vips_rect_isempty( &ovl ) ) {
+		int ps = VIPS_IMAGE_SIZEOF_PEL( image );
+		int ls = VIPS_IMAGE_SIZEOF_LINE( image );
+		int ws = ovl.width * ps;
+
+		VipsPel *to, *q;
+		int x, y, z;
+
+		/* We plot the first line pointwise, then memcpy() it for the
+		 * subsequent lines.
+		 */
+		to = VIPS_IMAGE_ADDR( image, ovl.left, ovl.top );
+
+		q = to;
+		for( x = 0; x < ovl.width; x++ ) {
+			/* Faster than memcpy() for about ps < 20.
+			 */
+			for( z = 0; z < ps; z++ )
+				q[z] = ink[z];
+
+			q += ps;
+		}
+
+		q = to + ls;
+		for( y = 1; y < ovl.height; y++ ) {
+			memcpy( q, to, ws );
+			q += ls;
+		}
+	}
+}
+
+static void
+vips_image_paint_image( VipsImage *image, 
+	VipsImage *ink, int x, int y, gboolean blend )
+{
+	VipsRect valid = { 0, 0, image->Xsize, image->Ysize };
+	VipsRect sub = { x, y, ink->Xsize, ink->Ysize };
+
+	VipsRect ovl;
+
+	g_assert( VIPS_IMAGE_SIZEOF_PEL( image ) == 
+		VIPS_IMAGE_SIZEOF_PEL( ink ) );
+
+	vips_rect_intersectrect( &valid, &sub, &ovl );
+	if( !vips_rect_isempty( &ovl ) ) {
+		VipsPel *p, *q;
+		int i;
+
+		p = VIPS_IMAGE_ADDR( ink, ovl.left - x, ovl.top - y );
+		q = VIPS_IMAGE_ADDR( image, ovl.left, ovl.top ); 
+
+		for( i = 0; i < ovl.height; i++ ) { 
+			memcpy( (char *) q, (char *) p, 
+				ovl.width * VIPS_IMAGE_SIZEOF_PEL( image ) );
+
+			p += VIPS_IMAGE_SIZEOF_LINE( ink );
+			q += VIPS_IMAGE_SIZEOF_LINE( image );
+		}
+	}
+}
+
+static int
+read_next_frame( Read *read )
+{
+	VipsImage *frame;
+
+	/* Any dispose action.
+	 */
+
+	if( read->iter.dispose_method == WEBP_MUX_DISPOSE_BACKGROUND ) {
+		/* We must clear the pixels occupied by this webp frame (not 
+		 * the whole of the read frame) to the background colour.
+		 */
+		VipsRect area = { read->iter.x_offset, read->iter.y_offset,
+			read->iter.width, read->iter.height };
+
+		vips_image_paint_pel( read->frame, 
+			&area, (VipsPel *) &read->background );
+	}
+
+	/* Fetch the next frame.
+	 */
+
+	if( !WebPDemuxNextFrame( &read->iter ) ) {
+		vips_error( "webp2vips", "%s", _( "not enough frames" ) ); 
+		return( -1 );
+	}
+
+#ifdef DEBUG
+	printf( "webp2vips: frame_num = %d\n", read->iter.frame_num );
+	printf( "   x_offset = %d\n", read->iter.x_offset );
+	printf( "   y_offset = %d\n", read->iter.y_offset );
+	printf( "   width = %d\n", read->iter.width );
+	printf( "   height = %d\n", read->iter.height );
+	printf( "   duration = %d\n", read->iter.duration );
+	printf( "   dispose = " ); 
+	if( read->iter.dispose_method == WEBP_MUX_DISPOSE_BACKGROUND )
+		printf( "clear to background\n" ); 
+	else
+		printf( "none\n" ); 
+	printf( "   has_alpha = %d\n", read->iter.has_alpha );
+	printf( "   blend_method = " ); 
+	if( read->iter.blend_method == WEBP_MUX_BLEND )
+		printf( "blend with previous\n" ); 
+	else
+		printf( "don't blend\n" ); 
+#endif /*DEBUG*/
+
+	if( read->iter.duration != read->delay ) 
+		g_warning( "webp2vips: "
+			"not all frames have equal duration" );
+
+	if( !(frame = read_frame( read, 
+		read->iter.width, read->iter.height, 
+		read->iter.fragment.bytes, read->iter.fragment.size )) ) 
+		return( -1 );
+
+	/* Now blend or copy the new pixels into our accumulator.
+	 */
+
+	vips_image_paint_image( read->frame, frame, 
+		read->iter.x_offset, read->iter.y_offset, 
+		read->iter.blend_method == WEBP_MUX_BLEND );
+
+	g_object_unref( frame );
+
+	return( 0 );
+}
+
+static int
+read_webp_generate( VipsRegion *or, 
+	void *seq, void *a, void *b, gboolean *stop )
+{
+        VipsRect *r = &or->valid;
+	Read *read = (Read *) a;
+
+	int frame = r->top / read->frame_height;
+	int line = r->top % read->frame_height;
+
+#ifdef DEBUG_VERBOSE
+	printf( "read_webp_generate: line %d\n", r->top );
+#endif /*DEBUG_VERBOSE*/
+
+	g_assert( r->height == 1 );
+
+	while( read->iter.frame_num < frame )
+		if( read_next_frame( read ) )
+			return( -1 );
+
+	memcpy( VIPS_REGION_ADDR( or, 0, r->top ),
+		VIPS_IMAGE_ADDR( read->frame, 0, line ),
+		VIPS_IMAGE_SIZEOF_LINE( read->frame ) );
+
+	return( 0 );
+}
+
 static int
 read_image( Read *read, VipsImage *out )
 {
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( out ), 3 );
 
-	WebPIterator iter;
-
-	if( read_header( read, out ) )
+	t[0] = vips_image_new();
+	if( read_header( read, t[0] ) )
 		return( -1 );
 
-	read->config.output.is_external_memory = 1;
-
-	/* Decode all frames.
-	 */
-	if( WebPDemuxGetFrame( read->demux, 1, &iter ) ) {
-		do {
-			VipsImage *frame;
-
-			if( iter.duration != read->delay ) 
-				g_warning( "webp2vips: "
-					"not all frames have equal duration" );
-
-#ifdef DEBUG
-			printf( "webp2vips: frame_num = %d\n", iter.frame_num );
-			printf( "   x_offset = %d\n", iter.x_offset );
-			printf( "   y_offset = %d\n", iter.y_offset );
-			printf( "   width = %d\n", iter.width );
-			printf( "   height = %d\n", iter.height );
-			printf( "   duration = %d\n", iter.duration );
-			printf( "   dispose = " ); 
-			if( iter.dispose_method == WEBP_MUX_DISPOSE_BACKGROUND )
-				printf( "clear to background\n" ); 
-			else
-				printf( "none\n" ); 
-			printf( "   has_alpha = %d\n", iter.has_alpha );
-			printf( "   blend_method = " ); 
-			if( iter.blend_method == WEBP_MUX_BLEND )
-				printf( "blend with previous\n" ); 
-			else
-				printf( "don't blend\n" ); 
-#endif /*DEBUG*/
-
-			if( !(frame = read_frame( read, 
-				iter.fragment.bytes, iter.fragment.size )) ) {
-				WebPDemuxReleaseIterator( &iter );
-				return( -1 );
-			}
-
-			g_array_append_val( read->frames, frame );
-		} while( WebPDemuxNextFrame( &iter ) );
-
-		WebPDemuxReleaseIterator( &iter );
-	}
-
-	/* Join all frames vertically to the output.
-	 */
-	if( vips_arrayjoin( &g_array_index( read->frames, VipsImage *, 0 ),
-		&t[0], read->frame_count, 
-		"across", 1,
-		NULL ) ||
-		vips_image_write( t[0], out ) )
+	if( vips_image_generate( t[0], 
+		NULL, read_webp_generate, NULL, read, NULL ) ||
+		vips_sequential( t[0], &t[1], NULL ) ||
+		vips_image_write( t[1], out ) )
 		return( -1 );
 
 	return( 0 );
