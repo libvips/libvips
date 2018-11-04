@@ -188,6 +188,7 @@ vips__open_image_write( const char *filename, gboolean temp )
 	int fd;
 
 	flags = MODE_WRITE;
+	fd = -1;
 
 #ifdef O_TMPFILE
 	/* Linux-only extension creates an unlinked file. CREAT and TRUNC must
@@ -196,18 +197,11 @@ vips__open_image_write( const char *filename, gboolean temp )
 	if( temp ) {
 		char *dirname;
 
-		flags |= O_TMPFILE;
-		flags &= ~O_CREAT;
-		flags &= ~O_TRUNC;
-
 		dirname = g_path_get_dirname( filename ); 
-		fd = vips_tracked_open( dirname, flags, 0666 );
+		fd = vips_tracked_open( dirname, O_TMPFILE | O_RDWR , 0666 );
 		g_free( dirname ); 
 	}
-	else
-		fd = vips_tracked_open( filename, flags, 0666 );
-#else /*!O_TMPFILE*/
-	fd = vips_tracked_open( filename, flags, 0666 );
+#endif /*O_TMPFILE*/
 
 #ifdef _O_TEMPORARY
 	/* On Windows, setting _O_TEMPORARY gets the file automatically
@@ -217,7 +211,9 @@ vips__open_image_write( const char *filename, gboolean temp )
 	if( temp )
 		flags |= _O_TEMPORARY;
 #endif /*_O_TEMPORARY*/
-#endif /*O_TMPFILE*/
+
+	if( fd < 0 )
+		fd = vips_tracked_open( filename, flags, 0666 );
 
 	if( fd < 0 ) {
 		vips_error_system( errno, "VipsImage", 
