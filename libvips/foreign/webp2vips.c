@@ -43,8 +43,8 @@
  */
 
 /*
- */
 #define DEBUG_VERBOSE
+ */
 #define DEBUG
 
 #ifdef HAVE_CONFIG_H
@@ -100,9 +100,9 @@ typedef struct {
 	int frame_width;
 	int frame_height;
 
-	/* RGBA background colour.
+	/* Background colour as an ink we can paint with.
 	 */
-	uint32_t background;
+	guint32 background;
 
 	/* TRUE for RGBA.
 	 */
@@ -179,7 +179,7 @@ vips_image_paint_pel( VipsImage *image, const VipsRect *r, const VipsPel *ink )
 	}
 }
 
-/* Blend two uint8s.
+/* Blend two guint8.
  */
 #define BLEND( X, aX, Y, aY, scale ) \
 	((X * aX + Y * aY) * scale >> 24)
@@ -195,28 +195,27 @@ vips_image_paint_pel( VipsImage *image, const VipsRect *r, const VipsPel *ink )
  */
 #define setRGBA( R, G, B, A ) (R | (G << 8) | (B << 16) | (A << 24))
 
-/* OVER blend of two unpremultiplied RGBA uint32_t
+/* OVER blend of two unpremultiplied RGBA guint32
  *
  * We assume little-endian (x86), add a byteswap before this if necessary.
  */
-
-static uint32_t
-blend_pixel( uint32_t A, uint32_t B )
+static guint32
+blend_pixel( guint32 A, guint32 B )
 {
-	uint8_t aA = getA( A );
+	guint8 aA = getA( A );
 
 	if( aA == 0 )
 		return( B );
 
-	uint8_t aB = getA( B );
+	guint8 aB = getA( B );
 
-	uint8_t fac = (aB * (256 - aA)) >> 8;
-	uint8_t aR =  aA + fac;
+	guint8 fac = (aB * (256 - aA)) >> 8;
+	guint8 aR =  aA + fac;
 	int scale = (1 << 24) / aR;
 
-	uint8_t rR = BLEND( getR( A ), aA, getR( B ), fac, scale );
-	uint8_t gR = BLEND( getG( A ), aA, getG( B ), fac, scale );
-	uint8_t bR = BLEND( getB( A ), aA, getB( B ), fac, scale );
+	guint8 rR = BLEND( getR( A ), aA, getR( B ), fac, scale );
+	guint8 gR = BLEND( getG( A ), aA, getG( B ), fac, scale );
+	guint8 bR = BLEND( getB( A ), aA, getB( B ), fac, scale );
 
 	return( setRGBA( rR, gR, bR, aR ) ); 
 }
@@ -248,8 +247,8 @@ vips_image_paint_image( VipsImage *image,
 
 		for( i = 0; i < ovl.height; i++ ) { 
 			if( blend ) {
-				uint32_t *A = (uint32_t *) p;
-				uint32_t *B = (uint32_t *) q;
+				guint32 *A = (guint32 *) p;
+				guint32 *B = (guint32 *) q;
 
 				for( x = 0; x < ovl.width; x++ )
 					B[x] = blend_pixel( A[x], B[x] );
@@ -365,6 +364,21 @@ const VipsWebPNames vips__webp_names[] = {
 };
 const int vips__n_webp_names = VIPS_NUMBER( vips__webp_names ); 
 
+/* libwebp supplies things like background as B, G, R, A, but we need RGBA
+ * order for libvips.
+ */
+static guint32
+bgra2rgba( guint32 x )
+{
+	VipsPel pixel[4];
+
+	*((guint32 *) &pixel) = x;
+	VIPS_SWAP( VipsPel, pixel[0], pixel[2] );
+	x = *((guint32 *) &pixel);
+	
+	return( x );
+}
+
 static int
 read_header( Read *read, VipsImage *out )
 {
@@ -395,11 +409,11 @@ read_header( Read *read, VipsImage *out )
 
 	flags = WebPDemuxGetI( read->demux, WEBP_FF_FORMAT_FLAGS );
 
-	/* FIXME ... do we need to byteswap, or can we use &background as the
-	 * ink?
+	/* background is in B, G, R, A byte order, but we need R, G, B, A for
+	 * libvips.
 	 */
-	read->background = WebPDemuxGetI( read->demux, 
-		WEBP_FF_BACKGROUND_COLOR );
+	read->background = bgra2rgba( 
+		WebPDemuxGetI( read->demux, WEBP_FF_BACKGROUND_COLOR ) );
 
 	read->alpha = flags & ALPHA_FLAG;
 	if( read->alpha )  
@@ -437,8 +451,24 @@ read_header( Read *read, VipsImage *out )
 			WebPDemuxReleaseIterator( &iter );
 		}
 
+		if( read->n == -1 )
+			read->n = read->frame_count - read->page;
+
+		if( read->page < 0 ||
+			read->n <= 0 ||
+			read->page + read->n > read->frame_count ) {
+			vips_error( "webp", 
+				"%s", _( "bad page number" ) ); 
+			return( -1 ); 
+		}
+
+		/* Note that n-pages is the number of pages in the original,
+		 * not the number of pages in the image we are writing.
+		 */
+		vips_image_set_int( out, "n-pages", read->frame_count );
+
 		read->width = read->frame_width;
-		read->height = read->frame_count * read->frame_height;
+		read->height = read->n * read->frame_height;
 	}
 	else {
 		read->width = read->frame_width;
@@ -535,7 +565,7 @@ vips__webp_read_file_header( const char *filename, VipsImage *out,
 
 static VipsImage *
 read_frame( Read *read, 
-	int width, int height, const uint8_t *data, size_t length )
+	int width, int height, const guint8 *data, size_t length )
 {
 	VipsImage *frame;
 
@@ -578,8 +608,12 @@ read_next_frame( Read *read )
 		/* We must clear the pixels occupied by this webp frame (not 
 		 * the whole of the read frame) to the background colour.
 		 */
-		VipsRect area = { read->iter.x_offset, read->iter.y_offset,
-			read->iter.width, read->iter.height };
+		VipsRect area = { 
+			read->iter.x_offset, 
+			read->iter.y_offset,
+			read->iter.width, 
+			read->iter.height 
+		};
 
 		vips_image_paint_pel( read->frame, 
 			&area, (VipsPel *) &read->background );
@@ -641,7 +675,7 @@ read_webp_generate( VipsRegion *or,
         VipsRect *r = &or->valid;
 	Read *read = (Read *) a;
 
-	int frame = r->top / read->frame_height;
+	int frame = r->top / read->frame_height + read->page;
 	int line = r->top % read->frame_height;
 
 #ifdef DEBUG_VERBOSE
