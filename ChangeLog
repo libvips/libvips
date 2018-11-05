@@ -9,6 +9,7 @@
 23/9/18 started 8.7.1
 - update function list in docs [janko-m] 
 - test for g_str_to_ascii() [jcupitt]
+- fix temp file open on Windows and fallback on linux [lovell]
 
 23/12/17 started 8.7.0
 - add magicksave, save image with libMagick [dlemstra]
