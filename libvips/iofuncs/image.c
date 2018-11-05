@@ -3077,13 +3077,13 @@ vips_image_rewind_output( VipsImage *image )
 	/* Now we've finished writing and reopened as read, we can
 	 * delete-on-close. 
 	 *
-	 * On *nix-like systems, this will unlink the file
-	 * from the filesystem and when we exit, for whatever reason, the file
+	 * On *nix-like systems, this will unlink the file from the 
+	 * filesystem and when we exit, for whatever reason, the file
 	 * we be reclaimed. 
 	 *
 	 * On Windows this will fail because the file is open and you can't
-	 * delete open files. However, on Windows we set O_TEMP, so the file
-	 * will be deleted when the fd is finally closed.
+	 * delete open files. However, on Windows we set _O_TEMPORARY, so the 
+	 * file will be deleted when the fd is finally closed.
 	 */
 	vips_image_delete( image );
 
