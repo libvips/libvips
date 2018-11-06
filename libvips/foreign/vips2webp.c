@@ -77,6 +77,9 @@ typedef struct {
 	gboolean smart_subsample;
 	gboolean near_lossless;
 	int alpha_q;
+	gboolean min_size;
+	int kmin;
+	int kmax;
 	gboolean strip;
 
 	WebPConfig config;
@@ -133,7 +136,9 @@ static int
 vips_webp_write_init( VipsWebPWrite *write, VipsImage *image,
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
-	int alpha_q, gboolean strip )
+	int alpha_q, 
+	gboolean min_size, int kmin, int kmax,
+	gboolean strip )
 {
 	write->image = image;
 	write->Q = Q;
@@ -142,6 +147,9 @@ vips_webp_write_init( VipsWebPWrite *write, VipsImage *image,
 	write->smart_subsample = smart_subsample;
 	write->near_lossless = near_lossless;
 	write->alpha_q = alpha_q;
+	write->min_size = min_size;
+	write->kmin = kmin;
+	write->kmax = kmax;
 	write->strip = strip;
 	WebPMemoryWriterInit( &write->memory_writer );
 	write->enc = NULL;
@@ -295,6 +303,10 @@ write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 			"%s", _( "config version error" ) );
 		return( -1 );
 	}
+
+	anim_config.minimize_size = write->min_size;
+	anim_config.kmin = write->kmin;
+	anim_config.kmax = write->kmax;
 
 	write->enc = WebPAnimEncoderNew( image->Xsize, page_height, 
 		&anim_config );
@@ -485,14 +497,16 @@ int
 vips__webp_write_file( VipsImage *image, const char *filename, 
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
-	int alpha_q, gboolean strip )
+	int alpha_q, 
+	gboolean min_size, int kmin, int kmax,
+	gboolean strip )
 {
 	VipsWebPWrite write;
 	FILE *fp;
 
 	if( vips_webp_write_init( &write, image,
 		Q, lossless, preset, smart_subsample, near_lossless,
-		alpha_q, strip ) )
+		alpha_q, min_size, kmin, kmax, strip ) )
 		return( -1 );
 
 	if( write_webp( &write, image ) ) {
@@ -529,13 +543,15 @@ int
 vips__webp_write_buffer( VipsImage *image, void **obuf, size_t *olen, 
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
-	int alpha_q, gboolean strip )
+	int alpha_q, 
+	gboolean min_size, int kmin, int kmax,
+	gboolean strip )
 {
 	VipsWebPWrite write;
 
 	if( vips_webp_write_init( &write, image,
 		Q, lossless, preset, smart_subsample, near_lossless,
-		alpha_q, strip ) )
+		alpha_q, min_size, kmin, kmax, strip ) )
 		return( -1 );
 
 	if( write_webp( &write, image ) ) {

@@ -76,6 +76,21 @@ typedef struct _VipsForeignSaveWebp {
 	 */
 	int alpha_q;
 
+	/* Animated webp options.
+	 */
+
+	/* Attempt to minimise size
+	 */
+	gboolean min_size;
+
+	/* Min between key frames.
+	 */
+	int kmin;
+
+	/* Max between keyframes.
+	 */
+	int kmax;
+
 } VipsForeignSaveWebp;
 
 typedef VipsForeignSaveClass VipsForeignSaveWebpClass;
@@ -154,6 +169,27 @@ vips_foreign_save_webp_class_init( VipsForeignSaveWebpClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveWebp, alpha_q ),
 		0, 100, 100 );
 
+	VIPS_ARG_BOOL( class, "min_size", 16,
+		_( "Minimise size" ),
+		_( "Optimise for minium size" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveWebp, min_size ),
+		FALSE );
+
+	VIPS_ARG_INT( class, "kmin", 17,
+		_( "Minimum keyframe spacing" ),
+		_( "Minimum number of frames between key frames" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveWebp, kmin ),
+		0, INT_MAX, INT_MAX - 1 );
+
+	VIPS_ARG_INT( class, "kmax", 18,
+		_( "Maximum keyframe spacing" ),
+		_( "Maximum number of frames between key frames" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveWebp, kmax ),
+		0, INT_MAX, INT_MAX );
+
 }
 
 static void
@@ -161,6 +197,11 @@ vips_foreign_save_webp_init( VipsForeignSaveWebp *webp )
 {
 	webp->Q = 75;
 	webp->alpha_q = 100;
+
+	/* ie. keyframes disabled by default.
+	 */
+	webp->kmin = INT_MAX - 1;
+	webp->kmax = INT_MAX;
 }
 
 typedef struct _VipsForeignSaveWebpFile {
@@ -191,7 +232,9 @@ vips_foreign_save_webp_file_build( VipsObject *object )
 	if( vips__webp_write_file( save->ready, file->filename, 
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
-		webp->alpha_q, save->strip ) )
+		webp->alpha_q, 
+		webp->min_size, webp->kmin, webp->kmax,
+		save->strip ) )
 		return( -1 );
 
 	return( 0 );
@@ -255,7 +298,9 @@ vips_foreign_save_webp_buffer_build( VipsObject *object )
 	if( vips__webp_write_buffer( save->ready, &obuf, &olen, 
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
-		webp->alpha_q, save->strip ) )
+		webp->alpha_q, 
+		webp->min_size, webp->kmin, webp->kmax,
+		save->strip ) )
 		return( -1 );
 
 	/* obuf is a g_free() buffer, not vips_free().
@@ -320,7 +365,9 @@ vips_foreign_save_webp_mime_build( VipsObject *object )
 	if( vips__webp_write_buffer( save->ready, &obuf, &olen, 
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
-		webp->alpha_q, save->strip ) )
+		webp->alpha_q, 
+		webp->min_size, webp->kmin, webp->kmax,
+		save->strip ) )
 		return( -1 );
 
 	printf( "Content-length: %zu\r\n", olen );
@@ -369,6 +416,9 @@ vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
  * * @smart_subsample: %gboolean, enables high quality chroma subsampling
  * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
  * * @alpha_q: %gint, set alpha quality in lossless mode
+ * * @min_size: %gboolean, minimise size
+ * * @kmin: %gint, minimum number of frames between keyframes
+ * * @kmax: %gint, maximum number of frames between keyframes
  * * @strip: %gboolean, remove all metadata from image
  *
  * Write an image to a file in WebP format. 
@@ -387,8 +437,15 @@ vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
  * with @Q 80, 60, 40 or 20 to apply increasing amounts of preprocessing
  * which improves the near-lossless compression ratio by up to 50%.
  *
+ * For animated webp output, @min_size will try to optimise for minimum size.
+ *
+ * For animated webp output, @kmax sets the maximum number of frames between
+ * keyframes. Setting 0 means only keyframes. @kmin sets the minimum number of
+ * frames between frames. Setting 0 means no keyframes. By default, keyframes
+ * are disabled.
+ *
  * The writer will attach ICC, EXIF and XMP metadata, unless @strip is set to
- * %TRUE. 
+ * %TRUE.
  *
  * See also: vips_webpload(), vips_image_write_to_file().
  *
@@ -422,6 +479,9 @@ vips_webpsave( VipsImage *in, const char *filename, ... )
  * * @smart_subsample: %gboolean, enables high quality chroma subsampling
  * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
  * * @alpha_q: %gint, set alpha quality in lossless mode
+ * * @min_size: %gboolean, minimise size
+ * * @kmin: %gint, minimum number of frames between keyframes
+ * * @kmax: %gint, maximum number of frames between keyframes
  * * @strip: %gboolean, remove all metadata from image
  *
  * As vips_webpsave(), but save to a memory buffer.
@@ -475,6 +535,9 @@ vips_webpsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @smart_subsample: %gboolean, enables high quality chroma subsampling
  * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
  * * @alpha_q: %gint, set alpha quality in lossless mode
+ * * @min_size: %gboolean, minimise size
+ * * @kmin: %gint, minimum number of frames between keyframes
+ * * @kmax: %gint, maximum number of frames between keyframes
  * * @strip: %gboolean, remove all metadata from image
  *
  * As vips_webpsave(), but save as a mime webp on stdout.
