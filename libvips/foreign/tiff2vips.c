@@ -319,6 +319,10 @@ typedef struct _Rtiff {
 	 * strips or tiles interleaved. 
 	 */
 	tdata_t contig_buf;
+
+	/* The Y we are reading at. Used to verify strip read is sequential.
+	 */
+	int y_pos;
 } Rtiff;
 
 /* Test for field exists.
@@ -492,6 +496,7 @@ rtiff_new( VipsImage *out, int page, int n, gboolean autorotate )
 	rtiff->memcpy = FALSE;
 	rtiff->plane_buf = NULL;
 	rtiff->contig_buf = NULL;
+	rtiff->y_pos = 0;
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( rtiff_close_cb ), rtiff ); 
@@ -1825,8 +1830,9 @@ rtiff_stripwise_generate( VipsRegion *or,
 	int y;
 
 #ifdef DEBUG
-	printf( "tiff2vips: read_stripwise_generate: top = %d, height = %d\n",
+	printf( "rtiff_stripwise_generate: top = %d, height = %d\n",
 		r->top, r->height );
+	printf( "rtiff_stripwise_generate: y_top = %d\n", rtiff->y_pos );
 #endif /*DEBUG*/
 
 	/* We're inside a tilecache where tiles are the full image width, so
@@ -1845,6 +1851,15 @@ rtiff_stripwise_generate( VipsRegion *or,
 	 */
 	g_assert( r->height == 
 		VIPS_MIN( rows_per_strip, or->im->Ysize - r->top ) ); 
+
+	/* And check that y_pos is correct. It should be, since we are inside
+	 * a vips_sequential().
+	 */
+	if( r->top != rtiff->y_pos ) {
+		vips_error( "tiff2vips", 
+			_( "out of order read at line %d" ), rtiff->y_pos );
+		return( -1 );
+	}
 
 	VIPS_GATE_START( "rtiff_stripwise_generate: work" ); 
 
@@ -1943,12 +1958,17 @@ rtiff_stripwise_generate( VipsRegion *or,
 		}
 
 		y += hit.height;
+		rtiff->y_pos += hit.height;
 	}
 
 	/* Shut down the input file as soon as we can. 
 	 */
-	if( r->top + y >= or->im->Ysize ) 
+	if( rtiff->y_pos >= or->im->Ysize ) {
+#ifdef DEBUG
+		printf( "rtiff_stripwise_generate: early shutdown\n" ); 
+#endif /*DEBUG*/
 		rtiff_free( rtiff );
+	}
 
 	VIPS_GATE_STOP( "rtiff_stripwise_generate: work" ); 
 
