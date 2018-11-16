@@ -6,6 +6,7 @@
 - implement thumbnail shrink-on-load for openslide images [jcupitt]
 - revise vips_cast() to improve behaviour with uint images [erdmann]
 - add bandand()/or()/eor() to cplusplus binding [clcaalu]
+- implement shrink-on-load for tiff pyramids [jcupitt]
 
 23/9/18 started 8.7.1
 - update function list in docs [janko-m] 
