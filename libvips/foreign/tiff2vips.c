@@ -247,6 +247,7 @@ typedef struct _RtiffHeader {
 	int sample_format;
 	gboolean separate; 
 	int orientation; 
+	gboolean premultiplied;
 
 	/* Result of TIFFIsTiled().
 	 */
@@ -1692,6 +1693,29 @@ rtiff_autorotate( Rtiff *rtiff, VipsImage *in, VipsImage **out )
 	return( 0 );
 }
 
+/* Unpremultiply associative alpha, if any.
+ */
+static int
+rtiff_unpremultiply( Rtiff *rtiff, VipsImage *in, VipsImage **out )
+{
+	if( rtiff->header.premultiplied ) {
+		VipsImage *x;
+
+		if( vips_unpremultiply( in, &x, NULL ) ||
+			vips_cast( x, out, in->BandFmt, NULL ) ) {
+			g_object_unref( x );
+			return( -1 );
+		}
+		g_object_unref( x );
+	}
+	else {
+		*out = in;
+		g_object_ref( in );
+	}
+
+	return( 0 );
+}
+
 /* Tile-type TIFF reader core - pass in a per-tile transform. Generate into
  * the im and do it all partially.
  */
@@ -1701,7 +1725,7 @@ rtiff_read_tilewise( Rtiff *rtiff, VipsImage *out )
 	int tile_width = rtiff->header.tile_width;
 	int tile_height = rtiff->header.tile_height;
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( VIPS_OBJECT( out ), 3 );
+		vips_object_local_array( VIPS_OBJECT( out ), 4 );
 
 #ifdef DEBUG
 	printf( "tiff2vips: rtiff_read_tilewise\n" );
@@ -1755,11 +1779,10 @@ rtiff_read_tilewise( Rtiff *rtiff, VipsImage *out )
 		"tile_width", tile_width,
 		"tile_height", tile_height,
 		"max_tiles", 2 * (1 + t[0]->Xsize / tile_width),
-		NULL ) ) 
-		return( -1 );
-	if( rtiff_autorotate( rtiff, t[1], &t[2] ) )
-		return( -1 );
-	if( vips_image_write( t[2], out ) ) 
+		NULL ) ||
+		rtiff_autorotate( rtiff, t[1], &t[2] ) ||
+		rtiff_unpremultiply( rtiff, t[2], &t[3] ) ||
+		vips_image_write( t[3], out ) )
 		return( -1 );
 
 	return( 0 );
@@ -1985,7 +2008,7 @@ static int
 rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 {
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( VIPS_OBJECT( out ), 3 );
+		vips_object_local_array( VIPS_OBJECT( out ), 4 );
 
 #ifdef DEBUG
 	printf( "tiff2vips: rtiff_read_stripwise\n" );
@@ -2070,7 +2093,9 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 			"tile_height", rtiff->header.rows_per_strip,
 			NULL ) ||
 		rtiff_autorotate( rtiff, t[1], &t[2] ) ||
-		vips_image_write( t[2], out ) )
+		rtiff_unpremultiply( rtiff, t[2], &t[3] ) ||
+		vips_image_write( t[3], out ) )
+
 		return( -1 );
 
 	return( 0 );
@@ -2081,6 +2106,9 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 static int
 rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 {
+	uint16 extra_samples_count;
+	uint16 *extra_samples_types;
+
 	if( !tfget32( rtiff->tiff, TIFFTAG_IMAGEWIDTH, &header->width ) ||
 		!tfget32( rtiff->tiff, TIFFTAG_IMAGELENGTH, &header->height ) ||
 		!tfget16( rtiff->tiff, 
@@ -2183,6 +2211,11 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 		header->tile_width = 0;
 		header->tile_height = 0;
 	}
+
+	TIFFGetFieldDefaulted( rtiff->tiff, TIFFTAG_EXTRASAMPLES,
+		&extra_samples_count, &extra_samples_types );
+	header->premultiplied = extra_samples_count > 0 &&
+		extra_samples_types[0] == EXTRASAMPLE_ASSOCALPHA;
 
 	return( 0 );
 }
