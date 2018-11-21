@@ -189,6 +189,11 @@ vips__open_image_write( const char *filename, gboolean temp )
 
 	fd = -1;
 
+#ifndef O_TMPFILE
+	if( temp ) 
+		g_info( "vips__open_image_write: O_TMPFILE not available" );
+#endif /*!O_TMPFILE*/
+
 #ifdef O_TMPFILE
 	/* Linux-only extension creates an unlinked file. CREAT and TRUNC must
 	 * be clear. The filename arg to open() must name a directory.
@@ -200,9 +205,13 @@ vips__open_image_write( const char *filename, gboolean temp )
 	if( temp ) {
 		char *dirname;
 
+		g_info( "vips__open_image_write: opening with O_TMPFILE" );
 		dirname = g_path_get_dirname( filename ); 
 		fd = vips_tracked_open( dirname, O_TMPFILE | O_RDWR , 0666 );
 		g_free( dirname ); 
+
+		if( fd < 0 ) 
+			g_info( "vips__open_image_write: O_TMPFILE failed!" );
 	}
 #endif /*O_TMPFILE*/
 
@@ -212,14 +221,19 @@ vips__open_image_write( const char *filename, gboolean temp )
 	/* On Windows, setting _O_TEMPORARY will delete the file automatically
 	 * on process exit, even if the processes crashes. 
 	 */
-	if( temp )
+	if( temp ) {
+		g_info( "vips__open_image_write: setting _O_TEMPORARY" );
 		flags |= _O_TEMPORARY;
+	}
 #endif /*_O_TEMPORARY*/
 
-	if( fd < 0 )
+	if( fd < 0 ) {
+		g_info( "vips__open_image_write: simple open" );
 		fd = vips_tracked_open( filename, flags, 0666 );
+	}
 
 	if( fd < 0 ) {
+		g_info( "vips__open_image_write: failed!" );
 		vips_error_system( errno, "VipsImage", 
 			_( "unable to write to \"%s\"" ), filename );
 		return( -1 );

@@ -1,3 +1,6 @@
+21/11/18 started 8.7.2
+- more info output for temp files to help diagnose problems
+
 23/9/18 started 8.7.1
 - update function list in docs [janko-m] 
 - test for g_str_to_ascii() [jcupitt]
