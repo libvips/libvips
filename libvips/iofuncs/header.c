@@ -26,6 +26,8 @@
  * 	- return header enums as enums, not ints
  * 	- vips_image_get_*() all convert everything to target type if they can
  * 	- rename "field" as "name" in docs
+ * 21/11/18
+ * 	- get_string will allow BLOB, G_STRING and REF_STRING
  */
 
 /*
@@ -1347,8 +1349,8 @@ vips_image_get_area( const VipsImage *image, const char *name, void **data )
  * See also: vips_image_get_blob(), vips_image_set().
  */
 void
-vips_image_set_blob( VipsImage *image, const char *name, 
-	VipsCallbackFn free_fn, void *data, size_t length )
+vips_image_set_blob( VipsImage *image, 
+	const char *name, VipsCallbackFn free_fn, void *data, size_t length )
 {
 	GValue value = { 0 };
 
@@ -1356,6 +1358,70 @@ vips_image_set_blob( VipsImage *image, const char *name,
 	vips_value_set_blob( &value, free_fn, data, length );
 	vips_image_set( image, name, &value );
 	g_value_unset( &value );
+}
+
+/** 
+ * vips_image_set_blob_copy: (method)
+ * @image: image to attach the metadata to
+ * @name: metadata name
+ * @data: pointer to area of memory
+ * @length: length of memory area
+ *
+ * Attaches @blob as a metadata item on @image under the name @name, taking
+ * a copy of the memory area. A convenience function over vips_image_set_blob().
+ *
+ * One more byte is allocated and a secret null added to the end, although
+ * this extra length is not recorded. This makes reading the value out later
+ * as a C string safer and more convenient.
+ *
+ * See also: vips_image_get_blob(), vips_image_set().
+ */
+void
+vips_image_set_blob_copy( VipsImage *image, 
+	const char *name, void *data, size_t length )
+{
+	void *data_copy;
+
+	if( !data ||
+		length == 0 )
+		return( 0 );
+
+	if( !(data_copy = vips_malloc( NULL, length + 1 )) ) 
+		return( -1 );
+	memcpy( data_copy, data, length );
+	((unsigned char *) data_copy)[length] = '\0';
+
+	vips_image_set_blob( out, field, 
+		(VipsCallbackFn) vips_free, data_copy, length );
+
+	return( 0 );
+}
+
+/* Set a blob on an image from a libtiff pointer/length. We don't null
+ * terminate, even though most of these things are strings, because we want to
+ * be able to write them back unaltered.
+ *
+ * Null-termination, checking for utf-8, checking for embedded null characters
+ * etc. must all be done on readout from the blob.
+ */
+static int
+rtiff_set_blob( Rtiff *rtiff, VipsImage *out, const char *field,
+	uint32 data_length, unsigned char *data )
+{
+	unsigned char *data_copy;
+
+	if( !data ||
+		data_length == 0 )
+		return( 0 );
+
+	if( !(data_copy = vips_malloc( NULL, data_length )) ) 
+		return( -1 );
+	memcpy( data_copy, data, data_length );
+
+	vips_image_set_blob( out, field, 
+		(VipsCallbackFn) vips_free, data_copy, data_length );
+
+	return( 0 );
 }
 
 /** 
@@ -1498,7 +1564,8 @@ vips_image_set_double( VipsImage *image, const char *name, double d )
  *
  * Gets @out from @im under the name @name. 
  * The field must be of type
- * VIPS_TYPE_REFSTRING.
+ * G_STRING, VIPS_TYPE_REFSTRING or VIPS_TYPE_BLOB. If it's a BLOB, it must be
+ * null-terminated. 
  *
  * Do not free @out.
  *
@@ -1513,21 +1580,45 @@ vips_image_get_string( const VipsImage *image, const char *name,
 	const char **out )
 {
 	GValue value = { 0 };
-	VipsArea *area;
 
 	if( vips_image_get( image, name, &value ) )
 		return( -1 );
-	if( G_VALUE_TYPE( &value ) != VIPS_TYPE_REF_STRING ) {
+	if( G_VALUE_TYPE( &value ) == VIPS_TYPE_BLOB ) {
+		char *str;
+		size_t length;
+
+		str = vips_value_get_blob( &value, &length );
+		if( length <= 0 ||
+			str[length] != '\0' ) {
+			g_value_unset( &value );
+			vips_error( "VipsImage",
+				_( "field \"%s\" is not null-terminated" ),
+				name );
+
+			return( -1 );
+		}
+
+		*out = str;
+	}
+	else if( G_VALUE_TYPE( &value ) == VIPS_TYPE_REF_STRING ) {
+		VipsArea *area;
+
+		area = g_value_get_boxed( &value );
+		*out = area->data;
+	}
+	else if( G_VALUE_TYPE( &value ) == G_TYPE_STRING ) {
+		*out = g_value_get_string( &value );
+	}
+	else {
 		vips_error( "VipsImage",
 			_( "field \"%s\" is of type %s, not VipsRefString" ),
 			name,
 			g_type_name( G_VALUE_TYPE( &value ) ) );
 		g_value_unset( &value );
+
 		return( -1 );
 	}
 
-	area = g_value_get_boxed( &value );
-	*out = area->data;
 	g_value_unset( &value );
 
 	return( 0 );
@@ -1541,9 +1632,9 @@ vips_image_get_string( const VipsImage *image, const char *name,
  *
  * Attaches @str as a metadata item on @image as @name. 
  * A convenience
- * function over vips_image_set() using an vips_ref_string.
+ * function over vips_image_set() using #VIPS_TYPE_REF_STRING.
  *
- * See also: vips_image_get_double(), vips_image_set(), vips_ref_string
+ * See also: vips_image_get_double(), vips_image_set().
  */
 void
 vips_image_set_string( VipsImage *image, const char *name, const char *str )

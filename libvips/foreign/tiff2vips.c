@@ -1352,74 +1352,44 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	/* Read any ICC profile.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
-		TIFFTAG_ICCPROFILE, &data_length, &data ) &&
-		data &&
-		data_length ) {
-		void *data_copy;
-
-		if( !(data_copy = vips_malloc( NULL, data_length )) ) 
+		TIFFTAG_ICCPROFILE, &data_length, &data ) ) {
+		if( vips_image_set_blob_copy( rtiff, out, 
+			VIPS_META_ICC_NAME, data_length, data ) )
 			return( -1 );
-		memcpy( data_copy, data, data_length );
-		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
-			(VipsCallbackFn) vips_free, data_copy, data_length );
 	}
 
 	/* Read any XMP metadata.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
-		TIFFTAG_XMLPACKET, &data_length, &data ) &&
-		data &&
-		data_length ) {
-		void *data_copy;
-
-		if( !(data_copy = vips_malloc( NULL, data_length )) ) 
+		TIFFTAG_XMLPACKET, &data_length, &data ) ) {
+		if( vips_image_set_blob_copy( rtiff, out, 
+			VIPS_META_XMP_NAME, data_length, data ) )
 			return( -1 );
-		memcpy( data_copy, data, data_length );
-		vips_image_set_blob( out, VIPS_META_XMP_NAME, 
-			(VipsCallbackFn) vips_free, data_copy, data_length );
 	}
 
 	/* Read any IPTC metadata.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
-		TIFFTAG_RICHTIFFIPTC, &data_length, &data ) &&
-		data &&
-		data_length ) {
-		void *data_copy;
-
-		/* libtiff stores IPTC as an array of long, not byte.
-		 */
-		data_length *= 4;
-
-		if( !(data_copy = vips_malloc( NULL, data_length )) ) 
+		TIFFTAG_RICHTIFFIPTC, &data_length, &data ) ) {
+		if( vips_image_set_blob_copy( rtiff, out, 
+			VIPS_META_IPTC_NAME, data_length, data ) )
 			return( -1 );
-		memcpy( data_copy, data, data_length );
-		vips_image_set_blob( out, VIPS_META_IPTC_NAME, 
-			(VipsCallbackFn) vips_free, data_copy, data_length );
 
 		/* Older versions of libvips used this misspelt name :-( attach 
 		 * under this name too for compatibility.
 		 */
-		if( !(data_copy = vips_malloc( NULL, data_length )) ) 
+		if( vips_image_set_blob_copy( rtiff, out, 
+			"ipct-data", data_length, data ) )
 			return( -1 );
-		memcpy( data_copy, data, data_length );
-		vips_image_set_blob( out, "ipct-data", 
-			(VipsCallbackFn) vips_free, data_copy, data_length );
 	}
 
 	/* Read any photoshop metadata.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
-		TIFFTAG_PHOTOSHOP, &data_length, &data ) &&
-		data &&
-		data_length ) {
-		void *data_copy;
-
-		if( !(data_copy = vips_malloc( NULL, data_length )) ) 
+		TIFFTAG_PHOTOSHOP, &data_length, &data ) ) {
+		if( vips_image_set_blob_copy( rtiff, out, 
+			VIPS_META_PHOTOSHOP_NAME, data_length, data ) )
 			return( -1 );
-		memcpy( data_copy, data, data_length );
-		vips_image_set_blob( out, VIPS_META_PHOTOSHOP_NAME, 
-			(VipsCallbackFn) vips_free, data_copy, data_length );
 	}
 
 	/* IMAGEDESCRIPTION often has useful metadata.

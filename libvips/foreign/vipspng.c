@@ -71,6 +71,8 @@
  * 	- support png8 palette write with palette, colours, Q, dither
  * 25/8/18
  * 	- support xmp read/write
+ * 21/11/18
+ * 	- save xmp as string, not blob
  */
 
 /*
@@ -267,7 +269,8 @@ read_new_filename( VipsImage *out, const char *name, gboolean fail )
 	return( read );
 }
 
-/* Set the png text data as metadata on the vips image.
+/* Set the png text data as metadata on the vips image. These are always
+ * null-terminated strings.
  */
 static int
 vips__set_text( VipsImage *out, int i, const char *key, const char *text ) 
@@ -1104,7 +1107,6 @@ write_vips( Write *write,
 
 		if( vips_image_get_string( in, VIPS_META_XMP_NAME, &str ) )
 			return( -1 );
-
 		vips__png_set_text( write->pPng, write->pInfo, 
 			"XML:com.adobe.xmp", str );
 	}
