@@ -448,19 +448,14 @@ png2vips_header( Read *read, VipsImage *out )
 	 */
 	if( png_get_iCCP( read->pPng, read->pInfo, 
 		&name, &compression_type, &profile, &proflen ) ) {
-		void *profile_copy;
-
 #ifdef DEBUG
 		printf( "png2vips_header: attaching %d bytes of ICC profile\n",
 			proflen );
 		printf( "png2vips_header: name = \"%s\"\n", name );
 #endif /*DEBUG*/
 
-		if( !(profile_copy = vips_malloc( NULL, proflen )) ) 
-			return( -1 );
-		memcpy( profile_copy, profile, proflen );
-		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
-			(VipsCallbackFn) vips_free, profile_copy, proflen );
+		vips_image_set_blob_copy( out, 
+			VIPS_META_ICC_NAME, profile, proflen );
 	}
 
 	/* Sanity-check line size.

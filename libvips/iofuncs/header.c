@@ -27,7 +27,7 @@
  * 	- vips_image_get_*() all convert everything to target type if they can
  * 	- rename "field" as "name" in docs
  * 21/11/18
- * 	- get_string will allow BLOB, G_STRING and REF_STRING
+ * 	- get_string will allow G_STRING and REF_STRING
  */
 
 /*
@@ -1368,60 +1368,32 @@ vips_image_set_blob( VipsImage *image,
  * @length: length of memory area
  *
  * Attaches @blob as a metadata item on @image under the name @name, taking
- * a copy of the memory area. A convenience function over vips_image_set_blob().
- *
- * One more byte is allocated and a secret null added to the end, although
- * this extra length is not recorded. This makes reading the value out later
- * as a C string safer and more convenient.
+ * a copy of the memory area. A convenience function over 
+ * vips_image_set_blob().
  *
  * See also: vips_image_get_blob(), vips_image_set().
  */
 void
 vips_image_set_blob_copy( VipsImage *image, 
-	const char *name, void *data, size_t length )
+	const char *name, const void *data, size_t length )
 {
 	void *data_copy;
 
 	if( !data ||
 		length == 0 )
-		return( 0 );
+		return;
 
+	/* We add an extra, secret null byte at the end, just in case this blob 
+	 * is read as a C string. The libtiff reader (for example) attaches
+	 * XMP XML as a blob, for example.
+	 */
 	if( !(data_copy = vips_malloc( NULL, length + 1 )) ) 
-		return( -1 );
+		return;
 	memcpy( data_copy, data, length );
 	((unsigned char *) data_copy)[length] = '\0';
 
-	vips_image_set_blob( out, field, 
-		(VipsCallbackFn) vips_free, data_copy, length );
-
-	return( 0 );
-}
-
-/* Set a blob on an image from a libtiff pointer/length. We don't null
- * terminate, even though most of these things are strings, because we want to
- * be able to write them back unaltered.
- *
- * Null-termination, checking for utf-8, checking for embedded null characters
- * etc. must all be done on readout from the blob.
- */
-static int
-rtiff_set_blob( Rtiff *rtiff, VipsImage *out, const char *field,
-	uint32 data_length, unsigned char *data )
-{
-	unsigned char *data_copy;
-
-	if( !data ||
-		data_length == 0 )
-		return( 0 );
-
-	if( !(data_copy = vips_malloc( NULL, data_length )) ) 
-		return( -1 );
-	memcpy( data_copy, data, data_length );
-
-	vips_image_set_blob( out, field, 
-		(VipsCallbackFn) vips_free, data_copy, data_length );
-
-	return( 0 );
+	vips_image_set_blob( image, 
+		name, (VipsCallbackFn) vips_free, data_copy, length );
 }
 
 /** 
@@ -1564,8 +1536,7 @@ vips_image_set_double( VipsImage *image, const char *name, double d )
  *
  * Gets @out from @im under the name @name. 
  * The field must be of type
- * G_STRING, VIPS_TYPE_REFSTRING or VIPS_TYPE_BLOB. If it's a BLOB, it must be
- * null-terminated. 
+ * G_STRING, VIPS_TYPE_REFSTRING.
  *
  * Do not free @out.
  *
@@ -1583,24 +1554,8 @@ vips_image_get_string( const VipsImage *image, const char *name,
 
 	if( vips_image_get( image, name, &value ) )
 		return( -1 );
-	if( G_VALUE_TYPE( &value ) == VIPS_TYPE_BLOB ) {
-		char *str;
-		size_t length;
 
-		str = vips_value_get_blob( &value, &length );
-		if( length <= 0 ||
-			str[length] != '\0' ) {
-			g_value_unset( &value );
-			vips_error( "VipsImage",
-				_( "field \"%s\" is not null-terminated" ),
-				name );
-
-			return( -1 );
-		}
-
-		*out = str;
-	}
-	else if( G_VALUE_TYPE( &value ) == VIPS_TYPE_REF_STRING ) {
+	if( G_VALUE_TYPE( &value ) == VIPS_TYPE_REF_STRING ) {
 		VipsArea *area;
 
 		area = g_value_get_boxed( &value );

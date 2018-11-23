@@ -7,6 +7,7 @@
 - revise vips_cast() to improve behaviour with uint images [erdmann]
 - add bandand()/or()/eor() to cplusplus binding [clcaalu]
 - implement shrink-on-load for tiff pyramids [jcupitt]
+- added vips_image_set_blob_copy() [jcupitt]
 
 23/9/18 started 8.7.1
 - update function list in docs [janko-m] 

@@ -447,22 +447,6 @@ vips_image_resolution_from_exif( VipsImage *image, ExifData *ed )
 	return( 0 );
 }
 
-static int
-vips_exif_get_thumbnail( VipsImage *im, ExifData *ed )
-{
-	if( ed->size > 0 ) {
-		char *thumb_copy;
-
-		thumb_copy = g_malloc( ed->size );      
-		memcpy( thumb_copy, ed->data, ed->size );
-
-		vips_image_set_blob( im, "jpeg-thumbnail-data", 
-			(VipsCallbackFn) g_free, thumb_copy, ed->size );
-	}
-
-	return( 0 );
-}
-
 /* Need to fwd ref this.
  */
 static int
@@ -516,7 +500,9 @@ vips__exif_parse( VipsImage *image )
 	exif_data_foreach_content( ed, 
 		(ExifDataForeachContentFunc) vips_exif_get_content, &params );
 
-	vips_exif_get_thumbnail( image, ed );
+	vips_image_set_blob_copy( image, 
+		"jpeg-thumbnail-data", ed->data, ed->size );
+
 	exif_data_free( ed );
 
 	/* Orientation handling. ifd0 has the Orientation tag for the main

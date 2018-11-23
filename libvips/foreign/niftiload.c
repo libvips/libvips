@@ -500,14 +500,9 @@ vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
 
 	for( i = 0; i < nim->num_ext; i++ ) {
 		nifti1_extension *ext = &nim->ext_list[i];
-		char *data_copy;
 
 		vips_snprintf( txt, 256, "nifti-ext-%d-%d", i, ext->ecode );
-		if( !(data_copy = vips_malloc( NULL, ext->esize )) )
-			return( -1 );
-		memcpy( data_copy, ext->edata, ext->esize );
-		vips_image_set_blob( out, txt, 
-			(VipsCallbackFn) vips_free, data_copy, ext->esize );
+		vips_image_set_blob_copy( out, txt, ext->edata, ext->esize );
 	}
 
 	if( nim->ny > 1 )

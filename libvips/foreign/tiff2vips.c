@@ -1353,43 +1353,37 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	 */
 	if( TIFFGetField( rtiff->tiff, 
 		TIFFTAG_ICCPROFILE, &data_length, &data ) ) {
-		if( vips_image_set_blob_copy( rtiff, out, 
-			VIPS_META_ICC_NAME, data_length, data ) )
-			return( -1 );
+		vips_image_set_blob_copy( out, 
+			VIPS_META_ICC_NAME, data, data_length );
 	}
 
 	/* Read any XMP metadata.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
 		TIFFTAG_XMLPACKET, &data_length, &data ) ) {
-		if( vips_image_set_blob_copy( rtiff, out, 
-			VIPS_META_XMP_NAME, data_length, data ) )
-			return( -1 );
+		vips_image_set_blob_copy( out, 
+			VIPS_META_XMP_NAME, data, data_length );
 	}
 
 	/* Read any IPTC metadata.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
 		TIFFTAG_RICHTIFFIPTC, &data_length, &data ) ) {
-		if( vips_image_set_blob_copy( rtiff, out, 
-			VIPS_META_IPTC_NAME, data_length, data ) )
-			return( -1 );
+		vips_image_set_blob_copy( out, 
+			VIPS_META_IPTC_NAME, data, data_length );
 
 		/* Older versions of libvips used this misspelt name :-( attach 
 		 * under this name too for compatibility.
 		 */
-		if( vips_image_set_blob_copy( rtiff, out, 
-			"ipct-data", data_length, data ) )
-			return( -1 );
+		vips_image_set_blob_copy( out, "ipct-data", data, data_length );
 	}
 
 	/* Read any photoshop metadata.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
 		TIFFTAG_PHOTOSHOP, &data_length, &data ) ) {
-		if( vips_image_set_blob_copy( rtiff, out, 
-			VIPS_META_PHOTOSHOP_NAME, data_length, data ) )
-			return( -1 );
+		vips_image_set_blob_copy( out, 
+			VIPS_META_PHOTOSHOP_NAME, data, data_length );
 	}
 
 	/* IMAGEDESCRIPTION often has useful metadata.

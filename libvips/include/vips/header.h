@@ -196,7 +196,7 @@ int vips_image_get_area( const VipsImage *image,
 void vips_image_set_blob( VipsImage *image, 
 	const char *name, VipsCallbackFn free_fn, void *data, size_t length );
 void vips_image_set_blob_copy( VipsImage *image, 
-	const char *name, void *data, size_t length );
+	const char *name, const void *data, size_t length );
 int vips_image_get_blob( const VipsImage *image, const char *name, 
 	void **data, size_t *length );
 

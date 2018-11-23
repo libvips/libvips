@@ -254,18 +254,9 @@ read_header( Read *read, VipsImage *out )
 
 		WebPData data;
 
-		if( WebPMuxGetChunk( mux, webp, &data ) == WEBP_MUX_OK ) { 
-			void *blob;
-
-			if( !(blob = vips_malloc( NULL, data.size )) ) {
-				WebPMuxDelete( mux ); 
-				return( -1 ); 
-			}
-
-			memcpy( blob, data.bytes, data.size );
-			vips_image_set_blob( out, vips, 
-				(VipsCallbackFn) vips_free, blob, data.size );
-		}
+		if( WebPMuxGetChunk( mux, webp, &data ) == WEBP_MUX_OK )  
+			vips_image_set_blob_copy( out, 
+				vips, data.bytes, data.size );
 	}
 
 	WebPMuxDelete( mux ); 
