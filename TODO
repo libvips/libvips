@@ -1,12 +1,3 @@
-- use set_blob_copy everywhere we can
-
-- argh we now have two type sof BLOB, with and without invisible null
-  termination, with no way to tell them apart
-
-
-
-
-
 - try
 
 	$ vips gaussmat x.mat 0.1 0.1
