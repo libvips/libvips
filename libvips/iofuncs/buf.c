@@ -279,7 +279,7 @@ vips_buf_appendns( VipsBuf *buf, const char *str, int sz )
 	 */
 	cpy = VIPS_MIN( n, avail );
 
-	strncpy( buf->base + buf->i, str, cpy );
+	vips_strncpy( buf->base + buf->i, str, cpy );
 	buf->i += cpy;
 
 	if( buf->i >= buf->mx - 4 ) {
