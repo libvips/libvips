@@ -253,7 +253,7 @@ vips_foreign_load_tiff_buffer_get_flags( VipsForeignLoad *load )
 	VipsForeignFlags flags;
 
 	flags = 0;
-	if( vips__istifftiled_buffer( buffer->buf->data, buffer->buf->length ) ) 
+	if( vips__istifftiled_buffer( buffer->buf->data, buffer->buf->length ) )
 		flags |= VIPS_FOREIGN_PARTIAL;
 	else
 		flags |= VIPS_FOREIGN_SEQUENTIAL;

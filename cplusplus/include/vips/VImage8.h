@@ -629,6 +629,24 @@ public:
 	}
 
 	VImage 
+	bandand( VOption *options = 0 ) const
+	{
+		return( bandbool( VIPS_OPERATION_BOOLEAN_AND, options ) ); 
+	}
+
+	VImage 
+	bandor( VOption *options = 0 ) const
+	{
+		return( bandbool( VIPS_OPERATION_BOOLEAN_OR, options ) ); 
+	}
+
+	VImage 
+	bandeor( VOption *options = 0 ) const
+	{
+		return( bandbool( VIPS_OPERATION_BOOLEAN_EOR, options ) ); 
+	}
+
+	VImage 
 	real( VOption *options = 0 ) const
 	{
 		return( complexget( VIPS_OPERATION_COMPLEXGET_REAL, options ) );

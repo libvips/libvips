@@ -488,19 +488,10 @@ read_header( Read *read, VipsImage *out )
 
 		if( flags & vips__webp_names[i].flags ) {
 			WebPChunkIterator iter;
-			void *blob;
 
 			WebPDemuxGetChunk( read->demux, webp, 1, &iter );
-
-			if( !(blob = vips_malloc( NULL, iter.chunk.size )) ) {
-				WebPDemuxReleaseChunkIterator( &iter );
-				return( -1 ); 
-			}
-			memcpy( blob, iter.chunk.bytes, iter.chunk.size );
-			vips_image_set_blob( out, vips, 
-				(VipsCallbackFn) vips_free, 
-				blob, iter.chunk.size );
-
+			vips_image_set_blob_copy( out, 
+				vips, iter.chunk.bytes, iter.chunk.size );
 			WebPDemuxReleaseChunkIterator( &iter );
 		}
 	}

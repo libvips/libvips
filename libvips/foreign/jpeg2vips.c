@@ -309,8 +309,6 @@ find_chroma_subsample( struct jpeg_decompress_struct *cinfo )
 static int
 attach_blob( VipsImage *im, const char *field, void *data, int data_length )
 {
-	char *data_copy;
-
 	/* Only use the first one.
 	 */
 	if( vips_image_get_typeof( im, field ) ) {
@@ -325,11 +323,7 @@ attach_blob( VipsImage *im, const char *field, void *data, int data_length )
 	printf( "attach_blob: attaching %d bytes of %s\n", data_length, field );
 #endif /*DEBUG*/
 
-	if( !(data_copy = vips_malloc( NULL, data_length )) )
-		return( -1 );
-	memcpy( data_copy, data, data_length );
-	vips_image_set_blob( im, field, 
-		(VipsCallbackFn) vips_free, data_copy, data_length );
+	vips_image_set_blob_copy( im, field, data, data_length );
 
 	return( 0 );
 }

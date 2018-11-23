@@ -51,6 +51,9 @@
  * 	- add @shift option
  * 1/3/16
  * 	- better behaviour for shift of non-int types (thanks apacheark)
+ * 14/11/18
+ * 	- revise for better uint/int clipping [erdmann]
+ * 	- remove old overflow/underflow detect
  */
 
 /*
@@ -107,84 +110,30 @@ typedef struct _VipsCast {
 	VipsBandFormat format;
 	gboolean shift;
 
-	int underflow;		/* Number of underflows */
-	int overflow;		/* Number of overflows */
-
 } VipsCast;
 
 typedef VipsConversionClass VipsCastClass;
 
 G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 
-static void
-vips_cast_preeval( VipsImage *image, VipsProgress *progress, VipsCast *cast )
-{
-	cast->overflow = 0;
-	cast->underflow = 0;
-}
-
-static void
-vips_cast_posteval( VipsImage *image, VipsProgress *progress, VipsCast *cast )
-{
-	if( cast->overflow || 
-		cast->underflow ) 
-		g_warning( _( "%d underflows and %d overflows detected" ),
-			cast->underflow, cast->overflow );
-}
-
-/* Our sequence value: the region this sequence is using, and two local stats.
+/* Various saturated casts. We want to cast int to uchar, for example, and
+ * clip the range. X is an int.
  */
-typedef struct {
-	VipsRegion *ir;		/* Input region */
 
-	int underflow;		/* Number of underflows */
-	int overflow;		/* Number of overflows */
-} VipsCastSequence;
+#define CAST_UCHAR( X ) VIPS_CLIP( 0, (X), UCHAR_MAX )
+#define CAST_CHAR( X ) VIPS_CLIP( SCHAR_MIN, (X), SCHAR_MAX )
+#define CAST_USHORT( X ) VIPS_CLIP( 0, (X), USHRT_MAX )
+#define CAST_SHORT( X ) VIPS_CLIP( SHRT_MIN, (X), SHRT_MAX )
 
-/* Destroy a sequence value.
+/* We know the source cannot be the same as the dest, so we will only use
+ * CAST_UINT() for an INT source, and vice versa.
  */
-static int
-vips_cast_stop( void *vseq, void *a, void *b )
-{
-	VipsCastSequence *seq = (VipsCastSequence *) vseq;
-	VipsCast *cast = (VipsCast *) b;
-
-	/* Add to global stats.
-	 */
-	cast->underflow += seq->underflow;
-	cast->overflow += seq->overflow;
-
-	VIPS_FREEF( g_object_unref, seq->ir );
-
-	g_free( seq );
-
-	return( 0 );
-}
-
-/* Make a sequence value.
- */
-static void *
-vips_cast_start( VipsImage *out, void *a, void *b )
-{
-	VipsImage *in = (VipsImage *) a;
-	VipsCastSequence *seq;
-	 
-	seq = g_new( VipsCastSequence, 1 );
-	seq->ir = vips_region_new( in );
-	seq->overflow = 0;
-	seq->underflow = 0;
-
-	if( !seq->ir ) {
-		vips_cast_stop( seq, a, b );
-		return( NULL );
-	}
-
-	return( seq );
-}
+#define CAST_UINT( X ) VIPS_MAX( 0, (X) )
+#define CAST_INT( X ) VIPS_MIN( (X), INT_MAX )
 
 /* Rightshift an integer type, ie. sizeof(ITYPE) > sizeof(OTYPE).
  */
-#define VIPS_SHIFT_RIGHT( ITYPE, OTYPE ) { \
+#define SHIFT_RIGHT( ITYPE, OTYPE ) { \
 	ITYPE * restrict p = (ITYPE *) in; \
 	OTYPE * restrict q = (OTYPE *) out; \
 	int n = ((int) sizeof( ITYPE ) << 3) - ((int) sizeof( OTYPE ) << 3); \
@@ -198,7 +147,7 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 /* Leftshift an integer type, ie. sizeof(ITYPE) < sizeof(OTYPE). We need to
  * copy the bottom bit up into the fresh new bits
  */
-#define VIPS_SHIFT_LEFT( ITYPE, OTYPE ) { \
+#define SHIFT_LEFT( ITYPE, OTYPE ) { \
 	ITYPE * restrict p = (ITYPE *) in; \
 	OTYPE * restrict q = (OTYPE *) out; \
 	int n = ((int) sizeof( OTYPE ) << 3) - ((int) sizeof( ITYPE ) << 3); \
@@ -209,70 +158,66 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 		q[x] = (p[x] << n) | (((p[x] & 1) << n) - (p[x] & 1)); \
 }
 
-/* Cast int types to an int type.
+/* Cast int types to an int type. We need to pass in the type of the
+ * intermediate value, either uint or int, or we'll have problems with uint
+ * sources turning -ve.
  */
-#define VIPS_CLIP_INT_INT( ITYPE, OTYPE, VIPS_CLIP ) { \
+#define CAST_INT_INT( ITYPE, OTYPE, TEMP, CAST ) { \
 	ITYPE * restrict p = (ITYPE *) in; \
 	OTYPE * restrict q = (OTYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
-		int t = p[x]; \
+		TEMP t = (TEMP) p[x]; \
 		\
-		VIPS_CLIP( t, seq ); \
-		\
-		q[x] = t; \
+		q[x] = CAST( t ); \
 	} \
 }
 
 /* Int to int handling. 
  */
-#define VIPS_INT_INT( ITYPE, OTYPE, VIPS_CLIP ) { \
+#define INT_INT( ITYPE, OTYPE, TEMP, CAST ) { \
 	if( cast->shift && \
 		sizeof( ITYPE ) > sizeof( OTYPE ) ) { \
-		VIPS_SHIFT_RIGHT( ITYPE, OTYPE ); \
+		SHIFT_RIGHT( ITYPE, OTYPE ); \
 	} \
 	else if( cast->shift ) { \
-		VIPS_SHIFT_LEFT( ITYPE, OTYPE ); \
+		SHIFT_LEFT( ITYPE, OTYPE ); \
 	} \
 	else { \
-		VIPS_CLIP_INT_INT( ITYPE, OTYPE, VIPS_CLIP ); \
+		CAST_INT_INT( ITYPE, OTYPE, TEMP, CAST ); \
 	} \
 } 
 
 /* Cast float types to an int type.
  */
-#define VIPS_CLIP_FLOAT_INT( ITYPE, OTYPE, VIPS_CLIP ) { \
+#define CAST_FLOAT_INT( ITYPE, OTYPE, TEMP, CAST ) { \
 	ITYPE * restrict p = (ITYPE *) in; \
 	OTYPE * restrict q = (OTYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
-		ITYPE v = VIPS_FLOOR( p[x] ); \
+		TEMP v = VIPS_FLOOR( p[x] ); \
 		\
-		VIPS_CLIP( v, seq ); \
-		\
-		q[x] = v; \
+		q[x] = CAST( v ); \
 	} \
 }
 
 /* Cast complex types to an int type. Just take the real part.
  */
-#define VIPS_CLIP_COMPLEX_INT( ITYPE, OTYPE, VIPS_CLIP ) { \
+#define CAST_COMPLEX_INT( ITYPE, OTYPE, TEMP, CAST ) { \
 	ITYPE * restrict p = (ITYPE *) in; \
 	OTYPE * restrict q = (OTYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
-		ITYPE v = VIPS_FLOOR( p[0] ); \
+		TEMP v = VIPS_FLOOR( p[0] ); \
+		\
 		p += 2; \
-		\
-		VIPS_CLIP( v, seq ); \
-		\
-		q[x] = v; \
+		q[x] = CAST( v ); \
 	} \
 }
 
 /* Cast non-complex types to a float type.
  */
-#define VIPS_CLIP_REAL_FLOAT( ITYPE, OTYPE ) { \
+#define CAST_REAL_FLOAT( ITYPE, OTYPE ) { \
 	ITYPE * restrict p = (ITYPE *) in; \
 	OTYPE * restrict q = (OTYPE *) out; \
 	\
@@ -282,7 +227,7 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 
 /* Cast complex types to a float type ... just take real.
  */
-#define VIPS_CLIP_COMPLEX_FLOAT( ITYPE, OTYPE ) { \
+#define CAST_COMPLEX_FLOAT( ITYPE, OTYPE ) { \
 	ITYPE * restrict p = (ITYPE *) in; \
 	OTYPE * restrict q = (OTYPE *) out; \
 	\
@@ -294,7 +239,7 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 
 /* Cast any non-complex to a complex type ... set imaginary to zero.
  */
-#define VIPS_CLIP_REAL_COMPLEX( ITYPE, OTYPE ) { \
+#define CAST_REAL_COMPLEX( ITYPE, OTYPE ) { \
 	ITYPE * restrict p = (ITYPE *) in; \
 	OTYPE * restrict q = (OTYPE *) out; \
 	\
@@ -307,7 +252,7 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 
 /* Cast any complex to a complex type.
  */
-#define VIPS_CLIP_COMPLEX_COMPLEX( ITYPE, OTYPE ) { \
+#define CAST_COMPLEX_COMPLEX( ITYPE, OTYPE ) { \
 	ITYPE * restrict p = (ITYPE *) in; \
 	OTYPE * restrict q = (OTYPE *) out; \
 	\
@@ -322,27 +267,27 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 #define BAND_SWITCH_INNER( ITYPE, INT, FLOAT, COMPLEX ) { \
 	switch( conversion->out->BandFmt ) { \
 	case VIPS_FORMAT_UCHAR: \
-		INT( ITYPE, unsigned char, VIPS_CLIP_UCHAR ); \
+		INT( ITYPE, unsigned char, unsigned int, CAST_UCHAR ); \
 		break; \
 	\
 	case VIPS_FORMAT_CHAR: \
-		INT( ITYPE, signed char, VIPS_CLIP_CHAR ); \
+		INT( ITYPE, signed char, int, CAST_CHAR ); \
 		break; \
 	\
 	case VIPS_FORMAT_USHORT: \
-		INT( ITYPE, unsigned short, VIPS_CLIP_USHORT ); \
+		INT( ITYPE, unsigned short, unsigned int, CAST_USHORT ); \
 		break; \
 	\
 	case VIPS_FORMAT_SHORT: \
-		INT( ITYPE, signed short, VIPS_CLIP_SHORT ); \
+		INT( ITYPE, signed short, int, CAST_SHORT ); \
 		break; \
 	\
 	case VIPS_FORMAT_UINT: \
-		INT( ITYPE, unsigned int, VIPS_CLIP_UINT ); \
+		INT( ITYPE, unsigned int, unsigned int, CAST_UINT ); \
 		break; \
 	\
 	case VIPS_FORMAT_INT: \
-		INT( ITYPE, signed int, VIPS_CLIP_NONE ); \
+		INT( ITYPE, signed int, int, CAST_INT ); \
 		break; \
 	\
 	case VIPS_FORMAT_FLOAT: \
@@ -367,11 +312,9 @@ vips_cast_start( VipsImage *out, void *a, void *b )
 }
 
 static int
-vips_cast_gen( VipsRegion *or, void *vseq, void *a, void *b,
-	gboolean *stop )
+vips_cast_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 {
-	VipsCastSequence *seq = (VipsCastSequence *) vseq;
-	VipsRegion *ir = seq->ir;
+	VipsRegion *ir = (VipsRegion *) vseq;
 	VipsCast *cast = (VipsCast *) b;
 	VipsConversion *conversion = (VipsConversion *) b;
 	VipsRect *r = &or->valid;
@@ -391,72 +334,72 @@ vips_cast_gen( VipsRegion *or, void *vseq, void *a, void *b,
 		switch( ir->im->BandFmt ) { 
 		case VIPS_FORMAT_UCHAR: 
 			BAND_SWITCH_INNER( unsigned char,
-				VIPS_INT_INT, 
-				VIPS_CLIP_REAL_FLOAT, 
-				VIPS_CLIP_REAL_COMPLEX );
+				INT_INT, 
+				CAST_REAL_FLOAT, 
+				CAST_REAL_COMPLEX );
 			break; 
 
 		case VIPS_FORMAT_CHAR: 
 			BAND_SWITCH_INNER( signed char,
-				VIPS_INT_INT, 
-				VIPS_CLIP_REAL_FLOAT, 
-				VIPS_CLIP_REAL_COMPLEX );
+				INT_INT, 
+				CAST_REAL_FLOAT, 
+				CAST_REAL_COMPLEX );
 			break; 
 
 		case VIPS_FORMAT_USHORT: 
 			BAND_SWITCH_INNER( unsigned short,
-				VIPS_INT_INT, 
-				VIPS_CLIP_REAL_FLOAT, 
-				VIPS_CLIP_REAL_COMPLEX );
+				INT_INT, 
+				CAST_REAL_FLOAT, 
+				CAST_REAL_COMPLEX );
 			break; 
 
 		case VIPS_FORMAT_SHORT: 
 			BAND_SWITCH_INNER( signed short,
-				VIPS_INT_INT, 
-				VIPS_CLIP_REAL_FLOAT, 
-				VIPS_CLIP_REAL_COMPLEX );
+				INT_INT, 
+				CAST_REAL_FLOAT, 
+				CAST_REAL_COMPLEX );
 			break; 
 
 		case VIPS_FORMAT_UINT: 
 			BAND_SWITCH_INNER( unsigned int,
-				VIPS_INT_INT, 
-				VIPS_CLIP_REAL_FLOAT, 
-				VIPS_CLIP_REAL_COMPLEX );
+				INT_INT, 
+				CAST_REAL_FLOAT, 
+				CAST_REAL_COMPLEX );
 			break; 
 
 		case VIPS_FORMAT_INT: 
 			BAND_SWITCH_INNER( signed int,
-				VIPS_INT_INT, 
-				VIPS_CLIP_REAL_FLOAT, 
-				VIPS_CLIP_REAL_COMPLEX );
+				INT_INT, 
+				CAST_REAL_FLOAT, 
+				CAST_REAL_COMPLEX );
 			break; 
 
 		case VIPS_FORMAT_FLOAT: 
 			BAND_SWITCH_INNER( float,
-				VIPS_CLIP_FLOAT_INT, 
-				VIPS_CLIP_REAL_FLOAT, 
-				VIPS_CLIP_REAL_COMPLEX );
+				CAST_FLOAT_INT, 
+				CAST_REAL_FLOAT, 
+				CAST_REAL_COMPLEX );
 			break; 
 
 		case VIPS_FORMAT_DOUBLE: 
 			BAND_SWITCH_INNER( double,
-				VIPS_CLIP_FLOAT_INT, 
-				VIPS_CLIP_REAL_FLOAT, 
-				VIPS_CLIP_REAL_COMPLEX );
+				CAST_FLOAT_INT, 
+				CAST_REAL_FLOAT, 
+				CAST_REAL_COMPLEX );
 			break; 
 
 		case VIPS_FORMAT_COMPLEX: 
 			BAND_SWITCH_INNER( float,
-				VIPS_CLIP_COMPLEX_INT, 
-				VIPS_CLIP_COMPLEX_FLOAT, 
-				VIPS_CLIP_COMPLEX_COMPLEX );
+				CAST_COMPLEX_INT, 
+				CAST_COMPLEX_FLOAT, 
+				CAST_COMPLEX_COMPLEX );
 			break; 
 
 		case VIPS_FORMAT_DPCOMPLEX: 
 			BAND_SWITCH_INNER( double,
-				VIPS_CLIP_COMPLEX_INT, 
-				VIPS_CLIP_COMPLEX_FLOAT, 
-				VIPS_CLIP_COMPLEX_COMPLEX );
+				CAST_COMPLEX_INT, 
+				CAST_COMPLEX_FLOAT, 
+				CAST_COMPLEX_COMPLEX );
 			break; 
 
 		default: 
@@ -513,13 +456,8 @@ vips_cast_build( VipsObject *object )
 
 	conversion->out->BandFmt = cast->format;
 
-	g_signal_connect( in, "preeval", 
-		G_CALLBACK( vips_cast_preeval ), cast );
-	g_signal_connect( in, "posteval", 
-		G_CALLBACK( vips_cast_posteval ), cast );
-
 	if( vips_image_generate( conversion->out,
-		vips_cast_start, vips_cast_gen, vips_cast_stop, 
+		vips_start_one, vips_cast_gen, vips_stop_one, 
 		in, cast ) )
 		return( -1 );
 

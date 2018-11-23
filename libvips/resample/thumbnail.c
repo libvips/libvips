@@ -14,6 +14,8 @@
  * 31/10/18
  * 	- deprecate auto_rotate, add no_rotate
  * 	- implement shrink-on-load for openslide images
+ * 16/11/18
+ * 	- implement shrink-on-load for tiff pyramid 
  */
 
 /*
@@ -107,6 +109,10 @@ typedef struct _VipsThumbnail {
 	int level_width[MAX_LEVELS];
 	int level_height[MAX_LEVELS];
 
+	/* Try to get n-pages too, for pyr tiff load.
+	 */
+	int n_pages;
+
 } VipsThumbnail;
 
 typedef struct _VipsThumbnailClass {
@@ -174,6 +180,14 @@ vips_thumbnail_read_header( VipsThumbnail *thumbnail, VipsImage *image )
 	thumbnail->input_height = image->Ysize;
 	thumbnail->angle = vips_autorot_get_angle( image );
 
+	if( vips_image_get_typeof( image, "n-pages" ) ) {
+		int n_pages;
+
+		if( !vips_image_get_int( image, "n-pages", &n_pages ) ) 
+			thumbnail->n_pages = 
+				VIPS_CLIP( 1, n_pages, MAX_LEVELS );
+	}
+
 	/* For openslide, read out the level structure too.
 	 */
 	if( vips_isprefix( "VipsForeignLoadOpenslide", thumbnail->loader ) ) {
@@ -197,6 +211,55 @@ vips_thumbnail_read_header( VipsThumbnail *thumbnail, VipsImage *image )
 				get_int( image, name, 0 );
 		}
 	}
+}
+
+/* This may not be a pyr tiff, so no error if we can't find the layers. 
+ */
+static void
+vips_thumbnail_get_tiff_pyramid( VipsThumbnail *thumbnail ) 
+{
+	VipsThumbnailClass *class = VIPS_THUMBNAIL_GET_CLASS( thumbnail );
+	int i;
+
+	for( i = 0; i < thumbnail->n_pages; i++ ) {
+		VipsImage *page;
+		int level_width;
+		int level_height;
+		int expected_level_width;
+		int expected_level_height;
+
+		if( !(page = class->open( thumbnail, i )) )
+			return;
+		level_width = page->Xsize;
+		level_height = page->Ysize;
+		VIPS_UNREF( page );
+
+		/* Try to sanity-check the size of the pages. Do they look 
+		 * like a pyramid?
+		 */
+		expected_level_width = thumbnail->input_width / (1 << i);
+		expected_level_height = thumbnail->input_height / (1 << i);
+
+		/* Won't be exact due to rounding etc.
+		 */
+		if( abs( level_width - expected_level_width ) > 5 ||
+			level_width < 2 )
+			return;
+		if( abs( level_height - expected_level_height ) > 5 ||
+			level_height < 2 )
+			return;
+
+		thumbnail->level_width[i] = level_width;
+		thumbnail->level_height[i] = level_height;
+	}
+
+	/* Now set level_count. This signals that we've found a pyramid.
+	 */
+#ifdef DEBUG
+	printf( "vips_thumbnail_get_tiff_pyramid: %d layer pyramid detected\n",
+	     thumbnail->n_pages );
+#endif /*DEBUG*/
+	thumbnail->level_count = thumbnail->n_pages;
 }
 
 /* Calculate the shrink factor, taking into account auto-rotate, the fit mode,
@@ -313,7 +376,7 @@ vips_thumbnail_find_jpegshrink( VipsThumbnail *thumbnail,
 /* Find the best openslide level.
  */
 static int
-vips_thumbnail_find_openslidelevel( VipsThumbnail *thumbnail, 
+vips_thumbnail_find_pyrlevel( VipsThumbnail *thumbnail, 
 	int width, int height )
 {
 	int level;
@@ -349,6 +412,12 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 	g_info( "input size is %d x %d", 
 		thumbnail->input_width, thumbnail->input_height ); 
 
+	/* For tiff, we need to make a separate get_info() for each page to
+	 * get all the pyramid levels.
+	 */
+	if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) 
+		vips_thumbnail_get_tiff_pyramid( thumbnail );
+
 	factor = 1.0;
 
 	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
@@ -357,12 +426,12 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 
 		g_info( "loading jpeg with factor %g pre-shrink", factor ); 
 	}
-	else if( vips_isprefix( "VipsForeignLoadOpenslide", 
-		thumbnail->loader ) ) {
-		factor = vips_thumbnail_find_openslidelevel( thumbnail, 
+	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ||
+		vips_isprefix( "VipsForeignLoadOpenslide", thumbnail->loader ) ) {
+		factor = vips_thumbnail_find_pyrlevel( thumbnail, 
 			thumbnail->input_width, thumbnail->input_height );
 
-		g_info( "loading openslide level %g", factor ); 
+		g_info( "loading pyr level %g", factor ); 
 	}
 	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
 		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) {
@@ -384,6 +453,8 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 
 	if( !(im = class->open( thumbnail, factor )) )
 		return( NULL );
+
+	g_info( "pre-shrunk size is %d x %d", im->Xsize, im->Ysize ); 
 
 	return( im ); 
 }
@@ -787,6 +858,12 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 			"scale", factor,
 			NULL ) );
 	}
+	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) {
+		return( vips_image_new_from_file( file->filename, 
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"page", (int) factor,
+			NULL ) );
+	}
 	else {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
@@ -966,6 +1043,13 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 			buffer->buf->data, buffer->buf->length, "", 
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"scale", factor,
+			NULL ) );
+	}
+	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) {
+		return( vips_image_new_from_buffer( 
+			buffer->buf->data, buffer->buf->length, "", 
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"page", (int) factor,
 			NULL ) );
 	}
 	else {
