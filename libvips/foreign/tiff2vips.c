@@ -2049,6 +2049,9 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 
 	}
 
+	/* rows_per_strip can be very large if this is a separate plane image,
+	 * beware.
+	 */
 	if( 
 		vips_image_generate( t[0], 
 			NULL, rtiff_stripwise_generate, NULL, 
@@ -2059,7 +2062,6 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 		rtiff_autorotate( rtiff, t[1], &t[2] ) ||
 		rtiff_unpremultiply( rtiff, t[2], &t[3] ) ||
 		vips_image_write( t[3], out ) )
-
 		return( -1 );
 
 	return( 0 );
