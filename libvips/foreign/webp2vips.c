@@ -44,8 +44,8 @@
 
 /*
 #define DEBUG_VERBOSE
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -134,10 +134,20 @@ typedef struct {
 	 */
 	VipsImage *frame;
 
+	/* The frame number currently in @frame. Numbered from 1, so 0 means
+	 * before the first frame.
+	 */
+	int frame_no;
+
 	/* Iterate through the frames with this. iter.frame_num is the number
-	 * of the current loaded frame.
+	 * of the currently loaded frame.
 	 */
 	WebPIterator iter;
+
+	/* How to junk the current frame when we move on.
+	 */
+	WebPMuxAnimDispose dispose_method;
+	VipsRect dispose_rect;
 } Read;
 
 static void
@@ -332,6 +342,8 @@ read_new( const char *filename, const void *data, size_t length,
 	read->fd = 0;
 	read->demux = NULL;
 	read->frame = NULL;
+	read->dispose_method = WEBP_MUX_DISPOSE_NONE;
+	read->frame_no = 0;
 
 	if( read->filename ) { 
 		/* libwebp makes streaming from a file source very hard. We 
@@ -592,31 +604,22 @@ read_next_frame( Read *read )
 {
 	VipsImage *frame;
 
-	/* Any dispose action.
+	/* Dispose from the previous frame.
 	 */
-
-	if( read->iter.dispose_method == WEBP_MUX_DISPOSE_BACKGROUND ) {
+	if( read->dispose_method == WEBP_MUX_DISPOSE_BACKGROUND ) 
 		/* We must clear the pixels occupied by this webp frame (not 
 		 * the whole of the read frame) to the background colour.
 		 */
-		VipsRect area = { 
-			read->iter.x_offset, 
-			read->iter.y_offset,
-			read->iter.width, 
-			read->iter.height 
-		};
-
 		vips_image_paint_pel( read->frame, 
-			&area, (VipsPel *) &read->background );
-	}
+			&read->dispose_rect, (VipsPel *) &read->background );
 
-	/* Fetch the next frame.
+	/* Note this frame's dispose for next time.
 	 */
-
-	if( !WebPDemuxNextFrame( &read->iter ) ) {
-		vips_error( "webp2vips", "%s", _( "not enough frames" ) ); 
-		return( -1 );
-	}
+	read->dispose_method = read->iter.dispose_method;
+	read->dispose_rect.left = read->iter.x_offset; 
+	read->dispose_rect.top = read->iter.y_offset;
+	read->dispose_rect.width = read->iter.width;
+	read->dispose_rect.height = read->iter.height;
 
 #ifdef DEBUG
 	printf( "webp2vips: frame_num = %d\n", read->iter.frame_num );
@@ -649,12 +652,21 @@ read_next_frame( Read *read )
 
 	/* Now blend or copy the new pixels into our accumulator.
 	 */
-
 	vips_image_paint_image( read->frame, frame, 
 		read->iter.x_offset, read->iter.y_offset, 
 		read->iter.blend_method == WEBP_MUX_BLEND );
 
 	g_object_unref( frame );
+
+	/* If there's another frame, move on. 
+	 */
+	if( read->iter.frame_num < read->frame_count ) {
+		if( !WebPDemuxNextFrame( &read->iter ) ) {
+			vips_error( "webp2vips", 
+				"%s", _( "not enough frames" ) ); 
+			return( -1 );
+		}
+	}
 
 	return( 0 );
 }
@@ -666,7 +678,9 @@ read_webp_generate( VipsRegion *or,
         VipsRect *r = &or->valid;
 	Read *read = (Read *) a;
 
-	int frame = r->top / read->frame_height + read->page;
+	/* iter.frame_num numbers from 1.
+	 */
+	int frame = 1 + r->top / read->frame_height + read->page;
 	int line = r->top % read->frame_height;
 
 #ifdef DEBUG_VERBOSE
@@ -675,9 +689,12 @@ read_webp_generate( VipsRegion *or,
 
 	g_assert( r->height == 1 );
 
-	while( read->iter.frame_num < frame )
+	while( read->frame_no <= frame ) {
 		if( read_next_frame( read ) )
 			return( -1 );
+
+		read->frame_no += 1;
+	}
 
 	memcpy( VIPS_REGION_ADDR( or, 0, r->top ),
 		VIPS_IMAGE_ADDR( read->frame, 0, line ),
