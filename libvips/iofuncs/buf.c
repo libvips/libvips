@@ -275,11 +275,12 @@ vips_buf_appendns( VipsBuf *buf, const char *str, int sz )
 	 */
 	avail = buf->mx - buf->i - 4;
 
-	/* Amount we actually copy.
-	 */
 	cpy = VIPS_MIN( n, avail );
 
-	vips_strncpy( buf->base + buf->i, str, cpy );
+	/* Can't use vips_strncpy() here, we don't want to drop the end of the
+	 * string.
+	 */
+	strncpy( buf->base + buf->i, str, cpy );
 	buf->i += cpy;
 
 	if( buf->i >= buf->mx - 4 ) {
