@@ -9,6 +9,8 @@
  * 	- allow one mode ... reused for all joins
  * 11/8/18 [medakk]
  * 	- x/y params let you position images
+ * 27/11/18
+ * 	- don't stop on first non-transparent image [felixbuenemann]
  */
 
 /*
@@ -104,11 +106,6 @@ typedef struct _VipsCompositeBase {
 	 */
 	int *x_offset;
 	int *y_offset;
-
-	/* The number of inputs. This can be less than the number of images in
-	 * @in.
-	 */
-	int n;
 
 	/* The number of non-alpha bands we are blending.
 	 */
@@ -312,7 +309,7 @@ vips_composite_base_max_band( VipsCompositeBase *composite, double *max_band )
 		break;
 
 	case VIPS_INTERPRETATION_B_W:
-		max_band[0] = 256;
+		max_band[0] = 255;
 		break;
 
 	default:
@@ -793,7 +790,7 @@ vips_combine_pixels( VipsCompositeBase *composite, VipsPel *q, VipsPel **p )
 {
 	VipsBlendMode *mode = (VipsBlendMode *) composite->mode->area.data;
 	int n_mode = composite->mode->area.n;
-	int n = composite->n;
+	int n = composite->in->area.n;
 	int bands = composite->bands;
 	T * restrict tq = (T * restrict) q;
 	T ** restrict tp = (T ** restrict) p;
@@ -856,7 +853,7 @@ vips_combine_pixels3( VipsCompositeBase *composite, VipsPel *q, VipsPel **p )
 {
 	VipsBlendMode *mode = (VipsBlendMode *) composite->mode->area.data;
 	int n_mode = composite->mode->area.n;
-	int n = composite->n;
+	int n = composite->in->area.n;
 	T * restrict tq = (T * restrict) q;
 	T ** restrict tp = (T ** restrict) p;
 
@@ -924,6 +921,7 @@ vips_composite_base_gen( VipsRegion *output_region,
 	VipsCompositeBase *composite = (VipsCompositeBase *) b;
 	VipsRect *r = &output_region->valid;
 	int ps = VIPS_IMAGE_SIZEOF_PEL( output_region->im );
+	int n = composite->in->area.n;
 
 	if( vips_reorder_prepare_many( output_region->im, seq->ir, r ) )
 		return( -1 );
@@ -933,10 +931,10 @@ vips_composite_base_gen( VipsRegion *output_region,
 	for( int y = 0; y < r->height; y++ ) {
 		VipsPel *q;
 
-		for( int i = 0; i < composite->n; i++ )
+		for( int i = 0; i < n; i++ )
 			seq->p[i] = VIPS_REGION_ADDR( seq->ir[i],
 				r->left, r->top + y );
-		seq->p[composite->n] = NULL;
+		seq->p[n] = NULL;
 		q = VIPS_REGION_ADDR( output_region, r->left, r->top + y );
 
 		for( int x = 0; x < r->width; x++ ) {
@@ -1015,7 +1013,7 @@ vips_composite_base_gen( VipsRegion *output_region,
 				return( -1 );
 			}
 
-			for( int i = 0; i < composite->n; i++ )
+			for( int i = 0; i < n; i++ )
 				seq->p[i] += ps;
 			q += ps;
 		}
@@ -1033,27 +1031,28 @@ vips_composite_base_build( VipsObject *object )
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsCompositeBase *composite = (VipsCompositeBase *) object;
 
+	int n;
+	VipsBlendMode *mode;
 	VipsImage **in;
 	VipsImage **decode;
 	VipsImage **compositing;
 	VipsImage **format;
 	VipsImage **size;
-	VipsBlendMode *mode;
 
 	if( VIPS_OBJECT_CLASS( vips_composite_base_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	composite->n = composite->in->area.n;
+	n = composite->in->area.n;
 
-	if( composite->n <= 0 ) {
+	if( n <= 0 ) {
 		vips_error( klass->nickname, "%s", _( "no input images" ) );
 		return( -1 );
 	}
-	if( composite->mode->area.n != composite->n - 1 &&
+	if( composite->mode->area.n != n - 1 &&
 		composite->mode->area.n != 1 ) {
 		vips_error( klass->nickname, _( "must be 1 or %d blend modes" ),
-			composite->n - 1 );
+			n - 1 );
 		return( -1 );
 	}
 	mode = (VipsBlendMode *) composite->mode->area.data;
@@ -1069,16 +1068,15 @@ vips_composite_base_build( VipsObject *object )
 
 	in = (VipsImage **) composite->in->area.data;
 
-	decode = (VipsImage **) vips_object_local_array( object, composite->n );
-	for( int i = 0; i < composite->n; i++ )
+	decode = (VipsImage **) vips_object_local_array( object, n );
+	for( int i = 0; i < n; i++ )
 		if( vips_image_decode( in[i], &decode[i] ) )
 			return( -1 );
 	in = decode;
 
-	/* Are any of the images missing an alpha? The first missing alpha is
-	 * given a solid 255 and becomes the background image, shortening n.
+	/* Add a solid alpha to any images missing one. 
 	 */
-	for( int i = composite->n - 1; i >= 0; i-- )
+	for( int i = n - 1; i >= 0; i-- )
 		if( !vips_image_hasalpha( in[i] ) ) {
 			VipsImage *x;
 
@@ -1086,11 +1084,6 @@ vips_composite_base_build( VipsObject *object )
 				return( -1 );
 			g_object_unref( in[i] );
 			in[i] = x;
-
-			composite->n -= i;
-			in += i;
-
-			break;
 		}
 
 	/* Transform to compositing space. It defaults to sRGB or B_W, usually 
@@ -1101,14 +1094,14 @@ vips_composite_base_build( VipsObject *object )
 		gboolean any_16;
 
 		all_grey = TRUE;
-		for( int i = 0; i < composite->n; i++ )
+		for( int i = 0; i < n; i++ )
 			if( in[i]->Bands > 2 ) {
 				all_grey = FALSE;
 				break;
 			}
 
 		any_16 = FALSE;
-		for( int i = 0; i < composite->n; i++ )
+		for( int i = 0; i < n; i++ )
 			if( in[i]->Type == VIPS_INTERPRETATION_GREY16 ||
 				in[i]->Type == VIPS_INTERPRETATION_RGB16 ) {
 				any_16 = TRUE;
@@ -1125,8 +1118,8 @@ vips_composite_base_build( VipsObject *object )
 	}
 
 	compositing = (VipsImage **)
-		vips_object_local_array( object, composite->n );
-	for( int i = 0; i < composite->n; i++ )
+		vips_object_local_array( object, n );
+	for( int i = 0; i < n; i++ )
 		if( vips_colourspace( in[i], &compositing[i],
 			composite->compositing_space, (void *) NULL ) )
 			return( -1 );
@@ -1135,7 +1128,7 @@ vips_composite_base_build( VipsObject *object )
 	/* Check that they all now match in bands. This can fail for some
 	 * input combinations.
 	 */
-	for( int i = 1; i < composite->n; i++ )
+	for( int i = 1; i < n; i++ )
 		if( in[i]->Bands != in[0]->Bands ) {
 			vips_error( klass->nickname, 
 				"%s", _( "images do not have same "
@@ -1170,8 +1163,8 @@ vips_composite_base_build( VipsObject *object )
 	/* Transform the input images to match format. We may have
 	 * mixed float and double, for example.  
 	 */
-	format = (VipsImage **) vips_object_local_array( object, composite->n );
-	if( vips__formatalike_vec( in, format, composite->n ) )
+	format = (VipsImage **) vips_object_local_array( object, n );
+	if( vips__formatalike_vec( in, format, n ) )
 		return( -1 );
 	in = format;
 
@@ -1182,14 +1175,14 @@ vips_composite_base_build( VipsObject *object )
 		int width = vips_image_get_width( in[0] );
 		int height = vips_image_get_height( in[0] );
 		VipsImage **position = (VipsImage **) 
-			vips_object_local_array( object, composite->n );
+			vips_object_local_array( object, n );
 
 		/* The zero image does not move.
 		 */
 		g_object_ref( in[0] );
 		position[0] = in[0];
 
-		for( int i = 1; i < composite->n; i++ ) 
+		for( int i = 1; i < n; i++ ) 
 			if( vips_embed( in[i], &position[i], 
 				composite->x_offset[i - 1], 
 				composite->y_offset[i - 1], 
@@ -1202,8 +1195,8 @@ vips_composite_base_build( VipsObject *object )
 	/* Transform the input images to match in size. They can be mismatched
 	 * if there was no supplied x/y.
 	 */
-	size = (VipsImage **) vips_object_local_array( object, composite->n );
-	if( vips__sizealike_vec( in, size, composite->n ) )
+	size = (VipsImage **) vips_object_local_array( object, n );
+	if( vips__sizealike_vec( in, size, n ) )
 		return( -1 );
 	in = size;
 
