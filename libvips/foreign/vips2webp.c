@@ -42,9 +42,9 @@
  */
 
 /*
- */
 #define DEBUG
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -432,8 +432,8 @@ vips_webp_add_chunks( VipsWebPWrite *write, VipsImage *image )
 {
 	int i;
 
-	if( vips_image_get_typeof( image, "gif-count" ) ) 
-		vips_webp_set_count( write, get_int( image, "gif-count", 0 ) );
+	if( vips_image_get_typeof( image, "gif-loop" ) )
+		vips_webp_set_count( write, get_int( image, "gif-loop", 0 ) );
 
 	for( i = 0; i < vips__n_webp_names; i++ ) { 
 		const char *vips_name = vips__webp_names[i].vips;

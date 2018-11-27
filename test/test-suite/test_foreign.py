@@ -492,6 +492,18 @@ class TestForeign:
                 y = pyvips.Image.new_from_buffer(buf, "")
                 assert y.get("orientation") == 6
 
+        # try converting an animated gif to webp ... can't do back to gif
+        # again without IM support
+        if have("gifload"):
+            x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
+            w1 = x1.webpsave_buffer(Q=10)
+            x2 = pyvips.Image.new_from_buffer(w1, "", n=-1)
+            assert x1.width == x2.width
+            assert x1.height == x2.height
+            assert x1.get("gif-delay") == x2.get("gif-delay")
+            assert x1.get("page-height") == x2.get("page-height")
+            assert x1.get("gif-loop") == x2.get("gif-loop")
+
     @skip_if_no("analyzeload")
     def test_analyzeload(self):
         def analyze_valid(im):
