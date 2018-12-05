@@ -1,5 +1,7 @@
 21/11/18 started 8.7.2
 - more info output for temp files to help diagnose problems
+- vips_text() could set the wrong DPI
+- vips_text() leaked in autofit mode
 
 23/9/18 started 8.7.1
 - update function list in docs [janko-m] 
