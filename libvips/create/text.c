@@ -22,6 +22,9 @@
  * 	- better fitting of fonts with overhanging edges, thanks Adrià 
  * 26/4/18 fangqiao 
  * 	- add fontfile option
+ * 5/12/18 
+ * 	- fitting mode could set wrong dpi
+ * 	- fitting mode leaked
  */
 
 /*
@@ -170,8 +173,6 @@ vips_text_get_extents( VipsText *text, VipsRect *extents )
 
 	pango_ft2_font_map_set_resolution( 
 		PANGO_FT2_FONT_MAP( vips_text_fontmap ), text->dpi, text->dpi );
-	text->context = pango_font_map_create_context( 
-		PANGO_FONT_MAP( vips_text_fontmap ) );
 
 	if( !(text->layout = text_layout_new( text->context, 
 		text->text, text->font, 
@@ -180,17 +181,18 @@ vips_text_get_extents( VipsText *text, VipsRect *extents )
 
 	pango_layout_get_pixel_extents( text->layout, 
 		&ink_rect, &logical_rect );
-
 	extents->left = ink_rect.x;
 	extents->top = ink_rect.y;
 	extents->width = ink_rect.width;
 	extents->height = ink_rect.height;
 
 #ifdef DEBUG
-	printf( "vips_text_get_extents: dpi = %d, "
-		"left = %d, top = %d, width = %d, height = %d\n",
-		text->dpi, 
-		extents->left, extents->top, extents->width, extents->height );
+	printf( "vips_text_get_extents: dpi = %d\n", text->dpi ); 
+	printf( "    ink left = %d, top = %d, width = %d, height = %d\n",
+		ink_rect.x, ink_rect.y, ink_rect.width, ink_rect.height );
+	printf( "    logical left = %d, top = %d, width = %d, height = %d\n",
+		logical_rect.x, logical_rect.y, 
+		logical_rect.width, logical_rect.height );
 #endif /*DEBUG*/
 
 	return( 0 );
@@ -215,26 +217,31 @@ vips_text_rect_difference( VipsRect *target, VipsRect *extents )
 /* Adjust text->dpi to try to fit to the bounding box.
  */
 static int
-vips_text_autofit( VipsText *text, VipsRect *out_extents ) 
+vips_text_autofit( VipsText *text )
 {
 	VipsRect target;
 	VipsRect extents;
-	VipsRect previous_extents;
 	int difference;
 	int previous_difference;
 	int previous_dpi;
 
 	int lower_dpi;
 	int upper_dpi;
-	VipsRect lower_extents;
-	VipsRect upper_extents;
 
 	/* First, repeatedly double or halve dpi until we pass the correct
 	 * value. This will give us a lower and upper bound.
 	 */
+	target.left = 0;
+	target.top = 0;
 	target.width = text->width;
 	target.height = text->height;
 	previous_dpi = -1;
+
+#ifdef DEBUG
+	printf( "vips_text_autofit: "
+		"target left = %d, top = %d, width = %d, height = %d\n",
+		target.left, target.top, target.width, target.height );
+#endif /*DEBUG*/
 
 	for(;;) { 
 		if( vips_text_get_extents( text, &extents ) )
@@ -246,7 +253,6 @@ vips_text_autofit( VipsText *text, VipsRect *out_extents )
 		if( previous_dpi == -1 ) {
 			previous_dpi = text->dpi;
 			previous_difference = difference;
-			previous_extents = extents;
 		}
 
 		/* Hit the size, or we straddle the target.
@@ -256,7 +262,6 @@ vips_text_autofit( VipsText *text, VipsRect *out_extents )
 			break;
 
 		previous_difference = difference;
-		previous_extents = extents;
 		previous_dpi = text->dpi;
 
 		text->dpi = difference < 0 ? text->dpi * 2 : text->dpi / 2;
@@ -266,16 +271,17 @@ vips_text_autofit( VipsText *text, VipsRect *out_extents )
 		/* We've been coming down.
 		 */
 		lower_dpi = text->dpi;
-		lower_extents = extents;
 		upper_dpi = previous_dpi;
-		upper_extents = previous_extents;
 	}
 	else {
 		lower_dpi = previous_dpi;
-		lower_extents = previous_extents;
 		upper_dpi = text->dpi;
-		upper_extents = extents;
 	}
+
+#ifdef DEBUG
+	printf( "vips_text_autofit: lower dpi = %d, upper dpi = %d\n",
+		lower_dpi, upper_dpi );
+#endif /*DEBUG*/
 
 	/* Refine lower and upper until they are almost touching.
 	 */
@@ -288,30 +294,25 @@ vips_text_autofit( VipsText *text, VipsRect *out_extents )
 		target.top = extents.top;
 		difference = vips_text_rect_difference( &target, &extents );
 
-		if( difference < 0 ) { 
+		if( difference < 0 ) 
 			lower_dpi = text->dpi;
-			lower_extents = extents;
-		}
-		else {
+		else
 			upper_dpi = text->dpi;
-			upper_extents = extents;
-		}
 	}
 
 	/* If we've hit the target exactly and quit the loop, diff will be 0
 	 * and we can use upper. Otherwise we are straddling the target and we
 	 * must take lower.
 	 */
-	if( difference == 0 ) {
+	if( difference == 0 ) 
 		text->dpi = upper_dpi;
-		*out_extents = upper_extents;
-	}
-	else {
+	else 
 		text->dpi = lower_dpi;
-		*out_extents = lower_extents;
-	}
-
 	g_object_set( text, "autofit_dpi", text->dpi, NULL ); 
+
+#ifdef DEBUG
+	printf( "vips_text_autofit: final dpi = %d\n", text->dpi );
+#endif /*DEBUG*/
 
 	return( 0 ); 
 }
@@ -340,6 +341,9 @@ vips_text_build( VipsObject *object )
 	if( !vips_text_fontmap )
 		vips_text_fontmap = pango_ft2_font_map_new();
 
+	text->context = pango_font_map_create_context( 
+		PANGO_FONT_MAP( vips_text_fontmap ) );
+
 	if( text->fontfile &&
 		!FcConfigAppFontAddFile( NULL, 
 			(const FcChar8 *) text->fontfile ) ) {
@@ -354,15 +358,14 @@ vips_text_build( VipsObject *object )
 	 */
 	if( vips_object_argument_isset( object, "height" ) &&
 		!vips_object_argument_isset( object, "dpi" ) ) {
-		if( vips_text_autofit( text, &extents ) )
+		if( vips_text_autofit( text ) )
 			return( -1 );
 	}
-	else
-		if( vips_text_get_extents( text, &extents ) )
-			return( -1 );
 
-	/* Can happen for "", for example.
+	/* Layout. Can fail for "", for example.
 	 */
+	if( vips_text_get_extents( text, &extents ) )
+		return( -1 );
 	if( extents.width == 0 || 
 		extents.height == 0 ) {
 		vips_error( class->nickname, "%s", _( "no text to render" ) );
