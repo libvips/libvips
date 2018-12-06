@@ -20,21 +20,16 @@ ZLIB_LIBS=""
 # order.
 pdfium_objects="\
 	libpdfium.a \
-	libfpdfapi.a \
-	libfxge.a \
-	libfpdfdoc.a \
-	libfxcrt.a \
-	libfx_agg.a \
-	libfxcodec.a \
-	libfx_lpng.a \
-	libfx_libopenjpeg.a \
-	libfx_lcms2.a \
-	libfx_freetype.a \
+	libchrome_zlib.a \
+	libgmock_main.a \
+	libicui18n.a \
+	libicuuc.a \
 	libjpeg.a \
-	libfdrm.a \
-	libpwl.a \
-	libbigint.a \
-	libformfiller.a"
+	libminizip.a \
+	libzlib_x86_simd.a \
+	libsimd.a \
+	libsimd_asm.a \
+	libyasm_utils.a"
 
 AC_ARG_WITH(pdfium, 
   AS_HELP_STRING([--without-pdfium], [build without pdfium (default: test)]))
@@ -74,6 +69,7 @@ if test "$PDFIUM_INCLUDES" = ""; then
 fi
 
 # Now for the libraries ... if there's nothing set, try $PREFIX/lib 
+# we must link with g++ for pdfium
 if test "$PDFIUM_LIBS" = ""; then
   pdfium_save_LIBS="$LIBS"
   pdfium_save_CPPFLAGS="$CPPFLAGS"
@@ -83,15 +79,14 @@ if test "$PDFIUM_LIBS" = ""; then
     LIBS="$LIBS $prefix/lib/pdfium-obj/$i"
   done
   LIBS="$LIBS -L$prefix/lib -lm -lpthread"
-  CPPFLAGS="$PDFIUM_INCLUDES $CPPFLAGS"
+  CPPFLAGS="$PDFIUM_INCLUDES $CPPFLAGS -std=c++11"
 
-  AC_TRY_LINK([#include <fpdfview.h>],
-    [FPDF_DOCUMENT doc; doc = FPDF_LoadDocument("", "")], [
-     PDFIUM_LIBS="${prefix}/lib"
-    ], [
-     PDFIUM_LIBS=no
-    ]
-  )
+  AC_LANG(C++)
+  AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([#include <fpdfview.h>],
+      [FPDF_DOCUMENT doc; doc = FPDF_LoadDocument("", "")])],
+    [PDFIUM_LIBS="${prefix}/lib"],
+    [PDFIUM_LIBS=no])
 
   LIBS="$pdfium_save_LIBS"
   CPPFLAGS="$pdfium_save_CPPFLAGS"

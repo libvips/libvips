@@ -444,6 +444,9 @@ vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
  * frames between frames. Setting 0 means no keyframes. By default, keyframes
  * are disabled.
  *
+ * Use the metadata items `gif-loop` and `gif-delay` to set the number of
+ * loops for the animation and the frame delay.
+ *
  * The writer will attach ICC, EXIF and XMP metadata, unless @strip is set to
  * %TRUE.
  *
