@@ -11,7 +11,8 @@
  * 	- x/y params let you position images
  * 27/11/18
  * 	- don't stop on first non-transparent image [felixbuenemann]
- * 	- composite in scanlines, not pixels [jcupitt]
+ * 6/12/18
+ *	- do our own subimage positioning
  */
 
 /*
@@ -108,6 +109,11 @@ typedef struct _VipsCompositeBase {
 	int *x_offset;
 	int *y_offset;
 
+	/* A rect for the position of each input image. For each output region, 
+	 * we composite the set of input images which intersect that area.
+	 */
+	VipsRect *subimages;
+
 	/* The number of non-alpha bands we are blending.
 	 */
 	int bands;
@@ -147,6 +153,7 @@ vips_composite_base_dispose( GObject *gobject )
 		vips_area_unref( (VipsArea *) composite->mode );
 		composite->mode = NULL;
 	}
+	VIPS_FREE( composite->subimages );
 
 	G_OBJECT_CLASS( vips_composite_base_parent_class )->dispose( gobject );
 }
@@ -156,20 +163,29 @@ vips_composite_base_dispose( GObject *gobject )
 typedef struct {
 	VipsCompositeBase *composite;
 
-	/* Set of input regions.
+	/* Full set of input regions, each made on the corresponding input
+	 * image.
 	 */
-	VipsRegion **ir;
+	VipsRegion **input_regions;
 
-	/* For each input, an input pointer.
+	/* We then vips_region_prepare_to() to one of this set of regions,
+	 * each defined on the base image.
+	 */
+	VipsRegion **composite_regions;
+
+	/* Number of input regions which intersect this request rect.
+	 */
+	int n;
+
+	/* For each of @n above (inputs which intersect this request), the
+	 * index of the input image we need. We can use this index to get the
+	 * position, input region and composite region.
+	 */
+	int *enabled;
+
+	/* For each enabled image, an input pointer.
 	 */
 	VipsPel **p;
-
-	/* We composite images a scanline at a time, working up the image
-	 * stack. Keep intermediate pixels in this scanline buffer. 
-	 *
-	 * This will be float for the vector path, double otherwise.
-	 */
-	double *scanline;
 
 } VipsCompositeSequence;
 
@@ -178,16 +194,20 @@ vips_composite_stop( void *vseq, void *a, void *b )
 {
 	VipsCompositeSequence *seq = (VipsCompositeSequence *) vseq;
 
-	if( seq->ir ) {
-		int i;
-
-		for( i = 0; seq->ir[i]; i++ )
-			VIPS_UNREF( seq->ir[i] );
-		VIPS_FREE( seq->ir );
+	if( seq->input_regions ) {
+		for( int i = 0; seq->input_regions[i]; i++ )
+			VIPS_UNREF( seq->input_regions[i] );
+		VIPS_FREE( seq->input_regions );
 	}
 
+	if( seq->composite_regions ) {
+		for( int i = 0; seq->composite_regions[i]; i++ )
+			VIPS_UNREF( seq->composite_regions[i] );
+		VIPS_FREE( seq->composite_regions );
+	}
+
+	VIPS_FREE( seq->enabled );
 	VIPS_FREE( seq->p );
-	VIPS_FREE( seq->scanline );
 
 	VIPS_FREE( seq );
 
@@ -207,7 +227,8 @@ vips_composite_start( VipsImage *out, void *a, void *b )
 		return( NULL );
 
 	seq->composite = composite;
-	seq->ir = NULL;
+	seq->input_regions = NULL;
+	seq->enabled = NULL;
 	seq->p = NULL;
 
 	/* How many images?
@@ -217,36 +238,42 @@ vips_composite_start( VipsImage *out, void *a, void *b )
 
 	/* Allocate space for region array.
 	 */
-	if( !(seq->ir = VIPS_ARRAY( NULL, n + 1, VipsRegion * )) ) {
+	if( !(seq->input_regions = VIPS_ARRAY( NULL, n + 1, VipsRegion * )) ) {
+		vips_composite_stop( seq, NULL, NULL );
+		return( NULL );
+	}
+	for( i = 0; i < n + 1; i++ ) 
+		seq->input_regions[i] = NULL;
+
+	if( !(seq->composite_regions = 
+		VIPS_ARRAY( NULL, n + 1, VipsRegion * )) ) {
+		vips_composite_stop( seq, NULL, NULL );
+		return( NULL );
+	}
+	for( i = 0; i < n + 1; i++ ) 
+		seq->composite_regions[i] = NULL;
+
+	seq->enabled = VIPS_ARRAY( NULL, n, int );
+	seq->p = VIPS_ARRAY( NULL, n, VipsPel * );
+	if( !seq->enabled ||
+		!seq->p ) {
 		vips_composite_stop( seq, NULL, NULL );
 		return( NULL );
 	}
 
 	/* Create a set of regions.
 	 */
-	for( i = 0; i < n; i++ )
-		if( !(seq->ir[i] = vips_region_new( in[i] )) ) {
+	for( i = 0; i < n; i++ ) {
+		seq->input_regions[i] = vips_region_new( in[i] );
+		seq->composite_regions[i] = vips_region_new( in[0] );
+
+		if( !seq->input_regions[i] ||
+			!seq->composite_regions[i] ) {
 			vips_composite_stop( seq, NULL, NULL );
 			return( NULL );
 		}
+	}
 	
-	seq->ir[n] = NULL;
-
-	/* Input pointers.
-	 */
-	if( !(seq->p = VIPS_ARRAY( NULL, n + 1, VipsPel * )) ) {
-		vips_composite_stop( seq, NULL, NULL );
-		return( NULL );
-	}
-
-	/* Scanline buffer.
-	 */
-	if( !(seq->scanline = 
-		VIPS_ARRAY( NULL, in[0]->Xsize * in[0]->Bands, double )) ) {
-		vips_composite_stop( seq, NULL, NULL );
-		return( NULL );
-	}
-
 	return( seq );
 }
 
@@ -346,13 +373,13 @@ vips_composite_base_max_band( VipsCompositeBase *composite, double *max_band )
  * xB	colour band of source B
  */
 
-/* A is the new scaline coming in, of any non-complex type T. 
+/* A is the new pixel coming in, of any non-complex type T. 
  *
  * We must scale incoming pixels to 0 - 1 by dividing by the scale[] vector.
  *
  * If premultipled is not set, we premultiply incoming pixels before blending.
  *
- * B is the double scanline we are accumulating. 
+ * B is the double pixel we are accumulating. 
  */
 template <typename T>
 static void
@@ -541,8 +568,7 @@ vips_composite_base_blend( VipsCompositeBase *composite,
 				double g;
 
 				if( B[b] <= 0.25 ) 
-					g = ((16 * B[b] - 12) * 
-						B[b] + 4) * B[b];
+					g = ((16 * B[b] - 12) * B[b] + 4) * B[b];
 				else 
 					g = sqrt( B[b] );
 
@@ -804,204 +830,132 @@ vips_composite_base_blend3( VipsCompositeBase *composite,
  */
 template <typename T, gint64 min_T, gint64 max_T>
 static void 
-vips_combine_pixels( VipsCompositeBase *composite, 
-	VipsPel *q, VipsPel **p, double *scanline, int width )
+vips_combine_pixels( VipsCompositeSequence *seq, VipsPel *q )
 {
+	VipsCompositeBase *composite = seq->composite;
 	VipsBlendMode *mode = (VipsBlendMode *) composite->mode->area.data;
 	int n_mode = composite->mode->area.n;
-	int n = composite->in->area.n;
+	int n = seq->n;
 	int bands = composite->bands;
 	T * restrict tq = (T * restrict) q;
-	T ** restrict tp = (T ** restrict) p;
+	T ** restrict tp = (T ** restrict) seq->p;
 
-	double *B1;
-	T * restrict tp1;
-	T * restrict tq1;
+	double B[MAX_BANDS + 1];
+	double aB;
 
-	/* Load and scale the base scanline to 0 - 1.
+	/* Load and scale the base pixel to 0 - 1.
 	 */
-	B1 = scanline;
-	tp1 = tp[0];
-	for( int x = 0; x < width; x++ ) {
-		for( int b = 0; b <= bands; b++ ) 
-			B1[b] = tp1[b] / composite->max_band[b];
+	for( int b = 0; b <= bands; b++ )
+		B[b] = tp[0][b] / composite->max_band[b];
 
-		if( !composite->premultiplied ) {
-			double aB = B1[bands];
-
-			for( int b = 0; b < bands; b++ )
-				B1[b] *= aB;
-		}
-
-		B1 += bands + 1;
-		tp1 += bands + 1;
-	}
+	aB = B[bands];
+	if( !composite->premultiplied )
+		for( int b = 0; b < bands; b++ )
+			B[b] *= aB;
 
 	for( int i = 1; i < n; i++ ) {
 		VipsBlendMode m = n_mode == 1 ? mode[0] : mode[i - 1];
 
-		B1 = scanline;
-		tp1 = tp[i];
-		for( int x = 0; x < width; x++ ) {
-			vips_composite_base_blend<T>( composite, m, B1, tp1 ); 
-
-			B1 += bands + 1;
-			tp1 += bands + 1;
-		}
+		vips_composite_base_blend<T>( composite, m, B, tp[i] ); 
 	}
 
-	/* Write back as a full range pixel, clipping to range. Unpremultiply, 
-	 * if necessary.
+	/* Unpremultiply, if necessary.
 	 */
-	B1 = scanline;
-	tq1 = tq;
-	for( int x = 0; x < width; x++ ) {
-		if( !composite->premultiplied ) {
-			double aR = B1[bands];
+	if( !composite->premultiplied ) {
+		double aR = B[bands];
 
-			if( aR == 0 )
-				for( int b = 0; b < bands; b++ )
-					B1[b] = 0;
-			else
-				for( int b = 0; b < bands; b++ )
-					B1[b] = B1[b] / aR;
+		if( aR == 0 )
+			for( int b = 0; b < bands; b++ )
+				B[b] = 0;
+		else
+			for( int b = 0; b < bands; b++ )
+				B[b] = B[b] / aR;
+	}
+
+	/* Write back as a full range pixel, clipping to range.
+	 */
+	for( int b = 0; b <= bands; b++ ) {
+		double v;
+
+		v = B[b] * composite->max_band[b];
+		if( min_T != 0 || 
+			max_T != 0 ) {
+			v = VIPS_CLIP( min_T, v, max_T ); 
 		}
 
-		for( int b = 0; b <= bands; b++ ) {
-			double v;
-
-			v = B1[b] * composite->max_band[b];
-			if( min_T != 0 || 
-				max_T != 0 ) {
-				v = VIPS_CLIP( min_T, v, max_T ); 
-			}
-
-			tq1[b] = v;
-		}
-
-		B1 += bands + 1;
-		tq1 += bands + 1;
+		tq[b] = v;
 	}
 }
 
 #ifdef HAVE_VECTOR_ARITH
-/* Three band (four with alpha) vector case. Non-double output. min_T and 
+/* Three band (four with alpha) vecvtior case. Non-double output. min_T and 
  * max_T are the numeric range for this type. 0, 0 means no limit,
  * for example float.
  */
 template <typename T, gint64 min_T, gint64 max_T>
 static void 
-vips_combine_pixels3( VipsCompositeBase *composite, 
-	VipsPel *q, VipsPel **p, double *scanline, int width )
+vips_combine_pixels3( VipsCompositeSequence *seq, VipsPel *q )
 {
+	VipsCompositeBase *composite = seq->composite;
 	VipsBlendMode *mode = (VipsBlendMode *) composite->mode->area.data;
 	int n_mode = composite->mode->area.n;
-	int n = composite->in->area.n;
+	int n = seq->n;
 	T * restrict tq = (T * restrict) q;
-	T ** restrict tp = (T ** restrict) p;
+	T ** restrict tp = (T ** restrict) seq->p;
 
-	float *B1;
-	T * restrict tp1;
-	T * restrict tq1;
+	v4f B;
+	float aB;
 
-	printf( "on vector path\n" );
+	B[0] = tp[0][0];
+	B[1] = tp[0][1];
+	B[2] = tp[0][2];
+	B[3] = tp[0][3];
 
-	B1 = (float *) scanline;
-	tp1 = tp[0];
-	for( int x = 0; x < width; x++ ) { 
-		v4f B;
-		float aB;
+	/* Scale the base pixel to 0 - 1.
+	 */
+	B /= composite->max_band_vec;
+	aB = B[3];
 
-		B[0] = tp1[0];
-		B[1] = tp1[1];
-		B[2] = tp1[2];
-		B[3] = tp1[3];
-
-		/* Scale the base pixel to 0 - 1.
-		 */
-		B /= composite->max_band_vec;
-		aB = B[3];
-
-		if( !composite->premultiplied ) {
-			B *= aB;
-			B[3] = aB;
-		}
-
-		B1[0] = B[0];
-		B1[1] = B[1];
-		B1[2] = B[2];
-		B1[3] = B[3];
-
-		B1 += 4;
-		tp1 += 4;
+	if( !composite->premultiplied ) {
+		B *= aB;
+		B[3] = aB;
 	}
 
 	for( int i = 1; i < n; i++ ) {
 		VipsBlendMode m = n_mode == 1 ? mode[0] : mode[i - 1];
 
-		B1 = (float *) scanline;
-		tp1 = tp[i];
-		for( int x = 0; x < width; x++ ) {
-			v4f B;
+		vips_composite_base_blend3<T>( composite, m, B, tp[i] ); 
+	}
 
-			B[0] = B1[0];
-			B[1] = B1[1];
-			B[2] = B1[2];
-			B[3] = B1[3];
+	/* Unpremultiply, if necessary.
+	 */
+	if( !composite->premultiplied ) {
+		float aR = B[3];
 
-			vips_composite_base_blend3<T>( composite, m, B, tp1 ); 
-
-			B1[0] = B[0];
-			B1[1] = B[1];
-			B1[2] = B[2];
-			B1[3] = B[3];
-
-			B1 += 4;
-			tp1 += 4;
+		if( aR == 0 )
+			for( int b = 0; b < 3; b++ ) 
+				B[b] = 0;
+		else {
+			B /= aR;
+			B[3] = aR;
 		}
 	}
 
-	B1 = (float *) scanline;
-	tq1 = tq;
-	for( int x = 0; x < width; x++ ) { 
-		v4f B;
+	/* Write back as a full range pixel, clipping to range.
+	 */
+	B *= composite->max_band_vec;
+	if( min_T != 0 || 
+		max_T != 0 ) {
+		float low = min_T;
+		float high = max_T;
 
-		B[0] = B1[0];
-		B[1] = B1[1];
-		B[2] = B1[2];
-		B[3] = B1[3];
-
-		/* Unpremultiply, if necessary.
-		 */
-		if( !composite->premultiplied ) {
-			float aR = B[3];
-
-			if( aR == 0 )
-				for( int b = 0; b < 3; b++ ) 
-					B[b] = 0;
-			else {
-				B /= aR;
-				B[3] = aR;
-			}
-		}
-
-		B *= composite->max_band_vec;
-		if( min_T != 0 || 
-			max_T != 0 ) {
-			float low = min_T;
-			float high = max_T;
-
-			B = VIPS_CLIP( low, B, high );
-		}
-
-		tq1[0] = B[0];
-		tq1[1] = B[1];
-		tq1[2] = B[2];
-		tq1[3] = B[3];
-
-		B1 += 4;
-		tq1 += 4;
+		B = VIPS_CLIP( low, B, high );
 	}
+
+	tq[0] = B[0];
+	tq[1] = B[1];
+	tq[2] = B[2];
+	tq[3] = B[3];
 }
 #endif /*HAVE_VECTOR_ARITH*/
 
@@ -1012,106 +966,156 @@ vips_composite_base_gen( VipsRegion *output_region,
 	VipsCompositeSequence *seq = (VipsCompositeSequence *) vseq;
 	VipsCompositeBase *composite = (VipsCompositeBase *) b;
 	VipsRect *r = &output_region->valid;
+	int ps = VIPS_IMAGE_SIZEOF_PEL( output_region->im );
 	int n = composite->in->area.n;
 
-	if( vips_reorder_prepare_many( output_region->im, seq->ir, r ) )
-		return( -1 );
+	/* Find the subset of our input images which intersect this region.
+	 */
+	seq->n = 0;
+	for( int i = 0; i < n; i++ ) 
+		if( vips_rect_overlapsrect( r, &composite->subimages[i] ) ) {
+			seq->enabled[seq->n] = i;
+			seq->n += 1;
+		}
+
+	/* FIXME ... just one? prepare directly to output and return.
+	 */
+
+	/* FIXME ... can use vips_rect_overlapsrect() elsewhere?
+	 */
+
+	/* Prepare the appropriate parts into our set of composite
+	 * regions.
+	 */
+	for( int i = 0; i < seq->n; i++ ) {
+		int j = seq->enabled[i];
+
+		VipsRect request;
+
+		/* Translate the request to the input image space, clipping as
+		 * required.
+		 */
+		request = *r;
+		vips_rect_intersectrect( &request, &composite->subimages[j],
+			&request );
+		request.left -= composite->subimages[j].left;
+		request.top -= composite->subimages[j].top;
+
+		/* Set the composite region up to be a bit of memory at the
+		 * right position.
+		 */
+		if( vips_region_buffer( seq->composite_regions[j], r ) )
+			return( -1 );
+
+		/* If the request is smaller than the target region, there
+		 * will be some gaps. We must make sure these are zero.
+		 */
+		if( request.width < r->width ||
+			request.height < r->height )
+			vips_region_black( seq->composite_regions[j] );
+
+		/* And render the right part of the input image to the
+		 * composite region.
+		 */
+		if( vips_region_prepare_to( seq->input_regions[j],
+			seq->composite_regions[j], &request, 
+			r->left, r->top ) ) 
+			return( -1 );
+	}
 
 	VIPS_GATE_START( "vips_composite_base_gen: work" );
 
 	for( int y = 0; y < r->height; y++ ) {
 		VipsPel *q;
 
-		for( int i = 0; i < n; i++ )
-			seq->p[i] = VIPS_REGION_ADDR( seq->ir[i],
+		for( int i = 0; i < seq->n; i++ ) {
+			int j = seq->enabled[i];
+
+			seq->p[i] = VIPS_REGION_ADDR( seq->composite_regions[j],
 				r->left, r->top + y );
+		}
 		seq->p[n] = NULL;
 		q = VIPS_REGION_ADDR( output_region, r->left, r->top + y );
 
-		switch( seq->ir[0]->im->BandFmt ) {
-		case VIPS_FORMAT_UCHAR: 	
+		for( int x = 0; x < r->width; x++ ) {
+			switch( seq->input_regions[0]->im->BandFmt ) {
+			case VIPS_FORMAT_UCHAR: 	
 #ifdef HAVE_VECTOR_ARITH
-			if( composite->bands == 3 ) 
-				vips_combine_pixels3
-					<unsigned char, 0, UCHAR_MAX>
-					( composite, q, seq->p, seq->scanline, 
-					  r->width );
-			else
+				if( composite->bands == 3 ) 
+					vips_combine_pixels3
+						<unsigned char, 0, UCHAR_MAX>
+						( seq, q ); 
+				else
 #endif 
+					vips_combine_pixels
+						<unsigned char, 0, UCHAR_MAX>
+						( seq, q );
+				break;
+
+			case VIPS_FORMAT_CHAR: 		
 				vips_combine_pixels
-					<unsigned char, 0, UCHAR_MAX>
-					( composite, q, seq->p, seq->scanline, 
-					  r->width );
-			break;
+					<signed char, SCHAR_MIN, SCHAR_MAX>
+					( seq, q );
+				break; 
 
-		case VIPS_FORMAT_CHAR: 		
-			vips_combine_pixels
-				<signed char, SCHAR_MIN, SCHAR_MAX>
-				( composite, q, seq->p, seq->scanline, 
-				  r->width );
-			break; 
-
-		case VIPS_FORMAT_USHORT: 	
+			case VIPS_FORMAT_USHORT: 	
 #ifdef HAVE_VECTOR_ARITH
-			if( composite->bands == 3 ) 
-				vips_combine_pixels3
-					<unsigned short, 0, USHRT_MAX>
-					( composite, q, seq->p, seq->scanline, 
-					  r->width );
-			else
+				if( composite->bands == 3 ) 
+					vips_combine_pixels3
+						<unsigned short, 0, USHRT_MAX>
+						( seq, q );
+				else
 #endif 
+					vips_combine_pixels
+						<unsigned short, 0, USHRT_MAX>
+						( seq, q );
+				break; 
+
+			case VIPS_FORMAT_SHORT: 	
 				vips_combine_pixels
-					<unsigned short, 0, USHRT_MAX>
-					( composite, q, seq->p, seq->scanline, 
-					  r->width );
-			break; 
+					<signed short, SHRT_MIN, SHRT_MAX>
+					( seq, q );
+				break; 
 
-		case VIPS_FORMAT_SHORT: 	
-			vips_combine_pixels
-				<signed short, SHRT_MIN, SHRT_MAX>
-				( composite, q, seq->p, seq->scanline, 
-				  r->width );
-			break; 
+			case VIPS_FORMAT_UINT: 		
+				vips_combine_pixels
+					<unsigned int, 0, UINT_MAX>
+					( seq, q );
+				break; 
 
-		case VIPS_FORMAT_UINT: 		
-			vips_combine_pixels
-				<unsigned int, 0, UINT_MAX>
-				( composite, q, seq->p, seq->scanline, 
-				  r->width );
-			break; 
+			case VIPS_FORMAT_INT: 		
+				vips_combine_pixels
+					<signed int, INT_MIN, INT_MAX>
+					( seq, q );
+				break; 
 
-		case VIPS_FORMAT_INT: 		
-			vips_combine_pixels
-				<signed int, INT_MIN, INT_MAX>
-				( composite, q, seq->p, seq->scanline, 
-				  r->width );
-			break; 
-
-		case VIPS_FORMAT_FLOAT:
+			case VIPS_FORMAT_FLOAT:
 #ifdef HAVE_VECTOR_ARITH
-			if( composite->bands == 3 ) 
-				vips_combine_pixels3
-					<float, 0, USHRT_MAX>
-					( composite, q, seq->p, seq->scanline, 
-					  r->width );
-			else
+				if( composite->bands == 3 ) 
+					vips_combine_pixels3
+						<float, 0, USHRT_MAX>
+						( seq, q );
+				else
 #endif 
+					vips_combine_pixels
+						<float, 0, 0>
+						( seq, q );
+				break;
+
+			case VIPS_FORMAT_DOUBLE:
 				vips_combine_pixels
-					<float, 0, 0>
-					( composite, q, seq->p, seq->scanline, 
-					  r->width );
-			break;
+					<double, 0, 0>
+					( seq, q );
+				break;
 
-		case VIPS_FORMAT_DOUBLE:
-			vips_combine_pixels
-				<double, 0, 0>
-				( composite, q, seq->p, seq->scanline, 
-				  r->width );
-			break;
+			default:
+				g_assert_not_reached();
+				return( -1 );
+			}
 
-		default:
-			g_assert_not_reached();
-			return( -1 );
+			for( int i = 0; i < seq->n; i++ )
+				seq->p[i] += ps;
+			q += ps;
 		}
 	}
 
@@ -1133,7 +1137,6 @@ vips_composite_base_build( VipsObject *object )
 	VipsImage **decode;
 	VipsImage **compositing;
 	VipsImage **format;
-	VipsImage **size;
 
 	if( VIPS_OBJECT_CLASS( vips_composite_base_parent_class )->
 		build( object ) )
@@ -1163,6 +1166,31 @@ vips_composite_base_build( VipsObject *object )
 	}
 
 	in = (VipsImage **) composite->in->area.data;
+
+	/* Make a set of rects for the positions of the input images. Image 0 
+	 * (the background) is always at (0, 0).
+	 */
+	if( !(composite->subimages = 
+		VIPS_ARRAY( NULL, n, VipsRect )) ) 
+		return( -1 );
+	for( int i = 0; i < n; i++ ) {
+		composite->subimages[i].left = 0;
+		composite->subimages[i].top = 0;
+		composite->subimages[i].width = in[i]->Xsize;
+		composite->subimages[i].height = in[i]->Ysize;
+	}
+
+	/* Position all images, if x/y is set. Image 0 
+	 * (the background) is always at (0, 0).
+	 */
+	if( composite->x_offset &&
+		composite->y_offset ) 
+		for( int i = 1; i < n; i++ ) {
+			composite->subimages[i].left = 
+				composite->x_offset[i - 1];
+			composite->subimages[i].top = 
+				composite->y_offset[i - 1];
+		}
 
 	decode = (VipsImage **) vips_object_local_array( object, n );
 	for( int i = 0; i < n; i++ )
@@ -1256,7 +1284,7 @@ vips_composite_base_build( VipsObject *object )
 			composite->max_band_vec[b] = composite->max_band[b];
 #endif /*HAVE_VECTOR_ARITH*/
 
-	/* Transform the input images to match format. We may have
+	/* Transform the input images to match in format. We may have
 	 * mixed float and double, for example.  
 	 */
 	format = (VipsImage **) vips_object_local_array( object, n );
@@ -1264,41 +1292,14 @@ vips_composite_base_build( VipsObject *object )
 		return( -1 );
 	in = format;
 
-	/* Position all images, if x/y is set.
-	 */
-	if( composite->x_offset &&
-		composite->y_offset ) { 
-		int width = vips_image_get_width( in[0] );
-		int height = vips_image_get_height( in[0] );
-		VipsImage **position = (VipsImage **) 
-			vips_object_local_array( object, n );
-
-		/* The zero image does not move.
-		 */
-		g_object_ref( in[0] );
-		position[0] = in[0];
-
-		for( int i = 1; i < n; i++ ) 
-			if( vips_embed( in[i], &position[i], 
-				composite->x_offset[i - 1], 
-				composite->y_offset[i - 1], 
-				width, height, (void *) NULL ) )
-				return( -1 );
-
-		in = position;
-	}
-
-	/* Transform the input images to match in size. They can be mismatched
-	 * if there was no supplied x/y.
-	 */
-	size = (VipsImage **) vips_object_local_array( object, n );
-	if( vips__sizealike_vec( in, size, n ) )
-		return( -1 );
-	in = size;
-
 	if( vips_image_pipeline_array( conversion->out,
 		VIPS_DEMAND_STYLE_THINSTRIP, in ) )
 		return( -1 );
+
+	/* The output image is always the size of the base image.
+	 */
+	conversion->out->Xsize = in[0]->Xsize;
+	conversion->out->Ysize = in[0]->Ysize;
 
 	if( vips_image_generate( conversion->out,
 		vips_composite_start, 

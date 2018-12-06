@@ -1735,13 +1735,12 @@ vips_region_prepare_to_generate( VipsRegion *reg,
  * @y: postion of @r in @dest
  *
  * Like vips_region_prepare(): fill @reg with the pixels in area @r. 
- * Unlike vips_region_prepare(), rather than writing the result to @reg, the pixels are
- * written into @dest
- * at offset @x, @y. 
+ *
+ * Unlike vips_region_prepare(), rather than writing the result to @reg, the 
+ * pixels are written into @dest at offset @x, @y. 
  *
  * Also unlike vips_region_prepare(), @dest is not set up for writing for 
- * you with
- * vips_region_buffer(). You can
+ * you with vips_region_buffer(). You can
  * point @dest at anything, and pixels really will be written there. 
  * This makes vips_region_prepare_to() useful for making the ends of 
  * pipelines.

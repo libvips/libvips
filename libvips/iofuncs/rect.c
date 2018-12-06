@@ -133,6 +133,25 @@ vips_rect_equalsrect( const VipsRect *r1, const VipsRect *r2 )
 }
 
 /**
+ * vips_rect_overlapsrect: (method)
+ * @r1: first rectangle
+ * @r2: second rectangle
+ *
+ * Do @r1 and @r2 have a non-empty intersection?
+ *
+ * Returns: %TRUE if @r2 and @r1 overlap.
+ */
+gboolean
+vips_rect_overlapsrect( const VipsRect *r1, const VipsRect *r2 )
+{
+	VipsRect intersection;
+
+	vips_rect_intersectrect( r1, r2, &intersection );
+
+	return( !vips_rect_isempty( &intersection ) ); 
+}
+
+/**
  * vips_rect_marginadjust: (method)
  * @r: rectangle to adjust
  * @n: enlarge by

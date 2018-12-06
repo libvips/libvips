@@ -181,7 +181,7 @@ vips_insert_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	if( vips_rect_includesrect( &insert->rsub, &or->valid ) ) 
 		return( vips__insert_just_one( or, ir[1], 
 			insert->rsub.left, insert->rsub.top ) );
-	
+
 	/* Does it fall entirely inside the main, and not at all inside the
 	 * sub?
 	 */
