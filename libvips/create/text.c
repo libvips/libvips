@@ -266,10 +266,10 @@ vips_text_autofit( VipsText *text )
 
 		text->dpi = difference < 0 ? text->dpi * 2 : text->dpi / 2;
 
-		/* This can happen with some fonts that don't resize
-		 * gracefully.
+		/* This can happen with fixed-size fonts.
 		 */
-		if( text->dpi < 2 )
+		if( text->dpi < 2 ||
+			text->dpi > 10000 )
 			break;
 	}
 
