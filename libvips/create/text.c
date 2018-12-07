@@ -265,6 +265,12 @@ vips_text_autofit( VipsText *text )
 		previous_dpi = text->dpi;
 
 		text->dpi = difference < 0 ? text->dpi * 2 : text->dpi / 2;
+
+		/* This can happen with some fonts that don't resize
+		 * gracefully.
+		 */
+		if( text->dpi < 2 )
+			break;
 	}
 
 	if( difference < 0 ) {
