@@ -10,7 +10,7 @@
  * 11/8/18 [medakk]
  * 	- x/y params let you position images
  * 27/11/18
- * 	- don't stop on first non-transparent image [felixbuenemann]
+ * 	- don't stop on first non-transparent image [felixbuenemann, GDmac]
  * 6/12/18
  *	- do our own subimage positioning
  */
@@ -1356,8 +1356,11 @@ vips_composite_base_build( VipsObject *object )
 		return( -1 );
 	in = format;
 
+	/* We want locality, so that we only prepare a few subimages each
+	 * time.
+	 */
 	if( vips_image_pipeline_array( conversion->out,
-		VIPS_DEMAND_STYLE_THINSTRIP, in ) )
+		VIPS_DEMAND_STYLE_SMALLTILE, in ) )
 		return( -1 );
 
 	/* The output image is always the size of the base image.
