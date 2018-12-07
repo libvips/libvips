@@ -1144,8 +1144,7 @@ strip_work( VipsThreadState *state, void *a )
 		tile.top = state->y;
 		tile.width = dz->tile_size;
 		tile.height = dz->tile_size;
-		vips_rect_intersectrect( &tile, &layer->real_pixels, &tile );
-		if( vips_rect_isempty( &tile ) ) {
+		if( !vips_rect_overlapsrect( &tile, &layer->real_pixels ) ) {
 #ifdef DEBUG_VERBOSE
 			printf( "strip_work: skipping tile %d x %d\n", 
 				state->x / dz->tile_size, 

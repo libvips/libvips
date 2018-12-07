@@ -123,6 +123,11 @@ typedef struct _VipsCompositeBase {
 	 */
 	double max_band[MAX_BANDS + 1];
 
+	/* TRUE if all our modes are skippable, ie. we can avoid compositing
+	 * the whole stack for every pixel request.
+	 */
+	gboolean skippable;
+
 #ifdef HAVE_VECTOR_ARITH
 	/* max_band as a vector, for the RGBA case.
 	 */
@@ -361,6 +366,25 @@ vips_composite_base_max_band( VipsCompositeBase *composite, double *max_band )
 	}
 
 	return( 0 );
+}
+
+/* Find the subset of our input images which intersect this region. If we are
+ * not in skippable mode, we must enable all layers.
+ */
+static void
+vips_composite_base_select( VipsCompositeSequence *seq, VipsRect *r )
+{
+        VipsCompositeBase *composite = seq->composite;
+	int n = composite->in->area.n;
+
+	seq->n = 0;
+	for( int i = 0; i < n; i++ ) 
+		if( !composite->skippable ||
+			vips_rect_overlapsrect( r, 
+				&composite->subimages[i] ) ) {
+			seq->enabled[seq->n] = i;
+			seq->n += 1;
+		}
 }
 
 /* Cairo naming conventions:
@@ -967,22 +991,27 @@ vips_composite_base_gen( VipsRegion *output_region,
 	VipsCompositeBase *composite = (VipsCompositeBase *) b;
 	VipsRect *r = &output_region->valid;
 	int ps = VIPS_IMAGE_SIZEOF_PEL( output_region->im );
-	int n = composite->in->area.n;
 
 	/* Find the subset of our input images which intersect this region.
 	 */
-	seq->n = 0;
-	for( int i = 0; i < n; i++ ) 
-		if( vips_rect_overlapsrect( r, &composite->subimages[i] ) ) {
-			seq->enabled[seq->n] = i;
-			seq->n += 1;
-		}
+	vips_composite_base_select( seq, r ); 
 
-	/* FIXME ... just one? prepare directly to output and return.
+	/* Is there just one? We can prepare directly to output and return.
 	 */
+	if( seq->n == 1 ) {
+		/* This can only be the background image, since it's the only
+		 * image which exactly fills the whole output.
+		 */
+		g_assert( seq->enabled[0] == 0 );
 
-	/* FIXME ... can use vips_rect_overlapsrect() elsewhere?
-	 */
+		if( vips_region_prepare( seq->input_regions[0], r ) )
+			return( -1 );
+		if( vips_region_region( output_region, seq->input_regions[0], 
+			r, r->left, r->top ) )
+			return( -1 );
+
+		return( 0 );
+	}
 
 	/* Prepare the appropriate parts into our set of composite
 	 * regions.
@@ -990,14 +1019,17 @@ vips_composite_base_gen( VipsRegion *output_region,
 	for( int i = 0; i < seq->n; i++ ) {
 		int j = seq->enabled[i];
 
+		VipsRect hit;
 		VipsRect request;
 
-		/* Translate the request to the input image space, clipping as
-		 * required.
+		/* Clip against this subimage position and size.
 		 */
-		request = *r;
-		vips_rect_intersectrect( &request, &composite->subimages[j],
-			&request );
+		hit = *r;
+		vips_rect_intersectrect( &hit, &composite->subimages[j], &hit );
+
+		/* Translate request to subimage coordinates.
+		 */
+		request = hit;
 		request.left -= composite->subimages[j].left;
 		request.top -= composite->subimages[j].top;
 
@@ -1016,10 +1048,14 @@ vips_composite_base_gen( VipsRegion *output_region,
 
 		/* And render the right part of the input image to the
 		 * composite region.
+		 *
+		 * If we are not in skippable mode, we can be completely
+		 * outside the subimage area. 
 		 */
-		if( vips_region_prepare_to( seq->input_regions[j],
-			seq->composite_regions[j], &request, 
-			r->left, r->top ) ) 
+		if( !vips_rect_isempty( &request ) &&
+			vips_region_prepare_to( seq->input_regions[j],
+				seq->composite_regions[j], &request, 
+				hit.left, hit.top ) )
 			return( -1 );
 	}
 
@@ -1034,7 +1070,6 @@ vips_composite_base_gen( VipsRegion *output_region,
 			seq->p[i] = VIPS_REGION_ADDR( seq->composite_regions[j],
 				r->left, r->top + y );
 		}
-		seq->p[n] = NULL;
 		q = VIPS_REGION_ADDR( output_region, r->left, r->top + y );
 
 		for( int x = 0; x < r->width; x++ ) {
@@ -1124,6 +1159,31 @@ vips_composite_base_gen( VipsRegion *output_region,
 	return( 0 );
 }
 
+/* Is a mode "skippable"? 
+ *
+ * Skippable modes are ones where a black (0, 0, 0, 0) layer placed over the
+ * base image and composited has no effect. 
+ *
+ * If all the modes in our stack are skippable, we can avoid compositing the
+ * whole stack for every request.
+ */
+static gboolean
+vips_composite_mode_skippable( VipsBlendMode mode )
+{
+	switch( mode ) {
+	case VIPS_BLEND_MODE_CLEAR:
+	case VIPS_BLEND_MODE_SOURCE:
+	case VIPS_BLEND_MODE_IN:
+	case VIPS_BLEND_MODE_OUT:
+	case VIPS_BLEND_MODE_DEST_IN:
+	case VIPS_BLEND_MODE_DEST_ATOP:
+		return( FALSE );
+
+	default:
+		return( TRUE );
+	}
+}
+
 static int
 vips_composite_base_build( VipsObject *object )
 {
@@ -1155,6 +1215,7 @@ vips_composite_base_build( VipsObject *object )
 		return( -1 );
 	}
 	mode = (VipsBlendMode *) composite->mode->area.data;
+	composite->skippable = TRUE;
 	for( int i = 0; i < composite->mode->area.n; i++ ) {
 		if( mode[i] < 0 ||
 			mode[i] >= VIPS_BLEND_MODE_LAST ) {
@@ -1163,6 +1224,9 @@ vips_composite_base_build( VipsObject *object )
 				i, mode[i] );
 			return( -1 );
 		}
+
+		if( !vips_composite_mode_skippable( mode[i] ) )
+			composite->skippable = FALSE;
 	}
 
 	in = (VipsImage **) composite->in->area.data;
