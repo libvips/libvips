@@ -12,6 +12,9 @@
 - don't stop composite on first non-transparent image [felixbuenemann]
 - add vips_rect_overlapsrect()
 
+21/11/18 started 8.7.3
+- fix infinite loop for autofit with non-scaleable font 
+
 21/11/18 started 8.7.2
 - more info output for temp files to help diagnose problems
 - vips_text() could set the wrong DPI
