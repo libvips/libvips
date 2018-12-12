@@ -881,6 +881,7 @@ if test x"$with_pdfium" != x"no"; then
        AC_MSG_WARN([PDFium found, disabling poppler])
        with_poppler=no
      fi
+     EXTRA_LIBS_USED="$EXTRA_LIBS_USED $PDFIUM_LIBS"
      with_pdfium=yes
     ],[
      with_pdfium=no
@@ -1179,7 +1180,7 @@ if test x"$with_jpeg" != x"no"; then
     ],
     [FIND_JPEG(
        [with_jpeg="yes (found by search)"
-	EXTRA_LIBS_USED="$EXTRA_LIBS_USED -ljpeg"
+        EXTRA_LIBS_USED="$EXTRA_LIBS_USED -ljpeg"
        ],
        [AC_MSG_WARN([libjpeg not found; disabling JPEG support])
         with_jpeg=no

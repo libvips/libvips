@@ -62,7 +62,7 @@ if test "$PDFIUM_LIBS" = ""; then
 
   AC_TRY_LINK([#include <fpdfview.h>],
      [FPDF_DOCUMENT doc; doc = FPDF_LoadDocument("", "")],
-    [PDFIUM_LIBS="-L${prefix}/lib -lpdfium -lc++ -licuuc"],
+    [PDFIUM_LIBS="${prefix}/lib"],
     [PDFIUM_LIBS=no])
 
   LIBS="$pdfium_save_LIBS"
@@ -91,11 +91,7 @@ AC_MSG_RESULT([libraries $pdfium_libraries_result, headers $pdfium_includes_resu
 
 if test x"$PDFIUM_LIBS" != x"no"; then
   dir="$PDFIUM_LIBS"
-  PDFIUM_LIBS=""
-  for i in $pdfium_objects; do
-    PDFIUM_LIBS="$PDFIUM_LIBS $prefix/lib/pdfium-obj/$i"
-  done
-  PDFIUM_LIBS="$PDFIUM_LIBS -L$dir -lm -lpthread"
+  PDFIUM_LIBS="-L$dir -lpdfium -lc++ -licuuc"
 fi
 
 AC_SUBST(PDFIUM_LIBS)
