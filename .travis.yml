@@ -22,7 +22,7 @@ matrix:
   include:
     - os: linux
       sudo: required
-      dist: trusty
+      dist: xenial
       env:
         - PYTHON=python2
         - PYVIPS_VERSION=master
