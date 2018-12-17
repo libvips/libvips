@@ -198,6 +198,14 @@ class TestResample:
         b = im.crop(50, 0, im.width - 50, im.height).gaussblur(2)
         assert (a - b).abs().max() < 20
 
+        # this was a bug at one point, strangely, if executed with debug
+        # enabled
+        mp = pyvips.Image.xyz(100, 100)
+        interp = pyvips.Interpolate.new('bicubic')
+        assert im.mapim(mp, interpolate=interp).avg() == \
+                   im.crop(0, 0, 100, 100).avg()
+
+
 
 if __name__ == '__main__':
     pytest.main()

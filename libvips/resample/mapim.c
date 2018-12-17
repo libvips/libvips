@@ -5,6 +5,8 @@
  * 12/8/18
  * 	- prevent float->int overflow
  * 	- a bit quicker
+ * 17/12/18
+ * 	- we were not offsetting pixel fetches by window_offset
  */
 
 /*
@@ -229,8 +231,8 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 	TYPE * restrict p1 = (TYPE *) p; \
 	\
 	for( x = 0; x < r->width; x++ ) { \
-		TYPE px = p1[0]; \
-		TYPE py = p1[1]; \
+		TYPE px = p1[0] + window_offset; \
+		TYPE py = p1[1] + window_offset; \
 		\
 		if( px >= clip_width || \
 			py >= clip_height ) { \
@@ -249,8 +251,8 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 	TYPE * restrict p1 = (TYPE *) p; \
 	\
 	for( x = 0; x < r->width; x++ ) { \
-		TYPE px = p1[0]; \
-		TYPE py = p1[1]; \
+		TYPE px = p1[0] + window_offset; \
+		TYPE py = p1[1] + window_offset; \
 		\
 		if( px < 0 || \
 			px >= clip_width || \
@@ -278,6 +280,8 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	const VipsImage *in = in_array[0];
 	const int window_size = 
 		vips_interpolate_get_window_size( mapim->interpolate );
+	const int window_offset = 
+		vips_interpolate_get_window_offset( mapim->interpolate );
 	const VipsInterpolateMethod interpolate = 
 		vips_interpolate_get_method( mapim->interpolate );
 	const int ps = VIPS_IMAGE_SIZEOF_PEL( in );
@@ -310,6 +314,7 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 
 	/* The bounding box of that area is what we will need from @in. Add
 	 * enough for the interpolation stencil as well.
+	 * 
 	 */
 	bounds.width += window_size - 1;
 	bounds.height += window_size - 1;
