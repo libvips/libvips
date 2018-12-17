@@ -22,7 +22,7 @@ matrix:
   include:
     - os: linux
       sudo: required
-      dist: trusty
+      dist: xenial
       env:
         - PYTHON=python2
         - PYVIPS_VERSION=master
@@ -34,7 +34,7 @@ matrix:
         - sudo apt-get install -y
           automake gtk-doc-tools gobject-introspection
           libfftw3-dev libexif-dev libjpeg-turbo8-dev
-          libpng12-dev libwebp-dev libtiff4-dev libexpat1-dev
+          libpng12-dev libwebp-dev libtiff5-dev libexpat1-dev
           swig libmagick++-dev bc
           libcfitsio3-dev libgsl0-dev libmatio-dev
           liborc-0.4-dev liblcms2-dev libpoppler-glib-dev
