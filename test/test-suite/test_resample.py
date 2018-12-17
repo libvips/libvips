@@ -200,11 +200,9 @@ class TestResample:
 
         # this was a bug at one point, strangely, if executed with debug
         # enabled
-        mp = pyvips.Image.xyz(100, 100)
+        mp = pyvips.Image.xyz(im.width, im.height)
         interp = pyvips.Interpolate.new('bicubic')
-        assert im.mapim(mp, interpolate=interp).avg() == \
-                   im.crop(0, 0, 100, 100).avg()
-
+        assert im.mapim(mp, interpolate=interp).avg() == im.avg()
 
 
 if __name__ == '__main__':
