@@ -231,8 +231,8 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 	TYPE * restrict p1 = (TYPE *) p; \
 	\
 	for( x = 0; x < r->width; x++ ) { \
-		TYPE px = p1[0] + window_offset; \
-		TYPE py = p1[1] + window_offset; \
+		TYPE px = p1[0]; \
+		TYPE py = p1[1]; \
 		\
 		if( px >= clip_width || \
 			py >= clip_height ) { \
@@ -240,7 +240,8 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 				q[z] = 0; \
 		} \
 		else \
-			interpolate( mapim->interpolate, q, ir[0], px, py ); \
+			interpolate( mapim->interpolate, q, ir[0], \
+				px + window_offset, py + window_offset ); \
 		\
 		p1 += 2; \
 		q += ps; \
@@ -251,8 +252,8 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 	TYPE * restrict p1 = (TYPE *) p; \
 	\
 	for( x = 0; x < r->width; x++ ) { \
-		TYPE px = p1[0] + window_offset; \
-		TYPE py = p1[1] + window_offset; \
+		TYPE px = p1[0]; \
+		TYPE py = p1[1]; \
 		\
 		if( px < 0 || \
 			px >= clip_width || \
@@ -262,7 +263,8 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 				q[z] = 0; \
 		} \
 		else \
-			interpolate( mapim->interpolate, q, ir[0], px, py ); \
+			interpolate( mapim->interpolate, q, ir[0], \
+				px + window_offset, py + window_offset ); \
 		\
 		p1 += 2; \
 		q += ps; \
