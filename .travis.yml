@@ -43,7 +43,7 @@ matrix:
           libffi-dev
 
     - os: osx
-      osx_image: xcode9.3
+      osx_image: xcode10.1
       env:
         - PYTHON=python2
         - PYVIPS_VERSION=master
