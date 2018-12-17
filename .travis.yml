@@ -53,9 +53,6 @@ matrix:
         - HOMEBREW_NO_AUTO_UPDATE=1
       cache: ccache
       before_install:
-        # oclint cask conflicts with gcc formula, see:
-        # https://github.com/travis-ci/travis-ci/issues/8826
-        - brew cask uninstall oclint
         - brew install ccache
         - brew install
           gtk-doc gobject-introspection
