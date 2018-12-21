@@ -178,6 +178,8 @@
  * 	  write multipage
  * 2/7/18
  * 	- copy EXTRASAMPLES to pyramid layers
+ * 21/12/18
+ * 	- stop pyr layers if width or height drop to 1
  */
 
 /*
@@ -395,9 +397,22 @@ wtiff_layer_new( Wtiff *wtiff, Layer *above, int width, int height )
 	layer->below = NULL;
 	layer->above = above;
 
+	/*
+	printf( "wtiff_layer_new: sub = %d, width = %d, height = %d\n",
+		layer->sub, width, height );
+	 */
+
 	if( wtiff->pyramid )
-		if( layer->width > wtiff->tilew || 
-			layer->height > wtiff->tileh ) 
+		/* We make another layer if the image is too large to fit in a
+		 * single tile, and if neither axis is greater than 1.
+		 *
+		 * Very tall or wide images might end up with a smallest layer
+		 * larger than one tile.
+		 */
+		if( (layer->width > wtiff->tilew || 
+			layer->height > wtiff->tileh) && 
+		 	layer->width > 1 && 
+		 	layer->height > 1 ) 
 			layer->below = wtiff_layer_new( wtiff, layer, 
 				width / 2, height / 2 );
 
