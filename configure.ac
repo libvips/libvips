@@ -841,6 +841,14 @@ if test x"$with_lcms" != x"no"; then
   )
 fi
 
+# we need a conditional for this to only compile in fallback profiles if lcms
+# is detected
+if test x"$with_lcms" != x"no"; then
+  AM_CONDITIONAL(ENABLE_LCMS, true)
+else
+  AM_CONDITIONAL(ENABLE_LCMS, false)
+fi
+
 # OpenEXR
 AC_ARG_WITH([OpenEXR], 
   AS_HELP_STRING([--without-OpenEXR], [build without OpenEXR (default: test)]))
