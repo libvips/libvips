@@ -1169,7 +1169,7 @@ strip_work( VipsThreadState *state, void *a )
 		state->pos.width, state->pos.height, NULL ) ) 
 		return( -1 );
 
-	if( dz->skip_blanks > 0 &&
+	if( dz->skip_blanks >= 0 &&
 		tile_equal( x, dz->skip_blanks, dz->ink ) ) { 
 		g_object_unref( x );
 
@@ -1697,7 +1697,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 
 	/* We use ink to check for blank tiles.
 	 */
-	if( dz->skip_blanks > 0 ) {
+	if( dz->skip_blanks >= 0 ) {
 		if( !(dz->ink = vips__vector_to_ink( 
 			class->nickname, save->ready,
 			VIPS_AREA( save->background )->data, NULL, 
@@ -2115,7 +2115,7 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		_( "Skip tiles which are nearly equal to the background" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, skip_blanks ),
-		0, 65535, 5 );
+		-1, 65535, 5 );
 
 	/* How annoying. We stupidly had these in earlier versions.
 	 */
@@ -2156,6 +2156,7 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
 	dz->container = VIPS_FOREIGN_DZ_CONTAINER_FS; 
 	dz->compression = 0;
 	dz->region_shrink = VIPS_REGION_SHRINK_MEAN;
+	dz->skip_blanks = -1;
 }
 
 typedef struct _VipsForeignSaveDzFile {
@@ -2352,8 +2353,8 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  * * @container: #VipsForeignDzContainer set container type
  * * @properties: %gboolean write a properties file
  * * @compression: %gint zip deflate compression level
- * * @region_shrink: #VipsRegionShrink How to shrink each 2x2 region
- * * @skip_blanks: %gint Skip tiles which are nearly equal to the background
+ * * @region_shrink: #VipsRegionShrink how to shrink each 2x2 region
+ * * @skip_blanks: %gint skip tiles which are nearly equal to the background
  *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.
@@ -2401,10 +2402,10 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  * region. This defaults to using the average of the 4 input pixels but you can
  * also use the median in cases where you want to preserve the range of values.
  *
- * If you set @skip_blanks to a value greater than zero, tiles which are 
- * all within that many pixel values to the background are skipped. This can 
- * save a lot of space for some image types. This option defaults to 5 in 
- * Google layout mode, 0 otherwise.
+ * If you set @skip_blanks to a value greater than or equal to zero, tiles 
+ * which are all within that many pixel values to the background are skipped. 
+ * This can save a lot of space for some image types. This option defaults to 
+ * 5 in Google layout mode, -1 otherwise.
  * 
  * See also: vips_tiffsave().
  *
@@ -2444,8 +2445,8 @@ vips_dzsave( VipsImage *in, const char *name, ... )
  * * @container: #VipsForeignDzContainer set container type
  * * @properties: %gboolean write a properties file
  * * @compression: %gint zip deflate compression level
- * * @region_shrink: #VipsRegionShrink How to shrink each 2x2 region.
- * * @skip_blanks: %gint Skip tiles which are nearly equal to the background
+ * * @region_shrink: #VipsRegionShrink how to shrink each 2x2 region.
+ * * @skip_blanks: %gint skip tiles which are nearly equal to the background
  *
  * As vips_dzsave(), but save to a memory buffer. 
  *
