@@ -1,8 +1,8 @@
-/* Use lcms to move from CMYK to XYZ, if we can. This needs a working
- * vips_icc_import.
+/* Use lcms to move from XYZ to CMYK, if we can. This needs a working
+ * vips_icc_export.
  *
  * 21/12/18
- *      - from scRGB2XYZ.c
+ *      - from CMYK2XYZ.c
  */
 
 /*
@@ -48,89 +48,34 @@
 #include "pcolour.h"
 #include "profiles.h"
 
-typedef struct _VipsCMYK2XYZ {
+typedef struct _VipsXYZ2CMYK {
 	VipsOperation parent_instance;
 
 	VipsImage *in;
 	VipsImage *out;
-} VipsCMYK2XYZ;
+} VipsXYZ2CMYK;
 
-typedef VipsColourCodeClass VipsCMYK2XYZClass;
+typedef VipsColourCodeClass VipsXYZ2CMYKClass;
 
-G_DEFINE_TYPE( VipsCMYK2XYZ, vips_CMYK2XYZ, VIPS_TYPE_OPERATION );
-
-/* Created on first use from a base64 string in profiles.c.
- */
-static void *vips_CMYK2XYZ_fallback_profile = NULL;
-static size_t vips_CMYK2XYZ_fallback_profile_length = 0;
-
-static void *
-vips_CMYK2XYZ_get_fallback_profile_init( void )
-{
-	size_t data_length;
-	unsigned char *data;
-
-	if( !(data = vips__b64_decode( vips__coded_cmyk, &data_length )) )
-		return( NULL );
-	vips_CMYK2XYZ_fallback_profile = data;
-	vips_CMYK2XYZ_fallback_profile_length = data_length;
-
-	return( NULL );
-}
-
-static void *
-vips__CMYK2XYZ_get_fallback_profile( size_t *length )
-{
-	GOnce once = G_ONCE_INIT;
-
-	VIPS_ONCE( &once, 
-		(GThreadFunc) vips_CMYK2XYZ_get_fallback_profile_init, NULL );
-
-	*length = vips_CMYK2XYZ_fallback_profile_length;
-
-	return( vips_CMYK2XYZ_fallback_profile );
-}
-
-/* Shared with XYZ2CMYK.c.
- *
- * FIXME ... should this remove and replace a non-CMYK profile?
- */
-int
-vips_CMYK2XYZ_set_fallback_profile( VipsImage *image )
-{
-	size_t data_length;
-	unsigned char *data;
-
-	if( vips_image_get_typeof( image, VIPS_META_ICC_NAME ) )
-		return( -1 );
-
-	if( !(data = vips__CMYK2XYZ_get_fallback_profile( &data_length )) )
-		return( -1 );
-
-	vips_image_set_blob( image, VIPS_META_ICC_NAME,
-		NULL, data, data_length );
-
-	return( 0 );
-}
+G_DEFINE_TYPE( VipsXYZ2CMYK, vips_XYZ2CMYK, VIPS_TYPE_OPERATION );
 
 static int
-vips_CMYK2XYZ_build( VipsObject *object )
+vips_XYZ2CMYK_build( VipsObject *object )
 {
-	VipsCMYK2XYZ *CMYK2XYZ = (VipsCMYK2XYZ *) object;
+	VipsXYZ2CMYK *XYZ2CMYK = (VipsXYZ2CMYK *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 7 );
 
 	VipsImage *out; 
 
-	if( VIPS_OBJECT_CLASS( vips_CMYK2XYZ_parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_XYZ2CMYK_parent_class )->build( object ) )
 		return( -1 );
 
 	out = vips_image_new();
 	g_object_set( object, "out", out, NULL ); 
 
-	if( vips_copy( CMYK2XYZ->in, &t[0], NULL ) ||
+	if( vips_copy( XYZ2CMYK->in, &t[0], NULL ) ||
 		vips_CMYK2XYZ_set_fallback_profile( t[0] ) ||
-		vips_icc_import( t[0], &t[1],
-			"embedded", TRUE,
+		vips_icc_export( t[0], &t[1],
 			"pcs", VIPS_PCS_XYZ,
 			NULL ) ||
 		vips_image_write( t[1], out ) )
@@ -140,7 +85,7 @@ vips_CMYK2XYZ_build( VipsObject *object )
 }
 
 static void
-vips_CMYK2XYZ_class_init( VipsCMYK2XYZClass *class )
+vips_XYZ2CMYK_class_init( VipsXYZ2CMYKClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -149,9 +94,9 @@ vips_CMYK2XYZ_class_init( VipsCMYK2XYZClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "CMYK2XYZ";
-	object_class->description = _( "transform CMYK to XYZ" );
-	object_class->build = vips_CMYK2XYZ_build;
+	object_class->nickname = "XYZ2CMYK";
+	object_class->description = _( "transform XYZ to CMYK" );
+	object_class->build = vips_XYZ2CMYK_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
@@ -159,46 +104,46 @@ vips_CMYK2XYZ_class_init( VipsCMYK2XYZClass *class )
 		_( "Input" ), 
 		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsCMYK2XYZ, in ) );
+		G_STRUCT_OFFSET( VipsXYZ2CMYK, in ) );
 
 	VIPS_ARG_IMAGE( class, "out", 100, 
 		_( "Output" ), 
 		_( "Output image" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
-		G_STRUCT_OFFSET( VipsCMYK2XYZ, out ) );
+		G_STRUCT_OFFSET( VipsXYZ2CMYK, out ) );
 
 }
 
 static void
-vips_CMYK2XYZ_init( VipsCMYK2XYZ *CMYK2XYZ )
+vips_XYZ2CMYK_init( VipsXYZ2CMYK *XYZ2CMYK )
 {
 }
 
 #endif /*HAVE_LCMS2*/
 
 /**
- * vips_CMYK2XYZ: (method)
+ * vips_XYZ2CMYK: (method)
  * @in: input image
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Turn CMYK to XYZ. If the image has an embedded ICC profile this will be
+ * Turn XYZ to CMYK. If the image has an embedded ICC profile this will be
  * used for the conversion. If there is no embedded profile, a generic
  * fallback profile will be used. 
  *
- * Conversion is to D65 XYZ with relative intent. If you need more control 
- * over the process, use vips_icc_import() instead.
+ * Conversion is from D65 XYZ with relative intent. If you need more control 
+ * over the process, use vips_icc_export() instead.
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_CMYK2XYZ( VipsImage *in, VipsImage **out, ... )
+vips_XYZ2CMYK( VipsImage *in, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "CMYK2XYZ", ap, in, out );
+	result = vips_call_split( "XYZ2CMYK", ap, in, out );
 	va_end( ap );
 
 	return( result );

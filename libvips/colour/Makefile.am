@@ -10,6 +10,8 @@ libcolour_la_SOURCES = \
 	$(PROFILES) \
 	colour.c \
 	pcolour.h \
+	CMYK2XYZ.c \
+	XYZ2CMYK.c \
 	colourspace.c \
 	dE76.c \
 	dE00.c \

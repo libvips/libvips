@@ -756,6 +756,8 @@ vips_colour_operation_init( void )
 	extern GType vips_icc_import_get_type( void ); 
 	extern GType vips_icc_export_get_type( void ); 
 	extern GType vips_icc_transform_get_type( void ); 
+	extern GType vips_CMYK2XYZ_get_type( void ); 
+	extern GType vips_XYZ2CMYK_get_type( void ); 
 #endif
 	extern GType vips_dE76_get_type( void ); 
 	extern GType vips_dE00_get_type( void ); 
@@ -790,6 +792,8 @@ vips_colour_operation_init( void )
 	vips_icc_import_get_type();
 	vips_icc_export_get_type();
 	vips_icc_transform_get_type();
+	vips_CMYK2XYZ_get_type();
+	vips_XYZ2CMYK_get_type();
 #endif
 	vips_dE76_get_type(); 
 	vips_dE00_get_type(); 
