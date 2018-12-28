@@ -59,11 +59,21 @@ typedef VipsColourCodeClass VipsXYZ2CMYKClass;
 
 G_DEFINE_TYPE( VipsXYZ2CMYK, vips_XYZ2CMYK, VIPS_TYPE_OPERATION );
 
+/* Our actual processing, as a VipsColourTransformFn.
+ */
+static int
+vips_XYZ2CMYK_process( VipsImage *in, VipsImage **out, ... )
+{
+	return( vips_icc_export( in, out,
+		"pcs", VIPS_PCS_XYZ,
+		NULL ) );
+}
+
 static int
 vips_XYZ2CMYK_build( VipsObject *object )
 {
 	VipsXYZ2CMYK *XYZ2CMYK = (VipsXYZ2CMYK *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 7 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
 	VipsImage *out; 
 
@@ -75,9 +85,8 @@ vips_XYZ2CMYK_build( VipsObject *object )
 
 	if( vips_copy( XYZ2CMYK->in, &t[0], NULL ) ||
 		vips_CMYK2XYZ_set_fallback_profile( t[0] ) ||
-		vips_icc_export( t[0], &t[1],
-			"pcs", VIPS_PCS_XYZ,
-			NULL ) ||
+		vips__colourspace_process_n( "XYZ2CMYK", 
+			t[0], &t[1], 3, vips_XYZ2CMYK_process ) ||
 		vips_image_write( t[1], out ) )
 		return( -1 );
 

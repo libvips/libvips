@@ -68,10 +68,6 @@
 
 #include "pcolour.h"
 
-/* A colour-transforming function.
- */
-typedef int (*VipsColourTransformFn)( VipsImage *in, VipsImage **out, ... );
-
 static int
 vips_scRGB2RGB16( VipsImage *in, VipsImage **out, ... )
 {
@@ -113,10 +109,12 @@ vips_sRGB2RGB16( VipsImage *in, VipsImage **out, ... )
 }
 
 /* Process the first @n bands with @fn, detach and reattach remaining bands.
+ *
+ * Also used by CMYK2XYZ and XYZ2CMYK.
  */
-static int
-vips_process_n( const char *domain, VipsImage *in, VipsImage **out, 
-	int n, VipsColourTransformFn fn )
+int
+vips__colourspace_process_n( const char *domain, 
+	VipsImage *in, VipsImage **out, int n, VipsColourTransformFn fn )
 {
 	if( in->Bands > n ) {
 		VipsImage *scope = vips_image_new();
@@ -168,7 +166,8 @@ vips_BW2sRGB_op( VipsImage *in, VipsImage **out, ... )
 static int
 vips_BW2sRGB( VipsImage *in, VipsImage **out, ... )
 {
-	if( vips_process_n( "BW2sRGB", in, out, 1, vips_BW2sRGB_op ) )
+	if( vips__colourspace_process_n( "BW2sRGB", 
+		in, out, 1, vips_BW2sRGB_op ) )
 		return( -1 );
 	(*out)->Type = VIPS_INTERPRETATION_sRGB;
 
@@ -178,7 +177,8 @@ vips_BW2sRGB( VipsImage *in, VipsImage **out, ... )
 static int
 vips_GREY162RGB16( VipsImage *in, VipsImage **out, ... )
 {
-	if( vips_process_n( "GREY162RGB16", in, out, 1, vips_BW2sRGB_op ) )
+	if( vips__colourspace_process_n( "GREY162RGB16", 
+		in, out, 1, vips_BW2sRGB_op ) )
 		return( -1 );
 	(*out)->Type = VIPS_INTERPRETATION_RGB16;
 

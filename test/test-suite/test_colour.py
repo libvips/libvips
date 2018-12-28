@@ -71,6 +71,19 @@ class TestColour:
                 # but 8-bit we should hit exactly
                 assert abs(after - before) < 1
 
+        # we should be able to go from cmyk to any 3-band space and back again,
+        # approximately
+        cmyk = test.colourspace(pyvips.Interpretation.CMYK)
+        for end in colour_colourspaces:
+            im = cmyk.colourspace(end)
+            im2 = im.colourspace(pyvips.Interpretation.CMYK)
+
+            before = cmyk(10, 10)
+            after = im2(10, 10)
+
+            assert_almost_equal_objects(before, after, threshold=10)
+
+
     # test results from Bruce Lindbloom's calculator:
     # http://www.brucelindbloom.com
     def test_dE00(self):

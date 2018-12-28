@@ -92,8 +92,6 @@ vips__CMYK2XYZ_get_fallback_profile( size_t *length )
 }
 
 /* Shared with XYZ2CMYK.c.
- *
- * FIXME ... should this remove and replace a non-CMYK profile?
  */
 int
 vips_CMYK2XYZ_set_fallback_profile( VipsImage *image )
@@ -101,8 +99,11 @@ vips_CMYK2XYZ_set_fallback_profile( VipsImage *image )
 	size_t data_length;
 	unsigned char *data;
 
+	/* Already a profile? Do nothing. We could remove and replace non-CMYK
+	 * profiles I guess.
+	 */
 	if( vips_image_get_typeof( image, VIPS_META_ICC_NAME ) )
-		return( -1 );
+		return( 0 );
 
 	if( !(data = vips__CMYK2XYZ_get_fallback_profile( &data_length )) )
 		return( -1 );
@@ -113,11 +114,22 @@ vips_CMYK2XYZ_set_fallback_profile( VipsImage *image )
 	return( 0 );
 }
 
+/* Our actual processing, as a VipsColourTransformFn.
+ */
+static int
+vips_CMYK2XYZ_process( VipsImage *in, VipsImage **out, ... )
+{
+	return( vips_icc_import( in, out,
+		"embedded", TRUE,
+		"pcs", VIPS_PCS_XYZ,
+		NULL ) );
+}
+
 static int
 vips_CMYK2XYZ_build( VipsObject *object )
 {
 	VipsCMYK2XYZ *CMYK2XYZ = (VipsCMYK2XYZ *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 7 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
 	VipsImage *out; 
 
@@ -129,10 +141,8 @@ vips_CMYK2XYZ_build( VipsObject *object )
 
 	if( vips_copy( CMYK2XYZ->in, &t[0], NULL ) ||
 		vips_CMYK2XYZ_set_fallback_profile( t[0] ) ||
-		vips_icc_import( t[0], &t[1],
-			"embedded", TRUE,
-			"pcs", VIPS_PCS_XYZ,
-			NULL ) ||
+		vips__colourspace_process_n( "CMYK2XYZ", 
+			t[0], &t[1], 4, vips_CMYK2XYZ_process ) ||
 		vips_image_write( t[1], out ) )
 		return( -1 );
 
