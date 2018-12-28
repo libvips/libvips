@@ -1515,7 +1515,7 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 	/* Some format libraries, like libpng, will throw a hard error if the 
 	 * profile is inappropriate for this image type. With profiles inherited
 	 * from a source image, this can happen all the time, so we 
-	 * want to just drop the profile in this case.
+	 * want to silently drop the profile in this case.
 	 */
 	if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
 		void *data;

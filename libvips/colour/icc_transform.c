@@ -38,6 +38,9 @@
  * 	- more input profile sanity tests
  * 8/3/18
  * 	- attach fallback profile on import if we used it
+ * 28/12/18
+ * 	- remove warning messages from vips_icc_is_compatible_profile() since
+ * 	  they can be triggered under normal circumstances
  */
 
 /*
@@ -1250,7 +1253,7 @@ vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
 	return( 0 );
 }
 
-/* TRUE if a profile is compatible with an image.
+/* TRUE if a profile is sane and is compatible with an image.
  */
 gboolean
 vips_icc_is_compatible_profile( VipsImage *image, 
@@ -1258,22 +1261,19 @@ vips_icc_is_compatible_profile( VipsImage *image,
 {
 	cmsHPROFILE profile;
 
-	if( !(profile = cmsOpenProfileFromMem( data, data_length )) ) {
-		g_warning( "%s", _( "corrupt profile" ) );
+	if( !(profile = cmsOpenProfileFromMem( data, data_length )) ) 
+		/* Corrupt profile. 
+		 */
 		return( FALSE ); 
-	}
 
 	if( vips_image_expected_bands( image ) != 
 		vips_icc_profile_needs_bands( profile ) ) {
 		VIPS_FREEF( cmsCloseProfile, profile );
-		g_warning( "%s", 
-			_( "profile incompatible with image" ) );
 		return( FALSE );
 	}
+
 	if( vips_image_expected_sig( image ) != cmsGetColorSpace( profile ) ) {
 		VIPS_FREEF( cmsCloseProfile, profile );
-		g_warning( "%s", 
-			_( "profile colourspace differs from image" ) );
 		return( FALSE );
 	}
 
