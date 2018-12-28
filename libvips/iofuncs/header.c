@@ -28,6 +28,8 @@
  * 	- rename "field" as "name" in docs
  * 21/11/18
  * 	- get_string will allow G_STRING and REF_STRING
+ * 28/12/18
+ * 	- hide deprecated header fields from _map
  */
 
 /*
@@ -1160,9 +1162,23 @@ vips_image_remove( VipsImage *image, const char *name )
 	return( FALSE );
 }
 
+/* Deprecated header fields we hide from _map.
+ */
+static const char *vips_image_header_deprecated[] = {
+	"ipct-data"
+};
+
 static void *
 vips_image_map_fn( VipsMeta *meta, VipsImageMapFn fn, void *a )
 {
+	int i;
+
+	/* Hide deprecated fields.
+	 */
+	for( i = 0; i < VIPS_NUMBER( vips_image_header_deprecated ); i++ )
+		if( strcmp( meta->name, vips_image_header_deprecated[i] ) == 0 )
+			return( NULL );
+
 	return( fn( meta->im, meta->name, &meta->value, a ) );
 }
 

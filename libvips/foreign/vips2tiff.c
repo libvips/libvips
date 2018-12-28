@@ -460,7 +460,7 @@ wtiff_embed_xmp( Wtiff *wtiff, TIFF *tif )
 }
 
 static int
-wtiff_embed_ipct( Wtiff *wtiff, TIFF *tif )
+wtiff_embed_iptc( Wtiff *wtiff, TIFF *tif )
 {
 	void *data;
 	size_t data_length;
@@ -581,7 +581,7 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 	if( !wtiff->strip ) 
 		if( wtiff_embed_profile( wtiff, tif ) ||
 			wtiff_embed_xmp( wtiff, tif ) ||
-			wtiff_embed_ipct( wtiff, tif ) ||
+			wtiff_embed_iptc( wtiff, tif ) ||
 			wtiff_embed_photoshop( wtiff, tif ) ||
 			wtiff_embed_imagedescription( wtiff, tif ) )
 			return( -1 ); 
@@ -1625,7 +1625,7 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 	if( !wtiff->strip ) 
 		if( wtiff_embed_profile( wtiff, out ) ||
 			wtiff_embed_xmp( wtiff, out ) ||
-			wtiff_embed_ipct( wtiff, out ) ||
+			wtiff_embed_iptc( wtiff, out ) ||
 			wtiff_embed_photoshop( wtiff, out ) ||
 			wtiff_embed_imagedescription( wtiff, out ) )
 			return( -1 );
