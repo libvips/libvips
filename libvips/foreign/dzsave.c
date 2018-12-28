@@ -2115,7 +2115,7 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		_( "Skip tiles which are nearly equal to the background" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, skip_blanks ),
-		-1, 65535, 5 );
+		-1, 65535, -1 );
 
 	/* How annoying. We stupidly had these in earlier versions.
 	 */
