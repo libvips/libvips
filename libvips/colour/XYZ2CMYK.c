@@ -39,8 +39,6 @@
 
 #include <vips/vips.h>
 
-#ifdef HAVE_LCMS2
-
 #include <stdio.h>
 #include <math.h>
 
@@ -48,6 +46,8 @@
 
 #include "pcolour.h"
 #include "profiles.h"
+
+#ifdef HAVE_LCMS2
 
 typedef struct _VipsXYZ2CMYK {
 	VipsOperation parent_instance;
@@ -106,27 +106,103 @@ vips_XYZ2CMYK_class_init( VipsXYZ2CMYKClass *class )
 
 	object_class->nickname = "XYZ2CMYK";
 	object_class->description = _( "transform XYZ to CMYK" );
-	object_class->build = vips_XYZ2CMYK_build;
 
+	object_class->build = vips_XYZ2CMYK_build;
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
+	VIPS_ARG_IMAGE( class, "in", 1,
+		_( "Input" ),
 		_( "Input image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsXYZ2CMYK, in ) );
 
-	VIPS_ARG_IMAGE( class, "out", 100, 
-		_( "Output" ), 
+	VIPS_ARG_IMAGE( class, "out", 100,
+		_( "Output" ),
 		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsXYZ2CMYK, out ) );
-
 }
 
 static void
 vips_XYZ2CMYK_init( VipsXYZ2CMYK *XYZ2CMYK )
 {
+}
+
+#else
+
+typedef VipsColourCode VipsXYZ2CMYK;
+typedef VipsColourCodeClass VipsXYZ2CMYKClass;
+
+G_DEFINE_TYPE(VipsXYZ2CMYK, vips_XYZ2CMYK, VIPS_TYPE_COLOUR_CODE);
+
+void
+vips_XYZ2CMYK_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
+{
+    float *p = (float *) in[0];
+    unsigned char *q = (unsigned char *) out;
+
+    const float epsilon = 0.00001;
+
+    int i;
+
+    for (i = 0; i < width; i++) {
+        float c, m, y, k;
+        float r = p[0] / VIPS_D65_X0;
+        float g = p[1] / VIPS_D65_Y0;
+        float b = p[2] / VIPS_D65_Z0;
+
+        if (r < epsilon && g < epsilon && b < epsilon)
+            q[3] = 255.0;
+        c = 255.0 - r;
+        m = 255.0 - g;
+        y = 255.0 - b;
+        k = c;
+        k = VIPS_MIN(k, VIPS_MIN(m, y));
+
+        c = (c - k) / (255.0 - k) * 255.0;
+        m = (m - k) / (255.0 - k) * 255.0;
+        y = (y - k) / (255.0 - k) * 255.0;
+
+        q[0] = (unsigned char) VIPS_CLIP(0, c, 255.0);
+        q[1] = (unsigned char) VIPS_CLIP(0, m, 255.0);
+        q[2] = (unsigned char) VIPS_CLIP(0, y, 255.0);
+        q[3] = (unsigned char) VIPS_CLIP(0, k, 255.0);
+
+        p += 3;
+        q += 4;
+    }
+}
+
+static void
+vips_XYZ2CMYK_class_init( VipsXYZ2CMYKClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS( class );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "XYZ2CMYK";
+	object_class->description = _( "transform XYZ to CMYK" );
+    
+    colour_class->process_line = vips_XYZ2CMYK_line;
+}
+
+static void
+vips_XYZ2CMYK_init( VipsXYZ2CMYK *XYZ2CMYK )
+{
+    VipsColour *colour = VIPS_COLOUR( XYZ2CMYK );
+    VipsColourCode *code = VIPS_COLOUR_CODE( XYZ2CMYK );
+
+    colour->interpretation = VIPS_INTERPRETATION_CMYK;
+    colour->format = VIPS_FORMAT_UCHAR;
+    colour->bands = 4;
+    colour->input_bands = 3;
+
+    code->input_coding = VIPS_CODING_NONE;
+    code->input_format = VIPS_FORMAT_FLOAT;
+    code->input_interpretation = VIPS_INTERPRETATION_XYZ;
 }
 
 #endif /*HAVE_LCMS2*/

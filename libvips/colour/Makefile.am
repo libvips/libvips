@@ -40,7 +40,7 @@ libcolour_la_SOURCES = \
 	scRGB2XYZ.c \
 	scRGB2BW.c \
 	XYZ2scRGB.c \
-	scRGB2sRGB.c 
+	scRGB2sRGB.c
 
 profiles.c:
 	./wrap_profiles.sh profiles profiles
