@@ -37,12 +37,13 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#include <vips/vips.h>
+
 #ifdef HAVE_LCMS2
 
 #include <stdio.h>
 #include <math.h>
 
-#include <vips/vips.h>
 #include <vips/internal.h>
 
 #include "pcolour.h"
