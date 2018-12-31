@@ -17,6 +17,7 @@
 21/11/18 started 8.7.3
 - fix infinite loop for autofit with non-scaleable font 
 - mapim was not offsetting by window offset [erdmann]
+- better rounding for scale [kleisauke]
 
 21/11/18 started 8.7.2
 - more info output for temp files to help diagnose problems
