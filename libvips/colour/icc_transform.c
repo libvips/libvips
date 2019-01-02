@@ -615,16 +615,51 @@ vips_icc_load_profile_image( VipsImage *image )
 	return( profile );
 }
 
+static void *
+vips_icc_get_profile_file( const char *filename, size_t *data_length )
+{
+	void *data;
+
+	/* See if we have a fallback profile of this name.
+	 */
+	if( (data = vips__fallback_profile_get( filename, data_length )) ) 
+		return( data ); 
+
+	/* Try to load as a filename.
+	 */
+	if( (data = vips__file_read_name( filename, 
+		vips__icc_dir(), data_length )) )
+		return( data ); 
+
+	return( NULL );
+}
+
+static void *
+vips_icc_get_profile_image( VipsImage *image, size_t *data_length )
+{
+	void *data;
+
+	if( !vips_image_get_typeof( image, VIPS_META_ICC_NAME ) )
+		return( NULL ); 
+
+	if( vips_image_get_blob( image, VIPS_META_ICC_NAME, 
+		&data, data_length ) _) {
+		g_warning( "%s", _( "corrupt embedded profile" ) );
+		return( NULL ); 
+	}
+
+	return( data );
+}
+
 static cmsHPROFILE
-vips_icc_load_profile_file( const char *domain, 
-	VipsImage *image, const char *filename )
+vips_icc_load_profile( const char *domain, 
+	VipsImage *image, void *data, size_t *data_length )
 {
 	cmsHPROFILE profile;
 
-	if( !(profile = cmsOpenProfileFromFile( filename, "r" )) ) {
-		vips_error( domain, 
-			_( "unable to open profile \"%s\"" ), filename );
-		return( NULL );
+	if( !(profile = cmsOpenProfileFromMem( data, data_length )) ) {
+		g_warning( "%s", _( "corrupt profile" ) );
+		return( NULL ); 
 	}
 
 	if( vips_image_expected_bands( image ) != 

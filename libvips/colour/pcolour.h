@@ -216,7 +216,8 @@ extern float vips_v2Y_16[65536];
 void vips_col_make_tables_RGB_8( void );
 void vips_col_make_tables_RGB_16( void );
 
-int vips_CMYK2XYZ_set_fallback_profile( VipsImage *image );
+void *vips__fallback_profile_get( const char *name, size_t *length );
+int vips__fallback_profile_set( const char *name, VipsImage *image );
 
 /* A colour-transforming function.
  */
