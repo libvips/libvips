@@ -216,6 +216,15 @@ extern float vips_v2Y_16[65536];
 void vips_col_make_tables_RGB_8( void );
 void vips_col_make_tables_RGB_16( void );
 
+int vips_CMYK2XYZ_set_fallback_profile( VipsImage *image );
+
+/* A colour-transforming function.
+ */
+typedef int (*VipsColourTransformFn)( VipsImage *in, VipsImage **out, ... );
+
+int vips__colourspace_process_n( const char *domain, 
+	VipsImage *in, VipsImage **out, int n, VipsColourTransformFn fn );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

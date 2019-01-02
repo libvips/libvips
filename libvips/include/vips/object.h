@@ -233,7 +233,7 @@ VIPS_ARGUMENT_OPTIONAL_OUTPUT   Eg. the x pos of the image minimum
 	\
 	pspec = g_param_spec_pointer( (NAME), (LONG), (DESC), \
 		(GParamFlags) (G_PARAM_READWRITE) ); \
-	g_object_class_install_property( gobject_class,  \
+	g_object_class_install_property( G_OBJECT_CLASS( CLASS ),  \
 		vips_argument_get_id(), pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
 		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
