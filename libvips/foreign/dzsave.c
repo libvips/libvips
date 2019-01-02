@@ -76,6 +76,8 @@
  * 24/11/17
  * 	- output overlap-only tiles on edges for better deepzoom spec
  * 	  compliance
+ * 19/12/18
+ * 	- add @skip_blanks
  */
 
 /*
@@ -448,6 +450,7 @@ struct _VipsForeignSaveDz {
 	VipsForeignDzContainer container; 
 	int compression;
 	VipsRegionShrink region_shrink;
+	int skip_blanks;
 
 	/* Tile and overlap geometry. The members above are the parameters we
 	 * accept, this next set are the derived values which are actually 
@@ -1044,14 +1047,14 @@ tile_name( Layer *layer, int x, int y )
 	return( out );
 }
 
-/* Test for tile equal to background colour. In google maps mode, we skip
- * blank background tiles. 
+/* Test for tile nearly equal to background colour. In google maps mode, we 
+ * skip blank background tiles. 
  *
- * Don't use exactly equality, since compression artefacts or noise can upset
+ * Don't use exactly equality since compression artefacts or noise can upset
  * this.
  */
 static gboolean
-tile_equal( VipsImage *image, VipsPel * restrict ink )
+tile_equal( VipsImage *image, int threshold, VipsPel * restrict ink )
 {
 	const int bytes = VIPS_IMAGE_SIZEOF_PEL( image );
 
@@ -1077,7 +1080,7 @@ tile_equal( VipsImage *image, VipsPel * restrict ink )
 
 		for( x = 0; x < image->Xsize; x++ ) {
 			for( b = 0; b < bytes; b++ ) 
-				if( VIPS_ABS( p[b] - ink[b] ) > 5 ) {
+				if( VIPS_ABS( p[b] - ink[b] ) > threshold ) {
 					g_object_unref( region );
 					return( FALSE ); 
 				}
@@ -1166,11 +1169,8 @@ strip_work( VipsThreadState *state, void *a )
 		state->pos.width, state->pos.height, NULL ) ) 
 		return( -1 );
 
-	/* If we are writing a google map pyramid and the tile is equal to the 
-	 * background, don't save. The viewer will display blank.png for us.
-	 */
-	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
-		tile_equal( x, dz->ink ) ) { 
+	if( dz->skip_blanks >= 0 &&
+		tile_equal( x, dz->skip_blanks, dz->ink ) ) { 
 		g_object_unref( x );
 
 #ifdef DEBUG_VERBOSE
@@ -1631,6 +1631,12 @@ vips_foreign_save_dz_build( VipsObject *object )
 			dz->tile_size = 256;
 	}
 
+	/* skip_blanks defaults to 5 in google mode.
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
+		!vips_object_argument_isset( object, "skip_blanks" ) )
+		dz->skip_blanks = 5;
+
 	/* Our tile layout.
 	 */
 	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ ) { 
@@ -1650,8 +1656,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 	/* Default to white background. vips_foreign_save_init() defaults to
 	 * black. 
 	 */
-	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
-		!vips_object_argument_isset( object, "background" ) ) {
+	if( !vips_object_argument_isset( object, "background" ) ) {
 		VipsArrayDouble *background; 
 
 		/* Using g_object_set() to set an input param in build will
@@ -1690,9 +1695,9 @@ vips_foreign_save_dz_build( VipsObject *object )
 	save->ready = z;
 }
 
-	/* We use ink in google mode to check for blank tiles.
+	/* We use ink to check for blank tiles.
 	 */
-	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE ) {
+	if( dz->skip_blanks >= 0 ) {
 		if( !(dz->ink = vips__vector_to_ink( 
 			class->nickname, save->ready,
 			VIPS_AREA( save->background )->data, NULL, 
@@ -2105,6 +2110,13 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveDz, region_shrink ),
 		VIPS_TYPE_REGION_SHRINK, VIPS_REGION_SHRINK_MEAN ); 
 
+	VIPS_ARG_INT( class, "skip_blanks", 19, 
+		_( "Skip blanks" ), 
+		_( "Skip tiles which are nearly equal to the background" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, skip_blanks ),
+		-1, 65535, -1 );
+
 	/* How annoying. We stupidly had these in earlier versions.
 	 */
 
@@ -2144,6 +2156,7 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
 	dz->container = VIPS_FOREIGN_DZ_CONTAINER_FS; 
 	dz->compression = 0;
 	dz->region_shrink = VIPS_REGION_SHRINK_MEAN;
+	dz->skip_blanks = -1;
 }
 
 typedef struct _VipsForeignSaveDzFile {
@@ -2340,7 +2353,8 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  * * @container: #VipsForeignDzContainer set container type
  * * @properties: %gboolean write a properties file
  * * @compression: %gint zip deflate compression level
- * * @shrink_region: #VipsRegionShrink How to shrink each 2x2 region.
+ * * @region_shrink: #VipsRegionShrink how to shrink each 2x2 region
+ * * @skip_blanks: %gint skip tiles which are nearly equal to the background
  *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.
@@ -2387,6 +2401,11 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  * You can use @region_shrink to control the method for shrinking each 2x2
  * region. This defaults to using the average of the 4 input pixels but you can
  * also use the median in cases where you want to preserve the range of values.
+ *
+ * If you set @skip_blanks to a value greater than or equal to zero, tiles 
+ * which are all within that many pixel values to the background are skipped. 
+ * This can save a lot of space for some image types. This option defaults to 
+ * 5 in Google layout mode, -1 otherwise.
  * 
  * See also: vips_tiffsave().
  *
@@ -2426,7 +2445,8 @@ vips_dzsave( VipsImage *in, const char *name, ... )
  * * @container: #VipsForeignDzContainer set container type
  * * @properties: %gboolean write a properties file
  * * @compression: %gint zip deflate compression level
- * * @shrink_region: #VipsRegionShrink How to shrink each 2x2 region.
+ * * @region_shrink: #VipsRegionShrink how to shrink each 2x2 region.
+ * * @skip_blanks: %gint skip tiles which are nearly equal to the background
  *
  * As vips_dzsave(), but save to a memory buffer. 
  *

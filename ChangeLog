@@ -12,6 +12,7 @@
 - don't stop composite on first non-transparent image [felixbuenemann, GDmac]
 - add vips_rect_overlapsrect()
 - composite is much faster at positioning subimages
+- dzsave has a new skip_blanks option
 - add CMYK as a supported colourspace
 
 21/11/18 started 8.7.3
