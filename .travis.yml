@@ -13,7 +13,7 @@ script:
   - make -Ctest -j$JOBS -s V=0 VERBOSE=1 check
   - LD_LIBRARY_PATH=$PWD/libvips/.libs
     DYLD_LIBRARY_PATH=$PWD/libvips/.libs
-    $PYTHON -m pytest -v pyvips-master
+    $PYTHON -m pytest -v test/test-suite
 
 matrix:
   allow_failures:
