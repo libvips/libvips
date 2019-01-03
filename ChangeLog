@@ -13,7 +13,8 @@
 - add vips_rect_overlapsrect()
 - composite is much faster at positioning subimages
 - dzsave has a new skip_blanks option
-- add CMYK as a supported colourspace
+- add vips_CMYK2XYZ() and vips_XYZ2CMYK(), plus associated routes 
+- include cmyk and srgb fallback profiles
 
 21/11/18 started 8.7.3
 - fix infinite loop for autofit with non-scaleable font 

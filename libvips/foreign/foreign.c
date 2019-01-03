@@ -1518,12 +1518,12 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 	 * want to silently drop the profile in this case.
 	 */
 	if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
-		void *data;
-		size_t length;
+		const void *data;
+		size_t size;
 
 		if( !vips_image_get_blob( in, VIPS_META_ICC_NAME, 
-			&data, &length ) &&
-			!vips_icc_is_compatible_profile( in, data, length ) ) 
+			&data, &size ) &&
+			!vips_icc_is_compatible_profile( in, data, size ) ) 
 			vips_image_remove( in, VIPS_META_ICC_NAME );
 	}
 

@@ -620,7 +620,7 @@ vips_icc_get_profile_file( const char *filename )
 static VipsBlob *
 vips_icc_get_profile_image( VipsImage *image )
 {
-	void *data;
+	const void *data;
 	size_t size;
 
 	if( !vips_image_get_typeof( image, VIPS_META_ICC_NAME ) )
@@ -728,7 +728,7 @@ vips_icc_import_build( VipsObject *object )
 	 */
 	if( import->used_fallback &&
 		icc->in_blob ) {
-		void *data;
+		const void *data;
 		size_t size;
 
 		data = vips_blob_get( icc->in_blob, &size );
@@ -1269,7 +1269,7 @@ vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
  */
 gboolean
 vips_icc_is_compatible_profile( VipsImage *image, 
-	void *data, size_t data_length )
+	const void *data, size_t data_length )
 {
 	cmsHPROFILE profile;
 

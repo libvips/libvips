@@ -87,7 +87,7 @@ vips__fallback_profile_get_init( void )
 		fallback->name = vips__coded_profiles[i].name;
 		fallback->data = data;
 		fallback->data_length = data_length;
-		vips_fallback_profile_list = g_slist_append( 
+		vips_fallback_profile_list = g_slist_prepend( 
 			vips_fallback_profile_list, fallback );
 	}
 

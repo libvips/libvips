@@ -410,7 +410,7 @@ vips_webp_set_count( VipsWebPWrite *write, int loop_count )
 
 static int
 vips_webp_set_chunk( VipsWebPWrite *write, 
-	const char *webp_name, void *data, size_t length )
+	const char *webp_name, const void *data, size_t length )
 {
 	WebPData chunk;
 
@@ -440,7 +440,7 @@ vips_webp_add_chunks( VipsWebPWrite *write, VipsImage *image )
 		const char *webp_name = vips__webp_names[i].webp;
 
 		if( vips_image_get_typeof( image, vips_name ) ) {
-			void *data;
+			const void *data;
 			size_t length;
 
 			if( vips_image_get_blob( image, 

@@ -1091,36 +1091,36 @@ write_vips( Write *write,
 	}
 	else if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) &&
 		!strip ) {
-		void *data;
-		size_t length;
+		const void *data;
+		size_t size;
 
 		if( vips_image_get_blob( in, VIPS_META_ICC_NAME, 
-			&data, &length ) ) 
+			&data, &size ) ) 
 			return( -1 ); 
 
 #ifdef DEBUG
 		printf( "write_vips: attaching %zd bytes of ICC profile\n",
-			length );
+			size );
 #endif /*DEBUG*/
 
 		png_set_iCCP( write->pPng, write->pInfo, "icc", 
-			PNG_COMPRESSION_TYPE_BASE, data, length );
+			PNG_COMPRESSION_TYPE_BASE, data, size );
 	}
 
 	if( vips_image_get_typeof( in, VIPS_META_XMP_NAME ) ) {
-		void *data;
-		size_t length;
+		const void *data;
+		size_t size;
 		char *str;
 
 		/* XMP is attached as a BLOB with no null-termination. We
 		 * must re-add this.
 		 */
 		if( vips_image_get_blob( in, 
-			VIPS_META_XMP_NAME, &data, &length ) )
+			VIPS_META_XMP_NAME, &data, &size ) )
 			return( -1 );
 
-		str = g_malloc( length + 1 );
-		vips_strncpy( str, data, length + 1 );
+		str = g_malloc( size + 1 );
+		vips_strncpy( str, data, size + 1 );
 		vips__png_set_text( write->pPng, write->pInfo, 
 			"XML:com.adobe.xmp", str );
 		g_free( str );

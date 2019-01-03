@@ -1365,13 +1365,13 @@ vips_image_get_area( const VipsImage *image, const char *name, void **data )
  * See also: vips_image_get_blob(), vips_image_set().
  */
 void
-vips_image_set_blob( VipsImage *image, 
-	const char *name, VipsCallbackFn free_fn, void *data, size_t length )
+vips_image_set_blob( VipsImage *image, const char *name, 
+	VipsCallbackFn free_fn, const void *data, size_t size )
 {
 	GValue value = { 0 };
 
 	g_value_init( &value, VIPS_TYPE_BLOB );
-	vips_value_set_blob( &value, free_fn, data, length );
+	vips_value_set_blob( &value, free_fn, data, size );
 	vips_image_set( image, name, &value );
 	g_value_unset( &value );
 }
@@ -1431,7 +1431,7 @@ vips_image_set_blob_copy( VipsImage *image,
  */
 int
 vips_image_get_blob( const VipsImage *image, const char *name, 
-	void **data, size_t *length )
+	const void **data, size_t *length )
 {
 	GValue value_copy = { 0 };
 

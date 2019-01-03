@@ -183,7 +183,7 @@ int vips_icc_export( VipsImage *in, VipsImage **out, ... )
 int vips_icc_ac2rc( VipsImage *in, VipsImage **out, 
 	const char *profile_filename );
 gboolean vips_icc_is_compatible_profile( VipsImage *image, 
-	void *data, size_t data_length );
+	const void *data, size_t data_length );
 
 int vips_dE76( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	__attribute__((sentinel));

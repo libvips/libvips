@@ -375,18 +375,16 @@ write_profile_file( Write *write, const char *profile )
 static int
 write_profile_meta( Write *write )
 {
-	void *data;
-	size_t data_length;
+	const void *data;
+	size_t size;
 
-	if( vips_image_get_blob( write->in, VIPS_META_ICC_NAME, 
-		&data, &data_length ) )
+	if( vips_image_get_blob( write->in, VIPS_META_ICC_NAME, &data, &size ) )
 		return( -1 );
-
-	write_profile_data( &write->cinfo, data, data_length );
+	write_profile_data( &write->cinfo, data, size );
 
 #ifdef DEBUG
 	printf( "write_profile_meta: attached %zd byte profile from header\n",
-		data_length );
+		size );
 #endif /*DEBUG*/
 
 	return( 0 );

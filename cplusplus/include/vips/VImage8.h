@@ -407,7 +407,7 @@ public:
 	const void *
 	get_blob( const char *field, size_t *length ) const
 	{
-		void *value; 
+		const void *value; 
 
 		if( vips_image_get_blob( this->get_image(), field, 
 			&value, length ) )

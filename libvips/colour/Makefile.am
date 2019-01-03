@@ -44,7 +44,7 @@ libcolour_la_SOURCES = \
 	scRGB2sRGB.c 
 
 profiles.c:
-	./wrap_profiles.sh profiles profiles.c
+	./wrap-profiles.sh profiles profiles.c
 
 EXTRA_DIST = \
 	profiles \
