@@ -58,7 +58,10 @@ void magick_set_image_option( ImageInfo *image_info,
 void magick_set_number_scenes( ImageInfo *image_info, 
 	int scene, int number_scenes );
 
+ExceptionInfo *magick_acquire_exception( void );
+void magick_destroy_exception( ExceptionInfo *exception );
 void magick_inherit_exception( ExceptionInfo *exception, Image *image );
+
 void magick_sniff_bytes( ImageInfo *image_info, 
 		const unsigned char *bytes, size_t length );
 void magick_sniff_file( ImageInfo *image_info, const char *filename );
