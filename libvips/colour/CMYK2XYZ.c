@@ -126,6 +126,15 @@ vips__fallback_profile_set( const char *name, VipsImage *image )
 	size_t data_length;
 	unsigned char *data;
 
+	/* Things like jpegsave let you save with no profile by setting
+	 * "none" as a profile name.
+	 */
+	if( strcmp( name, "none" ) == 0 ) {
+		vips_image_remove( image, VIPS_META_ICC_NAME );
+
+		return( 0 );
+	}
+
 	/* Already a profile? Do nothing. We could remove and replace non-CMYK
 	 * profiles I guess.
 	 */

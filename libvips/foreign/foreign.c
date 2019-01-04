@@ -1259,15 +1259,6 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 		g_object_unref( in );
 
 		in = out;
-
-		/* We've imported to PCS, we must remove the embedded profile,
-		 * since it no longer matches the image.
-		 *
-		 * For example, when converting CMYK JPG to RGB PNG, we need 
-		 * to remove the CMYK profile on import, or the png writer will 
-		 * try to attach it when we write the image as RGB.
-		 */
-		vips_image_remove( in, VIPS_META_ICC_NAME );
 	}
 
 	/* If this is something other than CMYK or RAD, eg. maybe a LAB image,
@@ -1519,11 +1510,11 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 	 */
 	if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
 		const void *data;
-		size_t size;
+		size_t length;
 
 		if( !vips_image_get_blob( in, VIPS_META_ICC_NAME, 
-			&data, &size ) &&
-			!vips_icc_is_compatible_profile( in, data, size ) ) 
+			&data, &length ) &&
+			!vips_icc_is_compatible_profile( in, data, length ) ) 
 			vips_image_remove( in, VIPS_META_ICC_NAME );
 	}
 
