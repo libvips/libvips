@@ -248,9 +248,9 @@ magick_destroy_exception( ExceptionInfo *exception )
 void
 magick_inherit_exception( ExceptionInfo *exception, Image *image ) 
 {
-#ifdef HAVE_INHERITEXCEPTIONINFO
+#ifdef HAVE_INHERITEXCEPTION
 	InheritException( exception, &image->exception );
-#endif /*HAVE_INHERITEXCEPTIONINFO*/
+#endif /*HAVE_INHERITEXCEPTION*/
 }
 
 void

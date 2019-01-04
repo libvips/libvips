@@ -1,3 +1,6 @@
+4/1/19 started 8.7.4
+- magicksave with magick6 API did not chain exceptions correctly [kleisauke]
+
 21/11/18 started 8.7.3
 - fix infinite loop for autofit with non-scaleable font 
 - mapim was not offsetting by window offset [erdmann]
