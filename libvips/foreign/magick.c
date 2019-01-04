@@ -85,6 +85,18 @@ magick_set_property( Image *image, const char *property, const char *value,
 	(void) SetImageProperty( image, property, value, exception );
 }
 
+ExceptionInfo *
+magick_acquire_exception( void )
+{
+	return( AcquireExceptionInfo() );
+}
+
+void
+magick_destroy_exception( ExceptionInfo *exception )
+{
+	VIPS_FREEF( DestroyExceptionInfo, exception ); 
+}
+
 void
 magick_inherit_exception( ExceptionInfo *exception, Image *image ) 
 {
@@ -197,12 +209,48 @@ magick_set_property( Image *image, const char *property, const char *value,
 #endif /*HAVE_SETIMAGEPROPERTY*/
 }
 
+ExceptionInfo *
+magick_acquire_exception( void )
+{
+	ExceptionInfo *exception;
+
+#ifdef HAVE_ACQUIREEXCEPTIONINFO
+	/* IM6+
+	 */
+	exception = AcquireExceptionInfo();
+#else /*!HAVE_ACQUIREEXCEPTIONINFO*/
+	/* gm
+	 */
+	exception = g_new( ExceptionInfo, 1 );
+	GetExceptionInfo( exception );
+#endif /*HAVE_ACQUIREEXCEPTIONINFO*/
+
+	return( exception );
+}
+
+void
+magick_destroy_exception( ExceptionInfo *exception )
+{
+#ifdef HAVE_ACQUIREEXCEPTIONINFO
+	/* IM6+ will free the exception in destroy.
+	 */
+	VIPS_FREEF( DestroyExceptionInfo, exception ); 
+#else /*!HAVE_ACQUIREEXCEPTIONINFO*/
+	/* gm and very old IM need to free the memory too.
+	 */
+	if( exception ) { 
+		DestroyExceptionInfo( exception ); 
+		g_free( exception );
+	}
+#endif /*HAVE_ACQUIREEXCEPTIONINFO*/
+}
+
 void
 magick_inherit_exception( ExceptionInfo *exception, Image *image ) 
 {
-#ifdef HAVE_INHERITEXCEPTION
+#ifdef HAVE_INHERITEXCEPTIONINFO
 	InheritException( exception, &image->exception );
-#endif /*HAVE_INHERITEXCEPTION*/
+#endif /*HAVE_INHERITEXCEPTIONINFO*/
 }
 
 void

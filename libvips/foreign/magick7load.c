@@ -279,7 +279,7 @@ vips_foreign_load_magick7_dispose( GObject *gobject )
 	VIPS_FREEF( DestroyImageInfo, magick7->image_info ); 
 	VIPS_FREE( magick7->frames );
 	VIPS_FREE( magick7->cache_view );
-	VIPS_FREEF( DestroyExceptionInfo, magick7->exception ); 
+	VIPS_FREEF( magick_destroy_exception, magick7->exception ); 
 	VIPS_FREEF( vips_g_mutex_free, magick7->lock );
 
 	G_OBJECT_CLASS( vips_foreign_load_magick7_parent_class )->
@@ -298,7 +298,7 @@ vips_foreign_load_magick7_build( VipsObject *object )
 	magick_genesis();
 
 	magick7->image_info = CloneImageInfo( NULL );
-	magick7->exception = AcquireExceptionInfo();
+	magick7->exception = magick_acquire_exception();
 	magick7->lock = vips_g_mutex_new();
 
 	if( !magick7->image_info ) 
@@ -760,14 +760,14 @@ ismagick7( const char *filename )
 	/* Horribly slow :-(
 	 */
 	image_info = CloneImageInfo( NULL );
-	exception = AcquireExceptionInfo();
+	exception = magick_acquire_exception();
 	vips_strncpy( image_info->filename, filename, MagickPathExtent );
 	magick_sniff_file( image_info, filename );
 	image = PingImage( image_info, exception );
 	result = image != NULL;
 	VIPS_FREEF( DestroyImageList, image );
 	VIPS_FREEF( DestroyImageInfo, image_info ); 
-	VIPS_FREEF( DestroyExceptionInfo, exception ); 
+	VIPS_FREEF( magick_destroy_exception, exception ); 
 
 	return( result );
 }
@@ -863,13 +863,13 @@ vips_foreign_load_magick7_buffer_is_a_buffer( const void *buf, size_t len )
 	/* Horribly slow :-(
 	 */
 	image_info = CloneImageInfo( NULL );
-	exception = AcquireExceptionInfo();
+	exception = magick_acquire_exception();
 	magick_sniff_bytes( image_info, buf, len );
 	image = PingBlob( image_info, buf, len, exception );
 	result = image != NULL;
 	VIPS_FREEF( DestroyImageList, image );
 	VIPS_FREEF( DestroyImageInfo, image_info ); 
-	VIPS_FREEF( DestroyExceptionInfo, exception ); 
+	VIPS_FREEF( magick_destroy_exception, exception ); 
 
 	return( result );
 }
