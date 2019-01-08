@@ -59,6 +59,9 @@
  * 	- don't use Ping, it's too unreliable
  * 24/7/18
  * 	- sniff extra filetypes
+ * 4/1/19 kleisauke
+ * 	- we did not chain exceptions correctly, causing a memory leak
+ * 	- added wrapper funcs for exception handling
  */
 
 /*
