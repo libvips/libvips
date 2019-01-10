@@ -81,7 +81,7 @@ vips_foreign_save_magick_dispose( GObject *gobject )
 	VIPS_FREE( magick->map );
 	VIPS_FREEF( DestroyImageList, magick->images );
 	VIPS_FREEF( DestroyImageInfo, magick->image_info );
-	VIPS_FREEF( DestroyExceptionInfo, magick->exception );
+	VIPS_FREEF( magick_destroy_exception, magick->exception );
 
 	G_OBJECT_CLASS( vips_foreign_save_magick_parent_class )->
 		dispose( gobject );
@@ -218,7 +218,7 @@ vips_foreign_save_magick_build( VipsObject *object )
 	 */
 	im = save->ready;
 
-	magick->exception = AcquireExceptionInfo();
+	magick->exception = magick_acquire_exception();
 	magick->image_info = CloneImageInfo( NULL );
 
 	magick->storage_type = UndefinedPixel;

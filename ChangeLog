@@ -16,10 +16,14 @@
 - add vips_CMYK2XYZ() and vips_XYZ2CMYK(), plus associated routes 
 - include cmyk and srgb fallback profiles
 
+4/1/19 started 8.7.4
+- fix memory leak in magickload [kleisauke]
+
 21/11/18 started 8.7.3
 - fix infinite loop for autofit with non-scaleable font 
 - mapim was not offsetting by window offset [erdmann]
 - better rounding for scale [kleisauke]
+- fix a memleak in magick6load [kleisauke]
 
 21/11/18 started 8.7.2
 - more info output for temp files to help diagnose problems
