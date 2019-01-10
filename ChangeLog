@@ -15,6 +15,7 @@
 - dzsave has a new skip_blanks option
 - add vips_CMYK2XYZ() and vips_XYZ2CMYK(), plus associated routes 
 - include cmyk and srgb fallback profiles
+- add vips_profile_load()
 
 4/1/19 started 8.7.4
 - fix memory leak in magickload [kleisauke]

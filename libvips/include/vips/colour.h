@@ -172,6 +172,8 @@ int vips_CMYK2XYZ( VipsImage *in, VipsImage **out, ... )
 int vips_XYZ2CMYK( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 
+int vips_profile_load( const char *name, VipsBlob **profile, ... )
+	__attribute__((sentinel));
 int vips_icc_present( void );
 int vips_icc_transform( VipsImage *in, VipsImage **out, 
 	const char *output_profile, ... )

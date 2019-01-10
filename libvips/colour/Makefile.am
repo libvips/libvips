@@ -1,14 +1,9 @@
 noinst_LTLIBRARIES = libcolour.la
 
-if ENABLE_LCMS
-PROFILES = profiles.c 
-else
-PROFILES = 
-endif
-
 libcolour_la_SOURCES = \
-	$(PROFILES) \
+	profiles.c \
 	profiles.h \
+	profile_load.c \
 	colour.c \
 	pcolour.h \
 	CMYK2XYZ.c \

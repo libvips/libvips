@@ -85,7 +85,7 @@ vips_XYZ2CMYK_build( VipsObject *object )
 	g_object_set( object, "out", out, NULL ); 
 
 	if( vips_copy( XYZ2CMYK->in, &t[0], NULL ) ||
-		vips__fallback_profile_set( "cmyk", t[0] ) ||
+		vips__profile_set( t[0], "cmyk" ) ||
 		vips__colourspace_process_n( "XYZ2CMYK", 
 			t[0], &t[1], 3, vips_XYZ2CMYK_process ) ||
 		vips_image_write( t[1], out ) )

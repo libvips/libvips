@@ -593,28 +593,6 @@ vips_image_expected_sig( VipsImage *image )
 	return( expected_sig );
 }
 
-/* Get from a filename, including loading a fallback.
- */
-static VipsBlob *
-vips_icc_get_profile_file( const char *filename )
-{
-	void *data;
-	size_t size;
-
-	if( (data = vips__fallback_profile_get( filename, &size )) ) 
-		/* We have a fallback profile of this name.
-		 */
-		return( vips_blob_new( NULL, data, size ) );
-	else if( (data = vips__file_read_name( filename, 
-		vips__icc_dir(), &size )) )
-		/* Load from the named file. 
-		 */
-		return( vips_blob_new(
-			(VipsCallbackFn) vips_free, data, size ) );
-	else
-		return( NULL );
-}
-
 /* Get from an image.
  */
 static VipsBlob *
@@ -690,8 +668,9 @@ vips_icc_import_build( VipsObject *object )
 
 	if( !icc->in_blob &&
 		import->input_profile_filename ) {
-		icc->in_blob = vips_icc_get_profile_file( 
-			import->input_profile_filename );
+		if( vips_profile_load( import->input_profile_filename, 
+			&icc->in_blob, NULL ) )
+			return( -1 ); 
 	 	import->used_fallback = TRUE;
 	}
 
@@ -886,19 +865,22 @@ vips_icc_export_build( VipsObject *object )
 
 	if( !icc->out_blob &&
 		export->output_profile_filename ) {
-		icc->out_blob = vips_icc_get_profile_file( 
-			export->output_profile_filename );
+		if( vips_profile_load( export->output_profile_filename, 
+			&icc->out_blob, NULL ) )
+			return( -1 ); 
 		colour->profile_filename = export->output_profile_filename;
 	}
 
-	if( !(icc->out_profile = 
-		vips_icc_load_profile_blob( icc->out_blob, NULL )) ) {
+	if( icc->out_blob &&
+		!(icc->out_profile = 
+			vips_icc_load_profile_blob( icc->out_blob, NULL )) ) {
 		vips_error( class->nickname, "%s", _( "no output profile" ) ); 
 		return( -1 );
 	}
 
-	vips_check_intent( class->nickname, 
-		icc->out_profile, icc->intent, LCMS_USED_AS_OUTPUT );
+	if( icc->out_profile )
+		vips_check_intent( class->nickname, 
+			icc->out_profile, icc->intent, LCMS_USED_AS_OUTPUT );
 
 	if( VIPS_OBJECT_CLASS( vips_icc_export_parent_class )->build( object ) )
 		return( -1 );
@@ -1089,8 +1071,9 @@ vips_icc_transform_build( VipsObject *object )
 
 	if( !icc->in_blob &&
 		transform->input_profile_filename ) 
-		icc->in_blob = vips_icc_get_profile_file( 
-			transform->input_profile_filename );
+		if( vips_profile_load( transform->input_profile_filename, 
+			&icc->in_blob, NULL ) )
+			return( -1 ); 
 
 	if( icc->in_blob &&
 		code->in )
@@ -1103,8 +1086,9 @@ vips_icc_transform_build( VipsObject *object )
 	}
 
 	if( transform->output_profile_filename ) {
-		icc->out_blob = vips_icc_get_profile_file( 
-			transform->output_profile_filename );
+		if( vips_profile_load( transform->output_profile_filename, 
+			&icc->out_blob, NULL ) )
+			return( -1 ); 
 		colour->profile_filename = transform->output_profile_filename;
 	}
 

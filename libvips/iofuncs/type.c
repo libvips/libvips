@@ -376,6 +376,9 @@ void *
 vips_area_get_data( VipsArea *area, 
 	size_t *length, int *n, GType *type, size_t *sizeof_type )
 {
+	if( !area )
+		return( NULL );
+
 	if( length )
 		*length = area->length;
 	if( n )

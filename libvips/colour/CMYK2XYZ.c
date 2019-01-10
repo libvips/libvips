@@ -60,99 +60,6 @@ typedef VipsColourCodeClass VipsCMYK2XYZClass;
 
 G_DEFINE_TYPE( VipsCMYK2XYZ, vips_CMYK2XYZ, VIPS_TYPE_OPERATION );
 
-/* Created on first use from a base64 string in profiles.c.
- */
-typedef struct _VipsFallbackProfile {
-	const char *name;
-	void *data;
-	size_t data_length;
-} VipsFallbackProfile;
-
-static GSList *vips_fallback_profile_list = NULL;
-
-static void *
-vips__fallback_profile_get_init( void )
-{
-	int i;
-
-	for( i = 0; vips__coded_profiles[i].name; i++ ) {
-		size_t data_length;
-		unsigned char *data;
-		VipsFallbackProfile *fallback;
-
-		if( !(data = vips__b64_decode( 
-			vips__coded_profiles[i].data, &data_length )) )
-			return( NULL );
-		fallback = g_new( VipsFallbackProfile,1 );
-		fallback->name = vips__coded_profiles[i].name;
-		fallback->data = data;
-		fallback->data_length = data_length;
-		vips_fallback_profile_list = g_slist_prepend( 
-			vips_fallback_profile_list, fallback );
-	}
-
-	return( NULL );
-}
-
-/* Shared with icc_transform.c
- */
-void *
-vips__fallback_profile_get( const char *name, size_t *length )
-{
-	GOnce once = G_ONCE_INIT;
-
-	GSList *p;
-
-	VIPS_ONCE( &once, (GThreadFunc) vips__fallback_profile_get_init, NULL );
-
-	for( p = vips_fallback_profile_list; p; p = p->next ) {
-		VipsFallbackProfile *fallback = (VipsFallbackProfile *) p->data;
-
-		if( strcasecmp( fallback->name, name ) == 0 ) {
-			*length = fallback->data_length;
-
-			return( fallback->data );
-		}
-	}
-
-	return( NULL );
-}
-
-/* Shared with XYZ2CMYK.c.
- */
-int
-vips__fallback_profile_set( const char *name, VipsImage *image )
-{
-	size_t data_length;
-	unsigned char *data;
-
-	/* Things like jpegsave let you save with no profile by setting
-	 * "none" as a profile name.
-	 */
-	if( strcmp( name, "none" ) == 0 ) {
-		vips_image_remove( image, VIPS_META_ICC_NAME );
-
-		return( 0 );
-	}
-
-	/* Already a profile? Do nothing. We could remove and replace non-CMYK
-	 * profiles I guess.
-	 */
-	if( vips_image_get_typeof( image, VIPS_META_ICC_NAME ) )
-		return( 0 );
-
-	if( !(data = vips__fallback_profile_get( name, &data_length )) ) {
-		vips_error( "fallback", 
-			_( "unknown fallback profile \"%s\"" ), name ); 
-		return( -1 );
-	}
-
-	vips_image_set_blob( image, VIPS_META_ICC_NAME,
-		NULL, data, data_length );
-
-	return( 0 );
-}
-
 /* Our actual processing, as a VipsColourTransformFn.
  */
 static int
@@ -179,7 +86,7 @@ vips_CMYK2XYZ_build( VipsObject *object )
 	g_object_set( object, "out", out, NULL ); 
 
 	if( vips_copy( CMYK2XYZ->in, &t[0], NULL ) ||
-		vips__fallback_profile_set( "cmyk", t[0] ) ||
+		vips__profile_set( t[0], "cmyk" ) ||
 		vips__colourspace_process_n( "CMYK2XYZ", 
 			t[0], &t[1], 4, vips_CMYK2XYZ_process ) ||
 		vips_image_write( t[1], out ) )
