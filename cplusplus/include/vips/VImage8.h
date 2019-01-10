@@ -422,6 +422,12 @@ public:
 		return( value ); 
 	}
 
+	bool
+	remove( const char *name ) const
+	{
+		return( vips_image_remove( get_image(), name ) );
+	}
+
 	static VOption *
 	option()
 	{
