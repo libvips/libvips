@@ -327,6 +327,12 @@ public:
 		return( vips_image_get_yoffset( get_image() ) ); 
 	}
 
+	bool
+	has_alpha() const
+	{
+		return( vips_image_hasalpha( get_image() ) );
+	}
+
 	const char *
 	filename() const
 	{
@@ -493,6 +499,17 @@ public:
 	new_from_image( double pixel ) const
 	{
 		return( new_from_image( to_vectorv( 1, pixel ) ) ); 
+	}
+
+	VImage 
+	copy_memory() const
+	{
+		VipsImage *image;
+
+		if( !(image = vips_image_copy_memory( this->get_image() )) )
+			throw( VError() );
+
+		return( VImage( image ) );
 	}
 
 	VImage write( VImage out ) const;
