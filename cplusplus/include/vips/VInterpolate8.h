@@ -34,7 +34,7 @@
 #include <complex>
 #include <vector>
 
-#include <string.h>
+#include <cstring>
 
 #include <vips/vips.h>
 
