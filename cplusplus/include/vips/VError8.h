@@ -31,8 +31,8 @@
 #ifndef VIPS_VERROR_H
 #define VIPS_VERROR_H
 
-#include <string>
-#include <iosfwd>
+#include <cstring>
+#include <ostream>
 #include <exception>
 
 #include <vips/vips.h>
@@ -43,7 +43,7 @@ class VIPS_CPLUSPLUS_API VError : public std::exception {
 	std::string _what;
 
 public:
-	VError( std::string what ) : _what( what ) {}
+	VError( const std::string &what ) : _what( what ) {}
 	VError() : _what( vips_error_buffer() ) {}
 	virtual ~VError() throw() {}
 

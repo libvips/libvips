@@ -34,7 +34,7 @@
 #include <complex>
 #include <vector>
 
-#include <string.h>
+#include <cstring>
 
 #include <vips/vips.h>
 
@@ -470,7 +470,10 @@ public:
 		return( VImage( image ) ); 
 	}
 
-	static VImage new_from_buffer( void *buf, size_t len,
+	static VImage new_from_buffer( const void *buf, size_t len,
+		const char *option_string, VOption *options = 0 );
+
+	static VImage new_from_buffer( const std::string &buf,
 		const char *option_string, VOption *options = 0 );
 
 	static VImage new_matrix( int width, int height );
