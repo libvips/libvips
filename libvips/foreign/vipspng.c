@@ -1071,13 +1071,13 @@ write_vips( Write *write,
 	 */
 	if( profile && 
 		!strip ) {
-		if( strcmp( profile, "none" ) != 0 ) { 
-			void *data;
-			size_t length;
+		VipsBlob *blob;
 
-			if( !(data = vips__file_read_name( profile, 
-				vips__icc_dir(), &length )) ) 
-				return( -1 );
+		if( vips_profile_load( profile, &blob, NULL ) )
+			return( -1 );
+		if( blob ) {
+			size_t length;
+			const void *data = vips_blob_get( blob, &length );
 
 #ifdef DEBUG
 			printf( "write_vips: "
@@ -1087,6 +1087,8 @@ write_vips( Write *write,
 
 			png_set_iCCP( write->pPng, write->pInfo, "icc", 
 				PNG_COMPRESSION_TYPE_BASE, data, length );
+
+			vips_area_unref( (VipsArea *) blob );
 		}
 	}
 	else if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) &&

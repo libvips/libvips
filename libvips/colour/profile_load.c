@@ -194,11 +194,20 @@ vips_profile_load_init( VipsProfileLoad *load )
  * @profile: (out): loaded profile
  * @...: %NULL-terminated list of optional named arguments
  *
- * Load a named profile. If the name is one of the built in ICC profiles, then
- * that is returmed, otherwise a profile is loaded from the system profile
- * area.
+ * Load a named profile. 
  *
- * The special name "none" will make this operation return NULL for @profile.
+ * Profiles are loaded from four sources:
+ *
+ * - The special name `"none"` means no profile. @profile will be %NULL in this
+ *   case.
+ *
+ * - @name can be the name of one of the ICC profiles embedded in libvips.
+ *   These names can be at least `"cmyk"` and `"srgb"`.
+ *
+ * - @name can be the full path to a file.
+ *
+ * - @name can be the name of an ICC profile in the system profile directory
+ *   for your platform.
  *
  * Returns: 0 on success, -1 on error
  */

@@ -509,8 +509,7 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  *
  * Use @profile to give the filename of a profile to be embedded in the TIFF.
  * This does not affect the pixels which are written, just the way 
- * they are tagged. You can use the special string "none" to mean 
- * "don't attach a profile".
+ * they are tagged. See vips_profile_load() for details on profile naming. 
  *
  * If no profile is specified and the VIPS header 
  * contains an ICC profile named #VIPS_META_ICC_NAME, the
