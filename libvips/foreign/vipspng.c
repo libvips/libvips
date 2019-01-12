@@ -490,6 +490,11 @@ png2vips_header( Read *read, VipsImage *out )
 				return( -1 ); 
 	}
 
+	/* Attach original palette bit depth, if any, as metadata.
+	 */
+	if( color_type == PNG_COLOR_TYPE_PALETTE )
+		vips_image_set_int( out, "palette-bit-depth", bit_depth );
+
 	return( 0 );
 }
 
@@ -1062,70 +1067,71 @@ write_vips( Write *write,
 		VIPS_RINT( in->Xres * 1000 ), VIPS_RINT( in->Yres * 1000 ), 
 		PNG_RESOLUTION_METER );
 
-	/* Set ICC Profile.
+	/* Metadata
 	 */
-	if( profile && 
-		!strip ) {
-		if( strcmp( profile, "none" ) != 0 ) { 
-			void *data;
+	if( !strip ) {
+		if( profile ) {
+			VipsBlob *blob;
+
+			if( vips_profile_load( profile, &blob, NULL ) )
+				return( -1 );
+			if( blob ) {
+				size_t length;
+				const void *data = vips_blob_get( blob, &length );
+
+#ifdef DEBUG
+				printf( "write_vips: attaching %zd bytes "
+					"of ICC profile\n", length );
+#endif /*DEBUG*/
+
+				png_set_iCCP( write->pPng, write->pInfo, 
+					"icc", PNG_COMPRESSION_TYPE_BASE, 
+					data, length );
+
+				vips_area_unref( (VipsArea *) blob );
+			}
+		}
+		else if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
+			const void *data;
 			size_t length;
 
-			if( !(data = vips__file_read_name( profile, 
-				vips__icc_dir(), &length )) ) 
+			if( vips_image_get_blob( in, VIPS_META_ICC_NAME,
+				&data, &length ) )
 				return( -1 );
 
 #ifdef DEBUG
-			printf( "write_vips: "
-				"attaching %zd bytes of ICC profile\n",
-				length );
+			printf( "write_vips: attaching %zd bytes "
+				"of ICC profile\n", length );
 #endif /*DEBUG*/
 
-			png_set_iCCP( write->pPng, write->pInfo, "icc", 
+			png_set_iCCP( write->pPng, write->pInfo, "icc",
 				PNG_COMPRESSION_TYPE_BASE, data, length );
+
 		}
-	}
-	else if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) &&
-		!strip ) {
-		void *data;
-		size_t length;
 
-		if( vips_image_get_blob( in, VIPS_META_ICC_NAME, 
-			&data, &length ) ) 
-			return( -1 ); 
+		if( vips_image_get_typeof( in, VIPS_META_XMP_NAME ) ) {
+			const void *data;
+			size_t length;
+			char *str;
 
-#ifdef DEBUG
-		printf( "write_vips: attaching %zd bytes of ICC profile\n",
-			length );
-#endif /*DEBUG*/
+			/* XMP is attached as a BLOB with no null-termination. 
+			 * We must re-add this.
+			 */
+			if( vips_image_get_blob( in,
+				VIPS_META_XMP_NAME, &data, &length ) )
+				return( -1 );
 
-		png_set_iCCP( write->pPng, write->pInfo, "icc", 
-			PNG_COMPRESSION_TYPE_BASE, data, length );
-	}
+			str = g_malloc( length + 1 );
+			vips_strncpy( str, data, length + 1 );
+			vips__png_set_text( write->pPng, write->pInfo,
+				"XML:com.adobe.xmp", str );
+			g_free( str );
+		}
 
-	if( vips_image_get_typeof( in, VIPS_META_XMP_NAME ) ) {
-		void *data;
-		size_t length;
-		char *str;
-
-		/* XMP is attached as a BLOB with no null-termination. We
-		 * must re-add this.
-		 */
-		if( vips_image_get_blob( in, 
-			VIPS_META_XMP_NAME, &data, &length ) )
+		if( vips_image_map( in,
+			write_png_comment, write ) )
 			return( -1 );
-
-		str = g_malloc( length + 1 );
-		vips_strncpy( str, data, length + 1 );
-		vips__png_set_text( write->pPng, write->pInfo, 
-			"XML:com.adobe.xmp", str );
-		g_free( str );
 	}
-
-	/* Set any "png-comment-xx-yyy" metadata items.
-	 */
-	if( vips_image_map( in, 
-		write_png_comment, write ) )
-		return( -1 );
 
 #ifdef HAVE_IMAGEQUANT
 	if( palette ) {

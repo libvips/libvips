@@ -762,6 +762,16 @@ if test x"$magick6" = x"yes"; then
   LIBS="$save_LIBS"
 fi
 
+if test x"$magick6" = x"yes"; then
+  # GM is missing AcquireExceptionInfo
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $MAGICK_LIBS"
+  AC_CHECK_FUNCS(AcquireExceptionInfo,
+    AC_DEFINE(HAVE_ACQUIREEXCEPTIONINFO,1,
+	      [define if your magick has AcquireExceptionInfo.]))
+  LIBS="$save_LIBS"
+fi
+
 # have flags to turn load and save off independently ... some people will want
 # save but not load, for example
 AC_ARG_ENABLE([magickload], 
@@ -839,6 +849,14 @@ if test x"$with_lcms" != x"no"; then
      with_lcms=no
     ]
   )
+fi
+
+# we need a conditional for this to only compile in fallback profiles if lcms
+# is detected
+if test x"$with_lcms" != x"no"; then
+  AM_CONDITIONAL(ENABLE_LCMS, true)
+else
+  AM_CONDITIONAL(ENABLE_LCMS, false)
 fi
 
 # OpenEXR

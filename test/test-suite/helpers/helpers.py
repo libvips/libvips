@@ -53,12 +53,14 @@ colour_colourspaces = [pyvips.Interpretation.XYZ,
                        pyvips.Interpretation.HSV,
                        pyvips.Interpretation.SRGB,
                        pyvips.Interpretation.YXY]
+cmyk_colourspaces = [pyvips.Interpretation.CMYK]
 coded_colourspaces = [pyvips.Interpretation.LABQ]
 mono_colourspaces = [pyvips.Interpretation.B_W]
 sixteenbit_colourspaces = [pyvips.Interpretation.GREY16,
                            pyvips.Interpretation.RGB16]
 all_colourspaces = colour_colourspaces + mono_colourspaces + \
-                   coded_colourspaces + sixteenbit_colourspaces
+                   coded_colourspaces + sixteenbit_colourspaces + \
+                   cmyk_colourspaces
 
 max_value = {pyvips.BandFormat.UCHAR: 0xff,
              pyvips.BandFormat.USHORT: 0xffff,

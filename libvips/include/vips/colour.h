@@ -167,6 +167,13 @@ int vips_LabS2Lab( VipsImage *in, VipsImage **out, ... )
 int vips_Lab2LabS( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 
+int vips_CMYK2XYZ( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_XYZ2CMYK( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+
+int vips_profile_load( const char *name, VipsBlob **profile, ... )
+	__attribute__((sentinel));
 int vips_icc_present( void );
 int vips_icc_transform( VipsImage *in, VipsImage **out, 
 	const char *output_profile, ... )
@@ -178,7 +185,7 @@ int vips_icc_export( VipsImage *in, VipsImage **out, ... )
 int vips_icc_ac2rc( VipsImage *in, VipsImage **out, 
 	const char *profile_filename );
 gboolean vips_icc_is_compatible_profile( VipsImage *image, 
-	void *data, size_t data_length );
+	const void *data, size_t data_length );
 
 int vips_dE76( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	__attribute__((sentinel));

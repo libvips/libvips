@@ -158,7 +158,7 @@ show_values( ExifData *data )
  * their default value and we won't know about it. 
  */
 static ExifData *
-vips_exif_load_data_without_fix( void *data, int length )
+vips_exif_load_data_without_fix( const void *data, int length )
 {
 	ExifData *ed;
 
@@ -458,17 +458,17 @@ vips_exif_resolution_from_image( ExifData *ed, VipsImage *image );
 int
 vips__exif_parse( VipsImage *image )
 {
-	void *data;
-	size_t length;
+	const void *data;
+	size_t size;
 	ExifData *ed;
 	VipsExifParams params;
 	const char *str;
 
 	if( !vips_image_get_typeof( image, VIPS_META_EXIF_NAME ) )
 		return( 0 );
-	if( vips_image_get_blob( image, VIPS_META_EXIF_NAME, &data, &length ) )
+	if( vips_image_get_blob( image, VIPS_META_EXIF_NAME, &data, &size ) )
 		return( -1 ); 
-	if( !(ed = vips_exif_load_data_without_fix( data, length )) )
+	if( !(ed = vips_exif_load_data_without_fix( data, size )) )
 		return( -1 );
 
 #ifdef DEBUG_VERBOSE
@@ -1055,21 +1055,21 @@ vips_exif_set_thumbnail( ExifData *ed, VipsImage *im )
 	/* Update EXIF thumbnail from metadata, if any. 
 	 */
 	if( vips_image_get_typeof( im, "jpeg-thumbnail-data" ) ) { 
-		void *data;
-		size_t length;
+		const void *data;
+		size_t size;
 
 		if( vips_image_get_blob( im, "jpeg-thumbnail-data", 
-			&data, &length ) ) 
+			&data, &size ) ) 
 			return( -1 );
 
 		/* Again, we should use the exif allocator attached to this
 		 * entry, but it is not exposed!
 		 */
-		if( length > 0 && 
+		if( size > 0 && 
 			data ) { 
-			ed->data = malloc( length );
-			memcpy( ed->data, data, length );
-			ed->size = length;
+			ed->data = malloc( size );
+			memcpy( ed->data, data, size );
+			ed->size = size;
 		}
 	}
 

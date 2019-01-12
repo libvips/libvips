@@ -269,6 +269,8 @@ void vips__reorder_clear( VipsImage *image );
 VipsWindow *vips_window_take( VipsWindow *window, 
 	VipsImage *im, int top, int height );
 
+int vips__profile_set( VipsImage *image, const char *name );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

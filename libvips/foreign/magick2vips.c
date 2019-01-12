@@ -59,6 +59,9 @@
  * 	- don't use Ping, it's too unreliable
  * 24/7/18
  * 	- sniff extra filetypes
+ * 4/1/19 kleisauke
+ * 	- we did not chain exceptions correctly, causing a memory leak
+ * 	- added wrapper funcs for exception handling
  */
 
 /*
@@ -137,7 +140,7 @@ typedef struct _Read {
 
 	Image *image;
 	ImageInfo *image_info;
-	ExceptionInfo exception;
+	ExceptionInfo *exception;
 
 	/* Number of pages in image.
 	 */
@@ -168,9 +171,7 @@ read_free( Read *read )
 	VIPS_FREEF( DestroyImageList, read->image );
 	VIPS_FREEF( DestroyImageInfo, read->image_info ); 
 	VIPS_FREE( read->frames );
-	if ( (&read->exception)->signature == MagickSignature ) {
-		DestroyExceptionInfo( &read->exception );
-	}
+	VIPS_FREEF( magick_destroy_exception, read->exception ); 
 	VIPS_FREEF( vips_g_mutex_free, read->lock );
 }
 
@@ -209,7 +210,7 @@ read_new( const char *filename, VipsImage *im,
 	read->im = im;
 	read->image = NULL;
 	read->image_info = CloneImageInfo( NULL );
-	GetExceptionInfo( &read->exception );
+	read->exception = magick_acquire_exception(); 
 	read->n_pages = 0;
 	read->n_frames = 0;
 	read->frames = NULL;
@@ -765,9 +766,9 @@ vips__magick_read( const char *filename,
 	printf( "magick2vips: calling ReadImage() ...\n" );
 #endif /*DEBUG*/
 
-	read->image = ReadImage( read->image_info, &read->exception );
+	read->image = ReadImage( read->image_info, read->exception );
 	if( !read->image ) {
-		magick_vips_error( "magick2vips", &read->exception );
+		magick_vips_error( "magick2vips", read->exception );
 		vips_error( "magick2vips", 
 			_( "unable to read file \"%s\"" ), filename );
 		return( -1 );
@@ -803,9 +804,9 @@ vips__magick_read_header( const char *filename,
 	 * but sadly many IM coders do not support ping. The critical one for
 	 * us is DICOM. TGA also has issues. 
 	 */
-	read->image = ReadImage( read->image_info, &read->exception );
+	read->image = ReadImage( read->image_info, read->exception );
 	if( !read->image ) {
-		magick_vips_error( "magick2vips", &read->exception );
+		magick_vips_error( "magick2vips", read->exception );
 		vips_error( "magick2vips", 
 			_( "unable to read file \"%s\"" ), filename ); 
 		return( -1 );
@@ -845,9 +846,9 @@ vips__magick_read_buffer( const void *buf, const size_t len,
 #endif /*DEBUG*/
 
 	read->image = BlobToImage( read->image_info, 
-		buf, len, &read->exception );
+		buf, len, read->exception );
 	if( !read->image ) {
-		magick_vips_error( "magick2vips", &read->exception );
+		magick_vips_error( "magick2vips", read->exception );
 		vips_error( "magick2vips", "%s", _( "unable to read buffer" ) );
 		return( -1 );
 	}
@@ -883,9 +884,9 @@ vips__magick_read_buffer_header( const void *buf, const size_t len,
 	 * for us is DICOM. TGA also has issues. 
 	 */
 	read->image = BlobToImage( read->image_info, 
-		buf, len, &read->exception );
+		buf, len, read->exception );
 	if( !read->image ) {
-		magick_vips_error( "magick2vips", &read->exception );
+		magick_vips_error( "magick2vips", read->exception );
 		vips_error( "magick2vips", "%s", _( "unable to ping blob" ) );
 		return( -1 );
 	}

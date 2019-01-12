@@ -28,6 +28,8 @@
  * 	- rename "field" as "name" in docs
  * 21/11/18
  * 	- get_string will allow G_STRING and REF_STRING
+ * 28/12/18
+ * 	- hide deprecated header fields from _map
  */
 
 /*
@@ -1160,9 +1162,23 @@ vips_image_remove( VipsImage *image, const char *name )
 	return( FALSE );
 }
 
+/* Deprecated header fields we hide from _map.
+ */
+static const char *vips_image_header_deprecated[] = {
+	"ipct-data"
+};
+
 static void *
 vips_image_map_fn( VipsMeta *meta, VipsImageMapFn fn, void *a )
 {
+	int i;
+
+	/* Hide deprecated fields.
+	 */
+	for( i = 0; i < VIPS_NUMBER( vips_image_header_deprecated ); i++ )
+		if( strcmp( meta->name, vips_image_header_deprecated[i] ) == 0 )
+			return( NULL );
+
 	return( fn( meta->im, meta->name, &meta->value, a ) );
 }
 
@@ -1349,13 +1365,13 @@ vips_image_get_area( const VipsImage *image, const char *name, void **data )
  * See also: vips_image_get_blob(), vips_image_set().
  */
 void
-vips_image_set_blob( VipsImage *image, 
-	const char *name, VipsCallbackFn free_fn, void *data, size_t length )
+vips_image_set_blob( VipsImage *image, const char *name, 
+	VipsCallbackFn free_fn, const void *data, size_t size )
 {
 	GValue value = { 0 };
 
 	g_value_init( &value, VIPS_TYPE_BLOB );
-	vips_value_set_blob( &value, free_fn, data, length );
+	vips_value_set_blob( &value, free_fn, data, size );
 	vips_image_set( image, name, &value );
 	g_value_unset( &value );
 }
@@ -1415,7 +1431,7 @@ vips_image_set_blob_copy( VipsImage *image,
  */
 int
 vips_image_get_blob( const VipsImage *image, const char *name, 
-	void **data, size_t *length )
+	const void **data, size_t *length )
 {
 	GValue value_copy = { 0 };
 

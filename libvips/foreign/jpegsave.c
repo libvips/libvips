@@ -75,7 +75,7 @@ typedef struct _VipsForeignSaveJpeg {
 	 */
 	int Q;
 
-	/* Profile to embed .. "none" means don't attach a profile.
+	/* Profile to embed.
 	 */
 	char *profile;
 
@@ -434,10 +434,9 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  *
  * Use @Q to set the JPEG compression factor. Default 75.
  *
- * Use @profile to give the filename of a profile to be embedded in the JPEG.
+ * Use @profile to give the name of a profile to be embedded in the JPEG.
  * This does not affect the pixels which are written, just the way 
- * they are tagged. You can use the special string "none" to mean 
- * "don't attach a profile".
+ * they are tagged. See vips_profile_load() for details on profile naming. 
  *
  * If no profile is specified and the VIPS header 
  * contains an ICC profile named #VIPS_META_ICC_NAME, the
