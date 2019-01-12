@@ -44,8 +44,8 @@
 
 #include <vips/internal.h>
 
-#include "pcolour.h"
 #include "profiles.h"
+#include "pcolour.h"
 
 #ifdef HAVE_LCMS2
 
@@ -59,61 +59,6 @@ typedef struct _VipsCMYK2XYZ {
 typedef VipsColourCodeClass VipsCMYK2XYZClass;
 
 G_DEFINE_TYPE( VipsCMYK2XYZ, vips_CMYK2XYZ, VIPS_TYPE_OPERATION );
-
-/* Created on first use from a base64 string in profiles.c.
- */
-static void *vips_CMYK2XYZ_fallback_profile = NULL;
-static size_t vips_CMYK2XYZ_fallback_profile_length = 0;
-
-static void *
-vips_CMYK2XYZ_get_fallback_profile_init( void )
-{
-	size_t data_length;
-	unsigned char *data;
-
-	if( !(data = vips__b64_decode( vips__coded_cmyk, &data_length )) )
-		return( NULL );
-	vips_CMYK2XYZ_fallback_profile = data;
-	vips_CMYK2XYZ_fallback_profile_length = data_length;
-
-	return( NULL );
-}
-
-static void *
-vips__CMYK2XYZ_get_fallback_profile( size_t *length )
-{
-	GOnce once = G_ONCE_INIT;
-
-	VIPS_ONCE( &once, 
-		(GThreadFunc) vips_CMYK2XYZ_get_fallback_profile_init, NULL );
-
-	*length = vips_CMYK2XYZ_fallback_profile_length;
-
-	return( vips_CMYK2XYZ_fallback_profile );
-}
-
-/* Shared with XYZ2CMYK.c.
- */
-int
-vips_CMYK2XYZ_set_fallback_profile( VipsImage *image )
-{
-	size_t data_length;
-	unsigned char *data;
-
-	/* Already a profile? Do nothing. We could remove and replace non-CMYK
-	 * profiles I guess.
-	 */
-	if( vips_image_get_typeof( image, VIPS_META_ICC_NAME ) )
-		return( 0 );
-
-	if( !(data = vips__CMYK2XYZ_get_fallback_profile( &data_length )) )
-		return( -1 );
-
-	vips_image_set_blob( image, VIPS_META_ICC_NAME,
-		NULL, data, data_length );
-
-	return( 0 );
-}
 
 /* Our actual processing, as a VipsColourTransformFn.
  */
@@ -141,7 +86,7 @@ vips_CMYK2XYZ_build( VipsObject *object )
 	g_object_set( object, "out", out, NULL ); 
 
 	if( vips_copy( CMYK2XYZ->in, &t[0], NULL ) ||
-		vips_CMYK2XYZ_set_fallback_profile( t[0] ) ||
+		vips__profile_set( t[0], "cmyk" ) ||
 		vips__colourspace_process_n( "CMYK2XYZ", 
 			t[0], &t[1], 4, vips_CMYK2XYZ_process ) ||
 		vips_image_write( t[1], out ) )

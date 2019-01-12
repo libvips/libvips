@@ -325,23 +325,28 @@ struct _Wtiff {
 	int image_height;
 };
 
-/* Embed an ICC profile from a file.
+/* Write an ICC Profile from a file into the JPEG stream.
  */
 static int
 embed_profile_file( TIFF *tif, const char *profile )
 {
-	char *buffer;
-	size_t length;
+	VipsBlob *blob;
 
-	if( !(buffer = vips__file_read_name( profile, 
-		vips__icc_dir(), &length )) )
+	if( vips_profile_load( profile, &blob, NULL ) )
 		return( -1 );
-	TIFFSetField( tif, TIFFTAG_ICCPROFILE, length, buffer );
-	vips_free( buffer );
+
+	if( blob ) {
+		size_t length;
+		const void *data = vips_blob_get( blob, &length );
+
+		TIFFSetField( tif, TIFFTAG_ICCPROFILE, length, data );
 
 #ifdef DEBUG
-	printf( "vips2tiff: attached profile \"%s\"\n", profile );
+		printf( "vips2tiff: attached profile \"%s\"\n", profile );
 #endif /*DEBUG*/
+
+		vips_area_unref( (VipsArea *) blob );
+	}
 
 	return( 0 );
 }
@@ -351,12 +356,12 @@ embed_profile_file( TIFF *tif, const char *profile )
 static int
 embed_profile_meta( TIFF *tif, VipsImage *im )
 {
-	void *data;
-	size_t data_length;
+	const void *data;
+	size_t length;
 
-	if( vips_image_get_blob( im, VIPS_META_ICC_NAME, &data, &data_length ) )
+	if( vips_image_get_blob( im, VIPS_META_ICC_NAME, &data, &length ) )
 		return( -1 );
-	TIFFSetField( tif, TIFFTAG_ICCPROFILE, data_length, data );
+	TIFFSetField( tif, TIFFTAG_ICCPROFILE, length, data );
 
 #ifdef DEBUG
 	printf( "vips2tiff: attached profile from meta\n" );
@@ -426,8 +431,7 @@ wtiff_layer_new( Wtiff *wtiff, Layer *above, int width, int height )
 static int
 wtiff_embed_profile( Wtiff *wtiff, TIFF *tif )
 {
-	if( wtiff->icc_profile && 
-		strcmp( wtiff->icc_profile, "none" ) != 0 &&
+	if( wtiff->icc_profile &&
 		embed_profile_file( tif, wtiff->icc_profile ) )
 		return( -1 );
 
@@ -442,15 +446,14 @@ wtiff_embed_profile( Wtiff *wtiff, TIFF *tif )
 static int
 wtiff_embed_xmp( Wtiff *wtiff, TIFF *tif )
 {
-	void *data;
-	size_t data_length;
+	const void *data;
+	size_t size;
 
 	if( !vips_image_get_typeof( wtiff->im, VIPS_META_XMP_NAME ) )
 		return( 0 );
-	if( vips_image_get_blob( wtiff->im, VIPS_META_XMP_NAME, 
-		&data, &data_length ) )
+	if( vips_image_get_blob( wtiff->im, VIPS_META_XMP_NAME, &data, &size ) )
 		return( -1 );
-	TIFFSetField( tif, TIFFTAG_XMLPACKET, data_length, data );
+	TIFFSetField( tif, TIFFTAG_XMLPACKET, size, data );
 
 #ifdef DEBUG
 	printf( "vips2tiff: attached XMP from meta\n" );
@@ -462,27 +465,27 @@ wtiff_embed_xmp( Wtiff *wtiff, TIFF *tif )
 static int
 wtiff_embed_iptc( Wtiff *wtiff, TIFF *tif )
 {
-	void *data;
-	size_t data_length;
+	const void *data;
+	size_t size;
 
 	if( !vips_image_get_typeof( wtiff->im, VIPS_META_IPTC_NAME ) )
 		return( 0 );
 	if( vips_image_get_blob( wtiff->im, VIPS_META_IPTC_NAME, 
-		&data, &data_length ) )
+		&data, &size ) )
 		return( -1 );
 
 	/* For no very good reason, libtiff stores IPTC as an array of
 	 * long, not byte.
 	 */
-	if( data_length & 3 ) {
+	if( size & 3 ) {
 		g_warning( "%s", _( "rounding up IPTC data length" ) );
-		data_length /= 4;
-		data_length += 1;
+		size /= 4;
+		size += 1;
 	}
 	else
-		data_length /= 4;
+		size /= 4;
 
-	TIFFSetField( tif, TIFFTAG_RICHTIFFIPTC, data_length, data );
+	TIFFSetField( tif, TIFFTAG_RICHTIFFIPTC, size, data );
 
 #ifdef DEBUG
 	printf( "vips2tiff: attached IPTC from meta\n" );
@@ -494,15 +497,15 @@ wtiff_embed_iptc( Wtiff *wtiff, TIFF *tif )
 static int
 wtiff_embed_photoshop( Wtiff *wtiff, TIFF *tif )
 {
-	void *data;
-	size_t data_length;
+	const void *data;
+	size_t size;
 
 	if( !vips_image_get_typeof( wtiff->im, VIPS_META_PHOTOSHOP_NAME ) )
 		return( 0 );
 	if( vips_image_get_blob( wtiff->im, 
-		VIPS_META_PHOTOSHOP_NAME, &data, &data_length ) )
+		VIPS_META_PHOTOSHOP_NAME, &data, &size ) )
 		return( -1 );
-	TIFFSetField( tif, TIFFTAG_PHOTOSHOP, data_length, data );
+	TIFFSetField( tif, TIFFTAG_PHOTOSHOP, size, data );
 
 #ifdef DEBUG
 	printf( "vips2tiff: attached photoshop data from meta\n" );

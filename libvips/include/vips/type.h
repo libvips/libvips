@@ -158,9 +158,9 @@ typedef struct _VipsBlob {
 } VipsBlob;
 
 VipsBlob *vips_blob_new( VipsCallbackFn free_fn, 
-	const void *data, size_t size );
-VipsBlob *vips_blob_copy( const void *data, size_t size );
-const void *vips_blob_get( VipsBlob *blob, size_t *size );
+	const void *data, size_t length );
+VipsBlob *vips_blob_copy( const void *data, size_t length );
+const void *vips_blob_get( VipsBlob *blob, size_t *length );
 GType vips_blob_get_type(void);
 
 /**
@@ -224,7 +224,7 @@ void vips_value_set_ref_string( GValue *value, const char *str );
 
 void *vips_value_get_blob( const GValue *value, size_t *length );
 void vips_value_set_blob( GValue *value, 
-	VipsCallbackFn free_fn, void *data, size_t length );
+	VipsCallbackFn free_fn, const void *data, size_t length );
 void vips_value_set_blob_free( GValue *value, void *data, size_t length );
 
 void vips_value_set_array( GValue *value, 

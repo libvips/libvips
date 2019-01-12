@@ -1,13 +1,9 @@
 noinst_LTLIBRARIES = libcolour.la
 
-if ENABLE_LCMS
-PROFILES = profiles.c profiles.h 
-else
-PROFILES = 
-endif
-
 libcolour_la_SOURCES = \
-	$(PROFILES) \
+	profiles.c \
+	profiles.h \
+	profile_load.c \
 	colour.c \
 	pcolour.h \
 	CMYK2XYZ.c \
@@ -43,7 +39,7 @@ libcolour_la_SOURCES = \
 	scRGB2sRGB.c
 
 profiles.c:
-	./wrap_profiles.sh profiles profiles
+	./wrap-profiles.sh profiles profiles.c
 
 EXTRA_DIST = \
 	profiles \

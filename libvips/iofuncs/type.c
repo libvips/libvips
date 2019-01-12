@@ -376,6 +376,9 @@ void *
 vips_area_get_data( VipsArea *area, 
 	size_t *length, int *n, GType *type, size_t *sizeof_type )
 {
+	if( !area )
+		return( NULL );
+
 	if( length )
 		*length = area->length;
 	if( n )
@@ -599,8 +602,8 @@ vips_ref_string_get_type( void )
 /**
  * vips_blob_new: 
  * @free_fn: (scope async) (allow-none): @data will be freed with this function
- * @data: (array length=size) (element-type guint8) (transfer full): data to store
- * @size: number of bytes in @data
+ * @data: (array length=length) (element-type guint8) (transfer full): data to store
+ * @length: number of bytes in @data
  *
  * Like vips_area_new(), but track a length as well. The returned #VipsBlob
  * takes ownership of @data and will free it with @free_fn. Pass NULL for
@@ -614,20 +617,20 @@ vips_ref_string_get_type( void )
  * Returns: (transfer full): the new #VipsBlob.
  */
 VipsBlob *
-vips_blob_new( VipsCallbackFn free_fn, const void *data, size_t size )
+vips_blob_new( VipsCallbackFn free_fn, const void *data, size_t length )
 {
 	VipsArea *area;
 
 	area = vips_area_new( free_fn, (void *) data );
-	area->length = size;
+	area->length = length;
 
 	return( (VipsBlob *) area );
 }
 
 /**
  * vips_blob_copy: 
- * @data: (array length=size) (element-type guint8) (transfer none): data to store
- * @size: number of bytes in @data
+ * @data: (array length=length) (element-type guint8) (transfer none): data to store
+ * @length: number of bytes in @data
  *
  * Like vips_blob_new(), but take a copy of the data. Useful for bindings
  * which strugle with callbacks. 
@@ -637,15 +640,15 @@ vips_blob_new( VipsCallbackFn free_fn, const void *data, size_t size )
  * Returns: (transfer full): the new #VipsBlob.
  */
 VipsBlob *
-vips_blob_copy( const void *data, size_t size )
+vips_blob_copy( const void *data, size_t length )
 {
 	void *data_copy; 
 	VipsArea *area;
 
-	data_copy = vips_malloc( NULL, size );
-	memcpy( data_copy, data, size );
+	data_copy = vips_malloc( NULL, length );
+	memcpy( data_copy, data, length );
 	area = vips_area_new( (VipsCallbackFn) g_free, data_copy );
-	area->length = size;
+	area->length = length;
 
 	return( (VipsBlob *) area );
 }
@@ -653,19 +656,19 @@ vips_blob_copy( const void *data, size_t size )
 /**
  * vips_blob_get: 
  * @blob: #VipsBlob to fetch from
- * @size: return number of bytes of data
+ * @length: return number of bytes of data
  *
  * Get the data from a #VipsBlob. 
  * 
  * See also: vips_blob_new().
  *
- * Returns: (array length=size) (element-type guint8) (transfer none): the data
+ * Returns: (array length=length) (element-type guint8) (transfer none): the data
  */
 const void *
-vips_blob_get( VipsBlob *blob, size_t *size )
+vips_blob_get( VipsBlob *blob, size_t *length )
 {
 	return( vips_area_get_data( VIPS_AREA( blob ), 
-		size, NULL, NULL, NULL ) ); 
+		length, NULL, NULL, NULL ) ); 
 }
 
 /* Transform a blob to a G_TYPE_STRING.
@@ -674,12 +677,12 @@ static void
 transform_blob_g_string( const GValue *src_value, GValue *dest_value )
 {
 	void *blob;
-	size_t blob_length;
+	size_t length;
 	char buf[256];
 
-	blob = vips_value_get_blob( src_value, &blob_length );
+	blob = vips_value_get_blob( src_value, &length );
 	vips_snprintf( buf, 256, "VIPS_TYPE_BLOB, data = %p, length = %zd",
-		blob, blob_length );
+		blob, length );
 	g_value_set_string( dest_value, buf );
 } 
 
@@ -689,11 +692,11 @@ static void
 transform_blob_save_string( const GValue *src_value, GValue *dest_value )
 {
 	void *blob;
-	size_t blob_length;
+	size_t length;
 	char *b64;
 
-	blob = vips_value_get_blob( src_value, &blob_length );
-	if( (b64 = vips__b64_encode( blob, blob_length )) ) {
+	blob = vips_value_get_blob( src_value, &length );
+	if( (b64 = vips__b64_encode( blob, length )) ) {
 		vips_value_set_save_string( dest_value, b64 );
 		vips_free( b64 );
 	}
@@ -709,12 +712,12 @@ transform_save_string_blob( const GValue *src_value, GValue *dest_value )
 {
 	const char *b64;
 	void *blob;
-	size_t blob_length;
+	size_t length;
 
 	b64 = vips_value_get_save_string( src_value );
-	if( (blob = vips__b64_decode( b64, &blob_length )) )
+	if( (blob = vips__b64_decode( b64, &length )) )
 		vips_value_set_blob( dest_value, 
-			(VipsCallbackFn) vips_free, blob, blob_length );
+			(VipsCallbackFn) vips_free, blob, length );
 	else
 		/* No error return from transform, but we should set it to
 		 * something.
@@ -1556,7 +1559,7 @@ vips_value_set_ref_string( GValue *value, const char *str )
  * @length: length of memory area
  *
  * Sets @value to hold a @data. When @value is freed, @data will be
- * freed with @free_fn. @value also holds a note of the length of the memory
+ * freed with @free_fn. @value also holds a note of the size of the memory
  * area.
  *
  * blobs are things like ICC profiles or EXIF data. They are relocatable, and
@@ -1567,7 +1570,7 @@ vips_value_set_ref_string( GValue *value, const char *str )
  */
 void
 vips_value_set_blob( GValue *value, 
-	VipsCallbackFn free_fn, void *data, size_t length ) 
+	VipsCallbackFn free_fn, const void *data, size_t length ) 
 {
 	VipsBlob *blob;
 
