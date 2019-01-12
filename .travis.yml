@@ -13,7 +13,7 @@ script:
   - make -Ctest -j$JOBS -s V=0 VERBOSE=1 check
   - LD_LIBRARY_PATH=$PWD/libvips/.libs
     DYLD_LIBRARY_PATH=$PWD/libvips/.libs
-    $PYTHON -m pytest -v pyvips-master
+    $PYTHON -m pytest -v test/test-suite
 
 matrix:
   allow_failures:
@@ -29,18 +29,6 @@ matrix:
         - JPEG=/usr
         - JOBS=`nproc`
       cache: ccache
-      before_install:
-        - sudo apt-get update -qq
-        - sudo apt-get install -y
-          automake gtk-doc-tools gobject-introspection
-          libfftw3-dev libexif-dev libjpeg-turbo8-dev
-          libpng12-dev libwebp-dev libtiff5-dev libexpat1-dev
-          swig libmagick++-dev bc
-          libcfitsio3-dev libgsl0-dev libmatio-dev
-          liborc-0.4-dev liblcms2-dev libpoppler-glib-dev
-          librsvg2-dev libgif-dev libopenexr-dev
-          libpango1.0-dev libgsf-1-dev libopenslide-dev
-          libffi-dev
 
     - os: osx
       osx_image: xcode10.1
@@ -52,15 +40,60 @@ matrix:
         - PATH="/usr/local/opt/ccache/libexec:$PATH"
         - HOMEBREW_NO_AUTO_UPDATE=1
       cache: ccache
-      before_install:
-        - brew install ccache
-        - brew install
-          gtk-doc gobject-introspection
-          fftw libexif
-          webp
-          swig imagemagick
-          cfitsio gsl libmatio
-          orc little-cms2 poppler
-          librsvg openexr
-          pango libgsf openslide
 
+addons:
+  apt:
+    update: true
+    sources:
+      # use imagemagick 6.9.7-4 instead than 6.8.9-9
+      - sourceline: 'ppa:opencpu/imagemagick'
+    packages:
+      - automake 
+      - gtk-doc-tools 
+      - gobject-introspection
+      - libfftw3-dev 
+      - libexif-dev 
+      - libjpeg-turbo8-dev
+      - libpng12-dev 
+      - libwebp-dev
+      # missing on xenial, unfortunately
+      # - libwebpmux2
+      - libtiff5-dev 
+      - libexpat1-dev
+      - swig 
+      - libmagick++-dev 
+      - bc
+      - libcfitsio3-dev
+      - libgsl0-dev 
+      - libmatio-dev
+      - liborc-0.4-dev
+      - liblcms2-dev
+      - libpoppler-glib-dev
+      - librsvg2-dev 
+      - libgif-dev
+      - libopenexr-dev
+      - libpango1.0-dev 
+      - libgsf-1-dev 
+      - libopenslide-dev
+      - libffi-dev
+  homebrew:
+    packages:
+      - ccache
+      - gtk-doc
+      - gobject-introspection
+      - fftw
+      - libexif
+      - webp
+      - swig
+      - imagemagick
+      - cfitsio
+      - gsl
+      - libmatio
+      - orc
+      - little-cms2
+      - poppler
+      - librsvg
+      - openexr
+      - pango
+      - libgsf
+      - openslide
