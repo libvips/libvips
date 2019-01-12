@@ -195,9 +195,7 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 	OTYPE * restrict q = (OTYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
-		TEMP v = VIPS_FLOOR( p[x] ); \
-		\
-		q[x] = CAST( v ); \
+		q[x] = CAST( p[x] ); \
 	} \
 }
 
