@@ -34,7 +34,7 @@
 #include <complex>
 #include <vector>
 
-#include <string.h>
+#include <cstring>
 
 #include <vips/vips.h>
 
@@ -327,6 +327,12 @@ public:
 		return( vips_image_get_yoffset( get_image() ) ); 
 	}
 
+	bool
+	has_alpha() const
+	{
+		return( vips_image_hasalpha( get_image() ) );
+	}
+
 	const char *
 	filename() const
 	{
@@ -416,6 +422,12 @@ public:
 		return( value ); 
 	}
 
+	bool
+	remove( const char *name ) const
+	{
+		return( vips_image_remove( get_image(), name ) );
+	}
+
 	static VOption *
 	option()
 	{
@@ -458,7 +470,10 @@ public:
 		return( VImage( image ) ); 
 	}
 
-	static VImage new_from_buffer( void *buf, size_t len,
+	static VImage new_from_buffer( const void *buf, size_t len,
+		const char *option_string, VOption *options = 0 );
+
+	static VImage new_from_buffer( const std::string &buf,
 		const char *option_string, VOption *options = 0 );
 
 	static VImage new_matrix( int width, int height );
@@ -493,6 +508,17 @@ public:
 	new_from_image( double pixel ) const
 	{
 		return( new_from_image( to_vectorv( 1, pixel ) ) ); 
+	}
+
+	VImage 
+	copy_memory() const
+	{
+		VipsImage *image;
+
+		if( !(image = vips_image_copy_memory( this->get_image() )) )
+			throw( VError() );
+
+		return( VImage( image ) );
 	}
 
 	VImage write( VImage out ) const;
