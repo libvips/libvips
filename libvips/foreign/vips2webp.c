@@ -77,6 +77,7 @@ typedef struct {
 	gboolean smart_subsample;
 	gboolean near_lossless;
 	int alpha_q;
+	int reduction_effort;
 	gboolean min_size;
 	int kmin;
 	int kmax;
@@ -136,7 +137,7 @@ static int
 vips_webp_write_init( VipsWebPWrite *write, VipsImage *image,
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
-	int alpha_q, 
+	int alpha_q, int reduction_effort,
 	gboolean min_size, int kmin, int kmax,
 	gboolean strip )
 {
@@ -147,6 +148,7 @@ vips_webp_write_init( VipsWebPWrite *write, VipsImage *image,
 	write->smart_subsample = smart_subsample;
 	write->near_lossless = near_lossless;
 	write->alpha_q = alpha_q;
+	write->reduction_effort = reduction_effort;
 	write->min_size = min_size;
 	write->kmin = kmin;
 	write->kmax = kmax;
@@ -175,6 +177,7 @@ vips_webp_write_init( VipsWebPWrite *write, VipsImage *image,
 
 	write->config.lossless = lossless || near_lossless;
 	write->config.alpha_quality = alpha_q;
+	write->config.method = reduction_effort;
 
 	if( near_lossless )
 		write->config.near_lossless = Q;
@@ -497,7 +500,7 @@ int
 vips__webp_write_file( VipsImage *image, const char *filename, 
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
-	int alpha_q, 
+	int alpha_q, int reduction_effort,
 	gboolean min_size, int kmin, int kmax,
 	gboolean strip )
 {
@@ -506,7 +509,7 @@ vips__webp_write_file( VipsImage *image, const char *filename,
 
 	if( vips_webp_write_init( &write, image,
 		Q, lossless, preset, smart_subsample, near_lossless,
-		alpha_q, min_size, kmin, kmax, strip ) )
+		alpha_q, reduction_effort, min_size, kmin, kmax, strip ) )
 		return( -1 );
 
 	if( write_webp( &write, image ) ) {
@@ -543,7 +546,7 @@ int
 vips__webp_write_buffer( VipsImage *image, void **obuf, size_t *olen, 
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
-	int alpha_q, 
+	int alpha_q, int reduction_effort,
 	gboolean min_size, int kmin, int kmax,
 	gboolean strip )
 {
@@ -551,7 +554,7 @@ vips__webp_write_buffer( VipsImage *image, void **obuf, size_t *olen,
 
 	if( vips_webp_write_init( &write, image,
 		Q, lossless, preset, smart_subsample, near_lossless,
-		alpha_q, min_size, kmin, kmax, strip ) )
+		alpha_q, reduction_effort, min_size, kmin, kmax, strip ) )
 		return( -1 );
 
 	if( write_webp( &write, image ) ) {
