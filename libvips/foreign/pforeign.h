@@ -238,13 +238,13 @@ int vips__webp_read_buffer( const void *buf, size_t len, VipsImage *out,
 int vips__webp_write_file( VipsImage *out, const char *filename, 
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
-	int alpha_q, 
+	int alpha_q, int reduction_effort,
 	gboolean min_size, int kmin, int kmax,
 	gboolean strip );
 int vips__webp_write_buffer( VipsImage *out, void **buf, size_t *len, 
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
-	int alpha_q, 
+	int alpha_q, int reduction_effort,
 	gboolean min_size, int kmin, int kmax,
 	gboolean strip );
 

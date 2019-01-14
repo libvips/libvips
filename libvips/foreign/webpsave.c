@@ -76,6 +76,10 @@ typedef struct _VipsForeignSaveWebp {
 	 */
 	int alpha_q;
 
+	/* Level of CPU effort to reduce file size.
+	 */
+	int reduction_effort;
+
 	/* Animated webp options.
 	 */
 
@@ -190,6 +194,12 @@ vips_foreign_save_webp_class_init( VipsForeignSaveWebpClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveWebp, kmax ),
 		0, INT_MAX, INT_MAX );
 
+	VIPS_ARG_INT( class, "reduction_effort", 19,
+		_( "Reduction effort" ),
+		_( "Level of CPU effort to reduce file size" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveWebp, reduction_effort ),
+		0, 6, 4 );
 }
 
 static void
@@ -197,6 +207,7 @@ vips_foreign_save_webp_init( VipsForeignSaveWebp *webp )
 {
 	webp->Q = 75;
 	webp->alpha_q = 100;
+	webp->reduction_effort = 4;
 
 	/* ie. keyframes disabled by default.
 	 */
@@ -232,7 +243,7 @@ vips_foreign_save_webp_file_build( VipsObject *object )
 	if( vips__webp_write_file( save->ready, file->filename, 
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
-		webp->alpha_q, 
+		webp->alpha_q, webp->reduction_effort,
 		webp->min_size, webp->kmin, webp->kmax,
 		save->strip ) )
 		return( -1 );
@@ -298,7 +309,7 @@ vips_foreign_save_webp_buffer_build( VipsObject *object )
 	if( vips__webp_write_buffer( save->ready, &obuf, &olen, 
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
-		webp->alpha_q, 
+		webp->alpha_q, webp->reduction_effort,
 		webp->min_size, webp->kmin, webp->kmax,
 		save->strip ) )
 		return( -1 );
@@ -365,7 +376,7 @@ vips_foreign_save_webp_mime_build( VipsObject *object )
 	if( vips__webp_write_buffer( save->ready, &obuf, &olen, 
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
-		webp->alpha_q, 
+		webp->alpha_q, webp->reduction_effort,
 		webp->min_size, webp->kmin, webp->kmax,
 		save->strip ) )
 		return( -1 );
@@ -416,6 +427,7 @@ vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
  * * @smart_subsample: %gboolean, enables high quality chroma subsampling
  * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
  * * @alpha_q: %gint, set alpha quality in lossless mode
+ * * @reduction_effort: %gint, level of CPU effort to reduce file size
  * * @min_size: %gboolean, minimise size
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
@@ -432,6 +444,9 @@ vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
  * Set @smart_subsample to enable high quality chroma subsampling.
  * Use @alpha_q to set the quality for the alpha channel in lossy mode. It has
  * the range 1 - 100, with the default 100.
+ * Use @reduction_effort to control how much CPU time to spend attempting to
+ * reduce file size. A higher value means more effort and therefore CPU time
+ * should be spent. It has the range 0-6 and a default value of 4.
  *
  * Set @lossless to use lossless compression, or combine @near_lossless
  * with @Q 80, 60, 40 or 20 to apply increasing amounts of preprocessing
@@ -482,6 +497,7 @@ vips_webpsave( VipsImage *in, const char *filename, ... )
  * * @smart_subsample: %gboolean, enables high quality chroma subsampling
  * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
  * * @alpha_q: %gint, set alpha quality in lossless mode
+ * * @reduction_effort: %gint, level of CPU effort to reduce file size
  * * @min_size: %gboolean, minimise size
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
@@ -538,6 +554,7 @@ vips_webpsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @smart_subsample: %gboolean, enables high quality chroma subsampling
  * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
  * * @alpha_q: %gint, set alpha quality in lossless mode
+ * * @reduction_effort: %gint, level of CPU effort to reduce file size
  * * @min_size: %gboolean, minimise size
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
