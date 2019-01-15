@@ -1658,18 +1658,22 @@ vips_image_set_kill( VipsImage *image, gboolean kill )
 	image->kill = kill;
 }
 
-/* Make a name for a filename-less image. Use immediately, don't free the
- * result.
+/* Fills the given buffer with a temporary filename.
+ * Assuming that "int" might be 64 Bit wide a buffer size of 26 suffices.
  */
-static const char *
-vips_image_temp_name( void )
+void
+vips_image_temp_name( char *name, int size )
 {
-	static int serial = 0;
-	static char name[256];
+	static int global_serial = 0;
 
-	vips_snprintf( name, 256, "temp-%d", serial++ );
+	int serial =
+#if GLIB_CHECK_VERSION( 2, 30, 0 )
+		g_atomic_int_add( &global_serial, 1);
+#else
+		g_atomic_exchange_and_add( &global_serial, 1);
+#endif
 
-	return( name );
+	vips_snprintf( name, size, "temp-%d", serial );
 }
 
 /**
@@ -1689,12 +1693,14 @@ VipsImage *
 vips_image_new( void )
 {
 	VipsImage *image;
+	char filename[26];
 
 	vips_check_init();
+	vips_image_temp_name( filename, sizeof(filename) );
 
 	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
 	g_object_set( image,
-		"filename", vips_image_temp_name(),
+		"filename", filename,
 		"mode", "p",
 		NULL );
 	if( vips_object_build( VIPS_OBJECT( image ) ) ) {
@@ -1741,7 +1747,9 @@ vips_image_new_mode( const char *filename, const char *mode )
 VipsImage *
 vips_image_new_memory( void )
 {
-	return( vips_image_new_mode( vips_image_temp_name(), "t" ) );
+	char filename[26];
+	vips_image_temp_name( filename, sizeof(filename) );
+	return( vips_image_new_mode( filename, "t" ) );
 }
 
 /**
@@ -2004,12 +2012,14 @@ vips_image_new_from_memory( const void *data, size_t size,
 	int width, int height, int bands, VipsBandFormat format )
 {
 	VipsImage *image;
+	char filename[26];
 
 	vips_check_init();
+	vips_image_temp_name( filename, sizeof(filename) );
 
 	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
 	g_object_set( image,
-		"filename", vips_image_temp_name(),
+		"filename", filename,
 		"mode", "m",
 		"foreign_buffer", data,
 		"width", width,
