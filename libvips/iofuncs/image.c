@@ -1696,7 +1696,8 @@ vips_image_new( void )
 	char filename[26];
 
 	vips_check_init();
-	vips_image_temp_name( filename, sizeof(filename) );
+
+	vips_image_temp_name( filename, sizeof( filename ) );
 
 	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
 	g_object_set( image,
@@ -1748,7 +1749,8 @@ VipsImage *
 vips_image_new_memory( void )
 {
 	char filename[26];
-	vips_image_temp_name( filename, sizeof(filename) );
+
+	vips_image_temp_name( filename, sizeof( filename ) );
 	return( vips_image_new_mode( filename, "t" ) );
 }
 
@@ -2015,7 +2017,7 @@ vips_image_new_from_memory( const void *data, size_t size,
 	char filename[26];
 
 	vips_check_init();
-	vips_image_temp_name( filename, sizeof(filename) );
+	vips_image_temp_name( filename, sizeof( filename ) );
 
 	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
 	g_object_set( image,

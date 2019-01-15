@@ -2,6 +2,10 @@
  *
  * 24/11/11
  * 	- wrap a class around the webp writer
+ * 29/10/18 
+ * 	- add animated webp support
+ * 15/1/19 lovell
+ * 	- add @reduction_effort 
  */
 
 /*
@@ -441,9 +445,12 @@ vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
  *
  * Use @preset to hint the image type to the lossy compressor. The default is
  * #VIPS_FOREIGN_WEBP_PRESET_DEFAULT. 
+ *
  * Set @smart_subsample to enable high quality chroma subsampling.
+ *
  * Use @alpha_q to set the quality for the alpha channel in lossy mode. It has
  * the range 1 - 100, with the default 100.
+ *
  * Use @reduction_effort to control how much CPU time to spend attempting to
  * reduce file size. A higher value means more effort and therefore CPU time
  * should be spent. It has the range 0-6 and a default value of 4.
