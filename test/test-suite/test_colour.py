@@ -3,7 +3,7 @@ import pytest
 
 import pyvips
 from helpers import JPEG_FILE, SRGB_FILE, colour_colourspaces, \
-    mono_colourspaces, assert_almost_equal_objects
+    mono_colourspaces, assert_almost_equal_objects, skip_if_no
 
 
 class TestColour:
@@ -124,6 +124,7 @@ class TestColour:
         assert abs(result - 4.97) < 0.5
         assert pytest.approx(alpha, 0.001) == 42.0
 
+    @skip_if_no("icc_import")
     def test_icc(self):
         test = pyvips.Image.new_from_file(JPEG_FILE)
 
@@ -162,6 +163,12 @@ class TestColour:
 
         im = test.icc_import()
         assert im.interpretation == pyvips.Interpretation.LAB
+
+    # even without lcms, we should have a working approximation
+    def test_cmyk(self):
+        test = pyvips.Image.new_from_file(JPEG_FILE)
+
+        im = test.colourspace("cmyk").colourspace("srgb")
 
 
 if __name__ == '__main__':

@@ -150,26 +150,24 @@ vips_XYZ2CMYK_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 		float g = p[1] / VIPS_D65_Y0;
 		float b = p[2] / VIPS_D65_Z0;
 
-		float c, m, y, k;
+		float c = 1.0 - r;
+		float m = 1.0 - g;
+		float y = 1.0 - b;
+		float k = VIPS_MIN( c, VIPS_MIN( m, y ) );
+		float ik = 1.0 - k;
 
-		c = 255.0 - r;
-		m = 255.0 - g;
-		y = 255.0 - b;
-		k = VIPS_MIN( c, VIPS_MIN( m, y ) );
-
-		c = (c - k) / (255.0 - k) * 255.0;
-		m = (m - k) / (255.0 - k) * 255.0;
-		y = (y - k) / (255.0 - k) * 255.0;
-
-		q[0] = (unsigned char) VIPS_CLIP(0, c, 255.0);
-		q[1] = (unsigned char) VIPS_CLIP(0, m, 255.0);
-		q[2] = (unsigned char) VIPS_CLIP(0, y, 255.0);
-		if( r < epsilon && 
-			g < epsilon && 
-			b < epsilon )
-			q[3] = 255.0;
-		else
-			q[3] = VIPS_CLIP( 0, k, 255 );
+		if( ik < epsilon ) {
+			q[0] = 255;
+			q[1] = 255;
+			q[2] = 255;
+			q[3] = 255;
+		}
+		else {
+			q[0] = VIPS_CLIP( 0, 255 * (c - k) / ik, 255 );
+			q[1] = VIPS_CLIP( 0, 255 * (m - k) / ik, 255 );
+			q[2] = VIPS_CLIP( 0, 255 * (y - k) / ik, 255 );
+			q[3] = VIPS_CLIP( 0, 255 * k, 255 );
+		}
 
 		p += 3;
 		q += 4;
