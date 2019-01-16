@@ -750,8 +750,8 @@ vips_colour_operation_init( void )
 	extern GType vips_HSV2sRGB_get_type( void ); 
 	extern GType vips_scRGB2XYZ_get_type( void ); 
 	extern GType vips_scRGB2BW_get_type( void ); 
-	extern GType vips_XYZ2scRGB_get_type( void ); 
-  extern GType vips_scRGB2sRGB_get_type( void ); 
+	extern GType vips_XYZ2scRGB_get_type( void );
+	extern GType vips_scRGB2sRGB_get_type( void ); 
 	extern GType vips_CMYK2XYZ_get_type( void ); 
 	extern GType vips_XYZ2CMYK_get_type( void ); 
 	extern GType vips_profile_load_get_type( void ); 

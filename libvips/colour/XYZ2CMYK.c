@@ -151,8 +151,6 @@ vips_XYZ2CMYK_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
         float g = p[1] / VIPS_D65_Y0;
         float b = p[2] / VIPS_D65_Z0;
 
-        if (r < epsilon && g < epsilon && b < epsilon)
-            q[3] = 255.0;
         c = 255.0 - r;
         m = 255.0 - g;
         y = 255.0 - b;
@@ -166,7 +164,10 @@ vips_XYZ2CMYK_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
         q[0] = (unsigned char) VIPS_CLIP(0, c, 255.0);
         q[1] = (unsigned char) VIPS_CLIP(0, m, 255.0);
         q[2] = (unsigned char) VIPS_CLIP(0, y, 255.0);
-        q[3] = (unsigned char) VIPS_CLIP(0, k, 255.0);
+        if (r < epsilon && g < epsilon && b < epsilon)
+            q[3] = 255.0;
+	else
+            q[3] = (unsigned char) VIPS_CLIP(0, k, 255.0);
 
         p += 3;
         q += 4;
