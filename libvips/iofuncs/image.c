@@ -1666,11 +1666,13 @@ vips_image_temp_name( char *name, int size )
 {
 	static int global_serial = 0;
 
+	/* Old glibs named this differently.
+	 */
 	int serial =
 #if GLIB_CHECK_VERSION( 2, 30, 0 )
-		g_atomic_int_add( &global_serial, 1);
+		g_atomic_int_add( &global_serial, 1 );
 #else
-		g_atomic_exchange_and_add( &global_serial, 1);
+		g_atomic_int_exchange_and_add( &global_serial, 1 );
 #endif
 
 	vips_snprintf( name, size, "temp-%d", serial );
