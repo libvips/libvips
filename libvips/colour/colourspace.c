@@ -21,6 +21,8 @@
  * 	  https://github.com/lovell/sharp/issues/193
  * 27/12/18
  * 	- add CMYK conversions
+ * 09/01/2019
+ *  - add CMYK <-> XYZ conversions if no lcms2 has been found
  */
 
 /*
@@ -255,8 +257,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ LABQ, LCH, { vips_LabQ2Lab, vips_Lab2LCh, NULL } },
 	{ LABQ, CMC, { vips_LabQ2Lab, vips_Lab2LCh, vips_LCh2CMC, NULL } },
 	{ LABQ, LABS, { vips_LabQ2LabS, NULL } },
-	{ LABQ, CMYK, { vips_LabQ2Lab, vips_Lab2XYZ, vips_XYZ2CMYK } },
-	{ LABQ, scRGB, { vips_LabQ2Lab, vips_Lab2XYZ, vips_XYZ2scRGB } },
+	{ LABQ, CMYK, { vips_LabQ2Lab, vips_Lab2XYZ, vips_XYZ2CMYK, NULL } },
+	{ LABQ, scRGB, { vips_LabQ2Lab, vips_Lab2XYZ, vips_XYZ2scRGB, NULL } },
 	{ LABQ, sRGB, { vips_LabQ2sRGB, NULL } },
 	{ LABQ, HSV, { vips_LabQ2sRGB, vips_sRGB2HSV, NULL } },
 	{ LABQ, BW, { vips_LabQ2Lab, vips_Lab2XYZ, vips_XYZ2scRGB, 
