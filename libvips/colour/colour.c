@@ -256,21 +256,6 @@ vips_colour_gen( VipsRegion *or,
 }
 
 static int
-vips_colour_attach_profile( VipsImage *im, const char *filename )
-{
-	char *data;
-	size_t data_length;
-
-	if( !(data = vips__file_read_name( filename, vips__icc_dir(), 
-		&data_length )) ) 
-		return( -1 );
-	vips_image_set_blob( im, VIPS_META_ICC_NAME, 
-		(VipsCallbackFn) g_free, data, data_length );
-
-	return( 0 );
-}
-
-static int
 vips_colour_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
@@ -356,12 +341,9 @@ vips_colour_build( VipsObject *object )
 	out->BandFmt = colour->format;
 	out->Bands = colour->bands;
 
-	if( colour->profile_filename ) 
-		if( vips_colour_attach_profile( out, 
-			colour->profile_filename ) ) {
-			g_object_unref( out );
-			return( -1 );
-		}
+	if( colour->profile_filename &&
+		vips__profile_set( out, colour->profile_filename ) )
+		return( -1 );
 
 	if( vips_image_generate( out,
 		vips_start_many, vips_colour_gen, vips_stop_many, 
