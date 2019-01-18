@@ -170,8 +170,8 @@ class TestColour:
 
         im = test.colourspace("cmyk").colourspace("srgb")
 
-        before = test(10, 10)
-        after = im(10, 10)
+        before = test(582, 210)
+        after = im(582, 210)
 
         assert_almost_equal_objects(before, after, threshold=10)
 
