@@ -1,6 +1,4 @@
 4/1/19 started 8.7.4
-- magicksave with magick6 API did not chain exceptions correctly causing a
-  memory leak under some conditions [kleisauke]
 - zero memory on allocate to prevent write of uninitialized memory under some 
   error conditions [Balint Varga-Perke]
 
