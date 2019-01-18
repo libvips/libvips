@@ -21,7 +21,10 @@
 - add @reduction_effort param to webpsave [lovell]
 
 4/1/19 started 8.7.4
-- fix memory leak in magickload [kleisauke]
+- magickload with magick6 API did not chain exceptions correctly causing a
+  memory leak under some conditions [kleisauke]
+- zero memory on allocate to prevent write of uninitialized memory under some 
+  error conditions [Balint Varga-Perke]
 
 21/11/18 started 8.7.3
 - fix infinite loop for autofit with non-scaleable font 
