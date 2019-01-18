@@ -173,7 +173,7 @@ vips_malloc( VipsObject *object, size_t size )
 {
 	void *buf;
 
-	buf = g_malloc( size );
+	buf = g_malloc0( size );
 
         if( object ) {
 		g_signal_connect( object, "postclose", 
@@ -317,7 +317,7 @@ vips_tracked_malloc( size_t size )
 	 */
 	size += 16;
 
-        if( !(buf = g_try_malloc( size )) ) {
+        if( !(buf = g_try_malloc0( size )) ) {
 #ifdef DEBUG
 		g_assert_not_reached();
 #endif /*DEBUG*/
