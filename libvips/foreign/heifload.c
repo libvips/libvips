@@ -178,24 +178,22 @@ vips_foreign_load_heif_set_handle( VipsForeignLoadHeif *heif, heif_item_id id )
 static int
 vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 {
-	guint width;
-	guint height;
-	gboolean has_alpha;
-	guint bands;
+	enum heif_color_profile_type profile_type = 
+		heif_image_handle_get_color_profile_type( heif->handle );
+	int width = heif_image_handle_get_width( heif->handle );
+	int height = heif_image_handle_get_height( heif->handle );
+	/* FIXME none of the Nokia test images seem to set this true.
+	 */
+	gboolean has_alpha = 
+		heif_image_handle_has_alpha_channel( heif->handle );
+	int bands = has_alpha ? 4 : 3;
+
 	/* Surely, 16 will be enough for anyone.
 	 */
 	heif_item_id id[16];
 	int n_metadata;
 	int i;
 	struct heif_error error;
-
-	width = heif_image_handle_get_width( heif->handle );
-	height = heif_image_handle_get_height( heif->handle );
-
-	/* FIXME none of the Nokia test images seem to set this true.
-	 */
-	has_alpha = heif_image_handle_has_alpha_channel( heif->handle );
-	bands = has_alpha ? 4 : 3;
 
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 	vips_image_init_fields( out,
@@ -247,6 +245,31 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 			(void) vips__exif_parse( out );
 	}
 
+	switch( profile_type ) {
+	case heif_color_profile_type_not_present: 
+		printf( "no profile\n" ); 
+		break;
+
+	case heif_color_profile_type_nclx: 
+		printf( "nclx profile\n" ); 
+		break;
+
+	case heif_color_profile_type_rICC: 
+		printf( "rICC profile\n" ); 
+		break;
+
+	case heif_color_profile_type_prof: 
+		printf( "prof profile\n" ); 
+		break;
+
+	default:
+		printf( "unknown profile type\n" ); 
+		break;
+	}
+
+	/* FIXME should probably check the profile type ... lcms seems to be
+	 * able to load at least rICC and prof.
+	 */
 	if( heif_image_handle_get_color_profile_type( heif->handle ) ) {
 		size_t length = heif_image_handle_get_raw_color_profile_size( 
 			heif->handle );
