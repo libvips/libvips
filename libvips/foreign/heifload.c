@@ -62,8 +62,24 @@ typedef struct _VipsForeignLoadHeif {
 	 */
 	char *filename; 
 
+	/* Context for this file.
+	 */
 	struct heif_context *ctx;
+
+	/* Number of top-level images in this file.
+	 */
+	int n_top;
+
+	/* Array of top-level image IDs.
+	 */
+	heif_item_id *id;
+
+	/* Handle for the currently selected image.
+	 */
 	struct heif_image_handle *handle;
+
+	/* Decoded pixel data for the current image.
+	 */
 	struct heif_image *img;
 
 	/* Valid until img is released.
@@ -91,6 +107,7 @@ vips_foreign_load_heif_dispose( GObject *gobject )
 	VIPS_FREEF( heif_image_handle_release, heif->handle );
 	VIPS_FREEF( heif_context_free, heif->ctx );
 	VIPS_UNREF( heif->memory );
+	VIPS_FREE( heif->id );
 
 	G_OBJECT_CLASS( vips_foreign_load_heif_parent_class )->
 		dispose( gobject );
@@ -103,9 +120,6 @@ vips_heif_error( struct heif_error error )
 		vips_error( "heifload", "%s", error.message ); 
 }
 
-/* More recent libheif have this in the API, but we need to work with older
- * versions too.
- */
 static const char *vips_foreign_load_heif_magic[] = {
 	"ftypheic",
 	"ftypheix",
@@ -113,22 +127,48 @@ static const char *vips_foreign_load_heif_magic[] = {
 	"ftypheim",
 	"ftypheis",
 	"ftyphevm",
-	"ftyphevs"
+	"ftyphevs",
+	"ftypmif1",	/* nokia alpha_ image */
+	"ftypmsf1"	/* nokia animation image */
 };
 
+/* THe API has:
+ *
+ *	enum heif_filetype_result result = heif_check_filetype( buf, 12 );
+ *
+ * but it's very conservative.
+ */
 static int
 vips_foreign_load_heif_is_a( const char *filename )
 {
-	unsigned char buf[15];
+	unsigned char buf[12];
 	int i;
 
-	if( vips__get_bytes( filename, buf, 15 ) != 15 )
+	if( vips__get_bytes( filename, buf, 12 ) != 12 )
 		return( 0 );
 
 	for( i = 0; i < VIPS_NUMBER( vips_foreign_load_heif_magic ); i++ )
 		if( strncmp( (char *) buf + 4, 
 			vips_foreign_load_heif_magic[i], 8 ) == 0 )
 			return( 1 );
+
+	return( 0 );
+}
+
+/* Set an item as the current one.
+ */
+static int
+vips_foreign_load_heif_set_handle( VipsForeignLoadHeif *heif, heif_item_id id )
+{
+	struct heif_error error;
+
+	VIPS_FREEF( heif_image_handle_release, heif->handle );
+
+	error = heif_context_get_image_handle( heif->ctx, id, &heif->handle );
+	if( error.code ) {
+		vips_heif_error( error );
+		return( -1 );
+	}
 
 	return( 0 );
 }
@@ -142,9 +182,18 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 	guint height;
 	gboolean has_alpha;
 	guint bands;
+	/* Surely, 16 will be enough for anyone.
+	 */
+	heif_item_id id[16];
+	int n_metadata;
+	int i;
+	struct heif_error error;
 
 	width = heif_image_handle_get_width( heif->handle );
 	height = heif_image_handle_get_height( heif->handle );
+
+	/* FIXME none of the Nokia test images seem to set this true.
+	 */
 	has_alpha = heif_image_handle_has_alpha_channel( heif->handle );
 	bands = has_alpha ? 4 : 3;
 
@@ -153,6 +202,42 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		width, height, bands, VIPS_FORMAT_UCHAR, 
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 
 		1.0, 1.0 );
+
+	n_metadata = heif_image_handle_get_list_of_metadata_block_IDs( 
+		heif->handle, NULL, id, VIPS_NUMBER( id ) );
+	for( i = 0; i < n_metadata; i++ ) {
+		size_t length = heif_image_handle_get_metadata_size( 
+			heif->handle, id[i] );
+		const char *type = heif_image_handle_get_metadata_type( 
+			heif->handle, id[i] );
+
+		void *data;
+		char name[256];
+
+		/* exif has a special name.
+		 */
+		if( strcasecmp( type, "exif" ) == 0 )
+			vips_snprintf( name, 256, VIPS_META_EXIF_NAME );
+		else
+			vips_snprintf( name, 256, "heif-%s-%d", type, i );
+
+		printf( "metadata type = %s, length = %zd\n", type, length ); 
+
+		data = g_malloc( length );
+		error = heif_image_handle_get_metadata( 
+			heif->handle, id[i], data );
+		if( error.code ) {
+			vips_heif_error( error );
+			g_free( data );
+			return( -1 );
+		}
+
+		vips_image_set_blob( out, name, 
+			(VipsCallbackFn) vips_free, data, length );
+
+		if( strcasecmp( type, "exif" ) == 0 )
+			vips__exif_parse( out );
+	}
 
 	return( 0 );
 }
@@ -163,6 +248,8 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) load;
 
 	struct heif_error error;
+	heif_item_id id;
+	int i;
 
 	error = heif_context_read_from_file( heif->ctx, heif->filename, NULL );
 	if( error.code ) {
@@ -170,12 +257,36 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 		return( -1 );
 	}
 
-	error = heif_context_get_primary_image_handle( heif->ctx, 
-		&heif->handle );
+	heif->n_top = heif_context_get_number_of_top_level_images( heif->ctx );
+	heif->id = VIPS_ARRAY( NULL, heif->n_top, heif_item_id );
+	heif_context_get_list_of_top_level_image_IDs( heif->ctx, 
+		heif->id, heif->n_top );
+
+	printf( "n_top = %d\n", heif->n_top );
+	for( i = 0; i < heif->n_top; i++ ) {
+		printf( "  id[%d] = %d\n", i, heif->id[i] );
+		if( vips_foreign_load_heif_set_handle( heif, heif->id[i] ) )
+			return( -1 );
+		printf( "    width = %d\n", 
+			heif_image_handle_get_width( heif->handle ) );
+		printf( "    height = %d\n", 
+			heif_image_handle_get_height( heif->handle ) );
+		printf( "    depth = %d\n", 
+			heif_image_handle_has_depth_image( heif->handle ) );
+		printf( "    n_metadata = %d\n", 
+			heif_image_handle_get_number_of_metadata_blocks( 
+				heif->handle, NULL ) );
+		printf( "    colour profile type = %d\n", 
+			heif_image_handle_get_color_profile_type( heif->handle ) );
+	}
+
+	error = heif_context_get_primary_image_ID( heif->ctx, &id );
 	if( error.code ) {
 		vips_heif_error( error );
 		return( -1 );
 	}
+	if( vips_foreign_load_heif_set_handle( heif, id ) )
+		return( -1 );
 
 	if( vips_foreign_load_heif_set_header( heif, load->out ) )
 		return( -1 );
@@ -200,7 +311,7 @@ vips_foreign_load_heif_load( VipsForeignLoad *load )
 	/* Decode the image and convert colorspace to RGB, saved as 24bit 
 	 * interleaved. 
 	 *
-	 * FIXME What will this do for RGBA?
+	 * FIXME What will this do for RGBA? Or is alpha always separate?
 	 */
 	error = heif_decode_image( heif->handle, &heif->img, 
 		heif_colorspace_RGB, heif_chroma_interleaved_24bit, NULL );
