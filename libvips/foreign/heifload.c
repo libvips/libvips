@@ -211,7 +211,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		const char *type = heif_image_handle_get_metadata_type( 
 			heif->handle, id[i] );
 
-		void *data;
+		unsigned char *data;
 		char name[256];
 
 		/* exif has a special name.
@@ -223,20 +223,49 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 
 		printf( "metadata type = %s, length = %zd\n", type, length ); 
 
-		data = g_malloc( length );
+		if( !(data = VIPS_ARRAY( out, length, unsigned char )) )
+			return( -1 );
 		error = heif_image_handle_get_metadata( 
 			heif->handle, id[i], data );
 		if( error.code ) {
 			vips_heif_error( error );
-			g_free( data );
 			return( -1 );
 		}
 
+		/* We need to skip the first four bytes of EXIF, they just
+		 * contain the offset.
+		 */
+		if( strcasecmp( type, "exif" ) == 0 ) {
+			data += 4;
+			length -= 4;
+		}
+
 		vips_image_set_blob( out, name, 
-			(VipsCallbackFn) vips_free, data, length );
+			(VipsCallbackFn) NULL, data, length );
 
 		if( strcasecmp( type, "exif" ) == 0 )
-			vips__exif_parse( out );
+			(void) vips__exif_parse( out );
+	}
+
+	if( heif_image_handle_get_color_profile_type( heif->handle ) ) {
+		size_t length = heif_image_handle_get_raw_color_profile_size( 
+			heif->handle );
+
+		unsigned char *data;
+
+		if( !(data = VIPS_ARRAY( out, length, unsigned char )) )
+			return( -1 );
+		error = heif_image_handle_get_raw_color_profile( 
+			heif->handle, data );
+		if( error.code ) {
+			vips_heif_error( error );
+			return( -1 );
+		}
+
+		printf( "profile data, length = %zd\n", length ); 
+
+		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
+			(VipsCallbackFn) NULL, data, length );
 	}
 
 	return( 0 );
