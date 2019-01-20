@@ -19,6 +19,7 @@
 - add vips_profile_load() and use it everywhere
 - fix race in temp filename creation [lhecker]
 - add @reduction_effort param to webpsave [lovell]
+- add vips_heifload()
 
 4/1/19 started 8.7.4
 - magickload with magick6 API did not chain exceptions correctly causing a
