@@ -62,6 +62,11 @@ typedef struct _VipsForeignLoadHeif {
 	 */
 	char *filename; 
 
+	/* Pages to load.
+	 */
+	int page;
+	int n;
+
 	/* Context for this file.
 	 */
 	struct heif_context *ctx;
@@ -69,6 +74,11 @@ typedef struct _VipsForeignLoadHeif {
 	/* Number of top-level images in this file.
 	 */
 	int n_top;
+
+	/* Size of each frame.
+	 */
+	int frame_width;
+	int frame_height;
 
 	/* Array of top-level image IDs.
 	 */
@@ -302,6 +312,8 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	struct heif_error error;
 	heif_item_id id;
 	int i;
+	int frame_width;
+	int frame_height;
 
 	error = heif_context_read_from_file( heif->ctx, heif->filename, NULL );
 	if( error.code ) {
@@ -310,9 +322,39 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	}
 
 	heif->n_top = heif_context_get_number_of_top_level_images( heif->ctx );
+	vips_image_set_int( out, "n-pages", heif->n_top );
 	heif->id = VIPS_ARRAY( NULL, heif->n_top, heif_item_id );
 	heif_context_get_list_of_top_level_image_IDs( heif->ctx, 
 		heif->id, heif->n_top );
+
+	if( heif->n == -1 )
+		heif->n = heif->n_top - heif->page;
+	if( heif->page < 0 ||
+		heif->n <= 0 ||
+		heif->page + heif->n > heif->n_top ) {
+		vips_error( class->nickname, "%s", _( "bad page number" ) ); 
+		return( -1 ); 
+	}
+
+	/* All pages must be the same size for libvips toilet roll images.
+	 */
+	if( vips_foreign_load_heif_set_handle( heif, heif->id[heif->page] ) )
+		return( -1 );
+	heif->frame_width = heif_image_handle_get_width( heif->handle );
+	heif->frame_height = heif_image_handle_get_height( heif->handle );
+	vips_image_set_int( out, "page-height", heif->frame_height );
+	for( i = heif->page + 1; i < heif->page + heif->n; i++ ) {
+		if( vips_foreign_load_heif_set_handle( heif, heif->id[i] ) )
+			return( -1 );
+		if( heif_image_handle_get_width( heif->handle ) != 
+				heif->frame_width ||
+			heif_image_handle_get_height( heif->handle ) != 
+				heif->frame_height ) {
+			vips_error( class->nickname, "%s", 
+				_( "not all frames are the same size" ) ); 
+			return( -1 ); 
+		}
+	}
 
 	printf( "n_top = %d\n", heif->n_top );
 	for( i = 0; i < heif->n_top; i++ ) {
@@ -449,12 +491,27 @@ vips_foreign_load_heif_class_init( VipsForeignLoadHeifClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignLoadHeif, filename ),
 		NULL );
+
+	VIPS_ARG_INT( class, "page", 2,
+		_( "Page" ),
+		_( "Load this page from the file" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadHeif, page ),
+		0, 100000, 0 );
+
+	VIPS_ARG_INT( class, "n", 3,
+		_( "n" ),
+		_( "Load this many pages" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadHeif, n ),
+		-1, 100000, 1 );
 }
 
 static void
 vips_foreign_load_heif_init( VipsForeignLoadHeif *heif )
 {
 	heif->ctx = heif_context_alloc();
+	heif->n = 1;
 }
 
 #endif /*HAVE_HEIF*/
@@ -465,7 +522,18 @@ vips_foreign_load_heif_init( VipsForeignLoadHeif *heif )
  * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * * @page: %gint, page (top-level image number) to read
+ * * @n: %gint, load this many pages
+ *
  * Read a HEIF image file into a VIPS image. 
+ *
+ * Use @page to select a page to render, numbering from zero.
+ *
+ * Use @n to select the number of pages to render. The default is 1. Pages are
+ * rendered in a vertical column. Set to -1 to mean "until the end of the 
+ * document". Use vips_grid() to reorganise pages.
  *
  * See also: vips_image_new_from_file().
  *
