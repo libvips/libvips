@@ -45,7 +45,7 @@ addons:
   apt:
     update: true
     sources:
-      # use imagemagick 6.9.7-4 instead than 6.8.9-9
+      # use imagemagick 6.9.7-4 instead than 6.8.9-9 
       - sourceline: 'ppa:opencpu/imagemagick'
     packages:
       - automake 
