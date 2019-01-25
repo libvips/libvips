@@ -95,7 +95,7 @@ vips_fallback_profile_get_init( void )
 static void *
 vips_fallback_profile_get( const char *name, size_t *length )
 {
-	GOnce once = G_ONCE_INIT;
+	static GOnce once = G_ONCE_INIT;
 
 	GSList *p;
 
@@ -231,17 +231,17 @@ int
 vips__profile_set( VipsImage *image, const char *name )
 {
 	VipsBlob *profile;
-	void *data;
-	size_t length;
 
 	if( vips_profile_load( name, &profile, NULL ) ) 
 		return( -1 );
 
-	if( profile ) { 
-		data = ((VipsArea *) profile)->data;
-		length = ((VipsArea *) profile)->length;
-		vips_image_set_blob( image, VIPS_META_ICC_NAME, 
-			(VipsCallbackFn) NULL, data, length );
+	if( profile ) {
+		GValue value = { 0 };
+
+		g_value_init( &value, VIPS_TYPE_BLOB );
+		g_value_set_boxed( &value, profile );
+		vips_image_set( image, VIPS_META_ICC_NAME, &value );
+		g_value_unset( &value );
 	}
 	else 
 		vips_image_remove( image, VIPS_META_ICC_NAME );
