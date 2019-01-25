@@ -536,7 +536,7 @@ vips_text_init( VipsText *text )
  * * @spacing: %gint, space lines by this in points
  *
  * Draw the string @text to an image. @out is a one-band 8-bit
- * unsigned char image, with 0 for no text and 255 for text. Values inbetween
+ * unsigned char image, with 0 for no text and 255 for text. Values between
  * are used for anti-aliasing.
  *
  * @text is the text to render as a UTF-8 string. It can contain Pango markup,
@@ -549,15 +549,15 @@ vips_text_init( VipsText *text )
  * name of the font with @font.
  *
  * @width is the number of pixels to word-wrap at. Lines of text wider than
- * this will be broken at word bounaries. 
+ * this will be broken at word boundaries. 
  * @align can be used to set the alignment style for multi-line
  * text. Note that the output image can be wider than @width if there are no
- * word breaks. 
+ * word breaks, or narrower if the lines don't break exactly at @width. 
  *
  * @height is the maximum number of pixels high the generated text can be. This
  * only takes effect when @dpi is not set, and @width is set, making a box. 
- * In this case, vips_text() will search for a @dpi which will just fit the 
- * text into @width and @height.
+ * In this case, vips_text() will search for a @dpi and set of line breaks 
+ * which will just fit the text into @width and @height.
  *
  * You can use @autofit_dpi to read out the DPI selected by auto fit. 
  *
