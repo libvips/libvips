@@ -80,18 +80,18 @@ typedef struct _VipsForeignLoadHeif {
 	int width;
 	int height;
 
-	/* Size of each frame.
+	/* Size of each page.
 	 */
-	int frame_width;
-	int frame_height;
+	int page_width;
+	int page_height;
 
-	/* The frame number currently in @handle. 
+	/* The page number currently in @handle. 
 	 */
-	int frame_no;
+	int page_no;
 
-	/* The frame number of the primary image.
+	/* The page number of the primary image.
 	 */
-	int primary_frame;
+	int primary_page;
 
 	/* Array of top-level image IDs.
 	 */
@@ -110,11 +110,6 @@ typedef struct _VipsForeignLoadHeif {
 	int stride;
 	const uint8_t *data;
 
-	/* Our intermediate image. Each frame is decoded to this before being
-	 * copied to the output.
-	 */
-	VipsImage *memory;
-
 } VipsForeignLoadHeif;
 
 typedef VipsForeignLoadClass VipsForeignLoadHeifClass;
@@ -130,7 +125,6 @@ vips_foreign_load_heif_dispose( GObject *gobject )
 	VIPS_FREEF( heif_image_release, heif->img );
 	VIPS_FREEF( heif_image_handle_release, heif->handle );
 	VIPS_FREEF( heif_context_free, heif->ctx );
-	VIPS_UNREF( heif->memory );
 	VIPS_FREE( heif->id );
 
 	G_OBJECT_CLASS( vips_foreign_load_heif_parent_class )->
@@ -188,25 +182,24 @@ vips_foreign_load_heif_get_flags( VipsForeignLoad *load )
 }
 
 static int
-vips_foreign_load_heif_set_frame( VipsForeignLoadHeif *heif, int frame_no )
+vips_foreign_load_heif_set_page( VipsForeignLoadHeif *heif, int page_no )
 {
 	if( !heif->handle ||
-		frame_no != heif->frame_no ) {
+		page_no != heif->page_no ) {
 		struct heif_error error;
 
-		VIPS_UNREF( heif->memory );
 		VIPS_FREEF( heif_image_handle_release, heif->handle );
 		VIPS_FREEF( heif_image_release, heif->img );
 		heif->data = NULL;
 
 		error = heif_context_get_image_handle( heif->ctx, 
-			heif->id[frame_no], &heif->handle );
+			heif->id[page_no], &heif->handle );
 		if( error.code ) {
 			vips_heif_error( error );
 			return( -1 );
 		}
 
-		heif->frame_no = frame_no;
+		heif->page_no = page_no;
 	}
 
 	return( 0 );
@@ -235,13 +228,13 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 	 */
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 	vips_image_init_fields( out,
-		heif->frame_width, heif->frame_height * heif->n, bands, 
+		heif->page_width, heif->page_height * heif->n, bands, 
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 
 		1.0, 1.0 );
 
-	vips_image_set_int( out, "heif-primary", heif->primary_frame );
+	vips_image_set_int( out, "heif-primary", heif->primary_page );
 	vips_image_set_int( out, "n-pages", heif->n_top );
-	vips_image_set_int( out, "page-height", heif->frame_height );
+	vips_image_set_int( out, "page-height", heif->page_height );
 	VIPS_SETSTR( out->filename, heif->filename );
 
 	/* FIXME .. need to test XMP and IPCT.
@@ -360,7 +353,7 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	heif_context_get_list_of_top_level_image_IDs( heif->ctx, 
 		heif->id, heif->n_top );
 
-	/* Note frame number of primary image.
+	/* Note page number of primary image.
 	 */
 	error = heif_context_get_primary_image_ID( heif->ctx, &primary_id );
 	if( error.code ) {
@@ -369,14 +362,14 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	}
 	for( i = 0; i < heif->n_top; i++ )
 		if( heif->id[i] == primary_id )
-			heif->primary_frame = i;
+			heif->primary_page = i;
 
 	/* If @n and @page have not been set, @page defaults to the primary
 	 * page.
 	 */
 	if( !vips_object_argument_isset( VIPS_OBJECT( load ), "page" ) &&
 		!vips_object_argument_isset( VIPS_OBJECT( load ), "n" ) )
-		heif->page = heif->primary_frame;
+		heif->page = heif->primary_page;
 
 	if( heif->n == -1 )
 		heif->n = heif->n_top - heif->page;
@@ -389,19 +382,19 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 
 	/* All pages must be the same size for libvips toilet roll images.
 	 */
-	if( vips_foreign_load_heif_set_frame( heif, heif->page ) )
+	if( vips_foreign_load_heif_set_page( heif, heif->page ) )
 		return( -1 );
-	heif->frame_width = heif_image_handle_get_width( heif->handle );
-	heif->frame_height = heif_image_handle_get_height( heif->handle );
+	heif->page_width = heif_image_handle_get_width( heif->handle );
+	heif->page_height = heif_image_handle_get_height( heif->handle );
 	for( i = heif->page + 1; i < heif->page + heif->n; i++ ) {
-		if( vips_foreign_load_heif_set_frame( heif, i ) )
+		if( vips_foreign_load_heif_set_page( heif, i ) )
 			return( -1 );
 		if( heif_image_handle_get_width( heif->handle ) != 
-				heif->frame_width ||
+				heif->page_width ||
 			heif_image_handle_get_height( heif->handle ) != 
-				heif->frame_height ) {
+				heif->page_height ) {
 			vips_error( class->nickname, "%s", 
-				_( "not all frames are the same size" ) ); 
+				_( "not all pages are the same size" ) ); 
 			return( -1 ); 
 		}
 	}
@@ -409,7 +402,7 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	printf( "n_top = %d\n", heif->n_top );
 	for( i = 0; i < heif->n_top; i++ ) {
 		printf( "  id[%d] = %d\n", i, heif->id[i] );
-		if( vips_foreign_load_heif_set_frame( heif, i ) )
+		if( vips_foreign_load_heif_set_page( heif, i ) )
 			return( -1 );
 		printf( "    width = %d\n", 
 			heif_image_handle_get_width( heif->handle ) );
@@ -439,8 +432,8 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( heif );
         VipsRect *r = &or->valid;
 
-	int frame = r->top / heif->frame_height + heif->page;
-	int line = r->top % heif->frame_height;
+	int page = r->top / heif->page_height + heif->page;
+	int line = r->top % heif->page_height;
 
 #ifdef DEBUG_VERBOSE
 	printf( "vips_foreign_load_heif_generate: line %d\n", r->top );
@@ -448,7 +441,7 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 
 	g_assert( r->height == 1 );
 
-	if( vips_foreign_load_heif_set_frame( heif, frame ) )
+	if( vips_foreign_load_heif_set_page( heif, page ) )
 		return( -1 );
 
 	if( !heif->img ) {
