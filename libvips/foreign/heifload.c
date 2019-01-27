@@ -75,10 +75,23 @@ typedef struct _VipsForeignLoadHeif {
 	 */
 	int n_top;
 
+	/* Size of final output image. 
+	 */
+	int width;
+	int height;
+
 	/* Size of each frame.
 	 */
 	int frame_width;
 	int frame_height;
+
+	/* The frame number currently in @handle. 
+	 */
+	int frame_no;
+
+	/* The frame number of the primary image.
+	 */
+	int primary_frame;
 
 	/* Array of top-level image IDs.
 	 */
@@ -97,7 +110,8 @@ typedef struct _VipsForeignLoadHeif {
 	int stride;
 	const uint8_t *data;
 
-	/* Our intermediate image.
+	/* Our intermediate image. Each frame is decoded to this before being
+	 * copied to the output.
 	 */
 	VipsImage *memory;
 
@@ -165,52 +179,73 @@ vips_foreign_load_heif_is_a( const char *filename )
 	return( 0 );
 }
 
-/* Set an item as the current one.
- */
-static int
-vips_foreign_load_heif_set_handle( VipsForeignLoadHeif *heif, heif_item_id id )
+static VipsForeignFlags
+vips_foreign_load_heif_get_flags( VipsForeignLoad *load )
 {
-	struct heif_error error;
+	/* FIXME .. could support random access for grid images.
+	 */
+	return( VIPS_FOREIGN_SEQUENTIAL );
+}
 
-	VIPS_FREEF( heif_image_handle_release, heif->handle );
+static int
+vips_foreign_load_heif_set_frame( VipsForeignLoadHeif *heif, int frame_no )
+{
+	if( !heif->handle ||
+		frame_no != heif->frame_no ) {
+		struct heif_error error;
 
-	error = heif_context_get_image_handle( heif->ctx, id, &heif->handle );
-	if( error.code ) {
-		vips_heif_error( error );
-		return( -1 );
+		VIPS_UNREF( heif->memory );
+		VIPS_FREEF( heif_image_handle_release, heif->handle );
+		VIPS_FREEF( heif_image_release, heif->img );
+		heif->data = NULL;
+
+		error = heif_context_get_image_handle( heif->ctx, 
+			heif->id[frame_no], &heif->handle );
+		if( error.code ) {
+			vips_heif_error( error );
+			return( -1 );
+		}
+
+		heif->frame_no = frame_no;
 	}
 
 	return( 0 );
 }
 
-/* Read the primary image header into @out.
- */
 static int
 vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 {
 	enum heif_color_profile_type profile_type = 
 		heif_image_handle_get_color_profile_type( heif->handle );
-	int width = heif_image_handle_get_width( heif->handle );
-	int height = heif_image_handle_get_height( heif->handle );
 	/* FIXME none of the Nokia test images seem to set this true.
 	 */
 	gboolean has_alpha = 
 		heif_image_handle_has_alpha_channel( heif->handle );
 	int bands = has_alpha ? 4 : 3;
 
-	/* Surely, 16 will be enough for anyone.
+	/* Surely, 16 metadata items will be enough for anyone.
 	 */
+	int i;
 	heif_item_id id[16];
 	int n_metadata;
-	int i;
 	struct heif_error error;
 
+	/* FIXME .. we always decode to RGB in generate. We should check for
+	 * all grey images, perhaps. 
+	 */
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 	vips_image_init_fields( out,
-		width, height, bands, VIPS_FORMAT_UCHAR, 
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 
+		heif->frame_width, heif->frame_height * heif->n, bands, 
+		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 
 		1.0, 1.0 );
 
+	vips_image_set_int( out, "heif-primary", heif->primary_frame );
+	vips_image_set_int( out, "n-pages", heif->n_top );
+	vips_image_set_int( out, "page-height", heif->frame_height );
+	VIPS_SETSTR( out->filename, heif->filename );
+
+	/* FIXME .. need to test XMP and IPCT.
+	 */
 	n_metadata = heif_image_handle_get_list_of_metadata_block_IDs( 
 		heif->handle, NULL, id, VIPS_NUMBER( id ) );
 	for( i = 0; i < n_metadata; i++ ) {
@@ -307,13 +342,12 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 static int
 vips_foreign_load_heif_header( VipsForeignLoad *load )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) load;
 
 	struct heif_error error;
-	heif_item_id id;
+	heif_item_id primary_id;
 	int i;
-	int frame_width;
-	int frame_height;
 
 	error = heif_context_read_from_file( heif->ctx, heif->filename, NULL );
 	if( error.code ) {
@@ -322,10 +356,27 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	}
 
 	heif->n_top = heif_context_get_number_of_top_level_images( heif->ctx );
-	vips_image_set_int( out, "n-pages", heif->n_top );
 	heif->id = VIPS_ARRAY( NULL, heif->n_top, heif_item_id );
 	heif_context_get_list_of_top_level_image_IDs( heif->ctx, 
 		heif->id, heif->n_top );
+
+	/* Note frame number of primary image.
+	 */
+	error = heif_context_get_primary_image_ID( heif->ctx, &primary_id );
+	if( error.code ) {
+		vips_heif_error( error );
+		return( -1 );
+	}
+	for( i = 0; i < heif->n_top; i++ )
+		if( heif->id[i] == primary_id )
+			heif->primary_frame = i;
+
+	/* If @n and @page have not been set, @page defaults to the primary
+	 * page.
+	 */
+	if( !vips_object_argument_isset( VIPS_OBJECT( load ), "page" ) &&
+		!vips_object_argument_isset( VIPS_OBJECT( load ), "n" ) )
+		heif->page = heif->primary_frame;
 
 	if( heif->n == -1 )
 		heif->n = heif->n_top - heif->page;
@@ -338,13 +389,12 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 
 	/* All pages must be the same size for libvips toilet roll images.
 	 */
-	if( vips_foreign_load_heif_set_handle( heif, heif->id[heif->page] ) )
+	if( vips_foreign_load_heif_set_frame( heif, heif->page ) )
 		return( -1 );
 	heif->frame_width = heif_image_handle_get_width( heif->handle );
 	heif->frame_height = heif_image_handle_get_height( heif->handle );
-	vips_image_set_int( out, "page-height", heif->frame_height );
 	for( i = heif->page + 1; i < heif->page + heif->n; i++ ) {
-		if( vips_foreign_load_heif_set_handle( heif, heif->id[i] ) )
+		if( vips_foreign_load_heif_set_frame( heif, i ) )
 			return( -1 );
 		if( heif_image_handle_get_width( heif->handle ) != 
 				heif->frame_width ||
@@ -359,7 +409,7 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	printf( "n_top = %d\n", heif->n_top );
 	for( i = 0; i < heif->n_top; i++ ) {
 		printf( "  id[%d] = %d\n", i, heif->id[i] );
-		if( vips_foreign_load_heif_set_handle( heif, heif->id[i] ) )
+		if( vips_foreign_load_heif_set_frame( heif, i ) )
 			return( -1 );
 		printf( "    width = %d\n", 
 			heif_image_handle_get_width( heif->handle ) );
@@ -371,21 +421,64 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 			heif_image_handle_get_number_of_metadata_blocks( 
 				heif->handle, NULL ) );
 		printf( "    colour profile type = %d\n", 
-			heif_image_handle_get_color_profile_type( heif->handle ) );
+			heif_image_handle_get_color_profile_type( 
+				heif->handle ) );
 	}
-
-	error = heif_context_get_primary_image_ID( heif->ctx, &id );
-	if( error.code ) {
-		vips_heif_error( error );
-		return( -1 );
-	}
-	if( vips_foreign_load_heif_set_handle( heif, id ) )
-		return( -1 );
 
 	if( vips_foreign_load_heif_set_header( heif, load->out ) )
 		return( -1 );
 
-	VIPS_SETSTR( load->out->filename, heif->filename );
+	return( 0 );
+}
+
+static int
+vips_foreign_load_heif_generate( VipsRegion *or, 
+	void *seq, void *a, void *b, gboolean *stop )
+{
+	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) a;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( heif );
+        VipsRect *r = &or->valid;
+
+	int frame = r->top / heif->frame_height + heif->page;
+	int line = r->top % heif->frame_height;
+
+#ifdef DEBUG_VERBOSE
+	printf( "vips_foreign_load_heif_generate: line %d\n", r->top );
+#endif /*DEBUG_VERBOSE*/
+
+	g_assert( r->height == 1 );
+
+	if( vips_foreign_load_heif_set_frame( heif, frame ) )
+		return( -1 );
+
+	if( !heif->img ) {
+		struct heif_error error;
+
+		/* Decode the image to 24bit interleaved. 
+		 *
+		 * FIXME What will this do for RGBA? Or is alpha always 
+		 * separate?
+		 */
+		error = heif_decode_image( heif->handle, &heif->img, 
+			heif_colorspace_RGB, heif_chroma_interleaved_24bit, 
+			NULL );
+		if( error.code ) {
+			vips_heif_error( error );
+			return( -1 );
+		}
+	}
+
+	if( !heif->data ) 
+		if( !(heif->data = heif_image_get_plane_readonly( heif->img, 
+			heif_channel_interleaved, &heif->stride )) ) {
+			vips_error( class->nickname, 
+				"%s", _( "unable to get image data" ) );
+			return( -1 );
+		}
+
+	memcpy( VIPS_REGION_ADDR( or, 0, r->top ),
+		heif->data + heif->stride * line, 
+		VIPS_IMAGE_SIZEOF_LINE( or->im ) );
 
 	return( 0 );
 }
@@ -393,67 +486,22 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 static int
 vips_foreign_load_heif_load( VipsForeignLoad *load )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) load;
 
-	struct heif_error error;
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( load ), 3 );
 
 #ifdef DEBUG
 	printf( "vips_foreign_load_heif_load: loading image\n" );
 #endif /*DEBUG*/
 
-	/* Decode the image and convert colorspace to RGB, saved as 24bit 
-	 * interleaved. 
-	 *
-	 * FIXME What will this do for RGBA? Or is alpha always separate?
-	 */
-	error = heif_decode_image( heif->handle, &heif->img, 
-		heif_colorspace_RGB, heif_chroma_interleaved_24bit, NULL );
-	if( error.code ) {
-		vips_heif_error( error );
+	t[0] = vips_image_new();
+	if( vips_foreign_load_heif_set_header( heif, t[0] ) )
 		return( -1 );
-	}
-
-	if( !(heif->data = heif_image_get_plane_readonly( heif->img, 
-		heif_channel_interleaved, &heif->stride )) ) {
-		vips_error( class->nickname, 
-			"%s", _( "unable to get image data" ) );
-		return( -1 );
-	}
-
-	if( VIPS_IMAGE_SIZEOF_LINE( load->out ) == heif->stride ) {
-		printf( "heifload: copying pointer .. \n" );
-
-		/* libheif has decoded to a contigious memory area. We can
-		 * just wrap an image around it.
-		 */
-		if( !(heif->memory = vips_image_new_from_memory( 
-			heif->data, VIPS_IMAGE_SIZEOF_IMAGE( load->out ),
-			load->out->Xsize, load->out->Ysize, 
-			load->out->Bands, load->out->BandFmt )) ) 
-			return( -1 );
-	}
-	else {
-		/* Non-contigious memory area. We must copy the data,
-		 */
-		int y;
-
-		printf( "heifload: copying data .. \n" );
-		printf( " stride = %d, sizeof_line = %zd\n", 
-			heif->stride, VIPS_IMAGE_SIZEOF_LINE( load->out ) );
-
-		heif->memory = vips_image_new_memory();
-		if( vips_foreign_load_heif_set_header( heif, heif->memory ) ||
-			vips_image_write_prepare( heif->memory ) ) 
-			return( -1 );
-		
-		for( y = 0; y < heif->memory->Ysize; y++ ) 
-			memcpy( VIPS_IMAGE_ADDR( heif->memory, 0, y ),
-				heif->data + heif->stride * y, 
-				VIPS_IMAGE_SIZEOF_LINE( heif->memory ) );
-	}
-
-	if( vips_image_write( heif->memory, load->real ) )
+	if( vips_image_generate( t[0],
+		NULL, vips_foreign_load_heif_generate, NULL, heif, NULL ) ||
+		vips_sequential( t[0], &t[1], NULL ) ||
+		vips_image_write( t[1], load->real ) )
 		return( -1 );
 
 	return( 0 );
@@ -481,6 +529,7 @@ vips_foreign_load_heif_class_init( VipsForeignLoadHeifClass *class )
 
 	foreign_class->suffs = vips__heif_suffs;
 
+	load_class->get_flags = vips_foreign_load_heif_get_flags;
 	load_class->is_a = vips_foreign_load_heif_is_a;
 	load_class->header = vips_foreign_load_heif_header;
 	load_class->load = vips_foreign_load_heif_load;
@@ -529,11 +578,15 @@ vips_foreign_load_heif_init( VipsForeignLoadHeif *heif )
  *
  * Read a HEIF image file into a VIPS image. 
  *
- * Use @page to select a page to render, numbering from zero.
+ * Use @page to select a page to render, numbering from zero. If neither @n
+ * nor @page are set, @page defaults to the primary page, otherwise to 0.
  *
  * Use @n to select the number of pages to render. The default is 1. Pages are
  * rendered in a vertical column. Set to -1 to mean "until the end of the 
  * document". Use vips_grid() to reorganise pages.
+ *
+ * HEIF images have a primary. The metadata item `heif-primary` gives the page
+ * number of the primary.
  *
  * See also: vips_image_new_from_file().
  *
