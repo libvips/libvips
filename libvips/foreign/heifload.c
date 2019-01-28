@@ -58,10 +58,6 @@
 typedef struct _VipsForeignLoadHeif {
 	VipsForeignLoad parent_object;
 
-	/* Filename for load.
-	 */
-	char *filename; 
-
 	/* Pages to load.
 	 */
 	int page;
@@ -72,7 +68,7 @@ typedef struct _VipsForeignLoadHeif {
 	 */
 	gboolean ignore_transformations;
 
-	/* Context for this file.
+	/* Context for this image.
 	 */
 	struct heif_context *ctx;
 
@@ -119,7 +115,7 @@ typedef struct _VipsForeignLoadHeif {
 
 typedef VipsForeignLoadClass VipsForeignLoadHeifClass;
 
-G_DEFINE_TYPE( VipsForeignLoadHeif, vips_foreign_load_heif, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadHeif, vips_foreign_load_heif, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void
@@ -143,7 +139,7 @@ vips_heif_error( struct heif_error error )
 		vips_error( "heifload", "%s", error.message ); 
 }
 
-static const char *vips_foreign_load_heif_magic[] = {
+static const char *heif_magic[] = {
 	"ftypheic",	/* A regular heif image */
 	"ftypheix",	/* Extended range (>8 bit) image */
 	"ftyphevc",	/* Image sequence */
@@ -163,18 +159,15 @@ static const char *vips_foreign_load_heif_magic[] = {
  * types.
  */
 static int
-vips_foreign_load_heif_is_a( const char *filename )
+vips_foreign_load_heif_is_a( const char *buf, int len )
 {
-	unsigned char buf[12];
-	int i;
+	if( len >= 12 ) {
+		int i;
 
-	if( vips__get_bytes( filename, buf, 12 ) != 12 )
-		return( 0 );
-
-	for( i = 0; i < VIPS_NUMBER( vips_foreign_load_heif_magic ); i++ )
-		if( strncmp( (char *) buf + 4, 
-			vips_foreign_load_heif_magic[i], 8 ) == 0 )
-			return( 1 );
+		for( i = 0; i < VIPS_NUMBER( heif_magic ); i++ )
+			if( strncmp( buf + 4, heif_magic[i], 8 ) == 0 )
+				return( 1 );
+	}
 
 	return( 0 );
 }
@@ -241,7 +234,6 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 	vips_image_set_int( out, "heif-primary", heif->primary_page );
 	vips_image_set_int( out, "n-pages", heif->n_top );
 	vips_image_set_int( out, "page-height", heif->page_height );
-	VIPS_SETSTR( out->filename, heif->filename );
 
 	/* FIXME .. need to test XMP and IPCT.
 	 */
@@ -353,12 +345,6 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	struct heif_error error;
 	heif_item_id primary_id;
 	int i;
-
-	error = heif_context_read_from_file( heif->ctx, heif->filename, NULL );
-	if( error.code ) {
-		vips_heif_error( error );
-		return( -1 );
-	}
 
 	heif->n_top = heif_context_get_number_of_top_level_images( heif->ctx );
 	heif->id = VIPS_ARRAY( NULL, heif->n_top, heif_item_id );
@@ -516,39 +502,23 @@ vips_foreign_load_heif_load( VipsForeignLoad *load )
 	return( 0 );
 }
 
-const char *vips__heif_suffs[] = { 
-	".heic",
-	NULL 
-};
-
 static void
 vips_foreign_load_heif_class_init( VipsForeignLoadHeifClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_heif_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "heifload";
+	object_class->nickname = "heifload_base";
 	object_class->description = _( "load a HEIF image" );
 
-	foreign_class->suffs = vips__heif_suffs;
-
 	load_class->get_flags = vips_foreign_load_heif_get_flags;
-	load_class->is_a = vips_foreign_load_heif_is_a;
 	load_class->header = vips_foreign_load_heif_header;
 	load_class->load = vips_foreign_load_heif_load;
-
-	VIPS_ARG_STRING( class, "filename", 1, 
-		_( "Filename" ),
-		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadHeif, filename ),
-		NULL );
 
 	VIPS_ARG_INT( class, "page", 2,
 		_( "Page" ),
@@ -579,6 +549,91 @@ vips_foreign_load_heif_init( VipsForeignLoadHeif *heif )
 {
 	heif->ctx = heif_context_alloc();
 	heif->n = 1;
+}
+
+typedef struct _VipsForeignLoadHeifFile {
+	VipsForeignLoadHeif parent_object;
+
+	/* Filename for load.
+	 */
+	char *filename; 
+
+} VipsForeignLoadHeifFile;
+
+typedef VipsForeignLoadHeifClass VipsForeignLoadHeifFileClass;
+
+G_DEFINE_TYPE( VipsForeignLoadHeifFile, vips_foreign_load_heif_file, 
+	vips_foreign_load_heif_get_type() );
+
+static int
+vips_foreign_load_heif_file_is_a( const char *filename )
+{
+	char buf[12];
+
+	if( vips__get_bytes( filename, (unsigned char *) buf, 12 ) != 12 )
+		return( 0 );
+
+	return( vips_foreign_load_heif_is_a( buf, 12 ) );
+}
+
+static int
+vips_foreign_load_heif_file_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) load;
+	VipsForeignLoadHeifFile *file = (VipsForeignLoadHeifFile *) load;
+
+	struct heif_error error;
+
+	error = heif_context_read_from_file( heif->ctx, file->filename, NULL );
+	if( error.code ) {
+		vips_heif_error( error );
+		return( -1 );
+	}
+
+	if( VIPS_FOREIGN_LOAD_CLASS( 
+		vips_foreign_load_heif_file_parent_class )->header( load ) )
+		return( -1 );
+
+	VIPS_SETSTR( load->out->filename, file->filename );
+
+	return( 0 );
+}
+
+const char *vips__heif_suffs[] = { 
+	".heic",
+	NULL 
+};
+
+static void
+vips_foreign_load_heif_file_class_init( VipsForeignLoadHeifFileClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "heifload";
+
+	foreign_class->suffs = vips__heif_suffs;
+
+	load_class->is_a = vips_foreign_load_heif_file_is_a;
+	load_class->header = vips_foreign_load_heif_file_header;
+
+	VIPS_ARG_STRING( class, "filename", 1, 
+		_( "Filename" ),
+		_( "Filename to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadHeifFile, filename ),
+		NULL );
+
+}
+
+static void
+vips_foreign_load_heif_file_init( VipsForeignLoadHeifFile *file )
+{
 }
 
 #endif /*HAVE_HEIF*/
