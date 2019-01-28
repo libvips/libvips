@@ -250,13 +250,6 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		unsigned char *data;
 		char name[256];
 
-		/* exif has a special name.
-		 */
-		if( strcasecmp( type, "exif" ) == 0 )
-			vips_snprintf( name, 256, VIPS_META_EXIF_NAME );
-		else
-			vips_snprintf( name, 256, "heif-%s-%d", type, i );
-
 		printf( "metadata type = %s, length = %zd\n", type, length ); 
 
 		if( !(data = VIPS_ARRAY( out, length, unsigned char )) )
@@ -275,6 +268,19 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 			data += 4;
 			length -= 4;
 		}
+
+		/* exif has a special name.
+		 *
+		 * XMP metadata is just attached with the "mime" type, and
+		 * usually start with "<x:xmpmeta".
+		 */
+		if( strcasecmp( type, "exif" ) == 0 )
+			vips_snprintf( name, 256, VIPS_META_EXIF_NAME );
+		else if( strcasecmp( type, "mime" ) == 0 &&
+			vips_isprefix( "<x:xmpmeta", (const char *) data ) ) 
+			snprintf( name, 256, VIPS_META_XMP_NAME ); 
+		else
+			vips_snprintf( name, 256, "heif-%s-%d", type, i );
 
 		vips_image_set_blob( out, name, 
 			(VipsCallbackFn) NULL, data, length );
