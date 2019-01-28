@@ -67,6 +67,11 @@ typedef struct _VipsForeignLoadHeif {
 	int page;
 	int n;
 
+	/* Set to ignore transforms (flip, rotate, crop) stored in the file
+	 * header.
+	 */
+	gboolean ignore_transformations;
+
 	/* Context for this file.
 	 */
 	struct heif_context *ctx;
@@ -139,22 +144,23 @@ vips_heif_error( struct heif_error error )
 }
 
 static const char *vips_foreign_load_heif_magic[] = {
-	"ftypheic",
-	"ftypheix",
-	"ftyphevc",
-	"ftypheim",
-	"ftypheis",
-	"ftyphevm",
-	"ftyphevs",
-	"ftypmif1",	/* nokia alpha_ image */
-	"ftypmsf1"	/* nokia animation image */
+	"ftypheic",	/* A regular heif image */
+	"ftypheix",	/* Extended range (>8 bit) image */
+	"ftyphevc",	/* Image sequence */
+	"ftypheim",	/* Image sequence */
+	"ftypheis",	/* Scaleable image */
+	"ftyphevm",	/* Multiview sequence */
+	"ftyphevs",	/* Scaleable sequence */
+	"ftypmif1",	/* Nokia alpha_ image */
+	"ftypmsf1"	/* Nokia animation image */
 };
 
 /* THe API has:
  *
  *	enum heif_filetype_result result = heif_check_filetype( buf, 12 );
  *
- * but it's very conservative.
+ * but it's very conservative and seems to be missing some of the Noka hief
+ * types.
  */
 static int
 vips_foreign_load_heif_is_a( const char *filename )
@@ -210,7 +216,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 {
 	enum heif_color_profile_type profile_type = 
 		heif_image_handle_get_color_profile_type( heif->handle );
-	/* FIXME none of the Nokia test images seem to set this true.
+	/* FIXME ... never seen this return TRUE on any image, strangely.
 	 */
 	gboolean has_alpha = 
 		heif_image_handle_has_alpha_channel( heif->handle );
@@ -452,15 +458,19 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 
 	if( !heif->img ) {
 		struct heif_error error;
+		struct heif_decoding_options *options;
 
 		/* Decode the image to 24bit interleaved. 
 		 *
 		 * FIXME What will this do for RGBA? Or is alpha always 
 		 * separate?
 		 */
+		options = heif_decoding_options_alloc();
+		options->ignore_transformations = heif->ignore_transformations;
 		error = heif_decode_image( heif->handle, &heif->img, 
 			heif_colorspace_RGB, heif_chroma_interleaved_24bit, 
-			NULL );
+			options );
+		heif_decoding_options_free( options );
 		if( error.code ) {
 			vips_heif_error( error );
 			return( -1 );
@@ -553,6 +563,15 @@ vips_foreign_load_heif_class_init( VipsForeignLoadHeifClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadHeif, n ),
 		-1, 100000, 1 );
+
+	VIPS_ARG_BOOL( class, "ignore_transformations", 4,
+		_( "Ignore transformations" ),
+		_( "Ignore input transformations" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadHeif, 
+			ignore_transformations ),
+	       FALSE );
+
 }
 
 static void
@@ -574,6 +593,7 @@ vips_foreign_load_heif_init( VipsForeignLoadHeif *heif )
  *
  * * @page: %gint, page (top-level image number) to read
  * * @n: %gint, load this many pages
+ * * @ignore_transformations: %gboolean, ignore image transformations
  *
  * Read a HEIF image file into a VIPS image. 
  *
@@ -584,8 +604,12 @@ vips_foreign_load_heif_init( VipsForeignLoadHeif *heif )
  * rendered in a vertical column. Set to -1 to mean "until the end of the 
  * document". Use vips_grid() to reorganise pages.
  *
- * HEIF images have a primary. The metadata item `heif-primary` gives the page
- * number of the primary.
+ * HEIF images have a primary image. The metadata item `heif-primary` gives 
+ * the page number of the primary.
+ *
+ * HEIF images can have trsnaformations like rotate, flip and crop stored in
+ * the header. By default, these are applied during load. Set
+ * @ignore_transformations %TRUE to return the untransformed image.
  *
  * See also: vips_image_new_from_file().
  *
