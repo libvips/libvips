@@ -57,10 +57,6 @@
 typedef struct _VipsForeignSaveHeif {
 	VipsForeignSave parent_object;
 
-	/* Filename for save.
-	 */
-	char *filename; 
-
 	/* Coding quality factor (1-100).
 	 */
 	int Q;
@@ -95,7 +91,7 @@ typedef struct _VipsForeignSaveHeif {
 
 typedef VipsForeignSaveClass VipsForeignSaveHeifClass;
 
-G_DEFINE_TYPE( VipsForeignSaveHeif, vips_foreign_save_heif, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveHeif, vips_foreign_save_heif, 
 	VIPS_TYPE_FOREIGN_SAVE );
 
 static void
@@ -343,15 +339,6 @@ vips_foreign_save_heif_build( VipsObject *object )
 		vips_foreign_save_heif_write_block, heif ) )
 		return( -1 );
 
-	/* This has to come right at the end :-( so there's no support for
-	 * incremental writes.
-	 */
-	error = heif_context_write_to_file( heif->ctx, heif->filename );
-	if( error.code ) {
-		vips__heif_error( &error );
-		return( -1 );
-	}
-
 	return( 0 );
 }
 
@@ -385,19 +372,12 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 	save_class->saveable = VIPS_SAVEABLE_RGB;
 	save_class->format_table = vips_heif_bandfmt;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
-		_( "Filename" ),
-		_( "Filename to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignSaveHeif, filename ),
-		NULL );
-
 	VIPS_ARG_INT( class, "Q", 10, 
 		_( "Q" ), 
 		_( "Q factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveHeif, Q ),
-		1, 100, 30 );
+		1, 100, 50 );
 
 	VIPS_ARG_BOOL( class, "lossless", 13,
 		_( "Lossless" ),
@@ -412,7 +392,160 @@ static void
 vips_foreign_save_heif_init( VipsForeignSaveHeif *heif )
 {
 	heif->ctx = heif_context_alloc();
-	heif->Q = 30;
+	heif->Q = 50;
+}
+
+typedef struct _VipsForeignSaveHeifFile {
+	VipsForeignSaveHeif parent_object;
+
+	/* Filename for save.
+	 */
+	char *filename; 
+
+} VipsForeignSaveHeifFile;
+
+typedef VipsForeignSaveHeifClass VipsForeignSaveHeifFileClass;
+
+G_DEFINE_TYPE( VipsForeignSaveHeifFile, vips_foreign_save_heif_file, 
+	vips_foreign_save_heif_get_type() );
+
+static int
+vips_foreign_save_heif_file_build( VipsObject *object )
+{
+	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) object;
+	VipsForeignSaveHeifFile *file = (VipsForeignSaveHeifFile *) object;
+
+	struct heif_error error;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_heif_file_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	/* This has to come right at the end :-( so there's no support for
+	 * incremental writes.
+	 */
+	error = heif_context_write_to_file( heif->ctx, file->filename );
+	if( error.code ) {
+		vips__heif_error( &error );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_heif_file_class_init( VipsForeignSaveHeifFileClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "heifsave";
+	object_class->build = vips_foreign_save_heif_file_build;
+
+	VIPS_ARG_STRING( class, "filename", 1, 
+		_( "Filename" ),
+		_( "Filename to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveHeifFile, filename ),
+		NULL );
+
+}
+
+static void
+vips_foreign_save_heif_file_init( VipsForeignSaveHeifFile *file )
+{
+}
+
+typedef struct _VipsForeignSaveHeifBuffer {
+	VipsForeignSaveHeif parent_object;
+
+	/* Save to a buffer.
+	 */
+	VipsArea *buf;
+
+} VipsForeignSaveHeifBuffer;
+
+typedef VipsForeignSaveHeifClass VipsForeignSaveHeifBufferClass;
+
+G_DEFINE_TYPE( VipsForeignSaveHeifBuffer, vips_foreign_save_heif_buffer, 
+	vips_foreign_save_heif_get_type() );
+
+struct heif_error 
+vips_foreign_save_heif_buffer_write( struct heif_context *ctx, 
+	const void *data, size_t length, void *userdata )
+{
+	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) userdata;
+
+	VipsBlob *blob;
+	struct heif_error error;
+
+	/* FIXME .. argh do we need to memcpy()?
+	 */
+	blob = vips_blob_new( (VipsCallbackFn) g_free, data, length );
+	g_object_set( heif, "buffer", blob, NULL );
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	error.code = 0;
+
+	return( error );
+}
+
+static int
+vips_foreign_save_heif_buffer_build( VipsObject *object )
+{
+	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) object;
+
+	/* FIXME ... argh, allocating on the stack!
+	 */
+	struct heif_writer writer;
+	struct heif_error error;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_heif_buffer_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	/* This has to come right at the end :-( so there's no support for
+	 * incremental writes.
+	 */
+	writer.writer_api_version = 1;
+	writer.write = vips_foreign_save_heif_buffer_write;
+	error = heif_context_write( heif->ctx, &writer, heif );
+	if( error.code ) {
+		vips__heif_error( &error );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_heif_buffer_class_init( 
+	VipsForeignSaveHeifBufferClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "heifsave_buffer";
+	object_class->build = vips_foreign_save_heif_buffer_build;
+
+	VIPS_ARG_BOXED( class, "buffer", 1, 
+		_( "Buffer" ),
+		_( "Buffer to save to" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveHeifBuffer, buf ),
+		VIPS_TYPE_BLOB );
+
+}
+
+static void
+vips_foreign_save_heif_buffer_init( VipsForeignSaveHeifBuffer *buffer )
+{
 }
 
 #endif /*HAVE_HEIF*/
@@ -430,8 +563,8 @@ vips_foreign_save_heif_init( VipsForeignSaveHeif *heif )
  *
  * Write a VIPS image to a file in HEIF format. 
  *
- * Use @Q to set the compression factor. Default 30, which gives roughly the
- * same quality as JPEG Q 75.
+ * Use @Q to set the compression factor. Default 50, which seems to be roughly
+ * what the iphone uses. Q 30 gives about the same quality as JPEG Q 75.
  *
  * Set @lossless %TRUE to switch to lossless compression.
  *
@@ -448,6 +581,56 @@ vips_heifsave( VipsImage *in, const char *filename, ... )
 	va_start( ap, filename );
 	result = vips_call_split( "heifsave", ap, in, filename );
 	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_heifsave_buffer: (method)
+ * @in: image to save 
+ * @buf: (array length=len) (element-type guint8): return output buffer here
+ * @len: (type gsize): return output length here
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @Q: %gint, quality factor
+ * * @lossless: %gboolean, enable lossless encoding
+ *
+ * As vips_heifsave(), but save to a memory buffer. 
+ *
+ * The address of the buffer is returned in @obuf, the length of the buffer in
+ * @olen. You are responsible for freeing the buffer with g_free() when you
+ * are done with it.
+ *
+ * See also: vips_heifsave(), vips_image_write_to_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_heifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	int result;
+
+	area = NULL; 
+
+	va_start( ap, len );
+	result = vips_call_split( "heifsave_buffer", ap, in, &area );
+	va_end( ap );
+
+	if( !result &&
+		area ) { 
+		if( buf ) {
+			*buf = area->data;
+			area->free_fn = NULL;
+		}
+		if( len ) 
+			*len = area->length;
+
+		vips_area_unref( area );
+	}
 
 	return( result );
 }
