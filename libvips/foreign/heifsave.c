@@ -125,15 +125,49 @@ struct _VipsForeignSaveHeifMetadata {
 };
 
 static int
+vips_foreign_save_heif_write_metadata( VipsForeignSaveHeif *heif )
+{
+	VipsForeignSave *save = (VipsForeignSave *) heif;
+
+	int i;
+	struct heif_error error;
+
+	for( i = 0; i < VIPS_NUMBER( libheif_metadata ); i++ )  
+		if( vips_image_get_typeof( save->ready, 
+			libheif_metadata[i].name ) ) {
+			const void *data;
+			size_t length;
+
+#ifdef DEBUG
+			printf( "attaching %s ..\n", 
+				libheif_metadata[i].name ); 
+#endif /*DEBUG*/
+
+			if( vips_image_get_blob( save->ready, 
+				VIPS_META_EXIF_NAME, &data, &length ) )
+				return( -1 );
+
+			error = libheif_metadata[i].saver( heif->ctx, 
+				heif->handle, data, length );
+			if( error.code ) {
+				vips__heif_error( &error );
+				return( -1 );
+			}
+		}
+
+	return( 0 );
+}
+
+static int
 vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif )
 {
 	VipsForeignSave *save = (VipsForeignSave *) heif;
 
-	struct heif_encoding_options *options;
 	struct heif_error error;
-	int i;
+	struct heif_encoding_options *options;
 
-	if( vips_image_get_typeof( save->ready, VIPS_META_ICC_NAME ) ) {
+	if( !save->strip &&
+		vips_image_get_typeof( save->ready, VIPS_META_ICC_NAME ) ) {
 		const void *data;
 		size_t length;
 
@@ -179,28 +213,9 @@ vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif )
 	}
 	 */
 
-	for( i = 0; i < VIPS_NUMBER( libheif_metadata ); i++ )  
-		if( vips_image_get_typeof( save->ready, 
-			libheif_metadata[i].name ) ) {
-			const void *data;
-			size_t length;
-
-#ifdef DEBUG
-			printf( "attaching %s ..\n", 
-				libheif_metadata[i].name ); 
-#endif /*DEBUG*/
-
-			if( vips_image_get_blob( save->ready, 
-				VIPS_META_EXIF_NAME, &data, &length ) )
-				return( -1 );
-
-			error = libheif_metadata[i].saver( heif->ctx, 
-				heif->handle, data, length );
-			if( error.code ) {
-				vips__heif_error( &error );
-				return( -1 );
-			}
-		}
+	if( !save->strip &&
+		vips_foreign_save_heif_write_metadata( heif ) )
+		return( -1 );
 
 	VIPS_FREEF( heif_image_handle_release, heif->handle );
 
@@ -362,7 +377,7 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "heifsave";
-	object_class->description = _( "save image to heif file" );
+	object_class->description = _( "save image in HEIF format" );
 	object_class->build = vips_foreign_save_heif_build;
 
 	foreign_class->suffs = vips__heif_suffs;
