@@ -562,6 +562,8 @@ int vips_gifload_buffer( void *buf, size_t len, VipsImage **out, ... )
 
 int vips_heifload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_heifload_buffer( void *buf, size_t len, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 int vips_niftiload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
