@@ -1,7 +1,7 @@
 /* load heif images with libheif
  *
  * 19/1/19
- * 	- from heifload.c
+ * 	- from niftiload.c
  */
 
 /*
@@ -132,8 +132,8 @@ vips_foreign_load_heif_dispose( GObject *gobject )
 		dispose( gobject );
 }
 
-static void
-vips_heif_error( struct heif_error error )
+void
+vips__heif_error( struct heif_error error )
 {
 	if( error.code ) 
 		vips_error( "heifload", "%s", error.message ); 
@@ -194,7 +194,7 @@ vips_foreign_load_heif_set_page( VipsForeignLoadHeif *heif, int page_no )
 		error = heif_context_get_image_handle( heif->ctx, 
 			heif->id[page_no], &heif->handle );
 		if( error.code ) {
-			vips_heif_error( error );
+			vips__heif_error( error );
 			return( -1 );
 		}
 
@@ -207,8 +207,6 @@ vips_foreign_load_heif_set_page( VipsForeignLoadHeif *heif, int page_no )
 static int
 vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 {
-	enum heif_color_profile_type profile_type = 
-		heif_image_handle_get_color_profile_type( heif->handle );
 	/* FIXME ... never seen this return TRUE on any image, strangely.
 	 */
 	gboolean has_alpha = 
@@ -248,14 +246,16 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		unsigned char *data;
 		char name[256];
 
+#ifdef DEBUG
 		printf( "metadata type = %s, length = %zd\n", type, length ); 
+#endif /*DEBUG*/
 
 		if( !(data = VIPS_ARRAY( out, length, unsigned char )) )
 			return( -1 );
 		error = heif_image_handle_get_metadata( 
 			heif->handle, id[i], data );
 		if( error.code ) {
-			vips_heif_error( error );
+			vips__heif_error( error );
 			return( -1 );
 		}
 
@@ -287,6 +287,11 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 			(void) vips__exif_parse( out );
 	}
 
+#ifdef DEBUG
+{
+	enum heif_color_profile_type profile_type = 
+		heif_image_handle_get_color_profile_type( heif->handle );
+
 	switch( profile_type ) {
 	case heif_color_profile_type_not_present: 
 		printf( "no profile\n" ); 
@@ -308,6 +313,8 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		printf( "unknown profile type\n" ); 
 		break;
 	}
+}
+#endif /*DEBUG*/
 
 	/* FIXME should probably check the profile type ... lcms seems to be
 	 * able to load at least rICC and prof.
@@ -323,11 +330,13 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		error = heif_image_handle_get_raw_color_profile( 
 			heif->handle, data );
 		if( error.code ) {
-			vips_heif_error( error );
+			vips__heif_error( error );
 			return( -1 );
 		}
 
+#ifdef DEBUG
 		printf( "profile data, length = %zd\n", length ); 
+#endif /*DEBUG*/
 
 		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
 			(VipsCallbackFn) NULL, data, length );
@@ -355,7 +364,7 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	 */
 	error = heif_context_get_primary_image_ID( heif->ctx, &primary_id );
 	if( error.code ) {
-		vips_heif_error( error );
+		vips__heif_error( error );
 		return( -1 );
 	}
 	for( i = 0; i < heif->n_top; i++ )
@@ -397,6 +406,7 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 		}
 	}
 
+#ifdef DEBUG
 	printf( "n_top = %d\n", heif->n_top );
 	for( i = 0; i < heif->n_top; i++ ) {
 		printf( "  id[%d] = %d\n", i, heif->id[i] );
@@ -415,6 +425,7 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 			heif_image_handle_get_color_profile_type( 
 				heif->handle ) );
 	}
+#endif /*DEBUG*/
 
 	if( vips_foreign_load_heif_set_header( heif, load->out ) )
 		return( -1 );
@@ -458,7 +469,7 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 			options );
 		heif_decoding_options_free( options );
 		if( error.code ) {
-			vips_heif_error( error );
+			vips__heif_error( error );
 			return( -1 );
 		}
 	}
@@ -586,7 +597,7 @@ vips_foreign_load_heif_file_header( VipsForeignLoad *load )
 
 	error = heif_context_read_from_file( heif->ctx, file->filename, NULL );
 	if( error.code ) {
-		vips_heif_error( error );
+		vips__heif_error( error );
 		return( -1 );
 	}
 
@@ -667,7 +678,7 @@ vips_foreign_load_heif_buffer_header( VipsForeignLoad *load )
 	error = heif_context_read_from_memory( heif->ctx, 
 		buffer->buf->data, buffer->buf->length, NULL );
 	if( error.code ) {
-		vips_heif_error( error );
+		vips__heif_error( error );
 		return( -1 );
 	}
 

@@ -3,6 +3,7 @@ noinst_LTLIBRARIES = libforeign.la
 libforeign_la_SOURCES = \
 	pforeign.h \
 	heifload.c \
+	heifsave.c \
 	niftiload.c \
 	niftisave.c \
 	quantise.c \
