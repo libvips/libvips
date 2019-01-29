@@ -273,7 +273,8 @@ typedef void *(*VipsNiftiMapFn)( const char *name, GValue *value, glong offset,
 void *vips__foreign_nifti_map( VipsNiftiMapFn fn, void *a, void *b );
 
 extern const char *vips__heif_suffs[];
-void vips__heif_error( struct heif_error error );
+struct heif_error;
+void vips__heif_error( struct heif_error *error );
 
 #ifdef __cplusplus
 }

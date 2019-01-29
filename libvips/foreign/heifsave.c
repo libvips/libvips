@@ -46,6 +46,7 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #ifdef HAVE_HEIF
 
@@ -60,22 +61,35 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	char *filename; 
 
-	/* Context for this image.
+	/* Coding quality factor (1-100).
 	 */
-	struct heif_context *ctx;
+	int Q;
 
-	/* The encoder we use.
+	/* Lossless compression.
 	 */
-	struct heif_encoder *encoder;
+	gboolean lossless;
 
-	struct heif_image *img;
-	struct heif_image_handle *handle;
-
+	int page_width;
 	int page_height;
 	int n_pages;
 
-	VipsImage *memory;
-	VipsImage *page;
+	struct heif_context *ctx;
+	struct heif_encoder *encoder;
+
+	/* The current page we are writing.
+	 */
+	struct heif_image_handle *handle;
+
+	/* The current page in memory which we build as we scan down the
+	 * image.
+	 */
+	struct heif_image *img;
+
+	/* The libheif memory area will fill with pixels from the libvips 
+	 * pipe.
+	 */
+	uint8_t *data;
+	int stride;
 
 } VipsForeignSaveHeif;
 
@@ -89,8 +103,6 @@ vips_foreign_save_heif_dispose( GObject *gobject )
 {
 	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) gobject;
 
-	VIPS_UNREF( heif->memory );
-	VIPS_UNREF( heif->page );
 	VIPS_FREEF( heif_image_release, heif->img );
 	VIPS_FREEF( heif_image_handle_release, heif->handle );
 	VIPS_FREEF( heif_encoder_release, heif->encoder );
@@ -100,90 +112,132 @@ vips_foreign_save_heif_dispose( GObject *gobject )
 		dispose( gobject );
 }
 
-/* Make ->nim from the vips header fields.
- */
+typedef struct heif_error (*libheif_metadata_fn)( struct heif_context *,
+	 const struct heif_image_handle *,
+	 const void *, int );
+
+struct _VipsForeignSaveHeifMetadata {
+	const char *name;
+	libheif_metadata_fn saver;
+} libheif_metadata[] = {
+	{ VIPS_META_EXIF_NAME, heif_context_add_exif_metadata },
+	{ VIPS_META_XMP_NAME, heif_context_add_XMP_metadata }
+};
+
 static int
-vips_foreign_save_heif_header_vips( VipsForeignSaveHeif *heif, 
-	VipsImage *image )
+vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( heif );
+	VipsForeignSave *save = (VipsForeignSave *) heif;
+
+	struct heif_encoding_options *options;
+	struct heif_error error;
+	int i;
+
+	if( vips_image_get_typeof( save->ready, VIPS_META_ICC_NAME ) ) {
+		const void *data;
+		size_t length;
+
+#ifdef DEBUG
+		printf( "attaching profile ..\n" ); 
+#endif /*DEBUG*/
+
+		if( vips_image_get_blob( save->ready, 
+			VIPS_META_ICC_NAME, &data, &length ) )
+			return( -1 );
+
+		/* FIXME .. also see heif_image_set_nclx_color_profile()
+		 */
+		error = heif_image_set_raw_color_profile( heif->img, 
+			"rICC", data, length );
+		if( error.code ) {
+			vips__heif_error( &error );
+			return( -1 );
+		}
+	}
+
+	options = heif_encoding_options_alloc();
+	/* FIXME .. should be an option, though I don't know of any way to
+	 * test it
+	 */
+	options->save_alpha_channel = 1;
+#ifdef DEBUG
+	printf( "encoding ..\n" ); 
+#endif /*DEBUG*/
+	error = heif_context_encode_image( heif->ctx, 
+		heif->img, heif->encoder, NULL, &heif->handle );
+	heif_encoding_options_free( options );
+	if( error.code ) {
+		vips__heif_error( &error );
+		return( -1 );
+	}
+
+	/* FIXME ... do this for heif-primary.
+	error = heif_context_set_primary_image( heif->ctx, heif->handle );
+	if( error.code ) {
+		vips__heif_error( &error );
+		return( -1 );
+	}
+	 */
+
+	for( i = 0; i < VIPS_NUMBER( libheif_metadata ); i++ )  
+		if( vips_image_get_typeof( save->ready, 
+			libheif_metadata[i].name ) ) {
+			const void *data;
+			size_t length;
+
+#ifdef DEBUG
+			printf( "attaching %s ..\n", 
+				libheif_metadata[i].name ); 
+#endif /*DEBUG*/
+
+			if( vips_image_get_blob( save->ready, 
+				VIPS_META_EXIF_NAME, &data, &length ) )
+				return( -1 );
+
+			error = libheif_metadata[i].saver( heif->ctx, 
+				heif->handle, data, length );
+			if( error.code ) {
+				vips__heif_error( &error );
+				return( -1 );
+			}
+		}
+
+	VIPS_FREEF( heif_image_handle_release, heif->handle );
 
 	return( 0 );
 }
 
 static int
-vips_foreign_save_heif_page( VipsForeignSaveHeif *heif, int page ) 
+vips_foreign_save_heif_write_block( VipsRegion *region, VipsRect *area, 
+	void *a )
 {
-	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) a;
 
-	struct heif_error error;
-	const uint8_t *data;
-	int stride;
+	int y;
 
-	error = heif_image_create( save->ready->Xsize, heif->page_height, 
-		heif_colorspace_RGB, heif_chroma_interleaved_RGB, &heif->img );
-	if( error.code ) {
-		vips__heif_error( error );
-		return( -1 );
-	}
+#ifdef DEBUG
+	printf( "vips_foreign_save_heif_write_block: y = %d\n", area->top );
+#endif /*DEBUG*/
 
-	error = heif_image_add_plane( heif->img, heif_channel_interleaved, 
-		save->ready->Xsize, heif->page_height, 8 );
-	if( error.code ) {
-		vips__heif_error( error );
-		return( -1 );
-	}
-
-	data = heif_image_get_plane_readonly( heif->img, 
-		heif_channel_interleaved, &stride );
-
-	if( !(heif->memory = vips_image_new_from_memory( 
-		data, stride * heif->page_height, 
-		save->ready->Xsize, heif->page_height, 3, 
-		VIPS_FORMAT_UCHAR )) ) 
-		return( -1 );
-
-	if( stride != VIPS_IMAGE_SIZEOF_LINE( heif->memory ) ) {
-		vips_error( class->nickname, "%s", _( "not contiguous" ) );
-		return( -1 );
-	}
-
-	if( vips_image_crop( save->ready, &heif->tile, 
-		0, page * heif->page_height, 
-		save->ready->Xsize, heif->page_height, NULL ) ||
-		vips_image_write( heif->tile, heif->memory ) )
-		return( -1 );
-
-	options = heif_encoding_options_alloc();
-	/* FIXME .. should be a save option.
+	/* Copy a line at a time into our output image, write each time the 
+	 * image fills.
 	 */
-	options.save_alpha_channel = 1;
-	error = heif_context_encode_image( heif->ctx, 
-		heif->img, heif->encoder, options, &handle );
-	heif_encoding_options_free( options );
-	if( error.code ) {
-		vips__heif_error( error );
-		return( -1 );
-	}
+	for( y = 0; y < area->height; y++ ) {
+		/* Y in page.
+		 */
+		int line = (area->top + y) % heif->page_height;
 
-	error = heif_context_set_primary_image( heif->ctx, heif->handle );
-	if( error.code ) {
-		vips__heif_error( error );
-		return( -1 );
-	}
+		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + y );
+		VipsPel *q = heif->data + line * heif->stride;
 
-	error = heif_context_add_exif_metadata( heif->ctx, 
-		heif->handle, data, size );
-	if( error.code ) {
-		vips__heif_error( error );
-		return( -1 );
-	}
+		memcpy( q, p, VIPS_IMAGE_SIZEOF_LINE( region->im ) );
 
-	error = heif_context_add_XMP_metadata( heif->ctx, 
-		heif->handle, data, size );
-	if( error.code ) {
-		vips__heif_error( error );
-		return( -1 );
+		/* Did we just write the final line? Write as a new page 
+		 * into the output.
+		 */
+		if( line == heif->page_height - 1 )
+			if( vips_foreign_save_heif_write_page( heif ) )
+				return( -1 );
 	}
 
 	return( 0 );
@@ -192,48 +246,41 @@ vips_foreign_save_heif_page( VipsForeignSaveHeif *heif, int page )
 static int
 vips_foreign_save_heif_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) object;
 
 	struct heif_error error;
-	struct heif_encoding_options *options;
-	int page;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_heif_parent_class )->
 		build( object ) )
 		return( -1 );
-
-	error = heif_context_write_to_file( heif->ctx, heif->filename );
-	if( error.code ) {
-		vips__heif_error( error );
-		return( -1 );
-	}
 
 	/* TODO ... should be a param? the other useful one is AVC.
 	 */
 	error = heif_context_get_encoder_for_format( heif->ctx, 
 		heif_compression_HEVC, &heif->encoder );
 	if( error.code ) {
-		vips__heif_error( error );
+		vips__heif_error( &error );
 		return( -1 );
 	}
 
 	error = heif_encoder_set_lossy_quality( heif->encoder, heif->Q );
 	if( error.code ) {
-		vips__heif_error( error );
+		vips__heif_error( &error );
 		return( -1 );
 	}
 
 	error = heif_encoder_set_lossless( heif->encoder, heif->lossless );
 	if( error.code ) {
-		vips__heif_error( error );
+		vips__heif_error( &error );
 		return( -1 );
 	}
 
 	/* TODO .. support extra per-encoder params with 
 	 * heif_encoder_list_parameters().
 	 */
+
+	heif->page_width = save->ready->Xsize;
 
 	if( vips_image_get_typeof( save->ready, VIPS_META_PAGE_HEIGHT ) ) { 
 		if( vips_image_get_int( save->ready, 
@@ -243,13 +290,52 @@ vips_foreign_save_heif_build( VipsObject *object )
 	else
 		heif->page_height = save->ready->Ysize;
 
-	if( save->ready->Ysize % page_height != 0 ) 
+	if( heif->page_height == 0 ||
+		save->ready->Ysize % heif->page_height != 0 ) 
 		heif->page_height = save->ready->Ysize;
+
 	heif->n_pages = save->ready->Ysize / heif->page_height;
 
-	for( page = 0; page < heif->n_pages; page++ )
-		if( vips_foreign_save_heif_page( heif, page ) )
+	/* Make a heif image the size of a page. We repeatedly fill this with
+	 * sink_disc() and write a frame each time it fills.
+	 */
+	error = heif_image_create( heif->page_width, heif->page_height, 
+		heif_colorspace_RGB, heif_chroma_interleaved_RGB, &heif->img );
+	if( error.code ) {
+		vips__heif_error( &error );
+		return( -1 );
+	}
+
+	error = heif_image_add_plane( heif->img, heif_channel_interleaved, 
+		heif->page_width, heif->page_height, 24 );
+	if( error.code ) {
+		vips__heif_error( &error );
+		return( -1 );
+	}
+
+	heif->data = heif_image_get_plane( heif->img, 
+		heif_channel_interleaved, &heif->stride );
+
+	/* Just do this once, so we don't rebuild exif on every page.
+	 */
+	if( vips_image_get_typeof( save->ready, VIPS_META_EXIF_NAME ) ) 
+		if( vips__exif_update( save->ready ) )
 			return( -1 );
+
+	/* Write data. 
+	 */
+	if( vips_sink_disc( save->ready, 
+		vips_foreign_save_heif_write_block, heif ) )
+		return( -1 );
+
+	/* This has to come right at the end :-( so there's no support for
+	 * incremental writes.
+	 */
+	error = heif_context_write_to_file( heif->ctx, heif->filename );
+	if( error.code ) {
+		vips__heif_error( &error );
+		return( -1 );
+	}
 
 	return( 0 );
 }
@@ -290,12 +376,28 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignSaveHeif, filename ),
 		NULL );
+
+	VIPS_ARG_INT( class, "Q", 10, 
+		_( "Q" ), 
+		_( "Q factor" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveHeif, Q ),
+		1, 100, 30 );
+
+	VIPS_ARG_BOOL( class, "lossless", 13,
+		_( "Lossless" ),
+		_( "Enable lossless compression" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveHeif, lossless ),
+		FALSE );
+
 }
 
 static void
 vips_foreign_save_heif_init( VipsForeignSaveHeif *heif )
 {
 	heif->ctx = heif_context_alloc();
+	heif->Q = 30;
 }
 
 #endif /*HAVE_HEIF*/
@@ -306,7 +408,17 @@ vips_foreign_save_heif_init( VipsForeignSaveHeif *heif )
  * @filename: file to write to 
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * * @Q: %gint, quality factor
+ * * @lossless: %gboolean, enable lossless encoding
+ *
  * Write a VIPS image to a file in HEIF format. 
+ *
+ * Use @Q to set the compression factor. Default 30, which gives roughly the
+ * same quality as JPEG Q 75.
+ *
+ * Set @lossless %TRUE to switch to lossless compression.
  *
  * See also: vips_image_write_to_file(), vips_heifload().
  *

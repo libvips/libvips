@@ -133,10 +133,10 @@ vips_foreign_load_heif_dispose( GObject *gobject )
 }
 
 void
-vips__heif_error( struct heif_error error )
+vips__heif_error( struct heif_error *error )
 {
-	if( error.code ) 
-		vips_error( "heifload", "%s", error.message ); 
+	if( error->code ) 
+		vips_error( "heifload", "%s", error->message ); 
 }
 
 static const char *heif_magic[] = {
@@ -194,7 +194,7 @@ vips_foreign_load_heif_set_page( VipsForeignLoadHeif *heif, int page_no )
 		error = heif_context_get_image_handle( heif->ctx, 
 			heif->id[page_no], &heif->handle );
 		if( error.code ) {
-			vips__heif_error( error );
+			vips__heif_error( &error );
 			return( -1 );
 		}
 
@@ -255,7 +255,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		error = heif_image_handle_get_metadata( 
 			heif->handle, id[i], data );
 		if( error.code ) {
-			vips__heif_error( error );
+			vips__heif_error( &error );
 			return( -1 );
 		}
 
@@ -330,7 +330,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		error = heif_image_handle_get_raw_color_profile( 
 			heif->handle, data );
 		if( error.code ) {
-			vips__heif_error( error );
+			vips__heif_error( &error );
 			return( -1 );
 		}
 
@@ -364,7 +364,7 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	 */
 	error = heif_context_get_primary_image_ID( heif->ctx, &primary_id );
 	if( error.code ) {
-		vips__heif_error( error );
+		vips__heif_error( &error );
 		return( -1 );
 	}
 	for( i = 0; i < heif->n_top; i++ )
@@ -469,7 +469,7 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 			options );
 		heif_decoding_options_free( options );
 		if( error.code ) {
-			vips__heif_error( error );
+			vips__heif_error( &error );
 			return( -1 );
 		}
 	}
@@ -597,7 +597,7 @@ vips_foreign_load_heif_file_header( VipsForeignLoad *load )
 
 	error = heif_context_read_from_file( heif->ctx, file->filename, NULL );
 	if( error.code ) {
-		vips__heif_error( error );
+		vips__heif_error( &error );
 		return( -1 );
 	}
 
@@ -678,7 +678,7 @@ vips_foreign_load_heif_buffer_header( VipsForeignLoad *load )
 	error = heif_context_read_from_memory( heif->ctx, 
 		buffer->buf->data, buffer->buf->length, NULL );
 	if( error.code ) {
-		vips__heif_error( error );
+		vips__heif_error( &error );
 		return( -1 );
 	}
 
