@@ -481,10 +481,14 @@ vips_foreign_save_heif_buffer_write( struct heif_context *ctx,
 
 	VipsBlob *blob;
 	struct heif_error error;
+	void *data_copy;
 
-	/* FIXME .. argh do we need to memcpy()?
+	/* FIXME .. we have to memcpy()!
 	 */
-	blob = vips_blob_new( (VipsCallbackFn) g_free, data, length );
+	data_copy = vips_malloc( NULL, length );
+	memcpy( data_copy, data, length );
+
+	blob = vips_blob_new( (VipsCallbackFn) vips_free, data_copy, length );
 	g_object_set( heif, "buffer", blob, NULL );
 	vips_area_unref( VIPS_AREA( blob ) );
 
@@ -498,7 +502,8 @@ vips_foreign_save_heif_buffer_build( VipsObject *object )
 {
 	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) object;
 
-	/* FIXME ... argh, allocating on the stack!
+	/* FIXME ... argh, allocating on the stack! But the example code does
+	 * this too.
 	 */
 	struct heif_writer writer;
 	struct heif_error error;
