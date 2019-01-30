@@ -63,10 +63,10 @@ typedef struct _VipsForeignLoadHeif {
 	int page;
 	int n;
 
-	/* Set to ignore transforms (flip, rotate, crop) stored in the file
+	/* Set to apply image transforms (flip, rotate, crop) stored in the file
 	 * header.
 	 */
-	gboolean ignore_transformations;
+	gboolean autorotate;
 
 	/* Context for this image.
 	 */
@@ -463,7 +463,7 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 		 * separate?
 		 */
 		options = heif_decoding_options_alloc();
-		options->ignore_transformations = heif->ignore_transformations;
+		options->ignore_transformations = !heif->autorotate;
 		error = heif_decode_image( heif->handle, &heif->img, 
 			heif_colorspace_RGB, heif_chroma_interleaved_24bit, 
 			options );
@@ -545,13 +545,12 @@ vips_foreign_load_heif_class_init( VipsForeignLoadHeifClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoadHeif, n ),
 		-1, 100000, 1 );
 
-	VIPS_ARG_BOOL( class, "ignore_transformations", 4,
-		_( "Ignore transformations" ),
-		_( "Ignore input transformations" ),
+	VIPS_ARG_BOOL( class, "autorotate", 4, 
+		_( "Autorotate" ), 
+		_( "Apply image transformations" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignLoadHeif, 
-			ignore_transformations ),
-	       FALSE );
+		G_STRUCT_OFFSET( VipsForeignLoadHeif, autorotate ),
+		FALSE );
 
 }
 
@@ -731,7 +730,7 @@ vips_foreign_load_heif_buffer_init( VipsForeignLoadHeifBuffer *buffer )
  *
  * * @page: %gint, page (top-level image number) to read
  * * @n: %gint, load this many pages
- * * @ignore_transformations: %gboolean, ignore image transformations
+ * * @autorotate: %gboolean, apply image transformations
  *
  * Read a HEIF image file into a VIPS image. 
  *
@@ -746,8 +745,7 @@ vips_foreign_load_heif_buffer_init( VipsForeignLoadHeifBuffer *buffer )
  * the page number of the primary.
  *
  * HEIF images can have trsnaformations like rotate, flip and crop stored in
- * the header. By default, these are applied during load. Set
- * @ignore_transformations %TRUE to return the untransformed image.
+ * the header. Set @autorotate %TRUE to apply these during load.
  *
  * See also: vips_image_new_from_file().
  *
@@ -777,7 +775,7 @@ vips_heifload( const char *filename, VipsImage **out, ... )
  *
  * * @page: %gint, page (top-level image number) to read
  * * @n: %gint, load this many pages
- * * @ignore_transformations: %gboolean, ignore image transformations
+ * * @autorotate: %gboolean, apply image transformations
  *
  * Read a HEIF image file into a VIPS image. 
  * Exactly as
