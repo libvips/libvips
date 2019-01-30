@@ -32,9 +32,9 @@
  */
 
 /*
-#define DEBUG
 #define VIPS_DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -68,6 +68,11 @@ typedef struct _VipsForeignLoadHeif {
 	 */
 	gboolean autorotate;
 
+	/* Fetch the thumbnail instead of the image. If there is no thumbnail,
+	 * just fetch the image.
+	 */
+	gboolean thumbnail;
+
 	/* Context for this image.
 	 */
 	struct heif_context *ctx;
@@ -89,6 +94,11 @@ typedef struct _VipsForeignLoadHeif {
 	/* The page number currently in @handle. 
 	 */
 	int page_no;
+
+	/* TRUE if @handle has selected the thumbnail rather than the main 
+	 * image.
+	 */
+	gboolean thumbnail_set;
 
 	/* The page number of the primary image.
 	 */
@@ -180,22 +190,52 @@ vips_foreign_load_heif_get_flags( VipsForeignLoad *load )
 	return( VIPS_FOREIGN_SEQUENTIAL );
 }
 
+/* Select a page. If thumbnail is set, select the thumbnail for that page, if
+ * there is one.
+ */
 static int
-vips_foreign_load_heif_set_page( VipsForeignLoadHeif *heif, int page_no )
+vips_foreign_load_heif_set_page( VipsForeignLoadHeif *heif, 
+	int page_no, gboolean thumbnail )
 {
 	if( !heif->handle ||
-		page_no != heif->page_no ) {
+		page_no != heif->page_no ||
+		thumbnail != heif->thumbnail_set ) {
 		struct heif_error error;
 
 		VIPS_FREEF( heif_image_handle_release, heif->handle );
 		VIPS_FREEF( heif_image_release, heif->img );
 		heif->data = NULL;
+		heif->thumbnail_set = FALSE;
 
 		error = heif_context_get_image_handle( heif->ctx, 
 			heif->id[page_no], &heif->handle );
 		if( error.code ) {
 			vips__heif_error( &error );
 			return( -1 );
+		}
+
+		if( thumbnail ) {
+			heif_item_id thumb_ids[1];
+			int n_thumbs;
+			struct heif_image_handle *thumb_handle;
+
+			n_thumbs = heif_image_handle_get_list_of_thumbnail_IDs( 
+				heif->handle, thumb_ids, 1 );
+
+			if( n_thumbs > 0 ) {
+				error = heif_image_handle_get_thumbnail( 
+					heif->handle,
+					thumb_ids[0], &thumb_handle );
+				if( error.code ) {
+					vips__heif_error( &error );
+					return( -1 );
+				}
+
+				VIPS_FREEF( heif_image_handle_release, 
+					heif->handle );
+				heif->handle = thumb_handle;
+				heif->thumbnail_set = TRUE;
+			}
 		}
 
 		heif->page_no = page_no;
@@ -387,14 +427,53 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 		return( -1 ); 
 	}
 
+#ifdef DEBUG
+	for( i = heif->page; i < heif->page + heif->n; i++ ) {
+		heif_item_id thumb_ids[1];
+		int n_items;
+		int n_thumbs;
+		int j;
+
+		if( vips_foreign_load_heif_set_page( heif, i, FALSE ) )
+			return( -1 );
+
+		n_thumbs = heif_image_handle_get_number_of_thumbnails( 
+			heif->handle );
+		n_items = heif_image_handle_get_list_of_thumbnail_IDs( 
+			heif->handle, thumb_ids, 1 );
+
+		printf( "page = %d\n", i );
+		printf( "n_thumbs = %d\n", n_thumbs );
+		printf( "n_items = %d\n", n_items );
+
+		for( j = 0; j < n_items; j++ ) {
+			struct heif_image_handle *thumb_handle;
+
+			error = heif_image_handle_get_thumbnail( heif->handle,
+				thumb_ids[j], &thumb_handle );
+			if( error.code ) {
+				vips__heif_error( &error );
+				return( -1 );
+			}
+
+			printf( "  thumb %d\n", j );
+			printf( "    width = %d\n", 
+				heif_image_handle_get_width( thumb_handle ) );
+			printf( "    height = %d\n", 
+				heif_image_handle_get_height( thumb_handle ) );
+		}
+	}
+#endif /*DEBUG*/
+
 	/* All pages must be the same size for libvips toilet roll images.
 	 */
-	if( vips_foreign_load_heif_set_page( heif, heif->page ) )
+	if( vips_foreign_load_heif_set_page( heif, heif->page, heif->thumbnail ) )
 		return( -1 );
 	heif->page_width = heif_image_handle_get_width( heif->handle );
 	heif->page_height = heif_image_handle_get_height( heif->handle );
 	for( i = heif->page + 1; i < heif->page + heif->n; i++ ) {
-		if( vips_foreign_load_heif_set_page( heif, i ) )
+		if( vips_foreign_load_heif_set_page( heif, 
+			i, heif->thumbnail ) )
 			return( -1 );
 		if( heif_image_handle_get_width( heif->handle ) != 
 				heif->page_width ||
@@ -410,7 +489,7 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	printf( "n_top = %d\n", heif->n_top );
 	for( i = 0; i < heif->n_top; i++ ) {
 		printf( "  id[%d] = %d\n", i, heif->id[i] );
-		if( vips_foreign_load_heif_set_page( heif, i ) )
+		if( vips_foreign_load_heif_set_page( heif, i, FALSE ) )
 			return( -1 );
 		printf( "    width = %d\n", 
 			heif_image_handle_get_width( heif->handle ) );
@@ -450,7 +529,7 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 
 	g_assert( r->height == 1 );
 
-	if( vips_foreign_load_heif_set_page( heif, page ) )
+	if( vips_foreign_load_heif_set_page( heif, page, heif->thumbnail ) )
 		return( -1 );
 
 	if( !heif->img ) {
@@ -550,6 +629,13 @@ vips_foreign_load_heif_class_init( VipsForeignLoadHeifClass *class )
 		_( "Apply image transformations" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadHeif, autorotate ),
+		FALSE );
+
+	VIPS_ARG_BOOL( class, "thumbnail", 4, 
+		_( "Thumbnail" ), 
+		_( "Fetch thumbnail image" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadHeif, thumbnail ),
 		FALSE );
 
 }
