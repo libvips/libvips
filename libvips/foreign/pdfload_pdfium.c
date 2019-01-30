@@ -353,12 +353,11 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 		top += pdf->pages[i].height;
 	}
 
-	/* If all pages are the same size, we can tag this as a toilet roll
-	 * image and tiffsave will be able to save it as a multipage tiff.
+	/* If all pages are the same height, we can tag this as a toilet roll
+	 * image.
 	 */
 	for( i = 1; i < pdf->n; i++ ) 
-		if( pdf->pages[i].width != pdf->pages[0].width ||
-			pdf->pages[i].height != pdf->pages[0].height )
+		if( pdf->pages[i].height != pdf->pages[0].height )
 			break;
 	if( i == pdf->n ) 
 		vips_image_set_int( load->out, 
