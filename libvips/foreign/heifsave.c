@@ -155,7 +155,7 @@ vips_foreign_save_heif_write_metadata( VipsForeignSaveHeif *heif )
 }
 
 static int
-vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif )
+vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif, int page )
 {
 	VipsForeignSave *save = (VipsForeignSave *) heif;
 
@@ -201,13 +201,22 @@ vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif )
 		return( -1 );
 	}
 
-	/* FIXME ... do this for heif-primary.
-	error = heif_context_set_primary_image( heif->ctx, heif->handle );
-	if( error.code ) {
-		vips__heif_error( &error );
-		return( -1 );
+	if( vips_image_get_typeof( save->ready, "heif-primary" ) ) { 
+		int primary;
+
+		if( vips_image_get_int( save->ready, 
+			"heif-primary", &primary ) ) 
+			return( -1 ); 	
+
+		if( page == primary ) { 
+			error = heif_context_set_primary_image( heif->ctx, 
+				heif->handle );
+			if( error.code ) {
+				vips__heif_error( &error );
+				return( -1 );
+			}
+		}
 	}
-	 */
 
 	if( !save->strip &&
 		vips_foreign_save_heif_write_metadata( heif ) )
@@ -236,6 +245,7 @@ vips_foreign_save_heif_write_block( VipsRegion *region, VipsRect *area,
 	for( y = 0; y < area->height; y++ ) {
 		/* Y in page.
 		 */
+		int page = (area->top + y) / heif->page_height;
 		int line = (area->top + y) % heif->page_height;
 
 		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + y );
@@ -247,7 +257,7 @@ vips_foreign_save_heif_write_block( VipsRegion *region, VipsRect *area,
 		 * into the output.
 		 */
 		if( line == heif->page_height - 1 )
-			if( vips_foreign_save_heif_write_page( heif ) )
+			if( vips_foreign_save_heif_write_page( heif, page ) )
 				return( -1 );
 	}
 
