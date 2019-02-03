@@ -10,6 +10,7 @@
     <link href='https://fonts.googleapis.com/css?family=Cabin:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+    {% feed_meta %}
   </head>
   <body>
     <section class="page-header">
@@ -30,8 +31,9 @@
 
       <footer class="site-footer">
         <span class="site-footer-credits">
-	  <a href="{{ site.github.repository_url }}">View on GitHub</a>
-	</span>
+          <a href="{{ site.github.repository_url }}">View on GitHub</a>
+        </span>
+        <a href=”{{ site.baseurl }}/feed.xml”><img src=”{{ site.baseurl }}/assets/images/rss.png” alt=”subscribe via rss” /></a>
       </footer>
     </section>
 
