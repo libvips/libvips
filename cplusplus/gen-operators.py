@@ -28,7 +28,7 @@
 #     return( out );
 # }
 
-import datetime
+import argparse
 
 from pyvips import Image, Operation, GValue, Error, \
     ffi, gobject_lib, type_map, type_from_name, nickname_find, type_name
@@ -41,7 +41,6 @@ gtype_to_cpp = {
     GValue.gstr_type: 'char *',
     GValue.refstr_type: 'char *',
     GValue.gflags_type: 'int',
-    GValue.gobject_type: 'char *',
     GValue.image_type: 'VImage',
     GValue.array_int_type: 'std::vector<int>',
     GValue.array_double_type: 'std::vector<double>',
@@ -114,16 +113,30 @@ def generate_operation(operation_name, declaration_only=False):
 
     has_output = len(required_output) >= 1
 
-    # TODO: Should we output the operation description as comment?
-    # if declaration_only:
-    #     description = op.get_description()
-    #
-    #     result = '\n\n/*\n'
-    #     result += '  ' + description[0].upper() + description[1:] + '.\n'
-    #     result += '*/\n'
-    # else:
+    # Add a C++ style comment block with some additional markings (@param, @return)
+    if declaration_only:
+        description = op.get_description()
 
-    result = '\n'
+        result = '\n/**\n'
+        result += ' * ' + description[0].upper() + description[1:] + '.'
+
+        for name in required_input:
+            result += '\n * @param ' + cppize(name) + ' ' + op.get_blurb(name) + '.'
+
+        if has_output:
+            # skip the first element
+            for name in required_output[1:]:
+                result += '\n * @param ' + cppize(name) + ' ' + op.get_blurb(name) + '.'
+
+        result += '\n * @param options Optional options.'
+
+        if has_output:
+            result += '\n * @return ' + op.get_blurb(required_output[0]) + '.'
+
+        result += '\n */\n'
+    else:
+        result = '\n'
+
     if member_x is None and declaration_only:
         result += 'static '
     if has_output:
@@ -201,20 +214,12 @@ def generate_operation(operation_name, declaration_only=False):
         result += '\n'
         result += '    return( {0} );\n'.format(required_output[0])
 
-    result += '}\n'
+    result += '}'
 
     return result
 
 
-preamble = """// {0} for vips operations
-// {1}
-// this file is generated automatically, do not edit!
-"""
-
-now = datetime.datetime.now().strftime('%a %d %b %H:%M:%S %Y')
-
-
-def generate_operators(filename, declarations_only=False):
+def generate_operators(declarations_only=False):
     all_nicknames = []
 
     def add_nickname(gtype, a, b):
@@ -235,23 +240,24 @@ def generate_operators(filename, declarations_only=False):
 
     type_map(type_from_name('VipsOperation'), add_nickname)
 
-    # TODO: Should we add the 'missing' extract_area synonym by hand?
-    # all_nicknames.append('crop')
+    # add 'missing' synonyms by hand
+    all_nicknames.append('crop')
 
     # make list unique and sort
     all_nicknames = list(set(all_nicknames))
     all_nicknames.sort()
 
-    print('Generating {0} ...'.format(filename))
-
-    with open(filename, 'w') as f:
-        f.write(preamble.format('headers' if declarations_only else "bodies", now))
-
-        for nickname in all_nicknames:
-            f.write(generate_operation(nickname, declarations_only))
-
-        f.write('\n')
+    for nickname in all_nicknames:
+        print(generate_operation(nickname, declarations_only))
 
 
-generate_operators('vips-operators.cpp')
-generate_operators('include/vips/vips-operators.h', True)
+parser = argparse.ArgumentParser(description='C++ binding generator')
+parser.add_argument('--gen', '-g',
+                    default='cpp',
+                    choices=['h', 'cpp'],
+                    help='File to generate: h (headers) or cpp (implementations) (default: %(default)s)')
+
+if __name__ == '__main__':
+    args = parser.parse_args()
+
+    generate_operators(args.gen == 'h')
