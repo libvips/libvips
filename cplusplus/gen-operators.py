@@ -1,212 +1,263 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
-# walk vips and generate member definitions for all operators
+# This file generates the member definitions and declarations for all vips operators.
+# It's in Python, since we use the whole of FFI.
 
-# sample member definition:
+# Regenerate the files with something like:
+#
+#   cd cplusplus
+#   python gen-operators.py
 
-# VImage VImage::invert( VOption *options )
+# this needs pyvips
+#
+#   pip install --user pyvips
+
+# Sample member declaration:
+# VImage invert(VOption *options = 0) const;
+
+# Sample member definition:
+# VImage VImage::invert( VOption *options ) const
 # {
-# 	VImage out;
-# 
-# 	call( "invert", 
-# 		(options ? options : VImage::option())-> 
-# 			set( "in", *this )->
-# 			set( "out", &out ) );
-# 
-# 	return( out );
+#     VImage out;
+#
+#     call( "invert",
+#         (options ? options : VImage::option())->
+#             set( "in", *this )->
+#             set( "out", &out ) );
+#
+#     return( out );
 # }
 
-import sys
-import re
+import argparse
 
-import logging
-#logging.basicConfig(level = logging.DEBUG)
-
-import gi
-gi.require_version('Vips', '8.0')
-from gi.repository import Vips, GObject
-
-vips_type_image = GObject.GType.from_name("VipsImage")
-vips_type_operation = GObject.GType.from_name("VipsOperation")
-param_enum = GObject.GType.from_name("GParamEnum")
+from pyvips import Image, Operation, GValue, Error, \
+    ffi, gobject_lib, type_map, type_from_name, nickname_find, type_name
 
 # turn a GType into a C++ type
 gtype_to_cpp = {
-    "VipsImage" : "VImage",
-    "gint" : "int",
-    "gdouble" : "double",
-    "gboolean" : "bool",
-    "gchararray" : "char *",
-    "VipsArrayInt" : "std::vector<int>",
-    "VipsArrayDouble" : "std::vector<double>",
-    "VipsArrayImage" : "std::vector<VImage>",
-    "VipsBlob" : "VipsBlob *"
+    GValue.gbool_type: 'bool',
+    GValue.gint_type: 'int',
+    GValue.gdouble_type: 'double',
+    GValue.gstr_type: 'char *',
+    GValue.refstr_type: 'char *',
+    GValue.gflags_type: 'int',
+    GValue.image_type: 'VImage',
+    GValue.array_int_type: 'std::vector<int>',
+    GValue.array_double_type: 'std::vector<double>',
+    GValue.array_image_type: 'std::vector<VImage>',
+    GValue.blob_type: 'VipsBlob *'
 }
 
-def get_ctype(prop):
+# values for VipsArgumentFlags
+_REQUIRED = 1
+_INPUT = 16
+_OUTPUT = 32
+_DEPRECATED = 64
+_MODIFY = 128
+
+# for VipsOperationFlags
+_OPERATION_DEPRECATED = 8
+
+
+def get_cpp_type(gtype):
+    """Map a gtype to C++ type name we use to represent it.
+    """
+    if gtype in gtype_to_cpp:
+        return gtype_to_cpp[gtype]
+
+    fundamental = gobject_lib.g_type_fundamental(gtype)
+
     # enum params use the C name as their name
-    if GObject.type_is_a(param_enum, prop):
-        return prop.value_type.name
+    if fundamental == GValue.genum_type:
+        return type_name(gtype)
 
-    return gtype_to_cpp[prop.value_type.name]
+    if fundamental in gtype_to_cpp:
+        return gtype_to_cpp[fundamental]
 
-def find_required(op):
-    required = []
-    for prop in op.props:
-        flags = op.get_argument_flags(prop.name)
-        if not flags & Vips.ArgumentFlags.REQUIRED:
-            continue
-        if flags & Vips.ArgumentFlags.DEPRECATED:
-            continue
+    return '<unknown type>'
 
-        required.append(prop)
 
-    def priority_sort(a, b):
-        pa = op.get_argument_priority(a.name)
-        pb = op.get_argument_priority(b.name)
+# swap any '-' for '_'
+def cppize(name):
+    return name.replace('-', '_')
 
-        return pa - pb
 
-    required.sort(priority_sort)
+def generate_operation(operation_name, declaration_only=False):
+    op = Operation.new_from_name(operation_name)
 
-    return required
+    # we are only interested in non-deprecated args
+    args = [[name, flags] for name, flags in op.get_args()
+            if not flags & _DEPRECATED]
 
-# find the first input image ... this will be used as "this"
-def find_first_input_image(op, required):
-    found = False
-    for prop in required:
-        flags = op.get_argument_flags(prop.name)
-        if not flags & Vips.ArgumentFlags.INPUT:
-            continue
-        if GObject.type_is_a(vips_type_image, prop.value_type):
-            found = True
+    # find the first required input image arg, if any ... that will be self
+    member_x = None
+    for name, flags in args:
+        if ((flags & _INPUT) != 0 and
+                (flags & _REQUIRED) != 0 and
+                op.get_typeof(name) == GValue.image_type):
+            member_x = name
             break
 
-    if not found:
-        return None
+    required_input = [name for name, flags in args
+                      if (flags & _INPUT) != 0 and
+                      (flags & _REQUIRED) != 0 and
+                      name != member_x]
 
-    return prop
+    required_output = [name for name, flags in args
+                       if ((flags & _OUTPUT) != 0 and
+                           (flags & _REQUIRED) != 0) or
+                       ((flags & _INPUT) != 0 and
+                        (flags & _REQUIRED) != 0 and
+                        (flags & _MODIFY) != 0) and
+                       name != member_x]
 
-# find the first output arg ... this will be used as the result
-def find_first_output(op, required):
-    found = False
-    for prop in required:
-        flags = op.get_argument_flags(prop.name)
-        if not flags & Vips.ArgumentFlags.OUTPUT:
-            continue
-        found = True
-        break
+    has_output = len(required_output) >= 1
 
-    if not found:
-        return None
+    # Add a C++ style comment block with some additional markings (@param, @return)
+    if declaration_only:
+        description = op.get_description()
 
-    return prop
+        result = '\n/**\n'
+        result += ' * ' + description[0].upper() + description[1:] + '.'
 
-# swap any "-" for "_"
-def cppize(name):
-    return re.sub('-', '_', name)
+        for name in required_input:
+            result += '\n * @param ' + cppize(name) + ' ' + op.get_blurb(name) + '.'
 
-def gen_arg_list(op, required):
-    first = True
-    for prop in required:
-        if not first:
-            print ',',
-        else:
-            first = False
+        if has_output:
+            # skip the first element
+            for name in required_output[1:]:
+                result += '\n * @param ' + cppize(name) + ' ' + op.get_blurb(name) + '.'
 
-        print get_ctype(prop),
+        result += '\n * @param options Optional options.'
 
-        # output params are passed by reference
-        flags = op.get_argument_flags(prop.name)
-        if flags & Vips.ArgumentFlags.OUTPUT:
-            print '*',
+        if has_output:
+            result += '\n * @return ' + op.get_blurb(required_output[0]) + '.'
 
-        print cppize(prop.name),
-
-    if not first:
-        print ',',
-    print 'VOption *options',
-
-def gen_operation(cls):
-    op = Vips.Operation.new(cls.name)
-    gtype = Vips.type_find("VipsOperation", cls.name)
-    nickname = Vips.nickname_find(gtype)
-    all_required = find_required(op)
-
-    result = find_first_output(op, all_required)
-    this = find_first_input_image(op, all_required)
-
-    # shallow copy
-    required = all_required[:]
-    if result != None:
-        required.remove(result)
-    if this != None:
-        required.remove(this)
-
-    if result == None:
-        print 'void',
+        result += '\n */\n'
     else:
-        print '%s' % gtype_to_cpp[result.value_type.name],
+        result = '\n'
 
-    print 'VImage::%s(' % nickname,
+    if member_x is None and declaration_only:
+        result += 'static '
+    if has_output:
+        # the first output arg will be used as the result
+        cpp_type = get_cpp_type(op.get_typeof(required_output[0]))
+        spacing = '' if cpp_type.endswith('*') else ' '
+        result += '{0}{1}'.format(cpp_type, spacing)
+    else:
+        result += 'void '
 
-    gen_arg_list(op, required)
+    if not declaration_only:
+        result += 'VImage::'
 
-    print ')',
-    if this != None:
-        print 'const',
-    print
+    result += '{0}( '.format(operation_name)
+    for name in required_input:
+        gtype = op.get_typeof(name)
+        cpp_type = get_cpp_type(gtype)
+        spacing = '' if cpp_type.endswith('*') else ' '
+        result += '{0}{1}{2}, '.format(cpp_type, spacing, cppize(name))
 
-    print '{'
-    if result != None:
-        print '    %s %s;' % (get_ctype(result), cppize(result.name))
-        print ''
+    # output params are passed by reference
+    if has_output:
+        # skip the first element
+        for name in required_output[1:]:
+            gtype = op.get_typeof(name)
+            cpp_type = get_cpp_type(gtype)
+            spacing = '' if cpp_type.endswith('*') else ' '
+            result += '{0}{1}*{2}, '.format(cpp_type, spacing, cppize(name))
 
-    print '    call( "%s"' % nickname,
+    result += 'VOption *options {0})'.format('= 0 ' if declaration_only else '')
 
-    first = True
-    for prop in all_required:
-        if first:
-            print ','
-            print '        (options ? options : VImage::option())',
-            first = False
+    # if no 'this' available, it's a class method and they are all const
+    if member_x is not None:
+        result += ' const'
 
-        print '->'
-        print '           ',
-        if prop == this:
-            print 'set( "%s", *this )' % prop.name,
-        else:
-            flags = op.get_argument_flags(prop.name)
-            arg = cppize(prop.name)
-            if flags & Vips.ArgumentFlags.OUTPUT and prop == result:
-                arg = '&' + arg
+    if declaration_only:
+        result += ';'
 
-            print 'set( "%s", %s )' % (prop.name, arg),
+        return result
 
-    print ');'
+    result += '\n{\n'
 
-    if result != None:
-        print ''
-        print '    return( %s );' % cppize(result.name)
+    if has_output:
+        # the first output arg will be used as the result
+        name = required_output[0]
+        cpp_type = get_cpp_type(op.get_typeof(name))
+        spacing = '' if cpp_type.endswith('*') else ' '
+        result += '    {0}{1}{2};\n\n'.format(cpp_type, spacing, cppize(name))
 
-    print '}'
-    print ''
+    result += '    call( "{0}",\n'.format(operation_name)
+    result += '        (options ? options : VImage::option())'
+    if member_x is not None:
+        result += '->\n'
+        result += '            set( "{0}", *this )'.format(member_x)
 
-# we have a few synonyms ... don't generate twice
-generated = {}
+    all_required = required_input
 
-def find_class_methods(cls):
-    if not cls.is_abstract():
-        gtype = Vips.type_find("VipsOperation", cls.name)
-        nickname = Vips.nickname_find(gtype)
-        if not nickname in generated:
-            gen_operation(cls)
-            generated[nickname] = True
+    if has_output:
+        # first element needs to be passed by reference
+        arg = cppize(required_output[0])
+        result += '->\n'
+        result += '            set( "{0}", &{1} )'.format(required_output[0], arg)
 
-    if len(cls.children) > 0:
-        for child in cls.children:
-            find_class_methods(child)
+        # append the remaining list
+        all_required += required_output[1:]
+
+    for name in all_required:
+        arg = cppize(name)
+        result += '->\n'
+        result += '            set( "{0}", {1} )'.format(name, arg)
+
+    result += ' );\n'
+
+    if has_output:
+        result += '\n'
+        result += '    return( {0} );\n'.format(required_output[0])
+
+    result += '}'
+
+    return result
+
+
+def generate_operators(declarations_only=False):
+    all_nicknames = []
+
+    def add_nickname(gtype, a, b):
+        nickname = nickname_find(gtype)
+        try:
+            # can fail for abstract types
+            op = Operation.new_from_name(nickname)
+
+            # we are only interested in non-deprecated operations
+            if (op.get_flags() & _OPERATION_DEPRECATED) == 0:
+                all_nicknames.append(nickname)
+        except Error:
+            pass
+
+        type_map(gtype, add_nickname)
+
+        return ffi.NULL
+
+    type_map(type_from_name('VipsOperation'), add_nickname)
+
+    # add 'missing' synonyms by hand
+    all_nicknames.append('crop')
+
+    # make list unique and sort
+    all_nicknames = list(set(all_nicknames))
+    all_nicknames.sort()
+
+    for nickname in all_nicknames:
+        print(generate_operation(nickname, declarations_only))
+
+
+parser = argparse.ArgumentParser(description='C++ binding generator')
+parser.add_argument('--gen', '-g',
+                    default='cpp',
+                    choices=['h', 'cpp'],
+                    help='File to generate: h (headers) or cpp (implementations) (default: %(default)s)')
 
 if __name__ == '__main__':
-    find_class_methods(vips_type_operation)
+    args = parser.parse_args()
 
+    generate_operators(args.gen == 'h')

@@ -25,8 +25,7 @@ vips-operators.cpp:
 	echo -n "// " >> vips-operators.cpp; \
 	date >> vips-operators.cpp; \
 	echo "// this file is generated automatically, do not edit!" >> vips-operators.cpp; \
-	echo "" >> vips-operators.cpp; \
-	./gen-operators.py >> vips-operators.cpp 
+	./gen-operators.py -g cpp >> vips-operators.cpp
 
 EXTRA_DIST = \
 	README \
