@@ -983,6 +983,7 @@ typedef struct _VipsThumbnailBuffer {
 	VipsThumbnail parent_object;
 
 	VipsArea *buf;
+	char *option_string;
 } VipsThumbnailBuffer;
 
 typedef VipsThumbnailClass VipsThumbnailBufferClass;
@@ -1004,7 +1005,7 @@ vips_thumbnail_buffer_get_info( VipsThumbnail *thumbnail )
 	if( !(thumbnail->loader = vips_foreign_find_load_buffer( 
 			buffer->buf->data, buffer->buf->length )) ||
 		!(image = vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, "", NULL )) )
+			buffer->buf->data, buffer->buf->length, buffer->option_string, NULL )) )
 		return( -1 );
 
 	vips_thumbnail_read_header( thumbnail, image );
@@ -1023,7 +1024,7 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 
 	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, "", 
+			buffer->buf->data, buffer->buf->length, buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"shrink", (int) factor,
 			NULL ) );
@@ -1031,7 +1032,7 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 	else if( vips_isprefix( "VipsForeignLoadOpenslide", 
 		thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, "", 
+			buffer->buf->data, buffer->buf->length, buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"level", (int) factor,
 			NULL ) );
@@ -1040,21 +1041,21 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ||
 		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, "", 
+			buffer->buf->data, buffer->buf->length, buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"scale", factor,
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, "", 
+			buffer->buf->data, buffer->buf->length, buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"page", (int) factor,
 			NULL ) );
 	}
 	else {
 		return( vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, "", 
+			buffer->buf->data, buffer->buf->length, buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			NULL ) );
 	}
@@ -1083,6 +1084,12 @@ vips_thumbnail_buffer_class_init( VipsThumbnailClass *class )
 		G_STRUCT_OFFSET( VipsThumbnailBuffer, buf ),
 		VIPS_TYPE_BLOB );
 
+	VIPS_ARG_STRING( class, "option_string", 20,
+		_( "Extra options" ),
+		_( "Options that are passed on to the underlying loader" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsThumbnailBuffer, option_string ),
+		"" );
 }
 
 static void
