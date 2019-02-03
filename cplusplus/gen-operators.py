@@ -1,12 +1,7 @@
 #!/usr/bin/env python
 
-# This file generates the member definitions and declarations for all vips operators.
-# It's in Python, since we use the whole of FFI.
-
-# Regenerate the files with something like:
-#
-#   cd cplusplus
-#   python gen-operators.py
+# This file generates the member definitions and declarations for all vips 
+# operators.
 
 # this needs pyvips
 #
@@ -113,25 +108,26 @@ def generate_operation(operation_name, declaration_only=False):
 
     has_output = len(required_output) >= 1
 
-    # Add a C++ style comment block with some additional markings (@param, @return)
+    # Add a C++ style comment block with some additional markings (@param, 
+    # @return)
     if declaration_only:
-        description = op.get_description()
-
-        result = '\n/**\n'
-        result += ' * ' + description[0].upper() + description[1:] + '.'
+        result = '\n/**\n * {}.'.format(op.get_description().capitalize())
 
         for name in required_input:
-            result += '\n * @param ' + cppize(name) + ' ' + op.get_blurb(name) + '.'
+            result += '\n * @param {} {}.' \
+                      .format(cppize(name), op.get_blurb(name))
 
         if has_output:
             # skip the first element
             for name in required_output[1:]:
-                result += '\n * @param ' + cppize(name) + ' ' + op.get_blurb(name) + '.'
+                result += '\n * @param {} {}.' \
+                          .format(cppize(name), op.get_blurb(name))
 
         result += '\n * @param options Optional options.'
 
         if has_output:
-            result += '\n * @return ' + op.get_blurb(required_output[0]) + '.'
+            result += '\n * @return {}.' \
+                      .format(op.get_blurb(required_output[0]))
 
         result += '\n */\n'
     else:
@@ -198,7 +194,8 @@ def generate_operation(operation_name, declaration_only=False):
         # first element needs to be passed by reference
         arg = cppize(required_output[0])
         result += '->\n'
-        result += '            set( "{0}", &{1} )'.format(required_output[0], arg)
+        result += '            set( "{0}", &{1} )' \
+                  .format(required_output[0], arg)
 
         # append the remaining list
         all_required += required_output[1:]
@@ -255,7 +252,8 @@ parser = argparse.ArgumentParser(description='C++ binding generator')
 parser.add_argument('--gen', '-g',
                     default='cpp',
                     choices=['h', 'cpp'],
-                    help='File to generate: h (headers) or cpp (implementations) (default: %(default)s)')
+                    help='File to generate: h (headers) or cpp ' + \
+                         '(implementations) (default: %(default)s)')
 
 if __name__ == '__main__':
     args = parser.parse_args()

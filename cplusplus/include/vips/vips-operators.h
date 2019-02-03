@@ -1,135 +1,135 @@
 // headers for vips operations
-// Sun Feb  3 11:54:51 CET 2019
+// Sun  3 Feb 13:10:05 GMT 2019
 // this file is generated automatically, do not edit!
 
 /**
- * Transform LCh to CMC.
+ * Transform lch to cmc.
  * @param options Optional options.
  * @return Output image.
  */
 VImage CMC2LCh( VOption *options = 0 ) const;
 
 /**
- * Transform CMYK to XYZ.
+ * Transform cmyk to xyz.
  * @param options Optional options.
  * @return Output image.
  */
 VImage CMYK2XYZ( VOption *options = 0 ) const;
 
 /**
- * Transform HSV to sRGB.
+ * Transform hsv to srgb.
  * @param options Optional options.
  * @return Output image.
  */
 VImage HSV2sRGB( VOption *options = 0 ) const;
 
 /**
- * Transform LCh to CMC.
+ * Transform lch to cmc.
  * @param options Optional options.
  * @return Output image.
  */
 VImage LCh2CMC( VOption *options = 0 ) const;
 
 /**
- * Transform LCh to Lab.
+ * Transform lch to lab.
  * @param options Optional options.
  * @return Output image.
  */
 VImage LCh2Lab( VOption *options = 0 ) const;
 
 /**
- * Transform Lab to LCh.
+ * Transform lab to lch.
  * @param options Optional options.
  * @return Output image.
  */
 VImage Lab2LCh( VOption *options = 0 ) const;
 
 /**
- * Transform float Lab to LabQ coding.
+ * Transform float lab to labq coding.
  * @param options Optional options.
  * @return Output image.
  */
 VImage Lab2LabQ( VOption *options = 0 ) const;
 
 /**
- * Transform float Lab to signed short.
+ * Transform float lab to signed short.
  * @param options Optional options.
  * @return Output image.
  */
 VImage Lab2LabS( VOption *options = 0 ) const;
 
 /**
- * Transform CIELAB to XYZ.
+ * Transform cielab to xyz.
  * @param options Optional options.
  * @return Output image.
  */
 VImage Lab2XYZ( VOption *options = 0 ) const;
 
 /**
- * Unpack a LabQ image to float Lab.
+ * Unpack a labq image to float lab.
  * @param options Optional options.
  * @return Output image.
  */
 VImage LabQ2Lab( VOption *options = 0 ) const;
 
 /**
- * Unpack a LabQ image to short Lab.
+ * Unpack a labq image to short lab.
  * @param options Optional options.
  * @return Output image.
  */
 VImage LabQ2LabS( VOption *options = 0 ) const;
 
 /**
- * Convert a LabQ image to sRGB.
+ * Convert a labq image to srgb.
  * @param options Optional options.
  * @return Output image.
  */
 VImage LabQ2sRGB( VOption *options = 0 ) const;
 
 /**
- * Transform signed short Lab to float.
+ * Transform signed short lab to float.
  * @param options Optional options.
  * @return Output image.
  */
 VImage LabS2Lab( VOption *options = 0 ) const;
 
 /**
- * Transform short Lab to LabQ coding.
+ * Transform short lab to labq coding.
  * @param options Optional options.
  * @return Output image.
  */
 VImage LabS2LabQ( VOption *options = 0 ) const;
 
 /**
- * Transform XYZ to CMYK.
+ * Transform xyz to cmyk.
  * @param options Optional options.
  * @return Output image.
  */
 VImage XYZ2CMYK( VOption *options = 0 ) const;
 
 /**
- * Transform XYZ to Lab.
+ * Transform xyz to lab.
  * @param options Optional options.
  * @return Output image.
  */
 VImage XYZ2Lab( VOption *options = 0 ) const;
 
 /**
- * Transform XYZ to Yxy.
+ * Transform xyz to yxy.
  * @param options Optional options.
  * @return Output image.
  */
 VImage XYZ2Yxy( VOption *options = 0 ) const;
 
 /**
- * Transform XYZ to scRGB.
+ * Transform xyz to scrgb.
  * @param options Optional options.
  * @return Output image.
  */
 VImage XYZ2scRGB( VOption *options = 0 ) const;
 
 /**
- * Transform Yxy to XYZ.
+ * Transform yxy to xyz.
  * @param options Optional options.
  * @return Output image.
  */
@@ -159,7 +159,7 @@ VImage add( VImage right, VOption *options = 0 ) const;
 VImage affine( std::vector<double> matrix, VOption *options = 0 ) const;
 
 /**
- * Load an Analyze6 image.
+ * Load an analyze6 image.
  * @param filename Filename to load from.
  * @param options Optional options.
  * @return Output image.
@@ -461,7 +461,7 @@ static VImage csvload( char *filename, VOption *options = 0 );
 void csvsave( char *filename, VOption *options = 0 ) const;
 
 /**
- * Calculate dE00.
+ * Calculate de00.
  * @param right Right-hand input image.
  * @param options Optional options.
  * @return Output image.
@@ -469,7 +469,7 @@ void csvsave( char *filename, VOption *options = 0 ) const;
 VImage dE00( VImage right, VOption *options = 0 ) const;
 
 /**
- * Calculate dE76.
+ * Calculate de76.
  * @param right Right-hand input image.
  * @param options Optional options.
  * @return Output image.
@@ -477,7 +477,7 @@ VImage dE00( VImage right, VOption *options = 0 ) const;
 VImage dE76( VImage right, VOption *options = 0 ) const;
 
 /**
- * Calculate dECMC.
+ * Calculate decmc.
  * @param right Right-hand input image.
  * @param options Optional options.
  * @return Output image.
@@ -655,7 +655,7 @@ VImage fill_nearest( VOption *options = 0 ) const;
 int find_trim( int *top, int *width, int *height, VOption *options = 0 ) const;
 
 /**
- * Load a FITS image.
+ * Load a fits image.
  * @param filename Filename to load from.
  * @param options Optional options.
  * @return Output image.
@@ -685,7 +685,7 @@ VImage flatten( VOption *options = 0 ) const;
 VImage flip( VipsDirection direction, VOption *options = 0 ) const;
 
 /**
- * Transform float RGB to Radiance coding.
+ * Transform float rgb to radiance coding.
  * @param options Optional options.
  * @return Output image.
  */
@@ -710,7 +710,7 @@ static VImage fractsurf( int width, int height, double fractal_dimension, VOptio
 VImage freqmult( VImage mask, VOption *options = 0 ) const;
 
 /**
- * Forward FFT.
+ * Forward fft.
  * @param options Optional options.
  * @return Output image.
  */
@@ -759,7 +759,7 @@ static VImage gaussnoise( int width, int height, VOption *options = 0 );
 std::vector<double> getpoint( int x, int y, VOption *options = 0 ) const;
 
 /**
- * Load GIF with giflib.
+ * Load gif with giflib.
  * @param filename Filename to load from.
  * @param options Optional options.
  * @return Output image.
@@ -767,7 +767,7 @@ std::vector<double> getpoint( int x, int y, VOption *options = 0 ) const;
 static VImage gifload( char *filename, VOption *options = 0 );
 
 /**
- * Load GIF with giflib.
+ * Load gif with giflib.
  * @param buffer Buffer to load from.
  * @param options Optional options.
  * @return Output image.
@@ -906,21 +906,21 @@ VImage hough_circle( VOption *options = 0 ) const;
 VImage hough_line( VOption *options = 0 ) const;
 
 /**
- * Output to device with ICC profile.
+ * Output to device with icc profile.
  * @param options Optional options.
  * @return Output image.
  */
 VImage icc_export( VOption *options = 0 ) const;
 
 /**
- * Import from device with ICC profile.
+ * Import from device with icc profile.
  * @param options Optional options.
  * @return Output image.
  */
 VImage icc_import( VOption *options = 0 ) const;
 
 /**
- * Transform between devices with ICC profiles.
+ * Transform between devices with icc profiles.
  * @param output_profile Filename to load output profile from.
  * @param options Optional options.
  * @return Output image.
@@ -928,7 +928,7 @@ VImage icc_import( VOption *options = 0 ) const;
 VImage icc_transform( char *output_profile, VOption *options = 0 ) const;
 
 /**
- * Make a 1D image where pixel values are indexes.
+ * Make a 1d image where pixel values are indexes.
  * @param options Optional options.
  * @return Output image.
  */
@@ -968,7 +968,7 @@ VImage invert( VOption *options = 0 ) const;
 VImage invertlut( VOption *options = 0 ) const;
 
 /**
- * Inverse FFT.
+ * Inverse fft.
  * @param options Optional options.
  * @return Output image.
  */
@@ -1052,7 +1052,7 @@ VImage linecache( VOption *options = 0 ) const;
 static VImage logmat( double sigma, double min_ampl, VOption *options = 0 );
 
 /**
- * Load file with ImageMagick.
+ * Load file with imagemagick.
  * @param filename Filename to load from.
  * @param options Optional options.
  * @return Output image.
@@ -1060,7 +1060,7 @@ static VImage logmat( double sigma, double min_ampl, VOption *options = 0 );
 static VImage magickload( char *filename, VOption *options = 0 );
 
 /**
- * Load buffer with ImageMagick.
+ * Load buffer with imagemagick.
  * @param buffer Buffer to load from.
  * @param options Optional options.
  * @return Output image.
@@ -1068,7 +1068,7 @@ static VImage magickload( char *filename, VOption *options = 0 );
 static VImage magickload_buffer( VipsBlob *buffer, VOption *options = 0 );
 
 /**
- * Save file with ImageMagick.
+ * Save file with imagemagick.
  * @param filename Filename to save to.
  * @param options Optional options.
  */
@@ -1375,7 +1375,7 @@ VImage msb( VOption *options = 0 ) const;
 VImage multiply( VImage right, VOption *options = 0 ) const;
 
 /**
- * Load a NIFTI image.
+ * Load a nifti image.
  * @param filename Filename to load from.
  * @param options Optional options.
  * @return Output image.
@@ -1390,7 +1390,7 @@ static VImage niftiload( char *filename, VOption *options = 0 );
 void niftisave( char *filename, VOption *options = 0 ) const;
 
 /**
- * Load an OpenEXR image.
+ * Load an openexr image.
  * @param filename Filename to load from.
  * @param options Optional options.
  * @return Output image.
@@ -1398,7 +1398,7 @@ void niftisave( char *filename, VOption *options = 0 ) const;
 static VImage openexrload( char *filename, VOption *options = 0 );
 
 /**
- * Load file with OpenSlide.
+ * Load file with openslide.
  * @param filename Filename to load from.
  * @param options Optional options.
  * @return Output image.
@@ -1406,7 +1406,7 @@ static VImage openexrload( char *filename, VOption *options = 0 );
 static VImage openslideload( char *filename, VOption *options = 0 );
 
 /**
- * Load PDF with libpoppler.
+ * Load pdf with libpoppler.
  * @param filename Filename to load from.
  * @param options Optional options.
  * @return Output image.
@@ -1414,7 +1414,7 @@ static VImage openslideload( char *filename, VOption *options = 0 );
 static VImage pdfload( char *filename, VOption *options = 0 );
 
 /**
- * Load PDF with libpoppler.
+ * Load pdf with libpoppler.
  * @param buffer Buffer to load from.
  * @param options Optional options.
  * @return Output image.
@@ -1507,7 +1507,7 @@ VImage premultiply( VOption *options = 0 ) const;
 VImage profile( VImage *rows, VOption *options = 0 ) const;
 
 /**
- * Load named ICC profile.
+ * Load named icc profile.
  * @param name Profile name.
  * @param options Optional options.
  * @return Loaded profile.
@@ -1531,14 +1531,14 @@ VImage project( VImage *rows, VOption *options = 0 ) const;
 VImage quadratic( VImage coeff, VOption *options = 0 ) const;
 
 /**
- * Unpack Radiance coding to float RGB.
+ * Unpack radiance coding to float rgb.
  * @param options Optional options.
  * @return Output image.
  */
 VImage rad2float( VOption *options = 0 ) const;
 
 /**
- * Load a Radiance image from a file.
+ * Load a radiance image from a file.
  * @param filename Filename to load from.
  * @param options Optional options.
  * @return Output image.
@@ -1546,14 +1546,14 @@ VImage rad2float( VOption *options = 0 ) const;
 static VImage radload( char *filename, VOption *options = 0 );
 
 /**
- * Save image to Radiance file.
+ * Save image to radiance file.
  * @param filename Filename to save to.
  * @param options Optional options.
  */
 void radsave( char *filename, VOption *options = 0 ) const;
 
 /**
- * Save image to Radiance buffer.
+ * Save image to radiance buffer.
  * @param options Optional options.
  * @return Buffer to save to.
  */
@@ -1710,35 +1710,35 @@ VImage rotate( double angle, VOption *options = 0 ) const;
 VImage round( VipsOperationRound round, VOption *options = 0 ) const;
 
 /**
- * Transform sRGB to HSV.
+ * Transform srgb to hsv.
  * @param options Optional options.
  * @return Output image.
  */
 VImage sRGB2HSV( VOption *options = 0 ) const;
 
 /**
- * Convert an sRGB image to scRGB.
+ * Convert an srgb image to scrgb.
  * @param options Optional options.
  * @return Output image.
  */
 VImage sRGB2scRGB( VOption *options = 0 ) const;
 
 /**
- * Convert scRGB to BW.
+ * Convert scrgb to bw.
  * @param options Optional options.
  * @return Output image.
  */
 VImage scRGB2BW( VOption *options = 0 ) const;
 
 /**
- * Transform scRGB to XYZ.
+ * Transform scrgb to xyz.
  * @param options Optional options.
  * @return Output image.
  */
 VImage scRGB2XYZ( VOption *options = 0 ) const;
 
 /**
- * Convert an scRGB image to sRGB.
+ * Convert an scrgb image to srgb.
  * @param options Optional options.
  * @return Output image.
  */
@@ -1805,7 +1805,7 @@ VImage sign( VOption *options = 0 ) const;
 VImage similarity( VOption *options = 0 ) const;
 
 /**
- * Make a 2D sine wave.
+ * Make a 2d sine wave.
  * @param width Image width in pixels.
  * @param height Image height in pixels.
  * @param options Optional options.
@@ -1886,7 +1886,7 @@ VImage subtract( VImage right, VOption *options = 0 ) const;
 static VImage sum( std::vector<VImage> in, VOption *options = 0 );
 
 /**
- * Load SVG with rsvg.
+ * Load svg with rsvg.
  * @param filename Filename to load from.
  * @param options Optional options.
  * @return Output image.
@@ -1894,7 +1894,7 @@ static VImage sum( std::vector<VImage> in, VOption *options = 0 );
 static VImage svgload( char *filename, VOption *options = 0 );
 
 /**
- * Load SVG with rsvg.
+ * Load svg with rsvg.
  * @param buffer Buffer to load from.
  * @param options Optional options.
  * @return Output image.
