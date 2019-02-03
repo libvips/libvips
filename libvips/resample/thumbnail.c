@@ -16,6 +16,8 @@
  * 	- implement shrink-on-load for openslide images
  * 16/11/18
  * 	- implement shrink-on-load for tiff pyramid 
+ * 3/2/19 kleisauke
+ * 	- add option_string param to thumbnail_buffer
  */
 
 /*
