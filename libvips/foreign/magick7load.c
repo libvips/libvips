@@ -6,6 +6,8 @@
  * 	- add @n, deprecate @all_frames (just sets n = -1)
  * 24/7/18
  * 	- sniff extra filetypes
+ * 4/2/19
+ * 	- add profile (xmp, ipct, etc.) read
  */
 
 /*
@@ -527,7 +529,7 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 
-	/* Get all the metadata.
+	/* Get all the string metadata.
 	 */
 	ResetImagePropertyIterator( image );
 	while( (key = GetNextImageProperty( image )) ) {
@@ -542,6 +544,32 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 		}
 		vips_buf_appendf( &name, "magick-%s", key );
 		vips_image_set_string( out, vips_buf_all( &name ), value );
+	}
+
+	/* All the binary metadata.
+	 */
+	ResetImageProfileIterator( image );
+	while( (key = GetNextImageProfile( image )) ) {
+		char name_text[256];
+		VipsBuf name = VIPS_BUF_STATIC( name_text );
+		const StringInfo *profile;
+		void *data;
+		size_t length;
+
+		if( strcmp( key, "xmp" ) == 0 )
+			vips_buf_appendf( &name, VIPS_META_XMP_NAME );
+		else if( strcmp( key, "iptc" ) == 0 )
+			vips_buf_appendf( &name, VIPS_META_IPTC_NAME );
+		else if( strcmp( key, "icc" ) == 0 )
+			vips_buf_appendf( &name, VIPS_META_ICC_NAME );
+		else
+			vips_buf_appendf( &name, "magickprofile-%s", key );
+
+		profile = GetImageProfile( image, key );
+		data = GetStringInfoDatum( profile );
+		length = GetStringInfoLength( profile );
+		vips_image_set_blob_copy( out, vips_buf_all( &name ), 
+			data, length ); 
 	}
 
 	magick7->n_pages = GetImageListLength( GetFirstImageInList( image ) );

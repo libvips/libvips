@@ -701,6 +701,16 @@ if test x"$magick6" = x"yes"; then
 fi
 
 if test x"$magick6" = x"yes"; then
+  # GM does not have ResetImageProfileIterator
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $MAGICK_LIBS"
+  AC_CHECK_FUNCS(ResetImageProfileIterator,
+    AC_DEFINE(HAVE_RESETIMAGEPROFILEITERATOR,1,
+	      [define if your magick has ResetImageProfileIterator.]))
+  LIBS="$save_LIBS"
+fi
+
+if test x"$magick6" = x"yes"; then
   # more recent magicks have GetVirtualPixels rather than GetImagePixels
   save_LIBS="$LIBS"
   LIBS="$LIBS $MAGICK_LIBS"
