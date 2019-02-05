@@ -112,7 +112,7 @@ magick_write_block( VipsRegion *region, VipsRect *area, void *a )
 {
 	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) a;
 
-	MagickBooleanType status;
+	int status;
 	void *p;
 
 	p = VIPS_REGION_ADDR( region, area->left, area->top );
@@ -221,7 +221,7 @@ vips_foreign_save_magick_build( VipsObject *object )
 	magick->exception = magick_acquire_exception();
 	magick->image_info = CloneImageInfo( NULL );
 
-	magick->storage_type = UndefinedPixel;
+	magick->storage_type = CharPixel;
 	switch( im->BandFmt ) {
 	case VIPS_FORMAT_UCHAR:
 		magick->storage_type = CharPixel;
@@ -465,8 +465,8 @@ vips_foreign_save_magick_buffer_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(obuf = ImagesToBlob( magick->image_info, magick->images, 
-		&olen, magick->exception )) ) { 
+	if( !(obuf = magick_images_to_blob( magick->image_info, magick->images, 
+		&olen, magick->exception )) ) {
 		magick_inherit_exception( magick->exception, magick->images );
 		magick_vips_error( class->nickname, magick->exception );
 

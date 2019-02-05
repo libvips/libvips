@@ -78,6 +78,13 @@ magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
 		type, pixels, exception ) );
 }
 
+void *
+magick_images_to_blob( const ImageInfo *image_info, Image *images, size_t *length,
+	ExceptionInfo *exception )
+{
+	return( ImagesToBlob( image_info, images, length, exception ) );
+}
+
 void
 magick_set_property( Image *image, const char *property, const char *value,
 	ExceptionInfo *exception )
@@ -193,8 +200,29 @@ magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
 	return( ImportImagePixels( image, x, y, width, height, map,
 		type, pixels ) );
 #else /*!HAVE_IMPORTIMAGEPIXELS*/
+	g_assert(image != (Image *) NULL);
+	g_assert(image->signature == MagickSignature);
+
+	Image *constitute_image=
+		ConstituteImage(width,height,map,type,pixels,&image->exception);
+	if (constitute_image) {
+		(void) CompositeImage(image,CopyCompositeOp,constitute_image,x,y);
+		DestroyImage(constitute_image);
+		return (image->exception.severity == UndefinedException);
+	}
 	return( MagickFalse );
 #endif /*HAVE_IMPORTIMAGEPIXELS*/
+}
+
+void *
+magick_images_to_blob( const ImageInfo *image_info, Image *images, size_t *length,
+	ExceptionInfo *exception )
+{
+#ifdef HAVE_IMAGESTOBLOB
+	return( ImagesToBlob( image_info, images, length, exception ) );
+#else
+	return( ImageToBlob( image_info, images, length, exception ) );
+#endif /*HAVE_IMAGESTOBLOB*/
 }
 
 void
