@@ -799,11 +799,13 @@ if test x"$enable_magicksave" != x"yes"; then
   AC_CHECK_FUNCS(ImportImagePixels,[
      AC_DEFINE(HAVE_IMPORTIMAGEPIXELS,1,
 	       [define if you have ImportImagePixels.])
-   ],[
-     AC_MSG_WARN([ImportImagePixels not found; disabling magicksave])
-     enable_magicksave=no
-   ]
+   ],[]
   )
+  AC_CHECK_FUNCS(ImagesToBlob,[
+     AC_DEFINE(HAVE_IMAGESTOBLOB,1,
+	       [define if you have ImagesToBlob.])
+   ],[]
+  ) 
   LIBS="$save_LIBS"
 fi
 

@@ -51,6 +51,8 @@ int magick_set_image_size( Image *image,
 int magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
 	const size_t width, const size_t height, const char *map,
 	const StorageType type,const void *pixels, ExceptionInfo *exception );
+void *magick_images_to_blob( const ImageInfo *image_info, Image *images, size_t *length,
+	ExceptionInfo *exception );
 void magick_set_property( Image *image, const char *property, const char *value,
 	ExceptionInfo *exception );
 void magick_set_image_option( ImageInfo *image_info, 
