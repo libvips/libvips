@@ -92,6 +92,21 @@ magick_set_property( Image *image, const char *property, const char *value,
 	(void) SetImageProperty( image, property, value, exception );
 }
 
+int
+magick_set_profile( Image *image, 
+	const char *name, const void *data, size_t length, 
+	ExceptionInfo *exception )
+{
+	StringInfo *string;
+	MagickBooleanType result;
+
+	string = BlobToStringInfo( data, length );
+	result = SetImageProfile( image, name, string, exception );
+	DestroyStringInfo( string );
+
+	return( result );
+}
+
 ExceptionInfo *
 magick_acquire_exception( void )
 {
@@ -225,6 +240,26 @@ magick_set_property( Image *image, const char *property, const char *value,
 #else /*!HAVE_SETIMAGEPROPERTY*/
 	(void) SetImageAttribute( image, property, value );
 #endif /*HAVE_SETIMAGEPROPERTY*/
+}
+
+int
+magick_set_profile( Image *image, 
+	const char *name, const void *data, size_t length,
+       	ExceptionInfo *exception )
+{
+	int result;
+
+#ifdef HAVE_BLOBTOSTRINGINFO
+	StringInfo *string;
+
+	string = BlobToStringInfo( data, length );
+	result = SetImageProfile( image, name, string );
+	DestroyStringInfo( string );
+#else /*HAVE_BLOBTOSTRINGINFO*/
+	result = SetImageProfile( image, name, data, length );
+#endif /*HAVE_BLOBTOSTRINGINFO*/
+
+	return( result );
 }
 
 ExceptionInfo *

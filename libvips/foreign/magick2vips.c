@@ -444,6 +444,8 @@ parse_header( Read *read )
 			vips_buf_appendf( &name, VIPS_META_IPTC_NAME );
 		else if( strcmp( key, "icc" ) == 0 )
 			vips_buf_appendf( &name, VIPS_META_ICC_NAME );
+		else if( strcmp( key, "exif" ) == 0 )
+			vips_buf_appendf( &name, VIPS_META_EXIF_NAME );
 		else
 			vips_buf_appendf( &name, "magickprofile-%s", key );
 
@@ -452,6 +454,9 @@ parse_header( Read *read )
 		length = GetStringInfoLength( profile );
 		vips_image_set_blob_copy( im, vips_buf_all( &name ), 
 			data, length ); 
+
+		if( strcmp( key, "exif" ) == 0 ) 
+			(void) vips__exif_parse( im );
 	}
 }
 #endif /*HAVE_RESETIMAGEPROFILEITERATOR*/

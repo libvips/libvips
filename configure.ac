@@ -763,6 +763,16 @@ if test x"$magick6" = x"yes"; then
 fi
 
 if test x"$magick6" = x"yes"; then
+  # IM uses SetImageProfile() with StringInfo
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $MAGICK_LIBS"
+  AC_CHECK_FUNCS(BlobToStringInfo,
+    AC_DEFINE(HAVE_BLOBTOSTRINGINFO,1,
+	      [define if your magick has BlobToStringInfo().]))
+  LIBS="$save_LIBS"
+fi
+
+if test x"$magick6" = x"yes"; then
   # GM is missing InheritException
   save_LIBS="$LIBS"
   LIBS="$LIBS $MAGICK_LIBS"
