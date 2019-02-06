@@ -79,8 +79,8 @@ magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
 }
 
 void *
-magick_images_to_blob( const ImageInfo *image_info, Image *images, size_t *length,
-	ExceptionInfo *exception )
+magick_images_to_blob( const ImageInfo *image_info, Image *images, 
+	size_t *length, ExceptionInfo *exception )
 {
 	return( ImagesToBlob( image_info, images, length, exception ) );
 }
@@ -183,40 +183,30 @@ magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
 	const size_t width, const size_t height, const char *map,
 	const StorageType type, const void *pixels, ExceptionInfo *exception )
 {
-	(void) exception;
-
-	/* GM does not seem to have a simple equivalent, unfortunately.
-	 *
-	 * Looks like we'd need to call 
-	 *
-	 *   extern MagickExport PixelPacket
-	 *     *SetImagePixels(Image *image,const long x,const long y,
-	 *                       const unsigned long columns,const unsigned
-	 *                       long rows);
-	 *
-	 * then repack pixels into that area using map and storage_type. 
-	 */
 #ifdef HAVE_IMPORTIMAGEPIXELS
 	return( ImportImagePixels( image, x, y, width, height, map,
 		type, pixels ) );
 #else /*!HAVE_IMPORTIMAGEPIXELS*/
-	g_assert(image != (Image *) NULL);
-	g_assert(image->signature == MagickSignature);
+	Image *constitute_image;
 
-	Image *constitute_image=
-		ConstituteImage(width,height,map,type,pixels,&image->exception);
-	if (constitute_image) {
-		(void) CompositeImage(image,CopyCompositeOp,constitute_image,x,y);
-		DestroyImage(constitute_image);
-		return (image->exception.severity == UndefinedException);
-	}
-	return( MagickFalse );
+	g_assert( image );
+	g_assert( image->signature == MagickSignature );
+
+	constitute_image = ConstituteImage( width, height, map, type, 
+		pixels, &image->exception );
+	if( !constitute_image ) 
+		return( MagickFalse );
+
+	(void) CompositeImage( image, CopyCompositeOp, constitute_image, x, y );
+	DestroyImage( constitute_image );
+
+	return( image->exception.severity == UndefinedException );
 #endif /*HAVE_IMPORTIMAGEPIXELS*/
 }
 
 void *
-magick_images_to_blob( const ImageInfo *image_info, Image *images, size_t *length,
-	ExceptionInfo *exception )
+magick_images_to_blob( const ImageInfo *image_info, Image *images, 
+	size_t *length, ExceptionInfo *exception )
 {
 #ifdef HAVE_IMAGESTOBLOB
 	return( ImagesToBlob( image_info, images, length, exception ) );

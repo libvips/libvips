@@ -1,6 +1,8 @@
 /* save with libMagick
  *
  * 22/12/17 dlemstra 
+ * 6/2/19 DarthSim
+ * 	- fix GraphicsMagick support
  */
 
 /*
@@ -221,7 +223,6 @@ vips_foreign_save_magick_build( VipsObject *object )
 	magick->exception = magick_acquire_exception();
 	magick->image_info = CloneImageInfo( NULL );
 
-	magick->storage_type = CharPixel;
 	switch( im->BandFmt ) {
 	case VIPS_FORMAT_UCHAR:
 		magick->storage_type = CharPixel;
@@ -249,7 +250,6 @@ vips_foreign_save_magick_build( VipsObject *object )
 		return( -1 );
 	}
 
-	magick->map = NULL;
 	switch( im->Bands ) {
 	case 1:
 		magick->map = g_strdup( "I" );
