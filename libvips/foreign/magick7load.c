@@ -546,36 +546,10 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 		vips_image_set_string( out, vips_buf_all( &name ), value );
 	}
 
-	/* All the binary metadata.
+	/* Set vips metadata from ImageMagick profiles.
 	 */
-	ResetImageProfileIterator( image );
-	while( (key = GetNextImageProfile( image )) ) {
-		char name_text[256];
-		VipsBuf name = VIPS_BUF_STATIC( name_text );
-		const StringInfo *profile;
-		void *data;
-		size_t length;
-
-		if( strcmp( key, "xmp" ) == 0 )
-			vips_buf_appendf( &name, VIPS_META_XMP_NAME );
-		else if( strcmp( key, "iptc" ) == 0 )
-			vips_buf_appendf( &name, VIPS_META_IPTC_NAME );
-		else if( strcmp( key, "icc" ) == 0 )
-			vips_buf_appendf( &name, VIPS_META_ICC_NAME );
-		else if( strcmp( key, "exif" ) == 0 )
-			vips_buf_appendf( &name, VIPS_META_EXIF_NAME );
-		else
-			vips_buf_appendf( &name, "magickprofile-%s", key );
-
-		profile = GetImageProfile( image, key );
-		data = GetStringInfoDatum( profile );
-		length = GetStringInfoLength( profile );
-		vips_image_set_blob_copy( out, vips_buf_all( &name ), 
-			data, length ); 
-
-		if( strcmp( key, "exif" ) == 0 ) 
-			(void) vips__exif_parse( im );
-	}
+	if( magick_set_vips_profile( out, image ) )
+		return( -1 );
 
 	magick7->n_pages = GetImageListLength( GetFirstImageInList( image ) );
 #ifdef DEBUG

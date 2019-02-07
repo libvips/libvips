@@ -89,59 +89,14 @@ vips_foreign_save_magick_dispose( GObject *gobject )
 		dispose( gobject );
 }
 
-typedef struct {
-	VipsForeignSaveMagick *magick;
-	Image *image;
-} CopyProfileInfo;
-
-static void *
-vips_foreign_save_magick_copy_profile( VipsImage *im, 
-	const char *name, GValue *value, CopyProfileInfo *info )
-{
-	char txt[256];
-	VipsBuf buf = VIPS_BUF_STATIC( txt );
-	const void *data;
-	size_t length;
-	int result;
-
-	if( strcmp( name, VIPS_META_XMP_NAME ) == 0 )
-		vips_buf_appendf( &buf, "xmp" );
-	else if( strcmp( name, VIPS_META_IPTC_NAME ) == 0 )
-		vips_buf_appendf( &buf, "iptc" );
-	else if( strcmp( name, VIPS_META_ICC_NAME ) == 0 )
-		vips_buf_appendf( &buf, "icc" );
-	else if( strcmp( name, VIPS_META_EXIF_NAME ) == 0 )
-		vips_buf_appendf( &buf, "exif" );
-	else if( vips_isprefix( "magickprofile-", name ) ) 
-		vips_buf_appendf( &buf, 
-			"%s", name + strlen( "magickprofile-" ) );
-
-	if( vips_buf_is_empty( &buf ) ) 
-		return( NULL );
-	if( !vips_image_get_typeof( im, name ) ) 
-		return( NULL );
-	if( vips_image_get_blob( im, name, &data, &length ) )
-		return( im );
-
-	result = magick_set_profile( info->image, 
-		vips_buf_all( &buf ), data, length, info->magick->exception );
-	if( !result ) {
-		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( info->magick );
-
-		magick_vips_error( class->nickname, info->magick->exception ); 
-		return( im );
-	}
-
-	return( NULL );
-}
-
 static int
 vips_foreign_save_magick_set_properties( VipsForeignSaveMagick *magick, 
 	Image *image, VipsImage *im )
 {
+  VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( magick );
+
 	int number;
 	const char *str;
-	CopyProfileInfo info;
 
 	if( vips_image_get_typeof( im, "gif-delay" ) &&
 		!vips_image_get_int( im, "gif-delay", &number ) )
@@ -155,12 +110,10 @@ vips_foreign_save_magick_set_properties( VipsForeignSaveMagick *magick,
 		!vips_image_get_string( im, "gif-comment", &str ) )
 		magick_set_property( image, "comment", str, magick->exception );
 
-	info.magick = magick;
-	info.image = image;
-	if( vips_image_map( im, 
-		(VipsImageMapFn) vips_foreign_save_magick_copy_profile, 
-		&info ) )
-		return( -1 );
+  if( magick_set_magick_profile( image, im, magick->exception ) ) {
+		magick_vips_error( class->nickname, magick->exception ); 
+    return( -1 );
+  }
 
 	return( 0 );
 }

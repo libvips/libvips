@@ -55,6 +55,9 @@ void *magick_images_to_blob( const ImageInfo *image_info, Image *images,
 	size_t *length, ExceptionInfo *exception );
 void magick_set_property( Image *image, 
 	const char *property, const char *value, ExceptionInfo *exception );
+typedef void *(*MagickMapProfileFn)( Image *image, 
+	const char *name, const void *data, size_t length, void *a );
+void *magick_profile_map( Image *image, MagickMapProfileFn fn, void *a );
 int magick_set_profile( Image *image, 
 	const char *name, const void *data, size_t length, 
 	ExceptionInfo *exception );
@@ -73,5 +76,9 @@ void magick_sniff_file( ImageInfo *image_info, const char *filename );
 void magick_vips_error( const char *domain, ExceptionInfo *exception );
 
 void magick_genesis( void );
+
+int magick_set_vips_profile( VipsImage *im, Image *image );
+int magick_set_magick_profile( Image *image, 
+	VipsImage *im, ExceptionInfo *exception );
 
 #endif /*HAVE_MAGICK6*/

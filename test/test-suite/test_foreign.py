@@ -1,5 +1,6 @@
 # vim: set fileencoding=utf-8 :
-import gc
+
+import sys
 import os
 import shutil
 import tempfile
@@ -428,12 +429,6 @@ class TestForeign:
         # some IMs are 3 bands, some are 1, can't really test
         # assert im.bands == 1
 
-        # added in 8.7
-        self.save_load_file(".bmp", "", self.colour, 0)
-        self.save_load_buffer("magicksave_buffer", "magickload_buffer",
-                              self.colour, 0, format="BMP")
-        self.save_load("%s.bmp", self.colour)
-
         # libvips has its own sniffer for ICO, test that
         with open(ICO_FILE, 'rb') as f:
             buf = f.read()
@@ -441,6 +436,27 @@ class TestForeign:
         im = pyvips.Image.new_from_buffer(buf, "")
         assert im.width == 16
         assert im.height == 16
+
+    # added in 8.7
+    @skip_if_no("magicksave")
+    def test_magicksave(self):
+        # save to a file and load again ... we can't use save_load_file since
+        # we want to make sure we use magickload/save 
+        # don't use BMP - GraphicsMagick always adds an alpha
+        # don't use TIF - IM7 will save as 16-bit
+        filename = temp_filename(self.tempdir, ".jpg")
+
+        self.colour.magicksave(filename)
+        x = pyvips.Image.magickload(filename)
+
+        assert self.colour.width == x.width
+        assert self.colour.height == x.height
+        assert self.colour.bands == x.bands
+        max_diff = (self.colour - x).abs().max()
+        assert max_diff < 20
+
+        self.save_load_buffer("magicksave_buffer", "magickload_buffer",
+                              self.colour, 20, format="JPG")
 
     @skip_if_no("webpload")
     def test_webp(self):

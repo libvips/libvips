@@ -43,6 +43,7 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pforeign.h"
 #include "magick.h"
@@ -105,6 +106,28 @@ magick_set_profile( Image *image,
 	DestroyStringInfo( string );
 
 	return( result );
+}
+
+void *
+magick_profile_map( Image *image, MagickMapProfileFn fn, void *a )
+{
+	char *name;
+
+	ResetImageProfileIterator( image );
+	while( (name = GetNextImageProfile( image )) ) {
+		const StringInfo *profile;
+		void *data;
+		size_t length;
+		void *result;
+
+		profile = GetImageProfile( image, name );
+		data = GetStringInfoDatum( profile );
+		length = GetStringInfoLength( profile );
+		if( (result = fn( image, name, data, length, a )) )
+			return( result );
+	}
+
+	return( NULL );
 }
 
 ExceptionInfo *
@@ -260,6 +283,44 @@ magick_set_profile( Image *image,
 #endif /*HAVE_BLOBTOSTRINGINFO*/
 
 	return( result );
+}
+
+void *
+magick_profile_map( Image *image, MagickMapProfileFn fn, void *a )
+{
+	const char *name;
+	const void *data;
+	size_t length;
+	void *result;
+
+#ifdef HAVE_RESETIMAGEPROFILEITERATOR
+	ResetImageProfileIterator( image );
+	while( (name = GetNextImageProfile( image )) ) {
+		const StringInfo *profile;
+
+		profile = GetImageProfile( image, name );
+		data = GetStringInfoDatum( profile );
+		length = GetStringInfoLength( profile );
+		if( (result = fn( image, name, data, length, a )) )
+			return( result );
+	}
+#else /*!HAVE_RESETIMAGEPROFILEITERATOR*/
+{
+	ImageProfileIterator *iter; 
+
+	iter = AllocateImageProfileIterator( image );
+	while( NextImageProfile( iter, 
+		&name, (const unsigned char **) &data, &length ) ) {
+		if( (result = fn( image, name, data, length, a )) ) {
+			DeallocateImageProfileIterator( iter );
+			return( result );
+		}
+	}
+	DeallocateImageProfileIterator( iter );
+}
+#endif /*HAVE_RESETIMAGEPROFILEITERATOR*/
+
+	return( NULL );
 }
 
 ExceptionInfo *
@@ -420,6 +481,103 @@ magick_genesis( void )
 	static GOnce once = G_ONCE_INIT;
 
 	VIPS_ONCE( &once, magick_genesis_cb, NULL );
+}
+
+/* Set vips metadata from a magick profile.
+ */
+static void *
+magick_set_vips_profile_cb( Image *image, 
+	const char *name, const void *data, size_t length, void *a )
+{
+	VipsImage *im = (VipsImage *) a;
+
+	char name_text[256];
+	VipsBuf vips_name = VIPS_BUF_STATIC( name_text );
+
+	if( strcmp( name, "XMP" ) == 0 )
+		vips_buf_appendf( &vips_name, VIPS_META_XMP_NAME );
+	else if( strcmp( name, "IPTC" ) == 0 )
+		vips_buf_appendf( &vips_name, VIPS_META_IPTC_NAME );
+	else if( strcmp( name, "ICM" ) == 0 )
+		vips_buf_appendf( &vips_name, VIPS_META_ICC_NAME );
+	else if( strcmp( name, "EXIF" ) == 0 )
+		vips_buf_appendf( &vips_name, VIPS_META_EXIF_NAME );
+	else
+		vips_buf_appendf( &vips_name, "magickprofile-%s", name );
+
+	vips_image_set_blob_copy( im, 
+		vips_buf_all( &vips_name ), data, length ); 
+
+	if( strcmp( name, "exif" ) == 0 ) 
+		(void) vips__exif_parse( im );
+
+	return( NULL );
+}
+
+/* Set vips metadata from ImageMagick profiles.
+ */
+int
+magick_set_vips_profile( VipsImage *im, Image *image )
+{
+	if( magick_profile_map( image, magick_set_vips_profile_cb, im ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+typedef struct {
+	Image *image;
+	ExceptionInfo *exception;
+} CopyProfileInfo;
+
+static void *
+magick_set_magick_profile_cb( VipsImage *im, 
+	const char *name, GValue *value, CopyProfileInfo *info )
+{
+	char txt[256];
+	VipsBuf buf = VIPS_BUF_STATIC( txt );
+	const void *data;
+	size_t length;
+
+	if( strcmp( name, VIPS_META_XMP_NAME ) == 0 )
+		vips_buf_appendf( &buf, "XMP" );
+	else if( strcmp( name, VIPS_META_IPTC_NAME ) == 0 )
+		vips_buf_appendf( &buf, "IPTC" );
+	else if( strcmp( name, VIPS_META_ICC_NAME ) == 0 )
+		vips_buf_appendf( &buf, "ICM" );
+	else if( strcmp( name, VIPS_META_EXIF_NAME ) == 0 )
+		vips_buf_appendf( &buf, "EXIF" );
+	else if( vips_isprefix( "magickprofile-", name ) ) 
+		vips_buf_appendf( &buf, 
+			"%s", name + strlen( "magickprofile-" ) );
+
+	if( vips_buf_is_empty( &buf ) ) 
+		return( NULL );
+	if( !vips_image_get_typeof( im, name ) ) 
+		return( NULL );
+	if( vips_image_get_blob( im, name, &data, &length ) )
+		return( im );
+
+	if( !magick_set_profile( info->image, 
+		vips_buf_all( &buf ), data, length, info->exception ) )
+		return( im );
+
+	return( NULL );
+}
+
+int
+magick_set_magick_profile( Image *image, 
+	VipsImage *im, ExceptionInfo *exception )
+{
+	CopyProfileInfo info;
+
+	info.image = image;
+	info.exception = exception;
+	if( vips_image_map( im, 
+		(VipsImageMapFn) magick_set_magick_profile_cb, &info ) )
+		return( -1 );
+
+	return( 0 );
 }
 
 #endif /*HAVE_MAGICK*/
