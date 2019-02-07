@@ -453,10 +453,10 @@ class TestForeign:
         assert self.colour.height == x.height
         assert self.colour.bands == x.bands
         max_diff = (self.colour - x).abs().max()
-        assert max_diff < 20
+        assert max_diff < 40
 
         self.save_load_buffer("magicksave_buffer", "magickload_buffer",
-                              self.colour, 20, format="JPG")
+                              self.colour, 40, format="JPG")
 
     @skip_if_no("webpload")
     def test_webp(self):
