@@ -108,7 +108,7 @@ typedef struct {
 	 */
 	int alpha;
 
-	/* Number of frames we will decode.
+	/* Number of frames in file.
 	 */
 	int frame_count;
 
@@ -477,7 +477,7 @@ read_header( Read *read, VipsImage *out )
 		/* Note that n-pages is the number of pages in the original,
 		 * not the number of pages in the image we are writing.
 		 */
-		vips_image_set_int( out, "n-pages", read->frame_count );
+		vips_image_set_int( out, VIPS_META_N_PAGES, read->frame_count );
 
 		read->width = read->frame_width;
 		read->height = read->n * read->frame_height;

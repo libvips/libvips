@@ -653,7 +653,8 @@ vips_foreign_load_gif_extension( VipsForeignLoadGif *gif )
 
 	VIPS_DEBUG_MSG( "gifload: EXTENSION_RECORD_TYPE\n" ); 
 
-	if( DGifGetExtension( gif->file, &ext_code, &extension ) == GIF_ERROR ) {
+	if( DGifGetExtension( gif->file, &ext_code, &extension ) == 
+		GIF_ERROR ) {
 		vips_foreign_load_gif_error( gif ); 
 		return( -1 ); 
 	}
@@ -927,8 +928,16 @@ vips_foreign_load_gif_pages( VipsForeignLoadGif *gif, VipsImage **out )
 
 	unref_array( frames );
 
-	if( n_frames > 1 )
+	if( n_frames > 1 ) {
 		vips_image_set_int( *out, VIPS_META_PAGE_HEIGHT, t[0]->Ysize );
+
+		/* n-pages is supposed to be the number of pages in the file,
+		 * but we'd need to scan the entire image to find that :( so
+		 * just set it to the number of pages we've read so far.
+		 */
+		vips_image_set_int( *out, VIPS_META_N_PAGES, 
+			gif->current_page );
+	}
 	vips_image_set_int( *out, "gif-delay", gif->delay );
 	vips_image_set_int( *out, "gif-loop", gif->loop );
 	if( gif->comment ) 
@@ -1201,7 +1210,7 @@ vips_foreign_load_gif_buffer_init( VipsForeignLoadGifBuffer *buffer )
  * * @page: %gint, page (frame) to read
  * * @n: %gint, load this many pages
  *
- * Read a GIF file into a VIPS image.  Rendering uses the giflib library.
+ * Read a GIF file into a VIPS image.
  *
  * Use @page to select a page to render, numbering from zero.
  *
