@@ -16,12 +16,12 @@ operations](http://libvips.github.io/libvips/API/current/func-list.html)
 covering arithmetic, histograms, convolution, morphological
 operations, frequency filtering, colour, resampling,
 statistics and others. It supports a large range of [numeric
-formats](http://libvips.github.io/libvips/API/current/VipsImage.html#VipsBandFormat),
+types](http://libvips.github.io/libvips/API/current/VipsImage.html#VipsBandFormat),
 from 8-bit int to 128-bit complex. Images can have any number of bands.
 It supports a good range of image formats, including JPEG, TIFF, PNG, WebP,
 FITS, Matlab, OpenEXR, PDF, SVG, HDR, PPM, CSV, GIF, Analyze, NIfTI, DeepZoom,
-and OpenSlide.  It can also load images via ImageMagick or GraphicsMagick,
-letting it load formats like DICOM.
+and OpenSlide. It can also load images via ImageMagick or GraphicsMagick,
+letting it work with formats like DICOM.
 
 It comes with bindings for
 [C](http://libvips.github.io/libvips/API/current/using-from-c.html),
@@ -31,7 +31,7 @@ and the
 Full bindings are available for [Ruby](https://rubygems.org/gems/ruby-vips),
 [Python](https://pypi.python.org/pypi/pyvips),
 [PHP](https://github.com/libvips/php-vips),
-[.NET](https://www.nuget.org/packages/NetVips),
+[C# / .NET](https://www.nuget.org/packages/NetVips),
 [Go](https://github.com/davidbyttow/govips), and
 [Lua](https://github.com/libvips/lua-vips). libvips
 is used as an image processing engine by [sharp
