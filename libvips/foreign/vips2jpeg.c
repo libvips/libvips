@@ -260,7 +260,39 @@ write_blob( Write *write, const char *field, int app )
 #endif /*DEBUG*/
 
 			jpeg_write_marker( &write->cinfo, app, 
-				data, data_length ); } }
+				data, data_length ); 
+		} 
+	}
+
+	return( 0 );
+}
+
+#define XML_URL "http://ns.adobe.com/xap/1.0/"
+
+static int
+write_xmp( Write *write )
+{
+	unsigned char *data;
+	size_t data_length;
+	char *p;
+
+	if( !vips_image_get_typeof( write->in, VIPS_META_XMP_NAME ) ) 
+		return( 0 );
+	if( vips_image_get_blob( write->in, VIPS_META_XMP_NAME, 
+		(void *) &data, &data_length ) )
+		return( -1 );
+
+	/* We need to add the magic XML URL to the start, then a null
+	 * character, then the data.
+	 */
+	p = g_malloc( data_length + strlen( XML_URL ) + 1 );
+	strcpy( p, XML_URL );
+	memcpy( p + strlen( XML_URL ) + 1, data, data_length );
+	
+	jpeg_write_marker( &write->cinfo, JPEG_APP0 + 1, 
+		(unsigned char *) p, data_length + strlen( XML_URL ) + 1 ); 
+
+	g_free( p );
 
 	return( 0 );
 }
@@ -593,8 +625,7 @@ write_vips( Write *write, int qfac, const char *profile,
 	 */
 	if( !strip ) { 
 		if( write_exif( write ) ||
-			write_blob( write, 
-				VIPS_META_XMP_NAME, JPEG_APP0 + 1 ) ||
+			write_xmp( write ) ||
 			write_blob( write, 
 				VIPS_META_IPTC_NAME, JPEG_APP0 + 13 ) )
 			return( -1 );

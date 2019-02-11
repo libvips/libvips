@@ -328,6 +328,32 @@ attach_blob( VipsImage *im, const char *field, void *data, int data_length )
 	return( 0 );
 }
 
+/* data is the XMP string ... it'll have something like 
+ * "http://ns.adobe.com/xap/1.0/" at the front, then a null character, then
+ * the real XMP.
+ */
+static int
+attach_xmp_blob( VipsImage *im, void *data, int data_length )
+{
+	char *p = (char *) data;
+	int i;
+
+	if( !vips_isprefix( "http", p ) ) 
+		return( 0 );
+
+	/* Search for a null char within the first few characters. 80
+	 * should be plenty for a basic URL.
+	 */
+	for( i = 0; i < 80; i++ )
+		if( !p[i] ) 
+			break;
+	if( p[i] )
+		return( 0 );
+
+	return( attach_blob( im, VIPS_META_XMP_NAME, 
+		p + i + 1, data_length - i - 1 ) );
+}
+
 /* Number of app2 sections we can capture. Each one can be 64k, so 6400k should
  * be enough for anyone (haha).
  */
@@ -490,7 +516,7 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 
 			if( p->data_length > 4 &&
 				vips_isprefix( "http", (char *) p->data ) &&
-				attach_blob( out, VIPS_META_XMP_NAME, 
+				attach_xmp_blob( out, 
 					p->data, p->data_length ) )
 				return( -1 );
 
