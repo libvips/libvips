@@ -50,8 +50,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -322,15 +322,13 @@ vips_foreign_load_gif_dispose( GObject *gobject )
 static VipsForeignFlags
 vips_foreign_load_gif_get_flags_filename( const char *filename )
 {
-	/* We can render any part of the image on demand.
-	 */
-	return( VIPS_FOREIGN_PARTIAL );
+	return( VIPS_FOREIGN_SEQUENTIAL );
 }
 
 static VipsForeignFlags
 vips_foreign_load_gif_get_flags( VipsForeignLoad *load )
 {
-	return( VIPS_FOREIGN_PARTIAL );
+	return( VIPS_FOREIGN_SEQUENTIAL );
 }
 
 static gboolean
@@ -730,6 +728,8 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 {
 	GifFileType *file = gif->file;
 
+	printf( "vips_foreign_load_gif_render:\n" ); 
+
 	if( file->Image.Interlace ) {
 		int i;
 
@@ -830,6 +830,8 @@ vips_foreign_load_gif_next_page( VipsForeignLoadGif *gif )
 	GifRecordType record;
 	gboolean have_read_frame;
 
+	printf( "vips_foreign_load_gif_next_page:\n" ); 
+
 	have_read_frame = FALSE;
 	do { 
 		if( DGifGetRecordType( gif->file, &record ) == GIF_ERROR ) {
@@ -893,12 +895,17 @@ vips_foreign_load_gif_generate( VipsRegion *or,
 	int line = r->top % gif->file->SHeight;
 
 #ifdef DEBUG_VERBOSE
-	printf( "vips_foreign_load_gif_generate: line %d\n", r->top );
 #endif /*DEBUG_VERBOSE*/
+	printf( "vips_foreign_load_gif_generate: line %d\n", r->top );
 
 	g_assert( r->height == 1 );
+	g_assert( line >= 0 && lines < gif->frame->Ysize );
+	g_assert( page >= 0 && page < gif->n_pages );
 
-	while( gif->current_page < page ) {
+	/* current_page == 0 means we've not loaded any pages yet. So we need 
+	 * to have loaded the page beyond the page we want.
+	 */
+	while( gif->current_page <= page ) {
 		if( vips_foreign_load_gif_next_page( gif ) )
 			return( -1 );
 
