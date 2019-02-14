@@ -7,7 +7,6 @@ libforeign_la_SOURCES = \
 	quantise.c \
 	exif.c \
 	gifload.c \
-	gifload2.c \
 	cairo.c \
 	pdfload.c \
 	pdfload_pdfium.c \

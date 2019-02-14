@@ -1832,9 +1832,6 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_gif_get_type( void ); 
 	extern GType vips_foreign_load_gif_file_get_type( void ); 
 	extern GType vips_foreign_load_gif_buffer_get_type( void ); 
-	extern GType vips_foreign_load_gif2_get_type( void ); 
-	extern GType vips_foreign_load_gif2_file_get_type( void ); 
-	extern GType vips_foreign_load_gif2_buffer_get_type( void ); 
 
 	vips_foreign_load_csv_get_type(); 
 	vips_foreign_save_csv_get_type(); 
@@ -1884,9 +1881,6 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_gif_get_type(); 
 	vips_foreign_load_gif_file_get_type(); 
 	vips_foreign_load_gif_buffer_get_type(); 
-	vips_foreign_load_gif2_get_type(); 
-	vips_foreign_load_gif2_file_get_type(); 
-	vips_foreign_load_gif2_buffer_get_type(); 
 #endif /*HAVE_GIFLIB*/
 
 #ifdef HAVE_GSF
