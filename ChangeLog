@@ -21,6 +21,7 @@
 - add @reduction_effort param to webpsave [lovell]
 - add @option_string param to thumbnail_buffer [kleisauke]
 - add XMP, IPCT, ICC, EXIF etc. support to magickload/magicksave
+- much lower memuse for gifload
 
 4/1/19 started 8.7.4
 - magickload with magick6 API did not chain exceptions correctly causing a
