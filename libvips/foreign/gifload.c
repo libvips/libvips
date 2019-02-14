@@ -21,7 +21,7 @@
  * 13/8/18
  * 	- init pages to 0 before load
  * 14/2/19
- * 	- rework as a sequential loader ... smaller, less mem use
+ * 	- rework as a sequential loader ... simpler, much lower mem use
  */
 
 /*
