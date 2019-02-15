@@ -169,11 +169,13 @@ typedef struct _VipsForeignLoadGif {
 	int dispose;
 
 	/* Set for EOF detected.
-	 *
-	 * FIXME ... do we need this? 
-	 *
 	 */
 	gboolean eof;
+
+	/* The current cmap unpacked to a simple LUT. Each uint32 is really an
+	 * RGBA pixel ready to be blasted into @frame.
+	 */
+	guint32 cmap[256];
 
 	/* As we scan the file, the index of the transparent pixel for this
 	 * frame.
@@ -657,26 +659,24 @@ vips_foreign_load_gif_header( VipsForeignLoad *load )
 }
 
 static void
-vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif,
-	int width, VipsPel * restrict q, VipsPel * restrict p )
+vips_foreign_load_gif_build_cmap( VipsForeignLoadGif *gif )
 {
 	ColorMapObject *map = gif->file->Image.ColorMap ?
 		gif->file->Image.ColorMap : gif->file->SColorMap;
 
-	int x;
+	int v;
 
-	for( x = 0; x < width; x++ ) {
-		VipsPel v = p[x];
-		
+	for( v = 0; v < 256; v++ ) {
+		VipsPel *q = (VipsPel *) &gif->cmap[v];
+
 		if( map &&
-			v < map->ColorCount &&
-			v != gif->transparency ) {
+			v < map->ColorCount ) {
 			q[0] = map->Colors[v].Red;
 			q[1] = map->Colors[v].Green;
 			q[2] = map->Colors[v].Blue;
 			q[3] = 255;
 		}
-		else if( v != gif->transparency ) {
+		else {
 			/* If there's no map, just save the index.
 			 */
 			q[0] = v;
@@ -684,21 +684,32 @@ vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif,
 			q[2] = v;
 			q[3] = 255;
 		}
-		else if( gif->dispose == DISPOSE_DO_NOT ) {
-			/* Transparent pixels let the previous frame show
-			 * through, ie., do nothing.
-			 */
-		}
-		else {
-			/* All other modes are just transparent. 
-			 */
-			q[0] = 0;
-			q[1] = 0;
-			q[2] = 0;
-			q[3] = 0;
-		}
+	}
+}
 
-		q += 4;
+static void
+vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif,
+	int width, VipsPel * restrict q, VipsPel * restrict p )
+{
+	guint32 *iq;
+	int x;
+
+	iq = (guint32 *) q;
+	for( x = 0; x < width; x++ ) {
+		VipsPel v = p[x];
+		
+		if( v == gif->transparency ) {
+			/* In DISPOSE_DO_NOT mode, the previous frame shows
+			 * through (ie. we do nothing). In all other modes, 
+			 * it's just transparent.
+			 */
+			if( gif->dispose != DISPOSE_DO_NOT ) 
+				iq[x] = 0;
+		}
+		else
+			/* Blast in the RGBA for this value.
+			 */
+			iq[x] = gif->cmap[v];
 	}
 }
 
@@ -709,6 +720,10 @@ static int
 vips_foreign_load_gif_render( VipsForeignLoadGif *gif ) 
 {
 	GifFileType *file = gif->file;
+
+	/* Update the colour map for this frame.
+	 */
+	vips_foreign_load_gif_build_cmap( gif );
 
 	if( file->Image.Interlace ) {
 		int i;
