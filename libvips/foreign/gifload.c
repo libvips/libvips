@@ -88,6 +88,10 @@
 #endif
 
 /* Added in giflib5.
+ *
+ * DO_NOT 	- no dispose action after frame load
+ * BACKGROUND 	- after frame load, reset to 0 (transparent)
+ * PREVIOUS 	- after frame load, reset previous
  */
 #ifndef HAVE_GIFLIB_5
 #define DISPOSAL_UNSPECIFIED      0       
@@ -155,6 +159,10 @@ typedef struct _VipsForeignLoadGif {
 	 * we scan the image, and copy lines to the output on generate.
 	 */
 	VipsImage *frame;
+
+	/* A copy of the previous frame, in case we need a DISPOSE_PREVIOUS.
+	 */
+	VipsImage *previous;
 
 	/* The position of @frame, in pages.
 	 */
@@ -318,6 +326,7 @@ vips_foreign_load_gif_dispose( GObject *gobject )
 	vips_foreign_load_gif_close( gif ); 
 
 	VIPS_UNREF( gif->frame ); 
+	VIPS_UNREF( gif->previous ); 
 	VIPS_FREE( gif->comment ); 
 	VIPS_FREE( gif->line ) 
 
@@ -725,6 +734,25 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 	 */
 	vips_foreign_load_gif_build_cmap( gif );
 
+	/* DISPOSE_BACKGROUND means transparent pixels in this frame will show
+	 * the background of the web page, ie. be transparent.
+	 *
+	 * PREVIOUS means we init with the last non-previous frame.
+	 *
+	 * Otherwise, we must update previous.
+	 */
+	if( gif->dispose == DISPOSE_BACKGROUND )
+		memset( VIPS_IMAGE_ADDR( gif->frame, 0, 0 ), 0, 
+			VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
+	else if( gif->dispose == DISPOSE_PREVIOUS )
+		memcpy( VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
+			VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
+			VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
+	else 
+		memcpy( VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
+			VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
+			VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
+
 	if( file->Image.Interlace ) {
 		int i;
 
@@ -977,8 +1005,17 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 	vips_image_init_fields( gif->frame, 
 		gif->file->SWidth, gif->file->SHeight, 4, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
-        vips_image_pipelinev( gif->frame, VIPS_DEMAND_STYLE_ANY, NULL );
 	if( vips_image_write_prepare( gif->frame ) ) 
+		return( -1 );
+
+	/* A copy of the previous state of the frame, in case we have to
+	 * process a DISPOSE_PREVIOUS.
+	 */
+	gif->previous = vips_image_new_memory();
+	vips_image_init_fields( gif->previous, 
+		gif->file->SWidth, gif->file->SHeight, 4, VIPS_FORMAT_UCHAR,
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
+	if( vips_image_write_prepare( gif->previous ) ) 
 		return( -1 );
 
 	/* Make the output pipeline.
