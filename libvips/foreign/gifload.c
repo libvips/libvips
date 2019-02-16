@@ -52,9 +52,9 @@
  */
 
 /*
-#define VIPS_DEBUG
 #define DEBUG_VERBOSE
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -741,23 +741,32 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 	 *
 	 * Otherwise, we must update previous.
 	 */
-	if( gif->dispose == DISPOSE_BACKGROUND )
+	if( gif->dispose == DISPOSE_BACKGROUND ) {
+		VIPS_DEBUG_MSG( "vips_foreign_load_gif_render: "
+			"dispose clear to zero\n" ); 
 		memset( VIPS_IMAGE_ADDR( gif->frame, 0, 0 ), 0, 
 			VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
-	else if( gif->dispose == DISPOSE_PREVIOUS )
+	}
+	else if( gif->dispose == DISPOSE_PREVIOUS ) {
+		VIPS_DEBUG_MSG( "vips_foreign_load_gif_render: "
+			"dispose restore from previous\n" ); 
 		memcpy( VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
 			VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
 			VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
-	else 
+	}	
+	else {
+		VIPS_DEBUG_MSG( "vips_foreign_load_gif_render: "
+			"dispose copy to previous\n" ); 
 		memcpy( VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
 			VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
 			VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
+	}
 
 	if( file->Image.Interlace ) {
 		int i;
 
-		VIPS_DEBUG_MSG( "gifload: interlaced frame of "
-			"%d x %d pixels at %d x %d\n",
+		VIPS_DEBUG_MSG( "vips_foreign_load_gif_render: "
+			"interlaced frame of %d x %d pixels at %d x %d\n",
 			file->Image.Width, file->Image.Height,
 			file->Image.Left, file->Image.Top ); 
 
@@ -784,8 +793,8 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 	else {
 		int y;
 
-		VIPS_DEBUG_MSG( "gifload: non-interlaced frame of "
-			"%d x %d pixels at %d x %d\n",
+		VIPS_DEBUG_MSG( "vips_foreign_load_gif_render: "
+			"non-interlaced frame of %d x %d pixels at %d x %d\n",
 			file->Image.Width, file->Image.Height,
 			file->Image.Left, file->Image.Top ); 
 
@@ -813,7 +822,7 @@ vips_foreign_load_gif_extension( VipsForeignLoadGif *gif )
 	GifByteType *extension;
 	int ext_code;
 
-	VIPS_DEBUG_MSG( "gifload: EXTENSION_RECORD_TYPE\n" ); 
+	VIPS_DEBUG_MSG( "vips_foreign_load_gif_extension:\n" ); 
 
 	if( DGifGetExtension( gif->file, &ext_code, &extension ) == 
 		GIF_ERROR ) {
@@ -836,6 +845,8 @@ vips_foreign_load_gif_extension( VipsForeignLoadGif *gif )
 		 * to set the meaning of background and transparent pixels.
 		 */
 		gif->dispose = (extension[1] >> 2) & 0x7;
+		VIPS_DEBUG_MSG( "vips_foreign_load_gif_extension: "
+			"dispose = %d\n", gif->dispose ); 
 	}
 
 	while( extension != NULL ) 
@@ -862,7 +873,8 @@ vips_foreign_load_gif_next_page( VipsForeignLoadGif *gif )
 
 		switch( record ) {
 		case IMAGE_DESC_RECORD_TYPE:
-			VIPS_DEBUG_MSG( "gifload: IMAGE_DESC_RECORD_TYPE\n" ); 
+			VIPS_DEBUG_MSG( "vips_foreign_load_gif_next_page: "
+				"IMAGE_DESC_RECORD_TYPE\n" ); 
 
 			if( DGifGetImageDesc( gif->file ) == GIF_ERROR ) {
 				vips_foreign_load_gif_error( gif ); 
@@ -882,16 +894,19 @@ vips_foreign_load_gif_next_page( VipsForeignLoadGif *gif )
 			break;
 
 		case TERMINATE_RECORD_TYPE:
-			VIPS_DEBUG_MSG( "gifload: TERMINATE_RECORD_TYPE\n" ); 
+			VIPS_DEBUG_MSG( "vips_foreign_load_gif_next_page: "
+				"TERMINATE_RECORD_TYPE\n" ); 
 			gif->eof = TRUE;
 			break;
 
 		case SCREEN_DESC_RECORD_TYPE:
-			VIPS_DEBUG_MSG( "gifload: SCREEN_DESC_RECORD_TYPE\n" );
+			VIPS_DEBUG_MSG( "vips_foreign_load_gif_next_page: "
+				"SCREEN_DESC_RECORD_TYPE\n" );
 			break;
 
 		case UNDEFINED_RECORD_TYPE:
-			VIPS_DEBUG_MSG( "gifload: UNDEFINED_RECORD_TYPE\n" );
+			VIPS_DEBUG_MSG( "vips_foreign_load_gif_next_page: "
+				"UNDEFINED_RECORD_TYPE\n" );
 			break;
 
 		default:
@@ -921,7 +936,7 @@ vips_foreign_load_gif_generate( VipsRegion *or,
 		VipsPel *p, *q;
 		int x;
 
-		g_assert( line >= 0 && lines < gif->frame->Ysize );
+		g_assert( line >= 0 && line < gif->frame->Ysize );
 		g_assert( page >= 0 && page < gif->n_pages );
 
 		/* current_page == 0 means we've not loaded any pages yet. So 
@@ -996,6 +1011,8 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 	 */
 	if( class->open( gif ) )
 		return( -1 );
+
+	printf( "vips_foreign_load_gif_load:\n" ); 
 
 	/* Make the memory image we accumulate pixels in. We always accumulate
 	 * to RGBA, then trim down to whatever the output image needs on

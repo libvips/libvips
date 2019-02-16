@@ -218,6 +218,7 @@ vips_tile_new( VipsBlockCache *cache, int x, int y )
 	tile->pos.width = cache->tile_width;
 	tile->pos.height = cache->tile_height;
 	g_hash_table_insert( cache->tiles, &tile->pos, tile );
+	g_queue_push_tail( tile->cache->recycle, tile );
 	g_assert( cache->ntiles >= 0 );
 	cache->ntiles += 1;
 
@@ -318,10 +319,12 @@ vips_tile_unlocked( gpointer key, gpointer value, gpointer user_data )
 static void
 vips_block_cache_minimise( VipsImage *image, VipsBlockCache *cache )
 {
-	/* We can't drop tiles that are in use.
-	 */
+	printf( "vips_block_cache_minimise:\n" ); 
+
 	g_mutex_lock( cache->lock );
 
+	/* We can't drop tiles that are in use.
+	 */
 	g_hash_table_foreach_remove( cache->tiles, 
 		vips_tile_unlocked, NULL );
 
@@ -433,6 +436,12 @@ vips_tile_destroy( VipsTile *tile )
 
 	VIPS_DEBUG_MSG_RED( "vips_tile_destroy: tile %d, %d (%p)\n", 
 		tile->pos.left, tile->pos.top, tile ); 
+
+	/* 0 ref tiles should be on the recycle list.
+	 */
+	g_assert( tile->ref_count == 0 );
+	g_assert( g_queue_find( tile->cache->recycle, tile ) );
+	g_queue_remove( cache->recycle, tile );
 
 	cache->ntiles -= 1;
 	g_assert( cache->ntiles >= 0 );
