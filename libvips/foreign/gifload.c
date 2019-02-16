@@ -53,8 +53,8 @@
 
 /*
 #define DEBUG_VERBOSE
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1012,7 +1012,7 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 	if( class->open( gif ) )
 		return( -1 );
 
-	printf( "vips_foreign_load_gif_load:\n" ); 
+	VIPS_DEBUG_MSG( "vips_foreign_load_gif_load:\n" ); 
 
 	/* Make the memory image we accumulate pixels in. We always accumulate
 	 * to RGBA, then trim down to whatever the output image needs on

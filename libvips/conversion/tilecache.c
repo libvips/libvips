@@ -319,7 +319,7 @@ vips_tile_unlocked( gpointer key, gpointer value, gpointer user_data )
 static void
 vips_block_cache_minimise( VipsImage *image, VipsBlockCache *cache )
 {
-	printf( "vips_block_cache_minimise:\n" ); 
+	VIPS_DEBUG_MSG( "vips_block_cache_minimise:\n" ); 
 
 	g_mutex_lock( cache->lock );
 
