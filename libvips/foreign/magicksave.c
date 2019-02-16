@@ -93,7 +93,7 @@ static int
 vips_foreign_save_magick_set_properties( VipsForeignSaveMagick *magick, 
 	Image *image, VipsImage *im )
 {
-  VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( magick );
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( magick );
 
 	int number;
 	const char *str;
@@ -110,10 +110,15 @@ vips_foreign_save_magick_set_properties( VipsForeignSaveMagick *magick,
 		!vips_image_get_string( im, "gif-comment", &str ) )
 		magick_set_property( image, "comment", str, magick->exception );
 
-  if( magick_set_magick_profile( image, im, magick->exception ) ) {
+	/* libvips keeps animations as a set of independent frames, so we want
+	 * to clear to the background between each one.
+	 */
+	image->dispose = BackgroundDispose;
+
+	if( magick_set_magick_profile( image, im, magick->exception ) ) {
 		magick_vips_error( class->nickname, magick->exception ); 
-    return( -1 );
-  }
+		return( -1 );
+	}
 
 	return( 0 );
 }

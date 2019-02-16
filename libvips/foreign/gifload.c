@@ -88,10 +88,6 @@
 #endif
 
 /* Added in giflib5.
- *
- * DO_NOT 	- no dispose action after frame load
- * BACKGROUND 	- after frame load, reset to 0 (transparent)
- * PREVIOUS 	- after frame load, reset previous
  */
 #ifndef HAVE_GIFLIB_5
 #define DISPOSAL_UNSPECIFIED      0       
@@ -734,33 +730,26 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 	 */
 	vips_foreign_load_gif_build_cmap( gif );
 
-	/* DISPOSE_BACKGROUND means transparent pixels in this frame will show
-	 * the background of the web page, ie. be transparent.
-	 *
-	 * PREVIOUS means we init with the last non-previous frame.
-	 *
-	 * Otherwise, we must update previous.
+	/* BACKGROUND means we reset the frame to 0 (transparent) before we 
+	 * render the next set of pixels.
 	 */
-	if( gif->dispose == DISPOSE_BACKGROUND ) {
-		VIPS_DEBUG_MSG( "vips_foreign_load_gif_render: "
-			"dispose clear to zero\n" ); 
+	if( gif->dispose == DISPOSE_BACKGROUND ) 
 		memset( VIPS_IMAGE_ADDR( gif->frame, 0, 0 ), 0, 
 			VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
-	}
-	else if( gif->dispose == DISPOSE_PREVIOUS ) {
-		VIPS_DEBUG_MSG( "vips_foreign_load_gif_render: "
-			"dispose restore from previous\n" ); 
+
+	/* PREVIOUS means we init the frame with the frame before last, ie. we
+	 * undo the last render.
+	 *
+	 * Anything other than PREVIOUS, we must update the previous buffer,
+	 */
+	if( gif->dispose == DISPOSE_PREVIOUS ) 
 		memcpy( VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
 			VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
 			VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
-	}	
-	else {
-		VIPS_DEBUG_MSG( "vips_foreign_load_gif_render: "
-			"dispose copy to previous\n" ); 
+	else 
 		memcpy( VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
 			VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
 			VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
-	}
 
 	if( file->Image.Interlace ) {
 		int i;
