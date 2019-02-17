@@ -115,6 +115,11 @@ typedef struct _VipsThumbnail {
 	 */
 	int n_pages;
 
+	/* For HEIF, try to fetch the size of the stored thumbnail.
+	 */
+	int heif_thumbnail_width;
+	int heif_thumbnail_height;
+
 } VipsThumbnail;
 
 typedef struct _VipsThumbnailClass {
@@ -262,6 +267,28 @@ vips_thumbnail_get_tiff_pyramid( VipsThumbnail *thumbnail )
 	     thumbnail->n_pages );
 #endif /*DEBUG*/
 	thumbnail->level_count = thumbnail->n_pages;
+}
+
+/* This may not be a pyr tiff, so no error if we can't find the layers. 
+ */
+static int
+vips_thumbnail_get_heif_thumb_info( VipsThumbnail *thumbnail ) 
+{
+	VipsThumbnailClass *class = VIPS_THUMBNAIL_GET_CLASS( thumbnail );
+
+	VipsImage *thumb;
+
+	if( !(thumb = class->open( thumbnail, 1 )) )
+		return( -1 );
+
+	if( thumb->Xsize < thumbnail->input_width ) {
+		thumbnail->heif_thumbnail_width = thumb->Xsize;
+		thumbnail->heif_thumbnail_height = thumb->Ysize;
+	}
+
+	VIPS_UNREF( thumb );
+
+	return( 0 );
 }
 
 /* Calculate the shrink factor, taking into account auto-rotate, the fit mode,
@@ -420,6 +447,12 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 	if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) 
 		vips_thumbnail_get_tiff_pyramid( thumbnail );
 
+	/* For heif, we need to fetch the thumbnail size, in case we can use
+	 * that as the source.
+	 */
+	if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) 
+		vips_thumbnail_get_heif_thumb_info( thumbnail );
+
 	factor = 1.0;
 
 	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
@@ -451,6 +484,19 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 				thumbnail->input_height ) ); 
 
 		g_info( "loading webp with factor %g pre-shrink", factor ); 
+	}
+	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
+		/* 'factor' is a gboolean which enables thumbnail load instead
+		 * of image load.
+		 *
+		 * Use the thumbnail if it's larger than our target.
+		 */
+		if( thumbnail->heif_thumbnail_width >= thumbnail->width &&
+			thumbnail->heif_thumbnail_height >= thumbnail->height )
+			factor = 1.0;
+		else
+			factor = 0.0;
+
 	}
 
 	if( !(im = class->open( thumbnail, factor )) )
@@ -866,6 +912,12 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 			"page", (int) factor,
 			NULL ) );
 	}
+	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
+		return( vips_image_new_from_file( file->filename, 
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"thumbnail", (int) factor,
+			NULL ) );
+	}
 	else {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
@@ -1053,6 +1105,13 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 			buffer->buf->data, buffer->buf->length, buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"page", (int) factor,
+			NULL ) );
+	}
+	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
+		return( vips_image_new_from_buffer( 
+			buffer->buf->data, buffer->buf->length, "", 
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"thumbnail", (int) factor,
 			NULL ) );
 	}
 	else {

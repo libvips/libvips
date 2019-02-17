@@ -23,6 +23,8 @@
 - add XMP, IPCT, ICC, EXIF etc. support to magickload/magicksave
 - much lower memuse for gifload
 - tilecache speedups
+- add vips_heifload(), vips_heifsave()
+- add heif thumbnail support to vips_thumbnail()
 
 4/1/19 started 8.7.4
 - magickload with magick6 API did not chain exceptions correctly causing a

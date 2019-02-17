@@ -565,7 +565,7 @@ vips_foreign_load_nifti_load( VipsForeignLoad *load )
 		load->out->Bands, load->out->BandFmt )) ) 
 		return( -1 );
 
-	if( vips_copy( nifti->memory, &load->real, NULL ) )
+	if( vips_image_write( nifti->memory, load->real ) )
 		return( -1 );
 
 	return( 0 );
@@ -617,7 +617,7 @@ vips_foreign_load_nifti_init( VipsForeignLoadNifti *nifti )
 {
 }
 
-#endif /*HAVE_CFITSIO*/
+#endif /*HAVE_NIFTI*/
 
 /**
  * vips_niftiload:
