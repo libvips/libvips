@@ -3,6 +3,9 @@
  * 22/12/17 dlemstra 
  * 6/2/19 DarthSim
  * 	- fix GraphicsMagick support
+ * 17/2/19
+ * 	- support ICC, XMP, EXIF, IPTC metadata
+ * 	- write with a single call to vips_sink_disc()
  */
 
 /*

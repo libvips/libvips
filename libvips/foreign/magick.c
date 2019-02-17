@@ -565,6 +565,8 @@ magick_set_magick_profile_cb( VipsImage *im,
 	return( NULL );
 }
 
+/* Set magick metadata from a VipsImage.
+ */
 int
 magick_set_magick_profile( Image *image, 
 	VipsImage *im, ExceptionInfo *exception )
