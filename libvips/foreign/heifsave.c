@@ -302,19 +302,7 @@ vips_foreign_save_heif_build( VipsObject *object )
 	 */
 
 	heif->page_width = save->ready->Xsize;
-
-	if( vips_image_get_typeof( save->ready, VIPS_META_PAGE_HEIGHT ) ) { 
-		if( vips_image_get_int( save->ready, 
-			VIPS_META_PAGE_HEIGHT, &heif->page_height ) ) 
-			return( -1 ); 	
-	}
-	else
-		heif->page_height = save->ready->Ysize;
-
-	if( heif->page_height == 0 ||
-		save->ready->Ysize % heif->page_height != 0 ) 
-		heif->page_height = save->ready->Ysize;
-
+	heif->page_height = vips_image_get_page_height( save->ready );
 	heif->n_pages = save->ready->Ysize / heif->page_height;
 
 	/* Make a heif image the size of a page. We repeatedly fill this with

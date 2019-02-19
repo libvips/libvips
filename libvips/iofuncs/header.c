@@ -30,6 +30,8 @@
  * 	- get_string will allow G_STRING and REF_STRING
  * 28/12/18
  * 	- hide deprecated header fields from _map
+ * 17/2/19
+ * 	- add vips_image_get_page_height()
  */
 
 /*
@@ -774,6 +776,34 @@ vips_image_get_offset( const VipsImage *image )
 		vips_image_get_double( image, "offset", &offset );
 
 	return( offset );
+}
+
+/**
+ * vips_image_get_page_height: (method)
+ * @image: image to get from
+ *
+ * Multi-page images can have a page height. Fetch it, and sanity check it.
+ * convolution. 
+ *
+ * Returns: the page height.
+ */
+int
+vips_image_get_page_height( VipsImage *image )
+{
+	int page_height;
+
+	page_height = 0;
+	if( vips_image_get_typeof( image, VIPS_META_PAGE_HEIGHT ) &&
+		vips_image_get_int( image, VIPS_META_PAGE_HEIGHT, 
+			&page_height ) )
+		;
+
+	if( page_height <= 0 ||
+		page_height > image->Ysize ||
+		image->Ysize % page_height != 0 ) 
+		page_height = image->Ysize;
+
+	return( page_height );
 }
 
 /**

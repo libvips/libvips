@@ -467,7 +467,8 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 
 	/* All pages must be the same size for libvips toilet roll images.
 	 */
-	if( vips_foreign_load_heif_set_page( heif, heif->page, heif->thumbnail ) )
+	if( vips_foreign_load_heif_set_page( heif, 
+		heif->page, heif->thumbnail ) )
 		return( -1 );
 	heif->page_width = heif_image_handle_get_width( heif->handle );
 	heif->page_height = heif_image_handle_get_height( heif->handle );

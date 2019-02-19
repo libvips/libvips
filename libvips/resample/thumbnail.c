@@ -103,6 +103,7 @@ typedef struct _VipsThumbnail {
 	const char *loader;		/* Eg. "VipsForeignLoadJpeg*" */
 	int input_width;
 	int input_height;
+	int page_height;
 	VipsAngle angle; 		/* From vips_autorot_get_angle() */
 
 	/* For openslide, we need to read out the size of each level too.
@@ -352,6 +353,17 @@ vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail,
 		*hshrink = VIPS_MAX( 1, *hshrink );
 		*vshrink = VIPS_MAX( 1, *vshrink );
 	}
+
+	/* In toilet-roll mode, we must adjust vshrink so that we exactly hit
+	 * page_height, or we'll have pixels straddling pixel boundaries.
+	 */
+	if( thumbnail->n_pages > 1 ) {
+		int target_page_height = VIPS_RINT( input_height / *vshrink );
+		int target_image_height = target_page_height * 
+			thumbnail->n_pages;
+
+		*vshrink = (double) input_height / target_image_height;
+	}
 }
 
 /* Just the common part of the shrink: the bit by which both axes must be
@@ -550,9 +562,16 @@ vips_thumbnail_build( VipsObject *object )
 	if( !vips_object_argument_isset( object, "height" ) )
 		thumbnail->height = thumbnail->width;
 
+	/* Open and do any pre-shrinking.
+	 */
 	if( !(t[0] = vips_thumbnail_open( thumbnail )) )
 		return( -1 );
 	in = t[0];
+
+	/* So page_height is after pre-shrink, but before the main shrink
+	 * stage.
+	 */
+	thumbnail->page_height = vips_image_get_page_height( in );
 
 	/* RAD needs special unpacking.
 	 */
@@ -569,7 +588,8 @@ vips_thumbnail_build( VipsObject *object )
 	/* In linear mode, we import right at the start. 
 	 *
 	 * We also have to import the whole image if it's CMYK, since
-	 * vips_colourspace() (see below) doesn't know about CMYK.
+	 * vips_colourspace() (see below) doesn't let you specify the fallback
+	 * profile.
 	 *
 	 * This is only going to work for images in device space. If you have
 	 * an image in PCS which also has an attached profile, strange things
@@ -627,14 +647,33 @@ vips_thumbnail_build( VipsObject *object )
 		in = t[3];
 	}
 
+	/* Shrink to page_height, so we work for multi-page docs.
+	 *
+	 * FIXME ... what about page_height and shrink-on-load for eg. PDF or
+	 * WebP?
+	 *
+	 * FIXME ... use vips_image_get_page_height() as appropriate in
+	 * foreign.
+	 *
+	 * FIXME ... need to check shrink for whole height of image. Do we hit
+	 * the correct final pixel?
+	 *
+	 * FIXME ... update page_height, including shrink-on-load downsize
+	 */
 	vips_thumbnail_calculate_shrink( thumbnail, 
-		in->Xsize, in->Ysize, &hshrink, &vshrink );
+		in->Xsize, thumbnail->page_height, &hshrink, &vshrink );
 
 	if( vips_resize( in, &t[4], 1.0 / hshrink, 
 		"vscale", 1.0 / vshrink, 
 		NULL ) ) 
 		return( -1 );
 	in = t[4];
+
+	thumbnail->page_height /= vshrink;
+	vips_image_set_int( in, VIPS_META_PAGE_HEIGHT, thumbnail->page_height );
+
+	printf( "in->Ysize = %d\n", in->Ysize );
+	printf( "page_height = %d\n", thumbnail->page_height );
 
 	if( have_premultiplied ) {
 		g_info( "unpremultiplying alpha" ); 

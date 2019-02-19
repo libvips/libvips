@@ -378,17 +378,9 @@ write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 static int
 write_webp( VipsWebPWrite *write, VipsImage *image )
 {
-	int page_height;
+	int page_height = vips_image_get_page_height( image ); 
 
-	page_height = 0;
-	if( vips_image_get_typeof( image, VIPS_META_PAGE_HEIGHT ) &&
-		vips_image_get_int( image, VIPS_META_PAGE_HEIGHT, 
-			&page_height ) )
-		;
-
-	if( page_height > 0 &&
-		page_height < image->Ysize &&
-		image->Ysize % page_height == 0 ) 
+	if( page_height < image->Ysize )
 		return( write_webp_anim( write, image, page_height ) );
 	else
 		return( write_webp_single( write, image ) );
