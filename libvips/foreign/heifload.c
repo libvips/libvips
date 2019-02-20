@@ -356,6 +356,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 }
 #endif /*DEBUG*/
 
+#ifdef HAVE_HEIF_COLOR_PROFILE
 	/* FIXME should probably check the profile type ... lcms seems to be
 	 * able to load at least rICC and prof.
 	 */
@@ -381,6 +382,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
 			(VipsCallbackFn) NULL, data, length );
 	}
+#endif /*HAVE_HEIF_COLOR_PROFILE*/
 
 	return( 0 );
 }

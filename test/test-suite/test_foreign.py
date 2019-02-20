@@ -843,7 +843,7 @@ class TestForeign:
         self.file_loader("heifload", HEIC_FILE, heif_valid)
         self.buffer_loader("heifload_buffer", HEIC_FILE, heif_valid)
         self.save_load_buffer("heifsave_buffer", "heifload_buffer",
-                              self.colour, 70)
+                              self.colour, 80)
         self.save_load("%s.heic", self.colour)
 
         # test lossless mode
@@ -859,11 +859,13 @@ class TestForeign:
         assert len(b2) > len(b1)
 
         # try saving an image with an ICC profile and reading it back 
+        # not all libheif have profile support, so put it in an if
         buf = self.colour.heifsave_buffer()
         im = pyvips.Image.new_from_buffer(buf, "")
         p1 = self.colour.get("icc-profile-data")
-        p2 = im.get("icc-profile-data")
-        assert p1 == p2
+        if im.get_typeof("icc-profile-data") != 0:
+            p2 = im.get("icc-profile-data")
+            assert p1 == p2
 
         # add tests for exif, xmp, ipct
         # the exif test will need us to be able to walk the header,
