@@ -47,6 +47,9 @@ addons:
     sources:
       # use imagemagick 6.9.7-4 instead than 6.8.9-9 
       - sourceline: 'ppa:opencpu/imagemagick'
+      # add support for HEIF files
+      - sourceline: 'ppa:strukturag/libheif'
+      - sourceline: 'ppa:strukturag/libde265'
     packages:
       - automake 
       - gtk-doc-tools 
@@ -59,6 +62,7 @@ addons:
       # missing on xenial, unfortunately
       # - libwebpmux2
       - libtiff5-dev 
+      - libheif-dev
       - libexpat1-dev
       - swig 
       - libmagick++-dev 
