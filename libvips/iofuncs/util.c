@@ -333,7 +333,7 @@ vips_iscasepostfix( const char *a, const char *b )
 	if( n > m )
 		return( FALSE );
 
-	return( strcasecmp( a + m - n, b ) == 0 );
+	return( g_ascii_strcasecmp( a + m - n, b ) == 0 );
 }
 
 /* Test for string a starts string b. a is a known-good string, b may be

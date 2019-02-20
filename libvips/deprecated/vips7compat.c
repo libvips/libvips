@@ -606,7 +606,7 @@ lookup_enum( GType type, const char *names[], const char *name )
 		return( value->value );
 
 	for( i = 0; names[i]; i++ )
-		if( strcasecmp( names[i], name ) == 0 )
+		if( g_ascii_strcasecmp( names[i], name ) == 0 )
 			return( i );
 
 	return( -1 );

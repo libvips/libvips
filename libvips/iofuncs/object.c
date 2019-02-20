@@ -1988,8 +1988,8 @@ vips_object_set_argument_from_string( VipsObject *object,
 
 		b = TRUE;
 		if( value &&
-			(strcasecmp( value, "false" ) == 0 ||
-			strcasecmp( value, "no" ) == 0 ||
+			(g_ascii_strcasecmp( value, "false" ) == 0 ||
+			g_ascii_strcasecmp( value, "no" ) == 0 ||
 			strcmp( value, "0" ) == 0) )
 			b = FALSE;
 
@@ -2804,12 +2804,12 @@ vips_type_depth( GType type )
 static void *
 test_name( VipsObjectClass *class, const char *nickname )
 {
-	if( strcasecmp( class->nickname, nickname ) == 0 )
+	if( g_ascii_strcasecmp( class->nickname, nickname ) == 0 )
 		return( class );
 
 	/* Check the class name too, why not.
 	 */
-	if( strcasecmp( G_OBJECT_CLASS_NAME( class ), nickname ) == 0 )
+	if( g_ascii_strcasecmp( G_OBJECT_CLASS_NAME( class ), nickname ) == 0 )
 		return( class );
 
 	return( NULL );

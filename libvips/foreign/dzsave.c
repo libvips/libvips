@@ -2198,16 +2198,16 @@ vips_foreign_save_dz_file_build( VipsObject *object )
 	 */
 	if( (p = strrchr( dz->basename, '.' )) ) {
 		if( !vips_object_argument_isset( object, "container" ) ) 
-			if( strcasecmp( p + 1, "zip" ) == 0 ||
-				strcasecmp( p + 1, "szi" ) == 0 ) 
+			if( g_ascii_strcasecmp( p + 1, "zip" ) == 0 ||
+				g_ascii_strcasecmp( p + 1, "szi" ) == 0 ) 
 				dz->container = VIPS_FOREIGN_DZ_CONTAINER_ZIP;
 
 		/* Remove any legal suffix. We don't remove all suffixes
 		 * since we might be writing to a dirname with a dot in.
 		 */
-		if( strcasecmp( p + 1, "zip" ) == 0 ||
-			strcasecmp( p + 1, "szi" ) == 0 || 
-			strcasecmp( p + 1, "dz" ) == 0 )
+		if( g_ascii_strcasecmp( p + 1, "zip" ) == 0 ||
+			g_ascii_strcasecmp( p + 1, "szi" ) == 0 || 
+			g_ascii_strcasecmp( p + 1, "dz" ) == 0 )
 			*p = '\0';
 	}
 

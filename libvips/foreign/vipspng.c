@@ -1077,7 +1077,8 @@ write_vips( Write *write,
 				return( -1 );
 			if( blob ) {
 				size_t length;
-				const void *data = vips_blob_get( blob, &length );
+				const void *data 
+					= vips_blob_get( blob, &length );
 
 #ifdef DEBUG
 				printf( "write_vips: attaching %zd bytes "
@@ -1086,7 +1087,7 @@ write_vips( Write *write,
 
 				png_set_iCCP( write->pPng, write->pInfo, 
 					"icc", PNG_COMPRESSION_TYPE_BASE, 
-					data, length );
+					(void *) data, length );
 
 				vips_area_unref( (VipsArea *) blob );
 			}
@@ -1105,7 +1106,8 @@ write_vips( Write *write,
 #endif /*DEBUG*/
 
 			png_set_iCCP( write->pPng, write->pInfo, "icc",
-				PNG_COMPRESSION_TYPE_BASE, data, length );
+				PNG_COMPRESSION_TYPE_BASE, 
+				(void *) data, length );
 
 		}
 
