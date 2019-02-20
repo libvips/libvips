@@ -58,8 +58,11 @@ vips_mask_point( VipsPoint *point, int x, int y )
 {
 	VipsMask *mask = VIPS_MASK( point ); 
 	VipsMaskClass *class = VIPS_MASK_GET_CLASS( point ); 
-	int half_width = point->width / 2;
-	int half_height = point->height / 2;
+
+	/* VIPS_MAX to prevent /0.
+	 */
+	int half_width = VIPS_MAX( point->width / 2, 1 );
+	int half_height = VIPS_MAX( point->height / 2, 1 );
 
 	double result;
 
