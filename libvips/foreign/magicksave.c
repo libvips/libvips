@@ -108,7 +108,6 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 	VipsImage *im = save->ready;
 
 	Image *image;
-	int status;
 	int number;
 	const char *str;
 
@@ -195,7 +194,6 @@ vips_foreign_save_magick_write_block( VipsRegion *region, VipsRect *area,
 	do {
 		VipsRect hit;
 		void *p;
-		int status;
 
 		if( !magick->current_image &&
 			vips_foreign_save_magick_next_image( magick ) )
