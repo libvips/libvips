@@ -333,6 +333,7 @@
 - dzsave puts vips-properties.xml in the main dir for gm and zoomify layouts
 - resize and reduce have @centre option for centre convention downsampling
 - vipsthumbnail uses centre convention to better match imagemagick
+_ add vips_foreign_get_suffixes() 
 
 19/8/16 started 8.3.4
 - better transparency handling in gifload, thanks diegocsandrim
