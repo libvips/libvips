@@ -12,6 +12,8 @@
  * 	- convert for jpg if jpg compression is on
  * 19/10/17
  * 	- predictor defaults to horizontal, reducing file size, usually
+ * 13/6/18
+ * 	- add region_shrink
  */
 
 /*

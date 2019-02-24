@@ -87,6 +87,7 @@
 - escape ASCII control characters in XML
 - magickload now sniffs some file types itself
 - update radiance load from upstream
+- add region_shrink to tiffsave
 - mapim could fail for float index images with coordinates out of int range
 - scale openexr alpha to 0 - 255
 - close input earlier, when we can [kleisauke]

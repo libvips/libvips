@@ -176,6 +176,8 @@
  * 24/10/17
  * 	- no error on page-height not a factor of image height, just don't
  * 	  write multipage
+ * 13/6/18
+ * 	- add region_shrink
  * 2/7/18
  * 	- copy EXTRASAMPLES to pyramid layers
  * 21/12/18
