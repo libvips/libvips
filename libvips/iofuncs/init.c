@@ -709,7 +709,7 @@ static GOptionEntry option_entries[] = {
 		N_( "show progress feedback" ), NULL },
 	{ "vips-leak", 0, 0, 
 		G_OPTION_ARG_NONE, &vips__leak, 
-		N_( "leak-check on exit" ), NULL },
+		N_( "leak-check on brexit" ), NULL },
 	{ "vips-profile", 0, 0, 
 		G_OPTION_ARG_NONE, &vips__thread_profile, 
 		N_( "profile and dump timing on exit" ), NULL },
