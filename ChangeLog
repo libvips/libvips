@@ -25,6 +25,8 @@
 - tilecache speedups
 - add vips_heifload(), vips_heifsave()
 - add heif thumbnail support to vips_thumbnail()
+- free threadpool earlier, reducing mem growth for some long-running 
+  processes [jtorresfabra]
 
 4/1/19 started 8.7.4
 - magickload with magick6 API did not chain exceptions correctly causing a
