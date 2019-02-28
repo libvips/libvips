@@ -271,6 +271,20 @@ vips_foreign_load_svg_get_dimensions( VipsForeignLoadSvg *svg,
 	 */
 	*width = ink_rect.width;
 	*height = ink_rect.height;
+
+{
+	RsvgDimensionData dimensions;
+
+	rsvg_handle_get_dimensions( svg->page, &dimensions );
+
+	printf( "dimensions.width = %d\n", dimensions.width );
+	printf( "dimensions.height = %d\n", dimensions.height );
+	printf( "ink_rect.width = %g\n", ink_rect.width );
+	printf( "ink_rect.height = %g\n", ink_rect.height );
+	printf( "logical_rect.width = %g\n", logical_rect.width );
+	printf( "logical_rect.height = %g\n", logical_rect.height );
+}
+
 }
 #else /*!HAVE_RSVG_HANDLE_GET_GEOMETRY_SUB*/
 {
