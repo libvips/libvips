@@ -259,6 +259,23 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
 	width = dimensions.width;
 	height = dimensions.height;
 
+#ifdef HAVE_SVG_HANDLE_GET_GEOMETRY_SUB
+{
+	RsvgRectangle ink_rect;
+	RsvgRectangle logical_rect;
+
+	svg_handle_get_geometry_sub( svg->page, 
+		&ink_rect, &logical_rect, NULL );
+
+	printf( "width = %d\n", width );
+	printf( "height = %d\n", height );
+	printf( "ink width = %g\n", ink_rect.width );
+	printf( "ink height = %g\n", ink_rect.height );
+	printf( "logical width = %g\n", logical_rect.width );
+	printf( "logical height = %g\n", logical_rect.height );
+}
+#endif /*HAVE_SVG_HANDLE_GET_GEOMETRY_SUB*/
+
 	/* Calculate dimensions at required dpi/scale.
 	 */
 	scale = svg->scale * svg->dpi / 72.0;

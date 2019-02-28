@@ -989,6 +989,19 @@ if test x"$with_rsvg" != x"no"; then
   )
 fi
 
+# svg_handle_get_geometry_sub() as added in 2.46
+if test x"$with_rsvg" != x"no"; then
+  save_LIBS="$LIBS"
+  save_CFLAGS="$CFLAGS"
+  LIBS="$RSVG_LIBS $LIBS"
+  CFLAGS="$RSVG_INCLUDES $CFLAGS"
+  AC_CHECK_FUNCS(svg_handle_get_geometry_sub,
+    AC_DEFINE(HAVE_SVG_HANDLE_GET_GEOMETRY_SUB,1,
+	      [define if your librsvg has svg_handle_get_geometry_sub().]))
+  LIBS="$save_LIBS"
+  CFLAGS="$save_CFLAGS"
+fi
+
 # zlib
 # some platforms, like macosx, are missing the .pc files for zlib, so
 # we fall back to FIND_ZLIB
