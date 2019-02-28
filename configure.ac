@@ -995,8 +995,8 @@ if test x"$with_rsvg" != x"no"; then
   save_CFLAGS="$CFLAGS"
   LIBS="$RSVG_LIBS $LIBS"
   CFLAGS="$RSVG_INCLUDES $CFLAGS"
-  AC_CHECK_FUNCS(svg_handle_get_geometry_sub,
-    AC_DEFINE(HAVE_SVG_HANDLE_GET_GEOMETRY_SUB,1,
+  AC_CHECK_FUNCS(rsvg_handle_get_geometry_sub,
+    AC_DEFINE(HAVE_RSVG_HANDLE_GET_GEOMETRY_SUB,1,
 	      [define if your librsvg has svg_handle_get_geometry_sub().]))
   LIBS="$save_LIBS"
   CFLAGS="$save_CFLAGS"

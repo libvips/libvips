@@ -244,47 +244,71 @@ vips_foreign_load_svg_get_flags( VipsForeignLoad *load )
 }
 
 static void
-vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
+vips_foreign_load_svg_get_dimensions( VipsForeignLoadSvg *svg,
+	double *width, double *height )
+{
+	/* For this, you must build librsvg-2.45+
+	 *
+	 * This needs libcroco 0.6+
+	 *
+	 * on Debian, librsvg needs
+	 * export GDK_PIXBUF_QUERYLOADERS=/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/gdk-pixbuf-query-loaders
+	 * before autogen.sh will work
+	 *
+	 * install will fail with:
+	 * /usr/bin/install: cannot remove '/usr/lib/x86_64-linux-gnu/gdk-pixbuf-2.0/2.10.0/loaders/libpixbufloader-svg.so': Permission denied
+	 * which can be ignored
+	 */
+#ifdef HAVE_RSVG_HANDLE_GET_GEOMETRY_SUB
+{
+	RsvgRectangle ink_rect;
+	RsvgRectangle logical_rect;
+
+	rsvg_handle_get_geometry_sub( svg->page, 
+		&ink_rect, &logical_rect, NULL );
+
+	/* FIXME ... is ink_rect the correct one to use?
+	 */
+	*width = ink_rect.width;
+	*height = ink_rect.height;
+}
+#else /*!HAVE_RSVG_HANDLE_GET_GEOMETRY_SUB*/
 {
 	RsvgDimensionData dimensions;
-	int width;
-	int height;
+
+	rsvg_handle_get_dimensions( svg->page, &dimensions );
+	*width = dimensions.width;
+	*height = dimensions.height;
+}
+#endif /*HAVE_RSVG_HANDLE_GET_GEOMETRY_SUB*/
+}
+
+static void
+vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
+{
+	double width;
+	double height;
 	double scale;
 	double res;
 
 	/* Calculate dimensions at default dpi/scale.
 	 */
 	rsvg_handle_set_dpi( svg->page, 72.0 );
-	rsvg_handle_get_dimensions( svg->page, &dimensions );
-	width = dimensions.width;
-	height = dimensions.height;
-
-#ifdef HAVE_SVG_HANDLE_GET_GEOMETRY_SUB
-{
-	RsvgRectangle ink_rect;
-	RsvgRectangle logical_rect;
-
-	svg_handle_get_geometry_sub( svg->page, 
-		&ink_rect, &logical_rect, NULL );
-
-	printf( "width = %d\n", width );
-	printf( "height = %d\n", height );
-	printf( "ink width = %g\n", ink_rect.width );
-	printf( "ink height = %g\n", ink_rect.height );
-	printf( "logical width = %g\n", logical_rect.width );
-	printf( "logical height = %g\n", logical_rect.height );
-}
-#endif /*HAVE_SVG_HANDLE_GET_GEOMETRY_SUB*/
+	vips_foreign_load_svg_get_dimensions( svg, &width, &height );
 
 	/* Calculate dimensions at required dpi/scale.
 	 */
 	scale = svg->scale * svg->dpi / 72.0;
 	if( scale != 1.0 ) {
-		rsvg_handle_set_dpi( svg->page, svg->dpi * svg->scale );
-		rsvg_handle_get_dimensions( svg->page, &dimensions );
+		double new_width;
+		double new_height;
 
-		if( width == dimensions.width && 
-			height == dimensions.height ) {
+		rsvg_handle_set_dpi( svg->page, svg->dpi * svg->scale );
+		vips_foreign_load_svg_get_dimensions( svg, 
+			&new_width, &new_height );
+
+		if( width == new_width && 
+			height == new_height ) {
 			/* SVG without width and height always reports the same 
 			 * dimensions regardless of dpi. Apply dpi/scale using 
 			 * cairo instead.
@@ -296,8 +320,8 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
 			/* SVG with width and height reports correctly scaled 
 			 * dimensions.
 			 */
-			width = dimensions.width;
-			height = dimensions.height;
+			width = new_width;
+			height = new_height;
 		}
 	}
 
@@ -313,7 +337,6 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
 	/* We render to a linecache, so fat strips work well.
 	 */
         vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
-
 }
 
 static int
