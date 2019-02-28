@@ -5,7 +5,8 @@ SUBDIRS = \
 	po \
 	man \
 	doc \
-	test 
+	test \
+	fuzz
 
 EXTRA_DIST = \
 	m4 \
