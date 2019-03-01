@@ -1158,9 +1158,7 @@ strip_work( VipsThreadState *state, void *a )
 		}
 	}
 
-#ifdef DEBUG
-	vips_object_sanity( VIPS_OBJECT( strip->image ) );
-#endif /*DEBUG*/
+	g_assert( vips_object_sanity( VIPS_OBJECT( strip->image ) ) );
 
 	/* Extract relative to the strip top-left corner.
 	 */
