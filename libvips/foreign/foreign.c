@@ -1694,6 +1694,78 @@ vips_foreign_find_save( const char *name )
 	return( G_OBJECT_CLASS_NAME( save_class ) );
 }
 
+static void *
+vips_foreign_get_suffixes_count_cb( VipsForeignSaveClass *save_class, 
+	void *a, void *b )
+{
+	VipsForeignClass *foreign_class = VIPS_FOREIGN_CLASS( save_class );
+	int *n_fields = (int *) a;
+
+	int i;
+
+	if( foreign_class->suffs )
+		for( i = 0; foreign_class->suffs[i]; i++ )
+			*n_fields += 1;
+
+	return( NULL ); 
+}
+
+static void *
+vips_foreign_get_suffixes_add_cb( VipsForeignSaveClass *save_class, 
+	void *a, void *b )
+{
+	VipsForeignClass *foreign_class = VIPS_FOREIGN_CLASS( save_class );
+	gchar ***p = (gchar ***) a;
+
+	int i;
+
+	if( foreign_class->suffs )
+		for( i = 0; foreign_class->suffs[i]; i++ ) {
+			**p = g_strdup( foreign_class->suffs[i] ); 
+			*p += 1;
+		}
+
+	return( NULL ); 
+}
+
+/**
+ * vips_foreign_get_suffixes: (method)
+ *
+ * Get a %NULL-terminated array listing all the supported suffixes. 
+ *
+ * This is not the same as all the supported file types, since libvips 
+ * detects image format for load by testing the first few bytes. 
+ *
+ * Use vips_foreign_find_load() to detect type for a specific file.
+ *
+ * Free the return result with g_strfreev().
+ *
+ * Returns: (transfer full): all supported file extensions, as a 
+ * %NULL-terminated array. 
+ */
+gchar ** 
+vips_foreign_get_suffixes( void )
+{
+	int n_suffs;
+	gchar **suffs;
+	gchar **p;
+
+	n_suffs = 0;
+	(void) vips_foreign_map( 
+		"VipsForeignSave",
+		(VipsSListMap2Fn) vips_foreign_get_suffixes_count_cb, 
+		&n_suffs, NULL );
+
+	suffs = g_new0( gchar *, n_suffs + 1 ); 
+	p = suffs;
+	(void) vips_foreign_map( 
+		"VipsForeignSave",
+		(VipsSListMap2Fn) vips_foreign_get_suffixes_add_cb, 
+		&p, NULL );
+
+	return( suffs ); 
+}
+
 /* Kept for early vips8 API compat.
  */
 

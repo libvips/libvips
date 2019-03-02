@@ -104,7 +104,7 @@ vips_fallback_profile_get( const char *name, size_t *length )
 	for( p = vips_fallback_profile_list; p; p = p->next ) {
 		VipsFallbackProfile *fallback = (VipsFallbackProfile *) p->data;
 
-		if( strcasecmp( fallback->name, name ) == 0 ) {
+		if( g_ascii_strcasecmp( fallback->name, name ) == 0 ) {
 			*length = fallback->data_length;
 
 			return( fallback->data );
@@ -128,7 +128,7 @@ vips_profile_load_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( strcasecmp( load->name, "none" ) == 0 ) {
+	if( g_ascii_strcasecmp( load->name, "none" ) == 0 ) {
 		profile = NULL;
 	}
 	else if( (data = vips_fallback_profile_get( load->name, &length )) ) {

@@ -77,8 +77,13 @@ vips_eye_point( VipsPoint *point, int x, int y )
 {
 	VipsEye *eye = (VipsEye *) point;
 
-	double c = eye->factor * VIPS_PI / (2 * (point->width - 1));
-	double h = ((point->height - 1) * (point->height - 1));
+	/* VIPS_MAX to prevent /0.
+	 */
+	int max_x = VIPS_MAX( point->width - 1, 1 );
+	int max_y = VIPS_MAX( point->height - 1, 1 );
+
+	double c = eye->factor * VIPS_PI / (2 * max_x);
+	double h = max_y * max_y;
 
 	return( y * y * cos( c * x * x ) / h );
 }

@@ -927,6 +927,18 @@ if test x"$with_heif" != x"no"; then
   )
 fi
 
+# color profile support added in 1.3.3
+if test x"$with_heif" = x"yes"; then
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $HEIF_LIBS"
+  AC_CHECK_FUNCS(heif_image_handle_get_raw_color_profile,[
+     AC_DEFINE(HAVE_HEIF_COLOR_PROFILE,1,
+	       [define if you have heif_image_handle_get_raw_color_profile.])
+   ],[]
+  )
+  LIBS="$save_LIBS"
+fi
+
 # pdfium
 AC_ARG_WITH([pdfium],
   AS_HELP_STRING([--without-pdfium], [build without pdfium (default: test)]))

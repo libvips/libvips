@@ -162,6 +162,7 @@ vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif, int page )
 	struct heif_error error;
 	struct heif_encoding_options *options;
 
+#ifdef HAVE_HEIF_COLOR_PROFILE
 	if( !save->strip &&
 		vips_image_get_typeof( save->ready, VIPS_META_ICC_NAME ) ) {
 		const void *data;
@@ -184,6 +185,7 @@ vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif, int page )
 			return( -1 );
 		}
 	}
+#endif /*HAVE_HEIF_COLOR_PROFILE*/
 
 	options = heif_encoding_options_alloc();
 	/* FIXME .. should be an option, though I don't know of any way to

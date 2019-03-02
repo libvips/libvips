@@ -2918,9 +2918,8 @@ vips_image_hasalpha( VipsImage *image )
  */
 int
 vips_image_write_prepare( VipsImage *image )
-{	
-	if( !vips_object_sanity( VIPS_OBJECT( image ) ) )
-		return( -1 ); 
+{
+	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
 
 	if( image->Xsize <= 0 || 
 		image->Ysize <= 0 || 
@@ -3181,8 +3180,7 @@ vips_image_wio_input( VipsImage *image )
 {	
 	VipsImage *t1;
 
-	if( !vips_object_sanity( VIPS_OBJECT( image ) ) )
-		return( -1 ); 
+	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
 
 #ifdef DEBUG_IO
 	printf( "vips_image_wio_input: wio input for %s\n", 
@@ -3406,8 +3404,7 @@ vips_image_inplace( VipsImage *image )
 int
 vips_image_pio_input( VipsImage *image )
 {
-	if( !vips_object_sanity( VIPS_OBJECT( image ) ) )
-		return( -1 ); 
+	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
 
 #ifdef DEBUG_IO
 	printf( "vips_image_pio_input: enabling partial input for %s\n", 

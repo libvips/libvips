@@ -25,6 +25,8 @@
 - tilecache speedups
 - add vips_heifload(), vips_heifsave()
 - add heif thumbnail support to vips_thumbnail()
+- free threadpool earlier, reducing mem growth for some long-running 
+  processes [jtorresfabra]
 
 4/1/19 started 8.7.4
 - magickload with magick6 API did not chain exceptions correctly causing a
@@ -87,6 +89,7 @@
 - escape ASCII control characters in XML
 - magickload now sniffs some file types itself
 - update radiance load from upstream
+- add region_shrink to tiffsave
 - mapim could fail for float index images with coordinates out of int range
 - scale openexr alpha to 0 - 255
 - close input earlier, when we can [kleisauke]
@@ -333,6 +336,7 @@
 - dzsave puts vips-properties.xml in the main dir for gm and zoomify layouts
 - resize and reduce have @centre option for centre convention downsampling
 - vipsthumbnail uses centre convention to better match imagemagick
+_ add vips_foreign_get_suffixes() 
 
 19/8/16 started 8.3.4
 - better transparency handling in gifload, thanks diegocsandrim

@@ -302,7 +302,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		/* We need to skip the first four bytes of EXIF, they just
 		 * contain the offset.
 		 */
-		if( strcasecmp( type, "exif" ) == 0 ) {
+		if( g_ascii_strcasecmp( type, "exif" ) == 0 ) {
 			data += 4;
 			length -= 4;
 		}
@@ -312,9 +312,9 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		 * XMP metadata is just attached with the "mime" type, and
 		 * usually start with "<x:xmpmeta".
 		 */
-		if( strcasecmp( type, "exif" ) == 0 )
+		if( g_ascii_strcasecmp( type, "exif" ) == 0 )
 			vips_snprintf( name, 256, VIPS_META_EXIF_NAME );
-		else if( strcasecmp( type, "mime" ) == 0 &&
+		else if( g_ascii_strcasecmp( type, "mime" ) == 0 &&
 			vips_isprefix( "<x:xmpmeta", (const char *) data ) ) 
 			snprintf( name, 256, VIPS_META_XMP_NAME ); 
 		else
@@ -323,7 +323,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		vips_image_set_blob( out, name, 
 			(VipsCallbackFn) NULL, data, length );
 
-		if( strcasecmp( type, "exif" ) == 0 )
+		if( g_ascii_strcasecmp( type, "exif" ) == 0 )
 			(void) vips__exif_parse( out );
 	}
 
@@ -356,6 +356,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 }
 #endif /*DEBUG*/
 
+#ifdef HAVE_HEIF_COLOR_PROFILE
 	/* FIXME should probably check the profile type ... lcms seems to be
 	 * able to load at least rICC and prof.
 	 */
@@ -381,6 +382,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
 			(VipsCallbackFn) NULL, data, length );
 	}
+#endif /*HAVE_HEIF_COLOR_PROFILE*/
 
 	return( 0 );
 }

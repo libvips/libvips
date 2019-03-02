@@ -527,12 +527,8 @@ vips_region_new( VipsImage *image )
 	 * We can't use the property system, we need to be very threaded.
 	 */
 	g_object_ref( image );
-
 	g_assert( G_OBJECT( image )->ref_count > 1 );
-
-#ifdef DEBUG
 	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
-#endif /*DEBUG*/
 
 	region = VIPS_REGION( g_object_new( VIPS_TYPE_REGION, NULL ) );
 	region->im = image;
@@ -542,9 +538,7 @@ vips_region_new( VipsImage *image )
 		return( NULL );
 	}
 
-#ifdef DEBUG
 	g_assert( vips_object_sanity( VIPS_OBJECT( region ) ) );
-#endif /*DEBUG*/
 
 	return( region ); 
 }

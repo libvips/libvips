@@ -143,8 +143,7 @@ Clang static analysis:
 
 Clang dynamic analysis:
 
-    $ FLAGS="-O1 -g -fsanitize=address"
-    $ FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+    $ FLAGS="-g -O1 -fno-omit-frame-pointer"
     $ CC=clang CXX=clang++ LD=clang \
         CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" LDFLAGS=-fsanitize=address \
         ./configure --prefix=/home/john/vips 

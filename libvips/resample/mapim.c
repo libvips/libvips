@@ -75,52 +75,10 @@ typedef VipsResampleClass VipsMapimClass;
 
 G_DEFINE_TYPE( VipsMapim, vips_mapim, VIPS_TYPE_RESAMPLE );
 
-/* Minmax for integer types.
- */
-#define MINMAXI( TYPE ) { \
-	TYPE * restrict p1 = (TYPE *) p; \
-	TYPE t_max_x = max_x; \
-	TYPE t_min_x = min_x; \
-	TYPE t_max_y = max_y; \
-	TYPE t_min_y = min_y; \
-	\
-	for( x = 0; x < r->width; x++ ) { \
-		TYPE px = p1[0]; \
-		TYPE py = p1[1]; \
-		\
-		if( first ) { \
-			t_min_x = px; \
-			t_max_x = px; \
-			t_min_y = py; \
-			t_max_y = py; \
-			\
-			first = FALSE; \
-		} \
-		else { \
-			if( px > t_max_x ) \
-				t_max_x = px; \
-			else if( px < t_min_x ) \
-				t_min_x = px; \
-			\
-			if( py > t_max_y ) \
-				t_max_y = py; \
-			else if( py < t_min_y ) \
-				t_min_y = py; \
-		} \
-		\
-		p1 += 2; \
-	} \
-	\
-	max_x = VIPS_CLIP( 0, t_max_x, VIPS_MAX_COORD ); \
-	min_x = VIPS_CLIP( 0, t_min_x, VIPS_MAX_COORD ); \
-	max_y = VIPS_CLIP( 0, t_max_y, VIPS_MAX_COORD ); \
-	min_y = VIPS_CLIP( 0, t_min_y, VIPS_MAX_COORD ); \
-}
-
-/* Minmax for float types. Look out for overflow when we go back to integer
+/* Minmax of a line of pixels. Pass in a thing to convert back to int 
  * coordinates.
  */
-#define MINMAXF( TYPE ) { \
+#define MINMAX( TYPE, CLIP_LOW, CLIP_HIGH ) { \
 	TYPE * restrict p1 = (TYPE *) p; \
 	TYPE t_max_x = max_x; \
 	TYPE t_min_x = min_x; \
@@ -154,11 +112,35 @@ G_DEFINE_TYPE( VipsMapim, vips_mapim, VIPS_TYPE_RESAMPLE );
 		p1 += 2; \
 	} \
 	\
-	max_x = VIPS_CLIP( 0, ceil( t_max_x ), VIPS_MAX_COORD ); \
-	min_x = VIPS_CLIP( 0, floor( t_min_x ), VIPS_MAX_COORD ); \
-	max_y = VIPS_CLIP( 0, ceil( t_max_y ), VIPS_MAX_COORD ); \
-	min_y = VIPS_CLIP( 0, floor( t_min_y ), VIPS_MAX_COORD ); \
+	min_x = CLIP_LOW( t_min_x ); \
+	max_x = CLIP_HIGH( t_max_x ); \
+	min_y = CLIP_LOW( t_min_y ); \
+	max_y = CLIP_HIGH( t_max_y ); \
 }
+
+/* All the clippers. These vary with TYPE.
+ */
+
+/* Clip a small (max val < VIPS_MAX_COORD) unsigned int type.
+ */
+#define CLIP_UINT_SMALL( X ) (X)
+
+/* Clip a small (max val < VIPS_MAX_COORD) signed int type.
+ */
+#define CLIP_SINT_SMALL( X ) VIPS_MAX( X, 0 );
+
+/* An unsigned int type larger than VIPS_MAX_COORD. Trim upper range.
+ */
+#define CLIP_UINT_LARGE( X ) VIPS_MIN( X, VIPS_MAX_COORD ); 
+
+/* A large signed int.
+ */
+#define CLIP_SINT_LARGE( X ) VIPS_CLIP( 0, X, VIPS_MAX_COORD );
+
+/* Float types must clip the range, and also round up or down at the extremes.
+ */
+#define CLIP_FLOAT_LOW( X ) VIPS_CLIP( 0, floor( X ), VIPS_MAX_COORD );
+#define CLIP_FLOAT_HIGH( X ) VIPS_CLIP( 0, ceil( X ), VIPS_MAX_COORD );
 
 /* Scan a region and find min/max in the two axes.
  */
@@ -183,37 +165,45 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 
 		switch( region->im->BandFmt ) {
 		case VIPS_FORMAT_UCHAR: 	
-			MINMAXI( unsigned char ); 
+			MINMAX( unsigned char, 
+				CLIP_UINT_SMALL, CLIP_UINT_SMALL ); 
 			break; 
 
 		case VIPS_FORMAT_CHAR: 	
-			MINMAXI( signed char ); 
+			MINMAX( signed char,
+				CLIP_SINT_SMALL, CLIP_SINT_SMALL ); 
 			break; 
 
 		case VIPS_FORMAT_USHORT: 
-			MINMAXI( unsigned short ); 
+			MINMAX( unsigned short,
+				CLIP_UINT_SMALL, CLIP_UINT_SMALL ); 
 			break; 
 
 		case VIPS_FORMAT_SHORT: 	
-			MINMAXI( signed short ); 
+			MINMAX( signed short,
+				CLIP_SINT_SMALL, CLIP_SINT_SMALL ); 
 			break; 
 
 		case VIPS_FORMAT_UINT: 	
-			MINMAXI( unsigned int ); 
+			MINMAX( unsigned int,
+				CLIP_UINT_LARGE, CLIP_UINT_LARGE ); 
 			break; 
 
 		case VIPS_FORMAT_INT: 	
-			MINMAXI( signed int ); 
+			MINMAX( signed int,
+				CLIP_SINT_LARGE, CLIP_SINT_LARGE ); 
 			break; 
 
 		case VIPS_FORMAT_FLOAT: 		
 		case VIPS_FORMAT_COMPLEX: 
-			MINMAXF( float ); 
+			MINMAX( float,
+				CLIP_FLOAT_LOW, CLIP_FLOAT_HIGH ); 
 			break; 
 
 		case VIPS_FORMAT_DOUBLE:	
 		case VIPS_FORMAT_DPCOMPLEX: 
-			MINMAXF( double ); 
+			MINMAX( double,
+				CLIP_FLOAT_LOW, CLIP_FLOAT_HIGH ); 
 			break;
 
 		default:

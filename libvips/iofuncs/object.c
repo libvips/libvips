@@ -1988,8 +1988,8 @@ vips_object_set_argument_from_string( VipsObject *object,
 
 		b = TRUE;
 		if( value &&
-			(strcasecmp( value, "false" ) == 0 ||
-			strcasecmp( value, "no" ) == 0 ||
+			(g_ascii_strcasecmp( value, "false" ) == 0 ||
+			g_ascii_strcasecmp( value, "no" ) == 0 ||
 			strcmp( value, "0" ) == 0) )
 			b = FALSE;
 
@@ -2804,12 +2804,12 @@ vips_type_depth( GType type )
 static void *
 test_name( VipsObjectClass *class, const char *nickname )
 {
-	if( strcasecmp( class->nickname, nickname ) == 0 )
+	if( g_ascii_strcasecmp( class->nickname, nickname ) == 0 )
 		return( class );
 
 	/* Check the class name too, why not.
 	 */
-	if( strcasecmp( G_OBJECT_CLASS_NAME( class ), nickname ) == 0 )
+	if( g_ascii_strcasecmp( G_OBJECT_CLASS_NAME( class ), nickname ) == 0 )
 		return( class );
 
 	return( NULL );
@@ -2877,8 +2877,8 @@ vips_class_add_hash( VipsObjectClass *class, GHashTable *table )
 	return( NULL ); 
 }
 
-static void 
-vips_class_build_hash( void )
+static void *
+vips_class_build_hash_cb( void *dummy )
 {
 	GType base;
 
@@ -2891,6 +2891,8 @@ vips_class_build_hash( void )
 	vips_class_map_all( base, 
 		(VipsClassMapFn) vips_class_add_hash, 
 		(void *) vips__object_nickname_table );
+
+	return( NULL );
 }
 
 /**
@@ -2919,7 +2921,7 @@ vips_type_find( const char *basename, const char *nickname )
 	GType base;
 	GType type;
 
-	VIPS_ONCE( &once, (GThreadFunc) vips_class_build_hash, NULL ); 
+	VIPS_ONCE( &once, vips_class_build_hash_cb, NULL ); 
 
 	hit = (NicknameGType *) 
 		g_hash_table_lookup( vips__object_nickname_table, 
