@@ -188,10 +188,10 @@ vips_thumbnail_read_header( VipsThumbnail *thumbnail, VipsImage *image )
 	thumbnail->input_height = image->Ysize;
 	thumbnail->angle = vips_autorot_get_angle( image );
 
-	if( vips_image_get_typeof( image, "n-pages" ) ) {
+	if( vips_image_get_typeof( image, VIPS_META_N_PAGES ) ) {
 		int n_pages;
 
-		if( !vips_image_get_int( image, "n-pages", &n_pages ) ) 
+		if( !vips_image_get_int( image, VIPS_META_N_PAGES, &n_pages ) ) 
 			thumbnail->n_pages = 
 				VIPS_CLIP( 1, n_pages, MAX_LEVELS );
 	}
@@ -355,7 +355,7 @@ vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail,
 	}
 
 	/* In toilet-roll mode, we must adjust vshrink so that we exactly hit
-	 * page_height, or we'll have pixels straddling pixel boundaries.
+	 * page_height or we'll have pixels straddling pixel boundaries.
 	 */
 	if( thumbnail->n_pages > 1 ) {
 		int target_page_height = VIPS_RINT( input_height / *vshrink );

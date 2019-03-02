@@ -783,7 +783,6 @@ vips_image_get_offset( const VipsImage *image )
  * @image: image to get from
  *
  * Multi-page images can have a page height. Fetch it, and sanity check it.
- * convolution. 
  *
  * Returns: the page height.
  */
