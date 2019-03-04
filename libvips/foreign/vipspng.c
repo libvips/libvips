@@ -690,7 +690,7 @@ png2vips_image( Read *read, VipsImage *out )
 				NULL, png2vips_generate, NULL, 
 				read, NULL ) ||
 			vips_sequential( t[0], &t[1], 
-				"tile_height", 8,
+				"tile_height", VIPS__FATSTRIP_HEIGHT, 
 				NULL ) ||
 			vips_image_write( t[1], out ) )
 			return( -1 );

@@ -327,6 +327,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 			(void) vips__exif_parse( out );
 	}
 
+#ifdef HAVE_HEIF_COLOR_PROFILE
 #ifdef DEBUG
 {
 	enum heif_color_profile_type profile_type = 
@@ -356,7 +357,6 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 }
 #endif /*DEBUG*/
 
-#ifdef HAVE_HEIF_COLOR_PROFILE
 	/* FIXME should probably check the profile type ... lcms seems to be
 	 * able to load at least rICC and prof.
 	 */
@@ -469,7 +469,8 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 
 	/* All pages must be the same size for libvips toilet roll images.
 	 */
-	if( vips_foreign_load_heif_set_page( heif, heif->page, heif->thumbnail ) )
+	if( vips_foreign_load_heif_set_page( heif, 
+		heif->page, heif->thumbnail ) )
 		return( -1 );
 	heif->page_width = heif_image_handle_get_width( heif->handle );
 	heif->page_height = heif_image_handle_get_height( heif->handle );
@@ -497,14 +498,18 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 			heif_image_handle_get_width( heif->handle ) );
 		printf( "    height = %d\n", 
 			heif_image_handle_get_height( heif->handle ) );
-		printf( "    depth = %d\n", 
+		printf( "    has_depth = %d\n", 
 			heif_image_handle_has_depth_image( heif->handle ) );
+		printf( "    has_alpha = %d\n", 
+			heif_image_handle_has_alpha_channel( heif->handle ) );
 		printf( "    n_metadata = %d\n", 
 			heif_image_handle_get_number_of_metadata_blocks( 
 				heif->handle, NULL ) );
-		printf( "    colour profile type = %d\n", 
+#ifdef HAVE_HEIF_COLOR_PROFILE
+		printf( "    colour profile type = 0x%xd\n", 
 			heif_image_handle_get_color_profile_type( 
 				heif->handle ) );
+#endif /*HAVE_HEIF_COLOR_PROFILE*/
 	}
 #endif /*DEBUG*/
 

@@ -1198,7 +1198,9 @@ vips__rad_load( const char *filename, VipsImage *out )
 
 	if( vips_image_generate( t[0], 
 		NULL, rad2vips_generate, NULL, read, NULL ) ||
-		vips_sequential( t[0], &t[1], "tile_height", 8, NULL ) ||
+		vips_sequential( t[0], &t[1], 
+			"tile_height", VIPS__FATSTRIP_HEIGHT, 
+			NULL ) ||
 		vips_image_write( t[1], out ) )
 		return( -1 );
 
