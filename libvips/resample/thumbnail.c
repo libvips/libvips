@@ -270,8 +270,6 @@ vips_thumbnail_get_tiff_pyramid( VipsThumbnail *thumbnail )
 	thumbnail->level_count = thumbnail->n_pages;
 }
 
-/* This may not be a pyr tiff, so no error if we can't find the layers. 
- */
 static int
 vips_thumbnail_get_heif_thumb_info( VipsThumbnail *thumbnail ) 
 {
@@ -357,7 +355,7 @@ vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail,
 	/* In toilet-roll mode, we must adjust vshrink so that we exactly hit
 	 * page_height or we'll have pixels straddling pixel boundaries.
 	 */
-	if( thumbnail->n_pages > 1 ) {
+	if( thumbnail->input_height > thumbnail->page_height ) {
 		int target_page_height = VIPS_RINT( input_height / *vshrink );
 		int target_image_height = target_page_height * 
 			thumbnail->n_pages;
@@ -652,13 +650,9 @@ vips_thumbnail_build( VipsObject *object )
 	 * FIXME ... what about page_height and shrink-on-load for eg. PDF or
 	 * WebP?
 	 *
-	 * FIXME ... use vips_image_get_page_height() as appropriate in
-	 * foreign.
-	 *
 	 * FIXME ... need to check shrink for whole height of image. Do we hit
 	 * the correct final pixel?
 	 *
-	 * FIXME ... update page_height, including shrink-on-load downsize
 	 */
 	vips_thumbnail_calculate_shrink( thumbnail, 
 		in->Xsize, thumbnail->page_height, &hshrink, &vshrink );
@@ -669,7 +663,7 @@ vips_thumbnail_build( VipsObject *object )
 		return( -1 );
 	in = t[4];
 
-	thumbnail->page_height /= vshrink;
+	thumbnail->page_height = VIPS_RINT( thumbnail->page_height / vshrink );
 	vips_image_set_int( in, VIPS_META_PAGE_HEIGHT, thumbnail->page_height );
 
 	printf( "in->Ysize = %d\n", in->Ysize );
@@ -1098,7 +1092,8 @@ vips_thumbnail_buffer_get_info( VipsThumbnail *thumbnail )
 	if( !(thumbnail->loader = vips_foreign_find_load_buffer( 
 			buffer->buf->data, buffer->buf->length )) ||
 		!(image = vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, buffer->option_string, NULL )) )
+			buffer->buf->data, buffer->buf->length, 
+			buffer->option_string, NULL )) )
 		return( -1 );
 
 	vips_thumbnail_read_header( thumbnail, image );
@@ -1117,7 +1112,8 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 
 	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, buffer->option_string,
+			buffer->buf->data, buffer->buf->length, 
+			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"shrink", (int) factor,
 			NULL ) );
@@ -1125,7 +1121,8 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 	else if( vips_isprefix( "VipsForeignLoadOpenslide", 
 		thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, buffer->option_string,
+			buffer->buf->data, buffer->buf->length, 
+			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"level", (int) factor,
 			NULL ) );
@@ -1134,28 +1131,32 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ||
 		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, buffer->option_string,
+			buffer->buf->data, buffer->buf->length, 
+			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"scale", factor,
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, buffer->option_string,
+			buffer->buf->data, buffer->buf->length, 
+			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"page", (int) factor,
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, "", 
+			buffer->buf->data, buffer->buf->length, 
+			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"thumbnail", (int) factor,
 			NULL ) );
 	}
 	else {
 		return( vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, buffer->option_string,
+			buffer->buf->data, buffer->buf->length, 
+			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			NULL ) );
 	}
