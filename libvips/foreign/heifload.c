@@ -259,19 +259,9 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 	heif_item_id id[16];
 	int n_metadata;
 	struct heif_error error;
-
-	/* FIXME .. we always decode to RGB in generate. We should check for
-	 * all grey images, perhaps. 
-	 */
-	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
-	vips_image_init_fields( out,
-		heif->page_width, heif->page_height * heif->n, bands, 
-		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 
-		1.0, 1.0 );
-
-	vips_image_set_int( out, "heif-primary", heif->primary_page );
-	vips_image_set_int( out, "n-pages", heif->n_top );
-	vips_image_set_int( out, "page-height", heif->page_height );
+	VipsAngle angle;
+	int image_page_width;
+	int image_page_height;
 
 	/* FIXME .. need to test XMP and IPCT.
 	 */
@@ -323,7 +313,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		vips_image_set_blob( out, name, 
 			(VipsCallbackFn) NULL, data, length );
 
-		if( g_ascii_strcasecmp( type, "exif" ) == 0 )
+		if( g_ascii_strcasecmp( type, "exif" ) == 0 ) 
 			(void) vips__exif_parse( out );
 	}
 
@@ -383,6 +373,35 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 			(VipsCallbackFn) NULL, data, length );
 	}
 #endif /*HAVE_HEIF_COLOR_PROFILE*/
+
+	/* Use the EXIF orientation to swap width/height, if necessary. The
+	 * actual rotation will be done by libheif during decode.
+	 */
+	image_page_width = heif->page_width;
+	image_page_height = heif->page_height;
+	angle = vips_autorot_get_angle( out );
+#ifdef HAVE_EXIF
+	if( !heif->autorotate ) { 
+		if( angle == VIPS_ANGLE_D90 ||
+			angle == VIPS_ANGLE_D270 ) 
+			VIPS_SWAP( int, image_page_width, image_page_height ); 
+	}
+	else 
+		vips_autorot_remove_angle( out );
+#endif /*HAVE_EXIF*/
+
+	vips_image_set_int( out, "heif-primary", heif->primary_page );
+	vips_image_set_int( out, "n-pages", heif->n_top );
+	vips_image_set_int( out, "page-height", image_page_height );
+
+	/* FIXME .. we always decode to RGB in generate. We should check for
+	 * all grey images, perhaps. 
+	 */
+	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
+	vips_image_init_fields( out,
+		image_page_width, image_page_height * heif->n, bands, 
+		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 
+		1.0, 1.0 );
 
 	return( 0 );
 }
@@ -547,17 +566,68 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 		 *
 		 * FIXME What will this do for RGBA? Or is alpha always 
 		 * separate?
+		 *
+		 * If we are missing EXIF support, we won't be able to get
+		 * orientation, so we won't be able to predict the result of
+		 * the rotation, so our width/height are probably wrong.
 		 */
 		options = heif_decoding_options_alloc();
+#ifdef HAVE_EXIF
 		options->ignore_transformations = !heif->autorotate;
+#endif /*HAVE_EXIF*/
 		error = heif_decode_image( heif->handle, &heif->img, 
-			heif_colorspace_RGB, heif_chroma_interleaved_24bit, 
+			heif_colorspace_RGB, heif_chroma_interleaved_RGB, 
 			options );
 		heif_decoding_options_free( options );
 		if( error.code ) {
 			vips__heif_error( &error );
 			return( -1 );
 		}
+
+#ifdef DEBUG
+{
+		const static enum heif_channel channel[] = {
+			heif_channel_Y,
+			heif_channel_Cb,
+			heif_channel_Cr,
+			heif_channel_R,
+			heif_channel_G,
+			heif_channel_B,
+			heif_channel_Alpha,
+			heif_channel_interleaved
+		};
+
+		const static char *channel_name[] = {
+			"heif_channel_Y",
+			"heif_channel_Cb",
+			"heif_channel_Cr",
+			"heif_channel_R",
+			"heif_channel_G",
+			"heif_channel_B",
+			"heif_channel_Alpha",
+			"heif_channel_interleaved"
+		};
+
+		int i;
+
+		printf( "vips_foreign_load_heif_generate:\n" );
+		for( i = 0; i < VIPS_NUMBER( channel ); i++ ) {
+			printf( "\t%s:\n", channel_name[i] ); 
+			printf( "\t\twidth = %d\n", 
+				heif_image_get_width( heif->img, 
+					channel[i] ) );
+			printf( "\t\theight = %d\n", 
+				heif_image_get_height( heif->img, 
+					channel[i] ) );
+			printf( "\t\tbits = %d\n", 
+				heif_image_get_bits_per_pixel( heif->img, 
+					channel[i] ) );
+			printf( "\t\thas_channel = %d\n", 
+				heif_image_has_channel( heif->img, 
+					channel[i] ) );
+		}
+}
+#endif /*DEBUG*/
 	}
 
 	if( !heif->data ) 
