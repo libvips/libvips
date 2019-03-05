@@ -32,9 +32,10 @@
  */
 
 /*
+#define DEBUG_VERBOSE
+ */
 #define VIPS_DEBUG
 #define DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -323,27 +324,29 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 	enum heif_color_profile_type profile_type = 
 		heif_image_handle_get_color_profile_type( heif->handle );
 
+	printf( "profile type = " ); 
 	switch( profile_type ) {
 	case heif_color_profile_type_not_present: 
-		printf( "no profile\n" ); 
+		printf( "none" ); 
 		break;
 
 	case heif_color_profile_type_nclx: 
-		printf( "nclx profile\n" ); 
+		printf( "nclx" ); 
 		break;
 
 	case heif_color_profile_type_rICC: 
-		printf( "rICC profile\n" ); 
+		printf( "rICC" ); 
 		break;
 
 	case heif_color_profile_type_prof: 
-		printf( "prof profile\n" ); 
+		printf( "prof" ); 
 		break;
 
 	default:
-		printf( "unknown profile type\n" ); 
+		printf( "unknown" ); 
 		break;
 	}
+	printf( "\n" ); 
 }
 #endif /*DEBUG*/
 
@@ -383,8 +386,12 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 #ifdef HAVE_EXIF
 	if( !heif->autorotate ) { 
 		if( angle == VIPS_ANGLE_D90 ||
-			angle == VIPS_ANGLE_D270 ) 
+			angle == VIPS_ANGLE_D270 ) {
+#ifdef DEBUG
+			printf( "swapping width/height\n" ); 
+#endif /*DEBUG*/
 			VIPS_SWAP( int, image_page_width, image_page_height ); 
+		}
 	}
 	else 
 		vips_autorot_remove_angle( out );
@@ -894,6 +901,7 @@ vips_foreign_load_heif_buffer_init( VipsForeignLoadHeifBuffer *buffer )
  * * @page: %gint, page (top-level image number) to read
  * * @n: %gint, load this many pages
  * * @autorotate: %gboolean, apply image transformations
+ * * @thumbnail: %gboolean, fetch thumbnail instead of image
  *
  * Read a HEIF image file into a VIPS image. 
  *
@@ -907,8 +915,11 @@ vips_foreign_load_heif_buffer_init( VipsForeignLoadHeifBuffer *buffer )
  * HEIF images have a primary image. The metadata item `heif-primary` gives 
  * the page number of the primary.
  *
- * HEIF images can have trsnaformations like rotate, flip and crop stored in
+ * HEIF images can have transformations like rotate, flip and crop stored in
  * the header. Set @autorotate %TRUE to apply these during load.
+ *
+ * If @thumbnail is %TRUE, then fetch a stored thumbnail rather than the
+ * image.
  *
  * See also: vips_image_new_from_file().
  *
@@ -939,10 +950,10 @@ vips_heifload( const char *filename, VipsImage **out, ... )
  * * @page: %gint, page (top-level image number) to read
  * * @n: %gint, load this many pages
  * * @autorotate: %gboolean, apply image transformations
+ * * @thumbnail: %gboolean, fetch thumbnail instead of image
  *
  * Read a HEIF image file into a VIPS image. 
- * Exactly as
- * vips_heifload(), but read from a memory buffer. 
+ * Exactly as vips_heifload(), but read from a memory buffer. 
  *
  * You must not free the buffer while @out is active. The 
  * #VipsObject::postclose signal on @out is a good place to free. 
