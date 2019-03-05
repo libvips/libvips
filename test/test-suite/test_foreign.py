@@ -836,8 +836,8 @@ class TestForeign:
         def heif_valid(im):
             a = im(10, 10)
             assert_almost_equal_objects(a, [75.0, 86.0, 81.0])
-            assert im.width == 3024
-            assert im.height == 4032
+            assert im.width == 4032
+            assert im.height == 3024
             assert im.bands == 3
 
         self.file_loader("heifload", HEIC_FILE, heif_valid)
@@ -876,10 +876,10 @@ class TestForeign:
         z = pyvips.Image.new_from_file(JPEG_FILE)
         if z.get_typeof("exif-ifd0-Orientation") != 0:
             x = self.colour.copy()
-            x.set("orientation", 6)
+            x.set("exif-ifd0-Make", "banana")
             buf = x.heifsave_buffer()
             y = pyvips.Image.new_from_buffer(buf, "")
-            assert y.get("orientation") == 6
+            assert y.get("exif-ifd0-Make").split(" ")[0] == "banana"
 
 if __name__ == '__main__':
     pytest.main()

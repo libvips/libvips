@@ -33,9 +33,9 @@
 
 /*
 #define DEBUG_VERBOSE
- */
 #define VIPS_DEBUG
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -56,6 +56,17 @@
 
 #include "pforeign.h"
 
+/* FIXME ... autorotate
+ *
+ * This is very hard to support properly with libheif. There's a thing to
+ * disable autorot on decode, but the dimensions you get from querying the
+ * image handle sometimes do and sometimes don't apply this rotation for you,
+ * depending on the image. And the only way to discover if an image has an
+ * orientation is to query the exif, which is not reliable.
+ *
+ * Perhaps we'll be able to support this in a future libheif.
+ */
+
 typedef struct _VipsForeignLoadHeif {
 	VipsForeignLoad parent_object;
 
@@ -63,11 +74,6 @@ typedef struct _VipsForeignLoadHeif {
 	 */
 	int page;
 	int n;
-
-	/* Set to apply image transforms (flip, rotate, crop) stored in the file
-	 * header.
-	 */
-	gboolean autorotate;
 
 	/* Fetch the thumbnail instead of the image. If there is no thumbnail,
 	 * just fetch the image.
@@ -260,9 +266,6 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 	heif_item_id id[16];
 	int n_metadata;
 	struct heif_error error;
-	VipsAngle angle;
-	int image_page_width;
-	int image_page_height;
 
 	/* FIXME .. need to test XMP and IPCT.
 	 */
@@ -377,36 +380,20 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 	}
 #endif /*HAVE_HEIF_COLOR_PROFILE*/
 
-	/* Use the EXIF orientation to swap width/height, if necessary. The
-	 * actual rotation will be done by libheif during decode.
+	/* We always use libheif's autorotate, so remove the exif one. 
 	 */
-	image_page_width = heif->page_width;
-	image_page_height = heif->page_height;
-	angle = vips_autorot_get_angle( out );
-#ifdef HAVE_EXIF
-	if( !heif->autorotate ) { 
-		if( angle == VIPS_ANGLE_D90 ||
-			angle == VIPS_ANGLE_D270 ) {
-#ifdef DEBUG
-			printf( "swapping width/height\n" ); 
-#endif /*DEBUG*/
-			VIPS_SWAP( int, image_page_width, image_page_height ); 
-		}
-	}
-	else 
-		vips_autorot_remove_angle( out );
-#endif /*HAVE_EXIF*/
+	vips_autorot_remove_angle( out );
 
 	vips_image_set_int( out, "heif-primary", heif->primary_page );
 	vips_image_set_int( out, "n-pages", heif->n_top );
-	vips_image_set_int( out, "page-height", image_page_height );
+	vips_image_set_int( out, "page-height", heif->page_height );
 
 	/* FIXME .. we always decode to RGB in generate. We should check for
 	 * all grey images, perhaps. 
 	 */
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 	vips_image_init_fields( out,
-		image_page_width, image_page_height * heif->n, bands, 
+		heif->page_width, heif->page_height * heif->n, bands, 
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 
 		1.0, 1.0 );
 
@@ -573,15 +560,8 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 		 *
 		 * FIXME What will this do for RGBA? Or is alpha always 
 		 * separate?
-		 *
-		 * If we are missing EXIF support, we won't be able to get
-		 * orientation, so we won't be able to predict the result of
-		 * the rotation, so our width/height are probably wrong.
 		 */
 		options = heif_decoding_options_alloc();
-#ifdef HAVE_EXIF
-		options->ignore_transformations = !heif->autorotate;
-#endif /*HAVE_EXIF*/
 		error = heif_decode_image( heif->handle, &heif->img, 
 			heif_colorspace_RGB, heif_chroma_interleaved_RGB, 
 			options );
@@ -707,13 +687,6 @@ vips_foreign_load_heif_class_init( VipsForeignLoadHeifClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadHeif, n ),
 		-1, 100000, 1 );
-
-	VIPS_ARG_BOOL( class, "autorotate", 4, 
-		_( "Autorotate" ), 
-		_( "Apply image transformations" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignLoadHeif, autorotate ),
-		FALSE );
 
 	VIPS_ARG_BOOL( class, "thumbnail", 4, 
 		_( "Thumbnail" ), 
@@ -900,7 +873,6 @@ vips_foreign_load_heif_buffer_init( VipsForeignLoadHeifBuffer *buffer )
  *
  * * @page: %gint, page (top-level image number) to read
  * * @n: %gint, load this many pages
- * * @autorotate: %gboolean, apply image transformations
  * * @thumbnail: %gboolean, fetch thumbnail instead of image
  *
  * Read a HEIF image file into a VIPS image. 
@@ -914,9 +886,6 @@ vips_foreign_load_heif_buffer_init( VipsForeignLoadHeifBuffer *buffer )
  *
  * HEIF images have a primary image. The metadata item `heif-primary` gives 
  * the page number of the primary.
- *
- * HEIF images can have transformations like rotate, flip and crop stored in
- * the header. Set @autorotate %TRUE to apply these during load.
  *
  * If @thumbnail is %TRUE, then fetch a stored thumbnail rather than the
  * image.
@@ -949,7 +918,6 @@ vips_heifload( const char *filename, VipsImage **out, ... )
  *
  * * @page: %gint, page (top-level image number) to read
  * * @n: %gint, load this many pages
- * * @autorotate: %gboolean, apply image transformations
  * * @thumbnail: %gboolean, fetch thumbnail instead of image
  *
  * Read a HEIF image file into a VIPS image. 
