@@ -56,17 +56,6 @@
 
 #include "pforeign.h"
 
-/* FIXME ... autorotate
- *
- * This is very hard to support properly with libheif. There's a thing to
- * disable autorot on decode, but the dimensions you get from querying the
- * image handle sometimes do and sometimes don't apply this rotation for you,
- * depending on the image. And the only way to discover if an image has an
- * orientation is to query the exif, which is not reliable.
- *
- * Perhaps we'll be able to support this in a future libheif.
- */
-
 typedef struct _VipsForeignLoadHeif {
 	VipsForeignLoad parent_object;
 
@@ -79,6 +68,10 @@ typedef struct _VipsForeignLoadHeif {
 	 * just fetch the image.
 	 */
 	gboolean thumbnail;
+
+	/* Apply any orientation tags in the header.
+	 */
+	gboolean autorotate;
 
 	/* Context for this image.
 	 */
@@ -380,9 +373,12 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 	}
 #endif /*HAVE_HEIF_COLOR_PROFILE*/
 
-	/* We always use libheif's autorotate, so remove the exif one. 
+	/* If we are using libheif's autorotate, remove the exif one. 
 	 */
-	vips_autorot_remove_angle( out );
+#ifdef HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH
+	if( heif->autorotate )
+		vips_autorot_remove_angle( out );
+#endif /*HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH*/
 
 	vips_image_set_int( out, "heif-primary", heif->primary_page );
 	vips_image_set_int( out, "n-pages", heif->n_top );
@@ -398,6 +394,38 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		1.0, 1.0 );
 
 	return( 0 );
+}
+
+static int
+vips_foreign_load_heif_get_width( VipsForeignLoadHeif *heif )
+{
+	int width;
+
+	/* _get_ipse_width() fetches the untransformed dimension, but was only
+	 * added in 1.3.4. Without it, we just use the transformed dimension
+	 * and have to autorotate.
+	 */
+	width = heif_image_handle_get_width( heif->handle );
+#ifdef HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH
+	if( !heif->autorotate )
+		width = heif_image_handle_get_ispe_width( heif->handle );
+#endif /*HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH*/
+
+	return( width );
+}
+
+static int
+vips_foreign_load_heif_get_height( VipsForeignLoadHeif *heif )
+{
+	int height;
+
+	height = heif_image_handle_get_height( heif->handle );
+#ifdef HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH
+	if( !heif->autorotate )
+		height = heif_image_handle_get_ispe_height( heif->handle );
+#endif /*HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH*/
+
+	return( height );
 }
 
 static int
@@ -485,15 +513,15 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	if( vips_foreign_load_heif_set_page( heif, 
 		heif->page, heif->thumbnail ) )
 		return( -1 );
-	heif->page_width = heif_image_handle_get_width( heif->handle );
-	heif->page_height = heif_image_handle_get_height( heif->handle );
+	heif->page_width = vips_foreign_load_heif_get_width( heif );
+	heif->page_height = vips_foreign_load_heif_get_height( heif );
 	for( i = heif->page + 1; i < heif->page + heif->n; i++ ) {
 		if( vips_foreign_load_heif_set_page( heif, 
 			i, heif->thumbnail ) )
 			return( -1 );
-		if( heif_image_handle_get_width( heif->handle ) != 
+		if( vips_foreign_load_heif_get_width( heif ) != 
 				heif->page_width ||
-			heif_image_handle_get_height( heif->handle ) != 
+			vips_foreign_load_heif_get_height( heif ) != 
 				heif->page_height ) {
 			vips_error( class->nickname, "%s", 
 				_( "not all pages are the same size" ) ); 
@@ -560,8 +588,14 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 		 *
 		 * FIXME What will this do for RGBA? Or is alpha always 
 		 * separate?
+		 *
+		 * Only disable transforms if we have something to fetch the
+		 * untransformed size.
 		 */
 		options = heif_decoding_options_alloc();
+#ifdef HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH
+		options->ignore_transformations = !heif->autorotate;
+#endif /*HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH*/
 		error = heif_decode_image( heif->handle, &heif->img, 
 			heif_colorspace_RGB, heif_chroma_interleaved_RGB, 
 			options );
@@ -617,13 +651,30 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 #endif /*DEBUG*/
 	}
 
-	if( !heif->data ) 
+	if( !heif->data ) {
+		int image_width = heif_image_get_width( heif->img, 
+			heif_channel_interleaved );
+		int image_height = heif_image_get_height( heif->img, 
+			heif_channel_interleaved );
+
+		/* We can sometimes get inconsistency between the dimensions
+		 * reported on the handle, and the final image we fetch. Error
+		 * out to prevent a segv.
+		 */
+		if( image_width != heif->page_width ||
+			image_height != heif->page_height ) {
+			vips_error( class->nickname, 
+				"%s", _( "bad image dimensions on decode" ) );
+			return( -1 );
+		}
+
 		if( !(heif->data = heif_image_get_plane_readonly( heif->img, 
 			heif_channel_interleaved, &heif->stride )) ) {
 			vips_error( class->nickname, 
 				"%s", _( "unable to get image data" ) );
 			return( -1 );
 		}
+	}
 
 	memcpy( VIPS_REGION_ADDR( or, 0, r->top ),
 		heif->data + heif->stride * line, 
@@ -693,6 +744,13 @@ vips_foreign_load_heif_class_init( VipsForeignLoadHeifClass *class )
 		_( "Fetch thumbnail image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadHeif, thumbnail ),
+		FALSE );
+
+	VIPS_ARG_BOOL( class, "autorotate", 21, 
+		_( "Autorotate" ), 
+		_( "Rotate image using exif orientation" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadHeif, autorotate ),
 		FALSE );
 
 }
