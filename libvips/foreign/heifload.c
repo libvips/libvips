@@ -589,8 +589,8 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 		 * FIXME What will this do for RGBA? Or is alpha always 
 		 * separate?
 		 *
-		 * Only disable transforms if we have something to fetch the
-		 * untransformed size.
+		 * Only disable transforms if we have been able to fetch the
+		 * untransformed dimensions.
 		 */
 		options = heif_decoding_options_alloc();
 #ifdef HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH
@@ -932,6 +932,7 @@ vips_foreign_load_heif_buffer_init( VipsForeignLoadHeifBuffer *buffer )
  * * @page: %gint, page (top-level image number) to read
  * * @n: %gint, load this many pages
  * * @thumbnail: %gboolean, fetch thumbnail instead of image
+ * * @autorotate: %gboolean, rotate image upright during load 
  *
  * Read a HEIF image file into a VIPS image. 
  *
@@ -947,6 +948,17 @@ vips_foreign_load_heif_buffer_init( VipsForeignLoadHeifBuffer *buffer )
  *
  * If @thumbnail is %TRUE, then fetch a stored thumbnail rather than the
  * image.
+ *
+ * Setting @autorotate to %TRUE will make the loader interpret the 
+ * orientation tag and automatically rotate the image appropriately during
+ * load. 
+ *
+ * If @autorotate is %FALSE, the metadata field #VIPS_META_ORIENTATION is set 
+ * to the value of the orientation tag. Applications may read and interpret 
+ * this field
+ * as they wish later in processing. See vips_autorot(). Save
+ * operations will use #VIPS_META_ORIENTATION, if present, to set the
+ * orientation of output images. 
  *
  * See also: vips_image_new_from_file().
  *
@@ -977,6 +989,7 @@ vips_heifload( const char *filename, VipsImage **out, ... )
  * * @page: %gint, page (top-level image number) to read
  * * @n: %gint, load this many pages
  * * @thumbnail: %gboolean, fetch thumbnail instead of image
+ * * @autorotate: %gboolean, rotate image upright during load 
  *
  * Read a HEIF image file into a VIPS image. 
  * Exactly as vips_heifload(), but read from a memory buffer. 
