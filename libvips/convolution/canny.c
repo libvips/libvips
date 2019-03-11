@@ -372,11 +372,9 @@ static int
 vips_canny_build( VipsObject *object )
 {
 	VipsCanny *canny = (VipsCanny *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 5 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 6 );
 
 	VipsImage *in;
-	VipsImage *Gx;
-	VipsImage *Gy;
 
 	if( VIPS_OBJECT_CLASS( vips_canny_parent_class )->build( object ) )
 		return( -1 );
@@ -389,29 +387,29 @@ vips_canny_build( VipsObject *object )
 		return( -1 );
 	in = t[0];
 
-	if( vips_canny_gradient( in, &Gx, &Gy ) )
+	if( vips_canny_gradient( in, &t[1], &t[2] ) )
 		return( -1 ); 
 
 	/* Form (G, theta).
 	 */
-	canny->args[0] = Gx;
-	canny->args[1] = Gy;
+	canny->args[0] = t[1];
+	canny->args[1] = t[2];
 	canny->args[2] = NULL;
-	if( vips_canny_polar( canny->args, &t[1] ) )
+	if( vips_canny_polar( canny->args, &t[3] ) )
 		return( -1 ); 
-	in = t[1];
+	in = t[3];
 
 	/* Expand by two pixels all around, then thin in the direction of the
 	 * gradient.
 	 */
-	if( vips_embed( in, &t[2], 1, 1, in->Xsize + 2, in->Ysize + 2,
+	if( vips_embed( in, &t[4], 1, 1, in->Xsize + 2, in->Ysize + 2,
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
 		return( -1 );
 
-	if( vips_canny_thin( t[2], &t[3] ) )
+	if( vips_canny_thin( t[4], &t[5] ) )
 		return( -1 );
-	in = t[3];
+	in = t[5];
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
