@@ -201,7 +201,7 @@ int vips__png_read_buffer( const void *buffer, size_t length, VipsImage *out,
 	gboolean fail );
 int vips__png_header_buffer( const void *buffer, size_t length, VipsImage *out );
 
-int vips__png_write( VipsImage *in, const char *filename, 
+int vips__png_write( VipsImage *in, FILE *fp,
 	int compress, int interlace, const char *profile,
 	VipsForeignPngFilter filter, gboolean strip,
 	gboolean palette, int colours, int Q, double dither );

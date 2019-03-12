@@ -847,7 +847,6 @@ typedef struct {
 static void
 write_finish( Write *write )
 {
-	VIPS_FREEF( fclose, write->fp );
 	VIPS_UNREF( write->memory );
 	vips_dbuf_destroy( &write->dbuf );
 	if( write->pPng )
@@ -1231,7 +1230,7 @@ write_vips( Write *write,
 }
 
 int
-vips__png_write( VipsImage *in, const char *filename, 
+vips__png_write( VipsImage *in, FILE *fp,
 	int compress, int interlace, const char *profile,
 	VipsForeignPngFilter filter, gboolean strip,
 	gboolean palette, int colours, int Q, double dither )
@@ -1239,7 +1238,7 @@ vips__png_write( VipsImage *in, const char *filename,
 	Write *write;
 
 #ifdef DEBUG
-	printf( "vips__png_write: writing \"%s\"\n", filename );
+	printf( "vips__png_write: writing \"%p\"\n", fp );
 #endif /*DEBUG*/
 
 	if( !(write = write_new( in )) )
@@ -1247,8 +1246,7 @@ vips__png_write( VipsImage *in, const char *filename,
 
 	/* Make output.
 	 */
-        if( !(write->fp = vips__file_open_write( filename, FALSE )) ) 
-		return( -1 );
+	write->fp = fp;
 	png_init_io( write->pPng, write->fp );
 
 	/* Convert it!
@@ -1257,7 +1255,7 @@ vips__png_write( VipsImage *in, const char *filename,
 		compress, interlace, profile, filter, strip, palette,
 		colours, Q, dither ) ) {
 		vips_error( "vips2png", 
-			_( "unable to write \"%s\"" ), filename );
+			_( "unable to write \"%p\"" ), fp );
 
 		return( -1 );
 	}

@@ -1856,6 +1856,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_png_get_type( void ); 
 	extern GType vips_foreign_load_png_buffer_get_type( void ); 
 	extern GType vips_foreign_save_png_file_get_type( void ); 
+	extern GType vips_foreign_save_png_stream_get_type( void );
 	extern GType vips_foreign_save_png_buffer_get_type( void ); 
 	extern GType vips_foreign_load_csv_get_type( void ); 
 	extern GType vips_foreign_save_csv_get_type( void ); 
@@ -1970,6 +1971,7 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_png_get_type(); 
 	vips_foreign_load_png_buffer_get_type(); 
 	vips_foreign_save_png_file_get_type(); 
+	vips_foreign_save_png_stream_get_type();
 	vips_foreign_save_png_buffer_get_type(); 
 #endif /*HAVE_PNG*/
 

@@ -822,6 +822,11 @@
   <entry>vips_pngsave()</entry>
 </row>
 <row>
+  <entry>pngsave_stream</entry>
+  <entry>save image to png stream</entry>
+  <entry>vips_pngsave_stream()</entry>
+</row>
+<row>
   <entry>pngsave_buffer</entry>
   <entry>save image to png buffer</entry>
   <entry>vips_pngsave_buffer()</entry>
