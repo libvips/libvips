@@ -27,6 +27,7 @@
 - add heif thumbnail support to vips_thumbnail()
 - free threadpool earlier, reducing mem growth for some long-running 
   processes [jtorresfabra]
+- add vips_region_fetch() / _width() / _height() for language bindings
 
 4/1/19 started 8.7.4
 - magickload with magick6 API did not chain exceptions correctly causing a
