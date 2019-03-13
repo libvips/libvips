@@ -885,7 +885,8 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 {
 	VipsThumbnailFile *file = (VipsThumbnailFile *) thumbnail;
 
-	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
+	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ||
+		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"shrink", (int) factor,
@@ -899,8 +900,7 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
-		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ||
-		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
+		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"scale", factor,
@@ -1076,7 +1076,8 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 {
 	VipsThumbnailBuffer *buffer = (VipsThumbnailBuffer *) thumbnail;
 
-	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
+	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ||
+		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
 			buffer->buf->data, buffer->buf->length, buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
@@ -1092,8 +1093,7 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
-		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ||
-		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
+		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
 			buffer->buf->data, buffer->buf->length, buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
