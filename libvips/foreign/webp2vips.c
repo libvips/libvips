@@ -641,7 +641,8 @@ read_next_frame( Read *read )
 		printf( "don't blend\n" ); 
 #endif /*DEBUG*/
 
-	if( read->iter.duration != read->delay ) 
+	if( read->frame_count > 1 &&
+		read->iter.duration != read->delay ) 
 		g_warning( "webp2vips: "
 			"not all frames have equal duration" );
 
