@@ -108,6 +108,7 @@ vips_foreign_save_heif_dispose( GObject *gobject )
 		dispose( gobject );
 }
 
+#ifdef HAVE_HEIF_CONTEXT_ADD_EXIF_METADATA
 typedef struct heif_error (*libheif_metadata_fn)( struct heif_context *,
 	 const struct heif_image_handle *,
 	 const void *, int );
@@ -119,10 +120,12 @@ struct _VipsForeignSaveHeifMetadata {
 	{ VIPS_META_EXIF_NAME, heif_context_add_exif_metadata },
 	{ VIPS_META_XMP_NAME, heif_context_add_XMP_metadata }
 };
+#endif /*HAVE_HEIF_CONTEXT_ADD_EXIF_METADATA*/
 
 static int
 vips_foreign_save_heif_write_metadata( VipsForeignSaveHeif *heif )
 {
+#ifdef HAVE_HEIF_CONTEXT_ADD_EXIF_METADATA
 	VipsForeignSave *save = (VipsForeignSave *) heif;
 
 	int i;
@@ -150,6 +153,7 @@ vips_foreign_save_heif_write_metadata( VipsForeignSaveHeif *heif )
 				return( -1 );
 			}
 		}
+#endif /*HAVE_HEIF_CONTEXT_ADD_EXIF_METADATA*/
 
 	return( 0 );
 }

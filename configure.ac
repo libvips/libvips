@@ -927,6 +927,18 @@ if test x"$with_heif" != x"no"; then
   )
 fi
 
+# exif/xmp profile support added in 1.2
+if test x"$with_heif" = x"yes"; then
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $HEIF_LIBS"
+  AC_CHECK_FUNCS(heif_context_add_exif_metadata,[
+     AC_DEFINE(HAVE_HEIF_CONTEXT_ADD_EXIF_METADATA,1,
+	       [define if you have heif_context_add_exif_metadata.])
+   ],[]
+  )
+  LIBS="$save_LIBS"
+fi
+
 # color profile support added in 1.3.3
 if test x"$with_heif" = x"yes"; then
   save_LIBS="$LIBS"
