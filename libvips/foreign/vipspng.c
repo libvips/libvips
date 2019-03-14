@@ -231,6 +231,13 @@ read_new( VipsImage *out, gboolean fail )
 		PNG_SKIP_sRGB_CHECK_PROFILE, PNG_OPTION_ON );
 #endif /*PNG_SKIP_sRGB_CHECK_PROFILE*/
 
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+	/* Disable CRC checking in fuzzing mode.
+	 */
+	png_set_crc_action( read->pPng,
+		PNG_CRC_QUIET_USE, PNG_CRC_QUIET_USE );
+#endif /*FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION*/
+
 	/* Catch PNG errors from png_create_info_struct().
 	 */
 	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
