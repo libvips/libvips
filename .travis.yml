@@ -10,24 +10,50 @@ before_script:
     --with-jpeg-libraries=$JPEG/lib
   - make -j$JOBS -s 
 script:
-  - make -Ctest -j$JOBS -s V=0 VERBOSE=1 check
+  - make -j$JOBS -s -k V=0 VERBOSE=1 check
   - LD_LIBRARY_PATH=$PWD/libvips/.libs
     DYLD_LIBRARY_PATH=$PWD/libvips/.libs
+    LD_PRELOAD=$ASAN_DSO
     $PYTHON -m pytest -v test/test-suite
 
 matrix:
   allow_failures:
     - os: osx
+    - compiler: clang
   fast_finish: true
   include:
     - os: linux
       sudo: required
       dist: xenial
+      compiler: gcc
       env:
         - PYTHON=python2
         - PYVIPS_VERSION=master
         - JPEG=/usr
         - JOBS=`nproc`
+      cache: ccache
+
+    - os: linux
+      sudo: required
+      dist: xenial
+      compiler: clang
+      env:
+        - PYTHON=python2
+        - PYVIPS_VERSION=master
+        - JPEG=/usr
+        - JOBS=`nproc`
+        - CFLAGS="-fsanitize=address -fno-omit-frame-pointer -fopenmp"
+        - LDFLAGS="-fsanitize=address -dynamic-asan -fopenmp=libiomp5"
+        - ASAN_DSO=/usr/local/clang-7.0.0/lib/clang/7.0.0/lib/linux/libclang_rt.asan-x86_64.so
+        - LSAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/lsan.supp"
+        - FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION=1
+      install:
+        # add support for WebP
+        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebp-dev_0.6.1-2_amd64.deb
+        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebpdemux2_0.6.1-2_amd64.deb
+        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebpmux3_0.6.1-2_amd64.deb
+        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebp6_0.6.1-2_amd64.deb
+        - sudo dpkg -i *.deb
       cache: ccache
 
     - os: osx
@@ -79,6 +105,7 @@ addons:
       - libgsf-1-dev 
       - libopenslide-dev
       - libffi-dev
+      - libiomp-dev
   homebrew:
     packages:
       - ccache

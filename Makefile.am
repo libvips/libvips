@@ -15,6 +15,7 @@ EXTRA_DIST = \
 	vips.pc.in \
 	vips-cpp.pc.in \
 	libvips.supp \
+	lsan.supp \
 	depcomp \
 	README.md 
 
