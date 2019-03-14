@@ -1,3 +1,6 @@
+TESTS = \
+	test_fuzz.sh
+
 FUZZPROGS = \
 	jpegsave_buffer_fuzzer \
 	pngsave_buffer_fuzzer \
@@ -16,5 +19,7 @@ LDADD = ${top_builddir}/libvips/libvips.la @VIPS_LIBS@ @LIB_FUZZING_ENGINE@
 
 libstandaloneengine_a_SOURCES = StandaloneFuzzTargetMain.c
 
-noinst_PROGRAMS = $(FUZZPROGS)
+check_PROGRAMS = $(FUZZPROGS)
 noinst_LIBRARIES = $(FUZZLIBS)
+
+EXTRA_DIST = $(TESTS)
