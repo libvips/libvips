@@ -927,7 +927,31 @@ if test x"$with_heif" != x"no"; then
   )
 fi
 
-# exif/xmp profile support added in 1.2
+# heif_context_set_primary_image not in 1.1
+if test x"$with_heif" = x"yes"; then
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $HEIF_LIBS"
+  AC_CHECK_FUNCS(heif_context_set_primary_image,[
+     AC_DEFINE(HAVE_HEIF_CONTEXT_SET_PRIMARY_IMAGE,1,
+	       [define if you have heif_context_set_primary_image.])
+   ],[]
+  )
+  LIBS="$save_LIBS"
+fi
+
+# heif_encoding_options_alloc not in 1.1
+if test x"$with_heif" = x"yes"; then
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $HEIF_LIBS"
+  AC_CHECK_FUNCS(heif_encoding_options_alloc,[
+     AC_DEFINE(HAVE_HEIF_ENCODING_OPTIONS_ALLOC,1,
+	       [define if you have heif_encoding_options_alloc.])
+   ],[]
+  )
+  LIBS="$save_LIBS"
+fi
+
+# exif/xmp profile support not in 1.1
 if test x"$with_heif" = x"yes"; then
   save_LIBS="$LIBS"
   LIBS="$LIBS $HEIF_LIBS"

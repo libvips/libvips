@@ -191,22 +191,32 @@ vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif, int page )
 	}
 #endif /*HAVE_HEIF_COLOR_PROFILE*/
 
+#ifdef HAVE_HEIF_ENCODING_OPTIONS_ALLOC
 	options = heif_encoding_options_alloc();
 	/* FIXME .. should be an option, though I don't know of any way to
 	 * test it
 	 */
 	options->save_alpha_channel = 1;
+#else /*!HAVE_HEIF_ENCODING_OPTIONS_ALLOC*/
+	options = NULL;
+#endif /*HAVE_HEIF_ENCODING_OPTIONS_ALLOC*/
+
 #ifdef DEBUG
 	printf( "encoding ..\n" ); 
 #endif /*DEBUG*/
 	error = heif_context_encode_image( heif->ctx, 
-		heif->img, heif->encoder, NULL, &heif->handle );
+		heif->img, heif->encoder, options, &heif->handle );
+
+#ifdef HAVE_HEIF_ENCODING_OPTIONS_ALLOC
 	heif_encoding_options_free( options );
+#endif /*HAVE_HEIF_ENCODING_OPTIONS_ALLOC*/
+
 	if( error.code ) {
 		vips__heif_error( &error );
 		return( -1 );
 	}
 
+#ifdef HAVE_HEIF_CONTEXT_SET_PRIMARY_IMAGE
 	if( vips_image_get_typeof( save->ready, "heif-primary" ) ) { 
 		int primary;
 
@@ -223,6 +233,7 @@ vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif, int page )
 			}
 		}
 	}
+#endif /*HAVE_HEIF_CONTEXT_SET_PRIMARY_IMAGE*/
 
 	if( !save->strip &&
 		vips_foreign_save_heif_write_metadata( heif ) )
