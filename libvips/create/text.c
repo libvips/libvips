@@ -25,6 +25,9 @@
  * 5/12/18 
  * 	- fitting mode could set wrong dpi
  * 	- fitting mode leaked
+ * 16/3/19
+ * 	- add `justify`
+ * 	- set Xoffset/Yoffset to ink left/top
  */
 
 /*
@@ -84,6 +87,7 @@ typedef struct _VipsText {
 	int height;
 	int spacing;
 	VipsAlign align;
+	gboolean justify;
 	int dpi;
 	char *fontfile;
 
@@ -124,7 +128,7 @@ vips_text_dispose( GObject *gobject )
 static PangoLayout *
 text_layout_new( PangoContext *context, 
 	const char *text, const char *font, int width, int spacing,
-	VipsAlign align )
+	VipsAlign align, gboolean justify )
 {
 	PangoLayout *layout;
 	PangoFontDescription *font_description;
@@ -162,6 +166,8 @@ text_layout_new( PangoContext *context,
 	}
 	pango_layout_set_alignment( layout, palign );
 
+	pango_layout_set_justify( layout, justify );
+
 	return( layout );
 }
 
@@ -176,7 +182,7 @@ vips_text_get_extents( VipsText *text, VipsRect *extents )
 
 	if( !(text->layout = text_layout_new( text->context, 
 		text->text, text->font, 
-		text->width, text->spacing, text->align )) ) 
+		text->width, text->spacing, text->align, text->justify )) ) 
 		return( -1 );
 
 	pango_layout_get_pixel_extents( text->layout, 
@@ -405,6 +411,8 @@ vips_text_build( VipsObject *object )
 		1.0, 1.0 ); 
 	vips_image_pipelinev( create->out, 
 		VIPS_DEMAND_STYLE_ANY, NULL );
+	create->out->Xoffset = extents.left;
+	create->out->Yoffset = extents.top;
 
 	for( y = 0; y < text->bitmap.rows; y++ ) 
 		if( vips_image_write_line( create->out, y, 
@@ -477,6 +485,13 @@ vips_text_class_init( VipsTextClass *class )
 		G_STRUCT_OFFSET( VipsText, align ),
 		VIPS_TYPE_ALIGN, VIPS_ALIGN_LOW );
 
+	VIPS_ARG_BOOL( class, "justify", 9, 
+		_( "Justify" ), 
+		_( "Justify lines" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsText, justify ),
+		FALSE );
+
 	VIPS_ARG_INT( class, "dpi", 9, 
 		_( "DPI" ), 
 		_( "DPI to render at" ),
@@ -531,6 +546,7 @@ vips_text_init( VipsText *text )
  * * @width: %gint, image should be no wider than this many pixels
  * * @height: %gint, image should be no higher than this many pixels
  * * @align: #VipsAlign, left/centre/right alignment
+ * * @justify: %gboolean, justify lines
  * * @dpi: %gint, render at this resolution
  * * @autofit_dpi: %gint, read out auto-fitted DPI 
  * * @spacing: %gint, space lines by this in points
@@ -554,6 +570,8 @@ vips_text_init( VipsText *text )
  * text. Note that the output image can be wider than @width if there are no
  * word breaks, or narrower if the lines don't break exactly at @width. 
  *
+ * Set @justify to turn on line justification.
+ *
  * @height is the maximum number of pixels high the generated text can be. This
  * only takes effect when @dpi is not set, and @width is set, making a box. 
  * In this case, vips_text() will search for a @dpi and set of line breaks 
@@ -567,7 +585,11 @@ vips_text_init( VipsText *text )
  * @spacing sets the line spacing, in points. It would typically be something
  * like font size times 1.2.
  *
- * See also: vips_xyz(), vips_text(), vips_gaussnoise().
+ * You can read the coordinate of the top edge of the character from `Xoffset`
+ * / `Yoffset`. This can be helpful if you need to line up the output of
+ * several vips_text().
+ *
+ * See also: vips_bandjoin(), vips_composite().
  *
  * Returns: 0 on success, -1 on error
  */
