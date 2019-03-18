@@ -319,7 +319,7 @@ vips_arrayjoin_class_init( VipsArrayjoinClass *class )
 		_( "Pixels between images" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsArrayjoin, shim ),
-		-1000000, 1000000, 0 );
+		0, 1000000, 0 );
 
 	VIPS_ARG_BOXED( class, "background", 6, 
 		_( "Background" ), 
