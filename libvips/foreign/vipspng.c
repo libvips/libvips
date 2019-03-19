@@ -576,7 +576,8 @@ png2vips_generate( VipsRegion *or,
 	/* Tiles should always be a strip in height, unless it's the final
 	 * strip.
 	 */
-	g_assert( r->height == VIPS_MIN( 8, or->im->Ysize - r->top ) ); 
+	g_assert( r->height == VIPS_MIN( VIPS__FATSTRIP_HEIGHT, 
+			or->im->Ysize - r->top ) ); 
 
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
