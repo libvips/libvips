@@ -364,28 +364,6 @@ vips_region_summary( VipsObject *object, VipsBuf *buf )
 	VIPS_OBJECT_CLASS( vips_region_parent_class )->summary( object, buf );
 }
 
-static void
-vips_region_sanity( VipsObject *object, VipsBuf *buf )
-{
-	VipsRegion *region = VIPS_REGION( object );
-
-	(void) vips_object_sanity( VIPS_OBJECT( region->im ) );
-
-	switch( region->im->dtype ) { 
-	case VIPS_IMAGE_PARTIAL:
-		/* Start and stop can be NULL, but not generate.
-		 */
-		if( !region->im->generate_fn )
-			vips_buf_appends( buf, "generate NULL in partial\n" );
-		break;
-	
-	default:
-		break;
-	}
-
-	VIPS_OBJECT_CLASS( vips_region_parent_class )->sanity( object, buf );
-}
-
 /* If a region is being created in one thread (eg. the main thread) and then
  * used in another (eg. a worker thread), the new thread needs to tell VIPS
  * to stop sanity g_assert() fails. The previous owner needs to
@@ -491,7 +469,6 @@ vips_region_class_init( VipsRegionClass *class )
 
 	vobject_class->summary = vips_region_summary;
 	vobject_class->dump = vips_region_dump;
-	vobject_class->sanity = vips_region_sanity;
 	vobject_class->build = vips_region_build;
 }
 

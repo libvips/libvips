@@ -1,11 +1,11 @@
 #!/usr/bin/python
+
 from __future__ import division
 from __future__ import print_function
 
 import re
 import cairo
 from io import open
-
 
 class ReadFile:
     def __init__(self, filename):
@@ -212,7 +212,8 @@ for thread in threads:
     unkn_percent = 100 - 100 * (thread.work + thread.wait) / thread.alive
 
     print('%13s\t%6.2g\t' % (thread.thread_name, thread.alive), end=' ')
-    print('%.3g\t%.3g\t%.3g\t' % (wait_percent, work_percent, unkn_percent), end=' ')
+    print('%.3g\t%.3g\t%.3g\t' % 
+            (wait_percent, work_percent, unkn_percent), end=' ')
     print('%.3g\t' % (thread.mem / (1024 * 1024)), end=' ')
     print('%.3g\t' % (thread.peak_mem / (1024 * 1024)))
 
@@ -302,7 +303,8 @@ for thread in threads:
                     if gate_positions[gate_name] != gate_y:
                         continue
 
-                    if gates_overlap(thread.other_events, event.gate_name, gate_name):
+                    if gates_overlap(thread.other_events, 
+                            event.gate_name, gate_name):
                         found_overlap = True
                         break
 
