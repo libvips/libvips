@@ -67,6 +67,10 @@ Modified on:
 31/5/15
 	- oops siged/unsigned mess-up meant we were not padding correctly
 
+20/3/19
+	- larger output allocate
+	- better max size check
+
  */
 
 /*
@@ -84,8 +88,7 @@ Modified on:
 #include <assert.h>
 
 #include <vips/vips.h>
-
-#include "base64.h"
+#include <vips/internal.h>
 
 static unsigned char b64_list[] =
 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -159,20 +162,20 @@ char *
 vips__b64_encode( const unsigned char *data, size_t data_length )
 {
 	/* Worst case: 1.333 chars per byte, plus 10% for extra carriage 
-	 * returns and stuff. And the \n\0 at the end.
+	 * returns and stuff, plus the final \n\0.
 	 */
-	const size_t output_data_length = data_length * 44 / 30 + 2;
+	const size_t output_data_length = data_length * 44 / 30 + 10;
 
 	char *buffer;
 	char *p;
 	int i;
 	int cursor;
 
-	if( output_data_length > 10 * 1024 * 1024 ) {
+	if( data_length > 10 * 1024 * 1024 ) {
 		/* We shouldn't really be used for large amounts of data, plus
 		 * we are using int offsets.
 		 *
-		 * A large ICC profile can be 1MB, so allow 10MB of b64.
+		 * A large ICC profile can be 1MB, so allow 10MB.
 		 */
 		vips_error( "vips__b64_encode", "%s", _( "too much data" ) );
 		return( NULL );
@@ -201,6 +204,8 @@ vips__b64_encode( const unsigned char *data, size_t data_length )
 	if( cursor > 0 ) 
 		*p++ = '\n';
 	*p++ = '\0';
+
+	g_assert( (size_t) (p - buffer) < output_data_length );
 
 #ifdef DEBUG
 {
