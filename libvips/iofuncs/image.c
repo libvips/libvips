@@ -2631,6 +2631,12 @@ vips_image_write_to_buffer( VipsImage *in,
 		ap, in, &blob );
 	va_end( ap );
 
+	if( result )
+		return( -1 );
+
+	*buf = NULL;
+	if( size ) 
+		*size = 0;
 	if( blob ) { 
 		if( buf ) {
 			*buf = VIPS_AREA( blob )->data;
@@ -2642,7 +2648,7 @@ vips_image_write_to_buffer( VipsImage *in,
 		vips_area_unref( VIPS_AREA( blob ) );
 	}
 
-	return( result );
+	return( 0 );
 }
 
 /**
