@@ -90,6 +90,24 @@ Modified on:
 #include <vips/vips.h>
 #include <vips/internal.h>
 
+#ifdef HAVE_BASE64_ENCODE
+
+/* glib 2.12 adds these.
+ */
+char *
+vips__b64_encode( const unsigned char *data, size_t data_length )
+{
+	return( g_base64_encode( data, data_length ) );
+}
+
+unsigned char *
+vips__b64_decode( const char *buffer, size_t *data_length )
+{
+	return( g_base64_decode( buffer, data_length ) );
+}
+
+#else /*!HAVE_BASE64_ENCODE*/
+
 static unsigned char b64_list[] =
 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -295,3 +313,5 @@ vips__b64_decode( const char *buffer, size_t *data_length )
 
 	return( data );
 }
+
+#endif /*HAVE_BASE64_ENCODE*/

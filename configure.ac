@@ -461,6 +461,16 @@ AC_CHECK_LIB(m,atan2,[AC_DEFINE(HAVE_ATAN2,1,[have atan2() in libm.])])
 PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.6 gmodule-2.0 gobject-2.0)
 PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-2.0 gobject-2.0"
 
+# from 2.12 we have g_base64_encode()
+PKG_CHECK_MODULES(BASE64_ENCODE, glib-2.0 >= 2.12,
+  [AC_DEFINE(HAVE_BASE64_ENCODE,1,
+	    [define if your glib has g_base64_encode().]
+   )
+  ],
+  [:
+  ]
+)
+
 # from 2.14 we have g_option_context_get_help()
 PKG_CHECK_MODULES(CONTEXT_GET_HELP, glib-2.0 >= 2.14,
   [AC_DEFINE(HAVE_CONTEXT_GET_HELP,1,
