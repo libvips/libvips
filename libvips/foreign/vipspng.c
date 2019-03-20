@@ -532,16 +532,20 @@ png2vips_interlace( Read *read, VipsImage *out )
 
 	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
 		return( -1 );
- 
+
+	/* Some libpng warn you to call png_set_interlace_handling(); here, but
+	 * that can actually break interlace on older libpngs.
+	 *
+	 * Only set this for libpng 1.6+.
+	 */
+#if PNG_LIBPNG_VER > 10600
+	(void) png_set_interlace_handling( read->pPng );
+#endif
+
 	if( !(read->row_pointer = VIPS_ARRAY( NULL, out->Ysize, png_bytep )) )
 		return( -1 );
 	for( y = 0; y < out->Ysize; y++ )
 		read->row_pointer[y] = VIPS_IMAGE_ADDR( out, 0, y );
-
-	/* Some libpng warn you to call png_set_interlace_handling(); here, but
-	 * that can actually break interlace. We have to live with the warning,
-	 * unfortunately.
-	 */
 
 	png_read_image( read->pPng, read->row_pointer );
 
