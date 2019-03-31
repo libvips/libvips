@@ -1,3 +1,6 @@
+31/3/19 started 8.7.5
+- better buffer sizing in tiff reader [omira-sch]
+
 4/1/19 started 8.7.4
 - zero memory on allocate to prevent write of uninitialized memory under some 
   error conditions [Balint Varga-Perke]

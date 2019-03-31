@@ -183,6 +183,8 @@
  * 	- check for non-byte-multiple bits_per_sample [HongxuChen]
  * 16/8/18
  * 	- shut down the input file as soon as we can [kleisauke]
+ * 28/3/19 omira-sch
+ * 	- better buffer sizing 
  */
 
 /*
@@ -264,6 +266,7 @@ typedef struct _RtiffHeader {
 	 */
 	uint32 rows_per_strip;
 	tsize_t strip_size;
+	tsize_t tile_size;
 	int number_of_strips;
 	gboolean read_scanlinewise;
 } RtiffHeader;
@@ -1291,14 +1294,6 @@ rtiff_pick_reader( Rtiff *rtiff )
 	if( photometric_interpretation == PHOTOMETRIC_PALETTE ) 
 		return( rtiff_parse_palette ); 
 
-	if( photometric_interpretation == PHOTOMETRIC_YCBCR ) { 
-		/* Sometimes JPEG in TIFF images are tagged as YCBCR. Ask
-		 * libtiff to convert to RGB for us.
-		 */
-		TIFFSetField( rtiff->tiff, 
-			TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
-	}
-
 	return( rtiff_parse_copy );
 }
 
@@ -1310,6 +1305,10 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 {
 	uint32 data_length;
 	void *data;
+
+	/* Request YCbCr expansion.
+	 */
+	TIFFSetField( rtiff->tiff, TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
 
 	out->Xsize = rtiff->header.width;
 	out->Ysize = rtiff->header.height * rtiff->n;
@@ -1438,19 +1437,6 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	return( 0 );
 }
 
-/* The size of the buffer written by TIFFReadTile(). We can't use 
- * TIFFTileSize() since that ignores the setting of TIFFTAG_JPEGCOLORMODE. If
- * this pseudo tag has been set and the tile is encoded with YCbCr, the tile
- * is returned with chrominance upsampled. 
- *
- * This seems not to happen for old-style jpeg-compressed tiles. 
- */
-static size_t
-rtiff_tile_size( Rtiff *rtiff )
-{
-	return( TIFFTileRowSize( rtiff->tiff ) * rtiff->header.tile_height );
-}
-
 /* Allocate a tile buffer. Have one of these for each thread so we can unpack
  * to vips in parallel.
  */
@@ -1458,11 +1444,9 @@ static void *
 rtiff_seq_start( VipsImage *out, void *a, void *b )
 {
 	Rtiff *rtiff = (Rtiff *) a;
-	tsize_t size;
 	tdata_t *buf;
 
-	size = rtiff_tile_size( rtiff );
-	if( !(buf = vips_malloc( NULL, size )) )
+	if( !(buf = vips_malloc( NULL, rtiff->header.tile_size )) )
 		return( NULL );
 
 	return( (void *) buf );
@@ -1531,7 +1515,7 @@ rtiff_fill_region( VipsRegion *out,
 
 	/* Sizeof a line of bytes in the TIFF tile.
 	 */
-	int tls = rtiff_tile_size( rtiff ) / tile_height;
+	int tls = rtiff->header.tile_size / tile_height;
 
 	/* Sizeof a pel in the TIFF file. This won't work for formats which
 	 * are <1 byte per pel, like onebit :-( Fortunately, it's only used
@@ -1726,7 +1710,7 @@ rtiff_read_tilewise( Rtiff *rtiff, VipsImage *out )
 		vips_tile_size = VIPS_IMAGE_SIZEOF_PEL( t[0] ) * 
 			tile_width * tile_height; 
 
-		if( rtiff_tile_size( rtiff ) != vips_tile_size ) { 
+		if( rtiff->header.tile_size != vips_tile_size ) { 
 			vips_error( "tiff2vips", 
 				"%s", _( "unsupported tiff image type" ) );
 			return( -1 );
@@ -2039,7 +2023,6 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 		if( !(rtiff->contig_buf = 
 			vips_malloc( VIPS_OBJECT( out ), size )) ) 
 			return( -1 );
-
 	}
 
 	if( 
@@ -2061,6 +2044,12 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 static int
 rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 {
+	/* We want to always expand subsampled YCBCR images to full RGB. We
+	 * need to set this pseudo tag early, since it affects the value you
+	 * get from TIFFStripSize() etc. 
+	 */
+	TIFFSetField( rtiff->tiff, TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
+
 	if( !tfget32( rtiff->tiff, TIFFTAG_IMAGEWIDTH, &header->width ) ||
 		!tfget32( rtiff->tiff, TIFFTAG_IMAGELENGTH, &header->height ) ||
 		!tfget16( rtiff->tiff, 
@@ -2074,11 +2063,11 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 
 	/* Arbitrary sanity-checking limits.
 	 */
-	if( header->width <= 0 || 
-		header->width > VIPS_MAX_COORD || 
-		header->height <= 0 || 
+	if( header->width <= 0 ||
+		header->width > VIPS_MAX_COORD ||
+		header->height <= 0 ||
 		header->height > VIPS_MAX_COORD ) {
-		vips_error( "tiff2vips", 
+		vips_error( "tiff2vips",
 			"%s", _( "width/height out of range" ) );
 		return( -1 );
 	}
@@ -2115,6 +2104,19 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 			!tfget32( rtiff->tiff, 
 				TIFFTAG_TILELENGTH, &header->tile_height ) )
 			return( -1 );
+
+		/* Arbitrary sanity-checking limits.
+		 */
+		if( header->tile_width <= 0 ||
+			header->tile_width > 10000 ||
+			header->tile_height <= 0 ||
+			header->tile_height > 10000 ) {
+			vips_error( "tiff2vips",
+				"%s", _( "tile size out of range" ) );
+			return( -1 );
+		}
+
+		header->tile_size = TIFFTileSize( rtiff->tiff );
 
 		/* Stop some compiler warnings.
 		 */
@@ -2162,6 +2164,7 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 		 */
 		header->tile_width = 0;
 		header->tile_height = 0;
+		header->tile_size = 0;
 	}
 
 	return( 0 );
