@@ -240,23 +240,23 @@ vips_dbuf_write_amp( VipsDbuf *dbuf, const char *str )
 			 * control characters, so we can use them -- thanks
 			 * electroly.
 			 */
-			if( vips_dbuf_writef( dbuf, "&#x%04x;", 0x2400 + *p ) )
+			if( !vips_dbuf_writef( dbuf, "&#x%04x;", 0x2400 + *p ) )
 			       return( FALSE );	
 		}
 		else if( *p == '<' ) {
-			if( vips_dbuf_write( dbuf, (guchar *) "&lt;", 4 ) )
+			if( !vips_dbuf_write( dbuf, (guchar *) "&lt;", 4 ) )
 				return( FALSE );
 		}
 		else if( *p == '>' ) {
-			if( vips_dbuf_write( dbuf, (guchar *) "&gt;", 4 ) )
+			if( !vips_dbuf_write( dbuf, (guchar *) "&gt;", 4 ) )
 				return( FALSE );
 		}
 		else if( *p == '&' ) {
-			if( vips_dbuf_write( dbuf, (guchar *) "&amp;", 5 ) )
+			if( !vips_dbuf_write( dbuf, (guchar *) "&amp;", 5 ) )
 				return( FALSE );
 		}
 		else  {
-			if( vips_dbuf_write( dbuf, (guchar *) p, 1 ) )
+			if( !vips_dbuf_write( dbuf, (guchar *) p, 1 ) )
 				return( FALSE );
 		}
 
