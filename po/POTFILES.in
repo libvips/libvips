@@ -267,7 +267,6 @@ libvips/iofuncs/sinkscreen.c
 libvips/iofuncs/object.c
 libvips/iofuncs/buf.c
 libvips/iofuncs/vipsmarshal.c
-libvips/iofuncs/base64.c
 libvips/morphology/morph.c
 libvips/morphology/rank.c
 libvips/morphology/countlines.c
@@ -396,7 +395,6 @@ libvips/include/vips/foreign.h
 libvips/include/vips/transform.h
 libvips/include/vips/memory.h
 libvips/iofuncs/sink.h
-libvips/iofuncs/base64.h
 libvips/iofuncs/vipsmarshal.h
 libvips/morphology/pmorphology.h
 libvips/mosaicing/pmosaicing.h

@@ -409,9 +409,9 @@ const char *VImage::meta_get_string( const char *field )
 	return( result );
 }
 
-void *VImage::meta_get_area( const char *field ) 
+const void *VImage::meta_get_area( const char *field ) 
 {
-	void *result;
+	const void *result;
 
 	if( im_meta_get_area( _ref->im, field, &result ) )
 		verror();
@@ -419,9 +419,9 @@ void *VImage::meta_get_area( const char *field )
 	return( result );
 }
 
-void *VImage::meta_get_blob( const char *field, size_t *length ) 
+const void *VImage::meta_get_blob( const char *field, size_t *length ) 
 {
-	void *result;
+	const void *result;
 
 	if( im_meta_get_blob( _ref->im, field, &result, length ) )
 		verror();

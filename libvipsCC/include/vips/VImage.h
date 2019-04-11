@@ -275,8 +275,8 @@ public:
 	int meta_get_int( const char *field );
 	double meta_get_double( const char *field );
 	const char *meta_get_string( const char *field );
-	void *meta_get_area( const char *field );
-	void *meta_get_blob( const char *field, size_t *length );
+	const void *meta_get_area( const char *field );
+	const void *meta_get_blob( const char *field, size_t *length );
 
 	void meta_set( const char *field, int value );
 	void meta_set( const char *field, double value );

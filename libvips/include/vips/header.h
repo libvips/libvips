@@ -192,7 +192,7 @@ gchar **vips_image_get_fields( VipsImage *image );
 void vips_image_set_area( VipsImage *image, 
 	const char *name, VipsCallbackFn free_fn, void *data );
 int vips_image_get_area( const VipsImage *image, 
-	const char *name, void **data );
+	const char *name, const void **data );
 void vips_image_set_blob( VipsImage *image, 
 	const char *name, 
 	VipsCallbackFn free_fn, const void *data, size_t length );

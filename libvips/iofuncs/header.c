@@ -1337,7 +1337,8 @@ meta_get_value( const VipsImage *image,
  * Returns: 0 on success, -1 otherwise.
  */
 int
-vips_image_get_area( const VipsImage *image, const char *name, void **data )
+vips_image_get_area( const VipsImage *image, 
+	const char *name, const void **data )
 {
 	GValue value_copy = { 0 };
 
