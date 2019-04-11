@@ -36,6 +36,7 @@
 #include <stdio.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 
 static int
 jpeg2vips_vec( im_object *argv )

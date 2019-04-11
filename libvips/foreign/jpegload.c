@@ -133,14 +133,14 @@ vips_foreign_load_jpeg_class_init( VipsForeignLoadJpegClass *class )
 
 	load_class->get_flags = vips_foreign_load_jpeg_get_flags;
 
-	VIPS_ARG_INT( class, "shrink", 10, 
+	VIPS_ARG_INT( class, "shrink", 20, 
 		_( "Shrink" ), 
 		_( "Shrink factor on load" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadJpeg, shrink ),
 		1, 16, 1 );
 
-	VIPS_ARG_BOOL( class, "autorotate", 12, 
+	VIPS_ARG_BOOL( class, "autorotate", 21, 
 		_( "Autorotate" ), 
 		_( "Rotate image using exif orientation" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
@@ -327,8 +327,7 @@ vips_foreign_load_jpeg_buffer_init( VipsForeignLoadJpegBuffer *buffer )
  *
  * * @shrink: %gint, shrink by this much on load
  * * @fail: %gboolean, fail on errors
- * * @autorotate: %gboolean, use exif Orientation tag to rotate the image 
- *   during load
+ * * @autorotate: %gboolean, rotate image upright during load 
  *
  * Read a JPEG file into a VIPS image. It can read most 8-bit JPEG images, 
  * including CMYK and YCbCr.
@@ -373,6 +372,11 @@ vips_foreign_load_jpeg_buffer_init( VipsForeignLoadJpegBuffer *buffer )
  * jpeg_has_multiple_scans(). Interlaced jpeg images need a large amount of
  * memory to load, so this field gives callers a chance to handle these
  * images differently.
+ *
+ * The string-valued field "jpeg-chroma-subsample" gives the chroma subsample
+ * in standard notation. 4:4:4 means no subsample, 4:2:0 means YCbCr with
+ * Cb and Cr subsampled horizontally and vertically, 4:4:4:4 means a CMYK
+ * image with no subsampling. 
  *
  * The EXIF thumbnail, if present, is attached to the image as 
  * "jpeg-thumbnail-data". See vips_image_get_blob().

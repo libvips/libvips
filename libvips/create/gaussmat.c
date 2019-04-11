@@ -134,7 +134,8 @@ vips_gaussmat_build( VipsObject *object )
 
 	vips_image_init_fields( create->out,
 		width, height, 1, 
-		VIPS_FORMAT_DOUBLE, VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W,
+		VIPS_FORMAT_DOUBLE, VIPS_CODING_NONE, 
+		VIPS_INTERPRETATION_MULTIBAND,
 		1.0, 1.0 ); 
 	vips_image_pipelinev( create->out, 
 		VIPS_DEMAND_STYLE_ANY, NULL );
@@ -156,6 +157,11 @@ vips_gaussmat_build( VipsObject *object )
 			sum += v; 
 		}
 	}
+
+	/* Make sure we can't make sum == 0: it'd certainly cause /0 later. 
+	 */
+	if( sum == 0 )
+		sum = 1;
 
 	vips_image_set_double( create->out, "scale", sum ); 
 	vips_image_set_double( create->out, "offset", 0.0 ); 

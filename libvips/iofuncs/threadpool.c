@@ -21,6 +21,8 @@
  * 23/4/17
  * 	- add ->stall
  * 	- don't depend on image width when setting n_lines
+ * 27/2/19 jtorresfabra
+ * 	- free threadpool earlier 
  */
 
 /*
@@ -579,6 +581,8 @@ vips_thread_free( VipsThread *thr )
 
 	VIPS_FREEF( g_object_unref, thr->state );
 	thr->pool = NULL;
+
+	VIPS_FREE( thr );
 }
 
 static int
@@ -588,10 +592,9 @@ vips_thread_allocate( VipsThread *thr )
 
 	g_assert( !pool->stop );
 
-	if( !thr->state ) {
-		if( !(thr->state = pool->start( pool->im, pool->a )) ) 
-			return( -1 );
-	}
+	if( !thr->state &&
+		!(thr->state = pool->start( pool->im, pool->a )) ) 
+		return( -1 );
 
 	if( pool->allocate( thr->state, pool->a, &pool->stop ) ) 
 		return( -1 );
@@ -703,7 +706,7 @@ vips_thread_new( VipsThreadpool *pool )
 {
 	VipsThread *thr;
 
-	if( !(thr = VIPS_NEW( pool->im, VipsThread )) )
+	if( !(thr = VIPS_NEW( NULL, VipsThread )) )
 		return( NULL );
 	thr->pool = pool;
 	thr->state = NULL;
@@ -725,7 +728,8 @@ vips_thread_new( VipsThreadpool *pool )
 	return( thr );
 }
 
-/* Kill all threads in a threadpool, if there are any.
+/* Kill all threads in a threadpool, if there are any. Can be called multiple
+ * times. 
  */
 static void
 vips_threadpool_kill_threads( VipsThreadpool *pool )
@@ -734,21 +738,14 @@ vips_threadpool_kill_threads( VipsThreadpool *pool )
 		int i;
 
 		for( i = 0; i < pool->nthr; i++ ) 
-			if( pool->thr[i] ) {
-				vips_thread_free( pool->thr[i] );
-				pool->thr[i] = NULL;
-			}
-
-		pool->thr = NULL;
+			VIPS_FREEF( vips_thread_free, pool->thr[i] );
 
 		VIPS_DEBUG_MSG( "vips_threadpool_kill_threads: "
 			"killed %d threads\n", pool->nthr );
 	}
 }
 
-/* This can be called multiple times, careful.
- */
-static int
+static void
 vips_threadpool_free( VipsThreadpool *pool )
 {
 	VIPS_DEBUG_MSG( "vips_threadpool_free: \"%s\" (%p)\n", 
@@ -758,14 +755,8 @@ vips_threadpool_free( VipsThreadpool *pool )
 	VIPS_FREEF( vips_g_mutex_free, pool->allocate_lock );
 	vips_semaphore_destroy( &pool->finish );
 	vips_semaphore_destroy( &pool->tick );
-
-	return( 0 );
-}
-
-static void
-vips_threadpool_new_cb( VipsImage *im, VipsThreadpool *pool )
-{
-	vips_threadpool_free( pool );
+	VIPS_FREE( pool->thr );
+	VIPS_FREE( pool );
 }
 
 static VipsThreadpool *
@@ -779,7 +770,7 @@ vips_threadpool_new( VipsImage *im )
 
 	/* Allocate and init new thread block.
 	 */
-	if( !(pool = VIPS_NEW( im, VipsThreadpool )) )
+	if( !(pool = VIPS_NEW( NULL, VipsThreadpool )) )
 		return( NULL );
 	pool->im = im;
 	pool->allocate = NULL;
@@ -802,11 +793,6 @@ vips_threadpool_new( VipsImage *im )
 	n_tiles = VIPS_CLIP( 0, n_tiles, MAX_THREADS ); 
 	pool->nthr = VIPS_MIN( pool->nthr, n_tiles ); 
 
-	/* Attach tidy-up callback.
-	 */
-	g_signal_connect( im, "close", 
-		G_CALLBACK( vips_threadpool_new_cb ), pool ); 
-
 	VIPS_DEBUG_MSG( "vips_threadpool_new: \"%s\" (%p), with %d threads\n", 
 		im->filename, pool, pool->nthr );
 
@@ -824,7 +810,7 @@ vips_threadpool_create_threads( VipsThreadpool *pool )
 
 	/* Make thread array.
 	 */
-	if( !(pool->thr = VIPS_ARRAY( pool->im, pool->nthr, VipsThread * )) )
+	if( !(pool->thr = VIPS_ARRAY( NULL, pool->nthr, VipsThread * )) )
 		return( -1 );
 	for( i = 0; i < pool->nthr; i++ )
 		pool->thr[i] = NULL;

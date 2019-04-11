@@ -99,6 +99,8 @@ typedef enum {
 	VIPS_INTERESTING_CENTRE,
 	VIPS_INTERESTING_ENTROPY,
 	VIPS_INTERESTING_ATTENTION,
+	VIPS_INTERESTING_LOW,
+	VIPS_INTERESTING_HIGH,
 	VIPS_INTERESTING_LAST
 } VipsInteresting;
 
@@ -174,6 +176,8 @@ int vips_replicate( VipsImage *in, VipsImage **out, int across, int down, ... )
 	__attribute__((sentinel));
 int vips_grid( VipsImage *in, VipsImage **out, 
 	int tile_height, int across, int down, ... )
+	__attribute__((sentinel));
+int vips_transpose3d( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_wrap( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));

@@ -525,7 +525,7 @@ vips_affine_build( VipsObject *object )
 	affine->trn.idy -= 1;
 
 	/* If there's an alpha, we have to premultiply before resampling. See
-	 * https://github.com/jcupitt/libvips/issues/291
+	 * https://github.com/libvips/libvips/issues/291
 	 */
 	have_premultiplied = FALSE;
 	if( vips_image_hasalpha( in ) ) { 

@@ -37,6 +37,7 @@
 #include <stdio.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 #include <vips/internal.h>
 
 #include "../foreign/pforeign.h"
@@ -51,11 +52,11 @@ webp2vips( const char *name, IMAGE *out, gboolean header_only )
 
 #ifdef HAVE_LIBWEBP
 	if( header_only ) {
-		if( vips__webp_read_file_header( filename, out, 1 ) )
+		if( vips__webp_read_file_header( filename, out, 0, 1, 1 ) )
 			return( -1 );
 	}
 	else {
-		if( vips__webp_read_file( filename, out, 1 ) )
+		if( vips__webp_read_file( filename, out, 0, 1, 1 ) )
 			return( -1 );
 	}
 #else

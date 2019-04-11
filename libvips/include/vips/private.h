@@ -188,6 +188,10 @@ int vips_region_prepare_many( struct _VipsRegion **reg, const VipsRect *r );
  */
 int vips__view_image( struct _VipsImage *image );
 
+/* Pre 8.7 libvipses used this for allocating argument ids.
+ */
+extern int _vips__argument_id;
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

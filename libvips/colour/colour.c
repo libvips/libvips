@@ -3,19 +3,19 @@
 
 /*
 
-    Copyright (C) 1991-2005 The National Gallery
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    This file is part of VIPS.
+    
+    VIPS is free software; you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
     02110-1301  USA
@@ -256,21 +256,6 @@ vips_colour_gen( VipsRegion *or,
 }
 
 static int
-vips_colour_attach_profile( VipsImage *im, const char *filename )
-{
-	char *data;
-	size_t data_length;
-
-	if( !(data = vips__file_read_name( filename, vips__icc_dir(), 
-		&data_length )) ) 
-		return( -1 );
-	vips_image_set_blob( im, VIPS_META_ICC_NAME, 
-		(VipsCallbackFn) g_free, data, data_length );
-
-	return( 0 );
-}
-
-static int
 vips_colour_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
@@ -356,12 +341,9 @@ vips_colour_build( VipsObject *object )
 	out->BandFmt = colour->format;
 	out->Bands = colour->bands;
 
-	if( colour->profile_filename ) 
-		if( vips_colour_attach_profile( out, 
-			colour->profile_filename ) ) {
-			g_object_unref( out );
-			return( -1 );
-		}
+	if( colour->profile_filename &&
+		vips__profile_set( out, colour->profile_filename ) )
+		return( -1 );
 
 	if( vips_image_generate( out,
 		vips_start_many, vips_colour_gen, vips_stop_many, 
@@ -750,8 +732,11 @@ vips_colour_operation_init( void )
 	extern GType vips_HSV2sRGB_get_type( void ); 
 	extern GType vips_scRGB2XYZ_get_type( void ); 
 	extern GType vips_scRGB2BW_get_type( void ); 
-	extern GType vips_XYZ2scRGB_get_type( void ); 
+	extern GType vips_XYZ2scRGB_get_type( void );
 	extern GType vips_scRGB2sRGB_get_type( void ); 
+	extern GType vips_CMYK2XYZ_get_type( void ); 
+	extern GType vips_XYZ2CMYK_get_type( void ); 
+	extern GType vips_profile_load_get_type( void ); 
 #ifdef HAVE_LCMS2
 	extern GType vips_icc_import_get_type( void ); 
 	extern GType vips_icc_export_get_type( void ); 
@@ -786,6 +771,9 @@ vips_colour_operation_init( void )
 	vips_HSV2sRGB_get_type(); 
 	vips_XYZ2scRGB_get_type();
 	vips_scRGB2sRGB_get_type();
+	vips_CMYK2XYZ_get_type();
+	vips_XYZ2CMYK_get_type();
+	vips_profile_load_get_type(); 
 #ifdef HAVE_LCMS2
 	vips_icc_import_get_type();
 	vips_icc_export_get_type();

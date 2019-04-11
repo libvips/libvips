@@ -1115,13 +1115,6 @@ int im_correl( VipsImage *ref, VipsImage *sec,
 int im_align_bands( VipsImage *in, VipsImage *out );
 int im_maxpos_subpel( VipsImage *in, double *x, double *y );
 
-/* These were public for a while, keep for compat.
- */
-int vips_foreign_load( const char *filename, VipsImage **out, ... )
-	__attribute__((sentinel));
-int vips_foreign_save( VipsImage *in, const char *filename, ... )
-	__attribute__((sentinel));
-
 VipsImage *vips__deprecated_open_read( const char *filename, gboolean sequential );
 VipsImage *vips__deprecated_open_write( const char *filename );
 
@@ -1187,8 +1180,6 @@ void imb_XYZ2Lab( float *, float *, int, im_colour_temperature * );
 void imb_LabS2Lab( signed short *, float *, int );
 void imb_Lab2LabS( float *, signed short *, int n );
 
-void vips__Lab2LabQ_vec( VipsPel *out, float *in, int width );
-void vips__LabQ2Lab_vec( float *out, VipsPel *in, int width );
 
 void im_copy_dmask_matrix( DOUBLEMASK *mask, double **matrix );
 void im_copy_matrix_dmask( double **matrix, DOUBLEMASK *mask );
@@ -1230,6 +1221,15 @@ GOptionGroup *vips_get_option_group( void );
 /* old window manager API
  */
 VipsWindow *vips_window_ref( VipsImage *im, int top, int height );
+
+/* This stuff is very, very old and should not be used by anyone now.
+ */
+#ifdef VIPS_ENABLE_ANCIENT
+#include <vips/deprecated.h>
+#endif /*VIPS_ENABLE_ANCIENT*/
+
+#include <vips/dispatch.h>
+#include <vips/almostdeprecated.h>
 
 #ifdef __cplusplus
 }

@@ -249,7 +249,7 @@ vips_perlin_build( VipsObject *object )
 	vips_image_init_fields( create->out,
 		perlin->width, perlin->height, 1,
 		perlin->uchar ? VIPS_FORMAT_UCHAR : VIPS_FORMAT_FLOAT, 
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W,
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_MULTIBAND,
 		1.0, 1.0 );
 	vips_image_pipelinev( create->out,
 		VIPS_DEMAND_STYLE_ANY, NULL );
@@ -267,7 +267,7 @@ vips_perlin_make_tables( void *client )
 	int i;
 
 	for( i = 0; i < 256; i++ ) {
-		double angle = 2 * M_PI * i / 256.0;
+		double angle = 2 * VIPS_PI * i / 256.0;
 
 		vips_perlin_cos[i] = cos( angle );
 		vips_perlin_sin[i] = sin( angle );

@@ -12,6 +12,8 @@
  * 	- limit max tile width to 30k pixels to prevent overflow in render
  * 17/9/17 lovell
  * 	- handle scaling of svg files missing width and height attributes
+ * 22/3/18 lovell
+ * 	- svgload was missing is_a
  */
 
 /*
@@ -65,6 +67,14 @@
 #include <cairo.h>
 #include <librsvg/rsvg.h>
 
+/* The <svg tag must appear within this many bytes of the start of the file.
+ */
+#define SVG_HEADER_SIZE (1000)
+
+/* The maximum pixel width librsvg is able to render.
+ */
+#define RSVG_MAX_WIDTH (32767)
+
 /* Old librsvg versions don't include librsvg-features.h by default.
  * Newer versions deprecate direct inclusion.
  */
@@ -105,6 +115,108 @@ typedef VipsForeignLoadClass VipsForeignLoadSvgClass;
 
 G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadSvg, vips_foreign_load_svg, 
 	VIPS_TYPE_FOREIGN_LOAD );
+
+#ifdef HANDLE_SVGZ
+static void *
+vips_foreign_load_svg_zalloc( void *opaque, unsigned items, unsigned size )
+{
+	return( g_malloc0_n( items, size ) );
+}
+
+static void
+vips_foreign_load_svg_zfree( void *opaque, void *ptr )
+{
+	return( g_free( ptr ) );
+}
+#endif /*HANDLE_SVGZ*/
+
+/* This is used by both the file and buffer subclasses.
+ */
+static gboolean
+vips_foreign_load_svg_is_a( const void *buf, size_t len )
+{
+	char *str;
+
+#ifdef HANDLE_SVGZ
+	/* If the buffer looks like a zip, deflate to here and then search
+	 * that for <svg.
+	 */
+	char obuf[224];
+#endif /*HANDLE_SVGZ*/
+
+	int i;
+
+	/* Start with str pointing at the argument buffer, swap to it pointing
+	 * into obuf if we see zip data.
+	 */
+	str = (char *) buf;
+
+#ifdef HANDLE_SVGZ
+	/* Check for SVGZ gzip signature and inflate.
+	 *
+	 * Minimum gzip size is 18 bytes, starting with 1F 8B.
+	 */
+	if( len >= 18 && 
+		str[0] == '\037' && 
+		str[1] == '\213' ) {
+		z_stream zs;
+		size_t opos;
+
+		zs.zalloc = (alloc_func) vips_foreign_load_svg_zalloc;
+		zs.zfree = (free_func) vips_foreign_load_svg_zfree;
+		zs.opaque = Z_NULL;
+		zs.next_in = (unsigned char *) str;
+		zs.avail_in = len;
+
+		/* There isn't really an error return from is_a_buffer()
+		 */
+		if( inflateInit2( &zs, 15 | 32 ) != Z_OK ) 
+			return( FALSE );
+
+		opos = 0;
+		do {
+			zs.avail_out = sizeof( obuf ) - opos;
+			zs.next_out = (unsigned char *) obuf + opos;
+			if( inflate( &zs, Z_NO_FLUSH ) < Z_OK ) 
+				return( FALSE );
+			opos = sizeof( obuf ) - zs.avail_out;
+		} while( opos < sizeof( obuf ) && 
+			zs.avail_in > 0 );
+
+		inflateEnd( &zs );
+
+		str = obuf;
+		len = opos;
+	}
+#endif /*HANDLE_SVGZ*/
+
+	/* SVG documents are very freeform. They normally look like:
+	 *
+	 * <?xml version="1.0" encoding="UTF-8"?>
+	 * <svg xmlns="http://www.w3.org/2000/svg" ...
+	 *
+	 * But there can be a doctype in there too. And case and whitespace can
+	 * vary a lot. And the <?xml can be missing. And you can have a comment
+	 * before the <svg line.
+	 *
+	 * Simple rules:
+	 * - first 24 chars are plain ascii
+	 * - first SVG_HEADER_SIZE chars contain "<svg", upper or lower case.
+	 *
+	 * We could rsvg_handle_new_from_data() on the buffer, but that can be
+	 * horribly slow for large documents. 
+	 */
+	if( len < 24 )
+		return( 0 );
+	for( i = 0; i < 24; i++ )
+		if( !isascii( str[i] ) )
+			return( FALSE );
+	for( i = 0; i < SVG_HEADER_SIZE && i < len - 5; i++ )
+		if( g_ascii_strncasecmp( str + i, "<svg", 4 ) == 0 )
+			return( TRUE );
+
+	return( FALSE );
+}
 
 static void
 vips_foreign_load_svg_dispose( GObject *gobject )
@@ -154,7 +266,8 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
 		rsvg_handle_set_dpi( svg->page, svg->dpi * svg->scale );
 		rsvg_handle_get_dimensions( svg->page, &dimensions );
 
-		if( width == dimensions.width && height == dimensions.height ) {
+		if( width == dimensions.width && 
+			height == dimensions.height ) {
 			/* SVG without width and height always reports the same 
 			 * dimensions regardless of dpi. Apply dpi/scale using 
 			 * cairo instead.
@@ -236,11 +349,11 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 
 	cairo_destroy( cr );
 
-	/* Cairo makes pre-multipled BRGA, we must byteswap and unpremultiply.
+	/* Cairo makes pre-multipled BRGA -- we must byteswap and unpremultiply.
 	 */
 	for( y = 0; y < r->height; y++ ) 
 		vips__cairo2rgba( 
-			(guint32 *) VIPS_REGION_ADDR( or, r->left, r->top + y ), 
+			(guint32 *) VIPS_REGION_ADDR( or, r->left, r->top + y ),
 			r->width ); 
 
 	return( 0 ); 
@@ -255,13 +368,7 @@ vips_foreign_load_svg_load( VipsForeignLoad *load )
 
 	int tile_width;
 	int tile_height;
-	int n_lines;
 	int max_tiles;
-
-	/* Use this to pick a tile height for our strip cache.
-	 */
-	vips_get_tile_size( load->real,
-		&tile_width, &tile_height, &n_lines );
 
 	/* Read to this image, then cache to out, see below.
 	 */
@@ -278,10 +385,17 @@ vips_foreign_load_svg_load( VipsForeignLoad *load )
 	 *
 	 * Don't thread the cache: we rely on this to keep calls to rsvg 
 	 * single-threaded.
+	 *
+	 * Make tiles 2000 pixels high to limit overcomputation. Make sure we
+	 * have two rows of tiles so we don't recompute requests that cross
+	 * tile boundaries. 
 	 */
-	max_tiles = 3 * VIPS_ROUND_UP( t[0]->Xsize, 30000 ) / 30000;
+	tile_width = VIPS_MIN( t[0]->Xsize, RSVG_MAX_WIDTH );
+	max_tiles = 2 * VIPS_ROUND_UP( t[0]->Xsize, RSVG_MAX_WIDTH ) / 
+		RSVG_MAX_WIDTH;
+	tile_height = 2000;
 	if( vips_tilecache( t[0], &t[1],
-		"tile_width", 30000,
+		"tile_width", tile_width,
 		"tile_height", tile_height,
 		"max_tiles", max_tiles,
 		"access", VIPS_ACCESS_SEQUENTIAL,
@@ -312,14 +426,14 @@ vips_foreign_load_svg_class_init( VipsForeignLoadSvgClass *class )
 	load_class->get_flags = vips_foreign_load_svg_get_flags;
 	load_class->load = vips_foreign_load_svg_load;
 
-	VIPS_ARG_DOUBLE( class, "dpi", 11,
+	VIPS_ARG_DOUBLE( class, "dpi", 21,
 		_( "DPI" ),
 		_( "Render at this DPI" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadSvg, dpi ),
 		0.001, 100000.0, 72.0 );
 
-	VIPS_ARG_DOUBLE( class, "scale", 12,
+	VIPS_ARG_DOUBLE( class, "scale", 22,
 		_( "Scale" ),
 		_( "Scale output by this factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
@@ -349,6 +463,17 @@ typedef VipsForeignLoadSvgClass VipsForeignLoadSvgFileClass;
 
 G_DEFINE_TYPE( VipsForeignLoadSvgFile, vips_foreign_load_svg_file, 
 	vips_foreign_load_svg_get_type() );
+
+static gboolean
+vips_foreign_load_svg_file_is_a( const char *filename )
+{
+	unsigned char buf[SVG_HEADER_SIZE];
+	guint64 bytes;
+
+	return( (bytes = vips__get_bytes( filename, 
+			buf, SVG_HEADER_SIZE )) > 0 &&
+		vips_foreign_load_svg_is_a( buf, bytes ) );
+}
 
 static int
 vips_foreign_load_svg_file_header( VipsForeignLoad *load )
@@ -396,6 +521,7 @@ vips_foreign_load_svg_file_class_init(
 
 	foreign_class->suffs = vips_foreign_svg_suffs;
 
+	load_class->is_a = vips_foreign_load_svg_file_is_a;
 	load_class->header = vips_foreign_load_svg_file_header;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
@@ -425,106 +551,6 @@ typedef VipsForeignLoadSvgClass VipsForeignLoadSvgBufferClass;
 
 G_DEFINE_TYPE( VipsForeignLoadSvgBuffer, vips_foreign_load_svg_buffer, 
 	vips_foreign_load_svg_get_type() );
-
-#ifdef HANDLE_SVGZ
-static void *
-vips_foreign_load_svg_zalloc( void *opaque, unsigned items, unsigned size )
-{
-	return( g_malloc0_n( items, size ) );
-}
-
-static void
-vips_foreign_load_svg_zfree( void *opaque, void *ptr )
-{
-	return( g_free( ptr ) );
-}
-#endif /*HANDLE_SVGZ*/
-
-static gboolean
-vips_foreign_load_svg_is_a_buffer( const void *buf, size_t len )
-{
-	char *str;
-
-#ifdef HANDLE_SVGZ
-	/* If the buffer looks like a zip, deflate to here and then search
-	 * that for <svg.
-	 */
-	char obuf[224];
-#endif /*HANDLE_SVGZ*/
-
-	int i;
-
-	/* Start with str pointing at the argument buffer, swap to it pointing
-	 * into obuf if we see zip data.
-	 */
-	str = (char *) buf;
-
-#ifdef HANDLE_SVGZ
-	/* Check for SVGZ gzip signature and inflate.
-	 *
-	 * Minimum gzip size is 18 bytes, starting with 1F 8B.
-	 */
-	if( len >= 18 && 
-		str[0] == '\037' && 
-		str[1] == '\213' ) {
-		z_stream zs;
-		size_t opos;
-
-		zs.zalloc = (alloc_func) vips_foreign_load_svg_zalloc;
-		zs.zfree = (free_func) vips_foreign_load_svg_zfree;
-		zs.opaque = Z_NULL;
-		zs.next_in = (unsigned char *) str;
-		zs.avail_in = len;
-
-		/* There isn't really an error return from is_a_buffer()
-		 */
-		if( inflateInit2( &zs, 15 | 32 ) != Z_OK ) 
-			return( FALSE );
-
-		opos = 0;
-		do {
-			zs.avail_out = sizeof( obuf ) - opos;
-			zs.next_out = (unsigned char *) obuf + opos;
-			if( inflate( &zs, Z_NO_FLUSH ) < Z_OK ) 
-				return( FALSE );
-			opos = sizeof( obuf ) - zs.avail_out;
-		} while( opos < sizeof( obuf ) && 
-			zs.avail_in > 0 );
-
-		inflateEnd( &zs );
-
-		str = obuf;
-		len = opos;
-	}
-#endif /*HANDLE_SVGZ*/
-
-	/* SVG documents are very freeform. They normally look like:
-	 *
-	 * <?xml version="1.0" encoding="UTF-8"?>
-	 * <svg xmlns="http://www.w3.org/2000/svg" ...
-	 *
-	 * But there can be a doctype in there too. And case and whitespace can
-	 * vary a lot. And the <?xml can be missing. And you can have a comment
-	 * before the <svg line.
-	 *
-	 * Simple rules:
-	 * - first 24 chars are plain ascii
-	 * - first 300 chars contain "<svg", upper or lower case.
-	 *
-	 * We could rsvg_handle_new_from_data() on the buffer, but that can be
-	 * horribly slow for large documents. 
-	 */
-	if( len < 24 )
-		return( 0 );
-	for( i = 0; i < 24; i++ )
-		if( !isascii( str[i] ) )
-			return( FALSE );
-	for( i = 0; i < 300 && i < len - 5; i++ )
-		if( g_ascii_strncasecmp( str + i, "<svg", 4 ) == 0 )
-			return( TRUE );
-
-	return( FALSE );
-}
 
 static int
 vips_foreign_load_svg_buffer_header( VipsForeignLoad *load )
@@ -557,7 +583,7 @@ vips_foreign_load_svg_buffer_class_init(
 
 	object_class->nickname = "svgload_buffer";
 
-	load_class->is_a_buffer = vips_foreign_load_svg_is_a_buffer;
+	load_class->is_a_buffer = vips_foreign_load_svg_is_a;
 	load_class->header = vips_foreign_load_svg_buffer_header;
 
 	VIPS_ARG_BOXED( class, "buffer", 1, 

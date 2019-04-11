@@ -127,10 +127,6 @@ vips_foreign_load_csv_class_init( VipsForeignLoadCsvClass *class )
 
 	foreign_class->suffs = vips__foreign_csv_suffs;
 
-	/* is_a() is not that quick ... lower the priority.
-	 */
-	foreign_class->priority = -50;
-
 	load_class->get_flags_filename = 
 		vips_foreign_load_csv_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_csv_get_flags;
@@ -144,28 +140,28 @@ vips_foreign_load_csv_class_init( VipsForeignLoadCsvClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoadCsv, filename ),
 		NULL );
 
-	VIPS_ARG_INT( class, "skip", 10, 
+	VIPS_ARG_INT( class, "skip", 20, 
 		_( "Skip" ), 
 		_( "Skip this many lines at the start of the file" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadCsv, skip ),
 		0, 10000000, 0 );
 
-	VIPS_ARG_INT( class, "lines", 11, 
+	VIPS_ARG_INT( class, "lines", 21, 
 		_( "Lines" ), 
 		_( "Read this many lines from the file" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadCsv, lines ),
 		-1, 10000000, 0 );
 
-	VIPS_ARG_STRING( class, "whitespace", 12, 
+	VIPS_ARG_STRING( class, "whitespace", 22, 
 		_( "Whitespace" ), 
 		_( "Set of whitespace characters" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadCsv, whitespace ),
 		" " ); 
 
-	VIPS_ARG_STRING( class, "separator", 13, 
+	VIPS_ARG_STRING( class, "separator", 23, 
 		_( "Separator" ), 
 		_( "Set of separator characters" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,

@@ -1,15 +1,18 @@
-#!/usr/bin/python2
+#!/usr/bin/python
+
+from __future__ import division
+from __future__ import print_function
 
 import re
-import math
 import cairo
+from io import open
 
 class ReadFile:
     def __init__(self, filename):
         self.filename = filename
 
     def __enter__(self):
-        self.f = open(self.filename, 'r') 
+        self.f = open(self.filename, 'r', encoding='utf-8')
         self.lineno = 0
         self.getnext();
         return self
@@ -17,8 +20,10 @@ class ReadFile:
     def __exit__(self, type, value, traceback):
         self.f.close()
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self.line != ""
+
+    __nonzero__ = __bool__
 
     def getnext(self):
         self.lineno += 1
@@ -41,7 +46,7 @@ class Thread:
 
     def __init__(self, thread_name):
         # no one cares about the thread address
-        match = re.match('(.*) \(0x.*?\) (.*)', thread_name)
+        match = re.match(r'(.*) \(0x.*?\) (.*)', thread_name)
         if match:
             thread_name = match.group(1) + " " + match.group(2)
 
@@ -93,7 +98,7 @@ input_filename = 'vips-profile.txt'
 thread_id = 0
 threads = []
 n_events = 0
-print 'reading from', input_filename
+print('reading from', input_filename)
 with ReadFile(input_filename) as rf:
     while rf:
         if rf.line.rstrip() == "":
@@ -105,7 +110,7 @@ with ReadFile(input_filename) as rf:
 
         match = re.match('thread: (.*)', rf.line)
         if not match:
-            print 'parse error line %d, expected "thread"' % rf.lineno
+            print('parse error line %d, expected "thread"' % rf.lineno)
         thread_name = match.group(1) + " " + str(thread_id)
         thread_id += 1
         thread = Thread(thread_name)
@@ -135,21 +140,21 @@ with ReadFile(input_filename) as rf:
             stop = read_times(rf)
 
             if len(start) != len(stop):
-                print 'start and stop length mismatch'
+                print('start and stop length mismatch')
 
             for a, b in zip(start, stop):
                 Event(thread, gate_location, gate_name, a, b)
                 n_events += 1
 
 for thread in threads:
-    thread.all_events.sort(lambda x, y: cmp(x.start, y.start))
-    thread.workwait_events.sort(lambda x, y: cmp(x.start, y.start))
-    thread.memory_events.sort(lambda x, y: cmp(x.start, y.start))
-    thread.other_events.sort(lambda x, y: cmp(x.start, y.start))
+    thread.all_events.sort(key=lambda x: x.start)
+    thread.workwait_events.sort(key=lambda x: x.start)
+    thread.memory_events.sort(key=lambda x: x.start)
+    thread.other_events.sort(key=lambda x: x.start)
 
-all_events.sort(lambda x, y: cmp(x.start, y.start))
+all_events.sort(key=lambda x: x.start)
 
-print 'loaded %d events' % n_events
+print('loaded %d events' % n_events)
 
 # move time axis to secs of computation
 ticks_per_sec = 1000000.0
@@ -168,7 +173,7 @@ for event in all_events:
 last_time = (last_time - first_time) / ticks_per_sec
 first_time = 0
 
-print 'total time =', last_time
+print('total time =', last_time)
 
 # calculate some simple stats
 for thread in threads:
@@ -197,7 +202,7 @@ for thread in threads:
     # hide very short-lived threads 
     thread.hide = thread.alive < 0.01
 
-print 'name\t\talive\twait%\twork%\tunkn%\tmemory\tpeakm'
+print('name\t\talive\twait%\twork%\tunkn%\tmemory\tpeakm')
 for thread in threads:
     if thread.hide:
         continue
@@ -206,10 +211,11 @@ for thread in threads:
     work_percent = 100 * thread.work / thread.alive
     unkn_percent = 100 - 100 * (thread.work + thread.wait) / thread.alive
 
-    print '%13s\t%6.2g\t' % (thread.thread_name, thread.alive),
-    print '%.3g\t%.3g\t%.3g\t' % (wait_percent, work_percent, unkn_percent),
-    print '%.3g\t' % (float(thread.mem) / (1024 * 1024)),
-    print '%.3g\t' % (float(thread.peak_mem) / (1024 * 1024))
+    print('%13s\t%6.2g\t' % (thread.thread_name, thread.alive), end=' ')
+    print('%.3g\t%.3g\t%.3g\t' % 
+            (wait_percent, work_percent, unkn_percent), end=' ')
+    print('%.3g\t' % (thread.mem / (1024 * 1024)), end=' ')
+    print('%.3g\t' % (thread.peak_mem / (1024 * 1024)))
 
 mem = 0
 peak_mem = 0
@@ -219,9 +225,9 @@ for event in all_events:
         if mem > peak_mem:
             peak_mem = mem
 
-print 'peak memory = %.3g MB' % (float(peak_mem) / (1024 * 1024))
+print('peak memory = %.3g MB' % (peak_mem / (1024 * 1024)))
 if mem != 0:
-    print 'leak! final memory = %.3g MB' % (float(mem) / (1024 * 1024))
+    print('leak! final memory = %.3g MB' % (mem / (1024 * 1024)))
 
 # does a list of events contain an overlap? 
 # assume the list of events has been sorted by start time
@@ -246,7 +252,7 @@ def gates_overlap(events, gate_name1, gate_name2):
         if event.gate_name == gate_name1 or event.gate_name == gate_name2:
             merged.append(event)
 
-    merged.sort(lambda x, y: cmp(x.start, y.start))
+    merged.sort(key=lambda x: x.start)
 
     return events_overlap(merged)
 
@@ -262,18 +268,18 @@ for thread in threads:
 
     # first pass .. move work and wait events to y == 0
     if events_overlap(thread.workwait_events):
-        print 'gate overlap on thread', thread.thread_name
+        print('gate overlap on thread', thread.thread_name)
         for i in range(0, len(thread.workwait_events) - 1):
             event1 = thread.workwait_events[i]
             event2 = thread.workwait_events[i + 1]
             overlap_start = max(event1.start, event2.start)
             overlap_stop = min(event1.stop, event2.stop)
             if overlap_stop - overlap_start > 0:
-                print 'overlap:'
-                print 'event', event1.gate_location, event1.gate_name, 
-                print 'starts at', event1.start, 'stops at', event1.stop
-                print 'event', event2.gate_location, event2.gate_name, 
-                print 'starts at', event2.start, 'stops at', event2.stop
+                print('overlap:')
+                print('event', event1.gate_location, event1.gate_name, end=' ') 
+                print('starts at', event1.start, 'stops at', event1.stop)
+                print('event', event2.gate_location, event2.gate_name, end=' ') 
+                print('starts at', event2.start, 'stops at', event2.stop)
 
     for event in thread.workwait_events:
         gate_positions[event.gate_name] = 0
@@ -297,7 +303,8 @@ for thread in threads:
                     if gate_positions[gate_name] != gate_y:
                         continue
 
-                    if gates_overlap(thread.other_events, event.gate_name, gate_name):
+                    if gates_overlap(thread.other_events, 
+                            event.gate_name, gate_name):
                         found_overlap = True
                         break
 
@@ -329,7 +336,7 @@ WIDTH = int(LEFT_BORDER + last_time * PIXELS_PER_SECOND) + 20
 HEIGHT = int(total_y * PIXELS_PER_GATE) + MEM_HEIGHT + 30
 
 output_filename = "vips-profile.svg"
-print 'writing to', output_filename
+print('writing to', output_filename)
 
 surface = cairo.SVGSurface(output_filename, WIDTH, HEIGHT)
 
@@ -343,7 +350,7 @@ ctx.fill()
 
 def draw_event(ctx, event):
     left = event.start * PIXELS_PER_SECOND + LEFT_BORDER
-    top = event.total_y * PIXELS_PER_GATE + BAR_HEIGHT / 2 
+    top = event.total_y * PIXELS_PER_GATE + BAR_HEIGHT // 2
     width = (event.stop - event.start) * PIXELS_PER_SECOND 
     height = BAR_HEIGHT
 
@@ -364,11 +371,10 @@ def draw_event(ctx, event):
         ctx.set_source_rgb(0.1, 0.1, 0.9)
 
     ctx.fill()
-
     if not event.wait and not event.work and not event.memory:
         xbearing, ybearing, twidth, theight, xadvance, yadvance = \
                 ctx.text_extents(event.gate_name)
-        ctx.move_to(left + width / 2 - twidth / 2, top + 3 * BAR_HEIGHT)
+        ctx.move_to(left + width // 2 - twidth // 2, top + 3 * BAR_HEIGHT)
         ctx.set_source_rgb(1.00, 0.83, 0.00)
         ctx.show_text(event.gate_name)
 
@@ -382,7 +388,7 @@ for thread in threads:
 
     xbearing, ybearing, twidth, theight, xadvance, yadvance = \
             ctx.text_extents(thread.thread_name)
-    ctx.move_to(0, theight + thread.total_y * PIXELS_PER_GATE + BAR_HEIGHT / 2)
+    ctx.move_to(0, theight + thread.total_y * PIXELS_PER_GATE + BAR_HEIGHT // 2)
     ctx.set_source_rgb(1.00, 1.00, 1.00)
     ctx.show_text(thread.thread_name)
 
@@ -427,7 +433,7 @@ ctx.move_to(0, axis_y + theight + 8)
 ctx.set_source_rgb(1.00, 1.00, 1.00)
 ctx.show_text(label)
 
-for t in range(0, int(last_time * PIXELS_PER_SECOND), PIXELS_PER_SECOND / 10):
+for t in range(0, int(last_time * PIXELS_PER_SECOND), PIXELS_PER_SECOND // 10):
     left = t + LEFT_BORDER
     top = axis_y
 
@@ -435,10 +441,10 @@ for t in range(0, int(last_time * PIXELS_PER_SECOND), PIXELS_PER_SECOND / 10):
     ctx.set_source_rgb(1.00, 1.00, 1.00)
     ctx.fill()
 
-    label = str(float(t) / PIXELS_PER_SECOND)
+    label = str(t / PIXELS_PER_SECOND)
     xbearing, ybearing, twidth, theight, xadvance, yadvance = \
             ctx.text_extents(label)
-    ctx.move_to(left - twidth / 2, top + theight + 8)
+    ctx.move_to(left - twidth // 2, top + theight + 8)
     ctx.set_source_rgb(1.00, 1.00, 1.00)
     ctx.show_text(label)
 

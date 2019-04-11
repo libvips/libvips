@@ -52,6 +52,7 @@ gboolean vips_rect_isempty( const VipsRect *r );
 gboolean vips_rect_includespoint( const VipsRect *r, int x, int y );
 gboolean vips_rect_includesrect( const VipsRect *r1, const VipsRect *r2 );
 gboolean vips_rect_equalsrect( const VipsRect *r1, const VipsRect *r2 );
+gboolean vips_rect_overlapsrect( const VipsRect *r1, const VipsRect *r2 );
 void vips_rect_marginadjust( VipsRect *r, int n );
 void vips_rect_intersectrect( const VipsRect *r1, const VipsRect *r2, 
 	VipsRect *out );

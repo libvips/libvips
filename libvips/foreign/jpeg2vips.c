@@ -94,6 +94,12 @@
  * 	- revert previous warning change: libvips reports serious corruption, 
  * 	  like a truncated file, as a warning and we need to be able to catch
  * 	  that
+ * 9/4/18
+ * 	- set interlaced=1 for interlaced images
+ * 10/4/18
+ * 	- strict round down on shrink-on-load
+ * 16/8/18
+ * 	- shut down the input file as soon as we can [kleisauke]
  */
 
 /*
@@ -151,8 +157,6 @@
 /* Stuff we track during a read.
  */
 typedef struct _ReadJpeg {
-	VipsImage *out;
-
 	/* Shrink by this much during load. 1, 2, 4, 8.
 	 */
 	int shrink;
@@ -177,17 +181,39 @@ typedef struct _ReadJpeg {
 	 * during load.
 	 */
 	gboolean autorotate;
+
+	/* cinfo->output_width and height can be larger than we want since
+	 * libjpeg rounds up on shrink-on-load. This is the real size we will
+	 * output, as opposed to the size we decompress to.
+	 */
+	int output_width;
+	int output_height;
 } ReadJpeg;
+
+/* This can be called many times. It's called directly at the end of image
+ * read.
+ */
+static void
+readjpeg_close_input( ReadJpeg *jpeg )
+{
+	VIPS_FREEF( fclose, jpeg->eman.fp );
+
+	/* Don't call jpeg_finish_decompress(). It just checks the tail of the
+	 * file and who cares about that. All mem is freed in
+	 * jpeg_destroy_decompress().
+	 */
+
+	/* I don't think this can fail. It's harmless to call many times. 
+	 */
+	jpeg_destroy_decompress( &jpeg->cinfo );
+
+}
 
 /* This can be called many times.
  */
 static int
 readjpeg_free( ReadJpeg *jpeg )
 {
-	int result;
-
-	result = 0;
-
 	if( jpeg->eman.pub.num_warnings != 0 ) {
 		g_warning( _( "read gave %ld warnings" ), 
 			jpeg->eman.pub.num_warnings );
@@ -198,24 +224,15 @@ readjpeg_free( ReadJpeg *jpeg )
 		jpeg->eman.pub.num_warnings = 0;
 	}
 
-	/* Don't call jpeg_finish_decompress(). It just checks the tail of the
-	 * file and who cares about that. All mem is freed in
-	 * jpeg_destroy_decompress().
-	 */
+	readjpeg_close_input( jpeg );
 
-	VIPS_FREEF( fclose, jpeg->eman.fp );
 	VIPS_FREE( jpeg->filename );
-	jpeg->eman.fp = NULL;
 
-	/* I don't think this can fail. It's harmless to call many times. 
-	 */
-	jpeg_destroy_decompress( &jpeg->cinfo );
-
-	return( result );
+	return( 0 );
 }
 
 static void
-readjpeg_close( VipsObject *object, ReadJpeg *jpeg )
+readjpeg_close_cb( VipsObject *object, ReadJpeg *jpeg )
 {
 	(void) readjpeg_free( jpeg );
 }
@@ -228,7 +245,6 @@ readjpeg_new( VipsImage *out, int shrink, gboolean fail, gboolean autorotate )
 	if( !(jpeg = VIPS_NEW( out, ReadJpeg )) )
 		return( NULL );
 
-	jpeg->out = out;
 	jpeg->shrink = shrink;
 	jpeg->fail = fail;
 	jpeg->filename = NULL;
@@ -253,7 +269,7 @@ readjpeg_new( VipsImage *out, int shrink, gboolean fail, gboolean autorotate )
         jpeg_create_decompress( &jpeg->cinfo );
 
 	g_signal_connect( out, "close", 
-		G_CALLBACK( readjpeg_close ), jpeg ); 
+		G_CALLBACK( readjpeg_close_cb ), jpeg ); 
 
 	return( jpeg );
 }
@@ -271,11 +287,28 @@ readjpeg_file( ReadJpeg *jpeg, const char *filename )
 	return( 0 );
 }
 
+static const char *
+find_chroma_subsample( struct jpeg_decompress_struct *cinfo )
+{
+	gboolean has_subsample;
+
+	/* libjpeg only uses 4:4:4 and 4:2:0, confusingly. 
+	 *
+	 * http://poynton.ca/PDFs/Chroma_subsampling_notation.pdf
+	 */
+	has_subsample = cinfo->max_h_samp_factor > 1 ||
+		cinfo->max_v_samp_factor > 1;
+	if( cinfo->num_components > 3 )
+		/* A cmyk image.
+		 */
+		return( has_subsample ? "4:2:0:4" : "4:4:4:4" );
+	else
+		return( has_subsample ? "4:2:0" : "4:4:4" );
+}
+
 static int
 attach_blob( VipsImage *im, const char *field, void *data, int data_length )
 {
-	char *data_copy;
-
 	/* Only use the first one.
 	 */
 	if( vips_image_get_typeof( im, field ) ) {
@@ -290,13 +323,35 @@ attach_blob( VipsImage *im, const char *field, void *data, int data_length )
 	printf( "attach_blob: attaching %d bytes of %s\n", data_length, field );
 #endif /*DEBUG*/
 
-	if( !(data_copy = vips_malloc( NULL, data_length )) )
-		return( -1 );
-	memcpy( data_copy, data, data_length );
-	vips_image_set_blob( im, field, 
-		(VipsCallbackFn) vips_free, data_copy, data_length );
+	vips_image_set_blob_copy( im, field, data, data_length );
 
 	return( 0 );
+}
+
+/* data is the XMP string ... it'll have something like 
+ * "http://ns.adobe.com/xap/1.0/" at the front, then a null character, then
+ * the real XMP.
+ */
+static int
+attach_xmp_blob( VipsImage *im, void *data, int data_length )
+{
+	char *p = (char *) data;
+	int i;
+
+	if( !vips_isprefix( "http", p ) ) 
+		return( 0 );
+
+	/* Search for a null char within the first few characters. 80
+	 * should be plenty for a basic URL.
+	 */
+	for( i = 0; i < 80; i++ )
+		if( !p[i] ) 
+			break;
+	if( p[i] )
+		return( 0 );
+
+	return( attach_blob( im, VIPS_META_XMP_NAME, 
+		p + i + 1, data_length - i - 1 ) );
 }
 
 /* Number of app2 sections we can capture. Each one can be 64k, so 6400k should
@@ -408,11 +463,31 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 
+	/* cinfo->output_width and cinfo->output_height round up with
+	 * shrink-on-load. For example, if the image is 1801 pixels across and
+	 * we shrink by 4, the output will be 450.25 pixels across, 
+	 * cinfo->output_width with be 451, and libjpeg will write a black
+	 * column of pixels down the right.
+	 *
+	 * We must strictly round down, since we don't want fractional pixels
+	 * along the bottom and right.
+	 */
+	jpeg->output_width = cinfo->image_width / jpeg->shrink;
+	jpeg->output_height = cinfo->image_height / jpeg->shrink;
+
 	/* Interlaced jpegs need lots of memory to read, so our caller needs
 	 * to know.
 	 */
 	(void) vips_image_set_int( out, "jpeg-multiscan", 
 		jpeg_has_multiple_scans( cinfo ) );
+
+	/* 8.7 adds this for PNG as well, so we have a new format-neutral name.
+	 */
+	if( jpeg_has_multiple_scans( cinfo ) )
+		vips_image_set_int( out, "interlaced", 1 ); 
+
+	(void) vips_image_set_string( out, "jpeg-chroma-subsample", 
+		find_chroma_subsample( cinfo ) );
 
 	/* Look for EXIF and ICC profile.
 	 */
@@ -441,7 +516,7 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 
 			if( p->data_length > 4 &&
 				vips_isprefix( "http", (char *) p->data ) &&
-				attach_blob( out, VIPS_META_XMP_NAME, 
+				attach_xmp_blob( out, 
 					p->data, p->data_length ) )
 				return( -1 );
 
@@ -617,11 +692,10 @@ read_jpeg_generate( VipsRegion *or,
 		jpeg->y_pos += 1; 
 	}
 
-	/* Progressive images can have a lot of memory in the decompress
-	 * object, destroy as soon as we can. Safe to call many times. 
+	/* Shut down the input file as soon as we can. 
 	 */
 	if( jpeg->y_pos >= or->im->Ysize ) 
-		jpeg_destroy_decompress( &jpeg->cinfo );
+		readjpeg_close_input( jpeg );
 
 	VIPS_GATE_STOP( "read_jpeg_generate: work" );
 
@@ -684,15 +758,20 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 	printf( "read_jpeg_image: starting decompress\n" );
 #endif /*DEBUG*/
 
+	/* We must crop after the seq, or our generate may not be asked for
+	 * full lines of pixels and will attempt to write beyond the buffer.
+	 */
 	if( vips_image_generate( t[0], 
 		NULL, read_jpeg_generate, NULL, 
 		jpeg, NULL ) ||
 		vips_sequential( t[0], &t[1], 
 			"tile_height", 8,
-			NULL ) )
+			NULL ) ||
+		vips_extract_area( t[1], &t[2], 
+			0, 0, jpeg->output_width, jpeg->output_height, NULL ) )
 		return( -1 );
 
-	im = t[1];
+	im = t[2];
 	if( jpeg->autorotate )
 		im = read_jpeg_rotate( VIPS_OBJECT( out ), im );
 
@@ -730,6 +809,11 @@ vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 	if( header_only ) {
 		if( read_jpeg_header( jpeg, out ) )
 			return( -1 ); 
+
+		/* Patch in the correct size.
+		 */
+		out->Xsize = jpeg->output_width;
+		out->Ysize = jpeg->output_height;
 
 		/* Swap width and height if we're going to rotate this image.
 		 */
@@ -968,7 +1052,7 @@ vips__isjpeg( const char *filename )
 {
 	unsigned char buf[2];
 
-	if( vips__get_bytes( filename, buf, 2 ) &&
+	if( vips__get_bytes( filename, buf, 2 ) == 2 &&
 		vips__isjpeg_buffer( buf, 2 ) )
 		return( 1 );
 

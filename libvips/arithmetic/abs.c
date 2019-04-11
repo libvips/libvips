@@ -27,6 +27,8 @@
  * 3/12/13
  * 	- add orc, though the speed improvement vs. gcc's auto-vectorizer
  * 	  seems very marginal 
+ * 21/2/19
+ * 	- move orc init to first use of abs
  */
 
 /*
@@ -78,10 +80,38 @@ typedef VipsUnaryClass VipsAbsClass;
 
 G_DEFINE_TYPE( VipsAbs, vips_abs, VIPS_TYPE_UNARY );
 
+static void *
+vips_abs_orc_init_cb( void *a )
+{
+	VipsAbs *abs = (VipsAbs *) a;
+	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_GET_CLASS( abs );
+
+	VipsVector *v;
+
+	vips_arithmetic_set_vector( aclass ); 
+
+	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_CHAR );
+	vips_vector_asm2( v, "absb", "d1", "s1" ); 
+
+	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_SHORT );
+	vips_vector_asm2( v, "absw", "d1", "s1" ); 
+
+	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_INT );
+	vips_vector_asm2( v, "absl", "d1", "s1" ); 
+
+	vips_arithmetic_compile( aclass );
+
+	return( NULL );
+}
+
 static int
 vips_abs_build( VipsObject *object )
 {
+	static GOnce once = G_ONCE_INIT;
+
 	VipsUnary *unary = (VipsUnary *) object;
+
+	VIPS_ONCE( &once, vips_abs_orc_init_cb, object ); 
 
 	if( unary->in &&
 		vips_band_format_isuint( unary->in->BandFmt ) ) 
@@ -224,8 +254,6 @@ vips_abs_class_init( VipsAbsClass *class )
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsArithmeticClass *aclass = VIPS_ARITHMETIC_CLASS( class );
 
-	VipsVector *v;
-
 	object_class->nickname = "abs";
 	object_class->description = _( "absolute value of an image" );
 	object_class->build = vips_abs_build;
@@ -233,18 +261,6 @@ vips_abs_class_init( VipsAbsClass *class )
 	aclass->process_line = vips_abs_buffer;
 
 	vips_arithmetic_set_format_table( aclass, vips_abs_format_table ); 
-	vips_arithmetic_set_vector( aclass ); 
-
-	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_CHAR );
-	vips_vector_asm2( v, "absb", "d1", "s1" ); 
-
-	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_SHORT );
-	vips_vector_asm2( v, "absw", "d1", "s1" ); 
-
-	v = vips_arithmetic_get_program( aclass, VIPS_FORMAT_INT );
-	vips_vector_asm2( v, "absl", "d1", "s1" ); 
-
-	vips_arithmetic_compile( aclass );
 }
 
 static void

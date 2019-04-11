@@ -4,6 +4,8 @@
  * 	- from pngload.c
  * 28/2/16
  * 	- add @shrink
+ * 1/11/18
+ * 	- add @page, @n
  */
 
 /*
@@ -54,6 +56,14 @@
 typedef struct _VipsForeignLoadWebp {
 	VipsForeignLoad parent_object;
 
+	/* Load this page (frame number).
+	 */
+	int page;
+
+	/* Load this many pages.
+	 */
+	int n;
+
 	/* Shrink by this much during load.
 	 */
 	int shrink; 
@@ -96,7 +106,21 @@ vips_foreign_load_webp_class_init( VipsForeignLoadWebpClass *class )
 
 	load_class->get_flags = vips_foreign_load_webp_get_flags;
 
-	VIPS_ARG_INT( class, "shrink", 10, 
+	VIPS_ARG_INT( class, "page", 20,
+		_( "Page" ),
+		_( "Load this page from the file" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadWebp, page ),
+		0, 100000, 0 );
+
+	VIPS_ARG_INT( class, "n", 21,
+		_( "n" ),
+		_( "Load this many pages" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadWebp, n ),
+		-1, 100000, 1 );
+
+	VIPS_ARG_INT( class, "shrink", 22, 
 		_( "Shrink" ), 
 		_( "Shrink factor on load" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
@@ -108,6 +132,7 @@ vips_foreign_load_webp_class_init( VipsForeignLoadWebpClass *class )
 static void
 vips_foreign_load_webp_init( VipsForeignLoadWebp *webp )
 {
+	webp->n = 1;
 	webp->shrink = 1;
 }
 
@@ -144,7 +169,7 @@ vips_foreign_load_webp_file_header( VipsForeignLoad *load )
 	VipsForeignLoadWebpFile *file = (VipsForeignLoadWebpFile *) load;
 
 	if( vips__webp_read_file_header( file->filename, load->out, 
-		webp->shrink ) )
+		webp->page, webp->n, webp->shrink ) )
 		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, file->filename );
@@ -158,7 +183,8 @@ vips_foreign_load_webp_file_load( VipsForeignLoad *load )
 	VipsForeignLoadWebp *webp = (VipsForeignLoadWebp *) load;
 	VipsForeignLoadWebpFile *file = (VipsForeignLoadWebpFile *) load;
 
-	if( vips__webp_read_file( file->filename, load->real, webp->shrink ) )
+	if( vips__webp_read_file( file->filename, load->real, 
+		webp->page, webp->n, webp->shrink ) )
 		return( -1 );
 
 	return( 0 );
@@ -222,7 +248,8 @@ vips_foreign_load_webp_buffer_header( VipsForeignLoad *load )
 	VipsForeignLoadWebpBuffer *buffer = (VipsForeignLoadWebpBuffer *) load;
 
 	if( vips__webp_read_buffer_header( buffer->buf->data, 
-		buffer->buf->length, load->out, webp->shrink ) )
+		buffer->buf->length, load->out, 
+		webp->page, webp->n, webp->shrink ) )
 		return( -1 );
 
 	return( 0 );
@@ -235,7 +262,8 @@ vips_foreign_load_webp_buffer_load( VipsForeignLoad *load )
 	VipsForeignLoadWebpBuffer *buffer = (VipsForeignLoadWebpBuffer *) load;
 
 	if( vips__webp_read_buffer( buffer->buf->data, buffer->buf->length, 
-		load->real, webp->shrink ) )
+		load->real, 
+		webp->page, webp->n, webp->shrink ) )
 		return( -1 );
 
 	return( 0 );
@@ -287,14 +315,22 @@ vips_foreign_load_webp_buffer_init( VipsForeignLoadWebpBuffer *buffer )
  *
  * Optional arguments:
  *
+ * * @page: %gint, page (frame) to read
+ * * @n: %gint, load this many pages
  * * @shrink: %gint, shrink by this much on load
  *
  * Read a WebP file into a VIPS image. 
  *
+ * Use @page to select a page to render, numbering from zero.
+ *
+ * Use @n to select the number of pages to render. The default is 1. Pages are
+ * rendered in a vertical column, with each individual page aligned to the
+ * left. Set to -1 to mean "until the end of the document". Use vips_grid() 
+ * to change page layout.
+ *
  * Use @shrink to specify a shrink-on-load factor.
  *
- * If libwebpmux is available, image metadata is also read. The loader supports 
- * ICC, EXIF and XMP metadata. 
+ * The loader supports ICC, EXIF and XMP metadata. 
  *
  * See also: vips_image_new_from_file().
  *
@@ -322,6 +358,8 @@ vips_webpload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
+ * * @page: %gint, page (frame) to read
+ * * @n: %gint, load this many pages
  * * @shrink: %gint, shrink by this much on load
  *
  * Read a WebP-formatted memory block into a VIPS image. Exactly as

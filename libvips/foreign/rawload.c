@@ -119,28 +119,28 @@ vips_foreign_load_raw_class_init( VipsForeignLoadRawClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoadRaw, filename ),
 		NULL );
 
-	VIPS_ARG_INT( class, "width", 10, 
+	VIPS_ARG_INT( class, "width", 20, 
 		_( "Width" ), 
 		_( "Image width in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadRaw, width ),
 		0, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_INT( class, "height", 11, 
+	VIPS_ARG_INT( class, "height", 21, 
 		_( "Height" ), 
 		_( "Image height in pixels" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadRaw, height ),
 		0, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_INT( class, "bands", 12, 
+	VIPS_ARG_INT( class, "bands", 22, 
 		_( "Bands" ), 
 		_( "Number of bands in image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadRaw, bands ),
 		0, VIPS_MAX_COORD, 0 );
 
-	VIPS_ARG_UINT64( class, "offset", 13, 
+	VIPS_ARG_UINT64( class, "offset", 23, 
 		_( "Size of header" ), 
 		_( "Offset in bytes from start of file" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,

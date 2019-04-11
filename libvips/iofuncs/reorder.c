@@ -338,7 +338,8 @@ vips_reorder_prepare_many( VipsImage *image, VipsRegion **regions, VipsRect *r )
 	for( i = 0; i < reorder->n_inputs; i++ ) { 
 		g_assert( regions[i] );
 
-		if( vips_region_prepare( regions[reorder->recomp_order[i]], r ) )
+		if( vips_region_prepare( 
+			regions[reorder->recomp_order[i]], r ) )
 			return( -1 );
 	}
 
@@ -374,7 +375,8 @@ vips_reorder_margin_hint( VipsImage *image, int margin )
 void
 vips__reorder_clear( VipsImage *image )
 {
-	g_object_set_qdata( G_OBJECT( image ), vips__image_reorder_quark, NULL );
+	g_object_set_qdata( G_OBJECT( image ), 
+		vips__image_reorder_quark, NULL );
 }
 
 void

@@ -10,8 +10,7 @@ vips-operators.h:
 	echo -n "// " >> vips-operators.h; \
 	date >> vips-operators.h; \
 	echo "// this file is generated automatically, do not edit!" >> vips-operators.h; \
-	echo "" >> vips-operators.h; \
-	./gen-operators-h.py >> vips-operators.h 
+	./../../gen-operators.py -g h >> vips-operators.h
 
 EXTRA_DIST = \
 	     gen-operators-h.py

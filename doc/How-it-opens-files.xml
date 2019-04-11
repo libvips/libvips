@@ -91,27 +91,6 @@ $ vips shrink fred.png jim.png 10 10
     This is done automatically in command-line operation. In programs, you need to set <literal>access</literal> to #VIPS_ACCESS_SEQUENTIAL in calls to functions like vips_image_new_from_file().
   </para>
 </refsect3>
-<refsect3 id="debugging">
-  <title>Debugging</title>
-  <para>
-    There are a few flags you can use to find out what libvips is doing.
-  </para>
-  <para>
-    <literal>--vips-leak</literal> This makes libvips test for leaks on program exit. It checks for images which haven’t been closed and also (usefully) shows the memory high-water mark. It counts all memory allocated in libvips for pixel buffers.
-  </para>
-  <para>
-    <literal>--vips-progress</literal> This makes libvips show a crude progress bar for every major image loop, with destination and elapsed time. You can see whether images are going to disc or to memory and how long the decompression is taking.
-  </para>
-  <para>
-    `–vips-cache-trace This shows a line for every vips operation that executes, with arguments. It’s part of vips8, so it doesn’t display vips7 operations, sadly.
-  </para>
-</refsect3>
-<refsect3 id="summary">
-  <title>Summary</title>
-  <para>
-    libvips tries hard to do the quickest thing in every case, but will sometimes fail. You can prod it in the right direction with a mixture of hints and flags to the load system.
-  </para>
-</refsect3>
 
 
 </refentry>

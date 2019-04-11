@@ -480,6 +480,16 @@ vips_cache_print_fn( void *value, void *a, void *b )
 	return( NULL );
 }
 
+static void
+vips_cache_print_nolock( void )
+{
+	if( vips_cache_table ) {
+		printf( "Operation cache:\n" );
+		vips_hash_table_map( vips_cache_table,
+			vips_cache_print_fn, NULL, NULL );
+	}
+}
+
 /**
  * vips_cache_print:
  *
@@ -490,11 +500,7 @@ vips_cache_print( void )
 {
 	g_mutex_lock( vips_cache_lock );
 
-	if( vips_cache_table ) {
-		printf( "Operation cache:\n" );
-		vips_hash_table_map( vips_cache_table, 
-			vips_cache_print_fn, NULL, NULL ); 
-	}
+	vips_cache_print_nolock();
 
 	g_mutex_unlock( vips_cache_lock );
 }
@@ -662,7 +668,7 @@ vips_cache_drop_all( void )
 		VipsOperation *operation;
 
 		if( vips__cache_dump )
-			vips_cache_print();
+			vips_cache_print_nolock();
 
 		/* We can't modify the hash in the callback from
 		 * g_hash_table_foreach() and friends. Repeatedly drop the
@@ -795,7 +801,7 @@ vips_cache_operation_add( VipsOperation *operation )
 
 	/* If two threads call the same operation at the same time, 
 	 * we can get multiple adds. Let the first one win. See
-	 * https://github.com/jcupitt/libvips/pull/181
+	 * https://github.com/libvips/libvips/pull/181
 	 */
 	if( !g_hash_table_lookup( vips_cache_table, operation ) ) {
 		VipsOperationFlags flags = 

@@ -4,6 +4,8 @@
  * 	- from jpegload
  * 12/4/16
  * 	- test and remove orientation from every ifd
+ * 6/10/18
+ * 	- don't remove orientation if it's one of the cases we don't handle
  */
 
 /*
@@ -108,6 +110,34 @@ vips_autorot_get_angle( VipsImage *im )
 	return( angle ); 
 }
 
+/* TRUE if this is one of the cases we handle.
+ */
+static gboolean
+vips_autorot_handled( VipsImage *im )
+{
+	int orientation;
+	gboolean handled;
+
+	if( !vips_image_get_typeof( im, VIPS_META_ORIENTATION ) ||
+		vips_image_get_int( im, VIPS_META_ORIENTATION, &orientation ) )
+		orientation = 1;
+
+	switch( orientation ) {
+	case 1:
+	case 3:
+	case 6:
+	case 8:
+		handled = TRUE;
+		break;
+
+	default:
+		handled = FALSE;
+		break;
+	}
+
+	return( handled );
+}
+
 static void *
 vips_autorot_remove_angle_sub( VipsImage *image, 
 	const char *field, GValue *value, void *my_data )
@@ -152,9 +182,17 @@ vips_autorot_build( VipsObject *object )
 	g_object_set( object, 
 		"angle", vips_autorot_get_angle( autorot->in ),
 		NULL ); 
-	if( vips_rot( autorot->in, &t[0], autorot->angle, NULL ) )
-		return( -1 );
-	vips_autorot_remove_angle( t[0] ); 
+
+	if( vips_autorot_handled( autorot->in ) ) {
+		if( vips_rot( autorot->in, &t[0], autorot->angle, NULL ) )
+			return( -1 );
+		vips_autorot_remove_angle( t[0] ); 
+	}
+	else {
+		if( vips_copy( autorot->in, &t[0], NULL ) )
+			return( -1 );
+	}
+
 	if( vips_image_write( t[0], conversion->out ) )
 		return( -1 );
 
@@ -211,7 +249,8 @@ vips_autorot_init( VipsAutorot *autorot )
  * Read @angle to find the amount the image was rotated by. 
  *
  * vips only supports the four simple rotations, it does not support the
- * various mirror modes. 
+ * various mirror modes. If the image is using one of these mirror modes, the
+ * image is not rotated and the #VIPS_META_ORIENTATION tag is not removed.
  *
  * See also: vips_autorot_get_angle(), vips_autorot_remove_angle(), vips_rot().
  *

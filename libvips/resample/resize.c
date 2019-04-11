@@ -28,6 +28,9 @@
  * 	- make LINEAR and CUBIC adaptive
  * 25/11/17
  * 	- deprecate --centre ... it's now always on, thanks tback
+ * 3/12/18 [edwjusti]
+ * 	- disable the centre sampling offset for nearest upscale, since the
+ * 	  affine nearest interpolator is always centre 
  */
 
 /*
@@ -128,6 +131,7 @@ vips_resize_int_shrink( VipsResize *resize, double scale )
 
 		case VIPS_KERNEL_LINEAR:
 		case VIPS_KERNEL_CUBIC:
+		case VIPS_KERNEL_MITCHELL:
 		case VIPS_KERNEL_LANCZOS2:
 		case VIPS_KERNEL_LANCZOS3:
 		default:
@@ -236,12 +240,16 @@ vips_resize_build( VipsObject *object )
 	 */
 	if( hscale > 1.0 ||
 		vscale > 1.0 ) { 
-		const char *nickname = vips_resize_interpolate( resize->kernel );
+		const char *nickname = 
+			vips_resize_interpolate( resize->kernel );
 
 		/* Input displacement. For centre sampling, shift by 0.5 down
-		 * and right.
+		 * and right. Except if this is nearest, which is always
+		 * centre.
 		 */
-		const double id = 0.5;
+		const double id = 
+			resize->kernel == VIPS_KERNEL_NEAREST ? 
+			0.0 : 0.5;
 
 		VipsInterpolate *interpolate;
 

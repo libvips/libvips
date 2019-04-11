@@ -81,6 +81,8 @@
  *
  * * @compositing_space: #VipsInterpretation to composite in
  * * @premultiplied: %gboolean, images are already premultiplied
+ * * @x: #VipsArrayInt, position of subimages
+ * * @y: #VipsArrayInt, position of subimages
  *
  * Composite an array of images together. 
  *
@@ -106,7 +108,8 @@
  * added to any input missing an alpha. 
  *
  * The images do not need to match in size or format. They will be expanded to
- * the smallest common size and format in the usual way.
+ * the smallest common size and format in the usual way. Images are positioned
+ * using the @x and @y parameters, if set. 
  *
  * Image are normally treated as unpremultiplied, so this operation can be used
  * directly on PNG images. If your images have been through vips_premultiply(),
@@ -124,6 +127,13 @@
  * @out: (out): output image
  * @mode: composite with this blend mode
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @compositing_space: #VipsInterpretation to composite in
+ * * @premultiplied: %gboolean, images are already premultiplied
+ * * @x: %gint, position of overlay
+ * * @y: %gint, position of overlay
  *
  * Composite @overlay on top of @base with @mode. See vips_composite().
  *
@@ -202,10 +212,16 @@
  * @VIPS_INTERESTING_CENTRE: just take the centre
  * @VIPS_INTERESTING_ENTROPY: use an entropy measure
  * @VIPS_INTERESTING_ATTENTION: look for features likely to draw human attention
+ * @VIPS_INTERESTING_LOW: position the crop towards the low coordinate
+ * @VIPS_INTERESTING_HIGH: position the crop towards the high coordinate
  *
  * Pick the algorithm vips uses to decide image "interestingness". This is used
  * by vips_smartcrop(), for example, to decide what parts of the image to
  * keep.
+ *
+ * #VIPS_INTERESTING_NONE and #VIPS_INTERESTING_LOW mean the same -- the
+ * crop is positioned at the top or left. #VIPS_INTERESTING_HIGH positions at
+ * the bottom or right. 
  *
  * See also: vips_smartcrop().
  */
@@ -377,6 +393,7 @@ vips_conversion_operation_init( void )
 	extern GType vips_bandbool_get_type( void ); 
 	extern GType vips_gaussnoise_get_type( void ); 
 	extern GType vips_grid_get_type( void ); 
+	extern GType vips_transpose3d_get_type( void ); 
 	extern GType vips_scale_get_type( void ); 
 	extern GType vips_wrap_get_type( void ); 
 	extern GType vips_zoom_get_type( void ); 
@@ -427,6 +444,7 @@ vips_conversion_operation_init( void )
 	vips_bandbool_get_type(); 
 	vips_gaussnoise_get_type(); 
 	vips_grid_get_type(); 
+	vips_transpose3d_get_type(); 
 	vips_scale_get_type(); 
 	vips_wrap_get_type(); 
 	vips_zoom_get_type(); 

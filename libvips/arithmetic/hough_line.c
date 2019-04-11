@@ -2,6 +2,8 @@
  *
  * 7/3/14
  * 	- from hist_find.c
+ * 1/2/18
+ * 	- change width to 0 - 180
  */
 
 /*
@@ -70,11 +72,13 @@ vips_hough_line_build( VipsObject *object )
 
 	int i;
 
-	if( !(hough_line->sin = VIPS_ARRAY( object, width, double )) )
+	if( !(hough_line->sin = VIPS_ARRAY( object, 2 * width, double )) )
 		return( -1 ); 
 
-	for( i = 0; i < width; i++ )  
-		hough_line->sin[i] = sin( 2 * VIPS_PI * i / width );  
+	/* Map width to 180 degrees, width * 2 to 360.
+	 */
+	for( i = 0; i < 2 * width; i++ )  
+		hough_line->sin[i] = sin( 2 * VIPS_PI * i / (2 * width) );  
 
 	if( VIPS_OBJECT_CLASS( vips_hough_line_parent_class )->build( object ) )
 		return( -1 );
@@ -107,17 +111,18 @@ vips_hough_line_vote( VipsHough *hough, VipsImage *accumulator, int x, int y )
 	double yd = (double) y / statistic->ready->Ysize;
 	int width = hough_line->width;
 	int height = hough_line->height;
+	guint *data = (guint *) accumulator->data;
 
 	int i;
 
-	for( i = 0; i < width; i++ ) { 
-		int i90 = (i + width / 4) % width;
+	for( i = 0; i < width; i++ ) {
+		int i90 = i + width / 2;
 		double r = xd * hough_line->sin[i90] + yd * hough_line->sin[i];
 		int ri = height * r;
 
-		if( ri >= 0 && 
-			ri < height ) 
-			*VIPS_IMAGE_ADDR( accumulator, i, ri ) += 1;
+		if( ri >= 0 &&
+			ri < height )
+			data[i + ri * width] += 1;
 	}
 }
 
@@ -174,8 +179,8 @@ vips_hough_line_init( VipsHoughLine *hough_line )
  *
  * Find the line Hough transform for @in. @in must have one band. @out has one
  * band, with pixels being the number of votes for that line. The X dimension
- * of @out is the line angle, the Y dimension is the distance of the line from
- * the origin. 
+ * of @out is the line angle in 0 - 180 degrees, the Y dimension is the 
+ * distance of the closest part of that line to the origin in the top-left. 
  *
  * Use @width @height to set the size of the parameter space image (@out),
  * that is, how accurate the line determination should be. 

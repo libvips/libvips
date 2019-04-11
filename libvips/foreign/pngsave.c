@@ -4,6 +4,8 @@
  * 	- wrap a class around the png writer
  * 16/7/12
  * 	- compression should be 0-9, not 1-10
+ * 20/6/18 [felixbuenemann]
+ * 	- support png8 palette write with palette, colours, Q, dither
  */
 
 /*
@@ -60,6 +62,10 @@ typedef struct _VipsForeignSavePng {
 	gboolean interlace;
 	char *profile;
 	VipsForeignPngFilter filter;
+	gboolean palette;
+	int colours;
+	int Q;
+	double dither;
 } VipsForeignSavePng;
 
 typedef VipsForeignSaveClass VipsForeignSavePngClass;
@@ -133,6 +139,34 @@ vips_foreign_save_png_class_init( VipsForeignSavePngClass *class )
 		VIPS_TYPE_FOREIGN_PNG_FILTER,
 		VIPS_FOREIGN_PNG_FILTER_ALL );
 
+	VIPS_ARG_BOOL( class, "palette", 13,
+		_( "Palette" ),
+		_( "Quantise to 8bpp palette" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSavePng, palette ),
+		FALSE );
+
+	VIPS_ARG_INT( class, "colours", 14,
+		_( "Colours" ),
+		_( "Max number of palette colours" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSavePng, colours ),
+		2, 256, 256 );
+
+	VIPS_ARG_INT( class, "Q", 15,
+		_( "Quality" ),
+		_( "Quantisation quality" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSavePng, Q ),
+		0, 100, 100 );
+
+	VIPS_ARG_DOUBLE( class, "dither", 16,
+		_( "Dithering" ),
+		_( "Amount of dithering" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSavePng, dither ),
+		0.0, 1.0, 1.0 );
+
 }
 
 static void
@@ -140,6 +174,9 @@ vips_foreign_save_png_init( VipsForeignSavePng *png )
 {
 	png->compression = 6;
 	png->filter = VIPS_FOREIGN_PNG_FILTER_ALL;
+	png->colours = 256;
+	png->Q = 100;
+	png->dither = 1.0;
 }
 
 typedef struct _VipsForeignSavePngFile {
@@ -166,7 +203,8 @@ vips_foreign_save_png_file_build( VipsObject *object )
 
 	if( vips__png_write( save->ready, 
 		png_file->filename, png->compression, png->interlace, 
-		png->profile, png->filter, save->strip ) )
+		png->profile, png->filter, save->strip, png->palette,
+		png->colours, png->Q, png->dither ) )
 		return( -1 );
 
 	return( 0 );
@@ -225,7 +263,7 @@ vips_foreign_save_png_buffer_build( VipsObject *object )
 
 	if( vips__png_write_buf( save->ready, &obuf, &olen,
 		png->compression, png->interlace, png->profile, png->filter,
-		save->strip ) )
+		save->strip, png->palette, png->colours, png->Q, png->dither ) )
 		return( -1 );
 
 	/* vips__png_write_buf() makes a buffer that needs g_free(), not
@@ -278,6 +316,10 @@ vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
  * * @interlace: interlace image
  * * @profile: ICC profile to embed
  * * @filter: #VipsForeignPngFilter row filter flag(s)
+ * * @palette: enable quantisation to 8bpp palette
+ * * @colours: max number of palette colours for quantisation
+ * * @Q: quality for 8bpp quantisation (does not exceed @colours)
+ * * @dither: amount of dithering for 8bpp quantization
  *
  * Write a VIPS image to a file as PNG.
  *
@@ -290,8 +332,7 @@ vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
  *
  * Use @profile to give the filename of a profile to be embedded in the PNG.
  * This does not affect the pixels which are written, just the way 
- * they are tagged. You can use the special string "none" to mean 
- * "don't attach a profile".
+ * they are tagged. See vips_profile_load() for details on profile naming. 
  *
  * If @profile is specified and the VIPS header 
  * contains an ICC profile named VIPS_META_ICC_NAME ("icc-profile-data"), the
@@ -303,6 +344,13 @@ vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
  * The image is automatically converted to RGB, RGBA, Monochrome or Mono +
  * alpha before saving. Images with more than one byte per band element are
  * saved as 16-bit PNG, others are saved as 8-bit PNG.
+ *
+ * Set @palette to %TRUE to enable quantisation to an 8-bit per pixel palette
+ * image with alpha transparency support. If @colours is given, it limits the
+ * maximum number of palette entries. Similar to JPEG the quality can also be
+ * be changed with the @Q parameter which further reduces the palette size and
+ * @dither controls the amount of Floyd-Steinberg dithering.
+ * This feature requires libvips to be compiled with libimagequant.
  *
  * See also: vips_image_new_from_file().
  *
@@ -334,6 +382,10 @@ vips_pngsave( VipsImage *in, const char *filename, ... )
  * * @interlace: interlace image
  * * @profile: ICC profile to embed
  * * @filter: libpng row filter flag(s)
+ * * @palette: enable quantisation to 8bpp palette
+ * * @colours: max number of palette colours for quantisation
+ * * @Q: quality for 8bpp quantisation (does not exceed @colours)
+ * * @dither: amount of dithering for 8bpp quantization
  *
  * As vips_pngsave(), but save to a memory buffer. 
  *

@@ -22,6 +22,8 @@
  * 	- use linear uchar mode
  * 14/7/14
  * 	- round to nearest on uchar output
+ * 29/12/18 kleisauke 
+ * 	- ... and round to nearest in log mode too 
  */
 
 /*
@@ -111,7 +113,9 @@ vips_scale_build( VipsObject *object )
 		if( vips_pow_const1( scale->in, &t[2], scale->exp, NULL ) ||
 			vips_linear1( t[2], &t[3], 1.0, 1.0, NULL ) ||
 			vips_log10( t[3], &t[4], NULL ) ||
-			vips_linear1( t[4], &t[5], f, 0.0, 
+			/* Add 0.5 to get round to nearest.
+			 */
+			vips_linear1( t[4], &t[5], f, 0.5, 
 				"uchar", TRUE, 
 				NULL ) ||
 			vips_image_write( t[5], conversion->out ) )

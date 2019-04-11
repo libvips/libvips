@@ -104,6 +104,7 @@ vips_reduce_get_points( VipsKernel kernel, double shrink )
 		return( rint( 2 * shrink ) + 1 ); 
 
 	case VIPS_KERNEL_CUBIC:
+	case VIPS_KERNEL_MITCHELL:
 		return( rint( 4 * shrink ) + 1 ); 
 
 	case VIPS_KERNEL_LANCZOS2:
@@ -135,7 +136,14 @@ vips_reduce_make_mask( double *c, VipsKernel kernel, double shrink, double x )
 		break;
 
 	case VIPS_KERNEL_CUBIC:
-		calculate_coefficients_adaptive_catmull( c, shrink, x ); 
+		/* Catmull-Rom.
+		 */
+		calculate_coefficients_cubic( c, shrink, x, 0.0, 0.5 );
+		break;
+
+	case VIPS_KERNEL_MITCHELL:
+		calculate_coefficients_cubic( c, shrink, x, 
+			1.0 / 3.0, 1.0 / 3.0 );
 		break;
 
 	case VIPS_KERNEL_LANCZOS2:

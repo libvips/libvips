@@ -46,6 +46,7 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 #include <vips/internal.h>
 #include <vips/thread.h>
 
@@ -54,6 +55,7 @@
 static int
 tiff2vips( const char *name, IMAGE *out, gboolean header_only )
 {
+#ifdef HAVE_TIFF
 	char filename[FILENAME_MAX];
 	char mode[FILENAME_MAX];
 	char *p, *q;
@@ -84,7 +86,6 @@ tiff2vips( const char *name, IMAGE *out, gboolean header_only )
 	 * malloc if all we are doing is looking at fields.
 	 */
 
-#ifdef HAVE_TIFF
 	if( !header_only &&
 		!seq &&
 		!vips__istifftiled( filename ) &&

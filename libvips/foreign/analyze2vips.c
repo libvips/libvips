@@ -241,7 +241,7 @@ getstr( int mx, const char *str )
 
 	g_assert( mx < 256 );
 
-	strncpy( buf, str, mx );
+	vips_strncpy( buf, str, mx );
 	buf[mx]= '\0';
 
 	/* How annoying, patient_id has some funny ctrlchars in that mess up

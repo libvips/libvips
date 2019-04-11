@@ -1,8 +1,13 @@
 noinst_LTLIBRARIES = libcolour.la
 
 libcolour_la_SOURCES = \
+	profiles.c \
+	profiles.h \
+	profile_load.c \
 	colour.c \
 	pcolour.h \
+	CMYK2XYZ.c \
+	XYZ2CMYK.c \
 	colourspace.c \
 	dE76.c \
 	dE00.c \
@@ -31,6 +36,13 @@ libcolour_la_SOURCES = \
 	scRGB2XYZ.c \
 	scRGB2BW.c \
 	XYZ2scRGB.c \
-	scRGB2sRGB.c 
+	scRGB2sRGB.c
+
+profiles.c:
+	./wrap-profiles.sh profiles profiles.c
+
+EXTRA_DIST = \
+	profiles \
+	wrap-profiles.sh
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

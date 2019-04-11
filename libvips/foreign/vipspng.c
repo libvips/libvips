@@ -65,6 +65,12 @@
  * 	- better behaviour for truncated png files, thanks Yury
  * 26/4/17
  * 	- better @fail handling with truncated PNGs
+ * 9/4/18
+ * 	- set interlaced=1 for interlaced images
+ * 20/6/18 [felixbuenemann]
+ * 	- support png8 palette write with palette, colours, Q, dither
+ * 25/8/18
+ * 	- support xmp read/write
  */
 
 /*
@@ -261,6 +267,37 @@ read_new_filename( VipsImage *out, const char *name, gboolean fail )
 	return( read );
 }
 
+/* Set the png text data as metadata on the vips image. These are always
+ * null-terminated strings.
+ */
+static int
+vips__set_text( VipsImage *out, int i, const char *key, const char *text ) 
+{
+	char name[256];
+
+	if( strcmp( key, "XML:com.adobe.xmp" ) == 0 ) {
+		/* Save as an XMP tag. This must be a BLOB, for compatibility
+		 * for things like the XMP blob that the tiff loader adds.
+		 *
+		 * Note that this will remove the null-termination from the
+		 * string. We must carefully reattach this.
+		 */
+		vips_image_set_blob_copy( out, 
+			VIPS_META_XMP_NAME, text, strlen( text ) );
+	}
+	else  {
+		/* Save as a string comment. Some PNGs have EXIF data as
+		 * text segments, but the correct way to support this is with
+		 * png_get_eXIf_1().
+		 */
+		vips_snprintf( name, 256, "png-comment-%d-%s", i, key );
+
+		vips_image_set_string( out, name, text );
+	}
+
+	return( 0 );
+}
+
 /* Read a png header.
  */
 static int
@@ -275,6 +312,9 @@ png2vips_header( Read *read, VipsImage *out )
 
 	png_charp name;
 	int compression_type;
+
+	png_textp text_ptr;
+        int num_text;
 
 	/* Well thank you, libpng.
 	 */
@@ -413,19 +453,14 @@ png2vips_header( Read *read, VipsImage *out )
 	 */
 	if( png_get_iCCP( read->pPng, read->pInfo, 
 		&name, &compression_type, &profile, &proflen ) ) {
-		void *profile_copy;
-
 #ifdef DEBUG
 		printf( "png2vips_header: attaching %d bytes of ICC profile\n",
 			proflen );
 		printf( "png2vips_header: name = \"%s\"\n", name );
 #endif /*DEBUG*/
 
-		if( !(profile_copy = vips_malloc( NULL, proflen )) ) 
-			return( -1 );
-		memcpy( profile_copy, profile, proflen );
-		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
-			(VipsCallbackFn) vips_free, profile_copy, proflen );
+		vips_image_set_blob_copy( out, 
+			VIPS_META_ICC_NAME, profile, proflen );
 	}
 
 	/* Sanity-check line size.
@@ -437,6 +472,28 @@ png2vips_header( Read *read, VipsImage *out )
 			"%s", _( "unable to read PNG header" ) );
 		return( -1 );
 	}
+
+	/* Let our caller know. These are very expensive to decode.
+	 */
+	if( interlace_type != PNG_INTERLACE_NONE ) 
+		vips_image_set_int( out, "interlaced", 1 ); 
+
+	if( png_get_text( read->pPng, read->pInfo, 
+		&text_ptr, &num_text ) > 0 ) {
+		int i;
+
+		for( i = 0; i < num_text; i++ ) 
+			/* .text is always a null-terminated C string.
+			 */
+			if( vips__set_text( out, i, 
+				text_ptr[i].key, text_ptr[i].text ) ) 
+				return( -1 ); 
+	}
+
+	/* Attach original palette bit depth, if any, as metadata.
+	 */
+	if( color_type == PNG_COLOR_TYPE_PALETTE )
+		vips_image_set_int( out, "palette-bit-depth", bit_depth );
 
 	return( 0 );
 }
@@ -475,16 +532,20 @@ png2vips_interlace( Read *read, VipsImage *out )
 
 	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
 		return( -1 );
- 
+
+	/* Some libpng warn you to call png_set_interlace_handling(); here, but
+	 * that can actually break interlace on older libpngs.
+	 *
+	 * Only set this for libpng 1.6+.
+	 */
+#if PNG_LIBPNG_VER > 10600
+	(void) png_set_interlace_handling( read->pPng );
+#endif
+
 	if( !(read->row_pointer = VIPS_ARRAY( NULL, out->Ysize, png_bytep )) )
 		return( -1 );
 	for( y = 0; y < out->Ysize; y++ )
 		read->row_pointer[y] = VIPS_IMAGE_ADDR( out, 0, y );
-
-	/* Some libpng warn you to call png_set_interlace_handling(); here, but
-	 * that can actually break interlace. We have to live with the warning,
-	 * unfortunately.
-	 */
 
 	png_read_image( read->pPng, read->row_pointer );
 
@@ -519,7 +580,8 @@ png2vips_generate( VipsRegion *or,
 	/* Tiles should always be a strip in height, unless it's the final
 	 * strip.
 	 */
-	g_assert( r->height == VIPS_MIN( 8, or->im->Ysize - r->top ) ); 
+	g_assert( r->height == VIPS_MIN( VIPS__FATSTRIP_HEIGHT, 
+			or->im->Ysize - r->top ) ); 
 
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
@@ -633,7 +695,7 @@ png2vips_image( Read *read, VipsImage *out )
 				NULL, png2vips_generate, NULL, 
 				read, NULL ) ||
 			vips_sequential( t[0], &t[1], 
-				"tile_height", 8,
+				"tile_height", VIPS__FATSTRIP_HEIGHT, 
 				NULL ) ||
 			vips_image_write( t[1], out ) )
 			return( -1 );
@@ -677,7 +739,7 @@ vips__png_ispng( const char *filename )
 {
 	unsigned char buf[8];
 
-	return( vips__get_bytes( filename, buf, 8 ) &&
+	return( vips__get_bytes( filename, buf, 8 ) == 8 &&
 		vips__png_ispng_buffer( buf, 8 ) ); 
 }
 
@@ -693,7 +755,7 @@ vips_png_read_buffer( png_structp pPng, png_bytep data, png_size_t length )
 	if( read->read_pos + length > read->length )
 		png_error( pPng, "not enough data in buffer" );
 
-	memcpy( data, read->buffer + read->read_pos, length );
+	memcpy( data, (VipsPel *) read->buffer + read->read_pos, length );
 	read->read_pos += length;
 }
 
@@ -870,12 +932,60 @@ write_png_block( VipsRegion *region, VipsRect *area, void *a )
 	return( 0 );
 }
 
+static void
+vips__png_set_text( png_structp pPng, png_infop pInfo, 
+	const char *key, const char *value )
+{
+	png_text text;
+
+	text.compression = 0;
+	text.key = (char *) key;
+	text.text = (char *) value;
+	text.text_length = strlen( value );
+
+	/* Before 1.4, these fields were only there if explicitly enabled.
+	 */
+#if PNG_LIBPNG_VER > 10400
+	text.itxt_length = 0;
+	text.lang = NULL;
+#endif
+
+	png_set_text( pPng, pInfo, &text, 1 );
+}
+
+static void *
+write_png_comment( VipsImage *image, 
+	const char *field, GValue *value, void *data )
+{
+	Write *write = (Write *) data;
+
+	if( vips_isprefix( "png-comment-", field ) ) { 
+		const char *str;
+		int i;
+		char key[80];
+
+		if( vips_image_get_string( write->in, field, &str ) )
+			return( image );
+
+		if( sscanf( field, "png-comment-%d-%80s", &i, key ) != 2 ) {
+			vips_error( "vips2png", 
+				"%s", _( "bad png comment key" ) );
+			return( image );
+		}
+
+		vips__png_set_text( write->pPng, write->pInfo, key, str );
+	}
+
+	return( NULL );
+}
+
 /* Write a VIPS image to PNG.
  */
 static int
 write_vips( Write *write, 
 	int compress, int interlace, const char *profile,
-	VipsForeignPngFilter filter, gboolean strip )
+	VipsForeignPngFilter filter, gboolean strip,
+	gboolean palette, int colours, int Q, double dither )
 {
 	VipsImage *in = write->in;
 
@@ -935,6 +1045,21 @@ write_vips( Write *write,
 		return( -1 );
 	}
 
+#ifdef HAVE_IMAGEQUANT
+	/* Enable image quantisation to paletted 8bpp PNG if colours is set.
+	 */
+	if( palette ) {
+		g_assert( colours >= 2 && 
+			colours <= 256 );
+		bit_depth = 8;
+		color_type = PNG_COLOR_TYPE_PALETTE;
+	}
+#else
+	if( palette )
+		g_warning( "%s",
+			_( "ignoring palette (no quantisation support)" ) );
+#endif /*HAVE_IMAGEQUANT*/
+
 	interlace_type = interlace ? PNG_INTERLACE_ADAM7 : PNG_INTERLACE_NONE;
 
 	png_set_IHDR( write->pPng, write->pInfo, 
@@ -947,52 +1072,146 @@ write_vips( Write *write,
 		VIPS_RINT( in->Xres * 1000 ), VIPS_RINT( in->Yres * 1000 ), 
 		PNG_RESOLUTION_METER );
 
-	/* Set ICC Profile.
+	/* Metadata
 	 */
-	if( profile && 
-		!strip ) {
-		if( strcmp( profile, "none" ) != 0 ) { 
-			void *data;
+	if( !strip ) {
+		if( profile ) {
+			VipsBlob *blob;
+
+			if( vips_profile_load( profile, &blob, NULL ) )
+				return( -1 );
+			if( blob ) {
+				size_t length;
+				const void *data 
+					= vips_blob_get( blob, &length );
+
+#ifdef DEBUG
+				printf( "write_vips: attaching %zd bytes "
+					"of ICC profile\n", length );
+#endif /*DEBUG*/
+
+				png_set_iCCP( write->pPng, write->pInfo, 
+					"icc", PNG_COMPRESSION_TYPE_BASE, 
+					(void *) data, length );
+
+				vips_area_unref( (VipsArea *) blob );
+			}
+		}
+		else if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
+			const void *data;
 			size_t length;
 
-			if( !(data = vips__file_read_name( profile, 
-				vips__icc_dir(), &length )) ) 
+			if( vips_image_get_blob( in, VIPS_META_ICC_NAME,
+				&data, &length ) )
 				return( -1 );
 
 #ifdef DEBUG
-			printf( "write_vips: "
-				"attaching %zd bytes of ICC profile\n",
-				length );
+			printf( "write_vips: attaching %zd bytes "
+				"of ICC profile\n", length );
 #endif /*DEBUG*/
 
-			png_set_iCCP( write->pPng, write->pInfo, "icc", 
-				PNG_COMPRESSION_TYPE_BASE, data, length );
-		}
-	}
-	else if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) &&
-		!strip ) {
-		void *data;
-		size_t length;
+			png_set_iCCP( write->pPng, write->pInfo, "icc",
+				PNG_COMPRESSION_TYPE_BASE, 
+				(void *) data, length );
 
-		if( vips_image_get_blob( in, VIPS_META_ICC_NAME, 
-			&data, &length ) ) 
-			return( -1 ); 
+		}
+
+		if( vips_image_get_typeof( in, VIPS_META_XMP_NAME ) ) {
+			const void *data;
+			size_t length;
+			char *str;
+
+			/* XMP is attached as a BLOB with no null-termination. 
+			 * We must re-add this.
+			 */
+			if( vips_image_get_blob( in,
+				VIPS_META_XMP_NAME, &data, &length ) )
+				return( -1 );
+
+			str = g_malloc( length + 1 );
+			vips_strncpy( str, data, length + 1 );
+			vips__png_set_text( write->pPng, write->pInfo,
+				"XML:com.adobe.xmp", str );
+			g_free( str );
+		}
+
+		if( vips_image_map( in,
+			write_png_comment, write ) )
+			return( -1 );
+	}
+
+#ifdef HAVE_IMAGEQUANT
+	if( palette ) {
+		VipsImage *im_index;
+		VipsImage *im_palette;
+		int palette_count;
+		png_color *png_palette;
+		png_byte *png_trans;
+		int trans_count;
+
+		if( vips__quantise_image( in, &im_index, &im_palette, 
+			colours, Q, dither ) ) 
+			return( -1 );
+
+		palette_count = im_palette->Xsize;
+
+		g_assert( palette_count <= PNG_MAX_PALETTE_LENGTH );
+
+		png_palette = (png_color *) png_malloc( write->pPng,
+			palette_count * sizeof( png_color ) );
+		png_trans = (png_byte *) png_malloc( write->pPng,
+			palette_count * sizeof( png_byte ) );
+		trans_count = 0;
+		for( i = 0; i < palette_count; i++ ) {
+			VipsPel *p = (VipsPel *) 
+				VIPS_IMAGE_ADDR( im_palette, i, 0 );
+			png_color *col = &png_palette[i];
+
+			col->red = p[0];
+			col->green = p[1];
+			col->blue = p[2];
+			png_trans[i] = p[3];
+			if( p[3] != 255 )
+				trans_count = i + 1;
+#ifdef DEBUG
+			printf( "write_vips: palette[%d] %d %d %d %d\n",
+				i + 1, p[0], p[1], p[2], p[3] );
+#endif /*DEBUG*/
+		}
 
 #ifdef DEBUG
-		printf( "write_vips: attaching %zd bytes of ICC profile\n",
-			length );
+		printf( "write_vips: attaching %d color palette\n",
+			palette_count );
 #endif /*DEBUG*/
+		png_set_PLTE( write->pPng, write->pInfo, png_palette,
+			palette_count );
+		if( trans_count ) {
+#ifdef DEBUG
+			printf( "write_vips: attaching %d alpha values\n",
+				trans_count );
+#endif /*DEBUG*/
+			png_set_tRNS( write->pPng, write->pInfo, png_trans,
+				trans_count, NULL );
+		}
 
-		png_set_iCCP( write->pPng, write->pInfo, "icc", 
-			PNG_COMPRESSION_TYPE_BASE, data, length );
+		png_free( write->pPng, (void *) png_palette );
+		png_free( write->pPng, (void *) png_trans );
+
+		VIPS_UNREF( im_palette );
+
+		VIPS_UNREF( write->memory );
+		write->memory = im_index;
+		in = write->memory;
 	}
+#endif /*HAVE_IMAGEQUANT*/
 
-	png_write_info( write->pPng, write->pInfo ); 
+	png_write_info( write->pPng, write->pInfo );
 
 	/* If we're an intel byte order CPU and this is a 16bit image, we need
 	 * to swap bytes.
 	 */
-	if( bit_depth > 8 && !vips_amiMSBfirst() ) 
+	if( bit_depth > 8 && 
+		!vips_amiMSBfirst() ) 
 		png_set_swap( write->pPng ); 
 
 	if( interlace )	
@@ -1019,7 +1238,8 @@ write_vips( Write *write,
 int
 vips__png_write( VipsImage *in, const char *filename, 
 	int compress, int interlace, const char *profile,
-	VipsForeignPngFilter filter, gboolean strip )
+	VipsForeignPngFilter filter, gboolean strip,
+	gboolean palette, int colours, int Q, double dither )
 {
 	Write *write;
 
@@ -1039,7 +1259,8 @@ vips__png_write( VipsImage *in, const char *filename,
 	/* Convert it!
 	 */
 	if( write_vips( write, 
-		compress, interlace, profile, filter, strip ) ) {
+		compress, interlace, profile, filter, strip, palette,
+		colours, Q, dither ) ) {
 		vips_error( "vips2png", 
 			_( "unable to write \"%s\"" ), filename );
 
@@ -1066,7 +1287,8 @@ user_write_data( png_structp png_ptr, png_bytep data, png_size_t length )
 int
 vips__png_write_buf( VipsImage *in, 
 	void **obuf, size_t *olen, int compression, int interlace,
-	const char *profile, VipsForeignPngFilter filter, gboolean strip )
+	const char *profile, VipsForeignPngFilter filter, gboolean strip,
+	gboolean palette, int colours, int Q, double dither )
 {
 	Write *write;
 
@@ -1078,10 +1300,11 @@ vips__png_write_buf( VipsImage *in,
 	/* Convert it!
 	 */
 	if( write_vips( write, 
-		compression, interlace, profile, filter, strip ) ) {
+		compression, interlace, profile, filter, strip, palette,
+		colours, Q, dither ) ) {
 		vips_error( "vips2png", 
 			"%s", _( "unable to write to buffer" ) );
-	      
+
 		return( -1 );
 	}
 

@@ -54,6 +54,7 @@
 #include <stdio.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 
 /* Useful: Call a macro with the name, type pairs for all VIPS functions.  
  */

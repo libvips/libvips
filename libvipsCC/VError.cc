@@ -38,6 +38,7 @@
 #include <iostream>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 
 #include <vips/vipscpp.h>
 

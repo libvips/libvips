@@ -514,7 +514,7 @@ vips__ppm_isppm( const char *filename )
 {
 	VipsPel buf[3];
 
-	if( vips__get_bytes( filename, buf, 2 ) ) {
+	if( vips__get_bytes( filename, buf, 2 ) == 2 ) {
 		int i;
 
 		buf[2] = '\0';

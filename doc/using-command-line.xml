@@ -44,7 +44,7 @@ where:
 </programlisting>
 
       There's a straightforward relationship with the C API: compare this to 
-      the API docs for vips_rot(), for example.
+      the API docs for vips_rot().
     </para>
   </refsect3>
 
@@ -83,7 +83,7 @@ VipsOperation (operation), operations
     <title>Optional arguments</title>
     <para>
       Many operations take optional arguments. You can supply these as 
-      command-line options, for example:
+      command-line options. For example:
 
 <programlisting>
 $ vips gamma
@@ -120,10 +120,9 @@ $ vips gamma k2.jpg x.jpg --exponent 0.42
   <refsect3 id="using-command-line-array">
     <title>Array arguments</title>
     <para>
-      Some operations take arrays of values as arguments, for example, 
+      Some operations take arrays of values as arguments. For example, 
       vips_affine() needs an array of four numbers for the 
-      2x2 transform matrix. You pass arrays as space-separated lists, for 
-      example:
+      2x2 transform matrix. You pass arrays as space-separated lists:
 
 <programlisting>
 $ vips affine k2.jpg x.jpg "2 0 0 1"
@@ -151,7 +150,7 @@ $ vips bandjoin "k2.jpg k4.jpg" x.tif
 $ vips -l foreign
 </programlisting>
 
-      Then get a list of the options a format supports with, for example:
+      Then get a list of the options a format supports with:
 
 <programlisting>
 $ vips jpegsave
@@ -160,7 +159,7 @@ $ vips jpegsave
 
     <para>
       You can pass options to the implicit load and save operations enclosed 
-      in square brackets after the filename. For example:
+      in square brackets after the filename:
 
 <programlisting>
 vips affine k2.jpg x.jpg[Q=90,strip] "2 0 0 1"

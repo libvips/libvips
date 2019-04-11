@@ -21,6 +21,10 @@
  * 	- use expat for xml read, printf for xml write
  * 16/8/17
  * 	- validate strs as being utf-8 before we write
+ * 9/4/18 Alexander--
+ * 	- use O_TMPFILE, if available
+ * 23/7/18
+ * 	- escape ASCII control characters in XML
  */
 
 /*
@@ -55,6 +59,10 @@
 #define DEBUG
  */
 
+/* Enable linux extensions like O_TMPFILE, if available.
+ */
+#define _GNU_SOURCE
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -69,12 +77,12 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <fcntl.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #ifdef HAVE_SYS_FILE_H
 #include <sys/file.h>
 #endif /*HAVE_SYS_FILE_H*/
-#include <sys/stat.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
@@ -129,7 +137,6 @@
  *
  * We use O_RDWR not O_WRONLY since after writing we may want to rewind the 
  * image and read from it.
- *
  */
 #define MODE_WRITE BINARYIZE (O_RDWR | O_CREAT | O_TRUNC)
 
@@ -179,21 +186,55 @@ vips__open_image_write( const char *filename, gboolean temp )
 	int flags;
 	int fd;
 
+	fd = -1;
+
+#ifndef O_TMPFILE
+	if( temp ) 
+		g_info( "vips__open_image_write: O_TMPFILE not available" );
+#endif /*!O_TMPFILE*/
+
+#ifdef O_TMPFILE
+	/* Linux-only extension creates an unlinked file. CREAT and TRUNC must
+	 * be clear. The filename arg to open() must name a directory.
+	 *
+	 * This can fail since not all filesystems support it. In this case,
+	 * we open as a regular file and rely on the delete-on-close
+	 * mechanism, see vips_image_delete(). 
+	 */
+	if( temp ) {
+		char *dirname;
+
+		g_info( "vips__open_image_write: opening with O_TMPFILE" );
+		dirname = g_path_get_dirname( filename ); 
+		fd = vips_tracked_open( dirname, O_TMPFILE | O_RDWR , 0666 );
+		g_free( dirname ); 
+
+		if( fd < 0 ) 
+			g_info( "vips__open_image_write: O_TMPFILE failed!" );
+	}
+#endif /*O_TMPFILE*/
+
 	flags = MODE_WRITE;
 
 #ifdef _O_TEMPORARY
-	/* On Windows, setting O_TEMP gets the file automatically
-	 * deleted on process exit, even if the processes crashes. See
-	 * vips_image_rewind() for what we do to help on *nix.
+	/* On Windows, setting _O_TEMPORARY will delete the file automatically
+	 * on process exit, even if the processes crashes. 
 	 */
-	if( temp )
+	if( temp ) {
+		g_info( "vips__open_image_write: setting _O_TEMPORARY" );
 		flags |= _O_TEMPORARY;
+	}
 #endif /*_O_TEMPORARY*/
 
-	if( (fd = vips_tracked_open( filename, flags, 0666 )) < 0 ) {
+	if( fd < 0 ) {
+		g_info( "vips__open_image_write: simple open" );
+		fd = vips_tracked_open( filename, flags, 0666 );
+	}
+
+	if( fd < 0 ) {
+		g_info( "vips__open_image_write: failed!" );
 		vips_error_system( errno, "VipsImage", 
-			_( "unable to write to \"%s\"" ), 
-			filename );
+			_( "unable to write to \"%s\"" ), filename );
 		return( -1 );
 	}
 
@@ -255,9 +296,9 @@ vips__file_magic( const char *filename )
 {
 	guint32 magic;
 
-	if( vips__get_bytes( filename, (unsigned char *) &magic, 4 ) &&
+	if( vips__get_bytes( filename, (unsigned char *) &magic, 4 ) == 4 &&
 		(magic == VIPS_MAGIC_INTEL || 
-		 magic == VIPS_MAGIC_SPARC ) )
+		 magic == VIPS_MAGIC_SPARC) )
 		return( magic );
 
 	return( 0 );

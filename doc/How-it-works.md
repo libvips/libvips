@@ -249,10 +249,10 @@ fancier and adds things like automatic object lifetime management. The
 [command-line interface](using-cli.html) uses introspection to run any vips
 operation in the class hierarchy.
 
-The [Python API](using-from-python.html) is built on top of
-gobject-introspection. It is written in Python, so as long as you can get
-gobject-introspection working, you should be able to use vips. It supports
-python2 and python3 and works on Linux, OS X and Windows.
+There are bindings for [many other
+languages](https://jcupitt.github.io/libvips/) on many platforms. Most of
+these bindings use the introspection system to generate the binding at
+run-time.
 
 # Snip 
 

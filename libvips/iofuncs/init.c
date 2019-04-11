@@ -88,6 +88,7 @@
 #include <vips/thread.h>
 #include <vips/internal.h>
 #include <vips/vector.h>
+#include <vips/vips7compat.h>
 
 /* abort() on the first warning or error.
  */

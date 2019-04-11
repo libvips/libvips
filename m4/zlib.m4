@@ -42,9 +42,9 @@ if test "$ZLIB_INCLUDES" = ""; then
   ], [
     # zlib.h is not in the standard search path, try
     # $prefix
-    zlib_save_INCLUDES="$INCLUDES"
+    zlib_save_CFLAGS="$CFLAGS"
 
-    INCLUDES="-I${prefix}/include $INCLUDES"
+    CFLAGS="-I${prefix}/include $CFLAGS"
 
     AC_TRY_COMPILE([#include <stdio.h>
       #include <zlib.h>],[int a;],[
@@ -53,17 +53,17 @@ if test "$ZLIB_INCLUDES" = ""; then
       ZLIB_INCLUDES="no"
     ])
 
-    INCLUDES=$zlib_save_INCLUDES
+    CFLAGS=$zlib_save_CFLAGS
   ])
 fi
 
 # Now for the libraries
 if test "$ZLIB_LIBS" = ""; then
   zlib_save_LIBS="$LIBS"
-  zlib_save_INCLUDES="$INCLUDES"
+  zlib_save_CFLAGS="$CFLAGS"
 
   LIBS="-lz $LIBS"
-  INCLUDES="$ZLIB_INCLUDES $INCLUDES"
+  CFLAGS="$ZLIB_INCLUDES $CFLAGS"
 
   # Try the standard search path first
   AC_TRY_LINK([#include <stdio.h>
@@ -85,7 +85,7 @@ if test "$ZLIB_LIBS" = ""; then
   ])
 
   LIBS="$zlib_save_LIBS"
-  INCLUDES="$zlib_save_INCLUDES"
+  CFLAGS="$zlib_save_CFLAGS"
 fi
 
 AC_SUBST(ZLIB_LIBS)

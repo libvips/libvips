@@ -34,7 +34,7 @@
 #include <complex>
 #include <vector>
 
-#include <string.h>
+#include <cstring>
 
 #include <vips/vips.h>
 
@@ -52,7 +52,7 @@ public:
 	VInterpolate new_from_name( const char *name, VOption *options = 0 );
 
 	VipsInterpolate *
-	get_interpolate()
+	get_interpolate() const
 	{
 		return( (VipsInterpolate *) VObject::get_object() );
 	}

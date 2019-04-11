@@ -1,6 +1,9 @@
 /* Common functions for interfacing with ImageMagick.
  *
  * 22/12/17 dlemstra 
+ *
+ * 24/7/18
+ * 	- add the sniffer
  */
 
 /*
@@ -40,6 +43,7 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pforeign.h"
 #include "magick.h"
@@ -75,6 +79,13 @@ magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
 		type, pixels, exception ) );
 }
 
+void *
+magick_images_to_blob( const ImageInfo *image_info, Image *images, 
+	size_t *length, ExceptionInfo *exception )
+{
+	return( ImagesToBlob( image_info, images, length, exception ) );
+}
+
 void
 magick_set_property( Image *image, const char *property, const char *value,
 	ExceptionInfo *exception )
@@ -83,10 +94,52 @@ magick_set_property( Image *image, const char *property, const char *value,
 }
 
 int
-magick_set_image_colorspace( Image *image, const ColorspaceType colorspace,
-	ExceptionInfo *exception)
+magick_set_profile( Image *image, 
+	const char *name, const void *data, size_t length, 
+	ExceptionInfo *exception )
 {
-	return( SetImageColorspace( image, colorspace, exception ) );
+	StringInfo *string;
+	MagickBooleanType result;
+
+	string = BlobToStringInfo( data, length );
+	result = SetImageProfile( image, name, string, exception );
+	DestroyStringInfo( string );
+
+	return( result );
+}
+
+void *
+magick_profile_map( Image *image, MagickMapProfileFn fn, void *a )
+{
+	char *name;
+
+	ResetImageProfileIterator( image );
+	while( (name = GetNextImageProfile( image )) ) {
+		const StringInfo *profile;
+		void *data;
+		size_t length;
+		void *result;
+
+		profile = GetImageProfile( image, name );
+		data = GetStringInfoDatum( profile );
+		length = GetStringInfoLength( profile );
+		if( (result = fn( image, name, data, length, a )) )
+			return( result );
+	}
+
+	return( NULL );
+}
+
+ExceptionInfo *
+magick_acquire_exception( void )
+{
+	return( AcquireExceptionInfo() );
+}
+
+void
+magick_destroy_exception( ExceptionInfo *exception )
+{
+	VIPS_FREEF( DestroyExceptionInfo, exception ); 
 }
 
 void
@@ -96,15 +149,38 @@ magick_inherit_exception( ExceptionInfo *exception, Image *image )
 	(void) image;
 }
 
+void
+magick_set_number_scenes( ImageInfo *image_info, int scene, int number_scenes )
+{
+	/* I can't find docs for these fields, but this seems to work.
+	 */
+	char page[256];
+
+	image_info->scene = scene;
+	image_info->number_scenes = number_scenes;
+
+	/* Some IMs must have the string version set as well.
+	 */
+	vips_snprintf( page, 256, "%d-%d", scene, scene + number_scenes );
+	image_info->scenes = strdup( page );
+}
+
 #endif /*HAVE_MAGICK7*/
 
 #ifdef HAVE_MAGICK6
 
-Image*
-magick_acquire_image(const ImageInfo *image_info, ExceptionInfo *exception)
+Image *
+magick_acquire_image( const ImageInfo *image_info, ExceptionInfo *exception )
 {
 	(void) exception;
+
+#ifdef HAVE_ACQUIREIMAGE
 	return( AcquireImage( image_info ) );
+#else /*!HAVE_ACQUIREIMAGE*/
+	/* IM5-ish and GraphicsMagick use AllocateImage().
+	 */
+	return( AllocateImage( image_info ) );
+#endif
 }
 
 void
@@ -112,7 +188,13 @@ magick_acquire_next_image( const ImageInfo *image_info, Image *image,
 	ExceptionInfo *exception )
 {
 	(void) exception;
+#ifdef HAVE_ACQUIREIMAGE
 	AcquireNextImage( image_info, image );
+#else /*!HAVE_ACQUIREIMAGE*/
+	/* IM5-ish and GraphicsMagick use AllocateNextImage().
+	 */
+	AllocateNextImage( image_info, image );
+#endif
 }
 
 int
@@ -120,17 +202,55 @@ magick_set_image_size( Image *image, const size_t width, const size_t height,
 	ExceptionInfo *exception )
 {
 	(void) exception;
+#ifdef HAVE_SETIMAGEEXTENT
 	return( SetImageExtent( image, width, height ) );
+#else /*!HAVE_SETIMAGEEXTENT*/
+	image->columns = width;
+	image->rows = height;
+
+	/* imagemagick does a SyncImagePixelCache() at the end of
+	 * SetImageExtent(), but GM does not really have an equivalent. Just
+	 * always return True.
+	 */
+	return( MagickTrue );
+#endif /*HAVE_SETIMAGEEXTENT*/
 }
 
 int
 magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
 	const size_t width, const size_t height, const char *map,
-	const StorageType type,const void *pixels, ExceptionInfo *exception )
+	const StorageType type, const void *pixels, ExceptionInfo *exception )
 {
-	(void) exception;
+#ifdef HAVE_IMPORTIMAGEPIXELS
 	return( ImportImagePixels( image, x, y, width, height, map,
 		type, pixels ) );
+#else /*!HAVE_IMPORTIMAGEPIXELS*/
+	Image *constitute_image;
+
+	g_assert( image );
+	g_assert( image->signature == MagickSignature );
+
+	constitute_image = ConstituteImage( width, height, map, type, 
+		pixels, &image->exception );
+	if( !constitute_image ) 
+		return( MagickFalse );
+
+	(void) CompositeImage( image, CopyCompositeOp, constitute_image, x, y );
+	DestroyImage( constitute_image );
+
+	return( image->exception.severity == UndefinedException );
+#endif /*HAVE_IMPORTIMAGEPIXELS*/
+}
+
+void *
+magick_images_to_blob( const ImageInfo *image_info, Image *images, 
+	size_t *length, ExceptionInfo *exception )
+{
+#ifdef HAVE_IMAGESTOBLOB
+	return( ImagesToBlob( image_info, images, length, exception ) );
+#else
+	return( ImageToBlob( image_info, images, length, exception ) );
+#endif /*HAVE_IMAGESTOBLOB*/
 }
 
 void
@@ -138,21 +258,136 @@ magick_set_property( Image *image, const char *property, const char *value,
 	ExceptionInfo *exception )
 {
 	(void) exception;
+#ifdef HAVE_SETIMAGEPROPERTY
 	(void) SetImageProperty( image, property, value );
+#else /*!HAVE_SETIMAGEPROPERTY*/
+	(void) SetImageAttribute( image, property, value );
+#endif /*HAVE_SETIMAGEPROPERTY*/
 }
 
 int
-magick_set_image_colorspace( Image *image, const ColorspaceType colorspace,
-	ExceptionInfo *exception )
+magick_set_profile( Image *image, 
+	const char *name, const void *data, size_t length,
+       	ExceptionInfo *exception )
 {
-	(void) exception;
-	return( SetImageColorspace( image, colorspace ) );
+	int result;
+
+#ifdef HAVE_BLOBTOSTRINGINFO
+	StringInfo *string;
+
+	string = BlobToStringInfo( data, length );
+	result = SetImageProfile( image, name, string );
+	DestroyStringInfo( string );
+#else /*HAVE_BLOBTOSTRINGINFO*/
+	result = SetImageProfile( image, name, data, length );
+#endif /*HAVE_BLOBTOSTRINGINFO*/
+
+	return( result );
+}
+
+void *
+magick_profile_map( Image *image, MagickMapProfileFn fn, void *a )
+{
+	const char *name;
+	const void *data;
+	size_t length;
+	void *result;
+
+#ifdef HAVE_RESETIMAGEPROFILEITERATOR
+	ResetImageProfileIterator( image );
+	while( (name = GetNextImageProfile( image )) ) {
+		const StringInfo *profile;
+
+		profile = GetImageProfile( image, name );
+		data = GetStringInfoDatum( profile );
+		length = GetStringInfoLength( profile );
+		if( (result = fn( image, name, data, length, a )) )
+			return( result );
+	}
+#else /*!HAVE_RESETIMAGEPROFILEITERATOR*/
+{
+	ImageProfileIterator *iter; 
+
+	iter = AllocateImageProfileIterator( image );
+	while( NextImageProfile( iter, 
+		&name, (const unsigned char **) &data, &length ) ) {
+		if( (result = fn( image, name, data, length, a )) ) {
+			DeallocateImageProfileIterator( iter );
+			return( result );
+		}
+	}
+	DeallocateImageProfileIterator( iter );
+}
+#endif /*HAVE_RESETIMAGEPROFILEITERATOR*/
+
+	return( NULL );
+}
+
+ExceptionInfo *
+magick_acquire_exception( void )
+{
+	ExceptionInfo *exception;
+
+#ifdef HAVE_ACQUIREEXCEPTIONINFO
+	/* IM6+
+	 */
+	exception = AcquireExceptionInfo();
+#else /*!HAVE_ACQUIREEXCEPTIONINFO*/
+	/* gm
+	 */
+	exception = g_new( ExceptionInfo, 1 );
+	GetExceptionInfo( exception );
+#endif /*HAVE_ACQUIREEXCEPTIONINFO*/
+
+	return( exception );
+}
+
+void
+magick_destroy_exception( ExceptionInfo *exception )
+{
+#ifdef HAVE_ACQUIREEXCEPTIONINFO
+	/* IM6+ will free the exception in destroy.
+	 */
+	VIPS_FREEF( DestroyExceptionInfo, exception ); 
+#else /*!HAVE_ACQUIREEXCEPTIONINFO*/
+	/* gm and very old IM need to free the memory too.
+	 */
+	if( exception ) { 
+		DestroyExceptionInfo( exception ); 
+		g_free( exception );
+	}
+#endif /*HAVE_ACQUIREEXCEPTIONINFO*/
 }
 
 void
 magick_inherit_exception( ExceptionInfo *exception, Image *image ) 
 {
+#ifdef HAVE_INHERITEXCEPTION
 	InheritException( exception, &image->exception );
+#endif /*HAVE_INHERITEXCEPTION*/
+}
+
+void
+magick_set_number_scenes( ImageInfo *image_info, int scene, int number_scenes )
+{
+#ifdef HAVE_NUMBER_SCENES 
+	/* I can't find docs for these fields, but this seems to work.
+	 */
+	char page[256];
+
+	image_info->scene = scene;
+	image_info->number_scenes = number_scenes;
+
+	/* Some IMs must have the string version set as well.
+	 */
+	vips_snprintf( page, 256, "%d-%d", scene, scene + number_scenes );
+	image_info->scenes = strdup( page );
+#else /*!HAVE_NUMBER_SCENES*/
+	/* This works with GM 1.2.31 and probably others.
+	 */
+	image_info->subimage = scene;
+	image_info->subrange = number_scenes;
+#endif
 }
 
 #endif /*HAVE_MAGICK6*/
@@ -160,13 +395,68 @@ magick_inherit_exception( ExceptionInfo *exception, Image *image )
 #if defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)
 
 void
+magick_set_image_option( ImageInfo *image_info, 
+	const char *name, const char *value )
+{
+#ifdef HAVE_SETIMAGEOPTION
+  	SetImageOption( image_info, name, value );
+#endif /*HAVE_SETIMAGEOPTION*/
+}
+
+/* ImageMagick can't detect some formats, like ICO, by examining the contents --
+ * ico.c simply does not have a recogniser.
+ *
+ * For these formats, do the detection ourselves.
+ *
+ * Return an IM format specifier, or NULL to let IM do the detection.
+ */
+static const char *
+magick_sniff( const unsigned char *bytes, size_t length )
+{
+	if( length >= 4 &&
+		bytes[0] == 0 &&
+		bytes[1] == 0 &&
+		bytes[2] == 1 &&
+		bytes[3] == 0 )
+		return( "ICO" );
+
+	return( NULL );
+}
+
+void
+magick_sniff_bytes( ImageInfo *image_info, 
+	const unsigned char *bytes, size_t length )
+{
+	const char *format;
+
+	if( (format = magick_sniff( bytes, length )) )
+		vips_strncpy( image_info->magick, format, MaxTextExtent );
+}
+
+void
+magick_sniff_file( ImageInfo *image_info, const char *filename )
+{
+	unsigned char bytes[256];
+	size_t length;
+
+	if( (length = vips__get_bytes( filename, bytes, 256 )) >= 4 )
+		magick_sniff_bytes( image_info, bytes, 256 );
+}
+
+void
 magick_vips_error( const char *domain, ExceptionInfo *exception )
 {
-	if( exception &&
-		exception->reason &&
-		exception->description )
-		vips_error( domain, _( "libMagick error: %s %s" ),
-			exception->reason, exception->description );
+	if( exception ) {
+		if( exception->reason && 
+			exception->description ) 
+			vips_error( domain, _( "libMagick error: %s %s" ),
+				exception->reason, exception->description );
+		else if( exception->reason ) 
+			vips_error( domain, _( "libMagick error: %s" ),
+				exception->reason );
+		else 
+			vips_error( domain, "%s", _( "libMagick error:" ) );
+	}
 }
 
 static void *
@@ -176,7 +466,7 @@ magick_genesis_cb( void *client )
 	printf( "magick_genesis_cb:\n" ); 
 #endif /*DEBUG*/
 
-#ifdef HAVE_MAGICKCOREGENESIS
+#if defined(HAVE_MAGICKCOREGENESIS) || defined(HAVE_MAGICK7) 
 	MagickCoreGenesis( vips_get_argv0(), MagickFalse );
 #else /*!HAVE_MAGICKCOREGENESIS*/
 	InitializeMagick( "" );
@@ -191,6 +481,105 @@ magick_genesis( void )
 	static GOnce once = G_ONCE_INIT;
 
 	VIPS_ONCE( &once, magick_genesis_cb, NULL );
+}
+
+/* Set vips metadata from a magick profile.
+ */
+static void *
+magick_set_vips_profile_cb( Image *image, 
+	const char *name, const void *data, size_t length, void *a )
+{
+	VipsImage *im = (VipsImage *) a;
+
+	char name_text[256];
+	VipsBuf vips_name = VIPS_BUF_STATIC( name_text );
+
+	if( strcmp( name, "XMP" ) == 0 )
+		vips_buf_appendf( &vips_name, VIPS_META_XMP_NAME );
+	else if( strcmp( name, "IPTC" ) == 0 )
+		vips_buf_appendf( &vips_name, VIPS_META_IPTC_NAME );
+	else if( strcmp( name, "ICM" ) == 0 )
+		vips_buf_appendf( &vips_name, VIPS_META_ICC_NAME );
+	else if( strcmp( name, "EXIF" ) == 0 )
+		vips_buf_appendf( &vips_name, VIPS_META_EXIF_NAME );
+	else
+		vips_buf_appendf( &vips_name, "magickprofile-%s", name );
+
+	vips_image_set_blob_copy( im, 
+		vips_buf_all( &vips_name ), data, length ); 
+
+	if( strcmp( name, "exif" ) == 0 ) 
+		(void) vips__exif_parse( im );
+
+	return( NULL );
+}
+
+/* Set vips metadata from ImageMagick profiles.
+ */
+int
+magick_set_vips_profile( VipsImage *im, Image *image )
+{
+	if( magick_profile_map( image, magick_set_vips_profile_cb, im ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+typedef struct {
+	Image *image;
+	ExceptionInfo *exception;
+} CopyProfileInfo;
+
+static void *
+magick_set_magick_profile_cb( VipsImage *im, 
+	const char *name, GValue *value, CopyProfileInfo *info )
+{
+	char txt[256];
+	VipsBuf buf = VIPS_BUF_STATIC( txt );
+	const void *data;
+	size_t length;
+
+	if( strcmp( name, VIPS_META_XMP_NAME ) == 0 )
+		vips_buf_appendf( &buf, "XMP" );
+	else if( strcmp( name, VIPS_META_IPTC_NAME ) == 0 )
+		vips_buf_appendf( &buf, "IPTC" );
+	else if( strcmp( name, VIPS_META_ICC_NAME ) == 0 )
+		vips_buf_appendf( &buf, "ICM" );
+	else if( strcmp( name, VIPS_META_EXIF_NAME ) == 0 )
+		vips_buf_appendf( &buf, "EXIF" );
+	else if( vips_isprefix( "magickprofile-", name ) ) 
+		vips_buf_appendf( &buf, 
+			"%s", name + strlen( "magickprofile-" ) );
+
+	if( vips_buf_is_empty( &buf ) ) 
+		return( NULL );
+	if( !vips_image_get_typeof( im, name ) ) 
+		return( NULL );
+	if( vips_image_get_blob( im, name, &data, &length ) )
+		return( im );
+
+	if( !magick_set_profile( info->image, 
+		vips_buf_all( &buf ), data, length, info->exception ) )
+		return( im );
+
+	return( NULL );
+}
+
+/* Set magick metadata from a VipsImage.
+ */
+int
+magick_set_magick_profile( Image *image, 
+	VipsImage *im, ExceptionInfo *exception )
+{
+	CopyProfileInfo info;
+
+	info.image = image;
+	info.exception = exception;
+	if( vips_image_map( im, 
+		(VipsImageMapFn) magick_set_magick_profile_cb, &info ) )
+		return( -1 );
+
+	return( 0 );
 }
 
 #endif /*HAVE_MAGICK*/

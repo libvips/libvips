@@ -143,6 +143,13 @@ extern "C" {
  */
 #define VIPS_META_PAGE_HEIGHT "page-height"
 
+/**
+ * VIPS_META_N_PAGES:
+ *
+ * If set, the number of pages in the original file. 
+ */
+#define VIPS_META_N_PAGES "n-pages"
+
 guint64 vips_format_sizeof( VipsBandFormat format );
 guint64 vips_format_sizeof_unsafe( VipsBandFormat format );
 
@@ -186,10 +193,14 @@ void vips_image_set_area( VipsImage *image,
 	const char *name, VipsCallbackFn free_fn, void *data );
 int vips_image_get_area( const VipsImage *image, 
 	const char *name, void **data );
-void vips_image_set_blob( VipsImage *image, const char *name, 
-	VipsCallbackFn free_fn, void *data, size_t length );
-int vips_image_get_blob( const VipsImage *image, const char *name, 
-	void **data, size_t *length );
+void vips_image_set_blob( VipsImage *image, 
+	const char *name, 
+	VipsCallbackFn free_fn, const void *data, size_t length );
+void vips_image_set_blob_copy( VipsImage *image, 
+	const char *name, const void *data, size_t length );
+int vips_image_get_blob( const VipsImage *image, 
+	const char *name, const void **data, size_t *length );
+
 int vips_image_get_int( const VipsImage *image, const char *name, int *out );
 void vips_image_set_int( VipsImage *image, const char *name, int i );
 int vips_image_get_double( const VipsImage *image, 

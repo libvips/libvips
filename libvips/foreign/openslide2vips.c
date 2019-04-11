@@ -566,7 +566,7 @@ vips__openslide_generate( VipsRegion *out,
 	 * somehow marking this tile as unreadable.
 	 *
 	 * See
-	 * https://github.com/jcupitt/libvips/commit/bb0a6643f94e69294e36d2b253f9bdd60c8c40ed#commitcomment-19838911
+	 * https://github.com/libvips/libvips/commit/bb0a6643f94e69294e36d2b253f9bdd60c8c40ed#commitcomment-19838911
 	 */
 	error = openslide_get_error( rslide->osr );
 	if( error ) {
@@ -605,14 +605,15 @@ vips__openslide_read( const char *filename, VipsImage *out,
 			NULL, vips__openslide_generate, NULL, rslide, NULL ) )
 		return( -1 );
 
-	/* Copy to out, adding a cache. Enough tiles for a complete row, plus
-	 * 50%.
+	/* Copy to out, adding a cache. Enough tiles for two complete rows, 
+	 * plus 50%. We need at least two rows, or we'll constantly reload
+	 * tiles if they cross a tile boundary.
 	 */
 	if( vips_tilecache( raw, &t, 
 		"tile_width", rslide->tile_width, 
 		"tile_height", rslide->tile_height,
 		"max_tiles", 
-			(int) (1.5 * (1 + raw->Xsize / rslide->tile_width)),
+			(int) (2.5 * (1 + raw->Xsize / rslide->tile_width)),
 		"threaded", TRUE,
 		NULL ) ) 
 		return( -1 );

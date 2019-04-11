@@ -44,7 +44,7 @@
  * 	  philipgiuliani
  * 25/6/14
  * 	- stop on zip write >4gb, thanks bgilbert
- * 	- save metadata, see https://github.com/jcupitt/libvips/issues/137
+ * 	- save metadata, see https://github.com/libvips/libvips/issues/137
  * 18/8/14
  * 	- use g_ date funcs, helps Windows
  * 14/2/15
@@ -79,6 +79,8 @@
  * 6/1/18
  * 	- add scan-properties.xml for szi output
  * 	- write all associated images
+ * 19/12/18
+ * 	- add @skip_blanks
  */
 
 /*
@@ -450,6 +452,8 @@ struct _VipsForeignSaveDz {
 	VipsAngle angle;
 	VipsForeignDzContainer container; 
 	int compression;
+	VipsRegionShrink region_shrink;
+	int skip_blanks;
 
 	/* Tile and overlap geometry. The members above are the parameters we
 	 * accept, this next set are the derived values which are actually 
@@ -546,7 +550,7 @@ iszip( VipsForeignDzContainer container )
 	case VIPS_FOREIGN_DZ_CONTAINER_ZIP:
 	case VIPS_FOREIGN_DZ_CONTAINER_SZI:
 		return( TRUE );
-	
+
 	default:
 		return( FALSE );
 	}
@@ -560,11 +564,11 @@ iszip( VipsForeignDzContainer container )
 static size_t
 estimate_zip_size( VipsForeignSaveDz *dz )
 {
-	size_t estimated_zip_size = dz->bytes_written + 
-		dz->tree->file_count * VIPS_ZIP_FIXED_LH_SIZE + 
-		dz->tree->filename_lengths + 
-		dz->tree->file_count * VIPS_ZIP_FIXED_CD_SIZE + 
-		dz->tree->filename_lengths + 
+	size_t estimated_zip_size = dz->bytes_written +
+		dz->tree->file_count * VIPS_ZIP_FIXED_LH_SIZE +
+		dz->tree->filename_lengths +
+		dz->tree->file_count * VIPS_ZIP_FIXED_CD_SIZE +
+		dz->tree->filename_lengths +
 		VIPS_ZIP_EOCD_SIZE;
 
 #ifdef DEBUG_VERBOSE
@@ -576,10 +580,10 @@ estimate_zip_size( VipsForeignSaveDz *dz )
 #endif /*HAVE_GSF_ZIP64*/
 
 static int
-write_image( VipsForeignSaveDz *dz, 
+write_image( VipsForeignSaveDz *dz,
 	GsfOutput *out, VipsImage *image, const char *format )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz ); 
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz );
 
 	void *buf;
 	size_t len;
@@ -588,9 +592,9 @@ write_image( VipsForeignSaveDz *dz,
 	 * Strip them.
 	 */
 	vips_image_set_int( image, "hide-progress", 1 );
-	if( vips_image_write_to_buffer( image, format, &buf, &len, 
-		"strip", TRUE, 
-		NULL ) ) 
+	if( vips_image_write_to_buffer( image, format, &buf, &len,
+		"strip", TRUE,
+		NULL ) )
 		return( -1 );
 
 	/* gsf doesn't like more than one write active at once.
@@ -602,7 +606,7 @@ write_image( VipsForeignSaveDz *dz,
 		g_mutex_unlock( vips__global_lock );
 		g_free( buf );
 		vips_error( class->nickname,
-			"%s", gsf_output_error( out )->message ); 
+			"%s", gsf_output_error( out )->message );
 
 		return( -1 );
 	}
@@ -612,14 +616,14 @@ write_image( VipsForeignSaveDz *dz,
 	gsf_output_close( out );
 
 #ifndef HAVE_GSF_ZIP64
-	if( iszip( dz->container ) ) { 
-		/* Leave 3 entry headroom for blank.png and metadata files. 
+	if( iszip( dz->container ) ) {
+		/* Leave 3 entry headroom for blank.png and metadata files.
 		 */
 		if( dz->tree->file_count + 3 >= (unsigned int) USHRT_MAX ) {
 			g_mutex_unlock( vips__global_lock );
 
 			vips_error( class->nickname,
-				"%s", _( "too many files in zip" ) ); 
+				"%s", _( "too many files in zip" ) );
 			return( -1 );
 		}
 
@@ -992,34 +996,34 @@ build_scan_property( VipsDbuf *dbuf, VipsImage *image,
 		return;
 	}
 
-	if( !g_utf8_validate( str, -1, NULL ) ) { 
+	if( !g_utf8_validate( str, -1, NULL ) ) {
 		g_value_unset( &save_value );
 		return;
 	}
 
-	vips_dbuf_writef( dbuf, "    <property>\n" );  
-	vips_dbuf_writef( dbuf, "      <name>" ); 
+	vips_dbuf_writef( dbuf, "    <property>\n" );
+	vips_dbuf_writef( dbuf, "      <name>" );
 	vips_dbuf_write_amp( dbuf, szi_name );
-	vips_dbuf_writef( dbuf, "</name>\n" ); 
-	vips_dbuf_writef( dbuf, "      <value type=\"%s\">", 
-		g_type_name( type )  ); 
+	vips_dbuf_writef( dbuf, "</name>\n" );
+	vips_dbuf_writef( dbuf, "      <value type=\"%s\">",
+		g_type_name( type )  );
 	vips_dbuf_write_amp( dbuf, str );
-	vips_dbuf_writef( dbuf, "</value>\n" ); 
-	vips_dbuf_writef( dbuf, "    </property>\n" );  
+	vips_dbuf_writef( dbuf, "</value>\n" );
+	vips_dbuf_writef( dbuf, "    </property>\n" );
 
 	g_value_unset( &save_value );
 }
 
 static char *scan_property_names[][2] = {
-	{ "openslide.vendor", "Vendor" }, 
-	{ "openslide.objective-power", "ObjectiveMagnification" }, 
-	{ "openslide.mpp-x", "MicronsPerPixelX" }, 
-	{ "openslide.mpp-y", "MicronsPerPixelY" }, 
-	{ "width", "ImageWidth" }, 
+	{ "openslide.vendor", "Vendor" },
+	{ "openslide.objective-power", "ObjectiveMagnification" },
+	{ "openslide.mpp-x", "MicronsPerPixelX" },
+	{ "openslide.mpp-y", "MicronsPerPixelY" },
+	{ "width", "ImageWidth" },
 	{ "height", "ImageHeight" }
 };
 
-/* Make the xml we write to scan-properties.xml in szi write. 
+/* Make the xml we write to scan-properties.xml in szi write.
  * Free with g_free().
  */
 char *
@@ -1030,23 +1034,23 @@ build_scan_properties( VipsImage *image )
 	char *date;
 	int i;
 
-	vips_dbuf_init( &dbuf ); 
+	vips_dbuf_init( &dbuf );
 
 	g_get_current_time( &now );
-	date = g_time_val_to_iso8601( &now ); 
+	date = g_time_val_to_iso8601( &now );
 	vips_dbuf_writef( &dbuf, "<?xml version=\"1.0\"?>\n" ); 
 	vips_dbuf_writef( &dbuf, "<image xmlns=\"http://www.pathozoom.com/szi\""
-		" date=\"%s\" version=\"1.0\">\n", date ); 
+		" date=\"%s\" version=\"1.0\">\n", date );
 	g_free( date ); 
 	vips_dbuf_writef( &dbuf, "  <properties>\n" );  
 
 	for( i = 0; i < VIPS_NUMBER( scan_property_names ); i++ )
-		build_scan_property( &dbuf, image, 
-			scan_property_names[i][0], 
-			scan_property_names[i][1] );  
+		build_scan_property( &dbuf, image,
+			scan_property_names[i][0],
+			scan_property_names[i][1] );
 
-	vips_dbuf_writef( &dbuf, "  </properties>\n" );  
-	vips_dbuf_writef( &dbuf, "</image>\n" );  
+	vips_dbuf_writef( &dbuf, "  </properties>\n" );
+	vips_dbuf_writef( &dbuf, "</image>\n" );
 
 	return( (char *) vips_dbuf_steal( &dbuf, NULL ) ); 
 }
@@ -1063,7 +1067,7 @@ write_scan_properties( VipsForeignSaveDz *dz )
                 return( -1 );
 
 	out = vips_gsf_path( dz->tree, "scan-properties.xml", NULL );
-	gsf_output_write( out, strlen( dump ), (guchar *) dump ); 
+	gsf_output_write( out, strlen( dump ), (guchar *) dump );
 	(void) gsf_output_close( out );
 	g_object_unref( out );
 
@@ -1073,7 +1077,7 @@ write_scan_properties( VipsForeignSaveDz *dz )
 }
 
 static void *
-write_associated_images( VipsImage *image, 
+write_associated_images( VipsImage *image,
 	const char *field, GValue *value, void *a )
 {
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) a;
@@ -1089,7 +1093,7 @@ write_associated_images( VipsImage *image,
 
 		/* Make sure there are no '/' in the filename.
 		 */
-		if( (q = strrchr( p, '/' )) ) 
+		if( (q = strrchr( p, '/' )) )
 			p = q + 1;
 
 		if( vips_image_get_image( image, field, &associated ) )
@@ -1314,14 +1318,14 @@ tile_name( Layer *layer, int x, int y )
 	return( out );
 }
 
-/* Test for tile equal to background colour. In google maps mode, we skip
- * blank background tiles. 
+/* Test for tile nearly equal to background colour. In google maps mode, we 
+ * skip blank background tiles. 
  *
- * Don't use exactly equality, since compression artefacts or noise can upset
+ * Don't use exactly equality since compression artefacts or noise can upset
  * this.
  */
 static gboolean
-tile_equal( VipsImage *image, VipsPel * restrict ink )
+tile_equal( VipsImage *image, int threshold, VipsPel * restrict ink )
 {
 	const int bytes = VIPS_IMAGE_SIZEOF_PEL( image );
 
@@ -1347,7 +1351,7 @@ tile_equal( VipsImage *image, VipsPel * restrict ink )
 
 		for( x = 0; x < image->Xsize; x++ ) {
 			for( b = 0; b < bytes; b++ ) 
-				if( VIPS_ABS( p[b] - ink[b] ) > 5 ) {
+				if( VIPS_ABS( p[b] - ink[b] ) > threshold ) {
 					g_object_unref( region );
 					return( FALSE ); 
 				}
@@ -1387,8 +1391,7 @@ strip_work( VipsThreadState *state, void *a )
 		tile.top = state->y;
 		tile.width = dz->tile_size;
 		tile.height = dz->tile_size;
-		vips_rect_intersectrect( &tile, &layer->real_pixels, &tile );
-		if( vips_rect_isempty( &tile ) ) {
+		if( !vips_rect_overlapsrect( &tile, &layer->real_pixels ) ) {
 #ifdef DEBUG_VERBOSE
 			printf( "strip_work: skipping tile %d x %d\n", 
 				state->x / dz->tile_size, 
@@ -1399,9 +1402,7 @@ strip_work( VipsThreadState *state, void *a )
 		}
 	}
 
-#ifdef DEBUG
-	vips_object_sanity( VIPS_OBJECT( strip->image ) );
-#endif /*DEBUG*/
+	g_assert( vips_object_sanity( VIPS_OBJECT( strip->image ) ) );
 
 	/* Extract relative to the strip top-left corner.
 	 */
@@ -1410,11 +1411,8 @@ strip_work( VipsThreadState *state, void *a )
 		state->pos.width, state->pos.height, NULL ) ) 
 		return( -1 );
 
-	/* If we are writing a google map pyramid and the tile is equal to the 
-	 * background, don't save. The viewer will display blank.png for us.
-	 */
-	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
-		tile_equal( x, dz->ink ) ) { 
+	if( dz->skip_blanks >= 0 &&
+		tile_equal( x, dz->skip_blanks, dz->ink ) ) { 
 		g_object_unref( x );
 
 #ifdef DEBUG_VERBOSE
@@ -1555,6 +1553,8 @@ strip_shrink( Layer *layer )
 	Layer *below = layer->below;
 	VipsRegion *from = layer->strip;
 	VipsRegion *to = below->strip;
+	VipsForeignSaveDz *dz = layer->dz;
+	VipsRegionShrink region_shrink = dz->region_shrink;
 
 	VipsRect target;
 	VipsRect source;
@@ -1601,10 +1601,11 @@ strip_shrink( Layer *layer )
 
 		/* None? All done.
 		 */
-		if( vips_rect_isempty( &target ) ) 
+		if( vips_rect_isempty( &target ) )
 			break;
 
-		(void) vips_region_shrink( from, to, &target );
+		(void) vips_region_shrink_method( from, to, 
+			&target, region_shrink );
 
 		below->write_y += target.height;
 
@@ -1828,6 +1829,12 @@ vips_foreign_save_dz_build( VipsObject *object )
 			dz->tile_size = 256;
 	}
 
+	/* skip_blanks defaults to 5 in google mode.
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
+		!vips_object_argument_isset( object, "skip_blanks" ) )
+		dz->skip_blanks = 5;
+
 	/* Our tile layout.
 	 */
 	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_DZ ) { 
@@ -1847,8 +1854,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 	/* Default to white background. vips_foreign_save_init() defaults to
 	 * black. 
 	 */
-	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE &&
-		!vips_object_argument_isset( object, "background" ) ) {
+	if( !vips_object_argument_isset( object, "background" ) ) {
 		VipsArrayDouble *background; 
 
 		/* Using g_object_set() to set an input param in build will
@@ -1887,9 +1893,9 @@ vips_foreign_save_dz_build( VipsObject *object )
 	save->ready = z;
 }
 
-	/* We use ink in google mode to check for blank tiles.
+	/* We use ink to check for blank tiles.
 	 */
-	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE ) {
+	if( dz->skip_blanks >= 0 ) {
 		if( !(dz->ink = vips__vector_to_ink( 
 			class->nickname, save->ready,
 			VIPS_AREA( save->background )->data, NULL, 
@@ -2058,13 +2064,13 @@ vips_foreign_save_dz_build( VipsObject *object )
 		/* Output to a file or memory?
 		 */
 		if( dz->dirname ) { 
-			const char *suffix = 
+			const char *suffix =
 				dz->container == VIPS_FOREIGN_DZ_CONTAINER_SZI ?
-					"szi" : "zip"; 
+					"szi" : "zip";
 
-			vips_snprintf( name, VIPS_PATH_MAX, "%s/%s.%s", 
-				dz->dirname, dz->basename, suffix ); 
-			if( !(dz->out = 
+			vips_snprintf( name, VIPS_PATH_MAX, "%s/%s.%s",
+				dz->dirname, dz->basename, suffix );
+			if( !(dz->out =
 				gsf_output_stdio_new( name, &error )) ) {
 				vips_g_error( &error );
 				return( -1 );
@@ -2244,8 +2250,7 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		_( "Directory layout" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, layout ),
-		VIPS_TYPE_FOREIGN_DZ_LAYOUT, 
-			VIPS_FOREIGN_DZ_LAYOUT_DZ ); 
+		VIPS_TYPE_FOREIGN_DZ_LAYOUT, VIPS_FOREIGN_DZ_LAYOUT_DZ ); 
 
 	VIPS_ARG_STRING( class, "suffix", 9, 
 		_( "suffix" ), 
@@ -2273,8 +2278,7 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		_( "Pyramid depth" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, depth ),
-		VIPS_TYPE_FOREIGN_DZ_DEPTH, 
-			VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL ); 
+		VIPS_TYPE_FOREIGN_DZ_DEPTH, VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL ); 
 
 	VIPS_ARG_BOOL( class, "centre", 13, 
 		_( "Center" ), 
@@ -2295,8 +2299,7 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		_( "Pyramid container type" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, container ),
-		VIPS_TYPE_FOREIGN_DZ_CONTAINER, 
-			VIPS_FOREIGN_DZ_CONTAINER_FS ); 
+		VIPS_TYPE_FOREIGN_DZ_CONTAINER, VIPS_FOREIGN_DZ_CONTAINER_FS ); 
 
 	VIPS_ARG_BOOL( class, "properties", 16, 
 		_( "Properties" ), 
@@ -2311,6 +2314,20 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveDz, compression ),
 		-1, 9, 0 );
+
+	VIPS_ARG_ENUM( class, "region_shrink", 18, 
+		_( "Region shrink" ), 
+		_( "Method to shrink regions" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, region_shrink ),
+		VIPS_TYPE_REGION_SHRINK, VIPS_REGION_SHRINK_MEAN ); 
+
+	VIPS_ARG_INT( class, "skip_blanks", 19, 
+		_( "Skip blanks" ), 
+		_( "Skip tiles which are nearly equal to the background" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, skip_blanks ),
+		-1, 65535, -1 );
 
 	/* How annoying. We stupidly had these in earlier versions.
 	 */
@@ -2350,6 +2367,8 @@ vips_foreign_save_dz_init( VipsForeignSaveDz *dz )
 	dz->angle = VIPS_ANGLE_D0; 
 	dz->container = VIPS_FOREIGN_DZ_CONTAINER_FS; 
 	dz->compression = 0;
+	dz->region_shrink = VIPS_REGION_SHRINK_MEAN;
+	dz->skip_blanks = -1;
 }
 
 typedef struct _VipsForeignSaveDzFile {
@@ -2400,9 +2419,9 @@ vips_foreign_save_dz_file_build( VipsObject *object )
 		/* Remove any legal suffix. We don't remove all suffixes
 		 * since we might be writing to a dirname with a dot in.
 		 */
-		if( strcasecmp( p + 1, "zip" ) == 0 ||
-			strcasecmp( p + 1, "szi" ) == 0 || 
-			strcasecmp( p + 1, "dz" ) == 0 )
+		if( g_ascii_strcasecmp( p + 1, "zip" ) == 0 ||
+			g_ascii_strcasecmp( p + 1, "szi" ) == 0 || 
+			g_ascii_strcasecmp( p + 1, "dz" ) == 0 )
 			*p = '\0';
 	}
 
@@ -2549,6 +2568,8 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  * * @container: #VipsForeignDzContainer set container type
  * * @properties: %gboolean write a properties file
  * * @compression: %gint zip deflate compression level
+ * * @region_shrink: #VipsRegionShrink how to shrink each 2x2 region
+ * * @skip_blanks: %gint skip tiles which are nearly equal to the background
  *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.
@@ -2576,6 +2597,12 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  * Use @depth to control how low the pyramid goes. This defaults to the
  * correct setting for the @layout you select.
  *
+ * You can rotate the image during write with the @angle argument. However,
+ * this will only work for images which support random access, like openslide,
+ * and not for things like JPEG. You'll need to rotate those images
+ * yourself with vips_rot(). Note that the `autorotate` option to the loader 
+ * may do what you need.
+ *
  * If @properties is %TRUE, vips_dzsave() will write a file called
  * `vips-properties.xml` to the output directory. This file lists all of the
  * metadata attached to @in in an obvious manner. It can be useful for viewing
@@ -2586,6 +2613,15 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  * (use zlib default), 0 (store, compression disabled) to 9 (max compression).
  * If no value is given, the default is to store files without compression.
  *
+ * You can use @region_shrink to control the method for shrinking each 2x2
+ * region. This defaults to using the average of the 4 input pixels but you can
+ * also use the median in cases where you want to preserve the range of values.
+ *
+ * If you set @skip_blanks to a value greater than or equal to zero, tiles 
+ * which are all within that many pixel values to the background are skipped. 
+ * This can save a lot of space for some image types. This option defaults to 
+ * 5 in Google layout mode, -1 otherwise.
+ * 
  * See also: vips_tiffsave().
  *
  * Returns: 0 on success, -1 on error.
@@ -2624,6 +2660,8 @@ vips_dzsave( VipsImage *in, const char *name, ... )
  * * @container: #VipsForeignDzContainer set container type
  * * @properties: %gboolean write a properties file
  * * @compression: %gint zip deflate compression level
+ * * @region_shrink: #VipsRegionShrink how to shrink each 2x2 region.
+ * * @skip_blanks: %gint skip tiles which are nearly equal to the background
  *
  * As vips_dzsave(), but save to a memory buffer. 
  *

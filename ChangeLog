@@ -1,15 +1,134 @@
-23/12/17 started 8.7.0
-- add magicksave, save image with libMagick [dlemstra]
+21/9/18 started 8.8.0
+- much faster smartcrop [lovell]
+- add low/high to smartcrop [jcupitt]
+- add XMP support to png read/write [jcupitt]
+- deprecate thumbnail auto_rotate, add no_rotate [jcupitt]
+- implement thumbnail shrink-on-load for openslide images [jcupitt]
+- add animated webp support [jcupitt]
+- revise vips_cast() to improve behaviour with uint images [erdmann]
+- add bandand()/or()/eor() to cplusplus binding [clcaalu]
+- implement shrink-on-load for tiff pyramids [jcupitt]
+- added vips_image_set_blob_copy() [jcupitt]
+- don't stop composite on first non-transparent image [felixbuenemann, GDmac]
+- add vips_rect_overlapsrect()
+- composite is much faster at positioning subimages
+- stop tiff pyr layers if width or height drop to 1 [gvincke]
+- dzsave has a new skip_blanks option
+- add vips_CMYK2XYZ() and vips_XYZ2CMYK(), plus associated routes 
+- include cmyk and srgb fallback profiles
+- add vips_profile_load() and use it everywhere
+- fix race in temp filename creation [lhecker]
+- add @reduction_effort param to webpsave [lovell]
+- add @option_string param to thumbnail_buffer [kleisauke]
+- add XMP, IPCT, ICC, EXIF etc. support to magickload/magicksave
+- much lower memuse for gifload
+- tilecache speedups
+- add vips_heifload(), vips_heifsave()
+- add heif thumbnail support to vips_thumbnail()
+- free threadpool earlier, reducing mem growth for some long-running 
+  processes [jtorresfabra]
+- add vips_region_fetch() / _width() / _height() for language bindings
+- vips_text() supports justification
+- move vips_image_set_kill() and iskilled() to the public API
 - dzsave to szi sets suffix correctly [martinweihrauch]
 - dzsave szi writes "scan-properties.xml"
 - add vips_image_(get|set)_image()
 - add openslideload option to attach all associated images as metadata
 - dzsave to szi will write all associated images
 
+4/1/19 started 8.7.4
+- magickload with magick6 API did not chain exceptions correctly causing a
+  memory leak under some conditions [kleisauke]
+- zero memory on allocate to prevent write of uninitialized memory under some 
+  error conditions [Balint Varga-Perke]
+
+21/11/18 started 8.7.3
+- fix infinite loop for autofit with non-scaleable font 
+- mapim was not offsetting by window offset [erdmann]
+- better rounding for scale [kleisauke]
+- fix a memleak in magick6load [kleisauke]
+
+21/11/18 started 8.7.2
+- more info output for temp files to help diagnose problems
+- vips_text() could set the wrong DPI
+- vips_text() leaked in autofit mode
+
+23/9/18 started 8.7.1
+- update function list in docs [janko-m] 
+- test for g_str_to_ascii() [jcupitt]
+- fix temp file open on Windows and fallback on linux [lovell]
+
+23/12/17 started 8.7.0
+- add magicksave, save image with libMagick [dlemstra]
+- remove jpeg thumbnail from EXIF if "jpeg-thumbnail-data" has been removed by
+  user
+- hough_line scales width to 0 - 180, not 0 - 360
+- hough_line is 4x faster
+- hough_circle is 2x faster
+- add vips_sobel() and vips_canny() edge detectors
+- add vips_rotate() ... a convenience method for vips_similarity()
+- svgload was missing is_a [lovell]
+- better header sniffing for small files
+- drop incompatible ICC profiles before save
+- better hasalpha rules
+- create funcs always make MULTIBAND (ie. no alpha)
+- use O_TMPFILE, if available [Alexander--]
+- set "interlaced=1" for interlaced JPG and PNG images
+- add PDFium PDF loader
+- jpegload adds a jpeg-chroma-subsample field with eg. 4:4:4 for no
+  chrominance subsampling. 
+- tiffload, pdfload, magickload set VIPS_META_N_PAGES "n-pages" metadata item
+- add fontfile option to vips_text() [fangqiao]
+- add vips_transpose3d() -- swap major dimensions in a volumetric image
+- remove vips7 stuff from default API ... you must now #include it explicitly
+- added vips_argument_get_id() to fix derived classes on win32 [angelmixu]
+- fix compile with MSVC 2017 [angelmixu]
+- pdfload has a option for background 
+- vips7 C++ interface defaults off
+- make members, getters and operators "const" in cpp API
+- composite has params for x/y position of sub-images [medakk]
+- add Mitchell kernel
+- pyramid builders have a choice of 2x2 shrinkers [harukizaemon]
+- add `palette` option to pngsave [felixbuenemann]
+- add basic nifti load/save support
+- support writing string-valued fields via libexif
+- paste in the test suite from pyvips
+- get EXIF tag names from tag plus ifd [@Nan619]
+- escape ASCII control characters in XML
+- magickload now sniffs some file types itself
+- update radiance load from upstream
+- add region_shrink to tiffsave
+- mapim could fail for float index images with coordinates out of int range
+- scale openexr alpha to 0 - 255
+- close input earlier, when we can [kleisauke]
+- add vips_object_get_args() for language bindings [kleisauke]
+
+12/3/18 started 8.6.4
+- better fitting of fonts with overhanging edges [Adrià]
+- revise C++ example [fangqiao]
+- strict round down on jpeg shrink on load [davidwood]
+- configure test for g++ 7.2 and composite.cpp
+- don't Ping in magickload, too unreliable
+- ensure WebP can add metadata when compiled with libwebpmux [lovell]
+- improve accuracy of vector path convolution [felixbuenemann]
+
+12/2/18 started 8.6.3
+- use pkg-config to find libjpeg, if we can
+- better clean of output image in vips_image_write() fixes a crash 
+  writing twice to memory
+- better rounding behaviour in convolution means we hit the vector path more
+  often
+- fix a crash if a delayed load failed [gsharpsh00ter]
+- icc_import attaches the fallback profile if it used it
+
 5/1/18 started 8.6.2
 - vips_sink_screen() keeps a ref to the input image ... stops a rare race
 - fix a minor accidental ABI break in 8.6.0 -> 8.6.1 [remicollet]
 - fix read of plane-separate TIFFs with large strips [remicollet]
+- fix a C++ warning in composite.cpp [lovell]
+- remove number of images limit in composite
+- composite allows 1 mode ... reused for all joins
+- fix race in vips_sink() for seq read 
 
 10/12/17 started 8.6.1
 - fix mmap window new/free cycling 
@@ -225,6 +344,7 @@
 - dzsave puts vips-properties.xml in the main dir for gm and zoomify layouts
 - resize and reduce have @centre option for centre convention downsampling
 - vipsthumbnail uses centre convention to better match imagemagick
+_ add vips_foreign_get_suffixes() 
 
 19/8/16 started 8.3.4
 - better transparency handling in gifload, thanks diegocsandrim

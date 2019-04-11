@@ -12,8 +12,12 @@
  * 	- vips_image_write() does not ref input for non-partial images
  * 29/10/16
  * 	- add vips_image_hasalpha()
- * 11/10/1
+ * 11/10/17
  * 	- more severing for vips_image_write()
+ * 3/4/18
+ * 	- better rules for hasalpha
+ * 9/10/18
+ * 	- fix up vips_image_dump(), it was still using ints not enums
  */
 
 /*
@@ -577,29 +581,8 @@ print_field_fn( VipsImage *image, const char *field, GValue *value, void *a )
 {
 	VipsBuf *buf = (VipsBuf *) a;
 
-	const char *extra;
-	char *str_value;
-
-	/* Look for known enums and decode them.
-	 */
-	extra = NULL;
-	if( strcmp( field, "coding" ) == 0 )
-		extra = vips_enum_nick( 
-			VIPS_TYPE_CODING, g_value_get_int( value ) );
-	else if( strcmp( field, "format" ) == 0 )
-		extra = vips_enum_nick( 
-			VIPS_TYPE_BAND_FORMAT, g_value_get_int( value ) );
-	else if( strcmp( field, "interpretation" ) == 0 )
-		extra = vips_enum_nick( 
-			VIPS_TYPE_INTERPRETATION, g_value_get_int( value ) );
-
-	str_value = g_strdup_value_contents( value );
-	vips_buf_appendf( buf, "%s: %s", field, str_value );
-	g_free( str_value );
-
-	if( extra )
-		vips_buf_appendf( buf, " - %s", extra );
-
+	vips_buf_appendf( buf, "%s: ", field );
+	vips_buf_appendgv( buf, value );
 	vips_buf_appendf( buf, "\n" );
 
 	return( NULL );
@@ -1615,19 +1598,18 @@ vips_image_set_progress( VipsImage *image, gboolean progress )
 		image->progress_signal = NULL;
 }
 
-
 /**
  * vips_image_iskilled: (method)
  * @image: image to test
  *
  * If @image has been killed (see vips_image_set_kill()), set an error message,
- * clear the #VipsImage.kill flag and return %FALSE. Otherwise return %TRUE.
+ * clear the #VipsImage.kill flag and return %TRUE. Otherwise return %FALSE.
  *
  * Handy for loops which need to run sets of threads which can fail. 
  *
  * See also: vips_image_set_kill().
  *
- * Returns: %FALSE if @image has been killed. 
+ * Returns: %TRUE if @image has been killed. 
  */
 gboolean
 vips_image_iskilled( VipsImage *image )
@@ -1662,8 +1644,6 @@ vips_image_iskilled( VipsImage *image )
  * threads. 
  *
  * See also: vips_image_iskilled().
- *
- * Returns: %FALSE if @image has been killed. 
  */
 void
 vips_image_set_kill( VipsImage *image, gboolean kill )
@@ -1675,18 +1655,24 @@ vips_image_set_kill( VipsImage *image, gboolean kill )
 	image->kill = kill;
 }
 
-/* Make a name for a filename-less image. Use immediately, don't free the
- * result.
+/* Fills the given buffer with a temporary filename.
+ * Assuming that "int" might be 64 Bit wide a buffer size of 26 suffices.
  */
-static const char *
-vips_image_temp_name( void )
+void
+vips_image_temp_name( char *name, int size )
 {
-	static int serial = 0;
-	static char name[256];
+	static int global_serial = 0;
 
-	vips_snprintf( name, 256, "temp-%d", serial++ );
+	/* Old glibs named this differently.
+	 */
+	int serial =
+#if GLIB_CHECK_VERSION( 2, 30, 0 )
+		g_atomic_int_add( &global_serial, 1 );
+#else
+		g_atomic_int_exchange_and_add( &global_serial, 1 );
+#endif
 
-	return( name );
+	vips_snprintf( name, size, "temp-%d", serial );
 }
 
 /**
@@ -1706,12 +1692,15 @@ VipsImage *
 vips_image_new( void )
 {
 	VipsImage *image;
+	char filename[26];
 
 	vips_check_init();
 
+	vips_image_temp_name( filename, sizeof( filename ) );
+
 	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
 	g_object_set( image,
-		"filename", vips_image_temp_name(),
+		"filename", filename,
 		"mode", "p",
 		NULL );
 	if( vips_object_build( VIPS_OBJECT( image ) ) ) {
@@ -1758,7 +1747,10 @@ vips_image_new_mode( const char *filename, const char *mode )
 VipsImage *
 vips_image_new_memory( void )
 {
-	return( vips_image_new_mode( vips_image_temp_name(), "t" ) );
+	char filename[26];
+
+	vips_image_temp_name( filename, sizeof( filename ) );
+	return( vips_image_new_mode( filename, "t" ) );
 }
 
 /**
@@ -2021,12 +2013,14 @@ vips_image_new_from_memory( const void *data, size_t size,
 	int width, int height, int bands, VipsBandFormat format )
 {
 	VipsImage *image;
+	char filename[26];
 
 	vips_check_init();
+	vips_image_temp_name( filename, sizeof( filename ) );
 
 	image = VIPS_IMAGE( g_object_new( VIPS_TYPE_IMAGE, NULL ) );
 	g_object_set( image,
-		"filename", vips_image_temp_name(),
+		"filename", filename,
 		"mode", "m",
 		"foreign_buffer", data,
 		"width", width,
@@ -2449,9 +2443,6 @@ vips_get_disc_threshold( void )
  * will default to /tmp. On Windows, vips uses GetTempPath() to find the
  * temporary directory. 
  *
- * vips uses g_mkstemp() to make the temporary filename. They generally look
- * something like "vips-12-EJKJFGH.v".
- *
  * See also: vips_image_new().
  *
  * Returns: the new #VipsImage, or %NULL on error.
@@ -2547,7 +2538,7 @@ vips_image_write( VipsImage *image, VipsImage *out )
 		vips_object_local( out, image );
 	}
 	else {
-		vips__reorder_clear( image );
+		vips__reorder_clear( out );
 		vips__link_break_all( out );
 		g_object_unref( image );
 	}
@@ -2637,6 +2628,12 @@ vips_image_write_to_buffer( VipsImage *in,
 		ap, in, &blob );
 	va_end( ap );
 
+	if( result )
+		return( -1 );
+
+	*buf = NULL;
+	if( size ) 
+		*size = 0;
 	if( blob ) { 
 		if( buf ) {
 			*buf = VIPS_AREA( blob )->data;
@@ -2648,7 +2645,7 @@ vips_image_write_to_buffer( VipsImage *in,
 		vips_area_unref( VIPS_AREA( blob ) );
 	}
 
-	return( result );
+	return( 0 );
 }
 
 /**
@@ -2658,7 +2655,7 @@ vips_image_write_to_buffer( VipsImage *in,
  *
  * Writes @in to memory as a simple, unformatted C-style array. 
  *
- * The caller is responsible for freeing this memory. 
+ * The caller is responsible for freeing this memory with g_free(). 
  *
  * See also: vips_image_write_to_buffer().
  *
@@ -2866,18 +2863,47 @@ vips_image_ispartial( VipsImage *image )
  * vips_image_hasalpha: (method)
  * @image: image to check
  *
- * libvips assumes an image has an alpha if it has two bands (ie. it is a
- * monochrome image with an extra band), if it has four bands (unless it's been
- * tagged as CMYK), or if it has more than four bands. 
+ * Look at an image's interpretation and see if it has extra alpha bands. For
+ * example, a 4-band #VIPS_INTERPRETATION_RGB would, but a six-band 
+ * #VIPS_INTERPRETATION_MULTIBAND would not. 
  *
  * Return %TRUE if @image has an alpha channel.
  */
 gboolean
 vips_image_hasalpha( VipsImage *image )
 {
-	return( image->Bands == 2 ||
-		(image->Bands == 4 && image->Type != VIPS_INTERPRETATION_CMYK) ||
-		image->Bands > 4 );
+	/* The result of hasalpha is used to turn on things like
+	 * premultiplication, so we are rather conservative about when we
+	 * signal this. We don't want to premultiply things that should not be
+	 * premultiplied.
+	 */
+	switch( image->Type ) { 
+	case VIPS_INTERPRETATION_B_W:
+	case VIPS_INTERPRETATION_GREY16:
+		return( image->Bands > 1 ); 
+
+	case VIPS_INTERPRETATION_RGB:
+	case VIPS_INTERPRETATION_CMC:
+	case VIPS_INTERPRETATION_LCH:
+	case VIPS_INTERPRETATION_LABS:
+	case VIPS_INTERPRETATION_sRGB:
+	case VIPS_INTERPRETATION_YXY:
+	case VIPS_INTERPRETATION_XYZ:
+	case VIPS_INTERPRETATION_LAB:
+	case VIPS_INTERPRETATION_RGB16:
+	case VIPS_INTERPRETATION_scRGB:
+	case VIPS_INTERPRETATION_HSV:
+		return( image->Bands > 3 ); 
+
+	case VIPS_INTERPRETATION_CMYK:
+		return( image->Bands > 4 ); 
+
+	default:
+		/* We can't really infer anything about bands from things like
+		 * HISTOGRAM or FOURIER.
+		 */
+		return( FALSE ); 
+	}
 }
 
 /**
@@ -2895,9 +2921,8 @@ vips_image_hasalpha( VipsImage *image )
  */
 int
 vips_image_write_prepare( VipsImage *image )
-{	
-	if( !vips_object_sanity( VIPS_OBJECT( image ) ) )
-		return( -1 ); 
+{
+	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
 
 	if( image->Xsize <= 0 || 
 		image->Ysize <= 0 || 
@@ -3068,13 +3093,13 @@ vips_image_rewind_output( VipsImage *image )
 	/* Now we've finished writing and reopened as read, we can
 	 * delete-on-close. 
 	 *
-	 * On *nix-like systems, this will unlink the file
-	 * from the filesystem and when we exit, for whatever reason, the file
+	 * On *nix-like systems, this will unlink the file from the 
+	 * filesystem and when we exit, for whatever reason, the file
 	 * we be reclaimed. 
 	 *
 	 * On Windows this will fail because the file is open and you can't
-	 * delete open files. However, on Windows we set O_TEMP, so the file
-	 * will be deleted when the fd is finally closed.
+	 * delete open files. However, on Windows we set _O_TEMPORARY, so the 
+	 * file will be deleted when the fd is finally closed.
 	 */
 	vips_image_delete( image );
 
@@ -3158,8 +3183,7 @@ vips_image_wio_input( VipsImage *image )
 {	
 	VipsImage *t1;
 
-	if( !vips_object_sanity( VIPS_OBJECT( image ) ) )
-		return( -1 ); 
+	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
 
 #ifdef DEBUG_IO
 	printf( "vips_image_wio_input: wio input for %s\n", 
@@ -3241,7 +3265,8 @@ vips_image_wio_input( VipsImage *image )
 		 */
 		if( vips_mapfile( image ) ) 
 			return( -1 );
-		image->data = image->baseaddr + image->sizeof_header;
+		image->data = (VipsPel *) image->baseaddr + 
+			image->sizeof_header;
 		image->dtype = VIPS_IMAGE_MMAPIN;
 
 		break;
@@ -3382,8 +3407,7 @@ vips_image_inplace( VipsImage *image )
 int
 vips_image_pio_input( VipsImage *image )
 {
-	if( !vips_object_sanity( VIPS_OBJECT( image ) ) )
-		return( -1 ); 
+	g_assert( vips_object_sanity( VIPS_OBJECT( image ) ) );
 
 #ifdef DEBUG_IO
 	printf( "vips_image_pio_input: enabling partial input for %s\n", 

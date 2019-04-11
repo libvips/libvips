@@ -48,6 +48,9 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif /*HAVE_IO_H*/
 #include <fcntl.h>
 
 #ifdef OS_WIN32
@@ -330,7 +333,7 @@ vips_iscasepostfix( const char *a, const char *b )
 	if( n > m )
 		return( FALSE );
 
-	return( strcasecmp( a + m - n, b ) == 0 );
+	return( g_ascii_strcasecmp( a + m - n, b ) == 0 );
 }
 
 /* Test for string a starts string b. a is a known-good string, b may be
@@ -577,25 +580,11 @@ vips__open( const char *filename, int flags, ... )
 	mode = va_arg( ap, int );
 	va_end( ap );
 
+	fd = g_open( filename, flags, mode );
+
 #ifdef OS_WIN32
-{
-	wchar_t *path16;
-
-	if( !(path16 = (wchar_t *) 
-		g_utf8_to_utf16( filename, -1, NULL, NULL, NULL )) ) { 
-		errno = EACCES;
-		return( -1 );
-	}
-
-	fd = _wopen( path16, flags, mode );
-
 	if( mode & O_CREAT )
 		vips__set_create_time( fd ); 
-
-	g_free( path16 );
-}
-#else /*!OS_WIN32*/
-	fd = open( filename, flags, mode );
 #endif
 
 	return( fd );
@@ -614,31 +603,11 @@ vips__fopen( const char *filename, const char *mode )
 {
 	FILE *fp;
 
+	fp = g_fopen( filename, mode );
+
 #ifdef OS_WIN32
-	wchar_t *path16, *mode16;
-	
-	if( !(path16 = (wchar_t *) 
-		g_utf8_to_utf16( filename, -1, NULL, NULL, NULL )) ) { 
-		errno = EACCES;
-		return( NULL );
-	}
-
-	if( !(mode16 = (wchar_t *) 
-		g_utf8_to_utf16( mode, -1, NULL, NULL, NULL )) ) { 
-		g_free( path16 );
-		errno = EACCES;
-		return( NULL );
-	}
-
-	fp = _wfopen( path16, mode16 );
-
-	g_free( path16 );
-	g_free( mode16 );
-
 	if( mode[0] == 'w' )
 		vips__set_create_time( _fileno( fp ) ); 
-#else /*!OS_WIN32*/
-	fp = fopen( filename, mode );
 #endif
 
 	return( fp );
@@ -844,33 +813,28 @@ vips__file_write( void *data, size_t size, size_t nmemb, FILE *stream )
 	return( 0 );
 }
 
-/* Read a few bytes from the start of a file. For sniffing file types.
- * Filename may contain a mode. 
+/* Read a few bytes from the start of a file. This is used for sniffing file 
+ * types, so we must read binary. 
+ *
+ * Return the number of bytes actually read (the file might be shorter than
+ * len), or 0 for error.
  */
-int
-vips__get_bytes( const char *filename, unsigned char buf[], int len )
+guint64
+vips__get_bytes( const char *filename, unsigned char buf[], guint64 len )
 {
-	char name[FILENAME_MAX];
-	char mode[FILENAME_MAX];
 	int fd;
-
-	/* Split off the mode part.
-	 */
-	im_filename_split( filename, name, mode );
+	guint64 bytes_read;
 
 	/* File may not even exist (for tmp images for example!)
 	 * so no hasty messages. And the file might be truncated, so no error
 	 * on read either.
 	 */
-	if( (fd = vips__open_read( name )) == -1 )
+	if( (fd = vips__open_read( filename )) == -1 )
 		return( 0 );
-	if( read( fd, buf, len ) != len ) {
-		close( fd );
-		return( 0 );
-	}
+	bytes_read = read( fd, buf, len );
 	close( fd );
 
-	return( 1 );
+	return( bytes_read );
 }
 
 /* We try to support stupid DOS files too. These have \r\n (13, 10) as line
@@ -1007,7 +971,7 @@ vips__gslist_gvalue_merge( GSList *a, const GSList *b )
 	return( a );
 }
 
-/* Make a char* from GSList of GValue. Each GValue should be a ref_string.
+/* Make a char * from GSList of GValue. Each GValue should be a ref_string.
  * free the result. Empty list -> "", not NULL. Join strings with '\n'.
  */
 char *
@@ -1123,9 +1087,9 @@ vips__ftruncate( int fd, gint64 pos )
 	return( 0 );
 }
 
-/* Test for file exists.
+/* TRUE if file exists.
  */
-int
+gboolean
 vips_existsf( const char *name, ... )
 {
         va_list ap;
@@ -1140,7 +1104,12 @@ vips_existsf( const char *name, ... )
 
 	g_free( path ); 
 
-        return( !result );
+	/* access() can fail for various reasons, especially under things 
+	 * like selinux. Only return FALSE if we are certain the file does not
+	 * exist.
+	 */
+	return( result == 0 || 
+		errno != ENOENT );
 }
 
 #ifdef OS_WIN32
@@ -1629,32 +1598,30 @@ vips__temp_dir( void )
 /* Make a temporary file name. The format parameter is something like "%s.jpg" 
  * and will be expanded to something like "/tmp/vips-12-34587.jpg".
  *
- * You need to free the result. A real file will also be created, though we
- * delete it for you.
+ * You need to free the result. 
  */
 char *
 vips__temp_name( const char *format )
 {
-	static int serial = 1;
+	static int serial = 0;
 
 	char file[FILENAME_MAX];
 	char file2[FILENAME_MAX];
-
 	char *name;
-	int fd;
 
-	vips_snprintf( file, FILENAME_MAX, "vips-%d-XXXXXX", serial++ );
+	vips_snprintf( file, FILENAME_MAX, "vips-%d-%u", 
+		serial++, g_random_int() );
 	vips_snprintf( file2, FILENAME_MAX, format, file );
 	name = g_build_filename( vips__temp_dir(), file2, NULL );
 
-	if( (fd = g_mkstemp( name )) == -1 ) {
-		vips_error( "tempfile", 
-			_( "unable to make temporary file %s" ), name );
-		g_free( name );
-		return( NULL );
-	}
-	close( fd );
-	g_unlink( name );
+	/* We could use something like g_mkstemp() to guarantee uniqueness
+	 * across processes, but the extra FS calls can be difficult for 
+	 * selinux.
+	 *
+	 * g_random_int() should be safe enough -- it's seeded from time(), so
+	 * it ought not to collide often -- and on linux at least we never 
+	 * actually use these filenames in the filesystem anyway.
+	 */
 
 	return( name );
 }

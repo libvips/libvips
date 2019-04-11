@@ -42,6 +42,7 @@ typedef enum {
 	VIPS_KERNEL_NEAREST,
 	VIPS_KERNEL_LINEAR,
 	VIPS_KERNEL_CUBIC,
+	VIPS_KERNEL_MITCHELL,
 	VIPS_KERNEL_LANCZOS2,
 	VIPS_KERNEL_LANCZOS3,
 	VIPS_KERNEL_LAST
@@ -80,6 +81,8 @@ int vips_thumbnail_image( VipsImage *in, VipsImage **out, int width, ... )
 	__attribute__((sentinel));
 
 int vips_similarity( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_rotate( VipsImage *in, VipsImage **out, double angle, ... )
 	__attribute__((sentinel));
 int vips_affine( VipsImage *in, VipsImage **out, 
 	double a, double b, double c, double d, ... )

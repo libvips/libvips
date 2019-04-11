@@ -19,6 +19,14 @@
  *	- add buffer save functions   
  * 28/2/17
  * 	- use dbuf for buffer output
+ * 4/4/17
+ * 	- reduce stack use to help musl
+ * 22/7/18
+ * 	- update code from radiance ... pasted in from rad5R1
+ * 	- expand fs[] buffer to prevent out of bounds write [HongxuChen]
+ * 23/7/18
+ * 	- fix a buffer overflow for incorrectly coded old-style RLE
+ * 	  [HongxuChen]
  */
 
 /*
@@ -148,42 +156,23 @@
 #include "pforeign.h"
 
 /* Begin copy-paste from Radiance sources.
+ *
+ * To update:
+ *
+ * 1. Download and unpack latest stable radiance
+ * 2. ray/src/common has the files we need ... copy in this order:
+ * 	colour.h
+ * 	resolu.h
+ * 	rtio.h
+ * 	fputword.c
+ * 	colour.c
+ * 	resolu.c
+ * 	header.c
+ * 3. trim each one down, removing extern decls
+ * 4. make all functions static
+ * 5. reorder to remove forward refs
+ * 6. remove unused funcs, mostly related to HDR write
  */
-
-			/* flags for scanline ordering */
-#define  XDECR			1
-#define  YDECR			2
-#define  YMAJOR			4
-
-			/* standard scanline ordering */
-#define  PIXSTANDARD		(YMAJOR|YDECR)
-#define  PIXSTDFMT		"-Y %d +X %d\n"
-
-			/* structure for image dimensions */
-typedef struct {
-	int	rt;		/* orientation (from flags above) */
-	int	xr, yr;		/* x and y resolution */
-} RESOLU;
-
-			/* macros to get scanline length and number */
-#define  scanlen(rs)		((rs)->rt & YMAJOR ? (rs)->xr : (rs)->yr)
-#define  numscans(rs)		((rs)->rt & YMAJOR ? (rs)->yr : (rs)->xr)
-
-			/* resolution string buffer and its size */
-#define  RESOLU_BUFLEN		32
-
-			/* macros for reading/writing resolution struct */
-#define  fputsresolu(rs,fp)	fputs(resolu2str(resolu_buf,rs),fp)
-#define  fgetsresolu(rs,fp)	str2resolu(rs, \
-					fgets(resolu_buf,RESOLU_BUFLEN,fp))
-
-			/* reading/writing of standard ordering */
-#define  fprtresolu(sl,ns,fp)	fprintf(fp,PIXSTDFMT,ns,sl)
-#define  fscnresolu(sl,ns,fp)	(fscanf(fp,PIXSTDFMT,ns,sl)==2)
-
-					/* defined in resolu.c */
-typedef int gethfunc(char *s, void *p); /* callback to process header lines */
-
 
 #define  RED		0
 #define  GRN		1
@@ -195,10 +184,10 @@ typedef int gethfunc(char *s, void *p); /* callback to process header lines */
 #define  COLXS		128	/* excess used for exponent */
 #define  WHT		3	/* used for RGBPRIMS type */
 
-#undef  BYTE
-#define  BYTE 	unsigned char	/* 8-bit unsigned integer */
+#undef uby8
+#define uby8  unsigned char	/* 8-bit unsigned integer */
 
-typedef BYTE  COLR[4];		/* red, green, blue (or X,Y,Z), exponent */
+typedef uby8  COLR[4];		/* red, green, blue (or X,Y,Z), exponent */
 
 typedef float COLORV;
 typedef COLORV  COLOR[3];	/* red, green, blue (or X,Y,Z) */
@@ -230,8 +219,8 @@ typedef float  COLORMAT[3][3];	/* color coordinate conversion matrix */
 #define  CIE_y_g		0.710
 #define  CIE_x_b		0.140
 #define  CIE_y_b		0.080
-#define  CIE_x_w		0.3333		/* use true white */
-#define  CIE_y_w		0.3333
+#define  CIE_x_w		(1./3.)		/* use true white */
+#define  CIE_y_w		(1./3.)
 #else
 #define  CIE_x_r		0.640		/* nominal CRT primaries */
 #define  CIE_y_r		0.330
@@ -239,8 +228,8 @@ typedef float  COLORMAT[3][3];	/* color coordinate conversion matrix */
 #define  CIE_y_g		0.600
 #define  CIE_x_b		0.150
 #define  CIE_y_b		0.060
-#define  CIE_x_w		0.3333		/* use true white */
-#define  CIE_y_w		0.3333
+#define  CIE_x_w		(1./3.)		/* use true white */
+#define  CIE_y_w		(1./3.)
 #endif
 
 #define  STDPRIMS	{{CIE_x_r,CIE_y_r},{CIE_x_g,CIE_y_g}, \
@@ -325,12 +314,12 @@ typedef float  COLORMAT[3][3];	/* color coordinate conversion matrix */
 #define  PRIMARYSTR		"PRIMARIES="
 #define  LPRIMARYSTR		10
 #define  isprims(hl)		(!strncmp(hl,PRIMARYSTR,LPRIMARYSTR))
-#define  primsval(p,hl)		sscanf(hl+LPRIMARYSTR, \
+#define  primsval(p,hl)		(sscanf((hl)+LPRIMARYSTR, \
 					"%f %f %f %f %f %f %f %f", \
 					&(p)[RED][CIEX],&(p)[RED][CIEY], \
 					&(p)[GRN][CIEX],&(p)[GRN][CIEY], \
 					&(p)[BLU][CIEX],&(p)[BLU][CIEY], \
-					&(p)[WHT][CIEX],&(p)[WHT][CIEY])
+					&(p)[WHT][CIEX],&(p)[WHT][CIEY]) == 8)
 #define  fputprims(p,fp)	fprintf(fp, \
 				"%s %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f\n",\
 					PRIMARYSTR, \
@@ -343,10 +332,21 @@ typedef float  COLORMAT[3][3];	/* color coordinate conversion matrix */
 #define  COLCORSTR		"COLORCORR="
 #define  LCOLCORSTR		10
 #define  iscolcor(hl)		(!strncmp(hl,COLCORSTR,LCOLCORSTR))
-#define  colcorval(cc,hl)	sscanf(hl+LCOLCORSTR,"%f %f %f", \
+#define  colcorval(cc,hl)	sscanf((hl)+LCOLCORSTR,"%f %f %f", \
 					&(cc)[RED],&(cc)[GRN],&(cc)[BLU])
 #define  fputcolcor(cc,fp)	fprintf(fp,"%s %f %f %f\n",COLCORSTR, \
 					(cc)[RED],(cc)[GRN],(cc)[BLU])
+
+/*
+ * Conversions to and from XYZ space generally don't apply WHTEFFICACY.
+ * If you need Y to be luminance (cd/m^2), this must be applied when
+ * converting from radiance (watts/sr/m^2).
+ */
+
+extern RGBPRIMS  stdprims;	/* standard primary chromaticities */
+extern COLORMAT  rgb2xyzmat;	/* RGB to XYZ conversion matrix */
+extern COLORMAT  xyz2rgbmat;	/* XYZ to RGB conversion matrix */
+extern COLOR  cblack, cwhite;	/* black (0,0,0) and white (1,1,1) */
 
 #define  CGAMUT_LOWER		01
 #define  CGAMUT_UPPER		02
@@ -356,28 +356,136 @@ typedef float  COLORMAT[3][3];	/* color coordinate conversion matrix */
 
 #define  cpcolormat(md,ms)	memcpy((void *)md,(void *)ms,sizeof(COLORMAT))
 
+#ifdef getc_unlocked		/* avoid horrendous overhead of flockfile */
+#undef getc
+#undef putc
+#define getc    getc_unlocked
+#define putc    putc_unlocked
+#endif
+
+#define  MINELEN	8	/* minimum scanline length for encoding */
+#define  MAXELEN	0x7fff	/* maximum scanline length for encoding */
+#define  MINRUN		4	/* minimum run length */
+
+			/* flags for scanline ordering */
+#define  XDECR			1
+#define  YDECR			2
+#define  YMAJOR			4
+
+			/* standard scanline ordering */
+#define  PIXSTANDARD		(YMAJOR|YDECR)
+#define  PIXSTDFMT		"-Y %d +X %d\n"
+
+			/* structure for image dimensions */
+typedef struct {
+	int	rt;		/* orientation (from flags above) */
+	int	xr, yr;		/* x and y resolution */
+} RESOLU;
+
+			/* macros to get scanline length and number */
+#define  scanlen(rs)		((rs)->rt & YMAJOR ? (rs)->xr : (rs)->yr)
+#define  numscans(rs)		((rs)->rt & YMAJOR ? (rs)->yr : (rs)->xr)
+
+			/* resolution string buffer and its size */
+#define  RESOLU_BUFLEN		32
+
+			/* macros for reading/writing resolution struct */
+#define  fputsresolu(rs,fp)	fputs(resolu2str(resolu_buf,rs),fp)
+#define  fgetsresolu(rs,fp)	str2resolu(rs, \
+					fgets(resolu_buf,RESOLU_BUFLEN,fp))
+
+			/* reading/writing of standard ordering */
+#define  fprtresolu(sl,ns,fp)	fprintf(fp,PIXSTDFMT,ns,sl)
+#define  fscnresolu(sl,ns,fp)	(fscanf(fp,PIXSTDFMT,ns,sl)==2)
+
+			/* identify header lines */
+#define  isheadid(s)	headidval(NULL,s)
+#define  isformat(s)	formatval(NULL,s)
+#define  isdate(s)	dateval(NULL,s)
+#define  isgmt(s)	gmtval(NULL,s)
+
+#define  LATLONSTR	"LATLONG="
+#define  LLATLONSTR	8
+#define  islatlon(hl)		(!strncmp(hl,LATLONSTR,LLATLONSTR))
+#define  latlonval(ll,hl)	sscanf((hl)+LLATLONSTR, "%f %f", \
+						&(ll)[0],&(ll)[1])
+#define  fputlatlon(lat,lon,fp)	fprintf(fp,"%s %.6f %.6f\n",LATLONSTR,lat,lon)
+
+typedef int gethfunc(char *s, void *p); /* callback to process header lines */
+
+#ifdef getc_unlocked		/* avoid horrendous overhead of flockfile */
+#undef getc
+#undef putc
+#define getc    getc_unlocked
+#define putc    putc_unlocked
+#endif
 
 
+static char  resolu_buf[RESOLU_BUFLEN];	/* resolution line buffer */
 
-#define	 MAXLINE	512
+static char *
+resolu2str(buf, rp)		/* convert resolution struct to line */
+char  *buf;
+register RESOLU  *rp;
+{
+	if (rp->rt&YMAJOR)
+		sprintf(buf, "%cY %d %cX %d\n",
+				rp->rt&YDECR ? '-' : '+', rp->yr,
+				rp->rt&XDECR ? '-' : '+', rp->xr);
+	else
+		sprintf(buf, "%cX %d %cY %d\n",
+				rp->rt&XDECR ? '-' : '+', rp->xr,
+				rp->rt&YDECR ? '-' : '+', rp->yr);
+	return(buf);
+}
 
-char  HDRSTR[] = "#?";		/* information header magic number */
 
-char  FMTSTR[] = "FORMAT=";	/* format identifier */
+static int
+str2resolu(rp, buf)		/* convert resolution line to struct */
+register RESOLU  *rp;
+char  *buf;
+{
+	register char  *xndx, *yndx;
+	register char  *cp;
 
-char  TMSTR[] = "CAPDATE=";	/* capture date identifier */
+	if (buf == NULL)
+		return(0);
+	xndx = yndx = NULL;
+	for (cp = buf; *cp; cp++)
+		if (*cp == 'X')
+			xndx = cp;
+		else if (*cp == 'Y')
+			yndx = cp;
+	if (xndx == NULL || yndx == NULL)
+		return(0);
+	rp->rt = 0;
+	if (xndx > yndx) rp->rt |= YMAJOR;
+	if (xndx[-1] == '-') rp->rt |= XDECR;
+	if (yndx[-1] == '-') rp->rt |= YDECR;
+	if ((rp->xr = atoi(xndx+1)) <= 0)
+		return(0);
+	if ((rp->yr = atoi(yndx+1)) <= 0)
+		return(0);
+	return(1);
+}
+
+#define	 MAXLINE	2048
+#define	 MAXFMTLEN	2048
+
+static const char  FMTSTR[] = "FORMAT=";	/* format identifier */
+
 
 static gethfunc mycheck;
 
 
-
 static int
 formatval(			/* get format value (return true if format) */
-	register char  *r,
-	register char  *s
+	char fmt[MAXFMTLEN],
+	const char  *s
 )
 {
-	register char  *cp = FMTSTR;
+	const char  *cp = FMTSTR;
+	char  *r = fmt;
 
 	while (*cp) if (*cp++ != *s++) return(0);
 	while (isspace(*s)) s++;
@@ -385,20 +493,22 @@ formatval(			/* get format value (return true if format) */
 	if (r == NULL) return(1);
 	do
 		*r++ = *s++;
-	while(*s && !isspace(*s));
+	while (*s && !isspace(*s) && r-fmt < MAXFMTLEN-1);
 	*r = '\0';
 	return(1);
 }
 
 
-static int
-isformat(			/* is line a format line? */
-	char  *s
+static void
+fputformat(		/* put out a format value */
+	const char  *s,
+	FILE  *fp
 )
 {
-	return(formatval(NULL, s));
+	fputs(FMTSTR, fp);
+	fputs(s, fp);
+	putc('\n', fp);
 }
-
 
 
 static int
@@ -408,36 +518,30 @@ getheader(		/* get header from file */
 	void  *p
 )
 {
+	int   rtotal = 0;
 	char  buf[MAXLINE];
-	int n;
 
-	/* give up if there are more than 1,000 lines of header, prevents 
-	 * us scanning entire files when testing for israd */
-	for (n = 0; n < 1000; n++) {
+	for ( ; ; ) {
+		int	rval = 0;
 		buf[MAXLINE-2] = '\n';
 		if (fgets(buf, MAXLINE, fp) == NULL)
 			return(-1);
-		if (buf[0] == '\n')
-			return(0);
-#ifdef MSDOS
-		if (buf[0] == '\r' && buf[1] == '\n')
-			return(0);
-#endif
+		if (buf[buf[0]=='\r'] == '\n')
+			return(rtotal);
 		if (buf[MAXLINE-2] != '\n') {
 			ungetc(buf[MAXLINE-2], fp);	/* prevent false end */
 			buf[MAXLINE-2] = '\0';
 		}
-		if (f != NULL && (*f)(buf, p) < 0)
+		if (f != NULL && (rval = (*f)(buf, p)) < 0)
 			return(-1);
+		rtotal += rval;
 	}
-
-	return(0);
 }
 
 
 struct check {
 	FILE	*fp;
-	char	fs[64];
+	char	fs[MAXFMTLEN];
 };
 
 
@@ -447,9 +551,10 @@ mycheck(			/* check a header line for format info. */
 	void  *cp
 )
 {
-	if (!formatval(((struct check*)cp)->fs, s)
-			&& ((struct check*)cp)->fp != NULL) {
-		fputs(s, ((struct check*)cp)->fp);
+	struct check *p = (struct check *) cp;
+
+	if (!formatval(p->fs, s) && p->fp != NULL) {
+		fputs(s, p->fp);
 	}
 	return(0);
 }
@@ -457,8 +562,8 @@ mycheck(			/* check a header line for format info. */
 
 static int
 globmatch(			/* check for match of s against pattern p */
-	register char	*p,
-	register char	*s
+	const char	*p,
+	const char	*s
 )
 {
 	int	setmatch;
@@ -472,7 +577,7 @@ globmatch(			/* check for match of s against pattern p */
 		case '*':			/* match any string */
 			while (p[1] == '*') p++;
 			do
-				if ( (p[1]=='?' || p[1]==*s) &&
+				if ( (p[1]=='?') | (p[1]==*s) &&
 						globmatch(p+1,s) )
 					return(1);
 			while (*s++);
@@ -485,11 +590,11 @@ globmatch(			/* check for match of s against pattern p */
 				if (!*p)
 					return(0);
 				if (*p == '-') {
-					setmatch += p[-1] <= *s && *s <= p[1];
+					setmatch += (p[-1] <= *s && *s <= p[1]);
 					if (!*++p)
 						break;
 				} else
-					setmatch += *p == *s;
+					setmatch += (*p == *s);
 			}
 			if (!setmatch)
 				return(0);
@@ -526,12 +631,12 @@ globmatch(			/* check for match of s against pattern p */
 static int
 checkheader(
 	FILE  *fin,
-	char  *fmt,
+	char  fmt[MAXFMTLEN],
 	FILE  *fout
 )
 {
 	struct check	cdat;
-	register char	*cp;
+	char	*cp;
 
 	cdat.fp = fout;
 	cdat.fs[0] = '\0';
@@ -548,74 +653,6 @@ checkheader(
 				return(-1);
 		}
 	return(strcmp(fmt, cdat.fs) ? -1 : 1);	/* literal match */
-}
-
-
-static char  resolu_buf[RESOLU_BUFLEN];	/* resolution line buffer */
-
-
-static int
-str2resolu(RESOLU *rp, char *buf)		/* convert resolution line to struct */
-{
-	register char  *xndx, *yndx;
-	register char  *cp;
-
-	if (buf == NULL)
-		return(0);
-	xndx = yndx = NULL;
-	for (cp = buf; *cp; cp++)
-		if (*cp == 'X')
-			xndx = cp;
-		else if (*cp == 'Y')
-			yndx = cp;
-	if (xndx == NULL || yndx == NULL)
-		return(0);
-	rp->rt = 0;
-	if (xndx > yndx) rp->rt |= YMAJOR;
-	if (xndx[-1] == '-') rp->rt |= XDECR;
-	if (yndx[-1] == '-') rp->rt |= YDECR;
-	if ((rp->xr = atoi(xndx+1)) <= 0)
-		return(0);
-	if ((rp->yr = atoi(yndx+1)) <= 0)
-		return(0);
-	return(1);
-}
-
-
-#ifdef getc_unlocked		/* avoid horrendous overhead of flockfile */
-#undef getc
-#undef putc
-#define getc    getc_unlocked
-#define putc    putc_unlocked
-#endif
-
-#define  MINELEN	8	/* minimum scanline length for encoding */
-#define  MAXELEN	0x7fff	/* maximum scanline length for encoding */
-#define  MINRUN		4	/* minimum run length */
-
-static void
-fputformat(		/* put out a format value */
-	char  *s,
-	FILE  *fp
-)
-{
-	fputs(FMTSTR, fp);
-	fputs(s, fp);
-	putc('\n', fp);
-}
-
-char *
-resolu2str(char *buf, RESOLU *rp)		/* convert resolution struct to line */
-{
-	if (rp->rt&YMAJOR)
-		sprintf(buf, "%cY %d %cX %d\n",
-				rp->rt&YDECR ? '-' : '+', rp->yr,
-				rp->rt&XDECR ? '-' : '+', rp->xr);
-	else
-		sprintf(buf, "%cX %d %cY %d\n",
-				rp->rt&XDECR ? '-' : '+', rp->xr,
-				rp->rt&YDECR ? '-' : '+', rp->yr);
-	return(buf);
 }
 
 /* End copy-paste from Radiance sources.
@@ -722,7 +759,8 @@ scanline_read_old( Buffer *buffer, COLR *scanline, int width )
 			scanline[0][BLU] == 1 ) {
 			int i;
 
-			for( i = scanline[0][EXP] << rshift; i > 0; i-- ) {
+			for( i = scanline[0][EXP] << rshift; 
+				i > 0 && width > 0; i-- ) {
 				copycolr( scanline[0], scanline[-1] );
 				scanline += 1;
 				width -= 1;
@@ -885,10 +923,12 @@ rle_scanline_write( COLR *scanline, int width,
 	}
 }
 
-/* Write a single scanline.
+/* Write a single scanline. buffer is at least MAX_LINE bytes and is used to
+ * construct the RLE scanline. Don't allocate this on the stack so we don't
+ * die too horribly on small-stack libc.
  */
 static int
-scanline_write( COLR *scanline, int width, FILE *fp )
+scanline_write( unsigned char *buffer, COLR *scanline, int width, FILE *fp )
 {
 	if( width < MINELEN || 
 		width > MAXELEN )
@@ -898,10 +938,11 @@ scanline_write( COLR *scanline, int width, FILE *fp )
 	else {
 		/* An RLE scanline.
 		 */
-		unsigned char buffer[MAX_LINE];
 		int length;
 
 		rle_scanline_write( scanline, width, buffer, &length );
+
+		g_assert( length <= MAX_LINE ); 
 
 		return( fwrite( buffer, 1, length, fp ) - length );
 	}
@@ -976,6 +1017,7 @@ read_new( const char *filename, VipsImage *out )
 	read->prims[2][1] = CIE_y_b;
 	read->prims[3][0] = CIE_x_w;
 	read->prims[3][1] = CIE_y_w;
+	read->buffer = NULL;
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( read_destroy ), read );
@@ -1156,7 +1198,9 @@ vips__rad_load( const char *filename, VipsImage *out )
 
 	if( vips_image_generate( t[0], 
 		NULL, rad2vips_generate, NULL, read, NULL ) ||
-		vips_sequential( t[0], &t[1], "tile_height", 8, NULL ) ||
+		vips_sequential( t[0], &t[1], 
+			"tile_height", VIPS__FATSTRIP_HEIGHT, 
+			NULL ) ||
 		vips_image_write( t[1], out ) )
 		return( -1 );
 
@@ -1290,12 +1334,23 @@ static int
 vips2rad_put_data_block( VipsRegion *region, VipsRect *area, void *a )
 {
 	Write *write = (Write *) a;
+
+	size_t size;
+	unsigned char *buffer;
 	int i;
+
+	/* You have to seek back after a write.
+	 */
+	buffer = vips_dbuf_get_write( &write->dbuf, &size );
+	vips_dbuf_seek( &write->dbuf, 0, SEEK_SET ); 
+
+	g_assert( size >= MAX_LINE ); 
 
 	for( i = 0; i < area->height; i++ ) {
 		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + i );
 
-		if( scanline_write( (COLR *) p, area->width, write->fout ) ) 
+		if( scanline_write( buffer, 
+			(COLR *) p, area->width, write->fout ) ) 
 			return( -1 );
 	}
 
@@ -1328,6 +1383,11 @@ vips__rad_save( VipsImage *in, const char *filename )
 
 	write->filename = vips_strdup( NULL, filename );
 	write->fout = vips__file_open_write( filename, FALSE );
+
+	/* scanline_write() needs a buffer to write compressed scanlines to.
+	 * We use the dbuf ... why not.
+	 */
+	vips_dbuf_allocate( &write->dbuf, MAX_LINE );
 
 	if( !write->filename || 
 		!write->fout ||

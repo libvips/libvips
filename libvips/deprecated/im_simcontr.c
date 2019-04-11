@@ -49,6 +49,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 
 /**
  * im_simcontr:

@@ -196,8 +196,6 @@ typedef struct {
 	struct jpeg_compress_struct cinfo;
         ErrorManager eman;
 	JSAMPROW *row_pointer;
-	char *profile_bytes;
-	size_t profile_length;
 	VipsImage *inverted;
 } Write;
 
@@ -207,7 +205,6 @@ write_destroy( Write *write )
 	jpeg_destroy_compress( &write->cinfo );
 	VIPS_FREEF( fclose, write->eman.fp );
 	VIPS_FREE( write->row_pointer );
-	VIPS_FREE( write->profile_bytes );
 	VIPS_UNREF( write->inverted );
 
 	g_free( write );
@@ -227,8 +224,6 @@ write_new( VipsImage *in )
 	write->eman.pub.error_exit = vips__new_error_exit;
 	write->eman.pub.output_message = vips__new_output_message;
 	write->eman.fp = NULL;
-	write->profile_bytes = NULL;
-	write->profile_length = 0;
 	write->inverted = NULL;
 
         return( write );
@@ -265,7 +260,39 @@ write_blob( Write *write, const char *field, int app )
 #endif /*DEBUG*/
 
 			jpeg_write_marker( &write->cinfo, app, 
-				data, data_length ); } }
+				data, data_length ); 
+		} 
+	}
+
+	return( 0 );
+}
+
+#define XML_URL "http://ns.adobe.com/xap/1.0/"
+
+static int
+write_xmp( Write *write )
+{
+	unsigned char *data;
+	size_t data_length;
+	char *p;
+
+	if( !vips_image_get_typeof( write->in, VIPS_META_XMP_NAME ) ) 
+		return( 0 );
+	if( vips_image_get_blob( write->in, VIPS_META_XMP_NAME, 
+		(void *) &data, &data_length ) )
+		return( -1 );
+
+	/* We need to add the magic XML URL to the start, then a null
+	 * character, then the data.
+	 */
+	p = g_malloc( data_length + strlen( XML_URL ) + 1 );
+	strcpy( p, XML_URL );
+	memcpy( p + strlen( XML_URL ) + 1, data, data_length );
+	
+	jpeg_write_marker( &write->cinfo, JPEG_APP0 + 1, 
+		(unsigned char *) p, data_length + strlen( XML_URL ) + 1 ); 
+
+	g_free( p );
 
 	return( 0 );
 }
@@ -358,16 +385,24 @@ write_profile_data (j_compress_ptr cinfo,
 static int
 write_profile_file( Write *write, const char *profile )
 {
-	if( !(write->profile_bytes = 
-		vips__file_read_name( profile, vips__icc_dir(), 
-		&write->profile_length )) ) 
+	VipsBlob *blob;
+
+	if( vips_profile_load( profile, &blob, NULL ) )
 		return( -1 );
-	write_profile_data( &write->cinfo, 
-		(JOCTET *) write->profile_bytes, write->profile_length );
+
+	if( blob ) {
+		size_t length;
+		const void *data = vips_blob_get( blob, &length );
+
+		write_profile_data( &write->cinfo, (JOCTET *) data, length );
 
 #ifdef DEBUG
-	printf( "write_profile_file: attached profile \"%s\"\n", profile );
+		printf( "write_profile_file: "
+			"attached profile \"%s\"\n", profile );
 #endif /*DEBUG*/
+
+		vips_area_unref( (VipsArea *) blob );
+	}
 
 	return( 0 );
 }
@@ -375,18 +410,17 @@ write_profile_file( Write *write, const char *profile )
 static int
 write_profile_meta( Write *write )
 {
-	void *data;
-	size_t data_length;
+	const void *data;
+	size_t length;
 
-	if( vips_image_get_blob( write->in, VIPS_META_ICC_NAME, 
-		&data, &data_length ) )
+	if( vips_image_get_blob( write->in, 
+		VIPS_META_ICC_NAME, &data, &length ) )
 		return( -1 );
-
-	write_profile_data( &write->cinfo, data, data_length );
+	write_profile_data( &write->cinfo, data, length );
 
 #ifdef DEBUG
 	printf( "write_profile_meta: attached %zd byte profile from header\n",
-		data_length );
+		length );
 #endif /*DEBUG*/
 
 	return( 0 );
@@ -591,17 +625,15 @@ write_vips( Write *write, int qfac, const char *profile,
 	 */
 	if( !strip ) { 
 		if( write_exif( write ) ||
-			write_blob( write, 
-				VIPS_META_XMP_NAME, JPEG_APP0 + 1 ) ||
+			write_xmp( write ) ||
 			write_blob( write, 
 				VIPS_META_IPTC_NAME, JPEG_APP0 + 13 ) )
 			return( -1 );
 
 		/* A profile supplied as an argument overrides an embedded 
-		 * profile. "none" means don't attach a profile.
+		 * profile. 
 		 */
-		if( profile && 
-			strcmp( profile, "none" ) != 0 &&
+		if( profile &&
 			write_profile_file( write, profile ) )
 			return( -1 );
 		if( !profile && 

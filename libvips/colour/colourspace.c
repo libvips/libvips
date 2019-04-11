@@ -19,23 +19,27 @@
  * 17/4/15
  * 	- better conversion to greyscale, see 
  * 	  https://github.com/lovell/sharp/issues/193
+ * 27/12/18
+ * 	- add CMYK conversions
+ * 09/01/2019
+ *  - add CMYK <-> XYZ conversions if no lcms2 has been found
  */
 
 /*
 
-    Copyright (C) 1991-2005 The National Gallery
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
+    This file is part of VIPS.
+    
+    VIPS is free software; you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
     02110-1301  USA
@@ -65,10 +69,6 @@
 #include <vips/internal.h>
 
 #include "pcolour.h"
-
-/* A colour-transforming function.
- */
-typedef int (*VipsColourTransformFn)( VipsImage *in, VipsImage **out, ... );
 
 static int
 vips_scRGB2RGB16( VipsImage *in, VipsImage **out, ... )
@@ -111,10 +111,12 @@ vips_sRGB2RGB16( VipsImage *in, VipsImage **out, ... )
 }
 
 /* Process the first @n bands with @fn, detach and reattach remaining bands.
+ *
+ * Also used by CMYK2XYZ and XYZ2CMYK.
  */
-static int
-vips_process_n( const char *domain, VipsImage *in, VipsImage **out, 
-	int n, VipsColourTransformFn fn )
+int
+vips__colourspace_process_n( const char *domain, 
+	VipsImage *in, VipsImage **out, int n, VipsColourTransformFn fn )
 {
 	if( in->Bands > n ) {
 		VipsImage *scope = vips_image_new();
@@ -166,7 +168,8 @@ vips_BW2sRGB_op( VipsImage *in, VipsImage **out, ... )
 static int
 vips_BW2sRGB( VipsImage *in, VipsImage **out, ... )
 {
-	if( vips_process_n( "BW2sRGB", in, out, 1, vips_BW2sRGB_op ) )
+	if( vips__colourspace_process_n( "BW2sRGB", 
+		in, out, 1, vips_BW2sRGB_op ) )
 		return( -1 );
 	(*out)->Type = VIPS_INTERPRETATION_sRGB;
 
@@ -176,7 +179,8 @@ vips_BW2sRGB( VipsImage *in, VipsImage **out, ... )
 static int
 vips_GREY162RGB16( VipsImage *in, VipsImage **out, ... )
 {
-	if( vips_process_n( "GREY162RGB16", in, out, 1, vips_BW2sRGB_op ) )
+	if( vips__colourspace_process_n( "GREY162RGB16", 
+		in, out, 1, vips_BW2sRGB_op ) )
 		return( -1 );
 	(*out)->Type = VIPS_INTERPRETATION_RGB16;
 
@@ -205,6 +209,7 @@ typedef struct _VipsColourRoute {
 #define LCH VIPS_INTERPRETATION_LCH
 #define CMC VIPS_INTERPRETATION_CMC
 #define LABS VIPS_INTERPRETATION_LABS
+#define CMYK VIPS_INTERPRETATION_CMYK
 #define scRGB VIPS_INTERPRETATION_scRGB
 #define sRGB VIPS_INTERPRETATION_sRGB
 #define HSV VIPS_INTERPRETATION_HSV
@@ -221,6 +226,7 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ XYZ, LCH, { vips_XYZ2Lab, vips_Lab2LCh, NULL } },
 	{ XYZ, CMC, { vips_XYZ2Lab, vips_Lab2LCh, vips_LCh2CMC, NULL } },
 	{ XYZ, LABS, { vips_XYZ2Lab, vips_Lab2LabS, NULL } },
+	{ XYZ, CMYK, { vips_XYZ2CMYK, NULL } },
 	{ XYZ, scRGB, { vips_XYZ2scRGB, NULL } },
 	{ XYZ, sRGB, { vips_XYZ2scRGB, vips_scRGB2sRGB, NULL } },
 	{ XYZ, HSV, { vips_XYZ2scRGB, vips_scRGB2sRGB, vips_sRGB2HSV, NULL } },
@@ -234,9 +240,11 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ LAB, LCH, { vips_Lab2LCh, NULL } },
 	{ LAB, CMC, { vips_Lab2LCh, vips_LCh2CMC, NULL } },
 	{ LAB, LABS, { vips_Lab2LabS, NULL } },
+	{ LAB, CMYK, { vips_Lab2XYZ, vips_XYZ2CMYK, NULL } },
 	{ LAB, scRGB, { vips_Lab2XYZ, vips_XYZ2scRGB, NULL } },
 	{ LAB, sRGB, { vips_Lab2XYZ, vips_XYZ2scRGB, vips_scRGB2sRGB, NULL } },
-	{ LAB, HSV, { vips_Lab2XYZ, vips_XYZ2scRGB, vips_scRGB2sRGB, vips_sRGB2HSV, NULL } },
+	{ LAB, HSV, { vips_Lab2XYZ, vips_XYZ2scRGB, vips_scRGB2sRGB, 
+		vips_sRGB2HSV, NULL } },
 	{ LAB, BW, { vips_Lab2XYZ, vips_XYZ2scRGB, vips_scRGB2BW, NULL } },
 	{ LAB, RGB16, { vips_Lab2XYZ, vips_XYZ2scRGB, 
 		vips_scRGB2RGB16, NULL } },
@@ -249,7 +257,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ LABQ, LCH, { vips_LabQ2Lab, vips_Lab2LCh, NULL } },
 	{ LABQ, CMC, { vips_LabQ2Lab, vips_Lab2LCh, vips_LCh2CMC, NULL } },
 	{ LABQ, LABS, { vips_LabQ2LabS, NULL } },
-	{ LABQ, scRGB, { vips_LabQ2Lab, vips_Lab2XYZ, vips_XYZ2scRGB } },
+	{ LABQ, CMYK, { vips_LabQ2Lab, vips_Lab2XYZ, vips_XYZ2CMYK, NULL } },
+	{ LABQ, scRGB, { vips_LabQ2Lab, vips_Lab2XYZ, vips_XYZ2scRGB, NULL } },
 	{ LABQ, sRGB, { vips_LabQ2sRGB, NULL } },
 	{ LABQ, HSV, { vips_LabQ2sRGB, vips_sRGB2HSV, NULL } },
 	{ LABQ, BW, { vips_LabQ2Lab, vips_Lab2XYZ, vips_XYZ2scRGB, 
@@ -265,6 +274,7 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ LCH, LABQ, { vips_LCh2Lab, vips_Lab2LabQ, NULL } },
 	{ LCH, CMC, { vips_LCh2CMC, NULL } },
 	{ LCH, LABS, { vips_LCh2Lab, vips_Lab2LabS, NULL } },
+	{ LCH, CMYK, { vips_LCh2Lab, vips_Lab2XYZ, vips_XYZ2CMYK, NULL } },
 	{ LCH, scRGB, { vips_LCh2Lab, vips_Lab2XYZ, vips_XYZ2scRGB, NULL } },
 	{ LCH, sRGB, { vips_LCh2Lab, vips_Lab2XYZ, vips_XYZ2scRGB, 
 		vips_scRGB2sRGB, NULL } },
@@ -283,6 +293,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ CMC, LABQ, { vips_CMC2LCh, vips_LCh2Lab, vips_Lab2LabQ, NULL } },
 	{ CMC, LCH, { vips_CMC2LCh, NULL } },
 	{ CMC, LABS, { vips_CMC2LCh, vips_LCh2Lab, vips_Lab2LabS, NULL } },
+	{ CMC, CMYK, { vips_CMC2LCh, vips_LCh2Lab, vips_Lab2XYZ, 
+		vips_XYZ2CMYK, NULL } },
 	{ CMC, scRGB, { vips_CMC2LCh, vips_LCh2Lab, vips_Lab2XYZ, 
 		vips_XYZ2scRGB, NULL } },
 	{ CMC, sRGB, { vips_CMC2LCh, vips_LCh2Lab, vips_Lab2XYZ, 
@@ -303,6 +315,7 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ LABS, LABQ, { vips_LabS2LabQ, NULL } },
 	{ LABS, LCH, { vips_LabS2Lab, vips_Lab2LCh, NULL } },
 	{ LABS, CMC, { vips_LabS2Lab, vips_Lab2LCh, vips_LCh2CMC, NULL } },
+	{ LABS, CMYK, { vips_LabS2Lab, vips_Lab2XYZ, vips_XYZ2CMYK, NULL } },
 	{ LABS, scRGB, { vips_LabS2Lab, vips_Lab2XYZ, vips_XYZ2scRGB, NULL } },
 	{ LABS, sRGB, { vips_LabS2Lab, vips_Lab2XYZ, vips_XYZ2scRGB, 
 		vips_scRGB2sRGB, NULL } },
@@ -322,6 +335,7 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ scRGB, LCH, { vips_scRGB2XYZ, vips_XYZ2Lab, vips_Lab2LCh, NULL } },
 	{ scRGB, CMC, { vips_scRGB2XYZ, vips_XYZ2Lab, 
 		vips_Lab2LCh, vips_LCh2CMC, NULL } },
+	{ scRGB, CMYK, { vips_scRGB2XYZ, vips_XYZ2CMYK, NULL } },
 	{ scRGB, sRGB, { vips_scRGB2sRGB, NULL } },
 	{ scRGB, HSV, { vips_scRGB2sRGB, vips_sRGB2HSV, NULL } },
 	{ scRGB, BW, { vips_scRGB2BW, NULL } },
@@ -329,6 +343,25 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ scRGB, RGB16, { vips_scRGB2RGB16, NULL } },
 	{ scRGB, GREY16, { vips_scRGB2BW16, NULL } },
 	{ scRGB, YXY, { vips_scRGB2XYZ, vips_XYZ2Yxy, NULL } },
+
+	{ CMYK, XYZ, { vips_CMYK2XYZ, NULL } },
+	{ CMYK, LAB, { vips_CMYK2XYZ, vips_XYZ2Lab, NULL } },
+	{ CMYK, LABQ, { vips_CMYK2XYZ, vips_XYZ2Lab, vips_Lab2LabQ, NULL } },
+	{ CMYK, LCH, { vips_CMYK2XYZ, vips_XYZ2Lab, vips_Lab2LCh, NULL } },
+	{ CMYK, CMC, { vips_CMYK2XYZ, vips_XYZ2Lab, 
+		vips_Lab2LCh, vips_LCh2CMC, NULL } },
+	{ CMYK, scRGB, { vips_CMYK2XYZ, vips_XYZ2scRGB, NULL } },
+	{ CMYK, sRGB, { vips_CMYK2XYZ, vips_XYZ2scRGB, 
+		vips_scRGB2sRGB, NULL } },
+	{ CMYK, HSV, { vips_CMYK2XYZ, vips_XYZ2scRGB, 
+		vips_scRGB2sRGB, vips_sRGB2HSV, NULL } },
+	{ CMYK, BW, { vips_CMYK2XYZ, vips_XYZ2scRGB, vips_scRGB2BW, NULL } },
+	{ CMYK, LABS, { vips_CMYK2XYZ, vips_XYZ2Lab, vips_Lab2LabS, NULL } },
+	{ CMYK, RGB16, { vips_CMYK2XYZ, vips_XYZ2scRGB, 
+		vips_scRGB2RGB16, NULL } },
+	{ CMYK, GREY16, { vips_CMYK2XYZ, vips_XYZ2scRGB, 
+		vips_scRGB2BW16, NULL } },
+	{ CMYK, YXY, { vips_CMYK2XYZ, vips_XYZ2Yxy, NULL } },
 
 	{ sRGB, XYZ, { vips_sRGB2scRGB, vips_scRGB2XYZ, NULL } },
 	{ sRGB, LAB, { vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Lab, NULL } },
@@ -338,6 +371,8 @@ static VipsColourRoute vips_colour_routes[] = {
 		vips_Lab2LCh, NULL } },
 	{ sRGB, CMC, { vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Lab, 
 		vips_Lab2LCh, vips_LCh2CMC, NULL } },
+	{ sRGB, CMYK, { vips_sRGB2scRGB, vips_scRGB2XYZ, 
+		vips_XYZ2CMYK, NULL } },
 	{ sRGB, scRGB, { vips_sRGB2scRGB, NULL } },
 	{ sRGB, HSV, { vips_sRGB2HSV, NULL } },
 	{ sRGB, BW, { vips_sRGB2scRGB, vips_scRGB2BW, NULL } },
@@ -356,6 +391,8 @@ static VipsColourRoute vips_colour_routes[] = {
 		vips_XYZ2Lab, vips_Lab2LCh, NULL } },
 	{ HSV, CMC, { vips_HSV2sRGB, vips_sRGB2scRGB, vips_scRGB2XYZ, 
 		vips_XYZ2Lab, vips_Lab2LCh, vips_LCh2CMC, NULL } },
+	{ HSV, CMYK, { vips_HSV2sRGB, vips_sRGB2scRGB, vips_scRGB2XYZ, 
+		vips_XYZ2CMYK, NULL } },
 	{ HSV, scRGB, { vips_HSV2sRGB, vips_sRGB2scRGB, NULL } },
 	{ HSV, sRGB, { vips_HSV2sRGB, NULL } },
 	{ HSV, BW, { vips_HSV2sRGB, vips_sRGB2scRGB, vips_scRGB2BW, NULL } },
@@ -375,6 +412,8 @@ static VipsColourRoute vips_colour_routes[] = {
 		vips_Lab2LCh, NULL } },
 	{ RGB16, CMC, { vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Lab, 
 		vips_Lab2LCh, vips_LCh2CMC, NULL } },
+	{ RGB16, CMYK, { vips_sRGB2scRGB, vips_scRGB2XYZ, 
+		vips_XYZ2CMYK, NULL } },
 	{ RGB16, scRGB, { vips_sRGB2scRGB, NULL } },
 	{ RGB16, sRGB, { vips_RGB162sRGB, NULL } },
 	{ RGB16, HSV, { vips_RGB162sRGB, vips_sRGB2HSV, NULL } },
@@ -394,9 +433,12 @@ static VipsColourRoute vips_colour_routes[] = {
 		vips_XYZ2Lab, vips_Lab2LCh, NULL } },
 	{ GREY16, CMC, { vips_GREY162RGB16, vips_sRGB2scRGB, vips_scRGB2XYZ, 
 		vips_XYZ2Lab, vips_Lab2LCh, vips_LCh2CMC, NULL } },
+	{ GREY16, CMYK, { vips_GREY162RGB16, vips_sRGB2scRGB, vips_scRGB2XYZ, 
+		vips_XYZ2CMYK, NULL } },
 	{ GREY16, scRGB, { vips_GREY162RGB16, vips_sRGB2scRGB, NULL } },
 	{ GREY16, sRGB, { vips_GREY162RGB16, vips_RGB162sRGB, NULL } },
-	{ GREY16, HSV, { vips_GREY162RGB16, vips_RGB162sRGB, vips_sRGB2HSV, NULL } },
+	{ GREY16, HSV, { vips_GREY162RGB16, vips_RGB162sRGB, 
+		vips_sRGB2HSV, NULL } },
 	{ GREY16, BW, { vips_GREY162RGB16, vips_sRGB2scRGB, 
 		vips_scRGB2BW, NULL } },
 	{ GREY16, LABS, { vips_GREY162RGB16, vips_sRGB2scRGB, vips_scRGB2XYZ, 
@@ -414,6 +456,8 @@ static VipsColourRoute vips_colour_routes[] = {
 		vips_XYZ2Lab, vips_Lab2LCh, NULL } },
 	{ BW, CMC, { vips_BW2sRGB, vips_sRGB2scRGB, vips_scRGB2XYZ, 
 		vips_XYZ2Lab, vips_Lab2LCh, vips_LCh2CMC, NULL } },
+	{ BW, CMYK, { vips_BW2sRGB, vips_sRGB2scRGB, vips_scRGB2XYZ, 
+		vips_XYZ2CMYK, NULL } },
 	{ BW, scRGB, { vips_BW2sRGB, vips_sRGB2scRGB, NULL } },
 	{ BW, sRGB, { vips_BW2sRGB, NULL } },
 	{ BW, HSV, { vips_BW2sRGB, vips_sRGB2HSV, NULL } },
@@ -432,9 +476,11 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ YXY, CMC, { vips_Yxy2XYZ, vips_XYZ2Lab, vips_Lab2LCh, 
 		vips_LCh2CMC, NULL } },
 	{ YXY, LABS, { vips_Yxy2XYZ, vips_XYZ2Lab, vips_Lab2LabS, NULL } },
+	{ YXY, CMYK, { vips_Yxy2XYZ, vips_XYZ2CMYK, NULL } },
 	{ YXY, scRGB, { vips_Yxy2XYZ, vips_XYZ2scRGB, NULL } },
 	{ YXY, sRGB, { vips_Yxy2XYZ, vips_XYZ2scRGB, vips_scRGB2sRGB, NULL } },
-	{ YXY, HSV, { vips_Yxy2XYZ, vips_XYZ2scRGB, vips_scRGB2sRGB, vips_sRGB2HSV, NULL } },
+	{ YXY, HSV, { vips_Yxy2XYZ, vips_XYZ2scRGB, vips_scRGB2sRGB, 
+		vips_sRGB2HSV, NULL } },
 	{ YXY, BW, { vips_Yxy2XYZ, vips_XYZ2scRGB, vips_scRGB2BW, NULL } },
 	{ YXY, RGB16, { vips_Yxy2XYZ, vips_XYZ2scRGB, 
 		vips_scRGB2RGB16, NULL } },

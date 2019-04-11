@@ -1,37 +1,49 @@
 # libvips : an image processing library
 
-[![Build Status](https://travis-ci.org/jcupitt/libvips.svg?branch=master)](https://travis-ci.org/jcupitt/libvips)
+[![Build Status](https://travis-ci.org/libvips/libvips.svg?branch=master)](https://travis-ci.org/libvips/libvips)
 [![Coverity Status](https://scan.coverity.com/projects/6503/badge.svg)](https://scan.coverity.com/projects/jcupitt-libvips)
 
-libvips is a 2D image processing library. Compared to
-similar libraries, [libvips runs quickly and uses little
-memory](https://github.com/jcupitt/libvips/wiki/Speed-and-memory-use).
-libvips is licensed under the LGPL 2.1+.
+libvips is a [demand-driven, horizontally
+threaded](https://github.com/libvips/libvips/wiki/Why-is-libvips-quick)
+image processing library. Compared to similar
+libraries, [libvips runs quickly and uses little
+memory](https://github.com/libvips/libvips/wiki/Speed-and-memory-use).
+libvips is licensed under the [LGPL
+2.1+](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html).
 
-It has around 300 operations covering arithmetic, histograms,
-convolutions, morphological operations, frequency filtering, colour,
-resampling, statistics and others. It supports a large range of numeric
-formats, from 8-bit int to 128-bit complex. It supports a good range of
-image formats, including JPEG, TIFF, PNG, WebP, FITS, Matlab, OpenEXR,
-PDF, SVG, HDR, PPM, CSV, GIF, Analyze, DeepZoom, and OpenSlide.  It can
-also load images via ImageMagick or GraphicsMagick.
+It has around [300
+operations](http://libvips.github.io/libvips/API/current/func-list.html)
+covering arithmetic, histograms, convolution, morphological
+operations, frequency filtering, colour, resampling,
+statistics and others. It supports a large range of [numeric
+types](http://libvips.github.io/libvips/API/current/VipsImage.html#VipsBandFormat),
+from 8-bit int to 128-bit complex. Images can have any number of bands.
+It supports a good range of image formats, including JPEG, TIFF, PNG, WebP,
+FITS, Matlab, OpenEXR, PDF, SVG, HDR, PPM, CSV, GIF, Analyze, NIfTI, DeepZoom,
+and OpenSlide. It can also load images via ImageMagick or GraphicsMagick,
+letting it work with formats like DICOM.
 
-It has APIs for
-[C](http://jcupitt.github.io/libvips/API/current/using-from-c.html)
-and
-[C++](http://jcupitt.github.io/libvips/API/current/using-from-cpp.html)
-and a [command-line
-interface](http://jcupitt.github.io/libvips/API/current/using-cli.html).
-Bindings are available for 
+It comes with bindings for
+[C](http://libvips.github.io/libvips/API/current/using-from-c.html),
+[C++](http://libvips.github.io/libvips/API/current/using-from-cpp.html),
+and the
+[command-line](http://libvips.github.io/libvips/API/current/using-cli.html).
+Full bindings are available for [Ruby](https://rubygems.org/gems/ruby-vips),
 [Python](https://pypi.python.org/pypi/pyvips),
-[Ruby](https://rubygems.org/gems/ruby-vips),
-[PHP](https://github.com/jcupitt/php-vips),
-[Go](https://github.com/davidbyttow/govips),
-[Lua](https://github.com/jcupitt/lua-vips),
-JavaScript and others. There is full
-[documentation](http://jcupitt.github.io/libvips/API/current).
-There are several GUIs as well, see the [VIPS
-website](http://jcupitt.github.io/libvips).
+[PHP](https://github.com/libvips/php-vips),
+[C# / .NET](https://www.nuget.org/packages/NetVips),
+[Go](https://github.com/davidbyttow/govips), and
+[Lua](https://github.com/libvips/lua-vips). libvips
+is used as an image processing engine by [sharp
+(on node.js)](https://www.npmjs.org/package/sharp),
+[bimg](https://github.com/h2non/bimg), [sharp
+for Go](https://github.com/DAddYE/vips), [Ruby on
+Rails](http://edgeguides.rubyonrails.org/active_storage_overview.html),
+[carrierwave-vips](https://github.com/eltiare/carrierwave-vips),
+[mediawiki](http://www.mediawiki.org/wiki/Extension:VipsScaler),
+[PhotoFlow](https://github.com/aferrero2707/PhotoFlow) and others.
+The official libvips GUI is [nip2](https://github.com/libvips/nip2),
+a strange combination of a spreadsheet and an photo editor.
 
 There are packages for most unix-like operating systems and binaries for
 Windows and OS X.
@@ -40,112 +52,123 @@ Windows and OS X.
 
 We keep pre-baked tarballs of releases on the vips website:
 
-https://github.com/jcupitt/libvips/releases
+https://github.com/libvips/libvips/releases
 
 Untar, then in the libvips directory you should just be able to do:
 
-	$ ./configure
+    $ ./configure
 
-Check the summary at the end of `configure` carefully. 
-libvips must have `build-essential`, `pkg-config`, `glib2.0-dev`,
-`libexpat1-dev`.
+Check the summary at the end of `configure` carefully.  libvips must have
+`build-essential`, `pkg-config`, `glib2.0-dev`, `libexpat1-dev`.
 
-For the vips8 Python binding, you must also have 
-`gobject-introspection`, `python-gi-dev`, and `libgirepository1.0-dev`.
-
-You'll need the dev packages for the file format support you
-want. For basic jpeg and tiff support, you'll need `libtiff5-dev`,
-`libjpeg-turbo8-dev`, and `libgsf-1-dev`.  See the **Dependencies** section
-below for a full list of the things that libvips can be configured to use.
+You'll need the dev packages for the file format support you want. For basic
+jpeg and tiff support, you'll need `libtiff5-dev`, `libjpeg-turbo8-dev`,
+and `libgsf-1-dev`.  See the **Dependencies** section below for a full list
+of the things that libvips can be configured to use.
 
 Once `configure` is looking OK, compile and install with the usual:
 
-	$ make
-	$ sudo make install
+    $ make
+    $ sudo make install
 
 By default this will install files to `/usr/local`.
 
 We have detailed guides on the wiki for [building on
-Windows](https://github.com/jcupitt/libvips/wiki/Build-for-Windows)
-and [building on OS
-X](https://github.com/jcupitt/libvips/wiki/Build-for-macOS).
+Windows](https://github.com/libvips/libvips/wiki/Build-for-Windows) and
+[building on OS X](https://github.com/libvips/libvips/wiki/Build-for-macOS).
+
+# Testing
+
+Do a basic test of your build with:
+
+    $ make check
+
+Run the libvips test suite with:
+
+    $ pytest
+
+Run a specific test with:
+
+    $ pytest test/test-suite/test_foreign.py -k test_tiff
+
+You will need to install a variety of Python packages for this, including
+pyvips, the libvips Python binding.
 
 # Building libvips from git
 
 Checkout the latest sources with:
 
-	$ git clone git://github.com/jcupitt/libvips.git
+    $ git clone git://github.com/libvips/libvips.git
 
 Building from git needs more packages, you'll need at least `swig`, `gtk-doc` 
 and `gobject-introspection`, see the dependencies section below. For example:
 
-	$ brew install gtk-doc swig
+    $ brew install gtk-doc swig
 
 Then build the build system with:
 
-	$ ./autogen.sh
+    $ ./autogen.sh
 
 Debug build:
 
-	$ CFLAGS="-g -Wall" CXXFLAGS="-g -Wall" \
-		./configure --prefix=/home/john/vips --enable-debug
-	$ make
-	$ make install
+    $ CFLAGS="-g -Wall" CXXFLAGS="-g -Wall" \
+        ./configure --prefix=/home/john/vips --enable-debug
+    $ make
+    $ make install
 
 Leak check:
 
-	$ export G_DEBUG=gc-friendly
-	$ valgrind --suppressions=libvips.supp \
-		--leak-check=yes \
-		vips ... > vips-vg.log 2>&1
+    $ export G_DEBUG=gc-friendly
+    $ valgrind --suppressions=libvips.supp \
+	       --leak-check=yes \
+        vips ... > vips-vg.log 2>&1
 
 Memory error debug:
 
-	$ valgrind --vgdb=yes --vgdb-error=0 vips  ...
+    $ valgrind --vgdb=yes --vgdb-error=0 vips  ...
 
 valgrind threading check:
 
-	$ valgrind --tool=helgrind vips ... > vips-vg.log 2>&1
+    $ valgrind --tool=helgrind vips ... > vips-vg.log 2>&1
 
 Clang build:
 
-	$ CC=clang CXX=clang++ ./configure --prefix=/home/john/vips
+    $ CC=clang CXX=clang++ ./configure --prefix=/home/john/vips
 
 Clang static analysis:
 
-	$ scan-build ./configure --disable-introspection --disable-debug
-	$ scan-build -o scan -v make 
-	$ scan-view scan/2013-11-22-2
+    $ scan-build ./configure --disable-introspection --disable-debug
+    $ scan-build -o scan -v make 
+    $ scan-view scan/2013-11-22-2
 
 Clang dynamic analysis:
 
-	$ FLAGS="-O1 -g -fsanitize=address"
-	$ FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
-	$ CC=clang CXX=clang++ LD=clang \
-		CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" LDFLAGS=-fsanitize=address \
-		./configure --prefix=/home/john/vips 
+    $ FLAGS="-g -O1 -fno-omit-frame-pointer"
+    $ CC=clang CXX=clang++ LD=clang \
+        CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" LDFLAGS=-fsanitize=address \
+        ./configure --prefix=/home/john/vips 
 
-	$ FLAGS="-O1 -g -fsanitize=thread"
-	$ FLAGS="$FLAGS -fPIC"
-	$ FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
-	$ CC=clang CXX=clang++ LD=clang \
-		CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
-		LDFLAGS="-fsanitize=thread -fPIC" \
-		./configure --prefix=/home/john/vips \
-			--without-magick \
-			--disable-introspection
-	$ G_DEBUG=gc-friendly vips copy ~/pics/k2.jpg x.jpg >& log
+    $ FLAGS="-O1 -g -fsanitize=thread"
+    $ FLAGS="$FLAGS -fPIC"
+    $ FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+    $ CC=clang CXX=clang++ LD=clang \
+      CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
+      LDFLAGS="-fsanitize=thread -fPIC" \
+      ./configure --prefix=/home/john/vips \
+        --without-magick \
+        --disable-introspection
+    $ G_DEBUG=gc-friendly vips copy ~/pics/k2.jpg x.jpg >& log
 
 Build with the GCC auto-vectorizer and diagnostics (or just -O3):
 
-	$ FLAGS="-O2 -march=native -ffast-math"
-	$ FLAGS="$FLAGS -ftree-vectorize -fdump-tree-vect-details"
-	$ CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
-		./configure --prefix=/home/john/vips 
+    $ FLAGS="-O2 -march=native -ffast-math"
+    $ FLAGS="$FLAGS -ftree-vectorize -fdump-tree-vect-details"
+    $ CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
+      ./configure --prefix=/home/john/vips 
 
 Static analysis with:
 
-	$ cppcheck --force --enable=style . &> cppcheck.log
+    $ cppcheck --force --enable=style . &> cppcheck.log
 
 # Dependencies 
 
@@ -163,26 +186,21 @@ them in the default path and in `$prefix`. If you have installed your own
 versions of these libraries in a different location, libvips will not see
 them. Use switches to libvips configure like:
 
-	./configure --prefix=/Users/john/vips \
-		--with-giflib-includes=/opt/local/include \
-		--with-giflib-libraries=/opt/local/lib \
-		--with-tiff-includes=/opt/local/include \
-		--with-tiff-libraries=/opt/local/lib \
-		--with-jpeg-includes=/opt/local/include \
-		--with-jpeg-libraries=/opt/local/lib
+    ./configure --prefix=/Users/john/vips \
+        --with-giflib-includes=/opt/local/include \
+        --with-giflib-libraries=/opt/local/lib \
+        --with-tiff-includes=/opt/local/include \
+        --with-tiff-libraries=/opt/local/lib \
+        --with-jpeg-includes=/opt/local/include \
+        --with-jpeg-libraries=/opt/local/lib
 
 or perhaps:
 
-	CFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
-		CXXFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
-		./configure --without-python --prefix=/Users/john/vips 
+    CFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
+    CXXFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
+    ./configure --prefix=/Users/john/vips 
 
 to get libvips to see your builds.
-
-### vips8 Python binding
-
-If `gobject-introspection`, `python-gi-dev`, and `libgirepository1.0-dev` are
-available, libvips will install the vips8 Python binding. 
 
 ### libjpeg
 
@@ -202,10 +220,17 @@ via imagemagick instead.
 The usual SVG loader. If this is not present, vips will try to load SVGs
 via imagemagick instead.
 
+### PDFium
+
+If present, libvips will attempt to load PDFs via PDFium. This library must be
+packaged by https://github.com/jcupitt/docker-builds/tree/master/pdfium
+
+If PDFium is not detected, libvips will look for poppler-glib instead.
+
 ### libpoppler
 
 The usual PDF loader. If this is not present, vips will try to load PDFs
-via imagemagick instead.
+via imagemagick.
 
 ### libgsf-1
 
@@ -236,6 +261,10 @@ be OK.
 
 If present, libvips can load and save png files. 
 
+### libimagequant
+
+If present, libvips can write 8-bit palette-ised PNGs.
+
 ### ImageMagick, or optionally GraphicsMagick
 
 If available, libvips adds support for loading all libMagick-supported
@@ -243,8 +272,7 @@ image file types. Use `--with-magickpackage=GraphicsMagick` to build against
 graphicsmagick instead.
 
 Imagemagick 6.9+ needs to have been built with `--with-modules`. Most packaged
-IMs are, I think, but if you are rolling your own, you'll need to pass
-this flag to configure. 
+IMs are, I think.
 
 If you are going to be using libvips with untrusted images, perhaps in a
 web-server, for example, you should consider the security implications of
@@ -273,6 +301,10 @@ If available, vips can load FITS images.
 
 If available, vips can load and save WebP images.
 
+### libniftiio
+
+If available, vips can load and save NIFTI images.
+
 ### OpenEXR
 
 If available, libvips will directly read (but not write, sadly)
@@ -282,10 +314,6 @@ OpenEXR images.
 
 If available, libvips can load OpenSlide-supported virtual slide
 files: Aperio, Hamamatsu, Leica, MIRAX, Sakura, Trestle, and Ventana.
-
-### swig, python, python-dev
-
-If available, we build the vips7 python binding.
 
 # Disclaimer
 

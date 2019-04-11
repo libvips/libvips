@@ -79,7 +79,7 @@ extern "C" {
 #define VIPS_ISINF( V ) isinf( V )
 #define VIPS_FLOOR( V ) floor( V )
 #define VIPS_CEIL( V ) ceil( V )
-#define VIPS_RINT( R ) rint( V )
+#define VIPS_RINT( V ) rint( V )
 #define VIPS_ROUND( V ) round( V )
 #define VIPS_FABS( V ) VIPS_ABS( V )
 #define VIPS_FMAX( A, B ) VIPS_MAX( A, B )
@@ -266,7 +266,8 @@ char *vips__file_read( FILE *fp, const char *name, size_t *length_out );
 char *vips__file_read_name( const char *name, const char *fallback_dir, 
 	size_t *length_out );
 int vips__file_write( void *data, size_t size, size_t nmemb, FILE *stream );
-int vips__get_bytes( const char *filename, unsigned char buf[], int len );
+guint64 vips__get_bytes( const char *filename, 
+	unsigned char buf[], guint64 len );
 int vips__fgetc( FILE *fp );
 
 GValue *vips__gvalue_ref_string_new( const char *text );

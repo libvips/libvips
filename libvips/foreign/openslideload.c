@@ -197,21 +197,21 @@ vips_foreign_load_openslide_class_init( VipsForeignLoadOpenslideClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoadOpenslide, filename ),
 		NULL );
 
-	VIPS_ARG_INT( class, "level", 10,
+	VIPS_ARG_INT( class, "level", 20,
 		_( "Level" ),
 		_( "Load this level from the file" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadOpenslide, level ),
 		0, 100000, 0 );
 
-	VIPS_ARG_BOOL( class, "autocrop", 11,
+	VIPS_ARG_BOOL( class, "autocrop", 21,
 		_( "Autocrop" ),
 		_( "Crop to image bounds" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadOpenslide, autocrop ),
 		FALSE ); 
 
-	VIPS_ARG_STRING( class, "associated", 12, 
+	VIPS_ARG_STRING( class, "associated", 22, 
 		_( "Associated" ),
 		_( "Load this associated image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 

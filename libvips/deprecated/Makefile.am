@@ -1,6 +1,8 @@
 noinst_LTLIBRARIES = libdeprecated.la
 
 libdeprecated_la_SOURCES = \
+	video_dispatch.c \
+	im_video_test.c \
 	cimg_dispatch.c \
 	inplace_dispatch.c \
 	tone.c \
@@ -9,6 +11,7 @@ libdeprecated_la_SOURCES = \
 	im_point_bilinear.c \
 	resample_dispatch.c \
 	im_openslide2vips.c \
+	im_nifti2vips.c \
 	im_lab_morph.c \
 	deprecated_dispatch.c \
 	mosaicing_dispatch.c \

@@ -5,8 +5,10 @@ TESTS = \
 	test_seq.sh \
 	test_threading.sh 
 
+SUBDIRS = \
+	test-suite 
+
 EXTRA_DIST = \
-	images \
 	variables.sh.in \
 	test_cli.sh \
 	test_formats.sh \

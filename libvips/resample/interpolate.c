@@ -16,6 +16,8 @@
  * 	- gtk-doc
  * 16/12/15
  * 	- faster bilinear
+ * 27/2/19 s-sajid-ali
+ * 	- more accurate bilinear
  */
 
 /*
@@ -471,20 +473,21 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 }
 
 /* Interpolate a pel ... int32 and float types, no tables, float 
- * arithmetic.
+ * arithmetic. Use float, not double, for coefficient calculation, or we can
+ * get small over/undershoots.
  */
 #define BILINEAR_FLOAT( TYPE ) { \
 	TYPE * restrict tq = (TYPE *) out; \
 	\
-	float Y = y - iy; \
-	float X = x - ix; \
+	double Y = y - iy; \
+	double X = x - ix; \
         \
-	float Yd = 1.0f - Y; \
+	double Yd = 1.0f - Y; \
         \
-	float c4 = Y * X; \
-	float c2 = Yd * X; \
-	float c3 = Y - c4; \
-	float c1 = Yd - c2; \
+	double c4 = Y * X; \
+	double c2 = Yd * X; \
+	double c3 = Y - c4; \
+	double c1 = Yd - c2; \
  	\
 	const TYPE * restrict tp1 = (TYPE *) p1; \
 	const TYPE * restrict tp2 = (TYPE *) p2; \

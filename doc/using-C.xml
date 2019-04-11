@@ -186,19 +186,41 @@ operation flags: sequential-unbuffered
       linkend="libvips-error">VIPS Error</link> to find out how to get and
       clear the error log.
     </para>
+
   </refsect3>
 
   <refsect3 id="using-C-example">
     <title>Example</title>
 
+    <para>
+      On *nix systems, you can compile the <link
+      linkend="using-C-example">example code</link> with something like:
+
+<programlisting language="none">
+$ gcc -g -Wall myprog.c `pkg-config vips --cflags --libs`
+</programlisting>
+
+      On Windows, you'll need to set the compiler flags by hand, perhaps:
+
+<programlisting language="none">
+x86_64-w64-mingw32-gcc-win32 -mms-bitfields \
+  -Ic:/vips-8.6/include \
+  -Ic:/vips-8.6/include/glib-2.0 \
+  -Ic:/vips-8.6/lib/glib-2.0/include \
+  myprog.c \
+  -Lc:/vips-8.6/lib \
+  -lvips -lz -ljpeg -lstdc++ -lxml2 -lfftw3 -lm -lMagickWand -llcms2 \
+  -lopenslide -lcfitsio -lpangoft2-1.0 -ltiff -lpng14 -lexif \
+  -lMagickCore -lpango-1.0 -lfreetype -lfontconfig -lgobject-2.0 \
+  -lgmodule-2.0 -lgthread-2.0 -lglib-2.0 -lintl \
+  -o myprog.exe
+</programlisting>
+
+    </para>
+
 <example>
 <title>VIPS from C example</title>
 <programlisting language="C">
-/* compile with:
- *
- *      gcc -g -Wall try211.c `pkg-config vips --cflags --libs`
- */
-
 #include &lt;stdio.h&gt;
 #include &lt;vips/vips.h&gt;
 

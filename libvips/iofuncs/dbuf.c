@@ -211,7 +211,14 @@ vips_dbuf_writef( VipsDbuf *dbuf, const char *fmt, ... )
  * @dbuf: the buffer
  * @str: string to write
  *
- * Write @str to @dbuf, but escape <>&.
+ * Write @str to @dbuf, but escape stuff that xml hates in text. Our
+ * argument string is utf-8.
+ *
+ * XML rules:
+ *
+ * - We must escape &<> 
+ * - Don't escape \n, \t, \r
+ * - Do escape the other ASCII codes. 
  *
  * Returns: %FALSE on out of memory, %TRUE otherwise.
  */
@@ -219,35 +226,39 @@ gboolean
 vips_dbuf_write_amp( VipsDbuf *dbuf, const char *str )
 {
 	const char *p;
-	size_t len;
 
-	for( p = str; *p; p += len ) {
-		len = strcspn( p, "&<>" );
-
-		vips_dbuf_write( dbuf, (unsigned char *) p, len );
-		switch( p[len] ) {
-		case '&': 
-			if( vips_dbuf_writef( dbuf, "&amp;" ) )
-				return( FALSE ); 
-			len += 1;
-			break;
-
-		case '<': 
-			if( vips_dbuf_writef( dbuf, "&lt;" ) )
-				return( FALSE );
-			len += 1;
-			break;
-
-		case '>': 
-			if( vips_dbuf_writef( dbuf, "&gt;" ) )
-				return( FALSE );
-			len += 1;
-			break;
-
-		default:
-			break;
+	for( p = str; *p; p++ ) 
+		if( *p < 32 &&
+			*p != '\n' &&
+			*p != '\t' &&
+			*p != '\r' ) {
+			/* You'd think we could output "&#x02%x;", but xml
+			 * 1.0 parsers barf on that. xml 1.1 allows this, but
+			 * there are almost no parsers. 
+			 *
+			 * U+2400 onwards are unicode glyphs for the ASCII 
+			 * control characters, so we can use them -- thanks
+			 * electroly.
+			 */
+			if( vips_dbuf_writef( dbuf, "&#x%04x;", 0x2400 + *p ) )
+			       return( FALSE );	
 		}
-	}
+		else if( *p == '<' ) {
+			if( vips_dbuf_write( dbuf, (guchar *) "&lt;", 4 ) )
+				return( FALSE );
+		}
+		else if( *p == '>' ) {
+			if( vips_dbuf_write( dbuf, (guchar *) "&gt;", 4 ) )
+				return( FALSE );
+		}
+		else if( *p == '&' ) {
+			if( vips_dbuf_write( dbuf, (guchar *) "&amp;", 5 ) )
+				return( FALSE );
+		}
+		else  {
+			if( vips_dbuf_write( dbuf, (guchar *) p, 1 ) )
+				return( FALSE );
+		}
 
 	return( TRUE ); 
 }

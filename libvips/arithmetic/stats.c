@@ -409,7 +409,7 @@ vips_stats_class_init( VipsStatsClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "stats";
-	object_class->description = _( "find image average" );
+	object_class->description = _( "find many image stats" );
 	object_class->build = vips_stats_build;
 
 	sclass->start = vips_stats_start;

@@ -904,8 +904,12 @@ vips_convi_intize( VipsConvi *convi, VipsImage *M )
 
 	/* The mask max rounded up to the next power of two gives the exponent
 	 * all elements share. Values are eg. -3 for 1/8, 3 for 8.
+	 *
+	 * Add one so we round up stuff exactly on x.0. We multiply by 128
+	 * later, so 1.0 (for example) would become 128, which is outside
+	 * signed 8 bit. 
 	 */
-	shift = ceil( log2( mx ) );
+	shift = ceil( log2( mx ) + 1 );
 
 	/* We need to sum n_points, so we have to shift right before adding a
 	 * new value to make sure we have enough range. 

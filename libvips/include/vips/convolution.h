@@ -70,6 +70,11 @@ int vips_spcor( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
 int vips_fastcor( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
 	__attribute__((sentinel));
 
+int vips_sobel( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_canny( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

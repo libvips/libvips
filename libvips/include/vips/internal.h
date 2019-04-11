@@ -153,8 +153,6 @@ int vips_image_written( VipsImage *image );
 void vips_image_preeval( VipsImage *image );
 void vips_image_eval( VipsImage *image, guint64 processed );
 void vips_image_posteval( VipsImage *image );
-gboolean vips_image_iskilled( VipsImage *image );
-void vips_image_set_kill( VipsImage *image, gboolean kill );
 VipsImage *vips_image_new_mode( const char *filename, const char *mode );
 
 int vips__formatalike_vec( VipsImage **in, VipsImage **out, int n );
@@ -233,6 +231,8 @@ int vips__byteswap_bool( VipsImage *in, VipsImage **out, gboolean swap );
 char *vips__xml_properties( VipsImage *image );
 
 void vips__cairo2rgba( guint32 *buf, int n );
+void vips__Lab2LabQ_vec( VipsPel *out, float *in, int width );
+void vips__LabQ2Lab_vec( float *out, VipsPel *in, int width );
 
 #ifdef DEBUG_LEAK
 extern GQuark vips__image_pixels_quark;
@@ -251,6 +251,11 @@ int vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 	VipsSaveable saveable, VipsBandFormat *format, VipsCoding *coding,
 	VipsArrayDouble *background );
 
+int vips_foreign_load( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_foreign_save( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
+
 int vips__image_intize( VipsImage *in, VipsImage **out );
 
 void vips__reorder_init( void );
@@ -261,6 +266,8 @@ void vips__reorder_clear( VipsImage *image );
  */
 VipsWindow *vips_window_take( VipsWindow *window, 
 	VipsImage *im, int top, int height );
+
+int vips__profile_set( VipsImage *image, const char *name );
 
 #ifdef __cplusplus
 }

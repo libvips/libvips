@@ -176,6 +176,12 @@
  * 24/10/17
  * 	- no error on page-height not a factor of image height, just don't
  * 	  write multipage
+ * 13/6/18
+ * 	- add region_shrink
+ * 2/7/18
+ * 	- copy EXTRASAMPLES to pyramid layers
+ * 21/12/18
+ * 	- stop pyr layers if width or height drop to 1
  */
 
 /*
@@ -309,6 +315,7 @@ struct _Wtiff {
 	int rgbjpeg;			/* True for RGB not YCbCr */
 	int properties;			/* Set to save XML props */
 	int strip;			/* Don't write metadata */
+	VipsRegionShrink region_shrink; /* How to shrink regions */
 
 	/* True if we've detected a toilet-roll image, plus the page height,
 	 * which has been checked to be a factor of im->Ysize.
@@ -322,23 +329,28 @@ struct _Wtiff {
 	int image_height;
 };
 
-/* Embed an ICC profile from a file.
+/* Write an ICC Profile from a file into the JPEG stream.
  */
 static int
 embed_profile_file( TIFF *tif, const char *profile )
 {
-	char *buffer;
-	size_t length;
+	VipsBlob *blob;
 
-	if( !(buffer = vips__file_read_name( profile, 
-		vips__icc_dir(), &length )) )
+	if( vips_profile_load( profile, &blob, NULL ) )
 		return( -1 );
-	TIFFSetField( tif, TIFFTAG_ICCPROFILE, length, buffer );
-	vips_free( buffer );
+
+	if( blob ) {
+		size_t length;
+		const void *data = vips_blob_get( blob, &length );
+
+		TIFFSetField( tif, TIFFTAG_ICCPROFILE, length, data );
 
 #ifdef DEBUG
-	printf( "vips2tiff: attached profile \"%s\"\n", profile );
+		printf( "vips2tiff: attached profile \"%s\"\n", profile );
 #endif /*DEBUG*/
+
+		vips_area_unref( (VipsArea *) blob );
+	}
 
 	return( 0 );
 }
@@ -348,12 +360,12 @@ embed_profile_file( TIFF *tif, const char *profile )
 static int
 embed_profile_meta( TIFF *tif, VipsImage *im )
 {
-	void *data;
-	size_t data_length;
+	const void *data;
+	size_t length;
 
-	if( vips_image_get_blob( im, VIPS_META_ICC_NAME, &data, &data_length ) )
+	if( vips_image_get_blob( im, VIPS_META_ICC_NAME, &data, &length ) )
 		return( -1 );
-	TIFFSetField( tif, TIFFTAG_ICCPROFILE, data_length, data );
+	TIFFSetField( tif, TIFFTAG_ICCPROFILE, length, data );
 
 #ifdef DEBUG
 	printf( "vips2tiff: attached profile from meta\n" );
@@ -392,9 +404,22 @@ wtiff_layer_new( Wtiff *wtiff, Layer *above, int width, int height )
 	layer->below = NULL;
 	layer->above = above;
 
+	/*
+	printf( "wtiff_layer_new: sub = %d, width = %d, height = %d\n",
+		layer->sub, width, height );
+	 */
+
 	if( wtiff->pyramid )
-		if( layer->width > wtiff->tilew || 
-			layer->height > wtiff->tileh ) 
+		/* We make another layer if the image is too large to fit in a
+		 * single tile, and if neither axis is greater than 1.
+		 *
+		 * Very tall or wide images might end up with a smallest layer
+		 * larger than one tile.
+		 */
+		if( (layer->width > wtiff->tilew || 
+			layer->height > wtiff->tileh) && 
+		 	layer->width > 1 && 
+		 	layer->height > 1 ) 
 			layer->below = wtiff_layer_new( wtiff, layer, 
 				width / 2, height / 2 );
 
@@ -423,8 +448,7 @@ wtiff_layer_new( Wtiff *wtiff, Layer *above, int width, int height )
 static int
 wtiff_embed_profile( Wtiff *wtiff, TIFF *tif )
 {
-	if( wtiff->icc_profile && 
-		strcmp( wtiff->icc_profile, "none" ) != 0 &&
+	if( wtiff->icc_profile &&
 		embed_profile_file( tif, wtiff->icc_profile ) )
 		return( -1 );
 
@@ -439,15 +463,14 @@ wtiff_embed_profile( Wtiff *wtiff, TIFF *tif )
 static int
 wtiff_embed_xmp( Wtiff *wtiff, TIFF *tif )
 {
-	void *data;
-	size_t data_length;
+	const void *data;
+	size_t size;
 
 	if( !vips_image_get_typeof( wtiff->im, VIPS_META_XMP_NAME ) )
 		return( 0 );
-	if( vips_image_get_blob( wtiff->im, VIPS_META_XMP_NAME, 
-		&data, &data_length ) )
+	if( vips_image_get_blob( wtiff->im, VIPS_META_XMP_NAME, &data, &size ) )
 		return( -1 );
-	TIFFSetField( tif, TIFFTAG_XMLPACKET, data_length, data );
+	TIFFSetField( tif, TIFFTAG_XMLPACKET, size, data );
 
 #ifdef DEBUG
 	printf( "vips2tiff: attached XMP from meta\n" );
@@ -457,29 +480,29 @@ wtiff_embed_xmp( Wtiff *wtiff, TIFF *tif )
 }
 
 static int
-wtiff_embed_ipct( Wtiff *wtiff, TIFF *tif )
+wtiff_embed_iptc( Wtiff *wtiff, TIFF *tif )
 {
-	void *data;
-	size_t data_length;
+	const void *data;
+	size_t size;
 
 	if( !vips_image_get_typeof( wtiff->im, VIPS_META_IPTC_NAME ) )
 		return( 0 );
 	if( vips_image_get_blob( wtiff->im, VIPS_META_IPTC_NAME, 
-		&data, &data_length ) )
+		&data, &size ) )
 		return( -1 );
 
 	/* For no very good reason, libtiff stores IPTC as an array of
 	 * long, not byte.
 	 */
-	if( data_length & 3 ) {
+	if( size & 3 ) {
 		g_warning( "%s", _( "rounding up IPTC data length" ) );
-		data_length /= 4;
-		data_length += 1;
+		size /= 4;
+		size += 1;
 	}
 	else
-		data_length /= 4;
+		size /= 4;
 
-	TIFFSetField( tif, TIFFTAG_RICHTIFFIPTC, data_length, data );
+	TIFFSetField( tif, TIFFTAG_RICHTIFFIPTC, size, data );
 
 #ifdef DEBUG
 	printf( "vips2tiff: attached IPTC from meta\n" );
@@ -491,15 +514,15 @@ wtiff_embed_ipct( Wtiff *wtiff, TIFF *tif )
 static int
 wtiff_embed_photoshop( Wtiff *wtiff, TIFF *tif )
 {
-	void *data;
-	size_t data_length;
+	const void *data;
+	size_t size;
 
 	if( !vips_image_get_typeof( wtiff->im, VIPS_META_PHOTOSHOP_NAME ) )
 		return( 0 );
 	if( vips_image_get_blob( wtiff->im, 
-		VIPS_META_PHOTOSHOP_NAME, &data, &data_length ) )
+		VIPS_META_PHOTOSHOP_NAME, &data, &size ) )
 		return( -1 );
-	TIFFSetField( tif, TIFFTAG_PHOTOSHOP, data_length, data );
+	TIFFSetField( tif, TIFFTAG_PHOTOSHOP, size, data );
 
 #ifdef DEBUG
 	printf( "vips2tiff: attached photoshop data from meta\n" );
@@ -562,7 +585,9 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 	if( wtiff->compression == COMPRESSION_JPEG ) 
 		TIFFSetField( tif, TIFFTAG_JPEGQUALITY, wtiff->jpqual );
 
-	if( wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE ) 
+	if( (wtiff->compression == VIPS_FOREIGN_TIFF_COMPRESSION_DEFLATE ||
+		wtiff->compression == VIPS_FOREIGN_TIFF_COMPRESSION_LZW) &&
+		wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE ) 
 		TIFFSetField( tif, TIFFTAG_PREDICTOR, wtiff->predictor );
 
 	/* Don't write mad resolutions (eg. zero), it confuses some programs.
@@ -576,7 +601,7 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 	if( !wtiff->strip ) 
 		if( wtiff_embed_profile( wtiff, tif ) ||
 			wtiff_embed_xmp( wtiff, tif ) ||
-			wtiff_embed_ipct( wtiff, tif ) ||
+			wtiff_embed_iptc( wtiff, tif ) ||
 			wtiff_embed_photoshop( wtiff, tif ) ||
 			wtiff_embed_imagedescription( wtiff, tif ) )
 			return( -1 ); 
@@ -891,7 +916,8 @@ wtiff_new( VipsImage *im, const char *filename,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
 	gboolean properties,
-	gboolean strip )
+	gboolean strip,
+	VipsRegionShrink region_shrink )
 {
 	Wtiff *wtiff;
 
@@ -919,6 +945,7 @@ wtiff_new( VipsImage *im, const char *filename,
 	wtiff->rgbjpeg = rgbjpeg;
 	wtiff->properties = properties;
 	wtiff->strip = strip;
+	wtiff->region_shrink = region_shrink;
 	wtiff->toilet_roll = FALSE;
 	wtiff->page_height = -1;
 
@@ -1389,7 +1416,7 @@ layer_strip_shrink( Layer *layer )
 
 		/* None? All done.
 		 */
-		if( vips_rect_isempty( &target ) ) 
+		if( vips_rect_isempty( &target ) )
 			break;
 
 		(void) vips_region_shrink( from, to, &target );
@@ -1562,6 +1589,7 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 	tdata_t buf;
 	ttile_t tile;
 	ttile_t n;
+	uint16 *a;
 
 	/* All the fields we might have set.
 	 */
@@ -1582,8 +1610,8 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 	CopyField( TIFFTAG_ROWSPERSTRIP, i32 );
 	CopyField( TIFFTAG_SUBFILETYPE, i32 );
 
-	if( wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE ) 
-		TIFFSetField( out, TIFFTAG_PREDICTOR, wtiff->predictor );
+	if( TIFFGetField( in, TIFFTAG_EXTRASAMPLES, &i16, &a ) ) 
+		TIFFSetField( out, TIFFTAG_EXTRASAMPLES, i16, a );
 
 	/* TIFFTAG_JPEGQUALITY is a pesudo-tag, so we can't copy it.
 	 * Set explicitly from Wtiff.
@@ -1617,7 +1645,7 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 	if( !wtiff->strip ) 
 		if( wtiff_embed_profile( wtiff, out ) ||
 			wtiff_embed_xmp( wtiff, out ) ||
-			wtiff_embed_ipct( wtiff, out ) ||
+			wtiff_embed_iptc( wtiff, out ) ||
 			wtiff_embed_photoshop( wtiff, out ) ||
 			wtiff_embed_imagedescription( wtiff, out ) )
 			return( -1 );
@@ -1770,7 +1798,8 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
-	gboolean properties, gboolean strip )
+	gboolean properties, gboolean strip,
+	VipsRegionShrink region_shrink )
 {
 	Wtiff *wtiff;
 
@@ -1787,7 +1816,7 @@ vips__tiff_write( VipsImage *in, const char *filename,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
-		properties, strip )) )
+		properties, strip, region_shrink )) )
 		return( -1 );
 
 	if( wtiff_write_image( wtiff ) ) { 
@@ -1813,7 +1842,8 @@ vips__tiff_write_buf( VipsImage *in,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
-	gboolean properties, gboolean strip )
+	gboolean properties, gboolean strip, 
+	VipsRegionShrink region_shrink )
 {
 	Wtiff *wtiff;
 
@@ -1826,7 +1856,7 @@ vips__tiff_write_buf( VipsImage *in,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
-		properties, strip )) )
+		properties, strip, region_shrink )) )
 		return( -1 );
 
 	wtiff->obuf = obuf;

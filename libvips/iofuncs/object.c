@@ -1,6 +1,9 @@
 /* abstract base class for all vips objects
  *
  * Edited from nip's base class, 15/10/08
+ *
+ * 29/5/18
+ * 	- added vips_argument_get_id()
  */
 
 /*
@@ -209,6 +212,8 @@ static GMutex *vips__object_all_lock = NULL;
 
 static guint vips_object_signals[SIG_LAST] = { 0 };
 
+/* This has to be externally visible for compatibility with older libvipses.
+ */
 int _vips__argument_id = 1;
 
 /* Keep a cache of nickname -> GType lookups.
@@ -216,6 +221,26 @@ int _vips__argument_id = 1;
 static GHashTable *vips__object_nickname_table = NULL;
 
 G_DEFINE_ABSTRACT_TYPE( VipsObject, vips_object, G_TYPE_OBJECT );
+
+/**
+ * vips_argument_get_id: (skip)
+ *
+ * Allocate a new property id. See g_object_class_install_property().
+ *
+ * Returns: a new property id > 0
+ */
+int 
+vips_argument_get_id( void )
+{
+	int id;
+
+	/* We probably don't need to lock: glib seems to single-thread class
+	 * creation.
+	 */
+	id = _vips__argument_id++;
+
+	return( id );
+}
 
 /* Don't call this directly, see vips_object_build().
  */
@@ -1760,7 +1785,20 @@ vips_object_class_install_argument( VipsObjectClass *object_class,
 			g_type_name( G_TYPE_FROM_CLASS( object_class ) ),
 			g_param_spec_get_name( pspec ),
 			g_type_name( G_TYPE_FROM_CLASS( ac->object_class ) ),
-			g_param_spec_get_name( ((VipsArgument *) ac)->pspec ) ); 
+			g_param_spec_get_name( ((VipsArgument *) ac)->pspec ) );
+
+	/* Warn about optional boolean args which default TRUE. These won't
+	 * work from the CLI, since simple GOption switches don't allow
+	 * `=false`.
+	 */
+	if( !(flags & VIPS_ARGUMENT_REQUIRED) && 
+		!(flags & VIPS_ARGUMENT_DEPRECATED) && 
+		G_IS_PARAM_SPEC_BOOLEAN( pspec ) &&
+		G_PARAM_SPEC_BOOLEAN( pspec )->default_value ) 
+		g_warning( "vips_object_class_install_argument: "
+			"default TRUE BOOL arg %s.%s", 
+			g_type_name( G_TYPE_FROM_CLASS( object_class ) ),
+			g_param_spec_get_name( pspec ) );
 
 	argument_table_traverse = g_slist_prepend(
 		argument_table_traverse, argument_class );
@@ -1950,8 +1988,8 @@ vips_object_set_argument_from_string( VipsObject *object,
 
 		b = TRUE;
 		if( value &&
-			(strcasecmp( value, "false" ) == 0 ||
-			strcasecmp( value, "no" ) == 0 ||
+			(g_ascii_strcasecmp( value, "false" ) == 0 ||
+			g_ascii_strcasecmp( value, "no" ) == 0 ||
 			strcmp( value, "0" ) == 0) )
 			b = FALSE;
 
@@ -2183,6 +2221,73 @@ vips_object_find_required( VipsObject *object )
 {
 	return( (GParamSpec *) vips_argument_map( object,
 		vips_argument_is_required, NULL, NULL ) );
+}
+
+typedef struct _VipsNameFlagsPair {
+	const char **names;
+	int *flags;
+} VipsNameFlagsPair;
+
+static void *
+vips_object_find_args( VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b )
+{
+	VipsNameFlagsPair *pair = (VipsNameFlagsPair *) a;
+	int *i = (int *) b;
+
+	pair->names[*i] = g_param_spec_get_name( pspec );
+	pair->flags[*i] = (int) argument_class->flags;
+
+	*i += 1;
+
+	return( NULL );
+}
+
+/**
+ * vips_object_get_args: (skip)
+ * @object: object whose args should be retrieved
+ * @names: (transfer none) (array length=n_args) (allow-none): output array of %GParamSpec names
+ * @flags: (transfer none) (array length=n_args) (allow-none): output array of #VipsArgumentFlags
+ * @n_args: (allow-none): length of output arrays
+ *
+ * Get all %GParamSpec names and #VipsArgumentFlags for an object.
+ *
+ * This is handy for language bindings. From C, it's usually more convenient to
+ * use vips_argument_map().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_object_get_args( VipsObject *object,
+	const char ***names, int **flags, int *n_args )
+{
+	VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
+	int n = g_slist_length( object_class->argument_table_traverse );
+
+	VipsNameFlagsPair pair;
+	int i;
+
+	pair.names = VIPS_ARRAY( object, n, const char * );
+	pair.flags = VIPS_ARRAY( object, n, int );
+	if( !pair.names ||
+		!pair.flags )
+		return( -1 );
+
+	i = 0;
+	(void) vips_argument_map( object,
+		vips_object_find_args, &pair, &i );
+
+	if( names )
+		*names = pair.names;
+	if( flags )
+		*flags = pair.flags;
+	if( n_args )
+		*n_args = n;
+
+	return( 0 );
 }
 
 /**
@@ -2699,12 +2804,12 @@ vips_type_depth( GType type )
 static void *
 test_name( VipsObjectClass *class, const char *nickname )
 {
-	if( strcasecmp( class->nickname, nickname ) == 0 )
+	if( g_ascii_strcasecmp( class->nickname, nickname ) == 0 )
 		return( class );
 
 	/* Check the class name too, why not.
 	 */
-	if( strcasecmp( G_OBJECT_CLASS_NAME( class ), nickname ) == 0 )
+	if( g_ascii_strcasecmp( G_OBJECT_CLASS_NAME( class ), nickname ) == 0 )
 		return( class );
 
 	return( NULL );
@@ -2772,8 +2877,8 @@ vips_class_add_hash( VipsObjectClass *class, GHashTable *table )
 	return( NULL ); 
 }
 
-static void 
-vips_class_build_hash( void )
+static void *
+vips_class_build_hash_cb( void *dummy )
 {
 	GType base;
 
@@ -2786,6 +2891,8 @@ vips_class_build_hash( void )
 	vips_class_map_all( base, 
 		(VipsClassMapFn) vips_class_add_hash, 
 		(void *) vips__object_nickname_table );
+
+	return( NULL );
 }
 
 /**
@@ -2814,7 +2921,7 @@ vips_type_find( const char *basename, const char *nickname )
 	GType base;
 	GType type;
 
-	VIPS_ONCE( &once, (GThreadFunc) vips_class_build_hash, NULL ); 
+	VIPS_ONCE( &once, vips_class_build_hash_cb, NULL ); 
 
 	hit = (NicknameGType *) 
 		g_hash_table_lookup( vips__object_nickname_table, 

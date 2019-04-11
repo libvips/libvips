@@ -82,6 +82,9 @@ is.
 You can append `<` or `>` to mean only resize if the image is smaller or larger
 than the target. 
 
+You can append `!` to force a resize to the exact target size, breaking
+the aspect ratio. 
+
 # Cropping
 
 `vipsthumbnail` normally shrinks images to fit within the box set by `--size`.
@@ -187,7 +190,7 @@ You can give options to the image write operation as a list of comma-separated
 arguments in square brackets. For example:
 
 ```
-$ vipsthumbnail fred.jpg ../jim.tif -o > tn_%s.jpg[Q=90,optimize_coding]
+$ vipsthumbnail fred.jpg ../jim.tif -o tn_%s.jpg[Q=90,optimize_coding]
 ```
 
 will write jpeg images with quality 90, and will turn on the libjpeg coding
@@ -293,7 +296,7 @@ $ vipsthumbnail kgdev.jpg --iprofile /usr/share/color/icc/colord/FOGRA28L_webcoa
 
 I've had good results with this profile:
 
-https://github.com/jcupitt/nip2/blob/master/share/nip2/data/cmyk.icm
+https://github.com/libvips/nip2/blob/master/share/nip2/data/cmyk.icm
 
 It makes nice-looking images from most CMYK files, and is completely free. 
 

@@ -59,10 +59,11 @@ Copyright K.Martinez 30/6/93
 #include <locale.h>
 
 #include <vips/vips.h>
+#include <vips/vips7compat.h>
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-/* We have to represent all header fields as char* so we can spot unset args
+/* We have to represent all header fields as char * so we can spot unset args
  * safely.
  */
 static char *xsize = NULL;

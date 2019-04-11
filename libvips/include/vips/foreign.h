@@ -158,6 +158,11 @@ typedef struct _VipsForeignLoad {
 	 * TRUE.
 	 */
 	gboolean disc;
+
+	/* Set if a start function fails. We want to prevent the other starts
+	 * from also triggering the load.
+	 */
+	gboolean error;
 } VipsForeignLoad;
 
 typedef struct _VipsForeignLoadClass {
@@ -337,6 +342,7 @@ typedef struct _VipsForeignSaveClass {
 GType vips_foreign_save_get_type(void);
 
 const char *vips_foreign_find_save( const char *filename );
+gchar **vips_foreign_get_suffixes( void );
 const char *vips_foreign_find_save_buffer( const char *suffix );
 
 int vips_vipsload( const char *filename, VipsImage **out, ... )
@@ -513,7 +519,7 @@ typedef enum /*< flags >*/ {
 	VIPS_FOREIGN_PNG_FILTER_UP = 0x20,
 	VIPS_FOREIGN_PNG_FILTER_AVG = 0x40,
 	VIPS_FOREIGN_PNG_FILTER_PAETH = 0x80,
-	VIPS_FOREIGN_PNG_FILTER_ALL = 0xEA
+	VIPS_FOREIGN_PNG_FILTER_ALL = 0xF8
 } VipsForeignPngFilter;
 
 int vips_pngload( const char *filename, VipsImage **out, ... )
@@ -553,6 +559,20 @@ int vips_svgload_buffer( void *buf, size_t len, VipsImage **out, ... )
 int vips_gifload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_gifload_buffer( void *buf, size_t len, VipsImage **out, ... )
+	__attribute__((sentinel));
+
+int vips_heifload( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_heifload_buffer( void *buf, size_t len, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_heifsave( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
+int vips_heifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
+	__attribute__((sentinel));
+
+int vips_niftiload( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_niftisave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
 
 /**

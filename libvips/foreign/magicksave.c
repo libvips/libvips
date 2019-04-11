@@ -1,6 +1,11 @@
 /* save with libMagick
  *
  * 22/12/17 dlemstra 
+ * 6/2/19 DarthSim
+ * 	- fix GraphicsMagick support
+ * 17/2/19
+ * 	- support ICC, XMP, EXIF, IPTC metadata
+ * 	- write with a single call to vips_sink_disc()
  */
 
 /*
@@ -55,13 +60,19 @@ typedef struct _VipsForeignSaveMagick {
 	char *format;
 	int quality;
 
-	Image *images;
 	ImageInfo *image_info;
 	ExceptionInfo *exception;
-
-	Image *current_image;
 	char *map;
 	StorageType storage_type;
+	Image *images;
+	Image *current_image;
+
+	int page_height;
+
+	/* The position of current_image in the output.
+	 */
+	VipsRect position;
+
 } VipsForeignSaveMagick;
 
 typedef VipsForeignSaveClass VipsForeignSaveMagickClass;
@@ -81,18 +92,52 @@ vips_foreign_save_magick_dispose( GObject *gobject )
 	VIPS_FREE( magick->map );
 	VIPS_FREEF( DestroyImageList, magick->images );
 	VIPS_FREEF( DestroyImageInfo, magick->image_info );
-	VIPS_FREEF( DestroyExceptionInfo, magick->exception );
+	VIPS_FREEF( magick_destroy_exception, magick->exception );
 
 	G_OBJECT_CLASS( vips_foreign_save_magick_parent_class )->
 		dispose( gobject );
 }
 
-static void
-vips_foreign_save_magick_set_properties( VipsForeignSaveMagick *magick, 
-	Image *image, VipsImage *im )
+/* Move current_image on to the next image we will write.
+ */
+static int
+vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick ) 
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( magick );
+	VipsForeignSave *save = (VipsForeignSave *) magick;
+	VipsImage *im = save->ready;
+
+	Image *image;
 	int number;
 	const char *str;
+
+	g_assert( !magick->current_image );
+
+	if( magick->images == NULL ) {
+		if( !(image = magick_acquire_image( magick->image_info, 
+			magick->exception )) )
+			return( -1 );
+
+		magick->images = image;
+		magick->position.top = 0;
+		magick->position.left = 0;
+		magick->position.width = im->Xsize;
+		magick->position.height = magick->page_height;
+	}
+	else {
+		image = GetLastImageInList( magick->images );
+		magick_acquire_next_image( magick->image_info, image, 
+			magick->exception );
+		if( GetNextImageInList( image ) == NULL )
+			return( -1 );
+
+		image = SyncNextImageInList( image );
+		magick->position.top += magick->page_height;
+	}
+
+	if( !magick_set_image_size( image, 
+		im->Xsize, magick->page_height, magick->exception ) )
+		return( -1 );
 
 	if( vips_image_get_typeof( im, "gif-delay" ) &&
 		!vips_image_get_int( im, "gif-delay", &number ) )
@@ -105,94 +150,79 @@ vips_foreign_save_magick_set_properties( VipsForeignSaveMagick *magick,
 	if( vips_image_get_typeof( im, "gif-comment" ) &&
 		!vips_image_get_string( im, "gif-comment", &str ) )
 		magick_set_property( image, "comment", str, magick->exception );
-}
 
-static int
-magick_write_block( VipsRegion *region, VipsRect *area, void *a )
-{
-	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) a;
+	/* libvips keeps animations as a set of independent frames, so we want
+	 * to clear to the background between each one.
+	 */
+	image->dispose = BackgroundDispose;
 
-	MagickBooleanType status;
-	void *p;
-
-	p = VIPS_REGION_ADDR( region, area->left, area->top );
-
-	status = magick_import_pixels( magick->current_image, 
-		area->left, area->top, area->width, area->height, 
-		magick->map, magick->storage_type, 
-		p,
-		magick->exception );
-
-	return( status == MagickFalse ? -1 : 0 );
-}
-
-static int
-vips_foreign_save_magick_create_one( VipsForeignSaveMagick *magick, 
-	VipsImage *im )
-{
-	Image *image;
-	int status;
-
-	if( magick->images == NULL ) {
-		if( !(image = magick_acquire_image( magick->image_info, 
-			magick->exception )) )
-			return( -1 );
-
-		magick->images = image;
-	}
-	else {
-		image = GetLastImageInList( magick->images );
-		magick_acquire_next_image( magick->image_info, image, 
-			magick->exception );
-		if( GetNextImageInList( image ) == NULL )
-			return( -1 );
-
-		image = SyncNextImageInList( image );
-	}
-
-	if( !magick_set_image_size( image, im->Xsize, im->Ysize, 
-		magick->exception ) )
+	if( magick_set_magick_profile( image, im, magick->exception ) ) {
+		magick_vips_error( class->nickname, magick->exception ); 
 		return( -1 );
-	vips_foreign_save_magick_set_properties( magick, image, im );
+	}
 
 	magick->current_image = image;
-	status = vips_sink_disc( im, magick_write_block, magick );
-
-	magick_inherit_exception( magick->exception, image );
-
-	return( status );
+	
+	return( 0 );
 }
 
-static int
-vips_foreign_save_magick_create( VipsForeignSaveMagick *magick, VipsImage *im )
+/* We've written all the pixels to current_image ... finish it off ready to
+ * move on.
+ */
+static void
+vips_foreign_save_magick_end_image( VipsForeignSaveMagick *magick )
 {
-	int page_height;
-	int status;
-	int top;
+	if( magick->current_image ) { 
+		magick_inherit_exception( magick->exception, 
+			magick->current_image );
+		magick->current_image = NULL;
+	}
+}
 
-	page_height = 0;
-	if( vips_image_get_typeof( im, VIPS_META_PAGE_HEIGHT ) &&
-		vips_image_get_int( im, VIPS_META_PAGE_HEIGHT, &page_height ) )
-		;
-	if( page_height <= 0 )
-		page_height = im->Ysize;
+/* Another block of pixels have arrived from libvips. 
+ */
+static int
+vips_foreign_save_magick_write_block( VipsRegion *region, VipsRect *area, 
+	void *a )
+{
+	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) a;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( magick ); 
 
-	status = 0;
-	for( top = 0; top < im->Ysize; top += page_height ) {
-		VipsImage *x;
+	VipsRect pixels;
 
-		if( vips_crop( im, &x, 0, top, im->Xsize, page_height, NULL ) )
+	pixels = region->valid;
+	do {
+		VipsRect hit;
+		void *p;
+
+		if( !magick->current_image &&
+			vips_foreign_save_magick_next_image( magick ) )
 			return( -1 );
 
-		status = vips_foreign_save_magick_create_one( magick, x );
+		vips_rect_intersectrect( &pixels, &magick->position, &hit );
+		p = VIPS_REGION_ADDR( region, hit.left, hit.top );
+		if( !magick_import_pixels( magick->current_image, 
+			hit.left, hit.top - magick->position.top, 
+			hit.width, hit.height, 
+			magick->map, magick->storage_type, 
+			p, 
+			magick->exception ) ) {
+			magick_vips_error( class->nickname, 
+				magick->exception ); 
+			return( -1 );
+		}
 
-		g_object_unref( x );
+		/* Have we filled the page.
+		 */
+		if( VIPS_RECT_BOTTOM( &hit ) == 
+			VIPS_RECT_BOTTOM( &magick->position ) ) 
+			vips_foreign_save_magick_end_image( magick );
 
-		if( status )
-			break;
-	}
+		pixels.top += hit.height;
+		pixels.height -= hit.height;
+	} while( pixels.height > 0 );
 
-	return( status );
+	return( 0 );
 }
 
 static int
@@ -218,10 +248,9 @@ vips_foreign_save_magick_build( VipsObject *object )
 	 */
 	im = save->ready;
 
-	magick->exception = AcquireExceptionInfo();
+	magick->exception = magick_acquire_exception();
 	magick->image_info = CloneImageInfo( NULL );
 
-	magick->storage_type = UndefinedPixel;
 	switch( im->BandFmt ) {
 	case VIPS_FORMAT_UCHAR:
 		magick->storage_type = CharPixel;
@@ -249,7 +278,6 @@ vips_foreign_save_magick_build( VipsObject *object )
 		return( -1 );
 	}
 
-	magick->map = NULL;
 	switch( im->Bands ) {
 	case 1:
 		magick->map = g_strdup( "I" );
@@ -296,10 +324,17 @@ vips_foreign_save_magick_build( VipsObject *object )
 	if( magick->quality > 0 ) 
 		magick->image_info->quality = magick->quality;
 
-	if( vips_foreign_save_magick_create( magick, im ) ) {
-		magick_vips_error( class->nickname, magick->exception ); 
-		return( -1 ); 
-	}
+	magick->page_height = 0;
+	if( vips_image_get_typeof( im, VIPS_META_PAGE_HEIGHT ) &&
+		vips_image_get_int( im, VIPS_META_PAGE_HEIGHT, 
+			&magick->page_height ) )
+		return( -1 );
+	if( magick->page_height <= 0 )
+		magick->page_height = im->Ysize;
+
+	if( vips_sink_disc( im, 
+		vips_foreign_save_magick_write_block, magick ) ) 
+		return( -1 );
 
 	return( 0 );
 }
@@ -465,8 +500,8 @@ vips_foreign_save_magick_buffer_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(obuf = ImagesToBlob( magick->image_info, magick->images, 
-		&olen, magick->exception )) ) { 
+	if( !(obuf = magick_images_to_blob( magick->image_info, magick->images, 
+		&olen, magick->exception )) ) {
 		magick_inherit_exception( magick->exception, magick->images );
 		magick_vips_error( class->nickname, magick->exception );
 

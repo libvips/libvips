@@ -12,6 +12,8 @@
  * 	- convert for jpg if jpg compression is on
  * 19/10/17
  * 	- predictor defaults to horizontal, reducing file size, usually
+ * 13/6/18
+ * 	- add region_shrink
  */
 
 /*
@@ -85,6 +87,7 @@ typedef struct _VipsForeignSaveTiff {
 	gboolean bigtiff;
 	gboolean rgbjpeg;
 	gboolean properties;
+	VipsRegionShrink region_shrink;
 } VipsForeignSaveTiff;
 
 typedef VipsForeignSaveClass VipsForeignSaveTiffClass;
@@ -293,6 +296,13 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, properties ),
 		FALSE );
 
+	VIPS_ARG_ENUM( class, "region_shrink", 22,
+		_( "Region shrink" ),
+		_( "Method to shrink regions" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveTiff, region_shrink ),
+		VIPS_TYPE_REGION_SHRINK, VIPS_REGION_SHRINK_MEAN ); 
+
 }
 
 static void
@@ -306,6 +316,7 @@ vips_foreign_save_tiff_init( VipsForeignSaveTiff *tiff )
 	tiff->resunit = VIPS_FOREIGN_TIFF_RESUNIT_CM;
 	tiff->xres = 1.0;
 	tiff->yres = 1.0;
+	tiff->region_shrink = VIPS_REGION_SHRINK_MEAN;
 }
 
 typedef struct _VipsForeignSaveTiffFile {
@@ -341,7 +352,8 @@ vips_foreign_save_tiff_file_build( VipsObject *object )
 		tiff->bigtiff,
 		tiff->rgbjpeg,
 		tiff->properties,
-		save->strip ) )
+		save->strip,
+		tiff->region_shrink ) )
 		return( -1 );
 
 	return( 0 );
@@ -409,7 +421,8 @@ vips_foreign_save_tiff_buffer_build( VipsObject *object )
 		tiff->bigtiff,
 		tiff->rgbjpeg,
 		tiff->properties,
-		save->strip ) )
+		save->strip,
+		tiff->region_shrink ) )
 		return( -1 );
 
 	/* vips__tiff_write_buf() makes a buffer that needs g_free(), not
@@ -475,6 +488,7 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * * @properties: set %TRUE to write an IMAGEDESCRIPTION tag
  * * @strip: set %TRUE to block metadata save
  * * @page_height: %gint for page height for multi-page save
+ * * @shrink_region: #VipsRegionShrink How to shrink each 2x2 region.
  *
  * Write a VIPS image to a file as TIFF.
  *
@@ -497,8 +511,7 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  *
  * Use @profile to give the filename of a profile to be embedded in the TIFF.
  * This does not affect the pixels which are written, just the way 
- * they are tagged. You can use the special string "none" to mean 
- * "don't attach a profile".
+ * they are tagged. See vips_profile_load() for details on profile naming. 
  *
  * If no profile is specified and the VIPS header 
  * contains an ICC profile named #VIPS_META_ICC_NAME, the
@@ -509,7 +522,9 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * is 128 by 128.
  *
  * Set @pyramid to write the image as a set of images, one per page, of
- * decreasing size. 
+ * decreasing size. Use @shrink_region to set how images will be shrunk: by
+ * default each 2x2 block is just averaged, but you can set MODE or MEDIAN as
+ * well.
  *
  * Set @squash to make 8-bit uchar images write as 1-bit TIFFs. Values >128
  * are written as white, values <=128 as black. Normally vips will write
@@ -586,6 +601,7 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
  * * @properties: set %TRUE to write an IMAGEDESCRIPTION tag
  * * @strip: set %TRUE to block metadata save
  * * @page_height: %gint for page height for multi-page save
+ * * @shrink_region: #VipsRegionShrink How to shrink each 2x2 region.
  *
  * As vips_tiffsave(), but save to a memory buffer. 
  *

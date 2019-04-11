@@ -1,6 +1,9 @@
 language: cpp
 
 before_script:
+  - $PYTHON -m pip download --no-deps https://github.com/libvips/pyvips/archive/$PYVIPS_VERSION.tar.gz
+  - tar xf $PYVIPS_VERSION.tar.gz
+  - $PYTHON -m pip install --user --upgrade pyvips-$PYVIPS_VERSION/[test]
   - ./autogen.sh
     --disable-dependency-tracking
     --with-jpeg-includes=$JPEG/include
@@ -8,6 +11,9 @@ before_script:
   - make -j$JOBS -s 
 script:
   - make -Ctest -j$JOBS -s V=0 VERBOSE=1 check
+  - LD_LIBRARY_PATH=$PWD/libvips/.libs
+    DYLD_LIBRARY_PATH=$PWD/libvips/.libs
+    $PYTHON -m pytest -v test/test-suite
 
 matrix:
   allow_failures:
@@ -16,64 +22,82 @@ matrix:
   include:
     - os: linux
       sudo: required
-      dist: precise
+      dist: xenial
       env:
-        - JPEG=/usr
-        - JOBS=`nproc`
-        - LIBTOOLFLAGS=--quiet
-      cache: ccache
-      before_install:
-        - sudo apt-get update -qq
-        - sudo apt-get install -y
-          automake gtk-doc-tools
-          gobject-introspection
-          libfftw3-dev libjpeg-turbo8-dev
-          libpng12-dev libwebp-dev libtiff4-dev libexpat1-dev
-          swig libmagick++-dev bc
-          libcfitsio3-dev libgsl0-dev libmatio-dev
-          liborc-0.4-dev liblcms2-dev libpoppler-glib-dev
-          librsvg2-dev libgif-dev
-          libpango1.0-dev
-
-    - os: linux
-      sudo: required
-      dist: trusty
-      env:
+        - PYTHON=python2
+        - PYVIPS_VERSION=master
         - JPEG=/usr
         - JOBS=`nproc`
       cache: ccache
-      before_install:
-        - sudo apt-get update -qq
-        - sudo apt-get install -y
-          automake gtk-doc-tools
-          gobject-introspection
-          libfftw3-dev libjpeg-turbo8-dev
-          libpng12-dev libwebp-dev libtiff4-dev libexpat1-dev
-          swig libmagick++-dev bc
-          libcfitsio3-dev libgsl0-dev libmatio-dev
-          liborc-0.4-dev liblcms2-dev libpoppler-glib-dev
-          librsvg2-dev libgif-dev
-          libpango1.0-dev libgsf-1-dev libopenslide-dev
 
     - os: osx
-      osx_image: xcode7.3
+      osx_image: xcode10.1
       env:
-        - JPEG=/usr/local/opt/mozjpeg
+        - PYTHON=python2
+        - PYVIPS_VERSION=master
+        - JPEG=/usr/local
         - JOBS="`sysctl -n hw.ncpu`"
         - PATH="/usr/local/opt/ccache/libexec:$PATH"
+        - HOMEBREW_NO_AUTO_UPDATE=1
       cache: ccache
-      before_install:
-        - brew tap homebrew/science
-        - brew update
-        - brew install ccache
-        - brew install --ignore-dependencies gtk-doc
-        - brew install
-          gobject-introspection
-          fftw mozjpeg libexif
-          libpng webp 
-          swig imagemagick
-          cfitsio libmatio
-          orc little-cms2 poppler
-          pango libgsf openslide
-          librsvg openexr
 
+addons:
+  apt:
+    update: true
+    sources:
+      # use imagemagick 6.9.7-4 instead than 6.8.9-9 
+      - sourceline: 'ppa:opencpu/imagemagick'
+      # add support for HEIF files
+      - sourceline: 'ppa:strukturag/libheif'
+      - sourceline: 'ppa:strukturag/libde265'
+    packages:
+      - automake 
+      - gtk-doc-tools 
+      - gobject-introspection
+      - libfftw3-dev 
+      - libexif-dev 
+      - libjpeg-turbo8-dev
+      - libpng12-dev 
+      - libwebp-dev
+      # missing on xenial, unfortunately
+      # - libwebpmux2
+      - libtiff5-dev 
+      - libheif-dev
+      - libexpat1-dev
+      - swig 
+      - libmagick++-dev 
+      - bc
+      - libcfitsio3-dev
+      - libgsl0-dev 
+      - libmatio-dev
+      - liborc-0.4-dev
+      - liblcms2-dev
+      - libpoppler-glib-dev
+      - librsvg2-dev 
+      - libgif-dev
+      - libopenexr-dev
+      - libpango1.0-dev 
+      - libgsf-1-dev 
+      - libopenslide-dev
+      - libffi-dev
+  homebrew:
+    packages:
+      - ccache
+      - gtk-doc
+      - gobject-introspection
+      - fftw
+      - libexif
+      - webp
+      - swig
+      - imagemagick
+      - cfitsio
+      - gsl
+      - libmatio
+      - orc
+      - little-cms2
+      - poppler
+      - librsvg
+      - openexr
+      - pango
+      - libgsf
+      - openslide

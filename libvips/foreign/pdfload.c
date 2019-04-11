@@ -8,6 +8,10 @@
  * 	- set page-height, if we can
  * 28/6/17
  * 	- use a much larger strip size, thanks bubba
+ * 8/6/18
+ * 	- add background param
+ * 16/8/18
+ * 	- shut down the input file as soon as we can [kleisauke]
  */
 
 /*
@@ -55,6 +59,8 @@
 #include <vips/buf.h>
 #include <vips/internal.h>
 
+#include "pforeign.h"
+
 #ifdef HAVE_POPPLER
 
 #include <cairo.h>
@@ -79,6 +85,10 @@ typedef struct _VipsForeignLoadPdf {
 	 */
 	double scale;
 
+	/* Background colour.
+	 */
+	VipsArrayDouble *background;
+
 	/* Poppler is not thread-safe, so we run inside a single-threaded
 	 * cache. On the plus side, this means we only need one @page pointer,
 	 * even though we change this during _generate().
@@ -91,11 +101,15 @@ typedef struct _VipsForeignLoadPdf {
 	 */
 	int n_pages;
 
-	/* We need to read out the side of each page we will render, and lay
+	/* We need to read out the size of each page we will render, and lay
 	 * them out in the final image.
 	 */
 	VipsRect image;
 	VipsRect *pages;
+
+	/* The [double] background converted to the image format.
+	 */
+	VipsPel *ink;
 
 } VipsForeignLoadPdf;
 
@@ -105,12 +119,18 @@ G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadPdf, vips_foreign_load_pdf,
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void
+vips_foreign_load_pdf_close( VipsForeignLoadPdf *pdf )
+{
+	VIPS_UNREF( pdf->page );
+	VIPS_UNREF( pdf->doc );
+}
+
+static void
 vips_foreign_load_pdf_dispose( GObject *gobject )
 {
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) gobject;
 
-	VIPS_UNREF( pdf->page );
-	VIPS_UNREF( pdf->doc );
+	vips_foreign_load_pdf_close( pdf ); 
 
 	G_OBJECT_CLASS( vips_foreign_load_pdf_parent_class )->
 		dispose( gobject );
@@ -143,33 +163,6 @@ static VipsForeignFlags
 vips_foreign_load_pdf_get_flags( VipsForeignLoad *load )
 {
 	return( VIPS_FOREIGN_PARTIAL );
-}
-
-static gboolean
-vips_foreign_load_pdf_is_a_buffer( const void *buf, size_t len )
-{
-	const guchar *str = (const guchar *) buf;
-
-	if( len >= 4 &&
-		str[0] == '%' && 
-		str[1] == 'P' &&
-		str[2] == 'D' &&
-		str[3] == 'F' )
-		return( 1 );
-
-	return( 0 );
-}
-
-static gboolean
-vips_foreign_load_pdf_is_a( const char *filename )
-{
-	unsigned char buf[4];
-
-	if( vips__get_bytes( filename, buf, 4 ) &&
-		vips_foreign_load_pdf_is_a_buffer( buf, 4 ) )
-		return( 1 );
-
-	return( 0 );
 }
 
 static int
@@ -229,9 +222,10 @@ vips_foreign_load_pdf_set_image( VipsForeignLoadPdf *pdf, VipsImage *out )
 	 */
         vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 
-	/* Extract and attach metadata.
+	/* Extract and attach metadata. Set the old name too for compat.
 	 */
 	vips_image_set_int( out, "pdf-n_pages", pdf->n_pages ); 
+	vips_image_set_int( out, VIPS_META_N_PAGES, pdf->n_pages );
 
 	for( i = 0; i < n_metadata; i++ ) {
 		VipsForeignLoadPdfMetadata *metadata = 
@@ -313,18 +307,25 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 		top += pdf->pages[i].height;
 	}
 
-	/* If all pages are the same size, we can tag this as a toilet roll
-	 * image and tiffsave will be able to save it as a multipage tiff.
+	/* If all pages are the same height, we can tag this as a toilet roll
+	 * image.
 	 */
 	for( i = 1; i < pdf->n; i++ ) 
-		if( pdf->pages[i].width != pdf->pages[0].width ||
-			pdf->pages[i].height != pdf->pages[0].height )
+		if( pdf->pages[i].height != pdf->pages[0].height )
 			break;
 	if( i == pdf->n ) 
 		vips_image_set_int( load->out, 
 			VIPS_META_PAGE_HEIGHT, pdf->pages[0].height );
 
 	vips_foreign_load_pdf_set_image( pdf, load->out ); 
+
+	/* Convert the background to the image format.
+	 */
+	if( !(pdf->ink = vips__vector_to_ink( class->nickname, 
+		load->out, 
+		VIPS_AREA( pdf->background )->data, NULL, 
+		VIPS_AREA( pdf->background )->n )) )
+		return( -1 );
 
 	return( 0 );
 }
@@ -334,6 +335,7 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) a;
+	VipsForeignLoad *load = (VipsForeignLoad *) pdf;
 	VipsRect *r = &or->valid;
 
 	int top;
@@ -346,10 +348,9 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		r->left, r->top, r->width, r->height ); 
 	 */
 
-	/* Poppler won't always paint the background. Use 255 (white) for the
-	 * bg, PDFs generally assume a paper backgrocund colour.
+	/* Poppler won't always paint the background. 
 	 */
-	vips_region_paint( or, r, 255 ); 
+	vips_region_paint_pel( or, r, pdf->ink ); 
 
 	/* Search through the pages we are drawing for the first containing
 	 * this rect. This could be quicker, perhaps a binary search, but who 
@@ -393,11 +394,18 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		i += 1;
 	}
 
+	/* In seq mode, we can shut down the input when we render the last
+	 * row.
+	 */
+	if( top >= or->im->Ysize &&
+		load->access == VIPS_ACCESS_SEQUENTIAL )
+		vips_foreign_load_pdf_close( pdf ); 
+
 	/* Cairo makes pre-multipled BRGA, we must byteswap and unpremultiply.
 	 */
 	for( y = 0; y < r->height; y++ ) 
 		vips__cairo2rgba( 
-			(guint32 *) VIPS_REGION_ADDR( or, r->left, r->top + y ), 
+			(guint32 *) VIPS_REGION_ADDR( or, r->left, r->top + y ),
 			r->width ); 
 
 	return( 0 ); 
@@ -429,7 +437,7 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 	 * (again) keep the number of calls to page_render low. 
 	 */
 	if( vips_linecache( t[0], &t[1],
-		"tile_height", 5000,
+		"tile_height", VIPS_MIN( 5000, pdf->pages[0].height ), 
 		NULL ) ) 
 		return( -1 );
 	if( vips_image_write( t[1], load->real ) ) 
@@ -458,33 +466,40 @@ vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 	load_class->get_flags = vips_foreign_load_pdf_get_flags;
 	load_class->load = vips_foreign_load_pdf_load;
 
-	VIPS_ARG_INT( class, "page", 10,
+	VIPS_ARG_INT( class, "page", 20,
 		_( "Page" ),
 		_( "Load this page from the file" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPdf, page_no ),
 		0, 100000, 0 );
 
-	VIPS_ARG_INT( class, "n", 11,
+	VIPS_ARG_INT( class, "n", 21,
 		_( "n" ),
 		_( "Load this many pages" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPdf, n ),
 		-1, 100000, 1 );
 
-	VIPS_ARG_DOUBLE( class, "dpi", 12,
+	VIPS_ARG_DOUBLE( class, "dpi", 22,
 		_( "DPI" ),
 		_( "Render at this DPI" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPdf, dpi ),
 		0.001, 100000.0, 72.0 );
 
-	VIPS_ARG_DOUBLE( class, "scale", 13,
+	VIPS_ARG_DOUBLE( class, "scale", 23,
 		_( "Scale" ),
 		_( "Scale output by this factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPdf, scale ),
 		0.001, 100000.0, 1.0 );
+
+	VIPS_ARG_BOXED( class, "background", 24, 
+		_( "Background" ), 
+		_( "Background value" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadPdf, background ),
+		VIPS_TYPE_ARRAY_DOUBLE );
 
 }
 
@@ -495,6 +510,7 @@ vips_foreign_load_pdf_init( VipsForeignLoadPdf *pdf )
 	pdf->scale = 1.0;
 	pdf->n = 1;
 	pdf->current_page = -1;
+	pdf->background = vips_array_double_newv( 1, 255.0 );
 }
 
 typedef struct _VipsForeignLoadPdfFile {
@@ -658,6 +674,37 @@ vips_foreign_load_pdf_buffer_init( VipsForeignLoadPdfBuffer *buffer )
 
 #endif /*HAVE_POPPLER*/
 
+/* Also used by the pdfium loader.
+ */
+gboolean
+vips_foreign_load_pdf_is_a_buffer( const void *buf, size_t len )
+{
+	const guchar *str = (const guchar *) buf;
+
+	if( len >= 4 &&
+		str[0] == '%' && 
+		str[1] == 'P' &&
+		str[2] == 'D' &&
+		str[3] == 'F' )
+		return( 1 );
+
+	return( 0 );
+}
+
+/* Also used by the pdfium loader.
+ */
+gboolean
+vips_foreign_load_pdf_is_a( const char *filename )
+{
+	unsigned char buf[4];
+
+	if( vips__get_bytes( filename, buf, 4 ) == 4 &&
+		vips_foreign_load_pdf_is_a_buffer( buf, 4 ) )
+		return( 1 );
+
+	return( 0 );
+}
+
 /**
  * vips_pdfload:
  * @filename: file to load
@@ -670,6 +717,7 @@ vips_foreign_load_pdf_buffer_init( VipsForeignLoadPdfBuffer *buffer )
  * * @n: %gint, load this many pages
  * * @dpi: %gdouble, render at this DPI
  * * @scale: %gdouble, scale render by this factor
+ * * @background: #VipsArrayDouble background colour
  *
  * Render a PDF file into a VIPS image. Rendering uses the libpoppler library
  * and should be fast. 
@@ -677,18 +725,6 @@ vips_foreign_load_pdf_buffer_init( VipsForeignLoadPdfBuffer *buffer )
  * The output image is always RGBA --- CMYK PDFs will be
  * converted. If you need CMYK bitmaps, you should use vips_magickload()
  * instead.
- *
- * Rendering is progressive, that is, the image is rendered in strips equal in 
- * height to the tile height. If your PDF contains large image files and 
- * they span several strips in the output image, they will be decoded multiple 
- * times. To fix this, increase the the tile height, for example:
- *
- * |[
- * vips copy huge.pdf x.png --vips-tile-height=1024
- * ]|
- *
- * Will process images in 1024-pixel high strips, potentially much faster,
- * though of course also using a lot more memory.
  *
  * Use @page to select a page to render, numbering from zero.
  *
@@ -700,6 +736,9 @@ vips_foreign_load_pdf_buffer_init( VipsForeignLoadPdfBuffer *buffer )
  * Use @dpi to set the rendering resolution. The default is 72. Alternatively,
  * you can scale the rendering from the default 1 point == 1 pixel by 
  * setting @scale.
+ *
+ * Use @background to set the background colour, including transparency. The
+ * default is 255 (solid white).
  *
  * The operation fills a number of header fields with metadata, for example
  * "pdf-author". They may be useful. 
@@ -737,9 +776,10 @@ vips_pdfload( const char *filename, VipsImage **out, ... )
  * * @n: %gint, load this many pages
  * * @dpi: %gdouble, render at this DPI
  * * @scale: %gdouble, scale render by this factor
+ * * @background: #VipsArrayDouble background colour
  *
- * Read a PDF-formatted memory block into a VIPS image. Exactly as
- * vips_pdfload(), but read from a memory buffer. 
+ * Read a PDF-formatted memory buffer into a VIPS image. Exactly as
+ * vips_pdfload(), but read from memory. 
  *
  * You must not free the buffer while @out is active. The 
  * #VipsObject::postclose signal on @out is a good place to free. 
