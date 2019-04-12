@@ -348,9 +348,10 @@ write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 		timestamp_ms += delay;
 	}
 
-	/* Add a last fake frame to signal the last duration.
+	/* Add a last zero length fake frame to signal the last duration.
 	 */
-	if( !WebPAnimEncoderAdd( write->enc, NULL, timestamp_ms, NULL ) ) {
+	if( !WebPAnimEncoderAdd( write->enc, 
+		NULL, timestamp_ms - delay, NULL ) ) {
 		vips_error( "vips2webp",
 			"%s", _( "anim build error" ) );
 		return( -1 );
