@@ -30,6 +30,7 @@
 - add vips_region_fetch() / _width() / _height() for language bindings
 - vips_text() supports justification
 - move vips_image_set_kill() and iskilled() to the public API
+- remove old c++ and python interfaces
 
 4/1/19 started 8.7.4
 - magickload with magick6 API did not chain exceptions correctly causing a

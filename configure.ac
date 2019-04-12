@@ -1358,57 +1358,6 @@ if test x"$with_libexif" != x"no"; then
   CPPFLAGS="$save_CPPFLAGS"
 fi
 
-# make vips7 (swig-based) py binding
-AC_ARG_ENABLE([pyvips7],
-  AS_HELP_STRING([--enable-pyvips7], [build vips7 Python binding (default: no)]),
-  [enable_pyvips7=$enableval
-  ], 
-  [enable_pyvips7="no (default)"
-  ]
-)
-
-if test x"$enable_pyvips7" = x"yes"; then
-  if test x"$enable_cxx" = x"no"; then
-    # if C++ is off, we can't do Python
-    enable_pyvips7=no
-    AC_MSG_WARN([C++ is off, disabling vips7 Python binding])
-  fi
-fi
-
-if test x"$enable_pyvips7" = x"yes"; then
-  JD_PATH_PYTHON(2.7,,
-    [enable_pyvips7=no
-     AC_MSG_WARN([Python >= 2.7 not found; disabling vips7 Python binding])
-    ]
-  )
-fi
-
-if test x"$enable_pyvips7" = x"yes"; then
-  # The SWIG bindings don't compile on python3 (see issue #334).
-  AM_PYTHON_CHECK_VERSION([$PYTHON], [3.0],
-    [enable_pyvips7=no
-     AC_MSG_WARN([Python >= 3.0 found; disabling vips7 Python binding])
-    ]
-  )
-fi
-
-if test x"$enable_pyvips7" = x"yes"; then
-  AM_CHECK_PYTHON_HEADERS(,
-    [enable_pyvips7=no
-     AC_MSG_WARN([Python headers not found; disabling vips7 Python binding])
-    ]
-  )
-fi
-
-# we don't check for swig: we include the generated bindings in the
-# distribution
-
-if test x"$enable_pyvips7" = x"yes"; then
-  AM_CONDITIONAL(HAVE_PYTHON, true)
-else
-  AM_CONDITIONAL(HAVE_PYTHON, false)
-fi
-
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS 
 # sort includes to get longer, more specific dirs first
 # helps, for example, selecting graphicsmagick over imagemagick
@@ -1457,9 +1406,6 @@ AC_OUTPUT([
 	libvips/mosaicing/Makefile 
 	libvips/create/Makefile 
 	libvips/resample/Makefile 
-	libvipsCC/include/Makefile 
-	libvipsCC/include/vips/Makefile 
-	libvipsCC/Makefile 
 	cplusplus/include/Makefile 
 	cplusplus/include/vips/Makefile 
 	cplusplus/Makefile 
@@ -1469,16 +1415,10 @@ AC_OUTPUT([
 	tools/batch_rubber_sheet 
 	tools/light_correct 
 	tools/shrink_width 
-	python/Makefile 
-	python/packages/Makefile
-	python/packages/gi/Makefile 
-	python/packages/gi/overrides/Makefile 
 	test/Makefile 
 	test/variables.sh
 	test/test-suite/Makefile
 	test/test-suite/helpers/Makefile
-	swig/Makefile 
-	swig/vipsCC/Makefile 
 	man/Makefile
 	doc/Makefile
 	doc/libvips-docs.xml
@@ -1494,10 +1434,6 @@ enable debug:				$enable_debug
 enable deprecated library components:	$enable_deprecated
 enable docs with gtkdoc:		$enable_gtk_doc
 gobject introspection: 			$found_introspection
-enable vips7 C++ API: 			$enable_cpp7
-enable vips7 Python binding:		$enable_pyvips7
-enable vips8 Python overrides:		$enable_pyvips8
-  (requires pygobject-3.13.0 or later)
 enable radiance support: 		$with_radiance
 enable analyze support: 		$with_analyze
 enable PPM support: 			$with_ppm
@@ -1551,41 +1487,6 @@ You may need to add this directory to your typelib path, for example:
 
 	export GI_TYPELIB_PATH="$VIPS_LIBDIR/girepository-1.0"
       ])
-      ;;
-  esac
-fi
-
-if test x"$enable_pyvips8" = x"yes"; then
-  expand $pyexecdir
-  VIPS_PYEXECDIR=$expanded_value
-  case "$VIPS_PYEXECDIR" in
-    /usr/local/Cellar/vips/*)
-      ;; # ingnore for homebrew
-    *)
-      syspygipath=`$PYTHON -c "
-import sys
-sys.path.append('$VIPS_PYEXECDIR')
-try: import gi; print(gi._overridesdir)
-except: pass"`
-      if test x"$syspygipath" = x""; then
-        AC_MSG_RESULT([dnl
-Your python gi module could not be loaded.
-
-You should change your PYTHONPATH environment
-variable to include the pygobject3 gi module
-and re-run configure to check if the Vips.py
-overrides are installed in the correct location.
-        ])
-      elif test x"$VIPS_PYEXECDIR/gi/overrides" != x"$syspygipath"; then
-        AC_MSG_RESULT([dnl
-The vips Python overrides file will be installed to 
-$VIPS_PYEXECDIR/gi/overrides/Vips.py, but your
-system gi overrides seem to be $syspygipath.
-You may need to copy this file, for example:
-
-	cp $VIPS_PYEXECDIR/gi/overrides/Vips.* $syspygipath
-        ])
-      fi
       ;;
   esac
 fi

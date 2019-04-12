@@ -100,10 +100,10 @@ Checkout the latest sources with:
 
     $ git clone git://github.com/libvips/libvips.git
 
-Building from git needs more packages, you'll need at least `swig`, `gtk-doc` 
+Building from git needs more packages, you'll need at least `gtk-doc` 
 and `gobject-introspection`, see the dependencies section below. For example:
 
-    $ brew install gtk-doc swig
+    $ brew install gtk-doc 
 
 Then build the build system with:
 
