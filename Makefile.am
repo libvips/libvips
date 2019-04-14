@@ -12,7 +12,6 @@ EXTRA_DIST = \
 	benchmark \
 	autogen.sh \
 	vips.pc.in \
-	vipsCC.pc.in \
 	vips-cpp.pc.in \
 	libvips.supp \
 	depcomp \

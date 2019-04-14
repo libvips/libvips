@@ -1385,7 +1385,6 @@ AC_SUBST(TOP_SRCDIR)
 
 AC_OUTPUT([
 	vips.pc
-	vipsCC.pc
 	vips-cpp.pc
 	Makefile 
 	libvips/include/vips/version.h 

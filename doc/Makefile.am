@@ -138,7 +138,7 @@ HTML_IMAGES = \
 # we have some files in markdown ... convert to docbook for gtk-doc
 # pandoc makes sect1 headers, we want refsect3 for gtk-doc
 .md.xml:
-	pandoc -s -S --template="$(realpath pandoc-docbook-template.docbook)" --wrap=none -V title="$<" -f markdown -t docbook -o $@ $<
+	pandoc -s --template="$(realpath pandoc-docbook-template.docbook)" --wrap=none -V title="$<" -f markdown+smart -t docbook-smart -o $@ $<
 	sed -e s/sect1/refsect3/g < $@ > x && mv x $@
 
 # Our markdown source files
