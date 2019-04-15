@@ -394,11 +394,10 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 
 	case JCS_CMYK:
 		interpretation = VIPS_INTERPRETATION_CMYK;
-		/* Photoshop writes CMYK JPEG inverted :-( Maybe this is a
-		 * way to spot photoshop CMYK JPGs.
+
+		/* CMYKs are almost always returned inverted, but see below.
 		 */
-		if( cinfo->saw_Adobe_marker ) 
-			jpeg->invert_pels = TRUE;
+		jpeg->invert_pels = TRUE;
 		break;
 
 	case JCS_RGB:
@@ -558,6 +557,28 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 				if( attach_blob( out, "ipct-data",
 					p->data, p->data_length ) )
 					return( -1 );
+			}
+			break;
+
+		case JPEG_APP0 + 14:
+			/* Adobe block. We need to check the transform flag to
+			 * see if we must invert CMYK.
+			 *
+			 * See: https://sno.phy.queensu.ca/~phil/exiftool/\
+			 * 	TagNames/JPEG.html#Adobe
+			 *
+			 * CMYK JPGs are almost always returned inverted. The
+			 * exception is non-YCCK Adobe jpg.
+			 */
+			if( p->data_length > 5 &&
+				vips_isprefix( "Adobe", (char *) p->data ) ) {
+				if( p->data_length >= 12 &&
+					p->data[11] == 0 ) {
+#ifdef DEBUG
+					printf( "not YCCK image\n" );
+#endif /*DEBUG*/
+					jpeg->invert_pels = FALSE;
+				}
 			}
 			break;
 
@@ -787,11 +808,12 @@ static int
 vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 {
 	/* Need to read in APP1 (EXIF metadata), APP2 (ICC profile), APP13
-	 * (photoshop IPTC).
+	 * (photoshop IPTC) and APP14 (Adobe flags).
 	 */
 	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 1, 0xffff );
 	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 2, 0xffff );
 	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 13, 0xffff );
+	jpeg_save_markers( &jpeg->cinfo, JPEG_APP0 + 14, 0xffff );
 
 #ifdef DEBUG
 {
