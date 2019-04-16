@@ -460,7 +460,10 @@ read_header( Read *read, VipsImage *out )
 			printf( "webp2vips: duration = %d\n", read->delay );
 #endif /*DEBUG*/
 
-			vips_image_set_int( out, "gif-delay", read->delay );
+			/* webp uses ms for delays, gif uses centiseconds.
+			 */
+			vips_image_set_int( out, "gif-delay", 
+				VIPS_RINT( read->delay / 10.0 ) );
 		}
 		WebPDemuxReleaseIterator( &iter );
 
