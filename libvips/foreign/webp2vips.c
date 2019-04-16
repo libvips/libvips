@@ -450,7 +450,8 @@ read_header( Read *read, VipsImage *out )
 		vips_image_set_int( out, "gif-loop", loop_count );
 		vips_image_set_int( out, "page-height", read->frame_height );
 
-		/* We must get the first frame to get the delay.
+		/* We must get the first frame to get the delay. Frames number
+		 * from 1.
 		 */
 		if( WebPDemuxGetFrame( read->demux, 1, &iter ) ) {
 			read->delay = iter.duration;
@@ -460,8 +461,8 @@ read_header( Read *read, VipsImage *out )
 #endif /*DEBUG*/
 
 			vips_image_set_int( out, "gif-delay", read->delay );
-			WebPDemuxReleaseIterator( &iter );
 		}
+		WebPDemuxReleaseIterator( &iter );
 
 		if( read->n == -1 )
 			read->n = read->frame_count - read->page;
@@ -572,6 +573,10 @@ read_frame( Read *read,
 {
 	VipsImage *frame;
 
+#ifdef DEBUG
+	printf( "read_frame:\n" ); 
+#endif /*DEBUG*/
+
 	frame = vips_image_new_memory();
 	vips_image_init_fields( frame,
 		width, height,
@@ -603,6 +608,10 @@ static int
 read_next_frame( Read *read )
 {
 	VipsImage *frame;
+
+#ifdef DEBUG
+	printf( "read_next_frame:\n" ); 
+#endif /*DEBUG*/
 
 	/* Dispose from the previous frame.
 	 */
@@ -690,7 +699,7 @@ read_webp_generate( VipsRegion *or,
 
 	g_assert( r->height == 1 );
 
-	while( read->frame_no <= frame ) {
+	while( read->frame_no < frame ) {
 		if( read_next_frame( read ) )
 			return( -1 );
 
