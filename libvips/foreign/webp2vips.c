@@ -44,8 +44,8 @@
 
 /*
 #define DEBUG_VERBOSE
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -151,7 +151,7 @@ typedef struct {
 } Read;
 
 static void
-vips_image_paint_pel( VipsImage *image, const VipsRect *r, const VipsPel *ink )
+vips_image_paint_area( VipsImage *image, const VipsRect *r, const VipsPel *ink )
 {
 	VipsRect valid = { 0, 0, image->Xsize, image->Ysize };
 	VipsRect ovl;
@@ -187,6 +187,14 @@ vips_image_paint_pel( VipsImage *image, const VipsRect *r, const VipsPel *ink )
 			q += ls;
 		}
 	}
+}
+
+static void
+vips_image_paint( VipsImage *image, const VipsPel *ink )
+{
+	VipsRect area = { 0, 0, image->Xsize, image->Ysize };
+
+	vips_image_paint_area( image, &area, ink );
 }
 
 /* Blend two guint8.
@@ -399,7 +407,6 @@ read_header( Read *read, VipsImage *out )
 	int canvas_height;
 	int flags;
 	int i;
-	VipsRect area;
 
 	data.bytes = read->data;
 	data.size = read->length;
@@ -528,12 +535,7 @@ read_header( Read *read, VipsImage *out )
 	if( vips_image_write_prepare( read->frame ) ) 
 		return( -1 );
 
-	area.left = 0;
-	area.top = 0;
-	area.width = read->frame_width;
-	area.height = read->frame_height;
-	vips_image_paint_pel( read->frame, 
-		&area, (VipsPel *) &read->background );
+	vips_image_paint( read->frame, (VipsPel *) &read->background );
 
 	vips_image_init_fields( out,
 		read->width, read->height,
@@ -626,7 +628,7 @@ read_next_frame( Read *read )
 		/* We must clear the pixels occupied by this webp frame (not 
 		 * the whole of the read frame) to the background colour.
 		 */
-		vips_image_paint_pel( read->frame, 
+		vips_image_paint_area( read->frame, 
 			&read->dispose_rect, (VipsPel *) &read->background );
 
 	/* Note this frame's dispose for next time.
