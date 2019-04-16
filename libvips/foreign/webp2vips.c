@@ -44,8 +44,8 @@
 
 /*
 #define DEBUG_VERBOSE
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -421,12 +421,6 @@ read_header( Read *read, VipsImage *out )
 
 	flags = WebPDemuxGetI( read->demux, WEBP_FF_FORMAT_FLAGS );
 
-	/* background is in B, G, R, A byte order, but we need R, G, B, A for
-	 * libvips.
-	 */
-	read->background = bgra2rgba( 
-		WebPDemuxGetI( read->demux, WEBP_FF_BACKGROUND_COLOR ) );
-
 	read->alpha = flags & ALPHA_FLAG;
 	if( read->alpha )  
 		read->config.output.colorspace = MODE_RGBA;
@@ -440,6 +434,16 @@ read_header( Read *read, VipsImage *out )
 		loop_count = WebPDemuxGetI( read->demux, WEBP_FF_LOOP_COUNT );
 		read->frame_count = WebPDemuxGetI( read->demux, 
 			WEBP_FF_FRAME_COUNT );
+
+		/* background is in B, G, R, A byte order, but we need 
+		 * R, G, B, A for libvips.
+		 *
+		 * background is only relevant for animations. For
+		 * single-frame webp, we want to just return the RGBA in the
+		 * file. We just leave bg as 0 and blend with that. 
+		 */
+		read->background = bgra2rgba( WebPDemuxGetI( read->demux, 
+			WEBP_FF_BACKGROUND_COLOR ) );
 
 #ifdef DEBUG
 		printf( "webp2vips: animation\n" );
