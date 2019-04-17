@@ -41,6 +41,8 @@
  * 28/12/18
  * 	- remove warning messages from vips_icc_is_compatible_profile() since
  * 	  they can be triggered under normal circumstances
+ * 17/4/19 kleisauke 
+ * 	- better rejection of broken embedded profiles
  */
 
 /*
@@ -409,10 +411,6 @@ typedef struct _VipsIccImport {
 	gboolean embedded;
 	char *input_profile_filename;
 
-	/* Set if we ended up using the fallback input profile. 
-	 */
-	gboolean used_fallback;
-
 } VipsIccImport;
 
 typedef VipsIccClass VipsIccImportClass;
@@ -643,6 +641,27 @@ vips_icc_load_profile_blob( VipsBlob *blob, VipsImage *image )
 	return( profile );
 }
 
+/* Verify that a blob is not corrupt and is compatible with this image. 
+ *
+ * unref the blob if it's useless.
+ */
+static cmsHPROFILE
+vips_icc_verify_blob( VipsBlob **blob, VipsImage *image )
+{
+	if( *blob ) {
+		cmsHPROFILE profile;
+
+		if( !(profile = vips_icc_load_profile_blob( *blob, image )) ) {
+			vips_area_unref( (VipsArea *) *blob );
+			*blob = NULL;
+		}
+
+		return( profile );
+	}
+
+	return( NULL );
+}
+
 static int
 vips_icc_import_build( VipsObject *object )
 {
@@ -651,6 +670,8 @@ vips_icc_import_build( VipsObject *object )
 	VipsColourCode *code = (VipsColourCode *) object;
 	VipsIcc *icc = (VipsIcc *) object;
 	VipsIccImport *import = (VipsIccImport *) object;
+
+	gboolean used_fallback;
 
 	/* We read the input profile like this:
 	 *
@@ -661,23 +682,26 @@ vips_icc_import_build( VipsObject *object )
 	 *	1		1		image, then fall back to file
 	 */
 
+	used_fallback = FALSE;
+
 	if( code->in &&
 		(import->embedded ||
-			!import->input_profile_filename) )
+			!import->input_profile_filename) ) {
 		icc->in_blob = vips_icc_get_profile_image( code->in );
+		icc->in_profile = 
+			vips_icc_verify_blob( &icc->in_blob, code->in );
+	}
 
-	if( !icc->in_blob &&
+	if( code->in &&
+		!icc->in_blob &&
 		import->input_profile_filename ) {
 		if( vips_profile_load( import->input_profile_filename, 
 			&icc->in_blob, NULL ) )
 			return( -1 ); 
-	 	import->used_fallback = TRUE;
-	}
-
-	if( icc->in_blob &&
-		code->in )
 		icc->in_profile = 
-			vips_icc_load_profile_blob( icc->in_blob, code->in );
+			vips_icc_verify_blob( &icc->in_blob, code->in );
+	 	used_fallback = TRUE;
+	}
 
 	if( !icc->in_profile ) {
 		vips_error( class->nickname, "%s", _( "no input profile" ) ); 
@@ -705,7 +729,7 @@ vips_icc_import_build( VipsObject *object )
 	 * In the same way, we don't remove the embedded input profile on
 	 * import.
 	 */
-	if( import->used_fallback &&
+	if( used_fallback &&
 		icc->in_blob ) {
 		const void *data;
 		size_t size;
@@ -1066,19 +1090,26 @@ vips_icc_transform_build( VipsObject *object )
 
 	if( code->in &&
 		(transform->embedded ||
-			!transform->input_profile_filename) )
+			!transform->input_profile_filename) ) {
 		icc->in_blob = vips_icc_get_profile_image( code->in );
+		icc->in_profile = 
+			vips_icc_verify_blob( &icc->in_blob, code->in );
+	}
 
-	if( !icc->in_blob &&
-		transform->input_profile_filename ) 
+	if( code->in &&
+		!icc->in_blob &&
+		transform->input_profile_filename ) {
 		if( vips_profile_load( transform->input_profile_filename, 
 			&icc->in_blob, NULL ) )
 			return( -1 ); 
-
-	if( icc->in_blob &&
-		code->in )
 		icc->in_profile = 
-			vips_icc_load_profile_blob( icc->in_blob, code->in );
+			vips_icc_verify_blob( &icc->in_blob, code->in );
+	}
+
+	if( !icc->in_profile ) {
+		vips_error( class->nickname, "%s", _( "no input profile" ) ); 
+		return( -1 );
+	}
 
 	if( !icc->in_profile ) {
 		vips_error( class->nickname, "%s", _( "no input profile" ) ); 
