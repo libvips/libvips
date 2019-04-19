@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 21/9/18 started 8.8.0
 - much faster smartcrop [lovell]
 - add low/high to smartcrop [jcupitt]
@@ -31,6 +32,9 @@
 - vips_text() supports justification
 - move vips_image_set_kill() and iskilled() to the public API
 - remove old c++ and python interfaces
+
+31/3/19 started 8.7.5
+- better buffer sizing in tiff reader [omira-sch]
 
 4/1/19 started 8.7.4
 - magickload with magick6 API did not chain exceptions correctly causing a
