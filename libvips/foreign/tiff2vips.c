@@ -1763,7 +1763,8 @@ rtiff_strip_read_interleaved( Rtiff *rtiff, tstrip_t strip, tdata_t buf )
 	if( rtiff->header.separate ) {
 		int page_width = rtiff->header.width;
 		int page_height = rtiff->header.height;
-		int strips_per_plane = 1 + (page_height - 1) / read_rows_per_strip;
+		int strips_per_plane = 1 + (page_height - 1) / 
+			read_rows_per_strip;
 		int strip_height = VIPS_MIN( read_rows_per_strip, 
 			page_height - strip_y ); 
 		int pels_per_strip = page_width * strip_height;
@@ -2173,9 +2174,15 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 		 *
 		 * Don't do this in plane-separate mode. TIFFReadScanline() is
 		 * too fiddly to use in this case.
+		 *
+		 * Don't try scanline reading for YCbCr images.
+		 * TIFFScanlineSize() will not work in this case due to
+		 * chroma subsampling.
 		 */
 		if( header->rows_per_strip > 128 &&
-			!header->separate ) {
+			!header->separate &&
+			header->photometric_interpretation != 
+				PHOTOMETRIC_YCBCR ) {
 			header->read_scanlinewise = TRUE;
 			header->read_rows_per_strip = 1;
 			header->read_strip_size = 
