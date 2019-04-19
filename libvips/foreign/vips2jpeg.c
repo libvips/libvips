@@ -86,6 +86,8 @@
  * 	- use dbuf for memory output
  * 19/12/17 Lovell
  * 	- fix a leak with an error during buffer output
+ * 19/4/19
+ * 	- fix another leak with error during buffer output
  */
 
 /*
