@@ -767,12 +767,9 @@ init_destination( j_compress_ptr cinfo )
 static void
 buf_destroy( j_compress_ptr cinfo )
 {
-	printf( "buf_destroy:\n" ); 
-
 	if( cinfo->dest ) {
 		OutputBuffer *buf = (OutputBuffer *) cinfo->dest;
 
-		printf( "buf_destroy: destroying\n" ); 
 		vips_dbuf_destroy( &buf->dbuf );
 	}
 }
