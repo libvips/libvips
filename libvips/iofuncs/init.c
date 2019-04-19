@@ -90,6 +90,10 @@
 #include <vips/vector.h>
 #include <vips/vips7compat.h>
 
+#ifdef HAVE_PTHREAD_DEFAULT_NP
+#include <pthread.h>
+#endif /*HAVE_PTHREAD_DEFAULT_NP*/
+
 /* abort() on the first warning or error.
  */
 int vips__fatal = 0;
@@ -308,6 +312,32 @@ vips_init( const char *argv0 )
 	 */
 	(void) _setmaxstdio( 2048 );
 #endif /*OS_WIN32*/
+
+#ifdef HAVE_PTHREAD_DEFAULT_NP
+{
+	const char *pstacksize_str;
+        /* Set the default stack size especially if you use musl
+         */
+        if( (pstacksize_str = g_getenv( "VIPS_MIN_STACK_SIZE" )) ) {
+		guint64 default_min_stack_size = 1 << 21; // 2MB
+		guint64 vips_min_stack_size;
+		guint64 cur_stack_size;
+		pthread_attr_t attr;
+		vips_min_stack_size = vips__parse_size(pstacksize_str);
+		if (vips_min_stack_size == 0) {
+			vips_min_stack_size = default_min_stack_size;
+		}
+		if (pthread_attr_init(&attr) ||
+		    pthread_attr_getstacksize(&attr, &cur_stack_size) ||
+		    (cur_stack_size > vips_min_stack_size) ||
+		    pthread_attr_setstacksize(&attr, vips_min_stack_size) ||
+		    pthread_setattr_default_np(&attr)) {
+			g_warning("Could not set minimum pthread stack size of %s, current size is %dk",
+				pstacksize_str, (int) (cur_stack_size / 1024.0) );
+		}
+	}
+}
+#endif /*HAVE_PTHREAD_DEFAULT_NP*/
 
 #ifdef HAVE_TYPE_INIT
 	/* Before glib 2.36 you have to call this on startup.

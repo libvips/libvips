@@ -455,6 +455,7 @@ AC_CHECK_FUNCS([getcwd gettimeofday getwd memset munmap putenv realpath strcasec
 AC_CHECK_LIB(m,cbrt,[AC_DEFINE(HAVE_CBRT,1,[have cbrt() in libm.])])
 AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 AC_CHECK_LIB(m,atan2,[AC_DEFINE(HAVE_ATAN2,1,[have atan2() in libm.])])
+AC_CHECK_LIB([pthread], [pthread_setattr_default_np], [AC_DEFINE(HAVE_PTHREAD_DEFAULT_NP,1,[have pthread_setattr_default_np() in pthread.])])
 
 # have to have these
 # need glib 2.6 for GOption
