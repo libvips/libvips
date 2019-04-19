@@ -13,6 +13,8 @@
  * 2/11/18
  * 	- rework for demux API
  * 	- add animated read
+ * 19/4/19
+ * 	- could memleak on some read errors
  */
 
 /*
@@ -753,8 +755,10 @@ vips__webp_read_file( const char *filename, VipsImage *out,
 		return( -1 );
 	}
 
-	if( read_image( read, out ) )
+	if( read_image( read, out ) ) {
+		read_free( read );
 		return( -1 );
+	}
 
 	read_free( read );
 
@@ -795,8 +799,10 @@ vips__webp_read_buffer( const void *buf, size_t len, VipsImage *out,
 		return( -1 );
 	}
 
-	if( read_image( read, out ) )
+	if( read_image( read, out ) ) {
+		read_free( read );
 		return( -1 );
+	}
 
 	read_free( read );
 
