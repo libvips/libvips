@@ -1510,13 +1510,6 @@ rtiff_fill_region( VipsRegion *out,
 
 	int x, y, z;
 
-	printf( "VIPS_IMAGE_SIZEOF_PEL() = %zd\n", 
-		VIPS_IMAGE_SIZEOF_PEL( out->im ) );
-	printf( "rtiff->header.tile_size = %zd\n", rtiff->header.tile_size );
-	printf( "tile_width = %d\n", tile_width );
-	printf( "tile_height = %d\n", tile_height );
-	printf( "memcpy = %d\n", rtiff->memcpy );
-
 	/* Special case: we are filling a single tile exactly sized to match
 	 * the tiff tile and we have no repacking to do for this format.
 	 */
