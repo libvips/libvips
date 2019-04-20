@@ -1276,6 +1276,18 @@ if test x"$with_png" != x"no"; then
   )
 fi
 
+if test x"$with_png" != x"no"; then
+  save_LIBS="$LIBS"
+  save_CFLAGS="$CFLAGS"
+  LIBS="$PNG_LIBS $LIBS"
+  CFLAGS="$PNG_INCLUDES $CFLAGS"
+  AC_CHECK_FUNCS(png_set_chunk_malloc_max,
+    AC_DEFINE(HAVE_PNG_SET_CHUNK_MALLOC_MAX,1,
+	      [define if your libpng has png_set_chunk_malloc_max.]))
+  LIBS="$save_LIBS"
+  CFLAGS="$save_CFLAGS"
+fi
+
 # look for libimagequant with pkg-config (only if libpng is enabled)
 AC_ARG_WITH([imagequant],
   AS_HELP_STRING([--without-imagequant], [build without imagequant (default: test)]))

@@ -268,7 +268,9 @@ read_new_filename( VipsImage *out, const char *name, gboolean fail )
 	 * check.
 	 */
 	png_init_io( read->pPng, read->fp );
+#ifdef HAVE_PNG_SET_CHUNK_MALLOC_MAX
 	png_set_chunk_malloc_max( read->pPng, 0 );
+#endif /*HAVE_PNG_SET_CHUNK_MALLOC_MAX*/
 	png_read_info( read->pPng, read->pInfo );
 
 	return( read );
