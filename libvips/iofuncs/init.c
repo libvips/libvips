@@ -28,6 +28,8 @@
  * 	- call _setmaxstdio() on win32
  * 4/8/17
  * 	- hide warnings is VIPS_WARNING is set
+ * 20/4/19
+ * 	- set the min stack, if we can
  */
 
 /*
@@ -61,10 +63,18 @@
 #define DEBUG
  */
 
+/* pthread_setattr_default_np() is a non-portable GNU extension.
+ */
+#define _GNU_SOURCE
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
+
+#ifdef HAVE_PTHREAD_DEFAULT_NP
+#include <pthread.h>
+#endif /*HAVE_PTHREAD_DEFAULT_NP*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -89,10 +99,6 @@
 #include <vips/internal.h>
 #include <vips/vector.h>
 #include <vips/vips7compat.h>
-
-#ifdef HAVE_PTHREAD_DEFAULT_NP
-#include <pthread.h>
-#endif /*HAVE_PTHREAD_DEFAULT_NP*/
 
 /* abort() on the first warning or error.
  */
@@ -157,10 +163,16 @@ vips_get_argv0( void )
  * must not call VIPS_INIT() after vips_shutdown(). In other words, you cannot
  * stop and restart vips. 
  *
+ * Use the environment variable `VIPS_MIN_STACK_SIZE` to set the minimum stack
+ * size. For example, `2m` for a minimum of two megabytes of stack. This can
+ * be important for systems like musl where the default stack is very small.
+ *
  * VIPS_INIT() does approximately the following:
  *
  * + checks that the libvips your program is expecting is 
  *   binary-compatible with the vips library you're running against
+ *
+ * + sets a minimum stack size, see above
  *
  * + initialises any libraries that VIPS is using, including GObject
  *   and the threading system, if neccessary
@@ -259,6 +271,36 @@ empty_log_handler( const gchar *log_domain, GLogLevelFlags log_level,
 {       
 }
 
+/* Attempt to set a minimum stacksize. This can be important on systems with a
+ * very low default, like musl.
+ */
+static void
+set_stacksize( void )
+{
+#ifdef HAVE_PTHREAD_DEFAULT_NP
+	const guint64 default_min_stack_size = 1 << 21; // 2MB
+
+	const char *pstacksize_str;
+	guint64 vips_min_stack_size;
+	guint64 cur_stack_size;
+	pthread_attr_t attr;
+
+        if( !(pstacksize_str = g_getenv( "VIPS_MIN_STACK_SIZE" )) || 
+		pthread_attr_init( &attr ) ||
+		pthread_attr_getstacksize( &attr, &cur_stack_size ) )
+		return;
+
+	vips_min_stack_size = VIPS_MAX( default_min_stack_size, 
+		vips__parse_size( pstacksize_str ) );
+
+	if( cur_stack_size < vips_min_stack_size ||
+		pthread_attr_setstacksize( &attr, vips_min_stack_size ) ||
+		pthread_setattr_default_np( &attr ) )
+		g_warning( _( "could not set minimum pthread stack "
+			"size of %s, current size is %dk" ),
+			pstacksize_str, (int) (cur_stack_size / 1024.0) );
+#endif /*HAVE_PTHREAD_DEFAULT_NP*/
+}
 
 /**
  * vips_init:
@@ -312,32 +354,10 @@ vips_init( const char *argv0 )
 	 */
 	(void) _setmaxstdio( 2048 );
 #endif /*OS_WIN32*/
-
-#ifdef HAVE_PTHREAD_DEFAULT_NP
-{
-	const char *pstacksize_str;
-        /* Set the default stack size especially if you use musl
-         */
-        if( (pstacksize_str = g_getenv( "VIPS_MIN_STACK_SIZE" )) ) {
-		guint64 default_min_stack_size = 1 << 21; // 2MB
-		guint64 vips_min_stack_size;
-		guint64 cur_stack_size;
-		pthread_attr_t attr;
-		vips_min_stack_size = vips__parse_size(pstacksize_str);
-		if (vips_min_stack_size == 0) {
-			vips_min_stack_size = default_min_stack_size;
-		}
-		if (pthread_attr_init(&attr) ||
-		    pthread_attr_getstacksize(&attr, &cur_stack_size) ||
-		    (cur_stack_size > vips_min_stack_size) ||
-		    pthread_attr_setstacksize(&attr, vips_min_stack_size) ||
-		    pthread_setattr_default_np(&attr)) {
-			g_warning("Could not set minimum pthread stack size of %s, current size is %dk",
-				pstacksize_str, (int) (cur_stack_size / 1024.0) );
-		}
-	}
-}
-#endif /*HAVE_PTHREAD_DEFAULT_NP*/
+ 
+	/* Set a minimum stacksize, if we can.
+	 */
+	set_stacksize();
 
 #ifdef HAVE_TYPE_INIT
 	/* Before glib 2.36 you have to call this on startup.
