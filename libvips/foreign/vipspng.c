@@ -264,12 +264,11 @@ read_new_filename( VipsImage *out, const char *name, gboolean fail )
 	 * working.
 	 *
 	 * By default, libpng refuses to open files with a metadata chunk 
-	 * larger than 8mb. png_set_chunk_malloc_max() disables this sanity
-	 * check.
+	 * larger than 8mb. We've seen real files with 20mb, so set 50mb.
 	 */
 	png_init_io( read->pPng, read->fp );
 #ifdef HAVE_PNG_SET_CHUNK_MALLOC_MAX
-	png_set_chunk_malloc_max( read->pPng, 0 );
+	png_set_chunk_malloc_max( read->pPng, 50 * 1024 * 1024 );
 #endif /*HAVE_PNG_SET_CHUNK_MALLOC_MAX*/
 	png_read_info( read->pPng, read->pInfo );
 
