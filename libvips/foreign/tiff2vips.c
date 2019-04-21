@@ -185,6 +185,7 @@
  * 	- shut down the input file as soon as we can [kleisauke]
  * 28/3/19 omira-sch
  * 	- better buffer sizing 
+ * 	- ban chroma-subsampled, non-jpg compressed images
  */
 
 /*
@@ -260,6 +261,7 @@ typedef struct _RtiffHeader {
 	uint32 tile_width;
 	uint32 tile_height;		
 	tsize_t tile_size;
+	tsize_t tile_row_size;
 
 	/* Fields for strip images, as returned by libtiff.
 	 */
@@ -1485,7 +1487,7 @@ rtiff_fill_region_aligned( VipsRegion *out, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Loop over the output region painting in tiles from the file.
+/* Loop over the output region, painting in tiles from the file.
  */
 static int
 rtiff_fill_region( VipsRegion *out, 
@@ -1495,19 +1497,8 @@ rtiff_fill_region( VipsRegion *out,
 	Rtiff *rtiff = (Rtiff *) a;
 	int tile_width = rtiff->header.tile_width;
 	int tile_height = rtiff->header.tile_height;
+	int tile_row_size = rtiff->header.tile_row_size;
 	VipsRect *r = &out->valid;
-
-	/* Sizeof a line of bytes in the TIFF tile.
-	 */
-	int tls = rtiff->header.tile_size / tile_height;
-
-	/* Sizeof a pel in the TIFF file. This won't work for formats which
-	 * are <1 byte per pel, like onebit :-( Fortunately, it's only used
-	 * to calculate addresses within a tile and, because we are wrapped in
-	 * vips_tilecache(), we will never have to calculate positions not 
-	 * within a tile.
-	 */
-	int tps = tls / tile_width;
 
 	int x, y, z;
 
@@ -1576,13 +1567,20 @@ rtiff_fill_region( VipsRegion *out,
 			 */
 			vips_rect_intersectrect( &tile, r, &hit );
 
+			/* We are inside a tilecache, so requests will always
+			 * be aligned left-right to tile boundaries.
+			 *
+			 * this is not true vertically for toilet-roll images.
+			 */
+			g_assert( hit.left == tile.left );
+
 			/* Unpack to VIPS format. 
 			 * Just unpack the section of the tile we need.
 			 */
 			for( z = 0; z < hit.height; z++ ) {
 				VipsPel *p = (VipsPel *) buf +
-					(hit.left - tile.left) * tps +
-					(hit.top - tile.top + z) * tls;
+					(hit.top - tile.top + z) * 
+					tile_row_size;
 				VipsPel *q = VIPS_REGION_ADDR( out, 
 					hit.left, hit.top + z );
 
@@ -2073,12 +2071,7 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 {
 	uint16 extra_samples_count;
 	uint16 *extra_samples_types;
-
-	/* We want to always expand subsampled YCBCR images to full RGB. We
-	 * need to set this pseudo tag early, since it affects the value you
-	 * get from TIFFStripSize() etc. 
-	 */
-	TIFFSetField( rtiff->tiff, TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
+	uint16 compression;
 
 	if( !tfget32( rtiff->tiff, TIFFTAG_IMAGEWIDTH, &header->width ) ||
 		!tfget32( rtiff->tiff, TIFFTAG_IMAGELENGTH, &header->height ) ||
@@ -2090,6 +2083,33 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 			TIFFTAG_PHOTOMETRIC, 
 			&header->photometric_interpretation ) )
 		return( -1 );
+
+	TIFFGetFieldDefaulted( rtiff->tiff, 
+		TIFFTAG_COMPRESSION, &compression );
+	if( compression == COMPRESSION_JPEG )
+		/* We want to always expand subsampled YCBCR images to full 
+		 * RGB. 
+		 */
+		TIFFSetField( rtiff->tiff, 
+			TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
+        else if( header->photometric_interpretation == PHOTOMETRIC_YCBCR ) {
+		/* We rely on the jpg decompressor to upsample chroma
+		 * subsampled images. If there is chroma subsampling but
+		 * no jpg compression, we have to give up.
+		 *
+		 * tiffcp fails for images like this too.
+		 */
+                uint16 hsub, vsub;
+
+                TIFFGetFieldDefaulted( rtiff->tiff, 
+			TIFFTAG_YCBCRSUBSAMPLING, &hsub, &vsub );
+                if( hsub != 1 || 
+			vsub != 1 ) {
+			vips_error( "tiff2vips",
+				"%s", _( "subsampled images not supported" ) );
+			return( -1 );
+                }
+        }
 
 	/* Arbitrary sanity-checking limits.
 	 */
@@ -2147,6 +2167,7 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 		}
 
 		header->tile_size = TIFFTileSize( rtiff->tiff );
+		header->tile_row_size = TIFFTileRowSize( rtiff->tiff );
 
 		/* Stop some compiler warnings.
 		 */
@@ -2207,6 +2228,7 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 		header->tile_width = 0;
 		header->tile_height = 0;
 		header->tile_size = 0;
+		header->tile_row_size = 0;
 	}
 
 	TIFFGetFieldDefaulted( rtiff->tiff, TIFFTAG_EXTRASAMPLES,
