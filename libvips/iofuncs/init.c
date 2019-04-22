@@ -293,12 +293,16 @@ set_stacksize( void )
 	vips_min_stack_size = VIPS_MAX( default_min_stack_size, 
 		vips__parse_size( pstacksize_str ) );
 
-	if( cur_stack_size < vips_min_stack_size ||
-		pthread_attr_setstacksize( &attr, vips_min_stack_size ) ||
-		pthread_setattr_default_np( &attr ) )
-		g_warning( _( "could not set minimum pthread stack "
-			"size of %s, current size is %dk" ),
-			pstacksize_str, (int) (cur_stack_size / 1024.0) );
+	if( cur_stack_size < vips_min_stack_size) {
+		if (pthread_attr_setstacksize( &attr, vips_min_stack_size ) ||
+		    pthread_setattr_default_np( &attr ) ) {
+			g_warning( _( "could not set minimum pthread stack "
+				"size of %s, current size is %dk" ),
+				pstacksize_str, (int) (cur_stack_size / 1024.0) );
+		}
+	}
+	pthread_attr_getstacksize( &attr, &cur_stack_size );
+	g_info("current stack size is set to %lu", cur_stack_size);
 #endif /*HAVE_PTHREAD_DEFAULT_NP*/
 }
 
