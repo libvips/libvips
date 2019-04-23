@@ -291,13 +291,14 @@ set_stacksize( guint64 size )
 		return;
 	}
 
-	if( cur_stack_size < size )
+	if( cur_stack_size < size ) {
 		if( pthread_attr_setstacksize( &attr, size ) ||
 			pthread_setattr_default_np( &attr ) ) 
 			g_warning( "set_stacksize: unable to set stack size" );
 		else 
 			g_info( "set stack size to %" G_GUINT64_FORMAT "k", 
 				size / (guint64) 1024 );
+	}
 #endif /*HAVE_PTHREAD_DEFAULT_NP*/
 }
 

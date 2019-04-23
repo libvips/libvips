@@ -18,6 +18,8 @@
  * 	- implement shrink-on-load for tiff pyramid 
  * 3/2/19 kleisauke
  * 	- add option_string param to thumbnail_buffer
+ * 23/4/19
+ * 	- don't force import CMYK, since colourspace knows about it now
  */
 
 /*
@@ -568,16 +570,12 @@ vips_thumbnail_build( VipsObject *object )
 
 	/* In linear mode, we import right at the start. 
 	 *
-	 * We also have to import the whole image if it's CMYK, since
-	 * vips_colourspace() (see below) doesn't know about CMYK.
-	 *
 	 * This is only going to work for images in device space. If you have
 	 * an image in PCS which also has an attached profile, strange things
 	 * will happen. 
 	 */
 	have_imported = FALSE;
-	if( (thumbnail->linear ||
-		in->Type == VIPS_INTERPRETATION_CMYK) &&
+	if( thumbnail->linear &&
 		in->Coding == VIPS_CODING_NONE &&
 		(in->BandFmt == VIPS_FORMAT_UCHAR ||
 		 in->BandFmt == VIPS_FORMAT_USHORT) &&
