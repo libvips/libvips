@@ -599,8 +599,14 @@ vips_thumbnail_build( VipsObject *object )
 		have_imported = TRUE;
 	}
 
-	/* To the processing colourspace. This will unpack LABQ as well.
+	/* To the processing colourspace. This will unpack LABQ, import CMYK,
+	 * etc.
+	 *
+	 * If this is a CMYK image, we need to set have_imported since we only
+	 * want to export at the end.
 	 */
+	if( in->Type == VIPS_INTERPRETATION_CMYK )
+		have_imported = TRUE;
 	g_info( "converting to processing space %s",
 		vips_enum_nick( VIPS_TYPE_INTERPRETATION, interpretation ) ); 
 	if( vips_colourspace( in, &t[2], interpretation, NULL ) ) 
