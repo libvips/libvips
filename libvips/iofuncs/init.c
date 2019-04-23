@@ -275,34 +275,28 @@ empty_log_handler( const gchar *log_domain, GLogLevelFlags log_level,
  * very low default, like musl.
  */
 static void
-set_stacksize( void )
+set_stacksize( guint64 size )
 {
 #ifdef HAVE_PTHREAD_DEFAULT_NP
-	const guint64 default_min_stack_size = 1 << 21; // 2MB
-
-	const char *pstacksize_str;
-	guint64 vips_min_stack_size;
-	guint64 cur_stack_size;
 	pthread_attr_t attr;
+	guint64 cur_stack_size;
 
-        if( !(pstacksize_str = g_getenv( "VIPS_MIN_STACK_SIZE" )) || 
-		pthread_attr_init( &attr ) ||
-		pthread_attr_getstacksize( &attr, &cur_stack_size ) )
+	/* 2mb minimum.
+	 */
+	size = VIPS_MAX( size, 2 * 1024 * 1024 );
+	g_info( "setting minimum pthread stack size to %" G_GUINT64_FORMAT "k", 
+		size / (guint64) 1024 );
+
+	if( pthread_attr_init( &attr ) ||
+		pthread_attr_getstacksize( &attr, &cur_stack_size ) ) {
+		g_warning( "set_stacksize: error reading stack size" );
 		return;
-
-	vips_min_stack_size = VIPS_MAX( default_min_stack_size, 
-		vips__parse_size( pstacksize_str ) );
-
-	if( cur_stack_size < vips_min_stack_size) {
-		if (pthread_attr_setstacksize( &attr, vips_min_stack_size ) ||
-		    pthread_setattr_default_np( &attr ) ) {
-			g_warning( _( "could not set minimum pthread stack "
-				"size of %s, current size is %dk" ),
-				pstacksize_str, (int) (cur_stack_size / 1024.0) );
-		}
 	}
-	pthread_attr_getstacksize( &attr, &cur_stack_size );
-	g_info("current stack size is set to %lu", cur_stack_size);
+
+	if( cur_stack_size < size )
+		if( pthread_attr_setstacksize( &attr, size ) ||
+			pthread_setattr_default_np( &attr ) ) 
+			g_warning( "set_stacksize: unable to set size" );
 #endif /*HAVE_PTHREAD_DEFAULT_NP*/
 }
 
@@ -329,6 +323,7 @@ vips_init( const char *argv0 )
 
 	static gboolean started = FALSE;
 	static gboolean done = FALSE;
+	const char *vips_min_stack_size;
 	char *prgname;
 	const char *prefix;
 	const char *libdir;
@@ -358,10 +353,6 @@ vips_init( const char *argv0 )
 	 */
 	(void) _setmaxstdio( 2048 );
 #endif /*OS_WIN32*/
- 
-	/* Set a minimum stacksize, if we can.
-	 */
-	set_stacksize();
 
 #ifdef HAVE_TYPE_INIT
 	/* Before glib 2.36 you have to call this on startup.
@@ -521,6 +512,11 @@ vips_init( const char *argv0 )
 		g_getenv( "IM_WARNING" ) ) 
 		g_log_set_handler( "VIPS", G_LOG_LEVEL_WARNING, 
 			empty_log_handler, NULL );
+
+	/* Set a minimum stacksize, if we can.
+	 */
+        if( (vips_min_stack_size = g_getenv( "VIPS_MIN_STACK_SIZE" )) )
+		(void) set_stacksize( vips__parse_size( vips_min_stack_size ) );
 
 	vips__thread_gate_stop( "init: startup" ); 
 
