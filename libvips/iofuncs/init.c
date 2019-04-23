@@ -281,22 +281,23 @@ set_stacksize( guint64 size )
 	pthread_attr_t attr;
 	guint64 cur_stack_size;
 
-	/* 2mb minimum.
+	/* Don't allow stacks less than 2mb.
 	 */
 	size = VIPS_MAX( size, 2 * 1024 * 1024 );
-	g_info( "setting minimum pthread stack size to %" G_GUINT64_FORMAT "k", 
-		size / (guint64) 1024 );
 
 	if( pthread_attr_init( &attr ) ||
 		pthread_attr_getstacksize( &attr, &cur_stack_size ) ) {
-		g_warning( "set_stacksize: error reading stack size" );
+		g_warning( "set_stacksize: unable to get stack size" );
 		return;
 	}
 
 	if( cur_stack_size < size )
 		if( pthread_attr_setstacksize( &attr, size ) ||
 			pthread_setattr_default_np( &attr ) ) 
-			g_warning( "set_stacksize: unable to set size" );
+			g_warning( "set_stacksize: unable to set stack size" );
+		else 
+			g_info( "set stack size to %" G_GUINT64_FORMAT "k", 
+				size / (guint64) 1024 );
 #endif /*HAVE_PTHREAD_DEFAULT_NP*/
 }
 
