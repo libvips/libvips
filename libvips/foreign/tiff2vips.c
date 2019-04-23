@@ -183,6 +183,9 @@
  * 	- check for non-byte-multiple bits_per_sample [HongxuChen]
  * 16/8/18
  * 	- shut down the input file as soon as we can [kleisauke]
+ * 28/3/19 omira-sch
+ * 	- better buffer sizing 
+ * 	- ban chroma-subsampled, non-jpg compressed images
  */
 
 /*
@@ -253,20 +256,31 @@ typedef struct _RtiffHeader {
 	 */
 	gboolean tiled;
 
-	/* Fields for tiled images.
+	/* Fields for tiled images, as returned by libtiff.
 	 */
 	uint32 tile_width;
 	uint32 tile_height;		
+	tsize_t tile_size;
+	tsize_t tile_row_size;
 
-	/* Fields for strip images.
-	 *
-	 * If read_scanlinewise is TRUE, the strips are too large to read in a
-	 * single lump and we need to use the scanline API.
+	/* Fields for strip images, as returned by libtiff.
 	 */
 	uint32 rows_per_strip;
 	tsize_t strip_size;
+	tsize_t scanline_size;
 	int number_of_strips;
+
+	/* If read_scanlinewise is TRUE, the strips are too large to read in a
+	 * single lump and we will use the scanline API.
+	 */
 	gboolean read_scanlinewise;
+
+	/* Strip read geometry. Number of lines we read at once (whole strip
+	 * or 1) and size of the buffer we read to (a scanline, or a strip in
+	 * size).
+	 */
+	uint32 read_height;
+	tsize_t read_size;
 } RtiffHeader;
 
 /* Scanline-type process function.
@@ -1262,7 +1276,12 @@ rtiff_parse_copy( Rtiff *rtiff, VipsImage *out )
 
 	rtiff->sfn = rtiff_memcpy_line;
 	rtiff->client = out;
-	rtiff->memcpy = TRUE;
+
+	/* We expand YCBCR images to RGB using JPEGCOLORMODE_RGB, and this
+	 * means we need a slightly larger read buffer for the edge pixels. In
+	 * turn, this means we can't just memcpy to libvips regions.
+	 */
+	rtiff->memcpy = photometric_interpretation != PHOTOMETRIC_YCBCR;
 
 	return( 0 );
 }
@@ -1297,14 +1316,6 @@ rtiff_pick_reader( Rtiff *rtiff )
 	if( photometric_interpretation == PHOTOMETRIC_PALETTE ) 
 		return( rtiff_parse_palette ); 
 
-	if( photometric_interpretation == PHOTOMETRIC_YCBCR ) { 
-		/* Sometimes JPEG in TIFF images are tagged as YCBCR. Ask
-		 * libtiff to convert to RGB for us.
-		 */
-		TIFFSetField( rtiff->tiff, 
-			TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
-	}
-
 	return( rtiff_parse_copy );
 }
 
@@ -1316,6 +1327,10 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 {
 	uint32 data_length;
 	void *data;
+
+	/* Request YCbCr expansion.
+	 */
+	TIFFSetField( rtiff->tiff, TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
 
 	out->Xsize = rtiff->header.width;
 	out->Ysize = rtiff->header.height * rtiff->n;
@@ -1408,19 +1423,6 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	return( 0 );
 }
 
-/* The size of the buffer written by TIFFReadTile(). We can't use 
- * TIFFTileSize() since that ignores the setting of TIFFTAG_JPEGCOLORMODE. If
- * this pseudo tag has been set and the tile is encoded with YCbCr, the tile
- * is returned with chrominance upsampled. 
- *
- * This seems not to happen for old-style jpeg-compressed tiles. 
- */
-static size_t
-rtiff_tile_size( Rtiff *rtiff )
-{
-	return( TIFFTileRowSize( rtiff->tiff ) * rtiff->header.tile_height );
-}
-
 /* Allocate a tile buffer. Have one of these for each thread so we can unpack
  * to vips in parallel.
  */
@@ -1428,11 +1430,9 @@ static void *
 rtiff_seq_start( VipsImage *out, void *a, void *b )
 {
 	Rtiff *rtiff = (Rtiff *) a;
-	tsize_t size;
 	tdata_t *buf;
 
-	size = rtiff_tile_size( rtiff );
-	if( !(buf = vips_malloc( NULL, size )) )
+	if( !(buf = vips_malloc( NULL, rtiff->header.tile_size )) )
 		return( NULL );
 
 	return( (void *) buf );
@@ -1487,7 +1487,7 @@ rtiff_fill_region_aligned( VipsRegion *out, void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Loop over the output region painting in tiles from the file.
+/* Loop over the output region, painting in tiles from the file.
  */
 static int
 rtiff_fill_region( VipsRegion *out, 
@@ -1497,19 +1497,8 @@ rtiff_fill_region( VipsRegion *out,
 	Rtiff *rtiff = (Rtiff *) a;
 	int tile_width = rtiff->header.tile_width;
 	int tile_height = rtiff->header.tile_height;
+	int tile_row_size = rtiff->header.tile_row_size;
 	VipsRect *r = &out->valid;
-
-	/* Sizeof a line of bytes in the TIFF tile.
-	 */
-	int tls = rtiff_tile_size( rtiff ) / tile_height;
-
-	/* Sizeof a pel in the TIFF file. This won't work for formats which
-	 * are <1 byte per pel, like onebit :-( Fortunately, it's only used
-	 * to calculate addresses within a tile and, because we are wrapped in
-	 * vips_tilecache(), we will never have to calculate positions not 
-	 * within a tile.
-	 */
-	int tps = tls / tile_width;
 
 	int x, y, z;
 
@@ -1578,13 +1567,20 @@ rtiff_fill_region( VipsRegion *out,
 			 */
 			vips_rect_intersectrect( &tile, r, &hit );
 
+			/* We are inside a tilecache, so requests will always
+			 * be aligned left-right to tile boundaries.
+			 *
+			 * this is not true vertically for toilet-roll images.
+			 */
+			g_assert( hit.left == tile.left );
+
 			/* Unpack to VIPS format. 
 			 * Just unpack the section of the tile we need.
 			 */
 			for( z = 0; z < hit.height; z++ ) {
 				VipsPel *p = (VipsPel *) buf +
-					(hit.left - tile.left) * tps +
-					(hit.top - tile.top + z) * tls;
+					(hit.top - tile.top + z) * 
+					tile_row_size;
 				VipsPel *q = VIPS_REGION_ADDR( out, 
 					hit.left, hit.top + z );
 
@@ -1714,12 +1710,10 @@ rtiff_read_tilewise( Rtiff *rtiff, VipsImage *out )
 	 * match the tifftile size.
 	 */
 	if( rtiff->memcpy ) {
-		size_t vips_tile_size;
-
-		vips_tile_size = VIPS_IMAGE_SIZEOF_PEL( t[0] ) * 
+		size_t vips_tile_size = VIPS_IMAGE_SIZEOF_PEL( t[0] ) * 
 			tile_width * tile_height; 
 
-		if( rtiff_tile_size( rtiff ) != vips_tile_size ) { 
+		if( rtiff->header.tile_size != vips_tile_size ) { 
 			vips_error( "tiff2vips", 
 				"%s", _( "unsupported tiff image type" ) );
 			return( -1 );
@@ -1761,15 +1755,15 @@ static int
 rtiff_strip_read_interleaved( Rtiff *rtiff, tstrip_t strip, tdata_t buf )
 {
 	int samples_per_pixel = rtiff->header.samples_per_pixel;
-	int rows_per_strip = rtiff->header.rows_per_strip;
+	int read_height = rtiff->header.read_height;
 	int bits_per_sample = rtiff->header.bits_per_sample;
-	int strip_y = strip * rows_per_strip;
+	int strip_y = strip * read_height;
 
 	if( rtiff->header.separate ) {
 		int page_width = rtiff->header.width;
 		int page_height = rtiff->header.height;
-		int strips_per_plane = 1 + (page_height - 1) / rows_per_strip;
-		int strip_height = VIPS_MIN( rows_per_strip, 
+		int strips_per_plane = 1 + (page_height - 1) / read_height;
+		int strip_height = VIPS_MIN( read_height, 
 			page_height - strip_y ); 
 		int pels_per_strip = page_width * strip_height;
 		int bytes_per_sample = bits_per_sample >> 3; 
@@ -1809,9 +1803,9 @@ rtiff_stripwise_generate( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	Rtiff *rtiff = (Rtiff *) a;
-	int rows_per_strip = rtiff->header.rows_per_strip;
+	int read_height = rtiff->header.read_height;
 	int page_height = rtiff->header.height;
-	tsize_t scanline_size = TIFFScanlineSize( rtiff->tiff );
+	tsize_t scanline_size = rtiff->header.scanline_size;
         VipsRect *r = &or->valid;
 
 	int y;
@@ -1837,7 +1831,7 @@ rtiff_stripwise_generate( VipsRegion *or,
 	 * strip in the image.
 	 */
 	g_assert( r->height == 
-		VIPS_MIN( rows_per_strip, or->im->Ysize - r->top ) ); 
+		VIPS_MIN( read_height, or->im->Ysize - r->top ) ); 
 
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
@@ -1861,7 +1855,7 @@ rtiff_stripwise_generate( VipsRegion *or,
 
 		/* Strip number.
 		 */
-		tstrip_t strip_no = y_page / rows_per_strip;
+		tstrip_t strip_no = y_page / read_height;
 
 		VipsRect image, page, strip, hit;
 
@@ -1879,9 +1873,9 @@ rtiff_stripwise_generate( VipsRegion *or,
 		page.height = page_height;
 
 		strip.left = 0;
-		strip.top = page.top + strip_no * rows_per_strip;
+		strip.top = page.top + strip_no * read_height;
 		strip.width = rtiff->out->Xsize;
-		strip.height = rows_per_strip;
+		strip.height = read_height;
 
 		/* Clip strip against page and image ... the final strip will 
 		 * be smaller.
@@ -1991,6 +1985,10 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 		rtiff->header.strip_size );
 	printf( "rtiff_read_stripwise: header.number_of_strips = %d\n", 
 		rtiff->header.number_of_strips );
+	printf( "rtiff_read_stripwise: header.read_height = %u\n", 
+		rtiff->header.read_height );
+	printf( "rtiff_read_stripwise: header.read_size = %zd\n", 
+		rtiff->header.read_size );
 #endif /*DEBUG*/
 
 	/* Double check: in memcpy mode, the vips linesize should exactly
@@ -2007,7 +2005,7 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 		else
 			vips_line_size = VIPS_IMAGE_SIZEOF_LINE( t[0] );
 
-		if( vips_line_size != TIFFScanlineSize( rtiff->tiff ) ) { 
+		if( vips_line_size != rtiff->header.scanline_size ) { 
 			vips_error( "tiff2vips", 
 				"%s", _( "unsupported tiff image type" ) );
 			return( -1 );
@@ -2022,7 +2020,7 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 	 */
 	if( rtiff->header.separate ) {
 		if( !(rtiff->plane_buf = vips_malloc( VIPS_OBJECT( out ), 
-			rtiff->header.strip_size )) ) 
+			rtiff->header.read_size )) ) 
 			return( -1 );
 	}
 
@@ -2039,14 +2037,13 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 		rtiff->n > 1 ) { 
 		tsize_t size;
 
-		size = rtiff->header.strip_size;
+		size = rtiff->header.read_size;
 		if( rtiff->header.separate )
 			size *= rtiff->header.samples_per_pixel;
 
 		if( !(rtiff->contig_buf = 
 			vips_malloc( VIPS_OBJECT( out ), size )) ) 
 			return( -1 );
-
 	}
 
 	/* rows_per_strip can be very large if this is a separate plane image,
@@ -2057,7 +2054,7 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 			NULL, rtiff_stripwise_generate, NULL, 
 			rtiff, NULL ) ||
 		vips_sequential( t[0], &t[1], 
-			"tile_height", rtiff->header.rows_per_strip,
+			"tile_height", rtiff->header.read_height,
 			NULL ) ||
 		rtiff_autorotate( rtiff, t[1], &t[2] ) ||
 		rtiff_unpremultiply( rtiff, t[2], &t[3] ) ||
@@ -2074,6 +2071,7 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 {
 	uint16 extra_samples_count;
 	uint16 *extra_samples_types;
+	uint16 compression;
 
 	if( !tfget32( rtiff->tiff, TIFFTAG_IMAGEWIDTH, &header->width ) ||
 		!tfget32( rtiff->tiff, TIFFTAG_IMAGELENGTH, &header->height ) ||
@@ -2086,13 +2084,40 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 			&header->photometric_interpretation ) )
 		return( -1 );
 
+	TIFFGetFieldDefaulted( rtiff->tiff, 
+		TIFFTAG_COMPRESSION, &compression );
+	if( compression == COMPRESSION_JPEG )
+		/* We want to always expand subsampled YCBCR images to full 
+		 * RGB. 
+		 */
+		TIFFSetField( rtiff->tiff, 
+			TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
+        else if( header->photometric_interpretation == PHOTOMETRIC_YCBCR ) {
+		/* We rely on the jpg decompressor to upsample chroma
+		 * subsampled images. If there is chroma subsampling but
+		 * no jpg compression, we have to give up.
+		 *
+		 * tiffcp fails for images like this too.
+		 */
+                uint16 hsub, vsub;
+
+                TIFFGetFieldDefaulted( rtiff->tiff, 
+			TIFFTAG_YCBCRSUBSAMPLING, &hsub, &vsub );
+                if( hsub != 1 || 
+			vsub != 1 ) {
+			vips_error( "tiff2vips",
+				"%s", _( "subsampled images not supported" ) );
+			return( -1 );
+                }
+        }
+
 	/* Arbitrary sanity-checking limits.
 	 */
-	if( header->width <= 0 || 
-		header->width > VIPS_MAX_COORD || 
-		header->height <= 0 || 
+	if( header->width <= 0 ||
+		header->width > VIPS_MAX_COORD ||
+		header->height <= 0 ||
 		header->height > VIPS_MAX_COORD ) {
-		vips_error( "tiff2vips", 
+		vips_error( "tiff2vips",
 			"%s", _( "width/height out of range" ) );
 		return( -1 );
 	}
@@ -2130,27 +2155,35 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 				TIFFTAG_TILELENGTH, &header->tile_height ) )
 			return( -1 );
 
+		/* Arbitrary sanity-checking limits.
+		 */
+		if( header->tile_width <= 0 ||
+			header->tile_width > 10000 ||
+			header->tile_height <= 0 ||
+			header->tile_height > 10000 ) {
+			vips_error( "tiff2vips",
+				"%s", _( "tile size out of range" ) );
+			return( -1 );
+		}
+
+		header->tile_size = TIFFTileSize( rtiff->tiff );
+		header->tile_row_size = TIFFTileRowSize( rtiff->tiff );
+
 		/* Stop some compiler warnings.
 		 */
 		header->rows_per_strip = 0; 
 		header->strip_size = 0; 
 		header->number_of_strips = 0; 
+		header->read_height = 0;
+		header->read_size = 0;
 	}
 	else {
 		if( !tfget32( rtiff->tiff, 
 			TIFFTAG_ROWSPERSTRIP, &header->rows_per_strip ) )
 			return( -1 );
 		header->strip_size = TIFFStripSize( rtiff->tiff );
+		header->scanline_size = TIFFScanlineSize( rtiff->tiff );
 		header->number_of_strips = TIFFNumberOfStrips( rtiff->tiff );
-		header->read_scanlinewise = FALSE;
-
-		/* rows_per_strip can be 2 ** 32 - 1, meaning the whole image. 
-		 * Clip this down to height to avoid confusing vips. 
-		 *
-		 * And it musn't be zero.
-		 */
-		header->rows_per_strip = 
-			VIPS_CLIP( 1, header->rows_per_strip, header->height );
 
 		/* libtiff has two strip-wise readers. TIFFReadEncodedStrip()
 		 * decompresses an entire strip to memory. It's fast, but it
@@ -2163,19 +2196,39 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 		 *
 		 * Don't do this in plane-separate mode. TIFFReadScanline() is
 		 * too fiddly to use in this case.
+		 *
+		 * Don't try scanline reading for YCbCr images.
+		 * TIFFScanlineSize() will not work in this case due to
+		 * chroma subsampling.
 		 */
 		if( header->rows_per_strip > 128 &&
-			!header->separate ) {
-			header->rows_per_strip = 1;
-			header->strip_size = TIFFScanlineSize( rtiff->tiff );
-			header->number_of_strips = header->height;
+			!header->separate &&
+			header->photometric_interpretation != 
+				PHOTOMETRIC_YCBCR ) {
 			header->read_scanlinewise = TRUE;
+			header->read_height = 1;
+			header->read_size = rtiff->header.scanline_size;
+		}
+		else {
+			header->read_scanlinewise = FALSE;
+
+			/* rows_per_strip can be 2 ** 32 - 1, meaning the 
+			 * whole image. Clip this down to height to avoid 
+			 * confusing vips. 
+			 *
+			 * And it musn't be zero.
+			 */
+			header->read_height = VIPS_CLIP( 1, 
+				header->rows_per_strip, header->height );
+			header->read_size = header->strip_size;
 		}
 
 		/* Stop some compiler warnings.
 		 */
 		header->tile_width = 0;
 		header->tile_height = 0;
+		header->tile_size = 0;
+		header->tile_row_size = 0;
 	}
 
 	TIFFGetFieldDefaulted( rtiff->tiff, TIFFTAG_EXTRASAMPLES,
@@ -2207,8 +2260,8 @@ rtiff_header_equal( RtiffHeader *h1, RtiffHeader *h2 )
 			return( 0 );
 	}
 	else {
-		if( h1->rows_per_strip != h2->rows_per_strip ||
-			h1->strip_size != h2->strip_size ||
+		if( h1->read_height != h2->read_height ||
+			h1->read_size != h2->read_size ||
 			h1->number_of_strips != h2->number_of_strips )
 			return( 0 );
 	}

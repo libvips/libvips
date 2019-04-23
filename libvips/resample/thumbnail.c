@@ -18,6 +18,8 @@
  * 	- implement shrink-on-load for tiff pyramid 
  * 3/2/19 kleisauke
  * 	- add option_string param to thumbnail_buffer
+ * 23/4/19
+ * 	- don't force import CMYK, since colourspace knows about it now
  */
 
 /*
@@ -585,17 +587,19 @@ vips_thumbnail_build( VipsObject *object )
 
 	/* In linear mode, we import right at the start. 
 	 *
+<<<<<<< HEAD
 	 * We also have to import the whole image if it's CMYK, since
 	 * vips_colourspace() (see below) doesn't let you specify the fallback
 	 * profile.
 	 *
+=======
+>>>>>>> master
 	 * This is only going to work for images in device space. If you have
 	 * an image in PCS which also has an attached profile, strange things
 	 * will happen. 
 	 */
 	have_imported = FALSE;
-	if( (thumbnail->linear ||
-		in->Type == VIPS_INTERPRETATION_CMYK) &&
+	if( thumbnail->linear &&
 		in->Coding == VIPS_CODING_NONE &&
 		(in->BandFmt == VIPS_FORMAT_UCHAR ||
 		 in->BandFmt == VIPS_FORMAT_USHORT) &&
@@ -918,7 +922,8 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 {
 	VipsThumbnailFile *file = (VipsThumbnailFile *) thumbnail;
 
-	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
+	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ||
+		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"shrink", (int) factor,
@@ -932,8 +937,7 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
-		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ||
-		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
+		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"scale", factor,
@@ -1110,7 +1114,8 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 {
 	VipsThumbnailBuffer *buffer = (VipsThumbnailBuffer *) thumbnail;
 
-	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
+	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ||
+		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
 			buffer->buf->data, buffer->buf->length, 
 			buffer->option_string,
@@ -1128,8 +1133,7 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
-		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ||
-		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
+		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
 			buffer->buf->data, buffer->buf->length, 
 			buffer->option_string,

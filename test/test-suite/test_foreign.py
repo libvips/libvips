@@ -871,15 +871,18 @@ class TestForeign:
         # the exif test will need us to be able to walk the header,
         # we can't just check exif-data
 
+        # libheif 1.1 (on ubuntu 18.04, current LTS) does not support exif
+        # write, so this test is commented out
+
         # test that exif changes change the output of heifsave
         # first make sure we have exif support
-        z = pyvips.Image.new_from_file(JPEG_FILE)
-        if z.get_typeof("exif-ifd0-Orientation") != 0:
-            x = self.colour.copy()
-            x.set("orientation", 6)
-            buf = x.heifsave_buffer()
-            y = pyvips.Image.new_from_buffer(buf, "")
-            assert y.get("orientation") == 6
+        #z = pyvips.Image.new_from_file(JPEG_FILE)
+        #if z.get_typeof("exif-ifd0-Orientation") != 0:
+        #    x = self.colour.copy()
+        #    x.set("exif-ifd0-Make", "banana")
+        #    buf = x.heifsave_buffer()
+        #    y = pyvips.Image.new_from_buffer(buf, "")
+        #    assert y.get("exif-ifd0-Make").split(" ")[0] == "banana"
 
 if __name__ == '__main__':
     pytest.main()

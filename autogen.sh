@@ -17,9 +17,6 @@ rm -f m4/gtk-doc.m4
 rm -f config.* configure depcomp
 rm -f install-sh intltool-* libtool ltmain.sh missing mkinstalldirs
 rm -f stamp-* 
-rm -f swig/vipsCC/*.cxx
-rm -f swig/vipsCC/VImage.h
-rm -f swig/vipsCC/VImage.py python/vipsCC/VError.py python/vipsCC/VMask.py python/vipsCC/Display.py
 rm -f benchmark/temp*
 find doc -depth \( \
       -path doc/libvips-docs.xml.in \
@@ -63,10 +60,5 @@ autoconf
 autoheader
 $LIBTOOLIZE --copy --force --automake
 automake --add-missing --copy
-
-swig -version > /dev/null
-if [ $? -ne 0 ]; then
-  echo you need swig to build from source control
-fi
 
 ./configure $*

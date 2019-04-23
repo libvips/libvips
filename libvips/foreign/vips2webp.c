@@ -292,9 +292,10 @@ get_int( VipsImage *image, const char *field, int default_value )
 static int
 write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 {
-	/* 100ms is the webp default.
+	/* 100ms is the webp default. gif-delay is in centiseconds (the GIF
+	 * standard).
 	 */
-	const int delay = get_int( image, "gif-delay", 100 );
+	const int delay = 10 * get_int( image, "gif-delay", 10 );
 
 	WebPAnimEncoderOptions anim_config;
 	WebPData webp_data;
@@ -346,14 +347,6 @@ write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 		WebPPictureFree( &pic );
 
 		timestamp_ms += delay;
-	}
-
-	/* Add a last fake frame to signal the last duration.
-	 */
-	if( !WebPAnimEncoderAdd( write->enc, NULL, timestamp_ms, NULL ) ) {
-		vips_error( "vips2webp",
-			"%s", _( "anim build error" ) );
-		return( -1 );
 	}
 
 	if( !WebPAnimEncoderAssemble( write->enc, &webp_data ) ) {

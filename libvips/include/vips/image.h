@@ -427,6 +427,8 @@ void vips_image_invalidate_all( VipsImage *image );
 void vips_image_minimise_all( VipsImage *image );
 
 void vips_image_set_progress( VipsImage *image, gboolean progress );
+gboolean vips_image_iskilled( VipsImage *image );
+void vips_image_set_kill( VipsImage *image, gboolean kill );
 
 char *vips_filename_get_filename( const char *vips_filename );
 char *vips_filename_get_options( const char *vips_filename );

@@ -338,7 +338,7 @@ vips_rect( VipsImage *in, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_complexv( in, out, VIPS_OPERATION_COMPLEX_POLAR, ap );
+	result = vips_complexv( in, out, VIPS_OPERATION_COMPLEX_RECT, ap );
 	va_end( ap );
 
 	return( result );

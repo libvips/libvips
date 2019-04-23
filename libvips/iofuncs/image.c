@@ -1598,19 +1598,18 @@ vips_image_set_progress( VipsImage *image, gboolean progress )
 		image->progress_signal = NULL;
 }
 
-
 /**
  * vips_image_iskilled: (method)
  * @image: image to test
  *
  * If @image has been killed (see vips_image_set_kill()), set an error message,
- * clear the #VipsImage.kill flag and return %FALSE. Otherwise return %TRUE.
+ * clear the #VipsImage.kill flag and return %TRUE. Otherwise return %FALSE.
  *
  * Handy for loops which need to run sets of threads which can fail. 
  *
  * See also: vips_image_set_kill().
  *
- * Returns: %FALSE if @image has been killed. 
+ * Returns: %TRUE if @image has been killed. 
  */
 gboolean
 vips_image_iskilled( VipsImage *image )
@@ -1645,8 +1644,6 @@ vips_image_iskilled( VipsImage *image )
  * threads. 
  *
  * See also: vips_image_iskilled().
- *
- * Returns: %FALSE if @image has been killed. 
  */
 void
 vips_image_set_kill( VipsImage *image, gboolean kill )
@@ -2631,6 +2628,12 @@ vips_image_write_to_buffer( VipsImage *in,
 		ap, in, &blob );
 	va_end( ap );
 
+	if( result )
+		return( -1 );
+
+	*buf = NULL;
+	if( size ) 
+		*size = 0;
 	if( blob ) { 
 		if( buf ) {
 			*buf = VIPS_AREA( blob )->data;
@@ -2642,7 +2645,7 @@ vips_image_write_to_buffer( VipsImage *in,
 		vips_area_unref( VIPS_AREA( blob ) );
 	}
 
-	return( result );
+	return( 0 );
 }
 
 /**

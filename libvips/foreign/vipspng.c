@@ -71,6 +71,8 @@
  * 	- support png8 palette write with palette, colours, Q, dither
  * 25/8/18
  * 	- support xmp read/write
+ * 20/4/19
+ * 	- allow huge metadata
  */
 
 /*
@@ -260,8 +262,14 @@ read_new_filename( VipsImage *out, const char *name, gboolean fail )
 
 	/* Read enough of the file that png_get_interlace_type() will start
 	 * working.
+	 *
+	 * By default, libpng refuses to open files with a metadata chunk 
+	 * larger than 8mb. We've seen real files with 20mb, so set 50mb.
 	 */
 	png_init_io( read->pPng, read->fp );
+#ifdef HAVE_PNG_SET_CHUNK_MALLOC_MAX
+	png_set_chunk_malloc_max( read->pPng, 50 * 1024 * 1024 );
+#endif /*HAVE_PNG_SET_CHUNK_MALLOC_MAX*/
 	png_read_info( read->pPng, read->pInfo );
 
 	return( read );
@@ -532,16 +540,20 @@ png2vips_interlace( Read *read, VipsImage *out )
 
 	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
 		return( -1 );
- 
+
+	/* Some libpng warn you to call png_set_interlace_handling(); here, but
+	 * that can actually break interlace on older libpngs.
+	 *
+	 * Only set this for libpng 1.6+.
+	 */
+#if PNG_LIBPNG_VER > 10600
+	(void) png_set_interlace_handling( read->pPng );
+#endif
+
 	if( !(read->row_pointer = VIPS_ARRAY( NULL, out->Ysize, png_bytep )) )
 		return( -1 );
 	for( y = 0; y < out->Ysize; y++ )
 		read->row_pointer[y] = VIPS_IMAGE_ADDR( out, 0, y );
-
-	/* Some libpng warn you to call png_set_interlace_handling(); here, but
-	 * that can actually break interlace. We have to live with the warning,
-	 * unfortunately.
-	 */
 
 	png_read_image( read->pPng, read->row_pointer );
 
@@ -576,7 +588,8 @@ png2vips_generate( VipsRegion *or,
 	/* Tiles should always be a strip in height, unless it's the final
 	 * strip.
 	 */
-	g_assert( r->height == VIPS_MIN( 8, or->im->Ysize - r->top ) ); 
+	g_assert( r->height == VIPS_MIN( VIPS__FATSTRIP_HEIGHT, 
+			or->im->Ysize - r->top ) ); 
 
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
@@ -690,7 +703,7 @@ png2vips_image( Read *read, VipsImage *out )
 				NULL, png2vips_generate, NULL, 
 				read, NULL ) ||
 			vips_sequential( t[0], &t[1], 
-				"tile_height", 8,
+				"tile_height", VIPS__FATSTRIP_HEIGHT, 
 				NULL ) ||
 			vips_image_write( t[1], out ) )
 			return( -1 );

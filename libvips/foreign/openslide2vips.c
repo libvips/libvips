@@ -535,14 +535,15 @@ vips__openslide_read( const char *filename, VipsImage *out,
 			NULL, vips__openslide_generate, NULL, rslide, NULL ) )
 		return( -1 );
 
-	/* Copy to out, adding a cache. Enough tiles for a complete row, plus
-	 * 50%.
+	/* Copy to out, adding a cache. Enough tiles for two complete rows, 
+	 * plus 50%. We need at least two rows, or we'll constantly reload
+	 * tiles if they cross a tile boundary.
 	 */
 	if( vips_tilecache( raw, &t, 
 		"tile_width", rslide->tile_width, 
 		"tile_height", rslide->tile_height,
 		"max_tiles", 
-			(int) (1.5 * (1 + raw->Xsize / rslide->tile_width)),
+			(int) (2.5 * (1 + raw->Xsize / rslide->tile_width)),
 		"threaded", TRUE,
 		NULL ) ) 
 		return( -1 );

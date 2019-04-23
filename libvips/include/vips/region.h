@@ -141,6 +141,11 @@ int vips_region_prepare( VipsRegion *reg, const VipsRect *r );
 int vips_region_prepare_to( VipsRegion *reg,
 	VipsRegion *dest, const VipsRect *r, int x, int y );
 
+VipsPel *vips_region_fetch( VipsRegion *region, 
+	int left, int top, int width, int height, size_t *len );
+int vips_region_width( VipsRegion *region );
+int vips_region_height( VipsRegion *region );
+
 void vips_region_invalidate( VipsRegion *reg );
 
 /* Use this to count pixels passing through key points. Handy for spotting bad
