@@ -99,7 +99,7 @@ The `text` operator now supports justification.
 # Breaking changes
 
 The old Python and C++ interfaces were deprecated in 8.7, and they've now
-been removed completely. You no longer need `swig` or `gobject-introspection`
+been removed completely. You no longer need `swig` 
 to build from git. Hooray!
 
 The `auto_rotate` flag to `thumbnail` is now always on and does nothing if you
