@@ -35,7 +35,7 @@ $ vipsthumbnail dancing_banana2.lossless.webp x.gif
 
 Makes:
 
-![First frame of banana](onebanana.gif)
+![First frame of banana]({{ site.baseurl }}/assets/images/onebanana.gif)
 
 But:
 
@@ -45,7 +45,7 @@ $ vipsthumbnail dancing_banana2.lossless.webp[n=-1] x.gif
 
 Makes:
 
-![All of banana](manybanana.gif)
+![All of banana]({{ site.baseurl }}/assets/images/manybanana.gif)
 
 It'll work for any multi-page format, so you can thumbnail many-page TIFFs,
 for example.
