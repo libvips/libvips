@@ -30,7 +30,7 @@ suport for animated GIFs.
 For example:
 
 ```
-$ vipsthumbnail dancing_banana2.lossless.webp x.gif
+$ vipsthumbnail dancing_banana2.lossless.webp -o x.gif
 ```
 
 Makes:
@@ -40,14 +40,14 @@ Makes:
 But:
 
 ```
-$ vipsthumbnail dancing_banana2.lossless.webp[n=-1] x.gif
+$ vipsthumbnail dancing_banana2.lossless.webp[n=-1] -o x.gif
 ```
 
 Makes:
 
 ![All of banana]({{ site.baseurl }}/assets/images/manybanana.gif)
 
-It'll work for any multi-page format, so you can thumbnail many-page TIFFs,
+It'll work for any many-page format, so you can thumbnail many-page TIFFs,
 for example.
 
 # Built-in colour profiles
