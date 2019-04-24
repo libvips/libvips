@@ -1,48 +1,68 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
-# walk vips and generate a list of all operators and their descriptions 
+# walk vips and generate a list of all operators and their descriptions
 # for docs
+
+# this needs pyvips
+#
+#   pip install --user pyvips
 
 # sample output:
 
 # <row>
 #   <entry>gamma</entry>
-#   <entry>gamma an image</entry>
+#   <entry>Gamma an image</entry>
 #   <entry>vips_gamma()</entry>
 # </row>
 
-import gi
-gi.require_version('Vips', '8.0')
-from gi.repository import Vips, GObject
+from pyvips import Operation, Error, \
+    ffi, type_map, type_from_name, nickname_find
 
-vips_type_operation = GObject.GType.from_name("VipsOperation")
+# for VipsOperationFlags
+_OPERATION_DEPRECATED = 8
 
-def gen_function(cls):
-    op = Vips.Operation.new(cls.name)
-    gtype = Vips.type_find("VipsOperation", cls.name)
-    nickname = Vips.nickname_find(gtype)
 
-    print '<row>'
-    print '  <entry>%s</entry>' % nickname
-    print '  <entry>%s</entry>' % op.get_description()
-    print '  <entry>vips_%s()</entry>' % nickname
-    print '</row>'
+def gen_function(operation_name):
+    op = Operation.new_from_name(operation_name)
 
-# we have a few synonyms ... don't generate twice
-generated = {}
+    print('<row>')
+    print('  <entry>{}</entry>'.format(operation_name))
+    print('  <entry>{}</entry>'.format(op.get_description().capitalize()))
+    print('  <entry>vips_{}()</entry>'.format(operation_name))
+    print('</row>')
 
-def gen_function_list(cls):
-    if not cls.is_abstract():
-        gtype = Vips.type_find("VipsOperation", cls.name)
-        nickname = Vips.nickname_find(gtype)
-        if not nickname in generated:
-            gen_function(cls)
-            generated[nickname] = True
 
-    if len(cls.children) > 0:
-        for child in cls.children:
-            gen_function_list(child)
+def gen_function_list():
+    all_nicknames = []
+
+    def add_nickname(gtype, a, b):
+        nickname = nickname_find(gtype)
+        try:
+            # can fail for abstract types
+            op = Operation.new_from_name(nickname)
+
+            # we are only interested in non-deprecated operations
+            if (op.get_flags() & _OPERATION_DEPRECATED) == 0:
+                all_nicknames.append(nickname)
+        except Error:
+            pass
+
+        type_map(gtype, add_nickname)
+
+        return ffi.NULL
+
+    type_map(type_from_name('VipsOperation'), add_nickname)
+
+    # add 'missing' synonyms by hand
+    all_nicknames.append('crop')
+
+    # make list unique and sort
+    all_nicknames = list(set(all_nicknames))
+    all_nicknames.sort()
+
+    for nickname in all_nicknames:
+        gen_function(nickname)
+
 
 if __name__ == '__main__':
-    gen_function_list(vips_type_operation)
-
+    gen_function_list()

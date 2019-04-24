@@ -1,5 +1,5 @@
 // bodies for vips operations
-// Sun  3 Feb 13:09:56 GMT 2019
+// Wed Apr 24 15:50:21 CEST 2019
 // this file is generated automatically, do not edit!
 
 VImage VImage::CMC2LCh( VOption *options ) const
@@ -268,7 +268,7 @@ VImage VImage::affine( std::vector<double> matrix, VOption *options ) const
     return( out );
 }
 
-VImage VImage::analyzeload( char *filename, VOption *options )
+VImage VImage::analyzeload( const char *filename, VOption *options )
 {
     VImage out;
 
@@ -729,7 +729,7 @@ VImage VImage::crop( int left, int top, int width, int height, VOption *options 
     return( out );
 }
 
-VImage VImage::csvload( char *filename, VOption *options )
+VImage VImage::csvload( const char *filename, VOption *options )
 {
     VImage out;
 
@@ -741,7 +741,7 @@ VImage VImage::csvload( char *filename, VOption *options )
     return( out );
 }
 
-void VImage::csvsave( char *filename, VOption *options ) const
+void VImage::csvsave( const char *filename, VOption *options ) const
 {
     call( "csvsave",
         (options ? options : VImage::option())->
@@ -890,7 +890,7 @@ void VImage::draw_smudge( int left, int top, int width, int height, VOption *opt
             set( "height", height ) );
 }
 
-void VImage::dzsave( char *filename, VOption *options ) const
+void VImage::dzsave( const char *filename, VOption *options ) const
 {
     call( "dzsave",
         (options ? options : VImage::option())->
@@ -1020,7 +1020,7 @@ int VImage::find_trim( int *top, int *width, int *height, VOption *options ) con
     return( left );
 }
 
-VImage VImage::fitsload( char *filename, VOption *options )
+VImage VImage::fitsload( const char *filename, VOption *options )
 {
     VImage out;
 
@@ -1032,7 +1032,7 @@ VImage VImage::fitsload( char *filename, VOption *options )
     return( out );
 }
 
-void VImage::fitssave( char *filename, VOption *options ) const
+void VImage::fitssave( const char *filename, VOption *options ) const
 {
     call( "fitssave",
         (options ? options : VImage::option())->
@@ -1181,7 +1181,7 @@ std::vector<double> VImage::getpoint( int x, int y, VOption *options ) const
     return( out_array );
 }
 
-VImage VImage::gifload( char *filename, VOption *options )
+VImage VImage::gifload( const char *filename, VOption *options )
 {
     VImage out;
 
@@ -1258,6 +1258,50 @@ VImage VImage::grid( int tile_height, int across, int down, VOption *options ) c
             set( "down", down ) );
 
     return( out );
+}
+
+VImage VImage::heifload( const char *filename, VOption *options )
+{
+    VImage out;
+
+    call( "heifload",
+        (options ? options : VImage::option())->
+            set( "out", &out )->
+            set( "filename", filename ) );
+
+    return( out );
+}
+
+VImage VImage::heifload_buffer( VipsBlob *buffer, VOption *options )
+{
+    VImage out;
+
+    call( "heifload_buffer",
+        (options ? options : VImage::option())->
+            set( "out", &out )->
+            set( "buffer", buffer ) );
+
+    return( out );
+}
+
+void VImage::heifsave( const char *filename, VOption *options ) const
+{
+    call( "heifsave",
+        (options ? options : VImage::option())->
+            set( "in", *this )->
+            set( "filename", filename ) );
+}
+
+VipsBlob *VImage::heifsave_buffer( VOption *options ) const
+{
+    VipsBlob *buffer;
+
+    call( "heifsave_buffer",
+        (options ? options : VImage::option())->
+            set( "in", *this )->
+            set( "buffer", &buffer ) );
+
+    return( buffer );
 }
 
 VImage VImage::hist_cum( VOption *options ) const
@@ -1444,7 +1488,7 @@ VImage VImage::icc_import( VOption *options ) const
     return( out );
 }
 
-VImage VImage::icc_transform( char *output_profile, VOption *options ) const
+VImage VImage::icc_transform( const char *output_profile, VOption *options ) const
 {
     VImage out;
 
@@ -1547,7 +1591,7 @@ VImage VImage::join( VImage in2, VipsDirection direction, VOption *options ) con
     return( out );
 }
 
-VImage VImage::jpegload( char *filename, VOption *options )
+VImage VImage::jpegload( const char *filename, VOption *options )
 {
     VImage out;
 
@@ -1571,7 +1615,7 @@ VImage VImage::jpegload_buffer( VipsBlob *buffer, VOption *options )
     return( out );
 }
 
-void VImage::jpegsave( char *filename, VOption *options ) const
+void VImage::jpegsave( const char *filename, VOption *options ) const
 {
     call( "jpegsave",
         (options ? options : VImage::option())->
@@ -1649,7 +1693,7 @@ VImage VImage::logmat( double sigma, double min_ampl, VOption *options )
     return( out );
 }
 
-VImage VImage::magickload( char *filename, VOption *options )
+VImage VImage::magickload( const char *filename, VOption *options )
 {
     VImage out;
 
@@ -1673,7 +1717,7 @@ VImage VImage::magickload_buffer( VipsBlob *buffer, VOption *options )
     return( out );
 }
 
-void VImage::magicksave( char *filename, VOption *options ) const
+void VImage::magicksave( const char *filename, VOption *options ) const
 {
     call( "magicksave",
         (options ? options : VImage::option())->
@@ -1939,7 +1983,7 @@ VImage VImage::math2_const( VipsOperationMath2 math2, std::vector<double> c, VOp
     return( out );
 }
 
-VImage VImage::matload( char *filename, VOption *options )
+VImage VImage::matload( const char *filename, VOption *options )
 {
     VImage out;
 
@@ -1951,7 +1995,7 @@ VImage VImage::matload( char *filename, VOption *options )
     return( out );
 }
 
-VImage VImage::matrixload( char *filename, VOption *options )
+VImage VImage::matrixload( const char *filename, VOption *options )
 {
     VImage out;
 
@@ -1970,7 +2014,7 @@ void VImage::matrixprint( VOption *options ) const
             set( "in", *this ) );
 }
 
-void VImage::matrixsave( char *filename, VOption *options ) const
+void VImage::matrixsave( const char *filename, VOption *options ) const
 {
     call( "matrixsave",
         (options ? options : VImage::option())->
@@ -2111,7 +2155,7 @@ VImage VImage::multiply( VImage right, VOption *options ) const
     return( out );
 }
 
-VImage VImage::niftiload( char *filename, VOption *options )
+VImage VImage::niftiload( const char *filename, VOption *options )
 {
     VImage out;
 
@@ -2123,7 +2167,7 @@ VImage VImage::niftiload( char *filename, VOption *options )
     return( out );
 }
 
-void VImage::niftisave( char *filename, VOption *options ) const
+void VImage::niftisave( const char *filename, VOption *options ) const
 {
     call( "niftisave",
         (options ? options : VImage::option())->
@@ -2131,7 +2175,7 @@ void VImage::niftisave( char *filename, VOption *options ) const
             set( "filename", filename ) );
 }
 
-VImage VImage::openexrload( char *filename, VOption *options )
+VImage VImage::openexrload( const char *filename, VOption *options )
 {
     VImage out;
 
@@ -2143,7 +2187,7 @@ VImage VImage::openexrload( char *filename, VOption *options )
     return( out );
 }
 
-VImage VImage::openslideload( char *filename, VOption *options )
+VImage VImage::openslideload( const char *filename, VOption *options )
 {
     VImage out;
 
@@ -2155,7 +2199,7 @@ VImage VImage::openslideload( char *filename, VOption *options )
     return( out );
 }
 
-VImage VImage::pdfload( char *filename, VOption *options )
+VImage VImage::pdfload( const char *filename, VOption *options )
 {
     VImage out;
 
@@ -2218,7 +2262,7 @@ VImage VImage::phasecor( VImage in2, VOption *options ) const
     return( out );
 }
 
-VImage VImage::pngload( char *filename, VOption *options )
+VImage VImage::pngload( const char *filename, VOption *options )
 {
     VImage out;
 
@@ -2242,7 +2286,7 @@ VImage VImage::pngload_buffer( VipsBlob *buffer, VOption *options )
     return( out );
 }
 
-void VImage::pngsave( char *filename, VOption *options ) const
+void VImage::pngsave( const char *filename, VOption *options ) const
 {
     call( "pngsave",
         (options ? options : VImage::option())->
@@ -2262,7 +2306,7 @@ VipsBlob *VImage::pngsave_buffer( VOption *options ) const
     return( buffer );
 }
 
-VImage VImage::ppmload( char *filename, VOption *options )
+VImage VImage::ppmload( const char *filename, VOption *options )
 {
     VImage out;
 
@@ -2274,7 +2318,7 @@ VImage VImage::ppmload( char *filename, VOption *options )
     return( out );
 }
 
-void VImage::ppmsave( char *filename, VOption *options ) const
+void VImage::ppmsave( const char *filename, VOption *options ) const
 {
     call( "ppmsave",
         (options ? options : VImage::option())->
@@ -2307,7 +2351,7 @@ VImage VImage::profile( VImage *rows, VOption *options ) const
     return( columns );
 }
 
-VipsBlob *VImage::profile_load( char *name, VOption *options )
+VipsBlob *VImage::profile_load( const char *name, VOption *options )
 {
     VipsBlob *profile;
 
@@ -2357,7 +2401,7 @@ VImage VImage::rad2float( VOption *options ) const
     return( out );
 }
 
-VImage VImage::radload( char *filename, VOption *options )
+VImage VImage::radload( const char *filename, VOption *options )
 {
     VImage out;
 
@@ -2369,7 +2413,7 @@ VImage VImage::radload( char *filename, VOption *options )
     return( out );
 }
 
-void VImage::radsave( char *filename, VOption *options ) const
+void VImage::radsave( const char *filename, VOption *options ) const
 {
     call( "radsave",
         (options ? options : VImage::option())->
@@ -2404,7 +2448,7 @@ VImage VImage::rank( int width, int height, int index, VOption *options ) const
     return( out );
 }
 
-VImage VImage::rawload( char *filename, int width, int height, int bands, VOption *options )
+VImage VImage::rawload( const char *filename, int width, int height, int bands, VOption *options )
 {
     VImage out;
 
@@ -2419,7 +2463,7 @@ VImage VImage::rawload( char *filename, int width, int height, int bands, VOptio
     return( out );
 }
 
-void VImage::rawsave( char *filename, VOption *options ) const
+void VImage::rawsave( const char *filename, VOption *options ) const
 {
     call( "rawsave",
         (options ? options : VImage::option())->
@@ -2909,7 +2953,7 @@ VImage VImage::sum( std::vector<VImage> in, VOption *options )
     return( out );
 }
 
-VImage VImage::svgload( char *filename, VOption *options )
+VImage VImage::svgload( const char *filename, VOption *options )
 {
     VImage out;
 
@@ -2933,14 +2977,14 @@ VImage VImage::svgload_buffer( VipsBlob *buffer, VOption *options )
     return( out );
 }
 
-void VImage::system( char *cmd_format, VOption *options )
+void VImage::system( const char *cmd_format, VOption *options )
 {
     call( "system",
         (options ? options : VImage::option())->
             set( "cmd_format", cmd_format ) );
 }
 
-VImage VImage::text( char *text, VOption *options )
+VImage VImage::text( const char *text, VOption *options )
 {
     VImage out;
 
@@ -2952,7 +2996,7 @@ VImage VImage::text( char *text, VOption *options )
     return( out );
 }
 
-VImage VImage::thumbnail( char *filename, int width, VOption *options )
+VImage VImage::thumbnail( const char *filename, int width, VOption *options )
 {
     VImage out;
 
@@ -2991,7 +3035,7 @@ VImage VImage::thumbnail_image( int width, VOption *options ) const
     return( out );
 }
 
-VImage VImage::tiffload( char *filename, VOption *options )
+VImage VImage::tiffload( const char *filename, VOption *options )
 {
     VImage out;
 
@@ -3015,7 +3059,7 @@ VImage VImage::tiffload_buffer( VipsBlob *buffer, VOption *options )
     return( out );
 }
 
-void VImage::tiffsave( char *filename, VOption *options ) const
+void VImage::tiffsave( const char *filename, VOption *options ) const
 {
     call( "tiffsave",
         (options ? options : VImage::option())->
@@ -3082,7 +3126,7 @@ VImage VImage::unpremultiply( VOption *options ) const
     return( out );
 }
 
-VImage VImage::vipsload( char *filename, VOption *options )
+VImage VImage::vipsload( const char *filename, VOption *options )
 {
     VImage out;
 
@@ -3094,7 +3138,7 @@ VImage VImage::vipsload( char *filename, VOption *options )
     return( out );
 }
 
-void VImage::vipssave( char *filename, VOption *options ) const
+void VImage::vipssave( const char *filename, VOption *options ) const
 {
     call( "vipssave",
         (options ? options : VImage::option())->
@@ -3102,7 +3146,7 @@ void VImage::vipssave( char *filename, VOption *options ) const
             set( "filename", filename ) );
 }
 
-VImage VImage::webpload( char *filename, VOption *options )
+VImage VImage::webpload( const char *filename, VOption *options )
 {
     VImage out;
 
@@ -3126,7 +3170,7 @@ VImage VImage::webpload_buffer( VipsBlob *buffer, VOption *options )
     return( out );
 }
 
-void VImage::webpsave( char *filename, VOption *options ) const
+void VImage::webpsave( const char *filename, VOption *options ) const
 {
     call( "webpsave",
         (options ? options : VImage::option())->

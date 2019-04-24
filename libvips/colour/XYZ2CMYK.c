@@ -3,6 +3,8 @@
  *
  * 21/12/18
  *      - from CMYK2XYZ.c
+ * 09/01/2019
+ *  	- add CMYK <-> XYZ conversions if no lcms2 has been found
  */
 
 /*
