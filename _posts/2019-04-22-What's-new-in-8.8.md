@@ -22,13 +22,33 @@ It uses the very nice libheif library and, as well as suporting HEIC,
 should support a range of formats on the way which are expected to use the
 heif container.
 
-# Other image format improvements
+# Better support for animated images
 
-There are a range of other useful improvements to image file handling. PNG
-load/save now supports XMP, there's support for animated WebP, better WebP
-compression, GIF load memory use is dramatically lower, magick load and save
-now supports all metadata, and finally `dzsave` has better SZI support and
-a flag that lets you skip blank tiles.
+libvips now supports load and save of animated WebP images, and has better
+suport for animated GIFs.
+
+For example:
+
+```
+$ vipsthumbnail dancing_banana2.lossless.webp x.gif
+```
+
+Makes:
+
+![First frame of banana](onebanana.gif)
+
+But:
+
+```
+$ vipsthumbnail dancing_banana2.lossless.webp[n=-1] x.gif
+```
+
+Makes:
+
+![All of banana](manybanana.gif)
+
+It'll work for any multi-page format, so you can thumbnail many-page TIFFs,
+for example.
 
 # Built-in colour profiles
 
@@ -73,9 +93,17 @@ user	0m0.199s
 sys	0m0.082s
 ```
 
+So it can thumbnail a 4GB slide image in 300ms on this laptop.
+
 `thumbnail` also knows about HEIC images and can thumbnail them quickly.
 
-So it can thumbnail a 4GB slide image in 300ms on this laptop.
+# Other image format improvements
+
+There are a range of other useful improvements to image file handling. PNG
+load/save now supports XMP, better WebP
+compression, GIF load memory use is dramatically lower, magick load and save
+now supports all metadata, and finally `dzsave` has better SZI support and
+a flag that lets you skip blank tiles.
 
 # Improvements to libvips operators
 
