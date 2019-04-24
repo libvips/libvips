@@ -15,6 +15,8 @@
  * 	- add animated read
  * 19/4/19
  * 	- could memleak on some read errors
+ * 24/4/19
+ * 	- fix bg handling in animations
  */
 
 /*
@@ -102,10 +104,6 @@ typedef struct {
 	int frame_width;
 	int frame_height;
 
-	/* Background colour as an ink we can paint with.
-	 */
-	guint32 background;
-
 	/* TRUE for RGBA.
 	 */
 	int alpha;
@@ -189,14 +187,6 @@ vips_image_paint_area( VipsImage *image, const VipsRect *r, const VipsPel *ink )
 			q += ls;
 		}
 	}
-}
-
-static void
-vips_image_paint( VipsImage *image, const VipsPel *ink )
-{
-	VipsRect area = { 0, 0, image->Xsize, image->Ysize };
-
-	vips_image_paint_area( image, &area, ink );
 }
 
 /* Blend two guint8.
@@ -386,21 +376,6 @@ const VipsWebPNames vips__webp_names[] = {
 };
 const int vips__n_webp_names = VIPS_NUMBER( vips__webp_names ); 
 
-/* libwebp supplies things like background as B, G, R, A, but we need RGBA
- * order for libvips.
- */
-static guint32
-bgra2rgba( guint32 x )
-{
-	VipsPel pixel[4];
-
-	*((guint32 *) &pixel) = x;
-	VIPS_SWAP( VipsPel, pixel[0], pixel[2] );
-	x = *((guint32 *) &pixel);
-	
-	return( x );
-}
-
 static int
 read_header( Read *read, VipsImage *out )
 {
@@ -443,16 +418,6 @@ read_header( Read *read, VipsImage *out )
 		loop_count = WebPDemuxGetI( read->demux, WEBP_FF_LOOP_COUNT );
 		read->frame_count = WebPDemuxGetI( read->demux, 
 			WEBP_FF_FRAME_COUNT );
-
-		/* background is in B, G, R, A byte order, but we need 
-		 * R, G, B, A for libvips.
-		 *
-		 * background is only relevant for animations. For
-		 * single-frame webp, we want to just return the RGBA in the
-		 * file. We just leave bg as 0 and blend with that. 
-		 */
-		read->background = bgra2rgba( WebPDemuxGetI( read->demux, 
-			WEBP_FF_BACKGROUND_COLOR ) );
 
 #ifdef DEBUG
 		printf( "webp2vips: animation\n" );
@@ -536,8 +501,6 @@ read_header( Read *read, VipsImage *out )
 
 	if( vips_image_write_prepare( read->frame ) ) 
 		return( -1 );
-
-	vips_image_paint( read->frame, (VipsPel *) &read->background );
 
 	vips_image_init_fields( out,
 		read->width, read->height,
@@ -626,12 +589,19 @@ read_next_frame( Read *read )
 
 	/* Dispose from the previous frame.
 	 */
-	if( read->dispose_method == WEBP_MUX_DISPOSE_BACKGROUND ) 
+	if( read->dispose_method == WEBP_MUX_DISPOSE_BACKGROUND ) {
 		/* We must clear the pixels occupied by this webp frame (not 
-		 * the whole of the read frame) to the background colour.
+		 * the whole of the read frame) to 0 (transparent). 
+		 *
+		 * We do not clear to WEBP_FF_BACKGROUND_COLOR. That's only 
+		 * used to composite down to RGB. Perhaps we
+		 * should attach background as metadata.
 		 */
+		guint32 zero = 0;
+
 		vips_image_paint_area( read->frame, 
-			&read->dispose_rect, (VipsPel *) &read->background );
+			&read->dispose_rect, (VipsPel *) &zero );
+	}
 
 	/* Note this frame's dispose for next time.
 	 */
