@@ -25,7 +25,7 @@
 
 import argparse
 
-from pyvips import Image, Operation, GValue, Error, \
+from pyvips import Operation, GValue, Error, \
     ffi, gobject_lib, type_map, type_from_name, nickname_find, type_name
 
 # turn a GType into a C++ type
@@ -33,7 +33,7 @@ gtype_to_cpp = {
     GValue.gbool_type: 'bool',
     GValue.gint_type: 'int',
     GValue.gdouble_type: 'double',
-    GValue.gstr_type: 'char *',
+    GValue.gstr_type: 'const char *',
     GValue.refstr_type: 'char *',
     GValue.gflags_type: 'int',
     GValue.image_type: 'VImage',
