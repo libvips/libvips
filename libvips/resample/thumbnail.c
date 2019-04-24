@@ -20,6 +20,8 @@
  * 	- add option_string param to thumbnail_buffer
  * 23/4/19
  * 	- don't force import CMYK, since colourspace knows about it now
+ * 24/4/19
+ * 	- support multi-page (animated) images
  */
 
 /*
@@ -362,7 +364,8 @@ vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail,
 		int target_image_height = target_page_height * 
 			thumbnail->n_pages;
 
-		*vshrink = (double) input_height / target_image_height;
+		*vshrink = (double) input_height * thumbnail->n_pages / 
+			target_image_height;
 	}
 }
 
@@ -489,14 +492,6 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 
 		g_info( "loading PDF/SVG with factor %g pre-scale", factor ); 
 	}
-	else if( vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
-		factor = VIPS_MAX( 1.0, 
-			vips_thumbnail_calculate_common_shrink( thumbnail, 
-				thumbnail->input_width, 
-				thumbnail->input_height ) ); 
-
-		g_info( "loading webp with factor %g pre-shrink", factor ); 
-	}
 	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
 		/* 'factor' is a gboolean which enables thumbnail load instead
 		 * of image load.
@@ -510,6 +505,24 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 			factor = 0.0;
 
 	}
+
+	/* Webp supports shrink-on-load, but unfortunately the filter is just 
+	 * too odd. 
+	 *
+	 * Perhaps reenable this if webp improves.
+	 *
+	 * vips_thumbnail_file_open() and vips_thumbnail_buffer_open() would
+	 * need additional cases as well.
+	 *
+	else if( vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
+		factor = VIPS_MAX( 1.0, 
+			vips_thumbnail_calculate_common_shrink( thumbnail, 
+				thumbnail->input_width, 
+				thumbnail->input_height ) ); 
+
+		g_info( "loading webp with factor %g pre-shrink", factor ); 
+	}
+	 */
 
 	if( !(im = class->open( thumbnail, factor )) )
 		return( NULL );
@@ -652,14 +665,7 @@ vips_thumbnail_build( VipsObject *object )
 		in = t[3];
 	}
 
-	/* Shrink to page_height, so we work for multi-page docs.
-	 *
-	 * FIXME ... what about page_height and shrink-on-load for eg. PDF or
-	 * WebP?
-	 *
-	 * FIXME ... need to check shrink for whole height of image. Do we hit
-	 * the correct final pixel?
-	 *
+	/* Shrink to page_height, so we work for multi-page images.
 	 */
 	vips_thumbnail_calculate_shrink( thumbnail, 
 		in->Xsize, thumbnail->page_height, &hshrink, &vshrink );
@@ -672,9 +678,6 @@ vips_thumbnail_build( VipsObject *object )
 
 	thumbnail->page_height = VIPS_RINT( thumbnail->page_height / vshrink );
 	vips_image_set_int( in, VIPS_META_PAGE_HEIGHT, thumbnail->page_height );
-
-	printf( "in->Ysize = %d\n", in->Ysize );
-	printf( "page_height = %d\n", thumbnail->page_height );
 
 	if( have_premultiplied ) {
 		g_info( "unpremultiplying alpha" ); 
@@ -925,8 +928,7 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 {
 	VipsThumbnailFile *file = (VipsThumbnailFile *) thumbnail;
 
-	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ||
-		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
+	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"shrink", (int) factor,
@@ -1117,8 +1119,7 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 {
 	VipsThumbnailBuffer *buffer = (VipsThumbnailBuffer *) thumbnail;
 
-	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ||
-		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
+	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
 			buffer->buf->data, buffer->buf->length, 
 			buffer->option_string,
