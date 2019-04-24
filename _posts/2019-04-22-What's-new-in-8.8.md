@@ -18,9 +18,9 @@ images.  This is the new image compression standard being used by Apple
 and others. HEIC files are typically half the size of JPEG files at similar 
 quality.
 
-It uses the very nice libheif library and, as well as suporting HEIC,
-should support a range of formats on the way which are expected to use the
-heif container.
+It uses the very nice [libheif](https://github.com/strukturag/libheif)
+library and, as well as suporting HEIC, should support a range of formats
+on the way which are expected to use the heif container.
 
 # Better support for animated images
 
@@ -54,7 +54,7 @@ for example.
 
 libvips now has two built-in ICC profiles (`srgb` and `cmyk`), you can use
 them anywhere, and they are used automatically when necessary. These profiles
-are compiled directly into the libvips shared library, so there are no extra
+are compiled directly into the libvips shared library so there are no extra
 files to ship or to get lost.
 
 For example, you can use `colourspace` like this:
@@ -80,7 +80,7 @@ Will convert a JPEG to a CMYK TIFF.
 
 Shrink-on-load support has been added to TIFF (for pyramidal images) and
 OpenSlide, and `thumbnail` can exploit it. This means you can generate
-high-quality thumbnails of huge images very quickly. 
+high-quality thumbnails of huge images very quickly.
 
 For example:
 
@@ -100,10 +100,10 @@ So it can thumbnail a 4GB slide image in 300ms on this laptop.
 # Other image format improvements
 
 There are a range of other useful improvements to image file handling. PNG
-load/save now supports XMP, better WebP
-compression, GIF load memory use is dramatically lower, magick load and save
-now supports all metadata, and finally `dzsave` has better SZI support and
-a flag that lets you skip blank tiles.
+load/save now supports XMP, WebP compression is better, loading GIF 
+uses much less memory, magick load and save now supports all metadata,
+and finally `dzsave` has better SZI support and a flag that lets you skip
+blank tiles.
 
 # Improvements to libvips operators
 
@@ -118,17 +118,16 @@ you can also now crop low and high.
 set of small images on to a large image.  Previously, all the small images
 were simply expanded to the size of the large image, and then the set of
 large images were composited. This became very slow if there were a large
-number of small images.  It now has a culling system, so each output area
-only computes the input images that touch it. This makes it much faster
-for many small inputs.
+number of images to composite.  It now has a culling system, so each output
+area only computes the input images that touch it. This can make it many
+times faster in some cases.
 
 The `text` operator now supports justification.
 
 # Breaking changes
 
 The old Python and C++ interfaces were deprecated in 8.7, and they've now
-been removed completely. You no longer need `swig` 
-to build from git. Hooray!
+been removed completely. You no longer need `swig` to build from git. Hooray!
 
 The `auto_rotate` flag to `thumbnail` is now always on and does nothing if you
 try to set it. There's a new `no_rotate` option you can set.
