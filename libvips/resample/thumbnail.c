@@ -587,13 +587,10 @@ vips_thumbnail_build( VipsObject *object )
 
 	/* In linear mode, we import right at the start. 
 	 *
-<<<<<<< HEAD
 	 * We also have to import the whole image if it's CMYK, since
 	 * vips_colourspace() (see below) doesn't let you specify the fallback
 	 * profile.
 	 *
-=======
->>>>>>> master
 	 * This is only going to work for images in device space. If you have
 	 * an image in PCS which also has an attached profile, strange things
 	 * will happen. 
