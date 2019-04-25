@@ -320,12 +320,6 @@ libvips/arithmetic/binary.h
 libvips/arithmetic/parithmetic.h
 libvips/arithmetic/statistic.h
 libvips/arithmetic/hough.h
-libvipsCC/include/vips/VMask.h
-libvipsCC/include/vips/VImage.h
-libvipsCC/include/vips/VError.h
-libvipsCC/include/vips/vipscpp.h
-libvipsCC/include/vips/vipsc++.h
-libvipsCC/include/vips/VDisplay.h
 libvips/colour/pcolour.h
 libvips/conversion/pconversion.h
 libvips/conversion/bandary.h

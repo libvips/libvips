@@ -13,6 +13,10 @@
  * 2/11/18
  * 	- rework for demux API
  * 	- add animated read
+ * 19/4/19
+ * 	- could memleak on some read errors
+ * 24/4/19
+ * 	- fix bg handling in animations
  */
 
 /*
@@ -100,10 +104,6 @@ typedef struct {
 	int frame_width;
 	int frame_height;
 
-	/* Background colour as an ink we can paint with.
-	 */
-	guint32 background;
-
 	/* TRUE for RGBA.
 	 */
 	int alpha;
@@ -151,7 +151,7 @@ typedef struct {
 } Read;
 
 static void
-vips_image_paint_pel( VipsImage *image, const VipsRect *r, const VipsPel *ink )
+vips_image_paint_area( VipsImage *image, const VipsRect *r, const VipsPel *ink )
 {
 	VipsRect valid = { 0, 0, image->Xsize, image->Ysize };
 	VipsRect ovl;
@@ -376,21 +376,6 @@ const VipsWebPNames vips__webp_names[] = {
 };
 const int vips__n_webp_names = VIPS_NUMBER( vips__webp_names ); 
 
-/* libwebp supplies things like background as B, G, R, A, but we need RGBA
- * order for libvips.
- */
-static guint32
-bgra2rgba( guint32 x )
-{
-	VipsPel pixel[4];
-
-	*((guint32 *) &pixel) = x;
-	VIPS_SWAP( VipsPel, pixel[0], pixel[2] );
-	x = *((guint32 *) &pixel);
-	
-	return( x );
-}
-
 static int
 read_header( Read *read, VipsImage *out )
 {
@@ -399,7 +384,6 @@ read_header( Read *read, VipsImage *out )
 	int canvas_height;
 	int flags;
 	int i;
-	VipsRect area;
 
 	data.bytes = read->data;
 	data.size = read->length;
@@ -420,12 +404,6 @@ read_header( Read *read, VipsImage *out )
 	}
 
 	flags = WebPDemuxGetI( read->demux, WEBP_FF_FORMAT_FLAGS );
-
-	/* background is in B, G, R, A byte order, but we need R, G, B, A for
-	 * libvips.
-	 */
-	read->background = bgra2rgba( 
-		WebPDemuxGetI( read->demux, WEBP_FF_BACKGROUND_COLOR ) );
 
 	read->alpha = flags & ALPHA_FLAG;
 	if( read->alpha )  
@@ -450,7 +428,8 @@ read_header( Read *read, VipsImage *out )
 		vips_image_set_int( out, "gif-loop", loop_count );
 		vips_image_set_int( out, "page-height", read->frame_height );
 
-		/* We must get the first frame to get the delay.
+		/* We must get the first frame to get the delay. Frames number
+		 * from 1.
 		 */
 		if( WebPDemuxGetFrame( read->demux, 1, &iter ) ) {
 			read->delay = iter.duration;
@@ -459,9 +438,12 @@ read_header( Read *read, VipsImage *out )
 			printf( "webp2vips: duration = %d\n", read->delay );
 #endif /*DEBUG*/
 
-			vips_image_set_int( out, "gif-delay", read->delay );
-			WebPDemuxReleaseIterator( &iter );
+			/* webp uses ms for delays, gif uses centiseconds.
+			 */
+			vips_image_set_int( out, "gif-delay", 
+				VIPS_RINT( read->delay / 10.0 ) );
 		}
+		WebPDemuxReleaseIterator( &iter );
 
 		if( read->n == -1 )
 			read->n = read->frame_count - read->page;
@@ -520,13 +502,6 @@ read_header( Read *read, VipsImage *out )
 	if( vips_image_write_prepare( read->frame ) ) 
 		return( -1 );
 
-	area.left = 0;
-	area.top = 0;
-	area.width = read->frame_width;
-	area.height = read->frame_height;
-	vips_image_paint_pel( read->frame, 
-		&area, (VipsPel *) &read->background );
-
 	vips_image_init_fields( out,
 		read->width, read->height,
 		read->alpha ? 4 : 3,
@@ -572,6 +547,10 @@ read_frame( Read *read,
 {
 	VipsImage *frame;
 
+#ifdef DEBUG
+	printf( "read_frame:\n" ); 
+#endif /*DEBUG*/
+
 	frame = vips_image_new_memory();
 	vips_image_init_fields( frame,
 		width, height,
@@ -604,14 +583,25 @@ read_next_frame( Read *read )
 {
 	VipsImage *frame;
 
+#ifdef DEBUG
+	printf( "read_next_frame:\n" ); 
+#endif /*DEBUG*/
+
 	/* Dispose from the previous frame.
 	 */
-	if( read->dispose_method == WEBP_MUX_DISPOSE_BACKGROUND ) 
+	if( read->dispose_method == WEBP_MUX_DISPOSE_BACKGROUND ) {
 		/* We must clear the pixels occupied by this webp frame (not 
-		 * the whole of the read frame) to the background colour.
+		 * the whole of the read frame) to 0 (transparent). 
+		 *
+		 * We do not clear to WEBP_FF_BACKGROUND_COLOR. That's only 
+		 * used to composite down to RGB. Perhaps we
+		 * should attach background as metadata.
 		 */
-		vips_image_paint_pel( read->frame, 
-			&read->dispose_rect, (VipsPel *) &read->background );
+		guint32 zero = 0;
+
+		vips_image_paint_area( read->frame, 
+			&read->dispose_rect, (VipsPel *) &zero );
+	}
 
 	/* Note this frame's dispose for next time.
 	 */
@@ -690,7 +680,7 @@ read_webp_generate( VipsRegion *or,
 
 	g_assert( r->height == 1 );
 
-	while( read->frame_no <= frame ) {
+	while( read->frame_no < frame ) {
 		if( read_next_frame( read ) )
 			return( -1 );
 
@@ -735,8 +725,10 @@ vips__webp_read_file( const char *filename, VipsImage *out,
 		return( -1 );
 	}
 
-	if( read_image( read, out ) )
+	if( read_image( read, out ) ) {
+		read_free( read );
 		return( -1 );
+	}
 
 	read_free( read );
 
@@ -777,8 +769,10 @@ vips__webp_read_buffer( const void *buf, size_t len, VipsImage *out,
 		return( -1 );
 	}
 
-	if( read_image( read, out ) )
+	if( read_image( read, out ) ) {
+		read_free( read );
 		return( -1 );
+	}
 
 	read_free( read );
 

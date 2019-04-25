@@ -86,6 +86,8 @@
  * 	- use dbuf for memory output
  * 19/12/17 Lovell
  * 	- fix a leak with an error during buffer output
+ * 19/4/19
+ * 	- fix another leak with error during buffer output
  */
 
 /*
@@ -221,6 +223,7 @@ write_new( VipsImage *in )
 	write->in = in;
 	write->row_pointer = NULL;
         write->cinfo.err = jpeg_std_error( &write->eman.pub );
+	write->cinfo.dest = NULL;
 	write->eman.pub.error_exit = vips__new_error_exit;
 	write->eman.pub.output_message = vips__new_output_message;
 	write->eman.fp = NULL;
@@ -652,7 +655,7 @@ write_vips( Write *write, int qfac, const char *profile,
 	if( setjmp( write->eman.jmp ) ) 
 		return( -1 );
 
-	/* This should obly be called on a successful write.
+	/* This should only be called on a successful write.
 	 */
 	jpeg_finish_compress( &write->cinfo );
 
@@ -848,8 +851,9 @@ vips__jpeg_write_buffer( VipsImage *in,
 	/* Make jpeg compression object.
  	 */
 	if( setjmp( write->eman.jmp ) ) {
-		/* Here for longjmp() from new_error_exit() during setup.
+		/* Here for longjmp() during write_vips().
 		 */
+		buf_destroy( &write->cinfo );
 		write_destroy( write );
 
 		return( -1 );

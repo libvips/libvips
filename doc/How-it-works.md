@@ -250,7 +250,7 @@ fancier and adds things like automatic object lifetime management. The
 operation in the class hierarchy.
 
 There are bindings for [many other
-languages](https://jcupitt.github.io/libvips/) on many platforms. Most of
+languages](https://libvips.github.io/libvips/) on many platforms. Most of
 these bindings use the introspection system to generate the binding at
 run-time.
 

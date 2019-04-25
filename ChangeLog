@@ -35,6 +35,11 @@
 - add vips_image_(get|set)_image()
 - add openslideload option to attach all associated images as metadata
 - dzsave to szi will write all associated images
+- remove old c++ and python interfaces
+- vipsthumbnail can thumbnail animated and multipage images
+
+31/3/19 started 8.7.5
+- better buffer sizing in tiff reader [omira-sch]
 
 4/1/19 started 8.7.4
 - magickload with magick6 API did not chain exceptions correctly causing a

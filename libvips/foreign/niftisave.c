@@ -99,20 +99,13 @@ vips_foreign_save_nifti_header_vips( VipsForeignSaveNifti *nifti,
 
 	dims[0] = 2;
 	dims[1] = image->Xsize;
-	dims[2] = image->Ysize;
+	dims[2] = vips_image_get_page_height( image );
 
-	if( vips_image_get_typeof( image, VIPS_META_PAGE_HEIGHT ) ) { 
-		int page_height;
-
-		if( vips_image_get_int( image, 
-			VIPS_META_PAGE_HEIGHT, &page_height ) ) 
-			return( -1 ); 	
-
-		if( image->Ysize % page_height == 0 ) {
-			dims[0] = 3;
-			dims[2] = page_height;
-			dims[3] = image->Ysize / page_height;
-		}
+	/* Multipage image?
+	 */
+	if( dims[2] < image->Ysize ) {
+		dims[0] = 3;
+		dims[3] = image->Ysize / dims[2];
 	}
 
 	datatype = vips__foreign_nifti_BandFmt2datatype( image->BandFmt ); 
@@ -299,18 +292,13 @@ vips_foreign_save_nifti_header_nifti( VipsForeignSaveNifti *nifti,
 	/* page-height overrides ny if it makes sense. This might not be
 	 * correct :( 
 	 */
-	if( vips_image_get_typeof( image, VIPS_META_PAGE_HEIGHT ) ) { 
-		int page_height;
+	dims[2] = vips_image_get_page_height( image );
 
-		if( vips_image_get_int( image, 
-			VIPS_META_PAGE_HEIGHT, &page_height ) ) 
-			return( -1 ); 	
-
-		if( image->Ysize % page_height == 0 ) {
-			dims[0] = 3;
-			dims[2] = page_height;
-			dims[3] = image->Ysize / page_height;
-		}
+	/* Multipage image?
+	 */
+	if( dims[2] < image->Ysize ) {
+		dims[0] = 3;
+		dims[3] = image->Ysize / dims[2];
 	}
 
 	height = 1;

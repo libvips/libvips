@@ -11,4 +11,3 @@ vips-operators.h:
 	date >> vips-operators.h; \
 	echo "// this file is generated automatically, do not edit!" >> vips-operators.h; \
 	./../../gen-operators.py -g h >> vips-operators.h
-
