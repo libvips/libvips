@@ -197,8 +197,8 @@ them. Use switches to libvips configure like:
 or perhaps:
 
     CFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
-    CXXFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
-    ./configure --prefix=/Users/john/vips 
+      CXXFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
+      ./configure --prefix=/Users/john/vips 
 
 to get libvips to see your builds.
 
@@ -227,10 +227,10 @@ packaged by https://github.com/jcupitt/docker-builds/tree/master/pdfium
 
 If PDFium is not detected, libvips will look for poppler-glib instead.
 
-### libpoppler
+### poppler-glib
 
-The usual PDF loader. If this is not present, vips will try to load PDFs
-via imagemagick.
+The Poppler PDF renderer, with a glib API. If this is not present, vips
+will try to load PDFs via imagemagick.
 
 ### libgsf-1
 
@@ -245,17 +245,10 @@ ZIP compression. 3.4b037 and later are known to be OK.
 
 If libvips finds this library, it uses it for fourier transforms. 
 
-### lcms2, lcms
+### lcms2
 
 If present, `vips_icc_import()`, `vips_icc_export()` and `vips_icc_transform()`
-are available for transforming images with ICC profiles. If `lcms2` is 
-available it is used in preference to `lcms`, since it is faster.
-
-### Large files
-
-libvips uses the standard autoconf tests to work out how to support
-large files (>2GB) on your system. Any reasonably recent unix should
-be OK.
+are available for transforming images with ICC profiles. 
 
 ### libpng
 
@@ -275,9 +268,8 @@ Imagemagick 6.9+ needs to have been built with `--with-modules`. Most packaged
 IMs are, I think.
 
 If you are going to be using libvips with untrusted images, perhaps in a
-web-server, for example, you should consider the security implications of
-using a package with such a large attack surface. You might prefer not to
-enable Magick support. 
+web server, for example, you should consider the security implications of
+enabling a package with such a large attack surface. 
 
 ### pangoft2
 
@@ -314,6 +306,10 @@ OpenEXR images.
 
 If available, libvips can load OpenSlide-supported virtual slide
 files: Aperio, Hamamatsu, Leica, MIRAX, Sakura, Trestle, and Ventana.
+
+### libheif
+
+If available, libvips can load and save HEIC images. 
 
 # Disclaimer
 

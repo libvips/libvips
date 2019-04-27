@@ -64,7 +64,6 @@ addons:
       - libtiff5-dev 
       - libheif-dev
       - libexpat1-dev
-      - swig 
       - libmagick++-dev 
       - bc
       - libcfitsio3-dev
@@ -88,7 +87,6 @@ addons:
       - fftw
       - libexif
       - webp
-      - swig
       - imagemagick
       - cfitsio
       - gsl
