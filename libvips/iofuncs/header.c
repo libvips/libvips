@@ -782,7 +782,8 @@ vips_image_get_offset( const VipsImage *image )
  * vips_image_get_page_height: (method)
  * @image: image to get from
  *
- * Multi-page images can have a page height. Fetch it, and sanity check it.
+ * Multi-page images can have a page height. Fetch it, and sanity check it. If
+ * page-height is not set, it defaults to the image height.
  *
  * Returns: the page height.
  */
@@ -791,7 +792,7 @@ vips_image_get_page_height( VipsImage *image )
 {
 	int page_height;
 
-	page_height = 0;
+	page_height = image->Ysize;
 	if( vips_image_get_typeof( image, VIPS_META_PAGE_HEIGHT ) &&
 		vips_image_get_int( image, VIPS_META_PAGE_HEIGHT, 
 			&page_height ) )

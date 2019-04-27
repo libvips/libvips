@@ -355,18 +355,6 @@ vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail,
 		*hshrink = VIPS_MAX( 1, *hshrink );
 		*vshrink = VIPS_MAX( 1, *vshrink );
 	}
-
-	/* In toilet-roll mode, we must adjust vshrink so that we exactly hit
-	 * page_height or we'll have pixels straddling pixel boundaries.
-	 */
-	if( thumbnail->input_height > thumbnail->page_height ) {
-		int target_page_height = VIPS_RINT( input_height / *vshrink );
-		int target_image_height = target_page_height * 
-			thumbnail->n_pages;
-
-		*vshrink = (double) input_height * thumbnail->n_pages / 
-			target_image_height;
-	}
 }
 
 /* Just the common part of the shrink: the bit by which both axes must be
@@ -669,6 +657,18 @@ vips_thumbnail_build( VipsObject *object )
 	 */
 	vips_thumbnail_calculate_shrink( thumbnail, 
 		in->Xsize, thumbnail->page_height, &hshrink, &vshrink );
+
+	/* In toilet-roll mode, we must adjust vshrink so that we exactly hit
+	 * page_height or we'll have pixels straddling pixel boundaries.
+	 */
+	if( in->Ysize > thumbnail->page_height ) {
+		int target_page_height = VIPS_RINT( 
+			thumbnail->page_height / vshrink );
+		int target_image_height = target_page_height * 
+			thumbnail->n_pages;
+
+		vshrink = (double) in->Ysize / target_image_height;
+	}
 
 	if( vips_resize( in, &t[4], 1.0 / hshrink, 
 		"vscale", 1.0 / vshrink, 
