@@ -324,13 +324,7 @@ vips_foreign_save_magick_build( VipsObject *object )
 	if( magick->quality > 0 ) 
 		magick->image_info->quality = magick->quality;
 
-	magick->page_height = 0;
-	if( vips_image_get_typeof( im, VIPS_META_PAGE_HEIGHT ) &&
-		vips_image_get_int( im, VIPS_META_PAGE_HEIGHT, 
-			&magick->page_height ) )
-		return( -1 );
-	if( magick->page_height <= 0 )
-		magick->page_height = im->Ysize;
+	magick->page_height = vips_image_get_page_height( im );
 
 	if( vips_sink_disc( im, 
 		vips_foreign_save_magick_write_block, magick ) ) 

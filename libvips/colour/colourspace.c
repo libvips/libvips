@@ -21,8 +21,6 @@
  * 	  https://github.com/lovell/sharp/issues/193
  * 27/12/18
  * 	- add CMYK conversions
- * 09/01/2019
- *  - add CMYK <-> XYZ conversions if no lcms2 has been found
  */
 
 /*

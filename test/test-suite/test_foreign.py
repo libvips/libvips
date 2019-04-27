@@ -233,7 +233,6 @@ class TestForeign:
             # format area at the end
             assert y.startswith("hello world")
 
-
     @skip_if_no("pngload")
     def test_png(self):
         def png_valid(im):
@@ -248,6 +247,8 @@ class TestForeign:
         self.save_load_buffer("pngsave_buffer", "pngload_buffer", self.colour)
         self.save_load("%s.png", self.mono)
         self.save_load("%s.png", self.colour)
+        self.save_load_file(".png", "[interlace]", self.colour, 0)
+        self.save_load_file(".png", "[interlace]", self.mono, 0)
 
     @skip_if_no("tiffload")
     def test_tiff(self):

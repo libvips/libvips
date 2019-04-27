@@ -784,44 +784,6 @@ dbuf_write_quotes( VipsDbuf *dbuf, const char *str )
 	}
 }
 
-/* Append a string to a buffer, but escape stuff that xml hates in text. Our
- * argument string is utf-8.
- *
- * XML rules:
- *
- * 	We must escape &<> 
- * 	Don't escape \n, \t, \r
- * 	Do escape the other ASCII codes. 
- */
-static void
-dbuf_write_amp( VipsDbuf *dbuf, const char *str )
-{
-	const char *p;
-
-	for( p = str; *p; p++ ) 
-		if( *p < 32 &&
-			*p != '\n' &&
-			*p != '\t' &&
-			*p != '\r' )
-			/* You'd think we could output "&#x02%x;", but xml
-			 * 1.0 parsers barf on that. xml 1.1 allows this, but
-			 * there are almost no parsers. 
-			 *
-			 * U+2400 onwards are unicode glyphs for the ASCII 
-			 * control characters, so we can use them -- thanks
-			 * electroly.
-			 */
-			vips_dbuf_writef( dbuf, "&#x%04x;", 0x2400 + *p ); 
-		else if( *p == '<' )
-			vips_dbuf_write( dbuf, (guchar *) "&lt;", 4 );
-		else if( *p == '>' )
-			vips_dbuf_write( dbuf, (guchar *) "&gt;", 4 );
-		else if( *p == '&' )
-			vips_dbuf_write( dbuf, (guchar *) "&amp;", 5 );
-		else 
-			vips_dbuf_write( dbuf, (guchar *) p, 1 );
-}
-
 static void *
 build_xml_meta( VipsMeta *meta, VipsDbuf *dbuf )
 {
@@ -853,7 +815,7 @@ build_xml_meta( VipsMeta *meta, VipsDbuf *dbuf )
 				g_type_name( type ) ); 
 			dbuf_write_quotes( dbuf, meta->name );
 			vips_dbuf_writef( dbuf, "\">" );  
-			dbuf_write_amp( dbuf, str );
+			vips_dbuf_write_amp( dbuf, str );
 			vips_dbuf_writef( dbuf, "</field>\n" );  
 		}
 
@@ -884,7 +846,7 @@ build_xml( VipsImage *image )
 		vips_dbuf_writef( &dbuf, 
 			"    <field type=\"%s\" name=\"Hist\">", 
 			g_type_name( VIPS_TYPE_REF_STRING ) );
-		dbuf_write_amp( &dbuf, str );
+		vips_dbuf_write_amp( &dbuf, str );
 		vips_dbuf_writef( &dbuf, "</field>\n" ); 
 	}
 
@@ -929,11 +891,11 @@ vips__xml_properties_meta( VipsImage *image,
 
 		vips_dbuf_writef( dbuf, "    <property>\n" );  
 		vips_dbuf_writef( dbuf, "      <name>" ); 
-		dbuf_write_amp( dbuf, field );
+		vips_dbuf_write_amp( dbuf, field );
 		vips_dbuf_writef( dbuf, "</name>\n" ); 
 		vips_dbuf_writef( dbuf, "      <value type=\"%s\">",
 			g_type_name( type ) );  
-		dbuf_write_amp( dbuf, str );
+		vips_dbuf_write_amp( dbuf, str );
 		vips_dbuf_writef( dbuf, "</value>\n" ); 
 		vips_dbuf_writef( dbuf, "    </property>\n" );  
 

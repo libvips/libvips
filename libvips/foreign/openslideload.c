@@ -9,6 +9,8 @@
  * 20/9/12
  * 	- add Leica filename suffix
  *	- drop glib log handler (unneeded with >= 3.3.0)
+ * 27/1/18
+ * 	- option to attach associated images as metadata
  */
 
 /*
@@ -74,9 +76,13 @@ typedef struct _VipsForeignLoadOpenslide {
 	 */
 	gboolean autocrop;
 
-	/* Load this associated image. 
+	/* Load just this associated image. 
 	 */
 	char *associated;
+
+	/* Attach all associated images as metadata items.
+	 */
+	gboolean attach_associated;
 
 } VipsForeignLoadOpenslide;
 
@@ -114,7 +120,7 @@ vips_foreign_load_openslide_header( VipsForeignLoad *load )
 
 	if( vips__openslide_read_header( openslide->filename, load->out, 
 		openslide->level, openslide->autocrop, 
-		openslide->associated ) )
+		openslide->associated, openslide->attach_associated ) )
 		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, openslide->filename );
@@ -129,7 +135,8 @@ vips_foreign_load_openslide_load( VipsForeignLoad *load )
 
 	if( !openslide->associated ) {
 		if( vips__openslide_read( openslide->filename, load->real, 
-			openslide->level, openslide->autocrop ) )
+			openslide->level, openslide->autocrop, 
+			openslide->attach_associated ) )
 			return( -1 );
 	}
 	else {
@@ -210,6 +217,14 @@ vips_foreign_load_openslide_class_init( VipsForeignLoadOpenslideClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignLoadOpenslide, associated ),
 		NULL );
+
+	VIPS_ARG_BOOL( class, "attach-associated", 13,
+		_( "Attach associated" ),
+		_( "Attach all asssociated images" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadOpenslide, attach_associated ),
+		FALSE ); 
+
 }
 
 static void
@@ -227,9 +242,10 @@ vips_foreign_load_openslide_init( VipsForeignLoadOpenslide *openslide )
  *
  * Optional arguments:
  *
- * * @level: load this level
- * * @associated: load this associated image
- * * @autocrop: crop to image bounds
+ * * @level: %gint, load this level
+ * * @associated: %gchararray, load this associated image
+ * * @attach_associated: %gboolean, attach all associated images as metadata
+ * * @autocrop: %gboolean, crop to image bounds
  *
  * Read a virtual slide supported by the OpenSlide library into a VIPS image.
  * OpenSlide supports images in Aperio, Hamamatsu, MIRAX, Sakura, Trestle,
@@ -246,6 +262,11 @@ vips_foreign_load_openslide_init( VipsForeignLoadOpenslide *openslide )
  * set @associated to the image's name.
  * A slide's associated images are listed in the
  * "slide-associated-images" metadata item.
+ *
+ * If you set @attach_associated, then all associated images are attached as
+ * metadata items. Use vips_image_get_image() on @out to retrieve them. Images
+ * are attached as "openslide-associated-XXXXX", where XXXXX is the name of the
+ * associated image.
  *
  * The output of this operator is always RGBA.
  *

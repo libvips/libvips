@@ -250,9 +250,10 @@ int vips__webp_write_buffer( VipsImage *out, void **buf, size_t *len,
 
 int vips__openslide_isslide( const char *filename );
 int vips__openslide_read_header( const char *filename, VipsImage *out, 
-	int level, gboolean autocrop, char *associated );
+	int level, gboolean autocrop, 
+	char *associated, gboolean attach_associated );
 int vips__openslide_read( const char *filename, VipsImage *out, 
-	int level, gboolean autocrop );
+	int level, gboolean autocrop, gboolean attach_associated );
 int vips__openslide_read_associated( const char *filename, VipsImage *out, 
 	const char *associated );
 

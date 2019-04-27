@@ -28,6 +28,8 @@
  * 	- call _setmaxstdio() on win32
  * 4/8/17
  * 	- hide warnings is VIPS_WARNING is set
+ * 20/4/19
+ * 	- set the min stack, if we can
  */
 
 /*
@@ -61,10 +63,18 @@
 #define DEBUG
  */
 
+/* pthread_setattr_default_np() is a non-portable GNU extension.
+ */
+#define _GNU_SOURCE
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
+
+#ifdef HAVE_PTHREAD_DEFAULT_NP
+#include <pthread.h>
+#endif /*HAVE_PTHREAD_DEFAULT_NP*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -153,10 +163,16 @@ vips_get_argv0( void )
  * must not call VIPS_INIT() after vips_shutdown(). In other words, you cannot
  * stop and restart vips. 
  *
+ * Use the environment variable `VIPS_MIN_STACK_SIZE` to set the minimum stack
+ * size. For example, `2m` for a minimum of two megabytes of stack. This can
+ * be important for systems like musl where the default stack is very small.
+ *
  * VIPS_INIT() does approximately the following:
  *
  * + checks that the libvips your program is expecting is 
  *   binary-compatible with the vips library you're running against
+ *
+ * + sets a minimum stack size, see above
  *
  * + initialises any libraries that VIPS is using, including GObject
  *   and the threading system, if neccessary
@@ -255,6 +271,36 @@ empty_log_handler( const gchar *log_domain, GLogLevelFlags log_level,
 {       
 }
 
+/* Attempt to set a minimum stacksize. This can be important on systems with a
+ * very low default, like musl.
+ */
+static void
+set_stacksize( guint64 size )
+{
+#ifdef HAVE_PTHREAD_DEFAULT_NP
+	pthread_attr_t attr;
+	guint64 cur_stack_size;
+
+	/* Don't allow stacks less than 2mb.
+	 */
+	size = VIPS_MAX( size, 2 * 1024 * 1024 );
+
+	if( pthread_attr_init( &attr ) ||
+		pthread_attr_getstacksize( &attr, &cur_stack_size ) ) {
+		g_warning( "set_stacksize: unable to get stack size" );
+		return;
+	}
+
+	if( cur_stack_size < size ) {
+		if( pthread_attr_setstacksize( &attr, size ) ||
+			pthread_setattr_default_np( &attr ) ) 
+			g_warning( "set_stacksize: unable to set stack size" );
+		else 
+			g_info( "set stack size to %" G_GUINT64_FORMAT "k", 
+				size / (guint64) 1024 );
+	}
+#endif /*HAVE_PTHREAD_DEFAULT_NP*/
+}
 
 /**
  * vips_init:
@@ -279,6 +325,7 @@ vips_init( const char *argv0 )
 
 	static gboolean started = FALSE;
 	static gboolean done = FALSE;
+	const char *vips_min_stack_size;
 	char *prgname;
 	const char *prefix;
 	const char *libdir;
@@ -467,6 +514,11 @@ vips_init( const char *argv0 )
 		g_getenv( "IM_WARNING" ) ) 
 		g_log_set_handler( "VIPS", G_LOG_LEVEL_WARNING, 
 			empty_log_handler, NULL );
+
+	/* Set a minimum stacksize, if we can.
+	 */
+        if( (vips_min_stack_size = g_getenv( "VIPS_MIN_STACK_SIZE" )) )
+		(void) set_stacksize( vips__parse_size( vips_min_stack_size ) );
 
 	vips__thread_gate_stop( "init: startup" ); 
 

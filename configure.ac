@@ -455,6 +455,7 @@ AC_CHECK_FUNCS([getcwd gettimeofday getwd memset munmap putenv realpath strcasec
 AC_CHECK_LIB(m,cbrt,[AC_DEFINE(HAVE_CBRT,1,[have cbrt() in libm.])])
 AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 AC_CHECK_LIB(m,atan2,[AC_DEFINE(HAVE_ATAN2,1,[have atan2() in libm.])])
+AC_CHECK_LIB([pthread], [pthread_setattr_default_np], [AC_DEFINE(HAVE_PTHREAD_DEFAULT_NP,1,[have pthread_setattr_default_np() in pthread.])])
 
 # have to have these
 # need glib 2.6 for GOption
@@ -1274,6 +1275,18 @@ if test x"$with_png" != x"no"; then
      )
     ]
   )
+fi
+
+if test x"$with_png" != x"no"; then
+  save_LIBS="$LIBS"
+  save_CFLAGS="$CFLAGS"
+  LIBS="$PNG_LIBS $LIBS"
+  CFLAGS="$PNG_INCLUDES $CFLAGS"
+  AC_CHECK_FUNCS(png_set_chunk_malloc_max,
+    AC_DEFINE(HAVE_PNG_SET_CHUNK_MALLOC_MAX,1,
+	      [define if your libpng has png_set_chunk_malloc_max.]))
+  LIBS="$save_LIBS"
+  CFLAGS="$save_CFLAGS"
 fi
 
 # look for libimagequant with pkg-config (only if libpng is enabled)

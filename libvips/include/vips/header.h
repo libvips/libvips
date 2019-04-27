@@ -169,6 +169,7 @@ const char *vips_image_get_filename( const VipsImage *image );
 const char *vips_image_get_mode( const VipsImage *image );
 double vips_image_get_scale( const VipsImage *image );
 double vips_image_get_offset( const VipsImage *image );
+int vips_image_get_page_height( VipsImage *image );
 const void *vips_image_get_data( VipsImage *image );
 
 void vips_image_init_fields( VipsImage *image, 
@@ -192,7 +193,7 @@ gchar **vips_image_get_fields( VipsImage *image );
 void vips_image_set_area( VipsImage *image, 
 	const char *name, VipsCallbackFn free_fn, void *data );
 int vips_image_get_area( const VipsImage *image, 
-	const char *name, void **data );
+	const char *name, const void **data );
 void vips_image_set_blob( VipsImage *image, 
 	const char *name, 
 	VipsCallbackFn free_fn, const void *data, size_t length );
@@ -211,6 +212,9 @@ int vips_image_get_string( const VipsImage *image,
 void vips_image_set_string( VipsImage *image, 
 	const char *name, const char *str );
 void vips_image_print_field( const VipsImage *image, const char *field );
+int vips_image_get_image( const VipsImage *image, 
+	const char *name, VipsImage **out );
+void vips_image_set_image( VipsImage *image, const char *name, VipsImage *im );
 
 int vips_image_history_printf( VipsImage *image, const char *format, ... )
 	__attribute__((format(printf, 2, 3)));

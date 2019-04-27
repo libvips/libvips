@@ -18,6 +18,10 @@
  * 	- implement shrink-on-load for tiff pyramid 
  * 3/2/19 kleisauke
  * 	- add option_string param to thumbnail_buffer
+ * 23/4/19
+ * 	- don't force import CMYK, since colourspace knows about it now
+ * 24/4/19
+ * 	- support multi-page (animated) images
  */
 
 /*
@@ -103,6 +107,7 @@ typedef struct _VipsThumbnail {
 	const char *loader;		/* Eg. "VipsForeignLoadJpeg*" */
 	int input_width;
 	int input_height;
+	int page_height;
 	VipsAngle angle; 		/* From vips_autorot_get_angle() */
 
 	/* For openslide, we need to read out the size of each level too.
@@ -187,10 +192,10 @@ vips_thumbnail_read_header( VipsThumbnail *thumbnail, VipsImage *image )
 	thumbnail->input_height = image->Ysize;
 	thumbnail->angle = vips_autorot_get_angle( image );
 
-	if( vips_image_get_typeof( image, "n-pages" ) ) {
+	if( vips_image_get_typeof( image, VIPS_META_N_PAGES ) ) {
 		int n_pages;
 
-		if( !vips_image_get_int( image, "n-pages", &n_pages ) ) 
+		if( !vips_image_get_int( image, VIPS_META_N_PAGES, &n_pages ) ) 
 			thumbnail->n_pages = 
 				VIPS_CLIP( 1, n_pages, MAX_LEVELS );
 	}
@@ -269,8 +274,6 @@ vips_thumbnail_get_tiff_pyramid( VipsThumbnail *thumbnail )
 	thumbnail->level_count = thumbnail->n_pages;
 }
 
-/* This may not be a pyr tiff, so no error if we can't find the layers. 
- */
 static int
 vips_thumbnail_get_heif_thumb_info( VipsThumbnail *thumbnail ) 
 {
@@ -351,6 +354,18 @@ vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail,
 	else if( thumbnail->size == VIPS_SIZE_DOWN ) {
 		*hshrink = VIPS_MAX( 1, *hshrink );
 		*vshrink = VIPS_MAX( 1, *vshrink );
+	}
+
+	/* In toilet-roll mode, we must adjust vshrink so that we exactly hit
+	 * page_height or we'll have pixels straddling pixel boundaries.
+	 */
+	if( thumbnail->input_height > thumbnail->page_height ) {
+		int target_page_height = VIPS_RINT( input_height / *vshrink );
+		int target_image_height = target_page_height * 
+			thumbnail->n_pages;
+
+		*vshrink = (double) input_height * thumbnail->n_pages / 
+			target_image_height;
 	}
 }
 
@@ -477,14 +492,6 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 
 		g_info( "loading PDF/SVG with factor %g pre-scale", factor ); 
 	}
-	else if( vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
-		factor = VIPS_MAX( 1.0, 
-			vips_thumbnail_calculate_common_shrink( thumbnail, 
-				thumbnail->input_width, 
-				thumbnail->input_height ) ); 
-
-		g_info( "loading webp with factor %g pre-shrink", factor ); 
-	}
 	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
 		/* 'factor' is a gboolean which enables thumbnail load instead
 		 * of image load.
@@ -498,6 +505,24 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 			factor = 0.0;
 
 	}
+
+	/* Webp supports shrink-on-load, but unfortunately the filter is just 
+	 * too odd. 
+	 *
+	 * Perhaps reenable this if webp improves.
+	 *
+	 * vips_thumbnail_file_open() and vips_thumbnail_buffer_open() would
+	 * need additional cases as well.
+	 *
+	else if( vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
+		factor = VIPS_MAX( 1.0, 
+			vips_thumbnail_calculate_common_shrink( thumbnail, 
+				thumbnail->input_width, 
+				thumbnail->input_height ) ); 
+
+		g_info( "loading webp with factor %g pre-shrink", factor ); 
+	}
+	 */
 
 	if( !(im = class->open( thumbnail, factor )) )
 		return( NULL );
@@ -550,9 +575,16 @@ vips_thumbnail_build( VipsObject *object )
 	if( !vips_object_argument_isset( object, "height" ) )
 		thumbnail->height = thumbnail->width;
 
+	/* Open and do any pre-shrinking.
+	 */
 	if( !(t[0] = vips_thumbnail_open( thumbnail )) )
 		return( -1 );
 	in = t[0];
+
+	/* So page_height is after pre-shrink, but before the main shrink
+	 * stage.
+	 */
+	thumbnail->page_height = vips_image_get_page_height( in );
 
 	/* RAD needs special unpacking.
 	 */
@@ -569,15 +601,15 @@ vips_thumbnail_build( VipsObject *object )
 	/* In linear mode, we import right at the start. 
 	 *
 	 * We also have to import the whole image if it's CMYK, since
-	 * vips_colourspace() (see below) doesn't know about CMYK.
+	 * vips_colourspace() (see below) doesn't let you specify the fallback
+	 * profile.
 	 *
 	 * This is only going to work for images in device space. If you have
 	 * an image in PCS which also has an attached profile, strange things
 	 * will happen. 
 	 */
 	have_imported = FALSE;
-	if( (thumbnail->linear ||
-		in->Type == VIPS_INTERPRETATION_CMYK) &&
+	if( thumbnail->linear &&
 		in->Coding == VIPS_CODING_NONE &&
 		(in->BandFmt == VIPS_FORMAT_UCHAR ||
 		 in->BandFmt == VIPS_FORMAT_USHORT) &&
@@ -601,8 +633,14 @@ vips_thumbnail_build( VipsObject *object )
 		have_imported = TRUE;
 	}
 
-	/* To the processing colourspace. This will unpack LABQ as well.
+	/* To the processing colourspace. This will unpack LABQ, import CMYK,
+	 * etc.
+	 *
+	 * If this is a CMYK image, we need to set have_imported since we only
+	 * want to export at the end.
 	 */
+	if( in->Type == VIPS_INTERPRETATION_CMYK )
+		have_imported = TRUE;
 	g_info( "converting to processing space %s",
 		vips_enum_nick( VIPS_TYPE_INTERPRETATION, interpretation ) ); 
 	if( vips_colourspace( in, &t[2], interpretation, NULL ) ) 
@@ -627,14 +665,19 @@ vips_thumbnail_build( VipsObject *object )
 		in = t[3];
 	}
 
+	/* Shrink to page_height, so we work for multi-page images.
+	 */
 	vips_thumbnail_calculate_shrink( thumbnail, 
-		in->Xsize, in->Ysize, &hshrink, &vshrink );
+		in->Xsize, thumbnail->page_height, &hshrink, &vshrink );
 
 	if( vips_resize( in, &t[4], 1.0 / hshrink, 
 		"vscale", 1.0 / vshrink, 
 		NULL ) ) 
 		return( -1 );
 	in = t[4];
+
+	thumbnail->page_height = VIPS_RINT( thumbnail->page_height / vshrink );
+	vips_image_set_int( in, VIPS_META_PAGE_HEIGHT, thumbnail->page_height );
 
 	if( have_premultiplied ) {
 		g_info( "unpremultiplying alpha" ); 
@@ -885,8 +928,7 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 {
 	VipsThumbnailFile *file = (VipsThumbnailFile *) thumbnail;
 
-	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ||
-		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
+	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"shrink", (int) factor,
@@ -1059,7 +1101,8 @@ vips_thumbnail_buffer_get_info( VipsThumbnail *thumbnail )
 	if( !(thumbnail->loader = vips_foreign_find_load_buffer( 
 			buffer->buf->data, buffer->buf->length )) ||
 		!(image = vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, buffer->option_string, NULL )) )
+			buffer->buf->data, buffer->buf->length, 
+			buffer->option_string, NULL )) )
 		return( -1 );
 
 	vips_thumbnail_read_header( thumbnail, image );
@@ -1076,10 +1119,10 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 {
 	VipsThumbnailBuffer *buffer = (VipsThumbnailBuffer *) thumbnail;
 
-	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ||
-		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
+	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, buffer->option_string,
+			buffer->buf->data, buffer->buf->length, 
+			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"shrink", (int) factor,
 			NULL ) );
@@ -1087,7 +1130,8 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 	else if( vips_isprefix( "VipsForeignLoadOpenslide", 
 		thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, buffer->option_string,
+			buffer->buf->data, buffer->buf->length, 
+			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"level", (int) factor,
 			NULL ) );
@@ -1095,28 +1139,32 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
 		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, buffer->option_string,
+			buffer->buf->data, buffer->buf->length, 
+			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"scale", factor,
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, buffer->option_string,
+			buffer->buf->data, buffer->buf->length, 
+			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"page", (int) factor,
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, "", 
+			buffer->buf->data, buffer->buf->length, 
+			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"thumbnail", (int) factor,
 			NULL ) );
 	}
 	else {
 		return( vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, buffer->option_string,
+			buffer->buf->data, buffer->buf->length, 
+			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			NULL ) );
 	}

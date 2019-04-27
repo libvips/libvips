@@ -947,27 +947,12 @@ wtiff_new( VipsImage *im, const char *filename,
 	wtiff->strip = strip;
 	wtiff->region_shrink = region_shrink;
 	wtiff->toilet_roll = FALSE;
-	wtiff->page_height = -1;
-
-	/* Updated below if we discover toilet roll mode.
-	 */
+	wtiff->page_height = vips_image_get_page_height( im );
 	wtiff->image_height = im->Ysize;
 
-	/* Check for a toilet roll image.
+	/* Multipage image?
 	 */
-	if( vips_image_get_typeof( im, VIPS_META_PAGE_HEIGHT ) &&
-		vips_image_get_int( im, 
-			VIPS_META_PAGE_HEIGHT, &wtiff->page_height ) ) {
-		wtiff_free( wtiff );
-		return( NULL );
-	}
-
-	/* If page_height <= Ysize and it's a factor of image height, save 
-	 * as a toilet roll image.
-	 */
-	if( wtiff->page_height > 0 &&
-		wtiff->page_height < im->Ysize &&
-		im->Ysize % wtiff->page_height == 0 ) { 
+	if( wtiff->page_height < im->Ysize ) {
 #ifdef DEBUG
 		printf( "wtiff_new: detected toilet roll image, "
 			"page-height=%d\n", 
