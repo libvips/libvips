@@ -561,23 +561,28 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 			break;
 
 		case JPEG_APP0 + 14:
-			/* Adobe block. We need to check the transform flag to
-			 * see if we must invert CMYK.
+			/* Adobe block. There's a lot of confusion about
+			 * whether or not CMYK jpg images are inverted. For
+			 * the images we have, it seems they should always
+			 * invert.
 			 *
 			 * See: https://sno.phy.queensu.ca/~phil/exiftool/\
 			 * 	TagNames/JPEG.html#Adobe
 			 *
-			 * CMYK JPGs are almost always returned inverted. The
-			 * exception is non-YCCK Adobe jpg.
+			 * data[11] == 0 - unknown
+			 * data[11] == 1 - YCbCr
+			 * data[11] == 2 - YCCK
+			 *
+			 * Leave this code here in case we come up with a
+			 * better rule.
 			 */
-			if( p->data_length > 5 &&
+			if( p->data_length >= 12 &&
 				vips_isprefix( "Adobe", (char *) p->data ) ) {
-				if( p->data_length >= 12 &&
-					p->data[11] == 0 ) {
+				if( p->data[11] == 0 ) {
 #ifdef DEBUG
-					printf( "not YCCK image\n" );
+					printf( "complete Adobe block, not YCCK image\n" );
 #endif /*DEBUG*/
-					jpeg->invert_pels = FALSE;
+					//jpeg->invert_pels = FALSE;
 				}
 			}
 			break;
