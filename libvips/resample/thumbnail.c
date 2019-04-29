@@ -226,12 +226,18 @@ vips_thumbnail_read_header( VipsThumbnail *thumbnail, VipsImage *image )
 }
 
 /* This may not be a pyr tiff, so no error if we can't find the layers. 
+ * We just look for two or more pages following roughly /2 shrinks.
  */
 static void
 vips_thumbnail_get_tiff_pyramid( VipsThumbnail *thumbnail ) 
 {
 	VipsThumbnailClass *class = VIPS_THUMBNAIL_GET_CLASS( thumbnail );
 	int i;
+
+	/* Only one page? Can't be.
+	 */
+	if( thumbnail->n_pages < 2 )
+		return;
 
 	for( i = 0; i < thumbnail->n_pages; i++ ) {
 		VipsImage *page;
@@ -246,9 +252,6 @@ vips_thumbnail_get_tiff_pyramid( VipsThumbnail *thumbnail )
 		level_height = page->Ysize;
 		VIPS_UNREF( page );
 
-		/* Try to sanity-check the size of the pages. Do they look 
-		 * like a pyramid?
-		 */
 		expected_level_width = thumbnail->input_width / (1 << i);
 		expected_level_height = thumbnail->input_height / (1 << i);
 
