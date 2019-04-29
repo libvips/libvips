@@ -109,16 +109,15 @@ typedef struct _VipsThumbnail {
 	int input_height;
 	int page_height;
 	VipsAngle angle; 		/* From vips_autorot_get_angle() */
+	int n_pages;			/* Pages in this image, not original */
 
 	/* For openslide, we need to read out the size of each level too.
+	 *
+	 * These are filled out for pyr tiffs as well.
 	 */
 	int level_count;
 	int level_width[MAX_LEVELS];
 	int level_height[MAX_LEVELS];
-
-	/* Try to get n-pages too, for pyr tiff load.
-	 */
-	int n_pages;
 
 	/* For HEIF, try to fetch the size of the stored thumbnail.
 	 */
@@ -191,14 +190,16 @@ vips_thumbnail_read_header( VipsThumbnail *thumbnail, VipsImage *image )
 	thumbnail->input_width = image->Xsize;
 	thumbnail->input_height = image->Ysize;
 	thumbnail->angle = vips_autorot_get_angle( image );
+	thumbnail->page_height = vips_image_get_page_height( image );
 
-	if( vips_image_get_typeof( image, VIPS_META_N_PAGES ) ) {
-		int n_pages;
-
-		if( !vips_image_get_int( image, VIPS_META_N_PAGES, &n_pages ) ) 
-			thumbnail->n_pages = 
-				VIPS_CLIP( 1, n_pages, MAX_LEVELS );
-	}
+	/* The "n-pages" metadata item is the number of pages in the document, 
+	 * not the number we've read out into this image. We calculate
+	 * ourselves from page_height. 
+	 *
+	 * vips_image_get_page_height() verifies that Ysize is a simple
+	 * multiple pof page_height.
+	 */
+	thumbnail->n_pages = thumbnail->input_height / thumbnail->page_height;
 
 	/* For openslide, read out the level structure too.
 	 */
@@ -255,7 +256,7 @@ vips_thumbnail_get_tiff_pyramid( VipsThumbnail *thumbnail )
 		expected_level_width = thumbnail->input_width / (1 << i);
 		expected_level_height = thumbnail->input_height / (1 << i);
 
-		/* Won't be exact due to rounding etc.
+		/* This won't be exact due to rounding etc.
 		 */
 		if( abs( level_width - expected_level_width ) > 5 ||
 			level_width < 2 )
@@ -408,7 +409,7 @@ vips_thumbnail_find_jpegshrink( VipsThumbnail *thumbnail,
 		return( 1 );
 }
 
-/* Find the best openslide level.
+/* Find the best pyramid (openslide or tiff) level.
  */
 static int
 vips_thumbnail_find_pyrlevel( VipsThumbnail *thumbnail, 
@@ -447,7 +448,7 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 	g_info( "input size is %d x %d", 
 		thumbnail->input_width, thumbnail->input_height ); 
 
-	/* For tiff, we need to make a separate get_info() for each page to
+	/* For tiff, we need a separate ->open() for each page to
 	 * get all the pyramid levels.
 	 */
 	if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) 
@@ -459,6 +460,10 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 	if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) 
 		vips_thumbnail_get_heif_thumb_info( thumbnail );
 
+	/* We read the openslide level structure in
+	 * vips_thumbnail_read_header().
+	 */
+
 	factor = 1.0;
 
 	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
@@ -468,20 +473,28 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 		g_info( "loading jpeg with factor %g pre-shrink", factor ); 
 	}
 	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ||
-		vips_isprefix( "VipsForeignLoadOpenslide", thumbnail->loader ) ) {
+		vips_isprefix( "VipsForeignLoadOpenslide", 
+		thumbnail->loader ) ) {
 		factor = vips_thumbnail_find_pyrlevel( thumbnail, 
 			thumbnail->input_width, thumbnail->input_height );
 
 		g_info( "loading pyr level %g", factor ); 
 	}
-	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
-		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) {
+	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ) {
+		factor = 1.0 / 
+			vips_thumbnail_calculate_common_shrink( thumbnail, 
+				thumbnail->input_width, 
+				thumbnail->page_height );
+
+		g_info( "loading PDF with factor %g pre-scale", factor ); 
+	}
+	else if( vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) {
 		factor = 1.0 / 
 			vips_thumbnail_calculate_common_shrink( thumbnail, 
 				thumbnail->input_width, 
 				thumbnail->input_height );
 
-		g_info( "loading PDF/SVG with factor %g pre-scale", factor ); 
+		g_info( "loading SVG with factor %g pre-scale", factor ); 
 	}
 	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
 		/* 'factor' is a gboolean which enables thumbnail load instead
@@ -532,6 +545,8 @@ vips_thumbnail_build( VipsObject *object )
 		VIPS_INTERPRETATION_scRGB : VIPS_INTERPRETATION_sRGB; 
 
 	VipsImage *in;
+	int preshrunk_page_height;
+	int output_page_height;
 	double hshrink;
 	double vshrink;
 
@@ -572,10 +587,9 @@ vips_thumbnail_build( VipsObject *object )
 		return( -1 );
 	in = t[0];
 
-	/* So page_height is after pre-shrink, but before the main shrink
-	 * stage.
+	/* After pre-shrink, but before the main shrink stage.
 	 */
-	thumbnail->page_height = vips_image_get_page_height( in );
+	preshrunk_page_height = vips_image_get_page_height( in );
 
 	/* RAD needs special unpacking.
 	 */
@@ -656,17 +670,17 @@ vips_thumbnail_build( VipsObject *object )
 		in = t[3];
 	}
 
-	/* Shrink to page_height, so we work for multi-page images.
+	/* Shrink to preshrunk_page_height, so we work for multi-page images.
 	 */
 	vips_thumbnail_calculate_shrink( thumbnail, 
-		in->Xsize, thumbnail->page_height, &hshrink, &vshrink );
+		in->Xsize, preshrunk_page_height, &hshrink, &vshrink );
 
 	/* In toilet-roll mode, we must adjust vshrink so that we exactly hit
-	 * page_height or we'll have pixels straddling pixel boundaries.
+	 * page_height or we'll have pixels straddling page boundaries.
 	 */
-	if( in->Ysize > thumbnail->page_height ) {
+	if( in->Ysize > preshrunk_page_height ) {
 		int target_page_height = VIPS_RINT( 
-			thumbnail->page_height / vshrink );
+			preshrunk_page_height / vshrink );
 		int target_image_height = target_page_height * 
 			thumbnail->n_pages;
 
@@ -679,8 +693,9 @@ vips_thumbnail_build( VipsObject *object )
 		return( -1 );
 	in = t[4];
 
-	thumbnail->page_height = VIPS_RINT( thumbnail->page_height / vshrink );
-	vips_image_set_int( in, VIPS_META_PAGE_HEIGHT, thumbnail->page_height );
+	output_page_height = VIPS_RINT( preshrunk_page_height / vshrink );
+	vips_image_set_int( in, 
+		VIPS_META_PAGE_HEIGHT, output_page_height );
 
 	if( have_premultiplied ) {
 		g_info( "unpremultiplying alpha" ); 
