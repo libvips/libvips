@@ -197,7 +197,7 @@ vips_thumbnail_read_header( VipsThumbnail *thumbnail, VipsImage *image )
 	 * ourselves from page_height. 
 	 *
 	 * vips_image_get_page_height() verifies that Ysize is a simple
-	 * multiple pof page_height.
+	 * multiple of page_height.
 	 */
 	thumbnail->n_pages = thumbnail->input_height / thumbnail->page_height;
 
@@ -509,24 +509,14 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 			factor = 0.0;
 
 	}
-
-	/* Webp supports shrink-on-load, but unfortunately the filter is just 
-	 * too odd. 
-	 *
-	 * Perhaps reenable this if webp improves.
-	 *
-	 * vips_thumbnail_file_open() and vips_thumbnail_buffer_open() would
-	 * need additional cases as well.
-	 *
 	else if( vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
-		factor = VIPS_MAX( 1.0, 
+		factor = (int) VIPS_MAX( 1.0, 
 			vips_thumbnail_calculate_common_shrink( thumbnail, 
 				thumbnail->input_width, 
-				thumbnail->input_height ) ); 
+				thumbnail->page_height ) ); 
 
 		g_info( "loading webp with factor %g pre-shrink", factor ); 
 	}
-	 */
 
 	if( !(im = class->open( thumbnail, factor )) )
 		return( NULL );
@@ -946,7 +936,8 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 {
 	VipsThumbnailFile *file = (VipsThumbnailFile *) thumbnail;
 
-	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
+	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ||
+		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"shrink", (int) factor,
@@ -1137,7 +1128,8 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 {
 	VipsThumbnailBuffer *buffer = (VipsThumbnailBuffer *) thumbnail;
 
-	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
+	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ||
+		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
 			buffer->buf->data, buffer->buf->length, 
 			buffer->option_string,
