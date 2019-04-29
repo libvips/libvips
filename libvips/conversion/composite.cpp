@@ -635,8 +635,8 @@ vips_composite_base_blend( VipsCompositeBase *composite,
 /* We have a vector path with gcc's vector attr.
  */
 #ifdef HAVE_VECTOR_ARITH
-/* Special path for RGBA with non-double output. This is overwhelmingly the most 
- * common case, and vectorises easily. 
+/* Special path for RGBA with non-double output. This is overwhelmingly the 
+ * most common case, and vectorises easily. 
  *
  * B is the float pixel we are accumulating, A is the new pixel coming 
  * in from memory.
@@ -673,6 +673,13 @@ vips_composite_base_blend3( VipsCompositeBase *composite,
 	if( !composite->premultiplied )
 		A *= aA;
 
+	/* See https://www.cairographics.org/operators for a nice summary of 
+	 * the operators and their meaning.
+	 *
+	 * Some operators need the unpremultiplied values, so we have to do an
+	 * extra unpremultiply/premultiply.
+	 */
+
 	switch( mode ) {
 	case VIPS_BLEND_MODE_CLEAR:
 		aR = 0;
@@ -694,12 +701,20 @@ vips_composite_base_blend3( VipsCompositeBase *composite,
 
 	case VIPS_BLEND_MODE_IN:
 		aR = aA * aB;
-		B = A;
+		// we want to set B = A, but A has been premultiplied against
+		// aA ... we must undo that premul and redo against aR
+		// if aA == 0, then aR == 0 and so B will be set to 0
+		if( aA != 0 )
+			B = A * aR / aA;
 		break;
 
 	case VIPS_BLEND_MODE_OUT:
 		aR = aA * (1 - aB);
-		B = A;
+		// we want to set B = A, but A has been premultiplied against
+		// aA ... we must undo that premul and redo against aR
+		// if aA == 0, then aR == 0 and so B will be set to 0
+		if( aA != 0 )
+			B = A * aR / aA;
 		break;
 
 	case VIPS_BLEND_MODE_ATOP:
@@ -721,7 +736,12 @@ vips_composite_base_blend3( VipsCompositeBase *composite,
 
 	case VIPS_BLEND_MODE_DEST_IN:
 		aR = aA * aB;
-		// B = B
+		// we need to simply copy B over, but B is premultiplied
+		// against aB ... we must unpremultiply and premultiply 
+		// against aR instead
+		// if aB is 0, then B is 0 too
+		//if( aB != 0 )
+			//B *= aR / aB;
 		break;
 
 	case VIPS_BLEND_MODE_DEST_OUT:
