@@ -143,9 +143,12 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 		!vips_image_get_int( im, "gif-delay", &number ) )
 		image->delay = (size_t) number;
 
+	/* ImageMagick uses 0 to mean unset, so we must always add 1. See
+	 * coders/gif.c.
+	 */
 	if( vips_image_get_typeof( im, "gif-loop" ) &&
 		!vips_image_get_int( im, "gif-loop", &number ) )
-		image->iterations = (size_t) number;
+		image->iterations = (size_t) (number + 1);
 
 	if( vips_image_get_typeof( im, "gif-comment" ) &&
 		!vips_image_get_string( im, "gif-comment", &str ) )
