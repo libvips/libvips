@@ -17,6 +17,9 @@
  * 	- could memleak on some read errors
  * 24/4/19
  * 	- fix bg handling in animations
+ * 30/4/19
+ * 	- deprecate shrink, use scale instead, and make it a double ... this
+ * 	  lets us do faster and more accurate thumbnailing
  */
 
 /*
@@ -90,9 +93,9 @@ typedef struct {
 	 */
 	int n;
 
-	/* Shrink-on-load factor. Use this to set scaled_width.
+	/* Scale-on-load factor. Use this to set scaled_width.
 	 */
-	int shrink;
+	double scale;
 
 	/* Size of final output image. 
 	 */
@@ -325,7 +328,7 @@ read_free( Read *read )
 
 static Read *
 read_new( const char *filename, const void *data, size_t length, 
-	int page, int n, int shrink )
+	int page, int n, double scale )
 {
 	Read *read;
 
@@ -337,7 +340,7 @@ read_new( const char *filename, const void *data, size_t length,
 	read->length = length;
 	read->page = page;
 	read->n = n;
-	read->shrink = shrink;
+	read->scale = scale;
 	read->delay = 100;
 	read->fd = 0;
 	read->demux = NULL;
@@ -394,10 +397,12 @@ read_header( Read *read, VipsImage *out )
 
 	canvas_width = WebPDemuxGetI( read->demux, WEBP_FF_CANVAS_WIDTH );
 	canvas_height = WebPDemuxGetI( read->demux, WEBP_FF_CANVAS_HEIGHT );
-	read->frame_width = canvas_width / read->shrink;
-	read->frame_height = canvas_height / read->shrink;
+	/* We round-to-nearest cf. pdfload etc.
+	 */
+	read->frame_width = VIPS_RINT( canvas_width * read->scale );
+	read->frame_height = VIPS_RINT( canvas_height * read->scale );
 
-	if( read->shrink > 1 ) { 
+	if( read->scale != 1.0 ) { 
 		read->config.options.use_scaling = 1;
 		read->config.options.scaled_width = read->frame_width;
 		read->config.options.scaled_height = read->frame_height; 
@@ -521,11 +526,11 @@ read_header( Read *read, VipsImage *out )
 
 int
 vips__webp_read_file_header( const char *filename, VipsImage *out, 
-	int page, int n, int shrink )
+	int page, int n, double scale )
 {
 	Read *read;
 
-	if( !(read = read_new( filename, NULL, 0, page, n, shrink )) ) {
+	if( !(read = read_new( filename, NULL, 0, page, n, scale )) ) {
 		vips_error( "webp2vips",
 			_( "unable to open \"%s\"" ), filename ); 
 		return( -1 );
@@ -606,10 +611,10 @@ read_next_frame( Read *read )
 	/* Note this frame's dispose for next time.
 	 */
 	read->dispose_method = read->iter.dispose_method;
-	read->dispose_rect.left = read->iter.x_offset; 
-	read->dispose_rect.top = read->iter.y_offset;
-	read->dispose_rect.width = read->iter.width;
-	read->dispose_rect.height = read->iter.height;
+	read->dispose_rect.left = read->iter.x_offset * read->scale; 
+	read->dispose_rect.top = read->iter.y_offset * read->scale;
+	read->dispose_rect.width = read->iter.width * read->scale;
+	read->dispose_rect.height = read->iter.height * read->scale;
 
 #ifdef DEBUG
 	printf( "webp2vips: frame_num = %d\n", read->iter.frame_num );
@@ -715,11 +720,11 @@ read_image( Read *read, VipsImage *out )
 
 int
 vips__webp_read_file( const char *filename, VipsImage *out, 
-	int page, int n, int shrink )
+	int page, int n, double scale )
 {
 	Read *read;
 
-	if( !(read = read_new( filename, NULL, 0, page, n, shrink )) ) {
+	if( !(read = read_new( filename, NULL, 0, page, n, scale )) ) {
 		vips_error( "webp2vips",
 			_( "unable to open \"%s\"" ), filename ); 
 		return( -1 );
@@ -737,11 +742,11 @@ vips__webp_read_file( const char *filename, VipsImage *out,
 
 int
 vips__webp_read_buffer_header( const void *buf, size_t len, VipsImage *out,
-	int page, int n, int shrink )
+	int page, int n, double scale )
 {
 	Read *read;
 
-	if( !(read = read_new( NULL, buf, len, page, n, shrink )) ) {
+	if( !(read = read_new( NULL, buf, len, page, n, scale )) ) {
 		vips_error( "webp2vips",
 			"%s", _( "unable to open buffer" ) ); 
 		return( -1 );
@@ -759,11 +764,11 @@ vips__webp_read_buffer_header( const void *buf, size_t len, VipsImage *out,
 
 int
 vips__webp_read_buffer( const void *buf, size_t len, VipsImage *out, 
-	int page, int n, int shrink )
+	int page, int n, double scale )
 {
 	Read *read;
 
-	if( !(read = read_new( NULL, buf, len, page, n, shrink )) ) {
+	if( !(read = read_new( NULL, buf, len, page, n, scale )) ) {
 		vips_error( "webp2vips",
 			"%s", _( "unable to open buffer" ) ); 
 		return( -1 );

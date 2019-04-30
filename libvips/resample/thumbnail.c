@@ -510,12 +510,12 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 
 	}
 	else if( vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
-		factor = (int) VIPS_MAX( 1.0, 
+		factor = 1.0 /
 			vips_thumbnail_calculate_common_shrink( thumbnail, 
 				thumbnail->input_width, 
-				thumbnail->page_height ) ); 
+				thumbnail->page_height ); 
 
-		g_info( "loading webp with factor %g pre-shrink", factor ); 
+		g_info( "loading webp with factor %g pre-scale", factor ); 
 	}
 
 	if( !(im = class->open( thumbnail, factor )) )
@@ -940,7 +940,7 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
-			"shrink", (int) factor,
+			"scale", factor,
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadOpenslide", 
@@ -1134,7 +1134,7 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 			buffer->buf->data, buffer->buf->length, 
 			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
-			"shrink", (int) factor,
+			"scale", factor,
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadOpenslide", 
