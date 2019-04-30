@@ -297,8 +297,12 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 		poppler_page_get_size( pdf->page, &width, &height ); 
 		pdf->pages[i].left = 0;
 		pdf->pages[i].top = top;
-		pdf->pages[i].width = width * pdf->scale;
-		pdf->pages[i].height = height * pdf->scale;
+		/* We do round to nearest, in the same way that vips_resize()
+		 * does round to nearest. Without this, things like
+		 * shrink-on-load will break.
+		 */
+		pdf->pages[i].width = VIPS_RINT( width * pdf->scale );
+		pdf->pages[i].height = VIPS_RINT( height * pdf->scale );
 
 		if( pdf->pages[i].width > pdf->image.width )
 			pdf->image.width = pdf->pages[i].width;
