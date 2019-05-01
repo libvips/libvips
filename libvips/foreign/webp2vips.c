@@ -153,6 +153,39 @@ typedef struct {
 	VipsRect dispose_rect;
 } Read;
 
+const char *
+vips__error_webp( VP8StatusCode code )
+{
+	switch( code ) {
+	case VP8_STATUS_OK: 
+		return( "VP8_STATUS_OK" );
+
+	case VP8_STATUS_OUT_OF_MEMORY:
+		return( "VP8_STATUS_OUT_OF_MEMORY" );
+
+	case VP8_STATUS_INVALID_PARAM:
+		return( "VP8_STATUS_INVALID_PARAM" );
+
+	case VP8_STATUS_BITSTREAM_ERROR:
+		return( "VP8_STATUS_BITSTREAM_ERROR" );
+
+	case VP8_STATUS_UNSUPPORTED_FEATURE:
+		return( "VP8_STATUS_UNSUPPORTED_FEATURE" );
+
+	case VP8_STATUS_SUSPENDED:
+		return( "VP8_STATUS_SUSPENDED" );
+
+	case VP8_STATUS_USER_ABORT:
+		return( "VP8_STATUS_USER_ABORT" );
+
+	case VP8_STATUS_NOT_ENOUGH_DATA:
+		return( "VP8_STATUS_NOT_ENOUGH_DATA" );
+
+	default:
+		return( "<unkown>" );
+	}
+}
+
 static void
 vips_image_paint_area( VipsImage *image, const VipsRect *r, const VipsPel *ink )
 {
@@ -233,32 +266,34 @@ blend_pixel( guint32 A, guint32 B )
 	return( setRGBA( rR, gR, bR, aR ) ); 
 }
 
+/* Blend sub into frame at left, top.
+ */
 static void
-vips_image_paint_image( VipsImage *image, 
-	VipsImage *ink, int x, int y, gboolean blend )
+vips_image_paint_image( VipsImage *frame, 
+	VipsImage *sub, int left, int top, gboolean blend )
 {
-	VipsRect valid = { 0, 0, image->Xsize, image->Ysize };
-	VipsRect sub = { x, y, ink->Xsize, ink->Ysize };
-	int ps = VIPS_IMAGE_SIZEOF_PEL( image );
+	VipsRect frame_rect = { 0, 0, frame->Xsize, frame->Ysize };
+	VipsRect sub_rect = { left, top, sub->Xsize, sub->Ysize };
+	int ps = VIPS_IMAGE_SIZEOF_PEL( frame );
 
 	VipsRect ovl;
 
-	g_assert( VIPS_IMAGE_SIZEOF_PEL( ink ) == ps );
+	g_assert( VIPS_IMAGE_SIZEOF_PEL( sub ) == ps );
 
 	/* Disable blend if we are not RGBA.
 	 */
-	if( image->Bands != 4 )
+	if( frame->Bands != 4 )
 		blend = FALSE;
 
-	vips_rect_intersectrect( &valid, &sub, &ovl );
+	vips_rect_intersectrect( &frame_rect, &sub_rect, &ovl );
 	if( !vips_rect_isempty( &ovl ) ) {
 		VipsPel *p, *q;
-		int i;
+		int x, y;
 
-		p = VIPS_IMAGE_ADDR( ink, ovl.left - x, ovl.top - y );
-		q = VIPS_IMAGE_ADDR( image, ovl.left, ovl.top ); 
+		p = VIPS_IMAGE_ADDR( sub, ovl.left - left, ovl.top - top );
+		q = VIPS_IMAGE_ADDR( frame, ovl.left, ovl.top ); 
 
-		for( i = 0; i < ovl.height; i++ ) { 
+		for( y = 0; y < ovl.height; y++ ) { 
 			if( blend ) {
 				guint32 *A = (guint32 *) p;
 				guint32 *B = (guint32 *) q;
@@ -270,8 +305,8 @@ vips_image_paint_image( VipsImage *image,
 				memcpy( (char *) q, (char *) p, 
 					ovl.width * ps );
 
-			p += VIPS_IMAGE_SIZEOF_LINE( ink );
-			q += VIPS_IMAGE_SIZEOF_LINE( image );
+			p += VIPS_IMAGE_SIZEOF_LINE( sub );
+			q += VIPS_IMAGE_SIZEOF_LINE( frame );
 		}
 	}
 }
@@ -402,11 +437,12 @@ read_header( Read *read, VipsImage *out )
 	read->frame_width = VIPS_RINT( canvas_width * read->scale );
 	read->frame_height = VIPS_RINT( canvas_height * read->scale );
 
-	if( read->scale != 1.0 ) { 
-		read->config.options.use_scaling = 1;
-		read->config.options.scaled_width = read->frame_width;
-		read->config.options.scaled_height = read->frame_height; 
-	}
+#ifdef DEBUG
+	printf( "webp2vips: canvas_width = %d\n", canvas_width );
+	printf( "webp2vips: canvas_height = %d\n", canvas_height );
+	printf( "webp2vips: frame_width = %d\n", read->frame_width );
+	printf( "webp2vips: frame_height = %d\n", read->frame_height );
+#endif /*DEBUG*/
 
 	flags = WebPDemuxGetI( read->demux, WEBP_FF_FORMAT_FLAGS );
 
@@ -546,6 +582,9 @@ vips__webp_read_file_header( const char *filename, VipsImage *out,
 	return( 0 );
 }
 
+/* Read a single frame -- a width * height block of pixels. This will get
+ * blended into the accumulator at some offset.
+ */
 static VipsImage *
 read_frame( Read *read, 
 	int width, int height, const guint8 *data, size_t length )
@@ -558,7 +597,7 @@ read_frame( Read *read,
 
 	frame = vips_image_new_memory();
 	vips_image_init_fields( frame,
-		width, height,
+		width, height, 
 		read->alpha ? 4 : 3,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB,
@@ -573,6 +612,11 @@ read_frame( Read *read,
 	read->config.output.u.RGBA.rgba = VIPS_IMAGE_ADDR( frame, 0, 0 );
 	read->config.output.u.RGBA.stride = VIPS_IMAGE_SIZEOF_LINE( frame );
 	read->config.output.u.RGBA.size = VIPS_IMAGE_SIZEOF_IMAGE( frame );
+	if( read->scale != 1.0 ) { 
+		read->config.options.use_scaling = 1;
+		read->config.options.scaled_width = width;
+		read->config.options.scaled_height = height; 
+	}
 
 	if( WebPDecode( data, length, &read->config ) != VP8_STATUS_OK ) {
 		g_object_unref( frame );
@@ -587,16 +631,24 @@ static int
 read_next_frame( Read *read )
 {
 	VipsImage *frame;
+	VipsRect area;
 
 #ifdef DEBUG
 	printf( "read_next_frame:\n" ); 
 #endif /*DEBUG*/
 
+	/* Area of this frame, in output image coordinates.
+	 */
+	area.left = read->iter.x_offset * read->scale; 
+	area.top = read->iter.y_offset * read->scale;
+	area.width = read->iter.width * read->scale;
+	area.height = read->iter.height * read->scale;
+
 	/* Dispose from the previous frame.
 	 */
 	if( read->dispose_method == WEBP_MUX_DISPOSE_BACKGROUND ) {
-		/* We must clear the pixels occupied by this webp frame (not 
-		 * the whole of the read frame) to 0 (transparent). 
+		/* We must clear the pixels occupied by the previous webp 
+		 * frame (not the whole of the read frame) to 0 (transparent). 
 		 *
 		 * We do not clear to WEBP_FF_BACKGROUND_COLOR. That's only 
 		 * used to composite down to RGB. Perhaps we
@@ -611,17 +663,14 @@ read_next_frame( Read *read )
 	/* Note this frame's dispose for next time.
 	 */
 	read->dispose_method = read->iter.dispose_method;
-	read->dispose_rect.left = read->iter.x_offset * read->scale; 
-	read->dispose_rect.top = read->iter.y_offset * read->scale;
-	read->dispose_rect.width = read->iter.width * read->scale;
-	read->dispose_rect.height = read->iter.height * read->scale;
+	read->dispose_rect = area;
 
 #ifdef DEBUG
 	printf( "webp2vips: frame_num = %d\n", read->iter.frame_num );
-	printf( "   x_offset = %d\n", read->iter.x_offset );
-	printf( "   y_offset = %d\n", read->iter.y_offset );
-	printf( "   width = %d\n", read->iter.width );
-	printf( "   height = %d\n", read->iter.height );
+	printf( "   left = %d\n", area.left );
+	printf( "   top = %d\n", area.top );
+	printf( "   width = %d\n", area.width );
+	printf( "   height = %d\n", area.height );
 	printf( "   duration = %d\n", read->iter.duration );
 	printf( "   dispose = " ); 
 	if( read->iter.dispose_method == WEBP_MUX_DISPOSE_BACKGROUND )
@@ -642,14 +691,14 @@ read_next_frame( Read *read )
 			"not all frames have equal duration" );
 
 	if( !(frame = read_frame( read, 
-		read->iter.width, read->iter.height, 
+		area.width, area.height,
 		read->iter.fragment.bytes, read->iter.fragment.size )) ) 
 		return( -1 );
 
 	/* Now blend or copy the new pixels into our accumulator.
 	 */
 	vips_image_paint_image( read->frame, frame, 
-		read->iter.x_offset, read->iter.y_offset, 
+		area.left, area.top, 
 		read->iter.blend_method == WEBP_MUX_BLEND );
 
 	g_object_unref( frame );
