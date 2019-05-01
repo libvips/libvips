@@ -637,12 +637,14 @@ read_next_frame( Read *read )
 	printf( "read_next_frame:\n" ); 
 #endif /*DEBUG*/
 
-	/* Area of this frame, in output image coordinates.
+	/* Area of this frame, in output image coordinates. We must rint(),
+	 * since we need the same rules as the overall image scale, or we'll
+	 * sometimes have missing pixels on edges.
 	 */
-	area.left = read->iter.x_offset * read->scale; 
-	area.top = read->iter.y_offset * read->scale;
-	area.width = read->iter.width * read->scale;
-	area.height = read->iter.height * read->scale;
+	area.left = VIPS_RINT( read->iter.x_offset * read->scale ); 
+	area.top = VIPS_RINT( read->iter.y_offset * read->scale );
+	area.width = VIPS_RINT( read->iter.width * read->scale );
+	area.height = VIPS_RINT( read->iter.height * read->scale );
 
 	/* Dispose from the previous frame.
 	 */
