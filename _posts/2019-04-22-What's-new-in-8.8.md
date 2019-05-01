@@ -48,7 +48,19 @@ Makes:
 ![All of banana]({{ site.baseurl }}/assets/images/manybanana.gif)
 
 It'll work for any many-page format, so you can thumbnail many-page TIFFs,
-for example.
+or even PDFs. For example:
+
+```
+$ time vipsthumbnail nipguide.pdf[n=-1] -o x.webp
+real  0m0.859s
+user  0m0.900s
+sys 0m0.085s
+```
+
+That's rendering a 40 page PDF as an animated webp image in 0.8s, though I'm 
+not sure if it's a useful thing to do.
+
+![All of banana]({{ site.baseurl }}/assets/images/nipguide.gif)
 
 # Built-in colour profiles
 
