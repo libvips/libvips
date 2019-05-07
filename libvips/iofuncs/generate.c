@@ -635,7 +635,7 @@ write_vips( VipsRegion *region, VipsRect *area, void *a, void *b )
 	size_t nwritten, count;
 	void *buf;
 
-	count = region->bpl * area->height;
+	count = (size_t) region->bpl * area->height;
 	buf = VIPS_REGION_ADDR( region, 0, area->top );
 
 	do {
