@@ -13,6 +13,8 @@
  * 	- don't stop on first non-transparent image [felixbuenemann, GDmac]
  * 6/12/18
  *	- do our own subimage positioning
+ * 8/5/19
+ * 	- revise in/out/dest-in/dest-out to make smoother alpha
  */
 
 /*
@@ -461,14 +463,18 @@ vips_composite_base_blend( VipsCompositeBase *composite,
 
 	case VIPS_BLEND_MODE_IN:
 		aR = aA * aB;
-		for( int b = 0; b < bands; b++ )
-			B[b] = A[b];
+		// if aA == 0, then aR == 0 and so B will already be 0
+		if( aA != 0 )
+			for( int b = 0; b < bands; b++ )
+				B[b] = A[b] * aR / aA;
 		break;
 
 	case VIPS_BLEND_MODE_OUT:
 		aR = aA * (1 - aB);
-		for( int b = 0; b < bands; b++ )
-			B[b] = A[b];
+		// if aA == 0, then aR == 0 and so B will already be 0
+		if( aA != 0 )
+			for( int b = 0; b < bands; b++ )
+				B[b] = A[b] * aR / aA;
 		break;
 
 	case VIPS_BLEND_MODE_ATOP:
@@ -493,11 +499,18 @@ vips_composite_base_blend( VipsCompositeBase *composite,
 	case VIPS_BLEND_MODE_DEST_IN:
 		aR = aA * aB;
 		// B = B
+		if( aB != 0 )
+			for( int b = 0; b < bands; b++ )
+				B[b] *= aR / aB;
 		break;
 
 	case VIPS_BLEND_MODE_DEST_OUT:
 		aR = (1 - aA) * aB;
 		// B = B
+		// if aB is 0, then B is already 0 
+		if( aB != 0 )
+			for( int b = 0; b < bands; b++ )
+				B[b] *= aR / aB;
 		break;
 
 	case VIPS_BLEND_MODE_DEST_ATOP:
@@ -676,8 +689,8 @@ vips_composite_base_blend3( VipsCompositeBase *composite,
 	/* See https://www.cairographics.org/operators for a nice summary of 
 	 * the operators and their meaning.
 	 *
-	 * Some operators need the unpremultiplied values, so we have to do an
-	 * extra unpremultiply/premultiply.
+	 * Some operators need the unpremultiplied values (eg. dest-in), so 
+	 * we have to do an extra unpremultiply/premultiply.
 	 */
 
 	switch( mode ) {
@@ -701,18 +714,14 @@ vips_composite_base_blend3( VipsCompositeBase *composite,
 
 	case VIPS_BLEND_MODE_IN:
 		aR = aA * aB;
-		// we want to set B = A, but A has been premultiplied against
-		// aA ... we must undo that premul and redo against aR
-		// if aA == 0, then aR == 0 and so B will be set to 0
+		// if aA == 0, then aR == 0 and so B will already be 0
 		if( aA != 0 )
 			B = A * aR / aA;
 		break;
 
 	case VIPS_BLEND_MODE_OUT:
 		aR = aA * (1 - aB);
-		// we want to set B = A, but A has been premultiplied against
-		// aA ... we must undo that premul and redo against aR
-		// if aA == 0, then aR == 0 and so B will be set to 0
+		// if aA == 0, then aR == 0 and so B will already be 0
 		if( aA != 0 )
 			B = A * aR / aA;
 		break;
@@ -736,17 +745,17 @@ vips_composite_base_blend3( VipsCompositeBase *composite,
 
 	case VIPS_BLEND_MODE_DEST_IN:
 		aR = aA * aB;
-		// we need to simply copy B over, but B is premultiplied
-		// against aB ... we must unpremultiply and premultiply 
-		// against aR instead
-		// if aB is 0, then B is 0 too
-		//if( aB != 0 )
-			//B *= aR / aB;
+		// if aB is 0, then B is already 0 
+		if( aB != 0 )
+			B *= aR / aB;
 		break;
 
 	case VIPS_BLEND_MODE_DEST_OUT:
 		aR = (1 - aA) * aB;
 		// B = B
+		// if aB is 0, then B is already 0 
+		if( aB != 0 )
+			B *= aR / aB;
 		break;
 
 	case VIPS_BLEND_MODE_DEST_ATOP:
