@@ -2034,14 +2034,17 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_nifti_get_type(); 
 #endif /*HAVE_NIFTI*/
 
-#ifdef HAVE_HEIF
+#ifdef HAVE_HEIF_DECODER
 	vips_foreign_load_heif_get_type(); 
 	vips_foreign_load_heif_file_get_type(); 
 	vips_foreign_load_heif_buffer_get_type(); 
+#endif /*HAVE_HEIF_DECODER*/
+
+#ifdef HAVE_HEIF_ENCODER
 	vips_foreign_save_heif_get_type(); 
 	vips_foreign_save_heif_file_get_type(); 
 	vips_foreign_save_heif_buffer_get_type(); 
-#endif /*HAVE_HEIF*/
+#endif /*HAVE_HEIF_ENCODER*/
 
 	vips__foreign_load_operation = 
 		g_quark_from_static_string( "vips-foreign-load-operation" ); 

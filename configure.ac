@@ -928,12 +928,23 @@ AC_ARG_WITH([heif],
 
 if test x"$with_heif" != x"no"; then
   PKG_CHECK_MODULES(HEIF, libheif,
-    [AC_DEFINE(HAVE_HEIF,1,[define if you have libheif installed.])
-     with_heif=yes
+    [with_heif=yes
+     have_h265_decoder=`$PKG_CONFIG libheif --variable builtin_h265_decoder`
+     if test x"$have_h265_decoder" = x"yes"; then
+        AC_DEFINE(HAVE_HEIF_DECODER,1,
+	     [define if your libheif has decode support.])
+     fi
+     have_h265_encoder=`$PKG_CONFIG libheif --variable builtin_h265_encoder`
+     if test x"$have_h265_encoder" = x"yes"; then
+        AC_DEFINE(HAVE_HEIF_ENCODER,1,
+	     [define if your libheif has encode support.])
+     fi
      PACKAGES_USED="$PACKAGES_USED libheif"
     ],
     [AC_MSG_WARN([libheif not found; disabling HEIF support])
      with_heif=no
+     have_h265_decoder=
+     have_h265_encoder=
     ]
   )
 fi

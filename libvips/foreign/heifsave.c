@@ -48,7 +48,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#ifdef HAVE_HEIF
+#ifdef HAVE_HEIF_ENCODER
 
 #include <libheif/heif.h>
 
@@ -568,7 +568,7 @@ vips_foreign_save_heif_buffer_init( VipsForeignSaveHeifBuffer *buffer )
 {
 }
 
-#endif /*HAVE_HEIF*/
+#endif /*HAVE_HEIF_ENCODER*/
 
 /**
  * vips_heifsave: (method)

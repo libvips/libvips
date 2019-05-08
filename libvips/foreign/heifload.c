@@ -50,7 +50,7 @@
 #include <vips/debug.h>
 #include <vips/internal.h>
 
-#ifdef HAVE_HEIF
+#ifdef HAVE_HEIF_DECODER
 
 #include <libheif/heif.h>
 
@@ -919,7 +919,7 @@ vips_foreign_load_heif_buffer_init( VipsForeignLoadHeifBuffer *buffer )
 {
 }
 
-#endif /*HAVE_HEIF*/
+#endif /*HAVE_HEIF_DECODER*/
 
 /**
  * vips_heifload:
