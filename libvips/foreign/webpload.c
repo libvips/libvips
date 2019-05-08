@@ -6,6 +6,8 @@
  * 	- add @shrink
  * 1/11/18
  * 	- add @page, @n
+ * 30/4/19
+ * 	- deprecate @shrink, use @scale instead
  */
 
 /*
@@ -64,9 +66,13 @@ typedef struct _VipsForeignLoadWebp {
 	 */
 	int n;
 
-	/* Shrink by this much during load.
+	/* Scale by this much during load.
 	 */
-	int shrink; 
+	double scale; 
+
+	/* Old and deprecated scaling path.
+	 */
+	int shrink;
 } VipsForeignLoadWebp;
 
 typedef VipsForeignLoadClass VipsForeignLoadWebpClass;
@@ -120,10 +126,20 @@ vips_foreign_load_webp_class_init( VipsForeignLoadWebpClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoadWebp, n ),
 		-1, 100000, 1 );
 
-	VIPS_ARG_INT( class, "shrink", 22, 
+	VIPS_ARG_DOUBLE( class, "scale", 22, 
+		_( "Scale" ), 
+		_( "Scale factor on load" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadWebp, scale ),
+		0.0, 1024.0, 1.0 );
+
+	/* Old and deprecated scaling API. A float param lets do
+	 * shrink-on-load for thumbnail faster and more accurately.
+	 */
+	VIPS_ARG_INT( class, "shrink", 23, 
 		_( "Shrink" ), 
 		_( "Shrink factor on load" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignLoadWebp, shrink ),
 		1, 1024, 1 );
 
@@ -134,6 +150,7 @@ vips_foreign_load_webp_init( VipsForeignLoadWebp *webp )
 {
 	webp->n = 1;
 	webp->shrink = 1;
+	webp->scale = 1.0;
 }
 
 typedef struct _VipsForeignLoadWebpFile {
@@ -168,8 +185,15 @@ vips_foreign_load_webp_file_header( VipsForeignLoad *load )
 	VipsForeignLoadWebp *webp = (VipsForeignLoadWebp *) load;
 	VipsForeignLoadWebpFile *file = (VipsForeignLoadWebpFile *) load;
 
+	/* BC for the old API.
+	 */
+	if( !vips_object_argument_isset( VIPS_OBJECT( load ), "scale" ) &&
+		vips_object_argument_isset( VIPS_OBJECT( load ), "shrink" ) &&
+		webp->shrink != 0 )
+		webp->scale = 1.0 / webp->shrink;
+
 	if( vips__webp_read_file_header( file->filename, load->out, 
-		webp->page, webp->n, webp->shrink ) )
+		webp->page, webp->n, webp->scale ) )
 		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, file->filename );
@@ -184,7 +208,7 @@ vips_foreign_load_webp_file_load( VipsForeignLoad *load )
 	VipsForeignLoadWebpFile *file = (VipsForeignLoadWebpFile *) load;
 
 	if( vips__webp_read_file( file->filename, load->real, 
-		webp->page, webp->n, webp->shrink ) )
+		webp->page, webp->n, webp->scale ) )
 		return( -1 );
 
 	return( 0 );
@@ -249,7 +273,7 @@ vips_foreign_load_webp_buffer_header( VipsForeignLoad *load )
 
 	if( vips__webp_read_buffer_header( buffer->buf->data, 
 		buffer->buf->length, load->out, 
-		webp->page, webp->n, webp->shrink ) )
+		webp->page, webp->n, webp->scale ) )
 		return( -1 );
 
 	return( 0 );
@@ -263,7 +287,7 @@ vips_foreign_load_webp_buffer_load( VipsForeignLoad *load )
 
 	if( vips__webp_read_buffer( buffer->buf->data, buffer->buf->length, 
 		load->real, 
-		webp->page, webp->n, webp->shrink ) )
+		webp->page, webp->n, webp->scale ) )
 		return( -1 );
 
 	return( 0 );
@@ -317,7 +341,7 @@ vips_foreign_load_webp_buffer_init( VipsForeignLoadWebpBuffer *buffer )
  *
  * * @page: %gint, page (frame) to read
  * * @n: %gint, load this many pages
- * * @shrink: %gint, shrink by this much on load
+ * * @scale: %gdouble, scale by this much on load
  *
  * Read a WebP file into a VIPS image. 
  *
@@ -328,7 +352,8 @@ vips_foreign_load_webp_buffer_init( VipsForeignLoadWebpBuffer *buffer )
  * left. Set to -1 to mean "until the end of the document". Use vips_grid() 
  * to change page layout.
  *
- * Use @shrink to specify a shrink-on-load factor.
+ * Use @scale to specify a scale-on-load factor. For example, 2.0 to double
+ * the size on load.
  *
  * The loader supports ICC, EXIF and XMP metadata. 
  *
@@ -360,7 +385,7 @@ vips_webpload( const char *filename, VipsImage **out, ... )
  *
  * * @page: %gint, page (frame) to read
  * * @n: %gint, load this many pages
- * * @shrink: %gint, shrink by this much on load
+ * * @scale: %gdouble, scale by this much on load
  *
  * Read a WebP-formatted memory block into a VIPS image. Exactly as
  * vips_webpload(), but read from a memory buffer. 

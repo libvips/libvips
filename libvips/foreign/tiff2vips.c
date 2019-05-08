@@ -2345,25 +2345,7 @@ rtiff_new_buffer( const void *buf, size_t len, VipsImage *out,
 	return( rtiff );
 }
 
-/* 
-
-	FIXME ... Unused for now, perhaps if we add another format flag.
-
-static int
-istiffpyramid( const char *name )
-{
-	TIFF *tif;
-
-	vips__tiff_init();
-
-	if( (tif = get_directory( name, 2 )) ) {
-		// We can see page 2 ... assume it is.
-		TIFFClose( tif );
-		return( 1 );
-	}
-
-	return( 0 );
-}
+/* For istiffpyramid(), see vips_thumbnail_get_tiff_pyramid().
  */
 
 int
@@ -2379,7 +2361,8 @@ vips__tiff_read( const char *filename, VipsImage *out,
 
 	vips__tiff_init();
 
-	if( !(rtiff = rtiff_new_filename( filename, out, page, n, autorotate )) )
+	if( !(rtiff = rtiff_new_filename( filename, out, 
+		page, n, autorotate )) )
 		return( -1 );
 
 	if( rtiff->header.tiled ) {
@@ -2394,7 +2377,7 @@ vips__tiff_read( const char *filename, VipsImage *out,
 	return( 0 );
 }
 
-/* On a header-only read, we can just swap width/height if orientaion is 6 or
+/* On a header-only read, we can just swap width/height if orientation is 6 or
  * 8. 
  */
 static void

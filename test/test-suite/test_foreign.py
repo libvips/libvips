@@ -597,7 +597,7 @@ class TestForeign:
         def pdf_valid(im):
             a = im(10, 10)
             assert_almost_equal_objects(a, [35, 31, 32, 255])
-            assert im.width == 1133
+            assert im.width == 1134
             assert im.height == 680
             assert im.bands == 4
 

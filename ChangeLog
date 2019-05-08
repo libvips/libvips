@@ -37,6 +37,7 @@
 - dzsave to szi will write all associated images
 - remove old c++ and python interfaces
 - vipsthumbnail can thumbnail animated and multipage images
+- deprecate webpload @shrink, use @scale instead
 
 31/3/19 started 8.7.5
 - better buffer sizing in tiff reader [omira-sch]
