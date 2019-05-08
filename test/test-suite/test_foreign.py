@@ -843,6 +843,9 @@ class TestForeign:
 
         self.file_loader("heifload", HEIC_FILE, heif_valid)
         self.buffer_loader("heifload_buffer", HEIC_FILE, heif_valid)
+
+    @skip_if_no("heifsave")
+    def test_heifsave(self):
         self.save_load_buffer("heifsave_buffer", "heifload_buffer",
                               self.colour, 80)
         self.save_load("%s.heic", self.colour)
