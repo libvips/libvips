@@ -930,12 +930,14 @@ if test x"$with_heif" != x"no"; then
   PKG_CHECK_MODULES(HEIF, libheif,
     [with_heif=yes
      have_h265_decoder=`$PKG_CONFIG libheif --variable builtin_h265_decoder`
-     if test x"$have_h265_decoder" = x"yes"; then
+     # test for !=no so that we work for older libheif which does not have
+     # this variable
+     if test x"$have_h265_decoder" != x"no"; then
         AC_DEFINE(HAVE_HEIF_DECODER,1,
 	     [define if your libheif has decode support.])
      fi
      have_h265_encoder=`$PKG_CONFIG libheif --variable builtin_h265_encoder`
-     if test x"$have_h265_encoder" = x"yes"; then
+     if test x"$have_h265_encoder" != x"no"; then
         AC_DEFINE(HAVE_HEIF_ENCODER,1,
 	     [define if your libheif has encode support.])
      fi
