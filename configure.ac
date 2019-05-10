@@ -155,10 +155,8 @@ VIPS_ENABLE_DEPRECATED=0
 if test x"$enable_deprecated" != x"no"; then
   VIPS_ENABLE_DEPRECATED=1
   enable_deprecated=yes
-  AM_CONDITIONAL(ENABLE_DEPRECATED, true)
-else
-  AM_CONDITIONAL(ENABLE_DEPRECATED, false)
 fi
+AM_CONDITIONAL(ENABLE_DEPRECATED, [test x"$enable_deprecated" = x"yes"])
 
 # this gets pasted into version.h as a #define
 AC_SUBST(VIPS_ENABLE_DEPRECATED)
@@ -168,7 +166,7 @@ AC_SUBST(VIPS_ENABLE_DEPRECATED)
 # on most platforms, but not all, we just include -lstdc++ in the link line 
 # for programs
 
-# we ought to write a proper configure test for this :( 
+# we ought to have a proper configure test for this :( 
 
 AC_MSG_CHECKING([for needs -lstdc++])
 case "$host_os" in
@@ -200,11 +198,7 @@ if test x"$vips_os_win32" = x"yes"; then
 fi
 
 # CImg needs flags changed on win32
-if test x"$vips_os_win32" = x"yes"; then
-  AM_CONDITIONAL(OS_WIN32, true)
-else
-  AM_CONDITIONAL(OS_WIN32, false)
-fi
+AM_CONDITIONAL(OS_WIN32, [test x"$vips_os_win32" = x"yes"])
 
 # Cygwin/mingw need binary open to avoid CR/LF madness
 # ... should be a better way to test for this
@@ -559,12 +553,11 @@ AC_ARG_ENABLE([cpp7],
   AS_HELP_STRING([--enable-cpp7],
     [enable deprecated vips7 C++ binding (default: no)]),
   [enable_cpp7=$enableval
-   AM_CONDITIONAL(ENABLE_CPP7, true)
   ], 
   [enable_cpp7="no (default)"
-   AM_CONDITIONAL(ENABLE_CPP7, false)
   ]
 )
+AM_CONDITIONAL(ENABLE_CPP7, [test x"$enable_cpp7" = x"yes"])
 
 # optional supporting libraries
 
@@ -886,11 +879,7 @@ fi
 
 # we need a conditional for this to only compile in fallback profiles if lcms
 # is detected
-if test x"$with_lcms" != x"no"; then
-  AM_CONDITIONAL(ENABLE_LCMS, true)
-else
-  AM_CONDITIONAL(ENABLE_LCMS, false)
-fi
+AM_CONDITIONAL(ENABLE_LCMS, [test x"$with_lcms" != x"no"])
 
 # OpenEXR
 AC_ARG_WITH([OpenEXR], 
@@ -1237,7 +1226,7 @@ if test x"$enable_pyvips8" = x"yes"; then
   PKG_CHECK_MODULES(PYGOBJECT, [pygobject-3.0 >= 3.13.0])
 fi
 
-AM_CONDITIONAL(ENABLE_PYVIPS8, test x"$enable_pyvips8" = x"yes")
+AM_CONDITIONAL(ENABLE_PYVIPS8, [test x"$enable_pyvips8" = x"yes"])
 
 # look for TIFF with pkg-config ... fall back to our tester
 # pkgconfig support for libtiff starts with libtiff-4
