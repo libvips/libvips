@@ -447,7 +447,7 @@ vips_mapim_class_init( VipsMapimClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "mapim";
-	vobject_class->description = _( "resample with an mapim image" );
+	vobject_class->description = _( "resample with a map image" );
 	vobject_class->build = vips_mapim_build;
 
 	VIPS_ARG_IMAGE( class, "index", 3, 

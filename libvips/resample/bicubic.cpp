@@ -580,15 +580,15 @@ vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 		break;
 
 	case VIPS_FORMAT_USHORT:
-		bicubic_unsigned_int_tab<unsigned short, USHRT_MAX>(
+		bicubic_unsigned_int32_tab<unsigned short, USHRT_MAX>(
 			out, p, bands, lskip,
-			cxi, cyi );
+			cxf, cyf );
 		break;
 
 	case VIPS_FORMAT_SHORT:
-		bicubic_signed_int_tab<signed short, SHRT_MIN, SHRT_MAX>(
+		bicubic_signed_int32_tab<signed short, SHRT_MIN, SHRT_MAX>(
 			out, p, bands, lskip,
-			cxi, cyi );
+			cxf, cyf );
 		break;
 
 	case VIPS_FORMAT_UINT:
