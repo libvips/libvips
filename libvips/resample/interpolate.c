@@ -452,10 +452,10 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 	float c3 = Y - c4; \
 	float c1 = Yd - c2; \
 	\
-	int sc1 = VIPS_INTERPOLATE_SCALE * c1;\
-	int sc2 = VIPS_INTERPOLATE_SCALE * c2;\
-	int sc3 = VIPS_INTERPOLATE_SCALE * c3;\
-	int sc4 = VIPS_INTERPOLATE_SCALE * c4;\
+	int sc1 = VIPS_INTERPOLATE_SCALE * c1; \
+	int sc2 = VIPS_INTERPOLATE_SCALE * c2; \
+	int sc3 = VIPS_INTERPOLATE_SCALE * c3; \
+	int sc4 = VIPS_INTERPOLATE_SCALE * c4; \
  	\
 	const TYPE * restrict tp1 = (TYPE *) p1; \
 	const TYPE * restrict tp2 = (TYPE *) p2; \
@@ -472,8 +472,8 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 	z += 1; \
 }
 
-/* Interpolate a pel ... int32 and float types, no tables, float 
- * arithmetic. Use float, not double, for coefficient calculation, or we can
+/* Interpolate a pel ... int16, int32 and float types, no tables, float 
+ * arithmetic. Use double not float for coefficient calculation or we can
  * get small over/undershoots.
  */
 #define BILINEAR_FLOAT( TYPE ) { \
@@ -498,15 +498,15 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 	VIPS_UNROLL( b, BILINEAR_FLOAT_INNER ); \
 }
 
-/* Expand for band types. with a fixed-point interpolator and a float
- * interpolator.
+/* The fixed-point path is fine for uchar pixels, but it'll be inaccurate for
+ * shorts and larger. 
  */
 #define SWITCH_INTERPOLATE( FMT, INT, FLOAT ) { \
 	switch( (FMT) ) { \
 	case VIPS_FORMAT_UCHAR:	INT( unsigned char ); break; \
 	case VIPS_FORMAT_CHAR: 	INT( char ); break;  \
-	case VIPS_FORMAT_USHORT:INT( unsigned short ); break;  \
-	case VIPS_FORMAT_SHORT: INT( short ); break;  \
+	case VIPS_FORMAT_USHORT:FLOAT( unsigned short ); break;  \
+	case VIPS_FORMAT_SHORT: FLOAT( short ); break;  \
 	case VIPS_FORMAT_UINT: 	FLOAT( unsigned int ); break;  \
 	case VIPS_FORMAT_INT: 	FLOAT( int );  break;  \
 	case VIPS_FORMAT_FLOAT: FLOAT( float ); break;  \
@@ -544,8 +544,7 @@ vips_interpolate_bilinear_interpolate( VipsInterpolate *interpolate,
 	g_assert( (int) x + 1 < VIPS_RECT_RIGHT( &in->valid ) );
 	g_assert( (int) y + 1 < VIPS_RECT_BOTTOM( &in->valid ) );
 
-	SWITCH_INTERPOLATE( in->im->BandFmt,
-		BILINEAR_INT, BILINEAR_FLOAT );
+	SWITCH_INTERPOLATE( in->im->BandFmt, BILINEAR_INT, BILINEAR_FLOAT );
 }
 
 static void
