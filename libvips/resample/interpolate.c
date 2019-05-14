@@ -431,8 +431,8 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
  */
 
 #define BILINEAR_INT_INNER { \
-	tq[z] = (sc1 * tp1[z] + sc2 * tp2[z] + \
-		 sc3 * tp3[z] + sc4 * tp4[z] + \
+	tq[z] = (c1 * tp1[z] + c2 * tp2[z] + \
+		 c3 * tp3[z] + c4 * tp4[z] + \
 		 (1 << VIPS_INTERPOLATE_SHIFT) / 2) >> VIPS_INTERPOLATE_SHIFT; \
 	z += 1; \
 }
@@ -442,21 +442,16 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 #define BILINEAR_INT( TYPE ) { \
 	TYPE * restrict tq = (TYPE *) out; \
 	\
-	float Y = y - iy; \
-	float X = x - ix; \
-        \
-	float Yd = 1.0f - Y; \
-        \
-	float c4 = Y * X; \
-	float c2 = Yd * X; \
-	float c3 = Y - c4; \
-	float c1 = Yd - c2; \
+	int X = (x - ix) * VIPS_INTERPOLATE_SCALE; \
+	int Y = (y - iy) * VIPS_INTERPOLATE_SCALE; \
 	\
-	int sc1 = VIPS_INTERPOLATE_SCALE * c1; \
-	int sc2 = VIPS_INTERPOLATE_SCALE * c2; \
-	int sc3 = VIPS_INTERPOLATE_SCALE * c3; \
-	int sc4 = VIPS_INTERPOLATE_SCALE * c4; \
- 	\
+	int Yd = VIPS_INTERPOLATE_SCALE - Y; \
+        \
+	int c4 = (Y * X) >> VIPS_INTERPOLATE_SHIFT; \
+	int c2 = (Yd * X) >> VIPS_INTERPOLATE_SHIFT; \
+	int c3 = Y - c4; \
+	int c1 = Yd - c2; \
+	\
 	const TYPE * restrict tp1 = (TYPE *) p1; \
 	const TYPE * restrict tp2 = (TYPE *) p2; \
 	const TYPE * restrict tp3 = (TYPE *) p3; \
@@ -479,8 +474,8 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 #define BILINEAR_FLOAT( TYPE ) { \
 	TYPE * restrict tq = (TYPE *) out; \
 	\
-	double Y = y - iy; \
 	double X = x - ix; \
+	double Y = y - iy; \
         \
 	double Yd = 1.0f - Y; \
         \
@@ -504,15 +499,15 @@ G_DEFINE_TYPE( VipsInterpolateBilinear, vips_interpolate_bilinear,
 #define SWITCH_INTERPOLATE( FMT, INT, FLOAT ) { \
 	switch( (FMT) ) { \
 	case VIPS_FORMAT_UCHAR:	INT( unsigned char ); break; \
-	case VIPS_FORMAT_CHAR: 	INT( char ); break;  \
-	case VIPS_FORMAT_USHORT:FLOAT( unsigned short ); break;  \
-	case VIPS_FORMAT_SHORT: FLOAT( short ); break;  \
-	case VIPS_FORMAT_UINT: 	FLOAT( unsigned int ); break;  \
-	case VIPS_FORMAT_INT: 	FLOAT( int );  break;  \
-	case VIPS_FORMAT_FLOAT: FLOAT( float ); break;  \
-	case VIPS_FORMAT_DOUBLE:FLOAT( double ); break;  \
-	case VIPS_FORMAT_COMPLEX: FLOAT( float ); break;  \
-	case VIPS_FORMAT_DPCOMPLEX:FLOAT( double ); break;  \
+	case VIPS_FORMAT_CHAR: 	INT( char ); break; \
+	case VIPS_FORMAT_USHORT:INT( unsigned short ); break; \
+	case VIPS_FORMAT_SHORT: INT( short ); break; \
+	case VIPS_FORMAT_UINT: 	FLOAT( unsigned int ); break; \
+	case VIPS_FORMAT_INT: 	FLOAT( int );  break; \
+	case VIPS_FORMAT_FLOAT: FLOAT( float ); break; \
+	case VIPS_FORMAT_DOUBLE:FLOAT( double ); break; \
+	case VIPS_FORMAT_COMPLEX: FLOAT( float ); break; \
+	case VIPS_FORMAT_DPCOMPLEX:FLOAT( double ); break; \
 	default: \
 		g_assert( FALSE ); \
 	} \
