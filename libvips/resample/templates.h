@@ -154,7 +154,7 @@ unsigned_fixed_round( int v )
 	return( (v + round_by) >> VIPS_INTERPOLATE_SHIFT );
 }
 
-/* Fixed-point integer bicubic, used for 8 and 16-bit types.
+/* Fixed-point integer bicubic, used for 8-bit types.
  */
 template <typename T> static int inline
 bicubic_unsigned_int(
@@ -206,7 +206,7 @@ signed_fixed_round( int v )
 	return( (v + round_by) >> VIPS_INTERPOLATE_SHIFT );
 }
 
-/* Fixed-point integer bicubic, used for 8 and 16-bit types.
+/* Fixed-point integer bicubic, used for 8-bit types.
  */
 template <typename T> static int inline
 bicubic_signed_int(
