@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>libvips</title>
+    <meta name="description" content="A fast image processing library with low memory needs.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/libvips/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="/libvips/favicon.ico">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name"><a href="/libvips">libvips</a></h1>
+      <h2 class="project-tagline">A fast image processing library with low memory needs.</h2>
+      <a href="https://github.com/libvips/libvips" class="btn">Project on GitHub</a>
+      <a href="https://github.com/libvips/libvips/releases" class="btn">Download</a>
+      <a href="/libvips/install.html" class="btn">Install</a>
+      <a href="/libvips/API/current" class="btn">Documentation</a>
+      <a href="https://github.com/libvips/libvips/issues" class="btn">Issues</a>
+      <a href="https://github.com/libvips/libvips/wiki" class="btn">Wiki</a>
+    </section>
+
+    <section class="main-content">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#libvips-histogram.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch03.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="libvips-freqfilt.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="libvips-draw.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="libvips-histogram"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libvips-histogram.top_of_page"></a>histogram</span></h2>
+<p>histogram — find, manipulate and apply histograms and lookup tables</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libvips-histogram.stability-level"></a><h2>Stability Level</h2>
+<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="libvips-histogram.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-histogram.html#vips-maplut" title="vips_maplut ()">vips_maplut</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-histogram.html#vips-percent" title="vips_percent ()">vips_percent</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-histogram.html#vips-stdif" title="vips_stdif ()">vips_stdif</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-histogram.html#vips-hist-cum" title="vips_hist_cum ()">vips_hist_cum</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-histogram.html#vips-hist-norm" title="vips_hist_norm ()">vips_hist_norm</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-histogram.html#vips-hist-equal" title="vips_hist_equal ()">vips_hist_equal</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-histogram.html#vips-hist-plot" title="vips_hist_plot ()">vips_hist_plot</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-histogram.html#vips-hist-match" title="vips_hist_match ()">vips_hist_match</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-histogram.html#vips-hist-local" title="vips_hist_local ()">vips_hist_local</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-histogram.html#vips-hist-ismonotonic" title="vips_hist_ismonotonic ()">vips_hist_ismonotonic</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-histogram.html#vips-hist-entropy" title="vips_hist_entropy ()">vips_hist_entropy</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libvips-histogram.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;vips/vips.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="libvips-histogram.description"></a><h2>Description</h2>
+<p>Histograms and look-up tables are 1xn or nx1 images, where n is less than
+256 or less than 65536, corresponding to 8- and 16-bit unsigned int images. 
+They are tagged with a <a class="link" href="VipsImage.html#VipsInterpretation" title="enum VipsInterpretation"><span class="type">VipsInterpretation</span></a> of 
+<a class="link" href="VipsImage.html#VIPS-INTERPRETATION-HISTOGRAM:CAPS"><span class="type">VIPS_INTERPRETATION_HISTOGRAM</span></a> and usually displayed by user-interfaces 
+such as nip2 as plots rather than images.</p>
+<p>These functions can be broadly grouped as things to find or build 
+histograms (<a class="link" href="libvips-arithmetic.html#vips-hist-find" title="vips_hist_find ()"><code class="function">vips_hist_find()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-hist-find-indexed" title="vips_hist_find_indexed ()"><code class="function">vips_hist_find_indexed()</code></a>,
+<a class="link" href="libvips-arithmetic.html#vips-hist-find-ndim" title="vips_hist_find_ndim ()"><code class="function">vips_hist_find_ndim()</code></a>, <a class="link" href="libvips-create.html#vips-buildlut" title="vips_buildlut ()"><code class="function">vips_buildlut()</code></a>, <a class="link" href="libvips-create.html#vips-identity" title="vips_identity ()"><code class="function">vips_identity()</code></a>), 
+operations that 
+manipulate histograms in some way (<a class="link" href="libvips-histogram.html#vips-hist-cum" title="vips_hist_cum ()"><code class="function">vips_hist_cum()</code></a>, <a class="link" href="libvips-histogram.html#vips-hist-norm" title="vips_hist_norm ()"><code class="function">vips_hist_norm()</code></a>), 
+operations to apply histograms (<a class="link" href="libvips-histogram.html#vips-maplut" title="vips_maplut ()"><code class="function">vips_maplut()</code></a>), and a variety of utility 
+operations.</p>
+<p>A final group of operations build tone curves. These are useful in
+pre-press work for adjusting the appearance of images. They are designed
+for CIELAB images, but might be useful elsewhere.</p>
+</div>
+<div class="refsect1">
+<a name="libvips-histogram.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="vips-maplut"></a><h3>vips_maplut ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_maplut (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+             <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+             <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *lut</code></em>,
+             <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>band</code></em>
+: apply one-band <em class="parameter"><code>lut</code></em>
+ to this band of <em class="parameter"><code>in</code></em>
+</p></li></ul></div>
+<p>Map an image through another image acting as a LUT (Look Up Table). 
+The lut may have any type and the output image will be that type.</p>
+<p>The input image will be cast to one of the unsigned integer types, that is,
+VIPS_FORMAT_UCHAR, VIPS_FORMAT_USHORT or VIPS_FORMAT_UINT.</p>
+<p>If <em class="parameter"><code>lut</code></em>
+ is too small for the input type (for example, if <em class="parameter"><code>in</code></em>
+ is
+VIPS_FORMAT_UCHAR but <em class="parameter"><code>lut</code></em>
+ only has 100 elements), the lut is padded out
+by copying the last element. Overflows are reported at the end of 
+computation.
+If <em class="parameter"><code>lut</code></em>
+ is too large, extra values are ignored. </p>
+<p>If <em class="parameter"><code>lut</code></em>
+ has one band and <em class="parameter"><code>band</code></em>
+ is -1 (the default), then all bands of <em class="parameter"><code>in</code></em>
+ 
+pass through <em class="parameter"><code>lut</code></em>
+. If <em class="parameter"><code>band</code></em>
+ is &gt;= 0, then just that band of <em class="parameter"><code>in</code></em>
+ passes 
+through <em class="parameter"><code>lut</code></em>
+ and other bands are just copied. </p>
+<p>If <em class="parameter"><code>lut</code></em>
+
+has same number of bands as <em class="parameter"><code>in</code></em>
+, then each band is mapped
+separately. If <em class="parameter"><code>in</code></em>
+ has one band, then <em class="parameter"><code>lut</code></em>
+ may have many bands and
+the output will have the same number of bands as <em class="parameter"><code>lut</code></em>
+.</p>
+<p>See also: <a class="link" href="libvips-arithmetic.html#vips-hist-find" title="vips_hist_find ()"><code class="function">vips_hist_find()</code></a>, <a class="link" href="libvips-create.html#vips-identity" title="vips_identity ()"><code class="function">vips_identity()</code></a>.</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-maplut.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>lut</p></td>
+<td class="parameter_description"><p>look-up table</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-maplut.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-percent"></a><h3>vips_percent ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_percent (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+              <em class="parameter"><code><span class="type">double</span> percent</code></em>,
+              <em class="parameter"><code><span class="type">int</span> *threshold</code></em>,
+              <em class="parameter"><code>...</code></em>);</pre>
+<p>vips_percent() returns (through the <em class="parameter"><code>threshold</code></em>
+ parameter) the threshold 
+above which there are <em class="parameter"><code>percent</code></em>
+ values of <em class="parameter"><code>in</code></em>
+. If for example percent=10, the
+number of pels of the input image with values greater than <em class="parameter"><code>threshold</code></em>
+
+will correspond to 10% of all pels of the image.</p>
+<p>The function works for uchar and ushort images only.  It can be used 
+to threshold the scaled result of a filtering operation.</p>
+<p>See also: <a class="link" href="libvips-arithmetic.html#vips-hist-find" title="vips_hist_find ()"><code class="function">vips_hist_find()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-profile" title="vips_profile ()"><code class="function">vips_profile()</code></a>.</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-percent.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>percent</p></td>
+<td class="parameter_description"><p>threshold percentage</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>threshold</p></td>
+<td class="parameter_description"><p>output threshold value. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-percent.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-stdif"></a><h3>vips_stdif ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_stdif (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+            <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+            <em class="parameter"><code><span class="type">int</span> width</code></em>,
+            <em class="parameter"><code><span class="type">int</span> height</code></em>,
+            <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>a</code></em>
+: weight of new mean</p></li>
+<li class="listitem"><p><em class="parameter"><code>m0</code></em>
+: target mean</p></li>
+<li class="listitem"><p><em class="parameter"><code>b</code></em>
+: weight of new deviation</p></li>
+<li class="listitem"><p><em class="parameter"><code>s0</code></em>
+: target deviation</p></li>
+</ul></div>
+<p>vips_stdif() preforms statistical differencing according to the formula
+given in page 45 of the book "An Introduction to Digital Image 
+Processing" by Wayne Niblack. This transformation emphasises the way in 
+which a pel differs statistically from its neighbours. It is useful for 
+enhancing low-contrast images with lots of detail, such as X-ray plates.</p>
+<p>At point (i,j) the output is given by the equation:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="function">vout</span><span class="gtkdoc opt">(</span>i<span class="gtkdoc opt">,</span>j<span class="gtkdoc opt">) =</span> @a <span class="gtkdoc opt">*</span> @m0 <span class="gtkdoc opt">+ (</span><span class="number">1</span> <span class="gtkdoc opt">-</span> @a<span class="gtkdoc opt">) *</span> meanv <span class="gtkdoc opt">+</span> 
+      <span class="gtkdoc opt">(</span><span class="function">vin</span><span class="gtkdoc opt">(</span>i<span class="gtkdoc opt">,</span>j<span class="gtkdoc opt">) -</span> meanv<span class="gtkdoc opt">) * (</span>@b <span class="gtkdoc opt">*</span> @s0<span class="gtkdoc opt">) / (</span>@s0 <span class="gtkdoc opt">+</span> @b <span class="gtkdoc opt">*</span> stdv<span class="gtkdoc opt">)</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
+<p>Values <em class="parameter"><code>a</code></em>
+, <em class="parameter"><code>m0</code></em>
+, <em class="parameter"><code>b</code></em>
+ and <em class="parameter"><code>s0</code></em>
+ are entered, while meanv and stdv are the values
+calculated over a moving window of size <em class="parameter"><code>width</code></em>
+, <em class="parameter"><code>height</code></em>
+ centred on pixel 
+(i,j). <em class="parameter"><code>m0</code></em>
+ is the new mean, <em class="parameter"><code>a</code></em>
+ is the weight given to it. <em class="parameter"><code>s0</code></em>
+ is the new 
+standard deviation, <em class="parameter"><code>b</code></em>
+ is the weight given to it. </p>
+<p>Try:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1</pre></td>
+        <td class="listing_code"><pre class="programlisting">vips stdif $VIPSHOME<span class="gtkdoc opt">/</span>pics<span class="gtkdoc opt">/</span>huysum<span class="gtkdoc opt">.</span>v fred<span class="gtkdoc opt">.</span>v <span class="number">0.5 128 0.5 50 11 11</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
+<p>The operation works on one-band uchar images only, and writes a one-band 
+uchar image as its result. The output image has the same size as the 
+input.</p>
+<p>See also: <a class="link" href="libvips-histogram.html#vips-hist-local" title="vips_hist_local ()"><code class="function">vips_hist_local()</code></a>.</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-stdif.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>width of region</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>height of region</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-stdif.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-hist-cum"></a><h3>vips_hist_cum ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_hist_cum (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+               <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+               <em class="parameter"><code>...</code></em>);</pre>
+<p>Form cumulative histogram. </p>
+<p>See also: <a class="link" href="libvips-histogram.html#vips-hist-norm" title="vips_hist_norm ()"><code class="function">vips_hist_norm()</code></a>.</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-hist-cum.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-hist-cum.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-hist-norm"></a><h3>vips_hist_norm ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_hist_norm (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+                <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                <em class="parameter"><code>...</code></em>);</pre>
+<p>Normalise histogram ... normalise range to make it square (ie. max ==
+number of elements). Normalise each band separately.</p>
+<p>See also: <a class="link" href="libvips-histogram.html#vips-hist-cum" title="vips_hist_cum ()"><code class="function">vips_hist_cum()</code></a>.</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-hist-norm.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-hist-norm.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-hist-equal"></a><h3>vips_hist_equal ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_hist_equal (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+                 <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                 <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>band</code></em>
+: band to equalise</p></li></ul></div>
+<p>Histogram-equalise <em class="parameter"><code>in</code></em>
+. Equalise using band <em class="parameter"><code>bandno</code></em>
+, or if <em class="parameter"><code>bandno</code></em>
+ is -1,
+equalise bands independently. The output format is always the same as the
+input format. </p>
+<p>See also:</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-hist-equal.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-hist-equal.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-hist-plot"></a><h3>vips_hist_plot ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_hist_plot (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+                <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                <em class="parameter"><code>...</code></em>);</pre>
+<p>Plot a 1 by any or any by 1 image file as a max by any or 
+any by max image using these rules:</p>
+<p><span class="emphasis"><em>unsigned char</em></span> max is always 256 </p>
+<p><span class="emphasis"><em>other unsigned integer types</em></span> output 0 - maxium 
+value of <em class="parameter"><code>in</code></em>
+.</p>
+<p><span class="emphasis"><em>signed int types</em></span> min moved to 0, max moved to max + min.</p>
+<p><span class="emphasis"><em>float types</em></span> min moved to 0, max moved to any 
+(square output)</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-hist-plot.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-hist-plot.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-hist-match"></a><h3>vips_hist_match ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_hist_match (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+                 <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *ref</code></em>,
+                 <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                 <em class="parameter"><code>...</code></em>);</pre>
+<p>Adjust <em class="parameter"><code>in</code></em>
+ to match <em class="parameter"><code>ref</code></em>
+. If <em class="parameter"><code>in</code></em>
+ and <em class="parameter"><code>ref</code></em>
+ are normalised
+cumulative histograms, <em class="parameter"><code>out</code></em>
+ will be a LUT that adjusts the PDF of the image
+from which <em class="parameter"><code>in</code></em>
+ was made to match the PDF of <em class="parameter"><code>ref</code></em>
+'s image. </p>
+<p>See also: <a class="link" href="libvips-histogram.html#vips-maplut" title="vips_maplut ()"><code class="function">vips_maplut()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-hist-find" title="vips_hist_find ()"><code class="function">vips_hist_find()</code></a>, <a class="link" href="libvips-histogram.html#vips-hist-norm" title="vips_hist_norm ()"><code class="function">vips_hist_norm()</code></a>,
+<a class="link" href="libvips-histogram.html#vips-hist-cum" title="vips_hist_cum ()"><code class="function">vips_hist_cum()</code></a>.</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-hist-match.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input histogram</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ref</p></td>
+<td class="parameter_description"><p>reference histogram </p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output histogram. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-hist-match.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-hist-local"></a><h3>vips_hist_local ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_hist_local (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+                 <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> width</code></em>,
+                 <em class="parameter"><code><span class="type">int</span> height</code></em>,
+                 <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>max_slope</code></em>
+: maximum brightening</p></li></ul></div>
+<p>Performs local histogram equalisation on <em class="parameter"><code>in</code></em>
+ using a
+window of size <em class="parameter"><code>width</code></em>
+ by <em class="parameter"><code>height</code></em>
+ centered on the input pixel. </p>
+<p>The output image is the same size as the input image. The edge pixels are
+created by mirroring the input image outwards.</p>
+<p>If <em class="parameter"><code>max_slope</code></em>
+ is greater than 0, it sets the maximum value for the slope of
+the cumulative histogram, that is, the maximum brightening that is
+performed. A value of 3 is often used. Local histogram equalization with
+contrast limiting is usually called CLAHE.</p>
+<p>See also: <a class="link" href="libvips-histogram.html#vips-hist-equal" title="vips_hist_equal ()"><code class="function">vips_hist_equal()</code></a>.</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-hist-local.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input image</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output image. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>width</p></td>
+<td class="parameter_description"><p>width of region</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>height</p></td>
+<td class="parameter_description"><p>height of region</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-hist-local.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-hist-ismonotonic"></a><h3>vips_hist_ismonotonic ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_hist_ismonotonic (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+                       <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> *out</code></em>,
+                       <em class="parameter"><code>...</code></em>);</pre>
+<p>Test <em class="parameter"><code>in</code></em>
+ for monotonicity. <em class="parameter"><code>out</code></em>
+ is set non-zero if <em class="parameter"><code>in</code></em>
+ is monotonic.</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-hist-ismonotonic.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>lookup-table to test</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>set non-zero if <em class="parameter"><code>in</code></em>
+is monotonic. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-hist-ismonotonic.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-hist-entropy"></a><h3>vips_hist_entropy ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_hist_entropy (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+                   <em class="parameter"><code><span class="type">double</span> *out</code></em>,
+                   <em class="parameter"><code>...</code></em>);</pre>
+<p>Estimate image entropy from a histogram. Entropy is calculated as:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="gtkdoc opt">-</span><span class="function">sum</span><span class="gtkdoc opt">(</span> p <span class="gtkdoc opt">*</span> <span class="function">log2</span><span class="gtkdoc opt">(</span> p <span class="gtkdoc opt">) )</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
+<p>where p is histogram-value / sum-of-histogram-values.</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-hist-entropy.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>input histogram </p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>image entropy. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-hist-entropy.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="libvips-histogram.other_details"></a><h2>Types and Values</h2>
+</div>
+<div class="refsect1">
+<a name="libvips-histogram.see-also"></a><h2>See Also</h2>
+<a class="link" href="VipsImage.html" title="VipsImage">image</a><a class="link" href="libvips-arithmetic.html" title="arithmetic">arithmetic</a><a class="link" href="libvips-create.html" title="create">create</a>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.28</div>
+</section>
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48550036-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
+</html>

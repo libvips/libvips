@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>libvips</title>
+    <meta name="description" content="A fast image processing library with low memory needs.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/libvips/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="/libvips/favicon.ico">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name"><a href="/libvips">libvips</a></h1>
+      <h2 class="project-tagline">A fast image processing library with low memory needs.</h2>
+      <a href="https://github.com/libvips/libvips" class="btn">Project on GitHub</a>
+      <a href="https://github.com/libvips/libvips/releases" class="btn">Download</a>
+      <a href="/libvips/install.html" class="btn">Install</a>
+      <a href="/libvips/API/current" class="btn">Documentation</a>
+      <a href="https://github.com/libvips/libvips/issues" class="btn">Issues</a>
+      <a href="https://github.com/libvips/libvips/wiki" class="btn">Wiki</a>
+    </section>
+
+    <section class="main-content">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="file-format.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="How-it-works.md.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="using-threads"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle">VIPS and threads</span></h2>
+<p>Using VIPS — VIPS and threading</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect3">
+<a name="using-threads-intro"></a><h4>Introduction</h4>
+<p>
+      This section tries to summarise the rules for threaded programs using 
+      libvips. Generally, libvips is threaded and thread-safe, with a few 
+      exceptions.
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-threads-images"></a><h4>Images</h4>
+<p>
+      On startup, you need to call <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a> single-threaded. After that,
+      you can freely create images in any thread and read them in any other 
+      thread. See the example at the end of this chapter. 
+      Note that results can also be shared between threads for you by the vips 
+      operation cache. 
+    </p>
+<p>
+      The exception is the drawing operators, such as <a class="link" href="libvips-draw.html#vips-draw-circle" title="vips_draw_circle ()"><code class="function">vips_draw_circle()</code></a>. 
+      These operations modify their image argument so you can't call them on 
+      the same image from more than one thread. Reading from an image while 
+      another thread is writing to it with one of the draw operations will 
+      obviously also fail.
+    </p>
+<p>
+      When libvips calculates an image, by default it will use as many 
+      threads as you have CPU cores. Use <a class="link" href="VipsOperation.html#vips-concurrency-set" title="vips_concurrency_set ()"><code class="function">vips_concurrency_set()</code></a> to change this.
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-threads-errors"></a><h4>Error handling</h4>
+<p>
+      libvips has a single error code (-1 or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>) returned by all functions 
+      on error. Error messages are not returned, instead they are logged  
+      in a single global error buffer shared by all threads, see 
+      <a class="link" href="libvips-error.html#vips-error-buffer" title="vips_error_buffer ()"><code class="function">vips_error_buffer()</code></a>. 
+    </p>
+<p>
+      This makes error handling very simple but the obvious downside is that
+      because error returns and error messages are separate, when you 
+      detect an error return you can't be 
+      sure that what's in the error buffer is the message that matches your
+      error. 
+    </p>
+<p>
+      The simplest way to handle this is to present the whole error log to 
+      the user on the next interaction and leave it to them to decide what 
+      action caused the failure. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-threads-regions"></a><h4>Using <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> between threads</h4>
+<p>
+      <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> objects are immutable and can be shared between 
+      threads very simply.
+      However the lower-level <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> object used to implement <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> 
+      (see <a class="link" href="extending.html" title="Extending VIPS">Extending VIPS</a>) is mutable and you 
+      can only use a <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> from one thread at once. 
+    </p>
+<p>
+      In fact it's worse than that: to reduce locking, <a class="link" href="VipsRegion.html" title="VipsRegion"><span class="type">VipsRegion</span></a> keeps a 
+      lot of state in per-thread storage. If you want to create a region in 
+      one thread and use it in another, you have to first tag the region as 
+      unowned from the creating thread with <code class="function">vips__region_no_ownership()</code>, then 
+      in the recieving thread take ownership with 
+      <code class="function">vips__region_take_ownership()</code>. See the source for operations like 
+      <a class="link" href="libvips-conversion.html#vips-tilecache" title="vips_tilecache ()"><code class="function">vips_tilecache()</code></a> if you're curious how this works. 
+    </p>
+<p>
+      libvips includes a set of sanity checks for region ownership and will
+      fail if you don't pass ownership correctly. 
+    </p>
+</div>
+<div class="refsect3">
+<a name="using-threads-example"></a><h4>Example</h4>
+<p>
+      This example runs many <a class="link" href="libvips-resample.html#vips-resize" title="vips_resize ()"><code class="function">vips_resize()</code></a> in parallel from many threads. 
+    </p>
+<div class="example">
+<a name="id-1.2.10.7.3"></a><p class="title"><b>Example 2. VIPS and threads example</b></p>
+<div class="example-contents">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="comment">/* Read from many threads. </span>
+<span class="comment"> *</span>
+<span class="comment"> * Compile with:</span>
+<span class="comment"> *</span>
+<span class="comment"> * 	gcc -g -Wall soak.c `pkg-config vips --cflags --libs`</span>
+<span class="comment"> *</span>
+<span class="comment"> * Run with:</span>
+<span class="comment"> *</span>
+<span class="comment"> * 	rm -rf x</span>
+<span class="comment"> * 	mkdir x</span>
+<span class="comment"> * 	for i in {0..10}; do ./a.out ~/pics/k2.jpg; done</span>
+<span class="comment"> *</span>
+<span class="comment"> */</span>
+
+<span class="gtkdoc ppc">#include &lt;stdio.h&gt;</span>
+<span class="gtkdoc ppc">#include &lt;glib.h&gt;</span>
+
+<span class="gtkdoc ppc">#include &lt;vips/vips.h&gt;</span>
+
+<span class="comment">/* How many pings we run at once.</span>
+<span class="comment"> */</span>
+<span class="gtkdoc ppc">#define NUM_IN_PARALLEL (50)</span>
+
+<span class="comment">/* Number of tests we do in total.</span>
+<span class="comment"> */</span>
+<span class="gtkdoc ppc">#define TOTAL_TESTS (NUM_IN_PARALLEL * 20)</span>
+
+<span class="comment">/* Workers queue up on this.</span>
+<span class="comment"> */</span>
+GMutex allocation_lock<span class="gtkdoc opt">;</span>
+
+<span class="comment">/* Our set of threads.</span>
+<span class="comment"> */</span>
+GThread <span class="gtkdoc opt">*</span>workers<span class="gtkdoc opt">[</span>NUM_IN_PARALLEL<span class="gtkdoc opt">];</span>
+
+<span class="comment">/* Number of calls so far.</span>
+<span class="comment"> */</span>
+<span class="gtkdoc kwb">int</span> n_calls <span class="gtkdoc opt">=</span> <span class="number">0</span><span class="gtkdoc opt">;</span>
+
+<span class="comment">/* Our test function. This is called by NUM_IN_PARALLEL threads a total of</span>
+<span class="comment"> * TOTAL_TESTS times. </span>
+<span class="comment"> */</span>
+<span class="gtkdoc kwb">static int</span>
+<span class="function">test</span> <span class="gtkdoc opt">(</span><span class="gtkdoc kwb">const char</span> <span class="gtkdoc opt">*</span>filename<span class="gtkdoc opt">)</span>
+<span class="gtkdoc opt">{</span>
+  VipsImage <span class="gtkdoc opt">*</span>im<span class="gtkdoc opt">, *</span>x<span class="gtkdoc opt">;</span>
+  <span class="gtkdoc kwb">char</span> output_file<span class="gtkdoc opt">[</span><span class="number">256</span><span class="gtkdoc opt">];</span>
+
+  <span class="function">snprintf</span> <span class="gtkdoc opt">(</span>output_file<span class="gtkdoc opt">,</span> <span class="number">256</span><span class="gtkdoc opt">,</span> <span class="string">"x/tmp-%p.jpg"</span><span class="gtkdoc opt">,</span> <span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Threads.html#g-thread-self">g_thread_self</a></span> <span class="gtkdoc opt">());</span>
+
+  <span class="keyword">if</span> <span class="gtkdoc opt">(!(</span>im <span class="gtkdoc opt">=</span> <span class="function"><a href="VipsImage.html#vips-image-new-from-file">vips_image_new_from_file</a></span> <span class="gtkdoc opt">(</span>filename<span class="gtkdoc opt">,</span>
+				       <span class="string">"access"</span><span class="gtkdoc opt">,</span> VIPS_ACCESS_SEQUENTIAL<span class="gtkdoc opt">,</span>
+				       NULL<span class="gtkdoc opt">)))</span>
+    <span class="keyword">return</span> <span class="gtkdoc opt">(-</span><span class="number">1</span><span class="gtkdoc opt">);</span>
+
+  <span class="keyword">if</span> <span class="gtkdoc opt">(</span><span class="function"><a href="libvips-resample.html#vips-resize">vips_resize</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">, &amp;</span>x<span class="gtkdoc opt">,</span> <span class="number">0.1</span><span class="gtkdoc opt">,</span> NULL<span class="gtkdoc opt">))</span>
+    <span class="gtkdoc opt">{</span>
+      <span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
+      <span class="keyword">return</span> <span class="gtkdoc opt">(-</span><span class="number">1</span><span class="gtkdoc opt">);</span>
+    <span class="gtkdoc opt">}</span>
+  <span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
+  im <span class="gtkdoc opt">=</span> x<span class="gtkdoc opt">;</span>
+
+  <span class="keyword">if</span> <span class="gtkdoc opt">(</span><span class="function"><a href="VipsImage.html#vips-image-write-to-file">vips_image_write_to_file</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">,</span> output_file<span class="gtkdoc opt">,</span> NULL<span class="gtkdoc opt">))</span>
+    <span class="gtkdoc opt">{</span>
+      <span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
+      <span class="keyword">return</span> <span class="gtkdoc opt">(-</span><span class="number">1</span><span class="gtkdoc opt">);</span>
+    <span class="gtkdoc opt">}</span>
+  <span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span> <span class="gtkdoc opt">(</span>im<span class="gtkdoc opt">);</span>
+
+  <span class="keyword">return</span> <span class="gtkdoc opt">(</span><span class="number">0</span><span class="gtkdoc opt">);</span>
+<span class="gtkdoc opt">}</span>
+
+<span class="comment">/* What we run as a thread.</span>
+<span class="comment"> */</span>
+<span class="gtkdoc kwb">static void</span> <span class="gtkdoc opt">*</span>
+<span class="function">worker</span> <span class="gtkdoc opt">(</span><span class="gtkdoc kwb">void</span> <span class="gtkdoc opt">*</span>data<span class="gtkdoc opt">)</span>
+<span class="gtkdoc opt">{</span>
+  <span class="gtkdoc kwb">const char</span> <span class="gtkdoc opt">*</span>filename <span class="gtkdoc opt">= (</span><span class="gtkdoc kwb">const char</span> <span class="gtkdoc opt">*)</span> data<span class="gtkdoc opt">;</span>
+
+  <span class="keyword">for</span> <span class="gtkdoc opt">(;;)</span>
+    <span class="gtkdoc opt">{</span>
+      gboolean done<span class="gtkdoc opt">;</span>
+
+      done <span class="gtkdoc opt">=</span> FALSE<span class="gtkdoc opt">;</span>
+      <span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Threads.html#g-mutex-lock">g_mutex_lock</a></span> <span class="gtkdoc opt">(&amp;</span>allocation_lock<span class="gtkdoc opt">);</span>
+      n_calls <span class="gtkdoc opt">+=</span> <span class="number">1</span><span class="gtkdoc opt">;</span>
+      <span class="keyword">if</span> <span class="gtkdoc opt">(</span>n_calls <span class="gtkdoc opt">&gt;</span> TOTAL_TESTS<span class="gtkdoc opt">)</span>
+	done <span class="gtkdoc opt">=</span> TRUE<span class="gtkdoc opt">;</span>
+      <span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Threads.html#g-mutex-unlock">g_mutex_unlock</a></span> <span class="gtkdoc opt">(&amp;</span>allocation_lock<span class="gtkdoc opt">);</span>
+
+      <span class="keyword">if</span> <span class="gtkdoc opt">(</span>done<span class="gtkdoc opt">)</span>
+	<span class="keyword">break</span><span class="gtkdoc opt">;</span>
+
+      <span class="keyword">if</span> <span class="gtkdoc opt">(</span><span class="function">test</span> <span class="gtkdoc opt">(</span>filename<span class="gtkdoc opt">))</span>
+	<span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span> <span class="gtkdoc opt">(</span>NULL<span class="gtkdoc opt">);</span>
+    <span class="gtkdoc opt">}</span>
+
+  <span class="keyword">return</span> <span class="gtkdoc opt">(</span>NULL<span class="gtkdoc opt">);</span>
+<span class="gtkdoc opt">}</span>
+
+<span class="gtkdoc kwb">int</span>
+<span class="function">main</span> <span class="gtkdoc opt">(</span><span class="gtkdoc kwb">int</span> argc<span class="gtkdoc opt">,</span> <span class="gtkdoc kwb">char</span> <span class="gtkdoc opt">**</span>argv<span class="gtkdoc opt">)</span>
+<span class="gtkdoc opt">{</span>
+  <span class="gtkdoc kwb">int</span> i<span class="gtkdoc opt">;</span>
+
+  <span class="keyword">if</span> <span class="gtkdoc opt">(</span><span class="function"><a href="libvips-vips.html#VIPS-INIT:CAPS">VIPS_INIT</a></span> <span class="gtkdoc opt">(</span>argv<span class="gtkdoc opt">[</span><span class="number">0</span><span class="gtkdoc opt">]))</span>
+    <span class="function"><a href="libvips-error.html#vips-error-exit">vips_error_exit</a></span> <span class="gtkdoc opt">(</span>NULL<span class="gtkdoc opt">);</span>
+
+  <span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Threads.html#g-mutex-init">g_mutex_init</a></span> <span class="gtkdoc opt">(&amp;</span>allocation_lock<span class="gtkdoc opt">);</span>
+
+  <span class="keyword">for</span> <span class="gtkdoc opt">(</span>i <span class="gtkdoc opt">=</span> <span class="number">0</span><span class="gtkdoc opt">;</span> i <span class="gtkdoc opt">&lt;</span> NUM_IN_PARALLEL<span class="gtkdoc opt">;</span> i<span class="gtkdoc opt">++)</span>
+    workers<span class="gtkdoc opt">[</span>i<span class="gtkdoc opt">] =</span> <span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Threads.html#g-thread-new">g_thread_new</a></span> <span class="gtkdoc opt">(</span>NULL<span class="gtkdoc opt">, (</span>GThreadFunc<span class="gtkdoc opt">)</span> worker<span class="gtkdoc opt">,</span> argv<span class="gtkdoc opt">[</span><span class="number">1</span><span class="gtkdoc opt">]);</span>
+
+  <span class="keyword">for</span> <span class="gtkdoc opt">(</span>i <span class="gtkdoc opt">=</span> <span class="number">0</span><span class="gtkdoc opt">;</span> i <span class="gtkdoc opt">&lt;</span> NUM_IN_PARALLEL<span class="gtkdoc opt">;</span> i<span class="gtkdoc opt">++)</span>
+    <span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Threads.html#g-thread-join">g_thread_join</a></span> <span class="gtkdoc opt">(</span>workers<span class="gtkdoc opt">[</span>i<span class="gtkdoc opt">]);</span>
+
+  <span class="keyword">return</span> <span class="gtkdoc opt">(</span><span class="number">0</span><span class="gtkdoc opt">);</span>
+<span class="gtkdoc opt">}</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+<br class="example-break">
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.28</div>
+</section>
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48550036-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>libvips</title>
+    <meta name="description" content="A fast image processing library with low memory needs.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/libvips/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="/libvips/favicon.ico">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name"><a href="/libvips">libvips</a></h1>
+      <h2 class="project-tagline">A fast image processing library with low memory needs.</h2>
+      <a href="https://github.com/libvips/libvips" class="btn">Project on GitHub</a>
+      <a href="https://github.com/libvips/libvips/releases" class="btn">Download</a>
+      <a href="/libvips/install.html" class="btn">Install</a>
+      <a href="/libvips/API/current" class="btn">Documentation</a>
+      <a href="https://github.com/libvips/libvips/issues" class="btn">Issues</a>
+      <a href="https://github.com/libvips/libvips/wiki" class="btn">Wiki</a>
+    </section>
+
+    <section class="main-content">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#libvips-basic.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="libvips-buf.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="ch03.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="libvips-basic"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libvips-basic.top_of_page"></a>basic</span></h2>
+<p>basic — a few typedefs used everywhere</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libvips-basic.stability-level"></a><h2>Stability Level</h2>
+<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="libvips-basic.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="libvips-basic.html#VipsCallbackFn" title="VipsCallbackFn ()">*VipsCallbackFn</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span> *
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="libvips-basic.html#VipsSListMap2Fn" title="VipsSListMap2Fn ()">*VipsSListMap2Fn</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span> *
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="libvips-basic.html#VipsSListMap4Fn" title="VipsSListMap4Fn ()">*VipsSListMap4Fn</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span> *
+</td>
+<td class="function_name">
+<span class="c_punctuation">(</span><a class="link" href="libvips-basic.html#VipsSListFold2Fn" title="VipsSListFold2Fn ()">*VipsSListFold2Fn</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-basic.html#vips-path-filename7" title="vips_path_filename7 ()">vips_path_filename7</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-basic.html#vips-path-mode7" title="vips_path_mode7 ()">vips_path_mode7</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libvips-basic.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody>
+<tr>
+<td class="typedef_keyword">typedef</td>
+<td class="function_name"><a class="link" href="libvips-basic.html#VipsPel" title="VipsPel">VipsPel</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="libvips-basic.html#VipsPrecision" title="enum VipsPrecision">VipsPrecision</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libvips-basic.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;vips/vips.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="libvips-basic.description"></a><h2>Description</h2>
+<p>A few simple typedefs used by VIPS.</p>
+</div>
+<div class="refsect1">
+<a name="libvips-basic.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="VipsCallbackFn"></a><h3>VipsCallbackFn ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+<span class="c_punctuation">(</span>*VipsCallbackFn<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *a</code></em>,
+                   <em class="parameter"><code><span class="type">void</span> *b</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsSListMap2Fn"></a><h3>VipsSListMap2Fn ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span> *
+<span class="c_punctuation">(</span>*VipsSListMap2Fn<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *item</code></em>,
+                    <em class="parameter"><code><span class="type">void</span> *a</code></em>,
+                    <em class="parameter"><code><span class="type">void</span> *b</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsSListMap4Fn"></a><h3>VipsSListMap4Fn ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span> *
+<span class="c_punctuation">(</span>*VipsSListMap4Fn<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *item</code></em>,
+                    <em class="parameter"><code><span class="type">void</span> *a</code></em>,
+                    <em class="parameter"><code><span class="type">void</span> *b</code></em>,
+                    <em class="parameter"><code><span class="type">void</span> *c</code></em>,
+                    <em class="parameter"><code><span class="type">void</span> *d</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsSListFold2Fn"></a><h3>VipsSListFold2Fn ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span> *
+<span class="c_punctuation">(</span>*VipsSListFold2Fn<span class="c_punctuation">)</span> (<em class="parameter"><code><span class="type">void</span> *item</code></em>,
+                     <em class="parameter"><code><span class="type">void</span> *a</code></em>,
+                     <em class="parameter"><code><span class="type">void</span> *b</code></em>,
+                     <em class="parameter"><code><span class="type">void</span> *c</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-path-filename7"></a><h3>vips_path_filename7 ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span> *
+vips_path_filename7 (<em class="parameter"><code>const <span class="type">char</span> *path</code></em>);</pre>
+<p>Return the filename part of a vips7 path. For testing only.</p>
+<div class="refsect3">
+<a name="vips-path-filename7.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>path</p></td>
+<td class="parameter_description"><p>path to split</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-path-mode7"></a><h3>vips_path_mode7 ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span> *
+vips_path_mode7 (<em class="parameter"><code>const <span class="type">char</span> *path</code></em>);</pre>
+<p>Return the mode part of a vips7 path. For testing only.</p>
+<div class="refsect3">
+<a name="vips-path-mode7.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>path</p></td>
+<td class="parameter_description"><p>path to split</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="libvips-basic.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="VipsPel"></a><h3>VipsPel</h3>
+<pre class="programlisting">typedef unsigned char VipsPel;
+</pre>
+<p>A picture element. Cast this to whatever the associated VipsBandFormat says
+to get the value.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsPrecision"></a><h3>enum VipsPrecision</h3>
+<p>How accurate an operation should be.</p>
+<div class="refsect3">
+<a name="VipsPrecision.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-PRECISION-INTEGER:CAPS"></a>VIPS_PRECISION_INTEGER</p></td>
+<td class="enum_member_description">
+<p>int everywhere</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-PRECISION-FLOAT:CAPS"></a>VIPS_PRECISION_FLOAT</p></td>
+<td class="enum_member_description">
+<p>float everywhere</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-PRECISION-APPROXIMATE:CAPS"></a>VIPS_PRECISION_APPROXIMATE</p></td>
+<td class="enum_member_description">
+<p>approximate integer output</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-PRECISION-LAST:CAPS"></a>VIPS_PRECISION_LAST</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.28</div>
+</section>
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48550036-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
+</html>
