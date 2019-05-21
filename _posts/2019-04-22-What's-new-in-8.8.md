@@ -2,8 +2,9 @@
 title: What's new in 8.8
 ---
 
-libvips 8.8 is almost done, so here's a quick
-overview of what's coming in this new version.  Check the
+libvips 8.8 is [now officially
+released](https://github.com/libvips/libvips/releases/tag/v8.8.0), so
+here's a quick overview of what's coming in this new version.  Check the
 [ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
 if you need more details.
 
