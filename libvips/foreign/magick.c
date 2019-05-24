@@ -403,6 +403,60 @@ magick_set_image_option( ImageInfo *image_info,
 #endif /*HAVE_SETIMAGEOPTION*/
 }
 
+typedef struct _MagickColorspaceTypeNames {
+	ColorspaceType colorspace;
+       const char *name;
+} MagickColorspaceTypeNames;
+
+static MagickColorspaceTypeNames magick_colorspace_names[] = {
+	{ UndefinedColorspace, "UndefinedColorspace" },
+	{ CMYColorspace, "CMYColorspace" },
+	{ CMYKColorspace, "CMYKColorspace" },
+	{ GRAYColorspace, "GRAYColorspace" },
+	{ HCLColorspace, "HCLColorspace" },
+	{ HCLpColorspace, "HCLpColorspace" },
+	{ HSBColorspace, "HSBColorspace" },
+	{ HSIColorspace, "HSIColorspace" },
+	{ HSLColorspace, "HSLColorspace" },
+	{ HSVColorspace, "HSVColorspace" },
+	{ HWBColorspace, "HWBColorspace" },
+	{ LabColorspace, "LabColorspace" },
+	{ LCHColorspace, "LCHColorspace" },
+	{ LCHabColorspace, "LCHabColorspace" },
+	{ LCHuvColorspace, "LCHuvColorspace" },
+	{ LogColorspace, "LogColorspace" },
+	{ LMSColorspace, "LMSColorspace" },
+	{ LuvColorspace, "LuvColorspace" },
+	{ OHTAColorspace, "OHTAColorspace" },
+	{ Rec601YCbCrColorspace, "Rec601YCbCrColorspace" },
+	{ Rec709YCbCrColorspace, "Rec709YCbCrColorspace" },
+	{ RGBColorspace, "RGBColorspace" },
+	{ scRGBColorspace, "scRGBColorspace" },
+	{ sRGBColorspace, "sRGBColorspace" },
+	{ TransparentColorspace, "TransparentColorspace" },
+	{ xyYColorspace, "xyYColorspace" },
+	{ XYZColorspace, "XYZColorspace" },
+	{ YCbCrColorspace, "YCbCrColorspace" },
+	{ YCCColorspace, "YCCColorspace" },
+	{ YDbDrColorspace, "YDbDrColorspace" },
+	{ YIQColorspace, "YIQColorspace" },
+	{ YPbPrColorspace, "YPbPrColorspace" },
+	{ YUVColorspace, "YUVColorspace" },
+	{ LinearGRAYColorspace, "LinearGRAYColorspace" }
+};
+
+const char *
+magick_ColorspaceType2str( ColorspaceType colorspace )
+{
+	int i;
+
+	for( i = 0; i < VIPS_NUMBER( magick_colorspace_names ); i++ ) 
+		if( magick_colorspace_names[i].colorspace == colorspace )
+			return( magick_colorspace_names[i].name );
+
+	return( "<unknown ColorspaceType>" );
+}
+
 /* ImageMagick can't detect some formats, like ICO, by examining the contents --
  * ico.c simply does not have a recogniser.
  *

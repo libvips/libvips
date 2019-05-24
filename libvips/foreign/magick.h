@@ -61,10 +61,13 @@ void *magick_profile_map( Image *image, MagickMapProfileFn fn, void *a );
 int magick_set_profile( Image *image, 
 	const char *name, const void *data, size_t length, 
 	ExceptionInfo *exception );
+
 void magick_set_image_option( ImageInfo *image_info, 
 	const char *name, const char *value );
 void magick_set_number_scenes( ImageInfo *image_info, 
 	int scene, int number_scenes );
+
+const char *magick_ColorspaceType2str( ColorspaceType colorspace );
 
 ExceptionInfo *magick_acquire_exception( void );
 void magick_destroy_exception( ExceptionInfo *exception );

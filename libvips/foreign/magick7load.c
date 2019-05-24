@@ -497,8 +497,8 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 
 	default:
 		vips_error( class->nickname, 
-			_( "unsupported colorspace %d" ), 
-			(int) image->colorspace );
+			_( "unsupported colorspace %s" ), 
+			magick_ColorspaceType2str( image->colorspace ) );
 		return( -1 );
 	}
 
