@@ -979,24 +979,22 @@ guess_prefix( const char *argv0, const char *name )
 		}
         }
 
-#ifdef HAVE_REALPATH
-	/* Try to guess from cwd. Only if this is a relative path, though. No
- 	 * realpath on winders, but fortunately it seems to always generate
- 	 * a full path in argv[0].
+	/* Try to guess from cwd. Only if this is a relative path, though. 
 	 */
 	if( !g_path_is_absolute( argv0 ) ) {
+		char *dir;
 		char full_path[VIPS_PATH_MAX];
 		char *resolved;
-		char *dir;
 
 		dir = g_get_current_dir(); 
 		vips_snprintf( full_path, VIPS_PATH_MAX, 
 			"%s" G_DIR_SEPARATOR_S "%s", dir, argv0 );
 		g_free( dir ); 
 
-		if( (resolved = realpath( full_path, NULL )) ) {
+		if( (resolved = vips_realpath( full_path )) ) {
 			prefix = extract_prefix( resolved, name );
-			free( resolved ); 
+			g_free( resolved );
+
 			if( prefix ) { 
 #ifdef DEBUG
 				printf( "vips_guess_prefix: found \"%s\" "
@@ -1006,7 +1004,6 @@ guess_prefix( const char *argv0, const char *name )
 			}
 		}
 	}
-#endif /*HAVE_REALPATH*/
 
 	/* Fall back to the configure-time prefix.
 	 */

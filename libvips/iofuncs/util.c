@@ -1875,9 +1875,12 @@ vips_realpath( const char *path )
 
 #ifdef HAVE_REALPATH
 {
-	char *real2;
+	char buf[PATH_MAX];
 
-	if( !(real = realpath( path, NULL )) ) {
+	/* More modern realpath() allow NULL for the second param, but we want
+	 * to work with older libc as well.
+	 */
+	if( !(real = realpath( path, buf )) ) {
 		vips_error_system( errno, "vips_realpath",
 			"%s", _( "unable to form filename" ) ); 
 		return( NULL );
@@ -1885,9 +1888,7 @@ vips_realpath( const char *path )
 
 	/* We must return a path that can be freed with g_free().
 	 */
-	real2 = g_strdup( real );
-	free( real );
-	real = real2;
+	real = g_strdup( real );
 }
 #else /*!HAVE_REALPATH*/
 {
