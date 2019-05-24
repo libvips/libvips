@@ -441,8 +441,13 @@ static MagickColorspaceTypeNames magick_colorspace_names[] = {
 	{ YDbDrColorspace, "YDbDrColorspace" },
 	{ YIQColorspace, "YIQColorspace" },
 	{ YPbPrColorspace, "YPbPrColorspace" },
-	{ YUVColorspace, "YUVColorspace" },
+	{ YUVColorspace, "YUVColorspace" }
+
+	/* More recent imagemagicks add these.
+	 *
 	{ LinearGRAYColorspace, "LinearGRAYColorspace" }
+	 *
+	 */
 };
 
 const char *
