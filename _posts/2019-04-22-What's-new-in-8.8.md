@@ -4,7 +4,7 @@ title: What's new in 8.8
 
 libvips 8.8 is [now officially
 released](https://github.com/libvips/libvips/releases/tag/v8.8.0), so
-here's a quick overview of what's coming in this new version.  Check the
+here's a quick overview of what's new.  Check the
 [ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
 if you need more details.
 
@@ -128,12 +128,11 @@ should produce better results on a wider range of images. As well as `centre`,
 you can also now crop low and high.
 
 `composite` has been revised again to improve performance when compositing a
-set of small images on to a large image.  Previously, all the small images
-were simply expanded to the size of the large image, and then the set of
-large images were composited. This became very slow if there were a large
-number of images to composite.  It now has a culling system, so each output
-area only computes the input images that touch it. This can make it many
-times faster in some cases.
+small image on to a large image. Previously, the small image was expanded to the
+size of the large image and then joined at every pixel. We've now added a
+culling system, so each output area only computes the input images that thouch
+it. This can give a huge speed up if you join many small images on to one large
+image.
 
 The `text` operator now supports justification.
 
@@ -142,8 +141,9 @@ The `text` operator now supports justification.
 The old Python and C++ interfaces were deprecated in 8.7, and they've now
 been removed completely. You no longer need `swig` to build from git. Hooray!
 
-The `auto_rotate` flag to `thumbnail` is now always on and does nothing if you
-try to set it. There's a new `no_rotate` option you can set.
+`thumbnail` will now always use EXIF orientation to spin images upright,
+and the old `auto_rotate` flags does nothing. There's a new `no_rotate`
+option you can set to prevent this behaviour, if you wish.
 
 # Other
 
