@@ -467,7 +467,8 @@ read_header( Read *read, VipsImage *out )
 #endif /*DEBUG*/
 
 		vips_image_set_int( out, "gif-loop", loop_count );
-		vips_image_set_int( out, "page-height", read->frame_height );
+		vips_image_set_int( out, 
+			VIPS_META_PAGE_HEIGHT, read->frame_height );
 
 		/* We must get the first frame to get the delay. Frames number
 		 * from 1.

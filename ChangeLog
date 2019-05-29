@@ -1,6 +1,7 @@
 24/5/19 started 8.8.1
 - improve realpath() use on older libc
 - better magickload error messages
+- more consistent behaviour for page-height metadata
 
 21/9/18 started 8.8.0
 - much faster smartcrop [lovell]

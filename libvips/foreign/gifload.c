@@ -571,11 +571,10 @@ vips_foreign_load_gif_set_header( VipsForeignLoadGif *gif, VipsImage *image )
 		1.0, 1.0 );
 	vips_image_pipelinev( image, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 
-	if( gif->n_pages > 1 ) {
+	if( gif->n > 1 ) 
 		vips_image_set_int( image, 
 			VIPS_META_PAGE_HEIGHT, gif->file->SHeight );
-		vips_image_set_int( image, VIPS_META_N_PAGES, gif->n_pages );
-	}
+	vips_image_set_int( image, VIPS_META_N_PAGES, gif->n_pages );
 	vips_image_set_int( image, "gif-delay", gif->delay );
 	vips_image_set_int( image, "gif-loop", gif->loop );
 	if( gif->comment ) 

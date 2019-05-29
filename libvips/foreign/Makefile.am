@@ -11,7 +11,7 @@ libforeign_la_SOURCES = \
 	gifload.c \
 	cairo.c \
 	pdfload.c \
-	pdfload_pdfium.c \
+	pdfiumload.c \
 	svgload.c \
 	radiance.c \
 	radload.c \

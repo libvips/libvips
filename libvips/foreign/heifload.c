@@ -382,7 +382,9 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 
 	vips_image_set_int( out, "heif-primary", heif->primary_page );
 	vips_image_set_int( out, "n-pages", heif->n_top );
-	vips_image_set_int( out, "page-height", heif->page_height );
+	if( heif->n > 1 )
+		vips_image_set_int( out, 
+			VIPS_META_PAGE_HEIGHT, heif->page_height );
 
 	/* FIXME .. we always decode to RGB in generate. We should check for
 	 * all grey images, perhaps. 
