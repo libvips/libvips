@@ -317,8 +317,7 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 	for( i = 1; i < pdf->n; i++ ) 
 		if( pdf->pages[i].height != pdf->pages[0].height )
 			break;
-	if( i == pdf->n &&
-		pdf->n > 1 ) 
+	if( vips_object_argument_isset( VIPS_OBJECT( pdf ), "n" ) )
 		vips_image_set_int( load->out, 
 			VIPS_META_PAGE_HEIGHT, pdf->pages[0].height );
 

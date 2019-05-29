@@ -595,7 +595,7 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 
 	/* So we can finally set the height.
 	 */
-	if( magick7->n_frames > 1 ) {
+	if( vips_object_argument_isset( VIPS_OBJECT( magick7 ), "n" ) ) {
 		vips_image_set_int( out, VIPS_META_PAGE_HEIGHT, out->Ysize );
 		out->Ysize *= magick7->n_frames;
 	}

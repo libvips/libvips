@@ -505,7 +505,7 @@ vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
 		vips_image_set_blob_copy( out, txt, ext->edata, ext->esize );
 	}
 
-	if( nim->ny > 1 )
+	if( vips_object_argument_isset( VIPS_OBJECT( nifti ), "n" ) )
 		vips_image_set_int( out, VIPS_META_PAGE_HEIGHT, nim->ny );
 
 	return( 0 );

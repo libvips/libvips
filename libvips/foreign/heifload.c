@@ -382,7 +382,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 
 	vips_image_set_int( out, "heif-primary", heif->primary_page );
 	vips_image_set_int( out, "n-pages", heif->n_top );
-	if( heif->n > 1 )
+	if( vips_object_argument_isset( VIPS_OBJECT( heif ), "n" ) )
 		vips_image_set_int( out, 
 			VIPS_META_PAGE_HEIGHT, heif->page_height );
 
