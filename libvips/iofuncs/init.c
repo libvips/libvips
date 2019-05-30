@@ -151,6 +151,10 @@ vips_get_argv0( void )
  * therefore be unable to find its data files. It is much better to call 
  * this macro yourself.
  *
+ * @ARGV0 is used to help discover message catalogues if libvips has been 
+ * relocated. If you don't need a relocatable package, you can just pass `""`
+ * and it'll be fine.
+ *
  * Additionally, VIPS_INIT() can be run from any thread, but it must not be
  * called from more than one thread at the same time. This is much easier to 
  * guarantee if you call it yourself.
