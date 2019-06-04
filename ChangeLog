@@ -2,6 +2,7 @@
 - improve realpath() use on older libc
 - better magickload error messages
 - more consistent behaviour for page-height metadata
+- fix for composite with many small images and some combinations of blend modes
 
 21/9/18 started 8.8.0
 - much faster smartcrop [lovell]

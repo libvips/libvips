@@ -907,7 +907,8 @@ vips_combine_pixels( VipsCompositeSequence *seq, VipsPel *q )
 			B[b] *= aB;
 
 	for( int i = 1; i < n; i++ ) {
-		VipsBlendMode m = n_mode == 1 ? mode[0] : mode[i - 1];
+		int j = seq->enabled[i];
+		VipsBlendMode m = n_mode == 1 ? mode[0] : mode[j - 1];
 
 		vips_composite_base_blend<T>( composite, m, B, tp[i] ); 
 	}
@@ -941,7 +942,7 @@ vips_combine_pixels( VipsCompositeSequence *seq, VipsPel *q )
 }
 
 #ifdef HAVE_VECTOR_ARITH
-/* Three band (four with alpha) vecvtior case. Non-double output. min_T and 
+/* Three band (four with alpha) vector case. Non-double output. min_T and 
  * max_T are the numeric range for this type. 0, 0 means no limit,
  * for example float.
  */
@@ -975,7 +976,8 @@ vips_combine_pixels3( VipsCompositeSequence *seq, VipsPel *q )
 	}
 
 	for( int i = 1; i < n; i++ ) {
-		VipsBlendMode m = n_mode == 1 ? mode[0] : mode[i - 1];
+		int j = seq->enabled[i];
+		VipsBlendMode m = n_mode == 1 ? mode[0] : mode[j - 1];
 
 		vips_composite_base_blend3<T>( composite, m, B, tp[i] ); 
 	}
@@ -1021,9 +1023,14 @@ vips_composite_base_gen( VipsRegion *output_region,
 	VipsRect *r = &output_region->valid;
 	int ps = VIPS_IMAGE_SIZEOF_PEL( output_region->im );
 
+	VIPS_DEBUG_MSG( "vips_composite_base_gen: at %d x %d, size %d x %d\n",
+		r->left, r->top, r->width, r->height );
+
 	/* Find the subset of our input images which intersect this region.
 	 */
 	vips_composite_base_select( seq, r ); 
+
+	VIPS_DEBUG_MSG( "  selected %d images\n", seq->n );
 
 	/* Is there just one? We can prepare directly to output and return.
 	 */
@@ -1051,6 +1058,12 @@ vips_composite_base_gen( VipsRegion *output_region,
 		VipsRect hit;
 		VipsRect request;
 
+		/* Set the composite region up to be a bit of memory at the
+		 * right position.
+		 */
+		if( vips_region_buffer( seq->composite_regions[j], r ) )
+			return( -1 );
+
 		/* Clip against this subimage position and size.
 		 */
 		hit = *r;
@@ -1061,12 +1074,6 @@ vips_composite_base_gen( VipsRegion *output_region,
 		request = hit;
 		request.left -= composite->subimages[j].left;
 		request.top -= composite->subimages[j].top;
-
-		/* Set the composite region up to be a bit of memory at the
-		 * right position.
-		 */
-		if( vips_region_buffer( seq->composite_regions[j], r ) )
-			return( -1 );
 
 		/* If the request is smaller than the target region, there
 		 * will be some gaps. We must make sure these are zero.
@@ -1081,11 +1088,13 @@ vips_composite_base_gen( VipsRegion *output_region,
 		 * If we are not in skippable mode, we can be completely
 		 * outside the subimage area. 
 		 */
-		if( !vips_rect_isempty( &request ) &&
-			vips_region_prepare_to( seq->input_regions[j],
+		if( !vips_rect_isempty( &request ) ) {
+			VIPS_DEBUG_MSG( "  fetching pixels for input %d\n", j );
+			if( vips_region_prepare_to( seq->input_regions[j],
 				seq->composite_regions[j], &request, 
 				hit.left, hit.top ) )
-			return( -1 );
+				return( -1 );
+		}
 	}
 
 	VIPS_GATE_START( "vips_composite_base_gen: work" );
