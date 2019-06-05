@@ -179,6 +179,8 @@ vips_webp_write_init( VipsWebPWrite *write, VipsImage *image,
 	write->config.alpha_quality = alpha_q;
 	write->config.method = reduction_effort;
 
+	if( lossless )
+		write->config.quality = Q;
 	if( near_lossless )
 		write->config.near_lossless = Q;
 	if( smart_subsample )
