@@ -835,6 +835,7 @@ layer_free( Layer *layer )
 	VIPS_UNREF( layer->strip );
 	VIPS_UNREF( layer->copy );
 	VIPS_UNREF( layer->image );
+	VIPS_FREE( layer->buf );
 	VIPS_FREEF( TIFFClose, layer->tif );
 }
 

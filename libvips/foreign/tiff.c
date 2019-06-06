@@ -418,6 +418,9 @@ vips__tiff_openout_buffer( VipsImage *image,
 	printf( "vips__tiff_openout_buffer:\n" );
 #endif /*DEBUG*/
 
+	g_assert( out_data );
+	g_assert( out_length );
+
 	buffer = VIPS_NEW( image, VipsTiffOpenoutBuffer );
 	vips_dbuf_init( &buffer->dbuf );
 	buffer->out_data = out_data;
