@@ -4,6 +4,8 @@
 - more consistent behaviour for page-height metadata
 - fix for composite with many small images and some combinations of blend modes
 - fix memleak in tiff pyr save to memory [scossu]
+- istiff attempts to read the first directory rather than just testing the
+magic number [przemyslawpluta]
 
 21/9/18 started 8.8.0
 - much faster smartcrop [lovell]

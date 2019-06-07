@@ -186,6 +186,9 @@
  * 28/3/19 omira-sch
  * 	- better buffer sizing 
  * 	- ban chroma-subsampled, non-jpg compressed images
+ * 7/6/19
+ * 	- istiff reads the first directory rather than just testing the magic
+ * 	  number, so it ignores more TIFF-like, but not TIFF images
  */
 
 /*
@@ -2424,11 +2427,13 @@ vips__tiff_read_header( const char *filename, VipsImage *out,
 	return( 0 );
 }
 
-gboolean
-vips__istifftiled( const char *filename )
+typedef gboolean (*TiffPropertyFn)( TIFF *tif );
+
+static gboolean
+vips__testtiff( const char *filename, TiffPropertyFn fn )
 {
 	TIFF *tif;
-	gboolean tiled;
+	gboolean property;
 
 	vips__tiff_init();
 
@@ -2436,37 +2441,59 @@ vips__istifftiled( const char *filename )
 		vips_error_clear();
 		return( FALSE );
 	}
-	tiled = TIFFIsTiled( tif );
+
+	property = fn ? fn( tif ) : TRUE;
+
 	TIFFClose( tif );
 
-	return( tiled );
+	return( property );
+}
+
+gboolean
+vips__testtiff_buffer( const void *buf, size_t len, TiffPropertyFn fn )
+{
+	VipsImage *im;
+	TIFF *tif;
+	gboolean property;
+
+	vips__tiff_init();
+
+	im = vips_image_new();
+
+	if( !(tif = vips__tiff_openin_buffer( im, buf, len )) ) {
+		g_object_unref( im );
+		vips_error_clear();
+		return( FALSE );
+	}
+
+	property = fn ? fn( tif ) : TRUE;
+
+	TIFFClose( tif );
+	g_object_unref( im );
+
+	return( property );
+}
+
+gboolean
+vips__istifftiled( const char *filename )
+{
+	return( vips__testtiff( filename, TIFFIsTiled ) ); 
+}
+
+/* We test for TIFF by trying to read the first directory. We could just test
+ * the magic number, but many formats (eg. ARW) use a TIFF-like container and
+ * we don't want to open those with vips tiffload.
+ */
+gboolean
+vips__istiff( const char *filename )
+{
+	return( vips__testtiff( filename, NULL ) ); 
 }
 
 gboolean
 vips__istiff_buffer( const void *buf, size_t len )
 {
-	char *str = (char *) buf; 
-
-	if( len >= 4 &&
-		((str[0] == 'M' && str[1] == 'M' &&
-			str[2] == '\0' && (str[3] == '*' || str[3] == '+')) ||
-		(str[0] == 'I' && str[1] == 'I' &&
-			(str[2] == '*' || str[2] == '+') && str[3] == '\0')) )
-		return( TRUE );
-
-	return( FALSE );
-}
-
-gboolean
-vips__istiff( const char *filename )
-{
-	unsigned char buf[4];
-
-	if( vips__get_bytes( filename, buf, 4 ) == 4 &&
-		vips__istiff_buffer( buf, 4 ) )
-		return( TRUE );
-
-	return( FALSE );
+	return( vips__testtiff_buffer( buf, len, NULL ) ); 
 }
 
 int
