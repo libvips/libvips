@@ -641,4 +641,16 @@ magick_set_magick_profile( Image *image,
 	return( 0 );
 }
 
+/* Does a few bytes look like a file IM can handle?
+ */
+gboolean
+magick_ismagick( const unsigned char *buf, size_t length )
+{
+	char format[MagickPathExtent];
+
+	magick_genesis();
+
+	return( GetImageMagick( buf, length, format ) );
+}
+
 #endif /*HAVE_MAGICK*/

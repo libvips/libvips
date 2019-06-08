@@ -63,6 +63,7 @@
 #ifdef HAVE_MAGICK6
 
 #include "pforeign.h"
+#include "magick.h"
 
 typedef struct _VipsForeignLoadMagick {
 	VipsForeignLoad parent_object;
@@ -172,16 +173,15 @@ G_DEFINE_TYPE( VipsForeignLoadMagickFile, vips_foreign_load_magick_file,
 static gboolean
 ismagick( const char *filename )
 {
-	VipsImage *t;
-	int result;
+	/* Fetch the first 100 bytes. Hopefully that'll be enough.
+	 */
+	unsigned char buf[100];
 
-	t = vips_image_new();
-	vips_error_freeze();
-	result = vips__magick_read_header( filename, t, NULL, 0, 1 );
-	g_object_unref( t );
-	vips_error_thaw();
-
-	return( result == 0 );
+	/* Files shorter than 100 bytes will leave nonsense at the end of buf,
+	 * but it shouldn't matter.
+	 */
+	return( vips__get_bytes( filename, buf, 100 ) &&
+		magick_ismagick( buf, 100 ) );
 }
 
 /* Unfortunately, libMagick does not support header-only reads very well. See
@@ -258,16 +258,7 @@ G_DEFINE_TYPE( VipsForeignLoadMagickBuffer, vips_foreign_load_magick_buffer,
 static gboolean
 vips_foreign_load_magick_buffer_is_a_buffer( const void *buf, size_t len )
 {
-	VipsImage *t;
-	int result;
-
-	t = vips_image_new();
-	vips_error_freeze();
-	result = vips__magick_read_buffer_header( buf, len, t, NULL, 0, 1 );
-	g_object_unref( t );
-	vips_error_thaw();
-
-	return( result == 0 );
+	return( magick_ismagick( (const unsigned char *) buf, len ) );
 }
 
 /* Unfortunately, libMagick does not support header-only reads very well. See

@@ -757,26 +757,15 @@ G_DEFINE_TYPE( VipsForeignLoadMagick7File, vips_foreign_load_magick7_file,
 static gboolean
 ismagick7( const char *filename )
 {
-	Image *image;
-	ImageInfo *image_info;
-	ExceptionInfo *exception;
-	int result;
-
-	magick_genesis();
-
-	/* Horribly slow :-(
+	/* Fetch the first 100 bytes. Hopefully that'll be enough.
 	 */
-	image_info = CloneImageInfo( NULL );
-	exception = magick_acquire_exception();
-	vips_strncpy( image_info->filename, filename, MagickPathExtent );
-	magick_sniff_file( image_info, filename );
-	image = PingImage( image_info, exception );
-	result = image != NULL;
-	VIPS_FREEF( DestroyImageList, image );
-	VIPS_FREEF( DestroyImageInfo, image_info ); 
-	VIPS_FREEF( magick_destroy_exception, exception ); 
+	unsigned char buf[100];
 
-	return( result );
+	/* Files shorter than 100 bytes will leave nonsense at the end of buf,
+	 * but it shouldn't matter.
+	 */
+	return( vips__get_bytes( filename, buf, 100 ) &&
+		magick_ismagick( buf, 100 ) );
 }
 
 static int
@@ -860,25 +849,7 @@ G_DEFINE_TYPE( VipsForeignLoadMagick7Buffer, vips_foreign_load_magick7_buffer,
 static gboolean
 vips_foreign_load_magick7_buffer_is_a_buffer( const void *buf, size_t len )
 {
-	Image *image;
-	ImageInfo *image_info;
-	ExceptionInfo *exception;
-	int result;
-
-	magick_genesis();
-
-	/* Horribly slow :-(
-	 */
-	image_info = CloneImageInfo( NULL );
-	exception = magick_acquire_exception();
-	magick_sniff_bytes( image_info, buf, len );
-	image = PingBlob( image_info, buf, len, exception );
-	result = image != NULL;
-	VIPS_FREEF( DestroyImageList, image );
-	VIPS_FREEF( DestroyImageInfo, image_info ); 
-	VIPS_FREEF( magick_destroy_exception, exception ); 
-
-	return( result );
+	return( magick_ismagick( (const unsigned char *) buf, len ) );
 }
 
 static int
