@@ -646,7 +646,11 @@ magick_set_magick_profile( Image *image,
 gboolean
 magick_ismagick( const unsigned char *bytes, size_t length )
 {
+#ifdef HAVE_MAGICK7
 	char format[MagickPathExtent];
+#else /*HAVE_MAGICK6*/
+	char format[MaxTextExtent];
+#endif
 
 	magick_genesis();
 
