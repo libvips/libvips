@@ -84,6 +84,6 @@ int magick_set_vips_profile( VipsImage *im, Image *image );
 int magick_set_magick_profile( Image *image, 
 	VipsImage *im, ExceptionInfo *exception );
 
-gboolean magick_ismagick( const unsigned char *buf, size_t length );
+gboolean magick_ismagick( const unsigned char *bytes, size_t length );
 
 #endif /*HAVE_MAGICK6*/
