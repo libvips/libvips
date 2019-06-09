@@ -45,6 +45,9 @@
  * 	- multiply transparent images through alpha in vips_region_shrink()
  * 13/6/18 harukizaemon
  * 	- add VipsRegionShrink parameter to vips_region_shrink()
+ * 9/6/19
+ * 	- saner behaviour for vips_region_fetch() if the request is partly 
+ * 	  outside the image
  */
 
 /*
@@ -1875,8 +1878,7 @@ vips_region_prepare_many( VipsRegion **reg, const VipsRect *r )
  * @height: area of pixels to fetch
  *
  * Generate an area of pixels and return a copy. The result must be freed
- * with g_free(). Use vips_region_width() and vips_region_height() to find the
- * dimensions of the returned array.
+ * with g_free(). The requested area must be completely inside the image.
  *
  * This is equivalent to vips_region_prepare(), followed by a memcpy. It is
  * convenient for language bindings.
@@ -1887,7 +1889,8 @@ VipsPel *
 vips_region_fetch( VipsRegion *region, 
 	int left, int top, int width, int height, size_t *len )
 {
-	VipsRect rect;
+	VipsRect request;
+	VipsRect image;
 	int y;
 	VipsPel *result;
 	VipsPel *p, *q;
@@ -1897,25 +1900,27 @@ vips_region_fetch( VipsRegion *region,
 	g_assert( width > 0 );
 	g_assert( height > 0 );
 
-	rect.left = left;
-	rect.top = top;
-	rect.width = width;
-	rect.height = height;
-	if( vips_region_prepare( region, &rect ) )
+	image.left = 0;
+	image.top = 0;
+	image.width = region->im->Xsize;
+	image.height = region->im->Ysize;
+	request.left = left;
+	request.top = top;
+	request.width = width;
+	request.height = height;
+	if( !vips_rect_includesrect( &image, &request ) )
+		return( NULL );
+	if( vips_region_prepare( region, &request ) )
 		return( NULL );
 
-	/* vips_region_prepare() will clip rect against the size of the image,
-	 * so we must use region->valid instead.
-	 */
 	skip = VIPS_REGION_LSKIP( region );
-	line = VIPS_REGION_SIZEOF_LINE( region );
-	if( !(result = (VipsPel *) vips_malloc( NULL, 
-		region->valid.height * line )) )
+	line = VIPS_IMAGE_SIZEOF_PEL( region->im ) * request.width;
+	if( !(result = (VipsPel *) vips_malloc( NULL, line * request.height )) )
 		return( NULL );
 
-	p = VIPS_REGION_ADDR( region, region->valid.left, region->valid.top );
+	p = VIPS_REGION_ADDR( region, request.left, request.top );
 	q = result;
-	for( y = 0; y < region->valid.height; y++ )  {
+	for( y = 0; y < request.height; y++ )  {
 		memcpy( q, p, line ); 
 
 		p += skip;
@@ -1923,7 +1928,7 @@ vips_region_fetch( VipsRegion *region,
 	}
 
 	if( len )
-		*len = region->valid.height * line;
+		*len = request.height * line;
 
 	return( result );
 }

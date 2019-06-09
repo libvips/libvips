@@ -7,6 +7,7 @@
 - istiff attempts to read the first directory rather than just testing the
 magic number [przemyslawpluta]
 - much faster ismagick() [jcupitt]
+- better behaviour for vips_region_fetch() if request lies partly ouside image
 
 21/9/18 started 8.8.0
 - much faster smartcrop [lovell]

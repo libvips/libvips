@@ -594,7 +594,7 @@ vips_composite_base_blend( VipsCompositeBase *composite,
 
 		case VIPS_BLEND_MODE_HARD_LIGHT:
 			for( int b = 0; b < bands; b++ ) 
-				if( A[b] < 0.5 ) 
+				if( A[b] <= 0.5 ) 
 					f[b] = 2 * A[b] * B[b];
 				else 
 					f[b] = 1 - 2 * (1 - A[b]) * (1 - B[b]);
@@ -605,7 +605,8 @@ vips_composite_base_blend( VipsCompositeBase *composite,
 				double g;
 
 				if( B[b] <= 0.25 ) 
-					g = ((16 * B[b] - 12) * B[b] + 4) * B[b];
+					g = ((16 * B[b] - 12) * 
+						B[b] + 4) * B[b];
 				else 
 					g = sqrt( B[b] );
 
