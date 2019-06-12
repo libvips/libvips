@@ -369,8 +369,9 @@ vips__sizealike_vec( VipsImage **in, VipsImage **out, int n )
 int
 vips__bandup( const char *domain, VipsImage *in, VipsImage **out, int n )
 {
-	VipsImage *bands[256];
+	VipsImage **bands;
 	int i;
+	int result;
 
 	if( in->Bands == n ) 
 		return( vips_copy( in, out, NULL ) );
@@ -378,15 +379,20 @@ vips__bandup( const char *domain, VipsImage *in, VipsImage **out, int n )
 		vips_error( domain, _( "not one band or %d bands" ), n );
 		return( -1 );
 	}
-	if( n > 256 || n < 1 ) {
+	if( n > VIPS_MAX_COORD || 
+		n < 1 ) {
 		vips_error( domain, "%s", _( "bad bands" ) );
 		return( -1 );
 	}
 
+	if( !(bands = VIPS_ARRAY( NULL, n, VipsImage * )) )
+		return( -1 );
 	for( i = 0; i < n; i++ )
 		bands[i] = in;
+	result = vips_bandjoin( bands, out, n, NULL );
+	VIPS_FREE( bands );
 
-	return( vips_bandjoin( bands, out, n, NULL ) );
+	return( result );
 }
 
 /* base_bands is the default minimum. 
