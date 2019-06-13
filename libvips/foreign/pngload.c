@@ -250,7 +250,8 @@ vips_foreign_load_png_buffer_init( VipsForeignLoadPngBuffer *buffer )
  * Read a PNG file into a VIPS image. It can read all png images, including 8-
  * and 16-bit images, 1 and 3 channel, with and without an alpha channel.
  *
- * Any ICC profile is read and attached to the VIPS image.
+ * Any ICC profile is read and attached to the VIPS image. It also supports
+ * XMP metadata.
  *
  * See also: vips_image_new_from_file().
  *

@@ -352,6 +352,9 @@ vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
  * @dither controls the amount of Floyd-Steinberg dithering.
  * This feature requires libvips to be compiled with libimagequant.
  *
+ * XMP metadata is written to the XMP chunk. PNG comments are written to
+ * separate text chunks.
+ *
  * See also: vips_image_new_from_file().
  *
  * Returns: 0 on success, -1 on error.
