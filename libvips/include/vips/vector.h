@@ -34,6 +34,19 @@
 #ifndef VIPS_VECTOR_H
 #define VIPS_VECTOR_H
 
+/* If we are building with -fcf-protection (run-time checking of
+ * indirect jumps) then Orc won't work. Make sure it's off.
+ *
+ * Orc may support -fcf-protection in the future, but does not in June 2019.
+ *
+ * https://gcc.gnu.org/onlinedocs/gcc/\
+ * 	Instrumentation-Options.html#index-fcf-protection
+ * https://gitlab.freedesktop.org/gstreamer/orc/issues/17
+ */
+#ifdef __CET__
+#undef HAVE_ORC
+#endif
+
 #ifdef HAVE_ORC
 #include <orc/orc.h>
 #endif /*HAVE_ORC*/

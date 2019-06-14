@@ -71,11 +71,13 @@ gboolean vips__vector_enabled = TRUE;
 void
 vips_vector_error( VipsVector *vector )
 {
+#ifdef HAVE_ORC
 #ifdef HAVE_ORC_PROGRAM_GET_ERROR
 	if( vector->program )
 		g_warning( "orc error: %s", 
 			orc_program_get_error( vector->program ) ); 
 #endif /*HAVE_ORC_PROGRAM_GET_ERROR*/
+#endif /*HAVE_ORC*/
 }
 
 void 
@@ -102,6 +104,7 @@ vips_vector_init( void )
 	if( g_getenv( "VIPS_NOVECTOR" ) || 
 		g_getenv( "IM_NOVECTOR" ) ) 
 		vips__vector_enabled = FALSE;
+
 #endif /*HAVE_ORC*/
 }
 
