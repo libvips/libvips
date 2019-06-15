@@ -45,14 +45,21 @@ Rails](http://edgeguides.rubyonrails.org/active_storage_overview.html),
 The official libvips GUI is [nip2](https://github.com/libvips/nip2),
 a strange combination of a spreadsheet and an photo editor.
 
-There are packages for most unix-like operating systems and binaries for
-Windows and OS X.
+# Install
+
+There are packages for most Unix-like operating systems, include macOS. Try
+your package manager.
+
+There are binaries for Windows in
+[releases](https://github.com/libvips/libvips/releases).
+
+The [libvips website](https://libvips.github.io/libvips) has [detailed
+install notes](https://libvips.github.io/libvips/install.html).
 
 # Building libvips from a source tarball
 
-We keep pre-baked tarballs of releases on the vips website:
-
-https://github.com/libvips/libvips/releases
+We keep pre-baked tarballs in
+[releases](https://github.com/libvips/libvips/releases).
 
 Untar, then in the libvips directory you should just be able to do:
 
@@ -73,10 +80,6 @@ Once `configure` is looking OK, compile and install with the usual:
 
 By default this will install files to `/usr/local`.
 
-We have detailed guides on the wiki for [building on
-Windows](https://github.com/libvips/libvips/wiki/Build-for-Windows) and
-[building on OS X](https://github.com/libvips/libvips/wiki/Build-for-macOS).
-
 # Testing
 
 Do a basic test of your build with:
@@ -91,16 +94,13 @@ Run a specific test with:
 
     $ pytest test/test-suite/test_foreign.py -k test_tiff
 
-You will need to install a variety of Python packages for this, including
-pyvips, the libvips Python binding.
-
 # Building libvips from git
 
-Checkout the latest sources with:
+Clone the latest sources with:
 
     $ git clone git://github.com/libvips/libvips.git
 
-Building from git needs more packages, you'll need at least `gtk-doc` 
+Building from git needs more packages -- you'll need at least `gtk-doc` 
 and `gobject-introspection`, see the dependencies section below. For example:
 
     $ brew install gtk-doc 
