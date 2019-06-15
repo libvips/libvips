@@ -2040,7 +2040,8 @@ vips_image_new_from_memory( const void *data, size_t size,
 		size < VIPS_IMAGE_SIZEOF_IMAGE( image ) ) {
 		vips_error( "VipsImage",
 			_( "memory area too small --- "
-				"should be %zd bytes, you passed %zd" ),
+				"should be %" G_GINT64_FORMAT " bytes, "
+				"you passed %zd" ),
 			VIPS_IMAGE_SIZEOF_IMAGE( image ), size ); 
 		VIPS_UNREF( image );
 		return( NULL );

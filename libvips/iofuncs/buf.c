@@ -549,7 +549,7 @@ vips_buf_appendgv( VipsBuf *buf, GValue *value )
 
 	case G_TYPE_UINT64:
 		result = vips_buf_appendf( buf, 
-			"%zd", g_value_get_uint64( value ) );
+			"%" G_GINT64_FORMAT, g_value_get_uint64( value ) );
 		handled = TRUE;
 		break;
 
