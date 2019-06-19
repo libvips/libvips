@@ -109,7 +109,8 @@ typedef struct _VipsThumbnail {
 	int input_height;
 	int page_height;
 	VipsAngle angle; 		/* From vips_autorot_get_angle() */
-	int n_pages;			/* Pages in this image, not original */
+	int n_pages;			/* Pages in file */
+	int n_loaded_pages;		/* Pages we've loaded from file */
 
 	/* For openslide, we need to read out the size of each level too.
 	 *
@@ -191,15 +192,17 @@ vips_thumbnail_read_header( VipsThumbnail *thumbnail, VipsImage *image )
 	thumbnail->input_height = image->Ysize;
 	thumbnail->angle = vips_autorot_get_angle( image );
 	thumbnail->page_height = vips_image_get_page_height( image );
+	thumbnail->n_pages = vips_image_get_n_pages( image );
 
-	/* The "n-pages" metadata item is the number of pages in the document, 
+	/* VIPS_META_N_PAGES is the number of pages in the document, 
 	 * not the number we've read out into this image. We calculate
 	 * ourselves from page_height. 
 	 *
-	 * vips_image_get_page_height() verifies that Ysize is a simple
+	 * vips_image_get_page_height() has verified that Ysize is a simple
 	 * multiple of page_height.
 	 */
-	thumbnail->n_pages = thumbnail->input_height / thumbnail->page_height;
+	thumbnail->n_loaded_pages = 
+		thumbnail->input_height / thumbnail->page_height;
 
 	/* For openslide, read out the level structure too.
 	 */
@@ -234,11 +237,6 @@ vips_thumbnail_get_tiff_pyramid( VipsThumbnail *thumbnail )
 {
 	VipsThumbnailClass *class = VIPS_THUMBNAIL_GET_CLASS( thumbnail );
 	int i;
-
-	/* Only one page? Can't be.
-	 */
-	if( thumbnail->n_pages < 2 )
-		return;
 
 	for( i = 0; i < thumbnail->n_pages; i++ ) {
 		VipsImage *page;
@@ -672,7 +670,7 @@ vips_thumbnail_build( VipsObject *object )
 		int target_page_height = VIPS_RINT( 
 			preshrunk_page_height / vshrink );
 		int target_image_height = target_page_height * 
-			thumbnail->n_pages;
+			thumbnail->n_loaded_pages;
 
 		vshrink = (double) in->Ysize / target_image_height;
 	}

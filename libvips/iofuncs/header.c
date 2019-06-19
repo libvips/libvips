@@ -32,6 +32,8 @@
  * 	- hide deprecated header fields from _map
  * 17/2/19
  * 	- add vips_image_get_page_height()
+ * 19/6/19
+ * 	- add vips_image_get_n_pages()
  */
 
 /*
@@ -792,18 +794,41 @@ vips_image_get_page_height( VipsImage *image )
 {
 	int page_height;
 
-	page_height = image->Ysize;
-	if( vips_image_get_typeof( image, VIPS_META_PAGE_HEIGHT ) &&
+	if( !vips_image_get_typeof( image, VIPS_META_PAGE_HEIGHT ) ||
 		vips_image_get_int( image, VIPS_META_PAGE_HEIGHT, 
-			&page_height ) )
-		;
-
-	if( page_height <= 0 ||
+			&page_height ) ||
+		page_height <= 0 ||
 		page_height > image->Ysize ||
 		image->Ysize % page_height != 0 ) 
 		page_height = image->Ysize;
 
 	return( page_height );
+}
+
+/**
+ * vips_image_get_n_pages: (method)
+ * @image: image to get from
+ *
+ * Fetch and sanity-check VIPS_META_N_PAGES. Default to 1 if not present or
+ * crazy.
+ *
+ * This is the number of pages in the image file, not the number of pages that
+ * have been loaded into @image.
+ *
+ * Returns: the number of pages in the image file
+ */
+int
+vips_image_get_n_pages( VipsImage *image )
+{
+	int n_pages;
+
+	if( !vips_image_get_typeof( image, VIPS_META_N_PAGES ) ||
+		vips_image_get_int( image, VIPS_META_N_PAGES, &n_pages ) ||
+		n_pages < 2 || 
+		n_pages > 1000 )
+		n_pages = 1;
+
+	return( n_pages );
 }
 
 /**
