@@ -216,6 +216,10 @@ void vips_image_print_field( const VipsImage *image, const char *field );
 int vips_image_get_image( const VipsImage *image, 
 	const char *name, VipsImage **out );
 void vips_image_set_image( VipsImage *image, const char *name, VipsImage *im );
+void vips_image_set_array_int( VipsImage *image, const char *name,
+	const int *array, int n );
+int vips_image_get_array_int( VipsImage *image, const char *name, 
+	int **out, int *n );
 
 int vips_image_history_printf( VipsImage *image, const char *format, ... )
 	__attribute__((format(printf, 2, 3)));
