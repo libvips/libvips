@@ -754,13 +754,15 @@ rtiff_labpack_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *dummy )
 {
 	int samples_per_pixel = rtiff->header.samples_per_pixel;
 
+	float pf[3];
 	int x;
 
 	for( x = 0; x < n; x++ ) {
-		q[0] = p[0];
-		q[1] = p[1];
-		q[2] = p[2];
-		q[3] = 0;
+		pf[0] = p[0] * 100.0f / 255.0f;
+		pf[1] = (signed char)p[1];
+		pf[2] = (signed char)p[2];
+
+		vips__Lab2LabQ_vec(q, pf, 1);
 
 		q += 4;
 		p += samples_per_pixel;
