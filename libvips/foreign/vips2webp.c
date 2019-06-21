@@ -308,8 +308,8 @@ get_array_int( VipsImage *image, const char *field, int* n )
 static int 
 extract_delay( int index, int *delays, int delays_length, int default_delay )
 {
-  if( delays == NULL || index > delays_length ) return( default_delay );
-  return( delays[index] );
+	if( delays == NULL || index > delays_length ) return( default_delay );
+	return( delays[index] );
 }
 
 /* Write a set of animated frames into write->memory_writer.
@@ -321,8 +321,8 @@ write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 	 * standard).
 	 */
 	const int default_delay = 10 * get_int( image, "gif-delay", 10 );
-  int delays_length;
-  const int *delays = get_array_int( image, "delay", &delays_length );
+	int delays_length;
+	const int *delays = get_array_int( image, "delay", &delays_length );
 
 	WebPAnimEncoderOptions anim_config;
 	WebPData webp_data;
@@ -373,18 +373,18 @@ write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 
 		WebPPictureFree( &pic );
 
-    int page_index = top / page_height;
+		int page_index = top / page_height;
 		timestamp_ms += extract_delay( page_index, delays, delays_length, default_delay );
 	}
 
-  /* Closes encoder and add last frame delay.
-   */
-  if( !WebPAnimEncoderAdd( write->enc, 
-    NULL, timestamp_ms, NULL ) ) {
-    vips_error( "vips2webp",
-      "%s", _( "anim close error" ) );
-    return( -1 );
-  }
+	/* Closes encoder and add last frame delay.
+	 */
+	if( !WebPAnimEncoderAdd( write->enc, 
+		NULL, timestamp_ms, NULL ) ) {
+		vips_error( "vips2webp",
+			"%s", _( "anim close error" ) );
+		return( -1 );
+	}
 
 	if( !WebPAnimEncoderAssemble( write->enc, &webp_data ) ) {
 		vips_error( "vips2webp",
