@@ -115,9 +115,9 @@ typedef struct {
 	 */
 	int frame_count;
 
-	/* Delay between frames. We don't let this change between frames.
+	/* Delays between frames (in miliseconds).
 	 */
-	int delay;
+	int *delays;
 
 	/* If we are opening a file object, the fd.
 	 */
@@ -376,7 +376,7 @@ read_new( const char *filename, const void *data, size_t length,
 	read->page = page;
 	read->n = n;
 	read->scale = scale;
-	read->delay = 100;
+	read->delays = NULL;
 	read->fd = 0;
 	read->demux = NULL;
 	read->frame = NULL;
@@ -470,21 +470,32 @@ read_header( Read *read, VipsImage *out )
 		vips_image_set_int( out, 
 			VIPS_META_PAGE_HEIGHT, read->frame_height );
 
-		/* We must get the first frame to get the delay. Frames number
-		 * from 1.
-		 */
-		if( WebPDemuxGetFrame( read->demux, 1, &iter ) ) {
-			read->delay = iter.duration;
+    if ( read->frame_count > 1) {
+      read->delays = (int *) g_malloc( read->frame_count * sizeof(int) );
+      
+      for( int i = 0; i < read->frame_count; i++ ) {
+        if( WebPDemuxGetFrame( read->demux, i + 1, &iter ) ) {
+          read->delays[i] = iter.duration;
+        } else {
+          read->delays[i] = 0;
+        }
+      }
 
 #ifdef DEBUG
-			printf( "webp2vips: duration = %d\n", read->delay );
+    for( int i = 0; i < read->frame_count; i++ ) {
+      printf( "webp2vips: frame = %d; duration = %d\n", i + 1, read->delays[i] );
+    }
 #endif /*DEBUG*/
 
-			/* webp uses ms for delays, gif uses centiseconds.
-			 */
-			vips_image_set_int( out, "gif-delay", 
-				VIPS_RINT( read->delay / 10.0 ) );
-		}
+      vips_image_set_array_int( out, "delay", read->delays, read->frame_count );
+      g_free( read->delays );
+
+      /* webp uses ms for delays, gif uses centiseconds.
+        */
+      vips_image_set_int( out, "gif-delay", 
+        VIPS_RINT( read->delays[0] / 10.0 ) );
+    }
+   
 		WebPDemuxReleaseIterator( &iter );
 
 		if( read->n == -1 )
@@ -687,11 +698,6 @@ read_next_frame( Read *read )
 	else
 		printf( "don't blend\n" ); 
 #endif /*DEBUG*/
-
-	if( read->frame_count > 1 &&
-		read->iter.duration != read->delay ) 
-		g_warning( "webp2vips: "
-			"not all frames have equal duration" );
 
 	if( !(frame = read_frame( read, 
 		area.width, area.height,

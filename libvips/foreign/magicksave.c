@@ -109,6 +109,8 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 
 	Image *image;
 	int number;
+  int *numbers;
+  int numbers_length;
 	const char *str;
 
 	g_assert( !magick->current_image );
@@ -139,9 +141,12 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 		im->Xsize, magick->page_height, magick->exception ) )
 		return( -1 );
 
-	if( vips_image_get_typeof( im, "gif-delay" ) &&
-		!vips_image_get_int( im, "gif-delay", &number ) )
-		image->delay = (size_t) number;
+	if( vips_image_get_typeof( im, "delay" ) &&
+		!vips_image_get_array_int( im, "delay", &numbers, &numbers_length ) ) {
+      int page_index = magick->position.top / magick->page_height;
+      if( page_index < numbers_length ) 
+        image->delay = (size_t) VIPS_RINT( numbers[page_index] / 10.0 );
+  }
 
 	/* ImageMagick uses iterations like this (at least in gif save):
 	 * 	0 - set 0 loops (infinite)
