@@ -11,6 +11,7 @@ magic number [przemyslawpluta]
 - remove 256 band limit in arithmetic.c [erdmann]
 - disable Orc if building with CET [lovell]
 - fix vipsthumbnail with pyr tiff [kleisauke]
+- text autofit could occasionally terminate early [levmorozov]
 
 21/9/18 started 8.8.0
 - much faster smartcrop [lovell]

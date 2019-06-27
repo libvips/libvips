@@ -28,6 +28,8 @@
  * 16/3/19
  * 	- add `justify`
  * 	- set Xoffset/Yoffset to ink left/top
+ * 27/6/19
+ * 	- fitting could occasionally terminate early [levmorozov]
  */
 
 /*
@@ -58,8 +60,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -204,18 +206,13 @@ vips_text_get_extents( VipsText *text, VipsRect *extents )
 	return( 0 );
 }
 
-/* Return -ve for extents too small, 0 for a fit, +ve for extents too large.
+/* Return -ve for extents too small, +ve for extents too large.
  */
 static int
 vips_text_rect_difference( VipsRect *target, VipsRect *extents )
 {
-	if( vips_rect_includesrect( target, extents ) ) {
-		if( target->width == extents->width ||
-			target->height == extents->height )
-			return( 0 );
-
+	if( vips_rect_includesrect( target, extents ) ) 
 		return( -1 );
-	}
 	else
 		return( 1 );
 }
@@ -261,10 +258,9 @@ vips_text_autofit( VipsText *text )
 			previous_difference = difference;
 		}
 
-		/* Hit the size, or we straddle the target.
+		/* Stop if we straddle the target.
 		 */
-		if( difference == 0 ||
-			difference != previous_difference ) 
+		if( difference != previous_difference ) 
 			break;
 
 		previous_difference = difference;
