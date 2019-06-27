@@ -20,9 +20,6 @@
  * 30/4/19
  * 	- deprecate shrink, use scale instead, and make it a double ... this
  * 	  lets us do faster and more accurate thumbnailing
- * 27/6/19
- * 	- remove non-alpha output: it's very hard to decide if a webp image
- * 	  really has zero transparency
  */
 
 /*
@@ -109,6 +106,10 @@ typedef struct {
 	 */
 	int frame_width;
 	int frame_height;
+
+	/* TRUE for RGBA.
+	 */
+	int alpha;
 
 	/* Number of frames in file.
 	 */
@@ -445,10 +446,11 @@ read_header( Read *read, VipsImage *out )
 
 	flags = WebPDemuxGetI( read->demux, WEBP_FF_FORMAT_FLAGS );
 
-	/* The alpha flag says if this square of pixels in this frame has an 
-	 * alpha, not if our output image should have an alpha.
-	 */
-	read->config.output.colorspace = MODE_RGBA;
+	read->alpha = flags & ALPHA_FLAG;
+	if( read->alpha )  
+		read->config.output.colorspace = MODE_RGBA;
+	else
+		read->config.output.colorspace = MODE_RGB;
 
 	if( flags & ANIMATION_FLAG ) { 
 		int loop_count;
@@ -532,7 +534,8 @@ read_header( Read *read, VipsImage *out )
 
 	read->frame = vips_image_new_memory();
 	vips_image_init_fields( read->frame,
-		read->frame_width, read->frame_height, 4,
+		read->frame_width, read->frame_height,
+		read->alpha ? 4 : 3,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0 );
@@ -542,7 +545,8 @@ read_header( Read *read, VipsImage *out )
 		return( -1 );
 
 	vips_image_init_fields( out,
-		read->width, read->height, 4,
+		read->width, read->height,
+		read->alpha ? 4 : 3,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0 );
@@ -594,7 +598,8 @@ read_frame( Read *read,
 
 	frame = vips_image_new_memory();
 	vips_image_init_fields( frame,
-		width, height, 4,
+		width, height, 
+		read->alpha ? 4 : 3,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0 );

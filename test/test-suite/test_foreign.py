@@ -23,7 +23,6 @@ class TestForeign:
         cls.tempdir = tempfile.mkdtemp()
 
         cls.colour = pyvips.Image.jpegload(JPEG_FILE)
-        cls.rgba = cls.colour.bandjoin(255)
         cls.mono = cls.colour.extract_band(1)
         # we remove the ICC profile: the RGB one will no longer be appropriate
         cls.mono.remove("icc-profile-data")
@@ -464,22 +463,22 @@ class TestForeign:
     def test_webp(self):
         def webp_valid(im):
             a = im(10, 10)
-            assert_almost_equal_objects(a, [70, 165, 235, 255])
+            assert_almost_equal_objects(a, [71, 166, 236])
             assert im.width == 550
             assert im.height == 368
-            assert im.bands == 4
+            assert im.bands == 3
 
         self.file_loader("webpload", WEBP_FILE, webp_valid)
         self.buffer_loader("webpload_buffer", WEBP_FILE, webp_valid)
         self.save_load_buffer("webpsave_buffer", "webpload_buffer",
-                              self.rgba, 60)
-        self.save_load("%s.webp", self.rgba)
+                              self.colour, 60)
+        self.save_load("%s.webp", self.colour)
 
         # test lossless mode
         im = pyvips.Image.new_from_file(WEBP_FILE)
         buf = im.webpsave_buffer(lossless=True)
         im2 = pyvips.Image.new_from_buffer(buf, "")
-        assert abs(im.avg() - im2.avg()) < 1
+        assert im.avg() == im2.avg()
 
         # higher Q should mean a bigger buffer
         b1 = im.webpsave_buffer(Q=10)
