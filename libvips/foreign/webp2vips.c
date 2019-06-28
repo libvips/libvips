@@ -20,6 +20,8 @@
  * 30/4/19
  * 	- deprecate shrink, use scale instead, and make it a double ... this
  * 	  lets us do faster and more accurate thumbnailing
+ * 27/6/19
+ * 	- disable alpha output if all frame fill the canvas and are solid
  */
 
 /*
