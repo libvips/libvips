@@ -132,12 +132,9 @@ typedef struct _VipsForeignLoadGif {
 	gboolean has_transparency;
 	gboolean has_colour;
 
-	/* Delay in 1/100ths of a second. We only track a single delay 
-	 * value for the whole file, and we report the first delay we see. Some
-	 * GIFs have a long delay on the final frame.
+	/* Delays between frames (in miliseconds).
 	 */
-	gboolean has_delay;
-	int delay;
+	int *delays;
 
 	/* Number of times to loop the animation.
 	 */
@@ -324,7 +321,8 @@ vips_foreign_load_gif_dispose( GObject *gobject )
 	VIPS_UNREF( gif->frame ); 
 	VIPS_UNREF( gif->previous ); 
 	VIPS_FREE( gif->comment ); 
-	VIPS_FREE( gif->line ) 
+	VIPS_FREE( gif->line ); 
+	VIPS_FREE( gif->delays ); 
 
 	G_OBJECT_CLASS( vips_foreign_load_gif_parent_class )->
 		dispose( gobject );
@@ -521,11 +519,10 @@ vips_foreign_load_gif_scan_extension( VipsForeignLoadGif *gif )
 				gif->has_transparency = TRUE;
 			}
 
-			if( !gif->has_delay ) { 
-				VIPS_DEBUG_MSG( "gifload: has delay\n" ); 
-				gif->has_delay = TRUE;
-				gif->delay = extension[2] | (extension[3] << 8);
+			if( gif->n_pages % 64 == 0 ) {
+				gif->delays = (int *) g_realloc( gif->delays, (gif->n_pages + 64) * sizeof(int) );
 			}
+			gif->delays[gif->n_pages] = (extension[2] | (extension[3] << 8)) * 10;
 
 			while( extension != NULL ) 
 				if( vips_foreign_load_gif_ext_next( gif, 
@@ -575,19 +572,17 @@ vips_foreign_load_gif_set_header( VipsForeignLoadGif *gif, VipsImage *image )
 		vips_image_set_int( image, 
 			VIPS_META_PAGE_HEIGHT, gif->file->SHeight );
 	vips_image_set_int( image, VIPS_META_N_PAGES, gif->n_pages );
-	vips_image_set_int( image, "gif-delay", gif->delay );
 	vips_image_set_int( image, "gif-loop", gif->loop );
+
+	if( gif->delays ) {
+		vips_image_set_int( image, "gif-delay", VIPS_RINT( gif->delays[0] / 10.0 ) );
+		vips_image_set_array_int( image, "delay", gif->delays, gif->n_pages );
+	} else {
+		vips_image_set_int( image, "gif-delay", 4 );
+	}
+
 	if( gif->comment ) 
 		vips_image_set_string( image, "gif-comment", gif->comment );
-
-{
-	int array[10];
-	int i;
-
-	for( i = 0; i < 10; i++ )
-		array[i] = i;
-	vips_image_set_array_int( image, "delay", array, 10 );
-}
 
 	return( 0 );
 }
@@ -1126,7 +1121,7 @@ vips_foreign_load_gif_init( VipsForeignLoadGif *gif )
 {
 	gif->n = 1;
 	gif->transparency = -1;
-	gif->delay = 4;
+	gif->delays = NULL;
 	gif->loop = 0;
 	gif->comment = NULL;
 	gif->dispose = 0;
