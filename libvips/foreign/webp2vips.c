@@ -493,11 +493,13 @@ read_header( Read *read, VipsImage *out )
 			vips_image_set_int( out, "gif-delay", 
 				VIPS_RINT( read->delay / 10.0 ) );
 
-			/* If we find a frame which doesn't fill the canvas,
-			 * we'll need to save as RGBA.
+			/* We need the alpha in an animation if:
+			 *   - any frame has transparent pixels 
+			 *   - any frame doesn't fill the whole canvas.
 			 */
 			do {
-				if( iter.x_offset != 0 ||
+				if( iter.has_alpha ||
+					iter.x_offset != 0 ||
 					iter.y_offset != 0 ||
 					iter.width != read->canvas_width ||
 					iter.height != read->canvas_height ) {
