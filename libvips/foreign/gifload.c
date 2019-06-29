@@ -580,15 +580,6 @@ vips_foreign_load_gif_set_header( VipsForeignLoadGif *gif, VipsImage *image )
 	if( gif->comment ) 
 		vips_image_set_string( image, "gif-comment", gif->comment );
 
-{
-	int array[10];
-	int i;
-
-	for( i = 0; i < 10; i++ )
-		array[i] = i;
-	vips_image_set_array_int( image, "delay", array, 10 );
-}
-
 	return( 0 );
 }
 
