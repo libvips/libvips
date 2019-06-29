@@ -499,8 +499,6 @@ read_header( Read *read, VipsImage *out )
 			 */
 			do {
 				if( iter.has_alpha ||
-					iter.x_offset != 0 ||
-					iter.y_offset != 0 ||
 					iter.width != read->canvas_width ||
 					iter.height != read->canvas_height ) {
 					read->alpha = TRUE;
