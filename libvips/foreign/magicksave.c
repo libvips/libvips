@@ -6,6 +6,8 @@
  * 17/2/19
  * 	- support ICC, XMP, EXIF, IPTC metadata
  * 	- write with a single call to vips_sink_disc()
+ * 29/6/19
+ * 	- support "strip" option
  */
 
 /*
@@ -170,7 +172,8 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 	 */
 	image->dispose = BackgroundDispose;
 
-	if( magick_set_magick_profile( image, im, magick->exception ) ) {
+	if( !save->strip &&
+		magick_set_magick_profile( image, im, magick->exception ) ) {
 		magick_vips_error( class->nickname, magick->exception ); 
 		return( -1 );
 	}
