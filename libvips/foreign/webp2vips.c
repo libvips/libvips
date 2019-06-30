@@ -287,11 +287,6 @@ vips_image_paint_image( VipsImage *frame,
 
 	g_assert( VIPS_IMAGE_SIZEOF_PEL( sub ) == ps );
 
-	/* Disable blend if we are not RGBA.
-	 */
-	if( frame->Bands != 4 )
-		blend = FALSE;
-
 	vips_rect_intersectrect( &frame_rect, &sub_rect, &ovl );
 	if( !vips_rect_isempty( &ovl ) ) {
 		VipsPel *p, *q;
@@ -455,10 +450,11 @@ read_header( Read *read, VipsImage *out )
 	flags = WebPDemuxGetI( read->demux, WEBP_FF_FORMAT_FLAGS );
 
 	read->alpha = flags & ALPHA_FLAG;
-	if( read->alpha )  
-		read->config.output.colorspace = MODE_RGBA;
-	else
-		read->config.output.colorspace = MODE_RGB;
+
+	/* We do everything as RGBA and then, if we can, drop the alpha on
+	 * save.
+	 */
+	read->config.output.colorspace = MODE_RGBA;
 
 	if( flags & ANIMATION_FLAG ) { 
 		int loop_count;
@@ -564,10 +560,12 @@ read_header( Read *read, VipsImage *out )
 		}
 	}
 
+	/* The canvas is always RGBA, we drop alpha to RGB on output if we
+	 * can.
+	 */
 	read->frame = vips_image_new_memory();
 	vips_image_init_fields( read->frame,
-		read->frame_width, read->frame_height,
-		read->alpha ? 4 : 3,
+		read->frame_width, read->frame_height, 4, 
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0 );
@@ -630,8 +628,7 @@ read_frame( Read *read,
 
 	frame = vips_image_new_memory();
 	vips_image_init_fields( frame,
-		width, height, 
-		read->alpha ? 4 : 3,
+		width, height, 4,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0 );
@@ -771,9 +768,29 @@ read_webp_generate( VipsRegion *or,
 		read->frame_no += 1;
 	}
 
-	memcpy( VIPS_REGION_ADDR( or, 0, r->top ),
-		VIPS_IMAGE_ADDR( read->frame, 0, line ),
-		VIPS_IMAGE_SIZEOF_LINE( read->frame ) );
+	if( or->im->Bands == 4 ) 
+		memcpy( VIPS_REGION_ADDR( or, 0, r->top ),
+			VIPS_IMAGE_ADDR( read->frame, 0, line ),
+			VIPS_IMAGE_SIZEOF_LINE( read->frame ) );
+	else {
+		int x;
+		VipsPel *p;
+		VipsPel *q;
+
+		/* We know that alpha is solid, so we can just drop the 4th
+		 * band.
+		 */
+		p = VIPS_IMAGE_ADDR( read->frame, 0, line );
+		q = VIPS_REGION_ADDR( or, 0, r->top );
+		for( x = 0; x < r->width; x++ ) {
+			q[0] = p[0];
+			q[1] = p[1];
+			q[2] = p[2];
+
+			q += 3;
+			p += 4;
+		}
+	}
 
 	return( 0 );
 }
