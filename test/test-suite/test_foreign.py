@@ -463,7 +463,7 @@ class TestForeign:
     def test_webp(self):
         def webp_valid(im):
             a = im(10, 10)
-            assert_almost_equal_objects(a, [71, 166, 236])
+            assert_almost_equal_objects(a, [70, 165, 235])
             assert im.width == 550
             assert im.height == 368
             assert im.bands == 3
@@ -478,7 +478,7 @@ class TestForeign:
         im = pyvips.Image.new_from_file(WEBP_FILE)
         buf = im.webpsave_buffer(lossless=True)
         im2 = pyvips.Image.new_from_buffer(buf, "")
-        assert im.avg() == im2.avg()
+        assert abs(im.avg() - im2.avg()) < 1
 
         # higher Q should mean a bigger buffer
         b1 = im.webpsave_buffer(Q=10)

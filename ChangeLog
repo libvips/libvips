@@ -1,6 +1,7 @@
 20/6/19 started 8.9.0
 - add vips_image_get/set_array_int()
 - add "unlimited" flag to svgload
+- disable webp alpha output if all frame fill the canvas and are solid
 
 24/5/19 started 8.8.1
 - improve realpath() use on older libc
