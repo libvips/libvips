@@ -204,11 +204,13 @@ int vips__png_header_buffer( const void *buffer, size_t length, VipsImage *out )
 int vips__png_write( VipsImage *in, const char *filename, 
 	int compress, int interlace, const char *profile,
 	VipsForeignPngFilter filter, gboolean strip,
-	gboolean palette, int colours, int Q, double dither );
+	gboolean palette, int colours, int Q, double dither,
+	size_t buffer_size );
 int vips__png_write_buf( VipsImage *in, 
 	void **obuf, size_t *olen, int compression, int interlace, 
 	const char *profile, VipsForeignPngFilter filter, gboolean strip,
-	gboolean palette, int colours, int Q, double dither );
+	gboolean palette, int colours, int Q, double dither,
+	size_t buffer_size );
 
 /* Map WEBP metadata names to vips names.
  */

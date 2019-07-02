@@ -993,7 +993,8 @@ static int
 write_vips( Write *write, 
 	int compress, int interlace, const char *profile,
 	VipsForeignPngFilter filter, gboolean strip,
-	gboolean palette, int colours, int Q, double dither )
+	gboolean palette, int colours, int Q, double dither,
+	size_t buffer_size )
 {
 	VipsImage *in = write->in;
 
@@ -1034,6 +1035,7 @@ write_vips( Write *write,
 	/* Set compression parameters.
 	 */
 	png_set_compression_level( write->pPng, compress );
+	png_set_compression_buffer_size( write->pPng, buffer_size );
 
 	/* Set row filter.
 	 */
@@ -1247,7 +1249,8 @@ int
 vips__png_write( VipsImage *in, const char *filename, 
 	int compress, int interlace, const char *profile,
 	VipsForeignPngFilter filter, gboolean strip,
-	gboolean palette, int colours, int Q, double dither )
+	gboolean palette, int colours, int Q, double dither,
+	size_t buffer_size )
 {
 	Write *write;
 
@@ -1268,7 +1271,7 @@ vips__png_write( VipsImage *in, const char *filename,
 	 */
 	if( write_vips( write, 
 		compress, interlace, profile, filter, strip, palette,
-		colours, Q, dither ) ) {
+		colours, Q, dither, buffer_size ) ) {
 		vips_error( "vips2png", 
 			_( "unable to write \"%s\"" ), filename );
 
@@ -1296,7 +1299,8 @@ int
 vips__png_write_buf( VipsImage *in, 
 	void **obuf, size_t *olen, int compression, int interlace,
 	const char *profile, VipsForeignPngFilter filter, gboolean strip,
-	gboolean palette, int colours, int Q, double dither )
+	gboolean palette, int colours, int Q, double dither,
+	size_t buffer_size )
 {
 	Write *write;
 
@@ -1309,7 +1313,7 @@ vips__png_write_buf( VipsImage *in,
 	 */
 	if( write_vips( write, 
 		compression, interlace, profile, filter, strip, palette,
-		colours, Q, dither ) ) {
+		colours, Q, dither, buffer_size ) ) {
 		vips_error( "vips2png", 
 			"%s", _( "unable to write to buffer" ) );
 

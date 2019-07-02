@@ -66,6 +66,7 @@ typedef struct _VipsForeignSavePng {
 	int colours;
 	int Q;
 	double dither;
+	size_t buffer_size;
 } VipsForeignSavePng;
 
 typedef VipsForeignSaveClass VipsForeignSavePngClass;
@@ -167,6 +168,13 @@ vips_foreign_save_png_class_init( VipsForeignSavePngClass *class )
 		G_STRUCT_OFFSET( VipsForeignSavePng, dither ),
 		0.0, 1.0, 1.0 );
 
+	VIPS_ARG_INT( class, "buffer_size", 17,
+		_( "Buffer size" ),
+		_( "Size of each IDAT chunk" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSavePng, buffer_size ),
+		6, INT_MAX, 8192 );
+
 }
 
 static void
@@ -177,6 +185,7 @@ vips_foreign_save_png_init( VipsForeignSavePng *png )
 	png->colours = 256;
 	png->Q = 100;
 	png->dither = 1.0;
+	png->buffer_size = 8192;
 }
 
 typedef struct _VipsForeignSavePngFile {
@@ -204,7 +213,7 @@ vips_foreign_save_png_file_build( VipsObject *object )
 	if( vips__png_write( save->ready, 
 		png_file->filename, png->compression, png->interlace, 
 		png->profile, png->filter, save->strip, png->palette,
-		png->colours, png->Q, png->dither ) )
+		png->colours, png->Q, png->dither, png->buffer_size ) )
 		return( -1 );
 
 	return( 0 );
@@ -263,7 +272,8 @@ vips_foreign_save_png_buffer_build( VipsObject *object )
 
 	if( vips__png_write_buf( save->ready, &obuf, &olen,
 		png->compression, png->interlace, png->profile, png->filter,
-		save->strip, png->palette, png->colours, png->Q, png->dither ) )
+		save->strip, png->palette, png->colours, png->Q, png->dither,
+		png->buffer_size ) )
 		return( -1 );
 
 	/* vips__png_write_buf() makes a buffer that needs g_free(), not
