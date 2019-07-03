@@ -65,6 +65,10 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	gboolean lossless;
 
+	/* Compression format
+	 */
+	VipsForeignHeifCompression compression;
+
 	int page_width;
 	int page_height;
 	int n_pages;
@@ -293,12 +297,15 @@ vips_foreign_save_heif_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	/* TODO ... should be a param? the other useful one is AVC.
-	 */
 	error = heif_context_get_encoder_for_format( heif->ctx, 
-		heif_compression_HEVC, &heif->encoder );
+		heif->compression, &heif->encoder );
 	if( error.code ) {
-		vips__heif_error( &error );
+		if ( error.code == heif_error_Unsupported_filetype ) {
+			vips_error( "heifsave", "%s", _( "Unsupported compression" ) );
+		}
+		else {
+			vips__heif_error( &error );
+		}
 		return( -1 );
 	}
 
@@ -401,6 +408,14 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveHeif, lossless ),
 		FALSE );
 
+	VIPS_ARG_ENUM( class, "compression", 14,
+		_( "compression" ),
+		_( "Compression format" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveHeif, compression ),
+		VIPS_TYPE_FOREIGN_HEIF_COMPRESSION,
+		VIPS_FOREIGN_HEIF_COMPRESSION_HEVC );
+
 }
 
 static void
@@ -408,6 +423,7 @@ vips_foreign_save_heif_init( VipsForeignSaveHeif *heif )
 {
 	heif->ctx = heif_context_alloc();
 	heif->Q = 50;
+	heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_HEVC;
 }
 
 typedef struct _VipsForeignSaveHeifFile {
@@ -580,6 +596,7 @@ vips_foreign_save_heif_buffer_init( VipsForeignSaveHeifBuffer *buffer )
  *
  * * @Q: %gint, quality factor
  * * @lossless: %gboolean, enable lossless encoding
+ * * @compression: use this #VipsForeignHeifCompression
  *
  * Write a VIPS image to a file in HEIF format. 
  *
@@ -587,6 +604,8 @@ vips_foreign_save_heif_buffer_init( VipsForeignSaveHeifBuffer *buffer )
  * what the iphone uses. Q 30 gives about the same quality as JPEG Q 75.
  *
  * Set @lossless %TRUE to switch to lossless compression.
+ *
+ * Use @compression to set the encoder e.g. HEVC, AVC, AV1
  *
  * See also: vips_image_write_to_file(), vips_heifload().
  *
@@ -616,6 +635,7 @@ vips_heifsave( VipsImage *in, const char *filename, ... )
  *
  * * @Q: %gint, quality factor
  * * @lossless: %gboolean, enable lossless encoding
+ * * @compression: use this #VipsForeignHeifCompression
  *
  * As vips_heifsave(), but save to a memory buffer. 
  *
