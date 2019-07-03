@@ -2,6 +2,8 @@
  *
  * 5/7/18
  * 	- from niftisave.c
+ * 3/7/19 [lovell]
+ * 	- add "compression" option
  */
 
 /*
@@ -85,7 +87,7 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	struct heif_image *img;
 
-	/* The libheif memory area will fill with pixels from the libvips 
+	/* The libheif memory area we fill with pixels from the libvips 
 	 * pipe.
 	 */
 	uint8_t *data;
@@ -300,12 +302,12 @@ vips_foreign_save_heif_build( VipsObject *object )
 	error = heif_context_get_encoder_for_format( heif->ctx, 
 		heif->compression, &heif->encoder );
 	if( error.code ) {
-		if ( error.code == heif_error_Unsupported_filetype ) {
-			vips_error( "heifsave", "%s", _( "Unsupported compression" ) );
-		}
-		else {
+		if( error.code == heif_error_Unsupported_filetype ) 
+			vips_error( "heifsave", 
+				"%s", _( "Unsupported compression" ) );
+		else 
 			vips__heif_error( &error );
-		}
+
 		return( -1 );
 	}
 
@@ -329,8 +331,8 @@ vips_foreign_save_heif_build( VipsObject *object )
 	heif->page_height = vips_image_get_page_height( save->ready );
 	heif->n_pages = save->ready->Ysize / heif->page_height;
 
-	/* Make a heif image the size of a page. We repeatedly fill this with
-	 * sink_disc() and write a frame each time it fills.
+	/* Make a heif image the size of a page. We send sink_disc() output 
+	 * here and write a frame each time it fills.
 	 */
 	error = heif_image_create( heif->page_width, heif->page_height, 
 		heif_colorspace_RGB, heif_chroma_interleaved_RGB, &heif->img );
@@ -385,7 +387,7 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "heifsave";
+	object_class->nickname = "heifsave_base";
 	object_class->description = _( "save image in HEIF format" );
 	object_class->build = vips_foreign_save_heif_build;
 
@@ -596,7 +598,7 @@ vips_foreign_save_heif_buffer_init( VipsForeignSaveHeifBuffer *buffer )
  *
  * * @Q: %gint, quality factor
  * * @lossless: %gboolean, enable lossless encoding
- * * @compression: use this #VipsForeignHeifCompression
+ * * @compression: #VipsForeignHeifCompression, write with this compression
  *
  * Write a VIPS image to a file in HEIF format. 
  *
@@ -635,7 +637,7 @@ vips_heifsave( VipsImage *in, const char *filename, ... )
  *
  * * @Q: %gint, quality factor
  * * @lossless: %gboolean, enable lossless encoding
- * * @compression: use this #VipsForeignHeifCompression
+ * * @compression: #VipsForeignHeifCompression, write with this compression
  *
  * As vips_heifsave(), but save to a memory buffer. 
  *
