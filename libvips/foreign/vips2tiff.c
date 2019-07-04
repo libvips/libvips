@@ -628,7 +628,7 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 	/* And colour fields.
 	 */
 	if( wtiff->im->Coding == VIPS_CODING_LABQ ) {
-		TIFFSetField( tif, TIFFTAG_SAMPLESPERPIXEL, 3 );
+		TIFFSetField( tif, TIFFTAG_SAMPLESPERPIXEL, wtiff->im->Bands - 1 );
 		TIFFSetField( tif, TIFFTAG_BITSPERSAMPLE, 8 );
 		TIFFSetField( tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_CIELAB );
 	}
@@ -1067,7 +1067,7 @@ wtiff_new( VipsImage *im, const char *filename,
 	/* Sizeof a line of bytes in the TIFF tile.
 	 */
 	if( im->Coding == VIPS_CODING_LABQ )
-		wtiff->tls = wtiff->tilew * 3;
+		wtiff->tls = wtiff->tilew * (im->Bands - 1);
 	else if( wtiff->onebit )
 		wtiff->tls = VIPS_ROUND_UP( wtiff->tilew, 8 ) / 8;
 	else
@@ -1115,9 +1115,10 @@ wtiff_new( VipsImage *im, const char *filename,
 /* Convert VIPS LabQ to TIFF LAB. Just take the first three bands.
  */
 static void
-LabQ2LabC( VipsPel *q, VipsPel *p, int n )
+LabQ2LabC( VipsPel *q, VipsPel *p, int n, int bands )
 {
         int x;
+		int b;
 
         for( x = 0; x < n; x++ ) {
                 /* Get most significant 8 bits of lab.
@@ -1126,8 +1127,11 @@ LabQ2LabC( VipsPel *q, VipsPel *p, int n )
                 q[1] = p[1];
                 q[2] = p[2];
 
-                p += 4;
-                q += 3;
+				for (b = 4; b < bands; ++b)
+					q[b-1] = p[b];
+
+                p += bands;
+                q += bands - 1;
         }
 }
 
@@ -1278,7 +1282,7 @@ wtiff_pack2tiff( Wtiff *wtiff, Layer *layer,
 		VipsPel *p = (VipsPel *) VIPS_REGION_ADDR( in, area->left, y );
 
 		if( wtiff->im->Coding == VIPS_CODING_LABQ )
-			LabQ2LabC( q, p, area->width );
+			LabQ2LabC( q, p, area->width, wtiff->im->Bands );
 		else if( wtiff->onebit ) 
 			eightbit2onebit( wtiff, q, p, area->width );
 		else if( (in->im->Bands == 1 || in->im->Bands == 2) && 
@@ -1364,7 +1368,7 @@ wtiff_layer_write_strip( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 		/* Any repacking necessary.
 		 */
 		if( im->Coding == VIPS_CODING_LABQ ) {
-			LabQ2LabC( wtiff->tbuf, p, im->Xsize );
+			LabQ2LabC( wtiff->tbuf, p, im->Xsize, wtiff->im->Bands );
 			p = wtiff->tbuf;
 		}
 		else if( im->BandFmt == VIPS_FORMAT_SHORT &&
