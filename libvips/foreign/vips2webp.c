@@ -184,7 +184,7 @@ vips_webp_write_init( VipsWebPWrite *write, VipsImage *image,
 	if( near_lossless )
 		write->config.near_lossless = Q;
 	if( smart_subsample )
-		write->config.preprocessing |= 4;
+		write->config.use_sharp_yuv = 1;
 
 	if( !WebPValidateConfig( &write->config ) ) {
 		vips_webp_write_unset( write );
