@@ -70,6 +70,8 @@ typedef struct _VipsForeignSaveMagick {
 	Image *current_image;
 
 	int page_height;
+	int *delays;
+	int delays_length;
 
 	/* The position of current_image in the output.
 	 */
@@ -111,9 +113,8 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 
 	Image *image;
 	int number;
-	int *numbers;
-	int numbers_length;
 	const char *str;
+	int page_index;
 
 	g_assert( !magick->current_image );
 
@@ -143,11 +144,13 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 		im->Xsize, magick->page_height, magick->exception ) )
 		return( -1 );
 
-	if( vips_image_get_typeof( im, "delay" ) &&
-		!vips_image_get_array_int( im, "delay", &numbers, &numbers_length ) ) {
-			int page_index = magick->position.top / magick->page_height;
-			if( page_index < numbers_length ) 
-				image->delay = (size_t) VIPS_RINT( numbers[page_index] / 10.0 );
+	/* Delay must be converted from milliseconds into centiseconds
+	 * as GIF image requires centiseconds.
+	 */
+	if ( magick->delays != NULL) {
+		page_index = magick->position.top / magick->page_height;
+		if( page_index < magick->delays_length ) 
+			image->delay = (size_t) VIPS_RINT( magick->delays[page_index] / 10.0 );
 	}
 
 	/* ImageMagick uses iterations like this (at least in gif save):
@@ -342,6 +345,12 @@ vips_foreign_save_magick_build( VipsObject *object )
 		magick->image_info->quality = magick->quality;
 
 	magick->page_height = vips_image_get_page_height( im );
+
+	if( vips_image_get_typeof( im, "delay" ) &&
+		vips_image_get_array_int( im,
+		 "delay", &magick->delays, &magick->delays_length ) ) {
+			return( -1 );
+	}
 
 	if( vips_sink_disc( im, 
 		vips_foreign_save_magick_write_block, magick ) ) 

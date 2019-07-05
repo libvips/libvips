@@ -132,7 +132,7 @@ typedef struct _VipsForeignLoadGif {
 	gboolean has_transparency;
 	gboolean has_colour;
 
-	/* Delays between frames (in miliseconds).
+	/* Delays between frames (in milliseconds).
 	 */
 	int *delays;
 
@@ -519,9 +519,9 @@ vips_foreign_load_gif_scan_extension( VipsForeignLoadGif *gif )
 				gif->has_transparency = TRUE;
 			}
 
-			if( gif->n_pages % 64 == 0 ) {
+			if( gif->n_pages % 64 == 0 )
 				gif->delays = (int *) g_realloc( gif->delays, (gif->n_pages + 64) * sizeof(int) );
-			}
+
 			gif->delays[gif->n_pages] = (extension[2] | (extension[3] << 8)) * 10;
 
 			while( extension != NULL )
@@ -575,11 +575,11 @@ vips_foreign_load_gif_set_header( VipsForeignLoadGif *gif, VipsImage *image )
 	vips_image_set_int( image, "gif-loop", gif->loop );
 
 	if( gif->delays ) {
-		vips_image_set_int( image, "gif-delay", VIPS_RINT( gif->delays[0] / 10.0 ) );
+		vips_image_set_int( image,
+		 "gif-delay", VIPS_RINT( gif->delays[0] / 10.0 ) );
 		vips_image_set_array_int( image, "delay", gif->delays, gif->n_pages );
-	} else {
+	} else
 		vips_image_set_int( image, "gif-delay", 4 );
-	}
 
 	if( gif->comment )
 		vips_image_set_string( image, "gif-comment", gif->comment );

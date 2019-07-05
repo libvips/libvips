@@ -358,6 +358,7 @@ read_free( Read *read )
 
 	VIPS_FREEF( vips_tracked_close, read->fd ); 
 	VIPS_FREE( read->filename );
+	VIPS_FREE( read->delays );
 	VIPS_FREE( read );
 
 	return( 0 );
@@ -475,29 +476,26 @@ read_header( Read *read, VipsImage *out )
 			VIPS_META_PAGE_HEIGHT, read->frame_height );
 
 		if ( read->frame_count > 1) {
-			read->delays = (int *) g_malloc( read->frame_count * sizeof(int) );
+			int i;
+			read->delays = (int *) g_malloc0( read->frame_count * sizeof(int) );
 
-			for( int i = 0; i < read->frame_count; i++ ) {
-				if( WebPDemuxGetFrame( read->demux, i + 1, &iter ) ) {
+			for( i = 0; i < read->frame_count; i++ ) {
+				if( WebPDemuxGetFrame( read->demux, i + 1, &iter ) )
 					read->delays[i] = iter.duration;
-				} else {
-					read->delays[i] = 0;
-				}
 			}
 
 #ifdef DEBUG
-		for( int i = 0; i < read->frame_count; i++ ) {
+		for( i = 0; i < read->frame_count; i++ ) {
 			printf( "webp2vips: frame = %d; duration = %d\n", i + 1, read->delays[i] );
 		}
 #endif /*DEBUG*/
 
 			vips_image_set_array_int( out, "delay", read->delays, read->frame_count );
-			g_free( read->delays );
 
 			/* webp uses ms for delays, gif uses centiseconds.
 			 */
 			vips_image_set_int( out, "gif-delay", 
-      VIPS_RINT( read->delays[0] / 10.0 ) );
+			VIPS_RINT( read->delays[0] / 10.0 ) );
 
 			/* We need the alpha in an animation if:
 			 *   - any frame has transparent pixels 
