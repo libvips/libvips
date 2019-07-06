@@ -1222,7 +1222,8 @@ vips_image_remove( VipsImage *image, const char *name )
 /* Deprecated header fields we hide from _map.
  */
 static const char *vips_image_header_deprecated[] = {
-	"ipct-data"
+	"ipct-data",
+	"gif-delay"
 };
 
 static void *

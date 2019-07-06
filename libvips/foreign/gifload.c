@@ -22,8 +22,8 @@
  * 	- init pages to 0 before load
  * 14/2/19
  * 	- rework as a sequential loader ... simpler, much lower mem use
- * 6/7/19
- * 	- support array of delays
+ * 6/7/19 [deftomat]
+ * 	- support array of delays 
  */
 
 /*

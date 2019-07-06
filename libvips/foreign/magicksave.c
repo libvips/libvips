@@ -8,6 +8,8 @@
  * 	- write with a single call to vips_sink_disc()
  * 29/6/19
  * 	- support "strip" option
+ * 6/7/19 [deftomat]
+ * 	- support array of delays 
  */
 
 /*
@@ -147,10 +149,11 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 	/* Delay must be converted from milliseconds into centiseconds
 	 * as GIF image requires centiseconds.
 	 */
-	if ( magick->delays != NULL) {
+	if( magick->delays ) {
 		page_index = magick->position.top / magick->page_height;
 		if( page_index < magick->delays_length ) 
-			image->delay = (size_t) VIPS_RINT( magick->delays[page_index] / 10.0 );
+			image->delay = 
+				VIPS_RINT( magick->delays[page_index] / 10.0 );
 	}
 
 	/* ImageMagick uses iterations like this (at least in gif save):
@@ -348,9 +351,8 @@ vips_foreign_save_magick_build( VipsObject *object )
 
 	if( vips_image_get_typeof( im, "delay" ) &&
 		vips_image_get_array_int( im,
-		 "delay", &magick->delays, &magick->delays_length ) ) {
-			return( -1 );
-	}
+			"delay", &magick->delays, &magick->delays_length ) ) 
+		return( -1 );
 
 	if( vips_sink_disc( im, 
 		vips_foreign_save_magick_write_block, magick ) ) 

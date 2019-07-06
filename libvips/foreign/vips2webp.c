@@ -12,6 +12,8 @@
  * 	- target libwebp 0.5+ and remove some ifdefs
  * 	- add animated webp write
  * 	- use libwebpmux instead of our own thing, phew
+ * 6/7/19 [deftomat]
+ * 	- support array of delays 
  */
 
 /*
@@ -275,61 +277,16 @@ write_webp_single( VipsWebPWrite *write, VipsImage *image )
 	return( 0 );
 }
 
-/* Get a defaulted int value.
- */
-static int
-get_int( VipsImage *image, const char *field, int default_value )
-{
-	int value;
-
-	if( vips_image_get_typeof( image, field ) &&
-		!vips_image_get_int( image, field, &value ) )
-		return( value );
-
-	return( default_value );
-}
-
-/* Get an image field as an array of ints.
- */
-static int*
-get_array_int( VipsImage *image, const char *field, int* n )
-{
-	int *value;
-
-	if( vips_image_get_typeof( image, field ) &&
-		!vips_image_get_array_int( image, field, &value, n ) )
-		return( value );
-
-	return( NULL );
-}
-
-/* Returns a delay on a given index or the default delay.
- */
-static int 
-extract_delay( int index, const int *delays, int delays_length, 
-	int default_delay )
-{
-	if( delays == NULL || 
-		index > delays_length )
-		return( default_delay );
-
-	return( delays[index] );
-}
-
 /* Write a set of animated frames into write->memory_writer.
  */
 static int
 write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 {
-	/* 100ms is the webp default. gif-delay is in centiseconds (the GIF
-	 * standard).
-	 */
-	const int default_delay = 10 * get_int( image, "gif-delay", 10 );
-	int delays_length;
-	const int *delays = get_array_int( image, "delay", &delays_length );
-
 	WebPAnimEncoderOptions anim_config;
 	WebPData webp_data;
+	int gif_delay;
+	int *delay;
+	int delay_length;
 	int top;
 	int timestamp_ms;
 
@@ -350,6 +307,20 @@ write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 			"%s", _( "unable to init animation" ) );
 		return( -1 );
 	}
+
+	/* There might just be the old gif-delay field. This is centiseconds.
+	 */
+	gif_delay = 4;
+	if( vips_image_get_typeof( image, "gif-delay" ) &&
+		vips_image_get_int( image, "gif-delay", &gif_delay ) )
+		return( -1 );
+
+	/* New images have an array of ints instead.
+	 */
+	if( vips_image_get_typeof( image, "delay" ) &&
+		vips_image_get_array_int( image, "delay", 
+			&delay, &delay_length ) )
+		return( -1 );
 
 	timestamp_ms = 0;
 	for( top = 0; top < image->Ysize; top += page_height ) {
@@ -379,7 +350,11 @@ write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 		WebPPictureFree( &pic );
 
 		page_index = top / page_height;
-		timestamp_ms += extract_delay( page_index, delays, delays_length, default_delay );
+		if( delay &&
+			page_index < delay_length )
+			timestamp_ms += delay[page_index];
+		else 
+			timestamp_ms += gif_delay * 10;
 	}
 
 	/* Closes encoder and add last frame delay.
@@ -462,8 +437,14 @@ vips_webp_add_chunks( VipsWebPWrite *write, VipsImage *image )
 {
 	int i;
 
-	if( vips_image_get_typeof( image, "gif-loop" ) )
-		vips_webp_set_count( write, get_int( image, "gif-loop", 0 ) );
+	if( vips_image_get_typeof( image, "gif-loop" ) ) {
+		int gif_loop;
+
+		if( vips_image_get_int( image, "gif-loop", &gif_loop ) )
+			return( -1 );
+
+		vips_webp_set_count( write, gif_loop );
+	}
 
 	for( i = 0; i < vips__n_webp_names; i++ ) { 
 		const char *vips_name = vips__webp_names[i].vips;
