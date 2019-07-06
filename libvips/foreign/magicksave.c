@@ -72,6 +72,7 @@ typedef struct _VipsForeignSaveMagick {
 	Image *current_image;
 
 	int page_height;
+	GValue delay_gvalue;
 	int *delays;
 	int delays_length;
 
@@ -99,6 +100,7 @@ vips_foreign_save_magick_dispose( GObject *gobject )
 	VIPS_FREEF( DestroyImageList, magick->images );
 	VIPS_FREEF( DestroyImageInfo, magick->image_info );
 	VIPS_FREEF( magick_destroy_exception, magick->exception );
+	g_value_unset( &magick->delay_gvalue );
 
 	G_OBJECT_CLASS( vips_foreign_save_magick_parent_class )->
 		dispose( gobject );
@@ -349,10 +351,15 @@ vips_foreign_save_magick_build( VipsObject *object )
 
 	magick->page_height = vips_image_get_page_height( im );
 
-	if( vips_image_get_typeof( im, "delay" ) &&
-		vips_image_get_array_int( im,
-			"delay", &magick->delays, &magick->delays_length ) ) 
-		return( -1 );
+	/* Get as a gvalue so we can keep a ref to the delay array while we
+	 * need it.
+	 */
+	if( vips_image_get_typeof( im, "delay" ) ) {
+		if( vips_image_get( im, "delay", &magick->delay_gvalue ) ) 
+			return( -1 );
+		magick->delays = vips_value_get_array_int( 
+			&magick->delay_gvalue, &magick->delays_length );
+	}
 
 	if( vips_sink_disc( im, 
 		vips_foreign_save_magick_write_block, magick ) ) 

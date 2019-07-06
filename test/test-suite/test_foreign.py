@@ -459,6 +459,15 @@ class TestForeign:
         self.save_load_buffer("magicksave_buffer", "magickload_buffer",
                               self.colour, 40, format="JPG")
 
+        # try an animation
+        if have("gifload"):
+            x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
+            w1 = x1.magicksave_buffer(format="GIF")
+            x2 = pyvips.Image.new_from_buffer(w1, "", n=-1)
+            assert x1.get("delay") == x2.get("delay")
+            assert x1.get("page-height") == x2.get("page-height")
+            assert x1.get("gif-loop") == x2.get("gif-loop")
+
     @skip_if_no("webpload")
     def test_webp(self):
         def webp_valid(im):
@@ -517,7 +526,7 @@ class TestForeign:
             x2 = pyvips.Image.new_from_buffer(w1, "", n=-1)
             assert x1.width == x2.width
             assert x1.height == x2.height
-            assert x1.get("gif-delay") == x2.get("gif-delay")
+            assert x1.get("delay") == x2.get("delay")
             assert x1.get("page-height") == x2.get("page-height")
             assert x1.get("gif-loop") == x2.get("gif-loop")
 
@@ -636,6 +645,8 @@ class TestForeign:
 
             x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
             assert x2.height == 5 * x1.height
+            # our test gif has delay 0 for the first frame set in error
+            assert x2.get("delay") == [0, 50, 50, 50, 50]
 
             x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, page=1, n=-1)
             assert x2.height == 4 * x1.height
