@@ -306,10 +306,13 @@ get_array_int( VipsImage *image, const char *field, int* n )
 /* Returns a delay on a given index or the default delay.
  */
 static int 
-extract_delay( int index, int *delays, int delays_length, int default_delay )
+extract_delay( int index, const int *delays, int delays_length, 
+	int default_delay )
 {
-	if( delays == NULL || index > delays_length )
+	if( delays == NULL || 
+		index > delays_length )
 		return( default_delay );
+
 	return( delays[index] );
 }
 
