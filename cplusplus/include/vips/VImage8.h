@@ -352,6 +352,12 @@ public:
 	}
 
 	void 
+	set( const char *field, int *value, int n )
+	{
+		vips_image_set_array_int( this->get_image(), field, value, n ); 
+	}
+
+	void 
 	set( const char *field, double value )
 	{
 		vips_image_set_double( this->get_image(), field, value ); 
@@ -386,6 +392,13 @@ public:
 			throw( VError() ); 
 
 		return( value ); 
+	}
+
+	void
+	get_array_int( const char *field, int **out, int *n ) const
+	{
+		if( vips_image_get_array_int( this->get_image(), field, out, n ) )
+			throw( VError() ); 
 	}
 
 	double 

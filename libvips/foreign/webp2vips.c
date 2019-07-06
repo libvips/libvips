@@ -20,6 +20,8 @@
  * 30/4/19
  * 	- deprecate shrink, use scale instead, and make it a double ... this
  * 	  lets us do faster and more accurate thumbnailing
+ * 27/6/19
+ * 	- disable alpha output if all frame fill the canvas and are solid
  */
 
 /*
@@ -97,17 +99,22 @@ typedef struct {
 	 */
 	double scale;
 
+	/* Size of each frame in input image coordinates.
+	 */
+	int canvas_width;
+	int canvas_height;
+
+	/* Size of each frame, in scaled output image coordinates,
+	 */
+	int frame_width;
+	int frame_height;
+
 	/* Size of final output image. 
 	 */
 	int width;
 	int height;
 
-	/* Size of each frame.
-	 */
-	int frame_width;
-	int frame_height;
-
-	/* TRUE for RGBA.
+	/* TRUE if we will save the final image as RGBA.
 	 */
 	int alpha;
 
@@ -280,11 +287,6 @@ vips_image_paint_image( VipsImage *frame,
 
 	g_assert( VIPS_IMAGE_SIZEOF_PEL( sub ) == ps );
 
-	/* Disable blend if we are not RGBA.
-	 */
-	if( frame->Bands != 4 )
-		blend = FALSE;
-
 	vips_rect_intersectrect( &frame_rect, &sub_rect, &ovl );
 	if( !vips_rect_isempty( &ovl ) ) {
 		VipsPel *p, *q;
@@ -356,6 +358,7 @@ read_free( Read *read )
 
 	VIPS_FREEF( vips_tracked_close, read->fd ); 
 	VIPS_FREE( read->filename );
+	VIPS_FREE( read->delays );
 	VIPS_FREE( read );
 
 	return( 0 );
@@ -418,8 +421,6 @@ static int
 read_header( Read *read, VipsImage *out )
 {
 	WebPData data;
-	int canvas_width;
-	int canvas_height;
 	int flags;
 	int i;
 
@@ -430,16 +431,19 @@ read_header( Read *read, VipsImage *out )
 		return( -1 ); 
 	}
 
-	canvas_width = WebPDemuxGetI( read->demux, WEBP_FF_CANVAS_WIDTH );
-	canvas_height = WebPDemuxGetI( read->demux, WEBP_FF_CANVAS_HEIGHT );
+	read->canvas_width = 
+		WebPDemuxGetI( read->demux, WEBP_FF_CANVAS_WIDTH );
+	read->canvas_height = 
+		WebPDemuxGetI( read->demux, WEBP_FF_CANVAS_HEIGHT );
+
 	/* We round-to-nearest cf. pdfload etc.
 	 */
-	read->frame_width = VIPS_RINT( canvas_width * read->scale );
-	read->frame_height = VIPS_RINT( canvas_height * read->scale );
+	read->frame_width = VIPS_RINT( read->canvas_width * read->scale );
+	read->frame_height = VIPS_RINT( read->canvas_height * read->scale );
 
 #ifdef DEBUG
-	printf( "webp2vips: canvas_width = %d\n", canvas_width );
-	printf( "webp2vips: canvas_height = %d\n", canvas_height );
+	printf( "webp2vips: canvas_width = %d\n", read->canvas_width );
+	printf( "webp2vips: canvas_height = %d\n", read->canvas_height );
 	printf( "webp2vips: frame_width = %d\n", read->frame_width );
 	printf( "webp2vips: frame_height = %d\n", read->frame_height );
 #endif /*DEBUG*/
@@ -447,10 +451,11 @@ read_header( Read *read, VipsImage *out )
 	flags = WebPDemuxGetI( read->demux, WEBP_FF_FORMAT_FLAGS );
 
 	read->alpha = flags & ALPHA_FLAG;
-	if( read->alpha )  
-		read->config.output.colorspace = MODE_RGBA;
-	else
-		read->config.output.colorspace = MODE_RGB;
+
+	/* We do everything as RGBA and then, if we can, drop the alpha on
+	 * save.
+	 */
+	read->config.output.colorspace = MODE_RGBA;
 
 	if( flags & ANIMATION_FLAG ) { 
 		int loop_count;
@@ -471,29 +476,39 @@ read_header( Read *read, VipsImage *out )
 			VIPS_META_PAGE_HEIGHT, read->frame_height );
 
 		if ( read->frame_count > 1) {
-			read->delays = (int *) g_malloc( read->frame_count * sizeof(int) );
+			int i;
+			read->delays = (int *) g_malloc0( read->frame_count * sizeof(int) );
 
-			for( int i = 0; i < read->frame_count; i++ ) {
-				if( WebPDemuxGetFrame( read->demux, i + 1, &iter ) ) {
+			for( i = 0; i < read->frame_count; i++ ) {
+				if( WebPDemuxGetFrame( read->demux, i + 1, &iter ) )
 					read->delays[i] = iter.duration;
-				} else {
-					read->delays[i] = 0;
-				}
 			}
 
 #ifdef DEBUG
-		for( int i = 0; i < read->frame_count; i++ ) {
+		for( i = 0; i < read->frame_count; i++ ) {
 			printf( "webp2vips: frame = %d; duration = %d\n", i + 1, read->delays[i] );
 		}
 #endif /*DEBUG*/
 
 			vips_image_set_array_int( out, "delay", read->delays, read->frame_count );
-			g_free( read->delays );
 
 			/* webp uses ms for delays, gif uses centiseconds.
 			 */
 			vips_image_set_int( out, "gif-delay", 
-				VIPS_RINT( read->delays[0] / 10.0 ) );
+			VIPS_RINT( read->delays[0] / 10.0 ) );
+
+			/* We need the alpha in an animation if:
+			 *   - any frame has transparent pixels 
+			 *   - any frame doesn't fill the whole canvas.
+			 */
+			do {
+				if( iter.has_alpha ||
+					iter.width != read->canvas_width ||
+					iter.height != read->canvas_height ) {
+					read->alpha = TRUE;
+					break;
+				}
+			} while( WebPDemuxNextFrame( &iter ) );
 		}
 
 		WebPDemuxReleaseIterator( &iter );
@@ -543,10 +558,12 @@ read_header( Read *read, VipsImage *out )
 		}
 	}
 
+	/* The canvas is always RGBA, we drop alpha to RGB on output if we
+	 * can.
+	 */
 	read->frame = vips_image_new_memory();
 	vips_image_init_fields( read->frame,
-		read->frame_width, read->frame_height,
-		read->alpha ? 4 : 3,
+		read->frame_width, read->frame_height, 4, 
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0 );
@@ -609,8 +626,7 @@ read_frame( Read *read,
 
 	frame = vips_image_new_memory();
 	vips_image_init_fields( frame,
-		width, height, 
-		read->alpha ? 4 : 3,
+		width, height, 4,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0 );
@@ -750,9 +766,29 @@ read_webp_generate( VipsRegion *or,
 		read->frame_no += 1;
 	}
 
-	memcpy( VIPS_REGION_ADDR( or, 0, r->top ),
-		VIPS_IMAGE_ADDR( read->frame, 0, line ),
-		VIPS_IMAGE_SIZEOF_LINE( read->frame ) );
+	if( or->im->Bands == 4 ) 
+		memcpy( VIPS_REGION_ADDR( or, 0, r->top ),
+			VIPS_IMAGE_ADDR( read->frame, 0, line ),
+			VIPS_IMAGE_SIZEOF_LINE( read->frame ) );
+	else {
+		int x;
+		VipsPel *p;
+		VipsPel *q;
+
+		/* We know that alpha is solid, so we can just drop the 4th
+		 * band.
+		 */
+		p = VIPS_IMAGE_ADDR( read->frame, 0, line );
+		q = VIPS_REGION_ADDR( or, 0, r->top );
+		for( x = 0; x < r->width; x++ ) {
+			q[0] = p[0];
+			q[1] = p[1];
+			q[2] = p[2];
+
+			q += 3;
+			p += 4;
+		}
+	}
 
 	return( 0 );
 }

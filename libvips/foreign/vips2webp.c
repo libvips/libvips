@@ -308,7 +308,8 @@ get_array_int( VipsImage *image, const char *field, int* n )
 static int 
 extract_delay( int index, int *delays, int delays_length, int default_delay )
 {
-	if( delays == NULL || index > delays_length ) return( default_delay );
+	if( delays == NULL || index > delays_length )
+		return( default_delay );
 	return( delays[index] );
 }
 
@@ -351,6 +352,7 @@ write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 	for( top = 0; top < image->Ysize; top += page_height ) {
 		VipsImage *x;
 		WebPPicture pic;
+		int page_index;
 
 		if( vips_crop( image, &x, 
 			0, top, image->Xsize, page_height, NULL ) )
@@ -373,7 +375,7 @@ write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 
 		WebPPictureFree( &pic );
 
-		int page_index = top / page_height;
+		page_index = top / page_height;
 		timestamp_ms += extract_delay( page_index, delays, delays_length, default_delay );
 	}
 
