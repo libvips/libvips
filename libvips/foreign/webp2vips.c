@@ -22,6 +22,8 @@
  * 	  lets us do faster and more accurate thumbnailing
  * 27/6/19
  * 	- disable alpha output if all frame fill the canvas and are solid
+ * 6/7/19 [deftomat]
+ * 	- support array of delays 
  */
 
 /*
@@ -475,40 +477,38 @@ read_header( Read *read, VipsImage *out )
 		vips_image_set_int( out, 
 			VIPS_META_PAGE_HEIGHT, read->frame_height );
 
-		if ( read->frame_count > 1) {
+		if( WebPDemuxGetFrame( read->demux, 1, &iter ) ) {
 			int i;
-			read->delays = (int *) g_malloc0( read->frame_count * sizeof(int) );
 
-			for( i = 0; i < read->frame_count; i++ ) {
-				if( WebPDemuxGetFrame( read->demux, i + 1, &iter ) )
-					read->delays[i] = iter.duration;
-			}
+			read->delays = (int *) 
+				g_malloc0( read->frame_count * sizeof( int ) );
+			for( i = 0; i < read->frame_count; i++ ) 
+				read->delays[i] = 40;
 
-#ifdef DEBUG
-		for( i = 0; i < read->frame_count; i++ ) {
-			printf( "webp2vips: frame = %d; duration = %d\n", i + 1, read->delays[i] );
-		}
-#endif /*DEBUG*/
+			do {
+				g_assert( iter.frame_num >= 1 &&
+					iter.frame_num < read->frame_count );
 
-			vips_image_set_array_int( out, "delay", read->delays, read->frame_count );
+				read->delays[iter.frame_num - 1] = 
+					iter.duration;
+
+				/* We need the alpha in an animation if:
+				 *   - any frame has transparent pixels 
+				 *   - any frame doesn't fill the whole canvas.
+				 */
+				if( iter.has_alpha ||
+					iter.width != read->canvas_width ||
+					iter.height != read->canvas_height ) 
+					read->alpha = TRUE;
+			} while( WebPDemuxNextFrame( &iter ) );
+
+			vips_image_set_array_int( out, 
+				"delay", read->delays, read->frame_count );
 
 			/* webp uses ms for delays, gif uses centiseconds.
 			 */
 			vips_image_set_int( out, "gif-delay", 
-			VIPS_RINT( read->delays[0] / 10.0 ) );
-
-			/* We need the alpha in an animation if:
-			 *   - any frame has transparent pixels 
-			 *   - any frame doesn't fill the whole canvas.
-			 */
-			do {
-				if( iter.has_alpha ||
-					iter.width != read->canvas_width ||
-					iter.height != read->canvas_height ) {
-					read->alpha = TRUE;
-					break;
-				}
-			} while( WebPDemuxNextFrame( &iter ) );
+				VIPS_RINT( read->delays[0] / 10.0 ) );
 		}
 
 		WebPDemuxReleaseIterator( &iter );
