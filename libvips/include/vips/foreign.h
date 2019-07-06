@@ -623,6 +623,23 @@ typedef enum {
 int vips_dzsave( VipsImage *in, const char *name, ... )
 	__attribute__((sentinel));
 
+/**
+ * VipsForeignHeifCompression:
+ * @VIPS_FOREIGN_HEIF_COMPRESSION_HEVC: x265
+ * @VIPS_FOREIGN_HEIF_COMPRESSION_AVC: x264
+ * @VIPS_FOREIGN_HEIF_COMPRESSION_JPEG: jpeg
+ * @VIPS_FOREIGN_HEIF_COMPRESSION_AV1: aom
+ *
+ * The compression format to use inside a HEIF container.
+ */
+typedef enum {
+	VIPS_FOREIGN_HEIF_COMPRESSION_HEVC = 1,
+	VIPS_FOREIGN_HEIF_COMPRESSION_AVC = 2,
+	VIPS_FOREIGN_HEIF_COMPRESSION_JPEG = 3,
+	VIPS_FOREIGN_HEIF_COMPRESSION_AV1 = 4,
+	VIPS_FOREIGN_HEIF_COMPRESSION_LAST
+} VipsForeignHeifCompression;
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

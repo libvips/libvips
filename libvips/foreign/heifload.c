@@ -146,7 +146,8 @@ void
 vips__heif_error( struct heif_error *error )
 {
 	if( error->code ) 
-		vips_error( "heifload", "%s", error->message ); 
+		vips_error( "heif", "%s (%d.%d)", error->message, error->code,
+			error->subcode );
 }
 
 static const char *heif_magic[] = {
@@ -814,6 +815,8 @@ vips_foreign_load_heif_file_header( VipsForeignLoad *load )
 
 const char *vips__heif_suffs[] = { 
 	".heic",
+	".heif",
+	".avif",
 	NULL 
 };
 

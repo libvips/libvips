@@ -2,6 +2,9 @@
 - add vips_image_get/set_array_int()
 - disable webp alpha output if all frame fill the canvas and are solid
 - support arrays of delays for animated images [deftomat]
+- add "unlimited" flag to svgload
+- disable webp alpha output if all frames fill the canvas and are solid
+- add "compression" option to heifsave [lovell]
 
 24/5/19 started 8.8.1
 - improve realpath() use on older libc
@@ -16,6 +19,8 @@ magic number [przemyslawpluta]
 - remove 256 band limit in arithmetic.c [erdmann]
 - disable Orc if building with CET [lovell]
 - fix vipsthumbnail with pyr tiff [kleisauke]
+- text autofit could occasionally terminate early [levmorozov]
+- fewer warnings on tiffload [chregu]
 
 21/9/18 started 8.8.0
 - much faster smartcrop [lovell]

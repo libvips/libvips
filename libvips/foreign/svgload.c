@@ -14,6 +14,9 @@
  * 	- handle scaling of svg files missing width and height attributes
  * 22/3/18 lovell
  * 	- svgload was missing is_a
+ * 28/6/19
+ * 	- add "unlimited"
+ * 	- requires us to use the gio API to librsvg
  */
 
 /*
@@ -106,6 +109,10 @@ typedef struct _VipsForeignLoadSvg {
 	/* Scale using cairo when SVG has no width and height attributes.
 	 */
 	double cairo_scale;
+
+	/* Allow SVGs of any size.
+	 */
+	gboolean unlimited;
 
 	RsvgHandle *page;
 
@@ -440,6 +447,13 @@ vips_foreign_load_svg_class_init( VipsForeignLoadSvgClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoadSvg, scale ),
 		0.001, 100000.0, 1.0 );
 
+	VIPS_ARG_BOOL( class, "unlimited", 23,
+		_( "Unlimited" ),
+		_( "Allow SVG of any size" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadSvg, unlimited ),
+		FALSE );
+
 }
 
 static void
@@ -480,14 +494,20 @@ vips_foreign_load_svg_file_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) load;
 	VipsForeignLoadSvgFile *file = (VipsForeignLoadSvgFile *) load;
+	RsvgHandleFlags flags = svg->unlimited ? RSVG_HANDLE_FLAG_UNLIMITED : 0;
 
 	GError *error = NULL;
 
-	if( !(svg->page = rsvg_handle_new_from_file( 
-		file->filename, &error )) ) { 
+	GFile *gfile;
+
+	gfile = g_file_new_for_path( file->filename );
+	if( !(svg->page = rsvg_handle_new_from_gfile_sync( 
+		gfile, flags, NULL, &error )) ) { 
+		g_object_unref( gfile );
 		vips_g_error( &error );
 		return( -1 ); 
 	}
+	g_object_unref( gfile );
 
 	VIPS_SETSTR( load->out->filename, file->filename );
 
@@ -558,14 +578,21 @@ vips_foreign_load_svg_buffer_header( VipsForeignLoad *load )
 	VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) load;
 	VipsForeignLoadSvgBuffer *buffer = 
 		(VipsForeignLoadSvgBuffer *) load;
+	RsvgHandleFlags flags = svg->unlimited ? RSVG_HANDLE_FLAG_UNLIMITED : 0;
 
 	GError *error = NULL;
 
-	if( !(svg->page = rsvg_handle_new_from_data( 
-		buffer->buf->data, buffer->buf->length, &error )) ) { 
+	GInputStream *gstream;
+
+	gstream = g_memory_input_stream_new_from_data( 
+		buffer->buf->data, buffer->buf->length, NULL );
+	if( !(svg->page = rsvg_handle_new_from_stream_sync( 
+		gstream, NULL, flags, NULL, &error )) ) { 
+		g_object_unref( gstream );
 		vips_g_error( &error );
 		return( -1 ); 
 	}
+	g_object_unref( gstream );
 
 	return( vips_foreign_load_svg_header( load ) );
 }
@@ -612,6 +639,7 @@ vips_foreign_load_svg_buffer_init( VipsForeignLoadSvgBuffer *buffer )
  *
  * * @dpi: %gdouble, render at this DPI
  * * @scale: %gdouble, scale render by this factor
+ * * @unlimited: %gboolean, allow SVGs of any size
  *
  * Render a SVG file into a VIPS image.  Rendering uses the librsvg library
  * and should be fast.
@@ -621,6 +649,9 @@ vips_foreign_load_svg_buffer_init( VipsForeignLoadSvgBuffer *buffer )
  *
  * This function only reads the image header and does not render any pixel
  * data. Rendering occurs when pixels are accessed.
+ *
+ * SVGs larger than 10MB are normally blocked for security. Set @unlimited to
+ * allow SVGs of any size.
  *
  * See also: vips_image_new_from_file().
  *
@@ -650,6 +681,7 @@ vips_svgload( const char *filename, VipsImage **out, ... )
  *
  * * @dpi: %gdouble, render at this DPI
  * * @scale: %gdouble, scale render by this factor
+ * * @unlimited: %gboolean, allow SVGs of any size
  *
  * Read a SVG-formatted memory block into a VIPS image. Exactly as
  * vips_svgload(), but read from a memory buffer. 

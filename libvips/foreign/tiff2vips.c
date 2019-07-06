@@ -254,6 +254,7 @@ typedef struct _RtiffHeader {
 	gboolean separate; 
 	int orientation; 
 	gboolean premultiplied;
+	uint16 compression;
 
 	/* Result of TIFFIsTiled().
 	 */
@@ -1331,9 +1332,12 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	uint32 data_length;
 	void *data;
 
-	/* Request YCbCr expansion.
+	/* Request YCbCr expansion. libtiff complains if you do this for
+	 * non-jpg images.
 	 */
-	TIFFSetField( rtiff->tiff, TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
+	if( rtiff->header.compression == COMPRESSION_JPEG )
+		TIFFSetField( rtiff->tiff, 
+			TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
 
 	out->Xsize = rtiff->header.width;
 	out->Ysize = rtiff->header.height * rtiff->n;
@@ -2074,7 +2078,6 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 {
 	uint16 extra_samples_count;
 	uint16 *extra_samples_types;
-	uint16 compression;
 
 	if( !tfget32( rtiff->tiff, TIFFTAG_IMAGEWIDTH, &header->width ) ||
 		!tfget32( rtiff->tiff, TIFFTAG_IMAGELENGTH, &header->height ) ||
@@ -2088,8 +2091,8 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 		return( -1 );
 
 	TIFFGetFieldDefaulted( rtiff->tiff, 
-		TIFFTAG_COMPRESSION, &compression );
-	if( compression == COMPRESSION_JPEG )
+		TIFFTAG_COMPRESSION, &header->compression );
+	if( header->compression == COMPRESSION_JPEG )
 		/* We want to always expand subsampled YCBCR images to full 
 		 * RGB. 
 		 */

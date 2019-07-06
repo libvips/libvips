@@ -2,6 +2,8 @@
  *
  * 5/7/18
  * 	- from niftisave.c
+ * 3/7/19 [lovell]
+ * 	- add "compression" option
  */
 
 /*
@@ -65,6 +67,10 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	gboolean lossless;
 
+	/* Compression format
+	 */
+	VipsForeignHeifCompression compression;
+
 	int page_width;
 	int page_height;
 	int n_pages;
@@ -81,7 +87,7 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	struct heif_image *img;
 
-	/* The libheif memory area will fill with pixels from the libvips 
+	/* The libheif memory area we fill with pixels from the libvips 
 	 * pipe.
 	 */
 	uint8_t *data;
@@ -293,12 +299,15 @@ vips_foreign_save_heif_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	/* TODO ... should be a param? the other useful one is AVC.
-	 */
 	error = heif_context_get_encoder_for_format( heif->ctx, 
-		heif_compression_HEVC, &heif->encoder );
+		heif->compression, &heif->encoder );
 	if( error.code ) {
-		vips__heif_error( &error );
+		if( error.code == heif_error_Unsupported_filetype ) 
+			vips_error( "heifsave", 
+				"%s", _( "Unsupported compression" ) );
+		else 
+			vips__heif_error( &error );
+
 		return( -1 );
 	}
 
@@ -322,8 +331,8 @@ vips_foreign_save_heif_build( VipsObject *object )
 	heif->page_height = vips_image_get_page_height( save->ready );
 	heif->n_pages = save->ready->Ysize / heif->page_height;
 
-	/* Make a heif image the size of a page. We repeatedly fill this with
-	 * sink_disc() and write a frame each time it fills.
+	/* Make a heif image the size of a page. We send sink_disc() output 
+	 * here and write a frame each time it fills.
 	 */
 	error = heif_image_create( heif->page_width, heif->page_height, 
 		heif_colorspace_RGB, heif_chroma_interleaved_RGB, &heif->img );
@@ -378,7 +387,7 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "heifsave";
+	object_class->nickname = "heifsave_base";
 	object_class->description = _( "save image in HEIF format" );
 	object_class->build = vips_foreign_save_heif_build;
 
@@ -401,6 +410,14 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveHeif, lossless ),
 		FALSE );
 
+	VIPS_ARG_ENUM( class, "compression", 14,
+		_( "compression" ),
+		_( "Compression format" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveHeif, compression ),
+		VIPS_TYPE_FOREIGN_HEIF_COMPRESSION,
+		VIPS_FOREIGN_HEIF_COMPRESSION_HEVC );
+
 }
 
 static void
@@ -408,6 +425,7 @@ vips_foreign_save_heif_init( VipsForeignSaveHeif *heif )
 {
 	heif->ctx = heif_context_alloc();
 	heif->Q = 50;
+	heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_HEVC;
 }
 
 typedef struct _VipsForeignSaveHeifFile {
@@ -580,6 +598,7 @@ vips_foreign_save_heif_buffer_init( VipsForeignSaveHeifBuffer *buffer )
  *
  * * @Q: %gint, quality factor
  * * @lossless: %gboolean, enable lossless encoding
+ * * @compression: #VipsForeignHeifCompression, write with this compression
  *
  * Write a VIPS image to a file in HEIF format. 
  *
@@ -587,6 +606,8 @@ vips_foreign_save_heif_buffer_init( VipsForeignSaveHeifBuffer *buffer )
  * what the iphone uses. Q 30 gives about the same quality as JPEG Q 75.
  *
  * Set @lossless %TRUE to switch to lossless compression.
+ *
+ * Use @compression to set the encoder e.g. HEVC, AVC, AV1
  *
  * See also: vips_image_write_to_file(), vips_heifload().
  *
@@ -616,6 +637,7 @@ vips_heifsave( VipsImage *in, const char *filename, ... )
  *
  * * @Q: %gint, quality factor
  * * @lossless: %gboolean, enable lossless encoding
+ * * @compression: #VipsForeignHeifCompression, write with this compression
  *
  * As vips_heifsave(), but save to a memory buffer. 
  *

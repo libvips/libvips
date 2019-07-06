@@ -1038,13 +1038,14 @@ fi
 AC_ARG_WITH([rsvg],
   AS_HELP_STRING([--without-rsvg], [build without rsvg (default: test)]))
 
+# 2.40.3 so we get the UNLIMITED open flag
 if test x"$with_rsvg" != x"no"; then
-  PKG_CHECK_MODULES(RSVG, [librsvg-2.0 >= 2.34 cairo >= 1.2],
-    [AC_DEFINE(HAVE_RSVG,1,[define if you have librsvg-2.0 >= 2.34.0 and cairo >= 1.2 installed.])
+  PKG_CHECK_MODULES(RSVG, [librsvg-2.0 >= 2.40.3 cairo >= 1.2],
+    [AC_DEFINE(HAVE_RSVG,1,[define if you have librsvg-2.0 >= 2.40.3 and cairo >= 1.2 installed.])
      with_rsvg=yes
      PACKAGES_USED="$PACKAGES_USED librsvg-2.0 cairo"
     ],
-    [AC_MSG_WARN([librsvg-2.0 >= 2.34.0 or cairo >= 1.2 not found; disabling SVG load via rsvg])
+    [AC_MSG_WARN([librsvg-2.0 >= 2.40.3 or cairo >= 1.2 not found; disabling SVG load via rsvg])
      with_rsvg=no
     ]
   )
@@ -1159,14 +1160,14 @@ if test x"$with_cfitsio" != x"no"; then
   )
 fi
 
-# libwebp ... target 0.5+ to reduce complication
+# libwebp ... target 0.6+ to reduce complication
 # webp has the stuff for handling metadata in two separate libraries  -- we
 # insit on having all of them
 AC_ARG_WITH([libwebp], 
   AS_HELP_STRING([--without-libwebp], [build without libwebp (default: test)]))
 
 if test x"$with_libwebp" != x"no"; then
-  PKG_CHECK_MODULES(LIBWEBP, libwebp >= 0.5 libwebpmux >= 0.5 libwebpdemux >= 0.5,
+  PKG_CHECK_MODULES(LIBWEBP, libwebp >= 0.6 libwebpmux >= 0.6 libwebpdemux >= 0.6,
     [AC_DEFINE(HAVE_LIBWEBP,1,[define if you have libwebp/libwebpmux/libwebpdemux installed.])
      with_libwebp=yes
      PACKAGES_USED="$PACKAGES_USED libwebp libwebpmux libwebpdemux"
@@ -1475,7 +1476,7 @@ SVG import with librsvg-2.0: 		$with_rsvg
 zlib: 					$with_zlib
 file import with cfitsio: 		$with_cfitsio
 file import/export with libwebp:	$with_libwebp
-  (requires libwebp, libwebpmux, libwebpdemux 0.5.0 or later)
+  (requires libwebp, libwebpmux, libwebpdemux 0.6.0 or later)
 text rendering with pangoft2: 		$with_pangoft2
 file import/export with libpng: 	$with_png
   (requires libpng-1.2.9 or later)
