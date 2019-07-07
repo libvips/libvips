@@ -5,7 +5,7 @@
 - fix for composite with many small images and some combinations of blend modes
 - fix memleak in tiff pyr save to memory [scossu]
 - istiff attempts to read the first directory rather than just testing the
-magic number [przemyslawpluta]
+  magic number [przemyslawpluta]
 - much faster ismagick() [jcupitt]
 - better behaviour for vips_region_fetch() if request lies partly ouside image
 - remove 256 band limit in arithmetic.c [erdmann]
