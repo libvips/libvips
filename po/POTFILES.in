@@ -186,7 +186,7 @@ libvips/foreign/gifload.c
 libvips/foreign/magick7load.c
 libvips/foreign/openslide2vips.c
 libvips/foreign/exif.c
-libvips/foreign/pdfload_pdfium.c
+libvips/foreign/pdfiumload.c
 libvips/foreign/fitssave.c
 libvips/foreign/pdfload.c
 libvips/foreign/magick2vips.c
