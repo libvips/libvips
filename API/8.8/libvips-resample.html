@@ -1162,6 +1162,9 @@ a <a class="link" href="VipsInterpolate.html" title="VipsInterpolate"><span clas
 , that factor is used for the vertical scale and <em class="parameter"><code>scale</code></em>
  for the
 horizontal.</p>
+<p>If either axis would drop below 1px in size, the shrink in that dimension
+is limited. This breaks the image aspect ratio, but prevents errors due to
+fractional pixel sizes.</p>
 <p>This operation does not change xres or yres. The image resolution needs to
 be updated by the application. </p>
 <p>See also: <a class="link" href="libvips-resample.html#vips-shrink" title="vips_shrink ()"><code class="function">vips_shrink()</code></a>, <a class="link" href="libvips-resample.html#vips-reduce" title="vips_reduce ()"><code class="function">vips_reduce()</code></a>.</p>

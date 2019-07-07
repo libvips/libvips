@@ -10,19 +10,7 @@
       <sub name="VIPS function list" link="func-list.html"/>
       <sub name="The VIPS file format" link="file-format.html"/>
       <sub name="VIPS and threads" link="using-threads.html"/>
-      <sub name="" link="How-it-works.md.html">
-        <sub name="Images" link="How-it-works.md.html#images"/>
-        <sub name="Regions" link="regions.html"/>
-        <sub name="Partial images" link="partial-images.html"/>
-        <sub name="Operations" link="operations.html"/>
-        <sub name="Run-time code generation" link="run-time-code-generation.html"/>
-        <sub name="Joining operations together" link="joining-operations-together.html"/>
-        <sub name="Data sources" link="data-sources.html"/>
-        <sub name="Data sinks" link="data-sinks.html"/>
-        <sub name="Operation cache" link="operation-cache.html"/>
-        <sub name="Operation database and APIs" link="operation-database-and-apis.html"/>
-        <sub name="Snip" link="snip.html"/>
-      </sub>
+      <sub name="" link="How-it-works.md.html"/>
       <sub name="" link="How-it-opens-files.md.html"/>
       <sub name="" link="Making-image-pyramids.md.html"/>
       <sub name="" link="Using-vipsthumbnail.md.html"/>
@@ -203,6 +191,7 @@
     <keyword type="function" name="vips_image_get_scale ()" link="libvips-header.html#vips-image-get-scale"/>
     <keyword type="function" name="vips_image_get_offset ()" link="libvips-header.html#vips-image-get-offset"/>
     <keyword type="function" name="vips_image_get_page_height ()" link="libvips-header.html#vips-image-get-page-height"/>
+    <keyword type="function" name="vips_image_get_n_pages ()" link="libvips-header.html#vips-image-get-n-pages"/>
     <keyword type="function" name="vips_image_get_data ()" link="libvips-header.html#vips-image-get-data"/>
     <keyword type="function" name="vips_image_init_fields ()" link="libvips-header.html#vips-image-init-fields"/>
     <keyword type="function" name="vips_image_set ()" link="libvips-header.html#vips-image-set"/>

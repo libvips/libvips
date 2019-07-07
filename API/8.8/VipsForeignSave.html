@@ -3699,7 +3699,8 @@ vips_pngload (<em class="parameter"><code>const <span class="type">char</span> *
               <em class="parameter"><code>...</code></em>);</pre>
 <p>Read a PNG file into a VIPS image. It can read all png images, including 8-
 and 16-bit images, 1 and 3 channel, with and without an alpha channel.</p>
-<p>Any ICC profile is read and attached to the VIPS image.</p>
+<p>Any ICC profile is read and attached to the VIPS image. It also supports
+XMP metadata.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
 <div class="refsect3">
 <a name="vips-pngload.parameters"></a><h4>Parameters</h4>
@@ -3846,6 +3847,8 @@ be changed with the <em class="parameter"><code>Q</code></em>
 <em class="parameter"><code>dither</code></em>
  controls the amount of Floyd-Steinberg dithering.
 This feature requires libvips to be compiled with libimagequant.</p>
+<p>XMP metadata is written to the XMP chunk. PNG comments are written to
+separate text chunks.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
 <p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
 <div class="refsect3">
