@@ -13,6 +13,8 @@ magic number [przemyslawpluta]
 - fix vipsthumbnail with pyr tiff [kleisauke]
 - text autofit could occasionally terminate early [levmorozov]
 - fewer warnings on tiffload [chregu]
+- vips_resize() breaks aspect ratio and limits shrink to prevent <1px 
+  dimensions [lovell]
 
 21/9/18 started 8.8.0
 - much faster smartcrop [lovell]

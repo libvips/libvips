@@ -31,6 +31,8 @@
  * 3/12/18 [edwjusti]
  * 	- disable the centre sampling offset for nearest upscale, since the
  * 	  affine nearest interpolator is always centre 
+ * 7/7/19 [lovell]
+ * 	- don't let either axis drop below 1px
  */
 
 /*
@@ -212,6 +214,11 @@ vips_resize_build( VipsObject *object )
 
 		hscale *= int_hshrink;
 	}
+
+	/* Don't let either axis drop below 1 px.
+	 */
+	hscale = VIPS_MAX( hscale, 1.0 / in->Xsize );
+	vscale = VIPS_MAX( vscale, 1.0 / in->Ysize );
 
 	/* Any residual downsizing.
 	 */
@@ -423,6 +430,10 @@ vips_resize_init( VipsResize *resize )
  * vips_resize() normally maintains the image aspect ratio. If you set
  * @vscale, that factor is used for the vertical scale and @scale for the
  * horizontal.
+ *
+ * If either axis would drop below 1px in size, the shrink in that dimension
+ * is limited. This breaks the image aspect ratio, but prevents errors due to
+ * fractional pixel sizes.
  *
  * This operation does not change xres or yres. The image resolution needs to
  * be updated by the application. 
