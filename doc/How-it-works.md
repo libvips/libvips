@@ -164,9 +164,9 @@ unpack other formats to temporary disc files for you but this can
 obviously generate a lot of disc traffic. It also has a special
 sequential mode for streaming operations on non-random-access
 formats. Another section in these docs explains [how libvips opens a
-file](How-it-opens-files.html). One
+file](How-it-opens-files.md.html). One
 of the sources uses the [ImageMagick](http://www.imagemagick.org) (or
-optionally [GraphicsMagick](http://www.graphicsmagick.org)) library, so
+optionally [GraphicsMagick](http://www.graphicsmagick.org) library, so
 VIPS can read any image format that these libraries can read.
 
 VIPS images are held on disc as a 64-byte header containing basic image
