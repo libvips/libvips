@@ -169,7 +169,7 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 	 */
 	if( vips_image_get_typeof( im, "gif-loop" ) &&
 		!vips_image_get_int( im, "gif-loop", &number ) )
-		image->iterations = (size_t) (number ? number + 1 : 0);
+		image->iterations = (size_t) (number ? number : 0);
 
 	if( vips_image_get_typeof( im, "gif-comment" ) &&
 		!vips_image_get_string( im, "gif-comment", &str ) )
