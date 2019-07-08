@@ -14,6 +14,8 @@
  * 	- use libwebpmux instead of our own thing, phew
  * 6/7/19 [deftomat]
  * 	- support array of delays 
+ * 8/7/19
+ * 	- set loop even if we strip
  */
 
 /*
@@ -437,15 +439,6 @@ vips_webp_add_chunks( VipsWebPWrite *write, VipsImage *image )
 {
 	int i;
 
-	if( vips_image_get_typeof( image, "gif-loop" ) ) {
-		int gif_loop;
-
-		if( vips_image_get_int( image, "gif-loop", &gif_loop ) )
-			return( -1 );
-
-		vips_webp_set_count( write, gif_loop );
-	}
-
 	for( i = 0; i < vips__n_webp_names; i++ ) { 
 		const char *vips_name = vips__webp_names[i].vips;
 		const char *webp_name = vips__webp_names[i].webp;
@@ -466,7 +459,7 @@ vips_webp_add_chunks( VipsWebPWrite *write, VipsImage *image )
 }
 
 static int 
-vips_webp_add_metadata( VipsWebPWrite *write, VipsImage *image )
+vips_webp_add_metadata( VipsWebPWrite *write, VipsImage *image, gboolean strip )
 {
 	WebPData data;
 
@@ -485,9 +478,19 @@ vips_webp_add_metadata( VipsWebPWrite *write, VipsImage *image )
 		return( -1 );
 	}
 
+	if( vips_image_get_typeof( image, "gif-loop" ) ) {
+		int gif_loop;
+
+		if( vips_image_get_int( image, "gif-loop", &gif_loop ) )
+			return( -1 );
+
+		vips_webp_set_count( write, gif_loop );
+	}
+
 	/* Add extra metadata.
 	 */
-	if( vips_webp_add_chunks( write, image ) ) 
+	if( !strip &&
+		vips_webp_add_chunks( write, image ) ) 
 		return( -1 );
 
 	if( WebPMuxAssemble( write->mux, &data ) != WEBP_MUX_OK ) {
@@ -525,8 +528,7 @@ vips__webp_write_file( VipsImage *image, const char *filename,
 		return( -1 );
 	}
 
-	if( !strip &&
-		vips_webp_add_metadata( &write, image ) ) {
+	if( vips_webp_add_metadata( &write, image, strip ) ) {
 		vips_webp_write_unset( &write );
 		return( -1 );
 	}
@@ -570,8 +572,7 @@ vips__webp_write_buffer( VipsImage *image, void **obuf, size_t *olen,
 		return( -1 );
 	}
 
-	if( !strip &&
-		vips_webp_add_metadata( &write, image ) ) {
+	if( vips_webp_add_metadata( &write, image, strip ) ) {
 		vips_webp_write_unset( &write );
 		return( -1 );
 	}
