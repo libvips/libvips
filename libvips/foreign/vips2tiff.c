@@ -182,6 +182,9 @@
  * 	- copy EXTRASAMPLES to pyramid layers
  * 21/12/18
  * 	- stop pyr layers if width or height drop to 1
+ * 8/7/19
+ * 	- add webp and zstd support
+ * 	- add @level and @lossless
  */
 
 /*
@@ -300,7 +303,7 @@ struct _Wtiff {
 	int tls;			/* Tile line size */
 
 	int compression;		/* Compression type */
-	int jpqual;			/* JPEG q-factor */
+	int Q;				/* JPEG q-factor, webp level */
 	int predictor;			/* Predictor value */
 	int tile;			/* Tile or not */
 	int tilew, tileh;		/* Tile size */
@@ -316,6 +319,8 @@ struct _Wtiff {
 	int properties;			/* Set to save XML props */
 	int strip;			/* Don't write metadata */
 	VipsRegionShrink region_shrink; /* How to shrink regions */
+	int level;			/* zstd compression level */
+	gboolean lossless;		/* webp lossless mode */
 
 	/* True if we've detected a toilet-roll image, plus the page height,
 	 * which has been checked to be a factor of im->Ysize.
@@ -583,7 +588,16 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 	TIFFSetField( tif, TIFFTAG_COMPRESSION, wtiff->compression );
 
 	if( wtiff->compression == COMPRESSION_JPEG ) 
-		TIFFSetField( tif, TIFFTAG_JPEGQUALITY, wtiff->jpqual );
+		TIFFSetField( tif, TIFFTAG_JPEGQUALITY, wtiff->Q );
+
+#ifdef HAVE_TIFF_COMPRESSION_WEBP
+	if( wtiff->compression == COMPRESSION_WEBP ) {
+		TIFFSetField( tif, TIFFTAG_WEBP_LEVEL, wtiff->Q );
+		TIFFSetField( tif, TIFFTAG_WEBP_LOSSLESS, wtiff->lossless );
+	}
+	if( wtiff->compression == COMPRESSION_ZSTD ) 
+		TIFFSetField( tif, TIFFTAG_ZSTD_LEVEL, wtiff->level );
+#endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 
 	if( (wtiff->compression == VIPS_FOREIGN_TIFF_COMPRESSION_DEFLATE ||
 		wtiff->compression == VIPS_FOREIGN_TIFF_COMPRESSION_LZW) &&
@@ -666,7 +680,7 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 			else if( wtiff->compression == COMPRESSION_JPEG &&
 				wtiff->im->Bands == 3 &&
 				wtiff->im->BandFmt == VIPS_FORMAT_UCHAR &&
-				(!wtiff->rgbjpeg && wtiff->jpqual < 90) ) { 
+				(!wtiff->rgbjpeg && wtiff->Q < 90) ) { 
 				/* This signals to libjpeg that it can do
 				 * YCbCr chrominance subsampling from RGB, not
 				 * that we will supply the image as YCbCr.
@@ -876,14 +890,16 @@ get_compression( VipsForeignTiffCompression compression )
 		return( COMPRESSION_CCITTFAX4 );
 	case VIPS_FOREIGN_TIFF_COMPRESSION_LZW:
 		return( COMPRESSION_LZW );
+#ifdef HAVE_TIFF_COMPRESSION_WEBP
+	case VIPS_FOREIGN_TIFF_COMPRESSION_WEBP:
+		return( COMPRESSION_WEBP );
+	case VIPS_FOREIGN_TIFF_COMPRESSION_ZSTD:
+		return( COMPRESSION_ZSTD );
+#endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 	
 	default:
-		g_assert_not_reached();
+		return( COMPRESSION_NONE );
 	}
-
-	/* Keep -Wall happy.
-	 */
-	return( -1 );
 }
 
 static int
@@ -918,7 +934,8 @@ wtiff_new( VipsImage *im, const char *filename,
 	gboolean rgbjpeg,
 	gboolean properties,
 	gboolean strip,
-	VipsRegionShrink region_shrink )
+	VipsRegionShrink region_shrink,
+	int level, gboolean lossless )
 {
 	Wtiff *wtiff;
 
@@ -930,7 +947,7 @@ wtiff_new( VipsImage *im, const char *filename,
 	wtiff->layer = NULL;
 	wtiff->tbuf = NULL;
 	wtiff->compression = get_compression( compression );
-	wtiff->jpqual = Q;
+	wtiff->Q = Q;
 	wtiff->predictor = predictor;
 	wtiff->tile = tile;
 	wtiff->tilew = tile_width;
@@ -947,6 +964,8 @@ wtiff_new( VipsImage *im, const char *filename,
 	wtiff->properties = properties;
 	wtiff->strip = strip;
 	wtiff->region_shrink = region_shrink;
+	wtiff->level = level;
+	wtiff->lossless = lossless;
 	wtiff->toilet_roll = FALSE;
 	wtiff->page_height = vips_image_get_page_height( im );
 	wtiff->image_height = im->Ysize;
@@ -1029,6 +1048,21 @@ wtiff_new( VipsImage *im, const char *filename,
 				"as miniswhite -- disabling miniswhite" ) );
 		wtiff->miniswhite = FALSE;
 	}
+
+	/* lossless is for webp only.
+	 */
+#ifdef HAVE_TIFF_COMPRESSION_WEBP
+	if( wtiff->lossless ) {
+		if( wtiff->compression == COMPRESSION_NONE )
+			wtiff->compression = COMPRESSION_WEBP;
+
+		if( wtiff->compression != COMPRESSION_WEBP ) {
+			g_warning( "%s", 
+				_( "lossless is for WEBP compression only" ) );
+			wtiff->lossless = FALSE;
+		}
+	}
+#endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 
 	/* Sizeof a line of bytes in the TIFF tile.
 	 */
@@ -1603,7 +1637,7 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 	 * Set explicitly from Wtiff.
 	 */
 	if( wtiff->compression == COMPRESSION_JPEG ) {
-		TIFFSetField( out, TIFFTAG_JPEGQUALITY, wtiff->jpqual );
+		TIFFSetField( out, TIFFTAG_JPEGQUALITY, wtiff->Q );
 
 		/* Only for three-band, 8-bit images.
 		 */
@@ -1612,7 +1646,7 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 			/* Enable rgb->ycbcr conversion in the jpeg write. 
 			 */
 			if( !wtiff->rgbjpeg &&
-				wtiff->jpqual < 90 ) 
+				wtiff->Q < 90 ) 
 				TIFFSetField( out, 
 					TIFFTAG_JPEGCOLORMODE, 
 						JPEGCOLORMODE_RGB );
@@ -1625,6 +1659,17 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 				TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
 		}
 	}
+
+#ifdef HAVE_TIFF_COMPRESSION_WEBP
+	/* More pseudotags we can't copy.
+	 */
+	if( wtiff->compression == COMPRESSION_WEBP ) {
+		TIFFSetField( out, TIFFTAG_WEBP_LEVEL, wtiff->Q );
+		TIFFSetField( out, TIFFTAG_WEBP_LOSSLESS, wtiff->lossless );
+	}
+	if( wtiff->compression == COMPRESSION_ZSTD ) 
+		TIFFSetField( out, TIFFTAG_ZSTD_LEVEL, wtiff->level );
+#endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 
 	/* We can't copy profiles or xmp :( Set again from Wtiff.
 	 */
@@ -1785,7 +1830,8 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
 	gboolean properties, gboolean strip,
-	VipsRegionShrink region_shrink )
+	VipsRegionShrink region_shrink,
+	int level, gboolean lossless )
 {
 	Wtiff *wtiff;
 
@@ -1802,7 +1848,7 @@ vips__tiff_write( VipsImage *in, const char *filename,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
-		properties, strip, region_shrink )) )
+		properties, strip, region_shrink, level, lossless )) )
 		return( -1 );
 
 	if( wtiff_write_image( wtiff ) ) { 
@@ -1829,7 +1875,8 @@ vips__tiff_write_buf( VipsImage *in,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
 	gboolean properties, gboolean strip, 
-	VipsRegionShrink region_shrink )
+	VipsRegionShrink region_shrink,
+	int level, gboolean lossless )
 {
 	Wtiff *wtiff;
 
@@ -1842,7 +1889,7 @@ vips__tiff_write_buf( VipsImage *in,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
-		properties, strip, region_shrink )) )
+		properties, strip, region_shrink, level, lossless )) )
 		return( -1 );
 
 	wtiff->obuf = obuf;

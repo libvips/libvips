@@ -1250,6 +1250,20 @@ if test x"$with_tiff" != x"no"; then
   )
 fi
 
+# WEBP in TIFF added in libtiff 4.0.10
+if test x"$with_tiff" != x"no"; then
+  save_INCLUDES="$INCLUDES"
+  INCLUDES="$INCLUDES $TIFF_INCLUDES"
+  AC_CHECK_DECL(COMPRESSION_WEBP,[
+      AC_DEFINE(HAVE_TIFF_COMPRESSION_WEBP,1,[define if your libtiff has webp.])
+    ],[
+    ],[
+      [#include <tiffio.h>]
+    ]
+  )
+  INCLUDES="$save_INCLUDES"
+fi
+
 # giflib
 FIND_GIFLIB(
   [with_giflib="yes (found by search)"

@@ -28,8 +28,8 @@
 
  */
 
-#ifndef VIPS_PARITHMETIC_H
-#define VIPS_PARITHMETIC_H
+#ifndef VIPS_PFOREIGN_H
+#define VIPS_PFOREIGN_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,7 +60,8 @@ int vips__tiff_write( VipsImage *in, const char *filename,
 	gboolean rgbjpeg,
 	gboolean properties,
 	gboolean strip,
-	VipsRegionShrink region_shrink );
+	VipsRegionShrink region_shrink,
+	int level, gboolean lossless );
 
 int vips__tiff_write_buf( VipsImage *in, 
 	void **obuf, size_t *olen, 
@@ -75,7 +76,8 @@ int vips__tiff_write_buf( VipsImage *in,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
 	gboolean properties, gboolean strip,
-	VipsRegionShrink region_shrink );
+	VipsRegionShrink region_shrink,
+	int level, gboolean lossless );
 
 int vips__tiff_read_header( const char *filename, VipsImage *out, 
 	int page, int n, gboolean autorotate );
@@ -281,6 +283,6 @@ void vips__heif_error( struct heif_error *error );
 }
 #endif /*__cplusplus*/
 
-#endif /*VIPS_PARITHMETIC_H*/
+#endif /*VIPS_PFOREIGN_H*/
 
 

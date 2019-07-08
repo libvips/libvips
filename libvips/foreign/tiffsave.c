@@ -14,6 +14,9 @@
  * 	- predictor defaults to horizontal, reducing file size, usually
  * 13/6/18
  * 	- add region_shrink
+ * 8/7/19
+ * 	- add webp and zstd support
+ * 	- add @level and @lossless
  */
 
 /*
@@ -88,6 +91,8 @@ typedef struct _VipsForeignSaveTiff {
 	gboolean rgbjpeg;
 	gboolean properties;
 	VipsRegionShrink region_shrink;
+	int level;
+	gboolean lossless;
 } VipsForeignSaveTiff;
 
 typedef VipsForeignSaveClass VipsForeignSaveTiffClass;
@@ -303,6 +308,20 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, region_shrink ),
 		VIPS_TYPE_REGION_SHRINK, VIPS_REGION_SHRINK_MEAN ); 
 
+	VIPS_ARG_INT( class, "level", 23,
+		_( "Level" ),
+		_( "ZSTD compression level" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveTiff, level ),
+		1, 22, 10 );
+
+	VIPS_ARG_BOOL( class, "lossless", 24, 
+		_( "lossless" ), 
+		_( "Enable WEBP lossless mode" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveTiff, lossless ),
+		FALSE );
+
 }
 
 static void
@@ -317,6 +336,8 @@ vips_foreign_save_tiff_init( VipsForeignSaveTiff *tiff )
 	tiff->xres = 1.0;
 	tiff->yres = 1.0;
 	tiff->region_shrink = VIPS_REGION_SHRINK_MEAN;
+	tiff->level = 10;
+	tiff->lossless = FALSE;
 }
 
 typedef struct _VipsForeignSaveTiffFile {
@@ -353,7 +374,9 @@ vips_foreign_save_tiff_file_build( VipsObject *object )
 		tiff->rgbjpeg,
 		tiff->properties,
 		save->strip,
-		tiff->region_shrink ) )
+		tiff->region_shrink,
+		tiff->level,
+		tiff->lossless ) )
 		return( -1 );
 
 	return( 0 );
@@ -422,7 +445,9 @@ vips_foreign_save_tiff_buffer_build( VipsObject *object )
 		tiff->rgbjpeg,
 		tiff->properties,
 		save->strip,
-		tiff->region_shrink ) )
+		tiff->region_shrink,
+		tiff->level,
+		tiff->lossless ) )
 		return( -1 );
 
 	/* vips__tiff_write_buf() makes a buffer that needs g_free(), not
@@ -488,7 +513,9 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * * @properties: set %TRUE to write an IMAGEDESCRIPTION tag
  * * @strip: set %TRUE to block metadata save
  * * @page_height: %gint for page height for multi-page save
- * * @shrink_region: #VipsRegionShrink How to shrink each 2x2 region.
+ * * @region_shrink: #VipsRegionShrink How to shrink each 2x2 region.
+ * * @level: %gint, Zstd compression level
+ * * @lossless: set %TRUE for WebP losssless mode
  *
  * Write a VIPS image to a file as TIFF.
  *
@@ -497,12 +524,16 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * written as series of pages, each #VIPS_META_PAGE_HEIGHT pixels high. 
  *
  * Use @compression to set the tiff compression. Currently jpeg, packbits,
- * fax4, lzw, none and deflate are supported. The default is no compression.
+ * fax4, lzw, none, deflate, webp and zstd are supported. The default is no 
+ * compression.
  * JPEG compression is a good lossy compressor for photographs, packbits is 
  * good for 1-bit images, and deflate is the best lossless compression TIFF 
  * can do. 
  *
  * Use @Q to set the JPEG compression factor. Default 75.
+ *
+ * User @level to set the ZSTD compression level. Use @lossless to
+ * set WEBP lossless mode on. Use @Q to set the WEBP compression level.
  *
  * Use @predictor to set the predictor for lzw and deflate compression. It
  * defaults to #VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL, meaning horizontal
@@ -522,7 +553,7 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * is 128 by 128.
  *
  * Set @pyramid to write the image as a set of images, one per page, of
- * decreasing size. Use @shrink_region to set how images will be shrunk: by
+ * decreasing size. Use @region_shrink to set how images will be shrunk: by
  * default each 2x2 block is just averaged, but you can set MODE or MEDIAN as
  * well.
  *
@@ -601,7 +632,9 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
  * * @properties: set %TRUE to write an IMAGEDESCRIPTION tag
  * * @strip: set %TRUE to block metadata save
  * * @page_height: %gint for page height for multi-page save
- * * @shrink_region: #VipsRegionShrink How to shrink each 2x2 region.
+ * * @region_shrink: #VipsRegionShrink How to shrink each 2x2 region.
+ * * @level: %gint, Zstd compression level
+ * * @lossless: set %TRUE for WebP losssless mode
  *
  * As vips_tiffsave(), but save to a memory buffer. 
  *

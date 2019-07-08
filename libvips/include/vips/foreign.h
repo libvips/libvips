@@ -406,12 +406,18 @@ int vips_webpsave_mime( VipsImage *in, ... )
  * @VIPS_FOREIGN_TIFF_COMPRESSION_PACKBITS: packbits compression
  * @VIPS_FOREIGN_TIFF_COMPRESSION_CCITTFAX4: fax4 compression
  * @VIPS_FOREIGN_TIFF_COMPRESSION_LZW: LZW compression
+ * @VIPS_FOREIGN_TIFF_COMPRESSION_WEBP: WEBP compression
+ * @VIPS_FOREIGN_TIFF_COMPRESSION_ZSTD: ZSTD compression
  *
  * The compression types supported by the tiff writer.
  *
  * Use @Q to set the jpeg compression level, default 75.
  *
  * Use @prediction to set the lzw or deflate prediction, default none.
+ *
+ * Use @lossless to set WEBP lossless compression.
+ *
+ * Use @level to set webp and zstd compression level.
  */
 typedef enum {
 	VIPS_FOREIGN_TIFF_COMPRESSION_NONE,
@@ -420,6 +426,8 @@ typedef enum {
 	VIPS_FOREIGN_TIFF_COMPRESSION_PACKBITS,
 	VIPS_FOREIGN_TIFF_COMPRESSION_CCITTFAX4,
 	VIPS_FOREIGN_TIFF_COMPRESSION_LZW,
+	VIPS_FOREIGN_TIFF_COMPRESSION_WEBP,
+	VIPS_FOREIGN_TIFF_COMPRESSION_ZSTD,
 	VIPS_FOREIGN_TIFF_COMPRESSION_LAST
 } VipsForeignTiffCompression;
 
