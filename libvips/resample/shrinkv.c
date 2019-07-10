@@ -45,6 +45,8 @@
  * 	- rename yshrink -> vshrink for greater consistency 
  * 7/3/17
  * 	- add a seq line cache
+ * 9/7/19
+ * 	- read the tail of the input to force early shutdown in seq readers
  */
 
 /*
@@ -99,6 +101,7 @@ typedef struct _VipsShrinkv {
 
 	int vshrink;
 	size_t sizeof_line_buffer;
+	gboolean sequential;
 
 } VipsShrinkv;
 
@@ -265,6 +268,7 @@ vips_shrinkv_gen( VipsRegion *or, void *vseq,
 {
 	VipsShrinkvSequence *seq = (VipsShrinkvSequence *) vseq;
 	VipsShrinkv *shrink = (VipsShrinkv *) b;
+	VipsResample *resample = VIPS_RESAMPLE( shrink );
 	VipsRegion *ir = seq->ir;
 	VipsRect *r = &or->valid;
 
@@ -315,6 +319,38 @@ vips_shrinkv_gen( VipsRegion *or, void *vseq,
 
 	VIPS_COUNT_PIXELS( or, "vips_shrinkv_gen" ); 
 
+	/* If we are in seq mode and we've just generated the last line of 
+	 * the output, make sure we read all of the input.
+	 *
+	 * This will trigger the early shutdown logic in things like the 
+	 * tiff loader.
+	 */
+	if( shrink->sequential &&
+		r->top + r->height >= or->im->Ysize ) {
+		/* First unused scanline. resample->in->Ysize because we want
+		 * the height before the embed.
+		 */
+		int first = or->im->Ysize * shrink->vshrink;
+		int unused = resample->in->Ysize - first;
+
+		g_assert( unused >= 0 );
+
+		for( y = 0; y < unused; y++ ) { 
+			VipsRect s;
+
+			s.left = r->left;
+			s.top = first + y;
+			s.width = r->width;
+			s.height = 1;
+#ifdef DEBUG
+			printf( "shrink_gen: requesting tail %d\n", s.top ); 
+#endif /*DEBUG*/
+
+			if( vips_region_prepare( ir, &s ) )
+				return( -1 );
+		}
+	}
+
 	return( 0 );
 }
 
@@ -349,12 +385,12 @@ vips_shrinkv_build( VipsObject *object )
 		return( -1 );
 	in = t[0];
 
-	/* We need new pixels along the bottom so that we don't have small chunks
-	 * to average along the bottom edge.
+	/* Make the height a multiple of the shrink factor so we don't need to
+	 * average half pixels.
 	 */
 	if( vips_embed( in, &t[1], 
 		0, 0, 
-		in->Xsize, in->Ysize + shrink->vshrink, 
+		in->Xsize, VIPS_ROUND_UP( in->Ysize, shrink->vshrink ), 
 		"extend", VIPS_EXTEND_COPY,
 		NULL ) )
 		return( -1 );
@@ -414,6 +450,8 @@ vips_shrinkv_build( VipsObject *object )
 	 */
 	if( vips_image_get_typeof( in, VIPS_META_SEQUENTIAL ) ) { 
 		g_info( "shrinkv sequential line cache" ); 
+
+		shrink->sequential = TRUE;
 
 		if( vips_sequential( in, &t[3], 
 			"tile_height", 10,

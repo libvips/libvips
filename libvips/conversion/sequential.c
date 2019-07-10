@@ -171,7 +171,8 @@ vips_sequential_generate( VipsRegion *or,
 		return( -1 );
 	}
 
-	sequential->y_pos = VIPS_MAX( sequential->y_pos, VIPS_RECT_BOTTOM( r ) );
+	sequential->y_pos = 
+		VIPS_MAX( sequential->y_pos, VIPS_RECT_BOTTOM( r ) );
 
 	g_mutex_unlock( sequential->lock );
 
