@@ -268,6 +268,7 @@ vips_shrinkv_gen( VipsRegion *or, void *vseq,
 {
 	VipsShrinkvSequence *seq = (VipsShrinkvSequence *) vseq;
 	VipsShrinkv *shrink = (VipsShrinkv *) b;
+	VipsResample *resample = VIPS_RESAMPLE( shrink );
 	VipsRegion *ir = seq->ir;
 	VipsRect *r = &or->valid;
 
@@ -326,10 +327,11 @@ vips_shrinkv_gen( VipsRegion *or, void *vseq,
 	 */
 	if( shrink->sequential &&
 		r->top + r->height >= or->im->Ysize ) {
-		/* First unused scanline.
+		/* First unused scanline. resample->in->Ysize because we want
+		 * the height before the embed.
 		 */
 		int first = or->im->Ysize * shrink->vshrink;
-		int unused = ir->im->Ysize - first;
+		int unused = resample->in->Ysize - first;
 
 		g_assert( unused >= 0 );
 
