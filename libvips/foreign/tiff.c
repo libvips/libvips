@@ -77,8 +77,11 @@ vips__thandler_warning( const char *module, const char *fmt, va_list ap )
 	g_logv( G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, fmt, ap );
 }
 
-/* Call this during startup. Other libraries may be using libtiff and we want
- * to capture any messages they send as well.
+/* Called during library init.
+ *
+ * libtiff error and warning handlers may be called from other threads 
+ * running in other libs. Other libs may install error handlers and capture 
+ * messages caused by us.
  */
 void
 vips__tiff_init( void )
