@@ -358,6 +358,13 @@ public:
 	}
 
 	void 
+	set( const char *field, std::vector<int> value )
+	{
+		vips_image_set_array_int( this->get_image(), field, &value[0],
+			static_cast<int>( value.size() ) );
+	}
+
+	void 
 	set( const char *field, double value )
 	{
 		vips_image_set_double( this->get_image(), field, value ); 
@@ -399,6 +406,20 @@ public:
 	{
 		if( vips_image_get_array_int( this->get_image(), field, out, n ) )
 			throw( VError() ); 
+	}
+
+	std::vector<int> 
+	get_array_int( const char *field ) const
+	{
+		int length;
+		int *array;
+
+		if( vips_image_get_array_int( this->get_image(), field, &array, &length ) )
+			throw( VError() ); 
+
+		std::vector<int> vector( array, array + length );
+
+		return( vector );
 	}
 
 	double 
