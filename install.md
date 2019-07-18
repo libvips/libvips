@@ -245,3 +245,7 @@ files: Aperio, Hamamatsu, Leica, MIRAX, Sakura, Trestle, and Ventana.
 ### swig, python, python-dev
 
 If available, we build the old vips7 python binding.
+
+### libheif
+
+If available, libvips can load and save HEIC images.
