@@ -12,22 +12,7 @@ Install [homebrew](https://brew.sh/), then enter:
 
 	brew install vips
 
-That will install vips with most optional add-ons included. It won't include
-ImageMagick/GraphicsMagick support (used for loading things like BMP), you have
-to enable that if you need it:
-
-	brew install vips --with-imagemagick
-
-or:
-
-	brew install vips --with-graphicsmagick
-
-It also won't include things like openslide, cfitsio and matlab support. You
-must install those packages first, then install libvips with:
-
-	brew install vips --env=std
-
-Meaning, pick up packages from the environment. 
+That will install vips with most optional add-ons included. 
 
 ## Installing the Windows binary
 
@@ -99,11 +84,15 @@ Then:
 	$ ./autogen.sh
 	$ make
 	$ sudo make install
+
+And perhaps also:
+
 	$ sudo ldconfig
 
 ## Dependencies 
 
-libvips has to have `glib2.0-dev`. Other dependencies are optional, see below.
+libvips has to have `glib2.0-dev` and `expat`. Other dependencies are
+optional, see below.
 
 ## Optional dependencies
 
@@ -159,10 +148,17 @@ via imagemagick instead.
 The usual SVG loader. If this is not present, vips will try to load SVGs
 via imagemagick instead.
 
-### libpoppler
+### PDFium
 
-The usual PDF loader. If this is not present, vips will try to load PDFs
-via imagemagick instead.
+If present, libvips will attempt to load PDFs via PDFium. This library must be
+packaged by https://github.com/jcupitt/docker-builds/tree/master/pdfium
+
+If PDFium is not detected, libvips will look for poppler-glib instead.
+
+### poppler-glib
+
+The Poppler PDF renderer, with a glib API. If this is not present, vips
+will try to load PDFs via imagemagick.
 
 ### libgsf-1
 
@@ -177,21 +173,18 @@ ZIP compression. 3.4b037 and later are known to be OK.
 
 If libvips finds this library, it uses it for fourier transforms. 
 
-### lcms2, lcms
+### lcms2
 
 If present, `vips_icc_import()`, `vips_icc_export()` and `vips_icc_transform()`
-are available for transforming images with ICC profiles. If `lcms2` is 
-available it is used in preference to `lcms`, since it is faster.
-
-### Large files
-
-libvips uses the standard autoconf tests to work out how to support
-large files (>2GB) on your system. Any reasonably recent unix should
-be OK.
+are available for transforming images with ICC profiles. 
 
 ### libpng
 
 If present, libvips can load and save png files. 
+
+### libimagequant
+
+If present, libvips can write 8-bit palette-ised PNGs.
 
 ### ImageMagick, or optionally GraphicsMagick
 
@@ -200,15 +193,11 @@ image file types. Use `--with-magickpackage=GraphicsMagick` to build against
 graphicsmagick instead.
 
 Imagemagick 6.9+ needs to have been built with `--with-modules`. Most packaged
-IMs are, I think, but if you are rolling your own, you'll need to pass
-this flag to configure. 
+IMs are, I think.
 
 If you are going to be using libvips with untrusted images, perhaps in a
-web-server, for example, you should consider the security implications of
-using a package with such a large attack surface. You might prefer not to
-enable Magick support. 
-
-libvips also supports ImageMagick7. 
+web server, for example, you should consider the security implications of
+enabling a package with such a large attack surface. 
 
 ### pangoft2
 
@@ -232,6 +221,10 @@ If available, vips can load FITS images.
 
 If available, vips can load and save WebP images.
 
+### libniftiio
+
+If available, vips can load and save NIFTI images.
+
 ### OpenEXR
 
 If available, libvips will directly read (but not write, sadly)
@@ -242,10 +235,7 @@ OpenEXR images.
 If available, libvips can load OpenSlide-supported virtual slide
 files: Aperio, Hamamatsu, Leica, MIRAX, Sakura, Trestle, and Ventana.
 
-### swig, python, python-dev
-
-If available, we build the old vips7 python binding.
-
 ### libheif
 
-If available, libvips can load and save HEIC images.
+If available, libvips can load and save HEIC images. 
+
