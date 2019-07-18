@@ -47,8 +47,8 @@ a strange combination of a spreadsheet and an photo editor.
 
 # Install
 
-There are packages for most Unix-like operating systems, include macOS. Try
-your package manager.
+There are packages for most Unix-like operating systems, including
+macOS. Check your package manager.
 
 There are binaries for Windows in
 [releases](https://github.com/libvips/libvips/releases).
