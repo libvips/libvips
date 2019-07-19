@@ -109,6 +109,10 @@ int vips__fatal = 0;
  */
 GMutex *vips__global_lock = NULL;
 
+/* A debugging timer, zero at library init.
+ */
+GTimer *vips__global_timer = NULL;
+
 /* Keep a copy of the argv0 here.
  */
 static char *vips__argv0 = NULL;
@@ -371,7 +375,7 @@ vips_init( const char *argv0 )
 #ifndef HAVE_THREAD_NEW
 	if( !g_thread_supported() ) 
 		g_thread_init( NULL );
-#endif 
+#endif /*HAVE_THREAD_NEW*/
 
 	vips__threadpool_init();
 	vips__buffer_init();
@@ -384,6 +388,9 @@ vips_init( const char *argv0 )
 
 	if( !vips__global_lock )
 		vips__global_lock = vips_g_mutex_new();
+
+	if( !vips__global_timer )
+		vips__global_timer = g_timer_new();
 
 	VIPS_SETSTR( vips__argv0, argv0 );
 
@@ -418,6 +425,9 @@ vips_init( const char *argv0 )
 	if( g_getenv( "VIPS_INFO" ) || 
 		g_getenv( "IM_INFO" ) ) 
 		vips_info_set( TRUE );
+
+	if( g_getenv( "VIPS_PROFILE" ) )
+		vips_profile_set( TRUE );
 
 	/* Default various settings from env.
 	 */
