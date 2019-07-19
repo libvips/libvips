@@ -9,6 +9,7 @@
 
 9/7/19 started 8.8.2
 - better early shutdown in readers
+- don't attempt to save large XMP to jpeg [tnextday]
 
 24/5/19 started 8.8.1
 - improve realpath() use on older libc
