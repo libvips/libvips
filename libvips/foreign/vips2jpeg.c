@@ -88,6 +88,8 @@
  * 	- fix a leak with an error during buffer output
  * 19/4/19
  * 	- fix another leak with error during buffer output
+ * 19/7/19
+ * 	- ignore large XMP
  */
 
 /*
@@ -284,6 +286,22 @@ write_xmp( Write *write )
 	if( vips_image_get_blob( write->in, VIPS_META_XMP_NAME, 
 		(void *) &data, &data_length ) )
 		return( -1 );
+
+	/* To write >64kb XMP it you need to parse the whole XMP object, 
+	 * pull out the most important fields, code just them into the main 
+	 * XMP block, then write any remaining XMP objects into a set of 
+	 * extended XMP markers. 
+	 *
+	 * http://wwwimages.adobe.com/content/dam/Adobe/en/devnet/xmp/pdfs/ \
+	 * 	XMPSpecificationPart3.pdf
+	 *
+	 * jpeg_write_marker() with some libjpeg versions will throw a fatal 
+	 * error with large chunks.
+	 */
+	if( data_length > 60000 ) {
+		g_warning( "%s", _( "VipsJpeg: large XMP not saved" ) );
+		return( 0 );
+	}
 
 	/* We need to add the magic XML URL to the start, then a null
 	 * character, then the data.
