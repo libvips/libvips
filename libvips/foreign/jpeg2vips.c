@@ -100,6 +100,8 @@
  * 	- strict round down on shrink-on-load
  * 16/8/18
  * 	- shut down the input file as soon as we can [kleisauke]
+ * 20/7/19
+ * 	- close input on minimise rather than Y read position
  */
 
 /*
@@ -190,8 +192,7 @@ typedef struct _ReadJpeg {
 	int output_height;
 } ReadJpeg;
 
-/* This can be called many times. It's called directly at the end of image
- * read.
+/* This can be called many times. 
  */
 static void
 readjpeg_close_input( ReadJpeg *jpeg )
@@ -237,6 +238,12 @@ readjpeg_close_cb( VipsObject *object, ReadJpeg *jpeg )
 	(void) readjpeg_free( jpeg );
 }
 
+static void
+readjpeg_minimise_cb( VipsObject *object, ReadJpeg *jpeg )
+{
+	readjpeg_close_input( jpeg );
+}
+
 static ReadJpeg *
 readjpeg_new( VipsImage *out, int shrink, gboolean fail, gboolean autorotate )
 {
@@ -270,6 +277,8 @@ readjpeg_new( VipsImage *out, int shrink, gboolean fail, gboolean autorotate )
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( readjpeg_close_cb ), jpeg ); 
+	g_signal_connect( out, "minimise", 
+		G_CALLBACK( readjpeg_minimise_cb ), jpeg ); 
 
 	return( jpeg );
 }
@@ -718,10 +727,6 @@ read_jpeg_generate( VipsRegion *or,
 		jpeg->y_pos += 1; 
 	}
 
-	/* Shut down the input file as soon as we can. 
-	 */
-	if( jpeg->y_pos >= or->im->Ysize ) 
-		readjpeg_close_input( jpeg );
 
 	VIPS_GATE_STOP( "read_jpeg_generate: work" );
 
