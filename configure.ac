@@ -1388,6 +1388,13 @@ if test x"$with_libexif" != x"no"; then
   CPPFLAGS="$save_CPPFLAGS"
 fi
 
+# fuzzing
+AC_ARG_VAR([LIB_FUZZING_ENGINE],
+           [fuzzing library, e.g. /path/to/libFuzzer.a])
+if test x"$LIB_FUZZING_ENGINE" = x; then
+  LIB_FUZZING_ENGINE="libstandaloneengine.a"
+fi
+
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS 
 # sort includes to get longer, more specific dirs first
 # helps, for example, selecting graphicsmagick over imagemagick
@@ -1452,6 +1459,7 @@ AC_OUTPUT([
 	doc/Makefile
 	doc/libvips-docs.xml
 	po/Makefile.in
+	fuzz/Makefile
 ])
 
 AC_MSG_RESULT([dnl
