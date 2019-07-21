@@ -1009,6 +1009,12 @@ vips_foreign_load_gif_generate( VipsRegion *or,
 	return( 0 );
 }
 
+static void
+vips_foreign_load_gif_minimise( VipsObject *object, VipsForeignLoadGif *gif )
+{
+	vips_foreign_load_gif_close( gif );
+}
+
 static int
 vips_foreign_load_gif_load( VipsForeignLoad *load )
 {
@@ -1051,6 +1057,11 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 	t[0] = vips_image_new();
 	if( vips_foreign_load_gif_set_header( gif, t[0] ) )
 		return( -1 );
+
+	/* CLose input immediately at end of read.
+	 */
+	g_signal_connect( t[0], "minimise", 
+		G_CALLBACK( vips_foreign_load_gif_minimise ), gif ); 
 
 	/* Strips 8 pixels high to avoid too many tiny regions.
 	 */

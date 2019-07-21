@@ -266,7 +266,6 @@ vips_shrinkv_gen( VipsRegion *or, void *vseq,
 {
 	VipsShrinkvSequence *seq = (VipsShrinkvSequence *) vseq;
 	VipsShrinkv *shrink = (VipsShrinkv *) b;
-	VipsResample *resample = VIPS_RESAMPLE( shrink );
 	VipsRegion *ir = seq->ir;
 	VipsRect *r = &or->valid;
 

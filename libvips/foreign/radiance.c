@@ -985,11 +985,16 @@ vips__rad_israd( const char *filename )
 }
 
 static void
+read_minimise( VipsObject *object, Read *read )
+{
+	VIPS_FREEF( buffer_free, read->buffer );
+	VIPS_FREEF( fclose, read->fin );
+}
+
+static void
 read_destroy( VipsObject *object, Read *read )
 {
 	VIPS_FREE( read->filename );
-	VIPS_FREEF( fclose, read->fin );
-	VIPS_FREEF( buffer_free, read->buffer );
 }
 
 static Read *
@@ -1019,6 +1024,8 @@ read_new( const char *filename, VipsImage *out )
 	read->prims[3][1] = CIE_y_w;
 	read->buffer = NULL;
 
+	g_signal_connect( out, "minimise", 
+		G_CALLBACK( read_minimise ), read );
 	g_signal_connect( out, "close", 
 		G_CALLBACK( read_destroy ), read );
 

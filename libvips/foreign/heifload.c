@@ -129,13 +129,20 @@ G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadHeif, vips_foreign_load_heif,
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void
+vips_foreign_load_heif_close( VipsForeignLoadHeif *heif )
+{
+	VIPS_FREEF( heif_image_release, heif->img );
+	heif->data = NULL;
+	VIPS_FREEF( heif_image_handle_release, heif->handle );
+	VIPS_FREEF( heif_context_free, heif->ctx );
+}
+
+static void
 vips_foreign_load_heif_dispose( GObject *gobject )
 {
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) gobject;
 
-	VIPS_FREEF( heif_image_release, heif->img );
-	VIPS_FREEF( heif_image_handle_release, heif->handle );
-	VIPS_FREEF( heif_context_free, heif->ctx );
+	vips_foreign_load_heif_close( heif );
 	VIPS_FREE( heif->id );
 
 	G_OBJECT_CLASS( vips_foreign_load_heif_parent_class )->
@@ -686,6 +693,12 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 	return( 0 );
 }
 
+static void
+vips_foreign_load_heif_minimise( VipsObject *object, VipsForeignLoadHeif *heif )
+{
+	vips_foreign_load_heif_close( heif );
+}
+
 static int
 vips_foreign_load_heif_load( VipsForeignLoad *load )
 {
@@ -701,6 +714,12 @@ vips_foreign_load_heif_load( VipsForeignLoad *load )
 	t[0] = vips_image_new();
 	if( vips_foreign_load_heif_set_header( heif, t[0] ) )
 		return( -1 );
+
+	/* CLose input immediately at end of read.
+	 */
+	g_signal_connect( t[0], "minimise", 
+		G_CALLBACK( vips_foreign_load_heif_minimise ), heif ); 
+
 	if( vips_image_generate( t[0],
 		NULL, vips_foreign_load_heif_generate, NULL, heif, NULL ) ||
 		vips_sequential( t[0], &t[1], NULL ) ||

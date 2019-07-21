@@ -342,8 +342,8 @@ vips__iswebp( const char *filename )
 	return( 0 );
 }
 
-static int
-read_free( Read *read )
+static void
+read_minimise( Read *read )
 {
 	WebPDemuxReleaseIterator( &read->iter );
 	VIPS_UNREF( read->frame );
@@ -359,6 +359,13 @@ read_free( Read *read )
 	}
 
 	VIPS_FREEF( vips_tracked_close, read->fd ); 
+}
+
+static int
+read_free( Read *read )
+{
+	read_minimise( read );
+
 	VIPS_FREE( read->filename );
 	VIPS_FREE( read->delays );
 	VIPS_FREE( read );
@@ -793,6 +800,12 @@ read_webp_generate( VipsRegion *or,
 	return( 0 );
 }
 
+static void
+read_minimise_cb( VipsObject *object, Read *read )
+{
+	read_minimise( read );
+}
+
 static int
 read_image( Read *read, VipsImage *out )
 {
@@ -802,6 +815,9 @@ read_image( Read *read, VipsImage *out )
 	t[0] = vips_image_new();
 	if( read_header( read, t[0] ) )
 		return( -1 );
+
+	g_signal_connect( t[0], "minimise", 
+		G_CALLBACK( read_minimise_cb ), read );
 
 	if( vips_image_generate( t[0], 
 		NULL, read_webp_generate, NULL, read, NULL ) ||
