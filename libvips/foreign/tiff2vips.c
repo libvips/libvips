@@ -741,7 +741,6 @@ rtiff_labpack_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *dummy )
 
 	float pf[3];
 	int x;
-	int i;
 
 	for( x = 0; x < n; x++ ) {
 		pf[0] = p[0] * 100.0f / 255.0f;
@@ -750,10 +749,7 @@ rtiff_labpack_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *dummy )
 
 		vips__Lab2LabQ_vec(q, pf, 1);
 
-		for (i = 3; i < samples_per_pixel; i++)
-			q[i+1] = p[i];
-
-		q += samples_per_pixel+1;
+		q += 4;
 		p += samples_per_pixel;
 	}
 }
@@ -768,7 +764,7 @@ rtiff_parse_labpack( Rtiff *rtiff, VipsImage *out )
 		rtiff_check_interpretation( rtiff, PHOTOMETRIC_CIELAB ) )
 		return( -1 );
 
-	out->Bands = rtiff->header.samples_per_pixel + 1;
+	out->Bands = 4; 
 	out->BandFmt = VIPS_FORMAT_UCHAR; 
 	out->Coding = VIPS_CODING_LABQ; 
 	out->Type = VIPS_INTERPRETATION_LAB; 
