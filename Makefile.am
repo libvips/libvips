@@ -5,7 +5,8 @@ SUBDIRS = \
 	po \
 	man \
 	doc \
-	test 
+	test \
+	fuzz
 
 EXTRA_DIST = \
 	m4 \
@@ -14,6 +15,7 @@ EXTRA_DIST = \
 	vips.pc.in \
 	vips-cpp.pc.in \
 	libvips.supp \
+	lsan.supp \
 	depcomp \
 	README.md 
 
