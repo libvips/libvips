@@ -203,10 +203,10 @@ read_minimise_cb( VipsImage *out, Read *read )
 	 * file. 
 	 */
 	if( read->pPng ) {
-		if( setjmp( png_jmpbuf( read->pPng ) ) ) 
-			return;
-
-		png_read_end( read->pPng, NULL ); 
+		/* Catch and ignore error returns from png_read_end().
+		 */
+		if( !setjmp( png_jmpbuf( read->pPng ) ) ) 
+			png_read_end( read->pPng, NULL ); 
 	}
 
 	read_destroy( read );
