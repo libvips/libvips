@@ -7,6 +7,7 @@
 - add "compression" option to heifsave [lovell]
 - support webp and zstd compression in tiff
 - use "minimise" to close input early
+- integrate support for oss-fuzz [omira-sch]
 
 9/7/19 started 8.8.2
 - better early shutdown in readers

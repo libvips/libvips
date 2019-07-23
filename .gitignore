@@ -27,6 +27,8 @@ Makefile.in
 TAGS
 tags
 *.o
+*.a
+fuzz/*_fuzzer
 Vips-8.0.gir
 Vips-8.0.typelib
 .*.swp
