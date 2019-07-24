@@ -24,6 +24,9 @@
  * 	- rework as a sequential loader ... simpler, much lower mem use
  * 6/7/19 [deftomat]
  * 	- support array of delays 
+ * 24/7/19
+ * 	- close early on minimise 
+ * 	- close early on error
  */
 
 /*
@@ -606,21 +609,10 @@ vips_foreign_load_gif_set_header( VipsForeignLoadGif *gif, VipsImage *image )
 	return( 0 );
 }
 
-/* Attempt to quickly scan a GIF and discover what we need for our header. We
- * need to scan the whole file to get n_pages, transparency and colour.
- */
 static int
-vips_foreign_load_gif_header( VipsForeignLoad *load )
+vips_foreign_load_gif_scan( VipsForeignLoadGif *gif )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
-	VipsForeignLoadGifClass *gif_class =
-		(VipsForeignLoadGifClass *) VIPS_OBJECT_GET_CLASS( load );
-	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) load;
-
 	GifRecordType record;
-
-	if( gif_class->open( gif ) )
-		return( -1 );
 
 	gif->n_pages = 0;
 
@@ -637,8 +629,6 @@ vips_foreign_load_gif_header( VipsForeignLoad *load )
 				return( -1 );
 			}
 
-			/* Read in the image record.
-			 */
 			if( vips_foreign_load_gif_scan_image_record( gif ) )
 				return( -1 );
 
@@ -647,7 +637,7 @@ vips_foreign_load_gif_header( VipsForeignLoad *load )
 			break;
 
 		case EXTENSION_RECORD_TYPE:
-			/* We will need to fetch the extensions to check for
+			/* We need to fetch the extensions to check for
 			 * cmaps and transparency.
 			 */
 			if( vips_foreign_load_gif_scan_extension( gif ) )
@@ -666,6 +656,30 @@ vips_foreign_load_gif_header( VipsForeignLoad *load )
 			break;
 		}
 	} while( !gif->eof );
+
+	return( 0 );
+}
+
+/* Attempt to quickly scan a GIF and discover what we need for our header. We
+ * need to scan the whole file to get n_pages, transparency and colour.
+ */
+static int
+vips_foreign_load_gif_header( VipsForeignLoad *load )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
+	VipsForeignLoadGifClass *gif_class =
+		(VipsForeignLoadGifClass *) VIPS_OBJECT_GET_CLASS( load );
+	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) load;
+
+	if( gif_class->open( gif ) )
+		return( -1 );
+	if( vips_foreign_load_gif_scan( gif ) ) {
+		/* This can fail if the image is corrupt -- make sure we close
+		 * as soon as we can.
+		 */
+		vips_foreign_load_gif_close( gif );
+		return( -1 );
+	}
 
 	if( gif->n == -1 )
 		gif->n = gif->n_pages - gif->page;
@@ -1058,7 +1072,7 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 	if( vips_foreign_load_gif_set_header( gif, t[0] ) )
 		return( -1 );
 
-	/* CLose input immediately at end of read.
+	/* Close input immediately at end of read.
 	 */
 	g_signal_connect( t[0], "minimise", 
 		G_CALLBACK( vips_foreign_load_gif_minimise ), gif ); 
