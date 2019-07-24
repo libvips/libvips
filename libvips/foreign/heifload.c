@@ -2,6 +2,8 @@
  *
  * 19/1/19
  * 	- from niftiload.c
+ * 24/7/19 [zhoux2016]
+ * 	- always fetch metadata from the main image (thumbs don't have it)
  */
 
 /*
@@ -247,18 +249,25 @@ vips_foreign_load_heif_set_page( VipsForeignLoadHeif *heif,
 static int
 vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 {
-	/* FIXME ... never seen this return TRUE on any image, strangely.
-	 */
-	gboolean has_alpha = 
-		heif_image_handle_has_alpha_channel( heif->handle );
-	int bands = has_alpha ? 4 : 3;
-
+	gboolean has_alpha;
+	int bands;
+	int i;
 	/* Surely, 16 metadata items will be enough for anyone.
 	 */
-	int i;
 	heif_item_id id[16];
 	int n_metadata;
 	struct heif_error error;
+
+	/* We take the metadata from the non-thumbnail first page. HEIC 
+	 * thumbnails don't have metadata.
+	 */
+	if( vips_foreign_load_heif_set_page( heif, heif->page, FALSE ) )
+		return( -1 );
+
+	/* FIXME ... never seen this return TRUE on any image, strangely.
+	 */
+	has_alpha = heif_image_handle_has_alpha_channel( heif->handle );
+	bands = has_alpha ? 4 : 3;
 
 	/* FIXME .. need to test XMP and IPCT.
 	 */
@@ -399,7 +408,8 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 }
 
 static int
-vips_foreign_load_heif_get_width( VipsForeignLoadHeif *heif )
+vips_foreign_load_heif_get_width( VipsForeignLoadHeif *heif, 
+	struct heif_image_handle *handle )
 {
 	int width;
 
@@ -407,24 +417,25 @@ vips_foreign_load_heif_get_width( VipsForeignLoadHeif *heif )
 	 * added in 1.3.4. Without it, we just use the transformed dimension
 	 * and have to autorotate.
 	 */
-	width = heif_image_handle_get_width( heif->handle );
+	width = heif_image_handle_get_width( handle );
 #ifdef HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH
-	if( !heif->autorotate )
-		width = heif_image_handle_get_ispe_width( heif->handle );
+	if( !heif->autorotate ) 
+		width = heif_image_handle_get_ispe_width( handle );
 #endif /*HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH*/
 
 	return( width );
 }
 
 static int
-vips_foreign_load_heif_get_height( VipsForeignLoadHeif *heif )
+vips_foreign_load_heif_get_height( VipsForeignLoadHeif *heif,
+	struct heif_image_handle *handle )
 {
 	int height;
 
-	height = heif_image_handle_get_height( heif->handle );
+	height = heif_image_handle_get_height( handle );
 #ifdef HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH
 	if( !heif->autorotate )
-		height = heif_image_handle_get_ispe_height( heif->handle );
+		height = heif_image_handle_get_ispe_height( handle );
 #endif /*HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH*/
 
 	return( height );
@@ -473,6 +484,10 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	}
 
 #ifdef DEBUG
+#ifdef HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH
+	if( !heif->autorotate )
+		printf( "using _get_ispe_width() / _height()\n" );
+#endif /*HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH*/
 	for( i = heif->page; i < heif->page + heif->n; i++ ) {
 		heif_item_id thumb_ids[1];
 		int n_items;
@@ -503,9 +518,11 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 
 			printf( "  thumb %d\n", j );
 			printf( "    width = %d\n", 
-				heif_image_handle_get_width( thumb_handle ) );
+				vips_foreign_load_heif_get_width( heif, 
+					thumb_handle ) );
 			printf( "    height = %d\n", 
-				heif_image_handle_get_height( thumb_handle ) );
+				vips_foreign_load_heif_get_height( heif, 
+					thumb_handle ) );
 		}
 	}
 #endif /*DEBUG*/
@@ -515,16 +532,18 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	if( vips_foreign_load_heif_set_page( heif, 
 		heif->page, heif->thumbnail ) )
 		return( -1 );
-	heif->page_width = vips_foreign_load_heif_get_width( heif );
-	heif->page_height = vips_foreign_load_heif_get_height( heif );
+	heif->page_width = vips_foreign_load_heif_get_width( heif, 
+		heif->handle );
+	heif->page_height = vips_foreign_load_heif_get_height( heif, 
+		heif->handle );
 	for( i = heif->page + 1; i < heif->page + heif->n; i++ ) {
 		if( vips_foreign_load_heif_set_page( heif, 
 			i, heif->thumbnail ) )
 			return( -1 );
-		if( vips_foreign_load_heif_get_width( heif ) != 
-				heif->page_width ||
-			vips_foreign_load_heif_get_height( heif ) != 
-				heif->page_height ) {
+		if( vips_foreign_load_heif_get_width( heif, 
+				heif->handle ) != heif->page_width ||
+			vips_foreign_load_heif_get_height( heif, 
+				heif->handle ) != heif->page_height ) {
 			vips_error( class->nickname, "%s", 
 				_( "not all pages are the same size" ) ); 
 			return( -1 ); 
@@ -538,9 +557,11 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 		if( vips_foreign_load_heif_set_page( heif, i, FALSE ) )
 			return( -1 );
 		printf( "    width = %d\n", 
-			heif_image_handle_get_width( heif->handle ) );
+			vips_foreign_load_heif_get_width( heif, 
+				heif->handle ) );
 		printf( "    height = %d\n", 
-			heif_image_handle_get_height( heif->handle ) );
+			vips_foreign_load_heif_get_height( heif, 
+				heif->handle ) );
 		printf( "    has_depth = %d\n", 
 			heif_image_handle_has_depth_image( heif->handle ) );
 		printf( "    has_alpha = %d\n", 
