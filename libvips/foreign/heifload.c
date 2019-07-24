@@ -2,6 +2,9 @@
  *
  * 19/1/19
  * 	- from niftiload.c
+ * 24/7/19
+ * 	- close early on minimise 
+ * 	- close early on error
  */
 
 /*
@@ -819,13 +822,20 @@ vips_foreign_load_heif_file_header( VipsForeignLoad *load )
 
 	error = heif_context_read_from_file( heif->ctx, file->filename, NULL );
 	if( error.code ) {
+		/* Make we close the fd as soon as we can on error.
+		 */
+		vips_foreign_load_heif_close( heif ); 
 		vips__heif_error( &error );
 		return( -1 );
 	}
 
 	if( VIPS_FOREIGN_LOAD_CLASS( 
-		vips_foreign_load_heif_file_parent_class )->header( load ) )
+		vips_foreign_load_heif_file_parent_class )->header( load ) ) {
+		/* Close early if our base class fails to read.
+		 */
+		vips_foreign_load_heif_close( heif ); 
 		return( -1 );
+	}
 
 	VIPS_SETSTR( load->out->filename, file->filename );
 
