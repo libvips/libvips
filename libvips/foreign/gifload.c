@@ -609,10 +609,21 @@ vips_foreign_load_gif_set_header( VipsForeignLoadGif *gif, VipsImage *image )
 	return( 0 );
 }
 
+/* Attempt to quickly scan a GIF and discover what we need for our header. We
+ * need to scan the whole file to get n_pages, transparency and colour.
+ */
 static int
-vips_foreign_load_gif_scan( VipsForeignLoadGif *gif )
+vips_foreign_load_gif_header( VipsForeignLoad *load )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
+	VipsForeignLoadGifClass *gif_class =
+		(VipsForeignLoadGifClass *) VIPS_OBJECT_GET_CLASS( load );
+	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) load;
+
 	GifRecordType record;
+
+	if( gif_class->open( gif ) )
+		return( -1 );
 
 	gif->n_pages = 0;
 
@@ -656,30 +667,6 @@ vips_foreign_load_gif_scan( VipsForeignLoadGif *gif )
 			break;
 		}
 	} while( !gif->eof );
-
-	return( 0 );
-}
-
-/* Attempt to quickly scan a GIF and discover what we need for our header. We
- * need to scan the whole file to get n_pages, transparency and colour.
- */
-static int
-vips_foreign_load_gif_header( VipsForeignLoad *load )
-{
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
-	VipsForeignLoadGifClass *gif_class =
-		(VipsForeignLoadGifClass *) VIPS_OBJECT_GET_CLASS( load );
-	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) load;
-
-	if( gif_class->open( gif ) )
-		return( -1 );
-	if( vips_foreign_load_gif_scan( gif ) ) {
-		/* This can fail if the image is corrupt -- make sure we close
-		 * as soon as we can.
-		 */
-		vips_foreign_load_gif_close( gif );
-		return( -1 );
-	}
 
 	if( gif->n == -1 )
 		gif->n = gif->n_pages - gif->page;
@@ -1215,6 +1202,26 @@ vips_giflib_file_read( GifFileType *file, GifByteType *buffer, int n )
 }
 
 static int
+vips_foreign_load_gif_file_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadGifFile *file = (VipsForeignLoadGifFile *) load;
+
+	if( VIPS_FOREIGN_LOAD_CLASS( 
+		vips_foreign_load_gif_file_parent_class )->header( load ) ) {
+		/* Close early if header read fails in our base class.
+		 */
+		VIPS_FREEF( fclose, file->fp );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/* We have to have _open() as a vfunc since our base class needs to be able to
+ * make two scans of the gif (scan for header, then scan for pixels), so we 
+ * must be able to close and reopen (or rewind).
+ */
+static int
 vips_foreign_load_gif_file_open( VipsForeignLoadGif *gif )
 {
 	VipsForeignLoad *load = (VipsForeignLoad *) gif;
@@ -1263,6 +1270,7 @@ vips_foreign_load_gif_file_class_init(
 	foreign_class->suffs = vips_foreign_gif_suffs;
 
 	load_class->is_a = vips_foreign_load_gif_is_a;
+	load_class->header = vips_foreign_load_gif_file_header;
 
 	gif_class->open = vips_foreign_load_gif_file_open;
 
