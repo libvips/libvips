@@ -772,6 +772,56 @@ rtiff_parse_labpack( Rtiff *rtiff, VipsImage *out )
 	return( 0 );
 }
 
+
+/* Per-scanline process function for 8-bit VIPS_CODING_LAB to 16-bit LabS with alpha channels.
+ */
+static void
+rtiff_lab_whit_alpha_line(Rtiff* rtiff, VipsPel* q, VipsPel* p, int n, void* dummy)
+{
+	int samples_per_pixel = rtiff->header.samples_per_pixel;
+
+	unsigned char* p1;
+	short* q1;
+	int x;
+	int i;
+
+	p1 = (unsigned char*)p;
+	q1 = (short*)q;
+	int L;
+	for (x = 0; x < n; x++) {
+
+		q1[0] = ((unsigned int)(p1[0]) * 32767) / 255;
+		q1[1] = (short)(p1[1]) << 8;
+		q1[2] = (short)(p1[2]) << 8;
+
+		for (i = 3; i < samples_per_pixel; i++)
+			q1[i] = (p1[i] << 8) + p1[i];
+
+		q1 += samples_per_pixel;
+		p1 += samples_per_pixel;
+	}
+}
+
+/* Read an 8-bit LAB image with alpha bands into 16-bit LabS.
+ */
+static int
+rtiff_parse_lab_with_alpha(Rtiff* rtiff, VipsImage* out)
+{
+	if (rtiff_check_min_samples(rtiff, 4) ||
+		rtiff_check_bits(rtiff, 8) ||
+		rtiff_check_interpretation(rtiff, PHOTOMETRIC_CIELAB))
+		return(-1);
+
+	out->Bands = rtiff->header.samples_per_pixel;
+	out->BandFmt = VIPS_FORMAT_SHORT;
+	out->Coding = VIPS_CODING_NONE;
+	out->Type = VIPS_INTERPRETATION_LABS;
+
+	rtiff->sfn = rtiff_lab_whit_alpha_line;
+
+	return(0);
+}
+
 /* Per-scanline process function for LABS.
  */
 static void
@@ -1291,10 +1341,15 @@ rtiff_pick_reader( Rtiff *rtiff )
 	int bits_per_sample = rtiff->header.bits_per_sample;
 	int photometric_interpretation = 
 		rtiff->header.photometric_interpretation;
+	int samples_per_pixel = rtiff->header.samples_per_pixel;
 
 	if( photometric_interpretation == PHOTOMETRIC_CIELAB ) {
-		if( bits_per_sample == 8 )
-			return( rtiff_parse_labpack );
+		if (bits_per_sample == 8) {
+			if (samples_per_pixel > 3)
+				return(rtiff_parse_lab_with_alpha);
+			else
+				return(rtiff_parse_labpack);
+		}	
 		if( bits_per_sample == 16 )
 			return( rtiff_parse_labs );
 	}

@@ -1077,18 +1077,18 @@ wtiff_new( VipsImage *im, const char *filename,
 static void
 LabQ2LabC( VipsPel *q, VipsPel *p, int n )
 {
-        int x;
+    int x;
 
-        for( x = 0; x < n; x++ ) {
-                /* Get most significant 8 bits of lab.
-                 */
-                q[0] = p[0];
-                q[1] = p[1];
-                q[2] = p[2];
+    for( x = 0; x < n; x++ ) {
+        /* Get most significant 8 bits of lab.
+            */
+        q[0] = p[0];
+        q[1] = p[1];
+        q[2] = p[2];
 
-                p += 4;
-                q += 3;
-        }
+        p += 4;
+        q += 3;
+    }
 }
 
 /* Pack 8 bit VIPS to 1 bit TIFF.
@@ -1196,22 +1196,24 @@ invert_band0( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
 /* Convert VIPS LABS to TIFF 16 bit LAB.
  */
 static void
-LabS2Lab16( VipsPel *q, VipsPel *p, int n )
+LabS2Lab16( VipsPel *q, VipsPel *p, int n, int samples_per_pixel )
 {
-        int x;
+    int x;
+	int i;
 	short *p1 = (short *) p;
 	unsigned short *q1 = (unsigned short *) q;
 
-        for( x = 0; x < n; x++ ) {
-                /* TIFF uses unsigned 16 bit ... move zero, scale up L.
-                 */
-                q1[0] = (int) p1[0] << 1;
-                q1[1] = p1[1];
-                q1[2] = p1[2];
+    for( x = 0; x < n; x++ ) {
+        /* TIFF uses unsigned 16 bit ... move zero, scale up L.
+            */
+        q1[0] = (int) p1[0] << 1;
+		
+		for (i = 1; i < samples_per_pixel; i++)
+			q1[i] = p1[i];
 
-                p1 += 3;
-                q1 += 3;
-        }
+		q1 += samples_per_pixel;
+		p1 += samples_per_pixel;
+    }
 }
 
 /* Pack the pixels in @area from @in into a TIFF tile buffer.
@@ -1246,7 +1248,7 @@ wtiff_pack2tiff( Wtiff *wtiff, Layer *layer,
 			invert_band0( wtiff, q, p, area->width );
 		else if( wtiff->im->BandFmt == VIPS_FORMAT_SHORT &&
 			wtiff->im->Type == VIPS_INTERPRETATION_LABS )
-			LabS2Lab16( q, p, area->width );
+			LabS2Lab16( q, p, area->width, in->im->Bands);
 		else
 			memcpy( q, p, 
 				area->width * 
@@ -1329,7 +1331,7 @@ wtiff_layer_write_strip( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 		}
 		else if( im->BandFmt == VIPS_FORMAT_SHORT &&
 			im->Type == VIPS_INTERPRETATION_LABS ) {
-			LabS2Lab16( wtiff->tbuf, p, im->Xsize );
+			LabS2Lab16( wtiff->tbuf, p, im->Xsize, im->Bands );
 			p = wtiff->tbuf;
 		}
 		else if( wtiff->onebit ) {
