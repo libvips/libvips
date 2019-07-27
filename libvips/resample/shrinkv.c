@@ -99,7 +99,6 @@ typedef struct _VipsShrinkv {
 
 	int vshrink;
 	size_t sizeof_line_buffer;
-	gboolean sequential;
 
 } VipsShrinkv;
 
@@ -415,8 +414,6 @@ vips_shrinkv_build( VipsObject *object )
 	 */
 	if( vips_image_is_sequential( in ) ) { 
 		g_info( "shrinkv sequential line cache" ); 
-
-		shrink->sequential = TRUE;
 
 		if( vips_sequential( in, &t[3], 
 			"tile_height", 10,
