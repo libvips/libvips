@@ -413,7 +413,7 @@ vips_shrinkv_build( VipsObject *object )
 	 * always have the previous XX lines of the shrunk image, and we won't
 	 * fetch out of order. 
 	 */
-	if( vips_image_get_typeof( in, VIPS_META_SEQUENTIAL ) ) { 
+	if( vips_image_is_sequential( in ) ) { 
 		g_info( "shrinkv sequential line cache" ); 
 
 		shrink->sequential = TRUE;

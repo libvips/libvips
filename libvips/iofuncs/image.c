@@ -1454,6 +1454,22 @@ vips_image_minimise_all( VipsImage *image )
 		(VipsSListMap2Fn) vips_image_minimise_all_cb, NULL, NULL );
 }
 
+/**
+ * vips_image_is_sequential: (method)
+ * @image: #VipsImage to minimise
+ *
+ * TRUE if any of the images upstream from @image were opened in sequential
+ * mode. Some operations change behaviour slightly in sequential mode to
+ * optimise memory behaviour.
+ *
+ * Returns: %TRUE if @image is in sequential mode.
+ */
+gboolean
+vips_image_is_sequential( VipsImage *image )
+{
+	return( vips_image_get_typeof( image, VIPS_META_SEQUENTIAL ) );
+}
+
 /* Attach a new time struct, if necessary, and reset it.
  */
 static int

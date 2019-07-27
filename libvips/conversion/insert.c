@@ -28,6 +28,8 @@
  * 29/9/11
  * 	- rewrite as a class
  * 	- add expand, bg options
+ * 27/7/19
+ * 	- minimise sub when we're done with it
  */
 
 /*
@@ -103,6 +105,10 @@ typedef struct _VipsInsert {
 	VipsRect rout;		/* Output space */
 	VipsRect rmain;		/* Position of main in output */
 	VipsRect rsub;		/* Position of sub in output */
+
+	/* TRUE if we've minimise sub.
+	 */
+	gboolean sub_minimised;
 } VipsInsert;
 
 typedef VipsConversionClass VipsInsertClass;
@@ -187,9 +193,21 @@ vips_insert_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	 */
 	vips_rect_intersectrect( &or->valid, &insert->rsub, &ovl );
 	if( vips_rect_includesrect( &insert->rmain, &or->valid ) &&
-		vips_rect_isempty( &ovl ) ) 
+		vips_rect_isempty( &ovl ) ) {
+		/* If we're now below the sub-image, and we're in sequential
+		 * mode, and we've not minimised it before, we can shut down
+		 * that input.
+		 */
+		if( vips_image_is_sequential( insert->sub ) &&  
+			r->top > VIPS_RECT_BOTTOM( &insert->rsub ) &&
+			!insert->sub_minimised ) { 
+			insert->sub_minimised = TRUE;
+			vips_image_minimise_all( insert->sub );
+		}
+
 		return( vips__insert_just_one( or, ir[0], 
 			insert->rmain.left, insert->rmain.top ) );
+	}
 
 	/* Output requires both (or neither) input. If it is not entirely 
 	 * inside both the main and the sub, then there is going to be some
