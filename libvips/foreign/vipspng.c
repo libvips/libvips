@@ -196,6 +196,22 @@ read_close_cb( VipsImage *out, Read *read )
 	read_destroy( read ); 
 }
 
+static void
+read_minimise_cb( VipsImage *out, Read *read )
+{
+	/* Catch errors from png_read_end(). This can fail on a truncated
+	 * file. 
+	 */
+	if( read->pPng ) {
+		/* Catch and ignore error returns from png_read_end().
+		 */
+		if( !setjmp( png_jmpbuf( read->pPng ) ) ) 
+			png_read_end( read->pPng, NULL ); 
+	}
+
+	read_destroy( read );
+}
+
 static Read *
 read_new( VipsImage *out, gboolean fail )
 {
@@ -218,6 +234,8 @@ read_new( VipsImage *out, gboolean fail )
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( read_close_cb ), read ); 
+	g_signal_connect( out, "minimise", 
+		G_CALLBACK( read_minimise_cb ), read ); 
 
 	if( !(read->pPng = png_create_read_struct( 
 		PNG_LIBPNG_VER_STRING, NULL,
@@ -643,22 +661,21 @@ png2vips_generate( VipsRegion *or,
 	}
 
 	/* Catch errors from png_read_end(). This can fail on a truncated
-	 * file. 
+	 * file.
 	 */
 	if( setjmp( png_jmpbuf( read->pPng ) ) ) {
 		if( read->fail ) {
-			vips_error( "vipspng", "%s", _( "libpng read error" ) ); 
+			vips_error( "vipspng", "%s", _( "libpng read error" ) );
 			return( -1 );
 		}
 
 		return( 0 );
 	}
 
-	/* We need to shut down the reader immediately at the end of read or
-	 * we won't detach ready for the next image.
+	/* Early close to free the fd as soon as we can.
 	 */
 	if( read->y_pos >= read->out->Ysize ) {
-		png_read_end( read->pPng, NULL ); 
+		png_read_end( read->pPng, NULL );
 		read_destroy( read );
 	}
 

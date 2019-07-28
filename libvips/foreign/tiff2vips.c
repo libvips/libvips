@@ -189,6 +189,8 @@
  * 7/6/19
  * 	- istiff reads the first directory rather than just testing the magic
  * 	  number, so it ignores more TIFF-like, but not TIFF images
+ * 20/7/19
+ * 	- use "minimise" for early shutdown, rather than read Y position
  */
 
 /*
@@ -494,6 +496,20 @@ rtiff_close_cb( VipsObject *object, Rtiff *rtiff )
 	rtiff_free( rtiff ); 
 }
 
+static void
+rtiff_minimise_cb( VipsObject *object, Rtiff *rtiff )
+{
+#ifdef DEBUG
+	printf( "rtiff_minimise_cb: %p minimise\n", rtiff );
+#endif /*DEBUG*/
+
+	/* Close early for non-tiled TIFFs. Tiled TIFFs are read randomly, so
+	 * the end of a loop doesn't mean the tiff won't be used again.
+	 */
+	if( !rtiff->header.tiled )
+		rtiff_free( rtiff ); 
+}
+
 static Rtiff *
 rtiff_new( VipsImage *out, int page, int n, gboolean autorotate )
 {
@@ -519,6 +535,9 @@ rtiff_new( VipsImage *out, int page, int n, gboolean autorotate )
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( rtiff_close_cb ), rtiff ); 
+
+	g_signal_connect( out, "minimise", 
+		G_CALLBACK( rtiff_minimise_cb ), rtiff ); 
 
 	if( rtiff->page < 0 || rtiff->page > 1000000 ) {
 		vips_error( "tiff2vips", _( "bad page number %d" ),
@@ -1603,11 +1622,6 @@ rtiff_fill_region( VipsRegion *out,
 
 	VIPS_GATE_STOP( "rtiff_fill_region: work" ); 
 
-	/* We can't shut down the input file early for tile read, even if we
-	 * know load is in sequential mode, since we are not inside a
-	 * vips_sequential() and requests are not guaranteed to be in order.
-	 */
-
 	return( 0 );
 }
 
@@ -1949,11 +1963,11 @@ rtiff_stripwise_generate( VipsRegion *or,
 		rtiff->y_pos += hit.height;
 	}
 
-	/* Shut down the input file as soon as we can. 
+	/* Shut down the input file as soon as we can.
 	 */
 	if( rtiff->y_pos >= or->im->Ysize ) {
 #ifdef DEBUG
-		printf( "rtiff_stripwise_generate: early shutdown\n" ); 
+		printf( "rtiff_stripwise_generate: early shutdown\n" );
 #endif /*DEBUG*/
 		rtiff_free( rtiff );
 	}

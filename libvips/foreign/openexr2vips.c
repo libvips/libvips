@@ -348,11 +348,6 @@ vips__openexr_generate( VipsRegion *out,
 			}
 		}
 
-	/* We can't shut down the input file early for tile read, even if we
-	 * know load is in sequential mode, since we are not inside a
-	 * vips_sequential() and requests are not guaranteed to be in order.
-	 */
-
 	return( 0 );
 }
 

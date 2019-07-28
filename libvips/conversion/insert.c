@@ -103,6 +103,10 @@ typedef struct _VipsInsert {
 	VipsRect rout;		/* Output space */
 	VipsRect rmain;		/* Position of main in output */
 	VipsRect rsub;		/* Position of sub in output */
+
+	/* TRUE if we've minimise sub.
+	 */
+	gboolean sub_minimised;
 } VipsInsert;
 
 typedef VipsConversionClass VipsInsertClass;
@@ -164,8 +168,6 @@ vips__insert_paste_region( VipsRegion *or, VipsRegion *ir, VipsRect *pos )
 	return( 0 );
 }
 
-/* Insert generate function.
- */
 static int
 vips_insert_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 {
@@ -175,39 +177,43 @@ vips_insert_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 
 	VipsRect ovl;
 
-	/* Does the rect we have been asked for fall entirely inside the
-	 * sub-image?
-	 */
-	if( vips_rect_includesrect( &insert->rsub, &or->valid ) ) 
-		return( vips__insert_just_one( or, ir[1], 
-			insert->rsub.left, insert->rsub.top ) );
-
-	/* Does it fall entirely inside the main, and not at all inside the
-	 * sub?
+	/* The part of the subimage we will use.
 	 */
 	vips_rect_intersectrect( &or->valid, &insert->rsub, &ovl );
-	if( vips_rect_includesrect( &insert->rmain, &or->valid ) &&
-		vips_rect_isempty( &ovl ) ) 
-		return( vips__insert_just_one( or, ir[0], 
-			insert->rmain.left, insert->rmain.top ) );
 
-	/* Output requires both (or neither) input. If it is not entirely 
-	 * inside both the main and the sub, then there is going to be some
-	 * background. 
+	/* Three cases: we are generating entirely within the sub-image, 
+	 * entirely within the main image, or a mixture.
 	 */
-	if( !(vips_rect_includesrect( &insert->rsub, &or->valid ) &&
-		vips_rect_includesrect( &insert->rmain, &or->valid )) )
-		vips_region_paint_pel( or, r, insert->ink );
+	if( vips_rect_includesrect( &insert->rsub, &or->valid ) ) {
+		if( vips__insert_just_one( or, ir[1], 
+			insert->rsub.left, insert->rsub.top ) )
+			return( -1 );
+	}
+	else if( vips_rect_includesrect( &insert->rmain, &or->valid ) &&
+		vips_rect_isempty( &ovl ) ) {
+		if( vips__insert_just_one( or, ir[0], 
+			insert->rmain.left, insert->rmain.top ) )
+			return( -1 );
+	}
+	else {
+		/* Output requires both (or neither) input. If it is not 
+		 * entirely inside both the main and the sub, then there is 
+		 * going to be some background. 
+		 */
+		if( !(vips_rect_includesrect( &insert->rsub, &or->valid ) &&
+			vips_rect_includesrect( &insert->rmain, &or->valid )) )
+			vips_region_paint_pel( or, r, insert->ink );
 
-	/* Paste from main.
-	 */
-	if( vips__insert_paste_region( or, ir[0], &insert->rmain ) )
-		return( -1 );
+		/* Paste from main.
+		 */
+		if( vips__insert_paste_region( or, ir[0], &insert->rmain ) )
+			return( -1 );
 
-	/* Paste from sub.
-	 */
-	if( vips__insert_paste_region( or, ir[1], &insert->rsub ) )
-		return( -1 );
+		/* Paste from sub.
+		 */
+		if( vips__insert_paste_region( or, ir[1], &insert->rsub ) )
+			return( -1 );
+	}
 
 	return( 0 );
 }

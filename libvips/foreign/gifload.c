@@ -24,6 +24,9 @@
  * 	- rework as a sequential loader ... simpler, much lower mem use
  * 6/7/19 [deftomat]
  * 	- support array of delays 
+ * 24/7/19
+ * 	- close early on minimise 
+ * 	- close early on error
  */
 
 /*
@@ -637,8 +640,6 @@ vips_foreign_load_gif_header( VipsForeignLoad *load )
 				return( -1 );
 			}
 
-			/* Read in the image record.
-			 */
 			if( vips_foreign_load_gif_scan_image_record( gif ) )
 				return( -1 );
 
@@ -647,7 +648,7 @@ vips_foreign_load_gif_header( VipsForeignLoad *load )
 			break;
 
 		case EXTENSION_RECORD_TYPE:
-			/* We will need to fetch the extensions to check for
+			/* We need to fetch the extensions to check for
 			 * cmaps and transparency.
 			 */
 			if( vips_foreign_load_gif_scan_extension( gif ) )
@@ -1009,6 +1010,12 @@ vips_foreign_load_gif_generate( VipsRegion *or,
 	return( 0 );
 }
 
+static void
+vips_foreign_load_gif_minimise( VipsObject *object, VipsForeignLoadGif *gif )
+{
+	vips_foreign_load_gif_close( gif );
+}
+
 static int
 vips_foreign_load_gif_load( VipsForeignLoad *load )
 {
@@ -1051,6 +1058,11 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 	t[0] = vips_image_new();
 	if( vips_foreign_load_gif_set_header( gif, t[0] ) )
 		return( -1 );
+
+	/* Close input immediately at end of read.
+	 */
+	g_signal_connect( t[0], "minimise", 
+		G_CALLBACK( vips_foreign_load_gif_minimise ), gif ); 
 
 	/* Strips 8 pixels high to avoid too many tiny regions.
 	 */
@@ -1190,6 +1202,26 @@ vips_giflib_file_read( GifFileType *file, GifByteType *buffer, int n )
 }
 
 static int
+vips_foreign_load_gif_file_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadGifFile *file = (VipsForeignLoadGifFile *) load;
+
+	if( VIPS_FOREIGN_LOAD_CLASS( 
+		vips_foreign_load_gif_file_parent_class )->header( load ) ) {
+		/* Close early if header read fails in our base class.
+		 */
+		VIPS_FREEF( fclose, file->fp );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+/* We have to have _open() as a vfunc since our base class needs to be able to
+ * make two scans of the gif (scan for header, then scan for pixels), so we 
+ * must be able to close and reopen (or rewind).
+ */
+static int
 vips_foreign_load_gif_file_open( VipsForeignLoadGif *gif )
 {
 	VipsForeignLoad *load = (VipsForeignLoad *) gif;
@@ -1238,6 +1270,7 @@ vips_foreign_load_gif_file_class_init(
 	foreign_class->suffs = vips_foreign_gif_suffs;
 
 	load_class->is_a = vips_foreign_load_gif_is_a;
+	load_class->header = vips_foreign_load_gif_file_header;
 
 	gif_class->open = vips_foreign_load_gif_file_open;
 

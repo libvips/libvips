@@ -380,6 +380,15 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 	return( 0 );
 }
 
+static void
+vips_foreign_load_pdf_minimise( VipsObject *object, VipsForeignLoadPdf *pdf )
+{
+	/* In seq mode, we can shut down the input at the end of computation.
+	 */
+	if( VIPS_FOREIGN_LOAD( pdf )->access == VIPS_ACCESS_SEQUENTIAL )
+		vips_foreign_load_pdf_close( pdf ); 
+}
+
 static int
 vips_foreign_load_pdf_generate( VipsRegion *or, 
 	void *seq, void *a, void *b, gboolean *stop )
@@ -436,13 +445,6 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		i += 1;
 	}
 
-	/* In seq mode, we can shut down the input when we render the last
-	 * row.
-	 */
-	if( top >= or->im->Ysize &&
-		load->access == VIPS_ACCESS_SEQUENTIAL )
-		vips_foreign_load_pdf_close( pdf ); 
-
 	/* PDFium writes BRGA, we must swap.
 	 *
 	 * FIXME ... this is a bit slow.
@@ -475,6 +477,11 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 	/* Read to this image, then cache to out, see below.
 	 */
 	t[0] = vips_image_new(); 
+
+	/* Close input immediately at end of read.
+	 */
+	g_signal_connect( t[0], "minimise", 
+		G_CALLBACK( vips_foreign_load_pdf_minimise ), pdf ); 
 
 	vips_foreign_load_pdf_set_image( pdf, t[0] ); 
 	if( vips_image_generate( t[0], 

@@ -451,11 +451,9 @@ vips_image_finalize( GObject *gobject )
 		VIPS_FREE( image->time );
 	}
 
-	/* Any image data?
+	/* Free attached memory.
 	 */
 	if( image->data ) {
-		/* Buffer image. Only free stuff we know we allocated.
-		 */
 		if( image->dtype == VIPS_IMAGE_SETBUF ) {
 			VIPS_DEBUG_MSG( "vips_image_finalize: "
 				"freeing buffer\n" );
@@ -466,7 +464,7 @@ vips_image_finalize( GObject *gobject )
 		image->data = NULL;
 	}
 
-	/* If this is a temp, delete it.
+	/* Delete associated files.
 	 */
 	vips_image_delete( image );
 
@@ -1454,6 +1452,22 @@ vips_image_minimise_all( VipsImage *image )
 		(VipsSListMap2Fn) vips_image_minimise_all_cb, NULL, NULL );
 }
 
+/**
+ * vips_image_is_sequential: (method)
+ * @image: #VipsImage to minimise
+ *
+ * TRUE if any of the images upstream from @image were opened in sequential
+ * mode. Some operations change behaviour slightly in sequential mode to
+ * optimise memory behaviour.
+ *
+ * Returns: %TRUE if @image is in sequential mode.
+ */
+gboolean
+vips_image_is_sequential( VipsImage *image )
+{
+	return( vips_image_get_typeof( image, VIPS_META_SEQUENTIAL ) );
+}
+
 /* Attach a new time struct, if necessary, and reset it.
  */
 static int
@@ -2066,9 +2080,8 @@ vips_image_new_from_memory_copy_cb( VipsImage *image, void *data_copy )
  * @format: image format
  *
  * Like vips_image_new_from_memory(), but VIPS will make a copy of the memory 
- * area. This
- * means more memory use and an extra copy operation, but is much simpler and
- * safer. 
+ * area. This means more memory use and an extra copy operation, but is much 
+ * simpler and safer. 
  *
  * See also: vips_image_new_from_memory().
  *

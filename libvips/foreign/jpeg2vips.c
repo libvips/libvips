@@ -100,6 +100,8 @@
  * 	- strict round down on shrink-on-load
  * 16/8/18
  * 	- shut down the input file as soon as we can [kleisauke]
+ * 20/7/19
+ * 	- close input on minimise rather than Y read position
  */
 
 /*
@@ -190,8 +192,7 @@ typedef struct _ReadJpeg {
 	int output_height;
 } ReadJpeg;
 
-/* This can be called many times. It's called directly at the end of image
- * read.
+/* This can be called many times. 
  */
 static void
 readjpeg_close_input( ReadJpeg *jpeg )
@@ -237,6 +238,12 @@ readjpeg_close_cb( VipsObject *object, ReadJpeg *jpeg )
 	(void) readjpeg_free( jpeg );
 }
 
+static void
+readjpeg_minimise_cb( VipsObject *object, ReadJpeg *jpeg )
+{
+	readjpeg_close_input( jpeg );
+}
+
 static ReadJpeg *
 readjpeg_new( VipsImage *out, int shrink, gboolean fail, gboolean autorotate )
 {
@@ -270,6 +277,8 @@ readjpeg_new( VipsImage *out, int shrink, gboolean fail, gboolean autorotate )
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( readjpeg_close_cb ), jpeg ); 
+	g_signal_connect( out, "minimise", 
+		G_CALLBACK( readjpeg_minimise_cb ), jpeg ); 
 
 	return( jpeg );
 }
@@ -290,20 +299,17 @@ readjpeg_file( ReadJpeg *jpeg, const char *filename )
 static const char *
 find_chroma_subsample( struct jpeg_decompress_struct *cinfo )
 {
-	gboolean has_subsample;
-
 	/* libjpeg only uses 4:4:4 and 4:2:0, confusingly. 
 	 *
 	 * http://poynton.ca/PDFs/Chroma_subsampling_notation.pdf
 	 */
-	has_subsample = cinfo->max_h_samp_factor > 1 ||
+	gboolean has_subsample = cinfo->max_h_samp_factor > 1 ||
 		cinfo->max_v_samp_factor > 1;
-	if( cinfo->num_components > 3 )
-		/* A cmyk image.
-		 */
-		return( has_subsample ? "4:2:0:4" : "4:4:4:4" );
-	else
-		return( has_subsample ? "4:2:0" : "4:4:4" );
+	gboolean is_cmyk = cinfo->num_components > 3;
+
+	return( is_cmyk ? 
+		(has_subsample ? "4:2:0:4" : "4:4:4:4" ) :
+		(has_subsample ? "4:2:0" : "4:4:4") );
 }
 
 static int
@@ -718,7 +724,7 @@ read_jpeg_generate( VipsRegion *or,
 		jpeg->y_pos += 1; 
 	}
 
-	/* Shut down the input file as soon as we can. 
+	/* Shut down the input early if we can.
 	 */
 	if( jpeg->y_pos >= or->im->Ysize ) 
 		readjpeg_close_input( jpeg );
