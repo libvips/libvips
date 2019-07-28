@@ -1963,6 +1963,15 @@ rtiff_stripwise_generate( VipsRegion *or,
 		rtiff->y_pos += hit.height;
 	}
 
+	/* Shut down the input file as soon as we can.
+	 */
+	if( rtiff->y_pos >= or->im->Ysize ) {
+#ifdef DEBUG
+		printf( "rtiff_stripwise_generate: early shutdown\n" );
+#endif /*DEBUG*/
+		rtiff_free( rtiff );
+	}
+
 	VIPS_GATE_STOP( "rtiff_stripwise_generate: work" ); 
 
 	return( 0 );

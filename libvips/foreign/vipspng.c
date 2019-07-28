@@ -660,6 +660,25 @@ png2vips_generate( VipsRegion *or,
 		read->y_pos += 1;
 	}
 
+	/* Catch errors from png_read_end(). This can fail on a truncated
+	 * file.
+	 */
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) {
+		if( read->fail ) {
+			vips_error( "vipspng", "%s", _( "libpng read error" ) );
+			return( -1 );
+		}
+
+		return( 0 );
+	}
+
+	/* Early close to free the fd as soon as we can.
+	 */
+	if( read->y_pos >= read->out->Ysize ) {
+		png_read_end( read->pPng, NULL );
+		read_destroy( read );
+	}
+
 	return( 0 );
 }
 

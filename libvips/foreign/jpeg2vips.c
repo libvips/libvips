@@ -299,20 +299,17 @@ readjpeg_file( ReadJpeg *jpeg, const char *filename )
 static const char *
 find_chroma_subsample( struct jpeg_decompress_struct *cinfo )
 {
-	gboolean has_subsample;
-
 	/* libjpeg only uses 4:4:4 and 4:2:0, confusingly. 
 	 *
 	 * http://poynton.ca/PDFs/Chroma_subsampling_notation.pdf
 	 */
-	has_subsample = cinfo->max_h_samp_factor > 1 ||
+	gboolean has_subsample = cinfo->max_h_samp_factor > 1 ||
 		cinfo->max_v_samp_factor > 1;
-	if( cinfo->num_components > 3 )
-		/* A cmyk image.
-		 */
-		return( has_subsample ? "4:2:0:4" : "4:4:4:4" );
-	else
-		return( has_subsample ? "4:2:0" : "4:4:4" );
+	gboolean is_cmyk = cinfo->num_components > 3;
+
+	return( is_cmyk ? 
+		(has_subsample ? "4:2:0:4" : "4:4:4:4" ) :
+		(has_subsample ? "4:2:0" : "4:4:4") );
 }
 
 static int
@@ -727,6 +724,10 @@ read_jpeg_generate( VipsRegion *or,
 		jpeg->y_pos += 1; 
 	}
 
+	/* Shut down the input file.
+	 */
+	if( jpeg->y_pos >= or->im->Ysize ) 
+		readjpeg_close_input( jpeg );
 
 	VIPS_GATE_STOP( "read_jpeg_generate: work" );
 
