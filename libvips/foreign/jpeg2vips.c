@@ -724,7 +724,7 @@ read_jpeg_generate( VipsRegion *or,
 		jpeg->y_pos += 1; 
 	}
 
-	/* Shut down the input file.
+	/* Shut down the input early if we can.
 	 */
 	if( jpeg->y_pos >= or->im->Ysize ) 
 		readjpeg_close_input( jpeg );

@@ -6,7 +6,7 @@
 - disable webp alpha output if all frames fill the canvas and are solid
 - add "compression" option to heifsave [lovell]
 - support webp and zstd compression in tiff
-- use "minimise" to close input early
+- loaders use "minimise" to close input files earlier
 - integrate support for oss-fuzz [omira-sch]
 
 9/7/19 started 8.8.2

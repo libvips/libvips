@@ -451,11 +451,9 @@ vips_image_finalize( GObject *gobject )
 		VIPS_FREE( image->time );
 	}
 
-	/* Any image data?
+	/* Free attached memory.
 	 */
 	if( image->data ) {
-		/* Buffer image. Only free stuff we know we allocated.
-		 */
 		if( image->dtype == VIPS_IMAGE_SETBUF ) {
 			VIPS_DEBUG_MSG( "vips_image_finalize: "
 				"freeing buffer\n" );
@@ -466,7 +464,7 @@ vips_image_finalize( GObject *gobject )
 		image->data = NULL;
 	}
 
-	/* If this is a temp, delete it.
+	/* Delete associated files.
 	 */
 	vips_image_delete( image );
 
@@ -2082,9 +2080,8 @@ vips_image_new_from_memory_copy_cb( VipsImage *image, void *data_copy )
  * @format: image format
  *
  * Like vips_image_new_from_memory(), but VIPS will make a copy of the memory 
- * area. This
- * means more memory use and an extra copy operation, but is much simpler and
- * safer. 
+ * area. This means more memory use and an extra copy operation, but is much 
+ * simpler and safer. 
  *
  * See also: vips_image_new_from_memory().
  *

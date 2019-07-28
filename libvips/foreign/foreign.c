@@ -838,7 +838,7 @@ vips_foreign_load_start( VipsImage *out, void *a, void *b )
 
 		/* Load the image and check the result.
 		 *
-		 * ->header() read the header into @out, load has read the
+		 * ->header() read the header into @out, load will read the
 		 * image into @real. They must match exactly in size, bands,
 		 * format and coding for the copy to work.  
 		 *
