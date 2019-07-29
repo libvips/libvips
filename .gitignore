@@ -1,3 +1,4 @@
+fuzz/
 .pytest_cache
 compile
 .pytest_cache

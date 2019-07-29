@@ -89,7 +89,10 @@
 static void 
 skip_line( FILE *fp )
 {
-        while( vips__fgetc( fp ) != '\n' )
+	int ch;
+
+        while( (ch = vips__fgetc( fp )) != '\n' && 
+		ch != EOF )
 		;
 }
 
