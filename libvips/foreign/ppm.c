@@ -34,6 +34,8 @@
  * 4/6/15
  * 	- try to support DOS files under linux ... we have to look for \r\n
  * 	  linebreaks
+ * 29/7/19 Kyle-Kyle
+ * 	- fix a loop with malformed ppm
  */
 
 /*
