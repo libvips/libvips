@@ -117,7 +117,12 @@ vips_mapimage_build( VipsObject *object )
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
 	VipsImage *in;
-	VipsImage *lut;
+	VipsImage **lut;
+	int n;
+	VipsImage **decode;
+	VipsImage **format;
+	VipsImage **band;
+	VipsImage **size;
 	int i;
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
@@ -125,11 +130,45 @@ vips_mapimage_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_mapimage_parent_class )->build( object ) )
 		return( -1 );
 
-	/* Cast @in to u8/u16/u32 to make the index image.
+	in = mapimage->in;
+	lut = vips_area_get_data( &mapimage->lut.area, NULL, &n, NULL, NULL );
+	if( n > 256 ) {
+		vips_error( class->nickname, _( "LUT too large" ) );
+		return( -1 );
+	}
+	if( in->Bands > 1 ) {
+		vips_error( class->nickname, _( "index image not 1-band" ) );
+		return( -1 );
+	}
+
+	/* Cast @in to u8 to make the index image.
 	 */
-	if( vips_cast( in, &t[0], bandfmt_mapimage[in->BandFmt], NULL ) )
+	if( vips_cast( in, &t[0], VIPS_FORMAT_UCHAR, NULL ) )
 		return( -1 );
 	in = t[0];
+
+	decode = (VipsImage **) vips_object_local_array( object, n );
+	format = (VipsImage **) vips_object_local_array( object, n );
+	band = (VipsImage **) vips_object_local_array( object, n );
+	size = (VipsImage **) vips_object_local_array( object, n );
+
+	/* Decode RAD/LABQ etc.
+	 */
+	for( i = 0; i < arithmetic->n; i++ )
+		if( vips_image_decode( lut[i], &decode[i] ) )
+			return( -1 );
+	lut = decode;
+
+	/* LUT images must match in format, size and bands.
+	 */
+	if( vips__formatalike_vec( lut, format, n ) ||
+		vips__bandalike_vec( class->nickname, format, band, n, max_bands ) ||
+		vips__sizealike_vec( band, size, n ) ) 
+		return( -1 );
+
+
+
+
 
 	if( vips_check_uncoded( class->nickname, in ) ||
 		vips_check_bands_1orn( class->nickname, in, lut ) ||
