@@ -970,12 +970,13 @@ write_png_comment( VipsImage *image,
 	if( vips_isprefix( "png-comment-", field ) ) { 
 		const char *str;
 		int i;
-		char key[80];
+		char key[256];
 
 		if( vips_image_get_string( write->in, field, &str ) )
 			return( image );
 
-		if( sscanf( field, "png-comment-%d-%80s", &i, key ) != 2 ) {
+		if( strlen( field ) > 256 ||
+			sscanf( field, "png-comment-%d-%80s", &i, key ) != 2 ) {
 			vips_error( "vips2png", 
 				"%s", _( "bad png comment key" ) );
 			return( image );
