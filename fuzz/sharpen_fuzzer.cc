@@ -11,9 +11,21 @@ extern "C" int
 LLVMFuzzerTestOneInput( const guint8 *data, size_t size )
 {
 	VipsImage *in, *out;
+	size_t width, height, bands;
 	double d;
 
 	if( !(in = vips_image_new_from_buffer( data, size, "", NULL )) ) {
+		return( 0 );
+	}
+
+	width = in->Xsize;
+	height = in->Ysize;
+	bands = in->Bands;
+
+	/* Skip big images. It is likely to timeout.
+	 */
+	if ( width * height * bands > 256 * 256 * 16 ) {
+		g_object_unref( in );
 		return( 0 );
 	}
 
