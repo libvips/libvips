@@ -69,12 +69,12 @@ vips_switch_gen( VipsRegion *or, void *seq, void *a, void *b,
 	VipsRegion *index = ar[swit->n];
 
 	int x, y, i, j;
-	VipsPel *ip;
-	VipsPel *q;
+	VipsPel * restrict ip;
+	VipsPel * restrict q;
 	size_t ils;
 	size_t qls;
 	int hist[256];
-	VipsPel *p[256];
+	VipsPel * restrict p[256];
 	size_t ls[256];
 	size_t ps;
 
@@ -112,10 +112,10 @@ vips_switch_gen( VipsRegion *or, void *seq, void *a, void *b,
 	for( y = 0; y < r->height; y++ ) {
 		i = 0;
 		for( x = 0; x < r->width; x++ ) {
-			int v = ip[x];
+			VipsPel * restrict pv = p[ip[x]];
 
 			for( j = 0; j < ps; j++ ) {
-				q[i] = p[v][i];
+				q[i] = pv[i];
 				i += 1;
 			}
 		}
@@ -187,6 +187,7 @@ vips_switch_build( VipsObject *object )
 	 * that to the end of the set of images for sizealike.
 	 */
 	band[swit->n] = in;
+	g_object_ref( in ); 
 	if( vips__formatalike_vec( lut, format, swit->n ) ||
 		vips__bandalike_vec( class->nickname, 
 			format, band, swit->n, 1 ) ||
