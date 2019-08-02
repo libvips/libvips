@@ -248,7 +248,8 @@ vips_image_paint_area( VipsImage *image, const VipsRect *r, const VipsPel *ink )
 
 /* Rebuild RGBA, assuming little-endian.
  */
-#define setRGBA( R, G, B, A ) (R | (G << 8) | (B << 16) | (A << 24))
+#define setRGBA( R, G, B, A ) \
+	(R | (G << 8) | (B << 16) | ((guint32) A << 24))
 
 /* OVER blend of two unpremultiplied RGBA guint32
  *

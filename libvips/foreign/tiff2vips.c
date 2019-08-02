@@ -1066,7 +1066,7 @@ rtiff_palette_line_bit( Rtiff *rtiff,
 			}
 		}
 		else 
-			*q++ = i << (8 - bits_per_sample);
+			*q++ = VIPS_LSHIFT_INT( i, 8 - bits_per_sample );
 	}
 }
 

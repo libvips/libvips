@@ -143,7 +143,7 @@ read24( const unsigned char *in, int remaining )
 
 	bits = 0;
 	for( i = 0; i < 3; i++ ) {
-		bits <<= 8;
+		bits = VIPS_LSHIFT_INT( bits, 8 );
 		if( remaining > 0 ) {
 			bits |= in[i];
 			remaining -= 1;
@@ -167,7 +167,7 @@ encode24( char *p, int bits, int remaining )
 			/* Take the top 6 bits of 24.
 			 */
 			p[i] = b64_list[(bits >> 18) & 63];
-			bits <<= 6;
+			bits = VIPS_LSHIFT_INT( bits, 6 );
 			remaining -= 6;
 		}
 	}
@@ -281,7 +281,7 @@ vips__b64_decode( const char *buffer, size_t *data_length )
 		unsigned int val;
 
 		if( (val = b64_index[(int) buffer[i]]) != XX ) {
-			bits <<= 6;
+			bits = VIPS_LSHIFT_INT( bits, 6 );
 			bits |= val;
 			nbits += 6;
 

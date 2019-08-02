@@ -158,6 +158,18 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 		q[x] = (p[x] << n) | (((p[x] & 1) << n) - (p[x] & 1)); \
 }
 
+#define SHIFT_LEFT_SIGNED( ITYPE, OTYPE ) { \
+	ITYPE * restrict p = (ITYPE *) in; \
+	OTYPE * restrict q = (OTYPE *) out; \
+	int n = ((int) sizeof( OTYPE ) << 3) - ((int) sizeof( ITYPE ) << 3); \
+	\
+	g_assert( sizeof( ITYPE ) < sizeof( OTYPE ) ); \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = VIPS_LSHIFT_INT( p[x], n ) | \
+			(((p[x] & 1) << n) - (p[x] & 1)); \
+}
+
 /* Cast int types to an int type. We need to pass in the type of the
  * intermediate value, either uint or int, or we'll have problems with uint
  * sources turning -ve.
@@ -182,6 +194,21 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 	} \
 	else if( cast->shift ) { \
 		SHIFT_LEFT( ITYPE, OTYPE ); \
+	} \
+	else { \
+		CAST_INT_INT( ITYPE, OTYPE, TEMP, CAST ); \
+	} \
+} 
+
+/* Int to int handling for signed int types. 
+ */
+#define INT_INT_SIGNED( ITYPE, OTYPE, TEMP, CAST ) { \
+	if( cast->shift && \
+		sizeof( ITYPE ) > sizeof( OTYPE ) ) { \
+		SHIFT_RIGHT( ITYPE, OTYPE ); \
+	} \
+	else if( cast->shift ) { \
+		SHIFT_LEFT_SIGNED( ITYPE, OTYPE ); \
 	} \
 	else { \
 		CAST_INT_INT( ITYPE, OTYPE, TEMP, CAST ); \
@@ -336,7 +363,7 @@ vips_cast_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 
 		case VIPS_FORMAT_CHAR: 
 			BAND_SWITCH_INNER( signed char,
-				INT_INT, 
+				INT_INT_SIGNED, 
 				CAST_REAL_FLOAT, 
 				CAST_REAL_COMPLEX );
 			break; 
@@ -350,7 +377,7 @@ vips_cast_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 
 		case VIPS_FORMAT_SHORT: 
 			BAND_SWITCH_INNER( signed short,
-				INT_INT, 
+				INT_INT_SIGNED, 
 				CAST_REAL_FLOAT, 
 				CAST_REAL_COMPLEX );
 			break; 
@@ -364,7 +391,7 @@ vips_cast_gen( VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop )
 
 		case VIPS_FORMAT_INT: 
 			BAND_SWITCH_INNER( signed int,
-				INT_INT, 
+				INT_INT_SIGNED, 
 				CAST_REAL_FLOAT, 
 				CAST_REAL_COMPLEX );
 			break; 

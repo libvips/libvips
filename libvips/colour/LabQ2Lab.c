@@ -55,6 +55,7 @@
 #include <stdio.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pcolour.h"
 
@@ -95,12 +96,12 @@ vips_LabQ2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 
 		/* Build a.
 		 */
-		l = (p[1] << 3) | ((lsbs >> 3) & 0x7);
+		l = VIPS_LSHIFT_INT( p[1], 3) | ((lsbs >> 3) & 0x7);
 		q[1] = (float) l * 0.125;
 
 		/* And b.
 		 */
-		l = (p[2] << 3) | (lsbs & 0x7);
+		l = VIPS_LSHIFT_INT( p[2], 3) | (lsbs & 0x7);
 		q[2] = (float) l * 0.125;        
 
 		p += 4;

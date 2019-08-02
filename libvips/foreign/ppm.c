@@ -406,7 +406,7 @@ read_1bit_binary( FILE *fp, VipsImage *out )
 	for( y = 0; y < out->Ysize; y++ ) {
 		for( x = 0; x < out->Xsize * out->Bands; x++ ) {
 			buf[x] = (bits & 128) ? 0 : 255;
-			bits <<= 1;
+			bits = VIPS_LSHIFT_INT( bits, 1 );
 			if( (x & 7) == 7 )
 				bits = fgetc( fp );
 		}
@@ -667,7 +667,7 @@ write_ppm_line_binary_squash( Write *write, VipsPel *p )
 	bits = 0;
 	n_bits = 0;
 	for( x = 0; x < write->in->Xsize; x++ ) {
-		bits <<= 1;
+		bits = VIPS_LSHIFT_INT( bits, 1 );
 		n_bits += 1;
 		bits |= p[x] ? 0 : 1;
 
