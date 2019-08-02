@@ -41,8 +41,8 @@ matrix:
         - PYVIPS_VERSION=master
         - JPEG=/usr
         - JOBS=`nproc`
-        - CFLAGS="-fsanitize=address -fno-omit-frame-pointer -fopenmp -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION"
-        - LDFLAGS="-fsanitize=address -dynamic-asan -fopenmp=libiomp5"
+        - CFLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -fopenmp -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION"
+        - LDFLAGS="-fsanitize=address,undefined -dynamic-asan -fopenmp=libiomp5"
         - ASAN_DSO=/usr/local/clang-7.0.0/lib/clang/7.0.0/lib/linux/libclang_rt.asan-x86_64.so
         - LSAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/lsan.supp"
       install:
