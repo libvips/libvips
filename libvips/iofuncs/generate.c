@@ -382,17 +382,6 @@ int
 vips_image_pipeline_array( VipsImage *image, 
 	VipsDemandStyle hint, VipsImage **in )
 {
-	/* Ban large images while we are fuzzing. They cause unintersting 
-	 * timeouts and OOMs.
-	 */
-#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-	if( (size_t) image->Xsize * image->Ysize * image->Bands > 1000000 ) {
-		vips_error( "vips_image_pipeline_array", 
-			"%s", _( "no large images during fuzzing" ) );
-		return( -1 );
-	}
-#endif /*FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION*/
-
 	/* This function can be called more than once per output image. For
 	 * example, jpeg header load will call this once on ->out to set the
 	 * default hint, then later call it again to connect the output image
