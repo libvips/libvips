@@ -418,7 +418,7 @@ vips_rect_hash( VipsRect *pos )
 	 * X discrimination is more important than Y, since
 	 * most tiles will have a similar Y. 
 	 */
-	hash = pos->left ^ VIPS_LSHIFT_INT( pos->top, 16 );
+	hash = (guint) pos->left ^ ((guint) pos->top << 16);
 
 	return( hash );
 }
