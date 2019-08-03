@@ -243,7 +243,7 @@ vips_shrinkv_write_line( VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 	case VIPS_FORMAT_SHORT: 	
 		IAVG( short, int ); break; 
 	case VIPS_FORMAT_UINT: 	
-		IAVG( unsigned int, int ); break; 
+		IAVG( unsigned int, guint64 ); break; 
 	case VIPS_FORMAT_INT: 	
 		IAVG( int, gint64 );  break; 
 	case VIPS_FORMAT_FLOAT: 	
