@@ -937,19 +937,22 @@ rtiff_greyscale_line( Rtiff *rtiff,
 	int samples_per_pixel = rtiff->header.samples_per_pixel;
 	int photometric_interpretation = 
 		rtiff->header.photometric_interpretation;
-	gboolean invert = photometric_interpretation == PHOTOMETRIC_MINISWHITE;
 	VipsBandFormat format = rtiff_guess_format( rtiff ); 
+	gboolean invert = photometric_interpretation == PHOTOMETRIC_MINISWHITE;
 
 	int x, i;
 
 	switch( format ) {
-	case VIPS_FORMAT_UCHAR:
 	case VIPS_FORMAT_CHAR:
+		GREY_LOOP( guchar, 0 ); 
+		break;
+
+	case VIPS_FORMAT_UCHAR:
 		GREY_LOOP( guchar, UCHAR_MAX ); 
 		break;
 
 	case VIPS_FORMAT_SHORT:
-		GREY_LOOP( gshort, SHRT_MAX ); 
+		GREY_LOOP( gshort, 0 ); 
 		break;
 
 	case VIPS_FORMAT_USHORT:
@@ -957,7 +960,7 @@ rtiff_greyscale_line( Rtiff *rtiff,
 		break;
 
 	case VIPS_FORMAT_INT:
-		GREY_LOOP( gint, INT_MAX ); 
+		GREY_LOOP( gint, 0 ); 
 		break;
 
 	case VIPS_FORMAT_UINT:
