@@ -84,6 +84,10 @@ int magick_set_vips_profile( VipsImage *im, Image *image );
 int magick_set_magick_profile( Image *image, 
 	VipsImage *im, ExceptionInfo *exception );
 
+int magick_optimize_image_layers( Image **images, ExceptionInfo *exception );
+int magick_optimize_image_transparency( const Image *images,
+    ExceptionInfo *exception );
+
 gboolean magick_ismagick( const unsigned char *bytes, size_t length );
 
 #endif /*HAVE_MAGICK6*/

@@ -205,6 +205,31 @@ magick_set_number_scenes( ImageInfo *image_info, int scene, int number_scenes )
 	image_info->scenes = strdup( page );
 }
 
+int
+magick_optimize_image_layers( Image **images, ExceptionInfo *exception )
+{
+	Image *tmp;
+
+	tmp = OptimizePlusImageLayers(*images, exception );
+
+	if ( exception->severity != UndefinedException )
+		return MagickFalse;
+
+	VIPS_FREEF( DestroyImageList, *images );
+
+	*images = tmp;
+
+	return MagickTrue;
+}
+
+int
+magick_optimize_image_transparency( const Image *images,
+	ExceptionInfo *exception )
+{
+	OptimizeImageTransparency(images, exception);
+	return ( exception->severity == UndefinedException );
+}
+
 /* Does a few bytes look like a file IM can handle?
  */
 gboolean
@@ -442,6 +467,43 @@ magick_set_number_scenes( ImageInfo *image_info, int scene, int number_scenes )
 	 */
 	image_info->subimage = scene;
 	image_info->subrange = number_scenes;
+#endif
+}
+
+int
+magick_optimize_image_layers( Image **images, ExceptionInfo *exception )
+{
+#ifdef HAS_OPTIMIZEPLUSIMAGELAYERS
+	Image *tmp;
+
+	tmp = OptimizePlusImageLayers(*images, exception );
+
+	if ( exception->severity != UndefinedException )
+		return MagickFalse;
+
+	VIPS_FREEF( DestroyImageList, *images );
+
+	*images = tmp;
+
+	return MagickTrue;
+#else
+	g_warning( "%s", _( "layers optimization is not supported by your version "
+		"of libMagick" ) );
+	return MagickTrue;
+#endif
+}
+
+int
+magick_optimize_image_transparency( const Image *images,
+	ExceptionInfo *exception )
+{
+#ifdef HAS_OPTIMIZEIMAGETRANSPARENCY
+	OptimizeImageTransparency(images, exception);
+	return ( exception->severity == UndefinedException );
+#else
+	g_warning( "%s", _( "transparency optimization is not supported by your "
+		"version of libMagick" ) );
+	return MagickTrue;
 #endif
 }
 
