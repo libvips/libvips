@@ -449,7 +449,6 @@ AC_CHECK_FUNCS([getcwd gettimeofday getwd memset munmap putenv realpath strcasec
 AC_CHECK_LIB(m,cbrt,[AC_DEFINE(HAVE_CBRT,1,[have cbrt() in libm.])])
 AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 AC_CHECK_LIB(m,atan2,[AC_DEFINE(HAVE_ATAN2,1,[have atan2() in libm.])])
-AC_CHECK_LIB([pthread], [pthread_setattr_default_np], [AC_DEFINE(HAVE_PTHREAD_DEFAULT_NP,1,[have pthread_setattr_default_np() in pthread.])])
 
 # have to have these
 # need glib 2.6 for GOption
@@ -486,6 +485,10 @@ PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,
   ]
 )
 
+# the old threading system 
+PKG_CHECK_MODULES(GTHREAD, gthread-2.0)
+PACKAGES_USED="$PACKAGES_USED gthread-2.0"
+
 # from 2.32 there are a new set of thread functions, annoyingly
 PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
   [AC_DEFINE(HAVE_MUTEX_INIT,1,[define if your glib has g_mutex_init().])
@@ -495,10 +498,6 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
    AC_DEFINE(HAVE_VALUE_GET_SCHAR,1,
 	     [define if your glib has g_value_get_schar().]
    )
-  ],
-  [# the old threading system ... we need to link against gthread
-   PKG_CHECK_MODULES(GTHREAD, gthread-2.0)
-   PACKAGES_USED="$PACKAGES_USED gthread-2.0"
   ]
 )
 
@@ -539,6 +538,19 @@ PKG_CHECK_MODULES(HAVE_CHECKED_MUL, glib-2.0 >= 2.48,
 
 # check for gtk-doc
 GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
+
+# must be after gthread, since that should have discovered the link flags for 
+# pthread for us
+  save_LIBS="$LIBS"
+  save_CFLAGS="$CFLAGS"
+  LIBS="$LIBS $GTHREAD_LIBS"
+  CFLAGS="$CFLAGS $GTHREAD_CFLAGS"
+  AC_CHECK_FUNCS(pthread_setattr_default_np,
+    [AC_DEFINE(HAVE_PTHREAD_DEFAULT_NP,1, [have pthread_setattr_default_np().])
+    ]
+  )
+  LIBS="$save_LIBS"
+  CFLAGS="$save_CFLAGS"
 
 # we need expat ... we'd love to use expat.pc, but sadly this is only available
 # for recent linuxes, so we have to use the old and horrible expat.m4
