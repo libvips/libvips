@@ -502,7 +502,7 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
 )
 
 # if available, we use pthread_setattr_default_np() to raise the per-thread 
-# stack size ... musl (libc on Alpine), for example, has only 80kb stack per 
+# stack size ... musl (libc on Alpine), for example, has a very small stack per 
 # thread by default
 save_pthread_LIBS="$LIBS"
 save_pthread_CFLAGS="$CFLAGS"
