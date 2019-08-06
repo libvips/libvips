@@ -1458,7 +1458,7 @@ vips_image_minimise_all( VipsImage *image )
  *
  * TRUE if any of the images upstream from @image were opened in sequential
  * mode. Some operations change behaviour slightly in sequential mode to
- * optimise memory behaviour.
+ * optimize memory behaviour.
  *
  * Returns: %TRUE if @image is in sequential mode.
  */

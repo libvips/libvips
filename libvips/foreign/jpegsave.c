@@ -442,7 +442,7 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * contains an ICC profile named #VIPS_META_ICC_NAME, the
  * profile from the VIPS header will be attached.
  *
- * If @optimize_coding is set, the Huffman tables are optimised. This is
+ * If @optimize_coding is set, the Huffman tables are optimized. This is
  * sllightly slower and produces slightly smaller files. 
  *
  * If @interlace is set, the jpeg files will be interlaced (progressive jpeg,

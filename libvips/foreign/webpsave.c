@@ -459,7 +459,7 @@ vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
  * with @Q 80, 60, 40 or 20 to apply increasing amounts of preprocessing
  * which improves the near-lossless compression ratio by up to 50%.
  *
- * For animated webp output, @min_size will try to optimise for minimum size.
+ * For animated webp output, @min_size will try to optimize for minimum size.
  *
  * For animated webp output, @kmax sets the maximum number of frames between
  * keyframes. Setting 0 means only keyframes. @kmin sets the minimum number of
