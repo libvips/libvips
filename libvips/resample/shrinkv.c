@@ -45,6 +45,8 @@
  * 	- rename yshrink -> vshrink for greater consistency 
  * 7/3/17
  * 	- add a seq line cache
+ * 6/8/19
+ * 	- use a double sum buffer for int32 types
  */
 
 /*
@@ -180,9 +182,9 @@ vips_shrinkv_add_line( VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 	case VIPS_FORMAT_SHORT: 	
 		ADD( int, short ); break; 
 	case VIPS_FORMAT_UINT: 	
-		ADD( int, unsigned int ); break; 
+		ADD( double, unsigned int ); break; 
 	case VIPS_FORMAT_INT: 	
-		ADD( int, int );  break; 
+		ADD( double, int );  break; 
 	case VIPS_FORMAT_FLOAT: 	
 		ADD( double, float ); break; 
 	case VIPS_FORMAT_DOUBLE:	
@@ -199,13 +201,12 @@ vips_shrinkv_add_line( VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 
 /* Integer average. 
  */
-#define IAVG( TYPE, BTYPE ) { \
-	int * restrict sum = (int *) seq->sum; \
+#define IAVG( ACC_TYPE, TYPE ) { \
+	ACC_TYPE * restrict sum = (ACC_TYPE *) seq->sum; \
 	TYPE * restrict q = (TYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
-		q[x] = ((BTYPE) sum[x] + shrink->vshrink / 2) / \
-			shrink->vshrink; \
+		q[x] = (sum[x] + shrink->vshrink / 2) / shrink->vshrink; \
 } 
 
 /* Float average. 
@@ -234,18 +235,18 @@ vips_shrinkv_write_line( VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 
 	VipsPel *out = VIPS_REGION_ADDR( or, left, top ); 
 	switch( resample->in->BandFmt ) {
-	case VIPS_FORMAT_UCHAR: 	
-		IAVG( unsigned char, int ); break;
-	case VIPS_FORMAT_CHAR: 	
-		IAVG( char, int ); break; 
-	case VIPS_FORMAT_USHORT: 
-		IAVG( unsigned short, int ); break;
+	case VIPS_FORMAT_UCHAR:
+		IAVG( int, unsigned char ); break;
+	case VIPS_FORMAT_CHAR:
+		IAVG( int, char ); break; 
+	case VIPS_FORMAT_USHORT:
+		IAVG( int, unsigned short ); break;
 	case VIPS_FORMAT_SHORT: 	
-		IAVG( short, int ); break; 
+		IAVG( int, short ); break; 
 	case VIPS_FORMAT_UINT: 	
-		IAVG( unsigned int, guint64 ); break; 
+		IAVG( double, unsigned int ); break; 
 	case VIPS_FORMAT_INT: 	
-		IAVG( int, gint64 );  break; 
+		IAVG( double, int );  break; 
 	case VIPS_FORMAT_FLOAT: 	
 		FAVG( float ); break; 
 	case VIPS_FORMAT_DOUBLE:	
