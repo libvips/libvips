@@ -63,7 +63,7 @@
 #endif /*OS_WIN32*/
 
 /* Sanity checking ... write to this during read tests to make sure we don't
- * get optimised out.
+ * get optimized out.
  */
 int vips__read_test;
 
