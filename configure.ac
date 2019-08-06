@@ -449,7 +449,6 @@ AC_CHECK_FUNCS([getcwd gettimeofday getwd memset munmap putenv realpath strcasec
 AC_CHECK_LIB(m,cbrt,[AC_DEFINE(HAVE_CBRT,1,[have cbrt() in libm.])])
 AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 AC_CHECK_LIB(m,atan2,[AC_DEFINE(HAVE_ATAN2,1,[have atan2() in libm.])])
-AC_CHECK_LIB([pthread], [pthread_setattr_default_np], [AC_DEFINE(HAVE_PTHREAD_DEFAULT_NP,1,[have pthread_setattr_default_np() in pthread.])])
 
 # have to have these
 # need glib 2.6 for GOption
@@ -486,6 +485,10 @@ PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,
   ]
 )
 
+# the old threading system 
+PKG_CHECK_MODULES(GTHREAD, gthread-2.0)
+PACKAGES_USED="$PACKAGES_USED gthread-2.0"
+
 # from 2.32 there are a new set of thread functions, annoyingly
 PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
   [AC_DEFINE(HAVE_MUTEX_INIT,1,[define if your glib has g_mutex_init().])
@@ -495,12 +498,22 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
    AC_DEFINE(HAVE_VALUE_GET_SCHAR,1,
 	     [define if your glib has g_value_get_schar().]
    )
-  ],
-  [# the old threading system ... we need to link against gthread
-   PKG_CHECK_MODULES(GTHREAD, gthread-2.0)
-   PACKAGES_USED="$PACKAGES_USED gthread-2.0"
   ]
 )
+
+# if available, we use pthread_setattr_default_np() to raise the per-thread 
+# stack size ... musl (libc on Alpine), for example, has a very small stack per 
+# thread by default
+save_pthread_LIBS="$LIBS"
+save_pthread_CFLAGS="$CFLAGS"
+LIBS="$LIBS $GTHREAD_LIBS"
+CFLAGS="$CFLAGS $GTHREAD_CFLAGS"
+AC_CHECK_FUNC(pthread_setattr_default_np,
+  [AC_DEFINE(HAVE_PTHREAD_DEFAULT_NP,1,[have pthread_setattr_default_np().])
+  ]
+)
+LIBS="$save_pthread_LIBS"
+CFLAGS="$save_pthread_CFLAGS"
 
 # from 2.36 the type system inits itself
 PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,
