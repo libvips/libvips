@@ -388,9 +388,9 @@ class TestForeign:
         self.buffer_loader("magickload_buffer", BMP_FILE, bmp_valid)
 
         # we should have rgb or rgba for svg files ... different versions of
-        # IM handle this differently
+        # IM handle this differently. GM even gives 1 band.
         im = pyvips.Image.magickload(SVG_FILE)
-        assert im.bands == 3 or im.bands == 4
+        assert im.bands == 3 or im.bands == 4 or im.bands == 1
 
         # density should change size of generated svg
         im = pyvips.Image.magickload(SVG_FILE, density='100')
@@ -454,10 +454,10 @@ class TestForeign:
         assert self.colour.height == x.height
         assert self.colour.bands == x.bands
         max_diff = (self.colour - x).abs().max()
-        assert max_diff < 40
+        assert max_diff < 60
 
         self.save_load_buffer("magicksave_buffer", "magickload_buffer",
-                              self.colour, 40, format="JPG")
+                              self.colour, 60, format="JPG")
 
     @skip_if_no("webpload")
     def test_webp(self):
@@ -644,15 +644,9 @@ class TestForeign:
     def test_svgload(self):
         def svg_valid(im):
             a = im(10, 10)
-
-            # some old rsvg versions are way, way off
-            assert abs(a[0] - 79) < 2
-            assert abs(a[1] - 79) < 2
-            assert abs(a[2] - 132) < 2
-            assert abs(a[3] - 255) < 2
-
-            assert im.width == 288
-            assert im.height == 470
+            assert_almost_equal_objects(a, [0, 0, 0, 0])
+            assert im.width == 736
+            assert im.height == 552
             assert im.bands == 4
 
         self.file_loader("svgload", SVG_FILE, svg_valid)
