@@ -939,7 +939,7 @@ rtiff_greyscale_line( Rtiff *rtiff,
 		rtiff->header.photometric_interpretation;
 	VipsBandFormat format = rtiff_guess_format( rtiff ); 
 
-	/* Swapping black and white doesn't work for the signed formats.
+	/* Swapping black and white doesn't make sense for the signed formats.
 	 */
 	gboolean invert = 
 		photometric_interpretation == PHOTOMETRIC_MINISWHITE &&
