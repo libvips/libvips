@@ -938,7 +938,12 @@ rtiff_greyscale_line( Rtiff *rtiff,
 	int photometric_interpretation = 
 		rtiff->header.photometric_interpretation;
 	VipsBandFormat format = rtiff_guess_format( rtiff ); 
-	gboolean invert = photometric_interpretation == PHOTOMETRIC_MINISWHITE;
+
+	/* Swapping black and white doesn't work for the signed formats.
+	 */
+	gboolean invert = 
+		photometric_interpretation == PHOTOMETRIC_MINISWHITE &&
+		vips_band_format_isuint( format );
 
 	int x, i;
 
