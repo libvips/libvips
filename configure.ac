@@ -676,68 +676,6 @@ else
 fi
 
 if test x"$magick6" = x"yes"; then
-  # we SetImageOption to disable some DICOM read processing, but that's only
-  # in more recent imagemagicks and not in graphicsmagick
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(SetImageOption,
-    AC_DEFINE(HAVE_SETIMAGEOPTION,1,[define if your magick has SetImageOption.])
-  )
-  LIBS="$save_LIBS"
-fi
-
-if test x"$magick6" = x"yes"; then
-  # newer ImageMagicks use MagickCoreGenesis instead of InitializeMagick argh
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(MagickCoreGenesis,
-    AC_DEFINE(HAVE_MAGICKCOREGENESIS,1,
-	      [define if your magick has MagickCoreGenesis.]))
-  LIBS="$save_LIBS"
-fi
-
-if test x"$magick6" = x"yes"; then
-  # newer ImageMagicks use ResetImagePropertyIterator instead of
-  # ResetImageAttributeIterator argh
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(ResetImagePropertyIterator,
-    AC_DEFINE(HAVE_RESETIMAGEPROPERTYITERATOR,1,
-	      [define if your magick has ResetImagePropertyIterator.]))
-  LIBS="$save_LIBS"
-fi
-
-if test x"$magick6" = x"yes"; then
-  # so ... do we have ResetImageAttributeIterator()? GM does not
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(ResetImageAttributeIterator,
-    AC_DEFINE(HAVE_RESETIMAGEATTRIBUTEITERATOR,1,
-	      [define if your magick has ResetImageAttributeIterator.]))
-  LIBS="$save_LIBS"
-fi
-
-if test x"$magick6" = x"yes"; then
-  # GM does not have ResetImageProfileIterator
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(ResetImageProfileIterator,
-    AC_DEFINE(HAVE_RESETIMAGEPROFILEITERATOR,1,
-	      [define if your magick has ResetImageProfileIterator.]))
-  LIBS="$save_LIBS"
-fi
-
-if test x"$magick6" = x"yes"; then
-  # more recent magicks have GetVirtualPixels rather than GetImagePixels
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(GetVirtualPixels,
-    AC_DEFINE(HAVE_GETVIRTUALPIXELS,1,
-	      [define if your magick has GetVirtualPixels.]))
-  LIBS="$save_LIBS"
-fi
-
-if test x"$magick6" = x"yes"; then
   # do we have number_scenes in image_info ... imagemagick uses this
   save_CFLAGS="$CFLAGS"
   CFLAGS="$CFLAGS $MAGICK_CFLAGS"
@@ -750,63 +688,41 @@ if test x"$magick6" = x"yes"; then
 fi
 
 if test x"$magick6" = x"yes"; then
-  # more recent magick6s have AcquireImage rather than AllocateImage argh
+  # the magick6 API varies a lot between magick versions, and between GM and
+  # IM
   save_LIBS="$LIBS"
   LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(AcquireImage,
-    AC_DEFINE(HAVE_ACQUIREIMAGE,1,
-	      [define if your magick has AcquireImage.]))
+  AC_CHECK_FUNCS([InheritException AcquireExceptionInfo SetImageProperty SetImageExtent AcquireImage GetVirtualPixels ResetImageProfileIterator ResetImageAttributeIterator ResetImagePropertyIterator MagickCoreGenesis SetImageOption BlobToStringInfo])
   LIBS="$save_LIBS"
 fi
 
 if test x"$magick6" = x"yes"; then
-  # more recent magick6s have SetImageExtent 
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(SetImageExtent,
-    AC_DEFINE(HAVE_SETIMAGEEXTENT,1,
-	      [define if your magick has SetImageExtent.]))
-  LIBS="$save_LIBS"
-fi
+  save_CFLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS $MAGICK_CFLAGS"
 
-if test x"$magick6" = x"yes"; then
-  # GM uses SetImageAttribute(), IM uses SetImageProperty()
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(SetImageProperty,
-    AC_DEFINE(HAVE_SETIMAGEPROPERTY,1,
-	      [define if your magick has SetImageProperty.]))
-  LIBS="$save_LIBS"
-fi
+  # the range of ColorspaceType has expanded several times
+  AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM(
+      [#include <magick/api.h>],
+      [ColorspaceType colorspace = CMYColorspace]
+    )],
+    [AC_DEFINE(HAVE_CMYCOLORSPACE,1,
+         [define if your Magick has CMYColorspace.])
+    ]
+  )
 
-if test x"$magick6" = x"yes"; then
-  # IM uses SetImageProfile() with StringInfo
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(BlobToStringInfo,
-    AC_DEFINE(HAVE_BLOBTOSTRINGINFO,1,
-	      [define if your magick has BlobToStringInfo().]))
-  LIBS="$save_LIBS"
-fi
+  # GetImageMagick() takes two args under GM, three under IM
+  AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM(
+      [#include <magick/api.h>],
+      [(void)GetImageMagick(NULL, 0, NULL)]
+    )],
+    [AC_DEFINE(HAVE_GETIMAGEMAGICK3,1,
+         [define if your GetImageMagick() takes three arguments.])
+    ]
+  )
 
-if test x"$magick6" = x"yes"; then
-  # GM is missing InheritException
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(InheritException,
-    AC_DEFINE(HAVE_INHERITEXCEPTION,1,
-	      [define if your magick has InheritException.]))
-  LIBS="$save_LIBS"
-fi
-
-if test x"$magick6" = x"yes"; then
-  # GM is missing AcquireExceptionInfo
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(AcquireExceptionInfo,
-    AC_DEFINE(HAVE_ACQUIREEXCEPTIONINFO,1,
-	      [define if your magick has AcquireExceptionInfo.]))
-  LIBS="$save_LIBS"
+  CFLAGS="$save_CFLAGS"
 fi
 
 # have flags to turn load and save off independently ... some people will want

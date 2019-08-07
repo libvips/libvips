@@ -14,6 +14,8 @@
 - don't attempt to save large XMP to jpeg [tnextday]
 - always fetch HEIC metadata from the main image [zhoux2016]
 - fix loop in malformed ppm [Kyle-Kyle]
+- better support for PNGs with long comment names
+- fix build with GM
 
 24/5/19 started 8.8.1
 - improve realpath() use on older libc

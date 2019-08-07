@@ -278,7 +278,7 @@ magick_set_profile( Image *image,
 	string = BlobToStringInfo( data, length );
 	result = SetImageProfile( image, name, string );
 	DestroyStringInfo( string );
-#else /*HAVE_BLOBTOSTRINGINFO*/
+#else /*!HAVE_BLOBTOSTRINGINFO*/
 	result = SetImageProfile( image, name, data, length );
 #endif /*HAVE_BLOBTOSTRINGINFO*/
 
@@ -410,16 +410,32 @@ typedef struct _MagickColorspaceTypeNames {
 
 static MagickColorspaceTypeNames magick_colorspace_names[] = {
 	{ UndefinedColorspace, "UndefinedColorspace" },
-	{ CMYColorspace, "CMYColorspace" },
 	{ CMYKColorspace, "CMYKColorspace" },
 	{ GRAYColorspace, "GRAYColorspace" },
+	{ HSLColorspace, "HSLColorspace" },
+	{ HWBColorspace, "HWBColorspace" },
+	{ OHTAColorspace, "OHTAColorspace" },
+	{ Rec601YCbCrColorspace, "Rec601YCbCrColorspace" },
+	{ Rec709YCbCrColorspace, "Rec709YCbCrColorspace" },
+	{ RGBColorspace, "RGBColorspace" },
+	{ sRGBColorspace, "sRGBColorspace" },
+	{ TransparentColorspace, "TransparentColorspace" },
+	{ XYZColorspace, "XYZColorspace" },
+	{ YCbCrColorspace, "YCbCrColorspace" },
+	{ YCCColorspace, "YCCColorspace" },
+	{ YIQColorspace, "YIQColorspace" },
+	{ YPbPrColorspace, "YPbPrColorspace" },
+	{ YUVColorspace, "YUVColorspace" },
+
+	/* More recent imagemagicks add these.
+	 */
+#ifdef HAVE_CMYCOLORSPACE
+	{ CMYColorspace, "CMYColorspace" },
 	{ HCLColorspace, "HCLColorspace" },
 	{ HCLpColorspace, "HCLpColorspace" },
 	{ HSBColorspace, "HSBColorspace" },
 	{ HSIColorspace, "HSIColorspace" },
-	{ HSLColorspace, "HSLColorspace" },
 	{ HSVColorspace, "HSVColorspace" },
-	{ HWBColorspace, "HWBColorspace" },
 	{ LabColorspace, "LabColorspace" },
 	{ LCHColorspace, "LCHColorspace" },
 	{ LCHabColorspace, "LCHabColorspace" },
@@ -427,23 +443,12 @@ static MagickColorspaceTypeNames magick_colorspace_names[] = {
 	{ LogColorspace, "LogColorspace" },
 	{ LMSColorspace, "LMSColorspace" },
 	{ LuvColorspace, "LuvColorspace" },
-	{ OHTAColorspace, "OHTAColorspace" },
-	{ Rec601YCbCrColorspace, "Rec601YCbCrColorspace" },
-	{ Rec709YCbCrColorspace, "Rec709YCbCrColorspace" },
-	{ RGBColorspace, "RGBColorspace" },
 	{ scRGBColorspace, "scRGBColorspace" },
-	{ sRGBColorspace, "sRGBColorspace" },
-	{ TransparentColorspace, "TransparentColorspace" },
 	{ xyYColorspace, "xyYColorspace" },
-	{ XYZColorspace, "XYZColorspace" },
-	{ YCbCrColorspace, "YCbCrColorspace" },
-	{ YCCColorspace, "YCCColorspace" },
 	{ YDbDrColorspace, "YDbDrColorspace" },
-	{ YIQColorspace, "YIQColorspace" },
-	{ YPbPrColorspace, "YPbPrColorspace" },
-	{ YUVColorspace, "YUVColorspace" }
+#endif /*HAVE_CMYCOLORSPACE*/
 
-	/* More recent imagemagicks add these.
+	/* im7 has this, I think
 	 *
 	{ LinearGRAYColorspace, "LinearGRAYColorspace" }
 	 *
@@ -646,18 +651,27 @@ magick_set_magick_profile( Image *image,
 gboolean
 magick_ismagick( const unsigned char *bytes, size_t length )
 {
+	magick_genesis();
+
+	/* Try with our custom sniffers first.
+	 */
+#ifdef HAVE_GETIMAGEMAGICK3
+{
 #ifdef HAVE_MAGICK7
 	char format[MagickPathExtent];
 #else /*HAVE_MAGICK6*/
 	char format[MaxTextExtent];
 #endif
 
-	magick_genesis();
-
-	/* Try with our custom sniffers first.
-	 */
 	return( magick_sniff( bytes, length ) ||
 		GetImageMagick( bytes, length, format ) );
+}
+#else /*!HAVE_GETIMAGEMAGICK3*/
+	/* The GM one returns a static string.
+	 */
+	return( magick_sniff( bytes, length ) ||
+		GetImageMagick( bytes, length ) );
+#endif
 }
 
 #endif /*HAVE_MAGICK*/
