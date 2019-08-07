@@ -402,12 +402,10 @@ class TestForeign:
         # assert im.width == width * 2
         # assert im.height == height * 2
 
-        # all-frames should load every frame of the animation
-        # (though all-frames is deprecated)
         im = pyvips.Image.magickload(GIF_ANIM_FILE)
         width = im.width
         height = im.height
-        im = pyvips.Image.magickload(GIF_ANIM_FILE, all_frames=True)
+        im = pyvips.Image.magickload(GIF_ANIM_FILE, n=-1)
         assert im.width == width
         assert im.height == height * 5
 

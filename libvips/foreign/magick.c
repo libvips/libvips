@@ -48,6 +48,46 @@
 #include "pforeign.h"
 #include "magick.h"
 
+/* ImageMagick can't detect some formats, like ICO, by examining the contents --
+ * ico.c simply does not have a recogniser.
+ *
+ * For these formats, do the detection ourselves.
+ *
+ * Return an IM format specifier, or NULL to let IM do the detection.
+ */
+static const char *
+magick_sniff( const unsigned char *bytes, size_t length )
+{
+	if( length >= 4 &&
+		bytes[0] == 0 &&
+		bytes[1] == 0 &&
+		bytes[2] == 1 &&
+		bytes[3] == 0 )
+		return( "ICO" );
+
+	return( NULL );
+}
+
+void
+magick_sniff_bytes( ImageInfo *image_info, 
+	const unsigned char *bytes, size_t length )
+{
+	const char *format;
+
+	if( (format = magick_sniff( bytes, length )) )
+		vips_strncpy( image_info->magick, format, MaxTextExtent );
+}
+
+void
+magick_sniff_file( ImageInfo *image_info, const char *filename )
+{
+	unsigned char bytes[256];
+	size_t length;
+
+	if( (length = vips__get_bytes( filename, bytes, 256 )) >= 4 )
+		magick_sniff_bytes( image_info, bytes, 256 );
+}
+
 #ifdef HAVE_MAGICK7
 
 Image *
@@ -163,6 +203,21 @@ magick_set_number_scenes( ImageInfo *image_info, int scene, int number_scenes )
 	 */
 	vips_snprintf( page, 256, "%d-%d", scene, scene + number_scenes );
 	image_info->scenes = strdup( page );
+}
+
+/* Does a few bytes look like a file IM can handle?
+ */
+gboolean
+magick_ismagick( const unsigned char *bytes, size_t length )
+{
+	char format[MagickPathExtent];
+
+	magick_genesis();
+
+	/* Try with our custom sniffers first.
+	 */
+	return( magick_sniff( bytes, length ) ||
+		GetImageMagick( bytes, length, format ) );
 }
 
 #endif /*HAVE_MAGICK7*/
@@ -390,6 +445,30 @@ magick_set_number_scenes( ImageInfo *image_info, int scene, int number_scenes )
 #endif
 }
 
+/* Does a few bytes look like a file IM can handle?
+ */
+gboolean
+magick_ismagick( const unsigned char *bytes, size_t length )
+{
+	magick_genesis();
+
+	/* Try with our custom sniffers first.
+	 */
+#ifdef HAVE_GETIMAGEMAGICK3
+{
+	char format[MaxTextExtent];
+
+	return( magick_sniff( bytes, length ) ||
+		GetImageMagick( bytes, length, format ) );
+}
+#else /*!HAVE_GETIMAGEMAGICK3*/
+	/* The GM one returns a static string.
+	 */
+	return( magick_sniff( bytes, length ) ||
+		GetImageMagick( bytes, length ) );
+#endif
+}
+
 #endif /*HAVE_MAGICK6*/
 
 #if defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)
@@ -465,46 +544,6 @@ magick_ColorspaceType2str( ColorspaceType colorspace )
 			return( magick_colorspace_names[i].name );
 
 	return( "<unknown ColorspaceType>" );
-}
-
-/* ImageMagick can't detect some formats, like ICO, by examining the contents --
- * ico.c simply does not have a recogniser.
- *
- * For these formats, do the detection ourselves.
- *
- * Return an IM format specifier, or NULL to let IM do the detection.
- */
-static const char *
-magick_sniff( const unsigned char *bytes, size_t length )
-{
-	if( length >= 4 &&
-		bytes[0] == 0 &&
-		bytes[1] == 0 &&
-		bytes[2] == 1 &&
-		bytes[3] == 0 )
-		return( "ICO" );
-
-	return( NULL );
-}
-
-void
-magick_sniff_bytes( ImageInfo *image_info, 
-	const unsigned char *bytes, size_t length )
-{
-	const char *format;
-
-	if( (format = magick_sniff( bytes, length )) )
-		vips_strncpy( image_info->magick, format, MaxTextExtent );
-}
-
-void
-magick_sniff_file( ImageInfo *image_info, const char *filename )
-{
-	unsigned char bytes[256];
-	size_t length;
-
-	if( (length = vips__get_bytes( filename, bytes, 256 )) >= 4 )
-		magick_sniff_bytes( image_info, bytes, 256 );
 }
 
 void
@@ -644,34 +683,6 @@ magick_set_magick_profile( Image *image,
 		return( -1 );
 
 	return( 0 );
-}
-
-/* Does a few bytes look like a file IM can handle?
- */
-gboolean
-magick_ismagick( const unsigned char *bytes, size_t length )
-{
-	magick_genesis();
-
-	/* Try with our custom sniffers first.
-	 */
-#ifdef HAVE_GETIMAGEMAGICK3
-{
-#ifdef HAVE_MAGICK7
-	char format[MagickPathExtent];
-#else /*HAVE_MAGICK6*/
-	char format[MaxTextExtent];
-#endif
-
-	return( magick_sniff( bytes, length ) ||
-		GetImageMagick( bytes, length, format ) );
-}
-#else /*!HAVE_GETIMAGEMAGICK3*/
-	/* The GM one returns a static string.
-	 */
-	return( magick_sniff( bytes, length ) ||
-		GetImageMagick( bytes, length ) );
-#endif
 }
 
 #endif /*HAVE_MAGICK*/
