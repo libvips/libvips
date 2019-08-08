@@ -268,6 +268,8 @@ vips_find_trim_init( VipsFindTrim *find_trim )
  *
  * @threshold defaults to 10. 
  *
+ * The image needs to be at least 3x3 pixels in size. 
+ *
  * See also: vips_getpoint(), vips_extract_area(), vips_smartcrop().
  *
  * Returns: 0 on success, -1 on error
