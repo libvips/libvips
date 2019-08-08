@@ -3,8 +3,9 @@
  */
 typedef struct _VipsCodedProfile {
 	const char *name;
-	const char *data;
+	int length;
+	const unsigned char data[];
 } VipsCodedProfile;
 
-extern VipsCodedProfile vips__coded_profiles[];
+extern VipsCodedProfile *vips__coded_profiles[];
 
