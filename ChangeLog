@@ -16,6 +16,7 @@
 - fix loop in malformed ppm [Kyle-Kyle]
 - better support for PNGs with long comment names
 - fix build with GM
+- add locks for pdfium load
 
 24/5/19 started 8.8.1
 - improve realpath() use on older libc
