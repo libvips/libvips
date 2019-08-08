@@ -1,11 +1,13 @@
-/* The fallback profiles, coded as a set of base64 strings, see 
- * wrap-profiles.sh
+/* The fallback profiles, coded as a set of uchar arrays, see wrap-profiles.sh
  */
-typedef struct _VipsCodedProfile {
-	const char *name;
-	int length;
-	const unsigned char data[];
-} VipsCodedProfile;
 
-extern VipsCodedProfile *vips__coded_profiles[];
+#include <stddef.h>
+
+typedef struct _VipsProfileFallback {
+	const char *name;
+	size_t length;
+	const unsigned char data[];
+} VipsProfileFallback;
+
+extern VipsProfileFallback *vips__profile_fallback_table[];
 

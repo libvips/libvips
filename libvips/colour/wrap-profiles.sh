@@ -18,9 +18,9 @@ profile_names=
 for file in $in/*; do 
   root=${file%.icm}
   base=${root##*/} 
-  profile_name=vips__profile_$base
+  profile_name=vips__profile_fallback_$base
   profile_names="$profile_names $profile_name"
-  echo "static VipsCodedProfile $profile_name = {" >> $out
+  echo "static VipsProfileFallback $profile_name = {" >> $out
   echo "    \"$base\"," >> $out
   echo "    $(stat --format=%s $file)," >> $out
   echo "    {" >> $out
@@ -30,7 +30,7 @@ for file in $in/*; do
   echo  >> $out
 done
 
-echo "VipsCodedProfile *vips__coded_profiles[] = {" >> $out
+echo "VipsProfileFallback *vips__profile_fallback_table[] = {" >> $out
 for profile_name in $profile_names; do
   echo "    &$profile_name," >> $out
 done
