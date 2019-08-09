@@ -300,7 +300,8 @@ vips_foreign_save_heif_build( VipsObject *object )
 		return( -1 );
 
 	error = heif_context_get_encoder_for_format( heif->ctx, 
-		heif->compression, &heif->encoder );
+		(enum heif_compression_format) heif->compression, 
+		&heif->encoder );
 	if( error.code ) {
 		if( error.code == heif_error_Unsupported_filetype ) 
 			vips_error( "heifsave", 

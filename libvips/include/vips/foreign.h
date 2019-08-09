@@ -638,7 +638,9 @@ int vips_dzsave( VipsImage *in, const char *name, ... )
  * @VIPS_FOREIGN_HEIF_COMPRESSION_JPEG: jpeg
  * @VIPS_FOREIGN_HEIF_COMPRESSION_AV1: aom
  *
- * The compression format to use inside a HEIF container.
+ * The compression format to use inside a HEIF container. 
+ *
+ * This is assumed to use the same numbering as %heif_compression_format.
  */
 typedef enum {
 	VIPS_FOREIGN_HEIF_COMPRESSION_HEVC = 1,
