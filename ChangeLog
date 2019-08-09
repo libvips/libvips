@@ -6,6 +6,7 @@
 - better support for PNGs with long comment names
 - fix build with GM
 - add locks for pdfium load
+- fix build with MSVC 
 
 24/5/19 started 8.8.1
 - improve realpath() use on older libc
