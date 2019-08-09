@@ -10,34 +10,30 @@ LLVMFuzzerInitialize( int *argc, char ***argv )
 extern "C" int
 LLVMFuzzerTestOneInput( const guint8 *data, size_t size )
 {
-	VipsImage *in, *out;
-	size_t width, height, bands;
+	VipsImage *image, *out;
 	double d;
 
-	if( !(in = vips_image_new_from_buffer( data, size, "", NULL )) ) {
+	if( !(image = vips_image_new_from_buffer( data, size, "", NULL )) ) 
 		return( 0 );
-	}
 
-	width = in->Xsize;
-	height = in->Ysize;
-	bands = in->Bands;
-
-	/* Skip big images. It is likely to timeout.
+	/* Skip big images. They are likely to timeout.
 	 */
-	if ( width * height * bands > 256 * 256 * 16 ) {
-		g_object_unref( in );
+	if( image->Xsize > 1024 ||
+		image->Ysize > 1024 ||
+		image->Bands > 10 ) {
+		g_object_unref( image );
 		return( 0 );
 	}
 
-	if( vips_sharpen( in, &out, NULL ) ) {
-		g_object_unref( in );
+	if( vips_sharpen( image, &out, NULL ) ) {
+		g_object_unref( image );
 		return( 0 );
 	}
 
 	vips_avg( out, &d, NULL );
 
 	g_object_unref( out );
-	g_object_unref( in );
+	g_object_unref( image );
 
 	return( 0 );
 }
