@@ -471,7 +471,9 @@ class TestForeign:
     def test_webp(self):
         def webp_valid(im):
             a = im(10, 10)
-            assert_almost_equal_objects(a, [70, 165, 235])
+            # different webp versions use different rounding systems leading
+            # to small variations
+            assert_almost_equal_objects(a, [71, 166, 236], threshold=2)
             assert im.width == 550
             assert im.height == 368
             assert im.bands == 3
