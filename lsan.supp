@@ -3,3 +3,4 @@ leak:libfontconfig.so
 leak:libglib-2.0.so
 leak:libIlmImf-2_2.so
 leak:libstdc++.so
+heap-buffer-overflow:libMagickCore-6.Q16.so

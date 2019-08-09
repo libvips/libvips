@@ -69,7 +69,7 @@ addons:
   apt:
     update: true
     sources:
-      # use imagemagick 6.9.7-4 instead of 6.8.9-9 
+      # use a more recent imagemagick instead of 6.8.9-9 
       - sourceline: 'ppa:opencpu/imagemagick'
       # add support for HEIF files
       - sourceline: 'ppa:strukturag/libheif'
