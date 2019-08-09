@@ -2197,6 +2197,18 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 		header->tile_size = TIFFTileSize( rtiff->tiff );
 		header->tile_row_size = TIFFTileRowSize( rtiff->tiff );
 
+		/* Fuzzed TIFFs can give crazy values for tile_size. Sanity
+		 * check at 100mb per tile.
+		 */
+		if( header->tile_size <= 0 ||
+			header->tile_size > 100 * 1000 * 1000 ||
+			header->tile_row_size <= 0 ||
+			header->tile_row_size > 100 * 1000 * 1000 ) {
+			vips_error( "tiff2vips",
+				"%s", _( "tile size out of range" ) );
+			return( -1 );
+		}
+
 		/* Stop some compiler warnings.
 		 */
 		header->rows_per_strip = 0; 
