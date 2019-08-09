@@ -45,6 +45,8 @@ matrix:
         - LDFLAGS="-fsanitize=address,undefined -dynamic-asan -fopenmp=libiomp5"
         - ASAN_DSO=/usr/local/clang-7.0.0/lib/clang/7.0.0/lib/linux/libclang_rt.asan-x86_64.so
         - LSAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/lsan.supp"
+        - ASAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/asan.supp"
+        - UBSAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/ubsan.supp"
       install:
         # add support for WebP
         - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebp-dev_0.6.1-2_amd64.deb
