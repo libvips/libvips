@@ -796,15 +796,15 @@ vips_image_get_page_height( VipsImage *image )
 {
 	int page_height;
 
-	if( !vips_image_get_typeof( image, VIPS_META_PAGE_HEIGHT ) ||
-		vips_image_get_int( image, VIPS_META_PAGE_HEIGHT, 
-			&page_height ) ||
-		page_height <= 0 ||
-		page_height > image->Ysize ||
-		image->Ysize % page_height != 0 ) 
-		page_height = image->Ysize;
+	if( vips_image_get_typeof( image, VIPS_META_PAGE_HEIGHT ) &&
+		!vips_image_get_int( image, VIPS_META_PAGE_HEIGHT, 
+			&page_height ) &&
+		page_height > 0 &&
+		page_height < image->Ysize &&
+		image->Ysize % page_height == 0 ) 
+		return( page_height );
 
-	return( page_height );
+	return( image->Ysize );
 }
 
 /**
@@ -824,13 +824,13 @@ vips_image_get_n_pages( VipsImage *image )
 {
 	int n_pages;
 
-	if( !vips_image_get_typeof( image, VIPS_META_N_PAGES ) ||
-		vips_image_get_int( image, VIPS_META_N_PAGES, &n_pages ) ||
-		n_pages < 2 || 
-		n_pages > 1000 )
-		n_pages = 1;
+	if( vips_image_get_typeof( image, VIPS_META_N_PAGES ) &&
+		!vips_image_get_int( image, VIPS_META_N_PAGES, &n_pages ) &&
+		n_pages > 1 &&
+		n_pages < 1000 )
+		return( n_pages );
 
-	return( n_pages );
+	return(	1 );
 }
 
 /**
