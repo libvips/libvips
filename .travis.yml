@@ -45,10 +45,10 @@ matrix:
         - LDFLAGS="-fsanitize=address,undefined -dynamic-asan -fopenmp=libiomp5"
         - ASAN_DSO=/usr/local/clang-7.0.0/lib/clang/7.0.0/lib/linux/libclang_rt.asan-x86_64.so
         - LSAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/suppressions/lsan.supp"
+        - UBSAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/suppressions/ubsan.supp"
         # comment these out, I get strange parse errors from asan for some
         # reason
         #
-        # UBSAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/suppressions/ubsan.supp"
         # ASAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/suppressions/asan.supp"
       install:
         # add support for WebP
