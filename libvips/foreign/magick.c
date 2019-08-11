@@ -48,6 +48,50 @@
 #include "pforeign.h"
 #include "magick.h"
 
+#if defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)
+
+/* ImageMagick can't detect some formats, like ICO, by examining the contents --
+ * ico.c simply does not have a recogniser.
+ *
+ * For these formats, do the detection ourselves.
+ *
+ * Return an IM format specifier, or NULL to let IM do the detection.
+ */
+static const char *
+magick_sniff( const unsigned char *bytes, size_t length )
+{
+	if( length >= 4 &&
+		bytes[0] == 0 &&
+		bytes[1] == 0 &&
+		bytes[2] == 1 &&
+		bytes[3] == 0 )
+		return( "ICO" );
+
+	return( NULL );
+}
+
+void
+magick_sniff_bytes( ImageInfo *image_info, 
+	const unsigned char *bytes, size_t length )
+{
+	const char *format;
+
+	if( (format = magick_sniff( bytes, length )) )
+		vips_strncpy( image_info->magick, format, MaxTextExtent );
+}
+
+void
+magick_sniff_file( ImageInfo *image_info, const char *filename )
+{
+	unsigned char bytes[256];
+	size_t length;
+
+	if( (length = vips__get_bytes( filename, bytes, 256 )) >= 4 )
+		magick_sniff_bytes( image_info, bytes, 256 );
+}
+
+#endif /*defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)*/
+
 #ifdef HAVE_MAGICK7
 
 Image *
@@ -165,6 +209,46 @@ magick_set_number_scenes( ImageInfo *image_info, int scene, int number_scenes )
 	image_info->scenes = strdup( page );
 }
 
+int
+magick_optimize_image_layers( Image **images, ExceptionInfo *exception )
+{
+	Image *tmp;
+
+	tmp = OptimizePlusImageLayers(*images, exception );
+
+	if ( exception->severity != UndefinedException )
+		return MagickFalse;
+
+	VIPS_FREEF( DestroyImageList, *images );
+
+	*images = tmp;
+
+	return MagickTrue;
+}
+
+int
+magick_optimize_image_transparency( const Image *images,
+	ExceptionInfo *exception )
+{
+	OptimizeImageTransparency(images, exception);
+	return ( exception->severity == UndefinedException );
+}
+
+/* Does a few bytes look like a file IM can handle?
+ */
+gboolean
+magick_ismagick( const unsigned char *bytes, size_t length )
+{
+	char format[MagickPathExtent];
+
+	magick_genesis();
+
+	/* Try with our custom sniffers first.
+	 */
+	return( magick_sniff( bytes, length ) ||
+		GetImageMagick( bytes, length, format ) );
+}
+
 #endif /*HAVE_MAGICK7*/
 
 #ifdef HAVE_MAGICK6
@@ -278,7 +362,7 @@ magick_set_profile( Image *image,
 	string = BlobToStringInfo( data, length );
 	result = SetImageProfile( image, name, string );
 	DestroyStringInfo( string );
-#else /*HAVE_BLOBTOSTRINGINFO*/
+#else /*!HAVE_BLOBTOSTRINGINFO*/
 	result = SetImageProfile( image, name, data, length );
 #endif /*HAVE_BLOBTOSTRINGINFO*/
 
@@ -390,6 +474,67 @@ magick_set_number_scenes( ImageInfo *image_info, int scene, int number_scenes )
 #endif
 }
 
+int
+magick_optimize_image_layers( Image **images, ExceptionInfo *exception )
+{
+#ifdef HAS_OPTIMIZEPLUSIMAGELAYERS
+	Image *tmp;
+
+	tmp = OptimizePlusImageLayers(*images, exception );
+
+	if ( exception->severity != UndefinedException )
+		return MagickFalse;
+
+	VIPS_FREEF( DestroyImageList, *images );
+
+	*images = tmp;
+
+	return MagickTrue;
+#else
+	g_warning( "%s", _( "layers optimization is not supported by your version "
+		"of libMagick" ) );
+	return MagickTrue;
+#endif
+}
+
+int
+magick_optimize_image_transparency( const Image *images,
+	ExceptionInfo *exception )
+{
+#ifdef HAS_OPTIMIZEIMAGETRANSPARENCY
+	OptimizeImageTransparency(images, exception);
+	return ( exception->severity == UndefinedException );
+#else
+	g_warning( "%s", _( "transparency optimization is not supported by your "
+		"version of libMagick" ) );
+	return MagickTrue;
+#endif
+}
+
+/* Does a few bytes look like a file IM can handle?
+ */
+gboolean
+magick_ismagick( const unsigned char *bytes, size_t length )
+{
+	magick_genesis();
+
+	/* Try with our custom sniffers first.
+	 */
+#ifdef HAVE_GETIMAGEMAGICK3
+{
+	char format[MaxTextExtent];
+
+	return( magick_sniff( bytes, length ) ||
+		GetImageMagick( bytes, length, format ) );
+}
+#else /*!HAVE_GETIMAGEMAGICK3*/
+	/* The GM one returns a static string.
+	 */
+	return( magick_sniff( bytes, length ) ||
+		GetImageMagick( bytes, length ) );
+#endif
+}
+
 #endif /*HAVE_MAGICK6*/
 
 #if defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)
@@ -410,16 +555,32 @@ typedef struct _MagickColorspaceTypeNames {
 
 static MagickColorspaceTypeNames magick_colorspace_names[] = {
 	{ UndefinedColorspace, "UndefinedColorspace" },
-	{ CMYColorspace, "CMYColorspace" },
 	{ CMYKColorspace, "CMYKColorspace" },
 	{ GRAYColorspace, "GRAYColorspace" },
+	{ HSLColorspace, "HSLColorspace" },
+	{ HWBColorspace, "HWBColorspace" },
+	{ OHTAColorspace, "OHTAColorspace" },
+	{ Rec601YCbCrColorspace, "Rec601YCbCrColorspace" },
+	{ Rec709YCbCrColorspace, "Rec709YCbCrColorspace" },
+	{ RGBColorspace, "RGBColorspace" },
+	{ sRGBColorspace, "sRGBColorspace" },
+	{ TransparentColorspace, "TransparentColorspace" },
+	{ XYZColorspace, "XYZColorspace" },
+	{ YCbCrColorspace, "YCbCrColorspace" },
+	{ YCCColorspace, "YCCColorspace" },
+	{ YIQColorspace, "YIQColorspace" },
+	{ YPbPrColorspace, "YPbPrColorspace" },
+	{ YUVColorspace, "YUVColorspace" },
+
+	/* More recent imagemagicks add these.
+	 */
+#ifdef HAVE_CMYCOLORSPACE
+	{ CMYColorspace, "CMYColorspace" },
 	{ HCLColorspace, "HCLColorspace" },
 	{ HCLpColorspace, "HCLpColorspace" },
 	{ HSBColorspace, "HSBColorspace" },
 	{ HSIColorspace, "HSIColorspace" },
-	{ HSLColorspace, "HSLColorspace" },
 	{ HSVColorspace, "HSVColorspace" },
-	{ HWBColorspace, "HWBColorspace" },
 	{ LabColorspace, "LabColorspace" },
 	{ LCHColorspace, "LCHColorspace" },
 	{ LCHabColorspace, "LCHabColorspace" },
@@ -427,23 +588,12 @@ static MagickColorspaceTypeNames magick_colorspace_names[] = {
 	{ LogColorspace, "LogColorspace" },
 	{ LMSColorspace, "LMSColorspace" },
 	{ LuvColorspace, "LuvColorspace" },
-	{ OHTAColorspace, "OHTAColorspace" },
-	{ Rec601YCbCrColorspace, "Rec601YCbCrColorspace" },
-	{ Rec709YCbCrColorspace, "Rec709YCbCrColorspace" },
-	{ RGBColorspace, "RGBColorspace" },
 	{ scRGBColorspace, "scRGBColorspace" },
-	{ sRGBColorspace, "sRGBColorspace" },
-	{ TransparentColorspace, "TransparentColorspace" },
 	{ xyYColorspace, "xyYColorspace" },
-	{ XYZColorspace, "XYZColorspace" },
-	{ YCbCrColorspace, "YCbCrColorspace" },
-	{ YCCColorspace, "YCCColorspace" },
 	{ YDbDrColorspace, "YDbDrColorspace" },
-	{ YIQColorspace, "YIQColorspace" },
-	{ YPbPrColorspace, "YPbPrColorspace" },
-	{ YUVColorspace, "YUVColorspace" }
+#endif /*HAVE_CMYCOLORSPACE*/
 
-	/* More recent imagemagicks add these.
+	/* im7 has this, I think
 	 *
 	{ LinearGRAYColorspace, "LinearGRAYColorspace" }
 	 *
@@ -460,46 +610,6 @@ magick_ColorspaceType2str( ColorspaceType colorspace )
 			return( magick_colorspace_names[i].name );
 
 	return( "<unknown ColorspaceType>" );
-}
-
-/* ImageMagick can't detect some formats, like ICO, by examining the contents --
- * ico.c simply does not have a recogniser.
- *
- * For these formats, do the detection ourselves.
- *
- * Return an IM format specifier, or NULL to let IM do the detection.
- */
-static const char *
-magick_sniff( const unsigned char *bytes, size_t length )
-{
-	if( length >= 4 &&
-		bytes[0] == 0 &&
-		bytes[1] == 0 &&
-		bytes[2] == 1 &&
-		bytes[3] == 0 )
-		return( "ICO" );
-
-	return( NULL );
-}
-
-void
-magick_sniff_bytes( ImageInfo *image_info, 
-	const unsigned char *bytes, size_t length )
-{
-	const char *format;
-
-	if( (format = magick_sniff( bytes, length )) )
-		vips_strncpy( image_info->magick, format, MaxTextExtent );
-}
-
-void
-magick_sniff_file( ImageInfo *image_info, const char *filename )
-{
-	unsigned char bytes[256];
-	size_t length;
-
-	if( (length = vips__get_bytes( filename, bytes, 256 )) >= 4 )
-		magick_sniff_bytes( image_info, bytes, 256 );
 }
 
 void
@@ -641,23 +751,4 @@ magick_set_magick_profile( Image *image,
 	return( 0 );
 }
 
-/* Does a few bytes look like a file IM can handle?
- */
-gboolean
-magick_ismagick( const unsigned char *bytes, size_t length )
-{
-#ifdef HAVE_MAGICK7
-	char format[MagickPathExtent];
-#else /*HAVE_MAGICK6*/
-	char format[MaxTextExtent];
-#endif
-
-	magick_genesis();
-
-	/* Try with our custom sniffers first.
-	 */
-	return( magick_sniff( bytes, length ) ||
-		GetImageMagick( bytes, length, format ) );
-}
-
-#endif /*HAVE_MAGICK*/
+#endif /*defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)*/

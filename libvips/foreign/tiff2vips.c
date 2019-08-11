@@ -937,19 +937,27 @@ rtiff_greyscale_line( Rtiff *rtiff,
 	int samples_per_pixel = rtiff->header.samples_per_pixel;
 	int photometric_interpretation = 
 		rtiff->header.photometric_interpretation;
-	gboolean invert = photometric_interpretation == PHOTOMETRIC_MINISWHITE;
 	VipsBandFormat format = rtiff_guess_format( rtiff ); 
+
+	/* Swapping black and white doesn't make sense for the signed formats.
+	 */
+	gboolean invert = 
+		photometric_interpretation == PHOTOMETRIC_MINISWHITE &&
+		vips_band_format_isuint( format );
 
 	int x, i;
 
 	switch( format ) {
-	case VIPS_FORMAT_UCHAR:
 	case VIPS_FORMAT_CHAR:
+		GREY_LOOP( guchar, 0 ); 
+		break;
+
+	case VIPS_FORMAT_UCHAR:
 		GREY_LOOP( guchar, UCHAR_MAX ); 
 		break;
 
 	case VIPS_FORMAT_SHORT:
-		GREY_LOOP( gshort, SHRT_MAX ); 
+		GREY_LOOP( gshort, 0 ); 
 		break;
 
 	case VIPS_FORMAT_USHORT:
@@ -957,7 +965,7 @@ rtiff_greyscale_line( Rtiff *rtiff,
 		break;
 
 	case VIPS_FORMAT_INT:
-		GREY_LOOP( gint, INT_MAX ); 
+		GREY_LOOP( gint, 0 ); 
 		break;
 
 	case VIPS_FORMAT_UINT:
@@ -1066,7 +1074,7 @@ rtiff_palette_line_bit( Rtiff *rtiff,
 			}
 		}
 		else 
-			*q++ = i << (8 - bits_per_sample);
+			*q++ = VIPS_LSHIFT_INT( i, 8 - bits_per_sample );
 	}
 }
 
@@ -2188,6 +2196,18 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 
 		header->tile_size = TIFFTileSize( rtiff->tiff );
 		header->tile_row_size = TIFFTileRowSize( rtiff->tiff );
+
+		/* Fuzzed TIFFs can give crazy values for tile_size. Sanity
+		 * check at 100mb per tile.
+		 */
+		if( header->tile_size <= 0 ||
+			header->tile_size > 100 * 1000 * 1000 ||
+			header->tile_row_size <= 0 ||
+			header->tile_row_size > 100 * 1000 * 1000 ) {
+			vips_error( "tiff2vips",
+				"%s", _( "tile size out of range" ) );
+			return( -1 );
+		}
 
 		/* Stop some compiler warnings.
 		 */

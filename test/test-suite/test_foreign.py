@@ -388,9 +388,9 @@ class TestForeign:
         self.buffer_loader("magickload_buffer", BMP_FILE, bmp_valid)
 
         # we should have rgb or rgba for svg files ... different versions of
-        # IM handle this differently
+        # IM handle this differently. GM even gives 1 band.
         im = pyvips.Image.magickload(SVG_FILE)
-        assert im.bands == 3 or im.bands == 4
+        assert im.bands == 3 or im.bands == 4 or im.bands == 1
 
         # density should change size of generated svg
         im = pyvips.Image.magickload(SVG_FILE, density='100')
@@ -402,12 +402,10 @@ class TestForeign:
         # assert im.width == width * 2
         # assert im.height == height * 2
 
-        # all-frames should load every frame of the animation
-        # (though all-frames is deprecated)
         im = pyvips.Image.magickload(GIF_ANIM_FILE)
         width = im.width
         height = im.height
-        im = pyvips.Image.magickload(GIF_ANIM_FILE, all_frames=True)
+        im = pyvips.Image.magickload(GIF_ANIM_FILE, n=-1)
         assert im.width == width
         assert im.height == height * 5
 
@@ -454,10 +452,10 @@ class TestForeign:
         assert self.colour.height == x.height
         assert self.colour.bands == x.bands
         max_diff = (self.colour - x).abs().max()
-        assert max_diff < 40
+        assert max_diff < 60
 
         self.save_load_buffer("magicksave_buffer", "magickload_buffer",
-                              self.colour, 40, format="JPG")
+                              self.colour, 60, format="JPG")
 
         # try an animation
         if have("gifload"):
@@ -473,7 +471,9 @@ class TestForeign:
     def test_webp(self):
         def webp_valid(im):
             a = im(10, 10)
-            assert_almost_equal_objects(a, [70, 165, 235])
+            # different webp versions use different rounding systems leading
+            # to small variations
+            assert_almost_equal_objects(a, [71, 166, 236], threshold=2)
             assert im.width == 550
             assert im.height == 368
             assert im.bands == 3
@@ -656,15 +656,9 @@ class TestForeign:
     def test_svgload(self):
         def svg_valid(im):
             a = im(10, 10)
-
-            # some old rsvg versions are way, way off
-            assert abs(a[0] - 79) < 2
-            assert abs(a[1] - 79) < 2
-            assert abs(a[2] - 132) < 2
-            assert abs(a[3] - 255) < 2
-
-            assert im.width == 288
-            assert im.height == 470
+            assert_almost_equal_objects(a, [0, 0, 0, 0])
+            assert im.width == 736
+            assert im.height == 552
             assert im.bands == 4
 
         self.file_loader("svgload", SVG_FILE, svg_valid)

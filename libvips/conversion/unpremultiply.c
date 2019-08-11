@@ -80,7 +80,7 @@ G_DEFINE_TYPE( VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION );
 		IN clip_alpha = VIPS_CLIP( 0, alpha, max_alpha ); \
 		OUT nalpha = (OUT) clip_alpha / max_alpha; \
 		\
-		if( clip_alpha == 0 ) \
+		if( nalpha == 0 ) \
 			for( i = 0; i < bands - 1; i++ ) \
 				q[i] = 0; \
 		else \
@@ -104,7 +104,7 @@ G_DEFINE_TYPE( VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION );
 		IN clip_alpha = VIPS_CLIP( 0, alpha, max_alpha ); \
 		OUT nalpha = (OUT) clip_alpha / max_alpha; \
 		\
-		if( clip_alpha == 0 ) { \
+		if( nalpha == 0 ) { \
 			q[0] = 0; \
 			q[1] = 0; \
 			q[2] = 0; \

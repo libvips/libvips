@@ -34,6 +34,8 @@
  * 4/6/15
  * 	- try to support DOS files under linux ... we have to look for \r\n
  * 	  linebreaks
+ * 29/7/19 Kyle-Kyle
+ * 	- fix a loop with malformed ppm
  */
 
 /*
@@ -89,7 +91,10 @@
 static void 
 skip_line( FILE *fp )
 {
-        while( vips__fgetc( fp ) != '\n' )
+	int ch;
+
+        while( (ch = vips__fgetc( fp )) != '\n' && 
+		ch != EOF )
 		;
 }
 
@@ -401,7 +406,7 @@ read_1bit_binary( FILE *fp, VipsImage *out )
 	for( y = 0; y < out->Ysize; y++ ) {
 		for( x = 0; x < out->Xsize * out->Bands; x++ ) {
 			buf[x] = (bits & 128) ? 0 : 255;
-			bits <<= 1;
+			bits = VIPS_LSHIFT_INT( bits, 1 );
 			if( (x & 7) == 7 )
 				bits = fgetc( fp );
 		}
@@ -662,7 +667,7 @@ write_ppm_line_binary_squash( Write *write, VipsPel *p )
 	bits = 0;
 	n_bits = 0;
 	for( x = 0; x < write->in->Xsize; x++ ) {
-		bits <<= 1;
+		bits = VIPS_LSHIFT_INT( bits, 1 );
 		n_bits += 1;
 		bits |= p[x] ? 0 : 1;
 

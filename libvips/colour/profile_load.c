@@ -58,58 +58,19 @@ typedef VipsOperationClass VipsProfileLoadClass;
 
 G_DEFINE_TYPE( VipsProfileLoad, vips_profile_load, VIPS_TYPE_OPERATION );
 
-/* Created on first use from a base64 string in profiles.c.
- */
-typedef struct _VipsFallbackProfile {
-	const char *name;
-	void *data;
-	size_t data_length;
-} VipsFallbackProfile;
-
-static GSList *vips_fallback_profile_list = NULL;
-
-static void *
-vips_fallback_profile_get_init( void )
+static const void *
+vips_profile_fallback_get( const char *name, size_t *length )
 {
 	int i;
+	VipsProfileFallback *fallback;
 
-	for( i = 0; vips__coded_profiles[i].name; i++ ) {
-		size_t data_length;
-		unsigned char *data;
-		VipsFallbackProfile *fallback;
-
-		if( !(data = vips__b64_decode( 
-			vips__coded_profiles[i].data, &data_length )) )
-			return( NULL );
-		fallback = g_new( VipsFallbackProfile,1 );
-		fallback->name = vips__coded_profiles[i].name;
-		fallback->data = data;
-		fallback->data_length = data_length;
-		vips_fallback_profile_list = g_slist_prepend( 
-			vips_fallback_profile_list, fallback );
-	}
-
-	return( NULL );
-}
-
-static void *
-vips_fallback_profile_get( const char *name, size_t *length )
-{
-	static GOnce once = G_ONCE_INIT;
-
-	GSList *p;
-
-	VIPS_ONCE( &once, (GThreadFunc) vips_fallback_profile_get_init, NULL );
-
-	for( p = vips_fallback_profile_list; p; p = p->next ) {
-		VipsFallbackProfile *fallback = (VipsFallbackProfile *) p->data;
-
+	for( i = 0; (fallback = vips__profile_fallback_table[i]); i++ ) 
 		if( g_ascii_strcasecmp( fallback->name, name ) == 0 ) {
-			*length = fallback->data_length;
+			if( length )
+				*length = fallback->length;
 
 			return( fallback->data );
 		}
-	}
 
 	return( NULL );
 }
@@ -131,7 +92,7 @@ vips_profile_load_build( VipsObject *object )
 	if( g_ascii_strcasecmp( load->name, "none" ) == 0 ) {
 		profile = NULL;
 	}
-	else if( (data = vips_fallback_profile_get( load->name, &length )) ) {
+	else if( (data = vips_profile_fallback_get( load->name, &length )) ) {
 		profile = vips_blob_new( NULL, data, length );
 	}
 	else if( (data = vips__file_read_name( load->name, 

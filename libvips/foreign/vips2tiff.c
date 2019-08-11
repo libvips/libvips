@@ -1245,7 +1245,7 @@ LabS2Lab16( VipsPel *q, VipsPel *p, int n )
         for( x = 0; x < n; x++ ) {
                 /* TIFF uses unsigned 16 bit ... move zero, scale up L.
                  */
-                q1[0] = (int) p1[0] << 1;
+                q1[0] = VIPS_LSHIFT_INT( (int) p1[0], 1 );
                 q1[1] = p1[1];
                 q1[2] = p1[2];
 

@@ -73,6 +73,7 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "binary.h"
 #include "unaryconst.h"
@@ -140,6 +141,15 @@ vips_boolean_build( VipsObject *object )
 		g_assert_not_reached(); \
 	} 
 
+#define FNLOOP( TYPE, FN ) { \
+	TYPE * restrict left = (TYPE *) in[0]; \
+	TYPE * restrict right = (TYPE *) in[1]; \
+	int * restrict q = (int *) out; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = FN( left[x], right[x] ); \
+}
+
 static void
 vips_boolean_buffer( VipsArithmetic *arithmetic, 
 	VipsPel *out, VipsPel **in, int width )
@@ -163,8 +173,30 @@ vips_boolean_buffer( VipsArithmetic *arithmetic,
 		SWITCH( LOOP, FLOOP, ^ ); 
 		break;
 
+	/* Special case: we need to be able to use VIPS_LSHIFT_INT().
+	 */
 	case VIPS_OPERATION_BOOLEAN_LSHIFT: 	
-		SWITCH( LOOP, FLOOP, << ); 
+		switch( vips_image_get_format( im ) ) { 
+		case VIPS_FORMAT_UCHAR:	
+			LOOP( unsigned char, << ); break; 
+		case VIPS_FORMAT_CHAR:
+			FNLOOP( signed char, VIPS_LSHIFT_INT ); break; 
+		case VIPS_FORMAT_USHORT:
+			LOOP( unsigned short, << ); break; 
+		case VIPS_FORMAT_SHORT:
+			FNLOOP( signed short, VIPS_LSHIFT_INT ); break; 
+		case VIPS_FORMAT_UINT:
+			LOOP( unsigned int, << ); break; 
+		case VIPS_FORMAT_INT:
+			FNLOOP( signed int, VIPS_LSHIFT_INT ); break; 
+		case VIPS_FORMAT_FLOAT:
+			FLOOP( float, << ); break; 
+		case VIPS_FORMAT_DOUBLE:
+			FLOOP( double, << ); break;
+		
+		default: 
+			g_assert_not_reached(); 
+		} 
 		break;
 
 	case VIPS_OPERATION_BOOLEAN_RSHIFT: 	
