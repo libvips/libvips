@@ -8,6 +8,7 @@ before_script:
     --disable-dependency-tracking
     --with-jpeg-includes=$JPEG/include
     --with-jpeg-libraries=$JPEG/lib
+    --with-magick=$WITH_MAGICK
   - make -j$JOBS -s 
 script:
   - make -j$JOBS -s -k V=0 VERBOSE=1 check
@@ -30,6 +31,7 @@ matrix:
         - PYVIPS_VERSION=master
         - JPEG=/usr
         - JOBS=`nproc`
+        - WITH_MAGICK=yes
       cache: ccache
 
     - os: linux
@@ -41,6 +43,7 @@ matrix:
         - PYVIPS_VERSION=master
         - JPEG=/usr
         - JOBS=`nproc`
+        - WITH_MAGICK=no
         - CFLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -fopenmp -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION"
         - LDFLAGS="-fsanitize=address,undefined -dynamic-asan -fopenmp=libiomp5"
         - ASAN_DSO=/usr/local/clang-7.0.0/lib/clang/7.0.0/lib/linux/libclang_rt.asan-x86_64.so
@@ -66,6 +69,7 @@ matrix:
         - PYVIPS_VERSION=master
         - JPEG=/usr/local
         - JOBS="`sysctl -n hw.ncpu`"
+        - WITH_MAGICK=yes
         - PATH="/usr/local/opt/ccache/libexec:$PATH"
         - HOMEBREW_NO_AUTO_UPDATE=1
       cache: ccache
