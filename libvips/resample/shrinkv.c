@@ -329,11 +329,11 @@ vips_shrinkv_gen( VipsRegion *or, void *vseq,
 		r->top + r->height >= or->im->Ysize ) {
 		/* First unused scanline. resample->in->Ysize because we want
 		 * the height before the embed.
+		 *
+		 * Because we round to nearest, unused can be negative.
 		 */
 		int first = or->im->Ysize * shrink->vshrink;
 		int unused = resample->in->Ysize - first;
-
-		g_assert( unused >= 0 );
 
 		for( y = 0; y < unused; y++ ) { 
 			VipsRect s;
