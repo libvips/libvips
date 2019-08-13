@@ -262,6 +262,9 @@ int vips_recomb( VipsImage *in, VipsImage **out, VipsImage *m, ... )
 int vips_ifthenelse( VipsImage *cond, VipsImage *in1, VipsImage *in2, 
 	VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_select( VipsImage **tests, VipsImage **cases, 
+	VipsImage **out, int n, ... )
+	__attribute__((sentinel));
 
 int vips_flatten( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));

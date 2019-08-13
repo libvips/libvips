@@ -66,8 +66,6 @@ int vips_hist_entropy( VipsImage *in, double *out, ... )
 
 int vips_switch( VipsImage *in, VipsImage **out, VipsImage **lut, int n, ... )
 	__attribute__((sentinel));
-int vips_case( VipsImage *in, VipsImage **out, VipsImage **lut, int n, ... )
-	__attribute__((sentinel));
 
 #ifdef __cplusplus
 }

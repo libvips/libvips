@@ -5,7 +5,6 @@ libhistogram_la_SOURCES = \
 	phistogram.h \
 	maplut.c \
 	switch.c \
-	case.c \
 	hist_unary.c \
 	hist_unary.h \
 	hist_cum.c \
