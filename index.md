@@ -2,6 +2,7 @@
 ---
 
 [![Build Status](https://travis-ci.org/libvips/libvips.svg?branch=master)](https://travis-ci.org/libvips/libvips)
+[![OSS-fuzz Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/libvips.png)](https://oss-fuzz-build-logs.storage.googleapis.com/index.html)
 [![Coverity Status](https://scan.coverity.com/projects/6503/badge.svg)](https://scan.coverity.com/projects/jcupitt-libvips)
 
 libvips is a [demand-driven, horizontally
