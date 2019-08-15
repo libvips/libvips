@@ -1,6 +1,7 @@
 # libvips : an image processing library
 
 [![Build Status](https://travis-ci.org/libvips/libvips.svg?branch=master)](https://travis-ci.org/libvips/libvips)
+[![OSS-fuzz Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/libvips.png)](https://oss-fuzz.com/coverage-report/job/libfuzzer_asan_libvips/latest)
 [![Coverity Status](https://scan.coverity.com/projects/6503/badge.svg)](https://scan.coverity.com/projects/jcupitt-libvips)
 
 libvips is a [demand-driven, horizontally
@@ -63,7 +64,7 @@ We keep pre-baked tarballs in
 
 Untar, then in the libvips directory you should just be able to do:
 
-    $ ./configure
+    ./configure
 
 Check the summary at the end of `configure` carefully.  libvips must have
 `build-essential`, `pkg-config`, `glib2.0-dev`, `libexpat1-dev`.
@@ -75,104 +76,98 @@ of the things that libvips can be configured to use.
 
 Once `configure` is looking OK, compile and install with the usual:
 
-    $ make
-    $ sudo make install
+    make
+    sudo make install
 
 By default this will install files to `/usr/local`.
 
 # Testing
 
-Do a basic test of your build with:
+Run the test suite with:
 
-    $ make check
-
-Run the libvips test suite with:
-
-    $ pytest
+    make check
 
 Run a specific test with:
 
-    $ pytest test/test-suite/test_foreign.py -k test_tiff
+    pytest --verbose
+    pytest test/test-suite/test_foreign.py -k test_tiff
 
 # Building libvips from git
 
 Clone the latest sources with:
 
-    $ git clone git://github.com/libvips/libvips.git
+    git clone git://github.com/libvips/libvips.git
 
 Building from git needs more packages -- you'll need at least `gtk-doc` 
 and `gobject-introspection`, see the dependencies section below. For example:
 
-    $ brew install gtk-doc 
+    brew install gtk-doc 
 
 Then build the build system with:
 
-    $ ./autogen.sh
+    ./autogen.sh --prefix=/home/john/vips
 
 Debug build:
 
-    $ CFLAGS="-g -Wall" CXXFLAGS="-g -Wall" \
-        ./configure --prefix=/home/john/vips --enable-debug
-    $ make
-    $ make install
+    CFLAGS="-g -Wall" CXXFLAGS="-g -Wall" \
+      ./configure --prefix=/home/john/vips --enable-debug
+    make
+    make install
 
-Leak check:
+Leak check. Use the suppressions file `supp/valgrind.supp`.
 
-    $ export G_DEBUG=gc-friendly
-    $ valgrind --suppressions=libvips.supp \
-	       --leak-check=yes \
-        vips ... > vips-vg.log 2>&1
+    export G_DEBUG=gc-friendly
+    valgrind --suppressions=vips-x.y.z/supp/valgrind.supp \
+	     --leak-check=yes \
+      vips ... > vips-vg.log 2>&1
 
 Memory error debug:
 
-    $ valgrind --vgdb=yes --vgdb-error=0 vips  ...
+    valgrind --vgdb=yes --vgdb-error=0 vips  ...
 
 valgrind threading check:
 
-    $ valgrind --tool=helgrind vips ... > vips-vg.log 2>&1
+    valgrind --tool=helgrind vips ... > vips-vg.log 2>&1
 
 Clang build:
 
-    $ CC=clang CXX=clang++ ./configure --prefix=/home/john/vips
+    CC=clang CXX=clang++ ./configure --prefix=/home/john/vips
 
 Clang static analysis:
 
-    $ scan-build ./configure --disable-introspection --disable-debug
-    $ scan-build -o scan -v make 
-    $ scan-view scan/2013-11-22-2
+    scan-build ./configure --disable-introspection --disable-debug
+    scan-build -o scan -v make 
+    scan-view scan/2013-11-22-2
 
 Clang dynamic analysis:
 
-    $ FLAGS="-g -O1 -fno-omit-frame-pointer"
-    $ CC=clang CXX=clang++ LD=clang \
-        CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" LDFLAGS=-fsanitize=address \
-        ./configure --prefix=/home/john/vips 
+    FLAGS="-g -O1 -fno-omit-frame-pointer"
+    CC=clang CXX=clang++ LD=clang \
+      CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" LDFLAGS=-fsanitize=address \
+      ./configure --prefix=/home/john/vips 
 
-    $ FLAGS="-O1 -g -fsanitize=thread"
-    $ FLAGS="$FLAGS -fPIC"
-    $ FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
-    $ CC=clang CXX=clang++ LD=clang \
+    FLAGS="-O1 -g -fsanitize=thread"
+    FLAGS="$FLAGS -fPIC"
+    FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+    CC=clang CXX=clang++ LD=clang \
       CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
       LDFLAGS="-fsanitize=thread -fPIC" \
       ./configure --prefix=/home/john/vips \
         --without-magick \
         --disable-introspection
-    $ G_DEBUG=gc-friendly vips copy ~/pics/k2.jpg x.jpg >& log
+    G_DEBUG=gc-friendly vips copy ~/pics/k2.jpg x.jpg >& log
 
 Build with the GCC auto-vectorizer and diagnostics (or just -O3):
 
-    $ FLAGS="-O2 -march=native -ffast-math"
-    $ FLAGS="$FLAGS -ftree-vectorize -fdump-tree-vect-details"
-    $ CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
+    FLAGS="-O2 -march=native -ffast-math"
+    FLAGS="$FLAGS -ftree-vectorize -fdump-tree-vect-details"
+    CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
       ./configure --prefix=/home/john/vips 
-
-Static analysis with:
-
-    $ cppcheck --force --enable=style . &> cppcheck.log
 
 # Dependencies 
 
-libvips has to have `glib2.0-dev`. Other dependencies are optional, see below.
+libvips has to have `glib2.0-dev` and `libexpat1-dev`. Other dependencies
+are optional, see below.
 
 # Optional dependencies
 
@@ -181,26 +176,20 @@ libraries automatically. See `./configure --help` for a set of flags to
 control library detection. Packages are generally found with `pkg-config`,
 so make sure that is working.
 
-libtiff, giflib and libjpeg do not usually use `pkg-config` so libvips looks for
-them in the default path and in `$prefix`. If you have installed your own
-versions of these libraries in a different location, libvips will not see
-them. Use switches to libvips configure like:
+Libraries like giflib and nifti do not use `pkg-config` so libvips will also
+look for them in the default path and in `$prefix`. If you have installed
+your own versions of these libraries in a different location, libvips will
+not see them. Use switches to libvips configure like:
 
     ./configure --prefix=/Users/john/vips \
-        --with-giflib-includes=/opt/local/include \
-        --with-giflib-libraries=/opt/local/lib \
-        --with-tiff-includes=/opt/local/include \
-        --with-tiff-libraries=/opt/local/lib \
-        --with-jpeg-includes=/opt/local/include \
-        --with-jpeg-libraries=/opt/local/lib
+      --with-giflib-includes=/opt/local/include \
+      --with-giflib-libraries=/opt/local/lib 
 
 or perhaps:
 
     CFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
       CXXFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
       ./configure --prefix=/Users/john/vips 
-
-to get libvips to see your builds.
 
 ### libjpeg
 
