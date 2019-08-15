@@ -46,9 +46,9 @@ If the packaged version is too old, you might need to build from source.
 Download `vips-x.y.z.tar.gz` from the [Download area]({{
 site.github.releases_url }}), then:
 
-	$ tar xf vips-x.y.z.tar.gz
-	$ cd vips-x.y.z
-	$ ./configure
+	tar xf vips-x.y.z.tar.gz
+	cd vips-x.y.z
+	./configure
 
 Check the summary at the end of `configure` carefully.  libvips must have
 `build-essential`, `pkg-config`, `glib2.0-dev`, `libexpat1-dev`.
@@ -60,9 +60,9 @@ of the things that libvips can be configured to use.
 
 Once `configure` is looking OK, compile and install with the usual:
 
-	$ make
-	$ sudo make install
-	$ sudo ldconfig
+	make
+	sudo make install
+	sudo ldconfig
 
 By default this will install files to `/usr/local`.
 
@@ -74,20 +74,20 @@ Windows](https://github.com/jcupitt/libvips/wiki/Build-for-Windows) and
 
 Checkout the latest sources with:
 
-	$ git clone git://github.com/jcupitt/libvips.git
+	git clone git://github.com/jcupitt/libvips.git
 
 Building from git needs more packages, you'll need at least `gtk-doc` 
 and `gobject-introspection`, see the dependencies section below. 
 
 Then:
 
-	$ ./autogen.sh
-	$ make
-	$ sudo make install
+	./autogen.sh
+	make
+	sudo make install
 
 And perhaps also:
 
-	$ sudo ldconfig
+	sudo ldconfig
 
 ## Dependencies 
 
@@ -101,34 +101,14 @@ libraries automatically. See `./configure --help` for a set of flags to
 control library detection. Packages are generally found with `pkg-config`,
 so make sure that is working.
 
-libtiff, giflib and libjpeg do not usually use `pkg-config` so libvips looks for
+Libraries like giflib do not usually use `pkg-config` so libvips looks for
 them in the default path and in `$prefix`. If you have installed your own
 versions of these libraries in a different location, libvips will not see
 them. Use switches to libvips configure like:
 
 	./configure --prefix=/Users/john/vips \
 		--with-giflib-includes=/opt/local/include \
-		--with-giflib-libraries=/opt/local/lib \
-		--with-tiff-includes=/opt/local/include \
-		--with-tiff-libraries=/opt/local/lib \
-		--with-jpeg-includes=/opt/local/include \
-		--with-jpeg-libraries=/opt/local/lib
-
-or perhaps:
-
-	CFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
-		CXXFLAGS="-g -Wall -I/opt/local/include -L/opt/local/lib" \
-		./configure --without-python --prefix=/Users/john/vips 
-
-to get libvips to see your builds.
-
-### vips8 Python binding
-
-If `gobject-introspection`, `python-gi-dev`, and `libgirepository1.0-dev` are
-available, libvips will install the deprecated vips8 Python binding. 
-
-This has been replaced by the compatible `pyvips` binding in pip. Only enable it
-if you must have it. 
+		--with-giflib-libraries=/opt/local/lib 
 
 ### libjpeg
 

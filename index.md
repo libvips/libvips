@@ -2,7 +2,7 @@
 ---
 
 [![Build Status](https://travis-ci.org/libvips/libvips.svg?branch=master)](https://travis-ci.org/libvips/libvips)
-[![OSS-fuzz Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/libvips.png)](https://oss-fuzz-build-logs.storage.googleapis.com/index.html)
+[![OSS-fuzz Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/libvips.png)](https://oss-fuzz.com/coverage-report/job/libfuzzer_asan_libvips/latest)
 [![Coverity Status](https://scan.coverity.com/projects/6503/badge.svg)](https://scan.coverity.com/projects/jcupitt-libvips)
 
 libvips is a [demand-driven, horizontally
@@ -10,8 +10,8 @@ threaded](https://github.com/libvips/libvips/wiki/Why-is-libvips-quick)
 image processing library. Compared to similar
 libraries, [libvips runs quickly and uses little
 memory](https://github.com/libvips/libvips/wiki/Speed-and-memory-use).
-libvips is licensed under
-the [LGPL 2.1+](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html).
+libvips is licensed under the [LGPL
+2.1+](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html).
 
 It has around [300 operations](API/current/func-list.html) covering
 arithmetic, histograms, convolution, morphological operations, frequency
