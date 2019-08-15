@@ -8,6 +8,7 @@ libforeign_la_SOURCES = \
 	niftisave.c \
 	quantise.c \
 	exif.c \
+	gifnsload.c \
 	gifload.c \
 	cairo.c \
 	pdfload.c \

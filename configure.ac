@@ -1193,14 +1193,34 @@ if test x"$with_tiff" != x"no"; then
   INCLUDES="$save_INCLUDES"
 fi
 
-# giflib
-FIND_GIFLIB(
-  [with_giflib="yes (found by search)"
-  ], 
-  [AC_MSG_WARN([giflib not found; disabling direct GIF support])
-   with_giflib=no
-  ]
-)
+# libnsgif
+# search for libnsgif with pkg-config, see https://github.com/jcupitt/libnsgif
+AC_ARG_WITH([libnsgif], 
+  AS_HELP_STRING([--without-libnsgif], 
+                [build without libnsgif (default: test)]))
+
+if test x"$with_libnsgif" != x"no"; then
+  PKG_CHECK_MODULES(LIBNSGIF, libnsgif,
+    [AC_DEFINE(HAVE_LIBNSGIF,1,[define if you have libnsgif installed.])
+     with_libnsgif="yes"
+     with_giflib="no (using libnsgif)"
+     PACKAGES_USED="$PACKAGES_USED libnsgif"
+    ],
+    [with_libnsgif="no"
+    ]
+  )
+fi
+
+# giflib if no libnsgif
+if test x"$with_libnsgif" != x"yes"; then
+  FIND_GIFLIB(
+    [with_giflib="yes (found by search)"
+    ], 
+    [AC_MSG_WARN([giflib not found; disabling direct GIF support])
+     with_giflib=no
+    ]
+  )
+fi
 
 # look for PNG with pkg-config ... fall back to our tester
 AC_ARG_WITH([png], 
@@ -1327,14 +1347,14 @@ fi
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS 
 # sort includes to get longer, more specific dirs first
 # helps, for example, selecting graphicsmagick over imagemagick
-VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $EXPAT_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $JPEG_CFLAGS $PNG_CFLAGS $IMAGEQUANT_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $LIBWEBPMUX_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $PDFIUM_INCLUDES $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS $HEIF_CFLAGS
+VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $EXPAT_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $JPEG_CFLAGS $PNG_CFLAGS $IMAGEQUANT_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $LIBWEBPMUX_CFLAGS $LIBNSGIF_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $PDFIUM_INCLUDES $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS $HEIF_CFLAGS
 do 
 	echo $i 
 done | sort -ru`
 VIPS_CFLAGS=`echo $VIPS_CFLAGS`
 VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
 VIPS_INCLUDES="$ZLIB_INCLUDES $PNG_INCLUDES $TIFF_INCLUDES $JPEG_INCLUDES $NIFTI_INCLUDES" 
-VIPS_LIBS="$ZLIB_LIBS $HEIF_LIBS $MAGICK_LIBS $PNG_LIBS $IMAGEQUANT_LIBS $TIFF_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $EXPAT_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $GIFLIB_LIBS $RSVG_LIBS $NIFTI_LIBS $PDFIUM_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $LIBWEBPMUX_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
+VIPS_LIBS="$ZLIB_LIBS $HEIF_LIBS $MAGICK_LIBS $PNG_LIBS $IMAGEQUANT_LIBS $TIFF_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $EXPAT_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $LIBNSGIF_LIBS $GIFLIB_LIBS $RSVG_LIBS $NIFTI_LIBS $PDFIUM_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $LIBWEBPMUX_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
 
 AC_SUBST(VIPS_LIBDIR)
 
@@ -1434,6 +1454,7 @@ file import/export with libpng: 	$with_png
 support 8bpp PNG quantisation:		$with_imagequant
   (requires libimagequant)
 file import/export with libtiff:	$with_tiff
+file import/export with libnsgif:	$with_libnsgif
 file import/export with giflib:		$with_giflib
 file import/export with libjpeg:	$with_jpeg
 image pyramid export:			$with_gsf
