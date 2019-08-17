@@ -70,6 +70,24 @@ typedef struct _VipsSelectSeq {
 
 } VipsSelectSeq;
 
+int
+vips_select_stop( void *vseq, void *a, void *b )
+{
+	VipsSelectSeq *seq = (VipsSelectSeq *) vseq;
+
+	if( seq->tests ) {
+		vips_stop_many( (void *) seq->tests, NULL, NULL );
+		seq->tests = NULL;
+	}
+	if( seq->cases ) {
+		vips_stop_many( (void *) seq->cases, NULL, NULL );
+		seq->cases = NULL;
+	}
+	VIPS_FREE( seq );
+
+	return( 0 ):
+}
+
 static void *
 vips_select_start( VipsImage *out, void *a, void *b )
 {
@@ -86,58 +104,26 @@ vips_select_start( VipsImage *out, void *a, void *b )
 	seq->tests = NULL;
 	seq->cases = NULL;
 
-	/* How many images?
-	 */
-	for( n = 0; in[n]; n++ )
-		;
-
-	/* Alocate space for region array.
-	 */
-	if( !(seq->ir = VIPS_ARRAY( NULL, n + 1, VipsRegion * )) ) {
-		vips_bandary_stop( seq, NULL, NULL );
-		return( NULL );
-	}
-
-	/* Create a set of regions.
-	 */
-	for( i = 0; i < n; i++ )
-		if( !(seq->ir[i] = vips_region_new( in[i] )) ) {
-			vips_bandary_stop( seq, NULL, NULL );
-			return( NULL );
-		}
-	seq->ir[n] = NULL;
-
-	/* Input pointers.
-	 */
-	if( !(seq->p = VIPS_ARRAY( NULL, n + 1, VipsPel * )) ) {
-		vips_bandary_stop( seq, NULL, NULL );
-		return( NULL );
-	}
-
-	/* Pixel buffer. This is used as working space by some subclasses.
-	 */
-	if( !(seq->pixels = VIPS_ARRAY( NULL, 
-		n * VIPS_IMAGE_SIZEOF_PEL( bandary->ready[0] ), VipsPel )) ) {
-		vips_bandary_stop( seq, NULL, NULL );
+	seq->tests = vips_start_many( NULL, (void *) select->tests, NULL );
+	seq->cases = vips_start_many( NULL, (void *) select->cases, NULL );
+	if( !seq->tests ||
+		!seq->cases ) {
+		vips_select_stop( (void *) seq, NULL, NULL  );
 		return( NULL );
 	}
 
 	return( seq );
 }
 
-
-need start / stop and a seq typedef for our two arrays of regions
-
 /* Do a map.
  */
 static int 
-vips_select_gen( VipsRegion *or, void *seq, void *a, void *b, 
+vips_select_gen( VipsRegion *or, void *vseq, void *a, void *b, 
 	gboolean *stop )
 {
-	VipsRegion **ar = (VipsRegion **) seq;
-	VipsSelect *swit = (VipsSelect *) b;
+	VipsSelectSeq *seq = (VipsSelectSeq *) vseq;
+	VipsSelect *select = seq->select;
 	VipsRect *r = &or->valid;
-	VipsRegion *index = ar[swit->n];
 
 	int x, y, i, j;
 	VipsPel * restrict ip;
