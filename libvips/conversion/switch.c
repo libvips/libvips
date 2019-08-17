@@ -1,4 +1,4 @@
-/* use pixel values to switch between an array of images
+/* switch between an array of images
  *
  * 28/7/19
  * 	- from maplut.c
@@ -46,9 +46,9 @@
 typedef struct _VipsSwitch {
 	VipsOperation parent_instance;
 
-	VipsImage *in;
+	VipsArrayImage *tests;
 	VipsImage *out;
-	VipsArrayImage *lut;
+
 	int n;
 
 } VipsSwitch;
@@ -57,8 +57,6 @@ typedef VipsOperationClass VipsSwitchClass;
 
 G_DEFINE_TYPE( VipsSwitch, vips_switch, VIPS_TYPE_OPERATION );
 
-/* Do a map.
- */
 static int 
 vips_switch_gen( VipsRegion *or, void *seq, void *a, void *b, 
 	gboolean *stop )
@@ -66,65 +64,38 @@ vips_switch_gen( VipsRegion *or, void *seq, void *a, void *b,
 	VipsRegion **ar = (VipsRegion **) seq;
 	VipsSwitch *swit = (VipsSwitch *) b;
 	VipsRect *r = &or->valid;
-	VipsRegion *index = ar[swit->n];
 
-	int x, y, i, j;
-	VipsPel * restrict ip;
+	int x, y, i;
 	VipsPel * restrict q;
-	size_t ils;
 	size_t qls;
-	int hist[256];
 	VipsPel * restrict p[256];
 	size_t ls[256];
-	size_t ps;
 
-	if( vips_region_prepare( index, r ) )
+	if( vips_reorder_prepare_many( or->im, ar, r ) )
 		return( -1 );
 
-	g_assert( index->im->BandFmt == VIPS_FORMAT_UCHAR );
-	g_assert( index->im->Bands == 1 );
+	g_assert( ar->im->BandFmt == VIPS_FORMAT_UCHAR );
+	g_assert( ar->im->Bands == 1 );
 
-	/* Histogram of input region, so we know which of our inputs we will
-	 * need to prepare.
-	 */
-	memset( hist, 0, 256 * sizeof( int ) );
-	ip = VIPS_REGION_ADDR( index, r->left, r->top );
-	ils = VIPS_REGION_LSKIP( index );
-	for( y = 0; y < r->height; y++ ) {
-		for( x = 0; x < r->width; x++ )
-			hist[ip[x]] += 1;
-
-		ip += ils;
+	for( i = 0; i < swit->n; i++ ) {
+		p[i] = VIPS_REGION_ADDR( ar[i], r->left, r->top );
+		ls[i] = VIPS_REGION_LSKIP( ar[i] );
 	}
 
-	for( i = 0; i < 256; i++ ) 
-		if( hist[i] ) {
-			if( vips_region_prepare( ar[i], r ) )
-				return( -1 );
-			p[i] = VIPS_REGION_ADDR( ar[i], r->left, r->top );
-			ls[i] = VIPS_REGION_LSKIP( ar[i] );
-		}
-
-	ip = VIPS_REGION_ADDR( index, r->left, r->top );
 	q = VIPS_REGION_ADDR( or, r->left, r->top );
 	qls = VIPS_REGION_LSKIP( or );
-	ps = VIPS_IMAGE_SIZEOF_PEL( or->im );
 	for( y = 0; y < r->height; y++ ) {
-		i = 0;
 		for( x = 0; x < r->width; x++ ) {
-			VipsPel * restrict pv = p[ip[x]];
+			for( i = 0; i < swit->n; i++ )
+				if( p[i][x] )
+					break;
 
-			for( j = 0; j < ps; j++ ) {
-				q[i] = pv[i];
-				i += 1;
-			}
+			q[x] = i;
 		}
 
-		ip += ils;
 		q += qls;
-		for( i = 0; i < 256; i++ ) 
-			if( hist[i] ) 
-				p[i] += ls[i];
+		for( i = 0; i < swit->n; i++ ) 
+			p[i] += ls[i];
 	}
 
 	return( 0 );
@@ -135,10 +106,8 @@ vips_switch_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsSwitch *swit = (VipsSwitch *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
-	VipsImage *in;
-	VipsImage **lut;
+	VipsImage **tests;
 	VipsImage **decode;
 	VipsImage **format;
 	VipsImage **band;
@@ -150,24 +119,13 @@ vips_switch_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_switch_parent_class )->build( object ) )
 		return( -1 );
 
-	in = swit->in;
-	lut = vips_area_get_data( &swit->lut->area, 
+	tests = vips_area_get_data( &swit->tests->area, 
 		NULL, &swit->n, NULL, NULL );
-	if( swit->n > 256 ) {
-		vips_error( class->nickname, "%s", _( "LUT too large" ) );
+	if( swit->n > 255 ||
+		swit->n < 1 ) {
+		vips_error( class->nickname, "%s", _( "bad number of tests" ) );
 		return( -1 );
 	}
-	if( in->Bands > 1 ) {
-		vips_error( class->nickname, 
-			"%s", _( "index image not 1-band" ) );
-		return( -1 );
-	}
-
-	/* Cast @in to u8 to make the index image.
-	 */
-	if( vips_cast( in, &t[0], VIPS_FORMAT_UCHAR, NULL ) )
-		return( -1 );
-	in = t[0];
 
 	decode = (VipsImage **) vips_object_local_array( object, swit->n );
 	format = (VipsImage **) vips_object_local_array( object, swit->n );
@@ -177,37 +135,37 @@ vips_switch_build( VipsObject *object )
 	/* Decode RAD/LABQ etc.
 	 */
 	for( i = 0; i < swit->n; i++ )
-		if( vips_image_decode( lut[i], &decode[i] ) )
+		if( vips_image_decode( tests[i], &decode[i] ) )
 			return( -1 );
-	lut = decode;
+	tests = decode;
 
-	/* LUT images must match in format, size and bands.
-	 *
-	 * We want everything sized up to the size of the index image, so add
-	 * that to the end of the set of images for sizealike.
+	/* Must be uchar.
 	 */
-	band[swit->n] = in;
-	g_object_ref( in ); 
-	if( vips__formatalike_vec( lut, format, swit->n ) ||
-		vips__bandalike_vec( class->nickname, 
-			format, band, swit->n, 1 ) ||
+	for( i = 0; i < swit->n; i++ )
+		if( vips_cast_uchar( tests[i], &format[i], NULL ) )
+			return( -1 );
+	tests = format;
+
+	/* Images must match in size and bands.
+	 */
+	if( vips__bandalike_vec( class->nickname, tests, band, swit->n, 1 ) ||
 		vips__sizealike_vec( band, size, swit->n + 1 ) ) 
 		return( -1 );
-	lut = size;
+	tests = size;
 
-	swit->out->BandFmt = lut[0]->BandFmt;
-	swit->out->Bands = lut[0]->Bands;
-	swit->out->Type = lut[0]->Type;
-	swit->out->Xsize = in->Xsize;
-	swit->out->Ysize = in->Ysize;
+	if( tests[0]->Bands > 1 ) {
+		vips_error( class->nickname, 
+			"%s", _( "test images not 1-band" ) );
+		return( -1 );
+	}
 
 	if( vips_image_pipeline_array( swit->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, lut ) )
+		VIPS_DEMAND_STYLE_THINSTRIP, tests ) )
 		return( -1 );
 
 	if( vips_image_generate( swit->out,
 		vips_start_many, vips_switch_gen, vips_stop_many, 
-		lut, swit ) )
+		tests, swit ) )
 		return( -1 );
 
 	return( 0 );
@@ -225,29 +183,23 @@ vips_switch_class_init( VipsSwitchClass *class )
 
 	object_class->nickname = "switch";
 	object_class->description = 
-		_( "use pixel values to switch between a set of images" );
+		_( "find the index of the first non-zero pixel in tests" );
 	object_class->build = vips_switch_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_IMAGE( class, "in", 1, 
-		_( "Input" ), 
-		_( "Input image" ),
+	VIPS_ARG_BOXED( class, "tests", 1, 
+		_( "Tests" ), 
+		_( "Table of images to test" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsSwitch, in ) );
+		G_STRUCT_OFFSET( VipsSwitch, tests ),
+		VIPS_TYPE_ARRAY_IMAGE );
 
 	VIPS_ARG_IMAGE( class, "out", 2, 
 		_( "Output" ), 
 		_( "Output image" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
 		G_STRUCT_OFFSET( VipsSwitch, out ) );
-
-	VIPS_ARG_BOXED( class, "lut", 3, 
-		_( "LUT" ), 
-		_( "Look-up table of images" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsSwitch, lut ),
-		VIPS_TYPE_ARRAY_IMAGE );
 
 }
 
@@ -257,50 +209,47 @@ vips_switch_init( VipsSwitch *swit )
 }
 
 static int
-vips_switchv( VipsImage *in, VipsImage **out, VipsImage **lut, int n, 
-	va_list ap )
+vips_switchv( VipsImage **tests, VipsImage **out, int n, va_list ap )
 {
-	VipsArrayImage *array; 
+	VipsArrayImage *tests_array; 
 	int result;
 
-	array = vips_array_image_new( lut, n ); 
-	result = vips_call_split( "switch", ap, in, out, array );
-	vips_area_unref( VIPS_AREA( array ) );
+	tests_array = vips_array_image_new( tests, n ); 
+	result = vips_call_split( "switch", ap, tests_array, out );
+	vips_area_unref( VIPS_AREA( tests_array ) );
 
 	return( result );
 }
 
 /**
  * vips_switch: (method)
- * @in: input image
- * @out: (out): output image
- * @lut: (array length=n): LUT of input images
+ * @tests: (array length=n): test these images
+ * @out: (out): output index image
  * @n: number of input images
  * @...: %NULL-terminated list of optional named arguments
  *
- * Use pixel values to switch between an array of images.
+ * The @tests images are evaluated and at each point the index of the first 
+ * non-zero value is written to @out. If all @tests are false, the value 
+ * (@n + 1) is written. 
  *
- * Each value in @in is used to select an image from @lut, and the
- * corresponding pixel is copied to the output.
+ * Images in @tests must have one band. They are expanded to the
+ * bounding box of the set of images in @tests, and that size is used for
+ * @out. @tests can have up to 255 elements.  
  *
- * @in must have one band. @lut can have up to 256 elements. Values in @in
- * greater than or equal to @n use the final image in @lut. The images in @lut
- * must have either one band or the same number of bands. The output image is
- * the same size as @in. Images in @lut are expanded to the smallest common
- * format and number of bands.
+ * Combine with vips_case() to make an efficient multi-way vips_ifthenelse().
  *
- * See also: vips_maplut().
+ * See also: vips_maplut(), vips_case(), vips_ifthenelse().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_switch( VipsImage *in, VipsImage **out, VipsImage **lut, int n, ... )
+vips_switch( VipsImage **tests, VipsImage **out, int n, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, n );
-	result = vips_switchv( in, out, lut, n, ap );
+	result = vips_switchv( tests, out, n, ap );
 	va_end( ap );
 
 	return( result );

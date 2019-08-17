@@ -1,4 +1,4 @@
-/* use pixel values to select between an array of images
+/* use pixel values to pick cases from an array of images
  *
  * 28/7/19
  * 	- from maplut.c
@@ -43,87 +43,30 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-typedef struct _VipsSelect {
+typedef struct _VipsCase {
 	VipsOperation parent_instance;
 
-	VipsArrayImage *tests;
-	VipsArrayImage *cases;
+	VipsImage *in;
 	VipsImage *out;
-
+	VipsArrayImage *lut;
 	int n;
 
-} VipsSelect;
+} VipsCase;
 
-typedef VipsOperationClass VipsSelectClass;
+typedef VipsOperationClass VipsCaseClass;
 
-G_DEFINE_TYPE( VipsSelect, vips_select, VIPS_TYPE_OPERATION );
-
-/* Our sequence value.
- */
-typedef struct _VipsSelectSeq {
-	VipsSelect *select;
-
-	/* Set of input regions.
-	 */
-	VipsRegion **tests;
-	VipsRegion **cases;
-
-} VipsSelectSeq;
-
-int
-vips_select_stop( void *vseq, void *a, void *b )
-{
-	VipsSelectSeq *seq = (VipsSelectSeq *) vseq;
-
-	if( seq->tests ) {
-		vips_stop_many( (void *) seq->tests, NULL, NULL );
-		seq->tests = NULL;
-	}
-	if( seq->cases ) {
-		vips_stop_many( (void *) seq->cases, NULL, NULL );
-		seq->cases = NULL;
-	}
-	VIPS_FREE( seq );
-
-	return( 0 ):
-}
-
-static void *
-vips_select_start( VipsImage *out, void *a, void *b )
-{
-	VipsImage **in = (VipsImage **) a;
-	VipsSelect *select = (VipsSelect *) b;
-
-	VipsSelectSeq *seq;
-	int i, n;
-
-	if( !(seq = VIPS_NEW( NULL, VipsSelectSeq )) )
-		return( NULL );
-
-	seq->select = select;
-	seq->tests = NULL;
-	seq->cases = NULL;
-
-	seq->tests = vips_start_many( NULL, (void *) select->tests, NULL );
-	seq->cases = vips_start_many( NULL, (void *) select->cases, NULL );
-	if( !seq->tests ||
-		!seq->cases ) {
-		vips_select_stop( (void *) seq, NULL, NULL  );
-		return( NULL );
-	}
-
-	return( seq );
-}
+G_DEFINE_TYPE( VipsCase, vips_case, VIPS_TYPE_OPERATION );
 
 /* Do a map.
  */
 static int 
-vips_select_gen( VipsRegion *or, void *vseq, void *a, void *b, 
+vips_case_gen( VipsRegion *or, void *seq, void *a, void *b, 
 	gboolean *stop )
 {
-	VipsSelectSeq *seq = (VipsSelectSeq *) vseq;
-	VipsSelect *select = seq->select;
+	VipsRegion **ar = (VipsRegion **) seq;
+	VipsCase *cas = (VipsCase *) b;
 	VipsRect *r = &or->valid;
+	VipsRegion *index = ar[cas->n];
 
 	int x, y, i, j;
 	VipsPel * restrict ip;
@@ -188,10 +131,10 @@ vips_select_gen( VipsRegion *or, void *vseq, void *a, void *b,
 }
 
 static int
-vips_select_build( VipsObject *object )
+vips_case_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsSelect *swit = (VipsSelect *) object;
+	VipsCase *cas = (VipsCase *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
 	VipsImage *in;
@@ -204,13 +147,13 @@ vips_select_build( VipsObject *object )
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
-	if( VIPS_OBJECT_CLASS( vips_select_parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_case_parent_class )->build( object ) )
 		return( -1 );
 
-	in = swit->in;
-	lut = vips_area_get_data( &swit->lut->area, 
-		NULL, &swit->n, NULL, NULL );
-	if( swit->n > 256 ) {
+	in = cas->in;
+	lut = vips_area_get_data( &cas->lut->area, 
+		NULL, &cas->n, NULL, NULL );
+	if( cas->n > 256 ) {
 		vips_error( class->nickname, "%s", _( "LUT too large" ) );
 		return( -1 );
 	}
@@ -226,14 +169,14 @@ vips_select_build( VipsObject *object )
 		return( -1 );
 	in = t[0];
 
-	decode = (VipsImage **) vips_object_local_array( object, swit->n );
-	format = (VipsImage **) vips_object_local_array( object, swit->n );
-	band = (VipsImage **) vips_object_local_array( object, swit->n + 1 );
-	size = (VipsImage **) vips_object_local_array( object, swit->n + 1 );
+	decode = (VipsImage **) vips_object_local_array( object, cas->n );
+	format = (VipsImage **) vips_object_local_array( object, cas->n );
+	band = (VipsImage **) vips_object_local_array( object, cas->n + 1 );
+	size = (VipsImage **) vips_object_local_array( object, cas->n + 1 );
 
 	/* Decode RAD/LABQ etc.
 	 */
-	for( i = 0; i < swit->n; i++ )
+	for( i = 0; i < cas->n; i++ )
 		if( vips_image_decode( lut[i], &decode[i] ) )
 			return( -1 );
 	lut = decode;
@@ -243,35 +186,35 @@ vips_select_build( VipsObject *object )
 	 * We want everything sized up to the size of the index image, so add
 	 * that to the end of the set of images for sizealike.
 	 */
-	band[swit->n] = in;
+	band[cas->n] = in;
 	g_object_ref( in ); 
-	if( vips__formatalike_vec( lut, format, swit->n ) ||
+	if( vips__formatalike_vec( lut, format, cas->n ) ||
 		vips__bandalike_vec( class->nickname, 
-			format, band, swit->n, 1 ) ||
-		vips__sizealike_vec( band, size, swit->n + 1 ) ) 
+			format, band, cas->n, 1 ) ||
+		vips__sizealike_vec( band, size, cas->n + 1 ) ) 
 		return( -1 );
 	lut = size;
 
-	swit->out->BandFmt = lut[0]->BandFmt;
-	swit->out->Bands = lut[0]->Bands;
-	swit->out->Type = lut[0]->Type;
-	swit->out->Xsize = in->Xsize;
-	swit->out->Ysize = in->Ysize;
+	cas->out->BandFmt = lut[0]->BandFmt;
+	cas->out->Bands = lut[0]->Bands;
+	cas->out->Type = lut[0]->Type;
+	cas->out->Xsize = in->Xsize;
+	cas->out->Ysize = in->Ysize;
 
-	if( vips_image_pipeline_array( swit->out, 
+	if( vips_image_pipeline_array( cas->out, 
 		VIPS_DEMAND_STYLE_THINSTRIP, lut ) )
 		return( -1 );
 
-	if( vips_image_generate( swit->out,
-		vips_start_many, vips_select_gen, vips_stop_many, 
-		lut, swit ) )
+	if( vips_image_generate( cas->out,
+		vips_start_many, vips_case_gen, vips_stop_many, 
+		lut, cas ) )
 		return( -1 );
 
 	return( 0 );
 }
 
 static void
-vips_select_class_init( VipsSelectClass *class )
+vips_case_class_init( VipsCaseClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
@@ -280,88 +223,87 @@ vips_select_class_init( VipsSelectClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "select";
+	object_class->nickname = "case";
 	object_class->description = 
-		_( "test images pick pixels from a set of case images" );
-	object_class->build = vips_select_build;
+		_( "use pixel values to case between a set of images" );
+	object_class->build = vips_case_build;
 
 	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	VIPS_ARG_BOXED( class, "tests", 1, 
-		_( "Tests" ), 
-		_( "Table of images to test" ),
+	VIPS_ARG_IMAGE( class, "in", 1, 
+		_( "Input" ), 
+		_( "Input image" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsSelect, tests ),
-		VIPS_TYPE_ARRAY_IMAGE );
+		G_STRUCT_OFFSET( VipsCase, in ) );
 
-	VIPS_ARG_BOXED( class, "cases", 2, 
-		_( "Cases" ), 
-		_( "Table of image cases" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsSelect, cases ),
-		VIPS_TYPE_ARRAY_IMAGE );
-
-	VIPS_ARG_IMAGE( class, "out", 3, 
+	VIPS_ARG_IMAGE( class, "out", 2, 
 		_( "Output" ), 
 		_( "Output image" ),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
-		G_STRUCT_OFFSET( VipsSelect, out ) );
+		G_STRUCT_OFFSET( VipsCase, out ) );
+
+	VIPS_ARG_BOXED( class, "lut", 3, 
+		_( "LUT" ), 
+		_( "Look-up table of images" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsCase, lut ),
+		VIPS_TYPE_ARRAY_IMAGE );
 
 }
 
 static void
-vips_select_init( VipsSelect *swit )
+vips_case_init( VipsCase *cas )
 {
 }
 
 static int
-vips_selectv( VipsImage **tests, VipsImage **cases, VipsImage **out, int n, 
+vips_casev( VipsImage *in, VipsImage **out, VipsImage **lut, int n, 
 	va_list ap )
 {
-	VipsArrayImage *tests_array; 
-	VipsArrayImage *cases_array; 
+	VipsArrayImage *array; 
 	int result;
 
-	tests_array = vips_array_image_new( tests n ); 
-	cases_array = vips_array_image_new( selects, n ); 
-	result = vips_call_split( "select", ap, 
-		tests_array, cases_array, out );
-	vips_area_unref( VIPS_AREA( tests_array ) );
-	vips_area_unref( VIPS_AREA( cases_array ) );
+	array = vips_array_image_new( lut, n ); 
+	result = vips_call_split( "case", ap, in, out, array );
+	vips_area_unref( VIPS_AREA( array ) );
 
 	return( result );
 }
 
 /**
- * vips_select: (method)
- * @tests: (array length=n): test these images
- * @cases: (array length=n): to pick between these images 
+ * vips_case: (method)
+ * @in: input image
  * @out: (out): output image
+ * @lut: (array length=n): LUT of input images
  * @n: number of input images
  * @...: %NULL-terminated list of optional named arguments
  *
- * The @tests images are evaluated and the index of the first non-zero value 
- * in @tests is used to pick a pixel from @cases. If all @tests are false, the
- * pixel from the final image is @cases is used.
+ * Use pixel values to pick cases from an array of images.
  *
- * Images in @tests images must have one uchar band. @cases and @tests can 
- * have up to 256 elements. The images in @tests and @cases
+ * Each value in @in is used to select an image from @lut, and the
+ * corresponding pixel is copied to the output.
+ *
+ * @in must have one band. @lut can have up to 256 elements. Values in @in
+ * greater than or equal to @n use the final image in @lut. The images in @lut
  * must have either one band or the same number of bands. The output image is
- * the same size as @tests. Images in @cases are expanded to the smallest 
- * common format and number of bands.
+ * the same size as @in. Images in @lut are expanded to the smallest common
+ * format and number of bands.
  *
- * See also: vips_maplut().
+ * Combine this with vips_switch() to make something like a case statement, or
+ * a multi-way vips_ifthenelse().
+ *
+ * See also: vips_maplut(), vips_switch(), vips_ifthenelse().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_select( VipsImage **tests, VipsImage **cases, VipsImage **out, int n, ... )
+vips_case( VipsImage *in, VipsImage **out, VipsImage **lut, int n, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, n );
-	result = vips_selectv( tests, cases, out, n, ap );
+	result = vips_casev( in, out, lut, n, ap );
 	va_end( ap );
 
 	return( result );
