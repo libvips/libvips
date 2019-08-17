@@ -1441,22 +1441,6 @@ image pyramid export:			$with_gsf
 use libexif to load/save JPEG metadata: $with_libexif
 ])
 
-if test x"$found_introspection" = x"yes" -a "$VIPS_LIBDIR/girepository-1.0" != "$INTROSPECTION_TYPELIBDIR"; then
-  case "$VIPS_LIBDIR" in
-    /usr/local/Cellar/vips/*)
-      ;; # ignore for homebrew
-    *)
-      AC_MSG_RESULT([dnl
-Vips-8.0.typelib will be installed to $VIPS_LIBDIR/girepository-1.0, but 
-your system repository seems to be $INTROSPECTION_TYPELIBDIR. 
-You may need to add this directory to your typelib path, for example:
-
-	export GI_TYPELIB_PATH="$VIPS_LIBDIR/girepository-1.0"
-      ])
-      ;;
-  esac
-fi
-
 if test x"$vips_os_win32" = x"yes"; then
   if test x"$have_g_win32_get_command_line" != x"yes"; then
     AC_MSG_RESULT([dnl
