@@ -119,6 +119,9 @@ vips_switch_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_switch_parent_class )->build( object ) )
 		return( -1 );
 
+	/* 255 rather than 256, since we want to reserve +1 as the no
+	 * match value.
+	 */
 	tests = vips_area_get_data( &swit->tests->area, 
 		NULL, &swit->n, NULL, NULL );
 	if( swit->n > 255 ||
@@ -149,7 +152,7 @@ vips_switch_build( VipsObject *object )
 	/* Images must match in size and bands.
 	 */
 	if( vips__bandalike_vec( class->nickname, tests, band, swit->n, 1 ) ||
-		vips__sizealike_vec( band, size, swit->n + 1 ) ) 
+		vips__sizealike_vec( band, size, swit->n ) ) 
 		return( -1 );
 	tests = size;
 
