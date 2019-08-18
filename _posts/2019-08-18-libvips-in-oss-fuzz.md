@@ -61,7 +61,7 @@ done continuously, so every commit we make will be tested within about 24h.
 We added two things: first, there's a `fuzz` directory in libvips that's
 integrated into our build system:
 
-[https://github.com/libvips/libvips/tree/master/fuzz])(https://github.com/libvips/libvips/tree/master/fuzz)
+[https://github.com/libvips/libvips/tree/master/fuzz](https://github.com/libvips/libvips/tree/master/fuzz)
 
 That defines five fuzz targets testing different parts of the system. They are
 pretty simple --- for example, here's the one for any format load to PNG write:
