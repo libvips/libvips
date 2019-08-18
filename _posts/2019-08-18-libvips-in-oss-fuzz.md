@@ -9,7 +9,7 @@ and none in the last five days.
 
 # Background
 
-Feedback-fuzzing has been around for a few years. I stumbled upon AFL
+Feedback fuzzing has been around for a few years. I stumbled upon AFL
 ([American Fuzzy Lop](http://lcamtuf.coredump.cx/afl/)) in 2016 via this
 interesting blog post:
 
@@ -44,17 +44,17 @@ times, though it's a bit of an effort.
 Google have jumped on this idea too, and really gone with it. 
 
 They've added a set of sanitisers, each specialized in a certain type of
-test (address handling, undefined behaviour, threading, etc.) to clang, the
+test (address handling, undefined behaviour, threading, etc.), to clang, the
 LLVM-derived compiler that they and Apple contribute to. We've previously
 tested libvips with these too.
 
 Next, they've made a feedback fuzzer on top of the sanitisers, and then
 built a lot of infrastructure for collecting and running sets of tests and
-tracking issues. Finally, they've opened it to popular open-source projects
---- including libvips.
+tracking issues. Finally, they've opened it to popular open-source projects,
+including libvips.
 
 Whenever Google's clusters have some spare time, they are now fuzzing us. It's
-done continuously, so every commit we make will be tested within about 24h.
+done continuously, so every commit we make is tested within about 24h.
 
 # Implementation
 
@@ -68,7 +68,7 @@ pretty simple --- for example, here's the one for any format load to PNG write:
 
 [https://github.com/libvips/libvips/blob/master/fuzz/pngsave_buffer_fuzzer.cc](https://github.com/libvips/libvips/blob/master/fuzz/pngsave_buffer_fuzzer.cc)
 
-There are directories holding inputs that have previously raised issues,
+There are directories holding inputs that have previously raised issues
 so we can immediately spot regressions as part of `make check`.
 
 Second, `oss-fuzz` has a libvips project directory that builds the library
