@@ -56,6 +56,28 @@ tracking issues. Finally, they've opened it to popular open-source projects
 Whenever Google's clusters have some spare time, they are now fuzzing us. It's
 done continuously, so every commit we make will be tested within about 24h.
 
+# Implementation
+
+We added two things: first, there's a `fuzz` directory in libvips that's
+integrated into our build system:
+
+[https://github.com/libvips/libvips/tree/master/fuzz])(https://github.com/libvips/libvips/tree/master/fuzz)
+
+That defines five fuzz targets testing different parts of the system. They are
+pretty simple --- for example, here's the one for any format load to PNG write:
+
+[https://github.com/libvips/libvips/blob/master/fuzz/pngsave_buffer_fuzzer.cc](https://github.com/libvips/libvips/blob/master/fuzz/pngsave_buffer_fuzzer.cc)
+
+There are directories holding inputs that have previously raised issues,
+so we can immediately spot regressions as part of `make check`.
+
+Second, `oss-fuzz` has a libvips project directory that builds the library
+and runs the fuzzers:
+
+[https://github.com/google/oss-fuzz/tree/master/projects/libvips](https://github.com/google/oss-fuzz/tree/master/projects/libvips)
+
+Everything else is automatic. It's rather slick.
+
 # Results
 
 It's found 34 issues, but only two had security implications, and one of
