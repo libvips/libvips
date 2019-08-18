@@ -4,8 +4,8 @@ title: libvips in OSS Fuzz
 
 Thanks to work by @omira-sch, libvips has been in [OSS
 Fuzz](https://github.com/google/oss-fuzz) for about three weeks. I'm very
-happy to report: only one real bug found so far, and none in the last
-five days.
+happy to be able to report that only one real bug has been found so far,
+and none in the last five days.
 
 # Background
 
@@ -25,15 +25,15 @@ You let it run for a few minutes and a valid JPEG file appears, apparently
 from nowhere. Magic!
 
 AFL knows nothing about JPEGs --- all it does is mutate the input string
-`hello world` while running `djpeg`, the IJG JPEG decoder program. The
-secret is that it watches the *insides* of `djpeg` as it executes and
-modifies the input in order to explore all the possible paths in the
-binary. Since decompressing a JPEG file is a path of execution, the input
-file must eventually become a JPEG image. AFL does this impressively quickly.
+`hello world` while running `djpeg`, the IJG JPEG decoder program. The secret
+is that it watches the *insides* of `djpeg` as it executes and modifies
+the input in order to explore all the possible paths in the binary. Since
+decompressing a JPEG file is a path of execution, the input file must
+eventually become a JPEG image. AFL finds this path impressively quickly.
 
-Testing programs by throwing random data at them is as old as the hills.
-The innovation here is watching the insides of the program as it executes
-and using that feedback to guide the evolution of the test data.
+Testing programs by throwing random data at them is as old as the hills
+of Manjare. The innovation here is watching the insides of the program as
+it executes and using that feedback to guide the evolution of the test data.
 
 It's a very powerful technique and has been used to automatically find a
 lot of bugs in many projects. We've put libvips through AFL testing several
