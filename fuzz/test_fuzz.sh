@@ -14,7 +14,7 @@ export VIPS_WARNING=0
 ret=0
 
 for fuzzer in *_fuzzer; do
-	find "${fuzzer}_corpus" -type f -not -empty -print0 \
+	find "common_fuzzer_corpus" -type f -not -empty -print0 \
 	  | xargs -0 -n1 "./$fuzzer" || ret=1
 done
 
