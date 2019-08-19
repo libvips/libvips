@@ -2,7 +2,7 @@
 title: libvips in OSS Fuzz
 ---
 
-Thanks to work by @omira-sch, libvips has been in [OSS
+Thanks to work by Oscar Mira (@omira-sch), libvips has been in [OSS
 Fuzz](https://github.com/google/oss-fuzz) for about three weeks. I'm very
 happy to be able to report that only one real bug has been found so far,
 and none in the last five days.
