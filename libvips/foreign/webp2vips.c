@@ -547,7 +547,9 @@ read_header( Read *read, VipsImage *out )
 	}
 
 	if( read->width <= 0 ||
-		read->height <= 0 ) {
+		read->height <= 0 ||
+		read->width > 0x3FFF ||
+		read->height > 0x3FFF ) {
 		vips_error( "webp", "%s", _( "bad image dimensions" ) ); 
 		return( -1 ); 
 	}
