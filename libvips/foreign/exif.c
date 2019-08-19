@@ -700,7 +700,7 @@ vips_exif_set_double( ExifData *ed,
 		ExifSRational srv;
 
 		srv = exif_get_srational( entry->data + offset, bo );
-		if( rv.denominator == 0 )
+		if( srv.denominator == 0 )
 			old_value = 0;
 		else
 			old_value = (double) srv.numerator / srv.denominator;
