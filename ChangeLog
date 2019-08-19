@@ -8,6 +8,7 @@
 - support webp and zstd compression in tiff
 - loaders use "minimise" to close input files earlier
 - integrate support for oss-fuzz [omira-sch]
+- add vips_switch() / vips_case() ... fast many-way ifthenelse
 
 9/7/19 started 8.8.2
 - better early shutdown in readers

@@ -539,6 +539,27 @@ class TestConversion:
         result = r(50, 50)
         assert_almost_equal_objects(result, [3.0, 4.9, 6.9], threshold=0.1)
 
+    def test_switch(self):
+        x = pyvips.Image.grey(256, 256, uchar=True)
+
+        # slice into two at 128, we should get 50% of pixels in each half
+        index = pyvips.Image.switch([x < 128, x >= 128])
+        assert index.avg() == 0.5
+
+        # slice into four 
+        index = pyvips.Image.switch([
+            x < 64, 
+            x >= 64 and x < 128,
+            x >= 128 and x < 192,
+            x >= 192
+        ])
+        assert index.avg() == 1.5
+
+        # no match should return n + 1
+        # FIXME uncomment when we fix relational const
+        #index = pyvips.Image.switch([x == 1000, x == 2000])
+        #assert index.avg() == 2
+
     def test_insert(self):
         for x in all_formats:
             for y in all_formats:
