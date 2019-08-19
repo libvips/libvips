@@ -681,7 +681,11 @@ vips_exif_set_double( ExifData *ed,
 		ExifRational rv;
 
 		rv = exif_get_rational( entry->data + offset, bo );
-		old_value = (double) rv.numerator / rv.denominator;
+		if( rv.denominator == 0 )
+			old_value = 0;
+		else
+			old_value = (double) rv.numerator / rv.denominator;
+
 		if( VIPS_FABS( old_value - value ) > 0.0001 ) {
 			vips_exif_double_to_rational( value, &rv ); 
 
@@ -696,7 +700,11 @@ vips_exif_set_double( ExifData *ed,
 		ExifSRational srv;
 
 		srv = exif_get_srational( entry->data + offset, bo );
-		old_value = (double) srv.numerator / srv.denominator;
+		if( rv.denominator == 0 )
+			old_value = 0;
+		else
+			old_value = (double) srv.numerator / srv.denominator;
+
 		if( VIPS_FABS( old_value - value ) > 0.0001 ) {
 			vips_exif_double_to_srational( value, &srv ); 
 
