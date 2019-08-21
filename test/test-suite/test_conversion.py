@@ -556,9 +556,8 @@ class TestConversion:
         assert index.avg() == 1.5
 
         # no match should return n + 1
-        # FIXME uncomment when we fix relational const
-        #index = pyvips.Image.switch([x == 1000, x == 2000])
-        #assert index.avg() == 2
+        index = pyvips.Image.switch([x == 1000, x == 2000])
+        assert index.avg() == 2
 
     def test_insert(self):
         for x in all_formats:
