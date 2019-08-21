@@ -830,7 +830,7 @@ class TestForeign:
     def test_heifload(self):
         def heif_valid(im):
             a = im(10, 10)
-            assert_almost_equal_objects(a, [75.0, 86.0, 81.0])
+            assert_almost_equal_objects(a, [75.0, 86.0, 81.0], threshold=2)
             assert im.width == 4032
             assert im.height == 3024
             assert im.bands == 3
