@@ -1451,12 +1451,15 @@ vips_image_set_blob_copy( VipsImage *image,
 {
 	void *data_copy;
 
+	/* Cap at 100mb for sanity.
+	 */
 	if( !data ||
-		length == 0 )
+		length == 0 ||
+		length > 100 * 1024 * 1024 )
 		return;
 
 	/* We add an extra, secret null byte at the end, just in case this blob 
-	 * is read as a C string. The libtiff reader (for example) attaches
+	 * is read as a C string. The libtiff reader attaches
 	 * XMP XML as a blob, for example.
 	 */
 	if( !(data_copy = vips_malloc( NULL, length + 1 )) ) 
