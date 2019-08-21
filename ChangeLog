@@ -9,6 +9,8 @@
 - loaders use "minimise" to close input files earlier
 - integrate support for oss-fuzz [omira-sch]
 - add vips_switch() / vips_case() ... fast many-way ifthenelse
+- better const handling for arithmetic operators fixes comparisons against out
+  of range values
 
 9/7/19 started 8.8.2
 - better early shutdown in readers

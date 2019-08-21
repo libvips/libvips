@@ -49,100 +49,6 @@
 
 G_DEFINE_ABSTRACT_TYPE( VipsUnaryConst, vips_unary_const, VIPS_TYPE_UNARY );
 
-/* Cast a vector of double to a vector of TYPE, clipping to a range.
- */
-#define CAST_CLIP( TYPE, N, X ) { \
-	TYPE * restrict tq = (TYPE *) q; \
-	\
-	for( i = 0; i < m; i++ ) { \
-		double v = p[VIPS_MIN( n - 1, i )]; \
-		\
-		tq[i] = (TYPE) VIPS_FCLIP( N, v, X ); \
-	} \
-}
-
-/* Cast a vector of double to a vector of TYPE.
- */
-#define CAST( TYPE ) { \
-	TYPE * restrict tq = (TYPE *) q; \
-	\
-	for( i = 0; i < m; i++ ) \
-		tq[i] = (TYPE) p[VIPS_MIN( n - 1, i )]; \
-}
-
-/* Cast a vector of double to a complex vector of TYPE.
- */
-#define CASTC( TYPE ) { \
-	TYPE * restrict tq = (TYPE *) q; \
-	\
-	for( i = 0; i < m; i++ ) { \
-		tq[0] = (TYPE) p[VIPS_MIN( n - 1, i )]; \
-		tq[1] = 0; \
-		\
-		tq += 2; \
-	} \
-}
-
-/* Cast a n-band vector of double to a m-band vector in another format.
- */
-static VipsPel *
-make_pixel( VipsObject *obj, 
-	int m, VipsBandFormat fmt, int n, double * restrict p )
-{
-	VipsPel *q;
-	int i;
-
-	if( !(q = VIPS_ARRAY( obj, m * vips_format_sizeof( fmt ), VipsPel )) )
-		return( NULL );
-
-        switch( fmt ) {
-        case VIPS_FORMAT_CHAR:		
-		CAST_CLIP( signed char, SCHAR_MIN, SCHAR_MAX ); 
-		break;
-
-        case VIPS_FORMAT_UCHAR:  	
-		CAST_CLIP( unsigned char, 0, UCHAR_MAX ); 
-		break;
-
-        case VIPS_FORMAT_SHORT:  	
-		CAST_CLIP( signed short, SCHAR_MIN, SCHAR_MAX ); 
-		break;
-
-        case VIPS_FORMAT_USHORT: 	
-		CAST_CLIP( unsigned short, 0, USHRT_MAX ); 
-		break;
-
-        case VIPS_FORMAT_INT:    	
-		CAST_CLIP( signed int, INT_MIN, INT_MAX ); 
-		break;
-
-        case VIPS_FORMAT_UINT:   	
-		CAST_CLIP( unsigned int, 0, UINT_MAX ); 
-		break;
-
-        case VIPS_FORMAT_FLOAT: 		
-		CAST( float ); 
-		break; 
-
-        case VIPS_FORMAT_DOUBLE:		
-		CAST( double ); 
-		break;
-
-        case VIPS_FORMAT_COMPLEX: 	
-		CASTC( float ); 
-		break; 
-
-        case VIPS_FORMAT_DPCOMPLEX:	
-		CASTC( double ); 
-		break;
-
-        default:
-                g_assert_not_reached();
-        }
-
-	return( q );
-}
-
 static int
 vips_unary_const_build( VipsObject *object )
 {
@@ -161,27 +67,43 @@ vips_unary_const_build( VipsObject *object )
 		uconst->n = VIPS_MAX( uconst->n, unary->in->Bands );
 	arithmetic->base_bands = uconst->n;
 
-	if( unary->in && uconst->c ) {
+	if( unary->in && 
+		uconst->c ) {
 		if( vips_check_vector( class->nickname, 
 			uconst->c->n, unary->in ) )
 		return( -1 );
 	}
 
-	/* Some operations need the vector in the input type (eg.
-	 * im_equal_vec() where the output type is always uchar and is useless
-	 * for comparisons), some need it in the output type (eg.
-	 * im_andimage_vec() where we want to get the double to an int so we
-	 * can do bitwise-and without having to cast for each pixel), some
-	 * need a fixed type (eg. im_powtra_vec(), where we want to keep it as
-	 * double).
+	/* Some operations need int constants, for example boolean AND, SHIFT
+	 * etc.
 	 *
-	 * Therefore pass in the desired vector type as a param.
+	 * Some can use int constants as an optimisation, for example (x <
+	 * 12). It depends on the value though: obviously (x < 12.5) should
+	 * not use the int form.
 	 */
+	if( uconst->c ) {
+		int i;
 
-	if( uconst->c ) 
-		uconst->c_ready = make_pixel( (VipsObject *) uconst, 
-			uconst->n, uconst->const_format,
-			uconst->c->n, (double *) uconst->c->data );
+		uconst->c_int = VIPS_ARRAY( object, uconst->n, int );
+		uconst->c_double = VIPS_ARRAY( object, uconst->n, double );
+		if( !uconst->c_int ||
+			!uconst->c_double )
+			return( -1 );
+
+		for( i = 0; i < uconst->n; i++ )
+			uconst->c_double[i] = ((double *) uconst->c->data)
+				[VIPS_MIN( i, uconst->c->n - 1)];
+
+		for( i = 0; i < uconst->n; i++ )
+			uconst->c_int[i] = uconst->c_double[i];
+		
+		uconst->is_int = TRUE;
+		for( i = 0; i < uconst->n; i++ )
+			if( uconst->c_int[i] != uconst->c_double[i] ) {
+				uconst->is_int = FALSE;
+				break;
+			}
+	}
 
 	if( VIPS_OBJECT_CLASS( vips_unary_const_parent_class )->
 		build( object ) )

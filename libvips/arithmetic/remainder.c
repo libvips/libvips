@@ -238,14 +238,10 @@ vips_remainder_const_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsUnary *unary = (VipsUnary *) object;
-	VipsUnaryConst *uconst = (VipsUnaryConst *) object;
 
 	if( unary->in &&
 		vips_check_noncomplex( class->nickname, unary->in ) )
 		return( -1 );
-
-	if( unary->in )
-		uconst->const_format = unary->in->BandFmt;
 
 	if( VIPS_OBJECT_CLASS( vips_remainder_const_parent_class )->
 		build( object ) )
@@ -259,7 +255,7 @@ vips_remainder_const_build( VipsObject *object )
 #define IREMAINDERCONST( TYPE ) { \
 	TYPE * restrict p = (TYPE *) in[0]; \
 	TYPE * restrict q = (TYPE *) out; \
-	TYPE * restrict c = (TYPE *) uconst->c_ready; \
+	int * restrict c = uconst->c_int; \
 	\
 	for( i = 0, x = 0; x < width; x++ ) \
 		for( b = 0; b < bands; b++, i++ ) \
@@ -271,7 +267,7 @@ vips_remainder_const_build( VipsObject *object )
 #define FREMAINDERCONST( TYPE ) { \
 	TYPE * restrict p = (TYPE *) in[0]; \
 	TYPE * restrict q = (TYPE *) out; \
-	TYPE * restrict c = (TYPE *) uconst->c_ready; \
+	int * restrict c = uconst->c_int; \
 	\
 	for( i = 0, x = 0; x < width; x++ ) \
 		for( b = 0; b < bands; b++, i++ ) { \
