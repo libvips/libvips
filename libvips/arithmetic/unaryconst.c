@@ -2,6 +2,8 @@
  *
  * 11/11/11
  * 	- from arith_binary_const
+ * 21/8/19
+ * 	- revise to fix out of range comparisons
  */
 
 /*
@@ -80,25 +82,36 @@ vips_unary_const_build( VipsObject *object )
 	 * Some can use int constants as an optimisation, for example (x <
 	 * 12). It depends on the value though: obviously (x < 12.5) should
 	 * not use the int form.
+	 *
+	 * For complex images, we double the vector length and set the
+	 * imaginary part to 0.
 	 */
 	if( uconst->c ) {
+		gboolean is_complex = 
+			vips_band_format_iscomplex( unary->in->BandFmt );
+		int step = is_complex ? 2 : 1;
+		int n = step * uconst->n;
+		double *c = (double *) uconst->c->data;
+
 		int i;
 
-		uconst->c_int = VIPS_ARRAY( object, uconst->n, int );
-		uconst->c_double = VIPS_ARRAY( object, uconst->n, double );
+		uconst->c_int = VIPS_ARRAY( object, n, int );
+		uconst->c_double = VIPS_ARRAY( object, n, double );
 		if( !uconst->c_int ||
 			!uconst->c_double )
 			return( -1 );
+		memset( uconst->c_int, 0, n * sizeof( int ) );
+		memset( uconst->c_double, 0, n * sizeof( double ) );
 
-		for( i = 0; i < uconst->n; i++ )
-			uconst->c_double[i] = ((double *) uconst->c->data)
-				[VIPS_MIN( i, uconst->c->n - 1)];
+		for( i = 0; i < n; i += step )
+			uconst->c_double[i] = 
+				c[VIPS_MIN( i / step, uconst->c->n - 1)];
 
-		for( i = 0; i < uconst->n; i++ )
+		for( i = 0; i < n; i += step )
 			uconst->c_int[i] = uconst->c_double[i];
 		
 		uconst->is_int = TRUE;
-		for( i = 0; i < uconst->n; i++ )
+		for( i = 0; i < n; i += step )
 			if( uconst->c_int[i] != uconst->c_double[i] ) {
 				uconst->is_int = FALSE;
 				break;

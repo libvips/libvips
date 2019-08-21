@@ -499,7 +499,7 @@ vips_relational_const_buffer( VipsArithmetic *arithmetic,
 	VipsImage *im = arithmetic->ready[0];
 	int bands = im->Bands;
 	gboolean is_int = uconst->is_int &&
-		vips_band_format_isint(  im->BandFmt );
+		vips_band_format_isint( im->BandFmt );
 
 	int i, x, b;
 

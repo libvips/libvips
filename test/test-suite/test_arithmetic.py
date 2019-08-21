@@ -1,4 +1,5 @@
 # vim: set fileencoding=utf-8 :
+
 import math
 import pytest
 
@@ -10,14 +11,16 @@ from helpers import unsigned_formats, float_formats, noncomplex_formats, \
 
 class TestArithmetic:
     def run_arith(self, fn, fmt=all_formats):
-        [run_image2(fn.__name__ + ' image', x.cast(y), x.cast(z), fn)
+        [run_image2('%s image %s %s %s' % (fn.__name__, x, y, z),
+                    x.cast(y), x.cast(z), fn)
          for x in self.all_images for y in fmt for z in fmt]
 
     def run_arith_const(self, fn, fmt=all_formats):
-        [run_const(fn.__name__ + ' scalar', fn, x.cast(y), 2)
+        [run_const('%s scalar %s %s' % (fn.__name__, x, y), 
+                   fn, x.cast(y), 2)
          for x in self.all_images for y in fmt]
-        [run_const(fn.__name__ + ' vector', fn, self.colour.cast(y),
-                   [1, 2, 3])
+        [run_const('%s vector %s' % (fn.__name__, y), 
+                   fn, self.colour.cast(y), [1, 2, 3])
          for y in fmt]
 
     # run a function on an image,
