@@ -202,6 +202,13 @@ class TestArithmetic:
         self.run_arith_const(noteq)
         self.run_arith(noteq)
 
+        # comparisons against out of range values should always fail, and
+        # comparisons to fractional values should always fail
+        x = pyvips.Image.grey(256, 256, uchar=True)
+        assert (x == 1000).max() == 0
+        assert (x == 12).max() == 255
+        assert (x == 12.5).max() == 0
+
     def test_abs(self):
         def my_abs(x):
             return abs(x)
