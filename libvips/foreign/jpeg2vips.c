@@ -344,13 +344,16 @@ attach_xmp_blob( VipsImage *im, void *data, int data_length )
 	char *p = (char *) data;
 	int i;
 
-	if( !vips_isprefix( "http", p ) ) 
+	if( data_length < 4 ||
+		!vips_isprefix( "http", p ) ) 
 		return( 0 );
 
 	/* Search for a null char within the first few characters. 80
 	 * should be plenty for a basic URL.
+	 *
+	 * -2 for the extra null.
 	 */
-	for( i = 0; i < 80; i++ )
+	for( i = 0; i < VIPS_MIN( 80, data_length - 2 ); i++ )
 		if( !p[i] ) 
 			break;
 	if( p[i] )
