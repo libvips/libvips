@@ -22,6 +22,8 @@
  * 	- init pages to 0 before load
  * 14/2/19
  * 	- rework as a sequential loader ... simpler, much lower mem use
+ * 23/8/18
+ * 	- allow GIF read errors during header scan
  */
 
 /*
@@ -601,11 +603,12 @@ vips_foreign_load_gif_header( VipsForeignLoad *load )
 
 	gif->n_pages = 0;
 
-	do { 
-		if( DGifGetRecordType( gif->file, &record ) == GIF_ERROR ) {
-			vips_foreign_load_gif_error( gif ); 
-			return( -1 ); 
-		}
+	do {
+		/* Don't flag errors during header scan. Some corrupt GIFs
+		 * will fail.
+		 */
+		if( DGifGetRecordType( gif->file, &record ) == GIF_ERROR ) 
+			continue;
 
 		switch( record ) {
 		case IMAGE_DESC_RECORD_TYPE:
