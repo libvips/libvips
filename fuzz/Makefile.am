@@ -2,6 +2,7 @@ TESTS = \
 	test_fuzz.sh
 
 FUZZPROGS = \
+	jpegsave_file_fuzzer \
 	jpegsave_buffer_fuzzer \
 	pngsave_buffer_fuzzer \
 	webpsave_buffer_fuzzer \
