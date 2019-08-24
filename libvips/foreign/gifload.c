@@ -30,6 +30,7 @@
  * 	- close early on error
  * 23/8/18
  * 	- allow GIF read errors during header scan
+ * 	- better feof() handling
  */
 
 /*
