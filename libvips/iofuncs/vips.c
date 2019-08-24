@@ -382,8 +382,10 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 	im->Ysize = VIPS_CLIP( 1, im->Ysize, VIPS_MAX_COORD );
 	im->Bands = VIPS_CLIP( 1, im->Bands, VIPS_MAX_COORD );
 	im->BandFmt = VIPS_CLIP( 0, im->BandFmt, VIPS_FORMAT_LAST - 1 );
+	im->Type = VIPS_CLIP( 0, im->Type, VIPS_INTERPRETATION_LAST - 1 );
+	im->Coding = VIPS_CLIP( 0, im->Coding, VIPS_CODING_LAST - 1 );
 
-	/* Type, Coding, Offset, Res, etc. don't affect vips file layout, just 
+	/* Offset, Res, etc. don't affect vips file layout, just 
 	 * pixel interpretation, don't clip them.
 	 */
 
