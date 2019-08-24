@@ -24,6 +24,7 @@
  * 	- rework as a sequential loader ... simpler, much lower mem use
  * 23/8/18
  * 	- allow GIF read errors during header scan
+ * 	- better feof() handling
  */
 
 /*
