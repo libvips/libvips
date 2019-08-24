@@ -195,7 +195,6 @@ typedef struct _VipsForeignLoadGif {
 	/* Params for DGifOpen(). Set by subclasses, called by base class in
 	 * _open().
 	 */
-	void *userPtr;
 	InputFunc read_func;
 
 } VipsForeignLoadGif;
@@ -1088,15 +1087,22 @@ vips_foreign_load_gif_open( VipsForeignLoadGif *gif )
 {
 	int error;
 
-	if( !(gif->file = DGifOpen( gif->userPtr, gif->read_func, &error )) ) {
+	if( !(gif->file = DGifOpen( gif, gif->read_func, &error )) ) {
 		vips_foreign_load_gif_error_vips( gif, error );
 		return( -1 );
 	}
 }
+<<<<<<< HEAD
 #else
 	if( !(gif->file = DGifOpen( gif->userPtr, gif->read_func )) ) {
 		vips_foreign_load_gif_error_vips( gif, GifLastError() );
 		return( -1 );
+=======
+#else 
+	if( !(gif->file = DGifOpen( gif, gif->read_func )) ) { 
+		vips_foreign_load_gif_error_vips( gif, GifLastError() ); 
+		return( -1 ); 
+>>>>>>> 8.8
 	}
 #endif
 
@@ -1197,12 +1203,21 @@ vips_foreign_load_gif_file_dispose( GObject *gobject )
  * DGifOpenFileHandle() since that's an fd from open() and you can't pass those
  * across DLL boundaries on Windows.
  */
+<<<<<<< HEAD
 static int
 vips_giflib_file_read( GifFileType *file, GifByteType *buffer, int n )
+=======
+static int 
+vips_giflib_file_read( GifFileType *gfile, GifByteType *buffer, int n )
+>>>>>>> 8.8
 {
-	FILE *fp = (FILE *) file->UserData;
+	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) gfile->UserData;
+	VipsForeignLoadGifFile *file = (VipsForeignLoadGifFile *) gif;
 
-	return( (int) fread( (void *) buffer, 1, n, fp ) );
+	if( feof( file->fp ) )
+		gif->eof = TRUE;
+
+	return( (int) fread( (void *) buffer, 1, n, file->fp ) );
 }
 
 static int
@@ -1242,7 +1257,6 @@ vips_foreign_load_gif_file_open( VipsForeignLoadGif *gif )
 		rewind( file->fp );
 
 	vips_foreign_load_gif_close( gif );
-	gif->userPtr = file->fp;
 	gif->read_func = vips_giflib_file_read;
 
 	return( VIPS_FOREIGN_LOAD_GIF_CLASS(
@@ -1337,7 +1351,6 @@ vips_foreign_load_gif_buffer_open( VipsForeignLoadGif *gif )
 	vips_foreign_load_gif_close( gif );
 	buffer->p = buffer->buf->data;
 	buffer->bytes_to_go = buffer->buf->length;
-	gif->userPtr = gif;
 	gif->read_func = vips_giflib_buffer_read;;
 
 	return( VIPS_FOREIGN_LOAD_GIF_CLASS(

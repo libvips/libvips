@@ -24,6 +24,7 @@
 - fix a problem with shinkv tail processing [angelmixu]
 - fix a read one byte beyond buffer bug in jpegload
 - make GIF parsing less strict
+- better feof() handling in GIF load
 - clip coding and interpretation on vips image read
 
 24/5/19 started 8.8.1
