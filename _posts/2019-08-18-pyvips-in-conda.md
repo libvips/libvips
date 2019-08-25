@@ -2,8 +2,16 @@
 title: pyvips in conda
 ---
 
-Thanks to work by Sebastian Luna-Valero (sebastian-luna-valero) and others, 
+Thanks to work by Sebastian Luna-Valero (@sebastian-luna-valero) and others, 
 pyvips is now in conda!
+
+It includes a libvips binary with most optional packages enabled, including
+things like openslide and matio. It is currently missing HEIC and
+libjpeg-turbo, but perhaps they will come.
+
+Windows support is blocked on `gdk-pixbuf`, unfortunately. The [pyvips
+README](https://github.com/libvips/pyvips/blob/master/README.rst) has some
+notes on Windows install.
 
 # Install
 
@@ -19,7 +27,8 @@ And activate it:
 
     conda activate vips
 
-[pyvips is is `conda-forge`](https://anaconda.org/conda-forge/pyvips), the community conda channel, so install with: 
+[pyvips is in `conda-forge`](https://anaconda.org/conda-forge/pyvips), the
+community conda channel, so install with:
 
     conda install --channel conda-forge pyvips
 
