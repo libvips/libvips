@@ -237,13 +237,24 @@ vips_exif_get_double( ExifData *ed,
 {
 	ExifRational rv;
 	ExifSRational srv;
+	double value;
 
-	if( !vips_exif_get_rational( ed, entry, component, &rv ) ) 
-		*out = (double) rv.numerator / rv.denominator;
-	else if( !vips_exif_get_srational( ed, entry, component, &srv ) ) 
-		*out = (double) srv.numerator / srv.denominator;
+	if( !vips_exif_get_rational( ed, entry, component, &rv ) ) {
+		if( rv.denominator == 0 )
+			value = 0;
+		else
+			value = (double) rv.numerator / rv.denominator;
+	}
+	else if( !vips_exif_get_srational( ed, entry, component, &srv ) ) {
+		if( srv.denominator == 0 )
+			value = 0;
+		else
+			value = (double) srv.numerator / srv.denominator;
+	}
 	else
 		return( -1 );
+
+	*out = value;
 
 	return( 0 );
 }
