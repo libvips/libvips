@@ -10,22 +10,18 @@ pyvips is now in conda!
 To install, first [install
 Anaconda](https://docs.anaconda.com/anaconda/install/).
 
-pyvips is is `conda-forge`, the community conda channel: 
-
-<a href="https://anaconda.org/conda-forge/pyvips">https://anaconda.org/conda-forge/pyvips</a>
-
-First, create a python environment to install pyvips in. You can use any Python
+Next, create a python environment to install pyvips in. You can use any Python
 version, but 3.7 is the current latest:
 
-  conda create --name vips python=3.7
+    conda create --name vips python=3.7
 
 And activate it:
 
-  conda activate vips
+    conda activate vips
 
-To install, enter:
+[pyvips is is `conda-forge`](https://anaconda.org/conda-forge/pyvips), the community conda channel, so install with: 
 
-  conda install --channel conda-forge pyvips
+    conda install --channel conda-forge pyvips
 
 # Test
 
@@ -48,10 +44,10 @@ Type "help", "copyright", "credits" or "license" for more information.
 
 Step out of the `vips` environment when you are done testing:
 
-  conda deactivate
+    conda deactivate
 
 And you can now remove the `vips` environment.
 
-  conda remove --name vips --all
+    conda remove --name vips --all
 
 
