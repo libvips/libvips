@@ -404,7 +404,7 @@ vips_foreign_load_gif_code_next( VipsForeignLoadGif *gif,
 /* Quickly scan an image record.
  */
 static int
-vips_foreign_load_gif_scan_image_record( VipsForeignLoadGif *gif ) 
+vips_foreign_load_gif_scan_image( VipsForeignLoadGif *gif ) 
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
 	GifFileType *file = gif->file;
@@ -412,6 +412,11 @@ vips_foreign_load_gif_scan_image_record( VipsForeignLoadGif *gif )
 		file->Image.ColorMap : file->SColorMap;
 
 	GifByteType *extension;
+
+	if( DGifGetImageDesc( gif->file ) == GIF_ERROR ) {
+		vips_foreign_load_gif_error( gif ); 
+		return( -1 );
+	}
 
 	/* Check that the frame looks sane. Perhaps giflib checks
 	 * this for us.
@@ -587,6 +592,8 @@ vips_foreign_load_gif_set_header( VipsForeignLoadGif *gif, VipsImage *image )
 
 /* Attempt to quickly scan a GIF and discover what we need for our header. We
  * need to scan the whole file to get n_pages, transparency and colour. 
+ *
+ * Don't flag errors during header scan. Many GIFs do not follow spec.
  */
 static int
 vips_foreign_load_gif_header( VipsForeignLoad *load )
@@ -604,23 +611,12 @@ vips_foreign_load_gif_header( VipsForeignLoad *load )
 	gif->n_pages = 0;
 
 	do {
-		/* Don't flag errors during header scan. Some corrupt GIFs
-		 * will fail.
-		 */
 		if( DGifGetRecordType( gif->file, &record ) == GIF_ERROR ) 
 			continue;
 
 		switch( record ) {
 		case IMAGE_DESC_RECORD_TYPE:
-			if( DGifGetImageDesc( gif->file ) == GIF_ERROR ) {
-				vips_foreign_load_gif_error( gif ); 
-				return( -1 ); 
-			}
-
-			/* Read in the image record.
-			 */
-			if( vips_foreign_load_gif_scan_image_record( gif ) )
-				return( -1 );
+			(void) vips_foreign_load_gif_scan_image( gif );
 
 			gif->n_pages += 1;
 
@@ -630,8 +626,7 @@ vips_foreign_load_gif_header( VipsForeignLoad *load )
 			/* We will need to fetch the extensions to check for
 			 * cmaps and transparency.
 			 */
-			if( vips_foreign_load_gif_scan_extension( gif ) )
-				return( -1 );
+			(void) vips_foreign_load_gif_scan_extension( gif );
 			break;
 
 		case TERMINATE_RECORD_TYPE:
