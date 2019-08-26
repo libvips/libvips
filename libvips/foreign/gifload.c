@@ -22,7 +22,6 @@
  * 	- init pages to 0 before load
  * 14/2/19
  * 	- rework as a sequential loader ... simpler, much lower mem use
-<<<<<<< HEAD
  * 6/7/19 [deftomat]
  * 	- support array of delays 
  * 24/7/19
@@ -376,6 +375,23 @@ vips_foreign_load_gif_is_a( const char *filename )
 	return( 0 );
 }
 
+/* Make sure delays is allocated and large enough.
+ */
+static void
+vips_foreign_load_gif_allocate_delays( VipsForeignLoadGif *gif )
+{
+	if( gif->n_pages >= gif->delays_length ) {
+		int old = gif->delays_length;
+		int i;
+
+		gif->delays_length = gif->delays_length + gif->n_pages + 64;
+		gif->delays = (int *) g_realloc( gif->delays, 
+			gif->delays_length * sizeof( int ) );
+		for( i = old; i < gif->delays_length; i++ )
+			gif->delays[i] = 40;
+	}
+}
+
 static int
 vips_foreign_load_gif_ext_next( VipsForeignLoadGif *gif,
 	GifByteType **extension )
@@ -533,18 +549,6 @@ vips_foreign_load_gif_scan_extension( VipsForeignLoadGif *gif )
 				gif->has_transparency = TRUE;
 			}
 
-			if( gif->n_pages >= gif->delays_length ) {
-				int old = gif->delays_length;
-				int i;
-
-				gif->delays_length = 
-					gif->delays_length + gif->n_pages + 64;
-				gif->delays = (int *) g_realloc( gif->delays, 
-					gif->delays_length * sizeof( int ) );
-				for( i = old; i < gif->delays_length; i++ )
-					gif->delays[i] = 40;
-			}
-
 			/* giflib uses centiseconds, we use ms.
 			 */
 			gif->delays[gif->n_pages] = 
@@ -644,9 +648,8 @@ vips_foreign_load_gif_header( VipsForeignLoad *load )
 		switch( record ) {
 		case IMAGE_DESC_RECORD_TYPE:
 			(void) vips_foreign_load_gif_scan_image( gif );
-
 			gif->n_pages += 1;
-
+			vips_foreign_load_gif_allocate_delays( gif );
 			break;
 
 		case EXTENSION_RECORD_TYPE:
@@ -1158,6 +1161,8 @@ vips_foreign_load_gif_init( VipsForeignLoadGif *gif )
 	gif->loop = 0;
 	gif->comment = NULL;
 	gif->dispose = 0;
+
+	vips_foreign_load_gif_allocate_delays( gif );
 }
 
 typedef struct _VipsForeignLoadGifFile {
