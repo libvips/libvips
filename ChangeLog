@@ -12,6 +12,7 @@
 - make GIF parsing less strict
 - better feof() handling in GIF load
 - clip coding and interpretation on vips image read
+- check image bounds for GIF load
 
 24/5/19 started 8.8.1
 - improve realpath() use on older libc
