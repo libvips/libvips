@@ -382,8 +382,17 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 	im->Ysize = VIPS_CLIP( 1, im->Ysize, VIPS_MAX_COORD );
 	im->Bands = VIPS_CLIP( 1, im->Bands, VIPS_MAX_COORD );
 	im->BandFmt = VIPS_CLIP( 0, im->BandFmt, VIPS_FORMAT_LAST - 1 );
-	im->Type = VIPS_CLIP( 0, im->Type, VIPS_INTERPRETATION_LAST - 1 );
-	im->Coding = VIPS_CLIP( 0, im->Coding, VIPS_CODING_LAST - 1 );
+
+	/* Coding and Type have missing values, so we look up in the enum.
+	 */
+	im->Type = g_enum_get_value( 
+			g_type_class_ref( VIPS_TYPE_INTERPRETATION ), 
+			im->Type ) ?
+		im->Type : VIPS_INTERPRETATION_ERROR;
+	im->Coding = g_enum_get_value( 
+			g_type_class_ref( VIPS_TYPE_CODING ), 
+			im->Coding ) ?
+		im->Coding : VIPS_CODING_ERROR;
 
 	/* Offset, Res, etc. don't affect vips file layout, just 
 	 * pixel interpretation, don't clip them.
