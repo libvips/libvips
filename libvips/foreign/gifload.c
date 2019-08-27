@@ -723,6 +723,11 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 {
 	GifFileType *file = gif->file;
 
+	if( DGifGetImageDesc( file ) == GIF_ERROR ) {
+		vips_foreign_load_gif_error( gif );
+		return( -1 );
+	}
+
 	/* Update the colour map for this frame.
 	 */
 	vips_foreign_load_gif_build_cmap( gif );
@@ -748,7 +753,28 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 			VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
 			VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
 
-	if( file->Image.Interlace ) {
+	/* giflib does not check that the Left / Top / Width / Height for this
+	 * Image is inside the canvas.
+	 *
+	 * We could clip against the canvas, but for now, just ignore out of
+	 * bounds frames. Watch for int overflow too.
+	 */
+	if( file->Image.Left < 0 ||
+		file->Image.Left > VIPS_MAX_COORD ||
+		file->Image.Width <= 0 ||
+		file->Image.Width > VIPS_MAX_COORD ||
+		file->Image.Left + file->Image.Width > file->SWidth ||
+		file->Image.Top < 0 ||
+		file->Image.Top > VIPS_MAX_COORD ||
+		file->Image.Height <= 0 ||
+		file->Image.Height > VIPS_MAX_COORD ||
+		file->Image.Top + file->Image.Height > file->SHeight ) {
+		VIPS_DEBUG_MSG( "vips_foreign_load_gif_render: "
+			"out of bounds frame of %d x %d pixels at %d x %d\n",
+			file->Image.Width, file->Image.Height,
+			file->Image.Left, file->Image.Top );
+	}
+	else if( file->Image.Interlace ) {
 		int i;
 
 		VIPS_DEBUG_MSG( "vips_foreign_load_gif_render: "
@@ -861,11 +887,6 @@ vips_foreign_load_gif_next_page( VipsForeignLoadGif *gif )
 		case IMAGE_DESC_RECORD_TYPE:
 			VIPS_DEBUG_MSG( "vips_foreign_load_gif_next_page: "
 				"IMAGE_DESC_RECORD_TYPE\n" ); 
-
-			if( DGifGetImageDesc( gif->file ) == GIF_ERROR ) {
-				vips_foreign_load_gif_error( gif ); 
-				return( -1 ); 
-			}
 
 			if( vips_foreign_load_gif_render( gif ) )
 				return( -1 ); 
