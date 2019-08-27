@@ -370,11 +370,20 @@ vips_thumbnail_calculate_common_shrink( VipsThumbnail *thumbnail,
 {
 	double hshrink;
 	double vshrink;
+	double shrink;
 
 	vips_thumbnail_calculate_shrink( thumbnail, width, height, 
 		&hshrink, &vshrink ); 
 
-	return( VIPS_MIN( hshrink, vshrink ) );
+	shrink = VIPS_MIN( hshrink, vshrink );
+
+	/* We don't want to shrink so much that we send an axis to 0.
+	 */
+	if( shrink > thumbnail->input_width ||
+		shrink > thumbnail->input_height )
+		shrink = 1.0;
+
+	return( shrink ); 
 }
 
 /* Find the best jpeg preload shrink.
@@ -474,17 +483,13 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 		thumbnail->loader ) ) 
 		factor = vips_thumbnail_find_pyrlevel( thumbnail, 
 			thumbnail->input_width, thumbnail->input_height );
-	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ) 
-		factor = 1.0 / 
-			vips_thumbnail_calculate_common_shrink( thumbnail, 
-				thumbnail->input_width, 
-				thumbnail->page_height );
-	else if( vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) 
-		factor = 1.0 / 
-			vips_thumbnail_calculate_common_shrink( thumbnail, 
-				thumbnail->input_width, 
-				thumbnail->input_height );
-	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
+	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
+		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ||
+		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) 
+		factor = vips_thumbnail_calculate_common_shrink( thumbnail, 
+			thumbnail->input_width, 
+			thumbnail->page_height );
+	if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
 		/* 'factor' is a gboolean which enables thumbnail load instead
 		 * of image load.
 		 *
@@ -495,19 +500,7 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 			factor = 1.0;
 		else
 			factor = 0.0;
-
 	}
-	else if( vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) 
-		factor = 1.0 /
-			vips_thumbnail_calculate_common_shrink( thumbnail, 
-				thumbnail->input_width, 
-				thumbnail->page_height ); 
-
-	/* We don't want to pre-shrink so much that we send an axis to 0.
-	 */
-	if( factor > thumbnail->input_width ||
-		factor > thumbnail->input_height )
-		factor = 1.0;
 
 	g_info( "loading with factor %g pre-shrink", factor ); 
 
@@ -947,7 +940,7 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
-			"scale", factor,
+			"scale", 1.0 / factor,
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) {
@@ -1145,7 +1138,7 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 			buffer->buf->data, buffer->buf->length, 
 			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
-			"scale", factor,
+			"scale", 1.0 / factor,
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) {
