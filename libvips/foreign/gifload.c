@@ -1084,6 +1084,8 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 static int
 vips_foreign_load_gif_open( VipsForeignLoadGif *gif )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
+
 #ifdef HAVE_GIFLIB_5
 {
 	int error;
@@ -1102,6 +1104,17 @@ vips_foreign_load_gif_open( VipsForeignLoadGif *gif )
 
 	gif->eof = FALSE;
 	gif->current_page = 0;
+
+	/* giflib does no checking of image dimensions, not even for 0.
+	 */
+	if( gif->file->SWidth <= 0 ||
+		gif->file->SWidth > VIPS_MAX_COORD ||
+		gif->file->SHeight <= 0 ||
+		gif->file->SHeight > VIPS_MAX_COORD ) {
+		vips_error( class->nickname, 
+			"%s", _( "image size out of bounds" ) );
+		return( -1 );
+	}
 
 	/* Allocate a line buffer now that we have the GIF width.
 	 */
