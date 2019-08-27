@@ -429,9 +429,8 @@ vips_foreign_load_gif_scan_image( VipsForeignLoadGif *gif )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
 	GifFileType *file = gif->file;
-	ColorMapObject *map = file->Image.ColorMap ?
-		file->Image.ColorMap : file->SColorMap;
 
+	ColorMapObject *map;
 	GifByteType *extension;
 
 	if( DGifGetImageDesc( gif->file ) == GIF_ERROR ) {
@@ -456,6 +455,7 @@ vips_foreign_load_gif_scan_image( VipsForeignLoadGif *gif )
 
 	/* Test for a non-greyscale colourmap for this frame.
 	 */
+	map = file->Image.ColorMap ? file->Image.ColorMap : file->SColorMap;
 	if( !gif->has_colour &&
 		map ) {
 		int i;
