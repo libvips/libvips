@@ -25,6 +25,8 @@
  * 	- use O_TMPFILE, if available
  * 23/7/18
  * 	- escape ASCII control characters in XML
+ * 29/8/19
+ * 	- verify bands/format for coded images
  */
 
 /*
@@ -348,8 +350,8 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 	from += 4;
 	if( im->magic != VIPS_MAGIC_INTEL && 
 		im->magic != VIPS_MAGIC_SPARC ) {
-		vips_error( "VipsImage", _( "\"%s\" is not a VIPS image" ), 
-			im->filename );
+		vips_error( "VipsImage", 
+			_( "\"%s\" is not a VIPS image" ), im->filename );
 		return( -1 );
 	}
 
@@ -397,6 +399,36 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 	/* Offset, Res, etc. don't affect vips file layout, just 
 	 * pixel interpretation, don't clip them.
 	 */
+
+	/* Coding values imply Bands and BandFmt settings --- make sure they
+	 * are sane.
+	 */
+	switch( im->Coding ) {
+	case VIPS_CODING_NONE:
+		break;
+
+	case VIPS_CODING_LABQ:
+		if( im->Bands != 4 ||
+			im->BandFmt != VIPS_FORMAT_UCHAR ) {
+			vips_error( "VipsImage", 
+				"%s", _( "malformed LABQ image" ) ); 
+			return( -1 );
+		}
+		break;
+
+	case VIPS_CODING_RAD:
+		if( im->Bands != 4 ||
+			im->BandFmt != VIPS_FORMAT_UCHAR ) {
+			vips_error( "VipsImage", 
+				"%s", _( "malformed RAD image" ) ); 
+			return( -1 );
+		}
+		break;
+
+	default:
+		g_assert_not_reached();
+		break;
+	}
 
 	return( 0 );
 }

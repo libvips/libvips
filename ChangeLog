@@ -30,6 +30,7 @@
 - prevent over-pre-shrink in thumbnail [kleisauke]
 - fix sharpen with sigma 0.5 [2h4dl]
 - sharpen restores input colourspace
+- verify bands/format for coded images
 
 24/5/19 started 8.8.1
 - improve realpath() use on older libc
