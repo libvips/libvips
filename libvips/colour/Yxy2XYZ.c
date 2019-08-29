@@ -7,7 +7,9 @@
  * 	- gtkdoc
  * 	- cleanups
  * 20/9/12
- * 	redo as a class
+ * 	- redo as a class
+ * 29/8/19
+ * 	- avoid /0
  */
 
 /*
@@ -67,18 +69,26 @@ vips_Yxy2XYZ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 		float x = p[1];
 		float y = p[2];
 
-		double total;
 		float X, Z;
 
-		p += 3;
+		if( x == 0.0 ||
+			y == 0.0 ) {
+			X = 0.0;
+			Z = 0.0;
+		}
+		else {
+			double total;
 
-		total = Y / y;
-		X = x * total;
-	        Z = (X - x * X - x * Y) / x;
+			total = Y / y;
+			X = x * total;
+			Z = (X - x * X - x * Y) / x;
+		}
 
 		q[0] = X;
 		q[1] = Y;
 		q[2] = Z;
+
+		p += 3;
 		q += 3;
 	}
 }
