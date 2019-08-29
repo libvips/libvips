@@ -127,7 +127,7 @@ make_hI( void )
 		for( i = 0; i < 361; i++ ) {
 			int k;
 
-			for( k = 0; k < 360 && hl[j][k] <= i; k++ ) 
+			for( k = 1; k < 360 && hl[j][k] <= i; k++ ) 
 				;
 
 			hI[j][i] = k - 1 + (i - hl[j][k - 1]) / 
