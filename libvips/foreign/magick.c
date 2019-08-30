@@ -48,6 +48,8 @@
 #include "pforeign.h"
 #include "magick.h"
 
+#if defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)
+
 /* ImageMagick can't detect some formats, like ICO, by examining the contents --
  * ico.c simply does not have a recogniser.
  *
@@ -87,6 +89,8 @@ magick_sniff_file( ImageInfo *image_info, const char *filename )
 	if( (length = vips__get_bytes( filename, bytes, 256 )) >= 4 )
 		magick_sniff_bytes( image_info, bytes, 256 );
 }
+
+#endif /*defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)*/
 
 #ifdef HAVE_MAGICK7
 
