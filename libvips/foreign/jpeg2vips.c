@@ -313,7 +313,7 @@ find_chroma_subsample( struct jpeg_decompress_struct *cinfo )
 }
 
 static int
-attach_blob( VipsImage *im, const char *field, void *data, int data_length )
+attach_blob( VipsImage *im, const char *field, void *data, size_t data_length )
 {
 	/* Only use the first one.
 	 */
@@ -339,7 +339,7 @@ attach_blob( VipsImage *im, const char *field, void *data, int data_length )
  * the real XMP.
  */
 static int
-attach_xmp_blob( VipsImage *im, void *data, int data_length )
+attach_xmp_blob( VipsImage *im, void *data, size_t data_length )
 {
 	char *p = (char *) data;
 	int i;
@@ -502,7 +502,7 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 	for( p = cinfo->marker_list; p; p = p->next ) {
 #ifdef DEBUG
 {
-		printf( "read_jpeg_header: seen %d bytes of APP%d\n",
+		printf( "read_jpeg_header: seen %u bytes of APP%d\n",
 			p->data_length,
 			p->marker - JPEG_APP0 );
 
@@ -599,7 +599,7 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 		default:
 #ifdef DEBUG
 			printf( "read_jpeg_header: "
-				"ignoring %d byte APP%d block\n", 
+				"ignoring %u byte APP%d block\n", 
 				p->data_length, p->marker - JPEG_APP0 );
 #endif /*DEBUG*/
 			break;
