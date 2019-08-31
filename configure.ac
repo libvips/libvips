@@ -560,18 +560,6 @@ if test x"$expat_found" = x"no"; then
   exit 1
 fi
 
-# enable vips7 C++ binding ... this defaults off, the vips8 C++ binding
-# defaults on
-AC_ARG_ENABLE([cpp7],
-  AS_HELP_STRING([--enable-cpp7],
-    [enable deprecated vips7 C++ binding (default: no)]),
-  [enable_cpp7=$enableval
-  ], 
-  [enable_cpp7="no (default)"
-  ]
-)
-AM_CONDITIONAL(ENABLE_CPP7, [test x"$enable_cpp7" = x"yes"])
-
 # optional supporting libraries
 
 AC_ARG_WITH([gsf], 
