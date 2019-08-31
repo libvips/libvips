@@ -41,7 +41,6 @@
  * 	- move to defaults suitable for screen output
  * 28/8/19
  * 	- fix sigma 0.5 case (thanks 2h4dl)
- * 	- restore input colourspace
  */
 
 /*
@@ -178,7 +177,6 @@ vips_sharpen_build( VipsObject *object )
 
 	VipsImage *in;
 	int i;
-	VipsInterpretation old_interpretation;
 
 	VIPS_GATE_START( "vips_sharpen_build: build" ); 
 
@@ -194,7 +192,6 @@ vips_sharpen_build( VipsObject *object )
 
 	in = sharpen->in; 
 
-	old_interpretation = in->Type;
 	if( vips_colourspace( in, &t[0], VIPS_INTERPRETATION_LABS, NULL ) )
 		return( -1 );
 	in = t[0];
@@ -274,9 +271,6 @@ vips_sharpen_build( VipsObject *object )
 			NULL ) )
 		return( -1 );
 
-	/* Set demand hints. FATSTRIP is good for us, as THINSTRIP will cause
-	 * too many recalculations on overlaps.
-	 */
 	t[5] = vips_image_new();
 	if( vips_image_pipeline_array( t[5], 
 		VIPS_DEMAND_STYLE_FATSTRIP, args ) )
@@ -289,11 +283,10 @@ vips_sharpen_build( VipsObject *object )
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
-	/* Reattach the rest, back to the start colourspace.
+	/* Reattach the rest.
 	 */
 	if( vips_bandjoin2( t[5], t[3], &t[6], NULL ) ||
-		vips_colourspace( t[6], &t[7], old_interpretation, NULL ) ||
-		vips_image_write( t[7], sharpen->out ) )
+		vips_image_write( t[6], sharpen->out ) )
 		return( -1 );
 
 	VIPS_GATE_STOP( "vips_sharpen_build: build" ); 
