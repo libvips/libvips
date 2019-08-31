@@ -1,3 +1,6 @@
+31/8/19 started 8.8.3
+- revert sharpen restoring the input colourspace
+
 9/7/19 started 8.8.2
 - better early shutdown in readers
 - don't attempt to save large XMP to jpeg [tnextday]
