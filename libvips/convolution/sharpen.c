@@ -41,6 +41,7 @@
  * 	- move to defaults suitable for screen output
  * 28/8/19
  * 	- fix sigma 0.5 case (thanks 2h4dl)
+ * 	- restore input colourspace
  */
 
 /*
@@ -176,6 +177,7 @@ vips_sharpen_build( VipsObject *object )
 	VipsImage **args = (VipsImage **) vips_object_local_array( object, 2 );
 
 	VipsImage *in;
+	VipsInterpretation old_interpretation;
 	int i;
 
 	VIPS_GATE_START( "vips_sharpen_build: build" ); 
@@ -192,6 +194,7 @@ vips_sharpen_build( VipsObject *object )
 
 	in = sharpen->in; 
 
+	old_interpretation = in->Type;
 	if( vips_colourspace( in, &t[0], VIPS_INTERPRETATION_LABS, NULL ) )
 		return( -1 );
 	in = t[0];
@@ -286,7 +289,8 @@ vips_sharpen_build( VipsObject *object )
 	/* Reattach the rest.
 	 */
 	if( vips_bandjoin2( t[5], t[3], &t[6], NULL ) ||
-		vips_image_write( t[6], sharpen->out ) )
+		vips_colourspace( t[6], &t[7], old_interpretation, NULL ) ||
+		vips_image_write( t[7], sharpen->out ) )
 		return( -1 );
 
 	VIPS_GATE_STOP( "vips_sharpen_build: build" ); 
