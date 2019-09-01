@@ -294,7 +294,6 @@ vips_foreign_save_heif_build( VipsObject *object )
 	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) object;
 
 	struct heif_error error;
-	enum heif_chroma chroma;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_heif_parent_class )->
 		build( object ) )
@@ -336,17 +335,20 @@ vips_foreign_save_heif_build( VipsObject *object )
 	/* Make a heif image the size of a page. We send sink_disc() output 
 	 * here and write a frame each time it fills.
 	 */
-	chroma = vips_image_hasalpha( save->ready ) ?
-		heif_chroma_interleaved_RGBA : heif_chroma_interleaved_RGB;
 	error = heif_image_create( heif->page_width, heif->page_height, 
-		heif_colorspace_RGB, chroma, &heif->img );
+		heif_colorspace_RGB, 
+		vips_image_hasalpha( save->ready ) ?
+			heif_chroma_interleaved_RGBA : 
+			heif_chroma_interleaved_RGB,
+		&heif->img );
 	if( error.code ) {
 		vips__heif_error( &error );
 		return( -1 );
 	}
 
 	error = heif_image_add_plane( heif->img, heif_channel_interleaved, 
-		heif->page_width, heif->page_height, 24 );
+		heif->page_width, heif->page_height, 
+		vips_image_hasalpha( save->ready ) ? 32 : 24 );
 	if( error.code ) {
 		vips__heif_error( &error );
 		return( -1 );
