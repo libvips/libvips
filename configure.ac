@@ -560,18 +560,6 @@ if test x"$expat_found" = x"no"; then
   exit 1
 fi
 
-# enable vips7 C++ binding ... this defaults off, the vips8 C++ binding
-# defaults on
-AC_ARG_ENABLE([cpp7],
-  AS_HELP_STRING([--enable-cpp7],
-    [enable deprecated vips7 C++ binding (default: no)]),
-  [enable_cpp7=$enableval
-  ], 
-  [enable_cpp7="no (default)"
-  ]
-)
-AM_CONDITIONAL(ENABLE_CPP7, [test x"$enable_cpp7" = x"yes"])
-
 # optional supporting libraries
 
 AC_ARG_WITH([gsf], 
@@ -1123,40 +1111,6 @@ if test x"$with_pangoft2" != x"no"; then
     ]
   )
 fi
-
-# install vips8 python
-AC_ARG_ENABLE([pyvips8],
-  AS_HELP_STRING([--enable-pyvips8],
-    [install vips8 Python overrides (default: no)]),
-  [enable_pyvips8=$enableval
-  ], 
-  [enable_pyvips8="no (default)"
-  ]
-)
-
-if test x"$enable_pyvips8" = x"auto"; then
-  PKG_CHECK_EXISTS([pygobject-3.0 >= 3.13.0],
-    [enable_pyvips8=yes
-    ],
-    [AC_MSG_WARN([pygobject-3.0 not found; disabling vips8 python support])
-     enable_pyvips8=no
-    ]
-  )
-fi
-
-if test x"$enable_pyvips8" = x"yes"; then
-  JD_PATH_PYTHON(2.7,,
-    [enable_pyvips8=no
-     AC_MSG_WARN([Python not found; disabling vips8 Python binding])
-    ]
-  )
-fi
-
-if test x"$enable_pyvips8" = x"yes"; then
-  PKG_CHECK_MODULES(PYGOBJECT, [pygobject-3.0 >= 3.13.0])
-fi
-
-AM_CONDITIONAL(ENABLE_PYVIPS8, [test x"$enable_pyvips8" = x"yes"])
 
 # look for TIFF with pkg-config ... fall back to our tester
 # pkgconfig support for libtiff starts with libtiff-4
