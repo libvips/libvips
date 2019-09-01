@@ -1112,40 +1112,6 @@ if test x"$with_pangoft2" != x"no"; then
   )
 fi
 
-# install vips8 python
-AC_ARG_ENABLE([pyvips8],
-  AS_HELP_STRING([--enable-pyvips8],
-    [install vips8 Python overrides (default: no)]),
-  [enable_pyvips8=$enableval
-  ], 
-  [enable_pyvips8="no (default)"
-  ]
-)
-
-if test x"$enable_pyvips8" = x"auto"; then
-  PKG_CHECK_EXISTS([pygobject-3.0 >= 3.13.0],
-    [enable_pyvips8=yes
-    ],
-    [AC_MSG_WARN([pygobject-3.0 not found; disabling vips8 python support])
-     enable_pyvips8=no
-    ]
-  )
-fi
-
-if test x"$enable_pyvips8" = x"yes"; then
-  JD_PATH_PYTHON(2.7,,
-    [enable_pyvips8=no
-     AC_MSG_WARN([Python not found; disabling vips8 Python binding])
-    ]
-  )
-fi
-
-if test x"$enable_pyvips8" = x"yes"; then
-  PKG_CHECK_MODULES(PYGOBJECT, [pygobject-3.0 >= 3.13.0])
-fi
-
-AM_CONDITIONAL(ENABLE_PYVIPS8, [test x"$enable_pyvips8" = x"yes"])
-
 # look for TIFF with pkg-config ... fall back to our tester
 # pkgconfig support for libtiff starts with libtiff-4
 AC_ARG_WITH([tiff], 
