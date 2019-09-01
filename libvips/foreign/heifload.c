@@ -7,6 +7,8 @@
  * 24/7/19
  * 	- close early on minimise 
  * 	- close early on error
+ * 1/9/19 [meyermarcel]
+ * 	- handle alpha
  */
 
 /*
@@ -85,6 +87,10 @@ typedef struct _VipsForeignLoadHeif {
 	/* Number of top-level images in this file.
 	 */
 	int n_top;
+
+	/* TRUE for RGBA ... otherwise, RGB.
+	 */
+	gboolean has_alpha;
 
 	/* Size of final output image. 
 	 */
@@ -260,7 +266,6 @@ vips_foreign_load_heif_set_page( VipsForeignLoadHeif *heif,
 static int
 vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 {
-	gboolean has_alpha;
 	int bands;
 	int i;
 	/* Surely, 16 metadata items will be enough for anyone.
@@ -275,10 +280,12 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 	if( vips_foreign_load_heif_set_page( heif, heif->page, FALSE ) )
 		return( -1 );
 
-	/* FIXME ... never seen this return TRUE on any image, strangely.
-	 */
-	has_alpha = heif_image_handle_has_alpha_channel( heif->handle );
-	bands = has_alpha ? 4 : 3;
+	heif->has_alpha = heif_image_handle_has_alpha_channel( heif->handle );
+#ifdef DEBUG
+	printf( "heif_image_handle_has_alpha_channel() = %d\n", 
+		heif->has_alpha );
+#endif /*DEBUG*/
+	bands = heif->has_alpha ? 4 : 3;
 
 	/* FIXME .. need to test XMP and IPCT.
 	 */
@@ -617,13 +624,11 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 	if( !heif->img ) {
 		struct heif_error error;
 		struct heif_decoding_options *options;
+		enum heif_chroma chroma = heif->has_alpha ? 
+			heif_chroma_interleaved_RGBA :
+			heif_chroma_interleaved_RGB;
 
-		/* Decode the image to 24bit interleaved. 
-		 *
-		 * FIXME What will this do for RGBA? Or is alpha always 
-		 * separate?
-		 *
-		 * Only disable transforms if we have been able to fetch the
+		/* Only disable transforms if we have been able to fetch the
 		 * untransformed dimensions.
 		 */
 		options = heif_decoding_options_alloc();
@@ -631,7 +636,7 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 		options->ignore_transformations = !heif->autorotate;
 #endif /*HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH*/
 		error = heif_decode_image( heif->handle, &heif->img, 
-			heif_colorspace_RGB, heif_chroma_interleaved_RGB, 
+			heif_colorspace_RGB, chroma, 
 			options );
 		heif_decoding_options_free( options );
 		if( error.code ) {
