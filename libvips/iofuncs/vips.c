@@ -25,6 +25,8 @@
  * 	- use O_TMPFILE, if available
  * 23/7/18
  * 	- escape ASCII control characters in XML
+ * 29/8/19
+ * 	- verify bands/format for coded images
  */
 
 /*
@@ -348,8 +350,8 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 	from += 4;
 	if( im->magic != VIPS_MAGIC_INTEL && 
 		im->magic != VIPS_MAGIC_SPARC ) {
-		vips_error( "VipsImage", _( "\"%s\" is not a VIPS image" ), 
-			im->filename );
+		vips_error( "VipsImage", 
+			_( "\"%s\" is not a VIPS image" ), im->filename );
 		return( -1 );
 	}
 
@@ -383,9 +385,50 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 	im->Bands = VIPS_CLIP( 1, im->Bands, VIPS_MAX_COORD );
 	im->BandFmt = VIPS_CLIP( 0, im->BandFmt, VIPS_FORMAT_LAST - 1 );
 
-	/* Type, Coding, Offset, Res, etc. don't affect vips file layout, just 
+	/* Coding and Type have missing values, so we look up in the enum.
+	 */
+	im->Type = g_enum_get_value( 
+			g_type_class_ref( VIPS_TYPE_INTERPRETATION ), 
+			im->Type ) ?
+		im->Type : VIPS_INTERPRETATION_ERROR;
+	im->Coding = g_enum_get_value( 
+			g_type_class_ref( VIPS_TYPE_CODING ), 
+			im->Coding ) ?
+		im->Coding : VIPS_CODING_ERROR;
+
+	/* Offset, Res, etc. don't affect vips file layout, just 
 	 * pixel interpretation, don't clip them.
 	 */
+
+	/* Coding values imply Bands and BandFmt settings --- make sure they
+	 * are sane.
+	 */
+	switch( im->Coding ) {
+	case VIPS_CODING_NONE:
+		break;
+
+	case VIPS_CODING_LABQ:
+		if( im->Bands != 4 ||
+			im->BandFmt != VIPS_FORMAT_UCHAR ) {
+			vips_error( "VipsImage", 
+				"%s", _( "malformed LABQ image" ) ); 
+			return( -1 );
+		}
+		break;
+
+	case VIPS_CODING_RAD:
+		if( im->Bands != 4 ||
+			im->BandFmt != VIPS_FORMAT_UCHAR ) {
+			vips_error( "VipsImage", 
+				"%s", _( "malformed RAD image" ) ); 
+			return( -1 );
+		}
+		break;
+
+	default:
+		g_assert_not_reached();
+		break;
+	}
 
 	return( 0 );
 }

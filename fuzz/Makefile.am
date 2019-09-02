@@ -2,11 +2,14 @@ TESTS = \
 	test_fuzz.sh
 
 FUZZPROGS = \
+	jpegsave_file_fuzzer \
 	jpegsave_buffer_fuzzer \
 	pngsave_buffer_fuzzer \
 	webpsave_buffer_fuzzer \
 	sharpen_fuzzer \
-	thumbnail_fuzzer
+	thumbnail_fuzzer \
+	smartcrop_fuzzer \
+	mosaic_fuzzer
 
 AM_DEFAULT_SOURCE_EXT = .cc
 

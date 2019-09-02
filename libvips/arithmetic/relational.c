@@ -457,25 +457,18 @@ typedef VipsUnaryConstClass VipsRelationalConstClass;
 G_DEFINE_TYPE( VipsRelationalConst, 
 	vips_relational_const, VIPS_TYPE_UNARY_CONST );
 
-static int
-vips_relational_const_build( VipsObject *object )
-{
-	VipsUnary *unary = (VipsUnary *) object;
-	VipsUnaryConst *uconst = (VipsUnaryConst *) object;
-
-	if( unary->in )
-		uconst->const_format = unary->in->BandFmt;
-
-	if( VIPS_OBJECT_CLASS( vips_relational_const_parent_class )->
-		build( object ) )
-		return( -1 );
-
-	return( 0 );
+#define RLOOPCI( TYPE, OP ) { \
+	TYPE * restrict p = (TYPE *) in[0]; \
+	int * restrict c = uconst->c_int; \
+ 	\
+	for( i = 0, x = 0; x < width; x++ ) \
+		for( b = 0; b < bands; b++, i++ ) \
+			out[i] = (p[i] OP c[b]) ? 255 : 0; \
 }
 
-#define RLOOPC( TYPE, OP ) { \
+#define RLOOPCF( TYPE, OP ) { \
 	TYPE * restrict p = (TYPE *) in[0]; \
-	TYPE * restrict c = (TYPE *) uconst->c_ready; \
+	double * restrict c = uconst->c_double; \
  	\
 	for( i = 0, x = 0; x < width; x++ ) \
 		for( b = 0; b < bands; b++, i++ ) \
@@ -486,7 +479,7 @@ vips_relational_const_build( VipsObject *object )
 	TYPE * restrict p = (TYPE *) in[0]; \
  	\
 	for( i = 0, x = 0; x < width; x++ ) { \
-		TYPE * restrict c = (TYPE *) uconst->c_ready; \
+		double * restrict c = uconst->c_double; \
 		\
 		for( b = 0; b < bands; b++, i++ ) { \
 			out[i] = OP( p[0], p[1], c[0], c[1]) ? 255 : 0; \
@@ -505,32 +498,64 @@ vips_relational_const_buffer( VipsArithmetic *arithmetic,
 	VipsRelationalConst *rconst = (VipsRelationalConst *) arithmetic;
 	VipsImage *im = arithmetic->ready[0];
 	int bands = im->Bands;
+	gboolean is_int = uconst->is_int &&
+		vips_band_format_isint( im->BandFmt );
 
 	int i, x, b;
 
 	switch( rconst->relational ) {
-	case VIPS_OPERATION_RELATIONAL_EQUAL: 	
-		SWITCH( RLOOPC, CLOOPC, ==, CEQUAL ); 
+	case VIPS_OPERATION_RELATIONAL_EQUAL:
+		if( is_int ) {
+			SWITCH( RLOOPCI, CLOOPC, ==, CEQUAL ); 
+		}
+		else {
+			SWITCH( RLOOPCF, CLOOPC, ==, CEQUAL ); 
+		}
 		break;
 
 	case VIPS_OPERATION_RELATIONAL_NOTEQ:
-		SWITCH( RLOOPC, CLOOPC, !=, CNOTEQ ); 
+		if( is_int ) {
+			SWITCH( RLOOPCI, CLOOPC, !=, CNOTEQ ); 
+		}
+		else {
+			SWITCH( RLOOPCF, CLOOPC, !=, CNOTEQ ); 
+		}
 		break;
 
-	case VIPS_OPERATION_RELATIONAL_LESS: 	
-		SWITCH( RLOOPC, CLOOPC, <, CLESS ); 
+	case VIPS_OPERATION_RELATIONAL_LESS:
+		if( is_int ) {
+			SWITCH( RLOOPCI, CLOOPC, <, CLESS ); 
+		}
+		else {
+			SWITCH( RLOOPCF, CLOOPC, <, CLESS ); 
+		}
 		break;
 
-	case VIPS_OPERATION_RELATIONAL_LESSEQ: 	
-		SWITCH( RLOOPC, CLOOPC, <=, CLESSEQ ); 
+	case VIPS_OPERATION_RELATIONAL_LESSEQ:
+		if( is_int ) {
+			SWITCH( RLOOPCI, CLOOPC, <=, CLESSEQ ); 
+		}
+		else {
+			SWITCH( RLOOPCF, CLOOPC, <=, CLESSEQ ); 
+		}
 		break;
 
-	case VIPS_OPERATION_RELATIONAL_MORE: 	
-		SWITCH( RLOOPC, CLOOPC, >, CMORE ); 
+	case VIPS_OPERATION_RELATIONAL_MORE:
+		if( is_int ) {
+			SWITCH( RLOOPCI, CLOOPC, >, CMORE ); 
+		}
+		else {
+			SWITCH( RLOOPCF, CLOOPC, >, CMORE ); 
+		}
 		break;
 
-	case VIPS_OPERATION_RELATIONAL_MOREEQ: 	
-		SWITCH( RLOOPC, CLOOPC, >=, CMOREEQ ); 
+	case VIPS_OPERATION_RELATIONAL_MOREEQ:
+		if( is_int ) {
+			SWITCH( RLOOPCI, CLOOPC, >=, CMOREEQ ); 
+		}
+		else {
+			SWITCH( RLOOPCF, CLOOPC, >=, CMOREEQ ); 
+		}
 		break;
 
 	default:
@@ -551,7 +576,6 @@ vips_relational_const_class_init( VipsRelationalConstClass *class )
 	object_class->nickname = "relational_const";
 	object_class->description = 
 		_( "relational operations against a constant" );
-	object_class->build = vips_relational_const_build;
 
 	aclass->process_line = vips_relational_const_buffer;
 

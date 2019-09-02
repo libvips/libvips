@@ -109,6 +109,25 @@ class TestHistogram:
         # new mean should be closer to target mean
         assert abs(im.avg() - 128) > abs(im2.avg() - 128)
 
+    def test_case(self):
+        # slice into two at 128, we should get 50% of pixels in each half
+        x = pyvips.Image.grey(256, 256, uchar=True)
+        index = pyvips.Image.switch([x < 128, x >= 128])
+
+        y = index.case([10, 20])
+        assert y.avg() == 15
+
+        # slice into four 
+        index = pyvips.Image.switch([
+            x < 64, 
+            x >= 64 and x < 128,
+            x >= 128 and x < 192,
+            x >= 192
+        ])
+        assert index.case([10, 20, 30, 40]).avg() == 25
+
+        # values over N should use the last value
+        assert index.case([10, 20, 30]).avg() == 22.5
 
 if __name__ == '__main__':
     pytest.main()

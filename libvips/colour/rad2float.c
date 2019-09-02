@@ -164,17 +164,10 @@ vips_rad2float_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 	COLR *inp = (COLR *) in[0];
 	COLOR *outbuf = (COLOR *) out;
 
-	colr_color(outbuf[0], inp[0]);
-	while (--width > 0) {
-		outbuf++; inp++;
-		if (inp[0][RED] == inp[-1][RED] &&
-			    inp[0][GRN] == inp[-1][GRN] &&
-			    inp[0][BLU] == inp[-1][BLU] &&
-			    inp[0][EXP] == inp[-1][EXP])
-			copycolor(outbuf[0], outbuf[-1]);
-		else
-			colr_color(outbuf[0], inp[0]);
-	}
+	int i;
+
+	for( i = 0; i < width; i++ )
+		colr_color( outbuf[i], inp[i] );
 }
 
 static void

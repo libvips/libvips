@@ -1,5 +1,6 @@
 # vim: set fileencoding=utf-8 :
 # test helpers
+
 import os
 import tempfile
 import pytest
@@ -174,7 +175,7 @@ def run_fn2(fn, x, y):
 
 # test a pair of things which can be lists for approx. equality
 def assert_almost_equal_objects(a, b, threshold=0.0001, msg=''):
-    # print 'assertAlmostEqualObjects %s = %s' % (a, b)
+    # print('assertAlmostEqualObjects %s = %s' % (a, b))
     assert all([pytest.approx(x, abs=threshold) == y
                 for x, y in zip_expand(a, b)]), msg
 

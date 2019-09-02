@@ -338,13 +338,10 @@ vips_math2_const_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsUnary *unary = (VipsUnary *) object;
-	VipsUnaryConst *uconst = (VipsUnaryConst *) object;
 
 	if( unary->in &&
 		vips_check_noncomplex( class->nickname, unary->in ) )
 		return( -1 );
-
-	uconst->const_format = VIPS_FORMAT_DOUBLE;
 
 	if( VIPS_OBJECT_CLASS( vips_math2_const_parent_class )->
 		build( object ) )
@@ -356,7 +353,7 @@ vips_math2_const_build( VipsObject *object )
 #define LOOPC( IN, OUT, OP ) { \
 	IN * restrict p = (IN *) in[0]; \
 	OUT * restrict q = (OUT *) out; \
-	double * restrict c = (double *) uconst->c_ready; \
+	double * restrict c = uconst->c_double; \
 	\
 	for( i = 0, x = 0; x < width; x++ ) \
 		for( b = 0; b < bands; b++, i++ ) \

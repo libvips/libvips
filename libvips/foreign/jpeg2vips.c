@@ -313,7 +313,7 @@ find_chroma_subsample( struct jpeg_decompress_struct *cinfo )
 }
 
 static int
-attach_blob( VipsImage *im, const char *field, void *data, int data_length )
+attach_blob( VipsImage *im, const char *field, void *data, size_t data_length )
 {
 	/* Only use the first one.
 	 */
@@ -339,18 +339,21 @@ attach_blob( VipsImage *im, const char *field, void *data, int data_length )
  * the real XMP.
  */
 static int
-attach_xmp_blob( VipsImage *im, void *data, int data_length )
+attach_xmp_blob( VipsImage *im, void *data, size_t data_length )
 {
 	char *p = (char *) data;
 	int i;
 
-	if( !vips_isprefix( "http", p ) ) 
+	if( data_length < 4 ||
+		!vips_isprefix( "http", p ) ) 
 		return( 0 );
 
 	/* Search for a null char within the first few characters. 80
 	 * should be plenty for a basic URL.
+	 *
+	 * -2 for the extra null.
 	 */
-	for( i = 0; i < 80; i++ )
+	for( i = 0; i < VIPS_MIN( 80, data_length - 2 ); i++ )
 		if( !p[i] ) 
 			break;
 	if( p[i] )
@@ -499,7 +502,7 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 	for( p = cinfo->marker_list; p; p = p->next ) {
 #ifdef DEBUG
 {
-		printf( "read_jpeg_header: seen %d bytes of APP%d\n",
+		printf( "read_jpeg_header: seen %u bytes of APP%d\n",
 			p->data_length,
 			p->marker - JPEG_APP0 );
 
@@ -596,7 +599,7 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 		default:
 #ifdef DEBUG
 			printf( "read_jpeg_header: "
-				"ignoring %d byte APP%d block\n", 
+				"ignoring %u byte APP%d block\n", 
 				p->data_length, p->marker - JPEG_APP0 );
 #endif /*DEBUG*/
 			break;

@@ -776,9 +776,6 @@ empty_output_buffer( j_compress_ptr cinfo )
 METHODDEF(void)
 init_destination( j_compress_ptr cinfo )
 {
-	OutputBuffer *buf = (OutputBuffer *) cinfo->dest;
-
-	vips_dbuf_init( &buf->dbuf ); 
 	empty_output_buffer( cinfo ); 
 }
 
@@ -845,6 +842,7 @@ buf_dest( j_compress_ptr cinfo, void **obuf, size_t *olen )
 
 	/* Save output parameters.
 	 */
+	vips_dbuf_init( &buf->dbuf ); 
 	buf->obuf = obuf;
 	buf->olen = olen;
 }

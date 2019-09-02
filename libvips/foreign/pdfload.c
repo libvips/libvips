@@ -323,7 +323,10 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 
 	vips_foreign_load_pdf_set_image( pdf, load->out ); 
 
-	/* Convert the background to the image format.
+	/* Convert the background to the image format. 
+	 *
+	 * FIXME ... we probably should convert this to pre-multiplied BGRA
+	 * to match the Cairo convention. See vips__cairo2rgba().
 	 */
 	if( !(pdf->ink = vips__vector_to_ink( class->nickname, 
 		load->out, 
@@ -747,8 +750,8 @@ vips_foreign_load_pdf_is_a( const char *filename )
  * you can scale the rendering from the default 1 point == 1 pixel by 
  * setting @scale.
  *
- * Use @background to set the background colour, including transparency. The
- * default is 255 (solid white).
+ * Use @background to set the background RGBA colour. The default is 255 
+ * (solid white), use eg. 0 for a transparent background.
  *
  * The operation fills a number of header fields with metadata, for example
  * "pdf-author". They may be useful. 

@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libconversion.la
 
 libconversion_la_SOURCES = \
+	switch.c \
 	transpose3d.c \
 	composite.cpp \
 	smartcrop.c \
@@ -44,4 +45,10 @@ libconversion_la_SOURCES = \
 	subsample.c \
 	zoom.c
 
-AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
+# gcc annoyingly warns about clang pragmas, and does not support suppressing
+# the warning with a gcc pragma
+AM_CPPFLAGS = \
+	-I${top_srcdir}/libvips/include \
+	@VIPS_CFLAGS@ @VIPS_INCLUDES@ \
+	-Wno-unknown-pragmas
+

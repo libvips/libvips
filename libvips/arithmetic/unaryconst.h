@@ -59,16 +59,15 @@ typedef struct _VipsUnaryConst {
 	 */
 	VipsArea *c;
 
-	/* The format the constant should be cast to. Subclasses set this
-	 * ready for unaryconst's build method.
-	 */
-	VipsBandFormat const_format;
-
-	/* Our constant expanded to match arith->ready in size and
-	 * const_format in type.
+	/* Our constant expanded to match arith->ready in size. We need int
+	 * and double versions.
+	 *
+	 * is_int is TRUE if the two arrays are equal for every element.
 	 */
 	int n;
-	VipsPel *c_ready;
+	int *c_int;
+	double *c_double;
+	gboolean is_int;
 
 } VipsUnaryConst;
 

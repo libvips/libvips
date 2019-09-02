@@ -458,13 +458,10 @@ vips_boolean_const_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsUnary *unary = (VipsUnary *) object;
-	VipsUnaryConst *uconst = (VipsUnaryConst *) object;
 
 	if( unary->in &&
 		vips_check_noncomplex( class->nickname, unary->in ) )
 		return( -1 );
-
-	uconst->const_format = VIPS_FORMAT_INT;
 
 	if( VIPS_OBJECT_CLASS( vips_boolean_const_parent_class )->
 		build( object ) )
@@ -474,9 +471,9 @@ vips_boolean_const_build( VipsObject *object )
 }
 
 #define LOOPC( TYPE, OP ) { \
-	TYPE *p = (TYPE *) in[0]; \
-	TYPE *q = (TYPE *) out; \
-	int *c = (int *) uconst->c_ready; \
+	TYPE * restrict p = (TYPE *) in[0]; \
+	TYPE * restrict q = (TYPE *) out; \
+	int * restrict c = uconst->c_int; \
  	\
 	for( i = 0, x = 0; x < width; x++ ) \
 		for( b = 0; b < bands; b++, i++ ) \
@@ -484,9 +481,9 @@ vips_boolean_const_build( VipsObject *object )
 }
 
 #define FLOOPC( TYPE, OP ) { \
-	TYPE *p = (TYPE *) in[0]; \
-	int *q = (int *) out; \
-	int *c = (int *) uconst->c_ready; \
+	TYPE * restrict p = (TYPE *) in[0]; \
+	int * restrict q = (int *) out; \
+	int * restrict c = uconst->c_int; \
  	\
 	for( i = 0, x = 0; x < width; x++ ) \
 		for( b = 0; b < bands; b++, i++ ) \

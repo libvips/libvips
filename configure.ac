@@ -560,18 +560,6 @@ if test x"$expat_found" = x"no"; then
   exit 1
 fi
 
-# enable vips7 C++ binding ... this defaults off, the vips8 C++ binding
-# defaults on
-AC_ARG_ENABLE([cpp7],
-  AS_HELP_STRING([--enable-cpp7],
-    [enable deprecated vips7 C++ binding (default: no)]),
-  [enable_cpp7=$enableval
-  ], 
-  [enable_cpp7="no (default)"
-  ]
-)
-AM_CONDITIONAL(ENABLE_CPP7, [test x"$enable_cpp7" = x"yes"])
-
 # optional supporting libraries
 
 AC_ARG_WITH([gsf], 
@@ -1124,40 +1112,6 @@ if test x"$with_pangoft2" != x"no"; then
   )
 fi
 
-# install vips8 python
-AC_ARG_ENABLE([pyvips8],
-  AS_HELP_STRING([--enable-pyvips8],
-    [install vips8 Python overrides (default: no)]),
-  [enable_pyvips8=$enableval
-  ], 
-  [enable_pyvips8="no (default)"
-  ]
-)
-
-if test x"$enable_pyvips8" = x"auto"; then
-  PKG_CHECK_EXISTS([pygobject-3.0 >= 3.13.0],
-    [enable_pyvips8=yes
-    ],
-    [AC_MSG_WARN([pygobject-3.0 not found; disabling vips8 python support])
-     enable_pyvips8=no
-    ]
-  )
-fi
-
-if test x"$enable_pyvips8" = x"yes"; then
-  JD_PATH_PYTHON(2.7,,
-    [enable_pyvips8=no
-     AC_MSG_WARN([Python not found; disabling vips8 Python binding])
-    ]
-  )
-fi
-
-if test x"$enable_pyvips8" = x"yes"; then
-  PKG_CHECK_MODULES(PYGOBJECT, [pygobject-3.0 >= 3.13.0])
-fi
-
-AM_CONDITIONAL(ENABLE_PYVIPS8, [test x"$enable_pyvips8" = x"yes"])
-
 # look for TIFF with pkg-config ... fall back to our tester
 # pkgconfig support for libtiff starts with libtiff-4
 AC_ARG_WITH([tiff], 
@@ -1461,22 +1415,6 @@ image pyramid export:			$with_gsf
   (requires libgsf-1 1.14.26 or later)
 use libexif to load/save JPEG metadata: $with_libexif
 ])
-
-if test x"$found_introspection" = x"yes" -a "$VIPS_LIBDIR/girepository-1.0" != "$INTROSPECTION_TYPELIBDIR"; then
-  case "$VIPS_LIBDIR" in
-    /usr/local/Cellar/vips/*)
-      ;; # ignore for homebrew
-    *)
-      AC_MSG_RESULT([dnl
-Vips-8.0.typelib will be installed to $VIPS_LIBDIR/girepository-1.0, but 
-your system repository seems to be $INTROSPECTION_TYPELIBDIR. 
-You may need to add this directory to your typelib path, for example:
-
-	export GI_TYPELIB_PATH="$VIPS_LIBDIR/girepository-1.0"
-      ])
-      ;;
-  esac
-fi
 
 if test x"$vips_os_win32" = x"yes"; then
   if test x"$have_g_win32_get_command_line" != x"yes"; then

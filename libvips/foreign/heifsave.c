@@ -4,6 +4,8 @@
  * 	- from niftisave.c
  * 3/7/19 [lovell]
  * 	- add "compression" option
+ * 1/9/19 [meyermarcel]
+ * 	- save alpha when necessary
  */
 
 /*
@@ -199,10 +201,8 @@ vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif, int page )
 
 #ifdef HAVE_HEIF_ENCODING_OPTIONS_ALLOC
 	options = heif_encoding_options_alloc();
-	/* FIXME .. should be an option, though I don't know of any way to
-	 * test it
-	 */
-	options->save_alpha_channel = 1;
+	if( vips_image_hasalpha( save->ready ) )
+		options->save_alpha_channel = 1;
 #else /*!HAVE_HEIF_ENCODING_OPTIONS_ALLOC*/
 	options = NULL;
 #endif /*HAVE_HEIF_ENCODING_OPTIONS_ALLOC*/
@@ -336,14 +336,19 @@ vips_foreign_save_heif_build( VipsObject *object )
 	 * here and write a frame each time it fills.
 	 */
 	error = heif_image_create( heif->page_width, heif->page_height, 
-		heif_colorspace_RGB, heif_chroma_interleaved_RGB, &heif->img );
+		heif_colorspace_RGB, 
+		vips_image_hasalpha( save->ready ) ?
+			heif_chroma_interleaved_RGBA : 
+			heif_chroma_interleaved_RGB,
+		&heif->img );
 	if( error.code ) {
 		vips__heif_error( &error );
 		return( -1 );
 	}
 
 	error = heif_image_add_plane( heif->img, heif_channel_interleaved, 
-		heif->page_width, heif->page_height, 24 );
+		heif->page_width, heif->page_height, 
+		vips_image_hasalpha( save->ready ) ? 32 : 24 );
 	if( error.code ) {
 		vips__heif_error( &error );
 		return( -1 );
@@ -394,7 +399,7 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 
 	foreign_class->suffs = vips__heif_suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_RGB;
+	save_class->saveable = VIPS_SAVEABLE_RGBA_ONLY;
 	save_class->format_table = vips_heif_bandfmt;
 
 	VIPS_ARG_INT( class, "Q", 10, 

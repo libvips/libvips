@@ -8,6 +8,13 @@
 - support webp and zstd compression in tiff
 - loaders use "minimise" to close input files earlier
 - integrate support for oss-fuzz [omira-sch]
+- add vips_switch() / vips_case() ... fast many-way ifthenelse
+- better const handling for arithmetic operators fixes comparisons against out
+  of range values
+- handle alpha in heifload / heifsave [meyermarcel]
+
+31/8/19 started 8.8.3
+- revert sharpen restoring the input colourspace
 
 9/7/19 started 8.8.2
 - better early shutdown in readers
@@ -18,6 +25,17 @@
 - fix build with GM
 - add locks for pdfium load
 - fix build with MSVC 
+- fix a problem with shinkv tail processing [angelmixu]
+- fix a read one byte beyond buffer bug in jpegload
+- make GIF parsing less strict
+- better feof() handling in GIF load
+- clip coding and interpretation on vips image read
+- check image bounds for GIF load
+- prevent over-pre-shrink in thumbnail [kleisauke]
+- fix sharpen with sigma 0.5 [2h4dl]
+- sharpen restores input colourspace
+- verify bands/format for coded images
+- improve data_length handling for jpeg metadata
 
 24/5/19 started 8.8.1
 - improve realpath() use on older libc
