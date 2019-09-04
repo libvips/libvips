@@ -14,6 +14,8 @@
  * 	- predictor defaults to horizontal, reducing file size, usually
  * 13/6/18
  * 	- add region_shrink
+ * 4/9/18 [f--f]
+ * 	- xres/yres params were in pixels/cm
  */
 
 /*
@@ -137,16 +139,22 @@ vips_foreign_save_tiff_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	/* Default xres/yres to the values from the image.
+	/* Default xres/yres to the values from the image. This is always
+	 * pixels/mm.
 	 */
 	if( !vips_object_argument_isset( object, "xres" ) )
-		tiff->xres = save->ready->Xres * 10.0;
+		tiff->xres = save->ready->Xres;
 	if( !vips_object_argument_isset( object, "yres" ) )
-		tiff->yres = save->ready->Yres * 10.0;
+		tiff->yres = save->ready->Yres;
+
+	/* We default to pixels/cm.
+	 */
+	tiff->xres *= 10.0;
+	tiff->yres *= 10.0;
 
 	/* resunit param overrides resunit metadata.
 	 */
-	if( !vips_object_argument_isset( object, "resunit" ) &&
+	if( vips_object_argument_isset( object, "resunit" ) &&
 		vips_image_get_typeof( save->ready, 
 			VIPS_META_RESOLUTION_UNIT ) &&
 		!vips_image_get_string( save->ready, 
