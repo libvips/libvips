@@ -334,7 +334,6 @@ vips_init( const char *argv0 )
 	static gboolean started = FALSE;
 	static gboolean done = FALSE;
 	const char *vips_min_stack_size;
-	char *prgname;
 	const char *prefix;
 	const char *libdir;
 	char *locale;
@@ -394,9 +393,13 @@ vips_init( const char *argv0 )
 
 	VIPS_SETSTR( vips__argv0, argv0 );
 
-	prgname = g_path_get_basename( argv0 );
-	g_set_prgname( prgname );
-	g_free( prgname );
+	if( argv0 ) {
+		char *prgname;
+
+		prgname = g_path_get_basename( argv0 );
+		g_set_prgname( prgname );
+		g_free( prgname );
+	}
 
 	vips__thread_profile_attach( "main" );
 
