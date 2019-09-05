@@ -321,6 +321,24 @@ class TestForeign:
         assert x1.width == x2.height
         assert x1.height == x2.width
 
+        filename = temp_filename(self.tempdir, '.tif')
+        x = pyvips.Image.new_from_file(TIF_FILE)
+        x = x.copy()
+        x.write_to_file(filename, xres=100, yres=200, resunit="cm")
+        x1 = pyvips.Image.new_from_file(filename)
+        assert x1.get("resolution-unit") == "cm"
+        assert x1.xres == 100
+        assert x1.yres == 200
+
+        filename = temp_filename(self.tempdir, '.tif')
+        x = pyvips.Image.new_from_file(TIF_FILE)
+        x = x.copy()
+        x.write_to_file(filename, xres=100, yres=200, resunit="inch")
+        x1 = pyvips.Image.new_from_file(filename)
+        assert x1.get("resolution-unit") == "in"
+        assert x1.xres == 100
+        assert x1.yres == 200
+
         # OME support in 8.5
         x = pyvips.Image.new_from_file(OME_FILE)
         assert x.width == 439
