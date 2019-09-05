@@ -11,7 +11,9 @@
 - add vips_switch() / vips_case() ... fast many-way ifthenelse
 - better const handling for arithmetic operators fixes comparisons against out
   of range values
+- sharpen restores input colourspace
 - handle alpha in heifload / heifsave [meyermarcel]
+- add @interpretation and @format to rawload
 
 31/8/19 started 8.8.3
 - revert sharpen restoring the input colourspace
