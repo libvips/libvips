@@ -41,7 +41,6 @@
  * 	- move to defaults suitable for screen output
  * 28/8/19
  * 	- fix sigma 0.5 case (thanks 2h4dl)
- * 	- restore input colourspace
  */
 
 /*
