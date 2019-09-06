@@ -11,10 +11,13 @@
 - add vips_switch() / vips_case() ... fast many-way ifthenelse
 - better const handling for arithmetic operators fixes comparisons against out
   of range values
+- sharpen restores input colourspace
 - handle alpha in heifload / heifsave [meyermarcel]
+- add @interpretation and @format to rawload
 
 31/8/19 started 8.8.3
 - revert sharpen restoring the input colourspace
+- xres/yres tiffsave params were in pixels/cm [f--f]
 
 9/7/19 started 8.8.2
 - better early shutdown in readers
