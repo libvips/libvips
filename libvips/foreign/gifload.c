@@ -824,19 +824,18 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 
 			for( y = InterlacedOffset[i];
 				y < file->Image.Height;
-			  	y += InterlacedJumps[i] ) {
-				VipsPel *q = VIPS_IMAGE_ADDR( gif->frame,
-					file->Image.Left, file->Image.Top + y );
-
+			  	y += InterlacedJumps[i] ) 
 				if( DGifGetLine( gif->file, gif->line,
 					file->Image.Width ) == GIF_ERROR ) {
-					vips_foreign_load_gif_error( gif );
-					return( -1 );
-				}
+					VipsPel *q = VIPS_IMAGE_ADDR( 
+						gif->frame,
+						file->Image.Left, 
+						file->Image.Top + y );
 
-				vips_foreign_load_gif_render_line( gif,
-					file->Image.Width, q, gif->line );
-			}
+					vips_foreign_load_gif_render_line( gif,
+						file->Image.Width, q, 
+						gif->line );
+				}
 		}
 	}
 	else {
@@ -847,19 +846,15 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 			file->Image.Width, file->Image.Height,
 			file->Image.Left, file->Image.Top );
 
-		for( y = 0; y < file->Image.Height; y++ ) {
-			VipsPel *q = VIPS_IMAGE_ADDR( gif->frame,
-				file->Image.Left, file->Image.Top + y );
-
+		for( y = 0; y < file->Image.Height; y++ ) 
 			if( DGifGetLine( gif->file, gif->line,
-				file->Image.Width ) == GIF_ERROR ) {
-				vips_foreign_load_gif_error( gif );
-				return( -1 );
-			}
+				file->Image.Width ) != GIF_ERROR ) {
+				VipsPel *q = VIPS_IMAGE_ADDR( gif->frame,
+					file->Image.Left, file->Image.Top + y );
 
-			vips_foreign_load_gif_render_line( gif,
-				file->Image.Width, q, gif->line );
-		}
+				vips_foreign_load_gif_render_line( gif,
+					file->Image.Width, q, gif->line );
+			}
 	}
 
 	return( 0 );
@@ -915,10 +910,8 @@ vips_foreign_load_gif_next_page( VipsForeignLoadGif *gif )
 
 	have_read_frame = FALSE;
 	do {
-		if( DGifGetRecordType( gif->file, &record ) == GIF_ERROR ) {
-			vips_foreign_load_gif_error( gif );
-			return( -1 );
-		}
+		if( DGifGetRecordType( gif->file, &record ) == GIF_ERROR ) 
+			continue;
 
 		switch( record ) {
 		case IMAGE_DESC_RECORD_TYPE:
