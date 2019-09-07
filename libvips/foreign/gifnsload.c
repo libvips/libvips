@@ -111,6 +111,10 @@ typedef struct _VipsForeignLoadGif {
 	unsigned char *data;
 	size_t size;
 
+	/* Delays between frames (in milliseconds). Array of length @n.
+	 */
+	int *delays;
+
 } VipsForeignLoadGif;
 
 typedef VipsForeignLoadClass VipsForeignLoadGifClass;
@@ -171,6 +175,7 @@ vips_foreign_load_gif_dispose( GObject *gobject )
 	VIPS_DEBUG_MSG( "vips_foreign_load_gif_dispose:\n" );
 
 	VIPS_FREEF( gif_finalise, gif->anim );
+	VIPS_FREE( gif->delays );
 
 	G_OBJECT_CLASS( vips_foreign_load_gif_parent_class )->
 		dispose( gobject );
@@ -339,6 +344,8 @@ vips_foreign_load_gif_set_header( VipsForeignLoadGif *gif, VipsImage *image )
 	vips_image_set_int( image,
 		"gif-delay", gif->anim->frames[0].frame_delay );
 
+	vips_image_set_array_int( image, "delay", gif->delays, gif->n );
+
 	/* TODO make and set the "delay" array in ms
 		vips_image_set_array_int( image, 
 			"delay", gif->delays, gif->n_pages );
@@ -360,6 +367,7 @@ vips_foreign_load_gif_header( VipsForeignLoad *load )
 	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) load;
 
 	gif_result result;
+	int i;
 
 	VIPS_DEBUG_MSG( "vips_foreign_load_gif_header:\n" );
 
@@ -396,6 +404,14 @@ vips_foreign_load_gif_header( VipsForeignLoad *load )
 		vips_error( class->nickname, "%s", _( "bad page number" ) );
 		return( -1 );
 	}
+
+	/* In ms, frame_delay in cs.
+	 */
+	if( !(gif->delays = VIPS_ARRAY( NULL, gif->n, int )) )
+		return( -1 );
+	for( i = 0; i < gif->n; i++ )
+		gif->delays[i] = 
+			10 * gif->anim->frames[gif->page + i].frame_delay;
 
 	vips_foreign_load_gif_set_header( gif, load->out );
 
