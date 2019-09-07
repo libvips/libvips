@@ -57,7 +57,7 @@
  * - look into frame / page match up ... what about optimised GIFs where
  *   several frames make up each page?
  *
- * - early close
+ * - early close ... I guess we need open/close vfuncs.
  *
  * - libnsgif does not seem to support comment metadata
  *
