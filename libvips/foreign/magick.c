@@ -477,7 +477,7 @@ magick_set_number_scenes( ImageInfo *image_info, int scene, int number_scenes )
 int
 magick_optimize_image_layers( Image **images, ExceptionInfo *exception )
 {
-#ifdef HAS_OPTIMIZEPLUSIMAGELAYERS
+#ifdef HAVE_OPTIMIZEPLUSIMAGELAYERS
 	Image *tmp;
 
 	tmp = OptimizePlusImageLayers(*images, exception );
@@ -490,25 +490,25 @@ magick_optimize_image_layers( Image **images, ExceptionInfo *exception )
 	*images = tmp;
 
 	return MagickTrue;
-#else
-	g_warning( "%s", _( "layers optimization is not supported by your version "
-		"of libMagick" ) );
+#else /*!HAVE_OPTIMIZEPLUSIMAGELAYERS*/
+	g_warning( "%s", _( "layer optimization is not supported by "
+		"your version of libMagick" ) );
 	return MagickTrue;
-#endif
+#endif /*HAVE_OPTIMIZEPLUSIMAGELAYERS*/
 }
 
 int
 magick_optimize_image_transparency( const Image *images,
 	ExceptionInfo *exception )
 {
-#ifdef HAS_OPTIMIZEIMAGETRANSPARENCY
+#ifdef HAVE_OPTIMIZEIMAGETRANSPARENCY
 	OptimizeImageTransparency(images, exception);
 	return ( exception->severity == UndefinedException );
-#else
-	g_warning( "%s", _( "transparency optimization is not supported by your "
-		"version of libMagick" ) );
+#else /*!HAVE_OPTIMIZEIMAGETRANSPARENCY*/
+	g_warning( "%s", _( "transparency optimization is not supported by "
+		"your version of libMagick" ) );
 	return MagickTrue;
-#endif
+#endif /*HAVE_OPTIMIZEIMAGETRANSPARENCY*/
 }
 
 /* Does a few bytes look like a file IM can handle?
