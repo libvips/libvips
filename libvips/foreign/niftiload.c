@@ -2,6 +2,9 @@
  *
  * 29/6/18
  * 	- from fitsload.c
+ * 9/9/19
+ * 	- use double for all floating point scalar metadata, like other loaders
+ * 	- remove stray use of "n" property
  */
 
 /*
@@ -207,22 +210,22 @@ static VipsForeignNiftiFields vips_foreign_nifti_fields[] = {
 	{ "nv", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, nv ) }, 
 	{ "nw", G_TYPE_INT, G_STRUCT_OFFSET( nifti_image, nw ) }, 
 
-	{ "dx", G_TYPE_FLOAT, G_STRUCT_OFFSET( nifti_image, dx ) }, 
-	{ "dy", G_TYPE_FLOAT, G_STRUCT_OFFSET( nifti_image, dy ) }, 
-	{ "dz", G_TYPE_FLOAT, G_STRUCT_OFFSET( nifti_image, dz ) }, 
-	{ "dt", G_TYPE_FLOAT, G_STRUCT_OFFSET( nifti_image, dt ) }, 
-	{ "du", G_TYPE_FLOAT, G_STRUCT_OFFSET( nifti_image, du ) }, 
-	{ "dv", G_TYPE_FLOAT, G_STRUCT_OFFSET( nifti_image, dv ) }, 
-	{ "dw", G_TYPE_FLOAT, G_STRUCT_OFFSET( nifti_image, dw ) }, 
+	{ "dx", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, dx ) }, 
+	{ "dy", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, dy ) }, 
+	{ "dz", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, dz ) }, 
+	{ "dt", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, dt ) }, 
+	{ "du", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, du ) }, 
+	{ "dv", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, dv ) }, 
+	{ "dw", G_TYPE_DOUBLE, G_STRUCT_OFFSET( nifti_image, dw ) }, 
 
-	{ "scl_slope", G_TYPE_FLOAT, 
+	{ "scl_slope", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, scl_slope ) }, 
-	{ "scl_inter", G_TYPE_FLOAT, 
+	{ "scl_inter", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, scl_inter ) }, 
 
-	{ "cal_min", G_TYPE_FLOAT, 
+	{ "cal_min", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, cal_min ) }, 
-	{ "cal_max", G_TYPE_FLOAT, 
+	{ "cal_max", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, cal_max ) }, 
 
 	{ "qform_code", G_TYPE_INT, 
@@ -243,61 +246,61 @@ static VipsForeignNiftiFields vips_foreign_nifti_fields[] = {
 		G_STRUCT_OFFSET( nifti_image, slice_start ) }, 
 	{ "slice_end", G_TYPE_INT, 
 		G_STRUCT_OFFSET( nifti_image, slice_end ) }, 
-	{ "slice_duration", G_TYPE_FLOAT, 
+	{ "slice_duration", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, slice_duration ) }, 
 
-	{ "quatern_b", G_TYPE_FLOAT, 
+	{ "quatern_b", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, quatern_b ) }, 
-	{ "quatern_c", G_TYPE_FLOAT, 
+	{ "quatern_c", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, quatern_c ) }, 
-	{ "quatern_d", G_TYPE_FLOAT, 
+	{ "quatern_d", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, quatern_d ) }, 
-	{ "qoffset_x", G_TYPE_FLOAT, 
+	{ "qoffset_x", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, qoffset_x ) }, 
-	{ "qoffset_y", G_TYPE_FLOAT, 
+	{ "qoffset_y", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, qoffset_y ) }, 
-	{ "qoffset_z", G_TYPE_FLOAT, 
+	{ "qoffset_z", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, qoffset_z ) }, 
-	{ "qfac", G_TYPE_FLOAT, 
+	{ "qfac", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, qfac ) }, 
 
-	{ "sto_xyz00", G_TYPE_FLOAT, 
+	{ "sto_xyz00", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[0][0] ) }, 
-	{ "sto_xyz01", G_TYPE_FLOAT, 
+	{ "sto_xyz01", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[0][1] ) }, 
-	{ "sto_xyz02", G_TYPE_FLOAT, 
+	{ "sto_xyz02", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[0][2] ) }, 
-	{ "sto_xyz03", G_TYPE_FLOAT, 
+	{ "sto_xyz03", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[0][3] ) }, 
 
-	{ "sto_xyz10", G_TYPE_FLOAT, 
+	{ "sto_xyz10", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[1][0] ) }, 
-	{ "sto_xyz11", G_TYPE_FLOAT, 
+	{ "sto_xyz11", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[1][1] ) }, 
-	{ "sto_xyz12", G_TYPE_FLOAT, 
+	{ "sto_xyz12", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[1][2] ) }, 
-	{ "sto_xyz13", G_TYPE_FLOAT, 
+	{ "sto_xyz13", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[1][3] ) }, 
 
-	{ "sto_xyz20", G_TYPE_FLOAT, 
+	{ "sto_xyz20", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[2][0] ) }, 
-	{ "sto_xyz21", G_TYPE_FLOAT, 
+	{ "sto_xyz21", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[2][1] ) }, 
-	{ "sto_xyz22", G_TYPE_FLOAT, 
+	{ "sto_xyz22", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[2][2] ) }, 
-	{ "sto_xyz23", G_TYPE_FLOAT, 
+	{ "sto_xyz23", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[2][3] ) }, 
 
-	{ "sto_xyz30", G_TYPE_FLOAT, 
+	{ "sto_xyz30", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[3][0] ) }, 
-	{ "sto_xyz31", G_TYPE_FLOAT, 
+	{ "sto_xyz31", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[3][1] ) }, 
-	{ "sto_xyz32", G_TYPE_FLOAT, 
+	{ "sto_xyz32", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[3][2] ) }, 
-	{ "sto_xyz33", G_TYPE_FLOAT, 
+	{ "sto_xyz33", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, sto_xyz.m[3][3] ) }, 
 
-	{ "toffset", G_TYPE_FLOAT, 
+	{ "toffset", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, toffset ) }, 
 
 	{ "xyz_units", G_TYPE_INT, 
@@ -309,11 +312,11 @@ static VipsForeignNiftiFields vips_foreign_nifti_fields[] = {
 		G_STRUCT_OFFSET( nifti_image, nifti_type ) }, 
 	{ "intent_code", G_TYPE_INT, 
 		G_STRUCT_OFFSET( nifti_image, intent_code ) }, 
-	{ "intent_p1", G_TYPE_FLOAT, 
+	{ "intent_p1", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, intent_p1 ) }, 
-	{ "intent_p2", G_TYPE_FLOAT, 
+	{ "intent_p2", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, intent_p2 ) }, 
-	{ "intent_p3", G_TYPE_FLOAT, 
+	{ "intent_p3", G_TYPE_DOUBLE, 
 		G_STRUCT_OFFSET( nifti_image, intent_p3 ) }, 
 };
 
@@ -349,8 +352,11 @@ vips_gvalue_read( GValue *value, void *p )
 		g_value_set_int( value, *((int *) p) );
 		break;
 
-	case G_TYPE_FLOAT:
-		g_value_set_float( value, *((float *) p) );
+	case G_TYPE_DOUBLE:
+		/* We set as double rather than float, as things like pyvips
+		 * expect double for metadata items.
+		 */
+		g_value_set_double( value, *((float *) p) );
 		break;
 
 	default:
@@ -505,8 +511,7 @@ vips_foreign_load_nifti_set_header( VipsForeignLoadNifti *nifti,
 		vips_image_set_blob_copy( out, txt, ext->edata, ext->esize );
 	}
 
-	if( vips_object_argument_isset( VIPS_OBJECT( nifti ), "n" ) )
-		vips_image_set_int( out, VIPS_META_PAGE_HEIGHT, nim->ny );
+	vips_image_set_int( out, VIPS_META_PAGE_HEIGHT, nim->ny );
 
 	return( 0 );
 }
