@@ -177,13 +177,13 @@ int vips__jpeg_write_file( VipsImage *in,
 	gboolean optimize_coding, gboolean progressive, gboolean strip,
 	gboolean no_subsample, gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans, 
-	int quant_table );
+	int quant_table, gboolean max );
 int vips__jpeg_write_buffer( VipsImage *in, 
 	void **obuf, size_t *olen, int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip,
 	gboolean no_subsample, gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans, 
-	int quant_table );
+	int quant_table, gboolean max );
 
 int vips__isjpeg_buffer( const void *buf, size_t len );
 int vips__isjpeg( const char *filename );

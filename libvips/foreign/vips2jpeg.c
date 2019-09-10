@@ -90,6 +90,8 @@
  * 	- fix another leak with error during buffer output
  * 19/7/19
  * 	- ignore large XMP
+ * 10/9/19
+ * 	- add @max option
  */
 
 /*
@@ -473,7 +475,8 @@ static int
 write_vips( Write *write, int qfac, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip, 
 	gboolean no_subsample, gboolean trellis_quant,
-	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table )
+	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table,
+	gboolean max )
 {
 	VipsImage *in;
 	J_COLOR_SPACE space;
@@ -525,11 +528,11 @@ write_vips( Write *write, int qfac, const char *profile,
 		return( -1 );
 
 #ifdef HAVE_JPEG_EXT_PARAMS
-	/* Reset compression profile to libjpeg defaults
+	/* Reset compression profile.
 	 */
 	if( jpeg_c_int_param_supported( &write->cinfo, JINT_COMPRESS_PROFILE ) )
-		jpeg_c_set_int_param( &write->cinfo, 
-			JINT_COMPRESS_PROFILE, JCP_FASTEST );
+		jpeg_c_set_int_param( &write->cinfo, JINT_COMPRESS_PROFILE, 
+			max ? JCP_MAX_COMPRESSION : JCP_FASTEST );
 #endif
 
 	/* Reset to default.
@@ -687,7 +690,8 @@ vips__jpeg_write_file( VipsImage *in,
 	const char *filename, int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip, 
 	gboolean no_subsample, gboolean trellis_quant,
-	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table )
+	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table,
+       gboolean max )
 {
 	Write *write;
 
@@ -720,7 +724,7 @@ vips__jpeg_write_file( VipsImage *in,
 	if( write_vips( write, 
 		Q, profile, optimize_coding, progressive, strip, no_subsample,
 		trellis_quant, overshoot_deringing, optimize_scans, 
-		quant_table ) ) {
+		quant_table, max ) ) {
 		write_destroy( write );
 		return( -1 );
 	}
@@ -852,7 +856,8 @@ vips__jpeg_write_buffer( VipsImage *in,
 	void **obuf, size_t *olen, int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive,
 	gboolean strip, gboolean no_subsample, gboolean trellis_quant,
-	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table )
+	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table,
+       	gboolean max )
 {
 	Write *write;
 
@@ -885,7 +890,7 @@ vips__jpeg_write_buffer( VipsImage *in,
 	if( write_vips( write, 
 		Q, profile, optimize_coding, progressive, strip, no_subsample,
 		trellis_quant, overshoot_deringing, optimize_scans, 
-		quant_table ) ) {
+		quant_table, max ) ) {
 		buf_destroy( &write->cinfo );
 		write_destroy( write );
 

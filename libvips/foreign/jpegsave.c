@@ -108,6 +108,10 @@ typedef struct _VipsForeignSaveJpeg {
 	 */
 	int quant_table;
 
+	/* Enable all mozjpeg compression options.
+	 */
+	gboolean max;
+
 } VipsForeignSaveJpeg;
 
 typedef VipsForeignSaveClass VipsForeignSaveJpegClass;
@@ -208,6 +212,13 @@ vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveJpeg, quant_table ),
 		0, 8, 0 );
 
+	VIPS_ARG_BOOL( class, "max", 19,
+		_( "Max" ),
+		_( "Enable all compression options which reduce filesize" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveJpeg, max ),
+		FALSE );
+
 }
 
 static void
@@ -245,7 +256,7 @@ vips_foreign_save_jpeg_file_build( VipsObject *object )
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->no_subsample,
 		jpeg->trellis_quant, jpeg->overshoot_deringing,
-		jpeg->optimize_scans, jpeg->quant_table ) )
+		jpeg->optimize_scans, jpeg->quant_table, jpeg->max ) )
 		return( -1 );
 
 	return( 0 );
@@ -310,7 +321,7 @@ vips_foreign_save_jpeg_buffer_build( VipsObject *object )
 		&obuf, &olen, jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->no_subsample,
 		jpeg->trellis_quant, jpeg->overshoot_deringing,
-		jpeg->optimize_scans, jpeg->quant_table ) )
+		jpeg->optimize_scans, jpeg->quant_table, jpeg->max ) )
 		return( -1 );
 
 	/* obuf is a g_free() buffer, not vips_free().
@@ -376,7 +387,7 @@ vips_foreign_save_jpeg_mime_build( VipsObject *object )
 		&obuf, &olen, jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->no_subsample,
 		jpeg->trellis_quant, jpeg->overshoot_deringing,
-		jpeg->optimize_scans, jpeg->quant_table ) )
+		jpeg->optimize_scans, jpeg->quant_table, jpeg->max ) )
 		return( -1 );
 
 	printf( "Content-length: %zu\r\n", olen );
@@ -429,6 +440,7 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
  * * @quant_table: %gint, quantization table index
+ * * @max: %gboolean, maximum compression
  *
  * Write a VIPS image to a file as JPEG.
  *
@@ -496,6 +508,10 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * Tables 5-7 are based on older research papers, but generally achieve worse
  * compression ratios and/or quality than 2 or 4.
  *
+ * If @max is set, then all compression options which decrease file size are
+ * enabled. This can be perhaps 3x slower than standard compression, so
+ * beware.
+ *
  * The image is automatically converted to RGB, Monochrome or CMYK before 
  * saving. 
  *
@@ -543,6 +559,7 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
  * * @quant_table: %gint, quantization table index
+ * * @max: %gboolean, maximum compression
  *
  * As vips_jpegsave(), but save to a memory buffer. 
  *
@@ -599,6 +616,7 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
  * * @quant_table: %gint, quantization table index
+ * * @max: %gboolean, maximum compression
  *
  * As vips_jpegsave(), but save as a mime jpeg on stdout.
  *
