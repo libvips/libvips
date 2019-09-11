@@ -17,6 +17,8 @@
  * 28/6/19
  * 	- add "unlimited"
  * 	- requires us to use the gio API to librsvg
+ * 11/9/19
+ * 	- rework as a sequential loader to reduce overcomputation
  */
 
 /*
@@ -239,15 +241,13 @@ vips_foreign_load_svg_dispose( GObject *gobject )
 static VipsForeignFlags
 vips_foreign_load_svg_get_flags_filename( const char *filename )
 {
-	/* We can render any part of the page on demand.
-	 */
-	return( VIPS_FOREIGN_PARTIAL );
+	return( VIPS_FOREIGN_SEQUENTIAL );
 }
 
 static VipsForeignFlags
 vips_foreign_load_svg_get_flags( VipsForeignLoad *load )
 {
-	return( VIPS_FOREIGN_PARTIAL );
+	return( VIPS_FOREIGN_SEQUENTIAL );
 }
 
 static void
@@ -328,6 +328,12 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 	cairo_t *cr;
 	int y;
 
+#ifdef DEBUG
+	printf( "vips_foreign_load_svg_generate:\n     "
+		"left = %d, top = %d, width = %d, height = %d\n", 
+		r->left, r->top, r->width, r->height ); 
+#endif /*DEBUG*/
+
 	/* rsvg won't always paint the background.
 	 */
 	vips_region_black( or ); 
@@ -371,44 +377,30 @@ vips_foreign_load_svg_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) load;
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( (VipsObject *) load, 2 );
+		vips_object_local_array( (VipsObject *) load, 3 );
 
-	int tile_width;
-	int tile_height;
-	int max_tiles;
-
-	/* Read to this image, then cache to out, see below.
+	/* librsvg starts to fail if any axis in a single render call is over
+	 * RSVG_MAX_WIDTH pixels. vips_sequential() will use a tilecache where 
+	 * each tile is a strip the width of the image and (in this case) 
+	 * 2000 pixels high. To be able to render images wider than 
+	 * RSVG_MAX_WIDTH pixels, we need to chop these strips up.
+	 * We use a small tilecache between the seq and our gen to do this.
+	 *
+	 * Make tiles 2000 pixels high to limit overcomputation. 
 	 */
 	t[0] = vips_image_new(); 
-
 	vips_foreign_load_svg_parse( svg, t[0] ); 
 	if( vips_image_generate( t[0], 
-		NULL, vips_foreign_load_svg_generate, NULL, svg, NULL ) )
-		return( -1 );
-
-	/* librsvg starts to fail if any axis in a single render call is over 
-	 * 32767. Use a tilecache so we can render very wide images, though we
-	 * set it up like a linecache. 
-	 *
-	 * Don't thread the cache: we rely on this to keep calls to rsvg 
-	 * single-threaded.
-	 *
-	 * Make tiles 2000 pixels high to limit overcomputation. Make sure we
-	 * have two rows of tiles so we don't recompute requests that cross
-	 * tile boundaries. 
-	 */
-	tile_width = VIPS_MIN( t[0]->Xsize, RSVG_MAX_WIDTH );
-	max_tiles = 2 * VIPS_ROUND_UP( t[0]->Xsize, RSVG_MAX_WIDTH ) / 
-		RSVG_MAX_WIDTH;
-	tile_height = 2000;
-	if( vips_tilecache( t[0], &t[1],
-		"tile_width", tile_width,
-		"tile_height", tile_height,
-		"max_tiles", max_tiles,
-		"access", VIPS_ACCESS_SEQUENTIAL,
-		NULL ) ) 
-		return( -1 );
-	if( vips_image_write( t[1], load->real ) ) 
+		NULL, vips_foreign_load_svg_generate, NULL, svg, NULL ) ||
+		vips_tilecache( t[0], &t[1],
+			"tile_width", VIPS_MIN( t[0]->Xsize, RSVG_MAX_WIDTH ),
+			"tile_height", 2000,
+			"max_tiles", 1,
+			NULL ) ||
+		vips_sequential( t[1], &t[2], 
+			"tile_height", 2000, 
+			NULL ) ||
+		vips_image_write( t[2], load->real ) ) 
 		return( -1 );
 
 	return( 0 );
