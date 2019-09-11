@@ -496,6 +496,9 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * Tables 5-7 are based on older research papers, but generally achieve worse
  * compression ratios and/or quality than 2 or 4.
  *
+ * For maximum compression with mozjpeg, a useful set of options is `strip, 
+ * optimize-coding, interlace, optimize-scans, trellis-quant, quant_table=3`.
+ *
  * The image is automatically converted to RGB, Monochrome or CMYK before 
  * saving. 
  *
