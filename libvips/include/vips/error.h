@@ -36,6 +36,7 @@ extern "C" {
 #endif /*__cplusplus*/
 
 const char *vips_error_buffer( void );
+char *vips_error_buffer_copy( void );
 void vips_error_clear( void );
 
 void vips_error_freeze( void );
