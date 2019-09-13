@@ -516,7 +516,7 @@ static int
 vips_thumbnail_build( VipsObject *object )
 {
 	VipsThumbnail *thumbnail = VIPS_THUMBNAIL( object );
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 12 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 13 );
 	VipsInterpretation interpretation = thumbnail->linear ?
 		VIPS_INTERPRETATION_scRGB : VIPS_INTERPRETATION_sRGB; 
 
@@ -574,9 +574,9 @@ vips_thumbnail_build( VipsObject *object )
 
 		/* rad is scrgb.
 		 */
-		if( vips_rad2float( in, &t[0], NULL ) )
+		if( vips_rad2float( in, &t[12], NULL ) )
 			return( -1 );
-		in = t[0];
+		in = t[12];
 	}
 
 	/* In linear mode, we import right at the start. 
