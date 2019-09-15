@@ -14,6 +14,8 @@
  * 	- gtkdoc comments
  * 24/6/10
  * 	- fmt to error_exit() may be NULL
+ * 12/9/19 [dineshkannaa]
+ * 	- add vips_error_buffer_copy()
  */
 
 /*
@@ -179,6 +181,26 @@ vips_error_buffer( void )
 
 	g_mutex_lock( vips__global_lock );
 	msg = vips_buf_all( &vips_error_buf );
+	g_mutex_unlock( vips__global_lock );
+
+	return( msg );
+}
+
+/**
+ * vips_error_buffer_copy: 
+ *
+ * Return a copy of the vips error buffer, and clear it. 
+ *
+ * Returns: a copy of the libvips error buffer
+ */
+char *
+vips_error_buffer_copy( void )
+{
+	char *msg;
+
+	g_mutex_lock( vips__global_lock );
+	msg = g_strdup( vips_buf_all( &vips_error_buf ) );
+	vips_error_clear();
 	g_mutex_unlock( vips__global_lock );
 
 	return( msg );

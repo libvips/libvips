@@ -72,7 +72,7 @@
  * 25/8/18
  * 	- support xmp read/write
  * 20/4/19
- * 	- allow huge metadata
+ * 	- allow huge xmp metadata
  */
 
 /*
@@ -267,6 +267,18 @@ read_new( VipsImage *out, gboolean fail )
 	return( read );
 }
 
+static void
+read_info( Read *read ) 
+{
+	/* By default, libpng refuses to open files with a metadata chunk 
+	 * larger than 8mb. We've seen real files with 20mb, so set 50mb.
+	 */
+#ifdef HAVE_PNG_SET_CHUNK_MALLOC_MAX
+	png_set_chunk_malloc_max( read->pPng, 50 * 1024 * 1024 );
+#endif /*HAVE_PNG_SET_CHUNK_MALLOC_MAX*/
+	png_read_info( read->pPng, read->pInfo );
+}
+
 static Read *
 read_new_filename( VipsImage *out, const char *name, gboolean fail )
 {
@@ -282,20 +294,13 @@ read_new_filename( VipsImage *out, const char *name, gboolean fail )
 
 	/* Catch PNG errors from png_read_info().
 	 */
-	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) {
+		read_destroy( read );
 		return( NULL );
+	}
 
-	/* Read enough of the file that png_get_interlace_type() will start
-	 * working.
-	 *
-	 * By default, libpng refuses to open files with a metadata chunk 
-	 * larger than 8mb. We've seen real files with 20mb, so set 50mb.
-	 */
 	png_init_io( read->pPng, read->fp );
-#ifdef HAVE_PNG_SET_CHUNK_MALLOC_MAX
-	png_set_chunk_malloc_max( read->pPng, 50 * 1024 * 1024 );
-#endif /*HAVE_PNG_SET_CHUNK_MALLOC_MAX*/
-	png_read_info( read->pPng, read->pInfo );
+	read_info( read ); 
 
 	return( read );
 }
@@ -807,13 +812,12 @@ read_new_buffer( VipsImage *out, const void *buffer, size_t length,
 
 	/* Catch PNG errors from png_read_info().
 	 */
-	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) {
+		read_destroy( read );
 		return( NULL );
+	}
 
-	/* Read enough of the file that png_get_interlace_type() will start
-	 * working.
-	 */
-	png_read_info( read->pPng, read->pInfo );
+	read_info( read ); 
 
 	return( read );
 }
