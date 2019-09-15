@@ -33,8 +33,8 @@
 
 /*
 #define VERBOSE
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -315,16 +315,13 @@ static int
 vips_foreign_load_gif_open( VipsForeignLoadGif *gif )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
+	VipsForeignLoad *load = (VipsForeignLoad *) gif;
 
 	gif_result result;
 	int i;
 
 	VIPS_DEBUG_MSG( "vips_foreign_load_gif_open:\n" );
 
-	/* GIF_INSUFFICIENT_FRAME_DATA means we allow truncated GIFs. 
-	 *
-	 * TODO use fail to bail out on truncated GIFs.
-	 */
 	result = gif_initialise( gif->anim, gif->size, gif->data );
 	VIPS_DEBUG_MSG( "gif_initialise() = %d\n", result );
 #ifdef VERBOSE
@@ -334,6 +331,11 @@ vips_foreign_load_gif_open( VipsForeignLoadGif *gif )
 		result != GIF_WORKING &&
 		result != GIF_INSUFFICIENT_FRAME_DATA ) {
 		vips_foreign_load_gif_error( gif, result ); 
+		return( -1 );
+	}
+	else if( result == GIF_INSUFFICIENT_FRAME_DATA &&
+		load->fail ) {
+		vips_error( class->nickname, "%s", _( "truncated GIF" ) );
 		return( -1 );
 	}
 	if( !gif->anim->frame_count ) {
