@@ -1053,10 +1053,10 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( load ), 4 );
 
+	VIPS_DEBUG_MSG( "vips_foreign_load_gif_load:\n" );
+
 	if( class->open( gif ) )
 		return( -1 );
-
-	VIPS_DEBUG_MSG( "vips_foreign_load_gif_load:\n" );
 
 	/* Make the memory image we accumulate pixels in. We always accumulate
 	 * to RGBA, then trim down to whatever the output image needs on
