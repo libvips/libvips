@@ -1,3 +1,5 @@
+17/9/19 started 8.8.4
+
 31/8/19 started 8.8.3
 - revert sharpen restoring the input colourspace
 - xres/yres tiffsave params were in pixels/cm [f--f]
