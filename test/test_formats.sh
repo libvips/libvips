@@ -12,10 +12,6 @@ set -e
 poppler=$test_images/blankpage.pdf
 poppler_ref=$test_images/blankpage.pdf.png
 
-# rsvg / svgload reference image
-rsvg=$test_images/blankpage.svg
-rsvg_ref=$test_images/blankpage.svg.png
-
 # giflib / gifload reference image
 giflib=$test_images/trans-x.gif
 giflib_ref=$test_images/trans-x.png
@@ -234,10 +230,7 @@ if test_supported pdfload; then
 	test_loader $poppler_ref $poppler pdfload 0
 fi
 
-if test_supported svgload; then
-	# librsvg can give small differences on some platforms
-	test_loader $rsvg_ref $rsvg svgload 10
-fi
+# don't test SVG --- the output varies too much between librsvg versions
 
 if test_supported gifload; then
 	test_loader $giflib_ref $giflib gifload 0
