@@ -239,6 +239,7 @@ vips_text_autofit( VipsText *text )
 	target.width = text->width;
 	target.height = text->height;
 	previous_dpi = -1;
+	previous_difference = 0;
 
 #ifdef DEBUG
 	printf( "vips_text_autofit: "
