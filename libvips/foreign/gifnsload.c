@@ -54,11 +54,6 @@
 
 /* TODO:
  *
- * - look into frame / page match up ... what about optimised GIFs where
- *   several frames make up each page?
- *
- *   see https://en.wikipedia.org/wiki/GIF#/media/File:SmallFullColourGIF.gif
- *
  * - libnsgif does not seem to support comment metadata
  *
  * Notes:
@@ -307,7 +302,8 @@ vips_foreign_load_gifns_set_header( VipsForeignLoadGifns *gif,
 	if( vips_object_argument_isset( VIPS_OBJECT( gif ), "n" ) )
 		vips_image_set_int( image,
 			VIPS_META_PAGE_HEIGHT, gif->anim->height );
-	vips_image_set_int( image, VIPS_META_N_PAGES, gif->frame_count_displayable );
+	vips_image_set_int( image, VIPS_META_N_PAGES, 
+		gif->frame_count_displayable );
 	vips_image_set_int( image, "gif-loop", gif->anim->loop_count );
 
 	vips_image_set_array_int( image, "delay", gif->delay, gif->n );
@@ -328,7 +324,7 @@ vips_foreign_load_gifns_open( VipsForeignLoadGifns *gif )
 	gif_result result;
 	int i;
 
-	VIPS_DEBUG_MSG( "vips_foreign_load_gifns_open:\n" );
+	VIPS_DEBUG_MSG( "vips_foreign_load_gifns_open: %p\n", gif );
 
 	result = gif_initialise( gif->anim, gif->size, gif->data );
 	VIPS_DEBUG_MSG( "gif_initialise() = %d\n", result );
@@ -377,6 +373,7 @@ vips_foreign_load_gifns_open( VipsForeignLoadGifns *gif )
 
 	/* In ms, frame_delay in cs.
 	 */
+	VIPS_FREE( gif->delay );
 	if( !(gif->delay = VIPS_ARRAY( NULL, gif->n, int )) )
 		return( -1 );
 	for( i = 0; i < gif->n; i++ )
