@@ -1166,7 +1166,7 @@ if test x"$with_libnsgif" != x"no"; then
 fi
 
 # giflib if no libnsgif
-if test x"$with_libnsgif" != x"yes"; then
+#if test x"$with_libnsgif" != x"yes"; then
   FIND_GIFLIB(
     [with_giflib="yes (found by search)"
     ], 
@@ -1174,7 +1174,7 @@ if test x"$with_libnsgif" != x"yes"; then
      with_giflib=no
     ]
   )
-fi
+#fi
 
 # look for PNG with pkg-config ... fall back to our tester
 AC_ARG_WITH([png], 
