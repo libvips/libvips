@@ -10,8 +10,10 @@
  * 	- use a much larger strip size, thanks bubba
  * 8/6/18
  * 	- add background param
- * 16/8/18
- * 	- shut down the input file as soon as we can [kleisauke]
+ * 16/8/18 [kleisauke]
+ * 	- shut down the input file as soon as we can 
+ * 19/9/19
+ * 	- reopen the input if we minimised too early
  */
 
 /*
@@ -66,6 +68,21 @@
 #include <cairo.h>
 #include <poppler.h>
 
+#define VIPS_TYPE_FOREIGN_LOAD_PDF (vips_foreign_load_pdf_get_type())
+#define VIPS_FOREIGN_LOAD_PDF( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_FOREIGN_LOAD_PDF, VipsForeignLoadPdf ))
+#define VIPS_FOREIGN_LOAD_PDF_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_FOREIGN_LOAD_PDF, VipsForeignLoadPdfClass))
+#define VIPS_IS_FOREIGN_LOAD_PDF( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_FOREIGN_LOAD_PDF ))
+#define VIPS_IS_FOREIGN_LOAD_PDF_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_FOREIGN_LOAD_PDF ))
+#define VIPS_FOREIGN_LOAD_PDF_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_FOREIGN_LOAD_PDF, VipsForeignLoadPdfClass ))
+
 typedef struct _VipsForeignLoadPdf {
 	VipsForeignLoad parent_object;
 
@@ -113,24 +130,24 @@ typedef struct _VipsForeignLoadPdf {
 
 } VipsForeignLoadPdf;
 
-typedef VipsForeignLoadClass VipsForeignLoadPdfClass;
+typedef struct _VipsForeignLoadPdfClass {
+	VipsForeignLoadClass parent_class;
+
+	int (*open)( VipsForeignLoadPdf *pdf );
+
+	void (*close)( VipsForeignLoadPdf *pdf );
+} VipsForeignLoadPdfClass;
 
 G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadPdf, vips_foreign_load_pdf, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void
-vips_foreign_load_pdf_close( VipsForeignLoadPdf *pdf )
-{
-	VIPS_UNREF( pdf->page );
-	VIPS_UNREF( pdf->doc );
-}
-
-static void
 vips_foreign_load_pdf_dispose( GObject *gobject )
 {
-	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) gobject;
+	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF( gobject );
+	VipsForeignLoadPdfClass *class = VIPS_FOREIGN_LOAD_PDF_GET_CLASS( pdf );
 
-	vips_foreign_load_pdf_close( pdf ); 
+	class->close( pdf ); 
 
 	G_OBJECT_CLASS( vips_foreign_load_pdf_parent_class )->
 		dispose( gobject );
@@ -139,7 +156,7 @@ vips_foreign_load_pdf_dispose( GObject *gobject )
 static int
 vips_foreign_load_pdf_build( VipsObject *object )
 {
-	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) object;
+	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF( object );
 
 	if( !vips_object_argument_isset( object, "scale" ) )
 		pdf->scale = pdf->dpi / 72.0;
@@ -255,7 +272,9 @@ static int
 vips_foreign_load_pdf_header( VipsForeignLoad *load )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
-	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) load;
+	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF( load );
+	VipsForeignLoadPdfClass *pdf_class = 
+		VIPS_FOREIGN_LOAD_PDF_GET_CLASS( pdf );
 
 	int top;
 	int i;
@@ -263,6 +282,9 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 #ifdef DEBUG
 	printf( "vips_foreign_load_pdf_header: %p\n", pdf );
 #endif /*DEBUG*/
+
+	if( pdf_class->open( pdf ) )
+		return( -1 );
 
 	pdf->n_pages = poppler_document_get_n_pages( pdf->doc );
 
@@ -342,15 +364,20 @@ vips_foreign_load_pdf_minimise( VipsObject *object, VipsForeignLoadPdf *pdf )
 {
 	/* In seq mode, we can shut down the input at the end of computation.
 	 */
-	if( VIPS_FOREIGN_LOAD( pdf )->access == VIPS_ACCESS_SEQUENTIAL )
-		vips_foreign_load_pdf_close( pdf ); 
+	if( VIPS_FOREIGN_LOAD( pdf )->access == VIPS_ACCESS_SEQUENTIAL ) {
+		VipsForeignLoadPdfClass *class = 
+			VIPS_FOREIGN_LOAD_PDF_GET_CLASS( pdf );
+
+		class->close( pdf ); 
+	}
 }
 
 static int
 vips_foreign_load_pdf_generate( VipsRegion *or, 
 	void *seq, void *a, void *b, gboolean *stop )
 {
-	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) a;
+	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF( a );
+	VipsForeignLoadPdfClass *class = VIPS_FOREIGN_LOAD_PDF_GET_CLASS( pdf );
 	VipsRect *r = &or->valid;
 
 	int top;
@@ -362,6 +389,11 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		"left = %d, top = %d, width = %d, height = %d\n", 
 		r->left, r->top, r->width, r->height ); 
 	 */
+
+	/* We may have been minimised. Make sure the doc is open.
+	 */
+	if( class->open( pdf ) )
+		return( -1 );
 
 	/* Poppler won't always paint the background. 
 	 */
@@ -422,7 +454,7 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 static int
 vips_foreign_load_pdf_load( VipsForeignLoad *load )
 {
-	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) load;
+	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF( load );
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( (VipsObject *) load, 2 );
 
@@ -459,6 +491,19 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 	return( 0 );
 }
 
+static int
+vips_foreign_load_pdf_open( VipsForeignLoadPdf *pdf )
+{
+	return( 0 );
+}
+
+static void
+vips_foreign_load_pdf_close( VipsForeignLoadPdf *pdf )
+{
+	VIPS_UNREF( pdf->page );
+	VIPS_UNREF( pdf->doc );
+}
+
 static void
 vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 {
@@ -478,6 +523,9 @@ vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 		vips_foreign_load_pdf_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_pdf_get_flags;
 	load_class->load = vips_foreign_load_pdf_load;
+
+	class->open = vips_foreign_load_pdf_open;
+	class->close = vips_foreign_load_pdf_close;
 
 	VIPS_ARG_INT( class, "page", 20,
 		_( "Page" ),
@@ -557,27 +605,7 @@ vips_foreign_load_pdf_file_dispose( GObject *gobject )
 static int
 vips_foreign_load_pdf_file_header( VipsForeignLoad *load )
 {
-	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) load;
 	VipsForeignLoadPdfFile *file = (VipsForeignLoadPdfFile *) load;
-
-	char *path;
-	GError *error = NULL;
-
-	/* We need an absolute path for a URI.
-	 */
-	path = vips_realpath( file->filename );
-	if( !(file->uri = g_filename_to_uri( path, NULL, &error )) ) { 
-		g_free( path );
-		vips_g_error( &error );
-		return( -1 ); 
-	}
-	g_free( path );
-
-	if( !(pdf->doc = poppler_document_new_from_file( 
-		file->uri, NULL, &error )) ) { 
-		vips_g_error( &error );
-		return( -1 ); 
-	}
 
 	VIPS_SETSTR( load->out->filename, file->filename );
 
@@ -588,6 +616,38 @@ static const char *vips_foreign_pdf_suffs[] = {
 	".pdf",
 	NULL
 };
+
+static int
+vips_foreign_load_pdf_file_open( VipsForeignLoadPdf *pdf )
+{
+	VipsForeignLoadPdfFile *file = (VipsForeignLoadPdfFile *) pdf;
+
+	GError *error = NULL;
+
+	if( !file->uri ) { 
+		char *path;
+
+		/* We need an absolute path for a URI.
+		 */
+		path = vips_realpath( file->filename );
+		if( !(file->uri = g_filename_to_uri( path, NULL, &error )) ) { 
+			g_free( path );
+			vips_g_error( &error );
+			return( -1 ); 
+		}
+		g_free( path );
+	}
+
+	if( !pdf->doc &&
+		!(pdf->doc = poppler_document_new_from_file( 
+			file->uri, NULL, &error )) ) { 
+		vips_g_error( &error );
+		return( -1 ); 
+	}
+
+	return( VIPS_FOREIGN_LOAD_PDF_CLASS(
+		vips_foreign_load_pdf_file_parent_class )->open( pdf ) );
+}
 
 static void
 vips_foreign_load_pdf_file_class_init( 
@@ -608,6 +668,8 @@ vips_foreign_load_pdf_file_class_init(
 
 	load_class->is_a = vips_foreign_load_pdf_is_a;
 	load_class->header = vips_foreign_load_pdf_file_header;
+
+	class->open = vips_foreign_load_pdf_file_open;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
@@ -638,21 +700,21 @@ G_DEFINE_TYPE( VipsForeignLoadPdfBuffer, vips_foreign_load_pdf_buffer,
 	vips_foreign_load_pdf_get_type() );
 
 static int
-vips_foreign_load_pdf_buffer_header( VipsForeignLoad *load )
+vips_foreign_load_pdf_buffer_open( VipsForeignLoadPdf *pdf )
 {
-	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) load;
-	VipsForeignLoadPdfBuffer *buffer = 
-		(VipsForeignLoadPdfBuffer *) load;
+	VipsForeignLoadPdfBuffer *buffer = (VipsForeignLoadPdfBuffer *) pdf;
 
 	GError *error = NULL;
 
-	if( !(pdf->doc = poppler_document_new_from_data( 
+	if( !pdf->doc &&
+		!(pdf->doc = poppler_document_new_from_data( 
 		buffer->buf->data, buffer->buf->length, NULL, &error )) ) { 
 		vips_g_error( &error );
 		return( -1 ); 
 	}
 
-	return( vips_foreign_load_pdf_header( load ) );
+	return( VIPS_FOREIGN_LOAD_PDF_CLASS(
+		vips_foreign_load_pdf_buffer_parent_class )->open( pdf ) );
 }
 
 static void
@@ -669,7 +731,8 @@ vips_foreign_load_pdf_buffer_class_init(
 	object_class->nickname = "pdfload_buffer";
 
 	load_class->is_a_buffer = vips_foreign_load_pdf_is_a_buffer;
-	load_class->header = vips_foreign_load_pdf_buffer_header;
+
+	class->open = vips_foreign_load_pdf_buffer_open;
 
 	VIPS_ARG_BOXED( class, "buffer", 1, 
 		_( "Buffer" ),
