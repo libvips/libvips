@@ -362,6 +362,10 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 static void
 vips_foreign_load_pdf_minimise( VipsObject *object, VipsForeignLoadPdf *pdf )
 {
+#ifdef DEBUG
+	printf( "vips_foreign_load_pdf_minimise: %p\n", pdf );
+#endif /*DEBUG*/
+
 	/* In seq mode, we can shut down the input at the end of computation.
 	 */
 	if( VIPS_FOREIGN_LOAD( pdf )->access == VIPS_ACCESS_SEQUENTIAL ) {
@@ -500,6 +504,10 @@ vips_foreign_load_pdf_open( VipsForeignLoadPdf *pdf )
 static void
 vips_foreign_load_pdf_close( VipsForeignLoadPdf *pdf )
 {
+#ifdef DEBUG
+	printf( "vips_foreign_load_pdf_file_close:\n" );
+#endif /*DEBUG*/
+
 	VIPS_UNREF( pdf->page );
 	VIPS_UNREF( pdf->doc );
 }
@@ -522,6 +530,7 @@ vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 	load_class->get_flags_filename = 
 		vips_foreign_load_pdf_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_pdf_get_flags;
+	load_class->header = vips_foreign_load_pdf_header;
 	load_class->load = vips_foreign_load_pdf_load;
 
 	class->open = vips_foreign_load_pdf_open;
@@ -609,7 +618,8 @@ vips_foreign_load_pdf_file_header( VipsForeignLoad *load )
 
 	VIPS_SETSTR( load->out->filename, file->filename );
 
-	return( vips_foreign_load_pdf_header( load ) );
+	return( VIPS_FOREIGN_LOAD_CLASS(
+		vips_foreign_load_pdf_file_parent_class )->header( load ) );
 }
 
 static const char *vips_foreign_pdf_suffs[] = {
@@ -623,6 +633,10 @@ vips_foreign_load_pdf_file_open( VipsForeignLoadPdf *pdf )
 	VipsForeignLoadPdfFile *file = (VipsForeignLoadPdfFile *) pdf;
 
 	GError *error = NULL;
+
+#ifdef DEBUG
+	printf( "vips_foreign_load_pdf_file_open: %s\n", file->filename );
+#endif /*DEBUG*/
 
 	if( !file->uri ) { 
 		char *path;

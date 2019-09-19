@@ -1180,23 +1180,22 @@ vips_foreign_load_gif_class_init( VipsForeignLoadGifClass *class )
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
-	VipsForeignLoadGifClass *gif_class = (VipsForeignLoadGifClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_gif_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	gif_class->open = vips_foreign_load_gif_open;
-	gif_class->close = vips_foreign_load_gif_close;
-	load_class->header = vips_foreign_load_gif_header;
-	load_class->load = vips_foreign_load_gif_load;
-
 	object_class->nickname = "gifload_base";
 	object_class->description = _( "load GIF with giflib" );
 
+	load_class->header = vips_foreign_load_gif_header;
+	load_class->load = vips_foreign_load_gif_load;
 	load_class->get_flags_filename =
 		vips_foreign_load_gif_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_gif_get_flags;
+
+	class->open = vips_foreign_load_gif_open;
+	class->close = vips_foreign_load_gif_close;
 
 	VIPS_ARG_INT( class, "page", 20,
 		_( "Page" ),
