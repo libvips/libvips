@@ -314,6 +314,22 @@ vips_foreign_load_gif_dispose( GObject *gobject )
 	VipsForeignLoadGifClass *class =
 		(VipsForeignLoadGifClass *) VIPS_OBJECT_GET_CLASS( gif );
 
+#ifdef HAVE_GIFLIB_5
+	if( gif->file ) {
+		int error;
+
+		if( DGifCloseFile( gif->file, &error ) == GIF_ERROR )
+			vips_foreign_load_gif_error_vips( gif, error );
+		gif->file = NULL;
+	}
+#else
+	if( gif->file ) {
+		if( DGifCloseFile( gif->file ) == GIF_ERROR )
+			vips_foreign_load_gif_error_vips( gif, GifLastError() );
+		gif->file = NULL;
+	}
+#endif
+
 	class->close( gif );
 
 	VIPS_UNREF( gif->frame );
@@ -675,9 +691,8 @@ vips_foreign_load_gif_scan( VipsForeignLoadGif *gif )
 static int
 vips_foreign_load_gif_header( VipsForeignLoad *load )
 {
-	VipsForeignLoadGifClass *class =
-		(VipsForeignLoadGifClass *) VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) load;
+	VipsForeignLoadGifClass *class = VIPS_FOREIGN_LOAD_GIF_GET_CLASS( gif );
 
 	if( class->open( gif ) )
 		return( -1 );
@@ -968,8 +983,15 @@ vips_foreign_load_gif_generate( VipsRegion *or,
 {
         VipsRect *r = &or->valid;
 	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) a;
+	VipsForeignLoadGifClass *class = VIPS_FOREIGN_LOAD_GIF_GET_CLASS( gif );
 
 	int y;
+
+	/* We may have been closed by minimise.
+	 */
+	if( !gif->file &&
+		class->open( gif ) )
+		return( -1 );
 
 	for( y = 0; y < r->height; y++ ) {
 		/* The page for this output line, and the line number in page.
@@ -1054,9 +1076,8 @@ vips_foreign_load_gif_minimise( VipsObject *object, VipsForeignLoadGif *gif )
 static int
 vips_foreign_load_gif_load( VipsForeignLoad *load )
 {
-	VipsForeignLoadGifClass *class =
-		(VipsForeignLoadGifClass *) VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) load;
+	VipsForeignLoadGifClass *class = VIPS_FOREIGN_LOAD_GIF_GET_CLASS( gif );
 	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( load ), 4 );
 
@@ -1115,41 +1136,44 @@ vips_foreign_load_gif_open( VipsForeignLoadGif *gif )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
 
+	/* We can be called several times.
+	 */
+	if( !gif->file ) {
 #ifdef HAVE_GIFLIB_5
-{
-	int error;
+		int error;
 
-	if( !(gif->file = DGifOpen( gif, gif->read_func, &error )) ) {
-		vips_foreign_load_gif_error_vips( gif, error );
-		return( -1 );
-	}
-}
+		if( !(gif->file = DGifOpen( gif, gif->read_func, &error )) ) {
+			vips_foreign_load_gif_error_vips( gif, error );
+			return( -1 );
+		}
 #else 
-	if( !(gif->file = DGifOpen( gif, gif->read_func )) ) { 
-		vips_foreign_load_gif_error_vips( gif, GifLastError() ); 
-		return( -1 ); 
-	}
+		if( !(gif->file = DGifOpen( gif, gif->read_func )) ) { 
+			vips_foreign_load_gif_error_vips( gif, 
+				GifLastError() ); 
+			return( -1 ); 
+		}
 #endif
 
-	gif->eof = FALSE;
-	gif->current_page = 0;
+		gif->eof = FALSE;
+		gif->current_page = 0;
 
-	/* giflib does no checking of image dimensions, not even for 0.
-	 */
-	if( gif->file->SWidth <= 0 ||
-		gif->file->SWidth > VIPS_MAX_COORD ||
-		gif->file->SHeight <= 0 ||
-		gif->file->SHeight > VIPS_MAX_COORD ) {
-		vips_error( class->nickname, 
-			"%s", _( "image size out of bounds" ) );
-		return( -1 );
+		/* giflib does no checking of image dimensions, not even for 0.
+		 */
+		if( gif->file->SWidth <= 0 ||
+			gif->file->SWidth > VIPS_MAX_COORD ||
+			gif->file->SHeight <= 0 ||
+			gif->file->SHeight > VIPS_MAX_COORD ) {
+			vips_error( class->nickname, 
+				"%s", _( "image size out of bounds" ) );
+			return( -1 );
+		}
+
+		/* Allocate a line buffer now that we have the GIF width.
+		 */
+		if( !(gif->line = 
+			VIPS_ARRAY( NULL, gif->file->SWidth, GifPixelType )) )
+			return( -1 );
 	}
-
-	/* Allocate a line buffer now that we have the GIF width.
-	 */
-	VIPS_FREE( gif->line )
-	if( !(gif->line = VIPS_ARRAY( NULL, gif->file->SWidth, GifPixelType )) )
-		return( -1 );
 
 	return( 0 );
 }
@@ -1157,21 +1181,8 @@ vips_foreign_load_gif_open( VipsForeignLoadGif *gif )
 static void
 vips_foreign_load_gif_close( VipsForeignLoadGif *gif )
 {
-#ifdef HAVE_GIFLIB_5
-	if( gif->file ) {
-		int error;
-
-		if( DGifCloseFile( gif->file, &error ) == GIF_ERROR )
-			vips_foreign_load_gif_error_vips( gif, error );
-		gif->file = NULL;
-	}
-#else
-	if( gif->file ) {
-		if( DGifCloseFile( gif->file ) == GIF_ERROR )
-			vips_foreign_load_gif_error_vips( gif, GifLastError() );
-		gif->file = NULL;
-	}
-#endif
+	/* We free the reader in _dispose(). ->close() just does fclose() etc.
+	 */
 }
 
 static void
@@ -1238,6 +1249,10 @@ typedef struct _VipsForeignLoadGifFile {
 	 */
 	FILE *fp;
 
+	/* Save the read point on ->close() in case we need to reopen.
+	 */
+	long read_point;
+
 } VipsForeignLoadGifFile;
 
 typedef VipsForeignLoadGifClass VipsForeignLoadGifFileClass;
@@ -1280,27 +1295,26 @@ vips_foreign_load_gif_file_header( VipsForeignLoad *load )
 	return( 0 );
 }
 
-/* We have to have _open() as a vfunc since our base class needs to be able to
- * make two scans of the gif (scan for header, then scan for pixels), so we 
- * must be able to close and reopen.
- */
 static int
 vips_foreign_load_gif_file_open( VipsForeignLoadGif *gif )
 {
 	VipsForeignLoad *load = (VipsForeignLoad *) gif;
 	VipsForeignLoadGifFile *file = (VipsForeignLoadGifFile *) gif;
-	VipsForeignLoadGifClass *class =
-		(VipsForeignLoadGifClass *) VIPS_OBJECT_GET_CLASS( load );
 
-	class->close( gif );
+	/* We can be called many times.
+	 */
+	if( !file->fp ) {
+		if( !(file->fp = 
+			vips__file_open_read( file->filename, NULL, FALSE )) )
+			return( -1 );
 
-	if( !(file->fp =
-		vips__file_open_read( file->filename, NULL, FALSE )) )
-		return( -1 );
+		if( file->read_point != -1 )
+			fseek( file->fp, file->read_point, SEEK_SET ); 
 
-	VIPS_SETSTR( load->out->filename, file->filename );
+		VIPS_SETSTR( load->out->filename, file->filename );
 
-	gif->read_func = vips_giflib_file_read;
+		gif->read_func = vips_giflib_file_read;
+	}
 
 	return( VIPS_FOREIGN_LOAD_GIF_CLASS(
 		vips_foreign_load_gif_file_parent_class )->open( gif ) );
@@ -1313,6 +1327,10 @@ vips_foreign_load_gif_file_close( VipsForeignLoadGif *gif )
 
 	VIPS_FOREIGN_LOAD_GIF_CLASS(
 		vips_foreign_load_gif_file_parent_class )->close( gif );
+
+	/* Save the read point in case we need to reopen.
+	 */
+	file->read_point = ftell( file->fp );
 
 	VIPS_FREEF( fclose, file->fp );
 }
@@ -1358,6 +1376,7 @@ vips_foreign_load_gif_file_class_init(
 static void
 vips_foreign_load_gif_file_init( VipsForeignLoadGifFile *file )
 {
+	file->read_point = -1;
 }
 
 typedef struct _VipsForeignLoadGifBuffer {
