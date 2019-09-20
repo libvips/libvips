@@ -330,7 +330,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 			vips_snprintf( name, 256, VIPS_META_EXIF_NAME );
 		else if( g_ascii_strcasecmp( type, "mime" ) == 0 &&
 			vips_isprefix( "<x:xmpmeta", (const char *) data ) ) 
-			snprintf( name, 256, VIPS_META_XMP_NAME ); 
+			vips_snprintf( name, 256, VIPS_META_XMP_NAME );
 		else
 			vips_snprintf( name, 256, "heif-%s-%d", type, i );
 
