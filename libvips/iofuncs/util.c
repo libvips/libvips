@@ -444,8 +444,8 @@ vips_vsnprintf( char *str, size_t size, const char *format, va_list ap )
 	 */
 	if( size > MAX_BUF )
 		vips_error_exit( "panic: buffer overflow "
-			"(request to write %d bytes to buffer of %d bytes)",
-			size, MAX_BUF );
+			"(request to write %lu bytes to buffer of %d bytes)",
+			(unsigned long) size, MAX_BUF );
 	n = vsprintf( buf, format, ap );
 	if( n > MAX_BUF )
 		vips_error_exit( "panic: buffer overflow "
