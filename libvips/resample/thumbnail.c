@@ -24,6 +24,8 @@
  * 	- support multi-page (animated) images
  * 27/8/19 kleisauke
  *	- prevent over-pre-shrink in thumbnail
+ * 30/9/19
+ * 	- smarter heif thumbnail selection
  */
 
 /*
@@ -379,9 +381,7 @@ vips_thumbnail_calculate_common_shrink( VipsThumbnail *thumbnail,
 
 	/* We don't want to shrink so much that we send an axis to 0.
 	 */
-	if( shrink > thumbnail->input_width ||
-		shrink > thumbnail->input_height )
-		shrink = 1.0;
+	shrink = VIPS_MIN( shrink, VIPS_MIN( width, height ) ); 
 
 	return( shrink ); 
 }
@@ -489,17 +489,19 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 		factor = vips_thumbnail_calculate_common_shrink( thumbnail, 
 			thumbnail->input_width, 
 			thumbnail->page_height );
-	if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
+	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
 		/* 'factor' is a gboolean which enables thumbnail load instead
 		 * of image load.
 		 *
-		 * Use the thumbnail if it's larger than our target.
+		 * Use the thumbnail if, by using it, we could get a factor >=
+		 * 1.0, ie. we would not need to expand the thumbnail.
 		 */
-		if( thumbnail->heif_thumbnail_width >= thumbnail->width &&
-			thumbnail->heif_thumbnail_height >= thumbnail->height )
-			factor = 1.0;
-		else
-			factor = 0.0;
+		double shrink_factor = vips_thumbnail_calculate_common_shrink( 
+			thumbnail, 
+			thumbnail->heif_thumbnail_width, 
+			thumbnail->heif_thumbnail_height );
+
+		factor = shrink_factor >= 1.0 ? 1 : 0;
 	}
 
 	g_info( "loading with factor %g pre-shrink", factor ); 
