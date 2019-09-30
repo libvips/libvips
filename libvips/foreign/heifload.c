@@ -9,6 +9,9 @@
  * 	- close early on error
  * 1/9/19 [meyermarcel]
  * 	- handle alpha
+ * 30/9/19
+ * 	- much faster handling of thumbnail=TRUE and missing thumbnail ... we
+ * 	  were reselecting the image for each scanline
  */
 
 /*
@@ -216,6 +219,11 @@ static int
 vips_foreign_load_heif_set_page( VipsForeignLoadHeif *heif, 
 	int page_no, gboolean thumbnail )
 {
+#ifdef DEBUG
+	printf( "vips_foreign_load_heif_set_page: %d, thumbnail = %d\n",
+		page_no, thumbnail );
+#endif /*DEBUG*/
+
 	if( !heif->handle ||
 		page_no != heif->page_no ||
 		thumbnail != heif->thumbnail_set ) {
@@ -253,8 +261,17 @@ vips_foreign_load_heif_set_page( VipsForeignLoadHeif *heif,
 				VIPS_FREEF( heif_image_handle_release, 
 					heif->handle );
 				heif->handle = thumb_handle;
-				heif->thumbnail_set = TRUE;
 			}
+
+			/* If we were asked to select the thumbnail, say we
+			 * did, even if there are no thumbnails and we just
+			 * selected the main image. 
+			 *
+			 * If we don't do this, next time around in _generate
+			 * we'll try to select the thumbnail again, which will
+			 * be horribly slow.
+			 */
+			heif->thumbnail_set = TRUE;
 		}
 
 		heif->page_no = page_no;
