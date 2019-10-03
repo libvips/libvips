@@ -12,6 +12,8 @@
  * 30/9/19
  * 	- much faster handling of thumbnail=TRUE and missing thumbnail ... we
  * 	  were reselecting the image for each scanline
+ * 3/10/19
+ * 	- restart after minimise
  */
 
 /*

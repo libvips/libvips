@@ -102,6 +102,8 @@
  * 	- shut down the input file as soon as we can [kleisauke]
  * 20/7/19
  * 	- close input on minimise rather than Y read position
+ * 3/10/19
+ * 	- restart after minimise
  */
 
 /*
@@ -190,24 +192,159 @@ typedef struct _ReadJpeg {
 	 */
 	int output_width;
 	int output_height;
+
+	/* If we close and reopen, save the ftell point here.
+	 */
+	long seek_position;
+
+	/* The memory area we read from.
+	 */
+	const void *buf;
+	size_t len;
+
 } ReadJpeg;
+
+/* Private struct for memory input.
+ */
+typedef struct {
+	/* Public jpeg fields.
+	 */
+	struct jpeg_source_mgr pub;
+
+	/* Private stuff during read.
+	 */
+	const JOCTET *buf;
+	size_t len;
+} InputBuffer;
+
+static void
+init_source( j_decompress_ptr cinfo )
+{
+}
+
+/*
+ * Fill the input buffer --- called whenever buffer is emptied.
+ *
+ * We fill the buffer on readjpeg_buffer(), so this will only be called if
+ * libjpeg tries to read beyond the buffer.
+ */
+static boolean
+fill_input_buffer( j_decompress_ptr cinfo )
+{
+	static const JOCTET eoi_buffer[4] = {
+		(JOCTET) 0xFF, (JOCTET) JPEG_EOI, 0, 0
+	};
+
+	InputBuffer *src = (InputBuffer *) cinfo->src;
+
+	WARNMS( cinfo, JWRN_JPEG_EOF );
+	src->pub.next_input_byte = eoi_buffer;
+	src->pub.bytes_in_buffer = 2;
+
+	return( TRUE );
+}
+
+/*
+ * Skip data --- used to skip over a potentially large amount of
+ * uninteresting data (such as an APPn marker).
+ *
+ * Writers of suspendable-input applications must note that skip_input_data
+ * is not granted the right to give a suspension return.  If the skip extends
+ * beyond the data currently in the buffer, the buffer can be marked empty so
+ * that the next read will cause a fill_input_buffer call that can suspend.
+ * Arranging for additional bytes to be discarded before reloading the input
+ * buffer is the application writer's problem.
+ */
+static void
+skip_input_data( j_decompress_ptr cinfo, long num_bytes )
+{
+	InputBuffer *src = (InputBuffer *) cinfo->src;
+
+	if( num_bytes > 0 ) {
+		while (num_bytes > (long) src->pub.bytes_in_buffer) {
+			num_bytes -= (long) src->pub.bytes_in_buffer;
+			(void) (*src->pub.fill_input_buffer) (cinfo);
+
+			/* note we assume that fill_input_buffer will never 
+			 * return FALSE, so suspension need not be handled.
+			 */
+		}
+
+		src->pub.next_input_byte += (size_t) num_bytes;
+		src->pub.bytes_in_buffer -= (size_t) num_bytes;
+	}
+}
+
+/*
+ * An additional method that can be provided by data source modules is the
+ * resync_to_restart method for error recovery in the presence of RST markers.
+ * For the moment, this source module just uses the default resync method
+ * provided by the JPEG library.  That method assumes that no backtracking
+ * is possible.
+ */
+
+/*
+ * Terminate source --- called by jpeg_finish_decompress
+ * after all data has been read.  Often a no-op.
+ *
+ * NB: *not* called by jpeg_abort or jpeg_destroy; surrounding
+ * application must deal with any cleanup that should happen even
+ * for error exit.
+ */
+static void
+term_source( j_decompress_ptr cinfo )
+{
+}
+
+static int
+readjpeg_open_input( ReadJpeg *jpeg )
+{
+	j_decompress_ptr cinfo = &jpeg->cinfo;
+
+	if( jpeg->filename &&
+		!jpeg->eman.fp ) { 
+		if( !(jpeg->eman.fp = 
+			vips__file_open_read( jpeg->filename, NULL, FALSE )) ) 
+			return( -1 );
+		jpeg_stdio_src( cinfo, jpeg->eman.fp );
+		if( jpeg->seek_position != -1 ) 
+			fseek( jpeg->eman.fp, jpeg->seek_position, SEEK_SET );
+	}
+
+	if( jpeg->buf &&
+		!cinfo->src ) {
+		InputBuffer *src;
+
+		cinfo->src = (struct jpeg_source_mgr *)
+			(*cinfo->mem->alloc_small)( 
+				(j_common_ptr) cinfo, JPOOL_PERMANENT,
+				sizeof( InputBuffer ) );
+
+		src = (InputBuffer *) cinfo->src;
+		src->buf = jpeg->buf;
+		src->len = jpeg->len;
+
+		src->pub.init_source = init_source;
+		src->pub.fill_input_buffer = fill_input_buffer;
+		src->pub.skip_input_data = skip_input_data;
+		src->pub.resync_to_restart = jpeg_resync_to_restart; 
+		src->pub.term_source = term_source;
+		src->pub.bytes_in_buffer = jpeg->len;
+		src->pub.next_input_byte = jpeg->buf;
+	}
+
+	return( 0 );
+}
 
 /* This can be called many times. 
  */
 static void
 readjpeg_close_input( ReadJpeg *jpeg )
 {
-	VIPS_FREEF( fclose, jpeg->eman.fp );
-
-	/* Don't call jpeg_finish_decompress(). It just checks the tail of the
-	 * file and who cares about that. All mem is freed in
-	 * jpeg_destroy_decompress().
-	 */
-
-	/* I don't think this can fail. It's harmless to call many times. 
-	 */
-	jpeg_destroy_decompress( &jpeg->cinfo );
-
+	if( jpeg->eman.fp ) {
+		jpeg->seek_position = ftell( jpeg->eman.fp );
+		VIPS_FREEF( fclose, jpeg->eman.fp );
+	}
 }
 
 /* This can be called many times.
@@ -226,6 +363,15 @@ readjpeg_free( ReadJpeg *jpeg )
 	}
 
 	readjpeg_close_input( jpeg );
+
+	/* Don't call jpeg_finish_decompress(). It just checks the tail of the
+	 * file and who cares about that. All mem is freed in
+	 * jpeg_destroy_decompress().
+	 */
+
+	/* I don't think this can fail. It's harmless to call many times. 
+	 */
+	jpeg_destroy_decompress( &jpeg->cinfo );
 
 	VIPS_FREE( jpeg->filename );
 
@@ -261,6 +407,7 @@ readjpeg_new( VipsImage *out, int shrink, gboolean fail, gboolean autorotate )
 	jpeg->eman.fp = NULL;
 	jpeg->y_pos = 0;
 	jpeg->autorotate = autorotate;
+	jpeg->seek_position = -1;
 
 	/* This is used by the error handlers to signal invalidate on the
 	 * output image.
@@ -289,9 +436,8 @@ static int
 readjpeg_file( ReadJpeg *jpeg, const char *filename )
 {
 	jpeg->filename = g_strdup( filename );
-        if( !(jpeg->eman.fp = vips__file_open_read( filename, NULL, FALSE )) ) 
+	if( readjpeg_open_input( jpeg ) )
                 return( -1 );
-        jpeg_stdio_src( &jpeg->cinfo, jpeg->eman.fp );
 
 	return( 0 );
 }
@@ -687,11 +833,16 @@ read_jpeg_generate( VipsRegion *or,
 		VIPS_GATE_STOP( "read_jpeg_generate: work" );
 
 #ifdef DEBUG
-		printf( "read_jpeg_generate: lonjmp() exit\n" ); 
+		printf( "read_jpeg_generate: longjmp() exit\n" ); 
 #endif /*DEBUG*/
 
 		return( -1 );
 	}
+
+	/* We may have been minimised.
+	 */
+	if( readjpeg_open_input( jpeg ) )
+                return( -1 );
 
 	/* If --fail is set, we make read fail on any warnings. This
 	 * will stop on any errors from the previous jpeg_read_scanlines().
@@ -909,145 +1060,6 @@ vips__jpeg_read_file( const char *filename, VipsImage *out,
 	return( 0 );
 }
 
-/* Just like the above, but we read from a memory buffer.
- */
-typedef struct {
-	/* Public jpeg fields.
-	 */
-	struct jpeg_source_mgr pub;
-
-	/* Private stuff during read.
-	 */
-	const JOCTET *buf;
-	size_t len;
-} InputBuffer;
-
-static void
-init_source (j_decompress_ptr cinfo)
-{
-  /* no work necessary here */
-}
-
-/*
- * Fill the input buffer --- called whenever buffer is emptied.
- *
- * We fill the buffer on readjpeg_buffer(), so this will only be called if
- * libjpeg tries to read beyond the buffer.
- */
-
-static boolean
-fill_input_buffer (j_decompress_ptr cinfo)
-{
-  static const JOCTET eoi_buffer[4] = {
-    (JOCTET) 0xFF, (JOCTET) JPEG_EOI, 0, 0
-  };
-
-  InputBuffer *src = (InputBuffer *) cinfo->src;
-
-  WARNMS(cinfo, JWRN_JPEG_EOF);
-  src->pub.next_input_byte = eoi_buffer;
-  src->pub.bytes_in_buffer = 2;
-
-  return TRUE;
-}
-
-/*
- * Skip data --- used to skip over a potentially large amount of
- * uninteresting data (such as an APPn marker).
- *
- * Writers of suspendable-input applications must note that skip_input_data
- * is not granted the right to give a suspension return.  If the skip extends
- * beyond the data currently in the buffer, the buffer can be marked empty so
- * that the next read will cause a fill_input_buffer call that can suspend.
- * Arranging for additional bytes to be discarded before reloading the input
- * buffer is the application writer's problem.
- */
-
-static void
-skip_input_data (j_decompress_ptr cinfo, long num_bytes)
-{
-  InputBuffer *src = (InputBuffer *) cinfo->src;
-
-  if (num_bytes > 0) {
-    while (num_bytes > (long) src->pub.bytes_in_buffer) {
-      num_bytes -= (long) src->pub.bytes_in_buffer;
-      (void) (*src->pub.fill_input_buffer) (cinfo);
-
-      /* note we assume that fill_input_buffer will never return FALSE,
-       * so suspension need not be handled.
-       */
-    }
-
-    src->pub.next_input_byte += (size_t) num_bytes;
-    src->pub.bytes_in_buffer -= (size_t) num_bytes;
-  }
-}
-
-/*
- * An additional method that can be provided by data source modules is the
- * resync_to_restart method for error recovery in the presence of RST markers.
- * For the moment, this source module just uses the default resync method
- * provided by the JPEG library.  That method assumes that no backtracking
- * is possible.
- */
-
-/*
- * Terminate source --- called by jpeg_finish_decompress
- * after all data has been read.  Often a no-op.
- *
- * NB: *not* called by jpeg_abort or jpeg_destroy; surrounding
- * application must deal with any cleanup that should happen even
- * for error exit.
- */
-
-static void
-term_source (j_decompress_ptr cinfo)
-{
-  /* no work necessary here */
-}
-
-/*
- * Prepare for input from a memory buffer. The caller needs to free the
- * buffer after decompress is done, we don't take ownership.
- */
-
-static void
-readjpeg_buffer (ReadJpeg *jpeg, const void *buf, size_t len)
-{
-  j_decompress_ptr cinfo = &jpeg->cinfo;
-  InputBuffer *src;
-
-  /* Empty buffer is a fatal error.
-   */
-  if (len == 0  || buf == NULL)
-    ERREXIT(cinfo, JERR_INPUT_EMPTY);
-
-  /* The source object and input buffer are made permanent so that a series
-   * of JPEG images can be read from the same file by calling jpeg_stdio_src
-   * only before the first one.  (If we discarded the buffer at the end of
-   * one image, we'd likely lose the start of the next one.)
-   * This makes it unsafe to use this manager and a different source
-   * manager serially with the same JPEG object.  Caveat programmer.
-   */
-  if (cinfo->src == NULL) {	/* first time for this JPEG object? */
-    cinfo->src = (struct jpeg_source_mgr *)
-      (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT,
-				  sizeof(InputBuffer));
-    src = (InputBuffer *) cinfo->src;
-    src->buf = buf;
-    src->len = len;
-  }
-
-  src = (InputBuffer *) cinfo->src;
-  src->pub.init_source = init_source;
-  src->pub.fill_input_buffer = fill_input_buffer;
-  src->pub.skip_input_data = skip_input_data;
-  src->pub.resync_to_restart = jpeg_resync_to_restart; /* use default method */
-  src->pub.term_source = term_source;
-  src->pub.bytes_in_buffer = len;
-  src->pub.next_input_byte = buf;
-}
-
 int
 vips__jpeg_read_buffer( const void *buf, size_t len, VipsImage *out, 
 	gboolean header_only, int shrink, int fail, gboolean autorotate )
@@ -1060,9 +1072,10 @@ vips__jpeg_read_buffer( const void *buf, size_t len, VipsImage *out,
 	if( setjmp( jpeg->eman.jmp ) ) 
 		return( -1 );
 
-	/* Set input to buffer.
-	 */
-	readjpeg_buffer( jpeg, buf, len );
+	jpeg->buf = buf;
+	jpeg->len = len;
+	if( readjpeg_open_input( jpeg ) )
+                return( -1 );
 
 	if( vips__jpeg_read( jpeg, out, header_only ) ) 
 		return( -1 );
