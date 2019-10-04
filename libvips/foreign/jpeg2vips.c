@@ -134,9 +134,9 @@
  */
 
 /*
+ */
 #define DEBUG_VERBOSE
 #define DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -472,7 +472,8 @@ attach_blob( VipsImage *im, const char *field, void *data, size_t data_length )
 	}
 
 #ifdef DEBUG
-	printf( "attach_blob: attaching %d bytes of %s\n", data_length, field );
+	printf( "attach_blob: attaching %zd bytes of %s\n", 
+		data_length, field );
 #endif /*DEBUG*/
 
 	vips_image_set_blob_copy( im, field, data, data_length );
