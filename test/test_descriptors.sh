@@ -19,3 +19,7 @@ fi
 if test_supported gifload; then
 	./test_descriptors $test_images/cogs.gif
 fi
+
+if test_supported pdfload; then
+	./test_descriptors $test_images/ISO_12233-reschart.pdf 
+fi

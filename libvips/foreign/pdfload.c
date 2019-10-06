@@ -185,7 +185,8 @@ vips_foreign_load_pdf_get_flags( VipsForeignLoad *load )
 static int
 vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 {
-	if( pdf->current_page != page_no ) { 
+	if( pdf->current_page != page_no ||
+		!pdf->page ) { 
 		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( pdf );
 
 		VIPS_UNREF( pdf->page );
@@ -356,24 +357,20 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 		VIPS_AREA( pdf->background )->n )) )
 		return( -1 );
 
+	pdf_class->close( pdf ); 
+
 	return( 0 );
 }
 
 static void
 vips_foreign_load_pdf_minimise( VipsObject *object, VipsForeignLoadPdf *pdf )
 {
+	VipsForeignLoadPdfClass *class = VIPS_FOREIGN_LOAD_PDF_GET_CLASS( pdf );
 #ifdef DEBUG
 	printf( "vips_foreign_load_pdf_minimise: %p\n", pdf );
 #endif /*DEBUG*/
 
-	/* In seq mode, we can shut down the input at the end of computation.
-	 */
-	if( VIPS_FOREIGN_LOAD( pdf )->access == VIPS_ACCESS_SEQUENTIAL ) {
-		VipsForeignLoadPdfClass *class = 
-			VIPS_FOREIGN_LOAD_PDF_GET_CLASS( pdf );
-
-		class->close( pdf ); 
-	}
+	class->close( pdf ); 
 }
 
 static int
@@ -459,12 +456,16 @@ static int
 vips_foreign_load_pdf_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF( load );
+	VipsForeignLoadPdfClass *class = VIPS_FOREIGN_LOAD_PDF_GET_CLASS( pdf );
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( (VipsObject *) load, 2 );
 
 #ifdef DEBUG
 	printf( "vips_foreign_load_pdf_load: %p\n", pdf );
 #endif /*DEBUG*/
+
+	if( class->open( pdf ) )
+		return( -1 );
 
 	/* Read to this image, then cache to out, see below.
 	 */
