@@ -39,6 +39,9 @@ main( int argc, char **argv )
         if( VIPS_INIT( argv[0] ) )
                 vips_error_exit( "unable to start" ); 
 
+	if( argc != 2 ) 
+		vips_error_exit( "usage: %s test-image", argv[0] ); 
+
 	vips_snprintf( fd_dir, 256, "/proc/%d/fd", getpid() );
 	n_files = count_files( fd_dir );
 	if( n_files == -1 )
@@ -57,7 +60,8 @@ main( int argc, char **argv )
 		NULL )) )
 		vips_error_exit( NULL );
 	if( count_files( fd_dir ) != n_files )
-		vips_error_exit( "fd not closed after header read" );
+		vips_error_exit( "%s: fd not closed after header read", 
+			argv[1] );
 
 	/* We should be able to read a chunk near the top, then have the fd
 	 * closed again.
@@ -67,7 +71,8 @@ main( int argc, char **argv )
 		vips_error_exit( NULL );
 	g_object_unref( x );
 	if( count_files( fd_dir ) != n_files )
-		vips_error_exit( "fd not closed after first read" );
+		vips_error_exit( "%s: fd not closed after first read", 
+			argv[1] );
 
 	/* We should be able to read again, a little further down, and have
 	 * the input restarted and closed again.
@@ -77,7 +82,8 @@ main( int argc, char **argv )
 		vips_error_exit( NULL );
 	g_object_unref( x );
 	if( count_files( fd_dir ) != n_files )
-		vips_error_exit( "fd not closed after second read" );
+		vips_error_exit( "%s: fd not closed after second read", 
+			argv[1] );
 
 	/* Clean up, and we should still just have three open.
 	 */
@@ -85,7 +91,8 @@ main( int argc, char **argv )
 	vips_shutdown();
 
 	if( count_files( fd_dir ) != n_files )
-		vips_error_exit( "fd not closed after shutdown" );
+		vips_error_exit( "%s: fd not closed after shutdown", 
+			argv[1] );
 
 	return( 0 );
 }

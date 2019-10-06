@@ -10,3 +10,12 @@ set -e
 if test_supported jpegload; then
 	./test_descriptors $image
 fi
+
+if test_supported heifload; then
+	# ./test_descriptors $test_images/Example1.heic
+	echo
+fi
+
+if test_supported gifload; then
+	./test_descriptors $test_images/cogs.gif
+fi

@@ -11,3 +11,17 @@ vipsheader=$top_srcdir/tools/vipsheader
 
 # we need bc to use '.' for a decimal separator
 export LC_NUMERIC=C
+
+# test for file format supported
+test_supported() {
+	format=$1
+
+	if $vips $format > /dev/null 2>&1; then
+		result=0
+	else
+		echo "support for $format not configured, skipping test"
+		result=1
+	fi
+
+	return $result
+}
