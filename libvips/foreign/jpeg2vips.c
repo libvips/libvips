@@ -134,9 +134,9 @@
  */
 
 /*
- */
 #define DEBUG_VERBOSE
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -341,6 +341,10 @@ readjpeg_open_input( ReadJpeg *jpeg )
 static void
 readjpeg_close_input( ReadJpeg *jpeg )
 {
+#ifdef DEBUG
+	printf( "readjpeg_close_input:\n" );
+#endif /*DEBUG*/
+
 	if( jpeg->eman.fp ) {
 		jpeg->seek_position = ftell( jpeg->eman.fp );
 		VIPS_FREEF( fclose, jpeg->eman.fp );
@@ -387,6 +391,10 @@ readjpeg_close_cb( VipsObject *object, ReadJpeg *jpeg )
 static void
 readjpeg_minimise_cb( VipsObject *object, ReadJpeg *jpeg )
 {
+#ifdef DEBUG
+	printf( "readjpeg_minimise_cb:\n" );
+#endif /*DEBUG*/
+
 	readjpeg_close_input( jpeg );
 }
 

@@ -171,20 +171,6 @@ test_saver() {
 	echo "ok"
 }
 
-# test for file format supported
-test_supported() {
-	format=$1
-
-	if $vips $format > /dev/null 2>&1; then
-		result=0
-	else
-		echo "support for $format not configured, skipping test"
-		result=1
-	fi
-
-	return $result
-}
-
 test_format $image v 0
 if test_supported tiffload; then
 	test_format $image tif 0

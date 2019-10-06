@@ -81,7 +81,7 @@ main( int argc, char **argv )
 
 	/* Clean up, and we should still just have three open.
 	 */
-	g_object_unref( x );
+	g_object_unref( image );
 	vips_shutdown();
 
 	if( count_files( fd_dir ) != n_files )
