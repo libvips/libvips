@@ -645,6 +645,8 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	if( vips_foreign_load_heif_set_header( heif, load->out ) )
 		return( -1 );
 
+	vips_foreign_load_heif_close( heif ); 
+
 	return( 0 );
 }
 
@@ -784,6 +786,8 @@ static int
 vips_foreign_load_heif_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) load;
+	VipsForeignLoadHeifClass *class = 
+		VIPS_FOREIGN_LOAD_HEIF_GET_CLASS( heif );
 
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( load ), 3 );
@@ -791,6 +795,9 @@ vips_foreign_load_heif_load( VipsForeignLoad *load )
 #ifdef DEBUG
 	printf( "vips_foreign_load_heif_load: loading image\n" );
 #endif /*DEBUG*/
+
+	if( class->open( heif ) )
+		return( -1 );
 
 	t[0] = vips_image_new();
 	if( vips_foreign_load_heif_set_header( heif, t[0] ) )

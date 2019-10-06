@@ -12,8 +12,7 @@ if test_supported jpegload; then
 fi
 
 if test_supported heifload; then
-	# ./test_descriptors $test_images/Example1.heic
-	echo
+	./test_descriptors $test_images/Example1.heic
 fi
 
 if test_supported gifload; then
