@@ -343,52 +343,29 @@ vips__iswebp( const char *filename )
 	return( 0 );
 }
 
-static int
-read_mmap( Read *read )
-{
-	if( read->filename &&
-		read->fd < 0 ) { 
-		if( (read->fd = vips__open_image_read( read->filename )) < 0 )
-			return( -1 );
-		if( read->length < 0 &&
-			(read->length = vips_file_length( read->fd )) < 0 )
-			return( -1 );
-		if( !(read->data = 
-			vips__mmap( read->fd, FALSE, read->length, 0 )) ) {
-			return( -1 );
-		}
-	}
-
-	return( 0 );
-}
-
 static void
-read_munmap( Read *read )
+read_minimise( Read *read )
 {
-	if( read->fd >= 0 ) {
-		if( read->data &&
-			read->length > 0 ) { 
-			vips__munmap( read->data, read->length ); 
-			read->data = NULL;
-			read->length = 0;
-		}
+	WebPDemuxReleaseIterator( &read->iter );
+	VIPS_UNREF( read->frame );
+	VIPS_FREEF( WebPDemuxDelete, read->demux );
+	WebPFreeDecBuffer( &read->config.output );
 
-		if( read->fd >= 0 ) { 
-			vips_tracked_close( read->fd ); 
-			read->fd = -1; 
-		}
+	if( read->fd > 0 &&
+		read->data &&
+		read->length > 0 ) { 
+		vips__munmap( read->data, read->length ); 
+		read->data = NULL;
+		read->length = 0;
 	}
+
+	VIPS_FREEF( vips_tracked_close, read->fd ); 
 }
 
 static int
 read_free( Read *read )
 {
-	read_munmap( read );
-
-	WebPDemuxReleaseIterator( &read->iter );
-	VIPS_UNREF( read->frame );
-	VIPS_FREEF( WebPDemuxDelete, read->demux );
-	WebPFreeDecBuffer( &read->config.output );
+	read_minimise( read );
 
 	VIPS_FREE( read->filename );
 	VIPS_FREE( read->delays );
@@ -406,22 +383,33 @@ read_new( const char *filename, const void *data, size_t length,
 	if( !(read = VIPS_NEW( NULL, Read )) )
 		return( NULL );
 
-	if( filename )
-		read->filename = g_strdup( filename );
+	read->filename = g_strdup( filename );
 	read->data = data;
 	read->length = length;
 	read->page = page;
 	read->n = n;
 	read->scale = scale;
 	read->delays = NULL;
-	read->fd = -1;
+	read->fd = 0;
 	read->demux = NULL;
 	read->frame = NULL;
 	read->dispose_method = WEBP_MUX_DISPOSE_NONE;
 	read->frame_no = 0;
 
-	if( read_mmap( read ) )
-		return( NULL );
+	if( read->filename ) { 
+		/* libwebp makes streaming from a file source very hard. We 
+		 * have to read to a full memory buffer, then copy to out.
+		 *
+		 * mmap the input file, it's slightly quicker.
+		 */
+		if( (read->fd = vips__open_image_read( read->filename )) < 0 ||
+			(read->length = vips_file_length( read->fd )) < 0 ||
+			!(read->data = vips__mmap( read->fd, 
+				FALSE, read->length, 0 )) ) {
+			read_free( read );
+			return( NULL );
+		}
+	}
 
 	WebPInitDecoderConfig( &read->config );
 	read->config.options.use_threads = 1;
@@ -617,7 +605,7 @@ vips__webp_read_file_header( const char *filename, VipsImage *out,
 {
 	Read *read;
 
-	if( !(read = read_new( filename, NULL, -1, page, n, scale )) ) {
+	if( !(read = read_new( filename, NULL, 0, page, n, scale )) ) {
 		vips_error( "webp2vips",
 			_( "unable to open \"%s\"" ), filename ); 
 		return( -1 );
@@ -781,9 +769,6 @@ read_webp_generate( VipsRegion *or,
 
 	g_assert( r->height == 1 );
 
-	if( read_mmap( read ) )
-		return( -1 );
-
 	while( read->frame_no < frame ) {
 		if( read_next_frame( read ) )
 			return( -1 );
@@ -821,7 +806,7 @@ read_webp_generate( VipsRegion *or,
 static void
 read_minimise_cb( VipsObject *object, Read *read )
 {
-	read_munmap( read );
+	read_minimise( read );
 }
 
 static int
@@ -852,7 +837,7 @@ vips__webp_read_file( const char *filename, VipsImage *out,
 {
 	Read *read;
 
-	if( !(read = read_new( filename, NULL, -1, page, n, scale )) ) {
+	if( !(read = read_new( filename, NULL, 0, page, n, scale )) ) {
 		vips_error( "webp2vips",
 			_( "unable to open \"%s\"" ), filename ); 
 		return( -1 );

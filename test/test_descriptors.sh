@@ -26,7 +26,3 @@ fi
 if test_supported pngload; then
 	./test_descriptors $test_images/sample.png
 fi
-
-if test_supported webpload; then
-	./test_descriptors $test_images/1.webp
-fi
