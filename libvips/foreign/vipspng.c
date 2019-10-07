@@ -73,6 +73,8 @@
  * 	- support xmp read/write
  * 20/4/19
  * 	- allow huge xmp metadata
+ * 7/10/19
+ * 	- restart after minimise
  */
 
 /*
@@ -167,9 +169,11 @@ typedef struct {
 	png_infop pInfo;
 	png_bytep *row_pointer;
 
-	/* For FILE input.
+	/* For FILE input. If we close and reopen, save the ftell point in
+	 * seek_position.
 	 */
 	FILE *fp;
+	long seek_position;
 
 	/* For memory input.
 	 */
@@ -179,12 +183,42 @@ typedef struct {
 
 } Read;
 
+/* This can be called many times. 
+ */
+static void
+read_close_input( Read *read )
+{
+#ifdef DEBUG
+	printf( "read_close_input:\n" );
+#endif /*DEBUG*/
+
+	if( read->fp ) {
+		read->seek_position = ftell( read->fp );
+		VIPS_FREEF( fclose, read->fp );
+	}
+}
+
+static int
+read_open_input( Read *read )
+{
+	if( !read->fp &&
+		read->name ) {
+		if( !(read->fp = 
+			vips__file_open_read( read->name, NULL, FALSE )) ) 
+			return( -1 );
+		if( read->seek_position != -1 ) 
+			fseek( read->fp, read->seek_position, SEEK_SET );
+	}
+
+	return( 0 );
+}
+
 /* Can be called many times.
  */
 static void
 read_destroy( Read *read )
 {
-	VIPS_FREEF( fclose, read->fp );
+	read_close_input( read );
 	if( read->pPng )
 		png_destroy_read_struct( &read->pPng, &read->pInfo, NULL );
 	VIPS_FREE( read->row_pointer );
@@ -199,17 +233,7 @@ read_close_cb( VipsImage *out, Read *read )
 static void
 read_minimise_cb( VipsImage *out, Read *read )
 {
-	/* Catch errors from png_read_end(). This can fail on a truncated
-	 * file. 
-	 */
-	if( read->pPng ) {
-		/* Catch and ignore error returns from png_read_end().
-		 */
-		if( !setjmp( png_jmpbuf( read->pPng ) ) ) 
-			png_read_end( read->pPng, NULL ); 
-	}
-
-	read_destroy( read );
+	read_close_input( read );
 }
 
 static Read *
@@ -228,6 +252,7 @@ read_new( VipsImage *out, gboolean fail )
 	read->pInfo = NULL;
 	read->row_pointer = NULL;
 	read->fp = NULL;
+	read->seek_position = -1;
 	read->buffer = NULL;
 	read->length = 0;
 	read->read_pos = 0;
@@ -289,7 +314,7 @@ read_new_filename( VipsImage *out, const char *name, gboolean fail )
 
 	read->name = vips_strdup( VIPS_OBJECT( out ), name );
 
-        if( !(read->fp = vips__file_open_read( name, NULL, FALSE )) ) 
+	if( read_open_input( read ) )
 		return( NULL );
 
 	/* Catch PNG errors from png_read_info().
@@ -553,12 +578,11 @@ vips__png_header( const char *name, VipsImage *out )
 	Read *read;
 
 	if( !(read = read_new_filename( out, name, TRUE )) ||
-		png2vips_header( read, out ) ) 
+		png2vips_header( read, out ) ) {
+		read_close_input( read );
 		return( -1 );
-
-	/* Just a header read: we can free the read early and save an fd.
-	 */
-	read_destroy( read );
+	}
+	read_close_input( read );
 
 	return( 0 );
 }
@@ -620,6 +644,9 @@ png2vips_generate( VipsRegion *or,
 	 */
 	g_assert( r->height == VIPS_MIN( VIPS__FATSTRIP_HEIGHT, 
 			or->im->Ysize - r->top ) ); 
+
+	if( read_open_input( read ) )
+		return( -1 );
 
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
@@ -737,6 +764,10 @@ png2vips_image( Read *read, VipsImage *out )
 			vips_image_write( t[1], out ) )
 			return( -1 );
 	}
+
+	/* _generate will reopen.
+	 */
+	read_close_input( read );
 
 	return( 0 );
 }

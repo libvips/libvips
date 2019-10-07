@@ -22,3 +22,7 @@ fi
 if test_supported pdfload; then
 	./test_descriptors $test_images/ISO_12233-reschart.pdf 
 fi
+
+if test_supported pngload; then
+	./test_descriptors $test_images/sample.png
+fi
