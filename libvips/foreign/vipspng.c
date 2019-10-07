@@ -208,6 +208,10 @@ read_open_input( Read *read )
 			return( -1 );
 		if( read->seek_position != -1 ) 
 			fseek( read->fp, read->seek_position, SEEK_SET );
+
+		/* Just takes a copy of the fp.
+		 */
+		png_init_io( read->pPng, read->fp );
 	}
 
 	return( 0 );
@@ -324,7 +328,6 @@ read_new_filename( VipsImage *out, const char *name, gboolean fail )
 		return( NULL );
 	}
 
-	png_init_io( read->pPng, read->fp );
 	read_info( read ); 
 
 	return( read );
