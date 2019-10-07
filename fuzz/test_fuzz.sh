@@ -14,8 +14,13 @@ export VIPS_WARNING=0
 ret=0
 
 for fuzzer in *_fuzzer; do
+  fail=0
 	find "common_fuzzer_corpus" -type f -not -empty -print0 \
-	  | xargs -0 -n1 "./$fuzzer" || ret=1
+	  | xargs -0 -n1 "./$fuzzer" || fail=1
+  if [ $fail ]; then
+    echo FAIL $fuzzer
+    ret=1
+  fi
 done
 
 exit $ret
