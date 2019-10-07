@@ -189,8 +189,6 @@
  * 7/6/19
  * 	- istiff reads the first directory rather than just testing the magic
  * 	  number, so it ignores more TIFF-like, but not TIFF images
- * 20/7/19
- * 	- use "minimise" for early shutdown, rather than read Y position
  */
 
 /*
@@ -496,20 +494,6 @@ rtiff_close_cb( VipsObject *object, Rtiff *rtiff )
 	rtiff_free( rtiff ); 
 }
 
-static void
-rtiff_minimise_cb( VipsObject *object, Rtiff *rtiff )
-{
-#ifdef DEBUG
-	printf( "rtiff_minimise_cb: %p minimise\n", rtiff );
-#endif /*DEBUG*/
-
-	/* Close early for non-tiled TIFFs. Tiled TIFFs are read randomly, so
-	 * the end of a loop doesn't mean the tiff won't be used again.
-	 */
-	if( !rtiff->header.tiled )
-		rtiff_free( rtiff ); 
-}
-
 static Rtiff *
 rtiff_new( VipsImage *out, int page, int n, gboolean autorotate )
 {
@@ -536,8 +520,10 @@ rtiff_new( VipsImage *out, int page, int n, gboolean autorotate )
 	g_signal_connect( out, "close", 
 		G_CALLBACK( rtiff_close_cb ), rtiff ); 
 
-	g_signal_connect( out, "minimise", 
-		G_CALLBACK( rtiff_minimise_cb ), rtiff ); 
+	/* Don't link to minimise. We need to be able to disconnect the
+	 * underlying fd and we can't do that without making our own input
+	 * handler for files. Implement this when we add input objects.
+	 */
 
 	if( rtiff->page < 0 || rtiff->page > 1000000 ) {
 		vips_error( "tiff2vips", _( "bad page number %d" ),
