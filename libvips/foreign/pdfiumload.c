@@ -39,6 +39,8 @@
 
 /* TODO 
  *
+ * - needs the reopen-after-minimise system that pdfload has, but we'll need
+ *   to be able to actually build and test this before we can do that
  * - what about filename encodings
  * - need to test on Windows
  */

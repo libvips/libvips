@@ -366,6 +366,7 @@ static void
 vips_foreign_load_pdf_minimise( VipsObject *object, VipsForeignLoadPdf *pdf )
 {
 	VipsForeignLoadPdfClass *class = VIPS_FOREIGN_LOAD_PDF_GET_CLASS( pdf );
+
 #ifdef DEBUG
 	printf( "vips_foreign_load_pdf_minimise: %p\n", pdf );
 #endif /*DEBUG*/
