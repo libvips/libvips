@@ -580,8 +580,9 @@ vips__png_header( const char *name, VipsImage *out )
 {
 	Read *read;
 
-	if( !(read = read_new_filename( out, name, TRUE )) ||
-		png2vips_header( read, out ) ) {
+	if( !(read = read_new_filename( out, name, TRUE )) )
+		return( -1 );
+	if( png2vips_header( read, out ) ) {
 		read_close_input( read );
 		return( -1 );
 	}
