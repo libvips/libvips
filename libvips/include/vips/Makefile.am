@@ -1,4 +1,5 @@
 pkginclude_HEADERS = \
+	stream.h \
 	basic.h \
 	type.h \
 	gate.h \
