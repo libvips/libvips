@@ -58,16 +58,24 @@ typedef struct _VipsStream {
 	VipsObject parent_object;
 
 	/*< private >*/
-	
+
 	/* Read/write this fd if connected to a system pipe/socket. Override
 	 * ::read() and ::write() to do something else.
 	 */
 	int descriptor;	
 
+	/* A descriptor we close with vips_tracked_close().
+	 */
+	int tracked_descriptor;	
+
+	/* A descriptor we close close().
+	 */
+	int close_descriptor;	
+
 	/* If descriptor is a file, the filename we opened. Handy for error
 	 * messages. 
 	 */
-	const char *filename; 
+	char *filename; 
 
 } VipsStream;
 
@@ -111,15 +119,15 @@ typedef struct _VipsStreamInput {
 	 * is an unseekable source) so that we can rewind and try again, if
 	 * necessary.
 	 *
-	 * Once we reach decode pahse, we no longer support seek and the
+	 * Once we reach decode phase, we no longer support rewind and the
 	 * buffer of saved data is discarded.
 	 */
 	gboolean decode;
 
-	/* TRUE is this input source suports seek. If not, then we save data
-	 * read during header phase in a buffer so we can rewind.
+	/* TRUE is this input source supports rewind. If not, then we save data
+	 * read during header phase in a buffer.
 	 */
-	gboolean seekable;
+	gboolean rewindable;
 
 	/*< private >*/
 
@@ -130,7 +138,7 @@ typedef struct _VipsStreamInput {
 	/* Save data read during header phase here. If we rewind and try
 	 * again, serve data from this until it runs out.
 	 */
-	GByteArray *buffer;
+	GByteArray *header_bytes;
 
 	/* For a memory source, the blob we read from.
 	 */
@@ -148,7 +156,7 @@ typedef struct _VipsStreamInputClass {
 	/* Subclasses can define these to implement other input methods.
 	 */
 	ssize_t (*read)( VipsStreamInput *, unsigned char *, size_t );
-	void (*rewind)( VipsStreamInput * );
+	int (*rewind)( VipsStreamInput * );
 
 } VipsStreamInputClass;
 
@@ -157,7 +165,7 @@ GType vips_stream_input_get_type( void );
 VipsStreamInput *vips_stream_input_new_from_descriptor( int descriptor );
 VipsStreamInput *vips_stream_input_new_from_filename( const char *filename );
 VipsStreamInput *vips_stream_input_new_from_blob( VipsBlob *blob );
-VipsStreamInput *vips_stream_input_new_from_buffer( void *buf, size_t len );
+VipsStreamInput *vips_stream_input_new_from_memory( void *data, size_t size );
 
 ssize_t vips_stream_input_read( VipsStreamInput *input, 
 	unsigned char *buffer, size_t length );
