@@ -457,6 +457,8 @@ vips_foreign_load_summary_class( VipsObjectClass *object_class, VipsBuf *buf )
 			vips_buf_appends( buf, ", is_a" );
 		if( class->is_a_buffer )
 			vips_buf_appends( buf, ", is_a_buffer" );
+		if( class->is_a_stream )
+			vips_buf_appends( buf, ", is_a_stream" );
 		if( class->get_flags )
 			vips_buf_appends( buf, ", get_flags" );
 		if( class->get_flags_filename )
@@ -667,6 +669,32 @@ vips_foreign_is_a_buffer( const char *loader, const void *data, size_t size )
 	load_class = VIPS_FOREIGN_LOAD_CLASS( class );
 	if( load_class->is_a_buffer &&
 		load_class->is_a_buffer( data, size ) )
+		return( TRUE );
+
+	return( FALSE );
+}
+
+/**
+ * vips_foreign_is_a_stream:
+ * @loader: name of loader to use for test
+ * @input: stream to test
+ *
+ * Return %TRUE if @input can be loaded by @loader. @loader is something
+ * like "tiffload_stream" or "VipsForeignLoadTiffStream".
+ *
+ * Returns: %TRUE if @data can be loaded by @stream.
+ */
+gboolean
+vips_foreign_is_a_stream( const char *loader, VipsStreamInput *input )
+{
+	const VipsObjectClass *class;
+	VipsForeignLoadClass *load_class;
+
+	if( !(class = vips_class_find( "VipsForeignLoad", loader )) )
+		return( FALSE );
+	load_class = VIPS_FOREIGN_LOAD_CLASS( class );
+	if( load_class->is_a_stream &&
+		load_class->is_a_stream( input ) )
 		return( TRUE );
 
 	return( FALSE );
@@ -1869,6 +1897,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_openslide_get_type( void ); 
 	extern GType vips_foreign_load_jpeg_file_get_type( void ); 
 	extern GType vips_foreign_load_jpeg_buffer_get_type( void ); 
+	extern GType vips_foreign_load_jpeg_stream_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_file_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_buffer_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_mime_get_type( void ); 
@@ -1980,6 +2009,7 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_JPEG
 	vips_foreign_load_jpeg_file_get_type(); 
 	vips_foreign_load_jpeg_buffer_get_type(); 
+	vips_foreign_load_jpeg_stream_get_type(); 
 	vips_foreign_save_jpeg_file_get_type(); 
 	vips_foreign_save_jpeg_buffer_get_type(); 
 	vips_foreign_save_jpeg_mime_get_type(); 

@@ -140,6 +140,10 @@ typedef struct _VipsStreamInput {
 	 */
 	GByteArray *header_bytes;
 
+	/* Save the first few bytes here for file type sniffing.
+	 */
+	GByteArray *sniff;
+
 	/* For a memory source, the blob we read from.
 	 */
 	VipsBlob *blob;
@@ -169,7 +173,7 @@ VipsStreamInput *vips_stream_input_new_from_memory( void *data, size_t size );
 
 ssize_t vips_stream_input_read( VipsStreamInput *input, 
 	unsigned char *buffer, size_t length );
-void vips_stream_input_rewind( VipsStreamInput *input );
+int vips_stream_input_rewind( VipsStreamInput *input );
 void vips_stream_input_decode( VipsStreamInput *input );
 gboolean vips_stream_input_eof( VipsStreamInput *input );
 unsigned char *vips_stream_input_sniff( VipsStreamInput *input, size_t length );
@@ -195,7 +199,11 @@ typedef struct _VipsStreamOutput {
 	VipsStream parent_object;
 
 	/*< private >*/
-	
+
+	/* For memory output, the blob we write to.
+	 */
+	VipsBlob *blob;
+
 } VipsStreamOutput;
 
 typedef struct _VipsStreamOutputClass {
@@ -209,8 +217,8 @@ typedef struct _VipsStreamOutputClass {
 
 GType vips_stream_output_get_type( void );
 
-VipsStreamOutput *vips_stream_output_new_from_descriptor( int descriptor );
-VipsStreamOutput *vips_stream_output_new_from_filename( const char *filename );
+VipsStreamOutput *vips_stream_output_new_to_descriptor( int descriptor );
+VipsStreamOutput *vips_stream_output_new_to_filename( const char *filename );
 int vips_stream_output_write( VipsStreamOutput *stream,
 	const unsigned char *buffer, size_t buffer_size );
 

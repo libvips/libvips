@@ -184,6 +184,13 @@ typedef struct _VipsForeignLoadClass {
 	 */
 	gboolean (*is_a_buffer)( const void *data, size_t size );
 
+	/* Is a stream in this format. 
+	 *
+	 * This function should return %TRUE if the stream contains an image of 
+	 * this type. 
+	 */
+	gboolean (*is_a_stream)( VipsStreamInput *stream );
+
 	/* Get the flags from a filename. 
 	 *
 	 * This function should examine the file and return a set
@@ -238,6 +245,8 @@ VipsForeignFlags vips_foreign_flags( const char *loader, const char *filename );
 gboolean vips_foreign_is_a( const char *loader, const char *filename );
 gboolean vips_foreign_is_a_buffer( const char *loader, 
 	const void *data, size_t size );
+gboolean vips_foreign_is_a_stream( const char *loader, 
+	VipsStreamInput *stream );
 
 void vips_foreign_load_invalidate( VipsImage *image );
 

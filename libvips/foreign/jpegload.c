@@ -315,6 +315,84 @@ vips_foreign_load_jpeg_buffer_init( VipsForeignLoadJpegBuffer *buffer )
 {
 }
 
+typedef struct _VipsForeignLoadJpegStream {
+	VipsForeignLoadJpeg parent_object;
+
+	/* Load from a buffer.
+	 */
+	VipsStreamInput *input;
+
+} VipsForeignLoadJpegStream;
+
+typedef VipsForeignLoadJpegClass VipsForeignLoadJpegStreamClass;
+
+G_DEFINE_TYPE( VipsForeignLoadJpegStream, vips_foreign_load_jpeg_stream, 
+	vips_foreign_load_jpeg_get_type() );
+
+static int
+vips_foreign_load_jpeg_stream_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
+	VipsForeignLoadJpegStream *stream = (VipsForeignLoadJpegStream *) load;
+
+	if( vips__jpeg_read_stream( stream->input, 
+		load->out, TRUE, jpeg->shrink, load->fail, jpeg->autorotate ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_load_jpeg_stream_load( VipsForeignLoad *load )
+{
+	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
+	VipsForeignLoadJpegStream *stream = (VipsForeignLoadJpegStream *) load;
+
+	if( vips__jpeg_read_stream( stream->input,
+		load->real, FALSE, jpeg->shrink, load->fail, 
+		jpeg->autorotate ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static gboolean
+vips_foreign_load_jpeg_stream_is_a( VipsStreamInput *input )
+{
+	return( vips__isjpeg_stream( input ) );
+}
+
+static void
+vips_foreign_load_jpeg_stream_class_init( 
+	VipsForeignLoadJpegStreamClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "jpegload_stream";
+	object_class->description = _( "load jpeg from stream" );
+
+	load_class->is_a_stream = vips_foreign_load_jpeg_stream_is_a;
+	load_class->header = vips_foreign_load_jpeg_stream_header;
+	load_class->load = vips_foreign_load_jpeg_stream_load;
+
+	VIPS_ARG_BOXED( class, "input", 1,
+		_( "Input" ),
+		_( "Input stream to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadJpegStream, input ),
+		VIPS_TYPE_STREAM_INPUT );
+}
+
+static void
+vips_foreign_load_jpeg_stream_init( VipsForeignLoadJpegStream *stream )
+{
+}
+
 #endif /*HAVE_JPEG*/
 
 /**

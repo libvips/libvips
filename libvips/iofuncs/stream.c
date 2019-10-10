@@ -31,6 +31,15 @@
 
  */
 
+/* TODO
+ *
+ * - memory output
+ * - add mmapable descriptors
+ * - add seekable descriptors
+ * - can we really change all behaviour in the subclass? will we need map and
+ *   seek as well as read and rewind?
+ */
+
 /*
 #define VIPS_DEBUG
  */
@@ -171,6 +180,7 @@ vips_stream_input_finalize( GObject *gobject )
 	VipsStreamInput *input = VIPS_STREAM_INPUT( gobject );
 
 	VIPS_FREEF( g_byte_array_unref, input->header_bytes ); 
+	VIPS_FREEF( g_byte_array_unref, input->sniff ); 
 
 	G_OBJECT_CLASS( vips_stream_input_parent_class )->finalize( gobject );
 }
@@ -215,10 +225,14 @@ vips_stream_input_build( VipsObject *object )
 	if( vips_object_argument_isset( object, "blob" ) )
 		input->rewindable = TRUE;
 
-	/* We will need a save buffer for unrewindable streams. 
+	/* Need to save the header if the source is not rewindable.
 	 */
-	if( !input->rewindable ) 
+	if( !input->rewindable )
 		input->header_bytes = g_byte_array_new();
+
+	/* We always want a sniff buffer.
+	 */
+	input->sniff = g_byte_array_new();
 
 	return( 0 );
 }
@@ -483,10 +497,11 @@ vips_stream_input_read( VipsStreamInput *input,
 		if( read == 0 )
 			input->eof = TRUE;
 
-		/* If we are in header mode and there's a save buffer, we need
-		 * to store this new data in case we rewind.
+		/* If we're not rewindable, we need to save header bytes for
+		 * reuse.
 		 */
 		if( input->header_bytes &&
+			!input->rewindable &&
 			!input->decode &&
 			read > 0 ) 
 			g_byte_array_append( input->header_bytes, 
@@ -497,6 +512,14 @@ vips_stream_input_read( VipsStreamInput *input,
 	}
 
 	return( bytes_read );
+}
+
+int
+vips_stream_input_rewind( VipsStreamInput *input )
+{
+	VipsStreamInputClass *class = VIPS_STREAM_INPUT_GET_CLASS( input );
+
+	return( class->rewind( input ) );
 }
 
 gboolean
@@ -510,6 +533,7 @@ vips_stream_input_decode( VipsStreamInput *input )
 {
 	input->decode = TRUE;
 	VIPS_FREEF( g_byte_array_unref, input->header_bytes ); 
+	VIPS_FREEF( g_byte_array_unref, input->sniff ); 
 }
 
 /**
@@ -519,9 +543,24 @@ vips_stream_input_decode( VipsStreamInput *input )
  * Return a pointer to the first few bytes of the file.
  */
 unsigned char *
-vips_stream_input_sniff( VipsStreamInput *stream, size_t length )
+vips_stream_input_sniff( VipsStreamInput *input, size_t length )
 {
-	return( NULL );
+	ssize_t read;
+	unsigned char *q;
+
+	if( vips_stream_input_rewind( input ) )
+		return( NULL );
+
+	g_byte_array_set_size( input->sniff, length );
+
+	for( q = input->sniff->data; length > 0; length -= read, q += read ) {
+		read = vips_stream_input_read( input, q, length );
+		if( read == -1 ||
+			read == 0 )
+			return( NULL );
+	}
+
+	return( input->sniff->data );
 }
 
 G_DEFINE_TYPE( VipsStreamOutput, vips_stream_output, VIPS_TYPE_STREAM );
@@ -529,28 +568,39 @@ G_DEFINE_TYPE( VipsStreamOutput, vips_stream_output, VIPS_TYPE_STREAM );
 static int
 vips_stream_output_build( VipsObject *object )
 {
-	VipsStreamOutput *stream = VIPS_STREAM_OUTPUT( object );
+	VipsStream *stream = VIPS_STREAM( object );
+	VipsStreamOutput *output = VIPS_STREAM_OUTPUT( object );
 
-	VIPS_DEBUG_MSG( "vips_stream_output_build: %p\n", stream );
+	VIPS_DEBUG_MSG( "vips_stream_output_build: %p\n", output );
 
 	if( VIPS_OBJECT_CLASS( vips_stream_output_parent_class )->
 		build( object ) )
 		return( -1 );
 
 	if( vips_object_argument_isset( object, "filename" ) &&
-		!vips_object_argument_isset( object, "descriptor" ) ) { 
-		const char *filename = VIPS_STREAM( stream )->filename;
+		vips_object_argument_isset( object, "descriptor" ) ) { 
+		vips_error( STREAM_NAME( stream ), 
+			"%s", _( "don't set 'filename' and 'descriptor'" ) ); 
+		return( -1 ); 
+	}
+
+	if( vips_object_argument_isset( object, "filename" ) ) {
+		const char *filename = stream->filename;
 
 		int fd;
 
 		if( (fd = vips_tracked_open( filename, MODE_WRITE )) == -1 ) {
-			vips_error_system( errno, filename, 
+			vips_error_system( errno, STREAM_NAME( stream ), 
 				"%s", _( "unable to open for write" ) ); 
 			return( -1 ); 
 		}
 
-		g_object_set( object, "descriptor", fd, NULL ); 
+		stream->tracked_descriptor = fd;
+		stream->descriptor = fd;
 	}
+
+	if( vips_object_argument_isset( object, "descriptor" ) )
+		stream->close_descriptor = stream->descriptor;
 
 	return( 0 );
 }
@@ -558,9 +608,22 @@ vips_stream_output_build( VipsObject *object )
 static void
 vips_stream_output_class_init( VipsStreamOutputClass *class )
 {
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
 
+	gobject_class->finalize = vips_stream_input_finalize;
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
 	vobject_class->build = vips_stream_output_build;
+
+	VIPS_ARG_BOXED( class, "blob", 1, 
+		_( "Blob" ),
+		_( "Blob to save to" ),
+		VIPS_ARGUMENT_OPTIONAL_OUTPUT, 
+		G_STRUCT_OFFSET( VipsStreamOutput, blob ),
+		VIPS_TYPE_BLOB );
+
 }
 
 static void

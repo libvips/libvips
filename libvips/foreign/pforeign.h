@@ -192,6 +192,10 @@ int vips__jpeg_read_file( const char *name, VipsImage *out,
 int vips__jpeg_read_buffer( const void *buf, size_t len, VipsImage *out, 
 	gboolean header_only, int shrink, int fail, gboolean autorotate );
 
+int vips__jpeg_read_stream( VipsStreamInput *input, VipsImage *out,
+	gboolean header_only, int shrink, int fail, gboolean autorotate );
+int vips__isjpeg_stream( VipsStreamInput *input );
+
 int vips__png_header( const char *name, VipsImage *out );
 int vips__png_read( const char *name, VipsImage *out, gboolean fail );
 gboolean vips__png_ispng_buffer( const void *buf, size_t len );

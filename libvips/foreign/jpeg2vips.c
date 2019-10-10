@@ -202,6 +202,10 @@ typedef struct _ReadJpeg {
 	const void *buf;
 	size_t len;
 
+	/* The stream we read from.
+	 */
+	VipsStreamInput *input;
+
 } ReadJpeg;
 
 /* Private struct for memory input.
@@ -296,6 +300,61 @@ term_source( j_decompress_ptr cinfo )
 {
 }
 
+#define STREAM_BUFFER_SIZE (4096)
+
+/* Private struct for stream input.
+ */
+typedef struct {
+	/* Public jpeg fields.
+	 */
+	struct jpeg_source_mgr pub;
+
+	/* Private stuff during read.
+	 */
+	VipsStreamInput *input;
+	unsigned char buf[STREAM_BUFFER_SIZE];
+
+} InputSource;
+
+static void
+stream_init_source( j_decompress_ptr cinfo )
+{
+	InputSource *source = (InputSource *) cinfo->src;
+
+	/* Start off empty ... libjpeg will call fill_input_buffer to get the
+	 * first bytes.
+	 */
+	source->pub.next_input_byte = source->buf;
+	source->pub.bytes_in_buffer = 0;
+}
+
+/* Fill the input buffer --- called whenever buffer is emptied.
+ */
+static boolean
+stream_fill_input_buffer( j_decompress_ptr cinfo )
+{
+	static const JOCTET eoi_buffer[4] = {
+		(JOCTET) 0xFF, (JOCTET) JPEG_EOI, 0, 0
+	};
+
+	InputSource *source = (InputSource *) cinfo->src;
+
+	size_t read;
+	
+	if( (read = vips_stream_input_read( source->input, 
+		source->buf, STREAM_BUFFER_SIZE )) == -1 ) {
+		WARNMS( cinfo, JWRN_JPEG_EOF );
+		source->pub.next_input_byte = eoi_buffer;
+		source->pub.bytes_in_buffer = 2;
+	}
+	else {
+		source->pub.next_input_byte = source->buf;
+		source->pub.bytes_in_buffer = read;
+	}
+
+	return( TRUE );
+}
+
 static int
 readjpeg_open_input( ReadJpeg *jpeg )
 {
@@ -331,6 +390,27 @@ readjpeg_open_input( ReadJpeg *jpeg )
 		src->pub.term_source = term_source;
 		src->pub.bytes_in_buffer = jpeg->len;
 		src->pub.next_input_byte = jpeg->buf;
+	}
+
+	if( jpeg->input &&
+		!cinfo->src ) {
+		InputSource *src;
+
+		cinfo->src = (struct jpeg_source_mgr *)
+			(*cinfo->mem->alloc_small)( 
+				(j_common_ptr) cinfo, JPOOL_PERMANENT,
+				sizeof( InputSource ) );
+
+		src = (InputSource *) cinfo->src;
+		src->input = jpeg->input;
+
+		src->pub.init_source = stream_init_source;
+		src->pub.fill_input_buffer = stream_fill_input_buffer;
+		src->pub.skip_input_data = skip_input_data;
+		src->pub.resync_to_restart = jpeg_resync_to_restart; 
+		src->pub.term_source = term_source;
+		src->pub.bytes_in_buffer = 0;
+		src->pub.next_input_byte = src->buf;
 	}
 
 	return( 0 );
@@ -1112,6 +1192,40 @@ vips__isjpeg( const char *filename )
 
 	if( vips__get_bytes( filename, buf, 2 ) == 2 &&
 		vips__isjpeg_buffer( buf, 2 ) )
+		return( 1 );
+
+	return( 0 );
+}
+
+int
+vips__jpeg_read_stream( VipsStreamInput *input, VipsImage *out,
+	gboolean header_only, int shrink, int fail, gboolean autorotate )
+{
+	ReadJpeg *jpeg;
+
+	if( !(jpeg = readjpeg_new( out, shrink, fail, autorotate )) )
+		return( -1 );
+
+	if( setjmp( jpeg->eman.jmp ) ) 
+		return( -1 );
+
+	jpeg->input = input;
+	if( readjpeg_open_input( jpeg ) )
+                return( -1 );
+
+	if( vips__jpeg_read( jpeg, out, header_only ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
+int
+vips__isjpeg_stream( VipsStreamInput *input )
+{
+	const unsigned char *p;
+
+	if( (p = vips_stream_input_sniff( input, 2 )) &&
+		vips__isjpeg_buffer( p, 2 ) )
 		return( 1 );
 
 	return( 0 );
