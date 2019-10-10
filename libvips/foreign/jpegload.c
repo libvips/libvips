@@ -380,9 +380,9 @@ vips_foreign_load_jpeg_stream_class_init(
 	load_class->header = vips_foreign_load_jpeg_stream_header;
 	load_class->load = vips_foreign_load_jpeg_stream_load;
 
-	VIPS_ARG_BOXED( class, "input", 1,
+	VIPS_ARG_OBJECT( class, "input", 1,
 		_( "Input" ),
-		_( "Input stream to load from" ),
+		_( "Stream to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignLoadJpegStream, input ),
 		VIPS_TYPE_STREAM_INPUT );

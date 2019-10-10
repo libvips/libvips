@@ -297,13 +297,16 @@ static void
 vips_stream_input_class_init( VipsStreamInputClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
 
 	gobject_class->finalize = vips_stream_input_finalize;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->build = vips_stream_input_build;
+	object_class->nickname = "input";
+	object_class->description = _( "input stream" );
+
+	object_class->build = vips_stream_input_build;
 
 	class->read = vips_stream_input_read_real;
 	class->rewind = vips_stream_input_rewind_real;
@@ -609,13 +612,16 @@ static void
 vips_stream_output_class_init( VipsStreamOutputClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
 
 	gobject_class->finalize = vips_stream_input_finalize;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->build = vips_stream_output_build;
+	object_class->nickname = "output";
+	object_class->description = _( "output stream" );
+
+	object_class->build = vips_stream_output_build;
 
 	VIPS_ARG_BOXED( class, "blob", 1, 
 		_( "Blob" ),
