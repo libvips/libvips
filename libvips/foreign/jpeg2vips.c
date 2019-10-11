@@ -134,9 +134,9 @@
  */
 
 /*
- */
 #define DEBUG_VERBOSE
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -396,6 +396,9 @@ readjpeg_open_input( ReadJpeg *jpeg )
 		!cinfo->src ) {
 		InputSource *src;
 
+		if( vips_stream_input_rewind( jpeg->input ) )
+			return( -1 );
+
 		cinfo->src = (struct jpeg_source_mgr *)
 			(*cinfo->mem->alloc_small)( 
 				(j_common_ptr) cinfo, JPOOL_PERMANENT,
@@ -403,7 +406,6 @@ readjpeg_open_input( ReadJpeg *jpeg )
 
 		src = (InputSource *) cinfo->src;
 		src->input = jpeg->input;
-
 		src->pub.init_source = stream_init_source;
 		src->pub.fill_input_buffer = stream_fill_input_buffer;
 		src->pub.skip_input_data = skip_input_data;
@@ -887,6 +889,11 @@ read_jpeg_generate( VipsRegion *or,
 		g_thread_self(), r->top, r->height );
 #endif /*DEBUG_VERBOSE*/
 
+	/* In pixel decode mode.
+	 */
+	if( jpeg->input )
+		vips_stream_input_decode( jpeg->input );
+
 	VIPS_GATE_START( "read_jpeg_generate: work" );
 
 	/* We're inside a tilecache where tiles are the full image width, so
@@ -1215,10 +1222,6 @@ vips__jpeg_read_stream( VipsStreamInput *input, VipsImage *out,
 
 	if( vips__jpeg_read( jpeg, out, header_only ) ) 
 		return( -1 );
-
-	/* We've read the header ... it's pixel decode from now on.
-	vips_stream_input_decode( input );
-	 */
 
 	return( 0 );
 }

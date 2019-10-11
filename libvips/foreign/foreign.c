@@ -661,11 +661,8 @@ vips_foreign_find_load_stream( VipsStreamInput *input )
 		input, NULL )) ) {
 		vips_error( "VipsForeignLoad", 
 			"%s", _( "stream is not in a known format" ) ); 
-		(void) vips_stream_input_rewind( input );
 		return( NULL );
 	}
-
-	(void) vips_stream_input_rewind( input );
 
 	return( G_OBJECT_CLASS_NAME( load_class ) );
 }

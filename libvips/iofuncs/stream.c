@@ -553,11 +553,13 @@ vips_stream_input_eof( VipsStreamInput *input )
 void 
 vips_stream_input_decode( VipsStreamInput *input )
 {
-	VIPS_DEBUG_MSG( "vips_stream_input_decode:\n" );
+	if( !input->decode ) {
+		VIPS_DEBUG_MSG( "vips_stream_input_decode:\n" );
 
-	input->decode = TRUE;
-	VIPS_FREEF( g_byte_array_unref, input->header_bytes ); 
-	VIPS_FREEF( g_byte_array_unref, input->sniff ); 
+		input->decode = TRUE;
+		VIPS_FREEF( g_byte_array_unref, input->header_bytes ); 
+		VIPS_FREEF( g_byte_array_unref, input->sniff ); 
+	}
 }
 
 /**
