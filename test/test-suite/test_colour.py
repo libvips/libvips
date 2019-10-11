@@ -83,7 +83,6 @@ class TestColour:
 
             assert_almost_equal_objects(before, after, threshold=10)
 
-
     # test results from Bruce Lindbloom's calculator:
     # http://www.brucelindbloom.com
     def test_dE00(self):

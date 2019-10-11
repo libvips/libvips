@@ -169,7 +169,8 @@ GType vips_stream_input_get_type( void );
 VipsStreamInput *vips_stream_input_new_from_descriptor( int descriptor );
 VipsStreamInput *vips_stream_input_new_from_filename( const char *filename );
 VipsStreamInput *vips_stream_input_new_from_blob( VipsBlob *blob );
-VipsStreamInput *vips_stream_input_new_from_memory( void *data, size_t size );
+VipsStreamInput *vips_stream_input_new_from_memory( const void *data, 
+	size_t size );
 
 ssize_t vips_stream_input_read( VipsStreamInput *input, 
 	unsigned char *buffer, size_t length );
@@ -217,8 +218,8 @@ typedef struct _VipsStreamOutputClass {
 
 GType vips_stream_output_get_type( void );
 
-VipsStreamOutput *vips_stream_output_new_to_descriptor( int descriptor );
-VipsStreamOutput *vips_stream_output_new_to_filename( const char *filename );
+VipsStreamOutput *vips_stream_output_new_from_descriptor( int descriptor );
+VipsStreamOutput *vips_stream_output_new_from_filename( const char *filename );
 int vips_stream_output_write( VipsStreamOutput *stream,
 	const unsigned char *buffer, size_t buffer_size );
 

@@ -253,7 +253,7 @@ vips_stream_input_read_real( VipsStreamInput *input,
 		if( available <= 0 )
 			return( 0 );
 
-		memcpy( buffer, area->data, available );
+		memcpy( buffer, area->data + input->read_position, available );
 
 		return( available );
 	}
@@ -448,7 +448,7 @@ vips_stream_input_new_from_blob( VipsBlob *blob )
  * Returns: a new #VipsStream
  */
 VipsStreamInput *
-vips_stream_input_new_from_memory( void *data, size_t size )
+vips_stream_input_new_from_memory( const void *data, size_t size )
 {
 	VipsStreamInput *stream;
 	VipsBlob *blob;
