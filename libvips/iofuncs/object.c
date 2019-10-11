@@ -1899,16 +1899,35 @@ vips_object_set_argument_from_string( VipsObject *object,
 
 		/* Read the filename. 
 		 */
-		if( flags & (VIPS_OPERATION_SEQUENTIAL_UNBUFFERED |
-			     VIPS_OPERATION_SEQUENTIAL) ) 
+		if( flags & 
+			(VIPS_OPERATION_SEQUENTIAL_UNBUFFERED | 
+			 VIPS_OPERATION_SEQUENTIAL) ) 
 			access = VIPS_ACCESS_SEQUENTIAL;
 		else
 			access = VIPS_ACCESS_RANDOM; 
 
-		if( !(out = vips_image_new_from_file( value, 
-			"access", access,
-			NULL )) )
-			return( -1 );
+		/* The special filename "-" means stdin.
+		 */
+		if( strcmp( value, "-" ) == 0 ) {
+			VipsStreamInput *input;
+
+			if( !(input = 
+				vips_stream_input_new_from_descriptor( 0 )) )
+				return( -1 );
+			if( !(out = vips_image_new_from_stream( input, "", 
+				"access", access,
+				NULL )) ) {
+				VIPS_UNREF( input );
+				return( -1 );
+			}
+			VIPS_UNREF( input );
+		}
+		else {
+			if( !(out = vips_image_new_from_file( value, 
+				"access", access,
+				NULL )) )
+				return( -1 );
+		}
 
 		g_value_init( &gvalue, VIPS_TYPE_IMAGE );
 		g_value_set_object( &gvalue, out );

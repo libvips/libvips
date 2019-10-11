@@ -240,6 +240,7 @@ GType vips_foreign_load_get_type(void);
 
 const char *vips_foreign_find_load( const char *filename );
 const char *vips_foreign_find_load_buffer( const void *data, size_t size );
+const char *vips_foreign_find_load_stream( VipsStreamInput *stream );
 
 VipsForeignFlags vips_foreign_flags( const char *loader, const char *filename );
 gboolean vips_foreign_is_a( const char *loader, const char *filename );

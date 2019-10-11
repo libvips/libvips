@@ -621,6 +621,55 @@ vips_foreign_find_load_buffer( const void *data, size_t size )
 	return( G_OBJECT_CLASS_NAME( load_class ) );
 }
 
+/* Can this VipsForeign open this stream?
+ */
+static void *
+vips_foreign_find_load_stream_sub( void *item, void *a, void *b )
+{
+	VipsForeignLoadClass *load_class = VIPS_FOREIGN_LOAD_CLASS( item );
+	VipsStreamInput *input = VIPS_STREAM_INPUT( a );
+
+	if( load_class->is_a_stream &&
+		load_class->is_a_stream( input ) ) 
+		return( load_class );
+
+	return( NULL );
+}
+
+/**
+ * vips_foreign_find_load_stream:
+ * @input: stream to load from
+ *
+ * Searches for an operation you could use to load a stream. To see the
+ * range of buffer loaders supported by your vips, try something like:
+ * 
+ * 	vips -l | grep load_stream
+ *
+ * See also: vips_image_new_from_stream().
+ *
+ * Returns: (transfer none): the name of an operation on success, %NULL on 
+ * error.
+ */
+const char *
+vips_foreign_find_load_stream( VipsStreamInput *input )
+{
+	VipsForeignLoadClass *load_class;
+
+	if( !(load_class = (VipsForeignLoadClass *) vips_foreign_map( 
+		"VipsForeignLoad",
+		vips_foreign_find_load_stream_sub, 
+		input, NULL )) ) {
+		vips_error( "VipsForeignLoad", 
+			"%s", _( "stream is not in a known format" ) ); 
+		(void) vips_stream_input_rewind( input );
+		return( NULL );
+	}
+
+	(void) vips_stream_input_rewind( input );
+
+	return( G_OBJECT_CLASS_NAME( load_class ) );
+}
+
 /**
  * vips_foreign_is_a:
  * @loader: name of loader to use for test

@@ -2168,6 +2168,48 @@ vips_image_new_from_buffer( const void *buf, size_t len,
 }
 
 /**
+ * vips_image_new_from_stream: (constructor)
+ * @input: (transfer none): stream to fetch image from
+ * @option_string: set of extra options as a string
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Loads an image from the formatted stream @input, 
+ * loader recommended by vips_foreign_find_load_stream(). 
+ *
+ * Load options may be given in @option_string as "[name=value,...]" or given as
+ * a NULL-terminated list of name-value pairs at the end of the arguments.
+ * Options given in the function call override options given in the string. 
+ *
+ * See also: vips_image_write_to_buffer().
+ *
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
+ */
+VipsImage *
+vips_image_new_from_stream( VipsStreamInput *input, 
+	const char *option_string, ... )
+{
+	const char *operation_name;
+	va_list ap;
+	int result;
+	VipsImage *out;
+
+	vips_check_init();
+
+        if( !(operation_name = vips_foreign_find_load_stream( input )) )
+                return( NULL );
+
+        va_start( ap, option_string );
+        result = vips_call_split_option_string( operation_name,
+                option_string, ap, input, &out );
+        va_end( ap );
+
+        if( result )
+                return( NULL );
+
+        return( out );
+}
+
+/**
  * vips_image_new_matrix: (constructor)
  * @width: image width
  * @height: image height

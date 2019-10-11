@@ -450,13 +450,16 @@ VipsImage *vips_image_new_from_memory_copy( const void *data, size_t size,
 VipsImage *vips_image_new_from_buffer( const void *buf, size_t len, 
 	const char *option_string, ... )
 	__attribute__((sentinel));
+VipsImage *vips_image_new_from_stream( VipsStreamInput *input, 
+	const char *option_string, ... ) __attribute__((sentinel));
 VipsImage *vips_image_new_matrix( int width, int height );
 VipsImage *vips_image_new_matrixv( int width, int height, ... );
 VipsImage *vips_image_new_matrix_from_array( int width, int height, 
 	const double *array, int size );
 VipsImage *vips_image_matrix_from_array( int width, int height, 
 	const double *array, int size );
-VipsImage *vips_image_new_from_image( VipsImage *image, const double *c, int n );
+VipsImage *vips_image_new_from_image( VipsImage *image, 
+	const double *c, int n );
 VipsImage *vips_image_new_from_image1( VipsImage *image, double c );
 
 void vips_image_set_delete_on_close( VipsImage *image, 

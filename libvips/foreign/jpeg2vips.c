@@ -134,9 +134,9 @@
  */
 
 /*
+ */
 #define DEBUG_VERBOSE
 #define DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1215,6 +1215,10 @@ vips__jpeg_read_stream( VipsStreamInput *input, VipsImage *out,
 
 	if( vips__jpeg_read( jpeg, out, header_only ) ) 
 		return( -1 );
+
+	/* We've read the header ... it's pixel decode from now on.
+	vips_stream_input_decode( input );
+	 */
 
 	return( 0 );
 }

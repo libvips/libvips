@@ -34,9 +34,9 @@
  */
 
 /*
+ */
 #define DEBUG_VERBOSE
 #define DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -359,6 +359,8 @@ vips_foreign_load_jpeg_stream_load( VipsForeignLoad *load )
 static gboolean
 vips_foreign_load_jpeg_stream_is_a( VipsStreamInput *input )
 {
+	printf( "vips_foreign_load_jpeg_stream_is_a:\n" );
+
 	return( vips__isjpeg_stream( input ) );
 }
 

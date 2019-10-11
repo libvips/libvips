@@ -41,8 +41,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -243,6 +243,8 @@ vips_stream_input_read_real( VipsStreamInput *input,
 {
 	VipsStream *stream = VIPS_STREAM( input );
 
+	VIPS_DEBUG_MSG( "vips_stream_input_read_real:\n" );
+
 	if( input->blob ) {
 		VipsArea *area = (VipsArea *) input->blob;
 		ssize_t available = VIPS_MIN( length,
@@ -255,7 +257,7 @@ vips_stream_input_read_real( VipsStreamInput *input,
 
 		return( available );
 	}
-	else if( stream->descriptor ) {
+	else if( stream->descriptor != -1 ) {
 		return( read( stream->descriptor, buffer, length ) );
 	}
 	else {
@@ -269,6 +271,8 @@ vips_stream_input_rewind_real( VipsStreamInput *input )
 {
 	VipsStream *stream = VIPS_STREAM( input );
 
+	VIPS_DEBUG_MSG( "vips_stream_input_rewind_real:\n" );
+
 	if( input->decode ) {
 		vips_error( STREAM_NAME( stream ),
 			"%s", _( "can't rewind after decode begins" ) );
@@ -278,6 +282,9 @@ vips_stream_input_rewind_real( VipsStreamInput *input )
 	if( input->rewindable &&
 		stream->descriptor != -1 ) {
 		off_t new_pos;
+
+		VIPS_DEBUG_MSG( "   rewinding desriptor %d\n", 
+			stream->descriptor );
 
 		new_pos = lseek( stream->descriptor, 0, SEEK_SET );
 		if( new_pos == -1 ) {
@@ -468,12 +475,14 @@ vips_stream_input_read( VipsStreamInput *input,
 
 	ssize_t bytes_read;
 
+	VIPS_DEBUG_MSG( "vips_stream_input_read:\n" );
+
 	bytes_read = 0;
 
 	/* Are we serving from header_bytes? Get what we can from there.
 	 */
 	if( input->header_bytes &&
-		input->header_bytes->len < input->read_position ) {
+		input->read_position < input->header_bytes->len ) {
 		ssize_t available;
 
 		available = VIPS_MIN( length, 
@@ -485,19 +494,21 @@ vips_stream_input_read( VipsStreamInput *input,
 		buffer += available;
 		length -= available;
 		bytes_read += available;
+
+		VIPS_DEBUG_MSG( "    %zd bytes from cache\n", available );
 	}
 
 	/* Any more bytes required? Call the read() method.
 	 */
 	if( length > 0 ) {
-		ssize_t read;
+		ssize_t n;
 
-		if( (read = class->read( input, buffer, length )) == -1 ) {
+		if( (n = class->read( input, buffer, length )) == -1 ) {
 			vips_error_system( errno, STREAM_NAME( input ), 
 				"%s", _( "read error" ) ); 
 			return( -1 );
 		}
-		if( read == 0 )
+		if( n == 0 )
 			input->eof = TRUE;
 
 		/* If we're not rewindable, we need to save header bytes for
@@ -506,13 +517,17 @@ vips_stream_input_read( VipsStreamInput *input,
 		if( input->header_bytes &&
 			!input->rewindable &&
 			!input->decode &&
-			read > 0 ) 
+			n > 0 ) 
 			g_byte_array_append( input->header_bytes, 
-				buffer, read );
+				buffer, n );
 
-		input->read_position += read;
-		bytes_read += read;
+		input->read_position += n;
+		bytes_read += n;
+
+		VIPS_DEBUG_MSG( "    %zd bytes from read()\n", n );
 	}
+
+	VIPS_DEBUG_MSG( "    %zd bytes total\n", bytes_read );
 
 	return( bytes_read );
 }
@@ -522,18 +537,24 @@ vips_stream_input_rewind( VipsStreamInput *input )
 {
 	VipsStreamInputClass *class = VIPS_STREAM_INPUT_GET_CLASS( input );
 
+	VIPS_DEBUG_MSG( "vips_stream_input_rewind:\n" );
+
 	return( class->rewind( input ) );
 }
 
 gboolean
 vips_stream_input_eof( VipsStreamInput *input )
 {
+	VIPS_DEBUG_MSG( "vips_stream_input_eof:\n" );
+
 	return( input->eof ); 
 }
 
 void 
 vips_stream_input_decode( VipsStreamInput *input )
 {
+	VIPS_DEBUG_MSG( "vips_stream_input_decode:\n" );
+
 	input->decode = TRUE;
 	VIPS_FREEF( g_byte_array_unref, input->header_bytes ); 
 	VIPS_FREEF( g_byte_array_unref, input->sniff ); 
@@ -548,20 +569,20 @@ vips_stream_input_decode( VipsStreamInput *input )
 unsigned char *
 vips_stream_input_sniff( VipsStreamInput *input, size_t length )
 {
-	ssize_t read;
+	ssize_t n;
 	unsigned char *q;
+
+	VIPS_DEBUG_MSG( "vips_stream_input_sniff: %zd bytes\n", length );
 
 	if( vips_stream_input_rewind( input ) )
 		return( NULL );
 
 	g_byte_array_set_size( input->sniff, length );
 
-	for( q = input->sniff->data; length > 0; length -= read, q += read ) {
-		read = vips_stream_input_read( input, q, length );
-		if( read == -1 ||
-			read == 0 )
+	for( q = input->sniff->data; length > 0; length -= n, q += n )
+		if( (n = vips_stream_input_read( input, q, length )) == -1 ||
+			n == 0 )
 			return( NULL );
-	}
 
 	return( input->sniff->data );
 }
