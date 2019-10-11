@@ -250,6 +250,26 @@ stream_fill_input_buffer( j_decompress_ptr cinfo )
 	return( TRUE );
 }
 
+static void
+skip_input_data( j_decompress_ptr cinfo, long num_bytes )
+{
+	Source *src = (Source *) cinfo->src;
+
+	if( num_bytes > 0 ) {
+		while (num_bytes > (long) src->pub.bytes_in_buffer) {
+			num_bytes -= (long) src->pub.bytes_in_buffer;
+			(void) (*src->pub.fill_input_buffer) (cinfo);
+
+			/* note we assume that fill_input_buffer will never 
+			 * return FALSE, so suspension need not be handled.
+			 */
+		}
+
+		src->pub.next_input_byte += (size_t) num_bytes;
+		src->pub.bytes_in_buffer -= (size_t) num_bytes;
+	}
+}
+
 static int
 readjpeg_open_input( ReadJpeg *jpeg )
 {
@@ -272,6 +292,7 @@ readjpeg_open_input( ReadJpeg *jpeg )
 		src->pub.init_source = stream_init_source;
 		src->pub.fill_input_buffer = stream_fill_input_buffer;
 		src->pub.resync_to_restart = jpeg_resync_to_restart; 
+		src->pub.skip_input_data = skip_input_data; 
 		src->pub.bytes_in_buffer = 0;
 		src->pub.next_input_byte = src->buf;
 	}

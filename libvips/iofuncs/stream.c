@@ -33,16 +33,19 @@
 
 /* TODO
  *
+ * - filename encoding
  * - memory output
  * - add mmapable descriptors
  * - add seekable descriptors
+ * - can we test for mmapable and seekable?
+ * - do we need eof?
  * - can we really change all behaviour in the subclass? will we need map and
  *   seek as well as read and rewind?
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
