@@ -173,7 +173,7 @@ VipsStreamInput *vips_stream_input_new_from_memory( const void *data,
 	size_t size );
 
 ssize_t vips_stream_input_read( VipsStreamInput *input, 
-	unsigned char *buffer, size_t length );
+	unsigned char *data, size_t length );
 int vips_stream_input_rewind( VipsStreamInput *input );
 void vips_stream_input_decode( VipsStreamInput *input );
 gboolean vips_stream_input_eof( VipsStreamInput *input );
@@ -194,14 +194,18 @@ unsigned char *vips_stream_input_sniff( VipsStreamInput *input, size_t length );
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 	VIPS_TYPE_STREAM_OUTPUT, VipsStreamOutputClass ))
 
-/* Read or output to something like a socket or pipe. 
+/* Output to something like a socket, pipe or memory area. 
  */
 typedef struct _VipsStreamOutput {
 	VipsStream parent_object;
 
 	/*< private >*/
 
-	/* For memory output, the blob we write to.
+	/* Write memory output here.
+	 */
+	GByteArray *memory;
+
+	/* And return memory via this blob.
 	 */
 	VipsBlob *blob;
 
@@ -220,8 +224,10 @@ GType vips_stream_output_get_type( void );
 
 VipsStreamOutput *vips_stream_output_new_from_descriptor( int descriptor );
 VipsStreamOutput *vips_stream_output_new_from_filename( const char *filename );
+VipsStreamOutput *vips_stream_output_new_memory( void );
 int vips_stream_output_write( VipsStreamOutput *stream,
-	const unsigned char *buffer, size_t buffer_size );
+	const unsigned char *data, size_t length );
+void vips_stream_output_finish( VipsStreamOutput *output );
 
 #ifdef __cplusplus
 }

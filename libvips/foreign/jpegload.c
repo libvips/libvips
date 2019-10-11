@@ -212,7 +212,7 @@ vips_foreign_load_jpeg_stream_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "jpegload_stream";
-	object_class->description = _( "load jpeg from stream" );
+	object_class->description = _( "load image from jpeg stream" );
 
 	load_class->is_a_stream = vips_foreign_load_jpeg_stream_is_a;
 	load_class->header = vips_foreign_load_jpeg_stream_header;
@@ -224,6 +224,7 @@ vips_foreign_load_jpeg_stream_class_init(
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignLoadJpegStream, input ),
 		VIPS_TYPE_STREAM_INPUT );
+
 }
 
 static void

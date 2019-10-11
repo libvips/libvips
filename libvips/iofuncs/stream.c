@@ -39,6 +39,8 @@
  * - add seekable descriptors
  * - can we test for mmapable and seekable?
  * - do we need eof?
+ * - need a close() vfunc? output is a bit ugly, and node streams might need
+ *   it
  * - can we really change all behaviour in the subclass? will we need map and
  *   seek as well as read and rewind?
  */
@@ -112,6 +114,20 @@
 G_DEFINE_ABSTRACT_TYPE( VipsStream, vips_stream, VIPS_TYPE_OBJECT );
 
 static void
+vips_stream_close( VipsStream *stream )
+{
+	if( stream->close_descriptor >= 0 ) {
+		close( stream->close_descriptor );
+		stream->close_descriptor = -1;
+	}
+
+	if( stream->tracked_descriptor >= 0 ) {
+		vips_tracked_close( stream->tracked_descriptor );
+		stream->tracked_descriptor = -1;
+	}
+}
+
+static void
 vips_stream_finalize( GObject *gobject )
 {
 	VipsStream *stream = (VipsStream *) gobject;
@@ -122,16 +138,7 @@ vips_stream_finalize( GObject *gobject )
 	VIPS_DEBUG_MSG( "\n" );
 #endif /*VIPS_DEBUG*/
 
-	if( stream->close_descriptor >= 0 ) {
-		close( stream->close_descriptor );
-		stream->close_descriptor = -1;
-	}
-
-	if( stream->tracked_descriptor >= 0 ) {
-		vips_tracked_close( stream->tracked_descriptor );
-		stream->tracked_descriptor = -1;
-	}
-
+	vips_stream_close( stream );
 	VIPS_FREE( stream->filename ); 
 
 	G_OBJECT_CLASS( vips_stream_parent_class )->finalize( gobject );
@@ -222,8 +229,10 @@ vips_stream_input_build( VipsObject *object )
 		input->rewindable = TRUE;
 	}
 
-	if( vips_object_argument_isset( object, "descriptor" ) )
+	if( vips_object_argument_isset( object, "descriptor" ) ) {
+		stream->descriptor = dup( stream->descriptor );
 		stream->close_descriptor = stream->descriptor;
+	}
 
 	if( vips_object_argument_isset( object, "blob" ) )
 		input->rewindable = TRUE;
@@ -242,7 +251,7 @@ vips_stream_input_build( VipsObject *object )
 
 static ssize_t
 vips_stream_input_read_real( VipsStreamInput *input, 
-	unsigned char *buffer, size_t length )
+	unsigned char *data, size_t length )
 {
 	VipsStream *stream = VIPS_STREAM( input );
 
@@ -256,12 +265,12 @@ vips_stream_input_read_real( VipsStreamInput *input,
 		if( available <= 0 )
 			return( 0 );
 
-		memcpy( buffer, area->data + input->read_position, available );
+		memcpy( data, area->data + input->read_position, available );
 
 		return( available );
 	}
 	else if( stream->descriptor != -1 ) {
-		return( read( stream->descriptor, buffer, length ) );
+		return( read( stream->descriptor, data, length ) );
 	}
 	else {
 		g_assert( 0 );
@@ -594,6 +603,18 @@ vips_stream_input_sniff( VipsStreamInput *input, size_t length )
 
 G_DEFINE_TYPE( VipsStreamOutput, vips_stream_output, VIPS_TYPE_STREAM );
 
+static void
+vips_stream_output_finalize( GObject *gobject )
+{
+	VipsStreamOutput *output = VIPS_STREAM_OUTPUT( gobject );
+
+	VIPS_DEBUG_MSG( "vips_stream_output_finalize:\n" );
+
+	VIPS_FREEF( g_byte_array_unref, output->memory ); 
+
+	G_OBJECT_CLASS( vips_stream_output_parent_class )->finalize( gobject );
+}
+
 static int
 vips_stream_output_build( VipsObject *object )
 {
@@ -627,11 +648,35 @@ vips_stream_output_build( VipsObject *object )
 		stream->tracked_descriptor = fd;
 		stream->descriptor = fd;
 	}
-
-	if( vips_object_argument_isset( object, "descriptor" ) )
+	else if( vips_object_argument_isset( object, "descriptor" ) ) {
+		stream->descriptor = dup( stream->descriptor );
 		stream->close_descriptor = stream->descriptor;
+	}
+	else {
+		output->memory = g_byte_array_new();
+	}
 
 	return( 0 );
+}
+
+static ssize_t 
+vips_stream_output_write_real( VipsStreamOutput *output, 
+	const unsigned char *data, size_t length )
+{
+	VipsStream *stream = VIPS_STREAM( output );
+
+	ssize_t len;
+
+	VIPS_DEBUG_MSG( "vips_stream_output_write_real: %zd bytes\n", length );
+
+	if( output->memory ) {
+		g_byte_array_append( output->memory, data, length );
+		len = length;
+	}
+	else 
+		len = write( stream->descriptor, data, length );
+
+	return( len );
 }
 
 static void
@@ -640,7 +685,7 @@ vips_stream_output_class_init( VipsStreamOutputClass *class )
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
 
-	gobject_class->finalize = vips_stream_input_finalize;
+	gobject_class->finalize = vips_stream_output_finalize;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
@@ -648,6 +693,8 @@ vips_stream_output_class_init( VipsStreamOutputClass *class )
 	object_class->description = _( "output stream" );
 
 	object_class->build = vips_stream_output_build;
+
+	class->write = vips_stream_output_write_real;
 
 	VIPS_ARG_BOXED( class, "blob", 1, 
 		_( "Blob" ),
@@ -728,41 +775,86 @@ vips_stream_output_new_from_filename( const char *filename )
 	return( stream ); 
 }
 
-int
-vips_stream_output_write( VipsStreamOutput *stream, 
-	const unsigned char *buffer, size_t buffer_size )
+/**
+ * vips_stream_output_new_memory:
+ *
+ * Optional args:
+ *
+ * @blob: #VipsBlob, memory area containing output
+ *
+ * Create a stream which will output to a memory area. Use @blob to get
+ * memory output, if this is a memory stream.
+ *
+ * See also: vips_stream_output_write().
+ *
+ * Returns: a new #VipsStream
+ */
+VipsStreamOutput *
+vips_stream_output_new_memory( void )
 {
-	VipsStreamOutputClass *class = VIPS_STREAM_OUTPUT_GET_CLASS( stream );
+	VipsStreamOutput *stream;
 
-	while( buffer_size > 0 ) { 
-		ssize_t len;
+	VIPS_DEBUG_MSG( "vips_stream_output_new_memory:\n" ); 
 
-		if( class->write )
-			len = class->write( stream, buffer, buffer_size );
-		else 
-			len = write( VIPS_STREAM( stream )->descriptor, 
-				buffer, buffer_size );
+	stream = VIPS_STREAM_OUTPUT( 
+		g_object_new( VIPS_TYPE_STREAM_OUTPUT, 
+			NULL ) );
 
-#ifdef VIPS_DEBUG
-		if( len > 0 ) 
-			VIPS_DEBUG_MSG( "vips_stream_output_write: "
-				"written %zd bytes\n", len );
-#endif /*VIPS_DEBUG*/
+	if( vips_object_build( VIPS_OBJECT( stream ) ) ) {
+		VIPS_UNREF( stream );
+		return( NULL );
+	}
 
-		/* len == 0 isn't strictly an error, but we treat it as one to
+	return( stream ); 
+}
+
+int
+vips_stream_output_write( VipsStreamOutput *output, 
+	const unsigned char *data, size_t length )
+{
+	VipsStreamOutputClass *class = VIPS_STREAM_OUTPUT_GET_CLASS( output );
+
+	VIPS_DEBUG_MSG( "vips_stream_output_write: %zd bytes\n", length );
+
+	while( length > 0 ) { 
+		ssize_t n;
+
+		n = class->write( output, data, length );
+
+		/* n == 0 isn't strictly an error, but we treat it as one to
 		 * make sure we don't get stuck in this loop.
 		 */
-		if( len <= 0 ) {
-			vips_error_system( errno, 
-				VIPS_OBJECT( stream )->nickname, 
+		if( n <= 0 ) {
+			vips_error_system( errno, STREAM_NAME( output ),
 				"%s", _( "write error" ) ); 
 			return( -1 ); 
 		}
 
-		buffer_size -= len;
-		buffer += len;
+		length -= n;
+		data += n;
 	}
 
 	return( 0 );
 }
 
+void
+vips_stream_output_finish( VipsStreamOutput *output ) 
+{
+	VIPS_DEBUG_MSG( "vips_stream_output_finish:\n" );
+
+	if( output->memory ) {
+		unsigned char *data;
+		size_t length;
+
+		length = output->memory->len;
+		data = g_byte_array_free( output->memory, FALSE );
+		output->memory = NULL;
+
+		g_object_set( output, 
+			"blob", vips_blob_new( (VipsCallbackFn) g_free, 
+				data, length ),
+			NULL );
+	}
+
+	vips_stream_close( VIPS_STREAM( output ) );
+}
