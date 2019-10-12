@@ -1886,6 +1886,8 @@ vips_object_set_argument_from_string( VipsObject *object,
 		VipsImage *out;
 		VipsOperationFlags flags;
 		VipsAccess access;
+		char filename[VIPS_PATH_MAX];
+		char option_string[VIPS_PATH_MAX];
 
 		if( !value ) {
 			vips_object_no_value( object, name );
@@ -1906,15 +1908,16 @@ vips_object_set_argument_from_string( VipsObject *object,
 		else
 			access = VIPS_ACCESS_RANDOM; 
 
-		/* The special filename "-" means stdin.
-		 */
-		if( strcmp( value, "-" ) == 0 ) {
+		vips__filename_split8( value, filename, option_string );
+
+		if( strcmp( "stdin", filename ) == 0 ) {
 			VipsStreamInput *input;
 
 			if( !(input = 
 				vips_stream_input_new_from_descriptor( 0 )) )
 				return( -1 );
-			if( !(out = vips_image_new_from_stream( input, "", 
+			if( !(out = vips_image_new_from_stream( input, 
+				option_string, 
 				"access", access,
 				NULL )) ) {
 				VIPS_UNREF( input );
@@ -2185,14 +2188,37 @@ vips_object_get_argument_to_string( VipsObject *object,
 
 	if( g_type_is_a( otype, VIPS_TYPE_IMAGE ) ) { 
 		VipsImage *in;
-/* Pull out the image and write it.
-		 */
-		g_object_get( object, name, &in, NULL );
-		if( vips_image_write_to_file( in, arg, NULL ) ) {
-			g_object_unref( in );
-			return( -1 );
+		char filename[VIPS_PATH_MAX];
+		char option_string[VIPS_PATH_MAX];
+
+		vips__filename_split8( arg, filename, option_string );
+
+		if( vips_isprefix( ".", filename ) ) {
+			VipsStreamOutput *output;
+
+			if( !(output = 
+				vips_stream_output_new_from_descriptor( 1 )) )
+				return( -1 );
+			g_object_get( object, name, &in, NULL );
+			if( vips_image_write_to_stream( in, 
+				arg, output, NULL ) ) {
+				VIPS_UNREF( in );
+				VIPS_UNREF( output );
+				return( -1 );
+			}
+			VIPS_UNREF( in );
+			VIPS_UNREF( output );
 		}
-		g_object_unref( in );
+		else {
+			/* Pull out the image and write it.
+			 */
+			g_object_get( object, name, &in, NULL );
+			if( vips_image_write_to_file( in, arg, NULL ) ) {
+				VIPS_UNREF( in );
+				return( -1 );
+			}
+			VIPS_UNREF( in );
+		}
 	}
 	else if( g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
 		(oclass = g_type_class_ref( otype )) &&

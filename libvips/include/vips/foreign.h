@@ -354,6 +354,7 @@ GType vips_foreign_save_get_type(void);
 const char *vips_foreign_find_save( const char *filename );
 gchar **vips_foreign_get_suffixes( void );
 const char *vips_foreign_find_save_buffer( const char *suffix );
+const char *vips_foreign_find_save_stream( const char *suffix );
 
 int vips_vipsload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));

@@ -2705,6 +2705,51 @@ vips_image_write_to_buffer( VipsImage *in,
 }
 
 /**
+ * vips_image_write_to_stream: (method)
+ * @in: image to write
+ * @suffix: format to write 
+ * @output: stream to write to
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Writes @in to @output in format @suffix.
+ *
+ * Save options may be appended to @suffix as "[name=value,...]" or given as
+ * a NULL-terminated list of name-value pairs at the end of the arguments.
+ * Options given in the function call override options given in the filename. 
+ *
+ * You can call the various save operations directly if you wish, see
+ * vips_jpegsave_stream(), for example. 
+ *
+ * See also: vips_image_write_to_file().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_image_write_to_stream( VipsImage *in, 
+	const char *suffix, VipsStreamOutput *output, ... )
+{
+	char filename[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
+	const char *operation_name;
+	va_list ap;
+	int result;
+
+	vips__filename_split8( suffix, filename, option_string );
+	if( !(operation_name = vips_foreign_find_save_stream( filename )) )
+		return( -1 );
+
+	va_start( ap, output );
+	result = vips_call_split_option_string( operation_name, option_string, 
+		ap, in, output );
+	va_end( ap );
+
+	if( result )
+		return( -1 );
+
+	return( 0 );
+}
+
+/**
  * vips_image_write_to_memory: (method)
  * @in: image to write
  * @size: return buffer length here

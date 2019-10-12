@@ -473,6 +473,9 @@ int vips_image_write_to_file( VipsImage *image, const char *name, ... )
 int vips_image_write_to_buffer( VipsImage *in, 
 	const char *suffix, void **buf, size_t *size, ... )
 	__attribute__((sentinel));
+int vips_image_write_to_stream( VipsImage *in, 
+	const char *suffix, VipsStreamOutput *output, ... )
+	__attribute__((sentinel));
 void *vips_image_write_to_memory( VipsImage *in, size_t *size );
 
 int vips_image_decode_predict( VipsImage *in, 

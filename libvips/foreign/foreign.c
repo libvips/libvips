@@ -1865,6 +1865,58 @@ vips_foreign_save( VipsImage *in, const char *name, ... )
 	return( result );
 }
 
+/* Can thsi class write this filetype to a stream?
+ */
+static void *
+vips_foreign_find_save_stream_sub( VipsForeignSaveClass *save_class, 
+	const char *suffix )
+{
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( save_class );
+	VipsForeignClass *class = VIPS_FOREIGN_CLASS( save_class );
+
+	printf( "testing %s for %s\n", object_class->nickname, suffix );
+
+	if( class->suffs &&
+		vips_ispostfix( object_class->nickname, "_stream" ) &&
+		vips_filename_suffix_match( suffix, class->suffs ) )
+		return( save_class );
+
+	return( NULL );
+}
+
+/**
+ * vips_foreign_find_save_stream:
+ * @suffix: format to find a saver for
+ *
+ * Searches for an operation you could use to write to a stream in @suffix
+ * format. 
+ *
+ * See also: vips_image_write_to_buffer().
+ *
+ * Returns: the name of an operation on success, %NULL on error
+ */
+const char *
+vips_foreign_find_save_stream( const char *name )
+{
+	char suffix[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
+	VipsForeignSaveClass *save_class;
+
+	vips__filename_split8( name, suffix, option_string );
+
+	if( !(save_class = (VipsForeignSaveClass *) vips_foreign_map( 
+		"VipsForeignSave",
+		(VipsSListMap2Fn) vips_foreign_find_save_stream_sub, 
+		(void *) suffix, NULL )) ) {
+		vips_error( "VipsForeignSave",
+			_( "\"%s\" is not a known stream format" ), name );
+
+		return( NULL );
+	}
+
+	return( G_OBJECT_CLASS_NAME( save_class ) );
+}
+
 /* Can we write this buffer with this file type?
  */
 static void *
@@ -1946,6 +1998,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_jpeg_stream_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_file_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_buffer_get_type( void ); 
+	extern GType vips_foreign_save_jpeg_stream_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_mime_get_type( void ); 
 	extern GType vips_foreign_load_tiff_file_get_type( void ); 
 	extern GType vips_foreign_load_tiff_buffer_get_type( void ); 
@@ -2058,6 +2111,7 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_jpeg_stream_get_type(); 
 	vips_foreign_save_jpeg_file_get_type(); 
 	vips_foreign_save_jpeg_buffer_get_type(); 
+	vips_foreign_save_jpeg_stream_get_type(); 
 	vips_foreign_save_jpeg_mime_get_type(); 
 #endif /*HAVE_JPEG*/
 

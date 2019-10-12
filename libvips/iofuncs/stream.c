@@ -744,7 +744,6 @@ vips_stream_output_new_from_descriptor( int descriptor )
 	stream = VIPS_STREAM_OUTPUT( 
 		g_object_new( VIPS_TYPE_STREAM_OUTPUT, 
 			"descriptor", descriptor,
-			"filename", "descriptor",
 			NULL ) );
 
 	if( vips_object_build( VIPS_OBJECT( stream ) ) ) {
