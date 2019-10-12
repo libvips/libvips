@@ -1889,18 +1889,11 @@ vips_object_set_argument_from_string( VipsObject *object,
 		char filename[VIPS_PATH_MAX];
 		char option_string[VIPS_PATH_MAX];
 
-		if( !value ) {
-			vips_object_no_value( object, name );
-			return( -1 );
-		}
-
 		flags = 0;
 		if( VIPS_IS_OPERATION( object ) )
 			flags = vips_operation_get_flags( 
 				VIPS_OPERATION( object ) );
 
-		/* Read the filename. 
-		 */
 		if( flags & 
 			(VIPS_OPERATION_SEQUENTIAL_UNBUFFERED | 
 			 VIPS_OPERATION_SEQUENTIAL) ) 
@@ -1908,6 +1901,10 @@ vips_object_set_argument_from_string( VipsObject *object,
 		else
 			access = VIPS_ACCESS_RANDOM; 
 
+		if( !value ) {
+			vips_object_no_value( object, name );
+			return( -1 );
+		}
 		vips__filename_split8( value, filename, option_string );
 
 		if( strcmp( "stdin", filename ) == 0 ) {
@@ -1939,6 +1936,25 @@ vips_object_set_argument_from_string( VipsObject *object,
 		 * go back to 1 so that gvalue has the only ref.
 		 */
 		g_object_unref( out );
+	}
+	else if( g_type_is_a( otype, VIPS_TYPE_STREAM_INPUT ) ) { 
+		VipsStreamInput *input;
+
+		if( !value ) {
+			vips_object_no_value( object, name );
+			return( -1 );
+		}
+
+		if( !(input = vips_stream_input_new_from_options( value )) )
+			return( -1 );
+	
+		g_value_init( &gvalue, VIPS_TYPE_STREAM_INPUT );
+		g_value_set_object( &gvalue, input );
+
+		/* Setting gvalue will have upped @out's count again,
+		 * go back to 1 so that gvalue has the only ref.
+		 */
+		g_object_unref( input );
 	}
 	else if( g_type_is_a( otype, VIPS_TYPE_ARRAY_IMAGE ) ) { 
 		/* We have to have a special case for this, we can't just rely

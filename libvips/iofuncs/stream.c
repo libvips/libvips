@@ -33,6 +33,7 @@
 
 /* TODO
  *
+ * - minimise support, and reenable jpg test_descriptors
  * - filename encoding
  * - memory output
  * - add mmapable descriptors
@@ -322,7 +323,7 @@ vips_stream_input_class_init( VipsStreamInputClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "input";
+	object_class->nickname = "stream_input";
 	object_class->description = _( "input stream" );
 
 	object_class->build = vips_stream_input_build;
@@ -416,67 +417,84 @@ vips_stream_input_new_from_filename( const char *filename )
  *
  * Create a stream attached to an area of memory. 
  *
- * #VipsStream s start out empty, you need to call 
- * vips_stream_input_refill() to fill them with bytes.
- *
- * See also: vips_stream_input_refill().
- *
  * Returns: a new #VipsStream
  */
 VipsStreamInput *
 vips_stream_input_new_from_blob( VipsBlob *blob )
 {
-	VipsStreamInput *stream;
+	VipsStreamInput *input;
 
 	VIPS_DEBUG_MSG( "vips_stream_input_new_from_blob: %p\n", blob ); 
 
-	stream = VIPS_STREAM_INPUT( 
+	input = VIPS_STREAM_INPUT( 
 		g_object_new( VIPS_TYPE_STREAM_INPUT, 
 			"blob", blob,
 			NULL ) );
 
-	if( vips_object_build( VIPS_OBJECT( stream ) ) ) {
-		VIPS_UNREF( stream );
+	if( vips_object_build( VIPS_OBJECT( input ) ) ) {
+		VIPS_UNREF( input );
 		return( NULL );
 	}
 
-	return( stream ); 
+	return( input ); 
 }
 
 /**
  * vips_stream_input_new_from_memory:
- * @buf: memory area to load
- * @len: size of memory area
+ * @data: memory area to load
+ * @length: size of memory area
  *
  * Create a stream attached to an area of memory. 
  *
- * You must not free @buf while the stream is active. 
- *
- * #VipsStream s start out empty, you need to call 
- * vips_stream_input_refill() to fill them with bytes.
- *
- * See also: vips_stream_input_refill().
+ * You must not free @data while the stream is active. 
  *
  * Returns: a new #VipsStream
  */
 VipsStreamInput *
-vips_stream_input_new_from_memory( const void *data, size_t size )
+vips_stream_input_new_from_memory( const void *data, size_t length )
 {
-	VipsStreamInput *stream;
+	VipsStreamInput *input;
 	VipsBlob *blob;
 
-	VIPS_DEBUG_MSG( "vips_stream_input_new_from_buffer: %p, size = %zd\n", 
-		data, size ); 
+	VIPS_DEBUG_MSG( "vips_stream_input_new_from_buffer: "
+		"%p, length = %zd\n", data, length ); 
 
 	/* We don't take a copy of the data or free it.
 	 */
-	blob = vips_blob_new( NULL, data, size );
+	blob = vips_blob_new( NULL, data, length );
 
-	stream = vips_stream_input_new_from_blob( blob ); 
+	input = vips_stream_input_new_from_blob( blob ); 
 
 	vips_area_unref( VIPS_AREA( blob ) );
 
-	return( stream ); 
+	return( input ); 
+}
+
+/**
+ * vips_stream_input_new_from_options:
+ * @options: option string
+ *
+ * Create a stream from an option string.
+ *
+ * Returns: a new #VipsStream
+ */
+VipsStreamInput *
+vips_stream_input_new_from_options( const char *options )
+{
+	VipsStreamInput *input;
+
+	VIPS_DEBUG_MSG( "vips_stream_input_new_from_options: %s\n", options ); 
+
+	input = VIPS_STREAM_INPUT( 
+		g_object_new( VIPS_TYPE_STREAM_INPUT, NULL ) );
+
+	if( vips_object_set_from_string( VIPS_OBJECT( input ), options ) ||
+		vips_object_build( VIPS_OBJECT( input ) ) ) {
+		VIPS_UNREF( input );
+		return( NULL );
+	}
+
+	return( input ); 
 }
 
 ssize_t
@@ -696,7 +714,7 @@ vips_stream_output_class_init( VipsStreamOutputClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "output";
+	object_class->nickname = "stream_output";
 	object_class->description = _( "output stream" );
 
 	object_class->build = vips_stream_output_build;
@@ -706,7 +724,7 @@ vips_stream_output_class_init( VipsStreamOutputClass *class )
 	/* SET_ALWAYS means that blob is set by C and the obj system is not
 	 * involved in creation or destruction. It can be read at any time.
 	 */
-	VIPS_ARG_BOXED( class, "blob", 1, 
+	VIPS_ARG_BOXED( class, "blob", 3, 
 		_( "Blob" ),
 		_( "Blob to save to" ),
 		VIPS_ARGUMENT_SET_ALWAYS, 

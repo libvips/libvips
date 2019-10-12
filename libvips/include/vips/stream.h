@@ -171,6 +171,7 @@ VipsStreamInput *vips_stream_input_new_from_filename( const char *filename );
 VipsStreamInput *vips_stream_input_new_from_blob( VipsBlob *blob );
 VipsStreamInput *vips_stream_input_new_from_memory( const void *data, 
 	size_t size );
+VipsStreamInput *vips_stream_input_new_from_options( const char *options );
 
 ssize_t vips_stream_input_read( VipsStreamInput *input, 
 	unsigned char *data, size_t length );
