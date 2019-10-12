@@ -611,6 +611,10 @@ vips_stream_output_finalize( GObject *gobject )
 	VIPS_DEBUG_MSG( "vips_stream_output_finalize:\n" );
 
 	VIPS_FREEF( g_byte_array_unref, output->memory ); 
+	if( output->blob ) { 
+		vips_area_unref( VIPS_AREA( output->blob ) ); 
+		output->blob = NULL;
+	}
 
 	G_OBJECT_CLASS( vips_stream_output_parent_class )->finalize( gobject );
 }
@@ -639,7 +643,10 @@ vips_stream_output_build( VipsObject *object )
 
 		int fd;
 
-		if( (fd = vips_tracked_open( filename, MODE_WRITE )) == -1 ) {
+		/* 0644 is rw user, r group and other.
+		 */
+		if( (fd = vips_tracked_open( filename, 
+			MODE_WRITE, 0644 )) == -1 ) {
 			vips_error_system( errno, STREAM_NAME( stream ), 
 				"%s", _( "unable to open for write" ) ); 
 			return( -1 ); 
@@ -696,18 +703,22 @@ vips_stream_output_class_init( VipsStreamOutputClass *class )
 
 	class->write = vips_stream_output_write_real;
 
+	/* SET_ALWAYS means that blob is set by C and the obj system is not
+	 * involved in creation or destruction. It can be read at any time.
+	 */
 	VIPS_ARG_BOXED( class, "blob", 1, 
 		_( "Blob" ),
 		_( "Blob to save to" ),
-		VIPS_ARGUMENT_OPTIONAL_OUTPUT, 
+		VIPS_ARGUMENT_SET_ALWAYS, 
 		G_STRUCT_OFFSET( VipsStreamOutput, blob ),
 		VIPS_TYPE_BLOB );
 
 }
 
 static void
-vips_stream_output_init( VipsStreamOutput *stream )
+vips_stream_output_init( VipsStreamOutput *output )
 {
+	output->blob = vips_blob_new( NULL, NULL, 0 );
 }
 
 /**
@@ -849,11 +860,8 @@ vips_stream_output_finish( VipsStreamOutput *output )
 		length = output->memory->len;
 		data = g_byte_array_free( output->memory, FALSE );
 		output->memory = NULL;
-
-		g_object_set( output, 
-			"blob", vips_blob_new( (VipsCallbackFn) g_free, 
-				data, length ),
-			NULL );
+		vips_blob_set( output->blob,
+			(VipsCallbackFn) g_free, data, length );
 	}
 
 	vips_stream_close( VIPS_STREAM( output ) );
