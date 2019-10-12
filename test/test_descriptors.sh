@@ -7,9 +7,10 @@ set -e
 
 . ./variables.sh
 
-if test_supported jpegload; then
-	./test_descriptors $image
-fi
+# reenable when we have minise support ini stream
+# if test_supported jpegload; then
+# 	./test_descriptors $image
+# fi
 
 if test_supported heifload; then
 	./test_descriptors $test_images/Example1.heic
