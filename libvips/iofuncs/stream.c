@@ -65,6 +65,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 #include <vips/vips.h>
 #include <vips/debug.h>
@@ -114,19 +115,10 @@
 
 G_DEFINE_ABSTRACT_TYPE( VipsStream, vips_stream, VIPS_TYPE_OBJECT );
 
-static void
-vips_stream_close( VipsStream *stream )
-{
-	if( stream->close_descriptor >= 0 ) {
-		close( stream->close_descriptor );
-		stream->close_descriptor = -1;
-	}
-
-	if( stream->tracked_descriptor >= 0 ) {
-		vips_tracked_close( stream->tracked_descriptor );
-		stream->tracked_descriptor = -1;
-	}
-}
+#define STREAM_NAME( STREAM ) \
+	(VIPS_STREAM( STREAM )->filename ? \
+		VIPS_STREAM( STREAM )->filename : \
+		VIPS_OBJECT( STREAM )->nickname)
 
 static void
 vips_stream_finalize( GObject *gobject )
@@ -139,7 +131,16 @@ vips_stream_finalize( GObject *gobject )
 	VIPS_DEBUG_MSG( "\n" );
 #endif /*VIPS_DEBUG*/
 
-	vips_stream_close( stream );
+	if( stream->close_descriptor >= 0 ) {
+		close( stream->close_descriptor );
+		stream->close_descriptor = -1;
+	}
+
+	if( stream->tracked_descriptor >= 0 ) {
+		vips_tracked_close( stream->tracked_descriptor );
+		stream->tracked_descriptor = -1;
+	}
+
 	VIPS_FREE( stream->filename ); 
 
 	G_OBJECT_CLASS( vips_stream_parent_class )->finalize( gobject );
@@ -177,11 +178,6 @@ vips_stream_init( VipsStream *stream )
 	stream->tracked_descriptor = -1;
 	stream->close_descriptor = -1;
 }
-
-#define STREAM_NAME( STREAM ) \
-	(VIPS_STREAM( STREAM )->filename ? \
-		VIPS_STREAM( STREAM )->filename : \
-		VIPS_OBJECT( STREAM )->nickname)
 
 G_DEFINE_TYPE( VipsStreamInput, vips_stream_input, VIPS_TYPE_STREAM );
 
@@ -314,6 +310,12 @@ vips_stream_input_rewind_real( VipsStreamInput *input )
 }
 
 static void
+vips_stream_input_minimise_real( VipsStreamInput *input )
+{
+	VIPS_DEBUG_MSG( "vips_stream_minimise_real:\n" );
+}
+
+static void
 vips_stream_input_class_init( VipsStreamInputClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -330,6 +332,7 @@ vips_stream_input_class_init( VipsStreamInputClass *class )
 
 	class->read = vips_stream_input_read_real;
 	class->rewind = vips_stream_input_rewind_real;
+	class->minimise = vips_stream_input_minimise_real;
 
 	VIPS_ARG_BOXED( class, "blob", 3, 
 		_( "Blob" ),
@@ -572,6 +575,14 @@ vips_stream_input_rewind( VipsStreamInput *input )
 	return( class->rewind( input ) );
 }
 
+void
+vips_stream_input_minimise( VipsStreamInput *input )
+{
+	VipsStreamInputClass *class = VIPS_STREAM_INPUT_GET_CLASS( input );
+
+	class->minimise( input );
+}
+
 gboolean
 vips_stream_input_eof( VipsStreamInput *input )
 {
@@ -590,6 +601,19 @@ vips_stream_input_decode( VipsStreamInput *input )
 		VIPS_FREEF( g_byte_array_unref, input->header_bytes ); 
 		VIPS_FREEF( g_byte_array_unref, input->sniff ); 
 	}
+}
+
+static void
+vips_stream_input_minimise_cb( VipsImage *image, VipsStreamInput *input )
+{
+	vips_stream_input_minimise( input );
+}
+
+void 
+vips_stream_input_set_image( VipsStreamInput *input, VipsImage *image )
+{
+	g_signal_connect( image, "minimise", 
+		G_CALLBACK( vips_stream_input_minimise_cb ), input ); 
 }
 
 /**
@@ -705,6 +729,25 @@ vips_stream_output_write_real( VipsStreamOutput *output,
 }
 
 static void
+vips_stream_output_finish_real( VipsStreamOutput *output ) 
+{
+	VIPS_DEBUG_MSG( "vips_stream_output_finish_real:\n" );
+
+	/* Move the output buffer into the blob so it can be read out.
+	 */
+	if( output->memory ) {
+		unsigned char *data;
+		size_t length;
+
+		length = output->memory->len;
+		data = g_byte_array_free( output->memory, FALSE );
+		output->memory = NULL;
+		vips_blob_set( output->blob,
+			(VipsCallbackFn) g_free, data, length );
+	}
+}
+
+static void
 vips_stream_output_class_init( VipsStreamOutputClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -720,6 +763,7 @@ vips_stream_output_class_init( VipsStreamOutputClass *class )
 	object_class->build = vips_stream_output_build;
 
 	class->write = vips_stream_output_write_real;
+	class->finish = vips_stream_output_finish_real;
 
 	/* SET_ALWAYS means that blob is set by C and the obj system is not
 	 * involved in creation or destruction. It can be read at any time.
@@ -866,20 +910,11 @@ vips_stream_output_write( VipsStreamOutput *output,
 }
 
 void
-vips_stream_output_finish( VipsStreamOutput *output ) 
+vips_stream_output_finish( VipsStreamOutput *output )
 {
+	VipsStreamOutputClass *class = VIPS_STREAM_OUTPUT_GET_CLASS( output );
+
 	VIPS_DEBUG_MSG( "vips_stream_output_finish:\n" );
 
-	if( output->memory ) {
-		unsigned char *data;
-		size_t length;
-
-		length = output->memory->len;
-		data = g_byte_array_free( output->memory, FALSE );
-		output->memory = NULL;
-		vips_blob_set( output->blob,
-			(VipsCallbackFn) g_free, data, length );
-	}
-
-	vips_stream_close( VIPS_STREAM( output ) );
+	class->finish( output );
 }

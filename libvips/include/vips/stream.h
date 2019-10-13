@@ -68,7 +68,7 @@ typedef struct _VipsStream {
 	 */
 	int tracked_descriptor;	
 
-	/* A descriptor we close close().
+	/* A descriptor we close with close().
 	 */
 	int close_descriptor;	
 
@@ -85,8 +85,6 @@ typedef struct _VipsStreamClass {
 } VipsStreamClass;
 
 GType vips_stream_get_type( void );
-
-void vips_stream_attach( VipsStream *stream );
 
 #define VIPS_TYPE_STREAM_INPUT (vips_stream_input_get_type())
 #define VIPS_STREAM_INPUT( obj ) \
@@ -162,6 +160,15 @@ typedef struct _VipsStreamInputClass {
 	ssize_t (*read)( VipsStreamInput *, unsigned char *, size_t );
 	int (*rewind)( VipsStreamInput * );
 
+	/* Shut down anything that can safely restarted. For example, if
+	 * there's a fd that supports lseek(), it can be closed, since later 
+	 * (if neccessary) it can be reopened and lseek()ed back to the 
+	 * correct point.
+	 *
+	 * Non-restartable shutdown shuld be in _finalize().
+	 */
+	void (*minimise)( VipsStreamInput * );
+
 } VipsStreamInputClass;
 
 GType vips_stream_input_get_type( void );
@@ -176,6 +183,8 @@ VipsStreamInput *vips_stream_input_new_from_options( const char *options );
 ssize_t vips_stream_input_read( VipsStreamInput *input, 
 	unsigned char *data, size_t length );
 int vips_stream_input_rewind( VipsStreamInput *input );
+void vips_stream_minimise( VipsStreamInput *input );
+void vips_stream_set_image( VipsStreamInput *input, VipsImage *image );
 void vips_stream_input_decode( VipsStreamInput *input );
 gboolean vips_stream_input_eof( VipsStreamInput *input );
 unsigned char *vips_stream_input_sniff( VipsStreamInput *input, size_t length );
@@ -219,6 +228,11 @@ typedef struct _VipsStreamOutputClass {
 	 */
 	ssize_t (*write)( VipsStreamOutput *, const unsigned char *, size_t );
 
+	/* A complete output image has been generated, so do any clearing up,
+	 * eg. copy the bytes we saved in memory to the output blob.
+	 */
+	void (*finish)( VipsStreamOutput * );
+
 } VipsStreamOutputClass;
 
 GType vips_stream_output_get_type( void );
@@ -226,7 +240,7 @@ GType vips_stream_output_get_type( void );
 VipsStreamOutput *vips_stream_output_new_from_descriptor( int descriptor );
 VipsStreamOutput *vips_stream_output_new_from_filename( const char *filename );
 VipsStreamOutput *vips_stream_output_new_memory( void );
-int vips_stream_output_write( VipsStreamOutput *stream,
+int vips_stream_output_write( VipsStreamOutput *output,
 	const unsigned char *data, size_t length );
 void vips_stream_output_finish( VipsStreamOutput *output );
 

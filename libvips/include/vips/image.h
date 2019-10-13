@@ -133,9 +133,6 @@ typedef enum {
 	VIPS_ACCESS_LAST
 } VipsAccess;
 
-struct _VipsImage; 
-struct _VipsRegion; 
-
 typedef void *(*VipsStartFn)( struct _VipsImage *out, void *a, void *b );
 typedef int (*VipsGenerateFn)( struct _VipsRegion *out, 
 	void *seq, void *a, void *b, gboolean *stop );
