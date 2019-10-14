@@ -190,13 +190,9 @@ int vips__png_read_stream( VipsStreamInput *input, VipsImage *out,
 gboolean vips__png_isinterlaced_stream( VipsStreamInput *input );
 extern const char *vips__png_suffs[];
 
-int vips__png_write( VipsImage *in, const char *filename, 
+int vips__png_write_stream( VipsImage *in, VipsStreamOutput *output,
 	int compress, int interlace, const char *profile,
 	VipsForeignPngFilter filter, gboolean strip,
-	gboolean palette, int colours, int Q, double dither );
-int vips__png_write_buf( VipsImage *in, 
-	void **obuf, size_t *olen, int compression, int interlace, 
-	const char *profile, VipsForeignPngFilter filter, gboolean strip,
 	gboolean palette, int colours, int Q, double dither );
 
 /* Map WEBP metadata names to vips names.

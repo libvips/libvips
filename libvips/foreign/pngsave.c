@@ -179,6 +179,63 @@ vips_foreign_save_png_init( VipsForeignSavePng *png )
 	png->dither = 1.0;
 }
 
+typedef struct _VipsForeignSavePngStream {
+	VipsForeignSavePng parent_object;
+
+	VipsStreamOutput *output;
+} VipsForeignSavePngStream;
+
+typedef VipsForeignSavePngClass VipsForeignSavePngStreamClass;
+
+G_DEFINE_TYPE( VipsForeignSavePngStream, vips_foreign_save_png_stream, 
+	vips_foreign_save_png_get_type() );
+
+static int
+vips_foreign_save_png_stream_build( VipsObject *object )
+{
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSavePng *png = (VipsForeignSavePng *) object;
+	VipsForeignSavePngStream *stream = (VipsForeignSavePngStream *) object;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_png_stream_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( vips__png_write_stream( save->ready, stream->output,
+		png->compression, png->interlace, png->profile, png->filter,
+		save->strip, png->palette, png->colours, png->Q, png->dither ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_png_stream_class_init( VipsForeignSavePngStreamClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "pngsave_stream";
+	object_class->description = _( "save image to png stream" );
+	object_class->build = vips_foreign_save_png_stream_build;
+
+	VIPS_ARG_OBJECT( class, "output", 1,
+		_( "Output" ),
+		_( "Stream to save to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSavePngStream, output ),
+		VIPS_TYPE_STREAM_OUTPUT );
+
+}
+
+static void
+vips_foreign_save_png_stream_init( VipsForeignSavePngStream *stream )
+{
+}
+
 typedef struct _VipsForeignSavePngFile {
 	VipsForeignSavePng parent_object;
 
@@ -197,15 +254,23 @@ vips_foreign_save_png_file_build( VipsObject *object )
 	VipsForeignSavePng *png = (VipsForeignSavePng *) object;
 	VipsForeignSavePngFile *png_file = (VipsForeignSavePngFile *) object;
 
+	VipsStreamOutput *output;
+
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_png_file_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips__png_write( save->ready, 
-		png_file->filename, png->compression, png->interlace, 
-		png->profile, png->filter, save->strip, png->palette,
-		png->colours, png->Q, png->dither ) )
+	if( !(output = vips_stream_output_new_from_filename( 
+		png_file->filename )) )
 		return( -1 );
+	if( vips__png_write_stream( save->ready, output, 
+		png->compression, png->interlace, 
+		png->profile, png->filter, save->strip, png->palette,
+		png->colours, png->Q, png->dither ) ) {
+		VIPS_UNREF( output );
+		return( -1 );
+	}
+	VIPS_UNREF( output );
 
 	return( 0 );
 }
@@ -252,26 +317,31 @@ vips_foreign_save_png_buffer_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSavePng *png = (VipsForeignSavePng *) object;
+	VipsForeignSavePngBuffer *buffer = (VipsForeignSavePngBuffer *) object;
 
-	void *obuf;
-	size_t olen;
+	VipsStreamOutput *output;
 	VipsBlob *blob;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_png_buffer_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips__png_write_buf( save->ready, &obuf, &olen,
-		png->compression, png->interlace, png->profile, png->filter,
-		save->strip, png->palette, png->colours, png->Q, png->dither ) )
+	if( !(output = vips_stream_output_new_memory()) )
 		return( -1 );
 
-	/* vips__png_write_buf() makes a buffer that needs g_free(), not
-	 * vips_free().
-	 */
-	blob = vips_blob_new( (VipsCallbackFn) g_free, obuf, olen );
-	g_object_set( object, "buffer", blob, NULL );
+	if( vips__png_write_stream( save->ready, output,
+		png->compression, png->interlace, png->profile, png->filter,
+		save->strip, png->palette, png->colours, png->Q, 
+		png->dither ) ) {
+		VIPS_UNREF( output );
+		return( -1 );
+	}
+
+	g_object_get( output, "blob", &blob, NULL );
+	g_object_set( buffer, "buffer", blob, NULL );
 	vips_area_unref( VIPS_AREA( blob ) );
+
+	VIPS_UNREF( output );
 
 	return( 0 );
 }
@@ -424,6 +494,42 @@ vips_pngsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 
 		vips_area_unref( area );
 	}
+
+	return( result );
+}
+
+/**
+ * vips_pngsave_stream: (method)
+ * @in: image to save 
+ * @output: save image to this stream
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @compression: compression level
+ * * @interlace: interlace image
+ * * @profile: ICC profile to embed
+ * * @filter: libpng row filter flag(s)
+ * * @palette: enable quantisation to 8bpp palette
+ * * @colours: max number of palette colours for quantisation
+ * * @Q: quality for 8bpp quantisation (does not exceed @colours)
+ * * @dither: amount of dithering for 8bpp quantization
+ *
+ * As vips_pngsave(), but save to a stream.
+ *
+ * See also: vips_pngsave(), vips_image_write_to_stream().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_pngsave_stream( VipsImage *in, VipsStreamOutput *output, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, output );
+	result = vips_call_split( "pngsave_stream", ap, in, output );
+	va_end( ap );
 
 	return( result );
 }

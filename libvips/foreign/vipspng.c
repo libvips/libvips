@@ -270,7 +270,7 @@ read_new( VipsStreamInput *input, VipsImage *out, gboolean fail )
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( read_close_cb ), read ); 
-	g_signal_connect( out, "minimise", 
+	g_signal_connect( out, "minimise",
 		G_CALLBACK( read_minimise_cb ), read ); 
 
 	if( !(read->pPng = png_create_read_struct( 
@@ -780,8 +780,7 @@ typedef struct {
 	VipsImage *in;
 	VipsImage *memory;
 
-	FILE *fp;
-	VipsDbuf dbuf;
+	VipsStreamOutput *output;
 
 	png_structp pPng;
 	png_infop pInfo;
@@ -791,9 +790,8 @@ typedef struct {
 static void
 write_finish( Write *write )
 {
-	VIPS_FREEF( fclose, write->fp );
 	VIPS_UNREF( write->memory );
-	vips_dbuf_destroy( &write->dbuf );
+	VIPS_UNREF( write->output );
 	if( write->pPng )
 		png_destroy_write_struct( &write->pPng, &write->pInfo );
 }
@@ -804,8 +802,17 @@ write_destroy( VipsImage *out, Write *write )
 	write_finish( write ); 
 }
 
+static void
+user_write_data( png_structp pPng, png_bytep data, png_size_t length )
+{
+	Write *write = (Write *) png_get_io_ptr( pPng );
+
+	if( vips_stream_output_write( write->output, data, length ) ) 
+		png_error( pPng, "not enough data" );
+}
+
 static Write *
-write_new( VipsImage *in )
+write_new( VipsImage *in, VipsStreamOutput *output )
 {
 	Write *write;
 
@@ -814,8 +821,8 @@ write_new( VipsImage *in )
 	memset( write, 0, sizeof( Write ) );
 	write->in = in;
 	write->memory = NULL;
-	write->fp = NULL;
-	vips_dbuf_init( &write->dbuf );
+	write->output = output;
+	g_object_ref( output );
 	g_signal_connect( in, "close", 
 		G_CALLBACK( write_destroy ), write ); 
 
@@ -832,6 +839,8 @@ write_new( VipsImage *in )
 	png_set_option( write->pPng, 
 		PNG_SKIP_sRGB_CHECK_PROFILE, PNG_OPTION_ON );
 #endif /*PNG_SKIP_sRGB_CHECK_PROFILE*/
+
+	png_set_write_fn( write->pPng, write, user_write_data, NULL );
 
 	/* Catch PNG errors from png_create_info_struct().
 	 */
@@ -1176,79 +1185,24 @@ write_vips( Write *write,
 }
 
 int
-vips__png_write( VipsImage *in, const char *filename, 
-	int compress, int interlace, const char *profile,
-	VipsForeignPngFilter filter, gboolean strip,
-	gboolean palette, int colours, int Q, double dither )
-{
-	Write *write;
-
-#ifdef DEBUG
-	printf( "vips__png_write: writing \"%s\"\n", filename );
-#endif /*DEBUG*/
-
-	if( !(write = write_new( in )) )
-		return( -1 );
-
-	/* Make output.
-	 */
-        if( !(write->fp = vips__file_open_write( filename, FALSE )) ) 
-		return( -1 );
-	png_init_io( write->pPng, write->fp );
-
-	/* Convert it!
-	 */
-	if( write_vips( write, 
-		compress, interlace, profile, filter, strip, palette,
-		colours, Q, dither ) ) {
-		vips_error( "vips2png", 
-			_( "unable to write \"%s\"" ), filename );
-
-		return( -1 );
-	}
-
-	write_finish( write );
-
-#ifdef DEBUG
-	printf( "vips__png_write: done\n" ); 
-#endif /*DEBUG*/
-
-	return( 0 );
-}
-
-static void
-user_write_data( png_structp png_ptr, png_bytep data, png_size_t length )
-{
-	Write *write = (Write *) png_get_io_ptr( png_ptr );
-
-	vips_dbuf_write( &write->dbuf, data, length ); 
-}
-
-int
-vips__png_write_buf( VipsImage *in, 
-	void **obuf, size_t *olen, int compression, int interlace,
+vips__png_write_stream( VipsImage *in, VipsStreamOutput *output,
+	int compression, int interlace,
 	const char *profile, VipsForeignPngFilter filter, gboolean strip,
 	gboolean palette, int colours, int Q, double dither )
 {
 	Write *write;
 
-	if( !(write = write_new( in )) ) 
+	if( !(write = write_new( in, output )) ) 
 		return( -1 );
 
-	png_set_write_fn( write->pPng, write, user_write_data, NULL );
-
-	/* Convert it!
-	 */
 	if( write_vips( write, 
 		compression, interlace, profile, filter, strip, palette,
 		colours, Q, dither ) ) {
+		write_finish( write );
 		vips_error( "vips2png", 
 			"%s", _( "unable to write to buffer" ) );
-
 		return( -1 );
 	}
-
-	*obuf = vips_dbuf_steal( &write->dbuf, olen );
 
 	write_finish( write );
 
