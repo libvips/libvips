@@ -122,10 +122,10 @@ typedef struct _VipsStreamInput {
 	 */
 	gboolean decode;
 
-	/* TRUE is this input source supports rewind. If not, then we save data
+	/* TRUE is this descriptor supports lseek(). If not, then we save data
 	 * read during header phase in a buffer.
 	 */
-	gboolean rewindable;
+	gboolean seekable;
 
 	/*< private >*/
 
@@ -183,8 +183,7 @@ VipsStreamInput *vips_stream_input_new_from_options( const char *options );
 ssize_t vips_stream_input_read( VipsStreamInput *input, 
 	unsigned char *data, size_t length );
 int vips_stream_input_rewind( VipsStreamInput *input );
-void vips_stream_minimise( VipsStreamInput *input );
-void vips_stream_set_image( VipsStreamInput *input, VipsImage *image );
+void vips_stream_input_minimise( VipsStreamInput *input );
 void vips_stream_input_decode( VipsStreamInput *input );
 gboolean vips_stream_input_eof( VipsStreamInput *input );
 unsigned char *vips_stream_input_sniff( VipsStreamInput *input, size_t length );

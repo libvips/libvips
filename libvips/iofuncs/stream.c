@@ -121,16 +121,8 @@ G_DEFINE_ABSTRACT_TYPE( VipsStream, vips_stream, VIPS_TYPE_OBJECT );
 		VIPS_OBJECT( STREAM )->nickname)
 
 static void
-vips_stream_finalize( GObject *gobject )
+vips_stream_close( VipsStream *stream )
 {
-	VipsStream *stream = (VipsStream *) gobject;
-
-#ifdef VIPS_DEBUG
-	VIPS_DEBUG_MSG( "vips_stream_finalize: " );
-	vips_object_print_name( VIPS_OBJECT( gobject ) );
-	VIPS_DEBUG_MSG( "\n" );
-#endif /*VIPS_DEBUG*/
-
 	if( stream->close_descriptor >= 0 ) {
 		close( stream->close_descriptor );
 		stream->close_descriptor = -1;
@@ -141,6 +133,21 @@ vips_stream_finalize( GObject *gobject )
 		stream->tracked_descriptor = -1;
 	}
 
+	stream->descriptor = -1;
+}
+
+static void
+vips_stream_finalize( GObject *gobject )
+{
+	VipsStream *stream = (VipsStream *) gobject;
+
+#ifdef VIPS_DEBUG
+	VIPS_DEBUG_MSG( "vips_stream_finalize: " );
+	vips_object_print_name( VIPS_OBJECT( gobject ) );
+	VIPS_DEBUG_MSG( "\n" );
+#endif /*VIPS_DEBUG*/
+
+	vips_stream_close( stream );
 	VIPS_FREE( stream->filename ); 
 
 	G_OBJECT_CLASS( vips_stream_parent_class )->finalize( gobject );
@@ -193,6 +200,41 @@ vips_stream_input_finalize( GObject *gobject )
 }
 
 static int
+vips_stream_input_open( VipsStreamInput *input )
+{
+	VipsStream *stream = VIPS_STREAM( input );
+
+	if( stream->descriptor == -1 &&
+		stream->tracked_descriptor == -1 &&
+		stream->filename ) {
+		int fd;
+		off_t new_pos;
+
+		if( (fd = vips_tracked_open( stream->filename, 
+			MODE_READ )) == -1 ) {
+			vips_error_system( errno, STREAM_NAME( stream ), 
+				"%s", _( "unable to open for read" ) ); 
+			return( -1 ); 
+		}
+
+		stream->tracked_descriptor = fd;
+		stream->descriptor = fd;
+		input->seekable = TRUE;
+
+		VIPS_DEBUG_MSG( "vips_stream_input_open: "
+			"restoring read position %zd\n", input->read_position );
+		new_pos = lseek( stream->descriptor, 0, SEEK_SET );
+		if( new_pos == -1 ) {
+			vips_error_system( errno, STREAM_NAME( stream ),
+				"%s", _( "unable to lseek()" ) ); 
+			return( 0 );
+		}
+	}
+
+	return( 0 );
+}
+
+static int
 vips_stream_input_build( VipsObject *object )
 {
 	VipsStream *stream = VIPS_STREAM( object );
@@ -211,20 +253,9 @@ vips_stream_input_build( VipsObject *object )
 		return( -1 ); 
 	}
 
-	if( vips_object_argument_isset( object, "filename" ) ) {
-		int fd;
-
-		if( (fd = vips_tracked_open( stream->filename, 
-			MODE_READ )) == -1 ) {
-			vips_error_system( errno, STREAM_NAME( stream ), 
-				"%s", _( "unable to open for read" ) ); 
-			return( -1 ); 
-		}
-
-		stream->tracked_descriptor = fd;
-		stream->descriptor = fd;
-		input->rewindable = TRUE;
-	}
+	if( vips_object_argument_isset( object, "filename" ) &&
+		vips_stream_input_open( input ) )
+		return( -1 );
 
 	if( vips_object_argument_isset( object, "descriptor" ) ) {
 		stream->descriptor = dup( stream->descriptor );
@@ -232,11 +263,11 @@ vips_stream_input_build( VipsObject *object )
 	}
 
 	if( vips_object_argument_isset( object, "blob" ) )
-		input->rewindable = TRUE;
+		input->seekable = TRUE;
 
-	/* Need to save the header if the source is not rewindable.
+	/* Need to save the header if the source is not seekable.
 	 */
-	if( !input->rewindable )
+	if( !input->seekable )
 		input->header_bytes = g_byte_array_new();
 
 	/* We always want a sniff buffer.
@@ -253,6 +284,11 @@ vips_stream_input_read_real( VipsStreamInput *input,
 	VipsStream *stream = VIPS_STREAM( input );
 
 	VIPS_DEBUG_MSG( "vips_stream_input_read_real:\n" );
+
+	/* Make sure we are open, in case we've been minimised.
+	 */
+	if( vips_stream_input_open( input ) )
+		return( -1 );
 
 	if( input->blob ) {
 		VipsArea *area = (VipsArea *) input->blob;
@@ -288,7 +324,7 @@ vips_stream_input_rewind_real( VipsStreamInput *input )
 		return( -1 );
 	}
 
-	if( input->rewindable &&
+	if( input->seekable &&
 		stream->descriptor != -1 ) {
 		off_t new_pos;
 
@@ -312,7 +348,12 @@ vips_stream_input_rewind_real( VipsStreamInput *input )
 static void
 vips_stream_input_minimise_real( VipsStreamInput *input )
 {
-	VIPS_DEBUG_MSG( "vips_stream_minimise_real:\n" );
+	VipsStream *stream = VIPS_STREAM( input );
+
+	if( stream->filename &&
+		stream->descriptor != -1 &&
+		input->seekable ) 
+		vips_stream_close( stream );
 }
 
 static void
@@ -341,11 +382,11 @@ vips_stream_input_class_init( VipsStreamInputClass *class )
 		G_STRUCT_OFFSET( VipsStreamInput, blob ),
 		VIPS_TYPE_BLOB );
 
-	VIPS_ARG_BOOL( class, "rewindable", 4, 
-		_( "rewindable" ),
-		_( "'descriptor' supports rewind" ),
+	VIPS_ARG_BOOL( class, "seekable", 4, 
+		_( "Seekable" ),
+		_( "'descriptor' supports lseek()" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsStreamInput, rewindable ),
+		G_STRUCT_OFFSET( VipsStreamInput, seekable ),
 		FALSE );
 
 }
@@ -544,11 +585,11 @@ vips_stream_input_read( VipsStreamInput *input,
 		if( n == 0 )
 			input->eof = TRUE;
 
-		/* If we're not rewindable, we need to save header bytes for
+		/* If we're not seekable, we need to save header bytes for
 		 * reuse.
 		 */
 		if( input->header_bytes &&
-			!input->rewindable &&
+			!input->seekable &&
 			!input->decode &&
 			n > 0 ) 
 			g_byte_array_append( input->header_bytes, 
@@ -601,19 +642,6 @@ vips_stream_input_decode( VipsStreamInput *input )
 		VIPS_FREEF( g_byte_array_unref, input->header_bytes ); 
 		VIPS_FREEF( g_byte_array_unref, input->sniff ); 
 	}
-}
-
-static void
-vips_stream_input_minimise_cb( VipsImage *image, VipsStreamInput *input )
-{
-	vips_stream_input_minimise( input );
-}
-
-void 
-vips_stream_input_set_image( VipsStreamInput *input, VipsImage *image )
-{
-	g_signal_connect( image, "minimise", 
-		G_CALLBACK( vips_stream_input_minimise_cb ), input ); 
 }
 
 /**

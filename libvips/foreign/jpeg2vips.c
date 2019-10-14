@@ -335,6 +335,12 @@ readjpeg_close_cb( VipsObject *object, ReadJpeg *jpeg )
 	(void) readjpeg_free( jpeg );
 }
 
+static void
+vips_stream_input_minimise_cb( VipsImage *image, VipsStreamInput *input )
+{
+	vips_stream_input_minimise( input );
+}
+
 static ReadJpeg *
 readjpeg_new( VipsStreamInput *input, VipsImage *out, 
 	int shrink, gboolean fail, gboolean autorotate )
@@ -370,6 +376,8 @@ readjpeg_new( VipsStreamInput *input, VipsImage *out,
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( readjpeg_close_cb ), jpeg ); 
+	g_signal_connect( out, "minimise", 
+		G_CALLBACK( vips_stream_input_minimise_cb ), input ); 
 
 	return( jpeg );
 }
@@ -777,11 +785,6 @@ read_jpeg_generate( VipsRegion *or,
 		return( -1 );
 	}
 
-	/* We may have been minimised.
-	 */
-	if( readjpeg_open_input( jpeg ) )
-                return( -1 );
-
 	/* If --fail is set, we make read fail on any warnings. This
 	 * will stop on any errors from the previous jpeg_read_scanlines().
 	 * libjpeg warnings are used for serious image corruption, like
@@ -946,6 +949,8 @@ vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 			 */
 			vips_autorot_remove_angle( out ); 
 		}
+
+		vips_stream_input_minimise( jpeg->input );
 	}
 	else {
 		if( read_jpeg_image( jpeg, out ) )
