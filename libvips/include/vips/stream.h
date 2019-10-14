@@ -146,10 +146,6 @@ typedef struct _VipsStreamInput {
 	 */
 	VipsBlob *blob;
 
-	/* Set on EOF.
-	 */
-	gboolean eof;
-
 } VipsStreamInput;
 
 typedef struct _VipsStreamInputClass {
@@ -185,7 +181,6 @@ ssize_t vips_stream_input_read( VipsStreamInput *input,
 int vips_stream_input_rewind( VipsStreamInput *input );
 void vips_stream_input_minimise( VipsStreamInput *input );
 void vips_stream_input_decode( VipsStreamInput *input );
-gboolean vips_stream_input_eof( VipsStreamInput *input );
 unsigned char *vips_stream_input_sniff( VipsStreamInput *input, size_t length );
 
 #define VIPS_TYPE_STREAM_OUTPUT (vips_stream_output_get_type())

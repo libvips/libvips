@@ -33,15 +33,10 @@
 
 /* TODO
  *
- * - minimise support, and reenable jpg test_descriptors
  * - filename encoding
- * - memory output
  * - add mmapable descriptors
  * - add seekable descriptors
- * - can we test for mmapable and seekable?
- * - do we need eof?
- * - need a close() vfunc? output is a bit ugly, and node streams might need
- *   it
+ * - test for mmapable 
  * - can we really change all behaviour in the subclass? will we need map and
  *   seek as well as read and rewind?
  */
@@ -219,7 +214,6 @@ vips_stream_input_open( VipsStreamInput *input )
 
 		stream->tracked_descriptor = fd;
 		stream->descriptor = fd;
-		input->seekable = TRUE;
 
 		VIPS_DEBUG_MSG( "vips_stream_input_open: "
 			"restoring read position %zd\n", input->read_position );
@@ -260,6 +254,16 @@ vips_stream_input_build( VipsObject *object )
 	if( vips_object_argument_isset( object, "descriptor" ) ) {
 		stream->descriptor = dup( stream->descriptor );
 		stream->close_descriptor = stream->descriptor;
+	}
+
+	/* If there's a descriptor for input, test its properties.
+	 */
+	if( stream->descriptor != -1 ) {
+		/* Do +=0 on the current position. This fails for pipes, at
+		 * least on linux.
+		 */
+		if( lseek( stream->descriptor, 0, SEEK_CUR ) != -1 )
+			input->seekable = TRUE;
 	}
 
 	if( vips_object_argument_isset( object, "blob" ) )
@@ -340,7 +344,6 @@ vips_stream_input_rewind_real( VipsStreamInput *input )
 	}
 
 	input->read_position = 0;
-	input->eof = FALSE;
 
 	return( 0 );
 }
@@ -381,13 +384,6 @@ vips_stream_input_class_init( VipsStreamInputClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsStreamInput, blob ),
 		VIPS_TYPE_BLOB );
-
-	VIPS_ARG_BOOL( class, "seekable", 4, 
-		_( "Seekable" ),
-		_( "'descriptor' supports lseek()" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsStreamInput, seekable ),
-		FALSE );
 
 }
 
@@ -582,8 +578,6 @@ vips_stream_input_read( VipsStreamInput *input,
 				"%s", _( "read error" ) ); 
 			return( -1 );
 		}
-		if( n == 0 )
-			input->eof = TRUE;
 
 		/* If we're not seekable, we need to save header bytes for
 		 * reuse.
@@ -622,14 +616,6 @@ vips_stream_input_minimise( VipsStreamInput *input )
 	VipsStreamInputClass *class = VIPS_STREAM_INPUT_GET_CLASS( input );
 
 	class->minimise( input );
-}
-
-gboolean
-vips_stream_input_eof( VipsStreamInput *input )
-{
-	VIPS_DEBUG_MSG( "vips_stream_input_eof:\n" );
-
-	return( input->eof ); 
 }
 
 void 

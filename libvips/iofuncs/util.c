@@ -727,8 +727,11 @@ vips__file_read( FILE *fp, const char *filename, size_t *length_out )
 		do {
 			char *str2;
 
+			/* Again, a 1gb sanity limit.
+			 */
 			size += 1024;
-			if( !(str2 = realloc( str, size )) ) {
+			if( size > 1024 * 1024 * 1024 ||
+				!(str2 = realloc( str, size )) ) {
 				free( str ); 
 				vips_error( "vips__file_read", 
 					"%s", _( "out of memory" ) );
