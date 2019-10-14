@@ -1865,7 +1865,7 @@ vips_foreign_save( VipsImage *in, const char *name, ... )
 	return( result );
 }
 
-/* Can thsi class write this filetype to a stream?
+/* Can this class write this filetype to a stream?
  */
 static void *
 vips_foreign_find_save_stream_sub( VipsForeignSaveClass *save_class, 
@@ -1873,8 +1873,6 @@ vips_foreign_find_save_stream_sub( VipsForeignSaveClass *save_class,
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( save_class );
 	VipsForeignClass *class = VIPS_FOREIGN_CLASS( save_class );
-
-	printf( "testing %s for %s\n", object_class->nickname, suffix );
 
 	if( class->suffs &&
 		vips_ispostfix( object_class->nickname, "_stream" ) &&

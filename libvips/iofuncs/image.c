@@ -2180,7 +2180,7 @@ vips_image_new_from_buffer( const void *buf, size_t len,
  * a NULL-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the string. 
  *
- * See also: vips_image_write_to_buffer().
+ * See also: vips_image_write_to_stream().
  *
  * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */

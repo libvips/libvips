@@ -632,7 +632,8 @@ vips_stream_input_decode( VipsStreamInput *input )
 
 /**
  * vips_stream_input_sniff: 
- * @bytes: number of bytes to sniff
+ * @input: sniff this stream
+ * @length: number of bytes to sniff
  *
  * Return a pointer to the first few bytes of the file.
  */
@@ -864,12 +865,8 @@ vips_stream_output_new_from_filename( const char *filename )
 /**
  * vips_stream_output_new_memory:
  *
- * Optional args:
- *
- * @blob: #VipsBlob, memory area containing output
- *
- * Create a stream which will output to a memory area. Use @blob to get
- * memory output, if this is a memory stream.
+ * Create a stream which will output to a memory area. Read from @blob to get
+ * memory output.
  *
  * See also: vips_stream_output_write().
  *
