@@ -181,6 +181,12 @@ vips_stream_init( VipsStream *stream )
 	stream->close_descriptor = -1;
 }
 
+const char *
+vips_stream_filename( VipsStream *stream )
+{
+	return( stream->filename );
+}
+
 G_DEFINE_TYPE( VipsStreamInput, vips_stream_input, VIPS_TYPE_STREAM );
 
 static void

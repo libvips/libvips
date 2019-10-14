@@ -104,6 +104,8 @@
  * 	- close input on minimise rather than Y read position
  * 3/10/19
  * 	- restart after minimise
+ * 14/10/19
+ * 	- revise for stream IO
  */
 
 /*
@@ -336,7 +338,7 @@ readjpeg_close_cb( VipsObject *object, ReadJpeg *jpeg )
 }
 
 static void
-vips_stream_input_minimise_cb( VipsImage *image, VipsStreamInput *input )
+input_minimise_cb( VipsImage *image, VipsStreamInput *input )
 {
 	vips_stream_input_minimise( input );
 }
@@ -377,7 +379,7 @@ readjpeg_new( VipsStreamInput *input, VipsImage *out,
 	g_signal_connect( out, "close", 
 		G_CALLBACK( readjpeg_close_cb ), jpeg ); 
 	g_signal_connect( out, "minimise", 
-		G_CALLBACK( vips_stream_input_minimise_cb ), input ); 
+		G_CALLBACK( input_minimise_cb ), input ); 
 
 	return( jpeg );
 }
@@ -555,6 +557,9 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		interpretation,
 		xres, yres );
+
+	VIPS_SETSTR( out->filename, 
+		vips_stream_filename( VIPS_STREAM( jpeg->input ) ) );
 
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 
@@ -741,8 +746,7 @@ read_jpeg_generate( VipsRegion *or,
 
 	/* In pixel decode mode.
 	 */
-	if( jpeg->input )
-		vips_stream_input_decode( jpeg->input );
+	vips_stream_input_decode( jpeg->input );
 
 	VIPS_GATE_START( "read_jpeg_generate: work" );
 

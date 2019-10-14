@@ -343,7 +343,7 @@ G_DEFINE_TYPE( VipsForeignLoadJpegBuffer, vips_foreign_load_jpeg_buffer,
 	vips_foreign_load_jpeg_get_type() );
 
 static gboolean
-vips_foreign_load_jpeg_buffer_is_a( const void *buf, size_t len )
+vips_foreign_load_jpeg_buffer_is_a_buffer( const void *buf, size_t len )
 {
 	VipsStreamInput *input;
 	gboolean result;
@@ -410,7 +410,7 @@ vips_foreign_load_jpeg_buffer_class_init(
 	object_class->nickname = "jpegload_buffer";
 	object_class->description = _( "load jpeg from buffer" );
 
-	load_class->is_a_buffer = vips_foreign_load_jpeg_buffer_is_a;
+	load_class->is_a_buffer = vips_foreign_load_jpeg_buffer_is_a_buffer;
 	load_class->header = vips_foreign_load_jpeg_buffer_header;
 	load_class->load = vips_foreign_load_jpeg_buffer_load;
 

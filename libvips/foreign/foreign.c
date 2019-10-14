@@ -1716,20 +1716,26 @@ vips_foreign_save_init( VipsForeignSave *save )
 	save->background = vips_array_double_newv( 1, 0.0 );
 }
 
-/* Can we write this filename with this file? 
+/* Can we write this filename with this class? 
  */
 static void *
 vips_foreign_find_save_sub( VipsForeignSaveClass *save_class, 
 	const char *filename )
 {
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( save_class );
 	VipsForeignClass *class = VIPS_FOREIGN_CLASS( save_class );
 
 	/* The suffs might be defined on an abstract base class, make sure we
 	 * don't pick that.
+	 *
+	 * Suffs can be defined on buffer and stream writers too. Make sure
+	 * it's not one of those.
 	 */
 	if( !G_TYPE_IS_ABSTRACT( G_TYPE_FROM_CLASS( class ) ) &&
 		class->suffs &&
-		vips_filename_suffix_match( filename, class->suffs ) )
+		vips_filename_suffix_match( filename, class->suffs ) &&
+		!vips_ispostfix( object_class->nickname, "_buffer" ) &&
+		!vips_ispostfix( object_class->nickname, "_stream" ) )
 		return( save_class );
 
 	return( NULL );
@@ -1979,6 +1985,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_ppm_get_type( void ); 
 	extern GType vips_foreign_load_png_get_type( void ); 
 	extern GType vips_foreign_load_png_buffer_get_type( void ); 
+	extern GType vips_foreign_load_png_stream_get_type( void ); 
 	extern GType vips_foreign_save_png_file_get_type( void ); 
 	extern GType vips_foreign_save_png_buffer_get_type( void ); 
 	extern GType vips_foreign_load_csv_get_type( void ); 
@@ -2093,6 +2100,7 @@ vips_foreign_operation_init( void )
 #endif /*HAVE_GSF*/
 
 #ifdef HAVE_PNG
+	vips_foreign_load_png_stream_get_type(); 
 	vips_foreign_load_png_get_type(); 
 	vips_foreign_load_png_buffer_get_type(); 
 	vips_foreign_save_png_file_get_type(); 
@@ -2104,12 +2112,12 @@ vips_foreign_operation_init( void )
 #endif /*HAVE_MATIO*/
 
 #ifdef HAVE_JPEG
+	vips_foreign_load_jpeg_stream_get_type(); 
 	vips_foreign_load_jpeg_file_get_type(); 
 	vips_foreign_load_jpeg_buffer_get_type(); 
-	vips_foreign_load_jpeg_stream_get_type(); 
+	vips_foreign_save_jpeg_stream_get_type(); 
 	vips_foreign_save_jpeg_file_get_type(); 
 	vips_foreign_save_jpeg_buffer_get_type(); 
-	vips_foreign_save_jpeg_stream_get_type(); 
 	vips_foreign_save_jpeg_mime_get_type(); 
 #endif /*HAVE_JPEG*/
 

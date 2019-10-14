@@ -90,6 +90,8 @@
  * 	- fix another leak with error during buffer output
  * 19/7/19
  * 	- ignore large XMP
+ * 14/10/19
+ * 	- revise for stream IO
  */
 
 /*

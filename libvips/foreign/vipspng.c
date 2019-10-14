@@ -75,6 +75,8 @@
  * 	- allow huge xmp metadata
  * 7/10/19
  * 	- restart after minimise
+ * 14/10/19
+ * 	- revise for stream IO
  */
 
 /*
@@ -157,6 +159,8 @@ user_warning_function( png_structp png_ptr, png_const_charp warning_msg )
 	g_warning( "%s", warning_msg );
 }
 
+#define INPUT_BUFFER_SIZE (4096)
+
 /* What we track during a PNG read.
  */
 typedef struct {
@@ -169,62 +173,25 @@ typedef struct {
 	png_infop pInfo;
 	png_bytep *row_pointer;
 
-	/* For FILE input. If we close and reopen, save the ftell point in
-	 * seek_position.
-	 */
-	FILE *fp;
-	long seek_position;
+	VipsStreamInput *input;
 
-	/* For memory input.
+	/* read() to this buffer, copy to png as required. libpng does many
+	 * very small reads and we want to avoid a syscall for each one.
 	 */
-	const void *buffer;
-	size_t length;
-	size_t read_pos;
+	unsigned char input_buffer[INPUT_BUFFER_SIZE];
+	unsigned char *next_byte;
+	ssize_t bytes_in_buffer;
 
 } Read;
-
-/* This can be called many times. 
- */
-static void
-read_close_input( Read *read )
-{
-#ifdef DEBUG
-	printf( "read_close_input:\n" );
-#endif /*DEBUG*/
-
-	if( read->fp ) {
-		read->seek_position = ftell( read->fp );
-		VIPS_FREEF( fclose, read->fp );
-	}
-}
-
-static int
-read_open_input( Read *read )
-{
-	if( !read->fp &&
-		read->name ) {
-		if( !(read->fp = 
-			vips__file_open_read( read->name, NULL, FALSE )) ) 
-			return( -1 );
-		if( read->seek_position != -1 ) 
-			fseek( read->fp, read->seek_position, SEEK_SET );
-
-		/* Just takes a copy of the fp.
-		 */
-		png_init_io( read->pPng, read->fp );
-	}
-
-	return( 0 );
-}
 
 /* Can be called many times.
  */
 static void
 read_destroy( Read *read )
 {
-	read_close_input( read );
 	if( read->pPng )
 		png_destroy_read_struct( &read->pPng, &read->pInfo, NULL );
+	VIPS_UNREF( read->input );
 	VIPS_FREE( read->row_pointer );
 }
 
@@ -235,15 +202,58 @@ read_close_cb( VipsImage *out, Read *read )
 }
 
 static void
-read_minimise_cb( VipsImage *out, Read *read )
+read_minimise_cb( VipsImage *image, Read *read )
 {
-	read_close_input( read );
+	if( read->input )
+		vips_stream_input_minimise( read->input );
+}
+
+static void
+vips_png_read_stream( png_structp pPng, png_bytep data, png_size_t length )
+{
+	Read *read = png_get_io_ptr( pPng ); 
+
+#ifdef DEBUG
+	printf( "vips_png_read_stream: read %zd bytes\n", length ); 
+#endif /*DEBUG*/
+
+	/* libpng makes many small reads, which hurts performance if you do a
+	 * syscall for each one. Read via our own buffer.
+	 */
+	while( length > 0 ) {
+		ssize_t bytes_available = 
+			VIPS_MIN( read->bytes_in_buffer, length );
+
+		if( bytes_available > 0 ) {
+			memcpy( data, read->next_byte, bytes_available );
+
+			data += bytes_available;
+			length -= bytes_available;
+
+			read->next_byte += bytes_available;
+			read->bytes_in_buffer -= bytes_available;
+		}
+		else {
+			ssize_t bytes_read;
+
+			bytes_read = vips_stream_input_read( read->input, 
+				read->input_buffer, INPUT_BUFFER_SIZE );
+			if( bytes_read <= 0 )
+				png_error( pPng, "not enough data" );
+
+			read->next_byte = read->input_buffer;
+			read->bytes_in_buffer = bytes_read;
+		}
+	}
 }
 
 static Read *
-read_new( VipsImage *out, gboolean fail )
+read_new( VipsStreamInput *input, VipsImage *out, gboolean fail )
 {
 	Read *read;
+
+	if( vips_stream_input_rewind( input ) )
+		return( NULL );
 
 	if( !(read = VIPS_NEW( out, Read )) )
 		return( NULL );
@@ -255,11 +265,8 @@ read_new( VipsImage *out, gboolean fail )
 	read->pPng = NULL;
 	read->pInfo = NULL;
 	read->row_pointer = NULL;
-	read->fp = NULL;
-	read->seek_position = -1;
-	read->buffer = NULL;
-	read->length = 0;
-	read->read_pos = 0;
+	read->input = input;
+	g_object_ref( input );
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( read_close_cb ), read ); 
@@ -285,20 +292,18 @@ read_new( VipsImage *out, gboolean fail )
 		PNG_CRC_QUIET_USE, PNG_CRC_QUIET_USE );
 #endif /*FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION*/
 
-	/* Catch PNG errors from png_create_info_struct().
+	png_set_read_fn( read->pPng, read, vips_png_read_stream ); 
+
+	/* Catch PNG errors from png_read_info() etc.
 	 */
-	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) {
+		read_destroy( read );
 		return( NULL );
+	}
 
 	if( !(read->pInfo = png_create_info_struct( read->pPng )) ) 
 		return( NULL );
 
-	return( read );
-}
-
-static void
-read_info( Read *read ) 
-{
 	/* By default, libpng refuses to open files with a metadata chunk 
 	 * larger than 8mb. We've seen real files with 20mb, so set 50mb.
 	 */
@@ -306,29 +311,6 @@ read_info( Read *read )
 	png_set_chunk_malloc_max( read->pPng, 50 * 1024 * 1024 );
 #endif /*HAVE_PNG_SET_CHUNK_MALLOC_MAX*/
 	png_read_info( read->pPng, read->pInfo );
-}
-
-static Read *
-read_new_filename( VipsImage *out, const char *name, gboolean fail )
-{
-	Read *read;
-
-	if( !(read = read_new( out, fail )) )
-		return( NULL );
-
-	read->name = vips_strdup( VIPS_OBJECT( out ), name );
-
-	if( read_open_input( read ) )
-		return( NULL );
-
-	/* Catch PNG errors from png_read_info().
-	 */
-	if( setjmp( png_jmpbuf( read->pPng ) ) ) {
-		read_destroy( read );
-		return( NULL );
-	}
-
-	read_info( read ); 
 
 	return( read );
 }
@@ -500,6 +482,9 @@ png2vips_header( Read *read, VipsImage *out )
 		VIPS_CODING_NONE, interpretation, 
 		Xres, Yres );
 
+	VIPS_SETSTR( out->filename, 
+		vips_stream_filename( VIPS_STREAM( read->input ) ) );
+
 	/* Uninterlaced images will be read in seq mode. Interlaced images are
 	 * read via a huge memory buffer.
 	 */
@@ -573,24 +558,6 @@ png2vips_header( Read *read, VipsImage *out )
 	return( 0 );
 }
 
-/* Read a PNG file header into a VIPS header.
- */
-int
-vips__png_header( const char *name, VipsImage *out )
-{
-	Read *read;
-
-	if( !(read = read_new_filename( out, name, TRUE )) )
-		return( -1 );
-	if( png2vips_header( read, out ) ) {
-		read_close_input( read );
-		return( -1 );
-	}
-	read_close_input( read );
-
-	return( 0 );
-}
-
 /* Out is a huge "t" buffer we decompress to.
  */
 static int
@@ -647,10 +614,11 @@ png2vips_generate( VipsRegion *or,
 	 * strip.
 	 */
 	g_assert( r->height == VIPS_MIN( VIPS__FATSTRIP_HEIGHT, 
-			or->im->Ysize - r->top ) ); 
+		or->im->Ysize - r->top ) ); 
 
-	if( read_open_input( read ) )
-		return( -1 );
+	/* In pixel decode mode.
+	 */
+	vips_stream_input_decode( read->input );
 
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
@@ -708,35 +676,7 @@ png2vips_generate( VipsRegion *or,
 		return( 0 );
 	}
 
-	/* Early close to free the fd as soon as we can.
-	 */
-	if( read->y_pos >= read->out->Ysize ) {
-		png_read_end( read->pPng, NULL );
-		read_destroy( read );
-	}
-
 	return( 0 );
-}
-
-/* Interlaced PNGs need to be entirely decompressed into memory then can be
- * served partially from there. Non-interlaced PNGs may be read sequentially.
- */
-gboolean
-vips__png_isinterlaced( const char *filename )
-{
-	VipsImage *image;
-	Read *read;
-	int interlace_type;
-
-	image = vips_image_new();
-	if( !(read = read_new_filename( image, filename, TRUE )) ) {
-		g_object_unref( image );
-		return( -1 );
-	}
-	interlace_type = png_get_interlace_type( read->pPng, read->pInfo );
-	g_object_unref( image );
-
-	return( interlace_type != PNG_INTERLACE_NONE );
 }
 
 static int
@@ -769,113 +709,41 @@ png2vips_image( Read *read, VipsImage *out )
 			return( -1 );
 	}
 
-	/* _generate will reopen.
-	 */
-	read_close_input( read );
-
-	return( 0 );
-}
-
-int
-vips__png_read( const char *filename, VipsImage *out, gboolean fail )
-{
-	Read *read;
-
-#ifdef DEBUG
-	printf( "vips__png_read: reading \"%s\"\n", filename );
-#endif /*DEBUG*/
-
-	if( !(read = read_new_filename( out, filename, fail )) ||
-		png2vips_image( read, out ) )
-		return( -1 ); 
-
-#ifdef DEBUG
-	printf( "vips__png_read: done\n" );
-#endif /*DEBUG*/
-
 	return( 0 );
 }
 
 gboolean
-vips__png_ispng_buffer( const void *buf, size_t len )
+vips__png_ispng_stream( VipsStreamInput *input )
 {
-	if( len >= 8 &&
-		!png_sig_cmp( (png_bytep) buf, 0, 8 ) )
+	const unsigned char *p;
+
+	if( (p = vips_stream_input_sniff( input, 8 )) &&
+		!png_sig_cmp( (png_bytep) p, 0, 8 ) )
 		return( TRUE ); 
 
 	return( FALSE ); 
 }
 
 int
-vips__png_ispng( const char *filename )
-{
-	unsigned char buf[8];
-
-	return( vips__get_bytes( filename, buf, 8 ) == 8 &&
-		vips__png_ispng_buffer( buf, 8 ) ); 
-}
-
-static void
-vips_png_read_buffer( png_structp pPng, png_bytep data, png_size_t length )
-{
-	Read *read = png_get_io_ptr( pPng ); 
-
-#ifdef DEBUG
-	printf( "vips_png_read_buffer: read %zd bytes\n", length ); 
-#endif /*DEBUG*/
-
-	if( read->read_pos + length > read->length )
-		png_error( pPng, "not enough data in buffer" );
-
-	memcpy( data, (VipsPel *) read->buffer + read->read_pos, length );
-	read->read_pos += length;
-}
-
-static Read *
-read_new_buffer( VipsImage *out, const void *buffer, size_t length, 
-	gboolean fail )
+vips__png_header_stream( VipsStreamInput *input, VipsImage *out )
 {
 	Read *read;
 
-	if( !(read = read_new( out, fail )) )
-		return( NULL );
-
-	read->length = length;
-	read->buffer = buffer;
-
-	png_set_read_fn( read->pPng, read, vips_png_read_buffer ); 
-
-	/* Catch PNG errors from png_read_info().
-	 */
-	if( setjmp( png_jmpbuf( read->pPng ) ) ) {
-		read_destroy( read );
-		return( NULL );
-	}
-
-	read_info( read ); 
-
-	return( read );
-}
-
-int
-vips__png_header_buffer( const void *buffer, size_t length, VipsImage *out )
-{
-	Read *read;
-
-	if( !(read = read_new_buffer( out, buffer, length, TRUE )) ||
+	if( !(read = read_new( input, out, TRUE )) ||
 		png2vips_header( read, out ) ) 
 		return( -1 );
+
+	vips_stream_input_minimise( input );
 
 	return( 0 );
 }
 
 int
-vips__png_read_buffer( const void *buffer, size_t length, VipsImage *out, 
-	gboolean fail )
+vips__png_read_stream( VipsStreamInput *input, VipsImage *out, gboolean fail )
 {
 	Read *read;
 
-	if( !(read = read_new_buffer( out, buffer, length, fail )) ||
+	if( !(read = read_new( input, out, fail )) ||
 		png2vips_image( read, out ) )
 		return( -1 ); 
 
@@ -886,7 +754,7 @@ vips__png_read_buffer( const void *buffer, size_t length, VipsImage *out,
  * served partially from there. Non-interlaced PNGs may be read sequentially.
  */
 gboolean
-vips__png_isinterlaced_buffer( const void *buffer, size_t length )
+vips__png_isinterlaced_stream( VipsStreamInput *input )
 {
 	VipsImage *image;
 	Read *read;
@@ -894,7 +762,7 @@ vips__png_isinterlaced_buffer( const void *buffer, size_t length )
 
 	image = vips_image_new();
 
-	if( !(read = read_new_buffer( image, buffer, length, TRUE )) ) { 
+	if( !(read = read_new( input, image, TRUE )) ) { 
 		g_object_unref( image );
 		return( -1 );
 	}

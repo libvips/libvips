@@ -541,6 +541,8 @@ typedef enum /*< flags >*/ {
 	VIPS_FOREIGN_PNG_FILTER_ALL = 0xF8
 } VipsForeignPngFilter;
 
+int vips_pngload_stream( VipsStreamInput *input, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_pngload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
