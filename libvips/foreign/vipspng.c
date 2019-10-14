@@ -791,6 +791,8 @@ static void
 write_finish( Write *write )
 {
 	VIPS_UNREF( write->memory );
+	if( write->output )
+		vips_stream_output_finish( write->output );
 	VIPS_UNREF( write->output );
 	if( write->pPng )
 		png_destroy_write_struct( &write->pPng, &write->pInfo );
