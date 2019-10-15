@@ -207,17 +207,11 @@ extern const VipsWebPNames vips__webp_names[];
 extern const int vips__n_webp_names;
 extern const char *vips__webp_suffs[];
 
-int vips__iswebp_buffer( const void *buf, size_t len );
-int vips__iswebp( const char *filename );
+int vips__iswebp_stream( VipsStreamInput *input );
 
-int vips__webp_read_file_header( const char *name, VipsImage *out, 
+int vips__webp_read_header_stream( VipsStreamInput *input, VipsImage *out,
 	int page, int n, double scale ); 
-int vips__webp_read_file( const char *name, VipsImage *out, 
-	int page, int n, double scale ); 
-
-int vips__webp_read_buffer_header( const void *buf, size_t len, VipsImage *out,
-	int page, int n, double scale ); 
-int vips__webp_read_buffer( const void *buf, size_t len, VipsImage *out, 
+int vips__webp_read_stream( VipsStreamInput *input, VipsImage *out, 
 	int page, int n, double scale ); 
 
 int vips__webp_write_file( VipsImage *out, const char *filename, 

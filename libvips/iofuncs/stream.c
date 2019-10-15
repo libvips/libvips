@@ -1,5 +1,5 @@
 /* A byte source/sink .. it can be a pipe, file descriptor, memory area, 
- * socket, or perhaps a node.js stream.
+ * socket, node.js stream, etc.
  * 
  * J.Cupitt, 19/6/14
  */
@@ -34,11 +34,10 @@
 /* TODO
  *
  * - filename encoding
- * - add mmapable descriptors
- * - add seekable descriptors
- * - test for mmapable 
- * - can we really change all behaviour in the subclass? will we need map and
- *   seek as well as read and rewind?
+ * - add seekable input sources
+ * - need to be able to set seekable and mapable via constructor
+ * - test we can really change all behaviour in the subclass ... add callbacks
+ *   as well to make it simpler for language bindings
  */
 
 /*

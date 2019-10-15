@@ -85,7 +85,6 @@ png2vips( const char *name, IMAGE *out, gboolean header_only )
 #ifdef HAVE_PNG
 {
 	VipsStreamInput *input;
-
 	int result;
 
 	if( !(input = vips_stream_input_new_from_filename( filename )) ) 

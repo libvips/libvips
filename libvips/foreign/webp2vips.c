@@ -24,6 +24,8 @@
  * 	- disable alpha output if all frame fill the canvas and are solid
  * 6/7/19 [deftomat]
  * 	- support array of delays 
+ * 14/10/19
+ * 	- revise for stream IO
  */
 
 /*
@@ -79,15 +81,11 @@
 /* What we track during a read.
  */
 typedef struct {
-	/* File source.
-	 */
-	char *filename;
+	VipsStreamInput *input;
 
-	/* Memory source. We use gint64 rather than size_t since we use
-	 * vips_file_length() and vips__mmap() for file sources.
+	/* The data we load, as a webp object.
 	 */
-	const void *data;
-	gint64 length;
+	WebPData data;
 
 	/* Load this page (frame number).
 	 */
@@ -127,10 +125,6 @@ typedef struct {
 	/* Delays between frames (in miliseconds).
 	 */
 	int *delays;
-
-	/* If we are opening a file object, the fd.
-	 */
-	int fd;
 
 	/* Parse with this.
 	 */
@@ -317,57 +311,24 @@ vips_image_paint_image( VipsImage *frame,
 }
 
 int
-vips__iswebp_buffer( const void *buf, size_t len )
+vips__iswebp_stream( VipsStreamInput *input )
 {
+	const unsigned char *p;
+
 	/* WebP is "RIFF xxxx WEBP" at the start, so we need 12 bytes.
 	 */
-	if( len >= 12 &&
-		vips_isprefix( "RIFF", (char *) buf ) &&
-		vips_isprefix( "WEBP", (char *) buf + 8 ) )
+	if( (p = vips_stream_input_sniff( input, 12 )) &&
+		vips_isprefix( "RIFF", (char *) p ) &&
+		vips_isprefix( "WEBP", (char *) p + 8 ) )
 		return( 1 );
 
 	return( 0 );
-}
-
-int
-vips__iswebp( const char *filename )
-{
-	/* Magic number, see above.
-	 */
-	unsigned char header[12];
-
-	if( vips__get_bytes( filename, header, 12 ) == 12 &&
-		vips__iswebp_buffer( header, 12 ) )
-		return( 1 );
-
-	return( 0 );
-}
-
-static void
-read_minimise( Read *read )
-{
-	WebPDemuxReleaseIterator( &read->iter );
-	VIPS_UNREF( read->frame );
-	VIPS_FREEF( WebPDemuxDelete, read->demux );
-	WebPFreeDecBuffer( &read->config.output );
-
-	if( read->fd > 0 &&
-		read->data &&
-		read->length > 0 ) { 
-		vips__munmap( read->data, read->length ); 
-		read->data = NULL;
-		read->length = 0;
-	}
-
-	VIPS_FREEF( vips_tracked_close, read->fd ); 
 }
 
 static int
 read_free( Read *read )
 {
-	read_minimise( read );
-
-	VIPS_FREE( read->filename );
+	VIPS_UNREF( read->input );
 	VIPS_FREE( read->delays );
 	VIPS_FREE( read );
 
@@ -375,45 +336,33 @@ read_free( Read *read )
 }
 
 static Read *
-read_new( const char *filename, const void *data, size_t length, 
-	int page, int n, double scale )
+read_new( VipsStreamInput *input, int page, int n, double scale )
 {
 	Read *read;
 
 	if( !(read = VIPS_NEW( NULL, Read )) )
 		return( NULL );
 
-	read->filename = g_strdup( filename );
-	read->data = data;
-	read->length = length;
+	read->input = input;
+	g_object_ref( input );
 	read->page = page;
 	read->n = n;
 	read->scale = scale;
 	read->delays = NULL;
-	read->fd = 0;
 	read->demux = NULL;
 	read->frame = NULL;
 	read->dispose_method = WEBP_MUX_DISPOSE_NONE;
 	read->frame_no = 0;
 
-	if( read->filename ) { 
-		/* libwebp makes streaming from a file source very hard. We 
-		 * have to read to a full memory buffer, then copy to out.
-		 *
-		 * mmap the input file, it's slightly quicker.
-		 */
-		if( (read->fd = vips__open_image_read( read->filename )) < 0 ||
-			(read->length = vips_file_length( read->fd )) < 0 ||
-			!(read->data = vips__mmap( read->fd, 
-				FALSE, read->length, 0 )) ) {
-			read_free( read );
-			return( NULL );
-		}
-	}
-
 	WebPInitDecoderConfig( &read->config );
 	read->config.options.use_threads = 1;
 	read->config.output.is_external_memory = 1;
+
+	if( !(read->data.bytes = 
+		vips_stream_input_map( input, &read->data.size )) ) {
+		read_free( read );
+		return( NULL );
+	}
 
 	return( read );
 }
@@ -430,13 +379,10 @@ const int vips__n_webp_names = VIPS_NUMBER( vips__webp_names );
 static int
 read_header( Read *read, VipsImage *out )
 {
-	WebPData data;
 	int flags;
 	int i;
 
-	data.bytes = read->data;
-	data.size = read->length;
-	if( !(read->demux = WebPDemux( &data )) ) {
+	if( !(read->demux = WebPDemux( &read->data )) ) {
 		vips_error( "webp", "%s", _( "unable to parse image" ) ); 
 		return( -1 ); 
 	}
@@ -595,28 +541,6 @@ read_header( Read *read, VipsImage *out )
 			"%s", _( "unable to loop through frames" ) ); 
 		return( -1 );
 	}
-
-	return( 0 );
-}
-
-int
-vips__webp_read_file_header( const char *filename, VipsImage *out, 
-	int page, int n, double scale )
-{
-	Read *read;
-
-	if( !(read = read_new( filename, NULL, 0, page, n, scale )) ) {
-		vips_error( "webp2vips",
-			_( "unable to open \"%s\"" ), filename ); 
-		return( -1 );
-	}
-
-	if( read_header( read, out ) ) {
-		read_free( read );
-		return( -1 );
-	}
-
-	read_free( read );
 
 	return( 0 );
 }
@@ -803,12 +727,6 @@ read_webp_generate( VipsRegion *or,
 	return( 0 );
 }
 
-static void
-read_minimise_cb( VipsObject *object, Read *read )
-{
-	read_minimise( read );
-}
-
 static int
 read_image( Read *read, VipsImage *out )
 {
@@ -818,9 +736,6 @@ read_image( Read *read, VipsImage *out )
 	t[0] = vips_image_new();
 	if( read_header( read, t[0] ) )
 		return( -1 );
-
-	g_signal_connect( t[0], "minimise", 
-		G_CALLBACK( read_minimise_cb ), read );
 
 	if( vips_image_generate( t[0], 
 		NULL, read_webp_generate, NULL, read, NULL ) ||
@@ -832,38 +747,13 @@ read_image( Read *read, VipsImage *out )
 }
 
 int
-vips__webp_read_file( const char *filename, VipsImage *out, 
+vips__webp_read_header_stream( VipsStreamInput *input, VipsImage *out,
 	int page, int n, double scale )
 {
 	Read *read;
 
-	if( !(read = read_new( filename, NULL, 0, page, n, scale )) ) {
-		vips_error( "webp2vips",
-			_( "unable to open \"%s\"" ), filename ); 
+	if( !(read = read_new( input, page, n, scale )) ) 
 		return( -1 );
-	}
-
-	if( read_image( read, out ) ) {
-		read_free( read );
-		return( -1 );
-	}
-
-	read_free( read );
-
-	return( 0 );
-}
-
-int
-vips__webp_read_buffer_header( const void *buf, size_t len, VipsImage *out,
-	int page, int n, double scale )
-{
-	Read *read;
-
-	if( !(read = read_new( NULL, buf, len, page, n, scale )) ) {
-		vips_error( "webp2vips",
-			"%s", _( "unable to open buffer" ) ); 
-		return( -1 );
-	}
 
 	if( read_header( read, out ) ) {
 		read_free( read );
@@ -876,16 +766,13 @@ vips__webp_read_buffer_header( const void *buf, size_t len, VipsImage *out,
 }
 
 int
-vips__webp_read_buffer( const void *buf, size_t len, VipsImage *out, 
+vips__webp_read_stream( VipsStreamInput *input, VipsImage *out, 
 	int page, int n, double scale )
 {
 	Read *read;
 
-	if( !(read = read_new( NULL, buf, len, page, n, scale )) ) {
-		vips_error( "webp2vips",
-			"%s", _( "unable to open buffer" ) ); 
+	if( !(read = read_new( input, page, n, scale )) ) 
 		return( -1 );
-	}
 
 	if( read_image( read, out ) ) {
 		read_free( read );

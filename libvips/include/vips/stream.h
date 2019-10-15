@@ -191,6 +191,7 @@ VipsStreamInput *vips_stream_input_new_from_options( const char *options );
 
 ssize_t vips_stream_input_read( VipsStreamInput *input, 
 	unsigned char *data, size_t length );
+const void *vips_stream_input_map( VipsStreamInput *input, size_t *length );
 int vips_stream_input_rewind( VipsStreamInput *input );
 void vips_stream_input_minimise( VipsStreamInput *input );
 void vips_stream_input_decode( VipsStreamInput *input );

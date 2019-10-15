@@ -51,14 +51,21 @@ webp2vips( const char *name, IMAGE *out, gboolean header_only )
 	im_filename_split( name, filename, mode );
 
 #ifdef HAVE_LIBWEBP
-	if( header_only ) {
-		if( vips__webp_read_file_header( filename, out, 0, 1, 1 ) )
-			return( -1 );
-	}
-	else {
-		if( vips__webp_read_file( filename, out, 0, 1, 1 ) )
-			return( -1 );
-	}
+{
+	VipsStreamInput *input;
+	int result;
+
+	if( !(input = vips_stream_input_new_from_filename( filename )) ) 
+		return( -1 );
+	if( header_only ) 
+		result = vips__webp_read_header_stream( input, out, 0, 1, 1 );
+	else 
+		result = vips__webp_read_stream( input, out, 0, 1, 1 );
+	VIPS_UNREF( input );
+
+	if( result )
+		return( result );
+}
 #else
 	vips_error( "im_webp2vips", 
 		"%s", _( "no webp support in your libvips" ) ); 
@@ -67,6 +74,25 @@ webp2vips( const char *name, IMAGE *out, gboolean header_only )
 #endif /*HAVE_LIBWEBP*/
 
 	return( 0 );
+}
+
+static gboolean
+vips__iswebp( const char *filename )
+{
+	gboolean result;
+
+#ifdef HAVE_LIBWEBP
+	VipsStreamInput *input;
+
+	if( !(input = vips_stream_input_new_from_filename( filename )) )
+		return( FALSE );
+	result = vips__png_ispng_stream( input );
+	VIPS_UNREF( input );
+#else /*!HAVE_LIBWEBP*/
+	result = -1;
+#endif /*HAVE_LIBWEBP*/
+
+	return( result );
 }
 
 int
