@@ -90,6 +90,59 @@
 #include <io.h>
 #endif /*OS_WIN32*/
 
+/* Does this fd support mmap. Pipes won't, for example.
+ */
+gboolean
+vips__mmap_supported( int fd )
+{
+	void *baseaddr;
+	size_t length = 4096;
+	off_t offset = 0;
+
+#ifdef OS_WIN32
+{
+	HANDLE hFile = (HANDLE) _get_osfhandle( fd );
+
+	DWORD flProtect;
+        HANDLE hMMFile;
+
+	DWORD dwDesiredAccess;
+	ULARGE_INTEGER quad;
+	DWORD dwFileOffsetHigh;
+	DWORD dwFileOffsetLow;
+
+	flProtect = PAGE_READONLY;
+        if( !(hMMFile = CreateFileMapping( hFile,
+		NULL, flProtect, 0, 0, NULL )) ) 
+                return( FALSE );
+
+	dwDesiredAccess = FILE_MAP_READ;
+	quad.QuadPart = offset;
+	dwFileOffsetLow = quad.LowPart;
+	dwFileOffsetHigh = quad.HighPart;
+        if( !(baseaddr = (char *)MapViewOfFile( hMMFile, dwDesiredAccess, 
+		dwFileOffsetHigh, dwFileOffsetLow, length )) ) {
+		CloseHandle( hMMFile );
+                return( FALSE );
+        }
+	CloseHandle( hMMFile );
+	UnmapViewOfFile( baseaddr );
+}
+#else /*!OS_WIN32*/
+{
+	int prot = PROT_READ;
+	int flags = MAP_SHARED;
+
+	baseaddr = mmap( 0, length, prot, flags, fd, (off_t) offset );
+	if( baseaddr == MAP_FAILED ) 
+		return( FALSE ); 
+	munmap( baseaddr, length );
+}
+#endif /*OS_WIN32*/
+
+	return( TRUE );
+}
+
 void *
 vips__mmap( int fd, int writeable, size_t length, gint64 offset )
 {

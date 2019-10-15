@@ -63,6 +63,7 @@
 #include <unistd.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 #include <vips/debug.h>
 
 /* Try to make an O_BINARY ... sometimes need the leading '_'.
@@ -270,6 +271,9 @@ vips_stream_input_build( VipsObject *object )
 		 */
 		if( lseek( stream->descriptor, 0, SEEK_CUR ) != -1 )
 			input->seekable = TRUE;
+
+		if( vips__mmap_supported( stream->descriptor ) ) 
+			input->mapable = TRUE;
 	}
 
 	if( vips_object_argument_isset( object, "blob" ) )
@@ -396,6 +400,7 @@ vips_stream_input_class_init( VipsStreamInputClass *class )
 static void
 vips_stream_input_init( VipsStreamInput *input )
 {
+	input->length = -1;
 }
 
 /**
@@ -606,9 +611,57 @@ vips_stream_input_read( VipsStreamInput *input,
 	return( bytes_read );
 }
 
-unsigned char *
+static const void *
+vips_stream_input_try_map( VipsStreamInput *input, size_t *length )
+{
+	VipsStream *stream = VIPS_STREAM( input );
+
+	if( input->length < 0 )
+		input->length = vips_file_length( stream->descriptor );
+	if( input->length < 0 )
+		return( NULL );
+
+	if( !input->baseaddr ) {
+		input->baseaddr = vips__mmap( stream->descriptor, 
+			FALSE, input->length, 0 );
+		if( !input->baseaddr )
+			return( NULL );
+	}
+		
+	if( length )
+		*length = input->length;
+
+	return( input->baseaddr );
+}
+
+const void *
 vips_stream_input_map( VipsStreamInput *input, size_t *length )
 {
+	/* Memory source ... easy!
+	 */
+	if( input->blob )
+		return( vips_blob_get( input->blob, length ) );
+
+	/* An input that supports mmap.
+	 */
+	if( input->mapable ) {
+		if( !input->baseaddr ) {
+			input->baseaddr = vips_stream_input_try_map( input, 
+				&input->length );
+			if( !input->baseaddr )
+				return( NULL );
+		}
+
+		if( length )
+			*length = input->length;
+
+		return( input->baseaddr );
+	}
+
+	/* Have to read() the whole thing.
+	 */
+
+	return( NULL );
 }
 
 int

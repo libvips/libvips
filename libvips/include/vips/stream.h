@@ -129,6 +129,11 @@ typedef struct _VipsStreamInput {
 	 */
 	gboolean seekable;
 
+	/* TRUE is this descriptor supports mmap(). If not, then we have to
+	 * read() the whole thing.
+	 */
+	gboolean mapable;
+
 	/*< private >*/
 
 	/* The current read point.
@@ -147,6 +152,11 @@ typedef struct _VipsStreamInput {
 	/* For a memory source, the blob we read from.
 	 */
 	VipsBlob *blob;
+
+	/* If we've mmaped the file, the base and length.
+	 */
+	const void *baseaddr;
+	size_t length;
 
 } VipsStreamInput;
 
