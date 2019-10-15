@@ -328,6 +328,11 @@ vips__iswebp_stream( VipsStreamInput *input )
 static int
 read_free( Read *read )
 {
+	WebPDemuxReleaseIterator( &read->iter );
+	VIPS_UNREF( read->frame );
+	VIPS_FREEF( WebPDemuxDelete, read->demux );
+	WebPFreeDecBuffer( &read->config.output );
+
 	VIPS_UNREF( read->input );
 	VIPS_FREE( read->delays );
 	VIPS_FREE( read );
