@@ -606,6 +606,11 @@ vips_stream_input_read( VipsStreamInput *input,
 	return( bytes_read );
 }
 
+unsigned char *
+vips_stream_input_map( VipsStreamInput *input, size_t *length )
+{
+}
+
 int
 vips_stream_input_rewind( VipsStreamInput *input )
 {

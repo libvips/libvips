@@ -189,6 +189,10 @@ typedef struct {
 static void
 read_destroy( Read *read )
 {
+	/* We never call png_read_end(), perhaps we should. It can fail on
+	 * truncated files, so we'd need a setjmp().
+	 */
+
 	if( read->pPng )
 		png_destroy_read_struct( &read->pPng, &read->pInfo, NULL );
 	VIPS_UNREF( read->input );
@@ -221,19 +225,9 @@ vips_png_read_stream( png_structp pPng, png_bytep data, png_size_t length )
 	 * syscall for each one. Read via our own buffer.
 	 */
 	while( length > 0 ) {
-		ssize_t bytes_available = 
-			VIPS_MIN( read->bytes_in_buffer, length );
+		ssize_t bytes_available;
 
-		if( bytes_available > 0 ) {
-			memcpy( data, read->next_byte, bytes_available );
-
-			data += bytes_available;
-			length -= bytes_available;
-
-			read->next_byte += bytes_available;
-			read->bytes_in_buffer -= bytes_available;
-		}
-		else {
+		if( read->bytes_in_buffer <= 0 ) {
 			ssize_t bytes_read;
 
 			bytes_read = vips_stream_input_read( read->input, 
@@ -244,6 +238,13 @@ vips_png_read_stream( png_structp pPng, png_bytep data, png_size_t length )
 			read->next_byte = read->input_buffer;
 			read->bytes_in_buffer = bytes_read;
 		}
+
+		bytes_available = VIPS_MIN( read->bytes_in_buffer, length );
+		memcpy( data, read->next_byte, bytes_available );
+		data += bytes_available;
+		length -= bytes_available;
+		read->next_byte += bytes_available;
+		read->bytes_in_buffer -= bytes_available;
 	}
 }
 
@@ -251,9 +252,6 @@ static Read *
 read_new( VipsStreamInput *input, VipsImage *out, gboolean fail )
 {
 	Read *read;
-
-	if( vips_stream_input_rewind( input ) )
-		return( NULL );
 
 	if( !(read = VIPS_NEW( out, Read )) )
 		return( NULL );
@@ -292,14 +290,14 @@ read_new( VipsStreamInput *input, VipsImage *out, gboolean fail )
 		PNG_CRC_QUIET_USE, PNG_CRC_QUIET_USE );
 #endif /*FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION*/
 
+	if( vips_stream_input_rewind( input ) ) 
+		return( NULL );
 	png_set_read_fn( read->pPng, read, vips_png_read_stream ); 
 
 	/* Catch PNG errors from png_read_info() etc.
 	 */
-	if( setjmp( png_jmpbuf( read->pPng ) ) ) {
-		read_destroy( read );
+	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
 		return( NULL );
-	}
 
 	if( !(read->pInfo = png_create_info_struct( read->pPng )) ) 
 		return( NULL );
@@ -310,6 +308,7 @@ read_new( VipsStreamInput *input, VipsImage *out, gboolean fail )
 #ifdef HAVE_PNG_SET_CHUNK_MALLOC_MAX
 	png_set_chunk_malloc_max( read->pPng, 50 * 1024 * 1024 );
 #endif /*HAVE_PNG_SET_CHUNK_MALLOC_MAX*/
+
 	png_read_info( read->pPng, read->pInfo );
 
 	return( read );
@@ -582,8 +581,6 @@ png2vips_interlace( Read *read, VipsImage *out )
 
 	png_read_image( read->pPng, read->row_pointer );
 
-	png_read_end( read->pPng, NULL ); 
-
 	read_destroy( read );
 
 	return( 0 );
@@ -616,10 +613,6 @@ png2vips_generate( VipsRegion *or,
 	g_assert( r->height == VIPS_MIN( VIPS__FATSTRIP_HEIGHT, 
 		or->im->Ysize - r->top ) ); 
 
-	/* In pixel decode mode.
-	 */
-	vips_stream_input_decode( read->input );
-
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
 	 */
@@ -628,6 +621,10 @@ png2vips_generate( VipsRegion *or,
 			_( "out of order read at line %d" ), read->y_pos );
 		return( -1 );
 	}
+
+	/* In pixel decode mode.
+	 */
+	vips_stream_input_decode( read->input );
 
 	for( y = 0; y < r->height; y++ ) {
 		png_bytep q = (png_bytep) VIPS_REGION_ADDR( or, 0, r->top + y );
@@ -662,18 +659,6 @@ png2vips_generate( VipsRegion *or,
 		}
 
 		read->y_pos += 1;
-	}
-
-	/* Catch errors from png_read_end(). This can fail on a truncated
-	 * file.
-	 */
-	if( setjmp( png_jmpbuf( read->pPng ) ) ) {
-		if( read->fail ) {
-			vips_error( "vipspng", "%s", _( "libpng read error" ) );
-			return( -1 );
-		}
-
-		return( 0 );
 	}
 
 	return( 0 );
@@ -791,7 +776,7 @@ static void
 write_finish( Write *write )
 {
 	VIPS_UNREF( write->memory );
-	if( write->output )
+	if( write->output ) 
 		vips_stream_output_finish( write->output );
 	VIPS_UNREF( write->output );
 	if( write->pPng )
@@ -868,7 +853,7 @@ write_png_block( VipsRegion *region, VipsRect *area, void *a )
 	g_assert( area->width == region->im->Xsize );
 	g_assert( area->top + area->height <= region->im->Ysize );
 
-	/* Catch PNG errors. Yuk.
+	/* Catch PNG errors. 
 	 */
 	if( setjmp( png_jmpbuf( write->pPng ) ) ) 
 		return( -1 );
