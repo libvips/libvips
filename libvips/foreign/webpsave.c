@@ -219,6 +219,69 @@ vips_foreign_save_webp_init( VipsForeignSaveWebp *webp )
 	webp->kmax = INT_MAX;
 }
 
+typedef struct _VipsForeignSaveWebpStream {
+	VipsForeignSaveWebp parent_object;
+
+	VipsStreamOutput *output;
+
+} VipsForeignSaveWebpStream;
+
+typedef VipsForeignSaveWebpClass VipsForeignSaveWebpStreamClass;
+
+G_DEFINE_TYPE( VipsForeignSaveWebpStream, vips_foreign_save_webp_stream, 
+	vips_foreign_save_webp_get_type() );
+
+static int
+vips_foreign_save_webp_stream_build( VipsObject *object )
+{
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveWebp *webp = (VipsForeignSaveWebp *) object;
+	VipsForeignSaveWebpStream *stream = 
+		(VipsForeignSaveWebpStream *) object;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_webp_stream_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( vips__webp_write_stream( save->ready, stream->output, 
+		webp->Q, webp->lossless, webp->preset,
+		webp->smart_subsample, webp->near_lossless,
+		webp->alpha_q, webp->reduction_effort,
+		webp->min_size, webp->kmin, webp->kmax,
+		save->strip ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_webp_stream_class_init( 
+	VipsForeignSaveWebpStreamClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "webpsave_stream";
+	object_class->description = _( "save image to webp stream" );
+	object_class->build = vips_foreign_save_webp_stream_build;
+
+	VIPS_ARG_OBJECT( class, "output", 1,
+		_( "Output" ),
+		_( "Stream to save to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveWebpStream, output ),
+		VIPS_TYPE_STREAM_OUTPUT );
+}
+
+static void
+vips_foreign_save_webp_stream_init( VipsForeignSaveWebpStream *stream )
+{
+}
+
+
 typedef struct _VipsForeignSaveWebpFile {
 	VipsForeignSaveWebp parent_object;
 
@@ -240,17 +303,24 @@ vips_foreign_save_webp_file_build( VipsObject *object )
 	VipsForeignSaveWebp *webp = (VipsForeignSaveWebp *) object;
 	VipsForeignSaveWebpFile *file = (VipsForeignSaveWebpFile *) object;
 
+	VipsStreamOutput *output;
+
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_webp_file_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips__webp_write_file( save->ready, file->filename, 
+	if( !(output = vips_stream_output_new_from_filename( file->filename )) )
+		return( -1 );
+	if( vips__webp_write_stream( save->ready, output,
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
 		webp->alpha_q, webp->reduction_effort,
 		webp->min_size, webp->kmin, webp->kmax,
-		save->strip ) )
+		save->strip ) ) {
+		VIPS_UNREF( output );
 		return( -1 );
+	}
+	VIPS_UNREF( output );
 
 	return( 0 );
 }
@@ -300,28 +370,31 @@ vips_foreign_save_webp_buffer_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveWebp *webp = (VipsForeignSaveWebp *) object;
-	VipsForeignSaveWebpBuffer *file = (VipsForeignSaveWebpBuffer *) object;
+	VipsForeignSaveWebpBuffer *buffer = 
+		(VipsForeignSaveWebpBuffer *) object;
 
-	void *obuf;
-	size_t olen;
+	VipsStreamOutput *output;
 	VipsBlob *blob;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_webp_buffer_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips__webp_write_buffer( save->ready, &obuf, &olen, 
+	if( !(output = vips_stream_output_new_memory()) )
+		return( -1 );
+
+	if( vips__webp_write_stream( save->ready, output,
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
 		webp->alpha_q, webp->reduction_effort,
 		webp->min_size, webp->kmin, webp->kmax,
-		save->strip ) )
+		save->strip ) ) {
+		VIPS_UNREF( output );
 		return( -1 );
+	}
 
-	/* obuf is a g_free() buffer, not vips_free().
-	 */
-	blob = vips_blob_new( (VipsCallbackFn) g_free, obuf, olen );
-	g_object_set( file, "buffer", blob, NULL );
+	g_object_get( output, "blob", &blob, NULL );
+	g_object_set( buffer, "buffer", blob, NULL );
 	vips_area_unref( VIPS_AREA( blob ) );
 
 	return( 0 );
@@ -370,31 +443,40 @@ vips_foreign_save_webp_mime_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveWebp *webp = (VipsForeignSaveWebp *) object;
 
-	void *obuf;
-	size_t olen;
+	VipsStreamOutput *output;
+	VipsBlob *blob;
+	void *data;
+	size_t len;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_webp_mime_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips__webp_write_buffer( save->ready, &obuf, &olen, 
+	if( !(output = vips_stream_output_new_memory()) )
+		return( -1 );
+
+	if( vips__webp_write_stream( save->ready, output,
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
 		webp->alpha_q, webp->reduction_effort,
 		webp->min_size, webp->kmin, webp->kmax,
-		save->strip ) )
-		return( -1 );
-
-	printf( "Content-length: %zu\r\n", olen );
-	printf( "Content-type: image/webp\r\n" );
-	printf( "\r\n" );
-	if( fwrite( obuf, sizeof( char ), olen, stdout ) != olen ) {
-		vips_error( "VipsWebp", "%s", _( "error writing output" ) );
+		save->strip ) ) {
+		VIPS_UNREF( output );
 		return( -1 );
 	}
+
+	g_object_get( output, "blob", &blob, NULL );
+	data = VIPS_AREA( blob )->data;
+	len = VIPS_AREA( blob )->length;
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	printf( "Content-length: %zu\r\n", len );
+	printf( "Content-type: image/webp\r\n" );
+	printf( "\r\n" );
+	(void) fwrite( data, sizeof( char ), len, stdout );
 	fflush( stdout );
 
-	g_free( obuf );
+	VIPS_UNREF( output );
 
 	return( 0 );
 }
@@ -581,6 +663,45 @@ vips_webpsave_mime( VipsImage *in, ... )
 
 	va_start( ap, in );
 	result = vips_call_split( "webpsave_mime", ap, in );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_webpsave_stream: (method)
+ * @in: image to save 
+ * @output: save image to this stream
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @Q: %gint, quality factor
+ * * @lossless: %gboolean, enables lossless compression
+ * * @preset: #VipsForeignWebpPreset, choose lossy compression preset
+ * * @smart_subsample: %gboolean, enables high quality chroma subsampling
+ * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
+ * * @alpha_q: %gint, set alpha quality in lossless mode
+ * * @reduction_effort: %gint, level of CPU effort to reduce file size
+ * * @min_size: %gboolean, minimise size
+ * * @kmin: %gint, minimum number of frames between keyframes
+ * * @kmax: %gint, maximum number of frames between keyframes
+ * * @strip: %gboolean, remove all metadata from image
+ *
+ * As vips_webpsave(), but save to a stream.
+ *
+ * See also: vips_webpsave().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_webpsave_stream( VipsImage *in, VipsStreamOutput *output, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, output );
+	result = vips_call_split( "webpsave_stream", ap, in, output );
 	va_end( ap );
 
 	return( result );

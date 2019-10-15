@@ -214,13 +214,7 @@ int vips__webp_read_header_stream( VipsStreamInput *input, VipsImage *out,
 int vips__webp_read_stream( VipsStreamInput *input, VipsImage *out, 
 	int page, int n, double scale ); 
 
-int vips__webp_write_file( VipsImage *out, const char *filename, 
-	int Q, gboolean lossless, VipsForeignWebpPreset preset,
-	gboolean smart_subsample, gboolean near_lossless,
-	int alpha_q, int reduction_effort,
-	gboolean min_size, int kmin, int kmax,
-	gboolean strip );
-int vips__webp_write_buffer( VipsImage *out, void **buf, size_t *len, 
+int vips__webp_write_stream( VipsImage *image, VipsStreamOutput *output,
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
 	int alpha_q, int reduction_effort,

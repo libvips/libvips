@@ -16,6 +16,8 @@
  * 	- support array of delays 
  * 8/7/19
  * 	- set loop even if we strip
+ * 14/10/19
+ * 	- revise for stream IO
  */
 
 /*
@@ -508,52 +510,7 @@ vips_webp_add_metadata( VipsWebPWrite *write, VipsImage *image, gboolean strip )
 }
 
 int
-vips__webp_write_file( VipsImage *image, const char *filename, 
-	int Q, gboolean lossless, VipsForeignWebpPreset preset,
-	gboolean smart_subsample, gboolean near_lossless,
-	int alpha_q, int reduction_effort,
-	gboolean min_size, int kmin, int kmax,
-	gboolean strip )
-{
-	VipsWebPWrite write;
-	FILE *fp;
-
-	if( vips_webp_write_init( &write, image,
-		Q, lossless, preset, smart_subsample, near_lossless,
-		alpha_q, reduction_effort, min_size, kmin, kmax, strip ) )
-		return( -1 );
-
-	if( write_webp( &write, image ) ) {
-		vips_webp_write_unset( &write );
-		return( -1 );
-	}
-
-	if( vips_webp_add_metadata( &write, image, strip ) ) {
-		vips_webp_write_unset( &write );
-		return( -1 );
-	}
-
-	if( !(fp = vips__file_open_write( filename, FALSE )) ) {
-		vips_webp_write_unset( &write );
-		return( -1 );
-	}
-
-	if( vips__file_write( 
-		write.memory_writer.mem, write.memory_writer.size, 1, fp ) ) {
-		fclose( fp );
-		vips_webp_write_unset( &write );
-		return( -1 );
-	}
-
-	fclose( fp );
-
-	vips_webp_write_unset( &write );
-
-	return( 0 );
-}
-
-int
-vips__webp_write_buffer( VipsImage *image, void **obuf, size_t *olen, 
+vips__webp_write_stream( VipsImage *image, VipsStreamOutput *output,
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
 	int alpha_q, int reduction_effort,
@@ -577,11 +534,13 @@ vips__webp_write_buffer( VipsImage *image, void **obuf, size_t *olen,
 		return( -1 );
 	}
 
-	*obuf = write.memory_writer.mem;
-	*olen = write.memory_writer.size;
-	write.memory_writer.mem = NULL;
-	write.memory_writer.size = 0;
-	write.memory_writer.max_size = 0;
+	if( vips_stream_output_write( output, 
+		write.memory_writer.mem, write.memory_writer.size ) ) {
+		vips_webp_write_unset( &write );
+		return( -1 );
+	}
+
+	vips_stream_output_finish( output );
 
 	vips_webp_write_unset( &write );
 
