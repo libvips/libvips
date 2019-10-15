@@ -166,6 +166,7 @@ typedef struct _VipsStreamInputClass {
 	/* Subclasses can define these to implement other input methods.
 	 */
 	ssize_t (*read)( VipsStreamInput *, unsigned char *, size_t );
+	const void * (*map)( VipsStreamInput *, size_t * );
 	int (*rewind)( VipsStreamInput * );
 
 	/* Shut down anything that can safely restarted. For example, if

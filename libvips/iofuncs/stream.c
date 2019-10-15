@@ -325,18 +325,33 @@ vips_stream_input_read_real( VipsStreamInput *input,
 	}
 }
 
+static const void *
+vips_stream_input_map_real( VipsStreamInput *input, size_t *length )
+{
+	VipsStream *stream = VIPS_STREAM( input );
+
+	gint64 file_length;
+	const void *file_baseaddr;
+
+	if( (file_length = vips_file_length( stream->descriptor )) < 0 ) 
+		return( NULL );
+
+	if( !(file_baseaddr = vips__mmap( stream->descriptor, 
+		FALSE, file_length, 0 )) )
+		return( NULL );
+
+	if( length )
+		*length = file_length;
+
+	return( file_baseaddr );
+}
+
 static int
 vips_stream_input_rewind_real( VipsStreamInput *input )
 {
 	VipsStream *stream = VIPS_STREAM( input );
 
 	VIPS_DEBUG_MSG( "vips_stream_input_rewind_real:\n" );
-
-	if( input->decode ) {
-		vips_error( STREAM_NAME( stream ),
-			"%s", _( "can't rewind after decode begins" ) );
-		return( -1 );
-	}
 
 	if( input->seekable &&
 		stream->descriptor != -1 ) {
@@ -352,8 +367,6 @@ vips_stream_input_rewind_real( VipsStreamInput *input )
 			return( 0 );
 		}
 	}
-
-	input->read_position = 0;
 
 	return( 0 );
 }
@@ -385,6 +398,7 @@ vips_stream_input_class_init( VipsStreamInputClass *class )
 	object_class->build = vips_stream_input_build;
 
 	class->read = vips_stream_input_read_real;
+	class->map = vips_stream_input_map_real;
 	class->rewind = vips_stream_input_rewind_real;
 	class->minimise = vips_stream_input_minimise_real;
 
@@ -611,43 +625,28 @@ vips_stream_input_read( VipsStreamInput *input,
 	return( bytes_read );
 }
 
-static const void *
-vips_stream_input_try_map( VipsStreamInput *input, size_t *length )
-{
-	VipsStream *stream = VIPS_STREAM( input );
-
-	if( input->length < 0 )
-		input->length = vips_file_length( stream->descriptor );
-	if( input->length < 0 )
-		return( NULL );
-
-	if( !input->baseaddr ) {
-		input->baseaddr = vips__mmap( stream->descriptor, 
-			FALSE, input->length, 0 );
-		if( !input->baseaddr )
-			return( NULL );
-	}
-		
-	if( length )
-		*length = input->length;
-
-	return( input->baseaddr );
-}
-
 const void *
 vips_stream_input_map( VipsStreamInput *input, size_t *length )
 {
+	VipsStreamInputClass *class = VIPS_STREAM_INPUT_GET_CLASS( input );
+
+	unsigned char buffer[4096];
+
+	VIPS_DEBUG_MSG( "vips_stream_input_map:\n" );
+
 	/* Memory source ... easy!
 	 */
-	if( input->blob )
+	if( input->blob ) {
+		VIPS_DEBUG_MSG( "    memory source\n" );
 		return( vips_blob_get( input->blob, length ) );
+	}
 
 	/* An input that supports mmap.
 	 */
 	if( input->mapable ) {
+		VIPS_DEBUG_MSG( "    mmaping source\n" );
 		if( !input->baseaddr ) {
-			input->baseaddr = vips_stream_input_try_map( input, 
-				&input->length );
+			input->baseaddr = class->map( input, &input->length );
 			if( !input->baseaddr )
 				return( NULL );
 		}
@@ -658,10 +657,19 @@ vips_stream_input_map( VipsStreamInput *input, size_t *length )
 		return( input->baseaddr );
 	}
 
-	/* Have to read() the whole thing.
+	/* Have to read() the whole thing. header_bytes will keep a copy of
+	 * the file.
 	 */
+	VIPS_DEBUG_MSG( "    read() of entire source\n" );
+	if( vips_stream_input_rewind( input ) )
+		return( NULL );
+	while( vips_stream_input_read( input, buffer, 4096 ) > 0 )
+		;
 
-	return( NULL );
+	if( length )
+		*length = input->header_bytes->len;
+
+	return( input->header_bytes->data );
 }
 
 int
@@ -670,6 +678,14 @@ vips_stream_input_rewind( VipsStreamInput *input )
 	VipsStreamInputClass *class = VIPS_STREAM_INPUT_GET_CLASS( input );
 
 	VIPS_DEBUG_MSG( "vips_stream_input_rewind:\n" );
+
+	if( input->decode ) {
+		vips_error( STREAM_NAME( input ),
+			"%s", _( "can't rewind after decode begins" ) );
+		return( -1 );
+	}
+
+	input->read_position = 0;
 
 	return( class->rewind( input ) );
 }
