@@ -106,7 +106,7 @@ const char *vips_stream_filename( VipsStream *stream );
 /* Read from something like a socket, file or memory area and present the data
  * with a simple seek / read interface.
  *
- * During the header phase, we save data from unseekable sources in a buffer
+ * During the header phase, we save data from unseekable streams in a buffer
  * so readers can rewind and read again. We don't buffer data during the
  * decode stage.
  */
@@ -116,7 +116,7 @@ typedef struct _VipsStreamInput {
 	/* We have two phases: 
 	 *
 	 * During the header phase, we save bytes read from the input (if this
-	 * is an unseekable source) so that we can rewind and try again, if
+	 * is an unseekable stream) so that we can rewind and try again, if
 	 * necessary.
 	 *
 	 * Once we reach decode phase, we no longer support rewind and the
@@ -124,13 +124,13 @@ typedef struct _VipsStreamInput {
 	 */
 	gboolean decode;
 
-	/* TRUE is this descriptor supports lseek(). If not, then we save data
-	 * read during header phase in a buffer.
+	/* TRUE if this descriptor supports lseek(). If not, then we save data
+	 * read during the header phase in a buffer.
 	 */
 	gboolean seekable;
 
-	/* TRUE is this descriptor supports mmap(). If not, then we have to
-	 * read() the whole thing.
+	/* TRUE if this descriptor supports mmap(). If not, then we have to
+	 * read() the whole stream if the loader needs the entire image.
 	 */
 	gboolean mapable;
 
@@ -149,11 +149,11 @@ typedef struct _VipsStreamInput {
 	 */
 	GByteArray *sniff;
 
-	/* For a memory source, the blob we read from.
+	/* For a memory stream, the blob we read from.
 	 */
 	VipsBlob *blob;
 
-	/* If we've mmaped the file, the base and length.
+	/* If we've mmaped the file, the base and length of the mapped area.
 	 */
 	const void *baseaddr;
 	size_t length;
@@ -165,9 +165,27 @@ typedef struct _VipsStreamInputClass {
 
 	/* Subclasses can define these to implement other input methods.
 	 */
+
+	/* Read up to N bytes from the stream into the supplied buffer,
+	 * returning the number of bytes actually read. 
+	 *
+	 * -1 on error, 0 on EOF.
+	 */
 	ssize_t (*read)( VipsStreamInput *, unsigned char *, size_t );
-	const void * (*map)( VipsStreamInput *, size_t * );
-	int (*rewind)( VipsStreamInput * );
+
+	/* Map the entire stream into memory, for example with mmap(). Return
+	 * the base and size of the mapped area.
+	 *
+	 * If this is not defined, the file will be read in with repeated
+	 * calls to ->read(). 
+	 *
+	 * NULL on error.
+	 */
+	const void *(*map)( VipsStreamInput *, size_t * );
+
+	/* Seek to a certain position, args exactly as lseek(2).
+	 */
+	off_t (*seek)( VipsStreamInput *, off_t offset, int );
 
 	/* Shut down anything that can safely restarted. For example, if
 	 * there's a fd that supports lseek(), it can be closed, since later 
@@ -192,6 +210,8 @@ VipsStreamInput *vips_stream_input_new_from_options( const char *options );
 ssize_t vips_stream_input_read( VipsStreamInput *input, 
 	unsigned char *data, size_t length );
 const void *vips_stream_input_map( VipsStreamInput *input, size_t *length );
+off_t vips_stream_input_seek( VipsStreamInput *input, 
+	off_t offset, int whence );
 int vips_stream_input_rewind( VipsStreamInput *input );
 void vips_stream_input_minimise( VipsStreamInput *input );
 void vips_stream_input_decode( VipsStreamInput *input );

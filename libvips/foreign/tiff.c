@@ -300,6 +300,100 @@ vips__tiff_openin_buffer( VipsImage *image, const void *data, size_t length )
 	return( tiff );
 }
 
+/* TIFF input from a vips stream.
+ */
+
+static tsize_t
+openin_stream_read( thandle_t st, tdata_t data, tsize_t size )
+{
+	VipsStreamInput *input = (VipsStreamInput *) st;
+
+	return( vips_stream_input_read( input, data, size ) );
+}
+
+static tsize_t
+openin_stream_write( thandle_t st, tdata_t buffer, tsize_t size )
+{
+	g_assert_not_reached();
+
+	return( 0 );
+}
+
+static toff_t
+openin_stream_seek( thandle_t st, toff_t position, int whence )
+{
+	VipsStreamInput *input = (VipsStreamInput *) st;
+
+	return( vips_stream_input_seek( input, position, whence ) );
+}
+
+static int
+openin_stream_close( thandle_t st )
+{
+	VipsStreamInput *input = (VipsStreamInput *) st;
+
+	VIPS_UNREF( input );
+
+	return( 0 );
+}
+
+static toff_t
+openin_stream_size( thandle_t st )
+{
+	/* Do we need this?
+	 */
+	printf( "aaaaargh!!\n" );
+	g_assert( FALSE );
+
+	return( 0 );
+}
+
+static int
+openin_stream_map( thandle_t st, tdata_t *start, toff_t *len )
+{
+	g_assert_not_reached();
+
+	return( 0 );
+}
+
+static void
+openin_stream_unmap( thandle_t st, tdata_t start, toff_t len )
+{
+	g_assert_not_reached();
+
+	return;
+}
+
+TIFF *
+vips__tiff_openin_stream( VipsImage *image, VipsStreamInput *input )
+{
+	TIFF *tiff;
+
+#ifdef DEBUG
+	printf( "vips__tiff_openin_buffer:\n" );
+#endif /*DEBUG*/
+
+	/* Unreffed on close(), see above.
+	 */
+	g_object_ref( input );
+
+	if( !(tiff = TIFFClientOpen( "stream input", "rm",
+		(thandle_t) input,
+		openin_stream_read,
+		openin_stream_write,
+		openin_stream_seek,
+		openin_stream_close,
+		openin_stream_size,
+		openin_stream_map,
+		openin_stream_unmap )) ) {
+		vips_error( "vips__tiff_openin_stream", "%s",
+			_( "unable to open stream for input" ) );
+		return( NULL );
+	}
+
+	return( tiff );
+}
+
 /* TIFF output to a memory buffer.
  */
 

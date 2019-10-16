@@ -2591,4 +2591,104 @@ vips__istifftiled_buffer( const void *buf, size_t len )
 	return( tiled );
 }
 
+static gboolean
+vips__testtiff_stream( VipsStreamInput *input, TiffPropertyFn fn )
+{
+	VipsImage *im;
+	TIFF *tif;
+	gboolean property;
+
+	vips__tiff_init();
+
+	im = vips_image_new();
+
+	if( vips_stream_input_rewind( input ) )
+		return( FALSE );
+	if( !(tif = vips__tiff_openin_stream( im, input )) ) {
+		g_object_unref( im );
+		vips_error_clear();
+		return( FALSE );
+	}
+
+	property = fn ? fn( tif ) : TRUE;
+
+	TIFFClose( tif );
+	g_object_unref( im );
+
+	return( property );
+}
+
+gboolean
+vips__istiff_stream( VipsStreamInput *input )
+{
+	return( vips__testtiff_stream( input, NULL ) ); 
+}
+
+gboolean
+vips__istifftiled_stream( VipsStreamInput *input )
+{
+	return( vips__testtiff_stream( input, TIFFIsTiled ) ); 
+}
+
+static Rtiff *
+rtiff_new_stream( VipsStreamInput *input, VipsImage *out, 
+	int page, int n, gboolean autorotate )
+{
+	Rtiff *rtiff;
+
+	if( !(rtiff = rtiff_new( out, page, n, autorotate )) ||
+		!(rtiff->tiff = vips__tiff_openin_stream( out, input )) ||
+		rtiff_header_read_all( rtiff ) )
+		return( NULL );
+
+	return( rtiff );
+}
+
+int
+vips__tiff_read_header_stream( VipsStreamInput *input, VipsImage *out, 
+	int page, int n, gboolean autorotate )
+{
+	Rtiff *rtiff;
+
+	vips__tiff_init();
+
+	if( !(rtiff = rtiff_new_stream( input, out, page, n, autorotate )) )
+		return( -1 );
+
+	if( rtiff_set_header( rtiff, out ) )
+		return( -1 );
+
+	vips__tiff_read_header_orientation( rtiff, out ); 
+
+	return( 0 );
+}
+
+int
+vips__tiff_read_stream( VipsStreamInput *input, VipsImage *out, 
+	int page, int n, gboolean autorotate )
+{
+	Rtiff *rtiff;
+
+#ifdef DEBUG
+	printf( "tiff2vips: libtiff version is \"%s\"\n", TIFFGetVersion() );
+	printf( "tiff2vips: libtiff starting for buffer %p\n", buf );
+#endif /*DEBUG*/
+
+	vips__tiff_init();
+
+	if( !(rtiff = rtiff_new_stream( input, out, page, n, autorotate )) )
+		return( -1 );
+
+	if( rtiff->header.tiled ) {
+		if( rtiff_read_tilewise( rtiff, out ) )
+			return( -1 );
+	}
+	else {
+		if( rtiff_read_stripwise( rtiff, out ) )
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
 #endif /*HAVE_TIFF*/

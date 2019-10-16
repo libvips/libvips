@@ -45,6 +45,8 @@ TIFF *vips__tiff_openin_buffer( VipsImage *image,
 TIFF *vips__tiff_openout_buffer( VipsImage *image, 
 	gboolean bigtiff, void **out_data, size_t *out_length );
 
+TIFF *vips__tiff_openin_stream( VipsImage *image, VipsStreamInput *input );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

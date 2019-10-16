@@ -345,29 +345,29 @@ vips_stream_input_map_real( VipsStreamInput *input, size_t *length )
 	return( file_baseaddr );
 }
 
-static int
-vips_stream_input_rewind_real( VipsStreamInput *input )
+static off_t
+vips_stream_input_seek_real( VipsStreamInput *input, off_t offset, int whence )
 {
 	VipsStream *stream = VIPS_STREAM( input );
 
-	VIPS_DEBUG_MSG( "vips_stream_input_rewind_real:\n" );
+	off_t new_pos;
 
-	if( input->seekable &&
-		stream->descriptor != -1 ) {
-		off_t new_pos;
+	VIPS_DEBUG_MSG( "vips_stream_input_seek_real:\n" );
 
-		VIPS_DEBUG_MSG( "   rewinding desriptor %d\n", 
-			stream->descriptor );
-
-		new_pos = lseek( stream->descriptor, 0, SEEK_SET );
-		if( new_pos == -1 ) {
-			vips_error_system( errno, STREAM_NAME( stream ),
-				"%s", _( "unable to rewind" ) ); 
-			return( 0 );
-		}
+	if( !input->seekable ||
+		stream->descriptor == -1 ) {
+		vips_error( STREAM_NAME( stream ), "%s", _( "not seekable" ) ); 
+		return( -1 );
 	}
 
-	return( 0 );
+	new_pos = lseek( stream->descriptor, offset, whence );
+	if( new_pos == -1 ) {
+		vips_error_system( errno, STREAM_NAME( stream ),
+			"%s", _( "seek error" ) ); 
+		return( -1 );
+	}
+
+	return( new_pos );
 }
 
 static void
@@ -398,7 +398,7 @@ vips_stream_input_class_init( VipsStreamInputClass *class )
 
 	class->read = vips_stream_input_read_real;
 	class->map = vips_stream_input_map_real;
-	class->rewind = vips_stream_input_rewind_real;
+	class->seek = vips_stream_input_seek_real;
 	class->minimise = vips_stream_input_minimise_real;
 
 	VIPS_ARG_BOXED( class, "blob", 3, 
@@ -671,22 +671,79 @@ vips_stream_input_map( VipsStreamInput *input, size_t *length )
 	return( input->header_bytes->data );
 }
 
-int
-vips_stream_input_rewind( VipsStreamInput *input )
+off_t
+vips_stream_input_seek( VipsStreamInput *input, off_t offset, int whence )
 {
 	VipsStreamInputClass *class = VIPS_STREAM_INPUT_GET_CLASS( input );
 
-	VIPS_DEBUG_MSG( "vips_stream_input_rewind:\n" );
+	off_t new_pos;
 
-	if( input->decode ) {
-		vips_error( STREAM_NAME( input ),
-			"%s", _( "can't rewind after decode begins" ) );
-		return( -1 );
+	VIPS_DEBUG_MSG( "vips_stream_input_seek:\n" );
+
+	switch( whence ) {
+	case SEEK_SET:
+		new_pos = offset;
+		break;
+
+	case SEEK_CUR:
+		new_pos = input->read_position + offset;
+		break;
+
+	case SEEK_END:
+		/* TODO .. I don't think any loader needs SEEK_END.
+		 */
+	default:
+		vips_error( STREAM_NAME( input ), "%s", _( "bad 'whence'" ) );
+                return( -1 );
+		break;
 	}
 
-	input->read_position = 0;
+	if( !input->seekable ) {
+		/* We can seek on non-seekable streams during the header phase.
+		 */
+		if( input->decode ) { 
+			vips_error( STREAM_NAME( input ),
+				"%s", _( "can't rewind after decode begins" ) );
+			return( -1 );
+		}
 
-	return( class->rewind( input ) );
+		g_assert( input->header_bytes );
+
+		/* We may not have read up to the new position.
+		 */
+		while( input->read_position < new_pos ) {
+			unsigned char buffer[4096];
+
+			if( vips_stream_input_read( input, buffer, 4096 ) ) 
+				return( -1 );
+		}
+	}
+	else if( input->blob ||
+		input->baseaddr ) {
+		/* Memory streams and mapped streams don't need a seek.
+		 */
+		;
+	}
+	else {
+		new_pos = class->seek( input, offset, whence );
+		if( new_pos == -1 )
+			return( -1 );
+	}
+
+	input->read_position = new_pos;
+
+	return( new_pos );
+}
+
+int
+vips_stream_input_rewind( VipsStreamInput *input )
+{
+	VIPS_DEBUG_MSG( "vips_stream_input_rewind:\n" );
+
+	if( vips_stream_input_seek( input, 0, SEEK_SET ) != 0 )
+		return( -1 );
+
+	return( 0 );
 }
 
 void

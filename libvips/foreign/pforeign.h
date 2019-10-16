@@ -95,6 +95,13 @@ int vips__tiff_read_header_buffer( const void *buf, size_t len, VipsImage *out,
 int vips__tiff_read_buffer( const void *buf, size_t len, VipsImage *out, 
 	int page, int n, gboolean autorotate );
 
+gboolean vips__istiff_stream( VipsStreamInput *input );
+gboolean vips__istifftiled_stream( VipsStreamInput *input );
+int vips__tiff_read_header_stream( VipsStreamInput *input, VipsImage *out, 
+	int page, int n, gboolean autorotate );
+int vips__tiff_read_stream( VipsStreamInput *input, VipsImage *out,
+	int page, int n, gboolean autorotate );
+
 extern const char *vips__foreign_tiff_suffs[];
 
 int vips__isanalyze( const char *filename );
