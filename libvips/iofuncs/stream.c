@@ -118,12 +118,16 @@ G_DEFINE_ABSTRACT_TYPE( VipsStream, vips_stream, VIPS_TYPE_OBJECT );
 static void
 vips_stream_close( VipsStream *stream )
 {
+	VIPS_DEBUG_MSG( "vips_stream_close:\n" );
+
 	if( stream->close_descriptor >= 0 ) {
+		VIPS_DEBUG_MSG( "    close()\n" );
 		close( stream->close_descriptor );
 		stream->close_descriptor = -1;
 	}
 
 	if( stream->tracked_descriptor >= 0 ) {
+		VIPS_DEBUG_MSG( "    vips_tracked_close()\n" );
 		vips_tracked_close( stream->tracked_descriptor );
 		stream->tracked_descriptor = -1;
 	}
@@ -223,7 +227,8 @@ vips_stream_input_open( VipsStreamInput *input )
 
 		VIPS_DEBUG_MSG( "vips_stream_input_open: "
 			"restoring read position %zd\n", input->read_position );
-		new_pos = lseek( stream->descriptor, 0, SEEK_SET );
+		new_pos = lseek( stream->descriptor, 
+			input->read_position, SEEK_SET );
 		if( new_pos == -1 ) {
 			vips_error_system( errno, STREAM_NAME( stream ),
 				"%s", _( "unable to lseek()" ) ); 
@@ -298,11 +303,6 @@ vips_stream_input_read_real( VipsStreamInput *input,
 
 	VIPS_DEBUG_MSG( "vips_stream_input_read_real:\n" );
 
-	/* Make sure we are open, in case we've been minimised.
-	 */
-	if( vips_stream_input_open( input ) )
-		return( -1 );
-
 	if( input->blob ) {
 		VipsArea *area = (VipsArea *) input->blob;
 		ssize_t available = VIPS_MIN( length,
@@ -374,6 +374,8 @@ static void
 vips_stream_input_minimise_real( VipsStreamInput *input )
 {
 	VipsStream *stream = VIPS_STREAM( input );
+
+	VIPS_DEBUG_MSG( "vips_stream_input_minimise_real:\n" );
 
 	if( stream->filename &&
 		stream->descriptor != -1 &&
@@ -754,16 +756,26 @@ vips_stream_input_minimise( VipsStreamInput *input )
 	class->minimise( input );
 }
 
-void 
+int 
 vips_stream_input_decode( VipsStreamInput *input )
 {
-	if( !input->decode ) {
-		VIPS_DEBUG_MSG( "vips_stream_input_decode:\n" );
+	VIPS_DEBUG_MSG( "vips_stream_input_decode:\n" );
 
+	/* We have finished reading the header. We can discard the bytes we
+	 * saved.
+	 */
+	if( !input->decode ) {
 		input->decode = TRUE;
 		VIPS_FREEF( g_byte_array_unref, input->header_bytes ); 
 		VIPS_FREEF( g_byte_array_unref, input->sniff ); 
 	}
+
+	/* Make sure we are open, in case we've been minimised.
+	 */
+	if( vips_stream_input_open( input ) )
+		return( -1 );
+
+	return( 0 );
 }
 
 /**

@@ -214,7 +214,7 @@ off_t vips_stream_input_seek( VipsStreamInput *input,
 	off_t offset, int whence );
 int vips_stream_input_rewind( VipsStreamInput *input );
 void vips_stream_input_minimise( VipsStreamInput *input );
-void vips_stream_input_decode( VipsStreamInput *input );
+int vips_stream_input_decode( VipsStreamInput *input );
 unsigned char *vips_stream_input_sniff( VipsStreamInput *input, size_t length );
 
 #define VIPS_TYPE_STREAM_OUTPUT (vips_stream_output_get_type())

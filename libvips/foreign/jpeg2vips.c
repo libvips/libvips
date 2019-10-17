@@ -746,7 +746,8 @@ read_jpeg_generate( VipsRegion *or,
 
 	/* In pixel decode mode.
 	 */
-	vips_stream_input_decode( jpeg->input );
+	if( vips_stream_input_decode( jpeg->input ) )
+		return( -1 );
 
 	VIPS_GATE_START( "read_jpeg_generate: work" );
 

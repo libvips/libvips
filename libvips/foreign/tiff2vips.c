@@ -300,7 +300,7 @@ typedef void (*scanline_process_fn)( struct _Rtiff *,
 typedef struct _Rtiff {
 	/* Parameters.
 	 */
-	char *filename;
+	VipsStreamInput *input;
 	VipsImage *out;
 	int page;
 	int n;
@@ -488,6 +488,7 @@ static void
 rtiff_free( Rtiff *rtiff )
 {
 	VIPS_FREEF( TIFFClose, rtiff->tiff );
+	VIPS_UNREF( rtiff->input );
 }
 
 static void
@@ -496,15 +497,24 @@ rtiff_close_cb( VipsObject *object, Rtiff *rtiff )
 	rtiff_free( rtiff ); 
 }
 
+static void
+rtiff_minimise_cb( VipsImage *image, Rtiff *rtiff )
+{
+	if( rtiff->input )
+		vips_stream_input_minimise( rtiff->input );
+}
+
 static Rtiff *
-rtiff_new( VipsImage *out, int page, int n, gboolean autorotate )
+rtiff_new( VipsStreamInput *input, VipsImage *out, 
+	int page, int n, gboolean autorotate )
 {
 	Rtiff *rtiff;
 
 	if( !(rtiff = VIPS_NEW( out, Rtiff )) )
 		return( NULL );
 
-	rtiff->filename = NULL;
+	g_object_ref( input );
+	rtiff->input = input;
 	rtiff->out = out;
 	rtiff->page = page;
 	rtiff->n = n;
@@ -521,11 +531,8 @@ rtiff_new( VipsImage *out, int page, int n, gboolean autorotate )
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( rtiff_close_cb ), rtiff ); 
-
-	/* Don't link to minimise. We need to be able to disconnect the
-	 * underlying fd and we can't do that without making our own input
-	 * handler for files. Implement this when we add input objects.
-	 */
+	g_signal_connect( out, "minimise",
+		G_CALLBACK( rtiff_minimise_cb ), rtiff ); 
 
 	if( rtiff->page < 0 || rtiff->page > 1000000 ) {
 		vips_error( "tiff2vips", _( "bad page number %d" ),
@@ -542,6 +549,9 @@ rtiff_new( VipsImage *out, int page, int n, gboolean autorotate )
 			rtiff->n );
 		return( NULL );
 	}
+
+	if( !(rtiff->tiff = vips__tiff_openin_stream( input )) )
+		return( NULL );
 
 	return( rtiff );
 }
@@ -1524,6 +1534,11 @@ rtiff_fill_region( VipsRegion *out,
 
 	int x, y, z;
 
+	/* In pixel decode mode.
+	 */
+	if( vips_stream_input_decode( rtiff->input ) )
+		return( -1 );
+
 	/* Special case: we are filling a single tile exactly sized to match
 	 * the tiff tile and we have no repacking to do for this format.
 	 */
@@ -1849,6 +1864,11 @@ rtiff_stripwise_generate( VipsRegion *or,
 	 */
 	g_assert( r->height == 
 		VIPS_MIN( read_height, or->im->Ysize - r->top ) ); 
+
+	/* In pixel decode mode.
+	 */
+	if( vips_stream_input_decode( rtiff->input ) )
+		return( -1 );
 
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
@@ -2400,20 +2420,6 @@ vips__istifftiled_stream( VipsStreamInput *input )
 	return( vips__testtiff_stream( input, TIFFIsTiled ) ); 
 }
 
-static Rtiff *
-rtiff_new_stream( VipsStreamInput *input, VipsImage *out, 
-	int page, int n, gboolean autorotate )
-{
-	Rtiff *rtiff;
-
-	if( !(rtiff = rtiff_new( out, page, n, autorotate )) ||
-		!(rtiff->tiff = vips__tiff_openin_stream( input )) ||
-		rtiff_header_read_all( rtiff ) )
-		return( NULL );
-
-	return( rtiff );
-}
-
 int
 vips__tiff_read_header_stream( VipsStreamInput *input, VipsImage *out, 
 	int page, int n, gboolean autorotate )
@@ -2422,13 +2428,16 @@ vips__tiff_read_header_stream( VipsStreamInput *input, VipsImage *out,
 
 	vips__tiff_init();
 
-	if( !(rtiff = rtiff_new_stream( input, out, page, n, autorotate )) )
+	if( !(rtiff = rtiff_new( input, out, page, n, autorotate )) ||
+		rtiff_header_read_all( rtiff ) )
 		return( -1 );
 
 	if( rtiff_set_header( rtiff, out ) )
 		return( -1 );
 
 	vips__tiff_read_header_orientation( rtiff, out ); 
+
+	vips_stream_input_minimise( input );
 
 	return( 0 );
 }
@@ -2446,7 +2455,8 @@ vips__tiff_read_stream( VipsStreamInput *input, VipsImage *out,
 
 	vips__tiff_init();
 
-	if( !(rtiff = rtiff_new_stream( input, out, page, n, autorotate )) )
+	if( !(rtiff = rtiff_new( input, out, page, n, autorotate )) ||
+		rtiff_header_read_all( rtiff ) )
 		return( -1 );
 
 	if( rtiff->header.tiled ) {

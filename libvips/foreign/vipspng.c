@@ -624,7 +624,8 @@ png2vips_generate( VipsRegion *or,
 
 	/* In pixel decode mode.
 	 */
-	vips_stream_input_decode( read->input );
+	if( vips_stream_input_decode( read->input ) )
+		return( -1 );
 
 	for( y = 0; y < r->height; y++ ) {
 		png_bytep q = (png_bytep) VIPS_REGION_ADDR( or, 0, r->top + y );
