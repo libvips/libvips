@@ -132,13 +132,14 @@ typedef struct _VipsStreamInput {
 	/* TRUE if this descriptor supports mmap(). If not, then we have to
 	 * read() the whole stream if the loader needs the entire image.
 	 */
-	gboolean mapable;
+	gboolean mappable;
 
 	/*< private >*/
 
-	/* The current read point.
+	/* The current read point. off_t can be 32 bits on some platforms, so
+	 * make sure we have a full 64.
 	 */
-	off_t read_position;
+	gint64 read_position;
 
 	/* Save data read during header phase here. If we rewind and try
 	 * again, serve data from this until it runs out.
@@ -185,7 +186,7 @@ typedef struct _VipsStreamInputClass {
 
 	/* Seek to a certain position, args exactly as lseek(2).
 	 */
-	off_t (*seek)( VipsStreamInput *, off_t offset, int );
+	gint64 (*seek)( VipsStreamInput *, gint64 offset, int );
 
 	/* Shut down anything that can safely restarted. For example, if
 	 * there's a fd that supports lseek(), it can be closed, since later 
@@ -210,12 +211,13 @@ VipsStreamInput *vips_stream_input_new_from_options( const char *options );
 ssize_t vips_stream_input_read( VipsStreamInput *input, 
 	unsigned char *data, size_t length );
 const void *vips_stream_input_map( VipsStreamInput *input, size_t *length );
-off_t vips_stream_input_seek( VipsStreamInput *input, 
-	off_t offset, int whence );
+gint64 vips_stream_input_seek( VipsStreamInput *input, 
+	gint64 offset, int whence );
 int vips_stream_input_rewind( VipsStreamInput *input );
 void vips_stream_input_minimise( VipsStreamInput *input );
 int vips_stream_input_decode( VipsStreamInput *input );
 unsigned char *vips_stream_input_sniff( VipsStreamInput *input, size_t length );
+gint64 vips_stream_input_size( VipsStreamInput *input ); 
 
 #define VIPS_TYPE_STREAM_OUTPUT (vips_stream_output_get_type())
 #define VIPS_STREAM_OUTPUT( obj ) \

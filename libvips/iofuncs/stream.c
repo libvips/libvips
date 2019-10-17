@@ -33,16 +33,27 @@
 
 /* TODO
  *
+ * - catch out of range seeks
+ * - some sanity thing to prevent endless streams filling memory?
  * - filename encoding
- * - add seekable input sources
- * - need to be able to set seekable and mapable via constructor
+ * - seek END and _size need thinking about with pipes ... perhaps we should
+ *   force-read the whole thing in
+ * - _size() needs to be a vfunc too (libtiff needs it)
+ * - only fetch size once
+ * - revise logic once we have all the use cases nailed down ... split to:
+ *     + base class, just contain interface and perhaps sniff support
+ *       + memory input subclass
+ *       + mappable input subclass, 
+ *       + seekable file input subclass
+ *       + pipe input subclass (uses header cache)
+ * - need to be able to set seekable and mappable via constructor
  * - test we can really change all behaviour in the subclass ... add callbacks
  *   as well to make it simpler for language bindings
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -213,7 +224,6 @@ vips_stream_input_open( VipsStreamInput *input )
 		stream->tracked_descriptor == -1 &&
 		stream->filename ) {
 		int fd;
-		off_t new_pos;
 
 		if( (fd = vips_tracked_open( stream->filename, 
 			MODE_READ )) == -1 ) {
@@ -227,13 +237,9 @@ vips_stream_input_open( VipsStreamInput *input )
 
 		VIPS_DEBUG_MSG( "vips_stream_input_open: "
 			"restoring read position %zd\n", input->read_position );
-		new_pos = lseek( stream->descriptor, 
-			input->read_position, SEEK_SET );
-		if( new_pos == -1 ) {
-			vips_error_system( errno, STREAM_NAME( stream ),
-				"%s", _( "unable to lseek()" ) ); 
-			return( 0 );
-		}
+		if( vips__seek( stream->descriptor, 
+			input->read_position, SEEK_SET ) == -1 )
+			return( -1 );
 	}
 
 	return( 0 );
@@ -273,11 +279,11 @@ vips_stream_input_build( VipsObject *object )
 		/* Do +=0 on the current position. This fails for pipes, at
 		 * least on linux.
 		 */
-		if( lseek( stream->descriptor, 0, SEEK_CUR ) != -1 )
+		if( vips__seek( stream->descriptor, 0, SEEK_CUR ) != -1 )
 			input->seekable = TRUE;
 
 		if( vips__mmap_supported( stream->descriptor ) ) 
-			input->mapable = TRUE;
+			input->mappable = TRUE;
 	}
 
 	if( vips_object_argument_isset( object, "blob" ) )
@@ -304,7 +310,7 @@ vips_stream_input_read_real( VipsStreamInput *input,
 	VIPS_DEBUG_MSG( "vips_stream_input_read_real:\n" );
 
 	if( input->blob ) {
-		VipsArea *area = (VipsArea *) input->blob;
+		VipsArea *area = VIPS_AREA( input->blob );
 		ssize_t available = VIPS_MIN( length,
 			area->length - input->read_position );
 
@@ -345,12 +351,10 @@ vips_stream_input_map_real( VipsStreamInput *input, size_t *length )
 	return( file_baseaddr );
 }
 
-static off_t
-vips_stream_input_seek_real( VipsStreamInput *input, off_t offset, int whence )
+static gint64
+vips_stream_input_seek_real( VipsStreamInput *input, gint64 offset, int whence )
 {
 	VipsStream *stream = VIPS_STREAM( input );
-
-	off_t new_pos;
 
 	VIPS_DEBUG_MSG( "vips_stream_input_seek_real:\n" );
 
@@ -360,14 +364,7 @@ vips_stream_input_seek_real( VipsStreamInput *input, off_t offset, int whence )
 		return( -1 );
 	}
 
-	new_pos = lseek( stream->descriptor, offset, whence );
-	if( new_pos == -1 ) {
-		vips_error_system( errno, STREAM_NAME( stream ),
-			"%s", _( "seek error" ) ); 
-		return( -1 );
-	}
-
-	return( new_pos );
+	return( vips__seek( stream->descriptor, offset, whence ) );
 }
 
 static void
@@ -605,11 +602,11 @@ vips_stream_input_read( VipsStreamInput *input,
 			return( -1 );
 		}
 
-		/* If we're not seekable, we need to save header bytes for
-		 * reuse.
+		/* We need to save bytes if we're in header mode and we can't
+		 * seek or map.
 		 */
 		if( input->header_bytes &&
-			!input->seekable &&
+			(!input->seekable || !input->mappable) &&
 			!input->decode &&
 			n > 0 ) 
 			g_byte_array_append( input->header_bytes, 
@@ -644,7 +641,7 @@ vips_stream_input_map( VipsStreamInput *input, size_t *length )
 
 	/* An input that supports mmap.
 	 */
-	if( input->mapable ) {
+	if( input->mappable ) {
 		VIPS_DEBUG_MSG( "    mmaping source\n" );
 		if( !input->baseaddr ) {
 			input->baseaddr = class->map( input, &input->length );
@@ -673,12 +670,12 @@ vips_stream_input_map( VipsStreamInput *input, size_t *length )
 	return( input->header_bytes->data );
 }
 
-off_t
-vips_stream_input_seek( VipsStreamInput *input, off_t offset, int whence )
+gint64
+vips_stream_input_seek( VipsStreamInput *input, gint64 offset, int whence )
 {
 	VipsStreamInputClass *class = VIPS_STREAM_INPUT_GET_CLASS( input );
 
-	off_t new_pos;
+	gint64 new_pos;
 
 	VIPS_DEBUG_MSG( "vips_stream_input_seek:\n" );
 
@@ -692,7 +689,9 @@ vips_stream_input_seek( VipsStreamInput *input, off_t offset, int whence )
 		break;
 
 	case SEEK_END:
-		/* TODO .. I don't think any loader needs SEEK_END.
+		/* TODO .. I don't think any loader needs SEEK_END, and
+		 * implementing it on pipes would force us to read the whole
+		 * thing in.
 		 */
 	default:
 		vips_error( STREAM_NAME( input ), "%s", _( "bad 'whence'" ) );
@@ -715,9 +714,13 @@ vips_stream_input_seek( VipsStreamInput *input, off_t offset, int whence )
 		 */
 		while( input->read_position < new_pos ) {
 			unsigned char buffer[4096];
+			ssize_t read;
 
-			if( vips_stream_input_read( input, buffer, 4096 ) ) 
+			read = vips_stream_input_read( input, buffer, 4096 );
+			if( read < 0 )
 				return( -1 );
+			if( read == 0 ) {
+			}
 		}
 	}
 	else if( input->blob ||
@@ -727,8 +730,7 @@ vips_stream_input_seek( VipsStreamInput *input, off_t offset, int whence )
 		;
 	}
 	else {
-		new_pos = class->seek( input, offset, whence );
-		if( new_pos == -1 )
+		if( (new_pos = class->seek( input, offset, whence )) == -1 )
 			return( -1 );
 	}
 
@@ -804,6 +806,24 @@ vips_stream_input_sniff( VipsStreamInput *input, size_t length )
 			return( NULL );
 
 	return( input->sniff->data );
+}
+
+gint64
+vips_stream_input_size( VipsStreamInput *input )
+{
+	VipsStream *stream = VIPS_STREAM( input );
+
+	gint64 size;
+
+	if( stream->descriptor >= 0 &&
+		(size = vips_file_length( stream->descriptor )) >= 0 ) 
+		return( size );
+	else if( input->blob )
+		return( VIPS_AREA( input->blob )->length );
+	else if( input->header_bytes )
+		return( input->header_bytes->len );
+	else 
+		return( -1 );
 }
 
 G_DEFINE_TYPE( VipsStreamOutput, vips_stream_output, VIPS_TYPE_STREAM );

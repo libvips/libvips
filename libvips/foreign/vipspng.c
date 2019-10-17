@@ -1188,7 +1188,7 @@ vips__png_write_stream( VipsImage *in, VipsStreamOutput *output,
 		colours, Q, dither ) ) {
 		write_finish( write );
 		vips_error( "vips2png", 
-			"%s", _( "unable to write to buffer" ) );
+			"%s", _( "unable to write to stream" ) );
 		return( -1 );
 	}
 

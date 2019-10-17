@@ -138,7 +138,7 @@ vips__tiff_openout( const char *path, gboolean bigtiff )
 static tsize_t
 openin_stream_read( thandle_t st, tdata_t data, tsize_t size )
 {
-	VipsStreamInput *input = (VipsStreamInput *) st;
+	VipsStreamInput *input = VIPS_STREAM_INPUT( st );
 
 	return( vips_stream_input_read( input, data, size ) );
 }
@@ -154,7 +154,7 @@ openin_stream_write( thandle_t st, tdata_t buffer, tsize_t size )
 static toff_t
 openin_stream_seek( thandle_t st, toff_t position, int whence )
 {
-	VipsStreamInput *input = (VipsStreamInput *) st;
+	VipsStreamInput *input = VIPS_STREAM_INPUT( st );
 
 	return( vips_stream_input_seek( input, position, whence ) );
 }
@@ -162,7 +162,7 @@ openin_stream_seek( thandle_t st, toff_t position, int whence )
 static int
 openin_stream_close( thandle_t st )
 {
-	VipsStreamInput *input = (VipsStreamInput *) st;
+	VipsStreamInput *input = VIPS_STREAM_INPUT( st );
 
 	VIPS_UNREF( input );
 
@@ -172,12 +172,12 @@ openin_stream_close( thandle_t st )
 static toff_t
 openin_stream_size( thandle_t st )
 {
-	/* Do we need this?
-	 */
-	printf( "aaaaargh!!\n" );
-	g_assert( FALSE );
+	VipsStreamInput *input = VIPS_STREAM_INPUT( st );
 
-	return( 0 );
+	/* libtiff will use this to get file size if tags like StripByteCounts
+	 * are missing.
+	 */
+	return( vips_stream_input_size( input ) );
 }
 
 static int

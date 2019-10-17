@@ -276,7 +276,7 @@ GSList *vips__gslist_gvalue_copy( const GSList *list );
 GSList *vips__gslist_gvalue_merge( GSList *a, const GSList *b );
 char *vips__gslist_gvalue_get( const GSList *list );
 
-int vips__seek( int fd, gint64 pos );
+gint64 vips__seek( int fd, gint64 pos, int whence );
 int vips__ftruncate( int fd, gint64 pos );
 int vips_existsf( const char *name, ... )
 	__attribute__((format(printf, 1, 2)));

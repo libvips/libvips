@@ -485,7 +485,7 @@ read_chunk( int fd, gint64 offset, size_t length )
 {
 	char *buf;
 
-	if( vips__seek( fd, offset ) )
+	if( vips__seek( fd, offset, SEEK_SET ) == -1 )
 		return( NULL );
 	if( !(buf = vips_malloc( NULL, length + 1 )) )
 		return( NULL );
@@ -755,7 +755,7 @@ readhist( VipsImage *im )
 	XML_Parser parser;
 	VipsExpatParse vep;
 
-	if( vips__seek( im->fd, image_pixel_length( im ) ) ) 
+	if( vips__seek( im->fd, image_pixel_length( im ), SEEK_SET ) == -1 ) 
 		return( -1 );
 
 	parser = XML_ParserCreate( "UTF-8" );
@@ -797,7 +797,7 @@ vips__write_extension_block( VipsImage *im, void *buf, int size )
 	}
 
 	if( vips__ftruncate( im->fd, psize ) ||
-		vips__seek( im->fd, psize ) ) 
+		vips__seek( im->fd, psize, SEEK_SET ) == -1 ) 
 		return( -1 );
 	if( vips__write( im->fd, buf, size ) )
                 return( -1 );
@@ -1032,7 +1032,7 @@ vips_image_open_input( VipsImage *image )
 			return( -1 );
 	}
 
-	vips__seek( image->fd, 0 );
+	vips__seek( image->fd, 0, SEEK_SET );
 	if( read( image->fd, header, VIPS_SIZEOF_HEADER ) != 
 		VIPS_SIZEOF_HEADER ||
 		vips__read_header_bytes( image, header ) ) {

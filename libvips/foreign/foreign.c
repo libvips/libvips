@@ -1988,6 +1988,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_png_stream_get_type( void ); 
 	extern GType vips_foreign_save_png_file_get_type( void ); 
 	extern GType vips_foreign_save_png_buffer_get_type( void ); 
+	extern GType vips_foreign_save_png_stream_get_type( void ); 
 	extern GType vips_foreign_load_csv_get_type( void ); 
 	extern GType vips_foreign_save_csv_get_type( void ); 
 	extern GType vips_foreign_load_matrix_get_type( void ); 
@@ -2023,12 +2024,12 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_magick_buffer_get_type( void );
 	extern GType vips_foreign_save_dz_file_get_type( void ); 
 	extern GType vips_foreign_save_dz_buffer_get_type( void ); 
-	extern GType vips_foreign_load_webp_stream_get_type( void ); 
 	extern GType vips_foreign_load_webp_file_get_type( void ); 
 	extern GType vips_foreign_load_webp_buffer_get_type( void ); 
-	extern GType vips_foreign_save_webp_stream_get_type( void ); 
+	extern GType vips_foreign_load_webp_stream_get_type( void ); 
 	extern GType vips_foreign_save_webp_file_get_type( void ); 
 	extern GType vips_foreign_save_webp_buffer_get_type( void ); 
+	extern GType vips_foreign_save_webp_stream_get_type( void ); 
 	extern GType vips_foreign_load_pdf_get_type( void ); 
 	extern GType vips_foreign_load_pdf_file_get_type( void ); 
 	extern GType vips_foreign_load_pdf_buffer_get_type( void ); 
@@ -2103,11 +2104,12 @@ vips_foreign_operation_init( void )
 #endif /*HAVE_GSF*/
 
 #ifdef HAVE_PNG
-	vips_foreign_load_png_stream_get_type(); 
 	vips_foreign_load_png_get_type(); 
 	vips_foreign_load_png_buffer_get_type(); 
+	vips_foreign_load_png_stream_get_type(); 
 	vips_foreign_save_png_file_get_type(); 
 	vips_foreign_save_png_buffer_get_type(); 
+	vips_foreign_save_png_stream_get_type(); 
 #endif /*HAVE_PNG*/
 
 #ifdef HAVE_MATIO
@@ -2115,22 +2117,22 @@ vips_foreign_operation_init( void )
 #endif /*HAVE_MATIO*/
 
 #ifdef HAVE_JPEG
-	vips_foreign_load_jpeg_stream_get_type(); 
 	vips_foreign_load_jpeg_file_get_type(); 
 	vips_foreign_load_jpeg_buffer_get_type(); 
-	vips_foreign_save_jpeg_stream_get_type(); 
+	vips_foreign_load_jpeg_stream_get_type(); 
 	vips_foreign_save_jpeg_file_get_type(); 
 	vips_foreign_save_jpeg_buffer_get_type(); 
+	vips_foreign_save_jpeg_stream_get_type(); 
 	vips_foreign_save_jpeg_mime_get_type(); 
 #endif /*HAVE_JPEG*/
 
 #ifdef HAVE_LIBWEBP
-	vips_foreign_load_webp_stream_get_type(); 
 	vips_foreign_load_webp_file_get_type(); 
 	vips_foreign_load_webp_buffer_get_type(); 
-	vips_foreign_save_webp_stream_get_type(); 
+	vips_foreign_load_webp_stream_get_type(); 
 	vips_foreign_save_webp_file_get_type(); 
 	vips_foreign_save_webp_buffer_get_type(); 
+	vips_foreign_save_webp_stream_get_type(); 
 #endif /*HAVE_LIBWEBP*/
 
 #ifdef HAVE_TIFF

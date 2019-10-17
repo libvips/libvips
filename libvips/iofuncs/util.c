@@ -1030,29 +1030,36 @@ vips__gslist_gvalue_get( const GSList *list )
 
 /* Need our own seek(), since lseek() on win32 can't do long files.
  */
-int
-vips__seek( int fd, gint64 pos )
+gint64
+vips__seek( int fd, gint64 pos, int whence )
 {
+	gint64 new_pos;
+
 #ifdef OS_WIN32
 {
 	HANDLE hFile = (HANDLE) _get_osfhandle( fd );
 	LARGE_INTEGER p;
+	LARGE_INTEGER q;
+
+	/* Whence uses the same numbering on win32 and posix.
+	 */
 
 	p.QuadPart = pos;
-	if( !SetFilePointerEx( hFile, p, NULL, FILE_BEGIN ) ) {
+	if( !SetFilePointerEx( hFile, p, &q, whence ) ) {
                 vips_error_system( GetLastError(), "vips__seek", 
 			"%s", _( "unable to seek" ) );
 		return( -1 );
 	}
+	new_pos = q.QuadPart;
 }
 #else /*!OS_WIN32*/
-	if( lseek( fd, pos, SEEK_SET ) == (off_t) -1 ) {
+	if( (new_pos = lseek( fd, pos, whence )) == (off_t) -1 ) {
 		vips_error( "vips__seek", "%s", _( "unable to seek" ) );
 		return( -1 );
 	}
 #endif /*OS_WIN32*/
 
-	return( 0 );
+	return( new_pos );
 }
 
 /* Need our own ftruncate(), since ftruncate() on win32 can't do long files.
