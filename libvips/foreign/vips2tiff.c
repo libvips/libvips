@@ -1713,6 +1713,7 @@ wtiff_gather( Wtiff *wtiff )
 		wtiff->layer->below )
 		for( layer = wtiff->layer->below; layer; 
 			layer = layer->below ) {
+			VipsStreamInput *input;
 			TIFF *in;
 
 #ifdef DEBUG
@@ -1720,14 +1721,22 @@ wtiff_gather( Wtiff *wtiff )
 #endif /*DEBUG*/
 
 			if( layer->lname ) {
-				if( !(in = vips__tiff_openin( layer->lname )) ) 
+				if( !(input = 
+					vips_stream_input_new_from_filename( 
+						layer->lname )) ) 
 					return( -1 );
 			}
 			else {
-				if( !(in = vips__tiff_openin_buffer( wtiff->im,
-					layer->buf, layer->len )) ) 
+				if( !(input = vips_stream_input_new_from_memory(
+					layer->buf, layer->len )) )
 					return( -1 );
 			}
+
+			if( !(in = vips__tiff_openin_stream( input )) ) {
+				VIPS_UNREF( input );
+				return( -1 );
+			}
+			VIPS_UNREF( input );
 
 			if( wtiff_copy_tiff( wtiff, wtiff->layer->tif, in ) ) {
 				TIFFClose( in );

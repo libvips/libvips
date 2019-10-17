@@ -52,6 +52,56 @@
 
 #include "../foreign/pforeign.h"
 
+#ifdef HAVE_TIFF
+static gboolean
+im_istifftiled( const char *filename )
+{
+	VipsStreamInput *input;
+	gboolean result;
+
+	if( !(input = vips_stream_input_new_from_filename( filename )) )
+		return( FALSE );
+	result = vips__istiff_stream( input );
+	VIPS_UNREF( input );
+
+	return( result );
+}
+
+static int
+im_tiff_read_header( const char *filename, VipsImage *out, 
+	int page, int n, gboolean autorotate )
+{
+	VipsStreamInput *input;
+
+	if( !(input = vips_stream_input_new_from_filename( filename )) )
+		return( -1 );
+	if( vips__tiff_read_header_stream( input, out, page, n, autorotate ) ) {
+		VIPS_UNREF( input );
+		return( -1 );
+	}
+	VIPS_UNREF( input );
+
+	return( 0 );
+}
+
+static int
+im_tiff_read( const char *filename, VipsImage *out, 
+	int page, int n, gboolean autorotate )
+{
+	VipsStreamInput *input;
+
+	if( !(input = vips_stream_input_new_from_filename( filename )) )
+		return( -1 );
+	if( vips__tiff_read_stream( input, out, page, n, autorotate ) ) {
+		VIPS_UNREF( input );
+		return( -1 );
+	}
+	VIPS_UNREF( input );
+
+	return( 0 );
+}
+#endif /*HAVE_TIFF*/
+
 static int
 tiff2vips( const char *name, IMAGE *out, gboolean header_only )
 {
@@ -88,18 +138,18 @@ tiff2vips( const char *name, IMAGE *out, gboolean header_only )
 
 	if( !header_only &&
 		!seq &&
-		!vips__istifftiled( filename ) &&
+		!im_istifftiled( filename ) &&
 		out->dtype == VIPS_IMAGE_PARTIAL ) {
 		if( vips__image_wio_output( out ) ) 
 			return( -1 );
 	}
 
 	if( header_only ) {
-		if( vips__tiff_read_header( filename, out, page, 1, FALSE ) )
+		if( im_tiff_read_header( filename, out, page, 1, FALSE ) )
 			return( -1 );
 	}
 	else {
-		if( vips__tiff_read( filename, out, page, 1, FALSE ) )
+		if( im_tiff_read( filename, out, page, 1, FALSE ) )
 			return( -1 );
 	}
 #else

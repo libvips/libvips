@@ -189,6 +189,8 @@
  * 7/6/19
  * 	- istiff reads the first directory rather than just testing the magic
  * 	  number, so it ignores more TIFF-like, but not TIFF images
+ * 17/10/19
+ * 	- switch to stream input
  */
 
 /*
@@ -2341,68 +2343,6 @@ rtiff_header_read_all( Rtiff *rtiff )
 	return( 0 );
 }
 
-static Rtiff *
-rtiff_new_filename( const char *filename, VipsImage *out, 
-	int page, int n, gboolean autorotate )
-{
-	Rtiff *rtiff;
-
-	if( !(rtiff = rtiff_new( out, page, n, autorotate )) ||
-		!(rtiff->tiff = vips__tiff_openin( filename )) || 
-		rtiff_header_read_all( rtiff ) )
-		return( NULL );
-
-	rtiff->filename = vips_strdup( VIPS_OBJECT( out ), filename );
-
-	return( rtiff );
-}
-
-static Rtiff *
-rtiff_new_buffer( const void *buf, size_t len, VipsImage *out, 
-	int page, int n, gboolean autorotate )
-{
-	Rtiff *rtiff;
-
-	if( !(rtiff = rtiff_new( out, page, n, autorotate )) ||
-		!(rtiff->tiff = vips__tiff_openin_buffer( out, buf, len )) ||
-		rtiff_header_read_all( rtiff ) )
-		return( NULL );
-
-	return( rtiff );
-}
-
-/* For istiffpyramid(), see vips_thumbnail_get_tiff_pyramid().
- */
-
-int
-vips__tiff_read( const char *filename, VipsImage *out, 
-	int page, int n, gboolean autorotate )
-{
-	Rtiff *rtiff;
-
-#ifdef DEBUG
-	printf( "tiff2vips: libtiff version is \"%s\"\n", TIFFGetVersion() );
-	printf( "tiff2vips: libtiff starting for %s\n", filename );
-#endif /*DEBUG*/
-
-	vips__tiff_init();
-
-	if( !(rtiff = rtiff_new_filename( filename, out, 
-		page, n, autorotate )) )
-		return( -1 );
-
-	if( rtiff->header.tiled ) {
-		if( rtiff_read_tilewise( rtiff, out ) )
-			return( -1 );
-	}
-	else {
-		if( rtiff_read_stripwise( rtiff, out ) )
-			return( -1 );
-	}
-
-	return( 0 );
-}
-
 /* On a header-only read, we can just swap width/height if orientation is 6 or
  * 8. 
  */
@@ -2426,186 +2366,17 @@ vips__tiff_read_header_orientation( Rtiff *rtiff, VipsImage *out )
 	}
 }
 
-int
-vips__tiff_read_header( const char *filename, VipsImage *out, 
-	int page, int n, gboolean autorotate )
-{
-	Rtiff *rtiff;
-
-	vips__tiff_init();
-
-	if( !(rtiff = 
-		rtiff_new_filename( filename, out, page, n, autorotate )) )
-		return( -1 );
-
-	if( rtiff_set_header( rtiff, out ) )
-		return( -1 );
-
-	vips__tiff_read_header_orientation( rtiff, out ); 
-
-	/* Just a header read: we can free the tiff read early and save an fd.
-	 */
-	rtiff_free( rtiff );
-
-	return( 0 );
-}
-
 typedef gboolean (*TiffPropertyFn)( TIFF *tif );
-
-static gboolean
-vips__testtiff( const char *filename, TiffPropertyFn fn )
-{
-	TIFF *tif;
-	gboolean property;
-
-	vips__tiff_init();
-
-	if( !(tif = vips__tiff_openin( filename )) ) {
-		vips_error_clear();
-		return( FALSE );
-	}
-
-	property = fn ? fn( tif ) : TRUE;
-
-	TIFFClose( tif );
-
-	return( property );
-}
-
-gboolean
-vips__testtiff_buffer( const void *buf, size_t len, TiffPropertyFn fn )
-{
-	VipsImage *im;
-	TIFF *tif;
-	gboolean property;
-
-	vips__tiff_init();
-
-	im = vips_image_new();
-
-	if( !(tif = vips__tiff_openin_buffer( im, buf, len )) ) {
-		g_object_unref( im );
-		vips_error_clear();
-		return( FALSE );
-	}
-
-	property = fn ? fn( tif ) : TRUE;
-
-	TIFFClose( tif );
-	g_object_unref( im );
-
-	return( property );
-}
-
-gboolean
-vips__istifftiled( const char *filename )
-{
-	return( vips__testtiff( filename, TIFFIsTiled ) ); 
-}
-
-/* We test for TIFF by trying to read the first directory. We could just test
- * the magic number, but many formats (eg. ARW) use a TIFF-like container and
- * we don't want to open those with vips tiffload.
- */
-gboolean
-vips__istiff( const char *filename )
-{
-	return( vips__testtiff( filename, NULL ) ); 
-}
-
-gboolean
-vips__istiff_buffer( const void *buf, size_t len )
-{
-	return( vips__testtiff_buffer( buf, len, NULL ) ); 
-}
-
-int
-vips__tiff_read_header_buffer( const void *buf, size_t len, VipsImage *out, 
-	int page, int n, gboolean autorotate )
-{
-	Rtiff *rtiff;
-
-	vips__tiff_init();
-
-	if( !(rtiff = rtiff_new_buffer( buf, len, out, page, n, autorotate )) )
-		return( -1 );
-
-	if( rtiff_set_header( rtiff, out ) )
-		return( -1 );
-
-	vips__tiff_read_header_orientation( rtiff, out ); 
-
-	return( 0 );
-}
-
-int
-vips__tiff_read_buffer( const void *buf, size_t len, 
-	VipsImage *out, int page, int n, gboolean autorotate )
-{
-	Rtiff *rtiff;
-
-#ifdef DEBUG
-	printf( "tiff2vips: libtiff version is \"%s\"\n", TIFFGetVersion() );
-	printf( "tiff2vips: libtiff starting for buffer %p\n", buf );
-#endif /*DEBUG*/
-
-	vips__tiff_init();
-
-	if( !(rtiff = rtiff_new_buffer( buf, len, out, page, n, autorotate )) )
-		return( -1 );
-
-	if( rtiff->header.tiled ) {
-		if( rtiff_read_tilewise( rtiff, out ) )
-			return( -1 );
-	}
-	else {
-		if( rtiff_read_stripwise( rtiff, out ) )
-			return( -1 );
-	}
-
-	return( 0 );
-}
-
-gboolean
-vips__istifftiled_buffer( const void *buf, size_t len )
-{
-	VipsImage *im;
-	TIFF *tif;
-	gboolean tiled;
-
-	vips__tiff_init();
-
-	im = vips_image_new();
-
-	if( !(tif = vips__tiff_openin_buffer( im, buf, len )) ) {
-		g_object_unref( im );
-		vips_error_clear();
-		return( FALSE );
-	}
-
-	tiled = TIFFIsTiled( tif );
-
-	TIFFClose( tif );
-	g_object_unref( im );
-
-	return( tiled );
-}
 
 static gboolean
 vips__testtiff_stream( VipsStreamInput *input, TiffPropertyFn fn )
 {
-	VipsImage *im;
 	TIFF *tif;
 	gboolean property;
 
 	vips__tiff_init();
 
-	im = vips_image_new();
-
-	if( vips_stream_input_rewind( input ) )
-		return( FALSE );
-	if( !(tif = vips__tiff_openin_stream( im, input )) ) {
-		g_object_unref( im );
+	if( !(tif = vips__tiff_openin_stream( input )) ) {
 		vips_error_clear();
 		return( FALSE );
 	}
@@ -2613,7 +2384,6 @@ vips__testtiff_stream( VipsStreamInput *input, TiffPropertyFn fn )
 	property = fn ? fn( tif ) : TRUE;
 
 	TIFFClose( tif );
-	g_object_unref( im );
 
 	return( property );
 }
@@ -2637,7 +2407,7 @@ rtiff_new_stream( VipsStreamInput *input, VipsImage *out,
 	Rtiff *rtiff;
 
 	if( !(rtiff = rtiff_new( out, page, n, autorotate )) ||
-		!(rtiff->tiff = vips__tiff_openin_stream( out, input )) ||
+		!(rtiff->tiff = vips__tiff_openin_stream( input )) ||
 		rtiff_header_read_all( rtiff ) )
 		return( NULL );
 

@@ -79,22 +79,6 @@ int vips__tiff_write_buf( VipsImage *in,
 	VipsRegionShrink region_shrink,
 	int level, gboolean lossless );
 
-int vips__tiff_read_header( const char *filename, VipsImage *out, 
-	int page, int n, gboolean autorotate );
-int vips__tiff_read( const char *filename, VipsImage *out, 
-	int page, int n, gboolean autorotate ); 
-
-gboolean vips__istiff( const char *filename );
-gboolean vips__istifftiled( const char *filename );
-
-gboolean vips__istiff_buffer( const void *buf, size_t len );
-gboolean vips__istifftiled_buffer( const void *buf, size_t len );
-
-int vips__tiff_read_header_buffer( const void *buf, size_t len, VipsImage *out, 
-	int page, int n, gboolean autorotate );
-int vips__tiff_read_buffer( const void *buf, size_t len, VipsImage *out, 
-	int page, int n, gboolean autorotate );
-
 gboolean vips__istiff_stream( VipsStreamInput *input );
 gboolean vips__istifftiled_stream( VipsStreamInput *input );
 int vips__tiff_read_header_stream( VipsStreamInput *input, VipsImage *out, 

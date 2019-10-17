@@ -481,6 +481,8 @@ int vips_tiffload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_tiffload_stream( VipsStreamInput *input, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_tiffsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
 int vips_tiffsave_buffer( VipsImage *in, void **buf, size_t *len, ... )

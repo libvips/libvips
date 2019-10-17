@@ -132,174 +132,6 @@ vips__tiff_openout( const char *path, gboolean bigtiff )
 	return( tif );
 }
 
-/* Open TIFF for input from a file.
- */
-TIFF *
-vips__tiff_openin( const char *path )
-{
-	/* No mmap --- no performance advantage with libtiff, and it burns up
-	 * our VM if the tiff file is large.
-	 */
-	const char *mode = "rm";
-
-	TIFF *tif;
-
-#ifdef DEBUG
-	printf( "vips__tiff_openin( \"%s\" )\n", path );
-#endif /*DEBUG*/
-
-	/* Need the utf-16 version on Windows.
-	 */
-#ifdef OS_WIN32
-{
-	GError *error = NULL;
-	wchar_t *path16;
-
-	if( !(path16 = (wchar_t *)
-		g_utf8_to_utf16( path, -1, NULL, NULL, &error )) ) {
-		vips_g_error( &error );
-		return( NULL );
-	}
-
-	tif = TIFFOpenW( path16, mode );
-
-	g_free( path16 );
-}
-#else /*!OS_WIN32*/
-	tif = TIFFOpen( path, mode );
-#endif /*OS_WIN32*/
-
-	if( !tif ) {
-		vips_error( "tiff",
-			_( "unable to open \"%s\" for input" ), path );
-		return( NULL );
-	}
-
-	return( tif );
-}
-
-/* TIFF input from a memory buffer.
- */
-
-typedef struct _VipsTiffOpeninBuffer {
-	size_t position;
-	const void *data;
-	size_t length;
-} VipsTiffOpeninBuffer;
-
-static tsize_t
-openin_buffer_read( thandle_t st, tdata_t data, tsize_t size )
-{
-	VipsTiffOpeninBuffer *buffer = (VipsTiffOpeninBuffer *) st;
-
-	size_t available;
-	size_t copied;
-
-	if( buffer->position > buffer->length ) {
-		vips_error( "openin_buffer_read",
-			"%s", _( "read beyond end of buffer" ) );
-		return( 0 );
-	}
-
-	available = buffer->length - buffer->position;
-	copied = VIPS_MIN( size, available );
-	memcpy( data,
-		(unsigned char *) buffer->data + buffer->position, copied );
-	buffer->position += copied;
-
-	return( copied );
-}
-
-static tsize_t
-openin_buffer_write( thandle_t st, tdata_t buffer, tsize_t size )
-{
-	g_assert_not_reached();
-
-	return( 0 );
-}
-
-static int
-openin_buffer_close( thandle_t st )
-{
-	return( 0 );
-}
-
-/* After calling this, ->pos is not bound by the size of the buffer, it can
- * have any positive value.
- */
-static toff_t
-openin_buffer_seek( thandle_t st, toff_t position, int whence )
-{
-	VipsTiffOpeninBuffer *buffer = (VipsTiffOpeninBuffer *) st;
-
-	if( whence == SEEK_SET )
-		buffer->position = position;
-	else if( whence == SEEK_CUR )
-		buffer->position += position;
-	else if( whence == SEEK_END )
-		buffer->position = buffer->length + position;
-	else
-		g_assert_not_reached();
-
-	return( buffer->position );
-}
-
-static toff_t
-openin_buffer_size( thandle_t st )
-{
-	VipsTiffOpeninBuffer *buffer = (VipsTiffOpeninBuffer *) st;
-
-	return( buffer->length );
-}
-
-static int
-openin_buffer_map( thandle_t st, tdata_t *start, toff_t *len )
-{
-	g_assert_not_reached();
-
-	return( 0 );
-}
-
-static void
-openin_buffer_unmap( thandle_t st, tdata_t start, toff_t len )
-{
-	g_assert_not_reached();
-
-	return;
-}
-
-TIFF *
-vips__tiff_openin_buffer( VipsImage *image, const void *data, size_t length )
-{
-	VipsTiffOpeninBuffer *buffer;
-	TIFF *tiff;
-
-#ifdef DEBUG
-	printf( "vips__tiff_openin_buffer:\n" );
-#endif /*DEBUG*/
-
-	buffer = VIPS_NEW( image, VipsTiffOpeninBuffer );
-	buffer->position = 0;
-	buffer->data = data;
-	buffer->length = length;
-
-	if( !(tiff = TIFFClientOpen( "memory input", "rm",
-		(thandle_t) buffer,
-		openin_buffer_read,
-		openin_buffer_write,
-		openin_buffer_seek,
-		openin_buffer_close,
-		openin_buffer_size,
-		openin_buffer_map,
-		openin_buffer_unmap )) ) {
-		vips_error( "vips__tiff_openin_buffer", "%s",
-			_( "unable to open memory buffer for input" ) );
-		return( NULL );
-	}
-
-	return( tiff );
-}
-
 /* TIFF input from a vips stream.
  */
 
@@ -365,18 +197,20 @@ openin_stream_unmap( thandle_t st, tdata_t start, toff_t len )
 }
 
 TIFF *
-vips__tiff_openin_stream( VipsImage *image, VipsStreamInput *input )
+vips__tiff_openin_stream( VipsStreamInput *input )
 {
 	TIFF *tiff;
 
 #ifdef DEBUG
-	printf( "vips__tiff_openin_buffer:\n" );
+	printf( "vips__tiff_openin_stream:\n" );
 #endif /*DEBUG*/
 
 	/* Unreffed on close(), see above.
 	 */
-	g_object_ref( input );
+	if( vips_stream_input_rewind( input ) )
+		return( NULL );
 
+	g_object_ref( input );
 	if( !(tiff = TIFFClientOpen( "stream input", "rm",
 		(thandle_t) input,
 		openin_stream_read,
