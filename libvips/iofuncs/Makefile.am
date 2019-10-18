@@ -1,8 +1,7 @@
 noinst_LTLIBRARIES = libiofuncs.la
 
 libiofuncs_la_SOURCES = \
-	istream.c \
-	ostream.c \
+	stream.c \
 	dbuf.c \
 	reorder.c \
 	vipsmarshal.h \

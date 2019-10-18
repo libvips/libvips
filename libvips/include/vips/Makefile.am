@@ -1,6 +1,5 @@
 pkginclude_HEADERS = \
-	istream.h \
-	ostream.h \
+	stream.h \
 	basic.h \
 	type.h \
 	gate.h \
