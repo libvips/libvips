@@ -1628,7 +1628,7 @@ vips_foreign_save_class_init( VipsForeignSaveClass *class )
 		G_STRUCT_OFFSET( VipsForeignSave, background ),
 		VIPS_TYPE_ARRAY_DOUBLE );
 
-	VIPS_ARG_INT( class, "page_height", 8, 
+	VIPS_ARG_INT( class, "page_height", 102, 
 		_( "Page height" ), 
 		_( "Set page height for multipage save" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,

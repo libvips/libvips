@@ -469,7 +469,8 @@ vips_foreign_save_tiff_buffer_build( VipsObject *object )
 }
 
 static void
-vips_foreign_save_tiff_buffer_class_init( VipsForeignSaveTiffBufferClass *class )
+vips_foreign_save_tiff_buffer_class_init( 
+	VipsForeignSaveTiffBufferClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -507,23 +508,21 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * * @compression: use this #VipsForeignTiffCompression
  * * @Q: %gint quality factor
  * * @predictor: use this #VipsForeignTiffPredictor
- * * @profile: filename of ICC profile to attach
- * * @tile: set %TRUE to write a tiled tiff
+ * * @profile: %gchararray, filename of ICC profile to attach
+ * * @tile: %gboolean, set %TRUE to write a tiled tiff
  * * @tile_width: %gint for tile size
  * * @tile_height: %gint for tile size
- * * @pyramid: set %TRUE to write an image pyramid
- * * @squash: set %TRUE to squash 8-bit images down to 1 bit
- * * @miniswhite: set %TRUE to write 1-bit images as MINISWHITE
+ * * @pyramid: %gboolean, write an image pyramid
+ * * @squash: %gboolean, squash 8-bit images down to 1 bit
+ * * @miniswhite: %gboolean, write 1-bit images as MINISWHITE
  * * @resunit: #VipsForeignTiffResunit for resolution unit
  * * @xres: %gdouble horizontal resolution in pixels/mm
  * * @yres: %gdouble vertical resolution in pixels/mm
- * * @bigtiff: set %TRUE to write a BigTiff file
- * * @properties: set %TRUE to write an IMAGEDESCRIPTION tag
- * * @strip: set %TRUE to block metadata save
- * * @page_height: %gint for page height for multi-page save
+ * * @bigtiff: %gboolean, write a BigTiff file
+ * * @properties: %gboolean, set %TRUE to write an IMAGEDESCRIPTION tag
  * * @region_shrink: #VipsRegionShrink How to shrink each 2x2 region.
  * * @level: %gint, Zstd compression level
- * * @lossless: set %TRUE for WebP losssless mode
+ * * @lossless: %gboolean, WebP losssless mode
  *
  * Write a VIPS image to a file as TIFF.
  *
@@ -626,23 +625,21 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
  * * @compression: use this #VipsForeignTiffCompression
  * * @Q: %gint quality factor
  * * @predictor: use this #VipsForeignTiffPredictor
- * * @profile: filename of ICC profile to attach
- * * @tile: set %TRUE to write a tiled tiff
+ * * @profile: %gchararray, filename of ICC profile to attach
+ * * @tile: %gboolean, set %TRUE to write a tiled tiff
  * * @tile_width: %gint for tile size
  * * @tile_height: %gint for tile size
- * * @pyramid: set %TRUE to write an image pyramid
- * * @squash: set %TRUE to squash 8-bit images down to 1 bit
- * * @miniswhite: set %TRUE to write 1-bit images as MINISWHITE
+ * * @pyramid: %gboolean, write an image pyramid
+ * * @squash: %gboolean, squash 8-bit images down to 1 bit
+ * * @miniswhite: %gboolean, write 1-bit images as MINISWHITE
  * * @resunit: #VipsForeignTiffResunit for resolution unit
  * * @xres: %gdouble horizontal resolution in pixels/mm
  * * @yres: %gdouble vertical resolution in pixels/mm
- * * @bigtiff: set %TRUE to write a BigTiff file
- * * @properties: set %TRUE to write an IMAGEDESCRIPTION tag
- * * @strip: set %TRUE to block metadata save
- * * @page_height: %gint for page height for multi-page save
+ * * @bigtiff: %gboolean, write a BigTiff file
+ * * @properties: %gboolean, set %TRUE to write an IMAGEDESCRIPTION tag
  * * @region_shrink: #VipsRegionShrink How to shrink each 2x2 region.
  * * @level: %gint, Zstd compression level
- * * @lossless: set %TRUE for WebP losssless mode
+ * * @lossless: %gboolean, WebP losssless mode
  *
  * As vips_tiffsave(), but save to a memory buffer. 
  *

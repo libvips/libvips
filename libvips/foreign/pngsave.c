@@ -312,14 +312,14 @@ vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
  *
  * Optional arguments:
  *
- * * @compression: compression level
- * * @interlace: interlace image
- * * @profile: ICC profile to embed
+ * * @compression: %gint, compression level
+ * * @interlace: %gboolean, interlace image
+ * * @profile: %gchararray, ICC profile to embed
  * * @filter: #VipsForeignPngFilter row filter flag(s)
- * * @palette: enable quantisation to 8bpp palette
- * * @colours: max number of palette colours for quantisation
- * * @Q: quality for 8bpp quantisation (does not exceed @colours)
- * * @dither: amount of dithering for 8bpp quantization
+ * * @palette: %gboolean, enable quantisation to 8bpp palette
+ * * @colours: %gint, max number of palette colours for quantisation
+ * * @Q: %gint, quality for 8bpp quantisation (does not exceed @colours)
+ * * @dither: %gdouble, amount of dithering for 8bpp quantization
  *
  * Write a VIPS image to a file as PNG.
  *
@@ -381,14 +381,14 @@ vips_pngsave( VipsImage *in, const char *filename, ... )
  *
  * Optional arguments:
  *
- * * @compression: compression level
- * * @interlace: interlace image
- * * @profile: ICC profile to embed
- * * @filter: libpng row filter flag(s)
- * * @palette: enable quantisation to 8bpp palette
- * * @colours: max number of palette colours for quantisation
- * * @Q: quality for 8bpp quantisation (does not exceed @colours)
- * * @dither: amount of dithering for 8bpp quantization
+ * * @compression: %gint, compression level
+ * * @interlace: %gboolean, interlace image
+ * * @profile: %gchararray, ICC profile to embed
+ * * @filter: #VipsForeignPngFilter row filter flag(s)
+ * * @palette: %gboolean, enable quantisation to 8bpp palette
+ * * @colours: %gint, max number of palette colours for quantisation
+ * * @Q: %gint, quality for 8bpp quantisation (does not exceed @colours)
+ * * @dither: %gdouble, amount of dithering for 8bpp quantization
  *
  * As vips_pngsave(), but save to a memory buffer. 
  *
