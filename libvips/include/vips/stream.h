@@ -88,29 +88,29 @@ GType vips_stream_get_type( void );
 
 const char *vips_stream_filename( VipsStream *stream );
 
-#define VIPS_TYPE_STREAM_INPUT (vips_stream_input_get_type())
-#define VIPS_STREAM_INPUT( obj ) \
+#define VIPS_TYPE_STREAMI (vips_streami_get_type())
+#define VIPS_STREAMI( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_STREAM_INPUT, VipsStreamInput ))
-#define VIPS_STREAM_INPUT_CLASS( klass ) \
+	VIPS_TYPE_STREAMI, VipsStreami ))
+#define VIPS_STREAMI_CLASS( klass ) \
 	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_STREAM_INPUT, VipsStreamInputClass))
-#define VIPS_IS_STREAM_INPUT( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_STREAM_INPUT ))
-#define VIPS_IS_STREAM_INPUT_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_STREAM_INPUT ))
-#define VIPS_STREAM_INPUT_GET_CLASS( obj ) \
+	VIPS_TYPE_STREAMI, VipsStreamiClass))
+#define VIPS_IS_STREAMI( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_STREAMI ))
+#define VIPS_IS_STREAMI_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_STREAMI ))
+#define VIPS_STREAMI_GET_CLASS( obj ) \
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_STREAM_INPUT, VipsStreamInputClass ))
+	VIPS_TYPE_STREAMI, VipsStreamiClass ))
 
 /* Read from something like a socket, file or memory area and present the data
- * with a simple seek / read interface.
+ * with a unified seek / read / map interface.
  *
  * During the header phase, we save data from unseekable streams in a buffer
  * so readers can rewind and read again. We don't buffer data during the
  * decode stage.
  */
-typedef struct _VipsStreamInput {
+typedef struct _VipsStreami {
 	VipsStream parent_object;
 
 	/* We have two phases: 
@@ -124,25 +124,29 @@ typedef struct _VipsStreamInput {
 	 */
 	gboolean decode;
 
-	/* TRUE if this descriptor supports lseek(). If not, then we save data
-	 * read during the header phase in a buffer.
+	/* TRUE if this input is something like a pipe. These don't support
+	 * stream or map -- all you can do is read() bytes sequentially.
+	 *
+	 * If you attempt to map or get the size of a pipe-style input, it'll 
+	 * get read entirely into memory. Seeks will cause read up to the seek
+	 * point.
 	 */
-	gboolean seekable;
+	gboolean is_pipe;
 
-	/* TRUE if this descriptor supports mmap(). If not, then we have to
-	 * read() the whole stream if the loader needs the entire image.
+	/* The current read point and length.
+	 *
+	 * length is -1 for is_pipe sources.
+	 *
+	 * off_t can be 32 bits on some platforms, so make sure we have a 
+	 * full 64.
 	 */
-	gboolean mappable;
+	gint64 read_position;
+	gint64 length;
 
 	/*< private >*/
 
-	/* The current read point. off_t can be 32 bits on some platforms, so
-	 * make sure we have a full 64.
-	 */
-	gint64 read_position;
-
-	/* Save data read during header phase here. If we rewind and try
-	 * again, serve data from this until it runs out.
+	/* For is_pipe sources, save data read during header phase here. If 
+	 * we rewind and try again, serve data from this until it runs out.
 	 */
 	GByteArray *header_bytes;
 
@@ -154,17 +158,17 @@ typedef struct _VipsStreamInput {
 	 */
 	VipsBlob *blob;
 
-	/* If we've mmaped the file, the base and length of the mapped area.
+	/* If we've mmaped the file, the base of the mapped area. Use @length
+	 * for the length.
 	 */
 	const void *baseaddr;
-	size_t length;
 
-} VipsStreamInput;
+} VipsStreami;
 
-typedef struct _VipsStreamInputClass {
+typedef struct _VipsStreamiClass {
 	VipsStreamClass parent_class;
 
-	/* Subclasses can define these to implement other input methods.
+	/* Subclasses can define these to implement other streami methods.
 	 */
 
 	/* Read up to N bytes from the stream into the supplied buffer,
@@ -172,7 +176,7 @@ typedef struct _VipsStreamInputClass {
 	 *
 	 * -1 on error, 0 on EOF.
 	 */
-	ssize_t (*read)( VipsStreamInput *, unsigned char *, size_t );
+	ssize_t (*read)( VipsStreami *, void *, size_t );
 
 	/* Map the entire stream into memory, for example with mmap(). Return
 	 * the base and size of the mapped area.
@@ -182,11 +186,11 @@ typedef struct _VipsStreamInputClass {
 	 *
 	 * NULL on error.
 	 */
-	const void *(*map)( VipsStreamInput *, size_t * );
+	const void *(*map)( VipsStreami *, size_t * );
 
 	/* Seek to a certain position, args exactly as lseek(2).
 	 */
-	gint64 (*seek)( VipsStreamInput *, gint64 offset, int );
+	gint64 (*seek)( VipsStreami *, gint64 offset, int );
 
 	/* Shut down anything that can safely restarted. For example, if
 	 * there's a fd that supports lseek(), it can be closed, since later 
@@ -195,48 +199,45 @@ typedef struct _VipsStreamInputClass {
 	 *
 	 * Non-restartable shutdown shuld be in _finalize().
 	 */
-	void (*minimise)( VipsStreamInput * );
+	void (*minimise)( VipsStreami * );
 
-} VipsStreamInputClass;
+} VipsStreamiClass;
 
-GType vips_stream_input_get_type( void );
+GType vips_streami_get_type( void );
 
-VipsStreamInput *vips_stream_input_new_from_descriptor( int descriptor );
-VipsStreamInput *vips_stream_input_new_from_filename( const char *filename );
-VipsStreamInput *vips_stream_input_new_from_blob( VipsBlob *blob );
-VipsStreamInput *vips_stream_input_new_from_memory( const void *data, 
-	size_t size );
-VipsStreamInput *vips_stream_input_new_from_options( const char *options );
+VipsStreami *vips_streami_new_from_descriptor( int descriptor );
+VipsStreami *vips_streami_new_from_filename( const char *filename );
+VipsStreami *vips_streami_new_from_blob( VipsBlob *blob );
+VipsStreami *vips_streami_new_from_memory( const void *data, size_t size );
+VipsStreami *vips_streami_new_from_options( const char *options );
 
-ssize_t vips_stream_input_read( VipsStreamInput *input, 
-	unsigned char *data, size_t length );
-const void *vips_stream_input_map( VipsStreamInput *input, size_t *length );
-gint64 vips_stream_input_seek( VipsStreamInput *input, 
-	gint64 offset, int whence );
-int vips_stream_input_rewind( VipsStreamInput *input );
-void vips_stream_input_minimise( VipsStreamInput *input );
-int vips_stream_input_decode( VipsStreamInput *input );
-unsigned char *vips_stream_input_sniff( VipsStreamInput *input, size_t length );
-gint64 vips_stream_input_size( VipsStreamInput *input ); 
+ssize_t vips_streami_read( VipsStreami *streami, void *data, size_t length );
+const void *vips_streami_map( VipsStreami *streami, size_t *length );
+gint64 vips_streami_seek( VipsStreami *streami, gint64 offset, int whence );
+int vips_streami_rewind( VipsStreami *streami );
+void vips_streami_minimise( VipsStreami *streami );
+int vips_streami_decode( VipsStreami *streami );
+unsigned char *vips_streami_sniff( VipsStreami *streami, size_t length );
+gint64 vips_streami_size( VipsStreami *streami ); 
 
-#define VIPS_TYPE_STREAM_OUTPUT (vips_stream_output_get_type())
-#define VIPS_STREAM_OUTPUT( obj ) \
+#define VIPS_TYPE_STREAMO (vips_streamo_get_type())
+#define VIPS_STREAMO( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_STREAM_OUTPUT, VipsStreamOutput ))
-#define VIPS_STREAM_OUTPUT_CLASS( klass ) \
+	VIPS_TYPE_STREAMO, VipsStreamo ))
+#define VIPS_STREAMO_CLASS( klass ) \
 	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_STREAM_OUTPUT, VipsStreamOutputClass))
-#define VIPS_IS_STREAM_OUTPUT( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_STREAM_OUTPUT ))
-#define VIPS_IS_STREAM_OUTPUT_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_STREAM_OUTPUT ))
-#define VIPS_STREAM_OUTPUT_GET_CLASS( obj ) \
+	VIPS_TYPE_STREAMO, VipsStreamoClass))
+#define VIPS_IS_STREAMO( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_STREAMO ))
+#define VIPS_IS_STREAMO_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_STREAMO ))
+#define VIPS_STREAMO_GET_CLASS( obj ) \
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_STREAM_OUTPUT, VipsStreamOutputClass ))
+	VIPS_TYPE_STREAMO, VipsStreamoClass ))
 
 /* Output to something like a socket, pipe or memory area. 
  */
-typedef struct _VipsStreamOutput {
+typedef struct _VipsStreamo {
 	VipsStream parent_object;
 
 	/*< private >*/
@@ -249,30 +250,29 @@ typedef struct _VipsStreamOutput {
 	 */
 	VipsBlob *blob;
 
-} VipsStreamOutput;
+} VipsStreamo;
 
-typedef struct _VipsStreamOutputClass {
+typedef struct _VipsStreamoClass {
 	VipsStreamClass parent_class;
 
 	/* If defined, output some bytes with this. Otherwise use write().
 	 */
-	ssize_t (*write)( VipsStreamOutput *, const unsigned char *, size_t );
+	ssize_t (*write)( VipsStreamo *, const void *, size_t );
 
 	/* A complete output image has been generated, so do any clearing up,
-	 * eg. copy the bytes we saved in memory to the output blob.
+	 * eg. copy the bytes we saved in memory to the stream blob.
 	 */
-	void (*finish)( VipsStreamOutput * );
+	void (*finish)( VipsStreamo * );
 
-} VipsStreamOutputClass;
+} VipsStreamoClass;
 
-GType vips_stream_output_get_type( void );
+GType vips_streamo_get_type( void );
 
-VipsStreamOutput *vips_stream_output_new_from_descriptor( int descriptor );
-VipsStreamOutput *vips_stream_output_new_from_filename( const char *filename );
-VipsStreamOutput *vips_stream_output_new_memory( void );
-int vips_stream_output_write( VipsStreamOutput *output,
-	const unsigned char *data, size_t length );
-void vips_stream_output_finish( VipsStreamOutput *output );
+VipsStreamo *vips_streamo_new_from_descriptor( int descriptor );
+VipsStreamo *vips_streamo_new_from_filename( const char *filename );
+VipsStreamo *vips_streamo_new_memory( void );
+int vips_streamo_write( VipsStreamo *streamo, const void *data, size_t length );
+void vips_streamo_finish( VipsStreamo *streamo );
 
 #ifdef __cplusplus
 }
