@@ -57,7 +57,7 @@ typedef struct _VipsForeignLoadPngStream {
 
 	/* Load from a stream.
 	 */
-	VipsStreamInput *input;
+	VipsStreami *input;
 
 } VipsForeignLoadPngStream;
 
@@ -153,7 +153,7 @@ G_DEFINE_TYPE( VipsForeignLoadPng, vips_foreign_load_png,
 static gboolean
 vips_foreign_load_png_is_a( const char *filename )
 {
-	VipsStreamInput *input;
+	VipsStreami *input;
 	gboolean result;
 
 	if( !(input = vips_stream_input_new_from_filename( filename )) )
@@ -167,7 +167,7 @@ vips_foreign_load_png_is_a( const char *filename )
 static VipsForeignFlags
 vips_foreign_load_png_get_flags_filename( const char *filename )
 {
-	VipsStreamInput *input;
+	VipsStreami *input;
 	VipsForeignFlags flags;
 
 	if( !(input = vips_stream_input_new_from_filename( filename )) )
@@ -197,7 +197,7 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
-	VipsStreamInput *input;
+	VipsStreami *input;
 
 	if( !(input = vips_stream_input_new_from_filename( png->filename )) )
 		return( -1 );
@@ -215,7 +215,7 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
-	VipsStreamInput *input;
+	VipsStreami *input;
 
 	if( !(input = vips_stream_input_new_from_filename( png->filename )) )
 		return( -1 );
@@ -285,7 +285,7 @@ G_DEFINE_TYPE( VipsForeignLoadPngBuffer, vips_foreign_load_png_buffer,
 static gboolean
 vips_foreign_load_png_buffer_is_a_buffer( const void *buf, size_t len )
 {
-	VipsStreamInput *input;
+	VipsStreami *input;
 	gboolean result;
 
 	if( !(input = vips_stream_input_new_from_memory( buf, len )) )
@@ -301,7 +301,7 @@ vips_foreign_load_png_buffer_get_flags( VipsForeignLoad *load )
 {
 	VipsForeignLoadPngBuffer *buffer = (VipsForeignLoadPngBuffer *) load;
 
-	VipsStreamInput *input;
+	VipsStreami *input;
 	VipsForeignFlags flags;
 
 	if( !(input = vips_stream_input_new_from_memory( buffer->buf->data, 
@@ -324,7 +324,7 @@ vips_foreign_load_png_buffer_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadPngBuffer *buffer = (VipsForeignLoadPngBuffer *) load;
 
-	VipsStreamInput *input;
+	VipsStreami *input;
 
 	if( !(input = vips_stream_input_new_from_memory( buffer->buf->data, 
 		buffer->buf->length )) ) 
@@ -343,7 +343,7 @@ vips_foreign_load_png_buffer_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadPngBuffer *buffer = (VipsForeignLoadPngBuffer *) load;
 
-	VipsStreamInput *input;
+	VipsStreami *input;
 
 	if( !(input = vips_stream_input_new_from_memory( buffer->buf->data, 
 		buffer->buf->length )) ) 
@@ -469,7 +469,7 @@ vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_pngload_stream( VipsStreamInput *input, VipsImage **out, ... )
+vips_pngload_stream( VipsStreami *input, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;

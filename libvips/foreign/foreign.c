@@ -627,10 +627,10 @@ static void *
 vips_foreign_find_load_stream_sub( void *item, void *a, void *b )
 {
 	VipsForeignLoadClass *load_class = VIPS_FOREIGN_LOAD_CLASS( item );
-	VipsStreamInput *input = VIPS_STREAM_INPUT( a );
+	VipsStreami *streami = VIPS_STREAMI( a );
 
 	if( load_class->is_a_stream &&
-		load_class->is_a_stream( input ) ) 
+		load_class->is_a_stream( streami ) ) 
 		return( load_class );
 
 	return( NULL );
@@ -638,7 +638,7 @@ vips_foreign_find_load_stream_sub( void *item, void *a, void *b )
 
 /**
  * vips_foreign_find_load_stream:
- * @input: stream to load from
+ * @streami: stream to load from
  *
  * Searches for an operation you could use to load a stream. To see the
  * range of buffer loaders supported by your vips, try something like:
@@ -651,14 +651,14 @@ vips_foreign_find_load_stream_sub( void *item, void *a, void *b )
  * error.
  */
 const char *
-vips_foreign_find_load_stream( VipsStreamInput *input )
+vips_foreign_find_load_stream( VipsStreami *streami )
 {
 	VipsForeignLoadClass *load_class;
 
 	if( !(load_class = (VipsForeignLoadClass *) vips_foreign_map( 
 		"VipsForeignLoad",
 		vips_foreign_find_load_stream_sub, 
-		input, NULL )) ) {
+		streami, NULL )) ) {
 		vips_error( "VipsForeignLoad", 
 			"%s", _( "stream is not in a known format" ) ); 
 		return( NULL );
@@ -723,15 +723,15 @@ vips_foreign_is_a_buffer( const char *loader, const void *data, size_t size )
 /**
  * vips_foreign_is_a_stream:
  * @loader: name of loader to use for test
- * @input: stream to test
+ * @streami: stream to test
  *
- * Return %TRUE if @input can be loaded by @loader. @loader is something
+ * Return %TRUE if @streami can be loaded by @loader. @loader is something
  * like "tiffload_stream" or "VipsForeignLoadTiffStream".
  *
  * Returns: %TRUE if @data can be loaded by @stream.
  */
 gboolean
-vips_foreign_is_a_stream( const char *loader, VipsStreamInput *input )
+vips_foreign_is_a_stream( const char *loader, VipsStreami *streami )
 {
 	const VipsObjectClass *class;
 	VipsForeignLoadClass *load_class;
@@ -740,7 +740,7 @@ vips_foreign_is_a_stream( const char *loader, VipsStreamInput *input )
 		return( FALSE );
 	load_class = VIPS_FOREIGN_LOAD_CLASS( class );
 	if( load_class->is_a_stream &&
-		load_class->is_a_stream( input ) )
+		load_class->is_a_stream( streami ) )
 		return( TRUE );
 
 	return( FALSE );

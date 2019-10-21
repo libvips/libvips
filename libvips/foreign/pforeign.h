@@ -79,11 +79,11 @@ int vips__tiff_write_buf( VipsImage *in,
 	VipsRegionShrink region_shrink,
 	int level, gboolean lossless );
 
-gboolean vips__istiff_stream( VipsStreamInput *input );
-gboolean vips__istifftiled_stream( VipsStreamInput *input );
-int vips__tiff_read_header_stream( VipsStreamInput *input, VipsImage *out, 
+gboolean vips__istiff_stream( VipsStreami *streami );
+gboolean vips__istifftiled_stream( VipsStreami *streami );
+int vips__tiff_read_header_stream( VipsStreami *streami, VipsImage *out, 
 	int page, int n, gboolean autorotate );
-int vips__tiff_read_stream( VipsStreamInput *input, VipsImage *out,
+int vips__tiff_read_stream( VipsStreami *streami, VipsImage *out,
 	int page, int n, gboolean autorotate );
 
 extern const char *vips__foreign_tiff_suffs[];
@@ -163,25 +163,25 @@ extern const char *vips__rad_suffs[];
 
 extern const char *vips__jpeg_suffs[];
 
-int vips__jpeg_write_stream( VipsImage *in, VipsStreamOutput *output,
+int vips__jpeg_write_stream( VipsImage *in, VipsStreamo *streamo,
 	int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip,
 	gboolean no_subsample, gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans, 
 	int quant_table );
 
-int vips__jpeg_read_stream( VipsStreamInput *input, VipsImage *out,
+int vips__jpeg_read_stream( VipsStreami *streami, VipsImage *out,
 	gboolean header_only, int shrink, int fail, gboolean autorotate );
-int vips__isjpeg_stream( VipsStreamInput *input );
+int vips__isjpeg_stream( VipsStreami *streami );
 
-int vips__png_ispng_stream( VipsStreamInput *input );
-int vips__png_header_stream( VipsStreamInput *input, VipsImage *out );
-int vips__png_read_stream( VipsStreamInput *input, VipsImage *out, 
+int vips__png_ispng_stream( VipsStreami *streami );
+int vips__png_header_stream( VipsStreami *streami, VipsImage *out );
+int vips__png_read_stream( VipsStreami *streami, VipsImage *out, 
 	gboolean fail );
-gboolean vips__png_isinterlaced_stream( VipsStreamInput *input );
+gboolean vips__png_isinterlaced_stream( VipsStreami *streami );
 extern const char *vips__png_suffs[];
 
-int vips__png_write_stream( VipsImage *in, VipsStreamOutput *output,
+int vips__png_write_stream( VipsImage *in, VipsStreamo *streamo,
 	int compress, int interlace, const char *profile,
 	VipsForeignPngFilter filter, gboolean strip,
 	gboolean palette, int colours, int Q, double dither );
@@ -198,14 +198,14 @@ extern const VipsWebPNames vips__webp_names[];
 extern const int vips__n_webp_names;
 extern const char *vips__webp_suffs[];
 
-int vips__iswebp_stream( VipsStreamInput *input );
+int vips__iswebp_stream( VipsStreami *streami );
 
-int vips__webp_read_header_stream( VipsStreamInput *input, VipsImage *out,
+int vips__webp_read_header_stream( VipsStreami *streami, VipsImage *out,
 	int page, int n, double scale ); 
-int vips__webp_read_stream( VipsStreamInput *input, VipsImage *out, 
+int vips__webp_read_stream( VipsStreami *streami, VipsImage *out, 
 	int page, int n, double scale ); 
 
-int vips__webp_write_stream( VipsImage *image, VipsStreamOutput *output,
+int vips__webp_write_stream( VipsImage *image, VipsStreamo *streamo,
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
 	int alpha_q, int reduction_effort,

@@ -33,17 +33,15 @@
 
 /* TODO
  *
- * - catch out of range seeks
- * - some sanity thing to prevent endless streams filling memory?
  * - filename encoding
- * - seek END and _size need thinking about with pipes ... perhaps we should
- *   force-read the whole thing in
+ * - are we detecting EOF correctly? what about interrupted reads? perhaps 
+ *   we should check errno as well
  * - _size() needs to be a vfunc too (libtiff needs it)
  * - _miminize() is a vfunc, so _open() must be as well 
  *   + perhaps minimise should not be a vfunc? is it really useful for 
  *     subclasses? 
- *   + perhaps make _open() / _close() into vfuncs and don't expose minimise
- * - only fetch length once
+ *   + perhaps make _open() / _close() into vfuncs on stream (not streami) and 
+ *     don't expose minimise
  * - need to be able to set is_pipe via constructor
  * - test we can really change all behaviour in the subclass ... add callbacks
  *   as well to make it simpler for language bindings
@@ -592,7 +590,7 @@ vips_streami_read( VipsStreami *streami, void *buffer, size_t length )
 		VIPS_DEBUG_MSG( "    %zd bytes from cache\n", available );
 	}
 
-	/* Any more bytes required? Call the read() vfunc.
+	/* Any more bytes requested? Call the read() vfunc.
 	 */
 	if( length > 0 ) {
 		ssize_t n;
@@ -626,29 +624,62 @@ vips_streami_read( VipsStreami *streami, void *buffer, size_t length )
 	return( bytes_read );
 }
 
-/* Read the entire pipe into memory and turn this into a memory source stream.
+/* Read a pipe to at least a position. -1 means read to end of stream. Does
+ * not chenge read_position.
  */
 static int
-vips_streami_read_whole_pipe( VipsStreami *streami )
+vips_streami_pipe_read_to_position( VipsStreami *streami, gint64 target )
 {
 	gint64 old_read_position;
 	unsigned char buffer[4096];
 	unsigned char *data;
 
-	VIPS_DEBUG_MSG( "vips_streami_read_whole_pipe:\n" );
+	VIPS_DEBUG_MSG( "vips_streami_pipe_read_position:\n" );
 
 	vips_streami_sanity( streami );
 
+	if( streami->decode ) {
+		vips_error( vips_stream_name( VIPS_STREAM( streami ) ),
+			"%s", _( "can't seek pipe after "
+				"pixel decode begins" ) );
+		return( -1 );
+	}
+
 	old_read_position = streami->read_position;
 
-	if( vips_streami_rewind( streami ) )
-		return( -1 );
 	/* TODO ... add something to prevent unbounded streams filling memory.
 	 */
-	while( vips_streami_read( streami, buffer, 4096 ) > 0 )
-		;
+	while( target == -1 ||
+		streami->read_position < target ) {
+		ssize_t read;
+
+		read = vips_streami_read( streami, buffer, 4096 );
+		if( read == -1 )
+			return( -1 );
+		if( read == 0 )
+			break;
+	}
 
 	streami->read_position = old_read_position;
+
+	vips_streami_sanity( streami );
+
+	return( 0 );
+}
+
+/* Read the entire pipe into memory and turn this into a memory source stream.
+ */
+static int
+vips_streami_pipe_to_memory( VipsStreami *streami )
+{
+	unsigned char *data;
+
+	VIPS_DEBUG_MSG( "vips_streami_pipe_to_memory:\n" );
+
+	vips_streami_sanity( streami );
+
+	if( vips_streami_pipe_read_to_position( streami, -1 ) )
+		return( -1 );
 
 	/* Move header_bytes into the memory blob and set up as a memory
 	 * source.
@@ -678,16 +709,16 @@ vips_streami_map( VipsStreami *streami, size_t *length_out )
 
 	vips_streami_sanity( streami );
 
+	/* Pipes need to be converted to memory streams.
+	 */
+	if( streami->is_pipe &&
+		vips_streami_pipe_to_memory( streami ) )
+		return( NULL );
+
 	/* Memory source ... easy!
 	 */
 	if( streami->blob ) {
 		VIPS_DEBUG_MSG( "    memory source\n" );
-
-		data = vips_blob_get( streami->blob, &length );
-	}
-	else if( streami->is_pipe ) {
-		if( vips_streami_read_whole_pipe( streami ) )
-			return( NULL );
 
 		data = vips_blob_get( streami->blob, &length );
 	}
@@ -734,7 +765,8 @@ vips_streami_seek( VipsStreami *streami, gint64 offset, int whence )
 
 	case SEEK_END:
 		if( streami->length == -1 &&
-			vips_streami_read_whole_pipe( streami ) )
+			streami->is_pipe &&
+			vips_streami_pipe_to_memory( streami ) )
 			return( -1 );
 
 		new_pos = streami->length + offset;
@@ -747,29 +779,18 @@ vips_streami_seek( VipsStreami *streami, gint64 offset, int whence )
 		break;
 	}
 
+	/* Don't allow out of range seeks.
+	 */
+	if( new_pos < 0 ||
+		(streami->length != -1 && new_pos >= streami->length) ) {
+		vips_error( vips_stream_name( VIPS_STREAM( streami ) ), 
+			_( "bad seek to %" G_GINT64_FORMAT ), new_pos );
+                return( -1 );
+	}
+
 	if( streami->is_pipe ) {
-		/* We can seek on non-seekable streams during the header phase.
-		 */
-		if( streami->decode ) { 
-			vips_error( STREAM_NAME( streami ),
-				"%s", _( "can't rewind after decode begins" ) );
+		if( vips_streami_pipe_read_to_position( streami, new_pos ) )
 			return( -1 );
-		}
-
-		g_assert( streami->header_bytes );
-
-		/* We may not have read up to the new position.
-		 */
-		while( streami->read_position < new_pos ) {
-			unsigned char buffer[4096];
-			ssize_t read;
-
-			read = vips_streami_read( streami, buffer, 4096 );
-			if( read < 0 )
-				return( -1 );
-			if( read == 0 ) {
-			}
-		}
 	}
 	else {
 		if( (new_pos = class->seek( streami, offset, whence )) == -1 )
@@ -877,13 +898,12 @@ vips_streami_size( VipsStreami *streami )
 
 	vips_streami_sanity( streami );
 
-	if( stream->descriptor >= 0 &&
-		(size = vips_file_length( stream->descriptor )) >= 0 ) 
-		return( size );
-	else if( streami->blob )
-		return( VIPS_AREA( streami->blob )->length );
-	else if( streami->header_bytes )
-		return( streami->header_bytes->len );
-	else 
+	if( streami->length == -1 &&
+		streami->is_pipe &&
+		vips_streami_pipe_to_memory( streami ) )
 		return( -1 );
+
+	vips_streami_sanity( streami );
+
+	return( streami->length );
 }
