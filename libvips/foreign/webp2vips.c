@@ -81,7 +81,7 @@
 /* What we track during a read.
  */
 typedef struct {
-	VipsStreamInput *input;
+	VipsStreami *input;
 
 	/* The data we load, as a webp object.
 	 */
@@ -311,13 +311,13 @@ vips_image_paint_image( VipsImage *frame,
 }
 
 int
-vips__iswebp_stream( VipsStreamInput *input )
+vips__iswebp_stream( VipsStreami *input )
 {
 	const unsigned char *p;
 
 	/* WebP is "RIFF xxxx WEBP" at the start, so we need 12 bytes.
 	 */
-	if( (p = vips_stream_input_sniff( input, 12 )) &&
+	if( (p = vips_streami_sniff( input, 12 )) &&
 		vips_isprefix( "RIFF", (char *) p ) &&
 		vips_isprefix( "WEBP", (char *) p + 8 ) )
 		return( 1 );
@@ -341,7 +341,7 @@ read_free( Read *read )
 }
 
 static Read *
-read_new( VipsStreamInput *input, int page, int n, double scale )
+read_new( VipsStreami *input, int page, int n, double scale )
 {
 	Read *read;
 
@@ -364,7 +364,7 @@ read_new( VipsStreamInput *input, int page, int n, double scale )
 	read->config.output.is_external_memory = 1;
 
 	if( !(read->data.bytes = 
-		vips_stream_input_map( input, &read->data.size )) ) {
+		vips_streami_map( input, &read->data.size )) ) {
 		read_free( read );
 		return( NULL );
 	}
@@ -752,7 +752,7 @@ read_image( Read *read, VipsImage *out )
 }
 
 int
-vips__webp_read_header_stream( VipsStreamInput *input, VipsImage *out,
+vips__webp_read_header_stream( VipsStreami *input, VipsImage *out,
 	int page, int n, double scale )
 {
 	Read *read;
@@ -771,7 +771,7 @@ vips__webp_read_header_stream( VipsStreamInput *input, VipsImage *out,
 }
 
 int
-vips__webp_read_stream( VipsStreamInput *input, VipsImage *out, 
+vips__webp_read_stream( VipsStreami *input, VipsImage *out, 
 	int page, int n, double scale )
 {
 	Read *read;

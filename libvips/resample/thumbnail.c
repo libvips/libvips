@@ -1254,7 +1254,7 @@ vips_thumbnail_buffer( void *buf, size_t len, VipsImage **out, int width, ... )
 typedef struct _VipsThumbnailStream {
 	VipsThumbnail parent_object;
 
-	VipsStreamInput *input;
+	VipsStreami *input;
 	char *option_string;
 } VipsThumbnailStream;
 
@@ -1367,7 +1367,7 @@ vips_thumbnail_stream_class_init( VipsThumbnailClass *class )
 		_( "Stream to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsThumbnailStream, input ),
-		VIPS_TYPE_STREAM_INPUT );
+		VIPS_TYPE_STREAMI );
 
 	VIPS_ARG_STRING( class, "option_string", 20,
 		_( "Extra options" ),
@@ -1408,7 +1408,7 @@ vips_thumbnail_stream_init( VipsThumbnailStream *stream )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_thumbnail_stream( VipsStreamInput *input, VipsImage **out, int width, ... )
+vips_thumbnail_stream( VipsStreami *input, VipsImage **out, int width, ... )
 {
 	va_list ap;
 	int result;

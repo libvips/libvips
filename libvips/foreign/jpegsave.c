@@ -219,7 +219,7 @@ vips_foreign_save_jpeg_init( VipsForeignSaveJpeg *jpeg )
 typedef struct _VipsForeignSaveJpegStream {
 	VipsForeignSaveJpeg parent_object;
 
-	VipsStreamOutput *output;
+	VipsStreamo *output;
 
 } VipsForeignSaveJpegStream;
 
@@ -269,7 +269,7 @@ vips_foreign_save_jpeg_stream_class_init(
 		_( "Stream to save to" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignSaveJpegStream, output ),
-		VIPS_TYPE_STREAM_OUTPUT );
+		VIPS_TYPE_STREAMO );
 
 }
 
@@ -299,13 +299,13 @@ vips_foreign_save_jpeg_file_build( VipsObject *object )
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 	VipsForeignSaveJpegFile *file = (VipsForeignSaveJpegFile *) object;
 
-	VipsStreamOutput *output;
+	VipsStreamo *output;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_file_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( !(output = vips_stream_output_new_from_filename( file->filename )) )
+	if( !(output = vips_streamo_new_from_filename( file->filename )) )
 		return( -1 );
 	if( vips__jpeg_write_stream( save->ready, output,
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
@@ -367,14 +367,14 @@ vips_foreign_save_jpeg_buffer_build( VipsObject *object )
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 	VipsForeignSaveJpegBuffer *file = (VipsForeignSaveJpegBuffer *) object;
 
-	VipsStreamOutput *output;
+	VipsStreamo *output;
 	VipsBlob *blob;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_buffer_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( !(output = vips_stream_output_new_memory()) )
+	if( !(output = vips_streamo_new_memory()) )
 		return( -1 );
 
 	if( vips__jpeg_write_stream( save->ready, output,
@@ -438,7 +438,7 @@ vips_foreign_save_jpeg_mime_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 
-	VipsStreamOutput *output;
+	VipsStreamo *output;
 	VipsBlob *blob;
 	const unsigned char *obuf;
 	size_t olen;
@@ -447,7 +447,7 @@ vips_foreign_save_jpeg_mime_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(output = vips_stream_output_new_memory()) )
+	if( !(output = vips_streamo_new_memory()) )
 		return( -1 );
 
 	if( vips__jpeg_write_stream( save->ready, output,
@@ -635,7 +635,7 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_jpegsave_stream( VipsImage *in, VipsStreamOutput *output, ... )
+vips_jpegsave_stream( VipsImage *in, VipsStreamo *output, ... )
 {
 	va_list ap;
 	int result;

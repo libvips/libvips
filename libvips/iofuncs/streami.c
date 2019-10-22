@@ -96,14 +96,10 @@
 
 G_DEFINE_TYPE( VipsStreami, vips_streami, VIPS_TYPE_STREAM );
 
-static int
+static void
 vips_streami_sanity( VipsStreami *streami )
 {
-	VipsStream *stream = VIPS_STREAM( streami );
-
 	if( streami->blob ) {
-		VipsArea *area = VIPS_AREA( streami->blob );
-
 		/* Not a pipe (can map and seek).
 		 */
 		g_assert( !streami->is_pipe );
@@ -226,8 +222,8 @@ vips_streami_open( VipsStreami *streami )
 		stream->tracked_descriptor = fd;
 		stream->descriptor = fd;
 
-		if( stream->length == -1 &&
-			(stream->length = vips_file_length( fd )) == -1 )
+		if( streami->length == -1 &&
+			(streami->length = vips_file_length( fd )) == -1 )
 			return( -1 );
 
 		VIPS_DEBUG_MSG( "vips_streami_open: "
@@ -255,7 +251,7 @@ vips_streami_build( VipsObject *object )
 
 	if( vips_object_argument_isset( object, "filename" ) &&
 		vips_object_argument_isset( object, "descriptor" ) ) { 
-		vips_error( STREAM_NAME( stream ), 
+		vips_error( vips_stream_name( stream ), 
 			"%s", _( "don't set 'filename' and 'descriptor'" ) ); 
 		return( -1 ); 
 	}
@@ -596,7 +592,8 @@ vips_streami_read( VipsStreami *streami, void *buffer, size_t length )
 		ssize_t n;
 
 		if( (n = class->read( streami, buffer, length )) == -1 ) {
-			vips_error_system( errno, STREAM_NAME( streami ), 
+			vips_error_system( errno, 
+				vips_stream_name( VIPS_STREAM( streami ) ), 
 				"%s", _( "read error" ) ); 
 			return( -1 );
 		}

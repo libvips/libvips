@@ -156,7 +156,7 @@ vips_foreign_load_webp_init( VipsForeignLoadWebp *webp )
 typedef struct _VipsForeignLoadWebpStream {
 	VipsForeignLoadWebp parent_object;
 
-	VipsStreamInput *input;
+	VipsStreami *input;
 
 } VipsForeignLoadWebpStream;
 
@@ -219,7 +219,7 @@ vips_foreign_load_webp_stream_class_init(
 		_( "Stream to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignLoadWebpStream, input ),
-		VIPS_TYPE_STREAM_INPUT );
+		VIPS_TYPE_STREAMI );
 
 }
 
@@ -251,10 +251,10 @@ vips_foreign_load_webp_file_get_flags_filename( const char *filename )
 static gboolean
 vips_foreign_load_webp_file_is_a( const char *filename )
 {
-	VipsStreamInput *input;
+	VipsStreami *input;
 	gboolean result;
 
-	if( !(input = vips_stream_input_new_from_filename( filename )) )
+	if( !(input = vips_streami_new_from_filename( filename )) )
 		return( FALSE );
 	result = vips__iswebp_stream( input );
 	VIPS_UNREF( input );
@@ -268,7 +268,7 @@ vips_foreign_load_webp_file_header( VipsForeignLoad *load )
 	VipsForeignLoadWebp *webp = (VipsForeignLoadWebp *) load;
 	VipsForeignLoadWebpFile *file = (VipsForeignLoadWebpFile *) load;
 
-	VipsStreamInput *input;
+	VipsStreami *input;
 
 	/* BC for the old API.
 	 */
@@ -277,7 +277,7 @@ vips_foreign_load_webp_file_header( VipsForeignLoad *load )
 		webp->shrink != 0 )
 		webp->scale = 1.0 / webp->shrink;
 
-	if( !(input = vips_stream_input_new_from_filename( file->filename )) )
+	if( !(input = vips_streami_new_from_filename( file->filename )) )
 		return( -1 );
 	if( vips__webp_read_header_stream( input, load->out, 
 		webp->page, webp->n, webp->scale ) ) {
@@ -297,9 +297,9 @@ vips_foreign_load_webp_file_load( VipsForeignLoad *load )
 	VipsForeignLoadWebp *webp = (VipsForeignLoadWebp *) load;
 	VipsForeignLoadWebpFile *file = (VipsForeignLoadWebpFile *) load;
 
-	VipsStreamInput *input;
+	VipsStreami *input;
 
-	if( !(input = vips_stream_input_new_from_filename( file->filename )) )
+	if( !(input = vips_streami_new_from_filename( file->filename )) )
 		return( -1 );
 	if( vips__webp_read_stream( input, load->real, 
 		webp->page, webp->n, webp->scale ) ) {
@@ -365,10 +365,10 @@ G_DEFINE_TYPE( VipsForeignLoadWebpBuffer, vips_foreign_load_webp_buffer,
 static gboolean
 vips_foreign_load_webp_buffer_is_a_buffer( const void *buf, size_t len )
 {
-	VipsStreamInput *input;
+	VipsStreami *input;
 	gboolean result;
 
-	if( !(input = vips_stream_input_new_from_memory( buf, len )) )
+	if( !(input = vips_streami_new_from_memory( buf, len )) )
 		return( FALSE );
 	result = vips__iswebp_stream( input );
 	VIPS_UNREF( input );
@@ -382,9 +382,9 @@ vips_foreign_load_webp_buffer_header( VipsForeignLoad *load )
 	VipsForeignLoadWebp *webp = (VipsForeignLoadWebp *) load;
 	VipsForeignLoadWebpBuffer *buffer = (VipsForeignLoadWebpBuffer *) load;
 
-	VipsStreamInput *input;
+	VipsStreami *input;
 
-	if( !(input = vips_stream_input_new_from_memory( buffer->buf->data,
+	if( !(input = vips_streami_new_from_memory( buffer->buf->data,
                 buffer->buf->length )) )
 		return( FALSE );
 	if( vips__webp_read_header_stream( input, load->out, 
@@ -403,9 +403,9 @@ vips_foreign_load_webp_buffer_load( VipsForeignLoad *load )
 	VipsForeignLoadWebp *webp = (VipsForeignLoadWebp *) load;
 	VipsForeignLoadWebpBuffer *buffer = (VipsForeignLoadWebpBuffer *) load;
 
-	VipsStreamInput *input;
+	VipsStreami *input;
 
-	if( !(input = vips_stream_input_new_from_memory( buffer->buf->data,
+	if( !(input = vips_streami_new_from_memory( buffer->buf->data,
                 buffer->buf->length )) )
 		return( FALSE );
 	if( vips__webp_read_stream( input, load->real, 
@@ -561,7 +561,7 @@ vips_webpload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_webpload_stream( VipsStreamInput *input, VipsImage **out, ... )
+vips_webpload_stream( VipsStreami *input, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;

@@ -510,7 +510,7 @@ vips_webp_add_metadata( VipsWebPWrite *write, VipsImage *image, gboolean strip )
 }
 
 int
-vips__webp_write_stream( VipsImage *image, VipsStreamOutput *output,
+vips__webp_write_stream( VipsImage *image, VipsStreamo *output,
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
 	int alpha_q, int reduction_effort,
@@ -534,13 +534,13 @@ vips__webp_write_stream( VipsImage *image, VipsStreamOutput *output,
 		return( -1 );
 	}
 
-	if( vips_stream_output_write( output, 
+	if( vips_streamo_write( output, 
 		write.memory_writer.mem, write.memory_writer.size ) ) {
 		vips_webp_write_unset( &write );
 		return( -1 );
 	}
 
-	vips_stream_output_finish( output );
+	vips_streamo_finish( output );
 
 	vips_webp_write_unset( &write );
 

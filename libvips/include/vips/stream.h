@@ -86,7 +86,7 @@ typedef struct _VipsStreamClass {
 
 GType vips_stream_get_type( void );
 
-const char *vips_stream_filename( VipsStream *stream );
+const char *vips_stream_name( VipsStream *stream );
 
 #define VIPS_TYPE_STREAMI (vips_streami_get_type())
 #define VIPS_STREAMI( obj ) \

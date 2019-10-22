@@ -152,7 +152,7 @@ vips_stream_init( VipsStream *stream )
 const char *
 vips_stream_name( VipsStream *stream )
 {
-	return( VIPS_STREAM( STREAM )->filename ?
-		VIPS_STREAM( STREAM )->filename :
-		VIPS_OBJECT( STREAM )->nickname );
+	return( stream->filename ?
+		stream->filename :
+		VIPS_OBJECT( stream )->nickname );
 }

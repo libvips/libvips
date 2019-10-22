@@ -693,7 +693,7 @@ typedef struct {
 
 	/* Build the output area here.
 	 */
-	VipsStreamOutput *output;
+	VipsStreamo *output;
 
 	/* Our output buffer.
 	 */
@@ -708,7 +708,7 @@ empty_output_buffer( j_compress_ptr cinfo )
 {
 	Dest *dest = (Dest *) cinfo->dest;
 
-	if( vips_stream_output_write( dest->output, 
+	if( vips_streamo_write( dest->output, 
 		dest->buf, STREAM_BUFFER_SIZE ) )
 		ERREXIT( cinfo, JERR_FILE_WRITE );
 
@@ -736,17 +736,17 @@ term_destination( j_compress_ptr cinfo )
 {
         Dest *dest = (Dest *) cinfo->dest;
 
-	if( vips_stream_output_write( dest->output, 
+	if( vips_streamo_write( dest->output, 
 		dest->buf, STREAM_BUFFER_SIZE - dest->pub.free_in_buffer ) )
 		ERREXIT( cinfo, JERR_FILE_WRITE );
 
-	vips_stream_output_finish( dest->output );
+	vips_streamo_finish( dest->output );
 }
 
 /* Set dest to one of our objects.
  */
 static void
-stream_dest( j_compress_ptr cinfo, VipsStreamOutput *output )
+stream_dest( j_compress_ptr cinfo, VipsStreamo *output )
 {
 	Dest *dest;
 
@@ -765,7 +765,7 @@ stream_dest( j_compress_ptr cinfo, VipsStreamOutput *output )
 }
 
 int
-vips__jpeg_write_stream( VipsImage *in, VipsStreamOutput *output,
+vips__jpeg_write_stream( VipsImage *in, VipsStreamo *output,
 	int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive,
 	gboolean strip, gboolean no_subsample, gboolean trellis_quant,

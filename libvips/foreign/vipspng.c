@@ -173,7 +173,7 @@ typedef struct {
 	png_infop pInfo;
 	png_bytep *row_pointer;
 
-	VipsStreamInput *input;
+	VipsStreami *input;
 
 	/* read() to this buffer, copy to png as required. libpng does many
 	 * very small reads and we want to avoid a syscall for each one.
@@ -209,7 +209,7 @@ static void
 read_minimise_cb( VipsImage *image, Read *read )
 {
 	if( read->input )
-		vips_stream_input_minimise( read->input );
+		vips_streami_minimise( read->input );
 }
 
 static void
@@ -230,7 +230,7 @@ vips_png_read_stream( png_structp pPng, png_bytep data, png_size_t length )
 		if( read->bytes_in_buffer <= 0 ) {
 			ssize_t bytes_read;
 
-			bytes_read = vips_stream_input_read( read->input, 
+			bytes_read = vips_streami_read( read->input, 
 				read->input_buffer, INPUT_BUFFER_SIZE );
 			if( bytes_read <= 0 )
 				png_error( pPng, "not enough data" );
@@ -249,7 +249,7 @@ vips_png_read_stream( png_structp pPng, png_bytep data, png_size_t length )
 }
 
 static Read *
-read_new( VipsStreamInput *input, VipsImage *out, gboolean fail )
+read_new( VipsStreami *input, VipsImage *out, gboolean fail )
 {
 	Read *read;
 
@@ -290,7 +290,7 @@ read_new( VipsStreamInput *input, VipsImage *out, gboolean fail )
 		PNG_CRC_QUIET_USE, PNG_CRC_QUIET_USE );
 #endif /*FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION*/
 
-	if( vips_stream_input_rewind( input ) ) 
+	if( vips_streami_rewind( input ) ) 
 		return( NULL );
 	png_set_read_fn( read->pPng, read, vips_png_read_stream ); 
 
@@ -481,8 +481,7 @@ png2vips_header( Read *read, VipsImage *out )
 		VIPS_CODING_NONE, interpretation, 
 		Xres, Yres );
 
-	VIPS_SETSTR( out->filename, 
-		vips_stream_filename( VIPS_STREAM( read->input ) ) );
+	VIPS_SETSTR( out->filename, VIPS_STREAM( read->input )->filename );
 
 	/* Uninterlaced images will be read in seq mode. Interlaced images are
 	 * read via a huge memory buffer.
@@ -624,7 +623,7 @@ png2vips_generate( VipsRegion *or,
 
 	/* In pixel decode mode.
 	 */
-	if( vips_stream_input_decode( read->input ) )
+	if( vips_streami_decode( read->input ) )
 		return( -1 );
 
 	for( y = 0; y < r->height; y++ ) {
@@ -699,11 +698,11 @@ png2vips_image( Read *read, VipsImage *out )
 }
 
 gboolean
-vips__png_ispng_stream( VipsStreamInput *input )
+vips__png_ispng_stream( VipsStreami *input )
 {
 	const unsigned char *p;
 
-	if( (p = vips_stream_input_sniff( input, 8 )) &&
+	if( (p = vips_streami_sniff( input, 8 )) &&
 		!png_sig_cmp( (png_bytep) p, 0, 8 ) )
 		return( TRUE ); 
 
@@ -711,7 +710,7 @@ vips__png_ispng_stream( VipsStreamInput *input )
 }
 
 int
-vips__png_header_stream( VipsStreamInput *input, VipsImage *out )
+vips__png_header_stream( VipsStreami *input, VipsImage *out )
 {
 	Read *read;
 
@@ -719,13 +718,13 @@ vips__png_header_stream( VipsStreamInput *input, VipsImage *out )
 		png2vips_header( read, out ) ) 
 		return( -1 );
 
-	vips_stream_input_minimise( input );
+	vips_streami_minimise( input );
 
 	return( 0 );
 }
 
 int
-vips__png_read_stream( VipsStreamInput *input, VipsImage *out, gboolean fail )
+vips__png_read_stream( VipsStreami *input, VipsImage *out, gboolean fail )
 {
 	Read *read;
 
@@ -740,7 +739,7 @@ vips__png_read_stream( VipsStreamInput *input, VipsImage *out, gboolean fail )
  * served partially from there. Non-interlaced PNGs may be read sequentially.
  */
 gboolean
-vips__png_isinterlaced_stream( VipsStreamInput *input )
+vips__png_isinterlaced_stream( VipsStreami *input )
 {
 	VipsImage *image;
 	Read *read;
@@ -766,7 +765,7 @@ typedef struct {
 	VipsImage *in;
 	VipsImage *memory;
 
-	VipsStreamOutput *output;
+	VipsStreamo *output;
 
 	png_structp pPng;
 	png_infop pInfo;
@@ -778,7 +777,7 @@ write_finish( Write *write )
 {
 	VIPS_UNREF( write->memory );
 	if( write->output ) 
-		vips_stream_output_finish( write->output );
+		vips_streamo_finish( write->output );
 	VIPS_UNREF( write->output );
 	if( write->pPng )
 		png_destroy_write_struct( &write->pPng, &write->pInfo );
@@ -795,12 +794,12 @@ user_write_data( png_structp pPng, png_bytep data, png_size_t length )
 {
 	Write *write = (Write *) png_get_io_ptr( pPng );
 
-	if( vips_stream_output_write( write->output, data, length ) ) 
+	if( vips_streamo_write( write->output, data, length ) ) 
 		png_error( pPng, "not enough data" );
 }
 
 static Write *
-write_new( VipsImage *in, VipsStreamOutput *output )
+write_new( VipsImage *in, VipsStreamo *output )
 {
 	Write *write;
 
@@ -1173,7 +1172,7 @@ write_vips( Write *write,
 }
 
 int
-vips__png_write_stream( VipsImage *in, VipsStreamOutput *output,
+vips__png_write_stream( VipsImage *in, VipsStreamo *output,
 	int compression, int interlace,
 	const char *profile, VipsForeignPngFilter filter, gboolean strip,
 	gboolean palette, int colours, int Q, double dither )

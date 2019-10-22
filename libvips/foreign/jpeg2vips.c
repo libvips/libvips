@@ -193,7 +193,7 @@ typedef struct _ReadJpeg {
 
 	/* The stream we read from.
 	 */
-	VipsStreamInput *input;
+	VipsStreami *input;
 
 } ReadJpeg;
 
@@ -208,7 +208,7 @@ typedef struct {
 
 	/* Private stuff during read.
 	 */
-	VipsStreamInput *input;
+	VipsStreami *input;
 	unsigned char buf[STREAM_BUFFER_SIZE];
 
 } Source;
@@ -238,7 +238,7 @@ stream_fill_input_buffer( j_decompress_ptr cinfo )
 
 	size_t read;
 	
-	if( (read = vips_stream_input_read( src->input, 
+	if( (read = vips_streami_read( src->input, 
 		src->buf, STREAM_BUFFER_SIZE )) > 0 ) {
 		src->pub.next_input_byte = src->buf;
 		src->pub.bytes_in_buffer = read;
@@ -281,7 +281,7 @@ readjpeg_open_input( ReadJpeg *jpeg )
 		!cinfo->src ) {
 		Source *src;
 
-		if( vips_stream_input_rewind( jpeg->input ) )
+		if( vips_streami_rewind( jpeg->input ) )
 			return( -1 );
 
 		cinfo->src = (struct jpeg_source_mgr *)
@@ -338,13 +338,13 @@ readjpeg_close_cb( VipsObject *object, ReadJpeg *jpeg )
 }
 
 static void
-input_minimise_cb( VipsImage *image, VipsStreamInput *input )
+input_minimise_cb( VipsImage *image, VipsStreami *input )
 {
-	vips_stream_input_minimise( input );
+	vips_streami_minimise( input );
 }
 
 static ReadJpeg *
-readjpeg_new( VipsStreamInput *input, VipsImage *out, 
+readjpeg_new( VipsStreami *input, VipsImage *out, 
 	int shrink, gboolean fail, gboolean autorotate )
 {
 	ReadJpeg *jpeg;
@@ -558,8 +558,7 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 		interpretation,
 		xres, yres );
 
-	VIPS_SETSTR( out->filename, 
-		vips_stream_filename( VIPS_STREAM( jpeg->input ) ) );
+	VIPS_SETSTR( out->filename, VIPS_STREAM( jpeg->input )->filename );
 
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 
@@ -746,7 +745,7 @@ read_jpeg_generate( VipsRegion *or,
 
 	/* In pixel decode mode.
 	 */
-	if( vips_stream_input_decode( jpeg->input ) )
+	if( vips_streami_decode( jpeg->input ) )
 		return( -1 );
 
 	VIPS_GATE_START( "read_jpeg_generate: work" );
@@ -955,7 +954,7 @@ vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 			vips_autorot_remove_angle( out ); 
 		}
 
-		vips_stream_input_minimise( jpeg->input );
+		vips_streami_minimise( jpeg->input );
 	}
 	else {
 		if( read_jpeg_image( jpeg, out ) )
@@ -966,7 +965,7 @@ vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 }
 
 int
-vips__jpeg_read_stream( VipsStreamInput *input, VipsImage *out,
+vips__jpeg_read_stream( VipsStreami *input, VipsImage *out,
 	gboolean header_only, int shrink, int fail, gboolean autorotate )
 {
 	ReadJpeg *jpeg;
@@ -987,11 +986,11 @@ vips__jpeg_read_stream( VipsStreamInput *input, VipsImage *out,
 }
 
 int
-vips__isjpeg_stream( VipsStreamInput *input )
+vips__isjpeg_stream( VipsStreami *input )
 {
 	const unsigned char *p;
 
-	if( (p = vips_stream_input_sniff( input, 2 )) &&
+	if( (p = vips_streami_sniff( input, 2 )) &&
 		p[0] == 0xff && 
 		p[1] == 0xd8 )
 		return( 1 );

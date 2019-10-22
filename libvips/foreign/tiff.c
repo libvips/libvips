@@ -138,9 +138,9 @@ vips__tiff_openout( const char *path, gboolean bigtiff )
 static tsize_t
 openin_stream_read( thandle_t st, tdata_t data, tsize_t size )
 {
-	VipsStreamInput *input = VIPS_STREAM_INPUT( st );
+	VipsStreami *input = VIPS_STREAMI( st );
 
-	return( vips_stream_input_read( input, data, size ) );
+	return( vips_streami_read( input, data, size ) );
 }
 
 static tsize_t
@@ -154,15 +154,15 @@ openin_stream_write( thandle_t st, tdata_t buffer, tsize_t size )
 static toff_t
 openin_stream_seek( thandle_t st, toff_t position, int whence )
 {
-	VipsStreamInput *input = VIPS_STREAM_INPUT( st );
+	VipsStreami *input = VIPS_STREAMI( st );
 
-	return( vips_stream_input_seek( input, position, whence ) );
+	return( vips_streami_seek( input, position, whence ) );
 }
 
 static int
 openin_stream_close( thandle_t st )
 {
-	VipsStreamInput *input = VIPS_STREAM_INPUT( st );
+	VipsStreami *input = VIPS_STREAMI( st );
 
 	VIPS_UNREF( input );
 
@@ -172,12 +172,12 @@ openin_stream_close( thandle_t st )
 static toff_t
 openin_stream_size( thandle_t st )
 {
-	VipsStreamInput *input = VIPS_STREAM_INPUT( st );
+	VipsStreami *input = VIPS_STREAMI( st );
 
 	/* libtiff will use this to get file size if tags like StripByteCounts
 	 * are missing.
 	 */
-	return( vips_stream_input_size( input ) );
+	return( vips_streami_size( input ) );
 }
 
 static int
@@ -197,7 +197,7 @@ openin_stream_unmap( thandle_t st, tdata_t start, toff_t len )
 }
 
 TIFF *
-vips__tiff_openin_stream( VipsStreamInput *input )
+vips__tiff_openin_stream( VipsStreami *input )
 {
 	TIFF *tiff;
 
@@ -207,7 +207,7 @@ vips__tiff_openin_stream( VipsStreamInput *input )
 
 	/* Unreffed on close(), see above.
 	 */
-	if( vips_stream_input_rewind( input ) )
+	if( vips_streami_rewind( input ) )
 		return( NULL );
 
 	g_object_ref( input );

@@ -222,7 +222,7 @@ vips_foreign_save_webp_init( VipsForeignSaveWebp *webp )
 typedef struct _VipsForeignSaveWebpStream {
 	VipsForeignSaveWebp parent_object;
 
-	VipsStreamOutput *output;
+	VipsStreamo *output;
 
 } VipsForeignSaveWebpStream;
 
@@ -273,7 +273,7 @@ vips_foreign_save_webp_stream_class_init(
 		_( "Stream to save to" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignSaveWebpStream, output ),
-		VIPS_TYPE_STREAM_OUTPUT );
+		VIPS_TYPE_STREAMO );
 }
 
 static void
@@ -303,13 +303,13 @@ vips_foreign_save_webp_file_build( VipsObject *object )
 	VipsForeignSaveWebp *webp = (VipsForeignSaveWebp *) object;
 	VipsForeignSaveWebpFile *file = (VipsForeignSaveWebpFile *) object;
 
-	VipsStreamOutput *output;
+	VipsStreamo *output;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_webp_file_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( !(output = vips_stream_output_new_from_filename( file->filename )) )
+	if( !(output = vips_streamo_new_from_filename( file->filename )) )
 		return( -1 );
 	if( vips__webp_write_stream( save->ready, output,
 		webp->Q, webp->lossless, webp->preset,
@@ -373,14 +373,14 @@ vips_foreign_save_webp_buffer_build( VipsObject *object )
 	VipsForeignSaveWebpBuffer *buffer = 
 		(VipsForeignSaveWebpBuffer *) object;
 
-	VipsStreamOutput *output;
+	VipsStreamo *output;
 	VipsBlob *blob;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_webp_buffer_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( !(output = vips_stream_output_new_memory()) )
+	if( !(output = vips_streamo_new_memory()) )
 		return( -1 );
 
 	if( vips__webp_write_stream( save->ready, output,
@@ -443,7 +443,7 @@ vips_foreign_save_webp_mime_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveWebp *webp = (VipsForeignSaveWebp *) object;
 
-	VipsStreamOutput *output;
+	VipsStreamo *output;
 	VipsBlob *blob;
 	void *data;
 	size_t len;
@@ -452,7 +452,7 @@ vips_foreign_save_webp_mime_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(output = vips_stream_output_new_memory()) )
+	if( !(output = vips_streamo_new_memory()) )
 		return( -1 );
 
 	if( vips__webp_write_stream( save->ready, output,
@@ -695,7 +695,7 @@ vips_webpsave_mime( VipsImage *in, ... )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_webpsave_stream( VipsImage *in, VipsStreamOutput *output, ... )
+vips_webpsave_stream( VipsImage *in, VipsStreamo *output, ... )
 {
 	va_list ap;
 	int result;

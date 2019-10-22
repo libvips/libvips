@@ -182,7 +182,7 @@ vips_foreign_save_png_init( VipsForeignSavePng *png )
 typedef struct _VipsForeignSavePngStream {
 	VipsForeignSavePng parent_object;
 
-	VipsStreamOutput *output;
+	VipsStreamo *output;
 } VipsForeignSavePngStream;
 
 typedef VipsForeignSavePngClass VipsForeignSavePngStreamClass;
@@ -227,7 +227,7 @@ vips_foreign_save_png_stream_class_init( VipsForeignSavePngStreamClass *class )
 		_( "Stream to save to" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignSavePngStream, output ),
-		VIPS_TYPE_STREAM_OUTPUT );
+		VIPS_TYPE_STREAMO );
 
 }
 
@@ -254,13 +254,13 @@ vips_foreign_save_png_file_build( VipsObject *object )
 	VipsForeignSavePng *png = (VipsForeignSavePng *) object;
 	VipsForeignSavePngFile *png_file = (VipsForeignSavePngFile *) object;
 
-	VipsStreamOutput *output;
+	VipsStreamo *output;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_png_file_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( !(output = vips_stream_output_new_from_filename( 
+	if( !(output = vips_streamo_new_from_filename( 
 		png_file->filename )) )
 		return( -1 );
 	if( vips__png_write_stream( save->ready, output, 
@@ -319,14 +319,14 @@ vips_foreign_save_png_buffer_build( VipsObject *object )
 	VipsForeignSavePng *png = (VipsForeignSavePng *) object;
 	VipsForeignSavePngBuffer *buffer = (VipsForeignSavePngBuffer *) object;
 
-	VipsStreamOutput *output;
+	VipsStreamo *output;
 	VipsBlob *blob;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_png_buffer_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( !(output = vips_stream_output_new_memory()) )
+	if( !(output = vips_streamo_new_memory()) )
 		return( -1 );
 
 	if( vips__png_write_stream( save->ready, output,
@@ -522,7 +522,7 @@ vips_pngsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_pngsave_stream( VipsImage *in, VipsStreamOutput *output, ... )
+vips_pngsave_stream( VipsImage *in, VipsStreamo *output, ... )
 {
 	va_list ap;
 	int result;

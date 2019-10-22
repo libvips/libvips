@@ -300,7 +300,7 @@ typedef void (*scanline_process_fn)( struct _Rtiff *,
 typedef struct _Rtiff {
 	/* Parameters.
 	 */
-	VipsStreamInput *input;
+	VipsStreami *input;
 	VipsImage *out;
 	int page;
 	int n;
@@ -501,11 +501,11 @@ static void
 rtiff_minimise_cb( VipsImage *image, Rtiff *rtiff )
 {
 	if( rtiff->input )
-		vips_stream_input_minimise( rtiff->input );
+		vips_streami_minimise( rtiff->input );
 }
 
 static Rtiff *
-rtiff_new( VipsStreamInput *input, VipsImage *out, 
+rtiff_new( VipsStreami *input, VipsImage *out, 
 	int page, int n, gboolean autorotate )
 {
 	Rtiff *rtiff;
@@ -1536,7 +1536,7 @@ rtiff_fill_region( VipsRegion *out,
 
 	/* In pixel decode mode.
 	 */
-	if( vips_stream_input_decode( rtiff->input ) )
+	if( vips_streami_decode( rtiff->input ) )
 		return( -1 );
 
 	/* Special case: we are filling a single tile exactly sized to match
@@ -1867,7 +1867,7 @@ rtiff_stripwise_generate( VipsRegion *or,
 
 	/* In pixel decode mode.
 	 */
-	if( vips_stream_input_decode( rtiff->input ) )
+	if( vips_streami_decode( rtiff->input ) )
 		return( -1 );
 
 	/* And check that y_pos is correct. It should be, since we are inside
@@ -2389,7 +2389,7 @@ vips__tiff_read_header_orientation( Rtiff *rtiff, VipsImage *out )
 typedef gboolean (*TiffPropertyFn)( TIFF *tif );
 
 static gboolean
-vips__testtiff_stream( VipsStreamInput *input, TiffPropertyFn fn )
+vips__testtiff_stream( VipsStreami *input, TiffPropertyFn fn )
 {
 	TIFF *tif;
 	gboolean property;
@@ -2409,19 +2409,19 @@ vips__testtiff_stream( VipsStreamInput *input, TiffPropertyFn fn )
 }
 
 gboolean
-vips__istiff_stream( VipsStreamInput *input )
+vips__istiff_stream( VipsStreami *input )
 {
 	return( vips__testtiff_stream( input, NULL ) ); 
 }
 
 gboolean
-vips__istifftiled_stream( VipsStreamInput *input )
+vips__istifftiled_stream( VipsStreami *input )
 {
 	return( vips__testtiff_stream( input, TIFFIsTiled ) ); 
 }
 
 int
-vips__tiff_read_header_stream( VipsStreamInput *input, VipsImage *out, 
+vips__tiff_read_header_stream( VipsStreami *input, VipsImage *out, 
 	int page, int n, gboolean autorotate )
 {
 	Rtiff *rtiff;
@@ -2437,13 +2437,13 @@ vips__tiff_read_header_stream( VipsStreamInput *input, VipsImage *out,
 
 	vips__tiff_read_header_orientation( rtiff, out ); 
 
-	vips_stream_input_minimise( input );
+	vips_streami_minimise( input );
 
 	return( 0 );
 }
 
 int
-vips__tiff_read_stream( VipsStreamInput *input, VipsImage *out, 
+vips__tiff_read_stream( VipsStreami *input, VipsImage *out, 
 	int page, int n, gboolean autorotate )
 {
 	Rtiff *rtiff;

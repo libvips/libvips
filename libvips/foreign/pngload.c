@@ -127,7 +127,7 @@ vips_foreign_load_png_stream_class_init( VipsForeignLoadPngStreamClass *class )
 		_( "Stream to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignLoadPngStream, input ),
-		VIPS_TYPE_STREAM_INPUT );
+		VIPS_TYPE_STREAMI );
 
 }
 
@@ -156,7 +156,7 @@ vips_foreign_load_png_is_a( const char *filename )
 	VipsStreami *input;
 	gboolean result;
 
-	if( !(input = vips_stream_input_new_from_filename( filename )) )
+	if( !(input = vips_streami_new_from_filename( filename )) )
 		return( FALSE );
 	result = vips__png_ispng_stream( input );
 	VIPS_UNREF( input );
@@ -170,7 +170,7 @@ vips_foreign_load_png_get_flags_filename( const char *filename )
 	VipsStreami *input;
 	VipsForeignFlags flags;
 
-	if( !(input = vips_stream_input_new_from_filename( filename )) )
+	if( !(input = vips_streami_new_from_filename( filename )) )
 		return( 0 );
 
 	flags = 0;
@@ -199,7 +199,7 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 
 	VipsStreami *input;
 
-	if( !(input = vips_stream_input_new_from_filename( png->filename )) )
+	if( !(input = vips_streami_new_from_filename( png->filename )) )
 		return( -1 );
 	if( vips__png_header_stream( input, load->out ) ) {
 		VIPS_UNREF( input );
@@ -217,7 +217,7 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 
 	VipsStreami *input;
 
-	if( !(input = vips_stream_input_new_from_filename( png->filename )) )
+	if( !(input = vips_streami_new_from_filename( png->filename )) )
 		return( -1 );
 	if( vips__png_read_stream( input, load->real, load->fail ) ) {
 		VIPS_UNREF( input );
@@ -288,7 +288,7 @@ vips_foreign_load_png_buffer_is_a_buffer( const void *buf, size_t len )
 	VipsStreami *input;
 	gboolean result;
 
-	if( !(input = vips_stream_input_new_from_memory( buf, len )) )
+	if( !(input = vips_streami_new_from_memory( buf, len )) )
 		return( FALSE );
 	result = vips__png_ispng_stream( input );
 	VIPS_UNREF( input );
@@ -304,7 +304,7 @@ vips_foreign_load_png_buffer_get_flags( VipsForeignLoad *load )
 	VipsStreami *input;
 	VipsForeignFlags flags;
 
-	if( !(input = vips_stream_input_new_from_memory( buffer->buf->data, 
+	if( !(input = vips_streami_new_from_memory( buffer->buf->data, 
 		buffer->buf->length )) ) 
 		return( 0 );
 
@@ -326,7 +326,7 @@ vips_foreign_load_png_buffer_header( VipsForeignLoad *load )
 
 	VipsStreami *input;
 
-	if( !(input = vips_stream_input_new_from_memory( buffer->buf->data, 
+	if( !(input = vips_streami_new_from_memory( buffer->buf->data, 
 		buffer->buf->length )) ) 
 		return( -1 );
 	if( vips__png_header_stream( input, load->out ) ) {
@@ -345,7 +345,7 @@ vips_foreign_load_png_buffer_load( VipsForeignLoad *load )
 
 	VipsStreami *input;
 
-	if( !(input = vips_stream_input_new_from_memory( buffer->buf->data, 
+	if( !(input = vips_streami_new_from_memory( buffer->buf->data, 
 		buffer->buf->length )) ) 
 		return( -1 );
 	if( vips__png_read_stream( input, load->real, load->fail ) ) {
