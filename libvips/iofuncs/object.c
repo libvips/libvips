@@ -1908,10 +1908,10 @@ vips_object_set_argument_from_string( VipsObject *object,
 		vips__filename_split8( value, filename, option_string );
 
 		if( strcmp( "stdin", filename ) == 0 ) {
-			VipsStreamInput *input;
+			VipsStreami *input;
 
 			if( !(input = 
-				vips_stream_input_new_from_descriptor( 0 )) )
+				vips_streami_new_from_descriptor( 0 )) )
 				return( -1 );
 			if( !(out = vips_image_new_from_stream( input, 
 				option_string, 
@@ -1937,18 +1937,18 @@ vips_object_set_argument_from_string( VipsObject *object,
 		 */
 		g_object_unref( out );
 	}
-	else if( g_type_is_a( otype, VIPS_TYPE_STREAM_INPUT ) ) { 
-		VipsStreamInput *input;
+	else if( g_type_is_a( otype, VIPS_TYPE_STREAMI ) ) { 
+		VipsStreami *input;
 
 		if( !value ) {
 			vips_object_no_value( object, name );
 			return( -1 );
 		}
 
-		if( !(input = vips_stream_input_new_from_options( value )) )
+		if( !(input = vips_streami_new_from_options( value )) )
 			return( -1 );
 	
-		g_value_init( &gvalue, VIPS_TYPE_STREAM_INPUT );
+		g_value_init( &gvalue, VIPS_TYPE_STREAMI );
 		g_value_set_object( &gvalue, input );
 
 		/* Setting gvalue will have upped @out's count again,
@@ -2210,10 +2210,9 @@ vips_object_get_argument_to_string( VipsObject *object,
 		vips__filename_split8( arg, filename, option_string );
 
 		if( vips_isprefix( ".", filename ) ) {
-			VipsStreamOutput *output;
+			VipsStreamo *output;
 
-			if( !(output = 
-				vips_stream_output_new_from_descriptor( 1 )) )
+			if( !(output = vips_streamo_new_from_descriptor( 1 )) )
 				return( -1 );
 			g_object_get( object, name, &in, NULL );
 			if( vips_image_write_to_stream( in, 

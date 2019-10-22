@@ -86,6 +86,8 @@ typedef struct _VipsStreamClass {
 
 GType vips_stream_get_type( void );
 
+int vips_stream_open( VipsStream *stream );
+int vips_stream_close( VipsStream *stream );
 const char *vips_stream_name( VipsStream *stream );
 
 #define VIPS_TYPE_STREAMI (vips_streami_get_type())
@@ -201,6 +203,15 @@ typedef struct _VipsStreamiClass {
 	 */
 	void (*minimise)( VipsStreami * );
 
+	/* The opposite of minimise: restart anything that minimise shut down.
+	 */
+	int (*unminimise)( VipsStreami * );
+
+	/* Length of object in bytes. If this is a pipe, it will force the
+	 * whole object to be read into memory, so use cautiously.
+	 */
+	gint64 (*size)( VipsStreami * );
+
 } VipsStreamiClass;
 
 GType vips_streami_get_type( void );
@@ -216,6 +227,7 @@ const void *vips_streami_map( VipsStreami *streami, size_t *length );
 gint64 vips_streami_seek( VipsStreami *streami, gint64 offset, int whence );
 int vips_streami_rewind( VipsStreami *streami );
 void vips_streami_minimise( VipsStreami *streami );
+int vips_streami_unminimise( VipsStreami *streami );
 int vips_streami_decode( VipsStreami *streami );
 unsigned char *vips_streami_sniff( VipsStreami *streami, size_t length );
 gint64 vips_streami_size( VipsStreami *streami ); 

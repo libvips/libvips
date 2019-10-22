@@ -2185,8 +2185,7 @@ vips_image_new_from_buffer( const void *buf, size_t len,
  * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */
 VipsImage *
-vips_image_new_from_stream( VipsStreamInput *input, 
-	const char *option_string, ... )
+vips_image_new_from_stream( VipsStreami *input, const char *option_string, ... )
 {
 	const char *operation_name;
 	va_list ap;
@@ -2726,7 +2725,7 @@ vips_image_write_to_buffer( VipsImage *in,
  */
 int
 vips_image_write_to_stream( VipsImage *in, 
-	const char *suffix, VipsStreamOutput *output, ... )
+	const char *suffix, VipsStreamo *output, ... )
 {
 	char filename[VIPS_PATH_MAX];
 	char option_string[VIPS_PATH_MAX];

@@ -316,7 +316,7 @@ vips_streamo_new_memory( void )
 int
 vips_streamo_write( VipsStreamo *streamo, const void *data, size_t length )
 {
-	VipsStreamoClass *class = VIPS_STREAMO_GET_CLASS( stream );
+	VipsStreamoClass *class = VIPS_STREAMO_GET_CLASS( streamo );
 
 	VIPS_DEBUG_MSG( "vips_streamo_write: %zd bytes\n", length );
 

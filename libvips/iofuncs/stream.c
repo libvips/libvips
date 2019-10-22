@@ -80,26 +80,6 @@
 G_DEFINE_ABSTRACT_TYPE( VipsStream, vips_stream, VIPS_TYPE_OBJECT );
 
 static void
-vips_stream_close( VipsStream *stream )
-{
-	VIPS_DEBUG_MSG( "vips_stream_close:\n" );
-
-	if( stream->close_descriptor >= 0 ) {
-		VIPS_DEBUG_MSG( "    close()\n" );
-		close( stream->close_descriptor );
-		stream->close_descriptor = -1;
-	}
-
-	if( stream->tracked_descriptor >= 0 ) {
-		VIPS_DEBUG_MSG( "    vips_tracked_close()\n" );
-		vips_tracked_close( stream->tracked_descriptor );
-		stream->tracked_descriptor = -1;
-	}
-
-	stream->descriptor = -1;
-}
-
-static void
 vips_stream_finalize( GObject *gobject )
 {
 	VipsStream *stream = (VipsStream *) gobject;
@@ -110,7 +90,20 @@ vips_stream_finalize( GObject *gobject )
 	VIPS_DEBUG_MSG( "\n" );
 #endif /*VIPS_DEBUG*/
 
-	vips_stream_close( stream );
+	if( stream->tracked_descriptor >= 0 ) {
+		VIPS_DEBUG_MSG( "    tracked_close()\n" );
+		vips_tracked_close( stream->tracked_descriptor );
+		stream->tracked_descriptor = -1;
+		stream->descriptor = -1;
+	}
+
+	if( stream->close_descriptor >= 0 ) {
+		VIPS_DEBUG_MSG( "    close()\n" );
+		close( stream->close_descriptor );
+		stream->close_descriptor = -1;
+		stream->descriptor = -1;
+	}
+
 	VIPS_FREE( stream->filename ); 
 
 	G_OBJECT_CLASS( vips_stream_parent_class )->finalize( gobject );
@@ -156,3 +149,4 @@ vips_stream_name( VipsStream *stream )
 		stream->filename :
 		VIPS_OBJECT( stream )->nickname );
 }
+
