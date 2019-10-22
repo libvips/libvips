@@ -102,7 +102,8 @@ vips_streami_sanity( VipsStreami *streami )
 		 */
 		g_assert( streami->read_position >= 0 );
 		g_assert( streami->read_position < streami->length );
-		g_assert( streami->read_position < area->length );
+		g_assert( streami->read_position < 
+			VIPS_AREA( streami->blob )->length );
 
 		/* No need for header tracking.
 		 */
@@ -115,10 +116,10 @@ vips_streami_sanity( VipsStreami *streami )
 
 		/* No descriptor or filename.
 		 */
-		g_assert( stream->descriptor == -1 );
-		g_assert( stream->close_descriptor == -1 );
-		g_assert( stream->tracked_descriptor == -1 );
-		g_assert( !stream->filename );
+		g_assert( VIPS_STREAM( streami )->descriptor == -1 );
+		g_assert( VIPS_STREAM( streami )->close_descriptor == -1 );
+		g_assert( VIPS_STREAM( streami )->tracked_descriptor == -1 );
+		g_assert( !VIPS_STREAM( streami )->filename );
 	}
 	else if( streami->is_pipe ) {
 		/* In header, read_position must be within header_bytes.
@@ -178,8 +179,9 @@ vips_streami_sanity( VipsStreami *streami )
 		/* Supports minimise, so if descriptor is -1, we must have a
 		 * filename we can reopen.
 		 */
-		g_assert( stream->descriptor != -1 ||
-			(stream->filename && stream->descriptor) );
+		g_assert( VIPS_STREAM( streami )->descriptor != -1 ||
+			(VIPS_STREAM( streami )->filename && 
+			 VIPS_STREAM( streami )->descriptor) );
 	}
 }
 
