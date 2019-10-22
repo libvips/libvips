@@ -1,5 +1,8 @@
 language: cpp
 
+services:
+  - docker
+
 before_script:
   - $PYTHON -m pip download --no-deps https://github.com/libvips/pyvips/archive/$PYVIPS_VERSION.tar.gz
   - tar xf $PYVIPS_VERSION.tar.gz
@@ -10,12 +13,23 @@ before_script:
     --with-jpeg-libraries=$JPEG/lib
     --with-magick=$WITH_MAGICK
   - make -j$JOBS -s 
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 script:
   - make -j$JOBS -s -k V=0 VERBOSE=1 check
   - LD_LIBRARY_PATH=$PWD/libvips/.libs
     DYLD_LIBRARY_PATH=$PWD/libvips/.libs
     LD_PRELOAD=$ASAN_DSO
     $PYTHON -m pytest -v test/test-suite
+  - docker build --build-arg VIPS_VERSION -t vips/vips-web .
+  - docker tag vips/vips-web:latest vips/vips-web:$VIPS_VERSION
+
+deploy:
+  provider: script
+  script: 
+    - docker push vips/vips-web:latest
+    - docker push vips/vips-web:$VIPS_VERSION
+  on:
+    branch: master
 
 matrix:
   allow_failures:
