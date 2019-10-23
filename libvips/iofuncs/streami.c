@@ -42,8 +42,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -126,7 +126,7 @@ vips_streami_sanity( VipsStreami *streami )
 	else if( streami->is_pipe ) {
 		/* In header, read_position must be within header_bytes.
 		 */
-		g_assert( !streami->decode || 
+		g_assert( streami->decode || 
 			(streami->read_position >= 0 && 
 			 streami->read_position <= 
 			 	streami->header_bytes->len) );
@@ -134,10 +134,8 @@ vips_streami_sanity( VipsStreami *streami )
 		/* If we're in the header, we must save bytes we read. If not 
 		 * in header, should have no saved bytes.
 		 */
-		g_assert( streami->decode || 
-			streami->header_bytes );
-		g_assert( !streami->decode || 
-			!streami->header_bytes );
+		g_assert( (streami->decode && !streami->header_bytes) ||
+			(!streami->decode && streami->header_bytes ) );
 
 		/* After we're done with the header, the sniff buffer should
 		 * be gone.
@@ -232,7 +230,7 @@ vips_streami_build( VipsObject *object )
 	if( stream->descriptor != -1 ) {
 		/* Can we seek? If not, this is some kind of pipe.
 		 */
-		if( vips__seek( stream->descriptor, 0, SEEK_CUR ) == -1 ) {
+		if( !vips__can_seek( stream->descriptor ) ) {
 			VIPS_DEBUG_MSG( "    not seekable\n" );
 			streami->is_pipe = TRUE;
 		}
@@ -769,7 +767,8 @@ vips_streami_seek( VipsStreami *streami, gint64 offset, int whence )
 
 	gint64 new_pos;
 
-	VIPS_DEBUG_MSG( "vips_streami_seek:\n" );
+	VIPS_DEBUG_MSG( "vips_streami_seek: offset = %" G_GINT64_FORMAT 
+		", whence = %d\n", offset, whence );
 
 	vips_streami_sanity( streami );
 
@@ -843,6 +842,8 @@ vips_streami_minimise( VipsStreami *streami )
 {
 	VipsStreamiClass *class = VIPS_STREAMI_GET_CLASS( streami );
 
+	VIPS_DEBUG_MSG( "vips_streami_minimise:\n" );
+
 	vips_streami_sanity( streami );
 
 	class->minimise( streami );
@@ -854,6 +855,8 @@ int
 vips_streami_unminimise( VipsStreami *streami )
 {
 	VipsStreamiClass *class = VIPS_STREAMI_GET_CLASS( streami );
+
+	VIPS_DEBUG_MSG( "vips_streami_unminimise:\n" );
 
 	/* This is used during _build(), so we can't sanity check
 	 */
@@ -867,6 +870,8 @@ vips_streami_size( VipsStreami *streami )
 	VipsStreamiClass *class = VIPS_STREAMI_GET_CLASS( streami );
 
 	gint64 size;
+
+	VIPS_DEBUG_MSG( "vips_streami_size:\n" );
 
 	vips_streami_sanity( streami );
 
