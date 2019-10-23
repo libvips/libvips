@@ -670,9 +670,6 @@ vips_image_sanity( VipsObject *object, VipsBuf *buf )
 {
 	VipsImage *image = VIPS_IMAGE( object );
 
-	if( !image->filename ) 
-		vips_buf_appends( buf, "NULL filename\n" );
-
 	/* All 0 means im has been inited but never used.
 	 */
 	if( image->Xsize != 0 ||

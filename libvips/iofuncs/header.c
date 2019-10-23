@@ -717,7 +717,8 @@ vips_image_get_yoffset( const VipsImage *image )
  * vips_image_get_filename: (method)
  * @image: image to get from
  *
- * Returns: the name of the file the image was loaded from. 
+ * Returns: the name of the file the image was loaded from, or NULL if there
+ * is no filename.
  */
 const char *
 vips_image_get_filename( const VipsImage *image )

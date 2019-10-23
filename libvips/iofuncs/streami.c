@@ -98,11 +98,13 @@ vips_streami_sanity( VipsStreami *streami )
 		 */
 		g_assert( !streami->is_pipe );
 
-		/* Read position must lie within the buffer.
+		/* Read position must lie within the buffer. <= length, since
+		 * it can be one beyond. Imagine read_position 0 and a
+		 * zero-length buffer.
 		 */
 		g_assert( streami->read_position >= 0 );
-		g_assert( streami->read_position < streami->length );
-		g_assert( streami->read_position < 
+		g_assert( streami->read_position <= streami->length );
+		g_assert( streami->read_position <= 
 			VIPS_AREA( streami->blob )->length );
 
 		/* No need for header tracking.
@@ -126,7 +128,8 @@ vips_streami_sanity( VipsStreami *streami )
 		 */
 		g_assert( !streami->decode || 
 			(streami->read_position >= 0 && 
-			 streami->read_position < streami->header_bytes->len) );
+			 streami->read_position <= 
+			 	streami->header_bytes->len) );
 
 		/* If we're in the header, we must save bytes we read. If not 
 		 * in header, should have no saved bytes.
@@ -165,16 +168,16 @@ vips_streami_sanity( VipsStreami *streami )
 		/* Read position must lie within the file.
 		 */
 		g_assert( streami->read_position >= 0 );
-		g_assert( streami->read_position < streami->length );
+		g_assert( streami->read_position <= streami->length );
 
 		/* No need for header tracking.
 		 */
 		g_assert( !streami->header_bytes );
 
-		/* Only have sniff during header,
+		/* Only have sniff during header read.
 		 */
-		g_assert( streami->decode || 
-			!streami->sniff );
+		g_assert( (streami->decode && !streami->sniff) ||
+			(!streami->decode && streami->sniff) );
 
 		/* Supports minimise, so if descriptor is -1, we must have a
 		 * filename we can reopen.
@@ -227,11 +230,19 @@ vips_streami_build( VipsObject *object )
 	/* If there's a descriptor for streami, test its properties.
 	 */
 	if( stream->descriptor != -1 ) {
-		/* Do +=0 on the current position. This fails for pipes, at
-		 * least on linux. 
+		/* Can we seek? If not, this is some kind of pipe.
 		 */
-		if( vips__seek( stream->descriptor, 0, SEEK_CUR ) != -1 )
+		if( vips__seek( stream->descriptor, 0, SEEK_CUR ) == -1 ) {
+			VIPS_DEBUG_MSG( "    not seekable\n" );
 			streami->is_pipe = TRUE;
+		}
+
+		/* Try and get the length. Don't bother for pipes.
+		 */
+		if( !streami->is_pipe &&
+			(streami->length = 
+				vips_file_length( stream->descriptor )) == -1 )
+			return( -1 );
 	}
 
 	/* Need to save the header for pipe-style sources.
@@ -344,10 +355,6 @@ vips_streami_unminimise_real( VipsStreami *streami )
 
 		stream->tracked_descriptor = fd;
 		stream->descriptor = fd;
-
-		if( streami->length == -1 &&
-			(streami->length = vips_file_length( fd )) == -1 )
-			return( -1 );
 
 		VIPS_DEBUG_MSG( "vips_streami_unminimise_real: "
 			"restoring read position %zd\n", 
@@ -846,17 +853,12 @@ vips_streami_minimise( VipsStreami *streami )
 int
 vips_streami_unminimise( VipsStreami *streami )
 {
-	int result;
-
 	VipsStreamiClass *class = VIPS_STREAMI_GET_CLASS( streami );
 
-	vips_streami_sanity( streami );
+	/* This is used during _build(), so we can't sanity check
+	 */
 
-	result = class->unminimise( streami );
-
-	vips_streami_sanity( streami );
-
-	return( result );
+	return( class->unminimise( streami ) );
 }
 
 gint64
