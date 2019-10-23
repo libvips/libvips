@@ -104,16 +104,17 @@ vips_streami_sanity( VipsStreami *streami )
 		 */
 		g_assert( streami->read_position >= 0 );
 		g_assert( streami->read_position <= streami->length );
-		g_assert( streami->read_position <= 
+		g_assert( streami->length == 
 			VIPS_AREA( streami->blob )->length );
 
 		/* No need for header tracking.
 		 */
 		g_assert( !streami->header_bytes );
 
-		/* Only have sniff during header,
+		/* After we're done with the header, the sniff buffer should
+		 * be gone.
 		 */
-		g_assert( streami->decode || 
+		g_assert( !streami->decode || 
 			!streami->sniff );
 
 		/* No descriptor or filename.
@@ -225,6 +226,10 @@ vips_streami_build( VipsObject *object )
 		stream->close_descriptor = stream->descriptor;
 	}
 
+	if( vips_object_argument_isset( object, "blob" ) ) {
+		streami->length = VIPS_AREA( streami->blob )->length;
+	}
+
 	/* If there's a descriptor for streami, test its properties.
 	 */
 	if( stream->descriptor != -1 ) {
@@ -307,16 +312,39 @@ vips_streami_seek_real( VipsStreami *streami, gint64 offset, int whence )
 {
 	VipsStream *stream = VIPS_STREAM( streami );
 
+	gint64 new_pos;
+
 	VIPS_DEBUG_MSG( "vips_streami_seek_real:\n" );
 
-	if( streami->is_pipe ||
-		stream->descriptor == -1 ) {
+	if( streami->blob ) {
+		switch( whence ) {
+		case SEEK_SET:
+			new_pos = offset;
+			break;
+
+		case SEEK_CUR:
+			new_pos = streami->read_position + offset;
+			break;
+
+		case SEEK_END:
+			new_pos = streami->length + offset;
+			break;
+
+		default:
+			g_assert_not_reached();
+			break;
+		}
+	}
+	else if( stream->descriptor != -1 ) {
+		new_pos = vips__seek( stream->descriptor, offset, whence );
+	}
+	else {
 		vips_error( vips_stream_name( stream ), 
 			"%s", _( "not seekable" ) ); 
 		return( -1 );
 	}
 
-	return( vips__seek( stream->descriptor, offset, whence ) );
+	return( new_pos );
 }
 
 static void
@@ -800,7 +828,7 @@ vips_streami_seek( VipsStreami *streami, gint64 offset, int whence )
 	/* Don't allow out of range seeks.
 	 */
 	if( new_pos < 0 ||
-		(streami->length != -1 && new_pos >= streami->length) ) {
+		(streami->length != -1 && new_pos > streami->length) ) {
 		vips_error( vips_stream_name( VIPS_STREAM( streami ) ), 
 			_( "bad seek to %" G_GINT64_FORMAT ), new_pos );
                 return( -1 );
@@ -813,6 +841,15 @@ vips_streami_seek( VipsStreami *streami, gint64 offset, int whence )
 	else {
 		if( (new_pos = class->seek( streami, offset, whence )) == -1 )
 			return( -1 );
+	}
+
+	/* Don't allow out of range seeks.
+	 */
+	if( new_pos < 0 ||
+		(streami->length != -1 && new_pos > streami->length) ) {
+		vips_error( vips_stream_name( VIPS_STREAM( streami ) ), 
+			_( "bad seek to %" G_GINT64_FORMAT ), new_pos );
+                return( -1 );
 	}
 
 	streami->read_position = new_pos;
