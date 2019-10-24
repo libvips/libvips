@@ -34,6 +34,8 @@
 /* TODO
  *
  * - filename encoding
+ * - gaussblur is missing the vector path again argh
+ * - can we map and then close the fd?
  * - are we detecting EOF correctly? what about interrupted reads? perhaps 
  *   we should check errno as well
  * - need to be able to set is_pipe via constructor
@@ -203,6 +205,7 @@ vips_streami_build( VipsObject *object )
 {
 	VipsStream *stream = VIPS_STREAM( object );
 	VipsStreami *streami = VIPS_STREAMI( object );
+	VipsStreamiClass *class = VIPS_STREAMI_GET_CLASS( streami );
 
 	VIPS_DEBUG_MSG( "vips_streami_build: %p\n", streami );
 
@@ -234,28 +237,28 @@ vips_streami_build( VipsObject *object )
 	 */
 	if( stream->descriptor != -1 ) {
 		/* Can we seek? If not, this is some kind of pipe.
+		 * 
+		 * We must call the class method directly: if we go via
+		 * vips_streami_seek() we'll trigger seek emulation on pipes.
 		 */
-		if( !vips__can_seek( stream->descriptor ) ) {
+		vips_error_freeze();
+		if( class->seek( stream->descriptor, 0, SEEK_CUR ) == -1 ) {
 			VIPS_DEBUG_MSG( "    not seekable\n" );
 			streami->is_pipe = TRUE;
 		}
+		vips_error_thaw();
 
-		/* Try and get the length. Don't bother for pipes.
+		/* Try and get the length, as long as we're seekable.
 		 */
 		if( !streami->is_pipe &&
-			(streami->length = 
-				vips_file_length( stream->descriptor )) == -1 )
+			(streami->length = vips_streami_size( streami )) == -1 )
 			return( -1 );
 	}
 
-	/* Need to save the header for pipe-style sources.
+	/* If we can seek, we won't need to save header bytes.
 	 */
-	if( streami->is_pipe )
-		streami->header_bytes = g_byte_array_new();
-
-	/* We always want a sniff buffer.
-	 */
-	streami->sniff = g_byte_array_new();
+	if( !streami->is_pipe ) 
+		VIPS_FREEF( g_byte_array_unref, streami->header_bytes ); 
 
 	return( 0 );
 }
@@ -267,44 +270,7 @@ vips_streami_read_real( VipsStreami *streami, void *data, size_t length )
 
 	VIPS_DEBUG_MSG( "vips_streami_read_real:\n" );
 
-	if( streami->blob ) {
-		VipsArea *area = VIPS_AREA( streami->blob );
-		ssize_t available = VIPS_MIN( length,
-			area->length - streami->read_position );
-
-		if( available <= 0 )
-			return( 0 );
-
-		memcpy( data, area->data + streami->read_position, available );
-
-		return( available );
-	}
-	else if( stream->descriptor != -1 ) {
-		return( read( stream->descriptor, data, length ) );
-	}
-	else {
-		g_assert( 0 );
-		return( -1 );
-	}
-}
-
-static const void *
-vips_streami_map_real( VipsStreami *streami, size_t *length )
-{
-	VipsStream *stream = VIPS_STREAM( streami );
-
-	const void *file_baseaddr;
-
-	g_assert( streami->length > 0 );
-
-	if( !(file_baseaddr = vips__mmap( stream->descriptor, 
-		FALSE, streami->length, 0 )) )
-		return( NULL );
-
-	if( length )
-		*length = streami->length;
-
-	return( file_baseaddr );
+	return( read( stream->descriptor, data, length ) );
 }
 
 static gint64
@@ -312,39 +278,9 @@ vips_streami_seek_real( VipsStreami *streami, gint64 offset, int whence )
 {
 	VipsStream *stream = VIPS_STREAM( streami );
 
-	gint64 new_pos;
-
 	VIPS_DEBUG_MSG( "vips_streami_seek_real:\n" );
 
-	if( streami->blob ) {
-		switch( whence ) {
-		case SEEK_SET:
-			new_pos = offset;
-			break;
-
-		case SEEK_CUR:
-			new_pos = streami->read_position + offset;
-			break;
-
-		case SEEK_END:
-			new_pos = streami->length + offset;
-			break;
-
-		default:
-			g_assert_not_reached();
-			break;
-		}
-	}
-	else if( stream->descriptor != -1 ) {
-		new_pos = vips__seek( stream->descriptor, offset, whence );
-	}
-	else {
-		vips_error( vips_stream_name( stream ), 
-			"%s", _( "not seekable" ) ); 
-		return( -1 );
-	}
-
-	return( new_pos );
+	return( vips__seek( stream->descriptor, offset, whence ) );
 }
 
 static void
@@ -444,6 +380,8 @@ vips_streami_pipe_to_memory( VipsStreami *streami )
 
 	VIPS_DEBUG_MSG( "vips_streami_pipe_to_memory:\n" );
 
+	g_assert( streami->is_pipe );
+
 	vips_streami_sanity( streami );
 
 	if( vips_streami_pipe_read_to_position( streami, -1 ) )
@@ -511,6 +449,8 @@ static void
 vips_streami_init( VipsStreami *streami )
 {
 	streami->length = -1;
+	streami->sniff = g_byte_array_new();
+	streami->header_bytes = g_byte_array_new();
 }
 
 /**
@@ -700,6 +640,20 @@ vips_streami_read( VipsStreami *streami, void *buffer, size_t length )
 		VIPS_DEBUG_MSG( "    %zd bytes from cache\n", available );
 	}
 
+revise this:
+	if( streami->blob ) {
+		VipsArea *area = VIPS_AREA( streami->blob );
+		ssize_t available = VIPS_MIN( length,
+			area->length - streami->read_position );
+
+		if( available <= 0 )
+			return( 0 );
+
+		memcpy( data, area->data + streami->read_position, available );
+
+		return( available );
+	}
+
 	/* Any more bytes requested? Call the read() vfunc.
 	 */
 	if( length > 0 ) {
@@ -733,6 +687,32 @@ vips_streami_read( VipsStreami *streami, void *buffer, size_t length )
 	vips_streami_sanity( streami );
 
 	return( bytes_read );
+}
+
+static const void *
+vips_streami_map_real( VipsStreami *streami, size_t *length )
+{
+	VipsStream *stream = VIPS_STREAM( streami );
+
+	const void *file_baseaddr;
+
+	g_assert( streami->length > 0 );
+
+	if( !(file_baseaddr = vips__mmap( stream->descriptor, 
+		FALSE, streami->length, 0 )) )
+		return( NULL );
+
+	if( length )
+		*length = streami->length;
+
+	return( file_baseaddr );
+}
+
+static void
+vips_streami_unmap_real( VipsStreami *streami, size_t *length )
+{
+	VipsStream *stream = VIPS_STREAM( streami );
+
 }
 
 const void *
@@ -800,6 +780,12 @@ vips_streami_seek( VipsStreami *streami, gint64 offset, int whence )
 
 	vips_streami_sanity( streami );
 
+	/* Not tagged as a pipe? Attempt to use the seek method.
+	 */
+	if( !streami->is_pipe ) {
+		if( (new_pos = class->seek( streami, offset, whence )) == -1 )
+			return( -1 );
+
 	switch( whence ) {
 	case SEEK_SET:
 		new_pos = offset;
@@ -832,6 +818,27 @@ vips_streami_seek( VipsStreami *streami, gint64 offset, int whence )
 		vips_error( vips_stream_name( VIPS_STREAM( streami ) ), 
 			_( "bad seek to %" G_GINT64_FORMAT ), new_pos );
                 return( -1 );
+	}
+
+revise this:
+	if( streami->blob ) {
+		switch( whence ) {
+		case SEEK_SET:
+			new_pos = offset;
+			break;
+
+		case SEEK_CUR:
+			new_pos = streami->read_position + offset;
+			break;
+
+		case SEEK_END:
+			new_pos = streami->length + offset;
+			break;
+
+		default:
+			g_assert_not_reached();
+			break;
+		}
 	}
 
 	if( streami->is_pipe ) {
@@ -907,12 +914,15 @@ vips_streami_size( VipsStreami *streami )
 	VipsStreamiClass *class = VIPS_STREAMI_GET_CLASS( streami );
 
 	gint64 size;
+	gint64 read_position;
 
 	VIPS_DEBUG_MSG( "vips_streami_size:\n" );
 
 	vips_streami_sanity( streami );
 
-	size = class->size( streami );
+	read_position = vips_streami_seek( streami, 0, SEEK_CUR );
+	size = vips_streami_seek( streami, 0, SEEK_END );
+	vips_streami_seek( streami, read_position, SEEK_SET );
 
 	vips_streami_sanity( streami );
 

@@ -173,24 +173,15 @@ typedef struct _VipsStreamiClass {
 	/* Subclasses can define these to implement other streami methods.
 	 */
 
-	/* Read up to N bytes from the stream into the supplied buffer,
-	 * returning the number of bytes actually read. 
-	 *
-	 * -1 on error, 0 on EOF.
+	/* Read from the stream into the supplied buffer, args exactly as
+	 * read(2).
 	 */
 	ssize_t (*read)( VipsStreami *, void *, size_t );
 
-	/* Map the entire stream into memory, for example with mmap(). Return
-	 * the base and size of the mapped area.
+	/* Seek to a certain position, args exactly as lseek(2). 
 	 *
-	 * If this is not defined, the file will be read in with repeated
-	 * calls to ->read(). 
-	 *
-	 * NULL on error.
-	 */
-	const void *(*map)( VipsStreami *, size_t * );
-
-	/* Seek to a certain position, args exactly as lseek(2).
+	 * Unseekable streams should just return -1. VipsStreami will then
+	 * seek by _read()ing bytes into memory as required.
 	 */
 	gint64 (*seek)( VipsStreami *, gint64 offset, int );
 
@@ -206,11 +197,6 @@ typedef struct _VipsStreamiClass {
 	/* The opposite of minimise: restart anything that minimise shut down.
 	 */
 	int (*unminimise)( VipsStreami * );
-
-	/* Length of object in bytes. If this is a pipe, it will force the
-	 * whole object to be read into memory, so use cautiously.
-	 */
-	gint64 (*size)( VipsStreami * );
 
 } VipsStreamiClass;
 

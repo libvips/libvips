@@ -1062,20 +1062,6 @@ vips__seek( int fd, gint64 pos, int whence )
 	return( new_pos );
 }
 
-/* Does an fd support seek? Pipes do not, for example.
- */
-gboolean
-vips__can_seek( int fd )
-{
-	gboolean result;
-
-	vips_error_freeze();
-	result = vips__seek( fd, 0, SEEK_CUR ) != -1;
-	vips_error_thaw();
-
-	return( result );
-}
-
 /* Need our own ftruncate(), since ftruncate() on win32 can't do long files.
 
 	DANGER ... this moves the file pointer to the end of file on win32,
