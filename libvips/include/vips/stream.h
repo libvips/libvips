@@ -156,14 +156,11 @@ typedef struct _VipsStreami {
 	 */
 	GByteArray *sniff;
 
-	/* For a memory stream, the blob we read from.
+	/* For a memory stream, the blob we read from. This can represent a
+	 * mmaped area too, with unmap as the free function.
+	 * free function
 	 */
 	VipsBlob *blob;
-
-	/* If we've mmaped the file, the base of the mapped area. Use @length
-	 * for the length.
-	 */
-	const void *baseaddr;
 
 } VipsStreami;
 
@@ -184,19 +181,6 @@ typedef struct _VipsStreamiClass {
 	 * seek by _read()ing bytes into memory as required.
 	 */
 	gint64 (*seek)( VipsStreami *, gint64 offset, int );
-
-	/* Shut down anything that can safely restarted. For example, if
-	 * there's a fd that supports lseek(), it can be closed, since later 
-	 * (if neccessary) it can be reopened and lseek()ed back to the 
-	 * correct point.
-	 *
-	 * Non-restartable shutdown shuld be in _finalize().
-	 */
-	void (*minimise)( VipsStreami * );
-
-	/* The opposite of minimise: restart anything that minimise shut down.
-	 */
-	int (*unminimise)( VipsStreami * );
 
 } VipsStreamiClass;
 

@@ -1054,7 +1054,7 @@ vips__seek( int fd, gint64 pos, int whence )
 }
 #else /*!OS_WIN32*/
 	if( (new_pos = lseek( fd, pos, whence )) == (off_t) -1 ) {
-		vips_error( "vips__seek", "%s", _( "unable to seek" ) );
+		vips_error_system( "vips__seek", "%s", _( "unable to seek" ) );
 		return( -1 );
 	}
 #endif /*OS_WIN32*/

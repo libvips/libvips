@@ -44,8 +44,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -220,6 +220,8 @@ vips_streami_build( VipsObject *object )
 		return( -1 ); 
 	}
 
+	/* unminimise will open the filename.
+	 */
 	if( vips_object_argument_isset( object, "filename" ) &&
 		vips_streami_unminimise( streami ) )
 		return( -1 );
@@ -241,12 +243,10 @@ vips_streami_build( VipsObject *object )
 		 * We must call the class method directly: if we go via
 		 * vips_streami_seek() we'll trigger seek emulation on pipes.
 		 */
-		vips_error_freeze();
 		if( class->seek( stream->descriptor, 0, SEEK_CUR ) == -1 ) {
 			VIPS_DEBUG_MSG( "    not seekable\n" );
 			streami->is_pipe = TRUE;
 		}
-		vips_error_thaw();
 
 		/* Try and get the length, as long as we're seekable.
 		 */
@@ -278,55 +278,287 @@ vips_streami_seek_real( VipsStreami *streami, gint64 offset, int whence )
 {
 	VipsStream *stream = VIPS_STREAM( streami );
 
+	gint64 new_pos;
+
 	VIPS_DEBUG_MSG( "vips_streami_seek_real:\n" );
 
-	return( vips__seek( stream->descriptor, offset, whence ) );
+	/* Like _read_real(), we must not set a vips_error. We need to use the
+	 * vips__seek() wrapper so we can seek long files on Windows.
+	 */
+	vips_error_freeze();
+	new_pos = vips__seek( stream->descriptor, offset, whence );
+	vips_error_thaw();
+
+	return( new_pos );
 }
 
 static void
-vips_streami_minimise_real( VipsStreami *streami )
+vips_streami_class_init( VipsStreamiClass *class )
 {
-	VipsStream *stream = VIPS_STREAM( streami );
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
 
-	VIPS_DEBUG_MSG( "vips_streami_minimise_real:\n" );
+	gobject_class->finalize = vips_streami_finalize;
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
 
-	if( stream->filename &&
-		stream->descriptor != -1 &&
-		stream->tracked_descriptor != -1 &&
-		!streami->is_pipe ) {
-		VIPS_DEBUG_MSG( "    tracked_close()\n" );
-		vips_tracked_close( stream->tracked_descriptor );
-		stream->tracked_descriptor = -1;
-		stream->descriptor = -1;
-	}
+	object_class->nickname = "streami";
+	object_class->description = _( "streami stream" );
+
+	object_class->build = vips_streami_build;
+
+	class->read = vips_streami_read_real;
+	class->seek = vips_streami_seek_real;
+
+	VIPS_ARG_BOXED( class, "blob", 3, 
+		_( "Blob" ),
+		_( "blob to load from" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		G_STRUCT_OFFSET( VipsStreami, blob ),
+		VIPS_TYPE_BLOB );
+
 }
 
-static int
-vips_streami_unminimise_real( VipsStreami *streami )
+static void
+vips_streami_init( VipsStreami *streami )
 {
-	VipsStream *stream = VIPS_STREAM( streami );
+	streami->length = -1;
+	streami->sniff = g_byte_array_new();
+	streami->header_bytes = g_byte_array_new();
+}
 
-	if( stream->descriptor == -1 &&
-		stream->tracked_descriptor == -1 &&
-		stream->filename ) {
-		int fd;
+/**
+ * vips_streami_new_from_descriptor:
+ * @descriptor: read from this file descriptor
+ *
+ * Create an streami stream attached to a file descriptor. @descriptor is 
+ * closed with close() when the #VipsStream is finalized. 
+ *
+ * Returns: a new #VipsStream
+ */
+VipsStreami *
+vips_streami_new_from_descriptor( int descriptor )
+{
+	VipsStreami *streami;
 
-		if( (fd = vips_tracked_open( stream->filename, 
-			MODE_READ )) == -1 ) 
-			return( -1 ); 
+	VIPS_DEBUG_MSG( "vips_streami_new_from_descriptor: %d\n", 
+		descriptor );
 
-		stream->tracked_descriptor = fd;
-		stream->descriptor = fd;
+	streami = VIPS_STREAMI( g_object_new( VIPS_TYPE_STREAMI, 
+		"descriptor", descriptor,
+		NULL ) );
 
-		VIPS_DEBUG_MSG( "vips_streami_unminimise_real: "
-			"restoring read position %zd\n", 
-			streami->read_position );
-		if( vips__seek( stream->descriptor, 
-			streami->read_position, SEEK_SET ) == -1 )
-			return( -1 );
+	if( vips_object_build( VIPS_OBJECT( streami ) ) ) {
+		VIPS_UNREF( streami );
+		return( NULL );
 	}
 
-	return( 0 );
+	vips_streami_sanity( streami );
+
+	return( streami ); 
+}
+
+/**
+ * vips_streami_new_from_filename:
+ * @descriptor: read from this filename 
+ *
+ * Create an streami stream attached to a file.
+ *
+ * Returns: a new #VipsStream
+ */
+VipsStreami *
+vips_streami_new_from_filename( const char *filename )
+{
+	VipsStreami *streami;
+
+	VIPS_DEBUG_MSG( "vips_streami_new_from_filename: %s\n", 
+		filename );
+
+	streami = VIPS_STREAMI( g_object_new( VIPS_TYPE_STREAMI, 
+		"filename", filename,
+		NULL ) );
+
+	if( vips_object_build( VIPS_OBJECT( streami ) ) ) {
+		VIPS_UNREF( streami );
+		return( NULL );
+	}
+
+	vips_streami_sanity( streami );
+
+	return( streami ); 
+}
+
+/**
+ * vips_streami_new_from_blob:
+ * @blob: memory area to load
+ *
+ * Create a stream attached to an area of memory. 
+ *
+ * Returns: a new #VipsStream
+ */
+VipsStreami *
+vips_streami_new_from_blob( VipsBlob *blob )
+{
+	VipsStreami *streami;
+
+	VIPS_DEBUG_MSG( "vips_streami_new_from_blob: %p\n", blob ); 
+
+	streami = VIPS_STREAMI( g_object_new( VIPS_TYPE_STREAMI, 
+		"blob", blob,
+		NULL ) );
+
+	if( vips_object_build( VIPS_OBJECT( streami ) ) ) {
+		VIPS_UNREF( streami );
+		return( NULL );
+	}
+
+	vips_streami_sanity( streami );
+
+	return( streami ); 
+}
+
+/**
+ * vips_streami_new_from_memory:
+ * @data: memory area to load
+ * @length: size of memory area
+ *
+ * Create a stream attached to an area of memory. 
+ *
+ * You must not free @data while the stream is active. 
+ *
+ * Returns: a new #VipsStream
+ */
+VipsStreami *
+vips_streami_new_from_memory( const void *data, size_t length )
+{
+	VipsStreami *streami;
+	VipsBlob *blob;
+
+	VIPS_DEBUG_MSG( "vips_streami_new_from_buffer: "
+		"%p, length = %zd\n", data, length ); 
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, data, length );
+
+	streami = vips_streami_new_from_blob( blob ); 
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	vips_streami_sanity( streami );
+
+	return( streami ); 
+}
+
+/**
+ * vips_streami_new_from_options:
+ * @options: option string
+ *
+ * Create a stream from an option string.
+ *
+ * Returns: a new #VipsStreami
+ */
+VipsStreami *
+vips_streami_new_from_options( const char *options )
+{
+	VipsStreami *streami;
+
+	VIPS_DEBUG_MSG( "vips_streami_new_from_options: %s\n", options ); 
+
+	streami = VIPS_STREAMI( g_object_new( VIPS_TYPE_STREAMI, NULL ) );
+
+	if( vips_object_set_from_string( VIPS_OBJECT( streami ), options ) ||
+		vips_object_build( VIPS_OBJECT( streami ) ) ) {
+		VIPS_UNREF( streami );
+		return( NULL );
+	}
+
+	vips_streami_sanity( streami );
+
+	return( streami ); 
+}
+
+ssize_t
+vips_streami_read( VipsStreami *streami, void *buffer, size_t length )
+{
+	VipsStreamiClass *class = VIPS_STREAMI_GET_CLASS( streami );
+
+	ssize_t bytes_read;
+
+	VIPS_DEBUG_MSG( "vips_streami_read:\n" );
+
+	vips_streami_sanity( streami );
+
+	bytes_read = 0;
+
+	/* The whole thing is in memory somehow.
+	 */
+	if( streami->blob ) {
+		VipsArea *area = VIPS_AREA( streami->blob );
+		ssize_t available = VIPS_MIN( length,
+			area->length - streami->read_position );
+
+		memcpy( data, area->data + streami->read_position, available );
+		streami->read_position += available;
+		length -= available;
+		bytes_read += available;
+
+		VIPS_DEBUG_MSG( "    %zd bytes from memory\n", available );
+	}
+
+	/* Get what we can from header_bytes. We may need to read some more
+	 * after this.
+	 */
+	if( streami->header_bytes &&
+		streami->read_position < streami->header_bytes->len ) {
+		ssize_t available;
+
+		available = VIPS_MIN( length, 
+			streami->header_bytes->len - streami->read_position );
+		memcpy( buffer, 
+			streami->header_bytes->data + streami->read_position, 
+			available );
+		streami->read_position += available;
+		buffer += available;
+		length -= available;
+		bytes_read += available;
+
+		VIPS_DEBUG_MSG( "    %zd bytes from cache\n", available );
+	}
+
+	/* Any more bytes requested? Call the read() vfunc.
+	 */
+	if( length > 0 ) {
+		ssize_t n;
+
+		if( (n = class->read( streami, buffer, length )) == -1 ) {
+			vips_error_system( errno, 
+				vips_stream_name( VIPS_STREAM( streami ) ), 
+				"%s", _( "read error" ) ); 
+			return( -1 );
+		}
+
+		/* We need to save bytes if we're in header mode and we can't
+		 * seek or map.
+		 */
+		if( streami->header_bytes &&
+			streami->is_pipe &&
+			!streami->decode &&
+			n > 0 ) 
+			g_byte_array_append( streami->header_bytes, 
+				buffer, n );
+
+		streami->read_position += n;
+		bytes_read += n;
+
+		VIPS_DEBUG_MSG( "    %zd bytes from read()\n", n );
+	}
+
+	VIPS_DEBUG_MSG( "    %zd bytes total\n", bytes_read );
+
+	vips_streami_sanity( streami );
+
+	return( bytes_read );
 }
 
 /* Read a pipe to at least a position. -1 means read to end of stream. Does
@@ -381,6 +613,7 @@ vips_streami_pipe_to_memory( VipsStreami *streami )
 	VIPS_DEBUG_MSG( "vips_streami_pipe_to_memory:\n" );
 
 	g_assert( streami->is_pipe );
+	g_assert( !streami->blob );
 
 	vips_streami_sanity( streami );
 
@@ -393,7 +626,7 @@ vips_streami_pipe_to_memory( VipsStreami *streami )
 	streami->length = streami->header_bytes->len;
 	data = g_byte_array_free( streami->header_bytes, FALSE );
 	streami->header_bytes = NULL;
-	vips_blob_set( streami->blob,
+	streami->blob = vips_blob_new( 
 		(VipsCallbackFn) g_free, data, streami->length );
 	vips_streami_minimise( streami );
 	streami->is_pipe = FALSE;
@@ -403,316 +636,25 @@ vips_streami_pipe_to_memory( VipsStreami *streami )
 	return( 0 );
 }
 
-static gint64
-vips_streami_size_real( VipsStreami *streami )
-{
-	if( streami->length == -1 &&
-		streami->is_pipe &&
-		vips_streami_pipe_to_memory( streami ) )
-		return( -1 );
-
-	return( streami->length );
-}
-
-static void
-vips_streami_class_init( VipsStreamiClass *class )
-{
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
-
-	gobject_class->finalize = vips_streami_finalize;
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
-
-	object_class->nickname = "streami";
-	object_class->description = _( "streami stream" );
-
-	object_class->build = vips_streami_build;
-
-	class->read = vips_streami_read_real;
-	class->map = vips_streami_map_real;
-	class->seek = vips_streami_seek_real;
-	class->minimise = vips_streami_minimise_real;
-	class->unminimise = vips_streami_unminimise_real;
-	class->size = vips_streami_size_real;
-
-	VIPS_ARG_BOXED( class, "blob", 3, 
-		_( "Blob" ),
-		_( "blob to load from" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsStreami, blob ),
-		VIPS_TYPE_BLOB );
-
-}
-
-static void
-vips_streami_init( VipsStreami *streami )
-{
-	streami->length = -1;
-	streami->sniff = g_byte_array_new();
-	streami->header_bytes = g_byte_array_new();
-}
-
-/**
- * vips_streami_new_from_descriptor:
- * @descriptor: read from this file descriptor
- *
- * Create an streami stream attached to a file descriptor. @descriptor is 
- * closed with close() when the #VipsStream is finalized. 
- *
- * Returns: a new #VipsStream
- */
-VipsStreami *
-vips_streami_new_from_descriptor( int descriptor )
-{
-	VipsStreami *streami;
-
-	VIPS_DEBUG_MSG( "vips_streami_new_from_descriptor: %d\n", 
-		descriptor );
-
-	streami = VIPS_STREAMI( 
-		g_object_new( VIPS_TYPE_STREAMI, 
-			"descriptor", descriptor,
-			NULL ) );
-
-	if( vips_object_build( VIPS_OBJECT( streami ) ) ) {
-		VIPS_UNREF( streami );
-		return( NULL );
-	}
-
-	vips_streami_sanity( streami );
-
-	return( streami ); 
-}
-
-/**
- * vips_streami_new_from_filename:
- * @descriptor: read from this filename 
- *
- * Create an streami stream attached to a file.
- *
- * Returns: a new #VipsStream
- */
-VipsStreami *
-vips_streami_new_from_filename( const char *filename )
-{
-	VipsStreami *streami;
-
-	VIPS_DEBUG_MSG( "vips_streami_new_from_filename: %s\n", 
-		filename );
-
-	streami = VIPS_STREAMI( 
-		g_object_new( VIPS_TYPE_STREAMI, 
-			"filename", filename,
-			NULL ) );
-
-	if( vips_object_build( VIPS_OBJECT( streami ) ) ) {
-		VIPS_UNREF( streami );
-		return( NULL );
-	}
-
-	vips_streami_sanity( streami );
-
-	return( streami ); 
-}
-
-/**
- * vips_streami_new_from_blob:
- * @blob: memory area to load
- *
- * Create a stream attached to an area of memory. 
- *
- * Returns: a new #VipsStream
- */
-VipsStreami *
-vips_streami_new_from_blob( VipsBlob *blob )
-{
-	VipsStreami *streami;
-
-	VIPS_DEBUG_MSG( "vips_streami_new_from_blob: %p\n", blob ); 
-
-	streami = VIPS_STREAMI( 
-		g_object_new( VIPS_TYPE_STREAMI, 
-			"blob", blob,
-			NULL ) );
-
-	if( vips_object_build( VIPS_OBJECT( streami ) ) ) {
-		VIPS_UNREF( streami );
-		return( NULL );
-	}
-
-	vips_streami_sanity( streami );
-
-	return( streami ); 
-}
-
-/**
- * vips_streami_new_from_memory:
- * @data: memory area to load
- * @length: size of memory area
- *
- * Create a stream attached to an area of memory. 
- *
- * You must not free @data while the stream is active. 
- *
- * Returns: a new #VipsStream
- */
-VipsStreami *
-vips_streami_new_from_memory( const void *data, size_t length )
-{
-	VipsStreami *streami;
-	VipsBlob *blob;
-
-	VIPS_DEBUG_MSG( "vips_streami_new_from_buffer: "
-		"%p, length = %zd\n", data, length ); 
-
-	/* We don't take a copy of the data or free it.
-	 */
-	blob = vips_blob_new( NULL, data, length );
-
-	streami = vips_streami_new_from_blob( blob ); 
-
-	vips_area_unref( VIPS_AREA( blob ) );
-
-	vips_streami_sanity( streami );
-
-	return( streami ); 
-}
-
-/**
- * vips_streami_new_from_options:
- * @options: option string
- *
- * Create a stream from an option string.
- *
- * Returns: a new #VipsStream
- */
-VipsStreami *
-vips_streami_new_from_options( const char *options )
-{
-	VipsStreami *streami;
-
-	VIPS_DEBUG_MSG( "vips_streami_new_from_options: %s\n", options ); 
-
-	streami = VIPS_STREAMI( 
-		g_object_new( VIPS_TYPE_STREAMI, NULL ) );
-
-	if( vips_object_set_from_string( VIPS_OBJECT( streami ), options ) ||
-		vips_object_build( VIPS_OBJECT( streami ) ) ) {
-		VIPS_UNREF( streami );
-		return( NULL );
-	}
-
-	vips_streami_sanity( streami );
-
-	return( streami ); 
-}
-
-ssize_t
-vips_streami_read( VipsStreami *streami, void *buffer, size_t length )
-{
-	VipsStreamiClass *class = VIPS_STREAMI_GET_CLASS( streami );
-
-	ssize_t bytes_read;
-
-	VIPS_DEBUG_MSG( "vips_streami_read:\n" );
-
-	vips_streami_sanity( streami );
-
-	bytes_read = 0;
-
-	/* Are we serving from header_bytes? Get what we can from there.
-	 */
-	if( streami->header_bytes &&
-		streami->read_position < streami->header_bytes->len ) {
-		ssize_t available;
-
-		available = VIPS_MIN( length, 
-			streami->header_bytes->len - streami->read_position );
-		memcpy( buffer, 
-			streami->header_bytes->data + streami->read_position, 
-			available );
-		streami->read_position += available;
-		buffer += available;
-		length -= available;
-		bytes_read += available;
-
-		VIPS_DEBUG_MSG( "    %zd bytes from cache\n", available );
-	}
-
-revise this:
-	if( streami->blob ) {
-		VipsArea *area = VIPS_AREA( streami->blob );
-		ssize_t available = VIPS_MIN( length,
-			area->length - streami->read_position );
-
-		if( available <= 0 )
-			return( 0 );
-
-		memcpy( data, area->data + streami->read_position, available );
-
-		return( available );
-	}
-
-	/* Any more bytes requested? Call the read() vfunc.
-	 */
-	if( length > 0 ) {
-		ssize_t n;
-
-		if( (n = class->read( streami, buffer, length )) == -1 ) {
-			vips_error_system( errno, 
-				vips_stream_name( VIPS_STREAM( streami ) ), 
-				"%s", _( "read error" ) ); 
-			return( -1 );
-		}
-
-		/* We need to save bytes if we're in header mode and we can't
-		 * seek or map.
-		 */
-		if( streami->header_bytes &&
-			streami->is_pipe &&
-			!streami->decode &&
-			n > 0 ) 
-			g_byte_array_append( streami->header_bytes, 
-				buffer, n );
-
-		streami->read_position += n;
-		bytes_read += n;
-
-		VIPS_DEBUG_MSG( "    %zd bytes from read()\n", n );
-	}
-
-	VIPS_DEBUG_MSG( "    %zd bytes total\n", bytes_read );
-
-	vips_streami_sanity( streami );
-
-	return( bytes_read );
-}
-
-static const void *
-vips_streami_map_real( VipsStreami *streami, size_t *length )
+static int
+vips_streami_descriptor_to_memory( VipsStreami *streami, size_t *length )
 {
 	VipsStream *stream = VIPS_STREAM( streami );
 
-	const void *file_baseaddr;
+	void *baseaddr;
+
+	VIPS_DEBUG_MSG( "vips_streami_descriptor_to_memory:\n" );
 
 	g_assert( streami->length > 0 );
+	g_assert( !streami->blob );
 
-	if( !(file_baseaddr = vips__mmap( stream->descriptor, 
+	if( !(baseaddr = vips__mmap( stream->descriptor, 
 		FALSE, streami->length, 0 )) )
-		return( NULL );
+		return( -1 );
+	streami->blob = vips_blob_new( 
+		(VipsCallbackFn) vips_streami_unmap, data, streami->length );
 
-	if( length )
-		*length = streami->length;
-
-	return( file_baseaddr );
-}
-
-static void
-vips_streami_unmap_real( VipsStreami *streami, size_t *length )
-{
-	VipsStream *stream = VIPS_STREAM( streami );
-
+	return( 0 );
 }
 
 const void *
@@ -731,6 +673,16 @@ vips_streami_map( VipsStreami *streami, size_t *length_out )
 	 */
 	if( streami->is_pipe &&
 		vips_streami_pipe_to_memory( streami ) )
+		return( NULL );
+
+	/* Seekable descriptor sources can be mmaped and become memory
+	 * sources.
+	 */
+	if( !streami->is_pipe &&
+		!streami->baseaddr &&
+		streami->length > 0 &&
+		stream->descriptor != -1 &&
+		vips_streami_descriptor_to_memory( streami ) )
 		return( NULL );
 
 	/* Memory source ... easy!
@@ -877,6 +829,52 @@ vips_streami_rewind( VipsStreami *streami )
 		return( -1 );
 
 	vips_streami_sanity( streami );
+
+	return( 0 );
+}
+
+static void
+vips_streami_minimise_real( VipsStreami *streami )
+{
+	VipsStream *stream = VIPS_STREAM( streami );
+
+	VIPS_DEBUG_MSG( "vips_streami_minimise_real:\n" );
+
+	if( stream->filename &&
+		stream->descriptor != -1 &&
+		stream->tracked_descriptor != -1 &&
+		!streami->is_pipe ) {
+		VIPS_DEBUG_MSG( "    tracked_close()\n" );
+		vips_tracked_close( stream->tracked_descriptor );
+		stream->tracked_descriptor = -1;
+		stream->descriptor = -1;
+	}
+}
+
+static int
+vips_streami_unminimise_real( VipsStreami *streami )
+{
+	VipsStream *stream = VIPS_STREAM( streami );
+
+	if( stream->descriptor == -1 &&
+		stream->tracked_descriptor == -1 &&
+		stream->filename ) {
+		int fd;
+
+		if( (fd = vips_tracked_open( stream->filename, 
+			MODE_READ )) == -1 ) 
+			return( -1 ); 
+
+		stream->tracked_descriptor = fd;
+		stream->descriptor = fd;
+
+		VIPS_DEBUG_MSG( "vips_streami_unminimise_real: "
+			"restoring read position %zd\n", 
+			streami->read_position );
+		if( vips__seek( stream->descriptor, 
+			streami->read_position, SEEK_SET ) == -1 )
+			return( -1 );
+	}
 
 	return( 0 );
 }
