@@ -1,14 +1,25 @@
-FROM alpine
+FROM alpine:3.10
 
 ARG VIPS_VERSION
 
-RUN apk update
+RUN apk add --update --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing --virtual .build-deps \
+            build-base \
+            pkgconfig \
+            glib-dev \
+            gobject-introspection-dev \
+            expat-dev \
+            tiff-dev \
+            libjpeg-turbo-dev \
+            libexif-dev giflib-dev \
+            librsvg-dev \
+            lcms2-dev \
+            libpng-dev \
+            orc-dev \
+            libwebp-dev \
+            libheif-dev \
+            libimagequant-dev 
 
-RUN apk add build-base pkgconfig glib-dev gobject-introspection-dev expat-dev tiff-dev libjpeg-turbo-dev libexif-dev giflib-dev librsvg-dev lcms2-dev libpng-dev orc-dev libwebp-dev libheif-dev
-
-RUN apk add libimagequant-dev --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing
-
-RUN https://github.com/libvips/libvips/releases/download/v${VIPS_VERSION}/vips-${VIPS_VERSION}.tar.gz
+RUN wget https://github.com/libvips/libvips/releases/download/v${VIPS_VERSION}/vips-${VIPS_VERSION}.tar.gz
 
 RUN mkdir vips
 
@@ -27,3 +38,13 @@ RUN ldconfig
 WORKDIR /
 
 RUN rm -rf vips
+
+RUN apk del .build-deps
+
+RUN apk add --update --no-cache libgsf glib gobject-introspection expat tiff libjpeg-turbo libexif giflib librsvg lcms2 libpng orc libwebp libheif
+
+RUN apk add --update --no-cache libimagequant --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing
+
+ENV GI_TYPELIB_PATH /usr/local/lib/girepository-1.0
+
+CMD /usr/local/bin/vips
