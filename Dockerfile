@@ -33,7 +33,7 @@ RUN make
 
 RUN make install
 
-RUN ldconfig
+RUN ldconfig /etc/ld.so.conf.d
 
 WORKDIR /
 
