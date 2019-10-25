@@ -20,7 +20,7 @@ script:
     DYLD_LIBRARY_PATH=$PWD/libvips/.libs
     LD_PRELOAD=$ASAN_DSO
     $PYTHON -m pytest -v test/test-suite
-  - docker build --build-arg VIPS_VERSION -t vips/vips-web .
+  - docker build --squash --build-arg VIPS_VERSION -t vips/vips-web .
   - docker tag vips/vips-web:latest vips/vips-web:$VIPS_VERSION
 
 deploy:
@@ -30,6 +30,7 @@ deploy:
     - docker push vips/vips-web:$VIPS_VERSION
   on:
     branch: master
+    tags: true
 
 matrix:
   allow_failures:
