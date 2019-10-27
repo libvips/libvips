@@ -1534,9 +1534,8 @@ rtiff_fill_region( VipsRegion *out,
 
 	int x, y, z;
 
-	/* We never call vips_streami_decode() since we need to be able to
-	 * seek() the whole way through the file.
-	 */
+	if( vips_streami_unminimise( rtiff->input ) ) 
+		return( -1 );
 
 	/* Special case: we are filling a single tile exactly sized to match
 	 * the tiff tile and we have no repacking to do for this format.
@@ -1864,9 +1863,8 @@ rtiff_stripwise_generate( VipsRegion *or,
 	g_assert( r->height == 
 		VIPS_MIN( read_height, or->im->Ysize - r->top ) ); 
 
-	/* We never call vips_streami_decode() since we need to be able to
-	 * seek() the whole way through the file.
-	 */
+	if( vips_streami_unminimise( rtiff->input ) ) 
+		return( -1 );
 
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
@@ -2435,6 +2433,9 @@ vips__tiff_read_header_stream( VipsStreami *input, VipsImage *out,
 
 	vips__tiff_read_header_orientation( rtiff, out ); 
 
+	/* We never call vips_streami_decode() since we need to be able to
+	 * seek() the whole way through the file. Just minimise instead,
+	 */
 	vips_streami_minimise( input );
 
 	return( 0 );
@@ -2465,6 +2466,11 @@ vips__tiff_read_stream( VipsStreami *input, VipsImage *out,
 		if( rtiff_read_stripwise( rtiff, out ) )
 			return( -1 );
 	}
+
+	/* We never call vips_streami_decode() since we need to be able to
+	 * seek() the whole way through the file. Just minimise instead,
+	 */
+	vips_streami_minimise( input );
 
 	return( 0 );
 }

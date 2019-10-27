@@ -670,7 +670,8 @@ vips_blob_copy( const void *data, size_t length )
  * 
  * See also: vips_blob_new().
  *
- * Returns: (array length=length) (element-type guint8) (transfer none): the data
+ * Returns: (array length=length) (element-type guint8) (transfer none): the 
+ * data
  */
 const void *
 vips_blob_get( VipsBlob *blob, size_t *length )

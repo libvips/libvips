@@ -147,8 +147,17 @@ typedef struct _VipsStreami {
 
 	/*< private >*/
 
+	/* For sources where we have the whole image in memory (from a memory
+	 * buffer, from mmaping the file, from reading the pipe into memory), 
+	 * a pointer to the start.
+	 */
+	const void *data;
+
 	/* For is_pipe sources, save data read during header phase here. If 
 	 * we rewind and try again, serve data from this until it runs out.
+	 *
+	 * If we need to force the whole pipe into memory, read everything to
+	 * this and put a copy pf the pointer in data.
 	 */
 	GByteArray *header_bytes;
 
@@ -156,11 +165,14 @@ typedef struct _VipsStreami {
 	 */
 	GByteArray *sniff;
 
-	/* For a memory stream, the blob we read from. This can represent a
-	 * mmaped area too, with unmap as the free function.
-	 * free function
+	/* For a memory stream, the blob we read from. 
 	 */
 	VipsBlob *blob;
+
+	/* If we mmaped the file, whet we need to unmmap on finalize.
+	 */
+	void *mmap_baseaddr;
+	size_t mmap_length;
 
 } VipsStreami;
 

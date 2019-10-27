@@ -55,6 +55,7 @@ main( int argc, char **argv )
 
 	/* Opening an image should read the header, then close the fd.
 	 */
+	printf( "** seq open ..\n" );
 	if( !(image = vips_image_new_from_file( argv[1], 
 		"access", VIPS_ACCESS_SEQUENTIAL,
 		NULL )) )
@@ -66,6 +67,7 @@ main( int argc, char **argv )
 	/* We should be able to read a chunk near the top, then have the fd
 	 * closed again.
 	 */
+	printf( "** crop1, avg ..\n" );
 	if( vips_crop( image, &x, 0, 0, image->Xsize, 10, NULL ) ||
 		vips_avg( x, &average, NULL ) )
 		vips_error_exit( NULL );
@@ -77,6 +79,7 @@ main( int argc, char **argv )
 	/* We should be able to read again, a little further down, and have
 	 * the input restarted and closed again.
 	 */
+	printf( "** crop2, avg ..\n" );
 	if( vips_crop( image, &x, 0, 20, image->Xsize, 10, NULL ) ||
 		vips_avg( x, &average, NULL ) )
 		vips_error_exit( NULL );
@@ -87,7 +90,9 @@ main( int argc, char **argv )
 
 	/* Clean up, and we should still just have three open.
 	 */
+	printf( "** unref ..\n" );
 	g_object_unref( image );
+	printf( "** shutdown ..\n" );
 	vips_shutdown();
 
 	if( count_files( fd_dir ) != n_files )
