@@ -446,7 +446,7 @@ read_header( Read *read, VipsImage *out )
 
 			do {
 				g_assert( iter.frame_num >= 1 &&
-					iter.frame_num < read->frame_count );
+					iter.frame_num <= read->frame_count );
 
 				read->delays[iter.frame_num - 1] = 
 					iter.duration;

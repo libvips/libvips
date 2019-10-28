@@ -1078,7 +1078,7 @@ vips__ftruncate( int fd, gint64 pos )
 	LARGE_INTEGER p;
 
 	p.QuadPart = pos;
-	if( vips__seek( fd, pos ) )
+	if( vips__seek( fd, pos, SEEK_SET ) )
 		return( -1 );
 	if( !SetEndOfFile( hFile ) ) {
                 vips_error_system( GetLastError(), "vips__ftruncate", 

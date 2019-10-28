@@ -556,7 +556,7 @@ vips_streami_unminimise( VipsStreami *streami )
 		stream->descriptor = fd;
 
 		VIPS_DEBUG_MSG( "vips_streami_unminimise: "
-			"restoring read position %zd\n", 
+			"restoring read position %" G_GINT64_FORMAT "\n", 
 			streami->read_position );
 		if( vips__seek( stream->descriptor, 
 			streami->read_position, SEEK_SET ) == -1 )

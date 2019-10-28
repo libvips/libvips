@@ -1036,7 +1036,7 @@ build_scan_properties( VipsImage *image )
 	char *date;
 	int i;
 
-#ifdef HAVE_DATE_TIME_FORMAT_ISO860
+#ifdef HAVE_DATE_TIME_FORMAT_ISO8601
 {
 	GDateTime *now;
 
@@ -1044,14 +1044,14 @@ build_scan_properties( VipsImage *image )
 	date = g_date_time_format_iso8601( now );
 	g_date_time_unref( now );
 }
-#else /*!HAVE_DATE_TIME_FORMAT_ISO860*/
+#else /*!HAVE_DATE_TIME_FORMAT_ISO8601*/
 {
 	GTimeVal now;
 
 	g_get_current_time( &now );
 	date = g_time_val_to_iso8601( &now );
 }
-#endif /*HAVE_DATE_TIME_FORMAT_ISO860*/
+#endif /*HAVE_DATE_TIME_FORMAT_ISO8601*/
 
 	vips_dbuf_init( &dbuf );
 
