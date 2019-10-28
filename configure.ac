@@ -485,6 +485,16 @@ PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,
   ]
 )
 
+# from 2.62 we have datetime
+PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.62,
+  [AC_DEFINE(HAVE_G_DATE_TIME_FORMAT_ISO8601,1,
+	    [define if your glib has g_date_time_format_iso8601().]
+   )
+  ],
+  [:
+  ]
+)
+
 # the old threading system 
 PKG_CHECK_MODULES(GTHREAD, gthread-2.0)
 PACKAGES_USED="$PACKAGES_USED gthread-2.0"
