@@ -476,7 +476,7 @@ PKG_CHECK_MODULES(CONTEXT_GET_HELP, glib-2.0 >= 2.14,
 )
 
 # from 2.28 we have a monotonic timer
-PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,
+PKG_CHECK_MODULES(MONOTONIC_TIME, glib-2.0 >= 2.28,
   [AC_DEFINE(HAVE_MONOTONIC_TIME,1,
 	    [define if your glib has g_get_monotonic_time().]
    )
@@ -486,8 +486,8 @@ PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,
 )
 
 # from 2.62 we have datetime
-PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.62,
-  [AC_DEFINE(HAVE_G_DATE_TIME_FORMAT_ISO8601,1,
+PKG_CHECK_MODULES(DATE_TIME_FORMAT_ISO8601, glib-2.0 >= 2.62,
+  [AC_DEFINE(HAVE_DATE_TIME_FORMAT_ISO8601,1,
 	    [define if your glib has g_date_time_format_iso8601().]
    )
   ],
