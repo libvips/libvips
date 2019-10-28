@@ -88,7 +88,8 @@ GType vips_stream_get_type( void );
 
 int vips_stream_open( VipsStream *stream );
 int vips_stream_close( VipsStream *stream );
-const char *vips_stream_name( VipsStream *stream );
+const char *vips_stream_filename( VipsStream *stream );
+const char *vips_stream_nick( VipsStream *stream );
 
 #define VIPS_TYPE_STREAMI (vips_streami_get_type())
 #define VIPS_STREAMI( obj ) \
@@ -204,13 +205,13 @@ VipsStreami *vips_streami_new_from_blob( VipsBlob *blob );
 VipsStreami *vips_streami_new_from_memory( const void *data, size_t size );
 VipsStreami *vips_streami_new_from_options( const char *options );
 
+void vips_streami_minimise( VipsStreami *streami );
+int vips_streami_unminimise( VipsStreami *streami );
+int vips_streami_decode( VipsStreami *streami );
 ssize_t vips_streami_read( VipsStreami *streami, void *data, size_t length );
 const void *vips_streami_map( VipsStreami *streami, size_t *length );
 gint64 vips_streami_seek( VipsStreami *streami, gint64 offset, int whence );
 int vips_streami_rewind( VipsStreami *streami );
-void vips_streami_minimise( VipsStreami *streami );
-int vips_streami_unminimise( VipsStreami *streami );
-int vips_streami_decode( VipsStreami *streami );
 unsigned char *vips_streami_sniff( VipsStreami *streami, size_t length );
 gint64 vips_streami_size( VipsStreami *streami ); 
 

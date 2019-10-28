@@ -481,7 +481,8 @@ png2vips_header( Read *read, VipsImage *out )
 		VIPS_CODING_NONE, interpretation, 
 		Xres, Yres );
 
-	VIPS_SETSTR( out->filename, VIPS_STREAM( read->input )->filename );
+	VIPS_SETSTR( out->filename, 
+		vips_stream_filename( VIPS_STREAM( read->input ) ) );
 
 	/* Uninterlaced images will be read in seq mode. Interlaced images are
 	 * read via a huge memory buffer.
@@ -621,11 +622,6 @@ png2vips_generate( VipsRegion *or,
 		return( -1 );
 	}
 
-	/* In pixel decode mode.
-	 */
-	if( vips_streami_decode( read->input ) )
-		return( -1 );
-
 	for( y = 0; y < r->height; y++ ) {
 		png_bytep q = (png_bytep) VIPS_REGION_ADDR( or, 0, r->top + y );
 
@@ -715,10 +711,9 @@ vips__png_header_stream( VipsStreami *input, VipsImage *out )
 	Read *read;
 
 	if( !(read = read_new( input, out, TRUE )) ||
-		png2vips_header( read, out ) ) 
+		png2vips_header( read, out ) || 
+		vips_streami_decode( input ) )
 		return( -1 );
-
-	vips_streami_minimise( input );
 
 	return( 0 );
 }
@@ -729,8 +724,9 @@ vips__png_read_stream( VipsStreami *input, VipsImage *out, gboolean fail )
 	Read *read;
 
 	if( !(read = read_new( input, out, fail )) ||
-		png2vips_image( read, out ) )
-		return( -1 ); 
+		png2vips_image( read, out ) ||
+		vips_streami_decode( input ) )
+		return( -1 );
 
 	return( 0 );
 }

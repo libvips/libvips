@@ -198,8 +198,6 @@ vips_foreign_load_tiff_file_header( VipsForeignLoad *load )
 	}
 	VIPS_UNREF( input );
 
-	VIPS_SETSTR( load->out->filename, file->filename );
-
 	return( 0 );
 }
 

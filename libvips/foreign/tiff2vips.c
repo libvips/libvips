@@ -534,7 +534,8 @@ rtiff_new( VipsStreami *input, VipsImage *out,
 	g_signal_connect( out, "minimise",
 		G_CALLBACK( rtiff_minimise_cb ), rtiff ); 
 
-	if( rtiff->page < 0 || rtiff->page > 1000000 ) {
+	if( rtiff->page < 0 || 
+		rtiff->page > 1000000 ) {
 		vips_error( "tiff2vips", _( "bad page number %d" ),
 			rtiff->page );
 		return( NULL );
@@ -1367,6 +1368,9 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	out->Xsize = rtiff->header.width;
 	out->Ysize = rtiff->header.height * rtiff->n;
 
+	VIPS_SETSTR( out->filename, 
+		vips_stream_filename( VIPS_STREAM( rtiff->input ) ) );
+
 	if( rtiff->n > 1 ) 
 		vips_image_set_int( out, 
 			VIPS_META_PAGE_HEIGHT, rtiff->header.height );
@@ -1533,9 +1537,6 @@ rtiff_fill_region( VipsRegion *out,
 	VipsRect *r = &out->valid;
 
 	int x, y, z;
-
-	if( vips_streami_unminimise( rtiff->input ) ) 
-		return( -1 );
 
 	/* Special case: we are filling a single tile exactly sized to match
 	 * the tiff tile and we have no repacking to do for this format.
@@ -1862,9 +1863,6 @@ rtiff_stripwise_generate( VipsRegion *or,
 	 */
 	g_assert( r->height == 
 		VIPS_MIN( read_height, or->im->Ysize - r->top ) ); 
-
-	if( vips_streami_unminimise( rtiff->input ) ) 
-		return( -1 );
 
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().

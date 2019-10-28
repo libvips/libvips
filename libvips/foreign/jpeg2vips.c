@@ -558,7 +558,8 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 		interpretation,
 		xres, yres );
 
-	VIPS_SETSTR( out->filename, VIPS_STREAM( jpeg->input )->filename );
+	VIPS_SETSTR( out->filename, 
+		vips_stream_filename( VIPS_STREAM( jpeg->input ) ) );
 
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 
@@ -742,11 +743,6 @@ read_jpeg_generate( VipsRegion *or,
 	printf( "read_jpeg_generate: %p line %d, %d rows\n", 
 		g_thread_self(), r->top, r->height );
 #endif /*DEBUG_VERBOSE*/
-
-	/* In pixel decode mode.
-	 */
-	if( vips_streami_decode( jpeg->input ) )
-		return( -1 );
 
 	VIPS_GATE_START( "read_jpeg_generate: work" );
 
@@ -953,8 +949,6 @@ vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 			 */
 			vips_autorot_remove_angle( out ); 
 		}
-
-		vips_streami_minimise( jpeg->input );
 	}
 	else {
 		if( read_jpeg_image( jpeg, out ) )
@@ -976,10 +970,9 @@ vips__jpeg_read_stream( VipsStreami *input, VipsImage *out,
 	if( setjmp( jpeg->eman.jmp ) ) 
 		return( -1 );
 
-	if( readjpeg_open_input( jpeg ) )
-                return( -1 );
-
-	if( vips__jpeg_read( jpeg, out, header_only ) ) 
+	if( readjpeg_open_input( jpeg ) ||
+		vips__jpeg_read( jpeg, out, header_only ) ||
+		vips_streami_decode( jpeg->input ) )
 		return( -1 );
 
 	return( 0 );

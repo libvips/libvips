@@ -117,7 +117,7 @@ vips_streamo_build( VipsObject *object )
 
 	if( vips_object_argument_isset( object, "filename" ) &&
 		vips_object_argument_isset( object, "descriptor" ) ) { 
-		vips_error( vips_stream_name( stream ), 
+		vips_error( vips_stream_nick( stream ), 
 			"%s", _( "don't set 'filename' and 'descriptor'" ) ); 
 		return( -1 ); 
 	}
@@ -131,7 +131,7 @@ vips_streamo_build( VipsObject *object )
 		 */
 		if( (fd = vips_tracked_open( filename, 
 			MODE_WRITE, 0644 )) == -1 ) {
-			vips_error_system( errno, vips_stream_name( stream ), 
+			vips_error_system( errno, vips_stream_nick( stream ), 
 				"%s", _( "unable to open for write" ) ); 
 			return( -1 ); 
 		}
@@ -330,7 +330,7 @@ vips_streamo_write( VipsStreamo *streamo, const void *data, size_t length )
 		 */
 		if( n <= 0 ) {
 			vips_error_system( errno, 
-				vips_stream_name( VIPS_STREAM( streamo ) ),
+				vips_stream_nick( VIPS_STREAM( streamo ) ),
 				"%s", _( "write error" ) ); 
 			return( -1 ); 
 		}

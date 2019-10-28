@@ -1030,19 +1030,22 @@ char *
 build_scan_properties( VipsImage *image )
 {
 	VipsDbuf dbuf;
-	GTimeVal now;
+	GDateTime *now;
 	char *date;
 	int i;
 
+	now = g_date_time_new_now_local();
+	date = g_date_time_format_iso8601( now );
+	g_date_time_unref( now );
+
 	vips_dbuf_init( &dbuf );
 
-	g_get_current_time( &now );
-	date = g_time_val_to_iso8601( &now );
 	vips_dbuf_writef( &dbuf, "<?xml version=\"1.0\"?>\n" ); 
 	vips_dbuf_writef( &dbuf, "<image xmlns=\"http://www.pathozoom.com/szi\""
 		" date=\"%s\" version=\"1.0\">\n", date );
-	g_free( date ); 
 	vips_dbuf_writef( &dbuf, "  <properties>\n" );  
+
+	g_free( date ); 
 
 	for( i = 0; i < VIPS_NUMBER( scan_property_names ); i++ )
 		build_scan_property( &dbuf, image,
