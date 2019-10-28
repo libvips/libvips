@@ -2,7 +2,7 @@ FROM alpine:3.10
 
 ARG VIPS_VERSION
 
-RUN apk add --update --no-cache --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing --virtual .build-deps \
+RUN apk add --update --no-cache --virtual .build-deps \
             build-base \
             pkgconfig \
             glib-dev \
@@ -16,9 +16,8 @@ RUN apk add --update --no-cache --repository=http://dl-cdn.alpinelinux.org/alpin
             libpng-dev \
             orc-dev \
             libwebp-dev \
-            libheif-dev \
-            libimagequant-dev 
-
+            libheif-dev 
+            
 RUN wget https://github.com/libvips/libvips/releases/download/v${VIPS_VERSION}/vips-${VIPS_VERSION}.tar.gz
 
 RUN mkdir vips
@@ -42,8 +41,6 @@ RUN rm -rf vips
 RUN apk del .build-deps
 
 RUN apk add --update --no-cache libgsf glib gobject-introspection expat tiff libjpeg-turbo libexif giflib librsvg lcms2 libpng orc libwebp libheif
-
-RUN apk add --update --no-cache libimagequant --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing
 
 ENV GI_TYPELIB_PATH /usr/local/lib/girepository-1.0
 
