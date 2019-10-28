@@ -35,6 +35,8 @@
  *
  * - filename encoding
  * - need printf()-style output? eg. for CSV write ... see dbuf.c
+ * - make vfuncs just call write() and seek() (for tiff), all other processing
+ *   in the invocation ... cf. streami
  * - test we can really change all behaviour in the subclass ... add callbacks
  *   as well to make it simpler for language bindings
  */
