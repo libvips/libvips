@@ -81,6 +81,8 @@
  * 	- write all associated images
  * 19/12/18
  * 	- add @skip_blanks
+ * 21/10/19
+ * 	- add @no_strip
  */
 
 /*
@@ -454,6 +456,7 @@ struct _VipsForeignSaveDz {
 	int compression;
 	VipsRegionShrink region_shrink;
 	int skip_blanks;
+	gboolean no_strip;
 
 	/* Tile and overlap geometry. The members above are the parameters we
 	 * accept, this next set are the derived values which are actually 
@@ -588,12 +591,12 @@ write_image( VipsForeignSaveDz *dz,
 	void *buf;
 	size_t len;
 
-	/* Hopefully, no one will want the same metadata on all the images.
-	 * Strip them.
+	/* We default to stripping all metadata. Only "no_strip" turns this
+	 * off. Very few people really want metadata on every tile.
 	 */
 	vips_image_set_int( image, "hide-progress", 1 );
 	if( vips_image_write_to_buffer( image, format, &buf, &len,
-		"strip", TRUE,
+		"strip", !dz->no_strip,
 		NULL ) )
 		return( -1 );
 
@@ -2332,6 +2335,13 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveDz, skip_blanks ),
 		-1, 65535, -1 );
 
+	VIPS_ARG_BOOL( class, "no_strip", 20, 
+		_( "No strip" ), 
+		_( "Don't strip tile metadata" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, no_strip ),
+		FALSE );
+
 	/* How annoying. We stupidly had these in earlier versions.
 	 */
 
@@ -2573,6 +2583,7 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  * * @compression: %gint zip deflate compression level
  * * @region_shrink: #VipsRegionShrink how to shrink each 2x2 region
  * * @skip_blanks: %gint skip tiles which are nearly equal to the background
+ * * @no_strip: %gboolean don't strip tiles
  *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.
@@ -2611,6 +2622,10 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  * metadata attached to @in in an obvious manner. It can be useful for viewing
  * programs which wish to use fields from source files loaded via
  * vips_openslideload(). 
+ *
+ * By default, all tiles are stripped, since very few people want a copy of
+ * the metadata on every tile. Set @no_strip if you really want to keep 
+ * metadata.
  *
  * If @container is set to `zip`, you can set a compression level from -1
  * (use zlib default), 0 (store, compression disabled) to 9 (max compression).
@@ -2665,6 +2680,7 @@ vips_dzsave( VipsImage *in, const char *name, ... )
  * * @compression: %gint zip deflate compression level
  * * @region_shrink: #VipsRegionShrink how to shrink each 2x2 region.
  * * @skip_blanks: %gint skip tiles which are nearly equal to the background
+ * * @no_strip: %gboolean don't strip tiles
  *
  * As vips_dzsave(), but save to a memory buffer. 
  *

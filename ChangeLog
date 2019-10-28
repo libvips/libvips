@@ -16,8 +16,9 @@
 - add @interpretation and @format to rawload
 - nifti load/save uses double for all floating point metadata
 - add vips_error_buffer_copy()
-- add VipsStream ... a universal IO class for loaders and savers
-- jpegload uses the new IO class
+- add VipsStream: a universal IO class for loaders and savers
+- jpeg, png, tiff and webp use the new IO class
+- add @no_strip option to dzsave [kalozka1]
 
 31/8/19 started 8.8.3
 - revert sharpen restoring the input colourspace
