@@ -34,9 +34,7 @@
 /* TODO
  *
  * - filename encoding
- * - need printf()-style output? eg. for CSV write ... see dbuf.c
- * - make vfuncs just call write() and seek() (for tiff), all other processing
- *   in the invocation ... cf. streami
+ * - seem to have some test-suite ref leaks?
  * - test we can really change all behaviour in the subclass ... add callbacks
  *   as well to make it simpler for language bindings
  */
@@ -157,37 +155,15 @@ vips_streamo_write_real( VipsStreamo *streamo, const void *data, size_t length )
 {
 	VipsStream *stream = VIPS_STREAM( streamo );
 
-	ssize_t len;
-
 	VIPS_DEBUG_MSG( "vips_streamo_write_real: %zd bytes\n", length );
 
-	if( streamo->memory ) {
-		g_byte_array_append( streamo->memory, data, length );
-		len = length;
-	}
-	else 
-		len = write( stream->descriptor, data, length );
-
-	return( len );
+	return( write( stream->descriptor, data, length ) );
 }
 
 static void
 vips_streamo_finish_real( VipsStreamo *streamo ) 
 {
 	VIPS_DEBUG_MSG( "vips_streamo_finish_real:\n" );
-
-	/* Move the stream buffer into the blob so it can be read out.
-	 */
-	if( streamo->memory ) {
-		unsigned char *data;
-		size_t length;
-
-		length = streamo->memory->len;
-		data = g_byte_array_free( streamo->memory, FALSE );
-		streamo->memory = NULL;
-		vips_blob_set( streamo->blob,
-			(VipsCallbackFn) g_free, data, length );
-	}
 }
 
 static void
@@ -224,6 +200,8 @@ static void
 vips_streamo_init( VipsStreamo *streamo )
 {
 	streamo->blob = vips_blob_new( NULL, NULL, 0 );
+	streamo->bytes_remaining = VIPS_STREAMO_BUFFER_SIZE;
+	streamo->write_point = streamo->output_buffer;
 }
 
 /**
@@ -315,35 +293,107 @@ vips_streamo_new_memory( void )
 	return( streamo ); 
 }
 
-int
-vips_streamo_write( VipsStreamo *streamo, const void *data, size_t length )
+static int
+vips_streamo_write_unbuffered( VipsStreamo *streamo, 
+	const void *data, size_t length )
 {
 	VipsStreamoClass *class = VIPS_STREAMO_GET_CLASS( streamo );
 
-	VIPS_DEBUG_MSG( "vips_streamo_write: %zd bytes\n", length );
+	if( streamo->memory ) 
+		g_byte_array_append( streamo->memory, data, length );
+	else 
+		while( length > 0 ) { 
+			ssize_t n;
 
-	while( length > 0 ) { 
-		ssize_t n;
+			n = class->write( streamo, data, length );
 
-		n = class->write( streamo, data, length );
+			/* n == 0 isn't strictly an error, but we treat it as 
+			 * one to make sure we don't get stuck in this loop.
+			 */
+			if( n <= 0 ) {
+				vips_error_system( errno, 
+					vips_stream_nick( 
+						VIPS_STREAM( streamo ) ),
+					"%s", _( "write error" ) ); 
+				return( -1 ); 
+			}
 
-		/* n == 0 isn't strictly an error, but we treat it as one to
-		 * make sure we don't get stuck in this loop.
-		 */
-		if( n <= 0 ) {
-			vips_error_system( errno, 
-				vips_stream_nick( VIPS_STREAM( streamo ) ),
-				"%s", _( "write error" ) ); 
-			return( -1 ); 
+			length -= n;
+			data += n;
 		}
 
-		length -= n;
-		data += n;
+	return( 0 );
+}
+
+static int
+vips_streamo_flush( VipsStreamo *streamo )
+{
+	int bytes_in_buffer = 
+		VIPS_STREAMO_BUFFER_SIZE - streamo->bytes_remaining;
+
+	g_assert( bytes_in_buffer >= 0 );
+	g_assert( bytes_in_buffer <= VIPS_STREAMO_BUFFER_SIZE );
+
+	if( bytes_in_buffer > 0 ) {
+		if( vips_streamo_write_unbuffered( streamo, 
+			streamo->output_buffer, bytes_in_buffer ) )
+			return( -1 );
+		streamo->bytes_remaining = VIPS_STREAMO_BUFFER_SIZE;
+		streamo->write_point = streamo->output_buffer;
 	}
 
 	return( 0 );
 }
 
+/**
+ * vips_streamo_write:
+ * @streamo: output stream to operate on
+ * @buffer: bytes to write
+ * @length: length of @buffer in bytes
+ *
+ * Write @length bytes from @buffer to the output. 
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_streamo_write( VipsStreamo *streamo, const void *buffer, size_t length )
+{
+	VIPS_DEBUG_MSG( "vips_streamo_write: %zd bytes\n", length );
+
+	if( streamo->bytes_remaining >= length ) {
+		memcpy( streamo->write_point, buffer, length );
+		streamo->bytes_remaining -= length;
+		streamo->write_point += length;
+	}
+	else {
+		if( vips_streamo_flush( streamo ) )
+			return( -1 );
+
+		if( streamo->bytes_remaining >= length ) {
+			memcpy( streamo->write_point, buffer, length );
+			streamo->bytes_remaining -= length;
+			streamo->write_point += length;
+		}
+		else 
+			/* The buffer is empty and we still have too much
+			 * data. Write directly.
+			 */
+			if( vips_streamo_write_unbuffered( streamo, 
+				buffer, length ) )
+				return( -1 );
+	}
+
+	return( 0 );
+}
+
+/**
+ * vips_streamo_finish:
+ * @streamo: output stream to operate on
+ * @buffer: bytes to write
+ * @length: length of @buffer in bytes
+ *
+ * Call this at the end of write to make the stream do any cleaning up.
+ */
 void
 vips_streamo_finish( VipsStreamo *streamo )
 {
@@ -351,5 +401,112 @@ vips_streamo_finish( VipsStreamo *streamo )
 
 	VIPS_DEBUG_MSG( "vips_streamo_finish:\n" );
 
-	class->finish( streamo );
+	(void) vips_streamo_flush( streamo );
+
+	/* Move the stream buffer into the blob so it can be read out.
+	 */
+	if( streamo->memory ) {
+		unsigned char *data;
+		size_t length;
+
+		length = streamo->memory->len;
+		data = g_byte_array_free( streamo->memory, FALSE );
+		streamo->memory = NULL;
+		vips_blob_set( streamo->blob,
+			(VipsCallbackFn) g_free, data, length );
+	}
+	else
+		class->finish( streamo );
 }
+
+/**
+ * vips_streamo_writef:
+ * @streamo: output stream to operate on
+ * @fmt: <function>printf()</function>-style format string
+ * @...: arguments to format string
+ *
+ * Format the string and write to @streamo. 
+ * 
+ * Returns: 0 on success, and -1 on error.
+ */
+int
+vips_streamo_writef( VipsStreamo *streamo, const char *fmt, ... )
+{
+	va_list ap;
+	char *line;
+	int result;
+
+        va_start( ap, fmt );
+	line = g_strdup_vprintf( fmt, ap ); 
+        va_end( ap );
+
+	result = vips_streamo_write( streamo, 
+		(unsigned char *) line, strlen( line ) );
+
+	g_free( line ); 
+
+	return( result ); 
+}
+
+/**
+ * vips_streamo_write_amp: 
+ * @streamo: output stream to operate on
+ * @str: string to write
+ *
+ * Write @str to @streamo, but escape stuff that xml hates in text. Our
+ * argument string is utf-8.
+ *
+ * XML rules:
+ *
+ * - We must escape &<> 
+ * - Don't escape \n, \t, \r
+ * - Do escape the other ASCII codes. 
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_streamo_write_amp( VipsStreamo *streamo, const char *str )
+{
+	const char *p;
+
+	for( p = str; *p; p++ ) 
+		if( *p < 32 &&
+			*p != '\n' &&
+			*p != '\t' &&
+			*p != '\r' ) {
+			/* You'd think we could output "&#x02%x;", but xml
+			 * 1.0 parsers barf on that. xml 1.1 allows this, but
+			 * there are almost no parsers. 
+			 *
+			 * U+2400 onwards are unicode glyphs for the ASCII 
+			 * control characters, so we can use them -- thanks
+			 * electroly.
+			 */
+			if( !vips_streamo_writef( streamo, 
+				"&#x%04x;", 0x2400 + *p ) )
+				return( -1 );	
+		}
+		else if( *p == '<' ) {
+			if( !vips_streamo_write( streamo, 
+				(guchar *) "&lt;", 4 ) )
+				return( -1 );
+		}
+		else if( *p == '>' ) {
+			if( !vips_streamo_write( streamo, 
+				(guchar *) "&gt;", 4 ) )
+				return( -1 );
+		}
+		else if( *p == '&' ) {
+			if( !vips_streamo_write( streamo, 
+				(guchar *) "&amp;", 5 ) )
+				return( -1 );
+		}
+		else  {
+			if( !vips_streamo_write( streamo, 
+				(guchar *) p, 1 ) )
+				return( -1 );
+		}
+
+	return( 0 ); 
+}
+

@@ -205,12 +205,9 @@ vips__tiff_openin_stream( VipsStreami *input )
 	printf( "vips__tiff_openin_stream:\n" );
 #endif /*DEBUG*/
 
-	/* Unreffed on close(), see above.
-	 */
 	if( vips_streami_rewind( input ) )
 		return( NULL );
 
-	g_object_ref( input );
 	if( !(tiff = TIFFClientOpen( "stream input", "rm",
 		(thandle_t) input,
 		openin_stream_read,
@@ -224,6 +221,10 @@ vips__tiff_openin_stream( VipsStreami *input )
 			_( "unable to open stream for input" ) );
 		return( NULL );
 	}
+
+	/* Unreffed on close(), see above.
+	 */
+	g_object_ref( input );
 
 	return( tiff );
 }

@@ -184,13 +184,14 @@ typedef struct _VipsStreamiClass {
 	 */
 
 	/* Read from the stream into the supplied buffer, args exactly as
-	 * read(2).
+	 * read(2). Set errno on error.
 	 */
 	ssize_t (*read)( VipsStreami *, void *, size_t );
 
-	/* Seek to a certain position, args exactly as lseek(2). 
+	/* Seek to a certain position, args exactly as lseek(2). Set errno on
+	 * error.
 	 *
-	 * Unseekable streams should just return -1. VipsStreami will then
+	 * Unseekable streams should always return -1. VipsStreami will then
 	 * seek by _read()ing bytes into memory as required.
 	 */
 	gint64 (*seek)( VipsStreami *, gint64 offset, int );
@@ -230,6 +231,8 @@ gint64 vips_streami_size( VipsStreami *streami );
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 	VIPS_TYPE_STREAMO, VipsStreamoClass ))
 
+#define VIPS_STREAMO_BUFFER_SIZE (4096)
+
 /* Output to something like a socket, pipe or memory area. 
  */
 typedef struct _VipsStreamo {
@@ -245,16 +248,22 @@ typedef struct _VipsStreamo {
 	 */
 	VipsBlob *blob;
 
+	/* Buffer small writes here. 
+	 */
+	unsigned char output_buffer[VIPS_STREAMO_BUFFER_SIZE];
+	unsigned char *write_point;
+	int bytes_remaining;
+
 } VipsStreamo;
 
 typedef struct _VipsStreamoClass {
 	VipsStreamClass parent_class;
 
-	/* If defined, output some bytes with this. Otherwise use write().
+	/* Write to output. Args exactly as write(2).
 	 */
 	ssize_t (*write)( VipsStreamo *, const void *, size_t );
 
-	/* A complete output image has been generated, so do any clearing up,
+	/* Output has been generated, so do any clearing up,
 	 * eg. copy the bytes we saved in memory to the stream blob.
 	 */
 	void (*finish)( VipsStreamo * );
@@ -268,6 +277,10 @@ VipsStreamo *vips_streamo_new_from_filename( const char *filename );
 VipsStreamo *vips_streamo_new_memory( void );
 int vips_streamo_write( VipsStreamo *streamo, const void *data, size_t length );
 void vips_streamo_finish( VipsStreamo *streamo );
+
+int vips_streamo_writef( VipsStreamo *streamo, const char *fmt, ... )
+	__attribute__((format(printf, 2, 3)));
+int vips_streamo_write_amp( VipsStreamo *streamo, const char *str );
 
 #ifdef __cplusplus
 }
