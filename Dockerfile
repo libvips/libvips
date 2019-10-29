@@ -15,8 +15,7 @@ RUN apk add --update --no-cache --virtual .build-deps \
             lcms2-dev \
             libpng-dev \
             orc-dev \
-            libwebp-dev \
-            libheif-dev 
+            libwebp-dev
             
 RUN wget https://github.com/libvips/libvips/releases/download/v${VIPS_VERSION}/vips-${VIPS_VERSION}.tar.gz
 
@@ -40,7 +39,7 @@ RUN rm -rf vips
 
 RUN apk del .build-deps
 
-RUN apk add --update --no-cache libgsf glib gobject-introspection expat tiff libjpeg-turbo libexif giflib librsvg lcms2 libpng orc libwebp libheif
+RUN apk add --update --no-cache libgsf glib gobject-introspection expat tiff libjpeg-turbo libexif giflib librsvg lcms2 libpng orc libwebp 
 
 ENV GI_TYPELIB_PATH /usr/local/lib/girepository-1.0
 
