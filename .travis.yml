@@ -20,14 +20,14 @@ script:
     DYLD_LIBRARY_PATH=$PWD/libvips/.libs
     LD_PRELOAD=$ASAN_DSO
     $PYTHON -m pytest -v test/test-suite
-  - docker build --squash --build-arg VIPS_VERSION -t vips/vips-web .
-  - docker tag vips/vips-web:latest vips/vips-web:$VIPS_VERSION
+  - docker build --squash --build-arg VIPS_VERSION=$TRAVIS_TAG -t vips/vips-web .
+  - docker tag vips/vips-web:latest vips/vips-web:$TRAVIS_TAG
 
 deploy:
   provider: script
   script: 
     - docker push vips/vips-web:latest
-    - docker push vips/vips-web:$VIPS_VERSION
+    - docker push vips/vips-web:$TRAVIS_TAG
   on:
     branch: master
     tags: true
