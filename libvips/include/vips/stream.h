@@ -216,6 +216,54 @@ int vips_streami_rewind( VipsStreami *streami );
 unsigned char *vips_streami_sniff( VipsStreami *streami, size_t length );
 gint64 vips_streami_size( VipsStreami *streami ); 
 
+#define VIPS_TYPE_STREAMIB (vips_streamib_get_type())
+#define VIPS_STREAMIB( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_STREAMIB, VipsStreamib ))
+#define VIPS_STREAMIB_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_STREAMIB, VipsStreamibClass))
+#define VIPS_IS_STREAMIB( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_STREAMIB ))
+#define VIPS_IS_STREAMIB_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_STREAMIB ))
+#define VIPS_STREAMIB_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_STREAMIB, VipsStreamibClass ))
+
+#define VIPS_STREAMIB_BUFFER_SIZE (4096)
+
+/* Layer over streami: read with an input buffer.
+ * 
+ * Libraries like libjpeg do their own input buffering and need raw IO, but
+ * others, like radiance, need to parse the input into lines. A buffered read
+ * class is very convenient.
+ */
+typedef struct _VipsStreamib {
+	VipsStreami parent_object;
+
+	unsigned char input_buffer[VIPS_STREAMIB_BUFFER_SIZE];
+	unsigned char *read_point;
+	int bytes_remaining;
+
+} VipsStreamib;
+
+typedef struct _VipsStreamibClass {
+	VipsStreamiClass parent_class;
+
+} VipsStreamibClass;
+
+GType vips_streamib_get_type( void );
+
+VipsStreamib *vips_streamib_new_from_descriptor( int descriptor );
+VipsStreamib *vips_streamib_new_from_filename( const char *filename );
+VipsStreamib *vips_streamib_new_from_blob( VipsBlob *blob );
+VipsStreamib *vips_streamib_new_from_memory( const void *data, size_t size );
+VipsStreamib *vips_streamib_new_from_options( const char *options );
+
+unsigned char *vips_streamib_get_line( VipsStreamib *streamib, 
+	void *data, size_t length );
+
 #define VIPS_TYPE_STREAMO (vips_streamo_get_type())
 #define VIPS_STREAMO( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
@@ -280,7 +328,6 @@ void vips_streamo_finish( VipsStreamo *streamo );
 
 int vips_streamo_writef( VipsStreamo *streamo, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
-int vips_streamo_write_amp( VipsStreamo *streamo, const char *str );
 
 #ifdef __cplusplus
 }

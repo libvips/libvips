@@ -1043,3 +1043,5 @@ vips_streami_sniff( VipsStreami *streami, size_t length )
 
 	return( streami->sniff->data );
 }
+
+
