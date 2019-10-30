@@ -19,11 +19,9 @@ test_one_file( const char *name )
 		NULL )) )
 		return( 0 );
 
-	/* Skip big images. They are likely to timeout.
-	 */
-	if( image->Xsize > 1024 ||
-		image->Ysize > 1024 ||
-		image->Bands > 10 ) {
+	if( image->Xsize > 100 ||
+		image->Ysize > 100 ||
+		image->Bands > 4 ) {
 		g_object_unref( image );
 		return( 0 );
 	}
