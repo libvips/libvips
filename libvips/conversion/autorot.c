@@ -98,10 +98,6 @@ vips_autorot_get_angle( VipsImage *im )
 	default:
 		/* Other values do rotate + mirror, don't bother handling them
 		 * though, how common can mirroring be.
-		 *
-		 * See:
-		 *
-		 * http://www.80sidea.com/archives/2316
 		 */
 		angle = VIPS_ANGLE_D0;
 		break;
