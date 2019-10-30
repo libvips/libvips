@@ -33,8 +33,7 @@
 
 /* TODO
  *
- * - filename encoding
- * - something to stop unbounded streams filling memory
+ * - make something to parse input and implement rad load
  * - gaussblur is missing the vector path again argh
  * - can we map and then close the fd? how about on Windows?
  * - make a subclass that lets you set vfuncs as params, inc. close(),
@@ -705,6 +704,13 @@ vips_streami_read( VipsStreami *streami, void *buffer, size_t length )
 	return( bytes_read );
 }
 
+/* -1 on a pipe isn't actually unbounded. Have a limit to prevent
+ * huge streams accidentally filling memory.
+ *
+ * 1gb. Why not.
+ */
+static const int vips_pipe_read_limit = 1024 * 1024 * 1024;
+
 /* Read to a position. -1 means read to end of stream. Does not chenge 
  * read_position.
  */
@@ -719,6 +725,7 @@ vips_streami_pipe_read_to_position( VipsStreami *streami, gint64 target )
 
 	g_assert( !streami->decode );
 	g_assert( streami->header_bytes );
+	g_assert( streami->is_pipe );
 
 	if( target < 0 ||
 		(streami->length != -1 && 
@@ -730,9 +737,6 @@ vips_streami_pipe_read_to_position( VipsStreami *streami, gint64 target )
 
 	old_read_position = streami->read_position;
 
-	/* TODO ... add something to prevent unbounded streams filling memory
-	 * if target == -1.
-	 */
 	while( target == -1 ||
 		streami->read_position < target ) {
 		ssize_t read;
@@ -742,6 +746,13 @@ vips_streami_pipe_read_to_position( VipsStreami *streami, gint64 target )
 			return( -1 );
 		if( read == 0 )
 			break;
+
+		if( target == -1 &&
+			streami->read_position > vips_pipe_read_limit ) {
+			vips_error( vips_stream_nick( VIPS_STREAM( streami ) ), 
+				"%s", _( "pipe too long" ) );
+			return( -1 );
+		}
 	}
 
 	streami->read_position = old_read_position;

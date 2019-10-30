@@ -33,8 +33,6 @@
 
 /* TODO
  *
- * - filename encoding
- * - seem to have some test-suite ref leaks?
  * - test we can really change all behaviour in the subclass ... add callbacks
  *   as well to make it simpler for language bindings
  */

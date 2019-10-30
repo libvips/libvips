@@ -365,6 +365,8 @@ vips_tracked_malloc( size_t size )
  *
  * You must only close the file descriptor with vips_tracked_close().
  *
+ * @pathname should be utf8.
+ *
  * See also: vips_tracked_close(), vips_tracked_get_files().
  *
  * Returns: a file descriptor, or -1 on error.
