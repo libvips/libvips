@@ -242,8 +242,11 @@ gint64 vips_streami_size( VipsStreami *streami );
 typedef struct _VipsStreamib {
 	VipsStreami parent_object;
 
-	unsigned char input_buffer[VIPS_STREAMIB_BUFFER_SIZE];
-	unsigned char *read_point;
+	/* The +1 means there's always a \0 byte at the end.
+	 */
+	char input_buffer[VIPS_STREAMIB_BUFFER_SIZE + 1];
+	char line[VIPS_STREAMIB_BUFFER_SIZE + 1];
+	char *read_point;
 	int bytes_remaining;
 
 } VipsStreamib;
@@ -261,8 +264,8 @@ VipsStreamib *vips_streamib_new_from_blob( VipsBlob *blob );
 VipsStreamib *vips_streamib_new_from_memory( const void *data, size_t size );
 VipsStreamib *vips_streamib_new_from_options( const char *options );
 
-unsigned char *vips_streamib_get_line( VipsStreamib *streamib, 
-	void *data, size_t length );
+int vips_streamib_get_line( VipsStreamib *streamib, const char **line );
+int vips_streamib_get_line_copy( VipsStreamib *streamib, char **line );
 
 #define VIPS_TYPE_STREAMO (vips_streamo_get_type())
 #define VIPS_STREAMO( obj ) \

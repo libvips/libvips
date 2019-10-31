@@ -1044,4 +1044,176 @@ vips_streami_sniff( VipsStreami *streami, size_t length )
 	return( streami->sniff->data );
 }
 
+G_DEFINE_TYPE( VipsStreamib, vips_streamib, VIPS_TYPE_STREAMI );
+
+static void
+vips_streamib_finalize( GObject *gobject )
+{
+	VipsStreamib *streamib = VIPS_STREAMIB( gobject );
+
+	G_OBJECT_CLASS( vips_streamib_parent_class )->finalize( gobject );
+}
+
+static int
+vips_streamib_build( VipsObject *object )
+{
+	VipsStream *stream = VIPS_STREAM( object );
+	VipsStreamib *streamib = VIPS_STREAMIB( object );
+	VipsStreamibClass *class = VIPS_STREAMIB_GET_CLASS( streamib );
+
+	VIPS_DEBUG_MSG( "vips_streamib_build: %p\n", streamib );
+
+	if( VIPS_OBJECT_CLASS( vips_streamib_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_streamib_class_init( VipsStreamibClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
+
+	gobject_class->finalize = vips_streamib_finalize;
+
+	object_class->nickname = "streamib";
+	object_class->description = _( "streamib stream" );
+
+	object_class->build = vips_streamib_build;
+
+}
+
+static void
+vips_streamib_init( VipsStreamib *streamib )
+{
+	streamib->read_point = streamib->input_buffer;
+	streamib->bytes_remaining = 0;
+}
+
+static int
+vips_streamib_refill( VipsStreamib *streamib )
+{
+	ssize_t bytes_read;
+
+	/* We should not discard any unread bytes.
+	 */
+	g_assert( streamib->bytes_remaining == 0 );
+
+	streamib->read_postion = streamib->input_buffer;
+	streamib->bytes_remaining = 0;
+	if( (bytes_read = vips_streami_read( VIPS_STREAMI( streamib ), 
+		streamib->read_postion, VIPS_STREAMIB_BUFFER_SIZE )) == -1 )
+		return( -1 );
+
+	streamib->bytes_remaining = bytes_read;
+	
+	/* Always add a nul byte so we can use strchr() etc. on lines. This is 
+	 * safe because input_buffer is VIPS_STREAMIB_BUFFER_SIZE + 1 bytes.
+	 */
+	streamib->read_postion[bytes_read] = '\0';
+
+	how do we siganl EOF?
+
+	return( 0 );
+}
+
+/**
+ * vips_streamib_get_line:
+ * @streamib: stream to fetch the line from
+ * @line: return the next line of text here
+ *
+ * Fetch the next line of text from @streamib and return in @line. The end of 
+ * line character (or characters, for DOS files) are removed, and and the 
+ * string is terminated with a null (`\0` character).
+ *
+ * @line is set to NULL on end of file.
+ *
+ * If the line is longer than some arbitrary (but large) limit, is is
+ * truncated. If you need to be able to read very long lines, use the
+ * slower vips_streamib_get_line_copy().
+ *
+ * The return value of @line is owned by @streamib and must not be freed. It 
+ * is valid until the next call to vips_streamib_get_line().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_streamib_get_line( VipsStreamib *streamib, const char **line ) 
+{
+	char *write_point;
+	int bytes_available;
+
+	write_point = streamib->line;
+	bytes_available = VIPS_STREAMIB_BUFFER_SIZE;
+
+	for(;;) {
+		/* Is there a \n in the current buffer? It's always nul
+		 * terminated, so strchr() is safe.
+		 */
+		if( (p = strchr( streamib->read_position, '\n' )) ) {
+			int bytes_to_copy = p - streamib->read_position;
+
+			memcpy( write_point, streamib->read_position, 
+				bytes_to_copy );
+			write_point[bytes_to_copy] = '\0';
+
+			/* Leave input pointing at the \n.
+			 */
+			streamib->read_position += bytes_to_copy;
+			streamib->bytes_remaining -= bytes_to_copy;
+
+			return( vips_streamib_next_line( streamib ) );
+		}
+		else {
+			/* No newline, so copy what we have, refill, and try 
+			 * again.
+			 */
+			int bytes_to_copy = VIPS_MIN( bytes_available, 
+				streamib->bytes_remaining );
+
+			memcpy( write_point, streamib->read_position, 
+				bytes_to_copy );
+			write_point[bytes_to_copy] = '\0';
+			write_point += bytes_to_copy;
+			bytes_available -= bytes_to_copy;
+
+			streamib->read_position += bytes_to_copy;
+			streamib->bytes_remaining -= bytes_to_copy;
+
+			/* If the line has filled, just skip to the next line.
+			 */
+			if( bytes_available <= 0 ) 
+				return( vips_streamib_next_line( streamib ) );
+
+			/* We must have exhausted the buffer. Refill and
+			 * retry.
+			 */
+			if( vips_streamib_refill( streamib ) )
+				return( -1 );
+		}
+	}
+}
+
+/**
+ * vips_streamib_get_line_copy:
+ * @streamib: stream to fetch the line from
+ *
+ * Return the next line of text from the stream. The newline character (or
+ * characters) are removed, and and the string is terminated with a null
+ * (`\0` character).
+ *
+ * The return result must be freed with g_free().
+ *
+ * This is slower than vips_streamib_get_line(), but can work with lines of
+ * any length.
+ *
+ * Returns: the next line from the file, or NULL on EOF.
+ *
+ */
+char *
+vips_streamib_get_line_copy( VipsStreamib *streamib ) 
+{
+}
 
