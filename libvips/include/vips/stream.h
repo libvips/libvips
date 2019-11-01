@@ -242,12 +242,18 @@ gint64 vips_streami_size( VipsStreami *streami );
 typedef struct _VipsStreamib {
 	VipsStreami parent_object;
 
+	/*< private >*/
+
 	/* The +1 means there's always a \0 byte at the end.
 	 */
 	char input_buffer[VIPS_STREAMIB_BUFFER_SIZE + 1];
 	char line[VIPS_STREAMIB_BUFFER_SIZE + 1];
 	char *read_point;
 	int bytes_remaining;
+
+	/* No seeks on buffered streams, so an EOF flag is easy.
+	 */
+	gboolean eof;
 
 } VipsStreamib;
 

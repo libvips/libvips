@@ -1114,7 +1114,8 @@ vips_streamib_refill( VipsStreamib *streamib )
 	 */
 	streamib->read_postion[bytes_read] = '\0';
 
-	how do we siganl EOF?
+	if( bytes_read == 0 )
+		streamib->eof = TRUE;
 
 	return( 0 );
 }
@@ -1192,8 +1193,13 @@ vips_streamib_get_line( VipsStreamib *streamib, const char **line )
 			 */
 			if( vips_streamib_refill( streamib ) )
 				return( -1 );
+
+			if( streamib->eof )
+				break;
 		}
 	}
+
+	return( 0 );
 }
 
 /**
