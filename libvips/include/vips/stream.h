@@ -270,6 +270,14 @@ VipsStreamib *vips_streamib_new_from_blob( VipsBlob *blob );
 VipsStreamib *vips_streamib_new_from_memory( const void *data, size_t size );
 VipsStreamib *vips_streamib_new_from_options( const char *options );
 
+int vips_streamib_getc( VipsStreamib *streamib );
+void vips_streamib_ungetc( VipsStreamib *streamib );
+
+#define VIPS_STREAMIB_GETC( S ) ( \
+	(S)->bytes_remaining > 0 ? \
+		((S)->bytes_remaining--, ((S)->read_point++)[0]) : \
+		vips_streamib_getc( S ))
+
 int vips_streamib_get_line( VipsStreamib *streamib, const char **line );
 int vips_streamib_get_line_copy( VipsStreamib *streamib, char **line );
 
