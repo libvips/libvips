@@ -125,8 +125,8 @@ vips_stream_class_init( VipsStreamClass *class )
 		G_STRUCT_OFFSET( VipsStream, descriptor ),
 		-1, 1000000000, 0 );
 
-	VIPS_ARG_STRING( class, "filename", 2, 
-		_( "Filename" ), 
+	VIPS_ARG_STRING( class, "filename", 2,
+		_( "Filename" ),
 		_( "Name of file to open" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsStream, filename ),

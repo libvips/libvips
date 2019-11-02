@@ -240,9 +240,13 @@ gint64 vips_streami_size( VipsStreami *streami );
  * class is very convenient.
  */
 typedef struct _VipsStreamib {
-	VipsStreami parent_object;
+	VipsObject parent_object;
 
 	/*< private >*/
+
+	/* The VipsStreami we wrap.
+	 */
+	VipsStreami *streami;
 
 	/* The +1 means there's always a \0 byte at the end.
 	 */
@@ -251,24 +255,18 @@ typedef struct _VipsStreamib {
 	char *read_point;
 	int bytes_remaining;
 
-	/* No seeks on buffered streams, so an EOF flag is easy.
-	 */
-	gboolean eof;
-
 } VipsStreamib;
 
 typedef struct _VipsStreamibClass {
-	VipsStreamiClass parent_class;
+	VipsObjectClass parent_class;
 
 } VipsStreamibClass;
 
 GType vips_streamib_get_type( void );
 
-VipsStreamib *vips_streamib_new_from_descriptor( int descriptor );
-VipsStreamib *vips_streamib_new_from_filename( const char *filename );
-VipsStreamib *vips_streamib_new_from_blob( VipsBlob *blob );
-VipsStreamib *vips_streamib_new_from_memory( const void *data, size_t size );
-VipsStreamib *vips_streamib_new_from_options( const char *options );
+VipsStreamib *vips_streamib_new( VipsStreami *streami );
+
+void vips_streamib_unbuffer( VipsStreamib *streamib );
 
 int vips_streamib_getc( VipsStreamib *streamib );
 void vips_streamib_ungetc( VipsStreamib *streamib );
@@ -276,7 +274,8 @@ void vips_streamib_ungetc( VipsStreamib *streamib );
 #define VIPS_STREAMIB_GETC( S ) ( \
 	(S)->bytes_remaining > 0 ? \
 		((S)->bytes_remaining--, ((S)->read_point++)[0]) : \
-		vips_streamib_getc( S ))
+		vips_streamib_getc( S ) \
+)
 
 int vips_streamib_get_line( VipsStreamib *streamib, const char **line );
 int vips_streamib_get_line_copy( VipsStreamib *streamib, char **line );
