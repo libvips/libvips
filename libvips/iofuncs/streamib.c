@@ -91,8 +91,8 @@ static void
 vips_streamib_init( VipsStreamib *streamib )
 {
 	streamib->read_point = streamib->input_buffer;
-	streamib->bytes_remaining = 0;
-	streamib->read_point[streamib->bytes_remaining] = '\0';
+	streamib->chars_unread = 0;
+	streamib->read_point[streamib->chars_unread] = '\0';
 }
 
 /**
@@ -133,7 +133,7 @@ vips_streamib_unbuffer( VipsStreamib *streamib )
 	int bytes_in_buffer = streamib->read_point - streamib->input_buffer;
 
 	streamib->read_point = streamib->input_buffer;
-	streamib->bytes_remaining = 0;
+	streamib->chars_unread = 0;
 	vips_streami_seek( streamib->streami, 
 		-bytes_in_buffer, SEEK_SET );
 }
@@ -147,7 +147,7 @@ vips_streamib_refill( VipsStreamib *streamib )
 
 	/* We should not discard any unread bytes.
 	 */
-	g_assert( streamib->bytes_remaining == 0 );
+	g_assert( streamib->chars_unread == 0 );
 
 	bytes_read = vips_streami_read( streamib->streami, 
 		streamib->input_buffer, VIPS_STREAMIB_BUFFER_SIZE );
@@ -155,7 +155,7 @@ vips_streamib_refill( VipsStreamib *streamib )
 		return( -1 );
 
 	streamib->read_point = streamib->input_buffer;
-	streamib->bytes_remaining = bytes_read;
+	streamib->chars_unread = bytes_read;
 	
 	/* Always add a null byte so we can use strchr() etc. on lines. This is 
 	 * safe because input_buffer is VIPS_STREAMIB_BUFFER_SIZE + 1 bytes.
@@ -180,19 +180,20 @@ vips_streamib_getc( VipsStreamib *streamib )
 {
 	int ch;
 
-	if( streamib->bytes_remaining == 0 &&
+	if( streamib->chars_unread == 0 &&
 		vips_streamib_refill( streamib ) <= 0 )
 		return( -1 );
 
 	ch = streamib->read_point[0];
 
 	streamib->read_point += 1;
-	streamib->bytes_remaining -= 1;
+	streamib->chars_unread -= 1;
 
 	return( ch );
 }
 
-/** VIPS_STREAMIB_GETC:
+/** 
+ * VIPS_STREAMIB_GETC:
  * @streamib: stream to operate on
  *
  * Fetch the next character from the stream. 
@@ -214,9 +215,91 @@ vips_streamib_ungetc( VipsStreamib *streamib )
 {
 	if( streamib->read_point > streamib->input_buffer ) {
 		streamib->read_point -= 1;
-		streamib->bytes_remaining += 1;
+		streamib->chars_unread += 1;
 	}
 }
+
+/**
+ * vips_streamib_require:
+ * @streamib: stream to operate on
+ * @require: make sure we have at least this many chars available
+ *
+ * Make sure there are at least @require bytes of readahead available.
+ *
+ * Returns: 0 on success, -1 on error or EOF.
+ */
+int
+vips_streamib_require( VipsStreamib *streamib, int require )
+{
+	g_assert( require < VIPS_STREAMIB_BUFFER_SIZE ); 
+	g_assert( streamib->chars_unread >= 0 );
+	g_assert( streamib->chars_unread <= VIPS_STREAMIB_BUFFER_SIZE );
+	g_assert( streamib->read_point >= streamib->input_buffer ); 
+	g_assert( streamib->read_point < 
+		streamib->input_buffer + VIPS_STREAMIB_BUFFER_SIZE ); 
+
+	if( require > streamib->chars_unread ) {
+		/* Areas can overlap.
+		 */
+		memmove( streamib->input_buffer, 
+			streamib->read_point, streamib->chars_unread );
+		streamib->read_point = streamib->input_buffer;
+
+		while( require > streamib->chars_unread ) {
+			char *q = streamib->input_buffer + 
+				streamib->chars_unread;
+			int space_available = 
+				VIPS_STREAMIB_BUFFER_SIZE - 
+				streamib->chars_unread;
+			size_t bytes_read;
+
+			if( (bytes_read = vips_streami_read( streamib->streami,
+				q, space_available )) == -1 )
+				return( -1 );
+			streamib->chars_unread += bytes_read;
+			if( bytes_read == 0 ) { 
+				vips_error( 
+					vips_stream_nick( VIPS_STREAM( 
+						streamib->streami ) ), 
+					"%s", _( "end of file" ) ); 
+				return( -1 );
+			}
+		}
+	}
+
+	return( 0 );
+}
+
+/** 
+ * VIPS_STREAMIB_REQUIRE:
+ * @streamib: stream to operate on
+ * @require: need this many characters
+ *
+ * Make sure at least @require characters are available for 
+ * VIPS_STREAMIB_PEEK() and VIPS_STREAMIB_FETCH().
+ *
+ * Returns: 0 on success, -1 on read error or EOF.
+ */
+
+/** 
+ * VIPS_STREAMIB_PEEK:
+ * @streamib: stream to operate on
+ *
+ * After a successful VIPS_STREAMIB_REQUIRE(), you can index this to get
+ * require characters of input.
+ *
+ * Returns: a pointer to the next requre characters of input.
+ */
+
+/** 
+ * VIPS_STREAMIB_FETCH:
+ * @streamib: stream to operate on
+ *
+ * After a successful VIPS_STREAMIB_REQUIRE(), you can use this require times
+ * to fetch characters of input.
+ *
+ * Returns: the next input character.
+ */
 
 /**
  * vips_streamib_get_line:

@@ -152,9 +152,9 @@ extern const char *vips__ppm_suffs[];
 int vips__ppm_save( VipsImage *in, const char *filename, 
 	gboolean ascii, gboolean squash ); 
 
-int vips__rad_israd( const char *filename );
-int vips__rad_header( const char *filename, VipsImage *out );
-int vips__rad_load( const char *filename, VipsImage *out );
+int vips__rad_israd( VipsStreami *streami );
+int vips__rad_header( VipsStreami *streami, VipsImage *out );
+int vips__rad_load( VipsStreami *streami, VipsImage *out );
 
 int vips__rad_save( VipsImage *in, VipsStreamo *output );
 

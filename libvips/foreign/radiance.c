@@ -501,34 +501,34 @@ formatval(			/* get format value (return true if format) */
 
 static int
 getheader(		/* get header from file */
-	FILE  *fp,
+	VipsStreamib *streamib,
 	gethfunc *f,
 	void  *p
 )
 {
-	int   rtotal = 0;
-	char  buf[MAXLINE];
+	for(;;) { 
+		const char *line;
 
-	for ( ; ; ) {
-		int	rval = 0;
-		buf[MAXLINE-2] = '\n';
-		if (fgets(buf, MAXLINE, fp) == NULL)
-			return(-1);
-		if (buf[buf[0]=='\r'] == '\n')
-			return(rtotal);
-		if (buf[MAXLINE-2] != '\n') {
-			ungetc(buf[MAXLINE-2], fp);	/* prevent false end */
-			buf[MAXLINE-2] = '\0';
-		}
-		if (f != NULL && (rval = (*f)(buf, p)) < 0)
-			return(-1);
-		rtotal += rval;
+		if( vips_streamib_get_line( streamib, &line ) )
+			return( -1 );
+		if( !line ) 
+			/* EOF.
+			 */
+			return( -1 );
+		if( strcmp( line, "" ) == 0 )
+			/* Blank line.
+			 */
+			break;
+
+		if( f != NULL && 
+			(*f)( (char *) line, p ) < 0 )
+			return( -1 );
 	}
+
+	return( 0 );
 }
 
-
 struct check {
-	FILE	*fp;
 	char	fs[MAXFMTLEN];
 };
 
@@ -612,23 +612,19 @@ globmatch(			/* check for match of s against pattern p */
  * does wildcard expansion and copies a matching result into fmt.
  * Be sure that fmt is big enough to hold the match in such cases,
  * and that it is not a static, read-only string!
- * The input header (minus any format lines) is copied to fout
- * if fout is not NULL.
  */
 
 static int
 checkheader(
-	FILE  *fin,
-	char  fmt[MAXFMTLEN],
-	FILE  *fout
+	VipsStreamib *streamib,
+	char  fmt[MAXFMTLEN]
 )
 {
 	struct check	cdat;
 	char	*cp;
 
-	cdat.fp = fout;
 	cdat.fs[0] = '\0';
-	if (getheader(fin, mycheck, &cdat) < 0)
+	if (getheader(streamib, mycheck, &cdat) < 0)
 		return(-1);
 	if (!cdat.fs[0])
 		return(0);
@@ -643,104 +639,23 @@ checkheader(
 	return(strcmp(fmt, cdat.fs) ? -1 : 1);	/* literal match */
 }
 
-/* End copy-paste from Radiance sources.
- */
-
-#define BUFFER_SIZE (4096)
-#define BUFFER_MARGIN (256)
-
-/* Read from a FILE with a rolling memory buffer ... this lets us reduce the
- * number of fgetc() and gives us some very quick readahead.
- */
-
-typedef struct _Buffer { 
-	unsigned char text[BUFFER_SIZE + BUFFER_MARGIN];
-	int length;
-	int position;
-	FILE *fp;
-} Buffer; 
-
-static Buffer *
-buffer_new( FILE *fp )
-{
-	Buffer *buffer = g_new0( Buffer, 1 );
-
-	buffer->length = 0;
-	buffer->position = 0;
-	buffer->fp = fp;
-
-	return( buffer ); 
-}
-
-static void
-buffer_free( Buffer *buffer )
-{
-	g_free( buffer ); 
-}
-
-/* Make sure there are at least @require bytes of readahead available.
+/* Read a single scanline, encoded in the old style.
  */
 static int
-buffer_need( Buffer *buffer, int require )
-{
-	int remaining;
-
-	g_assert( require < BUFFER_MARGIN ); 
-	g_assert( buffer->length >= 0 ); 
-	g_assert( buffer->position >= 0 ); 
-	g_assert( buffer->position <= buffer->length ); 
-
-	remaining = buffer->length - buffer->position;
-	if( remaining < require ) {
-		size_t len;
-
-		/* Areas can overlap.
-		 */
-		memmove( buffer->text, 
-			buffer->text + buffer->position, remaining ); 
-		buffer->position = 0;
-		buffer->length = remaining;
-
-		g_assert( buffer->length < BUFFER_MARGIN ); 
-
-		len = fread( buffer->text + buffer->length, 
-			1, BUFFER_SIZE, buffer->fp );
-		buffer->length += len;
-		remaining = buffer->length - buffer->position;
-
-		if( remaining < require ) {
-			vips_error( "rad2vips", "%s", _( "end of file" ) ); 
-			return( -1 );
-		}
-	}
-
-	return( 0 );
-}
-
-#define BUFFER_FETCH(B) ((B)->text[(B)->position++])
-#define BUFFER_PEEK(B) ((B)->text[(B)->position])
-
-/* Read a single scanlne, encoded in the old style.
- */
-static int
-scanline_read_old( Buffer *buffer, COLR *scanline, int width )
+scanline_read_old( VipsStreamib *streamib, COLR *scanline, int width )
 {
 	int rshift;
-
-	g_assert( buffer->length >= 0 ); 
-	g_assert( buffer->position >= 0 ); 
-	g_assert( buffer->position <= buffer->length ); 
 
 	rshift = 0;
 	
 	while( width > 0 ) {
-		if( buffer_need( buffer, 4 ) )
+		if( VIPS_STREAMIB_REQUIRE( streamib, 4 ) )
 			return( -1 ); 
 
-		scanline[0][RED] = BUFFER_FETCH( buffer );
-		scanline[0][GRN] = BUFFER_FETCH( buffer );
-		scanline[0][BLU] = BUFFER_FETCH( buffer );
-		scanline[0][EXP] = BUFFER_FETCH( buffer );
+		scanline[0][RED] = VIPS_STREAMIB_FETCH( streamib );
+		scanline[0][GRN] = VIPS_STREAMIB_FETCH( streamib );
+		scanline[0][BLU] = VIPS_STREAMIB_FETCH( streamib );
+		scanline[0][EXP] = VIPS_STREAMIB_FETCH( streamib );
 
 		if( scanline[0][RED] == 1 &&
 			scanline[0][GRN] == 1 &&
@@ -769,33 +684,30 @@ scanline_read_old( Buffer *buffer, COLR *scanline, int width )
 /* Read a single encoded scanline.
  */
 static int
-scanline_read( Buffer *buffer, COLR *scanline, int width )
+scanline_read( VipsStreamib *streamib, COLR *scanline, int width )
 {
 	int i, j;
-
-	g_assert( buffer->length >= 0 ); 
-	g_assert( buffer->position >= 0 ); 
-	g_assert( buffer->position <= buffer->length ); 
 
 	/* Detect old-style scanlines.
 	 */
 	if( width < MINELEN ||
 		width > MAXELEN )
-		return( scanline_read_old( buffer, scanline, width ) );
+		return( scanline_read_old( streamib, scanline, width ) );
 
-	if( buffer_need( buffer, 4 ) )
+	if( VIPS_STREAMIB_REQUIRE( streamib, 4 ) )
 		return( -1 ); 
 
-	if( BUFFER_PEEK( buffer ) != 2 ) 
-		return( scanline_read_old( buffer, scanline, width ) );
+	if( VIPS_STREAMIB_PEEK( streamib )[0] != 2 ) 
+		return( scanline_read_old( streamib, scanline, width ) );
 
-	scanline[0][RED] = BUFFER_FETCH( buffer );
-	scanline[0][GRN] = BUFFER_FETCH( buffer );
-	scanline[0][BLU] = BUFFER_FETCH( buffer );
-	scanline[0][EXP] = BUFFER_FETCH( buffer );
+	scanline[0][RED] = VIPS_STREAMIB_FETCH( streamib );
+	scanline[0][GRN] = VIPS_STREAMIB_FETCH( streamib );
+	scanline[0][BLU] = VIPS_STREAMIB_FETCH( streamib );
+	scanline[0][EXP] = VIPS_STREAMIB_FETCH( streamib );
 	if( scanline[0][GRN] != 2 || 
 		scanline[0][BLU] & 128 ) 
-		return( scanline_read_old( buffer, scanline + 1, width - 1 ) );
+		return( scanline_read_old( streamib, 
+			scanline + 1, width - 1 ) );
 
 	if( ((scanline[0][BLU] << 8) | scanline[0][EXP]) != width ) {
 		vips_error( "rad2vips", "%s", _( "scanline length mismatch" ) );
@@ -807,10 +719,10 @@ scanline_read( Buffer *buffer, COLR *scanline, int width )
 			int code, len;
 			gboolean run;
 
-			if( buffer_need( buffer, 2 ) )
+			if( VIPS_STREAMIB_REQUIRE( streamib, 2 ) )
 				return( -1 ); 
 
-			code = BUFFER_FETCH( buffer ); 
+			code = VIPS_STREAMIB_FETCH( streamib ); 
 			run = code > 128;
 			len = run ? code & 127 : code; 
 
@@ -822,16 +734,16 @@ scanline_read( Buffer *buffer, COLR *scanline, int width )
 			if( run ) { 
 				int val;
 
-				val = BUFFER_FETCH( buffer ); 
+				val = VIPS_STREAMIB_FETCH( streamib ); 
 				while( len-- )
 					scanline[j++][i] = val;
 			} 
 			else {
-				if( buffer_need( buffer, len ) )
+				if( VIPS_STREAMIB_REQUIRE( streamib, len ) )
 					return( -1 ); 
 				while( len-- ) 
 					scanline[j++][i] = 
-						BUFFER_FETCH( buffer );
+						VIPS_STREAMIB_FETCH( streamib );
 			}
 		}
 
@@ -914,35 +826,28 @@ rle_scanline_write( COLR *scanline, int width,
 /* What we track during radiance file read.
  */
 typedef struct {
-	char *filename;
+	VipsStreamib *streamib;
 	VipsImage *out;
 
-	FILE *fin;
 	char format[256];
 	double expos;
 	COLOR colcor;
 	double aspect;
 	RGBPRIMS prims;
 	RESOLU rs;
-	Buffer *buffer; 
 } Read;
 
 int
-vips__rad_israd( const char *filename )
+vips__rad_israd( VipsStreami *streami )
 {
-	FILE *fin;
+	VipsStreamib *streamib;
 	char format[256];
 	int result;
 
-#ifdef DEBUG
-	printf( "israd: \"%s\"\n", filename );
-#endif /*DEBUG*/
-
-        if( !(fin = vips__file_open_read( filename, NULL, FALSE )) ) 
-		return( 0 );
 	strcpy( format, PICFMT );
-	result = checkheader( fin, format, NULL );
-	fclose( fin );
+	streamib = vips_streamib_new( streami );
+	result = checkheader( streamib, format );
+	VIPS_UNREF( streamib );
 
 	return( result == 1 );
 }
@@ -950,13 +855,11 @@ vips__rad_israd( const char *filename )
 static void
 read_destroy( VipsObject *object, Read *read )
 {
-	VIPS_FREEF( buffer_free, read->buffer );
-	VIPS_FREEF( fclose, read->fin );
-	VIPS_FREE( read->filename );
+	VIPS_UNREF( read->streamib );
 }
 
 static Read *
-read_new( const char *filename, VipsImage *out )
+read_new( VipsStreami *streami, VipsImage *out )
 {
 	Read *read;
 	int i;
@@ -964,9 +867,8 @@ read_new( const char *filename, VipsImage *out )
 	if( !(read = VIPS_NEW( out, Read )) )
 		return( NULL );
 
-	read->filename = vips_strdup( NULL, filename );
+	read->streamib = vips_streamib_new( streami );
 	read->out = out;
-	read->fin = NULL;
 	strcpy( read->format, COLRFMT );
 	read->expos = 1.0;
 	for( i = 0; i < 3; i++ )
@@ -980,14 +882,9 @@ read_new( const char *filename, VipsImage *out )
 	read->prims[2][1] = CIE_y_b;
 	read->prims[3][0] = CIE_x_w;
 	read->prims[3][1] = CIE_y_w;
-	read->buffer = NULL;
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( read_destroy ), read );
-
-	if( !(read->fin = vips__file_open_read( filename, NULL, FALSE )) || 
-		!(read->buffer = buffer_new( read->fin )) )
-		return( NULL );
 
 	return( read );
 }
@@ -1037,12 +934,15 @@ static int
 rad2vips_get_header( Read *read, VipsImage *out )
 {
 	VipsInterpretation interpretation;
+	const char *line;
 	int width;
 	int height;
 	int i, j;
 
-	if( getheader( read->fin, (gethfunc *) rad2vips_process_line, read ) ||
-		!fgetsresolu( &read->rs, read->fin ) ) {
+	if( getheader( read->streamib, 
+		(gethfunc *) rad2vips_process_line, read ) ||
+		vips_streamib_get_line( read->streamib, &line ) ||
+		!str2resolu( &read->rs, line ) ) {
 		vips_error( "rad2vips", "%s", 
 			_( "error reading radiance header" ) );
 		return( -1 );
@@ -1070,6 +970,10 @@ rad2vips_get_header( Read *read, VipsImage *out )
 		interpretation,
 		1, read->aspect );
 
+	VIPS_SETSTR( out->filename, 
+		vips_stream_filename( 
+			VIPS_STREAM( read->streamib->streami ) ) );
+
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	vips_image_set_string( out, "rad-format", read->format );
@@ -1091,15 +995,11 @@ rad2vips_get_header( Read *read, VipsImage *out )
 }
 
 int
-vips__rad_header( const char *filename, VipsImage *out )
+vips__rad_header( VipsStreami *streami, VipsImage *out )
 {
 	Read *read;
 
-#ifdef DEBUG
-	printf( "rad2vips_header: reading \"%s\"\n", filename );
-#endif /*DEBUG*/
-
-	if( !(read = read_new( filename, out )) ) 
+	if( !(read = read_new( streami, out )) ) 
 		return( -1 );
 	if( rad2vips_get_header( read, read->out ) ) 
 		return( -1 );
@@ -1127,7 +1027,7 @@ rad2vips_generate( VipsRegion *or,
 		COLR *buf = (COLR *) 
 			VIPS_REGION_ADDR( or, 0, r->top + y );
 
-		if( scanline_read( read->buffer, buf, or->im->Xsize ) ) {
+		if( scanline_read( read->streamib, buf, or->im->Xsize ) ) {
 			vips_error( "rad2vips", 
 				_( "read error line %d" ), r->top + y );
 			VIPS_GATE_STOP( "rad2vips_generate: work" );
@@ -1141,7 +1041,7 @@ rad2vips_generate( VipsRegion *or,
 }
 
 int
-vips__rad_load( const char *filename, VipsImage *out )
+vips__rad_load( VipsStreami *streami, VipsImage *out )
 {
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( out ), 3 );
@@ -1152,7 +1052,7 @@ vips__rad_load( const char *filename, VipsImage *out )
 	printf( "rad2vips: reading \"%s\"\n", filename );
 #endif /*DEBUG*/
 
-	if( !(read = read_new( filename, out )) ) 
+	if( !(read = read_new( streami, out )) ) 
 		return( -1 );
 
 	t[0] = vips_image_new();

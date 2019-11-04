@@ -83,14 +83,33 @@ vips_foreign_load_rad_get_flags( VipsForeignLoad *load )
 }
 
 static int
+vips_foreign_load_rad_is_a( const char *filename )
+{
+	VipsStreami *streami;
+	int result;
+
+	if( !(streami = vips_streami_new_from_filename( filename )) )
+		return( -1 );
+	result = vips__rad_israd( streami );
+	VIPS_UNREF( streami );
+
+	return( result );
+}
+
+static int
 vips_foreign_load_rad_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadRad *rad = (VipsForeignLoadRad *) load;
 
-	if( vips__rad_header( rad->filename, load->out ) )
-		return( -1 );
+	VipsStreami *streami;
 
-	VIPS_SETSTR( load->out->filename, rad->filename );
+	if( !(streami = vips_streami_new_from_filename( rad->filename )) )
+		return( -1 );
+	if( vips__rad_header( streami, load->out ) ) {
+		VIPS_UNREF( streami );
+		return( -1 );
+	}
+	VIPS_UNREF( streami );
 
 	return( 0 );
 }
@@ -100,8 +119,15 @@ vips_foreign_load_rad_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadRad *rad = (VipsForeignLoadRad *) load;
 
-	if( vips__rad_load( rad->filename, load->real ) )
+	VipsStreami *streami;
+
+	if( !(streami = vips_streami_new_from_filename( rad->filename )) )
 		return( -1 );
+	if( vips__rad_load( streami, load->real ) ) {
+		VIPS_UNREF( streami );
+		return( -1 );
+	}
+	VIPS_UNREF( streami );
 
 	return( 0 );
 }
@@ -126,7 +152,7 @@ vips_foreign_load_rad_class_init( VipsForeignLoadRadClass *class )
 	 */
 	foreign_class->priority = -50;
 
-	load_class->is_a = vips__rad_israd;
+	load_class->is_a = vips_foreign_load_rad_is_a;
 	load_class->get_flags_filename = 
 		vips_foreign_load_rad_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_rad_get_flags;

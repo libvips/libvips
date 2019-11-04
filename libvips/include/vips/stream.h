@@ -251,9 +251,12 @@ typedef struct _VipsStreamib {
 	/* The +1 means there's always a \0 byte at the end.
 	 */
 	char input_buffer[VIPS_STREAMIB_BUFFER_SIZE + 1];
-	char line[VIPS_STREAMIB_BUFFER_SIZE + 1];
 	char *read_point;
-	int bytes_remaining;
+	int chars_unread;
+
+	/* Build lines of text here.
+	 */
+	char line[VIPS_STREAMIB_BUFFER_SIZE + 1];
 
 } VipsStreamib;
 
@@ -269,13 +272,21 @@ VipsStreamib *vips_streamib_new( VipsStreami *streami );
 void vips_streamib_unbuffer( VipsStreamib *streamib );
 
 int vips_streamib_getc( VipsStreamib *streamib );
-void vips_streamib_ungetc( VipsStreamib *streamib );
-
 #define VIPS_STREAMIB_GETC( S ) ( \
-	(S)->bytes_remaining > 0 ? \
-		((S)->bytes_remaining--, ((S)->read_point++)[0]) : \
+	(S)->chars_unread > 0 ? \
+		((S)->chars_unread--, ((S)->read_point++)[0]) : \
 		vips_streamib_getc( S ) \
 )
+void vips_streamib_ungetc( VipsStreamib *streamib );
+
+int vips_streamib_require( VipsStreamib *streamib, int require );
+#define VIPS_STREAMIB_REQUIRE( S, R ) ( \
+	(R) > (S)->chars_unread ? \
+		0 :  \
+		vips_streamib_require( (S), (R) ) \
+)
+#define VIPS_STREAMIB_PEEK( S ) (( S )->read_point)
+#define VIPS_STREAMIB_FETCH( S ) ((S)->chars_unread--, ((S)->read_point++)[0])
 
 int vips_streamib_get_line( VipsStreamib *streamib, const char **line );
 int vips_streamib_get_line_copy( VipsStreamib *streamib, char **line );
