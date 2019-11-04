@@ -475,9 +475,6 @@ char  *buf;
 static const char  FMTSTR[] = "FORMAT=";	/* format identifier */
 
 
-static gethfunc mycheck;
-
-
 static int
 formatval(			/* get format value (return true if format) */
 	char fmt[MAXFMTLEN],
@@ -507,16 +504,12 @@ getheader(		/* get header from file */
 )
 {
 	for(;;) { 
-		const char *line;
+		const unsigned char *line;
 
-		if( vips_streamib_get_line( streamib, &line ) )
+		if( !(line = vips_streamib_get_line( streamib )) )
 			return( -1 );
-		if( !line ) 
-			/* EOF.
-			 */
-			return( -1 );
-		if( strcmp( line, "" ) == 0 )
-			/* Blank line.
+		if( strcmp( (char *) line, "" ) == 0 )
+			/* Blank line. We've parsed the header successfully.
 			 */
 			break;
 
@@ -526,117 +519,6 @@ getheader(		/* get header from file */
 	}
 
 	return( 0 );
-}
-
-struct check {
-	char	fs[MAXFMTLEN];
-};
-
-
-static int
-mycheck(			/* check a header line for format info. */
-	char  *s,
-	void  *cp
-)
-{
-	struct check *p = (struct check *) cp;
-
-	if (!formatval(p->fs, s) && p->fp != NULL) {
-		fputs(s, p->fp);
-	}
-	return(0);
-}
-
-
-static int
-globmatch(			/* check for match of s against pattern p */
-	const char	*p,
-	const char	*s
-)
-{
-	int	setmatch;
-
-	do {
-		switch (*p) {
-		case '?':			/* match any character */
-			if (!*s++)
-				return(0);
-			break;
-		case '*':			/* match any string */
-			while (p[1] == '*') p++;
-			do
-				if ( (p[1]=='?') | (p[1]==*s) &&
-						globmatch(p+1,s) )
-					return(1);
-			while (*s++);
-			return(0);
-		case '[':			/* character set */
-			setmatch = *s == *++p;
-			if (!*p)
-				return(0);
-			while (*++p != ']') {
-				if (!*p)
-					return(0);
-				if (*p == '-') {
-					setmatch += (p[-1] <= *s && *s <= p[1]);
-					if (!*++p)
-						break;
-				} else
-					setmatch += (*p == *s);
-			}
-			if (!setmatch)
-				return(0);
-			s++;
-			break;
-		case '\\':			/* literal next */
-			p++;
-		/* fall through */
-		default:			/* normal character */
-			if (*p != *s)
-				return(0);
-			s++;
-			break;
-		}
-	} while (*p++);
-	return(1);
-}
-
-
-/*
- * Checkheader(fin,fmt,fout) returns a value of 1 if the input format
- * matches the specification in fmt, 0 if no input format was found,
- * and -1 if the input format does not match or there is an
- * error reading the header.  If fmt is empty, then -1 is returned
- * if any input format is found (or there is an error), and 0 otherwise.
- * If fmt contains any '*' or '?' characters, then checkheader
- * does wildcard expansion and copies a matching result into fmt.
- * Be sure that fmt is big enough to hold the match in such cases,
- * and that it is not a static, read-only string!
- */
-
-static int
-checkheader(
-	VipsStreamib *streamib,
-	char  fmt[MAXFMTLEN]
-)
-{
-	struct check	cdat;
-	char	*cp;
-
-	cdat.fs[0] = '\0';
-	if (getheader(streamib, mycheck, &cdat) < 0)
-		return(-1);
-	if (!cdat.fs[0])
-		return(0);
-	for (cp = fmt; *cp; cp++)		/* check for globbing */
-		if ((*cp == '?') | (*cp == '*')) {
-			if (globmatch(fmt, cdat.fs)) {
-				strcpy(fmt, cdat.fs);
-				return(1);
-			} else
-				return(-1);
-		}
-	return(strcmp(fmt, cdat.fs) ? -1 : 1);	/* literal match */
 }
 
 /* Read a single scanline, encoded in the old style.
@@ -725,6 +607,8 @@ scanline_read( VipsStreamib *streamib, COLR *scanline, int width )
 			code = VIPS_STREAMIB_FETCH( streamib ); 
 			run = code > 128;
 			len = run ? code & 127 : code; 
+
+			printf( "len = %d\n", len );
 
 			if( j + len > width ) {
 				vips_error( "rad2vips", "%s", _( "overrun" ) ); 
@@ -841,15 +725,17 @@ int
 vips__rad_israd( VipsStreami *streami )
 {
 	VipsStreamib *streamib;
-	char format[256];
+	const unsigned char *line;
 	int result;
 
-	strcpy( format, PICFMT );
+	/* Just test that the first line is the magic string.
+	 */
 	streamib = vips_streamib_new( streami );
-	result = checkheader( streamib, format );
+	result = (line = vips_streamib_get_line( streamib )) &&
+		strcmp( (char *) line, "#?RADIANCE" ) == 0;
 	VIPS_UNREF( streamib );
 
-	return( result == 1 );
+	return( result );
 }
 
 static void
@@ -934,14 +820,14 @@ static int
 rad2vips_get_header( Read *read, VipsImage *out )
 {
 	VipsInterpretation interpretation;
-	const char *line;
+	const unsigned char *line;
 	int width;
 	int height;
 	int i, j;
 
 	if( getheader( read->streamib, 
 		(gethfunc *) rad2vips_process_line, read ) ||
-		vips_streamib_get_line( read->streamib, &line ) ||
+		!(line = vips_streamib_get_line( read->streamib )) ||
 		!str2resolu( &read->rs, line ) ) {
 		vips_error( "rad2vips", "%s", 
 			_( "error reading radiance header" ) );

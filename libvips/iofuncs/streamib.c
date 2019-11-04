@@ -246,7 +246,7 @@ vips_streamib_require( VipsStreamib *streamib, int require )
 		streamib->read_point = streamib->input_buffer;
 
 		while( require > streamib->chars_unread ) {
-			char *q = streamib->input_buffer + 
+			unsigned char *q = streamib->input_buffer + 
 				streamib->chars_unread;
 			int space_available = 
 				VIPS_STREAMIB_BUFFER_SIZE - 
@@ -304,27 +304,26 @@ vips_streamib_require( VipsStreamib *streamib, int require )
 /**
  * vips_streamib_get_line:
  * @streamib: stream to operate on
- * @line: return the next line of text here
  *
- * Fetch the next line of text from @streamib and return in @line. The end of 
- * line character (or characters, for DOS files) are removed, and @line 
+ * Fetch the next line of text from @streamib and return it. The end of 
+ * line character (or characters, for DOS files) are removed, and the string
  * is terminated with a null (`\0` character).
  *
- * @line is set to NULL on end of file.
+ * Returns NULL on end of file or read error.
  *
  * If the line is longer than some arbitrary (but large) limit, is is
  * truncated. If you need to be able to read very long lines, use the
  * slower vips_streamib_get_line_copy().
  *
- * The return value of @line is owned by @streamib and must not be freed. It 
+ * The return value is owned by @streamib and must not be freed. It 
  * is valid until the next call to vips_streamib_get_line().
  *
- * Returns: 0 on success, -1 on error.
+ * Returns: the next line from the file, or NULL on EOF or read error.
  */
-int
-vips_streamib_get_line( VipsStreamib *streamib, const char **line ) 
+const unsigned char *
+vips_streamib_get_line( VipsStreamib *streamib )
 {
-	char *write_point;
+	unsigned char *write_point;
 	int space_remaining;
 	int ch;
 
@@ -342,10 +341,19 @@ vips_streamib_get_line( VipsStreamib *streamib, const char **line )
 
 	/* If we hit EOF immediately, return EOF.
 	 */
-	if( write_point == streamib->line ) {
-		*line = NULL;
-		return( 0 );
-	}
+	if( ch == -1 && 
+		write_point == streamib->line )
+		return( NULL );
+
+	/* If the final char in the buffer is \r, this is probably a DOS file 
+	 * and we should remove that too. 
+	 *
+	 * There's a chance this could incorrectly remove \r in very long 
+	 * lines, but ignore this.
+	 */
+	if( write_point - streamib->line > 0 &&
+		write_point[-1] == '\r' )
+		write_point[-1] = '\0';
 
 	/* If we filled the output line without seeing \n, keep going to the
 	 * next \n.
@@ -357,16 +365,7 @@ vips_streamib_get_line( VipsStreamib *streamib, const char **line )
 			;
 	}
 
-	/* If we stopped on \n, try to skip any \r too.
-	 */
-	if( ch == '\n' ) {
-		if( VIPS_STREAMIB_GETC( streamib ) != '\r' )
-			vips_streamib_ungetc( streamib );
-	}
-
-	*line = streamib->line;
-
-	return( 0 );
+	return( streamib->line );
 }
 
 /**
@@ -382,13 +381,13 @@ vips_streamib_get_line( VipsStreamib *streamib, const char **line )
  * This is slower than vips_streamib_get_line(), but can work with lines of
  * any length.
  *
- * Returns: the next line from the file, or NULL on EOF.
- *
+ * Returns: the next line from the file, or NULL on EOF or read error.
  */
-int
-vips_streamib_get_line_copy( VipsStreamib *streamib, char **line ) 
+unsigned char *
+vips_streamib_get_line_copy( VipsStreamib *streamib )
 {
-	const unsigned char null = '\0';
+	static const unsigned char null = '\0';
+
 	GByteArray *buffer;
 	int ch;
 
@@ -401,21 +400,21 @@ vips_streamib_get_line_copy( VipsStreamib *streamib, char **line )
 		g_byte_array_append( buffer, &c, 1 );
 	}
 
-	if( ch == -1 ) {
+	if( ch == -1 &&
+		buffer->len == 0 ) {
 		VIPS_FREEF( g_byte_array_unref, buffer ); 
-		return( -1 );
+		return( NULL );
 	}
+
+	/* If the character before the \n was \r, this is probably a DOS file
+	 * and we should remove the \r.
+	 */
+	if( ch == '\n' &&
+		buffer->len > 0 &&
+		buffer->data[buffer->len - 1] == '\r' )
+		g_byte_array_set_size( buffer, buffer->len - 1 );
 
 	g_byte_array_append( buffer, &null, 1 );
 
-	/* If we stopped on \n, try to skip any \r too.
-	 */
-	if( ch == '\n' ) {
-		if( VIPS_STREAMIB_GETC( streamib ) != '\r' )
-			vips_streamib_ungetc( streamib );
-	}
-
-	*line = (char *) g_byte_array_free( buffer, FALSE );
-
-	return( 0 );
+	return( (unsigned char *) g_byte_array_free( buffer, FALSE ) );
 }

@@ -249,14 +249,16 @@ typedef struct _VipsStreamib {
 	VipsStreami *streami;
 
 	/* The +1 means there's always a \0 byte at the end.
+	 *
+	 * Unsigned char, since we don't want >127 to be -ve.
 	 */
-	char input_buffer[VIPS_STREAMIB_BUFFER_SIZE + 1];
-	char *read_point;
+	unsigned char input_buffer[VIPS_STREAMIB_BUFFER_SIZE + 1];
+	unsigned char *read_point;
 	int chars_unread;
 
 	/* Build lines of text here.
 	 */
-	char line[VIPS_STREAMIB_BUFFER_SIZE + 1];
+	unsigned char line[VIPS_STREAMIB_BUFFER_SIZE + 1];
 
 } VipsStreamib;
 
@@ -285,11 +287,11 @@ int vips_streamib_require( VipsStreamib *streamib, int require );
 		0 :  \
 		vips_streamib_require( (S), (R) ) \
 )
-#define VIPS_STREAMIB_PEEK( S ) (( S )->read_point)
+#define VIPS_STREAMIB_PEEK( S ) ((S)->read_point)
 #define VIPS_STREAMIB_FETCH( S ) ((S)->chars_unread--, ((S)->read_point++)[0])
 
-int vips_streamib_get_line( VipsStreamib *streamib, const char **line );
-int vips_streamib_get_line_copy( VipsStreamib *streamib, char **line );
+const unsigned char *vips_streamib_get_line( VipsStreamib *streamib ); 
+unsigned char *vips_streamib_get_line_copy( VipsStreamib *streamib ); 
 
 #define VIPS_TYPE_STREAMO (vips_streamo_get_type())
 #define VIPS_STREAMO( obj ) \
