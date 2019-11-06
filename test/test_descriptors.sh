@@ -2,7 +2,7 @@
 
 # test the various restartable loaders
 
-# webp uses streans, but it needs to mmap the input, so you can't close() the
+# webp uses streams, but it needs to mmap the input, so you can't close() the
 # fd on minimise
 
 # set -x
@@ -20,4 +20,8 @@ fi
 
 if test_supported tiffload; then
 	./test_descriptors $test_images/sample.tif
+fi
+
+if test_supported radload; then
+	./test_descriptors $test_images/sample.hdr
 fi

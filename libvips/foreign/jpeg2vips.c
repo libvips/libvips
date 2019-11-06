@@ -971,8 +971,12 @@ vips__jpeg_read_stream( VipsStreami *input, VipsImage *out,
 		return( -1 );
 
 	if( readjpeg_open_input( jpeg ) ||
-		vips__jpeg_read( jpeg, out, header_only ) ||
-		vips_streami_decode( jpeg->input ) )
+		vips__jpeg_read( jpeg, out, header_only ) )
+		return( -1 );
+
+	if( header_only )
+		vips_streami_minimise( input );
+	else if( vips_streami_decode( input ) )
 		return( -1 );
 
 	return( 0 );

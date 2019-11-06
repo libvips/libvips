@@ -711,9 +711,10 @@ vips__png_header_stream( VipsStreami *input, VipsImage *out )
 	Read *read;
 
 	if( !(read = read_new( input, out, TRUE )) ||
-		png2vips_header( read, out ) || 
-		vips_streami_decode( input ) )
+		png2vips_header( read, out ) )
 		return( -1 );
+
+	vips_streami_minimise( input );
 
 	return( 0 );
 }

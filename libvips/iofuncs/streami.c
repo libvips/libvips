@@ -239,30 +239,27 @@ vips_streami_build( VipsObject *object )
 		streami->length = VIPS_MIN( length, G_MAXSSIZE );
 	}
 
-	/* If there's a descriptor for streami, test its properties.
+	/* Can we seek this input?
+	 *
+	 * We need to call the method directly rather than via
+	 * vips_streami_seek() etc. or we might trigger seek emulation.
 	 */
-	if( stream->descriptor != -1 ) {
-		/* Can we seek? If not, this is some kind of pipe.
-		 * 
-		 * We must call the class method directly: if we go via
-		 * vips_streami_seek() we'll trigger seek emulation on pipes.
+	if( class->seek( streami, 0, SEEK_CUR ) == -1 ) {
+		/* Not seekable. This must be some kind of pipe.
 		 */
-		if( class->seek( streami, 0, SEEK_CUR ) == -1 ) {
-			VIPS_DEBUG_MSG( "    not seekable\n" );
-			streami->is_pipe = TRUE;
-		}
-
-		/* Try and get the length, as long as we're seekable.
-		 */
-		if( !streami->is_pipe &&
-			(streami->length = vips_streami_size( streami )) == -1 )
-			return( -1 );
+		VIPS_DEBUG_MSG( "    not seekable\n" );
+		streami->is_pipe = TRUE;
 	}
+	else {
+		/* We should be able to get the length of seekable objects.
+		 */
+		if( (streami->length = vips_streami_size( streami )) == -1 )
+			return( -1 );
 
-	/* If we can seek, we won't need to save header bytes.
-	 */
-	if( !streami->is_pipe ) 
+		/* If we can seek, we won't need to save header bytes.
+		 */
 		VIPS_FREEF( g_byte_array_unref, streami->header_bytes ); 
+	}
 
 	return( 0 );
 }
@@ -711,7 +708,7 @@ vips_streami_read( VipsStreami *streami, void *buffer, size_t length )
  */
 static const int vips_pipe_read_limit = 1024 * 1024 * 1024;
 
-/* Read to a position. -1 means read to end of stream. Does not chenge 
+/* Read to a position. -1 means read to end of stream. Does not change 
  * read_position.
  */
 static int

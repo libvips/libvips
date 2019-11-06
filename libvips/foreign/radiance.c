@@ -744,6 +744,13 @@ read_destroy( VipsObject *object, Read *read )
 	VIPS_UNREF( read->streamib );
 }
 
+static void
+read_minimise_cb( VipsObject *object, Read *read )
+{
+	if( read->streamib )
+		vips_streami_minimise( read->streamib->streami );
+}
+
 static Read *
 read_new( VipsStreami *streami, VipsImage *out )
 {
@@ -771,6 +778,8 @@ read_new( VipsStreami *streami, VipsImage *out )
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( read_destroy ), read );
+	g_signal_connect( out, "minimise",
+		G_CALLBACK( read_minimise_cb ), read ); 
 
 	return( read );
 }
@@ -889,6 +898,7 @@ vips__rad_header( VipsStreami *streami, VipsImage *out )
 		return( -1 );
 	if( rad2vips_get_header( read, read->out ) ) 
 		return( -1 );
+	vips_streami_minimise( streami );
 
 	return( 0 );
 }
