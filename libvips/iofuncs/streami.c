@@ -33,7 +33,6 @@
 
 /* TODO
  *
- * - make something to parse input and implement rad load
  * - gaussblur is missing the vector path again argh
  * - can we map and then close the fd? how about on Windows?
  * - make a subclass that lets you set vfuncs as params, inc. close(),
@@ -294,9 +293,7 @@ vips_streami_seek_real( VipsStreami *streami, gint64 offset, int whence )
 	/* Like _read_real(), we must not set a vips_error. We need to use the
 	 * vips__seek() wrapper so we can seek long files on Windows.
 	 */
-	vips_error_freeze();
-	new_pos = vips__seek( stream->descriptor, offset, whence );
-	vips_error_thaw();
+	new_pos = vips__seek_no_error( stream->descriptor, offset, whence );
 
 	return( new_pos );
 }
@@ -774,8 +771,7 @@ vips_streami_pipe_to_memory( VipsStreami *streami )
 	if( vips_streami_pipe_read_to_position( streami, -1 ) )
 		return( -1 );
 
-	/* Move header_bytes into the memory blob and set up as a memory
-	 * source.
+	/* Steal the header_bytes pointer and turn into a memory source.
 	 */
 	streami->length = streami->header_bytes->len;
 	streami->data = streami->header_bytes->data;
@@ -801,6 +797,9 @@ vips_streami_descriptor_to_memory( VipsStreami *streami )
 	if( !(streami->mmap_baseaddr = vips__mmap( stream->descriptor, 
 		FALSE, streami->length, 0 )) )
 		return( -1 );
+
+	/* And it's now a memory source.
+	 */
 	streami->data = streami->mmap_baseaddr;
 	streami->mmap_length = streami->length;
 
@@ -831,13 +830,13 @@ vips_streami_map( VipsStreami *streami, size_t *length_out )
 	if( vips_streami_unminimise( streami ) )
 		return( NULL );
 
-	/* Pipes need to be converted to memory streams.
+	/* Pipes need to be read into memory.
 	 */
 	if( streami->is_pipe &&
 		vips_streami_pipe_to_memory( streami ) )
 		return( NULL );
 
-	/* Seekable descriptor sources can be mmaped and become memory
+	/* Seekable descriptors can be mmaped and become memory
 	 * sources.
 	 */
 	if( !streami->data &&
@@ -929,9 +928,6 @@ vips_streami_seek( VipsStreami *streami, gint64 offset, int whence )
 			return( -1 );
 			break;
 		}
-
-		if( vips_streami_pipe_read_to_position( streami, new_pos ) )
-			return( -1 );
 	}
 	else {
 		if( (new_pos = class->seek( streami, offset, whence )) == -1 )
@@ -947,6 +943,12 @@ vips_streami_seek( VipsStreami *streami, gint64 offset, int whence )
 			_( "bad seek to %" G_GINT64_FORMAT ), new_pos );
                 return( -1 );
 	}
+
+	/* For pipes, we have to fake seek by reading to that point.
+	 */
+	if( streami->is_pipe &&
+		vips_streami_pipe_read_to_position( streami, new_pos ) )
+		return( -1 );
 
 	streami->read_position = new_pos;
 

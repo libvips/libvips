@@ -1031,7 +1031,7 @@ vips__gslist_gvalue_get( const GSList *list )
 /* Need our own seek(), since lseek() on win32 can't do long files.
  */
 gint64
-vips__seek( int fd, gint64 pos, int whence )
+vips__seek_no_error( int fd, gint64 pos, int whence )
 {
 	gint64 new_pos;
 
@@ -1043,22 +1043,35 @@ vips__seek( int fd, gint64 pos, int whence )
 
 	/* Whence uses the same numbering on win32 and posix.
 	 */
-
 	p.QuadPart = pos;
-	if( !SetFilePointerEx( hFile, p, &q, whence ) ) {
-                vips_error_system( GetLastError(), "vips__seek", 
-			"%s", _( "unable to seek" ) );
+	if( !SetFilePointerEx( hFile, p, &q, whence ) ) 
 		return( -1 );
-	}
 	new_pos = q.QuadPart;
 }
 #else /*!OS_WIN32*/
-	if( (new_pos = lseek( fd, pos, whence )) == (off_t) -1 ) {
+	new_pos = lseek( fd, pos, whence );
+#endif /*OS_WIN32*/
+
+	return( new_pos );
+}
+
+/* Need our own seek(), since lseek() on win32 can't do long files.
+ */
+gint64
+vips__seek( int fd, gint64 pos, int whence )
+{
+	gint64 new_pos;
+
+	if( (new_pos = vips__seek_no_error( fd, pos, whence )) == -1 ) {
+#ifdef OS_WIN32
+                vips_error_system( GetLastError(), "vips__seek", 
+			"%s", _( "unable to seek" ) );
+#else /*!OS_WIN32*/
 		vips_error_system( errno, "vips__seek", 
 			"%s", _( "unable to seek" ) );
+#endif /*OS_WIN32*/
 		return( -1 );
 	}
-#endif /*OS_WIN32*/
 
 	return( new_pos );
 }
