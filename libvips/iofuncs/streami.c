@@ -244,13 +244,8 @@ vips_streami_build( VipsObject *object )
 	 * We need to call the method directly rather than via
 	 * vips_streami_seek() etc. or we might trigger seek emulation.
 	 */
-	if( class->seek( streami, 0, SEEK_CUR ) == -1 ) {
-		/* Not seekable. This must be some kind of pipe.
-		 */
-		VIPS_DEBUG_MSG( "    not seekable\n" );
-		streami->is_pipe = TRUE;
-	}
-	else {
+	if( streami->data ||
+		class->seek( streami, 0, SEEK_CUR ) != -1 ) { 
 		/* We should be able to get the length of seekable objects.
 		 */
 		if( (streami->length = vips_streami_size( streami )) == -1 )
@@ -259,6 +254,12 @@ vips_streami_build( VipsObject *object )
 		/* If we can seek, we won't need to save header bytes.
 		 */
 		VIPS_FREEF( g_byte_array_unref, streami->header_bytes ); 
+	}
+	else {
+		/* Not seekable. This must be some kind of pipe.
+		 */
+		VIPS_DEBUG_MSG( "    not seekable\n" );
+		streami->is_pipe = TRUE;
 	}
 
 	return( 0 );
