@@ -90,9 +90,9 @@ vips_streamib_class_init( VipsStreamibClass *class )
 static void
 vips_streamib_init( VipsStreamib *streamib )
 {
-	streamib->read_point = streamib->input_buffer;
-	streamib->chars_unread = 0;
-	streamib->read_point[streamib->chars_unread] = '\0';
+	streamib->read_point = 0;
+	streamib->chars_in_buffer = 0;
+	streamib->input_buffer[0] = '\0';
 }
 
 /**
@@ -130,12 +130,12 @@ vips_streamib_new( VipsStreami *streami )
 void
 vips_streamib_unbuffer( VipsStreamib *streamib )
 {
-	int bytes_in_buffer = streamib->read_point - streamib->input_buffer;
-
-	streamib->read_point = streamib->input_buffer;
-	streamib->chars_unread = 0;
+	/* We'd read ahead a little way -- seek backwards by that amount.
+	 */
 	vips_streami_seek( streamib->streami, 
-		-bytes_in_buffer, SEEK_SET );
+		streamib->read_point - streamib->chars_in_buffer, SEEK_SET );
+	streamib->read_point = 0;
+	streamib->chars_in_buffer = 0;
 }
 
 /* Returns -1 on error, 0 on EOF, otherwise bytes read.
@@ -147,20 +147,20 @@ vips_streamib_refill( VipsStreamib *streamib )
 
 	/* We should not discard any unread bytes.
 	 */
-	g_assert( streamib->chars_unread == 0 );
+	g_assert( streamib->read_point == streamib->chars_in_buffer );
 
 	bytes_read = vips_streami_read( streamib->streami, 
 		streamib->input_buffer, VIPS_STREAMIB_BUFFER_SIZE );
 	if( bytes_read == -1 )
 		return( -1 );
 
-	streamib->read_point = streamib->input_buffer;
-	streamib->chars_unread = bytes_read;
+	streamib->read_point = 0;
+	streamib->chars_in_buffer = bytes_read;
 	
 	/* Always add a null byte so we can use strchr() etc. on lines. This is 
 	 * safe because input_buffer is VIPS_STREAMIB_BUFFER_SIZE + 1 bytes.
 	 */
-	streamib->read_point[bytes_read] = '\0';
+	streamib->input_buffer[bytes_read] = '\0';
 
 	return( bytes_read );
 }
@@ -178,18 +178,13 @@ vips_streamib_refill( VipsStreamib *streamib )
 int
 vips_streamib_getc( VipsStreamib *streamib )
 {
-	int ch;
-
-	if( streamib->chars_unread == 0 &&
+	if( streamib->read_point == streamib->chars_in_buffer &&
 		vips_streamib_refill( streamib ) <= 0 )
 		return( -1 );
 
-	ch = streamib->read_point[0];
+	g_assert( streamib->read_point < streamib->chars_in_buffer );
 
-	streamib->read_point += 1;
-	streamib->chars_unread -= 1;
-
-	return( ch );
+	return( streamib->input_buffer[streamib->read_point++] );
 }
 
 /** 
@@ -213,10 +208,8 @@ vips_streamib_getc( VipsStreamib *streamib )
 void
 vips_streamib_ungetc( VipsStreamib *streamib )
 {
-	if( streamib->read_point > streamib->input_buffer ) {
+	if( streamib->read_point > 0 ) 
 		streamib->read_point -= 1;
-		streamib->chars_unread += 1;
-	}
 }
 
 /**
@@ -232,31 +225,31 @@ int
 vips_streamib_require( VipsStreamib *streamib, int require )
 {
 	g_assert( require < VIPS_STREAMIB_BUFFER_SIZE ); 
-	g_assert( streamib->chars_unread >= 0 );
-	g_assert( streamib->chars_unread <= VIPS_STREAMIB_BUFFER_SIZE );
-	g_assert( streamib->read_point >= streamib->input_buffer ); 
-	g_assert( streamib->read_point < 
-		streamib->input_buffer + VIPS_STREAMIB_BUFFER_SIZE ); 
+	g_assert( streamib->chars_in_buffer >= 0 );
+	g_assert( streamib->chars_in_buffer <= VIPS_STREAMIB_BUFFER_SIZE );
+	g_assert( streamib->read_point >= 0 ); 
+	g_assert( streamib->read_point <= streamib->chars_in_buffer );
 
-	if( require > streamib->chars_unread ) {
-		/* Areas can overlap.
+	if( streamib->read_point + require > streamib->chars_in_buffer ) {
+		/* Areas can overlap, so we must memmove().
 		 */
 		memmove( streamib->input_buffer, 
-			streamib->read_point, streamib->chars_unread );
-		streamib->read_point = streamib->input_buffer;
+			streamib->input_buffer + streamib->read_point,
+			streamib->chars_in_buffer - streamib->read_point );
+		streamib->chars_in_buffer -= streamib->read_point;
+		streamib->read_point = 0;
 
-		while( require > streamib->chars_unread ) {
-			unsigned char *q = streamib->input_buffer + 
-				streamib->chars_unread;
+		while( require > streamib->chars_in_buffer ) {
+			unsigned char *to = streamib->input_buffer + 
+				streamib->chars_in_buffer;
 			int space_available = 
 				VIPS_STREAMIB_BUFFER_SIZE - 
-				streamib->chars_unread;
+				streamib->chars_in_buffer;
 			size_t bytes_read;
 
 			if( (bytes_read = vips_streami_read( streamib->streami,
-				q, space_available )) == -1 )
+				to, space_available )) == -1 )
 				return( -1 );
-			streamib->chars_unread += bytes_read;
 			if( bytes_read == 0 ) { 
 				vips_error( 
 					vips_stream_nick( VIPS_STREAM( 
@@ -264,6 +257,9 @@ vips_streamib_require( VipsStreamib *streamib, int require )
 					"%s", _( "end of file" ) ); 
 				return( -1 );
 			}
+
+			to[bytes_read] = '\0';
+			streamib->chars_in_buffer += bytes_read;
 		}
 	}
 
@@ -323,26 +319,26 @@ vips_streamib_require( VipsStreamib *streamib, int require )
 const unsigned char *
 vips_streamib_get_line( VipsStreamib *streamib )
 {
-	unsigned char *write_point;
+	int write_point;
 	int space_remaining;
 	int ch;
 
-	write_point = streamib->line;
+	write_point = 0;
 	space_remaining = VIPS_STREAMIB_BUFFER_SIZE;
 
 	while( (ch = VIPS_STREAMIB_GETC( streamib )) != -1 &&
 		ch != '\n' &&
 		space_remaining > 0 ) {
-		write_point[0] = ch;
+		streamib->line[write_point] = ch;
 		write_point += 1;
 		space_remaining -= 1;
 	}
-	write_point[0] = '\0';
+	streamib->line[write_point] = '\0';
 
 	/* If we hit EOF immediately, return EOF.
 	 */
 	if( ch == -1 && 
-		write_point == streamib->line )
+		write_point == 0 )
 		return( NULL );
 
 	/* If the final char in the buffer is \r, this is probably a DOS file 
@@ -351,9 +347,9 @@ vips_streamib_get_line( VipsStreamib *streamib )
 	 * There's a chance this could incorrectly remove \r in very long 
 	 * lines, but ignore this.
 	 */
-	if( write_point - streamib->line > 0 &&
-		write_point[-1] == '\r' )
-		write_point[-1] = '\0';
+	if( write_point > 0 &&
+		streamib->line[write_point - 1] == '\r' )
+		streamib->line[write_point - 1] = '\0';
 
 	/* If we filled the output line without seeing \n, keep going to the
 	 * next \n.
@@ -400,6 +396,8 @@ vips_streamib_get_line_copy( VipsStreamib *streamib )
 		g_byte_array_append( buffer, &c, 1 );
 	}
 
+	/* Immediate EOF.
+	 */
 	if( ch == -1 &&
 		buffer->len == 0 ) {
 		VIPS_FREEF( g_byte_array_unref, buffer ); 

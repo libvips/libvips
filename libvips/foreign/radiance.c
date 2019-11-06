@@ -27,6 +27,8 @@
  * 23/7/18
  * 	- fix a buffer overflow for incorrectly coded old-style RLE
  * 	  [HongxuChen]
+ * 6/11/19
+ * 	- revise for VipsStream
  */
 
 /*
@@ -608,8 +610,6 @@ scanline_read( VipsStreamib *streamib, COLR *scanline, int width )
 			run = code > 128;
 			len = run ? code & 127 : code; 
 
-			printf( "len = %d\n", len );
-
 			if( j + len > width ) {
 				vips_error( "rad2vips", "%s", _( "overrun" ) ); 
 				return( -1 );
@@ -951,6 +951,9 @@ vips__rad_load( VipsStreami *streami, VipsImage *out )
 			"tile_height", VIPS__FATSTRIP_HEIGHT, 
 			NULL ) ||
 		vips_image_write( t[1], out ) )
+		return( -1 );
+
+	if( vips_streami_decode( streami ) )
 		return( -1 );
 
 	return( 0 );
