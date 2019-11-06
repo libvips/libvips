@@ -778,6 +778,19 @@ if test x"$with_orc" != x"no"; then
   )
 fi
 
+# orc 0.4.30+ works with cf-protection, but 0.4.30 has a bug with multiple
+# definitions of OrcTargetPowerPCFlags, so insist on 0.4.31
+if test x"$with_orc" = x"yes"; then
+  PKG_CHECK_MODULES(ORC_CF_PROTECTION, orc-0.4 >= 0.4.31,
+    [AC_DEFINE(HAVE_ORC_CF_PROTECTION,1,
+	       [define if your orc works with cf-protection.]
+     )
+    ],
+    [:
+    ]
+  )
+fi
+
 # lcms ... refuse to use lcms1
 AC_ARG_WITH([lcms], 
   AS_HELP_STRING([--without-lcms], [build without lcms (default: test)]))

@@ -37,14 +37,16 @@
 /* If we are building with -fcf-protection (run-time checking of
  * indirect jumps) then Orc won't work. Make sure it's off.
  *
- * Orc may support -fcf-protection in the future, but does not in June 2019.
- *
  * https://gcc.gnu.org/onlinedocs/gcc/\
  * 	Instrumentation-Options.html#index-fcf-protection
  * https://gitlab.freedesktop.org/gstreamer/orc/issues/17
+ *
+ * orc 0.4.30 and later work with cf-protection.
  */
 #ifdef __CET__
+#ifndef HAVE_ORC_CF_PROTECTION
 #undef HAVE_ORC
+#endif
 #endif
 
 #ifdef HAVE_ORC

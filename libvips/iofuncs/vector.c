@@ -44,8 +44,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 /* Trace all orc calls, handy for debugging.
 #define DEBUG_TRACE
@@ -54,6 +54,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
+
 #include <vips/intl.h>
 
 #include <stdlib.h>
@@ -83,6 +84,10 @@ vips_vector_error( VipsVector *vector )
 void 
 vips_vector_init( void )
 {
+#ifdef HAVE_ORC
+	printf( "HAVE_ORC\n" );
+#endif /*HAVE_ORC*/
+
 #ifdef HAVE_ORC
 #ifdef DEBUG_TRACE
 	printf( "orc_init();\n" );
