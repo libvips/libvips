@@ -724,9 +724,10 @@ vips_streami_pipe_read_to_position( VipsStreami *streami, gint64 target )
 	g_assert( streami->header_bytes );
 	g_assert( streami->is_pipe );
 
-	if( target < 0 ||
-		(streami->length != -1 && 
-		 target > streami->length) ) {
+	if( target != -1 &&
+		(target < 0 ||
+			(streami->length != -1 && 
+			 target > streami->length)) ) {
 		vips_error( vips_stream_nick( VIPS_STREAM( streami ) ), 
 			_( "bad read to %" G_GINT64_FORMAT ), target );
 		return( -1 );
@@ -838,7 +839,7 @@ vips_streami_map( VipsStreami *streami, size_t *length_out )
 	/* Seekable descriptor sources can be mmaped and become memory
 	 * sources.
 	 */
-	if( !streami->is_pipe &&
+	if( !streami->data &&
 		!streami->mmap_baseaddr &&
 		streami->length > 0 &&
 		stream->descriptor != -1 &&
