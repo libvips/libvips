@@ -19,7 +19,7 @@ class TestStream:
     @classmethod
     def setup_class(cls):
         # for now, only run these tests if we have the stream pyvips installed
-        if pyvips.__version__ != "2.1.9":
+        if pyvips.__version__ != "2.1.10":
             pytest.skip("tests cannot run with pyvips {}"
                         .format(pyvips.__version__))
 
