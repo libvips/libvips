@@ -260,7 +260,7 @@ vips_foreign_save_png_file_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(output = vips_streamo_new_from_filename( 
+	if( !(output = vips_streamo_new_to_filename( 
 		png_file->filename )) )
 		return( -1 );
 	if( vips__png_write_stream( save->ready, output, 
@@ -326,7 +326,7 @@ vips_foreign_save_png_buffer_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(output = vips_streamo_new_memory()) )
+	if( !(output = vips_streamo_new_to_memory()) )
 		return( -1 );
 
 	if( vips__png_write_stream( save->ready, output,

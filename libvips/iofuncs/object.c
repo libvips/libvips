@@ -2212,7 +2212,7 @@ vips_object_get_argument_to_string( VipsObject *object,
 		if( vips_isprefix( ".", filename ) ) {
 			VipsStreamo *output;
 
-			if( !(output = vips_streamo_new_from_descriptor( 1 )) )
+			if( !(output = vips_streamo_new_to_descriptor( 1 )) )
 				return( -1 );
 			g_object_get( object, name, &in, NULL );
 			if( vips_image_write_to_stream( in, 

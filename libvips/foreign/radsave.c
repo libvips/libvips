@@ -128,7 +128,7 @@ vips_foreign_save_rad_file_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(output = vips_streamo_new_from_filename( file->filename )) )
+	if( !(output = vips_streamo_new_to_filename( file->filename )) )
 		return( -1 );
 	if( vips__rad_save( save->ready, output ) ) {
 		VIPS_UNREF( output );
@@ -242,7 +242,7 @@ vips_foreign_save_rad_buffer_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(output = vips_streamo_new_memory()) )
+	if( !(output = vips_streamo_new_to_memory()) )
 		return( -1 );
 
 	if( vips__rad_save( save->ready, output ) ) {

@@ -305,7 +305,7 @@ vips_foreign_save_jpeg_file_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(output = vips_streamo_new_from_filename( file->filename )) )
+	if( !(output = vips_streamo_new_to_filename( file->filename )) )
 		return( -1 );
 	if( vips__jpeg_write_stream( save->ready, output,
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
@@ -374,7 +374,7 @@ vips_foreign_save_jpeg_buffer_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(output = vips_streamo_new_memory()) )
+	if( !(output = vips_streamo_new_to_memory()) )
 		return( -1 );
 
 	if( vips__jpeg_write_stream( save->ready, output,
@@ -447,7 +447,7 @@ vips_foreign_save_jpeg_mime_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(output = vips_streamo_new_memory()) )
+	if( !(output = vips_streamo_new_to_memory()) )
 		return( -1 );
 
 	if( vips__jpeg_write_stream( save->ready, output,

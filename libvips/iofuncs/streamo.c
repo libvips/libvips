@@ -203,23 +203,22 @@ vips_streamo_init( VipsStreamo *streamo )
 }
 
 /**
- * vips_streamo_new_from_descriptor:
+ * vips_streamo_new_to_descriptor:
  * @descriptor: write to this file descriptor
  *
  * Create a stream attached to a file descriptor.
- * @descriptor is closed when
- * the #VipsStream is finalized. 
+ * @descriptor is kept open until the #VipsStreamo is finalized.
  *
- * See also: vips_streamo_write().
+ * See also: vips_streamo_new_to_filename().
  *
- * Returns: a new #VipsStream
+ * Returns: a new #VipsStreamo
  */
 VipsStreamo *
-vips_streamo_new_from_descriptor( int descriptor )
+vips_streamo_new_to_descriptor( int descriptor )
 {
 	VipsStreamo *streamo;
 
-	VIPS_DEBUG_MSG( "vips_streamo_new_from_descriptor: %d\n", 
+	VIPS_DEBUG_MSG( "vips_streamo_new_to_descriptor: %d\n", 
 		descriptor );
 
 	streamo = VIPS_STREAMO( g_object_new( VIPS_TYPE_STREAMO, 
@@ -235,21 +234,19 @@ vips_streamo_new_from_descriptor( int descriptor )
 }
 
 /**
- * vips_streamo_new_from_filename:
+ * vips_streamo_new_to_filename:
  * @filename: write to this file 
  *
  * Create a stream attached to a file.
  *
- * See also: vips_streamo_write().
- *
- * Returns: a new #VipsStream
+ * Returns: a new #VipsStreamo
  */
 VipsStreamo *
-vips_streamo_new_from_filename( const char *filename )
+vips_streamo_new_to_filename( const char *filename )
 {
 	VipsStreamo *streamo;
 
-	VIPS_DEBUG_MSG( "vips_streamo_new_from_filename: %s\n", 
+	VIPS_DEBUG_MSG( "vips_streamo_new_to_filename: %s\n", 
 		filename );
 
 	streamo = VIPS_STREAMO( g_object_new( VIPS_TYPE_STREAMO, 
@@ -265,21 +262,21 @@ vips_streamo_new_from_filename( const char *filename )
 }
 
 /**
- * vips_streamo_new_memory:
+ * vips_streamo_new_to_memory:
  *
  * Create a stream which will stream to a memory area. Read from @blob to get
- * memory stream.
+ * memory.
  *
- * See also: vips_streamo_write().
+ * See also: vips_streamo_new_to_filename().
  *
  * Returns: a new #VipsStream
  */
 VipsStreamo *
-vips_streamo_new_memory( void )
+vips_streamo_new_to_memory( void )
 {
 	VipsStreamo *streamo;
 
-	VIPS_DEBUG_MSG( "vips_streamo_new_memory:\n" ); 
+	VIPS_DEBUG_MSG( "vips_streamo_new_to_memory:\n" ); 
 
 	streamo = VIPS_STREAMO( g_object_new( VIPS_TYPE_STREAMO, NULL ) );
 

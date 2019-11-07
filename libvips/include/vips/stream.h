@@ -86,8 +86,6 @@ typedef struct _VipsStreamClass {
 
 GType vips_stream_get_type( void );
 
-int vips_stream_open( VipsStream *stream );
-int vips_stream_close( VipsStream *stream );
 const char *vips_stream_filename( VipsStream *stream );
 const char *vips_stream_nick( VipsStream *stream );
 
@@ -352,9 +350,9 @@ typedef struct _VipsStreamoClass {
 
 GType vips_streamo_get_type( void );
 
-VipsStreamo *vips_streamo_new_from_descriptor( int descriptor );
-VipsStreamo *vips_streamo_new_from_filename( const char *filename );
-VipsStreamo *vips_streamo_new_memory( void );
+VipsStreamo *vips_streamo_new_to_descriptor( int descriptor );
+VipsStreamo *vips_streamo_new_to_filename( const char *filename );
+VipsStreamo *vips_streamo_new_to_memory( void );
 int vips_streamo_write( VipsStreamo *streamo, const void *data, size_t length );
 void vips_streamo_finish( VipsStreamo *streamo );
 
