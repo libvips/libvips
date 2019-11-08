@@ -52,6 +52,82 @@
 
 #ifdef HAVE_RADIANCE
 
+typedef struct _VipsForeignLoadRadStream {
+	VipsForeignLoad parent_object;
+
+	/* Load from a stream.
+	 */
+	VipsStreami *input;
+
+} VipsForeignLoadRadStream;
+
+typedef VipsForeignLoadClass VipsForeignLoadRadStreamClass;
+
+G_DEFINE_TYPE( VipsForeignLoadRadStream, vips_foreign_load_rad_stream, 
+	VIPS_TYPE_FOREIGN_LOAD );
+
+static VipsForeignFlags
+vips_foreign_load_rad_stream_get_flags( VipsForeignLoad *load )
+{
+	/* The rad reader supports sequential read.
+	 */
+	return( VIPS_FOREIGN_SEQUENTIAL );
+}
+
+static int
+vips_foreign_load_rad_stream_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadRadStream *stream = (VipsForeignLoadRadStream *) load;
+
+	if( vips__rad_header( stream->input, load->out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_load_rad_stream_load( VipsForeignLoad *load )
+{
+	VipsForeignLoadRadStream *stream = (VipsForeignLoadRadStream *) load;
+
+	if( vips__rad_load( stream->input, load->real ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_load_rad_stream_class_init( VipsForeignLoadRadStreamClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "radload_stream";
+	object_class->description = _( "load rad from stream" );
+
+	load_class->is_a_stream = vips__rad_israd;
+	load_class->get_flags = vips_foreign_load_rad_stream_get_flags;
+	load_class->header = vips_foreign_load_rad_stream_header;
+	load_class->load = vips_foreign_load_rad_stream_load;
+
+	VIPS_ARG_OBJECT( class, "input", 1,
+		_( "Input" ),
+		_( "Stream to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadRadStream, input ),
+		VIPS_TYPE_STREAMI );
+
+}
+
+static void
+vips_foreign_load_rad_stream_init( VipsForeignLoadRadStream *stream )
+{
+}
+
 typedef struct _VipsForeignLoadRad {
 	VipsForeignLoad parent_object;
 
@@ -172,6 +248,112 @@ vips_foreign_load_rad_init( VipsForeignLoadRad *rad )
 {
 }
 
+typedef struct _VipsForeignLoadRadBuffer {
+	VipsForeignLoad parent_object;
+
+	/* Load from a buffer.
+	 */
+	VipsArea *buf;
+
+} VipsForeignLoadRadBuffer;
+
+typedef VipsForeignLoadClass VipsForeignLoadRadBufferClass;
+
+G_DEFINE_TYPE( VipsForeignLoadRadBuffer, vips_foreign_load_rad_buffer, 
+	VIPS_TYPE_FOREIGN_LOAD );
+
+static gboolean
+vips_foreign_load_rad_buffer_is_a_buffer( const void *buf, size_t len )
+{
+	VipsStreami *input;
+	gboolean result;
+
+	if( !(input = vips_streami_new_from_memory( buf, len )) )
+		return( FALSE );
+	result = vips__rad_israd( input );
+	VIPS_UNREF( input );
+
+	return( result );
+}
+
+static VipsForeignFlags
+vips_foreign_load_rad_buffer_get_flags( VipsForeignLoad *load )
+{
+	/* The rad reader supports sequential read.
+	 */
+	return( VIPS_FOREIGN_SEQUENTIAL );
+}
+
+static int
+vips_foreign_load_rad_buffer_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadRadBuffer *buffer = (VipsForeignLoadRadBuffer *) load;
+
+	VipsStreami *input;
+
+	if( !(input = vips_streami_new_from_memory( buffer->buf->data, 
+		buffer->buf->length )) ) 
+		return( -1 );
+	if( vips__rad_header( input, load->out ) ) {
+		VIPS_UNREF( input );
+		return( -1 );
+	}
+	VIPS_UNREF( input );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_load_rad_buffer_load( VipsForeignLoad *load )
+{
+	VipsForeignLoadRadBuffer *buffer = (VipsForeignLoadRadBuffer *) load;
+
+	VipsStreami *input;
+
+	if( !(input = vips_streami_new_from_memory( buffer->buf->data, 
+		buffer->buf->length )) ) 
+		return( -1 );
+	if( vips__rad_load( input, load->real ) ) {
+		VIPS_UNREF( input );
+		return( -1 );
+	}
+	VIPS_UNREF( input );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_load_rad_buffer_class_init( VipsForeignLoadRadBufferClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "radload_buffer";
+	object_class->description = _( "load rad from buffer" );
+
+	load_class->is_a_buffer = vips_foreign_load_rad_buffer_is_a_buffer;
+	load_class->get_flags = vips_foreign_load_rad_buffer_get_flags;
+	load_class->header = vips_foreign_load_rad_buffer_header;
+	load_class->load = vips_foreign_load_rad_buffer_load;
+
+	VIPS_ARG_BOXED( class, "buffer", 1, 
+		_( "Buffer" ),
+		_( "Buffer to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadRadBuffer, buf ),
+		VIPS_TYPE_BLOB );
+
+}
+
+static void
+vips_foreign_load_rad_buffer_init( VipsForeignLoadRadBuffer *buffer )
+{
+}
+
 #endif /*HAVE_RADIANCE*/
 
 /**
@@ -206,6 +388,67 @@ vips_radload( const char *filename, VipsImage **out, ... )
 
 	va_start( ap, out );
 	result = vips_call_split( "radload", ap, filename, out ); 
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_radload_buffer:
+ * @buf: (array length=len) (element-type guint8): memory area to load
+ * @len: (type gsize): size of memory area
+ * @out: (out): image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Exactly as vips_radload(), but read from a HDR-formatted memory block.
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_radload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_radload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "radload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
+
+/**
+ * vips_radload_stream:
+ * @input: stream to load from
+ * @out: (out): output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Exactly as vips_radload(), but read from a stream. 
+ *
+ * See also: vips_radload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_radload_stream( VipsStreami *input, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "radload_stream", ap, input, out );
 	va_end( ap );
 
 	return( result );

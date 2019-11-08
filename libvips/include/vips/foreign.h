@@ -570,7 +570,11 @@ int vips_ppmsave( VipsImage *in, const char *filename, ... )
 int vips_matload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 
+int vips_radload_stream( VipsStreami *streami, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_radload( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_radload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_radsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
