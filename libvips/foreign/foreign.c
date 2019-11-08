@@ -629,9 +629,15 @@ vips_foreign_find_load_stream_sub( void *item, void *a, void *b )
 	VipsForeignLoadClass *load_class = VIPS_FOREIGN_LOAD_CLASS( item );
 	VipsStreami *streami = VIPS_STREAMI( a );
 
-	if( load_class->is_a_stream &&
-		load_class->is_a_stream( streami ) ) 
-		return( load_class );
+	if( load_class->is_a_stream ) {
+		/* We may have done a read() rather than a sniff() in one of
+		 * the is_a testers. Always rewind.
+		 */
+		(void) vips_streami_rewind( streami );
+
+		if( load_class->is_a_stream( streami ) ) 
+			return( load_class );
+	}
 
 	return( NULL );
 }

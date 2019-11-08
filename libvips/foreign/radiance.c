@@ -757,6 +757,9 @@ read_new( VipsStreami *streami, VipsImage *out )
 	Read *read;
 	int i;
 
+	if( vips_streami_rewind( streami ) )
+		return( NULL );
+
 	if( !(read = VIPS_NEW( out, Read )) )
 		return( NULL );
 
@@ -945,7 +948,8 @@ vips__rad_load( VipsStreami *streami, VipsImage *out )
 	Read *read;
 
 #ifdef DEBUG
-	printf( "rad2vips: reading \"%s\"\n", filename );
+	printf( "rad2vips: reading \"%s\"\n", 
+		vips_stream_nick( VIPS_STREAM( streami ) ) );
 #endif /*DEBUG*/
 
 	if( !(read = read_new( streami, out )) ) 

@@ -32,8 +32,6 @@
 
 /* TODO
  *
- * - make something to parse input and implement rad load
- * - gaussblur is missing the vector path again argh
  * - can we map and then close the fd? how about on Windows?
  * - make a subclass that lets you set vfuncs as params, inc. close(),
  *   is_pipe etc.
@@ -145,6 +143,8 @@ vips_streamib_refill( VipsStreamib *streamib )
 {
 	ssize_t bytes_read;
 
+	VIPS_DEBUG_MSG( "vips_streamib_refill:\n" );
+
 	/* We should not discard any unread bytes.
 	 */
 	g_assert( streamib->read_point == streamib->chars_in_buffer );
@@ -229,6 +229,8 @@ vips_streamib_require( VipsStreamib *streamib, int require )
 	g_assert( streamib->chars_in_buffer <= VIPS_STREAMIB_BUFFER_SIZE );
 	g_assert( streamib->read_point >= 0 ); 
 	g_assert( streamib->read_point <= streamib->chars_in_buffer );
+
+	VIPS_DEBUG_MSG( "vips_streamib_require: %d\n", require );
 
 	if( streamib->read_point + require > streamib->chars_in_buffer ) {
 		/* Areas can overlap, so we must memmove().
@@ -323,6 +325,8 @@ vips_streamib_get_line( VipsStreamib *streamib )
 	int space_remaining;
 	int ch;
 
+	VIPS_DEBUG_MSG( "vips_streamib_get_line:\n" );
+
 	write_point = 0;
 	space_remaining = VIPS_STREAMIB_BUFFER_SIZE;
 
@@ -361,6 +365,8 @@ vips_streamib_get_line( VipsStreamib *streamib )
 			;
 	}
 
+	VIPS_DEBUG_MSG( "    %s\n", streamib->line );
+
 	return( streamib->line );
 }
 
@@ -384,8 +390,11 @@ vips_streamib_get_line_copy( VipsStreamib *streamib )
 {
 	static const unsigned char null = '\0';
 
+	VIPS_DEBUG_MSG( "vips_streamib_get_line_copy:\n" );
+
 	GByteArray *buffer;
 	int ch;
+	unsigned char *result;
 
 	buffer = g_byte_array_new();
 
@@ -414,5 +423,9 @@ vips_streamib_get_line_copy( VipsStreamib *streamib )
 
 	g_byte_array_append( buffer, &null, 1 );
 
-	return( (unsigned char *) g_byte_array_free( buffer, FALSE ) );
+	result = (unsigned char *) g_byte_array_free( buffer, FALSE );
+
+	VIPS_DEBUG_MSG( "    %s\n", result );
+
+	return( result );
 }
