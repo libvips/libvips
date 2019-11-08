@@ -45,15 +45,13 @@
 VIPS_NAMESPACE_START
 
 VInterpolate 
-VInterpolate::new_from_name( const char *name, VOption *options )
+VInterpolate::new_from_name( const char *name )
 {
 	VipsInterpolate *interp;
 
 	if( !(interp = vips_interpolate_new( name )) ) {
-		delete options; 
 		throw VError(); 
 	}
-	delete options; 
 
 	VInterpolate out( interp ); 
 
@@ -61,7 +59,7 @@ VInterpolate::new_from_name( const char *name, VOption *options )
 }
 
 VOption *
-VOption::set( const char *name, VInterpolate value )
+VOption::set( const char *name, const VInterpolate &value )
 {
 	Pair *pair = new Pair( name );
 

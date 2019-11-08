@@ -169,7 +169,7 @@ VOption::set( const char *name, const char *value )
 
 // input image
 VOption *
-VOption::set( const char *name, VImage value )
+VOption::set( const char *name, const VImage &value )
 {
 	Pair *pair = new Pair( name );
 
@@ -596,6 +596,28 @@ VImage::new_from_buffer( const std::string &buf, const char *option_string,
 }
 
 VImage 
+VImage::new_from_stream( const VStreamI &input, const char *option_string, 
+	VOption *options )
+{
+	const char *operation_name;
+	VImage out;
+
+	if( !(operation_name = vips_foreign_find_load_stream( 
+		input.get_stream() )) ) {
+		delete options; 
+		throw( VError() ); 
+	}
+
+	options = (options ? options : VImage::option())-> 
+		set( "input", input )->
+		set( "out", &out );
+
+	call_option_string( operation_name, option_string, options ); 
+
+	return( out );
+}
+
+VImage 
 VImage::new_matrix( int width, int height ) 
 {
 	return( VImage( vips_image_new_matrix( width, height ) ) ); 
@@ -677,6 +699,27 @@ VImage::write_to_buffer( const char *suffix, void **buf, size_t *size,
 
 		vips_area_unref( VIPS_AREA( blob ) );
 	}
+}
+
+void 
+VImage::write_to_stream( const char *suffix, const VStreamO &output, 
+	VOption *options ) const
+{
+	char filename[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
+	const char *operation_name;
+	VipsBlob *blob;
+
+	vips__filename_split8( suffix, filename, option_string );
+	if( !(operation_name = vips_foreign_find_save_stream( filename )) ) {
+		delete options; 
+		throw VError(); 
+	}
+
+	call_option_string( operation_name, option_string, 
+		(options ? options : VImage::option())-> 
+			set( "in", *this )->
+			set( "output", output ) );
 }
 
 #include "vips-operators.cpp"
