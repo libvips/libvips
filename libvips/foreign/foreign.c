@@ -2045,6 +2045,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_svg_get_type( void ); 
 	extern GType vips_foreign_load_svg_file_get_type( void ); 
 	extern GType vips_foreign_load_svg_buffer_get_type( void ); 
+	extern GType vips_foreign_load_svg_stream_get_type( void ); 
 	extern GType vips_foreign_load_heif_get_type( void ); 
 	extern GType vips_foreign_load_heif_file_get_type( void ); 
 	extern GType vips_foreign_load_heif_buffer_get_type( void ); 
@@ -2102,6 +2103,7 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_svg_get_type(); 
 	vips_foreign_load_svg_file_get_type(); 
 	vips_foreign_load_svg_buffer_get_type(); 
+	vips_foreign_load_svg_stream_get_type(); 
 #endif /*HAVE_RSVG*/
 
 #ifdef HAVE_GIFLIB
