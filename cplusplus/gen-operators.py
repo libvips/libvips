@@ -28,6 +28,10 @@ import argparse
 from pyvips import Operation, GValue, Error, \
     ffi, gobject_lib, type_map, type_from_name, nickname_find, type_name
 
+# TODO Move to pyvips.GValue
+stream_input_type = type_from_name('VipsStreami')
+stream_output_type = type_from_name('VipsStreamo')
+
 # turn a GType into a C++ type
 gtype_to_cpp = {
     GValue.gbool_type: 'bool',
@@ -37,11 +41,16 @@ gtype_to_cpp = {
     GValue.refstr_type: 'char *',
     GValue.gflags_type: 'int',
     GValue.image_type: 'VImage',
+    stream_input_type: 'const VStreamI &',
+    stream_output_type: 'const VStreamO &',
     GValue.array_int_type: 'std::vector<int>',
     GValue.array_double_type: 'std::vector<double>',
     GValue.array_image_type: 'std::vector<VImage>',
     GValue.blob_type: 'VipsBlob *'
 }
+
+cplusplus_suffixes = ('*', '&')
+cplusplus_keywords = ('case', 'switch')
 
 # values for VipsArgumentFlags
 _REQUIRED = 1
@@ -138,7 +147,7 @@ def generate_operation(operation_name, declaration_only=False):
     if has_output:
         # the first output arg will be used as the result
         cpp_type = get_cpp_type(op.get_typeof(required_output[0]))
-        spacing = '' if cpp_type.endswith('*') else ' '
+        spacing = '' if cpp_type.endswith(cplusplus_suffixes) else ' '
         result += '{0}{1}'.format(cpp_type, spacing)
     else:
         result += 'void '
@@ -146,11 +155,15 @@ def generate_operation(operation_name, declaration_only=False):
     if not declaration_only:
         result += 'VImage::'
 
-    result += '{0}( '.format(operation_name)
+    cplusplus_operation = operation_name
+    if operation_name in cplusplus_keywords:
+        cplusplus_operation += '_image'
+
+    result += '{0}( '.format(cplusplus_operation)
     for name in required_input:
         gtype = op.get_typeof(name)
         cpp_type = get_cpp_type(gtype)
-        spacing = '' if cpp_type.endswith('*') else ' '
+        spacing = '' if cpp_type.endswith(cplusplus_suffixes) else ' '
         result += '{0}{1}{2}, '.format(cpp_type, spacing, cppize(name))
 
     # output params are passed by reference
@@ -159,7 +172,7 @@ def generate_operation(operation_name, declaration_only=False):
         for name in required_output[1:]:
             gtype = op.get_typeof(name)
             cpp_type = get_cpp_type(gtype)
-            spacing = '' if cpp_type.endswith('*') else ' '
+            spacing = '' if cpp_type.endswith(cplusplus_suffixes) else ' '
             result += '{0}{1}*{2}, '.format(cpp_type, spacing, cppize(name))
 
     result += 'VOption *options {0})'.format('= 0 ' if declaration_only else '')
@@ -179,7 +192,7 @@ def generate_operation(operation_name, declaration_only=False):
         # the first output arg will be used as the result
         name = required_output[0]
         cpp_type = get_cpp_type(op.get_typeof(name))
-        spacing = '' if cpp_type.endswith('*') else ' '
+        spacing = '' if cpp_type.endswith(cplusplus_suffixes) else ' '
         result += '    {0}{1}{2};\n\n'.format(cpp_type, spacing, cppize(name))
 
     result += '    call( "{0}",\n'.format(operation_name)
