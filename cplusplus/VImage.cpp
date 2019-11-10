@@ -708,7 +708,6 @@ VImage::write_to_stream( const char *suffix, const VStreamO &output,
 	char filename[VIPS_PATH_MAX];
 	char option_string[VIPS_PATH_MAX];
 	const char *operation_name;
-	VipsBlob *blob;
 
 	vips__filename_split8( suffix, filename, option_string );
 	if( !(operation_name = vips_foreign_find_save_stream( filename )) ) {
