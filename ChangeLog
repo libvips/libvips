@@ -18,6 +18,7 @@
 - add vips_error_buffer_copy()
 - add @no_strip option to dzsave [kalozka1]
 - add iiif layout to dzsave
+- fix use of resolution-unit metadata on tiff save [kayarre]
 
 31/8/19 started 8.8.3
 - revert sharpen restoring the input colourspace
