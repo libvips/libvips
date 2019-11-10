@@ -33,9 +33,6 @@
 #ifndef VIPS_STREAM_H
 #define VIPS_STREAM_H
 
-// TODO: #ifdef HAVE_RSVG (?)
-#include <gio/gio.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
@@ -297,7 +294,6 @@ int vips_streamib_require( VipsStreamib *streamib, int require );
 const unsigned char *vips_streamib_get_line( VipsStreamib *streamib ); 
 unsigned char *vips_streamib_get_line_copy( VipsStreamib *streamib ); 
 
-// TODO: #ifdef HAVE_RSVG (?)
 #define VIPS_TYPE_STREAMIW (vips_streamiw_get_type())
 #define VIPS_STREAMIW( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \

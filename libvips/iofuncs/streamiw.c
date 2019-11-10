@@ -32,7 +32,8 @@
 
 /* TODO
  *
- * - Should we conditionally exclude this class? It's only needed for librsvg.
+ * - should we conditionally exclude this class? It's only needed for librsvg.
+ * - it pulls in gio.h -- does this change our minimum version for glib?
  */
 
 /*
@@ -66,8 +67,7 @@ G_DEFINE_TYPE_WITH_CODE( VipsStreamiw, vips_streamiw, G_TYPE_INPUT_STREAM,
 	G_IMPLEMENT_INTERFACE( G_TYPE_SEEKABLE,
 		vips_streamiw_seekable_iface_init ) )
 
-enum
-{
+enum {
 	PROP_0,
 	PROP_STREAM
 };
@@ -115,15 +115,13 @@ vips_streamiw_finalize( GObject *object )
 static goffset
 vips_streamiw_tell( GSeekable *seekable )
 {
-	VipsStreami *streami;
-	goffset pos;
+	VipsStreami *streami = VIPS_STREAMIW( seekable )->streami;
 
-	streami = VIPS_STREAMIW( seekable )->streami;
+	goffset pos;
 
 	VIPS_DEBUG_MSG( "vips_streamiw_tell:\n" );
 
 	pos = vips_streami_seek( streami, 0, SEEK_CUR );
-
 	if( pos == -1 )
 		return( 0 );
 
@@ -164,11 +162,10 @@ vips_streamiw_seek( GSeekable *seekable, goffset offset,
 		", type = %d\n", offset, type );
 
 	if( vips_streami_seek( streami, offset, 
-		seek_type_to_lseek( type ) ) == -1 ) 
-	{
+		seek_type_to_lseek( type ) ) == -1 ) {
 		g_set_error( error, G_IO_ERROR,
 			G_IO_ERROR_FAILED,
-			_("Error while seeking: %s"),
+			_( "Error while seeking: %s" ),
 			vips_error_buffer() );
 		return( FALSE );
 	}
@@ -190,7 +187,7 @@ vips_streamiw_truncate( GSeekable *seekable, goffset offset,
 	g_set_error_literal( error,
 		G_IO_ERROR,
 		G_IO_ERROR_NOT_SUPPORTED,
-		_("Cannot truncate VipsStreamiw") );
+		_( "Cannot truncate VipsStreamiw" ) );
 
 	return( FALSE );
 }
@@ -212,7 +209,7 @@ vips_streamiw_read( GInputStream *stream, void *buffer, gsize count,
 	if( (res = vips_streami_read( streami, buffer, count )) == -1 )
 		g_set_error( error, G_IO_ERROR,
 			G_IO_ERROR_FAILED,
-			_("Error while reading: %s"),
+			_( "Error while reading: %s" ),
 			vips_error_buffer() );
 
 	return( res );
@@ -234,34 +231,30 @@ vips_streamiw_skip( GInputStream *stream, gsize count,
 		return( -1 );
 
 	start = vips_streami_seek( streami, 0, SEEK_CUR );
-	if( start == -1 )
-	{
+	if( start == -1 ) {
 		g_set_error( error, G_IO_ERROR,
 			G_IO_ERROR_FAILED,
-			_("Error while seeking: %s"),
+			_( "Error while seeking: %s" ),
 			vips_error_buffer() );
 		return( -1 );
 	}
 
 	end = vips_streami_seek( streami, 0, SEEK_END );
-	if( end == -1 )
-	{
+	if( end == -1 ) {
 		g_set_error( error, G_IO_ERROR,
 			G_IO_ERROR_FAILED,
-			_("Error while seeking: %s"),
+			_( "Error while seeking: %s" ),
 			vips_error_buffer() );
 		return( -1 );
 	}
 
-	if( end - start > count )
-	{
+	if( end - start > count ) {
 		end = vips_streami_seek( streami, count - (end - start),
 			SEEK_CUR );
-		if( end == -1 )
-		{
+		if( end == -1 ) {
 			g_set_error( error, G_IO_ERROR,
 				G_IO_ERROR_FAILED,
-				_("Error while seeking: %s"),
+				_( "Error while seeking: %s" ),
 				vips_error_buffer() );
 			return( -1 );
 		}
@@ -306,11 +299,11 @@ vips_streamiw_class_init( VipsStreamiwClass *class )
 	istream_class->close_fn = vips_streamiw_close;
 
 	g_object_class_install_property( gobject_class, PROP_STREAM,
-			g_param_spec_object( "input",
-			_("Input"),
-			_("Stream to wrap"),
+		g_param_spec_object( "input",
+			_( "Input" ),
+			_( "Stream to wrap" ),
 			VIPS_TYPE_STREAMI, G_PARAM_CONSTRUCT_ONLY | 
-			G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS ) );
+				G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS ) );
 
 }
 
@@ -331,6 +324,6 @@ GInputStream *
 g_input_stream_new_from_vips( VipsStreami *streami )
 {
 	return( g_object_new( VIPS_TYPE_STREAMIW,
-			"input", streami,
-			NULL ) );
+		"input", streami,
+		NULL ) );
 }

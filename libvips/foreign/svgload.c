@@ -473,22 +473,12 @@ G_DEFINE_TYPE( VipsForeignLoadSvgStream, vips_foreign_load_svg_stream,
 gboolean
 vips_foreign_load_svg_stream_is_a( VipsStreami *input )
 {
-	ssize_t n;
+	unsigned char *data;
 
-	if( vips_streami_rewind( input ) )
+	if( !(data = vips_streami_sniff( input, SVG_HEADER_SIZE )) )
 		return( FALSE );
 
-	g_byte_array_set_size( input->sniff, SVG_HEADER_SIZE );
-
-	/* Can't use vips_streami_sniff here.
-	 */
-	if( (n = vips_streami_read( input, input->sniff->data,
-		SVG_HEADER_SIZE )) == -1 || n == 0 )
-		return( FALSE );
-
-	g_byte_array_set_size( input->sniff, n );
-
-	return( vips_foreign_load_svg_is_a( input->sniff->data, n ) );
+	return( vips_foreign_load_svg_is_a( data, SVG_HEADER_SIZE ) );
 }
 
 static int
