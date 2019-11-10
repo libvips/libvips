@@ -31,6 +31,7 @@ count_files( const char *dirname )
 int
 main( int argc, char **argv )
 {
+	VipsStreami *streami;
 	VipsImage *image, *x;
 	char fd_dir[256];
 	int n_files;
@@ -56,7 +57,9 @@ main( int argc, char **argv )
 	/* Opening an image should read the header, then close the fd.
 	 */
 	printf( "** seq open ..\n" );
-	if( !(image = vips_image_new_from_file( argv[1], 
+	if( !(streami = vips_streami_new_from_filename( argv[1] )) )
+		vips_error_exit( NULL );
+	if( !(image = vips_image_new_from_stream( streami, "",
 		"access", VIPS_ACCESS_SEQUENTIAL,
 		NULL )) )
 		vips_error_exit( NULL );
@@ -92,6 +95,7 @@ main( int argc, char **argv )
 	 */
 	printf( "** unref ..\n" );
 	g_object_unref( image );
+	g_object_unref( streami );
 	printf( "** shutdown ..\n" );
 	vips_shutdown();
 

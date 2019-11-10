@@ -898,7 +898,6 @@ vips_streami_seek( VipsStreami *streami, gint64 offset, int whence )
 			vips_error( vips_stream_nick( VIPS_STREAM( streami ) ), 
 				"%s", _( "bad 'whence'" ) );
 			return( -1 );
-			break;
 		}
 	}
 	else if( streami->is_pipe ) {
@@ -926,7 +925,6 @@ vips_streami_seek( VipsStreami *streami, gint64 offset, int whence )
 			vips_error( vips_stream_nick( VIPS_STREAM( streami ) ), 
 				"%s", _( "bad 'whence'" ) );
 			return( -1 );
-			break;
 		}
 	}
 	else {
@@ -1029,8 +1027,7 @@ vips_streami_sniff( VipsStreami *streami, size_t length )
 
 	SANITY( streami );
 
-	if( vips_streami_unminimise( streami ) ||
-		vips_streami_rewind( streami ) )
+	if( vips_streami_rewind( streami ) )
 		return( NULL );
 
 	g_byte_array_set_size( streami->sniff, length );

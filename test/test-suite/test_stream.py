@@ -44,7 +44,7 @@ class TestStream:
 
         assert x.filename() == JPEG_FILE
 
-    @skip_if_no("jpegload")
+    @skip_if_no("jpegload_stream")
     def test_image_new_from_stream_filename(self):
         x = pyvips.Streami.new_from_filename(JPEG_FILE)
         y = pyvips.Image.new_from_stream(x, "")
@@ -58,7 +58,7 @@ class TestStream:
 
         assert x.filename() == filename
 
-    @skip_if_no("jpegload")
+    @skip_if_no("jpegload_stream")
     def test_image_write_to_stream_filename(self):
         filename = temp_filename(self.tempdir, ".jpg")
         x = pyvips.Streamo.new_to_filename(filename)
@@ -75,7 +75,7 @@ class TestStream:
 
         assert x.filename() == None
 
-    @skip_if_no("jpegload")
+    @skip_if_no("jpegload_stream")
     def test_image_new_from_stream_memory(self):
         data = self.colour.write_to_buffer(".jpg")
         x = pyvips.Streami.new_from_memory(data)
@@ -89,7 +89,7 @@ class TestStream:
 
         assert x.filename() == None
 
-    @skip_if_no("jpegload")
+    @skip_if_no("jpegload_stream")
     def test_image_write_to_stream_filename(self):
         x = pyvips.Streamo.new_to_memory()
         self.colour.write_to_stream(x, ".jpg")

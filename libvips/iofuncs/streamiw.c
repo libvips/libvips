@@ -78,7 +78,7 @@ vips_streamiw_get_property( GObject *object, guint prop_id,
 {
 	VipsStreamiw *streamiw = VIPS_STREAMIW( object );
 
-	switch (prop_id) {
+	switch( prop_id ) {
 	case PROP_STREAM:
 		g_value_set_object( value, streamiw->streami );
 		break;
@@ -89,11 +89,11 @@ vips_streamiw_get_property( GObject *object, guint prop_id,
 
 static void
 vips_streamiw_set_property( GObject *object, guint prop_id,
-	const GValue *value, GParamSpec *pspec)
+	const GValue *value, GParamSpec *pspec )
 {
 	VipsStreamiw *streamiw = VIPS_STREAMIW( object );
 
-	switch (prop_id) {
+	switch( prop_id ) {
 	case PROP_STREAM:
 		streamiw->streami = g_value_dup_object( value );
 		break;
@@ -125,9 +125,9 @@ vips_streamiw_tell( GSeekable *seekable )
 	pos = vips_streami_seek( streami, 0, SEEK_CUR );
 
 	if( pos == -1 )
-		return 0;
+		return( 0 );
 
-	return pos;
+	return( pos );
 }
 
 static gboolean
@@ -135,22 +135,22 @@ vips_streamiw_can_seek( GSeekable *seekable )
 {
 	VipsStreami *streami = VIPS_STREAMIW( seekable )->streami;
 
-	VIPS_DEBUG_MSG( "vips_streamiw_can_seek: %d\n", !streami->is_pipe);
+	VIPS_DEBUG_MSG( "vips_streamiw_can_seek: %d\n", !streami->is_pipe );
 
-	return !streami->is_pipe;
+	return( !streami->is_pipe );
 }
 
 static int
 seek_type_to_lseek( GSeekType type )
 {
-	switch (type) {
+	switch( type ) {
 	default:
 	case G_SEEK_CUR:
-		return SEEK_CUR;
+		return( SEEK_CUR );
 	case G_SEEK_SET:
-		return SEEK_SET;
+		return( SEEK_SET );
 	case G_SEEK_END:
-		return SEEK_END;
+		return( SEEK_END );
 	}
 }
 
@@ -206,7 +206,7 @@ vips_streamiw_read( GInputStream *stream, void *buffer, gsize count,
 
 	VIPS_DEBUG_MSG( "vips_streamiw_read: count: %zd\n", count );
 
-	if ( g_cancellable_set_error_if_cancelled( cancellable, error ) )
+	if( g_cancellable_set_error_if_cancelled( cancellable, error ) )
 		return( -1 );
 
 	if( (res = vips_streami_read( streami, buffer, count )) == -1 )
@@ -234,14 +234,13 @@ vips_streamiw_skip( GInputStream *stream, gsize count,
 		return( -1 );
 
 	start = vips_streami_seek( streami, 0, SEEK_CUR );
-
 	if( start == -1 )
 	{
 		g_set_error( error, G_IO_ERROR,
 			G_IO_ERROR_FAILED,
 			_("Error while seeking: %s"),
 			vips_error_buffer() );
-		return -1;
+		return( -1 );
 	}
 
 	end = vips_streami_seek( streami, 0, SEEK_END );
@@ -251,7 +250,7 @@ vips_streamiw_skip( GInputStream *stream, gsize count,
 			G_IO_ERROR_FAILED,
 			_("Error while seeking: %s"),
 			vips_error_buffer() );
-		return -1;
+		return( -1 );
 	}
 
 	if( end - start > count )
@@ -264,7 +263,7 @@ vips_streamiw_skip( GInputStream *stream, gsize count,
 				G_IO_ERROR_FAILED,
 				_("Error while seeking: %s"),
 				vips_error_buffer() );
-			return -1;
+			return( -1 );
 		}
 	}
 
@@ -311,7 +310,7 @@ vips_streamiw_class_init( VipsStreamiwClass *class )
 			_("Input"),
 			_("Stream to wrap"),
 			VIPS_TYPE_STREAMI, G_PARAM_CONSTRUCT_ONLY | 
-			G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS) );
+			G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS ) );
 
 }
 

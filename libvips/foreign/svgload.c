@@ -475,8 +475,7 @@ vips_foreign_load_svg_stream_is_a( VipsStreami *input )
 {
 	ssize_t n;
 
-	if( vips_streami_unminimise( input ) ||
-		vips_streami_rewind( input ) )
+	if( vips_streami_rewind( input ) )
 		return( FALSE );
 
 	g_byte_array_set_size( input->sniff, SVG_HEADER_SIZE );
