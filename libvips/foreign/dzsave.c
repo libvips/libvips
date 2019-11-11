@@ -944,6 +944,11 @@ write_blank( VipsForeignSaveDz *dz )
 static int
 write_json( VipsForeignSaveDz *dz )
 {
+	/* dz->file_suffix has a leading "." character.
+	 */
+	const char *suffix = dz->file_suffix[0] == '.' ? 
+		dz->file_suffix + 1 : dz->file_suffix;
+
 	GsfOutput *out;
 	char buf[VIPS_PATH_MAX];
 	int i;
@@ -958,14 +963,19 @@ write_json( VipsForeignSaveDz *dz )
 		"    \"http://iiif.io/api/image/2/level0.json\",\n"
 		"    {\n" 
 		"      \"formats\": [\n"
-		"        \"jpg\"\n"
+		"        \"%s\"\n"
 		"      ],\n"
 		"      \"qualities\": [\n"
 		"        \"default\"\n"
 		"      ]\n"
 		"    }\n"
 		"  ],\n"
-		"  \"protocol\": \"http://iiif.io/api/image\",\n"
+		"  \"protocol\": \"http://iiif.io/api/image\",\n", suffix );
+
+	/* "sizes" is needed for the full/ set of untiled images, which we 
+	 * don't yet support. Leave this commented out for now.
+
+	gsf_output_printf( out, 
 		"  \"sizes\": [\n" );
 
 	for( i = 0; i < dz->layer->n + 5; i++ ) {
@@ -983,6 +993,10 @@ write_json( VipsForeignSaveDz *dz )
 	gsf_output_printf( out, 
 		"  ],\n" );
 
+	 */
+
+	/* The set of pyramid layers we have written.
+	 */
 	gsf_output_printf( out, 
 		"  \"tiles\": [\n"
 		"    {\n"
@@ -1017,7 +1031,6 @@ write_json( VipsForeignSaveDz *dz )
 
 	return( 0 );
 }
-
 
 static int
 write_vips_meta( VipsForeignSaveDz *dz )
