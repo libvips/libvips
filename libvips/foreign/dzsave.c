@@ -944,13 +944,16 @@ write_blank( VipsForeignSaveDz *dz )
 static int
 write_json( VipsForeignSaveDz *dz )
 {
+	/* Can be NULL for memory output.
+	 */
+	const char *name = dz->basename ? dz->basename : "untitled";
+
 	/* dz->file_suffix has a leading "." character.
 	 */
 	const char *suffix = dz->file_suffix[0] == '.' ? 
 		dz->file_suffix + 1 : dz->file_suffix;
 
 	GsfOutput *out;
-	char buf[VIPS_PATH_MAX];
 	int i;
 
 	out = vips_gsf_path( dz->tree, "info.json", NULL ); 
@@ -958,7 +961,7 @@ write_json( VipsForeignSaveDz *dz )
 	gsf_output_printf( out, 
 		"{\n"
 		"  \"@context\": \"http://iiif.io/api/image/2/context.json\",\n"
-		"  \"@id\": \"https://example.com/iiif/apple\",\n" 
+		"  \"@id\": \"https://example.com/iiif/%s\",\n" 
 		"  \"profile\": [\n"
 		"    \"http://iiif.io/api/image/2/level0.json\",\n"
 		"    {\n" 
@@ -970,7 +973,8 @@ write_json( VipsForeignSaveDz *dz )
 		"      ]\n"
 		"    }\n"
 		"  ],\n"
-		"  \"protocol\": \"http://iiif.io/api/image\",\n", suffix );
+		"  \"protocol\": \"http://iiif.io/api/image\",\n", 
+		name, suffix );
 
 	/* "sizes" is needed for the full/ set of untiled images, which we 
 	 * don't yet support. Leave this commented out for now.
