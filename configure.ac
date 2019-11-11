@@ -1336,6 +1336,7 @@ AC_OUTPUT([
 	libvips/Makefile 
 	libvips/arithmetic/Makefile 
 	libvips/colour/Makefile 
+	libvips/colour/profiles/Makefile 
 	libvips/conversion/Makefile 
 	libvips/convolution/Makefile 
 	libvips/deprecated/Makefile 
