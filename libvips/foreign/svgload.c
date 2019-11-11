@@ -474,11 +474,13 @@ gboolean
 vips_foreign_load_svg_stream_is_a( VipsStreami *input )
 {
 	unsigned char *data;
+	size_t bytes_read;
 
-	if( !(data = vips_streami_sniff( input, SVG_HEADER_SIZE )) )
+	if( (bytes_read = vips_streami_sniff_at_most( input, 
+		&data, SVG_HEADER_SIZE )) <= 0 )
 		return( FALSE );
 
-	return( vips_foreign_load_svg_is_a( data, SVG_HEADER_SIZE ) );
+	return( vips_foreign_load_svg_is_a( data, bytes_read ) );
 }
 
 static int

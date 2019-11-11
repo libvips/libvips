@@ -42,6 +42,7 @@
 /*
 #define VIPS_DEBUG
  */
+#define TEST_SANITY
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -88,7 +89,7 @@
 
 G_DEFINE_TYPE( VipsStreami, vips_streami, VIPS_TYPE_STREAM );
 
-#ifdef VIPS_DEBUG
+#ifdef TEST_SANITY
 static void
 vips_streami_sanity( VipsStreami *streami )
 {
@@ -177,13 +178,14 @@ vips_streami_sanity( VipsStreami *streami )
 			 VIPS_STREAM( streami )->descriptor) );
 	}
 }
-#endif /*VIPS_DEBUG*/
+#endif /*TEST_SANITY*/
 
-#ifdef VIPS_DEBUG
+#ifdef TEST_SANITY
 #define SANITY( S ) vips_streami_sanity( S )
-#else /*!VIPS_DEBUG*/
+#warning "sanity tests on in streami.c"
+#else /*!TEST_SANITY*/
 #define SANITY( S )
-#endif /*VIPS_DEBUG*/
+#endif /*TEST_SANITY*/
 
 static void
 vips_streami_finalize( GObject *gobject )
@@ -1011,33 +1013,75 @@ vips_streami_size( VipsStreami *streami )
 }
 
 /**
- * vips_streami_sniff: 
- * @streami: sniff this stream
- * @length: number of bytes to sniff
+ * vips_streami_peek: 
+ * @streami: peek this stream
+ * @data: return a pointer to the bytes read here
+ * @length: max number of bytes to read
  *
- * Return a pointer to the first few bytes of the file.
+ * Attempt to sniff at most @length bytes from the start of the stream. A 
+ * pointer to the bytes is returned in @data. The number of bytes actually 
+ * read is returned -- it may be less than @length if the file is shorter than
+ * @length. A negative number indicates a read error.
+ *
+ * Returns: number of bytes read, or -1 on error.
  */
-unsigned char *
-vips_streami_sniff( VipsStreami *streami, size_t length )
+size_t
+vips_streami_sniff_at_most( VipsStreami *streami, 
+	unsigned char **data, size_t length )
 {
-	ssize_t n;
 	unsigned char *q;
+	size_t bytes_read;
 
-	VIPS_DEBUG_MSG( "vips_streami_sniff: %zd bytes\n", length );
+	VIPS_DEBUG_MSG( "vips_streami_sniff_at_most: %zd bytes\n", length );
 
 	SANITY( streami );
 
 	if( vips_streami_rewind( streami ) )
-		return( NULL );
+		return( -1 );
 
 	g_byte_array_set_size( streami->sniff, length );
 
-	for( q = streami->sniff->data; length > 0; length -= n, q += n )
-		if( (n = vips_streami_read( streami, q, length )) == -1 ||
-			n == 0 )
-			return( NULL );
+	q = streami->sniff->data;
+	bytes_read = 0; 
+	while( bytes_read < length ) {
+		ssize_t n;
+
+		n = vips_streami_read( streami, q, length - bytes_read );
+		if( n == -1 )
+			return( -1 );
+		if( n == 0 )
+			break;
+
+		bytes_read += n;
+		q += n;
+	}
 
 	SANITY( streami );
 
-	return( streami->sniff->data );
+	*data = streami->sniff->data;
+
+	return( bytes_read );
+}
+
+/**
+ * vips_streami_sniff: 
+ * @streami: sniff this stream
+ * @length: number of bytes to sniff
+ *
+ * Return a pointer to the first few bytes of the file. If the file is too
+ * short, return NULL.
+ *
+ * Returns: a pointer to the bytes at the start of the file, or NULL on error.
+ */
+unsigned char *
+vips_streami_sniff( VipsStreami *streami, size_t length )
+{
+	unsigned char *data;
+	size_t bytes_read;
+
+	bytes_read = vips_streami_sniff_at_most( streami, &data, length );
+	if( bytes_read < length )
+		return( NULL );
+
+	return( data );
 }

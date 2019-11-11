@@ -211,6 +211,8 @@ ssize_t vips_streami_read( VipsStreami *streami, void *data, size_t length );
 const void *vips_streami_map( VipsStreami *streami, size_t *length );
 gint64 vips_streami_seek( VipsStreami *streami, gint64 offset, int whence );
 int vips_streami_rewind( VipsStreami *streami );
+size_t vips_streami_sniff_at_most( VipsStreami *streami, 
+	unsigned char **data, size_t length );
 unsigned char *vips_streami_sniff( VipsStreami *streami, size_t length );
 gint64 vips_streami_size( VipsStreami *streami ); 
 
