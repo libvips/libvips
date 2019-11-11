@@ -141,13 +141,13 @@ G_DEFINE_TYPE( VipsForeignLoadTiffFile, vips_foreign_load_tiff_file,
 static gboolean
 vips_foreign_load_tiff_file_is_a( const char *filename )
 {
-	VipsStreami *input;
+	VipsStreami *streami;
 	gboolean result;
 
-	if( !(input = vips_streami_new_from_filename( filename )) )
+	if( !(streami = vips_streami_new_from_filename( filename )) )
 		return( FALSE );
-	result = vips__istiff_stream( input );
-	VIPS_UNREF( input );
+	result = vips__istiff_stream( streami );
+	VIPS_UNREF( streami );
 
 	return( result );
 }
@@ -155,19 +155,19 @@ vips_foreign_load_tiff_file_is_a( const char *filename )
 static VipsForeignFlags
 vips_foreign_load_tiff_file_get_flags_filename( const char *filename )
 {
-	VipsStreami *input;
+	VipsStreami *streami;
 	VipsForeignFlags flags;
 
-	if( !(input = vips_streami_new_from_filename( filename )) )
+	if( !(streami = vips_streami_new_from_filename( filename )) )
 		return( 0 );
 
 	flags = 0;
-	if( vips__istifftiled_stream( input ) ) 
+	if( vips__istifftiled_stream( streami ) ) 
 		flags |= VIPS_FOREIGN_PARTIAL;
 	else
 		flags |= VIPS_FOREIGN_SEQUENTIAL;
 
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( flags );
 }
@@ -187,16 +187,16 @@ vips_foreign_load_tiff_file_header( VipsForeignLoad *load )
 	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
 	VipsForeignLoadTiffFile *file = (VipsForeignLoadTiffFile *) load;
 
-	VipsStreami *input;
+	VipsStreami *streami;
 
-	if( !(input = vips_streami_new_from_filename( file->filename )) )
+	if( !(streami = vips_streami_new_from_filename( file->filename )) )
 		return( -1 );
-	if( vips__tiff_read_header_stream( input, load->out, 
+	if( vips__tiff_read_header_stream( streami, load->out, 
 		tiff->page, tiff->n, tiff->autorotate ) ) {
-		VIPS_UNREF( input );
+		VIPS_UNREF( streami );
 		return( -1 );
 	}
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( 0 );
 }
@@ -207,16 +207,16 @@ vips_foreign_load_tiff_file_load( VipsForeignLoad *load )
 	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
 	VipsForeignLoadTiffFile *file = (VipsForeignLoadTiffFile *) load;
 
-	VipsStreami *input;
+	VipsStreami *streami;
 
-	if( !(input = vips_streami_new_from_filename( file->filename )) )
+	if( !(streami = vips_streami_new_from_filename( file->filename )) )
 		return( -1 );
-	if( vips__tiff_read_stream( input, load->real, 
+	if( vips__tiff_read_stream( streami, load->real, 
 		tiff->page, tiff->n,  tiff->autorotate ) ) {
-		VIPS_UNREF( input );
+		VIPS_UNREF( streami );
 		return( -1 );
 	}
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( 0 );
 }
@@ -280,13 +280,13 @@ G_DEFINE_TYPE( VipsForeignLoadTiffBuffer, vips_foreign_load_tiff_buffer,
 static gboolean
 vips_foreign_load_tiff_buffer_is_a_buffer( const void *buf, size_t len )
 {
-	VipsStreami *input;
+	VipsStreami *streami;
 	gboolean result;
 
-	if( !(input = vips_streami_new_from_memory( buf, len )) )
+	if( !(streami = vips_streami_new_from_memory( buf, len )) )
 		return( FALSE );
-	result = vips__istiff_stream( input );
-	VIPS_UNREF( input );
+	result = vips__istiff_stream( streami );
+	VIPS_UNREF( streami );
 
 	return( result );
 }
@@ -296,18 +296,18 @@ vips_foreign_load_tiff_buffer_get_flags( VipsForeignLoad *load )
 {
 	VipsForeignLoadTiffBuffer *buffer = (VipsForeignLoadTiffBuffer *) load;
 
-	VipsStreami *input;
+	VipsStreami *streami;
 	VipsForeignFlags flags;
 
-	if( !(input = vips_streami_new_from_memory( 
+	if( !(streami = vips_streami_new_from_memory( 
 		buffer->buf->data, buffer->buf->length )) )
 		return( FALSE );
 	flags = 0;
-	if( vips__istifftiled_stream( input ) )
+	if( vips__istifftiled_stream( streami ) )
 		flags |= VIPS_FOREIGN_PARTIAL;
 	else
 		flags |= VIPS_FOREIGN_SEQUENTIAL;
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( flags );
 }
@@ -318,17 +318,17 @@ vips_foreign_load_tiff_buffer_header( VipsForeignLoad *load )
 	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
 	VipsForeignLoadTiffBuffer *buffer = (VipsForeignLoadTiffBuffer *) load;
 
-	VipsStreami *input;
+	VipsStreami *streami;
 
-	if( !(input = vips_streami_new_from_memory( 
+	if( !(streami = vips_streami_new_from_memory( 
 		buffer->buf->data, buffer->buf->length )) )
 		return( FALSE );
-	if( vips__tiff_read_header_stream( input, load->out, 
+	if( vips__tiff_read_header_stream( streami, load->out, 
 		tiff->page, tiff->n, tiff->autorotate ) ) {
-		VIPS_UNREF( input );
+		VIPS_UNREF( streami );
 		return( -1 );
 	}
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( 0 );
 }
@@ -339,17 +339,17 @@ vips_foreign_load_tiff_buffer_load( VipsForeignLoad *load )
 	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
 	VipsForeignLoadTiffBuffer *buffer = (VipsForeignLoadTiffBuffer *) load;
 
-	VipsStreami *input;
+	VipsStreami *streami;
 
-	if( !(input = vips_streami_new_from_memory( 
+	if( !(streami = vips_streami_new_from_memory( 
 		buffer->buf->data, buffer->buf->length )) )
 		return( FALSE );
-	if( vips__tiff_read_stream( input, load->real, 
+	if( vips__tiff_read_stream( streami, load->real, 
 		tiff->page, tiff->n, tiff->autorotate ) ) {
-		VIPS_UNREF( input );
+		VIPS_UNREF( streami );
 		return( -1 );
 	}
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( 0 );
 }
@@ -391,7 +391,7 @@ typedef struct _VipsForeignLoadTiffStream {
 
 	/* Load from a stream.
 	 */
-	VipsStreami *input;
+	VipsStreami *streami;
 
 } VipsForeignLoadTiffStream;
 
@@ -408,7 +408,7 @@ vips_foreign_load_tiff_stream_get_flags( VipsForeignLoad *load )
 	VipsForeignFlags flags;
 
 	flags = 0;
-	if( vips__istifftiled_stream( stream->input ) )
+	if( vips__istifftiled_stream( stream->streami ) )
 		flags |= VIPS_FOREIGN_PARTIAL;
 	else
 		flags |= VIPS_FOREIGN_SEQUENTIAL;
@@ -422,7 +422,7 @@ vips_foreign_load_tiff_stream_header( VipsForeignLoad *load )
 	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
 	VipsForeignLoadTiffStream *stream = (VipsForeignLoadTiffStream *) load;
 
-	if( vips__tiff_read_header_stream( stream->input, load->out, 
+	if( vips__tiff_read_header_stream( stream->streami, load->out, 
 		tiff->page, tiff->n, tiff->autorotate ) ) 
 		return( -1 );
 
@@ -435,7 +435,7 @@ vips_foreign_load_tiff_stream_load( VipsForeignLoad *load )
 	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
 	VipsForeignLoadTiffStream *stream = (VipsForeignLoadTiffStream *) load;
 
-	if( vips__tiff_read_stream( stream->input, load->real, 
+	if( vips__tiff_read_stream( stream->streami, load->real, 
 		tiff->page, tiff->n, tiff->autorotate ) )
 		return( -1 );
 
@@ -461,11 +461,11 @@ vips_foreign_load_tiff_stream_class_init(
 	load_class->header = vips_foreign_load_tiff_stream_header;
 	load_class->load = vips_foreign_load_tiff_stream_load;
 
-	VIPS_ARG_OBJECT( class, "input", 1,
-		_( "Input" ),
+	VIPS_ARG_OBJECT( class, "streami", 1,
+		_( "Streami" ),
 		_( "Stream to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadTiffStream, input ),
+		G_STRUCT_OFFSET( VipsForeignLoadTiffStream, streami ),
 		VIPS_TYPE_STREAMI );
 
 }
@@ -584,7 +584,7 @@ vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
 
 /**
  * vips_tiffload_stream:
- * @input: stream to load
+ * @streami: stream to load
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -602,13 +602,13 @@ vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_tiffload_stream( VipsStreami *input, VipsImage **out, ... )
+vips_tiffload_stream( VipsStreami *streami, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "tiffload_stream", ap, input, out );
+	result = vips_call_split( "tiffload_stream", ap, streami, out );
 	va_end( ap );
 
 	return( result );

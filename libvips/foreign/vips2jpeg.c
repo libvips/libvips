@@ -693,7 +693,7 @@ typedef struct {
 
 	/* Build the output area here.
 	 */
-	VipsStreamo *output;
+	VipsStreamo *streamo;
 
 	/* Our output buffer.
 	 */
@@ -708,7 +708,7 @@ empty_output_buffer( j_compress_ptr cinfo )
 {
 	Dest *dest = (Dest *) cinfo->dest;
 
-	if( vips_streamo_write( dest->output, 
+	if( vips_streamo_write( dest->streamo, 
 		dest->buf, STREAM_BUFFER_SIZE ) )
 		ERREXIT( cinfo, JERR_FILE_WRITE );
 
@@ -736,17 +736,17 @@ term_destination( j_compress_ptr cinfo )
 {
         Dest *dest = (Dest *) cinfo->dest;
 
-	if( vips_streamo_write( dest->output, 
+	if( vips_streamo_write( dest->streamo, 
 		dest->buf, STREAM_BUFFER_SIZE - dest->pub.free_in_buffer ) )
 		ERREXIT( cinfo, JERR_FILE_WRITE );
 
-	vips_streamo_finish( dest->output );
+	vips_streamo_finish( dest->streamo );
 }
 
 /* Set dest to one of our objects.
  */
 static void
-stream_dest( j_compress_ptr cinfo, VipsStreamo *output )
+stream_dest( j_compress_ptr cinfo, VipsStreamo *streamo )
 {
 	Dest *dest;
 
@@ -761,11 +761,11 @@ stream_dest( j_compress_ptr cinfo, VipsStreamo *output )
 	dest->pub.init_destination = init_destination;
 	dest->pub.empty_output_buffer = empty_output_buffer;
 	dest->pub.term_destination = term_destination;
-	dest->output = output;
+	dest->streamo = streamo;
 }
 
 int
-vips__jpeg_write_stream( VipsImage *in, VipsStreamo *output,
+vips__jpeg_write_stream( VipsImage *in, VipsStreamo *streamo,
 	int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive,
 	gboolean strip, gboolean no_subsample, gboolean trellis_quant,
@@ -789,7 +789,7 @@ vips__jpeg_write_stream( VipsImage *in, VipsStreamo *output,
 
 	/* Attach output.
 	 */
-        stream_dest( &write->cinfo, output );
+        stream_dest( &write->cinfo, streamo );
 
 	/* Convert! Write errors come back here as an error return.
 	 */

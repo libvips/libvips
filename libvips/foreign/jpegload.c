@@ -153,7 +153,7 @@ vips_foreign_load_jpeg_init( VipsForeignLoadJpeg *jpeg )
 typedef struct _VipsForeignLoadJpegStream {
 	VipsForeignLoadJpeg parent_object;
 
-	VipsStreami *input;
+	VipsStreami *streami;
 
 } VipsForeignLoadJpegStream;
 
@@ -168,7 +168,7 @@ vips_foreign_load_jpeg_stream_header( VipsForeignLoad *load )
 	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
 	VipsForeignLoadJpegStream *stream = (VipsForeignLoadJpegStream *) load;
 
-	if( vips__jpeg_read_stream( stream->input, 
+	if( vips__jpeg_read_stream( stream->streami, 
 		load->out, TRUE, jpeg->shrink, load->fail, jpeg->autorotate ) )
 		return( -1 );
 
@@ -181,7 +181,7 @@ vips_foreign_load_jpeg_stream_load( VipsForeignLoad *load )
 	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
 	VipsForeignLoadJpegStream *stream = (VipsForeignLoadJpegStream *) load;
 
-	if( vips__jpeg_read_stream( stream->input,
+	if( vips__jpeg_read_stream( stream->streami,
 		load->real, FALSE, jpeg->shrink, load->fail, 
 		jpeg->autorotate ) )
 		return( -1 );
@@ -190,9 +190,9 @@ vips_foreign_load_jpeg_stream_load( VipsForeignLoad *load )
 }
 
 static gboolean
-vips_foreign_load_jpeg_stream_is_a( VipsStreami *input )
+vips_foreign_load_jpeg_stream_is_a( VipsStreami *streami )
 {
-	return( vips__isjpeg_stream( input ) );
+	return( vips__isjpeg_stream( streami ) );
 }
 
 static void
@@ -217,7 +217,7 @@ vips_foreign_load_jpeg_stream_class_init(
 		_( "Input" ),
 		_( "Stream to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadJpegStream, input ),
+		G_STRUCT_OFFSET( VipsForeignLoadJpegStream, streami ),
 		VIPS_TYPE_STREAMI );
 
 }
@@ -242,13 +242,13 @@ G_DEFINE_TYPE( VipsForeignLoadJpegFile, vips_foreign_load_jpeg_file,
 static gboolean
 vips_foreign_load_jpeg_file_is_a( const char *filename )
 {
-	VipsStreami *input;
+	VipsStreami *streami;
 	gboolean result;
 
-	if( !(input = vips_streami_new_from_filename( filename )) ) 
+	if( !(streami = vips_streami_new_from_filename( filename )) ) 
 		return( FALSE );
-	result = vips__isjpeg_stream( input );
-	VIPS_UNREF( input );
+	result = vips__isjpeg_stream( streami );
+	VIPS_UNREF( streami );
 
 	return( result );
 }
@@ -259,16 +259,16 @@ vips_foreign_load_jpeg_file_header( VipsForeignLoad *load )
 	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
 	VipsForeignLoadJpegFile *file = (VipsForeignLoadJpegFile *) load;
 
-	VipsStreami *input;
+	VipsStreami *streami;
 
-	if( !(input = vips_streami_new_from_filename( file->filename )) ) 
+	if( !(streami = vips_streami_new_from_filename( file->filename )) ) 
 		return( -1 );
-	if( vips__jpeg_read_stream( input, load->out, 
+	if( vips__jpeg_read_stream( streami, load->out, 
 		TRUE, jpeg->shrink, load->fail, jpeg->autorotate ) ) {
-		VIPS_UNREF( input );
+		VIPS_UNREF( streami );
 		return( -1 );
 	}
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( 0 );
 }
@@ -279,16 +279,16 @@ vips_foreign_load_jpeg_file_load( VipsForeignLoad *load )
 	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
 	VipsForeignLoadJpegFile *file = (VipsForeignLoadJpegFile *) load;
 
-	VipsStreami *input;
+	VipsStreami *streami;
 
-	if( !(input = vips_streami_new_from_filename( file->filename )) ) 
+	if( !(streami = vips_streami_new_from_filename( file->filename )) ) 
 		return( -1 );
-	if( vips__jpeg_read_stream( input, load->real, 
+	if( vips__jpeg_read_stream( streami, load->real, 
 		FALSE, jpeg->shrink, load->fail, jpeg->autorotate ) ) {
-		VIPS_UNREF( input );
+		VIPS_UNREF( streami );
 		return( -1 );
 	}
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( 0 );
 }
@@ -345,13 +345,13 @@ G_DEFINE_TYPE( VipsForeignLoadJpegBuffer, vips_foreign_load_jpeg_buffer,
 static gboolean
 vips_foreign_load_jpeg_buffer_is_a_buffer( const void *buf, size_t len )
 {
-	VipsStreami *input;
+	VipsStreami *streami;
 	gboolean result;
 
-	if( !(input = vips_streami_new_from_memory( buf, len )) ) 
+	if( !(streami = vips_streami_new_from_memory( buf, len )) ) 
 		return( FALSE );
-	result = vips__isjpeg_stream( input );
-	VIPS_UNREF( input );
+	result = vips__isjpeg_stream( streami );
+	VIPS_UNREF( streami );
 
 	return( result );
 }
@@ -362,16 +362,16 @@ vips_foreign_load_jpeg_buffer_header( VipsForeignLoad *load )
 	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
 	VipsForeignLoadJpegBuffer *buffer = (VipsForeignLoadJpegBuffer *) load;
 
-	VipsStreami *input;
+	VipsStreami *streami;
 
-	if( !(input = vips_streami_new_from_blob( buffer->blob )) ) 
+	if( !(streami = vips_streami_new_from_blob( buffer->blob )) ) 
 		return( -1 );
-	if( vips__jpeg_read_stream( input, load->out, 
+	if( vips__jpeg_read_stream( streami, load->out, 
 		TRUE, jpeg->shrink, load->fail, jpeg->autorotate ) ) {
-		VIPS_UNREF( input );
+		VIPS_UNREF( streami );
 		return( -1 );
 	}
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( 0 );
 }
@@ -382,16 +382,16 @@ vips_foreign_load_jpeg_buffer_load( VipsForeignLoad *load )
 	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
 	VipsForeignLoadJpegBuffer *buffer = (VipsForeignLoadJpegBuffer *) load;
 
-	VipsStreami *input;
+	VipsStreami *streami;
 
-	if( !(input = vips_streami_new_from_blob( buffer->blob )) ) 
+	if( !(streami = vips_streami_new_from_blob( buffer->blob )) ) 
 		return( -1 );
-	if( vips__jpeg_read_stream( input, load->real, 
+	if( vips__jpeg_read_stream( streami, load->real, 
 		FALSE, jpeg->shrink, load->fail, jpeg->autorotate ) ) {
-		VIPS_UNREF( input );
+		VIPS_UNREF( streami );
 		return( -1 );
 	}
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( 0 );
 }

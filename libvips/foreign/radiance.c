@@ -977,7 +977,7 @@ vips__rad_load( VipsStreami *streami, VipsImage *out )
  */
 typedef struct {
 	VipsImage *in;
-	VipsStreamo *output;
+	VipsStreamo *streamo;
 
 	char format[256];
 	double expos;
@@ -992,13 +992,13 @@ static void
 write_destroy( Write *write )
 {
 	VIPS_FREE( write->line );
-	VIPS_UNREF( write->output );
+	VIPS_UNREF( write->streamo );
 
 	vips_free( write );
 }
 
 static Write *
-write_new( VipsImage *in, VipsStreamo *output )
+write_new( VipsImage *in, VipsStreamo *streamo )
 {
 	Write *write;
 	int i;
@@ -1007,8 +1007,8 @@ write_new( VipsImage *in, VipsStreamo *output )
 		return( NULL );
 
 	write->in = in;
-	write->output = output;
-	g_object_ref( output );
+	write->streamo = streamo;
+	g_object_ref( streamo );
 
 	strcpy( write->format, COLRFMT );
 	write->expos = 1.0;
@@ -1082,25 +1082,25 @@ vips2rad_put_header( Write *write )
 {
 	vips2rad_make_header( write );
 
-	vips_streamo_writef( write->output, "#?RADIANCE\n" );
-	vips_streamo_writef( write->output, "%s%s\n", FMTSTR, write->format );
-	vips_streamo_writef( write->output, "%s%e\n", EXPOSSTR, write->expos );
-	vips_streamo_writef( write->output, 
+	vips_streamo_writef( write->streamo, "#?RADIANCE\n" );
+	vips_streamo_writef( write->streamo, "%s%s\n", FMTSTR, write->format );
+	vips_streamo_writef( write->streamo, "%s%e\n", EXPOSSTR, write->expos );
+	vips_streamo_writef( write->streamo, 
 		"%s %f %f %f\n", COLCORSTR, 
 		write->colcor[RED], write->colcor[GRN], write->colcor[BLU] );
-	vips_streamo_writef( write->output, 
+	vips_streamo_writef( write->streamo, 
 		"SOFTWARE=vips %s\n", vips_version_string() );
-	vips_streamo_writef( write->output, 
+	vips_streamo_writef( write->streamo, 
 		"%s%f\n", ASPECTSTR, write->aspect );
-	vips_streamo_writef( write->output, 
+	vips_streamo_writef( write->streamo, 
 		"%s %.4f %.4f %.4f %.4f %.4f %.4f %.4f %.4f\n", 
 		PRIMARYSTR, 
 		write->prims[RED][CIEX], write->prims[RED][CIEY], 
 		write->prims[GRN][CIEX], write->prims[GRN][CIEY], 
 		write->prims[BLU][CIEX], write->prims[BLU][CIEY], 
 		write->prims[WHT][CIEX], write->prims[WHT][CIEY] );
-	vips_streamo_writef( write->output, "\n" );
-	vips_streamo_writef( write->output, 
+	vips_streamo_writef( write->streamo, "\n" );
+	vips_streamo_writef( write->streamo, 
 		"%s", resolu2str( resolu_buf, &write->rs ) );
 
 	return( 0 );
@@ -1115,7 +1115,7 @@ scanline_write( Write *write, COLR *scanline, int width )
 		width > MAXELEN ) {
 		/* Too large or small for RLE ... do a simple write.
 		 */
-		if( vips_streamo_write( write->output, 
+		if( vips_streamo_write( write->streamo, 
 			scanline, sizeof( COLR ) * width ) )
 			return( -1 );
 	}
@@ -1126,7 +1126,7 @@ scanline_write( Write *write, COLR *scanline, int width )
 		 */
 		rle_scanline_write( scanline, width, write->line, &length );
 
-		if( vips_streamo_write( write->output, write->line, length ) )
+		if( vips_streamo_write( write->streamo, write->line, length ) )
 			return( -1 );
 	}
 
@@ -1159,7 +1159,7 @@ vips2rad_put_data( Write *write )
 }
 
 int
-vips__rad_save( VipsImage *in, VipsStreamo *output )
+vips__rad_save( VipsImage *in, VipsStreamo *streamo )
 {
 	Write *write;
 
@@ -1170,7 +1170,7 @@ vips__rad_save( VipsImage *in, VipsStreamo *output )
 	if( vips_image_pio_input( in ) ||
 		vips_check_coding_rad( "vips2rad", in ) )
 		return( -1 );
-	if( !(write = write_new( in, output )) ) 
+	if( !(write = write_new( in, streamo )) ) 
 		return( -1 );
 
 	if( vips2rad_put_header( write ) ||
@@ -1179,7 +1179,7 @@ vips__rad_save( VipsImage *in, VipsStreamo *output )
 		return( -1 );
 	}
 
-	vips_streamo_finish( output );
+	vips_streamo_finish( streamo );
 
 	write_destroy( write );
 

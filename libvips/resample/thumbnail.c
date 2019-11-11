@@ -1254,7 +1254,7 @@ vips_thumbnail_buffer( void *buf, size_t len, VipsImage **out, int width, ... )
 typedef struct _VipsThumbnailStream {
 	VipsThumbnail parent_object;
 
-	VipsStreami *input;
+	VipsStreami *streami;
 	char *option_string;
 } VipsThumbnailStream;
 
@@ -1275,8 +1275,8 @@ vips_thumbnail_stream_get_info( VipsThumbnail *thumbnail )
 	g_info( "thumbnailing stream" ); 
 
 	if( !(thumbnail->loader = vips_foreign_find_load_stream( 
-			stream->input )) ||
-		!(image = vips_image_new_from_stream( stream->input, 
+			stream->streami )) ||
+		!(image = vips_image_new_from_stream( stream->streami, 
 			stream->option_string, NULL )) )
 		return( -1 );
 
@@ -1296,7 +1296,7 @@ vips_thumbnail_stream_open( VipsThumbnail *thumbnail, double factor )
 
 	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
 		return( vips_image_new_from_stream( 
-			stream->input, 
+			stream->streami, 
 			stream->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"shrink", (int) factor,
@@ -1305,7 +1305,7 @@ vips_thumbnail_stream_open( VipsThumbnail *thumbnail, double factor )
 	else if( vips_isprefix( "VipsForeignLoadOpenslide", 
 		thumbnail->loader ) ) {
 		return( vips_image_new_from_stream( 
-			stream->input, 
+			stream->streami, 
 			stream->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"level", (int) factor,
@@ -1315,7 +1315,7 @@ vips_thumbnail_stream_open( VipsThumbnail *thumbnail, double factor )
 		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ||
 		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
 		return( vips_image_new_from_stream( 
-			stream->input, 
+			stream->streami, 
 			stream->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"scale", 1.0 / factor,
@@ -1323,7 +1323,7 @@ vips_thumbnail_stream_open( VipsThumbnail *thumbnail, double factor )
 	}
 	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) {
 		return( vips_image_new_from_stream( 
-			stream->input, 
+			stream->streami, 
 			stream->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"page", (int) factor,
@@ -1331,7 +1331,7 @@ vips_thumbnail_stream_open( VipsThumbnail *thumbnail, double factor )
 	}
 	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
 		return( vips_image_new_from_stream( 
-			stream->input, 
+			stream->streami, 
 			stream->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"thumbnail", (int) factor,
@@ -1339,7 +1339,7 @@ vips_thumbnail_stream_open( VipsThumbnail *thumbnail, double factor )
 	}
 	else {
 		return( vips_image_new_from_stream( 
-			stream->input, 
+			stream->streami, 
 			stream->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			NULL ) );
@@ -1362,11 +1362,11 @@ vips_thumbnail_stream_class_init( VipsThumbnailClass *class )
 	thumbnail_class->get_info = vips_thumbnail_stream_get_info;
 	thumbnail_class->open = vips_thumbnail_stream_open;
 
-	VIPS_ARG_OBJECT( class, "input", 1,
-		_( "Input" ),
+	VIPS_ARG_OBJECT( class, "streami", 1,
+		_( "Streami" ),
 		_( "Stream to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsThumbnailStream, input ),
+		G_STRUCT_OFFSET( VipsThumbnailStream, streami ),
 		VIPS_TYPE_STREAMI );
 
 	VIPS_ARG_STRING( class, "option_string", 20,
@@ -1385,7 +1385,7 @@ vips_thumbnail_stream_init( VipsThumbnailStream *stream )
 
 /**
  * vips_thumbnail_stream:
- * @input: stream to thumbnail
+ * @streami: stream to thumbnail
  * @out: (out): output image
  * @width: target width in pixels
  * @...: %NULL-terminated list of optional named arguments
@@ -1408,13 +1408,13 @@ vips_thumbnail_stream_init( VipsThumbnailStream *stream )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_thumbnail_stream( VipsStreami *input, VipsImage **out, int width, ... )
+vips_thumbnail_stream( VipsStreami *streami, VipsImage **out, int width, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, width );
-	result = vips_call_split( "thumbnail_stream", ap, input, out, width );
+	result = vips_call_split( "thumbnail_stream", ap, streami, out, width );
 	va_end( ap );
 
 	return( result );

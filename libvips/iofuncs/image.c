@@ -2166,7 +2166,7 @@ vips_image_new_from_buffer( const void *buf, size_t len,
 
 /**
  * vips_image_new_from_stream: (constructor)
- * @input: (transfer none): stream to fetch image from
+ * @streami: (transfer none): stream to fetch image from
  * @option_string: set of extra options as a string
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -2182,7 +2182,8 @@ vips_image_new_from_buffer( const void *buf, size_t len,
  * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */
 VipsImage *
-vips_image_new_from_stream( VipsStreami *input, const char *option_string, ... )
+vips_image_new_from_stream( VipsStreami *streami, 
+	const char *option_string, ... )
 {
 	const char *operation_name;
 	va_list ap;
@@ -2191,12 +2192,12 @@ vips_image_new_from_stream( VipsStreami *input, const char *option_string, ... )
 
 	vips_check_init();
 
-        if( !(operation_name = vips_foreign_find_load_stream( input )) )
+        if( !(operation_name = vips_foreign_find_load_stream( streami )) )
                 return( NULL );
 
         va_start( ap, option_string );
         result = vips_call_split_option_string( operation_name,
-                option_string, ap, input, &out );
+                option_string, ap, streami, &out );
         va_end( ap );
 
         if( result )
@@ -2704,7 +2705,7 @@ vips_image_write_to_buffer( VipsImage *in,
  * vips_image_write_to_stream: (method)
  * @in: image to write
  * @suffix: format to write 
- * @output: stream to write to
+ * @streamo: stream to write to
  * @...: %NULL-terminated list of optional named arguments
  *
  * Writes @in to @output in format @suffix.
@@ -2722,7 +2723,7 @@ vips_image_write_to_buffer( VipsImage *in,
  */
 int
 vips_image_write_to_stream( VipsImage *in, 
-	const char *suffix, VipsStreamo *output, ... )
+	const char *suffix, VipsStreamo *streamo, ... )
 {
 	char filename[VIPS_PATH_MAX];
 	char option_string[VIPS_PATH_MAX];
@@ -2734,9 +2735,9 @@ vips_image_write_to_stream( VipsImage *in,
 	if( !(operation_name = vips_foreign_find_save_stream( filename )) )
 		return( -1 );
 
-	va_start( ap, output );
+	va_start( ap, streamo );
 	result = vips_call_split_option_string( operation_name, option_string, 
-		ap, in, output );
+		ap, in, streamo );
 	va_end( ap );
 
 	if( result )

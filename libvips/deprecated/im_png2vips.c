@@ -84,16 +84,16 @@ png2vips( const char *name, IMAGE *out, gboolean header_only )
 
 #ifdef HAVE_PNG
 {
-	VipsStreami *input;
+	VipsStreami *streami;
 	int result;
 
-	if( !(input = vips_streami_new_from_filename( filename )) ) 
+	if( !(streami = vips_streami_new_from_filename( filename )) ) 
 		return( -1 );
 	if( header_only ) 
-		result = vips__png_header_stream( input, out );
+		result = vips__png_header_stream( streami, out );
 	else 
-		result = vips__png_read_stream( input, out, TRUE );
-	VIPS_UNREF( input );
+		result = vips__png_read_stream( streami, out, TRUE );
+	VIPS_UNREF( streami );
 
 	if( result )
 		return( result );

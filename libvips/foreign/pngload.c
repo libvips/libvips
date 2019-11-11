@@ -57,7 +57,7 @@ typedef struct _VipsForeignLoadPngStream {
 
 	/* Load from a stream.
 	 */
-	VipsStreami *input;
+	VipsStreami *streami;
 
 } VipsForeignLoadPngStream;
 
@@ -74,7 +74,7 @@ vips_foreign_load_png_stream_get_flags( VipsForeignLoad *load )
 	VipsForeignFlags flags;
 
 	flags = 0;
-	if( vips__png_isinterlaced_stream( stream->input ) )
+	if( vips__png_isinterlaced_stream( stream->streami ) )
 		flags |= VIPS_FOREIGN_PARTIAL;
 	else
 		flags |= VIPS_FOREIGN_SEQUENTIAL;
@@ -87,7 +87,7 @@ vips_foreign_load_png_stream_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadPngStream *stream = (VipsForeignLoadPngStream *) load;
 
-	if( vips__png_header_stream( stream->input, load->out ) )
+	if( vips__png_header_stream( stream->streami, load->out ) )
 		return( -1 );
 
 	return( 0 );
@@ -98,7 +98,7 @@ vips_foreign_load_png_stream_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadPngStream *stream = (VipsForeignLoadPngStream *) load;
 
-	if( vips__png_read_stream( stream->input, load->real, load->fail ) )
+	if( vips__png_read_stream( stream->streami, load->real, load->fail ) )
 		return( -1 );
 
 	return( 0 );
@@ -122,11 +122,11 @@ vips_foreign_load_png_stream_class_init( VipsForeignLoadPngStreamClass *class )
 	load_class->header = vips_foreign_load_png_stream_header;
 	load_class->load = vips_foreign_load_png_stream_load;
 
-	VIPS_ARG_OBJECT( class, "input", 1,
-		_( "Input" ),
+	VIPS_ARG_OBJECT( class, "streami", 1,
+		_( "Streami" ),
 		_( "Stream to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadPngStream, input ),
+		G_STRUCT_OFFSET( VipsForeignLoadPngStream, streami ),
 		VIPS_TYPE_STREAMI );
 
 }
@@ -153,13 +153,13 @@ G_DEFINE_TYPE( VipsForeignLoadPng, vips_foreign_load_png,
 static gboolean
 vips_foreign_load_png_is_a( const char *filename )
 {
-	VipsStreami *input;
+	VipsStreami *streami;
 	gboolean result;
 
-	if( !(input = vips_streami_new_from_filename( filename )) )
+	if( !(streami = vips_streami_new_from_filename( filename )) )
 		return( FALSE );
-	result = vips__png_ispng_stream( input );
-	VIPS_UNREF( input );
+	result = vips__png_ispng_stream( streami );
+	VIPS_UNREF( streami );
 
 	return( result );
 }
@@ -167,19 +167,19 @@ vips_foreign_load_png_is_a( const char *filename )
 static VipsForeignFlags
 vips_foreign_load_png_get_flags_filename( const char *filename )
 {
-	VipsStreami *input;
+	VipsStreami *streami;
 	VipsForeignFlags flags;
 
-	if( !(input = vips_streami_new_from_filename( filename )) )
+	if( !(streami = vips_streami_new_from_filename( filename )) )
 		return( 0 );
 
 	flags = 0;
-	if( vips__png_isinterlaced_stream( input ) )
+	if( vips__png_isinterlaced_stream( streami ) )
 		flags |= VIPS_FOREIGN_PARTIAL;
 	else
 		flags |= VIPS_FOREIGN_SEQUENTIAL;
 
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( flags );
 }
@@ -197,15 +197,15 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
-	VipsStreami *input;
+	VipsStreami *streami;
 
-	if( !(input = vips_streami_new_from_filename( png->filename )) )
+	if( !(streami = vips_streami_new_from_filename( png->filename )) )
 		return( -1 );
-	if( vips__png_header_stream( input, load->out ) ) {
-		VIPS_UNREF( input );
+	if( vips__png_header_stream( streami, load->out ) ) {
+		VIPS_UNREF( streami );
 		return( -1 );
 	}
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( 0 );
 }
@@ -215,15 +215,15 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
-	VipsStreami *input;
+	VipsStreami *streami;
 
-	if( !(input = vips_streami_new_from_filename( png->filename )) )
+	if( !(streami = vips_streami_new_from_filename( png->filename )) )
 		return( -1 );
-	if( vips__png_read_stream( input, load->real, load->fail ) ) {
-		VIPS_UNREF( input );
+	if( vips__png_read_stream( streami, load->real, load->fail ) ) {
+		VIPS_UNREF( streami );
 		return( -1 );
 	}
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( 0 );
 }
@@ -285,13 +285,13 @@ G_DEFINE_TYPE( VipsForeignLoadPngBuffer, vips_foreign_load_png_buffer,
 static gboolean
 vips_foreign_load_png_buffer_is_a_buffer( const void *buf, size_t len )
 {
-	VipsStreami *input;
+	VipsStreami *streami;
 	gboolean result;
 
-	if( !(input = vips_streami_new_from_memory( buf, len )) )
+	if( !(streami = vips_streami_new_from_memory( buf, len )) )
 		return( FALSE );
-	result = vips__png_ispng_stream( input );
-	VIPS_UNREF( input );
+	result = vips__png_ispng_stream( streami );
+	VIPS_UNREF( streami );
 
 	return( result );
 }
@@ -301,20 +301,20 @@ vips_foreign_load_png_buffer_get_flags( VipsForeignLoad *load )
 {
 	VipsForeignLoadPngBuffer *buffer = (VipsForeignLoadPngBuffer *) load;
 
-	VipsStreami *input;
+	VipsStreami *streami;
 	VipsForeignFlags flags;
 
-	if( !(input = vips_streami_new_from_memory( buffer->buf->data, 
+	if( !(streami = vips_streami_new_from_memory( buffer->buf->data, 
 		buffer->buf->length )) ) 
 		return( 0 );
 
 	flags = 0;
-	if( vips__png_isinterlaced_stream( input ) )
+	if( vips__png_isinterlaced_stream( streami ) )
 		flags |= VIPS_FOREIGN_PARTIAL;
 	else
 		flags |= VIPS_FOREIGN_SEQUENTIAL;
 
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( flags );
 }
@@ -324,16 +324,16 @@ vips_foreign_load_png_buffer_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadPngBuffer *buffer = (VipsForeignLoadPngBuffer *) load;
 
-	VipsStreami *input;
+	VipsStreami *streami;
 
-	if( !(input = vips_streami_new_from_memory( buffer->buf->data, 
+	if( !(streami = vips_streami_new_from_memory( buffer->buf->data, 
 		buffer->buf->length )) ) 
 		return( -1 );
-	if( vips__png_header_stream( input, load->out ) ) {
-		VIPS_UNREF( input );
+	if( vips__png_header_stream( streami, load->out ) ) {
+		VIPS_UNREF( streami );
 		return( -1 );
 	}
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( 0 );
 }
@@ -343,16 +343,16 @@ vips_foreign_load_png_buffer_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadPngBuffer *buffer = (VipsForeignLoadPngBuffer *) load;
 
-	VipsStreami *input;
+	VipsStreami *streami;
 
-	if( !(input = vips_streami_new_from_memory( buffer->buf->data, 
+	if( !(streami = vips_streami_new_from_memory( buffer->buf->data, 
 		buffer->buf->length )) ) 
 		return( -1 );
-	if( vips__png_read_stream( input, load->real, load->fail ) ) {
-		VIPS_UNREF( input );
+	if( vips__png_read_stream( streami, load->real, load->fail ) ) {
+		VIPS_UNREF( streami );
 		return( -1 );
 	}
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( 0 );
 }
@@ -458,7 +458,7 @@ vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
 
 /**
  * vips_pngload_stream:
- * @input: stream to load from
+ * @streami: stream to load from
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -469,13 +469,13 @@ vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_pngload_stream( VipsStreami *input, VipsImage **out, ... )
+vips_pngload_stream( VipsStreami *streami, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "pngload_stream", ap, input, out );
+	result = vips_call_split( "pngload_stream", ap, streami, out );
 	va_end( ap );
 
 	return( result );

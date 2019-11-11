@@ -193,7 +193,7 @@ typedef struct _ReadJpeg {
 
 	/* The stream we read from.
 	 */
-	VipsStreami *input;
+	VipsStreami *streami;
 
 } ReadJpeg;
 
@@ -208,7 +208,7 @@ typedef struct {
 
 	/* Private stuff during read.
 	 */
-	VipsStreami *input;
+	VipsStreami *streami;
 	unsigned char buf[STREAM_BUFFER_SIZE];
 
 } Source;
@@ -238,7 +238,7 @@ stream_fill_input_buffer( j_decompress_ptr cinfo )
 
 	size_t read;
 	
-	if( (read = vips_streami_read( src->input, 
+	if( (read = vips_streami_read( src->streami, 
 		src->buf, STREAM_BUFFER_SIZE )) > 0 ) {
 		src->pub.next_input_byte = src->buf;
 		src->pub.bytes_in_buffer = read;
@@ -277,11 +277,11 @@ readjpeg_open_input( ReadJpeg *jpeg )
 {
 	j_decompress_ptr cinfo = &jpeg->cinfo;
 
-	if( jpeg->input &&
+	if( jpeg->streami &&
 		!cinfo->src ) {
 		Source *src;
 
-		if( vips_streami_rewind( jpeg->input ) )
+		if( vips_streami_rewind( jpeg->streami ) )
 			return( -1 );
 
 		cinfo->src = (struct jpeg_source_mgr *)
@@ -290,7 +290,7 @@ readjpeg_open_input( ReadJpeg *jpeg )
 				sizeof( Source ) );
 
 		src = (Source *) cinfo->src;
-		src->input = jpeg->input;
+		src->streami = jpeg->streami;
 		src->pub.init_source = stream_init_source;
 		src->pub.fill_input_buffer = stream_fill_input_buffer;
 		src->pub.resync_to_restart = jpeg_resync_to_restart; 
@@ -326,7 +326,7 @@ readjpeg_free( ReadJpeg *jpeg )
 	 */
 	jpeg_destroy_decompress( &jpeg->cinfo );
 
-	VIPS_UNREF( jpeg->input );
+	VIPS_UNREF( jpeg->streami );
 
 	return( 0 );
 }
@@ -338,13 +338,13 @@ readjpeg_close_cb( VipsObject *object, ReadJpeg *jpeg )
 }
 
 static void
-input_minimise_cb( VipsImage *image, VipsStreami *input )
+readjpeg_minimise_cb( VipsImage *image, ReadJpeg *jpeg )
 {
-	vips_streami_minimise( input );
+	vips_streami_minimise( jpeg->streami );
 }
 
 static ReadJpeg *
-readjpeg_new( VipsStreami *input, VipsImage *out, 
+readjpeg_new( VipsStreami *streami, VipsImage *out, 
 	int shrink, gboolean fail, gboolean autorotate )
 {
 	ReadJpeg *jpeg;
@@ -352,8 +352,8 @@ readjpeg_new( VipsStreami *input, VipsImage *out,
 	if( !(jpeg = VIPS_NEW( out, ReadJpeg )) )
 		return( NULL );
 
-	jpeg->input = input;
-	g_object_ref( input );
+	jpeg->streami = streami;
+	g_object_ref( streami );
 	jpeg->shrink = shrink;
 	jpeg->fail = fail;
         jpeg->cinfo.err = jpeg_std_error( &jpeg->eman.pub );
@@ -379,7 +379,7 @@ readjpeg_new( VipsStreami *input, VipsImage *out,
 	g_signal_connect( out, "close", 
 		G_CALLBACK( readjpeg_close_cb ), jpeg ); 
 	g_signal_connect( out, "minimise", 
-		G_CALLBACK( input_minimise_cb ), input ); 
+		G_CALLBACK( readjpeg_minimise_cb ), jpeg ); 
 
 	return( jpeg );
 }
@@ -559,7 +559,7 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 		xres, yres );
 
 	VIPS_SETSTR( out->filename, 
-		vips_stream_filename( VIPS_STREAM( jpeg->input ) ) );
+		vips_stream_filename( VIPS_STREAM( jpeg->streami ) ) );
 
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 
@@ -959,12 +959,12 @@ vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 }
 
 int
-vips__jpeg_read_stream( VipsStreami *input, VipsImage *out,
+vips__jpeg_read_stream( VipsStreami *streami, VipsImage *out,
 	gboolean header_only, int shrink, int fail, gboolean autorotate )
 {
 	ReadJpeg *jpeg;
 
-	if( !(jpeg = readjpeg_new( input, out, shrink, fail, autorotate )) )
+	if( !(jpeg = readjpeg_new( streami, out, shrink, fail, autorotate )) )
 		return( -1 );
 
 	if( setjmp( jpeg->eman.jmp ) ) 
@@ -975,19 +975,21 @@ vips__jpeg_read_stream( VipsStreami *input, VipsImage *out,
 		return( -1 );
 
 	if( header_only )
-		vips_streami_minimise( input );
-	else if( vips_streami_decode( input ) )
-		return( -1 );
+		vips_streami_minimise( streami );
+	else {
+		if( vips_streami_decode( streami ) )
+			return( -1 );
+	}
 
 	return( 0 );
 }
 
 int
-vips__isjpeg_stream( VipsStreami *input )
+vips__isjpeg_stream( VipsStreami *streami )
 {
 	const unsigned char *p;
 
-	if( (p = vips_streami_sniff( input, 2 )) &&
+	if( (p = vips_streami_sniff( streami, 2 )) &&
 		p[0] == 0xff && 
 		p[1] == 0xd8 )
 		return( 1 );

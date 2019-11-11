@@ -138,9 +138,9 @@ vips__tiff_openout( const char *path, gboolean bigtiff )
 static tsize_t
 openin_stream_read( thandle_t st, tdata_t data, tsize_t size )
 {
-	VipsStreami *input = VIPS_STREAMI( st );
+	VipsStreami *streami = VIPS_STREAMI( st );
 
-	return( vips_streami_read( input, data, size ) );
+	return( vips_streami_read( streami, data, size ) );
 }
 
 static tsize_t
@@ -154,17 +154,17 @@ openin_stream_write( thandle_t st, tdata_t buffer, tsize_t size )
 static toff_t
 openin_stream_seek( thandle_t st, toff_t position, int whence )
 {
-	VipsStreami *input = VIPS_STREAMI( st );
+	VipsStreami *streami = VIPS_STREAMI( st );
 
-	return( vips_streami_seek( input, position, whence ) );
+	return( vips_streami_seek( streami, position, whence ) );
 }
 
 static int
 openin_stream_close( thandle_t st )
 {
-	VipsStreami *input = VIPS_STREAMI( st );
+	VipsStreami *streami = VIPS_STREAMI( st );
 
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( 0 );
 }
@@ -172,12 +172,12 @@ openin_stream_close( thandle_t st )
 static toff_t
 openin_stream_size( thandle_t st )
 {
-	VipsStreami *input = VIPS_STREAMI( st );
+	VipsStreami *streami = VIPS_STREAMI( st );
 
 	/* libtiff will use this to get file size if tags like StripByteCounts
 	 * are missing.
 	 */
-	return( vips_streami_size( input ) );
+	return( vips_streami_size( streami ) );
 }
 
 static int
@@ -197,7 +197,7 @@ openin_stream_unmap( thandle_t st, tdata_t start, toff_t len )
 }
 
 TIFF *
-vips__tiff_openin_stream( VipsStreami *input )
+vips__tiff_openin_stream( VipsStreami *streami )
 {
 	TIFF *tiff;
 
@@ -205,11 +205,11 @@ vips__tiff_openin_stream( VipsStreami *input )
 	printf( "vips__tiff_openin_stream:\n" );
 #endif /*DEBUG*/
 
-	if( vips_streami_rewind( input ) )
+	if( vips_streami_rewind( streami ) )
 		return( NULL );
 
 	if( !(tiff = TIFFClientOpen( "stream input", "rm",
-		(thandle_t) input,
+		(thandle_t) streami,
 		openin_stream_read,
 		openin_stream_write,
 		openin_stream_seek,
@@ -224,7 +224,7 @@ vips__tiff_openin_stream( VipsStreami *input )
 
 	/* Unreffed on close(), see above.
 	 */
-	g_object_ref( input );
+	g_object_ref( streami );
 
 	return( tiff );
 }

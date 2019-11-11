@@ -1908,19 +1908,19 @@ vips_object_set_argument_from_string( VipsObject *object,
 		vips__filename_split8( value, filename, option_string );
 
 		if( strcmp( "stdin", filename ) == 0 ) {
-			VipsStreami *input;
+			VipsStreami *streami;
 
-			if( !(input = 
+			if( !(streami = 
 				vips_streami_new_from_descriptor( 0 )) )
 				return( -1 );
-			if( !(out = vips_image_new_from_stream( input, 
+			if( !(out = vips_image_new_from_stream( streami, 
 				option_string, 
 				"access", access,
 				NULL )) ) {
-				VIPS_UNREF( input );
+				VIPS_UNREF( streami );
 				return( -1 );
 			}
-			VIPS_UNREF( input );
+			VIPS_UNREF( streami );
 		}
 		else {
 			if( !(out = vips_image_new_from_file( value, 
@@ -1938,23 +1938,23 @@ vips_object_set_argument_from_string( VipsObject *object,
 		g_object_unref( out );
 	}
 	else if( g_type_is_a( otype, VIPS_TYPE_STREAMI ) ) { 
-		VipsStreami *input;
+		VipsStreami *streami;
 
 		if( !value ) {
 			vips_object_no_value( object, name );
 			return( -1 );
 		}
 
-		if( !(input = vips_streami_new_from_options( value )) )
+		if( !(streami = vips_streami_new_from_options( value )) )
 			return( -1 );
 	
 		g_value_init( &gvalue, VIPS_TYPE_STREAMI );
-		g_value_set_object( &gvalue, input );
+		g_value_set_object( &gvalue, streami );
 
 		/* Setting gvalue will have upped @out's count again,
 		 * go back to 1 so that gvalue has the only ref.
 		 */
-		g_object_unref( input );
+		g_object_unref( streami );
 	}
 	else if( g_type_is_a( otype, VIPS_TYPE_ARRAY_IMAGE ) ) { 
 		/* We have to have a special case for this, we can't just rely
@@ -2210,19 +2210,19 @@ vips_object_get_argument_to_string( VipsObject *object,
 		vips__filename_split8( arg, filename, option_string );
 
 		if( vips_isprefix( ".", filename ) ) {
-			VipsStreamo *output;
+			VipsStreamo *streamo;
 
-			if( !(output = vips_streamo_new_to_descriptor( 1 )) )
+			if( !(streamo = vips_streamo_new_to_descriptor( 1 )) )
 				return( -1 );
 			g_object_get( object, name, &in, NULL );
 			if( vips_image_write_to_stream( in, 
-				arg, output, NULL ) ) {
+				arg, streamo, NULL ) ) {
 				VIPS_UNREF( in );
-				VIPS_UNREF( output );
+				VIPS_UNREF( streamo );
 				return( -1 );
 			}
 			VIPS_UNREF( in );
-			VIPS_UNREF( output );
+			VIPS_UNREF( streamo );
 		}
 		else {
 			/* Pull out the image and write it.

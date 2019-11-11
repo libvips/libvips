@@ -57,7 +57,7 @@ typedef struct _VipsForeignLoadRadStream {
 
 	/* Load from a stream.
 	 */
-	VipsStreami *input;
+	VipsStreami *streami;
 
 } VipsForeignLoadRadStream;
 
@@ -79,7 +79,7 @@ vips_foreign_load_rad_stream_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadRadStream *stream = (VipsForeignLoadRadStream *) load;
 
-	if( vips__rad_header( stream->input, load->out ) )
+	if( vips__rad_header( stream->streami, load->out ) )
 		return( -1 );
 
 	return( 0 );
@@ -90,7 +90,7 @@ vips_foreign_load_rad_stream_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadRadStream *stream = (VipsForeignLoadRadStream *) load;
 
-	if( vips__rad_load( stream->input, load->real ) )
+	if( vips__rad_load( stream->streami, load->real ) )
 		return( -1 );
 
 	return( 0 );
@@ -114,11 +114,11 @@ vips_foreign_load_rad_stream_class_init( VipsForeignLoadRadStreamClass *class )
 	load_class->header = vips_foreign_load_rad_stream_header;
 	load_class->load = vips_foreign_load_rad_stream_load;
 
-	VIPS_ARG_OBJECT( class, "input", 1,
-		_( "Input" ),
+	VIPS_ARG_OBJECT( class, "streami", 1,
+		_( "Streami" ),
 		_( "Stream to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadRadStream, input ),
+		G_STRUCT_OFFSET( VipsForeignLoadRadStream, streami ),
 		VIPS_TYPE_STREAMI );
 
 }
@@ -265,13 +265,13 @@ G_DEFINE_TYPE( VipsForeignLoadRadBuffer, vips_foreign_load_rad_buffer,
 static gboolean
 vips_foreign_load_rad_buffer_is_a_buffer( const void *buf, size_t len )
 {
-	VipsStreami *input;
+	VipsStreami *streami;
 	gboolean result;
 
-	if( !(input = vips_streami_new_from_memory( buf, len )) )
+	if( !(streami = vips_streami_new_from_memory( buf, len )) )
 		return( FALSE );
-	result = vips__rad_israd( input );
-	VIPS_UNREF( input );
+	result = vips__rad_israd( streami );
+	VIPS_UNREF( streami );
 
 	return( result );
 }
@@ -289,16 +289,16 @@ vips_foreign_load_rad_buffer_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadRadBuffer *buffer = (VipsForeignLoadRadBuffer *) load;
 
-	VipsStreami *input;
+	VipsStreami *streami;
 
-	if( !(input = vips_streami_new_from_memory( buffer->buf->data, 
+	if( !(streami = vips_streami_new_from_memory( buffer->buf->data, 
 		buffer->buf->length )) ) 
 		return( -1 );
-	if( vips__rad_header( input, load->out ) ) {
-		VIPS_UNREF( input );
+	if( vips__rad_header( streami, load->out ) ) {
+		VIPS_UNREF( streami );
 		return( -1 );
 	}
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( 0 );
 }
@@ -308,16 +308,16 @@ vips_foreign_load_rad_buffer_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadRadBuffer *buffer = (VipsForeignLoadRadBuffer *) load;
 
-	VipsStreami *input;
+	VipsStreami *streami;
 
-	if( !(input = vips_streami_new_from_memory( buffer->buf->data, 
+	if( !(streami = vips_streami_new_from_memory( buffer->buf->data, 
 		buffer->buf->length )) ) 
 		return( -1 );
-	if( vips__rad_load( input, load->real ) ) {
-		VIPS_UNREF( input );
+	if( vips__rad_load( streami, load->real ) ) {
+		VIPS_UNREF( streami );
 		return( -1 );
 	}
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( 0 );
 }
@@ -431,7 +431,7 @@ vips_radload_buffer( void *buf, size_t len, VipsImage **out, ... )
 
 /**
  * vips_radload_stream:
- * @input: stream to load from
+ * @streami: stream to load from
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -442,13 +442,13 @@ vips_radload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_radload_stream( VipsStreami *input, VipsImage **out, ... )
+vips_radload_stream( VipsStreami *streami, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "radload_stream", ap, input, out );
+	result = vips_call_split( "radload_stream", ap, streami, out );
 	va_end( ap );
 
 	return( result );

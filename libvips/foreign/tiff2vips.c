@@ -300,7 +300,7 @@ typedef void (*scanline_process_fn)( struct _Rtiff *,
 typedef struct _Rtiff {
 	/* Parameters.
 	 */
-	VipsStreami *input;
+	VipsStreami *streami;
 	VipsImage *out;
 	int page;
 	int n;
@@ -488,7 +488,7 @@ static void
 rtiff_free( Rtiff *rtiff )
 {
 	VIPS_FREEF( TIFFClose, rtiff->tiff );
-	VIPS_UNREF( rtiff->input );
+	VIPS_UNREF( rtiff->streami );
 }
 
 static void
@@ -500,12 +500,12 @@ rtiff_close_cb( VipsObject *object, Rtiff *rtiff )
 static void
 rtiff_minimise_cb( VipsImage *image, Rtiff *rtiff )
 {
-	if( rtiff->input )
-		vips_streami_minimise( rtiff->input );
+	if( rtiff->streami )
+		vips_streami_minimise( rtiff->streami );
 }
 
 static Rtiff *
-rtiff_new( VipsStreami *input, VipsImage *out, 
+rtiff_new( VipsStreami *streami, VipsImage *out, 
 	int page, int n, gboolean autorotate )
 {
 	Rtiff *rtiff;
@@ -513,8 +513,8 @@ rtiff_new( VipsStreami *input, VipsImage *out,
 	if( !(rtiff = VIPS_NEW( out, Rtiff )) )
 		return( NULL );
 
-	g_object_ref( input );
-	rtiff->input = input;
+	g_object_ref( streami );
+	rtiff->streami = streami;
 	rtiff->out = out;
 	rtiff->page = page;
 	rtiff->n = n;
@@ -551,7 +551,7 @@ rtiff_new( VipsStreami *input, VipsImage *out,
 		return( NULL );
 	}
 
-	if( !(rtiff->tiff = vips__tiff_openin_stream( input )) )
+	if( !(rtiff->tiff = vips__tiff_openin_stream( streami )) )
 		return( NULL );
 
 	return( rtiff );
@@ -1369,7 +1369,7 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	out->Ysize = rtiff->header.height * rtiff->n;
 
 	VIPS_SETSTR( out->filename, 
-		vips_stream_filename( VIPS_STREAM( rtiff->input ) ) );
+		vips_stream_filename( VIPS_STREAM( rtiff->streami ) ) );
 
 	if( rtiff->n > 1 ) 
 		vips_image_set_int( out, 
@@ -2383,14 +2383,14 @@ vips__tiff_read_header_orientation( Rtiff *rtiff, VipsImage *out )
 typedef gboolean (*TiffPropertyFn)( TIFF *tif );
 
 static gboolean
-vips__testtiff_stream( VipsStreami *input, TiffPropertyFn fn )
+vips__testtiff_stream( VipsStreami *streami, TiffPropertyFn fn )
 {
 	TIFF *tif;
 	gboolean property;
 
 	vips__tiff_init();
 
-	if( !(tif = vips__tiff_openin_stream( input )) ) {
+	if( !(tif = vips__tiff_openin_stream( streami )) ) {
 		vips_error_clear();
 		return( FALSE );
 	}
@@ -2403,26 +2403,26 @@ vips__testtiff_stream( VipsStreami *input, TiffPropertyFn fn )
 }
 
 gboolean
-vips__istiff_stream( VipsStreami *input )
+vips__istiff_stream( VipsStreami *streami )
 {
-	return( vips__testtiff_stream( input, NULL ) ); 
+	return( vips__testtiff_stream( streami, NULL ) ); 
 }
 
 gboolean
-vips__istifftiled_stream( VipsStreami *input )
+vips__istifftiled_stream( VipsStreami *streami )
 {
-	return( vips__testtiff_stream( input, TIFFIsTiled ) ); 
+	return( vips__testtiff_stream( streami, TIFFIsTiled ) ); 
 }
 
 int
-vips__tiff_read_header_stream( VipsStreami *input, VipsImage *out, 
+vips__tiff_read_header_stream( VipsStreami *streami, VipsImage *out, 
 	int page, int n, gboolean autorotate )
 {
 	Rtiff *rtiff;
 
 	vips__tiff_init();
 
-	if( !(rtiff = rtiff_new( input, out, page, n, autorotate )) ||
+	if( !(rtiff = rtiff_new( streami, out, page, n, autorotate )) ||
 		rtiff_header_read_all( rtiff ) )
 		return( -1 );
 
@@ -2434,13 +2434,13 @@ vips__tiff_read_header_stream( VipsStreami *input, VipsImage *out,
 	/* We never call vips_streami_decode() since we need to be able to
 	 * seek() the whole way through the file. Just minimise instead,
 	 */
-	vips_streami_minimise( input );
+	vips_streami_minimise( streami );
 
 	return( 0 );
 }
 
 int
-vips__tiff_read_stream( VipsStreami *input, VipsImage *out, 
+vips__tiff_read_stream( VipsStreami *streami, VipsImage *out, 
 	int page, int n, gboolean autorotate )
 {
 	Rtiff *rtiff;
@@ -2452,7 +2452,7 @@ vips__tiff_read_stream( VipsStreami *input, VipsImage *out,
 
 	vips__tiff_init();
 
-	if( !(rtiff = rtiff_new( input, out, page, n, autorotate )) ||
+	if( !(rtiff = rtiff_new( streami, out, page, n, autorotate )) ||
 		rtiff_header_read_all( rtiff ) )
 		return( -1 );
 
@@ -2468,7 +2468,7 @@ vips__tiff_read_stream( VipsStreami *input, VipsImage *out,
 	/* We never call vips_streami_decode() since we need to be able to
 	 * seek() the whole way through the file. Just minimise instead,
 	 */
-	vips_streami_minimise( input );
+	vips_streami_minimise( streami );
 
 	return( 0 );
 }

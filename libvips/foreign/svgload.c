@@ -461,7 +461,7 @@ typedef struct _VipsForeignLoadSvgStream {
 
 	/* Load from a stream.
 	 */
-	VipsStreami *input;
+	VipsStreami *streami;
 
 } VipsForeignLoadSvgStream;
 
@@ -471,12 +471,12 @@ G_DEFINE_TYPE( VipsForeignLoadSvgStream, vips_foreign_load_svg_stream,
 	vips_foreign_load_svg_get_type() );
 
 gboolean
-vips_foreign_load_svg_stream_is_a( VipsStreami *input )
+vips_foreign_load_svg_stream_is_a( VipsStreami *streami )
 {
 	unsigned char *data;
 	size_t bytes_read;
 
-	if( (bytes_read = vips_streami_sniff_at_most( input, 
+	if( (bytes_read = vips_streami_sniff_at_most( streami, 
 		&data, SVG_HEADER_SIZE )) <= 0 )
 		return( FALSE );
 
@@ -495,10 +495,10 @@ vips_foreign_load_svg_stream_header( VipsForeignLoad *load )
 
 	GInputStream *gstream;
 
-	if( vips_streami_rewind( stream->input ) )
+	if( vips_streami_rewind( stream->streami ) )
 		return( -1 );
 
-	gstream = g_input_stream_new_from_vips( stream->input );
+	gstream = g_input_stream_new_from_vips( stream->streami );
 	if( !(svg->page = rsvg_handle_new_from_stream_sync( 
 		gstream, NULL, flags, NULL, &error )) ) {
 		g_object_unref( gstream );
@@ -515,9 +515,9 @@ vips_foreign_load_svg_stream_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadSvgStream *stream = (VipsForeignLoadSvgStream *) load;
 
-	if( vips_streami_rewind( stream->input ) ||
+	if( vips_streami_rewind( stream->streami ) ||
 		vips_foreign_load_svg_load( load ) ||
-		vips_streami_decode( stream->input ) )
+		vips_streami_decode( stream->streami ) )
 		return( -1 );
 
 	return( 0 );
@@ -540,11 +540,11 @@ vips_foreign_load_svg_stream_class_init( VipsForeignLoadSvgStreamClass *class )
 	load_class->header = vips_foreign_load_svg_stream_header;
 	load_class->load = vips_foreign_load_svg_stream_load;
 
-	VIPS_ARG_OBJECT( class, "input", 1,
-		_( "Input" ),
+	VIPS_ARG_OBJECT( class, "streami", 1,
+		_( "Streami" ),
 		_( "Stream to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadSvgStream, input ),
+		G_STRUCT_OFFSET( VipsForeignLoadSvgStream, streami ),
 		VIPS_TYPE_STREAMI );
 
 }
@@ -805,7 +805,7 @@ vips_svgload_buffer( void *buf, size_t len, VipsImage **out, ... )
 
 /**
  * vips_svgload_stream:
- * @input: stream to load from
+ * @streami: stream to load from
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
@@ -816,13 +816,13 @@ vips_svgload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_svgload_stream( VipsStreami *input, VipsImage **out, ... )
+vips_svgload_stream( VipsStreami *streami, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "svgload_stream", ap, input, out );
+	result = vips_call_split( "svgload_stream", ap, streami, out );
 	va_end( ap );
 
 	return( result );

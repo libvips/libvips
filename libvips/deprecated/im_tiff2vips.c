@@ -56,13 +56,13 @@
 static gboolean
 im_istifftiled( const char *filename )
 {
-	VipsStreami *input;
+	VipsStreami *streami;
 	gboolean result;
 
-	if( !(input = vips_streami_new_from_filename( filename )) )
+	if( !(streami = vips_streami_new_from_filename( filename )) )
 		return( FALSE );
-	result = vips__istiff_stream( input );
-	VIPS_UNREF( input );
+	result = vips__istiff_stream( streami );
+	VIPS_UNREF( streami );
 
 	return( result );
 }
@@ -71,15 +71,16 @@ static int
 im_tiff_read_header( const char *filename, VipsImage *out, 
 	int page, int n, gboolean autorotate )
 {
-	VipsStreami *input;
+	VipsStreami *streami;
 
-	if( !(input = vips_streami_new_from_filename( filename )) )
+	if( !(streami = vips_streami_new_from_filename( filename )) )
 		return( -1 );
-	if( vips__tiff_read_header_stream( input, out, page, n, autorotate ) ) {
-		VIPS_UNREF( input );
+	if( vips__tiff_read_header_stream( streami, 
+		out, page, n, autorotate ) ) {
+		VIPS_UNREF( streami );
 		return( -1 );
 	}
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( 0 );
 }
@@ -88,15 +89,15 @@ static int
 im_tiff_read( const char *filename, VipsImage *out, 
 	int page, int n, gboolean autorotate )
 {
-	VipsStreami *input;
+	VipsStreami *streami;
 
-	if( !(input = vips_streami_new_from_filename( filename )) )
+	if( !(streami = vips_streami_new_from_filename( filename )) )
 		return( -1 );
-	if( vips__tiff_read_stream( input, out, page, n, autorotate ) ) {
-		VIPS_UNREF( input );
+	if( vips__tiff_read_stream( streami, out, page, n, autorotate ) ) {
+		VIPS_UNREF( streami );
 		return( -1 );
 	}
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 
 	return( 0 );
 }

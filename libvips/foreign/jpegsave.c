@@ -219,7 +219,7 @@ vips_foreign_save_jpeg_init( VipsForeignSaveJpeg *jpeg )
 typedef struct _VipsForeignSaveJpegStream {
 	VipsForeignSaveJpeg parent_object;
 
-	VipsStreamo *output;
+	VipsStreamo *streamo;
 
 } VipsForeignSaveJpegStream;
 
@@ -240,7 +240,7 @@ vips_foreign_save_jpeg_stream_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( vips__jpeg_write_stream( save->ready, stream->output,
+	if( vips__jpeg_write_stream( save->ready, stream->streamo,
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->no_subsample,
 		jpeg->trellis_quant, jpeg->overshoot_deringing,
@@ -264,11 +264,11 @@ vips_foreign_save_jpeg_stream_class_init(
 	object_class->description = _( "save image to jpeg stream" );
 	object_class->build = vips_foreign_save_jpeg_stream_build;
 
-	VIPS_ARG_OBJECT( class, "output", 1,
-		_( "Output" ),
+	VIPS_ARG_OBJECT( class, "streamo", 1,
+		_( "Streamo" ),
 		_( "Stream to save to" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignSaveJpegStream, output ),
+		G_STRUCT_OFFSET( VipsForeignSaveJpegStream, streamo ),
 		VIPS_TYPE_STREAMO );
 
 }
@@ -299,23 +299,23 @@ vips_foreign_save_jpeg_file_build( VipsObject *object )
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 	VipsForeignSaveJpegFile *file = (VipsForeignSaveJpegFile *) object;
 
-	VipsStreamo *output;
+	VipsStreamo *streamo;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_file_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( !(output = vips_streamo_new_to_filename( file->filename )) )
+	if( !(streamo = vips_streamo_new_to_filename( file->filename )) )
 		return( -1 );
-	if( vips__jpeg_write_stream( save->ready, output,
+	if( vips__jpeg_write_stream( save->ready, streamo,
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->no_subsample,
 		jpeg->trellis_quant, jpeg->overshoot_deringing,
 		jpeg->optimize_scans, jpeg->quant_table ) ) {
-		VIPS_UNREF( output );
+		VIPS_UNREF( streamo );
 		return( -1 );
 	}
-	VIPS_UNREF( output );
+	VIPS_UNREF( streamo );
 
 	return( 0 );
 }
@@ -367,30 +367,30 @@ vips_foreign_save_jpeg_buffer_build( VipsObject *object )
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 	VipsForeignSaveJpegBuffer *file = (VipsForeignSaveJpegBuffer *) object;
 
-	VipsStreamo *output;
+	VipsStreamo *streamo;
 	VipsBlob *blob;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_buffer_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( !(output = vips_streamo_new_to_memory()) )
+	if( !(streamo = vips_streamo_new_to_memory()) )
 		return( -1 );
 
-	if( vips__jpeg_write_stream( save->ready, output,
+	if( vips__jpeg_write_stream( save->ready, streamo,
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->no_subsample,
 		jpeg->trellis_quant, jpeg->overshoot_deringing,
 		jpeg->optimize_scans, jpeg->quant_table ) ) {
-		VIPS_UNREF( output );
+		VIPS_UNREF( streamo );
 		return( -1 );
 	}
 
-	g_object_get( output, "blob", &blob, NULL );
+	g_object_get( streamo, "blob", &blob, NULL );
 	g_object_set( file, "buffer", blob, NULL );
 	vips_area_unref( VIPS_AREA( blob ) );
 
-	VIPS_UNREF( output );
+	VIPS_UNREF( streamo );
 
 	return( 0 );
 }
@@ -438,7 +438,7 @@ vips_foreign_save_jpeg_mime_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 
-	VipsStreamo *output;
+	VipsStreamo *streamo;
 	VipsBlob *blob;
 	const unsigned char *obuf;
 	size_t olen;
@@ -447,19 +447,19 @@ vips_foreign_save_jpeg_mime_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(output = vips_streamo_new_to_memory()) )
+	if( !(streamo = vips_streamo_new_to_memory()) )
 		return( -1 );
 
-	if( vips__jpeg_write_stream( save->ready, output,
+	if( vips__jpeg_write_stream( save->ready, streamo,
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->no_subsample,
 		jpeg->trellis_quant, jpeg->overshoot_deringing,
 		jpeg->optimize_scans, jpeg->quant_table ) ) {
-		VIPS_UNREF( output );
+		VIPS_UNREF( streamo );
 		return( -1 );
 	}
 
-	g_object_get( output, "blob", &blob, NULL );
+	g_object_get( streamo, "blob", &blob, NULL );
 
 	obuf = vips_blob_get( blob, &olen );
 	printf( "Content-length: %zu\r\n", olen );
@@ -470,7 +470,7 @@ vips_foreign_save_jpeg_mime_build( VipsObject *object )
 
 	vips_area_unref( VIPS_AREA( blob ) );
 
-	VIPS_UNREF( output );
+	VIPS_UNREF( streamo );
 
 	return( 0 );
 }
@@ -612,7 +612,7 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
 /**
  * vips_jpegsave_stream: (method)
  * @in: image to save 
- * @output: save image to this stream
+ * @streamo: save image to this stream
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -635,13 +635,13 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_jpegsave_stream( VipsImage *in, VipsStreamo *output, ... )
+vips_jpegsave_stream( VipsImage *in, VipsStreamo *streamo, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, output );
-	result = vips_call_split( "jpegsave_stream", ap, in, output );
+	va_start( ap, streamo );
+	result = vips_call_split( "jpegsave_stream", ap, in, streamo );
 	va_end( ap );
 
 	return( result );

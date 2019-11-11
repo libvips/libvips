@@ -112,16 +112,16 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 
 #ifdef HAVE_JPEG
 {
-	VipsStreami *input;
+	VipsStreami *streami;
 
-	if( !(input = vips_streami_new_from_filename( filename )) ) 
+	if( !(streami = vips_streami_new_from_filename( filename )) ) 
 		return( -1 );
-	if( vips__jpeg_read_stream( input, out,
+	if( vips__jpeg_read_stream( streami, out,
 		header_only, shrink, fail_on_warn, FALSE ) ) {
-		VIPS_UNREF( input );
+		VIPS_UNREF( streami );
 		return( -1 );
 	}
-	VIPS_UNREF( input );
+	VIPS_UNREF( streami );
 }
 #else
 	vips_error( "im_jpeg2vips", 

@@ -156,7 +156,7 @@ int vips__rad_israd( VipsStreami *streami );
 int vips__rad_header( VipsStreami *streami, VipsImage *out );
 int vips__rad_load( VipsStreami *streami, VipsImage *out );
 
-int vips__rad_save( VipsImage *in, VipsStreamo *output );
+int vips__rad_save( VipsImage *in, VipsStreamo *streamo );
 
 extern const char *vips__rad_suffs[];
 

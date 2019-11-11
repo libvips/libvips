@@ -173,7 +173,7 @@ typedef struct {
 	png_infop pInfo;
 	png_bytep *row_pointer;
 
-	VipsStreami *input;
+	VipsStreami *streami;
 
 	/* read() to this buffer, copy to png as required. libpng does many
 	 * very small reads and we want to avoid a syscall for each one.
@@ -195,7 +195,7 @@ read_destroy( Read *read )
 
 	if( read->pPng )
 		png_destroy_read_struct( &read->pPng, &read->pInfo, NULL );
-	VIPS_UNREF( read->input );
+	VIPS_UNREF( read->streami );
 	VIPS_FREE( read->row_pointer );
 }
 
@@ -208,8 +208,8 @@ read_close_cb( VipsImage *out, Read *read )
 static void
 read_minimise_cb( VipsImage *image, Read *read )
 {
-	if( read->input )
-		vips_streami_minimise( read->input );
+	if( read->streami )
+		vips_streami_minimise( read->streami );
 }
 
 static void
@@ -230,7 +230,7 @@ vips_png_read_stream( png_structp pPng, png_bytep data, png_size_t length )
 		if( read->bytes_in_buffer <= 0 ) {
 			ssize_t bytes_read;
 
-			bytes_read = vips_streami_read( read->input, 
+			bytes_read = vips_streami_read( read->streami, 
 				read->input_buffer, INPUT_BUFFER_SIZE );
 			if( bytes_read <= 0 )
 				png_error( pPng, "not enough data" );
@@ -249,7 +249,7 @@ vips_png_read_stream( png_structp pPng, png_bytep data, png_size_t length )
 }
 
 static Read *
-read_new( VipsStreami *input, VipsImage *out, gboolean fail )
+read_new( VipsStreami *streami, VipsImage *out, gboolean fail )
 {
 	Read *read;
 
@@ -263,8 +263,8 @@ read_new( VipsStreami *input, VipsImage *out, gboolean fail )
 	read->pPng = NULL;
 	read->pInfo = NULL;
 	read->row_pointer = NULL;
-	read->input = input;
-	g_object_ref( input );
+	read->streami = streami;
+	g_object_ref( streami );
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( read_close_cb ), read ); 
@@ -290,7 +290,7 @@ read_new( VipsStreami *input, VipsImage *out, gboolean fail )
 		PNG_CRC_QUIET_USE, PNG_CRC_QUIET_USE );
 #endif /*FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION*/
 
-	if( vips_streami_rewind( input ) ) 
+	if( vips_streami_rewind( streami ) ) 
 		return( NULL );
 	png_set_read_fn( read->pPng, read, vips_png_read_stream ); 
 
@@ -482,7 +482,7 @@ png2vips_header( Read *read, VipsImage *out )
 		Xres, Yres );
 
 	VIPS_SETSTR( out->filename, 
-		vips_stream_filename( VIPS_STREAM( read->input ) ) );
+		vips_stream_filename( VIPS_STREAM( read->streami ) ) );
 
 	/* Uninterlaced images will be read in seq mode. Interlaced images are
 	 * read via a huge memory buffer.
@@ -694,11 +694,11 @@ png2vips_image( Read *read, VipsImage *out )
 }
 
 gboolean
-vips__png_ispng_stream( VipsStreami *input )
+vips__png_ispng_stream( VipsStreami *streami )
 {
 	const unsigned char *p;
 
-	if( (p = vips_streami_sniff( input, 8 )) &&
+	if( (p = vips_streami_sniff( streami, 8 )) &&
 		!png_sig_cmp( (png_bytep) p, 0, 8 ) )
 		return( TRUE ); 
 
@@ -706,27 +706,27 @@ vips__png_ispng_stream( VipsStreami *input )
 }
 
 int
-vips__png_header_stream( VipsStreami *input, VipsImage *out )
+vips__png_header_stream( VipsStreami *streami, VipsImage *out )
 {
 	Read *read;
 
-	if( !(read = read_new( input, out, TRUE )) ||
+	if( !(read = read_new( streami, out, TRUE )) ||
 		png2vips_header( read, out ) )
 		return( -1 );
 
-	vips_streami_minimise( input );
+	vips_streami_minimise( streami );
 
 	return( 0 );
 }
 
 int
-vips__png_read_stream( VipsStreami *input, VipsImage *out, gboolean fail )
+vips__png_read_stream( VipsStreami *streami, VipsImage *out, gboolean fail )
 {
 	Read *read;
 
-	if( !(read = read_new( input, out, fail )) ||
+	if( !(read = read_new( streami, out, fail )) ||
 		png2vips_image( read, out ) ||
-		vips_streami_decode( input ) )
+		vips_streami_decode( streami ) )
 		return( -1 );
 
 	return( 0 );
@@ -736,7 +736,7 @@ vips__png_read_stream( VipsStreami *input, VipsImage *out, gboolean fail )
  * served partially from there. Non-interlaced PNGs may be read sequentially.
  */
 gboolean
-vips__png_isinterlaced_stream( VipsStreami *input )
+vips__png_isinterlaced_stream( VipsStreami *streami )
 {
 	VipsImage *image;
 	Read *read;
@@ -744,7 +744,7 @@ vips__png_isinterlaced_stream( VipsStreami *input )
 
 	image = vips_image_new();
 
-	if( !(read = read_new( input, image, TRUE )) ) { 
+	if( !(read = read_new( streami, image, TRUE )) ) { 
 		g_object_unref( image );
 		return( -1 );
 	}
@@ -762,7 +762,7 @@ typedef struct {
 	VipsImage *in;
 	VipsImage *memory;
 
-	VipsStreamo *output;
+	VipsStreamo *streamo;
 
 	png_structp pPng;
 	png_infop pInfo;
@@ -773,9 +773,9 @@ static void
 write_finish( Write *write )
 {
 	VIPS_UNREF( write->memory );
-	if( write->output ) 
-		vips_streamo_finish( write->output );
-	VIPS_UNREF( write->output );
+	if( write->streamo ) 
+		vips_streamo_finish( write->streamo );
+	VIPS_UNREF( write->streamo );
 	if( write->pPng )
 		png_destroy_write_struct( &write->pPng, &write->pInfo );
 }
@@ -791,12 +791,12 @@ user_write_data( png_structp pPng, png_bytep data, png_size_t length )
 {
 	Write *write = (Write *) png_get_io_ptr( pPng );
 
-	if( vips_streamo_write( write->output, data, length ) ) 
+	if( vips_streamo_write( write->streamo, data, length ) ) 
 		png_error( pPng, "not enough data" );
 }
 
 static Write *
-write_new( VipsImage *in, VipsStreamo *output )
+write_new( VipsImage *in, VipsStreamo *streamo )
 {
 	Write *write;
 
@@ -805,8 +805,8 @@ write_new( VipsImage *in, VipsStreamo *output )
 	memset( write, 0, sizeof( Write ) );
 	write->in = in;
 	write->memory = NULL;
-	write->output = output;
-	g_object_ref( output );
+	write->streamo = streamo;
+	g_object_ref( streamo );
 	g_signal_connect( in, "close", 
 		G_CALLBACK( write_destroy ), write ); 
 
@@ -1169,14 +1169,14 @@ write_vips( Write *write,
 }
 
 int
-vips__png_write_stream( VipsImage *in, VipsStreamo *output,
+vips__png_write_stream( VipsImage *in, VipsStreamo *streamo,
 	int compression, int interlace,
 	const char *profile, VipsForeignPngFilter filter, gboolean strip,
 	gboolean palette, int colours, int Q, double dither )
 {
 	Write *write;
 
-	if( !(write = write_new( in, output )) ) 
+	if( !(write = write_new( in, streamo )) ) 
 		return( -1 );
 
 	if( write_vips( write, 
