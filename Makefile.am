@@ -14,8 +14,7 @@ EXTRA_DIST = \
 	autogen.sh \
 	vips.pc.in \
 	vips-cpp.pc.in \
-	libvips.supp \
-	lsan.supp \
+	suppressions \
 	depcomp \
 	README.md 
 

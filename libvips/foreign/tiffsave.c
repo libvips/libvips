@@ -159,7 +159,7 @@ vips_foreign_save_tiff_build( VipsObject *object )
 
 	/* resunit param overrides resunit metadata.
 	 */
-	if( vips_object_argument_isset( object, "resunit" ) &&
+	if( !vips_object_argument_isset( object, "resunit" ) &&
 		vips_image_get_typeof( save->ready, 
 			VIPS_META_RESOLUTION_UNIT ) &&
 		!vips_image_get_string( save->ready, 

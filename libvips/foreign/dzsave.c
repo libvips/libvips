@@ -83,6 +83,8 @@
  * 	- add @skip_blanks
  * 21/10/19
  * 	- add @no_strip
+ * 9/11/19
+ * 	- add IIIF layout
  */
 
 /*
@@ -937,6 +939,103 @@ write_blank( VipsForeignSaveDz *dz )
 	return( 0 );
 }
 
+/* Write IIIF JSON metadata.
+ */
+static int
+write_json( VipsForeignSaveDz *dz )
+{
+	/* Can be NULL for memory output.
+	 */
+	const char *name = dz->basename ? dz->basename : "untitled";
+
+	/* dz->file_suffix has a leading "." character.
+	 */
+	const char *suffix = dz->file_suffix[0] == '.' ? 
+		dz->file_suffix + 1 : dz->file_suffix;
+
+	GsfOutput *out;
+	int i;
+
+	out = vips_gsf_path( dz->tree, "info.json", NULL ); 
+
+	gsf_output_printf( out, 
+		"{\n"
+		"  \"@context\": \"http://iiif.io/api/image/2/context.json\",\n"
+		"  \"@id\": \"https://example.com/iiif/%s\",\n" 
+		"  \"profile\": [\n"
+		"    \"http://iiif.io/api/image/2/level0.json\",\n"
+		"    {\n" 
+		"      \"formats\": [\n"
+		"        \"%s\"\n"
+		"      ],\n"
+		"      \"qualities\": [\n"
+		"        \"default\"\n"
+		"      ]\n"
+		"    }\n"
+		"  ],\n"
+		"  \"protocol\": \"http://iiif.io/api/image\",\n", 
+		name, suffix );
+
+	/* "sizes" is needed for the full/ set of untiled images, which we 
+	 * don't yet support. Leave this commented out for now.
+
+	gsf_output_printf( out, 
+		"  \"sizes\": [\n" );
+
+	for( i = 0; i < dz->layer->n + 5; i++ ) {
+		gsf_output_printf( out, 
+			"    {\n"
+			"      \"width\": %d,\n"
+			"      \"height\": \"full\"\n"
+			"    }", 
+				1 << (i + 4) );
+		if( i != dz->layer->n - 4 )
+			gsf_output_printf( out, "," );
+		gsf_output_printf( out, "\n" );
+	}
+
+	gsf_output_printf( out, 
+		"  ],\n" );
+
+	 */
+
+	/* The set of pyramid layers we have written.
+	 */
+	gsf_output_printf( out, 
+		"  \"tiles\": [\n"
+		"    {\n"
+		"      \"scalefactors\": [\n" );
+
+	for( i = 0; i < dz->layer->n; i++ ) {
+		gsf_output_printf( out, 
+			"        %d",
+				1 << i );
+		if( i != dz->layer->n - 1 )
+			gsf_output_printf( out, "," );
+		gsf_output_printf( out, "\n" );
+	}
+
+	gsf_output_printf( out, 
+		"      ],\n"
+		"      \"width\": %d\n"
+		"    }\n"
+		"  ],\n", dz->tile_size );
+
+	gsf_output_printf( out, 
+		"  \"width\": %d,\n"
+		"  \"height\": %d\n", 
+			dz->layer->image->Xsize,
+			dz->layer->image->Ysize );
+
+	gsf_output_printf( out, 
+		"}\n" );
+
+	(void) gsf_output_close( out );
+	g_object_unref( out );
+
+	return( 0 );
+}
+
 static int
 write_vips_meta( VipsForeignSaveDz *dz )
 {
@@ -1054,7 +1153,6 @@ build_scan_properties( VipsImage *image )
 #endif /*HAVE_DATE_TIME_FORMAT_ISO8601*/
 
 	vips_dbuf_init( &dbuf );
-
 	vips_dbuf_writef( &dbuf, "<?xml version=\"1.0\"?>\n" ); 
 	vips_dbuf_writef( &dbuf, "<image xmlns=\"http://www.pathozoom.com/szi\""
 		" date=\"%s\" version=\"1.0\">\n", date );
@@ -1318,6 +1416,40 @@ tile_name( Layer *layer, int x, int y )
 			"%d%s", x, dz->file_suffix );
 
 		out = vips_gsf_path( dz->tree, name, dirname, dirname2, NULL );
+
+		break;
+
+	case VIPS_FOREIGN_DZ_LAYOUT_IIIF:
+{
+		/* Tiles are addressed in full resolution coordinates, so
+		 * scale up by layer->sub and dz->tile_size
+		 */
+		int left = x * dz->tile_size * layer->sub;
+		int top = y * dz->tile_size * layer->sub;
+		int width = VIPS_MIN( dz->tile_size * layer->sub, 
+			layer->width * layer->sub - left );
+		int height = VIPS_MIN( dz->tile_size * layer->sub, 
+			layer->height * layer->sub - top );
+
+		/* IIIF "size" is just real tile width, I think.
+		 *
+		 * TODO .. .is this right? shouldn't it be the smaller of
+		 * width and height?
+		 */
+		int size = VIPS_MIN( dz->tile_size, 
+			layer->width - x * dz->tile_size );
+
+		vips_snprintf( dirname, VIPS_PATH_MAX, "%d,%d,%d,%d",
+			left, top, width, height );
+		vips_snprintf( dirname2, VIPS_PATH_MAX, "%d,", size );
+		vips_snprintf( name, VIPS_PATH_MAX, "default%s", 
+			dz->file_suffix );
+
+		/* "0" is rotation and is always 0.
+		 */
+		out = vips_gsf_path( dz->tree, 
+			name, dirname, dirname2, "0", NULL );
+}
 
 		break;
 
@@ -1829,10 +1961,11 @@ vips_foreign_save_dz_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz ); 
 	VipsRect real_pixels; 
 
-	/* Google and zoomify default to zero overlap, ".jpg".
+	/* Google, zoomify and iiif default to zero overlap, ".jpg".
 	 */
 	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY ||
-		dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE ) {
+		dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE ||
+		dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF ) {
 		if( !vips_object_argument_isset( object, "overlap" ) )
 			dz->overlap = 0;
 		if( !vips_object_argument_isset( object, "suffix" ) )
@@ -1845,6 +1978,13 @@ vips_foreign_save_dz_build( VipsObject *object )
 		dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE ) {
 		if( !vips_object_argument_isset( object, "tile_size" ) )
 			dz->tile_size = 256;
+	}
+
+	/* Some iif writers default to 256, some to 512. We pick 512.
+	 */
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF ) {
+		if( !vips_object_argument_isset( object, "tile_size" ) )
+			dz->tile_size = 512;
 	}
 
 	/* skip_blanks defaults to 5 in google mode.
@@ -2148,6 +2288,11 @@ vips_foreign_save_dz_build( VipsObject *object )
 
 	case VIPS_FOREIGN_DZ_LAYOUT_GOOGLE:
 		if( write_blank( dz ) )
+			return( -1 );
+		break;
+
+	case VIPS_FOREIGN_DZ_LAYOUT_IIIF:
+		if( write_json( dz ) )
 			return( -1 );
 		break;
 

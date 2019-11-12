@@ -1,5 +1,7 @@
 noinst_LTLIBRARIES = libcolour.la
 
+SUBDIRS = profiles
+
 libcolour_la_SOURCES = \
 	profiles.c \
 	profiles.h \
@@ -42,7 +44,6 @@ profiles.c:
 	./wrap-profiles.sh profiles profiles.c
 
 EXTRA_DIST = \
-	profiles \
 	wrap-profiles.sh
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@ 

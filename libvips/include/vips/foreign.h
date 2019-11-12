@@ -617,6 +617,7 @@ int vips_niftisave( VipsImage *in, const char *filename, ... )
  * @VIPS_FOREIGN_DZ_LAYOUT_DZ: use DeepZoom directory layout
  * @VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY: use Zoomify directory layout
  * @VIPS_FOREIGN_DZ_LAYOUT_GOOGLE: use Google maps directory layout
+ * @VIPS_FOREIGN_DZ_LAYOUT_IIIF: use IIIF directory layout
  *
  * What directory layout and metadata standard to use. 
  */
@@ -624,6 +625,7 @@ typedef enum {
 	VIPS_FOREIGN_DZ_LAYOUT_DZ,
 	VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY,
 	VIPS_FOREIGN_DZ_LAYOUT_GOOGLE,
+	VIPS_FOREIGN_DZ_LAYOUT_IIIF,
 	VIPS_FOREIGN_DZ_LAYOUT_LAST
 } VipsForeignDzLayout;
 

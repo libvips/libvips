@@ -957,8 +957,6 @@ vips__xml_properties( VipsImage *image )
 	VipsDbuf dbuf;
 	char *date;
 
-	vips_dbuf_init( &dbuf ); 
-
 #ifdef HAVE_DATE_TIME_FORMAT_ISO8601
 {
 	GDateTime *now;
@@ -976,6 +974,7 @@ vips__xml_properties( VipsImage *image )
 }
 #endif /*HAVE_DATE_TIME_FORMAT_ISO8601*/
 
+	vips_dbuf_init( &dbuf ); 
 	vips_dbuf_writef( &dbuf, "<?xml version=\"1.0\"?>\n" ); 
 	vips_dbuf_writef( &dbuf, "<image xmlns=\"%s/dzsave\" "
 		"date=\"%s\" version=\"%d.%d.%d\">\n", 
