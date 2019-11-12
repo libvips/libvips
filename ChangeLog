@@ -19,6 +19,7 @@
 - add @no_strip option to dzsave [kalozka1]
 - add iiif layout to dzsave
 - fix use of resolution-unit metadata on tiff save [kayarre]
+- support TIFF CIELAB images with alpha [angelmixu]
 
 17/9/19 started 8.8.4
 
