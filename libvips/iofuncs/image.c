@@ -1906,21 +1906,39 @@ vips_image_new_from_file( const char *name, ... )
 {
 	char filename[VIPS_PATH_MAX];
 	char option_string[VIPS_PATH_MAX];
+	VipsStreami *streami;
 	const char *operation_name;
 	va_list ap;
-	VipsImage *out;
 	int result;
+	VipsImage *out;
 
 	vips_check_init();
 
 	vips__filename_split8( name, filename, option_string );
-	if( !(operation_name = vips_foreign_find_load( filename )) )
+
+	/* Search with the new stream API first, then fall back to the older
+	 * mechanism in case the loader we need has not been converted yet.
+	 */
+	if( !(streami = vips_streami_new_from_filename( filename )) )
 		return( NULL );
 
-	va_start( ap, name );
-	result = vips_call_split_option_string( operation_name, option_string, 
-		ap, filename, &out );
-	va_end( ap );
+	if( (operation_name = vips_foreign_find_load_stream( streami )) ) {
+		va_start( ap, name );
+		result = vips_call_split_option_string( operation_name, 
+			option_string, ap, streami, &out );
+		va_end( ap );
+	}
+	else {
+		if( !(operation_name = vips_foreign_find_load( filename )) )
+			return( NULL );
+
+		va_start( ap, name );
+		result = vips_call_split_option_string( operation_name, 
+			option_string, ap, filename, &out );
+		va_end( ap );
+	}
+
+	VIPS_UNREF( streami );
 
 	if( result )
 		return( NULL ); 
@@ -2136,27 +2154,46 @@ VipsImage *
 vips_image_new_from_buffer( const void *buf, size_t len, 
 	const char *option_string, ... )
 {
+	VipsStreami *streami;
 	const char *operation_name;
-	VipsBlob *blob;
 	va_list ap;
 	int result;
 	VipsImage *out;
 
 	vips_check_init();
 
-	if( !(operation_name = vips_foreign_find_load_buffer( buf, len )) )
-		return( NULL );
+        /* Search with the new stream API first, then fall back to the older
+         * mechanism in case the loader we need has not been converted yet.
+         */
+        if( !(streami = vips_streami_new_from_memory( buf, len )) )
+                return( NULL );
 
-	/* We don't take a copy of the data or free it.
-	 */
-	blob = vips_blob_new( NULL, buf, len );
+        if( (operation_name = vips_foreign_find_load_stream( streami )) ) {
+                va_start( ap, option_string );
+                result = vips_call_split_option_string( operation_name,
+                        option_string, ap, streami, &out );
+                va_end( ap );
+        }
+	else {
+		VipsBlob *blob;
 
-	va_start( ap, option_string );
-	result = vips_call_split_option_string( operation_name, 
-		option_string, ap, blob, &out );
-	va_end( ap );
+		if( !(operation_name = 
+			vips_foreign_find_load_buffer( buf, len )) )
+			return( NULL );
 
-	vips_area_unref( VIPS_AREA( blob ) );
+		/* We don't take a copy of the data or free it.
+		 */
+		blob = vips_blob_new( NULL, buf, len );
+
+                va_start( ap, option_string );
+                result = vips_call_split_option_string( operation_name,
+                        option_string, ap, blob, &out );
+                va_end( ap );
+
+		vips_area_unref( VIPS_AREA( blob ) );
+        }
+
+        VIPS_UNREF( streami );
 
 	if( result )
 		return( NULL );
@@ -2625,14 +2662,32 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
 	va_list ap;
 	int result;
 
+	/* Save with the new stream API if we can. Fall back to the older
+	 * mechanism in case the loader we need has not been converted yet.
+	 */
 	vips__filename_split8( name, filename, option_string );
-	if( !(operation_name = vips_foreign_find_save( filename )) )
-		return( -1 );
 
-	va_start( ap, name );
-	result = vips_call_split_option_string( operation_name, option_string, 
-		ap, image, filename );
-	va_end( ap );
+	if( (operation_name = vips_foreign_find_save_stream( filename )) ) {
+		VipsStreamo *streamo;
+
+		if( !(streamo = vips_streamo_new_to_filename( filename )) )
+			return( -1 );
+
+		va_start( ap, name );
+		result = vips_call_split_option_string( operation_name, 
+			option_string, ap, image, streamo );
+		va_end( ap );
+
+		VIPS_UNREF( streamo );
+	}
+	else if( (operation_name = vips_foreign_find_save( filename )) ) {
+		va_start( ap, name );
+		result = vips_call_split_option_string( operation_name, 
+			option_string, ap, image, filename );
+		va_end( ap );
+	}
+	else
+		return( -1 );
 
 	return( result );
 }
@@ -2673,20 +2728,44 @@ vips_image_write_to_buffer( VipsImage *in,
 	int result;
 
 	vips__filename_split8( suffix, filename, option_string );
-	if( !(operation_name = vips_foreign_find_save_buffer( filename )) )
-		return( -1 );
 
-	va_start( ap, size );
-	result = vips_call_split_option_string( operation_name, option_string, 
-		ap, in, &blob );
-	va_end( ap );
+	if( (operation_name = vips_foreign_find_save_stream( filename )) ) {
+		VipsStreamo *streamo;
 
-	if( result )
+		if( !(streamo = vips_streamo_new_to_memory()) )
+			return( -1 );
+
+		va_start( ap, size );
+		result = vips_call_split_option_string( operation_name, 
+			option_string, ap, in, streamo );
+		va_end( ap );
+
+		if( result ) {
+			VIPS_UNREF( streamo );
+			return( -1 );
+		}
+
+		g_object_get( streamo, "blob", &blob, NULL );
+		VIPS_UNREF( streamo );
+	}
+	else if( (operation_name = 
+		vips_foreign_find_save_buffer( filename )) ) {
+
+		va_start( ap, size );
+		result = vips_call_split_option_string( operation_name, 
+			option_string, ap, in, &blob );
+		va_end( ap );
+
+		if( result )
+			return( -1 );
+	}
+	else
 		return( -1 );
 
 	*buf = NULL;
 	if( size ) 
 		*size = 0;
+
 	if( blob ) { 
 		if( buf ) {
 			*buf = VIPS_AREA( blob )->data;

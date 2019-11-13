@@ -545,8 +545,12 @@ vips_streami_unminimise( VipsStreami *streami )
 		int fd;
 
 		if( (fd = vips_tracked_open( stream->filename, 
-			MODE_READ )) == -1 ) 
+			MODE_READ )) == -1 ) {
+			vips_error_system( errno, vips_stream_nick( stream ),
+				_( "unable to open for read" ), 
+			       stream->filename	);
 			return( -1 ); 
+		}
 
 		stream->tracked_descriptor = fd;
 		stream->descriptor = fd;
