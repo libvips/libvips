@@ -222,10 +222,10 @@ public:
 	VOption *set( const char *name, int value );
 	VOption *set( const char *name, double value );
 	VOption *set( const char *name, const char *value );
-	VOption *set( const char *name, const VImage &value );
-	VOption *set( const char *name, const VInterpolate &value ); 
-	VOption *set( const char *name, const VStreamI &value );
-	VOption *set( const char *name, const VStreamO &value );
+	VOption *set( const char *name, const VImage value );
+	VOption *set( const char *name, const VInterpolate value ); 
+	VOption *set( const char *name, const VStreamI value );
+	VOption *set( const char *name, const VStreamO value );
 	VOption *set( const char *name, std::vector<VImage> value );
 	VOption *set( const char *name, std::vector<double> value );
 	VOption *set( const char *name, std::vector<int> value );

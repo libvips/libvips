@@ -169,7 +169,7 @@ VOption::set( const char *name, const char *value )
 
 // input image
 VOption *
-VOption::set( const char *name, const VImage &value )
+VOption::set( const char *name, const VImage value )
 {
 	Pair *pair = new Pair( name );
 

@@ -111,7 +111,7 @@ VStreamI::new_from_options( const char *options )
 }
 
 VOption *
-VOption::set( const char *name, const VStreamI &value )
+VOption::set( const char *name, const VStreamI value )
 {
 	Pair *pair = new Pair( name );
 
@@ -163,7 +163,7 @@ VStreamO::new_to_memory()
 }
 
 VOption *
-VOption::set( const char *name, const VStreamO &value )
+VOption::set( const char *name, const VStreamO value )
 {
 	Pair *pair = new Pair( name );
 
