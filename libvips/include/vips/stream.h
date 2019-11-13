@@ -365,11 +365,11 @@ typedef struct _VipsStreamo {
 	 */
 	VipsBlob *blob;
 
-	/* Buffer small writes here. 
+	/* Buffer small writes here. write_point is the index of the next
+	 * character to write.
 	 */
 	unsigned char output_buffer[VIPS_STREAMO_BUFFER_SIZE];
-	unsigned char *write_point;
-	int bytes_remaining;
+	int write_point;
 
 } VipsStreamo;
 
@@ -394,6 +394,14 @@ VipsStreamo *vips_streamo_new_to_filename( const char *filename );
 VipsStreamo *vips_streamo_new_to_memory( void );
 int vips_streamo_write( VipsStreamo *streamo, const void *data, size_t length );
 void vips_streamo_finish( VipsStreamo *streamo );
+
+int vips_streamo_putc( VipsStreamo *streamo, int ch );
+
+#define VIPS_STREAMO_PUTC( S, C ) ( \
+	(S)->write_point <= VIPS_STREAMO_BUFFER_SIZE ? \
+	((S)->output_buffer[(S)->write_point++] = (C), 0) : \
+	vips_streamo_putc( (S), (C) ) \
+)
 
 int vips_streamo_writef( VipsStreamo *streamo, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));

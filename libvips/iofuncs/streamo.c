@@ -198,8 +198,7 @@ static void
 vips_streamo_init( VipsStreamo *streamo )
 {
 	streamo->blob = vips_blob_new( NULL, NULL, 0 );
-	streamo->bytes_remaining = VIPS_STREAMO_BUFFER_SIZE;
-	streamo->write_point = streamo->output_buffer;
+	streamo->write_point = 0;
 }
 
 /**
@@ -323,18 +322,14 @@ vips_streamo_write_unbuffered( VipsStreamo *streamo,
 static int
 vips_streamo_flush( VipsStreamo *streamo )
 {
-	int bytes_in_buffer = 
-		VIPS_STREAMO_BUFFER_SIZE - streamo->bytes_remaining;
+	g_assert( streamo->write_point >= 0 );
+	g_assert( streamo->write_point <= VIPS_STREAMO_BUFFER_SIZE );
 
-	g_assert( bytes_in_buffer >= 0 );
-	g_assert( bytes_in_buffer <= VIPS_STREAMO_BUFFER_SIZE );
-
-	if( bytes_in_buffer > 0 ) {
+	if( streamo->write_point > 0 ) {
 		if( vips_streamo_write_unbuffered( streamo, 
-			streamo->output_buffer, bytes_in_buffer ) )
+			streamo->output_buffer, streamo->write_point ) )
 			return( -1 );
-		streamo->bytes_remaining = VIPS_STREAMO_BUFFER_SIZE;
-		streamo->write_point = streamo->output_buffer;
+		streamo->write_point = 0;
 	}
 
 	return( 0 );
@@ -355,27 +350,20 @@ vips_streamo_write( VipsStreamo *streamo, const void *buffer, size_t length )
 {
 	VIPS_DEBUG_MSG( "vips_streamo_write: %zd bytes\n", length );
 
-	if( streamo->bytes_remaining >= length ) {
-		memcpy( streamo->write_point, buffer, length );
-		streamo->bytes_remaining -= length;
-		streamo->write_point += length;
+	if( length > VIPS_STREAMO_BUFFER_SIZE - streamo->write_point &&
+		vips_streamo_flush( streamo ) )
+		return( -1 );
+
+	if( length > VIPS_STREAMO_BUFFER_SIZE - streamo->write_point ) {
+		/* Still too large? Do an unbuffered write.
+		 */
+		if( vips_streamo_write_unbuffered( streamo, buffer, length ) )
+			return( -1 );
 	}
 	else {
-		if( vips_streamo_flush( streamo ) )
-			return( -1 );
-
-		if( streamo->bytes_remaining >= length ) {
-			memcpy( streamo->write_point, buffer, length );
-			streamo->bytes_remaining -= length;
-			streamo->write_point += length;
-		}
-		else 
-			/* The buffer is empty and we still have too much
-			 * data. Write directly.
-			 */
-			if( vips_streamo_write_unbuffered( streamo, 
-				buffer, length ) )
-				return( -1 );
+		memcpy( streamo->output_buffer + streamo->write_point, 
+			buffer, length );
+		streamo->write_point += length;
 	}
 
 	return( 0 );
@@ -444,6 +432,30 @@ vips_streamo_writef( VipsStreamo *streamo, const char *fmt, ... )
 }
 
 /**
+ * vips_streamo_putc:
+ * @streamo: output stream to operate on
+ * @ch: character to write
+ *
+ * Write a single character @ch to @streamo. See the macro VIPS_STREAMO_PUTC()
+ * for a faster way to do this.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_streamo_putc( VipsStreamo *streamo, int ch )
+{
+	VIPS_DEBUG_MSG( "vips_streamo_putc: %d\n", ch );
+
+	if( streamo->write_point > VIPS_STREAMO_BUFFER_SIZE && 
+		vips_streamo_flush( streamo ) )
+		return( -1 );
+
+	streamo->output_buffer[streamo->write_point++] = ch;
+
+	return( 0 );
+}
+
+/**
  * vips_streamo_write_amp: 
  * @streamo: output stream to operate on
  * @str: string to write
@@ -497,8 +509,7 @@ vips_streamo_write_amp( VipsStreamo *streamo, const char *str )
 				return( -1 );
 		}
 		else  {
-			if( !vips_streamo_write( streamo, 
-				(guchar *) p, 1 ) )
+			if( !vips_streamo_putc( streamo, *p ) )
 				return( -1 );
 		}
 

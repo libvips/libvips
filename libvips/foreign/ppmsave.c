@@ -70,13 +70,20 @@ vips_foreign_save_ppm_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSavePpm *ppm = (VipsForeignSavePpm *) object;
 
+	VipsStreamo *streamo;
+
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_ppm_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips__ppm_save( save->ready, ppm->filename, 
-		ppm->ascii, ppm->squash ) )
+	if( !(streamo = vips_streamo_new_to_filename( ppm->filename )) )
 		return( -1 );
+	if( vips__ppm_save_stream( save->ready, streamo, 
+		ppm->ascii, ppm->squash ) ) {
+		VIPS_UNREF( streamo );
+		return( -1 );
+	}
+	VIPS_UNREF( streamo );
 
 	return( 0 );
 }

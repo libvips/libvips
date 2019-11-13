@@ -149,8 +149,8 @@ int vips__ppm_isppm( const char *filename );
 VipsForeignFlags vips__ppm_flags( const char *filename );
 extern const char *vips__ppm_suffs[];
 
-int vips__ppm_save( VipsImage *in, const char *filename, 
-	gboolean ascii, gboolean squash ); 
+int vips__ppm_save_stream( VipsImage *in, VipsStreamo *streamo,
+	gboolean ascii, gboolean squash );
 
 int vips__rad_israd( VipsStreami *streami );
 int vips__rad_header( VipsStreami *streami, VipsImage *out );

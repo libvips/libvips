@@ -36,6 +36,8 @@
  * 	  linebreaks
  * 29/7/19 Kyle-Kyle
  * 	- fix a loop with malformed ppm
+ * 13/11/19
+ * 	- ppm save redone with streams
  */
 
 /*
@@ -555,22 +557,22 @@ typedef int (*write_fn)( struct _Write *write, VipsPel *p );
  */
 typedef struct _Write {
 	VipsImage *in;
-	FILE *fp;
-	char *name;
+	VipsStreamo *streamo;
 	write_fn fn;
 } Write;
 
 static void
 write_destroy( Write *write )
 {
-	VIPS_FREEF( fclose, write->fp );
-	VIPS_FREE( write->name );
+	if( write->streamo ) 
+		vips_streamo_finish( write->streamo );
+	VIPS_UNREF( write->streamo );
 
 	vips_free( write );
 }
 
 static Write *
-write_new( VipsImage *in, const char *name )
+write_new( VipsImage *in, VipsStreamo *streamo )
 {
 	Write *write;
 
@@ -578,14 +580,10 @@ write_new( VipsImage *in, const char *name )
 		return( NULL );
 
 	write->in = in;
-	write->name = vips_strdup( NULL, name );
-        write->fp = vips__file_open_write( name, FALSE );
+        write->streamo = streamo;
+	g_object_ref( streamo );
+        write->fn = NULL;
 
-	if( !write->name || !write->fp ) {
-		write_destroy( write );
-		return( NULL );
-	}
-	
         return( write );
 }
 
@@ -599,17 +597,17 @@ write_ppm_line_ascii( Write *write, VipsPel *p )
 		for( k = 0; k < write->in->Bands; k++ ) {
 			switch( write->in->BandFmt ) {
 			case VIPS_FORMAT_UCHAR:
-				fprintf( write->fp, 
+				vips_streamo_writef( write->streamo, 
 					"%d ", p[k] );
 				break;
 
 			case VIPS_FORMAT_USHORT:
-				fprintf( write->fp, 
+				vips_streamo_writef( write->streamo, 
 					"%d ", ((unsigned short *) p)[k] );
 				break;
 
 			case VIPS_FORMAT_UINT:
-				fprintf( write->fp, 
+				vips_streamo_writef( write->streamo, 
 					"%d ", ((unsigned int *) p)[k] );
 				break;
 
@@ -621,11 +619,8 @@ write_ppm_line_ascii( Write *write, VipsPel *p )
 		p += sk;
 	}
 
-	if( !fprintf( write->fp, "\n" ) ) {
-		vips_error_system( errno, "vips2ppm", 
-			"%s", _( "write error" ) );
+	if( vips_streamo_writef( write->streamo, "\n" ) ) 
 		return( -1 );
-	}
 
 	return( 0 );
 }
@@ -636,13 +631,10 @@ write_ppm_line_ascii_squash( Write *write, VipsPel *p )
 	int x;
 
 	for( x = 0; x < write->in->Xsize; x++ ) 
-		fprintf( write->fp, "%d ", p[x] ? 0 : 1 );
+		vips_streamo_writef( write->streamo, "%d ", p[x] ? 0 : 1 );
 
-	if( !fprintf( write->fp, "\n" ) ) {
-		vips_error_system( errno, "vips2ppm", 
-			"%s", _( "write error" ) );
+	if( vips_streamo_writef( write->streamo, "\n" ) ) 
 		return( -1 );
-	}
 
 	return( 0 );
 }
@@ -650,8 +642,8 @@ write_ppm_line_ascii_squash( Write *write, VipsPel *p )
 static int
 write_ppm_line_binary( Write *write, VipsPel *p )
 {
-	if( vips__file_write( p, VIPS_IMAGE_SIZEOF_LINE( write->in ), 1, 
-		write->fp ) ) 
+	if( vips_streamo_write( write->streamo, 
+		p, VIPS_IMAGE_SIZEOF_LINE( write->in ) ) ) 
 		return( -1 );
 
 	return( 0 );
@@ -672,11 +664,8 @@ write_ppm_line_binary_squash( Write *write, VipsPel *p )
 		bits |= p[x] ? 0 : 1;
 
 		if( n_bits == 8 ) {
-			if( fputc( bits, write->fp ) == EOF ) {
-				vips_error_system( errno, "vips2ppm", 
-					"%s", _( "write error" ) );
+			if( VIPS_STREAMO_PUTC( write->streamo, bits ) ) 
 				return( -1 );
-			}
 
 			bits = 0;
 			n_bits = 0;
@@ -685,13 +674,9 @@ write_ppm_line_binary_squash( Write *write, VipsPel *p )
 
 	/* Flush any remaining bits in this line.
 	 */
-	if( n_bits ) {
-		if( fputc( bits, write->fp ) == EOF ) {
-			vips_error_system( errno, "vips2ppm", 
-				"%s", _( "write error" ) );
-			return( -1 );
-		}
-	}
+	if( n_bits &&
+		VIPS_STREAMO_PUTC( write->streamo, bits ) ) 
+		return( -1 );
 
 	return( 0 );
 }
@@ -740,23 +725,27 @@ write_ppm( Write *write, gboolean ascii, gboolean squash )
 	else
 		g_assert_not_reached();
 
-	fprintf( write->fp, "%s\n", magic );
+	vips_streamo_writef( write->streamo, "%s\n", magic );
 	time( &timebuf );
-	fprintf( write->fp, "#vips2ppm - %s\n", ctime( &timebuf ) );
-	fprintf( write->fp, "%d %d\n", in->Xsize, in->Ysize );
+	vips_streamo_writef( write->streamo, 
+		"#vips2ppm - %s\n", ctime( &timebuf ) );
+	vips_streamo_writef( write->streamo, "%d %d\n", in->Xsize, in->Ysize );
 
 	if( !squash ) 
 		switch( in->BandFmt ) {
 		case VIPS_FORMAT_UCHAR:
-			fprintf( write->fp, "%d\n", UCHAR_MAX );
+			vips_streamo_writef( write->streamo, 
+				"%d\n", UCHAR_MAX );
 			break;
 
 		case VIPS_FORMAT_USHORT:
-			fprintf( write->fp, "%d\n", USHRT_MAX );
+			vips_streamo_writef( write->streamo, 
+				"%d\n", USHRT_MAX );
 			break;
 
 		case VIPS_FORMAT_UINT:
-			fprintf( write->fp, "%d\n", UINT_MAX );
+			vips_streamo_writef( write->streamo, 
+				"%d\n", UINT_MAX );
 			break;
 
 		case VIPS_FORMAT_FLOAT:
@@ -767,7 +756,8 @@ write_ppm( Write *write, gboolean ascii, gboolean squash )
 				scale = 1;
 			if( !vips_amiMSBfirst() )
 				scale *= -1;
-			fprintf( write->fp, "%g\n", scale );
+			vips_streamo_writef( write->streamo, 
+				"%g\n", scale );
 }
 			break;
 
@@ -791,7 +781,7 @@ write_ppm( Write *write, gboolean ascii, gboolean squash )
 }
 
 int
-vips__ppm_save( VipsImage *in, const char *filename, 
+vips__ppm_save_stream( VipsImage *in, VipsStreamo *streamo,
 	gboolean ascii, gboolean squash )
 {
 	Write *write;
@@ -820,7 +810,7 @@ vips__ppm_save( VipsImage *in, const char *filename,
 		squash = FALSE; 
 	}
 
-	if( !(write = write_new( in, filename )) )
+	if( !(write = write_new( in, streamo )) )
 		return( -1 );
 
 	if( write_ppm( write, ascii, squash ) ) {
