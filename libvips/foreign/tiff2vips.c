@@ -250,6 +250,7 @@ typedef struct _RtiffHeader {
 	int samples_per_pixel;
 	int bits_per_sample;
 	int photometric_interpretation;
+	int inkset;
 	int sample_format;
 	gboolean separate; 
 	int orientation; 
@@ -1310,6 +1311,7 @@ rtiff_parse_copy( Rtiff *rtiff, VipsImage *out )
 	int samples_per_pixel = rtiff->header.samples_per_pixel;
 	int photometric_interpretation = 
 		rtiff->header.photometric_interpretation;
+	int inkset = rtiff->header.inkset;
 
 	if( rtiff_non_fractional( rtiff ) )
 		return( -1 );
@@ -1339,8 +1341,14 @@ rtiff_parse_copy( Rtiff *rtiff, VipsImage *out )
 		out->Type = VIPS_INTERPRETATION_LAB; 
 
 	if( samples_per_pixel >= 4 &&
-		photometric_interpretation == PHOTOMETRIC_SEPARATED )
+		photometric_interpretation == PHOTOMETRIC_SEPARATED &&
+		inkset == INKSET_CMYK)
 		out->Type = VIPS_INTERPRETATION_CMYK; 
+
+	if (samples_per_pixel >= 1 &&
+		photometric_interpretation == PHOTOMETRIC_SEPARATED &&
+		inkset == INKSET_MULTIINK)
+		out->Type = VIPS_INTERPRETATION_MULTIBAND;
 
 	rtiff->sfn = rtiff_memcpy_line;
 	rtiff->client = out;
@@ -2151,7 +2159,10 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 			TIFFTAG_BITSPERSAMPLE, &header->bits_per_sample ) ||
 		!tfget16( rtiff->tiff, 
 			TIFFTAG_PHOTOMETRIC, 
-			&header->photometric_interpretation ) )
+			&header->photometric_interpretation ) ||
+		!tfget16(rtiff->tiff,
+			TIFFTAG_INKSET,
+			&header->inkset ) )
 		return( -1 );
 
 	TIFFGetFieldDefaulted( rtiff->tiff, 

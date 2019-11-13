@@ -677,6 +677,12 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 					TIFFTAG_INKSET, INKSET_CMYK );
 				colour_bands = 4;
 			}
+			else if (wtiff->im->Type == VIPS_INTERPRETATION_MULTIBAND ) {
+				photometric = PHOTOMETRIC_SEPARATED;
+				TIFFSetField(tif,
+					TIFFTAG_INKSET, INKSET_MULTIINK);
+				colour_bands = 4;
+			}
 			else if( wtiff->compression == COMPRESSION_JPEG &&
 				wtiff->im->Bands == 3 &&
 				wtiff->im->BandFmt == VIPS_FORMAT_UCHAR &&
