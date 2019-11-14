@@ -131,7 +131,7 @@ vips_streamib_unbuffer( VipsStreamib *streamib )
 	/* We'd read ahead a little way -- seek backwards by that amount.
 	 */
 	vips_streami_seek( streamib->streami, 
-		streamib->read_point - streamib->chars_in_buffer, SEEK_SET );
+		streamib->read_point - streamib->chars_in_buffer, SEEK_CUR );
 	streamib->read_point = 0;
 	streamib->chars_in_buffer = 0;
 }
@@ -171,7 +171,7 @@ vips_streamib_refill( VipsStreamib *streamib )
  *
  * Fetch the next character from the stream. 
  *
- * Use the macro VIPS_STREAMIB_GETC() instead for speed.
+ * If you can, use the macro VIPS_STREAMIB_GETC() instead for speed.
  *
  * Returns: the next char from @streamib, -1 on read error or EOF.
  */
@@ -204,6 +204,8 @@ vips_streamib_getc( VipsStreamib *streamib )
  *
  * unget more than one character is undefined. Unget at the start of the file 
  * does nothing.
+ *
+ * If you can, use the macro VIPS_STREAMIB_UNGETC() instead for speed.
  */
 void
 vips_streamib_ungetc( VipsStreamib *streamib )
@@ -211,6 +213,16 @@ vips_streamib_ungetc( VipsStreamib *streamib )
 	if( streamib->read_point > 0 ) 
 		streamib->read_point -= 1;
 }
+
+/**
+ * VIPS_STREAMIB_UNGETC:
+ * @streamib: stream to operate on
+ *
+ * The opposite of vips_streamib_getc(): undo the previous getc.
+ *
+ * unget more than one character is undefined. Unget at the start of the file 
+ * does nothing.
+ */
 
 /**
  * vips_streamib_require:

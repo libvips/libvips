@@ -283,6 +283,10 @@ int vips_streamib_getc( VipsStreamib *streamib );
 		vips_streamib_getc( S ) \
 )
 void vips_streamib_ungetc( VipsStreamib *streamib );
+#define VIPS_STREAMIB_UNGETC( S ) { \
+	if( (S)->read_point > 0 ) \
+		(S)->read_point -= 1; \
+}
 
 int vips_streamib_require( VipsStreamib *streamib, int require );
 #define VIPS_STREAMIB_REQUIRE( S, R ) ( \

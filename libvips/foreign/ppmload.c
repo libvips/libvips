@@ -66,10 +66,37 @@ typedef VipsForeignLoadClass VipsForeignLoadPpmClass;
 G_DEFINE_TYPE( VipsForeignLoadPpm, vips_foreign_load_ppm, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
+static gboolean
+vips_foreign_load_ppm_is_a( const char *filename )
+{
+	VipsStreami *streami;
+	gboolean result;
+
+	if( !(streami = vips_streami_new_from_filename( filename )) )
+		return( FALSE );
+	result = vips__ppm_isppm_stream( streami );
+	VIPS_UNREF( streami );
+
+	return( result );
+}
+
 static VipsForeignFlags
 vips_foreign_load_ppm_get_flags_filename( const char *filename )
 {
-	return( (VipsForeignFlags) vips__ppm_flags( filename ) );
+	VipsStreami *streami;
+	VipsStreamib *streamib;
+	VipsForeignFlags flags;
+
+	if( !(streami = vips_streami_new_from_filename( filename )) )
+		return( 0 );
+	streamib = vips_streamib_new( streami );
+	VIPS_UNREF( streami );
+
+	flags = vips__ppm_flags_stream( streamib );
+
+	VIPS_UNREF( streamib );
+
+	return( flags );
 }
 
 static VipsForeignFlags
@@ -85,10 +112,20 @@ vips_foreign_load_ppm_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) load;
 
-	if( vips__ppm_header( ppm->filename, load->out ) )
-		return( -1 );
+	VipsStreami *streami;
+	VipsStreamib *streamib;
 
-	VIPS_SETSTR( load->out->filename, ppm->filename );
+	if( !(streami = vips_streami_new_from_filename( ppm->filename )) )
+		return( -1 );
+	streamib = vips_streamib_new( streami );
+	VIPS_UNREF( streami );
+
+	if( vips__ppm_header_stream( streamib, load->out ) ) {
+		VIPS_UNREF( streamib );
+		return( -1 );
+	}
+
+	VIPS_UNREF( streamib );
 
 	return( 0 );
 }
@@ -98,8 +135,20 @@ vips_foreign_load_ppm_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) load;
 
-	if( vips__ppm_load( ppm->filename, load->real ) )
+	VipsStreami *streami;
+	VipsStreamib *streamib;
+
+	if( !(streami = vips_streami_new_from_filename( ppm->filename )) )
 		return( -1 );
+	streamib = vips_streamib_new( streami );
+	VIPS_UNREF( streami );
+
+	if( vips__ppm_load_stream( streamib, load->real ) ) {
+		VIPS_UNREF( streamib );
+		return( -1 );
+	}
+
+	VIPS_UNREF( streamib );
 
 	return( 0 );
 }
@@ -124,7 +173,7 @@ vips_foreign_load_ppm_class_init( VipsForeignLoadPpmClass *class )
 	 */
 	foreign_class->priority = 200;
 
-	load_class->is_a = vips__ppm_isppm;
+	load_class->is_a = vips_foreign_load_ppm_is_a;
 	load_class->get_flags_filename = 
 		vips_foreign_load_ppm_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_ppm_get_flags;

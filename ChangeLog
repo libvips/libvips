@@ -17,8 +17,8 @@
 - nifti load/save uses double for all floating point metadata
 - add vips_error_buffer_copy()
 - add VipsStream: a universal IO class for loaders and savers
-- jpeg, png, tiff (though not tiffsave), rad, svg and webp use the new IO 
-  class
+- jpeg, png, tiff (though not tiffsave), rad, svg, ppm and webp use the 
+  new IO class
 - add @no_strip option to dzsave [kalozka1]
 - add iiif layout to dzsave
 - fix use of resolution-unit metadata on tiff save [kayarre]

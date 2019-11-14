@@ -37,7 +37,7 @@
  * 29/7/19 Kyle-Kyle
  * 	- fix a loop with malformed ppm
  * 13/11/19
- * 	- ppm save redone with streams
+ * 	- redone with streams
  */
 
 /*
@@ -90,36 +90,78 @@
  */
 #define MAX_THING (80)
 
+/* After this, the next getc will be the first char of the next line (or EOF).
+ */
 static void 
-skip_line( FILE *fp )
+skip_line( VipsStreamib *streamib )
 {
 	int ch;
 
-        while( (ch = vips__fgetc( fp )) != '\n' && 
+        while( (ch = VIPS_STREAMIB_GETC( streamib )) != '\n' && 
 		ch != EOF )
 		;
 }
 
+/* After this, the next getc will be the first char of the next block of
+ * non-whitespace (or EOF).
+ */
 static void 
-skip_white_space( FILE *fp )
+skip_white_space( VipsStreamib *streamib )
 {
         int ch;
 
-        while( isspace( ch = vips__fgetc( fp ) ) )
+	while( isspace( ch = VIPS_STREAMIB_GETC( streamib ) ) )
 		;
-	ungetc( ch, fp );
+	VIPS_STREAMIB_UNGETC( streamib );
 
 	if( ch == '#' ) {
-		skip_line( fp );
-		skip_white_space( fp );
+		skip_line( streamib );
+		skip_white_space( streamib );
 	}
 }
 
-static int
-read_int( FILE *fp, int *i )
+/* After this, the next getc will be the first char of the next block of
+ * whitespace (or EOF). buf will be filled with up to length bytes, and
+ * null-terminated.
+ *
+ * If the first getc is whitespace, stop instantly and return nothing.
+ */
+static void
+read_non_white_space( VipsStreamib *streamib, char *buf, int length )
 {
-	skip_white_space( fp );
-	if( fscanf( fp, "%d", i ) != 1 ) {
+	int ch;
+	int i;
+
+	for( i = 0; i < length - 1 &&
+		!isspace( ch = VIPS_STREAMIB_GETC( streamib ) ) &&
+		ch != EOF; i++ ) 
+		buf[i] = ch;
+	buf[i] = '\0';
+
+	/* If we stopped before seeing any whitespace, skip to the end of the
+	 * block of non-whitespace.
+	 */
+	if( !isspace( ch ) ) 
+		while( !isspace( ch = VIPS_STREAMIB_GETC( streamib ) ) &&
+			ch != EOF )
+			;
+
+	/* If we finally stopped on whitespace, step back one so the next get
+	 * will be whitespace (or EOF).
+	 */
+	if( isspace( ch ) ) 
+		VIPS_STREAMIB_UNGETC( streamib );
+}
+
+static int
+read_int( VipsStreamib *streamib, int *i )
+{
+	char buf[MAX_THING];
+
+	skip_white_space( streamib );
+	read_non_white_space( streamib, buf, MAX_THING );
+
+	if( sscanf( buf, "%d", i ) != 1 ) {
 		vips_error( "ppm2vips", "%s", _( "bad int" ) );
 		return( -1 );
 	}
@@ -128,10 +170,14 @@ read_int( FILE *fp, int *i )
 }
 
 static int
-read_float( FILE *fp, float *f )
+read_float( VipsStreamib *streamib, float *f )
 {
-	skip_white_space( fp );
-	if( fscanf( fp, "%f", f ) != 1 ) {
+	char buf[MAX_THING];
+
+	skip_white_space( streamib );
+	read_non_white_space( streamib, buf, MAX_THING );
+
+	if( sscanf( buf, "%f", f ) != 1 ) {
 		vips_error( "ppm2vips", "%s", _( "bad float" ) );
 		return( -1 );
 	}
@@ -153,7 +199,8 @@ static char *magic_names[] = {
 };
 
 static int
-read_header( FILE *fp, VipsImage *out, int *bits, int *ascii, int *msb_first )
+read_header( VipsStreamib *streamib, VipsImage *out, 
+	int *bits, int *ascii, int *msb_first )
 {
 	int width, height, bands; 
 	VipsBandFormat format;
@@ -175,8 +222,8 @@ read_header( FILE *fp, VipsImage *out, int *bits, int *ascii, int *msb_first )
 
 	/* Read in the magic number.
 	 */
-	buf[0] = vips__fgetc( fp );
-	buf[1] = vips__fgetc( fp );
+	buf[0] = VIPS_STREAMIB_GETC( streamib );
+	buf[1] = VIPS_STREAMIB_GETC( streamib );
 	buf[2] = '\0';
 
 	for( index = 0; index < VIPS_NUMBER( magic_names ); index++ )
@@ -196,8 +243,8 @@ read_header( FILE *fp, VipsImage *out, int *bits, int *ascii, int *msb_first )
 
 	/* Read in size.
 	 */
-	if( read_int( fp, &width ) ||
-		read_int( fp, &height ) )
+	if( read_int( streamib, &width ) ||
+		read_int( streamib, &height ) )
 		return( -1 );
 
 	/* Read in max value / scale for >1 bit images.
@@ -206,7 +253,7 @@ read_header( FILE *fp, VipsImage *out, int *bits, int *ascii, int *msb_first )
 		if( index == 6 || index == 7 ) {
 			float scale;
 
-			if( read_float( fp, &scale ) )
+			if( read_float( streamib, &scale ) )
 				return( -1 );
 
 			/* Scale > 0 means big-endian.
@@ -218,7 +265,7 @@ read_header( FILE *fp, VipsImage *out, int *bits, int *ascii, int *msb_first )
 		else {
 			int max_value;
 
-			if( read_int( fp, &max_value ) )
+			if( read_int( streamib, &max_value ) )
 				return( -1 );
 
 			if( max_value > 255 )
@@ -232,7 +279,7 @@ read_header( FILE *fp, VipsImage *out, int *bits, int *ascii, int *msb_first )
 	 * character before the data starts.
 	 */
 	if( !*ascii && 
-		!isspace( vips__fgetc( fp ) ) ) {
+		!isspace( VIPS_STREAMIB_GETC( streamib ) ) ) {
 		vips_error( "ppm2vips", "%s", 
 			_( "not whitespace before start of binary data" ) );
 		return( -1 );
@@ -284,35 +331,53 @@ read_header( FILE *fp, VipsImage *out, int *bits, int *ascii, int *msb_first )
 		width, height, bands, format, 
 		VIPS_CODING_NONE, interpretation, 1.0, 1.0 );
 
+	VIPS_SETSTR( out->filename, 
+		vips_stream_filename( VIPS_STREAM( streamib->streami ) ) );
+
 	return( 0 );
+}
+
+static void
+read_mmap_close_cb( VipsObject *object, VipsStreamib *streamib )
+{
+	VIPS_UNREF( streamib );
 }
 
 /* Read a ppm/pgm file using mmap().
  */
 static int
-read_mmap( FILE *fp, const char *filename, int msb_first, VipsImage *out )
+read_mmap( VipsStreamib *streamib, int msb_first, VipsImage *out )
 {
-	const guint64 header_offset = ftell( fp );
-	VipsImage *x = vips_image_new();
-	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( VIPS_OBJECT( x ), 3 );
+	VipsImage **t = (VipsImage **)
+                vips_object_local_array( VIPS_OBJECT( out ), 3 );
+	VipsStreami *streami = streamib->streami;
 
-	if( vips_rawload( filename, &t[0], 
-			out->Xsize, out->Ysize, VIPS_IMAGE_SIZEOF_PEL( out ), 
-			"offset", header_offset,
-			NULL ) ||
-		vips_copy( t[0], &t[1],
-			"bands", out->Bands, 
-			"format", out->BandFmt, 
-			"coding", out->Coding, 
-			NULL ) ||
-		vips__byteswap_bool( t[1], &t[2], 
-			vips_amiMSBfirst() != msb_first ) ||
-		vips_image_write( t[2], out ) ) {
-		g_object_unref( x );
+	gint64 header_offset;
+	size_t length;
+	const void *base_addr;
+
+	vips_streamib_unbuffer( streamib );
+	if( (header_offset = vips_streami_seek( streami, 0, SEEK_CUR )) < 0 ||
+		!(base_addr = vips_streami_map( streami, &length )) )
 		return( -1 );
-	}
-	g_object_unref( x );
+
+	if( !(t[0] = vips_image_new_from_memory( 
+			base_addr + header_offset, length - header_offset,
+			out->Xsize, out->Ysize, out->Bands, out->BandFmt )) ||
+		vips_copy( t[0], &t[1],
+			"interpretation", out->Type, 
+			NULL ) ||
+		vips__byteswap_bool( t[1], &t[2],
+                        vips_amiMSBfirst() != msb_first ) ||
+		vips_image_write( t[2], out ) ) 
+		return( -1 );
+
+	/* out is using memory from the streami mmap. We need to keep a ref
+	 * until out is closed.
+	 */
+	g_object_ref( streamib );
+	g_signal_connect( out, "close", 
+		G_CALLBACK( read_mmap_close_cb ), streamib ); 
 
 	return( 0 );
 }
@@ -320,7 +385,7 @@ read_mmap( FILE *fp, const char *filename, int msb_first, VipsImage *out )
 /* Read an ascii ppm/pgm file.
  */
 static int
-read_ascii( FILE *fp, VipsImage *out )
+read_ascii( VipsStreamib *streamib, VipsImage *out )
 {
 	int x, y;
 	VipsPel *buf;
@@ -332,7 +397,7 @@ read_ascii( FILE *fp, VipsImage *out )
 		for( x = 0; x < out->Xsize * out->Bands; x++ ) {
 			int val;
 
-			if( read_int( fp, &val ) )
+			if( read_int( streamib, &val ) )
 				return( -1 );
 			
 			switch( out->BandFmt ) {
@@ -364,7 +429,7 @@ read_ascii( FILE *fp, VipsImage *out )
 /* Read an ascii 1 bit file.
  */
 static int
-read_1bit_ascii( FILE *fp, VipsImage *out )
+read_1bit_ascii( VipsStreamib *streamib, VipsImage *out )
 {
 	int x, y;
 	VipsPel *buf;
@@ -376,7 +441,7 @@ read_1bit_ascii( FILE *fp, VipsImage *out )
 		for( x = 0; x < out->Xsize * out->Bands; x++ ) {
 			int val;
 
-			if( read_int( fp, &val ) )
+			if( read_int( streamib, &val ) )
 				return( -1 );
 
 			if( val )
@@ -395,7 +460,7 @@ read_1bit_ascii( FILE *fp, VipsImage *out )
 /* Read a 1 bit binary file.
  */
 static int
-read_1bit_binary( FILE *fp, VipsImage *out )
+read_1bit_binary( VipsStreamib *streamib, VipsImage *out )
 {
 	int x, y;
 	int bits;
@@ -404,19 +469,19 @@ read_1bit_binary( FILE *fp, VipsImage *out )
 	if( !(buf = VIPS_ARRAY( out, VIPS_IMAGE_SIZEOF_LINE( out ), VipsPel )) )
 		return( -1 );
 
-	bits = fgetc( fp );
+	bits = VIPS_STREAMIB_GETC( streamib );
 	for( y = 0; y < out->Ysize; y++ ) {
 		for( x = 0; x < out->Xsize * out->Bands; x++ ) {
 			buf[x] = (bits & 128) ? 0 : 255;
 			bits = VIPS_LSHIFT_INT( bits, 1 );
 			if( (x & 7) == 7 )
-				bits = fgetc( fp );
+				bits = VIPS_STREAMIB_GETC( streamib );
 		}
 
 		/* Skip any unaligned bits at end of line.
 		 */
 		if( (x & 7) != 0 )
-			bits = fgetc( fp );
+			bits = VIPS_STREAMIB_GETC( streamib );
 
 		if( vips_image_write_line( out, y, buf ) )
 			return( -1 );
@@ -425,45 +490,39 @@ read_1bit_binary( FILE *fp, VipsImage *out )
 	return( 0 );
 }
 
-static int 
-parse_ppm( FILE *fp, const char *filename, VipsImage *out )
+int
+vips__ppm_header_stream( VipsStreamib *streamib, VipsImage *out )
 {
 	int bits;
 	int ascii;
 	int msb_first;
 
-	if( read_header( fp, out, &bits, &ascii, &msb_first ) )
+	if( read_header( streamib, out, &bits, &ascii, &msb_first ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
+int
+vips__ppm_load_stream( VipsStreamib *streamib, VipsImage *out )
+{
+	int bits;
+	int ascii;
+	int msb_first;
+
+	if( read_header( streamib, out, &bits, &ascii, &msb_first ) )
 		return( -1 );
 
 	/* What sort of read are we doing?
 	 */
 	if( !ascii && bits >= 8 )
-		return( read_mmap( fp, filename, msb_first, out ) );
+		return( read_mmap( streamib, msb_first, out ) );
 	else if( !ascii && bits == 1 )
-		return( read_1bit_binary( fp, out ) );
+		return( read_1bit_binary( streamib, out ) );
 	else if( ascii && bits == 1 )
-		return( read_1bit_ascii( fp, out ) );
+		return( read_1bit_ascii( streamib, out ) );
 	else 
-		return( read_ascii( fp, out ) );
-}
-
-int
-vips__ppm_header( const char *filename, VipsImage *out )
-{
-        FILE *fp;
-	int bits;
-	int ascii;
-	int msb_first;
-
-	if( !(fp = vips__file_open_read( filename, NULL, FALSE )) ) 
-                return( -1 );
-
-	if( read_header( fp, out, &bits, &ascii, &msb_first ) ) {
-		fclose( fp );
-		return( -1 );
-	}
-
-	fclose( fp );
+		return( read_ascii( streamib, out ) );
 
 	return( 0 );
 }
@@ -471,80 +530,52 @@ vips__ppm_header( const char *filename, VipsImage *out )
 /* Can this PPM file be read with a mmap?
  */
 static int
-isppmmmap( const char *filename )
+isppmmmap( VipsStreamib *streamib )
 {
 	VipsImage *im;
-        FILE *fp;
 	int bits;
 	int ascii;
 	int msb_first;
 
-	if( !(fp = vips__file_open_read( filename, NULL, FALSE )) ) 
-                return( -1 );
-
 	im = vips_image_new(); 
-	if( read_header( fp, im, &bits, &ascii, &msb_first ) ) {
+	if( read_header( streamib, im, &bits, &ascii, &msb_first ) ) {
 		g_object_unref( im );
-		fclose( fp );
 
 		return( 0 );
 	}
 	g_object_unref( im );
-	fclose( fp );
 
 	return( !ascii && bits >= 8 );
-}
-
-int
-vips__ppm_load( const char *filename, VipsImage *out )
-{
-        FILE *fp;
-
-	/* Note that we open in binary mode. If this is a binary PPM, we need
-	 * to be able to mmap it.
-	 */
-	if( !(fp = vips__file_open_read( filename, NULL, FALSE )) ) 
-                return( -1 );
-
-	if( parse_ppm( fp, filename, out ) ) {
-		fclose( fp );
-		return( -1 );
-	}
-
-	fclose( fp );
-
-	return( 0 );
-}
-
-int
-vips__ppm_isppm( const char *filename )
-{
-	VipsPel buf[3];
-
-	if( vips__get_bytes( filename, buf, 2 ) == 2 ) {
-		int i;
-
-		buf[2] = '\0';
-		for( i = 0; i < VIPS_NUMBER( magic_names ); i++ )
-			if( strcmp( (char *) buf, magic_names[i] ) == 0 )
-				return( TRUE );
-	}
-
-	return( 0 );
 }
 
 /* ppm flags function.
  */
 VipsForeignFlags
-vips__ppm_flags( const char *filename )
+vips__ppm_flags_stream( VipsStreamib *streamib )
 {
 	VipsForeignFlags flags;
 
 	flags = 0;
-	if( isppmmmap( filename ) )
+	if( isppmmmap( streamib ) )
 		flags |= VIPS_FOREIGN_PARTIAL;
 
 	return( flags );
+}
+
+int
+vips__ppm_isppm_stream( VipsStreami *streami )
+{
+	const unsigned char *data;
+
+	if( (data = vips_streami_sniff( streami, 2 )) ) { 
+		int i;
+
+		for( i = 0; i < VIPS_NUMBER( magic_names ); i++ )
+			if( vips_isprefix( magic_names[i], (char *) data ) )
+				return( TRUE );
+	}
+
+	return( 0 );
 }
 
 const char *vips__ppm_suffs[] = { ".ppm", ".pgm", ".pbm", ".pfm", NULL };

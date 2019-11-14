@@ -143,10 +143,10 @@ int vips__mat_load( const char *filename, VipsImage *out );
 int vips__mat_header( const char *filename, VipsImage *out );
 int vips__mat_ismat( const char *filename );
 
-int vips__ppm_header( const char *name, VipsImage *out );
-int vips__ppm_load( const char *name, VipsImage *out );
-int vips__ppm_isppm( const char *filename );
-VipsForeignFlags vips__ppm_flags( const char *filename );
+int vips__ppm_header_stream( VipsStreamib *streamib, VipsImage *out );
+int vips__ppm_load_stream( VipsStreamib *streamib, VipsImage *out );
+VipsForeignFlags vips__ppm_flags_stream( VipsStreamib *streamib );
+int vips__ppm_isppm_stream( VipsStreami *streami );
 extern const char *vips__ppm_suffs[];
 
 int vips__ppm_save_stream( VipsImage *in, VipsStreamo *streamo,
