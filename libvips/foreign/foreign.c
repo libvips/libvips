@@ -527,6 +527,8 @@ vips_foreign_find_load( const char *name )
 
 	vips__filename_split8( name, filename, option_string );
 
+	/* Very common, so make a better error message for this case.
+	 */
 	if( !vips_existsf( "%s", filename ) ) {
 		vips_error( "VipsForeignLoad", 
 			_( "file \"%s\" not found" ), name );
@@ -1990,7 +1992,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_rad_buffer_get_type( void ); 
 	extern GType vips_foreign_save_rad_stream_get_type( void ); 
 	extern GType vips_foreign_load_mat_get_type( void ); 
-	extern GType vips_foreign_load_ppm_get_type( void ); 
+	extern GType vips_foreign_load_ppm_file_get_type( void ); 
 	extern GType vips_foreign_save_ppm_get_type( void ); 
 	extern GType vips_foreign_load_png_get_type( void ); 
 	extern GType vips_foreign_load_png_buffer_get_type( void ); 
@@ -2074,7 +2076,7 @@ vips_foreign_operation_init( void )
 #endif /*HAVE_ANALYZE*/
 
 #ifdef HAVE_PPM
-	vips_foreign_load_ppm_get_type(); 
+	vips_foreign_load_ppm_file_get_type(); 
 	vips_foreign_save_ppm_get_type(); 
 #endif /*HAVE_PPM*/
 
