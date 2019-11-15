@@ -817,10 +817,11 @@ vips_streami_descriptor_to_memory( VipsStreami *streami )
  * @streami: input stream to operate on
  * @length_out: return the file length here, or NULL
  *
- * Map the stream object entirely into memory, and return a pointer to the
+ * Map the stream object entirely into memory and return a pointer to the
  * start. If @length_out is non-NULL, the file size if written to it.
  *
- * This operation can take a long time.
+ * This operation can take a long time. Use vips_streami_is_mappable() to 
+ * check if a streami can be mapped efficiently.
  *
  * Returns: a pointer to the start of the file contents, or NULL on error.
  */
@@ -858,6 +859,30 @@ vips_streami_map( VipsStreami *streami, size_t *length_out )
 	SANITY( streami );
 
 	return( streami->data );
+}
+
+/**
+ * vips_streami_map:
+ * @streami: input stream to operate on
+ * @length_out: return the file length here, or NULL
+ *
+ * Map the stream object entirely into memory and return a pointer to the
+ * start. If @length_out is non-NULL, the file size if written to it.
+ *
+ * This operation can take a long time. Use vips_streami_is_mappable() to check
+ * if a streami can be mapped efficiently.
+ *
+ * Returns: a pointer to the start of the file contents, or NULL on error.
+ */
+gboolean 
+vips_streami_is_mappable( VipsStreami *streami )
+{
+	/* Already a memory object, or there's a filename we can map, or
+	 * there's a seekable descriptor.
+	 */
+	return( streami->data ||
+		VIPS_STREAM( streami )->filename ||
+		(streami->is_pipe && VIPS_STREAM( streami )->descriptor) );
 }
 
 /**

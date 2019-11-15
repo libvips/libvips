@@ -64,7 +64,7 @@
 
 /* TODO
  *
- * - load filename streams with mmap ... we'll need to add get_flags_stream
+ * - load filename streams with mmap 
  */
 
 /*
@@ -330,22 +330,25 @@ vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
 static VipsForeignFlags
 vips_foreign_load_ppm_get_flags( VipsForeignLoad *load )
 {
+	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) load;
+
 	VipsForeignFlags flags;
 
 	flags = 0;
 
-	/* reenable this when mmap load goes back in
-	 * 
-	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) load;
-
+	/* If this streami supports fast mmap and this PPM is >=8 bit binary,
+	 * then we can mmap the file and support partial load. Otherwise,
+	 * it's sequential.
+	 */
 	if( !ppm->have_read_header &&
 		vips_foreign_load_ppm_parse_header( ppm ) )
 		return( 0 );
-	if( !ppm->ascii && ppm->bits >= 8 )
+	if( vips_streami_is_mappable( ppm->streami ) &&
+		!ppm->ascii && 
+		ppm->bits >= 8 )
 		flags |= VIPS_FOREIGN_PARTIAL;
-	 */
-
-	flags |= VIPS_FOREIGN_SEQUENTIAL;
+	else
+		flags |= VIPS_FOREIGN_SEQUENTIAL;
 
 	return( flags );
 }
@@ -388,7 +391,9 @@ vips_foreign_load_ppm_header( VipsForeignLoad *load )
 }
 
 /* Read a ppm/pgm file using mmap().
-load_mmap( VipsForeignLoadPpm *ppm, VipsImage *image )
+ */
+static int
+vips_foreign_load_ppm_map( VipsForeignLoadPpm *ppm, VipsImage *image )
 {
 	VipsImage **t = (VipsImage **)
                 vips_object_local_array( VIPS_OBJECT( ppm ), 3 );
@@ -400,7 +405,8 @@ load_mmap( VipsForeignLoadPpm *ppm, VipsImage *image )
 	vips_streamib_unbuffer( ppm->streamib );
 	header_offset = vips_streami_seek( ppm->streami, 0, SEEK_CUR );
 	data = vips_streami_map( ppm->streami, &length );
-	if( header_offset < 0 || !data )
+	if( header_offset < 0 || 
+		!data )
 		return( -1 );
 	data += header_offset;
        	length -= header_offset;
@@ -416,7 +422,6 @@ load_mmap( VipsForeignLoadPpm *ppm, VipsImage *image )
 
 	return( 0 );
 }
- */
 
 static int
 vips_foreign_load_ppm_generate_binary( VipsRegion *or, 
@@ -556,34 +561,46 @@ vips_foreign_load_ppm_load( VipsForeignLoad *load )
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( (VipsObject *) load, 2 );
 
-	VipsGenerateFn generate;
-
 	if( !ppm->have_read_header &&
 		vips_foreign_load_ppm_parse_header( ppm ) )
 		return( 0 );
 
-	/* What sort of read are we doing?
+	/* If the stream is mappable and this is a binary file, we can map it.
 	 */
-	if( !ppm->ascii && ppm->bits >= 8 ) {
-		generate = vips_foreign_load_ppm_generate_binary;
-
-		/* The binary loader does not use the buffered IO object.
-		 */
-		vips_streamib_unbuffer( ppm->streamib ); 
+	if( vips_streami_is_mappable( ppm->streami ) &&
+		!ppm->ascii && 
+		ppm->bits >= 8 ) {
+		if( vips_foreign_load_ppm_map( ppm, load->real ) )
+			return( -1 );
 	}
-	else if( !ppm->ascii && ppm->bits == 1 )
-		generate = vips_foreign_load_ppm_generate_1bit_binary;
-	else if( ppm->ascii && ppm->bits == 1 )
-		generate = vips_foreign_load_ppm_generate_1bit_ascii;
-	else 
-		generate = vips_foreign_load_ppm_generate_ascii_int;
+	else {
+		VipsGenerateFn generate;
 
-	t[0] = vips_image_new(); 
-	vips_foreign_load_ppm_set_image( ppm, t[0] );
-	if( vips_image_generate( t[0], NULL, generate, NULL, ppm, NULL ) ||
-		vips_sequential( t[0], &t[1], NULL ) ||
-		vips_image_write( t[1], load->real ) ) 
-		return( -1 );
+		/* What sort of read are we doing?
+		 */
+		if( !ppm->ascii && ppm->bits >= 8 ) {
+			generate = vips_foreign_load_ppm_generate_binary;
+
+			/* The binary loader does not use the buffered IO 
+			 * object.
+			 */
+			vips_streamib_unbuffer( ppm->streamib ); 
+		}
+		else if( !ppm->ascii && ppm->bits == 1 )
+			generate = vips_foreign_load_ppm_generate_1bit_binary;
+		else if( ppm->ascii && ppm->bits == 1 )
+			generate = vips_foreign_load_ppm_generate_1bit_ascii;
+		else 
+			generate = vips_foreign_load_ppm_generate_ascii_int;
+
+		t[0] = vips_image_new(); 
+		vips_foreign_load_ppm_set_image( ppm, t[0] );
+		if( vips_image_generate( t[0], 
+				NULL, generate, NULL, ppm, NULL ) ||
+			vips_sequential( t[0], &t[1], NULL ) ||
+			vips_image_write( t[1], load->real ) ) 
+			return( -1 );
+	}
 
 	if( vips_streami_decode( ppm->streami ) )
 		return( -1 );

@@ -197,7 +197,8 @@ typedef struct _VipsForeignLoadClass {
 	 * of flags. If you don't define it, vips will default to 0 (no flags 
 	 * set).  
 	 *
-	 * This operation is necessary for vips7 compatibility. 
+	 * This method is necessary for vips7 compatibility. Don't define
+	 * it if you don't need vips7.
 	 */
 	VipsForeignFlags (*get_flags_filename)( const char *filename );
 
@@ -217,8 +218,7 @@ typedef struct _VipsForeignLoadClass {
 	 * @header() needs to set the dhint on the image .. otherwise you get 
 	 * the default SMALLTILE.
 	 *
-	 * Return 0 for success, -1 for error, setting
-	 * vips_error().
+	 * Return 0 for success, -1 for error, setting vips_error().
 	 */
 	int (*header)( VipsForeignLoad *load );
 
