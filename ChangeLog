@@ -19,6 +19,7 @@
 - add VipsStream: a universal IO class for loaders and savers
 - jpeg, png, tiff (though not tiffsave), rad, svg, ppm and webp use the 
   new IO class
+- rewritten ppm load/save is faster and uses less memory
 - add @no_strip option to dzsave [kalozka1]
 - add iiif layout to dzsave
 - fix use of resolution-unit metadata on tiff save [kayarre]

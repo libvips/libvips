@@ -33,6 +33,8 @@
  * 	- fix a loop with malformed ppm
  * 13/11/19
  * 	- redone with streams
+ * 	- sequential load, plus mmap for filename streams
+ * 	- faster plus lower memory use
  */
 
 /*
@@ -60,11 +62,6 @@
 
     These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
- */
-
-/* TODO
- *
- * - load filename streams with mmap 
  */
 
 /*

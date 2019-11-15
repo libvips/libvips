@@ -2,6 +2,9 @@
  *
  * 2/12/11
  * 	- wrap a class around the ppm writer
+ * 13/11/19
+ * 	- redone with streams
+ * 	- faster plus lower memory use
  */
 
 /*
