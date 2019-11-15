@@ -62,6 +62,12 @@
 
  */
 
+/* TODO
+ *
+ * - make partial
+ * - only use mmap on filename streams?
+ */
+
 /*
 #define DEBUG
  */
@@ -147,110 +153,32 @@ vips_foreign_load_ppm_is_a_stream( VipsStreami *streami )
 	return( FALSE );
 }
 
-/* The largest number/field/whatever we can read.
- */
-#define MAX_THING (80)
-
-/* After this, the next getc will be the first char of the next line (or EOF).
- */
-static int 
-skip_line( VipsStreamib *streamib )
-{
-	int ch;
-
-        while( (ch = VIPS_STREAMIB_GETC( streamib )) != '\n' && 
-		ch != EOF )
-		;
-
-	if( ch == EOF )
-		return( -1 );
-
-	return( 0 );
-}
-
-/* After this, the next getc will be the first char of the next block of
- * non-whitespace (or EOF).
- */
-static int 
-skip_white_space( VipsStreamib *streamib )
-{
-        int ch;
-
-	while( isspace( ch = VIPS_STREAMIB_GETC( streamib ) ) )
-		;
-	VIPS_STREAMIB_UNGETC( streamib );
-
-	/* # skip comments too.
-	 */
-	if( ch == '#' &&
-		(skip_line( streamib ) ||
-		 skip_white_space( streamib )) )
-		return( -1 );
-
-	return( 0 );
-}
-
-/* After this, the next getc will be the first char of the next block of
- * whitespace (or EOF). buf will be filled with up to length bytes, and
- * null-terminated.
- *
- * If the first getc is whitespace, stop instantly and return nothing.
- */
 static int
-read_non_white_space( VipsStreamib *streamib, char *buf, int length )
+get_int( VipsStreamib *streamib, int *i )
 {
-	int ch;
-	int i;
+	const char *txt;
 
-	for( i = 0; i < length - 1 &&
-		!isspace( ch = VIPS_STREAMIB_GETC( streamib ) ) &&
-		ch != EOF; i++ ) 
-		buf[i] = ch;
-	buf[i] = '\0';
+	if( vips_streamib_skip_whitespace( streamib ) ||
+		!(txt = vips_streamib_get_non_whitespace( streamib )) )
+		return( -1 );
 
-	/* If we stopped before seeing any whitespace, skip to the end of the
-	 * block of non-whitespace.
-	 */
-	if( !isspace( ch ) ) 
-		while( !isspace( ch = VIPS_STREAMIB_GETC( streamib ) ) &&
-			ch != EOF )
-			;
-
-	/* If we finally stopped on whitespace, step back one so the next get
-	 * will be whitespace (or EOF).
-	 */
-	if( isspace( ch ) ) 
-		VIPS_STREAMIB_UNGETC( streamib );
+	*i = atoi( txt ); 
 
 	return( 0 );
 }
 
 static int
-read_int( VipsStreamib *streamib, int *i )
+get_float( VipsStreamib *streamib, float *f )
 {
-	char buf[MAX_THING];
+	const char *txt;
 
-	if( skip_white_space( streamib ) )
+	if( vips_streamib_skip_whitespace( streamib ) ||
+		!(txt = vips_streamib_get_non_whitespace( streamib )) )
 		return( -1 );
 
-	read_non_white_space( streamib, buf, MAX_THING );
-	*i = atoi( buf ); 
-
-	return( 0 );
-}
-
-static int
-read_float( VipsStreamib *streamib, float *f )
-{
-	char buf[MAX_THING];
-
-	if( skip_white_space( streamib ) )
-		return( -1 );
-
-	read_non_white_space( streamib, buf, MAX_THING );
 	/* We don't want the locale str -> float conversion.
 	 */
-	*f = g_ascii_strtod( buf, NULL );
+	*f = g_ascii_strtod( txt, NULL );
 
 	return( 0 );
 }
@@ -289,6 +217,9 @@ vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
 		1, 1, 1, 0, 0, 0, 0, 0
 	};
 
+	if( vips_streami_rewind( ppm->streami ) )
+		return( -1 );
+
 	/* Read in the magic number.
 	 */
 	buf[0] = VIPS_STREAMIB_GETC( ppm->streamib );
@@ -312,8 +243,8 @@ vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
 
 	/* Read in size.
 	 */
-	if( read_int( ppm->streamib, &ppm->width ) ||
-		read_int( ppm->streamib, &ppm->height ) )
+	if( get_int( ppm->streamib, &ppm->width ) ||
+		get_int( ppm->streamib, &ppm->height ) )
 		return( -1 );
 
 	/* Read in max value / scale for >1 bit images.
@@ -321,7 +252,7 @@ vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
 	if( ppm->bits > 1 ) {
 		if( ppm->index == 6 || 
 			ppm->index == 7 ) {
-			if( read_float( ppm->streamib, &ppm->scale ) )
+			if( get_float( ppm->streamib, &ppm->scale ) )
 				return( -1 );
 
 			/* Scale > 0 means big-endian.
@@ -329,7 +260,7 @@ vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
 			ppm->msb_first = ppm->scale > 0;
 		}
 		else {
-			if( read_int( ppm->streamib, &ppm->max_value ) )
+			if( get_int( ppm->streamib, &ppm->max_value ) )
 				return( -1 );
 
 			if( ppm->max_value > 255 )
@@ -445,6 +376,8 @@ vips_foreign_load_ppm_header( VipsForeignLoad *load )
 
 	vips_foreign_load_ppm_set_image( ppm, load->out );
 
+	vips_streami_minimise( ppm->streami );
+
 	return( 0 );
 }
 
@@ -499,7 +432,7 @@ load_1bit_ascii( VipsForeignLoadPpm *ppm, VipsImage *image )
 		for( x = 0; x < image->Xsize; x++ ) {
 			int val;
 
-			if( read_int( ppm->streamib, &val ) )
+			if( get_int( ppm->streamib, &val ) )
 				return( -1 );
 
 			if( val )
@@ -567,7 +500,7 @@ load_ascii( VipsForeignLoadPpm *ppm, VipsImage *image )
 		for( x = 0; x < image->Xsize * image->Bands; x++ ) {
 			int val;
 
-			if( read_int( ppm->streamib, &val ) )
+			if( get_int( ppm->streamib, &val ) )
 				return( -1 );
 			
 			switch( image->BandFmt ) {
@@ -620,8 +553,11 @@ vips_foreign_load_ppm_load( VipsForeignLoad *load )
 	else 
 		loader = load_ascii;
 
-	if( loader( ppm, load->real ) )
+	if( vips_streami_decode( ppm->streami ) ||
+		loader( ppm, load->real ) )
 		return( -1 );
+
+	vips_streami_minimise( ppm->streami );
 
 	return( 0 );
 }

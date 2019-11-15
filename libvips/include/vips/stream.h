@@ -297,8 +297,10 @@ int vips_streamib_require( VipsStreamib *streamib, int require );
 #define VIPS_STREAMIB_PEEK( S ) ((S)->input_buffer + (S)->read_point)
 #define VIPS_STREAMIB_FETCH( S ) ((S)->input_buffer[(S)->read_point++])
 
-const unsigned char *vips_streamib_get_line( VipsStreamib *streamib ); 
-unsigned char *vips_streamib_get_line_copy( VipsStreamib *streamib ); 
+const char *vips_streamib_get_line( VipsStreamib *streamib ); 
+char *vips_streamib_get_line_copy( VipsStreamib *streamib ); 
+const char *vips_streamib_get_non_whitespace( VipsStreamib *streamib );
+int vips_streamib_skip_whitespace( VipsStreamib *streamib );
 
 #define VIPS_TYPE_STREAMIW (vips_streamiw_get_type())
 #define VIPS_STREAMIW( obj ) \
@@ -400,13 +402,12 @@ int vips_streamo_write( VipsStreamo *streamo, const void *data, size_t length );
 void vips_streamo_finish( VipsStreamo *streamo );
 
 int vips_streamo_putc( VipsStreamo *streamo, int ch );
-
 #define VIPS_STREAMO_PUTC( S, C ) ( \
 	(S)->write_point <= VIPS_STREAMO_BUFFER_SIZE ? \
 	((S)->output_buffer[(S)->write_point++] = (C), 0) : \
 	vips_streamo_putc( (S), (C) ) \
 )
-
+int vips_streamo_writes( VipsStreamo *streamo, const char *str );
 int vips_streamo_writef( VipsStreamo *streamo, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
 

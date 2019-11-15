@@ -47,6 +47,7 @@
 #include <vips/intl.h>
 
 #include <stdio.h>
+#include <ctype.h>
 #include <stdlib.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -326,11 +327,11 @@ vips_streamib_require( VipsStreamib *streamib, int require )
  * slower vips_streamib_get_line_copy().
  *
  * The return value is owned by @streamib and must not be freed. It 
- * is valid until the next call to vips_streamib_get_line().
+ * is valid until the next get call @streamib.
  *
- * Returns: the next line from the file, or NULL on EOF or read error.
+ * Returns: the next line of text, or NULL on EOF or read error.
  */
-const unsigned char *
+const char *
 vips_streamib_get_line( VipsStreamib *streamib )
 {
 	int write_point;
@@ -379,7 +380,7 @@ vips_streamib_get_line( VipsStreamib *streamib )
 
 	VIPS_DEBUG_MSG( "    %s\n", streamib->line );
 
-	return( streamib->line );
+	return( (const char *) streamib->line );
 }
 
 /**
@@ -395,9 +396,9 @@ vips_streamib_get_line( VipsStreamib *streamib )
  * This is slower than vips_streamib_get_line(), but can work with lines of
  * any length.
  *
- * Returns: the next line from the file, or NULL on EOF or read error.
+ * Returns: the next line of text, or NULL on EOF or read error.
  */
-unsigned char *
+char *
 vips_streamib_get_line_copy( VipsStreamib *streamib )
 {
 	static const unsigned char null = '\0';
@@ -406,7 +407,7 @@ vips_streamib_get_line_copy( VipsStreamib *streamib )
 
 	GByteArray *buffer;
 	int ch;
-	unsigned char *result;
+	char *result;
 
 	buffer = g_byte_array_new();
 
@@ -435,9 +436,87 @@ vips_streamib_get_line_copy( VipsStreamib *streamib )
 
 	g_byte_array_append( buffer, &null, 1 );
 
-	result = (unsigned char *) g_byte_array_free( buffer, FALSE );
+	result = (char *) g_byte_array_free( buffer, FALSE );
 
 	VIPS_DEBUG_MSG( "    %s\n", result );
 
 	return( result );
+}
+
+/**
+ * vips_streamib_get_non_whitespace:
+ * @streamib: stream to operate on
+ *
+ * Fetch the next chunk of non-whitespace text from the stream, and
+ * null-terminate it. 
+ *
+ * After this, the next getc will be the first char of the next block of
+ * whitespace (or EOF). 
+ *
+ * If the first getc is whitespace, stop instantly and return the empty
+ * string.
+ *
+ * If the item is longer than some arbitrary (but large) limit, it is
+ * truncated. 
+ *
+ * The return value is owned by @streamib and must not be freed. It 
+ * is valid until the next get call @streamib.
+ *
+ * Returns: the next block of non-whitespace, or NULL on EOF or read error.
+ */
+const char *
+vips_streamib_get_non_whitespace( VipsStreamib *streamib )
+{
+	int ch;
+	int i;
+
+	for( i = 0; i < VIPS_STREAMIB_BUFFER_SIZE &&
+		!isspace( ch = VIPS_STREAMIB_GETC( streamib ) ) &&
+		ch != EOF; i++ ) 
+		streamib->line[i] = ch;
+	streamib->line[i] = '\0';
+
+	/* If we stopped before seeing any whitespace, skip to the end of the
+	 * block of non-whitespace.
+	 */
+	if( !isspace( ch ) ) 
+		while( !isspace( ch = VIPS_STREAMIB_GETC( streamib ) ) &&
+			ch != EOF )
+			;
+
+	/* If we finally stopped on whitespace, step back one so the next get
+	 * will be whitespace (or EOF).
+	 */
+	if( isspace( ch ) ) 
+		VIPS_STREAMIB_UNGETC( streamib );
+
+	return( (const char *) streamib->line );
+}
+
+/**
+ * vips_streamib_skip_whitespace:
+ * @streamib: stream to operate on
+ *
+ * After this, the next getc will be the first char of the next block of
+ * non-whitespace (or EOF).
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int 
+vips_streamib_skip_whitespace( VipsStreamib *streamib )
+{
+        int ch;
+
+	while( isspace( ch = VIPS_STREAMIB_GETC( streamib ) ) )
+		;
+	VIPS_STREAMIB_UNGETC( streamib );
+
+	/* # skip comments too.
+	 */
+	if( ch == '#' &&
+		(!vips_streamib_get_line( streamib ) ||
+		 vips_streamib_skip_whitespace( streamib )) )
+		return( -1 );
+
+	return( 0 );
 }

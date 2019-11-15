@@ -506,11 +506,11 @@ getheader(		/* get header from file */
 )
 {
 	for(;;) { 
-		const unsigned char *line;
+		const char *line;
 
 		if( !(line = vips_streamib_get_line( streamib )) )
 			return( -1 );
-		if( strcmp( (char *) line, "" ) == 0 )
+		if( strcmp( line, "" ) == 0 )
 			/* Blank line. We've parsed the header successfully.
 			 */
 			break;
@@ -725,14 +725,14 @@ int
 vips__rad_israd( VipsStreami *streami )
 {
 	VipsStreamib *streamib;
-	const unsigned char *line;
+	const char *line;
 	int result;
 
 	/* Just test that the first line is the magic string.
 	 */
 	streamib = vips_streamib_new( streami );
 	result = (line = vips_streamib_get_line( streamib )) &&
-		strcmp( (char *) line, "#?RADIANCE" ) == 0;
+		strcmp( line, "#?RADIANCE" ) == 0;
 	VIPS_UNREF( streamib );
 
 	return( result );
@@ -832,7 +832,7 @@ static int
 rad2vips_get_header( Read *read, VipsImage *out )
 {
 	VipsInterpretation interpretation;
-	const unsigned char *line;
+	const char *line;
 	int width;
 	int height;
 	int i, j;
@@ -1082,7 +1082,7 @@ vips2rad_put_header( Write *write )
 {
 	vips2rad_make_header( write );
 
-	vips_streamo_writef( write->streamo, "#?RADIANCE\n" );
+	vips_streamo_writes( write->streamo, "#?RADIANCE\n" );
 	vips_streamo_writef( write->streamo, "%s%s\n", FMTSTR, write->format );
 	vips_streamo_writef( write->streamo, "%s%e\n", EXPOSSTR, write->expos );
 	vips_streamo_writef( write->streamo, 
@@ -1099,9 +1099,9 @@ vips2rad_put_header( Write *write )
 		write->prims[GRN][CIEX], write->prims[GRN][CIEY], 
 		write->prims[BLU][CIEX], write->prims[BLU][CIEY], 
 		write->prims[WHT][CIEX], write->prims[WHT][CIEY] );
-	vips_streamo_writef( write->streamo, "\n" );
-	vips_streamo_writef( write->streamo, 
-		"%s", resolu2str( resolu_buf, &write->rs ) );
+	vips_streamo_writes( write->streamo, "\n" );
+	vips_streamo_writes( write->streamo, 
+		resolu2str( resolu_buf, &write->rs ) );
 
 	return( 0 );
 }

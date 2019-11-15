@@ -1135,22 +1135,7 @@ build_scan_properties( VipsImage *image )
 	char *date;
 	int i;
 
-#ifdef HAVE_DATE_TIME_FORMAT_ISO8601
-{
-	GDateTime *now;
-
-	now = g_date_time_new_now_local();
-	date = g_date_time_format_iso8601( now );
-	g_date_time_unref( now );
-}
-#else /*!HAVE_DATE_TIME_FORMAT_ISO8601*/
-{
-	GTimeVal now;
-
-	g_get_current_time( &now );
-	date = g_time_val_to_iso8601( &now );
-}
-#endif /*HAVE_DATE_TIME_FORMAT_ISO8601*/
+	date = vips__get_iso8601();
 
 	vips_dbuf_init( &dbuf );
 	vips_dbuf_writef( &dbuf, "<?xml version=\"1.0\"?>\n" ); 

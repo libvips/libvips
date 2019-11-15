@@ -2024,3 +2024,28 @@ vips__windows_prefix( void )
 	return( (const char *) g_once( &once, 
 		(GThreadFunc) vips__windows_prefix_once, NULL ) );
 }
+
+char *
+vips__get_iso8601( void )
+{
+	char *date;
+
+#ifdef HAVE_DATE_TIME_FORMAT_ISO8601
+{
+	GDateTime *now;
+
+	now = g_date_time_new_now_local();
+	date = g_date_time_format_iso8601( now );
+	g_date_time_unref( now );
+}
+#else /*!HAVE_DATE_TIME_FORMAT_ISO8601*/
+{
+	GTimeVal now;
+
+	g_get_current_time( &now );
+	date = g_time_val_to_iso8601( &now ); 
+}
+#endif /*HAVE_DATE_TIME_FORMAT_ISO8601*/
+
+	return( date );
+}

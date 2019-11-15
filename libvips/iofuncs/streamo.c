@@ -403,35 +403,6 @@ vips_streamo_finish( VipsStreamo *streamo )
 }
 
 /**
- * vips_streamo_writef:
- * @streamo: output stream to operate on
- * @fmt: <function>printf()</function>-style format string
- * @...: arguments to format string
- *
- * Format the string and write to @streamo. 
- * 
- * Returns: 0 on success, and -1 on error.
- */
-int
-vips_streamo_writef( VipsStreamo *streamo, const char *fmt, ... )
-{
-	va_list ap;
-	char *line;
-	int result;
-
-        va_start( ap, fmt );
-	line = g_strdup_vprintf( fmt, ap ); 
-        va_end( ap );
-
-	result = vips_streamo_write( streamo, 
-		(unsigned char *) line, strlen( line ) );
-
-	g_free( line ); 
-
-	return( result ); 
-}
-
-/**
  * vips_streamo_putc:
  * @streamo: output stream to operate on
  * @ch: character to write
@@ -453,6 +424,50 @@ vips_streamo_putc( VipsStreamo *streamo, int ch )
 	streamo->output_buffer[streamo->write_point++] = ch;
 
 	return( 0 );
+}
+
+/**
+ * vips_streamo_writes:
+ * @streamo: output stream to operate on
+ * @str: string to write
+ *
+ * Write a null-terminated string to @streamo.
+ * 
+ * Returns: 0 on success, and -1 on error.
+ */
+int
+vips_streamo_writes( VipsStreamo *streamo, const char *str )
+{
+	return( vips_streamo_write( streamo, 
+		(unsigned char *) str, strlen( str ) ) );
+}
+
+/**
+ * vips_streamo_writef:
+ * @streamo: output stream to operate on
+ * @fmt: <function>printf()</function>-style format string
+ * @...: arguments to format string
+ *
+ * Format the string and write to @streamo. 
+ * 
+ * Returns: 0 on success, and -1 on error.
+ */
+int
+vips_streamo_writef( VipsStreamo *streamo, const char *fmt, ... )
+{
+	va_list ap;
+	char *line;
+	int result;
+
+        va_start( ap, fmt );
+	line = g_strdup_vprintf( fmt, ap ); 
+        va_end( ap );
+
+	result = vips_streamo_writes( streamo, line ); 
+
+	g_free( line ); 
+
+	return( result ); 
 }
 
 /**
