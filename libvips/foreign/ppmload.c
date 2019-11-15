@@ -64,8 +64,7 @@
 
 /* TODO
  *
- * - make partial
- * - only use mmap on filename streams?
+ * - load filename streams with mmap ... we'll need to add get_flags_stream
  */
 
 /*
@@ -331,17 +330,22 @@ vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
 static VipsForeignFlags
 vips_foreign_load_ppm_get_flags( VipsForeignLoad *load )
 {
-	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) load;
-
 	VipsForeignFlags flags;
+
+	flags = 0;
+
+	/* reenable this when mmap load goes back in
+	 * 
+	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) load;
 
 	if( !ppm->have_read_header &&
 		vips_foreign_load_ppm_parse_header( ppm ) )
 		return( 0 );
-
-	flags = 0;
 	if( !ppm->ascii && ppm->bits >= 8 )
 		flags |= VIPS_FOREIGN_PARTIAL;
+	 */
+
+	flags |= VIPS_FOREIGN_SEQUENTIAL;
 
 	return( flags );
 }
@@ -352,6 +356,8 @@ vips_foreign_load_ppm_set_image( VipsForeignLoadPpm *ppm, VipsImage *image )
 	vips_image_init_fields( image,
 		ppm->width, ppm->height, ppm->bands, ppm->format, 
 		VIPS_CODING_NONE, ppm->interpretation, 1.0, 1.0 );
+
+        vips_image_pipelinev( image, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	if( ppm->index == 6 || 
 		ppm->index == 7 ) 
@@ -382,8 +388,6 @@ vips_foreign_load_ppm_header( VipsForeignLoad *load )
 }
 
 /* Read a ppm/pgm file using mmap().
- */
-static int
 load_mmap( VipsForeignLoadPpm *ppm, VipsImage *image )
 {
 	VipsImage **t = (VipsImage **)
@@ -404,7 +408,6 @@ load_mmap( VipsForeignLoadPpm *ppm, VipsImage *image )
 	if( !(t[0] = vips_image_new_from_memory( data, length,
 		ppm->width, ppm->height, ppm->bands, ppm->format )) )
 		return( -1 );
-	vips_foreign_load_ppm_set_image( ppm, t[0] );
 
 	if( vips__byteswap_bool( t[0], &t[1],
                         vips_amiMSBfirst() != ppm->msb_first ) ||
@@ -413,22 +416,47 @@ load_mmap( VipsForeignLoadPpm *ppm, VipsImage *image )
 
 	return( 0 );
 }
-
-/* Read an ascii 1 bit file.
  */
+
 static int
-load_1bit_ascii( VipsForeignLoadPpm *ppm, VipsImage *image )
+vips_foreign_load_ppm_generate_binary( VipsRegion *or, 
+	void *seq, void *a, void *b, gboolean *stop )
 {
+        VipsRect *r = &or->valid;
+	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) a;
+	VipsImage *image = or->im;
+	size_t sizeof_line = VIPS_IMAGE_SIZEOF_LINE( image );
+
+	int y;
+
+	for( y = 0; y < r->height; y++ ) {
+		VipsPel *q = VIPS_REGION_ADDR( or, 0, r->top + y );
+
+		size_t bytes_read;
+
+		bytes_read = vips_streami_read( ppm->streami, q, sizeof_line );
+		if( bytes_read != sizeof_line ) {
+			vips_error( "ppmload", "%s", _( "file truncated" ) );
+			return( -1 );
+		}
+	}
+
+	return( 0 );
+}
+
+static int
+vips_foreign_load_ppm_generate_1bit_ascii( VipsRegion *or, 
+	void *seq, void *a, void *b, gboolean *stop )
+{
+        VipsRect *r = &or->valid;
+	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) a;
+	VipsImage *image = or->im;
+
 	int x, y;
-	VipsPel *buf;
 
-	vips_foreign_load_ppm_set_image( ppm, image );
+	for( y = 0; y < r->height; y++ ) {
+		VipsPel *q = VIPS_REGION_ADDR( or, 0, r->top + y );
 
-	if( !(buf = VIPS_ARRAY( image, 
-		VIPS_IMAGE_SIZEOF_LINE( image ), VipsPel )) )
-		return( -1 );
-
-	for( y = 0; y < image->Ysize; y++ ) {
 		for( x = 0; x < image->Xsize; x++ ) {
 			int val;
 
@@ -436,37 +464,32 @@ load_1bit_ascii( VipsForeignLoadPpm *ppm, VipsImage *image )
 				return( -1 );
 
 			if( val )
-				buf[x] = 0;
+				q[x] = 0;
 			else
-				buf[x] = 255;
+				q[x] = 255;
 		}
-
-		if( vips_image_write_line( image, y, buf ) )
-			return( -1 );
 	}
 
 	return( 0 );
 }
 
-/* Read a 1 bit binary file.
- */
 static int
-load_1bit_binary( VipsForeignLoadPpm *ppm, VipsImage *image )
+vips_foreign_load_ppm_generate_1bit_binary( VipsRegion *or, 
+	void *seq, void *a, void *b, gboolean *stop )
 {
+        VipsRect *r = &or->valid;
+	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) a;
+	VipsImage *image = or->im;
+
 	int x, y;
 	int bits;
-	VipsPel *buf;
-
-	vips_foreign_load_ppm_set_image( ppm, image );
-
-	if( !(buf = VIPS_ARRAY( image, 
-		VIPS_IMAGE_SIZEOF_LINE( image ), VipsPel )) )
-		return( -1 );
 
 	bits = VIPS_STREAMIB_GETC( ppm->streamib );
-	for( y = 0; y < image->Ysize; y++ ) {
+	for( y = 0; y < r->height; y++ ) {
+		VipsPel *q = VIPS_REGION_ADDR( or, 0, r->top + y );
+
 		for( x = 0; x < image->Xsize; x++ ) {
-			buf[x] = (bits & 128) ? 0 : 255;
+			q[x] = (bits & 128) ? 0 : 255;
 			bits = VIPS_LSHIFT_INT( bits, 1 );
 			if( (x & 7) == 7 )
 				bits = VIPS_STREAMIB_GETC( ppm->streamib );
@@ -476,28 +499,26 @@ load_1bit_binary( VipsForeignLoadPpm *ppm, VipsImage *image )
 		 */
 		if( (x & 7) != 0 )
 			bits = VIPS_STREAMIB_GETC( ppm->streamib );
-
-		if( vips_image_write_line( image, y, buf ) )
-			return( -1 );
 	}
 
 	return( 0 );
 }
 
-/* Read an ascii ppm/pgm file.
- */
 static int
-load_ascii( VipsForeignLoadPpm *ppm, VipsImage *image )
+vips_foreign_load_ppm_generate_ascii_int( VipsRegion *or, 
+	void *seq, void *a, void *b, gboolean *stop )
 {
-	int x, y;
-	VipsPel *buf;
+        VipsRect *r = &or->valid;
+	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) a;
+	VipsImage *image = or->im;
+	int n_elements = image->Xsize * image->Bands;
 
-	if( !(buf = 
-		VIPS_ARRAY( image, VIPS_IMAGE_SIZEOF_LINE( image ), VipsPel )) )
-		return( -1 );
+	int i, y;
 
-	for( y = 0; y < image->Ysize; y++ ) {
-		for( x = 0; x < image->Xsize * image->Bands; x++ ) {
+	for( y = 0; y < r->height; y++ ) {
+		VipsPel *q = VIPS_REGION_ADDR( or, r->left, r->top + y );
+
+		for( i = 0; i < n_elements; i++ ) {
 			int val;
 
 			if( get_int( ppm->streamib, &val ) )
@@ -505,25 +526,22 @@ load_ascii( VipsForeignLoadPpm *ppm, VipsImage *image )
 			
 			switch( image->BandFmt ) {
 			case VIPS_FORMAT_UCHAR:
-				buf[x] = VIPS_CLIP( 0, val, 255 );
+				q[i] = VIPS_CLIP( 0, val, 255 );
 				break;
 
 			case VIPS_FORMAT_USHORT:
-				((unsigned short *) buf)[x] = 
+				((unsigned short *) q)[i] = 
 					VIPS_CLIP( 0, val, 65535 );
 				break;
 
 			case VIPS_FORMAT_UINT:
-				((unsigned int *) buf)[x] = val;
+				((unsigned int *) q)[i] = val;
 				break;
 
 			default:
 				g_assert_not_reached();
 			}
 		}
-
-		if( vips_image_write_line( image, y, buf ) )
-			return( -1 );
 	}
 
 	return( 0 );
@@ -535,8 +553,10 @@ static int
 vips_foreign_load_ppm_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) load;
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( (VipsObject *) load, 2 );
 
-	VipsPpmLoaderFn loader;
+	VipsGenerateFn generate;
 
 	if( !ppm->have_read_header &&
 		vips_foreign_load_ppm_parse_header( ppm ) )
@@ -544,20 +564,29 @@ vips_foreign_load_ppm_load( VipsForeignLoad *load )
 
 	/* What sort of read are we doing?
 	 */
-	if( !ppm->ascii && ppm->bits >= 8 )
-		loader = load_mmap;
-	else if( !ppm->ascii && ppm->bits == 1 )
-		loader = load_1bit_binary;
-	else if( ppm->ascii && ppm->bits == 1 )
-		loader = load_1bit_ascii;
-	else 
-		loader = load_ascii;
+	if( !ppm->ascii && ppm->bits >= 8 ) {
+		generate = vips_foreign_load_ppm_generate_binary;
 
-	if( vips_streami_decode( ppm->streami ) ||
-		loader( ppm, load->real ) )
+		/* The binary loader does not use the buffered IO object.
+		 */
+		vips_streamib_unbuffer( ppm->streamib ); 
+	}
+	else if( !ppm->ascii && ppm->bits == 1 )
+		generate = vips_foreign_load_ppm_generate_1bit_binary;
+	else if( ppm->ascii && ppm->bits == 1 )
+		generate = vips_foreign_load_ppm_generate_1bit_ascii;
+	else 
+		generate = vips_foreign_load_ppm_generate_ascii_int;
+
+	t[0] = vips_image_new(); 
+	vips_foreign_load_ppm_set_image( ppm, t[0] );
+	if( vips_image_generate( t[0], NULL, generate, NULL, ppm, NULL ) ||
+		vips_sequential( t[0], &t[1], NULL ) ||
+		vips_image_write( t[1], load->real ) ) 
 		return( -1 );
 
-	vips_streami_minimise( ppm->streami );
+	if( vips_streami_decode( ppm->streami ) )
+		return( -1 );
 
 	return( 0 );
 }

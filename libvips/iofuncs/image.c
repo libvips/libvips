@@ -1918,17 +1918,25 @@ vips_image_new_from_file( const char *name, ... )
 
 	/* Search with the new stream API first, then fall back to the older
 	 * mechanism in case the loader we need has not been converted yet.
+	 *
+	 * We need to hide any errors from this first phase.
 	 */
 	if( !(streami = vips_streami_new_from_filename( filename )) )
 		return( NULL );
 
-	if( (operation_name = vips_foreign_find_load_stream( streami )) ) {
+	vips_error_freeze();
+	operation_name = vips_foreign_find_load_stream( streami );
+	vips_error_thaw();
+
+	if( operation_name ) { 
 		va_start( ap, name );
 		result = vips_call_split_option_string( operation_name, 
 			option_string, ap, streami, &out );
 		va_end( ap );
 	}
 	else {
+		/* Fall back to the old file loader system.
+		 */
 		if( !(operation_name = vips_foreign_find_load( filename )) )
 			return( NULL );
 
