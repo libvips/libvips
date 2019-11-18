@@ -278,7 +278,7 @@ vips_g_input_stream_skip( GInputStream *stream, gsize count,
 	if( g_cancellable_set_error_if_cancelled( cancellable, error ) )
 		return( -1 );
 
-	start = vips_streami_seek( streami, 0, SEEK_CUR );
+	start = vips_streami_seek( streami, count, SEEK_CUR );
 	if( start == -1 ) {
 		g_set_error( error, G_IO_ERROR,
 			G_IO_ERROR_FAILED,
@@ -287,28 +287,7 @@ vips_g_input_stream_skip( GInputStream *stream, gsize count,
 		return( -1 );
 	}
 
-	end = vips_streami_seek( streami, 0, SEEK_END );
-	if( end == -1 ) {
-		g_set_error( error, G_IO_ERROR,
-			G_IO_ERROR_FAILED,
-			_( "Error while seeking: %s" ),
-			vips_error_buffer() );
-		return( -1 );
-	}
-
-	if( end - start > count ) {
-		end = vips_streami_seek( streami, count - (end - start),
-			SEEK_CUR );
-		if( end == -1 ) {
-			g_set_error( error, G_IO_ERROR,
-				G_IO_ERROR_FAILED,
-				_( "Error while seeking: %s" ),
-				vips_error_buffer() );
-			return( -1 );
-		}
-	}
-
-	return( end - start );
+	return( count );
 }
 
 static gboolean
