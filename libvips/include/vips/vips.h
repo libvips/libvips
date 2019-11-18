@@ -115,6 +115,7 @@ extern "C" {
 #include <vips/type.h>
 #include <vips/gate.h>
 #include <vips/stream.h>
+#include <vips/bufis.h>
 
 #include <vips/version.h>
 #include <vips/rect.h>

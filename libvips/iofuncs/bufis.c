@@ -1,6 +1,6 @@
-/* A layer over streami to provide buffered and line-based input.
- * 
- * J.Cupitt, 19/6/14
+/* Buffered input from a stream.
+ *
+ * J.Cupitt, 18/11/19
  */
 
 /*
@@ -30,13 +30,6 @@
 
  */
 
-/* TODO
- *
- * - can we map and then close the fd? how about on Windows?
- * - make a subclass that lets you set vfuncs as params, inc. close(),
- *   is_pipe etc.
- */
-
 /*
 #define VIPS_DEBUG
  */
@@ -63,10 +56,10 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-G_DEFINE_TYPE( VipsStreamib, vips_streamib, VIPS_TYPE_OBJECT );
+G_DEFINE_TYPE( VipsBufis, vips_bufis, VIPS_TYPE_OBJECT );
 
 static void
-vips_streamib_class_init( VipsStreamibClass *class )
+vips_bufis_class_init( VipsBufisClass *class )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -74,160 +67,160 @@ vips_streamib_class_init( VipsStreamibClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "streamib";
+	object_class->nickname = "bufis";
 	object_class->description = _( "buffered input stream" );
 
 	VIPS_ARG_OBJECT( class, "input", 1,
 		_( "Input" ),
 		_( "Stream to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsStreamib, streami ),
+		G_STRUCT_OFFSET( VipsBufis, streami ),
 		VIPS_TYPE_STREAMI );
 
 }
 
 static void
-vips_streamib_init( VipsStreamib *streamib )
+vips_bufis_init( VipsBufis *bufis )
 {
-	streamib->read_point = 0;
-	streamib->chars_in_buffer = 0;
-	streamib->input_buffer[0] = '\0';
+	bufis->read_point = 0;
+	bufis->chars_in_buffer = 0;
+	bufis->input_buffer[0] = '\0';
 }
 
 /**
- * vips_streamib_new:
+ * vips_bufis_new_from_streami:
  * @streami: stream to operate on
  *
- * Create a streamib wrapping a streami. 
+ * Create a bufis wrapping a streami. 
  *
- * Returns: a new #VipsStreamib
+ * Returns: a new #VipsBufis
  */
-VipsStreamib *
-vips_streamib_new( VipsStreami *streami )
+VipsBufis *
+vips_bufis_new_from_streami( VipsStreami *streami )
 {
-	VipsStreamib *streamib;
+	VipsBufis *bufis;
 
-	streamib = VIPS_STREAMIB( g_object_new( VIPS_TYPE_STREAMIB, 
+	bufis = VIPS_BUFIS( g_object_new( VIPS_TYPE_BUFIS, 
 		"input", streami,
 		NULL ) );
 
-	if( vips_object_build( VIPS_OBJECT( streamib ) ) ) {
-		VIPS_UNREF( streamib );
+	if( vips_object_build( VIPS_OBJECT( bufis ) ) ) {
+		VIPS_UNREF( bufis );
 		return( NULL );
 	}
 
-	return( streamib ); 
+	return( bufis ); 
 }
 
 /**
- * vips_streamib_unbuffer:
- * @streamib: stream to operate on
+ * vips_bufis_unbuffer:
+ * @bufis: stream to operate on
  *
  * Discard the input buffer and reset the read point. You must call this
  * before using read or seek on the underlying #VipsStreami class.
  */
 void
-vips_streamib_unbuffer( VipsStreamib *streamib )
+vips_bufis_unbuffer( VipsBufis *bufis )
 {
 	/* We'd read ahead a little way -- seek backwards by that amount.
 	 */
-	vips_streami_seek( streamib->streami, 
-		streamib->read_point - streamib->chars_in_buffer, SEEK_CUR );
-	streamib->read_point = 0;
-	streamib->chars_in_buffer = 0;
+	vips_streami_seek( bufis->streami, 
+		bufis->read_point - bufis->chars_in_buffer, SEEK_CUR );
+	bufis->read_point = 0;
+	bufis->chars_in_buffer = 0;
 }
 
 /* Returns -1 on error, 0 on EOF, otherwise bytes read.
  */
 static ssize_t
-vips_streamib_refill( VipsStreamib *streamib )
+vips_bufis_refill( VipsBufis *bufis )
 {
 	ssize_t bytes_read;
 
-	VIPS_DEBUG_MSG( "vips_streamib_refill:\n" );
+	VIPS_DEBUG_MSG( "vips_bufis_refill:\n" );
 
 	/* We should not discard any unread bytes.
 	 */
-	g_assert( streamib->read_point == streamib->chars_in_buffer );
+	g_assert( bufis->read_point == bufis->chars_in_buffer );
 
-	bytes_read = vips_streami_read( streamib->streami, 
-		streamib->input_buffer, VIPS_STREAMIB_BUFFER_SIZE );
+	bytes_read = vips_streami_read( bufis->streami, 
+		bufis->input_buffer, VIPS_BUFIS_BUFFER_SIZE );
 	if( bytes_read == -1 )
 		return( -1 );
 
-	streamib->read_point = 0;
-	streamib->chars_in_buffer = bytes_read;
+	bufis->read_point = 0;
+	bufis->chars_in_buffer = bytes_read;
 	
 	/* Always add a null byte so we can use strchr() etc. on lines. This is 
-	 * safe because input_buffer is VIPS_STREAMIB_BUFFER_SIZE + 1 bytes.
+	 * safe because input_buffer is VIPS_BUFIS_BUFFER_SIZE + 1 bytes.
 	 */
-	streamib->input_buffer[bytes_read] = '\0';
+	bufis->input_buffer[bytes_read] = '\0';
 
 	return( bytes_read );
 }
 
 /**
- * vips_streamib_getc:
- * @streamib: stream to operate on
+ * vips_bufis_getc:
+ * @bufis: stream to operate on
  *
  * Fetch the next character from the stream. 
  *
- * If you can, use the macro VIPS_STREAMIB_GETC() instead for speed.
+ * If you can, use the macro VIPS_BUFIS_GETC() instead for speed.
  *
- * Returns: the next char from @streamib, -1 on read error or EOF.
+ * Returns: the next char from @bufis, -1 on read error or EOF.
  */
 int
-vips_streamib_getc( VipsStreamib *streamib )
+vips_bufis_getc( VipsBufis *bufis )
 {
-	if( streamib->read_point == streamib->chars_in_buffer &&
-		vips_streamib_refill( streamib ) <= 0 )
+	if( bufis->read_point == bufis->chars_in_buffer &&
+		vips_bufis_refill( bufis ) <= 0 )
 		return( -1 );
 
-	g_assert( streamib->read_point < streamib->chars_in_buffer );
+	g_assert( bufis->read_point < bufis->chars_in_buffer );
 
-	return( streamib->input_buffer[streamib->read_point++] );
+	return( bufis->input_buffer[bufis->read_point++] );
 }
 
 /** 
- * VIPS_STREAMIB_GETC:
- * @streamib: stream to operate on
+ * VIPS_BUFIS_GETC:
+ * @bufis: stream to operate on
  *
  * Fetch the next character from the stream. 
  *
- * Returns: the next char from @streamib, -1 on read error or EOF.
+ * Returns: the next char from @bufis, -1 on read error or EOF.
  */
 
 /**
- * vips_streamib_ungetc:
- * @streamib: stream to operate on
+ * vips_bufis_ungetc:
+ * @bufis: stream to operate on
  *
- * The opposite of vips_streamib_getc(): undo the previous getc.
+ * The opposite of vips_bufis_getc(): undo the previous getc.
  *
  * unget more than one character is undefined. Unget at the start of the file 
  * does nothing.
  *
- * If you can, use the macro VIPS_STREAMIB_UNGETC() instead for speed.
+ * If you can, use the macro VIPS_BUFIS_UNGETC() instead for speed.
  */
 void
-vips_streamib_ungetc( VipsStreamib *streamib )
+vips_bufis_ungetc( VipsBufis *bufis )
 {
-	if( streamib->read_point > 0 ) 
-		streamib->read_point -= 1;
+	if( bufis->read_point > 0 ) 
+		bufis->read_point -= 1;
 }
 
 /**
- * VIPS_STREAMIB_UNGETC:
- * @streamib: stream to operate on
+ * VIPS_BUFIS_UNGETC:
+ * @bufis: stream to operate on
  *
- * The opposite of vips_streamib_getc(): undo the previous getc.
+ * The opposite of vips_bufis_getc(): undo the previous getc.
  *
  * unget more than one character is undefined. Unget at the start of the file 
  * does nothing.
  */
 
 /**
- * vips_streamib_require:
- * @streamib: stream to operate on
+ * vips_bufis_require:
+ * @bufis: stream to operate on
  * @require: make sure we have at least this many chars available
  *
  * Make sure there are at least @require bytes of readahead available.
@@ -235,46 +228,46 @@ vips_streamib_ungetc( VipsStreamib *streamib )
  * Returns: 0 on success, -1 on error or EOF.
  */
 int
-vips_streamib_require( VipsStreamib *streamib, int require )
+vips_bufis_require( VipsBufis *bufis, int require )
 {
-	g_assert( require < VIPS_STREAMIB_BUFFER_SIZE ); 
-	g_assert( streamib->chars_in_buffer >= 0 );
-	g_assert( streamib->chars_in_buffer <= VIPS_STREAMIB_BUFFER_SIZE );
-	g_assert( streamib->read_point >= 0 ); 
-	g_assert( streamib->read_point <= streamib->chars_in_buffer );
+	g_assert( require < VIPS_BUFIS_BUFFER_SIZE ); 
+	g_assert( bufis->chars_in_buffer >= 0 );
+	g_assert( bufis->chars_in_buffer <= VIPS_BUFIS_BUFFER_SIZE );
+	g_assert( bufis->read_point >= 0 ); 
+	g_assert( bufis->read_point <= bufis->chars_in_buffer );
 
-	VIPS_DEBUG_MSG( "vips_streamib_require: %d\n", require );
+	VIPS_DEBUG_MSG( "vips_bufis_require: %d\n", require );
 
-	if( streamib->read_point + require > streamib->chars_in_buffer ) {
+	if( bufis->read_point + require > bufis->chars_in_buffer ) {
 		/* Areas can overlap, so we must memmove().
 		 */
-		memmove( streamib->input_buffer, 
-			streamib->input_buffer + streamib->read_point,
-			streamib->chars_in_buffer - streamib->read_point );
-		streamib->chars_in_buffer -= streamib->read_point;
-		streamib->read_point = 0;
+		memmove( bufis->input_buffer, 
+			bufis->input_buffer + bufis->read_point,
+			bufis->chars_in_buffer - bufis->read_point );
+		bufis->chars_in_buffer -= bufis->read_point;
+		bufis->read_point = 0;
 
-		while( require > streamib->chars_in_buffer ) {
-			unsigned char *to = streamib->input_buffer + 
-				streamib->chars_in_buffer;
+		while( require > bufis->chars_in_buffer ) {
+			unsigned char *to = bufis->input_buffer + 
+				bufis->chars_in_buffer;
 			int space_available = 
-				VIPS_STREAMIB_BUFFER_SIZE - 
-				streamib->chars_in_buffer;
+				VIPS_BUFIS_BUFFER_SIZE - 
+				bufis->chars_in_buffer;
 			size_t bytes_read;
 
-			if( (bytes_read = vips_streami_read( streamib->streami,
+			if( (bytes_read = vips_streami_read( bufis->streami,
 				to, space_available )) == -1 )
 				return( -1 );
 			if( bytes_read == 0 ) { 
 				vips_error( 
 					vips_stream_nick( VIPS_STREAM( 
-						streamib->streami ) ), 
+						bufis->streami ) ), 
 					"%s", _( "end of file" ) ); 
 				return( -1 );
 			}
 
 			to[bytes_read] = '\0';
-			streamib->chars_in_buffer += bytes_read;
+			bufis->chars_in_buffer += bytes_read;
 		}
 	}
 
@@ -282,41 +275,41 @@ vips_streamib_require( VipsStreamib *streamib, int require )
 }
 
 /** 
- * VIPS_STREAMIB_REQUIRE:
- * @streamib: stream to operate on
+ * VIPS_BUFIS_REQUIRE:
+ * @bufis: stream to operate on
  * @require: need this many characters
  *
  * Make sure at least @require characters are available for 
- * VIPS_STREAMIB_PEEK() and VIPS_STREAMIB_FETCH().
+ * VIPS_BUFIS_PEEK() and VIPS_BUFIS_FETCH().
  *
  * Returns: 0 on success, -1 on read error or EOF.
  */
 
 /** 
- * VIPS_STREAMIB_PEEK:
- * @streamib: stream to operate on
+ * VIPS_BUFIS_PEEK:
+ * @bufis: stream to operate on
  *
- * After a successful VIPS_STREAMIB_REQUIRE(), you can index this to get
+ * After a successful VIPS_BUFIS_REQUIRE(), you can index this to get
  * require characters of input.
  *
  * Returns: a pointer to the next requre characters of input.
  */
 
 /** 
- * VIPS_STREAMIB_FETCH:
- * @streamib: stream to operate on
+ * VIPS_BUFIS_FETCH:
+ * @bufis: stream to operate on
  *
- * After a successful VIPS_STREAMIB_REQUIRE(), you can use this require times
+ * After a successful VIPS_BUFIS_REQUIRE(), you can use this require times
  * to fetch characters of input.
  *
  * Returns: the next input character.
  */
 
 /**
- * vips_streamib_get_line:
- * @streamib: stream to operate on
+ * vips_bufis_get_line:
+ * @bufis: stream to operate on
  *
- * Fetch the next line of text from @streamib and return it. The end of 
+ * Fetch the next line of text from @bufis and return it. The end of 
  * line character (or characters, for DOS files) are removed, and the string
  * is terminated with a null (`\0` character).
  *
@@ -324,33 +317,33 @@ vips_streamib_require( VipsStreamib *streamib, int require )
  *
  * If the line is longer than some arbitrary (but large) limit, is is
  * truncated. If you need to be able to read very long lines, use the
- * slower vips_streamib_get_line_copy().
+ * slower vips_bufis_get_line_copy().
  *
- * The return value is owned by @streamib and must not be freed. It 
- * is valid until the next get call @streamib.
+ * The return value is owned by @bufis and must not be freed. It 
+ * is valid until the next get call @bufis.
  *
  * Returns: the next line of text, or NULL on EOF or read error.
  */
 const char *
-vips_streamib_get_line( VipsStreamib *streamib )
+vips_bufis_get_line( VipsBufis *bufis )
 {
 	int write_point;
 	int space_remaining;
 	int ch;
 
-	VIPS_DEBUG_MSG( "vips_streamib_get_line:\n" );
+	VIPS_DEBUG_MSG( "vips_bufis_get_line:\n" );
 
 	write_point = 0;
-	space_remaining = VIPS_STREAMIB_BUFFER_SIZE;
+	space_remaining = VIPS_BUFIS_BUFFER_SIZE;
 
-	while( (ch = VIPS_STREAMIB_GETC( streamib )) != -1 &&
+	while( (ch = VIPS_BUFIS_GETC( bufis )) != -1 &&
 		ch != '\n' &&
 		space_remaining > 0 ) {
-		streamib->line[write_point] = ch;
+		bufis->line[write_point] = ch;
 		write_point += 1;
 		space_remaining -= 1;
 	}
-	streamib->line[write_point] = '\0';
+	bufis->line[write_point] = '\0';
 
 	/* If we hit EOF immediately, return EOF.
 	 */
@@ -365,27 +358,27 @@ vips_streamib_get_line( VipsStreamib *streamib )
 	 * lines, but ignore this.
 	 */
 	if( write_point > 0 &&
-		streamib->line[write_point - 1] == '\r' )
-		streamib->line[write_point - 1] = '\0';
+		bufis->line[write_point - 1] == '\r' )
+		bufis->line[write_point - 1] = '\0';
 
 	/* If we filled the output line without seeing \n, keep going to the
 	 * next \n.
 	 */
 	if( ch != '\n' &&
 		space_remaining == 0 ) {
-		while( (ch = VIPS_STREAMIB_GETC( streamib )) != -1 &&
+		while( (ch = VIPS_BUFIS_GETC( bufis )) != -1 &&
 			ch != '\n' ) 
 			;
 	}
 
-	VIPS_DEBUG_MSG( "    %s\n", streamib->line );
+	VIPS_DEBUG_MSG( "    %s\n", bufis->line );
 
-	return( (const char *) streamib->line );
+	return( (const char *) bufis->line );
 }
 
 /**
- * vips_streamib_get_line_copy:
- * @streamib: stream to operate on
+ * vips_bufis_get_line_copy:
+ * @bufis: stream to operate on
  *
  * Return the next line of text from the stream. The newline character (or
  * characters) are removed, and and the string is terminated with a null
@@ -393,17 +386,17 @@ vips_streamib_get_line( VipsStreamib *streamib )
  *
  * The return result must be freed with g_free().
  *
- * This is slower than vips_streamib_get_line(), but can work with lines of
+ * This is slower than vips_bufis_get_line(), but can work with lines of
  * any length.
  *
  * Returns: the next line of text, or NULL on EOF or read error.
  */
 char *
-vips_streamib_get_line_copy( VipsStreamib *streamib )
+vips_bufis_get_line_copy( VipsBufis *bufis )
 {
 	static const unsigned char null = '\0';
 
-	VIPS_DEBUG_MSG( "vips_streamib_get_line_copy:\n" );
+	VIPS_DEBUG_MSG( "vips_bufis_get_line_copy:\n" );
 
 	GByteArray *buffer;
 	int ch;
@@ -411,7 +404,7 @@ vips_streamib_get_line_copy( VipsStreamib *streamib )
 
 	buffer = g_byte_array_new();
 
-	while( (ch = VIPS_STREAMIB_GETC( streamib )) != -1 &&
+	while( (ch = VIPS_BUFIS_GETC( bufis )) != -1 &&
 		ch != '\n' ) {
 		unsigned char c = ch;
 
@@ -444,8 +437,8 @@ vips_streamib_get_line_copy( VipsStreamib *streamib )
 }
 
 /**
- * vips_streamib_get_non_whitespace:
- * @streamib: stream to operate on
+ * vips_bufis_get_non_whitespace:
+ * @bufis: stream to operate on
  *
  * Fetch the next chunk of non-whitespace text from the stream, and
  * null-terminate it. 
@@ -459,28 +452,28 @@ vips_streamib_get_line_copy( VipsStreamib *streamib )
  * If the item is longer than some arbitrary (but large) limit, it is
  * truncated. 
  *
- * The return value is owned by @streamib and must not be freed. It 
- * is valid until the next get call @streamib.
+ * The return value is owned by @bufis and must not be freed. It 
+ * is valid until the next get call @bufis.
  *
  * Returns: the next block of non-whitespace, or NULL on EOF or read error.
  */
 const char *
-vips_streamib_get_non_whitespace( VipsStreamib *streamib )
+vips_bufis_get_non_whitespace( VipsBufis *bufis )
 {
 	int ch;
 	int i;
 
-	for( i = 0; i < VIPS_STREAMIB_BUFFER_SIZE &&
-		!isspace( ch = VIPS_STREAMIB_GETC( streamib ) ) &&
+	for( i = 0; i < VIPS_BUFIS_BUFFER_SIZE &&
+		!isspace( ch = VIPS_BUFIS_GETC( bufis ) ) &&
 		ch != EOF; i++ ) 
-		streamib->line[i] = ch;
-	streamib->line[i] = '\0';
+		bufis->line[i] = ch;
+	bufis->line[i] = '\0';
 
 	/* If we stopped before seeing any whitespace, skip to the end of the
 	 * block of non-whitespace.
 	 */
 	if( !isspace( ch ) ) 
-		while( !isspace( ch = VIPS_STREAMIB_GETC( streamib ) ) &&
+		while( !isspace( ch = VIPS_BUFIS_GETC( bufis ) ) &&
 			ch != EOF )
 			;
 
@@ -488,14 +481,14 @@ vips_streamib_get_non_whitespace( VipsStreamib *streamib )
 	 * will be whitespace (or EOF).
 	 */
 	if( isspace( ch ) ) 
-		VIPS_STREAMIB_UNGETC( streamib );
+		VIPS_BUFIS_UNGETC( bufis );
 
-	return( (const char *) streamib->line );
+	return( (const char *) bufis->line );
 }
 
 /**
- * vips_streamib_skip_whitespace:
- * @streamib: stream to operate on
+ * vips_bufis_skip_whitespace:
+ * @bufis: stream to operate on
  *
  * After this, the next getc will be the first char of the next block of
  * non-whitespace (or EOF).
@@ -503,19 +496,19 @@ vips_streamib_get_non_whitespace( VipsStreamib *streamib )
  * Returns: 0 on success, -1 on error.
  */
 int 
-vips_streamib_skip_whitespace( VipsStreamib *streamib )
+vips_bufis_skip_whitespace( VipsBufis *bufis )
 {
         int ch;
 
-	while( isspace( ch = VIPS_STREAMIB_GETC( streamib ) ) )
+	while( isspace( ch = VIPS_BUFIS_GETC( bufis ) ) )
 		;
-	VIPS_STREAMIB_UNGETC( streamib );
+	VIPS_BUFIS_UNGETC( bufis );
 
 	/* # skip comments too.
 	 */
 	if( ch == '#' &&
-		(!vips_streamib_get_line( streamib ) ||
-		 vips_streamib_skip_whitespace( streamib )) )
+		(!vips_bufis_get_line( bufis ) ||
+		 vips_bufis_skip_whitespace( bufis )) )
 		return( -1 );
 
 	return( 0 );
