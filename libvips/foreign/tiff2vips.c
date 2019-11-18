@@ -189,6 +189,8 @@
  * 7/6/19
  * 	- istiff reads the first directory rather than just testing the magic
  * 	  number, so it ignores more TIFF-like, but not TIFF images
+ * 18/11/19
+ * 	- support ASSOCALPHA in any alpha band
  */
 
 /*
@@ -219,6 +221,7 @@
  */
 
 /* 
+#define DEBUG_VERBOSE
 #define DEBUG
  */
 
@@ -253,7 +256,10 @@ typedef struct _RtiffHeader {
 	int sample_format;
 	gboolean separate; 
 	int orientation; 
-	gboolean premultiplied;
+	/* If there's a premultiplied alpha, the band we need to 
+	 * unpremultiply with. -1 for no unpremultiplication.
+	 */
+	int alpha_band;
 	uint16 compression;
 
 	/* Result of TIFFIsTiled().
@@ -549,9 +555,9 @@ rtiff_strip_read( Rtiff *rtiff, int strip, tdata_t buf )
 {
 	tsize_t length;
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "rtiff_strip_read: reading strip %d\n", strip ); 
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	if( rtiff->header.read_scanlinewise )  
 		length = TIFFReadScanline( rtiff->tiff, 
@@ -1542,10 +1548,10 @@ rtiff_fill_region_aligned( VipsRegion *out, void *seq, void *a, void *b )
 	g_assert( r->height == rtiff->header.tile_height );
 	g_assert( VIPS_REGION_LSKIP( out ) == VIPS_REGION_SIZEOF_LINE( out ) );
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "rtiff_fill_region_aligned: left = %d, top = %d\n", 
 		r->left, r->top ); 
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	VIPS_GATE_START( "rtiff_fill_region_aligned: work" ); 
 
@@ -1729,10 +1735,13 @@ rtiff_autorotate( Rtiff *rtiff, VipsImage *in, VipsImage **out )
 static int
 rtiff_unpremultiply( Rtiff *rtiff, VipsImage *in, VipsImage **out )
 {
-	if( rtiff->header.premultiplied ) {
+	if( rtiff->header.alpha_band != -1 ) {
 		VipsImage *x;
 
-		if( vips_unpremultiply( in, &x, NULL ) ||
+		if( 
+			vips_unpremultiply( in, &x, 
+				"alpha_band", rtiff->header.alpha_band,
+				NULL ) ||
 			vips_cast( x, out, in->BandFmt, NULL ) ) {
 			g_object_unref( x );
 			return( -1 );
@@ -1881,11 +1890,11 @@ rtiff_stripwise_generate( VipsRegion *or,
 
 	int y;
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "rtiff_stripwise_generate: top = %d, height = %d\n",
 		r->top, r->height );
 	printf( "rtiff_stripwise_generate: y_top = %d\n", rtiff->y_pos );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	/* We're inside a tilecache where tiles are the full image width, so
 	 * this should always be true.
@@ -2315,8 +2324,25 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 
 	TIFFGetFieldDefaulted( rtiff->tiff, TIFFTAG_EXTRASAMPLES,
 		&extra_samples_count, &extra_samples_types );
-	header->premultiplied = extra_samples_count > 0 &&
-		extra_samples_types[0] == EXTRASAMPLE_ASSOCALPHA;
+
+	header->alpha_band = -1;
+	if( extra_samples_count > 0 ) {
+		/* There must be exactly one band which is 
+		 * EXTRASAMPLE_ASSOCALPHA. Note which one it is so we can 
+		 * unpremultiply with the right channel.
+		 */
+		int i;
+
+		for( i = 0; i < extra_samples_count; i++ ) 
+			if( extra_samples_types[i] == EXTRASAMPLE_ASSOCALPHA ) {
+				if( header->alpha_band != -1 )
+					g_warning( "%s", _( "more than one "
+						"alpha -- ignoring" ) );
+
+				header->alpha_band = header->samples_per_pixel -
+					extra_samples_count + i;
+			}
+	}
 
 	return( 0 );
 }
