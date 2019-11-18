@@ -3,7 +3,6 @@ noinst_LTLIBRARIES = libiofuncs.la
 libiofuncs_la_SOURCES = \
 	stream.c \
 	streami.c \
-	streamiw.c \
 	streamo.c \
 	bufis.c \
 	dbuf.c \

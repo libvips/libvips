@@ -64,10 +64,317 @@
 #include <ctype.h>
 
 #include <vips/vips.h>
-#include <vips/buf.h>
 #include <vips/internal.h>
+#include <vips/debug.h>
 
 #ifdef HAVE_RSVG
+
+/* A GInputStream that's actually a VipsStreami under the hood. This lets us
+ * hook librsvg up to libvips using the GInputStream interface.
+ */
+
+#define VIPS_TYPE_G_INPUT_STREAM (vips_g_input_stream_get_type())
+#define VIPS_G_INPUT_STREAM( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_G_INPUT_STREAM, VipsGInputStream ))
+#define VIPS_G_INPUT_STREAM_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_G_INPUT_STREAM, VipsGInputStreamClass))
+#define VIPS_IS_G_INPUT_STREAM( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_G_INPUT_STREAM ))
+#define VIPS_IS_G_INPUT_STREAM_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_G_INPUT_STREAM ))
+#define VIPS_G_INPUT_STREAM_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_G_INPUT_STREAM, VipsGInputStreamClass ))
+
+/* GInputStream <--> VipsStreami
+ */
+typedef struct _VipsGInputStream {
+	GInputStream parent_instance;
+
+	/*< private >*/
+
+	/* The VipsStreami we wrap.
+	 */
+	VipsStreami *streami;
+
+} VipsGInputStream;
+
+typedef struct _VipsGInputStreamClass {
+	GInputStreamClass parent_class;
+
+} VipsGInputStreamClass;
+
+static void vips_g_input_stream_seekable_iface_init( GSeekableIface *iface );
+
+G_DEFINE_TYPE_WITH_CODE( VipsGInputStream, vips_g_input_stream, 
+	G_TYPE_INPUT_STREAM, G_IMPLEMENT_INTERFACE( G_TYPE_SEEKABLE,
+		vips_g_input_stream_seekable_iface_init ) )
+
+enum {
+	PROP_0,
+	PROP_STREAM
+};
+
+static void
+vips_g_input_stream_get_property( GObject *object, guint prop_id,
+	GValue *value, GParamSpec *pspec )
+{
+	VipsGInputStream *gstream = VIPS_G_INPUT_STREAM( object );
+
+	switch( prop_id ) {
+	case PROP_STREAM:
+		g_value_set_object( value, gstream->streami );
+		break;
+
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID( object, prop_id, pspec );
+	}
+}
+
+static void
+vips_g_input_stream_set_property( GObject *object, guint prop_id,
+	const GValue *value, GParamSpec *pspec )
+{
+	VipsGInputStream *gstream = VIPS_G_INPUT_STREAM( object );
+
+	switch( prop_id ) {
+	case PROP_STREAM:
+		gstream->streami = g_value_dup_object( value );
+		break;
+
+	default:
+		G_OBJECT_WARN_INVALID_PROPERTY_ID( object, prop_id, pspec );
+	}
+}
+
+static void
+vips_g_input_stream_finalize( GObject *object )
+{
+	VipsGInputStream *gstream = VIPS_G_INPUT_STREAM( object );
+
+	VIPS_FREEF( g_object_unref, gstream->streami );
+
+	G_OBJECT_CLASS( vips_g_input_stream_parent_class )->finalize( object );
+}
+
+static goffset
+vips_g_input_stream_tell( GSeekable *seekable )
+{
+	VipsStreami *streami = VIPS_G_INPUT_STREAM( seekable )->streami;
+
+	goffset pos;
+
+	VIPS_DEBUG_MSG( "vips_g_input_stream_tell:\n" );
+
+	pos = vips_streami_seek( streami, 0, SEEK_CUR );
+	if( pos == -1 )
+		return( 0 );
+
+	return( pos );
+}
+
+static gboolean
+vips_g_input_stream_can_seek( GSeekable *seekable )
+{
+	VipsStreami *streami = VIPS_G_INPUT_STREAM( seekable )->streami;
+
+	VIPS_DEBUG_MSG( "vips_g_input_stream_can_seek: %d\n", 
+		!streami->is_pipe );
+
+	return( !streami->is_pipe );
+}
+
+static int
+seek_type_to_lseek( GSeekType type )
+{
+	switch( type ) {
+	default:
+	case G_SEEK_CUR:
+		return( SEEK_CUR );
+	case G_SEEK_SET:
+		return( SEEK_SET );
+	case G_SEEK_END:
+		return( SEEK_END );
+	}
+}
+
+static gboolean
+vips_g_input_stream_seek( GSeekable *seekable, goffset offset,
+	GSeekType type, GCancellable *cancellable, GError **error )
+{
+	VipsStreami *streami = VIPS_G_INPUT_STREAM( seekable )->streami;
+
+	VIPS_DEBUG_MSG( "vips_g_input_stream_seek: offset = %" G_GINT64_FORMAT
+		", type = %d\n", offset, type );
+
+	if( vips_streami_seek( streami, offset, 
+		seek_type_to_lseek( type ) ) == -1 ) {
+		g_set_error( error, G_IO_ERROR,
+			G_IO_ERROR_FAILED,
+			_( "Error while seeking: %s" ),
+			vips_error_buffer() );
+		return( FALSE );
+	}
+
+
+	return( TRUE );
+}
+
+static gboolean
+vips_g_input_stream_can_truncate( GSeekable *seekable )
+{
+	return( FALSE );
+}
+
+static gboolean
+vips_g_input_stream_truncate( GSeekable *seekable, goffset offset,
+	GCancellable *cancellable, GError **error )
+{
+	g_set_error_literal( error,
+		G_IO_ERROR,
+		G_IO_ERROR_NOT_SUPPORTED,
+		_( "Cannot truncate VipsGInputStream" ) );
+
+	return( FALSE );
+}
+
+static gssize
+vips_g_input_stream_read( GInputStream *stream, void *buffer, gsize count,
+	GCancellable *cancellable, GError **error )
+{
+	VipsStreami *streami;
+	gssize res;
+
+	streami = VIPS_G_INPUT_STREAM( stream )->streami;
+
+	VIPS_DEBUG_MSG( "vips_g_input_stream_read: count: %zd\n", count );
+
+	if( g_cancellable_set_error_if_cancelled( cancellable, error ) )
+		return( -1 );
+
+	if( (res = vips_streami_read( streami, buffer, count )) == -1 )
+		g_set_error( error, G_IO_ERROR,
+			G_IO_ERROR_FAILED,
+			_( "Error while reading: %s" ),
+			vips_error_buffer() );
+
+	return( res );
+}
+
+static gssize
+vips_g_input_stream_skip( GInputStream *stream, gsize count,
+	GCancellable *cancellable, GError **error )
+{
+	VipsStreami *streami;
+	goffset start;
+	goffset end;
+
+	streami = VIPS_G_INPUT_STREAM( stream )->streami;
+
+	VIPS_DEBUG_MSG( "vips_g_input_stream_skip: count: %zd\n", count );
+
+	if( g_cancellable_set_error_if_cancelled( cancellable, error ) )
+		return( -1 );
+
+	start = vips_streami_seek( streami, 0, SEEK_CUR );
+	if( start == -1 ) {
+		g_set_error( error, G_IO_ERROR,
+			G_IO_ERROR_FAILED,
+			_( "Error while seeking: %s" ),
+			vips_error_buffer() );
+		return( -1 );
+	}
+
+	end = vips_streami_seek( streami, 0, SEEK_END );
+	if( end == -1 ) {
+		g_set_error( error, G_IO_ERROR,
+			G_IO_ERROR_FAILED,
+			_( "Error while seeking: %s" ),
+			vips_error_buffer() );
+		return( -1 );
+	}
+
+	if( end - start > count ) {
+		end = vips_streami_seek( streami, count - (end - start),
+			SEEK_CUR );
+		if( end == -1 ) {
+			g_set_error( error, G_IO_ERROR,
+				G_IO_ERROR_FAILED,
+				_( "Error while seeking: %s" ),
+				vips_error_buffer() );
+			return( -1 );
+		}
+	}
+
+	return( end - start );
+}
+
+static gboolean
+vips_g_input_stream_close( GInputStream *stream,
+	GCancellable *cancellable, GError **error )
+{
+	VipsGInputStream *gstream = VIPS_G_INPUT_STREAM( stream );
+
+	vips_streami_minimise( gstream->streami );
+
+	return( TRUE );
+}
+
+static void
+vips_g_input_stream_seekable_iface_init( GSeekableIface *iface )
+{
+	iface->tell = vips_g_input_stream_tell;
+	iface->can_seek = vips_g_input_stream_can_seek;
+	iface->seek = vips_g_input_stream_seek;
+	iface->can_truncate = vips_g_input_stream_can_truncate;
+	iface->truncate_fn = vips_g_input_stream_truncate;
+}
+
+static void
+vips_g_input_stream_class_init( VipsGInputStreamClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	GInputStreamClass *istream_class = G_INPUT_STREAM_CLASS( class );
+
+	gobject_class->finalize = vips_g_input_stream_finalize;
+	gobject_class->get_property = vips_g_input_stream_get_property;
+	gobject_class->set_property = vips_g_input_stream_set_property;
+
+	istream_class->read_fn = vips_g_input_stream_read;
+	istream_class->skip = vips_g_input_stream_skip;
+	istream_class->close_fn = vips_g_input_stream_close;
+
+	g_object_class_install_property( gobject_class, PROP_STREAM,
+		g_param_spec_object( "input",
+			_( "Input" ),
+			_( "Stream to wrap" ),
+			VIPS_TYPE_STREAMI, G_PARAM_CONSTRUCT_ONLY | 
+				G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS ) );
+
+}
+
+static void
+vips_g_input_stream_init( VipsGInputStream *gstream )
+{
+}
+
+/**
+ * g_input_stream_new_from_vips:
+ * @streami: stream to wrap
+ *
+ * Create a new #GInputStream wrapping a #VipsStreami.
+ *
+ * Returns: a new #GInputStream
+ */
+static GInputStream *
+g_input_stream_new_from_vips( VipsStreami *streami )
+{
+	return( g_object_new( VIPS_TYPE_G_INPUT_STREAM,
+		"input", streami,
+		NULL ) );
+}
 
 #include <cairo.h>
 #include <librsvg/rsvg.h>

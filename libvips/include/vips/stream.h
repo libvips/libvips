@@ -217,43 +217,6 @@ size_t vips_streami_sniff_at_most( VipsStreami *streami,
 unsigned char *vips_streami_sniff( VipsStreami *streami, size_t length );
 gint64 vips_streami_size( VipsStreami *streami ); 
 
-#define VIPS_TYPE_STREAMIW (vips_streamiw_get_type())
-#define VIPS_STREAMIW( obj ) \
-	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_STREAMIW, VipsStreamiw ))
-#define VIPS_STREAMIW_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_STREAMIW, VipsStreamiwClass))
-#define VIPS_IS_STREAMIW( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_STREAMIW ))
-#define VIPS_IS_STREAMIW_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_STREAMIW ))
-#define VIPS_STREAMIW_GET_CLASS( obj ) \
-	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_STREAMIW, VipsStreamiwClass ))
-
-/* GInputStream <--> VipsStreami
- */
-typedef struct _VipsStreamiw {
-	GInputStream parent_instance;
-
-	/*< private >*/
-
-	/* The VipsStreami we wrap.
-	 */
-	VipsStreami *streami;
-
-} VipsStreamiw;
-
-typedef struct _VipsStreamiwClass {
-	GInputStreamClass parent_class;
-
-} VipsStreamiwClass;
-
-GType vips_streamiw_get_type( void );
-
-GInputStream *g_input_stream_new_from_vips( VipsStreami *streami );
-
 #define VIPS_TYPE_STREAMO (vips_streamo_get_type())
 #define VIPS_STREAMO( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \

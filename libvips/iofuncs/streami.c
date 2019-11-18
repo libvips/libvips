@@ -882,7 +882,8 @@ vips_streami_is_mappable( VipsStreami *streami )
 	 */
 	return( streami->data ||
 		VIPS_STREAM( streami )->filename ||
-		(streami->is_pipe && VIPS_STREAM( streami )->descriptor) );
+		(streami->is_pipe && 
+		 VIPS_STREAM( streami )->descriptor) );
 }
 
 /**
