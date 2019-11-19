@@ -475,6 +475,16 @@ PKG_CHECK_MODULES(CONTEXT_GET_HELP, glib-2.0 >= 2.14,
   ]
 )
 
+# from 2.15 we have GIO
+PKG_CHECK_MODULES(GIO, glib-2.0 >= 2.15,
+  [AC_DEFINE(HAVE_GIO,1,
+	    [define if your glib has GIO.]
+   )
+  ],
+  [:
+  ]
+)
+
 # from 2.28 we have a monotonic timer
 PKG_CHECK_MODULES(MONOTONIC_TIME, glib-2.0 >= 2.28,
   [AC_DEFINE(HAVE_MONOTONIC_TIME,1,
@@ -508,6 +518,8 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
    AC_DEFINE(HAVE_VALUE_GET_SCHAR,1,
 	     [define if your glib has g_value_get_schar().]
    )
+  ],
+  [:
   ]
 )
 
