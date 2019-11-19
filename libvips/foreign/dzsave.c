@@ -826,7 +826,7 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 		real_pixels->left, real_pixels->top ); 
 	printf( "\treal_pixels.width = %d, real_pixels.height = %d\n", 
 		real_pixels->width, real_pixels->height ); 
-#endif
+#endif /*DEBUG*/
 
 	return( layer );
 }
@@ -1697,7 +1697,7 @@ strip_shrink( Layer *layer )
 #ifdef DEBUG
 	printf( "strip_shrink: %d lines in layer %d to layer %d\n", 
 		from->valid.height, layer->n, below->n ); 
-#endif/*DEBUG*/
+#endif /*DEBUG*/
 
 	/* We may have an extra column of pixels on the right or
 	 * bottom that need filling: generate them.
@@ -1779,7 +1779,7 @@ strip_arrived( Layer *layer )
 #ifdef DEBUG
 	printf( "strip_arrived: layer %d, strip at %d, height %d\n", 
 		layer->n, layer->y, layer->strip->valid.height ); 
-#endif/*DEBUG*/
+#endif /*DEBUG*/
 
 	if( strip_save( layer ) )
 		return( -1 );
@@ -1873,7 +1873,7 @@ pyramid_strip( VipsRegion *region, VipsRect *area, void *a )
 #ifdef DEBUG
 	printf( "pyramid_strip: strip at %d, height %d\n", 
 		area->top, area->height );
-#endif/*DEBUG*/
+#endif /*DEBUG*/
 
 	for(;;) {
 		VipsRect *to = &layer->strip->valid;
@@ -1929,7 +1929,7 @@ pyramid_strip( VipsRegion *region, VipsRect *area, void *a )
 	if( layer->write_y == layer->height ) {
 #ifdef DEBUG
 		printf( "pyramid_strip: flushing ..\n" ); 
-#endif/*DEBUG*/
+#endif /*DEBUG*/
 
 		if( strip_flush( layer ) )
 			return( -1 );
@@ -2091,7 +2091,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 #ifdef DEBUG
 		printf( "centre: centring within a %d x %d image\n", 
 			size, size );
-#endif
+#endif /*DEBUG*/
 
 	}
 
@@ -2104,7 +2104,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 		dz->tile_margin );
 	printf( "vips_foreign_save_dz_build: tile_step == %d\n", 
 		dz->tile_step );
-#endif
+#endif /*DEBUG*/
 
 	/* Build the skeleton of the image pyramid.
 	 */
@@ -2243,7 +2243,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 				"using default compression" ) ); 
 			dz->compression = -1;
 		}
-#endif
+#endif /*HAVE_GSF_DEFLATE_LEVEL*/
 
 		dz->tree = vips_gsf_tree_new( out2, dz->compression );
 
