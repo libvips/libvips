@@ -293,6 +293,9 @@ vips_streamo_write_unbuffered( VipsStreamo *streamo,
 {
 	VipsStreamoClass *class = VIPS_STREAMO_GET_CLASS( streamo );
 
+	if( streamo->finished )
+		return( 0 );
+
 	if( streamo->memory ) 
 		g_byte_array_append( streamo->memory, data, length );
 	else 
@@ -375,7 +378,10 @@ vips_streamo_write( VipsStreamo *streamo, const void *buffer, size_t length )
  * @buffer: bytes to write
  * @length: length of @buffer in bytes
  *
- * Call this at the end of write to make the stream do any cleaning up.
+ * Call this at the end of write to make the stream do any cleaning up. You
+ * can call it many times. 
+ *
+ * After a streamo has been finished, further writes will do nothing.
  */
 void
 vips_streamo_finish( VipsStreamo *streamo )
@@ -383,6 +389,9 @@ vips_streamo_finish( VipsStreamo *streamo )
 	VipsStreamoClass *class = VIPS_STREAMO_GET_CLASS( streamo );
 
 	VIPS_DEBUG_MSG( "vips_streamo_finish:\n" );
+
+	if( streamo->finished )
+		return;
 
 	(void) vips_streamo_flush( streamo );
 
@@ -400,6 +409,69 @@ vips_streamo_finish( VipsStreamo *streamo )
 	}
 	else
 		class->finish( streamo );
+
+	streamo->finished = TRUE;
+}
+
+/**
+ * vips_streamo_steal: 
+ * @streamo: output stream to operate on
+ * @length: return number of bytes of data
+ *
+ * Memory streams only (see vips_streamo_new_to_memory()). Steal all data
+ * written to the stream so far, and finish it.
+ *
+ * You must free the returned pointer with g_free().
+ *
+ * The data is NOT automatically null-terminated. vips_streamo_putc() a '\0' 
+ * before calling this to get a null-terminated string.
+ *
+ * Returns: (array length=length) (element-type guint8) (transfer full): the 
+ * data
+ */
+unsigned char *
+vips_streamo_steal( VipsStreamo *streamo, size_t *length )
+{
+	unsigned char *data;
+
+	(void) vips_streamo_flush( streamo );
+
+	if( !streamo->memory ||
+		streamo->finished ) {
+		if( length )
+			*length = streamo->memory->len;
+
+		return( NULL );
+	}
+
+	if( length )
+		*length = streamo->memory->len;
+	data = g_byte_array_free( streamo->memory, FALSE );
+	streamo->memory = NULL;
+
+	/* We must have a valid byte array or finish will fail.
+	 */
+	streamo->memory = g_byte_array_new();
+
+	vips_streamo_finish( streamo );
+
+	return( data );
+}
+
+/**
+ * vips_streamo_steal_text: 
+ * @streamo: output stream to operate on
+ *
+ * As vips_streamo_steal_text(), but return a null-terminated string.
+ *
+ * Returns: (transfer full): stream contents as a null-terminated string.
+ */
+char *
+vips_streamo_steal_text( VipsStreamo *streamo )
+{
+	vips_streamo_putc( streamo, '\0' );  
+
+	return( (char *) vips_streamo_steal( streamo, NULL ) ); 
 }
 
 /**
@@ -417,7 +489,7 @@ vips_streamo_putc( VipsStreamo *streamo, int ch )
 {
 	VIPS_DEBUG_MSG( "vips_streamo_putc: %d\n", ch );
 
-	if( streamo->write_point > VIPS_STREAMO_BUFFER_SIZE && 
+	if( streamo->write_point >= VIPS_STREAMO_BUFFER_SIZE && 
 		vips_streamo_flush( streamo ) )
 		return( -1 );
 
@@ -504,27 +576,24 @@ vips_streamo_write_amp( VipsStreamo *streamo, const char *str )
 			 * control characters, so we can use them -- thanks
 			 * electroly.
 			 */
-			if( !vips_streamo_writef( streamo, 
+			if( vips_streamo_writef( streamo, 
 				"&#x%04x;", 0x2400 + *p ) )
 				return( -1 );	
 		}
 		else if( *p == '<' ) {
-			if( !vips_streamo_write( streamo, 
-				(guchar *) "&lt;", 4 ) )
+			if( vips_streamo_writes( streamo, "&lt;" ) )
 				return( -1 );
 		}
 		else if( *p == '>' ) {
-			if( !vips_streamo_write( streamo, 
-				(guchar *) "&gt;", 4 ) )
+			if( vips_streamo_writes( streamo, "&gt;" ) )
 				return( -1 );
 		}
 		else if( *p == '&' ) {
-			if( !vips_streamo_write( streamo, 
-				(guchar *) "&amp;", 5 ) )
+			if( vips_streamo_writes( streamo, "&amp;" ) )
 				return( -1 );
 		}
 		else  {
-			if( !vips_streamo_putc( streamo, *p ) )
+			if( VIPS_STREAMO_PUTC( streamo, *p ) )
 				return( -1 );
 		}
 

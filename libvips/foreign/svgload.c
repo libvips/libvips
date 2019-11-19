@@ -268,8 +268,7 @@ vips_g_input_stream_skip( GInputStream *stream, gsize count,
 	GCancellable *cancellable, GError **error )
 {
 	VipsStreami *streami;
-	goffset start;
-	goffset end;
+	gssize position;
 
 	streami = VIPS_G_INPUT_STREAM( stream )->streami;
 
@@ -278,8 +277,8 @@ vips_g_input_stream_skip( GInputStream *stream, gsize count,
 	if( g_cancellable_set_error_if_cancelled( cancellable, error ) )
 		return( -1 );
 
-	start = vips_streami_seek( streami, count, SEEK_CUR );
-	if( start == -1 ) {
+	position = vips_streami_seek( streami, count, SEEK_CUR );
+	if( position == -1 ) {
 		g_set_error( error, G_IO_ERROR,
 			G_IO_ERROR_FAILED,
 			_( "Error while seeking: %s" ),
@@ -287,7 +286,7 @@ vips_g_input_stream_skip( GInputStream *stream, gsize count,
 		return( -1 );
 	}
 
-	return( count );
+	return( position );
 }
 
 static gboolean

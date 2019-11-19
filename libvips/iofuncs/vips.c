@@ -912,7 +912,7 @@ static void *
 vips__xml_properties_meta( VipsImage *image, 
 	const char *field, GValue *value, void *a )
 {
-	VipsDbuf *dbuf = (VipsDbuf *) a;
+	VipsStreamo *streamo = (VipsStreamo *) a;
 	GType type = G_VALUE_TYPE( value );
 
 	const char *str;
@@ -928,19 +928,19 @@ vips__xml_properties_meta( VipsImage *image,
 		if( !g_value_transform( value, &save_value ) ) {
 			vips_error( "VipsImage", "%s", 
 				_( "error transforming to save format" ) );
-			return( dbuf );
+			return( streamo );
 		}
 		str = vips_value_get_save_string( &save_value );
 
-		vips_dbuf_writef( dbuf, "    <property>\n" );  
-		vips_dbuf_writef( dbuf, "      <name>" ); 
-		vips_dbuf_write_amp( dbuf, field );
-		vips_dbuf_writef( dbuf, "</name>\n" ); 
-		vips_dbuf_writef( dbuf, "      <value type=\"%s\">",
+		vips_streamo_writef( streamo, "    <property>\n" );  
+		vips_streamo_writef( streamo, "      <name>" ); 
+		vips_streamo_write_amp( streamo, field );
+		vips_streamo_writef( streamo, "</name>\n" ); 
+		vips_streamo_writef( streamo, "      <value type=\"%s\">",
 			g_type_name( type ) );  
-		vips_dbuf_write_amp( dbuf, str );
-		vips_dbuf_writef( dbuf, "</value>\n" ); 
-		vips_dbuf_writef( dbuf, "    </property>\n" );  
+		vips_streamo_write_amp( streamo, str );
+		vips_streamo_writef( streamo, "</value>\n" ); 
+		vips_streamo_writef( streamo, "    </property>\n" );  
 
 		g_value_unset( &save_value );
 	}
@@ -954,31 +954,31 @@ vips__xml_properties_meta( VipsImage *image,
 char *
 vips__xml_properties( VipsImage *image )
 {
-	VipsDbuf dbuf;
+	VipsStreamo *streamo;
 	char *date;
 
 	date = vips__get_iso8601();
 
-	vips_dbuf_init( &dbuf ); 
-	vips_dbuf_writef( &dbuf, "<?xml version=\"1.0\"?>\n" ); 
-	vips_dbuf_writef( &dbuf, "<image xmlns=\"%s/dzsave\" "
+	streamo = vips_streamo_new_to_memory();
+	vips_streamo_writef( streamo, "<?xml version=\"1.0\"?>\n" ); 
+	vips_streamo_writef( streamo, "<image xmlns=\"%s/dzsave\" "
 		"date=\"%s\" version=\"%d.%d.%d\">\n", 
 		NAMESPACE_URI, 
 		date, 
 		VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION, VIPS_MICRO_VERSION );
-	vips_dbuf_writef( &dbuf, "  <properties>\n" );  
+	vips_streamo_writef( streamo, "  <properties>\n" );  
 
 	g_free( date ); 
 
-	if( vips_image_map( image, vips__xml_properties_meta, &dbuf ) ) {
-		vips_dbuf_destroy( &dbuf );
+	if( vips_image_map( image, vips__xml_properties_meta, streamo ) ) {
+		VIPS_UNREF( streamo );
 		return( NULL );
 	}
 
-	vips_dbuf_writef( &dbuf, "  </properties>\n" );  
-	vips_dbuf_writef( &dbuf, "</image>\n" );  
+	vips_streamo_writef( streamo, "  </properties>\n" );  
+	vips_streamo_writef( streamo, "</image>\n" );  
 
-	return( (char *) vips_dbuf_steal( &dbuf, NULL ) ); 
+	return( vips_streamo_steal_text( streamo ) ); 
 }
 
 /* Append XML to output fd.

@@ -241,6 +241,10 @@ typedef struct _VipsStreamo {
 
 	/*< private >*/
 
+	/* The stream has been finished and can no longer be written.
+	 */
+	gboolean finished;
+
 	/* Write memory output here.
 	 */
 	GByteArray *memory;
@@ -278,16 +282,19 @@ VipsStreamo *vips_streamo_new_to_filename( const char *filename );
 VipsStreamo *vips_streamo_new_to_memory( void );
 int vips_streamo_write( VipsStreamo *streamo, const void *data, size_t length );
 void vips_streamo_finish( VipsStreamo *streamo );
+unsigned char *vips_streamo_steal( VipsStreamo *streamo, size_t *length );
+char *vips_streamo_steal_text( VipsStreamo *streamo );
 
 int vips_streamo_putc( VipsStreamo *streamo, int ch );
 #define VIPS_STREAMO_PUTC( S, C ) ( \
-	(S)->write_point <= VIPS_STREAMO_BUFFER_SIZE ? \
+	(S)->write_point < VIPS_STREAMO_BUFFER_SIZE ? \
 	((S)->output_buffer[(S)->write_point++] = (C), 0) : \
 	vips_streamo_putc( (S), (C) ) \
 )
 int vips_streamo_writes( VipsStreamo *streamo, const char *str );
 int vips_streamo_writef( VipsStreamo *streamo, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
+int vips_streamo_write_amp( VipsStreamo *streamo, const char *str );
 
 #ifdef __cplusplus
 }
