@@ -62,6 +62,7 @@ typedef struct _VipsUnpremultiply {
 	VipsImage *in;
 
 	double max_alpha;
+	int alpha_band;
 
 } VipsUnpremultiply;
 
@@ -76,17 +77,21 @@ G_DEFINE_TYPE( VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION );
 	OUT * restrict q = (OUT *) out; \
 	\
 	for( x = 0; x < width; x++ ) { \
-		IN alpha = p[bands - 1]; \
+		IN alpha = p[alpha_band]; \
 		IN clip_alpha = VIPS_CLIP( 0, alpha, max_alpha ); \
 		OUT nalpha = (OUT) clip_alpha / max_alpha; \
 		\
 		if( nalpha == 0 ) \
-			for( i = 0; i < bands - 1; i++ ) \
+			for( i = 0; i < alpha_band + 1; i++ ) \
 				q[i] = 0; \
-		else \
-			for( i = 0; i < bands - 1; i++ ) \
+		else { \
+			for( i = 0; i < alpha_band; i++ ) \
 				q[i] = p[i] / nalpha; \
-		q[i] = clip_alpha; \
+			q[alpha_band] = clip_alpha; \
+		} \
+		\
+		for( i = alpha_band + 1; i < bands; i++ ) \
+			q[i] = p[i]; \
 		\
 		p += bands; \
 		q += bands; \
@@ -108,13 +113,14 @@ G_DEFINE_TYPE( VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION );
 			q[0] = 0; \
 			q[1] = 0; \
 			q[2] = 0; \
+			q[3] = 0; \
 		} \
 		else { \
 			q[0] = p[0] / nalpha; \
 			q[1] = p[1] / nalpha; \
 			q[2] = p[2] / nalpha; \
+			q[3] = clip_alpha; \
 		} \
-		q[3] = clip_alpha; \
 		\
 		p += 4; \
 		q += 4; \
@@ -141,6 +147,7 @@ vips_unpremultiply_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	int width = r->width;
 	int bands = im->Bands; 
 	double max_alpha = unpremultiply->max_alpha;
+	int alpha_band = unpremultiply->alpha_band;
 
 	int x, y, i;
 
@@ -235,6 +242,11 @@ vips_unpremultiply_build( VipsObject *object )
 			in->Type == VIPS_INTERPRETATION_RGB16 )
 			unpremultiply->max_alpha = 65535;
 
+	/* Is alpha-band unset? Default to the final band for this image. 
+	 */
+	if( !vips_object_argument_isset( object, "alpha_band" ) ) 
+		unpremultiply->alpha_band = in->Bands - 1;
+
 	if( in->BandFmt == VIPS_FORMAT_DOUBLE )
 		conversion->out->BandFmt = VIPS_FORMAT_DOUBLE;
 	else
@@ -279,6 +291,13 @@ vips_unpremultiply_class_init( VipsUnpremultiplyClass *class )
 		G_STRUCT_OFFSET( VipsUnpremultiply, max_alpha ),
 		0, 100000000, 255 );
 
+	VIPS_ARG_INT( class, "alpha_band", 116, 
+		_( "Alpha band" ), 
+		_( "Unpremultiply with this alpha" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsUnpremultiply, alpha_band ),
+		0, 100000000, 3 );
+
 }
 
 static void
@@ -296,10 +315,11 @@ vips_unpremultiply_init( VipsUnpremultiply *unpremultiply )
  * Optional arguments:
  *
  * * @max_alpha: %gdouble, maximum value for alpha
+ * * @alpha_band: %gint, band containing alpha data
  *
  * Unpremultiplies any alpha channel. 
- * The final band is taken to be the alpha
- * and the bands are transformed as:
+ * Band @alpha_band (by default the final band) contains the alpha and all 
+ * other bands are transformed as:
  *
  * |[
  *   alpha = (int) clip( 0, in[in.bands - 1], @max_alpha ); 
@@ -312,8 +332,7 @@ vips_unpremultiply_init( VipsUnpremultiply *unpremultiply )
  *
  * So for an N-band image, the first N - 1 bands are divided by the clipped 
  * and normalised final band, the final band is clipped. 
- * If there is only a single band, 
- * the image is passed through unaltered.
+ * If there is only a single band, the image is passed through unaltered.
  *
  * The result is
  * #VIPS_FORMAT_FLOAT unless the input format is #VIPS_FORMAT_DOUBLE, in which

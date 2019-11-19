@@ -191,6 +191,8 @@
  * 	  number, so it ignores more TIFF-like, but not TIFF images
  * 17/10/19
  * 	- switch to stream input
+ * 18/11/19
+ * 	- support ASSOCALPHA in any alpha band
  */
 
 /*
@@ -221,6 +223,7 @@
  */
 
 /* 
+#define DEBUG_VERBOSE
 #define DEBUG
  */
 
@@ -255,7 +258,10 @@ typedef struct _RtiffHeader {
 	int sample_format;
 	gboolean separate; 
 	int orientation; 
-	gboolean premultiplied;
+	/* If there's a premultiplied alpha, the band we need to 
+	 * unpremultiply with. -1 for no unpremultiplication.
+	 */
+	int alpha_band;
 	uint16 compression;
 
 	/* Result of TIFFIsTiled().
@@ -562,9 +568,9 @@ rtiff_strip_read( Rtiff *rtiff, int strip, tdata_t buf )
 {
 	tsize_t length;
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "rtiff_strip_read: reading strip %d\n", strip ); 
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	if( rtiff->header.read_scanlinewise )  
 		length = TIFFReadScanline( rtiff->tiff, 
@@ -800,6 +806,57 @@ rtiff_parse_labpack( Rtiff *rtiff, VipsImage *out )
 	return( 0 );
 }
 
+
+/* Per-scanline process function for 8-bit VIPS_CODING_LAB to 16-bit LabS with
+ * alpha.
+ */
+static void
+rtiff_lab_with_alpha_line( Rtiff *rtiff,
+	VipsPel *q, VipsPel *p, int n, void *dummy )
+{
+	int samples_per_pixel = rtiff->header.samples_per_pixel;
+
+	unsigned char *p1;
+	short *q1;
+	int x;
+
+	p1 = (unsigned char *) p;
+	q1 = (short *) q;
+	for( x = 0; x < n; x++ ) {
+		int i;
+
+		q1[0] = ((unsigned int) p1[0]) * 32767 / 255;
+		q1[1] = ((short) p1[1]) << 8;
+		q1[2] = ((short) p1[2]) << 8;
+
+		for( i = 3; i < samples_per_pixel; i++ )
+			q1[i] = (p1[i] << 8) + p1[i];
+
+		q1 += samples_per_pixel;
+		p1 += samples_per_pixel;
+	}
+}
+
+/* Read an 8-bit LAB image with alpha bands into 16-bit LabS.
+ */
+static int
+rtiff_parse_lab_with_alpha( Rtiff *rtiff, VipsImage *out )
+{
+	if( rtiff_check_min_samples( rtiff, 4 ) ||
+		rtiff_check_bits( rtiff, 8 ) ||
+		rtiff_check_interpretation( rtiff, PHOTOMETRIC_CIELAB ) )
+		return( -1 );
+
+	out->Bands = rtiff->header.samples_per_pixel;
+	out->BandFmt = VIPS_FORMAT_SHORT;
+	out->Coding = VIPS_CODING_NONE;
+	out->Type = VIPS_INTERPRETATION_LABS;
+
+	rtiff->sfn = rtiff_lab_with_alpha_line;
+
+	return( 0 );
+}
+
 /* Per-scanline process function for LABS.
  */
 static void
@@ -815,7 +872,7 @@ rtiff_labs_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *dummy )
 	p1 = (unsigned short *) p;
 	q1 = (short *) q;
 	for( x = 0; x < n; x++ ) {
-		/* We use a signed int16 for L.
+		/* We use signed int16 for L.
 		 */
 		q1[0] = p1[0] >> 1;
 
@@ -1327,10 +1384,15 @@ rtiff_pick_reader( Rtiff *rtiff )
 	int bits_per_sample = rtiff->header.bits_per_sample;
 	int photometric_interpretation = 
 		rtiff->header.photometric_interpretation;
+	int samples_per_pixel = rtiff->header.samples_per_pixel;
 
 	if( photometric_interpretation == PHOTOMETRIC_CIELAB ) {
-		if( bits_per_sample == 8 )
-			return( rtiff_parse_labpack );
+		if( bits_per_sample == 8 ) {
+			if( samples_per_pixel > 3 )
+				return( rtiff_parse_lab_with_alpha );
+			else
+				return( rtiff_parse_labpack );
+		}
 		if( bits_per_sample == 16 )
 			return( rtiff_parse_labs );
 	}
@@ -1502,10 +1564,10 @@ rtiff_fill_region_aligned( VipsRegion *out, void *seq, void *a, void *b )
 	g_assert( r->height == rtiff->header.tile_height );
 	g_assert( VIPS_REGION_LSKIP( out ) == VIPS_REGION_SIZEOF_LINE( out ) );
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "rtiff_fill_region_aligned: left = %d, top = %d\n", 
 		r->left, r->top ); 
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	VIPS_GATE_START( "rtiff_fill_region_aligned: work" ); 
 
@@ -1689,10 +1751,13 @@ rtiff_autorotate( Rtiff *rtiff, VipsImage *in, VipsImage **out )
 static int
 rtiff_unpremultiply( Rtiff *rtiff, VipsImage *in, VipsImage **out )
 {
-	if( rtiff->header.premultiplied ) {
+	if( rtiff->header.alpha_band != -1 ) {
 		VipsImage *x;
 
-		if( vips_unpremultiply( in, &x, NULL ) ||
+		if( 
+			vips_unpremultiply( in, &x, 
+				"alpha_band", rtiff->header.alpha_band,
+				NULL ) ||
 			vips_cast( x, out, in->BandFmt, NULL ) ) {
 			g_object_unref( x );
 			return( -1 );
@@ -1841,11 +1906,11 @@ rtiff_stripwise_generate( VipsRegion *or,
 
 	int y;
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "rtiff_stripwise_generate: top = %d, height = %d\n",
 		r->top, r->height );
 	printf( "rtiff_stripwise_generate: y_top = %d\n", rtiff->y_pos );
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	/* We're inside a tilecache where tiles are the full image width, so
 	 * this should always be true.
@@ -2275,8 +2340,25 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 
 	TIFFGetFieldDefaulted( rtiff->tiff, TIFFTAG_EXTRASAMPLES,
 		&extra_samples_count, &extra_samples_types );
-	header->premultiplied = extra_samples_count > 0 &&
-		extra_samples_types[0] == EXTRASAMPLE_ASSOCALPHA;
+
+	header->alpha_band = -1;
+	if( extra_samples_count > 0 ) {
+		/* There must be exactly one band which is 
+		 * EXTRASAMPLE_ASSOCALPHA. Note which one it is so we can 
+		 * unpremultiply with the right channel.
+		 */
+		int i;
+
+		for( i = 0; i < extra_samples_count; i++ ) 
+			if( extra_samples_types[i] == EXTRASAMPLE_ASSOCALPHA ) {
+				if( header->alpha_band != -1 )
+					g_warning( "%s", _( "more than one "
+						"alpha -- ignoring" ) );
+
+				header->alpha_band = header->samples_per_pixel -
+					extra_samples_count + i;
+			}
+	}
 
 	return( 0 );
 }
