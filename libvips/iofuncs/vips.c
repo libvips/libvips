@@ -813,7 +813,7 @@ vips__write_extension_block( VipsImage *im, void *buf, int size )
 /* Append a string to a buffer, but escape " as \".
  */
 static void
-dbuf_write_quotes( VipsDbuf *dbuf, const char *str )
+streamo_write_quotes( VipsStreamo *streamo, const char *str )
 {
 	const char *p;
 	size_t len;
@@ -821,14 +821,14 @@ dbuf_write_quotes( VipsDbuf *dbuf, const char *str )
 	for( p = str; *p; p += len ) {
 		len = strcspn( p, "\"" );
 
-		vips_dbuf_write( dbuf, (unsigned char *) p, len );
+		vips_streamo_write( streamo, (unsigned char *) p, len );
 		if( p[len] == '"' )
-			vips_dbuf_writef( dbuf, "\\" );
+			vips_streamo_writes( streamo, "\\" );
 	}
 }
 
 static void *
-build_xml_meta( VipsMeta *meta, VipsDbuf *dbuf )
+build_xml_meta( VipsMeta *meta, VipsStreamo *streamo )
 {
 	GType type = G_VALUE_TYPE( &meta->value );
 
@@ -853,13 +853,13 @@ build_xml_meta( VipsMeta *meta, VipsDbuf *dbuf )
 		 */
 		str = vips_value_get_save_string( &save_value );
 		if( g_utf8_validate( str, -1, NULL ) ) { 
-			vips_dbuf_writef( dbuf, 
+			vips_streamo_writef( streamo, 
 				"    <field type=\"%s\" name=\"", 
 				g_type_name( type ) ); 
-			dbuf_write_quotes( dbuf, meta->name );
-			vips_dbuf_writef( dbuf, "\">" );  
-			vips_dbuf_write_amp( dbuf, str );
-			vips_dbuf_writef( dbuf, "</field>\n" );  
+			streamo_write_quotes( streamo, meta->name );
+			vips_streamo_writes( streamo, "\">" );  
+			vips_streamo_write_amp( streamo, str );
+			vips_streamo_writes( streamo, "</field>\n" );  
 		}
 
 		g_value_unset( &save_value );
@@ -873,39 +873,44 @@ build_xml_meta( VipsMeta *meta, VipsDbuf *dbuf )
 static char *
 build_xml( VipsImage *image )
 {
-	VipsDbuf dbuf;
+	VipsStreamo *streamo;
 	const char *str;
+	char *result;
 
-	vips_dbuf_init( &dbuf ); 
+	streamo = vips_streamo_new_to_memory();
 
-	vips_dbuf_writef( &dbuf, "<?xml version=\"1.0\"?>\n" ); 
-	vips_dbuf_writef( &dbuf, "<root xmlns=\"%svips/%d.%d.%d\">\n", 
+	vips_streamo_writef( streamo, "<?xml version=\"1.0\"?>\n" ); 
+	vips_streamo_writef( streamo, "<root xmlns=\"%svips/%d.%d.%d\">\n", 
 		NAMESPACE_URI, 
 		VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION, VIPS_MICRO_VERSION );
-	vips_dbuf_writef( &dbuf, "  <header>\n" );  
+	vips_streamo_writef( streamo, "  <header>\n" );  
 
 	str = vips_image_get_history( image );
 	if( g_utf8_validate( str, -1, NULL ) ) { 
-		vips_dbuf_writef( &dbuf, 
+		vips_streamo_writef( streamo, 
 			"    <field type=\"%s\" name=\"Hist\">", 
 			g_type_name( VIPS_TYPE_REF_STRING ) );
-		vips_dbuf_write_amp( &dbuf, str );
-		vips_dbuf_writef( &dbuf, "</field>\n" ); 
+		vips_streamo_write_amp( streamo, str );
+		vips_streamo_writef( streamo, "</field>\n" ); 
 	}
 
-	vips_dbuf_writef( &dbuf, "  </header>\n" ); 
-	vips_dbuf_writef( &dbuf, "  <meta>\n" );  
+	vips_streamo_writef( streamo, "  </header>\n" ); 
+	vips_streamo_writef( streamo, "  <meta>\n" );  
 
 	if( vips_slist_map2( image->meta_traverse, 
-		(VipsSListMap2Fn) build_xml_meta, &dbuf, NULL ) ) {
-		vips_dbuf_destroy( &dbuf ); 
+		(VipsSListMap2Fn) build_xml_meta, streamo, NULL ) ) {
+		VIPS_UNREF( streamo ); 
 		return( NULL );
 	}
 
-	vips_dbuf_writef( &dbuf, "  </meta>\n" );  
-	vips_dbuf_writef( &dbuf, "</root>\n" );  
+	vips_streamo_writef( streamo, "  </meta>\n" );  
+	vips_streamo_writef( streamo, "</root>\n" );  
 
-	return( (char *) vips_dbuf_steal( &dbuf, NULL ) ); 
+	result = vips_streamo_steal_text( streamo ); 
+
+	VIPS_UNREF( streamo );
+
+	return( result ); 
 }
 
 static void *
@@ -956,6 +961,7 @@ vips__xml_properties( VipsImage *image )
 {
 	VipsStreamo *streamo;
 	char *date;
+	char *result;
 
 	date = vips__get_iso8601();
 
@@ -978,7 +984,11 @@ vips__xml_properties( VipsImage *image )
 	vips_streamo_writef( streamo, "  </properties>\n" );  
 	vips_streamo_writef( streamo, "</image>\n" );  
 
-	return( vips_streamo_steal_text( streamo ) ); 
+	result = vips_streamo_steal_text( streamo ); 
+
+	VIPS_UNREF( streamo );
+
+	return( result );
 }
 
 /* Append XML to output fd.
