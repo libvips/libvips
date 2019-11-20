@@ -282,7 +282,8 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
 			svg->cairo_scale = scale;
 			width = VIPS_ROUND_UINT( width * scale );
 			height = VIPS_ROUND_UINT( height * scale );
-		} else {
+		} 
+		else {
 			/* SVG with width and height reports correctly scaled 
 			 * dimensions.
 			 */
