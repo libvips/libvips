@@ -1,4 +1,4 @@
-/* A Streamiu subclass with signals you can easily hook up to other input
+/* A Streami subclass with signals you can easily hook up to other input
  * sources.
  * 
  * J.Cupitt, 21/11/19
@@ -29,11 +29,6 @@
 
     These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
- */
-
-/* TODO
- *
- * - can we map and then close the fd? how about on Windows?
  */
 
 /*
@@ -77,9 +72,9 @@ static guint vips_streamiu_signals[SIG_LAST] = { 0 };
 
 static ssize_t
 vips_streamiu_read_real( VipsStreami *streami, 
-	void *data, size_t length )
+	void *buffer, size_t length )
 {
-	ssize_t bytes_read;
+	gint64 bytes_read;
 
 	VIPS_DEBUG_MSG( "vips_streamiu_read_real:\n" );
 
@@ -88,7 +83,7 @@ vips_streamiu_read_real( VipsStreami *streami,
 	bytes_read = 0;
 
 	g_signal_emit( streami, vips_streamiu_signals[SIG_READ], 0,
-		data, length, &bytes_read );
+		buffer, length, &bytes_read );
 
 	VIPS_DEBUG_MSG( "  %zd\n", bytes_read );
 
@@ -151,13 +146,12 @@ vips_streamiu_class_init( VipsStreamiuClass *class )
 	/**
 	 * VipsStreamiu::read:
 	 * @streamiu: the stream being operated on
-	 * @buffer: %gint64, seek offset
-	 * @size: %gint, seek origin
+	 * @buffer: %gpointer, buffer to fill
+	 * @size: %gint64, size of buffer
 	 *
-	 * This signal is emitted to seek the stream. The handler should
-	 * change the stream position appropriately.
+	 * This signal is emitted to read bytes from the source into @buffer.
 	 *
-	 * Returns: the new seek position.
+	 * Returns: the number of bytes read.
 	 */
 	vips_streamiu_signals[SIG_READ] = g_signal_new( "read",
 		G_TYPE_FROM_CLASS( class ),

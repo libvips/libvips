@@ -31,12 +31,6 @@
 
  */
 
-/* TODO
- *
- * - test we can really change all behaviour in the subclass ... add callbacks
- *   as well to make it simpler for language bindings
- */
-
 /*
 #define VIPS_DEBUG
  */
@@ -93,7 +87,7 @@ vips_streamo_finalize( GObject *gobject )
 
 	VIPS_DEBUG_MSG( "vips_streamo_finalize:\n" );
 
-	VIPS_FREEF( g_byte_array_unref, streamo->memory ); 
+	VIPS_FREEF( g_byte_array_unref, streamo->memory_buffer ); 
 	if( streamo->blob ) { 
 		vips_area_unref( VIPS_AREA( streamo->blob ) ); 
 		streamo->blob = NULL;
@@ -120,7 +114,7 @@ vips_streamo_build( VipsObject *object )
 		return( -1 ); 
 	}
 
-	if( vips_object_argument_isset( object, "filename" ) ) {
+	if( stream->filename ) { 
 		const char *filename = stream->filename;
 
 		int fd;
@@ -141,8 +135,8 @@ vips_streamo_build( VipsObject *object )
 		stream->descriptor = dup( stream->descriptor );
 		stream->close_descriptor = stream->descriptor;
 	}
-	else {
-		streamo->memory = g_byte_array_new();
+	else if( streamo->memory ) {
+		streamo->memory_buffer = g_byte_array_new();
 	}
 
 	return( 0 );
@@ -182,10 +176,17 @@ vips_streamo_class_init( VipsStreamoClass *class )
 	class->write = vips_streamo_write_real;
 	class->finish = vips_streamo_finish_real;
 
+	VIPS_ARG_BOOL( class, "memory", 3, 
+		_( "Memory" ), 
+		_( "File descriptor should output to memory" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsStreamo, memory ),
+		FALSE );
+
 	/* SET_ALWAYS means that blob is set by C and the obj system is not
 	 * involved in creation or destruction. It can be read at any time.
 	 */
-	VIPS_ARG_BOXED( class, "blob", 3, 
+	VIPS_ARG_BOXED( class, "blob", 4, 
 		_( "Blob" ),
 		_( "Blob to save to" ),
 		VIPS_ARGUMENT_SET_ALWAYS, 
@@ -277,7 +278,9 @@ vips_streamo_new_to_memory( void )
 
 	VIPS_DEBUG_MSG( "vips_streamo_new_to_memory:\n" ); 
 
-	streamo = VIPS_STREAMO( g_object_new( VIPS_TYPE_STREAMO, NULL ) );
+	streamo = VIPS_STREAMO( g_object_new( VIPS_TYPE_STREAMO,
+		"memory", TRUE,
+		NULL ) );
 
 	if( vips_object_build( VIPS_OBJECT( streamo ) ) ) {
 		VIPS_UNREF( streamo );
@@ -293,11 +296,13 @@ vips_streamo_write_unbuffered( VipsStreamo *streamo,
 {
 	VipsStreamoClass *class = VIPS_STREAMO_GET_CLASS( streamo );
 
+	VIPS_DEBUG_MSG( "vips_streamo_write_unbuffered:\n" );
+
 	if( streamo->finished )
 		return( 0 );
 
-	if( streamo->memory ) 
-		g_byte_array_append( streamo->memory, data, length );
+	if( streamo->memory_buffer ) 
+		g_byte_array_append( streamo->memory_buffer, data, length );
 	else 
 		while( length > 0 ) { 
 			ssize_t n;
@@ -327,6 +332,8 @@ vips_streamo_flush( VipsStreamo *streamo )
 {
 	g_assert( streamo->write_point >= 0 );
 	g_assert( streamo->write_point <= VIPS_STREAMO_BUFFER_SIZE );
+
+	VIPS_DEBUG_MSG( "vips_streamo_flush:\n" );
 
 	if( streamo->write_point > 0 ) {
 		if( vips_streamo_write_unbuffered( streamo, 
@@ -397,13 +404,13 @@ vips_streamo_finish( VipsStreamo *streamo )
 
 	/* Move the stream buffer into the blob so it can be read out.
 	 */
-	if( streamo->memory ) {
+	if( streamo->memory_buffer ) {
 		unsigned char *data;
 		size_t length;
 
-		length = streamo->memory->len;
-		data = g_byte_array_free( streamo->memory, FALSE );
-		streamo->memory = NULL;
+		length = streamo->memory_buffer->len;
+		data = g_byte_array_free( streamo->memory_buffer, FALSE );
+		streamo->memory_buffer = NULL;
 		vips_blob_set( streamo->blob,
 			(VipsCallbackFn) g_free, data, length );
 	}
@@ -436,22 +443,22 @@ vips_streamo_steal( VipsStreamo *streamo, size_t *length )
 
 	(void) vips_streamo_flush( streamo );
 
-	if( !streamo->memory ||
+	if( !streamo->memory_buffer ||
 		streamo->finished ) {
 		if( length )
-			*length = streamo->memory->len;
+			*length = streamo->memory_buffer->len;
 
 		return( NULL );
 	}
 
 	if( length )
-		*length = streamo->memory->len;
-	data = g_byte_array_free( streamo->memory, FALSE );
-	streamo->memory = NULL;
+		*length = streamo->memory_buffer->len;
+	data = g_byte_array_free( streamo->memory_buffer, FALSE );
+	streamo->memory_buffer = NULL;
 
 	/* We must have a valid byte array or finish will fail.
 	 */
-	streamo->memory = g_byte_array_new();
+	streamo->memory_buffer = g_byte_array_new();
 
 	vips_streamo_finish( streamo );
 

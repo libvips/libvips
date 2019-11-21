@@ -273,7 +273,9 @@ VipsStreamiu *vips_streamiu_new( void );
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 	VIPS_TYPE_STREAMO, VipsStreamoClass ))
 
-#define VIPS_STREAMO_BUFFER_SIZE (4096)
+/* PNG writes in 8kb chunks, so we need to be a little larger than that.
+ */
+#define VIPS_STREAMO_BUFFER_SIZE (8500)
 
 /* Output to something like a socket, pipe or memory area. 
  */
@@ -282,13 +284,17 @@ typedef struct _VipsStreamo {
 
 	/*< private >*/
 
+	/* This stream should write to memory.
+	 */
+	gboolean memory;
+
 	/* The stream has been finished and can no longer be written.
 	 */
 	gboolean finished;
 
 	/* Write memory output here.
 	 */
-	GByteArray *memory;
+	GByteArray *memory_buffer;
 
 	/* And return memory via this blob.
 	 */
@@ -336,6 +342,45 @@ int vips_streamo_writes( VipsStreamo *streamo, const char *str );
 int vips_streamo_writef( VipsStreamo *streamo, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
 int vips_streamo_write_amp( VipsStreamo *streamo, const char *str );
+
+#define VIPS_TYPE_STREAMOU (vips_streamou_get_type())
+#define VIPS_STREAMOU( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_STREAMOU, VipsStreamou ))
+#define VIPS_STREAMOU_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_STREAMOU, VipsStreamouClass))
+#define VIPS_IS_STREAMOU( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_STREAMOU ))
+#define VIPS_IS_STREAMOU_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_STREAMOU ))
+#define VIPS_STREAMOU_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_STREAMOU, VipsStreamouClass ))
+
+#define VIPS_STREAMOU_BUFFER_SIZE (4096)
+
+/* Output to something like a socket, pipe or memory area. 
+ */
+typedef struct _VipsStreamou {
+	VipsStreamo parent_object;
+
+} VipsStreamou;
+
+typedef struct _VipsStreamouClass {
+	VipsStreamoClass parent_class;
+
+	/* The action signals clients can use to implement write and finish.
+	 * We must use gint64 everywhere since there's no G_TYPE_SIZE.
+	 */
+
+	gint64 (*write)( VipsStreamou *, const void *, gint64 );
+	void (*finish)( VipsStreamou * );
+
+} VipsStreamouClass;
+
+GType vips_streamou_get_type( void );
+VipsStreamou *vips_streamou_new( void );
 
 #ifdef __cplusplus
 }

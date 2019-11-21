@@ -333,6 +333,7 @@ vips_init( const char *argv0 )
 	extern GType vips_streami_get_type( void ); 
 	extern GType vips_streamiu_get_type( void ); 
 	extern GType vips_streamo_get_type( void ); 
+	extern GType vips_streamou_get_type( void ); 
 
 	static gboolean started = FALSE;
 	static gboolean done = FALSE;
@@ -450,6 +451,7 @@ vips_init( const char *argv0 )
 	(void) vips_streami_get_type(); 
 	(void) vips_streamiu_get_type(); 
 	(void) vips_streamo_get_type(); 
+	(void) vips_streamou_get_type(); 
 	vips__meta_init_types();
 	vips__interpolate_init();
 	im__format_init();

@@ -5,6 +5,7 @@ libiofuncs_la_SOURCES = \
 	streami.c \
 	streamiu.c \
 	streamo.c \
+	streamou.c \
 	bufis.c \
 	dbuf.c \
 	reorder.c \
