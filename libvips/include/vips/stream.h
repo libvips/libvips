@@ -191,8 +191,11 @@ typedef struct _VipsStreamiClass {
 	 *
 	 * Unseekable streams should always return -1. VipsStreami will then
 	 * seek by _read()ing bytes into memory as required.
+	 *
+	 * We have to use int64 rather than off_t, since we must work on
+	 * Windows, where off_t can be 32-bits.
 	 */
-	gint64 (*seek)( VipsStreami *, gint64 offset, int );
+	gint64 (*seek)( VipsStreami *, gint64, int );
 
 } VipsStreamiClass;
 
@@ -216,6 +219,44 @@ size_t vips_streami_sniff_at_most( VipsStreami *streami,
 	unsigned char **data, size_t length );
 unsigned char *vips_streami_sniff( VipsStreami *streami, size_t length );
 gint64 vips_streami_size( VipsStreami *streami ); 
+
+#define VIPS_TYPE_STREAMIU (vips_streamiu_get_type())
+#define VIPS_STREAMIU( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_STREAMIU, VipsStreamiu ))
+#define VIPS_STREAMIU_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_STREAMIU, VipsStreamiuClass))
+#define VIPS_IS_STREAMIU( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_STREAMIU ))
+#define VIPS_IS_STREAMIU_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_STREAMIU ))
+#define VIPS_STREAMIU_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_STREAMIU, VipsStreamiuClass ))
+
+/* Subclass of streamiu with signals for handlers. This is supposed to be
+ * useful for language bindings.
+ */
+typedef struct _VipsStreamiu {
+	VipsStreami parent_object;
+
+} VipsStreamiu;
+
+typedef struct _VipsStreamiuClass {
+	VipsStreamiClass parent_class;
+
+	/* The action signals clients can use to implement read and seek.
+	 * We must use gint64 everywhere since there's no G_TYPE_SIZE.
+	 */
+
+	gint64 (*read)( VipsStreamiu *, void *, gint64 );
+	gint64 (*seek)( VipsStreamiu *, gint64, int );
+
+} VipsStreamiuClass;
+
+GType vips_streamiu_get_type( void );
+VipsStreamiu *vips_streamiu_new( void );
 
 #define VIPS_TYPE_STREAMO (vips_streamo_get_type())
 #define VIPS_STREAMO( obj ) \

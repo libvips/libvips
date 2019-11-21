@@ -331,6 +331,7 @@ vips_init( const char *argv0 )
 	extern GType sink_memory_thread_state_get_type( void ); 
 	extern GType render_thread_state_get_type( void ); 
 	extern GType vips_streami_get_type( void ); 
+	extern GType vips_streamiu_get_type( void ); 
 	extern GType vips_streamo_get_type( void ); 
 
 	static gboolean started = FALSE;
@@ -447,6 +448,7 @@ vips_init( const char *argv0 )
 	(void) sink_memory_thread_state_get_type(); 
 	(void) render_thread_state_get_type(); 
 	(void) vips_streami_get_type(); 
+	(void) vips_streamiu_get_type(); 
 	(void) vips_streamo_get_type(); 
 	vips__meta_init_types();
 	vips__interpolate_init();
