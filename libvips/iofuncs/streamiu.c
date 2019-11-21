@@ -37,8 +37,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -75,46 +75,24 @@ enum {
 
 static guint vips_streamiu_signals[SIG_LAST] = { 0 };
 
-static void
-vips_streamiu_finalize( GObject *gobject )
-{
-	VipsStreamiu *streamiu = VIPS_STREAMIU( gobject );
-
-	VIPS_DEBUG_MSG( "vips_streamiu_finalize:\n" );
-
-	G_OBJECT_CLASS( vips_streamiu_parent_class )->finalize( gobject );
-}
-
-static int
-vips_streamiu_build( VipsObject *object )
-{
-	VipsStream *stream = VIPS_STREAM( object );
-	VipsStreamiu *streamiu = VIPS_STREAMIU( object );
-	VipsStreamiuClass *class = VIPS_STREAMIU_GET_CLASS( streamiu );
-
-	VIPS_DEBUG_MSG( "vips_streamiu_build: %p\n", streamiu );
-
-	if( VIPS_OBJECT_CLASS( vips_streamiu_parent_class )->
-		build( object ) )
-		return( -1 );
-
-	return( 0 );
-}
-
 static ssize_t
 vips_streamiu_read_real( VipsStreami *streami, 
 	void *data, size_t length )
 {
-	ssize_t size;
+	ssize_t bytes_read;
 
 	VIPS_DEBUG_MSG( "vips_streamiu_read_real:\n" );
 
+	/* Return value if no attached handler.
+	 */
+	bytes_read = 0;
+
 	g_signal_emit( streami, vips_streamiu_signals[SIG_READ], 0,
-		data, length, &size );
+		data, length, &bytes_read );
 
-	VIPS_DEBUG_MSG( "  %zd\n", size );
+	VIPS_DEBUG_MSG( "  %zd\n", bytes_read );
 
-	return( size );
+	return( bytes_read );
 }
 
 static gint64
@@ -124,6 +102,10 @@ vips_streamiu_seek_real( VipsStreami *streami,
 	gint64 new_position;
 
 	VIPS_DEBUG_MSG( "vips_streamiu_seek_real:\n" );
+
+	/* If there's no user action attached, we fail.
+	 */
+	new_position = -1;
 
 	g_signal_emit( streami, vips_streamiu_signals[SIG_SEEK], 0,
 		offset, whence, &new_position );
@@ -154,18 +136,11 @@ vips_streamiu_seek_signal_real( VipsStreamiu *streamiu,
 static void
 vips_streamiu_class_init( VipsStreamiuClass *class )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
 	VipsStreamiClass *streami_class = VIPS_STREAMI_CLASS( class );
 
-	gobject_class->finalize = vips_streamiu_finalize;
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
-
 	object_class->nickname = "streamiu";
 	object_class->description = _( "input stream" );
-
-	object_class->build = vips_streamiu_build;
 
 	streami_class->read = vips_streamiu_read_real;
 	streami_class->seek = vips_streamiu_seek_real;
