@@ -209,7 +209,7 @@ vips_streamo_init( VipsStreamo *streamo )
  * Create a stream attached to a file descriptor.
  * @descriptor is kept open until the #VipsStreamo is finalized.
  *
- * See also: vips_streamo_new_to_filename().
+ * See also: vips_streamo_new_to_file().
  *
  * Returns: a new #VipsStreamo
  */
@@ -234,7 +234,7 @@ vips_streamo_new_to_descriptor( int descriptor )
 }
 
 /**
- * vips_streamo_new_to_filename:
+ * vips_streamo_new_to_file:
  * @filename: write to this file 
  *
  * Create a stream attached to a file.
@@ -242,11 +242,11 @@ vips_streamo_new_to_descriptor( int descriptor )
  * Returns: a new #VipsStreamo
  */
 VipsStreamo *
-vips_streamo_new_to_filename( const char *filename )
+vips_streamo_new_to_file( const char *filename )
 {
 	VipsStreamo *streamo;
 
-	VIPS_DEBUG_MSG( "vips_streamo_new_to_filename: %s\n", 
+	VIPS_DEBUG_MSG( "vips_streamo_new_to_file: %s\n", 
 		filename );
 
 	streamo = VIPS_STREAMO( g_object_new( VIPS_TYPE_STREAMO, 
@@ -267,7 +267,7 @@ vips_streamo_new_to_filename( const char *filename )
  * Create a stream which will stream to a memory area. Read from @blob to get
  * memory.
  *
- * See also: vips_streamo_new_to_filename().
+ * See also: vips_streamo_new_to_file().
  *
  * Returns: a new #VipsStream
  */

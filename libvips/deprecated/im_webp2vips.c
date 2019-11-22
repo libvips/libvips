@@ -55,7 +55,7 @@ webp2vips( const char *name, IMAGE *out, gboolean header_only )
 	VipsStreami *streami;
 	int result;
 
-	if( !(streami = vips_streami_new_from_filename( filename )) ) 
+	if( !(streami = vips_streami_new_from_file( filename )) ) 
 		return( -1 );
 	if( header_only ) 
 		result = vips__webp_read_header_stream( streami, out, 0, 1, 1 );
@@ -84,7 +84,7 @@ vips__iswebp( const char *filename )
 #ifdef HAVE_LIBWEBP
 	VipsStreami *streami;
 
-	if( !(streami = vips_streami_new_from_filename( filename )) )
+	if( !(streami = vips_streami_new_from_file( filename )) )
 		return( FALSE );
 	result = vips__png_ispng_stream( streami );
 	VIPS_UNREF( streami );

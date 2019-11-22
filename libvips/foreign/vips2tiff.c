@@ -1725,7 +1725,7 @@ wtiff_gather( Wtiff *wtiff )
 
 			if( layer->lname ) {
 				if( !(streami = 
-					vips_streami_new_from_filename( 
+					vips_streami_new_from_file( 
 						layer->lname )) ) 
 					return( -1 );
 			}

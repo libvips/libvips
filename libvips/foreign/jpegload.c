@@ -245,7 +245,7 @@ vips_foreign_load_jpeg_file_is_a( const char *filename )
 	VipsStreami *streami;
 	gboolean result;
 
-	if( !(streami = vips_streami_new_from_filename( filename )) ) 
+	if( !(streami = vips_streami_new_from_file( filename )) ) 
 		return( FALSE );
 	result = vips__isjpeg_stream( streami );
 	VIPS_UNREF( streami );
@@ -261,7 +261,7 @@ vips_foreign_load_jpeg_file_header( VipsForeignLoad *load )
 
 	VipsStreami *streami;
 
-	if( !(streami = vips_streami_new_from_filename( file->filename )) ) 
+	if( !(streami = vips_streami_new_from_file( file->filename )) ) 
 		return( -1 );
 	if( vips__jpeg_read_stream( streami, load->out, 
 		TRUE, jpeg->shrink, load->fail, jpeg->autorotate ) ) {
@@ -281,7 +281,7 @@ vips_foreign_load_jpeg_file_load( VipsForeignLoad *load )
 
 	VipsStreami *streami;
 
-	if( !(streami = vips_streami_new_from_filename( file->filename )) ) 
+	if( !(streami = vips_streami_new_from_file( file->filename )) ) 
 		return( -1 );
 	if( vips__jpeg_read_stream( streami, load->real, 
 		FALSE, jpeg->shrink, load->fail, jpeg->autorotate ) ) {

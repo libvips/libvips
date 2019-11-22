@@ -156,7 +156,7 @@ vips_foreign_load_png_is_a( const char *filename )
 	VipsStreami *streami;
 	gboolean result;
 
-	if( !(streami = vips_streami_new_from_filename( filename )) )
+	if( !(streami = vips_streami_new_from_file( filename )) )
 		return( FALSE );
 	result = vips__png_ispng_stream( streami );
 	VIPS_UNREF( streami );
@@ -170,7 +170,7 @@ vips_foreign_load_png_get_flags_filename( const char *filename )
 	VipsStreami *streami;
 	VipsForeignFlags flags;
 
-	if( !(streami = vips_streami_new_from_filename( filename )) )
+	if( !(streami = vips_streami_new_from_file( filename )) )
 		return( 0 );
 
 	flags = 0;
@@ -199,7 +199,7 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 
 	VipsStreami *streami;
 
-	if( !(streami = vips_streami_new_from_filename( png->filename )) )
+	if( !(streami = vips_streami_new_from_file( png->filename )) )
 		return( -1 );
 	if( vips__png_header_stream( streami, load->out ) ) {
 		VIPS_UNREF( streami );
@@ -217,7 +217,7 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 
 	VipsStreami *streami;
 
-	if( !(streami = vips_streami_new_from_filename( png->filename )) )
+	if( !(streami = vips_streami_new_from_file( png->filename )) )
 		return( -1 );
 	if( vips__png_read_stream( streami, load->real, load->fail ) ) {
 		VIPS_UNREF( streami );

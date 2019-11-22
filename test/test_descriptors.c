@@ -57,7 +57,7 @@ main( int argc, char **argv )
 	/* Opening an image should read the header, then close the fd.
 	 */
 	printf( "** seq open ..\n" );
-	if( !(streami = vips_streami_new_from_filename( argv[1] )) )
+	if( !(streami = vips_streami_new_from_file( argv[1] )) )
 		vips_error_exit( NULL );
 	if( !(image = vips_image_new_from_stream( streami, "",
 		"access", VIPS_ACCESS_SEQUENTIAL,

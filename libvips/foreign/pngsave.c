@@ -260,8 +260,7 @@ vips_foreign_save_png_file_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(streamo = vips_streamo_new_to_filename( 
-		png_file->filename )) )
+	if( !(streamo = vips_streamo_new_to_file( png_file->filename )) )
 		return( -1 );
 	if( vips__png_write_stream( save->ready, streamo, 
 		png->compression, png->interlace, 

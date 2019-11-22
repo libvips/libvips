@@ -309,7 +309,7 @@ vips_foreign_save_webp_file_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(streamo = vips_streamo_new_to_filename( file->filename )) )
+	if( !(streamo = vips_streamo_new_to_file( file->filename )) )
 		return( -1 );
 	if( vips__webp_write_stream( save->ready, streamo,
 		webp->Q, webp->lossless, webp->preset,

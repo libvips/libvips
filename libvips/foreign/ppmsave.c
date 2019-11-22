@@ -416,8 +416,7 @@ vips_foreign_save_ppm_file_build( VipsObject *object )
 	VipsForeignSavePpmFile *file = (VipsForeignSavePpmFile *) object;
 
 	if( file->filename &&
-		!(ppm->streamo = 
-			vips_streamo_new_to_filename( file->filename )) )
+		!(ppm->streamo = vips_streamo_new_to_file( file->filename )) )
 		return( -1 );
 
 	return( VIPS_OBJECT_CLASS( vips_foreign_save_ppm_file_parent_class )->

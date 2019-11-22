@@ -305,7 +305,7 @@ vips_foreign_save_jpeg_file_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(streamo = vips_streamo_new_to_filename( file->filename )) )
+	if( !(streamo = vips_streamo_new_to_file( file->filename )) )
 		return( -1 );
 	if( vips__jpeg_write_stream( save->ready, streamo,
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 

@@ -114,7 +114,7 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 {
 	VipsStreami *streami;
 
-	if( !(streami = vips_streami_new_from_filename( filename )) ) 
+	if( !(streami = vips_streami_new_from_file( filename )) ) 
 		return( -1 );
 	if( vips__jpeg_read_stream( streami, out,
 		header_only, shrink, fail_on_warn, FALSE ) ) {

@@ -46,7 +46,7 @@ public:
 	VStreamI new_from_descriptor( int descriptor );
 
 	static 
-	VStreamI new_from_filename( const char *filename );
+	VStreamI new_from_file( const char *filename );
 
 	static 
 	VStreamI new_from_blob( VipsBlob *blob );
@@ -78,7 +78,7 @@ public:
 	VStreamO new_to_descriptor( int descriptor );
 
 	static 
-	VStreamO new_to_filename( const char *filename );
+	VStreamO new_to_file( const char *filename );
 
 	static 
 	VStreamO new_to_memory();

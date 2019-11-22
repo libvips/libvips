@@ -144,7 +144,7 @@ vips_foreign_load_tiff_file_is_a( const char *filename )
 	VipsStreami *streami;
 	gboolean result;
 
-	if( !(streami = vips_streami_new_from_filename( filename )) )
+	if( !(streami = vips_streami_new_from_file( filename )) )
 		return( FALSE );
 	result = vips__istiff_stream( streami );
 	VIPS_UNREF( streami );
@@ -158,7 +158,7 @@ vips_foreign_load_tiff_file_get_flags_filename( const char *filename )
 	VipsStreami *streami;
 	VipsForeignFlags flags;
 
-	if( !(streami = vips_streami_new_from_filename( filename )) )
+	if( !(streami = vips_streami_new_from_file( filename )) )
 		return( 0 );
 
 	flags = 0;
@@ -189,7 +189,7 @@ vips_foreign_load_tiff_file_header( VipsForeignLoad *load )
 
 	VipsStreami *streami;
 
-	if( !(streami = vips_streami_new_from_filename( file->filename )) )
+	if( !(streami = vips_streami_new_from_file( file->filename )) )
 		return( -1 );
 	if( vips__tiff_read_header_stream( streami, load->out, 
 		tiff->page, tiff->n, tiff->autorotate ) ) {
@@ -209,7 +209,7 @@ vips_foreign_load_tiff_file_load( VipsForeignLoad *load )
 
 	VipsStreami *streami;
 
-	if( !(streami = vips_streami_new_from_filename( file->filename )) )
+	if( !(streami = vips_streami_new_from_file( file->filename )) )
 		return( -1 );
 	if( vips__tiff_read_stream( streami, load->real, 
 		tiff->page, tiff->n,  tiff->autorotate ) ) {

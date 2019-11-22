@@ -363,7 +363,7 @@ vips_streami_new_from_descriptor( int descriptor )
 }
 
 /**
- * vips_streami_new_from_filename:
+ * vips_streami_new_from_file:
  * @descriptor: read from this filename 
  *
  * Create an streami stream attached to a file.
@@ -371,11 +371,11 @@ vips_streami_new_from_descriptor( int descriptor )
  * Returns: a new #VipsStream
  */
 VipsStreami *
-vips_streami_new_from_filename( const char *filename )
+vips_streami_new_from_file( const char *filename )
 {
 	VipsStreami *streami;
 
-	VIPS_DEBUG_MSG( "vips_streami_new_from_filename: %s\n", 
+	VIPS_DEBUG_MSG( "vips_streami_new_from_file: %s\n", 
 		filename );
 
 	streami = VIPS_STREAMI( g_object_new( VIPS_TYPE_STREAMI, 

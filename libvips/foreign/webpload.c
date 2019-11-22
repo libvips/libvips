@@ -254,7 +254,7 @@ vips_foreign_load_webp_file_is_a( const char *filename )
 	VipsStreami *streami;
 	gboolean result;
 
-	if( !(streami = vips_streami_new_from_filename( filename )) )
+	if( !(streami = vips_streami_new_from_file( filename )) )
 		return( FALSE );
 	result = vips__iswebp_stream( streami );
 	VIPS_UNREF( streami );
@@ -277,7 +277,7 @@ vips_foreign_load_webp_file_header( VipsForeignLoad *load )
 		webp->shrink != 0 )
 		webp->scale = 1.0 / webp->shrink;
 
-	if( !(streami = vips_streami_new_from_filename( file->filename )) )
+	if( !(streami = vips_streami_new_from_file( file->filename )) )
 		return( -1 );
 	if( vips__webp_read_header_stream( streami, load->out, 
 		webp->page, webp->n, webp->scale ) ) {
@@ -297,7 +297,7 @@ vips_foreign_load_webp_file_load( VipsForeignLoad *load )
 
 	VipsStreami *streami;
 
-	if( !(streami = vips_streami_new_from_filename( file->filename )) )
+	if( !(streami = vips_streami_new_from_file( file->filename )) )
 		return( -1 );
 	if( vips__webp_read_stream( streami, load->real, 
 		webp->page, webp->n, webp->scale ) ) {

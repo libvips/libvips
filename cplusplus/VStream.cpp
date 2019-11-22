@@ -58,11 +58,11 @@ VStreamI::new_from_descriptor( int descriptor )
 }
 
 VStreamI 
-VStreamI::new_from_filename( const char *filename )
+VStreamI::new_from_file( const char *filename )
 {
 	VipsStreami *input;
 
-	if( !(input = vips_streami_new_from_filename( filename )) )
+	if( !(input = vips_streami_new_from_file( filename )) )
 		throw VError();
 
 	VStreamI out( input ); 
@@ -137,11 +137,11 @@ VStreamO::new_to_descriptor( int descriptor )
 }
 
 VStreamO 
-VStreamO::new_to_filename( const char *filename )
+VStreamO::new_to_file( const char *filename )
 {
 	VipsStreamo *output;
 
-	if( !(output = vips_streamo_new_to_filename( filename )) )
+	if( !(output = vips_streamo_new_to_file( filename )) )
 		throw VError();
 
 	VStreamO out( output ); 

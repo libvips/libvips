@@ -1921,7 +1921,7 @@ vips_image_new_from_file( const char *name, ... )
 	 *
 	 * We need to hide any errors from this first phase.
 	 */
-	if( !(streami = vips_streami_new_from_filename( filename )) )
+	if( !(streami = vips_streami_new_from_file( filename )) )
 		return( NULL );
 
 	vips_error_freeze();
@@ -2678,7 +2678,7 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
 	if( (operation_name = vips_foreign_find_save_stream( filename )) ) {
 		VipsStreamo *streamo;
 
-		if( !(streamo = vips_streamo_new_to_filename( filename )) )
+		if( !(streamo = vips_streamo_new_to_file( filename )) )
 			return( -1 );
 
 		va_start( ap, name );

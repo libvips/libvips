@@ -202,7 +202,7 @@ typedef struct _VipsStreamiClass {
 GType vips_streami_get_type( void );
 
 VipsStreami *vips_streami_new_from_descriptor( int descriptor );
-VipsStreami *vips_streami_new_from_filename( const char *filename );
+VipsStreami *vips_streami_new_from_file( const char *filename );
 VipsStreami *vips_streami_new_from_blob( VipsBlob *blob );
 VipsStreami *vips_streami_new_from_memory( const void *data, size_t size );
 VipsStreami *vips_streami_new_from_options( const char *options );
@@ -325,7 +325,7 @@ typedef struct _VipsStreamoClass {
 GType vips_streamo_get_type( void );
 
 VipsStreamo *vips_streamo_new_to_descriptor( int descriptor );
-VipsStreamo *vips_streamo_new_to_filename( const char *filename );
+VipsStreamo *vips_streamo_new_to_file( const char *filename );
 VipsStreamo *vips_streamo_new_to_memory( void );
 int vips_streamo_write( VipsStreamo *streamo, const void *data, size_t length );
 void vips_streamo_finish( VipsStreamo *streamo );

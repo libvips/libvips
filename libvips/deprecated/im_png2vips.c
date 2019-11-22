@@ -87,7 +87,7 @@ png2vips( const char *name, IMAGE *out, gboolean header_only )
 	VipsStreami *streami;
 	int result;
 
-	if( !(streami = vips_streami_new_from_filename( filename )) ) 
+	if( !(streami = vips_streami_new_from_file( filename )) ) 
 		return( -1 );
 	if( header_only ) 
 		result = vips__png_header_stream( streami, out );

@@ -164,7 +164,7 @@ vips_foreign_load_rad_is_a( const char *filename )
 	VipsStreami *streami;
 	int result;
 
-	if( !(streami = vips_streami_new_from_filename( filename )) )
+	if( !(streami = vips_streami_new_from_file( filename )) )
 		return( -1 );
 	result = vips__rad_israd( streami );
 	VIPS_UNREF( streami );
@@ -179,7 +179,7 @@ vips_foreign_load_rad_header( VipsForeignLoad *load )
 
 	VipsStreami *streami;
 
-	if( !(streami = vips_streami_new_from_filename( rad->filename )) )
+	if( !(streami = vips_streami_new_from_file( rad->filename )) )
 		return( -1 );
 	if( vips__rad_header( streami, load->out ) ) {
 		VIPS_UNREF( streami );
@@ -197,7 +197,7 @@ vips_foreign_load_rad_load( VipsForeignLoad *load )
 
 	VipsStreami *streami;
 
-	if( !(streami = vips_streami_new_from_filename( rad->filename )) )
+	if( !(streami = vips_streami_new_from_file( rad->filename )) )
 		return( -1 );
 	if( vips__rad_load( streami, load->real ) ) {
 		VIPS_UNREF( streami );
