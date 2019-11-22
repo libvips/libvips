@@ -33,10 +33,7 @@
 
 /* TODO
  *
- * - gaussblur is missing the vector path again argh
  * - can we map and then close the fd? how about on Windows?
- * - make a subclass that lets you set vfuncs as params, inc. close(),
- *   is_pipe etc.
  */
 
 /*
@@ -280,7 +277,6 @@ vips_streami_read_real( VipsStreami *streami, void *data, size_t length )
 	} while( bytes_read < 0 && errno == EINTR );
 
 	return( bytes_read );
-
 }
 
 static gint64
