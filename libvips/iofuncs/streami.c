@@ -38,8 +38,8 @@
 
 /*
 #define VIPS_DEBUG
- */
 #define TEST_SANITY
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -244,6 +244,7 @@ vips_streami_build( VipsObject *object )
 	 */
 	if( streami->data ||
 		class->seek( streami, 0, SEEK_CUR ) != -1 ) { 
+		VIPS_DEBUG_MSG( "    seekable stream\n" );
 		/* We should be able to get the length of seekable objects.
 		 */
 		if( (streami->length = vips_streami_size( streami )) == -1 )
