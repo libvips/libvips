@@ -39,29 +39,29 @@ class TestStream:
     def teardown_class(cls):
         shutil.rmtree(cls.tempdir, ignore_errors=True)
 
-    def test_streami_new_filename(self):
-        x = pyvips.Streami.new_from_filename(JPEG_FILE)
+    def test_streami_new_from_file(self):
+        x = pyvips.Streami.new_from_file(JPEG_FILE)
 
         assert x.filename() == JPEG_FILE
 
     @skip_if_no("jpegload_stream")
-    def test_image_new_from_stream_filename(self):
-        x = pyvips.Streami.new_from_filename(JPEG_FILE)
+    def test_image_new_from_stream_file(self):
+        x = pyvips.Streami.new_from_file(JPEG_FILE)
         y = pyvips.Image.new_from_stream(x, "")
 
         assert y.width == 1024
         assert y.height == 768
 
-    def test_streamo_new_filename(self):
+    def test_streamo_new_to_file(self):
         filename = temp_filename(self.tempdir, ".jpg")
-        x = pyvips.Streamo.new_to_filename(filename)
+        x = pyvips.Streamo.new_to_file(filename)
 
         assert x.filename() == filename
 
     @skip_if_no("jpegload_stream")
-    def test_image_write_to_stream_filename(self):
+    def test_image_write_to_stream_file(self):
         filename = temp_filename(self.tempdir, ".jpg")
-        x = pyvips.Streamo.new_to_filename(filename)
+        x = pyvips.Streamo.new_to_file(filename)
         self.colour.write_to_stream(x, ".jpg")
         with open(filename, 'rb') as f:
             data = f.read()
