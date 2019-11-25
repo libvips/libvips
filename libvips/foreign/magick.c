@@ -515,21 +515,24 @@ static MagickColorspaceTypeNames magick_colorspace_names[] = {
 #ifdef HAVE_CMYCOLORSPACE
 	{ CMYColorspace, "CMYColorspace" },
 	{ HCLColorspace, "HCLColorspace" },
-	{ HCLpColorspace, "HCLpColorspace" },
 	{ HSBColorspace, "HSBColorspace" },
+	{ LabColorspace, "LabColorspace" },
+	{ LogColorspace, "LogColorspace" },
+	{ LuvColorspace, "LuvColorspace" },
+#endif /*HAVE_CMYCOLORSPACE*/
+
+#ifdef HAVE_HCLPCOLORSPACE
+	{ HCLpColorspace, "HCLpColorspace" },
 	{ HSIColorspace, "HSIColorspace" },
 	{ HSVColorspace, "HSVColorspace" },
-	{ LabColorspace, "LabColorspace" },
 	{ LCHColorspace, "LCHColorspace" },
 	{ LCHabColorspace, "LCHabColorspace" },
 	{ LCHuvColorspace, "LCHuvColorspace" },
-	{ LogColorspace, "LogColorspace" },
 	{ LMSColorspace, "LMSColorspace" },
-	{ LuvColorspace, "LuvColorspace" },
 	{ scRGBColorspace, "scRGBColorspace" },
 	{ xyYColorspace, "xyYColorspace" },
 	{ YDbDrColorspace, "YDbDrColorspace" },
-#endif /*HAVE_CMYCOLORSPACE*/
+#endif /*HAVE_HCLPCOLORSPACE*/
 
 	/* im7 has this, I think
 	 *

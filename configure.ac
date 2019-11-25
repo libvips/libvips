@@ -698,6 +698,16 @@ if test x"$magick6" = x"yes"; then
     ]
   )
 
+  AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM(
+      [#include <magick/api.h>],
+      [ColorspaceType colorspace = HCLpColorspace]
+    )],
+    [AC_DEFINE(HAVE_HCLPCOLORSPACE,1,
+         [define if your Magick has HCLpColorspace.])
+    ]
+  )
+
   # GetImageMagick() takes two args under GM, three under IM
   AC_COMPILE_IFELSE(
     [AC_LANG_PROGRAM(
