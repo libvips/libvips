@@ -670,6 +670,7 @@ vips_streami_read( VipsStreami *streami, void *buffer, size_t length )
 		if( length > 0 ) {
 			ssize_t n;
 
+			VIPS_DEBUG_MSG( "    calling class->read()\n" );
 			n = class->read( streami, buffer, length );
 			VIPS_DEBUG_MSG( "    %zd bytes from read()\n", n );
 			if( n == -1 ) {

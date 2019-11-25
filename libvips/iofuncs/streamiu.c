@@ -78,7 +78,7 @@ vips_streamiu_read_real( VipsStreami *streami,
 
 	VIPS_DEBUG_MSG( "vips_streamiu_read_real:\n" );
 
-	/* Return value if no attached handler.
+	/* Return this value (error) if there's no attached handler.
 	 */
 	bytes_read = 0;
 
