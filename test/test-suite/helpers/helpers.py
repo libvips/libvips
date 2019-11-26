@@ -8,7 +8,7 @@ import pytest
 import pyvips
 
 IMAGES = os.path.join(os.path.dirname(__file__), os.pardir, 'images')
-JPEG_FILE = os.path.join(IMAGES, "йцук.jpg")
+JPEG_FILE = os.path.join(IMAGES, "sample.jpg")
 SRGB_FILE = os.path.join(IMAGES, "sRGB.icm")
 MATLAB_FILE = os.path.join(IMAGES, "sample.mat")
 PNG_FILE = os.path.join(IMAGES, "sample.png")
