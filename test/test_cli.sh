@@ -82,18 +82,17 @@ test_thumbnail() {
 		exit 1
 	fi
 	if [ $height -ne $correct_height ]; then
-		echo width is $height, not $correct_height
+		echo height is $height, not $correct_height
 		exit 1
 	fi
 
 	echo "ok"
 }
 
-test_thumbnail 100 100 75
-test_thumbnail 100x100 100 75
-test_thumbnail x100 133 100
-test_thumbnail "100x100<" 1024 768
-test_thumbnail "2000<" 2000 1500
-test_thumbnail "100x100>" 100 75
-test_thumbnail "2000>" 1024 768
-
+test_thumbnail 100 66 100
+test_thumbnail 100x100 66 100
+test_thumbnail x100 66 100
+test_thumbnail "100x100<" 290 442
+test_thumbnail "2000<" 1312 2000
+test_thumbnail "100x100>" 66 100
+test_thumbnail "2000>" 290 442
