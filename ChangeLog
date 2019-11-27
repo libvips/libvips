@@ -1,5 +1,6 @@
 17/9/19 started 8.8.4
 - improve compatibility with older imagemagick versions
+- remove realpath, since it can fail on systems with grsec
 
 31/8/19 started 8.8.3
 - revert sharpen restoring the input colourspace
