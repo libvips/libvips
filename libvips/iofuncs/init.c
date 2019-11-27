@@ -1006,7 +1006,8 @@ guess_prefix( const char *argv0, const char *name )
 
 	/* Try to guess from cwd. Only if this is a relative path, though. 
 	 */
-	if( !g_path_is_absolute( argv0 ) ) {
+	if( argv0 &&
+		!g_path_is_absolute( argv0 ) ) {
 		char *dir;
 		char full_path[VIPS_PATH_MAX];
 		char *resolved;
