@@ -49,8 +49,8 @@ class TestStream:
         x = pyvips.Streami.new_from_file(JPEG_FILE)
         y = pyvips.Image.new_from_stream(x, "")
 
-        assert y.width == 1024
-        assert y.height == 768
+        assert y.width == 290
+        assert y.height == 442
 
     def test_streamo_new_to_file(self):
         filename = temp_filename(self.tempdir, ".jpg")
@@ -81,8 +81,8 @@ class TestStream:
         x = pyvips.Streami.new_from_memory(data)
         y = pyvips.Image.new_from_stream(x, "")
 
-        assert y.width == 1024
-        assert y.height == 768
+        assert y.width == 290
+        assert y.height == 442
 
     def test_streamo_new_memory(self):
         x = pyvips.Streamo.new_to_memory()
