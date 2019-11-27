@@ -2,7 +2,7 @@
 
 # test load and save via stream*u
 
-set -x
+# set -x
 set -e
 
 . ./variables.sh

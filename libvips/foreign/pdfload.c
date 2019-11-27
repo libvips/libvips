@@ -637,8 +637,8 @@ vips_foreign_load_pdf_file_open( VipsForeignLoadPdf *pdf )
 	GError *error = NULL;
 
 #ifdef DEBUG
-#endif /*DEBUG*/
 	printf( "vips_foreign_load_pdf_file_open: %s\n", file->filename );
+#endif /*DEBUG*/
 
 	if( !file->uri &&
 		file->filename ) { 
