@@ -108,6 +108,9 @@ main( int argc, char **argv )
 	if( VIPS_INIT( NULL ) )
 		return( -1 );
 
+	if( argc != 3 ) 
+		vips_error_exit( "usage: %s in-file out-file.png", argv[0] );
+
 	my_input.filename = argv[1];
 	my_input.contents = NULL;
 	my_input.length = 0;
