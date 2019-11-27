@@ -1901,6 +1901,8 @@ vips_realpath( const char *path )
 	 * linux systems with grsec, since it works by opening /proc/self/fd.
 	 */
 
+	printf( "vips_realpath: path = %s\n", path );
+
 	if( !g_path_is_absolute( path ) ) {
 		char *cwd;
 
@@ -1910,6 +1912,8 @@ vips_realpath( const char *path )
 	}
 	else
 		real = g_strdup( path );
+
+	printf( "    result = %s\n", real );
 
 	return( real );
 }
