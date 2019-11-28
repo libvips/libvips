@@ -131,6 +131,7 @@ vips_webp_write_unset( VipsWebPWrite *write )
 	WebPMemoryWriterClear( &write->memory_writer );
 	VIPS_FREEF( WebPAnimEncoderDelete, write->enc );
 	VIPS_FREEF( WebPMuxDelete, write->mux );
+	VIPS_UNREF( write->image );
 }
 
 static int
@@ -141,7 +142,7 @@ vips_webp_write_init( VipsWebPWrite *write, VipsImage *image,
 	gboolean min_size, int kmin, int kmax,
 	gboolean strip )
 {
-	write->image = image;
+	write->image = NULL;
 	write->Q = Q;
 	write->lossless = lossless;
 	write->preset = preset;
@@ -156,6 +157,14 @@ vips_webp_write_init( VipsWebPWrite *write, VipsImage *image,
 	WebPMemoryWriterInit( &write->memory_writer );
 	write->enc = NULL;
 	write->mux = NULL;
+
+	/* We must copy the input image since we will be updating the
+	 * metadata when we write the exif.
+	 */
+	if( vips_copy( image, &write->image, NULL ) ) {
+		vips_webp_write_unset( write );
+		return( -1 );
+	}
 
 	if( !WebPConfigInit( &write->config ) ) {
 		vips_webp_write_unset( write );
@@ -371,14 +380,14 @@ write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 }
 
 static int
-write_webp( VipsWebPWrite *write, VipsImage *image )
+write_webp( VipsWebPWrite *write )
 {
-	int page_height = vips_image_get_page_height( image ); 
+	int page_height = vips_image_get_page_height( write->image ); 
 
-	if( page_height < image->Ysize )
-		return( write_webp_anim( write, image, page_height ) );
+	if( page_height < write->image->Ysize )
+		return( write_webp_anim( write, write->image, page_height ) );
 	else
-		return( write_webp_single( write, image ) );
+		return( write_webp_single( write, write->image ) );
 }
 
 static void
@@ -418,22 +427,23 @@ vips_webp_set_chunk( VipsWebPWrite *write,
 }
 
 static int 
-vips_webp_add_chunks( VipsWebPWrite *write, VipsImage *image )
+vips_webp_add_chunks( VipsWebPWrite *write )
 {
 	int i;
 
-	if( vips_image_get_typeof( image, "gif-loop" ) )
-		vips_webp_set_count( write, get_int( image, "gif-loop", 0 ) );
+	if( vips_image_get_typeof( write->image, "gif-loop" ) )
+		vips_webp_set_count( write, 
+			get_int( write->image, "gif-loop", 0 ) );
 
 	for( i = 0; i < vips__n_webp_names; i++ ) { 
 		const char *vips_name = vips__webp_names[i].vips;
 		const char *webp_name = vips__webp_names[i].webp;
 
-		if( vips_image_get_typeof( image, vips_name ) ) {
+		if( vips_image_get_typeof( write->image, vips_name ) ) {
 			const void *data;
 			size_t length;
 
-			if( vips_image_get_blob( image, 
+			if( vips_image_get_blob( write->image, 
 				vips_name, &data, &length ) ||
 				vips_webp_set_chunk( write, 
 					webp_name, data, length ) )
@@ -445,13 +455,13 @@ vips_webp_add_chunks( VipsWebPWrite *write, VipsImage *image )
 }
 
 static int 
-vips_webp_add_metadata( VipsWebPWrite *write, VipsImage *image )
+vips_webp_add_metadata( VipsWebPWrite *write )
 {
 	WebPData data;
 
 	/* Rebuild the EXIF block, if any, ready for writing. 
 	 */
-	if( vips__exif_update( image ) )
+	if( vips__exif_update( write->image ) )
 		return( -1 ); 
 
 	data.bytes = write->memory_writer.mem;
@@ -466,7 +476,7 @@ vips_webp_add_metadata( VipsWebPWrite *write, VipsImage *image )
 
 	/* Add extra metadata.
 	 */
-	if( vips_webp_add_chunks( write, image ) ) 
+	if( vips_webp_add_chunks( write ) ) 
 		return( -1 );
 
 	if( WebPMuxAssemble( write->mux, &data ) != WEBP_MUX_OK ) {
@@ -499,13 +509,13 @@ vips__webp_write_file( VipsImage *image, const char *filename,
 		alpha_q, reduction_effort, min_size, kmin, kmax, strip ) )
 		return( -1 );
 
-	if( write_webp( &write, image ) ) {
+	if( write_webp( &write ) ) {
 		vips_webp_write_unset( &write );
 		return( -1 );
 	}
 
 	if( !strip &&
-		vips_webp_add_metadata( &write, image ) ) {
+		vips_webp_add_metadata( &write ) ) {
 		vips_webp_write_unset( &write );
 		return( -1 );
 	}
@@ -544,13 +554,13 @@ vips__webp_write_buffer( VipsImage *image, void **obuf, size_t *olen,
 		alpha_q, reduction_effort, min_size, kmin, kmax, strip ) )
 		return( -1 );
 
-	if( write_webp( &write, image ) ) {
+	if( write_webp( &write ) ) {
 		vips_webp_write_unset( &write );
 		return( -1 );
 	}
 
 	if( !strip &&
-		vips_webp_add_metadata( &write, image ) ) {
+		vips_webp_add_metadata( &write ) ) {
 		vips_webp_write_unset( &write );
 		return( -1 );
 	}

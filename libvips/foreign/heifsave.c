@@ -65,6 +65,11 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	gboolean lossless;
 
+	/* The image we save. This is a copy of save->ready since we need to
+	 * be able to update the metadata.
+	 */
+	VipsImage *image;
+
 	int page_width;
 	int page_height;
 	int n_pages;
@@ -99,6 +104,7 @@ vips_foreign_save_heif_dispose( GObject *gobject )
 {
 	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) gobject;
 
+	VIPS_UNREF( heif->image );
 	VIPS_FREEF( heif_image_release, heif->img );
 	VIPS_FREEF( heif_image_handle_release, heif->handle );
 	VIPS_FREEF( heif_encoder_release, heif->encoder );
@@ -126,13 +132,12 @@ static int
 vips_foreign_save_heif_write_metadata( VipsForeignSaveHeif *heif )
 {
 #ifdef HAVE_HEIF_CONTEXT_ADD_EXIF_METADATA
-	VipsForeignSave *save = (VipsForeignSave *) heif;
 
 	int i;
 	struct heif_error error;
 
 	for( i = 0; i < VIPS_NUMBER( libheif_metadata ); i++ )  
-		if( vips_image_get_typeof( save->ready, 
+		if( vips_image_get_typeof( heif->image, 
 			libheif_metadata[i].name ) ) {
 			const void *data;
 			size_t length;
@@ -142,7 +147,7 @@ vips_foreign_save_heif_write_metadata( VipsForeignSaveHeif *heif )
 				libheif_metadata[i].name ); 
 #endif /*DEBUG*/
 
-			if( vips_image_get_blob( save->ready, 
+			if( vips_image_get_blob( heif->image, 
 				VIPS_META_EXIF_NAME, &data, &length ) )
 				return( -1 );
 
@@ -168,7 +173,7 @@ vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif, int page )
 
 #ifdef HAVE_HEIF_COLOR_PROFILE
 	if( !save->strip &&
-		vips_image_get_typeof( save->ready, VIPS_META_ICC_NAME ) ) {
+		vips_image_get_typeof( heif->image, VIPS_META_ICC_NAME ) ) {
 		const void *data;
 		size_t length;
 
@@ -176,7 +181,7 @@ vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif, int page )
 		printf( "attaching profile ..\n" ); 
 #endif /*DEBUG*/
 
-		if( vips_image_get_blob( save->ready, 
+		if( vips_image_get_blob( heif->image, 
 			VIPS_META_ICC_NAME, &data, &length ) )
 			return( -1 );
 
@@ -217,10 +222,10 @@ vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif, int page )
 	}
 
 #ifdef HAVE_HEIF_CONTEXT_SET_PRIMARY_IMAGE
-	if( vips_image_get_typeof( save->ready, "heif-primary" ) ) { 
+	if( vips_image_get_typeof( heif->image, "heif-primary" ) ) { 
 		int primary;
 
-		if( vips_image_get_int( save->ready, 
+		if( vips_image_get_int( heif->image, 
 			"heif-primary", &primary ) ) 
 			return( -1 ); 	
 
@@ -293,6 +298,12 @@ vips_foreign_save_heif_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
+	/* We must copy the input image since we will be updating the
+	 * metadata when we write the exif.
+	 */
+	if( vips_copy( save->ready, &heif->image, NULL ) ) 
+		return( -1 );
+
 	/* TODO ... should be a param? the other useful one is AVC.
 	 */
 	error = heif_context_get_encoder_for_format( heif->ctx, 
@@ -318,9 +329,9 @@ vips_foreign_save_heif_build( VipsObject *object )
 	 * heif_encoder_list_parameters().
 	 */
 
-	heif->page_width = save->ready->Xsize;
-	heif->page_height = vips_image_get_page_height( save->ready );
-	heif->n_pages = save->ready->Ysize / heif->page_height;
+	heif->page_width = heif->image->Xsize;
+	heif->page_height = vips_image_get_page_height( heif->image );
+	heif->n_pages = heif->image->Ysize / heif->page_height;
 
 	/* Make a heif image the size of a page. We repeatedly fill this with
 	 * sink_disc() and write a frame each time it fills.
@@ -344,13 +355,13 @@ vips_foreign_save_heif_build( VipsObject *object )
 
 	/* Just do this once, so we don't rebuild exif on every page.
 	 */
-	if( vips_image_get_typeof( save->ready, VIPS_META_EXIF_NAME ) ) 
-		if( vips__exif_update( save->ready ) )
+	if( vips_image_get_typeof( heif->image, VIPS_META_EXIF_NAME ) ) 
+		if( vips__exif_update( heif->image ) )
 			return( -1 );
 
 	/* Write data. 
 	 */
-	if( vips_sink_disc( save->ready, 
+	if( vips_sink_disc( heif->image, 
 		vips_foreign_save_heif_write_block, heif ) )
 		return( -1 );
 
