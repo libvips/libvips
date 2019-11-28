@@ -4,6 +4,8 @@
  * 	- try to make it compile on centos5
  * 7/7/12
  * 	- add a lock so we can run operations from many threads
+ * 28/11/19 [MaxKellermann]
+ * 	- make invalidate advisory rather than immediate
  */
 
 /*
@@ -131,6 +133,11 @@ typedef struct _VipsOperationCacheEntry {
 	 * we can disconnect when we drop an operation.
 	 */
 	gulong invalidate_id;
+
+	/* Set if someone thinks this cache entry should be dropped.
+	 */
+	gboolean invalid;
+
 } VipsOperationCacheEntry;
 
 /* Pass in the pspec so we can get the generic type. For example, a 
@@ -595,7 +602,12 @@ vips_operation_touch( VipsOperation *operation )
 		g_hash_table_lookup( vips_cache_table, operation );
 
 	vips_cache_time += 1;
-	entry->time = vips_cache_time;
+
+	/* Don't up the time for invalid items -- we want them to fall out of
+	 * cache.
+	 */
+	if( !entry->invalid ) 
+		entry->time = vips_cache_time;
 }
 
 /* Ref an operation for the cache. The operation itself, plus all the output 
@@ -611,6 +623,13 @@ vips_cache_ref( VipsOperation *operation )
 }
 
 static void
+vips_cache_invalidate_cb( VipsOperation *operation, 
+	VipsOperationCacheEntry *entry )
+{
+	entry->invalid = TRUE;
+}
+
+static void
 vips_cache_insert( VipsOperation *operation )
 {
 	VipsOperationCacheEntry *entry = g_new( VipsOperationCacheEntry, 1 );
@@ -622,14 +641,16 @@ vips_cache_insert( VipsOperation *operation )
 	entry->operation = operation;
 	entry->time = 0;
 	entry->invalidate_id = 0;
+	entry->invalid = FALSE;
 
 	g_hash_table_insert( vips_cache_table, operation, entry );
 	vips_cache_ref( operation );
 
-	/* If the operation signals "invalidate", we must drop it.
+	/* If the operation signals "invalidate", we must tag this cache entry
+	 * for removal.
 	 */
 	entry->invalidate_id = g_signal_connect( operation, "invalidate", 
-		G_CALLBACK( vips_cache_remove ), NULL ); 
+		G_CALLBACK( vips_cache_invalidate_cb ), entry ); 
 }
 
 static void *
@@ -763,13 +784,22 @@ vips_cache_operation_lookup( VipsOperation *operation )
 	result = NULL;
 
 	if( (hit = g_hash_table_lookup( vips_cache_table, operation )) ) {
-		if( vips__cache_trace ) {
-			printf( "vips cache*: " );
-			vips_object_print_summary( VIPS_OBJECT( operation ) );
+		if( hit->invalid ) {
+			/* There but has been tagged for removal.
+			 */
+			vips_cache_remove( operation );
+			hit = NULL;
 		}
+		else {
+			if( vips__cache_trace ) {
+				printf( "vips cache*: " );
+				vips_object_print_summary( 
+					VIPS_OBJECT( operation ) );
+			}
 
-		result = hit->operation;
-		vips_cache_ref( result );
+			result = hit->operation;
+			vips_cache_ref( result );
+		}
 	}
 
 	g_mutex_unlock( vips_cache_lock );
