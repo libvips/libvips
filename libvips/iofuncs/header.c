@@ -1023,7 +1023,7 @@ vips_image_set( VipsImage *image, const char *name, GValue *value )
         /* If this image is shared, block metadata changes. 
          */
         if( G_OBJECT( image )->ref_count > 1 ) {
-                g_info( "can't set metadata \"%s\" on shared image", name );
+                g_warning( "can't set metadata \"%s\" on shared image", name );
                 return;
         }
 
@@ -1223,7 +1223,8 @@ vips_image_remove( VipsImage *image, const char *name )
         /* If this image is shared, block metadata changes. 
          */
         if( G_OBJECT( image )->ref_count > 1 ) {
-                g_info( "can't remove metadata \"%s\" on shared image", name );
+                g_warning( "can't remove metadata \"%s\" on shared image", 
+			name );
                 return( FALSE );
         }
 
