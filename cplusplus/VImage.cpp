@@ -596,20 +596,20 @@ VImage::new_from_buffer( const std::string &buf, const char *option_string,
 }
 
 VImage 
-VImage::new_from_stream( const VStreamI &input, const char *option_string, 
+VImage::new_from_stream( VStreamI streami, const char *option_string, 
 	VOption *options )
 {
 	const char *operation_name;
 	VImage out;
 
 	if( !(operation_name = vips_foreign_find_load_stream( 
-		input.get_stream() )) ) {
+		streami.get_stream() )) ) {
 		delete options; 
 		throw( VError() ); 
 	}
 
 	options = (options ? options : VImage::option())-> 
-		set( "input", input )->
+		set( "streami", streami )->
 		set( "out", &out );
 
 	call_option_string( operation_name, option_string, options ); 
@@ -702,7 +702,7 @@ VImage::write_to_buffer( const char *suffix, void **buf, size_t *size,
 }
 
 void 
-VImage::write_to_stream( const char *suffix, const VStreamO &output, 
+VImage::write_to_stream( const char *suffix, VStreamO streamo, 
 	VOption *options ) const
 {
 	char filename[VIPS_PATH_MAX];
@@ -718,7 +718,7 @@ VImage::write_to_stream( const char *suffix, const VStreamO &output,
 	call_option_string( operation_name, option_string, 
 		(options ? options : VImage::option())-> 
 			set( "in", *this )->
-			set( "output", output ) );
+			set( "streamo", streamo ) );
 }
 
 #include "vips-operators.cpp"
