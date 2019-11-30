@@ -211,6 +211,7 @@ write_destroy( Write *write )
 	jpeg_destroy_compress( &write->cinfo );
 	VIPS_FREE( write->row_pointer );
 	VIPS_UNREF( write->inverted );
+	VIPS_UNREF( write->in );
 
 	g_free( write );
 }
@@ -223,7 +224,7 @@ write_new( VipsImage *in )
 	if( !(write = g_new0( Write, 1 )) )
 		return( NULL );
 
-	write->in = in;
+	write->in = NULL;
 	write->row_pointer = NULL;
         write->cinfo.err = jpeg_std_error( &write->eman.pub );
 	write->cinfo.dest = NULL;
@@ -231,6 +232,12 @@ write_new( VipsImage *in )
 	write->eman.pub.output_message = vips__new_output_message;
 	write->eman.fp = NULL;
 	write->inverted = NULL;
+
+	if( vips_copy( in, &write->in, NULL ) ||
+		vips__exif_update( write->in ) ) { 
+		write_destroy( write );
+		return( NULL );
+	}
 
         return( write );
 }
@@ -322,8 +329,7 @@ write_xmp( Write *write )
 static int
 write_exif( Write *write )
 {
-	if( vips__exif_update( write->in ) ||
-		write_blob( write, VIPS_META_EXIF_NAME, JPEG_APP0 + 1 ) )
+	if( write_blob( write, VIPS_META_EXIF_NAME, JPEG_APP0 + 1 ) )
 		return( -1 );
 
 	return( 0 );

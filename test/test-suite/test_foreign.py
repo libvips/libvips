@@ -23,10 +23,10 @@ class TestForeign:
         cls.tempdir = tempfile.mkdtemp()
 
         cls.colour = pyvips.Image.jpegload(JPEG_FILE)
-        cls.mono = cls.colour.extract_band(1)
+        cls.mono = cls.colour.extract_band(1).copy()
         # we remove the ICC profile: the RGB one will no longer be appropriate
         cls.mono.remove("icc-profile-data")
-        cls.rad = cls.colour.float2rad()
+        cls.rad = cls.colour.float2rad().copy()
         cls.rad.remove("icc-profile-data")
         cls.cmyk = cls.colour.bandjoin(cls.mono)
         cls.cmyk = cls.cmyk.copy(interpretation=pyvips.Interpretation.CMYK)
@@ -160,6 +160,7 @@ class TestForeign:
 
             # can remove orientation, save, load again, orientation
             # has reset
+            x = x.copy()
             x.remove("orientation")
 
             filename = temp_filename(self.tempdir, '.jpg')
@@ -303,6 +304,7 @@ class TestForeign:
         x = pyvips.Image.new_from_file(filename)
         y = x.get("orientation")
         assert y == 2
+        x = x.copy()
         x.remove("orientation")
 
         filename = temp_filename(self.tempdir, '.tif')
@@ -542,6 +544,7 @@ class TestForeign:
         if have("gifload"):
             x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
             w1 = x1.webpsave_buffer(Q=10)
+
             x2 = pyvips.Image.new_from_buffer(w1, "", n=-1)
             assert x1.width == x2.width
             assert x1.height == x2.height

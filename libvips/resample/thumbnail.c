@@ -520,7 +520,7 @@ static int
 vips_thumbnail_build( VipsObject *object )
 {
 	VipsThumbnail *thumbnail = VIPS_THUMBNAIL( object );
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 13 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 14 );
 	VipsInterpretation interpretation = thumbnail->linear ?
 		VIPS_INTERPRETATION_scRGB : VIPS_INTERPRETATION_sRGB; 
 
@@ -673,6 +673,9 @@ vips_thumbnail_build( VipsObject *object )
 		return( -1 );
 	in = t[4];
 
+	if( vips_copy( in, &t[13], NULL ) )
+		return( -1 );
+	in = t[13];
 	output_page_height = VIPS_RINT( preshrunk_page_height / vshrink );
 	vips_image_set_int( in, 
 		VIPS_META_PAGE_HEIGHT, output_page_height );

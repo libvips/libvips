@@ -590,17 +590,28 @@ write_image( VipsForeignSaveDz *dz,
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz );
 
+	VipsImage *t;
 	void *buf;
 	size_t len;
+
+	/* We need to block progress signalling on individual image write, so
+	 * we need a copy of the tile in case it's shared (eg. associated
+	 * images).
+	 */
+	if( vips_copy( image, &t, NULL ) ) 
+		return( -1 );
 
 	/* We default to stripping all metadata. Only "no_strip" turns this
 	 * off. Very few people really want metadata on every tile.
 	 */
-	vips_image_set_int( image, "hide-progress", 1 );
-	if( vips_image_write_to_buffer( image, format, &buf, &len,
+	vips_image_set_int( t, "hide-progress", 1 );
+	if( vips_image_write_to_buffer( t, format, &buf, &len,
 		"strip", !dz->no_strip,
-		NULL ) )
+		NULL ) ) {
+		VIPS_UNREF( t );
 		return( -1 );
+	}
+	VIPS_UNREF( t );
 
 	/* gsf doesn't like more than one write active at once.
 	 */
