@@ -26,10 +26,10 @@ class TestStream:
         cls.tempdir = tempfile.mkdtemp()
 
         cls.colour = pyvips.Image.jpegload(JPEG_FILE)
-        cls.mono = cls.colour.extract_band(1)
+        cls.mono = cls.colour.extract_band(1).copy()
         # we remove the ICC profile: the RGB one will no longer be appropriate
         cls.mono.remove("icc-profile-data")
-        cls.rad = cls.colour.float2rad()
+        cls.rad = cls.colour.float2rad().copy()
         cls.rad.remove("icc-profile-data")
         cls.cmyk = cls.colour.bandjoin(cls.mono)
         cls.cmyk = cls.cmyk.copy(interpretation=pyvips.Interpretation.CMYK)

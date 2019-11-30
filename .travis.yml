@@ -15,7 +15,7 @@ script:
   - LD_LIBRARY_PATH=$PWD/libvips/.libs
     DYLD_LIBRARY_PATH=$PWD/libvips/.libs
     LD_PRELOAD=$ASAN_DSO
-    $PYTHON -m pytest -v test/test-suite
+    $PYTHON -m pytest -sv --log-cli-level=WARNING test/test-suite
 
 matrix:
   allow_failures:

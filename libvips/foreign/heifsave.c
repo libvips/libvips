@@ -304,11 +304,14 @@ vips_foreign_save_heif_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	/* We must copy the input image since we will be updating the
-	 * metadata when we write the exif.
+	/* Only rebuild exif if there's an EXIF block or we'll make a
+	 * default set of tags. EXIF is not required for heif.
 	 */
 	if( vips_copy( save->ready, &heif->image, NULL ) ) 
 		return( -1 );
+	if( vips_image_get_typeof( heif->image, VIPS_META_EXIF_NAME ) ) 
+		if( vips__exif_update( heif->image ) )
+			return( -1 );
 
 	error = heif_context_get_encoder_for_format( heif->ctx, 
 		(enum heif_compression_format) heif->compression, 
@@ -367,12 +370,6 @@ vips_foreign_save_heif_build( VipsObject *object )
 
 	heif->data = heif_image_get_plane( heif->img, 
 		heif_channel_interleaved, &heif->stride );
-
-	/* Just do this once, so we don't rebuild exif on every page.
-	 */
-	if( vips_image_get_typeof( heif->image, VIPS_META_EXIF_NAME ) ) 
-		if( vips__exif_update( heif->image ) )
-			return( -1 );
 
 	/* Write data. 
 	 */

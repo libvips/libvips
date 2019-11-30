@@ -233,10 +233,8 @@ write_new( VipsImage *in )
 	write->eman.fp = NULL;
 	write->inverted = NULL;
 
-	/* We must copy the input image since we will be updating the
-	 * metadata when we write the exif.
-	 */
-	if( vips_copy( in, &write->in, NULL ) ) {
+	if( vips_copy( in, &write->in, NULL ) ||
+		vips__exif_update( write->in ) ) { 
 		write_destroy( write );
 		return( NULL );
 	}
@@ -331,8 +329,7 @@ write_xmp( Write *write )
 static int
 write_exif( Write *write )
 {
-	if( vips__exif_update( write->in ) ||
-		write_blob( write, VIPS_META_EXIF_NAME, JPEG_APP0 + 1 ) )
+	if( write_blob( write, VIPS_META_EXIF_NAME, JPEG_APP0 + 1 ) )
 		return( -1 );
 
 	return( 0 );

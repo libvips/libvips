@@ -164,10 +164,10 @@ vips_webp_write_init( VipsWebPWrite *write, VipsImage *image,
 	write->enc = NULL;
 	write->mux = NULL;
 
-	/* We must copy the input image since we will be updating the
-	 * metadata when we write the exif.
+	/* Rebuild exif on image. We must do this on a copy. 
 	 */
-	if( vips_copy( image, &write->image, NULL ) ) {
+	if( vips_copy( image, &write->image, NULL ) ||
+		vips__exif_update( write->image ) ) {
 		vips_webp_write_unset( write );
 		return( -1 );
 	}
@@ -473,11 +473,6 @@ static int
 vips_webp_add_metadata( VipsWebPWrite *write )
 {
 	WebPData data;
-
-	/* Rebuild the EXIF block, if any, ready for writing. 
-	 */
-	if( vips__exif_update( write->image ) )
-		return( -1 ); 
 
 	data.bytes = write->memory_writer.mem;
 	data.size = write->memory_writer.size;

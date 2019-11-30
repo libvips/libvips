@@ -544,6 +544,7 @@ class TestForeign:
         if have("gifload"):
             x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
             w1 = x1.webpsave_buffer(Q=10)
+
             x2 = pyvips.Image.new_from_buffer(w1, "", n=-1)
             assert x1.width == x2.width
             assert x1.height == x2.height
