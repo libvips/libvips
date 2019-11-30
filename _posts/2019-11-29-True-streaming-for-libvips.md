@@ -34,7 +34,7 @@ S3 keeps data (images in this case) in *buckets* and lets you read and
 write buckets using http `GET` and `POST` requests to addresses like
 `http://johnsmith.s3.amazonaws.com/photos/puppy.jpg`.
 
-Processing an image with a system that works in whole images, like
+Processing with a system that works in whole images, like
 ImageMagick, happens like this:
 
 ![Processing with image-at-a-time systems]({{ site.baseurl }}/assets/images/magick-s3.png)
@@ -52,15 +52,15 @@ more like this:
 
 ![Processing with current libvips]({{ site.baseurl }}/assets/images/old-libvips-s3.png)
 
-Because the middle sections are overlapped, we get much better *latency*:
+Because the middle sections are overlapped we get much better *latency*:
 the total time the whole process takes from start to finish is much lower.
 
 However, current libvips still needs the compressed input image to be read to
-memory before it can start, and can't start to send the output back to cloud
+memory before it can start, and can't start to upload the result to cloud
 storage until it has finished encoding the whole output image.
 
-This is where true streaming comes in: it can decode directly from a pipe and
-encode directly to a pipe. It looks more like this:
+This is where true streaming comes in. It can decode directly from a pipe
+and encode directly to a pipe. It looks more like this:
 
 ![Processing with libvips streams]({{ site.baseurl }}/assets/images/new-libvips-s3.png)
 
@@ -228,4 +228,5 @@ themselves up to streams. We've rewritten jpg, png, webp, hdr (Radiance),
 tif (though only load, not save), svg and ppm/pfm/pnm to work only via this
 new stream class.
 
-We plan to move more loaders and savers over in the next few libvips versions.
+We plan to rework more loaders and savers in the next few libvips versions. The
+old file and buffer API will become a thin layer over the new stream system.
