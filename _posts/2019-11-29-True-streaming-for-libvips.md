@@ -39,12 +39,13 @@ ImageMagick, happens like this:
 
 ![Processing with image-at-a-time systems]({{ site.baseurl }}/assets/images/magick-s3.png)
 
-Reading from the left, first the data is downloaded from the bucket into a
-large area of memory, then the image is decompressed, then processed, perhaps
-in several stages, then recoded, then finally uploaded back to cloud storage.
+Reading from the left, first the data is downloaded from the bucket into
+a large area of memory, then the image is decompressed, then processed,
+perhaps in several stages, then recompressed, then finally uploaded back
+to cloud storage.
 
-Each stage must complete before the next stage can start, and each stage needs
-at least two large areas of memory to function. 
+Each stage must complete before the next stage can start, and each stage
+needs at least two large areas of memory to function.
 
 Current libvips is able to execute decode, process and encode all at the same
 time, in parallel, and without needing any intermediate images. It looks
@@ -57,10 +58,10 @@ the total time the whole process takes from start to finish is much lower.
 
 However, current libvips still needs the compressed input image to be read to
 memory before it can start, and can't start to upload the result to cloud
-storage until it has finished encoding the whole output image.
+storage until it has finished compressing the whole output image.
 
-This is where true streaming comes in. It can decode directly from a pipe
-and encode directly to a pipe. It looks more like this:
+This is where true streaming comes in. libvips git master can now decode
+directly from a pipe and encode directly to a pipe. It looks more like this:
 
 ![Processing with libvips streams]({{ site.baseurl }}/assets/images/new-libvips-s3.png)
 
@@ -93,8 +94,6 @@ directly into the decompressor.
 The mechanism that supports this is set of calls loaders can use on streams to
 hint what kind of access pattern they are likely to need, and what part of the
 image (header, pixels) they are working on.
-
-The C and C++ APIs are very similar.
 
 # Custom input streams
 
@@ -175,8 +174,8 @@ You could make a proper seek method like this:
         return self.read_point
 ```
 
-It's optional, but will help file formats like TIFF which seek a lot during
-read.
+A seek method is optional, but will help file formats like TIFF which seek
+a lot during read.
 
 # Custom output streams
 
