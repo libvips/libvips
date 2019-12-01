@@ -71,11 +71,11 @@
  *
  * <emphasis>Functional class creation</emphasis> Vips objects have a very 
  * regular lifecycle: initialise, build, use, destroy. They behave rather like
- * function calls and are free of side-effects. 
+ * function calls and are free of side-effects.
  *
  * <emphasis>Run-time introspection</emphasis> Vips objects can be fully 
- * introspected at run-time. There is not need for separate source-code 
- * analysis. 
+ * introspected at run-time. There is no need for separate source-code 
+ * analysis.
  *
  * <emphasis>Command-line interface</emphasis> Any vips object can be run from
  * the command-line with the `vips` driver program. 

@@ -9,7 +9,6 @@ import pytest
 import pyvips
 from helpers import \
     JPEG_FILE, PNG_FILE, TIF_FILE, \
-    WEBP_FILE, \
     temp_filename, assert_almost_equal_objects, have, skip_if_no
 
 

@@ -797,6 +797,7 @@ vips_streami_descriptor_to_memory( VipsStreami *streami )
 
 	g_assert( streami->length > 0 );
 	g_assert( !streami->blob );
+	g_assert( !streami->mmap_baseaddr );
 
 	if( !(streami->mmap_baseaddr = vips__mmap( stream->descriptor, 
 		FALSE, streami->length, 0 )) )
