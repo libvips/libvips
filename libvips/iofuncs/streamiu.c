@@ -32,8 +32,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -85,7 +85,8 @@ vips_streamiu_read_real( VipsStreami *streami,
 	g_signal_emit( streami, vips_streamiu_signals[SIG_READ], 0,
 		buffer, length, &bytes_read );
 
-	VIPS_DEBUG_MSG( "  %zd\n", bytes_read );
+	VIPS_DEBUG_MSG( "  vips_streamiu_read_real, seen %zd bytes\n", 
+		bytes_read );
 
 	return( bytes_read );
 }
@@ -105,7 +106,8 @@ vips_streamiu_seek_real( VipsStreami *streami,
 	g_signal_emit( streami, vips_streamiu_signals[SIG_SEEK], 0,
 		offset, whence, &new_position );
 
-	VIPS_DEBUG_MSG( "  %zd\n", new_position );
+	VIPS_DEBUG_MSG( "  vips_streamiu_seek_real, seen new pos %zd\n", 
+		new_position );
 
 	return( new_position );
 }
