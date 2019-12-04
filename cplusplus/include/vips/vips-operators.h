@@ -1,5 +1,5 @@
 // headers for vips operations
-// Wed Apr 24 15:50:21 CEST 2019
+// Fri 29 Nov 2019 02:46:41 PM CET
 // this file is generated automatically, do not edit!
 
 /**
@@ -295,6 +295,14 @@ VImage cache( VOption *options = 0 ) const;
  * @return Output image.
  */
 VImage canny( VOption *options = 0 ) const;
+
+/**
+ * Use pixel values to pick cases from an array of images.
+ * @param cases Array of case images.
+ * @param options Optional options.
+ * @return Output image.
+ */
+VImage case_image( std::vector<VImage> cases, VOption *options = 0 ) const;
 
 /**
  * Cast an image.
@@ -1030,6 +1038,14 @@ static VImage jpegload( const char *filename, VOption *options = 0 );
 static VImage jpegload_buffer( VipsBlob *buffer, VOption *options = 0 );
 
 /**
+ * Load image from jpeg stream.
+ * @param streami Stream to load from.
+ * @param options Optional options.
+ * @return Output image.
+ */
+static VImage jpegload_stream( VStreamI streami, VOption *options = 0 );
+
+/**
  * Save image to jpeg file.
  * @param filename Filename to save to.
  * @param options Optional options.
@@ -1048,6 +1064,13 @@ VipsBlob *jpegsave_buffer( VOption *options = 0 ) const;
  * @param options Optional options.
  */
 void jpegsave_mime( VOption *options = 0 ) const;
+
+/**
+ * Save image to jpeg stream.
+ * @param streamo Stream to save to.
+ * @param options Optional options.
+ */
+void jpegsave_stream( VStreamO streamo, VOption *options = 0 ) const;
 
 /**
  * Label regions in an image.
@@ -1112,7 +1135,7 @@ void magicksave( const char *filename, VOption *options = 0 ) const;
 VipsBlob *magicksave_buffer( VOption *options = 0 ) const;
 
 /**
- * Resample with an mapim image.
+ * Resample with a map image.
  * @param index Index pixels with this.
  * @param options Optional options.
  * @return Output image.
@@ -1493,6 +1516,14 @@ static VImage pngload( const char *filename, VOption *options = 0 );
 static VImage pngload_buffer( VipsBlob *buffer, VOption *options = 0 );
 
 /**
+ * Load png from stream.
+ * @param streami Stream to load from.
+ * @param options Optional options.
+ * @return Output image.
+ */
+static VImage pngload_stream( VStreamI streami, VOption *options = 0 );
+
+/**
  * Save image to png file.
  * @param filename Filename to save to.
  * @param options Optional options.
@@ -1505,6 +1536,13 @@ void pngsave( const char *filename, VOption *options = 0 ) const;
  * @return Buffer to save to.
  */
 VipsBlob *pngsave_buffer( VOption *options = 0 ) const;
+
+/**
+ * Save image to png stream.
+ * @param streamo Stream to save to.
+ * @param options Optional options.
+ */
+void pngsave_stream( VStreamO streamo, VOption *options = 0 ) const;
 
 /**
  * Load ppm from file.
@@ -1576,6 +1614,22 @@ VImage rad2float( VOption *options = 0 ) const;
 static VImage radload( const char *filename, VOption *options = 0 );
 
 /**
+ * Load rad from buffer.
+ * @param buffer Buffer to load from.
+ * @param options Optional options.
+ * @return Output image.
+ */
+static VImage radload_buffer( VipsBlob *buffer, VOption *options = 0 );
+
+/**
+ * Load rad from stream.
+ * @param streami Stream to load from.
+ * @param options Optional options.
+ * @return Output image.
+ */
+static VImage radload_stream( VStreamI streami, VOption *options = 0 );
+
+/**
  * Save image to radiance file.
  * @param filename Filename to save to.
  * @param options Optional options.
@@ -1588,6 +1642,13 @@ void radsave( const char *filename, VOption *options = 0 ) const;
  * @return Buffer to save to.
  */
 VipsBlob *radsave_buffer( VOption *options = 0 ) const;
+
+/**
+ * Save image to radiance stream.
+ * @param streamo Stream to save to.
+ * @param options Optional options.
+ */
+void radsave_stream( VStreamO streamo, VOption *options = 0 ) const;
 
 /**
  * Rank filter.
@@ -1932,6 +1993,22 @@ static VImage svgload( const char *filename, VOption *options = 0 );
 static VImage svgload_buffer( VipsBlob *buffer, VOption *options = 0 );
 
 /**
+ * Load svg from stream.
+ * @param streami Stream to load from.
+ * @param options Optional options.
+ * @return Output image.
+ */
+static VImage svgload_stream( VStreamI streami, VOption *options = 0 );
+
+/**
+ * Find the index of the first non-zero pixel in tests.
+ * @param tests Table of images to test.
+ * @param options Optional options.
+ * @return Output image.
+ */
+static VImage switch_image( std::vector<VImage> tests, VOption *options = 0 );
+
+/**
  * Run an external command.
  * @param cmd_format Command to run.
  * @param options Optional options.
@@ -1973,6 +2050,15 @@ static VImage thumbnail_buffer( VipsBlob *buffer, int width, VOption *options = 
 VImage thumbnail_image( int width, VOption *options = 0 ) const;
 
 /**
+ * Generate thumbnail from stream.
+ * @param streami Stream to load from.
+ * @param width Size to this width.
+ * @param options Optional options.
+ * @return Output image.
+ */
+static VImage thumbnail_stream( VStreamI streami, int width, VOption *options = 0 );
+
+/**
  * Load tiff from file.
  * @param filename Filename to load from.
  * @param options Optional options.
@@ -1987,6 +2073,14 @@ static VImage tiffload( const char *filename, VOption *options = 0 );
  * @return Output image.
  */
 static VImage tiffload_buffer( VipsBlob *buffer, VOption *options = 0 );
+
+/**
+ * Load tiff from stream.
+ * @param streami Stream to load from.
+ * @param options Optional options.
+ * @return Output image.
+ */
+static VImage tiffload_stream( VStreamI streami, VOption *options = 0 );
 
 /**
  * Save image to tiff file.
@@ -2062,6 +2156,14 @@ static VImage webpload( const char *filename, VOption *options = 0 );
 static VImage webpload_buffer( VipsBlob *buffer, VOption *options = 0 );
 
 /**
+ * Load webp from stream.
+ * @param streami Stream to load from.
+ * @param options Optional options.
+ * @return Output image.
+ */
+static VImage webpload_stream( VStreamI streami, VOption *options = 0 );
+
+/**
  * Save image to webp file.
  * @param filename Filename to save to.
  * @param options Optional options.
@@ -2074,6 +2176,13 @@ void webpsave( const char *filename, VOption *options = 0 ) const;
  * @return Buffer to save to.
  */
 VipsBlob *webpsave_buffer( VOption *options = 0 ) const;
+
+/**
+ * Save image to webp stream.
+ * @param streamo Stream to save to.
+ * @param options Optional options.
+ */
+void webpsave_stream( VStreamO streamo, VOption *options = 0 ) const;
 
 /**
  * Make a worley noise image.

@@ -103,8 +103,10 @@ class TestResample:
     def test_resize(self):
         im = pyvips.Image.new_from_file(JPEG_FILE)
         im2 = im.resize(0.25)
-        assert im2.width == round(im.width / 4.0)
-        assert im2.height == round(im.height / 4.0)
+        # in py3, round() does not round to nearest in the obvious way, so we
+        # have to do it by hand
+        assert im2.width == int(im.width / 4.0 + 0.5)
+        assert im2.height == int(im.height / 4.0 + 0.5)
 
         # test geometry rounding corner case
         im = pyvips.Image.black(100, 1)
@@ -115,13 +117,15 @@ class TestResample:
     def test_shrink(self):
         im = pyvips.Image.new_from_file(JPEG_FILE)
         im2 = im.shrink(4, 4)
-        assert im2.width == round(im.width / 4.0)
-        assert im2.height == round(im.height / 4.0)
+        # in py3, round() does not round to nearest in the obvious way, so we
+        # have to do it by hand
+        assert im2.width == int(im.width / 4.0 + 0.5)
+        assert im2.height == int(im.height / 4.0 + 0.5)
         assert abs(im.avg() - im2.avg()) < 1
 
         im2 = im.shrink(2.5, 2.5)
-        assert im2.width == round(im.width / 2.5)
-        assert im2.height == round(im.height / 2.5)
+        assert im2.width == int(im.width / 2.5 + 0.5)
+        assert im2.height == int(im.height / 2.5 + 0.5)
         assert abs(im.avg() - im2.avg()) < 1
 
     @pytest.mark.skipif(not pyvips.at_least_libvips(8, 5),
@@ -129,7 +133,7 @@ class TestResample:
     def test_thumbnail(self):
         im = pyvips.Image.thumbnail(JPEG_FILE, 100)
 
-        assert im.width == 100
+        assert im.height == 100
         assert im.bands == 3
         assert im.bands == 3
 
@@ -138,9 +142,9 @@ class TestResample:
         assert abs(im_orig.avg() - im.avg()) < 1
 
         # make sure we always get the right width
-        for width in range(1000, 1, -13):
-            im = pyvips.Image.thumbnail(JPEG_FILE, width)
-            assert im.width == width
+        for height in range(440, 1, -13):
+            im = pyvips.Image.thumbnail(JPEG_FILE, height)
+            assert im.height == height
 
         # should fit one of width or height
         im = pyvips.Image.thumbnail(JPEG_FILE, 100, height=300)
@@ -196,7 +200,7 @@ class TestResample:
         # distorted, but the rest should not be too bad
         a = r.crop(50, 0, im.width - 50, im.height).gaussblur(2)
         b = im.crop(50, 0, im.width - 50, im.height).gaussblur(2)
-        assert (a - b).abs().max() < 20
+        assert (a - b).abs().max() < 40
 
         # this was a bug at one point, strangely, if executed with debug
         # enabled

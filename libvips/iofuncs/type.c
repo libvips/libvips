@@ -172,6 +172,18 @@ vips_area_copy( VipsArea *area )
 }
 
 void
+vips_area_free( VipsArea *area )
+{
+	if( area->free_fn && 
+		area->data ) {
+		area->free_fn( area->data, area );
+		area->free_fn = NULL;
+	}
+
+	area->data = NULL;
+}
+
+void
 vips_area_unref( VipsArea *area )
 {
 	g_mutex_lock( area->lock );
@@ -191,11 +203,7 @@ vips_area_unref( VipsArea *area )
 	}
 
 	if( area->count == 0 ) {
-		if( area->free_fn && area->data ) {
-			area->free_fn( area->data, area );
-			area->data = NULL;
-			area->free_fn = NULL;
-		}
+		vips_area_free( area );
 
 		g_mutex_unlock( area->lock );
 
@@ -662,13 +670,44 @@ vips_blob_copy( const void *data, size_t length )
  * 
  * See also: vips_blob_new().
  *
- * Returns: (array length=length) (element-type guint8) (transfer none): the data
+ * Returns: (array length=length) (element-type guint8) (transfer none): the 
+ * data
  */
 const void *
 vips_blob_get( VipsBlob *blob, size_t *length )
 {
 	return( vips_area_get_data( VIPS_AREA( blob ), 
 		length, NULL, NULL, NULL ) ); 
+}
+
+/* vips_blob_set:
+ * @blob: #VipsBlob to set
+ * @free_fn: (scope async) (allow-none): @data will be freed with this function
+ * @data: (array length=length) (element-type guint8) (transfer full): data to store
+ * @length: number of bytes in @data
+ *
+ * Any old data is freed and new data attached.
+ *
+ * It's sometimes useful to be able to create blobs as empty and then fill
+ * them later.
+ *
+ * See also: vips_blob_new().
+ */
+void
+vips_blob_set( VipsBlob *blob, 
+	VipsCallbackFn free_fn, const void *data, size_t length )
+{
+	VipsArea *area = VIPS_AREA( blob );
+
+	g_mutex_lock( area->lock );
+
+	vips_area_free( area );
+
+	area->free_fn = free_fn;
+	area->length = length;
+	area->data = (void *) data;
+
+	g_mutex_unlock( area->lock );
 }
 
 /* Transform a blob to a G_TYPE_STRING.

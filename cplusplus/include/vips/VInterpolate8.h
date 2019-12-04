@@ -30,12 +30,6 @@
 #ifndef VIPS_VINTERPOLATE_H
 #define VIPS_VINTERPOLATE_H
 
-#include <list>
-#include <complex>
-#include <vector>
-
-#include <cstring>
-
 #include <vips/vips.h>
 
 VIPS_NAMESPACE_START
@@ -61,4 +55,4 @@ public:
 
 VIPS_NAMESPACE_END
 
-#endif /*VIPS_VIMAGE_H*/
+#endif /*VIPS_VINTERPOLATE_H*/

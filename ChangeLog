@@ -16,12 +16,20 @@
 - add @interpretation and @format to rawload
 - nifti load/save uses double for all floating point metadata
 - add vips_error_buffer_copy()
+- add VipsStream: a universal IO class for loaders and savers
+- jpeg, png, tiff (though not tiffsave), rad, svg, ppm and webp use the 
+  new IO class
+- rewritten ppm load/save is faster and uses less memory
 - add @no_strip option to dzsave [kalozka1]
 - add iiif layout to dzsave
 - fix use of resolution-unit metadata on tiff save [kayarre]
 - support TIFF CIELAB images with alpha [angelmixu]
+- support TIFF with premultiplied alpha in any band 
+- block metadata changes on shared images [pvdz]
 
 17/9/19 started 8.8.4
+- improve compatibility with older imagemagick versions
+- remove realpath, since it can fail on systems with grsec
 
 31/8/19 started 8.8.3
 - revert sharpen restoring the input colourspace

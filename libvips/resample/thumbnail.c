@@ -26,6 +26,8 @@
  *	- prevent over-pre-shrink in thumbnail
  * 30/9/19
  * 	- smarter heif thumbnail selection
+ * 12/10/19
+ * 	- add thumbnail_stream
  */
 
 /*
@@ -518,7 +520,7 @@ static int
 vips_thumbnail_build( VipsObject *object )
 {
 	VipsThumbnail *thumbnail = VIPS_THUMBNAIL( object );
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 13 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 14 );
 	VipsInterpretation interpretation = thumbnail->linear ?
 		VIPS_INTERPRETATION_scRGB : VIPS_INTERPRETATION_sRGB; 
 
@@ -671,6 +673,9 @@ vips_thumbnail_build( VipsObject *object )
 		return( -1 );
 	in = t[4];
 
+	if( vips_copy( in, &t[13], NULL ) )
+		return( -1 );
+	in = t[13];
 	output_page_height = VIPS_RINT( preshrunk_page_height / vshrink );
 	vips_image_set_int( in, 
 		VIPS_META_PAGE_HEIGHT, output_page_height );
@@ -1245,6 +1250,175 @@ vips_thumbnail_buffer( void *buf, size_t len, VipsImage **out, int width, ... )
 	va_end( ap );
 
 	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
+
+typedef struct _VipsThumbnailStream {
+	VipsThumbnail parent_object;
+
+	VipsStreami *streami;
+	char *option_string;
+} VipsThumbnailStream;
+
+typedef VipsThumbnailClass VipsThumbnailStreamClass;
+
+G_DEFINE_TYPE( VipsThumbnailStream, vips_thumbnail_stream, 
+	vips_thumbnail_get_type() );
+
+/* Get the info from a stream.
+ */
+static int
+vips_thumbnail_stream_get_info( VipsThumbnail *thumbnail )
+{
+	VipsThumbnailStream *stream = (VipsThumbnailStream *) thumbnail;
+
+	VipsImage *image;
+
+	g_info( "thumbnailing stream" ); 
+
+	if( !(thumbnail->loader = vips_foreign_find_load_stream( 
+			stream->streami )) ||
+		!(image = vips_image_new_from_stream( stream->streami, 
+			stream->option_string, NULL )) )
+		return( -1 );
+
+	vips_thumbnail_read_header( thumbnail, image );
+
+	g_object_unref( image );
+
+	return( 0 );
+}
+
+/* Open an image, scaling as appropriate. 
+ */
+static VipsImage *
+vips_thumbnail_stream_open( VipsThumbnail *thumbnail, double factor )
+{
+	VipsThumbnailStream *stream = (VipsThumbnailStream *) thumbnail;
+
+	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
+		return( vips_image_new_from_stream( 
+			stream->streami, 
+			stream->option_string,
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"shrink", (int) factor,
+			NULL ) );
+	}
+	else if( vips_isprefix( "VipsForeignLoadOpenslide", 
+		thumbnail->loader ) ) {
+		return( vips_image_new_from_stream( 
+			stream->streami, 
+			stream->option_string,
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"level", (int) factor,
+			NULL ) );
+	}
+	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
+		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ||
+		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
+		return( vips_image_new_from_stream( 
+			stream->streami, 
+			stream->option_string,
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"scale", 1.0 / factor,
+			NULL ) );
+	}
+	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) {
+		return( vips_image_new_from_stream( 
+			stream->streami, 
+			stream->option_string,
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"page", (int) factor,
+			NULL ) );
+	}
+	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
+		return( vips_image_new_from_stream( 
+			stream->streami, 
+			stream->option_string,
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"thumbnail", (int) factor,
+			NULL ) );
+	}
+	else {
+		return( vips_image_new_from_stream( 
+			stream->streami, 
+			stream->option_string,
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			NULL ) );
+	}
+}
+
+static void
+vips_thumbnail_stream_class_init( VipsThumbnailClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	VipsThumbnailClass *thumbnail_class = VIPS_THUMBNAIL_CLASS( class );
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	vobject_class->nickname = "thumbnail_stream";
+	vobject_class->description = _( "generate thumbnail from stream" );
+
+	thumbnail_class->get_info = vips_thumbnail_stream_get_info;
+	thumbnail_class->open = vips_thumbnail_stream_open;
+
+	VIPS_ARG_OBJECT( class, "streami", 1,
+		_( "Streami" ),
+		_( "Stream to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsThumbnailStream, streami ),
+		VIPS_TYPE_STREAMI );
+
+	VIPS_ARG_STRING( class, "option_string", 20,
+		_( "Extra options" ),
+		_( "Options that are passed on to the underlying loader" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsThumbnailStream, option_string ),
+		"" );
+
+}
+
+static void
+vips_thumbnail_stream_init( VipsThumbnailStream *stream )
+{
+}
+
+/**
+ * vips_thumbnail_stream:
+ * @streami: stream to thumbnail
+ * @out: (out): output image
+ * @width: target width in pixels
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @height: %gint, target height in pixels
+ * * @size: #VipsSize, upsize, downsize, both or force
+ * * @no_rotate: %gboolean, don't rotate upright using orientation tag
+ * * @crop: #VipsInteresting, shrink and crop to fill target
+ * * @linear: %gboolean, perform shrink in linear light
+ * * @import_profile: %gchararray, fallback import ICC profile
+ * * @export_profile: %gchararray, export ICC profile
+ * * @intent: #VipsIntent, rendering intent
+ *
+ * Exacty as vips_thumbnail(), but read from a stream. 
+ *
+ * See also: vips_thumbnail().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_thumbnail_stream( VipsStreami *streami, VipsImage **out, int width, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, width );
+	result = vips_call_split( "thumbnail_stream", ap, streami, out, width );
+	va_end( ap );
 
 	return( result );
 }

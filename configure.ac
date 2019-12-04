@@ -475,8 +475,18 @@ PKG_CHECK_MODULES(CONTEXT_GET_HELP, glib-2.0 >= 2.14,
   ]
 )
 
+# from 2.15 we have GIO
+PKG_CHECK_MODULES(GIO, glib-2.0 >= 2.15,
+  [AC_DEFINE(HAVE_GIO,1,
+	    [define if your glib has GIO.]
+   )
+  ],
+  [:
+  ]
+)
+
 # from 2.28 we have a monotonic timer
-PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,
+PKG_CHECK_MODULES(MONOTONIC_TIME, glib-2.0 >= 2.28,
   [AC_DEFINE(HAVE_MONOTONIC_TIME,1,
 	    [define if your glib has g_get_monotonic_time().]
    )
@@ -488,7 +498,7 @@ PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,
 # from 2.62 we have datetime
 PKG_CHECK_MODULES(DATE_TIME_FORMAT_ISO8601, glib-2.0 >= 2.62,
   [AC_DEFINE(HAVE_DATE_TIME_FORMAT_ISO8601,1,
-      [define if your glib has g_date_time_format_iso8601().]
+	    [define if your glib has g_date_time_format_iso8601().]
    )
   ],
   [:
@@ -508,6 +518,8 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
    AC_DEFINE(HAVE_VALUE_GET_SCHAR,1,
 	     [define if your glib has g_value_get_schar().]
    )
+  ],
+  [:
   ]
 )
 
@@ -706,6 +718,16 @@ if test x"$magick6" = x"yes"; then
     )],
     [AC_DEFINE(HAVE_CMYCOLORSPACE,1,
          [define if your Magick has CMYColorspace.])
+    ]
+  )
+
+  AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM(
+      [#include <magick/api.h>],
+      [ColorspaceType colorspace = HCLpColorspace]
+    )],
+    [AC_DEFINE(HAVE_HCLPCOLORSPACE,1,
+         [define if your Magick has HCLpColorspace.])
     ]
   )
 

@@ -2,6 +2,8 @@
  *
  * 2/12/11
  * 	- wrap a class around the ppm writer
+ * 13/11/19
+ * 	- redone with streams
  */
 
 /*
@@ -46,23 +48,252 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pforeign.h"
 
 #ifdef HAVE_PPM
 
+typedef struct _VipsForeignSavePpm VipsForeignSavePpm;
+
+typedef int (*VipsSavePpmFn)( VipsForeignSavePpm *, VipsImage *, VipsPel * );
+
 typedef struct _VipsForeignSavePpm {
 	VipsForeignSave parent_object;
 
-	char *filename; 
+	VipsStreamo *streamo;
 	gboolean ascii;
 	gboolean squash;
+
+	VipsSavePpmFn fn;
 } VipsForeignSavePpm;
 
 typedef VipsForeignSaveClass VipsForeignSavePpmClass;
 
-G_DEFINE_TYPE( VipsForeignSavePpm, vips_foreign_save_ppm, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSavePpm, vips_foreign_save_ppm, 
 	VIPS_TYPE_FOREIGN_SAVE );
+
+static void
+vips_foreign_save_ppm_dispose( GObject *gobject )
+{
+	VipsForeignSavePpm *ppm = (VipsForeignSavePpm *) gobject;
+
+	if( ppm->streamo ) 
+		vips_streamo_finish( ppm->streamo );
+	VIPS_UNREF( ppm->streamo );
+
+	G_OBJECT_CLASS( vips_foreign_save_ppm_parent_class )->
+		dispose( gobject );
+}
+
+static int
+vips_foreign_save_ppm_line_ascii( VipsForeignSavePpm *ppm, 
+        VipsImage *image, VipsPel *p )
+{
+	const int n_elements = image->Xsize * image->Bands;
+
+	int i;
+
+	for( i = 0; i < n_elements; i++ ) {
+		switch( image->BandFmt ) {
+		case VIPS_FORMAT_UCHAR:
+			vips_streamo_writef( ppm->streamo, 
+				"%d ", p[i] );
+			break;
+
+		case VIPS_FORMAT_USHORT:
+			vips_streamo_writef( ppm->streamo, 
+				"%d ", ((unsigned short *) p)[i] );
+			break;
+
+		case VIPS_FORMAT_UINT:
+			vips_streamo_writef( ppm->streamo, 
+				"%d ", ((unsigned int *) p)[i] );
+			break;
+
+		default:
+			g_assert_not_reached();
+		}
+	}
+
+	if( vips_streamo_writes( ppm->streamo, "\n" ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_save_ppm_line_ascii_squash( VipsForeignSavePpm *ppm, 
+        VipsImage *image, VipsPel *p )
+{
+	int x;
+
+	for( x = 0; x < image->Xsize; x++ ) 
+		vips_streamo_writef( ppm->streamo, "%d ", p[x] ? 0 : 1 );
+
+	if( vips_streamo_writes( ppm->streamo, "\n" ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_save_ppm_line_binary( VipsForeignSavePpm *ppm, 
+        VipsImage *image, VipsPel *p )
+{
+	if( vips_streamo_write( ppm->streamo, 
+		p, VIPS_IMAGE_SIZEOF_LINE( image ) ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_save_ppm_line_binary_squash( VipsForeignSavePpm *ppm, 
+	VipsImage *image, VipsPel *p )
+{
+	int x;
+	int bits;
+	int n_bits;
+
+	bits = 0;
+	n_bits = 0;
+	for( x = 0; x < image->Xsize; x++ ) {
+		bits = VIPS_LSHIFT_INT( bits, 1 );
+		n_bits += 1;
+		bits |= p[x] ? 0 : 1;
+
+		if( n_bits == 8 ) {
+			if( VIPS_STREAMO_PUTC( ppm->streamo, bits ) ) 
+				return( -1 );
+
+			bits = 0;
+			n_bits = 0;
+		}
+	}
+
+	/* Flush any remaining bits in this line.
+	 */
+	if( n_bits &&
+		VIPS_STREAMO_PUTC( ppm->streamo, bits ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_save_ppm_block( VipsRegion *region, VipsRect *area, void *a )
+{
+	VipsForeignSavePpm *ppm = (VipsForeignSavePpm *) a;
+	VipsImage *image = region->im;
+	int i;
+
+	for( i = 0; i < area->height; i++ ) {
+		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + i );
+
+		if( ppm->fn( ppm, image, p ) )
+			return( -1 );
+	}
+
+	return( 0 );
+}
+
+static int
+vips_foreign_save_ppm( VipsForeignSavePpm *ppm, VipsImage *image )
+{
+	char *magic;
+	char *date;
+
+	magic = "unset";
+	if( image->BandFmt == VIPS_FORMAT_FLOAT && 
+		image->Bands == 3 ) 
+		magic = "PF";
+	else if( image->BandFmt == VIPS_FORMAT_FLOAT && 
+		image->Bands == 1 ) 
+		magic = "Pf";
+	else if( image->Bands == 1 && 
+		ppm->ascii && 
+		ppm->squash )
+		magic = "P1";
+	else if( image->Bands == 1 && 
+		ppm->ascii )
+		magic = "P2";
+	else if( image->Bands == 1 && 
+		!ppm->ascii && 
+		ppm->squash )
+		magic = "P4";
+	else if( image->Bands == 1 && 
+		!ppm->ascii )
+		magic = "P5";
+	else if( image->Bands == 3 && 
+		ppm->ascii )
+		magic = "P3";
+	else if( image->Bands == 3 && 
+		!ppm->ascii )
+		magic = "P6";
+	else
+		g_assert_not_reached();
+
+	vips_streamo_writef( ppm->streamo, "%s\n", magic );
+	date = vips__get_iso8601();
+	vips_streamo_writef( ppm->streamo, 
+		"#vips2ppm - %s\n", date );
+	g_free( date );
+	vips_streamo_writef( ppm->streamo, 
+		"%d %d\n", image->Xsize, image->Ysize );
+
+	if( !ppm->squash ) 
+		switch( image->BandFmt ) {
+		case VIPS_FORMAT_UCHAR:
+			vips_streamo_writef( ppm->streamo, 
+				"%d\n", UCHAR_MAX );
+			break;
+
+		case VIPS_FORMAT_USHORT:
+			vips_streamo_writef( ppm->streamo, 
+				"%d\n", USHRT_MAX );
+			break;
+
+		case VIPS_FORMAT_UINT:
+			vips_streamo_writef( ppm->streamo, 
+				"%d\n", UINT_MAX );
+			break;
+
+		case VIPS_FORMAT_FLOAT:
+{
+			double scale;
+			char buf[G_ASCII_DTOSTR_BUF_SIZE];
+
+			if( vips_image_get_double( image, 
+				"pfm-scale", &scale ) )
+				scale = 1;
+			if( !vips_amiMSBfirst() )
+				scale *= -1;
+			/* Need to be locale independent.
+			 */
+			g_ascii_dtostr( buf, G_ASCII_DTOSTR_BUF_SIZE, scale );
+			vips_streamo_writes( ppm->streamo, buf );
+}
+			break;
+
+		default:
+			g_assert_not_reached();
+		}
+
+	if( ppm->squash )
+		ppm->fn = ppm->ascii ? 
+			vips_foreign_save_ppm_line_ascii_squash : 
+			vips_foreign_save_ppm_line_binary_squash;
+	else
+		ppm->fn = ppm->ascii ? 
+			vips_foreign_save_ppm_line_ascii : 
+			vips_foreign_save_ppm_line_binary;
+
+	if( vips_sink_disc( image, vips_foreign_save_ppm_block, ppm ) )
+		return( -1 );
+
+	return( 0 );
+}
 
 static int
 vips_foreign_save_ppm_build( VipsObject *object )
@@ -70,12 +301,38 @@ vips_foreign_save_ppm_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSavePpm *ppm = (VipsForeignSavePpm *) object;
 
+	VipsImage *image;
+
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_ppm_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips__ppm_save( save->ready, ppm->filename, 
-		ppm->ascii, ppm->squash ) )
+	image = save->ready;
+	if( vips_check_uintorf( "vips2ppm", image ) || 
+		vips_check_bands_1or3( "vips2ppm", image ) || 
+		vips_check_uncoded( "vips2ppm", image ) || 
+		vips_image_pio_input( image ) )
+		return( -1 );
+
+	if( ppm->ascii && 
+		image->BandFmt == VIPS_FORMAT_FLOAT ) {
+		g_warning( "%s", 
+			_( "float images must be binary -- disabling ascii" ) );
+		ppm->ascii = FALSE;
+	}
+
+	/* One bit images must come from a 8 bit, one band source. 
+	 */
+	if( ppm->squash && 
+		(image->Bands != 1 || 
+		 image->BandFmt != VIPS_FORMAT_UCHAR) ) {
+		g_warning( "%s", 
+			_( "can only squash 1 band uchar images -- " 
+				"disabling squash" ) );
+		ppm->squash = FALSE; 
+	}
+
+	if( vips_foreign_save_ppm( ppm, image ) )
 		return( -1 );
 
 	return( 0 );
@@ -107,24 +364,18 @@ vips_foreign_save_ppm_class_init( VipsForeignSavePpmClass *class )
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
+	gobject_class->dispose = vips_foreign_save_ppm_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "ppmsave";
-	object_class->description = _( "save image to ppm file" );
+	object_class->nickname = "ppmsave_base";
+	object_class->description = _( "save to ppm" );
 	object_class->build = vips_foreign_save_ppm_build;
 
 	foreign_class->suffs = vips__ppm_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_RGB;
 	save_class->format_table = bandfmt_ppm;
-
-	VIPS_ARG_STRING( class, "filename", 1, 
-		_( "Filename" ),
-		_( "Filename to save to" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignSavePpm, filename ),
-		NULL );
 
 	VIPS_ARG_BOOL( class, "ascii", 10, 
 		_( "ASCII" ), 
@@ -139,12 +390,66 @@ vips_foreign_save_ppm_class_init( VipsForeignSavePpmClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSavePpm, squash ),
 		FALSE );
+
 }
 
 static void
 vips_foreign_save_ppm_init( VipsForeignSavePpm *ppm )
 {
 }
+
+typedef struct _VipsForeignSavePpmFile {
+	VipsForeignSavePpm parent_object;
+
+	char *filename; 
+} VipsForeignSavePpmFile;
+
+typedef VipsForeignSavePpmClass VipsForeignSavePpmFileClass;
+
+G_DEFINE_TYPE( VipsForeignSavePpmFile, vips_foreign_save_ppm_file, 
+	vips_foreign_save_ppm_get_type() );
+
+static int
+vips_foreign_save_ppm_file_build( VipsObject *object )
+{
+	VipsForeignSavePpm *ppm = (VipsForeignSavePpm *) object;
+	VipsForeignSavePpmFile *file = (VipsForeignSavePpmFile *) object;
+
+	if( file->filename &&
+		!(ppm->streamo = vips_streamo_new_to_file( file->filename )) )
+		return( -1 );
+
+	return( VIPS_OBJECT_CLASS( vips_foreign_save_ppm_file_parent_class )->
+		build( object ) );
+}
+
+static void
+vips_foreign_save_ppm_file_class_init( VipsForeignSavePpmFileClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "ppmsave";
+	object_class->description = _( "save image to ppm file" );
+	object_class->build = vips_foreign_save_ppm_file_build;
+
+	VIPS_ARG_STRING( class, "filename", 1, 
+		_( "Filename" ),
+		_( "Filename to save to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSavePpmFile, filename ),
+		NULL );
+
+}
+
+static void
+vips_foreign_save_ppm_file_init( VipsForeignSavePpmFile *file )
+{
+}
+
 
 #endif /*HAVE_PPM*/
 

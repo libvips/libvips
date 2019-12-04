@@ -74,8 +74,8 @@ vips_switch_gen( VipsRegion *or, void *seq, void *a, void *b,
 	if( vips_reorder_prepare_many( or->im, ar, r ) )
 		return( -1 );
 
-	g_assert( (*ar)->im->BandFmt == VIPS_FORMAT_UCHAR );
-	g_assert( (*ar)->im->Bands == 1 );
+	g_assert( ar[0]->im->BandFmt == VIPS_FORMAT_UCHAR );
+	g_assert( ar[0]->im->Bands == 1 );
 
 	for( i = 0; i < swit->n; i++ ) {
 		p[i] = VIPS_REGION_ADDR( ar[i], r->left, r->top );

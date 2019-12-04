@@ -330,6 +330,10 @@ vips_init( const char *argv0 )
 	extern GType write_thread_state_get_type( void );
 	extern GType sink_memory_thread_state_get_type( void ); 
 	extern GType render_thread_state_get_type( void ); 
+	extern GType vips_streami_get_type( void ); 
+	extern GType vips_streamiu_get_type( void ); 
+	extern GType vips_streamo_get_type( void ); 
+	extern GType vips_streamou_get_type( void ); 
 
 	static gboolean started = FALSE;
 	static gboolean done = FALSE;
@@ -444,6 +448,10 @@ vips_init( const char *argv0 )
 	(void) write_thread_state_get_type();
 	(void) sink_memory_thread_state_get_type(); 
 	(void) render_thread_state_get_type(); 
+	(void) vips_streami_get_type(); 
+	(void) vips_streamiu_get_type(); 
+	(void) vips_streamo_get_type(); 
+	(void) vips_streamou_get_type(); 
 	vips__meta_init_types();
 	vips__interpolate_init();
 	im__format_init();
@@ -998,7 +1006,8 @@ guess_prefix( const char *argv0, const char *name )
 
 	/* Try to guess from cwd. Only if this is a relative path, though. 
 	 */
-	if( !g_path_is_absolute( argv0 ) ) {
+	if( argv0 &&
+		!g_path_is_absolute( argv0 ) ) {
 		char *dir;
 		char full_path[VIPS_PATH_MAX];
 		char *resolved;

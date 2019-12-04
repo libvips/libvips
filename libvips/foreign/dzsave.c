@@ -590,17 +590,28 @@ write_image( VipsForeignSaveDz *dz,
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( dz );
 
+	VipsImage *t;
 	void *buf;
 	size_t len;
+
+	/* We need to block progress signalling on individual image write, so
+	 * we need a copy of the tile in case it's shared (eg. associated
+	 * images).
+	 */
+	if( vips_copy( image, &t, NULL ) ) 
+		return( -1 );
 
 	/* We default to stripping all metadata. Only "no_strip" turns this
 	 * off. Very few people really want metadata on every tile.
 	 */
-	vips_image_set_int( image, "hide-progress", 1 );
-	if( vips_image_write_to_buffer( image, format, &buf, &len,
+	vips_image_set_int( t, "hide-progress", 1 );
+	if( vips_image_write_to_buffer( t, format, &buf, &len,
 		"strip", !dz->no_strip,
-		NULL ) )
+		NULL ) ) {
+		VIPS_UNREF( t );
 		return( -1 );
+	}
+	VIPS_UNREF( t );
 
 	/* gsf doesn't like more than one write active at once.
 	 */
@@ -826,7 +837,7 @@ pyramid_build( VipsForeignSaveDz *dz, Layer *above,
 		real_pixels->left, real_pixels->top ); 
 	printf( "\treal_pixels.width = %d, real_pixels.height = %d\n", 
 		real_pixels->width, real_pixels->height ); 
-#endif
+#endif /*DEBUG*/
 
 	return( layer );
 }
@@ -1135,30 +1146,15 @@ build_scan_properties( VipsImage *image )
 	char *date;
 	int i;
 
+	date = vips__get_iso8601();
+
 	vips_dbuf_init( &dbuf );
-
-#ifdef HAVE_DATE_TIME_FORMAT_ISO8601
-{
-	GDateTime *now;
-
-	now = g_date_time_new_now_local();
-	date = g_date_time_format_iso8601( now );
-	g_date_time_unref( now );
-}
-#else /*!HAVE_DATE_TIME_FORMAT_ISO8601*/
-{
-	GTimeVal now;
-
-	g_get_current_time( &now );
-	date = g_time_val_to_iso8601( &now );
-}
-#endif /*HAVE_DATE_TIME_FORMAT_ISO8601*/
-
 	vips_dbuf_writef( &dbuf, "<?xml version=\"1.0\"?>\n" ); 
 	vips_dbuf_writef( &dbuf, "<image xmlns=\"http://www.pathozoom.com/szi\""
 		" date=\"%s\" version=\"1.0\">\n", date );
-	g_free( date ); 
 	vips_dbuf_writef( &dbuf, "  <properties>\n" );  
+
+	g_free( date ); 
 
 	for( i = 0; i < VIPS_NUMBER( scan_property_names ); i++ )
 		build_scan_property( &dbuf, image,
@@ -1712,7 +1708,7 @@ strip_shrink( Layer *layer )
 #ifdef DEBUG
 	printf( "strip_shrink: %d lines in layer %d to layer %d\n", 
 		from->valid.height, layer->n, below->n ); 
-#endif/*DEBUG*/
+#endif /*DEBUG*/
 
 	/* We may have an extra column of pixels on the right or
 	 * bottom that need filling: generate them.
@@ -1794,7 +1790,7 @@ strip_arrived( Layer *layer )
 #ifdef DEBUG
 	printf( "strip_arrived: layer %d, strip at %d, height %d\n", 
 		layer->n, layer->y, layer->strip->valid.height ); 
-#endif/*DEBUG*/
+#endif /*DEBUG*/
 
 	if( strip_save( layer ) )
 		return( -1 );
@@ -1888,7 +1884,7 @@ pyramid_strip( VipsRegion *region, VipsRect *area, void *a )
 #ifdef DEBUG
 	printf( "pyramid_strip: strip at %d, height %d\n", 
 		area->top, area->height );
-#endif/*DEBUG*/
+#endif /*DEBUG*/
 
 	for(;;) {
 		VipsRect *to = &layer->strip->valid;
@@ -1944,7 +1940,7 @@ pyramid_strip( VipsRegion *region, VipsRect *area, void *a )
 	if( layer->write_y == layer->height ) {
 #ifdef DEBUG
 		printf( "pyramid_strip: flushing ..\n" ); 
-#endif/*DEBUG*/
+#endif /*DEBUG*/
 
 		if( strip_flush( layer ) )
 			return( -1 );
@@ -2106,7 +2102,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 #ifdef DEBUG
 		printf( "centre: centring within a %d x %d image\n", 
 			size, size );
-#endif
+#endif /*DEBUG*/
 
 	}
 
@@ -2119,7 +2115,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 		dz->tile_margin );
 	printf( "vips_foreign_save_dz_build: tile_step == %d\n", 
 		dz->tile_step );
-#endif
+#endif /*DEBUG*/
 
 	/* Build the skeleton of the image pyramid.
 	 */
@@ -2258,7 +2254,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 				"using default compression" ) ); 
 			dz->compression = -1;
 		}
-#endif
+#endif /*HAVE_GSF_DEFLATE_LEVEL*/
 
 		dz->tree = vips_gsf_tree_new( out2, dz->compression );
 

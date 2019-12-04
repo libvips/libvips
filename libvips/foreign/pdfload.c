@@ -640,7 +640,8 @@ vips_foreign_load_pdf_file_open( VipsForeignLoadPdf *pdf )
 	printf( "vips_foreign_load_pdf_file_open: %s\n", file->filename );
 #endif /*DEBUG*/
 
-	if( !file->uri ) { 
+	if( !file->uri &&
+		file->filename ) { 
 		char *path;
 
 		/* We need an absolute path for a URI.
@@ -655,6 +656,7 @@ vips_foreign_load_pdf_file_open( VipsForeignLoadPdf *pdf )
 	}
 
 	if( !pdf->doc &&
+		file->uri &&
 		!(pdf->doc = poppler_document_new_from_file( 
 			file->uri, NULL, &error )) ) { 
 		vips_g_error( &error );

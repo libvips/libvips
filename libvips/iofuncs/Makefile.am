@@ -1,6 +1,12 @@
 noinst_LTLIBRARIES = libiofuncs.la
 
 libiofuncs_la_SOURCES = \
+	stream.c \
+	streami.c \
+	streamiu.c \
+	streamo.c \
+	streamou.c \
+	bufis.c \
 	dbuf.c \
 	reorder.c \
 	vipsmarshal.h \
@@ -36,9 +42,9 @@ libiofuncs_la_SOURCES = \
 	system.c \
 	buffer.c 
 
-vipsmarshal.h:
+vipsmarshal.h: vipsmarshal.list
 	glib-genmarshal --prefix=vips --header vipsmarshal.list > vipsmarshal.h
-vipsmarshal.c:
+vipsmarshal.c: vipsmarshal.list
 	echo "#include \"vipsmarshal.h\"" > vipsmarshal.c 
 	glib-genmarshal --prefix=vips --body vipsmarshal.list >> vipsmarshal.c
 

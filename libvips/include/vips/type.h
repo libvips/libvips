@@ -161,6 +161,8 @@ VipsBlob *vips_blob_new( VipsCallbackFn free_fn,
 	const void *data, size_t length );
 VipsBlob *vips_blob_copy( const void *data, size_t length );
 const void *vips_blob_get( VipsBlob *blob, size_t *length );
+void vips_blob_set( VipsBlob *blob, 
+	VipsCallbackFn free_fn, const void *data, size_t length );
 GType vips_blob_get_type(void);
 
 /**

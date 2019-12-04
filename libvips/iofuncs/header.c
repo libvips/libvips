@@ -717,7 +717,8 @@ vips_image_get_yoffset( const VipsImage *image )
  * vips_image_get_filename: (method)
  * @image: image to get from
  *
- * Returns: the name of the file the image was loaded from. 
+ * Returns: the name of the file the image was loaded from, or NULL if there
+ * is no filename.
  */
 const char *
 vips_image_get_filename( const VipsImage *image )
@@ -1019,6 +1020,13 @@ vips_image_set( VipsImage *image, const char *name, GValue *value )
 	g_assert( name );
 	g_assert( value );
 
+        /* If this image is shared, block metadata changes. 
+         */
+        if( G_OBJECT( image )->ref_count > 1 ) {
+                g_warning( "can't set metadata \"%s\" on shared image", name );
+                return;
+        }
+
 	meta_init( image );
 	(void) meta_new( image, name, value );
 
@@ -1212,6 +1220,14 @@ vips_image_get_typeof( const VipsImage *image, const char *name )
 gboolean
 vips_image_remove( VipsImage *image, const char *name )
 {
+        /* If this image is shared, block metadata changes. 
+         */
+        if( G_OBJECT( image )->ref_count > 1 ) {
+                g_warning( "can't remove metadata \"%s\" on shared image", 
+			name );
+                return( FALSE );
+        }
+
 	if( image->meta && 
 		g_hash_table_remove( image->meta, name ) )
 		return( TRUE );
