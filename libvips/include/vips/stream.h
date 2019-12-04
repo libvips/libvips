@@ -132,6 +132,7 @@ typedef struct _VipsStreami {
 	 * get read entirely into memory. Seeks will cause read up to the seek
 	 * point.
 	 */
+	gboolean have_tested_seek;
 	gboolean is_pipe;
 
 	/* The current read point and length.
@@ -218,7 +219,7 @@ int vips_streami_rewind( VipsStreami *streami );
 size_t vips_streami_sniff_at_most( VipsStreami *streami, 
 	unsigned char **data, size_t length );
 unsigned char *vips_streami_sniff( VipsStreami *streami, size_t length );
-gint64 vips_streami_size( VipsStreami *streami ); 
+gint64 vips_streami_length( VipsStreami *streami ); 
 
 #define VIPS_TYPE_STREAMIU (vips_streamiu_get_type())
 #define VIPS_STREAMIU( obj ) \

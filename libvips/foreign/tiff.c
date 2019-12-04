@@ -170,14 +170,14 @@ openin_stream_close( thandle_t st )
 }
 
 static toff_t
-openin_stream_size( thandle_t st )
+openin_stream_length( thandle_t st )
 {
 	VipsStreami *streami = VIPS_STREAMI( st );
 
 	/* libtiff will use this to get file size if tags like StripByteCounts
 	 * are missing.
 	 */
-	return( vips_streami_size( streami ) );
+	return( vips_streami_length( streami ) );
 }
 
 static int
@@ -214,7 +214,7 @@ vips__tiff_openin_stream( VipsStreami *streami )
 		openin_stream_write,
 		openin_stream_seek,
 		openin_stream_close,
-		openin_stream_size,
+		openin_stream_length,
 		openin_stream_map,
 		openin_stream_unmap )) ) {
 		vips_error( "vips__tiff_openin_stream", "%s",
@@ -312,7 +312,7 @@ openout_buffer_seek( thandle_t st, toff_t position, int whence )
 }
 
 static toff_t
-openout_buffer_size( thandle_t st )
+openout_buffer_length( thandle_t st )
 {
 	g_assert_not_reached();
 
@@ -364,7 +364,7 @@ vips__tiff_openout_buffer( VipsImage *image,
 		openout_buffer_write,
 		openout_buffer_seek,
 		openout_buffer_close,
-		openout_buffer_size,
+		openout_buffer_length,
 		openout_buffer_map,
 		openout_buffer_unmap )) ) {
 		vips_error( "vips__tiff_openout_buffer", "%s",

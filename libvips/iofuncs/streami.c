@@ -38,8 +38,8 @@
 
 /*
 #define VIPS_DEBUG
-#define TEST_SANITY
  */
+#define TEST_SANITY
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -85,6 +85,59 @@
 #define MODE_WRITE BINARYIZE (O_WRONLY | O_CREAT | O_TRUNC)
 
 G_DEFINE_TYPE( VipsStreami, vips_streami, VIPS_TYPE_STREAM );
+
+/* We can't test for seekability or length during _build, since the read and 
+ * seek signal handlers may not have been connected yet. Instead, we test 
+ * when we first need to know.
+ */
+static int
+vips_streami_test_features( VipsStreami *streami )
+{
+	VipsStreamiClass *class = VIPS_STREAMI_GET_CLASS( streami );
+
+	if( streami->have_tested_seek ) 
+		return( 0 );
+	streami->have_tested_seek = TRUE;
+
+	VIPS_DEBUG_MSG( "vips_streami_test_features: testing seek ..\n" );
+
+	/* We'll need a descriptor to test.
+	 */
+	if( vips_streami_unminimise( streami ) )
+		return( -1 );
+
+	/* Can we seek this input?
+	 *
+	 * We need to call the method directly rather than via
+	 * vips_streami_seek() etc. or we might trigger seek emulation.
+	 */
+	if( streami->data ||
+		class->seek( streami, 0, SEEK_CUR ) != -1 ) { 
+		gint64 length;
+
+		VIPS_DEBUG_MSG( "    seekable stream\n" );
+
+		/* We should be able to get the length of seekable 
+		 * objects.
+		 */
+		if( (length = vips_streami_length( streami )) == -1 )
+			return( -1 );
+
+		streami->length = length;
+
+		/* If we can seek, we won't need to save header bytes.
+		 */
+		VIPS_FREEF( g_byte_array_unref, streami->header_bytes ); 
+	}
+	else {
+		/* Not seekable. This must be some kind of pipe.
+		 */
+		VIPS_DEBUG_MSG( "    not seekable\n" );
+		streami->is_pipe = TRUE;
+	}
+
+	return( 0 );
+}
 
 #ifdef TEST_SANITY
 static void
@@ -204,7 +257,6 @@ vips_streami_build( VipsObject *object )
 {
 	VipsStream *stream = VIPS_STREAM( object );
 	VipsStreami *streami = VIPS_STREAMI( object );
-	VipsStreamiClass *class = VIPS_STREAMI_GET_CLASS( streami );
 
 	VIPS_DEBUG_MSG( "vips_streami_build: %p\n", streami );
 
@@ -235,30 +287,6 @@ vips_streami_build( VipsObject *object )
 
 		streami->data = vips_blob_get( streami->blob, &length );
 		streami->length = VIPS_MIN( length, G_MAXSSIZE );
-	}
-
-	/* Can we seek this input?
-	 *
-	 * We need to call the method directly rather than via
-	 * vips_streami_seek() etc. or we might trigger seek emulation.
-	 */
-	if( streami->data ||
-		class->seek( streami, 0, SEEK_CUR ) != -1 ) { 
-		VIPS_DEBUG_MSG( "    seekable stream\n" );
-		/* We should be able to get the length of seekable objects.
-		 */
-		if( (streami->length = vips_streami_size( streami )) == -1 )
-			return( -1 );
-
-		/* If we can seek, we won't need to save header bytes.
-		 */
-		VIPS_FREEF( g_byte_array_unref, streami->header_bytes ); 
-	}
-	else {
-		/* Not seekable. This must be some kind of pipe.
-		 */
-		VIPS_DEBUG_MSG( "    not seekable\n" );
-		streami->is_pipe = TRUE;
 	}
 
 	return( 0 );
@@ -505,6 +533,8 @@ vips_streami_minimise( VipsStreami *streami )
 
 	SANITY( streami );
 
+	(void) vips_streami_test_features( streami );
+
 	if( stream->filename &&
 		stream->descriptor != -1 &&
 		stream->tracked_descriptor == stream->descriptor &&
@@ -535,6 +565,9 @@ vips_streami_unminimise( VipsStreami *streami )
 	VipsStream *stream = VIPS_STREAM( streami );
 
 	VIPS_DEBUG_MSG( "vips_streami_unminimise:\n" );
+
+	if( vips_streami_test_features( streami ) )
+		return( -1 );
 
 	if( stream->descriptor == -1 &&
 		stream->tracked_descriptor == -1 &&
@@ -795,7 +828,6 @@ vips_streami_descriptor_to_memory( VipsStreami *streami )
 
 	VIPS_DEBUG_MSG( "vips_streami_descriptor_to_memory:\n" );
 
-	g_assert( streami->length > 0 );
 	g_assert( !streami->blob );
 	g_assert( !streami->mmap_baseaddr );
 
@@ -820,6 +852,9 @@ vips_streami_descriptor_to_memory( VipsStreami *streami )
 gboolean 
 vips_streami_is_mappable( VipsStreami *streami )
 {
+	if( vips_streami_unminimise( streami ) )
+		return( FALSE );
+
 	/* Already a memory object, or there's a filename we can map, or
 	 * there's a seekable descriptor.
 	 */
@@ -853,7 +888,7 @@ vips_streami_map( VipsStreami *streami, size_t *length_out )
 		return( NULL );
 
 	if( !streami->data ) {
-		/* Seekable descriptors can simply be mmaped. All other sources 
+		/* Seekable descriptors can simply be mapped. All other sources 
 		 * must be read into memory.
 		 */
 		if( vips_streami_is_mappable( streami ) ) {
@@ -894,6 +929,9 @@ vips_streami_seek( VipsStreami *streami, gint64 offset, int whence )
 
 	VIPS_DEBUG_MSG( "vips_streami_seek: offset = %" G_GINT64_FORMAT 
 		", whence = %d\n", offset, whence );
+
+	if( vips_streami_test_features( streami ) )
+		return( -1 );
 
 	SANITY( streami );
 
@@ -993,7 +1031,8 @@ vips_streami_rewind( VipsStreami *streami )
 
 	SANITY( streami );
 
-	if( vips_streami_seek( streami, 0, SEEK_SET ) != 0 )
+	if( vips_streami_test_features( streami ) ||
+		vips_streami_seek( streami, 0, SEEK_SET ) != 0 )
 		return( -1 );
 
 	SANITY( streami );
@@ -1002,32 +1041,35 @@ vips_streami_rewind( VipsStreami *streami )
 }
 
 /**
- * vips_streami_size:
+ * vips_streami_length:
  * @streami: input stream to operate on
  *
- * Return the size in bytes of the stream object. Unseekable streams, for
- * example pipes, will have to be read entirely into memory before the size 
+ * Return the length in bytes of the stream object. Unseekable streams, for
+ * example pipes, will have to be read entirely into memory before the length 
  * can be found, so this operation can take a long time.
  *
  * Returns: number of bytes in stream, or -1 on error.
  */
 gint64
-vips_streami_size( VipsStreami *streami )
+vips_streami_length( VipsStreami *streami )
 {
-	gint64 size;
+	gint64 length;
 	gint64 read_position;
 
-	VIPS_DEBUG_MSG( "vips_streami_size:\n" );
+	VIPS_DEBUG_MSG( "vips_streami_length:\n" );
 
 	SANITY( streami );
 
+	if( vips_streami_test_features( streami ) )
+		return( -1 );
+
 	read_position = vips_streami_seek( streami, 0, SEEK_CUR );
-	size = vips_streami_seek( streami, 0, SEEK_END );
+	length = vips_streami_seek( streami, 0, SEEK_END );
 	vips_streami_seek( streami, read_position, SEEK_SET );
 
 	SANITY( streami );
 
-	return( size );
+	return( length );
 }
 
 /**
@@ -1054,7 +1096,8 @@ vips_streami_sniff_at_most( VipsStreami *streami,
 
 	SANITY( streami );
 
-	if( vips_streami_rewind( streami ) )
+	if( vips_streami_test_features( streami ) ||
+		vips_streami_rewind( streami ) )
 		return( -1 );
 
 	g_byte_array_set_size( streami->sniff, length );
@@ -1096,6 +1139,9 @@ vips_streami_sniff( VipsStreami *streami, size_t length )
 {
 	unsigned char *data;
 	size_t bytes_read;
+
+	if( vips_streami_test_features( streami ) )
+		return( NULL );
 
 	bytes_read = vips_streami_sniff_at_most( streami, &data, length );
 	if( bytes_read < length )
