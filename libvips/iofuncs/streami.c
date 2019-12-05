@@ -654,7 +654,8 @@ vips_streami_read( VipsStreami *streami, void *buffer, size_t length )
 
 	SANITY( streami );
 
-	if( vips_streami_unminimise( streami ) )
+	if( vips_streami_unminimise( streami ) ||
+		vips_streami_test_features( streami ) )
 		return( -1 );
 
 	bytes_read = 0;
@@ -849,8 +850,9 @@ vips_streami_descriptor_to_memory( VipsStreami *streami )
 gboolean 
 vips_streami_is_mappable( VipsStreami *streami )
 {
-	if( vips_streami_unminimise( streami ) )
-		return( FALSE );
+	if( vips_streami_unminimise( streami ) ||
+		vips_streami_test_features( streami ) )
+		return( -1 );
 
 	/* Already a memory object, or there's a filename we can map, or
 	 * there's a seekable descriptor.
@@ -881,7 +883,8 @@ vips_streami_map( VipsStreami *streami, size_t *length_out )
 
 	SANITY( streami );
 
-	if( vips_streami_unminimise( streami ) )
+	if( vips_streami_unminimise( streami ) ||
+		vips_streami_test_features( streami ) )
 		return( NULL );
 
 	if( !streami->data ) {
@@ -932,7 +935,8 @@ vips_streami_seek( VipsStreami *streami, gint64 offset, int whence )
 
 	SANITY( streami );
 
-	if( vips_streami_unminimise( streami ) )
+	if( vips_streami_unminimise( streami ) ||
+		vips_streami_test_features( streami ) )
 		return( -1 );
 
 	if( streami->data ) {
