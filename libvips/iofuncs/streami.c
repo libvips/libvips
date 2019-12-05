@@ -566,9 +566,6 @@ vips_streami_unminimise( VipsStreami *streami )
 
 	VIPS_DEBUG_MSG( "vips_streami_unminimise:\n" );
 
-	if( vips_streami_test_features( streami ) )
-		return( -1 );
-
 	if( stream->descriptor == -1 &&
 		stream->tracked_descriptor == -1 &&
 		stream->filename ) {
