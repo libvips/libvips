@@ -110,26 +110,17 @@ can make your own stream objects like this:
 
 ```python
 class Mystreami(pyvips.Streamiu):
-    def __init__(self, pointer):
-        super(Mystreami, self).__init__(pointer)
+    def __init__(self, filename, pipe_mode=False):
+        super(Mystreami, self).__init__()
 
-        # these must be attached before we build the streamiu, see `new`
-        self.signal_connect('read', self.read_cb)
-        self.signal_connect('seek', self.seek_cb)
-
-    @staticmethod
-    def new(name):
-        gtype = pyvips.type_from_name('VipsStreamiu')
-        pointer = pyvips.GObject.new_pointer_from_gtype(gtype)
-        self = Mystreami(pointer)
-
-        self.name = name
-        self.loaded_bytes = open(name, 'rb').read()
+        self.pipe_mode = pipe_mode
+        self.loaded_bytes = open(filename, 'rb').read()
         self.memory = memoryview(self.loaded_bytes)
         self.length = len(self.loaded_bytes)
         self.read_point = 0
 
-        return self.build()
+        self.signal_connect('read', self.read_cb)
+        self.signal_connect('seek', self.seek_cb)
 
     def read_cb(self, buf):
         p = self.read_point
@@ -137,6 +128,8 @@ class Mystreami(pyvips.Streamiu):
         bytes_to_copy = min(bytes_available, len(buf))
         buf[:bytes_to_copy] = self.memory[p:p + bytes_to_copy]
         self.read_point += bytes_to_copy
+
+        return bytes_to_copy
 
     def seek_cb(self, offset, whence):
         return -1
@@ -149,7 +142,7 @@ treat this as a pipe and do automatic header buffering.
 You can use it like this:
 
 ```python
-streamiu = Mystreami.new('some/filename')
+streamiu = Mystreami('some/filename')
 image = pyvips.Image.new_from_stream(streamiu, '')
 ```
 
@@ -183,26 +176,18 @@ Output streams are almost the same:
 
 ```python
 class Mystreamo(pyvips.Streamou):
-    def __init__(self, pointer):
-        super(Mystreamo, self).__init__(pointer)
+    def __init__(self, filename):
+        super(Mystreamo, self).__init__()
 
-        # these must be attached before we build the streamou, see `new`
+        self.f = open(filename, 'wb')
+
         self.signal_connect('write', self.write_cb)
         self.signal_connect('finish', self.finish_cb)
 
-    @staticmethod
-    def new(name):
-        gtype = pyvips.type_from_name('VipsStreamou')
-        pointer = pyvips.GObject.new_pointer_from_gtype(gtype)
-        self = Mystreamo(pointer)
-
-        self.name = name
-        self.f = open(name, 'wb')
-
-        return self.build()
-
     def write_cb(self, buf):
+        # py2 write does not return number of bytes written
         self.f.write(buf)
+
         return len(buf)
 
     def finish_cb(self):
@@ -212,9 +197,9 @@ class Mystreamo(pyvips.Streamou):
 So you can now do this!
 
 ```python
-streamiu = Mystreami.new('some/filename')
+streamiu = Mystreami('some/filename')
 image = pyvips.Image.new_from_stream(streamiu, '')
-streamou = Mystreamo.new('/some/other/filename')
+streamou = Mystreamo('/some/other/filename')
 image.write_to_stream(streamou, '.png')
 ```
 
