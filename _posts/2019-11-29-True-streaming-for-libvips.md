@@ -146,6 +146,13 @@ streamiu = Mystreami('some/filename')
 image = pyvips.Image.new_from_stream(streamiu, '')
 ```
 
+Or perhaps:
+
+```python
+streamiu = Mystreami('some/filename')
+image = pyvips.Image.thumbnail_stream(streamiu, 128)
+```
+
 You could make a proper seek method like this:
 
 ```python
