@@ -118,9 +118,9 @@ input_stream = pyvips.Streamiu()
 input_stream.on_read(read_handler)
 ```
 
-This makes a very simple stream which just reads from a file. 
-serves bytes from that. Without a seek handler, `Streami` will
-treat this as a pipe and do automatic header buffering.
+This makes a very simple stream which just reads from a file.  Without a
+seek handler, `Streami` will treat this as a pipe and do automatic header
+buffering.
 
 You can use it like this:
 
