@@ -95,7 +95,7 @@ The mechanism that supports this is set of calls loaders can use on streams to
 hint what kind of access pattern they are likely to need, and what part of the
 image (header, pixels) they are working on.
 
-# Custom input streams
+# User input streams
 
 libvips ships with streams that can attach to files, areas of memory, and file
 descriptors (eg. pipes). 
@@ -109,69 +109,46 @@ To make custom streams easy in languages like Python, there are classes called
 can make your own stream objects like this:
 
 ```python
-class Mystreami(pyvips.Streamiu):
-    def __init__(self, filename, pipe_mode=False):
-        super(Mystreami, self).__init__()
+input_file = open(sys.argv[1], "rb")
 
-        self.pipe_mode = pipe_mode
-        self.loaded_bytes = open(filename, 'rb').read()
-        self.memory = memoryview(self.loaded_bytes)
-        self.length = len(self.loaded_bytes)
-        self.read_point = 0
+def read_handler(size):
+    return input_file.read(size)
 
-        self.signal_connect('read', self.read_cb)
-        self.signal_connect('seek', self.seek_cb)
-
-    def read_cb(self, buf):
-        p = self.read_point
-        bytes_available = self.length - p
-        bytes_to_copy = min(bytes_available, len(buf))
-        buf[:bytes_to_copy] = self.memory[p:p + bytes_to_copy]
-        self.read_point += bytes_to_copy
-
-        return bytes_to_copy
-
-    def seek_cb(self, offset, whence):
-        return -1
+input_stream = pyvips.Streamiu()
+input_stream.on_read(read_handler)
 ```
 
-This makes a very simple stream which just reads a files into memory and
-serves bytes from that. It always returns -1 for `seek`, so `Streami` will
+This makes a very simple stream which just reads from a file. 
+serves bytes from that. Without a seek handler, `Streami` will
 treat this as a pipe and do automatic header buffering.
 
 You can use it like this:
 
 ```python
-streamiu = Mystreami('some/filename')
-image = pyvips.Image.new_from_stream(streamiu, '')
+image = pyvips.Image.new_from_stream(input_stream, '')
 ```
 
 Or perhaps:
 
 ```python
-streamiu = Mystreami('some/filename')
-image = pyvips.Image.thumbnail_stream(streamiu, 128)
+image = pyvips.Image.thumbnail_stream(input_stream, 128)
 ```
 
-You could make a proper seek method like this:
+You could make one with a seek handler like this:
 
 ```python
-    def seek_cb(self, offset, whence):
-        if whence == 0:
-            # SEEK_SET
-            new_read_point = offset
-        elif whence == 1:
-            # SEEK_CUR
-            new_read_point = self.read_point + offset
-        elif whence == 2:
-            # SEEK_END
-            new_read_point = self.length + offset
-        else:
-            raise Exception('bad whence {0}'.format(whence))
+input_file = open(sys.argv[1], "rb")
 
-        self.read_point = max(0, min(self.length, new_read_point))
+def read_handler(size):
+    return input_file.read(size)
 
-        return self.read_point
+def seek_handler(offset, whence):
+    input_file.seek(offset, whence)
+    return input_file.tell()
+
+input_stream = pyvips.Streamiu()
+input_stream.on_read(read_handler)
+input_stream.on_seek(seek_handler)
 ```
 
 A seek method is optional, but will help file formats like TIFF which seek
@@ -182,35 +159,27 @@ a lot during read.
 Output streams are almost the same:
 
 ```python
-class Mystreamo(pyvips.Streamou):
-    def __init__(self, filename):
-        super(Mystreamo, self).__init__()
+output_file = open(sys.argv[2], "wb")
 
-        self.f = open(filename, 'wb')
+def write_handler(chunk):
+    return output_file.write(chunk)
 
-        self.signal_connect('write', self.write_cb)
-        self.signal_connect('finish', self.finish_cb)
+def finish_handler():
+    output_file.close()
 
-    def write_cb(self, buf):
-        # py2 write does not return number of bytes written
-        self.f.write(buf)
-
-        return len(buf)
-
-    def finish_cb(self):
-        self.f.close()
+output_stream = pyvips.Streamou()
+output_stream.on_write(write_handler)
+output_stream.on_finish(finish_handler)
 ```
 
 So you can now do this!
 
 ```python
-streamiu = Mystreami('some/filename')
-image = pyvips.Image.new_from_stream(streamiu, '')
-streamou = Mystreamo('/some/other/filename')
-image.write_to_stream(streamou, '.png')
+image = pyvips.Image.new_from_stream(input_stream, '')
+image.write_to_stream(output_stream, '.png')
 ```
 
-And it'll copy between your two stream classes.
+And it'll copy between your two stream objects.
 
 # Loader and saver API
 
