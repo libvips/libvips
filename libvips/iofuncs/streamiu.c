@@ -95,16 +95,38 @@ static gint64
 vips_streamiu_seek_real( VipsStreami *streami, 
 	gint64 offset, int whence )
 {
+	GValue args[3] = { 0 };
+	GValue result = { 0 };
 	gint64 new_position;
 
 	VIPS_DEBUG_MSG( "vips_streamiu_seek_real:\n" );
 
-	/* If there's no user action attached, we fail.
+	/* Set the signal args.
 	 */
-	new_position = -1;
+	g_value_init( &args[0], G_TYPE_OBJECT );
+	g_value_set_object( &args[0], streami );
+	g_value_init( &args[1], G_TYPE_INT64 );
+	g_value_set_int64( &args[1], offset );
+	g_value_init( &args[2], G_TYPE_INT );
+	g_value_set_int( &args[2], whence );
 
-	g_signal_emit( streami, vips_streamiu_signals[SIG_SEEK], 0,
-		offset, whence, &new_position );
+	/* Set the default value if no handlers are attached.
+	 */
+	g_value_init( &result, G_TYPE_INT64 );
+	g_value_set_int64( &result, -1 );
+
+	/* We need to use this signal interface since we want a default value 
+	 * if no handlers are attached.
+	 */
+	g_signal_emitv( (const GValue *) &args, 
+		vips_streamiu_signals[SIG_SEEK], 0, &result );
+
+	new_position = g_value_get_int64( &result );
+
+	g_value_unset( &args[0] );
+	g_value_unset( &args[1] );
+	g_value_unset( &args[2] );
+	g_value_unset( &result );
 
 	VIPS_DEBUG_MSG( "  vips_streamiu_seek_real, seen new pos %zd\n", 
 		new_position );
