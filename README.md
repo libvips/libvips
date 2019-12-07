@@ -167,9 +167,9 @@ Build with the GCC auto-vectorizer and diagnostics (or just -O3):
 # Dependencies 
 
 libvips has to have `glib2.0-dev` and `libexpat1-dev`. Other dependencies
-are optional, see below.
+are optional.
 
-# Optional dependencies
+## Optional dependencies
 
 If suitable versions are found, libvips will add support for the following
 libraries automatically. See `./configure --help` for a set of flags to
@@ -310,7 +310,7 @@ This project exists thanks to all the people who contribute.
 
 ### Organizations
 
-Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/libvips/contribute)]
+Support this project with your organization. Your logo will show up here with a link to your website. 
 
 <a href="https://opencollective.com/libvips/organization/0/website"><img src="https://opencollective.com/libvips/organization/0/avatar.svg"></a>
 <a href="https://opencollective.com/libvips/organization/1/website"><img src="https://opencollective.com/libvips/organization/1/avatar.svg"></a>
