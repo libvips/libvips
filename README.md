@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/libvips/libvips.svg?branch=master)](https://travis-ci.org/libvips/libvips)
 [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/libvips.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=2&q=proj:libvips)
-[![Coverity Status](https://scan.coverity.com/projects/6503/badge.svg)](https://scan.coverity.com/projects/jcupitt-libvips)
+[![Financial Contributors on Open Collective](https://opencollective.com/libvips/all/badge.svg?label=financial+contributors)](https://opencollective.com/libvips) [![Coverity Status](https://scan.coverity.com/projects/6503/badge.svg)](https://scan.coverity.com/projects/jcupitt-libvips)
 
 libvips is a [demand-driven, horizontally
 threaded](https://github.com/libvips/libvips/wiki/Why-is-libvips-quick)
@@ -306,3 +306,33 @@ No guarantees of performance accompany this software, nor is any
 responsibility assumed on the part of the authors. Please read the licence
 agreement.
 
+
+## Contributors
+
+### Code Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/libvips/libvips/graphs/contributors"><img src="https://opencollective.com/libvips/contributors.svg?width=890&button=false" /></a>
+
+### Financial Contributors
+
+Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/libvips/contribute)]
+
+#### Individuals
+
+<a href="https://opencollective.com/libvips"><img src="https://opencollective.com/libvips/individuals.svg?width=890"></a>
+
+#### Organizations
+
+Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/libvips/contribute)]
+
+<a href="https://opencollective.com/libvips/organization/0/website"><img src="https://opencollective.com/libvips/organization/0/avatar.svg"></a>
+<a href="https://opencollective.com/libvips/organization/1/website"><img src="https://opencollective.com/libvips/organization/1/avatar.svg"></a>
+<a href="https://opencollective.com/libvips/organization/2/website"><img src="https://opencollective.com/libvips/organization/2/avatar.svg"></a>
+<a href="https://opencollective.com/libvips/organization/3/website"><img src="https://opencollective.com/libvips/organization/3/avatar.svg"></a>
+<a href="https://opencollective.com/libvips/organization/4/website"><img src="https://opencollective.com/libvips/organization/4/avatar.svg"></a>
+<a href="https://opencollective.com/libvips/organization/5/website"><img src="https://opencollective.com/libvips/organization/5/avatar.svg"></a>
+<a href="https://opencollective.com/libvips/organization/6/website"><img src="https://opencollective.com/libvips/organization/6/avatar.svg"></a>
+<a href="https://opencollective.com/libvips/organization/7/website"><img src="https://opencollective.com/libvips/organization/7/avatar.svg"></a>
+<a href="https://opencollective.com/libvips/organization/8/website"><img src="https://opencollective.com/libvips/organization/8/avatar.svg"></a>
+<a href="https://opencollective.com/libvips/organization/9/website"><img src="https://opencollective.com/libvips/organization/9/avatar.svg"></a>
