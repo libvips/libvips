@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/libvips/libvips.svg?branch=master)](https://travis-ci.org/libvips/libvips)
 [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/libvips.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=2&q=proj:libvips)
-[![Financial Contributors on Open Collective](https://opencollective.com/libvips/all/badge.svg?label=financial+contributors)](https://opencollective.com/libvips) [![Coverity Status](https://scan.coverity.com/projects/6503/badge.svg)](https://scan.coverity.com/projects/jcupitt-libvips)
+[![Coverity Status](https://scan.coverity.com/projects/6503/badge.svg)](https://scan.coverity.com/projects/jcupitt-libvips)
 
 libvips is a [demand-driven, horizontally
 threaded](https://github.com/libvips/libvips/wiki/Why-is-libvips-quick)
@@ -300,29 +300,15 @@ files: Aperio, Hamamatsu, Leica, MIRAX, Sakura, Trestle, and Ventana.
 
 If available, libvips can load and save HEIC images. 
 
-# Disclaimer
-
-No guarantees of performance accompany this software, nor is any
-responsibility assumed on the part of the authors. Please read the licence
-agreement.
-
-
-## Contributors
+# Contributors
 
 ### Code Contributors
 
-This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+This project exists thanks to all the people who contribute. 
+
 <a href="https://github.com/libvips/libvips/graphs/contributors"><img src="https://opencollective.com/libvips/contributors.svg?width=890&button=false" /></a>
 
-### Financial Contributors
-
-Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/libvips/contribute)]
-
-#### Individuals
-
-<a href="https://opencollective.com/libvips"><img src="https://opencollective.com/libvips/individuals.svg?width=890"></a>
-
-#### Organizations
+### Organizations
 
 Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/libvips/contribute)]
 
