@@ -1354,19 +1354,14 @@ rtiff_parse_copy( Rtiff *rtiff, VipsImage *out )
 		else
 			out->Type = VIPS_INTERPRETATION_sRGB; 
 	}
-
-	if( samples_per_pixel >= 3 &&
+	else if( samples_per_pixel >= 3 &&
 		photometric_interpretation == PHOTOMETRIC_CIELAB )
 		out->Type = VIPS_INTERPRETATION_LAB; 
-
-	if( samples_per_pixel >= 4 &&
-		photometric_interpretation == PHOTOMETRIC_SEPARATED &&
-		inkset == INKSET_CMYK)
+	else if( photometric_interpretation == PHOTOMETRIC_SEPARATED &&
+		samples_per_pixel >= 4 &&
+		inkset == INKSET_CMYK )
 		out->Type = VIPS_INTERPRETATION_CMYK; 
-
-	if (samples_per_pixel >= 1 &&
-		photometric_interpretation == PHOTOMETRIC_SEPARATED &&
-		inkset == INKSET_MULTIINK)
+	else
 		out->Type = VIPS_INTERPRETATION_MULTIBAND;
 
 	rtiff->sfn = rtiff_memcpy_line;
@@ -2176,17 +2171,17 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 	uint16 extra_samples_count;
 	uint16 *extra_samples_types;
 
-	if( !tfget32( rtiff->tiff, TIFFTAG_IMAGEWIDTH, &header->width ) ||
-		!tfget32( rtiff->tiff, TIFFTAG_IMAGELENGTH, &header->height ) ||
-		!tfget16( rtiff->tiff, 
-			TIFFTAG_SAMPLESPERPIXEL, &header->samples_per_pixel ) ||
-		!tfget16( rtiff->tiff, 
-			TIFFTAG_BITSPERSAMPLE, &header->bits_per_sample ) ||
-		!tfget16( rtiff->tiff, 
-			TIFFTAG_PHOTOMETRIC, 
+	if( !tfget32( rtiff->tiff, TIFFTAG_IMAGEWIDTH, 
+			&header->width ) ||
+		!tfget32( rtiff->tiff, TIFFTAG_IMAGELENGTH, 
+			&header->height ) ||
+		!tfget16( rtiff->tiff, TIFFTAG_SAMPLESPERPIXEL, 
+			&header->samples_per_pixel ) ||
+		!tfget16( rtiff->tiff, TIFFTAG_BITSPERSAMPLE, 
+			&header->bits_per_sample ) ||
+		!tfget16( rtiff->tiff, TIFFTAG_PHOTOMETRIC, 
 			&header->photometric_interpretation ) ||
-		!tfget16(rtiff->tiff,
-			TIFFTAG_INKSET,
+		!tfget16( rtiff->tiff, TIFFTAG_INKSET, 
 			&header->inkset ) )
 		return( -1 );
 
