@@ -654,50 +654,52 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 		TIFFSetField( tif, TIFFTAG_BITSPERSAMPLE, 
 			vips_format_sizeof( wtiff->im->BandFmt ) << 3 );
 
-		if( wtiff->im->Bands < 3 ) {
-			/* Mono or mono + alpha.
-			 */
-			photometric = wtiff->miniswhite ? 
-				PHOTOMETRIC_MINISWHITE :  
+		if (wtiff->im->Type == VIPS_INTERPRETATION_B_W ||
+			wtiff->im->Type == VIPS_INTERPRETATION_GREY16) {
+			// Mono or mono + alpha.
+			photometric = wtiff->miniswhite ?
+				PHOTOMETRIC_MINISWHITE :
 				PHOTOMETRIC_MINISBLACK;
 			colour_bands = 1;
 		}
+		else if( wtiff->im->Type == VIPS_INTERPRETATION_LAB || 
+			wtiff->im->Type == VIPS_INTERPRETATION_LABS ) {
+			photometric = PHOTOMETRIC_CIELAB;
+			colour_bands = 3;
+		}
+		else if( wtiff->im->Type == VIPS_INTERPRETATION_CMYK &&
+			wtiff->im->Bands >= 4 ) {
+			photometric = PHOTOMETRIC_SEPARATED;
+			TIFFSetField( tif, 
+				TIFFTAG_INKSET, INKSET_CMYK );
+			colour_bands = 4;
+		}
+		else if (wtiff->im->Type == VIPS_INTERPRETATION_MULTIBAND ) {
+			photometric = PHOTOMETRIC_SEPARATED;
+			TIFFSetField(tif,
+				TIFFTAG_INKSET, INKSET_MULTIINK);
+			colour_bands = 4;
+		}
+		else if( wtiff->compression == COMPRESSION_JPEG &&
+			wtiff->im->Bands == 3 &&
+			wtiff->im->BandFmt == VIPS_FORMAT_UCHAR &&
+			(!wtiff->rgbjpeg && wtiff->Q < 90) ) { 
+			/* This signals to libjpeg that it can do
+				* YCbCr chrominance subsampling from RGB, not
+				* that we will supply the image as YCbCr.
+				*/
+			photometric = PHOTOMETRIC_YCBCR;
+			TIFFSetField( tif, TIFFTAG_JPEGCOLORMODE, 
+				JPEGCOLORMODE_RGB );
+			colour_bands = 3;
+		}
 		else {
-			/* Could be: RGB, CMYK, LAB, perhaps with extra alpha.
-			 */
-			if( wtiff->im->Type == VIPS_INTERPRETATION_LAB || 
-				wtiff->im->Type == VIPS_INTERPRETATION_LABS ) {
-				photometric = PHOTOMETRIC_CIELAB;
-				colour_bands = 3;
-			}
-			else if( wtiff->im->Type == VIPS_INTERPRETATION_CMYK &&
-				wtiff->im->Bands >= 4 ) {
-				photometric = PHOTOMETRIC_SEPARATED;
-				TIFFSetField( tif, 
-					TIFFTAG_INKSET, INKSET_CMYK );
-				colour_bands = 4;
-			}
-			else if( wtiff->compression == COMPRESSION_JPEG &&
-				wtiff->im->Bands == 3 &&
-				wtiff->im->BandFmt == VIPS_FORMAT_UCHAR &&
-				(!wtiff->rgbjpeg && wtiff->Q < 90) ) { 
-				/* This signals to libjpeg that it can do
-				 * YCbCr chrominance subsampling from RGB, not
-				 * that we will supply the image as YCbCr.
-				 */
-				photometric = PHOTOMETRIC_YCBCR;
-				TIFFSetField( tif, TIFFTAG_JPEGCOLORMODE, 
-					JPEGCOLORMODE_RGB );
-				colour_bands = 3;
-			}
-			else {
-				/* Some kind of generic multi-band image ..
-				 * save the first three bands as RGB, the rest
-				 * as alpha.
-				 */
-				photometric = PHOTOMETRIC_RGB;
-				colour_bands = 3;
-			}
+			/* Some kind of generic multi-band image ..
+				* save the first three bands as RGB, the rest
+				* as alpha.
+				*/
+			photometric = PHOTOMETRIC_RGB;
+			colour_bands = 3;
 		}
 
 		alpha_bands = VIPS_CLIP( 0, 
