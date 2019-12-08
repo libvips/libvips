@@ -95,7 +95,7 @@ static gint64
 vips_streamiu_seek_real( VipsStreami *streami, 
 	gint64 offset, int whence )
 {
-	GValue args[3] = { 0 };
+	GValue args[3] = { { 0 } };
 	GValue result = { 0 };
 	gint64 new_position;
 

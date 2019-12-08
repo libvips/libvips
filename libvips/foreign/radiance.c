@@ -840,7 +840,7 @@ rad2vips_get_header( Read *read, VipsImage *out )
 	if( getheader( read->bufis, 
 		(gethfunc *) rad2vips_process_line, read ) ||
 		!(line = vips_bufis_get_line( read->bufis )) ||
-		!str2resolu( &read->rs, line ) ) {
+		!str2resolu( &read->rs, (char *) line ) ) {
 		vips_error( "rad2vips", "%s", 
 			_( "error reading radiance header" ) );
 		return( -1 );

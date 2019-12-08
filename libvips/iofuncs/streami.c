@@ -38,8 +38,8 @@
 
 /*
 #define VIPS_DEBUG
- */
 #define TEST_SANITY
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -574,8 +574,7 @@ vips_streami_unminimise( VipsStreami *streami )
 		if( (fd = vips_tracked_open( stream->filename, 
 			MODE_READ )) == -1 ) {
 			vips_error_system( errno, vips_stream_nick( stream ),
-				_( "unable to open for read" ), 
-			       stream->filename	);
+				_( "unable to open for read" ) );
 			return( -1 ); 
 		}
 

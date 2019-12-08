@@ -365,7 +365,7 @@ vips_foreign_load_ppm_set_image( VipsForeignLoadPpm *ppm, VipsImage *image )
 			"pfm-scale", VIPS_FABS( ppm->scale ) );
 	else
 		vips_image_set_double( image, 
-			"ppm-max-value", VIPS_FABS( ppm->max_value ) );
+			"ppm-max-value", VIPS_ABS( ppm->max_value ) );
 
 	VIPS_SETSTR( image->filename, 
 		vips_stream_filename( VIPS_STREAM( ppm->bufis->streami ) ) );
