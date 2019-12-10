@@ -214,6 +214,7 @@ int vips_streami_decode( VipsStreami *streami );
 ssize_t vips_streami_read( VipsStreami *streami, void *data, size_t length );
 gboolean vips_streami_is_mappable( VipsStreami *streami );
 const void *vips_streami_map( VipsStreami *streami, size_t *length );
+VipsBlob *vips_streami_map_blob( VipsStreami *streami );
 gint64 vips_streami_seek( VipsStreami *streami, gint64 offset, int whence );
 int vips_streami_rewind( VipsStreami *streami );
 size_t vips_streami_sniff_at_most( VipsStreami *streami, 

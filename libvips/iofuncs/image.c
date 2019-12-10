@@ -18,6 +18,8 @@
  * 	- better rules for hasalpha
  * 9/10/18
  * 	- fix up vips_image_dump(), it was still using ints not enums
+ * 10/12/19
+ * 	- add vips_image_new_from_stream() / vips_image_write_to_stream()
  */
 
 /*
@@ -2230,6 +2232,8 @@ VipsImage *
 vips_image_new_from_stream( VipsStreami *streami, 
 	const char *option_string, ... )
 {
+	const char *filename = vips_stream_filename( VIPS_STREAM( streami ) );
+
 	const char *operation_name;
 	va_list ap;
 	int result;
@@ -2237,13 +2241,51 @@ vips_image_new_from_stream( VipsStreami *streami,
 
 	vips_check_init();
 
-        if( !(operation_name = vips_foreign_find_load_stream( streami )) )
-                return( NULL );
+	vips_error_freeze();
+	operation_name = vips_foreign_find_load_stream( streami );
+	vips_error_thaw();
 
-        va_start( ap, option_string );
-        result = vips_call_split_option_string( operation_name,
-                option_string, ap, streami, &out );
-        va_end( ap );
+        if( operation_name ) { 
+		va_start( ap, option_string );
+		result = vips_call_split_option_string( operation_name,
+			option_string, ap, streami, &out );
+		va_end( ap );
+	}
+	else if( filename ) {
+		/* Try with the old file-based loaders.
+		 */
+		if( !(operation_name = vips_foreign_find_load( filename )) )
+			return( NULL );
+
+		va_start( ap, option_string );
+		result = vips_call_split_option_string( operation_name, 
+			option_string, ap, filename, &out );
+		va_end( ap );
+	}
+	else if( vips_streami_is_mappable( streami ) ) {
+		/* Try with the old buffer-based loaders.
+		 */
+		VipsBlob *blob;
+		const void *buf;
+		size_t len;
+
+		if( !(blob = vips_streami_map_blob( streami )) )
+			return( NULL );
+
+		buf = vips_blob_get( blob, &len );
+		if( !(operation_name = 
+			vips_foreign_find_load_buffer( buf, len )) ) {
+			vips_area_unref( VIPS_AREA( blob ) );
+			return( NULL );
+		}
+
+                va_start( ap, option_string );
+                result = vips_call_split_option_string( operation_name,
+                        option_string, ap, blob, &out );
+                va_end( ap );
+
+		vips_area_unref( VIPS_AREA( blob ) );
+	}
 
         if( result )
                 return( NULL );

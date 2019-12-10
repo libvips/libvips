@@ -592,7 +592,8 @@ VImage
 VImage::new_from_buffer( const std::string &buf, const char *option_string, 
 	VOption *options )
 {
-	return( new_from_buffer( buf.c_str(), buf.size(), option_string, options ) );
+	return( new_from_buffer( buf.c_str(), buf.size(), 
+		option_string, options ) );
 }
 
 VImage 

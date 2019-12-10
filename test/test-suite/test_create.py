@@ -121,8 +121,8 @@ class TestCreate:
         sigma = im.deviate()
         mean = im.avg()
 
-        assert sigma == pytest.approx(10, abs=0.2)
-        assert mean == pytest.approx(100, abs=0.2)
+        assert sigma == pytest.approx(10, abs=0.4)
+        assert mean == pytest.approx(100, abs=0.4)
 
     def test_grey(self):
         im = pyvips.Image.grey(100, 90)

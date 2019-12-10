@@ -873,6 +873,8 @@ vips_streami_is_mappable( VipsStreami *streami )
  * This operation can take a long time. Use vips_streami_is_mappable() to 
  * check if a streami can be mapped efficiently.
  *
+ * The pointer is valid for as long as @streami is alive.
+ *
  * Returns: a pointer to the start of the file contents, or NULL on error.
  */
 const void *
@@ -906,6 +908,45 @@ vips_streami_map( VipsStreami *streami, size_t *length_out )
 	SANITY( streami );
 
 	return( streami->data );
+}
+
+static int
+vips_streami_map_cb( void *a, void *b )
+{
+	VipsArea *area = VIPS_AREA( b );
+	GObject *gobject = G_OBJECT( area->client );
+
+	VIPS_UNREF( gobject );
+
+	return( 0 );
+}
+
+/**
+ * vips_streami_map_blob:
+ * @streami: input stream to operate on
+ *
+ * Just like vips_streami_map(), but return a #VipsBlob containing the
+ * pointer. @streami will stay alive as long as the result is alive.
+ *
+ * Returns: a new #VipsBlob containing the data, or NULL on error.
+ */
+VipsBlob *
+vips_streami_map_blob( VipsStreami *streami )
+{
+	const void *buf;
+	size_t len;
+	VipsBlob *blob;
+
+	if( !(buf = vips_streami_map( streami, &len )) ||
+		!(blob = vips_blob_new( vips_streami_map_cb, buf, len )) ) 
+		return( NULL );
+
+	/* The streami must stay alive until the blob is done.
+	 */
+	g_object_ref( streami );
+	VIPS_AREA( blob )->client = streami;
+
+	return( blob );
 }
 
 /**
