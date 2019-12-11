@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>libvips</title>
+    <meta name="description" content="A fast image processing library with low memory needs.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/libvips/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="/libvips/favicon.ico">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name"><a href="/libvips">libvips</a></h1>
+      <h2 class="project-tagline">A fast image processing library with low memory needs.</h2>
+      <a href="https://github.com/libvips/libvips" class="btn">Project on GitHub</a>
+      <a href="https://github.com/libvips/libvips/releases" class="btn">Download</a>
+      <a href="/libvips/install.html" class="btn">Install</a>
+      <a href="/libvips/API/current" class="btn">Documentation</a>
+      <a href="https://github.com/libvips/libvips/issues" class="btn">Issues</a>
+      <a href="https://github.com/libvips/libvips/wiki" class="btn">Wiki</a>
+    </section>
+
+    <section class="main-content">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#libvips-rect.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="libvips-type.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="VipsObject.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="libvips-rect"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libvips-rect.top_of_page"></a>rect</span></h2>
+<p>rect — the VIPS rectangle class</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libvips-rect.stability-level"></a><h2>Stability Level</h2>
+<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="libvips-rect.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-rect.html#VIPS-RECT-RIGHT:CAPS" title="VIPS_RECT_RIGHT()">VIPS_RECT_RIGHT</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-rect.html#VIPS-RECT-BOTTOM:CAPS" title="VIPS_RECT_BOTTOM()">VIPS_RECT_BOTTOM</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-rect.html#VIPS-RECT-HCENTRE:CAPS" title="VIPS_RECT_HCENTRE()">VIPS_RECT_HCENTRE</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-rect.html#VIPS-RECT-VCENTRE:CAPS" title="VIPS_RECT_VCENTRE()">VIPS_RECT_VCENTRE</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-rect.html#vips-rect-isempty" title="vips_rect_isempty ()">vips_rect_isempty</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-rect.html#vips-rect-includespoint" title="vips_rect_includespoint ()">vips_rect_includespoint</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-rect.html#vips-rect-includesrect" title="vips_rect_includesrect ()">vips_rect_includesrect</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-rect.html#vips-rect-equalsrect" title="vips_rect_equalsrect ()">vips_rect_equalsrect</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-rect.html#vips-rect-overlapsrect" title="vips_rect_overlapsrect ()">vips_rect_overlapsrect</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-rect.html#vips-rect-marginadjust" title="vips_rect_marginadjust ()">vips_rect_marginadjust</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-rect.html#vips-rect-intersectrect" title="vips_rect_intersectrect ()">vips_rect_intersectrect</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-rect.html#vips-rect-unionrect" title="vips_rect_unionrect ()">vips_rect_unionrect</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="returnvalue">VipsRect</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-rect.html#vips-rect-dup" title="vips_rect_dup ()">vips_rect_dup</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-rect.html#vips-rect-normalise" title="vips_rect_normalise ()">vips_rect_normalise</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libvips-rect.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody><tr>
+<td class="datatype_keyword"> </td>
+<td class="function_name"><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect">VipsRect</a></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libvips-rect.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;vips/vips.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="libvips-rect.description"></a><h2>Description</h2>
+<p>The <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> class and associated types and macros.</p>
+</div>
+<div class="refsect1">
+<a name="libvips-rect.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="VIPS-RECT-RIGHT:CAPS"></a><h3>VIPS_RECT_RIGHT()</h3>
+<pre class="programlisting">#define VIPS_RECT_RIGHT(R) ((R)-&gt;left + (R)-&gt;width)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-RECT-BOTTOM:CAPS"></a><h3>VIPS_RECT_BOTTOM()</h3>
+<pre class="programlisting">#define VIPS_RECT_BOTTOM(R) ((R)-&gt;top + (R)-&gt;height)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-RECT-HCENTRE:CAPS"></a><h3>VIPS_RECT_HCENTRE()</h3>
+<pre class="programlisting">#define VIPS_RECT_HCENTRE(R) ((R)-&gt;left + (R)-&gt;width / 2)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-RECT-VCENTRE:CAPS"></a><h3>VIPS_RECT_VCENTRE()</h3>
+<pre class="programlisting">#define VIPS_RECT_VCENTRE(R) ((R)-&gt;top + (R)-&gt;height / 2)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-rect-isempty"></a><h3>vips_rect_isempty ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+vips_rect_isempty (<em class="parameter"><code>const <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r</code></em>);</pre>
+<p>Is <em class="parameter"><code>r</code></em>
+ empty? ie. zero width or height.</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-rect-isempty.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>r</p></td>
+<td class="parameter_description"><p>rectangle to test</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-rect-isempty.returns"></a><h4>Returns</h4>
+<p> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>r</code></em>
+contains no pixels.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-rect-includespoint"></a><h3>vips_rect_includespoint ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+vips_rect_includespoint (<em class="parameter"><code>const <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r</code></em>,
+                         <em class="parameter"><code><span class="type">int</span> x</code></em>,
+                         <em class="parameter"><code><span class="type">int</span> y</code></em>);</pre>
+<p>Does <em class="parameter"><code>r</code></em>
+ contain point (<em class="parameter"><code>x</code></em>
+, <em class="parameter"><code>y</code></em>
+)?</p>
+<div class="refsect3">
+<a name="vips-rect-includespoint.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>r</p></td>
+<td class="parameter_description"><p>rectangle to test </p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>x</p></td>
+<td class="parameter_description"><p>position to test for</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>y</p></td>
+<td class="parameter_description"><p>position to test for </p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-rect-includespoint.returns"></a><h4>Returns</h4>
+<p> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>r</code></em>
+contains (<em class="parameter"><code>x</code></em>
+, <em class="parameter"><code>y</code></em>
+).</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-rect-includesrect"></a><h3>vips_rect_includesrect ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+vips_rect_includesrect (<em class="parameter"><code>const <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r1</code></em>,
+                        <em class="parameter"><code>const <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r2</code></em>);</pre>
+<p>Is <em class="parameter"><code>r2</code></em>
+ a subset of <em class="parameter"><code>r1</code></em>
+?</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-rect-includesrect.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>r1</p></td>
+<td class="parameter_description"><p>outer rectangle</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>r2</p></td>
+<td class="parameter_description"><p>inner rectangle</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-rect-includesrect.returns"></a><h4>Returns</h4>
+<p> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>r2</code></em>
+is a subset of <em class="parameter"><code>r1</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-rect-equalsrect"></a><h3>vips_rect_equalsrect ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+vips_rect_equalsrect (<em class="parameter"><code>const <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r1</code></em>,
+                      <em class="parameter"><code>const <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r2</code></em>);</pre>
+<p>Is <em class="parameter"><code>r1</code></em>
+ equal to <em class="parameter"><code>r2</code></em>
+?</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-rect-equalsrect.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>r1</p></td>
+<td class="parameter_description"><p>first rectangle</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>r2</p></td>
+<td class="parameter_description"><p>second rectangle</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-rect-equalsrect.returns"></a><h4>Returns</h4>
+<p> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>r1</code></em>
+is equal to <em class="parameter"><code>r2</code></em>
+.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-rect-overlapsrect"></a><h3>vips_rect_overlapsrect ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+vips_rect_overlapsrect (<em class="parameter"><code>const <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r1</code></em>,
+                        <em class="parameter"><code>const <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r2</code></em>);</pre>
+<p>Do <em class="parameter"><code>r1</code></em>
+ and <em class="parameter"><code>r2</code></em>
+ have a non-empty intersection?</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-rect-overlapsrect.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>r1</p></td>
+<td class="parameter_description"><p>first rectangle</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>r2</p></td>
+<td class="parameter_description"><p>second rectangle</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-rect-overlapsrect.returns"></a><h4>Returns</h4>
+<p> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>r2</code></em>
+and <em class="parameter"><code>r1</code></em>
+overlap.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-rect-marginadjust"></a><h3>vips_rect_marginadjust ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_rect_marginadjust (<em class="parameter"><code><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r</code></em>,
+                        <em class="parameter"><code><span class="type">int</span> n</code></em>);</pre>
+<p>Enlarge <em class="parameter"><code>r</code></em>
+ by <em class="parameter"><code>n</code></em>
+. +1 means out one pixel.</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-rect-marginadjust.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>r</p></td>
+<td class="parameter_description"><p>rectangle to adjust</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>n</p></td>
+<td class="parameter_description"><p>enlarge by</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-rect-intersectrect"></a><h3>vips_rect_intersectrect ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_rect_intersectrect (<em class="parameter"><code>const <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r1</code></em>,
+                         <em class="parameter"><code>const <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r2</code></em>,
+                         <em class="parameter"><code><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *out</code></em>);</pre>
+<p>Fill <em class="parameter"><code>out</code></em>
+ with the intersection of <em class="parameter"><code>r1</code></em>
+ and <em class="parameter"><code>r2</code></em>
+. <em class="parameter"><code>out</code></em>
+ can equal <em class="parameter"><code>r1</code></em>
+ or <em class="parameter"><code>r2</code></em>
+.</p>
+<div class="refsect3">
+<a name="vips-rect-intersectrect.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>r1</p></td>
+<td class="parameter_description"><p>input rectangle 1</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>r2</p></td>
+<td class="parameter_description"><p>input rectangle 2</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output rectangle. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-rect-unionrect"></a><h3>vips_rect_unionrect ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_rect_unionrect (<em class="parameter"><code>const <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r1</code></em>,
+                     <em class="parameter"><code>const <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r2</code></em>,
+                     <em class="parameter"><code><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *out</code></em>);</pre>
+<p>Fill <em class="parameter"><code>out</code></em>
+ with the bounding box of <em class="parameter"><code>r1</code></em>
+ and <em class="parameter"><code>r2</code></em>
+. <em class="parameter"><code>out</code></em>
+ can equal <em class="parameter"><code>r1</code></em>
+ or <em class="parameter"><code>r2</code></em>
+.</p>
+<div class="refsect3">
+<a name="vips-rect-unionrect.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>r1</p></td>
+<td class="parameter_description"><p>input rectangle 1</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>r2</p></td>
+<td class="parameter_description"><p>input rectangle 2</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output rectangle. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-rect-dup"></a><h3>vips_rect_dup ()</h3>
+<pre class="programlisting"><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="returnvalue">VipsRect</span></a> *
+vips_rect_dup (<em class="parameter"><code>const <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r</code></em>);</pre>
+<p>Duplicate a rect to the heap. You need to free the result with <a class="link" href="libvips-memory.html#vips-free" title="vips_free ()"><code class="function">vips_free()</code></a>.</p>
+<p><span class="annotation">[<acronym title="Exposed in C code, not necessarily available in other languages."><span class="acronym">skip</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-rect-dup.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>r</p></td>
+<td class="parameter_description"><p>rectangle to duplicate</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-rect-dup.returns"></a><h4>Returns</h4>
+<p>a pointer to copy of <em class="parameter"><code>r</code></em>
+allocated on the heap. </p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-rect-normalise"></a><h3>vips_rect_normalise ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_rect_normalise (<em class="parameter"><code><a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> *r</code></em>);</pre>
+<p>Make sure width and height are &gt;0 by moving the origin and flipping the
+rect.</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-rect-normalise.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>r</p></td>
+<td class="parameter_description"><p>rect to normalise</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="libvips-rect.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="VipsRect"></a><h3>VipsRect</h3>
+<pre class="programlisting">typedef struct {
+	int left;
+	int top;
+	int width;
+	int height;
+} VipsRect;
+</pre>
+<p>A <a class="link" href="libvips-rect.html#VipsRect" title="VipsRect"><span class="type">VipsRect</span></a> is a rectangular area of pixels. This is a struct for
+performing simple rectangle algebra.</p>
+<div class="refsect3">
+<a name="VipsRect.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="struct_members_name">
+<col class="struct_members_description">
+<col width="200px" class="struct_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="struct_member_name"><p><span class="type">int</span> <em class="structfield"><code><a name="VipsRect.left"></a>left</code></em>;</p></td>
+<td class="struct_member_description"><p>left edge of rectangle</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><span class="type">int</span> <em class="structfield"><code><a name="VipsRect.top"></a>top</code></em>;</p></td>
+<td class="struct_member_description"><p>top edge of rectangle</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><span class="type">int</span> <em class="structfield"><code><a name="VipsRect.width"></a>width</code></em>;</p></td>
+<td class="struct_member_description"><p>width of rectangle</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+<tr>
+<td class="struct_member_name"><p><span class="type">int</span> <em class="structfield"><code><a name="VipsRect.height"></a>height</code></em>;</p></td>
+<td class="struct_member_description"><p>height of rectangle</p></td>
+<td class="struct_member_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="libvips-rect.see-also"></a><h2>See Also</h2>
+<a class="link" href="VipsRegion.html" title="VipsRegion">region</a>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.28</div>
+</section>
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48550036-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
+</html>

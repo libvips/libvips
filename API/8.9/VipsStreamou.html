@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>libvips</title>
+    <meta name="description" content="A fast image processing library with low memory needs.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/libvips/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="/libvips/favicon.ico">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name"><a href="/libvips">libvips</a></h1>
+      <h2 class="project-tagline">A fast image processing library with low memory needs.</h2>
+      <a href="https://github.com/libvips/libvips" class="btn">Project on GitHub</a>
+      <a href="https://github.com/libvips/libvips/releases" class="btn">Download</a>
+      <a href="/libvips/install.html" class="btn">Install</a>
+      <a href="/libvips/API/current" class="btn">Documentation</a>
+      <a href="https://github.com/libvips/libvips/issues" class="btn">Issues</a>
+      <a href="https://github.com/libvips/libvips/wiki" class="btn">Wiki</a>
+    </section>
+
+    <section class="main-content">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#VipsStreamou.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#VipsStreamou.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#VipsStreamou.properties" class="shortcut">Properties</a></span><span id="nav_signals">  <span class="dim">|</span> 
+                  <a href="#VipsStreamou.signals" class="shortcut">Signals</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="libvips-buf.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="VipsBufis.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="VipsStreamou"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="VipsStreamou.top_of_page"></a>VipsStreamou</span></h2>
+<p>VipsStreamou — a source/sink of bytes, perhaps a network socket</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="VipsStreamou.stability-level"></a><h2>Stability Level</h2>
+<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="VipsStreamou.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-stream-filename" title="vips_stream_filename ()">vips_stream_filename</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-stream-nick" title="vips_stream_nick ()">vips_stream_nick</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsStreamou.html#VipsStreami"><span class="returnvalue">VipsStreami</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streami-new-from-descriptor" title="vips_streami_new_from_descriptor ()">vips_streami_new_from_descriptor</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsStreamou.html#VipsStreami"><span class="returnvalue">VipsStreami</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streami-new-from-file" title="vips_streami_new_from_file ()">vips_streami_new_from_file</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsStreamou.html#VipsStreami"><span class="returnvalue">VipsStreami</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streami-new-from-blob" title="vips_streami_new_from_blob ()">vips_streami_new_from_blob</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsStreamou.html#VipsStreami"><span class="returnvalue">VipsStreami</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streami-new-from-memory" title="vips_streami_new_from_memory ()">vips_streami_new_from_memory</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsStreamou.html#VipsStreami"><span class="returnvalue">VipsStreami</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streami-new-from-options" title="vips_streami_new_from_options ()">vips_streami_new_from_options</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streami-minimise" title="vips_streami_minimise ()">vips_streami_minimise</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streami-unminimise" title="vips_streami_unminimise ()">vips_streami_unminimise</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streami-decode" title="vips_streami_decode ()">vips_streami_decode</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">ssize_t</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streami-read" title="vips_streami_read ()">vips_streami_read</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streami-is-mappable" title="vips_streami_is_mappable ()">vips_streami_is_mappable</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">void</span> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streami-map" title="vips_streami_map ()">vips_streami_map</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="libvips-type.html#VipsBlob"><span class="returnvalue">VipsBlob</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streami-map-blob" title="vips_streami_map_blob ()">vips_streami_map_blob</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streami-seek" title="vips_streami_seek ()">vips_streami_seek</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streami-rewind" title="vips_streami_rewind ()">vips_streami_rewind</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">size_t</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streami-sniff-at-most" title="vips_streami_sniff_at_most ()">vips_streami_sniff_at_most</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">unsigned <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streami-sniff" title="vips_streami_sniff ()">vips_streami_sniff</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streami-length" title="vips_streami_length ()">vips_streami_length</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsStreamou.html#VipsStreamiu"><span class="returnvalue">VipsStreamiu</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streamiu-new" title="vips_streamiu_new ()">vips_streamiu_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsStreamou.html#VipsStreamo"><span class="returnvalue">VipsStreamo</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streamo-new-to-descriptor" title="vips_streamo_new_to_descriptor ()">vips_streamo_new_to_descriptor</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsStreamou.html#VipsStreamo"><span class="returnvalue">VipsStreamo</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streamo-new-to-file" title="vips_streamo_new_to_file ()">vips_streamo_new_to_file</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsStreamou.html#VipsStreamo"><span class="returnvalue">VipsStreamo</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streamo-new-to-memory" title="vips_streamo_new_to_memory ()">vips_streamo_new_to_memory</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streamo-write" title="vips_streamo_write ()">vips_streamo_write</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streamo-finish" title="vips_streamo_finish ()">vips_streamo_finish</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">unsigned <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streamo-steal" title="vips_streamo_steal ()">vips_streamo_steal</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streamo-steal-text" title="vips_streamo_steal_text ()">vips_streamo_steal_text</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streamo-putc" title="vips_streamo_putc ()">vips_streamo_putc</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#VIPS-STREAMO-PUTC:CAPS" title="VIPS_STREAMO_PUTC()">VIPS_STREAMO_PUTC</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streamo-writes" title="vips_streamo_writes ()">vips_streamo_writes</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streamo-writef" title="vips_streamo_writef ()">vips_streamo_writef</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streamo-write-amp" title="vips_streamo_write_amp ()">vips_streamo_write_amp</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsStreamou.html" title="VipsStreamou"><span class="returnvalue">VipsStreamou</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsStreamou.html#vips-streamou-new" title="vips_streamou_new ()">vips_streamou_new</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="VipsStreamou.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="property_type"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a></td>
+<td class="property_name"><a class="link" href="VipsStreamou.html#VipsStream--descriptor" title="The “descriptor” property">descriptor</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</td>
+<td class="property_name"><a class="link" href="VipsStreamou.html#VipsStream--filename" title="The “filename” property">filename</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<a class="link" href="libvips-type.html#VipsBlob"><span class="type">VipsBlob</span></a> *</td>
+<td class="property_name"><a class="link" href="VipsStreamou.html#VipsStreami--blob" title="The “blob” property">blob</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type">
+<a class="link" href="libvips-type.html#VipsBlob"><span class="type">VipsBlob</span></a> *</td>
+<td class="property_name"><a class="link" href="VipsStreamou.html#VipsStreamo--blob" title="The “blob” property">blob</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
+<td class="property_type"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></td>
+<td class="property_name"><a class="link" href="VipsStreamou.html#VipsStreamo--memory" title="The “memory” property">memory</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="VipsStreamou.signals"></a><h2>Signals</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="signals_return">
+<col width="300px" class="signals_name">
+<col width="200px" class="signals_flags">
+</colgroup>
+<tbody>
+<tr>
+<td class="signal_type"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a></td>
+<td class="signal_name"><a class="link" href="VipsStreamou.html#VipsStreamiu-read" title="The “read” signal">read</a></td>
+<td class="signal_flags"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></td>
+</tr>
+<tr>
+<td class="signal_type"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a></td>
+<td class="signal_name"><a class="link" href="VipsStreamou.html#VipsStreamiu-seek" title="The “seek” signal">seek</a></td>
+<td class="signal_flags"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></td>
+</tr>
+<tr>
+<td class="signal_type"><span class="returnvalue">void</span></td>
+<td class="signal_name"><a class="link" href="VipsStreamou.html#VipsStreamou-finish" title="The “finish” signal">finish</a></td>
+<td class="signal_flags"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></td>
+</tr>
+<tr>
+<td class="signal_type"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a></td>
+<td class="signal_name"><a class="link" href="VipsStreamou.html#VipsStreamou-write" title="The “write” signal">write</a></td>
+<td class="signal_flags"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<a name="VipsStream"></a><a name="VipsStreami"></a><a name="VipsStreamiu"></a><a name="VipsStreamo"></a><div class="refsect1">
+<a name="VipsStreamou.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="VipsStreamou.html#VIPS-STREAMO-BUFFER-SIZE:CAPS" title="VIPS_STREAMO_BUFFER_SIZE">VIPS_STREAMO_BUFFER_SIZE</a></td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="VipsStreamou.html#VIPS-STREAMOU-BUFFER-SIZE:CAPS" title="VIPS_STREAMOU_BUFFER_SIZE">VIPS_STREAMOU_BUFFER_SIZE</a></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="VipsStreamou.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+    <span class="lineart">╰──</span> <a class="link" href="VipsObject.html" title="VipsObject">VipsObject</a>
+        <span class="lineart">╰──</span> VipsStream
+            <span class="lineart">├──</span> VipsStreami
+            <span class="lineart">│</span>   <span class="lineart">╰──</span> VipsStreamiu
+            <span class="lineart">╰──</span> VipsStreamo
+                <span class="lineart">╰──</span> VipsStreamou
+</pre>
+</div>
+<div class="refsect1">
+<a name="VipsStreamou.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;vips/vips.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="VipsStreamou.description"></a><h2>Description</h2>
+<p>A <a class="link" href="VipsStreamou.html#VipsStream"><span class="type">VipsStream</span></a> is a source or sink of bytes for something like jpeg loading. 
+It can be connected to a network socket, for example, or perhaps a node.js
+stream, or to an area of memory. </p>
+<p>Subclass to add other input sources.</p>
+</div>
+<div class="refsect1">
+<a name="VipsStreamou.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="vips-stream-filename"></a><h3>vips_stream_filename ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips_stream_filename (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStream"><span class="type">VipsStream</span></a> *stream</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-stream-nick"></a><h3>vips_stream_nick ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips_stream_nick (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStream"><span class="type">VipsStream</span></a> *stream</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streami-new-from-descriptor"></a><h3>vips_streami_new_from_descriptor ()</h3>
+<pre class="programlisting"><a class="link" href="VipsStreamou.html#VipsStreami"><span class="returnvalue">VipsStreami</span></a> *
+vips_streami_new_from_descriptor (<em class="parameter"><code><span class="type">int</span> descriptor</code></em>);</pre>
+<p>Create an streami stream attached to a file descriptor. <em class="parameter"><code>descriptor</code></em>
+ is 
+closed with <code class="function">close()</code> when the <a class="link" href="VipsStreamou.html#VipsStream"><span class="type">VipsStream</span></a> is finalized.</p>
+<div class="refsect3">
+<a name="vips-streami-new-from-descriptor.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>descriptor</p></td>
+<td class="parameter_description"><p>read from this file descriptor</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streami-new-from-descriptor.returns"></a><h4>Returns</h4>
+<p> a new <a class="link" href="VipsStreamou.html#VipsStream"><span class="type">VipsStream</span></a></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streami-new-from-file"></a><h3>vips_streami_new_from_file ()</h3>
+<pre class="programlisting"><a class="link" href="VipsStreamou.html#VipsStreami"><span class="returnvalue">VipsStreami</span></a> *
+vips_streami_new_from_file (<em class="parameter"><code>const <span class="type">char</span> *filename</code></em>);</pre>
+<p>Create an streami stream attached to a file.</p>
+<div class="refsect3">
+<a name="vips-streami-new-from-file.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>descriptor</p></td>
+<td class="parameter_description"><p>read from this filename </p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streami-new-from-file.returns"></a><h4>Returns</h4>
+<p> a new <a class="link" href="VipsStreamou.html#VipsStream"><span class="type">VipsStream</span></a></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streami-new-from-blob"></a><h3>vips_streami_new_from_blob ()</h3>
+<pre class="programlisting"><a class="link" href="VipsStreamou.html#VipsStreami"><span class="returnvalue">VipsStreami</span></a> *
+vips_streami_new_from_blob (<em class="parameter"><code><a class="link" href="libvips-type.html#VipsBlob"><span class="type">VipsBlob</span></a> *blob</code></em>);</pre>
+<p>Create a stream attached to an area of memory.</p>
+<div class="refsect3">
+<a name="vips-streami-new-from-blob.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>blob</p></td>
+<td class="parameter_description"><p>memory area to load</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streami-new-from-blob.returns"></a><h4>Returns</h4>
+<p> a new <a class="link" href="VipsStreamou.html#VipsStream"><span class="type">VipsStream</span></a></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streami-new-from-memory"></a><h3>vips_streami_new_from_memory ()</h3>
+<pre class="programlisting"><a class="link" href="VipsStreamou.html#VipsStreami"><span class="returnvalue">VipsStreami</span></a> *
+vips_streami_new_from_memory (<em class="parameter"><code>const <span class="type">void</span> *data</code></em>,
+                              <em class="parameter"><code><span class="type">size_t</span> size</code></em>);</pre>
+<p>Create a stream attached to an area of memory. </p>
+<p>You must not free <em class="parameter"><code>data</code></em>
+ while the stream is active.</p>
+<div class="refsect3">
+<a name="vips-streami-new-from-memory.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>data</p></td>
+<td class="parameter_description"><p>memory area to load</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>size of memory area</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streami-new-from-memory.returns"></a><h4>Returns</h4>
+<p> a new <a class="link" href="VipsStreamou.html#VipsStream"><span class="type">VipsStream</span></a></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streami-new-from-options"></a><h3>vips_streami_new_from_options ()</h3>
+<pre class="programlisting"><a class="link" href="VipsStreamou.html#VipsStreami"><span class="returnvalue">VipsStreami</span></a> *
+vips_streami_new_from_options (<em class="parameter"><code>const <span class="type">char</span> *options</code></em>);</pre>
+<p>Create a stream from an option string.</p>
+<div class="refsect3">
+<a name="vips-streami-new-from-options.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>options</p></td>
+<td class="parameter_description"><p>option string</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streami-new-from-options.returns"></a><h4>Returns</h4>
+<p> a new <a class="link" href="VipsStreamou.html#VipsStreami"><span class="type">VipsStreami</span></a></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streami-minimise"></a><h3>vips_streami_minimise ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_streami_minimise (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreami"><span class="type">VipsStreami</span></a> *streami</code></em>);</pre>
+<p>Minimise the stream. As many stream resources as can be safely removed are
+removed. Use <a class="link" href="VipsStreamou.html#vips-streami-unminimise" title="vips_streami_unminimise ()"><code class="function">vips_streami_unminimise()</code></a> to restore the stream if you wish to
+use it again.</p>
+<p>Loaders should call this in response to the minimise signal on their output
+image.</p>
+<div class="refsect3">
+<a name="vips-streami-minimise.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>streami</p></td>
+<td class="parameter_description"><p>input stream to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streami-minimise.returns"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streami-unminimise"></a><h3>vips_streami_unminimise ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_streami_unminimise (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreami"><span class="type">VipsStreami</span></a> *streami</code></em>);</pre>
+<p>Restore the stream after minimisation. This is called at the start 
+of every stream method, so loaders should not usually need this.</p>
+<p>See also: <a class="link" href="VipsStreamou.html#vips-streami-minimise" title="vips_streami_minimise ()"><code class="function">vips_streami_minimise()</code></a>.</p>
+<div class="refsect3">
+<a name="vips-streami-unminimise.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>streami</p></td>
+<td class="parameter_description"><p>input stream to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streami-unminimise.returns"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streami-decode"></a><h3>vips_streami_decode ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_streami_decode (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreami"><span class="type">VipsStreami</span></a> *streami</code></em>);</pre>
+<p>Signal the end of header read and the start of the pixel decode phase. 
+After this, you can no longer seek on this stream.</p>
+<p>Loaders should call this at the end of header read.</p>
+<p>See also: <a class="link" href="VipsStreamou.html#vips-streami-unminimise" title="vips_streami_unminimise ()"><code class="function">vips_streami_unminimise()</code></a>.</p>
+<div class="refsect3">
+<a name="vips-streami-decode.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>streami</p></td>
+<td class="parameter_description"><p>input stream to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streami-decode.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streami-read"></a><h3>vips_streami_read ()</h3>
+<pre class="programlisting"><span class="returnvalue">ssize_t</span>
+vips_streami_read (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreami"><span class="type">VipsStreami</span></a> *streami</code></em>,
+                   <em class="parameter"><code><span class="type">void</span> *data</code></em>,
+                   <em class="parameter"><code><span class="type">size_t</span> length</code></em>);</pre>
+<p>Read up to <em class="parameter"><code>length</code></em>
+ bytes from <em class="parameter"><code>streami</code></em>
+ and store the bytes in <em class="parameter"><code>buffer</code></em>
+.
+Return the number of bytes actually read. If all bytes have been read from 
+the file, return 0.</p>
+<p>Arguments exactly as read(2).</p>
+<div class="refsect3">
+<a name="vips-streami-read.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>streami</p></td>
+<td class="parameter_description"><p>input stream to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>buffer</p></td>
+<td class="parameter_description"><p>store bytes here</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>length of <em class="parameter"><code>buffer</code></em>
+in bytes</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streami-read.returns"></a><h4>Returns</h4>
+<p> the number of bytes raed, 0 on end of file, -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streami-is-mappable"></a><h3>vips_streami_is_mappable ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+vips_streami_is_mappable (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreami"><span class="type">VipsStreami</span></a> *streami</code></em>);</pre>
+<div class="refsect3">
+<a name="vips-streami-is-mappable.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>streami</p></td>
+<td class="parameter_description"><p>input stream to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streami-is-mappable.returns"></a><h4>Returns</h4>
+<p> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the stream can be efficiently mapped into memory.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streami-map"></a><h3>vips_streami_map ()</h3>
+<pre class="programlisting">const <span class="returnvalue">void</span> *
+vips_streami_map (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreami"><span class="type">VipsStreami</span></a> *streami</code></em>,
+                  <em class="parameter"><code><span class="type">size_t</span> *length</code></em>);</pre>
+<p>Map the stream object entirely into memory and return a pointer to the
+start. If <em class="parameter"><code>length_out</code></em>
+ is non-NULL, the stream size is written to it.</p>
+<p>This operation can take a long time. Use <a class="link" href="VipsStreamou.html#vips-streami-is-mappable" title="vips_streami_is_mappable ()"><code class="function">vips_streami_is_mappable()</code></a> to 
+check if a streami can be mapped efficiently.</p>
+<p>The pointer is valid for as long as <em class="parameter"><code>streami</code></em>
+ is alive.</p>
+<div class="refsect3">
+<a name="vips-streami-map.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>streami</p></td>
+<td class="parameter_description"><p>input stream to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length_out</p></td>
+<td class="parameter_description"><p>return the file length here, or NULL</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streami-map.returns"></a><h4>Returns</h4>
+<p> a pointer to the start of the file contents, or NULL on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streami-map-blob"></a><h3>vips_streami_map_blob ()</h3>
+<pre class="programlisting"><a class="link" href="libvips-type.html#VipsBlob"><span class="returnvalue">VipsBlob</span></a> *
+vips_streami_map_blob (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreami"><span class="type">VipsStreami</span></a> *streami</code></em>);</pre>
+<p>Just like <a class="link" href="VipsStreamou.html#vips-streami-map" title="vips_streami_map ()"><code class="function">vips_streami_map()</code></a>, but return a <a class="link" href="libvips-type.html#VipsBlob"><span class="type">VipsBlob</span></a> containing the
+pointer. <em class="parameter"><code>streami</code></em>
+ will stay alive as long as the result is alive.</p>
+<div class="refsect3">
+<a name="vips-streami-map-blob.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>streami</p></td>
+<td class="parameter_description"><p>input stream to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streami-map-blob.returns"></a><h4>Returns</h4>
+<p> a new <a class="link" href="libvips-type.html#VipsBlob"><span class="type">VipsBlob</span></a> containing the data, or NULL on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streami-seek"></a><h3>vips_streami_seek ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+vips_streami_seek (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreami"><span class="type">VipsStreami</span></a> *streami</code></em>,
+                   <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="type">gint64</span></a> offset</code></em>,
+                   <em class="parameter"><code><span class="type">int</span> whence</code></em>);</pre>
+<p>Move the file read position. You can't call this after pixel decode starts.
+The arguments are exactly as lseek(2).</p>
+<div class="refsect3">
+<a name="vips-streami-seek.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>streami</p></td>
+<td class="parameter_description"><p>input stream to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>offset</p></td>
+<td class="parameter_description"><p>seek by this offset</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>whence</p></td>
+<td class="parameter_description"><p>seek relative to this point</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streami-seek.returns"></a><h4>Returns</h4>
+<p> the new file position, or -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streami-rewind"></a><h3>vips_streami_rewind ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_streami_rewind (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreami"><span class="type">VipsStreami</span></a> *streami</code></em>);</pre>
+<p>Rewind the stream to the start. You can't do this after pixel decode phase
+starts.</p>
+<div class="refsect3">
+<a name="vips-streami-rewind.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>streami</p></td>
+<td class="parameter_description"><p>input stream to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streami-rewind.returns"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streami-sniff-at-most"></a><h3>vips_streami_sniff_at_most ()</h3>
+<pre class="programlisting"><span class="returnvalue">size_t</span>
+vips_streami_sniff_at_most (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreami"><span class="type">VipsStreami</span></a> *streami</code></em>,
+                            <em class="parameter"><code>unsigned <span class="type">char</span> **data</code></em>,
+                            <em class="parameter"><code><span class="type">size_t</span> length</code></em>);</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streami-sniff"></a><h3>vips_streami_sniff ()</h3>
+<pre class="programlisting">unsigned <span class="returnvalue">char</span> *
+vips_streami_sniff (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreami"><span class="type">VipsStreami</span></a> *streami</code></em>,
+                    <em class="parameter"><code><span class="type">size_t</span> length</code></em>);</pre>
+<p>Return a pointer to the first few bytes of the file. If the file is too
+short, return NULL.</p>
+<div class="refsect3">
+<a name="vips-streami-sniff.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>streami</p></td>
+<td class="parameter_description"><p>sniff this stream</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>number of bytes to sniff</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streami-sniff.returns"></a><h4>Returns</h4>
+<p> a pointer to the bytes at the start of the file, or NULL on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streami-length"></a><h3>vips_streami_length ()</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+vips_streami_length (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreami"><span class="type">VipsStreami</span></a> *streami</code></em>);</pre>
+<p>Return the length in bytes of the stream object. Unseekable streams, for
+example pipes, will have to be read entirely into memory before the length 
+can be found, so this operation can take a long time.</p>
+<div class="refsect3">
+<a name="vips-streami-length.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>streami</p></td>
+<td class="parameter_description"><p>input stream to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streami-length.returns"></a><h4>Returns</h4>
+<p> number of bytes in stream, or -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streamiu-new"></a><h3>vips_streamiu_new ()</h3>
+<pre class="programlisting"><a class="link" href="VipsStreamou.html#VipsStreamiu"><span class="returnvalue">VipsStreamiu</span></a> *
+vips_streamiu_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Create a <a class="link" href="VipsStreamou.html#VipsStreamiu"><span class="type">VipsStreamiu</span></a>. Attach signals to implement read and seek.</p>
+<div class="refsect3">
+<a name="vips-streamiu-new.returns"></a><h4>Returns</h4>
+<p> a new <a class="link" href="VipsStreamou.html#VipsStreamiu"><span class="type">VipsStreamiu</span></a></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streamo-new-to-descriptor"></a><h3>vips_streamo_new_to_descriptor ()</h3>
+<pre class="programlisting"><a class="link" href="VipsStreamou.html#VipsStreamo"><span class="returnvalue">VipsStreamo</span></a> *
+vips_streamo_new_to_descriptor (<em class="parameter"><code><span class="type">int</span> descriptor</code></em>);</pre>
+<p>Create a stream attached to a file descriptor.
+<em class="parameter"><code>descriptor</code></em>
+ is kept open until the <a class="link" href="VipsStreamou.html#VipsStreamo"><span class="type">VipsStreamo</span></a> is finalized.</p>
+<p>See also: <a class="link" href="VipsStreamou.html#vips-streamo-new-to-file" title="vips_streamo_new_to_file ()"><code class="function">vips_streamo_new_to_file()</code></a>.</p>
+<div class="refsect3">
+<a name="vips-streamo-new-to-descriptor.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>descriptor</p></td>
+<td class="parameter_description"><p>write to this file descriptor</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streamo-new-to-descriptor.returns"></a><h4>Returns</h4>
+<p> a new <a class="link" href="VipsStreamou.html#VipsStreamo"><span class="type">VipsStreamo</span></a></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streamo-new-to-file"></a><h3>vips_streamo_new_to_file ()</h3>
+<pre class="programlisting"><a class="link" href="VipsStreamou.html#VipsStreamo"><span class="returnvalue">VipsStreamo</span></a> *
+vips_streamo_new_to_file (<em class="parameter"><code>const <span class="type">char</span> *filename</code></em>);</pre>
+<p>Create a stream attached to a file.</p>
+<div class="refsect3">
+<a name="vips-streamo-new-to-file.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>filename</p></td>
+<td class="parameter_description"><p>write to this file </p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streamo-new-to-file.returns"></a><h4>Returns</h4>
+<p> a new <a class="link" href="VipsStreamou.html#VipsStreamo"><span class="type">VipsStreamo</span></a></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streamo-new-to-memory"></a><h3>vips_streamo_new_to_memory ()</h3>
+<pre class="programlisting"><a class="link" href="VipsStreamou.html#VipsStreamo"><span class="returnvalue">VipsStreamo</span></a> *
+vips_streamo_new_to_memory (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Create a stream which will stream to a memory area. Read from <em class="parameter"><code>blob</code></em>
+ to get
+memory.</p>
+<p>See also: <a class="link" href="VipsStreamou.html#vips-streamo-new-to-file" title="vips_streamo_new_to_file ()"><code class="function">vips_streamo_new_to_file()</code></a>.</p>
+<div class="refsect3">
+<a name="vips-streamo-new-to-memory.returns"></a><h4>Returns</h4>
+<p> a new <a class="link" href="VipsStreamou.html#VipsStream"><span class="type">VipsStream</span></a></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streamo-write"></a><h3>vips_streamo_write ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_streamo_write (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreamo"><span class="type">VipsStreamo</span></a> *streamo</code></em>,
+                    <em class="parameter"><code>const <span class="type">void</span> *data</code></em>,
+                    <em class="parameter"><code><span class="type">size_t</span> length</code></em>);</pre>
+<p>Write <em class="parameter"><code>length</code></em>
+ bytes from <em class="parameter"><code>buffer</code></em>
+ to the output.</p>
+<div class="refsect3">
+<a name="vips-streamo-write.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>streamo</p></td>
+<td class="parameter_description"><p>output stream to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>buffer</p></td>
+<td class="parameter_description"><p>bytes to write</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>length of <em class="parameter"><code>buffer</code></em>
+in bytes</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streamo-write.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streamo-finish"></a><h3>vips_streamo_finish ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_streamo_finish (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreamo"><span class="type">VipsStreamo</span></a> *streamo</code></em>);</pre>
+<p>Call this at the end of write to make the stream do any cleaning up. You
+can call it many times. </p>
+<p>After a streamo has been finished, further writes will do nothing.</p>
+<div class="refsect3">
+<a name="vips-streamo-finish.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>streamo</p></td>
+<td class="parameter_description"><p>output stream to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>buffer</p></td>
+<td class="parameter_description"><p>bytes to write</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>length of <em class="parameter"><code>buffer</code></em>
+in bytes</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streamo-steal"></a><h3>vips_streamo_steal ()</h3>
+<pre class="programlisting">unsigned <span class="returnvalue">char</span> *
+vips_streamo_steal (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreamo"><span class="type">VipsStreamo</span></a> *streamo</code></em>,
+                    <em class="parameter"><code><span class="type">size_t</span> *length</code></em>);</pre>
+<p>Memory streams only (see <a class="link" href="VipsStreamou.html#vips-streamo-new-to-memory" title="vips_streamo_new_to_memory ()"><code class="function">vips_streamo_new_to_memory()</code></a>). Steal all data
+written to the stream so far, and finish it.</p>
+<p>You must free the returned pointer with <a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>.</p>
+<p>The data is NOT automatically null-terminated. <a class="link" href="VipsStreamou.html#vips-streamo-putc" title="vips_streamo_putc ()"><code class="function">vips_streamo_putc()</code></a> a '\0' 
+before calling this to get a null-terminated string.</p>
+<div class="refsect3">
+<a name="vips-streamo-steal.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>streamo</p></td>
+<td class="parameter_description"><p>output stream to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p>return number of bytes of data</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streamo-steal.returns"></a><h4>Returns</h4>
+<p>the
+data. </p>
+<p><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=length][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> guint8][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streamo-steal-text"></a><h3>vips_streamo_steal_text ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span> *
+vips_streamo_steal_text (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreamo"><span class="type">VipsStreamo</span></a> *streamo</code></em>);</pre>
+<p>As <a class="link" href="VipsStreamou.html#vips-streamo-steal-text" title="vips_streamo_steal_text ()"><code class="function">vips_streamo_steal_text()</code></a>, but return a null-terminated string.</p>
+<div class="refsect3">
+<a name="vips-streamo-steal-text.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>streamo</p></td>
+<td class="parameter_description"><p>output stream to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streamo-steal-text.returns"></a><h4>Returns</h4>
+<p>stream contents as a null-terminated string. </p>
+<p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streamo-putc"></a><h3>vips_streamo_putc ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_streamo_putc (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreamo"><span class="type">VipsStreamo</span></a> *streamo</code></em>,
+                   <em class="parameter"><code><span class="type">int</span> ch</code></em>);</pre>
+<p>Write a single character <em class="parameter"><code>ch</code></em>
+ to <em class="parameter"><code>streamo</code></em>
+. See the macro <a class="link" href="VipsStreamou.html#VIPS-STREAMO-PUTC:CAPS" title="VIPS_STREAMO_PUTC()"><code class="function">VIPS_STREAMO_PUTC()</code></a>
+for a faster way to do this.</p>
+<div class="refsect3">
+<a name="vips-streamo-putc.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>streamo</p></td>
+<td class="parameter_description"><p>output stream to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>ch</p></td>
+<td class="parameter_description"><p>character to write</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streamo-putc.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-STREAMO-PUTC:CAPS"></a><h3>VIPS_STREAMO_PUTC()</h3>
+<pre class="programlisting">#define             VIPS_STREAMO_PUTC( S, C )</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streamo-writes"></a><h3>vips_streamo_writes ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_streamo_writes (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreamo"><span class="type">VipsStreamo</span></a> *streamo</code></em>,
+                     <em class="parameter"><code>const <span class="type">char</span> *str</code></em>);</pre>
+<p>Write a null-terminated string to <em class="parameter"><code>streamo</code></em>
+.</p>
+<div class="refsect3">
+<a name="vips-streamo-writes.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>streamo</p></td>
+<td class="parameter_description"><p>output stream to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>str</p></td>
+<td class="parameter_description"><p>string to write</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streamo-writes.returns"></a><h4>Returns</h4>
+<p> 0 on success, and -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streamo-writef"></a><h3>vips_streamo_writef ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_streamo_writef (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreamo"><span class="type">VipsStreamo</span></a> *streamo</code></em>,
+                     <em class="parameter"><code>const <span class="type">char</span> *fmt</code></em>,
+                     <em class="parameter"><code>...</code></em>);</pre>
+<p>Format the string and write to <em class="parameter"><code>streamo</code></em>
+.</p>
+<div class="refsect3">
+<a name="vips-streamo-writef.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>streamo</p></td>
+<td class="parameter_description"><p>output stream to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>fmt</p></td>
+<td class="parameter_description"><p><code class="function"><code class="function">printf()</code></code>-style format string</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p>arguments to format string</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streamo-writef.returns"></a><h4>Returns</h4>
+<p> 0 on success, and -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streamo-write-amp"></a><h3>vips_streamo_write_amp ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_streamo_write_amp (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreamo"><span class="type">VipsStreamo</span></a> *streamo</code></em>,
+                        <em class="parameter"><code>const <span class="type">char</span> *str</code></em>);</pre>
+<p>Write <em class="parameter"><code>str</code></em>
+ to <em class="parameter"><code>streamo</code></em>
+, but escape stuff that xml hates in text. Our
+argument string is utf-8.</p>
+<p>XML rules:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>We must escape &amp;&lt;&gt; </p></li>
+<li class="listitem"><p>Don't escape \n, \t, \r</p></li>
+<li class="listitem"><p>Do escape the other ASCII codes.</p></li>
+</ul></div>
+<div class="refsect3">
+<a name="vips-streamo-write-amp.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>streamo</p></td>
+<td class="parameter_description"><p>output stream to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>str</p></td>
+<td class="parameter_description"><p>string to write</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-streamo-write-amp.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-streamou-new"></a><h3>vips_streamou_new ()</h3>
+<pre class="programlisting"><a class="link" href="VipsStreamou.html" title="VipsStreamou"><span class="returnvalue">VipsStreamou</span></a> *
+vips_streamou_new (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Create a <a class="link" href="VipsStreamou.html" title="VipsStreamou"><span class="type">VipsStreamou</span></a>. Attach signals to implement write and finish.</p>
+<div class="refsect3">
+<a name="vips-streamou-new.returns"></a><h4>Returns</h4>
+<p> a new <a class="link" href="VipsStreamou.html" title="VipsStreamou"><span class="type">VipsStreamou</span></a></p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="VipsStreamou.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="VIPS-STREAMO-BUFFER-SIZE:CAPS"></a><h3>VIPS_STREAMO_BUFFER_SIZE</h3>
+<pre class="programlisting">#define VIPS_STREAMO_BUFFER_SIZE (8500)
+</pre>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-STREAMOU-BUFFER-SIZE:CAPS"></a><h3>VIPS_STREAMOU_BUFFER_SIZE</h3>
+<pre class="programlisting">#define VIPS_STREAMOU_BUFFER_SIZE (4096)
+</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="VipsStreamou.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="VipsStream--descriptor"></a><h3>The <code class="literal">“descriptor”</code> property</h3>
+<pre class="programlisting">  “descriptor”               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a></pre>
+<p>File descriptor for read or write.</p>
+<p>Flags: Read / Write</p>
+<p>Allowed values: [-1,1000000000]</p>
+<p>Default value: 0</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsStream--filename"></a><h3>The <code class="literal">“filename”</code> property</h3>
+<pre class="programlisting">  “filename”                 <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *</pre>
+<p>Name of file to open.</p>
+<p>Flags: Read / Write</p>
+<p>Default value: NULL</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsStreami--blob"></a><h3>The <code class="literal">“blob”</code> property</h3>
+<pre class="programlisting">  “blob”                     <a class="link" href="libvips-type.html#VipsBlob"><span class="type">VipsBlob</span></a> *</pre>
+<p>blob to load from.</p>
+<p>Flags: Read / Write</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsStreamo--blob"></a><h3>The <code class="literal">“blob”</code> property</h3>
+<pre class="programlisting">  “blob”                     <a class="link" href="libvips-type.html#VipsBlob"><span class="type">VipsBlob</span></a> *</pre>
+<p>Blob to save to.</p>
+<p>Flags: Read / Write</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsStreamo--memory"></a><h3>The <code class="literal">“memory”</code> property</h3>
+<pre class="programlisting">  “memory”                   <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
+<p>File descriptor should output to memory.</p>
+<p>Flags: Read / Write</p>
+<p>Default value: FALSE</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="VipsStreamou.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="VipsStreamiu-read"></a><h3>The <code class="literal">“read”</code> signal</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+user_function (<a class="link" href="VipsStreamou.html#VipsStreamiu"><span class="type">VipsStreamiu</span></a> *streamiu,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="type">gint64</span></a>        buffer,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a>          size,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>      user_data)</pre>
+<p>This signal is emitted to read bytes from the source into <em class="parameter"><code>buffer</code></em>
+.</p>
+<div class="refsect3">
+<a name="VipsStreamiu-read.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>streamiu</p></td>
+<td class="parameter_description"><p>the stream being operated on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>buffer</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><code class="literal">gpointer</code></a>, buffer to fill</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>size</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><code class="literal">gint64</code></a>, size of buffer</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="VipsStreamiu-read.returns"></a><h4>Returns</h4>
+<p> the number of bytes read.</p>
+</div>
+<p>Flags: <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsStreamiu-seek"></a><h3>The <code class="literal">“seek”</code> signal</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+user_function (<a class="link" href="VipsStreamou.html#VipsStreamiu"><span class="type">VipsStreamiu</span></a> *streamiu,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>      offset,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="type">gint64</span></a>        whence,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>      user_data)</pre>
+<p>This signal is emitted to seek the stream. The handler should
+change the stream position appropriately.</p>
+<p>The handler on an unseekable stream should always return -1.</p>
+<div class="refsect3">
+<a name="VipsStreamiu-seek.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>streamiu</p></td>
+<td class="parameter_description"><p>the stream being operated on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>offset</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><code class="literal">gint64</code></a>, seek offset</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>whence</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, seek origin</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="VipsStreamiu-seek.returns"></a><h4>Returns</h4>
+<p> the new seek position.</p>
+</div>
+<p>Flags: <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsStreamou-finish"></a><h3>The <code class="literal">“finish”</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+user_function (<a class="link" href="VipsStreamou.html" title="VipsStreamou"><span class="type">VipsStreamou</span></a> *streamou,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>      user_data)</pre>
+<p>This signal is emitted at the end of write. The stream should do
+any finishing necessary.</p>
+<div class="refsect3">
+<a name="VipsStreamou-finish.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>streamou</p></td>
+<td class="parameter_description"><p>the stream being operated on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p>Flags: <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsStreamou-write"></a><h3>The <code class="literal">“write”</code> signal</h3>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="returnvalue">gint64</span></a>
+user_function (<a class="link" href="VipsStreamou.html" title="VipsStreamou"><span class="type">VipsStreamou</span></a> *streamou,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>      data,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><span class="type">gint64</span></a>        length,
+               <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>      user_data)</pre>
+<p>This signal is emitted to write bytes to the stream.</p>
+<div class="refsect3">
+<a name="VipsStreamou-write.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>streamou</p></td>
+<td class="parameter_description"><p>the stream being operated on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>data</p></td>
+<td class="parameter_description"><p><code class="literal">pointer</code>, bytes to write</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>length</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint64"><code class="literal">gint64</code></a>, number of bytes</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>user_data</p></td>
+<td class="parameter_description"><p>user data set when the signal handler was connected.</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="VipsStreamou-write.returns"></a><h4>Returns</h4>
+<p> the number of bytes written.</p>
+</div>
+<p>Flags: <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-ACTION:CAPS">Action</a></p>
+</div>
+</div>
+<div class="refsect1">
+<a name="VipsStreamou.see-also"></a><h2>See Also</h2>
+foreign
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.28</div>
+</section>
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48550036-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
+</html>
