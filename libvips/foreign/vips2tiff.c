@@ -1240,23 +1240,25 @@ invert_band0( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
 static void
 LabS2Lab16( VipsPel *q, VipsPel *p, int n, int samples_per_pixel )
 {
-	int x;
 	short *p1 = (short *) p;
 	unsigned short *q1 = (unsigned short *) q;
 
+	int x;
+
         for( x = 0; x < n; x++ ) {
+		int v;
 		int i;
 
-                /* TIFF uses unsigned 16 bit ... move zero, scale up L.
+                /* LABS L can be negative.
                  */
-                q1[0] = VIPS_LSHIFT_INT( (int) p1[0], 1 );
+                q1[0] = VIPS_LSHIFT_INT( VIPS_MAX( 0, p1[0] ), 1 );
 
 		for( i = 1; i < samples_per_pixel; i++ )
 			q1[i] = p1[i];
 
 		q1 += samples_per_pixel;
 		p1 += samples_per_pixel;
-    }
+	}
 }
 
 /* Pack the pixels in @area from @in into a TIFF tile buffer.
