@@ -1241,7 +1241,6 @@ LabS2Lab16( VipsPel *q, VipsPel *p, int n, int samples_per_pixel )
 	int x;
 
         for( x = 0; x < n; x++ ) {
-		int v;
 		int i;
 
                 /* LABS L can be negative.
