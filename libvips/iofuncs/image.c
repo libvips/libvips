@@ -2072,11 +2072,7 @@ vips_image_new_from_memory( const void *data, size_t size,
 		return( NULL );
 	}
 
-	/* Allow len == 0, meaning don't check. Used for im_image()
-	 * compatibility.
-	 */
-	if( size > 0 && 
-		size < VIPS_IMAGE_SIZEOF_IMAGE( image ) ) {
+	if( size < VIPS_IMAGE_SIZEOF_IMAGE( image ) ) {
 		vips_error( "VipsImage",
 			_( "memory area too small --- "
 				"should be %" G_GINT64_FORMAT " bytes, "

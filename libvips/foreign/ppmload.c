@@ -65,8 +65,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -426,6 +426,7 @@ vips_foreign_load_ppm_generate_binary( VipsRegion *or,
 {
         VipsRect *r = &or->valid;
 	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) a;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( ppm );
 	VipsImage *image = or->im;
 	size_t sizeof_line = VIPS_IMAGE_SIZEOF_LINE( image );
 
@@ -438,7 +439,8 @@ vips_foreign_load_ppm_generate_binary( VipsRegion *or,
 
 		bytes_read = vips_streami_read( ppm->streami, q, sizeof_line );
 		if( bytes_read != sizeof_line ) {
-			vips_error( "ppmload", "%s", _( "file truncated" ) );
+			vips_error( class->nickname, 
+				"%s", _( "file truncated" ) );
 			return( -1 );
 		}
 	}
