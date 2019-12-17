@@ -35,8 +35,6 @@
  * 	- terminate on tile calc error
  * 7/3/17
  * 	- remove "access" on linecache, use the base class instead
- * 15/2/19
- * 	- remove the search for LRU, have a gqueue instead, much faster
  */
 
 /*
@@ -127,10 +125,6 @@ typedef struct _VipsBlockCache {
 	int tile_height;
 	int max_tiles;
 
-	/* access doesn't actually have any effect now. It used to set
-	 * the order for the recycle queue, but there's no efficient way to do
-	 * top-most, so we're just always LRU.
-	 */
 	VipsAccess access;
 	gboolean threaded;
 	gboolean persistent;
@@ -254,6 +248,30 @@ vips_tile_search( VipsBlockCache *cache, int x, int y )
 	return( tile );
 }
 
+static void
+vips_tile_find_is_topper( gpointer element, gpointer user_data )
+{
+	VipsTile *this = (VipsTile *) element;
+	VipsTile **best = (VipsTile **) user_data;
+
+	if( !*best ||
+		this->pos.top < (*best)->pos.top )
+		*best = this;
+}
+
+/* Search the recycle list for the topmost tile.
+ */
+static VipsTile *
+vips_tile_find_topmost( GQueue *recycle )
+{
+	VipsTile *tile;
+
+	tile = NULL;
+	g_queue_foreach( recycle, vips_tile_find_is_topper, &tile );
+
+	return( tile );
+}
+
 /* Find existing tile, make a new tile, or if we have a full set of tiles, 
  * reuse one.
  */
@@ -282,12 +300,18 @@ vips_tile_find( VipsBlockCache *cache, int x, int y )
 		return( tile );
 	}
 
-	/* Reuse an old one, if there are any.
+	/* Reuse an old one, if there are any. We just peek the tile pointer,
+	 * it is removed from the recycle list later on _ref.
 	 */
-	if( cache->recycle ) 
-		/* Gets removed from the recycle list on _ref.
-		 */
-		tile = g_queue_peek_head( cache->recycle ); 
+	if( cache->recycle ) {
+		if( cache->access == VIPS_ACCESS_RANDOM ) 
+			tile = g_queue_peek_head( cache->recycle ); 
+		else
+			/* This is slower :( We have to search the recycle
+			 * queue.
+			 */
+			tile = vips_tile_find_topmost( cache->recycle ); 
+	}
 
 	if( !tile ) {
 		/* There are no tiles we can reuse -- we have to make another

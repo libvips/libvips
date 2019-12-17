@@ -1937,7 +1937,8 @@ rtiff_stripwise_generate( VipsRegion *or,
 	 */
 	if( r->top != rtiff->y_pos ) {
 		vips_error( "tiff2vips", 
-			_( "out of order read at line %d" ), rtiff->y_pos );
+			_( "out of order read -- at line %d, "
+			"but line %d requested" ), rtiff->y_pos, r->top );
 		return( -1 );
 	}
 
