@@ -2,6 +2,18 @@
  *
  * 19/1/19
  * 	- from niftiload.c
+ * 24/7/19 [zhoux2016]
+ * 	- always fetch metadata from the main image (thumbs don't have it)
+ * 24/7/19
+ * 	- close early on minimise 
+ * 	- close early on error
+ * 1/9/19 [meyermarcel]
+ * 	- handle alpha
+ * 30/9/19
+ * 	- much faster handling of thumbnail=TRUE and missing thumbnail ... we
+ * 	  were reselecting the image for each scanline
+ * 3/10/19
+ * 	- restart after minimise
  */
 
 /*
@@ -56,6 +68,21 @@
 
 #include "pforeign.h"
 
+#define VIPS_TYPE_FOREIGN_LOAD_HEIF (vips_foreign_load_heif_get_type())
+#define VIPS_FOREIGN_LOAD_HEIF( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_FOREIGN_LOAD_HEIF, VipsForeignLoadHeif ))
+#define VIPS_FOREIGN_LOAD_HEIF_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_FOREIGN_LOAD_HEIF, VipsForeignLoadHeifClass))
+#define VIPS_IS_FOREIGN_LOAD_HEIF( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_FOREIGN_LOAD_HEIF ))
+#define VIPS_IS_FOREIGN_LOAD_HEIF_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_FOREIGN_LOAD_HEIF ))
+#define VIPS_FOREIGN_LOAD_HEIF_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_FOREIGN_LOAD_HEIF, VipsForeignLoadHeifClass ))
+
 typedef struct _VipsForeignLoadHeif {
 	VipsForeignLoad parent_object;
 
@@ -80,6 +107,10 @@ typedef struct _VipsForeignLoadHeif {
 	/* Number of top-level images in this file.
 	 */
 	int n_top;
+
+	/* TRUE for RGBA ... otherwise, RGB.
+	 */
+	gboolean has_alpha;
 
 	/* Size of final output image. 
 	 */
@@ -123,19 +154,34 @@ typedef struct _VipsForeignLoadHeif {
 
 } VipsForeignLoadHeif;
 
-typedef VipsForeignLoadClass VipsForeignLoadHeifClass;
+typedef struct _VipsForeignLoadHeifClass {
+	VipsForeignLoadClass parent_class;
+
+	/* Open the reader, eg. call heif_context_read_from_memory() etc. This
+	 * has to be a vfunc so generate can restart after minimise.
+	 */
+	int (*open)( VipsForeignLoadHeif *heif );
+
+} VipsForeignLoadHeifClass;
 
 G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadHeif, vips_foreign_load_heif, 
 	VIPS_TYPE_FOREIGN_LOAD );
+
+static void
+vips_foreign_load_heif_close( VipsForeignLoadHeif *heif )
+{
+	VIPS_FREEF( heif_image_release, heif->img );
+	heif->data = NULL;
+	VIPS_FREEF( heif_image_handle_release, heif->handle );
+	VIPS_FREEF( heif_context_free, heif->ctx );
+}
 
 static void
 vips_foreign_load_heif_dispose( GObject *gobject )
 {
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) gobject;
 
-	VIPS_FREEF( heif_image_release, heif->img );
-	VIPS_FREEF( heif_image_handle_release, heif->handle );
-	VIPS_FREEF( heif_context_free, heif->ctx );
+	vips_foreign_load_heif_close( heif );
 	VIPS_FREE( heif->id );
 
 	G_OBJECT_CLASS( vips_foreign_load_heif_parent_class )->
@@ -198,6 +244,11 @@ static int
 vips_foreign_load_heif_set_page( VipsForeignLoadHeif *heif, 
 	int page_no, gboolean thumbnail )
 {
+#ifdef DEBUG
+	printf( "vips_foreign_load_heif_set_page: %d, thumbnail = %d\n",
+		page_no, thumbnail );
+#endif /*DEBUG*/
+
 	if( !heif->handle ||
 		page_no != heif->page_no ||
 		thumbnail != heif->thumbnail_set ) {
@@ -235,8 +286,17 @@ vips_foreign_load_heif_set_page( VipsForeignLoadHeif *heif,
 				VIPS_FREEF( heif_image_handle_release, 
 					heif->handle );
 				heif->handle = thumb_handle;
-				heif->thumbnail_set = TRUE;
 			}
+
+			/* If we were asked to select the thumbnail, say we
+			 * did, even if there are no thumbnails and we just
+			 * selected the main image. 
+			 *
+			 * If we don't do this, next time around in _generate
+			 * we'll try to select the thumbnail again, which will
+			 * be horribly slow.
+			 */
+			heif->thumbnail_set = TRUE;
 		}
 
 		heif->page_no = page_no;
@@ -248,18 +308,26 @@ vips_foreign_load_heif_set_page( VipsForeignLoadHeif *heif,
 static int
 vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 {
-	/* FIXME ... never seen this return TRUE on any image, strangely.
-	 */
-	gboolean has_alpha = 
-		heif_image_handle_has_alpha_channel( heif->handle );
-	int bands = has_alpha ? 4 : 3;
-
+	int bands;
+	int i;
 	/* Surely, 16 metadata items will be enough for anyone.
 	 */
-	int i;
 	heif_item_id id[16];
 	int n_metadata;
 	struct heif_error error;
+
+	/* We take the metadata from the non-thumbnail first page. HEIC 
+	 * thumbnails don't have metadata.
+	 */
+	if( vips_foreign_load_heif_set_page( heif, heif->page, FALSE ) )
+		return( -1 );
+
+	heif->has_alpha = heif_image_handle_has_alpha_channel( heif->handle );
+#ifdef DEBUG
+	printf( "heif_image_handle_has_alpha_channel() = %d\n", 
+		heif->has_alpha );
+#endif /*DEBUG*/
+	bands = heif->has_alpha ? 4 : 3;
 
 	/* FIXME .. need to test XMP and IPCT.
 	 */
@@ -304,7 +372,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 			vips_snprintf( name, 256, VIPS_META_EXIF_NAME );
 		else if( g_ascii_strcasecmp( type, "mime" ) == 0 &&
 			vips_isprefix( "<x:xmpmeta", (const char *) data ) ) 
-			snprintf( name, 256, VIPS_META_XMP_NAME ); 
+			vips_snprintf( name, 256, VIPS_META_XMP_NAME );
 		else
 			vips_snprintf( name, 256, "heif-%s-%d", type, i );
 
@@ -400,7 +468,8 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 }
 
 static int
-vips_foreign_load_heif_get_width( VipsForeignLoadHeif *heif )
+vips_foreign_load_heif_get_width( VipsForeignLoadHeif *heif, 
+	struct heif_image_handle *handle )
 {
 	int width;
 
@@ -408,24 +477,25 @@ vips_foreign_load_heif_get_width( VipsForeignLoadHeif *heif )
 	 * added in 1.3.4. Without it, we just use the transformed dimension
 	 * and have to autorotate.
 	 */
-	width = heif_image_handle_get_width( heif->handle );
+	width = heif_image_handle_get_width( handle );
 #ifdef HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH
-	if( !heif->autorotate )
-		width = heif_image_handle_get_ispe_width( heif->handle );
+	if( !heif->autorotate ) 
+		width = heif_image_handle_get_ispe_width( handle );
 #endif /*HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH*/
 
 	return( width );
 }
 
 static int
-vips_foreign_load_heif_get_height( VipsForeignLoadHeif *heif )
+vips_foreign_load_heif_get_height( VipsForeignLoadHeif *heif,
+	struct heif_image_handle *handle )
 {
 	int height;
 
-	height = heif_image_handle_get_height( heif->handle );
+	height = heif_image_handle_get_height( handle );
 #ifdef HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH
 	if( !heif->autorotate )
-		height = heif_image_handle_get_ispe_height( heif->handle );
+		height = heif_image_handle_get_ispe_height( handle );
 #endif /*HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH*/
 
 	return( height );
@@ -436,10 +506,15 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) load;
+	VipsForeignLoadHeifClass *heif_class = 
+		VIPS_FOREIGN_LOAD_HEIF_GET_CLASS( heif );
 
 	struct heif_error error;
 	heif_item_id primary_id;
 	int i;
+
+	if( heif_class->open( heif ) )
+		return( -1 );
 
 	heif->n_top = heif_context_get_number_of_top_level_images( heif->ctx );
 	heif->id = VIPS_ARRAY( NULL, heif->n_top, heif_item_id );
@@ -474,6 +549,10 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	}
 
 #ifdef DEBUG
+#ifdef HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH
+	if( !heif->autorotate )
+		printf( "using _get_ispe_width() / _height()\n" );
+#endif /*HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH*/
 	for( i = heif->page; i < heif->page + heif->n; i++ ) {
 		heif_item_id thumb_ids[1];
 		int n_items;
@@ -504,9 +583,11 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 
 			printf( "  thumb %d\n", j );
 			printf( "    width = %d\n", 
-				heif_image_handle_get_width( thumb_handle ) );
+				vips_foreign_load_heif_get_width( heif, 
+					thumb_handle ) );
 			printf( "    height = %d\n", 
-				heif_image_handle_get_height( thumb_handle ) );
+				vips_foreign_load_heif_get_height( heif, 
+					thumb_handle ) );
 		}
 	}
 #endif /*DEBUG*/
@@ -516,16 +597,18 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	if( vips_foreign_load_heif_set_page( heif, 
 		heif->page, heif->thumbnail ) )
 		return( -1 );
-	heif->page_width = vips_foreign_load_heif_get_width( heif );
-	heif->page_height = vips_foreign_load_heif_get_height( heif );
+	heif->page_width = vips_foreign_load_heif_get_width( heif, 
+		heif->handle );
+	heif->page_height = vips_foreign_load_heif_get_height( heif, 
+		heif->handle );
 	for( i = heif->page + 1; i < heif->page + heif->n; i++ ) {
 		if( vips_foreign_load_heif_set_page( heif, 
 			i, heif->thumbnail ) )
 			return( -1 );
-		if( vips_foreign_load_heif_get_width( heif ) != 
-				heif->page_width ||
-			vips_foreign_load_heif_get_height( heif ) != 
-				heif->page_height ) {
+		if( vips_foreign_load_heif_get_width( heif, 
+				heif->handle ) != heif->page_width ||
+			vips_foreign_load_heif_get_height( heif, 
+				heif->handle ) != heif->page_height ) {
 			vips_error( class->nickname, "%s", 
 				_( "not all pages are the same size" ) ); 
 			return( -1 ); 
@@ -539,9 +622,11 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 		if( vips_foreign_load_heif_set_page( heif, i, FALSE ) )
 			return( -1 );
 		printf( "    width = %d\n", 
-			heif_image_handle_get_width( heif->handle ) );
+			vips_foreign_load_heif_get_width( heif, 
+				heif->handle ) );
 		printf( "    height = %d\n", 
-			heif_image_handle_get_height( heif->handle ) );
+			vips_foreign_load_heif_get_height( heif, 
+				heif->handle ) );
 		printf( "    has_depth = %d\n", 
 			heif_image_handle_has_depth_image( heif->handle ) );
 		printf( "    has_alpha = %d\n", 
@@ -560,6 +645,8 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	if( vips_foreign_load_heif_set_header( heif, load->out ) )
 		return( -1 );
 
+	vips_foreign_load_heif_close( heif ); 
+
 	return( 0 );
 }
 
@@ -569,6 +656,8 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 {
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) a;
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( heif );
+	VipsForeignLoadHeifClass *heif_class = 
+		VIPS_FOREIGN_LOAD_HEIF_GET_CLASS( heif );
         VipsRect *r = &or->valid;
 
 	int page = r->top / heif->page_height + heif->page;
@@ -580,19 +669,20 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 
 	g_assert( r->height == 1 );
 
+	if( heif_class->open( heif ) )
+		return( -1 );
+
 	if( vips_foreign_load_heif_set_page( heif, page, heif->thumbnail ) )
 		return( -1 );
 
 	if( !heif->img ) {
 		struct heif_error error;
 		struct heif_decoding_options *options;
+		enum heif_chroma chroma = heif->has_alpha ? 
+			heif_chroma_interleaved_RGBA :
+			heif_chroma_interleaved_RGB;
 
-		/* Decode the image to 24bit interleaved. 
-		 *
-		 * FIXME What will this do for RGBA? Or is alpha always 
-		 * separate?
-		 *
-		 * Only disable transforms if we have been able to fetch the
+		/* Only disable transforms if we have been able to fetch the
 		 * untransformed dimensions.
 		 */
 		options = heif_decoding_options_alloc();
@@ -600,7 +690,7 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 		options->ignore_transformations = !heif->autorotate;
 #endif /*HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH*/
 		error = heif_decode_image( heif->handle, &heif->img, 
-			heif_colorspace_RGB, heif_chroma_interleaved_RGB, 
+			heif_colorspace_RGB, chroma, 
 			options );
 		heif_decoding_options_free( options );
 		if( error.code ) {
@@ -686,10 +776,18 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 	return( 0 );
 }
 
+static void
+vips_foreign_load_heif_minimise( VipsObject *object, VipsForeignLoadHeif *heif )
+{
+	vips_foreign_load_heif_close( heif );
+}
+
 static int
 vips_foreign_load_heif_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) load;
+	VipsForeignLoadHeifClass *class = 
+		VIPS_FOREIGN_LOAD_HEIF_GET_CLASS( heif );
 
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( load ), 3 );
@@ -698,9 +796,18 @@ vips_foreign_load_heif_load( VipsForeignLoad *load )
 	printf( "vips_foreign_load_heif_load: loading image\n" );
 #endif /*DEBUG*/
 
+	if( class->open( heif ) )
+		return( -1 );
+
 	t[0] = vips_image_new();
 	if( vips_foreign_load_heif_set_header( heif, t[0] ) )
 		return( -1 );
+
+	/* CLose input immediately at end of read.
+	 */
+	g_signal_connect( t[0], "minimise", 
+		G_CALLBACK( vips_foreign_load_heif_minimise ), heif ); 
+
 	if( vips_image_generate( t[0],
 		NULL, vips_foreign_load_heif_generate, NULL, heif, NULL ) ||
 		vips_sequential( t[0], &t[1], NULL ) ||
@@ -710,12 +817,20 @@ vips_foreign_load_heif_load( VipsForeignLoad *load )
 	return( 0 );
 }
 
+static int
+vips_foreign_load_heif_open( VipsForeignLoadHeif *heif )
+{
+	return( 0 );
+}
+
 static void
 vips_foreign_load_heif_class_init( VipsForeignLoadHeifClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+	VipsForeignLoadHeifClass *heif_class = 
+		(VipsForeignLoadHeifClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_heif_dispose;
 	gobject_class->set_property = vips_object_set_property;
@@ -727,6 +842,8 @@ vips_foreign_load_heif_class_init( VipsForeignLoadHeifClass *class )
 	load_class->get_flags = vips_foreign_load_heif_get_flags;
 	load_class->header = vips_foreign_load_heif_header;
 	load_class->load = vips_foreign_load_heif_load;
+
+	heif_class->open = vips_foreign_load_heif_open;
 
 	VIPS_ARG_INT( class, "page", 2,
 		_( "Page" ),
@@ -761,7 +878,6 @@ vips_foreign_load_heif_class_init( VipsForeignLoadHeifClass *class )
 static void
 vips_foreign_load_heif_init( VipsForeignLoadHeif *heif )
 {
-	heif->ctx = heif_context_alloc();
 	heif->n = 1;
 }
 
@@ -796,17 +912,13 @@ vips_foreign_load_heif_file_header( VipsForeignLoad *load )
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) load;
 	VipsForeignLoadHeifFile *file = (VipsForeignLoadHeifFile *) load;
 
-	struct heif_error error;
-
-	error = heif_context_read_from_file( heif->ctx, file->filename, NULL );
-	if( error.code ) {
-		vips__heif_error( &error );
+	if( VIPS_FOREIGN_LOAD_CLASS( 
+		vips_foreign_load_heif_file_parent_class )->header( load ) ) {
+		/* Close early if our base class fails to read.
+		 */
+		vips_foreign_load_heif_close( heif ); 
 		return( -1 );
 	}
-
-	if( VIPS_FOREIGN_LOAD_CLASS( 
-		vips_foreign_load_heif_file_parent_class )->header( load ) )
-		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, file->filename );
 
@@ -820,6 +932,31 @@ const char *vips__heif_suffs[] = {
 	NULL 
 };
 
+static int
+vips_foreign_load_heif_file_open( VipsForeignLoadHeif *heif )
+{
+	VipsForeignLoadHeifFile *file = (VipsForeignLoadHeifFile *) heif;
+
+	if( !heif->ctx ) {
+		struct heif_error error;
+
+		heif->ctx = heif_context_alloc();
+
+		error = heif_context_read_from_file( heif->ctx, 
+			file->filename, NULL );
+		if( error.code ) {
+			/* Make we close the fd as soon as we can on error.
+			 */
+			vips_foreign_load_heif_close( heif ); 
+			vips__heif_error( &error );
+			return( -1 );
+		}
+	}
+
+	return( VIPS_FOREIGN_LOAD_HEIF_CLASS(
+		vips_foreign_load_heif_file_parent_class )->open( heif ) );
+}
+
 static void
 vips_foreign_load_heif_file_class_init( VipsForeignLoadHeifFileClass *class )
 {
@@ -827,6 +964,8 @@ vips_foreign_load_heif_file_class_init( VipsForeignLoadHeifFileClass *class )
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+	VipsForeignLoadHeifClass *heif_class = 
+		(VipsForeignLoadHeifClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -837,6 +976,8 @@ vips_foreign_load_heif_file_class_init( VipsForeignLoadHeifFileClass *class )
 
 	load_class->is_a = vips_foreign_load_heif_file_is_a;
 	load_class->header = vips_foreign_load_heif_file_header;
+
+	heif_class->open = vips_foreign_load_heif_file_open;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
@@ -873,25 +1014,26 @@ vips_foreign_load_heif_buffer_is_a( const void *buf, size_t len )
 }
 
 static int
-vips_foreign_load_heif_buffer_header( VipsForeignLoad *load )
+vips_foreign_load_heif_buffer_open( VipsForeignLoadHeif *heif )
 {
-	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) load;
-	VipsForeignLoadHeifBuffer *buffer = (VipsForeignLoadHeifBuffer *) load;
+	VipsForeignLoadHeifBuffer *buffer = (VipsForeignLoadHeifBuffer *) heif;
 
-	struct heif_error error;
+	VIPS_DEBUG_MSG( "vips_foreign_load_heif_buffer_open:\n" );
 
-	error = heif_context_read_from_memory( heif->ctx, 
-		buffer->buf->data, buffer->buf->length, NULL );
-	if( error.code ) {
-		vips__heif_error( &error );
-		return( -1 );
+	if( !heif->ctx ) {
+		struct heif_error error;
+
+		heif->ctx = heif_context_alloc();
+		error = heif_context_read_from_memory( heif->ctx, 
+			buffer->buf->data, buffer->buf->length, NULL );
+		if( error.code ) {
+			vips__heif_error( &error );
+			return( -1 );
+		}
 	}
 
-	if( VIPS_FOREIGN_LOAD_CLASS( 
-		vips_foreign_load_heif_buffer_parent_class )->header( load ) )
-		return( -1 );
-
-	return( 0 );
+	return( VIPS_FOREIGN_LOAD_HEIF_CLASS(
+		vips_foreign_load_heif_buffer_parent_class )->open( heif ) );
 }
 
 static void
@@ -901,6 +1043,8 @@ vips_foreign_load_heif_buffer_class_init(
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+	VipsForeignLoadHeifClass *heif_class = 
+		(VipsForeignLoadHeifClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -908,7 +1052,8 @@ vips_foreign_load_heif_buffer_class_init(
 	object_class->nickname = "heifload_buffer";
 
 	load_class->is_a_buffer = vips_foreign_load_heif_buffer_is_a;
-	load_class->header = vips_foreign_load_heif_buffer_header;
+
+	heif_class->open = vips_foreign_load_heif_buffer_open;
 
 	VIPS_ARG_BOXED( class, "buffer", 1, 
 		_( "Buffer" ),

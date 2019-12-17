@@ -100,6 +100,12 @@
  * 	- strict round down on shrink-on-load
  * 16/8/18
  * 	- shut down the input file as soon as we can [kleisauke]
+ * 20/7/19
+ * 	- close input on minimise rather than Y read position
+ * 3/10/19
+ * 	- restart after minimise
+ * 14/10/19
+ * 	- revise for stream IO
  */
 
 /*
@@ -165,10 +171,6 @@ typedef struct _ReadJpeg {
 	 */
 	gboolean fail;
 
-	/* Used for file input only.
-	 */
-	char *filename;
-
 	struct jpeg_decompress_struct cinfo;
         ErrorManager eman;
 	gboolean invert_pels;
@@ -188,25 +190,116 @@ typedef struct _ReadJpeg {
 	 */
 	int output_width;
 	int output_height;
+
+	/* The stream we read from.
+	 */
+	VipsStreami *streami;
+
 } ReadJpeg;
 
-/* This can be called many times. It's called directly at the end of image
- * read.
+#define STREAM_BUFFER_SIZE (4096)
+
+/* Private struct for stream input.
  */
+typedef struct {
+	/* Public jpeg fields.
+	 */
+	struct jpeg_source_mgr pub;
+
+	/* Private stuff during read.
+	 */
+	VipsStreami *streami;
+	unsigned char buf[STREAM_BUFFER_SIZE];
+
+} Source;
+
 static void
-readjpeg_close_input( ReadJpeg *jpeg )
+stream_init_source( j_decompress_ptr cinfo )
 {
-	VIPS_FREEF( fclose, jpeg->eman.fp );
+	Source *src = (Source *) cinfo->src;
 
-	/* Don't call jpeg_finish_decompress(). It just checks the tail of the
-	 * file and who cares about that. All mem is freed in
-	 * jpeg_destroy_decompress().
+	/* Start off empty ... libjpeg will call fill_input_buffer to get the
+	 * first bytes.
 	 */
+	src->pub.next_input_byte = src->buf;
+	src->pub.bytes_in_buffer = 0;
+}
 
-	/* I don't think this can fail. It's harmless to call many times. 
-	 */
-	jpeg_destroy_decompress( &jpeg->cinfo );
+/* Fill the input buffer --- called whenever buffer is emptied.
+ */
+static boolean
+stream_fill_input_buffer( j_decompress_ptr cinfo )
+{
+	static const JOCTET eoi_buffer[4] = {
+		(JOCTET) 0xFF, (JOCTET) JPEG_EOI, 0, 0
+	};
 
+	Source *src = (Source *) cinfo->src;
+
+	size_t read;
+	
+	if( (read = vips_streami_read( src->streami, 
+		src->buf, STREAM_BUFFER_SIZE )) > 0 ) {
+		src->pub.next_input_byte = src->buf;
+		src->pub.bytes_in_buffer = read;
+	}
+	else {
+		WARNMS( cinfo, JWRN_JPEG_EOF );
+		src->pub.next_input_byte = eoi_buffer;
+		src->pub.bytes_in_buffer = 2;
+	}
+
+	return( TRUE );
+}
+
+static void
+skip_input_data( j_decompress_ptr cinfo, long num_bytes )
+{
+	Source *src = (Source *) cinfo->src;
+
+	if( num_bytes > 0 ) {
+		while (num_bytes > (long) src->pub.bytes_in_buffer) {
+			num_bytes -= (long) src->pub.bytes_in_buffer;
+			(void) (*src->pub.fill_input_buffer) (cinfo);
+
+			/* note we assume that fill_input_buffer will never 
+			 * return FALSE, so suspension need not be handled.
+			 */
+		}
+
+		src->pub.next_input_byte += (size_t) num_bytes;
+		src->pub.bytes_in_buffer -= (size_t) num_bytes;
+	}
+}
+
+static int
+readjpeg_open_input( ReadJpeg *jpeg )
+{
+	j_decompress_ptr cinfo = &jpeg->cinfo;
+
+	if( jpeg->streami &&
+		!cinfo->src ) {
+		Source *src;
+
+		if( vips_streami_rewind( jpeg->streami ) )
+			return( -1 );
+
+		cinfo->src = (struct jpeg_source_mgr *)
+			(*cinfo->mem->alloc_small)( 
+				(j_common_ptr) cinfo, JPOOL_PERMANENT,
+				sizeof( Source ) );
+
+		src = (Source *) cinfo->src;
+		src->streami = jpeg->streami;
+		src->pub.init_source = stream_init_source;
+		src->pub.fill_input_buffer = stream_fill_input_buffer;
+		src->pub.resync_to_restart = jpeg_resync_to_restart; 
+		src->pub.skip_input_data = skip_input_data; 
+		src->pub.bytes_in_buffer = 0;
+		src->pub.next_input_byte = src->buf;
+	}
+
+	return( 0 );
 }
 
 /* This can be called many times.
@@ -224,9 +317,16 @@ readjpeg_free( ReadJpeg *jpeg )
 		jpeg->eman.pub.num_warnings = 0;
 	}
 
-	readjpeg_close_input( jpeg );
+	/* Don't call jpeg_finish_decompress(). It just checks the tail of the
+	 * file and who cares about that. All mem is freed in
+	 * jpeg_destroy_decompress().
+	 */
 
-	VIPS_FREE( jpeg->filename );
+	/* I don't think this can fail. It's harmless to call many times. 
+	 */
+	jpeg_destroy_decompress( &jpeg->cinfo );
+
+	VIPS_UNREF( jpeg->streami );
 
 	return( 0 );
 }
@@ -237,17 +337,25 @@ readjpeg_close_cb( VipsObject *object, ReadJpeg *jpeg )
 	(void) readjpeg_free( jpeg );
 }
 
+static void
+readjpeg_minimise_cb( VipsImage *image, ReadJpeg *jpeg )
+{
+	vips_streami_minimise( jpeg->streami );
+}
+
 static ReadJpeg *
-readjpeg_new( VipsImage *out, int shrink, gboolean fail, gboolean autorotate )
+readjpeg_new( VipsStreami *streami, VipsImage *out, 
+	int shrink, gboolean fail, gboolean autorotate )
 {
 	ReadJpeg *jpeg;
 
 	if( !(jpeg = VIPS_NEW( out, ReadJpeg )) )
 		return( NULL );
 
+	jpeg->streami = streami;
+	g_object_ref( streami );
 	jpeg->shrink = shrink;
 	jpeg->fail = fail;
-	jpeg->filename = NULL;
         jpeg->cinfo.err = jpeg_std_error( &jpeg->eman.pub );
 	jpeg->eman.pub.error_exit = vips__new_error_exit;
 	jpeg->eman.pub.output_message = vips__new_output_message;
@@ -270,44 +378,30 @@ readjpeg_new( VipsImage *out, int shrink, gboolean fail, gboolean autorotate )
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( readjpeg_close_cb ), jpeg ); 
+	g_signal_connect( out, "minimise", 
+		G_CALLBACK( readjpeg_minimise_cb ), jpeg ); 
 
 	return( jpeg );
-}
-
-/* Set input to a file.
- */
-static int
-readjpeg_file( ReadJpeg *jpeg, const char *filename )
-{
-	jpeg->filename = g_strdup( filename );
-        if( !(jpeg->eman.fp = vips__file_open_read( filename, NULL, FALSE )) ) 
-                return( -1 );
-        jpeg_stdio_src( &jpeg->cinfo, jpeg->eman.fp );
-
-	return( 0 );
 }
 
 static const char *
 find_chroma_subsample( struct jpeg_decompress_struct *cinfo )
 {
-	gboolean has_subsample;
-
 	/* libjpeg only uses 4:4:4 and 4:2:0, confusingly. 
 	 *
 	 * http://poynton.ca/PDFs/Chroma_subsampling_notation.pdf
 	 */
-	has_subsample = cinfo->max_h_samp_factor > 1 ||
+	gboolean has_subsample = cinfo->max_h_samp_factor > 1 ||
 		cinfo->max_v_samp_factor > 1;
-	if( cinfo->num_components > 3 )
-		/* A cmyk image.
-		 */
-		return( has_subsample ? "4:2:0:4" : "4:4:4:4" );
-	else
-		return( has_subsample ? "4:2:0" : "4:4:4" );
+	gboolean is_cmyk = cinfo->num_components > 3;
+
+	return( is_cmyk ? 
+		(has_subsample ? "4:2:0:4" : "4:4:4:4" ) :
+		(has_subsample ? "4:2:0" : "4:4:4") );
 }
 
 static int
-attach_blob( VipsImage *im, const char *field, void *data, int data_length )
+attach_blob( VipsImage *im, const char *field, void *data, size_t data_length )
 {
 	/* Only use the first one.
 	 */
@@ -320,7 +414,8 @@ attach_blob( VipsImage *im, const char *field, void *data, int data_length )
 	}
 
 #ifdef DEBUG
-	printf( "attach_blob: attaching %d bytes of %s\n", data_length, field );
+	printf( "attach_blob: attaching %zd bytes of %s\n", 
+		data_length, field );
 #endif /*DEBUG*/
 
 	vips_image_set_blob_copy( im, field, data, data_length );
@@ -333,18 +428,21 @@ attach_blob( VipsImage *im, const char *field, void *data, int data_length )
  * the real XMP.
  */
 static int
-attach_xmp_blob( VipsImage *im, void *data, int data_length )
+attach_xmp_blob( VipsImage *im, void *data, size_t data_length )
 {
 	char *p = (char *) data;
 	int i;
 
-	if( !vips_isprefix( "http", p ) ) 
+	if( data_length < 4 ||
+		!vips_isprefix( "http", p ) ) 
 		return( 0 );
 
 	/* Search for a null char within the first few characters. 80
 	 * should be plenty for a basic URL.
+	 *
+	 * -2 for the extra null.
 	 */
-	for( i = 0; i < 80; i++ )
+	for( i = 0; i < VIPS_MIN( 80, data_length - 2 ); i++ )
 		if( !p[i] ) 
 			break;
 	if( p[i] )
@@ -460,6 +558,9 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 		interpretation,
 		xres, yres );
 
+	VIPS_SETSTR( out->filename, 
+		vips_stream_filename( VIPS_STREAM( jpeg->streami ) ) );
+
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 
 	/* cinfo->output_width and cinfo->output_height round up with
@@ -493,7 +594,7 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 	for( p = cinfo->marker_list; p; p = p->next ) {
 #ifdef DEBUG
 {
-		printf( "read_jpeg_header: seen %d bytes of APP%d\n",
+		printf( "read_jpeg_header: seen %u bytes of APP%d\n",
 			p->data_length,
 			p->marker - JPEG_APP0 );
 
@@ -590,7 +691,7 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 		default:
 #ifdef DEBUG
 			printf( "read_jpeg_header: "
-				"ignoring %d byte APP%d block\n", 
+				"ignoring %u byte APP%d block\n", 
 				p->data_length, p->marker - JPEG_APP0 );
 #endif /*DEBUG*/
 			break;
@@ -678,7 +779,7 @@ read_jpeg_generate( VipsRegion *or,
 		VIPS_GATE_STOP( "read_jpeg_generate: work" );
 
 #ifdef DEBUG
-		printf( "read_jpeg_generate: lonjmp() exit\n" ); 
+		printf( "read_jpeg_generate: longjmp() exit\n" ); 
 #endif /*DEBUG*/
 
 		return( -1 );
@@ -717,11 +818,6 @@ read_jpeg_generate( VipsRegion *or,
 
 		jpeg->y_pos += 1; 
 	}
-
-	/* Shut down the input file as soon as we can. 
-	 */
-	if( jpeg->y_pos >= or->im->Ysize ) 
-		readjpeg_close_input( jpeg );
 
 	VIPS_GATE_STOP( "read_jpeg_generate: work" );
 
@@ -807,8 +903,6 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 	return( 0 );
 }
 
-/* Read the jpeg from file or buffer.
- */
 static int
 vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 {
@@ -864,223 +958,40 @@ vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 	return( 0 );
 }
 
-/* Read a JPEG file into a VIPS image.
- */
 int
-vips__jpeg_read_file( const char *filename, VipsImage *out, 
-	gboolean header_only, int shrink, gboolean fail, 
-	gboolean autorotate )
-{
-	ReadJpeg *jpeg;
-
-	if( !(jpeg = readjpeg_new( out, shrink, fail, autorotate )) )
-		return( -1 );
-
-	/* Here for longjmp() from vips__new_error_exit() during startup.
-	 */
-	if( setjmp( jpeg->eman.jmp ) ) 
-		return( -1 );
-
-	/* Set input to file.
-	 */
-	if( readjpeg_file( jpeg, filename ) ) 
-		return( -1 );
-
-	if( vips__jpeg_read( jpeg, out, header_only ) ) 
-		return( -1 );
-
-	VIPS_SETSTR( out->filename, filename );
-
-	/* We can kill off the decompress early if this is just a header read.
-	 * This saves an fd during read.
-	 */
-	if( header_only )
-		readjpeg_free( jpeg );
-
-	return( 0 );
-}
-
-/* Just like the above, but we read from a memory buffer.
- */
-typedef struct {
-	/* Public jpeg fields.
-	 */
-	struct jpeg_source_mgr pub;
-
-	/* Private stuff during read.
-	 */
-	const JOCTET *buf;
-	size_t len;
-} InputBuffer;
-
-static void
-init_source (j_decompress_ptr cinfo)
-{
-  /* no work necessary here */
-}
-
-/*
- * Fill the input buffer --- called whenever buffer is emptied.
- *
- * We fill the buffer on readjpeg_buffer(), so this will only be called if
- * libjpeg tries to read beyond the buffer.
- */
-
-static boolean
-fill_input_buffer (j_decompress_ptr cinfo)
-{
-  static const JOCTET eoi_buffer[4] = {
-    (JOCTET) 0xFF, (JOCTET) JPEG_EOI, 0, 0
-  };
-
-  InputBuffer *src = (InputBuffer *) cinfo->src;
-
-  WARNMS(cinfo, JWRN_JPEG_EOF);
-  src->pub.next_input_byte = eoi_buffer;
-  src->pub.bytes_in_buffer = 2;
-
-  return TRUE;
-}
-
-/*
- * Skip data --- used to skip over a potentially large amount of
- * uninteresting data (such as an APPn marker).
- *
- * Writers of suspendable-input applications must note that skip_input_data
- * is not granted the right to give a suspension return.  If the skip extends
- * beyond the data currently in the buffer, the buffer can be marked empty so
- * that the next read will cause a fill_input_buffer call that can suspend.
- * Arranging for additional bytes to be discarded before reloading the input
- * buffer is the application writer's problem.
- */
-
-static void
-skip_input_data (j_decompress_ptr cinfo, long num_bytes)
-{
-  InputBuffer *src = (InputBuffer *) cinfo->src;
-
-  if (num_bytes > 0) {
-    while (num_bytes > (long) src->pub.bytes_in_buffer) {
-      num_bytes -= (long) src->pub.bytes_in_buffer;
-      (void) (*src->pub.fill_input_buffer) (cinfo);
-
-      /* note we assume that fill_input_buffer will never return FALSE,
-       * so suspension need not be handled.
-       */
-    }
-
-    src->pub.next_input_byte += (size_t) num_bytes;
-    src->pub.bytes_in_buffer -= (size_t) num_bytes;
-  }
-}
-
-/*
- * An additional method that can be provided by data source modules is the
- * resync_to_restart method for error recovery in the presence of RST markers.
- * For the moment, this source module just uses the default resync method
- * provided by the JPEG library.  That method assumes that no backtracking
- * is possible.
- */
-
-/*
- * Terminate source --- called by jpeg_finish_decompress
- * after all data has been read.  Often a no-op.
- *
- * NB: *not* called by jpeg_abort or jpeg_destroy; surrounding
- * application must deal with any cleanup that should happen even
- * for error exit.
- */
-
-static void
-term_source (j_decompress_ptr cinfo)
-{
-  /* no work necessary here */
-}
-
-/*
- * Prepare for input from a memory buffer. The caller needs to free the
- * buffer after decompress is done, we don't take ownership.
- */
-
-static void
-readjpeg_buffer (ReadJpeg *jpeg, const void *buf, size_t len)
-{
-  j_decompress_ptr cinfo = &jpeg->cinfo;
-  InputBuffer *src;
-
-  /* Empty buffer is a fatal error.
-   */
-  if (len == 0  || buf == NULL)
-    ERREXIT(cinfo, JERR_INPUT_EMPTY);
-
-  /* The source object and input buffer are made permanent so that a series
-   * of JPEG images can be read from the same file by calling jpeg_stdio_src
-   * only before the first one.  (If we discarded the buffer at the end of
-   * one image, we'd likely lose the start of the next one.)
-   * This makes it unsafe to use this manager and a different source
-   * manager serially with the same JPEG object.  Caveat programmer.
-   */
-  if (cinfo->src == NULL) {	/* first time for this JPEG object? */
-    cinfo->src = (struct jpeg_source_mgr *)
-      (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT,
-				  sizeof(InputBuffer));
-    src = (InputBuffer *) cinfo->src;
-    src->buf = buf;
-    src->len = len;
-  }
-
-  src = (InputBuffer *) cinfo->src;
-  src->pub.init_source = init_source;
-  src->pub.fill_input_buffer = fill_input_buffer;
-  src->pub.skip_input_data = skip_input_data;
-  src->pub.resync_to_restart = jpeg_resync_to_restart; /* use default method */
-  src->pub.term_source = term_source;
-  src->pub.bytes_in_buffer = len;
-  src->pub.next_input_byte = buf;
-}
-
-int
-vips__jpeg_read_buffer( const void *buf, size_t len, VipsImage *out, 
+vips__jpeg_read_stream( VipsStreami *streami, VipsImage *out,
 	gboolean header_only, int shrink, int fail, gboolean autorotate )
 {
 	ReadJpeg *jpeg;
 
-	if( !(jpeg = readjpeg_new( out, shrink, fail, autorotate )) )
+	if( !(jpeg = readjpeg_new( streami, out, shrink, fail, autorotate )) )
 		return( -1 );
 
 	if( setjmp( jpeg->eman.jmp ) ) 
 		return( -1 );
 
-	/* Set input to buffer.
-	 */
-	readjpeg_buffer( jpeg, buf, len );
-
-	if( vips__jpeg_read( jpeg, out, header_only ) ) 
+	if( readjpeg_open_input( jpeg ) ||
+		vips__jpeg_read( jpeg, out, header_only ) )
 		return( -1 );
 
-	return( 0 );
-}
-
-int
-vips__isjpeg_buffer( const void *buf, size_t len )
-{
-	const guchar *str = (const guchar *) buf;
-
-	if( len >= 2 &&
-		str[0] == 0xff && 
-		str[1] == 0xd8 )
-		return( 1 );
+	if( header_only )
+		vips_streami_minimise( streami );
+	else {
+		if( vips_streami_decode( streami ) )
+			return( -1 );
+	}
 
 	return( 0 );
 }
 
 int
-vips__isjpeg( const char *filename )
+vips__isjpeg_stream( VipsStreami *streami )
 {
-	unsigned char buf[2];
+	const unsigned char *p;
 
-	if( vips__get_bytes( filename, buf, 2 ) == 2 &&
-		vips__isjpeg_buffer( buf, 2 ) )
+	if( (p = vips_streami_sniff( streami, 2 )) &&
+		p[0] == 0xff && 
+		p[1] == 0xd8 )
 		return( 1 );
 
 	return( 0 );

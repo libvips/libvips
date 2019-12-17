@@ -5,7 +5,8 @@ SUBDIRS = \
 	po \
 	man \
 	doc \
-	test 
+	test \
+	fuzz
 
 EXTRA_DIST = \
 	m4 \
@@ -13,7 +14,7 @@ EXTRA_DIST = \
 	autogen.sh \
 	vips.pc.in \
 	vips-cpp.pc.in \
-	libvips.supp \
+	suppressions \
 	depcomp \
 	README.md 
 

@@ -10,6 +10,8 @@
  * 	- support "strip" option
  * 6/7/19 [deftomat]
  * 	- support array of delays 
+ * 5/8/19 DarthSim
+ * 	- support GIF optimization
  */
 
 /*
@@ -63,6 +65,8 @@ typedef struct _VipsForeignSaveMagick {
 	char *filename;		/* NULL during buffer output */
 	char *format;
 	int quality;
+	gboolean optimize_gif_frames;
+	gboolean optimize_gif_transparency;
 
 	ImageInfo *image_info;
 	ExceptionInfo *exception;
@@ -372,6 +376,24 @@ vips_foreign_save_magick_build( VipsObject *object )
 		vips_foreign_save_magick_write_block, magick ) ) 
 		return( -1 );
 
+	if( magick->optimize_gif_frames ) {
+		if( !magick_optimize_image_layers(&magick->images, magick->exception ) ) {
+			magick_inherit_exception( magick->exception, magick->images );
+			magick_vips_error( class->nickname, magick->exception );
+
+			return( -1 );
+		}
+	}
+
+	if( magick->optimize_gif_transparency ) {
+		if( !magick_optimize_image_transparency(magick->images, magick->exception) ) {
+			magick_inherit_exception( magick->exception, magick->images );
+			magick_vips_error( class->nickname, magick->exception );
+
+			return( -1 );
+		}
+	}
+
 	return( 0 );
 }
 
@@ -435,6 +457,20 @@ vips_foreign_save_magick_class_init( VipsForeignSaveMagickClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveMagick, quality ),
 		0, 100, 0 );
+
+	VIPS_ARG_BOOL( class, "optimize_gif_frames", 4,
+		_( "Optimize_gif_frames" ),
+		_( "Apply GIF frames optimization" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveMagick, optimize_gif_frames ),
+		FALSE );
+
+	VIPS_ARG_BOOL( class, "optimize_gif_transparency", 5,
+		_( "Optimize_gif_transparency" ),
+		_( "Apply GIF transparency optimization" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveMagick, optimize_gif_transparency ),
+		FALSE );
 }
 
 static void
@@ -593,6 +629,8 @@ vips_foreign_save_magick_buffer_init( VipsForeignSaveMagickBuffer *buffer )
  *
  * * @quality: %gint, quality factor
  * * @format: %gchararray, format to save as
+ * * @optimize_gif_frames: %gboolean, apply GIF frames optimization
+ * * @optimize_gif_transparency: %gboolean, apply GIF transparency optimization
  *
  * Write an image using libMagick.
  *
@@ -600,6 +638,15 @@ vips_foreign_save_magick_buffer_init( VipsForeignSaveMagickBuffer *buffer )
  *
  * Use @format to explicitly set the save format, for example, "BMP". Otherwise
  * the format is guessed from the filename suffix.
+ *
+ * If @optimize_gif_frames is set, GIF frames are cropped to the smallest size
+ * while preserving the results of the GIF animation. This takes some time for
+ * computation but saves some time on encoding and produces smaller files in
+ * some cases.
+ *
+ * If @optimize_gif_transparency is set, pixels that don't change the image
+ * through animation are made transparent. This takes some time for computation
+ * but saves some time on encoding and produces smaller files in some cases.
  *
  * See also: vips_magicksave_buffer(), vips_magickload().
  *
@@ -629,6 +676,8 @@ vips_magicksave( VipsImage *in, const char *filename, ... )
  *
  * * @quality: %gint, quality factor
  * * @format: %gchararray, format to save as
+ * * @optimize_gif_frames: %gboolean, apply GIF frames optimization
+ * * @optimize_gif_transparency: %gboolean, apply GIF transparency optimization
  *
  * As vips_magicksave(), but save to a memory buffer. 
  *

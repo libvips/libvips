@@ -34,7 +34,8 @@ equal_vector( std::vector<double> a, std::vector<double> b )
 				printf( "%g", a[i] );
 			}
 			printf( "], is [" );
-			for( unsigned int i = 0; i < a.size(); i++ ) { if( i > 0 )
+			for( unsigned int i = 0; i < a.size(); i++ ) { 
+				if( i > 0 )
 					printf( ", " ); 
 				printf( "%g", a[i] );
 			}

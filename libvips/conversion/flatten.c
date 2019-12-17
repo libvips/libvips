@@ -99,6 +99,25 @@ G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 	} \
 }
 
+/* Same, but with float arithmetic. Necessary for short/int to prevent
+ * overflow.
+ */
+#define VIPS_FLATTEN_BLACK_FLOAT( TYPE ) { \
+	TYPE * restrict p = (TYPE *) in; \
+	TYPE * restrict q = (TYPE *) out; \
+	\
+	for( x = 0; x < width; x++ ) { \
+		TYPE alpha = p[bands - 1]; \
+		int b; \
+		\
+		for( b = 0; b < bands - 1; b++ ) \
+			q[b] = ((double) p[b] * alpha) / max_alpha; \
+		\
+		p += bands; \
+		q += bands - 1; \
+	} \
+}
+
 /* Flatten with any background.
  */
 #define VIPS_FLATTEN( TYPE ) { \
@@ -113,25 +132,6 @@ G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 		\
 		for( b = 0; b < bands - 1; b++ ) \
 			q[b] = (p[b] * alpha + bg[b] * nalpha) / max_alpha; \
-		\
-		p += bands; \
-		q += bands - 1; \
-	} \
-}
-
-/* Same, but with float arithmetic. Necessary for int/uint to prevent
- * overflow.
- */
-#define VIPS_FLATTEN_BLACK_FLOAT( TYPE ) { \
-	TYPE * restrict p = (TYPE *) in; \
-	TYPE * restrict q = (TYPE *) out; \
-	\
-	for( x = 0; x < width; x++ ) { \
-		TYPE alpha = p[bands - 1]; \
-		int b; \
-		\
-		for( b = 0; b < bands - 1; b++ ) \
-			q[b] = ((double) p[b] * alpha) / max_alpha; \
 		\
 		p += bands; \
 		q += bands - 1; \
@@ -187,11 +187,11 @@ vips_flatten_black_gen( VipsRegion *or, void *vseq, void *a, void *b,
 			break; 
 
 		case VIPS_FORMAT_USHORT: 
-			VIPS_FLATTEN_BLACK( unsigned short ); 
+			VIPS_FLATTEN_BLACK_FLOAT( unsigned short ); 
 			break; 
 
 		case VIPS_FORMAT_SHORT: 
-			VIPS_FLATTEN_BLACK( signed short ); 
+			VIPS_FLATTEN_BLACK_FLOAT( signed short ); 
 			break; 
 
 		case VIPS_FORMAT_UINT: 
@@ -252,11 +252,11 @@ vips_flatten_gen( VipsRegion *or, void *vseq, void *a, void *b,
 			break; 
 
 		case VIPS_FORMAT_USHORT: 
-			VIPS_FLATTEN( unsigned short ); 
+			VIPS_FLATTEN_FLOAT( unsigned short ); 
 			break; 
 
 		case VIPS_FORMAT_SHORT: 
-			VIPS_FLATTEN( signed short ); 
+			VIPS_FLATTEN_FLOAT( signed short ); 
 			break; 
 
 		case VIPS_FORMAT_UINT: 

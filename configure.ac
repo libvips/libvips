@@ -449,7 +449,6 @@ AC_CHECK_FUNCS([getcwd gettimeofday getwd memset munmap putenv realpath strcasec
 AC_CHECK_LIB(m,cbrt,[AC_DEFINE(HAVE_CBRT,1,[have cbrt() in libm.])])
 AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 AC_CHECK_LIB(m,atan2,[AC_DEFINE(HAVE_ATAN2,1,[have atan2() in libm.])])
-AC_CHECK_LIB([pthread], [pthread_setattr_default_np], [AC_DEFINE(HAVE_PTHREAD_DEFAULT_NP,1,[have pthread_setattr_default_np() in pthread.])])
 
 # have to have these
 # need glib 2.6 for GOption
@@ -476,8 +475,18 @@ PKG_CHECK_MODULES(CONTEXT_GET_HELP, glib-2.0 >= 2.14,
   ]
 )
 
+# from 2.15 we have GIO
+PKG_CHECK_MODULES(GIO, glib-2.0 >= 2.15,
+  [AC_DEFINE(HAVE_GIO,1,
+	    [define if your glib has GIO.]
+   )
+  ],
+  [:
+  ]
+)
+
 # from 2.28 we have a monotonic timer
-PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,
+PKG_CHECK_MODULES(MONOTONIC_TIME, glib-2.0 >= 2.28,
   [AC_DEFINE(HAVE_MONOTONIC_TIME,1,
 	    [define if your glib has g_get_monotonic_time().]
    )
@@ -485,6 +494,20 @@ PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,
   [:
   ]
 )
+
+# from 2.62 we have datetime
+PKG_CHECK_MODULES(DATE_TIME_FORMAT_ISO8601, glib-2.0 >= 2.62,
+  [AC_DEFINE(HAVE_DATE_TIME_FORMAT_ISO8601,1,
+	    [define if your glib has g_date_time_format_iso8601().]
+   )
+  ],
+  [:
+  ]
+)
+
+# the old threading system 
+PKG_CHECK_MODULES(GTHREAD, gthread-2.0)
+PACKAGES_USED="$PACKAGES_USED gthread-2.0"
 
 # from 2.32 there are a new set of thread functions, annoyingly
 PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
@@ -496,11 +519,23 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
 	     [define if your glib has g_value_get_schar().]
    )
   ],
-  [# the old threading system ... we need to link against gthread
-   PKG_CHECK_MODULES(GTHREAD, gthread-2.0)
-   PACKAGES_USED="$PACKAGES_USED gthread-2.0"
+  [:
   ]
 )
+
+# if available, we use pthread_setattr_default_np() to raise the per-thread 
+# stack size ... musl (libc on Alpine), for example, has a very small stack per 
+# thread by default
+save_pthread_LIBS="$LIBS"
+save_pthread_CFLAGS="$CFLAGS"
+LIBS="$LIBS $GTHREAD_LIBS"
+CFLAGS="$CFLAGS $GTHREAD_CFLAGS"
+AC_CHECK_FUNC(pthread_setattr_default_np,
+  [AC_DEFINE(HAVE_PTHREAD_DEFAULT_NP,1,[have pthread_setattr_default_np().])
+  ]
+)
+LIBS="$save_pthread_LIBS"
+CFLAGS="$save_pthread_CFLAGS"
 
 # from 2.36 the type system inits itself
 PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,
@@ -546,18 +581,6 @@ AM_WITH_EXPAT
 if test x"$expat_found" = x"no"; then
   exit 1
 fi
-
-# enable vips7 C++ binding ... this defaults off, the vips8 C++ binding
-# defaults on
-AC_ARG_ENABLE([cpp7],
-  AS_HELP_STRING([--enable-cpp7],
-    [enable deprecated vips7 C++ binding (default: no)]),
-  [enable_cpp7=$enableval
-  ], 
-  [enable_cpp7="no (default)"
-  ]
-)
-AM_CONDITIONAL(ENABLE_CPP7, [test x"$enable_cpp7" = x"yes"])
 
 # optional supporting libraries
 
@@ -663,68 +686,6 @@ else
 fi
 
 if test x"$magick6" = x"yes"; then
-  # we SetImageOption to disable some DICOM read processing, but that's only
-  # in more recent imagemagicks and not in graphicsmagick
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(SetImageOption,
-    AC_DEFINE(HAVE_SETIMAGEOPTION,1,[define if your magick has SetImageOption.])
-  )
-  LIBS="$save_LIBS"
-fi
-
-if test x"$magick6" = x"yes"; then
-  # newer ImageMagicks use MagickCoreGenesis instead of InitializeMagick argh
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(MagickCoreGenesis,
-    AC_DEFINE(HAVE_MAGICKCOREGENESIS,1,
-	      [define if your magick has MagickCoreGenesis.]))
-  LIBS="$save_LIBS"
-fi
-
-if test x"$magick6" = x"yes"; then
-  # newer ImageMagicks use ResetImagePropertyIterator instead of
-  # ResetImageAttributeIterator argh
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(ResetImagePropertyIterator,
-    AC_DEFINE(HAVE_RESETIMAGEPROPERTYITERATOR,1,
-	      [define if your magick has ResetImagePropertyIterator.]))
-  LIBS="$save_LIBS"
-fi
-
-if test x"$magick6" = x"yes"; then
-  # so ... do we have ResetImageAttributeIterator()? GM does not
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(ResetImageAttributeIterator,
-    AC_DEFINE(HAVE_RESETIMAGEATTRIBUTEITERATOR,1,
-	      [define if your magick has ResetImageAttributeIterator.]))
-  LIBS="$save_LIBS"
-fi
-
-if test x"$magick6" = x"yes"; then
-  # GM does not have ResetImageProfileIterator
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(ResetImageProfileIterator,
-    AC_DEFINE(HAVE_RESETIMAGEPROFILEITERATOR,1,
-	      [define if your magick has ResetImageProfileIterator.]))
-  LIBS="$save_LIBS"
-fi
-
-if test x"$magick6" = x"yes"; then
-  # more recent magicks have GetVirtualPixels rather than GetImagePixels
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(GetVirtualPixels,
-    AC_DEFINE(HAVE_GETVIRTUALPIXELS,1,
-	      [define if your magick has GetVirtualPixels.]))
-  LIBS="$save_LIBS"
-fi
-
-if test x"$magick6" = x"yes"; then
   # do we have number_scenes in image_info ... imagemagick uses this
   save_CFLAGS="$CFLAGS"
   CFLAGS="$CFLAGS $MAGICK_CFLAGS"
@@ -737,63 +698,51 @@ if test x"$magick6" = x"yes"; then
 fi
 
 if test x"$magick6" = x"yes"; then
-  # more recent magick6s have AcquireImage rather than AllocateImage argh
+  # the magick6 API varies a lot between magick versions, and between GM and
+  # IM
   save_LIBS="$LIBS"
   LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(AcquireImage,
-    AC_DEFINE(HAVE_ACQUIREIMAGE,1,
-	      [define if your magick has AcquireImage.]))
+  AC_CHECK_FUNCS([InheritException AcquireExceptionInfo SetImageProperty SetImageExtent AcquireImage GetVirtualPixels ResetImageProfileIterator ResetImageAttributeIterator ResetImagePropertyIterator MagickCoreGenesis SetImageOption BlobToStringInfo OptimizePlusImageLayers OptimizeImageTransparency])
   LIBS="$save_LIBS"
 fi
 
 if test x"$magick6" = x"yes"; then
-  # more recent magick6s have SetImageExtent 
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(SetImageExtent,
-    AC_DEFINE(HAVE_SETIMAGEEXTENT,1,
-	      [define if your magick has SetImageExtent.]))
-  LIBS="$save_LIBS"
-fi
+  save_CFLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS $MAGICK_CFLAGS"
 
-if test x"$magick6" = x"yes"; then
-  # GM uses SetImageAttribute(), IM uses SetImageProperty()
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(SetImageProperty,
-    AC_DEFINE(HAVE_SETIMAGEPROPERTY,1,
-	      [define if your magick has SetImageProperty.]))
-  LIBS="$save_LIBS"
-fi
+  # the range of ColorspaceType has expanded several times
+  AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM(
+      [#include <magick/api.h>],
+      [ColorspaceType colorspace = CMYColorspace]
+    )],
+    [AC_DEFINE(HAVE_CMYCOLORSPACE,1,
+         [define if your Magick has CMYColorspace.])
+    ]
+  )
 
-if test x"$magick6" = x"yes"; then
-  # IM uses SetImageProfile() with StringInfo
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(BlobToStringInfo,
-    AC_DEFINE(HAVE_BLOBTOSTRINGINFO,1,
-	      [define if your magick has BlobToStringInfo().]))
-  LIBS="$save_LIBS"
-fi
+  AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM(
+      [#include <magick/api.h>],
+      [ColorspaceType colorspace = HCLpColorspace]
+    )],
+    [AC_DEFINE(HAVE_HCLPCOLORSPACE,1,
+         [define if your Magick has HCLpColorspace.])
+    ]
+  )
 
-if test x"$magick6" = x"yes"; then
-  # GM is missing InheritException
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(InheritException,
-    AC_DEFINE(HAVE_INHERITEXCEPTION,1,
-	      [define if your magick has InheritException.]))
-  LIBS="$save_LIBS"
-fi
+  # GetImageMagick() takes two args under GM, three under IM
+  AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM(
+      [#include <magick/api.h>],
+      [(void)GetImageMagick(NULL, 0, NULL)]
+    )],
+    [AC_DEFINE(HAVE_GETIMAGEMAGICK3,1,
+         [define if your GetImageMagick() takes three arguments.])
+    ]
+  )
 
-if test x"$magick6" = x"yes"; then
-  # GM is missing AcquireExceptionInfo
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $MAGICK_LIBS"
-  AC_CHECK_FUNCS(AcquireExceptionInfo,
-    AC_DEFINE(HAVE_ACQUIREEXCEPTIONINFO,1,
-	      [define if your magick has AcquireExceptionInfo.]))
-  LIBS="$save_LIBS"
+  CFLAGS="$save_CFLAGS"
 fi
 
 # have flags to turn load and save off independently ... some people will want
@@ -857,6 +806,19 @@ if test x"$with_orc" != x"no"; then
     ],
     [AC_MSG_WARN([orc-0.4.11 or later not found; disabling orc support])
      with_orc=no
+    ]
+  )
+fi
+
+# orc 0.4.30+ works with cf-protection, but 0.4.30 has a bug with multiple
+# definitions of OrcTargetPowerPCFlags, so insist on 0.4.31
+if test x"$with_orc" = x"yes"; then
+  PKG_CHECK_MODULES(ORC_CF_PROTECTION, orc-0.4 >= 0.4.31,
+    [AC_DEFINE(HAVE_ORC_CF_PROTECTION,1,
+	       [define if your orc works with cf-protection.]
+     )
+    ],
+    [:
     ]
   )
 fi
@@ -1195,40 +1157,6 @@ if test x"$with_pangoft2" != x"no"; then
   )
 fi
 
-# install vips8 python
-AC_ARG_ENABLE([pyvips8],
-  AS_HELP_STRING([--enable-pyvips8],
-    [install vips8 Python overrides (default: no)]),
-  [enable_pyvips8=$enableval
-  ], 
-  [enable_pyvips8="no (default)"
-  ]
-)
-
-if test x"$enable_pyvips8" = x"auto"; then
-  PKG_CHECK_EXISTS([pygobject-3.0 >= 3.13.0],
-    [enable_pyvips8=yes
-    ],
-    [AC_MSG_WARN([pygobject-3.0 not found; disabling vips8 python support])
-     enable_pyvips8=no
-    ]
-  )
-fi
-
-if test x"$enable_pyvips8" = x"yes"; then
-  JD_PATH_PYTHON(2.7,,
-    [enable_pyvips8=no
-     AC_MSG_WARN([Python not found; disabling vips8 Python binding])
-    ]
-  )
-fi
-
-if test x"$enable_pyvips8" = x"yes"; then
-  PKG_CHECK_MODULES(PYGOBJECT, [pygobject-3.0 >= 3.13.0])
-fi
-
-AM_CONDITIONAL(ENABLE_PYVIPS8, [test x"$enable_pyvips8" = x"yes"])
-
 # look for TIFF with pkg-config ... fall back to our tester
 # pkgconfig support for libtiff starts with libtiff-4
 AC_ARG_WITH([tiff], 
@@ -1248,6 +1176,20 @@ if test x"$with_tiff" != x"no"; then
      )
     ]
   )
+fi
+
+# WEBP in TIFF added in libtiff 4.0.10
+if test x"$with_tiff" != x"no"; then
+  save_INCLUDES="$INCLUDES"
+  INCLUDES="$INCLUDES $TIFF_INCLUDES"
+  AC_CHECK_DECL(COMPRESSION_WEBP,[
+      AC_DEFINE(HAVE_TIFF_COMPRESSION_WEBP,1,[define if your libtiff has webp.])
+    ],[
+    ],[
+      [#include <tiffio.h>]
+    ]
+  )
+  INCLUDES="$save_INCLUDES"
 fi
 
 # giflib
@@ -1374,6 +1316,13 @@ if test x"$with_libexif" != x"no"; then
   CPPFLAGS="$save_CPPFLAGS"
 fi
 
+# fuzzing
+AC_ARG_VAR([LIB_FUZZING_ENGINE],
+           [fuzzing library, e.g. /path/to/libFuzzer.a])
+if test x"$LIB_FUZZING_ENGINE" = x; then
+  LIB_FUZZING_ENGINE="libstandaloneengine.a"
+fi
+
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS 
 # sort includes to get longer, more specific dirs first
 # helps, for example, selecting graphicsmagick over imagemagick
@@ -1409,6 +1358,7 @@ AC_OUTPUT([
 	libvips/Makefile 
 	libvips/arithmetic/Makefile 
 	libvips/colour/Makefile 
+	libvips/colour/profiles/Makefile 
 	libvips/conversion/Makefile 
 	libvips/convolution/Makefile 
 	libvips/deprecated/Makefile 
@@ -1438,6 +1388,7 @@ AC_OUTPUT([
 	doc/Makefile
 	doc/libvips-docs.xml
 	po/Makefile.in
+	fuzz/Makefile
 ])
 
 AC_MSG_RESULT([dnl
@@ -1489,22 +1440,6 @@ image pyramid export:			$with_gsf
   (requires libgsf-1 1.14.26 or later)
 use libexif to load/save JPEG metadata: $with_libexif
 ])
-
-if test x"$found_introspection" = x"yes" -a "$VIPS_LIBDIR/girepository-1.0" != "$INTROSPECTION_TYPELIBDIR"; then
-  case "$VIPS_LIBDIR" in
-    /usr/local/Cellar/vips/*)
-      ;; # ignore for homebrew
-    *)
-      AC_MSG_RESULT([dnl
-Vips-8.0.typelib will be installed to $VIPS_LIBDIR/girepository-1.0, but 
-your system repository seems to be $INTROSPECTION_TYPELIBDIR. 
-You may need to add this directory to your typelib path, for example:
-
-	export GI_TYPELIB_PATH="$VIPS_LIBDIR/girepository-1.0"
-      ])
-      ;;
-  esac
-fi
 
 if test x"$vips_os_win32" = x"yes"; then
   if test x"$have_g_win32_get_command_line" != x"yes"; then

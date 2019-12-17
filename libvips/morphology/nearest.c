@@ -201,7 +201,8 @@ vips_fill_nearest_grow_seed( VipsFillNearest *nearest, Seed *seed )
 		circle.nearest_pixel = vips_fill_nearest_pixel_clip;
 
 	vips__draw_circle_direct( nearest->distance, 
-		seed->x, seed->y, seed->r, vips_fill_nearest_scanline, &circle );
+		seed->x, seed->y, seed->r, 
+		vips_fill_nearest_scanline, &circle );
 
 	/* Update the action_mask for this seed. Next time, we can skip any 
 	 * octants where we failed to act this time. 

@@ -39,6 +39,14 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+/* << on an int is undefined in C if the int is negative. Imagine a machine
+ * that uses 1s complement, for example.
+ *
+ * Fuzzers find and warn about this, so we must use this macro instead. Cast
+ * to uint, shift, and cast back.
+ */
+#define VIPS_LSHIFT_INT( I, N ) ((int) ((unsigned int) (I) << (N)))
+
 /* What we store in the Meta hash table. We can't just use GHashTable's 
  * key/value pairs, since we need to iterate over meta in Meta_traverse order.
  *
@@ -128,6 +136,7 @@ void *vips__link_map( VipsImage *image, gboolean upstream,
 char *vips__b64_encode( const unsigned char *data, size_t data_length );
 unsigned char *vips__b64_decode( const char *buffer, size_t *data_length );
 
+gboolean vips__mmap_supported( int fd );
 void *vips__mmap( int fd, int writeable, size_t length, gint64 offset );
 int vips__munmap( const void *start, size_t length );
 int vips_mapfile( VipsImage * );

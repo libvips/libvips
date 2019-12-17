@@ -109,6 +109,10 @@ int vips__fatal = 0;
  */
 GMutex *vips__global_lock = NULL;
 
+/* A debugging timer, zero at library init.
+ */
+GTimer *vips__global_timer = NULL;
+
 /* Keep a copy of the argv0 here.
  */
 static char *vips__argv0 = NULL;
@@ -326,11 +330,14 @@ vips_init( const char *argv0 )
 	extern GType write_thread_state_get_type( void );
 	extern GType sink_memory_thread_state_get_type( void ); 
 	extern GType render_thread_state_get_type( void ); 
+	extern GType vips_streami_get_type( void ); 
+	extern GType vips_streamiu_get_type( void ); 
+	extern GType vips_streamo_get_type( void ); 
+	extern GType vips_streamou_get_type( void ); 
 
 	static gboolean started = FALSE;
 	static gboolean done = FALSE;
 	const char *vips_min_stack_size;
-	char *prgname;
 	const char *prefix;
 	const char *libdir;
 	char *locale;
@@ -371,7 +378,7 @@ vips_init( const char *argv0 )
 #ifndef HAVE_THREAD_NEW
 	if( !g_thread_supported() ) 
 		g_thread_init( NULL );
-#endif 
+#endif /*HAVE_THREAD_NEW*/
 
 	vips__threadpool_init();
 	vips__buffer_init();
@@ -385,11 +392,18 @@ vips_init( const char *argv0 )
 	if( !vips__global_lock )
 		vips__global_lock = vips_g_mutex_new();
 
+	if( !vips__global_timer )
+		vips__global_timer = g_timer_new();
+
 	VIPS_SETSTR( vips__argv0, argv0 );
 
-	prgname = g_path_get_basename( argv0 );
-	g_set_prgname( prgname );
-	g_free( prgname );
+	if( argv0 ) {
+		char *prgname;
+
+		prgname = g_path_get_basename( argv0 );
+		g_set_prgname( prgname );
+		g_free( prgname );
+	}
 
 	vips__thread_profile_attach( "main" );
 
@@ -419,6 +433,9 @@ vips_init( const char *argv0 )
 		g_getenv( "IM_INFO" ) ) 
 		vips_info_set( TRUE );
 
+	if( g_getenv( "VIPS_PROFILE" ) )
+		vips_profile_set( TRUE );
+
 	/* Default various settings from env.
 	 */
 	if( g_getenv( "VIPS_TRACE" ) )
@@ -431,6 +448,10 @@ vips_init( const char *argv0 )
 	(void) write_thread_state_get_type();
 	(void) sink_memory_thread_state_get_type(); 
 	(void) render_thread_state_get_type(); 
+	(void) vips_streami_get_type(); 
+	(void) vips_streamiu_get_type(); 
+	(void) vips_streamo_get_type(); 
+	(void) vips_streamou_get_type(); 
 	vips__meta_init_types();
 	vips__interpolate_init();
 	im__format_init();
@@ -985,7 +1006,8 @@ guess_prefix( const char *argv0, const char *name )
 
 	/* Try to guess from cwd. Only if this is a relative path, though. 
 	 */
-	if( !g_path_is_absolute( argv0 ) ) {
+	if( argv0 &&
+		!g_path_is_absolute( argv0 ) ) {
 		char *dir;
 		char full_path[VIPS_PATH_MAX];
 		char *resolved;

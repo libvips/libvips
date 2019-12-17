@@ -150,11 +150,12 @@ vips_hough_circle_vote_endpoints_clip( VipsImage *image,
 	int y, int x1, int x2, int quadrant, void *client )
 {
 	int r = *((int *) client); 
-	guint *line = (guint *) VIPS_IMAGE_ADDR( image, 0, y ) + r;
 	int b = image->Bands;
 
 	if( y >= 0 &&
 		y < image->Ysize ) {
+		guint *line = (guint *) VIPS_IMAGE_ADDR( image, 0, y ) + r;
+
 		if( x1 >=0 &&
 			x1 < image->Xsize )
 			line[x1 * b] += 1;

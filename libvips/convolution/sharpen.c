@@ -39,6 +39,8 @@
  * 	- swap "radius" for "sigma", allows finer control
  * 	- allow a much greater range of parameters
  * 	- move to defaults suitable for screen output
+ * 28/8/19
+ * 	- fix sigma 0.5 case (thanks 2h4dl)
  */
 
 /*
@@ -170,10 +172,11 @@ vips_sharpen_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsSharpen *sharpen = (VipsSharpen *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 7 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 8 );
 	VipsImage **args = (VipsImage **) vips_object_local_array( object, 2 );
 
 	VipsImage *in;
+	VipsInterpretation old_interpretation;
 	int i;
 
 	VIPS_GATE_START( "vips_sharpen_build: build" ); 
@@ -190,6 +193,7 @@ vips_sharpen_build( VipsObject *object )
 
 	in = sharpen->in; 
 
+	old_interpretation = in->Type;
 	if( vips_colourspace( in, &t[0], VIPS_INTERPRETATION_LABS, NULL ) )
 		return( -1 );
 	in = t[0];
@@ -199,10 +203,10 @@ vips_sharpen_build( VipsObject *object )
 		vips_check_format( class->nickname, in, VIPS_FORMAT_SHORT ) )
   		return( -1 );
 
-	/* Stop at 20% of max ... a bit mean. We always sharpen a short, 
+	/* Stop at 10% of max ... a bit mean. We always sharpen a short, 
 	 * so there's no point using a float mask. 
 	 */
-	if( vips_gaussmat( &t[1], sharpen->sigma, 0.2, 
+	if( vips_gaussmat( &t[1], sharpen->sigma, 0.1, 
 		"separable", TRUE,
 		"precision", VIPS_PRECISION_INTEGER,
 		NULL ) )
@@ -269,9 +273,6 @@ vips_sharpen_build( VipsObject *object )
 			NULL ) )
 		return( -1 );
 
-	/* Set demand hints. FATSTRIP is good for us, as THINSTRIP will cause
-	 * too many recalculations on overlaps.
-	 */
 	t[5] = vips_image_new();
 	if( vips_image_pipeline_array( t[5], 
 		VIPS_DEMAND_STYLE_FATSTRIP, args ) )
@@ -287,7 +288,8 @@ vips_sharpen_build( VipsObject *object )
 	/* Reattach the rest.
 	 */
 	if( vips_bandjoin2( t[5], t[3], &t[6], NULL ) ||
-		vips_image_write( t[6], sharpen->out ) )
+		vips_colourspace( t[6], &t[7], old_interpretation, NULL ) ||
+		vips_image_write( t[7], sharpen->out ) )
 		return( -1 );
 
 	VIPS_GATE_STOP( "vips_sharpen_build: build" ); 

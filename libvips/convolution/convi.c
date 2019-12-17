@@ -123,6 +123,7 @@
 #include <limits.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pconvolution.h"
 
@@ -979,7 +980,7 @@ vips_convi_intize( VipsConvi *convi, VipsImage *M )
 	if( convi->exp > 0 )
 		int_value = (int_sum + (1 << (convi->exp - 1))) >> convi->exp;
 	else
-		int_value = int_sum << convi->exp;
+		int_value = VIPS_LSHIFT_INT( int_sum, convi->exp );
 	int_value = VIPS_CLIP( 0, int_value, 255 ); 
 
 	if( VIPS_ABS( true_value - int_value ) > 2 ) {

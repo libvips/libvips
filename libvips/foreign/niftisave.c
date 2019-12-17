@@ -2,6 +2,8 @@
  *
  * 5/7/18
  * 	- from fitssave.c
+ * 9/9/19
+ * 	- use double for all floating point scalar metadata, like other loaders
  */
 
 /*
@@ -193,8 +195,8 @@ vips_gvalue_write( GValue *value, void *p )
 		*((int *) p) = g_value_get_int( value );
 		break;
 
-	case G_TYPE_FLOAT:
-		*((float *) p) = g_value_get_float( value );
+	case G_TYPE_DOUBLE:
+		*((float *) p) = g_value_get_double( value );
 		break;
 
 	default:

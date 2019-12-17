@@ -74,9 +74,12 @@ typedef struct _VipsArea {
 	int count;
 	GMutex *lock;		
 
-	/* Things like ICC profiles need their own free functions.
+	/* Things like ICC profiles need their own free functions. 
+	 *
+	 * Set client to anything you like -- VipsArea doesn't use this.
 	 */
 	VipsCallbackFn free_fn;
+	void *client;
 
 	/* If we are holding an array (for example, an array of double), the
 	 * GType of the elements and their size. 0 for not known.
@@ -161,6 +164,8 @@ VipsBlob *vips_blob_new( VipsCallbackFn free_fn,
 	const void *data, size_t length );
 VipsBlob *vips_blob_copy( const void *data, size_t length );
 const void *vips_blob_get( VipsBlob *blob, size_t *length );
+void vips_blob_set( VipsBlob *blob, 
+	VipsCallbackFn free_fn, const void *data, size_t length );
 GType vips_blob_get_type(void);
 
 /**

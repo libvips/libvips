@@ -71,6 +71,11 @@ typedef enum {
 char *vips_path_filename7( const char *path );
 char *vips_path_mode7( const char *path );
 
+struct _VipsImage; 
+typedef struct _VipsImage VipsImage;
+struct _VipsRegion; 
+typedef struct _VipsRegion VipsRegion;
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

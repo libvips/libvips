@@ -1245,7 +1245,8 @@ typedef struct _VipsCall {
 static const char *
 vips_call_get_arg( VipsCall *call, int i )
 {
-	if( i < 0 || i >= call->argc ) {
+	if( i < 0 || 
+		i >= call->argc ) {
 		vips_error( VIPS_OBJECT_GET_CLASS( call->operation )->nickname, 
 			"%s", _( "too few arguments" ) );
 		return( NULL );

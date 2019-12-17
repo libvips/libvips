@@ -8,12 +8,14 @@ before_script:
     --disable-dependency-tracking
     --with-jpeg-includes=$JPEG/include
     --with-jpeg-libraries=$JPEG/lib
+    --with-magick=$WITH_MAGICK
   - make -j$JOBS -s 
 script:
-  - make -Ctest -j$JOBS -s V=0 VERBOSE=1 check
+  - make -j$JOBS -s -k V=0 VERBOSE=1 check
   - LD_LIBRARY_PATH=$PWD/libvips/.libs
     DYLD_LIBRARY_PATH=$PWD/libvips/.libs
-    $PYTHON -m pytest -v test/test-suite
+    LD_PRELOAD=$ASAN_DSO
+    $PYTHON -m pytest -sv --log-cli-level=WARNING test/test-suite
 
 matrix:
   allow_failures:
@@ -23,11 +25,41 @@ matrix:
     - os: linux
       sudo: required
       dist: xenial
+      compiler: gcc
       env:
         - PYTHON=python2
         - PYVIPS_VERSION=master
         - JPEG=/usr
         - JOBS=`nproc`
+        - WITH_MAGICK=yes
+      cache: ccache
+
+    - os: linux
+      sudo: required
+      dist: xenial
+      compiler: clang
+      env:
+        - PYTHON=python2
+        - PYVIPS_VERSION=master
+        - JPEG=/usr
+        - JOBS=`nproc`
+        - WITH_MAGICK=no
+        - CFLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -fopenmp -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION"
+        - LDFLAGS="-fsanitize=address,undefined -dynamic-asan -fopenmp=libiomp5"
+        - ASAN_DSO=/usr/local/clang-7.0.0/lib/clang/7.0.0/lib/linux/libclang_rt.asan-x86_64.so
+        - LSAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/suppressions/lsan.supp"
+        - UBSAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/suppressions/ubsan.supp"
+        # comment these out, I get strange parse errors from asan for some
+        # reason
+        #
+        # ASAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/suppressions/asan.supp"
+      install:
+        # add support for WebP
+        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebp-dev_0.6.1-2_amd64.deb
+        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebpdemux2_0.6.1-2_amd64.deb
+        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebpmux3_0.6.1-2_amd64.deb
+        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebp6_0.6.1-2_amd64.deb
+        - sudo dpkg -i *.deb
       cache: ccache
 
     - os: osx
@@ -37,6 +69,7 @@ matrix:
         - PYVIPS_VERSION=master
         - JPEG=/usr/local
         - JOBS="`sysctl -n hw.ncpu`"
+        - WITH_MAGICK=yes
         - PATH="/usr/local/opt/ccache/libexec:$PATH"
         - HOMEBREW_NO_AUTO_UPDATE=1
       cache: ccache
@@ -45,7 +78,7 @@ addons:
   apt:
     update: true
     sources:
-      # use imagemagick 6.9.7-4 instead than 6.8.9-9 
+      # use a more recent imagemagick instead of 6.8.9-9 
       - sourceline: 'ppa:opencpu/imagemagick'
       # add support for HEIF files
       - sourceline: 'ppa:strukturag/libheif'
@@ -79,6 +112,7 @@ addons:
       - libgsf-1-dev 
       - libopenslide-dev
       - libffi-dev
+      - libiomp-dev
   homebrew:
     packages:
       - ccache

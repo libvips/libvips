@@ -88,6 +88,10 @@
  * 	- fix a leak with an error during buffer output
  * 19/4/19
  * 	- fix another leak with error during buffer output
+ * 19/7/19
+ * 	- ignore large XMP
+ * 14/10/19
+ * 	- revise for stream IO
  */
 
 /*
@@ -205,9 +209,9 @@ static void
 write_destroy( Write *write )
 {
 	jpeg_destroy_compress( &write->cinfo );
-	VIPS_FREEF( fclose, write->eman.fp );
 	VIPS_FREE( write->row_pointer );
 	VIPS_UNREF( write->inverted );
+	VIPS_UNREF( write->in );
 
 	g_free( write );
 }
@@ -220,7 +224,7 @@ write_new( VipsImage *in )
 	if( !(write = g_new0( Write, 1 )) )
 		return( NULL );
 
-	write->in = in;
+	write->in = NULL;
 	write->row_pointer = NULL;
         write->cinfo.err = jpeg_std_error( &write->eman.pub );
 	write->cinfo.dest = NULL;
@@ -228,6 +232,12 @@ write_new( VipsImage *in )
 	write->eman.pub.output_message = vips__new_output_message;
 	write->eman.fp = NULL;
 	write->inverted = NULL;
+
+	if( vips_copy( in, &write->in, NULL ) ||
+		vips__exif_update( write->in ) ) { 
+		write_destroy( write );
+		return( NULL );
+	}
 
         return( write );
 }
@@ -285,6 +295,22 @@ write_xmp( Write *write )
 		(void *) &data, &data_length ) )
 		return( -1 );
 
+	/* To write >64kb XMP it you need to parse the whole XMP object, 
+	 * pull out the most important fields, code just them into the main 
+	 * XMP block, then write any remaining XMP objects into a set of 
+	 * extended XMP markers. 
+	 *
+	 * http://wwwimages.adobe.com/content/dam/Adobe/en/devnet/xmp/pdfs/ \
+	 * 	XMPSpecificationPart3.pdf
+	 *
+	 * jpeg_write_marker() with some libjpeg versions will throw a fatal 
+	 * error with large chunks.
+	 */
+	if( data_length > 60000 ) {
+		g_warning( "%s", _( "VipsJpeg: large XMP not saved" ) );
+		return( 0 );
+	}
+
 	/* We need to add the magic XML URL to the start, then a null
 	 * character, then the data.
 	 */
@@ -303,8 +329,7 @@ write_xmp( Write *write )
 static int
 write_exif( Write *write )
 {
-	if( vips__exif_update( write->in ) ||
-		write_blob( write, VIPS_META_EXIF_NAME, JPEG_APP0 + 1 ) )
+	if( write_blob( write, VIPS_META_EXIF_NAME, JPEG_APP0 + 1 ) )
 		return( -1 );
 
 	return( 0 );
@@ -662,59 +687,8 @@ write_vips( Write *write, int qfac, const char *profile,
 	return( 0 );
 }
 
-/* Write an image to a jpeg file.
- */
-int
-vips__jpeg_write_file( VipsImage *in, 
-	const char *filename, int Q, const char *profile, 
-	gboolean optimize_coding, gboolean progressive, gboolean strip, 
-	gboolean no_subsample, gboolean trellis_quant,
-	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table )
-{
-	Write *write;
+#define STREAM_BUFFER_SIZE (4096)
 
-	if( !(write = write_new( in )) )
-		return( -1 );
-
-	if( setjmp( write->eman.jmp ) ) {
-		/* Here for longjmp() from new_error_exit().
-		 */
-		write_destroy( write );
-
-		return( -1 );
-	}
-
-	/* Can't do this in write_new(), has to be after we've made the
-	 * setjmp().
-	 */
-        jpeg_create_compress( &write->cinfo );
-
-	/* Make output.
-	 */
-        if( !(write->eman.fp = vips__file_open_write( filename, FALSE )) ) {
-		write_destroy( write );
-                return( -1 );
-        }
-        jpeg_stdio_dest( &write->cinfo, write->eman.fp );
-
-	/* Convert!
-	 */
-	if( write_vips( write, 
-		Q, profile, optimize_coding, progressive, strip, no_subsample,
-		trellis_quant, overshoot_deringing, optimize_scans, 
-		quant_table ) ) {
-		write_destroy( write );
-		return( -1 );
-	}
-	write_destroy( write );
-
-	return( 0 );
-}
-
-/* Just like the above, but we write to a memory buffer.
- *
- * A memory buffer for the compressed image.
- */
 typedef struct {
 	/* Public jpeg fields.
 	 */
@@ -725,115 +699,80 @@ typedef struct {
 
 	/* Build the output area here.
 	 */
-	VipsDbuf dbuf;
+	VipsStreamo *streamo;
 
-	/* Write the generated area here.
+	/* Our output buffer.
 	 */
-	void **obuf;		/* Allocated buffer, and size */
-	size_t *olen;
-} OutputBuffer;
+	unsigned char buf[STREAM_BUFFER_SIZE];
+} Dest;
 
-/* Buffer full method ... allocate a new output block. This is only called 
- * when the output area is exactly full.
+/* Buffer full method. This is only called when the output area is exactly 
+ * full.
  */
-METHODDEF(boolean)
+static jboolean
 empty_output_buffer( j_compress_ptr cinfo )
 {
-	OutputBuffer *buf = (OutputBuffer *) cinfo->dest;
+	Dest *dest = (Dest *) cinfo->dest;
 
-	size_t size;
+	if( vips_streamo_write( dest->streamo, 
+		dest->buf, STREAM_BUFFER_SIZE ) )
+		ERREXIT( cinfo, JERR_FILE_WRITE );
 
-	vips_dbuf_allocate( &buf->dbuf, 10000 ); 
-	buf->pub.next_output_byte = 
-		(JOCTET *) vips_dbuf_get_write( &buf->dbuf, &size );
-	buf->pub.free_in_buffer = size;
+	dest->pub.next_output_byte = dest->buf;
+	dest->pub.free_in_buffer = STREAM_BUFFER_SIZE;
 
-	/* TRUE means we've made some more space.
-	 */
-	return( 1 );
+	return( TRUE );
 }
 
 /* Init dest method.
  */
-METHODDEF(void)
+static void
 init_destination( j_compress_ptr cinfo )
 {
-	OutputBuffer *buf = (OutputBuffer *) cinfo->dest;
+	Dest *dest = (Dest *) cinfo->dest;
 
-	vips_dbuf_init( &buf->dbuf ); 
-	empty_output_buffer( cinfo ); 
+	dest->pub.next_output_byte = dest->buf;
+	dest->pub.free_in_buffer = STREAM_BUFFER_SIZE;
 }
 
-/* Free the buffer writer.
+/* Flush any remaining bytes to the output.
  */
 static void
-buf_destroy( j_compress_ptr cinfo )
-{
-	if( cinfo->dest ) {
-		OutputBuffer *buf = (OutputBuffer *) cinfo->dest;
-
-		vips_dbuf_destroy( &buf->dbuf );
-	}
-}
-
-/* Cleanup. Copy the set of blocks out as a big lump. This is only called by
- * libjpeg on successful write --- you must call buf_destroy() explicitly to 
- * release resources.
- */
-METHODDEF(void)
 term_destination( j_compress_ptr cinfo )
 {
-        OutputBuffer *buf = (OutputBuffer *) cinfo->dest;
+        Dest *dest = (Dest *) cinfo->dest;
 
-	size_t size;
+	if( vips_streamo_write( dest->streamo, 
+		dest->buf, STREAM_BUFFER_SIZE - dest->pub.free_in_buffer ) )
+		ERREXIT( cinfo, JERR_FILE_WRITE );
 
-	/* We probably won't have filled the area that was last allocated in 
-	 * empty_output_buffer(). Chop the data size down to the length that
-	 * was actually written.
-	 */
-	vips_dbuf_seek( &buf->dbuf, -buf->pub.free_in_buffer, SEEK_END );
-	vips_dbuf_truncate( &buf->dbuf ); 
-
-	*(buf->obuf) = vips_dbuf_steal( &buf->dbuf, &size );
-	*(buf->olen) = size; 
+	vips_streamo_finish( dest->streamo );
 }
 
 /* Set dest to one of our objects.
  */
 static void
-buf_dest( j_compress_ptr cinfo, void **obuf, size_t *olen )
+stream_dest( j_compress_ptr cinfo, VipsStreamo *streamo )
 {
-	OutputBuffer *buf;
+	Dest *dest;
 
-	/* The destination object is made permanent so that multiple JPEG 
-	 * images can be written to the same file without re-executing 
-	 * jpeg_stdio_dest. This makes it dangerous to use this manager and 
-	 * a different destination manager serially with the same JPEG object,
-	 * because their private object sizes may be different.  
-	 *
-	 * Caveat programmer.
-	 */
 	if( !cinfo->dest ) {    /* first time for this JPEG object? */
 		cinfo->dest = (struct jpeg_destination_mgr *)
 			(*cinfo->mem->alloc_small) 
 				( (j_common_ptr) cinfo, JPOOL_PERMANENT,
-				  sizeof( OutputBuffer ) );
+				  sizeof( Dest ) );
 	}
 
-	buf = (OutputBuffer *) cinfo->dest;
-	buf->pub.init_destination = init_destination;
-	buf->pub.empty_output_buffer = empty_output_buffer;
-	buf->pub.term_destination = term_destination;
-
-	/* Save output parameters.
-	 */
-	buf->obuf = obuf;
-	buf->olen = olen;
+	dest = (Dest *) cinfo->dest;
+	dest->pub.init_destination = init_destination;
+	dest->pub.empty_output_buffer = empty_output_buffer;
+	dest->pub.term_destination = term_destination;
+	dest->streamo = streamo;
 }
 
 int
-vips__jpeg_write_buffer( VipsImage *in, 
-	void **obuf, size_t *olen, int Q, const char *profile, 
+vips__jpeg_write_stream( VipsImage *in, VipsStreamo *streamo,
+	int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive,
 	gboolean strip, gboolean no_subsample, gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table )
@@ -843,17 +782,11 @@ vips__jpeg_write_buffer( VipsImage *in,
 	if( !(write = write_new( in )) )
 		return( -1 );
 
-	/* Clear output parameters.
-	 */
-	*obuf = NULL;
-	*olen = 0;
-
 	/* Make jpeg compression object.
  	 */
 	if( setjmp( write->eman.jmp ) ) {
 		/* Here for longjmp() during write_vips().
 		 */
-		buf_destroy( &write->cinfo );
 		write_destroy( write );
 
 		return( -1 );
@@ -862,7 +795,7 @@ vips__jpeg_write_buffer( VipsImage *in,
 
 	/* Attach output.
 	 */
-        buf_dest( &write->cinfo, obuf, olen );
+        stream_dest( &write->cinfo, streamo );
 
 	/* Convert! Write errors come back here as an error return.
 	 */
@@ -870,12 +803,9 @@ vips__jpeg_write_buffer( VipsImage *in,
 		Q, profile, optimize_coding, progressive, strip, no_subsample,
 		trellis_quant, overshoot_deringing, optimize_scans, 
 		quant_table ) ) {
-		buf_destroy( &write->cinfo );
 		write_destroy( write );
-
 		return( -1 );
 	}
-	buf_destroy( &write->cinfo );
 	write_destroy( write );
 
 	return( 0 );

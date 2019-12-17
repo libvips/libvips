@@ -196,7 +196,7 @@ vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 
 	VIPS_ARG_BOOL( class, "optimize_scans", 17,
 		_( "Optimize scans" ),
-		_( "Split the spectrum of DCT coefficients into separate scans" ),
+		_( "Split spectrum of DCT coefficients into separate scans" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveJpeg, optimize_scans ),
 		FALSE );
@@ -214,6 +214,68 @@ static void
 vips_foreign_save_jpeg_init( VipsForeignSaveJpeg *jpeg )
 {
 	jpeg->Q = 75;
+}
+
+typedef struct _VipsForeignSaveJpegStream {
+	VipsForeignSaveJpeg parent_object;
+
+	VipsStreamo *streamo;
+
+} VipsForeignSaveJpegStream;
+
+typedef VipsForeignSaveJpegClass VipsForeignSaveJpegStreamClass;
+
+G_DEFINE_TYPE( VipsForeignSaveJpegStream, vips_foreign_save_jpeg_stream, 
+	vips_foreign_save_jpeg_get_type() );
+
+static int
+vips_foreign_save_jpeg_stream_build( VipsObject *object )
+{
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
+	VipsForeignSaveJpegStream *stream = 
+		(VipsForeignSaveJpegStream *) object;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_stream_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( vips__jpeg_write_stream( save->ready, stream->streamo,
+		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
+		jpeg->interlace, save->strip, jpeg->no_subsample,
+		jpeg->trellis_quant, jpeg->overshoot_deringing,
+		jpeg->optimize_scans, jpeg->quant_table ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_jpeg_stream_class_init( 
+	VipsForeignSaveJpegStreamClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "jpegsave_stream";
+	object_class->description = _( "save image to jpeg stream" );
+	object_class->build = vips_foreign_save_jpeg_stream_build;
+
+	VIPS_ARG_OBJECT( class, "streamo", 1,
+		_( "Streamo" ),
+		_( "Stream to save to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveJpegStream, streamo ),
+		VIPS_TYPE_STREAMO );
+
+}
+
+static void
+vips_foreign_save_jpeg_stream_init( VipsForeignSaveJpegStream *stream )
+{
 }
 
 typedef struct _VipsForeignSaveJpegFile {
@@ -237,16 +299,23 @@ vips_foreign_save_jpeg_file_build( VipsObject *object )
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 	VipsForeignSaveJpegFile *file = (VipsForeignSaveJpegFile *) object;
 
+	VipsStreamo *streamo;
+
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_file_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips__jpeg_write_file( save->ready, file->filename,
+	if( !(streamo = vips_streamo_new_to_file( file->filename )) )
+		return( -1 );
+	if( vips__jpeg_write_stream( save->ready, streamo,
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->no_subsample,
 		jpeg->trellis_quant, jpeg->overshoot_deringing,
-		jpeg->optimize_scans, jpeg->quant_table ) )
+		jpeg->optimize_scans, jpeg->quant_table ) ) {
+		VIPS_UNREF( streamo );
 		return( -1 );
+	}
+	VIPS_UNREF( streamo );
 
 	return( 0 );
 }
@@ -298,26 +367,30 @@ vips_foreign_save_jpeg_buffer_build( VipsObject *object )
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 	VipsForeignSaveJpegBuffer *file = (VipsForeignSaveJpegBuffer *) object;
 
-	void *obuf;
-	size_t olen;
+	VipsStreamo *streamo;
 	VipsBlob *blob;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_buffer_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips__jpeg_write_buffer( save->ready, 
-		&obuf, &olen, jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
-		jpeg->interlace, save->strip, jpeg->no_subsample,
-		jpeg->trellis_quant, jpeg->overshoot_deringing,
-		jpeg->optimize_scans, jpeg->quant_table ) )
+	if( !(streamo = vips_streamo_new_to_memory()) )
 		return( -1 );
 
-	/* obuf is a g_free() buffer, not vips_free().
-	 */
-	blob = vips_blob_new( (VipsCallbackFn) g_free, obuf, olen );
+	if( vips__jpeg_write_stream( save->ready, streamo,
+		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
+		jpeg->interlace, save->strip, jpeg->no_subsample,
+		jpeg->trellis_quant, jpeg->overshoot_deringing,
+		jpeg->optimize_scans, jpeg->quant_table ) ) {
+		VIPS_UNREF( streamo );
+		return( -1 );
+	}
+
+	g_object_get( streamo, "blob", &blob, NULL );
 	g_object_set( file, "buffer", blob, NULL );
 	vips_area_unref( VIPS_AREA( blob ) );
+
+	VIPS_UNREF( streamo );
 
 	return( 0 );
 }
@@ -365,30 +438,39 @@ vips_foreign_save_jpeg_mime_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 
-	void *obuf;
+	VipsStreamo *streamo;
+	VipsBlob *blob;
+	const unsigned char *obuf;
 	size_t olen;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_mime_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips__jpeg_write_buffer( save->ready, 
-		&obuf, &olen, jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
-		jpeg->interlace, save->strip, jpeg->no_subsample,
-		jpeg->trellis_quant, jpeg->overshoot_deringing,
-		jpeg->optimize_scans, jpeg->quant_table ) )
+	if( !(streamo = vips_streamo_new_to_memory()) )
 		return( -1 );
 
+	if( vips__jpeg_write_stream( save->ready, streamo,
+		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
+		jpeg->interlace, save->strip, jpeg->no_subsample,
+		jpeg->trellis_quant, jpeg->overshoot_deringing,
+		jpeg->optimize_scans, jpeg->quant_table ) ) {
+		VIPS_UNREF( streamo );
+		return( -1 );
+	}
+
+	g_object_get( streamo, "blob", &blob, NULL );
+
+	obuf = vips_blob_get( blob, &olen );
 	printf( "Content-length: %zu\r\n", olen );
 	printf( "Content-type: image/jpeg\r\n" );
 	printf( "\r\n" );
-	if( fwrite( obuf, sizeof( char ), olen, stdout ) != olen ) {
-		vips_error( "VipsJpeg", "%s", _( "error writing output" ) );
-		return( -1 );
-	}
+	(void) fwrite( obuf, sizeof( char ), olen, stdout );
 	fflush( stdout );
 
-	g_free( obuf );
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	VIPS_UNREF( streamo );
 
 	return( 0 );
 }
@@ -442,7 +524,7 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * contains an ICC profile named #VIPS_META_ICC_NAME, the
  * profile from the VIPS header will be attached.
  *
- * If @optimize_coding is set, the Huffman tables are optimised. This is
+ * If @optimize_coding is set, the Huffman tables are optimized. This is
  * sllightly slower and produces slightly smaller files. 
  *
  * If @interlace is set, the jpeg files will be interlaced (progressive jpeg,
@@ -496,6 +578,9 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * Tables 5-7 are based on older research papers, but generally achieve worse
  * compression ratios and/or quality than 2 or 4.
  *
+ * For maximum compression with mozjpeg, a useful set of options is `strip, 
+ * optimize-coding, interlace, optimize-scans, trellis-quant, quant_table=3`.
+ *
  * The image is automatically converted to RGB, Monochrome or CMYK before 
  * saving. 
  *
@@ -519,6 +604,44 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
 
 	va_start( ap, filename );
 	result = vips_call_split( "jpegsave", ap, in, filename );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_jpegsave_stream: (method)
+ * @in: image to save 
+ * @streamo: save image to this stream
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @Q: %gint, quality factor
+ * * @profile: filename of ICC profile to attach
+ * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
+ * * @interlace: %gboolean, write an interlaced (progressive) jpeg
+ * * @strip: %gboolean, remove all metadata from image
+ * * @no_subsample: %gboolean, disable chroma subsampling
+ * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
+ * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
+ * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
+ * * @quant_table: %gint, quantization table index
+ *
+ * As vips_jpegsave(), but save to a stream.
+ *
+ * See also: vips_jpegsave(), vips_image_write_to_stream().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jpegsave_stream( VipsImage *in, VipsStreamo *streamo, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, streamo );
+	result = vips_call_split( "jpegsave_stream", ap, in, streamo );
 	va_end( ap );
 
 	return( result );

@@ -5,6 +5,56 @@
 - add "unlimited" flag to svgload
 - disable webp alpha output if all frames fill the canvas and are solid
 - add "compression" option to heifsave [lovell]
+- support webp and zstd compression in tiff
+- loaders use "minimise" to close input files earlier
+- integrate support for oss-fuzz [omira-sch]
+- add vips_switch() / vips_case() ... fast many-way ifthenelse
+- better const handling for arithmetic operators fixes comparisons against out
+  of range values
+- sharpen restores input colourspace
+- handle alpha in heifload / heifsave [meyermarcel]
+- add @interpretation and @format to rawload
+- nifti load/save uses double for all floating point metadata
+- add vips_error_buffer_copy()
+- add VipsStream: a universal IO class for loaders and savers
+- jpeg, png, tiff (though not tiffsave), rad, svg, ppm and webp use the 
+  new IO class
+- rewritten ppm load/save is faster and uses less memory
+- add @no_strip option to dzsave [kalozka1]
+- add iiif layout to dzsave
+- fix use of resolution-unit metadata on tiff save [kayarre]
+- support TIFF CIELAB images with alpha [angelmixu]
+- support TIFF with premultiplied alpha in any band 
+- block metadata changes on shared images [pvdz]
+
+17/9/19 started 8.8.4
+- improve compatibility with older imagemagick versions
+- remove realpath, since it can fail on systems with grsec
+
+31/8/19 started 8.8.3
+- revert sharpen restoring the input colourspace
+- xres/yres tiffsave params were in pixels/cm [f--f]
+
+9/7/19 started 8.8.2
+- better early shutdown in readers
+- don't attempt to save large XMP to jpeg [tnextday]
+- always fetch HEIC metadata from the main image [zhoux2016]
+- fix loop in malformed ppm [Kyle-Kyle]
+- better support for PNGs with long comment names
+- fix build with GM
+- add locks for pdfium load
+- fix build with MSVC 
+- fix a problem with shinkv tail processing [angelmixu]
+- fix a read one byte beyond buffer bug in jpegload
+- make GIF parsing less strict
+- better feof() handling in GIF load
+- clip coding and interpretation on vips image read
+- check image bounds for GIF load
+- prevent over-pre-shrink in thumbnail [kleisauke]
+- fix sharpen with sigma 0.5 [2h4dl]
+- sharpen restores input colourspace
+- verify bands/format for coded images
+- improve data_length handling for jpeg metadata
 
 24/5/19 started 8.8.1
 - improve realpath() use on older libc

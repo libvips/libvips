@@ -68,7 +68,8 @@ size_t vips_dbuf_read( VipsDbuf *dbuf, unsigned char *data, size_t size );
 unsigned char *vips_dbuf_get_write( VipsDbuf *dbuf, size_t *size );
 gboolean vips_dbuf_write( VipsDbuf *dbuf, 
 	const unsigned char *data, size_t size );
-gboolean vips_dbuf_writef( VipsDbuf *dbuf, const char *fmt, ... );
+gboolean vips_dbuf_writef( VipsDbuf *dbuf, const char *fmt, ... )
+	__attribute__((format(printf, 2, 3)));
 gboolean vips_dbuf_write_amp( VipsDbuf *dbuf, const char *str );
 void vips_dbuf_reset( VipsDbuf *dbuf );
 void vips_dbuf_destroy( VipsDbuf *dbuf );

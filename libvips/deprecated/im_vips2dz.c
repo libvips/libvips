@@ -75,6 +75,8 @@ im_vips2dz( IMAGE *in, const char *filename )
 		*p = '\0';
 		im_strncpy( mode, p + 1, FILENAME_MAX ); 
 	}
+	else 
+		strcpy( mode, "" ); 
 
 	strcpy( buf, mode ); 
 	p = &buf[0];

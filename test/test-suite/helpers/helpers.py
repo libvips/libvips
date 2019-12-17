@@ -1,5 +1,6 @@
 # vim: set fileencoding=utf-8 :
 # test helpers
+
 import os
 import tempfile
 import pytest
@@ -7,7 +8,7 @@ import pytest
 import pyvips
 
 IMAGES = os.path.join(os.path.dirname(__file__), os.pardir, 'images')
-JPEG_FILE = os.path.join(IMAGES, "йцук.jpg")
+JPEG_FILE = os.path.join(IMAGES, "sample.jpg")
 SRGB_FILE = os.path.join(IMAGES, "sRGB.icm")
 MATLAB_FILE = os.path.join(IMAGES, "sample.mat")
 PNG_FILE = os.path.join(IMAGES, "sample.png")
@@ -21,9 +22,9 @@ FITS_FILE = os.path.join(IMAGES, "WFPC2u5780205r_c0fx.fits")
 OPENSLIDE_FILE = os.path.join(IMAGES, "CMU-1-Small-Region.svs")
 PDF_FILE = os.path.join(IMAGES, "ISO_12233-reschart.pdf")
 CMYK_PDF_FILE = os.path.join(IMAGES, "cmyktest.pdf")
-SVG_FILE = os.path.join(IMAGES, "vips-profile.svg")
-SVGZ_FILE = os.path.join(IMAGES, "vips-profile.svgz")
-SVG_GZ_FILE = os.path.join(IMAGES, "vips-profile.svg.gz")
+SVG_FILE = os.path.join(IMAGES, "logo.svg")
+SVGZ_FILE = os.path.join(IMAGES, "logo.svgz")
+SVG_GZ_FILE = os.path.join(IMAGES, "logo.svg.gz")
 GIF_ANIM_FILE = os.path.join(IMAGES, "cogs.gif")
 DICOM_FILE = os.path.join(IMAGES, "dicom_test_image.dcm")
 BMP_FILE = os.path.join(IMAGES, "MARBLES.BMP")
@@ -174,7 +175,7 @@ def run_fn2(fn, x, y):
 
 # test a pair of things which can be lists for approx. equality
 def assert_almost_equal_objects(a, b, threshold=0.0001, msg=''):
-    # print 'assertAlmostEqualObjects %s = %s' % (a, b)
+    # print('assertAlmostEqualObjects %s = %s' % (a, b))
     assert all([pytest.approx(x, abs=threshold) == y
                 for x, y in zip_expand(a, b)]), msg
 

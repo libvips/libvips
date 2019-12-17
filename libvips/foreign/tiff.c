@@ -77,8 +77,11 @@ vips__thandler_warning( const char *module, const char *fmt, va_list ap )
 	g_logv( G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, fmt, ap );
 }
 
-/* Call this during startup. Other libraries may be using libtiff and we want
- * to capture any messages they send as well.
+/* Called during library init.
+ *
+ * libtiff error and warning handlers may be called from other threads 
+ * running in other libs. Other libs may install error handlers and capture 
+ * messages caused by us.
  */
 void
 vips__tiff_init( void )
@@ -129,128 +132,56 @@ vips__tiff_openout( const char *path, gboolean bigtiff )
 	return( tif );
 }
 
-/* Open TIFF for input from a file.
+/* TIFF input from a vips stream.
  */
-TIFF *
-vips__tiff_openin( const char *path )
-{
-	/* No mmap --- no performance advantage with libtiff, and it burns up
-	 * our VM if the tiff file is large.
-	 */
-	const char *mode = "rm";
-
-	TIFF *tif;
-
-#ifdef DEBUG
-	printf( "vips__tiff_openin( \"%s\" )\n", path );
-#endif /*DEBUG*/
-
-	/* Need the utf-16 version on Windows.
-	 */
-#ifdef OS_WIN32
-{
-	GError *error = NULL;
-	wchar_t *path16;
-
-	if( !(path16 = (wchar_t *)
-		g_utf8_to_utf16( path, -1, NULL, NULL, &error )) ) {
-		vips_g_error( &error );
-		return( NULL );
-	}
-
-	tif = TIFFOpenW( path16, mode );
-
-	g_free( path16 );
-}
-#else /*!OS_WIN32*/
-	tif = TIFFOpen( path, mode );
-#endif /*OS_WIN32*/
-
-	if( !tif ) {
-		vips_error( "tiff",
-			_( "unable to open \"%s\" for input" ), path );
-		return( NULL );
-	}
-
-	return( tif );
-}
-
-/* TIFF input from a memory buffer.
- */
-
-typedef struct _VipsTiffOpeninBuffer {
-	size_t position;
-	const void *data;
-	size_t length;
-} VipsTiffOpeninBuffer;
 
 static tsize_t
-openin_buffer_read( thandle_t st, tdata_t data, tsize_t size )
+openin_stream_read( thandle_t st, tdata_t data, tsize_t size )
 {
-	VipsTiffOpeninBuffer *buffer = (VipsTiffOpeninBuffer *) st;
+	VipsStreami *streami = VIPS_STREAMI( st );
 
-	size_t available;
-	size_t copied;
-
-	if( buffer->position > buffer->length ) {
-		vips_error( "openin_buffer_read",
-			"%s", _( "read beyond end of buffer" ) );
-		return( 0 );
-	}
-
-	available = buffer->length - buffer->position;
-	copied = VIPS_MIN( size, available );
-	memcpy( data,
-		(unsigned char *) buffer->data + buffer->position, copied );
-	buffer->position += copied;
-
-	return( copied );
+	return( vips_streami_read( streami, data, size ) );
 }
 
 static tsize_t
-openin_buffer_write( thandle_t st, tdata_t buffer, tsize_t size )
+openin_stream_write( thandle_t st, tdata_t buffer, tsize_t size )
 {
 	g_assert_not_reached();
 
 	return( 0 );
 }
 
-static int
-openin_buffer_close( thandle_t st )
+static toff_t
+openin_stream_seek( thandle_t st, toff_t position, int whence )
 {
+	VipsStreami *streami = VIPS_STREAMI( st );
+
+	return( vips_streami_seek( streami, position, whence ) );
+}
+
+static int
+openin_stream_close( thandle_t st )
+{
+	VipsStreami *streami = VIPS_STREAMI( st );
+
+	VIPS_UNREF( streami );
+
 	return( 0 );
 }
 
-/* After calling this, ->pos is not bound by the size of the buffer, it can
- * have any positive value.
- */
 static toff_t
-openin_buffer_seek( thandle_t st, toff_t position, int whence )
+openin_stream_length( thandle_t st )
 {
-	VipsTiffOpeninBuffer *buffer = (VipsTiffOpeninBuffer *) st;
+	VipsStreami *streami = VIPS_STREAMI( st );
 
-	if( whence == SEEK_SET )
-		buffer->position = position;
-	else if( whence == SEEK_CUR )
-		buffer->position += position;
-	else if( whence == SEEK_END )
-		buffer->position = buffer->length + position;
-	else
-		g_assert_not_reached();
-
-	return( buffer->position );
-}
-
-static toff_t
-openin_buffer_size( thandle_t st )
-{
-	VipsTiffOpeninBuffer *buffer = (VipsTiffOpeninBuffer *) st;
-
-	return( buffer->length );
+	/* libtiff will use this to get file size if tags like StripByteCounts
+	 * are missing.
+	 */
+	return( vips_streami_length( streami ) );
 }
 
 static int
-openin_buffer_map( thandle_t st, tdata_t *start, toff_t *len )
+openin_stream_map( thandle_t st, tdata_t *start, toff_t *len )
 {
 	g_assert_not_reached();
 
@@ -258,7 +189,7 @@ openin_buffer_map( thandle_t st, tdata_t *start, toff_t *len )
 }
 
 static void
-openin_buffer_unmap( thandle_t st, tdata_t start, toff_t len )
+openin_stream_unmap( thandle_t st, tdata_t start, toff_t len )
 {
 	g_assert_not_reached();
 
@@ -266,33 +197,34 @@ openin_buffer_unmap( thandle_t st, tdata_t start, toff_t len )
 }
 
 TIFF *
-vips__tiff_openin_buffer( VipsImage *image, const void *data, size_t length )
+vips__tiff_openin_stream( VipsStreami *streami )
 {
-	VipsTiffOpeninBuffer *buffer;
 	TIFF *tiff;
 
 #ifdef DEBUG
-	printf( "vips__tiff_openin_buffer:\n" );
+	printf( "vips__tiff_openin_stream:\n" );
 #endif /*DEBUG*/
 
-	buffer = VIPS_NEW( image, VipsTiffOpeninBuffer );
-	buffer->position = 0;
-	buffer->data = data;
-	buffer->length = length;
+	if( vips_streami_rewind( streami ) )
+		return( NULL );
 
-	if( !(tiff = TIFFClientOpen( "memory input", "rm",
-		(thandle_t) buffer,
-		openin_buffer_read,
-		openin_buffer_write,
-		openin_buffer_seek,
-		openin_buffer_close,
-		openin_buffer_size,
-		openin_buffer_map,
-		openin_buffer_unmap )) ) {
-		vips_error( "vips__tiff_openin_buffer", "%s",
-			_( "unable to open memory buffer for input" ) );
+	if( !(tiff = TIFFClientOpen( "stream input", "rm",
+		(thandle_t) streami,
+		openin_stream_read,
+		openin_stream_write,
+		openin_stream_seek,
+		openin_stream_close,
+		openin_stream_length,
+		openin_stream_map,
+		openin_stream_unmap )) ) {
+		vips_error( "vips__tiff_openin_stream", "%s",
+			_( "unable to open stream for input" ) );
 		return( NULL );
 	}
+
+	/* Unreffed on close(), see above.
+	 */
+	g_object_ref( streami );
 
 	return( tiff );
 }
@@ -380,7 +312,7 @@ openout_buffer_seek( thandle_t st, toff_t position, int whence )
 }
 
 static toff_t
-openout_buffer_size( thandle_t st )
+openout_buffer_length( thandle_t st )
 {
 	g_assert_not_reached();
 
@@ -432,7 +364,7 @@ vips__tiff_openout_buffer( VipsImage *image,
 		openout_buffer_write,
 		openout_buffer_seek,
 		openout_buffer_close,
-		openout_buffer_size,
+		openout_buffer_length,
 		openout_buffer_map,
 		openout_buffer_unmap )) ) {
 		vips_error( "vips__tiff_openout_buffer", "%s",

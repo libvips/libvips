@@ -297,7 +297,6 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 {
 	const int width = flood->test->Xsize;
 
-	VipsPel *p;
 	int i;
 
 	g_assert( flood_connected( flood, 
@@ -309,23 +308,33 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 	 * pixel is unpainted, we know all the intervening pixels must be
 	 * unpainted too.
 	 */
-	p = VIPS_IMAGE_ADDR( flood->test, x + 1, y );
-	for( i = x + 1; i < width; i++ ) {
-		if( !flood_connected( flood, p ) )
-			break;
-		p += flood->tsize;
+	if( x < width ) {
+		VipsPel *p = VIPS_IMAGE_ADDR( flood->test, x + 1, y );
+
+		for( i = x + 1; i < width; i++ ) {
+			if( !flood_connected( flood, p ) )
+				break;
+			p += flood->tsize;
+		}
+		*x2 = i - 1;
 	}
-	*x2 = i - 1;
+	else 
+		*x2 = width;
 
 	/* Search left.
 	 */
-	p = VIPS_IMAGE_ADDR( flood->test, x - 1, y );
-	for( i = x - 1; i >= 0; i-- ) {
-		if( !flood_connected( flood, p ) )
-			break;
-		p -= flood->tsize;
+	if( x > 0 ) {
+		VipsPel *p = VIPS_IMAGE_ADDR( flood->test, x - 1, y );
+
+		for( i = x - 1; i >= 0; i-- ) {
+			if( !flood_connected( flood, p ) )
+				break;
+			p -= flood->tsize;
+		}
+		*x1 = i + 1;
 	}
-	*x1 = i + 1;
+	else
+		*x1 = 0;
 
 	/* Paint the range we discovered.
 	 */

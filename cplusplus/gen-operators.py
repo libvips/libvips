@@ -25,8 +25,12 @@
 
 import argparse
 
-from pyvips import Operation, GValue, Error, \
+from pyvips import Introspect, Operation, GValue, Error, \
     ffi, gobject_lib, type_map, type_from_name, nickname_find, type_name
+
+# TODO Move to pyvips.GValue
+stream_input_type = type_from_name('VipsStreami')
+stream_output_type = type_from_name('VipsStreamo')
 
 # turn a GType into a C++ type
 gtype_to_cpp = {
@@ -37,11 +41,16 @@ gtype_to_cpp = {
     GValue.refstr_type: 'char *',
     GValue.gflags_type: 'int',
     GValue.image_type: 'VImage',
+    stream_input_type: 'VStreamI',
+    stream_output_type: 'VStreamO',
     GValue.array_int_type: 'std::vector<int>',
     GValue.array_double_type: 'std::vector<double>',
     GValue.array_image_type: 'std::vector<VImage>',
     GValue.blob_type: 'VipsBlob *'
 }
+
+cplusplus_suffixes = ('*', '&')
+cplusplus_keywords = ('case', 'switch')
 
 # values for VipsArgumentFlags
 _REQUIRED = 1
@@ -78,67 +87,43 @@ def cppize(name):
 
 
 def generate_operation(operation_name, declaration_only=False):
-    op = Operation.new_from_name(operation_name)
+    intro = Introspect.get(operation_name)
 
-    # we are only interested in non-deprecated args
-    args = [[name, flags] for name, flags in op.get_args()
-            if not flags & _DEPRECATED]
-
-    # find the first required input image arg, if any ... that will be self
-    member_x = None
-    for name, flags in args:
-        if ((flags & _INPUT) != 0 and
-                (flags & _REQUIRED) != 0 and
-                op.get_typeof(name) == GValue.image_type):
-            member_x = name
-            break
-
-    required_input = [name for name, flags in args
-                      if (flags & _INPUT) != 0 and
-                      (flags & _REQUIRED) != 0 and
-                      name != member_x]
-
-    required_output = [name for name, flags in args
-                       if ((flags & _OUTPUT) != 0 and
-                           (flags & _REQUIRED) != 0) or
-                       ((flags & _INPUT) != 0 and
-                        (flags & _REQUIRED) != 0 and
-                        (flags & _MODIFY) != 0) and
-                       name != member_x]
+    required_output = [name for name in intro.required_output if name != intro.member_x]
 
     has_output = len(required_output) >= 1
 
-    # Add a C++ style comment block with some additional markings (@param, 
+    # Add a C++ style comment block with some additional markings (@param,
     # @return)
     if declaration_only:
-        result = '\n/**\n * {}.'.format(op.get_description().capitalize())
+        result = '\n/**\n * {}.'.format(intro.description.capitalize())
 
-        for name in required_input:
+        for name in intro.method_args:
             result += '\n * @param {} {}.' \
-                      .format(cppize(name), op.get_blurb(name))
+                      .format(cppize(name), intro.details[name]['blurb'])
 
         if has_output:
             # skip the first element
             for name in required_output[1:]:
                 result += '\n * @param {} {}.' \
-                          .format(cppize(name), op.get_blurb(name))
+                          .format(cppize(name), intro.details[name]['blurb'])
 
         result += '\n * @param options Optional options.'
 
         if has_output:
             result += '\n * @return {}.' \
-                      .format(op.get_blurb(required_output[0]))
+                      .format(intro.details[required_output[0]]['blurb'])
 
         result += '\n */\n'
     else:
         result = '\n'
 
-    if member_x is None and declaration_only:
+    if intro.member_x is None and declaration_only:
         result += 'static '
     if has_output:
         # the first output arg will be used as the result
-        cpp_type = get_cpp_type(op.get_typeof(required_output[0]))
-        spacing = '' if cpp_type.endswith('*') else ' '
+        cpp_type = get_cpp_type(intro.details[required_output[0]]['type'])
+        spacing = '' if cpp_type.endswith(cplusplus_suffixes) else ' '
         result += '{0}{1}'.format(cpp_type, spacing)
     else:
         result += 'void '
@@ -146,26 +131,32 @@ def generate_operation(operation_name, declaration_only=False):
     if not declaration_only:
         result += 'VImage::'
 
-    result += '{0}( '.format(operation_name)
-    for name in required_input:
-        gtype = op.get_typeof(name)
+    cplusplus_operation = operation_name
+    if operation_name in cplusplus_keywords:
+        cplusplus_operation += '_image'
+
+    result += '{0}( '.format(cplusplus_operation)
+    for name in intro.method_args:
+        details = intro.details[name]
+        gtype = details['type']
         cpp_type = get_cpp_type(gtype)
-        spacing = '' if cpp_type.endswith('*') else ' '
+        spacing = '' if cpp_type.endswith(cplusplus_suffixes) else ' '
         result += '{0}{1}{2}, '.format(cpp_type, spacing, cppize(name))
 
     # output params are passed by reference
     if has_output:
         # skip the first element
         for name in required_output[1:]:
-            gtype = op.get_typeof(name)
+            details = intro.details[name]
+            gtype = details['type']
             cpp_type = get_cpp_type(gtype)
-            spacing = '' if cpp_type.endswith('*') else ' '
+            spacing = '' if cpp_type.endswith(cplusplus_suffixes) else ' '
             result += '{0}{1}*{2}, '.format(cpp_type, spacing, cppize(name))
 
     result += 'VOption *options {0})'.format('= 0 ' if declaration_only else '')
 
     # if no 'this' available, it's a class method and they are all const
-    if member_x is not None:
+    if intro.member_x is not None:
         result += ' const'
 
     if declaration_only:
@@ -178,17 +169,17 @@ def generate_operation(operation_name, declaration_only=False):
     if has_output:
         # the first output arg will be used as the result
         name = required_output[0]
-        cpp_type = get_cpp_type(op.get_typeof(name))
-        spacing = '' if cpp_type.endswith('*') else ' '
+        cpp_type = get_cpp_type(intro.details[name]['type'])
+        spacing = '' if cpp_type.endswith(cplusplus_suffixes) else ' '
         result += '    {0}{1}{2};\n\n'.format(cpp_type, spacing, cppize(name))
 
     result += '    call( "{0}",\n'.format(operation_name)
     result += '        (options ? options : VImage::option())'
-    if member_x is not None:
+    if intro.member_x is not None:
         result += '->\n'
-        result += '            set( "{0}", *this )'.format(member_x)
+        result += '            set( "{0}", *this )'.format(intro.member_x)
 
-    all_required = required_input
+    all_required = intro.method_args
 
     if has_output:
         # first element needs to be passed by reference
@@ -223,10 +214,10 @@ def generate_operators(declarations_only=False):
         nickname = nickname_find(gtype)
         try:
             # can fail for abstract types
-            op = Operation.new_from_name(nickname)
+            intro = Introspect.get(nickname)
 
             # we are only interested in non-deprecated operations
-            if (op.get_flags() & _OPERATION_DEPRECATED) == 0:
+            if (intro.flags & _OPERATION_DEPRECATED) == 0:
                 all_nicknames.append(nickname)
         except Error:
             pass

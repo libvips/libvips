@@ -6,6 +6,8 @@
  * 	- add background param
  * 16/8/18
  * 	- shut down the input file as soon as we can [kleisauke]
+ * 8/8/19
+ * 	- add locks, since pdfium is not threadsafe in any way
  */
 
 /*
@@ -37,6 +39,8 @@
 
 /* TODO 
  *
+ * - needs the reopen-after-minimise system that pdfload has, but we'll need
+ *   to be able to actually build and test this before we can do that
  * - what about filename encodings
  * - need to test on Windows
  */
@@ -139,8 +143,12 @@ vips_pdfium_error( void )
 static void
 vips_foreign_load_pdf_close( VipsForeignLoadPdf *pdf )
 {
+	g_mutex_lock( vips__global_lock );
+
 	VIPS_FREEF( FPDF_ClosePage, pdf->page ); 
 	VIPS_FREEF( FPDF_CloseDocument, pdf->doc ); 
+
+	g_mutex_unlock( vips__global_lock );
 }
 
 static void
@@ -209,6 +217,8 @@ vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 	if( pdf->current_page != page_no ) { 
 		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( pdf );
 
+		g_mutex_lock( vips__global_lock );
+
 		VIPS_FREEF( FPDF_ClosePage, pdf->page ); 
 		pdf->current_page = -1;
 
@@ -217,12 +227,15 @@ vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 #endif /*DEBUG*/
 
 		if( !(pdf->page = FPDF_LoadPage( pdf->doc, page_no )) ) {
+			g_mutex_unlock( vips__global_lock );
 			vips_pdfium_error();
 			vips_error( class->nickname, 
 				_( "unable to load page %d" ), page_no );
 			return( -1 ); 
 		}
 		pdf->current_page = page_no;
+
+		g_mutex_unlock( vips__global_lock );
 	}
 
 	return( 0 );
@@ -272,7 +285,9 @@ vips_foreign_load_pdf_set_image( VipsForeignLoadPdf *pdf, VipsImage *out )
 		char text[1024];
 		int len;
 
+		g_mutex_lock( vips__global_lock );
 		len = FPDF_GetMetaText( pdf->doc, metadata->tag, text, 1024 );
+		g_mutex_unlock( vips__global_lock );
 		if( len > 0 ) { 
 			char *str;
 
@@ -312,7 +327,9 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 	printf( "vips_foreign_load_pdf_header: %p\n", pdf );
 #endif /*DEBUG*/
 
+	g_mutex_lock( vips__global_lock );
 	pdf->n_pages = FPDF_GetPageCount( pdf->doc );
+	g_mutex_unlock( vips__global_lock );
 
 	/* @n == -1 means until the end of the doc.
 	 */
@@ -380,6 +397,15 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 	return( 0 );
 }
 
+static void
+vips_foreign_load_pdf_minimise( VipsObject *object, VipsForeignLoadPdf *pdf )
+{
+	/* In seq mode, we can shut down the input at the end of computation.
+	 */
+	if( VIPS_FOREIGN_LOAD( pdf )->access == VIPS_ACCESS_SEQUENTIAL )
+		vips_foreign_load_pdf_close( pdf ); 
+}
+
 static int
 vips_foreign_load_pdf_generate( VipsRegion *or, 
 	void *seq, void *a, void *b, gboolean *stop )
@@ -422,6 +448,8 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 
 		/* 4 means RGBA.
 		 */
+		g_mutex_lock( vips__global_lock );
+
 		bitmap = FPDFBitmap_CreateEx( rect.width, rect.height, 4, 
 			VIPS_REGION_ADDR( or, rect.left, rect.top ), 
 			VIPS_REGION_LSKIP( or ) );  
@@ -432,16 +460,11 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 
 		FPDFBitmap_Destroy( bitmap ); 
 
+		g_mutex_unlock( vips__global_lock );
+
 		top += rect.height;
 		i += 1;
 	}
-
-	/* In seq mode, we can shut down the input when we render the last
-	 * row.
-	 */
-	if( top >= or->im->Ysize &&
-		load->access == VIPS_ACCESS_SEQUENTIAL )
-		vips_foreign_load_pdf_close( pdf ); 
 
 	/* PDFium writes BRGA, we must swap.
 	 *
@@ -475,6 +498,11 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 	/* Read to this image, then cache to out, see below.
 	 */
 	t[0] = vips_image_new(); 
+
+	/* Close input immediately at end of read.
+	 */
+	g_signal_connect( t[0], "minimise", 
+		G_CALLBACK( vips_foreign_load_pdf_minimise ), pdf ); 
 
 	vips_foreign_load_pdf_set_image( pdf, t[0] ); 
 	if( vips_image_generate( t[0], 
@@ -581,12 +609,17 @@ vips_foreign_load_pdf_file_header( VipsForeignLoad *load )
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) load;
 	VipsForeignLoadPdfFile *file = (VipsForeignLoadPdfFile *) load;
 
+	g_mutex_lock( vips__global_lock );
+
 	if( !(pdf->doc = FPDF_LoadDocument( file->filename, NULL )) ) { 
+		g_mutex_unlock( vips__global_lock );
 		vips_pdfium_error();
 		vips_error( "pdfload", 
 			_( "unable to load \"%s\"" ), file->filename ); 
 		return( -1 ); 
 	}
+
+	g_mutex_unlock( vips__global_lock );
 
 	VIPS_SETSTR( load->out->filename, file->filename );
 
@@ -652,13 +685,18 @@ vips_foreign_load_pdf_buffer_header( VipsForeignLoad *load )
 	VipsForeignLoadPdfBuffer *buffer = 
 		(VipsForeignLoadPdfBuffer *) load;
 
+	g_mutex_lock( vips__global_lock );
+
 	if( !(pdf->doc = FPDF_LoadMemDocument( buffer->buf->data, 
 		buffer->buf->length, NULL )) ) { 
+		g_mutex_unlock( vips__global_lock );
 		vips_pdfium_error();
 		vips_error( "pdfload", 
 			"%s", _( "unable to load from buffer" ) );
 		return( -1 ); 
 	}
+
+	g_mutex_unlock( vips__global_lock );
 
 	return( vips_foreign_load_pdf_header( load ) );
 }

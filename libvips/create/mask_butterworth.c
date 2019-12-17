@@ -64,9 +64,12 @@ vips_mask_butterworth_point( VipsMask *mask, double dx, double dy )
 
 	double cnst = (1.0 / ac) - 1.0;
 	double fc2 = fc * fc;
-	double dist2 = fc2 / (dx * dx + dy * dy);
+	double d = dx * dx + dy * dy;
 
-	return( 1.0 / (1.0 + cnst * pow( dist2, order )) ); 
+	if( d == 0 )
+		return( 0 );
+	else
+		return( 1.0 / (1.0 + cnst * pow( fc2 / d, order )) ); 
 }
 
 static void

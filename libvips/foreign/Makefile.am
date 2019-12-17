@@ -16,7 +16,6 @@ libforeign_la_SOURCES = \
 	radiance.c \
 	radload.c \
 	radsave.c \
-	ppm.c \
 	ppmload.c \
 	ppmsave.c \
 	csv.c \

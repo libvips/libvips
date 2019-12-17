@@ -182,6 +182,9 @@
  * 	- copy EXTRASAMPLES to pyramid layers
  * 21/12/18
  * 	- stop pyr layers if width or height drop to 1
+ * 8/7/19
+ * 	- add webp and zstd support
+ * 	- add @level and @lossless
  */
 
 /*
@@ -300,7 +303,7 @@ struct _Wtiff {
 	int tls;			/* Tile line size */
 
 	int compression;		/* Compression type */
-	int jpqual;			/* JPEG q-factor */
+	int Q;				/* JPEG q-factor, webp level */
 	int predictor;			/* Predictor value */
 	int tile;			/* Tile or not */
 	int tilew, tileh;		/* Tile size */
@@ -316,6 +319,8 @@ struct _Wtiff {
 	int properties;			/* Set to save XML props */
 	int strip;			/* Don't write metadata */
 	VipsRegionShrink region_shrink; /* How to shrink regions */
+	int level;			/* zstd compression level */
+	gboolean lossless;		/* webp lossless mode */
 
 	/* True if we've detected a toilet-roll image, plus the page height,
 	 * which has been checked to be a factor of im->Ysize.
@@ -583,7 +588,16 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 	TIFFSetField( tif, TIFFTAG_COMPRESSION, wtiff->compression );
 
 	if( wtiff->compression == COMPRESSION_JPEG ) 
-		TIFFSetField( tif, TIFFTAG_JPEGQUALITY, wtiff->jpqual );
+		TIFFSetField( tif, TIFFTAG_JPEGQUALITY, wtiff->Q );
+
+#ifdef HAVE_TIFF_COMPRESSION_WEBP
+	if( wtiff->compression == COMPRESSION_WEBP ) {
+		TIFFSetField( tif, TIFFTAG_WEBP_LEVEL, wtiff->Q );
+		TIFFSetField( tif, TIFFTAG_WEBP_LOSSLESS, wtiff->lossless );
+	}
+	if( wtiff->compression == COMPRESSION_ZSTD ) 
+		TIFFSetField( tif, TIFFTAG_ZSTD_LEVEL, wtiff->level );
+#endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 
 	if( (wtiff->compression == VIPS_FOREIGN_TIFF_COMPRESSION_DEFLATE ||
 		wtiff->compression == VIPS_FOREIGN_TIFF_COMPRESSION_LZW) &&
@@ -640,50 +654,47 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 		TIFFSetField( tif, TIFFTAG_BITSPERSAMPLE, 
 			vips_format_sizeof( wtiff->im->BandFmt ) << 3 );
 
-		if( wtiff->im->Bands < 3 ) {
+		if( wtiff->im->Type == VIPS_INTERPRETATION_B_W ||
+			wtiff->im->Type == VIPS_INTERPRETATION_GREY16 ||
+			wtiff->im->Bands < 3 ) { 
 			/* Mono or mono + alpha.
 			 */
-			photometric = wtiff->miniswhite ? 
-				PHOTOMETRIC_MINISWHITE :  
+			photometric = wtiff->miniswhite ?
+				PHOTOMETRIC_MINISWHITE :
 				PHOTOMETRIC_MINISBLACK;
 			colour_bands = 1;
 		}
-		else {
-			/* Could be: RGB, CMYK, LAB, perhaps with extra alpha.
+		else if( wtiff->im->Type == VIPS_INTERPRETATION_LAB || 
+			wtiff->im->Type == VIPS_INTERPRETATION_LABS ) {
+			photometric = PHOTOMETRIC_CIELAB;
+			colour_bands = 3;
+		}
+		else if( wtiff->im->Type == VIPS_INTERPRETATION_CMYK &&
+			wtiff->im->Bands >= 4 ) {
+			photometric = PHOTOMETRIC_SEPARATED;
+			TIFFSetField( tif, TIFFTAG_INKSET, INKSET_CMYK );
+			colour_bands = 4;
+		}
+		else if( wtiff->compression == COMPRESSION_JPEG &&
+			wtiff->im->Bands == 3 &&
+			wtiff->im->BandFmt == VIPS_FORMAT_UCHAR &&
+			(!wtiff->rgbjpeg && wtiff->Q < 90) ) { 
+			/* This signals to libjpeg that it can do
+			 * YCbCr chrominance subsampling from RGB, not
+			 * that we will supply the image as YCbCr.
 			 */
-			if( wtiff->im->Type == VIPS_INTERPRETATION_LAB || 
-				wtiff->im->Type == VIPS_INTERPRETATION_LABS ) {
-				photometric = PHOTOMETRIC_CIELAB;
-				colour_bands = 3;
-			}
-			else if( wtiff->im->Type == VIPS_INTERPRETATION_CMYK &&
-				wtiff->im->Bands >= 4 ) {
-				photometric = PHOTOMETRIC_SEPARATED;
-				TIFFSetField( tif, 
-					TIFFTAG_INKSET, INKSET_CMYK );
-				colour_bands = 4;
-			}
-			else if( wtiff->compression == COMPRESSION_JPEG &&
-				wtiff->im->Bands == 3 &&
-				wtiff->im->BandFmt == VIPS_FORMAT_UCHAR &&
-				(!wtiff->rgbjpeg && wtiff->jpqual < 90) ) { 
-				/* This signals to libjpeg that it can do
-				 * YCbCr chrominance subsampling from RGB, not
-				 * that we will supply the image as YCbCr.
-				 */
-				photometric = PHOTOMETRIC_YCBCR;
-				TIFFSetField( tif, TIFFTAG_JPEGCOLORMODE, 
-					JPEGCOLORMODE_RGB );
-				colour_bands = 3;
-			}
-			else {
-				/* Some kind of generic multi-band image ..
-				 * save the first three bands as RGB, the rest
-				 * as alpha.
-				 */
-				photometric = PHOTOMETRIC_RGB;
-				colour_bands = 3;
-			}
+			photometric = PHOTOMETRIC_YCBCR;
+			TIFFSetField( tif, TIFFTAG_JPEGCOLORMODE, 
+				JPEGCOLORMODE_RGB );
+			colour_bands = 3;
+		}
+		else {
+			/* Some kind of generic multi-band image with three or
+			 * more bands ... save the first three bands as RGB, 
+			 * the rest as alpha.
+			 */
+			photometric = PHOTOMETRIC_RGB;
+			colour_bands = 3;
 		}
 
 		alpha_bands = VIPS_CLIP( 0, 
@@ -876,14 +887,16 @@ get_compression( VipsForeignTiffCompression compression )
 		return( COMPRESSION_CCITTFAX4 );
 	case VIPS_FOREIGN_TIFF_COMPRESSION_LZW:
 		return( COMPRESSION_LZW );
+#ifdef HAVE_TIFF_COMPRESSION_WEBP
+	case VIPS_FOREIGN_TIFF_COMPRESSION_WEBP:
+		return( COMPRESSION_WEBP );
+	case VIPS_FOREIGN_TIFF_COMPRESSION_ZSTD:
+		return( COMPRESSION_ZSTD );
+#endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 	
 	default:
-		g_assert_not_reached();
+		return( COMPRESSION_NONE );
 	}
-
-	/* Keep -Wall happy.
-	 */
-	return( -1 );
 }
 
 static int
@@ -918,7 +931,8 @@ wtiff_new( VipsImage *im, const char *filename,
 	gboolean rgbjpeg,
 	gboolean properties,
 	gboolean strip,
-	VipsRegionShrink region_shrink )
+	VipsRegionShrink region_shrink,
+	int level, gboolean lossless )
 {
 	Wtiff *wtiff;
 
@@ -930,7 +944,7 @@ wtiff_new( VipsImage *im, const char *filename,
 	wtiff->layer = NULL;
 	wtiff->tbuf = NULL;
 	wtiff->compression = get_compression( compression );
-	wtiff->jpqual = Q;
+	wtiff->Q = Q;
 	wtiff->predictor = predictor;
 	wtiff->tile = tile;
 	wtiff->tilew = tile_width;
@@ -947,6 +961,8 @@ wtiff_new( VipsImage *im, const char *filename,
 	wtiff->properties = properties;
 	wtiff->strip = strip;
 	wtiff->region_shrink = region_shrink;
+	wtiff->level = level;
+	wtiff->lossless = lossless;
 	wtiff->toilet_roll = FALSE;
 	wtiff->page_height = vips_image_get_page_height( im );
 	wtiff->image_height = im->Ysize;
@@ -1030,6 +1046,21 @@ wtiff_new( VipsImage *im, const char *filename,
 		wtiff->miniswhite = FALSE;
 	}
 
+	/* lossless is for webp only.
+	 */
+#ifdef HAVE_TIFF_COMPRESSION_WEBP
+	if( wtiff->lossless ) {
+		if( wtiff->compression == COMPRESSION_NONE )
+			wtiff->compression = COMPRESSION_WEBP;
+
+		if( wtiff->compression != COMPRESSION_WEBP ) {
+			g_warning( "%s", 
+				_( "lossless is for WEBP compression only" ) );
+			wtiff->lossless = FALSE;
+		}
+	}
+#endif /*HAVE_TIFF_COMPRESSION_WEBP*/
+
 	/* Sizeof a line of bytes in the TIFF tile.
 	 */
 	if( im->Coding == VIPS_CODING_LABQ )
@@ -1083,18 +1114,18 @@ wtiff_new( VipsImage *im, const char *filename,
 static void
 LabQ2LabC( VipsPel *q, VipsPel *p, int n )
 {
-        int x;
+	int x;
 
-        for( x = 0; x < n; x++ ) {
-                /* Get most significant 8 bits of lab.
-                 */
-                q[0] = p[0];
-                q[1] = p[1];
-                q[2] = p[2];
+	for( x = 0; x < n; x++ ) {
+		/* Get most significant 8 bits of lab.
+		 */
+		q[0] = p[0];
+		q[1] = p[1];
+		q[2] = p[2];
 
-                p += 4;
-                q += 3;
-        }
+		p += 4;
+		q += 3;
+	}
 }
 
 /* Pack 8 bit VIPS to 1 bit TIFF.
@@ -1202,22 +1233,26 @@ invert_band0( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
 /* Convert VIPS LABS to TIFF 16 bit LAB.
  */
 static void
-LabS2Lab16( VipsPel *q, VipsPel *p, int n )
+LabS2Lab16( VipsPel *q, VipsPel *p, int n, int samples_per_pixel )
 {
-        int x;
 	short *p1 = (short *) p;
 	unsigned short *q1 = (unsigned short *) q;
 
-        for( x = 0; x < n; x++ ) {
-                /* TIFF uses unsigned 16 bit ... move zero, scale up L.
-                 */
-                q1[0] = (int) p1[0] << 1;
-                q1[1] = p1[1];
-                q1[2] = p1[2];
+	int x;
 
-                p1 += 3;
-                q1 += 3;
-        }
+        for( x = 0; x < n; x++ ) {
+		int i;
+
+                /* LABS L can be negative.
+                 */
+                q1[0] = VIPS_LSHIFT_INT( VIPS_MAX( 0, p1[0] ), 1 );
+
+		for( i = 1; i < samples_per_pixel; i++ )
+			q1[i] = p1[i];
+
+		q1 += samples_per_pixel;
+		p1 += samples_per_pixel;
+	}
 }
 
 /* Pack the pixels in @area from @in into a TIFF tile buffer.
@@ -1252,7 +1287,7 @@ wtiff_pack2tiff( Wtiff *wtiff, Layer *layer,
 			invert_band0( wtiff, q, p, area->width );
 		else if( wtiff->im->BandFmt == VIPS_FORMAT_SHORT &&
 			wtiff->im->Type == VIPS_INTERPRETATION_LABS )
-			LabS2Lab16( q, p, area->width );
+			LabS2Lab16( q, p, area->width, in->im->Bands );
 		else
 			memcpy( q, p, 
 				area->width * 
@@ -1335,7 +1370,7 @@ wtiff_layer_write_strip( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 		}
 		else if( im->BandFmt == VIPS_FORMAT_SHORT &&
 			im->Type == VIPS_INTERPRETATION_LABS ) {
-			LabS2Lab16( wtiff->tbuf, p, im->Xsize );
+			LabS2Lab16( wtiff->tbuf, p, im->Xsize, im->Bands );
 			p = wtiff->tbuf;
 		}
 		else if( wtiff->onebit ) {
@@ -1603,7 +1638,7 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 	 * Set explicitly from Wtiff.
 	 */
 	if( wtiff->compression == COMPRESSION_JPEG ) {
-		TIFFSetField( out, TIFFTAG_JPEGQUALITY, wtiff->jpqual );
+		TIFFSetField( out, TIFFTAG_JPEGQUALITY, wtiff->Q );
 
 		/* Only for three-band, 8-bit images.
 		 */
@@ -1612,7 +1647,7 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 			/* Enable rgb->ycbcr conversion in the jpeg write. 
 			 */
 			if( !wtiff->rgbjpeg &&
-				wtiff->jpqual < 90 ) 
+				wtiff->Q < 90 ) 
 				TIFFSetField( out, 
 					TIFFTAG_JPEGCOLORMODE, 
 						JPEGCOLORMODE_RGB );
@@ -1625,6 +1660,17 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 				TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
 		}
 	}
+
+#ifdef HAVE_TIFF_COMPRESSION_WEBP
+	/* More pseudotags we can't copy.
+	 */
+	if( wtiff->compression == COMPRESSION_WEBP ) {
+		TIFFSetField( out, TIFFTAG_WEBP_LEVEL, wtiff->Q );
+		TIFFSetField( out, TIFFTAG_WEBP_LOSSLESS, wtiff->lossless );
+	}
+	if( wtiff->compression == COMPRESSION_ZSTD ) 
+		TIFFSetField( out, TIFFTAG_ZSTD_LEVEL, wtiff->level );
+#endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 
 	/* We can't copy profiles or xmp :( Set again from Wtiff.
 	 */
@@ -1668,6 +1714,7 @@ wtiff_gather( Wtiff *wtiff )
 		wtiff->layer->below )
 		for( layer = wtiff->layer->below; layer; 
 			layer = layer->below ) {
+			VipsStreami *streami;
 			TIFF *in;
 
 #ifdef DEBUG
@@ -1675,14 +1722,22 @@ wtiff_gather( Wtiff *wtiff )
 #endif /*DEBUG*/
 
 			if( layer->lname ) {
-				if( !(in = vips__tiff_openin( layer->lname )) ) 
+				if( !(streami = 
+					vips_streami_new_from_file( 
+						layer->lname )) ) 
 					return( -1 );
 			}
 			else {
-				if( !(in = vips__tiff_openin_buffer( wtiff->im,
-					layer->buf, layer->len )) ) 
+				if( !(streami = vips_streami_new_from_memory(
+					layer->buf, layer->len )) )
 					return( -1 );
 			}
+
+			if( !(in = vips__tiff_openin_stream( streami )) ) {
+				VIPS_UNREF( streami );
+				return( -1 );
+			}
+			VIPS_UNREF( streami );
 
 			if( wtiff_copy_tiff( wtiff, wtiff->layer->tif, in ) ) {
 				TIFFClose( in );
@@ -1785,7 +1840,8 @@ vips__tiff_write( VipsImage *in, const char *filename,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
 	gboolean properties, gboolean strip,
-	VipsRegionShrink region_shrink )
+	VipsRegionShrink region_shrink,
+	int level, gboolean lossless )
 {
 	Wtiff *wtiff;
 
@@ -1802,7 +1858,7 @@ vips__tiff_write( VipsImage *in, const char *filename,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
-		properties, strip, region_shrink )) )
+		properties, strip, region_shrink, level, lossless )) )
 		return( -1 );
 
 	if( wtiff_write_image( wtiff ) ) { 
@@ -1829,7 +1885,8 @@ vips__tiff_write_buf( VipsImage *in,
 	gboolean bigtiff,
 	gboolean rgbjpeg,
 	gboolean properties, gboolean strip, 
-	VipsRegionShrink region_shrink )
+	VipsRegionShrink region_shrink,
+	int level, gboolean lossless )
 {
 	Wtiff *wtiff;
 
@@ -1842,7 +1899,7 @@ vips__tiff_write_buf( VipsImage *in,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
-		properties, strip, region_shrink )) )
+		properties, strip, region_shrink, level, lossless )) )
 		return( -1 );
 
 	wtiff->obuf = obuf;

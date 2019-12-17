@@ -73,6 +73,7 @@
 #include <stdlib.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "binary.h"
 #include "unaryconst.h"
@@ -140,6 +141,15 @@ vips_boolean_build( VipsObject *object )
 		g_assert_not_reached(); \
 	} 
 
+#define FNLOOP( TYPE, FN ) { \
+	TYPE * restrict left = (TYPE *) in[0]; \
+	TYPE * restrict right = (TYPE *) in[1]; \
+	int * restrict q = (int *) out; \
+	\
+	for( x = 0; x < sz; x++ ) \
+		q[x] = FN( left[x], right[x] ); \
+}
+
 static void
 vips_boolean_buffer( VipsArithmetic *arithmetic, 
 	VipsPel *out, VipsPel **in, int width )
@@ -163,8 +173,30 @@ vips_boolean_buffer( VipsArithmetic *arithmetic,
 		SWITCH( LOOP, FLOOP, ^ ); 
 		break;
 
+	/* Special case: we need to be able to use VIPS_LSHIFT_INT().
+	 */
 	case VIPS_OPERATION_BOOLEAN_LSHIFT: 	
-		SWITCH( LOOP, FLOOP, << ); 
+		switch( vips_image_get_format( im ) ) { 
+		case VIPS_FORMAT_UCHAR:	
+			LOOP( unsigned char, << ); break; 
+		case VIPS_FORMAT_CHAR:
+			FNLOOP( signed char, VIPS_LSHIFT_INT ); break; 
+		case VIPS_FORMAT_USHORT:
+			LOOP( unsigned short, << ); break; 
+		case VIPS_FORMAT_SHORT:
+			FNLOOP( signed short, VIPS_LSHIFT_INT ); break; 
+		case VIPS_FORMAT_UINT:
+			LOOP( unsigned int, << ); break; 
+		case VIPS_FORMAT_INT:
+			FNLOOP( signed int, VIPS_LSHIFT_INT ); break; 
+		case VIPS_FORMAT_FLOAT:
+			FLOOP( float, << ); break; 
+		case VIPS_FORMAT_DOUBLE:
+			FLOOP( double, << ); break;
+		
+		default: 
+			g_assert_not_reached(); 
+		} 
 		break;
 
 	case VIPS_OPERATION_BOOLEAN_RSHIFT: 	
@@ -426,13 +458,10 @@ vips_boolean_const_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsUnary *unary = (VipsUnary *) object;
-	VipsUnaryConst *uconst = (VipsUnaryConst *) object;
 
 	if( unary->in &&
 		vips_check_noncomplex( class->nickname, unary->in ) )
 		return( -1 );
-
-	uconst->const_format = VIPS_FORMAT_INT;
 
 	if( VIPS_OBJECT_CLASS( vips_boolean_const_parent_class )->
 		build( object ) )
@@ -442,9 +471,9 @@ vips_boolean_const_build( VipsObject *object )
 }
 
 #define LOOPC( TYPE, OP ) { \
-	TYPE *p = (TYPE *) in[0]; \
-	TYPE *q = (TYPE *) out; \
-	int *c = (int *) uconst->c_ready; \
+	TYPE * restrict p = (TYPE *) in[0]; \
+	TYPE * restrict q = (TYPE *) out; \
+	int * restrict c = uconst->c_int; \
  	\
 	for( i = 0, x = 0; x < width; x++ ) \
 		for( b = 0; b < bands; b++, i++ ) \
@@ -452,9 +481,9 @@ vips_boolean_const_build( VipsObject *object )
 }
 
 #define FLOOPC( TYPE, OP ) { \
-	TYPE *p = (TYPE *) in[0]; \
-	int *q = (int *) out; \
-	int *c = (int *) uconst->c_ready; \
+	TYPE * restrict p = (TYPE *) in[0]; \
+	int * restrict q = (int *) out; \
+	int * restrict c = uconst->c_int; \
  	\
 	for( i = 0, x = 0; x < width; x++ ) \
 		for( b = 0; b < bands; b++, i++ ) \

@@ -717,7 +717,8 @@ vips_image_get_yoffset( const VipsImage *image )
  * vips_image_get_filename: (method)
  * @image: image to get from
  *
- * Returns: the name of the file the image was loaded from. 
+ * Returns: the name of the file the image was loaded from, or NULL if there
+ * is no filename.
  */
 const char *
 vips_image_get_filename( const VipsImage *image )
@@ -796,15 +797,15 @@ vips_image_get_page_height( VipsImage *image )
 {
 	int page_height;
 
-	if( !vips_image_get_typeof( image, VIPS_META_PAGE_HEIGHT ) ||
-		vips_image_get_int( image, VIPS_META_PAGE_HEIGHT, 
-			&page_height ) ||
-		page_height <= 0 ||
-		page_height > image->Ysize ||
-		image->Ysize % page_height != 0 ) 
-		page_height = image->Ysize;
+	if( vips_image_get_typeof( image, VIPS_META_PAGE_HEIGHT ) &&
+		!vips_image_get_int( image, VIPS_META_PAGE_HEIGHT, 
+			&page_height ) &&
+		page_height > 0 &&
+		page_height < image->Ysize &&
+		image->Ysize % page_height == 0 ) 
+		return( page_height );
 
-	return( page_height );
+	return( image->Ysize );
 }
 
 /**
@@ -824,13 +825,13 @@ vips_image_get_n_pages( VipsImage *image )
 {
 	int n_pages;
 
-	if( !vips_image_get_typeof( image, VIPS_META_N_PAGES ) ||
-		vips_image_get_int( image, VIPS_META_N_PAGES, &n_pages ) ||
-		n_pages < 2 || 
-		n_pages > 1000 )
-		n_pages = 1;
+	if( vips_image_get_typeof( image, VIPS_META_N_PAGES ) &&
+		!vips_image_get_int( image, VIPS_META_N_PAGES, &n_pages ) &&
+		n_pages > 1 &&
+		n_pages < 1000 )
+		return( n_pages );
 
-	return( n_pages );
+	return(	1 );
 }
 
 /**
@@ -1018,6 +1019,13 @@ vips_image_set( VipsImage *image, const char *name, GValue *value )
 {
 	g_assert( name );
 	g_assert( value );
+
+        /* If this image is shared, block metadata changes. 
+         */
+        if( G_OBJECT( image )->ref_count > 1 ) {
+                g_warning( "can't set metadata \"%s\" on shared image", name );
+                return;
+        }
 
 	meta_init( image );
 	(void) meta_new( image, name, value );
@@ -1212,6 +1220,14 @@ vips_image_get_typeof( const VipsImage *image, const char *name )
 gboolean
 vips_image_remove( VipsImage *image, const char *name )
 {
+        /* If this image is shared, block metadata changes. 
+         */
+        if( G_OBJECT( image )->ref_count > 1 ) {
+                g_warning( "can't remove metadata \"%s\" on shared image", 
+			name );
+                return( FALSE );
+        }
+
 	if( image->meta && 
 		g_hash_table_remove( image->meta, name ) )
 		return( TRUE );
@@ -1454,12 +1470,15 @@ vips_image_set_blob_copy( VipsImage *image,
 {
 	void *data_copy;
 
+	/* Cap at 100mb for sanity.
+	 */
 	if( !data ||
-		length == 0 )
+		length == 0 ||
+		length > 100 * 1024 * 1024 )
 		return;
 
 	/* We add an extra, secret null byte at the end, just in case this blob 
-	 * is read as a C string. The libtiff reader (for example) attaches
+	 * is read as a C string. The libtiff reader attaches
 	 * XMP XML as a blob, for example.
 	 */
 	if( !(data_copy = vips_malloc( NULL, length + 1 )) ) 
