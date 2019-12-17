@@ -590,7 +590,14 @@ vips_foreign_load_gif_set_header( VipsForeignLoadGif *gif, VipsImage *image )
 		vips_image_set_int( image,
 			VIPS_META_PAGE_HEIGHT, gif->file->SHeight );
 	vips_image_set_int( image, VIPS_META_N_PAGES, gif->n_pages );
-	vips_image_set_int( image, "gif-loop", gif->loop );
+	vips_image_set_int( image, "loop", gif->loop );
+
+	/* DEPRECATED "gif-loop"
+	 *
+	 * Not the correct behavior as loop=1 became gif-loop=0
+	 * but we want to keep the old behavior untouched!
+	 */
+	vips_image_set_int( image, "gif-loop", gif->loop == 0 ? 0 : gif->loop - 1 );
 
 	if( gif->delays ) {
 		/* The deprecated gif-delay field is in centiseconds.

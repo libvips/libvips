@@ -163,13 +163,20 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 	 * 	1 - don't write the netscape extension block
 	 * 	2 - loop once
 	 * 	3 - loop twice etc.
-	 *
-	 * We have the simple gif meaning, so we must add one unless it's
-	 * zero.
 	 */
-	if( vips_image_get_typeof( im, "gif-loop" ) &&
-		!vips_image_get_int( im, "gif-loop", &number ) )
+	if( vips_image_get_typeof( im, "loop" ) &&
+		!vips_image_get_int( im, "loop", &number ) ) {
 		image->iterations = (size_t) (number ? number : 0);
+	}
+	else {
+		/* DEPRECATED "gif-loop"
+		 *
+		 * We have the simple gif meaning, so we must add one unless it's zero.
+		 */
+		if( vips_image_get_typeof( im, "gif-loop" ) &&
+			!vips_image_get_int( im, "gif-loop", &number ) )
+			image->iterations = (size_t) (number ? number + 1 : 0);
+	}
 
 	if( vips_image_get_typeof( im, "gif-comment" ) &&
 		!vips_image_get_string( im, "gif-comment", &str ) )
