@@ -170,12 +170,13 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 	 */
 	if( vips_image_get_typeof( im, "loop" ) &&
 		!vips_image_get_int( im, "loop", &number ) ) {
-		image->iterations = (size_t) (number ? number : 0);
+		image->iterations = (size_t) number;
 	}
 	else {
 		/* DEPRECATED "gif-loop"
 		 *
-		 * We have the simple gif meaning, so we must add one unless it's zero.
+		 * We have the simple gif meaning, so we must add one unless 
+		 * it's zero.
 		 */
 		if( vips_image_get_typeof( im, "gif-loop" ) &&
 			!vips_image_get_int( im, "gif-loop", &number ) )

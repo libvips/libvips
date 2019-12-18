@@ -439,7 +439,8 @@ read_header( Read *read, VipsImage *out )
 		 * Not the correct behavior as loop=1 became gif-loop=0
 		 * but we want to keep the old behavior untouched!
 		 */
-		vips_image_set_int( out, "gif-loop", loop_count == 0 ? 0 : loop_count - 1 );
+		vips_image_set_int( out, "gif-loop", 
+			loop_count == 0 ? 0 : loop_count - 1 );
 		
 		vips_image_set_int( out, 
 			VIPS_META_PAGE_HEIGHT, read->frame_height );

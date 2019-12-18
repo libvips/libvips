@@ -574,8 +574,8 @@ vips_foreign_load_gif_scan_application_ext( VipsForeignLoadGif *gif,
 			extension[0] == 3 &&
 			extension[1] == 1 ) {
 				gif->loop = extension[2] | (extension[3] << 8);
-				if (gif->loop != 0) 
-					gif->loop = gif->loop + 1;
+				if( gif->loop != 0 ) 
+					gif->loop += 1;
 			}
 	}
 
