@@ -330,6 +330,7 @@ write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 
 	/* New images have an array of ints instead.
 	 */
+	delay_length = 0;
 	if( vips_image_get_typeof( image, "delay" ) &&
 		vips_image_get_array_int( image, "delay", 
 			&delay, &delay_length ) )
@@ -363,8 +364,7 @@ write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 		WebPPictureFree( &pic );
 
 		page_index = top / page_height;
-		if( delay &&
-			page_index < delay_length )
+		if(	page_index < delay_length )
 			timestamp_ms += delay[page_index];
 		else 
 			timestamp_ms += gif_delay * 10;
