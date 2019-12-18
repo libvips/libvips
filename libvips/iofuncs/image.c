@@ -2710,10 +2710,16 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
 
 	/* Save with the new stream API if we can. Fall back to the older
 	 * mechanism in case the loader we need has not been converted yet.
+	 *
+	 * We need to hide any errors from this first phase.
 	 */
 	vips__filename_split8( name, filename, option_string );
 
-	if( (operation_name = vips_foreign_find_save_stream( filename )) ) {
+	vips_error_freeze();
+	operation_name = vips_foreign_find_save_stream( filename );
+	vips_error_thaw();
+
+	if( operation_name ) {
 		VipsStreamo *streamo;
 
 		if( !(streamo = vips_streamo_new_to_file( filename )) )
