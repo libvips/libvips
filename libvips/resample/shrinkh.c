@@ -252,12 +252,6 @@ vips_shrinkh_build( VipsObject *object )
 	if( shrink->hshrink == 1 ) 
 		return( vips_image_write( in, resample->out ) );
 
-	/* Unpack for processing.
-	 */
-	if( vips_image_decode( in, &t[0] ) )
-		return( -1 );
-	in = t[0];
-
 	/* We need new pixels at the right so that we don't have small chunks
 	 * to average down the right edge.
 	 */

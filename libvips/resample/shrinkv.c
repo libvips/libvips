@@ -345,12 +345,6 @@ vips_shrinkv_build( VipsObject *object )
 	if( shrink->vshrink == 1 )
 		return( vips_image_write( in, resample->out ) );
 
-	/* Unpack for processing.
-	 */
-	if( vips_image_decode( in, &t[0] ) )
-		return( -1 );
-	in = t[0];
-
 	/* Make the height a multiple of the shrink factor so we don't need to
 	 * average half pixels.
 	 */

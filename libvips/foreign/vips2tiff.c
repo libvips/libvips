@@ -185,6 +185,8 @@
  * 8/7/19
  * 	- add webp and zstd support
  * 	- add @level and @lossless
+ * 18/12/19
+ * 	- "squash" now squashes 3-band float LAB down to LABQ
  */
 
 /*
@@ -287,7 +289,11 @@ struct _Layer {
 /* A TIFF image in the process of being written.
  */
 struct _Wtiff {
-	VipsImage *im;			/* Original input image */
+	VipsImage *input;		/* Original input image */
+
+	/* Image transformed ready for write.
+	 */
+	VipsImage *ready;
 
 	/* File to write to, or NULL.
 	 */
@@ -308,7 +314,7 @@ struct _Wtiff {
 	int tile;			/* Tile or not */
 	int tilew, tileh;		/* Tile size */
 	int pyramid;			/* Wtiff pyramid */
-	int onebit;			/* Wtiff as 1-bit TIFF */
+	int squash;			/* Write as small format */
 	int miniswhite;			/* Wtiff as 0 == white */
         int resunit;                    /* Resolution unit (inches or cm) */
         double xres;                   	/* Resolution in X */
@@ -384,7 +390,7 @@ wtiff_layer_new( Wtiff *wtiff, Layer *above, int width, int height )
 {
 	Layer *layer;
 
-	layer = VIPS_NEW( wtiff->im, Layer );
+	layer = VIPS_NEW( wtiff->ready, Layer );
 	layer->wtiff = wtiff;
 	layer->width = width;
 	layer->height = height; 
@@ -435,14 +441,14 @@ wtiff_layer_new( Wtiff *wtiff, Layer *above, int width, int height )
 	 */
 	if( wtiff->filename ) { 
 		if( !above ) 
-			layer->lname = vips_strdup( VIPS_OBJECT( wtiff->im ), 
+			layer->lname = vips_strdup( VIPS_OBJECT( wtiff->ready ),
 				wtiff->filename );
 		else {
 			char *lname;
 
 			lname = vips__temp_name( "%s.tif" );
-			layer->lname = 
-				vips_strdup( VIPS_OBJECT( wtiff->im ), lname );
+			layer->lname = vips_strdup( VIPS_OBJECT( wtiff->ready ),
+				lname );
 			g_free( lname );
 		}
 	}
@@ -458,8 +464,8 @@ wtiff_embed_profile( Wtiff *wtiff, TIFF *tif )
 		return( -1 );
 
 	if( !wtiff->icc_profile && 
-		vips_image_get_typeof( wtiff->im, VIPS_META_ICC_NAME ) &&
-		embed_profile_meta( tif, wtiff->im ) )
+		vips_image_get_typeof( wtiff->ready, VIPS_META_ICC_NAME ) &&
+		embed_profile_meta( tif, wtiff->ready ) )
 		return( -1 );
 
 	return( 0 );
@@ -471,9 +477,10 @@ wtiff_embed_xmp( Wtiff *wtiff, TIFF *tif )
 	const void *data;
 	size_t size;
 
-	if( !vips_image_get_typeof( wtiff->im, VIPS_META_XMP_NAME ) )
+	if( !vips_image_get_typeof( wtiff->ready, VIPS_META_XMP_NAME ) )
 		return( 0 );
-	if( vips_image_get_blob( wtiff->im, VIPS_META_XMP_NAME, &data, &size ) )
+	if( vips_image_get_blob( wtiff->ready, VIPS_META_XMP_NAME, 
+		&data, &size ) )
 		return( -1 );
 	TIFFSetField( tif, TIFFTAG_XMLPACKET, size, data );
 
@@ -490,9 +497,9 @@ wtiff_embed_iptc( Wtiff *wtiff, TIFF *tif )
 	const void *data;
 	size_t size;
 
-	if( !vips_image_get_typeof( wtiff->im, VIPS_META_IPTC_NAME ) )
+	if( !vips_image_get_typeof( wtiff->ready, VIPS_META_IPTC_NAME ) )
 		return( 0 );
-	if( vips_image_get_blob( wtiff->im, VIPS_META_IPTC_NAME, 
+	if( vips_image_get_blob( wtiff->ready, VIPS_META_IPTC_NAME, 
 		&data, &size ) )
 		return( -1 );
 
@@ -522,10 +529,10 @@ wtiff_embed_photoshop( Wtiff *wtiff, TIFF *tif )
 	const void *data;
 	size_t size;
 
-	if( !vips_image_get_typeof( wtiff->im, VIPS_META_PHOTOSHOP_NAME ) )
+	if( !vips_image_get_typeof( wtiff->ready, VIPS_META_PHOTOSHOP_NAME ) )
 		return( 0 );
-	if( vips_image_get_blob( wtiff->im, 
-		VIPS_META_PHOTOSHOP_NAME, &data, &size ) )
+	if( vips_image_get_blob( wtiff->ready, VIPS_META_PHOTOSHOP_NAME, 
+		&data, &size ) )
 		return( -1 );
 	TIFFSetField( tif, TIFFTAG_PHOTOSHOP, size, data );
 
@@ -545,7 +552,7 @@ wtiff_embed_imagedescription( Wtiff *wtiff, TIFF *tif )
 	if( wtiff->properties ) {
 		char *doc;
 
-		if( !(doc = vips__xml_properties( wtiff->im )) )
+		if( !(doc = vips__xml_properties( wtiff->ready )) )
 			return( -1 );
 		TIFFSetField( tif, TIFFTAG_IMAGEDESCRIPTION, doc );
 		g_free( doc );
@@ -553,10 +560,10 @@ wtiff_embed_imagedescription( Wtiff *wtiff, TIFF *tif )
 	else {
 		const char *imagedescription;
 
-		if( !vips_image_get_typeof( wtiff->im, 
+		if( !vips_image_get_typeof( wtiff->ready,
 			VIPS_META_IMAGEDESCRIPTION ) )
 			return( 0 );
-		if( vips_image_get_string( wtiff->im, 
+		if( vips_image_get_string( wtiff->ready,
 			VIPS_META_IMAGEDESCRIPTION, &imagedescription ) )
 			return( -1 );
 		TIFFSetField( tif, TIFFTAG_IMAGEDESCRIPTION, imagedescription );
@@ -620,19 +627,19 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 			wtiff_embed_imagedescription( wtiff, tif ) )
 			return( -1 ); 
 
-	if( vips_image_get_typeof( wtiff->im, VIPS_META_ORIENTATION ) &&
-		!vips_image_get_int( wtiff->im, 
+	if( vips_image_get_typeof( wtiff->ready, VIPS_META_ORIENTATION ) &&
+		!vips_image_get_int( wtiff->ready, 
 			VIPS_META_ORIENTATION, &orientation ) )
 		TIFFSetField( tif, TIFFTAG_ORIENTATION, orientation );
 
 	/* And colour fields.
 	 */
-	if( wtiff->im->Coding == VIPS_CODING_LABQ ) {
+	if( wtiff->ready->Coding == VIPS_CODING_LABQ ) {
 		TIFFSetField( tif, TIFFTAG_SAMPLESPERPIXEL, 3 );
 		TIFFSetField( tif, TIFFTAG_BITSPERSAMPLE, 8 );
 		TIFFSetField( tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_CIELAB );
 	}
-	else if( wtiff->onebit ) {
+	else if( wtiff->squash ) {
 		TIFFSetField( tif, TIFFTAG_SAMPLESPERPIXEL, 1 );
 		TIFFSetField( tif, TIFFTAG_BITSPERSAMPLE, 1 );
 		TIFFSetField( tif, TIFFTAG_PHOTOMETRIC, 
@@ -650,13 +657,14 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 
 		int alpha_bands;
 
-		TIFFSetField( tif, TIFFTAG_SAMPLESPERPIXEL, wtiff->im->Bands );
+		TIFFSetField( tif, TIFFTAG_SAMPLESPERPIXEL, 
+			wtiff->ready->Bands );
 		TIFFSetField( tif, TIFFTAG_BITSPERSAMPLE, 
-			vips_format_sizeof( wtiff->im->BandFmt ) << 3 );
+			vips_format_sizeof( wtiff->ready->BandFmt ) << 3 );
 
-		if( wtiff->im->Type == VIPS_INTERPRETATION_B_W ||
-			wtiff->im->Type == VIPS_INTERPRETATION_GREY16 ||
-			wtiff->im->Bands < 3 ) { 
+		if( wtiff->ready->Type == VIPS_INTERPRETATION_B_W ||
+			wtiff->ready->Type == VIPS_INTERPRETATION_GREY16 ||
+			wtiff->ready->Bands < 3 ) { 
 			/* Mono or mono + alpha.
 			 */
 			photometric = wtiff->miniswhite ?
@@ -664,20 +672,20 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 				PHOTOMETRIC_MINISBLACK;
 			colour_bands = 1;
 		}
-		else if( wtiff->im->Type == VIPS_INTERPRETATION_LAB || 
-			wtiff->im->Type == VIPS_INTERPRETATION_LABS ) {
+		else if( wtiff->ready->Type == VIPS_INTERPRETATION_LAB || 
+			wtiff->ready->Type == VIPS_INTERPRETATION_LABS ) {
 			photometric = PHOTOMETRIC_CIELAB;
 			colour_bands = 3;
 		}
-		else if( wtiff->im->Type == VIPS_INTERPRETATION_CMYK &&
-			wtiff->im->Bands >= 4 ) {
+		else if( wtiff->ready->Type == VIPS_INTERPRETATION_CMYK &&
+			wtiff->ready->Bands >= 4 ) {
 			photometric = PHOTOMETRIC_SEPARATED;
 			TIFFSetField( tif, TIFFTAG_INKSET, INKSET_CMYK );
 			colour_bands = 4;
 		}
 		else if( wtiff->compression == COMPRESSION_JPEG &&
-			wtiff->im->Bands == 3 &&
-			wtiff->im->BandFmt == VIPS_FORMAT_UCHAR &&
+			wtiff->ready->Bands == 3 &&
+			wtiff->ready->BandFmt == VIPS_FORMAT_UCHAR &&
 			(!wtiff->rgbjpeg && wtiff->Q < 90) ) { 
 			/* This signals to libjpeg that it can do
 			 * YCbCr chrominance subsampling from RGB, not
@@ -698,7 +706,7 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 		}
 
 		alpha_bands = VIPS_CLIP( 0, 
-			wtiff->im->Bands - colour_bands, MAX_ALPHA );
+			wtiff->ready->Bands - colour_bands, MAX_ALPHA );
 		if( alpha_bands > 0 ) { 
 			uint16 v[MAX_ALPHA];
 			int i;
@@ -733,13 +741,13 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 	/* Sample format.
 	 */
 	format = SAMPLEFORMAT_UINT;
-	if( vips_band_format_isuint( wtiff->im->BandFmt ) )
+	if( vips_band_format_isuint( wtiff->ready->BandFmt ) )
 		format = SAMPLEFORMAT_UINT;
-	else if( vips_band_format_isint( wtiff->im->BandFmt ) )
+	else if( vips_band_format_isint( wtiff->ready->BandFmt ) )
 		format = SAMPLEFORMAT_INT;
-	else if( vips_band_format_isfloat( wtiff->im->BandFmt ) )
+	else if( vips_band_format_isfloat( wtiff->ready->BandFmt ) )
 		format = SAMPLEFORMAT_IEEEFP;
-	else if( vips_band_format_iscomplex( wtiff->im->BandFmt ) )
+	else if( vips_band_format_iscomplex( wtiff->ready->BandFmt ) )
 		format = SAMPLEFORMAT_COMPLEXIEEEFP;
 	TIFFSetField( tif, TIFFTAG_SAMPLEFORMAT, format );
 
@@ -779,7 +787,7 @@ wtiff_allocate_layers( Wtiff *wtiff )
 	for( layer = wtiff->layer; layer; layer = layer->below ) {
 		layer->image = vips_image_new();
 		if( vips_image_pipelinev( layer->image, 
-			VIPS_DEMAND_STYLE_ANY, wtiff->im, NULL ) ) 
+			VIPS_DEMAND_STYLE_ANY, wtiff->ready, NULL ) ) 
 			return( -1 );
 		layer->image->Xsize = layer->width;
 		layer->image->Ysize = layer->height;
@@ -800,7 +808,7 @@ wtiff_allocate_layers( Wtiff *wtiff )
 			layer->tif = vips__tiff_openout( 
 				layer->lname, wtiff->bigtiff );
 		else {
-			layer->tif = vips__tiff_openout_buffer( wtiff->im, 
+			layer->tif = vips__tiff_openout_buffer( wtiff->ready, 
 				wtiff->bigtiff, &layer->buf, &layer->len );
 		}
 		if( !layer->tif ) 
@@ -866,9 +874,12 @@ wtiff_free( Wtiff *wtiff )
 {
 	wtiff_delete_temps( wtiff );
 
+	VIPS_UNREF( wtiff->ready );
 	VIPS_FREEF( vips_free, wtiff->tbuf );
 	VIPS_FREEF( layer_free_all, wtiff->layer );
 	VIPS_FREEF( vips_free, wtiff->icc_profile );
+	VIPS_FREE( wtiff->filename );
+	VIPS_FREE( wtiff );
 }
 
 static int
@@ -917,8 +928,34 @@ get_resunit( VipsForeignTiffResunit resunit )
 	return( -1 );
 }
 
+/* Get the image ready to be written.
+ */
+static int
+ready_to_write( Wtiff *wtiff )
+{
+	if( vips_check_coding_known( "vips2tiff", wtiff->input ) )
+		return( -1 );
+
+	/* "squash" float LAB down to LABQ.
+	 */
+	if( wtiff->squash &&
+		wtiff->input->Bands == 3 &&
+		wtiff->input->BandFmt == VIPS_FORMAT_FLOAT &&
+		wtiff->input->Type == VIPS_INTERPRETATION_LAB ) {
+		if( vips_Lab2LabQ( wtiff->input, &wtiff->ready, NULL ) )
+			return( -1 );
+		wtiff->squash = 0;
+	}
+	else {
+		wtiff->ready = wtiff->input;
+		g_object_ref( wtiff->ready );
+	}
+
+	return( 0 );
+}
+
 static Wtiff *
-wtiff_new( VipsImage *im, const char *filename, 
+wtiff_new( VipsImage *input, const char *filename, 
 	VipsForeignTiffCompression compression, int Q, 
 	VipsForeignTiffPredictor predictor,
 	char *profile,
@@ -936,11 +973,11 @@ wtiff_new( VipsImage *im, const char *filename,
 {
 	Wtiff *wtiff;
 
-	if( !(wtiff = VIPS_NEW( im, Wtiff )) )
+	if( !(wtiff = VIPS_NEW( NULL, Wtiff )) )
 		return( NULL );
-	wtiff->im = im;
-	wtiff->filename = filename ? 
-		vips_strdup( VIPS_OBJECT( im ), filename ) : NULL;
+	wtiff->input = input;
+	wtiff->ready = NULL;
+	wtiff->filename = filename ? vips_strdup( NULL, filename ) : NULL;
 	wtiff->layer = NULL;
 	wtiff->tbuf = NULL;
 	wtiff->compression = get_compression( compression );
@@ -950,7 +987,7 @@ wtiff_new( VipsImage *im, const char *filename,
 	wtiff->tilew = tile_width;
 	wtiff->tileh = tile_height;
 	wtiff->pyramid = pyramid;
-	wtiff->onebit = squash;
+	wtiff->squash = squash;
 	wtiff->miniswhite = miniswhite;
 	wtiff->resunit = get_resunit( resunit );
 	wtiff->xres = xres;
@@ -964,18 +1001,25 @@ wtiff_new( VipsImage *im, const char *filename,
 	wtiff->level = level;
 	wtiff->lossless = lossless;
 	wtiff->toilet_roll = FALSE;
-	wtiff->page_height = vips_image_get_page_height( im );
-	wtiff->image_height = im->Ysize;
+	wtiff->page_height = vips_image_get_page_height( input );
+	wtiff->image_height = input->Ysize;
+
+	/* Any pre-processing on the image.
+	 */
+	if( ready_to_write( wtiff ) ) {
+		wtiff_free( wtiff );
+		return( NULL );
+	}
 
 	/* Multipage image?
 	 */
-	if( wtiff->page_height < im->Ysize ) {
+	if( wtiff->page_height < wtiff->ready->Ysize ) {
 #ifdef DEBUG
 		printf( "wtiff_new: detected toilet roll image, "
 			"page-height=%d\n", 
 			wtiff->page_height );
 		printf( "wtiff_new: pages=%d\n", 
-			im->Ysize / wtiff->page_height );
+			wtiff->ready->Ysize / wtiff->page_height );
 #endif/*DEBUG*/
 
 		wtiff->toilet_roll = TRUE;
@@ -997,6 +1041,7 @@ wtiff_new( VipsImage *im, const char *filename,
 	if( tile ) { 
 		if( (wtiff->tilew & 0xf) != 0 || 
 			(wtiff->tileh & 0xf) != 0 ) {
+			wtiff_free( wtiff );
 			vips_error( "vips2tiff", 
 				"%s", _( "tile size not a multiple of 16" ) );
 			return( NULL );
@@ -1006,8 +1051,9 @@ wtiff_new( VipsImage *im, const char *filename,
 	/* We can only pyramid LABQ and non-complex images. 
 	 */
 	if( wtiff->pyramid ) {
-		if( im->Coding == VIPS_CODING_NONE && 
-			vips_band_format_iscomplex( im->BandFmt ) ) {
+		if( wtiff->ready->Coding == VIPS_CODING_NONE && 
+			vips_band_format_iscomplex( wtiff->ready->BandFmt ) ) {
+			wtiff_free( wtiff );
 			vips_error( "vips2tiff", 
 				"%s", _( "can only pyramid LABQ and "
 				"non-complex images" ) );
@@ -1015,19 +1061,20 @@ wtiff_new( VipsImage *im, const char *filename,
 		}
 	}
 
-	/* Only 1-bit-ize 8 bit mono images.
+	/* Can only squash 8 bit mono. 3-band float should have been squashed
+	 * above.
 	 */
-	if( wtiff->onebit &&
-		(im->Coding != VIPS_CODING_NONE || 
-			im->BandFmt != VIPS_FORMAT_UCHAR ||
-			im->Bands != 1) ) {
+	if( wtiff->squash &&
+		!(wtiff->ready->Coding == VIPS_CODING_NONE && 
+			wtiff->ready->BandFmt == VIPS_FORMAT_UCHAR &&
+			wtiff->ready->Bands == 1) ) { 
 		g_warning( "%s",
-			_( "can only squash 1 band uchar images -- "
-				"disabling squash" ) );
-		wtiff->onebit = 0;
+			_( "can only squash 1-band uchar and "
+				"3-band float lab -- disabling squash" ) );
+		wtiff->squash = 0;
 	}
 
-	if( wtiff->onebit && 
+	if( wtiff->squash && 
 		wtiff->compression == COMPRESSION_JPEG ) {
 		g_warning( "%s", 
 			_( "can't have 1-bit JPEG -- disabling JPEG" ) );
@@ -1037,9 +1084,9 @@ wtiff_new( VipsImage *im, const char *filename,
 	/* We can only MINISWHITE non-complex images of 1 or 2 bands.
 	 */
 	if( wtiff->miniswhite &&
-		(im->Coding != VIPS_CODING_NONE || 
-			vips_band_format_iscomplex( im->BandFmt ) ||
-			im->Bands > 2) ) {
+		(wtiff->ready->Coding != VIPS_CODING_NONE || 
+			vips_band_format_iscomplex( wtiff->ready->BandFmt ) ||
+			wtiff->ready->Bands > 2) ) {
 		g_warning( "%s", 
 			_( "can only save non-complex greyscale images "
 				"as miniswhite -- disabling miniswhite" ) );
@@ -1063,12 +1110,13 @@ wtiff_new( VipsImage *im, const char *filename,
 
 	/* Sizeof a line of bytes in the TIFF tile.
 	 */
-	if( im->Coding == VIPS_CODING_LABQ )
+	if( wtiff->ready->Coding == VIPS_CODING_LABQ )
 		wtiff->tls = wtiff->tilew * 3;
-	else if( wtiff->onebit )
+	else if( wtiff->squash )
 		wtiff->tls = VIPS_ROUND_UP( wtiff->tilew, 8 ) / 8;
 	else
-		wtiff->tls = VIPS_IMAGE_SIZEOF_PEL( im ) * wtiff->tilew;
+		wtiff->tls = VIPS_IMAGE_SIZEOF_PEL( wtiff->ready ) * 
+			wtiff->tilew;
 
 	/* If compression is off and we're writing a >4gb image, automatically
 	 * enable bigtiff.
@@ -1077,7 +1125,7 @@ wtiff_new( VipsImage *im, const char *filename,
 	 * there's a lot of metadata, we could be pushed over the 4gb limit.
 	 */
 	if( wtiff->compression == COMPRESSION_NONE &&
-		VIPS_IMAGE_SIZEOF_IMAGE( wtiff->im ) > UINT_MAX && 
+		VIPS_IMAGE_SIZEOF_IMAGE( wtiff->ready ) > UINT_MAX && 
 		!wtiff->bigtiff ) { 
 		g_warning( "%s", _( "image over 4gb, enabling bigtiff" ) );
 		wtiff->bigtiff = TRUE;
@@ -1086,7 +1134,7 @@ wtiff_new( VipsImage *im, const char *filename,
 	/* Build the pyramid framework.
 	 */
 	wtiff->layer = wtiff_layer_new( wtiff, NULL, 
-		im->Xsize, wtiff->image_height );
+		wtiff->ready->Xsize, wtiff->image_height );
 
 	/* Fill all the layers.
 	 */
@@ -1190,7 +1238,7 @@ eightbit2onebit( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
 static void
 invert_band0( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
 {
-	VipsImage *im = wtiff->im;
+	VipsImage *im = wtiff->ready;
 	gboolean invert = wtiff->miniswhite;
 
         int x, i;
@@ -1278,20 +1326,20 @@ wtiff_pack2tiff( Wtiff *wtiff, Layer *layer,
 	for( y = area->top; y < VIPS_RECT_BOTTOM( area ); y++ ) {
 		VipsPel *p = (VipsPel *) VIPS_REGION_ADDR( in, area->left, y );
 
-		if( wtiff->im->Coding == VIPS_CODING_LABQ )
+		if( wtiff->ready->Coding == VIPS_CODING_LABQ )
 			LabQ2LabC( q, p, area->width );
-		else if( wtiff->onebit ) 
+		else if( wtiff->squash ) 
 			eightbit2onebit( wtiff, q, p, area->width );
 		else if( (in->im->Bands == 1 || in->im->Bands == 2) && 
 			wtiff->miniswhite ) 
 			invert_band0( wtiff, q, p, area->width );
-		else if( wtiff->im->BandFmt == VIPS_FORMAT_SHORT &&
-			wtiff->im->Type == VIPS_INTERPRETATION_LABS )
+		else if( wtiff->ready->BandFmt == VIPS_FORMAT_SHORT &&
+			wtiff->ready->Type == VIPS_INTERPRETATION_LABS )
 			LabS2Lab16( q, p, area->width, in->im->Bands );
 		else
 			memcpy( q, p, 
 				area->width * 
-				 VIPS_IMAGE_SIZEOF_PEL( wtiff->im ) );
+					VIPS_IMAGE_SIZEOF_PEL( wtiff->ready ) );
 
 		q += wtiff->tls;
 	}
@@ -1373,7 +1421,7 @@ wtiff_layer_write_strip( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 			LabS2Lab16( wtiff->tbuf, p, im->Xsize, im->Bands );
 			p = wtiff->tbuf;
 		}
-		else if( wtiff->onebit ) {
+		else if( wtiff->squash ) {
 			eightbit2onebit( wtiff, wtiff->tbuf, p, im->Xsize );
 			p = wtiff->tbuf;
 		}
@@ -1642,8 +1690,8 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 
 		/* Only for three-band, 8-bit images.
 		 */
-		if( wtiff->im->Bands == 3 &&
-			wtiff->im->BandFmt == VIPS_FORMAT_UCHAR ) { 
+		if( wtiff->ready->Bands == 3 &&
+			wtiff->ready->BandFmt == VIPS_FORMAT_UCHAR ) { 
 			/* Enable rgb->ycbcr conversion in the jpeg write. 
 			 */
 			if( !wtiff->rgbjpeg &&
@@ -1768,8 +1816,8 @@ wtiff_write_image( Wtiff *wtiff )
 		for(;;) {
 			VipsImage *page;
 
-			if( vips_crop( wtiff->im, &page, 
-				0, y, wtiff->im->Xsize, wtiff->page_height,
+			if( vips_crop( wtiff->ready, &page, 
+				0, y, wtiff->ready->Xsize, wtiff->page_height,
 				NULL ) )
 				return( -1 ); 
 			if( vips_sink_disc( page, write_strip, wtiff ) ) {
@@ -1779,7 +1827,7 @@ wtiff_write_image( Wtiff *wtiff )
 			g_object_unref( page );
 
 			y += wtiff->page_height;
-			if( y >= wtiff->im->Ysize )
+			if( y >= wtiff->ready->Ysize )
 				break;
 
 			if( !TIFFWriteDirectory( wtiff->layer->tif ) || 
@@ -1795,7 +1843,7 @@ wtiff_write_image( Wtiff *wtiff )
 		printf( "wtiff_write_image: pyramid mode\n" ); 
 #endif /*DEBUG*/
 
-		if( vips_sink_disc( wtiff->im, write_strip, wtiff ) ) 
+		if( vips_sink_disc( wtiff->ready, write_strip, wtiff ) ) 
 			return( -1 );
 
 		if( !TIFFWriteDirectory( wtiff->layer->tif ) ) 
@@ -1820,7 +1868,7 @@ wtiff_write_image( Wtiff *wtiff )
 		printf( "wtiff_write_image: single-image mode\n" ); 
 #endif /*DEBUG*/
 
-		if( vips_sink_disc( wtiff->im, write_strip, wtiff ) ) 
+		if( vips_sink_disc( wtiff->ready, write_strip, wtiff ) ) 
 			return( -1 );
 	}
 
@@ -1828,7 +1876,7 @@ wtiff_write_image( Wtiff *wtiff )
 }
 
 int 
-vips__tiff_write( VipsImage *in, const char *filename, 
+vips__tiff_write( VipsImage *input, const char *filename, 
 	VipsForeignTiffCompression compression, int Q, 
 	VipsForeignTiffPredictor predictor,
 	char *profile,
@@ -1851,10 +1899,7 @@ vips__tiff_write( VipsImage *in, const char *filename,
 
 	vips__tiff_init();
 
-	if( vips_check_coding_known( "vips2tiff", in ) )
-		return( -1 );
-
-	if( !(wtiff = wtiff_new( in, filename, 
+	if( !(wtiff = wtiff_new( input, filename, 
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
@@ -1872,7 +1917,7 @@ vips__tiff_write( VipsImage *in, const char *filename,
 }
 
 int 
-vips__tiff_write_buf( VipsImage *in, 
+vips__tiff_write_buf( VipsImage *input, 
 	void **obuf, size_t *olen, 
 	VipsForeignTiffCompression compression, int Q, 
 	VipsForeignTiffPredictor predictor,
@@ -1892,10 +1937,7 @@ vips__tiff_write_buf( VipsImage *in,
 
 	vips__tiff_init();
 
-	if( vips_check_coding_known( "vips2tiff", in ) )
-		return( -1 );
-
-	if( !(wtiff = wtiff_new( in, NULL, 
+	if( !(wtiff = wtiff_new( input, NULL, 
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 

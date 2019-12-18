@@ -197,6 +197,12 @@ vips_resize_build( VipsObject *object )
 	int_hshrink = vips_resize_int_shrink( resize, hscale );
 	int_vshrink = vips_resize_int_shrink( resize, vscale );
 
+	/* Unpack for processing.
+	 */
+	if( vips_image_decode( in, &t[5] ) )
+		return( -1 );
+	in = t[5];
+
 	if( int_vshrink > 1 ) { 
 		g_info( "shrinkv by %d", int_vshrink );
 		if( vips_shrinkv( in, &t[0], int_vshrink, NULL ) )

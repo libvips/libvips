@@ -571,6 +571,8 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * images which use this sense. @miniswhite only affects one-bit images, it
  * does nothing for greyscale images. 
  *
+ * Set @squash to squash 3-band float CIELAB images down to 8-bit CIELAB.
+ *
  * Use @resunit to override the default resolution unit.  
  * The default 
  * resolution unit is taken from the header field 
