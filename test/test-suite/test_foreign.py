@@ -11,7 +11,7 @@ from helpers import \
     JPEG_FILE, SRGB_FILE, MATLAB_FILE, PNG_FILE, TIF_FILE, OME_FILE, \
     ANALYZE_FILE, GIF_FILE, WEBP_FILE, EXR_FILE, FITS_FILE, OPENSLIDE_FILE, \
     PDF_FILE, SVG_FILE, SVGZ_FILE, SVG_GZ_FILE, GIF_ANIM_FILE, DICOM_FILE, \
-    BMP_FILE, NIFTI_FILE, ICO_FILE, HEIC_FILE, \
+    BMP_FILE, NIFTI_FILE, ICO_FILE, HEIC_FILE, TRUNCATED_FILE, \
     temp_filename, assert_almost_equal_objects, have, skip_if_no
 
 
@@ -233,6 +233,19 @@ class TestForeign:
             # can't use == since the string will have an extra " (xx, yy, zz)" 
             # format area at the end
             assert y.startswith("hello world")
+
+    @skip_if_no("jpegload")
+    def test_truncated(self):
+        # This should open (there's enough there for the header)
+        im = pyvips.Image.new_from_file(TRUNCATED_FILE)
+        # but this should fail with a warning, and knock TRUNCATED_FILE out of
+        # the cache
+        x = im.avg()
+
+        # now we should open again, but it won't come from cache, it'll reload
+        im = pyvips.Image.new_from_file(TRUNCATED_FILE)
+        # and this should fail with a warning once more
+        x = im.avg()
 
     @skip_if_no("pngload")
     def test_png(self):
