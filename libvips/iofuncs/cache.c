@@ -543,6 +543,11 @@ vips_object_unref_arg( VipsObject *object,
 static void
 vips_cache_unref( VipsOperation *operation )
 {
+#ifdef DEBUG
+	printf( "vips_cache_unref: " );
+	vips_object_print_summary( VIPS_OBJECT( operation ) );
+#endif /*DEBUG*/
+
 	(void) vips_argument_map( VIPS_OBJECT( operation ),
 		vips_object_unref_arg, NULL, NULL );
 	g_object_unref( operation );
@@ -557,7 +562,8 @@ vips_cache_remove( VipsOperation *operation )
 		g_hash_table_lookup( vips_cache_table, operation );
 
 #ifdef DEBUG
-	printf( "vips_cache_remove: trimming %p\n", operation );
+	printf( "vips_cache_remove: " );
+	vips_object_print_summary( VIPS_OBJECT( operation ) );
 #endif /*DEBUG*/
 
 	g_assert( entry ); 
@@ -616,6 +622,11 @@ vips_operation_touch( VipsOperation *operation )
 static void
 vips_cache_ref( VipsOperation *operation )
 {
+#ifdef DEBUG
+	printf( "vips_cache_ref: " );
+	vips_object_print_summary( VIPS_OBJECT( operation ) );
+#endif /*DEBUG*/
+
 	g_object_ref( operation );
 	(void) vips_argument_map( VIPS_OBJECT( operation ),
 		vips_object_ref_arg, NULL, NULL );
@@ -626,6 +637,11 @@ static void
 vips_cache_invalidate_cb( VipsOperation *operation, 
 	VipsOperationCacheEntry *entry )
 {
+#ifdef DEBUG
+	printf( "vips_cache_invalidate_cb: " );
+	vips_object_print_summary( VIPS_OBJECT( operation ) );
+#endif /*DEBUG*/
+
 	entry->invalid = TRUE;
 }
 
@@ -635,7 +651,8 @@ vips_cache_insert( VipsOperation *operation )
 	VipsOperationCacheEntry *entry = g_new( VipsOperationCacheEntry, 1 );
 
 #ifdef VIPS_DEBUG
-	printf( "vips_cache_insert: adding %p to cache\n", operation );
+	printf( "vips_cache_insert: adding to cache" );
+	vips_object_print_dump( VIPS_OBJECT( operation ) );
 #endif /*VIPS_DEBUG*/
 
 	entry->operation = operation;
@@ -683,6 +700,10 @@ vips_cache_get_first( void )
 void
 vips_cache_drop_all( void )
 {
+#ifdef VIPS_DEBUG
+	printf( "vips_cache_drop_all:\n" );
+#endif /*VIPS_DEBUG*/
+
 	g_mutex_lock( vips_cache_lock );
 
 	if( vips_cache_table ) {
@@ -747,7 +768,8 @@ vips_cache_trim( void )
 		vips_tracked_get_mem() > vips_cache_max_mem) &&
 		(operation = vips_cache_get_lru()) ) {
 #ifdef DEBUG
-		printf( "vips_cache_trim: trimming %p\n", operation );
+		printf( "vips_cache_trim: trimming " );
+		vips_object_print_summary( VIPS_OBJECT( operation ) );
 #endif /*DEBUG*/
 
 		vips_cache_remove( operation );
@@ -787,7 +809,7 @@ vips_cache_operation_lookup( VipsOperation *operation )
 		if( hit->invalid ) {
 			/* There but has been tagged for removal.
 			 */
-			vips_cache_remove( operation );
+			vips_cache_remove( hit->operation );
 			hit = NULL;
 		}
 		else {
