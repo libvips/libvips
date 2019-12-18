@@ -31,7 +31,15 @@ you can do something more like this:
 
 There's no buffering, so there should be a useful drop in latency.
 
-It's really easy to use. In ruby-vips, for example, you can make a source
+It's really easy to use. For example:
+
+```
+aws s3 cp s3://mybucket/input.jpg - | \
+    vips thumbnail_stream [descriptor=0] .jpg 128 | \
+    aws s3 cp - s3://mybucket/output.jpg
+```
+
+You can link it to anything. In ruby-vips, for example, you can make a source
 like this:
 
 ```ruby
