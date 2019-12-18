@@ -484,13 +484,23 @@ vips_webp_add_metadata( VipsWebPWrite *write )
 		return( -1 );
 	}
 
-	if( vips_image_get_typeof( write->image, "gif-loop" ) ) {
+	if( vips_image_get_typeof( write->image, "loop" ) ) {
+		int loop;
+
+		if( vips_image_get_int( write->image, "loop", &loop ) )
+			return( -1 );
+
+		vips_webp_set_count( write, loop );
+	}
+	/* DEPRECATED "gif-loop"
+	 */
+	else if ( vips_image_get_typeof( write->image, "gif-loop" ) ) {
 		int gif_loop;
 
 		if( vips_image_get_int( write->image, "gif-loop", &gif_loop ) )
 			return( -1 );
 
-		vips_webp_set_count( write, gif_loop );
+		vips_webp_set_count( write, gif_loop == 0 ? 0 : gif_loop + 1 );
 	}
 
 	/* Add extra metadata.
