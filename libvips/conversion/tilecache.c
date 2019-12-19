@@ -937,8 +937,7 @@ vips_line_cache_build( VipsObject *object )
 	block_cache->tile_width = block_cache->in->Xsize;
 
 	/* Output has two buffers n_lines height, so 2 * n_lines is the maximum
-	 * non-locality from threading. Add another n_lines for conv / reducev
-	 * etc. 
+	 * non-locality from threading. Double again for conv, rounding, etc. 
 	 *
 	 * tile_height can be huge for things like tiff read, where we can
 	 * have a whole strip in a single tile ... we still need to have a
@@ -946,7 +945,7 @@ vips_line_cache_build( VipsObject *object )
 	 * tile boundary.
 	 */
 	block_cache->max_tiles = VIPS_MAX( 2, 
-		3 * n_lines / block_cache->tile_height );
+		4 * n_lines / block_cache->tile_height );
 
 	VIPS_DEBUG_MSG( "vips_line_cache_build: n_lines = %d\n", 
 		n_lines );
