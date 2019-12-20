@@ -1596,8 +1596,19 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 
 		if( !vips_image_get_blob( in, VIPS_META_ICC_NAME, 
 			&data, &length ) &&
-			!vips_icc_is_compatible_profile( in, data, length ) ) 
+			!vips_icc_is_compatible_profile( in, data, length ) ) {
+			VipsImage *out;
+
+			if( vips_copy( in, &out, NULL ) ) {
+				g_object_unref( in );
+				return( -1 );
+			}
+			g_object_unref( in );
+
+			in = out;
+
 			vips_image_remove( in, VIPS_META_ICC_NAME );
+		}
 	}
 
 	*ready = in;
