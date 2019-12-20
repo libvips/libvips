@@ -672,7 +672,7 @@ vips_streami_read( VipsStreami *streami, void *buffer, size_t length )
 		bytes_read += available;
 	}
 	else {
-		/* Some kind of filesystem source. 
+		/* Some kind of filesystem or custom source. 
 		 *
 		 * Get what we can from header_bytes. We may need to read 
 		 * some more after this.
@@ -769,12 +769,12 @@ vips_streami_pipe_read_to_position( VipsStreami *streami, gint64 target )
 
 	while( target == -1 ||
 		streami->read_position < target ) {
-		ssize_t read;
+		ssize_t bytes_read;
 
-		read = vips_streami_read( streami, buffer, 4096 );
-		if( read == -1 )
+		bytes_read = vips_streami_read( streami, buffer, 4096 );
+		if( bytes_read == -1 )
 			return( -1 );
-		if( read == 0 )
+		if( bytes_read == 0 )
 			break;
 
 		if( target == -1 &&
@@ -786,6 +786,66 @@ vips_streami_pipe_read_to_position( VipsStreami *streami, gint64 target )
 	}
 
 	streami->read_position = old_read_position;
+
+	return( 0 );
+}
+
+/* Convert a seekable source that can't be mapped (eg. a custom input with a
+ * seek method) into a memory source. 
+ */
+static int
+vips_streami_read_to_memory( VipsStreami *streami )
+{
+	GByteArray *byte_array;
+	gint64 read_position;
+	unsigned char *q;
+
+	VIPS_DEBUG_MSG( "vips_streami_read_to_memory:\n" );
+
+	g_assert( !streami->is_pipe );
+	g_assert( !streami->blob );
+	g_assert( !streami->header_bytes );
+	g_assert( streami->length >= 0 );
+
+	if( vips_streami_rewind( streami ) )
+		return( -1 );
+
+	/* We know the length, so we can size the buffer correctly and read
+	 * directly to it.
+	 */
+	byte_array = g_byte_array_new();
+	g_byte_array_set_size( byte_array, streami->length );
+
+	/* Read in a series of chunks to reduce stress upstream.
+	 */
+	read_position = 0;
+	q = byte_array->data;
+	while( read_position < streami->length ) {
+		ssize_t bytes_read;
+
+		bytes_read = vips_streami_read( streami, q, 
+			VIPS_MAX( 4096, streami->length - read_position ) );
+		if( bytes_read == -1 ) {
+			VIPS_FREEF( g_byte_array_unref, byte_array ); 
+			return( -1 );
+		}
+		if( bytes_read == 0 )
+			break;
+
+		read_position += bytes_read;
+		q += bytes_read;
+	}
+
+	/* Steal the byte_array pointer and turn into a memory source.
+	 *
+	 * We save byte_array in the header_bytes field to get it freed when
+	 * we are freed.
+	 */
+	streami->data = byte_array->data;
+	streami->is_pipe = FALSE;
+	streami->header_bytes = byte_array;
+
+	vips_streami_minimise( streami );
 
 	return( 0 );
 }
@@ -844,6 +904,10 @@ vips_streami_descriptor_to_memory( VipsStreami *streami )
  * vips_streami_is_mappable:
  * @streami: input stream to operate on
  *
+ * Some streams can be efficiently mapped into memory.
+ * You can still use vips_streami_map() if this function returns %FALSE,
+ * but it will be slow.
+ *
  * Returns: %TRUE if the stream can be efficiently mapped into memory.
  */
 gboolean 
@@ -859,7 +923,7 @@ vips_streami_is_mappable( VipsStreami *streami )
 	return( streami->data ||
 		VIPS_STREAM( streami )->filename ||
 		(!streami->is_pipe && 
-		 VIPS_STREAM( streami )->descriptor) );
+		 VIPS_STREAM( streami )->descriptor != -1) );
 }
 
 /**
@@ -889,11 +953,15 @@ vips_streami_map( VipsStreami *streami, size_t *length_out )
 		return( NULL );
 
 	if( !streami->data ) {
-		/* Seekable descriptors can simply be mapped. All other sources 
-		 * must be read into memory.
+		/* Seekable descriptors can simply be mapped. Seekable sources
+		 * can be read. All other sources must be streamed into memory.
 		 */
 		if( vips_streami_is_mappable( streami ) ) {
 			if( vips_streami_descriptor_to_memory( streami ) )
+				return( NULL );
+		}
+		else if( !streami->is_pipe ) {
+			if( vips_streami_read_to_memory( streami ) )
 				return( NULL );
 		}
 		else {
@@ -1131,7 +1199,7 @@ vips_streami_sniff_at_most( VipsStreami *streami,
 	unsigned char **data, size_t length )
 {
 	unsigned char *q;
-	size_t bytes_read;
+	gint64 read_position;
 
 	VIPS_DEBUG_MSG( "vips_streami_sniff_at_most: %zd bytes\n", length );
 
@@ -1143,26 +1211,27 @@ vips_streami_sniff_at_most( VipsStreami *streami,
 
 	g_byte_array_set_size( streami->sniff, length );
 
+	read_position = 0; 
 	q = streami->sniff->data;
-	bytes_read = 0; 
-	while( bytes_read < length ) {
-		ssize_t n;
+	while( read_position < length ) {
+		ssize_t bytes_read;
 
-		n = vips_streami_read( streami, q, length - bytes_read );
-		if( n == -1 )
+		bytes_read = vips_streami_read( streami, q, 
+			length - read_position );
+		if( bytes_read == -1 )
 			return( -1 );
-		if( n == 0 )
+		if( bytes_read == 0 )
 			break;
 
-		bytes_read += n;
-		q += n;
+		read_position += bytes_read;
+		q += bytes_read;
 	}
 
 	SANITY( streami );
 
 	*data = streami->sniff->data;
 
-	return( bytes_read );
+	return( read_position );
 }
 
 /**
