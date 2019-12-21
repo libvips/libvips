@@ -392,6 +392,10 @@ class TestCreate:
         assert im.max() == 255
         assert im.min() == 0
 
+        # test autofit
+        im = pyvips.Image.text("Hello, world!", width=500, height=500)
+        assert abs(im.width - 500) < 10
+
     def test_tonelut(self):
         im = pyvips.Image.tonelut()
         assert im.bands == 1
