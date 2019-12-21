@@ -103,8 +103,10 @@ vips_streami_test_features( VipsStreami *streami )
 
 	/* We'll need a descriptor to test.
 	 */
-	if( vips_streami_unminimise( streami ) )
+	if( vips_streami_unminimise( streami ) ) {
+		printf( "HUGE BANANA!!!\n" );
 		return( -1 );
+	}
 
 	/* Can we seek this input?
 	 *
@@ -120,8 +122,10 @@ vips_streami_test_features( VipsStreami *streami )
 		/* We should be able to get the length of seekable 
 		 * objects.
 		 */
-		if( (length = vips_streami_length( streami )) == -1 )
+		if( (length = vips_streami_length( streami )) == -1 ) {
+			printf( "BANANA!!!\n" );
 			return( -1 );
+		}
 
 		streami->length = length;
 
@@ -148,52 +152,10 @@ vips_streami_sanity( VipsStreami *streami )
 		 */
 		g_assert( !streami->is_pipe );
 
-		/* Read position must lie within the buffer. <= length, since
-		 * it can be one beyond. Imagine read_position 0 and a
-		 * zero-length buffer.
+		/* Read position must lie within the buffer.
 		 */
 		g_assert( streami->read_position >= 0 );
 		g_assert( streami->read_position <= streami->length );
-
-		/* No need for header tracking.
-		 */
-		g_assert( !streami->header_bytes );
-
-		/* After we're done with the header, the sniff buffer should
-		 * be gone.
-		 */
-		g_assert( !streami->decode || 
-			!streami->sniff );
-	}
-	else if( streami->is_pipe ) {
-		/* In header, read_position must be within header_bytes.
-		 */
-		g_assert( streami->decode || 
-			(streami->read_position >= 0 && 
-			 streami->read_position <= 
-			 	streami->header_bytes->len) );
-
-		/* If we're in the header, we must save bytes we read. If not 
-		 * in header, should have no saved bytes.
-		 */
-		g_assert( (streami->decode && !streami->header_bytes) ||
-			(!streami->decode && streami->header_bytes ) );
-
-		/* After we're done with the header, the sniff buffer should
-		 * be gone.
-		 */
-		g_assert( !streami->decode || 
-			!streami->sniff );
-
-		/* No length available.
-		 */
-		g_assert( streami->length == -1 );
-	}
-	else {
-		/* Something that supports seek and map. No need to save
-		 * header bytes.
-		 */
-		g_assert( !streami->header_bytes );
 
 		/* After we're done with the header, the sniff buffer should
 		 * be gone.
@@ -204,21 +166,43 @@ vips_streami_sanity( VipsStreami *streami )
 		/* Have length.
 		 */
 		g_assert( streami->length != -1 );
+	}
+	else if( streami->is_pipe ) {
+		if( streami->decode ) {
+			/* Reading pixel data.
+			 */
+			g_assert( !streami->header_bytes );
+			g_assert( !streami->sniff );
+		}
+		else {
+			/* Reading header data.
+			 */
+			g_assert( streami->header_bytes );
+			g_assert( streami->read_position >= 0 );
+			g_assert( streami->read_position <= 
+			 	streami->header_bytes->len );
+		}
 
-		/* Read position must lie within the file.
+		/* No length available.
 		 */
-		g_assert( streami->read_position >= 0 );
-		g_assert( streami->read_position <= streami->length );
-
-		/* No need for header tracking.
-		 */
-		g_assert( !streami->header_bytes );
-
+		g_assert( streami->length == -1 );
+	}
+	else {
 		/* After we're done with the header, the sniff buffer should
 		 * be gone.
 		 */
-		g_assert( !streami->decode || 
-			!streami->sniff );
+		if( streami->decode ) {
+			g_assert( !streami->sniff );
+		}
+
+		/* Once we've tested seek, the read position must lie within 
+		 * the file.
+		 */
+		if( streami->have_tested_seek ) { 
+			g_assert( streami->length != -1 );
+			g_assert( streami->read_position >= 0 );
+			g_assert( streami->read_position <= streami->length );
+		}
 
 		/* Supports minimise, so if descriptor is -1, we must have a
 		 * filename we can reopen.
@@ -1038,11 +1022,6 @@ vips_streami_seek( VipsStreami *streami, gint64 offset, int whence )
 	VIPS_DEBUG_MSG( "vips_streami_seek: offset = %" G_GINT64_FORMAT 
 		", whence = %d\n", offset, whence );
 
-	if( vips_streami_test_features( streami ) )
-		return( -1 );
-
-	SANITY( streami );
-
 	if( vips_streami_unminimise( streami ) ||
 		vips_streami_test_features( streami ) )
 		return( -1 );
@@ -1117,8 +1096,6 @@ vips_streami_seek( VipsStreami *streami, gint64 offset, int whence )
 
 	streami->read_position = new_pos;
 
-	SANITY( streami );
-
 	VIPS_DEBUG_MSG( "    new_pos = %" G_GINT64_FORMAT "\n", new_pos );
 
 	return( new_pos );
@@ -1167,16 +1144,12 @@ vips_streami_length( VipsStreami *streami )
 
 	VIPS_DEBUG_MSG( "vips_streami_length:\n" );
 
-	SANITY( streami );
-
 	if( vips_streami_test_features( streami ) )
 		return( -1 );
 
 	read_position = vips_streami_seek( streami, 0, SEEK_CUR );
 	length = vips_streami_seek( streami, 0, SEEK_END );
 	vips_streami_seek( streami, read_position, SEEK_SET );
-
-	SANITY( streami );
 
 	return( length );
 }
