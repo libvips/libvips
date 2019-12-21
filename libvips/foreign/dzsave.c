@@ -1594,12 +1594,14 @@ strip_work( VipsThreadState *state, void *a )
 	g_mutex_unlock( vips__global_lock );
 
 	if( write_image( dz, out, x, dz->suffix ) ) {
+		g_object_unref( out );
 		g_object_unref( x );
 
 		return( -1 );
 	}
 
 	g_object_unref( out );
+	g_object_unref( x );
 
 #ifdef DEBUG_VERBOSE
 	printf( "strip_work: success\n" );
