@@ -182,6 +182,7 @@ vips_text_get_extents( VipsText *text, VipsRect *extents )
 	pango_ft2_font_map_set_resolution( 
 		PANGO_FT2_FONT_MAP( vips_text_fontmap ), text->dpi, text->dpi );
 
+	VIPS_UNREF( text->layout );
 	if( !(text->layout = text_layout_new( text->context, 
 		text->text, text->font, 
 		text->width, text->spacing, text->align, text->justify )) ) 
