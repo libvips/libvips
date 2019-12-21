@@ -44,6 +44,13 @@ class TestConversion:
         cls.all_images = [cls.mono, cls.colour]
         cls.image = pyvips.Image.jpegload(JPEG_FILE)
 
+    @classmethod
+    def teardown_class(cls):
+        cls.colour = None
+        cls.mono = None
+        cls.image = None
+        cls.all_images = None
+
     def test_band_and(self):
         def band_and(x):
             if isinstance(x, pyvips.Image):

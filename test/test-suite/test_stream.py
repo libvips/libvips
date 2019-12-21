@@ -37,6 +37,10 @@ class TestStream:
     @classmethod
     def teardown_class(cls):
         shutil.rmtree(cls.tempdir, ignore_errors=True)
+        cls.colour = None
+        cls.mono = None
+        cls.rad = None
+        cls.cmyk = None
 
     def test_streami_new_from_file(self):
         x = pyvips.Streami.new_from_file(JPEG_FILE)

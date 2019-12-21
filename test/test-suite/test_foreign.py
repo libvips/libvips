@@ -38,6 +38,11 @@ class TestForeign:
     @classmethod
     def teardown_class(cls):
         shutil.rmtree(cls.tempdir, ignore_errors=True)
+        cls.colour = None
+        cls.mono = None
+        cls.rad = None
+        cls.cmyk = None
+        cls.onebit = None
 
     # we have test files for formats which have a clear standard
     def file_loader(self, loader, test_file, validate):

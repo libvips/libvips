@@ -397,6 +397,8 @@ vips_foreign_save_webp_buffer_build( VipsObject *object )
 	g_object_set( buffer, "buffer", blob, NULL );
 	vips_area_unref( VIPS_AREA( blob ) );
 
+	VIPS_UNREF( streamo );
+
 	return( 0 );
 }
 
