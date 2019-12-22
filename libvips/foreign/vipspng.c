@@ -180,7 +180,7 @@ typedef struct {
 	 */
 	unsigned char input_buffer[INPUT_BUFFER_SIZE];
 	unsigned char *next_byte;
-	ssize_t bytes_in_buffer;
+	gint64 bytes_in_buffer;
 
 } Read;
 
@@ -225,10 +225,10 @@ vips_png_read_stream( png_structp pPng, png_bytep data, png_size_t length )
 	 * syscall for each one. Read via our own buffer.
 	 */
 	while( length > 0 ) {
-		ssize_t bytes_available;
+		gint64 bytes_available;
 
 		if( read->bytes_in_buffer <= 0 ) {
-			ssize_t bytes_read;
+			gint64 bytes_read;
 
 			bytes_read = vips_streami_read( read->streami, 
 				read->input_buffer, INPUT_BUFFER_SIZE );

@@ -184,8 +184,11 @@ typedef struct _VipsStreamiClass {
 
 	/* Read from the stream into the supplied buffer, args exactly as
 	 * read(2). Set errno on error.
+	 *
+	 * We must return gint64, since ssize_t is often defined as unsigned
+	 * on Windows.
 	 */
-	ssize_t (*read)( VipsStreami *, void *, size_t );
+	gint64 (*read)( VipsStreami *, void *, size_t );
 
 	/* Seek to a certain position, args exactly as lseek(2). Set errno on
 	 * error.
@@ -211,7 +214,7 @@ VipsStreami *vips_streami_new_from_options( const char *options );
 void vips_streami_minimise( VipsStreami *streami );
 int vips_streami_unminimise( VipsStreami *streami );
 int vips_streami_decode( VipsStreami *streami );
-ssize_t vips_streami_read( VipsStreami *streami, void *data, size_t length );
+gint64 vips_streami_read( VipsStreami *streami, void *data, size_t length );
 gboolean vips_streami_is_mappable( VipsStreami *streami );
 const void *vips_streami_map( VipsStreami *streami, size_t *length );
 VipsBlob *vips_streami_map_blob( VipsStreami *streami );
@@ -314,8 +317,11 @@ typedef struct _VipsStreamoClass {
 	VipsStreamClass parent_class;
 
 	/* Write to output. Args exactly as write(2).
+	 *
+	 * We must return gint64, since ssize_t is often defined as unsigned
+	 * on Windows.
 	 */
-	ssize_t (*write)( VipsStreamo *, const void *, size_t );
+	gint64 (*write)( VipsStreamo *, const void *, size_t );
 
 	/* Output has been generated, so do any clearing up,
 	 * eg. copy the bytes we saved in memory to the stream blob.

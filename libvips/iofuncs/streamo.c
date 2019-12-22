@@ -142,7 +142,7 @@ vips_streamo_build( VipsObject *object )
 	return( 0 );
 }
 
-static ssize_t 
+static gint64 
 vips_streamo_write_real( VipsStreamo *streamo, const void *data, size_t length )
 {
 	VipsStream *stream = VIPS_STREAM( streamo );
@@ -305,14 +305,14 @@ vips_streamo_write_unbuffered( VipsStreamo *streamo,
 		g_byte_array_append( streamo->memory_buffer, data, length );
 	else 
 		while( length > 0 ) { 
-			ssize_t n;
+			gint64 bytes_written;
 
-			n = class->write( streamo, data, length );
+			bytes_written = class->write( streamo, data, length );
 
 			/* n == 0 isn't strictly an error, but we treat it as 
 			 * one to make sure we don't get stuck in this loop.
 			 */
-			if( n <= 0 ) {
+			if( bytes_written <= 0 ) {
 				vips_error_system( errno, 
 					vips_stream_nick( 
 						VIPS_STREAM( streamo ) ),
@@ -320,8 +320,8 @@ vips_streamo_write_unbuffered( VipsStreamo *streamo,
 				return( -1 ); 
 			}
 
-			length -= n;
-			data += n;
+			length -= bytes_written;
+			data += bytes_written;
 		}
 
 	return( 0 );

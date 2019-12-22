@@ -70,7 +70,7 @@ enum {
 
 static guint vips_streamou_signals[SIG_LAST] = { 0 };
 
-static ssize_t
+static gint64
 vips_streamou_write_real( VipsStreamo *streamo, 
 	const void *data, size_t length )
 {

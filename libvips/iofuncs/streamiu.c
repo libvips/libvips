@@ -70,7 +70,7 @@ enum {
 
 static guint vips_streamiu_signals[SIG_LAST] = { 0 };
 
-static ssize_t
+static gint64
 vips_streamiu_read_real( VipsStreami *streami, 
 	void *buffer, size_t length )
 {

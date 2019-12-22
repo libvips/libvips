@@ -276,12 +276,12 @@ vips_streami_build( VipsObject *object )
 	return( 0 );
 }
 
-static ssize_t
+static gint64
 vips_streami_read_real( VipsStreami *streami, void *data, size_t length )
 {
 	VipsStream *stream = VIPS_STREAM( streami );
 
-	ssize_t bytes_read;
+	gint64 bytes_read;
 
 	VIPS_DEBUG_MSG( "vips_streami_read_real:\n" );
 
@@ -624,14 +624,14 @@ vips_streami_decode( VipsStreami *streami )
  *
  * Arguments exactly as read(2).
  *
- * Returns: the number of bytes raed, 0 on end of file, -1 on error.
+ * Returns: the number of bytes read, 0 on end of file, -1 on error.
  */
-ssize_t
+gint64
 vips_streami_read( VipsStreami *streami, void *buffer, size_t length )
 {
 	VipsStreamiClass *class = VIPS_STREAMI_GET_CLASS( streami );
 
-	ssize_t bytes_read;
+	gint64 total_read;
 
 	VIPS_DEBUG_MSG( "vips_streami_read:\n" );
 
@@ -641,19 +641,19 @@ vips_streami_read( VipsStreami *streami, void *buffer, size_t length )
 		vips_streami_test_features( streami ) )
 		return( -1 );
 
-	bytes_read = 0;
+	total_read = 0;
 
 	if( streami->data ) {
 		/* The whole thing is in memory somehow.
 		 */
-		ssize_t available = VIPS_MIN( length,
+		gint64 available = VIPS_MIN( length,
 			streami->length - streami->read_position );
 
 		VIPS_DEBUG_MSG( "    %zd bytes from memory\n", available );
 		memcpy( buffer, 
 			streami->data + streami->read_position, available );
 		streami->read_position += available;
-		bytes_read += available;
+		total_read += available;
 	}
 	else {
 		/* Some kind of filesystem or custom source. 
@@ -663,7 +663,7 @@ vips_streami_read( VipsStreami *streami, void *buffer, size_t length )
 		 */
 		if( streami->header_bytes &&
 			streami->read_position < streami->header_bytes->len ) {
-			ssize_t available = VIPS_MIN( length, 
+			gint64 available = VIPS_MIN( length, 
 				streami->header_bytes->len - 
 					streami->read_position );
 
@@ -676,18 +676,19 @@ vips_streami_read( VipsStreami *streami, void *buffer, size_t length )
 			streami->read_position += available;
 			buffer += available;
 			length -= available;
-			bytes_read += available;
+			total_read += available;
 		}
 
 		/* Any more bytes requested? Call the read() vfunc.
 		 */
 		if( length > 0 ) {
-			ssize_t n;
+			gint64 bytes_read;
 
 			VIPS_DEBUG_MSG( "    calling class->read()\n" );
-			n = class->read( streami, buffer, length );
-			VIPS_DEBUG_MSG( "    %zd bytes from read()\n", n );
-			if( n == -1 ) {
+			bytes_read = class->read( streami, buffer, length );
+			VIPS_DEBUG_MSG( "    %zd bytes from read()\n", 
+				bytes_read );
+			if( bytes_read == -1 ) {
 				vips_error_system( errno, 
 					vips_stream_nick( 
 						VIPS_STREAM( streami ) ), 
@@ -701,20 +702,20 @@ vips_streami_read( VipsStreami *streami, void *buffer, size_t length )
 			if( streami->header_bytes &&
 				streami->is_pipe &&
 				!streami->decode &&
-				n > 0 ) 
+				bytes_read > 0 ) 
 				g_byte_array_append( streami->header_bytes, 
-					buffer, n );
+					buffer, bytes_read );
 
-			streami->read_position += n;
-			bytes_read += n;
+			streami->read_position += bytes_read;
+			total_read += bytes_read;
 		}
 	}
 
-	VIPS_DEBUG_MSG( "    %zd bytes total\n", bytes_read );
+	VIPS_DEBUG_MSG( "    %zd bytes total\n", total_read );
 
 	SANITY( streami );
 
-	return( bytes_read );
+	return( total_read );
 }
 
 /* -1 on a pipe isn't actually unbounded. Have a limit to prevent
@@ -753,7 +754,7 @@ vips_streami_pipe_read_to_position( VipsStreami *streami, gint64 target )
 
 	while( target == -1 ||
 		streami->read_position < target ) {
-		ssize_t bytes_read;
+		gint64 bytes_read;
 
 		bytes_read = vips_streami_read( streami, buffer, 4096 );
 		if( bytes_read == -1 )
@@ -805,7 +806,7 @@ vips_streami_read_to_memory( VipsStreami *streami )
 	read_position = 0;
 	q = byte_array->data;
 	while( read_position < streami->length ) {
-		ssize_t bytes_read;
+		gint64 bytes_read;
 
 		bytes_read = vips_streami_read( streami, q, 
 			VIPS_MAX( 4096, streami->length - read_position ) );
@@ -1187,7 +1188,7 @@ vips_streami_sniff_at_most( VipsStreami *streami,
 	read_position = 0; 
 	q = streami->sniff->data;
 	while( read_position < length ) {
-		ssize_t bytes_read;
+		gint64 bytes_read;
 
 		bytes_read = vips_streami_read( streami, q, 
 			length - read_position );

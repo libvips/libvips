@@ -132,10 +132,10 @@ vips_bufis_unbuffer( VipsBufis *bufis )
 
 /* Returns -1 on error, 0 on EOF, otherwise bytes read.
  */
-static ssize_t
+static gint64
 vips_bufis_refill( VipsBufis *bufis )
 {
-	ssize_t bytes_read;
+	gint64 bytes_read;
 
 	VIPS_DEBUG_MSG( "vips_bufis_refill:\n" );
 

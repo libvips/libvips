@@ -549,8 +549,8 @@ parser_read_fd( XML_Parser parser, int fd )
 {
 	const int chunk_size = 1024; 
 
-	ssize_t bytes_read;
-	ssize_t len;
+	gint64 bytes_read;
+	gint64 len;
 
 	bytes_read = 0;
 
@@ -563,7 +563,7 @@ parser_read_fd( XML_Parser parser, int fd )
 			return( -1 );
 		}
 		len = read( fd, buf, chunk_size );
-		if( len == (ssize_t) -1 ) {
+		if( len == -1 ) {
 			vips_error( "VipsImage", 
 				"%s", _( "read error while fetching XML" ) );
 			return( -1 );
