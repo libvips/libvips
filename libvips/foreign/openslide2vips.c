@@ -332,7 +332,7 @@ readslide_attach_associated( ReadSlide *rslide, VipsImage *image )
 		openslide_get_associated_image_dimensions( rslide->osr,
 			*associated_name, &w, &h );
 		vips_image_init_fields( associated, w, h, 4, VIPS_FORMAT_UCHAR,
-			VIPS_CODING_NONE, VIPS_INTERPRETATION_RGB, 1.0, 1.0 );
+			VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
 		vips_image_pipelinev( associated, 
 			VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
@@ -494,7 +494,7 @@ readslide_parse( ReadSlide *rslide, VipsImage *image )
 	}
 
 	vips_image_init_fields( image, w, h, 4, VIPS_FORMAT_UCHAR,
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_RGB, 1.0, 1.0 );
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
 
 	for( properties = openslide_get_property_names( rslide->osr );
 		*properties != NULL; properties++ )

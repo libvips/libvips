@@ -26,6 +26,7 @@
 - support TIFF CIELAB images with alpha [angelmixu]
 - support TIFF with premultiplied alpha in any band 
 - block metadata changes on shared images [pvdz]
+- RGB and sRGB are synonmous
 
 17/9/19 started 8.8.4
 - improve compatibility with older imagemagick versions

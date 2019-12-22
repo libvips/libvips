@@ -477,14 +477,8 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 			out->Type = VIPS_INTERPRETATION_B_W;
 		break;
 
-	case RGBColorspace:
-		if( out->BandFmt == VIPS_FORMAT_USHORT )
-			out->Type = VIPS_INTERPRETATION_RGB16;
-		else
-			out->Type = VIPS_INTERPRETATION_RGB;
-		break;
-
 	case sRGBColorspace:
+	case RGBColorspace:
 		if( out->BandFmt == VIPS_FORMAT_USHORT )
 			out->Type = VIPS_INTERPRETATION_RGB16;
 		else

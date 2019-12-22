@@ -443,12 +443,12 @@ vips_image_guess_format( const VipsImage *image )
 		break;
 
 	case VIPS_INTERPRETATION_sRGB: 
+	case VIPS_INTERPRETATION_RGB: 
 		format = VIPS_FORMAT_UCHAR;
 		break;
 
 	case VIPS_INTERPRETATION_XYZ: 
 	case VIPS_INTERPRETATION_LAB: 
-	case VIPS_INTERPRETATION_RGB: 
 	case VIPS_INTERPRETATION_CMC: 
 	case VIPS_INTERPRETATION_LCH: 
 	case VIPS_INTERPRETATION_HSV: 
@@ -519,8 +519,7 @@ vips_image_get_interpretation( const VipsImage *image )
 	return( image->Type );
 }
 
-/* Try to pick a sane value for interpretation, assuming Type has been set
- * incorrectly.
+/* Try to guess a sane value for interpretation.
  */
 static VipsInterpretation
 vips_image_default_interpretation( const VipsImage *image )
@@ -529,7 +528,7 @@ vips_image_default_interpretation( const VipsImage *image )
 	case VIPS_CODING_LABQ:
 		return( VIPS_INTERPRETATION_LABQ );
 	case VIPS_CODING_RAD:
-		return( VIPS_INTERPRETATION_RGB );
+		return( VIPS_INTERPRETATION_sRGB );
 	default:
 		break;
 	}
@@ -578,7 +577,7 @@ vips_image_guess_interpretation( const VipsImage *image )
 		break;
 
 	case VIPS_CODING_RAD:
-		if( image->Type != VIPS_INTERPRETATION_RGB )
+		if( image->Type != VIPS_INTERPRETATION_sRGB )
 			sane = FALSE;
 		break;
 

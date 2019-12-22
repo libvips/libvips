@@ -313,8 +313,6 @@ vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
 	else {
 		if( ppm->format == VIPS_FORMAT_USHORT )
 			ppm->interpretation = VIPS_INTERPRETATION_RGB16;
-		else if( ppm->format == VIPS_FORMAT_UINT )
-			ppm->interpretation = VIPS_INTERPRETATION_RGB;
 		else 
 			ppm->interpretation = VIPS_INTERPRETATION_sRGB;
 	}

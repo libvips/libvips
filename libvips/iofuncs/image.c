@@ -230,9 +230,8 @@
  * three-band float image of type #VIPS_INTERPRETATION_LAB should have its 
  * pixels interpreted as coordinates in CIE Lab space.
  *
- * These values are set by operations as hints to user-interfaces built on top 
- * of VIPS to help them show images to the user in a meaningful way. 
- * Operations do not use these values to decide their action.
+ * RGB and sRGB are treated in the same way. Use the colourspace functions if
+ * you want some other behaviour.
  *
  * The gaps in numbering are historical and must be maintained. Allocate 
  * new numbers from the end.
@@ -959,7 +958,7 @@ vips_image_build( VipsObject *object )
 		if( image->Bands == 1 )
 			image->Type = VIPS_INTERPRETATION_B_W;
 		else if( image->Bands == 3 )
-			image->Type = VIPS_INTERPRETATION_RGB;
+			image->Type = VIPS_INTERPRETATION_sRGB;
 		else 
 			image->Type = VIPS_INTERPRETATION_MULTIBAND;
 
@@ -992,7 +991,7 @@ vips_image_build( VipsObject *object )
 		if( image->Bands == 1 )
 			image->Type = VIPS_INTERPRETATION_B_W;
 		else if( image->Bands == 3 )
-			image->Type = VIPS_INTERPRETATION_RGB;
+			image->Type = VIPS_INTERPRETATION_sRGB;
 		else 
 			image->Type = VIPS_INTERPRETATION_MULTIBAND;
 
@@ -3093,7 +3092,7 @@ vips_image_ispartial( VipsImage *image )
  * @image: image to check
  *
  * Look at an image's interpretation and see if it has extra alpha bands. For
- * example, a 4-band #VIPS_INTERPRETATION_RGB would, but a six-band 
+ * example, a 4-band #VIPS_INTERPRETATION_sRGB would, but a six-band 
  * #VIPS_INTERPRETATION_MULTIBAND would not. 
  *
  * Return %TRUE if @image has an alpha channel.
