@@ -2281,6 +2281,11 @@ vips_image_new_from_stream( VipsStreami *streami,
 
 		vips_area_unref( VIPS_AREA( blob ) );
 	}
+	else {
+		vips_error( "VipsImage",
+			"%s", _( "unable to load stream" ) );
+		result = -1;
+	}
 
         if( result )
                 return( NULL );
