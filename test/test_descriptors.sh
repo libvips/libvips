@@ -2,7 +2,7 @@
 
 # test the various restartable loaders
 
-# webp uses streams, but it needs to mmap the input, so you can't close() the
+# webp and ppm use streams, but they mmap the input, so you can't close() the
 # fd on minimise
 
 # set -x
@@ -29,3 +29,4 @@ fi
 if test_supported svgload_stream; then
 	./test_descriptors $test_images/logo.svg
 fi
+
