@@ -702,6 +702,7 @@ vips_foreign_load_svg_class_init( VipsForeignLoadSvgClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_svg_dispose;
@@ -710,6 +711,10 @@ vips_foreign_load_svg_class_init( VipsForeignLoadSvgClass *class )
 
 	object_class->nickname = "svgload";
 	object_class->description = _( "load SVG with rsvg" );
+
+	/* is_a() is not that quick ... lower the priority.
+	 */
+	foreign_class->priority = -5;
 
 	load_class->get_flags_filename = 
 		vips_foreign_load_svg_get_flags_filename;

@@ -583,7 +583,10 @@ static void *
 vips_foreign_find_load_buffer_sub( VipsForeignLoadClass *load_class, 
 	const void **buf, size_t *len )
 {
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( load_class );
+
 	if( load_class->is_a_buffer &&
+		vips_ispostfix( object_class->nickname, "_buffer" ) &&
 		load_class->is_a_buffer( *buf, *len ) ) 
 		return( load_class );
 
@@ -628,10 +631,17 @@ vips_foreign_find_load_buffer( const void *data, size_t size )
 static void *
 vips_foreign_find_load_stream_sub( void *item, void *a, void *b )
 {
+	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( item );
 	VipsForeignLoadClass *load_class = VIPS_FOREIGN_LOAD_CLASS( item );
 	VipsStreami *streami = VIPS_STREAMI( a );
 
-	if( load_class->is_a_stream ) {
+	if( load_class->is_a_stream &&
+		vips_ispostfix( object_class->nickname, "_stream" ) ) {
+		printf( "vips_foreign_find_load_stream_sub: "
+			"testing %s, priority %d\n",
+			VIPS_OBJECT_CLASS( load_class )->nickname,
+			VIPS_FOREIGN_CLASS( load_class )->priority );
+
 		/* We may have done a read() rather than a sniff() in one of
 		 * the is_a testers. Always rewind.
 		 */

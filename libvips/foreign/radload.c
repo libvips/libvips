@@ -52,8 +52,136 @@
 
 #ifdef HAVE_RADIANCE
 
-typedef struct _VipsForeignLoadRadStream {
+typedef struct _VipsForeignLoadRad {
 	VipsForeignLoad parent_object;
+
+	/* Set by subclasses.
+	 */
+	VipsStreami *streami;
+
+} VipsForeignLoadRad;
+
+typedef VipsForeignLoadClass VipsForeignLoadRadClass;
+
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadRad, vips_foreign_load_rad, 
+	VIPS_TYPE_FOREIGN_LOAD );
+
+static void
+vips_foreign_load_rad_dispose( GObject *gobject )
+{
+	VipsForeignLoadRad *rad = (VipsForeignLoadRad *) gobject;
+
+	VIPS_UNREF( rad->streami );
+
+	G_OBJECT_CLASS( vips_foreign_load_rad_parent_class )->
+		dispose( gobject );
+}
+
+static gboolean
+vips_foreign_load_rad_is_a_stream( VipsStreami *streami )
+{
+	return( vips__rad_israd( streami ) );
+}
+
+static int
+vips_foreign_load_rad_is_a( const char *filename )
+{
+	VipsStreami *streami;
+	int result;
+
+	if( !(streami = vips_streami_new_from_file( filename )) )
+		return( -1 );
+	result = vips_foreign_load_rad_is_a_stream( streami );
+	VIPS_UNREF( streami );
+
+	return( result );
+}
+
+static gboolean
+vips_foreign_load_rad_is_a_buffer( const void *buf, size_t len )
+{
+	VipsStreami *streami;
+	gboolean result;
+
+	if( !(streami = vips_streami_new_from_memory( buf, len )) )
+		return( FALSE );
+	result = vips_foreign_load_rad_is_a_stream( streami );
+	VIPS_UNREF( streami );
+
+	return( result );
+}
+
+static VipsForeignFlags
+vips_foreign_load_rad_get_flags( VipsForeignLoad *load )
+{
+	return( VIPS_FOREIGN_SEQUENTIAL );
+}
+
+static VipsForeignFlags
+vips_foreign_load_rad_get_flags_filename( const char *filename )
+{
+	return( VIPS_FOREIGN_SEQUENTIAL );
+}
+
+static int
+vips_foreign_load_rad_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadRad *rad = (VipsForeignLoadRad *) load;
+
+	if( vips__rad_header( rad->streami, load->out ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_load_rad_load( VipsForeignLoad *load )
+{
+	VipsForeignLoadRad *rad = (VipsForeignLoadRad *) load;
+
+	if( vips__rad_load( rad->streami, load->real ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_load_rad_class_init( VipsForeignLoadRadClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->dispose = vips_foreign_load_rad_dispose;
+
+	object_class->nickname = "radload_base";
+	object_class->description = _( "load rad base class" );
+
+	foreign_class->suffs = vips__rad_suffs;
+
+	/* is_a() is not that quick ... lower the priority.
+	 */
+	foreign_class->priority = -50;
+
+	load_class->is_a = vips_foreign_load_rad_is_a;
+	load_class->is_a_buffer = vips_foreign_load_rad_is_a_buffer;
+	load_class->is_a_stream = vips_foreign_load_rad_is_a_stream;
+	load_class->get_flags_filename = 
+		vips_foreign_load_rad_get_flags_filename;
+	load_class->get_flags = vips_foreign_load_rad_get_flags;
+	load_class->header = vips_foreign_load_rad_header;
+	load_class->load = vips_foreign_load_rad_load;
+
+}
+
+static void
+vips_foreign_load_rad_init( VipsForeignLoadRad *rad )
+{
+}
+
+typedef struct _VipsForeignLoadRadStream {
+	VipsForeignLoadRad parent_object;
 
 	/* Load from a stream.
 	 */
@@ -61,36 +189,24 @@ typedef struct _VipsForeignLoadRadStream {
 
 } VipsForeignLoadRadStream;
 
-typedef VipsForeignLoadClass VipsForeignLoadRadStreamClass;
+typedef VipsForeignLoadRadClass VipsForeignLoadRadStreamClass;
 
 G_DEFINE_TYPE( VipsForeignLoadRadStream, vips_foreign_load_rad_stream, 
-	VIPS_TYPE_FOREIGN_LOAD );
-
-static VipsForeignFlags
-vips_foreign_load_rad_stream_get_flags( VipsForeignLoad *load )
-{
-	/* The rad reader supports sequential read.
-	 */
-	return( VIPS_FOREIGN_SEQUENTIAL );
-}
+	vips_foreign_load_rad_get_type() );
 
 static int
-vips_foreign_load_rad_stream_header( VipsForeignLoad *load )
+vips_foreign_load_rad_stream_build( VipsObject *object )
 {
-	VipsForeignLoadRadStream *stream = (VipsForeignLoadRadStream *) load;
+	VipsForeignLoadRad *rad = (VipsForeignLoadRad *) object;
+	VipsForeignLoadRadStream *stream = (VipsForeignLoadRadStream *) object;
 
-	if( vips__rad_header( stream->streami, load->out ) )
-		return( -1 );
+	if( stream->streami ) {
+		rad->streami = stream->streami;
+		g_object_ref( stream->streami );
+	}
 
-	return( 0 );
-}
-
-static int
-vips_foreign_load_rad_stream_load( VipsForeignLoad *load )
-{
-	VipsForeignLoadRadStream *stream = (VipsForeignLoadRadStream *) load;
-
-	if( vips__rad_load( stream->streami, load->real ) )
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_rad_stream_parent_class )->
+		build( object ) )
 		return( -1 );
 
 	return( 0 );
@@ -101,18 +217,13 @@ vips_foreign_load_rad_stream_class_init( VipsForeignLoadRadStreamClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "radload_stream";
 	object_class->description = _( "load rad from stream" );
-
-	load_class->is_a_stream = vips__rad_israd;
-	load_class->get_flags = vips_foreign_load_rad_stream_get_flags;
-	load_class->header = vips_foreign_load_rad_stream_header;
-	load_class->load = vips_foreign_load_rad_stream_load;
+	object_class->build = vips_foreign_load_rad_stream_build;
 
 	VIPS_ARG_OBJECT( class, "streami", 1,
 		_( "Streami" ),
@@ -128,128 +239,65 @@ vips_foreign_load_rad_stream_init( VipsForeignLoadRadStream *stream )
 {
 }
 
-typedef struct _VipsForeignLoadRad {
-	VipsForeignLoad parent_object;
+typedef struct _VipsForeignLoadRadFile {
+	VipsForeignLoadRad parent_object;
 
 	/* Filename for load.
 	 */
 	char *filename; 
 
-} VipsForeignLoadRad;
+} VipsForeignLoadRadFile;
 
-typedef VipsForeignLoadClass VipsForeignLoadRadClass;
+typedef VipsForeignLoadRadClass VipsForeignLoadRadFileClass;
 
-G_DEFINE_TYPE( VipsForeignLoadRad, vips_foreign_load_rad, 
-	VIPS_TYPE_FOREIGN_LOAD );
-
-static VipsForeignFlags
-vips_foreign_load_rad_get_flags_filename( const char *filename )
-{
-	/* The rad reader supports sequential read.
-	 */
-	return( VIPS_FOREIGN_SEQUENTIAL );
-}
-
-static VipsForeignFlags
-vips_foreign_load_rad_get_flags( VipsForeignLoad *load )
-{
-	VipsForeignLoadRad *rad = (VipsForeignLoadRad *) load;
-
-	return( vips_foreign_load_rad_get_flags_filename( rad->filename ) );
-}
+G_DEFINE_TYPE( VipsForeignLoadRadFile, vips_foreign_load_rad_file, 
+	vips_foreign_load_rad_get_type() );
 
 static int
-vips_foreign_load_rad_is_a( const char *filename )
+vips_foreign_load_rad_file_build( VipsObject *object )
 {
-	VipsStreami *streami;
-	int result;
+	VipsForeignLoadRad *rad = (VipsForeignLoadRad *) object;
+	VipsForeignLoadRadFile *file = (VipsForeignLoadRadFile *) object;
 
-	if( !(streami = vips_streami_new_from_file( filename )) )
+	if( file->filename &&
+		!(rad->streami = vips_streami_new_from_file( file->filename )) )
 		return( -1 );
-	result = vips__rad_israd( streami );
-	VIPS_UNREF( streami );
 
-	return( result );
-}
-
-static int
-vips_foreign_load_rad_header( VipsForeignLoad *load )
-{
-	VipsForeignLoadRad *rad = (VipsForeignLoadRad *) load;
-
-	VipsStreami *streami;
-
-	if( !(streami = vips_streami_new_from_file( rad->filename )) )
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_rad_file_parent_class )->
+		build( object ) )
 		return( -1 );
-	if( vips__rad_header( streami, load->out ) ) {
-		VIPS_UNREF( streami );
-		return( -1 );
-	}
-	VIPS_UNREF( streami );
-
-	return( 0 );
-}
-
-static int
-vips_foreign_load_rad_load( VipsForeignLoad *load )
-{
-	VipsForeignLoadRad *rad = (VipsForeignLoadRad *) load;
-
-	VipsStreami *streami;
-
-	if( !(streami = vips_streami_new_from_file( rad->filename )) )
-		return( -1 );
-	if( vips__rad_load( streami, load->real ) ) {
-		VIPS_UNREF( streami );
-		return( -1 );
-	}
-	VIPS_UNREF( streami );
 
 	return( 0 );
 }
 
 static void
-vips_foreign_load_rad_class_init( VipsForeignLoadRadClass *class )
+vips_foreign_load_rad_file_class_init( VipsForeignLoadRadFileClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
-	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "radload";
 	object_class->description = _( "load a Radiance image from a file" );
-
-	foreign_class->suffs = vips__rad_suffs;
-
-	/* is_a() is not that quick ... lower the priority.
-	 */
-	foreign_class->priority = -50;
-
-	load_class->is_a = vips_foreign_load_rad_is_a;
-	load_class->get_flags_filename = 
-		vips_foreign_load_rad_get_flags_filename;
-	load_class->get_flags = vips_foreign_load_rad_get_flags;
-	load_class->header = vips_foreign_load_rad_header;
-	load_class->load = vips_foreign_load_rad_load;
+	object_class->build = vips_foreign_load_rad_file_build;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
 		_( "Filename to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadRad, filename ),
+		G_STRUCT_OFFSET( VipsForeignLoadRadFile, filename ),
 		NULL );
 }
 
 static void
-vips_foreign_load_rad_init( VipsForeignLoadRad *rad )
+vips_foreign_load_rad_file_init( VipsForeignLoadRadFile *file )
 {
 }
 
 typedef struct _VipsForeignLoadRadBuffer {
-	VipsForeignLoad parent_object;
+	VipsForeignLoadRad parent_object;
 
 	/* Load from a buffer.
 	 */
@@ -257,67 +305,25 @@ typedef struct _VipsForeignLoadRadBuffer {
 
 } VipsForeignLoadRadBuffer;
 
-typedef VipsForeignLoadClass VipsForeignLoadRadBufferClass;
+typedef VipsForeignLoadRadClass VipsForeignLoadRadBufferClass;
 
 G_DEFINE_TYPE( VipsForeignLoadRadBuffer, vips_foreign_load_rad_buffer, 
-	VIPS_TYPE_FOREIGN_LOAD );
-
-static gboolean
-vips_foreign_load_rad_buffer_is_a_buffer( const void *buf, size_t len )
-{
-	VipsStreami *streami;
-	gboolean result;
-
-	if( !(streami = vips_streami_new_from_memory( buf, len )) )
-		return( FALSE );
-	result = vips__rad_israd( streami );
-	VIPS_UNREF( streami );
-
-	return( result );
-}
-
-static VipsForeignFlags
-vips_foreign_load_rad_buffer_get_flags( VipsForeignLoad *load )
-{
-	/* The rad reader supports sequential read.
-	 */
-	return( VIPS_FOREIGN_SEQUENTIAL );
-}
+	vips_foreign_load_rad_get_type() );
 
 static int
-vips_foreign_load_rad_buffer_header( VipsForeignLoad *load )
+vips_foreign_load_rad_buffer_build( VipsObject *object )
 {
-	VipsForeignLoadRadBuffer *buffer = (VipsForeignLoadRadBuffer *) load;
+	VipsForeignLoadRad *rad = (VipsForeignLoadRad *) object;
+	VipsForeignLoadRadBuffer *buffer = (VipsForeignLoadRadBuffer *) object;
 
-	VipsStreami *streami;
-
-	if( !(streami = vips_streami_new_from_memory( buffer->buf->data, 
-		buffer->buf->length )) ) 
+	if( buffer->buf &&
+		!(rad->streami = vips_streami_new_from_memory( 
+			buffer->buf->data, buffer->buf->length )) )
 		return( -1 );
-	if( vips__rad_header( streami, load->out ) ) {
-		VIPS_UNREF( streami );
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_rad_file_parent_class )->
+		build( object ) )
 		return( -1 );
-	}
-	VIPS_UNREF( streami );
-
-	return( 0 );
-}
-
-static int
-vips_foreign_load_rad_buffer_load( VipsForeignLoad *load )
-{
-	VipsForeignLoadRadBuffer *buffer = (VipsForeignLoadRadBuffer *) load;
-
-	VipsStreami *streami;
-
-	if( !(streami = vips_streami_new_from_memory( buffer->buf->data, 
-		buffer->buf->length )) ) 
-		return( -1 );
-	if( vips__rad_load( streami, load->real ) ) {
-		VIPS_UNREF( streami );
-		return( -1 );
-	}
-	VIPS_UNREF( streami );
 
 	return( 0 );
 }
@@ -327,18 +333,13 @@ vips_foreign_load_rad_buffer_class_init( VipsForeignLoadRadBufferClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "radload_buffer";
 	object_class->description = _( "load rad from buffer" );
-
-	load_class->is_a_buffer = vips_foreign_load_rad_buffer_is_a_buffer;
-	load_class->get_flags = vips_foreign_load_rad_buffer_get_flags;
-	load_class->header = vips_foreign_load_rad_buffer_header;
-	load_class->load = vips_foreign_load_rad_buffer_load;
+	object_class->build = vips_foreign_load_rad_buffer_build;
 
 	VIPS_ARG_BOXED( class, "buffer", 1, 
 		_( "Buffer" ),
