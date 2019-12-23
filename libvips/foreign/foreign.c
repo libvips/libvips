@@ -637,11 +637,6 @@ vips_foreign_find_load_stream_sub( void *item, void *a, void *b )
 
 	if( load_class->is_a_stream &&
 		vips_ispostfix( object_class->nickname, "_stream" ) ) {
-		printf( "vips_foreign_find_load_stream_sub: "
-			"testing %s, priority %d\n",
-			VIPS_OBJECT_CLASS( load_class )->nickname,
-			VIPS_FOREIGN_CLASS( load_class )->priority );
-
 		/* We may have done a read() rather than a sniff() in one of
 		 * the is_a testers. Always rewind.
 		 */
