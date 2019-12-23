@@ -67,7 +67,7 @@ image.write_to_stream output_stream, ".png"
 
 There was a [post a few weeks ago]({{ site.baseurl
 }}/2019/11/29/True-streaming-for-libvips.html) introducing this in more
-detail. pyvips, C and C++ also support this new system.
+detail. pyvips, C and C++ also support this new feature.
 
 # OSS-Fuzz integration
 
@@ -140,13 +140,15 @@ There are a range of useful improvements to image file handling.
 
 Previously, libvips only supported a single delay for all frames of animated
 images. Thanks to work by deftomat, it now keeps an array of delays, one per
-frame.
+frame. Additionally, the meaning of the `loop` parameter is now consistent
+between webp and gif.
 
 Solid WebP images will be automatically written without their alpha band.
 `heifsave` has a new `compression` option and (thanks to work by meyermarcel)
 supports alpha correctly. `tiffsave` supports `webp` and `zstd` compression
-and has more flexibla alpha support. `dzsave` has a new `no-strip` option
-and supports IIIF layout. `svgload` has a new `unlimited` option.
+and has more flexible alpha support. `dzsave` has a new `no-strip` option
+and supports IIIF layout. `svgload` has a new `unlimited` option. PPM load and
+save has been rewritten and is now faster and uses less memory.
 
 # Other
 
