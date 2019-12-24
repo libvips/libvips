@@ -117,6 +117,7 @@ vips_foreign_load_jpeg_class_init( VipsForeignLoadJpegClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
@@ -125,6 +126,10 @@ vips_foreign_load_jpeg_class_init( VipsForeignLoadJpegClass *class )
 	object_class->nickname = "jpegload_base";
 	object_class->description = _( "load jpeg" );
 	object_class->build = vips_foreign_load_jpeg_build;
+
+	/* We are fast at is_a(), so high priority.
+	 */
+	foreign_class->priority = 50;
 
 	load_class->get_flags = vips_foreign_load_jpeg_get_flags;
 
@@ -190,7 +195,7 @@ vips_foreign_load_jpeg_stream_load( VipsForeignLoad *load )
 }
 
 static gboolean
-vips_foreign_load_jpeg_stream_is_a( VipsStreami *streami )
+vips_foreign_load_jpeg_stream_is_a_stream( VipsStreami *streami )
 {
 	return( vips__isjpeg_stream( streami ) );
 }
@@ -209,7 +214,7 @@ vips_foreign_load_jpeg_stream_class_init(
 	object_class->nickname = "jpegload_stream";
 	object_class->description = _( "load image from jpeg stream" );
 
-	load_class->is_a_stream = vips_foreign_load_jpeg_stream_is_a;
+	load_class->is_a_stream = vips_foreign_load_jpeg_stream_is_a_stream;
 	load_class->header = vips_foreign_load_jpeg_stream_header;
 	load_class->load = vips_foreign_load_jpeg_stream_load;
 
@@ -308,10 +313,6 @@ vips_foreign_load_jpeg_file_class_init( VipsForeignLoadJpegFileClass *class )
 	object_class->description = _( "load jpeg from file" );
 
 	foreign_class->suffs = vips__jpeg_suffs;
-
-	/* We are fast at is_a(), so high priority.
-	 */
-	foreign_class->priority = 50;
 
 	load_class->is_a = vips_foreign_load_jpeg_file_is_a;
 	load_class->header = vips_foreign_load_jpeg_file_header;

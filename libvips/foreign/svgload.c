@@ -767,7 +767,7 @@ G_DEFINE_TYPE( VipsForeignLoadSvgStream, vips_foreign_load_svg_stream,
 	vips_foreign_load_svg_get_type() );
 
 gboolean
-vips_foreign_load_svg_stream_is_a( VipsStreami *streami )
+vips_foreign_load_svg_stream_is_a_stream( VipsStreami *streami )
 {
 	unsigned char *data;
 	size_t bytes_read;
@@ -832,7 +832,7 @@ vips_foreign_load_svg_stream_class_init( VipsForeignLoadSvgStreamClass *class )
 	object_class->nickname = "svgload_stream";
 	object_class->description = _( "load svg from stream" );
 
-	load_class->is_a_stream = vips_foreign_load_svg_stream_is_a;
+	load_class->is_a_stream = vips_foreign_load_svg_stream_is_a_stream;
 	load_class->header = vips_foreign_load_svg_stream_header;
 	load_class->load = vips_foreign_load_svg_stream_load;
 
