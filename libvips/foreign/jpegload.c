@@ -68,6 +68,10 @@
 typedef struct _VipsForeignLoadJpeg {
 	VipsForeignLoad parent_object;
 
+	/* Set by subclasses.
+	 */
+	VipsStreami *streami;
+
 	/* Shrink by this much during load.
 	 */
 	int shrink;
@@ -83,12 +87,15 @@ typedef VipsForeignLoadClass VipsForeignLoadJpegClass;
 G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadJpeg, vips_foreign_load_jpeg, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
-static VipsForeignFlags
-vips_foreign_load_jpeg_get_flags( VipsForeignLoad *load )
+static void
+vips_foreign_load_jpeg_dispose( GObject *gobject )
 {
-	/* The jpeg reader supports sequential read.
-	 */
-	return( VIPS_FOREIGN_SEQUENTIAL );
+	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) gobject;
+
+	VIPS_UNREF( jpeg->streami );
+
+	G_OBJECT_CLASS( vips_foreign_load_jpeg_parent_class )->
+		dispose( gobject );
 }
 
 static int
@@ -112,6 +119,43 @@ vips_foreign_load_jpeg_build( VipsObject *object )
 	return( 0 );
 }
 
+static VipsForeignFlags
+vips_foreign_load_jpeg_get_flags( VipsForeignLoad *load )
+{
+	return( VIPS_FOREIGN_SEQUENTIAL );
+}
+
+static VipsForeignFlags
+vips_foreign_load_jpeg_get_flags_filename( const char *filename )
+{
+	return( VIPS_FOREIGN_SEQUENTIAL );
+}
+
+static int
+vips_foreign_load_jpeg_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
+
+	if( vips__jpeg_read_stream( jpeg->streami, 
+		load->out, TRUE, jpeg->shrink, load->fail, jpeg->autorotate ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_load_jpeg_load( VipsForeignLoad *load )
+{
+	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
+
+	if( vips__jpeg_read_stream( jpeg->streami,
+		load->real, FALSE, jpeg->shrink, load->fail, 
+		jpeg->autorotate ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 static void
 vips_foreign_load_jpeg_class_init( VipsForeignLoadJpegClass *class )
 {
@@ -120,6 +164,7 @@ vips_foreign_load_jpeg_class_init( VipsForeignLoadJpegClass *class )
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
+	gobject_class->dispose = vips_foreign_load_jpeg_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
@@ -131,7 +176,11 @@ vips_foreign_load_jpeg_class_init( VipsForeignLoadJpegClass *class )
 	 */
 	foreign_class->priority = 50;
 
+	load_class->get_flags_filename = 
+		vips_foreign_load_jpeg_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_jpeg_get_flags;
+	load_class->header = vips_foreign_load_jpeg_header;
+	load_class->load = vips_foreign_load_jpeg_load;
 
 	VIPS_ARG_INT( class, "shrink", 20, 
 		_( "Shrink" ), 
@@ -168,27 +217,19 @@ G_DEFINE_TYPE( VipsForeignLoadJpegStream, vips_foreign_load_jpeg_stream,
 	vips_foreign_load_jpeg_get_type() );
 
 static int
-vips_foreign_load_jpeg_stream_header( VipsForeignLoad *load )
+vips_foreign_load_jpeg_stream_build( VipsObject *object )
 {
-	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
-	VipsForeignLoadJpegStream *stream = (VipsForeignLoadJpegStream *) load;
+	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) object;
+	VipsForeignLoadJpegStream *stream = 
+		(VipsForeignLoadJpegStream *) object;
 
-	if( vips__jpeg_read_stream( stream->streami, 
-		load->out, TRUE, jpeg->shrink, load->fail, jpeg->autorotate ) )
-		return( -1 );
+	if( stream->streami ) {
+		jpeg->streami = stream->streami;
+		g_object_ref( jpeg->streami );
+	}
 
-	return( 0 );
-}
-
-static int
-vips_foreign_load_jpeg_stream_load( VipsForeignLoad *load )
-{
-	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
-	VipsForeignLoadJpegStream *stream = (VipsForeignLoadJpegStream *) load;
-
-	if( vips__jpeg_read_stream( stream->streami,
-		load->real, FALSE, jpeg->shrink, load->fail, 
-		jpeg->autorotate ) )
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_jpeg_stream_parent_class )->
+		build( object ) )
 		return( -1 );
 
 	return( 0 );
@@ -213,10 +254,9 @@ vips_foreign_load_jpeg_stream_class_init(
 
 	object_class->nickname = "jpegload_stream";
 	object_class->description = _( "load image from jpeg stream" );
+	object_class->build = vips_foreign_load_jpeg_stream_build;
 
 	load_class->is_a_stream = vips_foreign_load_jpeg_stream_is_a_stream;
-	load_class->header = vips_foreign_load_jpeg_stream_header;
-	load_class->load = vips_foreign_load_jpeg_stream_load;
 
 	VIPS_ARG_OBJECT( class, "streami", 1,
 		_( "Streami" ),
@@ -244,6 +284,24 @@ typedef VipsForeignLoadJpegClass VipsForeignLoadJpegFileClass;
 G_DEFINE_TYPE( VipsForeignLoadJpegFile, vips_foreign_load_jpeg_file, 
 	vips_foreign_load_jpeg_get_type() );
 
+static int
+vips_foreign_load_jpeg_file_build( VipsObject *object )
+{
+	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) object;
+	VipsForeignLoadJpegFile *file = (VipsForeignLoadJpegFile *) object;
+
+	if( file->filename &&
+		!(jpeg->streami = 
+			vips_streami_new_from_file( file->filename )) )
+		return( -1 );
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_jpeg_file_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 static gboolean
 vips_foreign_load_jpeg_file_is_a( const char *filename )
 {
@@ -252,50 +310,10 @@ vips_foreign_load_jpeg_file_is_a( const char *filename )
 
 	if( !(streami = vips_streami_new_from_file( filename )) ) 
 		return( FALSE );
-	result = vips__isjpeg_stream( streami );
+	result = vips_foreign_load_jpeg_stream_is_a_stream( streami );
 	VIPS_UNREF( streami );
 
 	return( result );
-}
-
-static int
-vips_foreign_load_jpeg_file_header( VipsForeignLoad *load )
-{
-	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
-	VipsForeignLoadJpegFile *file = (VipsForeignLoadJpegFile *) load;
-
-	VipsStreami *streami;
-
-	if( !(streami = vips_streami_new_from_file( file->filename )) ) 
-		return( -1 );
-	if( vips__jpeg_read_stream( streami, load->out, 
-		TRUE, jpeg->shrink, load->fail, jpeg->autorotate ) ) {
-		VIPS_UNREF( streami );
-		return( -1 );
-	}
-	VIPS_UNREF( streami );
-
-	return( 0 );
-}
-
-static int
-vips_foreign_load_jpeg_file_load( VipsForeignLoad *load )
-{
-	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
-	VipsForeignLoadJpegFile *file = (VipsForeignLoadJpegFile *) load;
-
-	VipsStreami *streami;
-
-	if( !(streami = vips_streami_new_from_file( file->filename )) ) 
-		return( -1 );
-	if( vips__jpeg_read_stream( streami, load->real, 
-		FALSE, jpeg->shrink, load->fail, jpeg->autorotate ) ) {
-		VIPS_UNREF( streami );
-		return( -1 );
-	}
-	VIPS_UNREF( streami );
-
-	return( 0 );
 }
 
 static void
@@ -311,12 +329,11 @@ vips_foreign_load_jpeg_file_class_init( VipsForeignLoadJpegFileClass *class )
 
 	object_class->nickname = "jpegload";
 	object_class->description = _( "load jpeg from file" );
+	object_class->build = vips_foreign_load_jpeg_file_build;
 
 	foreign_class->suffs = vips__jpeg_suffs;
 
 	load_class->is_a = vips_foreign_load_jpeg_file_is_a;
-	load_class->header = vips_foreign_load_jpeg_file_header;
-	load_class->load = vips_foreign_load_jpeg_file_load;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
@@ -343,6 +360,26 @@ typedef VipsForeignLoadJpegClass VipsForeignLoadJpegBufferClass;
 G_DEFINE_TYPE( VipsForeignLoadJpegBuffer, vips_foreign_load_jpeg_buffer, 
 	vips_foreign_load_jpeg_get_type() );
 
+static int
+vips_foreign_load_jpeg_buffer_build( VipsObject *object )
+{
+	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) object;
+	VipsForeignLoadJpegBuffer *buffer = 
+		(VipsForeignLoadJpegBuffer *) object;
+
+	if( buffer->blob &&
+		!(jpeg->streami = vips_streami_new_from_memory( 
+			VIPS_AREA( buffer->blob )->data, 
+			VIPS_AREA( buffer->blob )->length )) )
+		return( -1 );
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_jpeg_buffer_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
 static gboolean
 vips_foreign_load_jpeg_buffer_is_a_buffer( const void *buf, size_t len )
 {
@@ -351,50 +388,10 @@ vips_foreign_load_jpeg_buffer_is_a_buffer( const void *buf, size_t len )
 
 	if( !(streami = vips_streami_new_from_memory( buf, len )) ) 
 		return( FALSE );
-	result = vips__isjpeg_stream( streami );
+	result = vips_foreign_load_jpeg_stream_is_a_stream( streami );
 	VIPS_UNREF( streami );
 
 	return( result );
-}
-
-static int
-vips_foreign_load_jpeg_buffer_header( VipsForeignLoad *load )
-{
-	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
-	VipsForeignLoadJpegBuffer *buffer = (VipsForeignLoadJpegBuffer *) load;
-
-	VipsStreami *streami;
-
-	if( !(streami = vips_streami_new_from_blob( buffer->blob )) ) 
-		return( -1 );
-	if( vips__jpeg_read_stream( streami, load->out, 
-		TRUE, jpeg->shrink, load->fail, jpeg->autorotate ) ) {
-		VIPS_UNREF( streami );
-		return( -1 );
-	}
-	VIPS_UNREF( streami );
-
-	return( 0 );
-}
-
-static int
-vips_foreign_load_jpeg_buffer_load( VipsForeignLoad *load )
-{
-	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
-	VipsForeignLoadJpegBuffer *buffer = (VipsForeignLoadJpegBuffer *) load;
-
-	VipsStreami *streami;
-
-	if( !(streami = vips_streami_new_from_blob( buffer->blob )) ) 
-		return( -1 );
-	if( vips__jpeg_read_stream( streami, load->real, 
-		FALSE, jpeg->shrink, load->fail, jpeg->autorotate ) ) {
-		VIPS_UNREF( streami );
-		return( -1 );
-	}
-	VIPS_UNREF( streami );
-
-	return( 0 );
 }
 
 static void
@@ -410,10 +407,9 @@ vips_foreign_load_jpeg_buffer_class_init(
 
 	object_class->nickname = "jpegload_buffer";
 	object_class->description = _( "load jpeg from buffer" );
+	object_class->build = vips_foreign_load_jpeg_buffer_build;
 
 	load_class->is_a_buffer = vips_foreign_load_jpeg_buffer_is_a_buffer;
-	load_class->header = vips_foreign_load_jpeg_buffer_header;
-	load_class->load = vips_foreign_load_jpeg_buffer_load;
 
 	VIPS_ARG_BOXED( class, "buffer", 1, 
 		_( "Buffer" ),

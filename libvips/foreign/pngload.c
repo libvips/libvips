@@ -315,7 +315,7 @@ typedef struct _VipsForeignLoadPngBuffer {
 
 	/* Load from a buffer.
 	 */
-	VipsArea *buf;
+	VipsBlob *blob;
 
 } VipsForeignLoadPngBuffer;
 
@@ -330,9 +330,10 @@ vips_foreign_load_png_buffer_build( VipsObject *object )
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) object;
 	VipsForeignLoadPngBuffer *buffer = (VipsForeignLoadPngBuffer *) object;
 
-	if( buffer->buf &&
+	if( buffer->blob &&
 		!(png->streami = vips_streami_new_from_memory( 
-			buffer->buf->data, buffer->buf->length )) )
+			VIPS_AREA( buffer->blob )->data, 
+			VIPS_AREA( buffer->blob )->length )) )
 		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_png_buffer_parent_class )->
@@ -376,7 +377,7 @@ vips_foreign_load_png_buffer_class_init( VipsForeignLoadPngBufferClass *class )
 		_( "Buffer" ),
 		_( "Buffer to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadPngBuffer, buf ),
+		G_STRUCT_OFFSET( VipsForeignLoadPngBuffer, blob ),
 		VIPS_TYPE_BLOB );
 
 }

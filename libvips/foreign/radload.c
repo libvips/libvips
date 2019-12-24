@@ -291,7 +291,7 @@ typedef struct _VipsForeignLoadRadBuffer {
 
 	/* Load from a buffer.
 	 */
-	VipsArea *buf;
+	VipsBlob *blob;
 
 } VipsForeignLoadRadBuffer;
 
@@ -306,9 +306,10 @@ vips_foreign_load_rad_buffer_build( VipsObject *object )
 	VipsForeignLoadRad *rad = (VipsForeignLoadRad *) object;
 	VipsForeignLoadRadBuffer *buffer = (VipsForeignLoadRadBuffer *) object;
 
-	if( buffer->buf &&
+	if( buffer->blob &&
 		!(rad->streami = vips_streami_new_from_memory( 
-			buffer->buf->data, buffer->buf->length )) )
+			VIPS_AREA( buffer->blob )->data, 
+			VIPS_AREA( buffer->blob )->length )) )
 		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_rad_file_parent_class )->
@@ -352,7 +353,7 @@ vips_foreign_load_rad_buffer_class_init( VipsForeignLoadRadBufferClass *class )
 		_( "Buffer" ),
 		_( "Buffer to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadRadBuffer, buf ),
+		G_STRUCT_OFFSET( VipsForeignLoadRadBuffer, blob ),
 		VIPS_TYPE_BLOB );
 
 }
