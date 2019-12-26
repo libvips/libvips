@@ -394,7 +394,9 @@ class TestCreate:
 
         # test autofit
         im = pyvips.Image.text("Hello, world!", width=500, height=500)
-        assert abs(im.width - 500) < 10
+        # quite a large threshold, since we need to work with a huge range of 
+        # text rendering systems
+        assert abs(im.width - 500) < 50
 
     def test_tonelut(self):
         im = pyvips.Image.tonelut()
