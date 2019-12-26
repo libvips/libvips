@@ -498,18 +498,22 @@ vips_bufis_get_non_whitespace( VipsBufis *bufis )
 int 
 vips_bufis_skip_whitespace( VipsBufis *bufis )
 {
-        int ch;
+	int ch;
 
-	while( isspace( ch = VIPS_BUFIS_GETC( bufis ) ) )
-		;
+	do {
+
+		ch = VIPS_BUFIS_GETC( bufis );
+
+		/* # skip comments too.
+		 */
+		if( ch == '#' ) {
+			if( !vips_bufis_get_line( bufis ) ) 
+				return( -1 );
+			ch = VIPS_BUFIS_GETC( bufis );
+		}
+	} while( isspace( ch ) );
+
 	VIPS_BUFIS_UNGETC( bufis );
-
-	/* # skip comments too.
-	 */
-	if( ch == '#' &&
-		(!vips_bufis_get_line( bufis ) ||
-		 vips_bufis_skip_whitespace( bufis )) )
-		return( -1 );
 
 	return( 0 );
 }
