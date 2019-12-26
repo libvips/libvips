@@ -315,12 +315,12 @@ vips_bufis_require( VipsBufis *bufis, int require )
  *
  * Returns NULL on end of file or read error.
  *
- * If the line is longer than some arbitrary (but large) limit, is is
+ * If the line is longer than some arbitrary (but large) limit, it is
  * truncated. If you need to be able to read very long lines, use the
  * slower vips_bufis_get_line_copy().
  *
  * The return value is owned by @bufis and must not be freed. It 
- * is valid until the next get call @bufis.
+ * is valid until the next get call to @bufis.
  *
  * Returns: the next line of text, or NULL on EOF or read error.
  */
@@ -380,9 +380,9 @@ vips_bufis_get_line( VipsBufis *bufis )
  * vips_bufis_get_line_copy:
  * @bufis: stream to operate on
  *
- * Return the next line of text from the stream. The newline character (or
- * characters) are removed, and and the string is terminated with a null
- * (`\0` character).
+ * Fetch the next line of text from @bufis and return it. The end of 
+ * line character (or characters, for DOS files) are removed, and the string
+ * is terminated with a null (`\0` character).
  *
  * The return result must be freed with g_free().
  *
@@ -453,7 +453,7 @@ vips_bufis_get_line_copy( VipsBufis *bufis )
  * truncated. 
  *
  * The return value is owned by @bufis and must not be freed. It 
- * is valid until the next get call @bufis.
+ * is valid until the next get call to @bufis.
  *
  * Returns: the next block of non-whitespace, or NULL on EOF or read error.
  */
@@ -493,7 +493,9 @@ vips_bufis_get_non_whitespace( VipsBufis *bufis )
  * After this, the next getc will be the first char of the next block of
  * non-whitespace (or EOF).
  *
- * Returns: 0 on success, -1 on error.
+ * Also skip comments, ie. from any '#' character to the end of the line.
+ *
+ * Returns: 0 on success, or -1 on EOF.
  */
 int 
 vips_bufis_skip_whitespace( VipsBufis *bufis )
@@ -501,12 +503,13 @@ vips_bufis_skip_whitespace( VipsBufis *bufis )
 	int ch;
 
 	do {
-
 		ch = VIPS_BUFIS_GETC( bufis );
 
 		/* # skip comments too.
 		 */
 		if( ch == '#' ) {
+			/* Probably EOF. 
+			 */
 			if( !vips_bufis_get_line( bufis ) ) 
 				return( -1 );
 			ch = VIPS_BUFIS_GETC( bufis );
