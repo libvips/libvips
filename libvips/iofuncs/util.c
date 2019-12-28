@@ -1028,17 +1028,13 @@ vips__gslist_gvalue_get( const GSList *list )
 	return( all );
 }
 
-/* Need our own seek(), since lseek() on win32 can't do long files.
- */
 gint64
 vips__seek_no_error( int fd, gint64 pos, int whence )
 {
 	gint64 new_pos;
 
 #ifdef OS_WIN32
-{
 	new_pos = _lseeki64( fd, pos, whence );
-}
 #else /*!OS_WIN32*/
 	new_pos = lseek( fd, pos, whence );
 #endif /*OS_WIN32*/
@@ -1054,13 +1050,8 @@ vips__seek( int fd, gint64 pos, int whence )
 	gint64 new_pos;
 
 	if( (new_pos = vips__seek_no_error( fd, pos, whence )) == -1 ) {
-#ifdef OS_WIN32
-                vips_error_system( GetLastError(), "vips__seek", 
-			"%s", _( "unable to seek" ) );
-#else /*!OS_WIN32*/
 		vips_error_system( errno, "vips__seek", 
 			"%s", _( "unable to seek" ) );
-#endif /*OS_WIN32*/
 		return( -1 );
 	}
 
