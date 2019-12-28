@@ -1037,16 +1037,7 @@ vips__seek_no_error( int fd, gint64 pos, int whence )
 
 #ifdef OS_WIN32
 {
-	HANDLE hFile = (HANDLE) _get_osfhandle( fd );
-	LARGE_INTEGER p;
-	LARGE_INTEGER q;
-
-	/* Whence uses the same numbering on win32 and posix.
-	 */
-	p.QuadPart = pos;
-	if( !SetFilePointerEx( hFile, p, &q, whence ) ) 
-		return( -1 );
-	new_pos = q.QuadPart;
+	new_pos = _lseeki64( fd, pos, whence );
 }
 #else /*!OS_WIN32*/
 	new_pos = lseek( fd, pos, whence );
@@ -1089,10 +1080,8 @@ vips__ftruncate( int fd, gint64 pos )
 #ifdef OS_WIN32
 {
 	HANDLE hFile = (HANDLE) _get_osfhandle( fd );
-	LARGE_INTEGER p;
 
-	p.QuadPart = pos;
-	if( vips__seek( fd, pos, SEEK_SET ) )
+	if( vips__seek( fd, pos, SEEK_SET ) == -1 )
 		return( -1 );
 	if( !SetEndOfFile( hFile ) ) {
                 vips_error_system( GetLastError(), "vips__ftruncate", 

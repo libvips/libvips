@@ -3056,7 +3056,8 @@ vips_image_isMSBfirst( VipsImage *image )
  *
  * Return %TRUE if @image represents a file on disc in some way. 
  */
-gboolean vips_image_isfile( VipsImage *image )
+gboolean 
+vips_image_isfile( VipsImage *image )
 {
 	switch( image->dtype ) {
 	case VIPS_IMAGE_MMAPIN:
