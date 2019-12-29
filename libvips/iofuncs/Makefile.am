@@ -3,9 +3,9 @@ noinst_LTLIBRARIES = libiofuncs.la
 libiofuncs_la_SOURCES = \
 	connection.c \
 	source.c \
-	sourceuser.c \
+	sourcecustom.c \
 	target.c \
-	targetuser.c \
+	targetcustom.c \
 	bufis.c \
 	dbuf.c \
 	reorder.c \

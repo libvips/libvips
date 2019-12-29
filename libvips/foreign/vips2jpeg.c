@@ -91,7 +91,7 @@
  * 19/7/19
  * 	- ignore large XMP
  * 14/10/19
- * 	- revise for stream IO
+ * 	- revise for target IO
  */
 
 /*
@@ -752,7 +752,7 @@ term_destination( j_compress_ptr cinfo )
 /* Set dest to one of our objects.
  */
 static void
-stream_dest( j_compress_ptr cinfo, VipsTarget *target )
+target_dest( j_compress_ptr cinfo, VipsTarget *target )
 {
 	Dest *dest;
 
@@ -771,7 +771,7 @@ stream_dest( j_compress_ptr cinfo, VipsTarget *target )
 }
 
 int
-vips__jpeg_write_stream( VipsImage *in, VipsTarget *target,
+vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive,
 	gboolean strip, gboolean no_subsample, gboolean trellis_quant,
@@ -795,7 +795,7 @@ vips__jpeg_write_stream( VipsImage *in, VipsTarget *target,
 
 	/* Attach output.
 	 */
-        stream_dest( &write->cinfo, target );
+        target_dest( &write->cinfo, target );
 
 	/* Convert! Write errors come back here as an error return.
 	 */

@@ -12,12 +12,12 @@ from helpers import \
     temp_filename, assert_almost_equal_objects, have, skip_if_no
 
 
-class TestStream:
+class TestConnection:
     tempdir = None
 
     @classmethod
     def setup_class(cls):
-        # for now, only run these tests if we have the stream pyvips installed
+        # for now, only run these tests if we have the source pyvips installed
         if pyvips.__version__ != "2.1.10":
             pytest.skip("tests cannot run with pyvips {}"
                         .format(pyvips.__version__))
@@ -42,60 +42,60 @@ class TestStream:
         cls.rad = None
         cls.cmyk = None
 
-    def test_streami_new_from_file(self):
-        x = pyvips.Streami.new_from_file(JPEG_FILE)
+    def test_source_new_from_file(self):
+        x = pyvips.Source.new_from_file(JPEG_FILE)
 
         assert x.filename() == JPEG_FILE
 
-    @skip_if_no("jpegload_stream")
-    def test_image_new_from_stream_file(self):
-        x = pyvips.Streami.new_from_file(JPEG_FILE)
-        y = pyvips.Image.new_from_stream(x, "")
+    @skip_if_no("jpegload_source")
+    def test_image_new_from_source_file(self):
+        x = pyvips.Source.new_from_file(JPEG_FILE)
+        y = pyvips.Image.new_from_source(x, "")
 
         assert y.width == 290
         assert y.height == 442
 
-    def test_streamo_new_to_file(self):
+    def test_target_new_to_file(self):
         filename = temp_filename(self.tempdir, ".jpg")
-        x = pyvips.Streamo.new_to_file(filename)
+        x = pyvips.Target.new_to_file(filename)
 
         assert x.filename() == filename
 
-    @skip_if_no("jpegload_stream")
-    def test_image_write_to_stream_file(self):
+    @skip_if_no("jpegload_source")
+    def test_image_write_to_target_file(self):
         filename = temp_filename(self.tempdir, ".jpg")
-        x = pyvips.Streamo.new_to_file(filename)
-        self.colour.write_to_stream(x, ".jpg")
+        x = pyvips.Target.new_to_file(filename)
+        self.colour.write_to_target(x, ".jpg")
         with open(filename, 'rb') as f:
             data = f.read()
         data2 = self.colour.write_to_buffer(".jpg")
 
         assert data == data2
 
-    def test_streami_new_memory(self):
+    def test_source_new_memory(self):
         data = self.colour.write_to_buffer(".jpg")
-        x = pyvips.Streami.new_from_memory(data)
+        x = pyvips.Source.new_from_memory(data)
 
         assert x.filename() == None
 
-    @skip_if_no("jpegload_stream")
-    def test_image_new_from_stream_memory(self):
+    @skip_if_no("jpegload_source")
+    def test_image_new_from_source_memory(self):
         data = self.colour.write_to_buffer(".jpg")
-        x = pyvips.Streami.new_from_memory(data)
-        y = pyvips.Image.new_from_stream(x, "")
+        x = pyvips.Source.new_from_memory(data)
+        y = pyvips.Image.new_from_source(x, "")
 
         assert y.width == 290
         assert y.height == 442
 
-    def test_streamo_new_memory(self):
-        x = pyvips.Streamo.new_to_memory()
+    def test_target_new_memory(self):
+        x = pyvips.Target.new_to_memory()
 
         assert x.filename() == None
 
-    @skip_if_no("jpegload_stream")
-    def test_image_write_to_stream_filename(self):
-        x = pyvips.Streamo.new_to_memory()
-        self.colour.write_to_stream(x, ".jpg")
+    @skip_if_no("jpegload_source")
+    def test_image_write_to_target_memory(self):
+        x = pyvips.Target.new_to_memory()
+        self.colour.write_to_target(x, ".jpg")
         y = self.colour.write_to_buffer(".jpg")
 
         assert x.get("blob") == y

@@ -490,7 +490,7 @@ vips_foreign_find_load_sub( VipsForeignLoadClass *load_class,
 
 	if( load_class->is_a &&
 		!vips_ispostfix( object_class->nickname, "_buffer" ) &&
-		!vips_ispostfix( object_class->nickname, "_stream" ) ) {
+		!vips_ispostfix( object_class->nickname, "_source" ) ) {
 		if( load_class->is_a( filename ) ) 
 			return( load_class );
 
@@ -629,7 +629,7 @@ vips_foreign_find_load_buffer( const void *data, size_t size )
 	return( G_OBJECT_CLASS_NAME( load_class ) );
 }
 
-/* Can this VipsForeign open this stream?
+/* Can this VipsForeign open this source?
  */
 static void *
 vips_foreign_find_load_source_sub( void *item, void *a, void *b )
@@ -639,7 +639,7 @@ vips_foreign_find_load_source_sub( void *item, void *a, void *b )
 	VipsSource *source = VIPS_SOURCE( a );
 
 	if( load_class->is_a_source &&
-		vips_ispostfix( object_class->nickname, "_stream" ) ) {
+		vips_ispostfix( object_class->nickname, "_source" ) ) {
 		/* We may have done a read() rather than a sniff() in one of
 		 * the is_a testers. Always rewind.
 		 */
@@ -654,12 +654,12 @@ vips_foreign_find_load_source_sub( void *item, void *a, void *b )
 
 /**
  * vips_foreign_find_load_source:
- * @source: stream to load from
+ * @source: source to load from
  *
- * Searches for an operation you could use to load a stream. To see the
- * range of buffer loaders supported by your vips, try something like:
+ * Searches for an operation you could use to load a source. To see the
+ * range of source loaders supported by your vips, try something like:
  * 
- * 	vips -l | grep load_stream
+ * 	vips -l | grep load_source
  *
  * See also: vips_image_new_from_source().
  *
@@ -676,7 +676,7 @@ vips_foreign_find_load_source( VipsSource *source )
 		vips_foreign_find_load_source_sub, 
 		source, NULL )) ) {
 		vips_error( "VipsForeignLoad", 
-			"%s", _( "stream is not in a known format" ) ); 
+			"%s", _( "source is not in a known format" ) ); 
 		return( NULL );
 	}
 
@@ -739,12 +739,12 @@ vips_foreign_is_a_buffer( const char *loader, const void *data, size_t size )
 /**
  * vips_foreign_is_a_source:
  * @loader: name of loader to use for test
- * @source: stream to test
+ * @source: source to test
  *
  * Return %TRUE if @source can be loaded by @loader. @loader is something
- * like "tiffload_stream" or "VipsForeignLoadTiffStream".
+ * like "tiffload_source" or "VipsForeignLoadTiffSource".
  *
- * Returns: %TRUE if @data can be loaded by @stream.
+ * Returns: %TRUE if @data can be loaded by @source.
  */
 gboolean
 vips_foreign_is_a_source( const char *loader, VipsSource *source )
@@ -1755,12 +1755,12 @@ vips_foreign_find_save_sub( VipsForeignSaveClass *save_class,
 	/* The suffs might be defined on an abstract base class, make sure we
 	 * don't pick that.
 	 *
-	 * Suffs can be defined on buffer and stream writers too. Make sure
+	 * Suffs can be defined on buffer and target writers too. Make sure
 	 * it's not one of those.
 	 */
 	if( !G_TYPE_IS_ABSTRACT( G_TYPE_FROM_CLASS( class ) ) &&
 		!vips_ispostfix( object_class->nickname, "_buffer" ) &&
-		!vips_ispostfix( object_class->nickname, "_stream" ) &&
+		!vips_ispostfix( object_class->nickname, "_target" ) &&
 		class->suffs &&
 		vips_filename_suffix_match( filename, class->suffs ) )
 		return( save_class );
@@ -1898,7 +1898,7 @@ vips_foreign_save( VipsImage *in, const char *name, ... )
 	return( result );
 }
 
-/* Can this class write this filetype to a stream?
+/* Can this class write this filetype to a target?
  */
 static void *
 vips_foreign_find_save_target_sub( VipsForeignSaveClass *save_class, 
@@ -1908,7 +1908,7 @@ vips_foreign_find_save_target_sub( VipsForeignSaveClass *save_class,
 	VipsForeignClass *class = VIPS_FOREIGN_CLASS( save_class );
 
 	if( class->suffs &&
-		vips_ispostfix( object_class->nickname, "_stream" ) &&
+		vips_ispostfix( object_class->nickname, "_target" ) &&
 		vips_filename_suffix_match( suffix, class->suffs ) )
 		return( save_class );
 
@@ -1919,7 +1919,7 @@ vips_foreign_find_save_target_sub( VipsForeignSaveClass *save_class,
  * vips_foreign_find_save_target:
  * @suffix: format to find a saver for
  *
- * Searches for an operation you could use to write to a stream in @suffix
+ * Searches for an operation you could use to write to a target in @suffix
  * format. 
  *
  * See also: vips_image_write_to_buffer().
@@ -1940,7 +1940,7 @@ vips_foreign_find_save_target( const char *name )
 		(VipsSListMap2Fn) vips_foreign_find_save_target_sub, 
 		(void *) suffix, NULL )) ) {
 		vips_error( "VipsForeignSave",
-			_( "\"%s\" is not a known stream format" ), name );
+			_( "\"%s\" is not a known target format" ), name );
 
 		return( NULL );
 	}
@@ -2041,10 +2041,10 @@ vips_foreign_operation_init( void )
 
 	extern GType vips_foreign_load_jpeg_file_get_type( void ); 
 	extern GType vips_foreign_load_jpeg_buffer_get_type( void ); 
-	extern GType vips_foreign_load_jpeg_stream_get_type( void ); 
+	extern GType vips_foreign_load_jpeg_source_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_file_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_buffer_get_type( void ); 
-	extern GType vips_foreign_save_jpeg_stream_get_type( void ); 
+	extern GType vips_foreign_save_jpeg_target_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_mime_get_type( void ); 
 
 	extern GType vips_foreign_load_tiff_file_get_type( void ); 
@@ -2175,10 +2175,10 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_JPEG
 	vips_foreign_load_jpeg_file_get_type(); 
 	vips_foreign_load_jpeg_buffer_get_type(); 
-	vips_foreign_load_jpeg_stream_get_type(); 
+	vips_foreign_load_jpeg_source_get_type(); 
 	vips_foreign_save_jpeg_file_get_type(); 
 	vips_foreign_save_jpeg_buffer_get_type(); 
-	vips_foreign_save_jpeg_stream_get_type(); 
+	vips_foreign_save_jpeg_target_get_type(); 
 	vips_foreign_save_jpeg_mime_get_type(); 
 #endif /*HAVE_JPEG*/
 

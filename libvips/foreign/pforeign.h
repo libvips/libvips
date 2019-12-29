@@ -157,16 +157,16 @@ extern const char *vips__rad_suffs[];
 
 extern const char *vips__jpeg_suffs[];
 
-int vips__jpeg_write_stream( VipsImage *in, VipsTarget *target,
+int vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip,
 	gboolean no_subsample, gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans, 
 	int quant_table );
 
-int vips__jpeg_read_stream( VipsSource *source, VipsImage *out,
+int vips__jpeg_read_source( VipsSource *source, VipsImage *out,
 	gboolean header_only, int shrink, int fail, gboolean autorotate );
-int vips__isjpeg_stream( VipsSource *source );
+int vips__isjpeg_source( VipsSource *source );
 
 int vips__png_ispng_stream( VipsSource *source );
 int vips__png_header_stream( VipsSource *source, VipsImage *out );
