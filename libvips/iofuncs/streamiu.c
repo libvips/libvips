@@ -83,7 +83,7 @@ vips_streamiu_read_real( VipsStreami *streami,
 	bytes_read = 0;
 
 	g_signal_emit( streami, vips_streamiu_signals[SIG_READ], 0,
-		buffer, length, &bytes_read );
+		buffer, (gint64) length, &bytes_read );
 
 	VIPS_DEBUG_MSG( "  vips_streamiu_read_real, seen %zd bytes\n", 
 		bytes_read );
@@ -182,9 +182,9 @@ vips_streamiu_class_init( VipsStreamiuClass *class )
 		G_SIGNAL_ACTION,
 		G_STRUCT_OFFSET( VipsStreamiuClass, read ), 
 		NULL, NULL,
-		vips_INT64__INT64_INT,
+		vips_INT64__POINTER_INT64,
 		G_TYPE_INT64, 2,
-		G_TYPE_INT64, G_TYPE_INT );
+		G_TYPE_POINTER, G_TYPE_INT64 );
 
 	/**
 	 * VipsStreamiu::seek:
@@ -204,9 +204,9 @@ vips_streamiu_class_init( VipsStreamiuClass *class )
 		G_SIGNAL_ACTION,
 		G_STRUCT_OFFSET( VipsStreamiuClass, seek ), 
 		NULL, NULL,
-		vips_INT64__POINTER_INT64,
+		vips_INT64__INT64_INT,
 		G_TYPE_INT64, 2,
-		G_TYPE_POINTER, G_TYPE_INT64 );
+		G_TYPE_INT64, G_TYPE_INT );
 
 }
 

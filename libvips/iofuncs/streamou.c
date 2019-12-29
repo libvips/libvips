@@ -83,7 +83,7 @@ vips_streamou_write_real( VipsStreamo *streamo,
 	bytes_written = 0;
 
 	g_signal_emit( streamo, vips_streamou_signals[SIG_WRITE], 0,
-		data, length, &bytes_written );
+		data, (gint64) length, &bytes_written );
 
 	VIPS_DEBUG_MSG( "  %zd\n", bytes_written );
 
