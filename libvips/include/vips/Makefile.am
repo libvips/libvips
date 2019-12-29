@@ -1,5 +1,5 @@
 pkginclude_HEADERS = \
-	stream.h \
+	connection.h \
 	bufis.h \
 	basic.h \
 	type.h \

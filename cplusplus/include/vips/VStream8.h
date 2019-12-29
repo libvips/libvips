@@ -37,7 +37,7 @@ VIPS_NAMESPACE_START
 class VStreamI : VObject
 {
 public:
-	VStreamI( VipsStreami *input, VSteal steal = STEAL ) : 
+	VStreamI( VipsSource *input, VSteal steal = STEAL ) : 
 		VObject( (VipsObject *) input, steal )
 	{
 	}
@@ -58,10 +58,10 @@ public:
 	static 
 	VStreamI new_from_options( const char *options );
 
-	VipsStreami *
+	VipsSource *
 	get_stream() const
 	{
-		return( (VipsStreami *) VObject::get_object() );
+		return( (VipsSource *) VObject::get_object() );
 	}
 
 };
@@ -69,7 +69,7 @@ public:
 class VStreamO : VObject
 {
 public:
-	VStreamO( VipsStreamo *output, VSteal steal = STEAL ) : 
+	VStreamO( VipsTarget *output, VSteal steal = STEAL ) : 
 		VObject( (VipsObject *) output, steal )
 	{
 	}
@@ -83,10 +83,10 @@ public:
 	static 
 	VStreamO new_to_memory();
 
-	VipsStreamo *
+	VipsTarget *
 	get_stream() const
 	{
-		return( (VipsStreamo *) VObject::get_object() );
+		return( (VipsTarget *) VObject::get_object() );
 	}
 
 };

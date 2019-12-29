@@ -1762,7 +1762,7 @@ wtiff_gather( Wtiff *wtiff )
 		wtiff->layer->below )
 		for( layer = wtiff->layer->below; layer; 
 			layer = layer->below ) {
-			VipsStreami *streami;
+			VipsSource *source;
 			TIFF *in;
 
 #ifdef DEBUG
@@ -1770,22 +1770,22 @@ wtiff_gather( Wtiff *wtiff )
 #endif /*DEBUG*/
 
 			if( layer->lname ) {
-				if( !(streami = 
-					vips_streami_new_from_file( 
+				if( !(source = 
+					vips_source_new_from_file( 
 						layer->lname )) ) 
 					return( -1 );
 			}
 			else {
-				if( !(streami = vips_streami_new_from_memory(
+				if( !(source = vips_source_new_from_memory(
 					layer->buf, layer->len )) )
 					return( -1 );
 			}
 
-			if( !(in = vips__tiff_openin_stream( streami )) ) {
-				VIPS_UNREF( streami );
+			if( !(in = vips__tiff_openin_stream( source )) ) {
+				VIPS_UNREF( source );
 				return( -1 );
 			}
-			VIPS_UNREF( streami );
+			VIPS_UNREF( source );
 
 			if( wtiff_copy_tiff( wtiff, wtiff->layer->tif, in ) ) {
 				TIFFClose( in );

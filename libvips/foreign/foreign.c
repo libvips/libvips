@@ -457,8 +457,8 @@ vips_foreign_load_summary_class( VipsObjectClass *object_class, VipsBuf *buf )
 			vips_buf_appends( buf, ", is_a" );
 		if( class->is_a_buffer )
 			vips_buf_appends( buf, ", is_a_buffer" );
-		if( class->is_a_stream )
-			vips_buf_appends( buf, ", is_a_stream" );
+		if( class->is_a_source )
+			vips_buf_appends( buf, ", is_a_source" );
 		if( class->get_flags )
 			vips_buf_appends( buf, ", get_flags" );
 		if( class->get_flags_filename )
@@ -632,20 +632,20 @@ vips_foreign_find_load_buffer( const void *data, size_t size )
 /* Can this VipsForeign open this stream?
  */
 static void *
-vips_foreign_find_load_stream_sub( void *item, void *a, void *b )
+vips_foreign_find_load_source_sub( void *item, void *a, void *b )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( item );
 	VipsForeignLoadClass *load_class = VIPS_FOREIGN_LOAD_CLASS( item );
-	VipsStreami *streami = VIPS_STREAMI( a );
+	VipsSource *source = VIPS_SOURCE( a );
 
-	if( load_class->is_a_stream &&
+	if( load_class->is_a_source &&
 		vips_ispostfix( object_class->nickname, "_stream" ) ) {
 		/* We may have done a read() rather than a sniff() in one of
 		 * the is_a testers. Always rewind.
 		 */
-		(void) vips_streami_rewind( streami );
+		(void) vips_source_rewind( source );
 
-		if( load_class->is_a_stream( streami ) ) 
+		if( load_class->is_a_source( source ) ) 
 			return( load_class );
 	}
 
@@ -653,28 +653,28 @@ vips_foreign_find_load_stream_sub( void *item, void *a, void *b )
 }
 
 /**
- * vips_foreign_find_load_stream:
- * @streami: stream to load from
+ * vips_foreign_find_load_source:
+ * @source: stream to load from
  *
  * Searches for an operation you could use to load a stream. To see the
  * range of buffer loaders supported by your vips, try something like:
  * 
  * 	vips -l | grep load_stream
  *
- * See also: vips_image_new_from_stream().
+ * See also: vips_image_new_from_source().
  *
  * Returns: (transfer none): the name of an operation on success, %NULL on 
  * error.
  */
 const char *
-vips_foreign_find_load_stream( VipsStreami *streami )
+vips_foreign_find_load_source( VipsSource *source )
 {
 	VipsForeignLoadClass *load_class;
 
 	if( !(load_class = (VipsForeignLoadClass *) vips_foreign_map( 
 		"VipsForeignLoad",
-		vips_foreign_find_load_stream_sub, 
-		streami, NULL )) ) {
+		vips_foreign_find_load_source_sub, 
+		source, NULL )) ) {
 		vips_error( "VipsForeignLoad", 
 			"%s", _( "stream is not in a known format" ) ); 
 		return( NULL );
@@ -737,17 +737,17 @@ vips_foreign_is_a_buffer( const char *loader, const void *data, size_t size )
 }
 
 /**
- * vips_foreign_is_a_stream:
+ * vips_foreign_is_a_source:
  * @loader: name of loader to use for test
- * @streami: stream to test
+ * @source: stream to test
  *
- * Return %TRUE if @streami can be loaded by @loader. @loader is something
+ * Return %TRUE if @source can be loaded by @loader. @loader is something
  * like "tiffload_stream" or "VipsForeignLoadTiffStream".
  *
  * Returns: %TRUE if @data can be loaded by @stream.
  */
 gboolean
-vips_foreign_is_a_stream( const char *loader, VipsStreami *streami )
+vips_foreign_is_a_source( const char *loader, VipsSource *source )
 {
 	const VipsObjectClass *class;
 	VipsForeignLoadClass *load_class;
@@ -755,8 +755,8 @@ vips_foreign_is_a_stream( const char *loader, VipsStreami *streami )
 	if( !(class = vips_class_find( "VipsForeignLoad", loader )) )
 		return( FALSE );
 	load_class = VIPS_FOREIGN_LOAD_CLASS( class );
-	if( load_class->is_a_stream &&
-		load_class->is_a_stream( streami ) )
+	if( load_class->is_a_source &&
+		load_class->is_a_source( source ) )
 		return( TRUE );
 
 	return( FALSE );
@@ -1901,7 +1901,7 @@ vips_foreign_save( VipsImage *in, const char *name, ... )
 /* Can this class write this filetype to a stream?
  */
 static void *
-vips_foreign_find_save_stream_sub( VipsForeignSaveClass *save_class, 
+vips_foreign_find_save_target_sub( VipsForeignSaveClass *save_class, 
 	const char *suffix )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( save_class );
@@ -1916,7 +1916,7 @@ vips_foreign_find_save_stream_sub( VipsForeignSaveClass *save_class,
 }
 
 /**
- * vips_foreign_find_save_stream:
+ * vips_foreign_find_save_target:
  * @suffix: format to find a saver for
  *
  * Searches for an operation you could use to write to a stream in @suffix
@@ -1927,7 +1927,7 @@ vips_foreign_find_save_stream_sub( VipsForeignSaveClass *save_class,
  * Returns: the name of an operation on success, %NULL on error
  */
 const char *
-vips_foreign_find_save_stream( const char *name )
+vips_foreign_find_save_target( const char *name )
 {
 	char suffix[VIPS_PATH_MAX];
 	char option_string[VIPS_PATH_MAX];
@@ -1937,7 +1937,7 @@ vips_foreign_find_save_stream( const char *name )
 
 	if( !(save_class = (VipsForeignSaveClass *) vips_foreign_map( 
 		"VipsForeignSave",
-		(VipsSListMap2Fn) vips_foreign_find_save_stream_sub, 
+		(VipsSListMap2Fn) vips_foreign_find_save_target_sub, 
 		(void *) suffix, NULL )) ) {
 		vips_error( "VipsForeignSave",
 			_( "\"%s\" is not a known stream format" ), name );

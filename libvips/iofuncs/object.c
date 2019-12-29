@@ -1908,19 +1908,19 @@ vips_object_set_argument_from_string( VipsObject *object,
 		vips__filename_split8( value, filename, option_string );
 
 		if( strcmp( "stdin", filename ) == 0 ) {
-			VipsStreami *streami;
+			VipsSource *source;
 
-			if( !(streami = 
-				vips_streami_new_from_descriptor( 0 )) )
+			if( !(source = 
+				vips_source_new_from_descriptor( 0 )) )
 				return( -1 );
-			if( !(out = vips_image_new_from_stream( streami, 
+			if( !(out = vips_image_new_from_source( source, 
 				option_string, 
 				"access", access,
 				NULL )) ) {
-				VIPS_UNREF( streami );
+				VIPS_UNREF( source );
 				return( -1 );
 			}
-			VIPS_UNREF( streami );
+			VIPS_UNREF( source );
 		}
 		else {
 			if( !(out = vips_image_new_from_file( value, 
@@ -1937,24 +1937,24 @@ vips_object_set_argument_from_string( VipsObject *object,
 		 */
 		g_object_unref( out );
 	}
-	else if( g_type_is_a( otype, VIPS_TYPE_STREAMI ) ) { 
-		VipsStreami *streami;
+	else if( g_type_is_a( otype, VIPS_TYPE_SOURCE ) ) { 
+		VipsSource *source;
 
 		if( !value ) {
 			vips_object_no_value( object, name );
 			return( -1 );
 		}
 
-		if( !(streami = vips_streami_new_from_options( value )) )
+		if( !(source = vips_source_new_from_options( value )) )
 			return( -1 );
 	
-		g_value_init( &gvalue, VIPS_TYPE_STREAMI );
-		g_value_set_object( &gvalue, streami );
+		g_value_init( &gvalue, VIPS_TYPE_SOURCE );
+		g_value_set_object( &gvalue, source );
 
 		/* Setting gvalue will have upped @out's count again,
 		 * go back to 1 so that gvalue has the only ref.
 		 */
-		g_object_unref( streami );
+		g_object_unref( source );
 	}
 	else if( g_type_is_a( otype, VIPS_TYPE_ARRAY_IMAGE ) ) { 
 		/* We have to have a special case for this, we can't just rely
@@ -2210,19 +2210,19 @@ vips_object_get_argument_to_string( VipsObject *object,
 		vips__filename_split8( arg, filename, option_string );
 
 		if( vips_isprefix( ".", filename ) ) {
-			VipsStreamo *streamo;
+			VipsTarget *target;
 
-			if( !(streamo = vips_streamo_new_to_descriptor( 1 )) )
+			if( !(target = vips_target_new_to_descriptor( 1 )) )
 				return( -1 );
 			g_object_get( object, name, &in, NULL );
-			if( vips_image_write_to_stream( in, 
-				arg, streamo, NULL ) ) {
+			if( vips_image_write_to_target( in, 
+				arg, target, NULL ) ) {
 				VIPS_UNREF( in );
-				VIPS_UNREF( streamo );
+				VIPS_UNREF( target );
 				return( -1 );
 			}
 			VIPS_UNREF( in );
-			VIPS_UNREF( streamo );
+			VIPS_UNREF( target );
 		}
 		else {
 			/* Pull out the image and write it.

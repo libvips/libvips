@@ -70,7 +70,7 @@ typedef struct _VipsForeignLoadJpeg {
 
 	/* Set by subclasses.
 	 */
-	VipsStreami *streami;
+	VipsSource *source;
 
 	/* Shrink by this much during load.
 	 */
@@ -92,7 +92,7 @@ vips_foreign_load_jpeg_dispose( GObject *gobject )
 {
 	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) gobject;
 
-	VIPS_UNREF( jpeg->streami );
+	VIPS_UNREF( jpeg->source );
 
 	G_OBJECT_CLASS( vips_foreign_load_jpeg_parent_class )->
 		dispose( gobject );
@@ -136,7 +136,7 @@ vips_foreign_load_jpeg_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
 
-	if( vips__jpeg_read_stream( jpeg->streami, 
+	if( vips__jpeg_read_stream( jpeg->source, 
 		load->out, TRUE, jpeg->shrink, load->fail, jpeg->autorotate ) )
 		return( -1 );
 
@@ -148,7 +148,7 @@ vips_foreign_load_jpeg_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
 
-	if( vips__jpeg_read_stream( jpeg->streami,
+	if( vips__jpeg_read_stream( jpeg->source,
 		load->real, FALSE, jpeg->shrink, load->fail, 
 		jpeg->autorotate ) )
 		return( -1 );
@@ -207,7 +207,7 @@ vips_foreign_load_jpeg_init( VipsForeignLoadJpeg *jpeg )
 typedef struct _VipsForeignLoadJpegStream {
 	VipsForeignLoadJpeg parent_object;
 
-	VipsStreami *streami;
+	VipsSource *source;
 
 } VipsForeignLoadJpegStream;
 
@@ -223,9 +223,9 @@ vips_foreign_load_jpeg_stream_build( VipsObject *object )
 	VipsForeignLoadJpegStream *stream = 
 		(VipsForeignLoadJpegStream *) object;
 
-	if( stream->streami ) {
-		jpeg->streami = stream->streami;
-		g_object_ref( jpeg->streami );
+	if( stream->source ) {
+		jpeg->source = stream->source;
+		g_object_ref( jpeg->source );
 	}
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_jpeg_stream_parent_class )->
@@ -236,9 +236,9 @@ vips_foreign_load_jpeg_stream_build( VipsObject *object )
 }
 
 static gboolean
-vips_foreign_load_jpeg_stream_is_a_stream( VipsStreami *streami )
+vips_foreign_load_jpeg_stream_is_a_source( VipsSource *source )
 {
-	return( vips__isjpeg_stream( streami ) );
+	return( vips__isjpeg_stream( source ) );
 }
 
 static void
@@ -256,14 +256,14 @@ vips_foreign_load_jpeg_stream_class_init(
 	object_class->description = _( "load image from jpeg stream" );
 	object_class->build = vips_foreign_load_jpeg_stream_build;
 
-	load_class->is_a_stream = vips_foreign_load_jpeg_stream_is_a_stream;
+	load_class->is_a_source = vips_foreign_load_jpeg_stream_is_a_source;
 
-	VIPS_ARG_OBJECT( class, "streami", 1,
+	VIPS_ARG_OBJECT( class, "source", 1,
 		_( "Streami" ),
 		_( "Stream to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadJpegStream, streami ),
-		VIPS_TYPE_STREAMI );
+		G_STRUCT_OFFSET( VipsForeignLoadJpegStream, source ),
+		VIPS_TYPE_SOURCE );
 
 }
 
@@ -291,8 +291,8 @@ vips_foreign_load_jpeg_file_build( VipsObject *object )
 	VipsForeignLoadJpegFile *file = (VipsForeignLoadJpegFile *) object;
 
 	if( file->filename &&
-		!(jpeg->streami = 
-			vips_streami_new_from_file( file->filename )) )
+		!(jpeg->source = 
+			vips_source_new_from_file( file->filename )) )
 		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_jpeg_file_parent_class )->
@@ -305,13 +305,13 @@ vips_foreign_load_jpeg_file_build( VipsObject *object )
 static gboolean
 vips_foreign_load_jpeg_file_is_a( const char *filename )
 {
-	VipsStreami *streami;
+	VipsSource *source;
 	gboolean result;
 
-	if( !(streami = vips_streami_new_from_file( filename )) ) 
+	if( !(source = vips_source_new_from_file( filename )) ) 
 		return( FALSE );
-	result = vips_foreign_load_jpeg_stream_is_a_stream( streami );
-	VIPS_UNREF( streami );
+	result = vips_foreign_load_jpeg_stream_is_a_source( source );
+	VIPS_UNREF( source );
 
 	return( result );
 }
@@ -368,7 +368,7 @@ vips_foreign_load_jpeg_buffer_build( VipsObject *object )
 		(VipsForeignLoadJpegBuffer *) object;
 
 	if( buffer->blob &&
-		!(jpeg->streami = vips_streami_new_from_memory( 
+		!(jpeg->source = vips_source_new_from_memory( 
 			VIPS_AREA( buffer->blob )->data, 
 			VIPS_AREA( buffer->blob )->length )) )
 		return( -1 );
@@ -383,13 +383,13 @@ vips_foreign_load_jpeg_buffer_build( VipsObject *object )
 static gboolean
 vips_foreign_load_jpeg_buffer_is_a_buffer( const void *buf, size_t len )
 {
-	VipsStreami *streami;
+	VipsSource *source;
 	gboolean result;
 
-	if( !(streami = vips_streami_new_from_memory( buf, len )) ) 
+	if( !(source = vips_source_new_from_memory( buf, len )) ) 
 		return( FALSE );
-	result = vips_foreign_load_jpeg_stream_is_a_stream( streami );
-	VIPS_UNREF( streami );
+	result = vips_foreign_load_jpeg_stream_is_a_source( source );
+	VIPS_UNREF( source );
 
 	return( result );
 }

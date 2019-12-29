@@ -78,38 +78,38 @@
 #define MODE_READWRITE BINARYIZE (O_RDWR)
 #define MODE_WRITE BINARYIZE (O_WRONLY | O_CREAT | O_TRUNC)
 
-G_DEFINE_TYPE( VipsStreamo, vips_streamo, VIPS_TYPE_STREAM );
+G_DEFINE_TYPE( VipsTarget, vips_target, VIPS_TYPE_CONNECTION );
 
 static void
-vips_streamo_finalize( GObject *gobject )
+vips_target_finalize( GObject *gobject )
 {
-	VipsStreamo *streamo = VIPS_STREAMO( gobject );
+	VipsTarget *target = VIPS_TARGET( gobject );
 
-	VIPS_DEBUG_MSG( "vips_streamo_finalize:\n" );
+	VIPS_DEBUG_MSG( "vips_target_finalize:\n" );
 
-	VIPS_FREEF( g_byte_array_unref, streamo->memory_buffer ); 
-	if( streamo->blob ) { 
-		vips_area_unref( VIPS_AREA( streamo->blob ) ); 
-		streamo->blob = NULL;
+	VIPS_FREEF( g_byte_array_unref, target->memory_buffer ); 
+	if( target->blob ) { 
+		vips_area_unref( VIPS_AREA( target->blob ) ); 
+		target->blob = NULL;
 	}
 
-	G_OBJECT_CLASS( vips_streamo_parent_class )->finalize( gobject );
+	G_OBJECT_CLASS( vips_target_parent_class )->finalize( gobject );
 }
 
 static int
-vips_streamo_build( VipsObject *object )
+vips_target_build( VipsObject *object )
 {
-	VipsStream *stream = VIPS_STREAM( object );
-	VipsStreamo *streamo = VIPS_STREAMO( object );
+	VipsConnection *stream = VIPS_CONNECTION( object );
+	VipsTarget *target = VIPS_TARGET( object );
 
-	VIPS_DEBUG_MSG( "vips_streamo_build: %p\n", stream );
+	VIPS_DEBUG_MSG( "vips_target_build: %p\n", stream );
 
-	if( VIPS_OBJECT_CLASS( vips_streamo_parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_target_parent_class )->build( object ) )
 		return( -1 );
 
 	if( vips_object_argument_isset( object, "filename" ) &&
 		vips_object_argument_isset( object, "descriptor" ) ) { 
-		vips_error( vips_stream_nick( stream ), 
+		vips_error( vips_connection_nick( stream ), 
 			"%s", _( "don't set 'filename' and 'descriptor'" ) ); 
 		return( -1 ); 
 	}
@@ -123,7 +123,7 @@ vips_streamo_build( VipsObject *object )
 		 */
 		if( (fd = vips_tracked_open( filename, 
 			MODE_WRITE, 0644 )) == -1 ) {
-			vips_error_system( errno, vips_stream_nick( stream ), 
+			vips_error_system( errno, vips_connection_nick( stream ), 
 				"%s", _( "unable to open for write" ) ); 
 			return( -1 ); 
 		}
@@ -135,52 +135,52 @@ vips_streamo_build( VipsObject *object )
 		stream->descriptor = dup( stream->descriptor );
 		stream->close_descriptor = stream->descriptor;
 	}
-	else if( streamo->memory ) {
-		streamo->memory_buffer = g_byte_array_new();
+	else if( target->memory ) {
+		target->memory_buffer = g_byte_array_new();
 	}
 
 	return( 0 );
 }
 
 static gint64 
-vips_streamo_write_real( VipsStreamo *streamo, const void *data, size_t length )
+vips_target_write_real( VipsTarget *target, const void *data, size_t length )
 {
-	VipsStream *stream = VIPS_STREAM( streamo );
+	VipsConnection *stream = VIPS_CONNECTION( target );
 
-	VIPS_DEBUG_MSG( "vips_streamo_write_real: %zd bytes\n", length );
+	VIPS_DEBUG_MSG( "vips_target_write_real: %zd bytes\n", length );
 
 	return( write( stream->descriptor, data, length ) );
 }
 
 static void
-vips_streamo_finish_real( VipsStreamo *streamo ) 
+vips_target_finish_real( VipsTarget *target ) 
 {
-	VIPS_DEBUG_MSG( "vips_streamo_finish_real:\n" );
+	VIPS_DEBUG_MSG( "vips_target_finish_real:\n" );
 }
 
 static void
-vips_streamo_class_init( VipsStreamoClass *class )
+vips_target_class_init( VipsTargetClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
 
-	gobject_class->finalize = vips_streamo_finalize;
+	gobject_class->finalize = vips_target_finalize;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "streamo";
+	object_class->nickname = "target";
 	object_class->description = _( "stream stream" );
 
-	object_class->build = vips_streamo_build;
+	object_class->build = vips_target_build;
 
-	class->write = vips_streamo_write_real;
-	class->finish = vips_streamo_finish_real;
+	class->write = vips_target_write_real;
+	class->finish = vips_target_finish_real;
 
 	VIPS_ARG_BOOL( class, "memory", 3, 
 		_( "Memory" ), 
 		_( "File descriptor should output to memory" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsStreamo, memory ),
+		G_STRUCT_OFFSET( VipsTarget, memory ),
 		FALSE );
 
 	/* SET_ALWAYS means that blob is set by C and the obj system is not
@@ -190,132 +190,132 @@ vips_streamo_class_init( VipsStreamoClass *class )
 		_( "Blob" ),
 		_( "Blob to save to" ),
 		VIPS_ARGUMENT_SET_ALWAYS, 
-		G_STRUCT_OFFSET( VipsStreamo, blob ),
+		G_STRUCT_OFFSET( VipsTarget, blob ),
 		VIPS_TYPE_BLOB );
 
 }
 
 static void
-vips_streamo_init( VipsStreamo *streamo )
+vips_target_init( VipsTarget *target )
 {
-	streamo->blob = vips_blob_new( NULL, NULL, 0 );
-	streamo->write_point = 0;
+	target->blob = vips_blob_new( NULL, NULL, 0 );
+	target->write_point = 0;
 }
 
 /**
- * vips_streamo_new_to_descriptor:
+ * vips_target_new_to_descriptor:
  * @descriptor: write to this file descriptor
  *
  * Create a stream attached to a file descriptor.
- * @descriptor is kept open until the #VipsStreamo is finalized.
+ * @descriptor is kept open until the #VipsTarget is finalized.
  *
- * See also: vips_streamo_new_to_file().
+ * See also: vips_target_new_to_file().
  *
- * Returns: a new #VipsStreamo
+ * Returns: a new #VipsTarget
  */
-VipsStreamo *
-vips_streamo_new_to_descriptor( int descriptor )
+VipsTarget *
+vips_target_new_to_descriptor( int descriptor )
 {
-	VipsStreamo *streamo;
+	VipsTarget *target;
 
-	VIPS_DEBUG_MSG( "vips_streamo_new_to_descriptor: %d\n", 
+	VIPS_DEBUG_MSG( "vips_target_new_to_descriptor: %d\n", 
 		descriptor );
 
-	streamo = VIPS_STREAMO( g_object_new( VIPS_TYPE_STREAMO, 
+	target = VIPS_TARGET( g_object_new( VIPS_TYPE_TARGET, 
 		"descriptor", descriptor,
 		NULL ) );
 
-	if( vips_object_build( VIPS_OBJECT( streamo ) ) ) {
-		VIPS_UNREF( streamo );
+	if( vips_object_build( VIPS_OBJECT( target ) ) ) {
+		VIPS_UNREF( target );
 		return( NULL );
 	}
 
-	return( streamo ); 
+	return( target ); 
 }
 
 /**
- * vips_streamo_new_to_file:
+ * vips_target_new_to_file:
  * @filename: write to this file 
  *
  * Create a stream attached to a file.
  *
- * Returns: a new #VipsStreamo
+ * Returns: a new #VipsTarget
  */
-VipsStreamo *
-vips_streamo_new_to_file( const char *filename )
+VipsTarget *
+vips_target_new_to_file( const char *filename )
 {
-	VipsStreamo *streamo;
+	VipsTarget *target;
 
-	VIPS_DEBUG_MSG( "vips_streamo_new_to_file: %s\n", 
+	VIPS_DEBUG_MSG( "vips_target_new_to_file: %s\n", 
 		filename );
 
-	streamo = VIPS_STREAMO( g_object_new( VIPS_TYPE_STREAMO, 
+	target = VIPS_TARGET( g_object_new( VIPS_TYPE_TARGET, 
 		"filename", filename,
 		NULL ) );
 
-	if( vips_object_build( VIPS_OBJECT( streamo ) ) ) {
-		VIPS_UNREF( streamo );
+	if( vips_object_build( VIPS_OBJECT( target ) ) ) {
+		VIPS_UNREF( target );
 		return( NULL );
 	}
 
-	return( streamo ); 
+	return( target ); 
 }
 
 /**
- * vips_streamo_new_to_memory:
+ * vips_target_new_to_memory:
  *
  * Create a stream which will stream to a memory area. Read from @blob to get
  * memory.
  *
- * See also: vips_streamo_new_to_file().
+ * See also: vips_target_new_to_file().
  *
- * Returns: a new #VipsStream
+ * Returns: a new #VipsConnection
  */
-VipsStreamo *
-vips_streamo_new_to_memory( void )
+VipsTarget *
+vips_target_new_to_memory( void )
 {
-	VipsStreamo *streamo;
+	VipsTarget *target;
 
-	VIPS_DEBUG_MSG( "vips_streamo_new_to_memory:\n" ); 
+	VIPS_DEBUG_MSG( "vips_target_new_to_memory:\n" ); 
 
-	streamo = VIPS_STREAMO( g_object_new( VIPS_TYPE_STREAMO,
+	target = VIPS_TARGET( g_object_new( VIPS_TYPE_TARGET,
 		"memory", TRUE,
 		NULL ) );
 
-	if( vips_object_build( VIPS_OBJECT( streamo ) ) ) {
-		VIPS_UNREF( streamo );
+	if( vips_object_build( VIPS_OBJECT( target ) ) ) {
+		VIPS_UNREF( target );
 		return( NULL );
 	}
 
-	return( streamo ); 
+	return( target ); 
 }
 
 static int
-vips_streamo_write_unbuffered( VipsStreamo *streamo, 
+vips_target_write_unbuffered( VipsTarget *target, 
 	const void *data, size_t length )
 {
-	VipsStreamoClass *class = VIPS_STREAMO_GET_CLASS( streamo );
+	VipsTargetClass *class = VIPS_TARGET_GET_CLASS( target );
 
-	VIPS_DEBUG_MSG( "vips_streamo_write_unbuffered:\n" );
+	VIPS_DEBUG_MSG( "vips_target_write_unbuffered:\n" );
 
-	if( streamo->finished )
+	if( target->finished )
 		return( 0 );
 
-	if( streamo->memory_buffer ) 
-		g_byte_array_append( streamo->memory_buffer, data, length );
+	if( target->memory_buffer ) 
+		g_byte_array_append( target->memory_buffer, data, length );
 	else 
 		while( length > 0 ) { 
 			gint64 bytes_written;
 
-			bytes_written = class->write( streamo, data, length );
+			bytes_written = class->write( target, data, length );
 
 			/* n == 0 isn't strictly an error, but we treat it as 
 			 * one to make sure we don't get stuck in this loop.
 			 */
 			if( bytes_written <= 0 ) {
 				vips_error_system( errno, 
-					vips_stream_nick( 
-						VIPS_STREAM( streamo ) ),
+					vips_connection_nick( 
+						VIPS_CONNECTION( target ) ),
 					"%s", _( "write error" ) ); 
 				return( -1 ); 
 			}
@@ -328,26 +328,26 @@ vips_streamo_write_unbuffered( VipsStreamo *streamo,
 }
 
 static int
-vips_streamo_flush( VipsStreamo *streamo )
+vips_target_flush( VipsTarget *target )
 {
-	g_assert( streamo->write_point >= 0 );
-	g_assert( streamo->write_point <= VIPS_STREAMO_BUFFER_SIZE );
+	g_assert( target->write_point >= 0 );
+	g_assert( target->write_point <= VIPS_TARGET_BUFFER_SIZE );
 
-	VIPS_DEBUG_MSG( "vips_streamo_flush:\n" );
+	VIPS_DEBUG_MSG( "vips_target_flush:\n" );
 
-	if( streamo->write_point > 0 ) {
-		if( vips_streamo_write_unbuffered( streamo, 
-			streamo->output_buffer, streamo->write_point ) )
+	if( target->write_point > 0 ) {
+		if( vips_target_write_unbuffered( target, 
+			target->output_buffer, target->write_point ) )
 			return( -1 );
-		streamo->write_point = 0;
+		target->write_point = 0;
 	}
 
 	return( 0 );
 }
 
 /**
- * vips_streamo_write:
- * @streamo: output stream to operate on
+ * vips_target_write:
+ * @target: output stream to operate on
  * @buffer: bytes to write
  * @length: length of @buffer in bytes
  *
@@ -356,183 +356,183 @@ vips_streamo_flush( VipsStreamo *streamo )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_streamo_write( VipsStreamo *streamo, const void *buffer, size_t length )
+vips_target_write( VipsTarget *target, const void *buffer, size_t length )
 {
-	VIPS_DEBUG_MSG( "vips_streamo_write: %zd bytes\n", length );
+	VIPS_DEBUG_MSG( "vips_target_write: %zd bytes\n", length );
 
-	if( length > VIPS_STREAMO_BUFFER_SIZE - streamo->write_point &&
-		vips_streamo_flush( streamo ) )
+	if( length > VIPS_TARGET_BUFFER_SIZE - target->write_point &&
+		vips_target_flush( target ) )
 		return( -1 );
 
-	if( length > VIPS_STREAMO_BUFFER_SIZE - streamo->write_point ) {
+	if( length > VIPS_TARGET_BUFFER_SIZE - target->write_point ) {
 		/* Still too large? Do an unbuffered write.
 		 */
-		if( vips_streamo_write_unbuffered( streamo, buffer, length ) )
+		if( vips_target_write_unbuffered( target, buffer, length ) )
 			return( -1 );
 	}
 	else {
-		memcpy( streamo->output_buffer + streamo->write_point, 
+		memcpy( target->output_buffer + target->write_point, 
 			buffer, length );
-		streamo->write_point += length;
+		target->write_point += length;
 	}
 
 	return( 0 );
 }
 
 /**
- * vips_streamo_finish:
- * @streamo: output stream to operate on
+ * vips_target_finish:
+ * @target: output stream to operate on
  * @buffer: bytes to write
  * @length: length of @buffer in bytes
  *
  * Call this at the end of write to make the stream do any cleaning up. You
  * can call it many times. 
  *
- * After a streamo has been finished, further writes will do nothing.
+ * After a target has been finished, further writes will do nothing.
  */
 void
-vips_streamo_finish( VipsStreamo *streamo )
+vips_target_finish( VipsTarget *target )
 {
-	VipsStreamoClass *class = VIPS_STREAMO_GET_CLASS( streamo );
+	VipsTargetClass *class = VIPS_TARGET_GET_CLASS( target );
 
-	VIPS_DEBUG_MSG( "vips_streamo_finish:\n" );
+	VIPS_DEBUG_MSG( "vips_target_finish:\n" );
 
-	if( streamo->finished )
+	if( target->finished )
 		return;
 
-	(void) vips_streamo_flush( streamo );
+	(void) vips_target_flush( target );
 
 	/* Move the stream buffer into the blob so it can be read out.
 	 */
-	if( streamo->memory_buffer ) {
+	if( target->memory_buffer ) {
 		unsigned char *data;
 		size_t length;
 
-		length = streamo->memory_buffer->len;
-		data = g_byte_array_free( streamo->memory_buffer, FALSE );
-		streamo->memory_buffer = NULL;
-		vips_blob_set( streamo->blob,
+		length = target->memory_buffer->len;
+		data = g_byte_array_free( target->memory_buffer, FALSE );
+		target->memory_buffer = NULL;
+		vips_blob_set( target->blob,
 			(VipsCallbackFn) g_free, data, length );
 	}
 	else
-		class->finish( streamo );
+		class->finish( target );
 
-	streamo->finished = TRUE;
+	target->finished = TRUE;
 }
 
 /**
- * vips_streamo_steal: 
- * @streamo: output stream to operate on
+ * vips_target_steal: 
+ * @target: output stream to operate on
  * @length: return number of bytes of data
  *
- * Memory streams only (see vips_streamo_new_to_memory()). Steal all data
+ * Memory streams only (see vips_target_new_to_memory()). Steal all data
  * written to the stream so far, and finish it.
  *
  * You must free the returned pointer with g_free().
  *
- * The data is NOT automatically null-terminated. vips_streamo_putc() a '\0' 
+ * The data is NOT automatically null-terminated. vips_target_putc() a '\0' 
  * before calling this to get a null-terminated string.
  *
  * Returns: (array length=length) (element-type guint8) (transfer full): the 
  * data
  */
 unsigned char *
-vips_streamo_steal( VipsStreamo *streamo, size_t *length )
+vips_target_steal( VipsTarget *target, size_t *length )
 {
 	unsigned char *data;
 
-	(void) vips_streamo_flush( streamo );
+	(void) vips_target_flush( target );
 
-	if( !streamo->memory_buffer ||
-		streamo->finished ) {
+	if( !target->memory_buffer ||
+		target->finished ) {
 		if( length )
-			*length = streamo->memory_buffer->len;
+			*length = target->memory_buffer->len;
 
 		return( NULL );
 	}
 
 	if( length )
-		*length = streamo->memory_buffer->len;
-	data = g_byte_array_free( streamo->memory_buffer, FALSE );
-	streamo->memory_buffer = NULL;
+		*length = target->memory_buffer->len;
+	data = g_byte_array_free( target->memory_buffer, FALSE );
+	target->memory_buffer = NULL;
 
 	/* We must have a valid byte array or finish will fail.
 	 */
-	streamo->memory_buffer = g_byte_array_new();
+	target->memory_buffer = g_byte_array_new();
 
-	vips_streamo_finish( streamo );
+	vips_target_finish( target );
 
 	return( data );
 }
 
 /**
- * vips_streamo_steal_text: 
- * @streamo: output stream to operate on
+ * vips_target_steal_text: 
+ * @target: output stream to operate on
  *
- * As vips_streamo_steal_text(), but return a null-terminated string.
+ * As vips_target_steal_text(), but return a null-terminated string.
  *
  * Returns: (transfer full): stream contents as a null-terminated string.
  */
 char *
-vips_streamo_steal_text( VipsStreamo *streamo )
+vips_target_steal_text( VipsTarget *target )
 {
-	vips_streamo_putc( streamo, '\0' );  
+	vips_target_putc( target, '\0' );  
 
-	return( (char *) vips_streamo_steal( streamo, NULL ) ); 
+	return( (char *) vips_target_steal( target, NULL ) ); 
 }
 
 /**
- * vips_streamo_putc:
- * @streamo: output stream to operate on
+ * vips_target_putc:
+ * @target: output stream to operate on
  * @ch: character to write
  *
- * Write a single character @ch to @streamo. See the macro VIPS_STREAMO_PUTC()
+ * Write a single character @ch to @target. See the macro VIPS_TARGET_PUTC()
  * for a faster way to do this.
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_streamo_putc( VipsStreamo *streamo, int ch )
+vips_target_putc( VipsTarget *target, int ch )
 {
-	VIPS_DEBUG_MSG( "vips_streamo_putc: %d\n", ch );
+	VIPS_DEBUG_MSG( "vips_target_putc: %d\n", ch );
 
-	if( streamo->write_point >= VIPS_STREAMO_BUFFER_SIZE && 
-		vips_streamo_flush( streamo ) )
+	if( target->write_point >= VIPS_TARGET_BUFFER_SIZE && 
+		vips_target_flush( target ) )
 		return( -1 );
 
-	streamo->output_buffer[streamo->write_point++] = ch;
+	target->output_buffer[target->write_point++] = ch;
 
 	return( 0 );
 }
 
 /**
- * vips_streamo_writes:
- * @streamo: output stream to operate on
+ * vips_target_writes:
+ * @target: output stream to operate on
  * @str: string to write
  *
- * Write a null-terminated string to @streamo.
+ * Write a null-terminated string to @target.
  * 
  * Returns: 0 on success, and -1 on error.
  */
 int
-vips_streamo_writes( VipsStreamo *streamo, const char *str )
+vips_target_writes( VipsTarget *target, const char *str )
 {
-	return( vips_streamo_write( streamo, 
+	return( vips_target_write( target, 
 		(unsigned char *) str, strlen( str ) ) );
 }
 
 /**
- * vips_streamo_writef:
- * @streamo: output stream to operate on
+ * vips_target_writef:
+ * @target: output stream to operate on
  * @fmt: <function>printf()</function>-style format string
  * @...: arguments to format string
  *
- * Format the string and write to @streamo. 
+ * Format the string and write to @target. 
  * 
  * Returns: 0 on success, and -1 on error.
  */
 int
-vips_streamo_writef( VipsStreamo *streamo, const char *fmt, ... )
+vips_target_writef( VipsTarget *target, const char *fmt, ... )
 {
 	va_list ap;
 	char *line;
@@ -542,7 +542,7 @@ vips_streamo_writef( VipsStreamo *streamo, const char *fmt, ... )
 	line = g_strdup_vprintf( fmt, ap ); 
         va_end( ap );
 
-	result = vips_streamo_writes( streamo, line ); 
+	result = vips_target_writes( target, line ); 
 
 	g_free( line ); 
 
@@ -550,11 +550,11 @@ vips_streamo_writef( VipsStreamo *streamo, const char *fmt, ... )
 }
 
 /**
- * vips_streamo_write_amp: 
- * @streamo: output stream to operate on
+ * vips_target_write_amp: 
+ * @target: output stream to operate on
  * @str: string to write
  *
- * Write @str to @streamo, but escape stuff that xml hates in text. Our
+ * Write @str to @target, but escape stuff that xml hates in text. Our
  * argument string is utf-8.
  *
  * XML rules:
@@ -566,7 +566,7 @@ vips_streamo_writef( VipsStreamo *streamo, const char *fmt, ... )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_streamo_write_amp( VipsStreamo *streamo, const char *str )
+vips_target_write_amp( VipsTarget *target, const char *str )
 {
 	const char *p;
 
@@ -583,24 +583,24 @@ vips_streamo_write_amp( VipsStreamo *streamo, const char *str )
 			 * control characters, so we can use them -- thanks
 			 * electroly.
 			 */
-			if( vips_streamo_writef( streamo, 
+			if( vips_target_writef( target, 
 				"&#x%04x;", 0x2400 + *p ) )
 				return( -1 );	
 		}
 		else if( *p == '<' ) {
-			if( vips_streamo_writes( streamo, "&lt;" ) )
+			if( vips_target_writes( target, "&lt;" ) )
 				return( -1 );
 		}
 		else if( *p == '>' ) {
-			if( vips_streamo_writes( streamo, "&gt;" ) )
+			if( vips_target_writes( target, "&gt;" ) )
 				return( -1 );
 		}
 		else if( *p == '&' ) {
-			if( vips_streamo_writes( streamo, "&amp;" ) )
+			if( vips_target_writes( target, "&amp;" ) )
 				return( -1 );
 		}
 		else  {
-			if( VIPS_STREAMO_PUTC( streamo, *p ) )
+			if( VIPS_TARGET_PUTC( target, *p ) )
 				return( -1 );
 		}
 

@@ -222,7 +222,7 @@ vips_foreign_save_webp_init( VipsForeignSaveWebp *webp )
 typedef struct _VipsForeignSaveWebpStream {
 	VipsForeignSaveWebp parent_object;
 
-	VipsStreamo *streamo;
+	VipsTarget *target;
 
 } VipsForeignSaveWebpStream;
 
@@ -243,7 +243,7 @@ vips_foreign_save_webp_stream_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( vips__webp_write_stream( save->ready, stream->streamo, 
+	if( vips__webp_write_stream( save->ready, stream->target, 
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
 		webp->alpha_q, webp->reduction_effort,
@@ -268,12 +268,12 @@ vips_foreign_save_webp_stream_class_init(
 	object_class->description = _( "save image to webp stream" );
 	object_class->build = vips_foreign_save_webp_stream_build;
 
-	VIPS_ARG_OBJECT( class, "streamo", 1,
-		_( "streamo" ),
+	VIPS_ARG_OBJECT( class, "target", 1,
+		_( "target" ),
 		_( "Stream to save to" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignSaveWebpStream, streamo ),
-		VIPS_TYPE_STREAMO );
+		G_STRUCT_OFFSET( VipsForeignSaveWebpStream, target ),
+		VIPS_TYPE_TARGET );
 }
 
 static void
@@ -303,24 +303,24 @@ vips_foreign_save_webp_file_build( VipsObject *object )
 	VipsForeignSaveWebp *webp = (VipsForeignSaveWebp *) object;
 	VipsForeignSaveWebpFile *file = (VipsForeignSaveWebpFile *) object;
 
-	VipsStreamo *streamo;
+	VipsTarget *target;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_webp_file_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( !(streamo = vips_streamo_new_to_file( file->filename )) )
+	if( !(target = vips_target_new_to_file( file->filename )) )
 		return( -1 );
-	if( vips__webp_write_stream( save->ready, streamo,
+	if( vips__webp_write_stream( save->ready, target,
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
 		webp->alpha_q, webp->reduction_effort,
 		webp->min_size, webp->kmin, webp->kmax,
 		save->strip ) ) {
-		VIPS_UNREF( streamo );
+		VIPS_UNREF( target );
 		return( -1 );
 	}
-	VIPS_UNREF( streamo );
+	VIPS_UNREF( target );
 
 	return( 0 );
 }
@@ -373,31 +373,31 @@ vips_foreign_save_webp_buffer_build( VipsObject *object )
 	VipsForeignSaveWebpBuffer *buffer = 
 		(VipsForeignSaveWebpBuffer *) object;
 
-	VipsStreamo *streamo;
+	VipsTarget *target;
 	VipsBlob *blob;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_webp_buffer_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( !(streamo = vips_streamo_new_to_memory()) )
+	if( !(target = vips_target_new_to_memory()) )
 		return( -1 );
 
-	if( vips__webp_write_stream( save->ready, streamo,
+	if( vips__webp_write_stream( save->ready, target,
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
 		webp->alpha_q, webp->reduction_effort,
 		webp->min_size, webp->kmin, webp->kmax,
 		save->strip ) ) {
-		VIPS_UNREF( streamo );
+		VIPS_UNREF( target );
 		return( -1 );
 	}
 
-	g_object_get( streamo, "blob", &blob, NULL );
+	g_object_get( target, "blob", &blob, NULL );
 	g_object_set( buffer, "buffer", blob, NULL );
 	vips_area_unref( VIPS_AREA( blob ) );
 
-	VIPS_UNREF( streamo );
+	VIPS_UNREF( target );
 
 	return( 0 );
 }
@@ -445,7 +445,7 @@ vips_foreign_save_webp_mime_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveWebp *webp = (VipsForeignSaveWebp *) object;
 
-	VipsStreamo *streamo;
+	VipsTarget *target;
 	VipsBlob *blob;
 	void *data;
 	size_t len;
@@ -454,20 +454,20 @@ vips_foreign_save_webp_mime_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(streamo = vips_streamo_new_to_memory()) )
+	if( !(target = vips_target_new_to_memory()) )
 		return( -1 );
 
-	if( vips__webp_write_stream( save->ready, streamo,
+	if( vips__webp_write_stream( save->ready, target,
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
 		webp->alpha_q, webp->reduction_effort,
 		webp->min_size, webp->kmin, webp->kmax,
 		save->strip ) ) {
-		VIPS_UNREF( streamo );
+		VIPS_UNREF( target );
 		return( -1 );
 	}
 
-	g_object_get( streamo, "blob", &blob, NULL );
+	g_object_get( target, "blob", &blob, NULL );
 	data = VIPS_AREA( blob )->data;
 	len = VIPS_AREA( blob )->length;
 	vips_area_unref( VIPS_AREA( blob ) );
@@ -478,7 +478,7 @@ vips_foreign_save_webp_mime_build( VipsObject *object )
 	(void) fwrite( data, sizeof( char ), len, stdout );
 	fflush( stdout );
 
-	VIPS_UNREF( streamo );
+	VIPS_UNREF( target );
 
 	return( 0 );
 }
@@ -671,9 +671,9 @@ vips_webpsave_mime( VipsImage *in, ... )
 }
 
 /**
- * vips_webpsave_stream: (method)
+ * vips_webpsave_target: (method)
  * @in: image to save 
- * @streamo: save image to this stream
+ * @target: save image to this stream
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -697,13 +697,13 @@ vips_webpsave_mime( VipsImage *in, ... )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_webpsave_stream( VipsImage *in, VipsStreamo *streamo, ... )
+vips_webpsave_target( VipsImage *in, VipsTarget *target, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, streamo );
-	result = vips_call_split( "webpsave_stream", ap, in, streamo );
+	va_start( ap, target );
+	result = vips_call_split( "webpsave_stream", ap, in, target );
 	va_end( ap );
 
 	return( result );

@@ -74,8 +74,8 @@ vips_bufis_class_init( VipsBufisClass *class )
 		_( "Input" ),
 		_( "Stream to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsBufis, streami ),
-		VIPS_TYPE_STREAMI );
+		G_STRUCT_OFFSET( VipsBufis, source ),
+		VIPS_TYPE_SOURCE );
 
 }
 
@@ -88,20 +88,20 @@ vips_bufis_init( VipsBufis *bufis )
 }
 
 /**
- * vips_bufis_new_from_streami:
- * @streami: stream to operate on
+ * vips_bufis_new_from_source:
+ * @source: stream to operate on
  *
- * Create a bufis wrapping a streami. 
+ * Create a bufis wrapping a source. 
  *
  * Returns: a new #VipsBufis
  */
 VipsBufis *
-vips_bufis_new_from_streami( VipsStreami *streami )
+vips_bufis_new_from_source( VipsSource *source )
 {
 	VipsBufis *bufis;
 
 	bufis = VIPS_BUFIS( g_object_new( VIPS_TYPE_BUFIS, 
-		"input", streami,
+		"input", source,
 		NULL ) );
 
 	if( vips_object_build( VIPS_OBJECT( bufis ) ) ) {
@@ -117,14 +117,14 @@ vips_bufis_new_from_streami( VipsStreami *streami )
  * @bufis: stream to operate on
  *
  * Discard the input buffer and reset the read point. You must call this
- * before using read or seek on the underlying #VipsStreami class.
+ * before using read or seek on the underlying #VipsSource class.
  */
 void
 vips_bufis_unbuffer( VipsBufis *bufis )
 {
 	/* We'd read ahead a little way -- seek backwards by that amount.
 	 */
-	vips_streami_seek( bufis->streami, 
+	vips_source_seek( bufis->source, 
 		bufis->read_point - bufis->chars_in_buffer, SEEK_CUR );
 	bufis->read_point = 0;
 	bufis->chars_in_buffer = 0;
@@ -143,7 +143,7 @@ vips_bufis_refill( VipsBufis *bufis )
 	 */
 	g_assert( bufis->read_point == bufis->chars_in_buffer );
 
-	bytes_read = vips_streami_read( bufis->streami, 
+	bytes_read = vips_source_read( bufis->source, 
 		bufis->input_buffer, VIPS_BUFIS_BUFFER_SIZE );
 	if( bytes_read == -1 )
 		return( -1 );
@@ -255,13 +255,13 @@ vips_bufis_require( VipsBufis *bufis, int require )
 				bufis->chars_in_buffer;
 			size_t bytes_read;
 
-			if( (bytes_read = vips_streami_read( bufis->streami,
+			if( (bytes_read = vips_source_read( bufis->source,
 				to, space_available )) == -1 )
 				return( -1 );
 			if( bytes_read == 0 ) { 
 				vips_error( 
-					vips_stream_nick( VIPS_STREAM( 
-						bufis->streami ) ), 
+					vips_connection_nick( VIPS_CONNECTION( 
+						bufis->source ) ), 
 					"%s", _( "end of file" ) ); 
 				return( -1 );
 			}

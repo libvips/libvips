@@ -1628,14 +1628,14 @@ VImage VImage::jpegload_buffer( VipsBlob *buffer, VOption *options )
     return( out );
 }
 
-VImage VImage::jpegload_stream( VStreamI streami, VOption *options )
+VImage VImage::jpegload_stream( VStreamI source, VOption *options )
 {
     VImage out;
 
     call( "jpegload_stream",
         (options ? options : VImage::option())->
             set( "out", &out )->
-            set( "streami", streami ) );
+            set( "source", source ) );
 
     return( out );
 }
@@ -1667,12 +1667,12 @@ void VImage::jpegsave_mime( VOption *options ) const
             set( "in", *this ) );
 }
 
-void VImage::jpegsave_stream( VStreamO streamo, VOption *options ) const
+void VImage::jpegsave_stream( VStreamO target, VOption *options ) const
 {
     call( "jpegsave_stream",
         (options ? options : VImage::option())->
             set( "in", *this )->
-            set( "streamo", streamo ) );
+            set( "target", target ) );
 }
 
 VImage VImage::labelregions( VOption *options ) const
@@ -2319,14 +2319,14 @@ VImage VImage::pngload_buffer( VipsBlob *buffer, VOption *options )
     return( out );
 }
 
-VImage VImage::pngload_stream( VStreamI streami, VOption *options )
+VImage VImage::pngload_stream( VStreamI source, VOption *options )
 {
     VImage out;
 
     call( "pngload_stream",
         (options ? options : VImage::option())->
             set( "out", &out )->
-            set( "streami", streami ) );
+            set( "source", source ) );
 
     return( out );
 }
@@ -2351,12 +2351,12 @@ VipsBlob *VImage::pngsave_buffer( VOption *options ) const
     return( buffer );
 }
 
-void VImage::pngsave_stream( VStreamO streamo, VOption *options ) const
+void VImage::pngsave_stream( VStreamO target, VOption *options ) const
 {
     call( "pngsave_stream",
         (options ? options : VImage::option())->
             set( "in", *this )->
-            set( "streamo", streamo ) );
+            set( "target", target ) );
 }
 
 VImage VImage::ppmload( const char *filename, VOption *options )
@@ -2478,14 +2478,14 @@ VImage VImage::radload_buffer( VipsBlob *buffer, VOption *options )
     return( out );
 }
 
-VImage VImage::radload_stream( VStreamI streami, VOption *options )
+VImage VImage::radload_stream( VStreamI source, VOption *options )
 {
     VImage out;
 
     call( "radload_stream",
         (options ? options : VImage::option())->
             set( "out", &out )->
-            set( "streami", streami ) );
+            set( "source", source ) );
 
     return( out );
 }
@@ -2510,12 +2510,12 @@ VipsBlob *VImage::radsave_buffer( VOption *options ) const
     return( buffer );
 }
 
-void VImage::radsave_stream( VStreamO streamo, VOption *options ) const
+void VImage::radsave_stream( VStreamO target, VOption *options ) const
 {
     call( "radsave_stream",
         (options ? options : VImage::option())->
             set( "in", *this )->
-            set( "streamo", streamo ) );
+            set( "target", target ) );
 }
 
 VImage VImage::rank( int width, int height, int index, VOption *options ) const
@@ -3062,14 +3062,14 @@ VImage VImage::svgload_buffer( VipsBlob *buffer, VOption *options )
     return( out );
 }
 
-VImage VImage::svgload_stream( VStreamI streami, VOption *options )
+VImage VImage::svgload_stream( VStreamI source, VOption *options )
 {
     VImage out;
 
     call( "svgload_stream",
         (options ? options : VImage::option())->
             set( "out", &out )->
-            set( "streami", streami ) );
+            set( "source", source ) );
 
     return( out );
 }
@@ -3144,14 +3144,14 @@ VImage VImage::thumbnail_image( int width, VOption *options ) const
     return( out );
 }
 
-VImage VImage::thumbnail_stream( VStreamI streami, int width, VOption *options )
+VImage VImage::thumbnail_stream( VStreamI source, int width, VOption *options )
 {
     VImage out;
 
     call( "thumbnail_stream",
         (options ? options : VImage::option())->
             set( "out", &out )->
-            set( "streami", streami )->
+            set( "source", source )->
             set( "width", width ) );
 
     return( out );
@@ -3181,14 +3181,14 @@ VImage VImage::tiffload_buffer( VipsBlob *buffer, VOption *options )
     return( out );
 }
 
-VImage VImage::tiffload_stream( VStreamI streami, VOption *options )
+VImage VImage::tiffload_stream( VStreamI source, VOption *options )
 {
     VImage out;
 
     call( "tiffload_stream",
         (options ? options : VImage::option())->
             set( "out", &out )->
-            set( "streami", streami ) );
+            set( "source", source ) );
 
     return( out );
 }
@@ -3304,14 +3304,14 @@ VImage VImage::webpload_buffer( VipsBlob *buffer, VOption *options )
     return( out );
 }
 
-VImage VImage::webpload_stream( VStreamI streami, VOption *options )
+VImage VImage::webpload_stream( VStreamI source, VOption *options )
 {
     VImage out;
 
     call( "webpload_stream",
         (options ? options : VImage::option())->
             set( "out", &out )->
-            set( "streami", streami ) );
+            set( "source", source ) );
 
     return( out );
 }
@@ -3336,12 +3336,12 @@ VipsBlob *VImage::webpsave_buffer( VOption *options ) const
     return( buffer );
 }
 
-void VImage::webpsave_stream( VStreamO streamo, VOption *options ) const
+void VImage::webpsave_stream( VStreamO target, VOption *options ) const
 {
     call( "webpsave_stream",
         (options ? options : VImage::option())->
             set( "in", *this )->
-            set( "streamo", streamo ) );
+            set( "target", target ) );
 }
 
 VImage VImage::worley( int width, int height, VOption *options )

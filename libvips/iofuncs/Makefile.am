@@ -1,11 +1,11 @@
 noinst_LTLIBRARIES = libiofuncs.la
 
 libiofuncs_la_SOURCES = \
-	stream.c \
-	streami.c \
-	streamiu.c \
-	streamo.c \
-	streamou.c \
+	connection.c \
+	source.c \
+	sourceuser.c \
+	target.c \
+	targetuser.c \
 	bufis.c \
 	dbuf.c \
 	reorder.c \

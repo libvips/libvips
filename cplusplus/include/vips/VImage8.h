@@ -514,7 +514,7 @@ public:
 	static VImage new_from_buffer( const std::string &buf,
 		const char *option_string, VOption *options = 0 );
 
-	static VImage new_from_stream( VStreamI streami, 
+	static VImage new_from_source( VStreamI source, 
 		const char *option_string, VOption *options = 0 );
 
 	static VImage new_matrix( int width, int height );
@@ -569,7 +569,7 @@ public:
 	void write_to_buffer( const char *suffix, void **buf, size_t *size, 
 		VOption *options = 0 ) const;
 
-	void write_to_stream( const char *suffix, VStreamO streamo, 
+	void write_to_target( const char *suffix, VStreamO target, 
 		VOption *options = 0 ) const;
 
 	void *
