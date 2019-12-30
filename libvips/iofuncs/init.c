@@ -879,7 +879,7 @@ extract_prefix( const char *dir, const char *name )
 	for( i = 0; i < (int) strlen( vname ); i++ ) 
 		if( vips_isprefix( G_DIR_SEPARATOR_S "." G_DIR_SEPARATOR_S, 
 			vname + i ) )
-			memcpy( vname + i, vname + i + 2, 
+			memmove( vname + i, vname + i + 2, 
 				strlen( vname + i + 2 ) + 1 );
 	if( vips_ispostfix( vname, G_DIR_SEPARATOR_S "." ) )
 		vname[strlen( vname ) - 2] = '\0';
