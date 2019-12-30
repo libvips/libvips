@@ -207,7 +207,7 @@ vips_foreign_save_rad_target_class_init( VipsForeignSaveRadTargetClass *class )
 
 	VIPS_ARG_OBJECT( class, "target", 1,
 		_( "Target" ),
-		_( "Stream to save to" ),
+		_( "Target to save to" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignSaveRadTarget, target ),
 		VIPS_TYPE_TARGET );

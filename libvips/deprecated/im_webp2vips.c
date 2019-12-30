@@ -58,9 +58,9 @@ webp2vips( const char *name, IMAGE *out, gboolean header_only )
 	if( !(source = vips_source_new_from_file( filename )) ) 
 		return( -1 );
 	if( header_only ) 
-		result = vips__webp_read_header_stream( source, out, 0, 1, 1 );
+		result = vips__webp_read_header_source( source, out, 0, 1, 1 );
 	else 
-		result = vips__webp_read_stream( source, out, 0, 1, 1 );
+		result = vips__webp_read_source( source, out, 0, 1, 1 );
 	VIPS_UNREF( source );
 
 	if( result )
@@ -86,7 +86,7 @@ vips__iswebp( const char *filename )
 
 	if( !(source = vips_source_new_from_file( filename )) )
 		return( FALSE );
-	result = vips__iswebp_stream( source );
+	result = vips__iswebp_source( source );
 	VIPS_UNREF( source );
 #else /*!HAVE_LIBWEBP*/
 	result = -1;

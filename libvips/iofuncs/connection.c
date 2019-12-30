@@ -57,15 +57,15 @@
 #include <vips/debug.h>
 
 /**
- * SECTION: stream
+ * SECTION: connection
  * @short_description: a source/sink of bytes, perhaps a network socket
  * @stability: Stable
  * @see_also: <link linkend="libvips-foreign">foreign</link> 
  * @include: vips/vips.h
  *
- * A #VipsConnection is a source or sink of bytes for something like jpeg loading. 
- * It can be connected to a network socket, for example, or perhaps a node.js
- * stream, or to an area of memory. 
+ * A #VipsConnection is a source or sink of bytes for something like jpeg 
+ * loading. It can be connected to a network socket, for example, or perhaps 
+ * a node.js stream, or to an area of memory. 
  *
  * Subclass to add other input sources. 
  */
@@ -73,8 +73,8 @@
 /**
  * VipsConnection:
  *
- * A #VipsConnection is a source or sink of bytes for something like jpeg loading. 
- * It can be connected to a network socket, for example. 
+ * A #VipsConnection is a source or sink of bytes for something like jpeg 
+ * loading. It can be connected to a network socket, for example. 
  */
 
 G_DEFINE_ABSTRACT_TYPE( VipsConnection, vips_connection, VIPS_TYPE_OBJECT );
@@ -82,7 +82,7 @@ G_DEFINE_ABSTRACT_TYPE( VipsConnection, vips_connection, VIPS_TYPE_OBJECT );
 static void
 vips_connection_finalize( GObject *gobject )
 {
-	VipsConnection *stream = (VipsConnection *) gobject;
+	VipsConnection *connection = (VipsConnection *) gobject;
 
 #ifdef VIPS_DEBUG
 	VIPS_DEBUG_MSG( "vips_connection_finalize: " );
@@ -90,21 +90,21 @@ vips_connection_finalize( GObject *gobject )
 	VIPS_DEBUG_MSG( "\n" );
 #endif /*VIPS_DEBUG*/
 
-	if( stream->tracked_descriptor >= 0 ) {
+	if( connection->tracked_descriptor >= 0 ) {
 		VIPS_DEBUG_MSG( "    tracked_close()\n" );
-		vips_tracked_close( stream->tracked_descriptor );
-		stream->tracked_descriptor = -1;
-		stream->descriptor = -1;
+		vips_tracked_close( connection->tracked_descriptor );
+		connection->tracked_descriptor = -1;
+		connection->descriptor = -1;
 	}
 
-	if( stream->close_descriptor >= 0 ) {
+	if( connection->close_descriptor >= 0 ) {
 		VIPS_DEBUG_MSG( "    close()\n" );
-		close( stream->close_descriptor );
-		stream->close_descriptor = -1;
-		stream->descriptor = -1;
+		close( connection->close_descriptor );
+		connection->close_descriptor = -1;
+		connection->descriptor = -1;
 	}
 
-	VIPS_FREE( stream->filename ); 
+	VIPS_FREE( connection->filename ); 
 
 	G_OBJECT_CLASS( vips_connection_parent_class )->finalize( gobject );
 }
@@ -135,23 +135,23 @@ vips_connection_class_init( VipsConnectionClass *class )
 }
 
 static void
-vips_connection_init( VipsConnection *stream )
+vips_connection_init( VipsConnection *connection )
 {
-	stream->descriptor = -1;
-	stream->tracked_descriptor = -1;
-	stream->close_descriptor = -1;
+	connection->descriptor = -1;
+	connection->tracked_descriptor = -1;
+	connection->close_descriptor = -1;
 }
 
 const char *
-vips_connection_filename( VipsConnection *stream )
+vips_connection_filename( VipsConnection *connection )
 {
-	return( stream->filename );
+	return( connection->filename );
 }
 
 const char *
-vips_connection_nick( VipsConnection *stream )
+vips_connection_nick( VipsConnection *connection )
 {
-	return( stream->filename ?
-		stream->filename :
-		VIPS_OBJECT( stream )->nickname );
+	return( connection->filename ?
+		connection->filename :
+		VIPS_OBJECT( connection )->nickname );
 }

@@ -1,4 +1,4 @@
-/* A Streami subclass with signals you can easily hook up to other input
+/* A Source subclass with signals you can easily hook up to other input
  * sources.
  * 
  * J.Cupitt, 21/11/19
@@ -159,7 +159,7 @@ vips_source_custom_class_init( VipsSourceCustomClass *class )
 	VipsSourceClass *source_class = VIPS_SOURCE_CLASS( class );
 
 	object_class->nickname = "source_custom";
-	object_class->description = _( "input stream" );
+	object_class->description = _( "Custom source" );
 
 	source_class->read = vips_source_custom_read_real;
 	source_class->seek = vips_source_custom_seek_real;
@@ -169,7 +169,7 @@ vips_source_custom_class_init( VipsSourceCustomClass *class )
 
 	/**
 	 * VipsSourceCustom::read:
-	 * @source_custom: the stream being operated on
+	 * @source_custom: the source being operated on
 	 * @buffer: %gpointer, buffer to fill
 	 * @size: %gint64, size of buffer
 	 *
@@ -188,14 +188,14 @@ vips_source_custom_class_init( VipsSourceCustomClass *class )
 
 	/**
 	 * VipsSourceCustom::seek:
-	 * @source_custom: the stream being operated on
+	 * @source_custom: the source being operated on
 	 * @offset: %gint64, seek offset
 	 * @whence: %gint, seek origin
 	 *
-	 * This signal is emitted to seek the stream. The handler should
-	 * change the stream position appropriately.
+	 * This signal is emitted to seek the source. The handler should
+	 * change the source position appropriately.
 	 *
-	 * The handler on an unseekable stream should always return -1.
+	 * The handler for an unseekable source should always return -1.
 	 *
 	 * Returns: the new seek position.
 	 */

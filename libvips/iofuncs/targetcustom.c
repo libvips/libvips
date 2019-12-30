@@ -1,4 +1,4 @@
-/* A Streamo subclass with signals you can easily hook up to other output
+/* A Target subclass with signals you can easily hook up to other output
  * sources.
  * 
  * J.Cupitt, 21/11/19
@@ -120,7 +120,7 @@ vips_target_custom_class_init( VipsTargetCustomClass *class )
 	VipsTargetClass *target_class = VIPS_TARGET_CLASS( class );
 
 	object_class->nickname = "target_custom";
-	object_class->description = _( "input stream" );
+	object_class->description = _( "Custom target" );
 
 	target_class->write = vips_target_custom_write_real;
 	target_class->finish = vips_target_custom_finish_real;
@@ -130,11 +130,11 @@ vips_target_custom_class_init( VipsTargetCustomClass *class )
 
 	/**
 	 * VipsTargetCustom::write:
-	 * @target_custom: the stream being operated on
+	 * @target_custom: the target being operated on
 	 * @data: %pointer, bytes to write
 	 * @length: %gint64, number of bytes
 	 *
-	 * This signal is emitted to write bytes to the stream. 
+	 * This signal is emitted to write bytes to the target. 
 	 *
 	 * Returns: the number of bytes written.
 	 */
@@ -149,9 +149,9 @@ vips_target_custom_class_init( VipsTargetCustomClass *class )
 
 	/**
 	 * VipsTargetCustom::finish:
-	 * @target_custom: the stream being operated on
+	 * @target_custom: the target being operated on
 	 *
-	 * This signal is emitted at the end of write. The stream should do
+	 * This signal is emitted at the end of write. The target should do
 	 * any finishing necessary.
 	 */
 	vips_target_custom_signals[SIG_FINISH] = g_signal_new( "finish",

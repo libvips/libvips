@@ -117,7 +117,7 @@ vips_source_test_features( VipsSource *source )
 		class->seek( source, 0, SEEK_CUR ) != -1 ) { 
 		gint64 length;
 
-		VIPS_DEBUG_MSG( "    seekable stream\n" );
+		VIPS_DEBUG_MSG( "    seekable source\n" );
 
 		/* We should be able to get the length of seekable 
 		 * objects.
@@ -239,7 +239,7 @@ vips_source_finalize( GObject *gobject )
 static int
 vips_source_build( VipsObject *object )
 {
-	VipsConnection *stream = VIPS_CONNECTION( object );
+	VipsConnection *connection = VIPS_CONNECTION( object );
 	VipsSource *source = VIPS_SOURCE( object );
 
 	VIPS_DEBUG_MSG( "vips_source_build: %p\n", source );
@@ -250,7 +250,7 @@ vips_source_build( VipsObject *object )
 
 	if( vips_object_argument_isset( object, "filename" ) &&
 		vips_object_argument_isset( object, "descriptor" ) ) { 
-		vips_error( vips_connection_nick( stream ), 
+		vips_error( vips_connection_nick( connection ), 
 			"%s", _( "don't set 'filename' and 'descriptor'" ) ); 
 		return( -1 ); 
 	}
@@ -262,8 +262,8 @@ vips_source_build( VipsObject *object )
 		return( -1 );
 
 	if( vips_object_argument_isset( object, "descriptor" ) ) {
-		stream->descriptor = dup( stream->descriptor );
-		stream->close_descriptor = stream->descriptor;
+		connection->descriptor = dup( connection->descriptor );
+		connection->close_descriptor = connection->descriptor;
 	}
 
 	if( vips_object_argument_isset( object, "blob" ) ) {
@@ -279,14 +279,14 @@ vips_source_build( VipsObject *object )
 static gint64
 vips_source_read_real( VipsSource *source, void *data, size_t length )
 {
-	VipsConnection *stream = VIPS_CONNECTION( source );
+	VipsConnection *connection = VIPS_CONNECTION( source );
 
 	gint64 bytes_read;
 
 	VIPS_DEBUG_MSG( "vips_source_read_real:\n" );
 
 	do { 
-		bytes_read = read( stream->descriptor, data, length );
+		bytes_read = read( connection->descriptor, data, length );
 	} while( bytes_read < 0 && errno == EINTR );
 
 	return( bytes_read );
@@ -295,7 +295,7 @@ vips_source_read_real( VipsSource *source, void *data, size_t length )
 static gint64
 vips_source_seek_real( VipsSource *source, gint64 offset, int whence )
 {
-	VipsConnection *stream = VIPS_CONNECTION( source );
+	VipsConnection *connection = VIPS_CONNECTION( source );
 
 	gint64 new_pos;
 
@@ -304,7 +304,7 @@ vips_source_seek_real( VipsSource *source, gint64 offset, int whence )
 	/* Like _read_real(), we must not set a vips_error. We need to use the
 	 * vips__seek() wrapper so we can seek long files on Windows.
 	 */
-	new_pos = vips__seek_no_error( stream->descriptor, offset, whence );
+	new_pos = vips__seek_no_error( connection->descriptor, offset, whence );
 
 	return( new_pos );
 }
@@ -320,7 +320,7 @@ vips_source_class_init( VipsSourceClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "source";
-	object_class->description = _( "input stream" );
+	object_class->description = _( "input source" );
 
 	object_class->build = vips_source_build;
 
@@ -348,10 +348,10 @@ vips_source_init( VipsSource *source )
  * vips_source_new_from_descriptor:
  * @descriptor: read from this file descriptor
  *
- * Create an source stream attached to a file descriptor. @descriptor is 
- * closed with close() when the #VipsConnection is finalized. 
+ * Create an source attached to a file descriptor. @descriptor is 
+ * closed with close() when source is finalized. 
  *
- * Returns: a new #VipsConnection
+ * Returns: a new source.
  */
 VipsSource *
 vips_source_new_from_descriptor( int descriptor )
@@ -379,9 +379,9 @@ vips_source_new_from_descriptor( int descriptor )
  * vips_source_new_from_file:
  * @descriptor: read from this filename 
  *
- * Create an source stream attached to a file.
+ * Create an source attached to a file.
  *
- * Returns: a new #VipsConnection
+ * Returns: a new source.
  */
 VipsSource *
 vips_source_new_from_file( const char *filename )
@@ -409,9 +409,9 @@ vips_source_new_from_file( const char *filename )
  * vips_source_new_from_blob:
  * @blob: memory area to load
  *
- * Create a stream attached to an area of memory. 
+ * Create a source attached to an area of memory. 
  *
- * Returns: a new #VipsConnection
+ * Returns: a new source.
  */
 VipsSource *
 vips_source_new_from_blob( VipsBlob *blob )
@@ -439,11 +439,11 @@ vips_source_new_from_blob( VipsBlob *blob )
  * @data: memory area to load
  * @length: size of memory area
  *
- * Create a stream attached to an area of memory. 
+ * Create a source attached to an area of memory. 
  *
- * You must not free @data while the stream is active. 
+ * You must not free @data while the source is active. 
  *
- * Returns: a new #VipsConnection
+ * Returns: a new source.
  */
 VipsSource *
 vips_source_new_from_memory( const void *data, size_t length )
@@ -471,9 +471,9 @@ vips_source_new_from_memory( const void *data, size_t length )
  * vips_source_new_from_options:
  * @options: option string
  *
- * Create a stream from an option string.
+ * Create a source from an option string.
  *
- * Returns: a new #VipsSource
+ * Returns: a new source.
  */
 VipsSource *
 vips_source_new_from_options( const char *options )
@@ -497,10 +497,10 @@ vips_source_new_from_options( const char *options )
 
 /**
  * vips_source_minimise:
- * @source: input stream to operate on
+ * @source: source to operate on
  *
- * Minimise the stream. As many stream resources as can be safely removed are
- * removed. Use vips_source_unminimise() to restore the stream if you wish to
+ * Minimise the source. As many resources as can be safely removed are
+ * removed. Use vips_source_unminimise() to restore the source if you wish to
  * use it again.
  *
  * Loaders should call this in response to the minimise signal on their output
@@ -511,7 +511,7 @@ vips_source_new_from_options( const char *options )
 void
 vips_source_minimise( VipsSource *source )
 {
-	VipsConnection *stream = VIPS_CONNECTION( source );
+	VipsConnection *connection = VIPS_CONNECTION( source );
 
 	VIPS_DEBUG_MSG( "vips_source_minimise:\n" );
 
@@ -519,14 +519,14 @@ vips_source_minimise( VipsSource *source )
 
 	(void) vips_source_test_features( source );
 
-	if( stream->filename &&
-		stream->descriptor != -1 &&
-		stream->tracked_descriptor == stream->descriptor &&
+	if( connection->filename &&
+		connection->descriptor != -1 &&
+		connection->tracked_descriptor == connection->descriptor &&
 		!source->is_pipe ) {
 		VIPS_DEBUG_MSG( "    tracked_close()\n" );
-		vips_tracked_close( stream->tracked_descriptor );
-		stream->tracked_descriptor = -1;
-		stream->descriptor = -1;
+		vips_tracked_close( connection->tracked_descriptor );
+		connection->tracked_descriptor = -1;
+		connection->descriptor = -1;
 	}
 
 	SANITY( source );
@@ -534,10 +534,10 @@ vips_source_minimise( VipsSource *source )
 
 /**
  * vips_source_unminimise:
- * @source: input stream to operate on
+ * @source: source to operate on
  *
- * Restore the stream after minimisation. This is called at the start 
- * of every stream method, so loaders should not usually need this.
+ * Restore the source after minimisation. This is called at the start 
+ * of every source method, so loaders should not usually need this.
  *
  * See also: vips_source_minimise().
  *
@@ -546,29 +546,30 @@ vips_source_minimise( VipsSource *source )
 int
 vips_source_unminimise( VipsSource *source )
 {
-	VipsConnection *stream = VIPS_CONNECTION( source );
+	VipsConnection *connection = VIPS_CONNECTION( source );
 
 	VIPS_DEBUG_MSG( "vips_source_unminimise:\n" );
 
-	if( stream->descriptor == -1 &&
-		stream->tracked_descriptor == -1 &&
-		stream->filename ) {
+	if( connection->descriptor == -1 &&
+		connection->tracked_descriptor == -1 &&
+		connection->filename ) {
 		int fd;
 
-		if( (fd = vips_tracked_open( stream->filename, 
+		if( (fd = vips_tracked_open( connection->filename, 
 			MODE_READ )) == -1 ) {
-			vips_error_system( errno, vips_connection_nick( stream ),
+			vips_error_system( errno, 
+				vips_connection_nick( connection ),
 				"%s", _( "unable to open for read" ) );
 			return( -1 ); 
 		}
 
-		stream->tracked_descriptor = fd;
-		stream->descriptor = fd;
+		connection->tracked_descriptor = fd;
+		connection->descriptor = fd;
 
 		VIPS_DEBUG_MSG( "vips_source_unminimise: "
 			"restoring read position %" G_GINT64_FORMAT "\n", 
 			source->read_position );
-		if( vips__seek( stream->descriptor, 
+		if( vips__seek( connection->descriptor, 
 			source->read_position, SEEK_SET ) == -1 )
 			return( -1 );
 	}
@@ -578,10 +579,10 @@ vips_source_unminimise( VipsSource *source )
 
 /**
  * vips_source_decode:
- * @source: input stream to operate on
+ * @source: source to operate on
  *
  * Signal the end of header read and the start of the pixel decode phase. 
- * After this, you can no longer seek on this stream.
+ * After this, you can no longer seek on this source.
  *
  * Loaders should call this at the end of header read.
  *
@@ -614,7 +615,7 @@ vips_source_decode( VipsSource *source )
 
 /**
  * vips_source_read:
- * @source: input stream to operate on
+ * @source: source to operate on
  * @buffer: store bytes here
  * @length: length of @buffer in bytes
  *
@@ -719,13 +720,13 @@ vips_source_read( VipsSource *source, void *buffer, size_t length )
 }
 
 /* -1 on a pipe isn't actually unbounded. Have a limit to prevent
- * huge streams accidentally filling memory.
+ * huge sources accidentally filling memory.
  *
  * 1gb. Why not.
  */
 static const int vips_pipe_read_limit = 1024 * 1024 * 1024;
 
-/* Read to a position. -1 means read to end of stream. Does not change 
+/* Read to a position. -1 means read to end of source. Does not change 
  * read_position.
  */
 static int
@@ -835,7 +836,7 @@ vips_source_read_to_memory( VipsSource *source )
 	return( 0 );
 }
 
-/* Read the entire pipe into memory and turn this into a memory source stream.
+/* Read the entire pipe into memory and turn this into a memory source.
  */
 static int
 vips_source_pipe_to_memory( VipsSource *source )
@@ -866,14 +867,14 @@ vips_source_pipe_to_memory( VipsSource *source )
 static int
 vips_source_descriptor_to_memory( VipsSource *source )
 {
-	VipsConnection *stream = VIPS_CONNECTION( source );
+	VipsConnection *connection = VIPS_CONNECTION( source );
 
 	VIPS_DEBUG_MSG( "vips_source_descriptor_to_memory:\n" );
 
 	g_assert( !source->blob );
 	g_assert( !source->mmap_baseaddr );
 
-	if( !(source->mmap_baseaddr = vips__mmap( stream->descriptor, 
+	if( !(source->mmap_baseaddr = vips__mmap( connection->descriptor, 
 		FALSE, source->length, 0 )) )
 		return( -1 );
 
@@ -887,13 +888,13 @@ vips_source_descriptor_to_memory( VipsSource *source )
 
 /**
  * vips_source_is_mappable:
- * @source: input stream to operate on
+ * @source: source to operate on
  *
- * Some streams can be efficiently mapped into memory.
+ * Some sources can be efficiently mapped into memory.
  * You can still use vips_source_map() if this function returns %FALSE,
  * but it will be slow.
  *
- * Returns: %TRUE if the stream can be efficiently mapped into memory.
+ * Returns: %TRUE if the source can be efficiently mapped into memory.
  */
 gboolean 
 vips_source_is_mappable( VipsSource *source )
@@ -913,11 +914,11 @@ vips_source_is_mappable( VipsSource *source )
 
 /**
  * vips_source_map:
- * @source: input stream to operate on
+ * @source: source to operate on
  * @length_out: return the file length here, or NULL
  *
- * Map the stream object entirely into memory and return a pointer to the
- * start. If @length_out is non-NULL, the stream size is written to it.
+ * Map the source entirely into memory and return a pointer to the
+ * start. If @length_out is non-NULL, the source size is written to it.
  *
  * This operation can take a long time. Use vips_source_is_mappable() to 
  * check if a source can be mapped efficiently.
@@ -976,7 +977,7 @@ vips_source_map_cb( void *a, void *b )
 
 /**
  * vips_source_map_blob:
- * @source: input stream to operate on
+ * @source: source to operate on
  *
  * Just like vips_source_map(), but return a #VipsBlob containing the
  * pointer. @source will stay alive as long as the result is alive.
@@ -1004,7 +1005,7 @@ vips_source_map_blob( VipsSource *source )
 
 /**
  * vips_source_seek:
- * @source: input stream to operate on
+ * @source: source to operate on
  * @offset: seek by this offset
  * @whence: seek relative to this point
  *
@@ -1058,7 +1059,7 @@ vips_source_seek( VipsSource *source, gint64 offset, int whence )
 			break;
 
 		case SEEK_END:
-			/* We have to read the whole stream into memory to get
+			/* We have to read the whole source into memory to get
 			 * the length.
 			 */
 			if( source->length == -1 &&
@@ -1104,9 +1105,9 @@ vips_source_seek( VipsSource *source, gint64 offset, int whence )
 
 /**
  * vips_source_rewind:
- * @source: input stream to operate on
+ * @source: source to operate on
  *
- * Rewind the stream to the start. You can't do this after pixel decode phase
+ * Rewind the source to the start. You can't do this after pixel decode phase
  * starts.
  *
  * Returns: 0 on success, or -1 on error.
@@ -1129,13 +1130,13 @@ vips_source_rewind( VipsSource *source )
 
 /**
  * vips_source_length:
- * @source: input stream to operate on
+ * @source: source to operate on
  *
- * Return the length in bytes of the stream object. Unseekable streams, for
+ * Return the length in bytes of the source. Unseekable sources, for
  * example pipes, will have to be read entirely into memory before the length 
  * can be found, so this operation can take a long time.
  *
- * Returns: number of bytes in stream, or -1 on error.
+ * Returns: number of bytes in source, or -1 on error.
  */
 gint64
 vips_source_length( VipsSource *source )
@@ -1157,11 +1158,11 @@ vips_source_length( VipsSource *source )
 
 /**
  * vips_source_peek: 
- * @source: peek this stream
+ * @source: peek this source
  * @data: return a pointer to the bytes read here
  * @length: max number of bytes to read
  *
- * Attempt to sniff at most @length bytes from the start of the stream. A 
+ * Attempt to sniff at most @length bytes from the start of the source. A 
  * pointer to the bytes is returned in @data. The number of bytes actually 
  * read is returned -- it may be less than @length if the file is shorter than
  * @length. A negative number indicates a read error.
@@ -1210,7 +1211,7 @@ vips_source_sniff_at_most( VipsSource *source,
 
 /**
  * vips_source_sniff: 
- * @source: sniff this stream
+ * @source: sniff this source
  * @length: number of bytes to sniff
  *
  * Return a pointer to the first few bytes of the file. If the file is too

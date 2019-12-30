@@ -145,7 +145,7 @@ int vips__mat_ismat( const char *filename );
 
 extern const char *vips__ppm_suffs[];
 
-int vips__ppm_save_stream( VipsImage *in, VipsTarget *target,
+int vips__ppm_save_target( VipsImage *in, VipsTarget *target,
 	gboolean ascii, gboolean squash );
 int vips__rad_israd( VipsSource *source );
 int vips__rad_header( VipsSource *source, VipsImage *out );
@@ -192,14 +192,14 @@ extern const VipsWebPNames vips__webp_names[];
 extern const int vips__n_webp_names;
 extern const char *vips__webp_suffs[];
 
-int vips__iswebp_stream( VipsSource *source );
+int vips__iswebp_source( VipsSource *source );
 
-int vips__webp_read_header_stream( VipsSource *source, VipsImage *out,
+int vips__webp_read_header_source( VipsSource *source, VipsImage *out,
 	int page, int n, double scale ); 
-int vips__webp_read_stream( VipsSource *source, VipsImage *out, 
+int vips__webp_read_source( VipsSource *source, VipsImage *out, 
 	int page, int n, double scale ); 
 
-int vips__webp_write_stream( VipsImage *image, VipsTarget *target,
+int vips__webp_write_target( VipsImage *image, VipsTarget *target,
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
 	int alpha_q, int reduction_effort,

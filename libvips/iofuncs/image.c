@@ -1917,7 +1917,7 @@ vips_image_new_from_file( const char *name, ... )
 
 	vips__filename_split8( name, filename, option_string );
 
-	/* Search with the new stream API first, then fall back to the older
+	/* Search with the new source API first, then fall back to the older
 	 * mechanism in case the loader we need has not been converted yet.
 	 *
 	 * We need to hide any errors from this first phase.
@@ -2167,7 +2167,7 @@ vips_image_new_from_buffer( const void *buf, size_t len,
 
 	vips_check_init();
 
-        /* Search with the new stream API first, then fall back to the older
+        /* Search with the new source API first, then fall back to the older
          * mechanism in case the loader we need has not been converted yet.
          */
         if( !(source = vips_source_new_from_memory( buf, len )) )
@@ -2208,11 +2208,11 @@ vips_image_new_from_buffer( const void *buf, size_t len,
 
 /**
  * vips_image_new_from_source: (constructor)
- * @source: (transfer none): stream to fetch image from
+ * @source: (transfer none): source to fetch image from
  * @option_string: set of extra options as a string
  * @...: %NULL-terminated list of optional named arguments
  *
- * Loads an image from the formatted stream @input, 
+ * Loads an image from the formatted source @input, 
  * loader recommended by vips_foreign_find_load_source(). 
  *
  * Load options may be given in @option_string as "[name=value,...]" or given as
@@ -2227,7 +2227,8 @@ VipsImage *
 vips_image_new_from_source( VipsSource *source, 
 	const char *option_string, ... )
 {
-	const char *filename = vips_connection_filename( VIPS_CONNECTION( source ) );
+	const char *filename = 
+		vips_connection_filename( VIPS_CONNECTION( source ) );
 
 	const char *operation_name;
 	va_list ap;
@@ -2283,7 +2284,7 @@ vips_image_new_from_source( VipsSource *source,
 	}
 	else {
 		vips_error( "VipsImage",
-			"%s", _( "unable to load stream" ) );
+			"%s", _( "unable to load source" ) );
 		result = -1;
 	}
 
@@ -2712,7 +2713,7 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
 	va_list ap;
 	int result;
 
-	/* Save with the new stream API if we can. Fall back to the older
+	/* Save with the new target API if we can. Fall back to the older
 	 * mechanism in case the loader we need has not been converted yet.
 	 *
 	 * We need to hide any errors from this first phase.
@@ -2840,7 +2841,7 @@ vips_image_write_to_buffer( VipsImage *in,
  * vips_image_write_to_target: (method)
  * @in: image to write
  * @suffix: format to write 
- * @target: stream to write to
+ * @target: target to write to
  * @...: %NULL-terminated list of optional named arguments
  *
  * Writes @in to @output in format @suffix.

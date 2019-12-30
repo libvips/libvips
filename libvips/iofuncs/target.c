@@ -99,23 +99,23 @@ vips_target_finalize( GObject *gobject )
 static int
 vips_target_build( VipsObject *object )
 {
-	VipsConnection *stream = VIPS_CONNECTION( object );
+	VipsConnection *connection = VIPS_CONNECTION( object );
 	VipsTarget *target = VIPS_TARGET( object );
 
-	VIPS_DEBUG_MSG( "vips_target_build: %p\n", stream );
+	VIPS_DEBUG_MSG( "vips_target_build: %p\n", connection );
 
 	if( VIPS_OBJECT_CLASS( vips_target_parent_class )->build( object ) )
 		return( -1 );
 
 	if( vips_object_argument_isset( object, "filename" ) &&
 		vips_object_argument_isset( object, "descriptor" ) ) { 
-		vips_error( vips_connection_nick( stream ), 
+		vips_error( vips_connection_nick( connection ), 
 			"%s", _( "don't set 'filename' and 'descriptor'" ) ); 
 		return( -1 ); 
 	}
 
-	if( stream->filename ) { 
-		const char *filename = stream->filename;
+	if( connection->filename ) { 
+		const char *filename = connection->filename;
 
 		int fd;
 
@@ -123,17 +123,18 @@ vips_target_build( VipsObject *object )
 		 */
 		if( (fd = vips_tracked_open( filename, 
 			MODE_WRITE, 0644 )) == -1 ) {
-			vips_error_system( errno, vips_connection_nick( stream ), 
+			vips_error_system( errno, 
+				vips_connection_nick( connection ), 
 				"%s", _( "unable to open for write" ) ); 
 			return( -1 ); 
 		}
 
-		stream->tracked_descriptor = fd;
-		stream->descriptor = fd;
+		connection->tracked_descriptor = fd;
+		connection->descriptor = fd;
 	}
 	else if( vips_object_argument_isset( object, "descriptor" ) ) {
-		stream->descriptor = dup( stream->descriptor );
-		stream->close_descriptor = stream->descriptor;
+		connection->descriptor = dup( connection->descriptor );
+		connection->close_descriptor = connection->descriptor;
 	}
 	else if( target->memory ) {
 		target->memory_buffer = g_byte_array_new();
@@ -145,11 +146,11 @@ vips_target_build( VipsObject *object )
 static gint64 
 vips_target_write_real( VipsTarget *target, const void *data, size_t length )
 {
-	VipsConnection *stream = VIPS_CONNECTION( target );
+	VipsConnection *connection = VIPS_CONNECTION( target );
 
 	VIPS_DEBUG_MSG( "vips_target_write_real: %zd bytes\n", length );
 
-	return( write( stream->descriptor, data, length ) );
+	return( write( connection->descriptor, data, length ) );
 }
 
 static void
@@ -169,7 +170,7 @@ vips_target_class_init( VipsTargetClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "target";
-	object_class->description = _( "stream stream" );
+	object_class->description = _( "Target" );
 
 	object_class->build = vips_target_build;
 
@@ -206,12 +207,12 @@ vips_target_init( VipsTarget *target )
  * vips_target_new_to_descriptor:
  * @descriptor: write to this file descriptor
  *
- * Create a stream attached to a file descriptor.
- * @descriptor is kept open until the #VipsTarget is finalized.
+ * Create a target attached to a file descriptor.
+ * @descriptor is kept open until the target is finalized.
  *
  * See also: vips_target_new_to_file().
  *
- * Returns: a new #VipsTarget
+ * Returns: a new target.
  */
 VipsTarget *
 vips_target_new_to_descriptor( int descriptor )
@@ -237,9 +238,9 @@ vips_target_new_to_descriptor( int descriptor )
  * vips_target_new_to_file:
  * @filename: write to this file 
  *
- * Create a stream attached to a file.
+ * Create a target attached to a file.
  *
- * Returns: a new #VipsTarget
+ * Returns: a new target.
  */
 VipsTarget *
 vips_target_new_to_file( const char *filename )
@@ -264,7 +265,7 @@ vips_target_new_to_file( const char *filename )
 /**
  * vips_target_new_to_memory:
  *
- * Create a stream which will stream to a memory area. Read from @blob to get
+ * Create a target which will write to a memory area. Read from @blob to get
  * memory.
  *
  * See also: vips_target_new_to_file().
@@ -347,7 +348,7 @@ vips_target_flush( VipsTarget *target )
 
 /**
  * vips_target_write:
- * @target: output stream to operate on
+ * @target: target to operate on
  * @buffer: bytes to write
  * @length: length of @buffer in bytes
  *
@@ -381,11 +382,11 @@ vips_target_write( VipsTarget *target, const void *buffer, size_t length )
 
 /**
  * vips_target_finish:
- * @target: output stream to operate on
+ * @target: target to operate on
  * @buffer: bytes to write
  * @length: length of @buffer in bytes
  *
- * Call this at the end of write to make the stream do any cleaning up. You
+ * Call this at the end of write to make the target do any cleaning up. You
  * can call it many times. 
  *
  * After a target has been finished, further writes will do nothing.
@@ -402,7 +403,7 @@ vips_target_finish( VipsTarget *target )
 
 	(void) vips_target_flush( target );
 
-	/* Move the stream buffer into the blob so it can be read out.
+	/* Move the target buffer into the blob so it can be read out.
 	 */
 	if( target->memory_buffer ) {
 		unsigned char *data;
@@ -422,11 +423,11 @@ vips_target_finish( VipsTarget *target )
 
 /**
  * vips_target_steal: 
- * @target: output stream to operate on
+ * @target: target to operate on
  * @length: return number of bytes of data
  *
- * Memory streams only (see vips_target_new_to_memory()). Steal all data
- * written to the stream so far, and finish it.
+ * Memory targets only (see vips_target_new_to_memory()). Steal all data
+ * written to the target so far, and finish it.
  *
  * You must free the returned pointer with g_free().
  *
@@ -467,11 +468,11 @@ vips_target_steal( VipsTarget *target, size_t *length )
 
 /**
  * vips_target_steal_text: 
- * @target: output stream to operate on
+ * @target: target to operate on
  *
  * As vips_target_steal_text(), but return a null-terminated string.
  *
- * Returns: (transfer full): stream contents as a null-terminated string.
+ * Returns: (transfer full): target contents as a null-terminated string.
  */
 char *
 vips_target_steal_text( VipsTarget *target )
@@ -483,7 +484,7 @@ vips_target_steal_text( VipsTarget *target )
 
 /**
  * vips_target_putc:
- * @target: output stream to operate on
+ * @target: target to operate on
  * @ch: character to write
  *
  * Write a single character @ch to @target. See the macro VIPS_TARGET_PUTC()
@@ -507,7 +508,7 @@ vips_target_putc( VipsTarget *target, int ch )
 
 /**
  * vips_target_writes:
- * @target: output stream to operate on
+ * @target: target to operate on
  * @str: string to write
  *
  * Write a null-terminated string to @target.
@@ -523,7 +524,7 @@ vips_target_writes( VipsTarget *target, const char *str )
 
 /**
  * vips_target_writef:
- * @target: output stream to operate on
+ * @target: target to operate on
  * @fmt: <function>printf()</function>-style format string
  * @...: arguments to format string
  *
@@ -551,7 +552,7 @@ vips_target_writef( VipsTarget *target, const char *fmt, ... )
 
 /**
  * vips_target_write_amp: 
- * @target: output stream to operate on
+ * @target: target to operate on
  * @str: string to write
  *
  * Write @str to @target, but escape stuff that xml hates in text. Our

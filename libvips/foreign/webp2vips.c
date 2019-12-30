@@ -25,7 +25,7 @@
  * 6/7/19 [deftomat]
  * 	- support array of delays 
  * 14/10/19
- * 	- revise for stream IO
+ * 	- revise for source IO
  */
 
 /*
@@ -311,7 +311,7 @@ vips_image_paint_image( VipsImage *frame,
 }
 
 int
-vips__iswebp_stream( VipsSource *source )
+vips__iswebp_source( VipsSource *source )
 {
 	const unsigned char *p;
 
@@ -763,7 +763,7 @@ read_image( Read *read, VipsImage *out )
 }
 
 int
-vips__webp_read_header_stream( VipsSource *source, VipsImage *out,
+vips__webp_read_header_source( VipsSource *source, VipsImage *out,
 	int page, int n, double scale )
 {
 	Read *read;
@@ -782,7 +782,7 @@ vips__webp_read_header_stream( VipsSource *source, VipsImage *out,
 }
 
 int
-vips__webp_read_stream( VipsSource *source, VipsImage *out, 
+vips__webp_read_source( VipsSource *source, VipsImage *out, 
 	int page, int n, double scale )
 {
 	Read *read;

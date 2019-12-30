@@ -265,8 +265,8 @@ vips_foreign_save_jpeg_target_class_init(
 	object_class->build = vips_foreign_save_jpeg_target_build;
 
 	VIPS_ARG_OBJECT( class, "target", 1,
-		_( "Streamo" ),
-		_( "Stream to save to" ),
+		_( "Target" ),
+		_( "Target to save to" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignSaveJpegTarget, target ),
 		VIPS_TYPE_TARGET );

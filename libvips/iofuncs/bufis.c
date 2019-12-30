@@ -1,4 +1,4 @@
-/* Buffered input from a stream.
+/* Buffered input from a source.
  *
  * J.Cupitt, 18/11/19
  */
@@ -68,11 +68,11 @@ vips_bufis_class_init( VipsBufisClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "bufis";
-	object_class->description = _( "buffered input stream" );
+	object_class->description = _( "buffered source" );
 
 	VIPS_ARG_OBJECT( class, "input", 1,
 		_( "Input" ),
-		_( "Stream to load from" ),
+		_( "Source to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsBufis, source ),
 		VIPS_TYPE_SOURCE );
@@ -89,7 +89,7 @@ vips_bufis_init( VipsBufis *bufis )
 
 /**
  * vips_bufis_new_from_source:
- * @source: stream to operate on
+ * @source: source to operate on
  *
  * Create a bufis wrapping a source. 
  *
@@ -114,7 +114,7 @@ vips_bufis_new_from_source( VipsSource *source )
 
 /**
  * vips_bufis_unbuffer:
- * @bufis: stream to operate on
+ * @bufis: source to operate on
  *
  * Discard the input buffer and reset the read point. You must call this
  * before using read or seek on the underlying #VipsSource class.
@@ -161,9 +161,9 @@ vips_bufis_refill( VipsBufis *bufis )
 
 /**
  * vips_bufis_getc:
- * @bufis: stream to operate on
+ * @bufis: source to operate on
  *
- * Fetch the next character from the stream. 
+ * Fetch the next character from the source. 
  *
  * If you can, use the macro VIPS_BUFIS_GETC() instead for speed.
  *
@@ -183,16 +183,16 @@ vips_bufis_getc( VipsBufis *bufis )
 
 /** 
  * VIPS_BUFIS_GETC:
- * @bufis: stream to operate on
+ * @bufis: source to operate on
  *
- * Fetch the next character from the stream. 
+ * Fetch the next character from the source. 
  *
  * Returns: the next char from @bufis, -1 on read error or EOF.
  */
 
 /**
  * vips_bufis_ungetc:
- * @bufis: stream to operate on
+ * @bufis: source to operate on
  *
  * The opposite of vips_bufis_getc(): undo the previous getc.
  *
@@ -210,7 +210,7 @@ vips_bufis_ungetc( VipsBufis *bufis )
 
 /**
  * VIPS_BUFIS_UNGETC:
- * @bufis: stream to operate on
+ * @bufis: source to operate on
  *
  * The opposite of vips_bufis_getc(): undo the previous getc.
  *
@@ -220,7 +220,7 @@ vips_bufis_ungetc( VipsBufis *bufis )
 
 /**
  * vips_bufis_require:
- * @bufis: stream to operate on
+ * @bufis: source to operate on
  * @require: make sure we have at least this many chars available
  *
  * Make sure there are at least @require bytes of readahead available.
@@ -276,7 +276,7 @@ vips_bufis_require( VipsBufis *bufis, int require )
 
 /** 
  * VIPS_BUFIS_REQUIRE:
- * @bufis: stream to operate on
+ * @bufis: source to operate on
  * @require: need this many characters
  *
  * Make sure at least @require characters are available for 
@@ -287,7 +287,7 @@ vips_bufis_require( VipsBufis *bufis, int require )
 
 /** 
  * VIPS_BUFIS_PEEK:
- * @bufis: stream to operate on
+ * @bufis: source to operate on
  *
  * After a successful VIPS_BUFIS_REQUIRE(), you can index this to get
  * require characters of input.
@@ -297,7 +297,7 @@ vips_bufis_require( VipsBufis *bufis, int require )
 
 /** 
  * VIPS_BUFIS_FETCH:
- * @bufis: stream to operate on
+ * @bufis: source to operate on
  *
  * After a successful VIPS_BUFIS_REQUIRE(), you can use this require times
  * to fetch characters of input.
@@ -307,7 +307,7 @@ vips_bufis_require( VipsBufis *bufis, int require )
 
 /**
  * vips_bufis_get_line:
- * @bufis: stream to operate on
+ * @bufis: source to operate on
  *
  * Fetch the next line of text from @bufis and return it. The end of 
  * line character (or characters, for DOS files) are removed, and the string
@@ -378,7 +378,7 @@ vips_bufis_get_line( VipsBufis *bufis )
 
 /**
  * vips_bufis_get_line_copy:
- * @bufis: stream to operate on
+ * @bufis: source to operate on
  *
  * Fetch the next line of text from @bufis and return it. The end of 
  * line character (or characters, for DOS files) are removed, and the string
@@ -438,9 +438,9 @@ vips_bufis_get_line_copy( VipsBufis *bufis )
 
 /**
  * vips_bufis_get_non_whitespace:
- * @bufis: stream to operate on
+ * @bufis: source to operate on
  *
- * Fetch the next chunk of non-whitespace text from the stream, and
+ * Fetch the next chunk of non-whitespace text from the source, and
  * null-terminate it. 
  *
  * After this, the next getc will be the first char of the next block of
@@ -488,7 +488,7 @@ vips_bufis_get_non_whitespace( VipsBufis *bufis )
 
 /**
  * vips_bufis_skip_whitespace:
- * @bufis: stream to operate on
+ * @bufis: source to operate on
  *
  * After this, the next getc will be the first char of the next block of
  * non-whitespace (or EOF).

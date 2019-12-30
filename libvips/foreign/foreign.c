@@ -2072,21 +2072,19 @@ vips_foreign_operation_init( void )
 
 	extern GType vips_foreign_load_webp_file_get_type( void ); 
 	extern GType vips_foreign_load_webp_buffer_get_type( void ); 
-	extern GType vips_foreign_load_webp_stream_get_type( void ); 
+	extern GType vips_foreign_load_webp_source_get_type( void ); 
 	extern GType vips_foreign_save_webp_file_get_type( void ); 
 	extern GType vips_foreign_save_webp_buffer_get_type( void ); 
-	extern GType vips_foreign_save_webp_stream_get_type( void ); 
+	extern GType vips_foreign_save_webp_target_get_type( void ); 
 
 	extern GType vips_foreign_load_pdf_get_type( void ); 
 	extern GType vips_foreign_load_pdf_file_get_type( void ); 
 	extern GType vips_foreign_load_pdf_buffer_get_type( void ); 
 
-	extern GType vips_foreign_load_svg_get_type( void ); 
 	extern GType vips_foreign_load_svg_file_get_type( void ); 
 	extern GType vips_foreign_load_svg_buffer_get_type( void ); 
 	extern GType vips_foreign_load_svg_source_get_type( void ); 
 
-	extern GType vips_foreign_load_heif_get_type( void ); 
 	extern GType vips_foreign_load_heif_file_get_type( void ); 
 	extern GType vips_foreign_load_heif_buffer_get_type( void ); 
 	extern GType vips_foreign_save_heif_get_type( void ); 
@@ -2096,7 +2094,6 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_nifti_get_type( void ); 
 	extern GType vips_foreign_save_nifti_get_type( void ); 
 
-	extern GType vips_foreign_load_gif_get_type( void ); 
 	extern GType vips_foreign_load_gif_file_get_type( void ); 
 	extern GType vips_foreign_load_gif_buffer_get_type( void ); 
 
@@ -2142,14 +2139,12 @@ vips_foreign_operation_init( void )
 #endif /*HAVE_PDFIUM*/
 
 #ifdef HAVE_RSVG
-	vips_foreign_load_svg_get_type(); 
 	vips_foreign_load_svg_file_get_type(); 
 	vips_foreign_load_svg_buffer_get_type(); 
 	vips_foreign_load_svg_source_get_type(); 
 #endif /*HAVE_RSVG*/
 
 #ifdef HAVE_GIFLIB
-	vips_foreign_load_gif_get_type(); 
 	vips_foreign_load_gif_file_get_type(); 
 	vips_foreign_load_gif_buffer_get_type(); 
 #endif /*HAVE_GIFLIB*/
@@ -2185,10 +2180,10 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_LIBWEBP
 	vips_foreign_load_webp_file_get_type(); 
 	vips_foreign_load_webp_buffer_get_type(); 
-	vips_foreign_load_webp_stream_get_type(); 
+	vips_foreign_load_webp_source_get_type(); 
 	vips_foreign_save_webp_file_get_type(); 
 	vips_foreign_save_webp_buffer_get_type(); 
-	vips_foreign_save_webp_stream_get_type(); 
+	vips_foreign_save_webp_target_get_type(); 
 #endif /*HAVE_LIBWEBP*/
 
 #ifdef HAVE_TIFF
@@ -2235,13 +2230,11 @@ vips_foreign_operation_init( void )
 #endif /*HAVE_NIFTI*/
 
 #ifdef HAVE_HEIF_DECODER
-	vips_foreign_load_heif_get_type(); 
 	vips_foreign_load_heif_file_get_type(); 
 	vips_foreign_load_heif_buffer_get_type(); 
 #endif /*HAVE_HEIF_DECODER*/
 
 #ifdef HAVE_HEIF_ENCODER
-	vips_foreign_save_heif_get_type(); 
 	vips_foreign_save_heif_file_get_type(); 
 	vips_foreign_save_heif_buffer_get_type(); 
 #endif /*HAVE_HEIF_ENCODER*/

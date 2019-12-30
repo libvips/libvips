@@ -687,7 +687,7 @@ write_vips( Write *write, int qfac, const char *profile,
 	return( 0 );
 }
 
-#define STREAM_BUFFER_SIZE (4096)
+#define TARGET_BUFFER_SIZE (4096)
 
 typedef struct {
 	/* Public jpeg fields.
@@ -703,7 +703,7 @@ typedef struct {
 
 	/* Our output buffer.
 	 */
-	unsigned char buf[STREAM_BUFFER_SIZE];
+	unsigned char buf[TARGET_BUFFER_SIZE];
 } Dest;
 
 /* Buffer full method. This is only called when the output area is exactly 
@@ -715,11 +715,11 @@ empty_output_buffer( j_compress_ptr cinfo )
 	Dest *dest = (Dest *) cinfo->dest;
 
 	if( vips_target_write( dest->target, 
-		dest->buf, STREAM_BUFFER_SIZE ) )
+		dest->buf, TARGET_BUFFER_SIZE ) )
 		ERREXIT( cinfo, JERR_FILE_WRITE );
 
 	dest->pub.next_output_byte = dest->buf;
-	dest->pub.free_in_buffer = STREAM_BUFFER_SIZE;
+	dest->pub.free_in_buffer = TARGET_BUFFER_SIZE;
 
 	return( TRUE );
 }
@@ -732,7 +732,7 @@ init_destination( j_compress_ptr cinfo )
 	Dest *dest = (Dest *) cinfo->dest;
 
 	dest->pub.next_output_byte = dest->buf;
-	dest->pub.free_in_buffer = STREAM_BUFFER_SIZE;
+	dest->pub.free_in_buffer = TARGET_BUFFER_SIZE;
 }
 
 /* Flush any remaining bytes to the output.
@@ -743,7 +743,7 @@ term_destination( j_compress_ptr cinfo )
         Dest *dest = (Dest *) cinfo->dest;
 
 	if( vips_target_write( dest->target, 
-		dest->buf, STREAM_BUFFER_SIZE - dest->pub.free_in_buffer ) )
+		dest->buf, TARGET_BUFFER_SIZE - dest->pub.free_in_buffer ) )
 		ERREXIT( cinfo, JERR_FILE_WRITE );
 
 	vips_target_finish( dest->target );
