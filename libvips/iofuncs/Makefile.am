@@ -6,7 +6,7 @@ libiofuncs_la_SOURCES = \
 	sourcecustom.c \
 	target.c \
 	targetcustom.c \
-	bufis.c \
+	sbuf.c \
 	dbuf.c \
 	reorder.c \
 	vipsmarshal.h \

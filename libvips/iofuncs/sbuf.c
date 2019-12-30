@@ -56,10 +56,25 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-G_DEFINE_TYPE( VipsBufis, vips_bufis, VIPS_TYPE_OBJECT );
+/**
+ * SECTION: sbuf
+ * @short_description: buffered read from a source
+ * @stability: Stable
+ * @see_also: <link linkend="libvips-foreign">foreign</link> 
+ * @include: vips/vips.h
+ * @title: VipsSbuf
+ *
+ * #VipsSbuf wraps up a #VipsSource and provides a set of calls for
+ * text-oriented buffered reading. You can fetch lines of text, skip
+ * whitespace, and so on.
+ *
+ * It is useful for implementing things like CSV readers, for example. 
+ */
+
+G_DEFINE_TYPE( VipsSbuf, vips_sbuf, VIPS_TYPE_OBJECT );
 
 static void
-vips_bufis_class_init( VipsBufisClass *class )
+vips_sbuf_class_init( VipsSbufClass *class )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
@@ -67,160 +82,160 @@ vips_bufis_class_init( VipsBufisClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "bufis";
+	object_class->nickname = "sbuf";
 	object_class->description = _( "buffered source" );
 
 	VIPS_ARG_OBJECT( class, "input", 1,
 		_( "Input" ),
 		_( "Source to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsBufis, source ),
+		G_STRUCT_OFFSET( VipsSbuf, source ),
 		VIPS_TYPE_SOURCE );
 
 }
 
 static void
-vips_bufis_init( VipsBufis *bufis )
+vips_sbuf_init( VipsSbuf *sbuf )
 {
-	bufis->read_point = 0;
-	bufis->chars_in_buffer = 0;
-	bufis->input_buffer[0] = '\0';
+	sbuf->read_point = 0;
+	sbuf->chars_in_buffer = 0;
+	sbuf->input_buffer[0] = '\0';
 }
 
 /**
- * vips_bufis_new_from_source:
+ * vips_sbuf_new_from_source:
  * @source: source to operate on
  *
- * Create a bufis wrapping a source. 
+ * Create a VipsSbuf wrapping a source. 
  *
- * Returns: a new #VipsBufis
+ * Returns: a new #VipsSbuf
  */
-VipsBufis *
-vips_bufis_new_from_source( VipsSource *source )
+VipsSbuf *
+vips_sbuf_new_from_source( VipsSource *source )
 {
-	VipsBufis *bufis;
+	VipsSbuf *sbuf;
 
-	bufis = VIPS_BUFIS( g_object_new( VIPS_TYPE_BUFIS, 
+	sbuf = VIPS_SBUF( g_object_new( VIPS_TYPE_SBUF, 
 		"input", source,
 		NULL ) );
 
-	if( vips_object_build( VIPS_OBJECT( bufis ) ) ) {
-		VIPS_UNREF( bufis );
+	if( vips_object_build( VIPS_OBJECT( sbuf ) ) ) {
+		VIPS_UNREF( sbuf );
 		return( NULL );
 	}
 
-	return( bufis ); 
+	return( sbuf ); 
 }
 
 /**
- * vips_bufis_unbuffer:
- * @bufis: source to operate on
+ * vips_sbuf_unbuffer:
+ * @sbuf: source to operate on
  *
  * Discard the input buffer and reset the read point. You must call this
  * before using read or seek on the underlying #VipsSource class.
  */
 void
-vips_bufis_unbuffer( VipsBufis *bufis )
+vips_sbuf_unbuffer( VipsSbuf *sbuf )
 {
 	/* We'd read ahead a little way -- seek backwards by that amount.
 	 */
-	vips_source_seek( bufis->source, 
-		bufis->read_point - bufis->chars_in_buffer, SEEK_CUR );
-	bufis->read_point = 0;
-	bufis->chars_in_buffer = 0;
+	vips_source_seek( sbuf->source, 
+		sbuf->read_point - sbuf->chars_in_buffer, SEEK_CUR );
+	sbuf->read_point = 0;
+	sbuf->chars_in_buffer = 0;
 }
 
 /* Returns -1 on error, 0 on EOF, otherwise bytes read.
  */
 static gint64
-vips_bufis_refill( VipsBufis *bufis )
+vips_sbuf_refill( VipsSbuf *sbuf )
 {
 	gint64 bytes_read;
 
-	VIPS_DEBUG_MSG( "vips_bufis_refill:\n" );
+	VIPS_DEBUG_MSG( "vips_sbuf_refill:\n" );
 
 	/* We should not discard any unread bytes.
 	 */
-	g_assert( bufis->read_point == bufis->chars_in_buffer );
+	g_assert( sbuf->read_point == sbuf->chars_in_buffer );
 
-	bytes_read = vips_source_read( bufis->source, 
-		bufis->input_buffer, VIPS_BUFIS_BUFFER_SIZE );
+	bytes_read = vips_source_read( sbuf->source, 
+		sbuf->input_buffer, VIPS_SBUF_BUFFER_SIZE );
 	if( bytes_read == -1 )
 		return( -1 );
 
-	bufis->read_point = 0;
-	bufis->chars_in_buffer = bytes_read;
+	sbuf->read_point = 0;
+	sbuf->chars_in_buffer = bytes_read;
 	
 	/* Always add a null byte so we can use strchr() etc. on lines. This is 
-	 * safe because input_buffer is VIPS_BUFIS_BUFFER_SIZE + 1 bytes.
+	 * safe because input_buffer is VIPS_SBUF_BUFFER_SIZE + 1 bytes.
 	 */
-	bufis->input_buffer[bytes_read] = '\0';
+	sbuf->input_buffer[bytes_read] = '\0';
 
 	return( bytes_read );
 }
 
 /**
- * vips_bufis_getc:
- * @bufis: source to operate on
+ * vips_sbuf_getc:
+ * @sbuf: source to operate on
  *
  * Fetch the next character from the source. 
  *
- * If you can, use the macro VIPS_BUFIS_GETC() instead for speed.
+ * If you can, use the macro VIPS_SBUF_GETC() instead for speed.
  *
- * Returns: the next char from @bufis, -1 on read error or EOF.
+ * Returns: the next char from @sbuf, -1 on read error or EOF.
  */
 int
-vips_bufis_getc( VipsBufis *bufis )
+vips_sbuf_getc( VipsSbuf *sbuf )
 {
-	if( bufis->read_point == bufis->chars_in_buffer &&
-		vips_bufis_refill( bufis ) <= 0 )
+	if( sbuf->read_point == sbuf->chars_in_buffer &&
+		vips_sbuf_refill( sbuf ) <= 0 )
 		return( -1 );
 
-	g_assert( bufis->read_point < bufis->chars_in_buffer );
+	g_assert( sbuf->read_point < sbuf->chars_in_buffer );
 
-	return( bufis->input_buffer[bufis->read_point++] );
+	return( sbuf->input_buffer[sbuf->read_point++] );
 }
 
 /** 
- * VIPS_BUFIS_GETC:
- * @bufis: source to operate on
+ * VIPS_SBUF_GETC:
+ * @sbuf: source to operate on
  *
  * Fetch the next character from the source. 
  *
- * Returns: the next char from @bufis, -1 on read error or EOF.
+ * Returns: the next char from @sbuf, -1 on read error or EOF.
  */
 
 /**
- * vips_bufis_ungetc:
- * @bufis: source to operate on
+ * vips_sbuf_ungetc:
+ * @sbuf: source to operate on
  *
- * The opposite of vips_bufis_getc(): undo the previous getc.
+ * The opposite of vips_sbuf_getc(): undo the previous getc.
  *
  * unget more than one character is undefined. Unget at the start of the file 
  * does nothing.
  *
- * If you can, use the macro VIPS_BUFIS_UNGETC() instead for speed.
+ * If you can, use the macro VIPS_SBUF_UNGETC() instead for speed.
  */
 void
-vips_bufis_ungetc( VipsBufis *bufis )
+vips_sbuf_ungetc( VipsSbuf *sbuf )
 {
-	if( bufis->read_point > 0 ) 
-		bufis->read_point -= 1;
+	if( sbuf->read_point > 0 ) 
+		sbuf->read_point -= 1;
 }
 
 /**
- * VIPS_BUFIS_UNGETC:
- * @bufis: source to operate on
+ * VIPS_SBUF_UNGETC:
+ * @sbuf: source to operate on
  *
- * The opposite of vips_bufis_getc(): undo the previous getc.
+ * The opposite of vips_sbuf_getc(): undo the previous getc.
  *
  * unget more than one character is undefined. Unget at the start of the file 
  * does nothing.
  */
 
 /**
- * vips_bufis_require:
- * @bufis: source to operate on
+ * vips_sbuf_require:
+ * @sbuf: source to operate on
  * @require: make sure we have at least this many chars available
  *
  * Make sure there are at least @require bytes of readahead available.
@@ -228,46 +243,46 @@ vips_bufis_ungetc( VipsBufis *bufis )
  * Returns: 0 on success, -1 on error or EOF.
  */
 int
-vips_bufis_require( VipsBufis *bufis, int require )
+vips_sbuf_require( VipsSbuf *sbuf, int require )
 {
-	g_assert( require < VIPS_BUFIS_BUFFER_SIZE ); 
-	g_assert( bufis->chars_in_buffer >= 0 );
-	g_assert( bufis->chars_in_buffer <= VIPS_BUFIS_BUFFER_SIZE );
-	g_assert( bufis->read_point >= 0 ); 
-	g_assert( bufis->read_point <= bufis->chars_in_buffer );
+	g_assert( require < VIPS_SBUF_BUFFER_SIZE ); 
+	g_assert( sbuf->chars_in_buffer >= 0 );
+	g_assert( sbuf->chars_in_buffer <= VIPS_SBUF_BUFFER_SIZE );
+	g_assert( sbuf->read_point >= 0 ); 
+	g_assert( sbuf->read_point <= sbuf->chars_in_buffer );
 
-	VIPS_DEBUG_MSG( "vips_bufis_require: %d\n", require );
+	VIPS_DEBUG_MSG( "vips_sbuf_require: %d\n", require );
 
-	if( bufis->read_point + require > bufis->chars_in_buffer ) {
+	if( sbuf->read_point + require > sbuf->chars_in_buffer ) {
 		/* Areas can overlap, so we must memmove().
 		 */
-		memmove( bufis->input_buffer, 
-			bufis->input_buffer + bufis->read_point,
-			bufis->chars_in_buffer - bufis->read_point );
-		bufis->chars_in_buffer -= bufis->read_point;
-		bufis->read_point = 0;
+		memmove( sbuf->input_buffer, 
+			sbuf->input_buffer + sbuf->read_point,
+			sbuf->chars_in_buffer - sbuf->read_point );
+		sbuf->chars_in_buffer -= sbuf->read_point;
+		sbuf->read_point = 0;
 
-		while( require > bufis->chars_in_buffer ) {
-			unsigned char *to = bufis->input_buffer + 
-				bufis->chars_in_buffer;
+		while( require > sbuf->chars_in_buffer ) {
+			unsigned char *to = sbuf->input_buffer + 
+				sbuf->chars_in_buffer;
 			int space_available = 
-				VIPS_BUFIS_BUFFER_SIZE - 
-				bufis->chars_in_buffer;
+				VIPS_SBUF_BUFFER_SIZE - 
+				sbuf->chars_in_buffer;
 			size_t bytes_read;
 
-			if( (bytes_read = vips_source_read( bufis->source,
+			if( (bytes_read = vips_source_read( sbuf->source,
 				to, space_available )) == -1 )
 				return( -1 );
 			if( bytes_read == 0 ) { 
 				vips_error( 
 					vips_connection_nick( VIPS_CONNECTION( 
-						bufis->source ) ), 
+						sbuf->source ) ), 
 					"%s", _( "end of file" ) ); 
 				return( -1 );
 			}
 
 			to[bytes_read] = '\0';
-			bufis->chars_in_buffer += bytes_read;
+			sbuf->chars_in_buffer += bytes_read;
 		}
 	}
 
@@ -275,41 +290,41 @@ vips_bufis_require( VipsBufis *bufis, int require )
 }
 
 /** 
- * VIPS_BUFIS_REQUIRE:
- * @bufis: source to operate on
+ * VIPS_SBUF_REQUIRE:
+ * @sbuf: source to operate on
  * @require: need this many characters
  *
  * Make sure at least @require characters are available for 
- * VIPS_BUFIS_PEEK() and VIPS_BUFIS_FETCH().
+ * VIPS_SBUF_PEEK() and VIPS_SBUF_FETCH().
  *
  * Returns: 0 on success, -1 on read error or EOF.
  */
 
 /** 
- * VIPS_BUFIS_PEEK:
- * @bufis: source to operate on
+ * VIPS_SBUF_PEEK:
+ * @sbuf: source to operate on
  *
- * After a successful VIPS_BUFIS_REQUIRE(), you can index this to get
+ * After a successful VIPS_SBUF_REQUIRE(), you can index this to get
  * require characters of input.
  *
  * Returns: a pointer to the next requre characters of input.
  */
 
 /** 
- * VIPS_BUFIS_FETCH:
- * @bufis: source to operate on
+ * VIPS_SBUF_FETCH:
+ * @sbuf: source to operate on
  *
- * After a successful VIPS_BUFIS_REQUIRE(), you can use this require times
+ * After a successful VIPS_SBUF_REQUIRE(), you can use this require times
  * to fetch characters of input.
  *
  * Returns: the next input character.
  */
 
 /**
- * vips_bufis_get_line:
- * @bufis: source to operate on
+ * vips_sbuf_get_line:
+ * @sbuf: source to operate on
  *
- * Fetch the next line of text from @bufis and return it. The end of 
+ * Fetch the next line of text from @sbuf and return it. The end of 
  * line character (or characters, for DOS files) are removed, and the string
  * is terminated with a null (`\0` character).
  *
@@ -317,33 +332,33 @@ vips_bufis_require( VipsBufis *bufis, int require )
  *
  * If the line is longer than some arbitrary (but large) limit, it is
  * truncated. If you need to be able to read very long lines, use the
- * slower vips_bufis_get_line_copy().
+ * slower vips_sbuf_get_line_copy().
  *
- * The return value is owned by @bufis and must not be freed. It 
- * is valid until the next get call to @bufis.
+ * The return value is owned by @sbuf and must not be freed. It 
+ * is valid until the next get call to @sbuf.
  *
  * Returns: the next line of text, or NULL on EOF or read error.
  */
 const char *
-vips_bufis_get_line( VipsBufis *bufis )
+vips_sbuf_get_line( VipsSbuf *sbuf )
 {
 	int write_point;
 	int space_remaining;
 	int ch;
 
-	VIPS_DEBUG_MSG( "vips_bufis_get_line:\n" );
+	VIPS_DEBUG_MSG( "vips_sbuf_get_line:\n" );
 
 	write_point = 0;
-	space_remaining = VIPS_BUFIS_BUFFER_SIZE;
+	space_remaining = VIPS_SBUF_BUFFER_SIZE;
 
-	while( (ch = VIPS_BUFIS_GETC( bufis )) != -1 &&
+	while( (ch = VIPS_SBUF_GETC( sbuf )) != -1 &&
 		ch != '\n' &&
 		space_remaining > 0 ) {
-		bufis->line[write_point] = ch;
+		sbuf->line[write_point] = ch;
 		write_point += 1;
 		space_remaining -= 1;
 	}
-	bufis->line[write_point] = '\0';
+	sbuf->line[write_point] = '\0';
 
 	/* If we hit EOF immediately, return EOF.
 	 */
@@ -358,45 +373,45 @@ vips_bufis_get_line( VipsBufis *bufis )
 	 * lines, but ignore this.
 	 */
 	if( write_point > 0 &&
-		bufis->line[write_point - 1] == '\r' )
-		bufis->line[write_point - 1] = '\0';
+		sbuf->line[write_point - 1] == '\r' )
+		sbuf->line[write_point - 1] = '\0';
 
 	/* If we filled the output line without seeing \n, keep going to the
 	 * next \n.
 	 */
 	if( ch != '\n' &&
 		space_remaining == 0 ) {
-		while( (ch = VIPS_BUFIS_GETC( bufis )) != -1 &&
+		while( (ch = VIPS_SBUF_GETC( sbuf )) != -1 &&
 			ch != '\n' ) 
 			;
 	}
 
-	VIPS_DEBUG_MSG( "    %s\n", bufis->line );
+	VIPS_DEBUG_MSG( "    %s\n", sbuf->line );
 
-	return( (const char *) bufis->line );
+	return( (const char *) sbuf->line );
 }
 
 /**
- * vips_bufis_get_line_copy:
- * @bufis: source to operate on
+ * vips_sbuf_get_line_copy:
+ * @sbuf: source to operate on
  *
- * Fetch the next line of text from @bufis and return it. The end of 
+ * Fetch the next line of text from @sbuf and return it. The end of 
  * line character (or characters, for DOS files) are removed, and the string
  * is terminated with a null (`\0` character).
  *
  * The return result must be freed with g_free().
  *
- * This is slower than vips_bufis_get_line(), but can work with lines of
+ * This is slower than vips_sbuf_get_line(), but can work with lines of
  * any length.
  *
  * Returns: the next line of text, or NULL on EOF or read error.
  */
 char *
-vips_bufis_get_line_copy( VipsBufis *bufis )
+vips_sbuf_get_line_copy( VipsSbuf *sbuf )
 {
 	static const unsigned char null = '\0';
 
-	VIPS_DEBUG_MSG( "vips_bufis_get_line_copy:\n" );
+	VIPS_DEBUG_MSG( "vips_sbuf_get_line_copy:\n" );
 
 	GByteArray *buffer;
 	int ch;
@@ -404,7 +419,7 @@ vips_bufis_get_line_copy( VipsBufis *bufis )
 
 	buffer = g_byte_array_new();
 
-	while( (ch = VIPS_BUFIS_GETC( bufis )) != -1 &&
+	while( (ch = VIPS_SBUF_GETC( sbuf )) != -1 &&
 		ch != '\n' ) {
 		unsigned char c = ch;
 
@@ -437,8 +452,8 @@ vips_bufis_get_line_copy( VipsBufis *bufis )
 }
 
 /**
- * vips_bufis_get_non_whitespace:
- * @bufis: source to operate on
+ * vips_sbuf_get_non_whitespace:
+ * @sbuf: source to operate on
  *
  * Fetch the next chunk of non-whitespace text from the source, and
  * null-terminate it. 
@@ -452,28 +467,28 @@ vips_bufis_get_line_copy( VipsBufis *bufis )
  * If the item is longer than some arbitrary (but large) limit, it is
  * truncated. 
  *
- * The return value is owned by @bufis and must not be freed. It 
- * is valid until the next get call to @bufis.
+ * The return value is owned by @sbuf and must not be freed. It 
+ * is valid until the next get call to @sbuf.
  *
  * Returns: the next block of non-whitespace, or NULL on EOF or read error.
  */
 const char *
-vips_bufis_get_non_whitespace( VipsBufis *bufis )
+vips_sbuf_get_non_whitespace( VipsSbuf *sbuf )
 {
 	int ch;
 	int i;
 
-	for( i = 0; i < VIPS_BUFIS_BUFFER_SIZE &&
-		!isspace( ch = VIPS_BUFIS_GETC( bufis ) ) &&
+	for( i = 0; i < VIPS_SBUF_BUFFER_SIZE &&
+		!isspace( ch = VIPS_SBUF_GETC( sbuf ) ) &&
 		ch != EOF; i++ ) 
-		bufis->line[i] = ch;
-	bufis->line[i] = '\0';
+		sbuf->line[i] = ch;
+	sbuf->line[i] = '\0';
 
 	/* If we stopped before seeing any whitespace, skip to the end of the
 	 * block of non-whitespace.
 	 */
 	if( !isspace( ch ) ) 
-		while( !isspace( ch = VIPS_BUFIS_GETC( bufis ) ) &&
+		while( !isspace( ch = VIPS_SBUF_GETC( sbuf ) ) &&
 			ch != EOF )
 			;
 
@@ -481,14 +496,14 @@ vips_bufis_get_non_whitespace( VipsBufis *bufis )
 	 * will be whitespace (or EOF).
 	 */
 	if( isspace( ch ) ) 
-		VIPS_BUFIS_UNGETC( bufis );
+		VIPS_SBUF_UNGETC( sbuf );
 
-	return( (const char *) bufis->line );
+	return( (const char *) sbuf->line );
 }
 
 /**
- * vips_bufis_skip_whitespace:
- * @bufis: source to operate on
+ * vips_sbuf_skip_whitespace:
+ * @sbuf: source to operate on
  *
  * After this, the next getc will be the first char of the next block of
  * non-whitespace (or EOF).
@@ -498,25 +513,25 @@ vips_bufis_get_non_whitespace( VipsBufis *bufis )
  * Returns: 0 on success, or -1 on EOF.
  */
 int 
-vips_bufis_skip_whitespace( VipsBufis *bufis )
+vips_sbuf_skip_whitespace( VipsSbuf *sbuf )
 {
 	int ch;
 
 	do {
-		ch = VIPS_BUFIS_GETC( bufis );
+		ch = VIPS_SBUF_GETC( sbuf );
 
 		/* # skip comments too.
 		 */
 		if( ch == '#' ) {
 			/* Probably EOF. 
 			 */
-			if( !vips_bufis_get_line( bufis ) ) 
+			if( !vips_sbuf_get_line( sbuf ) ) 
 				return( -1 );
-			ch = VIPS_BUFIS_GETC( bufis );
+			ch = VIPS_SBUF_GETC( sbuf );
 		}
 	} while( isspace( ch ) );
 
-	VIPS_BUFIS_UNGETC( bufis );
+	VIPS_SBUF_UNGETC( sbuf );
 
 	return( 0 );
 }

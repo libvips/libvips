@@ -91,7 +91,7 @@ typedef struct _VipsForeignLoadPpm {
 	/* The source we load from, and the buffered wrapper for it.
 	 */
 	VipsSource *source;
-	VipsBufis *bufis;
+	VipsSbuf *sbuf;
 
 	/* Properties of this ppm, from the header.
 	 */
@@ -150,12 +150,12 @@ vips_foreign_load_ppm_is_a_source( VipsSource *source )
 }
 
 static int
-get_int( VipsBufis *bufis, int *i )
+get_int( VipsSbuf *sbuf, int *i )
 {
 	const char *txt;
 
-	if( vips_bufis_skip_whitespace( bufis ) ||
-		!(txt = vips_bufis_get_non_whitespace( bufis )) )
+	if( vips_sbuf_skip_whitespace( sbuf ) ||
+		!(txt = vips_sbuf_get_non_whitespace( sbuf )) )
 		return( -1 );
 
 	*i = atoi( txt ); 
@@ -164,12 +164,12 @@ get_int( VipsBufis *bufis, int *i )
 }
 
 static int
-get_float( VipsBufis *bufis, float *f )
+get_float( VipsSbuf *sbuf, float *f )
 {
 	const char *txt;
 
-	if( vips_bufis_skip_whitespace( bufis ) ||
-		!(txt = vips_bufis_get_non_whitespace( bufis )) )
+	if( vips_sbuf_skip_whitespace( sbuf ) ||
+		!(txt = vips_sbuf_get_non_whitespace( sbuf )) )
 		return( -1 );
 
 	/* We don't want the locale str -> float conversion.
@@ -184,7 +184,7 @@ vips_foreign_load_ppm_dispose( GObject *gobject )
 {
 	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) gobject;
 
-	VIPS_UNREF( ppm->bufis );
+	VIPS_UNREF( ppm->sbuf );
 	VIPS_UNREF( ppm->source );
 
 	G_OBJECT_CLASS( vips_foreign_load_ppm_parent_class )->
@@ -218,8 +218,8 @@ vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
 
 	/* Read in the magic number.
 	 */
-	buf[0] = VIPS_BUFIS_GETC( ppm->bufis );
-	buf[1] = VIPS_BUFIS_GETC( ppm->bufis );
+	buf[0] = VIPS_SBUF_GETC( ppm->sbuf );
+	buf[1] = VIPS_SBUF_GETC( ppm->sbuf );
 
 	for( i = 0; i < VIPS_NUMBER( magic_names ); i++ )
 		if( vips_isprefix( magic_names[i], buf ) ) 
@@ -239,8 +239,8 @@ vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
 
 	/* Read in size.
 	 */
-	if( get_int( ppm->bufis, &ppm->width ) ||
-		get_int( ppm->bufis, &ppm->height ) )
+	if( get_int( ppm->sbuf, &ppm->width ) ||
+		get_int( ppm->sbuf, &ppm->height ) )
 		return( -1 );
 
 	/* Read in max value / scale for >1 bit images.
@@ -248,7 +248,7 @@ vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
 	if( ppm->bits > 1 ) {
 		if( ppm->index == 6 || 
 			ppm->index == 7 ) {
-			if( get_float( ppm->bufis, &ppm->scale ) )
+			if( get_float( ppm->sbuf, &ppm->scale ) )
 				return( -1 );
 
 			/* Scale > 0 means big-endian.
@@ -256,7 +256,7 @@ vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
 			ppm->msb_first = ppm->scale > 0;
 		}
 		else {
-			if( get_int( ppm->bufis, &ppm->max_value ) )
+			if( get_int( ppm->sbuf, &ppm->max_value ) )
 				return( -1 );
 
 			if( ppm->max_value > 255 )
@@ -270,7 +270,7 @@ vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
 	 * character before the data starts.
 	 */
 	if( !ppm->ascii && 
-		!isspace( VIPS_BUFIS_GETC( ppm->bufis ) ) ) {
+		!isspace( VIPS_SBUF_GETC( ppm->sbuf ) ) ) {
 		vips_error( class->nickname, "%s", 
 			_( "no whitespace before start of binary data" ) );
 		return( -1 );
@@ -366,7 +366,7 @@ vips_foreign_load_ppm_set_image( VipsForeignLoadPpm *ppm, VipsImage *image )
 			"ppm-max-value", VIPS_ABS( ppm->max_value ) );
 
 	VIPS_SETSTR( image->filename, 
-		vips_connection_filename( VIPS_CONNECTION( ppm->bufis->source ) ) );
+		vips_connection_filename( VIPS_CONNECTION( ppm->sbuf->source ) ) );
 }
 
 static int
@@ -397,7 +397,7 @@ vips_foreign_load_ppm_map( VipsForeignLoadPpm *ppm, VipsImage *image )
 	size_t length;
 	const void *data;
 
-	vips_bufis_unbuffer( ppm->bufis );
+	vips_sbuf_unbuffer( ppm->sbuf );
 	header_offset = vips_source_seek( ppm->source, 0, SEEK_CUR );
 	data = vips_source_map( ppm->source, &length );
 	if( header_offset < 0 || 
@@ -462,7 +462,7 @@ vips_foreign_load_ppm_generate_1bit_ascii( VipsRegion *or,
 		for( x = 0; x < image->Xsize; x++ ) {
 			int val;
 
-			if( get_int( ppm->bufis, &val ) )
+			if( get_int( ppm->sbuf, &val ) )
 				return( -1 );
 
 			if( val )
@@ -486,7 +486,7 @@ vips_foreign_load_ppm_generate_1bit_binary( VipsRegion *or,
 	int x, y;
 	int bits;
 
-	bits = VIPS_BUFIS_GETC( ppm->bufis );
+	bits = VIPS_SBUF_GETC( ppm->sbuf );
 	for( y = 0; y < r->height; y++ ) {
 		VipsPel *q = VIPS_REGION_ADDR( or, 0, r->top + y );
 
@@ -494,13 +494,13 @@ vips_foreign_load_ppm_generate_1bit_binary( VipsRegion *or,
 			q[x] = (bits & 128) ? 0 : 255;
 			bits = VIPS_LSHIFT_INT( bits, 1 );
 			if( (x & 7) == 7 )
-				bits = VIPS_BUFIS_GETC( ppm->bufis );
+				bits = VIPS_SBUF_GETC( ppm->sbuf );
 		}
 
 		/* Skip any unaligned bits at end of line.
 		 */
 		if( (x & 7) != 0 )
-			bits = VIPS_BUFIS_GETC( ppm->bufis );
+			bits = VIPS_SBUF_GETC( ppm->sbuf );
 	}
 
 	return( 0 );
@@ -523,7 +523,7 @@ vips_foreign_load_ppm_generate_ascii_int( VipsRegion *or,
 		for( i = 0; i < n_elements; i++ ) {
 			int val;
 
-			if( get_int( ppm->bufis, &val ) )
+			if( get_int( ppm->sbuf, &val ) )
 				return( -1 );
 			
 			switch( image->BandFmt ) {
@@ -581,7 +581,7 @@ vips_foreign_load_ppm_load( VipsForeignLoad *load )
 			/* The binary loader does not use the buffered IO 
 			 * object.
 			 */
-			vips_bufis_unbuffer( ppm->bufis ); 
+			vips_sbuf_unbuffer( ppm->sbuf ); 
 		}
 		else if( !ppm->ascii && ppm->bits == 1 )
 			generate = vips_foreign_load_ppm_generate_1bit_binary;
@@ -674,7 +674,7 @@ vips_foreign_load_ppm_file_build( VipsObject *object )
 		if( !(ppm->source = 
 			vips_source_new_from_file( file->filename )) )
 			return( -1 );
-		ppm->bufis = vips_bufis_new_from_source( ppm->source );
+		ppm->sbuf = vips_sbuf_new_from_source( ppm->source );
 	}
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_ppm_file_parent_class )->

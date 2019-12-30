@@ -500,7 +500,7 @@ formatval(			/* get format value (return true if format) */
 
 static int
 getheader(		/* get header from file */
-	VipsBufis *bufis,
+	VipsSbuf *sbuf,
 	gethfunc *f,
 	void  *p
 )
@@ -508,7 +508,7 @@ getheader(		/* get header from file */
 	for(;;) { 
 		const char *line;
 
-		if( !(line = vips_bufis_get_line( bufis )) )
+		if( !(line = vips_sbuf_get_line( sbuf )) )
 			return( -1 );
 		if( strcmp( line, "" ) == 0 )
 			/* Blank line. We've parsed the header successfully.
@@ -526,20 +526,20 @@ getheader(		/* get header from file */
 /* Read a single scanline, encoded in the old style.
  */
 static int
-scanline_read_old( VipsBufis *bufis, COLR *scanline, int width )
+scanline_read_old( VipsSbuf *sbuf, COLR *scanline, int width )
 {
 	int rshift;
 
 	rshift = 0;
 	
 	while( width > 0 ) {
-		if( VIPS_BUFIS_REQUIRE( bufis, 4 ) )
+		if( VIPS_SBUF_REQUIRE( sbuf, 4 ) )
 			return( -1 ); 
 
-		scanline[0][RED] = VIPS_BUFIS_FETCH( bufis );
-		scanline[0][GRN] = VIPS_BUFIS_FETCH( bufis );
-		scanline[0][BLU] = VIPS_BUFIS_FETCH( bufis );
-		scanline[0][EXP] = VIPS_BUFIS_FETCH( bufis );
+		scanline[0][RED] = VIPS_SBUF_FETCH( sbuf );
+		scanline[0][GRN] = VIPS_SBUF_FETCH( sbuf );
+		scanline[0][BLU] = VIPS_SBUF_FETCH( sbuf );
+		scanline[0][EXP] = VIPS_SBUF_FETCH( sbuf );
 
 		if( scanline[0][RED] == 1 &&
 			scanline[0][GRN] == 1 &&
@@ -568,7 +568,7 @@ scanline_read_old( VipsBufis *bufis, COLR *scanline, int width )
 /* Read a single encoded scanline.
  */
 static int
-scanline_read( VipsBufis *bufis, COLR *scanline, int width )
+scanline_read( VipsSbuf *sbuf, COLR *scanline, int width )
 {
 	int i, j;
 
@@ -576,21 +576,21 @@ scanline_read( VipsBufis *bufis, COLR *scanline, int width )
 	 */
 	if( width < MINELEN ||
 		width > MAXELEN )
-		return( scanline_read_old( bufis, scanline, width ) );
+		return( scanline_read_old( sbuf, scanline, width ) );
 
-	if( VIPS_BUFIS_REQUIRE( bufis, 4 ) )
+	if( VIPS_SBUF_REQUIRE( sbuf, 4 ) )
 		return( -1 ); 
 
-	if( VIPS_BUFIS_PEEK( bufis )[0] != 2 ) 
-		return( scanline_read_old( bufis, scanline, width ) );
+	if( VIPS_SBUF_PEEK( sbuf )[0] != 2 ) 
+		return( scanline_read_old( sbuf, scanline, width ) );
 
-	scanline[0][RED] = VIPS_BUFIS_FETCH( bufis );
-	scanline[0][GRN] = VIPS_BUFIS_FETCH( bufis );
-	scanline[0][BLU] = VIPS_BUFIS_FETCH( bufis );
-	scanline[0][EXP] = VIPS_BUFIS_FETCH( bufis );
+	scanline[0][RED] = VIPS_SBUF_FETCH( sbuf );
+	scanline[0][GRN] = VIPS_SBUF_FETCH( sbuf );
+	scanline[0][BLU] = VIPS_SBUF_FETCH( sbuf );
+	scanline[0][EXP] = VIPS_SBUF_FETCH( sbuf );
 	if( scanline[0][GRN] != 2 || 
 		scanline[0][BLU] & 128 ) 
-		return( scanline_read_old( bufis, 
+		return( scanline_read_old( sbuf, 
 			scanline + 1, width - 1 ) );
 
 	if( ((scanline[0][BLU] << 8) | scanline[0][EXP]) != width ) {
@@ -603,10 +603,10 @@ scanline_read( VipsBufis *bufis, COLR *scanline, int width )
 			int code, len;
 			gboolean run;
 
-			if( VIPS_BUFIS_REQUIRE( bufis, 2 ) )
+			if( VIPS_SBUF_REQUIRE( sbuf, 2 ) )
 				return( -1 ); 
 
-			code = VIPS_BUFIS_FETCH( bufis ); 
+			code = VIPS_SBUF_FETCH( sbuf ); 
 			run = code > 128;
 			len = run ? code & 127 : code; 
 
@@ -618,16 +618,16 @@ scanline_read( VipsBufis *bufis, COLR *scanline, int width )
 			if( run ) { 
 				int val;
 
-				val = VIPS_BUFIS_FETCH( bufis ); 
+				val = VIPS_SBUF_FETCH( sbuf ); 
 				while( len-- )
 					scanline[j++][i] = val;
 			} 
 			else {
-				if( VIPS_BUFIS_REQUIRE( bufis, len ) )
+				if( VIPS_SBUF_REQUIRE( sbuf, len ) )
 					return( -1 ); 
 				while( len-- ) 
 					scanline[j++][i] = 
-						VIPS_BUFIS_FETCH( bufis );
+						VIPS_SBUF_FETCH( sbuf );
 			}
 		}
 
@@ -710,7 +710,7 @@ rle_scanline_write( COLR *scanline, int width,
 /* What we track during radiance file read.
  */
 typedef struct {
-	VipsBufis *bufis;
+	VipsSbuf *sbuf;
 	VipsImage *out;
 
 	char format[256];
@@ -724,16 +724,16 @@ typedef struct {
 int
 vips__rad_israd( VipsSource *source )
 {
-	VipsBufis *bufis;
+	VipsSbuf *sbuf;
 	const char *line;
 	int result;
 
 	/* Just test that the first line is the magic string.
 	 */
-	bufis = vips_bufis_new_from_source( source );
-	result = (line = vips_bufis_get_line( bufis )) &&
+	sbuf = vips_sbuf_new_from_source( source );
+	result = (line = vips_sbuf_get_line( sbuf )) &&
 		strcmp( line, "#?RADIANCE" ) == 0;
-	VIPS_UNREF( bufis );
+	VIPS_UNREF( sbuf );
 
 	return( result );
 }
@@ -741,14 +741,14 @@ vips__rad_israd( VipsSource *source )
 static void
 read_destroy( VipsObject *object, Read *read )
 {
-	VIPS_UNREF( read->bufis );
+	VIPS_UNREF( read->sbuf );
 }
 
 static void
 read_minimise_cb( VipsObject *object, Read *read )
 {
-	if( read->bufis )
-		vips_source_minimise( read->bufis->source );
+	if( read->sbuf )
+		vips_source_minimise( read->sbuf->source );
 }
 
 static Read *
@@ -763,7 +763,7 @@ read_new( VipsSource *source, VipsImage *out )
 	if( !(read = VIPS_NEW( out, Read )) )
 		return( NULL );
 
-	read->bufis = vips_bufis_new_from_source( source );
+	read->sbuf = vips_sbuf_new_from_source( source );
 	read->out = out;
 	strcpy( read->format, COLRFMT );
 	read->expos = 1.0;
@@ -837,9 +837,9 @@ rad2vips_get_header( Read *read, VipsImage *out )
 	int height;
 	int i, j;
 
-	if( getheader( read->bufis, 
+	if( getheader( read->sbuf, 
 		(gethfunc *) rad2vips_process_line, read ) ||
-		!(line = vips_bufis_get_line( read->bufis )) ||
+		!(line = vips_sbuf_get_line( read->sbuf )) ||
 		!str2resolu( &read->rs, (char *) line ) ) {
 		vips_error( "rad2vips", "%s", 
 			_( "error reading radiance header" ) );
@@ -870,7 +870,7 @@ rad2vips_get_header( Read *read, VipsImage *out )
 
 	VIPS_SETSTR( out->filename, 
 		vips_connection_filename( 
-			VIPS_CONNECTION( read->bufis->source ) ) );
+			VIPS_CONNECTION( read->sbuf->source ) ) );
 
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
@@ -926,7 +926,7 @@ rad2vips_generate( VipsRegion *or,
 		COLR *buf = (COLR *) 
 			VIPS_REGION_ADDR( or, 0, r->top + y );
 
-		if( scanline_read( read->bufis, buf, or->im->Xsize ) ) {
+		if( scanline_read( read->sbuf, buf, or->im->Xsize ) ) {
 			vips_error( "rad2vips", 
 				_( "read error line %d" ), r->top + y );
 			VIPS_GATE_STOP( "rad2vips_generate: work" );
