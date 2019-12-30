@@ -132,11 +132,11 @@ vips__tiff_openout( const char *path, gboolean bigtiff )
 	return( tif );
 }
 
-/* TIFF input from a vips stream.
+/* TIFF input from a vips source.
  */
 
 static tsize_t
-openin_stream_read( thandle_t st, tdata_t data, tsize_t size )
+openin_source_read( thandle_t st, tdata_t data, tsize_t size )
 {
 	VipsSource *source = VIPS_SOURCE( st );
 
@@ -144,7 +144,7 @@ openin_stream_read( thandle_t st, tdata_t data, tsize_t size )
 }
 
 static tsize_t
-openin_stream_write( thandle_t st, tdata_t buffer, tsize_t size )
+openin_source_write( thandle_t st, tdata_t buffer, tsize_t size )
 {
 	g_assert_not_reached();
 
@@ -152,7 +152,7 @@ openin_stream_write( thandle_t st, tdata_t buffer, tsize_t size )
 }
 
 static toff_t
-openin_stream_seek( thandle_t st, toff_t position, int whence )
+openin_source_seek( thandle_t st, toff_t position, int whence )
 {
 	VipsSource *source = VIPS_SOURCE( st );
 
@@ -160,7 +160,7 @@ openin_stream_seek( thandle_t st, toff_t position, int whence )
 }
 
 static int
-openin_stream_close( thandle_t st )
+openin_source_close( thandle_t st )
 {
 	VipsSource *source = VIPS_SOURCE( st );
 
@@ -170,7 +170,7 @@ openin_stream_close( thandle_t st )
 }
 
 static toff_t
-openin_stream_length( thandle_t st )
+openin_source_length( thandle_t st )
 {
 	VipsSource *source = VIPS_SOURCE( st );
 
@@ -181,7 +181,7 @@ openin_stream_length( thandle_t st )
 }
 
 static int
-openin_stream_map( thandle_t st, tdata_t *start, toff_t *len )
+openin_source_map( thandle_t st, tdata_t *start, toff_t *len )
 {
 	g_assert_not_reached();
 
@@ -189,7 +189,7 @@ openin_stream_map( thandle_t st, tdata_t *start, toff_t *len )
 }
 
 static void
-openin_stream_unmap( thandle_t st, tdata_t start, toff_t len )
+openin_source_unmap( thandle_t st, tdata_t start, toff_t len )
 {
 	g_assert_not_reached();
 
@@ -197,28 +197,28 @@ openin_stream_unmap( thandle_t st, tdata_t start, toff_t len )
 }
 
 TIFF *
-vips__tiff_openin_stream( VipsSource *source )
+vips__tiff_openin_source( VipsSource *source )
 {
 	TIFF *tiff;
 
 #ifdef DEBUG
-	printf( "vips__tiff_openin_stream:\n" );
+	printf( "vips__tiff_openin_source:\n" );
 #endif /*DEBUG*/
 
 	if( vips_source_rewind( source ) )
 		return( NULL );
 
-	if( !(tiff = TIFFClientOpen( "stream input", "rm",
+	if( !(tiff = TIFFClientOpen( "source input", "rm",
 		(thandle_t) source,
-		openin_stream_read,
-		openin_stream_write,
-		openin_stream_seek,
-		openin_stream_close,
-		openin_stream_length,
-		openin_stream_map,
-		openin_stream_unmap )) ) {
-		vips_error( "vips__tiff_openin_stream", "%s",
-			_( "unable to open stream for input" ) );
+		openin_source_read,
+		openin_source_write,
+		openin_source_seek,
+		openin_source_close,
+		openin_source_length,
+		openin_source_map,
+		openin_source_unmap )) ) {
+		vips_error( "vips__tiff_openin_source", "%s",
+			_( "unable to open source for input" ) );
 		return( NULL );
 	}
 

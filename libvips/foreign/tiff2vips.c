@@ -190,7 +190,7 @@
  * 	- istiff reads the first directory rather than just testing the magic
  * 	  number, so it ignores more TIFF-like, but not TIFF images
  * 17/10/19
- * 	- switch to stream input
+ * 	- switch to source input
  * 18/11/19
  * 	- support ASSOCALPHA in any alpha band
  */
@@ -558,7 +558,7 @@ rtiff_new( VipsSource *source, VipsImage *out,
 		return( NULL );
 	}
 
-	if( !(rtiff->tiff = vips__tiff_openin_stream( source )) )
+	if( !(rtiff->tiff = vips__tiff_openin_source( source )) )
 		return( NULL );
 
 	return( rtiff );
@@ -2463,14 +2463,14 @@ vips__tiff_read_header_orientation( Rtiff *rtiff, VipsImage *out )
 typedef gboolean (*TiffPropertyFn)( TIFF *tif );
 
 static gboolean
-vips__testtiff_stream( VipsSource *source, TiffPropertyFn fn )
+vips__testtiff_source( VipsSource *source, TiffPropertyFn fn )
 {
 	TIFF *tif;
 	gboolean property;
 
 	vips__tiff_init();
 
-	if( !(tif = vips__tiff_openin_stream( source )) ) {
+	if( !(tif = vips__tiff_openin_source( source )) ) {
 		vips_error_clear();
 		return( FALSE );
 	}
@@ -2483,19 +2483,19 @@ vips__testtiff_stream( VipsSource *source, TiffPropertyFn fn )
 }
 
 gboolean
-vips__istiff_stream( VipsSource *source )
+vips__istiff_source( VipsSource *source )
 {
-	return( vips__testtiff_stream( source, NULL ) ); 
+	return( vips__testtiff_source( source, NULL ) ); 
 }
 
 gboolean
-vips__istifftiled_stream( VipsSource *source )
+vips__istifftiled_source( VipsSource *source )
 {
-	return( vips__testtiff_stream( source, TIFFIsTiled ) ); 
+	return( vips__testtiff_source( source, TIFFIsTiled ) ); 
 }
 
 int
-vips__tiff_read_header_stream( VipsSource *source, VipsImage *out, 
+vips__tiff_read_header_source( VipsSource *source, VipsImage *out, 
 	int page, int n, gboolean autorotate )
 {
 	Rtiff *rtiff;
@@ -2520,7 +2520,7 @@ vips__tiff_read_header_stream( VipsSource *source, VipsImage *out,
 }
 
 int
-vips__tiff_read_stream( VipsSource *source, VipsImage *out, 
+vips__tiff_read_source( VipsSource *source, VipsImage *out, 
 	int page, int n, gboolean autorotate )
 {
 	Rtiff *rtiff;

@@ -78,12 +78,12 @@ vips_foreign_load_png_dispose( GObject *gobject )
 }
 
 static VipsForeignFlags
-vips_foreign_load_png_get_flags_stream( VipsSource *source )
+vips_foreign_load_png_get_flags_source( VipsSource *source )
 {
 	VipsForeignFlags flags;
 
 	flags = 0;
-	if( vips__png_isinterlaced_stream( source ) )
+	if( vips__png_isinterlaced_source( source ) )
 		flags |= VIPS_FOREIGN_PARTIAL;
 	else
 		flags |= VIPS_FOREIGN_SEQUENTIAL;
@@ -96,7 +96,7 @@ vips_foreign_load_png_get_flags( VipsForeignLoad *load )
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
-	return( vips_foreign_load_png_get_flags_stream( png->source ) );
+	return( vips_foreign_load_png_get_flags_source( png->source ) );
 }
 
 static VipsForeignFlags
@@ -107,7 +107,7 @@ vips_foreign_load_png_get_flags_filename( const char *filename )
 
 	if( !(source = vips_source_new_from_file( filename )) )
 		return( 0 );
-	flags = vips_foreign_load_png_get_flags_stream( source );
+	flags = vips_foreign_load_png_get_flags_source( source );
 	VIPS_UNREF( source );
 
 	return( flags );
@@ -118,7 +118,7 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
-	if( vips__png_header_stream( png->source, load->out ) )
+	if( vips__png_header_source( png->source, load->out ) )
 		return( -1 );
 
 	return( 0 );
@@ -129,7 +129,7 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
-	if( vips__png_read_stream( png->source, load->real, load->fail ) )
+	if( vips__png_read_source( png->source, load->real, load->fail ) )
 		return( -1 );
 
 	return( 0 );
@@ -165,32 +165,32 @@ vips_foreign_load_png_init( VipsForeignLoadPng *png )
 {
 }
 
-typedef struct _VipsForeignLoadPngStream {
+typedef struct _VipsForeignLoadPngSource {
 	VipsForeignLoadPng parent_object;
 
-	/* Load from a stream.
+	/* Load from a source.
 	 */
 	VipsSource *source;
 
-} VipsForeignLoadPngStream;
+} VipsForeignLoadPngSource;
 
-typedef VipsForeignLoadPngClass VipsForeignLoadPngStreamClass;
+typedef VipsForeignLoadPngClass VipsForeignLoadPngSourceClass;
 
-G_DEFINE_TYPE( VipsForeignLoadPngStream, vips_foreign_load_png_stream, 
+G_DEFINE_TYPE( VipsForeignLoadPngSource, vips_foreign_load_png_source, 
 	vips_foreign_load_png_get_type() );
 
 static int
-vips_foreign_load_png_stream_build( VipsObject *object )
+vips_foreign_load_png_source_build( VipsObject *object )
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) object;
-	VipsForeignLoadPngStream *stream = (VipsForeignLoadPngStream *) object;
+	VipsForeignLoadPngSource *source = (VipsForeignLoadPngSource *) object;
 
-	if( stream->source ) {
-		png->source = stream->source;
+	if( source->source ) {
+		png->source = source->source;
 		g_object_ref( png->source );
 	}
 
-	if( VIPS_OBJECT_CLASS( vips_foreign_load_png_stream_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_png_source_parent_class )->
 		build( object ) )
 		return( -1 );
 
@@ -198,13 +198,13 @@ vips_foreign_load_png_stream_build( VipsObject *object )
 }
 
 static gboolean
-vips_foreign_load_png_stream_is_a_source( VipsSource *source )
+vips_foreign_load_png_source_is_a_source( VipsSource *source )
 {
-	return( vips__png_ispng_stream( source ) );
+	return( vips__png_ispng_source( source ) );
 }
 
 static void
-vips_foreign_load_png_stream_class_init( VipsForeignLoadPngStreamClass *class )
+vips_foreign_load_png_source_class_init( VipsForeignLoadPngSourceClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -213,23 +213,23 @@ vips_foreign_load_png_stream_class_init( VipsForeignLoadPngStreamClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "pngload_stream";
-	object_class->description = _( "load png from stream" );
-	object_class->build = vips_foreign_load_png_stream_build;
+	object_class->nickname = "pngload_source";
+	object_class->description = _( "load png from source" );
+	object_class->build = vips_foreign_load_png_source_build;
 
-	load_class->is_a_source = vips_foreign_load_png_stream_is_a_source;
+	load_class->is_a_source = vips_foreign_load_png_source_is_a_source;
 
 	VIPS_ARG_OBJECT( class, "source", 1,
-		_( "Streami" ),
-		_( "Stream to load from" ),
+		_( "Source" ),
+		_( "Source to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadPngStream, source ),
+		G_STRUCT_OFFSET( VipsForeignLoadPngSource, source ),
 		VIPS_TYPE_SOURCE );
 
 }
 
 static void
-vips_foreign_load_png_stream_init( VipsForeignLoadPngStream *stream )
+vips_foreign_load_png_source_init( VipsForeignLoadPngSource *source )
 {
 }
 
@@ -272,7 +272,7 @@ vips_foreign_load_png_file_is_a( const char *filename )
 
 	if( !(source = vips_source_new_from_file( filename )) )
 		return( FALSE );
-	result = vips_foreign_load_png_stream_is_a_source( source );
+	result = vips_foreign_load_png_source_is_a_source( source );
 	VIPS_UNREF( source );
 
 	return( result );
@@ -351,7 +351,7 @@ vips_foreign_load_png_buffer_is_a_buffer( const void *buf, size_t len )
 
 	if( !(source = vips_source_new_from_memory( buf, len )) )
 		return( FALSE );
-	result = vips_foreign_load_png_stream_is_a_source( source );
+	result = vips_foreign_load_png_source_is_a_source( source );
 	VIPS_UNREF( source );
 
 	return( result );
@@ -456,11 +456,11 @@ vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
 
 /**
  * vips_pngload_source:
- * @source: stream to load from
+ * @source: source to load from
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
- * Exactly as vips_pngload(), but read from a stream. 
+ * Exactly as vips_pngload(), but read from a source. 
  *
  * See also: vips_pngload().
  *
@@ -473,7 +473,7 @@ vips_pngload_source( VipsSource *source, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "pngload_stream", ap, source, out );
+	result = vips_call_split( "pngload_source", ap, source, out );
 	va_end( ap );
 
 	return( result );

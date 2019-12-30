@@ -86,7 +86,7 @@ vips__iswebp( const char *filename )
 
 	if( !(source = vips_source_new_from_file( filename )) )
 		return( FALSE );
-	result = vips__png_ispng_stream( source );
+	result = vips__iswebp_stream( source );
 	VIPS_UNREF( source );
 #else /*!HAVE_LIBWEBP*/
 	result = -1;

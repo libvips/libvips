@@ -752,22 +752,22 @@ vips_foreign_load_svg_init( VipsForeignLoadSvg *svg )
 	svg->cairo_scale = 1.0;
 }
 
-typedef struct _VipsForeignLoadSvgStream {
+typedef struct _VipsForeignLoadSvgSource {
 	VipsForeignLoadSvg parent_object;
 
-	/* Load from a stream.
+	/* Load from a source.
 	 */
 	VipsSource *source;
 
-} VipsForeignLoadSvgStream;
+} VipsForeignLoadSvgSource;
 
-typedef VipsForeignLoadClass VipsForeignLoadSvgStreamClass;
+typedef VipsForeignLoadClass VipsForeignLoadSvgSourceClass;
 
-G_DEFINE_TYPE( VipsForeignLoadSvgStream, vips_foreign_load_svg_stream, 
+G_DEFINE_TYPE( VipsForeignLoadSvgSource, vips_foreign_load_svg_source, 
 	vips_foreign_load_svg_get_type() );
 
 gboolean
-vips_foreign_load_svg_stream_is_a_source( VipsSource *source )
+vips_foreign_load_svg_source_is_a_source( VipsSource *source )
 {
 	unsigned char *data;
 	size_t bytes_read;
@@ -780,21 +780,21 @@ vips_foreign_load_svg_stream_is_a_source( VipsSource *source )
 }
 
 static int
-vips_foreign_load_svg_stream_header( VipsForeignLoad *load )
+vips_foreign_load_svg_source_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) load;
-	VipsForeignLoadSvgStream *stream = 
-		(VipsForeignLoadSvgStream *) load;
+	VipsForeignLoadSvgSource *source = 
+		(VipsForeignLoadSvgSource *) load;
 	RsvgHandleFlags flags = svg->unlimited ? RSVG_HANDLE_FLAG_UNLIMITED : 0;
 
 	GError *error = NULL;
 
 	GInputStream *gstream;
 
-	if( vips_source_rewind( stream->source ) )
+	if( vips_source_rewind( source->source ) )
 		return( -1 );
 
-	gstream = g_input_stream_new_from_vips( stream->source );
+	gstream = g_input_stream_new_from_vips( source->source );
 	if( !(svg->page = rsvg_handle_new_from_stream_sync( 
 		gstream, NULL, flags, NULL, &error )) ) {
 		g_object_unref( gstream );
@@ -807,20 +807,20 @@ vips_foreign_load_svg_stream_header( VipsForeignLoad *load )
 }
 
 static int
-vips_foreign_load_svg_stream_load( VipsForeignLoad *load )
+vips_foreign_load_svg_source_load( VipsForeignLoad *load )
 {
-	VipsForeignLoadSvgStream *stream = (VipsForeignLoadSvgStream *) load;
+	VipsForeignLoadSvgSource *source = (VipsForeignLoadSvgSource *) load;
 
-	if( vips_source_rewind( stream->source ) ||
+	if( vips_source_rewind( source->source ) ||
 		vips_foreign_load_svg_load( load ) ||
-		vips_source_decode( stream->source ) )
+		vips_source_decode( source->source ) )
 		return( -1 );
 
 	return( 0 );
 }
 
 static void
-vips_foreign_load_svg_stream_class_init( VipsForeignLoadSvgStreamClass *class )
+vips_foreign_load_svg_source_class_init( VipsForeignLoadSvgSourceClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -829,24 +829,24 @@ vips_foreign_load_svg_stream_class_init( VipsForeignLoadSvgStreamClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "svgload_stream";
-	object_class->description = _( "load svg from stream" );
+	object_class->nickname = "svgload_source";
+	object_class->description = _( "load svg from source" );
 
-	load_class->is_a_source = vips_foreign_load_svg_stream_is_a_source;
-	load_class->header = vips_foreign_load_svg_stream_header;
-	load_class->load = vips_foreign_load_svg_stream_load;
+	load_class->is_a_source = vips_foreign_load_svg_source_is_a_source;
+	load_class->header = vips_foreign_load_svg_source_header;
+	load_class->load = vips_foreign_load_svg_source_load;
 
 	VIPS_ARG_OBJECT( class, "source", 1,
-		_( "Streami" ),
-		_( "Stream to load from" ),
+		_( "Source" ),
+		_( "Source to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadSvgStream, source ),
+		G_STRUCT_OFFSET( VipsForeignLoadSvgSource, source ),
 		VIPS_TYPE_SOURCE );
 
 }
 
 static void
-vips_foreign_load_svg_stream_init( VipsForeignLoadSvgStream *stream )
+vips_foreign_load_svg_source_init( VipsForeignLoadSvgSource *source )
 {
 }
 
@@ -1101,11 +1101,11 @@ vips_svgload_buffer( void *buf, size_t len, VipsImage **out, ... )
 
 /**
  * vips_svgload_source:
- * @source: stream to load from
+ * @source: source to load from
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
- * Exactly as vips_svgload(), but read from a stream. 
+ * Exactly as vips_svgload(), but read from a source. 
  *
  * See also: vips_svgload().
  *
@@ -1118,7 +1118,7 @@ vips_svgload_source( VipsSource *source, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "svgload_stream", ap, source, out );
+	result = vips_call_split( "svgload_source", ap, source, out );
 	va_end( ap );
 
 	return( result );

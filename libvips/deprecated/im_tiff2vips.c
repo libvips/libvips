@@ -61,7 +61,7 @@ im_istifftiled( const char *filename )
 
 	if( !(source = vips_source_new_from_file( filename )) )
 		return( FALSE );
-	result = vips__istiff_stream( source );
+	result = vips__istiff_source( source );
 	VIPS_UNREF( source );
 
 	return( result );
@@ -75,7 +75,7 @@ im_tiff_read_header( const char *filename, VipsImage *out,
 
 	if( !(source = vips_source_new_from_file( filename )) )
 		return( -1 );
-	if( vips__tiff_read_header_stream( source, 
+	if( vips__tiff_read_header_source( source, 
 		out, page, n, autorotate ) ) {
 		VIPS_UNREF( source );
 		return( -1 );
@@ -93,7 +93,7 @@ im_tiff_read( const char *filename, VipsImage *out,
 
 	if( !(source = vips_source_new_from_file( filename )) )
 		return( -1 );
-	if( vips__tiff_read_stream( source, out, page, n, autorotate ) ) {
+	if( vips__tiff_read_source( source, out, page, n, autorotate ) ) {
 		VIPS_UNREF( source );
 		return( -1 );
 	}

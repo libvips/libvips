@@ -1781,7 +1781,7 @@ wtiff_gather( Wtiff *wtiff )
 					return( -1 );
 			}
 
-			if( !(in = vips__tiff_openin_stream( source )) ) {
+			if( !(in = vips__tiff_openin_source( source )) ) {
 				VIPS_UNREF( source );
 				return( -1 );
 			}

@@ -3,7 +3,7 @@
  * 2/12/11
  * 	- wrap a class around the ppm writer
  * 13/11/19
- * 	- redone with streams
+ * 	- redone with targets
  */
 
 /*

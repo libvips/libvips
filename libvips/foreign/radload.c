@@ -141,32 +141,32 @@ vips_foreign_load_rad_init( VipsForeignLoadRad *rad )
 {
 }
 
-typedef struct _VipsForeignLoadRadStream {
+typedef struct _VipsForeignLoadRadSource {
 	VipsForeignLoadRad parent_object;
 
-	/* Load from a stream.
+	/* Load from a source.
 	 */
 	VipsSource *source;
 
-} VipsForeignLoadRadStream;
+} VipsForeignLoadRadSource;
 
-typedef VipsForeignLoadRadClass VipsForeignLoadRadStreamClass;
+typedef VipsForeignLoadRadClass VipsForeignLoadRadSourceClass;
 
-G_DEFINE_TYPE( VipsForeignLoadRadStream, vips_foreign_load_rad_stream, 
+G_DEFINE_TYPE( VipsForeignLoadRadSource, vips_foreign_load_rad_source, 
 	vips_foreign_load_rad_get_type() );
 
 static int
-vips_foreign_load_rad_stream_build( VipsObject *object )
+vips_foreign_load_rad_source_build( VipsObject *object )
 {
 	VipsForeignLoadRad *rad = (VipsForeignLoadRad *) object;
-	VipsForeignLoadRadStream *stream = (VipsForeignLoadRadStream *) object;
+	VipsForeignLoadRadSource *source = (VipsForeignLoadRadSource *) object;
 
-	if( stream->source ) {
-		rad->source = stream->source;
+	if( source->source ) {
+		rad->source = source->source;
 		g_object_ref( rad->source );
 	}
 
-	if( VIPS_OBJECT_CLASS( vips_foreign_load_rad_stream_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_rad_source_parent_class )->
 		build( object ) )
 		return( -1 );
 
@@ -174,13 +174,13 @@ vips_foreign_load_rad_stream_build( VipsObject *object )
 }
 
 static gboolean
-vips_foreign_load_rad_stream_is_a_source( VipsSource *source )
+vips_foreign_load_rad_source_is_a_source( VipsSource *source )
 {
 	return( vips__rad_israd( source ) );
 }
 
 static void
-vips_foreign_load_rad_stream_class_init( VipsForeignLoadRadStreamClass *class )
+vips_foreign_load_rad_source_class_init( VipsForeignLoadRadSourceClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -189,23 +189,23 @@ vips_foreign_load_rad_stream_class_init( VipsForeignLoadRadStreamClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "radload_stream";
-	object_class->description = _( "load rad from stream" );
-	object_class->build = vips_foreign_load_rad_stream_build;
+	object_class->nickname = "radload_source";
+	object_class->description = _( "load rad from source" );
+	object_class->build = vips_foreign_load_rad_source_build;
 
-	load_class->is_a_source = vips_foreign_load_rad_stream_is_a_source;
+	load_class->is_a_source = vips_foreign_load_rad_source_is_a_source;
 
 	VIPS_ARG_OBJECT( class, "source", 1,
-		_( "Streami" ),
-		_( "Stream to load from" ),
+		_( "Source" ),
+		_( "Source to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadRadStream, source ),
+		G_STRUCT_OFFSET( VipsForeignLoadRadSource, source ),
 		VIPS_TYPE_SOURCE );
 
 }
 
 static void
-vips_foreign_load_rad_stream_init( VipsForeignLoadRadStream *stream )
+vips_foreign_load_rad_source_init( VipsForeignLoadRadSource *source )
 {
 }
 
@@ -248,7 +248,7 @@ vips_foreign_load_rad_file_is_a( const char *filename )
 
 	if( !(source = vips_source_new_from_file( filename )) )
 		return( -1 );
-	result = vips_foreign_load_rad_stream_is_a_source( source );
+	result = vips_foreign_load_rad_source_is_a_source( source );
 	VIPS_UNREF( source );
 
 	return( result );
@@ -327,7 +327,7 @@ vips_foreign_load_rad_buffer_is_a_buffer( const void *buf, size_t len )
 
 	if( !(source = vips_source_new_from_memory( buf, len )) )
 		return( FALSE );
-	result = vips_foreign_load_rad_stream_is_a_source( source );
+	result = vips_foreign_load_rad_source_is_a_source( source );
 	VIPS_UNREF( source );
 
 	return( result );
@@ -440,11 +440,11 @@ vips_radload_buffer( void *buf, size_t len, VipsImage **out, ... )
 
 /**
  * vips_radload_source:
- * @source: stream to load from
+ * @source: source to load from
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Exactly as vips_radload(), but read from a stream. 
+ * Exactly as vips_radload(), but read from a source. 
  *
  * See also: vips_radload().
  *
@@ -457,7 +457,7 @@ vips_radload_source( VipsSource *source, VipsImage **out, ... )
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "radload_stream", ap, source, out );
+	result = vips_call_split( "radload_source", ap, source, out );
 	va_end( ap );
 
 	return( result );

@@ -2006,10 +2006,10 @@ vips_foreign_operation_init( void )
 {
 	extern GType vips_foreign_load_rad_file_get_type( void ); 
 	extern GType vips_foreign_load_rad_buffer_get_type( void ); 
-	extern GType vips_foreign_load_rad_stream_get_type( void ); 
+	extern GType vips_foreign_load_rad_source_get_type( void ); 
 	extern GType vips_foreign_save_rad_file_get_type( void ); 
 	extern GType vips_foreign_save_rad_buffer_get_type( void ); 
-	extern GType vips_foreign_save_rad_stream_get_type( void ); 
+	extern GType vips_foreign_save_rad_target_get_type( void ); 
 
 	extern GType vips_foreign_load_mat_get_type( void ); 
 
@@ -2018,10 +2018,10 @@ vips_foreign_operation_init( void )
 
 	extern GType vips_foreign_load_png_file_get_type( void ); 
 	extern GType vips_foreign_load_png_buffer_get_type( void ); 
-	extern GType vips_foreign_load_png_stream_get_type( void ); 
+	extern GType vips_foreign_load_png_source_get_type( void ); 
 	extern GType vips_foreign_save_png_file_get_type( void ); 
 	extern GType vips_foreign_save_png_buffer_get_type( void ); 
-	extern GType vips_foreign_save_png_stream_get_type( void ); 
+	extern GType vips_foreign_save_png_target_get_type( void ); 
 
 	extern GType vips_foreign_load_csv_get_type( void ); 
 	extern GType vips_foreign_save_csv_get_type( void ); 
@@ -2049,7 +2049,7 @@ vips_foreign_operation_init( void )
 
 	extern GType vips_foreign_load_tiff_file_get_type( void ); 
 	extern GType vips_foreign_load_tiff_buffer_get_type( void ); 
-	extern GType vips_foreign_load_tiff_stream_get_type( void ); 
+	extern GType vips_foreign_load_tiff_source_get_type( void ); 
 	extern GType vips_foreign_save_tiff_file_get_type( void ); 
 	extern GType vips_foreign_save_tiff_buffer_get_type( void ); 
 
@@ -2084,7 +2084,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_svg_get_type( void ); 
 	extern GType vips_foreign_load_svg_file_get_type( void ); 
 	extern GType vips_foreign_load_svg_buffer_get_type( void ); 
-	extern GType vips_foreign_load_svg_stream_get_type( void ); 
+	extern GType vips_foreign_load_svg_source_get_type( void ); 
 
 	extern GType vips_foreign_load_heif_get_type( void ); 
 	extern GType vips_foreign_load_heif_file_get_type( void ); 
@@ -2123,10 +2123,10 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_RADIANCE
 	vips_foreign_load_rad_file_get_type(); 
 	vips_foreign_load_rad_buffer_get_type(); 
-	vips_foreign_load_rad_stream_get_type(); 
+	vips_foreign_load_rad_source_get_type(); 
 	vips_foreign_save_rad_file_get_type(); 
 	vips_foreign_save_rad_buffer_get_type(); 
-	vips_foreign_save_rad_stream_get_type(); 
+	vips_foreign_save_rad_target_get_type(); 
 #endif /*HAVE_RADIANCE*/
 
 #ifdef HAVE_POPPLER
@@ -2145,7 +2145,7 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_svg_get_type(); 
 	vips_foreign_load_svg_file_get_type(); 
 	vips_foreign_load_svg_buffer_get_type(); 
-	vips_foreign_load_svg_stream_get_type(); 
+	vips_foreign_load_svg_source_get_type(); 
 #endif /*HAVE_RSVG*/
 
 #ifdef HAVE_GIFLIB
@@ -2162,10 +2162,10 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_PNG
 	vips_foreign_load_png_file_get_type(); 
 	vips_foreign_load_png_buffer_get_type(); 
-	vips_foreign_load_png_stream_get_type(); 
+	vips_foreign_load_png_source_get_type(); 
 	vips_foreign_save_png_file_get_type(); 
 	vips_foreign_save_png_buffer_get_type(); 
-	vips_foreign_save_png_stream_get_type(); 
+	vips_foreign_save_png_target_get_type(); 
 #endif /*HAVE_PNG*/
 
 #ifdef HAVE_MATIO
@@ -2194,7 +2194,7 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_TIFF
 	vips_foreign_load_tiff_file_get_type(); 
 	vips_foreign_load_tiff_buffer_get_type(); 
-	vips_foreign_load_tiff_stream_get_type(); 
+	vips_foreign_load_tiff_source_get_type(); 
 	vips_foreign_save_tiff_file_get_type(); 
 	vips_foreign_save_tiff_buffer_get_type(); 
 #endif /*HAVE_TIFF*/

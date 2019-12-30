@@ -32,8 +32,8 @@
  * 29/7/19 Kyle-Kyle
  * 	- fix a loop with malformed ppm
  * 13/11/19
- * 	- redone with streams
- * 	- sequential load, plus mmap for filename streams
+ * 	- redone with source/target
+ * 	- sequential load, plus mmap for filename sources
  * 	- faster plus lower memory use
  */
 
@@ -88,7 +88,7 @@
 typedef struct _VipsForeignLoadPpm {
 	VipsForeignLoad parent_object;
 
-	/* The stream we load from, and the buffered wrapper for it.
+	/* The source we load from, and the buffered wrapper for it.
 	 */
 	VipsSource *source;
 	VipsBufis *bufis;
@@ -191,7 +191,7 @@ vips_foreign_load_ppm_dispose( GObject *gobject )
 		dispose( gobject );
 }
 
-/* Scan the stream header into our class.
+/* Scan the header into our class.
  */
 static int
 vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
@@ -562,7 +562,7 @@ vips_foreign_load_ppm_load( VipsForeignLoad *load )
 		vips_foreign_load_ppm_parse_header( ppm ) )
 		return( 0 );
 
-	/* If the stream is mappable and this is a binary file, we can map it.
+	/* If the source is mappable and this is a binary file, we can map it.
 	 */
 	if( vips_source_is_mappable( ppm->source ) &&
 		!ppm->ascii && 

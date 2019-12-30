@@ -76,7 +76,7 @@
  * 7/10/19
  * 	- restart after minimise
  * 14/10/19
- * 	- revise for stream IO
+ * 	- revise for connection IO
  */
 
 /*
@@ -213,12 +213,12 @@ read_minimise_cb( VipsImage *image, Read *read )
 }
 
 static void
-vips_png_read_stream( png_structp pPng, png_bytep data, png_size_t length )
+vips_png_read_source( png_structp pPng, png_bytep data, png_size_t length )
 {
 	Read *read = png_get_io_ptr( pPng ); 
 
 #ifdef DEBUG
-	printf( "vips_png_read_stream: read %zd bytes\n", length ); 
+	printf( "vips_png_read_source: read %zd bytes\n", length ); 
 #endif /*DEBUG*/
 
 	/* libpng makes many small reads, which hurts performance if you do a
@@ -292,7 +292,7 @@ read_new( VipsSource *source, VipsImage *out, gboolean fail )
 
 	if( vips_source_rewind( source ) ) 
 		return( NULL );
-	png_set_read_fn( read->pPng, read, vips_png_read_stream ); 
+	png_set_read_fn( read->pPng, read, vips_png_read_source ); 
 
 	/* Catch PNG errors from png_read_info() etc.
 	 */
@@ -694,7 +694,7 @@ png2vips_image( Read *read, VipsImage *out )
 }
 
 gboolean
-vips__png_ispng_stream( VipsSource *source )
+vips__png_ispng_source( VipsSource *source )
 {
 	const unsigned char *p;
 
@@ -706,7 +706,7 @@ vips__png_ispng_stream( VipsSource *source )
 }
 
 int
-vips__png_header_stream( VipsSource *source, VipsImage *out )
+vips__png_header_source( VipsSource *source, VipsImage *out )
 {
 	Read *read;
 
@@ -720,7 +720,7 @@ vips__png_header_stream( VipsSource *source, VipsImage *out )
 }
 
 int
-vips__png_read_stream( VipsSource *source, VipsImage *out, gboolean fail )
+vips__png_read_source( VipsSource *source, VipsImage *out, gboolean fail )
 {
 	Read *read;
 
@@ -736,7 +736,7 @@ vips__png_read_stream( VipsSource *source, VipsImage *out, gboolean fail )
  * served partially from there. Non-interlaced PNGs may be read sequentially.
  */
 gboolean
-vips__png_isinterlaced_stream( VipsSource *source )
+vips__png_isinterlaced_source( VipsSource *source )
 {
 	VipsImage *image;
 	Read *read;
@@ -1169,7 +1169,7 @@ write_vips( Write *write,
 }
 
 int
-vips__png_write_stream( VipsImage *in, VipsTarget *target,
+vips__png_write_target( VipsImage *in, VipsTarget *target,
 	int compression, int interlace,
 	const char *profile, VipsForeignPngFilter filter, gboolean strip,
 	gboolean palette, int colours, int Q, double dither )
@@ -1184,7 +1184,7 @@ vips__png_write_stream( VipsImage *in, VipsTarget *target,
 		colours, Q, dither ) ) {
 		write_finish( write );
 		vips_error( "vips2png", 
-			"%s", _( "unable to write to stream" ) );
+			"%s", _( "unable to write to target" ) );
 		return( -1 );
 	}
 

@@ -79,11 +79,11 @@ int vips__tiff_write_buf( VipsImage *in,
 	VipsRegionShrink region_shrink,
 	int level, gboolean lossless );
 
-gboolean vips__istiff_stream( VipsSource *source );
-gboolean vips__istifftiled_stream( VipsSource *source );
-int vips__tiff_read_header_stream( VipsSource *source, VipsImage *out, 
+gboolean vips__istiff_source( VipsSource *source );
+gboolean vips__istifftiled_source( VipsSource *source );
+int vips__tiff_read_header_source( VipsSource *source, VipsImage *out, 
 	int page, int n, gboolean autorotate );
-int vips__tiff_read_stream( VipsSource *source, VipsImage *out,
+int vips__tiff_read_source( VipsSource *source, VipsImage *out,
 	int page, int n, gboolean autorotate );
 
 extern const char *vips__foreign_tiff_suffs[];
@@ -168,14 +168,14 @@ int vips__jpeg_read_source( VipsSource *source, VipsImage *out,
 	gboolean header_only, int shrink, int fail, gboolean autorotate );
 int vips__isjpeg_source( VipsSource *source );
 
-int vips__png_ispng_stream( VipsSource *source );
-int vips__png_header_stream( VipsSource *source, VipsImage *out );
-int vips__png_read_stream( VipsSource *source, VipsImage *out, 
+int vips__png_ispng_source( VipsSource *source );
+int vips__png_header_source( VipsSource *source, VipsImage *out );
+int vips__png_read_source( VipsSource *source, VipsImage *out, 
 	gboolean fail );
-gboolean vips__png_isinterlaced_stream( VipsSource *source );
+gboolean vips__png_isinterlaced_source( VipsSource *source );
 extern const char *vips__png_suffs[];
 
-int vips__png_write_stream( VipsImage *in, VipsTarget *target,
+int vips__png_write_target( VipsImage *in, VipsTarget *target,
 	int compress, int interlace, const char *profile,
 	VipsForeignPngFilter filter, gboolean strip,
 	gboolean palette, int colours, int Q, double dither );
