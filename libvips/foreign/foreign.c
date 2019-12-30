@@ -77,6 +77,7 @@
  * @stability: Stable
  * @see_also: <link linkend="libvips-image">image</link>
  * @include: vips/vips.h
+ * @title: VipsForeign
  *
  * This set of operations load and save images in a variety of formats. 
  *

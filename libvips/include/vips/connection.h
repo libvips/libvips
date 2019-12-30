@@ -86,8 +86,8 @@ typedef struct _VipsConnectionClass {
 
 GType vips_connection_get_type( void );
 
-const char *vips_connection_filename( VipsConnection *stream );
-const char *vips_connection_nick( VipsConnection *stream );
+const char *vips_connection_filename( VipsConnection *connection );
+const char *vips_connection_nick( VipsConnection *connection );
 
 #define VIPS_TYPE_SOURCE (vips_source_get_type())
 #define VIPS_SOURCE( obj ) \
@@ -107,7 +107,7 @@ const char *vips_connection_nick( VipsConnection *stream );
 /* Read from something like a socket, file or memory area and present the data
  * with a unified seek / read / map interface.
  *
- * During the header phase, we save data from unseekable streams in a buffer
+ * During the header phase, we save data from unseekable sources in a buffer
  * so readers can rewind and read again. We don't buffer data during the
  * decode stage.
  */
@@ -117,7 +117,7 @@ typedef struct _VipsSource {
 	/* We have two phases: 
 	 *
 	 * During the header phase, we save bytes read from the input (if this
-	 * is an unseekable stream) so that we can rewind and try again, if
+	 * is an unseekable source) so that we can rewind and try again, if
 	 * necessary.
 	 *
 	 * Once we reach decode phase, we no longer support rewind and the
@@ -126,7 +126,7 @@ typedef struct _VipsSource {
 	gboolean decode;
 
 	/* TRUE if this input is something like a pipe. These don't support
-	 * stream or map -- all you can do is read() bytes sequentially.
+	 * seek or map -- all you can do is read() bytes sequentially.
 	 *
 	 * If you attempt to map or get the size of a pipe-style input, it'll 
 	 * get read entirely into memory. Seeks will cause read up to the seek
@@ -165,7 +165,7 @@ typedef struct _VipsSource {
 	 */
 	GByteArray *sniff;
 
-	/* For a memory stream, the blob we read from. 
+	/* For a memory source, the blob we read from. 
 	 */
 	VipsBlob *blob;
 
@@ -182,7 +182,7 @@ typedef struct _VipsSourceClass {
 	/* Subclasses can define these to implement other source methods.
 	 */
 
-	/* Read from the stream into the supplied buffer, args exactly as
+	/* Read from the source into the supplied buffer, args exactly as
 	 * read(2). Set errno on error.
 	 *
 	 * We must return gint64, since ssize_t is often defined as unsigned
@@ -193,7 +193,7 @@ typedef struct _VipsSourceClass {
 	/* Seek to a certain position, args exactly as lseek(2). Set errno on
 	 * error.
 	 *
-	 * Unseekable streams should always return -1. VipsSource will then
+	 * Unseekable sources should always return -1. VipsSource will then
 	 * seek by _read()ing bytes into memory as required.
 	 *
 	 * We have to use int64 rather than off_t, since we must work on
@@ -289,11 +289,11 @@ typedef struct _VipsTarget {
 
 	/*< private >*/
 
-	/* This stream should write to memory.
+	/* This target should write to memory.
 	 */
 	gboolean memory;
 
-	/* The stream has been finished and can no longer be written.
+	/* The target has been finished and can no longer be written.
 	 */
 	gboolean finished;
 
@@ -324,7 +324,7 @@ typedef struct _VipsTargetClass {
 	gint64 (*write)( VipsTarget *, const void *, size_t );
 
 	/* Output has been generated, so do any clearing up,
-	 * eg. copy the bytes we saved in memory to the stream blob.
+	 * eg. copy the bytes we saved in memory to the target blob.
 	 */
 	void (*finish)( VipsTarget * );
 

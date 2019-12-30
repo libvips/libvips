@@ -62,12 +62,17 @@
  * @stability: Stable
  * @see_also: <link linkend="libvips-foreign">foreign</link> 
  * @include: vips/vips.h
+ * @title: VipsConnection
  *
  * A #VipsConnection is a source or sink of bytes for something like jpeg 
- * loading. It can be connected to a network socket, for example, or perhaps 
+ * loading, see for example vips_jpegload_source(). 
+ *
+ * It can be connected to a network socket, for example, or perhaps 
  * a node.js stream, or to an area of memory. 
  *
- * Subclass to add other input sources. 
+ * Subclass to add other input sources. Use #VipsSourceCustom and
+ * #VipsTargetCustom to make a source or target with action signals for 
+ * ::read, ::write and ::seek.
  */
 
 /**
@@ -142,12 +147,25 @@ vips_connection_init( VipsConnection *connection )
 	connection->close_descriptor = -1;
 }
 
+/** 
+ * vips_connection_filename: 
+ * @connection: connection to operate on
+ *
+ * Returns: any filename associated with this connection, or NULL.
+ */
 const char *
 vips_connection_filename( VipsConnection *connection )
 {
 	return( connection->filename );
 }
 
+/** 
+ * vips_connection_nick: 
+ * @connection: connection to operate on
+ *
+ * Returns: a string describing this connection which could be displayed to a
+ * user.
+ */
 const char *
 vips_connection_nick( VipsConnection *connection )
 {

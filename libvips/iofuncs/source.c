@@ -329,7 +329,7 @@ vips_source_class_init( VipsSourceClass *class )
 
 	VIPS_ARG_BOXED( class, "blob", 3, 
 		_( "Blob" ),
-		_( "blob to load from" ),
+		_( "Blob to load from" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsSource, blob ),
 		VIPS_TYPE_BLOB );
