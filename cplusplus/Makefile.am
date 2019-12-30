@@ -11,7 +11,7 @@ lib_LTLIBRARIES = libvips-cpp.la
 libvips_cpp_la_SOURCES = \
 	VImage.cpp \
 	VInterpolate.cpp \
-	VStream.cpp \
+	VConnection.cpp \
 	VError.cpp 
 
 libvips_cpp_la_LDFLAGS = \

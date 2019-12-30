@@ -29,8 +29,8 @@ from pyvips import Introspect, Operation, GValue, Error, \
     ffi, gobject_lib, type_map, type_from_name, nickname_find, type_name
 
 # TODO Move to pyvips.GValue
-stream_input_type = type_from_name('VipsStreami')
-stream_output_type = type_from_name('VipsStreamo')
+source_type = type_from_name('VipsSource')
+target_type = type_from_name('VipsTarget')
 
 # turn a GType into a C++ type
 gtype_to_cpp = {
@@ -41,8 +41,8 @@ gtype_to_cpp = {
     GValue.refstr_type: 'char *',
     GValue.gflags_type: 'int',
     GValue.image_type: 'VImage',
-    stream_input_type: 'VStreamI',
-    stream_output_type: 'VStreamO',
+    source_type: 'VSource',
+    target_type: 'VTarget',
     GValue.array_int_type: 'std::vector<int>',
     GValue.array_double_type: 'std::vector<double>',
     GValue.array_image_type: 'std::vector<VImage>',

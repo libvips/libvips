@@ -2,7 +2,7 @@ pkginclude_HEADERS = \
 	VError8.h \
 	VImage8.h \
 	VInterpolate8.h \
-	VStream8.h \
+	VConnection8.h \
 	vips8 \
 	vips-operators.h 
 

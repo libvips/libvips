@@ -597,14 +597,14 @@ VImage::new_from_buffer( const std::string &buf, const char *option_string,
 }
 
 VImage 
-VImage::new_from_source( VStreamI source, const char *option_string, 
+VImage::new_from_source( VSource source, const char *option_string, 
 	VOption *options )
 {
 	const char *operation_name;
 	VImage out;
 
 	if( !(operation_name = vips_foreign_find_load_source( 
-		source.get_stream() )) ) {
+		source.get_source() )) ) {
 		delete options; 
 		throw( VError() ); 
 	}
@@ -703,7 +703,7 @@ VImage::write_to_buffer( const char *suffix, void **buf, size_t *size,
 }
 
 void 
-VImage::write_to_target( const char *suffix, VStreamO target, 
+VImage::write_to_target( const char *suffix, VTarget target, 
 	VOption *options ) const
 {
 	char filename[VIPS_PATH_MAX];
