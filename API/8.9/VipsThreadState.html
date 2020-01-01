@@ -40,8 +40,8 @@
 <a name="VipsThreadState"></a><div class="titlepage"></div>
 <div class="refnamediv"><table width="100%"><tr>
 <td valign="top">
-<h2><span class="refentrytitle"><a name="VipsThreadState.top_of_page"></a>VipsThreadState</span></h2>
-<p>VipsThreadState — pools of worker threads</p>
+<h2><span class="refentrytitle"><a name="VipsThreadState.top_of_page"></a>VipsThreadpool</span></h2>
+<p>VipsThreadpool — pools of worker threads</p>
 </td>
 <td class="gallery_image" valign="top" align="right"></td>
 </tr></table></div>
@@ -73,7 +73,7 @@ justifications.
 </tr>
 <tr>
 <td class="function_type">
-<a class="link" href="VipsThreadState.html" title="VipsThreadState"><span class="returnvalue">VipsThreadState</span></a> *
+<a class="link" href="VipsThreadState.html" title="VipsThreadpool"><span class="returnvalue">VipsThreadState</span></a> *
 </td>
 <td class="function_name">
 <a class="link" href="VipsThreadState.html#vips-thread-state-new" title="vips_thread_state_new ()">vips_thread_state_new</a> <span class="c_punctuation">()</span>
@@ -81,7 +81,7 @@ justifications.
 </tr>
 <tr>
 <td class="function_type">
-<a class="link" href="VipsThreadState.html" title="VipsThreadState"><span class="returnvalue">VipsThreadState</span></a> *
+<a class="link" href="VipsThreadState.html" title="VipsThreadpool"><span class="returnvalue">VipsThreadState</span></a> *
 </td>
 <td class="function_name">
 <span class="c_punctuation">(</span><a class="link" href="VipsThreadState.html#VipsThreadStartFn" title="VipsThreadStartFn ()">*VipsThreadStartFn</a><span class="c_punctuation">)</span> <span class="c_punctuation">()</span>
@@ -161,14 +161,14 @@ vips_thread_state_set (<em class="parameter"><code><a class="link" href="VipsObj
 <hr>
 <div class="refsect2">
 <a name="vips-thread-state-new"></a><h3>vips_thread_state_new ()</h3>
-<pre class="programlisting"><a class="link" href="VipsThreadState.html" title="VipsThreadState"><span class="returnvalue">VipsThreadState</span></a> *
+<pre class="programlisting"><a class="link" href="VipsThreadState.html" title="VipsThreadpool"><span class="returnvalue">VipsThreadState</span></a> *
 vips_thread_state_new (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>,
                        <em class="parameter"><code><span class="type">void</span> *a</code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="VipsThreadStartFn"></a><h3>VipsThreadStartFn ()</h3>
-<pre class="programlisting"><a class="link" href="VipsThreadState.html" title="VipsThreadState"><span class="returnvalue">VipsThreadState</span></a> *
+<pre class="programlisting"><a class="link" href="VipsThreadState.html" title="VipsThreadpool"><span class="returnvalue">VipsThreadState</span></a> *
 <span class="c_punctuation">(</span>*VipsThreadStartFn<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *im</code></em>,
                       <em class="parameter"><code><span class="type">void</span> *a</code></em>);</pre>
 </div>
@@ -176,7 +176,7 @@ vips_thread_state_new (<em class="parameter"><code><a class="link" href="VipsIma
 <div class="refsect2">
 <a name="VipsThreadpoolAllocateFn"></a><h3>VipsThreadpoolAllocateFn ()</h3>
 <pre class="programlisting"><span class="returnvalue">int</span>
-<span class="c_punctuation">(</span>*VipsThreadpoolAllocateFn<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="VipsThreadState.html" title="VipsThreadState"><span class="type">VipsThreadState</span></a> *state</code></em>,
+<span class="c_punctuation">(</span>*VipsThreadpoolAllocateFn<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="VipsThreadState.html" title="VipsThreadpool"><span class="type">VipsThreadState</span></a> *state</code></em>,
                              <em class="parameter"><code><span class="type">void</span> *a</code></em>,
                              <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> *stop</code></em>);</pre>
 <p>This function is called to allocate a new work unit for the thread. It is
@@ -237,7 +237,7 @@ because the job is done.</p>
 <div class="refsect2">
 <a name="VipsThreadpoolWorkFn"></a><h3>VipsThreadpoolWorkFn ()</h3>
 <pre class="programlisting"><span class="returnvalue">int</span>
-<span class="c_punctuation">(</span>*VipsThreadpoolWorkFn<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="VipsThreadState.html" title="VipsThreadState"><span class="type">VipsThreadState</span></a> *state</code></em>,
+<span class="c_punctuation">(</span>*VipsThreadpoolWorkFn<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="VipsThreadState.html" title="VipsThreadpool"><span class="type">VipsThreadState</span></a> *state</code></em>,
                          <em class="parameter"><code><span class="type">void</span> *a</code></em>);</pre>
 <p>This function is called to process a work unit. Many copies of this can run
 at once, so it should not write to the per-pool state. It can write to
@@ -348,7 +348,7 @@ progress feedback. <em class="parameter"><code>progress</code></em>
  may be <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</p>
 <p>The object returned by <em class="parameter"><code>start</code></em>
  must be an instance of a subclass of
-<a class="link" href="VipsThreadState.html" title="VipsThreadState"><span class="type">VipsThreadState</span></a>. Use this to communicate between <em class="parameter"><code>allocate</code></em>
+<a class="link" href="VipsThreadState.html" title="VipsThreadpool"><span class="type">VipsThreadState</span></a>. Use this to communicate between <em class="parameter"><code>allocate</code></em>
  and <em class="parameter"><code>work</code></em>
 . </p>
 <p><em class="parameter"><code>allocate</code></em>

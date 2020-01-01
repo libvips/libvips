@@ -458,7 +458,7 @@
 <td align="left">draw_flood</td>
 <td align="left">Flood-fill an area</td>
 <td align="left">
-<a class="link" href="libvips-draw.html#vips-draw-flood" title="vips_draw_flood ()"><code class="function">vips_draw_flood()</code></a>, <a class="link" href="libvips-draw.html#vips-draw-flood" title="vips_draw_flood ()"><code class="function">vips_draw_flood()</code></a>
+<a class="link" href="libvips-draw.html#vips-draw-flood" title="vips_draw_flood ()"><code class="function">vips_draw_flood()</code></a>, <a class="link" href="libvips-draw.html#vips-draw-flood1" title="vips_draw_flood1 ()"><code class="function">vips_draw_flood1()</code></a>
 </td>
 </tr>
 <tr>
@@ -484,7 +484,7 @@
 <td align="left">draw_rect</td>
 <td align="left">Paint a rectangle on an image</td>
 <td align="left">
-<a class="link" href="libvips-draw.html#vips-draw-rect" title="vips_draw_rect ()"><code class="function">vips_draw_rect()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-rect" title="vips_rect ()"><code class="function">vips_rect()</code></a>, <a class="link" href="libvips-draw.html#vips-draw-rect1" title="vips_draw_rect1 ()"><code class="function">vips_draw_rect1()</code></a>, <a class="link" href="libvips-draw.html#vips-draw-point" title="vips_draw_point ()"><code class="function">vips_draw_point()</code></a>, <a class="link" href="libvips-draw.html#vips-draw-point1" title="vips_draw_point1 ()"><code class="function">vips_draw_point1()</code></a>
+<a class="link" href="libvips-draw.html#vips-draw-rect" title="vips_draw_rect ()"><code class="function">vips_draw_rect()</code></a>, <a class="link" href="libvips-draw.html#vips-draw-rect1" title="vips_draw_rect1 ()"><code class="function">vips_draw_rect1()</code></a>, <a class="link" href="libvips-draw.html#vips-draw-point" title="vips_draw_point ()"><code class="function">vips_draw_point()</code></a>, <a class="link" href="libvips-draw.html#vips-draw-point1" title="vips_draw_point1 ()"><code class="function">vips_draw_point1()</code></a>
 </td>
 </tr>
 <tr>
@@ -786,9 +786,9 @@
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-jpegload-buffer" title="vips_jpegload_buffer ()"><code class="function">vips_jpegload_buffer()</code></a></td>
 </tr>
 <tr>
-<td align="left">jpegload_stream</td>
-<td align="left">Load image from jpeg stream</td>
-<td align="left"><code class="function">vips_jpegload_stream()</code></td>
+<td align="left">jpegload_source</td>
+<td align="left">Load image from jpeg source</td>
+<td align="left"><code class="function">vips_jpegload_source()</code></td>
 </tr>
 <tr>
 <td align="left">jpegsave</td>
@@ -806,9 +806,9 @@
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-jpegsave-mime" title="vips_jpegsave_mime ()"><code class="function">vips_jpegsave_mime()</code></a></td>
 </tr>
 <tr>
-<td align="left">jpegsave_stream</td>
-<td align="left">Save image to jpeg stream</td>
-<td align="left"><a class="link" href="VipsForeignSave.html#vips-jpegsave-stream" title="vips_jpegsave_stream ()"><code class="function">vips_jpegsave_stream()</code></a></td>
+<td align="left">jpegsave_target</td>
+<td align="left">Save image to jpeg target</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jpegsave-target" title="vips_jpegsave_target ()"><code class="function">vips_jpegsave_target()</code></a></td>
 </tr>
 <tr>
 <td align="left">labelregions</td>
@@ -1059,9 +1059,9 @@
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-pngload-buffer" title="vips_pngload_buffer ()"><code class="function">vips_pngload_buffer()</code></a></td>
 </tr>
 <tr>
-<td align="left">pngload_stream</td>
-<td align="left">Load png from stream</td>
-<td align="left"><a class="link" href="VipsForeignSave.html#vips-pngload-stream" title="vips_pngload_stream ()"><code class="function">vips_pngload_stream()</code></a></td>
+<td align="left">pngload_source</td>
+<td align="left">Load png from source</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-pngload-source" title="vips_pngload_source ()"><code class="function">vips_pngload_source()</code></a></td>
 </tr>
 <tr>
 <td align="left">pngsave</td>
@@ -1074,9 +1074,9 @@
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-pngsave-buffer" title="vips_pngsave_buffer ()"><code class="function">vips_pngsave_buffer()</code></a></td>
 </tr>
 <tr>
-<td align="left">pngsave_stream</td>
-<td align="left">Save image to png stream</td>
-<td align="left"><a class="link" href="VipsForeignSave.html#vips-pngsave-stream" title="vips_pngsave_stream ()"><code class="function">vips_pngsave_stream()</code></a></td>
+<td align="left">pngsave_target</td>
+<td align="left">Save image to target as png</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-pngsave-target" title="vips_pngsave_target ()"><code class="function">vips_pngsave_target()</code></a></td>
 </tr>
 <tr>
 <td align="left">ppmload</td>
@@ -1129,9 +1129,9 @@
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-radload-buffer" title="vips_radload_buffer ()"><code class="function">vips_radload_buffer()</code></a></td>
 </tr>
 <tr>
-<td align="left">radload_stream</td>
-<td align="left">Load rad from stream</td>
-<td align="left"><a class="link" href="VipsForeignSave.html#vips-radload-stream" title="vips_radload_stream ()"><code class="function">vips_radload_stream()</code></a></td>
+<td align="left">radload_source</td>
+<td align="left">Load rad from source</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-radload-source" title="vips_radload_source ()"><code class="function">vips_radload_source()</code></a></td>
 </tr>
 <tr>
 <td align="left">radsave</td>
@@ -1144,9 +1144,9 @@
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-radsave-buffer" title="vips_radsave_buffer ()"><code class="function">vips_radsave_buffer()</code></a></td>
 </tr>
 <tr>
-<td align="left">radsave_stream</td>
-<td align="left">Save image to radiance stream</td>
-<td align="left"><a class="link" href="VipsForeignSave.html#vips-radsave-stream" title="vips_radsave_stream ()"><code class="function">vips_radsave_stream()</code></a></td>
+<td align="left">radsave_target</td>
+<td align="left">Save image to radiance target</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-radsave-target" title="vips_radsave_target ()"><code class="function">vips_radsave_target()</code></a></td>
 </tr>
 <tr>
 <td align="left">rank</td>
@@ -1374,9 +1374,9 @@
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-svgload-buffer" title="vips_svgload_buffer ()"><code class="function">vips_svgload_buffer()</code></a></td>
 </tr>
 <tr>
-<td align="left">svgload_stream</td>
-<td align="left">Load svg from stream</td>
-<td align="left"><code class="function">vips_svgload_stream()</code></td>
+<td align="left">svgload_source</td>
+<td align="left">Load svg from source</td>
+<td align="left"><code class="function">vips_svgload_source()</code></td>
 </tr>
 <tr>
 <td align="left">switch</td>
@@ -1409,9 +1409,9 @@
 <td align="left"><a class="link" href="libvips-resample.html#vips-thumbnail-image" title="vips_thumbnail_image ()"><code class="function">vips_thumbnail_image()</code></a></td>
 </tr>
 <tr>
-<td align="left">thumbnail_stream</td>
-<td align="left">Generate thumbnail from stream</td>
-<td align="left"><a class="link" href="libvips-resample.html#vips-thumbnail-stream" title="vips_thumbnail_stream ()"><code class="function">vips_thumbnail_stream()</code></a></td>
+<td align="left">thumbnail_source</td>
+<td align="left">Generate thumbnail from source</td>
+<td align="left"><a class="link" href="libvips-resample.html#vips-thumbnail-source" title="vips_thumbnail_source ()"><code class="function">vips_thumbnail_source()</code></a></td>
 </tr>
 <tr>
 <td align="left">tiffload</td>
@@ -1424,9 +1424,9 @@
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-tiffload-buffer" title="vips_tiffload_buffer ()"><code class="function">vips_tiffload_buffer()</code></a></td>
 </tr>
 <tr>
-<td align="left">tiffload_stream</td>
-<td align="left">Load tiff from stream</td>
-<td align="left"><a class="link" href="VipsForeignSave.html#vips-tiffload-stream" title="vips_tiffload_stream ()"><code class="function">vips_tiffload_stream()</code></a></td>
+<td align="left">tiffload_source</td>
+<td align="left">Load tiff from source</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-tiffload-source" title="vips_tiffload_source ()"><code class="function">vips_tiffload_source()</code></a></td>
 </tr>
 <tr>
 <td align="left">tiffsave</td>
@@ -1479,9 +1479,9 @@
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-webpload-buffer" title="vips_webpload_buffer ()"><code class="function">vips_webpload_buffer()</code></a></td>
 </tr>
 <tr>
-<td align="left">webpload_stream</td>
-<td align="left">Load webp from stream</td>
-<td align="left"><a class="link" href="VipsForeignSave.html#vips-webpload-stream" title="vips_webpload_stream ()"><code class="function">vips_webpload_stream()</code></a></td>
+<td align="left">webpload_source</td>
+<td align="left">Load webp from source</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-webpload-source" title="vips_webpload_source ()"><code class="function">vips_webpload_source()</code></a></td>
 </tr>
 <tr>
 <td align="left">webpsave</td>
@@ -1494,9 +1494,9 @@
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-webpsave-buffer" title="vips_webpsave_buffer ()"><code class="function">vips_webpsave_buffer()</code></a></td>
 </tr>
 <tr>
-<td align="left">webpsave_stream</td>
-<td align="left">Save image to webp stream</td>
-<td align="left"><a class="link" href="VipsForeignSave.html#vips-webpsave-stream" title="vips_webpsave_stream ()"><code class="function">vips_webpsave_stream()</code></a></td>
+<td align="left">webpsave_target</td>
+<td align="left">Save image to webp target</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-webpsave-target" title="vips_webpsave_target ()"><code class="function">vips_webpsave_target()</code></a></td>
 </tr>
 <tr>
 <td align="left">worley</td>

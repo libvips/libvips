@@ -36,10 +36,10 @@
       <sub name="type" link="libvips-type.html"/>
       <sub name="rect" link="libvips-rect.html"/>
       <sub name="VipsObject" link="VipsObject.html"/>
-      <sub name="VipsThreadState" link="VipsThreadState.html"/>
+      <sub name="VipsThreadpool" link="VipsThreadState.html"/>
       <sub name="buf" link="libvips-buf.html"/>
-      <sub name="VipsStreamou" link="VipsStreamou.html"/>
-      <sub name="VipsBufis" link="VipsBufis.html"/>
+      <sub name="VipsConnection" link="VipsTargetCustom.html"/>
+      <sub name="VipsSbuf" link="VipsSbuf.html"/>
       <sub name="basic" link="libvips-basic.html"/>
     </sub>
     <sub name="VIPS operation API by section" link="ch03.html">
@@ -47,7 +47,7 @@
       <sub name="colour" link="libvips-colour.html"/>
       <sub name="conversion" link="libvips-conversion.html"/>
       <sub name="convolution" link="libvips-convolution.html"/>
-      <sub name="VipsForeignSave" link="VipsForeignSave.html"/>
+      <sub name="VipsForeign" link="VipsForeignSave.html"/>
       <sub name="freqfilt" link="libvips-freqfilt.html"/>
       <sub name="histogram" link="libvips-histogram.html"/>
       <sub name="draw" link="libvips-draw.html"/>
@@ -107,7 +107,7 @@
     <keyword type="function" name="vips_image_new_from_memory ()" link="VipsImage.html#vips-image-new-from-memory"/>
     <keyword type="function" name="vips_image_new_from_memory_copy ()" link="VipsImage.html#vips-image-new-from-memory-copy"/>
     <keyword type="function" name="vips_image_new_from_buffer ()" link="VipsImage.html#vips-image-new-from-buffer"/>
-    <keyword type="function" name="vips_image_new_from_stream ()" link="VipsImage.html#vips-image-new-from-stream"/>
+    <keyword type="function" name="vips_image_new_from_source ()" link="VipsImage.html#vips-image-new-from-source"/>
     <keyword type="function" name="vips_image_new_matrix ()" link="VipsImage.html#vips-image-new-matrix"/>
     <keyword type="function" name="vips_image_new_matrixv ()" link="VipsImage.html#vips-image-new-matrixv"/>
     <keyword type="function" name="vips_image_new_matrix_from_array ()" link="VipsImage.html#vips-image-new-matrix-from-array"/>
@@ -120,7 +120,7 @@
     <keyword type="function" name="vips_image_write ()" link="VipsImage.html#vips-image-write"/>
     <keyword type="function" name="vips_image_write_to_file ()" link="VipsImage.html#vips-image-write-to-file"/>
     <keyword type="function" name="vips_image_write_to_buffer ()" link="VipsImage.html#vips-image-write-to-buffer"/>
-    <keyword type="function" name="vips_image_write_to_stream ()" link="VipsImage.html#vips-image-write-to-stream"/>
+    <keyword type="function" name="vips_image_write_to_target ()" link="VipsImage.html#vips-image-write-to-target"/>
     <keyword type="function" name="vips_image_write_to_memory ()" link="VipsImage.html#vips-image-write-to-memory"/>
     <keyword type="function" name="vips_image_decode_predict ()" link="VipsImage.html#vips-image-decode-predict"/>
     <keyword type="function" name="vips_image_decode ()" link="VipsImage.html#vips-image-decode"/>
@@ -551,66 +551,66 @@
     <keyword type="function" name="vips_buf_appendd ()" link="libvips-buf.html#vips-buf-appendd"/>
     <keyword type="function" name="vips_buf_len ()" link="libvips-buf.html#vips-buf-len"/>
     <keyword type="struct" name="VipsBuf" link="libvips-buf.html#VipsBuf"/>
-    <keyword type="function" name="vips_stream_filename ()" link="VipsStreamou.html#vips-stream-filename"/>
-    <keyword type="function" name="vips_stream_nick ()" link="VipsStreamou.html#vips-stream-nick"/>
-    <keyword type="function" name="vips_streami_new_from_descriptor ()" link="VipsStreamou.html#vips-streami-new-from-descriptor"/>
-    <keyword type="function" name="vips_streami_new_from_file ()" link="VipsStreamou.html#vips-streami-new-from-file"/>
-    <keyword type="function" name="vips_streami_new_from_blob ()" link="VipsStreamou.html#vips-streami-new-from-blob"/>
-    <keyword type="function" name="vips_streami_new_from_memory ()" link="VipsStreamou.html#vips-streami-new-from-memory"/>
-    <keyword type="function" name="vips_streami_new_from_options ()" link="VipsStreamou.html#vips-streami-new-from-options"/>
-    <keyword type="function" name="vips_streami_minimise ()" link="VipsStreamou.html#vips-streami-minimise"/>
-    <keyword type="function" name="vips_streami_unminimise ()" link="VipsStreamou.html#vips-streami-unminimise"/>
-    <keyword type="function" name="vips_streami_decode ()" link="VipsStreamou.html#vips-streami-decode"/>
-    <keyword type="function" name="vips_streami_read ()" link="VipsStreamou.html#vips-streami-read"/>
-    <keyword type="function" name="vips_streami_is_mappable ()" link="VipsStreamou.html#vips-streami-is-mappable"/>
-    <keyword type="function" name="vips_streami_map ()" link="VipsStreamou.html#vips-streami-map"/>
-    <keyword type="function" name="vips_streami_map_blob ()" link="VipsStreamou.html#vips-streami-map-blob"/>
-    <keyword type="function" name="vips_streami_seek ()" link="VipsStreamou.html#vips-streami-seek"/>
-    <keyword type="function" name="vips_streami_rewind ()" link="VipsStreamou.html#vips-streami-rewind"/>
-    <keyword type="function" name="vips_streami_sniff_at_most ()" link="VipsStreamou.html#vips-streami-sniff-at-most"/>
-    <keyword type="function" name="vips_streami_sniff ()" link="VipsStreamou.html#vips-streami-sniff"/>
-    <keyword type="function" name="vips_streami_length ()" link="VipsStreamou.html#vips-streami-length"/>
-    <keyword type="function" name="vips_streamiu_new ()" link="VipsStreamou.html#vips-streamiu-new"/>
-    <keyword type="function" name="vips_streamo_new_to_descriptor ()" link="VipsStreamou.html#vips-streamo-new-to-descriptor"/>
-    <keyword type="function" name="vips_streamo_new_to_file ()" link="VipsStreamou.html#vips-streamo-new-to-file"/>
-    <keyword type="function" name="vips_streamo_new_to_memory ()" link="VipsStreamou.html#vips-streamo-new-to-memory"/>
-    <keyword type="function" name="vips_streamo_write ()" link="VipsStreamou.html#vips-streamo-write"/>
-    <keyword type="function" name="vips_streamo_finish ()" link="VipsStreamou.html#vips-streamo-finish"/>
-    <keyword type="function" name="vips_streamo_steal ()" link="VipsStreamou.html#vips-streamo-steal"/>
-    <keyword type="function" name="vips_streamo_steal_text ()" link="VipsStreamou.html#vips-streamo-steal-text"/>
-    <keyword type="function" name="vips_streamo_putc ()" link="VipsStreamou.html#vips-streamo-putc"/>
-    <keyword type="macro" name="VIPS_STREAMO_PUTC()" link="VipsStreamou.html#VIPS-STREAMO-PUTC:CAPS"/>
-    <keyword type="function" name="vips_streamo_writes ()" link="VipsStreamou.html#vips-streamo-writes"/>
-    <keyword type="function" name="vips_streamo_writef ()" link="VipsStreamou.html#vips-streamo-writef"/>
-    <keyword type="function" name="vips_streamo_write_amp ()" link="VipsStreamou.html#vips-streamo-write-amp"/>
-    <keyword type="function" name="vips_streamou_new ()" link="VipsStreamou.html#vips-streamou-new"/>
-    <keyword type="macro" name="VIPS_STREAMO_BUFFER_SIZE" link="VipsStreamou.html#VIPS-STREAMO-BUFFER-SIZE:CAPS"/>
-    <keyword type="macro" name="VIPS_STREAMOU_BUFFER_SIZE" link="VipsStreamou.html#VIPS-STREAMOU-BUFFER-SIZE:CAPS"/>
-    <keyword type="property" name="The “descriptor” property" link="VipsStreamou.html#VipsStream--descriptor"/>
-    <keyword type="property" name="The “filename” property" link="VipsStreamou.html#VipsStream--filename"/>
-    <keyword type="property" name="The “blob” property" link="VipsStreamou.html#VipsStreami--blob"/>
-    <keyword type="property" name="The “blob” property" link="VipsStreamou.html#VipsStreamo--blob"/>
-    <keyword type="property" name="The “memory” property" link="VipsStreamou.html#VipsStreamo--memory"/>
-    <keyword type="signal" name="The “read” signal" link="VipsStreamou.html#VipsStreamiu-read"/>
-    <keyword type="signal" name="The “seek” signal" link="VipsStreamou.html#VipsStreamiu-seek"/>
-    <keyword type="signal" name="The “finish” signal" link="VipsStreamou.html#VipsStreamou-finish"/>
-    <keyword type="signal" name="The “write” signal" link="VipsStreamou.html#VipsStreamou-write"/>
-    <keyword type="function" name="vips_bufis_new_from_streami ()" link="VipsBufis.html#vips-bufis-new-from-streami"/>
-    <keyword type="function" name="vips_bufis_unbuffer ()" link="VipsBufis.html#vips-bufis-unbuffer"/>
-    <keyword type="function" name="vips_bufis_getc ()" link="VipsBufis.html#vips-bufis-getc"/>
-    <keyword type="macro" name="VIPS_BUFIS_GETC()" link="VipsBufis.html#VIPS-BUFIS-GETC:CAPS"/>
-    <keyword type="function" name="vips_bufis_ungetc ()" link="VipsBufis.html#vips-bufis-ungetc"/>
-    <keyword type="macro" name="VIPS_BUFIS_UNGETC()" link="VipsBufis.html#VIPS-BUFIS-UNGETC:CAPS"/>
-    <keyword type="function" name="vips_bufis_require ()" link="VipsBufis.html#vips-bufis-require"/>
-    <keyword type="macro" name="VIPS_BUFIS_REQUIRE()" link="VipsBufis.html#VIPS-BUFIS-REQUIRE:CAPS"/>
-    <keyword type="macro" name="VIPS_BUFIS_PEEK()" link="VipsBufis.html#VIPS-BUFIS-PEEK:CAPS"/>
-    <keyword type="macro" name="VIPS_BUFIS_FETCH()" link="VipsBufis.html#VIPS-BUFIS-FETCH:CAPS"/>
-    <keyword type="function" name="vips_bufis_get_line ()" link="VipsBufis.html#vips-bufis-get-line"/>
-    <keyword type="function" name="vips_bufis_get_line_copy ()" link="VipsBufis.html#vips-bufis-get-line-copy"/>
-    <keyword type="function" name="vips_bufis_get_non_whitespace ()" link="VipsBufis.html#vips-bufis-get-non-whitespace"/>
-    <keyword type="function" name="vips_bufis_skip_whitespace ()" link="VipsBufis.html#vips-bufis-skip-whitespace"/>
-    <keyword type="macro" name="VIPS_BUFIS_BUFFER_SIZE" link="VipsBufis.html#VIPS-BUFIS-BUFFER-SIZE:CAPS"/>
-    <keyword type="property" name="The “input” property" link="VipsBufis.html#VipsBufis--input"/>
+    <keyword type="function" name="vips_connection_filename ()" link="VipsTargetCustom.html#vips-connection-filename"/>
+    <keyword type="function" name="vips_connection_nick ()" link="VipsTargetCustom.html#vips-connection-nick"/>
+    <keyword type="function" name="vips_source_new_from_descriptor ()" link="VipsTargetCustom.html#vips-source-new-from-descriptor"/>
+    <keyword type="function" name="vips_source_new_from_file ()" link="VipsTargetCustom.html#vips-source-new-from-file"/>
+    <keyword type="function" name="vips_source_new_from_blob ()" link="VipsTargetCustom.html#vips-source-new-from-blob"/>
+    <keyword type="function" name="vips_source_new_from_memory ()" link="VipsTargetCustom.html#vips-source-new-from-memory"/>
+    <keyword type="function" name="vips_source_new_from_options ()" link="VipsTargetCustom.html#vips-source-new-from-options"/>
+    <keyword type="function" name="vips_source_minimise ()" link="VipsTargetCustom.html#vips-source-minimise"/>
+    <keyword type="function" name="vips_source_unminimise ()" link="VipsTargetCustom.html#vips-source-unminimise"/>
+    <keyword type="function" name="vips_source_decode ()" link="VipsTargetCustom.html#vips-source-decode"/>
+    <keyword type="function" name="vips_source_read ()" link="VipsTargetCustom.html#vips-source-read"/>
+    <keyword type="function" name="vips_source_is_mappable ()" link="VipsTargetCustom.html#vips-source-is-mappable"/>
+    <keyword type="function" name="vips_source_map ()" link="VipsTargetCustom.html#vips-source-map"/>
+    <keyword type="function" name="vips_source_map_blob ()" link="VipsTargetCustom.html#vips-source-map-blob"/>
+    <keyword type="function" name="vips_source_seek ()" link="VipsTargetCustom.html#vips-source-seek"/>
+    <keyword type="function" name="vips_source_rewind ()" link="VipsTargetCustom.html#vips-source-rewind"/>
+    <keyword type="function" name="vips_source_sniff_at_most ()" link="VipsTargetCustom.html#vips-source-sniff-at-most"/>
+    <keyword type="function" name="vips_source_sniff ()" link="VipsTargetCustom.html#vips-source-sniff"/>
+    <keyword type="function" name="vips_source_length ()" link="VipsTargetCustom.html#vips-source-length"/>
+    <keyword type="function" name="vips_source_custom_new ()" link="VipsTargetCustom.html#vips-source-custom-new"/>
+    <keyword type="function" name="vips_target_new_to_descriptor ()" link="VipsTargetCustom.html#vips-target-new-to-descriptor"/>
+    <keyword type="function" name="vips_target_new_to_file ()" link="VipsTargetCustom.html#vips-target-new-to-file"/>
+    <keyword type="function" name="vips_target_new_to_memory ()" link="VipsTargetCustom.html#vips-target-new-to-memory"/>
+    <keyword type="function" name="vips_target_write ()" link="VipsTargetCustom.html#vips-target-write"/>
+    <keyword type="function" name="vips_target_finish ()" link="VipsTargetCustom.html#vips-target-finish"/>
+    <keyword type="function" name="vips_target_steal ()" link="VipsTargetCustom.html#vips-target-steal"/>
+    <keyword type="function" name="vips_target_steal_text ()" link="VipsTargetCustom.html#vips-target-steal-text"/>
+    <keyword type="function" name="vips_target_putc ()" link="VipsTargetCustom.html#vips-target-putc"/>
+    <keyword type="macro" name="VIPS_TARGET_PUTC()" link="VipsTargetCustom.html#VIPS-TARGET-PUTC:CAPS"/>
+    <keyword type="function" name="vips_target_writes ()" link="VipsTargetCustom.html#vips-target-writes"/>
+    <keyword type="function" name="vips_target_writef ()" link="VipsTargetCustom.html#vips-target-writef"/>
+    <keyword type="function" name="vips_target_write_amp ()" link="VipsTargetCustom.html#vips-target-write-amp"/>
+    <keyword type="function" name="vips_target_custom_new ()" link="VipsTargetCustom.html#vips-target-custom-new"/>
+    <keyword type="macro" name="VIPS_TARGET_BUFFER_SIZE" link="VipsTargetCustom.html#VIPS-TARGET-BUFFER-SIZE:CAPS"/>
+    <keyword type="macro" name="VIPS_TARGET_CUSTOM_BUFFER_SIZE" link="VipsTargetCustom.html#VIPS-TARGET-CUSTOM-BUFFER-SIZE:CAPS"/>
+    <keyword type="property" name="The “descriptor” property" link="VipsTargetCustom.html#VipsConnection--descriptor"/>
+    <keyword type="property" name="The “filename” property" link="VipsTargetCustom.html#VipsConnection--filename"/>
+    <keyword type="property" name="The “blob” property" link="VipsTargetCustom.html#VipsSource--blob"/>
+    <keyword type="property" name="The “blob” property" link="VipsTargetCustom.html#VipsTarget--blob"/>
+    <keyword type="property" name="The “memory” property" link="VipsTargetCustom.html#VipsTarget--memory"/>
+    <keyword type="signal" name="The “read” signal" link="VipsTargetCustom.html#VipsSourceCustom-read"/>
+    <keyword type="signal" name="The “seek” signal" link="VipsTargetCustom.html#VipsSourceCustom-seek"/>
+    <keyword type="signal" name="The “finish” signal" link="VipsTargetCustom.html#VipsTargetCustom-finish"/>
+    <keyword type="signal" name="The “write” signal" link="VipsTargetCustom.html#VipsTargetCustom-write"/>
+    <keyword type="function" name="vips_sbuf_new_from_source ()" link="VipsSbuf.html#vips-sbuf-new-from-source"/>
+    <keyword type="function" name="vips_sbuf_unbuffer ()" link="VipsSbuf.html#vips-sbuf-unbuffer"/>
+    <keyword type="function" name="vips_sbuf_getc ()" link="VipsSbuf.html#vips-sbuf-getc"/>
+    <keyword type="macro" name="VIPS_SBUF_GETC()" link="VipsSbuf.html#VIPS-SBUF-GETC:CAPS"/>
+    <keyword type="function" name="vips_sbuf_ungetc ()" link="VipsSbuf.html#vips-sbuf-ungetc"/>
+    <keyword type="macro" name="VIPS_SBUF_UNGETC()" link="VipsSbuf.html#VIPS-SBUF-UNGETC:CAPS"/>
+    <keyword type="function" name="vips_sbuf_require ()" link="VipsSbuf.html#vips-sbuf-require"/>
+    <keyword type="macro" name="VIPS_SBUF_REQUIRE()" link="VipsSbuf.html#VIPS-SBUF-REQUIRE:CAPS"/>
+    <keyword type="macro" name="VIPS_SBUF_PEEK()" link="VipsSbuf.html#VIPS-SBUF-PEEK:CAPS"/>
+    <keyword type="macro" name="VIPS_SBUF_FETCH()" link="VipsSbuf.html#VIPS-SBUF-FETCH:CAPS"/>
+    <keyword type="function" name="vips_sbuf_get_line ()" link="VipsSbuf.html#vips-sbuf-get-line"/>
+    <keyword type="function" name="vips_sbuf_get_line_copy ()" link="VipsSbuf.html#vips-sbuf-get-line-copy"/>
+    <keyword type="function" name="vips_sbuf_get_non_whitespace ()" link="VipsSbuf.html#vips-sbuf-get-non-whitespace"/>
+    <keyword type="function" name="vips_sbuf_skip_whitespace ()" link="VipsSbuf.html#vips-sbuf-skip-whitespace"/>
+    <keyword type="macro" name="VIPS_SBUF_BUFFER_SIZE" link="VipsSbuf.html#VIPS-SBUF-BUFFER-SIZE:CAPS"/>
+    <keyword type="property" name="The “input” property" link="VipsSbuf.html#VipsSbuf--input"/>
     <keyword type="function" name="VipsCallbackFn ()" link="libvips-basic.html#VipsCallbackFn"/>
     <keyword type="function" name="VipsSListMap2Fn ()" link="libvips-basic.html#VipsSListMap2Fn"/>
     <keyword type="function" name="VipsSListMap4Fn ()" link="libvips-basic.html#VipsSListMap4Fn"/>
@@ -940,35 +940,35 @@
     <keyword type="function" name="vips_foreign_map ()" link="VipsForeignSave.html#vips-foreign-map"/>
     <keyword type="function" name="vips_foreign_find_load ()" link="VipsForeignSave.html#vips-foreign-find-load"/>
     <keyword type="function" name="vips_foreign_find_load_buffer ()" link="VipsForeignSave.html#vips-foreign-find-load-buffer"/>
-    <keyword type="function" name="vips_foreign_find_load_stream ()" link="VipsForeignSave.html#vips-foreign-find-load-stream"/>
+    <keyword type="function" name="vips_foreign_find_load_source ()" link="VipsForeignSave.html#vips-foreign-find-load-source"/>
     <keyword type="function" name="vips_foreign_flags ()" link="VipsForeignSave.html#vips-foreign-flags"/>
     <keyword type="function" name="vips_foreign_is_a ()" link="VipsForeignSave.html#vips-foreign-is-a"/>
     <keyword type="function" name="vips_foreign_is_a_buffer ()" link="VipsForeignSave.html#vips-foreign-is-a-buffer"/>
-    <keyword type="function" name="vips_foreign_is_a_stream ()" link="VipsForeignSave.html#vips-foreign-is-a-stream"/>
+    <keyword type="function" name="vips_foreign_is_a_source ()" link="VipsForeignSave.html#vips-foreign-is-a-source"/>
     <keyword type="function" name="vips_foreign_load_invalidate ()" link="VipsForeignSave.html#vips-foreign-load-invalidate"/>
     <keyword type="function" name="vips_foreign_find_save ()" link="VipsForeignSave.html#vips-foreign-find-save"/>
     <keyword type="function" name="vips_foreign_get_suffixes ()" link="VipsForeignSave.html#vips-foreign-get-suffixes"/>
     <keyword type="function" name="vips_foreign_find_save_buffer ()" link="VipsForeignSave.html#vips-foreign-find-save-buffer"/>
-    <keyword type="function" name="vips_foreign_find_save_stream ()" link="VipsForeignSave.html#vips-foreign-find-save-stream"/>
+    <keyword type="function" name="vips_foreign_find_save_target ()" link="VipsForeignSave.html#vips-foreign-find-save-target"/>
     <keyword type="function" name="vips_vipsload ()" link="VipsForeignSave.html#vips-vipsload"/>
     <keyword type="function" name="vips_vipssave ()" link="VipsForeignSave.html#vips-vipssave"/>
     <keyword type="function" name="vips_openslideload ()" link="VipsForeignSave.html#vips-openslideload"/>
     <keyword type="function" name="vips_jpegload ()" link="VipsForeignSave.html#vips-jpegload"/>
     <keyword type="function" name="vips_jpegload_buffer ()" link="VipsForeignSave.html#vips-jpegload-buffer"/>
-    <keyword type="function" name="vips_jpegsave_stream ()" link="VipsForeignSave.html#vips-jpegsave-stream"/>
+    <keyword type="function" name="vips_jpegsave_target ()" link="VipsForeignSave.html#vips-jpegsave-target"/>
     <keyword type="function" name="vips_jpegsave ()" link="VipsForeignSave.html#vips-jpegsave"/>
     <keyword type="function" name="vips_jpegsave_buffer ()" link="VipsForeignSave.html#vips-jpegsave-buffer"/>
     <keyword type="function" name="vips_jpegsave_mime ()" link="VipsForeignSave.html#vips-jpegsave-mime"/>
-    <keyword type="function" name="vips_webpload_stream ()" link="VipsForeignSave.html#vips-webpload-stream"/>
+    <keyword type="function" name="vips_webpload_source ()" link="VipsForeignSave.html#vips-webpload-source"/>
     <keyword type="function" name="vips_webpload ()" link="VipsForeignSave.html#vips-webpload"/>
     <keyword type="function" name="vips_webpload_buffer ()" link="VipsForeignSave.html#vips-webpload-buffer"/>
-    <keyword type="function" name="vips_webpsave_stream ()" link="VipsForeignSave.html#vips-webpsave-stream"/>
+    <keyword type="function" name="vips_webpsave_target ()" link="VipsForeignSave.html#vips-webpsave-target"/>
     <keyword type="function" name="vips_webpsave ()" link="VipsForeignSave.html#vips-webpsave"/>
     <keyword type="function" name="vips_webpsave_buffer ()" link="VipsForeignSave.html#vips-webpsave-buffer"/>
     <keyword type="function" name="vips_webpsave_mime ()" link="VipsForeignSave.html#vips-webpsave-mime"/>
     <keyword type="function" name="vips_tiffload ()" link="VipsForeignSave.html#vips-tiffload"/>
     <keyword type="function" name="vips_tiffload_buffer ()" link="VipsForeignSave.html#vips-tiffload-buffer"/>
-    <keyword type="function" name="vips_tiffload_stream ()" link="VipsForeignSave.html#vips-tiffload-stream"/>
+    <keyword type="function" name="vips_tiffload_source ()" link="VipsForeignSave.html#vips-tiffload-source"/>
     <keyword type="function" name="vips_tiffsave ()" link="VipsForeignSave.html#vips-tiffsave"/>
     <keyword type="function" name="vips_tiffsave_buffer ()" link="VipsForeignSave.html#vips-tiffsave-buffer"/>
     <keyword type="function" name="vips_openexrload ()" link="VipsForeignSave.html#vips-openexrload"/>
@@ -987,21 +987,21 @@
     <keyword type="function" name="vips_magickload_buffer ()" link="VipsForeignSave.html#vips-magickload-buffer"/>
     <keyword type="function" name="vips_magicksave ()" link="VipsForeignSave.html#vips-magicksave"/>
     <keyword type="function" name="vips_magicksave_buffer ()" link="VipsForeignSave.html#vips-magicksave-buffer"/>
-    <keyword type="function" name="vips_pngload_stream ()" link="VipsForeignSave.html#vips-pngload-stream"/>
+    <keyword type="function" name="vips_pngload_source ()" link="VipsForeignSave.html#vips-pngload-source"/>
     <keyword type="function" name="vips_pngload ()" link="VipsForeignSave.html#vips-pngload"/>
     <keyword type="function" name="vips_pngload_buffer ()" link="VipsForeignSave.html#vips-pngload-buffer"/>
-    <keyword type="function" name="vips_pngsave_stream ()" link="VipsForeignSave.html#vips-pngsave-stream"/>
+    <keyword type="function" name="vips_pngsave_target ()" link="VipsForeignSave.html#vips-pngsave-target"/>
     <keyword type="function" name="vips_pngsave ()" link="VipsForeignSave.html#vips-pngsave"/>
     <keyword type="function" name="vips_pngsave_buffer ()" link="VipsForeignSave.html#vips-pngsave-buffer"/>
     <keyword type="function" name="vips_ppmload ()" link="VipsForeignSave.html#vips-ppmload"/>
     <keyword type="function" name="vips_ppmsave ()" link="VipsForeignSave.html#vips-ppmsave"/>
     <keyword type="function" name="vips_matload ()" link="VipsForeignSave.html#vips-matload"/>
-    <keyword type="function" name="vips_radload_stream ()" link="VipsForeignSave.html#vips-radload-stream"/>
+    <keyword type="function" name="vips_radload_source ()" link="VipsForeignSave.html#vips-radload-source"/>
     <keyword type="function" name="vips_radload ()" link="VipsForeignSave.html#vips-radload"/>
     <keyword type="function" name="vips_radload_buffer ()" link="VipsForeignSave.html#vips-radload-buffer"/>
     <keyword type="function" name="vips_radsave ()" link="VipsForeignSave.html#vips-radsave"/>
     <keyword type="function" name="vips_radsave_buffer ()" link="VipsForeignSave.html#vips-radsave-buffer"/>
-    <keyword type="function" name="vips_radsave_stream ()" link="VipsForeignSave.html#vips-radsave-stream"/>
+    <keyword type="function" name="vips_radsave_target ()" link="VipsForeignSave.html#vips-radsave-target"/>
     <keyword type="function" name="vips_pdfload ()" link="VipsForeignSave.html#vips-pdfload"/>
     <keyword type="function" name="vips_pdfload_buffer ()" link="VipsForeignSave.html#vips-pdfload-buffer"/>
     <keyword type="function" name="vips_svgload ()" link="VipsForeignSave.html#vips-svgload"/>
@@ -1131,7 +1131,7 @@
     <keyword type="function" name="vips_thumbnail ()" link="libvips-resample.html#vips-thumbnail"/>
     <keyword type="function" name="vips_thumbnail_buffer ()" link="libvips-resample.html#vips-thumbnail-buffer"/>
     <keyword type="function" name="vips_thumbnail_image ()" link="libvips-resample.html#vips-thumbnail-image"/>
-    <keyword type="function" name="vips_thumbnail_stream ()" link="libvips-resample.html#vips-thumbnail-stream"/>
+    <keyword type="function" name="vips_thumbnail_source ()" link="libvips-resample.html#vips-thumbnail-source"/>
     <keyword type="function" name="vips_similarity ()" link="libvips-resample.html#vips-similarity"/>
     <keyword type="function" name="vips_rotate ()" link="libvips-resample.html#vips-rotate"/>
     <keyword type="function" name="vips_affine ()" link="libvips-resample.html#vips-affine"/>

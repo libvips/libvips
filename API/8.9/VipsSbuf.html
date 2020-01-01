@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>libvips</title>
+    <meta name="description" content="A fast image processing library with low memory needs.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/libvips/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="/libvips/favicon.ico">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name"><a href="/libvips">libvips</a></h1>
+      <h2 class="project-tagline">A fast image processing library with low memory needs.</h2>
+      <a href="https://github.com/libvips/libvips" class="btn">Project on GitHub</a>
+      <a href="https://github.com/libvips/libvips/releases" class="btn">Download</a>
+      <a href="/libvips/install.html" class="btn">Install</a>
+      <a href="/libvips/API/current" class="btn">Documentation</a>
+      <a href="https://github.com/libvips/libvips/issues" class="btn">Issues</a>
+      <a href="https://github.com/libvips/libvips/wiki" class="btn">Wiki</a>
+    </section>
+
+    <section class="main-content">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#VipsSbuf.description" class="shortcut">Description</a></span><span id="nav_hierarchy">  <span class="dim">|</span> 
+                  <a href="#VipsSbuf.object-hierarchy" class="shortcut">Object Hierarchy</a></span><span id="nav_properties">  <span class="dim">|</span> 
+                  <a href="#VipsSbuf.properties" class="shortcut">Properties</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="VipsTargetCustom.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="libvips-basic.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="VipsSbuf"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="VipsSbuf.top_of_page"></a>VipsSbuf</span></h2>
+<p>VipsSbuf — buffered read from a source</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="VipsSbuf.stability-level"></a><h2>Stability Level</h2>
+<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="VipsSbuf.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_return">
+<col class="functions_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="function_type">
+<a class="link" href="VipsSbuf.html" title="VipsSbuf"><span class="returnvalue">VipsSbuf</span></a> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsSbuf.html#vips-sbuf-new-from-source" title="vips_sbuf_new_from_source ()">vips_sbuf_new_from_source</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsSbuf.html#vips-sbuf-unbuffer" title="vips_sbuf_unbuffer ()">vips_sbuf_unbuffer</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsSbuf.html#vips-sbuf-getc" title="vips_sbuf_getc ()">vips_sbuf_getc</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="VipsSbuf.html#VIPS-SBUF-GETC:CAPS" title="VIPS_SBUF_GETC()">VIPS_SBUF_GETC</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsSbuf.html#vips-sbuf-ungetc" title="vips_sbuf_ungetc ()">vips_sbuf_ungetc</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="VipsSbuf.html#VIPS-SBUF-UNGETC:CAPS" title="VIPS_SBUF_UNGETC()">VIPS_SBUF_UNGETC</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsSbuf.html#vips-sbuf-require" title="vips_sbuf_require ()">vips_sbuf_require</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="VipsSbuf.html#VIPS-SBUF-REQUIRE:CAPS" title="VIPS_SBUF_REQUIRE()">VIPS_SBUF_REQUIRE</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="VipsSbuf.html#VIPS-SBUF-PEEK:CAPS" title="VIPS_SBUF_PEEK()">VIPS_SBUF_PEEK</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="VipsSbuf.html#VIPS-SBUF-FETCH:CAPS" title="VIPS_SBUF_FETCH()">VIPS_SBUF_FETCH</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsSbuf.html#vips-sbuf-get-line" title="vips_sbuf_get_line ()">vips_sbuf_get_line</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsSbuf.html#vips-sbuf-get-line-copy" title="vips_sbuf_get_line_copy ()">vips_sbuf_get_line_copy</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="VipsSbuf.html#vips-sbuf-get-non-whitespace" title="vips_sbuf_get_non_whitespace ()">vips_sbuf_get_non_whitespace</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsSbuf.html#vips-sbuf-skip-whitespace" title="vips_sbuf_skip_whitespace ()">vips_sbuf_skip_whitespace</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="VipsSbuf.properties"></a><h2>Properties</h2>
+<div class="informaltable"><table class="informaltable" border="0">
+<colgroup>
+<col width="150px" class="properties_type">
+<col width="300px" class="properties_name">
+<col width="200px" class="properties_flags">
+</colgroup>
+<tbody><tr>
+<td class="property_type">
+<a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> *</td>
+<td class="property_name"><a class="link" href="VipsSbuf.html#VipsSbuf--input" title="The “input” property">input</a></td>
+<td class="property_flags">Read / Write</td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="VipsSbuf.other"></a><h2>Types and Values</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="name">
+<col class="description">
+</colgroup>
+<tbody><tr>
+<td class="define_keyword">#define</td>
+<td class="function_name"><a class="link" href="VipsSbuf.html#VIPS-SBUF-BUFFER-SIZE:CAPS" title="VIPS_SBUF_BUFFER_SIZE">VIPS_SBUF_BUFFER_SIZE</a></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="VipsSbuf.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+    <span class="lineart">╰──</span> <a class="link" href="VipsObject.html" title="VipsObject">VipsObject</a>
+        <span class="lineart">╰──</span> VipsSbuf
+</pre>
+</div>
+<div class="refsect1">
+<a name="VipsSbuf.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;vips/vips.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="VipsSbuf.description"></a><h2>Description</h2>
+<p><a class="link" href="VipsSbuf.html" title="VipsSbuf"><span class="type">VipsSbuf</span></a> wraps up a <a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> and provides a set of calls for
+text-oriented buffered reading. You can fetch lines of text, skip
+whitespace, and so on.</p>
+<p>It is useful for implementing things like CSV readers, for example.</p>
+</div>
+<div class="refsect1">
+<a name="VipsSbuf.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="vips-sbuf-new-from-source"></a><h3>vips_sbuf_new_from_source ()</h3>
+<pre class="programlisting"><a class="link" href="VipsSbuf.html" title="VipsSbuf"><span class="returnvalue">VipsSbuf</span></a> *
+vips_sbuf_new_from_source (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> *source</code></em>);</pre>
+<p>Create a VipsSbuf wrapping a source.</p>
+<div class="refsect3">
+<a name="vips-sbuf-new-from-source.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>source</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-sbuf-new-from-source.returns"></a><h4>Returns</h4>
+<p> a new <a class="link" href="VipsSbuf.html" title="VipsSbuf"><span class="type">VipsSbuf</span></a></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-sbuf-unbuffer"></a><h3>vips_sbuf_unbuffer ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_sbuf_unbuffer (<em class="parameter"><code><a class="link" href="VipsSbuf.html" title="VipsSbuf"><span class="type">VipsSbuf</span></a> *sbuf</code></em>);</pre>
+<p>Discard the input buffer and reset the read point. You must call this
+before using read or seek on the underlying <a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> class.</p>
+<div class="refsect3">
+<a name="vips-sbuf-unbuffer.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>sbuf</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-sbuf-getc"></a><h3>vips_sbuf_getc ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_sbuf_getc (<em class="parameter"><code><a class="link" href="VipsSbuf.html" title="VipsSbuf"><span class="type">VipsSbuf</span></a> *sbuf</code></em>);</pre>
+<p>Fetch the next character from the source. </p>
+<p>If you can, use the macro <a class="link" href="VipsSbuf.html#VIPS-SBUF-GETC:CAPS" title="VIPS_SBUF_GETC()"><code class="function">VIPS_SBUF_GETC()</code></a> instead for speed.</p>
+<div class="refsect3">
+<a name="vips-sbuf-getc.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>sbuf</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-sbuf-getc.returns"></a><h4>Returns</h4>
+<p> the next char from <em class="parameter"><code>sbuf</code></em>
+, -1 on read error or EOF.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-SBUF-GETC:CAPS"></a><h3>VIPS_SBUF_GETC()</h3>
+<pre class="programlisting">#define             VIPS_SBUF_GETC( S )</pre>
+<p>Fetch the next character from the source.</p>
+<div class="refsect3">
+<a name="VIPS-SBUF-GETC.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>sbuf</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="VIPS-SBUF-GETC.returns"></a><h4>Returns</h4>
+<p> the next char from <em class="parameter"><code>sbuf</code></em>
+, -1 on read error or EOF.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-sbuf-ungetc"></a><h3>vips_sbuf_ungetc ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_sbuf_ungetc (<em class="parameter"><code><a class="link" href="VipsSbuf.html" title="VipsSbuf"><span class="type">VipsSbuf</span></a> *sbuf</code></em>);</pre>
+<p>The opposite of <a class="link" href="VipsSbuf.html#vips-sbuf-getc" title="vips_sbuf_getc ()"><code class="function">vips_sbuf_getc()</code></a>: undo the previous getc.</p>
+<p>unget more than one character is undefined. Unget at the start of the file 
+does nothing.</p>
+<p>If you can, use the macro <a class="link" href="VipsSbuf.html#VIPS-SBUF-UNGETC:CAPS" title="VIPS_SBUF_UNGETC()"><code class="function">VIPS_SBUF_UNGETC()</code></a> instead for speed.</p>
+<div class="refsect3">
+<a name="vips-sbuf-ungetc.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>sbuf</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-SBUF-UNGETC:CAPS"></a><h3>VIPS_SBUF_UNGETC()</h3>
+<pre class="programlisting">#define             VIPS_SBUF_UNGETC( S )</pre>
+<p>The opposite of <a class="link" href="VipsSbuf.html#vips-sbuf-getc" title="vips_sbuf_getc ()"><code class="function">vips_sbuf_getc()</code></a>: undo the previous getc.</p>
+<p>unget more than one character is undefined. Unget at the start of the file 
+does nothing.</p>
+<div class="refsect3">
+<a name="VIPS-SBUF-UNGETC.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>sbuf</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-sbuf-require"></a><h3>vips_sbuf_require ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_sbuf_require (<em class="parameter"><code><a class="link" href="VipsSbuf.html" title="VipsSbuf"><span class="type">VipsSbuf</span></a> *sbuf</code></em>,
+                   <em class="parameter"><code><span class="type">int</span> require</code></em>);</pre>
+<p>Make sure there are at least <em class="parameter"><code>require</code></em>
+ bytes of readahead available.</p>
+<div class="refsect3">
+<a name="vips-sbuf-require.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>sbuf</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>require</p></td>
+<td class="parameter_description"><p>make sure we have at least this many chars available</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-sbuf-require.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error or EOF.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-SBUF-REQUIRE:CAPS"></a><h3>VIPS_SBUF_REQUIRE()</h3>
+<pre class="programlisting">#define             VIPS_SBUF_REQUIRE( S, R )</pre>
+<p>Make sure at least <em class="parameter"><code>require</code></em>
+ characters are available for 
+<a class="link" href="VipsSbuf.html#VIPS-SBUF-PEEK:CAPS" title="VIPS_SBUF_PEEK()"><code class="function">VIPS_SBUF_PEEK()</code></a> and <a class="link" href="VipsSbuf.html#VIPS-SBUF-FETCH:CAPS" title="VIPS_SBUF_FETCH()"><code class="function">VIPS_SBUF_FETCH()</code></a>.</p>
+<div class="refsect3">
+<a name="VIPS-SBUF-REQUIRE.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>sbuf</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>require</p></td>
+<td class="parameter_description"><p>need this many characters</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="VIPS-SBUF-REQUIRE.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on read error or EOF.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-SBUF-PEEK:CAPS"></a><h3>VIPS_SBUF_PEEK()</h3>
+<pre class="programlisting">#define VIPS_SBUF_PEEK( S ) ((S)-&gt;input_buffer + (S)-&gt;read_point)
+</pre>
+<p>After a successful <a class="link" href="VipsSbuf.html#VIPS-SBUF-REQUIRE:CAPS" title="VIPS_SBUF_REQUIRE()"><code class="function">VIPS_SBUF_REQUIRE()</code></a>, you can index this to get
+require characters of input.</p>
+<div class="refsect3">
+<a name="VIPS-SBUF-PEEK.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>sbuf</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="VIPS-SBUF-PEEK.returns"></a><h4>Returns</h4>
+<p> a pointer to the next requre characters of input.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VIPS-SBUF-FETCH:CAPS"></a><h3>VIPS_SBUF_FETCH()</h3>
+<pre class="programlisting">#define VIPS_SBUF_FETCH( S ) ((S)-&gt;input_buffer[(S)-&gt;read_point++])
+</pre>
+<p>After a successful <a class="link" href="VipsSbuf.html#VIPS-SBUF-REQUIRE:CAPS" title="VIPS_SBUF_REQUIRE()"><code class="function">VIPS_SBUF_REQUIRE()</code></a>, you can use this require times
+to fetch characters of input.</p>
+<div class="refsect3">
+<a name="VIPS-SBUF-FETCH.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>sbuf</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="VIPS-SBUF-FETCH.returns"></a><h4>Returns</h4>
+<p> the next input character.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-sbuf-get-line"></a><h3>vips_sbuf_get_line ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips_sbuf_get_line (<em class="parameter"><code><a class="link" href="VipsSbuf.html" title="VipsSbuf"><span class="type">VipsSbuf</span></a> *sbuf</code></em>);</pre>
+<p>Fetch the next line of text from <em class="parameter"><code>sbuf</code></em>
+ and return it. The end of 
+line character (or characters, for DOS files) are removed, and the string
+is terminated with a null (<code class="literal">\0</code> character).</p>
+<p>Returns NULL on end of file or read error.</p>
+<p>If the line is longer than some arbitrary (but large) limit, it is
+truncated. If you need to be able to read very long lines, use the
+slower <a class="link" href="VipsSbuf.html#vips-sbuf-get-line-copy" title="vips_sbuf_get_line_copy ()"><code class="function">vips_sbuf_get_line_copy()</code></a>.</p>
+<p>The return value is owned by <em class="parameter"><code>sbuf</code></em>
+ and must not be freed. It 
+is valid until the next get call to <em class="parameter"><code>sbuf</code></em>
+.</p>
+<div class="refsect3">
+<a name="vips-sbuf-get-line.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>sbuf</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-sbuf-get-line.returns"></a><h4>Returns</h4>
+<p> the next line of text, or NULL on EOF or read error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-sbuf-get-line-copy"></a><h3>vips_sbuf_get_line_copy ()</h3>
+<pre class="programlisting"><span class="returnvalue">char</span> *
+vips_sbuf_get_line_copy (<em class="parameter"><code><a class="link" href="VipsSbuf.html" title="VipsSbuf"><span class="type">VipsSbuf</span></a> *sbuf</code></em>);</pre>
+<p>Fetch the next line of text from <em class="parameter"><code>sbuf</code></em>
+ and return it. The end of 
+line character (or characters, for DOS files) are removed, and the string
+is terminated with a null (<code class="literal">\0</code> character).</p>
+<p>The return result must be freed with <a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>.</p>
+<p>This is slower than <a class="link" href="VipsSbuf.html#vips-sbuf-get-line" title="vips_sbuf_get_line ()"><code class="function">vips_sbuf_get_line()</code></a>, but can work with lines of
+any length.</p>
+<div class="refsect3">
+<a name="vips-sbuf-get-line-copy.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>sbuf</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-sbuf-get-line-copy.returns"></a><h4>Returns</h4>
+<p> the next line of text, or NULL on EOF or read error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-sbuf-get-non-whitespace"></a><h3>vips_sbuf_get_non_whitespace ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips_sbuf_get_non_whitespace (<em class="parameter"><code><a class="link" href="VipsSbuf.html" title="VipsSbuf"><span class="type">VipsSbuf</span></a> *sbuf</code></em>);</pre>
+<p>Fetch the next chunk of non-whitespace text from the source, and
+null-terminate it. </p>
+<p>After this, the next getc will be the first char of the next block of
+whitespace (or EOF). </p>
+<p>If the first getc is whitespace, stop instantly and return the empty
+string.</p>
+<p>If the item is longer than some arbitrary (but large) limit, it is
+truncated. </p>
+<p>The return value is owned by <em class="parameter"><code>sbuf</code></em>
+ and must not be freed. It 
+is valid until the next get call to <em class="parameter"><code>sbuf</code></em>
+.</p>
+<div class="refsect3">
+<a name="vips-sbuf-get-non-whitespace.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>sbuf</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-sbuf-get-non-whitespace.returns"></a><h4>Returns</h4>
+<p> the next block of non-whitespace, or NULL on EOF or read error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-sbuf-skip-whitespace"></a><h3>vips_sbuf_skip_whitespace ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_sbuf_skip_whitespace (<em class="parameter"><code><a class="link" href="VipsSbuf.html" title="VipsSbuf"><span class="type">VipsSbuf</span></a> *sbuf</code></em>);</pre>
+<p>After this, the next getc will be the first char of the next block of
+non-whitespace (or EOF).</p>
+<p>Also skip comments, ie. from any '#' character to the end of the line.</p>
+<div class="refsect3">
+<a name="vips-sbuf-skip-whitespace.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>sbuf</p></td>
+<td class="parameter_description"><p>source to operate on</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-sbuf-skip-whitespace.returns"></a><h4>Returns</h4>
+<p> 0 on success, or -1 on EOF.</p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="VipsSbuf.other_details"></a><h2>Types and Values</h2>
+<div class="refsect2">
+<a name="VIPS-SBUF-BUFFER-SIZE:CAPS"></a><h3>VIPS_SBUF_BUFFER_SIZE</h3>
+<pre class="programlisting">#define VIPS_SBUF_BUFFER_SIZE (4096)
+</pre>
+</div>
+</div>
+<div class="refsect1">
+<a name="VipsSbuf.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="VipsSbuf--input"></a><h3>The <code class="literal">“input”</code> property</h3>
+<pre class="programlisting">  “input”                    <a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> *</pre>
+<p>Source to load from.</p>
+<p>Flags: Read / Write</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="VipsSbuf.see-also"></a><h2>See Also</h2>
+foreign
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.28</div>
+</section>
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48550036-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
+</html>

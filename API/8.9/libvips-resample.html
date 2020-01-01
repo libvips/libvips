@@ -139,7 +139,7 @@ justifications.
 <span class="returnvalue">int</span>
 </td>
 <td class="function_name">
-<a class="link" href="libvips-resample.html#vips-thumbnail-stream" title="vips_thumbnail_stream ()">vips_thumbnail_stream</a> <span class="c_punctuation">()</span>
+<a class="link" href="libvips-resample.html#vips-thumbnail-source" title="vips_thumbnail_source ()">vips_thumbnail_source</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -866,9 +866,9 @@ vips_thumbnail_image (<em class="parameter"><code><a class="link" href="VipsImag
 </div>
 <hr>
 <div class="refsect2">
-<a name="vips-thumbnail-stream"></a><h3>vips_thumbnail_stream ()</h3>
+<a name="vips-thumbnail-source"></a><h3>vips_thumbnail_source ()</h3>
 <pre class="programlisting"><span class="returnvalue">int</span>
-vips_thumbnail_stream (<em class="parameter"><code><a class="link" href="VipsStreamou.html#VipsStreami"><span class="type">VipsStreami</span></a> *streami</code></em>,
+vips_thumbnail_source (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> *source</code></em>,
                        <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
                        <em class="parameter"><code><span class="type">int</span> width</code></em>,
                        <em class="parameter"><code>...</code></em>);</pre>
@@ -891,10 +891,10 @@ vips_thumbnail_stream (<em class="parameter"><code><a class="link" href="VipsStr
 <li class="listitem"><p><em class="parameter"><code>intent</code></em>
 : <a class="link" href="libvips-colour.html#VipsIntent" title="enum VipsIntent"><span class="type">VipsIntent</span></a>, rendering intent</p></li>
 </ul></div>
-<p>Exacty as <a class="link" href="libvips-resample.html#vips-thumbnail" title="vips_thumbnail ()"><code class="function">vips_thumbnail()</code></a>, but read from a stream. </p>
+<p>Exactly as <a class="link" href="libvips-resample.html#vips-thumbnail" title="vips_thumbnail ()"><code class="function">vips_thumbnail()</code></a>, but read from a source. </p>
 <p>See also: <a class="link" href="libvips-resample.html#vips-thumbnail" title="vips_thumbnail ()"><code class="function">vips_thumbnail()</code></a>.</p>
 <div class="refsect3">
-<a name="vips-thumbnail-stream.parameters"></a><h4>Parameters</h4>
+<a name="vips-thumbnail-source.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
 <colgroup>
 <col width="150px" class="parameters_name">
@@ -903,8 +903,8 @@ vips_thumbnail_stream (<em class="parameter"><code><a class="link" href="VipsStr
 </colgroup>
 <tbody>
 <tr>
-<td class="parameter_name"><p>streami</p></td>
-<td class="parameter_description"><p>stream to thumbnail</p></td>
+<td class="parameter_name"><p>source</p></td>
+<td class="parameter_description"><p>source to thumbnail</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 <tr>
@@ -926,7 +926,7 @@ vips_thumbnail_stream (<em class="parameter"><code><a class="link" href="VipsStr
 </table></div>
 </div>
 <div class="refsect3">
-<a name="vips-thumbnail-stream.returns"></a><h4>Returns</h4>
+<a name="vips-thumbnail-source.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
 </div>
 </div>
