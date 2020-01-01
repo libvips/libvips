@@ -12,12 +12,14 @@ explains what this feature is and why it could be useful.
 Previously, libvips let you use files and areas of memory as the source and
 destination of image processing pipelines. 
 
-The new `VipsStream` classes let you connect image processing pipelines
+The new `VipsConnection` classes let you connect image processing pipelines
 efficiently to *any* kind of data object, for example, pipes. You can now
 do this:
 
 ```
-cat k2.jpg | vips invert stdin[shrink=2] .jpg[Q=90] | cat > x.jpg
+cat k2.jpg | \
+  vips invert stdin[shrink=2] .jpg[Q=90] | \
+    cat > x.jpg
 ```
 
 The magic filename `"stdin"` opens a stream attached to file descriptor 0
@@ -72,83 +74,83 @@ Now *everything* overlaps, and latency should drop again.
 Here's how it looks in Python:
 
 ```python
-input_stream = pyvips.Streami.new_from_descriptor(4132)
-image = pyvips.Image.new_from_stream(input_stream, "")
+source = pyvips.Source.new_from_descriptor(4132)
+image = pyvips.Image.new_from_source(source, "")
 if image.width > 1000:
     # big image! .. shrink on load
-    image = pyvips.Image.new_from_stream(input_stream, "", shrink=2)
+    image = pyvips.Image.new_from_source(source, "", shrink=2)
 image = image.invert()
-output_stream = pyvips.Streamo.new_to_descriptor(2487)
-image.write_to_stream(output_stream)
+target = pyvips.Target.new_to_descriptor(2487)
+image.write_to_target(target)
 ```
 
-The neat part is that you can open the stream twice, once to get the header
+The neat part is that you can open the source twice, once to get the header
 and decide how to process it, and a second time with the parameters you want.
 
-Behind the scenes, the input stream is buffering bytes as they arrive from the
-input. If you reuse the stream, it'll automatically rewind and reuse the
+Behind the scenes, the source is buffering bytes as they arrive from the
+input. If you reuse the source, it'll automatically rewind and reuse the
 buffered bytes until they run out. Once you switch from reading the header to
 processing pixels, the buffer is discarded and bytes from the source are fed
 directly into the decompressor.
 
-The mechanism that supports this is set of calls loaders can use on streams to
+The mechanism that supports this is set of calls loaders can use on sources to
 hint what kind of access pattern they are likely to need, and what part of the
 image (header, pixels) they are working on.
 
-# User input streams
+# Custom sources
 
 libvips ships with streams that can attach to files, areas of memory, and file
 descriptors (eg. pipes). 
 
-You can add your own connection types by subclassing `VipsStreami` and
-`VipsStreamo` and implementing `read` and `write` methods, but this can be
+You can add your own connection types by subclassing `VipsSource` and
+`VipsTarget` and implementing `read` and `write` methods, but this can be
 awkward for languages other than C or C++.
 
 To make custom streams easy in languages like Python, there are classes called
-`VipsStreamiu` and `VipsStreamou`: *user* input and output streams. You
-can make your own stream objects like this:
+`VipsSourceCustom` and `VipsTargetCustom`. You can make your own stream
+objects like this:
 
 ```python
-input_file = open(sys.argv[1], "rb")
+file = open(sys.argv[1], "rb")
 
 def read_handler(size):
-    return input_file.read(size)
+    return file.read(size)
 
-input_stream = pyvips.Streamiu()
-input_stream.on_read(read_handler)
+source = pyvips.SourceCustom()
+source.on_read(read_handler)
 ```
 
-This makes a very simple stream which just reads from a file.  Without a
-seek handler, `Streami` will treat this as a pipe and do automatic header
+This makes a very simple source which just reads from a file.  Without a
+seek handler, `Source` will treat this as a pipe and do automatic header
 buffering.
 
-You can use it like this:
+Like any source, you can use it to make an image:
 
 ```python
-image = pyvips.Image.new_from_stream(input_stream, '')
+image = pyvips.Image.new_from_source(source, '')
 ```
 
 Or perhaps:
 
 ```python
-image = pyvips.Image.thumbnail_stream(input_stream, 128)
+image = pyvips.Image.thumbnail_source(source, 128)
 ```
 
 You could make one with a seek handler like this:
 
 ```python
-input_file = open(sys.argv[1], "rb")
+file = open(sys.argv[1], "rb")
 
 def read_handler(size):
-    return input_file.read(size)
+    return file.read(size)
 
 def seek_handler(offset, whence):
-    input_file.seek(offset, whence)
-    return input_file.tell()
+    file.seek(offset, whence)
+    return file.tell()
 
-input_stream = pyvips.Streamiu()
-input_stream.on_read(read_handler)
-input_stream.on_seek(seek_handler)
+source = pyvips.Source()
+source.on_read(read_handler)
+source.on_seek(seek_handler)
 ```
 
 A seek method is optional, but will help file formats like TIFF which seek
@@ -159,34 +161,34 @@ a lot during read.
 Output streams are almost the same:
 
 ```python
-output_file = open(sys.argv[2], "wb")
+file = open(sys.argv[2], "wb")
 
 def write_handler(chunk):
-    return output_file.write(chunk)
+    return file.write(chunk)
 
 def finish_handler():
-    output_file.close()
+    file.close()
 
-output_stream = pyvips.Streamou()
-output_stream.on_write(write_handler)
-output_stream.on_finish(finish_handler)
+target = pyvips.TargetCustom()
+target.on_write(write_handler)
+target.on_finish(finish_handler)
 ```
 
 So you can now do this!
 
 ```python
-image = pyvips.Image.new_from_stream(input_stream, '')
-image.write_to_stream(output_stream, '.png')
+image = pyvips.Image.new_from_source(source, '')
+image.write_to_target(target, '.png')
 ```
 
-And it'll copy between your two stream objects.
+And it'll copy between your two objects.
 
 # Loader and saver API
 
 There's quite a large chunk of new API for loaders and savers to use to hook
 themselves up to streams. We've rewritten jpg, png, webp, hdr (Radiance),
 tif (though only load, not save), svg and ppm/pfm/pnm to work only via this
-new stream class.
+new class.
 
 We plan to rework more loaders and savers in the next few libvips versions. The
-old file and buffer API will become a thin layer over the new stream system.
+old file and buffer API will become a thin layer over the new connection system.

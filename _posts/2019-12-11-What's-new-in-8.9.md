@@ -35,20 +35,27 @@ It's really easy to use. For example:
 
 ```
 aws s3 cp s3://mybucket/input.jpg - | \
-    vips thumbnail_stream [descriptor=0] .jpg 128 | \
+  vips thumbnail_stream [descriptor=0] .jpg 128 | \
     aws s3 cp - s3://mybucket/output.jpg
 ```
 
-You can link it to anything. In ruby-vips, for example, you can make a source
-like this:
+In ruby-vips you can make a source like this:
 
 ```ruby
 require 'vips'
 
-source = File.open "some/file/name", "rb"
-input_stream = Vips::Streamiu.new
-input_stream.on_read { |length| source.read length }
-image = Vips::Image.new_from_stream input_stream, "", access: "sequential"
+source = Vips::Source.new_from_file "some/file/name"
+image = Vips::Image.new_from_source source, "", access: "sequential"
+```
+
+You can also make sources from file descriptors and memory areas. You can also
+make custom sources like this:
+
+```ruby
+file = File.open "some/file/name", "rb"
+source = Vips::SourceCustom.new
+source.on_read { |length| file.read length }
+image = Vips::Image.new_from_source source, "", access: "sequential"
 ```
 
 And you can do anything in the `read` handler. You can define a `seek`
@@ -57,15 +64,22 @@ handler as well, if your source supports it.
 Write is just as simple:
 
 ```ruby
-dest = File.open ARGV[1], "w"
-output_stream = Vips::Streamou.new
-output_stream.on_write { |chunk| dest.write(chunk) }
-output_stream.on_finish { dest.close }
-
-image.write_to_stream output_stream, ".png"
+target = Vips::Target.new_to_file "some/file/name"
+image.write_to_target target, ".png"
 ```
 
-There was a [post a few weeks ago]({{ site.baseurl
+And again you can define custom targets:
+
+```ruby
+dest = File.open ARGV[1], "w"
+target = Vips::TargetCustom.new
+target.on_write { |chunk| dest.write(chunk) }
+image.write_to_target target, ".png"
+```
+
+There's an optional `finish` handler. 
+
+A [post a few weeks ago]({{ site.baseurl
 }}/2019/11/29/True-streaming-for-libvips.html) introducing this in more
 detail. pyvips, C and C++ also support this new feature.
 
