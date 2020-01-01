@@ -447,7 +447,7 @@ VipsImage *vips_image_new_from_memory_copy( const void *data, size_t size,
 VipsImage *vips_image_new_from_buffer( const void *buf, size_t len, 
 	const char *option_string, ... )
 	__attribute__((sentinel));
-VipsImage *vips_image_new_from_stream( VipsStreami *streami, 
+VipsImage *vips_image_new_from_source( VipsSource *source, 
 	const char *option_string, ... ) __attribute__((sentinel));
 VipsImage *vips_image_new_matrix( int width, int height );
 VipsImage *vips_image_new_matrixv( int width, int height, ... );
@@ -470,8 +470,8 @@ int vips_image_write_to_file( VipsImage *image, const char *name, ... )
 int vips_image_write_to_buffer( VipsImage *in, 
 	const char *suffix, void **buf, size_t *size, ... )
 	__attribute__((sentinel));
-int vips_image_write_to_stream( VipsImage *in, 
-	const char *suffix, VipsStreamo *streamo, ... )
+int vips_image_write_to_target( VipsImage *in, 
+	const char *suffix, VipsTarget *target, ... )
 	__attribute__((sentinel));
 void *vips_image_write_to_memory( VipsImage *in, size_t *size );
 

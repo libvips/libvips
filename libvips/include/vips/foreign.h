@@ -189,7 +189,7 @@ typedef struct _VipsForeignLoadClass {
 	 * This function should return %TRUE if the stream contains an image of 
 	 * this type. 
 	 */
-	gboolean (*is_a_stream)( VipsStreami *streami );
+	gboolean (*is_a_source)( VipsSource *source );
 
 	/* Get the flags from a filename. 
 	 *
@@ -240,14 +240,14 @@ GType vips_foreign_load_get_type(void);
 
 const char *vips_foreign_find_load( const char *filename );
 const char *vips_foreign_find_load_buffer( const void *data, size_t size );
-const char *vips_foreign_find_load_stream( VipsStreami *streami );
+const char *vips_foreign_find_load_source( VipsSource *source );
 
 VipsForeignFlags vips_foreign_flags( const char *loader, const char *filename );
 gboolean vips_foreign_is_a( const char *loader, const char *filename );
 gboolean vips_foreign_is_a_buffer( const char *loader, 
 	const void *data, size_t size );
-gboolean vips_foreign_is_a_stream( const char *loader, 
-	VipsStreami *streami );
+gboolean vips_foreign_is_a_source( const char *loader, 
+	VipsSource *source );
 
 void vips_foreign_load_invalidate( VipsImage *image );
 
@@ -354,7 +354,7 @@ GType vips_foreign_save_get_type(void);
 const char *vips_foreign_find_save( const char *filename );
 gchar **vips_foreign_get_suffixes( void );
 const char *vips_foreign_find_save_buffer( const char *suffix );
-const char *vips_foreign_find_save_stream( const char *suffix );
+const char *vips_foreign_find_save_target( const char *suffix );
 
 int vips_vipsload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
@@ -369,7 +369,7 @@ int vips_jpegload( const char *filename, VipsImage **out, ... )
 int vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	__attribute__((sentinel));
 
-int vips_jpegsave_stream( VipsImage *in, VipsStreamo *streamo, ... )
+int vips_jpegsave_target( VipsImage *in, VipsTarget *target, ... )
 	__attribute__((sentinel));
 int vips_jpegsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
@@ -399,14 +399,14 @@ typedef enum {
 	VIPS_FOREIGN_WEBP_PRESET_LAST
 } VipsForeignWebpPreset;
 
-int vips_webpload_stream( VipsStreami *streami, VipsImage **out, ... )
+int vips_webpload_source( VipsSource *source, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_webpload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_webpload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	__attribute__((sentinel));
 
-int vips_webpsave_stream( VipsImage *in, VipsStreamo *streamo, ... )
+int vips_webpsave_target( VipsImage *in, VipsTarget *target, ... )
 	__attribute__((sentinel));
 int vips_webpsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
@@ -481,7 +481,7 @@ int vips_tiffload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_tiffload_stream( VipsStreami *streami, VipsImage **out, ... )
+int vips_tiffload_source( VipsSource *source, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_tiffsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
@@ -549,13 +549,13 @@ typedef enum /*< flags >*/ {
 	VIPS_FOREIGN_PNG_FILTER_ALL = 0xF8
 } VipsForeignPngFilter;
 
-int vips_pngload_stream( VipsStreami *streami, VipsImage **out, ... )
+int vips_pngload_source( VipsSource *source, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_pngload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	__attribute__((sentinel));
-int vips_pngsave_stream( VipsImage *in, VipsStreamo *streamo, ... )
+int vips_pngsave_target( VipsImage *in, VipsTarget *target, ... )
 	__attribute__((sentinel));
 int vips_pngsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
@@ -570,7 +570,7 @@ int vips_ppmsave( VipsImage *in, const char *filename, ... )
 int vips_matload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 
-int vips_radload_stream( VipsStreami *streami, VipsImage **out, ... )
+int vips_radload_source( VipsSource *source, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_radload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
@@ -580,7 +580,7 @@ int vips_radsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
 int vips_radsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 	__attribute__((sentinel));
-int vips_radsave_stream( VipsImage *in, VipsStreamo *streamo, ... )
+int vips_radsave_target( VipsImage *in, VipsTarget *target, ... )
 	__attribute__((sentinel));
 
 int vips_pdfload( const char *filename, VipsImage **out, ... )

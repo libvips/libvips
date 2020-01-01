@@ -32,8 +32,8 @@
  * 29/7/19 Kyle-Kyle
  * 	- fix a loop with malformed ppm
  * 13/11/19
- * 	- redone with streams
- * 	- sequential load, plus mmap for filename streams
+ * 	- redone with source/target
+ * 	- sequential load, plus mmap for filename sources
  * 	- faster plus lower memory use
  */
 
@@ -88,10 +88,10 @@
 typedef struct _VipsForeignLoadPpm {
 	VipsForeignLoad parent_object;
 
-	/* The stream we load from, and the buffered wrapper for it.
+	/* The source we load from, and the buffered wrapper for it.
 	 */
-	VipsStreami *streami;
-	VipsBufis *bufis;
+	VipsSource *source;
+	VipsSbuf *sbuf;
 
 	/* Properties of this ppm, from the header.
 	 */
@@ -134,11 +134,11 @@ static char *magic_names[] = {
 const char *vips__ppm_suffs[] = { ".ppm", ".pgm", ".pbm", ".pfm", NULL };
 
 static gboolean
-vips_foreign_load_ppm_is_a_stream( VipsStreami *streami )
+vips_foreign_load_ppm_is_a_source( VipsSource *source )
 {
 	const unsigned char *data;
 
-	if( (data = vips_streami_sniff( streami, 2 )) ) { 
+	if( (data = vips_source_sniff( source, 2 )) ) { 
 		int i;
 
 		for( i = 0; i < VIPS_NUMBER( magic_names ); i++ )
@@ -150,12 +150,12 @@ vips_foreign_load_ppm_is_a_stream( VipsStreami *streami )
 }
 
 static int
-get_int( VipsBufis *bufis, int *i )
+get_int( VipsSbuf *sbuf, int *i )
 {
 	const char *txt;
 
-	if( vips_bufis_skip_whitespace( bufis ) ||
-		!(txt = vips_bufis_get_non_whitespace( bufis )) )
+	if( vips_sbuf_skip_whitespace( sbuf ) ||
+		!(txt = vips_sbuf_get_non_whitespace( sbuf )) )
 		return( -1 );
 
 	*i = atoi( txt ); 
@@ -164,12 +164,12 @@ get_int( VipsBufis *bufis, int *i )
 }
 
 static int
-get_float( VipsBufis *bufis, float *f )
+get_float( VipsSbuf *sbuf, float *f )
 {
 	const char *txt;
 
-	if( vips_bufis_skip_whitespace( bufis ) ||
-		!(txt = vips_bufis_get_non_whitespace( bufis )) )
+	if( vips_sbuf_skip_whitespace( sbuf ) ||
+		!(txt = vips_sbuf_get_non_whitespace( sbuf )) )
 		return( -1 );
 
 	/* We don't want the locale str -> float conversion.
@@ -184,14 +184,14 @@ vips_foreign_load_ppm_dispose( GObject *gobject )
 {
 	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) gobject;
 
-	VIPS_UNREF( ppm->bufis );
-	VIPS_UNREF( ppm->streami );
+	VIPS_UNREF( ppm->sbuf );
+	VIPS_UNREF( ppm->source );
 
 	G_OBJECT_CLASS( vips_foreign_load_ppm_parent_class )->
 		dispose( gobject );
 }
 
-/* Scan the stream header into our class.
+/* Scan the header into our class.
  */
 static int
 vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
@@ -213,13 +213,13 @@ vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
 		1, 1, 1, 0, 0, 0, 0, 0
 	};
 
-	if( vips_streami_rewind( ppm->streami ) )
+	if( vips_source_rewind( ppm->source ) )
 		return( -1 );
 
 	/* Read in the magic number.
 	 */
-	buf[0] = VIPS_BUFIS_GETC( ppm->bufis );
-	buf[1] = VIPS_BUFIS_GETC( ppm->bufis );
+	buf[0] = VIPS_SBUF_GETC( ppm->sbuf );
+	buf[1] = VIPS_SBUF_GETC( ppm->sbuf );
 
 	for( i = 0; i < VIPS_NUMBER( magic_names ); i++ )
 		if( vips_isprefix( magic_names[i], buf ) ) 
@@ -239,8 +239,8 @@ vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
 
 	/* Read in size.
 	 */
-	if( get_int( ppm->bufis, &ppm->width ) ||
-		get_int( ppm->bufis, &ppm->height ) )
+	if( get_int( ppm->sbuf, &ppm->width ) ||
+		get_int( ppm->sbuf, &ppm->height ) )
 		return( -1 );
 
 	/* Read in max value / scale for >1 bit images.
@@ -248,7 +248,7 @@ vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
 	if( ppm->bits > 1 ) {
 		if( ppm->index == 6 || 
 			ppm->index == 7 ) {
-			if( get_float( ppm->bufis, &ppm->scale ) )
+			if( get_float( ppm->sbuf, &ppm->scale ) )
 				return( -1 );
 
 			/* Scale > 0 means big-endian.
@@ -256,7 +256,7 @@ vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
 			ppm->msb_first = ppm->scale > 0;
 		}
 		else {
-			if( get_int( ppm->bufis, &ppm->max_value ) )
+			if( get_int( ppm->sbuf, &ppm->max_value ) )
 				return( -1 );
 
 			if( ppm->max_value > 255 )
@@ -270,7 +270,7 @@ vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
 	 * character before the data starts.
 	 */
 	if( !ppm->ascii && 
-		!isspace( VIPS_BUFIS_GETC( ppm->bufis ) ) ) {
+		!isspace( VIPS_SBUF_GETC( ppm->sbuf ) ) ) {
 		vips_error( class->nickname, "%s", 
 			_( "no whitespace before start of binary data" ) );
 		return( -1 );
@@ -331,14 +331,14 @@ vips_foreign_load_ppm_get_flags( VipsForeignLoad *load )
 
 	flags = 0;
 
-	/* If this streami supports fast mmap and this PPM is >=8 bit binary,
+	/* If this source supports fast mmap and this PPM is >=8 bit binary,
 	 * then we can mmap the file and support partial load. Otherwise,
 	 * it's sequential.
 	 */
 	if( !ppm->have_read_header &&
 		vips_foreign_load_ppm_parse_header( ppm ) )
 		return( 0 );
-	if( vips_streami_is_mappable( ppm->streami ) &&
+	if( vips_source_is_mappable( ppm->source ) &&
 		!ppm->ascii && 
 		ppm->bits >= 8 )
 		flags |= VIPS_FOREIGN_PARTIAL;
@@ -366,7 +366,7 @@ vips_foreign_load_ppm_set_image( VipsForeignLoadPpm *ppm, VipsImage *image )
 			"ppm-max-value", VIPS_ABS( ppm->max_value ) );
 
 	VIPS_SETSTR( image->filename, 
-		vips_stream_filename( VIPS_STREAM( ppm->bufis->streami ) ) );
+		vips_connection_filename( VIPS_CONNECTION( ppm->sbuf->source ) ) );
 }
 
 static int
@@ -380,7 +380,7 @@ vips_foreign_load_ppm_header( VipsForeignLoad *load )
 
 	vips_foreign_load_ppm_set_image( ppm, load->out );
 
-	vips_streami_minimise( ppm->streami );
+	vips_source_minimise( ppm->source );
 
 	return( 0 );
 }
@@ -397,9 +397,9 @@ vips_foreign_load_ppm_map( VipsForeignLoadPpm *ppm, VipsImage *image )
 	size_t length;
 	const void *data;
 
-	vips_bufis_unbuffer( ppm->bufis );
-	header_offset = vips_streami_seek( ppm->streami, 0, SEEK_CUR );
-	data = vips_streami_map( ppm->streami, &length );
+	vips_sbuf_unbuffer( ppm->sbuf );
+	header_offset = vips_source_seek( ppm->source, 0, SEEK_CUR );
+	data = vips_source_map( ppm->source, &length );
 	if( header_offset < 0 || 
 		!data )
 		return( -1 );
@@ -435,7 +435,7 @@ vips_foreign_load_ppm_generate_binary( VipsRegion *or,
 
 		size_t bytes_read;
 
-		bytes_read = vips_streami_read( ppm->streami, q, sizeof_line );
+		bytes_read = vips_source_read( ppm->source, q, sizeof_line );
 		if( bytes_read != sizeof_line ) {
 			vips_error( class->nickname, 
 				"%s", _( "file truncated" ) );
@@ -462,7 +462,7 @@ vips_foreign_load_ppm_generate_1bit_ascii( VipsRegion *or,
 		for( x = 0; x < image->Xsize; x++ ) {
 			int val;
 
-			if( get_int( ppm->bufis, &val ) )
+			if( get_int( ppm->sbuf, &val ) )
 				return( -1 );
 
 			if( val )
@@ -486,7 +486,7 @@ vips_foreign_load_ppm_generate_1bit_binary( VipsRegion *or,
 	int x, y;
 	int bits;
 
-	bits = VIPS_BUFIS_GETC( ppm->bufis );
+	bits = VIPS_SBUF_GETC( ppm->sbuf );
 	for( y = 0; y < r->height; y++ ) {
 		VipsPel *q = VIPS_REGION_ADDR( or, 0, r->top + y );
 
@@ -494,13 +494,13 @@ vips_foreign_load_ppm_generate_1bit_binary( VipsRegion *or,
 			q[x] = (bits & 128) ? 0 : 255;
 			bits = VIPS_LSHIFT_INT( bits, 1 );
 			if( (x & 7) == 7 )
-				bits = VIPS_BUFIS_GETC( ppm->bufis );
+				bits = VIPS_SBUF_GETC( ppm->sbuf );
 		}
 
 		/* Skip any unaligned bits at end of line.
 		 */
 		if( (x & 7) != 0 )
-			bits = VIPS_BUFIS_GETC( ppm->bufis );
+			bits = VIPS_SBUF_GETC( ppm->sbuf );
 	}
 
 	return( 0 );
@@ -523,7 +523,7 @@ vips_foreign_load_ppm_generate_ascii_int( VipsRegion *or,
 		for( i = 0; i < n_elements; i++ ) {
 			int val;
 
-			if( get_int( ppm->bufis, &val ) )
+			if( get_int( ppm->sbuf, &val ) )
 				return( -1 );
 			
 			switch( image->BandFmt ) {
@@ -562,9 +562,9 @@ vips_foreign_load_ppm_load( VipsForeignLoad *load )
 		vips_foreign_load_ppm_parse_header( ppm ) )
 		return( 0 );
 
-	/* If the stream is mappable and this is a binary file, we can map it.
+	/* If the source is mappable and this is a binary file, we can map it.
 	 */
-	if( vips_streami_is_mappable( ppm->streami ) &&
+	if( vips_source_is_mappable( ppm->source ) &&
 		!ppm->ascii && 
 		ppm->bits >= 8 ) {
 		if( vips_foreign_load_ppm_map( ppm, load->real ) )
@@ -581,7 +581,7 @@ vips_foreign_load_ppm_load( VipsForeignLoad *load )
 			/* The binary loader does not use the buffered IO 
 			 * object.
 			 */
-			vips_bufis_unbuffer( ppm->bufis ); 
+			vips_sbuf_unbuffer( ppm->sbuf ); 
 		}
 		else if( !ppm->ascii && ppm->bits == 1 )
 			generate = vips_foreign_load_ppm_generate_1bit_binary;
@@ -599,7 +599,7 @@ vips_foreign_load_ppm_load( VipsForeignLoad *load )
 			return( -1 );
 	}
 
-	if( vips_streami_decode( ppm->streami ) )
+	if( vips_source_decode( ppm->source ) )
 		return( -1 );
 
 	return( 0 );
@@ -653,13 +653,13 @@ G_DEFINE_TYPE( VipsForeignLoadPpmFile, vips_foreign_load_ppm_file,
 static gboolean
 vips_foreign_load_ppm_file_is_a( const char *filename )
 {
-	VipsStreami *streami;
+	VipsSource *source;
 	gboolean result;
 
-	if( !(streami = vips_streami_new_from_file( filename )) )
+	if( !(source = vips_source_new_from_file( filename )) )
 		return( FALSE );
-	result = vips_foreign_load_ppm_is_a_stream( streami );
-	VIPS_UNREF( streami );
+	result = vips_foreign_load_ppm_is_a_source( source );
+	VIPS_UNREF( source );
 
 	return( result );
 }
@@ -671,10 +671,10 @@ vips_foreign_load_ppm_file_build( VipsObject *object )
 	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) object;
 
 	if( file->filename ) {
-		if( !(ppm->streami = 
-			vips_streami_new_from_file( file->filename )) )
+		if( !(ppm->source = 
+			vips_source_new_from_file( file->filename )) )
 			return( -1 );
-		ppm->bufis = vips_bufis_new_from_streami( ppm->streami );
+		ppm->sbuf = vips_sbuf_new_from_source( ppm->source );
 	}
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_ppm_file_parent_class )->

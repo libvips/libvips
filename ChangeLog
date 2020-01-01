@@ -16,7 +16,7 @@
 - add @interpretation and @format to rawload
 - nifti load/save uses double for all floating point metadata
 - add vips_error_buffer_copy()
-- add VipsStream: a universal IO class for loaders and savers
+- add VipsSource and VipsTarget: a universal IO class for loaders and savers
 - jpeg, png, tiff (though not tiffsave), rad, svg, ppm and webp use the 
   new IO class
 - rewritten ppm load/save is faster and uses less memory

@@ -17,7 +17,7 @@
  * 8/7/19
  * 	- set loop even if we strip
  * 14/10/19
- * 	- revise for stream IO
+ * 	- revise for target IO
  */
 
 /*
@@ -525,7 +525,7 @@ vips_webp_add_metadata( VipsWebPWrite *write )
 }
 
 int
-vips__webp_write_stream( VipsImage *image, VipsStreamo *streamo,
+vips__webp_write_target( VipsImage *image, VipsTarget *target,
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
 	int alpha_q, int reduction_effort,
@@ -549,13 +549,13 @@ vips__webp_write_stream( VipsImage *image, VipsStreamo *streamo,
 		return( -1 );
 	}
 
-	if( vips_streamo_write( streamo, 
+	if( vips_target_write( target, 
 		write.memory_writer.mem, write.memory_writer.size ) ) {
 		vips_webp_write_unset( &write );
 		return( -1 );
 	}
 
-	vips_streamo_finish( streamo );
+	vips_target_finish( target );
 
 	vips_webp_write_unset( &write );
 

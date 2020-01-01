@@ -113,7 +113,7 @@ extern "C" {
 #include <vips/object.h>
 #include <vips/type.h>
 #include <vips/gate.h>
-#include <vips/stream.h>
+#include <vips/connection.h>
 #include <vips/bufis.h>
 
 #include <vips/version.h>

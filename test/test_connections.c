@@ -20,7 +20,7 @@ typedef struct _MyOutput {
 } MyOutput;
 
 static gint64
-read_cb( VipsStreamiu *streamiu, 
+read_cb( VipsSourceCustom *source_custom, 
 	void *buffer, gint64 length, MyInput *my_input )
 {
 	gint64 bytes_read = VIPS_MIN( length, 
@@ -38,7 +38,7 @@ read_cb( VipsStreamiu *streamiu,
 }
 
 static gint64
-seek_cb( VipsStreamiu *streamiu, 
+seek_cb( VipsSourceCustom *source_custom, 
 	gint64 offset, int whence, MyInput *my_input )
 {
 	gint64 new_pos;
@@ -71,7 +71,7 @@ seek_cb( VipsStreamiu *streamiu,
 }
 
 static gint64
-write_cb( VipsStreamou *streamou, 
+write_cb( VipsTargetCustom *target_custom, 
 	const void *data, gint64 length, MyOutput *my_output )
 {
 	gint64 bytes_written;
@@ -86,7 +86,7 @@ write_cb( VipsStreamou *streamou,
 }
 
 static void
-finish_cb( VipsStreamou *streamou, MyOutput *my_output ) 
+finish_cb( VipsTargetCustom *target_custom, MyOutput *my_output ) 
 {
 	/*
 	printf( "finish_cb:\n" );
@@ -101,8 +101,8 @@ main( int argc, char **argv )
 {
 	MyInput my_input;
 	MyOutput my_output;
-	VipsStreamiu *streamiu;
-	VipsStreamou *streamou;
+	VipsSourceCustom *source_custom;
+	VipsTargetCustom *target_custom;
 	VipsImage *image;
 
 	if( VIPS_INIT( NULL ) )
@@ -120,11 +120,14 @@ main( int argc, char **argv )
 		(char **) &my_input.contents, &my_input.length, NULL ) ) 
 		vips_error_exit( "unable to load from %s", my_input.filename );
 
-	streamiu = vips_streamiu_new();
-	g_signal_connect( streamiu, "seek", G_CALLBACK( seek_cb ), &my_input );
-	g_signal_connect( streamiu, "read", G_CALLBACK( read_cb ), &my_input );
+	source_custom = vips_source_custom_new();
+	g_signal_connect( source_custom, "seek", 
+		G_CALLBACK( seek_cb ), &my_input );
+	g_signal_connect( source_custom, "read", 
+		G_CALLBACK( read_cb ), &my_input );
 
-	if( !(image = vips_image_new_from_stream( VIPS_STREAMI( streamiu ), "",
+	if( !(image = vips_image_new_from_source( 
+		VIPS_SOURCE( source_custom ), "",
 		"access", VIPS_ACCESS_SEQUENTIAL,
 		NULL )) ) 
 		vips_error_exit( NULL );
@@ -136,19 +139,19 @@ main( int argc, char **argv )
 		O_WRONLY | O_CREAT | O_TRUNC, 0644 )) == -1 )
 		vips_error_exit( "unable to save to %s", my_output.filename );
 
-	streamou = vips_streamou_new();
-	g_signal_connect( streamou, "write",
+	target_custom = vips_target_custom_new();
+	g_signal_connect( target_custom, "write",
 		G_CALLBACK( write_cb ), &my_output );
-	g_signal_connect( streamou, "finish", 
+	g_signal_connect( target_custom, "finish", 
 		G_CALLBACK( finish_cb ), &my_output );
 
-	if( vips_image_write_to_stream( image, ".png", 
-		VIPS_STREAMO( streamou ), NULL ) ) 
+	if( vips_image_write_to_target( image, ".png", 
+		VIPS_TARGET( target_custom ), NULL ) ) 
 		vips_error_exit( NULL );
 
 	VIPS_UNREF( image );
-	VIPS_UNREF( streamiu );
-	VIPS_UNREF( streamou );
+	VIPS_UNREF( source_custom );
+	VIPS_UNREF( target_custom );
 
 	return( 0 );
 }

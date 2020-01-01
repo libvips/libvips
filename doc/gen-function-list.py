@@ -22,13 +22,18 @@ from pyvips import Introspect, Operation, Error, \
 _OPERATION_DEPRECATED = 8
 
 
-def gen_function(operation_name):
+def gen_function(operation_name, overloads):
     intro = Introspect.get(operation_name)
+
+    c_operations = 'vips_{}()'.format(operation_name)
+
+    if overloads:
+        c_operations += ', ' + (', '.join('vips_{}()'.format(n) for n in overloads))
 
     result = '<row>\n'
     result += '  <entry>{}</entry>\n'.format(operation_name)
     result += '  <entry>{}</entry>\n'.format(intro.description.capitalize())
-    result += '  <entry>vips_{}()</entry>\n'.format(operation_name)
+    result += '  <entry>{}</entry>\n'.format(c_operations)
     result += '</row>'
 
     return result
@@ -71,10 +76,10 @@ def gen_function_list():
         'complex2': ['cross_phase'],
         'complexget': ['real', 'imag'],
         'draw_circle': ['draw_circle1'],
-        'draw_flood': ['draw_flood'],
+        'draw_flood': ['draw_flood1'],
         'draw_line': ['draw_line1'],
         'draw_mask': ['draw_mask1'],
-        'draw_rect': ['rect', 'draw_rect1', 'draw_point', 'draw_point1'],
+        'draw_rect': ['draw_rect1', 'draw_point', 'draw_point1'],
         'extract_area': ['crop'],
         'linear': ['linear1'],
         'math': ['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'exp', 'exp10', 'log', 'log10'],
@@ -95,9 +100,7 @@ def gen_function_list():
                                     [o + '_const1' for o in overloads['relational']]
 
     for nickname in all_nicknames:
-        result = gen_function(nickname)
-        if nickname in overloads:
-            result = result.replace('()', '(), ' + (', '.join('vips_{}()'.format(n) for n in overloads[nickname])))
+        result = gen_function(nickname, overloads[nickname] if nickname in overloads else None)
         print(result)
 
 

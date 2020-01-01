@@ -19,7 +19,7 @@
  * 9/10/18
  * 	- fix up vips_image_dump(), it was still using ints not enums
  * 10/12/19
- * 	- add vips_image_new_from_stream() / vips_image_write_to_stream()
+ * 	- add vips_image_new_from_source() / vips_image_write_to_target()
  */
 
 /*
@@ -1907,7 +1907,7 @@ vips_image_new_from_file( const char *name, ... )
 {
 	char filename[VIPS_PATH_MAX];
 	char option_string[VIPS_PATH_MAX];
-	VipsStreami *streami;
+	VipsSource *source;
 	const char *operation_name;
 	va_list ap;
 	int result;
@@ -1917,22 +1917,22 @@ vips_image_new_from_file( const char *name, ... )
 
 	vips__filename_split8( name, filename, option_string );
 
-	/* Search with the new stream API first, then fall back to the older
+	/* Search with the new source API first, then fall back to the older
 	 * mechanism in case the loader we need has not been converted yet.
 	 *
 	 * We need to hide any errors from this first phase.
 	 */
-	if( !(streami = vips_streami_new_from_file( filename )) )
+	if( !(source = vips_source_new_from_file( filename )) )
 		return( NULL );
 
 	vips_error_freeze();
-	operation_name = vips_foreign_find_load_stream( streami );
+	operation_name = vips_foreign_find_load_source( source );
 	vips_error_thaw();
 
 	if( operation_name ) { 
 		va_start( ap, name );
 		result = vips_call_split_option_string( operation_name, 
-			option_string, ap, streami, &out );
+			option_string, ap, source, &out );
 		va_end( ap );
 	}
 	else {
@@ -1947,7 +1947,7 @@ vips_image_new_from_file( const char *name, ... )
 		va_end( ap );
 	}
 
-	VIPS_UNREF( streami );
+	VIPS_UNREF( source );
 
 	if( result )
 		return( NULL ); 
@@ -2159,7 +2159,7 @@ VipsImage *
 vips_image_new_from_buffer( const void *buf, size_t len, 
 	const char *option_string, ... )
 {
-	VipsStreami *streami;
+	VipsSource *source;
 	const char *operation_name;
 	va_list ap;
 	int result;
@@ -2167,16 +2167,16 @@ vips_image_new_from_buffer( const void *buf, size_t len,
 
 	vips_check_init();
 
-        /* Search with the new stream API first, then fall back to the older
+        /* Search with the new source API first, then fall back to the older
          * mechanism in case the loader we need has not been converted yet.
          */
-        if( !(streami = vips_streami_new_from_memory( buf, len )) )
+        if( !(source = vips_source_new_from_memory( buf, len )) )
                 return( NULL );
 
-        if( (operation_name = vips_foreign_find_load_stream( streami )) ) {
+        if( (operation_name = vips_foreign_find_load_source( source )) ) {
                 va_start( ap, option_string );
                 result = vips_call_split_option_string( operation_name,
-                        option_string, ap, streami, &out );
+                        option_string, ap, source, &out );
                 va_end( ap );
         }
 	else {
@@ -2198,7 +2198,7 @@ vips_image_new_from_buffer( const void *buf, size_t len,
 		vips_area_unref( VIPS_AREA( blob ) );
         }
 
-        VIPS_UNREF( streami );
+        VIPS_UNREF( source );
 
 	if( result )
 		return( NULL );
@@ -2207,27 +2207,28 @@ vips_image_new_from_buffer( const void *buf, size_t len,
 }
 
 /**
- * vips_image_new_from_stream: (constructor)
- * @streami: (transfer none): stream to fetch image from
+ * vips_image_new_from_source: (constructor)
+ * @source: (transfer none): source to fetch image from
  * @option_string: set of extra options as a string
  * @...: %NULL-terminated list of optional named arguments
  *
- * Loads an image from the formatted stream @input, 
- * loader recommended by vips_foreign_find_load_stream(). 
+ * Loads an image from the formatted source @input, 
+ * loader recommended by vips_foreign_find_load_source(). 
  *
  * Load options may be given in @option_string as "[name=value,...]" or given as
  * a NULL-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the string. 
  *
- * See also: vips_image_write_to_stream().
+ * See also: vips_image_write_to_target().
  *
  * Returns: (transfer full): the new #VipsImage, or %NULL on error.
  */
 VipsImage *
-vips_image_new_from_stream( VipsStreami *streami, 
+vips_image_new_from_source( VipsSource *source, 
 	const char *option_string, ... )
 {
-	const char *filename = vips_stream_filename( VIPS_STREAM( streami ) );
+	const char *filename = 
+		vips_connection_filename( VIPS_CONNECTION( source ) );
 
 	const char *operation_name;
 	va_list ap;
@@ -2237,13 +2238,13 @@ vips_image_new_from_stream( VipsStreami *streami,
 	vips_check_init();
 
 	vips_error_freeze();
-	operation_name = vips_foreign_find_load_stream( streami );
+	operation_name = vips_foreign_find_load_source( source );
 	vips_error_thaw();
 
         if( operation_name ) { 
 		va_start( ap, option_string );
 		result = vips_call_split_option_string( operation_name,
-			option_string, ap, streami, &out );
+			option_string, ap, source, &out );
 		va_end( ap );
 	}
 	else if( filename ) {
@@ -2257,14 +2258,14 @@ vips_image_new_from_stream( VipsStreami *streami,
 			option_string, ap, filename, &out );
 		va_end( ap );
 	}
-	else if( vips_streami_is_mappable( streami ) ) {
+	else if( vips_source_is_mappable( source ) ) {
 		/* Try with the old buffer-based loaders.
 		 */
 		VipsBlob *blob;
 		const void *buf;
 		size_t len;
 
-		if( !(blob = vips_streami_map_blob( streami )) )
+		if( !(blob = vips_source_map_blob( source )) )
 			return( NULL );
 
 		buf = vips_blob_get( blob, &len );
@@ -2283,7 +2284,7 @@ vips_image_new_from_stream( VipsStreami *streami,
 	}
 	else {
 		vips_error( "VipsImage",
-			"%s", _( "unable to load stream" ) );
+			"%s", _( "unable to load source" ) );
 		result = -1;
 	}
 
@@ -2712,7 +2713,7 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
 	va_list ap;
 	int result;
 
-	/* Save with the new stream API if we can. Fall back to the older
+	/* Save with the new target API if we can. Fall back to the older
 	 * mechanism in case the loader we need has not been converted yet.
 	 *
 	 * We need to hide any errors from this first phase.
@@ -2720,21 +2721,21 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
 	vips__filename_split8( name, filename, option_string );
 
 	vips_error_freeze();
-	operation_name = vips_foreign_find_save_stream( filename );
+	operation_name = vips_foreign_find_save_target( filename );
 	vips_error_thaw();
 
 	if( operation_name ) {
-		VipsStreamo *streamo;
+		VipsTarget *target;
 
-		if( !(streamo = vips_streamo_new_to_file( filename )) )
+		if( !(target = vips_target_new_to_file( filename )) )
 			return( -1 );
 
 		va_start( ap, name );
 		result = vips_call_split_option_string( operation_name, 
-			option_string, ap, image, streamo );
+			option_string, ap, image, target );
 		va_end( ap );
 
-		VIPS_UNREF( streamo );
+		VIPS_UNREF( target );
 	}
 	else if( (operation_name = vips_foreign_find_save( filename )) ) {
 		va_start( ap, name );
@@ -2785,24 +2786,24 @@ vips_image_write_to_buffer( VipsImage *in,
 
 	vips__filename_split8( suffix, filename, option_string );
 
-	if( (operation_name = vips_foreign_find_save_stream( filename )) ) {
-		VipsStreamo *streamo;
+	if( (operation_name = vips_foreign_find_save_target( filename )) ) {
+		VipsTarget *target;
 
-		if( !(streamo = vips_streamo_new_to_memory()) )
+		if( !(target = vips_target_new_to_memory()) )
 			return( -1 );
 
 		va_start( ap, size );
 		result = vips_call_split_option_string( operation_name, 
-			option_string, ap, in, streamo );
+			option_string, ap, in, target );
 		va_end( ap );
 
 		if( result ) {
-			VIPS_UNREF( streamo );
+			VIPS_UNREF( target );
 			return( -1 );
 		}
 
-		g_object_get( streamo, "blob", &blob, NULL );
-		VIPS_UNREF( streamo );
+		g_object_get( target, "blob", &blob, NULL );
+		VIPS_UNREF( target );
 	}
 	else if( (operation_name = 
 		vips_foreign_find_save_buffer( filename )) ) {
@@ -2837,10 +2838,10 @@ vips_image_write_to_buffer( VipsImage *in,
 }
 
 /**
- * vips_image_write_to_stream: (method)
+ * vips_image_write_to_target: (method)
  * @in: image to write
  * @suffix: format to write 
- * @streamo: stream to write to
+ * @target: target to write to
  * @...: %NULL-terminated list of optional named arguments
  *
  * Writes @in to @output in format @suffix.
@@ -2850,15 +2851,15 @@ vips_image_write_to_buffer( VipsImage *in,
  * Options given in the function call override options given in the filename. 
  *
  * You can call the various save operations directly if you wish, see
- * vips_jpegsave_stream(), for example. 
+ * vips_jpegsave_target(), for example. 
  *
  * See also: vips_image_write_to_file().
  *
  * Returns: 0 on success, -1 on error
  */
 int
-vips_image_write_to_stream( VipsImage *in, 
-	const char *suffix, VipsStreamo *streamo, ... )
+vips_image_write_to_target( VipsImage *in, 
+	const char *suffix, VipsTarget *target, ... )
 {
 	char filename[VIPS_PATH_MAX];
 	char option_string[VIPS_PATH_MAX];
@@ -2867,12 +2868,12 @@ vips_image_write_to_stream( VipsImage *in,
 	int result;
 
 	vips__filename_split8( suffix, filename, option_string );
-	if( !(operation_name = vips_foreign_find_save_stream( filename )) )
+	if( !(operation_name = vips_foreign_find_save_target( filename )) )
 		return( -1 );
 
-	va_start( ap, streamo );
+	va_start( ap, target );
 	result = vips_call_split_option_string( operation_name, option_string, 
-		ap, in, streamo );
+		ap, in, target );
 	va_end( ap );
 
 	if( result )

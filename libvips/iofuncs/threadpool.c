@@ -85,6 +85,7 @@
  * @stability: Stable
  * @see_also: <link linkend="libvips-generate">generate</link>
  * @include: vips/vips.h
+ * @title: VipsThreadpool
  *
  * vips_threadpool_run() loops a set of threads over an image. Threads take it
  * in turns to allocate units of work (a unit might be a tile in an image),

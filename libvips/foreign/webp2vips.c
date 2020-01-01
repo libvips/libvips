@@ -25,7 +25,7 @@
  * 6/7/19 [deftomat]
  * 	- support array of delays 
  * 14/10/19
- * 	- revise for stream IO
+ * 	- revise for source IO
  */
 
 /*
@@ -81,7 +81,7 @@
 /* What we track during a read.
  */
 typedef struct {
-	VipsStreami *streami;
+	VipsSource *source;
 
 	/* The data we load, as a webp object.
 	 */
@@ -311,13 +311,13 @@ vips_image_paint_image( VipsImage *frame,
 }
 
 int
-vips__iswebp_stream( VipsStreami *streami )
+vips__iswebp_source( VipsSource *source )
 {
 	const unsigned char *p;
 
 	/* WebP is "RIFF xxxx WEBP" at the start, so we need 12 bytes.
 	 */
-	if( (p = vips_streami_sniff( streami, 12 )) &&
+	if( (p = vips_source_sniff( source, 12 )) &&
 		vips_isprefix( "RIFF", (char *) p ) &&
 		vips_isprefix( "WEBP", (char *) p + 8 ) )
 		return( 1 );
@@ -333,7 +333,7 @@ read_free( Read *read )
 	VIPS_FREEF( WebPDemuxDelete, read->demux );
 	WebPFreeDecBuffer( &read->config.output );
 
-	VIPS_UNREF( read->streami );
+	VIPS_UNREF( read->source );
 	VIPS_FREE( read->delays );
 	VIPS_FREE( read );
 
@@ -341,15 +341,15 @@ read_free( Read *read )
 }
 
 static Read *
-read_new( VipsStreami *streami, int page, int n, double scale )
+read_new( VipsSource *source, int page, int n, double scale )
 {
 	Read *read;
 
 	if( !(read = VIPS_NEW( NULL, Read )) )
 		return( NULL );
 
-	read->streami = streami;
-	g_object_ref( streami );
+	read->source = source;
+	g_object_ref( source );
 	read->page = page;
 	read->n = n;
 	read->scale = scale;
@@ -364,7 +364,7 @@ read_new( VipsStreami *streami, int page, int n, double scale )
 	read->config.output.is_external_memory = 1;
 
 	if( !(read->data.bytes = 
-		vips_streami_map( streami, &read->data.size )) ) {
+		vips_source_map( source, &read->data.size )) ) {
 		read_free( read );
 		return( NULL );
 	}
@@ -550,7 +550,7 @@ read_header( Read *read, VipsImage *out )
 		1.0, 1.0 );
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 	VIPS_SETSTR( out->filename, 
-		vips_stream_filename( VIPS_STREAM( read->streami ) ) );
+		vips_connection_filename( VIPS_CONNECTION( read->source ) ) );
 
 	if( !WebPDemuxGetFrame( read->demux, 1, &read->iter ) ) {
 		vips_error( "webp", 
@@ -763,12 +763,12 @@ read_image( Read *read, VipsImage *out )
 }
 
 int
-vips__webp_read_header_stream( VipsStreami *streami, VipsImage *out,
+vips__webp_read_header_source( VipsSource *source, VipsImage *out,
 	int page, int n, double scale )
 {
 	Read *read;
 
-	if( !(read = read_new( streami, page, n, scale )) ) 
+	if( !(read = read_new( source, page, n, scale )) ) 
 		return( -1 );
 
 	if( read_header( read, out ) ) {
@@ -782,12 +782,12 @@ vips__webp_read_header_stream( VipsStreami *streami, VipsImage *out,
 }
 
 int
-vips__webp_read_stream( VipsStreami *streami, VipsImage *out, 
+vips__webp_read_source( VipsSource *source, VipsImage *out, 
 	int page, int n, double scale )
 {
 	Read *read;
 
-	if( !(read = read_new( streami, page, n, scale )) ) 
+	if( !(read = read_new( source, page, n, scale )) ) 
 		return( -1 );
 
 	if( read_image( read, out ) ) {

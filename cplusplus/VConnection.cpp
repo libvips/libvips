@@ -1,4 +1,4 @@
-/* Object part of the VStreamI and VStreamO class
+/* Object part of the VSource and VTarget class
  */
 
 /*
@@ -44,132 +44,132 @@
 
 VIPS_NAMESPACE_START
 
-VStreamI 
-VStreamI::new_from_descriptor( int descriptor )
+VSource 
+VSource::new_from_descriptor( int descriptor )
 {
-	VipsStreami *input;
+	VipsSource *input;
 
-	if( !(input = vips_streami_new_from_descriptor( descriptor )) )
+	if( !(input = vips_source_new_from_descriptor( descriptor )) )
 		throw VError();
 
-	VStreamI out( input ); 
+	VSource out( input ); 
 
 	return( out ); 
 }
 
-VStreamI 
-VStreamI::new_from_file( const char *filename )
+VSource 
+VSource::new_from_file( const char *filename )
 {
-	VipsStreami *input;
+	VipsSource *input;
 
-	if( !(input = vips_streami_new_from_file( filename )) )
+	if( !(input = vips_source_new_from_file( filename )) )
 		throw VError();
 
-	VStreamI out( input ); 
+	VSource out( input ); 
 
 	return( out ); 
 }
 
-VStreamI 
-VStreamI::new_from_blob( VipsBlob *blob )
+VSource 
+VSource::new_from_blob( VipsBlob *blob )
 {
-	VipsStreami *input;
+	VipsSource *input;
 
-	if( !(input = vips_streami_new_from_blob( blob )) )
+	if( !(input = vips_source_new_from_blob( blob )) )
 		throw VError();
 
-	VStreamI out( input ); 
+	VSource out( input ); 
 
 	return( out ); 
 }
 
-VStreamI 
-VStreamI::new_from_memory( const void *data, 
+VSource 
+VSource::new_from_memory( const void *data, 
 	size_t size )
 {
-	VipsStreami *input;
+	VipsSource *input;
 
-	if( !(input = vips_streami_new_from_memory( data, size )) )
+	if( !(input = vips_source_new_from_memory( data, size )) )
 		throw VError();
 
-	VStreamI out( input ); 
+	VSource out( input ); 
 
 	return( out ); 
 }
 
-VStreamI 
-VStreamI::new_from_options( const char *options )
+VSource 
+VSource::new_from_options( const char *options )
 {
-	VipsStreami *input;
+	VipsSource *input;
 
-	if( !(input = vips_streami_new_from_options( options )) )
+	if( !(input = vips_source_new_from_options( options )) )
 		throw VError();
 
-	VStreamI out( input ); 
+	VSource out( input ); 
 
 	return( out ); 
 }
 
 VOption *
-VOption::set( const char *name, const VStreamI value )
+VOption::set( const char *name, const VSource value )
 {
 	Pair *pair = new Pair( name );
 
 	pair->input = true;
-	g_value_init( &pair->value, VIPS_TYPE_STREAMI );
-	g_value_set_object( &pair->value, value.get_stream() );
+	g_value_init( &pair->value, VIPS_TYPE_SOURCE );
+	g_value_set_object( &pair->value, value.get_source() );
 	options.push_back( pair );
 
 	return( this );
 }
 
-VStreamO 
-VStreamO::new_to_descriptor( int descriptor )
+VTarget 
+VTarget::new_to_descriptor( int descriptor )
 {
-	VipsStreamo *output;
+	VipsTarget *output;
 
-	if( !(output = vips_streamo_new_to_descriptor( descriptor )) )
+	if( !(output = vips_target_new_to_descriptor( descriptor )) )
 		throw VError();
 
-	VStreamO out( output ); 
+	VTarget out( output ); 
 
 	return( out ); 
 }
 
-VStreamO 
-VStreamO::new_to_file( const char *filename )
+VTarget 
+VTarget::new_to_file( const char *filename )
 {
-	VipsStreamo *output;
+	VipsTarget *output;
 
-	if( !(output = vips_streamo_new_to_file( filename )) )
+	if( !(output = vips_target_new_to_file( filename )) )
 		throw VError();
 
-	VStreamO out( output ); 
+	VTarget out( output ); 
 
 	return( out ); 
 }
 
-VStreamO 
-VStreamO::new_to_memory()
+VTarget 
+VTarget::new_to_memory()
 {
-	VipsStreamo *output;
+	VipsTarget *output;
 
-	if( !(output = vips_streamo_new_to_memory()) )
+	if( !(output = vips_target_new_to_memory()) )
 		throw VError();
 
-	VStreamO out( output ); 
+	VTarget out( output ); 
 
 	return( out ); 
 }
 
 VOption *
-VOption::set( const char *name, const VStreamO value )
+VOption::set( const char *name, const VTarget value )
 {
 	Pair *pair = new Pair( name );
 
 	pair->input = true;
-	g_value_init( &pair->value, VIPS_TYPE_STREAMO );
-	g_value_set_object( &pair->value, value.get_stream() );
+	g_value_init( &pair->value, VIPS_TYPE_TARGET );
+	g_value_set_object( &pair->value, value.get_target() );
 	options.push_back( pair );
 
 	return( this );

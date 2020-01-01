@@ -1,5 +1,5 @@
 // headers for vips operations
-// Fri 29 Nov 2019 02:46:41 PM CET
+// Wed 01 Jan 2020 12:22:11 PM CET
 // this file is generated automatically, do not edit!
 
 /**
@@ -1038,12 +1038,12 @@ static VImage jpegload( const char *filename, VOption *options = 0 );
 static VImage jpegload_buffer( VipsBlob *buffer, VOption *options = 0 );
 
 /**
- * Load image from jpeg stream.
- * @param streami Stream to load from.
+ * Load image from jpeg source.
+ * @param source Source to load from.
  * @param options Optional options.
  * @return Output image.
  */
-static VImage jpegload_stream( VStreamI streami, VOption *options = 0 );
+static VImage jpegload_source( VSource source, VOption *options = 0 );
 
 /**
  * Save image to jpeg file.
@@ -1066,11 +1066,11 @@ VipsBlob *jpegsave_buffer( VOption *options = 0 ) const;
 void jpegsave_mime( VOption *options = 0 ) const;
 
 /**
- * Save image to jpeg stream.
- * @param streamo Stream to save to.
+ * Save image to jpeg target.
+ * @param target Target to save to.
  * @param options Optional options.
  */
-void jpegsave_stream( VStreamO streamo, VOption *options = 0 ) const;
+void jpegsave_target( VTarget target, VOption *options = 0 ) const;
 
 /**
  * Label regions in an image.
@@ -1516,12 +1516,12 @@ static VImage pngload( const char *filename, VOption *options = 0 );
 static VImage pngload_buffer( VipsBlob *buffer, VOption *options = 0 );
 
 /**
- * Load png from stream.
- * @param streami Stream to load from.
+ * Load png from source.
+ * @param source Source to load from.
  * @param options Optional options.
  * @return Output image.
  */
-static VImage pngload_stream( VStreamI streami, VOption *options = 0 );
+static VImage pngload_source( VSource source, VOption *options = 0 );
 
 /**
  * Save image to png file.
@@ -1538,11 +1538,11 @@ void pngsave( const char *filename, VOption *options = 0 ) const;
 VipsBlob *pngsave_buffer( VOption *options = 0 ) const;
 
 /**
- * Save image to png stream.
- * @param streamo Stream to save to.
+ * Save image to target as png.
+ * @param target Target to save to.
  * @param options Optional options.
  */
-void pngsave_stream( VStreamO streamo, VOption *options = 0 ) const;
+void pngsave_target( VTarget target, VOption *options = 0 ) const;
 
 /**
  * Load ppm from file.
@@ -1622,12 +1622,12 @@ static VImage radload( const char *filename, VOption *options = 0 );
 static VImage radload_buffer( VipsBlob *buffer, VOption *options = 0 );
 
 /**
- * Load rad from stream.
- * @param streami Stream to load from.
+ * Load rad from source.
+ * @param source Source to load from.
  * @param options Optional options.
  * @return Output image.
  */
-static VImage radload_stream( VStreamI streami, VOption *options = 0 );
+static VImage radload_source( VSource source, VOption *options = 0 );
 
 /**
  * Save image to radiance file.
@@ -1644,11 +1644,11 @@ void radsave( const char *filename, VOption *options = 0 ) const;
 VipsBlob *radsave_buffer( VOption *options = 0 ) const;
 
 /**
- * Save image to radiance stream.
- * @param streamo Stream to save to.
+ * Save image to radiance target.
+ * @param target Target to save to.
  * @param options Optional options.
  */
-void radsave_stream( VStreamO streamo, VOption *options = 0 ) const;
+void radsave_target( VTarget target, VOption *options = 0 ) const;
 
 /**
  * Rank filter.
@@ -1993,12 +1993,12 @@ static VImage svgload( const char *filename, VOption *options = 0 );
 static VImage svgload_buffer( VipsBlob *buffer, VOption *options = 0 );
 
 /**
- * Load svg from stream.
- * @param streami Stream to load from.
+ * Load svg from source.
+ * @param source Source to load from.
  * @param options Optional options.
  * @return Output image.
  */
-static VImage svgload_stream( VStreamI streami, VOption *options = 0 );
+static VImage svgload_source( VSource source, VOption *options = 0 );
 
 /**
  * Find the index of the first non-zero pixel in tests.
@@ -2050,13 +2050,13 @@ static VImage thumbnail_buffer( VipsBlob *buffer, int width, VOption *options = 
 VImage thumbnail_image( int width, VOption *options = 0 ) const;
 
 /**
- * Generate thumbnail from stream.
- * @param streami Stream to load from.
+ * Generate thumbnail from source.
+ * @param source Source to load from.
  * @param width Size to this width.
  * @param options Optional options.
  * @return Output image.
  */
-static VImage thumbnail_stream( VStreamI streami, int width, VOption *options = 0 );
+static VImage thumbnail_source( VSource source, int width, VOption *options = 0 );
 
 /**
  * Load tiff from file.
@@ -2075,12 +2075,12 @@ static VImage tiffload( const char *filename, VOption *options = 0 );
 static VImage tiffload_buffer( VipsBlob *buffer, VOption *options = 0 );
 
 /**
- * Load tiff from stream.
- * @param streami Stream to load from.
+ * Load tiff from source.
+ * @param source Source to load from.
  * @param options Optional options.
  * @return Output image.
  */
-static VImage tiffload_stream( VStreamI streami, VOption *options = 0 );
+static VImage tiffload_source( VSource source, VOption *options = 0 );
 
 /**
  * Save image to tiff file.
@@ -2156,12 +2156,12 @@ static VImage webpload( const char *filename, VOption *options = 0 );
 static VImage webpload_buffer( VipsBlob *buffer, VOption *options = 0 );
 
 /**
- * Load webp from stream.
- * @param streami Stream to load from.
+ * Load webp from source.
+ * @param source Source to load from.
  * @param options Optional options.
  * @return Output image.
  */
-static VImage webpload_stream( VStreamI streami, VOption *options = 0 );
+static VImage webpload_source( VSource source, VOption *options = 0 );
 
 /**
  * Save image to webp file.
@@ -2178,11 +2178,11 @@ void webpsave( const char *filename, VOption *options = 0 ) const;
 VipsBlob *webpsave_buffer( VOption *options = 0 ) const;
 
 /**
- * Save image to webp stream.
- * @param streamo Stream to save to.
+ * Save image to webp target.
+ * @param target Target to save to.
  * @param options Optional options.
  */
-void webpsave_stream( VStreamO streamo, VOption *options = 0 ) const;
+void webpsave_target( VTarget target, VOption *options = 0 ) const;
 
 /**
  * Make a worley noise image.

@@ -74,7 +74,7 @@
 
 #include <gio/gio.h>
 
-/* A GInputStream that's actually a VipsStreami under the hood. This lets us
+/* A GInputStream that's actually a VipsSource under the hood. This lets us
  * hook librsvg up to libvips using the GInputStream interface.
  */
 
@@ -93,16 +93,16 @@
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 	VIPS_TYPE_G_INPUT_STREAM, VipsGInputStreamClass ))
 
-/* GInputStream <--> VipsStreami
+/* GInputStream <--> VipsSource
  */
 typedef struct _VipsGInputStream {
 	GInputStream parent_instance;
 
 	/*< private >*/
 
-	/* The VipsStreami we wrap.
+	/* The VipsSource we wrap.
 	 */
-	VipsStreami *streami;
+	VipsSource *source;
 
 } VipsGInputStream;
 
@@ -130,7 +130,7 @@ vips_g_input_stream_get_property( GObject *object, guint prop_id,
 
 	switch( prop_id ) {
 	case PROP_STREAM:
-		g_value_set_object( value, gstream->streami );
+		g_value_set_object( value, gstream->source );
 		break;
 
 	default:
@@ -146,7 +146,7 @@ vips_g_input_stream_set_property( GObject *object, guint prop_id,
 
 	switch( prop_id ) {
 	case PROP_STREAM:
-		gstream->streami = g_value_dup_object( value );
+		gstream->source = g_value_dup_object( value );
 		break;
 
 	default:
@@ -159,7 +159,7 @@ vips_g_input_stream_finalize( GObject *object )
 {
 	VipsGInputStream *gstream = VIPS_G_INPUT_STREAM( object );
 
-	VIPS_FREEF( g_object_unref, gstream->streami );
+	VIPS_FREEF( g_object_unref, gstream->source );
 
 	G_OBJECT_CLASS( vips_g_input_stream_parent_class )->finalize( object );
 }
@@ -167,13 +167,13 @@ vips_g_input_stream_finalize( GObject *object )
 static goffset
 vips_g_input_stream_tell( GSeekable *seekable )
 {
-	VipsStreami *streami = VIPS_G_INPUT_STREAM( seekable )->streami;
+	VipsSource *source = VIPS_G_INPUT_STREAM( seekable )->source;
 
 	goffset pos;
 
 	VIPS_DEBUG_MSG( "vips_g_input_stream_tell:\n" );
 
-	pos = vips_streami_seek( streami, 0, SEEK_CUR );
+	pos = vips_source_seek( source, 0, SEEK_CUR );
 	if( pos == -1 )
 		return( 0 );
 
@@ -183,12 +183,12 @@ vips_g_input_stream_tell( GSeekable *seekable )
 static gboolean
 vips_g_input_stream_can_seek( GSeekable *seekable )
 {
-	VipsStreami *streami = VIPS_G_INPUT_STREAM( seekable )->streami;
+	VipsSource *source = VIPS_G_INPUT_STREAM( seekable )->source;
 
 	VIPS_DEBUG_MSG( "vips_g_input_stream_can_seek: %d\n", 
-		!streami->is_pipe );
+		!source->is_pipe );
 
-	return( !streami->is_pipe );
+	return( !source->is_pipe );
 }
 
 static int
@@ -209,12 +209,12 @@ static gboolean
 vips_g_input_stream_seek( GSeekable *seekable, goffset offset,
 	GSeekType type, GCancellable *cancellable, GError **error )
 {
-	VipsStreami *streami = VIPS_G_INPUT_STREAM( seekable )->streami;
+	VipsSource *source = VIPS_G_INPUT_STREAM( seekable )->source;
 
 	VIPS_DEBUG_MSG( "vips_g_input_stream_seek: offset = %" G_GINT64_FORMAT
 		", type = %d\n", offset, type );
 
-	if( vips_streami_seek( streami, offset, 
+	if( vips_source_seek( source, offset, 
 		seek_type_to_lseek( type ) ) == -1 ) {
 		g_set_error( error, G_IO_ERROR,
 			G_IO_ERROR_FAILED,
@@ -249,17 +249,17 @@ static gssize
 vips_g_input_stream_read( GInputStream *stream, void *buffer, gsize count,
 	GCancellable *cancellable, GError **error )
 {
-	VipsStreami *streami;
+	VipsSource *source;
 	gssize res;
 
-	streami = VIPS_G_INPUT_STREAM( stream )->streami;
+	source = VIPS_G_INPUT_STREAM( stream )->source;
 
 	VIPS_DEBUG_MSG( "vips_g_input_stream_read: count: %zd\n", count );
 
 	if( g_cancellable_set_error_if_cancelled( cancellable, error ) )
 		return( -1 );
 
-	if( (res = vips_streami_read( streami, buffer, count )) == -1 )
+	if( (res = vips_source_read( source, buffer, count )) == -1 )
 		g_set_error( error, G_IO_ERROR,
 			G_IO_ERROR_FAILED,
 			_( "Error while reading: %s" ),
@@ -272,17 +272,17 @@ static gssize
 vips_g_input_stream_skip( GInputStream *stream, gsize count,
 	GCancellable *cancellable, GError **error )
 {
-	VipsStreami *streami;
+	VipsSource *source;
 	gssize position;
 
-	streami = VIPS_G_INPUT_STREAM( stream )->streami;
+	source = VIPS_G_INPUT_STREAM( stream )->source;
 
 	VIPS_DEBUG_MSG( "vips_g_input_stream_skip: count: %zd\n", count );
 
 	if( g_cancellable_set_error_if_cancelled( cancellable, error ) )
 		return( -1 );
 
-	position = vips_streami_seek( streami, count, SEEK_CUR );
+	position = vips_source_seek( source, count, SEEK_CUR );
 	if( position == -1 ) {
 		g_set_error( error, G_IO_ERROR,
 			G_IO_ERROR_FAILED,
@@ -300,7 +300,7 @@ vips_g_input_stream_close( GInputStream *stream,
 {
 	VipsGInputStream *gstream = VIPS_G_INPUT_STREAM( stream );
 
-	vips_streami_minimise( gstream->streami );
+	vips_source_minimise( gstream->source );
 
 	return( TRUE );
 }
@@ -333,7 +333,7 @@ vips_g_input_stream_class_init( VipsGInputStreamClass *class )
 		g_param_spec_object( "input",
 			_( "Input" ),
 			_( "Stream to wrap" ),
-			VIPS_TYPE_STREAMI, G_PARAM_CONSTRUCT_ONLY | 
+			VIPS_TYPE_SOURCE, G_PARAM_CONSTRUCT_ONLY | 
 				G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS ) );
 
 }
@@ -345,17 +345,17 @@ vips_g_input_stream_init( VipsGInputStream *gstream )
 
 /**
  * g_input_stream_new_from_vips:
- * @streami: stream to wrap
+ * @source: stream to wrap
  *
- * Create a new #GInputStream wrapping a #VipsStreami.
+ * Create a new #GInputStream wrapping a #VipsSource.
  *
  * Returns: a new #GInputStream
  */
 static GInputStream *
-g_input_stream_new_from_vips( VipsStreami *streami )
+g_input_stream_new_from_vips( VipsSource *source )
 {
 	return( g_object_new( VIPS_TYPE_G_INPUT_STREAM,
-		"input", streami,
+		"input", source,
 		NULL ) );
 }
 
@@ -752,27 +752,27 @@ vips_foreign_load_svg_init( VipsForeignLoadSvg *svg )
 	svg->cairo_scale = 1.0;
 }
 
-typedef struct _VipsForeignLoadSvgStream {
+typedef struct _VipsForeignLoadSvgSource {
 	VipsForeignLoadSvg parent_object;
 
-	/* Load from a stream.
+	/* Load from a source.
 	 */
-	VipsStreami *streami;
+	VipsSource *source;
 
-} VipsForeignLoadSvgStream;
+} VipsForeignLoadSvgSource;
 
-typedef VipsForeignLoadClass VipsForeignLoadSvgStreamClass;
+typedef VipsForeignLoadClass VipsForeignLoadSvgSourceClass;
 
-G_DEFINE_TYPE( VipsForeignLoadSvgStream, vips_foreign_load_svg_stream, 
+G_DEFINE_TYPE( VipsForeignLoadSvgSource, vips_foreign_load_svg_source, 
 	vips_foreign_load_svg_get_type() );
 
 gboolean
-vips_foreign_load_svg_stream_is_a_stream( VipsStreami *streami )
+vips_foreign_load_svg_source_is_a_source( VipsSource *source )
 {
 	unsigned char *data;
 	size_t bytes_read;
 
-	if( (bytes_read = vips_streami_sniff_at_most( streami, 
+	if( (bytes_read = vips_source_sniff_at_most( source, 
 		&data, SVG_HEADER_SIZE )) <= 0 )
 		return( FALSE );
 
@@ -780,21 +780,21 @@ vips_foreign_load_svg_stream_is_a_stream( VipsStreami *streami )
 }
 
 static int
-vips_foreign_load_svg_stream_header( VipsForeignLoad *load )
+vips_foreign_load_svg_source_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) load;
-	VipsForeignLoadSvgStream *stream = 
-		(VipsForeignLoadSvgStream *) load;
+	VipsForeignLoadSvgSource *source = 
+		(VipsForeignLoadSvgSource *) load;
 	RsvgHandleFlags flags = svg->unlimited ? RSVG_HANDLE_FLAG_UNLIMITED : 0;
 
 	GError *error = NULL;
 
 	GInputStream *gstream;
 
-	if( vips_streami_rewind( stream->streami ) )
+	if( vips_source_rewind( source->source ) )
 		return( -1 );
 
-	gstream = g_input_stream_new_from_vips( stream->streami );
+	gstream = g_input_stream_new_from_vips( source->source );
 	if( !(svg->page = rsvg_handle_new_from_stream_sync( 
 		gstream, NULL, flags, NULL, &error )) ) {
 		g_object_unref( gstream );
@@ -807,20 +807,20 @@ vips_foreign_load_svg_stream_header( VipsForeignLoad *load )
 }
 
 static int
-vips_foreign_load_svg_stream_load( VipsForeignLoad *load )
+vips_foreign_load_svg_source_load( VipsForeignLoad *load )
 {
-	VipsForeignLoadSvgStream *stream = (VipsForeignLoadSvgStream *) load;
+	VipsForeignLoadSvgSource *source = (VipsForeignLoadSvgSource *) load;
 
-	if( vips_streami_rewind( stream->streami ) ||
+	if( vips_source_rewind( source->source ) ||
 		vips_foreign_load_svg_load( load ) ||
-		vips_streami_decode( stream->streami ) )
+		vips_source_decode( source->source ) )
 		return( -1 );
 
 	return( 0 );
 }
 
 static void
-vips_foreign_load_svg_stream_class_init( VipsForeignLoadSvgStreamClass *class )
+vips_foreign_load_svg_source_class_init( VipsForeignLoadSvgSourceClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -829,24 +829,24 @@ vips_foreign_load_svg_stream_class_init( VipsForeignLoadSvgStreamClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "svgload_stream";
-	object_class->description = _( "load svg from stream" );
+	object_class->nickname = "svgload_source";
+	object_class->description = _( "load svg from source" );
 
-	load_class->is_a_stream = vips_foreign_load_svg_stream_is_a_stream;
-	load_class->header = vips_foreign_load_svg_stream_header;
-	load_class->load = vips_foreign_load_svg_stream_load;
+	load_class->is_a_source = vips_foreign_load_svg_source_is_a_source;
+	load_class->header = vips_foreign_load_svg_source_header;
+	load_class->load = vips_foreign_load_svg_source_load;
 
-	VIPS_ARG_OBJECT( class, "streami", 1,
-		_( "Streami" ),
-		_( "Stream to load from" ),
+	VIPS_ARG_OBJECT( class, "source", 1,
+		_( "Source" ),
+		_( "Source to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadSvgStream, streami ),
-		VIPS_TYPE_STREAMI );
+		G_STRUCT_OFFSET( VipsForeignLoadSvgSource, source ),
+		VIPS_TYPE_SOURCE );
 
 }
 
 static void
-vips_foreign_load_svg_stream_init( VipsForeignLoadSvgStream *stream )
+vips_foreign_load_svg_source_init( VipsForeignLoadSvgSource *source )
 {
 }
 
@@ -1100,25 +1100,25 @@ vips_svgload_buffer( void *buf, size_t len, VipsImage **out, ... )
 }
 
 /**
- * vips_svgload_stream:
- * @streami: stream to load from
+ * vips_svgload_source:
+ * @source: source to load from
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
- * Exactly as vips_svgload(), but read from a stream. 
+ * Exactly as vips_svgload(), but read from a source. 
  *
  * See also: vips_svgload().
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_svgload_stream( VipsStreami *streami, VipsImage **out, ... )
+vips_svgload_source( VipsSource *source, VipsImage **out, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, out );
-	result = vips_call_split( "svgload_stream", ap, streami, out );
+	result = vips_call_split( "svgload_source", ap, source, out );
 	va_end( ap );
 
 	return( result );

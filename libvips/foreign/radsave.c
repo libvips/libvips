@@ -122,19 +122,19 @@ vips_foreign_save_rad_file_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveRadFile *file = (VipsForeignSaveRadFile *) object;
 
-	VipsStreamo *streamo;
+	VipsTarget *target;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_rad_file_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( !(streamo = vips_streamo_new_to_file( file->filename )) )
+	if( !(target = vips_target_new_to_file( file->filename )) )
 		return( -1 );
-	if( vips__rad_save( save->ready, streamo ) ) {
-		VIPS_UNREF( streamo );
+	if( vips__rad_save( save->ready, target ) ) {
+		VIPS_UNREF( target );
 		return( -1 );
 	}
-	VIPS_UNREF( streamo );
+	VIPS_UNREF( target );
 
 	return( 0 );
 }
@@ -165,35 +165,35 @@ vips_foreign_save_rad_file_init( VipsForeignSaveRadFile *file )
 {
 }
 
-typedef struct _VipsForeignSaveRadStream {
+typedef struct _VipsForeignSaveRadTarget {
 	VipsForeignSaveRad parent_object;
 
-	VipsStreamo *streamo;
-} VipsForeignSaveRadStream;
+	VipsTarget *target;
+} VipsForeignSaveRadTarget;
 
-typedef VipsForeignSaveRadClass VipsForeignSaveRadStreamClass;
+typedef VipsForeignSaveRadClass VipsForeignSaveRadTargetClass;
 
-G_DEFINE_TYPE( VipsForeignSaveRadStream, vips_foreign_save_rad_stream, 
+G_DEFINE_TYPE( VipsForeignSaveRadTarget, vips_foreign_save_rad_target, 
 	vips_foreign_save_rad_get_type() );
 
 static int
-vips_foreign_save_rad_stream_build( VipsObject *object )
+vips_foreign_save_rad_target_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
-	VipsForeignSaveRadStream *stream = (VipsForeignSaveRadStream *) object;
+	VipsForeignSaveRadTarget *target = (VipsForeignSaveRadTarget *) object;
 
-	if( VIPS_OBJECT_CLASS( vips_foreign_save_rad_stream_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_rad_target_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips__rad_save( save->ready, stream->streamo ) ) 
+	if( vips__rad_save( save->ready, target->target ) ) 
 		return( -1 );
 
 	return( 0 );
 }
 
 static void
-vips_foreign_save_rad_stream_class_init( VipsForeignSaveRadStreamClass *class )
+vips_foreign_save_rad_target_class_init( VipsForeignSaveRadTargetClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -201,21 +201,21 @@ vips_foreign_save_rad_stream_class_init( VipsForeignSaveRadStreamClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "radsave_stream";
-	object_class->description = _( "save image to Radiance stream" );
-	object_class->build = vips_foreign_save_rad_stream_build;
+	object_class->nickname = "radsave_target";
+	object_class->description = _( "save image to Radiance target" );
+	object_class->build = vips_foreign_save_rad_target_build;
 
-	VIPS_ARG_OBJECT( class, "streamo", 1,
-		_( "Streamo" ),
-		_( "Stream to save to" ),
+	VIPS_ARG_OBJECT( class, "target", 1,
+		_( "Target" ),
+		_( "Target to save to" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignSaveRadStream, streamo ),
-		VIPS_TYPE_STREAMO );
+		G_STRUCT_OFFSET( VipsForeignSaveRadTarget, target ),
+		VIPS_TYPE_TARGET );
 
 }
 
 static void
-vips_foreign_save_rad_stream_init( VipsForeignSaveRadStream *stream )
+vips_foreign_save_rad_target_init( VipsForeignSaveRadTarget *target )
 {
 }
 
@@ -235,26 +235,26 @@ vips_foreign_save_rad_buffer_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 
-	VipsStreamo *streamo;
+	VipsTarget *target;
 	VipsBlob *blob;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_rad_buffer_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( !(streamo = vips_streamo_new_to_memory()) )
+	if( !(target = vips_target_new_to_memory()) )
 		return( -1 );
 
-	if( vips__rad_save( save->ready, streamo ) ) {
-		VIPS_UNREF( streamo );
+	if( vips__rad_save( save->ready, target ) ) {
+		VIPS_UNREF( target );
 		return( -1 );
 	}
 
-	g_object_get( streamo, "blob", &blob, NULL );
+	g_object_get( target, "blob", &blob, NULL );
 	g_object_set( save, "buffer", blob, NULL );
 	vips_area_unref( VIPS_AREA( blob ) );
 
-	VIPS_UNREF( streamo );
+	VIPS_UNREF( target );
 
 	return( 0 );
 }
@@ -360,25 +360,25 @@ vips_radsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 }
 
 /**
- * vips_radsave_stream: (method)
+ * vips_radsave_target: (method)
  * @in: image to save 
- * @streamo: save image to this stream
+ * @target: save image to this target
  * @...: %NULL-terminated list of optional named arguments
  *
- * As vips_radsave(), but save to a stream.
+ * As vips_radsave(), but save to a target.
  *
  * See also: vips_radsave().
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_radsave_stream( VipsImage *in, VipsStreamo *streamo, ... )
+vips_radsave_target( VipsImage *in, VipsTarget *target, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, streamo );
-	result = vips_call_split( "radsave_stream", ap, in, streamo );
+	va_start( ap, target );
+	result = vips_call_split( "radsave_target", ap, in, target );
 	va_end( ap );
 
 	return( result );

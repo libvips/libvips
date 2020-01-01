@@ -179,29 +179,29 @@ vips_foreign_save_png_init( VipsForeignSavePng *png )
 	png->dither = 1.0;
 }
 
-typedef struct _VipsForeignSavePngStream {
+typedef struct _VipsForeignSavePngTarget {
 	VipsForeignSavePng parent_object;
 
-	VipsStreamo *streamo;
-} VipsForeignSavePngStream;
+	VipsTarget *target;
+} VipsForeignSavePngTarget;
 
-typedef VipsForeignSavePngClass VipsForeignSavePngStreamClass;
+typedef VipsForeignSavePngClass VipsForeignSavePngTargetClass;
 
-G_DEFINE_TYPE( VipsForeignSavePngStream, vips_foreign_save_png_stream, 
+G_DEFINE_TYPE( VipsForeignSavePngTarget, vips_foreign_save_png_target, 
 	vips_foreign_save_png_get_type() );
 
 static int
-vips_foreign_save_png_stream_build( VipsObject *object )
+vips_foreign_save_png_target_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSavePng *png = (VipsForeignSavePng *) object;
-	VipsForeignSavePngStream *stream = (VipsForeignSavePngStream *) object;
+	VipsForeignSavePngTarget *target = (VipsForeignSavePngTarget *) object;
 
-	if( VIPS_OBJECT_CLASS( vips_foreign_save_png_stream_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_png_target_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips__png_write_stream( save->ready, stream->streamo,
+	if( vips__png_write_target( save->ready, target->target,
 		png->compression, png->interlace, png->profile, png->filter,
 		save->strip, png->palette, png->colours, png->Q, png->dither ) )
 		return( -1 );
@@ -210,7 +210,7 @@ vips_foreign_save_png_stream_build( VipsObject *object )
 }
 
 static void
-vips_foreign_save_png_stream_class_init( VipsForeignSavePngStreamClass *class )
+vips_foreign_save_png_target_class_init( VipsForeignSavePngTargetClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -218,21 +218,21 @@ vips_foreign_save_png_stream_class_init( VipsForeignSavePngStreamClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "pngsave_stream";
-	object_class->description = _( "save image to png stream" );
-	object_class->build = vips_foreign_save_png_stream_build;
+	object_class->nickname = "pngsave_target";
+	object_class->description = _( "save image to target as PNG" );
+	object_class->build = vips_foreign_save_png_target_build;
 
-	VIPS_ARG_OBJECT( class, "streamo", 1,
-		_( "Streamo" ),
-		_( "Stream to save to" ),
+	VIPS_ARG_OBJECT( class, "target", 1,
+		_( "Target" ),
+		_( "Target to save to" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignSavePngStream, streamo ),
-		VIPS_TYPE_STREAMO );
+		G_STRUCT_OFFSET( VipsForeignSavePngTarget, target ),
+		VIPS_TYPE_TARGET );
 
 }
 
 static void
-vips_foreign_save_png_stream_init( VipsForeignSavePngStream *stream )
+vips_foreign_save_png_target_init( VipsForeignSavePngTarget *target )
 {
 }
 
@@ -254,22 +254,22 @@ vips_foreign_save_png_file_build( VipsObject *object )
 	VipsForeignSavePng *png = (VipsForeignSavePng *) object;
 	VipsForeignSavePngFile *png_file = (VipsForeignSavePngFile *) object;
 
-	VipsStreamo *streamo;
+	VipsTarget *target;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_png_file_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( !(streamo = vips_streamo_new_to_file( png_file->filename )) )
+	if( !(target = vips_target_new_to_file( png_file->filename )) )
 		return( -1 );
-	if( vips__png_write_stream( save->ready, streamo, 
+	if( vips__png_write_target( save->ready, target, 
 		png->compression, png->interlace, 
 		png->profile, png->filter, save->strip, png->palette,
 		png->colours, png->Q, png->dither ) ) {
-		VIPS_UNREF( streamo );
+		VIPS_UNREF( target );
 		return( -1 );
 	}
-	VIPS_UNREF( streamo );
+	VIPS_UNREF( target );
 
 	return( 0 );
 }
@@ -318,29 +318,29 @@ vips_foreign_save_png_buffer_build( VipsObject *object )
 	VipsForeignSavePng *png = (VipsForeignSavePng *) object;
 	VipsForeignSavePngBuffer *buffer = (VipsForeignSavePngBuffer *) object;
 
-	VipsStreamo *streamo;
+	VipsTarget *target;
 	VipsBlob *blob;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_png_buffer_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( !(streamo = vips_streamo_new_to_memory()) )
+	if( !(target = vips_target_new_to_memory()) )
 		return( -1 );
 
-	if( vips__png_write_stream( save->ready, streamo,
+	if( vips__png_write_target( save->ready, target,
 		png->compression, png->interlace, png->profile, png->filter,
 		save->strip, png->palette, png->colours, png->Q, 
 		png->dither ) ) {
-		VIPS_UNREF( streamo );
+		VIPS_UNREF( target );
 		return( -1 );
 	}
 
-	g_object_get( streamo, "blob", &blob, NULL );
+	g_object_get( target, "blob", &blob, NULL );
 	g_object_set( buffer, "buffer", blob, NULL );
 	vips_area_unref( VIPS_AREA( blob ) );
 
-	VIPS_UNREF( streamo );
+	VIPS_UNREF( target );
 
 	return( 0 );
 }
@@ -498,9 +498,9 @@ vips_pngsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 }
 
 /**
- * vips_pngsave_stream: (method)
+ * vips_pngsave_target: (method)
  * @in: image to save 
- * @streamo: save image to this stream
+ * @target: save image to this target
  * @...: %NULL-terminated list of optional named arguments
  *
  * Optional arguments:
@@ -514,20 +514,20 @@ vips_pngsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @Q: quality for 8bpp quantisation (does not exceed @colours)
  * * @dither: amount of dithering for 8bpp quantization
  *
- * As vips_pngsave(), but save to a stream.
+ * As vips_pngsave(), but save to a target.
  *
- * See also: vips_pngsave(), vips_image_write_to_stream().
+ * See also: vips_pngsave(), vips_image_write_to_target().
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_pngsave_stream( VipsImage *in, VipsStreamo *streamo, ... )
+vips_pngsave_target( VipsImage *in, VipsTarget *target, ... )
 {
 	va_list ap;
 	int result;
 
-	va_start( ap, streamo );
-	result = vips_call_split( "pngsave_stream", ap, in, streamo );
+	va_start( ap, target );
+	result = vips_call_split( "pngsave_target", ap, in, target );
 	va_end( ap );
 
 	return( result );

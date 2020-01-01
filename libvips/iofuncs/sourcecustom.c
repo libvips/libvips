@@ -1,4 +1,4 @@
-/* A Streami subclass with signals you can easily hook up to other input
+/* A Source subclass with signals you can easily hook up to other input
  * sources.
  * 
  * J.Cupitt, 21/11/19
@@ -58,7 +58,7 @@
 
 #include "vipsmarshal.h"
 
-G_DEFINE_TYPE( VipsStreamiu, vips_streamiu, VIPS_TYPE_STREAMI );
+G_DEFINE_TYPE( VipsSourceCustom, vips_source_custom, VIPS_TYPE_SOURCE );
 
 /* Our signals. 
  */
@@ -68,43 +68,43 @@ enum {
 	SIG_LAST
 };
 
-static guint vips_streamiu_signals[SIG_LAST] = { 0 };
+static guint vips_source_custom_signals[SIG_LAST] = { 0 };
 
 static gint64
-vips_streamiu_read_real( VipsStreami *streami, 
+vips_source_custom_read_real( VipsSource *source, 
 	void *buffer, size_t length )
 {
 	gint64 bytes_read;
 
-	VIPS_DEBUG_MSG( "vips_streamiu_read_real:\n" );
+	VIPS_DEBUG_MSG( "vips_source_custom_read_real:\n" );
 
 	/* Return this value (error) if there's no attached handler.
 	 */
 	bytes_read = 0;
 
-	g_signal_emit( streami, vips_streamiu_signals[SIG_READ], 0,
+	g_signal_emit( source, vips_source_custom_signals[SIG_READ], 0,
 		buffer, (gint64) length, &bytes_read );
 
-	VIPS_DEBUG_MSG( "  vips_streamiu_read_real, seen %zd bytes\n", 
+	VIPS_DEBUG_MSG( "  vips_source_custom_read_real, seen %zd bytes\n", 
 		bytes_read );
 
 	return( bytes_read );
 }
 
 static gint64
-vips_streamiu_seek_real( VipsStreami *streami, 
+vips_source_custom_seek_real( VipsSource *source, 
 	gint64 offset, int whence )
 {
 	GValue args[3] = { { 0 } };
 	GValue result = { 0 };
 	gint64 new_position;
 
-	VIPS_DEBUG_MSG( "vips_streamiu_seek_real:\n" );
+	VIPS_DEBUG_MSG( "vips_source_custom_seek_real:\n" );
 
 	/* Set the signal args.
 	 */
 	g_value_init( &args[0], G_TYPE_OBJECT );
-	g_value_set_object( &args[0], streami );
+	g_value_set_object( &args[0], source );
 	g_value_init( &args[1], G_TYPE_INT64 );
 	g_value_set_int64( &args[1], offset );
 	g_value_init( &args[2], G_TYPE_INT );
@@ -119,7 +119,7 @@ vips_streamiu_seek_real( VipsStreami *streami,
 	 * if no handlers are attached.
 	 */
 	g_signal_emitv( (const GValue *) &args, 
-		vips_streamiu_signals[SIG_SEEK], 0, &result );
+		vips_source_custom_signals[SIG_SEEK], 0, &result );
 
 	new_position = g_value_get_int64( &result );
 
@@ -128,48 +128,48 @@ vips_streamiu_seek_real( VipsStreami *streami,
 	g_value_unset( &args[2] );
 	g_value_unset( &result );
 
-	VIPS_DEBUG_MSG( "  vips_streamiu_seek_real, seen new pos %zd\n", 
+	VIPS_DEBUG_MSG( "  vips_source_custom_seek_real, seen new pos %zd\n", 
 		new_position );
 
 	return( new_position );
 }
 
 static gint64
-vips_streamiu_read_signal_real( VipsStreamiu *streamiu, 
+vips_source_custom_read_signal_real( VipsSourceCustom *source_custom, 
 	void *data, gint64 length )
 {
-	VIPS_DEBUG_MSG( "vips_streamiu_read_signal_real:\n" );
+	VIPS_DEBUG_MSG( "vips_source_custom_read_signal_real:\n" );
 
 	return( 0 );
 }
 
 static gint64
-vips_streamiu_seek_signal_real( VipsStreamiu *streamiu, 
+vips_source_custom_seek_signal_real( VipsSourceCustom *source_custom, 
 	gint64 offset, int whence )
 {
-	VIPS_DEBUG_MSG( "vips_streamiu_seek_signal_real:\n" );
+	VIPS_DEBUG_MSG( "vips_source_custom_seek_signal_real:\n" );
 
 	return( -1 );
 }
 
 static void
-vips_streamiu_class_init( VipsStreamiuClass *class )
+vips_source_custom_class_init( VipsSourceCustomClass *class )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
-	VipsStreamiClass *streami_class = VIPS_STREAMI_CLASS( class );
+	VipsSourceClass *source_class = VIPS_SOURCE_CLASS( class );
 
-	object_class->nickname = "streamiu";
-	object_class->description = _( "input stream" );
+	object_class->nickname = "source_custom";
+	object_class->description = _( "Custom source" );
 
-	streami_class->read = vips_streamiu_read_real;
-	streami_class->seek = vips_streamiu_seek_real;
+	source_class->read = vips_source_custom_read_real;
+	source_class->seek = vips_source_custom_seek_real;
 
-	class->read = vips_streamiu_read_signal_real;
-	class->seek = vips_streamiu_seek_signal_real;
+	class->read = vips_source_custom_read_signal_real;
+	class->seek = vips_source_custom_seek_signal_real;
 
 	/**
-	 * VipsStreamiu::read:
-	 * @streamiu: the stream being operated on
+	 * VipsSourceCustom::read:
+	 * @source_custom: the source being operated on
 	 * @buffer: %gpointer, buffer to fill
 	 * @size: %gint64, size of buffer
 	 *
@@ -177,32 +177,32 @@ vips_streamiu_class_init( VipsStreamiuClass *class )
 	 *
 	 * Returns: the number of bytes read.
 	 */
-	vips_streamiu_signals[SIG_READ] = g_signal_new( "read",
+	vips_source_custom_signals[SIG_READ] = g_signal_new( "read",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_ACTION,
-		G_STRUCT_OFFSET( VipsStreamiuClass, read ), 
+		G_STRUCT_OFFSET( VipsSourceCustomClass, read ), 
 		NULL, NULL,
 		vips_INT64__POINTER_INT64,
 		G_TYPE_INT64, 2,
 		G_TYPE_POINTER, G_TYPE_INT64 );
 
 	/**
-	 * VipsStreamiu::seek:
-	 * @streamiu: the stream being operated on
+	 * VipsSourceCustom::seek:
+	 * @source_custom: the source being operated on
 	 * @offset: %gint64, seek offset
 	 * @whence: %gint, seek origin
 	 *
-	 * This signal is emitted to seek the stream. The handler should
-	 * change the stream position appropriately.
+	 * This signal is emitted to seek the source. The handler should
+	 * change the source position appropriately.
 	 *
-	 * The handler on an unseekable stream should always return -1.
+	 * The handler for an unseekable source should always return -1.
 	 *
 	 * Returns: the new seek position.
 	 */
-	vips_streamiu_signals[SIG_SEEK] = g_signal_new( "seek",
+	vips_source_custom_signals[SIG_SEEK] = g_signal_new( "seek",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_ACTION,
-		G_STRUCT_OFFSET( VipsStreamiuClass, seek ), 
+		G_STRUCT_OFFSET( VipsSourceCustomClass, seek ), 
 		NULL, NULL,
 		vips_INT64__INT64_INT,
 		G_TYPE_INT64, 2,
@@ -211,30 +211,30 @@ vips_streamiu_class_init( VipsStreamiuClass *class )
 }
 
 static void
-vips_streamiu_init( VipsStreamiu *streamiu )
+vips_source_custom_init( VipsSourceCustom *source_custom )
 {
 }
 
 /**
- * vips_streamiu_new:
+ * vips_source_custom_new:
  *
- * Create a #VipsStreamiu. Attach signals to implement read and seek.
+ * Create a #VipsSourceCustom. Attach signals to implement read and seek.
  *
- * Returns: a new #VipsStreamiu
+ * Returns: a new #VipsSourceCustom
  */
-VipsStreamiu *
-vips_streamiu_new( void )
+VipsSourceCustom *
+vips_source_custom_new( void )
 {
-	VipsStreamiu *streamiu;
+	VipsSourceCustom *source_custom;
 
-	VIPS_DEBUG_MSG( "vips_streamiu_new:\n" );
+	VIPS_DEBUG_MSG( "vips_source_custom_new:\n" );
 
-	streamiu = VIPS_STREAMIU( g_object_new( VIPS_TYPE_STREAMIU, NULL ) );
+	source_custom = VIPS_SOURCE_CUSTOM( g_object_new( VIPS_TYPE_SOURCE_CUSTOM, NULL ) );
 
-	if( vips_object_build( VIPS_OBJECT( streamiu ) ) ) {
-		VIPS_UNREF( streamiu );
+	if( vips_object_build( VIPS_OBJECT( source_custom ) ) ) {
+		VIPS_UNREF( source_custom );
 		return( NULL );
 	}
 
-	return( streamiu ); 
+	return( source_custom ); 
 }

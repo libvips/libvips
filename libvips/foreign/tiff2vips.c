@@ -190,7 +190,7 @@
  * 	- istiff reads the first directory rather than just testing the magic
  * 	  number, so it ignores more TIFF-like, but not TIFF images
  * 17/10/19
- * 	- switch to stream input
+ * 	- switch to source input
  * 18/11/19
  * 	- support ASSOCALPHA in any alpha band
  */
@@ -307,7 +307,7 @@ typedef void (*scanline_process_fn)( struct _Rtiff *,
 typedef struct _Rtiff {
 	/* Parameters.
 	 */
-	VipsStreami *streami;
+	VipsSource *source;
 	VipsImage *out;
 	int page;
 	int n;
@@ -495,7 +495,7 @@ static void
 rtiff_free( Rtiff *rtiff )
 {
 	VIPS_FREEF( TIFFClose, rtiff->tiff );
-	VIPS_UNREF( rtiff->streami );
+	VIPS_UNREF( rtiff->source );
 }
 
 static void
@@ -507,12 +507,12 @@ rtiff_close_cb( VipsObject *object, Rtiff *rtiff )
 static void
 rtiff_minimise_cb( VipsImage *image, Rtiff *rtiff )
 {
-	if( rtiff->streami )
-		vips_streami_minimise( rtiff->streami );
+	if( rtiff->source )
+		vips_source_minimise( rtiff->source );
 }
 
 static Rtiff *
-rtiff_new( VipsStreami *streami, VipsImage *out, 
+rtiff_new( VipsSource *source, VipsImage *out, 
 	int page, int n, gboolean autorotate )
 {
 	Rtiff *rtiff;
@@ -520,8 +520,8 @@ rtiff_new( VipsStreami *streami, VipsImage *out,
 	if( !(rtiff = VIPS_NEW( out, Rtiff )) )
 		return( NULL );
 
-	g_object_ref( streami );
-	rtiff->streami = streami;
+	g_object_ref( source );
+	rtiff->source = source;
 	rtiff->out = out;
 	rtiff->page = page;
 	rtiff->n = n;
@@ -558,7 +558,7 @@ rtiff_new( VipsStreami *streami, VipsImage *out,
 		return( NULL );
 	}
 
-	if( !(rtiff->tiff = vips__tiff_openin_stream( streami )) )
+	if( !(rtiff->tiff = vips__tiff_openin_source( source )) )
 		return( NULL );
 
 	return( rtiff );
@@ -1434,7 +1434,7 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	out->Ysize = rtiff->header.height * rtiff->n;
 
 	VIPS_SETSTR( out->filename, 
-		vips_stream_filename( VIPS_STREAM( rtiff->streami ) ) );
+		vips_connection_filename( VIPS_CONNECTION( rtiff->source ) ) );
 
 	if( rtiff->n > 1 ) 
 		vips_image_set_int( out, 
@@ -2463,14 +2463,14 @@ vips__tiff_read_header_orientation( Rtiff *rtiff, VipsImage *out )
 typedef gboolean (*TiffPropertyFn)( TIFF *tif );
 
 static gboolean
-vips__testtiff_stream( VipsStreami *streami, TiffPropertyFn fn )
+vips__testtiff_source( VipsSource *source, TiffPropertyFn fn )
 {
 	TIFF *tif;
 	gboolean property;
 
 	vips__tiff_init();
 
-	if( !(tif = vips__tiff_openin_stream( streami )) ) {
+	if( !(tif = vips__tiff_openin_source( source )) ) {
 		vips_error_clear();
 		return( FALSE );
 	}
@@ -2483,26 +2483,26 @@ vips__testtiff_stream( VipsStreami *streami, TiffPropertyFn fn )
 }
 
 gboolean
-vips__istiff_stream( VipsStreami *streami )
+vips__istiff_source( VipsSource *source )
 {
-	return( vips__testtiff_stream( streami, NULL ) ); 
+	return( vips__testtiff_source( source, NULL ) ); 
 }
 
 gboolean
-vips__istifftiled_stream( VipsStreami *streami )
+vips__istifftiled_source( VipsSource *source )
 {
-	return( vips__testtiff_stream( streami, TIFFIsTiled ) ); 
+	return( vips__testtiff_source( source, TIFFIsTiled ) ); 
 }
 
 int
-vips__tiff_read_header_stream( VipsStreami *streami, VipsImage *out, 
+vips__tiff_read_header_source( VipsSource *source, VipsImage *out, 
 	int page, int n, gboolean autorotate )
 {
 	Rtiff *rtiff;
 
 	vips__tiff_init();
 
-	if( !(rtiff = rtiff_new( streami, out, page, n, autorotate )) ||
+	if( !(rtiff = rtiff_new( source, out, page, n, autorotate )) ||
 		rtiff_header_read_all( rtiff ) )
 		return( -1 );
 
@@ -2511,16 +2511,16 @@ vips__tiff_read_header_stream( VipsStreami *streami, VipsImage *out,
 
 	vips__tiff_read_header_orientation( rtiff, out ); 
 
-	/* We never call vips_streami_decode() since we need to be able to
+	/* We never call vips_source_decode() since we need to be able to
 	 * seek() the whole way through the file. Just minimise instead,
 	 */
-	vips_streami_minimise( streami );
+	vips_source_minimise( source );
 
 	return( 0 );
 }
 
 int
-vips__tiff_read_stream( VipsStreami *streami, VipsImage *out, 
+vips__tiff_read_source( VipsSource *source, VipsImage *out, 
 	int page, int n, gboolean autorotate )
 {
 	Rtiff *rtiff;
@@ -2532,7 +2532,7 @@ vips__tiff_read_stream( VipsStreami *streami, VipsImage *out,
 
 	vips__tiff_init();
 
-	if( !(rtiff = rtiff_new( streami, out, page, n, autorotate )) ||
+	if( !(rtiff = rtiff_new( source, out, page, n, autorotate )) ||
 		rtiff_header_read_all( rtiff ) )
 		return( -1 );
 
@@ -2545,10 +2545,10 @@ vips__tiff_read_stream( VipsStreami *streami, VipsImage *out,
 			return( -1 );
 	}
 
-	/* We never call vips_streami_decode() since we need to be able to
+	/* We never call vips_source_decode() since we need to be able to
 	 * seek() the whole way through the file. Just minimise instead,
 	 */
-	vips_streami_minimise( streami );
+	vips_source_minimise( source );
 
 	return( 0 );
 }

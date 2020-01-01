@@ -16,6 +16,6 @@ EXTRA_DIST = \
 	test_iofuncs.py \
 	test_morphology.py \
 	test_resample.py \
-	test_stream.py
+	test_connection.py
 
 

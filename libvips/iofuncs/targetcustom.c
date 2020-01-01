@@ -1,4 +1,4 @@
-/* A Streamo subclass with signals you can easily hook up to other output
+/* A Target subclass with signals you can easily hook up to other output
  * sources.
  * 
  * J.Cupitt, 21/11/19
@@ -58,7 +58,7 @@
 
 #include "vipsmarshal.h"
 
-G_DEFINE_TYPE( VipsStreamou, vips_streamou, VIPS_TYPE_STREAMO );
+G_DEFINE_TYPE( VipsTargetCustom, vips_target_custom, VIPS_TYPE_TARGET );
 
 /* Our signals. 
  */
@@ -68,21 +68,21 @@ enum {
 	SIG_LAST
 };
 
-static guint vips_streamou_signals[SIG_LAST] = { 0 };
+static guint vips_target_custom_signals[SIG_LAST] = { 0 };
 
 static gint64
-vips_streamou_write_real( VipsStreamo *streamo, 
+vips_target_custom_write_real( VipsTarget *target, 
 	const void *data, size_t length )
 {
 	gint64 bytes_written;
 
-	VIPS_DEBUG_MSG( "vips_streamou_write_real:\n" );
+	VIPS_DEBUG_MSG( "vips_target_custom_write_real:\n" );
 
 	/* Return value if no attached handler.
 	 */
 	bytes_written = 0;
 
-	g_signal_emit( streamo, vips_streamou_signals[SIG_WRITE], 0,
+	g_signal_emit( target, vips_target_custom_signals[SIG_WRITE], 0,
 		data, (gint64) length, &bytes_written );
 
 	VIPS_DEBUG_MSG( "  %zd\n", bytes_written );
@@ -91,73 +91,73 @@ vips_streamou_write_real( VipsStreamo *streamo,
 }
 
 static void
-vips_streamou_finish_real( VipsStreamo *streamo )
+vips_target_custom_finish_real( VipsTarget *target )
 {
-	VIPS_DEBUG_MSG( "vips_streamou_seek_real:\n" );
+	VIPS_DEBUG_MSG( "vips_target_custom_seek_real:\n" );
 
-	g_signal_emit( streamo, vips_streamou_signals[SIG_FINISH], 0 );
+	g_signal_emit( target, vips_target_custom_signals[SIG_FINISH], 0 );
 }
 
 static gint64
-vips_streamou_write_signal_real( VipsStreamou *streamou, 
+vips_target_custom_write_signal_real( VipsTargetCustom *target_custom, 
 	const void *data, gint64 length )
 {
-	VIPS_DEBUG_MSG( "vips_streamou_write_signal_real:\n" );
+	VIPS_DEBUG_MSG( "vips_target_custom_write_signal_real:\n" );
 
 	return( 0 );
 }
 
 static void
-vips_streamou_finish_signal_real( VipsStreamou *streamou ) 
+vips_target_custom_finish_signal_real( VipsTargetCustom *target_custom ) 
 {
-	VIPS_DEBUG_MSG( "vips_streamou_finish_signal_real:\n" );
+	VIPS_DEBUG_MSG( "vips_target_custom_finish_signal_real:\n" );
 }
 
 static void
-vips_streamou_class_init( VipsStreamouClass *class )
+vips_target_custom_class_init( VipsTargetCustomClass *class )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( class );
-	VipsStreamoClass *streamo_class = VIPS_STREAMO_CLASS( class );
+	VipsTargetClass *target_class = VIPS_TARGET_CLASS( class );
 
-	object_class->nickname = "streamou";
-	object_class->description = _( "input stream" );
+	object_class->nickname = "target_custom";
+	object_class->description = _( "Custom target" );
 
-	streamo_class->write = vips_streamou_write_real;
-	streamo_class->finish = vips_streamou_finish_real;
+	target_class->write = vips_target_custom_write_real;
+	target_class->finish = vips_target_custom_finish_real;
 
-	class->write = vips_streamou_write_signal_real;
-	class->finish = vips_streamou_finish_signal_real;
+	class->write = vips_target_custom_write_signal_real;
+	class->finish = vips_target_custom_finish_signal_real;
 
 	/**
-	 * VipsStreamou::write:
-	 * @streamou: the stream being operated on
+	 * VipsTargetCustom::write:
+	 * @target_custom: the target being operated on
 	 * @data: %pointer, bytes to write
 	 * @length: %gint64, number of bytes
 	 *
-	 * This signal is emitted to write bytes to the stream. 
+	 * This signal is emitted to write bytes to the target. 
 	 *
 	 * Returns: the number of bytes written.
 	 */
-	vips_streamou_signals[SIG_WRITE] = g_signal_new( "write",
+	vips_target_custom_signals[SIG_WRITE] = g_signal_new( "write",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_ACTION,
-		G_STRUCT_OFFSET( VipsStreamouClass, write ), 
+		G_STRUCT_OFFSET( VipsTargetCustomClass, write ), 
 		NULL, NULL,
 		vips_INT64__POINTER_INT64,
 		G_TYPE_INT64, 2,
 		G_TYPE_POINTER, G_TYPE_INT64 );
 
 	/**
-	 * VipsStreamou::finish:
-	 * @streamou: the stream being operated on
+	 * VipsTargetCustom::finish:
+	 * @target_custom: the target being operated on
 	 *
-	 * This signal is emitted at the end of write. The stream should do
+	 * This signal is emitted at the end of write. The target should do
 	 * any finishing necessary.
 	 */
-	vips_streamou_signals[SIG_FINISH] = g_signal_new( "finish",
+	vips_target_custom_signals[SIG_FINISH] = g_signal_new( "finish",
 		G_TYPE_FROM_CLASS( class ),
 		G_SIGNAL_ACTION,
-		G_STRUCT_OFFSET( VipsStreamouClass, finish ), 
+		G_STRUCT_OFFSET( VipsTargetCustomClass, finish ), 
 		NULL, NULL,
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE, 0 );
@@ -165,30 +165,30 @@ vips_streamou_class_init( VipsStreamouClass *class )
 }
 
 static void
-vips_streamou_init( VipsStreamou *streamou )
+vips_target_custom_init( VipsTargetCustom *target_custom )
 {
 }
 
 /**
- * vips_streamou_new:
+ * vips_target_custom_new:
  *
- * Create a #VipsStreamou. Attach signals to implement write and finish.
+ * Create a #VipsTargetCustom. Attach signals to implement write and finish.
  *
- * Returns: a new #VipsStreamou
+ * Returns: a new #VipsTargetCustom
  */
-VipsStreamou *
-vips_streamou_new( void )
+VipsTargetCustom *
+vips_target_custom_new( void )
 {
-	VipsStreamou *streamou;
+	VipsTargetCustom *target_custom;
 
-	VIPS_DEBUG_MSG( "vips_streamou_new:\n" );
+	VIPS_DEBUG_MSG( "vips_target_custom_new:\n" );
 
-	streamou = VIPS_STREAMOU( g_object_new( VIPS_TYPE_STREAMOU, NULL ) );
+	target_custom = VIPS_TARGET_CUSTOM( g_object_new( VIPS_TYPE_TARGET_CUSTOM, NULL ) );
 
-	if( vips_object_build( VIPS_OBJECT( streamou ) ) ) {
-		VIPS_UNREF( streamou );
+	if( vips_object_build( VIPS_OBJECT( target_custom ) ) ) {
+		VIPS_UNREF( target_custom );
 		return( NULL );
 	}
 
-	return( streamou ); 
+	return( target_custom ); 
 }

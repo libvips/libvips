@@ -1,4 +1,4 @@
-// VIPS stream input/output wrapper
+// VIPS connection wrapper
 
 /*
 
@@ -27,70 +27,70 @@
 
  */
 
-#ifndef VIPS_VSTREAM_H
-#define VIPS_VSTREAM_H
+#ifndef VIPS_VCONNECTION_H
+#define VIPS_VCONNECTION_H
 
 #include <vips/vips.h>
 
 VIPS_NAMESPACE_START
 
-class VStreamI : VObject
+class VSource : VObject
 {
 public:
-	VStreamI( VipsStreami *input, VSteal steal = STEAL ) : 
+	VSource( VipsSource *input, VSteal steal = STEAL ) : 
 		VObject( (VipsObject *) input, steal )
 	{
 	}
 
 	static 
-	VStreamI new_from_descriptor( int descriptor );
+	VSource new_from_descriptor( int descriptor );
 
 	static 
-	VStreamI new_from_file( const char *filename );
+	VSource new_from_file( const char *filename );
 
 	static 
-	VStreamI new_from_blob( VipsBlob *blob );
+	VSource new_from_blob( VipsBlob *blob );
 
 	static 
-	VStreamI new_from_memory( const void *data, 
+	VSource new_from_memory( const void *data, 
 		size_t size );
 
 	static 
-	VStreamI new_from_options( const char *options );
+	VSource new_from_options( const char *options );
 
-	VipsStreami *
-	get_stream() const
+	VipsSource *
+	get_source() const
 	{
-		return( (VipsStreami *) VObject::get_object() );
+		return( (VipsSource *) VObject::get_object() );
 	}
 
 };
 
-class VStreamO : VObject
+class VTarget : VObject
 {
 public:
-	VStreamO( VipsStreamo *output, VSteal steal = STEAL ) : 
+	VTarget( VipsTarget *output, VSteal steal = STEAL ) : 
 		VObject( (VipsObject *) output, steal )
 	{
 	}
 
 	static 
-	VStreamO new_to_descriptor( int descriptor );
+	VTarget new_to_descriptor( int descriptor );
 
 	static 
-	VStreamO new_to_file( const char *filename );
+	VTarget new_to_file( const char *filename );
 
 	static 
-	VStreamO new_to_memory();
+	VTarget new_to_memory();
 
-	VipsStreamo *
-	get_stream() const
+	VipsTarget *
+	get_target() const
 	{
-		return( (VipsStreamo *) VObject::get_object() );
+		return( (VipsTarget *) VObject::get_object() );
 	}
 
 };
 
 VIPS_NAMESPACE_END
 
-#endif /*VIPS_VSTREAM_H*/
+#endif /*VIPS_VCONNECTION_H*/

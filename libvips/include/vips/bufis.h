@@ -1,4 +1,4 @@
-/* Buffered inputput from a VipsStreami
+/* Buffered inputput from a VipsSource
  *
  * J.Cupitt, 18/11/19
  */
@@ -30,44 +30,44 @@
 
  */
 
-#ifndef VIPS_BUFIS_H
-#define VIPS_BUFIS_H
+#ifndef VIPS_SBUF_H
+#define VIPS_SBUF_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
 
-#define VIPS_TYPE_BUFIS (vips_bufis_get_type())
-#define VIPS_BUFIS( obj ) \
+#define VIPS_TYPE_SBUF (vips_sbuf_get_type())
+#define VIPS_SBUF( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
-	VIPS_TYPE_BUFIS, VipsBufis ))
-#define VIPS_BUFIS_CLASS( klass ) \
+	VIPS_TYPE_SBUF, VipsSbuf ))
+#define VIPS_SBUF_CLASS( klass ) \
 	(G_TYPE_CHECK_CLASS_CAST( (klass), \
-	VIPS_TYPE_BUFIS, VipsBufisClass))
-#define VIPS_IS_BUFIS( obj ) \
-	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_BUFIS ))
-#define VIPS_IS_BUFIS_CLASS( klass ) \
-	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_BUFIS ))
-#define VIPS_BUFIS_GET_CLASS( obj ) \
+	VIPS_TYPE_SBUF, VipsSbufClass))
+#define VIPS_IS_SBUF( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_SBUF ))
+#define VIPS_IS_SBUF_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_SBUF ))
+#define VIPS_SBUF_GET_CLASS( obj ) \
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
-	VIPS_TYPE_BUFIS, VipsBufisClass ))
+	VIPS_TYPE_SBUF, VipsSbufClass ))
 
-#define VIPS_BUFIS_BUFFER_SIZE (4096)
+#define VIPS_SBUF_BUFFER_SIZE (4096)
 
-/* Layer over streami: read with an input buffer.
+/* Layer over source: read with an input buffer.
  * 
  * Libraries like libjpeg do their own input buffering and need raw IO, but
  * others, like radiance, need to parse the input into lines. A buffered read
  * class is very convenient.
  */
-typedef struct _VipsBufis {
+typedef struct _VipsSbuf {
 	VipsObject parent_object;
 
 	/*< private >*/
 
-	/* The VipsStreami we wrap.
+	/* The VipsSource we wrap.
 	 */
-	VipsStreami *streami;
+	VipsSource *source;
 
 	/* The +1 means there's always a \0 byte at the end.
 	 *
@@ -76,55 +76,55 @@ typedef struct _VipsBufis {
 	 * chars_in_buffer is how many chars we have in input_buffer,
 	 * read_point is the current read position in that buffer.
 	 */
-	unsigned char input_buffer[VIPS_BUFIS_BUFFER_SIZE + 1];
+	unsigned char input_buffer[VIPS_SBUF_BUFFER_SIZE + 1];
 	int chars_in_buffer;
 	int read_point;
 
 	/* Build lines of text here.
 	 */
-	unsigned char line[VIPS_BUFIS_BUFFER_SIZE + 1];
+	unsigned char line[VIPS_SBUF_BUFFER_SIZE + 1];
 
-} VipsBufis;
+} VipsSbuf;
 
-typedef struct _VipsBufisClass {
+typedef struct _VipsSbufClass {
 	VipsObjectClass parent_class;
 
-} VipsBufisClass;
+} VipsSbufClass;
 
-GType vips_bufis_get_type( void );
+GType vips_sbuf_get_type( void );
 
-VipsBufis *vips_bufis_new_from_streami( VipsStreami *streami );
+VipsSbuf *vips_sbuf_new_from_source( VipsSource *source );
 
-void vips_bufis_unbuffer( VipsBufis *streamib );
+void vips_sbuf_unbuffer( VipsSbuf *sbuf );
 
-int vips_bufis_getc( VipsBufis *streamib );
-#define VIPS_BUFIS_GETC( S ) ( \
+int vips_sbuf_getc( VipsSbuf *sbuf );
+#define VIPS_SBUF_GETC( S ) ( \
 	(S)->read_point < (S)->chars_in_buffer ? \
 		(S)->input_buffer[(S)->read_point++] : \
-		vips_bufis_getc( S ) \
+		vips_sbuf_getc( S ) \
 )
-void vips_bufis_ungetc( VipsBufis *streamib );
-#define VIPS_BUFIS_UNGETC( S ) { \
+void vips_sbuf_ungetc( VipsSbuf *sbuf );
+#define VIPS_SBUF_UNGETC( S ) { \
 	if( (S)->read_point > 0 ) \
 		(S)->read_point -= 1; \
 }
 
-int vips_bufis_require( VipsBufis *streamib, int require );
-#define VIPS_BUFIS_REQUIRE( S, R ) ( \
+int vips_sbuf_require( VipsSbuf *sbuf, int require );
+#define VIPS_SBUF_REQUIRE( S, R ) ( \
 	(S)->read_point + (R) <= (S)->chars_in_buffer ? \
 		0 :  \
-		vips_bufis_require( (S), (R) ) \
+		vips_sbuf_require( (S), (R) ) \
 )
-#define VIPS_BUFIS_PEEK( S ) ((S)->input_buffer + (S)->read_point)
-#define VIPS_BUFIS_FETCH( S ) ((S)->input_buffer[(S)->read_point++])
+#define VIPS_SBUF_PEEK( S ) ((S)->input_buffer + (S)->read_point)
+#define VIPS_SBUF_FETCH( S ) ((S)->input_buffer[(S)->read_point++])
 
-const char *vips_bufis_get_line( VipsBufis *streamib ); 
-char *vips_bufis_get_line_copy( VipsBufis *streamib ); 
-const char *vips_bufis_get_non_whitespace( VipsBufis *streamib );
-int vips_bufis_skip_whitespace( VipsBufis *streamib );
+const char *vips_sbuf_get_line( VipsSbuf *sbuf ); 
+char *vips_sbuf_get_line_copy( VipsSbuf *sbuf ); 
+const char *vips_sbuf_get_non_whitespace( VipsSbuf *sbuf );
+int vips_sbuf_skip_whitespace( VipsSbuf *sbuf );
 
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
 
-#endif /*VIPS_BUFIS_H*/
+#endif /*VIPS_SBUF_H*/

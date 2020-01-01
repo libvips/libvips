@@ -27,7 +27,7 @@
  * 30/9/19
  * 	- smarter heif thumbnail selection
  * 12/10/19
- * 	- add thumbnail_stream
+ * 	- add thumbnail_source
  */
 
 /*
@@ -1254,33 +1254,33 @@ vips_thumbnail_buffer( void *buf, size_t len, VipsImage **out, int width, ... )
 	return( result );
 }
 
-typedef struct _VipsThumbnailStream {
+typedef struct _VipsThumbnailSource {
 	VipsThumbnail parent_object;
 
-	VipsStreami *streami;
+	VipsSource *source;
 	char *option_string;
-} VipsThumbnailStream;
+} VipsThumbnailSource;
 
-typedef VipsThumbnailClass VipsThumbnailStreamClass;
+typedef VipsThumbnailClass VipsThumbnailSourceClass;
 
-G_DEFINE_TYPE( VipsThumbnailStream, vips_thumbnail_stream, 
+G_DEFINE_TYPE( VipsThumbnailSource, vips_thumbnail_source, 
 	vips_thumbnail_get_type() );
 
-/* Get the info from a stream.
+/* Get the info from a source.
  */
 static int
-vips_thumbnail_stream_get_info( VipsThumbnail *thumbnail )
+vips_thumbnail_source_get_info( VipsThumbnail *thumbnail )
 {
-	VipsThumbnailStream *stream = (VipsThumbnailStream *) thumbnail;
+	VipsThumbnailSource *source = (VipsThumbnailSource *) thumbnail;
 
 	VipsImage *image;
 
-	g_info( "thumbnailing stream" ); 
+	g_info( "thumbnailing source" ); 
 
-	if( !(thumbnail->loader = vips_foreign_find_load_stream( 
-			stream->streami )) ||
-		!(image = vips_image_new_from_stream( stream->streami, 
-			stream->option_string, NULL )) )
+	if( !(thumbnail->loader = vips_foreign_find_load_source( 
+			source->source )) ||
+		!(image = vips_image_new_from_source( source->source, 
+			source->option_string, NULL )) )
 		return( -1 );
 
 	vips_thumbnail_read_header( thumbnail, image );
@@ -1293,23 +1293,23 @@ vips_thumbnail_stream_get_info( VipsThumbnail *thumbnail )
 /* Open an image, scaling as appropriate. 
  */
 static VipsImage *
-vips_thumbnail_stream_open( VipsThumbnail *thumbnail, double factor )
+vips_thumbnail_source_open( VipsThumbnail *thumbnail, double factor )
 {
-	VipsThumbnailStream *stream = (VipsThumbnailStream *) thumbnail;
+	VipsThumbnailSource *source = (VipsThumbnailSource *) thumbnail;
 
 	if( vips_isprefix( "VipsForeignLoadJpeg", thumbnail->loader ) ) {
-		return( vips_image_new_from_stream( 
-			stream->streami, 
-			stream->option_string,
+		return( vips_image_new_from_source( 
+			source->source, 
+			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"shrink", (int) factor,
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadOpenslide", 
 		thumbnail->loader ) ) {
-		return( vips_image_new_from_stream( 
-			stream->streami, 
-			stream->option_string,
+		return( vips_image_new_from_source( 
+			source->source, 
+			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"level", (int) factor,
 			NULL ) );
@@ -1317,40 +1317,40 @@ vips_thumbnail_stream_open( VipsThumbnail *thumbnail, double factor )
 	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
 		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ||
 		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ) {
-		return( vips_image_new_from_stream( 
-			stream->streami, 
-			stream->option_string,
+		return( vips_image_new_from_source( 
+			source->source, 
+			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"scale", 1.0 / factor,
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) {
-		return( vips_image_new_from_stream( 
-			stream->streami, 
-			stream->option_string,
+		return( vips_image_new_from_source( 
+			source->source, 
+			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"page", (int) factor,
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
-		return( vips_image_new_from_stream( 
-			stream->streami, 
-			stream->option_string,
+		return( vips_image_new_from_source( 
+			source->source, 
+			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"thumbnail", (int) factor,
 			NULL ) );
 	}
 	else {
-		return( vips_image_new_from_stream( 
-			stream->streami, 
-			stream->option_string,
+		return( vips_image_new_from_source( 
+			source->source, 
+			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			NULL ) );
 	}
 }
 
 static void
-vips_thumbnail_stream_class_init( VipsThumbnailClass *class )
+vips_thumbnail_source_class_init( VipsThumbnailClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
@@ -1359,36 +1359,36 @@ vips_thumbnail_stream_class_init( VipsThumbnailClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	vobject_class->nickname = "thumbnail_stream";
-	vobject_class->description = _( "generate thumbnail from stream" );
+	vobject_class->nickname = "thumbnail_source";
+	vobject_class->description = _( "generate thumbnail from source" );
 
-	thumbnail_class->get_info = vips_thumbnail_stream_get_info;
-	thumbnail_class->open = vips_thumbnail_stream_open;
+	thumbnail_class->get_info = vips_thumbnail_source_get_info;
+	thumbnail_class->open = vips_thumbnail_source_open;
 
-	VIPS_ARG_OBJECT( class, "streami", 1,
-		_( "Streami" ),
-		_( "Stream to load from" ),
+	VIPS_ARG_OBJECT( class, "source", 1,
+		_( "Source" ),
+		_( "Source to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsThumbnailStream, streami ),
-		VIPS_TYPE_STREAMI );
+		G_STRUCT_OFFSET( VipsThumbnailSource, source ),
+		VIPS_TYPE_SOURCE );
 
 	VIPS_ARG_STRING( class, "option_string", 20,
 		_( "Extra options" ),
 		_( "Options that are passed on to the underlying loader" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsThumbnailStream, option_string ),
+		G_STRUCT_OFFSET( VipsThumbnailSource, option_string ),
 		"" );
 
 }
 
 static void
-vips_thumbnail_stream_init( VipsThumbnailStream *stream )
+vips_thumbnail_source_init( VipsThumbnailSource *source )
 {
 }
 
 /**
- * vips_thumbnail_stream:
- * @streami: stream to thumbnail
+ * vips_thumbnail_source:
+ * @source: source to thumbnail
  * @out: (out): output image
  * @width: target width in pixels
  * @...: %NULL-terminated list of optional named arguments
@@ -1404,20 +1404,20 @@ vips_thumbnail_stream_init( VipsThumbnailStream *stream )
  * * @export_profile: %gchararray, export ICC profile
  * * @intent: #VipsIntent, rendering intent
  *
- * Exacty as vips_thumbnail(), but read from a stream. 
+ * Exactly as vips_thumbnail(), but read from a source. 
  *
  * See also: vips_thumbnail().
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_thumbnail_stream( VipsStreami *streami, VipsImage **out, int width, ... )
+vips_thumbnail_source( VipsSource *source, VipsImage **out, int width, ... )
 {
 	va_list ap;
 	int result;
 
 	va_start( ap, width );
-	result = vips_call_split( "thumbnail_stream", ap, streami, out, width );
+	result = vips_call_split( "thumbnail_source", ap, source, out, width );
 	va_end( ap );
 
 	return( result );

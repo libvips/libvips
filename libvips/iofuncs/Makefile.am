@@ -1,12 +1,12 @@
 noinst_LTLIBRARIES = libiofuncs.la
 
 libiofuncs_la_SOURCES = \
-	stream.c \
-	streami.c \
-	streamiu.c \
-	streamo.c \
-	streamou.c \
-	bufis.c \
+	connection.c \
+	source.c \
+	sourcecustom.c \
+	target.c \
+	targetcustom.c \
+	sbuf.c \
 	dbuf.c \
 	reorder.c \
 	vipsmarshal.h \

@@ -132,19 +132,19 @@ vips__tiff_openout( const char *path, gboolean bigtiff )
 	return( tif );
 }
 
-/* TIFF input from a vips stream.
+/* TIFF input from a vips source.
  */
 
 static tsize_t
-openin_stream_read( thandle_t st, tdata_t data, tsize_t size )
+openin_source_read( thandle_t st, tdata_t data, tsize_t size )
 {
-	VipsStreami *streami = VIPS_STREAMI( st );
+	VipsSource *source = VIPS_SOURCE( st );
 
-	return( vips_streami_read( streami, data, size ) );
+	return( vips_source_read( source, data, size ) );
 }
 
 static tsize_t
-openin_stream_write( thandle_t st, tdata_t buffer, tsize_t size )
+openin_source_write( thandle_t st, tdata_t buffer, tsize_t size )
 {
 	g_assert_not_reached();
 
@@ -152,36 +152,36 @@ openin_stream_write( thandle_t st, tdata_t buffer, tsize_t size )
 }
 
 static toff_t
-openin_stream_seek( thandle_t st, toff_t position, int whence )
+openin_source_seek( thandle_t st, toff_t position, int whence )
 {
-	VipsStreami *streami = VIPS_STREAMI( st );
+	VipsSource *source = VIPS_SOURCE( st );
 
-	return( vips_streami_seek( streami, position, whence ) );
+	return( vips_source_seek( source, position, whence ) );
 }
 
 static int
-openin_stream_close( thandle_t st )
+openin_source_close( thandle_t st )
 {
-	VipsStreami *streami = VIPS_STREAMI( st );
+	VipsSource *source = VIPS_SOURCE( st );
 
-	VIPS_UNREF( streami );
+	VIPS_UNREF( source );
 
 	return( 0 );
 }
 
 static toff_t
-openin_stream_length( thandle_t st )
+openin_source_length( thandle_t st )
 {
-	VipsStreami *streami = VIPS_STREAMI( st );
+	VipsSource *source = VIPS_SOURCE( st );
 
 	/* libtiff will use this to get file size if tags like StripByteCounts
 	 * are missing.
 	 */
-	return( vips_streami_length( streami ) );
+	return( vips_source_length( source ) );
 }
 
 static int
-openin_stream_map( thandle_t st, tdata_t *start, toff_t *len )
+openin_source_map( thandle_t st, tdata_t *start, toff_t *len )
 {
 	g_assert_not_reached();
 
@@ -189,7 +189,7 @@ openin_stream_map( thandle_t st, tdata_t *start, toff_t *len )
 }
 
 static void
-openin_stream_unmap( thandle_t st, tdata_t start, toff_t len )
+openin_source_unmap( thandle_t st, tdata_t start, toff_t len )
 {
 	g_assert_not_reached();
 
@@ -197,34 +197,34 @@ openin_stream_unmap( thandle_t st, tdata_t start, toff_t len )
 }
 
 TIFF *
-vips__tiff_openin_stream( VipsStreami *streami )
+vips__tiff_openin_source( VipsSource *source )
 {
 	TIFF *tiff;
 
 #ifdef DEBUG
-	printf( "vips__tiff_openin_stream:\n" );
+	printf( "vips__tiff_openin_source:\n" );
 #endif /*DEBUG*/
 
-	if( vips_streami_rewind( streami ) )
+	if( vips_source_rewind( source ) )
 		return( NULL );
 
-	if( !(tiff = TIFFClientOpen( "stream input", "rm",
-		(thandle_t) streami,
-		openin_stream_read,
-		openin_stream_write,
-		openin_stream_seek,
-		openin_stream_close,
-		openin_stream_length,
-		openin_stream_map,
-		openin_stream_unmap )) ) {
-		vips_error( "vips__tiff_openin_stream", "%s",
-			_( "unable to open stream for input" ) );
+	if( !(tiff = TIFFClientOpen( "source input", "rm",
+		(thandle_t) source,
+		openin_source_read,
+		openin_source_write,
+		openin_source_seek,
+		openin_source_close,
+		openin_source_length,
+		openin_source_map,
+		openin_source_unmap )) ) {
+		vips_error( "vips__tiff_openin_source", "%s",
+			_( "unable to open source for input" ) );
 		return( NULL );
 	}
 
 	/* Unreffed on close(), see above.
 	 */
-	g_object_ref( streami );
+	g_object_ref( source );
 
 	return( tiff );
 }

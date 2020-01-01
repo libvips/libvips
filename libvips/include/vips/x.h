@@ -79,8 +79,7 @@ int vips_thumbnail_buffer( void *buf, size_t len, VipsImage **out,
 	__attribute__((sentinel));
 int vips_thumbnail_image( VipsImage *in, VipsImage **out, int width, ... )
 	__attribute__((sentinel));
-int vips_thumbnail_source( VipsSource *source, VipsImage **out, 
-	int width, ... )
+int vips_thumbnail_source( VipsSource *source, VipsImage **out, int width, ... )
 	__attribute__((sentinel));
 
 int vips_similarity( VipsImage *in, VipsImage **out, ... )

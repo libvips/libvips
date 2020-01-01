@@ -77,6 +77,7 @@
  * @stability: Stable
  * @see_also: <link linkend="libvips-image">image</link>
  * @include: vips/vips.h
+ * @title: VipsForeign
  *
  * This set of operations load and save images in a variety of formats. 
  *
@@ -457,8 +458,8 @@ vips_foreign_load_summary_class( VipsObjectClass *object_class, VipsBuf *buf )
 			vips_buf_appends( buf, ", is_a" );
 		if( class->is_a_buffer )
 			vips_buf_appends( buf, ", is_a_buffer" );
-		if( class->is_a_stream )
-			vips_buf_appends( buf, ", is_a_stream" );
+		if( class->is_a_source )
+			vips_buf_appends( buf, ", is_a_source" );
 		if( class->get_flags )
 			vips_buf_appends( buf, ", get_flags" );
 		if( class->get_flags_filename )
@@ -490,7 +491,7 @@ vips_foreign_find_load_sub( VipsForeignLoadClass *load_class,
 
 	if( load_class->is_a &&
 		!vips_ispostfix( object_class->nickname, "_buffer" ) &&
-		!vips_ispostfix( object_class->nickname, "_stream" ) ) {
+		!vips_ispostfix( object_class->nickname, "_source" ) ) {
 		if( load_class->is_a( filename ) ) 
 			return( load_class );
 
@@ -629,23 +630,23 @@ vips_foreign_find_load_buffer( const void *data, size_t size )
 	return( G_OBJECT_CLASS_NAME( load_class ) );
 }
 
-/* Can this VipsForeign open this stream?
+/* Can this VipsForeign open this source?
  */
 static void *
-vips_foreign_find_load_stream_sub( void *item, void *a, void *b )
+vips_foreign_find_load_source_sub( void *item, void *a, void *b )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( item );
 	VipsForeignLoadClass *load_class = VIPS_FOREIGN_LOAD_CLASS( item );
-	VipsStreami *streami = VIPS_STREAMI( a );
+	VipsSource *source = VIPS_SOURCE( a );
 
-	if( load_class->is_a_stream &&
-		vips_ispostfix( object_class->nickname, "_stream" ) ) {
+	if( load_class->is_a_source &&
+		vips_ispostfix( object_class->nickname, "_source" ) ) {
 		/* We may have done a read() rather than a sniff() in one of
 		 * the is_a testers. Always rewind.
 		 */
-		(void) vips_streami_rewind( streami );
+		(void) vips_source_rewind( source );
 
-		if( load_class->is_a_stream( streami ) ) 
+		if( load_class->is_a_source( source ) ) 
 			return( load_class );
 	}
 
@@ -653,30 +654,30 @@ vips_foreign_find_load_stream_sub( void *item, void *a, void *b )
 }
 
 /**
- * vips_foreign_find_load_stream:
- * @streami: stream to load from
+ * vips_foreign_find_load_source:
+ * @source: source to load from
  *
- * Searches for an operation you could use to load a stream. To see the
- * range of buffer loaders supported by your vips, try something like:
+ * Searches for an operation you could use to load a source. To see the
+ * range of source loaders supported by your vips, try something like:
  * 
- * 	vips -l | grep load_stream
+ * 	vips -l | grep load_source
  *
- * See also: vips_image_new_from_stream().
+ * See also: vips_image_new_from_source().
  *
  * Returns: (transfer none): the name of an operation on success, %NULL on 
  * error.
  */
 const char *
-vips_foreign_find_load_stream( VipsStreami *streami )
+vips_foreign_find_load_source( VipsSource *source )
 {
 	VipsForeignLoadClass *load_class;
 
 	if( !(load_class = (VipsForeignLoadClass *) vips_foreign_map( 
 		"VipsForeignLoad",
-		vips_foreign_find_load_stream_sub, 
-		streami, NULL )) ) {
+		vips_foreign_find_load_source_sub, 
+		source, NULL )) ) {
 		vips_error( "VipsForeignLoad", 
-			"%s", _( "stream is not in a known format" ) ); 
+			"%s", _( "source is not in a known format" ) ); 
 		return( NULL );
 	}
 
@@ -737,17 +738,17 @@ vips_foreign_is_a_buffer( const char *loader, const void *data, size_t size )
 }
 
 /**
- * vips_foreign_is_a_stream:
+ * vips_foreign_is_a_source:
  * @loader: name of loader to use for test
- * @streami: stream to test
+ * @source: source to test
  *
- * Return %TRUE if @streami can be loaded by @loader. @loader is something
- * like "tiffload_stream" or "VipsForeignLoadTiffStream".
+ * Return %TRUE if @source can be loaded by @loader. @loader is something
+ * like "tiffload_source" or "VipsForeignLoadTiffSource".
  *
- * Returns: %TRUE if @data can be loaded by @stream.
+ * Returns: %TRUE if @data can be loaded by @source.
  */
 gboolean
-vips_foreign_is_a_stream( const char *loader, VipsStreami *streami )
+vips_foreign_is_a_source( const char *loader, VipsSource *source )
 {
 	const VipsObjectClass *class;
 	VipsForeignLoadClass *load_class;
@@ -755,8 +756,8 @@ vips_foreign_is_a_stream( const char *loader, VipsStreami *streami )
 	if( !(class = vips_class_find( "VipsForeignLoad", loader )) )
 		return( FALSE );
 	load_class = VIPS_FOREIGN_LOAD_CLASS( class );
-	if( load_class->is_a_stream &&
-		load_class->is_a_stream( streami ) )
+	if( load_class->is_a_source &&
+		load_class->is_a_source( source ) )
 		return( TRUE );
 
 	return( FALSE );
@@ -1755,12 +1756,12 @@ vips_foreign_find_save_sub( VipsForeignSaveClass *save_class,
 	/* The suffs might be defined on an abstract base class, make sure we
 	 * don't pick that.
 	 *
-	 * Suffs can be defined on buffer and stream writers too. Make sure
+	 * Suffs can be defined on buffer and target writers too. Make sure
 	 * it's not one of those.
 	 */
 	if( !G_TYPE_IS_ABSTRACT( G_TYPE_FROM_CLASS( class ) ) &&
 		!vips_ispostfix( object_class->nickname, "_buffer" ) &&
-		!vips_ispostfix( object_class->nickname, "_stream" ) &&
+		!vips_ispostfix( object_class->nickname, "_target" ) &&
 		class->suffs &&
 		vips_filename_suffix_match( filename, class->suffs ) )
 		return( save_class );
@@ -1898,17 +1899,17 @@ vips_foreign_save( VipsImage *in, const char *name, ... )
 	return( result );
 }
 
-/* Can this class write this filetype to a stream?
+/* Can this class write this filetype to a target?
  */
 static void *
-vips_foreign_find_save_stream_sub( VipsForeignSaveClass *save_class, 
+vips_foreign_find_save_target_sub( VipsForeignSaveClass *save_class, 
 	const char *suffix )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( save_class );
 	VipsForeignClass *class = VIPS_FOREIGN_CLASS( save_class );
 
 	if( class->suffs &&
-		vips_ispostfix( object_class->nickname, "_stream" ) &&
+		vips_ispostfix( object_class->nickname, "_target" ) &&
 		vips_filename_suffix_match( suffix, class->suffs ) )
 		return( save_class );
 
@@ -1916,10 +1917,10 @@ vips_foreign_find_save_stream_sub( VipsForeignSaveClass *save_class,
 }
 
 /**
- * vips_foreign_find_save_stream:
+ * vips_foreign_find_save_target:
  * @suffix: format to find a saver for
  *
- * Searches for an operation you could use to write to a stream in @suffix
+ * Searches for an operation you could use to write to a target in @suffix
  * format. 
  *
  * See also: vips_image_write_to_buffer().
@@ -1927,7 +1928,7 @@ vips_foreign_find_save_stream_sub( VipsForeignSaveClass *save_class,
  * Returns: the name of an operation on success, %NULL on error
  */
 const char *
-vips_foreign_find_save_stream( const char *name )
+vips_foreign_find_save_target( const char *name )
 {
 	char suffix[VIPS_PATH_MAX];
 	char option_string[VIPS_PATH_MAX];
@@ -1937,10 +1938,10 @@ vips_foreign_find_save_stream( const char *name )
 
 	if( !(save_class = (VipsForeignSaveClass *) vips_foreign_map( 
 		"VipsForeignSave",
-		(VipsSListMap2Fn) vips_foreign_find_save_stream_sub, 
+		(VipsSListMap2Fn) vips_foreign_find_save_target_sub, 
 		(void *) suffix, NULL )) ) {
 		vips_error( "VipsForeignSave",
-			_( "\"%s\" is not a known stream format" ), name );
+			_( "\"%s\" is not a known target format" ), name );
 
 		return( NULL );
 	}
@@ -2006,10 +2007,10 @@ vips_foreign_operation_init( void )
 {
 	extern GType vips_foreign_load_rad_file_get_type( void ); 
 	extern GType vips_foreign_load_rad_buffer_get_type( void ); 
-	extern GType vips_foreign_load_rad_stream_get_type( void ); 
+	extern GType vips_foreign_load_rad_source_get_type( void ); 
 	extern GType vips_foreign_save_rad_file_get_type( void ); 
 	extern GType vips_foreign_save_rad_buffer_get_type( void ); 
-	extern GType vips_foreign_save_rad_stream_get_type( void ); 
+	extern GType vips_foreign_save_rad_target_get_type( void ); 
 
 	extern GType vips_foreign_load_mat_get_type( void ); 
 
@@ -2018,10 +2019,10 @@ vips_foreign_operation_init( void )
 
 	extern GType vips_foreign_load_png_file_get_type( void ); 
 	extern GType vips_foreign_load_png_buffer_get_type( void ); 
-	extern GType vips_foreign_load_png_stream_get_type( void ); 
+	extern GType vips_foreign_load_png_source_get_type( void ); 
 	extern GType vips_foreign_save_png_file_get_type( void ); 
 	extern GType vips_foreign_save_png_buffer_get_type( void ); 
-	extern GType vips_foreign_save_png_stream_get_type( void ); 
+	extern GType vips_foreign_save_png_target_get_type( void ); 
 
 	extern GType vips_foreign_load_csv_get_type( void ); 
 	extern GType vips_foreign_save_csv_get_type( void ); 
@@ -2041,15 +2042,15 @@ vips_foreign_operation_init( void )
 
 	extern GType vips_foreign_load_jpeg_file_get_type( void ); 
 	extern GType vips_foreign_load_jpeg_buffer_get_type( void ); 
-	extern GType vips_foreign_load_jpeg_stream_get_type( void ); 
+	extern GType vips_foreign_load_jpeg_source_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_file_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_buffer_get_type( void ); 
-	extern GType vips_foreign_save_jpeg_stream_get_type( void ); 
+	extern GType vips_foreign_save_jpeg_target_get_type( void ); 
 	extern GType vips_foreign_save_jpeg_mime_get_type( void ); 
 
 	extern GType vips_foreign_load_tiff_file_get_type( void ); 
 	extern GType vips_foreign_load_tiff_buffer_get_type( void ); 
-	extern GType vips_foreign_load_tiff_stream_get_type( void ); 
+	extern GType vips_foreign_load_tiff_source_get_type( void ); 
 	extern GType vips_foreign_save_tiff_file_get_type( void ); 
 	extern GType vips_foreign_save_tiff_buffer_get_type( void ); 
 
@@ -2072,21 +2073,19 @@ vips_foreign_operation_init( void )
 
 	extern GType vips_foreign_load_webp_file_get_type( void ); 
 	extern GType vips_foreign_load_webp_buffer_get_type( void ); 
-	extern GType vips_foreign_load_webp_stream_get_type( void ); 
+	extern GType vips_foreign_load_webp_source_get_type( void ); 
 	extern GType vips_foreign_save_webp_file_get_type( void ); 
 	extern GType vips_foreign_save_webp_buffer_get_type( void ); 
-	extern GType vips_foreign_save_webp_stream_get_type( void ); 
+	extern GType vips_foreign_save_webp_target_get_type( void ); 
 
 	extern GType vips_foreign_load_pdf_get_type( void ); 
 	extern GType vips_foreign_load_pdf_file_get_type( void ); 
 	extern GType vips_foreign_load_pdf_buffer_get_type( void ); 
 
-	extern GType vips_foreign_load_svg_get_type( void ); 
 	extern GType vips_foreign_load_svg_file_get_type( void ); 
 	extern GType vips_foreign_load_svg_buffer_get_type( void ); 
-	extern GType vips_foreign_load_svg_stream_get_type( void ); 
+	extern GType vips_foreign_load_svg_source_get_type( void ); 
 
-	extern GType vips_foreign_load_heif_get_type( void ); 
 	extern GType vips_foreign_load_heif_file_get_type( void ); 
 	extern GType vips_foreign_load_heif_buffer_get_type( void ); 
 	extern GType vips_foreign_save_heif_get_type( void ); 
@@ -2096,7 +2095,6 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_nifti_get_type( void ); 
 	extern GType vips_foreign_save_nifti_get_type( void ); 
 
-	extern GType vips_foreign_load_gif_get_type( void ); 
 	extern GType vips_foreign_load_gif_file_get_type( void ); 
 	extern GType vips_foreign_load_gif_buffer_get_type( void ); 
 
@@ -2123,10 +2121,10 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_RADIANCE
 	vips_foreign_load_rad_file_get_type(); 
 	vips_foreign_load_rad_buffer_get_type(); 
-	vips_foreign_load_rad_stream_get_type(); 
+	vips_foreign_load_rad_source_get_type(); 
 	vips_foreign_save_rad_file_get_type(); 
 	vips_foreign_save_rad_buffer_get_type(); 
-	vips_foreign_save_rad_stream_get_type(); 
+	vips_foreign_save_rad_target_get_type(); 
 #endif /*HAVE_RADIANCE*/
 
 #ifdef HAVE_POPPLER
@@ -2142,14 +2140,12 @@ vips_foreign_operation_init( void )
 #endif /*HAVE_PDFIUM*/
 
 #ifdef HAVE_RSVG
-	vips_foreign_load_svg_get_type(); 
 	vips_foreign_load_svg_file_get_type(); 
 	vips_foreign_load_svg_buffer_get_type(); 
-	vips_foreign_load_svg_stream_get_type(); 
+	vips_foreign_load_svg_source_get_type(); 
 #endif /*HAVE_RSVG*/
 
 #ifdef HAVE_GIFLIB
-	vips_foreign_load_gif_get_type(); 
 	vips_foreign_load_gif_file_get_type(); 
 	vips_foreign_load_gif_buffer_get_type(); 
 #endif /*HAVE_GIFLIB*/
@@ -2162,10 +2158,10 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_PNG
 	vips_foreign_load_png_file_get_type(); 
 	vips_foreign_load_png_buffer_get_type(); 
-	vips_foreign_load_png_stream_get_type(); 
+	vips_foreign_load_png_source_get_type(); 
 	vips_foreign_save_png_file_get_type(); 
 	vips_foreign_save_png_buffer_get_type(); 
-	vips_foreign_save_png_stream_get_type(); 
+	vips_foreign_save_png_target_get_type(); 
 #endif /*HAVE_PNG*/
 
 #ifdef HAVE_MATIO
@@ -2175,26 +2171,26 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_JPEG
 	vips_foreign_load_jpeg_file_get_type(); 
 	vips_foreign_load_jpeg_buffer_get_type(); 
-	vips_foreign_load_jpeg_stream_get_type(); 
+	vips_foreign_load_jpeg_source_get_type(); 
 	vips_foreign_save_jpeg_file_get_type(); 
 	vips_foreign_save_jpeg_buffer_get_type(); 
-	vips_foreign_save_jpeg_stream_get_type(); 
+	vips_foreign_save_jpeg_target_get_type(); 
 	vips_foreign_save_jpeg_mime_get_type(); 
 #endif /*HAVE_JPEG*/
 
 #ifdef HAVE_LIBWEBP
 	vips_foreign_load_webp_file_get_type(); 
 	vips_foreign_load_webp_buffer_get_type(); 
-	vips_foreign_load_webp_stream_get_type(); 
+	vips_foreign_load_webp_source_get_type(); 
 	vips_foreign_save_webp_file_get_type(); 
 	vips_foreign_save_webp_buffer_get_type(); 
-	vips_foreign_save_webp_stream_get_type(); 
+	vips_foreign_save_webp_target_get_type(); 
 #endif /*HAVE_LIBWEBP*/
 
 #ifdef HAVE_TIFF
 	vips_foreign_load_tiff_file_get_type(); 
 	vips_foreign_load_tiff_buffer_get_type(); 
-	vips_foreign_load_tiff_stream_get_type(); 
+	vips_foreign_load_tiff_source_get_type(); 
 	vips_foreign_save_tiff_file_get_type(); 
 	vips_foreign_save_tiff_buffer_get_type(); 
 #endif /*HAVE_TIFF*/
@@ -2235,13 +2231,11 @@ vips_foreign_operation_init( void )
 #endif /*HAVE_NIFTI*/
 
 #ifdef HAVE_HEIF_DECODER
-	vips_foreign_load_heif_get_type(); 
 	vips_foreign_load_heif_file_get_type(); 
 	vips_foreign_load_heif_buffer_get_type(); 
 #endif /*HAVE_HEIF_DECODER*/
 
 #ifdef HAVE_HEIF_ENCODER
-	vips_foreign_save_heif_get_type(); 
 	vips_foreign_save_heif_file_get_type(); 
 	vips_foreign_save_heif_buffer_get_type(); 
 #endif /*HAVE_HEIF_ENCODER*/
