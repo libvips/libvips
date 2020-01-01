@@ -114,7 +114,7 @@ extern "C" {
 #include <vips/type.h>
 #include <vips/gate.h>
 #include <vips/connection.h>
-#include <vips/bufis.h>
+#include <vips/sbuf.h>
 
 #include <vips/version.h>
 #include <vips/rect.h>

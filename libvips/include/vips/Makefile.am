@@ -1,6 +1,6 @@
 pkginclude_HEADERS = \
 	connection.h \
-	bufis.h \
+	sbuf.h \
 	basic.h \
 	type.h \
 	gate.h \
