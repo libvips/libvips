@@ -1,5 +1,5 @@
 // bodies for vips operations
-// Mon 30 Dec 17:45:35 GMT 2019
+// Wed 01 Jan 2020 12:22:12 PM CET
 // this file is generated automatically, do not edit!
 
 VImage VImage::CMC2LCh( VOption *options ) const
@@ -2303,17 +2303,6 @@ VImage VImage::pngload( const char *filename, VOption *options )
         (options ? options : VImage::option())->
             set( "out", &out )->
             set( "filename", filename ) );
-
-    return( out );
-}
-
-VImage VImage::pngload_base( VOption *options )
-{
-    VImage out;
-
-    call( "pngload_base",
-        (options ? options : VImage::option())->
-            set( "out", &out ) );
 
     return( out );
 }

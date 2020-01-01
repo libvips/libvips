@@ -1,13 +1,13 @@
 #!/bin/sh
 
-# test load and save via stream*u
+# test load and save via custom connection
 
 # set -x
 set -e
 
 . ./variables.sh
 
-if test_supported jpegload_stream; then
+if test_supported jpegload_source; then
 	./test_connections $image $tmp/x.png
 
 	# test max difference < 10

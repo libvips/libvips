@@ -1,5 +1,5 @@
 // headers for vips operations
-// Mon 30 Dec 17:45:50 GMT 2019
+// Wed 01 Jan 2020 12:22:11 PM CET
 // this file is generated automatically, do not edit!
 
 /**
@@ -1506,13 +1506,6 @@ VImage phasecor( VImage in2, VOption *options = 0 ) const;
  * @return Output image.
  */
 static VImage pngload( const char *filename, VOption *options = 0 );
-
-/**
- * Load png base class.
- * @param options Optional options.
- * @return Output image.
- */
-static VImage pngload_base( VOption *options = 0 );
 
 /**
  * Load png from buffer.

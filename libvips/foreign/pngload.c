@@ -63,7 +63,7 @@ typedef struct _VipsForeignLoadPng {
 
 typedef VipsForeignLoadClass VipsForeignLoadPngClass;
 
-G_DEFINE_TYPE( VipsForeignLoadPng, vips_foreign_load_png, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadPng, vips_foreign_load_png, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void

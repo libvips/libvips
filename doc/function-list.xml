@@ -404,7 +404,7 @@
 <row>
   <entry>draw_flood</entry>
   <entry>Flood-fill an area</entry>
-  <entry>vips_draw_flood(), vips_draw_flood()</entry>
+  <entry>vips_draw_flood(), vips_draw_flood1()</entry>
 </row>
 <row>
   <entry>draw_image</entry>
@@ -424,7 +424,7 @@
 <row>
   <entry>draw_rect</entry>
   <entry>Paint a rectangle on an image</entry>
-  <entry>vips_draw_rect(), vips_rect(), vips_draw_rect1(), vips_draw_point(), vips_draw_point1()</entry>
+  <entry>vips_draw_rect(), vips_draw_rect1(), vips_draw_point(), vips_draw_point1()</entry>
 </row>
 <row>
   <entry>draw_smudge</entry>
@@ -722,9 +722,9 @@
   <entry>vips_jpegload_buffer()</entry>
 </row>
 <row>
-  <entry>jpegload_stream</entry>
-  <entry>Load image from jpeg stream</entry>
-  <entry>vips_jpegload_stream()</entry>
+  <entry>jpegload_source</entry>
+  <entry>Load image from jpeg source</entry>
+  <entry>vips_jpegload_source()</entry>
 </row>
 <row>
   <entry>jpegsave</entry>
@@ -742,9 +742,9 @@
   <entry>vips_jpegsave_mime()</entry>
 </row>
 <row>
-  <entry>jpegsave_stream</entry>
-  <entry>Save image to jpeg stream</entry>
-  <entry>vips_jpegsave_stream()</entry>
+  <entry>jpegsave_target</entry>
+  <entry>Save image to jpeg target</entry>
+  <entry>vips_jpegsave_target()</entry>
 </row>
 <row>
   <entry>labelregions</entry>
@@ -987,9 +987,9 @@
   <entry>vips_pngload_buffer()</entry>
 </row>
 <row>
-  <entry>pngload_stream</entry>
-  <entry>Load png from stream</entry>
-  <entry>vips_pngload_stream()</entry>
+  <entry>pngload_source</entry>
+  <entry>Load png from source</entry>
+  <entry>vips_pngload_source()</entry>
 </row>
 <row>
   <entry>pngsave</entry>
@@ -1002,9 +1002,9 @@
   <entry>vips_pngsave_buffer()</entry>
 </row>
 <row>
-  <entry>pngsave_stream</entry>
-  <entry>Save image to png stream</entry>
-  <entry>vips_pngsave_stream()</entry>
+  <entry>pngsave_target</entry>
+  <entry>Save image to target as png</entry>
+  <entry>vips_pngsave_target()</entry>
 </row>
 <row>
   <entry>ppmload</entry>
@@ -1057,9 +1057,9 @@
   <entry>vips_radload_buffer()</entry>
 </row>
 <row>
-  <entry>radload_stream</entry>
-  <entry>Load rad from stream</entry>
-  <entry>vips_radload_stream()</entry>
+  <entry>radload_source</entry>
+  <entry>Load rad from source</entry>
+  <entry>vips_radload_source()</entry>
 </row>
 <row>
   <entry>radsave</entry>
@@ -1072,9 +1072,9 @@
   <entry>vips_radsave_buffer()</entry>
 </row>
 <row>
-  <entry>radsave_stream</entry>
-  <entry>Save image to radiance stream</entry>
-  <entry>vips_radsave_stream()</entry>
+  <entry>radsave_target</entry>
+  <entry>Save image to radiance target</entry>
+  <entry>vips_radsave_target()</entry>
 </row>
 <row>
   <entry>rank</entry>
@@ -1292,9 +1292,9 @@
   <entry>vips_svgload_buffer()</entry>
 </row>
 <row>
-  <entry>svgload_stream</entry>
-  <entry>Load svg from stream</entry>
-  <entry>vips_svgload_stream()</entry>
+  <entry>svgload_source</entry>
+  <entry>Load svg from source</entry>
+  <entry>vips_svgload_source()</entry>
 </row>
 <row>
   <entry>switch</entry>
@@ -1327,9 +1327,9 @@
   <entry>vips_thumbnail_image()</entry>
 </row>
 <row>
-  <entry>thumbnail_stream</entry>
-  <entry>Generate thumbnail from stream</entry>
-  <entry>vips_thumbnail_stream()</entry>
+  <entry>thumbnail_source</entry>
+  <entry>Generate thumbnail from source</entry>
+  <entry>vips_thumbnail_source()</entry>
 </row>
 <row>
   <entry>tiffload</entry>
@@ -1342,9 +1342,9 @@
   <entry>vips_tiffload_buffer()</entry>
 </row>
 <row>
-  <entry>tiffload_stream</entry>
-  <entry>Load tiff from stream</entry>
-  <entry>vips_tiffload_stream()</entry>
+  <entry>tiffload_source</entry>
+  <entry>Load tiff from source</entry>
+  <entry>vips_tiffload_source()</entry>
 </row>
 <row>
   <entry>tiffsave</entry>
@@ -1397,9 +1397,9 @@
   <entry>vips_webpload_buffer()</entry>
 </row>
 <row>
-  <entry>webpload_stream</entry>
-  <entry>Load webp from stream</entry>
-  <entry>vips_webpload_stream()</entry>
+  <entry>webpload_source</entry>
+  <entry>Load webp from source</entry>
+  <entry>vips_webpload_source()</entry>
 </row>
 <row>
   <entry>webpsave</entry>
@@ -1412,9 +1412,9 @@
   <entry>vips_webpsave_buffer()</entry>
 </row>
 <row>
-  <entry>webpsave_stream</entry>
-  <entry>Save image to webp stream</entry>
-  <entry>vips_webpsave_stream()</entry>
+  <entry>webpsave_target</entry>
+  <entry>Save image to webp target</entry>
+  <entry>vips_webpsave_target()</entry>
 </row>
 <row>
   <entry>worley</entry>
