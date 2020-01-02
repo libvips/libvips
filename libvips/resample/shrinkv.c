@@ -124,6 +124,8 @@ vips_shrinkv_stop( void *vseq, void *a, void *b )
 	VipsShrinkvSequence *seq = (VipsShrinkvSequence *) vseq;
 
 	VIPS_FREEF( g_object_unref, seq->ir );
+	VIPS_FREE( seq->sum );
+	VIPS_FREE( seq );
 
 	return( 0 );
 }
@@ -137,14 +139,14 @@ vips_shrinkv_start( VipsImage *out, void *a, void *b )
 	VipsShrinkv *shrink = (VipsShrinkv *) b;
 	VipsShrinkvSequence *seq;
 
-	if( !(seq = VIPS_NEW( out, VipsShrinkvSequence )) )
+	if( !(seq = VIPS_NEW( NULL, VipsShrinkvSequence )) )
 		return( NULL );
 
 	seq->ir = vips_region_new( in );
 
 	/* Big enough for the largest intermediate .. a whole scanline. 
 	 */
-	seq->sum = VIPS_ARRAY( out, shrink->sizeof_line_buffer, VipsPel );
+	seq->sum = VIPS_ARRAY( NULL, shrink->sizeof_line_buffer, VipsPel );
 
 	return( (void *) seq );
 }
