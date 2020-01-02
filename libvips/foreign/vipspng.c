@@ -778,12 +778,8 @@ write_finish( Write *write )
 	VIPS_UNREF( write->target );
 	if( write->pPng )
 		png_destroy_write_struct( &write->pPng, &write->pInfo );
-}
-
-static void
-write_destroy( VipsImage *out, Write *write )
-{
-	write_finish( write ); 
+	VIPS_FREE( write->row_pointer );
+	VIPS_FREE( write );
 }
 
 static void
@@ -800,22 +796,22 @@ write_new( VipsImage *in, VipsTarget *target )
 {
 	Write *write;
 
-	if( !(write = VIPS_NEW( in, Write )) )
+	if( !(write = VIPS_NEW( NULL, Write )) )
 		return( NULL );
 	memset( write, 0, sizeof( Write ) );
 	write->in = in;
 	write->memory = NULL;
 	write->target = target;
 	g_object_ref( target );
-	g_signal_connect( in, "close", 
-		G_CALLBACK( write_destroy ), write ); 
 
-	if( !(write->row_pointer = VIPS_ARRAY( in, in->Ysize, png_bytep )) )
+	if( !(write->row_pointer = VIPS_ARRAY( NULL, in->Ysize, png_bytep )) )
 		return( NULL );
 	if( !(write->pPng = png_create_write_struct( 
 		PNG_LIBPNG_VER_STRING, NULL,
-		user_error_function, user_warning_function )) ) 
+		user_error_function, user_warning_function )) ) {
+		write_finish( write );
 		return( NULL );
+	}
 
 #ifdef PNG_SKIP_sRGB_CHECK_PROFILE
 	/* Prevent libpng (>=1.6.11) verifying sRGB profiles.
@@ -828,11 +824,15 @@ write_new( VipsImage *in, VipsTarget *target )
 
 	/* Catch PNG errors from png_create_info_struct().
 	 */
-	if( setjmp( png_jmpbuf( write->pPng ) ) ) 
+	if( setjmp( png_jmpbuf( write->pPng ) ) ) {
+		write_finish( write );
 		return( NULL );
+	}
 
-	if( !(write->pInfo = png_create_info_struct( write->pPng )) ) 
+	if( !(write->pInfo = png_create_info_struct( write->pPng )) ) {
+		write_finish( write );
 		return( NULL );
+	}
 
 	return( write );
 }
