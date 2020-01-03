@@ -68,7 +68,7 @@
  *
  * vips_reduce() is like vips_affine(), but it can only shrink images, it can't
  * enlarge, rotate, or skew. It's very fast and uses an adaptive kernel for
- * interpolation. Again, it will give poor results for large size reductions.
+ * interpolation.
  *
  * vips_shrink() is a fast block shrinker. It can quickly reduce images by
  * large integer factors. It will give poor results for small size reductions:
