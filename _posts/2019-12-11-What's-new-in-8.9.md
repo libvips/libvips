@@ -15,7 +15,7 @@ This is the biggest change to libvips in years: it now supports true streaming.
 
 Previously, libvips supported file and memory data sources and sinks. If
 you wanted to process images on systems like AWS, you were forced to read
-images into memory first, then process back to memory again, then send the
+to memory first, then process back to memory again, then send the
 result to the output.
 
 It looked something like this:
@@ -48,8 +48,9 @@ source = Vips::Source.new_from_file "some/file/name"
 image = Vips::Image.new_from_source source, "", access: "sequential"
 ```
 
-You can also make sources from file descriptors and memory areas. You can also
-make custom sources like this:
+You can also make sources from file descriptors and memory areas. 
+
+You can make custom sources like this:
 
 ```ruby
 file = File.open "some/file/name", "rb"
