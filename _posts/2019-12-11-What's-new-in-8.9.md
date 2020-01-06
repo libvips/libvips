@@ -149,6 +149,22 @@ textured.write_to_file(sys.argv[2])
 So it's finding pixels which equal one of the colours and swapping those pixels
 for pixels from the matching texture.
 
+# Breaking changes
+
+There's one serious and breaking change: libvips now blocks metadata
+modification in shared images, that is, images with a reference count
+greater than one.
+
+You were always supposed to use `copy` to get a unique image before altering
+metadata, but this is now enforced. If you attempt it, the change won't happen
+and a warning will be issued.
+
+There should be no performance implication, since all `copy` does is
+duplicate a few pointers.
+
+This change prevents a range of serious race conditions and possible crashes 
+in highly threaded programs.
+
 # Image format improvements
 
 There are a range of useful improvements to image file handling. 
