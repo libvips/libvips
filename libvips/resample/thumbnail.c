@@ -677,8 +677,13 @@ vips_thumbnail_build( VipsObject *object )
 		return( -1 );
 	in = t[13];
 	output_page_height = VIPS_RINT( preshrunk_page_height / vshrink );
-	vips_image_set_int( in, 
-		VIPS_META_PAGE_HEIGHT, output_page_height );
+
+	/* Only set page-height if we have more than one page, or this could
+	 * accidentally turn into an animated image later.
+	 */
+	if( thumbnail->n_loaded_pages > 1 )
+		vips_image_set_int( in, 
+			VIPS_META_PAGE_HEIGHT, output_page_height );
 
 	if( have_premultiplied ) {
 		g_info( "unpremultiplying alpha" ); 
