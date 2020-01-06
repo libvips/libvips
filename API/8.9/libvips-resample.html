@@ -227,7 +227,7 @@ use to generate pixels, see <a class="link" href="VipsInterpolate.html#vips-inte
 good results for very large shrinks: you'll see aliasing.</p>
 <p>vips_reduce() is like <a class="link" href="libvips-resample.html#vips-affine" title="vips_affine ()"><code class="function">vips_affine()</code></a>, but it can only shrink images, it can't
 enlarge, rotate, or skew. It's very fast and uses an adaptive kernel for
-interpolation. Again, it will give poor results for large size reductions.</p>
+interpolation.</p>
 <p>vips_shrink() is a fast block shrinker. It can quickly reduce images by
 large integer factors. It will give poor results for small size reductions:
 again, you'll see aliasing. </p>
