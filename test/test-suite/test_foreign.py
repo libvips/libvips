@@ -189,6 +189,18 @@ class TestForeign:
             assert x1.width == x2.height
             assert x1.height == x2.width
 
+            # sets incorrect orientation, save, load again, orientation
+            # has reset to 1
+            x = x.copy()
+            x.set("orientation", 256)
+
+            filename = temp_filename(self.tempdir, '.jpg')
+            x.write_to_file(filename)
+
+            x = pyvips.Image.new_from_file(filename)
+            y = x.get("orientation")
+            assert y == 1
+
             # can set, save and reload ASCII string fields
             x = pyvips.Image.new_from_file(JPEG_FILE)
             x = x.copy()
