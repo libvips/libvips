@@ -525,9 +525,8 @@ vips__exif_parse( VipsImage *image )
 		int orientation;
 
 		orientation = atoi( str );
-		if ( orientation < 0 || orientation > 8 ) {
+		if( orientation < 1 || orientation > 8 )
 			orientation = 1;
-		}
 		vips_image_set_int( image, VIPS_META_ORIENTATION, orientation );
 	}
 
