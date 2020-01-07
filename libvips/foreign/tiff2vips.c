@@ -1722,19 +1722,31 @@ rtiff_autorotate( Rtiff *rtiff, VipsImage *in, VipsImage **out )
 		const guint64 image_size = VIPS_IMAGE_SIZEOF_IMAGE( in );
 		const guint64 disc_threshold = vips_get_disc_threshold();
 
+		VipsImage *im;
 		VipsImage *x;
 
 		if( image_size > disc_threshold ) 
-			x = vips_image_new_temp_file( "%s.v" );
+			im = vips_image_new_temp_file( "%s.v" );
 		else
-			x = vips_image_new_memory();
+			im = vips_image_new_memory();
 
-		if( vips_image_write( in, x ) ||
-			vips_rot( x, out, angle, NULL ) ) {
-			g_object_unref( x );
+		if( vips_image_write( in, im ) ) {
+			g_object_unref( im );
 			return( -1 );
 		}
-		g_object_unref( x );
+
+		if( vips_rot( im, &x, angle, NULL ) ) {
+			g_object_unref( im );
+			return( -1 );
+		}
+		g_object_unref( im );
+		im = x;
+
+		if( vips_copy( im, out, NULL ) ) {
+			g_object_unref( im );
+			return( -1 );
+		}
+		g_object_unref( im );
 
 		/* We must remove the tag to prevent accidental
 		 * double rotations.
@@ -1901,6 +1913,7 @@ static int
 rtiff_stripwise_generate( VipsRegion *or, 
 	void *seq, void *a, void *b, gboolean *stop )
 {
+	VipsImage *out = or->im;
 	Rtiff *rtiff = (Rtiff *) a;
 	int read_height = rtiff->header.read_height;
 	int page_height = rtiff->header.height;
@@ -1964,17 +1977,17 @@ rtiff_stripwise_generate( VipsRegion *or,
 		 */
 		image.left = 0;
 		image.top = 0;
-		image.width = rtiff->out->Xsize;
-		image.height = rtiff->out->Ysize;
+		image.width = out->Xsize;
+		image.height = out->Ysize;
 
 		page.left = 0;
 		page.top = page_height * ((r->top + y) / page_height);
-		page.width = rtiff->out->Xsize;
+		page.width = out->Xsize;
 		page.height = page_height;
 
 		strip.left = 0;
 		strip.top = page.top + strip_no * read_height;
-		strip.width = rtiff->out->Xsize;
+		strip.width = out->Xsize;
 		strip.height = read_height;
 
 		/* Clip strip against page and image ... the final strip will 

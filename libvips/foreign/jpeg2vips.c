@@ -829,7 +829,7 @@ read_jpeg_generate( VipsRegion *or,
 static VipsImage *
 read_jpeg_rotate( VipsObject *process, VipsImage *im )
 {
-	VipsImage **t = (VipsImage **) vips_object_local_array( process, 2 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( process, 3 );
 	VipsAngle angle = vips_autorot_get_angle( im );
 
 	if( angle != VIPS_ANGLE_D0 ) {
@@ -847,6 +847,10 @@ read_jpeg_rotate( VipsObject *process, VipsImage *im )
 			vips_rot( t[0], &t[1], angle, NULL ) )
 			return( NULL );
 		im = t[1];
+
+		if( vips_copy( im, &t[2], NULL ) )
+			return( NULL );
+		im = t[2];
 
 		vips_autorot_remove_angle( im ); 
 	}
