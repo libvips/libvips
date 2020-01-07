@@ -35,7 +35,7 @@ It's really easy to use. For example:
 
 ```
 aws s3 cp s3://mybucket/input.jpg - | \
-  vips thumbnail_stream [descriptor=0] .jpg 128 | \
+  vips thumbnail_source [descriptor=0] .jpg 128 | \
     aws s3 cp - s3://mybucket/output.jpg
 ```
 

@@ -23,7 +23,7 @@ cat k2.jpg | \
 ```
 
 The magic filename `"stdin"` opens a stream attached to file descriptor 0
-(`stdin`), does `vips_image_new_from_stream()`, and passes that image into
+(`stdin`), does `vips_image_new_from_source()`, and passes that image into
 the operation. Writing to a filename with nothing before the suffix will
 open a stream to `stdout` and write in that format.
 
