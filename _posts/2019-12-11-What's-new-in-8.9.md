@@ -2,7 +2,7 @@
 title: What's new in 8.9
 ---
 
-libvips 8.9 will be out RSN, so here's a quick overview of what's new. Check
+libvips 8.9 is now done, so here's a quick overview of what's new. Check
 the [ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
 if you need more details.
 
