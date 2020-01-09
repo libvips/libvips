@@ -1907,7 +1907,6 @@ vips_image_new_from_file( const char *name, ... )
 {
 	char filename[VIPS_PATH_MAX];
 	char option_string[VIPS_PATH_MAX];
-	VipsSource *source;
 	const char *operation_name;
 	va_list ap;
 	int result;
@@ -1917,37 +1916,13 @@ vips_image_new_from_file( const char *name, ... )
 
 	vips__filename_split8( name, filename, option_string );
 
-	/* Search with the new source API first, then fall back to the older
-	 * mechanism in case the loader we need has not been converted yet.
-	 *
-	 * We need to hide any errors from this first phase.
-	 */
-	if( !(source = vips_source_new_from_file( filename )) )
+	if( !(operation_name = vips_foreign_find_load( filename )) )
 		return( NULL );
 
-	vips_error_freeze();
-	operation_name = vips_foreign_find_load_source( source );
-	vips_error_thaw();
-
-	if( operation_name ) { 
-		va_start( ap, name );
-		result = vips_call_split_option_string( operation_name, 
-			option_string, ap, source, &out );
-		va_end( ap );
-	}
-	else {
-		/* Fall back to the old file loader system.
-		 */
-		if( !(operation_name = vips_foreign_find_load( filename )) )
-			return( NULL );
-
-		va_start( ap, name );
-		result = vips_call_split_option_string( operation_name, 
-			option_string, ap, filename, &out );
-		va_end( ap );
-	}
-
-	VIPS_UNREF( source );
+	va_start( ap, name );
+	result = vips_call_split_option_string( operation_name, 
+		option_string, ap, filename, &out );
+	va_end( ap );
 
 	if( result )
 		return( NULL ); 
@@ -2159,46 +2134,28 @@ VipsImage *
 vips_image_new_from_buffer( const void *buf, size_t len, 
 	const char *option_string, ... )
 {
-	VipsSource *source;
 	const char *operation_name;
 	va_list ap;
 	int result;
 	VipsImage *out;
+	VipsBlob *blob;
 
 	vips_check_init();
 
-        /* Search with the new source API first, then fall back to the older
-         * mechanism in case the loader we need has not been converted yet.
-         */
-        if( !(source = vips_source_new_from_memory( buf, len )) )
-                return( NULL );
+	if( !(operation_name = 
+		vips_foreign_find_load_buffer( buf, len )) )
+		return( NULL );
 
-        if( (operation_name = vips_foreign_find_load_source( source )) ) {
-                va_start( ap, option_string );
-                result = vips_call_split_option_string( operation_name,
-                        option_string, ap, source, &out );
-                va_end( ap );
-        }
-	else {
-		VipsBlob *blob;
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
 
-		if( !(operation_name = 
-			vips_foreign_find_load_buffer( buf, len )) )
-			return( NULL );
+	va_start( ap, option_string );
+	result = vips_call_split_option_string( operation_name,
+		option_string, ap, blob, &out );
+	va_end( ap );
 
-		/* We don't take a copy of the data or free it.
-		 */
-		blob = vips_blob_new( NULL, buf, len );
-
-                va_start( ap, option_string );
-                result = vips_call_split_option_string( operation_name,
-                        option_string, ap, blob, &out );
-                va_end( ap );
-
-		vips_area_unref( VIPS_AREA( blob ) );
-        }
-
-        VIPS_UNREF( source );
+	vips_area_unref( VIPS_AREA( blob ) );
 
 	if( result )
 		return( NULL );
