@@ -103,10 +103,8 @@ vips_source_test_features( VipsSource *source )
 
 	/* We'll need a descriptor to test.
 	 */
-	if( vips_source_unminimise( source ) ) {
-		printf( "HUGE BANANA!!!\n" );
+	if( vips_source_unminimise( source ) ) 
 		return( -1 );
-	}
 
 	/* Can we seek this input?
 	 *
@@ -122,10 +120,8 @@ vips_source_test_features( VipsSource *source )
 		/* We should be able to get the length of seekable 
 		 * objects.
 		 */
-		if( (length = vips_source_length( source )) == -1 ) {
-			printf( "BANANA!!!\n" );
+		if( (length = vips_source_length( source )) == -1 ) 
 			return( -1 );
-		}
 
 		source->length = length;
 
