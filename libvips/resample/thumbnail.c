@@ -520,13 +520,12 @@ static int
 vips_thumbnail_build( VipsObject *object )
 {
 	VipsThumbnail *thumbnail = VIPS_THUMBNAIL( object );
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 14 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 15 );
 	VipsInterpretation interpretation = thumbnail->linear ?
 		VIPS_INTERPRETATION_scRGB : VIPS_INTERPRETATION_sRGB; 
 
 	VipsImage *in;
 	int preshrunk_page_height;
-	int output_page_height;
 	double hshrink;
 	double vshrink;
 
@@ -673,17 +672,20 @@ vips_thumbnail_build( VipsObject *object )
 		return( -1 );
 	in = t[4];
 
-	if( vips_copy( in, &t[13], NULL ) )
-		return( -1 );
-	in = t[13];
-	output_page_height = VIPS_RINT( preshrunk_page_height / vshrink );
-
 	/* Only set page-height if we have more than one page, or this could
 	 * accidentally turn into an animated image later.
 	 */
-	if( thumbnail->n_loaded_pages > 1 )
+	if( thumbnail->n_loaded_pages > 1 ) {
+		int output_page_height = 
+			VIPS_RINT( preshrunk_page_height / vshrink );
+
+		if( vips_copy( in, &t[13], NULL ) )
+			return( -1 );
+		in = t[13];
+
 		vips_image_set_int( in, 
 			VIPS_META_PAGE_HEIGHT, output_page_height );
+	}
 
 	if( have_premultiplied ) {
 		g_info( "unpremultiplying alpha" ); 
@@ -746,9 +748,10 @@ vips_thumbnail_build( VipsObject *object )
 		/* Need to copy to memory, we have to stay seq.
 		 */
 		if( !(t[9] = vips_image_copy_memory( in )) ||
-			vips_rot( t[9], &t[10], angle, NULL ) )
+			vips_rot( t[9], &t[10], angle, NULL ) ||
+			vips_copy( t[10], &t[14], NULL ) )
 			return( -1 ); 
-		in = t[10];
+		in = t[14];
 
 		vips_autorot_remove_angle( in );
 	}
