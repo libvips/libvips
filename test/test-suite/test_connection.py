@@ -17,13 +17,7 @@ class TestConnection:
 
     @classmethod
     def setup_class(cls):
-        # for now, only run these tests if we have the source pyvips installed
-        if pyvips.__version__ != "2.1.10":
-            pytest.skip("tests cannot run with pyvips {}"
-                        .format(pyvips.__version__))
-
         cls.tempdir = tempfile.mkdtemp()
-
         cls.colour = pyvips.Image.jpegload(JPEG_FILE)
         cls.mono = cls.colour.extract_band(1).copy()
         # we remove the ICC profile: the RGB one will no longer be appropriate
