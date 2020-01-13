@@ -2,6 +2,7 @@
 - don't use the new source loaders for new_from_file or new_from_buffer, it
   will break the loader priority system
 - fix thumbnail autorot [janko]
+- fix a warning with magicksave with no delay array [chregu]
 
 20/6/19 started 8.9.0
 - add vips_image_get/set_array_int()

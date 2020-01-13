@@ -214,13 +214,14 @@ magick_optimize_image_layers( Image **images, ExceptionInfo *exception )
 {
 	Image *tmp;
 
-	tmp = OptimizePlusImageLayers(*images, exception );
+	tmp = OptimizePlusImageLayers( *images, exception );
 
-	if ( exception->severity != UndefinedException )
+	if( exception->severity != UndefinedException ) {
+		VIPS_FREEF( DestroyImageList, tmp );
 		return MagickFalse;
+	}
 
 	VIPS_FREEF( DestroyImageList, *images );
-
 	*images = tmp;
 
 	return MagickTrue;
@@ -230,8 +231,9 @@ int
 magick_optimize_image_transparency( const Image *images,
 	ExceptionInfo *exception )
 {
-	OptimizeImageTransparency(images, exception);
-	return ( exception->severity == UndefinedException );
+	OptimizeImageTransparency( images, exception );
+
+	return( exception->severity == UndefinedException );
 }
 
 /* Does a few bytes look like a file IM can handle?
