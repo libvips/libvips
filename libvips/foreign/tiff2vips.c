@@ -507,7 +507,13 @@ rtiff_close_cb( VipsObject *object, Rtiff *rtiff )
 static void
 rtiff_minimise_cb( VipsImage *image, Rtiff *rtiff )
 {
-	if( rtiff->source )
+	/* We must not minimised tiled images. These can be read from many
+	 * threads, and this minimise handler is not inside the lock that our
+	 * tilecache is using to guarantee single-threaded access to our
+	 * source.
+	 */
+	if( !rtiff->header.tiled &&
+		rtiff->source )
 		vips_source_minimise( rtiff->source );
 }
 

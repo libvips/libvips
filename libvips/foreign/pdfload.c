@@ -362,18 +362,6 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 	return( 0 );
 }
 
-static void
-vips_foreign_load_pdf_minimise( VipsObject *object, VipsForeignLoadPdf *pdf )
-{
-	VipsForeignLoadPdfClass *class = VIPS_FOREIGN_LOAD_PDF_GET_CLASS( pdf );
-
-#ifdef DEBUG
-	printf( "vips_foreign_load_pdf_minimise: %p\n", pdf );
-#endif /*DEBUG*/
-
-	class->close( pdf ); 
-}
-
 static int
 vips_foreign_load_pdf_generate( VipsRegion *or, 
 	void *seq, void *a, void *b, gboolean *stop )
@@ -472,10 +460,9 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 	 */
 	t[0] = vips_image_new(); 
 
-	/* Close input immediately at end of read.
+	/* Don't minimise on ::minimise (end of computation): we support 
+	 * threaded read, and minimise will happen outside the cache lock.
 	 */
-	g_signal_connect( t[0], "minimise", 
-		G_CALLBACK( vips_foreign_load_pdf_minimise ), pdf ); 
 
 	vips_foreign_load_pdf_set_image( pdf, t[0] ); 
 	if( vips_image_generate( t[0], 
