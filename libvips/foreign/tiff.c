@@ -156,7 +156,9 @@ openin_source_seek( thandle_t st, toff_t position, int whence )
 {
 	VipsSource *source = VIPS_SOURCE( st );
 
-	return( vips_source_seek( source, position, whence ) );
+	/* toff_t is usually uint64, with -1 cast to uint64 to indicate error.
+	 */
+	return( (toff_t) vips_source_seek( source, position, whence ) );
 }
 
 static int
@@ -176,8 +178,10 @@ openin_source_length( thandle_t st )
 
 	/* libtiff will use this to get file size if tags like StripByteCounts
 	 * are missing.
+	 *
+	 * toff_t is usually uint64, with -1 cast to uint64 to indicate error.
 	 */
-	return( vips_source_length( source ) );
+	return( (toff_t) vips_source_length( source ) );
 }
 
 static int
