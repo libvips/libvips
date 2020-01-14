@@ -1,13 +1,13 @@
-  <refmeta>
-    <refentrytitle>Using `vipsthumbnail`</refentrytitle>
-    <manvolnum>3</manvolnum>
-    <refmiscinfo>libvips</refmiscinfo>
-  </refmeta>
+<refmeta>
+  <refentrytitle>Using `vipsthumbnail`</refentrytitle>
+  <manvolnum>3</manvolnum>
+  <refmiscinfo>libvips</refmiscinfo>
+</refmeta>
 
-  <refnamediv>
-    <refname>`vipsthumbnail`</refname>
-    <refpurpose>Introduction to `vipsthumbnail`, with examples</refpurpose>
-  </refnamediv>
+<refnamediv>
+  <refname>`vipsthumbnail`</refname>
+  <refpurpose>Introduction to `vipsthumbnail`, with examples</refpurpose>
+</refnamediv>
 
 libvips ships with a handy command-line image thumbnailer, `vipsthumbnail`.
 This page introduces it, with some examples. 
@@ -270,12 +270,15 @@ $ ls -l tn_shark.jpg
 Now encode with sRGB and delete any embedded profile:
 
 ```
-$ vipsthumbnail shark.jpg --eprofile /usr/share/color/icc/sRGB.icc --delete
+$ vipsthumbnail shark.jpg --eprofile srgb --delete
 $ ls -l tn_shark.jpg 
 -rw-r–r– 1 john john 4229 Nov  9 14:33 tn_shark.jpg
 ```
 
-It’ll look identical to a user, but be almost half the size. 
+(You can use the filename of any RGB profile. The magic string `srgb` selects a
+high-quality sRGB profile that's built into libvips.)
+
+`tn_shark.jpg` will look identical to a user, but it's almost half the size. 
 
 You can also specify a fallback input profile to use if the image has no
 embedded one. This can often happen with CMYK images, producing an error
@@ -291,23 +294,11 @@ If you supply a CMYK profile, it will be able to convert the image,
 for example:
 
 ```
-$ vipsthumbnail kgdev.jpg --iprofile /usr/share/color/icc/colord/FOGRA28L_webcoated.icc 
+$ vipsthumbnail kgdev.jpg --iprofile cmyk 
 ```
 
-I've had good results with this profile:
-
-https://github.com/libvips/nip2/blob/master/share/nip2/data/cmyk.icm
-
-It makes nice-looking images from most CMYK files, and is completely free. 
-
-# Auto-rotate
-
-Many JPEG files have a hint set in the header giving the image orientation. If
-you strip out the metadata, this hint will be lost, and the image will appear
-to be rotated. 
-
-If you use the `--rotate` option, `vipsthumbnail` examines the image header and
-if there's an orientation tag, applies and removes it. 
+(As before, the magic string `cmyk` selects a high-quality CMYK profile that's
+built into libvips, but you can use any CMYK profile you like.)
 
 # Final suggestion
 
@@ -317,6 +308,5 @@ Putting all this together, I suggest this as a sensible set of options:
 $ vipsthumbnail fred.jpg \
     --size 128 \
     -o tn_%s.jpg[optimize_coding,strip] \
-    --eprofile /usr/share/color/icc/sRGB.icc \
-    --rotate
+    --eprofile srgb
 ```

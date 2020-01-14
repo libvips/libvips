@@ -1,13 +1,13 @@
-  <refmeta>
-    <refentrytitle>How to write bindings</refentrytitle>
-    <manvolnum>3</manvolnum>
-    <refmiscinfo>libvips</refmiscinfo>
-  </refmeta>
+<refmeta>
+  <refentrytitle>How to write bindings</refentrytitle>
+  <manvolnum>3</manvolnum>
+  <refmiscinfo>libvips</refmiscinfo>
+</refmeta>
 
-  <refnamediv>
-    <refname>Binding</refname>
-    <refpurpose>Writing bindings for libvips</refpurpose>
-  </refnamediv>
+<refnamediv>
+  <refname>Binding</refname>
+  <refpurpose>Writing bindings for libvips</refpurpose>
+</refnamediv>
 
 There are full libvips bindings for quite a few environments now: C, C++,
 command-line, Ruby, PHP, Lua, Python and JavaScript (node). 
