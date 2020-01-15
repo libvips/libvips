@@ -79,7 +79,7 @@
  * 26/5/16
  * 	- switch to new orientation tag
  * 9/7/16
- * 	- turn off chroma subsample for Q > 90
+ * 	- turn off chroma subsample for Q >= 90
  * 7/11/16
  * 	- move exif handling out to exif.c
  * 27/2/17
@@ -631,7 +631,7 @@ write_vips( Write *write, int qfac, const char *profile,
 	 * high Q. 
 	 */
 	if( no_subsample ||
-		qfac > 90 ) { 
+		qfac >= 90 ) { 
 		int i;
 
 		for( i = 0; i < in->Bands; i++ ) { 
