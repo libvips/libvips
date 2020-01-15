@@ -440,7 +440,7 @@ vips_foreign_load_svg_is_a( const void *buf, size_t len )
 	/* If the buffer looks like a zip, deflate to here and then search
 	 * that for <svg.
 	 */
-	char obuf[224];
+	char obuf[SVG_HEADER_SIZE];
 #endif /*HANDLE_SVGZ*/
 
 	int i;
@@ -476,8 +476,10 @@ vips_foreign_load_svg_is_a( const void *buf, size_t len )
 		do {
 			zs.avail_out = sizeof( obuf ) - opos;
 			zs.next_out = (unsigned char *) obuf + opos;
-			if( inflate( &zs, Z_NO_FLUSH ) < Z_OK ) 
+			if( inflate( &zs, Z_NO_FLUSH ) < Z_OK ) {
+				inflateEnd( &zs );
 				return( FALSE );
+			}
 			opos = sizeof( obuf ) - zs.avail_out;
 		} while( opos < sizeof( obuf ) && 
 			zs.avail_in > 0 );
