@@ -636,6 +636,8 @@ magick_vips_error( const char *domain, ExceptionInfo *exception )
 static void *
 magick_genesis_cb( void *client )
 {
+	ExceptionInfo *exception;
+
 #ifdef DEBUG
 	printf( "magick_genesis_cb:\n" ); 
 #endif /*DEBUG*/
@@ -643,8 +645,17 @@ magick_genesis_cb( void *client )
 #if defined(HAVE_MAGICKCOREGENESIS) || defined(HAVE_MAGICK7) 
 	MagickCoreGenesis( vips_get_argv0(), MagickFalse );
 #else /*!HAVE_MAGICKCOREGENESIS*/
-	InitializeMagick( "" );
+	InitializeMagick( vips_get_argv0() );
 #endif /*HAVE_MAGICKCOREGENESIS*/
+
+	/* This forces *magick to init all loaders. We have to do this so we
+	 * can sniff files with GetImageMagick(). 
+	 *
+	 * We don't care about errors from magickinit.
+	 */
+	exception = magick_acquire_exception();
+	(void) GetMagickInfo( "*", exception );
+	magick_destroy_exception(exception);
 
 	return( NULL );
 }

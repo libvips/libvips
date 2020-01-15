@@ -4,6 +4,7 @@
 - fix thumbnail autorot [janko]
 - fix a warning with magicksave with no delay array [chregu]
 - fix a race in tiled tiff load [kleisauke]
+- better imagemagick init [LebronCurry]
 
 20/6/19 started 8.9.0
 - add vips_image_get/set_array_int()
