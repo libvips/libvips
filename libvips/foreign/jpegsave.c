@@ -54,20 +54,6 @@
 
 #ifdef HAVE_JPEG
 
-#ifdef HAVE_EXIF
-#ifdef UNTAGGED_EXIF
-#include <exif-data.h>
-#include <exif-loader.h>
-#include <exif-ifd.h>
-#include <exif-utils.h>
-#else /*!UNTAGGED_EXIF*/
-#include <libexif/exif-data.h>
-#include <libexif/exif-loader.h>
-#include <libexif/exif-ifd.h>
-#include <libexif/exif-utils.h>
-#endif /*UNTAGGED_EXIF*/
-#endif /*HAVE_EXIF*/
-
 typedef struct _VipsForeignSaveJpeg {
 	VipsForeignSave parent_object;
 
