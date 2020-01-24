@@ -1015,7 +1015,7 @@ write_json( VipsForeignSaveDz *dz )
 	gsf_output_printf( out, 
 		"  \"tiles\": [\n"
 		"    {\n"
-		"      \"scalefactors\": [\n" );
+		"      \"scaleFactors\": [\n" );
 
 	for( i = 0; i < dz->layer->n; i++ ) {
 		gsf_output_printf( out, 
