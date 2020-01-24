@@ -611,7 +611,7 @@ vips_operation_get_flags( VipsOperation *operation )
 void
 vips_operation_class_print_usage( VipsOperationClass *operation_class )
 {
-	char str[2048];
+	char str[4096];
 	VipsBuf buf = VIPS_BUF_STATIC( str );
 
 	operation_class->usage( operation_class, &buf );
