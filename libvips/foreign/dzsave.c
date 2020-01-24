@@ -459,6 +459,7 @@ struct _VipsForeignSaveDz {
 	VipsRegionShrink region_shrink;
 	int skip_blanks;
 	gboolean no_strip;
+	char *id;
 
 	/* Tile and overlap geometry. The members above are the parameters we
 	 * accept, this next set are the derived values which are actually 
@@ -972,7 +973,7 @@ write_json( VipsForeignSaveDz *dz )
 	gsf_output_printf( out, 
 		"{\n"
 		"  \"@context\": \"http://iiif.io/api/image/2/context.json\",\n"
-		"  \"@id\": \"https://example.com/iiif/%s\",\n" 
+		"  \"@id\": \"%s/%s\",\n" 
 		"  \"profile\": [\n"
 		"    \"http://iiif.io/api/image/2/level0.json\",\n"
 		"    {\n" 
@@ -985,7 +986,9 @@ write_json( VipsForeignSaveDz *dz )
 		"    }\n"
 		"  ],\n"
 		"  \"protocol\": \"http://iiif.io/api/image\",\n", 
-		name, suffix );
+		dz->id ? dz->id : "https://example.com/iiif",
+		name, 
+		suffix );
 
 	/* "sizes" is needed for the full/ set of untiled images, which we 
 	 * don't yet support. Leave this commented out for now.
@@ -2497,6 +2500,13 @@ vips_foreign_save_dz_class_init( VipsForeignSaveDzClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveDz, no_strip ),
 		FALSE );
 
+	VIPS_ARG_STRING( class, "id", 21, 
+		_( "id" ), 
+		_( "Resource ID" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveDz, id ),
+		"https://example.com/iiif" );
+
 	/* How annoying. We stupidly had these in earlier versions.
 	 */
 
@@ -2724,9 +2734,9 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  *
  * Optional arguments:
  *
- * * @basename: %gchar, base part of name
+ * * @basename: %gchar base part of name
  * * @layout: #VipsForeignDzLayout directory layout convention
- * * @suffix: suffix for tile tiles 
+ * * @suffix: %gchar suffix for tiles 
  * * @overlap: %gint set tile overlap 
  * * @tile_size: %gint set tile size 
  * * @background: #VipsArrayDouble background colour
@@ -2739,6 +2749,7 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  * * @region_shrink: #VipsRegionShrink how to shrink each 2x2 region
  * * @skip_blanks: %gint skip tiles which are nearly equal to the background
  * * @no_strip: %gboolean don't strip tiles
+ * * @id: %gchar id for IIIF properties
  *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.
@@ -2794,6 +2805,9 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  * which are all within that many pixel values to the background are skipped. 
  * This can save a lot of space for some image types. This option defaults to 
  * 5 in Google layout mode, -1 otherwise.
+ *
+ * In IIIF layout, you can set the base of the `id` property in `info.json` 
+ * with @id. The default is `https://example.com/iiif`.
  * 
  * See also: vips_tiffsave().
  *
@@ -2821,9 +2835,9 @@ vips_dzsave( VipsImage *in, const char *name, ... )
  *
  * Optional arguments:
  *
- * * @basename: %gchar, base part of name
+ * * @basename: %gchar base part of name
  * * @layout: #VipsForeignDzLayout directory layout convention
- * * @suffix: suffix for tile tiles 
+ * * @suffix: %gchar suffix for tiles 
  * * @overlap: %gint set tile overlap 
  * * @tile_size: %gint set tile size 
  * * @background: #VipsArrayDouble background colour
@@ -2836,6 +2850,7 @@ vips_dzsave( VipsImage *in, const char *name, ... )
  * * @region_shrink: #VipsRegionShrink how to shrink each 2x2 region.
  * * @skip_blanks: %gint skip tiles which are nearly equal to the background
  * * @no_strip: %gboolean don't strip tiles
+ * * @id: %gchar id for IIIF properties
  *
  * As vips_dzsave(), but save to a memory buffer. 
  *

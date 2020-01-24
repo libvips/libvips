@@ -1,5 +1,6 @@
 24/1/20 started 8.10.0
-- more conformat iiif output from dzsave [regisrob]
+- more conformat IIIF output from dzsave [regisrob]
+- add @id to dzsave to set IIIF id property [regisrob]
 
 20/6/19 started 8.9.1
 - don't use the new source loaders for new_from_file or new_from_buffer, it
