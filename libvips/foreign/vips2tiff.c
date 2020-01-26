@@ -187,6 +187,8 @@
  * 	- add @level and @lossless
  * 18/12/19
  * 	- "squash" now squashes 3-band float LAB down to LABQ
+ * 26/1/20
+ * 	- add "depth" to set pyr depth
  */
 
 /*
@@ -327,6 +329,7 @@ struct _Wtiff {
 	VipsRegionShrink region_shrink; /* How to shrink regions */
 	int level;			/* zstd compression level */
 	gboolean lossless;		/* webp lossless mode */
+	VipsForeignDzDepth depth;	/* Pyr depth */
 
 	/* True if we've detected a toilet-roll image, plus the page height,
 	 * which has been checked to be a factor of im->Ysize.
@@ -420,19 +423,41 @@ wtiff_layer_new( Wtiff *wtiff, Layer *above, int width, int height )
 		layer->sub, width, height );
 	 */
 
-	if( wtiff->pyramid )
+	if( wtiff->pyramid ) {
+		int limitw, limith;
+
+		switch( wtiff->depth ) {
+		case VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL:
+			limitw = limith = 1;
+			break;
+
+		case VIPS_FOREIGN_DZ_DEPTH_ONETILE:
+			limitw = wtiff->tilew;
+			limith = wtiff->tileh;
+			break;
+
+		case VIPS_FOREIGN_DZ_DEPTH_ONE:
+			limitw = wtiff->ready->Xsize;
+			limith = wtiff->ready->Ysize;
+			break;
+
+		default:
+			g_assert_not_reached();
+		}
+
 		/* We make another layer if the image is too large to fit in a
 		 * single tile, and if neither axis is greater than 1.
 		 *
 		 * Very tall or wide images might end up with a smallest layer
 		 * larger than one tile.
 		 */
-		if( (layer->width > wtiff->tilew || 
-			layer->height > wtiff->tileh) && 
+		if( (layer->width > limitw || 
+			layer->height > limith) && 
 		 	layer->width > 1 && 
 		 	layer->height > 1 ) 
 			layer->below = wtiff_layer_new( wtiff, layer, 
 				width / 2, height / 2 );
+	}
 
 	/* The name for the top layer is the output filename.
 	 *
@@ -969,7 +994,9 @@ wtiff_new( VipsImage *input, const char *filename,
 	gboolean properties,
 	gboolean strip,
 	VipsRegionShrink region_shrink,
-	int level, gboolean lossless )
+	int level, 
+	gboolean lossless,
+	VipsForeignDzDepth depth )
 {
 	Wtiff *wtiff;
 
@@ -1000,6 +1027,7 @@ wtiff_new( VipsImage *input, const char *filename,
 	wtiff->region_shrink = region_shrink;
 	wtiff->level = level;
 	wtiff->lossless = lossless;
+	wtiff->depth = depth;
 	wtiff->toilet_roll = FALSE;
 	wtiff->page_height = vips_image_get_page_height( input );
 	wtiff->image_height = input->Ysize;
@@ -1889,7 +1917,9 @@ vips__tiff_write( VipsImage *input, const char *filename,
 	gboolean rgbjpeg,
 	gboolean properties, gboolean strip,
 	VipsRegionShrink region_shrink,
-	int level, gboolean lossless )
+	int level, 
+	gboolean lossless,
+	VipsForeignDzDepth depth )
 {
 	Wtiff *wtiff;
 
@@ -1903,7 +1933,7 @@ vips__tiff_write( VipsImage *input, const char *filename,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
-		properties, strip, region_shrink, level, lossless )) )
+		properties, strip, region_shrink, level, lossless, depth )) )
 		return( -1 );
 
 	if( wtiff_write_image( wtiff ) ) { 
@@ -1931,7 +1961,9 @@ vips__tiff_write_buf( VipsImage *input,
 	gboolean rgbjpeg,
 	gboolean properties, gboolean strip, 
 	VipsRegionShrink region_shrink,
-	int level, gboolean lossless )
+	int level, 
+	gboolean lossless,
+	VipsForeignDzDepth depth )
 {
 	Wtiff *wtiff;
 
@@ -1941,7 +1973,7 @@ vips__tiff_write_buf( VipsImage *input,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
-		properties, strip, region_shrink, level, lossless )) )
+		properties, strip, region_shrink, level, lossless, depth )) )
 		return( -1 );
 
 	wtiff->obuf = obuf;

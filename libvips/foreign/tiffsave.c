@@ -19,6 +19,8 @@
  * 	- add @level and @lossless
  * 4/9/18 [f--f]
  * 	- xres/yres params were in pixels/cm
+ * 26/1/20
+ * 	- add "depth" to set pyr depth
  */
 
 /*
@@ -95,6 +97,7 @@ typedef struct _VipsForeignSaveTiff {
 	VipsRegionShrink region_shrink;
 	int level;
 	gboolean lossless;
+	VipsForeignDzDepth depth;
 } VipsForeignSaveTiff;
 
 typedef VipsForeignSaveClass VipsForeignSaveTiffClass;
@@ -330,6 +333,13 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, lossless ),
 		FALSE );
 
+	VIPS_ARG_ENUM( class, "depth", 25, 
+		_( "Depth" ), 
+		_( "Pyramid depth" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveTiff, depth ),
+		VIPS_TYPE_FOREIGN_DZ_DEPTH, VIPS_FOREIGN_DZ_DEPTH_ONETILE ); 
+
 }
 
 static void
@@ -346,6 +356,7 @@ vips_foreign_save_tiff_init( VipsForeignSaveTiff *tiff )
 	tiff->region_shrink = VIPS_REGION_SHRINK_MEAN;
 	tiff->level = 10;
 	tiff->lossless = FALSE;
+	tiff->depth = VIPS_FOREIGN_DZ_DEPTH_ONETILE; 
 }
 
 typedef struct _VipsForeignSaveTiffFile {
@@ -384,7 +395,8 @@ vips_foreign_save_tiff_file_build( VipsObject *object )
 		save->strip,
 		tiff->region_shrink,
 		tiff->level,
-		tiff->lossless ) )
+		tiff->lossless,
+		tiff->depth ) )
 		return( -1 );
 
 	return( 0 );
@@ -455,7 +467,8 @@ vips_foreign_save_tiff_buffer_build( VipsObject *object )
 		save->strip,
 		tiff->region_shrink,
 		tiff->level,
-		tiff->lossless ) )
+		tiff->lossless, 
+		tiff->depth ) )
 		return( -1 );
 
 	/* vips__tiff_write_buf() makes a buffer that needs g_free(), not
@@ -523,6 +536,7 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * * @region_shrink: #VipsRegionShrink How to shrink each 2x2 region.
  * * @level: %gint, Zstd compression level
  * * @lossless: %gboolean, WebP losssless mode
+ * * @depth: #VipsForeignDzDepth how deep to make the pyramid
  *
  * Write a VIPS image to a file as TIFF.
  *
@@ -563,6 +577,10 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * decreasing size. Use @region_shrink to set how images will be shrunk: by
  * default each 2x2 block is just averaged, but you can set MODE or MEDIAN as
  * well.
+ *
+ * By default, the pyramid stops when the image is small enough to fit in one
+ * tile. Use @depth to stop when the image fits in one pixel, or to only write
+ * a single layer.
  *
  * Set @squash to make 8-bit uchar images write as 1-bit TIFFs. Values >128
  * are written as white, values <=128 as black. Normally vips will write
@@ -642,6 +660,7 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
  * * @region_shrink: #VipsRegionShrink How to shrink each 2x2 region.
  * * @level: %gint, Zstd compression level
  * * @lossless: %gboolean, WebP losssless mode
+ * * @depth: #VipsForeignDzDepth how deep to make the pyramid
  *
  * As vips_tiffsave(), but save to a memory buffer. 
  *
