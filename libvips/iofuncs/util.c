@@ -357,10 +357,46 @@ vips_isprefix( const char *a, const char *b )
 	return( TRUE );
 }
 
+/* Exactly like strcspn(), but allow \ as an escape character.
+ *
+ * strspne( "hello world", " " ) == 5
+ * strspne( "hello\\ world", " " ) == 12
+ */
+static size_t
+strcspne( const char *s, const char *reject )
+{
+	size_t skip;
+
+	/* If \ is one of the reject chars, no need for any looping.
+	 */
+	if( strchr( reject, '\\' ) )
+		return( strcspn( s, reject ) );
+
+	skip = 0;
+	for(;;) { 
+		skip += strcspn( s + skip, reject );
+
+		/* s[skip] is at the start of the string, or the end, or on a
+		 * break character.
+		 */
+		if( skip == 0 ||
+			!s[skip] ||
+			s[skip - 1] != '\\' )
+			break;
+
+		/* So skip points at break char and we have a '\' in the char
+		 * before. Step over the break.
+		 */
+		skip += 1;
+	}
+
+	return( skip );
+}
+
 /* Like strtok(). Give a string and a list of break characters. Then:
  * - skip initial break characters
  * - EOS? return NULL
- * - skip a series of non-break characters
+ * - skip a series of non-break characters, allow `\` as a break escape
  * - write a '\0' over the next break character and return a pointer to the
  *   char after that
  *
@@ -388,15 +424,22 @@ vips_isprefix( const char *a, const char *b )
  *
  * for( i = 0; p; p = vips_break_token( p, " " ) )
  *   v[i] = atoi( p );
+ *
+ * You can use \ to escape breaks, for example:
+ *
+ * vips_break_token( "hello\ world", " " ) will see a single token containing
+ * a space. The \ characters are squashed out.
  */
 char *
 vips_break_token( char *str, const char *brk )
 {
         char *p;
+        char *q;
 
         /* Is the string empty? If yes, return NULL immediately.
          */
-        if( !str || !*str )
+        if( !str || 
+		!*str )
                 return( NULL );
 
         /* Skip initial break characters.
@@ -409,9 +452,9 @@ vips_break_token( char *str, const char *brk )
 		return( NULL );
 
         /* We have a token ... search for the first break character after the 
-	 * token.
+	 * token. strcspne() allows '\' to escape breaks, see above.
          */
-        p += strcspn( p, brk );
+        p += strcspne( p, brk );
 
         /* Is there string left?
          */
@@ -422,6 +465,17 @@ vips_break_token( char *str, const char *brk )
                 *p++ = '\0';
                 p += strspn( p, brk );
         }
+
+	/* There may be escaped break characters in str. Loop, squashing them
+	 * out.
+	 */
+	for( q = strchr( str, '\\' ); q && *q; q = strchr( q, '\\' ) ) {
+		memmove( q, q + 1, strlen( q ) );
+
+		/* If there's \\, we don't want to squash out the second \.
+		 */
+		q += 1;
+	}
 
         return( p );
 }
