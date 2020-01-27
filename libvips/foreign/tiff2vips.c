@@ -296,6 +296,10 @@ typedef struct _RtiffHeader {
 	 */
 	uint32 read_height;
 	tsize_t read_size;
+
+	/* Scale factor to get absolute cd/m2 from XYZ.
+	 */
+	double stonits;
 } RtiffHeader;
 
 /* Scanline-type process function.
@@ -1489,9 +1493,12 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 
 	/* Always expand LOGLUV to float XYZ.
 	 */
-	if( rtiff->header.photometric_interpretation == PHOTOMETRIC_LOGLUV ) 
+	if( rtiff->header.photometric_interpretation == PHOTOMETRIC_LOGLUV ) {
 		TIFFSetField( rtiff->tiff, 
 			TIFFTAG_SGILOGDATAFMT, SGILOGDATAFMT_FLOAT );
+
+		vips_image_set_double( out, "stonits", rtiff->header.stonits );
+	}
 
 	out->Xsize = rtiff->header.width;
 	out->Ysize = rtiff->header.height * rtiff->n;
@@ -2301,6 +2308,11 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 		TIFFSetField( rtiff->tiff, 
 			TIFFTAG_SGILOGDATAFMT, SGILOGDATAFMT_FLOAT );
 	}
+
+	/* For logluv, the calibration factor to get to absolute luminance.
+	 */
+	if( !TIFFGetField( rtiff->tiff, TIFFTAG_STONITS, &header->stonits ) )
+		header->stonits = 1.0;
 
 	/* Arbitrary sanity-checking limits.
 	 */
