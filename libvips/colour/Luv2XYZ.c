@@ -110,7 +110,7 @@ vips_Luv2XYZ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 		}
 
 		X = Y * 9.0 * up / (4.0 * vp);
-		Z = Y * 9.0 * (12.0 - 3.0 - up - 20.0 * vp) / (4.0 * vp);
+		Z = Y * (12.0 - 3.0 * up - 20.0 * vp) / (4.0 * vp);
 			
 		q[0] = X;
 		q[1] = Y;
