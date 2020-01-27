@@ -138,6 +138,10 @@ int vips_Lab2XYZ( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_XYZ2Lab( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_XYZ2Luv( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_Luv2XYZ( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 int vips_XYZ2scRGB( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));

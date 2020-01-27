@@ -454,6 +454,7 @@ vips_image_guess_format( const VipsImage *image )
 	case VIPS_INTERPRETATION_HSV: 
 	case VIPS_INTERPRETATION_scRGB: 
 	case VIPS_INTERPRETATION_YXY: 
+	case VIPS_INTERPRETATION_LUV: 
 		format = VIPS_FORMAT_FLOAT;
 		break;
 
@@ -617,6 +618,7 @@ vips_image_guess_interpretation( const VipsImage *image )
 	case VIPS_INTERPRETATION_HSV: 
 	case VIPS_INTERPRETATION_scRGB: 
 	case VIPS_INTERPRETATION_YXY: 
+	case VIPS_INTERPRETATION_LUV: 
 		if( image->Bands < 3 )
 			sane = FALSE;
 		break;

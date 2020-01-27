@@ -486,6 +486,7 @@ vips_image_expected_bands( VipsImage *image )
 	case VIPS_INTERPRETATION_LABS:
 	case VIPS_INTERPRETATION_sRGB:
 	case VIPS_INTERPRETATION_YXY:
+	case VIPS_INTERPRETATION_LUV:
 	case VIPS_INTERPRETATION_RGB16:
 	case VIPS_INTERPRETATION_scRGB:
 	case VIPS_INTERPRETATION_HSV:
@@ -551,6 +552,10 @@ vips_image_expected_sig( VipsImage *image )
 
 	case VIPS_INTERPRETATION_YXY:
 		expected_sig = cmsSigYxyData;
+		break;
+
+	case VIPS_INTERPRETATION_LUV:
+		expected_sig = cmsSigLuvData;
 		break;
 
 	case VIPS_INTERPRETATION_MULTIBAND:

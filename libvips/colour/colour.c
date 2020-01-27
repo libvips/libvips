@@ -70,7 +70,8 @@
  * functions to transform images between the different colour spaces supported 
  * by VIPS: #VIPS_INTERPRETATION_sRGB, #VIPS_INTERPRETATION_scRGB,  
  * #VIPS_INTERPRETATION_B_W,
- * #VIPS_INTERPRETATION_XYZ, #VIPS_INTERPRETATION_YXY,  
+ * #VIPS_INTERPRETATION_XYZ, #VIPS_INTERPRETATION_YXY,
+ * #VIPS_INTERPRETATION_LUV,
  * #VIPS_INTERPRETATION_LAB, 
  * #VIPS_INTERPRETATION_LCH, and
  * #VIPS_INTERPRETATION_CMC.
@@ -113,6 +114,8 @@
  *   under various illuminants.
  *
  *   #VIPS_INTERPRETATION_YXY is the same, but with little x and y. 
+ *
+ * * #VIPS_INTERPRETATION_LUV -- CIE LUV. This uses three floats.
  *
  * * #VIPS_INTERPRETATION_scRGB -- a linear colourspace with the sRGB
  *   primaries. This is useful if you need linear light and don't care
@@ -710,7 +713,9 @@ vips_colour_operation_init( void )
 {
 	extern GType vips_colourspace_get_type( void ); 
 	extern GType vips_Lab2XYZ_get_type( void ); 
+	extern GType vips_Luv2XYZ_get_type( void ); 
 	extern GType vips_XYZ2Lab_get_type( void ); 
+	extern GType vips_XYZ2Luv_get_type( void ); 
 	extern GType vips_Lab2LCh_get_type( void ); 
 	extern GType vips_LCh2Lab_get_type( void ); 
 	extern GType vips_LCh2CMC_get_type( void ); 
@@ -748,7 +753,9 @@ vips_colour_operation_init( void )
 
 	vips_colourspace_get_type();
 	vips_Lab2XYZ_get_type();
+	vips_Luv2XYZ_get_type();
 	vips_XYZ2Lab_get_type();
+	vips_XYZ2Luv_get_type();
 	vips_Lab2LCh_get_type();
 	vips_LCh2Lab_get_type();
 	vips_LCh2CMC_get_type();

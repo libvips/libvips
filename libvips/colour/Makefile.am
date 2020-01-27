@@ -16,11 +16,13 @@ libcolour_la_SOURCES = \
 	dECMC.c \
 	icc_transform.c \
 	Lab2XYZ.c \
+	Luv2XYZ.c \
 	Lab2LCh.c \
 	LCh2Lab.c \
 	LCh2UCS.c \
 	UCS2LCh.c \
 	XYZ2Lab.c \
+	XYZ2Luv.c \
 	XYZ2Yxy.c \
 	Yxy2XYZ.c \
 	float2rad.c \

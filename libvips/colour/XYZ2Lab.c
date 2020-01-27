@@ -67,7 +67,7 @@
 
 /* Lookup table size.
  */
-#define QUANT_ELEMENTS (100000)
+#define QUANT_ELEMENTS (10000)
 
 float cbrt_table[QUANT_ELEMENTS];
 
@@ -98,7 +98,7 @@ table_init( void *client )
 	for( i = 0; i < QUANT_ELEMENTS; i++ ) {
 		float Y = (double) i / QUANT_ELEMENTS;
 
-		if( Y < 0.008856 ) 
+		if( Y <= 0.008856 ) 
 			cbrt_table[i] = 7.787 * Y + (16.0 / 116.0);
 		else 
 			cbrt_table[i] = cbrt( Y );
