@@ -107,7 +107,7 @@ G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveTiff, vips_foreign_save_tiff,
 
 #define UC VIPS_FORMAT_UCHAR
 
-/* Type promotion for save ... just always go to uchar.
+/* Format promotion for save ... just always go to uchar.
  */
 static int bandfmt_jpeg[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */

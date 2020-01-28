@@ -917,24 +917,26 @@ rtiff_parse_labs( Rtiff *rtiff, VipsImage *out )
 	return( 0 );
 }
 
-/* libtiff delivers logluv as XYZ scaled to 0-1.
+/* libtiff delivers logluv as LUV in 3 x 16-bit.
  */
 static void
 rtiff_logluv_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *dummy )
 {
 	int samples_per_pixel = rtiff->header.samples_per_pixel;
 
-	float *p1;
+	short *p1;
 	float *q1;
 	int x;
 	int i; 
 
-	p1 = (float *) p;
+	p1 = (short *) p;
 	q1 = (float *) q;
 	for( x = 0; x < n; x++ ) {
-		q1[0] = p1[0] * VIPS_D65_X0;
-		q1[1] = p1[1] * VIPS_D65_Y0;
-		q1[2] = p1[2] * VIPS_D65_Z0;
+		/* LogL16toY() is part of libtiff.
+		 */
+		q1[0] = 100.0 * LogL16toY( p1[0] );
+		q1[1] = (float) p1[1] / (1 << 15);
+		q1[2] = (float) p1[2] / (1 << 15);
 
 		for( i = 3; i < samples_per_pixel; i++ ) 
 			q1[i] = p1[i];
@@ -944,7 +946,7 @@ rtiff_logluv_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *dummy )
 	}
 }
 
-/* LOGLUV images arrive from libtiff as three-band XYZ float.
+/* LOGLUV images arrive from libtiff as three-band 16 bit ints.
  */
 static int
 rtiff_parse_logluv( Rtiff *rtiff, VipsImage *out )
@@ -956,7 +958,7 @@ rtiff_parse_logluv( Rtiff *rtiff, VipsImage *out )
 	out->Bands = rtiff->header.samples_per_pixel; 
 	out->BandFmt = VIPS_FORMAT_FLOAT; 
 	out->Coding = VIPS_CODING_NONE; 
-	out->Type = VIPS_INTERPRETATION_XYZ; 
+	out->Type = VIPS_INTERPRETATION_LUV; 
 
 	rtiff->sfn = rtiff_logluv_line;
 
@@ -1491,11 +1493,12 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 		TIFFSetField( rtiff->tiff, 
 			TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
 
-	/* Always expand LOGLUV to float XYZ.
+	/* Always get LOGLUV as 3 x 16bit. If you set FLOAT, libtiff returns
+	 * XYZ, not LUV.
 	 */
 	if( rtiff->header.photometric_interpretation == PHOTOMETRIC_LOGLUV ) {
 		TIFFSetField( rtiff->tiff, 
-			TIFFTAG_SGILOGDATAFMT, SGILOGDATAFMT_FLOAT );
+			TIFFTAG_SGILOGDATAFMT, SGILOGDATAFMT_16BIT );
 
 		vips_image_set_double( out, "stonits", rtiff->header.stonits );
 	}
@@ -2167,12 +2170,8 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 
 	/* Double check: in memcpy mode, the vips linesize should exactly
 	 * match the tiff line size.
-	 *
-	 * We ask logluv to be expanded to float, so no need to check.
 	 */
-	if( rtiff->memcpy &&
-		rtiff->header.photometric_interpretation != 
-			PHOTOMETRIC_LOGLUV ) {
+	if( rtiff->memcpy ) { 
 		size_t vips_line_size;
 
 		/* Lines are smaller in plane-separated mode.
@@ -2302,11 +2301,11 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 			return( -1 );
 		}
 
-		/* Always expand LOGLUV to float XYZ. We must set this here 
+		/* Always get LOGLUV as 3 x 16-bit LUV. We must set this here 
 		 * since it'll change the value of scanline_size.
 		 */
 		TIFFSetField( rtiff->tiff, 
-			TIFFTAG_SGILOGDATAFMT, SGILOGDATAFMT_FLOAT );
+			TIFFTAG_SGILOGDATAFMT, SGILOGDATAFMT_16BIT );
 	}
 
 	/* For logluv, the calibration factor to get to absolute luminance.

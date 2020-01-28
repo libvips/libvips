@@ -88,8 +88,10 @@ vips_Luv2XYZ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 
 	for( x = 0; x < width; x++ ) {
 		float L, u, v;
-		float X, Y, Z;
 		float up, vp;
+		float Y;
+		float d, x, y;
+		float X, Z;
 
 		L = p[0];
 		u = p[1];
@@ -109,9 +111,19 @@ vips_Luv2XYZ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 			Y = Luv2XYZ->Y0 * f * f * f;
 		}
 
-		X = Y * 9.0 * up / (4.0 * vp);
-		Z = Y * (12.0 - 3.0 * up - 20.0 * vp) / (4.0 * vp);
-			
+		d = 4.0 * vp;
+		X = Y * 9.0 * up / d;
+		Z = Y * (12.0 - 3.0 * up - 20.0 * vp) / d;
+
+		/*
+	        d = 6.0 * up - 16.0 * vp + 12.0;
+		x = 9.0 * up / d;
+		y = 4.0 * vp / d;
+
+		X = x / y * Y;
+		Z = (1.0 - x - y) / y * Y;
+		 */
+
 		q[0] = X;
 		q[1] = Y;
 		q[2] = Z;
@@ -132,12 +144,12 @@ vips_Luv2XYZ_build( VipsObject *object )
 		Luv2XYZ->X0 = ((double *) Luv2XYZ->temp->data)[0];
 		Luv2XYZ->Y0 = ((double *) Luv2XYZ->temp->data)[1];
 		Luv2XYZ->Z0 = ((double *) Luv2XYZ->temp->data)[2];
-
-		Luv2XYZ->unp = 4.0 * Luv2XYZ->X0 / 
-			(Luv2XYZ->X0 + 15.0 * Luv2XYZ->Y0 + 3.0 * Luv2XYZ->Z0);
-		Luv2XYZ->vnp = 9.0 * Luv2XYZ->Y0 / 
-			(Luv2XYZ->X0 + 15.0 * Luv2XYZ->Y0 + 3.0 * Luv2XYZ->Z0);
 	}
+
+	Luv2XYZ->unp = 4.0 * Luv2XYZ->X0 / 
+		(Luv2XYZ->X0 + 15.0 * Luv2XYZ->Y0 + 3.0 * Luv2XYZ->Z0);
+	Luv2XYZ->vnp = 9.0 * Luv2XYZ->Y0 / 
+		(Luv2XYZ->X0 + 15.0 * Luv2XYZ->Y0 + 3.0 * Luv2XYZ->Z0);
 
 	if( VIPS_OBJECT_CLASS( vips_Luv2XYZ_parent_class )->build( object ) )
 		return( -1 );

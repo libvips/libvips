@@ -161,12 +161,12 @@ vips_XYZ2Luv_build( VipsObject *object )
 		XYZ2Luv->X0 = ((double *) XYZ2Luv->temp->data)[0];
 		XYZ2Luv->Y0 = ((double *) XYZ2Luv->temp->data)[1];
 		XYZ2Luv->Z0 = ((double *) XYZ2Luv->temp->data)[2];
-
-		XYZ2Luv->unp = 4.0 * XYZ2Luv->X0 / 
-			(XYZ2Luv->X0 + 15.0 * XYZ2Luv->Y0 + 3.0 * XYZ2Luv->Z0);
-		XYZ2Luv->vnp = 9.0 * XYZ2Luv->Y0 / 
-			(XYZ2Luv->X0 + 15.0 * XYZ2Luv->Y0 + 3.0 * XYZ2Luv->Z0);
 	}
+
+	XYZ2Luv->unp = 4.0 * XYZ2Luv->X0 / 
+		(XYZ2Luv->X0 + 15.0 * XYZ2Luv->Y0 + 3.0 * XYZ2Luv->Z0);
+	XYZ2Luv->vnp = 9.0 * XYZ2Luv->Y0 / 
+		(XYZ2Luv->X0 + 15.0 * XYZ2Luv->Y0 + 3.0 * XYZ2Luv->Z0);
 
 	if( VIPS_OBJECT_CLASS( vips_XYZ2Luv_parent_class )->build( object ) )
 		return( -1 );
