@@ -108,6 +108,12 @@
 #define DISPOSE_PREVIOUS          3
 #endif
 
+
+#define NO_TRANSPARENT_INDEX    -1
+#define TRANSPARENT_MASK  0x01
+#define DISPOSE_MASK      0x07
+#define DISPOSE_SHIFT     2
+
 #define VIPS_TYPE_FOREIGN_LOAD_GIF (vips_foreign_load_gif_get_type())
 #define VIPS_FOREIGN_LOAD_GIF( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
@@ -194,7 +200,7 @@ typedef struct _VipsForeignLoadGif {
 	/* As we scan the file, the index of the transparent pixel for this
 	 * frame.
 	 */
-	int transparency;
+	int transparent_index;
 
 	/* Params for DGifOpen(). Set by subclasses, called by base class in
 	 * _open().
@@ -848,7 +854,7 @@ vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif,
 	for( x = 0; x < width; x++ ) {
 		VipsPel v = p[x];
 
-		if( v == gif->transparency ) {
+		if( v == gif->transparent_index ) {
 			/* In DISPOSE_DO_NOT mode, the previous frame shows
 			 * through (ie. we do nothing). In all other modes,
 			 * it's just transparent.
@@ -993,18 +999,20 @@ vips_foreign_load_gif_extension( VipsForeignLoadGif *gif )
 	if( extension &&
 		ext_code == GRAPHICS_EXT_FUNC_CODE &&
 		extension[0] == 4 ) {
+
+	    int flags = extension[1];
+
 		/* Bytes are flags, delay low, delay high,
 		 * transparency. Flag bit 1 means transparency
 		 * is being set.
 		 */
-		gif->transparency = -1;
-		if( extension[1] & 0x1 )
-			gif->transparency = extension[4];
+		gif->transparent_index = ( flags & TRANSPARENT_MASK ) ? extension[4] : NO_TRANSPARENT_INDEX;
 
 		/* Set the current dispose mode. This is read during frame load
 		 * to set the meaning of background and transparent pixels.
 		 */
-		gif->dispose = (extension[1] >> 2) & 0x7;
+		gif->dispose = ( flags >> DISPOSE_SHIFT ) & DISPOSE_MASK;
+
 		VIPS_DEBUG_MSG( "vips_foreign_load_gif_extension: "
 			"dispose = %d\n", gif->dispose );
 	}
@@ -1291,7 +1299,7 @@ static void
 vips_foreign_load_gif_init( VipsForeignLoadGif *gif )
 {
 	gif->n = 1;
-	gif->transparency = -1;
+	gif->transparent_index = NO_TRANSPARENT_INDEX;
 	gif->delays = NULL;
 	gif->delays_length = 0;
 	gif->loop = 1;
