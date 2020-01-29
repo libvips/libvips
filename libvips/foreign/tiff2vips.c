@@ -193,6 +193,8 @@
  * 	- switch to source input
  * 18/11/19
  * 	- support ASSOCALPHA in any alpha band
+ * 27/1/20
+ * 	- read logluv images as XYZ
  */
 
 /*
@@ -294,6 +296,10 @@ typedef struct _RtiffHeader {
 	 */
 	uint32 read_height;
 	tsize_t read_size;
+
+	/* Scale factor to get absolute cd/m2 from XYZ.
+	 */
+	double stonits;
 } RtiffHeader;
 
 /* Scanline-type process function.
@@ -911,6 +917,52 @@ rtiff_parse_labs( Rtiff *rtiff, VipsImage *out )
 	return( 0 );
 }
 
+/* libtiff delivers logluv as illuminant-free 0-1 XYZ in 3 x float.
+ */
+static void
+rtiff_logluv_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *dummy )
+{
+	int samples_per_pixel = rtiff->header.samples_per_pixel;
+
+	float *p1;
+	float *q1;
+	int x;
+	int i; 
+
+	p1 = (float *) p;
+	q1 = (float *) q;
+	for( x = 0; x < n; x++ ) {
+		q1[0] = VIPS_D65_X0 * p1[0];
+		q1[1] = VIPS_D65_Y0 * p1[1];
+		q1[2] = VIPS_D65_Z0 * p1[2];
+
+		for( i = 3; i < samples_per_pixel; i++ ) 
+			q1[i] = p1[i];
+
+		q1 += samples_per_pixel;
+		p1 += samples_per_pixel;
+	}
+}
+
+/* LOGLUV images arrive from libtiff as float xyz.
+ */
+static int
+rtiff_parse_logluv( Rtiff *rtiff, VipsImage *out )
+{
+	if( rtiff_check_min_samples( rtiff, 3 ) ||
+		rtiff_check_interpretation( rtiff, PHOTOMETRIC_LOGLUV ) )
+		return( -1 );
+
+	out->Bands = rtiff->header.samples_per_pixel; 
+	out->BandFmt = VIPS_FORMAT_FLOAT; 
+	out->Coding = VIPS_CODING_NONE; 
+	out->Type = VIPS_INTERPRETATION_XYZ; 
+
+	rtiff->sfn = rtiff_logluv_line;
+
+	return( 0 );
+}
+
 /* Per-scanline process function for 1 bit images.
  */
 static void
@@ -1406,6 +1458,9 @@ rtiff_pick_reader( Rtiff *rtiff )
 			return( rtiff_parse_labs );
 	}
 
+	if( photometric_interpretation == PHOTOMETRIC_LOGLUV ) 
+		return( rtiff_parse_logluv );
+
 	if( photometric_interpretation == PHOTOMETRIC_MINISWHITE ||
 		photometric_interpretation == PHOTOMETRIC_MINISBLACK ) {
 		if( bits_per_sample == 1 )
@@ -1435,6 +1490,15 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	if( rtiff->header.compression == COMPRESSION_JPEG )
 		TIFFSetField( rtiff->tiff, 
 			TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
+
+	/* Ask for LOGLUV as 3 x float XYZ. 
+	 */
+	if( rtiff->header.photometric_interpretation == PHOTOMETRIC_LOGLUV ) {
+		TIFFSetField( rtiff->tiff, 
+			TIFFTAG_SGILOGDATAFMT, SGILOGDATAFMT_FLOAT );
+
+		vips_image_set_double( out, "stonits", rtiff->header.stonits );
+	}
 
 	out->Xsize = rtiff->header.width;
 	out->Ysize = rtiff->header.height * rtiff->n;
@@ -2104,7 +2168,7 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 	/* Double check: in memcpy mode, the vips linesize should exactly
 	 * match the tiff line size.
 	 */
-	if( rtiff->memcpy ) {
+	if( rtiff->memcpy ) { 
 		size_t vips_line_size;
 
 		/* Lines are smaller in plane-separated mode.
@@ -2198,13 +2262,16 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 
 	TIFFGetFieldDefaulted( rtiff->tiff, 
 		TIFFTAG_COMPRESSION, &header->compression );
+
+	/* Request YCbCr expansion. libtiff complains if you do this for
+	 * non-jpg images. We must set this here since it changes the result
+	 * of scanline_size.
+	 */
 	if( header->compression == COMPRESSION_JPEG )
-		/* We want to always expand subsampled YCBCR images to full 
-		 * RGB. 
-		 */
 		TIFFSetField( rtiff->tiff, 
 			TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
-        else if( header->photometric_interpretation == PHOTOMETRIC_YCBCR ) {
+
+        if( header->photometric_interpretation == PHOTOMETRIC_YCBCR ) {
 		/* We rely on the jpg decompressor to upsample chroma
 		 * subsampled images. If there is chroma subsampling but
 		 * no jpg compression, we have to give up.
@@ -2222,6 +2289,26 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 			return( -1 );
                 }
         }
+
+	if( header->photometric_interpretation == PHOTOMETRIC_LOGLUV ) {
+		if( header->compression != COMPRESSION_SGILOG &&
+			header->compression != COMPRESSION_SGILOG24 ) {
+			vips_error( "tiff2vips",
+				"%s", _( "not SGI-compressed LOGLUV" ) );
+			return( -1 );
+		}
+
+		/* Always get LOGLUV as 3 x float XYZ. We must set this here 
+		 * since it'll change the value of scanline_size.
+		 */
+		TIFFSetField( rtiff->tiff, 
+			TIFFTAG_SGILOGDATAFMT, SGILOGDATAFMT_FLOAT );
+	}
+
+	/* For logluv, the calibration factor to get to absolute luminance.
+	 */
+	if( !TIFFGetField( rtiff->tiff, TIFFTAG_STONITS, &header->stonits ) )
+		header->stonits = 1.0;
 
 	/* Arbitrary sanity-checking limits.
 	 */
