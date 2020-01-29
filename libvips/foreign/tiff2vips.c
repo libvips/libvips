@@ -2270,8 +2270,7 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 	if( header->compression == COMPRESSION_JPEG )
 		TIFFSetField( rtiff->tiff, 
 			TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
-
-        if( header->photometric_interpretation == PHOTOMETRIC_YCBCR ) {
+	else if( header->photometric_interpretation == PHOTOMETRIC_YCBCR ) {
 		/* We rely on the jpg decompressor to upsample chroma
 		 * subsampled images. If there is chroma subsampling but
 		 * no jpg compression, we have to give up.

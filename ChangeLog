@@ -4,6 +4,7 @@
 - add max and min to region shrink [rgluskin]
 - allow \ as an escape character in vips_break_token() [akemrir]
 - tiffsave has a "depth" param to set max pyr depth
+- libtiff LOGLUV images load and save as libvips XYZ 
 
 20/6/19 started 8.9.1
 - don't use the new source loaders for new_from_file or new_from_buffer, it
