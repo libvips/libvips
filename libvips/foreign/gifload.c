@@ -109,10 +109,10 @@
 #endif
 
 
-#define NO_TRANSPARENT_INDEX    -1
-#define TRANSPARENT_MASK  0x01
-#define DISPOSE_MASK      0x07
-#define DISPOSE_SHIFT     2
+#define NO_TRANSPARENT_INDEX      -1
+#define TRANSPARENT_MASK          0x01
+#define DISPOSE_MASK              0x07
+#define DISPOSE_SHIFT             2
 
 #define VIPS_TYPE_FOREIGN_LOAD_GIF (vips_foreign_load_gif_get_type())
 #define VIPS_FOREIGN_LOAD_GIF( obj ) \
@@ -564,11 +564,13 @@ vips_foreign_load_gif_scan_application_ext( VipsForeignLoadGif *gif,
 {
 	gboolean have_netscape;
 
-	/* The 11-byte NETSCAPE extension.
+	/* The 11-byte NETSCAPE/ANIMEXTS extension.
 	 */
 	have_netscape = FALSE;
 	if( extension[0] == 11 &&
-		vips_isprefix( "NETSCAPE2.0", (const char*) (extension + 1) ) )
+		( vips_isprefix( "NETSCAPE2.0", (const char*) (extension + 1) ) ||
+		  vips_isprefix( "ANIMEXTS1.0", (const char*) (extension + 1) )
+		))
 		have_netscape = TRUE;
 
 	while( extension != NULL ) {
