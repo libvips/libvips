@@ -1640,9 +1640,19 @@ vips_foreign_save_build( VipsObject *object )
 			save->background ) )
 			return( -1 );
 
-		if( save->page_height )
+		if( save->page_height ) {
+			VipsImage *x;
+
+			if( vips_copy( ready, &x, NULL ) ) {
+				VIPS_UNREF( ready );
+				return( -1 );
+			}
+			VIPS_UNREF( ready );
+			ready = x;
+
 			vips_image_set_int( ready, 
 				VIPS_META_PAGE_HEIGHT, save->page_height );
+		}
 
 		VIPS_UNREF( save->ready );
 		save->ready = ready;
