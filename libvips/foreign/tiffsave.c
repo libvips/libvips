@@ -551,6 +551,10 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * good for 1-bit images, and deflate is the best lossless compression TIFF 
  * can do. 
  *
+ * XYZ images are automatically saved as libtiff LOGLUV with SGILOG compression.
+ * Float LAB images are saved as float CIELAB. Set @squash to save as 8-bit 
+ * CIELAB.
+ *
  * Use @Q to set the JPEG compression factor. Default 75.
  *
  * User @level to set the ZSTD compression level. Use @lossless to

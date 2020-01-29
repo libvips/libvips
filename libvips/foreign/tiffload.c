@@ -456,8 +456,8 @@ vips_foreign_load_tiff_buffer_init( VipsForeignLoadTiffBuffer *buffer )
  *   during load
  *
  * Read a TIFF file into a VIPS image. It is a full baseline TIFF 6 reader, 
- * with extensions for tiled images, multipage images, LAB colour space, 
- * pyramidal images and JPEG compression. including CMYK and YCbCr.
+ * with extensions for tiled images, multipage images, XYZ and LAB colour 
+ * space, pyramidal images and JPEG compression, including CMYK and YCbCr.
  *
  * @page means load this page from the file. By default the first page (page
  * 0) is read. 
