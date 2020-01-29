@@ -846,34 +846,21 @@ vips_foreign_load_gif_build_cmap( VipsForeignLoadGif *gif )
 }
 
 static void
-vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif, int width, VipsPel * restrict prv, VipsPel * restrict dst)
+vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif, int width, VipsPel * restrict dst)
 {
     guint32 *idst;
     idst = (guint32 *) dst;
 
-    guint32 *iprv;
-    iprv = (guint32 *) prv;
-
     int x;
     for( x = 0; x < width; x++ ) {
-//        if ( iprv[x] == GIF_TRANSPARENT_COLOR ) {
-//            continue;
-//        }
 
         VipsPel v = gif->line[x];
 
-        if( v == gif->transparent_index ) {
-            /* In DISPOSE_DO_NOT mode, the previous frame shows
-             * through (ie. we do nothing). In all other modes,
-             * it's just transparent.
-             */
-//            if( gif->dispose != DISPOSE_DO_NOT )
-//                idst[x] = GIF_TRANSPARENT_COLOR;
-        }
-        else
+        if( v != gif->transparent_index ) {
             /* Blast in the RGBA for this value.
              */
             idst[x] = gif->cmap[v];
+        }
     }
 }
 
@@ -936,9 +923,8 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
                 }
 
                 VipsPel *dst = VIPS_IMAGE_ADDR( gif->previous, file->Image.Left, file->Image.Top + y );
-                VipsPel *src = VIPS_IMAGE_ADDR( gif->frame, file->Image.Left, file->Image.Top + y );
 
-                vips_foreign_load_gif_render_line( gif, file->Image.Width, src,  dst );
+                vips_foreign_load_gif_render_line( gif, file->Image.Width, dst );
             }
         }
     }
@@ -958,9 +944,8 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
             }
 
             VipsPel *dst = VIPS_IMAGE_ADDR( gif->previous, file->Image.Left, file->Image.Top + y );
-            VipsPel *src = VIPS_IMAGE_ADDR( gif->frame, file->Image.Left, file->Image.Top + y );
 
-            vips_foreign_load_gif_render_line( gif, file->Image.Width, src, dst );
+            vips_foreign_load_gif_render_line( gif, file->Image.Width, dst );
         }
     }
 
@@ -968,7 +953,7 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
             VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
             VIPS_IMAGE_SIZEOF_IMAGE( gif->previous ) );
 
-    /* BACKGROUND means we reset the frame to 0 (transparent) before we
+    /* BACKGROUND means we reset the frame to transparent before we
      * render the next set of pixels.
      */
     if( gif->dispose == DISPOSE_BACKGROUND ) {
@@ -983,6 +968,7 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
      * undo the last render.
      */
     } else if( gif->dispose == DISPOSE_PREVIOUS ) {
+        // todo
 //		memcpy( VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
 //			VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
 //			VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
