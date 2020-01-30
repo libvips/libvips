@@ -1283,8 +1283,6 @@ vips_region_shrink_uncoded_mean( VipsRegion *from,
         		tq[z] = v[index]; \
 		} \
 		\
-		/* Move on two pels in input. \
-		 */ \
 		p += ps << 1; \
 		q += ps; \
 	} \
@@ -1303,8 +1301,6 @@ vips_region_shrink_uncoded_mean( VipsRegion *from,
 				); \
 		} \
 		\
-		/* Move on two pels in input. \
-		 */ \
 		p += ps << 1; \
 		q += ps; \
 	} \
@@ -1323,8 +1319,20 @@ vips_region_shrink_uncoded_mean( VipsRegion *from,
 				); \
 		} \
 		\
-		/* Move on two pels in input. \
-		 */ \
+		p += ps << 1; \
+		q += ps; \
+	} \
+}
+
+#define SHRINK_TYPE_NEAREST( TYPE ) { \
+	for( x = 0; x < target->width; x++ ) { \
+		TYPE *tp = (TYPE *) p; \
+		TYPE *tp1 = (TYPE *) (p + ls); \
+		TYPE *tq = (TYPE *) q; \
+		\
+		for( z = 0; z < nb; z++ ) \
+        		tq[z] = tp[z]; \
+		\
 		p += ps << 1; \
 		q += ps; \
 	} \
@@ -1377,6 +1385,7 @@ VIPS_REGION_SHRINK( MAX );
 VIPS_REGION_SHRINK( MIN );
 VIPS_REGION_SHRINK( MODE );
 VIPS_REGION_SHRINK( MEDIAN );
+VIPS_REGION_SHRINK( NEAREST );
 
 /* Generate area @target in @to using pixels in @from. Non-complex.
  */
@@ -1403,6 +1412,10 @@ vips_region_shrink_uncoded( VipsRegion *from,
 
 		case VIPS_REGION_SHRINK_MIN:
 			vips_region_shrink_uncoded_MIN( from, to, target );
+			break;
+
+		case VIPS_REGION_SHRINK_NEAREST:
+			vips_region_shrink_uncoded_NEAREST( from, to, target );
 			break;
 
 		default:

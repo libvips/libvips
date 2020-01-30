@@ -419,11 +419,14 @@ class TestForeign:
         assert a.height == b.height
         assert a.avg() == b.avg()
 
-        # region-shrink added in 8.7
         x = pyvips.Image.new_from_file(TIF_FILE)
         buf = x.tiffsave_buffer(tile=True, pyramid=True, region_shrink="mean")
         buf = x.tiffsave_buffer(tile=True, pyramid=True, region_shrink="mode")
         buf = x.tiffsave_buffer(tile=True, pyramid=True, region_shrink="median")
+        buf = x.tiffsave_buffer(tile=True, pyramid=True, region_shrink="max")
+        buf = x.tiffsave_buffer(tile=True, pyramid=True, region_shrink="min")
+        buf = x.tiffsave_buffer(tile=True, pyramid=True,
+                                region_shrink="nearest")
 
     @skip_if_no("magickload")
     def test_magickload(self):
