@@ -2107,6 +2107,7 @@ vips_foreign_operation_init( void )
 
 	extern GType vips_foreign_load_gif_file_get_type( void ); 
 	extern GType vips_foreign_load_gif_buffer_get_type( void ); 
+	extern GType vips_foreign_load_gif_source_get_type( void ); 
 
 	vips_foreign_load_csv_get_type(); 
 	vips_foreign_save_csv_get_type(); 
@@ -2158,6 +2159,7 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_GIFLIB
 	vips_foreign_load_gif_file_get_type(); 
 	vips_foreign_load_gif_buffer_get_type(); 
+	vips_foreign_load_gif_source_get_type(); 
 #endif /*HAVE_GIFLIB*/
 
 #ifdef HAVE_GSF

@@ -36,6 +36,7 @@
  * 	- improve early close again
  * 30/1/19
  * 	- rework on top of VipsSource
+ * 	- add gifload_source
  */
 
 /*
@@ -1431,6 +1432,70 @@ vips_foreign_load_gif_buffer_init( VipsForeignLoadGifBuffer *buffer )
 {
 }
 
+typedef struct _VipsForeignLoadGifSource {
+	VipsForeignLoadGif parent_object;
+
+	/* Load from a source.
+	 */
+	VipsSource *source;
+
+} VipsForeignLoadGifSource;
+
+typedef VipsForeignLoadGifClass VipsForeignLoadGifSourceClass;
+
+G_DEFINE_TYPE( VipsForeignLoadGifSource, vips_foreign_load_gif_source,
+	vips_foreign_load_gif_get_type() );
+
+static int
+vips_foreign_load_gif_source_build( VipsObject *object )
+{
+	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) object;
+	VipsForeignLoadGifSource *source = 
+		(VipsForeignLoadGifSource *) object;
+
+	if( source->source ) {
+		gif->source = source->source;
+		g_object_ref( gif->source );
+	}
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_gif_source_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_load_gif_source_class_init(
+	VipsForeignLoadGifSourceClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "gifload_source";
+	object_class->description = _( "load GIF with giflib" );
+	object_class->build = vips_foreign_load_gif_source_build;
+
+	load_class->is_a_source = vips_foreign_load_gif_is_a_source;
+
+	VIPS_ARG_OBJECT( class, "source", 1,
+		_( "Source" ),
+		_( "Source to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadGifSource, source ),
+		VIPS_TYPE_SOURCE );
+
+}
+
+static void
+vips_foreign_load_gif_source_init( VipsForeignLoadGifSource *source )
+{
+}
+
 #endif /*HAVE_GIFLIB*/
 
 /**
@@ -1515,3 +1580,32 @@ vips_gifload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	return( result );
 }
 
+/**
+ * vips_gifload_source:
+ * @source: source to load
+ * @out: (out): image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, page (frame) to read
+ * * @n: %gint, load this many pages
+ *
+ * Exactly as vips_gifload(), but read from a source. 
+ *
+ * See also: vips_gifload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_gifload_source( VipsSource *source, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "gifload_source", ap, source, out );
+	va_end( ap );
+
+	return( result );
+}
