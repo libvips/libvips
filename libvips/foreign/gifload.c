@@ -34,6 +34,8 @@
  * 	- check image and frame bounds, since giflib does not
  * 1/9/19
  * 	- improve early close again
+ * 30/1/19
+ * 	- rework on top of VipsSource
  */
 
 /*
@@ -332,7 +334,8 @@ vips_foreign_load_gif_close_giflib( VipsForeignLoadGif *gif )
 	}
 #endif
 
-	vips_source_minimise( gif->source );
+	if( gif->source )
+		vips_source_minimise( gif->source );
 
 	return( 0 );
 }
