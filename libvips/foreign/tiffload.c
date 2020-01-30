@@ -389,7 +389,7 @@ vips_foreign_load_tiff_buffer_build( VipsObject *object )
 			VIPS_AREA( buffer->blob )->length )) )
 		return( -1 );
 
-	if( VIPS_OBJECT_CLASS( vips_foreign_load_tiff_file_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_tiff_buffer_parent_class )->
 		build( object ) )
 		return( -1 );
 
