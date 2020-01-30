@@ -949,6 +949,8 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
         }
     }
 
+    /* Copy the result to frame, which then is picked up from outside
+     */
     memcpy( VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
             VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
             VIPS_IMAGE_SIZEOF_IMAGE( gif->previous ) );
