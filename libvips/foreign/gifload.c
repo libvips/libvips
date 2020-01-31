@@ -34,6 +34,9 @@
  * 	- check image and frame bounds, since giflib does not
  * 1/9/19
  * 	- improve early close again
+ * 31/1/20
+ * 	- treat DISPOSAL_UNSPECIFIED as _DO_NOT, since that's what many GIFs
+ * 	  in the wild appear to do
  */
 
 /*
@@ -852,8 +855,12 @@ vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif,
 			/* In DISPOSE_DO_NOT mode, the previous frame shows
 			 * through (ie. we do nothing). In all other modes,
 			 * it's just transparent.
+			 *
+			 * Many GIFs use DISPOSAL_UNSPECIFIED to mean DO_NOT,
+			 * so use that for previous frame as well.
 			 */
-			if( gif->dispose != DISPOSE_DO_NOT )
+			if( gif->dispose != DISPOSE_DO_NOT &&
+				gif->dispose != DISPOSAL_UNSPECIFIED )
 				iq[x] = 0;
 		}
 		else
@@ -976,6 +983,20 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 	return( 0 );
 }
 
+#ifdef VIPS_DEBUG
+static const char *
+dispose2str( int dispose )
+{
+	switch( dispose ) {
+	case DISPOSAL_UNSPECIFIED: return( "DISPOSAL_UNSPECIFIED" );
+	case DISPOSE_DO_NOT: return( "DISPOSE_DO_NOT" );
+	case DISPOSE_BACKGROUND: return( "DISPOSE_BACKGROUND" );
+	case DISPOSE_PREVIOUS: return( "DISPOSE_PREVIOUS" );
+	default: return( "<unknown>" );
+	}
+}
+#endif /*VIPS_DEBUG*/
+
 static int
 vips_foreign_load_gif_extension( VipsForeignLoadGif *gif )
 {
@@ -998,15 +1019,18 @@ vips_foreign_load_gif_extension( VipsForeignLoadGif *gif )
 		 * is being set.
 		 */
 		gif->transparency = -1;
-		if( extension[1] & 0x1 )
+		if( extension[1] & 0x1 ) {
 			gif->transparency = extension[4];
+			VIPS_DEBUG_MSG( "vips_foreign_load_gif_extension: "
+				"transparency = %d\n", gif->transparency );
+		}
 
 		/* Set the current dispose mode. This is read during frame load
 		 * to set the meaning of background and transparent pixels.
 		 */
 		gif->dispose = (extension[1] >> 2) & 0x7;
 		VIPS_DEBUG_MSG( "vips_foreign_load_gif_extension: "
-			"dispose = %d\n", gif->dispose );
+			"dispose = %s\n", dispose2str( gif->dispose ) );
 	}
 
 	while( extension != NULL )
