@@ -382,6 +382,7 @@ vips_init( const char *argv0 )
 
 	vips__threadpool_init();
 	vips__buffer_init();
+	vips__meta_init();
 
 	/* This does an unsynchronised static hash table init on first call --
 	 * we have to make sure we do this single-threaded. See: 
