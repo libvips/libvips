@@ -35,6 +35,8 @@
  * 	- redone with source/target
  * 	- sequential load, plus mmap for filename sources
  * 	- faster plus lower memory use
+ * 02/02/2020
+ * 	- ban max_vaue < 0 
  */
 
 /*
@@ -258,6 +260,12 @@ vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
 		else {
 			if( get_int( ppm->sbuf, &ppm->max_value ) )
 				return( -1 );
+
+			/* max_value must be > 0 and <= 65535, according to
+			 * the spec, but we allow up to 32 bits per pixel.
+			 */
+			if( ppm->max_value < 0 )
+				ppm->max_value = 0;
 
 			if( ppm->max_value > 255 )
 				ppm->bits = 16;
