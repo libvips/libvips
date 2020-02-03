@@ -6,6 +6,7 @@
 - tiffsave has a "depth" param to set max pyr depth
 - libtiff LOGLUV images load and save as libvips XYZ 
 - add gifload_source
+- revise vipsthumbnail flags
 
 31/1/19 started 8.9.2
 - fix a deadlock with --vips-leak [DarthSim]
