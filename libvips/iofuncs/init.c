@@ -435,6 +435,8 @@ vips_init( const char *argv0 )
 		vips_info_set( TRUE );
 	if( g_getenv( "VIPS_PROFILE" ) )
 		vips_profile_set( TRUE );
+	if( g_getenv( "VIPS_LEAK" ) )
+		vips_leak_set( TRUE );
 	if( g_getenv( "VIPS_TRACE" ) )
 		vips_cache_set_trace( TRUE );
 	if( g_getenv( "VIPS_PIPE_READ_LIMIT" ) ) 
@@ -1197,8 +1199,8 @@ vips_version( int flag )
  * vips_leak_set:
  * @leak: turn leak checking on or off
  *
- * Turn on or off vips leak checking. See also --vips-leak and
- * vips_add_option_entries(). 
+ * Turn on or off vips leak checking. See also --vips-leak,
+ * vips_add_option_entries() and the `VIPS_LEAK` environment variable.
  *
  * You should call this very early in your program. 
  */
