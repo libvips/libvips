@@ -1235,6 +1235,8 @@ vips_region_shrink_uncoded_mean( VipsRegion *from,
  * IS stable with respect to the initial arrangement of input values
  */
 #define SHRINK_TYPE_MEDIAN( TYPE ) { \
+	int ls = VIPS_REGION_LSKIP( from ); \
+	\
 	for( x = 0; x < target->width; x++ ) { \
 		TYPE *tp = (TYPE *) p; \
 		TYPE *tp1 = (TYPE *) (p + ls); \
@@ -1265,6 +1267,8 @@ vips_region_shrink_uncoded_mean( VipsRegion *from,
  * IS stable with respect to the initial arrangement of input values
  */
 #define SHRINK_TYPE_MODE( TYPE ) { \
+	int ls = VIPS_REGION_LSKIP( from ); \
+	\
 	for( x = 0; x < target->width; x++ ) { \
 		TYPE *tp = (TYPE *) p; \
 		TYPE *tp1 = (TYPE *) (p + ls); \
@@ -1289,6 +1293,8 @@ vips_region_shrink_uncoded_mean( VipsRegion *from,
 }
 
 #define SHRINK_TYPE_MAX( TYPE ) { \
+	int ls = VIPS_REGION_LSKIP( from ); \
+	\
 	for( x = 0; x < target->width; x++ ) { \
 		TYPE *tp = (TYPE *) p; \
 		TYPE *tp1 = (TYPE *) (p + ls); \
@@ -1307,6 +1313,8 @@ vips_region_shrink_uncoded_mean( VipsRegion *from,
 }
 
 #define SHRINK_TYPE_MIN( TYPE ) { \
+	int ls = VIPS_REGION_LSKIP( from ); \
+	\
 	for( x = 0; x < target->width; x++ ) { \
 		TYPE *tp = (TYPE *) p; \
 		TYPE *tp1 = (TYPE *) (p + ls); \
@@ -1327,7 +1335,6 @@ vips_region_shrink_uncoded_mean( VipsRegion *from,
 #define SHRINK_TYPE_NEAREST( TYPE ) { \
 	for( x = 0; x < target->width; x++ ) { \
 		TYPE *tp = (TYPE *) p; \
-		TYPE *tp1 = (TYPE *) (p + ls); \
 		TYPE *tq = (TYPE *) q; \
 		\
 		for( z = 0; z < nb; z++ ) \
@@ -1343,7 +1350,6 @@ static void \
 vips_region_shrink_uncoded_ ## OP( VipsRegion *from, \
 	VipsRegion *to, const VipsRect *target ) \
 { \
-	int ls = VIPS_REGION_LSKIP( from ); \
 	int ps = VIPS_IMAGE_SIZEOF_PEL( from->im ); \
 	int nb = from->im->Bands; \
  	\

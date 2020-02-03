@@ -89,6 +89,8 @@ GType vips_connection_get_type( void );
 const char *vips_connection_filename( VipsConnection *connection );
 const char *vips_connection_nick( VipsConnection *connection );
 
+void vips_pipe_read_limit_set( size_t limit );
+
 #define VIPS_TYPE_SOURCE (vips_source_get_type())
 #define VIPS_SOURCE( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
