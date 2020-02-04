@@ -15,6 +15,7 @@ from helpers import \
     GIF_ANIM_DISPOSE_BACKGROUND_FILE, GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE, \
     GIF_ANIM_DISPOSE_BACKGROUND2_FILE, GIF_ANIM_DISPOSE_BACKGROUND2_EXPECTED_PNG_FILE, \
     GIF_ANIM_MICKEY_FILE, GIF_ANIM_MICKEY_EXPECTED_PNG_FILE, \
+    GIF_ANIM_3_FILE, GIF_ANIM_3_EXPECTED_PNG_FILE, \
     temp_filename, assert_almost_equal_objects, have, skip_if_no
 
 
@@ -721,11 +722,18 @@ class TestForeign:
         assert filecmp.cmp(GIF_ANIM_DISPOSE_BACKGROUND2_EXPECTED_PNG_FILE, 'dispose-background2.png', shallow=False)
 
     @skip_if_no("gifload")
-    def test_gifload_animation_mickey(self):
-        animation = pyvips.Image.new_from_file(GIF_ANIM_MICKEY_FILE, n=-1)
-        animation.write_to_file('mickey.png')
+    def test_gifload_animation_3(self):
+        animation = pyvips.Image.new_from_file(GIF_ANIM_3_FILE, n=-1)
+        animation.write_to_file('3.png')
 
-        assert filecmp.cmp(GIF_ANIM_MICKEY_EXPECTED_PNG_FILE, 'mickey.png', shallow=False)
+        assert filecmp.cmp(GIF_ANIM_3_EXPECTED_PNG_FILE, '3.png', shallow=False)
+
+    @skip_if_no("gifload")
+    def test_gifload_animation_penguin(self):
+        animation = pyvips.Image.new_from_file(GIF_ANIM_PENGUIN_FILE, n=-1)
+        animation.write_to_file('penguin.png')
+
+        assert filecmp.cmp(GIF_ANIM_PENGUIN_EXPECTED_PNG_FILE, 'penguin.png', shallow=False)
 
     @skip_if_no("svgload")
     def test_svgload(self):
