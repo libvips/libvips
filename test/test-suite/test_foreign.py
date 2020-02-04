@@ -16,6 +16,7 @@ from helpers import \
     GIF_ANIM_DISPOSE_BACKGROUND_FILE, GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE, \
     GIF_ANIM_DISPOSE_BACKGROUND2_FILE, GIF_ANIM_DISPOSE_BACKGROUND2_EXPECTED_PNG_FILE, \
     GIF_ANIM_DISPOSE_PREVIOUS_FILE, GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, \
+    GIF_ANIM_MICKEY_FILE, GIF_ANIM_MICKEY_EXPECTED_PNG_FILE, \
     temp_filename, assert_almost_equal_objects, have, skip_if_no
 
 
@@ -423,11 +424,14 @@ class TestForeign:
         assert a.height == b.height
         assert a.avg() == b.avg()
 
-        # region-shrink added in 8.7
         x = pyvips.Image.new_from_file(TIF_FILE)
         buf = x.tiffsave_buffer(tile=True, pyramid=True, region_shrink="mean")
         buf = x.tiffsave_buffer(tile=True, pyramid=True, region_shrink="mode")
         buf = x.tiffsave_buffer(tile=True, pyramid=True, region_shrink="median")
+        buf = x.tiffsave_buffer(tile=True, pyramid=True, region_shrink="max")
+        buf = x.tiffsave_buffer(tile=True, pyramid=True, region_shrink="min")
+        buf = x.tiffsave_buffer(tile=True, pyramid=True,
+                                region_shrink="nearest")
 
     @skip_if_no("magickload")
     def test_magickload(self):
@@ -748,6 +752,13 @@ class TestForeign:
         animation.write_to_file('dispose-previous.png')
 
         assert filecmp.cmp(GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, filename, shallow=False)
+
+    @skip_if_no("gifload")
+    def test_gifload_animation_mickey(self):
+        animation = pyvips.Image.new_from_file(GIF_ANIM_MICKEY_FILE, n=-1)
+        animation.write_to_file('mickey.png')
+
+        assert filecmp.cmp(GIF_ANIM_MICKEY_EXPECTED_PNG_FILE, 'mickey.png', shallow=False)
 
     @skip_if_no("svgload")
     def test_svgload(self):
