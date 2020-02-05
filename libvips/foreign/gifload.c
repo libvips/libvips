@@ -174,6 +174,10 @@ typedef struct _VipsForeignLoadGif {
      */
     VipsImage *frame;
 
+    /* A memory scratch buffer the sized as one frame, used together with frame for rendering
+     */
+    VipsImage *scratch;
+
     /* A copy of the previous frame, in case we need a DISPOSE_PREVIOUS.
      */
     VipsImage *previous;
@@ -409,7 +413,7 @@ vips_foreign_load_gif_dispose( GObject *gobject )
     vips_foreign_load_gif_close_giflib( gif );
 
     VIPS_UNREF( gif->frame );
-    VIPS_UNREF( gif->previous );
+    VIPS_UNREF( gif->scratch );
     VIPS_FREE( gif->comment );
     VIPS_FREE( gif->line );
     VIPS_FREE( gif->delays );
@@ -922,7 +926,7 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
                     return( -1 );
                 }
 
-                VipsPel *dst = VIPS_IMAGE_ADDR( gif->previous, file->Image.Left, file->Image.Top + y );
+                VipsPel *dst = VIPS_IMAGE_ADDR(gif->scratch, file->Image.Left, file->Image.Top + y );
 
                 vips_foreign_load_gif_render_line( gif, file->Image.Width, dst );
             }
@@ -943,7 +947,7 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
                 return( -1 );
             }
 
-            VipsPel *dst = VIPS_IMAGE_ADDR( gif->previous, file->Image.Left, file->Image.Top + y );
+            VipsPel *dst = VIPS_IMAGE_ADDR(gif->scratch, file->Image.Left, file->Image.Top + y );
 
             vips_foreign_load_gif_render_line( gif, file->Image.Width, dst );
         }
@@ -952,8 +956,8 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
     /* Copy the result to frame, which then is picked up from outside
      */
     memcpy( VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
-            VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
-            VIPS_IMAGE_SIZEOF_IMAGE( gif->previous ) );
+            VIPS_IMAGE_ADDR(gif->scratch, 0, 0 ),
+            VIPS_IMAGE_SIZEOF_IMAGE( gif->scratch ) );
 
     /* BACKGROUND means we reset the frame to transparent before we
      * render the next set of pixels.
@@ -963,7 +967,7 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
         int x1;
         for( y1 = file->Image.Top; y1 < file->Image.Top + file->Image.Height; y1++ ) {
             for (x1 = file->Image.Left; x1 < file->Image.Left + file->Image.Width; x1++ ) {
-                *((guint32 *) VIPS_IMAGE_ADDR( gif->previous, x1, y1 )) = GIF_TRANSPARENT_COLOR;
+                *((guint32 *) VIPS_IMAGE_ADDR(gif->scratch, x1, y1 )) = GIF_TRANSPARENT_COLOR;
             }
         }
     /* PREVIOUS means we init the frame with the frame before last, ie. we
@@ -1210,11 +1214,11 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
     /* A copy of the previous state of the frame, in case we have to
      * process a DISPOSE_PREVIOUS.
      */
-    gif->previous = vips_image_new_memory();
-    vips_image_init_fields( gif->previous,
+    gif->scratch = vips_image_new_memory();
+    vips_image_init_fields( gif->scratch,
         gif->file->SWidth, gif->file->SHeight, 4, VIPS_FORMAT_UCHAR,
         VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
-    if( vips_image_write_prepare( gif->previous ) )
+    if( vips_image_write_prepare( gif->scratch ) )
         return( -1 );
 
     /* Make the output pipeline.
