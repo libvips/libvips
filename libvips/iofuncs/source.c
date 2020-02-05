@@ -92,7 +92,7 @@
  *
  * This can be configured with vips_pipe_read_limit_set().
  */
-static size_t vips__pipe_read_limit = 1024 * 1024 * 1024;
+static gint64 vips__pipe_read_limit = 1024 * 1024 * 1024;
 
 /**
  * vips_pipe_read_limit_set:
@@ -112,7 +112,7 @@ static size_t vips__pipe_read_limit = 1024 * 1024 * 1024;
  * `VIPS_PIPE_READ_LIMIT`.
  */
 void
-vips_pipe_read_limit_set( size_t limit )
+vips_pipe_read_limit_set( gint64 limit )
 {
 	vips__pipe_read_limit = limit;
 }

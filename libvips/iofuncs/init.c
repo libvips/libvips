@@ -441,7 +441,7 @@ vips_init( const char *argv0 )
 		vips_cache_set_trace( TRUE );
 	if( g_getenv( "VIPS_PIPE_READ_LIMIT" ) ) 
 		vips_pipe_read_limit = 
-			g_ascii_strtoull( g_getenv( "VIPS_PIPE_READ_LIMIT" ),
+			g_ascii_strtoll( g_getenv( "VIPS_PIPE_READ_LIMIT" ),
 				NULL, 10 );
 	vips_pipe_read_limit_set( vips_pipe_read_limit );
 
