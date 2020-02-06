@@ -189,6 +189,8 @@
  * 	- "squash" now squashes 3-band float LAB down to LABQ
  * 26/1/20
  * 	- add "depth" to set pyr depth
+ * 27/1/20
+ * 	- write XYZ images as logluv
  */
 
 /*
@@ -608,7 +610,6 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 {
 	TIFF *tif = layer->tif;
 
-	int format; 
 	int orientation; 
 
 	/* Output base header fields.
@@ -702,6 +703,21 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 			photometric = PHOTOMETRIC_CIELAB;
 			colour_bands = 3;
 		}
+		else if( wtiff->input->Type == VIPS_INTERPRETATION_XYZ ) { 
+			double stonits;
+
+			photometric = PHOTOMETRIC_LOGLUV;
+			/* Tell libtiff we will write as float XYZ.
+			 */
+			TIFFSetField( tif, 
+				TIFFTAG_SGILOGDATAFMT, SGILOGDATAFMT_FLOAT );
+			stonits = 1.0;
+			if( vips_image_get_typeof( wtiff->ready, "stonits" ) )
+				vips_image_get_double( wtiff->ready, 
+					"stonits", &stonits );
+			TIFFSetField( tif, TIFFTAG_STONITS, stonits );
+			colour_bands = 3;
+		}
 		else if( wtiff->ready->Type == VIPS_INTERPRETATION_CMYK &&
 			wtiff->ready->Bands >= 4 ) {
 			photometric = PHOTOMETRIC_SEPARATED;
@@ -764,17 +780,23 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 		TIFFSetField( tif, TIFFTAG_SUBFILETYPE, FILETYPE_REDUCEDIMAGE );
 
 	/* Sample format.
+	 *
+	 * Don't set for logluv: libtiff does this for us.
 	 */
-	format = SAMPLEFORMAT_UINT;
-	if( vips_band_format_isuint( wtiff->ready->BandFmt ) )
+	if( wtiff->input->Type != VIPS_INTERPRETATION_XYZ ) { 
+		int format; 
+
 		format = SAMPLEFORMAT_UINT;
-	else if( vips_band_format_isint( wtiff->ready->BandFmt ) )
-		format = SAMPLEFORMAT_INT;
-	else if( vips_band_format_isfloat( wtiff->ready->BandFmt ) )
-		format = SAMPLEFORMAT_IEEEFP;
-	else if( vips_band_format_iscomplex( wtiff->ready->BandFmt ) )
-		format = SAMPLEFORMAT_COMPLEXIEEEFP;
-	TIFFSetField( tif, TIFFTAG_SAMPLEFORMAT, format );
+		if( vips_band_format_isuint( wtiff->ready->BandFmt ) )
+			format = SAMPLEFORMAT_UINT;
+		else if( vips_band_format_isint( wtiff->ready->BandFmt ) )
+			format = SAMPLEFORMAT_INT;
+		else if( vips_band_format_isfloat( wtiff->ready->BandFmt ) )
+			format = SAMPLEFORMAT_IEEEFP;
+		else if( vips_band_format_iscomplex( wtiff->ready->BandFmt ) )
+			format = SAMPLEFORMAT_COMPLEXIEEEFP;
+		TIFFSetField( tif, TIFFTAG_SAMPLEFORMAT, format );
+	}
 
 	return( 0 );
 }
@@ -1038,6 +1060,11 @@ wtiff_new( VipsImage *input, const char *filename,
 		wtiff_free( wtiff );
 		return( NULL );
 	}
+
+	/* XYZ images are written as libtiff LOGLUV.
+	 */
+	if( wtiff->ready->Type == VIPS_INTERPRETATION_XYZ ) 
+		wtiff->compression = COMPRESSION_SGILOG;
 
 	/* Multipage image?
 	 */
@@ -1331,6 +1358,31 @@ LabS2Lab16( VipsPel *q, VipsPel *p, int n, int samples_per_pixel )
 	}
 }
 
+/* Convert VIPS D65 XYZ to TIFF scaled float illuminant-free xyz.
+ */
+static void
+XYZ2tiffxyz( VipsPel *q, VipsPel *p, int n, int samples_per_pixel )
+{
+	float *p1 = (float *) p;
+	float *q1 = (float *) q;
+
+	int x;
+
+        for( x = 0; x < n; x++ ) {
+		int i;
+
+                q1[0] = p1[0] / VIPS_D65_X0;
+                q1[1] = p1[1] / VIPS_D65_Y0;
+                q1[2] = p1[2] / VIPS_D65_Z0;
+
+		for( i = 3; i < samples_per_pixel; i++ )
+			q1[i] = p1[i];
+
+		q1 += samples_per_pixel;
+		p1 += samples_per_pixel;
+	}
+}
+
 /* Pack the pixels in @area from @in into a TIFF tile buffer.
  */
 static void
@@ -1358,6 +1410,8 @@ wtiff_pack2tiff( Wtiff *wtiff, Layer *layer,
 			LabQ2LabC( q, p, area->width );
 		else if( wtiff->squash ) 
 			eightbit2onebit( wtiff, q, p, area->width );
+		else if( wtiff->input->Type == VIPS_INTERPRETATION_XYZ )
+			XYZ2tiffxyz( q, p, area->width, in->im->Bands );
 		else if( (in->im->Bands == 1 || in->im->Bands == 2) && 
 			wtiff->miniswhite ) 
 			invert_band0( wtiff, q, p, area->width );
@@ -1447,6 +1501,10 @@ wtiff_layer_write_strip( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 		else if( im->BandFmt == VIPS_FORMAT_SHORT &&
 			im->Type == VIPS_INTERPRETATION_LABS ) {
 			LabS2Lab16( wtiff->tbuf, p, im->Xsize, im->Bands );
+			p = wtiff->tbuf;
+		}
+		else if( wtiff->input->Type == VIPS_INTERPRETATION_XYZ ) {
+			XYZ2tiffxyz( wtiff->tbuf, p, im->Xsize, im->Bands );
 			p = wtiff->tbuf;
 		}
 		else if( wtiff->squash ) {

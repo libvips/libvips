@@ -36,6 +36,8 @@
  * 	- add vips_image_get_n_pages()
  * 20/6/19
  * 	- add vips_image_get/set_array_int()
+ * 31/1/19
+ * 	- lock for metadata changes
  */
 
 /*
@@ -129,6 +131,11 @@
  * reference-counted areas of memory. If you base your metadata on one of
  * these types, it can be copied between images efficiently.
  */
+
+/* Use in various small places where we need a mutex and it's not worth 
+ * making a private one.
+ */
+static GMutex *vips__meta_lock = NULL;
 
 /* We have to keep the gtype as a string, since we statically init this.
  */
@@ -934,10 +941,10 @@ meta_cp( VipsImage *dst, const VipsImage *src )
 		/* We lock with vips_image_set() to stop races in highly-
 		 * threaded applications.
 		 */
-		g_mutex_lock( vips__global_lock );
+		g_mutex_lock( vips__meta_lock );
 		vips_slist_map2( src->meta_traverse,
 			(VipsSListMap2Fn) meta_cp_field, dst, NULL );
-		g_mutex_unlock( vips__global_lock );
+		g_mutex_unlock( vips__meta_lock );
 	}
 
 	return( 0 );
@@ -1025,13 +1032,6 @@ vips_image_set( VipsImage *image, const char *name, GValue *value )
 	g_assert( name );
 	g_assert( value );
 
-        /* If this image is shared, block metadata changes.
-         */
-        if( G_OBJECT( image )->ref_count > 1 ) {
-                g_warning( "can't set metadata \"%s\" on shared image", name );
-                return;
-        }
-
 	meta_init( image );
 
 	/* We lock between modifying metadata and copying metadata between
@@ -1041,9 +1041,9 @@ vips_image_set( VipsImage *image, const char *name, GValue *value )
 	 * metadata copy on another -- this can lead to crashes in
 	 * highly-threaded applications.
 	 */
-	g_mutex_lock( vips__global_lock );
+	g_mutex_lock( vips__meta_lock );
 	(void) meta_new( image, name, value );
-	g_mutex_unlock( vips__global_lock );
+	g_mutex_unlock( vips__meta_lock );
 
 	/* If we're setting an EXIF data block, we need to automatically expand 
 	 * out all the tags. This will set things like xres/yres too.
@@ -1240,14 +1240,6 @@ vips_image_remove( VipsImage *image, const char *name )
 
 	result = FALSE;
 
-        /* If this image is shared, block metadata changes. 
-         */
-        if( G_OBJECT( image )->ref_count > 1 ) {
-                g_warning( "can't remove metadata \"%s\" on shared image", 
-			name );
-                return( result );
-        }
-
 	if( image->meta ) {
 		/* We lock between modifying metadata and copying metadata 
 		 * between images, see meta_cp().
@@ -1256,9 +1248,9 @@ vips_image_remove( VipsImage *image, const char *name )
 		 * racing with metadata copy on another -- this can lead to 
 		 * crashes in highly-threaded applications.
 		 */
-		g_mutex_lock( vips__global_lock );
+		g_mutex_lock( vips__meta_lock );
 		result = g_hash_table_remove( image->meta, name );
-		g_mutex_unlock( vips__global_lock );
+		g_mutex_unlock( vips__meta_lock );
 	}
 
 	return( result );
@@ -2026,4 +2018,13 @@ vips_image_get_history( VipsImage *image )
 		image->Hist = vips__gslist_gvalue_get( image->history_list );
 
 	return( image->Hist ? image->Hist : "" );
+}
+
+/* Called during vips_init().
+ */
+void
+vips__meta_init( void )
+{
+	if( !vips__meta_lock ) 
+		vips__meta_lock = vips_g_mutex_new();
 }

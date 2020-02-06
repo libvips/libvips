@@ -4,6 +4,17 @@
 - add max and min to region shrink [rgluskin]
 - allow \ as an escape character in vips_break_token() [akemrir]
 - tiffsave has a "depth" param to set max pyr depth
+- libtiff LOGLUV images load and save as libvips XYZ 
+- add gifload_source
+- revise vipsthumbnail flags
+- add VIPS_LEAK env var
+- add vips_pipe_read_limit_set(), --vips-pipe-read-limit,
+  VIPS_PIPE_READ_LIMIT
+
+31/1/19 started 8.9.2
+- fix a deadlock with --vips-leak [DarthSim]
+- better gifload behaviour for DISPOSAL_UNSPECIFIED [DarthSim]
+- ban ppm max_value < 0 
 
 20/6/19 started 8.9.1
 - don't use the new source loaders for new_from_file or new_from_buffer, it

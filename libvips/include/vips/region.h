@@ -62,6 +62,7 @@ extern "C" {
  * @VIPS_REGION_SHRINK_MODE: use the mode
  * @VIPS_REGION_SHRINK_MAX: use the maximum
  * @VIPS_REGION_SHRINK_MIN: use the minimum
+ * @VIPS_REGION_SHRINK_NEAREST: use the top-left pixel
  *
  * How to calculate the output pixels when shrinking a 2x2 region.
  */
@@ -71,6 +72,7 @@ typedef enum {
 	VIPS_REGION_SHRINK_MODE,
 	VIPS_REGION_SHRINK_MAX,
 	VIPS_REGION_SHRINK_MIN,
+	VIPS_REGION_SHRINK_NEAREST,
 	VIPS_REGION_SHRINK_LAST
 } VipsRegionShrink;
 
