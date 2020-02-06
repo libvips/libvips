@@ -714,8 +714,8 @@ class TestForeign:
             animation = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
             filename = temp_filename(self.tempdir, '.png')
             animation.write_to_file(filename)
-            # TEMP
-            animation.write_to_file('cogs.png')
+            # Uncomment to see output file
+            # animation.write_to_file('cogs.png')
 
             assert filecmp.cmp(GIF_ANIM_EXPECTED_PNG_FILE, filename, shallow=False)
 
