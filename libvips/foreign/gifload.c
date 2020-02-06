@@ -414,6 +414,7 @@ vips_foreign_load_gif_dispose( GObject *gobject )
 
     VIPS_UNREF( gif->frame );
     VIPS_UNREF( gif->scratch );
+    VIPS_UNREF( gif->previous );
     VIPS_FREE( gif->comment );
     VIPS_FREE( gif->line );
     VIPS_FREE( gif->delays );
@@ -885,6 +886,15 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
      */
     vips_foreign_load_gif_build_cmap( gif );
 
+    /* PREVIOUS means we init the frame with the last un-disposed frame. So the last un-disposed frame is used as
+     * a backdrop for the new frame.
+     */
+    if( gif->dispose == DISPOSE_PREVIOUS ) {
+        memcpy( VIPS_IMAGE_ADDR( gif->scratch, 0, 0 ),
+            VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
+            VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
+    }
+
     /* giflib does not check that the Left / Top / Width / Height for this
      * Image is inside the canvas.
      *
@@ -957,7 +967,7 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
      */
     memcpy( VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
             VIPS_IMAGE_ADDR(gif->scratch, 0, 0 ),
-            VIPS_IMAGE_SIZEOF_IMAGE( gif->scratch ) );
+            VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
 
     /* BACKGROUND means we reset the frame to transparent before we
      * render the next set of pixels.
@@ -970,14 +980,13 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
                 *((guint32 *) VIPS_IMAGE_ADDR(gif->scratch, x1, y1 )) = GIF_TRANSPARENT_COLOR;
             }
         }
-    /* PREVIOUS means we init the frame with the frame before last, ie. we
-     * undo the last render.
-     */
-    } else if( gif->dispose == DISPOSE_PREVIOUS ) {
-        // todo
-//		memcpy( VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
-//			VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
-//			VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
+    }
+    else if( gif->dispose == DISPOSAL_UNSPECIFIED || gif->dispose == DISPOSE_DO_NOT) {
+        /* Copy the frame to previous, so it can be restored if DISPOSE_PREVIOUS is specified in a later frame.
+         */
+        memcpy( VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
+                VIPS_IMAGE_ADDR(gif->frame, 0, 0 ),
+                VIPS_IMAGE_SIZEOF_IMAGE( gif->previous ) );
     }
 
     /* Reset values, as Graphic Control Extension is optional
@@ -1211,9 +1220,26 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
     if( vips_image_write_prepare( gif->frame ) )
         return( -1 );
 
+    /* An additional scratch buffer, same size as gif->frame. Used together with gif->frame for rendering.
+     */
+    gif->scratch = vips_image_new_memory();
+    vips_image_init_fields( gif->scratch,
+                            gif->file->SWidth, gif->file->SHeight, 4, VIPS_FORMAT_UCHAR,
+                            VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
+    if( vips_image_write_prepare( gif->scratch ) )
+        return( -1 );
+
+
     /* A copy of the previous state of the frame, in case we have to
      * process a DISPOSE_PREVIOUS.
      */
+    gif->previous = vips_image_new_memory();
+    vips_image_init_fields( gif->previous,
+        gif->file->SWidth, gif->file->SHeight, 4, VIPS_FORMAT_UCHAR,
+        VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
+    if( vips_image_write_prepare( gif->previous ) )
+        return( -1 );
+
     gif->scratch = vips_image_new_memory();
     vips_image_init_fields( gif->scratch,
         gif->file->SWidth, gif->file->SHeight, 4, VIPS_FORMAT_UCHAR,
