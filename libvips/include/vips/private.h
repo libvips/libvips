@@ -192,6 +192,8 @@ int vips__view_image( struct _VipsImage *image );
  */
 extern int _vips__argument_id;
 
+void vips__meta_init( void );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
