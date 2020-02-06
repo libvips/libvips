@@ -1028,12 +1028,8 @@ vips_foreign_load_gif_extension( VipsForeignLoadGif *gif )
          * is being set.
          */
         gif->transparent_index = ( flags & TRANSPARENT_MASK ) ? extension[4] : NO_TRANSPARENT_INDEX;
-		gif->transparency = -1;
-		if( extension[1] & 0x1 ) {
-			gif->transparency = extension[4];
-			VIPS_DEBUG_MSG( "vips_foreign_load_gif_extension: "
-				"transparency = %d\n", gif->transparency );
-		}
+        VIPS_DEBUG_MSG("vips_foreign_load_gif_extension: "
+                       "transparency = %d\n", gif->transparent_index);
 
         /* Set the current dispose mode. This is read during frame load
          * to set the meaning of background and transparent pixels.
