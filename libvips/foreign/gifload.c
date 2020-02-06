@@ -887,7 +887,7 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
     if( gif->dispose == DISPOSE_PREVIOUS ) {
         memcpy( VIPS_IMAGE_ADDR( gif->scratch, 0, 0 ),
             VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
-            VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
+            VIPS_IMAGE_SIZEOF_IMAGE( gif->scratch ) );
     }
 
 	/* giflib does not check that the Left / Top / Width / Height for this
