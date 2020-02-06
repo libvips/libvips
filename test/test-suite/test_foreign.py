@@ -14,9 +14,7 @@ from helpers import \
     BMP_FILE, NIFTI_FILE, ICO_FILE, HEIC_FILE, TRUNCATED_FILE, \
     GIF_ANIM_EXPECTED_PNG_FILE, \
     GIF_ANIM_DISPOSE_BACKGROUND_FILE, GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE, \
-    GIF_ANIM_DISPOSE_BACKGROUND2_FILE, GIF_ANIM_DISPOSE_BACKGROUND2_EXPECTED_PNG_FILE, \
     GIF_ANIM_DISPOSE_PREVIOUS_FILE, GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, \
-    GIF_ANIM_MICKEY_FILE, GIF_ANIM_MICKEY_EXPECTED_PNG_FILE, \
     temp_filename, assert_almost_equal_objects, have, skip_if_no
 
 
@@ -742,13 +740,6 @@ class TestForeign:
         # animation.write_to_file('dispose-previous.png')
 
         assert filecmp.cmp(GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, filename, shallow=False)
-
-    @skip_if_no("gifload")
-    def test_gifload_animation_mickey(self):
-        animation = pyvips.Image.new_from_file(GIF_ANIM_MICKEY_FILE, n=-1)
-        animation.write_to_file('mickey.png')
-
-        assert filecmp.cmp(GIF_ANIM_MICKEY_EXPECTED_PNG_FILE, 'mickey.png', shallow=False)
 
     @skip_if_no("svgload")
     def test_svgload(self):
