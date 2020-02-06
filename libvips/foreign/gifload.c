@@ -394,11 +394,11 @@ vips_foreign_load_gif_open_giflib( VipsForeignLoadGif *gif )
 		return( -1 );
 	}
 }
-#else 
+#else
 	if( !(gif->file = DGifOpen( gif, vips_giflib_read )) ) {
-		vips_foreign_load_gif_error_vips( gif, GifLastError() ); 
+		vips_foreign_load_gif_error_vips( gif, GifLastError() );
 		(void) vips_foreign_load_gif_close_giflib( gif );
-		return( -1 ); 
+		return( -1 );
 	}
 #endif
 
@@ -466,7 +466,7 @@ vips_foreign_load_gif_allocate_delays( VipsForeignLoadGif *gif )
 		int i;
 
 		gif->delays_length = gif->delays_length + gif->n_pages + 64;
-		gif->delays = (int *) g_realloc( gif->delays, 
+		gif->delays = (int *) g_realloc( gif->delays,
 			gif->delays_length * sizeof( int ) );
 		for( i = old; i < gif->delays_length; i++ )
 			gif->delays[i] = 40;
@@ -506,7 +506,7 @@ vips_foreign_load_gif_code_next( VipsForeignLoadGif *gif,
 /* Quickly scan an image record.
  */
 static int
-vips_foreign_load_gif_scan_image( VipsForeignLoadGif *gif ) 
+vips_foreign_load_gif_scan_image( VipsForeignLoadGif *gif )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( gif );
 	GifFileType *file = gif->file;
@@ -515,7 +515,7 @@ vips_foreign_load_gif_scan_image( VipsForeignLoadGif *gif )
 	GifByteType *extension;
 
 	if( DGifGetImageDesc( gif->file ) == GIF_ERROR ) {
-		vips_foreign_load_gif_error( gif ); 
+		vips_foreign_load_gif_error( gif );
 		return( -1 );
 	}
 
@@ -569,7 +569,8 @@ vips_foreign_load_gif_scan_application_ext( VipsForeignLoadGif *gif,
 	 */
 	have_netscape = FALSE;
 	if( extension[0] == 11 &&
-		vips_isprefix( "NETSCAPE2.0", (const char*) (extension + 1) ) )
+	   (vips_isprefix( "NETSCAPE2.0", (const char*) (extension + 1) )  ||
+        vips_isprefix( "ANIMEXTS1.0", (const char*) (extension + 1) )))
 		have_netscape = TRUE;
 
 	while( extension != NULL ) {
@@ -581,7 +582,7 @@ vips_foreign_load_gif_scan_application_ext( VipsForeignLoadGif *gif,
 			extension[0] == 3 &&
 			extension[1] == 1 ) {
 				gif->loop = extension[2] | (extension[3] << 8);
-				if( gif->loop != 0 ) 
+				if( gif->loop != 0 )
 					gif->loop += 1;
 			}
 	}
@@ -635,7 +636,7 @@ vips_foreign_load_gif_scan_extension( VipsForeignLoadGif *gif )
 
 			/* giflib uses centiseconds, we use ms.
 			 */
-			gif->delays[gif->n_pages] = 
+			gif->delays[gif->n_pages] =
 				(extension[2] | (extension[3] << 8)) * 10;
 
 			while( extension != NULL )
@@ -701,9 +702,9 @@ vips_foreign_load_gif_set_header( VipsForeignLoadGif *gif, VipsImage *image )
 		 */
 		vips_image_set_int( image,
 			"gif-delay", VIPS_RINT( gif->delays[0] / 10.0 ) );
-		vips_image_set_array_int( image, 
+		vips_image_set_array_int( image,
 			"delay", gif->delays, gif->n_pages );
-	} 
+	}
 	else
 		vips_image_set_int( image, "gif-delay", 4 );
 
@@ -730,7 +731,7 @@ vips_foreign_load_gif_scan( VipsForeignLoadGif *gif )
 	gif->n_pages = 0;
 
 	do {
-		if( DGifGetRecordType( gif->file, &record ) == GIF_ERROR ) 
+		if( DGifGetRecordType( gif->file, &record ) == GIF_ERROR )
 			continue;
 
 		switch( record ) {
@@ -793,7 +794,7 @@ vips_foreign_load_gif_header( VipsForeignLoad *load )
 		gif->file->SWidth > VIPS_MAX_COORD ||
 		gif->file->SHeight <= 0 ||
 		gif->file->SHeight > VIPS_MAX_COORD ) {
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "image size out of bounds" ) );
 		(void) vips_foreign_load_gif_close_giflib( gif );
 
@@ -802,7 +803,7 @@ vips_foreign_load_gif_header( VipsForeignLoad *load )
 
 	/* Allocate a line buffer now that we have the GIF width.
 	 */
-	if( !(gif->line = 
+	if( !(gif->line =
 		VIPS_ARRAY( NULL, gif->file->SWidth, GifPixelType )) ||
 		vips_foreign_load_gif_scan( gif ) ||
 		vips_foreign_load_gif_set_header( gif, load->out ) ) {
@@ -1248,8 +1249,8 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 
 	/* Close input immediately at end of read.
 	 */
-	g_signal_connect( t[0], "minimise", 
-		G_CALLBACK( vips_foreign_load_gif_minimise ), gif ); 
+	g_signal_connect( t[0], "minimise",
+		G_CALLBACK( vips_foreign_load_gif_minimise ), gif );
 
 	/* Strips 8 pixels high to avoid too many tiny regions.
 	 */
