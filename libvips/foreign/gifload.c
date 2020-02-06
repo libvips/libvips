@@ -419,6 +419,7 @@ vips_foreign_load_gif_dispose( GObject *gobject )
 
 	VIPS_UNREF( gif->source );
 	VIPS_UNREF( gif->frame );
+    VIPS_UNREF( gif->scratch );
 	VIPS_UNREF( gif->previous );
 	VIPS_FREE( gif->comment );
 	VIPS_FREE( gif->line );
