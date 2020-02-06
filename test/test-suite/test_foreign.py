@@ -719,7 +719,6 @@ class TestForeign:
 
             assert filecmp.cmp(GIF_ANIM_EXPECTED_PNG_FILE, filename, shallow=False)
 
-
     @skip_if_no("gifload")
     def test_gifload_animation_dispose_background(self):
         animation = pyvips.Image.new_from_file(GIF_ANIM_DISPOSE_BACKGROUND_FILE, n=-1)
@@ -727,19 +726,10 @@ class TestForeign:
         filename = temp_filename(self.tempdir, '.png')
         animation.write_to_file(filename)
 
+        # Uncomment to see output file
+        # animation.write_to_file('dispose-background.png')
+
         assert filecmp.cmp(GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE, filename, shallow=False)
-
-    @skip_if_no("gifload")
-    def test_gifload_animation_2_dispose_background(self):
-        animation = pyvips.Image.new_from_file(GIF_ANIM_DISPOSE_BACKGROUND2_FILE, n=-1)
-
-        filename = temp_filename(self.tempdir, '.png')
-        animation.write_to_file(filename)
-
-        # TEMP
-        animation.write_to_file('dispose-background2.png')
-
-        assert filecmp.cmp(GIF_ANIM_DISPOSE_BACKGROUND2_EXPECTED_PNG_FILE, filename, shallow=False)
 
     @skip_if_no("gifload")
     def test_gifload_animation_dispose_previous(self):
@@ -748,8 +738,8 @@ class TestForeign:
         filename = temp_filename(self.tempdir, '.png')
         animation.write_to_file(filename)
 
-        # TEMP
-        animation.write_to_file('dispose-previous.png')
+        # Uncomment to see output file
+        # animation.write_to_file('dispose-previous.png')
 
         assert filecmp.cmp(GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, filename, shallow=False)
 
