@@ -1,5 +1,5 @@
 # vim: set fileencoding=utf-8 :
-
+import filecmp
 import sys
 import os
 import shutil
@@ -12,6 +12,9 @@ from helpers import \
     ANALYZE_FILE, GIF_FILE, WEBP_FILE, EXR_FILE, FITS_FILE, OPENSLIDE_FILE, \
     PDF_FILE, SVG_FILE, SVGZ_FILE, SVG_GZ_FILE, GIF_ANIM_FILE, DICOM_FILE, \
     BMP_FILE, NIFTI_FILE, ICO_FILE, HEIC_FILE, TRUNCATED_FILE, \
+    GIF_ANIM_EXPECTED_PNG_FILE, \
+    GIF_ANIM_DISPOSE_BACKGROUND_FILE, GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE, \
+    GIF_ANIM_DISPOSE_PREVIOUS_FILE, GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, \
     temp_filename, assert_almost_equal_objects, have, skip_if_no
 
 
@@ -705,6 +708,38 @@ class TestForeign:
 
             x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, page=1, n=-1)
             assert x2.height == 4 * x1.height
+
+            animation = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
+            filename = temp_filename(self.tempdir, '.png')
+            animation.write_to_file(filename)
+            # Uncomment to see output file
+            # animation.write_to_file('cogs.png')
+
+            assert filecmp.cmp(GIF_ANIM_EXPECTED_PNG_FILE, filename, shallow=False)
+
+    @skip_if_no("gifload")
+    def test_gifload_animation_dispose_background(self):
+        animation = pyvips.Image.new_from_file(GIF_ANIM_DISPOSE_BACKGROUND_FILE, n=-1)
+
+        filename = temp_filename(self.tempdir, '.png')
+        animation.write_to_file(filename)
+
+        # Uncomment to see output file
+        # animation.write_to_file('dispose-background.png')
+
+        assert filecmp.cmp(GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE, filename, shallow=False)
+
+    @skip_if_no("gifload")
+    def test_gifload_animation_dispose_previous(self):
+        animation = pyvips.Image.new_from_file(GIF_ANIM_DISPOSE_PREVIOUS_FILE, n=-1)
+
+        filename = temp_filename(self.tempdir, '.png')
+        animation.write_to_file(filename)
+
+        # Uncomment to see output file
+        # animation.write_to_file('dispose-previous.png')
+
+        assert filecmp.cmp(GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, filename, shallow=False)
 
     @skip_if_no("svgload")
     def test_svgload(self):
