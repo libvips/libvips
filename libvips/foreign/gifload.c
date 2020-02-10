@@ -37,11 +37,8 @@
  * 30/1/19
  * 	- rework on top of VipsSource
  * 	- add gifload_source
- * 31/1/20
- * 	- treat DISPOSAL_UNSPECIFIED as _DO_NOT, since that's what many GIFs
- * 	  in the wild appear to do
- * 5/2/20
- * - Fix handling of DISPOSE_BACKGROUND and DISPOSE_PREVIOUS
+ * 5/2/20 alon-ne
+ * 	- fix DISPOSE_BACKGROUND and DISPOSE_PREVIOUS
  */
 
 /*
@@ -119,7 +116,6 @@
 
 #define NO_TRANSPARENT_INDEX      -1
 #define TRANSPARENT_MASK          0x01
-#define GIF_TRANSPARENT_COLOR     0x00ffffff
 #define DISPOSE_MASK              0x07
 #define DISPOSE_SHIFT             2
 
@@ -176,18 +172,18 @@ typedef struct _VipsForeignLoadGif {
 	 */
 	int n_pages;
 
-	/* A memory image the sized of one frame ... we accumulate to this as
+	/* A memory image the size of one frame ... we accumulate to this as
 	 * we scan the image, and copy lines to the output on generate.
 	 */
 	VipsImage *frame;
 
-    /* A memory scratch buffer the sized as one frame, used together with frame for rendering
-     */
-    VipsImage *scratch;
+	/* A scratch buffer the size of frame, used for rendering.
+	 */
+	VipsImage *scratch;
 
-    /* A copy of the previous frame, in case we need a DISPOSE_PREVIOUS.
-     */
-    VipsImage *previous;
+	/* A copy of the previous frame, in case we need a DISPOSE_PREVIOUS.
+	 */
+	VipsImage *previous;
 
 	/* The position of @frame, in pages.
 	 */
@@ -210,10 +206,10 @@ typedef struct _VipsForeignLoadGif {
 	 */
 	guint32 cmap[256];
 
-    /* As we scan the file, the index of the transparent pixel for this
-     * frame.
-     */
-    int transparent_index;
+	/* As we scan the file, the index of the transparent pixel for this
+	 * frame.
+	 */
+	int transparent_index;
 
 	/* Params for DGifOpen(). Set by subclasses, called by base class in
 	 * _open().
@@ -419,7 +415,7 @@ vips_foreign_load_gif_dispose( GObject *gobject )
 
 	VIPS_UNREF( gif->source );
 	VIPS_UNREF( gif->frame );
-    VIPS_UNREF( gif->scratch );
+	VIPS_UNREF( gif->scratch );
 	VIPS_UNREF( gif->previous );
 	VIPS_FREE( gif->comment );
 	VIPS_FREE( gif->line );
@@ -569,8 +565,10 @@ vips_foreign_load_gif_scan_application_ext( VipsForeignLoadGif *gif,
 	 */
 	have_netscape = FALSE;
 	if( extension[0] == 11 &&
-	   (vips_isprefix( "NETSCAPE2.0", (const char*) (extension + 1) )  ||
-        vips_isprefix( "ANIMEXTS1.0", (const char*) (extension + 1) )))
+		(vips_isprefix( "NETSCAPE2.0", 
+			(const char*) (extension + 1) )  ||
+		 vips_isprefix( "ANIMEXTS1.0", 
+			(const char*) (extension + 1) )) )
 		have_netscape = TRUE;
 
 	while( extension != NULL ) {
@@ -629,7 +627,7 @@ vips_foreign_load_gif_scan_extension( VipsForeignLoadGif *gif )
 		switch( ext_code ) {
 		case GRAPHICS_EXT_FUNC_CODE:
 			if( extension[0] == 4 &&
-                extension[1] & TRANSPARENT_MASK ) {
+				extension[1] & TRANSPARENT_MASK ) {
 				VIPS_DEBUG_MSG( "gifload: has transp.\n" );
 				gif->has_transparency = TRUE;
 			}
@@ -847,22 +845,19 @@ vips_foreign_load_gif_build_cmap( VipsForeignLoadGif *gif )
 }
 
 static void
-vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif, int width, VipsPel * restrict dst)
+vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif, 
+	int width, VipsPel * restrict dst )
 {
-    guint32 *idst;
-    idst = (guint32 *) dst;
+	guint32 *idst = (guint32 *) dst;
 
-    int x;
-    for( x = 0; x < width; x++ ) {
+	int x;
 
-        VipsPel v = gif->line[x];
+	for( x = 0; x < width; x++ ) {
+		VipsPel v = gif->line[x];
 
-        if( v != gif->transparent_index ) {
-            /* Blast in the RGBA for this value.
-             */
-            idst[x] = gif->cmap[v];
-        }
-    }
+		if( v != gif->transparent_index ) 
+			idst[x] = gif->cmap[v];
+	}
 }
 
 /* Render the current gif frame into an RGBA buffer. GIFs can accumulate,
@@ -871,25 +866,25 @@ vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif, int width, VipsPel *
 static int
 vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 {
-    GifFileType *file = gif->file;
+	GifFileType *file = gif->file;
 
-    if( DGifGetImageDesc( file ) == GIF_ERROR ) {
-        vips_foreign_load_gif_error( gif );
-        return( -1 );
-    }
+	if( DGifGetImageDesc( file ) == GIF_ERROR ) {
+		vips_foreign_load_gif_error( gif );
+		return( -1 );
+	}
 
-    /* Update the colour map for this frame.
-     */
-    vips_foreign_load_gif_build_cmap( gif );
+	/* Update the colour map for this frame.
+	 */
+	vips_foreign_load_gif_build_cmap( gif );
 
-    /* PREVIOUS means we init the frame with the last un-disposed frame. So the last un-disposed frame is used as
-     * a backdrop for the new frame.
-     */
-    if( gif->dispose == DISPOSE_PREVIOUS ) {
-        memcpy( VIPS_IMAGE_ADDR( gif->scratch, 0, 0 ),
-            VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
-            VIPS_IMAGE_SIZEOF_IMAGE( gif->scratch ) );
-    }
+	/* PREVIOUS means we init the frame with the last un-disposed frame. 
+	 * So the last un-disposed frame is used as a backdrop for the new 
+	 * frame.
+	 */
+	if( gif->dispose == DISPOSE_PREVIOUS ) 
+		memcpy( VIPS_IMAGE_ADDR( gif->scratch, 0, 0 ),
+			VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
+			VIPS_IMAGE_SIZEOF_IMAGE( gif->scratch ) );
 
 	/* giflib does not check that the Left / Top / Width / Height for this
 	 * Image is inside the canvas.
@@ -922,72 +917,94 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 
 		for( i = 0; i < 4; i++ ) {
 			int y;
-            for( y = InterlacedOffset[i]; y < file->Image.Height; y += InterlacedJumps[i] ) {
 
-                if( DGifGetLine( gif->file, gif->line, file->Image.Width ) == GIF_ERROR ) {
-                    vips_foreign_load_gif_error( gif );
-                    return( -1 );
-                }
+			for( y = InterlacedOffset[i]; y < file->Image.Height; 
+				y += InterlacedJumps[i] ) {
+				VipsPel *dst = VIPS_IMAGE_ADDR( gif->scratch, 
+					file->Image.Left, file->Image.Top + y );
 
-                VipsPel *dst = VIPS_IMAGE_ADDR(gif->scratch, file->Image.Left, file->Image.Top + y );
+				if( DGifGetLine( gif->file, 
+					gif->line, file->Image.Width ) == 
+						GIF_ERROR ) {
+					vips_foreign_load_gif_error( gif );
+					return( -1 );
+				}
 
-                vips_foreign_load_gif_render_line( gif, file->Image.Width, dst );
-            }
-        }
-    }
-    else {
+				vips_foreign_load_gif_render_line( gif, 
+					file->Image.Width, dst );
+			}
+		}
+	}
+	else {
+		int y;
 
-        VIPS_DEBUG_MSG( "vips_foreign_load_gif_render: "
-            "non-interlaced frame of %d x %d pixels at %d x %d\n",
-            file->Image.Width, file->Image.Height,
-            file->Image.Left, file->Image.Top );
+		VIPS_DEBUG_MSG( "vips_foreign_load_gif_render: "
+			"non-interlaced frame of %d x %d pixels at %d x %d\n",
+			file->Image.Width, file->Image.Height,
+			file->Image.Left, file->Image.Top );
 
-        int y;
-        for( y = 0; y < file->Image.Height; y++ ) {
+		for( y = 0; y < file->Image.Height; y++ ) {
+			VipsPel *dst = VIPS_IMAGE_ADDR( gif->scratch, 
+				file->Image.Left, file->Image.Top + y );
 
-            if( DGifGetLine( gif->file, gif->line, file->Image.Width ) == GIF_ERROR ) {
-                vips_foreign_load_gif_error( gif );
-                return( -1 );
-            }
+			if( DGifGetLine( gif->file, 
+				gif->line, file->Image.Width ) == GIF_ERROR ) {
+				vips_foreign_load_gif_error( gif );
+				return( -1 );
+			}
 
-            VipsPel *dst = VIPS_IMAGE_ADDR(gif->scratch, file->Image.Left, file->Image.Top + y );
+			vips_foreign_load_gif_render_line( gif, 
+				file->Image.Width, dst );
+		}
+	}
 
-            vips_foreign_load_gif_render_line( gif, file->Image.Width, dst );
-        }
-    }
+	/* Copy the result to frame, which then is picked up from outside
+	 */
+	memcpy( VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
+		VIPS_IMAGE_ADDR(gif->scratch, 0, 0 ),
+		VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
 
-    /* Copy the result to frame, which then is picked up from outside
-     */
-    memcpy( VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
-            VIPS_IMAGE_ADDR(gif->scratch, 0, 0 ),
-            VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
+	if( gif->dispose == DISPOSE_BACKGROUND ) {
+		/* BACKGROUND means we reset the frame to transparent before we
+		 * render the next set of pixels.
+		 */
+		guint32 *q = (guint32 *) VIPS_IMAGE_ADDR( gif->scratch, 
+			file->Image.Left, file->Image.Top );
 
-    /* BACKGROUND means we reset the frame to transparent before we
-     * render the next set of pixels.
-     */
-    if( gif->dispose == DISPOSE_BACKGROUND ) {
-        int y1;
-        int x1;
-        for( y1 = file->Image.Top; y1 < file->Image.Top + file->Image.Height; y1++ ) {
-            for (x1 = file->Image.Left; x1 < file->Image.Left + file->Image.Width; x1++ ) {
-                *((guint32 *) VIPS_IMAGE_ADDR(gif->scratch, x1, y1 )) = GIF_TRANSPARENT_COLOR;
-            }
-        }
-    }
-    else if( gif->dispose == DISPOSAL_UNSPECIFIED || gif->dispose == DISPOSE_DO_NOT) {
-        /* Copy the frame to previous, so it can be restored if DISPOSE_PREVIOUS is specified in a later frame.
-         */
-        memcpy( VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
-                VIPS_IMAGE_ADDR(gif->frame, 0, 0 ),
-                VIPS_IMAGE_SIZEOF_IMAGE( gif->previous ) );
-    }
+		/* What we write for transparent pixels. We want RGB to be
+		 * 255, and A to be 0.
+		 */
+		guint32 ink = GUINT32_TO_BE( 0xffffff00 );
 
-    /* Reset values, as Graphic Control Extension is optional
-     */
-    gif->dispose = DISPOSAL_UNSPECIFIED;
-    gif->transparent_index = NO_TRANSPARENT_INDEX;
+		int x, y;
 
-    return( 0 );
+		/* Generate the first line a pixel at a time, memcpy() for
+		 * subsequent lines.
+		 */
+		if( file->Image.Height > 0 ) 
+			for( x = 0; x < file->Image.Width; x++ )
+				q[x] = ink;
+
+		for( y = 1; y < file->Image.Height; y++ )
+			memcpy( q + gif->scratch->Xsize * y, 
+				q, 
+				file->Image.Width * sizeof( guint32 ) );
+	}
+	else if( gif->dispose == DISPOSAL_UNSPECIFIED || 
+		gif->dispose == DISPOSE_DO_NOT ) 
+		/* Copy the frame to previous, so it can be restored if 
+		 * DISPOSE_PREVIOUS is specified in a later frame.
+		 */
+		memcpy( VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
+			VIPS_IMAGE_ADDR(gif->frame, 0, 0 ),
+			VIPS_IMAGE_SIZEOF_IMAGE( gif->previous ) );
+
+	/* Reset values, as Graphic Control Extension is optional
+	 */
+	gif->dispose = DISPOSAL_UNSPECIFIED;
+	gif->transparent_index = NO_TRANSPARENT_INDEX;
+
+	return( 0 );
 }
 
 #ifdef VIPS_DEBUG
@@ -1021,25 +1038,24 @@ vips_foreign_load_gif_extension( VipsForeignLoadGif *gif )
 	if( extension &&
 		ext_code == GRAPHICS_EXT_FUNC_CODE &&
 		extension[0] == 4 ) {
+		int flags = extension[1];
 
-        int flags = extension[1];
+		/* Bytes are flags, delay low, delay high, transparency. 
+		 * Flag bit 1 means transparency is being set.
+		 */
+		gif->transparent_index = (flags & TRANSPARENT_MASK) ? 
+			extension[4] : NO_TRANSPARENT_INDEX;
+		VIPS_DEBUG_MSG( "vips_foreign_load_gif_extension: "
+			"transparency = %d\n", gif->transparent_index );
 
-        /* Bytes are flags, delay low, delay high,
-         * transparency. Flag bit 1 means transparency
-         * is being set.
-         */
-        gif->transparent_index = ( flags & TRANSPARENT_MASK ) ? extension[4] : NO_TRANSPARENT_INDEX;
-        VIPS_DEBUG_MSG("vips_foreign_load_gif_extension: "
-                       "transparency = %d\n", gif->transparent_index);
-
-        /* Set the current dispose mode. This is read during frame load
-         * to set the meaning of background and transparent pixels.
-         */
-        gif->dispose = ( flags >> DISPOSE_SHIFT ) & DISPOSE_MASK;
+		/* Set the current dispose mode. This is read during frame load
+		 * to set the meaning of background and transparent pixels.
+		 */
+		gif->dispose = (flags >> DISPOSE_SHIFT) & DISPOSE_MASK;
 
 		VIPS_DEBUG_MSG( "vips_foreign_load_gif_extension: "
 			"dispose = %s\n", dispose2str( gif->dispose ) );
-    }
+	}
 
 	while( extension != NULL )
 		if( vips_foreign_load_gif_ext_next( gif, &extension ) )
@@ -1109,7 +1125,7 @@ static int
 vips_foreign_load_gif_generate( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
-        VipsRect *r = &or->valid;
+	VipsRect *r = &or->valid;
 	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) a;
 
 	int y;
@@ -1198,6 +1214,23 @@ vips_foreign_load_gif_minimise( VipsObject *object, VipsForeignLoadGif *gif )
 	vips_source_minimise( gif->source );
 }
 
+static VipsImage *
+vips_foreign_load_gif_temp( VipsForeignLoadGif *gif )
+{
+	VipsImage *temp;
+
+	temp = vips_image_new_memory();
+	vips_image_init_fields( temp,
+		gif->file->SWidth, gif->file->SHeight, 4, VIPS_FORMAT_UCHAR,
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
+	if( vips_image_write_prepare( temp ) ) {
+		VIPS_UNREF( temp );
+		return( NULL );
+	}
+
+	return( temp );
+}
+
 static int
 vips_foreign_load_gif_load( VipsForeignLoad *load )
 {
@@ -1210,35 +1243,11 @@ vips_foreign_load_gif_load( VipsForeignLoad *load )
 	if( vips_foreign_load_gif_open_giflib( gif ) )
 		return( -1 );
 
-	/* Make the memory image we accumulate pixels in. We always accumulate
-	 * to RGBA, then trim down to whatever the output image needs on
-	 * _generate.
+	/* Set of temp images we use during rendering.
 	 */
-	gif->frame = vips_image_new_memory();
-	vips_image_init_fields( gif->frame,
-		gif->file->SWidth, gif->file->SHeight, 4, VIPS_FORMAT_UCHAR,
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
-	if( vips_image_write_prepare( gif->frame ) )
-		return( -1 );
-
-    /* An additional scratch buffer, same size as gif->frame. Used together with gif->frame for rendering.
-     */
-    gif->scratch = vips_image_new_memory();
-    vips_image_init_fields( gif->scratch,
-                            gif->file->SWidth, gif->file->SHeight, 4, VIPS_FORMAT_UCHAR,
-                            VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
-    if( vips_image_write_prepare( gif->scratch ) )
-        return( -1 );
-
-
-	/* A copy of the previous state of the frame, in case we have to
-	 * process a DISPOSE_PREVIOUS.
-	 */
-	gif->previous = vips_image_new_memory();
-	vips_image_init_fields( gif->previous,
-		gif->file->SWidth, gif->file->SHeight, 4, VIPS_FORMAT_UCHAR,
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
-	if( vips_image_write_prepare( gif->previous ) )
+	if( !(gif->frame = vips_foreign_load_gif_temp( gif )) ||
+		!(gif->scratch = vips_foreign_load_gif_temp( gif )) ||
+		!(gif->previous = vips_foreign_load_gif_temp( gif )) )
 		return( -1 );
 
 	/* Make the output pipeline.
@@ -1304,13 +1313,13 @@ vips_foreign_load_gif_class_init( VipsForeignLoadGifClass *class )
 static void
 vips_foreign_load_gif_init( VipsForeignLoadGif *gif )
 {
-    gif->n = 1;
-    gif->transparent_index = NO_TRANSPARENT_INDEX;
+	gif->n = 1;
+	gif->transparent_index = NO_TRANSPARENT_INDEX;
 	gif->delays = NULL;
 	gif->delays_length = 0;
 	gif->loop = 1;
 	gif->comment = NULL;
-    gif->dispose = DISPOSAL_UNSPECIFIED;
+	gif->dispose = DISPOSAL_UNSPECIFIED;
 
 	vips_foreign_load_gif_allocate_delays( gif );
 }
@@ -1418,12 +1427,12 @@ static int
 vips_foreign_load_gif_buffer_build( VipsObject *object )
 {
 	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) object;
-	VipsForeignLoadGifBuffer *buffer =
+	VipsForeignLoadGifBuffer *buffer = 
 		(VipsForeignLoadGifBuffer *) object;
 
 	if( buffer->blob &&
-		!(gif->source = vips_source_new_from_memory(
-			VIPS_AREA( buffer->blob )->data,
+		!(gif->source = vips_source_new_from_memory( 
+			VIPS_AREA( buffer->blob )->data, 
 			VIPS_AREA( buffer->blob )->length )) )
 		return( -1 );
 

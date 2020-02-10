@@ -276,16 +276,18 @@ read_new( VipsSource *source, VipsImage *out, gboolean fail )
 		user_error_function, user_warning_function )) ) 
 		return( NULL );
 
-#ifdef PNG_SKIP_sRGB_CHECK_PROFILE
-	/* Prevent libpng (>=1.6.11) verifying sRGB profiles.
+	/* Prevent libpng (>=1.6.11) verifying sRGB profiles. Many PNGs have
+	 * broken profiles, but we still want to be able to open them.
 	 */
+#ifdef PNG_SKIP_sRGB_CHECK_PROFILE
 	png_set_option( read->pPng, 
 		PNG_SKIP_sRGB_CHECK_PROFILE, PNG_OPTION_ON );
 #endif /*PNG_SKIP_sRGB_CHECK_PROFILE*/
 
-#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-	/* Disable CRC checking in fuzzing mode.
+	/* Disable CRC checking in fuzzing mode. Most fuzzed images will have
+	 * bad CRCs so this check would break fuzzing.
 	 */
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	png_set_crc_action( read->pPng,
 		PNG_CRC_QUIET_USE, PNG_CRC_QUIET_USE );
 #endif /*FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION*/
@@ -813,9 +815,11 @@ write_new( VipsImage *in, VipsTarget *target )
 		return( NULL );
 	}
 
-#ifdef PNG_SKIP_sRGB_CHECK_PROFILE
-	/* Prevent libpng (>=1.6.11) verifying sRGB profiles.
+	/* Prevent libpng (>=1.6.11) verifying sRGB profiles. We are often
+	 * asked to copy images containing bad profiles, and this check would
+	 * prevent that.
 	 */
+#ifdef PNG_SKIP_sRGB_CHECK_PROFILE
 	png_set_option( write->pPng, 
 		PNG_SKIP_sRGB_CHECK_PROFILE, PNG_OPTION_ON );
 #endif /*PNG_SKIP_sRGB_CHECK_PROFILE*/
