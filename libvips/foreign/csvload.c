@@ -50,17 +50,42 @@
 
 #include "pforeign.h"
 
+/* The largest item we can read. It only needs to be big enough for a double.
+ */
+#define MAX_ITEM_SIZE (256)
+
 typedef struct _VipsForeignLoadCsv {
 	VipsForeignLoad parent_object;
 
-	/* Filename for load.
+	/* Set by subclasses.
 	 */
-	char *filename; 
+	VipsSource *source;
 
+	/* Buffered source.
+	 */
+	VipsSbuf *sbuf;
+
+	/* Load options.
+	 */
 	int skip;
 	int lines;
 	const char *whitespace;
 	const char *separator;
+
+	/* Current position in file for error messages.
+	 */
+	int lineno;
+	int colno;
+
+	/* Our whitespace and separator strings turned into LUTs.
+	 */
+	char whitemap[256];
+	char sepmap[256];
+
+	/* Fetch items into this buffer. It just needs to be large enough for
+	 * a double.
+	 */
+	char item[MAX_ITEM_SIZE];
 
 } VipsForeignLoadCsv;
 
@@ -81,6 +106,167 @@ vips_foreign_load_csv_get_flags( VipsForeignLoad *load )
 	VipsForeignLoadCsv *csv = (VipsForeignLoadCsv *) load;
 
 	return( vips_foreign_load_csv_get_flags_filename( csv->filename ) );
+}
+
+/* Skip to the start of the next block of non-whitespace.
+ *
+ * FIXME ... we should have something to stop \n appearing in whitespace
+ */
+static int 
+vips_foreign_load_csv_skip_white( VipsForeignLoadCsv *csv )
+{
+        int ch;
+
+	do {
+		ch = VIPS_SBUF_GETC( csv->sbuf );
+	} while( ch != EOF && 
+		ch != '\n' && 
+		csv->whitemap[ch] );
+
+	VIPS_SBUF_UNGETC( csv->sbuf );
+
+	return( ch );
+}
+
+/* We have just seen " (open quotes). Skip to just after the matching close 
+ * quotes. 
+ *
+ * If there is no matching close quotes before the end of the line, don't
+ * skip to the  next line.
+ */
+static int 
+vips_foreign_load_csv_skip_quoted( VipsForeignLoadCsv *csv )
+{
+        int ch;
+
+	do {
+		ch = VIPS_SBUF_GETC( csv->sbuf );
+
+		/* Ignore \" in strings.
+		 */
+		if( ch == '\\' ) 
+			ch = VIPS_SBUF_GETC( csv->sbuf );
+		else if( ch == '"' )
+			break;
+	} while( ch != EOF && 
+		ch != '\n' );
+
+	if( ch == '\n' )
+		VIPS_SBUF_UNGETC( csv->sbuf );
+
+	return( ch );
+}
+
+/* Fetch the next item, as a string. The string is valid until the next call
+ * to fetch item.
+ */
+static const char *
+vips_foreign_load_csv_fetch_item( VipsForeignLoadCsv *csv )
+{
+	int write_point;
+	int space_remaining;
+	int ch;
+
+	write_point = 0;
+	space_remaining = MAX_ITEM_SIZE;
+
+	while( (ch = VIPS_SBUF_GETC( csv->sbuf )) != -1 &&
+		ch != '\n' &&
+		!csv->whitemap[ch] &&
+		!csv->sepmap[ch] &&
+		space_remaining > 0 ) {
+		csv->item[write_point] = ch;
+		write_point += 1;
+		space_remaining -= 1;
+	}
+	csv->item[write_point] = '\0';
+
+	/* If we hit EOF immediately, return EOF.
+	 */
+	if( ch == -1 && 
+		write_point == 0 )
+		return( NULL );
+
+	/* If we filled the item buffer without seeing the end of the item, 
+	 * keep going.
+	 */
+	if( space_remaining == 0 &&
+		ch != '\n' &&
+		!csv->whitemap[ch] &&
+		!csv->sepmap[ch] ) {
+		while( (ch = VIPS_SBUF_GETC( sbuf )) != -1 &&
+			ch != '\n' && 
+			!csv->whitemap[ch] &&
+			!csv->sepmap[ch] ) 
+			;
+	}
+
+	return( csv->item );
+}
+
+/* Read a single item. The syntax is:
+ *
+ * element : 
+ * 	whitespace* item whitespace* [EOF|EOL|separator]
+ *
+ * item : 
+ * 	double |
+ * 	"anything" |
+ * 	empty
+ *
+ * the anything in quotes can contain " escaped with \, and can contain
+ * separator and whitespace characters.
+ *
+ * Return the char that caused failure on fail (EOF or \n).
+ */
+static int
+vips_foreign_load_csv_read_double( VipsForeignLoadCsv *csv, double *out )
+{
+	int ch;
+
+	/* The fscanf() may change this ... but all other cases need a zero.
+	 */
+	*out = 0;
+
+	ch = vips_foreign_load_csv_skip_white( csv );
+	if( ch == EOF || 
+		ch == '\n' ) 
+		return( ch );
+
+	if( ch == '"' ) {
+		(void) VIPS_SBUF_GETC( csv->sbuf );
+		(void) vips_foreign_load_csv_skip_quoted( fp );
+	}
+	else if( !csv->sepmap[ch] ) {
+
+		\\
+			
+			g_ascii_strtod( 
+		fscanf( fp, "%lf", out ) != 1 ) {
+		/* Only a warning, since (for example) exported spreadsheets
+		 * will often have text or date fields.
+		 */
+		g_warning( _( "error parsing number, line %d, column %d" ),
+			lineno, colno );
+		if( fail )
+			return( EOF ); 
+
+		/* Step over the bad data to the next separator.
+		 */
+		(void) skip_to_sep( fp, sepmap );
+	}
+
+	/* Don't need to check result, we have read a field successfully.
+	 */
+	ch = skip_white( fp, whitemap );
+
+	/* If it's a separator, we have to step over it. 
+	 */
+	if( ch != EOF && 
+		sepmap[ch] ) 
+		(void) vips__fgetc( fp );
+
+	return( 0 );
 }
 
 static int
