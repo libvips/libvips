@@ -110,7 +110,7 @@ vips_foreign_load_csv_get_flags( VipsForeignLoad *load )
 
 /* Skip to the start of the next block of non-whitespace.
  *
- * FIXME ... we should have something to stop \n appearing in whitespace
+ * FIXME ... we should have something to stop \n appearing in whitemap
  */
 static int 
 vips_foreign_load_csv_skip_white( VipsForeignLoadCsv *csv )
@@ -129,10 +129,10 @@ vips_foreign_load_csv_skip_white( VipsForeignLoadCsv *csv )
 }
 
 /* We have just seen " (open quotes). Skip to just after the matching close 
- * quotes. 
+ * quotes.
  *
  * If there is no matching close quotes before the end of the line, don't
- * skip to the  next line.
+ * skip to the next line.
  */
 static int 
 vips_foreign_load_csv_skip_quoted( VipsForeignLoadCsv *csv )
@@ -142,7 +142,7 @@ vips_foreign_load_csv_skip_quoted( VipsForeignLoadCsv *csv )
 	do {
 		ch = VIPS_SBUF_GETC( csv->sbuf );
 
-		/* Ignore \" in strings.
+		/* Ignore \" (actually \anything) in strings.
 		 */
 		if( ch == '\\' ) 
 			ch = VIPS_SBUF_GETC( csv->sbuf );
@@ -157,8 +157,8 @@ vips_foreign_load_csv_skip_quoted( VipsForeignLoadCsv *csv )
 	return( ch );
 }
 
-/* Fetch the next item, as a string. The string is valid until the next call
- * to fetch item.
+/* Fetch the next item (not whitespace, separator or \n), as a string. The 
+ * returned string is valid until the next call to fetch item. NULL for EOF.
  */
 static const char *
 vips_foreign_load_csv_fetch_item( VipsForeignLoadCsv *csv )
@@ -167,8 +167,10 @@ vips_foreign_load_csv_fetch_item( VipsForeignLoadCsv *csv )
 	int space_remaining;
 	int ch;
 
+	/* -1 so there's space for the \0 terminator.
+	 */
+	space_remaining = MAX_ITEM_SIZE - 1;
 	write_point = 0;
-	space_remaining = MAX_ITEM_SIZE;
 
 	while( (ch = VIPS_SBUF_GETC( csv->sbuf )) != -1 &&
 		ch != '\n' &&
@@ -188,18 +190,20 @@ vips_foreign_load_csv_fetch_item( VipsForeignLoadCsv *csv )
 		return( NULL );
 
 	/* If we filled the item buffer without seeing the end of the item, 
-	 * keep going.
+	 * read up to the item end.
 	 */
-	if( space_remaining == 0 &&
+	while( ch != -1 &&
 		ch != '\n' &&
 		!csv->whitemap[ch] &&
-		!csv->sepmap[ch] ) {
-		while( (ch = VIPS_SBUF_GETC( sbuf )) != -1 &&
-			ch != '\n' && 
-			!csv->whitemap[ch] &&
-			!csv->sepmap[ch] ) 
-			;
-	}
+		!csv->sepmap[ch] ) 
+		ch = VIPS_SBUF_GETC( csv->sbuf );
+
+	/* We've (probably) read the end of item character. Push it bakc.
+	 */
+	if( ch == '\n' ||
+		csv->whitemap[ch] ||
+		csv->sepmap[ch] ) 
+		VIPS_SBUF_UNGETC( csv->sbuf );
 
 	return( csv->item );
 }
