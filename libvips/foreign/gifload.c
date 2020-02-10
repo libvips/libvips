@@ -846,14 +846,14 @@ vips_foreign_load_gif_build_cmap( VipsForeignLoadGif *gif )
 
 static void
 vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif, 
-	int width, VipsPel * restrict dst )
+	int width, VipsPel * restrict dst, VipsPel * restrict src )
 {
-	guint32 *idst = (guint32 *) dst;
+	guint32 * restrict idst = (guint32 *) dst;
 
 	int x;
 
 	for( x = 0; x < width; x++ ) {
-		VipsPel v = gif->line[x];
+		VipsPel v = src[x];
 
 		if( v != gif->transparent_index ) 
 			idst[x] = gif->cmap[v];
@@ -872,19 +872,6 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 		vips_foreign_load_gif_error( gif );
 		return( -1 );
 	}
-
-	/* Update the colour map for this frame.
-	 */
-	vips_foreign_load_gif_build_cmap( gif );
-
-	/* PREVIOUS means we init the frame with the last un-disposed frame. 
-	 * So the last un-disposed frame is used as a backdrop for the new 
-	 * frame.
-	 */
-	if( gif->dispose == DISPOSE_PREVIOUS ) 
-		memcpy( VIPS_IMAGE_ADDR( gif->scratch, 0, 0 ),
-			VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
-			VIPS_IMAGE_SIZEOF_IMAGE( gif->scratch ) );
 
 	/* giflib does not check that the Left / Top / Width / Height for this
 	 * Image is inside the canvas.
@@ -906,8 +893,26 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 			"out of bounds frame of %d x %d pixels at %d x %d\n",
 			file->Image.Width, file->Image.Height,
 			file->Image.Left, file->Image.Top );
+
+		/* Don't flag an error -- many GIFs have this problem.
+		 */
+		return( 0 );
 	}
-	else if( file->Image.Interlace ) {
+
+	/* Update the colour map for this frame.
+	 */
+	vips_foreign_load_gif_build_cmap( gif );
+
+	/* PREVIOUS means we init the frame with the last un-disposed frame. 
+	 * So the last un-disposed frame is used as a backdrop for the new 
+	 * frame.
+	 */
+	if( gif->dispose == DISPOSE_PREVIOUS ) 
+		memcpy( VIPS_IMAGE_ADDR( gif->scratch, 0, 0 ),
+			VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
+			VIPS_IMAGE_SIZEOF_IMAGE( gif->scratch ) );
+
+	if( file->Image.Interlace ) {
 		int i;
 
 		VIPS_DEBUG_MSG( "vips_foreign_load_gif_render: "
@@ -931,7 +936,7 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 				}
 
 				vips_foreign_load_gif_render_line( gif, 
-					file->Image.Width, dst );
+					file->Image.Width, dst, gif->line );
 			}
 		}
 	}
@@ -954,14 +959,14 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 			}
 
 			vips_foreign_load_gif_render_line( gif, 
-				file->Image.Width, dst );
+				file->Image.Width, dst, gif->line );
 		}
 	}
 
 	/* Copy the result to frame, which then is picked up from outside
 	 */
 	memcpy( VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
-		VIPS_IMAGE_ADDR(gif->scratch, 0, 0 ),
+		VIPS_IMAGE_ADDR( gif->scratch, 0, 0 ),
 		VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
 
 	if( gif->dispose == DISPOSE_BACKGROUND ) {
@@ -996,7 +1001,7 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 		 * DISPOSE_PREVIOUS is specified in a later frame.
 		 */
 		memcpy( VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
-			VIPS_IMAGE_ADDR(gif->frame, 0, 0 ),
+			VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
 			VIPS_IMAGE_SIZEOF_IMAGE( gif->previous ) );
 
 	/* Reset values, as Graphic Control Extension is optional
