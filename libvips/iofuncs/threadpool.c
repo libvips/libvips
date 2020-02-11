@@ -55,8 +55,7 @@
 
  */
 
-/* 
-#define DEBUG_OUT_OF_THREADS
+/*
 #define VIPS_DEBUG
 #define VIPS_DEBUG_RED
  */
@@ -121,10 +120,6 @@ int vips__thinstrip_height = VIPS__THINSTRIP_HEIGHT;
  */
 int vips__concurrency = 0;
 
-/* Count the number of threads we have active and report on leak test.
- */
-int vips__n_active_threads = 0; 
-
 /* Set this GPrivate to indicate that this is a vips worker.
  */
 static GPrivate *is_worker_key = NULL;
@@ -184,109 +179,6 @@ gboolean
 vips_thread_isworker( void )
 {
 	return( g_private_get( is_worker_key ) != NULL );
-}
-
-typedef struct {
-	const char *domain; 
-	GThreadFunc func; 
-	gpointer data;
-} VipsThreadInfo; 
-
-static void *
-vips_thread_run( gpointer data )
-{
-	VipsThreadInfo *info = (VipsThreadInfo *) data;
-
-	void *result;
-
-	/* Set this to something (anything) to tag this thread as a vips 
-	 * worker.
-	 */
-	g_private_set( is_worker_key, data );
-
-	if( vips__thread_profile ) 
-		vips__thread_profile_attach( info->domain );
-
-	result = info->func( info->data );
-
-	g_free( info ); 
-
-	vips_thread_shutdown();
-
-	return( result ); 
-}
-
-GThread *
-vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
-{
-#ifdef DEBUG_OUT_OF_THREADS
-	static int n_threads = 0;
-#endif /*DEBUG_OUT_OF_THREADS*/
-
-	GThread *thread;
-	VipsThreadInfo *info; 
-	GError *error = NULL;
-
-	info = g_new( VipsThreadInfo, 1 ); 
-	info->domain = domain;
-	info->func = func;
-	info->data = data;
-
-#ifdef DEBUG_OUT_OF_THREADS
-	n_threads += 1;
-	if( n_threads > 10 ) 
-		thread = NULL;
-	else {
-#endif /*DEBUG_OUT_OF_THREADS*/
-
-	thread = g_thread_try_new( domain, vips_thread_run, info, &error );
-
-	VIPS_DEBUG_MSG_RED( "vips_g_thread_new: g_thread_create( %s ) = %p\n",
-		domain, thread );
-
-#ifdef DEBUG_OUT_OF_THREADS
-	}
-#endif /*DEBUG_OUT_OF_THREADS*/
-
-	if( !thread ) {
-		if( error ) 
-			vips_g_error( &error ); 
-		else
-			vips_error( domain, 
-				"%s", _( "unable to create thread" ) );
-	}
-
-	if( thread &&
-		vips__leak ) {
-		g_mutex_lock( vips__global_lock );
-
-		vips__n_active_threads += 1;
-
-		g_mutex_unlock( vips__global_lock );
-	}
-
-	return( thread );
-}
-
-void *
-vips_g_thread_join( GThread *thread )
-{
-	void *result;
-
-	result = g_thread_join( thread );
-
-	VIPS_DEBUG_MSG_RED( "vips_g_thread_join: g_thread_join( %p )\n", 
-		thread );
-
-	if( vips__leak ) {
-		g_mutex_lock( vips__global_lock );
-
-		vips__n_active_threads -= 1;
-
-		g_mutex_unlock( vips__global_lock );
-	}
-
-	return( result ); 
 }
 
 typedef struct {

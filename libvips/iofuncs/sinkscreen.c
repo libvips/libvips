@@ -162,21 +162,28 @@ typedef struct _RenderThreadStateClass {
 
 G_DEFINE_TYPE( RenderThreadState, render_thread_state, VIPS_TYPE_THREAD_STATE );
 
-/* The BG thread which sits waiting to do some calculations, and the semaphore
- * it waits on holding the number of renders with dirty tiles. 
+/* A boolean indicating if the bg render thread is running.
  */
-static GThread *render_thread = NULL;
+static gboolean render_running = FALSE;
 
 /* Set this to ask the render thread to quit.
  */
 static gboolean render_kill = FALSE;
 
-/* All the renders with dirty tiles, and a semaphore that the bg render thread
- * waits on.
+/* All the renders with dirty tiles.
  */
 static GMutex *render_dirty_lock = NULL;
 static GSList *render_dirty_all = NULL;
+
+/* A semaphore where the bg render thread waits on holding the number of
+ * renders with dirty tiles
+ */
 static VipsSemaphore n_render_dirty_sem; 
+
+/* A semaphore where the main thread waits for when the bg render thread
+ * is shutdown.
+ */
+static VipsSemaphore render_finish;
 
 /* Set this to make the bg thread stop and reschedule.
  */
@@ -435,10 +442,7 @@ vips__render_shutdown( void )
 	if( render_dirty_lock ) {
 		g_mutex_lock( render_dirty_lock );
 
-		if( render_thread ) { 
-			GThread *thread;
-
-			thread = render_thread;
+		if( render_running ) {
 			render_reschedule = TRUE;
 			render_kill = TRUE;
 
@@ -446,13 +450,16 @@ vips__render_shutdown( void )
 
 			vips_semaphore_up( &n_render_dirty_sem ); 
 
-			(void) vips_g_thread_join( thread );
+			vips_semaphore_down( &render_finish );
+
+			render_running = FALSE;
 		}
 		else
 			g_mutex_unlock( render_dirty_lock );
 
 		VIPS_FREEF( vips_g_mutex_free, render_dirty_lock );
 		vips_semaphore_destroy( &n_render_dirty_sem );
+		vips_semaphore_destroy( &render_finish );
 	}
 }
 
@@ -985,10 +992,10 @@ render_dirty_get( void )
 	return( render );
 }
 
-/* Loop for the background render mananger thread.
+/* Loop for the background render manager thread.
  */
-static void *
-render_thread_main( void *client )
+static void
+render_thread_main( void *data, void *user_data )
 {
 	Render *render;
 
@@ -1023,23 +1030,29 @@ render_thread_main( void *client )
 		}
 	}
 
-	/* We are exiting, so render_thread must now be NULL.
+	/* We are exiting: tell the main thread.
 	 */
-	render_thread = NULL; 
-
-	return( NULL );
+	vips_semaphore_up( &render_finish );
 }
 
 static void *
 vips__sink_screen_init( void *data )
 {
-	g_assert( !render_thread ); 
+	g_assert( !render_running ); 
 	g_assert( !render_dirty_lock ); 
 
 	render_dirty_lock = vips_g_mutex_new();
 	vips_semaphore_init( &n_render_dirty_sem, 0, "n_render_dirty" );
-	render_thread = vips_g_thread_new( "sink_screen",
-		render_thread_main, NULL );
+	vips_semaphore_init( &render_finish, 0, "render_finish" );
+
+	if ( vips_threadpool_push( "sink_screen", render_thread_main,
+		NULL ) ) {
+		vips_error("vips_sink_screen_init", "%s",
+			_("unable to init render thread"));
+		return( NULL );
+	}
+
+	render_running = TRUE;
 
 	return( NULL );
 }

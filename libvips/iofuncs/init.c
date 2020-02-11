@@ -641,12 +641,6 @@ vips_leak( void )
 		n_leaks += strlen( vips_error_buffer() );
 	}
 
-	if( vips__n_active_threads > 0 ) {
-		vips_buf_appendf( &buf, "threads: %d not joined\n", 
-			vips__n_active_threads ); 
-		n_leaks += vips__n_active_threads;
-	}
-
 	fprintf( stderr, "%s", vips_buf_all( &buf ) );
 
 	n_leaks += vips__print_renders();
