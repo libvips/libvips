@@ -403,7 +403,7 @@ vips_foreign_load_ppm_map( VipsForeignLoadPpm *ppm, VipsImage *image )
 
 	gint64 header_offset;
 	size_t length;
-	const void *data;
+	const VipsPel *data;
 
 	vips_sbuf_unbuffer( ppm->sbuf );
 	header_offset = vips_source_seek( ppm->source, 0, SEEK_CUR );

@@ -59,7 +59,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif /*HAVE_IO_H*/
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -668,7 +670,7 @@ vips_source_decode( VipsSource *source )
  * Returns: the number of bytes read, 0 on end of file, -1 on error.
  */
 gint64
-vips_source_read( VipsSource *source, void *buffer, size_t length )
+vips_source_read( VipsSource *source, VipsPel *buffer, size_t length )
 {
 	VipsSourceClass *class = VIPS_SOURCE_GET_CLASS( source );
 

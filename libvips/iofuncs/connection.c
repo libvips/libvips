@@ -50,7 +50,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif /*HAVE_IO_H*/
 
 #include <vips/vips.h>
 #include <vips/internal.h>

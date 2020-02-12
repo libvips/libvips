@@ -153,7 +153,7 @@ typedef struct _VipsSource {
 	 * buffer, from mmaping the file, from reading the pipe into memory), 
 	 * a pointer to the start.
 	 */
-	const void *data;
+	const VipsPel *data;
 
 	/* For is_pipe sources, save data read during header phase here. If 
 	 * we rewind and try again, serve data from this until it runs out.
