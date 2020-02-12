@@ -69,14 +69,14 @@ im_istifftiled( const char *filename )
 
 static int
 im_tiff_read_header( const char *filename, VipsImage *out, 
-	int page, int n, gboolean autorotate )
+	int page, int n, gboolean autorotate, int max_tile_cache_memory )
 {
 	VipsSource *source;
 
 	if( !(source = vips_source_new_from_file( filename )) )
 		return( -1 );
 	if( vips__tiff_read_header_source( source, 
-		out, page, n, autorotate ) ) {
+		out, page, n, autorotate, max_tile_cache_memory) ) {
 		VIPS_UNREF( source );
 		return( -1 );
 	}
@@ -87,13 +87,13 @@ im_tiff_read_header( const char *filename, VipsImage *out,
 
 static int
 im_tiff_read( const char *filename, VipsImage *out, 
-	int page, int n, gboolean autorotate )
+	int page, int n, gboolean autorotate, int max_tile_cache_memory)
 {
 	VipsSource *source;
 
 	if( !(source = vips_source_new_from_file( filename )) )
 		return( -1 );
-	if( vips__tiff_read_source( source, out, page, n, autorotate ) ) {
+	if( vips__tiff_read_source( source, out, page, n, autorotate, max_tile_cache_memory) ) {
 		VIPS_UNREF( source );
 		return( -1 );
 	}

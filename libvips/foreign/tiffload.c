@@ -137,7 +137,7 @@ vips_foreign_load_tiff_header( VipsForeignLoad *load )
 	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
 
 	if( vips__tiff_read_header_source( tiff->source, load->out, 
-		tiff->page, tiff->n, tiff->autorotate ) ) 
+		tiff->page, tiff->n, tiff->autorotate, tiff->max_tile_cache_memory ) ) 
 		return( -1 );
 
 	return( 0 );
@@ -149,7 +149,7 @@ vips_foreign_load_tiff_load( VipsForeignLoad *load )
 	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
 
 	if( vips__tiff_read_source( tiff->source, load->real, 
-		tiff->page, tiff->n,  tiff->autorotate ) ) 
+		tiff->page, tiff->n,  tiff->autorotate, tiff->max_tile_cache_memory ) ) 
 		return( -1 );
 
 	return( 0 );
