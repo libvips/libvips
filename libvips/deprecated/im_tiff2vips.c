@@ -112,11 +112,13 @@ tiff2vips( const char *name, IMAGE *out, gboolean header_only )
 	char *p, *q;
 	int page;
 	int seq;
+    int max_tile_cache_memory;
 
 	im_filename_split( name, filename, mode );
 
 	page = 0;
 	seq = 0;
+    max_tile_cache_memory = 0;
 	p = &mode[0];
 	if( (q = im_getnextoption( &p )) ) {
 		page = atoi( q );
@@ -125,6 +127,11 @@ tiff2vips( const char *name, IMAGE *out, gboolean header_only )
 		if( im_isprefix( "seq", q ) )
 			seq = 1;
 	}
+    if( (q = im_getnextoption( &p )) ) {
+    }
+    if( (q = im_getnextoption( &p )) ) {
+        max_tile_cache_memory = atoi( q );
+    }
 
 	/* We need to be compatible with the pre-sequential mode 
 	 * im_tiff2vips(). This returned a "t" if given a "p" image, since it
@@ -146,11 +153,11 @@ tiff2vips( const char *name, IMAGE *out, gboolean header_only )
 	}
 
 	if( header_only ) {
-		if( im_tiff_read_header( filename, out, page, 1, FALSE ) )
+		if( im_tiff_read_header( filename, out, page, 1, FALSE, max_tile_cache_memory ) )
 			return( -1 );
 	}
 	else {
-		if( im_tiff_read( filename, out, page, 1, FALSE ) )
+		if( im_tiff_read( filename, out, page, 1, FALSE, max_tile_cache_memory ) )
 			return( -1 );
 	}
 #else

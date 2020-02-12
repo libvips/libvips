@@ -86,9 +86,9 @@ int vips__tiff_write_buf( VipsImage *in,
 gboolean vips__istiff_source( VipsSource *source );
 gboolean vips__istifftiled_source( VipsSource *source );
 int vips__tiff_read_header_source( VipsSource *source, VipsImage *out, 
-	int page, int n, gboolean autorotate );
+	int page, int n, gboolean autorotate, int max_tile_cache_memory );
 int vips__tiff_read_source( VipsSource *source, VipsImage *out,
-	int page, int n, gboolean autorotate );
+	int page, int n, gboolean autorotate, int max_tile_cache_memory);
 
 extern const char *vips__foreign_tiff_suffs[];
 

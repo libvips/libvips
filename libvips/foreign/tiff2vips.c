@@ -318,6 +318,7 @@ typedef struct _Rtiff {
 	int page;
 	int n;
 	gboolean autorotate;
+	int max_tile_cache_memory;
 
 	/* The TIFF we read.
 	 */
@@ -525,7 +526,7 @@ rtiff_minimise_cb( VipsImage *image, Rtiff *rtiff )
 
 static Rtiff *
 rtiff_new( VipsSource *source, VipsImage *out, 
-	int page, int n, gboolean autorotate )
+	int page, int n, gboolean autorotate, int max_tile_cache_memory )
 {
 	Rtiff *rtiff;
 
@@ -538,6 +539,7 @@ rtiff_new( VipsSource *source, VipsImage *out,
 	rtiff->page = page;
 	rtiff->n = n;
 	rtiff->autorotate = autorotate;
+	rtiff->max_tile_cache_memory = max_tile_cache_memory;
 	rtiff->tiff = NULL;
 	rtiff->n_pages = 0;
 	rtiff->current_page = -1;
@@ -1865,6 +1867,8 @@ rtiff_read_tilewise( Rtiff *rtiff, VipsImage *out )
 {
 	int tile_width = rtiff->header.tile_width;
 	int tile_height = rtiff->header.tile_height;
+	int max_tile_cache_memory = rtiff->max_tile_cache_memory;
+
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( out ), 4 );
 
@@ -1912,12 +1916,19 @@ rtiff_read_tilewise( Rtiff *rtiff, VipsImage *out )
 		rtiff, NULL ) )
 		return( -1 );
 
+	int max_tiles = 2 * (1 + t[0]->Xsize / tile_width);
+	if (max_tile_cache_memory != 0)
+	{
+		max_tiles = VIPS_MAX(1, (max_tile_cache_memory / ((tile_width * tile_height) * out->Bands)) );
+        max_tiles = VIPS_MIN(max_tiles,1000000);
+	}
+
 	/* Copy to out, adding a cache. Enough tiles for two complete rows.
 	 */
 	if( vips_tilecache( t[0], &t[1],
 		"tile_width", tile_width,
 		"tile_height", tile_height,
-		"max_tiles", 2 * (1 + t[0]->Xsize / tile_width),
+		"max_tiles", max_tiles,
 		NULL ) ||
 		rtiff_autorotate( rtiff, t[1], &t[2] ) ||
 		rtiff_unpremultiply( rtiff, t[2], &t[3] ) ||
@@ -2601,13 +2612,13 @@ vips__istifftiled_source( VipsSource *source )
 
 int
 vips__tiff_read_header_source( VipsSource *source, VipsImage *out, 
-	int page, int n, gboolean autorotate )
+	int page, int n, gboolean autorotate, int max_tile_cache_memory)
 {
 	Rtiff *rtiff;
 
 	vips__tiff_init();
 
-	if( !(rtiff = rtiff_new( source, out, page, n, autorotate )) ||
+	if( !(rtiff = rtiff_new( source, out, page, n, autorotate, max_tile_cache_memory )) ||
 		rtiff_header_read_all( rtiff ) )
 		return( -1 );
 
@@ -2626,7 +2637,7 @@ vips__tiff_read_header_source( VipsSource *source, VipsImage *out,
 
 int
 vips__tiff_read_source( VipsSource *source, VipsImage *out, 
-	int page, int n, gboolean autorotate )
+	int page, int n, gboolean autorotate, int max_tile_cache_memory )
 {
 	Rtiff *rtiff;
 
@@ -2637,7 +2648,7 @@ vips__tiff_read_source( VipsSource *source, VipsImage *out,
 
 	vips__tiff_init();
 
-	if( !(rtiff = rtiff_new( source, out, page, n, autorotate )) ||
+	if( !(rtiff = rtiff_new( source, out, page, n, autorotate, max_tile_cache_memory )) ||
 		rtiff_header_read_all( rtiff ) )
 		return( -1 );
 

@@ -73,6 +73,10 @@ typedef struct _VipsForeignLoadTiff {
 	 */
 	gboolean autorotate;
 
+	/* Max memory to use for the tile cache
+	 */
+	int max_tile_cache_memory;
+
 } VipsForeignLoadTiff;
 
 typedef VipsForeignLoadClass VipsForeignLoadTiffClass;
@@ -203,6 +207,13 @@ vips_foreign_load_tiff_class_init( VipsForeignLoadTiffClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadTiff, autorotate ),
 		FALSE );
+
+	VIPS_ARG_INT( class, "max_tile_cache_memory", 23,
+		_( "max_tile_cache_memory" ),
+		_( "Use this maximum memory for tile cache" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadTiff, max_tile_cache_memory),
+		0, 734003200, 0);
 }
 
 static void
