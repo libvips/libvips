@@ -77,6 +77,10 @@ typedef struct _VipsForeignSaveJpeg {
 	 */
 	gboolean no_subsample;
 
+    /* Force chroma subsampling, if Q >= 90 then subsampling is disabled, use this flag to force it
+    */
+    gboolean force_subsample;
+
 	/* Apply trellis quantisation to each 8x8 block.
 	 */
 	gboolean trellis_quant;
@@ -194,6 +198,12 @@ vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveJpeg, quant_table ),
 		0, 8, 0 );
 
+    VIPS_ARG_BOOL( class, "force_subsample", 19,
+            _( "Force subsample" ),
+            _( "Force chroma subsample" ),
+            VIPS_ARGUMENT_OPTIONAL_INPUT,
+            G_STRUCT_OFFSET( VipsForeignSaveJpeg, force_subsample ),
+            FALSE );
 }
 
 static void
@@ -230,7 +240,7 @@ vips_foreign_save_jpeg_target_build( VipsObject *object )
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->no_subsample,
 		jpeg->trellis_quant, jpeg->overshoot_deringing,
-		jpeg->optimize_scans, jpeg->quant_table ) )
+		jpeg->optimize_scans, jpeg->quant_table, jpeg->force_subsample ) )
 		return( -1 );
 
 	return( 0 );
@@ -297,7 +307,7 @@ vips_foreign_save_jpeg_file_build( VipsObject *object )
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->no_subsample,
 		jpeg->trellis_quant, jpeg->overshoot_deringing,
-		jpeg->optimize_scans, jpeg->quant_table ) ) {
+		jpeg->optimize_scans, jpeg->quant_table, jpeg->force_subsample ) ) {
 		VIPS_UNREF( target );
 		return( -1 );
 	}
@@ -367,7 +377,7 @@ vips_foreign_save_jpeg_buffer_build( VipsObject *object )
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->no_subsample,
 		jpeg->trellis_quant, jpeg->overshoot_deringing,
-		jpeg->optimize_scans, jpeg->quant_table ) ) {
+		jpeg->optimize_scans, jpeg->quant_table, jpeg->force_subsample ) ) {
 		VIPS_UNREF( target );
 		return( -1 );
 	}
@@ -440,7 +450,7 @@ vips_foreign_save_jpeg_mime_build( VipsObject *object )
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->no_subsample,
 		jpeg->trellis_quant, jpeg->overshoot_deringing,
-		jpeg->optimize_scans, jpeg->quant_table ) ) {
+		jpeg->optimize_scans, jpeg->quant_table, jpeg->force_subsample ) ) {
 		VIPS_UNREF( target );
 		return( -1 );
 	}

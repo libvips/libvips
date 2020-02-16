@@ -166,7 +166,7 @@ int vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	gboolean optimize_coding, gboolean progressive, gboolean strip,
 	gboolean no_subsample, gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans, 
-	int quant_table );
+	int quant_table, gboolean force_subsample );
 
 int vips__jpeg_read_source( VipsSource *source, VipsImage *out,
 	gboolean header_only, int shrink, int fail, gboolean autorotate );

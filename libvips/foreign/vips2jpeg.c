@@ -480,7 +480,8 @@ static int
 write_vips( Write *write, int qfac, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip, 
 	gboolean no_subsample, gboolean trellis_quant,
-	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table )
+	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table,
+	gboolean force_subsample)
 {
 	VipsImage *in;
 	J_COLOR_SPACE space;
@@ -630,8 +631,9 @@ write_vips( Write *write, int qfac, const char *profile,
 	/* Turn off chroma subsampling. Follow IM and do it automatically for
 	 * high Q. 
 	 */
-	if( no_subsample ||
-		qfac >= 90 ) { 
+	if( !force_subsample && (
+	        no_subsample ||
+	        qfac >= 90 )) {
 		int i;
 
 		for( i = 0; i < in->Bands; i++ ) { 
@@ -775,7 +777,8 @@ vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive,
 	gboolean strip, gboolean no_subsample, gboolean trellis_quant,
-	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table )
+	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table,
+	gboolean force_subsample)
 {
 	Write *write;
 
@@ -802,7 +805,7 @@ vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	if( write_vips( write, 
 		Q, profile, optimize_coding, progressive, strip, no_subsample,
 		trellis_quant, overshoot_deringing, optimize_scans, 
-		quant_table ) ) {
+		quant_table, force_subsample ) ) {
 		write_destroy( write );
 		return( -1 );
 	}
