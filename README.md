@@ -89,7 +89,6 @@ Run the test suite with:
 
 Run a specific test with:
 
-    pytest --verbose
     pytest test/test-suite/test_foreign.py -k test_tiff
 
 # Building libvips from git
@@ -103,7 +102,7 @@ and `gobject-introspection`, see the dependencies section below. For example:
 
     brew install gtk-doc 
 
-Then build the build system with:
+Then generate the build system with:
 
     ./autogen.sh --prefix=/home/john/vips
 
@@ -113,56 +112,6 @@ Debug build:
       ./configure --prefix=/home/john/vips --enable-debug
     make
     make install
-
-Leak check. Use the suppressions file `supp/valgrind.supp`.
-
-    export G_DEBUG=gc-friendly
-    valgrind --suppressions=vips-x.y.z/supp/valgrind.supp \
-	     --leak-check=yes \
-      vips ... > vips-vg.log 2>&1
-
-Memory error debug:
-
-    valgrind --vgdb=yes --vgdb-error=0 vips  ...
-
-valgrind threading check:
-
-    valgrind --tool=helgrind vips ... > vips-vg.log 2>&1
-
-Clang build:
-
-    CC=clang CXX=clang++ ./configure --prefix=/home/john/vips
-
-Clang static analysis:
-
-    scan-build ./configure --disable-introspection --disable-debug
-    scan-build -o scan -v make 
-    scan-view scan/2013-11-22-2
-
-Clang dynamic analysis:
-
-    FLAGS="-g -O1 -fno-omit-frame-pointer"
-    CC=clang CXX=clang++ LD=clang \
-      CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" LDFLAGS=-fsanitize=address \
-      ./configure --prefix=/home/john/vips 
-
-    FLAGS="-O1 -g -fsanitize=thread"
-    FLAGS="$FLAGS -fPIC"
-    FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
-    CC=clang CXX=clang++ LD=clang \
-      CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
-      LDFLAGS="-fsanitize=thread -fPIC" \
-      ./configure --prefix=/home/john/vips \
-        --without-magick \
-        --disable-introspection
-    G_DEBUG=gc-friendly vips copy ~/pics/k2.jpg x.jpg >& log
-
-Build with the GCC auto-vectorizer and diagnostics (or just -O3):
-
-    FLAGS="-O2 -march=native -ffast-math"
-    FLAGS="$FLAGS -ftree-vectorize -fdump-tree-vect-details"
-    CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
-      ./configure --prefix=/home/john/vips 
 
 # Dependencies 
 
@@ -284,7 +233,7 @@ If available, vips can load and save WebP images.
 
 ### libniftiio
 
-If available, vips can load and save NIFTI images.
+If available, vips can load and save NIfTI images.
 
 ### OpenEXR
 
