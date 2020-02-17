@@ -119,6 +119,16 @@ typedef enum {
 } VipsBandFormat;
 
 typedef enum {
+	VIPS_INK_NOTSET = -1,
+	VIPS_INK_COLOUR = 0,
+	VIPS_INK_TRANSPARENCY = 1,
+	VIPS_INK_ALPHA = 2,
+	VIPS_INK_UNSPECIFIED = 3,
+	VIPS_INK_LAST = 4
+} VipsInk;
+
+
+typedef enum {
 	VIPS_CODING_ERROR = -1,
 	VIPS_CODING_NONE = 0,
 	VIPS_CODING_LABQ = 2,

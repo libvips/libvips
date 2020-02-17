@@ -396,6 +396,9 @@ png2vips_header( Read *read, VipsImage *out )
 	VipsInterpretation interpretation;
 	double Xres, Yres;
 
+	char ink_tag[128];
+	int has_alpha = 0;
+	
 	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
 		return( -1 );
 
@@ -451,6 +454,7 @@ png2vips_header( Read *read, VipsImage *out )
 	if( png_get_valid( read->pPng, read->pInfo, PNG_INFO_tRNS ) ) {
 		png_set_tRNS_to_alpha( read->pPng );
 		bands += 1;
+		has_alpha = 1;
 	}
 	else if( color_type == PNG_COLOR_TYPE_GRAY_ALPHA || 
 		color_type == PNG_COLOR_TYPE_RGB_ALPHA ) {
@@ -458,6 +462,7 @@ png2vips_header( Read *read, VipsImage *out )
 		 * color_type to alpha.
 		 */
 		bands += 1;
+		has_alpha = 1;
 	}
 
 	/* Expand <8 bit images to full bytes.
@@ -569,6 +574,16 @@ png2vips_header( Read *read, VipsImage *out )
 	 */
 	if( color_type == PNG_COLOR_TYPE_PALETTE )
 		vips_image_set_int( out, "palette-bit-depth", bit_depth );
+
+	/* Attach ink information as metadata.
+	 */
+	for (int i = 0; i < bands; ++i) {
+		vips_snprintf(ink_tag, 128, VIPS_META_INK_TYPE, i);
+		if (i == (bands-1) && has_alpha)
+			vips_image_set_int(out, ink_tag, VIPS_INK_TRANSPARENCY);
+		else
+			vips_image_set_int(out, ink_tag, VIPS_INK_COLOUR);
+	}
 
 	return( 0 );
 }

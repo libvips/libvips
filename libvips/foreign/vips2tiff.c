@@ -707,13 +707,34 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 		if( alpha_bands > 0 ) { 
 			uint16 v[MAX_ALPHA];
 			int i;
+			int ink_type;
+			char ink_tag[128];
 
 			/* EXTRASAMPLE_UNASSALPHA means generic extra
 			 * alpha-like channels. ASSOCALPHA means pre-multipled
 			 * alpha only. 
 			 */
-			for( i = 0; i < alpha_bands; i++ )
-				v[i] = EXTRASAMPLE_UNASSALPHA;
+			for (i = 0; i < alpha_bands; i++)
+			{
+				vips_snprintf(ink_tag, 128, VIPS_META_INK_TYPE, colour_bands + i);
+				if (vips_image_get_int(wtiff->im, ink_tag, &ink_type) == 0)
+				{
+					switch (ink_type)
+					{
+						case VIPS_INK_UNSPECIFIED :
+							v[i] = EXTRASAMPLE_UNSPECIFIED; break;
+						case VIPS_INK_TRANSPARENCY:
+							v[i] = EXTRASAMPLE_ASSOCALPHA; break;
+						case VIPS_INK_ALPHA:
+							v[i] = EXTRASAMPLE_UNASSALPHA; break;
+						default:
+							v[i] = EXTRASAMPLE_UNSPECIFIED; break;
+					}
+				}
+				else {
+					v[i] = EXTRASAMPLE_UNASSALPHA;
+				}
+			}
 			TIFFSetField( tif, 
 				TIFFTAG_EXTRASAMPLES, alpha_bands, v );
 		}

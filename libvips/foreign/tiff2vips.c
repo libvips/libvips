@@ -1400,6 +1400,48 @@ rtiff_pick_reader( Rtiff *rtiff )
 	return( rtiff_parse_copy );
 }
 
+/* Set the ink metadata on @out from our rtiff. rtiff_header_read() has already been
+ * called.
+ */
+static int
+rtiff_set_ink_metadata( Rtiff* rtiff, VipsImage* out )
+{
+	char ink_tag[128];
+	uint16 extra_samples_count;
+	uint16* extra_samples_types;
+	VipsInk ink_type;
+
+	TIFFGetFieldDefaulted(rtiff->tiff, TIFFTAG_EXTRASAMPLES,
+		&extra_samples_count, &extra_samples_types);
+
+	int colour_bands = rtiff->header.samples_per_pixel - extra_samples_count;
+
+	for (int i = 0; i < colour_bands; ++i) {
+		vips_snprintf(ink_tag, 128, VIPS_META_INK_TYPE, i);
+		vips_image_set_int(out, ink_tag, VIPS_INK_COLOUR);
+	}
+
+	for (int i = colour_bands; i < rtiff->header.samples_per_pixel; ++i) {
+
+		switch (extra_samples_types[i - colour_bands])
+		{
+			case EXTRASAMPLE_UNSPECIFIED:
+				ink_type = VIPS_INK_UNSPECIFIED; break;
+			case EXTRASAMPLE_ASSOCALPHA:
+				ink_type = VIPS_INK_TRANSPARENCY; break;
+			case EXTRASAMPLE_UNASSALPHA:
+				ink_type = VIPS_INK_ALPHA; break;
+			default:
+				ink_type = VIPS_INK_UNSPECIFIED; break;
+		}
+
+		vips_snprintf(ink_tag, 128, VIPS_META_INK_TYPE, i);
+		vips_image_set_int(out, ink_tag, ink_type);
+	}
+
+	return 0;
+}
+
 /* Set the header on @out from our rtiff. rtiff_header_read() has already been
  * called. 
  */
@@ -1503,6 +1545,11 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	 */
 	vips_image_set_int( out, 
 		VIPS_META_ORIENTATION, rtiff->header.orientation );
+
+	/* Attach ink information as metadata.
+	 */
+	if ( rtiff_set_ink_metadata( rtiff, out ) )
+		return( -1 );
 
 	return( 0 );
 }

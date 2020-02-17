@@ -150,6 +150,14 @@ extern "C" {
  */
 #define VIPS_META_N_PAGES "n-pages"
 
+/**
+ * VIPS_META_INK_TYPE:
+ *
+ * If set, pattern to get each ink type.
+ */
+#define VIPS_META_INK_TYPE "ink-%d-type"
+
+
 guint64 vips_format_sizeof( VipsBandFormat format );
 guint64 vips_format_sizeof_unsafe( VipsBandFormat format );
 
