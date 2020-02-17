@@ -259,14 +259,17 @@ class TestForeign:
         im = pyvips.Image.new_from_file(JPEG_FILE)
 
         # higher Q should mean a bigger buffer
-        b1 = im.jpegsave_buffer(Q=10)
-        b2 = im.jpegsave_buffer(Q=90)
-        assert len(b2) > len(b1)
+        q10 = im.jpegsave_buffer(Q=10)
+        q10o = im.jpegsave_buffer(Q=10, subsample_mode=2)
+        q90 = im.jpegsave_buffer(Q=90)
+        assert len(q90) > len(q10)
+        assert len(q10o) > len(q10)
 
         # force subsampling should result in smaller buffer
-        b1 = im.jpegsave_buffer(Q=90, force_subsample=True)
-        b2 = im.jpegsave_buffer(Q=90)
-        assert len(b2) > len(b1)
+        q90s = im.jpegsave_buffer(Q=90, subsample_mode=1)
+        q90a = im.jpegsave_buffer(Q=90, subsample_mode=0)
+        assert len(q90) > len(q90s)
+        assert len(q90) == len(q90a)
 
     @skip_if_no("jpegload")
     def test_truncated(self):

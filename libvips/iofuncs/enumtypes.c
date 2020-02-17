@@ -499,6 +499,24 @@ vips_saveable_get_type( void )
 	return( etype );
 }
 GType
+vips_foreign_jpeg_subsample_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO, "VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO", "auto"},
+			{VIPS_FOREIGN_JPEG_SUBSAMPLE_ON, "VIPS_FOREIGN_JPEG_SUBSAMPLE_ON", "on"},
+			{VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF, "VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF", "off"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsForeignJpegSubsample", values );
+	}
+
+	return( etype );
+}
+GType
 vips_foreign_webp_preset_get_type( void )
 {
 	static GType etype = 0;
