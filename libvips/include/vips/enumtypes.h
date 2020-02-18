@@ -58,6 +58,8 @@ GType vips_foreign_flags_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_FOREIGN_FLAGS (vips_foreign_flags_get_type())
 GType vips_saveable_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_SAVEABLE (vips_saveable_get_type())
+GType vips_foreign_jpeg_subsample_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_FOREIGN_JPEG_SUBSAMPLE (vips_foreign_jpeg_subsample_get_type())
 GType vips_foreign_webp_preset_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_FOREIGN_WEBP_PRESET (vips_foreign_webp_preset_get_type())
 GType vips_foreign_tiff_compression_get_type (void) G_GNUC_CONST;
