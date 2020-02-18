@@ -369,11 +369,14 @@ int vips_openslideload( const char *filename, VipsImage **out, ... )
  * @VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO: default preset
  * @VIPS_FOREIGN_JPEG_SUBSAMPLE_ON: always perform subsampling
  * @VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF: never perform subsampling
+ *
+ * Set jpeg subsampling mode.
  */
 typedef enum {
-    VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO,
-    VIPS_FOREIGN_JPEG_SUBSAMPLE_ON,
-    VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF
+	VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO,
+	VIPS_FOREIGN_JPEG_SUBSAMPLE_ON,
+	VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF,
+	VIPS_FOREIGN_JPEG_SUBSAMPLE_LAST
 } VipsForeignJpegSubsample;
 
 int vips_jpegload( const char *filename, VipsImage **out, ... )

@@ -49,7 +49,7 @@ void vips__tiff_init( void );
 
 int vips__tiff_write( VipsImage *in, const char *filename, 
 	VipsForeignTiffCompression compression, int Q, 
-		VipsForeignTiffPredictor predictor,
+	VipsForeignTiffPredictor predictor,
 	char *profile,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,

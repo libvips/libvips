@@ -2,6 +2,8 @@
  *
  * 24/11/11
  * 	- wrap a class around the jpeg writer
+ * 18/2/20 Elad-Laufer
+ * 	- add subsample_mode, deprecate no_subsample
  */
 
 /*
@@ -77,12 +79,12 @@ typedef struct _VipsForeignSaveJpeg {
 	 */
 	gboolean no_subsample;
 
-    /* Select chroma subsampling mode:
-     * auto will disable subsampling for Q >= 90
-     * on will always enable subsampling
-     * off will always disable subsampling
-     */
-    VipsForeignJpegSubsample subsample_mode;
+	/* Select chroma subsampling mode:
+	 * auto will disable subsampling for Q >= 90
+	 * on will always enable subsampling
+	 * off will always disable subsampling
+	 */
+	VipsForeignJpegSubsample subsample_mode;
 
 	/* Apply trellis quantisation to each 8x8 block.
 	 */
@@ -113,26 +115,28 @@ G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveJpeg, vips_foreign_save_jpeg,
 /* Type promotion for save ... just always go to uchar.
  */
 static int bandfmt_jpeg[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
+     /* UC  C   US  S   UI  I   F   X   D   DX */
+	UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
 };
 
 static int
 vips_foreign_save_jpeg_build( VipsObject *object )
 {
-    VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
+	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 
-    if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_parent_class )->
-        build( object ) )
-        return( -1 );
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_jpeg_parent_class )->
+		build( object ) )
+		return( -1 );
 
-    /* no_subsample is deprecated, but we retain backwards compatibility
-     * new code should use subsample_mode
-     */
-    if( vips_object_argument_isset(object, "no_subsample") )
-        jpeg->subsample_mode = jpeg->no_subsample ? VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF : VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO;
+	/* no_subsample is deprecated, but we retain backwards compatibility
+	 * new code should use subsample_mode
+	 */
+	if( vips_object_argument_isset( object, "no_subsample" ) )
+		jpeg->subsample_mode = jpeg->no_subsample ? 
+			VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF : 
+			VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO;
 
-    return( 0 );
+	return( 0 );
 }
 
 static void
@@ -148,7 +152,7 @@ vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 
 	object_class->nickname = "jpegsave_base";
 	object_class->description = _( "save jpeg" );
-    object_class->build = vips_foreign_save_jpeg_build;
+	object_class->build = vips_foreign_save_jpeg_build;
 
 	foreign_class->suffs = vips__jpeg_suffs;
 
@@ -220,19 +224,20 @@ vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveJpeg, quant_table ),
 		0, 8, 0 );
 
-    VIPS_ARG_ENUM( class, "subsample_mode", 19,
-            _( "Subsample mode" ),
-            _( "Select chroma subsample operation mode" ),
-            VIPS_ARGUMENT_OPTIONAL_INPUT,
-            G_STRUCT_OFFSET( VipsForeignSaveJpeg, subsample_mode ),
-            VIPS_TYPE_FOREIGN_JPEG_SUBSAMPLE,
-            VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO );
+	VIPS_ARG_ENUM( class, "subsample_mode", 19,
+		_( "Subsample mode" ),
+		_( "Select chroma subsample operation mode" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveJpeg, subsample_mode ),
+		VIPS_TYPE_FOREIGN_JPEG_SUBSAMPLE,
+		VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO );
 }
 
 static void
 vips_foreign_save_jpeg_init( VipsForeignSaveJpeg *jpeg )
 {
 	jpeg->Q = 75;
+	jpeg->subsample_mode = VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO;
 }
 
 typedef struct _VipsForeignSaveJpegTarget {
@@ -524,7 +529,7 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
  * * @interlace: %gboolean, write an interlaced (progressive) jpeg
  * * @strip: %gboolean, remove all metadata from image
- * * @no_subsample: %gboolean, disable chroma subsampling
+ * * @subsample_mode: #VipsForeignJpegSubsample, chroma subsampling mode
  * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
@@ -550,10 +555,10 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * conection, but need much more memory to encode and decode. 
  *
  * If @strip is set, no EXIF data, IPTC data, ICC profile or XMP metadata is 
- * written into the output file. 
+ * written into the output file.
  *
- * If @no_subsample is set, chrominance subsampling is disabled. This will 
- * improve quality at the cost of larger file size. Useful for high Q factors. 
+ * Chroma subsampling is normally automatically disabled for Q > 90. You can
+ * force the subsampling mode with @@subsample_mode.
  *
  * If @trellis_quant is set and the version of libjpeg supports it
  * (e.g. mozjpeg >= 3.0), apply trellis quantisation to each 8x8 block.
@@ -640,7 +645,7 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
  * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
  * * @interlace: %gboolean, write an interlaced (progressive) jpeg
  * * @strip: %gboolean, remove all metadata from image
- * * @no_subsample: %gboolean, disable chroma subsampling
+ * * @subsample_mode: #VipsForeignJpegSubsample, chroma subsampling mode
  * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
@@ -679,7 +684,7 @@ vips_jpegsave_target( VipsImage *in, VipsTarget *target, ... )
  * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
  * * @interlace: %gboolean, write an interlaced (progressive) jpeg
  * * @strip: %gboolean, remove all metadata from image
- * * @no_subsample: %gboolean, disable chroma subsampling
+ * * @subsample_mode: #VipsForeignJpegSubsample, chroma subsampling mode
  * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
@@ -735,7 +740,7 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
  * * @interlace: %gboolean, write an interlaced (progressive) jpeg
  * * @strip: %gboolean, remove all metadata from image
- * * @no_subsample: %gboolean, disable chroma subsampling
+ * * @subsample_mode: #VipsForeignJpegSubsample, chroma subsampling mode
  * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
