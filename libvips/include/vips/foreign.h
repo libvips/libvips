@@ -364,6 +364,18 @@ int vips_vipssave( VipsImage *in, const char *filename, ... )
 int vips_openslideload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 
+/**
+ * VipsForeignJpegSubsample:
+ * @VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO: default preset
+ * @VIPS_FOREIGN_JPEG_SUBSAMPLE_ON: always perform subsampling
+ * @VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF: never perform subsampling
+ */
+typedef enum {
+    VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO,
+    VIPS_FOREIGN_JPEG_SUBSAMPLE_ON,
+    VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF
+} VipsForeignJpegSubsample;
+
 int vips_jpegload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )

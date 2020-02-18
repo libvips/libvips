@@ -479,8 +479,9 @@ write_jpeg_block( VipsRegion *region, VipsRect *area, void *a )
 static int
 write_vips( Write *write, int qfac, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip, 
-	gboolean no_subsample, gboolean trellis_quant,
-	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table )
+	gboolean trellis_quant, gboolean overshoot_deringing,
+	gboolean optimize_scans, int quant_table,
+    VipsForeignJpegSubsample subsample_mode)
 {
 	VipsImage *in;
 	J_COLOR_SPACE space;
@@ -627,17 +628,24 @@ write_vips( Write *write, int qfac, const char *profile,
 	if( progressive ) 
 		jpeg_simple_progression( &write->cinfo ); 
 
-	/* Turn off chroma subsampling. Follow IM and do it automatically for
-	 * high Q. 
-	 */
-	if( no_subsample ||
-		qfac >= 90 ) { 
-		int i;
-
-		for( i = 0; i < in->Bands; i++ ) { 
-			write->cinfo.comp_info[i].h_samp_factor = 1;
-			write->cinfo.comp_info[i].v_samp_factor = 1;
-		}
+	switch ( subsample_mode ) {
+    case VIPS_FOREIGN_JPEG_SUBSAMPLE_ON:
+            break;
+    case VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO:
+            /* Turn off chroma subsampling. Follow IM and do it automatically for
+             * high Q.
+             */
+            if( qfac < 90 )
+                break;
+    case VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF:
+    default:
+        {
+            int i;
+            for ( i = 0; i < in->Bands; i++ ) {
+                write->cinfo.comp_info[i].h_samp_factor = 1;
+                write->cinfo.comp_info[i].v_samp_factor = 1;
+            }
+        }
 	}
 
 	/* Don't write the APP0 JFIF headers if we are stripping.
@@ -774,8 +782,9 @@ int
 vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive,
-	gboolean strip, gboolean no_subsample, gboolean trellis_quant,
-	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table )
+	gboolean strip, gboolean trellis_quant,
+    gboolean overshoot_deringing, gboolean optimize_scans,
+    int quant_table, VipsForeignJpegSubsample subsample_mode)
 {
 	Write *write;
 
@@ -800,9 +809,9 @@ vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	/* Convert! Write errors come back here as an error return.
 	 */
 	if( write_vips( write, 
-		Q, profile, optimize_coding, progressive, strip, no_subsample,
+		Q, profile, optimize_coding, progressive, strip,
 		trellis_quant, overshoot_deringing, optimize_scans, 
-		quant_table ) ) {
+		quant_table, subsample_mode ) ) {
 		write_destroy( write );
 		return( -1 );
 	}
