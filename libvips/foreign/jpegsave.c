@@ -166,7 +166,7 @@ vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 	VIPS_ARG_BOOL( class, "no_subsample", 14,
 		_( "No subsample" ),
 		_( "Disable chroma subsample" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignSaveJpeg, no_subsample ),
 		FALSE );
 

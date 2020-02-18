@@ -628,20 +628,20 @@ write_vips( Write *write, int qfac, const char *profile,
 	if( progressive ) 
 		jpeg_simple_progression( &write->cinfo ); 
 
-	switch (subsample_mode) {
-        case VIPS_FOREIGN_JPEG_SUBSAMPLE_ON:
+	switch ( subsample_mode ) {
+    case VIPS_FOREIGN_JPEG_SUBSAMPLE_ON:
             break;
-        case VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO:
+    case VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO:
             /* Turn off chroma subsampling. Follow IM and do it automatically for
-            * high Q.
-            */
-            if( qfac < 90 ) {
+             * high Q.
+             */
+            if( qfac < 90 )
                 break;
-            }
-        case VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF:
-        default: {
+    case VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF:
+    default:
+        {
             int i;
-            for (i = 0; i < in->Bands; i++) {
+            for ( i = 0; i < in->Bands; i++ ) {
                 write->cinfo.comp_info[i].h_samp_factor = 1;
                 write->cinfo.comp_info[i].v_samp_factor = 1;
             }
