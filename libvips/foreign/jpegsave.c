@@ -73,12 +73,15 @@ typedef struct _VipsForeignSaveJpeg {
 	 */
 	gboolean interlace;
 
-	/* Disable chroma subsampling. 
+	/* Deprecated: Disable chroma subsampling. Use subsample_mode instead.
 	 */
 	gboolean no_subsample;
 
-    /* Force chroma subsampling, if Q >= 90 then subsampling is disabled, use this flag to force it
-    */
+    /* Select chroma subsampling mode:
+     * auto will disable subsampling for Q >= 90
+     * on will always enable subsampling
+     * off will always disable subsampling
+     */
     VipsForeignJpegSubsample subsample_mode;
 
 	/* Apply trellis quantisation to each 8x8 block.
