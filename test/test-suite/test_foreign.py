@@ -261,9 +261,11 @@ class TestForeign:
         # higher Q should mean a bigger buffer
         q10 = im.jpegsave_buffer(Q=10)
         q10_subsample_off = im.jpegsave_buffer(Q=10, subsample_mode=2)
+        q10_subsample_no = im.jpegsave_buffer(Q=10, no_subsample=1)
         q90 = im.jpegsave_buffer(Q=90)
         assert len(q90) > len(q10)
         assert len(q10_subsample_off) > len(q10)
+        assert len(q10_subsample_off) == len(q10_subsample_no)
 
         # force subsampling should result in smaller buffer
         q90_subsample_on = im.jpegsave_buffer(Q=90, subsample_mode=1)
