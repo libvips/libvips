@@ -258,18 +258,26 @@ class TestForeign:
     def test_jpegsave(self):
         im = pyvips.Image.new_from_file(JPEG_FILE)
 
-        # higher Q should mean a bigger buffer
         q10 = im.jpegsave_buffer(Q=10)
+        q10_subsample_auto = im.jpegsave_buffer(Q=10, subsample_mode="auto")
+        q10_subsample_on = im.jpegsave_buffer(Q=10, subsample_mode="on")
         q10_subsample_off = im.jpegsave_buffer(Q=10, subsample_mode="off")
+        
         q90 = im.jpegsave_buffer(Q=90)
-        assert len(q90) > len(q10)
-        assert len(q10_subsample_off) > len(q10)
-
-        # force subsampling should result in smaller buffer
-        q90_subsample_on = im.jpegsave_buffer(Q=90, subsample_mode="on")
         q90_subsample_auto = im.jpegsave_buffer(Q=90, subsample_mode="auto")
-        assert len(q90) > len(q90_subsample_on)
-        assert len(q90) == len(q90_subsample_auto)
+        q90_subsample_on = im.jpegsave_buffer(Q=90, subsample_mode="on")
+        q90_subsample_off = im.jpegsave_buffer(Q=90, subsample_mode="off")
+
+        # higher Q should mean a bigger buffer
+        assert len(q90) > len(q10)
+        
+        assert len(q10_subsample_auto) == len(q10) 
+        assert len(q10_subsample_on) == len(q10_subsample_auto)
+        assert len(q10_subsample_off) > len(q10)    
+        
+        assert len(q90_subsample_auto) == len(q90) 
+        assert len(q90_subsample_on) < len(q90) 
+        assert len(q90_subsample_off) == len(q90_subsample_auto)
 
     @skip_if_no("jpegload")
     def test_truncated(self):

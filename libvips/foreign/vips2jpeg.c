@@ -782,9 +782,9 @@ int
 vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	int Q, const char *profile, 
 	gboolean optimize_coding, gboolean progressive,
-	gboolean strip, gboolean no_subsample, gboolean trellis_quant,
-	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table,
-	VipsForeignJpegSubsample subsample_mode)
+	gboolean strip, gboolean trellis_quant,
+    gboolean overshoot_deringing, gboolean optimize_scans,
+    int quant_table, VipsForeignJpegSubsample subsample_mode)
 {
 	Write *write;
 
@@ -805,12 +805,6 @@ vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	/* Attach output.
 	 */
         target_dest( &write->cinfo, target );
-
-    /* Retain old behavior for now
-     */
-    if( no_subsample ) {
-        subsample_mode = VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF;
-    }
 
 	/* Convert! Write errors come back here as an error return.
 	 */
