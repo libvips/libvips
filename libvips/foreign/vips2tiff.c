@@ -716,7 +716,7 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 			 */
 			for (i = 0; i < alpha_bands; i++)
 			{
-				vips_snprintf(ink_tag, 128, VIPS_META_INK_TYPE, colour_bands + i);
+				/*vips_snprintf(ink_tag, 128, VIPS_META_INK_TYPE, colour_bands + i);
 				if (vips_image_get_int(wtiff->im, ink_tag, &ink_type) == 0)
 				{
 					switch (ink_type)
@@ -731,9 +731,9 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 							v[i] = EXTRASAMPLE_UNSPECIFIED; break;
 					}
 				}
-				else {
+				else {*/
 					v[i] = EXTRASAMPLE_UNASSALPHA;
-				}
+				//}
 			}
 			TIFFSetField( tif, 
 				TIFFTAG_EXTRASAMPLES, alpha_bands, v );
