@@ -635,7 +635,7 @@ write_vips( Write *write, int qfac, const char *profile,
             /* Turn off chroma subsampling. Follow IM and do it automatically for
             * high Q.
             */
-            if(qfac < 90) {
+            if( qfac < 90 ) {
                 break;
             }
         case VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF:
@@ -808,7 +808,7 @@ vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 
     /* Retain old behavior for now
      */
-    if (no_subsample) {
+    if( no_subsample ) {
         subsample_mode = VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF;
     }
 
