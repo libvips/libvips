@@ -267,7 +267,6 @@ vips_foreign_save_jpeg_target_class_init(
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignSaveJpegTarget, target ),
 		VIPS_TYPE_TARGET );
-
 }
 
 static void

@@ -479,8 +479,8 @@ write_jpeg_block( VipsRegion *region, VipsRect *area, void *a )
 static int
 write_vips( Write *write, int qfac, const char *profile, 
 	gboolean optimize_coding, gboolean progressive, gboolean strip, 
-	gboolean no_subsample, gboolean trellis_quant,
-	gboolean overshoot_deringing, gboolean optimize_scans, int quant_table,
+	gboolean trellis_quant, gboolean overshoot_deringing,
+	gboolean optimize_scans, int quant_table,
     VipsForeignJpegSubsample subsample_mode)
 {
 	VipsImage *in;
@@ -635,8 +635,7 @@ write_vips( Write *write, int qfac, const char *profile,
             /* Turn off chroma subsampling. Follow IM and do it automatically for
             * high Q.
             */
-            if( !(no_subsample ||
-                qfac >= 90) ) {
+            if(qfac < 90) {
                 break;
             }
         case VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF:
@@ -807,10 +806,16 @@ vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	 */
         target_dest( &write->cinfo, target );
 
+    /* Retain old behavior for now
+     */
+    if (no_subsample) {
+        subsample_mode = VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF;
+    }
+
 	/* Convert! Write errors come back here as an error return.
 	 */
 	if( write_vips( write, 
-		Q, profile, optimize_coding, progressive, strip, no_subsample,
+		Q, profile, optimize_coding, progressive, strip,
 		trellis_quant, overshoot_deringing, optimize_scans, 
 		quant_table, subsample_mode ) ) {
 		write_destroy( write );
