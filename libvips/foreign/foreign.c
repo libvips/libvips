@@ -2034,8 +2034,10 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_png_buffer_get_type( void ); 
 	extern GType vips_foreign_save_png_target_get_type( void ); 
 
-	extern GType vips_foreign_load_csv_get_type( void ); 
-	extern GType vips_foreign_save_csv_get_type( void ); 
+	extern GType vips_foreign_load_csv_file_get_type( void ); 
+	extern GType vips_foreign_load_csv_source_get_type( void ); 
+	extern GType vips_foreign_save_csv_file_get_type( void ); 
+	extern GType vips_foreign_save_csv_target_get_type( void ); 
 
 	extern GType vips_foreign_load_matrix_get_type( void ); 
 	extern GType vips_foreign_save_matrix_get_type( void ); 
@@ -2109,8 +2111,10 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_gif_buffer_get_type( void ); 
 	extern GType vips_foreign_load_gif_source_get_type( void ); 
 
-	vips_foreign_load_csv_get_type(); 
-	vips_foreign_save_csv_get_type(); 
+	vips_foreign_load_csv_file_get_type(); 
+	vips_foreign_load_csv_source_get_type(); 
+	vips_foreign_save_csv_file_get_type(); 
+	vips_foreign_save_csv_target_get_type(); 
 	vips_foreign_load_matrix_get_type(); 
 	vips_foreign_save_matrix_get_type(); 
 	vips_foreign_print_matrix_get_type(); 

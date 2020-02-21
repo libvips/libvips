@@ -186,10 +186,11 @@ vips_foreign_save_ppm_block( VipsRegion *region, VipsRect *area, void *a )
 {
 	VipsForeignSavePpm *ppm = (VipsForeignSavePpm *) a;
 	VipsImage *image = region->im;
-	int i;
 
-	for( i = 0; i < area->height; i++ ) {
-		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + i );
+	int y;
+
+	for( y = 0; y < area->height; y++ ) {
+		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + y );
 
 		if( ppm->fn( ppm, image, p ) )
 			return( -1 );
@@ -449,7 +450,6 @@ static void
 vips_foreign_save_ppm_file_init( VipsForeignSavePpmFile *file )
 {
 }
-
 
 #endif /*HAVE_PPM*/
 

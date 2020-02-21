@@ -61,6 +61,8 @@ im_csv2vips( const char *filename, IMAGE *out )
 	char mode[FILENAME_MAX];
 	char *p, *q, *r;
 
+	VipsImage *x;
+
 	/* Parse mode string.
 	 */
 	im_filename_split( filename, name, mode );
@@ -76,9 +78,18 @@ im_csv2vips( const char *filename, IMAGE *out )
 			lines = atoi( r );
 	}
 
-	if( vips__csv_read( name, out, 
-		start_skip, lines, whitespace, separator, FALSE ) )
+	if( vips_csvload( name, &x, 
+		"skip", start_skip,
+		"lines", lines,
+		"whitespace", whitespace,
+		"separator", separator,
+		NULL ) )
 		return( -1 );
+	if( vips_image_write( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
 
 	return( 0 );
 }
