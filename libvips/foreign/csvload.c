@@ -330,7 +330,6 @@ vips_foreign_load_csv_header( VipsForeignLoad *load )
 	int ch;
 	int width;
 	int height;
-	const char *line;
 
 	/* Rewind.
 	 */
@@ -340,7 +339,7 @@ vips_foreign_load_csv_header( VipsForeignLoad *load )
 
 	/* Skip the first few lines.
 	 */
-	for( i = 0; i < csv->lines; i++ )
+	for( i = 0; i < csv->skip; i++ )
 		if( !vips_sbuf_get_line( csv->sbuf ) ) {
 			vips_error( class->nickname,
 				"%s", _( "unexpected end of file" ) );
@@ -349,22 +348,24 @@ vips_foreign_load_csv_header( VipsForeignLoad *load )
 
 	/* Parse the first line to get the number of columns.
 	 */
-	csv->colno = 0;
-	csv->lineno = csv->lines;
+	csv->colno = 1;
+	csv->lineno = csv->skip;
 	do {
 		ch = vips_foreign_load_csv_read_double( csv, &value );
 	} while( ch != '\n' &&
 		ch != EOF );
-	width = csv->colno + 1;
+	width = csv->colno;
 
 	if( !(csv->linebuf = VIPS_ARRAY( NULL, width, double )) )
 		return( -1 );
 
-	/* And fetch lines to EOF to get height.
+	/* If @lines is -1, we must scan the whole file to get the height.
 	 */
-	height = 0;
-	while( (line = vips_sbuf_get_line( csv->sbuf )) )
-	       height += 1;	
+	if( csv->lines == -1 ) 
+		for( height = 0; vips_sbuf_get_line( csv->sbuf ); height++ )
+			;
+	else 
+		height = csv->lines;
 
 	vips_image_pipelinev( load->out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 	vips_image_init_fields( load->out,
@@ -396,7 +397,7 @@ vips_foreign_load_csv_load( VipsForeignLoad *load )
 
 	/* Skip the first few lines.
 	 */
-	for( i = 0; i < csv->lines; i++ )
+	for( i = 0; i < csv->skip; i++ )
 		if( !vips_sbuf_get_line( csv->sbuf ) ) {
 			vips_error( class->nickname,
 				"%s", _( "unexpected end of file" ) );
@@ -409,9 +410,9 @@ vips_foreign_load_csv_load( VipsForeignLoad *load )
 		VIPS_FORMAT_DOUBLE, 
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
 
-	csv->lineno = csv->lines;
+	csv->lineno = csv->skip;
 	for( y = 0; y < load->real->Ysize; y++ ) {
-		csv->colno = 0;
+		csv->colno = 1;
 
 		for( x = 0; x < load->real->Xsize; x++ ) {
 			double value;
@@ -500,6 +501,7 @@ vips_foreign_load_csv_class_init( VipsForeignLoadCsvClass *class )
 static void
 vips_foreign_load_csv_init( VipsForeignLoadCsv *csv )
 {
+	csv->lines = -1;
 	csv->whitespace = g_strdup( " " );
 	csv->separator = g_strdup( ";,\t" );
 }
@@ -658,10 +660,6 @@ vips_foreign_load_csv_source_init( VipsForeignLoadCsvSource *source )
  * strings enclosed in double-quotes ("), or empty.
  * You can use a backslash (\) within the quotes to escape special characters,
  * such as quote marks.
- *
- * The reader is deliberately rather fussy: it will fail if there are any 
- * short lines, or if the file is too short. It will ignore lines that are 
- * too long.
  *
  * @skip sets the number of lines to skip at the start of the file. 
  * Default zero.
