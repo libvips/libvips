@@ -580,6 +580,62 @@ vips_foreign_load_csv_file_init( VipsForeignLoadCsvFile *file )
 {
 }
 
+typedef struct _VipsForeignLoadCsvSource {
+	VipsForeignLoadCsv parent_object;
+
+	VipsSource *source;
+
+} VipsForeignLoadCsvSource;
+
+typedef VipsForeignLoadCsvClass VipsForeignLoadCsvSourceClass;
+
+G_DEFINE_TYPE( VipsForeignLoadCsvSource, vips_foreign_load_csv_source,
+	vips_foreign_load_csv_get_type() );
+
+static int
+vips_foreign_load_csv_source_build( VipsObject *object )
+{
+	VipsForeignLoadCsvSource *source = (VipsForeignLoadCsvSource *) object;
+	VipsForeignLoadCsv *csv = (VipsForeignLoadCsv *) object;
+
+	if( csv->source ) {
+		csv->source = source->source;
+		g_object_ref( csv->source );
+	}
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_csv_source_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_load_csv_source_class_init( VipsForeignLoadCsvFileClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "csvload_source";
+	object_class->build = vips_foreign_load_csv_source_build;
+
+	VIPS_ARG_OBJECT( class, "source", 1,
+		_( "Source" ),
+		_( "Source to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadCsvSource, source ),
+		VIPS_TYPE_SOURCE );
+
+}
+
+static void
+vips_foreign_load_csv_source_init( VipsForeignLoadCsvSource *source )
+{
+}
+
 /**
  * vips_csvload:
  * @filename: file to load
@@ -638,5 +694,40 @@ vips_csvload( const char *filename, VipsImage **out, ... )
 
 	return( result );
 }
+
+/**
+ * vips_csvload_source:
+ * @source: source to load
+ * @out: (out): output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @skip: skip this many lines at start of file
+ * * @lines: read this many lines from file
+ * * @whitespace: set of whitespace characters
+ * * @separator: set of separator characters
+ * * @fail: %gboolean, fail on errors
+ *
+ * Exactly as vips_csvload(), but read from a source. 
+ *
+ * See also: vips_csvload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_csvload_source( VipsSource *source, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "csvload_source", ap, source, out ); 
+	va_end( ap );
+
+	return( result );
+}
+
+
 
 
