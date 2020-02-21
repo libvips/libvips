@@ -11,6 +11,7 @@
 - add vips_pipe_read_limit_set(), --vips-pipe-read-limit,
   VIPS_PIPE_READ_LIMIT
 - revise gifload to fix BACKGROUND and PREVIOUS dispose [alon-ne]
+- add subsample_mode, deprecate no_subsample in jpegsave [Elad-Laufer]
 
 31/1/19 started 8.9.2
 - fix a deadlock with --vips-leak [DarthSim]

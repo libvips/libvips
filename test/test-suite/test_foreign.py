@@ -255,6 +255,31 @@ class TestForeign:
             assert y.startswith("hello world")
 
     @skip_if_no("jpegload")
+    def test_jpegsave(self):
+        im = pyvips.Image.new_from_file(JPEG_FILE)
+
+        q10 = im.jpegsave_buffer(Q=10)
+        q10_subsample_auto = im.jpegsave_buffer(Q=10, subsample_mode="auto")
+        q10_subsample_on = im.jpegsave_buffer(Q=10, subsample_mode="on")
+        q10_subsample_off = im.jpegsave_buffer(Q=10, subsample_mode="off")
+        
+        q90 = im.jpegsave_buffer(Q=90)
+        q90_subsample_auto = im.jpegsave_buffer(Q=90, subsample_mode="auto")
+        q90_subsample_on = im.jpegsave_buffer(Q=90, subsample_mode="on")
+        q90_subsample_off = im.jpegsave_buffer(Q=90, subsample_mode="off")
+
+        # higher Q should mean a bigger buffer
+        assert len(q90) > len(q10)
+        
+        assert len(q10_subsample_auto) == len(q10) 
+        assert len(q10_subsample_on) == len(q10_subsample_auto)
+        assert len(q10_subsample_off) > len(q10)    
+        
+        assert len(q90_subsample_auto) == len(q90) 
+        assert len(q90_subsample_on) < len(q90) 
+        assert len(q90_subsample_off) == len(q90_subsample_auto)
+
+    @skip_if_no("jpegload")
     def test_truncated(self):
         # This should open (there's enough there for the header)
         im = pyvips.Image.new_from_file(TRUNCATED_FILE)
