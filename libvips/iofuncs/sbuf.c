@@ -115,6 +115,8 @@ vips_sbuf_new_from_source( VipsSource *source )
 {
 	VipsSbuf *sbuf;
 
+	g_assert( source );
+
 	sbuf = VIPS_SBUF( g_object_new( VIPS_TYPE_SBUF, 
 		"input", source,
 		NULL ) );
@@ -374,8 +376,7 @@ vips_sbuf_get_line( VipsSbuf *sbuf )
 	 */
 	if( write_point > 0 &&
 		sbuf->line[write_point - 1] == '\r' )
-		sbuf->line[write_point - 1] = '\0';
-
+		sbuf->line[write_point - 1] = '\0'; 
 	/* If we filled the output line without seeing \n, keep going to the
 	 * next \n.
 	 */

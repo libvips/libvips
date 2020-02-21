@@ -2,6 +2,8 @@
  *
  * 5/12/11
  * 	- from csvload.c
+ * 21/2/20
+ * 	- rewrite for new source API
  */
 
 /*
@@ -43,6 +45,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include <vips/vips.h>
 #include <vips/buf.h>
@@ -86,6 +89,10 @@ typedef struct _VipsForeignLoadCsv {
 	 * a double.
 	 */
 	char item[MAX_ITEM_SIZE];
+	
+	/* A line of pixels.
+	 */
+	double *linebuf;
 
 } VipsForeignLoadCsv;
 
@@ -94,23 +101,62 @@ typedef VipsForeignLoadClass VipsForeignLoadCsvClass;
 G_DEFINE_TYPE( VipsForeignLoadCsv, vips_foreign_load_csv, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
-static VipsForeignFlags
-vips_foreign_load_csv_get_flags_filename( const char *filename )
+static void
+vips_foreign_load_csv_dispose( GObject *gobject )
 {
+	VipsForeignLoadCsv *csv = (VipsForeignLoadCsv *) gobject;
+
+	VIPS_UNREF( csv->source );
+	VIPS_UNREF( csv->sbuf );
+	VIPS_FREE( csv->linebuf );
+
+	G_OBJECT_CLASS( vips_foreign_load_csv_parent_class )->
+		dispose( gobject );
+}
+
+static int
+vips_foreign_load_csv_build( VipsObject *object )
+{
+	VipsForeignLoadCsv *csv = (VipsForeignLoadCsv *) object;
+
+	int i;
+	const char *p;
+
+	if( !(csv->sbuf = vips_sbuf_new_from_source( csv->source )) )
+		return( -1 );
+
+	/* Make our char maps. 
+	 */
+	for( i = 0; i < 256; i++ ) {
+		csv->whitemap[i] = 0;
+		csv->sepmap[i] = 0;
+	}
+	for( p = csv->whitespace; *p; p++ )
+		csv->whitemap[(int) *p] = 1;
+	for( p = csv->separator; *p; p++ )
+		csv->sepmap[(int) *p] = 1;
+
+	/* \n must not be in the maps or we'll get very confused.
+	 */
+	csv->sepmap[(int) '\n'] = 0;
+	csv->whitemap[(int) '\n'] = 0;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_csv_parent_class )->
+		build( object ) )
+		return( -1 );
+
 	return( 0 );
 }
 
 static VipsForeignFlags
 vips_foreign_load_csv_get_flags( VipsForeignLoad *load )
 {
-	VipsForeignLoadCsv *csv = (VipsForeignLoadCsv *) load;
-
-	return( vips_foreign_load_csv_get_flags_filename( csv->filename ) );
+	return( 0 );
 }
 
 /* Skip to the start of the next block of non-whitespace.
  *
- * FIXME ... we should have something to stop \n appearing in whitemap
+ * Result: !white, \n, EOF
  */
 static int 
 vips_foreign_load_csv_skip_white( VipsForeignLoadCsv *csv )
@@ -133,6 +179,8 @@ vips_foreign_load_csv_skip_white( VipsForeignLoadCsv *csv )
  *
  * If there is no matching close quotes before the end of the line, don't
  * skip to the next line.
+ *
+ * Result: ", \n, EOF
  */
 static int 
 vips_foreign_load_csv_skip_quoted( VipsForeignLoadCsv *csv )
@@ -221,14 +269,14 @@ vips_foreign_load_csv_fetch_item( VipsForeignLoadCsv *csv )
  * the anything in quotes can contain " escaped with \, and can contain
  * separator and whitespace characters.
  *
- * Return the char that caused failure on fail (EOF or \n).
+ * Result: sep, \n, EOF
  */
 static int
 vips_foreign_load_csv_read_double( VipsForeignLoadCsv *csv, double *out )
 {
 	int ch;
 
-	/* The fscanf() may change this ... but all other cases need a zero.
+	/* The strtod() may change this ... but all other cases need a zero.
 	 */
 	*out = 0;
 
@@ -239,51 +287,93 @@ vips_foreign_load_csv_read_double( VipsForeignLoadCsv *csv, double *out )
 
 	if( ch == '"' ) {
 		(void) VIPS_SBUF_GETC( csv->sbuf );
-		(void) vips_foreign_load_csv_skip_quoted( fp );
+		ch = vips_foreign_load_csv_skip_quoted( csv );
 	}
 	else if( !csv->sepmap[ch] ) {
+		const char *item;
 
-		\\
-			
-			g_ascii_strtod( 
-		fscanf( fp, "%lf", out ) != 1 ) {
-		/* Only a warning, since (for example) exported spreadsheets
-		 * will often have text or date fields.
-		 */
-		g_warning( _( "error parsing number, line %d, column %d" ),
-			lineno, colno );
-		if( fail )
-			return( EOF ); 
-
-		/* Step over the bad data to the next separator.
-		 */
-		(void) skip_to_sep( fp, sepmap );
+		item = vips_foreign_load_csv_fetch_item( csv );
+		if( !item )
+			return( EOF );
+		*out = g_ascii_strtod( item, NULL );
+		if( errno ) 
+			/* Only a warning, since (for example) exported 
+			 * spreadsheets will often have text or date fields.
+			 */
+			g_warning( _( "bad number, line %d, column %d" ),
+				csv->lineno, csv->colno );
 	}
 
-	/* Don't need to check result, we have read a field successfully.
-	 */
-	ch = skip_white( fp, whitemap );
+	ch = vips_foreign_load_csv_skip_white( csv );
+	if( ch == EOF || 
+		ch == '\n' ) 
+		return( ch );
 
 	/* If it's a separator, we have to step over it. 
 	 */
-	if( ch != EOF && 
-		sepmap[ch] ) 
-		(void) vips__fgetc( fp );
+	if( csv->sepmap[ch] ) {
+		(void) VIPS_SBUF_GETC( csv->sbuf ); 
+		csv->colno += 1;
+	}
 
-	return( 0 );
+	return( ch );
 }
 
 static int
 vips_foreign_load_csv_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadCsv *csv = (VipsForeignLoadCsv *) load;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
 
-	if( vips__csv_read_header( csv->filename, load->out, 
-		csv->skip, csv->lines, csv->whitespace, csv->separator,
-		load->fail ) )
+	int i;
+	double value;
+	int ch;
+	int width;
+	int height;
+	const char *line;
+
+	/* Rewind.
+	 */
+	vips_sbuf_unbuffer( csv->sbuf );
+	if( vips_source_rewind( csv->source ) )
 		return( -1 );
 
-	VIPS_SETSTR( load->out->filename, csv->filename );
+	/* Skip the first few lines.
+	 */
+	for( i = 0; i < csv->lines; i++ )
+		if( !vips_sbuf_get_line( csv->sbuf ) ) {
+			vips_error( class->nickname,
+				"%s", _( "unexpected end of file" ) );
+			return( -1 );
+		}
+
+	/* Parse the first line to get the number of columns.
+	 */
+	csv->colno = 0;
+	csv->lineno = csv->lines;
+	do {
+		ch = vips_foreign_load_csv_read_double( csv, &value );
+	} while( ch != '\n' &&
+		ch != EOF );
+	width = csv->colno + 1;
+
+	if( !(csv->linebuf = VIPS_ARRAY( NULL, width, double )) )
+		return( -1 );
+
+	/* And fetch lines to EOF to get height.
+	 */
+	height = 0;
+	while( (line = vips_sbuf_get_line( csv->sbuf )) )
+	       height += 1;	
+
+	vips_image_pipelinev( load->out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+	vips_image_init_fields( load->out,
+		width, height, 1, 
+		VIPS_FORMAT_DOUBLE, 
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
+
+	VIPS_SETSTR( load->out->filename, 
+		vips_connection_filename( VIPS_CONNECTION( csv->source ) ) );
 
 	return( 0 );
 }
@@ -292,11 +382,69 @@ static int
 vips_foreign_load_csv_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadCsv *csv = (VipsForeignLoadCsv *) load;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
 
-	if( vips__csv_read( csv->filename, load->real, 
-		csv->skip, csv->lines, csv->whitespace, csv->separator,
-		load->fail ) )
+	int i;
+	int x, y;
+	int ch;
+
+	/* Rewind.
+	 */
+	vips_sbuf_unbuffer( csv->sbuf );
+	if( vips_source_rewind( csv->source ) )
 		return( -1 );
+
+	/* Skip the first few lines.
+	 */
+	for( i = 0; i < csv->lines; i++ )
+		if( !vips_sbuf_get_line( csv->sbuf ) ) {
+			vips_error( class->nickname,
+				"%s", _( "unexpected end of file" ) );
+			return( -1 );
+		}
+
+	vips_image_pipelinev( load->real, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+	vips_image_init_fields( load->real,
+		load->out->Xsize, load->out->Ysize, 1, 
+		VIPS_FORMAT_DOUBLE, 
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
+
+	csv->lineno = csv->lines;
+	for( y = 0; y < load->real->Ysize; y++ ) {
+		csv->colno = 0;
+
+		for( x = 0; x < load->real->Xsize; x++ ) {
+			double value;
+
+			ch = vips_foreign_load_csv_read_double( csv, &value );
+			if( ch == EOF ) {
+				vips_error( class->nickname,
+					"%s", _( "unexpected end of file" ) );
+				return( -1 );
+			}
+			if( ch == '\n' &&
+				x != load->real->Xsize - 1 ) {
+				vips_error( class->nickname,
+					_( "line %d has only %d columns" ),
+					csv->lineno, csv->colno );
+				if( load->fail )
+					return( -1 );
+			}
+
+			csv->linebuf[x] = value;
+		}
+
+		/* Step over the line separator.
+		 */
+		if( ch == '\n' ) {
+			(void) VIPS_SBUF_GETC( csv->sbuf ); 
+			csv->lineno += 1;
+		}
+
+		if( vips_image_write_line( load->real, y, 
+			(VipsPel *) csv->linebuf ) )
+			return( -1 );
+	}
 
 	return( 0 );
 }
@@ -306,29 +454,19 @@ vips_foreign_load_csv_class_init( VipsForeignLoadCsvClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
+	gobject_class->dispose = vips_foreign_load_csv_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "csvload";
-	object_class->description = _( "load csv from file" );
+	object_class->nickname = "csvload_base";
+	object_class->description = _( "load csv" );
+	object_class->build = vips_foreign_load_csv_build;
 
-	foreign_class->suffs = vips__foreign_csv_suffs;
-
-	load_class->get_flags_filename = 
-		vips_foreign_load_csv_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_csv_get_flags;
 	load_class->header = vips_foreign_load_csv_header;
 	load_class->load = vips_foreign_load_csv_load;
-
-	VIPS_ARG_STRING( class, "filename", 1, 
-		_( "Filename" ),
-		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadCsv, filename ),
-		NULL );
 
 	VIPS_ARG_INT( class, "skip", 20, 
 		_( "Skip" ), 
@@ -362,9 +500,84 @@ vips_foreign_load_csv_class_init( VipsForeignLoadCsvClass *class )
 static void
 vips_foreign_load_csv_init( VipsForeignLoadCsv *csv )
 {
-	csv->lines = -1;
 	csv->whitespace = g_strdup( " " );
 	csv->separator = g_strdup( ";,\t" );
+}
+
+typedef struct _VipsForeignLoadCsvFile {
+	VipsForeignLoadCsv parent_object;
+
+	/* Filename for load.
+	 */
+	char *filename;
+
+} VipsForeignLoadCsvFile;
+
+typedef VipsForeignLoadCsvClass VipsForeignLoadCsvFileClass;
+
+G_DEFINE_TYPE( VipsForeignLoadCsvFile, vips_foreign_load_csv_file,
+	vips_foreign_load_csv_get_type() );
+
+static VipsForeignFlags
+vips_foreign_load_csv_file_get_flags_filename( const char *filename )
+{
+	return( 0 );
+}
+
+static int
+vips_foreign_load_csv_file_build( VipsObject *object )
+{
+	VipsForeignLoadCsvFile *file = (VipsForeignLoadCsvFile *) object;
+	VipsForeignLoadCsv *csv = (VipsForeignLoadCsv *) object;
+
+	if( file->filename ) 
+		if( !(csv->source = 
+			vips_source_new_from_file( file->filename )) )
+			return( -1 );
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_csv_file_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static const char *vips_foreign_load_csv_suffs[] = {
+	".csv",
+	NULL
+};
+
+static void
+vips_foreign_load_csv_file_class_init( VipsForeignLoadCsvFileClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "csvload";
+	object_class->build = vips_foreign_load_csv_file_build;
+
+	foreign_class->suffs = vips_foreign_load_csv_suffs;
+
+	load_class->get_flags_filename = 
+		vips_foreign_load_csv_file_get_flags_filename;
+
+	VIPS_ARG_STRING( class, "filename", 1,
+		_( "Filename" ),
+		_( "Filename to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadCsvFile, filename ),
+		NULL );
+
+}
+
+static void
+vips_foreign_load_csv_file_init( VipsForeignLoadCsvFile *file )
+{
 }
 
 /**
