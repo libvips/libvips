@@ -346,6 +346,8 @@ const char *vips__windows_prefix( void );
 
 char *vips__get_iso8601( void );
 
+int vips_strtod( const char *str, double *out );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

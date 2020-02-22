@@ -533,6 +533,8 @@ int vips_csvsave_target( VipsImage *in, VipsTarget *target, ... )
 
 int vips_matrixload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_matrixload_source( VipsSource *source, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_matrixsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
 int vips_matrixprint( VipsImage *in, ... )

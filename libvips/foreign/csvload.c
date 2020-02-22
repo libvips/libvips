@@ -89,7 +89,7 @@ typedef struct _VipsForeignLoadCsv {
 	 * a double.
 	 */
 	char item[MAX_ITEM_SIZE];
-	
+
 	/* A line of pixels.
 	 */
 	double *linebuf;
@@ -295,8 +295,8 @@ vips_foreign_load_csv_read_double( VipsForeignLoadCsv *csv, double *out )
 		item = vips_foreign_load_csv_fetch_item( csv );
 		if( !item )
 			return( EOF );
-		*out = g_ascii_strtod( item, NULL );
-		if( errno ) 
+
+		if( vips_strtod( item, out ) ) 
 			/* Only a warning, since (for example) exported 
 			 * spreadsheets will often have text or date fields.
 			 */

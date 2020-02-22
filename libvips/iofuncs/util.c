@@ -2066,3 +2066,33 @@ vips__get_iso8601( void )
 
 	return( date );
 }
+
+/* Convert a string to a double in the ASCII locale (ie. decimal point is
+ * ".").
+ */
+int
+vips_strtod( const char *str, double *out )
+{
+	const char *p;
+
+	*out = 0;
+
+	/* The str we fetched must contain at least 1 digit. This 
+	 * helps stop us trying to convert "MATLAB" (for example) to 
+	 * a number and getting zero.
+	 */
+	for( p = str; *p; p++ )
+		if( isdigit( *p ) )
+			break;
+	if( !*p ) 
+		return( -1 );
+
+	/* This will fail for out of range numbers, like 1e343434, but
+	 * is quite happy with eg. "banana".
+	 */
+	*out = g_ascii_strtod( str, NULL );
+	if( errno ) 
+		return( -1 );
+
+	return( 0 );
+}
