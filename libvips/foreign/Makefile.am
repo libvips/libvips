@@ -18,7 +18,6 @@ libforeign_la_SOURCES = \
 	radsave.c \
 	ppmload.c \
 	ppmsave.c \
-	csv.c \
 	csvload.c \
 	csvsave.c \
 	matrixload.c \
