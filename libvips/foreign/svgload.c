@@ -259,6 +259,8 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
 	double scale;
 	double res;
 
+	char ink_tag[128];
+
 	/* Calculate dimensions at default dpi/scale.
 	 */
 	rsvg_handle_set_dpi( svg->page, 72.0 );
@@ -300,9 +302,18 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
 		4, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, res, res );
 
+	vips_snprintf(ink_tag, 128, VIPS_META_INK_TYPE, 0);
+	vips_image_set_int(out, ink_tag, VIPS_INK_COLOUR);
+	vips_snprintf(ink_tag, 128, VIPS_META_INK_TYPE, 1);
+	vips_image_set_int(out, ink_tag, VIPS_INK_COLOUR);
+	vips_snprintf(ink_tag, 128, VIPS_META_INK_TYPE, 2);
+	vips_image_set_int(out, ink_tag, VIPS_INK_COLOUR);
+	vips_snprintf(ink_tag, 128, VIPS_META_INK_TYPE, 3);
+	vips_image_set_int(out, ink_tag, VIPS_INK_TRANSPARENCY);
+
 	/* We render to a linecache, so fat strips work well.
 	 */
-        vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
+    vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 
 }
 

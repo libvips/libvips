@@ -716,24 +716,12 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 			 */
 			for (i = 0; i < alpha_bands; i++)
 			{
-				/*vips_snprintf(ink_tag, 128, VIPS_META_INK_TYPE, colour_bands + i);
-				if (vips_image_get_int(wtiff->im, ink_tag, &ink_type) == 0)
-				{
-					switch (ink_type)
-					{
-						case VIPS_INK_UNSPECIFIED :
-							v[i] = EXTRASAMPLE_UNSPECIFIED; break;
-						case VIPS_INK_TRANSPARENCY:
-							v[i] = EXTRASAMPLE_ASSOCALPHA; break;
-						case VIPS_INK_ALPHA:
-							v[i] = EXTRASAMPLE_UNASSALPHA; break;
-						default:
-							v[i] = EXTRASAMPLE_UNSPECIFIED; break;
-					}
-				}
-				else {*/
+				vips_snprintf(ink_tag, 128, VIPS_META_INK_TYPE, colour_bands + i);
+				if (vips_image_get_int(wtiff->im, ink_tag, &ink_type) == 0
+										&& ink_type == VIPS_INK_TRANSPARENCY)
 					v[i] = EXTRASAMPLE_UNASSALPHA;
-				//}
+				else
+					v[i] = EXTRASAMPLE_UNSPECIFIED;
 			}
 			TIFFSetField( tif, 
 				TIFFTAG_EXTRASAMPLES, alpha_bands, v );
