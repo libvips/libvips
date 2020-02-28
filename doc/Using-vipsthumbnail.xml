@@ -21,7 +21,7 @@ $filename = &quot;image.jpg&quot;;
 $image = Vips\Image::thumbnail($filename, 200, [&quot;height&quot; =&gt; 200]);
 $image-&gt;writeToFile(&quot;my-thumbnail.jpg&quot;);
 </programlisting>
-<refsect3 id="libvips-options">
+<section xml:id="libvips-options">
   <title>libvips options</title>
   <para>
     <literal>vipsthumbnail</literal> supports the usual range of vips command-line options. A few of them are useful:
@@ -38,8 +38,8 @@ $image-&gt;writeToFile(&quot;my-thumbnail.jpg&quot;);
   <para>
     <literal>--vips-info</literal> shows a higher level view of the operations that <literal>vipsthumbnail</literal> is running. 
   </para>
-</refsect3>
-<refsect3 id="looping">
+</section>
+<section xml:id="looping">
   <title>Looping</title>
   <para>
     <literal>vipsthumbnail</literal> can process many images in one command. For example:
@@ -56,8 +56,8 @@ $ vipsthumbnail *.jpg
   <programlisting>
 $ parallel vipsthumbnail ::: *.jpg
 </programlisting>
-</refsect3>
-<refsect3 id="thumbnail-size">
+</section>
+<section xml:id="thumbnail-size">
   <title>Thumbnail size</title>
   <para>
     You can set the bounding box of the generated thumbnail with the <literal>--size</literal> option. For example:
@@ -80,8 +80,8 @@ $ vipsthumbnail shark.jpg --size 200x
   <para>
     You can append <literal>!</literal> to force a resize to the exact target size, breaking the aspect ratio.
   </para>
-</refsect3>
-<refsect3 id="cropping">
+</section>
+<section xml:id="cropping">
   <title>Cropping</title>
   <para>
     <literal>vipsthumbnail</literal> normally shrinks images to fit within the box set by <literal>--size</literal>. You can use the <literal>--smartcrop</literal> option to crop to fill the box instead. Excess pixels are trimmed away using the strategy you set. For example:
@@ -92,30 +92,28 @@ $ vipsthumbnail owl.jpg --smartcrop attention -s 128
   <para>
     Where <literal>owl.jpg</literal> is an off-centre composition:
   </para>
-  <figure>
-    <mediaobject>
+  <para>
+    <inlinemediaobject>
       <imageobject>
         <imagedata fileref="owl.jpg" />
       </imageobject>
-      <textobject><phrase></phrase></textobject>
-    </mediaobject>
-  </figure>
+    </inlinemediaobject>
+  </para>
   <para>
     Gives this result:
   </para>
-  <figure>
-    <mediaobject>
+  <para>
+    <inlinemediaobject>
       <imageobject>
         <imagedata fileref="tn_owl.jpg" />
       </imageobject>
-      <textobject><phrase></phrase></textobject>
-    </mediaobject>
-  </figure>
+    </inlinemediaobject>
+  </para>
   <para>
     First it shrinks the image to get the vertical axis to 128 pixels, then crops down to 128 pixels across using the <literal>attention</literal> strategy. This one searches the image for features which might catch a human eye, see <literal>vips_smartcrop()</literal> for details.
   </para>
-</refsect3>
-<refsect3 id="linear-light">
+</section>
+<section xml:id="linear-light">
   <title>Linear light</title>
   <para>
     Shrinking images involves combining many pixels into one. Arithmetic averaging really ought to be in terms of the number of photons, but (for historical reasons) the values stored in image files are usually related to the voltage that should be applied to the electron gun in a CRT display.
@@ -142,8 +140,8 @@ real    0m4.660s
 user    0m4.640s
 sys 0m0.016s
 </programlisting>
-</refsect3>
-<refsect3 id="output-directory">
+</section>
+<section xml:id="output-directory">
   <title>Output directory</title>
   <para>
     You set the thumbnail write parameters with the <literal>-o</literal> option. This is a pattern which the input filename is pasted into to produce the output filename. For example:
@@ -172,8 +170,8 @@ $ vipsthumbnail fred.jpg ../jim.tif -o mythumbs/tn_%s.jpg
   <para>
     Now both input files will have thumbnails written to a subdirectory of their current directory.
   </para>
-</refsect3>
-<refsect3 id="output-format-and-options">
+</section>
+<section xml:id="output-format-and-options">
   <title>Output format and options</title>
   <para>
     You can use <literal>-o</literal> to specify the thumbnail image format too. For example: 
@@ -247,8 +245,8 @@ $ vipsthumbnail 42-32157534.jpg -o x.jpg[optimize_coding,strip]
 $ ls -l x.jpg
 -rw-r–r– 1 john john 3600 Nov 12 21:27 x.jpg
 </programlisting>
-</refsect3>
-<refsect3 id="colour-management">
+</section>
+<section xml:id="colour-management">
   <title>Colour management</title>
   <para>
     <literal>vipsthumbnail</literal> will optionally put images through LittleCMS for you. You can use this to move all thumbnails to the same colour space. All web browsers assume that images without an ICC profile are in sRGB colourspace, so if you move your thumbnails to sRGB, you can strip all the embedded profiles. This can save several kb per thumbnail.
@@ -265,12 +263,15 @@ $ ls -l tn_shark.jpg
     Now encode with sRGB and delete any embedded profile:
   </para>
   <programlisting>
-$ vipsthumbnail shark.jpg --eprofile /usr/share/color/icc/sRGB.icc --delete
+$ vipsthumbnail shark.jpg --eprofile srgb --delete
 $ ls -l tn_shark.jpg 
 -rw-r–r– 1 john john 4229 Nov  9 14:33 tn_shark.jpg
 </programlisting>
   <para>
-    It’ll look identical to a user, but be almost half the size.
+    (You can use the filename of any RGB profile. The magic string <literal>srgb</literal> selects a high-quality sRGB profile that’s built into libvips.)
+  </para>
+  <para>
+    <literal>tn_shark.jpg</literal> will look identical to a user, but it’s almost half the size.
   </para>
   <para>
     You can also specify a fallback input profile to use if the image has no embedded one. This can often happen with CMYK images, producing an error message like:
@@ -284,28 +285,13 @@ vips_colourspace: no known route from 'cmyk' to 'srgb'
     If you supply a CMYK profile, it will be able to convert the image, for example:
   </para>
   <programlisting>
-$ vipsthumbnail kgdev.jpg --iprofile /usr/share/color/icc/colord/FOGRA28L_webcoated.icc 
+$ vipsthumbnail kgdev.jpg --iprofile cmyk 
 </programlisting>
   <para>
-    I’ve had good results with this profile:
+    (As before, the magic string <literal>cmyk</literal> selects a high-quality CMYK profile that’s built into libvips, but you can use any CMYK profile you like.)
   </para>
-  <para>
-    https://github.com/libvips/nip2/blob/master/share/nip2/data/cmyk.icm
-  </para>
-  <para>
-    It makes nice-looking images from most CMYK files, and is completely free.
-  </para>
-</refsect3>
-<refsect3 id="auto-rotate">
-  <title>Auto-rotate</title>
-  <para>
-    Many JPEG files have a hint set in the header giving the image orientation. If you strip out the metadata, this hint will be lost, and the image will appear to be rotated.
-  </para>
-  <para>
-    If you use the <literal>--rotate</literal> option, <literal>vipsthumbnail</literal> examines the image header and if there’s an orientation tag, applies and removes it.
-  </para>
-</refsect3>
-<refsect3 id="final-suggestion">
+</section>
+<section xml:id="final-suggestion">
   <title>Final suggestion</title>
   <para>
     Putting all this together, I suggest this as a sensible set of options:
@@ -314,10 +300,9 @@ $ vipsthumbnail kgdev.jpg --iprofile /usr/share/color/icc/colord/FOGRA28L_webcoa
 $ vipsthumbnail fred.jpg \
     --size 128 \
     -o tn_%s.jpg[optimize_coding,strip] \
-    --eprofile /usr/share/color/icc/sRGB.icc \
-    --rotate
+    --eprofile srgb
 </programlisting>
-</refsect3>
+</section>
 
 
 </refentry>

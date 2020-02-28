@@ -2,6 +2,7 @@
 - fix a deadlock with --vips-leak [DarthSim]
 - better gifload behaviour for DISPOSAL_UNSPECIFIED [DarthSim]
 - ban ppm max_value < 0 
+- add fuzz corpus to dist
 
 20/6/19 started 8.9.1
 - don't use the new source loaders for new_from_file or new_from_buffer, it
