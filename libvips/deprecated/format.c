@@ -176,7 +176,7 @@ im_isvips( const char *filename )
 {
 	unsigned char buf[4];
 
-	if( im__get_bytes( filename, buf, 4 ) ) {
+	if( im__get_bytes( filename, buf, 4 ) == 4 ) {
 		if( buf[0] == 0x08 && buf[1] == 0xf2 &&
 			buf[2] == 0xa6 && buf[3] == 0xb6 )
 			/* SPARC-order VIPS image.
@@ -212,7 +212,7 @@ vips_flags( const char *filename )
 
 	flags = VIPS_FORMAT_PARTIAL;
 
-	if( im__get_bytes( filename, buf, 4 ) &&
+	if( im__get_bytes( filename, buf, 4 ) == 4 &&
 		buf[0] == 0x08 && 
 		buf[1] == 0xf2 &&
 		buf[2] == 0xa6 && 

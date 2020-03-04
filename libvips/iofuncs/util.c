@@ -874,13 +874,13 @@ vips__file_write( void *data, size_t size, size_t nmemb, FILE *stream )
  * types, so we must read binary. 
  *
  * Return the number of bytes actually read (the file might be shorter than
- * len), or 0 for error.
+ * len), or -1 for error.
  */
-guint64
-vips__get_bytes( const char *filename, unsigned char buf[], guint64 len )
+gint64
+vips__get_bytes( const char *filename, unsigned char buf[], gint64 len )
 {
 	int fd;
-	guint64 bytes_read;
+	gint64 bytes_read;
 
 	/* File may not even exist (for tmp images for example!)
 	 * so no hasty messages. And the file might be truncated, so no error
