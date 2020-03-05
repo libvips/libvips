@@ -562,7 +562,7 @@ vips_boolean_const_init( VipsBooleanConst *boolean_const )
 
 static int
 vips_boolean_constv( VipsImage *in, VipsImage **out, 
-	VipsOperationBoolean operation, double *c, int n, va_list ap )
+	VipsOperationBoolean operation, const double *c, int n, va_list ap )
 {
 	VipsArea *area_c;
 	double *array; 
@@ -609,7 +609,7 @@ vips_boolean_constv( VipsImage *in, VipsImage **out,
  */
 int
 vips_boolean_const( VipsImage *in, VipsImage **out, 
-	VipsOperationBoolean boolean, double *c, int n, ... )
+	VipsOperationBoolean boolean, const double *c, int n, ... )
 {
 	va_list ap;
 	int result;
@@ -637,7 +637,8 @@ vips_boolean_const( VipsImage *in, VipsImage **out,
  * Returns: 0 on success, -1 on error
  */
 int
-vips_andimage_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+vips_andimage_const( VipsImage *in, VipsImage **out, 
+	const double *c, int n, ... )
 {
 	va_list ap;
 	int result;
@@ -666,7 +667,8 @@ vips_andimage_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_orimage_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+vips_orimage_const( VipsImage *in, VipsImage **out, 
+	const double *c, int n, ... )
 {
 	va_list ap;
 	int result;
@@ -695,7 +697,8 @@ vips_orimage_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_eorimage_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+vips_eorimage_const( VipsImage *in, VipsImage **out, 
+	const double *c, int n, ... )
 {
 	va_list ap;
 	int result;
@@ -724,7 +727,7 @@ vips_eorimage_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_lshift_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+vips_lshift_const( VipsImage *in, VipsImage **out, const double *c, int n, ... )
 {
 	va_list ap;
 	int result;
@@ -753,7 +756,7 @@ vips_lshift_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_rshift_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+vips_rshift_const( VipsImage *in, VipsImage **out, const double *c, int n, ... )
 {
 	va_list ap;
 	int result;
