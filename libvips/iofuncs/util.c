@@ -1036,6 +1036,10 @@ vips__seek_no_error( int fd, gint64 pos, int whence )
 #ifdef OS_WIN32
 	new_pos = _lseeki64( fd, pos, whence );
 #else /*!OS_WIN32*/
+	/* On error, eg. opening a directory and seeking to the end, lseek() 
+	 * on linux seems to return 9223372036854775807 ((1 << 63) - 1)
+	 * rather than (off_t) -1 for reasons I don't understand. 
+	 */
 	new_pos = lseek( fd, pos, whence );
 #endif /*OS_WIN32*/
 
