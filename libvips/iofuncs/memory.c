@@ -358,7 +358,7 @@ vips_tracked_malloc( size_t size )
  * @flags: flags for open()
  * @...: open mode
  *
- * Exactly as open(2), but the number of files current open via
+ * Exactly as open(2), but the number of files currently open via
  * vips_tracked_open() is available via vips_tracked_get_files(). This is used
  * by the vips operation cache to drop cache when the number of files
  * available is low.

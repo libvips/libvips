@@ -1203,7 +1203,7 @@ vips_source_length( VipsSource *source )
  *
  * Returns: number of bytes read, or -1 on error.
  */
-size_t
+gint64
 vips_source_sniff_at_most( VipsSource *source, 
 	unsigned char **data, size_t length )
 {
@@ -1263,7 +1263,9 @@ vips_source_sniff( VipsSource *source, size_t length )
 		return( NULL );
 
 	bytes_read = vips_source_sniff_at_most( source, &data, length );
-	if( bytes_read < (gint64) length )
+	if( bytes_read == -1 )
+		return( NULL );
+	if( bytes_read < length )
 		return( NULL );
 
 	return( data );
