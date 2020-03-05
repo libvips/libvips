@@ -333,7 +333,7 @@ vips_remainder_const_init( VipsRemainderConst *remainder_const )
 
 static int
 vips_remainder_constv( VipsImage *in, VipsImage **out, 
-	double *c, int n, va_list ap )
+	const double *c, int n, va_list ap )
 {
 	VipsArea *area_c;
 	double *array; 
@@ -379,7 +379,8 @@ vips_remainder_constv( VipsImage *in, VipsImage **out,
  * Returns: 0 on success, -1 on error
  */
 int
-vips_remainder_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+vips_remainder_const( VipsImage *in, VipsImage **out, 
+	const double *c, int n, ... )
 {
 	va_list ap;
 	int result;
