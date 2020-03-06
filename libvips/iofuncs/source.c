@@ -1191,7 +1191,7 @@ vips_source_length( VipsSource *source )
 }
 
 /**
- * vips_source_peek: 
+ * vips_source_sniff_at_most: 
  * @source: peek this source
  * @data: return a pointer to the bytes read here
  * @length: max number of bytes to read
@@ -1203,7 +1203,7 @@ vips_source_length( VipsSource *source )
  *
  * Returns: number of bytes read, or -1 on error.
  */
-size_t
+gint64
 vips_source_sniff_at_most( VipsSource *source, 
 	unsigned char **data, size_t length )
 {
@@ -1257,12 +1257,14 @@ unsigned char *
 vips_source_sniff( VipsSource *source, size_t length )
 {
 	unsigned char *data;
-	size_t bytes_read;
+	gint64 bytes_read;
 
 	if( vips_source_test_features( source ) )
 		return( NULL );
 
 	bytes_read = vips_source_sniff_at_most( source, &data, length );
+	if( bytes_read == -1 )
+		return( NULL );
 	if( bytes_read < length )
 		return( NULL );
 

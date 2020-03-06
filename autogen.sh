@@ -61,4 +61,6 @@ autoheader
 $LIBTOOLIZE --copy --force --automake
 automake --add-missing --copy
 
-./configure $*
+if test -z "$NOCONFIGURE"; then
+  ./configure $*
+fi

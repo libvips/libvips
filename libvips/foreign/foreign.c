@@ -535,7 +535,7 @@ vips_foreign_find_load( const char *name )
 	 */
 	if( !vips_existsf( "%s", filename ) ) {
 		vips_error( "VipsForeignLoad", 
-			_( "file \"%s\" not found" ), name );
+			_( "file \"%s\" not readable" ), name );
 		return( NULL );
 	}
 

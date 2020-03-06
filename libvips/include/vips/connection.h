@@ -222,7 +222,7 @@ const void *vips_source_map( VipsSource *source, size_t *length );
 VipsBlob *vips_source_map_blob( VipsSource *source );
 gint64 vips_source_seek( VipsSource *source, gint64 offset, int whence );
 int vips_source_rewind( VipsSource *source );
-size_t vips_source_sniff_at_most( VipsSource *source, 
+gint64 vips_source_sniff_at_most( VipsSource *source, 
 	unsigned char **data, size_t length );
 unsigned char *vips_source_sniff( VipsSource *source, size_t length );
 gint64 vips_source_length( VipsSource *source ); 
