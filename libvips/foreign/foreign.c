@@ -535,7 +535,12 @@ vips_foreign_find_load( const char *name )
 	 */
 	if( !vips_existsf( "%s", filename ) ) {
 		vips_error( "VipsForeignLoad", 
-			_( "file \"%s\" not readable" ), name );
+			_( "file \"%s\" does not exist" ), name );
+		return( NULL );
+	}
+	if( vips_isdirf( "%s", filename ) ) {
+		vips_error( "VipsForeignLoad", 
+			_( "\"%s\" is a directory" ), name );
 		return( NULL );
 	}
 

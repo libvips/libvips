@@ -281,6 +281,8 @@ gint64 vips__seek( int fd, gint64 pos, int whence );
 int vips__ftruncate( int fd, gint64 pos );
 int vips_existsf( const char *name, ... )
 	__attribute__((format(printf, 1, 2)));
+int vips_isdirf( const char *name, ... )
+	__attribute__((format(printf, 1, 2)));
 int vips_mkdirf( const char *name, ... )
 	__attribute__((format(printf, 1, 2)));
 int vips_rmdirf( const char *name, ... )

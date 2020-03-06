@@ -1157,7 +1157,7 @@ vips__ftruncate( int fd, gint64 pos )
 	return( 0 );
 }
 
-/* TRUE if file exists and is not a directory.
+/* TRUE if file exists. True for directories as well.
  */
 gboolean
 vips_existsf( const char *name, ... )
@@ -1170,9 +1170,27 @@ vips_existsf( const char *name, ... )
 	path = g_strdup_vprintf( name, ap ); 
         va_end( ap );
 
-	/* A regular (not a directory) file.
-	 */
-	result = g_file_test( path, G_FILE_TEST_IS_REGULAR );
+	result = g_file_test( path, G_FILE_TEST_EXISTS );
+
+	g_free( path ); 
+
+	return( result ); 
+}
+
+/* TRUE if file exists and is a directory.
+ */
+gboolean
+vips_isdirf( const char *name, ... )
+{
+        va_list ap;
+	char *path; 
+        gboolean result; 
+
+        va_start( ap, name );
+	path = g_strdup_vprintf( name, ap ); 
+        va_end( ap );
+
+	result = g_file_test( path, G_FILE_TEST_IS_DIR );
 
 	g_free( path ); 
 
