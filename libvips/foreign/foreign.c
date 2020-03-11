@@ -2097,9 +2097,9 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_webp_buffer_get_type( void ); 
 	extern GType vips_foreign_save_webp_target_get_type( void ); 
 
-	extern GType vips_foreign_load_pdf_get_type( void ); 
 	extern GType vips_foreign_load_pdf_file_get_type( void ); 
 	extern GType vips_foreign_load_pdf_buffer_get_type( void ); 
+	extern GType vips_foreign_load_pdf_source_get_type( void ); 
 
 	extern GType vips_foreign_load_svg_file_get_type( void ); 
 	extern GType vips_foreign_load_svg_buffer_get_type( void ); 
@@ -2151,14 +2151,13 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_rad_target_get_type(); 
 #endif /*HAVE_RADIANCE*/
 
-#ifdef HAVE_POPPLER
-	vips_foreign_load_pdf_get_type(); 
+#if defined(HAVE_POPPLER) && defined(HAVE_GIO)
 	vips_foreign_load_pdf_file_get_type(); 
 	vips_foreign_load_pdf_buffer_get_type(); 
+	vips_foreign_load_pdf_source_get_type(); 
 #endif /*HAVE_POPPLER*/
 
 #ifdef HAVE_PDFIUM
-	vips_foreign_load_pdf_get_type(); 
 	vips_foreign_load_pdf_file_get_type(); 
 	vips_foreign_load_pdf_buffer_get_type(); 
 #endif /*HAVE_PDFIUM*/
