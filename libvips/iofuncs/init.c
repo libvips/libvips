@@ -336,6 +336,7 @@ vips_init( const char *argv0 )
 	extern GType vips_source_custom_get_type( void ); 
 	extern GType vips_target_get_type( void ); 
 	extern GType vips_target_custom_get_type( void ); 
+	extern GType vips_g_input_stream_get_type( void ); 
 
 	static gboolean started = FALSE;
 	static gboolean done = FALSE;
@@ -483,6 +484,9 @@ vips_init( const char *argv0 )
 	vips_morphology_operation_init();
 	vips_draw_operation_init();
 	vips_mosaicing_operation_init();
+#ifdef HAVE_GIO
+	vips_g_input_stream_get_type(); 
+#endif /*HAVE_GIO*/
 
 	/* Load any vips8 plugins from the vips libdir. Keep going, even if
 	 * some plugins fail to load. 

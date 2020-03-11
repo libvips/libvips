@@ -265,6 +265,49 @@ typedef struct _VipsSourceCustomClass {
 GType vips_source_custom_get_type( void );
 VipsSourceCustom *vips_source_custom_new( void );
 
+/* A GInputStream that's actually a VipsSource under the hood. This lets us
+ * hook librsvg up to libvips using the GInputStream interface.
+ */
+
+#ifdef HAVE_GIO
+
+#define VIPS_TYPE_G_INPUT_STREAM (vips_g_input_stream_get_type())
+#define VIPS_G_INPUT_STREAM( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_G_INPUT_STREAM, VipsGInputStream ))
+#define VIPS_G_INPUT_STREAM_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_G_INPUT_STREAM, VipsGInputStreamClass))
+#define VIPS_IS_G_INPUT_STREAM( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_G_INPUT_STREAM ))
+#define VIPS_IS_G_INPUT_STREAM_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_G_INPUT_STREAM ))
+#define VIPS_G_INPUT_STREAM_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_G_INPUT_STREAM, VipsGInputStreamClass ))
+
+/* GInputStream <--> VipsSource
+ */
+typedef struct _VipsGInputStream {
+	GInputStream parent_instance;
+
+	/*< private >*/
+
+	/* The VipsSource we wrap.
+	 */
+	VipsSource *source;
+
+} VipsGInputStream;
+
+typedef struct _VipsGInputStreamClass {
+	GInputStreamClass parent_class;
+
+} VipsGInputStreamClass;
+
+GInputStream *vips_g_input_stream_new_from_source( VipsSource *source );
+
+#endif /*HAVE_GIO*/
+
 #define VIPS_TYPE_TARGET (vips_target_get_type())
 #define VIPS_TARGET( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \

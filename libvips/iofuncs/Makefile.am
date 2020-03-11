@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libiofuncs.la
 
 libiofuncs_la_SOURCES = \
+	ginputsource.c \
 	connection.c \
 	source.c \
 	sourcecustom.c \
