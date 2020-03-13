@@ -61,7 +61,7 @@ typedef struct _VipsForeignSaveMatrix {
 
 typedef VipsForeignSaveClass VipsForeignSaveMatrixClass;
 
-G_DEFINE_TYPE( VipsForeignSaveMatrix, vips_foreign_save_matrix, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveMatrix, vips_foreign_save_matrix, 
 	VIPS_TYPE_FOREIGN_SAVE );
 
 static void
