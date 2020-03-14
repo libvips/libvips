@@ -634,6 +634,14 @@ vips__open( const char *filename, int flags, ... )
 	mode = va_arg( ap, int );
 	va_end( ap );
 
+	/* Various bad things happen if you accidentally open a directory as a
+	 * file.
+	 */
+	if( g_file_test( filename, G_FILE_TEST_IS_DIR ) ) {
+		errno = EISDIR;
+		return( -1 );
+	}
+
 	fd = g_open( filename, flags, mode );
 
 #ifdef OS_WIN32
@@ -874,13 +882,13 @@ vips__file_write( void *data, size_t size, size_t nmemb, FILE *stream )
  * types, so we must read binary. 
  *
  * Return the number of bytes actually read (the file might be shorter than
- * len), or 0 for error.
+ * len), or -1 for error.
  */
-guint64
-vips__get_bytes( const char *filename, unsigned char buf[], guint64 len )
+gint64
+vips__get_bytes( const char *filename, unsigned char buf[], gint64 len )
 {
 	int fd;
-	guint64 bytes_read;
+	gint64 bytes_read;
 
 	/* File may not even exist (for tmp images for example!)
 	 * so no hasty messages. And the file might be truncated, so no error
@@ -1090,6 +1098,10 @@ vips__seek_no_error( int fd, gint64 pos, int whence )
 #ifdef OS_WIN32
 	new_pos = _lseeki64( fd, pos, whence );
 #else /*!OS_WIN32*/
+	/* On error, eg. opening a directory and seeking to the end, lseek() 
+	 * on linux seems to return 9223372036854775807 ((1 << 63) - 1)
+	 * rather than (off_t) -1 for reasons I don't understand. 
+	 */
 	new_pos = lseek( fd, pos, whence );
 #endif /*OS_WIN32*/
 
@@ -1145,29 +1157,44 @@ vips__ftruncate( int fd, gint64 pos )
 	return( 0 );
 }
 
-/* TRUE if file exists.
+/* TRUE if file exists. True for directories as well.
  */
 gboolean
 vips_existsf( const char *name, ... )
 {
         va_list ap;
 	char *path; 
-        int result; 
+        gboolean result; 
 
         va_start( ap, name );
 	path = g_strdup_vprintf( name, ap ); 
         va_end( ap );
 
-        result = g_access( path, R_OK );
+	result = g_file_test( path, G_FILE_TEST_EXISTS );
 
 	g_free( path ); 
 
-	/* access() can fail for various reasons, especially under things 
-	 * like selinux. Only return FALSE if we are certain the file does not
-	 * exist.
-	 */
-	return( result == 0 || 
-		errno != ENOENT );
+	return( result ); 
+}
+
+/* TRUE if file exists and is a directory.
+ */
+gboolean
+vips_isdirf( const char *name, ... )
+{
+        va_list ap;
+	char *path; 
+        gboolean result; 
+
+        va_start( ap, name );
+	path = g_strdup_vprintf( name, ap ); 
+        va_end( ap );
+
+	result = g_file_test( path, G_FILE_TEST_IS_DIR );
+
+	g_free( path ); 
+
+	return( result ); 
 }
 
 #ifdef OS_WIN32

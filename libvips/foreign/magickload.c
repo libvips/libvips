@@ -173,15 +173,13 @@ G_DEFINE_TYPE( VipsForeignLoadMagickFile, vips_foreign_load_magick_file,
 static gboolean
 ismagick( const char *filename )
 {
-	/* Fetch the first 100 bytes. Hopefully that'll be enough.
+	/* Fetch up to the first 100 bytes. Hopefully that'll be enough.
 	 */
 	unsigned char buf[100];
+	int len;
 
-	/* Files shorter than 100 bytes will leave nonsense at the end of buf,
-	 * but it shouldn't matter.
-	 */
-	return( vips__get_bytes( filename, buf, 100 ) &&
-		magick_ismagick( buf, 100 ) );
+	return( (len = vips__get_bytes( filename, buf, 100 )) > 10 &&
+		magick_ismagick( buf, len ) );
 }
 
 /* Unfortunately, libMagick does not support header-only reads very well. See

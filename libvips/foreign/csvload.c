@@ -311,10 +311,8 @@ vips_foreign_load_csv_read_double( VipsForeignLoadCsv *csv, double *out )
 
 	/* If it's a separator, we have to step over it. 
 	 */
-	if( csv->sepmap[ch] ) {
+	if( csv->sepmap[ch] ) 
 		(void) VIPS_SBUF_GETC( csv->sbuf ); 
-		csv->colno += 1;
-	}
 
 	return( ch );
 }
@@ -348,9 +346,10 @@ vips_foreign_load_csv_header( VipsForeignLoad *load )
 
 	/* Parse the first line to get the number of columns.
 	 */
-	csv->colno = 1;
-	csv->lineno = csv->skip;
+	csv->lineno = csv->skip + 1;
+	csv->colno = 0;
 	do {
+		csv->colno += 1;
 		ch = vips_foreign_load_csv_read_double( csv, &value );
 	} while( ch != '\n' &&
 		ch != EOF );
@@ -410,13 +409,14 @@ vips_foreign_load_csv_load( VipsForeignLoad *load )
 		VIPS_FORMAT_DOUBLE, 
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
 
-	csv->lineno = csv->skip;
+	csv->lineno = csv->skip + 1;
 	for( y = 0; y < load->real->Ysize; y++ ) {
-		csv->colno = 1;
+		csv->colno = 0;
 
 		for( x = 0; x < load->real->Xsize; x++ ) {
 			double value;
 
+			csv->colno += 1;
 			ch = vips_foreign_load_csv_read_double( csv, &value );
 			if( ch == EOF ) {
 				vips_error( class->nickname,

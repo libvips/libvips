@@ -598,7 +598,7 @@ vips_relational_const_init( VipsRelationalConst *relational_const )
 
 static int
 vips_relational_constv( VipsImage *in, VipsImage **out, 
-	VipsOperationRelational relational, double *c, int n, va_list ap )
+	VipsOperationRelational relational, const double *c, int n, va_list ap )
 {
 	VipsArea *area_c;
 	double *array; 
@@ -645,7 +645,7 @@ vips_relational_constv( VipsImage *in, VipsImage **out,
  */
 int
 vips_relational_const( VipsImage *in, VipsImage **out, 
-	VipsOperationRelational relational, double *c, int n, ... )
+	VipsOperationRelational relational, const double *c, int n, ... )
 {
 	va_list ap;
 	int result;
@@ -671,7 +671,7 @@ vips_relational_const( VipsImage *in, VipsImage **out,
  * Returns: 0 on success, -1 on error
  */
 int
-vips_equal_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+vips_equal_const( VipsImage *in, VipsImage **out, const double *c, int n, ... )
 {
 	va_list ap;
 	int result;
@@ -698,7 +698,8 @@ vips_equal_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_notequal_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+vips_notequal_const( VipsImage *in, VipsImage **out, 
+	const double *c, int n, ... )
 {
 	va_list ap;
 	int result;
@@ -725,7 +726,7 @@ vips_notequal_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_less_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+vips_less_const( VipsImage *in, VipsImage **out, const double *c, int n, ... )
 {
 	va_list ap;
 	int result;
@@ -752,7 +753,7 @@ vips_less_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_lesseq_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+vips_lesseq_const( VipsImage *in, VipsImage **out, const double *c, int n, ... )
 {
 	va_list ap;
 	int result;
@@ -779,7 +780,7 @@ vips_lesseq_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_more_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+vips_more_const( VipsImage *in, VipsImage **out, const double *c, int n, ... )
 {
 	va_list ap;
 	int result;
@@ -806,7 +807,7 @@ vips_more_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_moreeq_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+vips_moreeq_const( VipsImage *in, VipsImage **out, const double *c, int n, ... )
 {
 	va_list ap;
 	int result;

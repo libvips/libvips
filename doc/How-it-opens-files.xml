@@ -16,7 +16,7 @@
 <para>
   This page tries to explain what the different strategies are and when each is used. If you are running into unexpected memory, disc or CPU use, this might be helpful. <literal>vips_image_new_from_file()</literal> has the official documentation.
 </para>
-<refsect3 id="direct-access">
+<section xml:id="direct-access">
   <title>Direct access</title>
   <para>
     This is the fastest and simplest one. The file is mapped directly into the process’s address space and can be read with ordinary pointer access. Small files are completely mapped; large files are mapped in a series of small windows that are shared and which scroll about as pixels are read. Files which are accessed like this can be read by many threads at once, making them especially quick. They also interact well with the computer’s operating system: your OS will use spare memory to cache recently used chunks of the file.
@@ -25,10 +25,10 @@
     For this to be possible, the file format needs to be a simple dump of a memory array. libvips supports direct access for vips, 8-bit binary ppm/pbm/pnm, analyse and raw.
   </para>
   <para>
-    libvips has a special direct write mode where pixels can be written directly to the file image. This is used for the <ulink url="libvips-draw.html">draw operators</ulink>.
+    libvips has a special direct write mode where pixels can be written directly to the file image. This is used for the <link xlink:href="libvips-draw.html">draw operators</link>.
   </para>
-</refsect3>
-<refsect3 id="random-access-via-load-library">
+</section>
+<section xml:id="random-access-via-load-library">
   <title>Random access via load library</title>
   <para>
     Some image file formats have libraries which allow true random access to image pixels. For example, libtiff lets you read any tile out of a tiled tiff image very quickly. Because the libraries allow true random access, libvips can simply hook the image load library up to the input of the operation pipeline.
@@ -39,8 +39,8 @@
   <para>
     libvips can load tiled tiff, tiled OpenEXR, FITS and OpenSlide images in this manner.
   </para>
-</refsect3>
-<refsect3 id="full-decompression">
+</section>
+<section xml:id="full-decompression">
   <title>Full decompression</title>
   <para>
     Many image load libraries do not support random access. In order to use images of this type as inputs to pipelines, libvips has to convert them to a random access format first.
@@ -54,8 +54,8 @@
   <para>
     This is the slowest and most memory-hungry way to read files, but it’s unavoidable for many file formats. Unless you can use the next one!
   </para>
-</refsect3>
-<refsect3 id="sequential-access">
+</section>
+<section xml:id="sequential-access">
   <title>Sequential access</title>
   <para>
     This a fairly recent addition to libvips and is a hybrid of the previous two.
@@ -90,7 +90,7 @@ $ vips shrink fred.png jim.png 10 10
   <para>
     This is done automatically in command-line operation. In programs, you need to set <literal>access</literal> to #VIPS_ACCESS_SEQUENTIAL in calls to functions like vips_image_new_from_file().
   </para>
-</refsect3>
+</section>
 
 
 </refentry>

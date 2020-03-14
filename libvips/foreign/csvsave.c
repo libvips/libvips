@@ -61,7 +61,7 @@ typedef struct _VipsForeignSaveCsv {
 
 typedef VipsForeignSaveClass VipsForeignSaveCsvClass;
 
-G_DEFINE_TYPE( VipsForeignSaveCsv, vips_foreign_save_csv, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveCsv, vips_foreign_save_csv, 
 	VIPS_TYPE_FOREIGN_SAVE );
 
 static void
@@ -182,11 +182,17 @@ vips_foreign_save_csv_build( VipsObject *object )
 	return( 0 );
 }
 
+static const char *vips_foreign_save_csv_suffs[] = {
+	".csv",
+	NULL
+};
+
 static void
 vips_foreign_save_csv_class_init( VipsForeignSaveCsvClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
 	gobject_class->dispose = vips_foreign_save_csv_dispose;
@@ -196,6 +202,8 @@ vips_foreign_save_csv_class_init( VipsForeignSaveCsvClass *class )
 	object_class->nickname = "csvsave_base";
 	object_class->description = _( "save image to csv" );
 	object_class->build = vips_foreign_save_csv_build;
+
+	foreign_class->suffs = vips_foreign_save_csv_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_MONO;
 
@@ -238,25 +246,17 @@ vips_foreign_save_csv_file_build( VipsObject *object )
 		build( object ) );
 }
 
-static const char *vips_foreign_save_csv_file_suffs[] = {
-	".csv",
-	NULL
-};
-
 static void
 vips_foreign_save_csv_file_class_init( VipsForeignSaveCsvFileClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "csvsave";
 	object_class->build = vips_foreign_save_csv_file_build;
-
-	foreign_class->suffs = vips_foreign_save_csv_file_suffs;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),

@@ -266,8 +266,8 @@ char *vips__file_read( FILE *fp, const char *name, size_t *length_out );
 char *vips__file_read_name( const char *name, const char *fallback_dir, 
 	size_t *length_out );
 int vips__file_write( void *data, size_t size, size_t nmemb, FILE *stream );
-guint64 vips__get_bytes( const char *filename, 
-	unsigned char buf[], guint64 len );
+gint64 vips__get_bytes( const char *filename, 
+	unsigned char buf[], gint64 len );
 int vips__fgetc( FILE *fp );
 
 GValue *vips__gvalue_ref_string_new( const char *text );
@@ -280,6 +280,8 @@ gint64 vips__seek_no_error( int fd, gint64 pos, int whence );
 gint64 vips__seek( int fd, gint64 pos, int whence );
 int vips__ftruncate( int fd, gint64 pos );
 int vips_existsf( const char *name, ... )
+	__attribute__((format(printf, 1, 2)));
+int vips_isdirf( const char *name, ... )
 	__attribute__((format(printf, 1, 2)));
 int vips_mkdirf( const char *name, ... )
 	__attribute__((format(printf, 1, 2)));

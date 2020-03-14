@@ -453,7 +453,7 @@ vips_linear_init( VipsLinear *linear )
 
 static int
 vips_linearv( VipsImage *in, VipsImage **out, 
-	double *a, double *b, int n, va_list ap )
+	const double *a, const double *b, int n, va_list ap )
 {
 	VipsArea *area_a;
 	VipsArea *area_b;
@@ -500,7 +500,8 @@ vips_linearv( VipsImage *in, VipsImage **out,
  * Returns: 0 on success, -1 on error
  */
 int
-vips_linear( VipsImage *in, VipsImage **out, double *a, double *b, int n, ... )
+vips_linear( VipsImage *in, VipsImage **out, 
+	const double *a, const double *b, int n, ... )
 {
 	va_list ap;
 	int result;

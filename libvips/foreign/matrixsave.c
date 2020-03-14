@@ -61,7 +61,7 @@ typedef struct _VipsForeignSaveMatrix {
 
 typedef VipsForeignSaveClass VipsForeignSaveMatrixClass;
 
-G_DEFINE_TYPE( VipsForeignSaveMatrix, vips_foreign_save_matrix, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveMatrix, vips_foreign_save_matrix, 
 	VIPS_TYPE_FOREIGN_SAVE );
 
 static void
@@ -157,11 +157,17 @@ static int bandfmt_matrix[10] = {
    D,  D,  D,  D,  D,  D, D, D, D, D
 };
 
+static const char *vips_foreign_save_matrix_suffs[] = {
+	".mat",
+	NULL
+};
+
 static void
 vips_foreign_save_matrix_class_init( VipsForeignSaveMatrixClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
 	gobject_class->dispose = vips_foreign_save_matrix_dispose;
@@ -169,6 +175,8 @@ vips_foreign_save_matrix_class_init( VipsForeignSaveMatrixClass *class )
 	object_class->nickname = "matrixsave_base";
 	object_class->description = _( "save image to matrix" );
 	object_class->build = vips_foreign_save_matrix_build;
+
+	foreign_class->suffs = vips_foreign_save_matrix_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_MONO;
 	save_class->format_table = bandfmt_matrix;
@@ -205,25 +213,18 @@ vips_foreign_save_matrix_file_build( VipsObject *object )
 		vips_foreign_save_matrix_file_parent_class )->build( object ) );
 }
 
-static const char *vips_foreign_save_matrix_file_suffs[] = {
-	".mat",
-	NULL
-};
-
 static void
-vips_foreign_save_matrix_file_class_init( VipsForeignSaveMatrixFileClass *class )
+vips_foreign_save_matrix_file_class_init( 
+	VipsForeignSaveMatrixFileClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "matrixsave";
 	object_class->build = vips_foreign_save_matrix_file_build;
-
-	foreign_class->suffs = vips_foreign_save_matrix_file_suffs;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),

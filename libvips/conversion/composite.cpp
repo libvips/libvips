@@ -621,7 +621,7 @@ vips_composite_base_blend( VipsCompositeBase *composite,
 
 		case VIPS_BLEND_MODE_DIFFERENCE:
 			for( int b = 0; b < bands; b++ ) 
-				f[b] = abs( B[b] - A[b] );
+				f[b] = fabs( B[b] - A[b] );
 			break;
 
 		case VIPS_BLEND_MODE_EXCLUSION:

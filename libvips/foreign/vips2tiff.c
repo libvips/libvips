@@ -191,6 +191,8 @@
  * 	- add "depth" to set pyr depth
  * 27/1/20
  * 	- write XYZ images as logluv
+ * 7/2/20 [jclavoie-jive]
+ * 	- add PAGENUMBER support
  */
 
 /*
@@ -334,10 +336,13 @@ struct _Wtiff {
 	VipsForeignDzDepth depth;	/* Pyr depth */
 
 	/* True if we've detected a toilet-roll image, plus the page height,
-	 * which has been checked to be a factor of im->Ysize.
+	 * which has been checked to be a factor of im->Ysize. page_number
+	 * starts at zero and ticks up as we write each page.
 	 */
 	gboolean toilet_roll;
 	int page_height;
+	int page_number;
+	int n_pages;
 
 	/* The height of the TIFF we write. Equal to page_height in toilet
 	 * roll mode.
@@ -779,6 +784,15 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 		 */
 		TIFFSetField( tif, TIFFTAG_SUBFILETYPE, FILETYPE_REDUCEDIMAGE );
 
+	if( wtiff->toilet_roll ) {
+		/* One page of many.
+		 */
+		TIFFSetField( tif, TIFFTAG_SUBFILETYPE, FILETYPE_PAGE );
+
+		TIFFSetField( tif, TIFFTAG_PAGENUMBER, 
+			wtiff->page_number, wtiff->n_pages );
+	}
+
 	/* Sample format.
 	 *
 	 * Don't set for logluv: libtiff does this for us.
@@ -1052,6 +1066,8 @@ wtiff_new( VipsImage *input, const char *filename,
 	wtiff->depth = depth;
 	wtiff->toilet_roll = FALSE;
 	wtiff->page_height = vips_image_get_page_height( input );
+	wtiff->page_number = 0;
+	wtiff->n_pages = 1;
 	wtiff->image_height = input->Ysize;
 
 	/* Any pre-processing on the image.
@@ -1079,6 +1095,7 @@ wtiff_new( VipsImage *input, const char *filename,
 
 		wtiff->toilet_roll = TRUE;
 		wtiff->image_height = wtiff->page_height;
+		wtiff->n_pages = wtiff->ready->Ysize / wtiff->page_height;
 
 		/* We can't pyramid toilet roll images.
 		 */
@@ -1738,8 +1755,9 @@ write_strip( VipsRegion *region, VipsRect *area, void *a )
 static int
 wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 {
-	uint32 i32;
-	uint16 i16;
+	uint32 ui32;
+	uint16 ui16;
+	uint16 ui16_2;
 	float f;
 	tdata_t buf;
 	ttile_t tile;
@@ -1748,25 +1766,28 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 
 	/* All the fields we might have set.
 	 */
-	CopyField( TIFFTAG_IMAGEWIDTH, i32 );
-	CopyField( TIFFTAG_IMAGELENGTH, i32 );
-	CopyField( TIFFTAG_PLANARCONFIG, i16 );
-	CopyField( TIFFTAG_ORIENTATION, i16 );
+	CopyField( TIFFTAG_IMAGEWIDTH, ui32 );
+	CopyField( TIFFTAG_IMAGELENGTH, ui32 );
+	CopyField( TIFFTAG_PLANARCONFIG, ui16 );
+	CopyField( TIFFTAG_ORIENTATION, ui16 );
 	CopyField( TIFFTAG_XRESOLUTION, f );
 	CopyField( TIFFTAG_YRESOLUTION, f );
-	CopyField( TIFFTAG_RESOLUTIONUNIT, i16 );
-	CopyField( TIFFTAG_COMPRESSION, i16 );
-	CopyField( TIFFTAG_SAMPLESPERPIXEL, i16 );
-	CopyField( TIFFTAG_BITSPERSAMPLE, i16 );
-	CopyField( TIFFTAG_PHOTOMETRIC, i16 );
-	CopyField( TIFFTAG_ORIENTATION, i16 );
-	CopyField( TIFFTAG_TILEWIDTH, i32 );
-	CopyField( TIFFTAG_TILELENGTH, i32 );
-	CopyField( TIFFTAG_ROWSPERSTRIP, i32 );
-	CopyField( TIFFTAG_SUBFILETYPE, i32 );
+	CopyField( TIFFTAG_RESOLUTIONUNIT, ui16 );
+	CopyField( TIFFTAG_COMPRESSION, ui16 );
+	CopyField( TIFFTAG_SAMPLESPERPIXEL, ui16 );
+	CopyField( TIFFTAG_BITSPERSAMPLE, ui16 );
+	CopyField( TIFFTAG_PHOTOMETRIC, ui16 );
+	CopyField( TIFFTAG_ORIENTATION, ui16 );
+	CopyField( TIFFTAG_TILEWIDTH, ui32 );
+	CopyField( TIFFTAG_TILELENGTH, ui32 );
+	CopyField( TIFFTAG_ROWSPERSTRIP, ui32 );
+	CopyField( TIFFTAG_SUBFILETYPE, ui32 );
 
-	if( TIFFGetField( in, TIFFTAG_EXTRASAMPLES, &i16, &a ) ) 
-		TIFFSetField( out, TIFFTAG_EXTRASAMPLES, i16, a );
+	if( TIFFGetField( in, TIFFTAG_EXTRASAMPLES, &ui16, &a ) ) 
+		TIFFSetField( out, TIFFTAG_EXTRASAMPLES, ui16, a );
+
+	if( TIFFGetField( in, TIFFTAG_PAGENUMBER, &ui16, &ui16_2 ) ) 
+		TIFFSetField( out, TIFFTAG_PAGENUMBER, ui16, ui16_2 );
 
 	/* TIFFTAG_JPEGQUALITY is a pesudo-tag, so we can't copy it.
 	 * Set explicitly from Wtiff.
@@ -1912,6 +1933,7 @@ wtiff_write_image( Wtiff *wtiff )
 			}
 			g_object_unref( page );
 
+			wtiff->page_number += 1;
 			y += wtiff->page_height;
 			if( y >= wtiff->ready->Ysize )
 				break;
