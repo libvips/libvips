@@ -6,7 +6,7 @@
 - tiffsave has a "depth" param to set max pyr depth
 - libtiff LOGLUV images load and save as libvips XYZ 
 - add gifload_source, csvload_source, csvsave_target, matrixload_source,
-  matrixsave_source, pdfload_source
+  matrixsave_source, pdfload_source, heifload_source
 - revise vipsthumbnail flags
 - add VIPS_LEAK env var
 - add vips_pipe_read_limit_set(), --vips-pipe-read-limit,

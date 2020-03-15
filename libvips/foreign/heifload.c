@@ -44,10 +44,10 @@
  */
 
 /*
- */
 #define DEBUG_VERBOSE
 #define VIPS_DEBUG
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -899,13 +899,12 @@ vips_foreign_load_heif_read( void *data, size_t size, void *userdata )
 {
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) userdata;
 
-	int result;
+	gint64 result;
 
 	result = vips_source_read( heif->source, data, size );
-	if( result == 0 ) {
-		printf( "vips_foreign_load_heif_read: seen EOF\n" );
+	if( result == 0 &&
+		heif->length == -1 ) 
 		heif->length = vips_source_seek( heif->source, 0L, SEEK_CUR );
-	}
 	if( result < 0 ) 
 		return( -1 );
 
@@ -927,18 +926,23 @@ vips_foreign_load_heif_wait_for_file_size( gint64 target_size, void *userdata )
 {
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) userdata;
 
-		return( heif_reader_grow_status_size_reached );
+	enum heif_reader_grow_status status;
 
-	if( heif->length == -1 || 
-		target_size < heif->length ) 
-		/* We've not seen EOF yet (so seeking to any point is fine), OR
-		 * we've seen EOF, and this target is less than that.
+	if( heif->length == -1 )
+		/* We've not seen EOF yet, so seeking to any point is fine (as
+		 * far as we know).
 		 */
-		return( heif_reader_grow_status_size_reached );
+		status = heif_reader_grow_status_size_reached;
+	else if( target_size <= heif->length ) 
+		/* We've seen EOF, and this target is less than that.
+		 */
+		status = heif_reader_grow_status_size_reached;
 	else
 		/* We've seen EOF, we know the length, and this is too far.
 		 */
-		return( heif_reader_grow_status_size_beyond_eof );
+		status = heif_reader_grow_status_size_beyond_eof;
+
+	return( status );
 }
 
 static void
@@ -1111,6 +1115,78 @@ vips_foreign_load_heif_buffer_init( VipsForeignLoadHeifBuffer *buffer )
 {
 }
 
+typedef struct _VipsForeignLoadHeifSource {
+	VipsForeignLoadHeif parent_object;
+
+	/* Load from a source.
+	 */
+	VipsSource *source;
+
+} VipsForeignLoadHeifSource;
+
+typedef VipsForeignLoadHeifClass VipsForeignLoadHeifSourceClass;
+
+G_DEFINE_TYPE( VipsForeignLoadHeifSource, vips_foreign_load_heif_source, 
+	vips_foreign_load_heif_get_type() );
+
+static int
+vips_foreign_load_heif_source_build( VipsObject *object )
+{
+	VipsForeignLoadHeifSource *source = 
+		(VipsForeignLoadHeifSource *) object;
+	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) object;
+
+	if( source->source ) {
+		heif->source = source->source;
+		g_object_ref( heif->source );
+	}
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_heif_file_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static gboolean
+vips_foreign_load_heif_source_is_a_source( VipsSource *source )
+{
+	const char *p;
+
+	return( (p = (const char *) vips_source_sniff( source, 12 )) &&
+		vips_foreign_load_heif_is_a( p, 12 ) );
+}
+
+static void
+vips_foreign_load_heif_source_class_init( 
+	VipsForeignLoadHeifSourceClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "heifload_source";
+	object_class->build = vips_foreign_load_heif_source_build;
+
+	load_class->is_a_source = vips_foreign_load_heif_source_is_a_source;
+
+	VIPS_ARG_OBJECT( class, "source", 1,
+		_( "Source" ),
+		_( "Source to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadHeifSource, source ),
+		VIPS_TYPE_SOURCE );
+
+}
+
+static void
+vips_foreign_load_heif_source_init( VipsForeignLoadHeifSource *source )
+{
+}
+
 #endif /*HAVE_HEIF_DECODER*/
 
 /**
@@ -1209,6 +1285,38 @@ vips_heifload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	va_end( ap );
 
 	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
+
+/**
+ * vips_heifload_source:
+ * @source: source to load from
+ * @out: (out): image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, page (top-level image number) to read
+ * * @n: %gint, load this many pages
+ * * @thumbnail: %gboolean, fetch thumbnail instead of image
+ * * @autorotate: %gboolean, rotate image upright during load 
+ *
+ * Exactly as vips_heifload(), but read from a source. 
+ *
+ * See also: vips_heifload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_heifload_source( VipsSource *source, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "heifload_source", ap, source, out );
+	va_end( ap );
 
 	return( result );
 }
