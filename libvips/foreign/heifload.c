@@ -14,6 +14,8 @@
  * 	  were reselecting the image for each scanline
  * 3/10/19
  * 	- restart after minimise
+ * 15/3/20
+ * 	- revise for new VipsSource API
  */
 
 /*
