@@ -15,6 +15,7 @@
 - add subsample_mode, deprecate no_subsample in jpegsave [Elad-Laufer]
 - add vips_isdirf()
 - add PAGENUMBER support to tiff write [jclavoie-jive]
+- add all to smartcrop 
 
 31/1/19 started 8.9.2
 - fix a deadlock with --vips-leak [DarthSim]
