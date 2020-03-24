@@ -391,7 +391,9 @@ vips_init( const char *argv0 )
 	 * we have to make sure we do this single-threaded. See: 
 	 * https://github.com/openslide/openslide/issues/161
 	 */
+#if !GLIB_CHECK_VERSION( 2, 48, 1 )
 	(void) g_get_language_names(); 
+#endif
 
 	if( !vips__global_lock )
 		vips__global_lock = vips_g_mutex_new();
