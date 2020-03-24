@@ -576,9 +576,16 @@ PKG_CHECK_MODULES(HAVE_CHECKED_MUL, glib-2.0 >= 2.48,
 # check for gtk-doc
 GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
 
-# we need expat ... we'd love to use expat.pc, but sadly this is only available
-# for recent linuxes, so we have to use the old and horrible expat.m4
-AM_WITH_EXPAT
+# we need expat ... the .pc file for expat is only available
+# for recent linuxes, so we fall back to AM_WITH_EXPAT
+PKG_CHECK_MODULES(EXPAT, expat,
+  [expat_found=yes
+   PACKAGES_USED="$PACKAGES_USED expat"
+  ],
+  [AM_WITH_EXPAT
+  ]
+)
+
 if test x"$expat_found" = x"no"; then
   exit 1
 fi
