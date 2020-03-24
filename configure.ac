@@ -506,11 +506,8 @@ PKG_CHECK_MODULES(DATE_TIME_FORMAT_ISO8601, glib-2.0 >= 2.62,
   ]
 )
 
-# the old threading system 
-PKG_CHECK_MODULES(GTHREAD, gthread-2.0)
-PACKAGES_USED="$PACKAGES_USED gthread-2.0"
-
-# from 2.32 there are a new set of thread functions, annoyingly
+# from 2.32 there are a new set of thread functions, it is no longer
+# necessary to use g_thread_init() or to link against libgthread
 PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
   [AC_DEFINE(HAVE_MUTEX_INIT,1,[define if your glib has g_mutex_init().])
    AC_DEFINE(HAVE_COND_INIT,1,[define if your glib has g_cond_init().])
@@ -520,7 +517,8 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
 	     [define if your glib has g_value_get_schar().]
    )
   ],
-  [:
+  [PKG_CHECK_MODULES(GTHREAD, gthread-2.0)
+   PACKAGES_USED="$PACKAGES_USED gthread-2.0"
   ]
 )
 
