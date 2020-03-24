@@ -315,6 +315,13 @@ vips_concurrency_set( int concurrency )
 static int
 get_num_processors( void )
 {
+#if GLIB_CHECK_VERSION( 2, 48, 1 )
+	/* We could use g_get_num_processors when GLib >= 2.48.1, see:
+	 * https://gitlab.gnome.org/GNOME/glib/commit/999711abc82ea3a698d05977f9f91c0b73957f7f
+	 * https://gitlab.gnome.org/GNOME/glib/commit/2149b29468bb99af3c29d5de61f75aad735082dc
+	 */
+	return( g_get_num_processors() );
+#else
 	int nproc;
 
 	nproc = 1;
@@ -355,24 +362,33 @@ get_num_processors( void )
 {
 	/* Count the CPUs currently available to this process.  
 	 */
+	SYSTEM_INFO sysinfo;
 	DWORD_PTR process_cpus;
 	DWORD_PTR system_cpus;
 
+	/* This *never* fails, use it as fallback 
+	 */
+	GetNativeSystemInfo( &sysinfo );
+	nproc = (int) sysinfo.dwNumberOfProcessors;
+
 	if( GetProcessAffinityMask( GetCurrentProcess(), 
 		&process_cpus, &system_cpus ) ) {
-		unsigned int count;
+		unsigned int af_count;
 
-		for( count = 0; process_cpus != 0; process_cpus >>= 1 )
+		for( af_count = 0; process_cpus != 0; process_cpus >>= 1 )
 			if( process_cpus & 1 )
-				count++;
+				af_count++;
 
-		if( count > 0 )
-			nproc = count;
+		/* Prefer affinity-based result, if available 
+		 */
+		if( af_count > 0 )
+			nproc = af_count;
 	}
 }
 #endif /*OS_WIN32*/
 
 	return( nproc );
+#endif /*!GLIB_CHECK_VERSION( 2, 48, 1 )*/
 }
 
 /**
