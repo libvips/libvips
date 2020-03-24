@@ -382,7 +382,7 @@ get_num_processors( void )
 		/* Prefer affinity-based result, if available 
 		 */
 		if( af_count > 0 )
-			nproc = count;
+			nproc = af_count;
 	}
 }
 #endif /*OS_WIN32*/
