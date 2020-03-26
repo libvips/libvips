@@ -93,7 +93,7 @@ vips_target_custom_write_real( VipsTarget *target,
 static void
 vips_target_custom_finish_real( VipsTarget *target )
 {
-	VIPS_DEBUG_MSG( "vips_target_custom_seek_real:\n" );
+	VIPS_DEBUG_MSG( "vips_target_custom_finish_real:\n" );
 
 	g_signal_emit( target, vips_target_custom_signals[SIG_FINISH], 0 );
 }
