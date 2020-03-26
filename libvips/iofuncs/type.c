@@ -735,7 +735,7 @@ transform_blob_save_string( const GValue *src_value, GValue *dest_value )
 	char *b64;
 
 	blob = vips_value_get_blob( src_value, &length );
-	if( (b64 = vips__b64_encode( blob, length )) ) {
+	if( (b64 = g_base64_encode( blob, length )) ) {
 		vips_value_set_save_string( dest_value, b64 );
 		vips_free( b64 );
 	}
@@ -754,7 +754,7 @@ transform_save_string_blob( const GValue *src_value, GValue *dest_value )
 	size_t length;
 
 	b64 = vips_value_get_save_string( src_value );
-	if( (blob = vips__b64_decode( b64, &length )) )
+	if( (blob = g_base64_decode( b64, &length )) )
 		vips_value_set_blob( dest_value, 
 			(VipsCallbackFn) vips_free, blob, length );
 	else

@@ -49,8 +49,6 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-#ifdef HAVE_GIO
-
 #include <gio/gio.h>
 
 static void vips_g_input_stream_seekable_iface_init( GSeekableIface *iface );
@@ -301,5 +299,3 @@ vips_g_input_stream_new_from_source( VipsSource *source )
 		"input", source,
 		NULL ) );
 }
-
-#endif /*HAVE_GIO*/

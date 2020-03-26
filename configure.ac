@@ -450,41 +450,9 @@ AC_CHECK_LIB(m,cbrt,[AC_DEFINE(HAVE_CBRT,1,[have cbrt() in libm.])])
 AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 AC_CHECK_LIB(m,atan2,[AC_DEFINE(HAVE_ATAN2,1,[have atan2() in libm.])])
 
-# have to have these parts of glib ... we need glib 2.6 for GOption
-# gio is optional, see below
-PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.6 gmodule-2.0 gobject-2.0)
-PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-2.0 gobject-2.0"
-
-# from 2.12 we have g_base64_encode()
-PKG_CHECK_MODULES(BASE64_ENCODE, glib-2.0 >= 2.12,
-  [AC_DEFINE(HAVE_BASE64_ENCODE,1,
-	    [define if your glib has g_base64_encode().]
-   )
-  ],
-  [:
-  ]
-)
-
-# from 2.14 we have g_option_context_get_help()
-PKG_CHECK_MODULES(CONTEXT_GET_HELP, glib-2.0 >= 2.14,
-  [AC_DEFINE(HAVE_CONTEXT_GET_HELP,1,
-	    [define if your glib has g_option_context_get_help().]
-   )
-  ],
-  [:
-  ]
-)
-
-# from 2.15 we have GIO
-PKG_CHECK_MODULES(GIO, glib-2.0 >= 2.15,
-  [AC_DEFINE(HAVE_GIO,1,
-	    [define if your glib has GIO.]
-   )
-   PACKAGES_USED="$PACKAGES_USED gio-2.0"
-  ],
-  [:
-  ]
-)
+# have to have these parts of glib ... we need glib 2.15 for gio
+PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.15 gmodule-2.0 gobject-2.0 gio-2.0)
+PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-2.0 gobject-2.0 gio-2.0"
 
 # from 2.28 we have a monotonic timer
 PKG_CHECK_MODULES(MONOTONIC_TIME, glib-2.0 >= 2.28,

@@ -269,8 +269,6 @@ VipsSourceCustom *vips_source_custom_new( void );
  * hook librsvg up to libvips using the GInputStream interface.
  */
 
-#ifdef HAVE_GIO
-
 #define VIPS_TYPE_G_INPUT_STREAM (vips_g_input_stream_get_type())
 #define VIPS_G_INPUT_STREAM( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
@@ -305,8 +303,6 @@ typedef struct _VipsGInputStreamClass {
 } VipsGInputStreamClass;
 
 GInputStream *vips_g_input_stream_new_from_source( VipsSource *source );
-
-#endif /*HAVE_GIO*/
 
 #define VIPS_TYPE_TARGET (vips_target_get_type())
 #define VIPS_TARGET( obj ) \
