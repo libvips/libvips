@@ -670,7 +670,10 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 		TIFFSetField( tif, TIFFTAG_BITSPERSAMPLE, 8 );
 		TIFFSetField( tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_CIELAB );
 	}
-	else if( wtiff->squash ) {
+	else if( wtiff->squash &&
+		wtiff->ready->Coding == VIPS_CODING_NONE && 
+		wtiff->ready->BandFmt == VIPS_FORMAT_UCHAR &&
+		wtiff->ready->Bands == 1 ) { 
 		TIFFSetField( tif, TIFFTAG_SAMPLESPERPIXEL, 1 );
 		TIFFSetField( tif, TIFFTAG_BITSPERSAMPLE, 1 );
 		TIFFSetField( tif, TIFFTAG_PHOTOMETRIC, 
@@ -1184,7 +1187,10 @@ wtiff_new( VipsImage *input, const char *filename,
 	 */
 	if( wtiff->ready->Coding == VIPS_CODING_LABQ )
 		wtiff->tls = wtiff->tilew * 3;
-	else if( wtiff->squash )
+	else if( wtiff->squash &&
+		wtiff->ready->Coding == VIPS_CODING_NONE && 
+		wtiff->ready->BandFmt == VIPS_FORMAT_UCHAR &&
+		wtiff->ready->Bands == 1 )  
 		wtiff->tls = VIPS_ROUND_UP( wtiff->tilew, 8 ) / 8;
 	else
 		wtiff->tls = VIPS_IMAGE_SIZEOF_PEL( wtiff->ready ) * 
@@ -1375,6 +1381,36 @@ LabS2Lab16( VipsPel *q, VipsPel *p, int n, int samples_per_pixel )
 	}
 }
 
+/* Convert VIPS LABS to TIFF 8 bit LAB.
+ */
+static void
+LabS2Lab8( VipsPel *q, VipsPel *p, int n, int samples_per_pixel )
+{
+	short *p1 = (short *) p;
+
+	int x;
+
+        for( x = 0; x < n; x++ ) {
+		int i;
+
+                /* LABS L can be negative.
+                 */
+                q[0] = (VIPS_MAX( 0, p1[0] ) + 64) >> 7;
+                q[1] = p[1] > 0 ? 
+			(p1[1] + 128) >> 8 : 
+			(p1[1] - 128) >> 8;
+                q[2] = p1[2] > 0 ?
+			(p1[2] + 128) >> 8 : 
+			(p1[2] - 128) >> 8;
+
+		for( i = 3; i < samples_per_pixel; i++ )
+			q[i] = p1[i] >> 8;
+
+		q += samples_per_pixel;
+		p1 += samples_per_pixel;
+	}
+}
+
 /* Convert VIPS D65 XYZ to TIFF scaled float illuminant-free xyz.
  */
 static void
@@ -1432,6 +1468,10 @@ wtiff_pack2tiff( Wtiff *wtiff, Layer *layer,
 		else if( (in->im->Bands == 1 || in->im->Bands == 2) && 
 			wtiff->miniswhite ) 
 			invert_band0( wtiff, q, p, area->width );
+		else if( wtiff->ready->BandFmt == VIPS_FORMAT_SHORT &&
+			wtiff->ready->Type == VIPS_INTERPRETATION_LABS &&
+			wtiff->squash )
+			LabS2Lab8( q, p, area->width, in->im->Bands );
 		else if( wtiff->ready->BandFmt == VIPS_FORMAT_SHORT &&
 			wtiff->ready->Type == VIPS_INTERPRETATION_LABS )
 			LabS2Lab16( q, p, area->width, in->im->Bands );
@@ -1513,6 +1553,12 @@ wtiff_layer_write_strip( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 		 */
 		if( im->Coding == VIPS_CODING_LABQ ) {
 			LabQ2LabC( wtiff->tbuf, p, im->Xsize );
+			p = wtiff->tbuf;
+		}
+		else if( im->BandFmt == VIPS_FORMAT_SHORT &&
+			im->Type == VIPS_INTERPRETATION_LABS &&
+			wtiff->squash ) {
+			LabS2Lab8( wtiff->tbuf, p, im->Xsize, im->Bands );
 			p = wtiff->tbuf;
 		}
 		else if( im->BandFmt == VIPS_FORMAT_SHORT &&
