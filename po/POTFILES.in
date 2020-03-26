@@ -256,7 +256,6 @@ libvips/iofuncs/sinkmemory.c
 libvips/iofuncs/window.c
 libvips/iofuncs/reorder.c
 libvips/iofuncs/targetcustom.c
-libvips/iofuncs/base64.c
 libvips/iofuncs/source.c
 libvips/iofuncs/memory.c
 libvips/iofuncs/sinkdisc.c

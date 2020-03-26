@@ -67,10 +67,7 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-/* We need GIO for GInputStream.
- */
-
-#if defined(HAVE_RSVG) && defined(HAVE_GIO)
+#if defined(HAVE_RSVG)
 
 #include <cairo.h>
 #include <librsvg/rsvg.h>
@@ -728,7 +725,7 @@ vips_foreign_load_svg_buffer_init( VipsForeignLoadSvgBuffer *buffer )
 {
 }
 
-#endif /*HAVE_RSVG && HAVE_GIO*/
+#endif /*HAVE_RSVG*/
 
 /**
  * vips_svgload:

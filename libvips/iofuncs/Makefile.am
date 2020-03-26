@@ -16,7 +16,6 @@ libiofuncs_la_SOURCES = \
 	gate.c \
 	enumtypes.c \
 	object.c \
-	base64.c \
 	error.c \
 	image.c \
 	vips.c \

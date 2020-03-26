@@ -68,7 +68,7 @@
 /* TODO ... put minimise support back in.
  */
 
-#if defined(HAVE_POPPLER) && defined(HAVE_GIO)
+#if defined(HAVE_POPPLER)
 
 #include <cairo.h>
 #include <poppler.h>
@@ -801,7 +801,7 @@ vips_foreign_load_pdf_source_init( VipsForeignLoadPdfSource *source )
 {
 }
 
-#endif /*defined(HAVE_POPPLER) && defined(HAVE_GIO)*/
+#endif /*defined(HAVE_POPPLER)*/
 
 /* Also used by the pdfium loader.
  */

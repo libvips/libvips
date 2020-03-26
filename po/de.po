@@ -2619,12 +2619,6 @@ msgstr "»mmap %s« zur gleichen Adresse nicht möglich"
 msgid "too little data"
 msgstr "zu wenige Daten"
 
-#. We shouldn't really be used for large amounts of data.
-#.
-#: libvips/iofuncs/base64.c:176 libvips/iofuncs/base64.c:241
-msgid "too much data"
-msgstr "zu viele Daten"
-
 #: libvips/iofuncs/object.c:148
 #, c-format
 msgid "parameter %s not set"
