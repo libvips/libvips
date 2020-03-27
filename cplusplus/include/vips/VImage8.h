@@ -111,7 +111,6 @@ public:
 	}
 
 	// assignment ... we must delete the old ref
-	// old can be NULL, new must not be NULL
 	VObject &operator=( const VObject &a )
 	{
 #ifdef VIPS_DEBUG_VERBOSE

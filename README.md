@@ -67,7 +67,7 @@ Untar, then in the libvips directory you should just be able to do:
     ./configure
 
 Check the summary at the end of `configure` carefully.  libvips must have
-`build-essential`, `pkg-config`, `glib2.0-dev`, `libexpat1-dev`.
+`build-essential`, `pkg-config`, `libglib2.0-dev`, `libexpat1-dev`.
 
 You'll need the dev packages for the file format support you want. For basic
 jpeg and tiff support, you'll need `libtiff5-dev`, `libjpeg-turbo8-dev`,
@@ -115,7 +115,7 @@ Debug build:
 
 # Dependencies 
 
-libvips has to have `glib2.0-dev` and `libexpat1-dev`. Other dependencies
+libvips has to have `libglib2.0-dev` and `libexpat1-dev`. Other dependencies
 are optional.
 
 ## Optional dependencies
