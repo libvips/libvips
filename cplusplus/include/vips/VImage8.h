@@ -81,7 +81,7 @@ public:
 		}
 #endif /*VIPS_DEBUG_VERBOSE*/
 
-		if( !steal ) {
+		if( !steal && vobject ) {
 #ifdef VIPS_DEBUG_VERBOSE
 			printf( "   reffing object\n" ); 
 #endif /*VIPS_DEBUG_VERBOSE*/
@@ -98,22 +98,22 @@ public:
 	VObject( const VObject &a ) : 
 		vobject( a.vobject )
 	{
-		g_assert( VIPS_IS_OBJECT( a.vobject ) ); 
+		g_assert( !vobject ||
+			VIPS_IS_OBJECT( vobject ) );
 
 #ifdef VIPS_DEBUG_VERBOSE
 		printf( "VObject copy constructor, obj = %p\n", 
 			vobject ); 
 		printf( "   reffing object\n" ); 
 #endif /*VIPS_DEBUG_VERBOSE*/
-		g_object_ref( vobject );
+		if( vobject )
+			g_object_ref( vobject );
 	}
 
 	// assignment ... we must delete the old ref
 	// old can be NULL, new must not be NULL
 	VObject &operator=( const VObject &a )
 	{
-		VipsObject *old_vobject;
-
 #ifdef VIPS_DEBUG_VERBOSE
 		printf( "VObject assignment\n" );  
 		printf( "   reffing %p\n", a.vobject ); 
@@ -122,16 +122,16 @@ public:
 
 		g_assert( !vobject ||
 			VIPS_IS_OBJECT( vobject ) ); 
-		g_assert( a.vobject &&
+		g_assert( !a.vobject ||
 			VIPS_IS_OBJECT( a.vobject ) ); 
 
 		// delete the old ref at the end ... otherwise "a = a;" could
 		// unref before reffing again 
-		old_vobject = vobject;
+		if( a.vobject )
+			g_object_ref( a.vobject );
+		if( vobject )
+			g_object_unref( vobject );
 		vobject = a.vobject;
-		g_object_ref( vobject ); 
-		if( old_vobject )
-			g_object_unref( old_vobject );
 
 		return( *this ); 
 	}
