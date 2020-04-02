@@ -64,6 +64,8 @@ int vips_gaussblur( VipsImage *in, VipsImage **out, double sigma, ... )
 	__attribute__((sentinel));
 int vips_sharpen( VipsImage *in, VipsImage **out, ... ) 
 	__attribute__((sentinel));
+int vips_unsharpmask( VipsImage *in, VipsImage **out, ... )
+    __attribute__((sentinel));
 
 int vips_spcor( VipsImage *in, VipsImage *ref, VipsImage **out, ... )
 	__attribute__((sentinel));
