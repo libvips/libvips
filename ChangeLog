@@ -16,6 +16,7 @@
 - add vips_isdirf()
 - add PAGENUMBER support to tiff write [jclavoie-jive]
 - add all to smartcrop 
+- flood fill could stop half-way for some very complex shapes
 
 31/1/19 started 8.9.2
 - fix a deadlock with --vips-leak [DarthSim]

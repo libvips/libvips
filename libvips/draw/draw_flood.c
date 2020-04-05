@@ -30,6 +30,8 @@
  * 	- use Draw base class
  * 21/1/14
  * 	- redo as a class
+ * 5/4/20
+ * 	- could fail to complete for some very complex shapes
  */
 
 /*
@@ -184,7 +186,7 @@ buffer_free( Buffer *buf )
 /* Add a scanline to a buffer, prepending a new buffer if necessary. Return
  * the new head buffer.
  */
-static Buffer * 
+static Buffer *
 buffer_add( Buffer *buf, Flood *flood, int x1, int x2, int y, int dir )
 {
 	/* Clip against image size.
@@ -197,19 +199,19 @@ buffer_add( Buffer *buf, Flood *flood, int x1, int x2, int y, int dir )
 	if( x2 - x1 < 0 )
 		return( buf );
 
-	buf->scan[buf->n].x1 = x1;
-	buf->scan[buf->n].x2 = x2;
-	buf->scan[buf->n].y = y;
-	buf->scan[buf->n].dir = dir;
-	buf->n += 1; 
-
 	if( buf->n == PBUFSIZE ) { 
 		Buffer *new;
 
 		new = buffer_build();
 		new->next = buf;
 		buf = new;
-	} 
+	}
+
+	buf->scan[buf->n].x1 = x1;
+	buf->scan[buf->n].x2 = x2;
+	buf->scan[buf->n].y = y;
+	buf->scan[buf->n].dir = dir;
+	buf->n += 1;
 
 	return( buf );
 }
