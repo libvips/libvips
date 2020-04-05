@@ -5,7 +5,7 @@ from functools import reduce
 
 import pyvips
 from helpers import noncomplex_formats, run_fn2, run_fn, \
-    assert_almost_equal_objects, assert_less_threshold
+    assert_almost_equal_objects, assert_less_threshold, PNG_FILE, LOGO2_PNG_FILE
 
 
 # point convolution
@@ -189,6 +189,16 @@ class TestConvolution:
 
                     assert_almost_equal_objects(a_point, b_point,
                                                 threshold=0.1)
+
+    def test_sharpen_no_alpha(self):
+        im = pyvips.Image.new_from_file(PNG_FILE)
+        sharp = im.sharpen(sigma=2)
+        sharp.write_to_file('%s.sharpened.png' % PNG_FILE)
+
+    def test_sharpen_with_alpha(self):
+        im = pyvips.Image.new_from_file(LOGO2_PNG_FILE)
+        sharp = im.sharpen(sigma=2)
+        sharp.write_to_file('%s.sharpened.png' % LOGO2_PNG_FILE)
 
     def test_sharpen(self):
         for im in self.all_images:
