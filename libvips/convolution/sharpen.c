@@ -173,9 +173,18 @@ vips_sharpen_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsSharpen *sharpen = (VipsSharpen *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 8 );
-	VipsImage **args = (VipsImage **) vips_object_local_array( object, 2 );
+	VipsImage **l_band_and_convolution = (VipsImage **) vips_object_local_array(object, 2 );
 
-	VipsImage *in;
+#define in_labs t[0]
+#define gaussmat t[1]
+#define other_bands t[3]
+#define sharpened_l_band t[5]
+#define joined_bands t[6]
+#define joined_bands_old_interpretation t[7]
+
+#define l_band l_band_and_convolution[0]
+#define convolution l_band_and_convolution[1]
+
 	VipsInterpretation old_interpretation;
 	int i;
 
@@ -191,22 +200,19 @@ vips_sharpen_build( VipsObject *object )
 		vips_object_argument_isset( object, "radius" ) )
 		sharpen->sigma = 1 + sharpen->radius / 2;
 
-	in = sharpen->in; 
-
-	old_interpretation = in->Type;
-	if( vips_colourspace( in, &t[0], VIPS_INTERPRETATION_LABS, NULL ) )
+	old_interpretation = sharpen->in->Type;
+	if( vips_colourspace( sharpen->in, &in_labs, VIPS_INTERPRETATION_LABS, NULL ) )
 		return( -1 );
-	in = t[0];
 
-  	if( vips_check_uncoded( class->nickname, in ) ||
-		vips_check_bands_atleast( class->nickname, in, 3 ) || 
-		vips_check_format( class->nickname, in, VIPS_FORMAT_SHORT ) )
+  	if( vips_check_uncoded( class->nickname, in_labs ) ||
+		vips_check_bands_atleast( class->nickname, in_labs, 3 ) ||
+		vips_check_format( class->nickname, in_labs, VIPS_FORMAT_SHORT ) )
   		return( -1 );
 
 	/* Stop at 10% of max ... a bit mean. We always sharpen a short, 
 	 * so there's no point using a float mask. 
 	 */
-	if( vips_gaussmat( &t[1], sharpen->sigma, 0.1, 
+	if( vips_gaussmat( &gaussmat, sharpen->sigma, 0.1,
 		"separable", TRUE,
 		"precision", VIPS_PRECISION_INTEGER,
 		NULL ) )
@@ -214,7 +220,7 @@ vips_sharpen_build( VipsObject *object )
 
 #ifdef DEBUG
 	printf( "sharpen: blurring with:\n" ); 
-	vips_matrixprint( t[1], NULL ); 
+	vips_matrixprint( gaussmat, NULL );
 #endif /*DEBUG*/
 
 	/* Index with the signed difference between two 0 - 32767 images.
@@ -266,30 +272,30 @@ vips_sharpen_build( VipsObject *object )
 
 	/* Extract L and the rest, convolve L.
 	 */
-	if( vips_extract_band( in, &args[0], 0, NULL ) ||
-		vips_extract_band( in, &t[3], 1, "n", in->Bands - 1, NULL ) ||
-		vips_convsep( args[0], &args[1], t[1], 
+	if( vips_extract_band( in_labs, &l_band, 0, NULL ) ||
+		vips_extract_band( in_labs, &other_bands, 1, "n", in_labs->Bands - 1, NULL ) ||
+		vips_convsep( l_band, &convolution, gaussmat,
 			"precision", VIPS_PRECISION_INTEGER,
 			NULL ) )
 		return( -1 );
 
-	t[5] = vips_image_new();
-	if( vips_image_pipeline_array( t[5], 
-		VIPS_DEMAND_STYLE_FATSTRIP, args ) )
+	sharpened_l_band = vips_image_new();
+	if( vips_image_pipeline_array(sharpened_l_band,
+                                  VIPS_DEMAND_STYLE_FATSTRIP, l_band_and_convolution ) )
 		return( -1 );
 
-	if( vips_image_generate( t[5], 
-		vips_start_many, vips_sharpen_generate, vips_stop_many, 
-		args, sharpen ) )
+	if( vips_image_generate(sharpened_l_band,
+                            vips_start_many, vips_sharpen_generate, vips_stop_many,
+                            l_band_and_convolution, sharpen ) )
 		return( -1 );
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
 	/* Reattach the rest.
 	 */
-	if( vips_bandjoin2( t[5], t[3], &t[6], NULL ) ||
-		vips_colourspace( t[6], &t[7], old_interpretation, NULL ) ||
-		vips_image_write( t[7], sharpen->out ) )
+	if( vips_bandjoin2( sharpened_l_band, other_bands, &joined_bands, NULL ) ||
+		vips_colourspace( joined_bands, &joined_bands_old_interpretation, old_interpretation, NULL ) ||
+		vips_image_write( joined_bands_old_interpretation, sharpen->out ) )
 		return( -1 );
 
 	VIPS_GATE_STOP( "vips_sharpen_build: build" ); 
