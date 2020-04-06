@@ -110,7 +110,9 @@ typedef struct _VipsSharpen {
 
 typedef VipsOperationClass VipsSharpenClass;
 
-G_DEFINE_TYPE( VipsSharpen, vips_sharpen, VIPS_TYPE_OPERATION );
+G_DEFINE_TYPE( VipsSharpen, vips_sharpen, VIPS_TYPE_OPERATION )
+
+int *vips_sharpen_make_lut(VipsObject *object, const VipsSharpen *sharpen);
 
 static int
 vips_sharpen_generate( VipsRegion *or, 
@@ -174,6 +176,7 @@ vips_sharpen_build( VipsObject *object )
 	VipsSharpen *sharpen = (VipsSharpen *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 8 );
 	VipsImage **l_band_and_convolution = (VipsImage **) vips_object_local_array(object, 2 );
+    VipsInterpretation old_interpretation;
 
 #define in_labs t[0]
 #define gaussmat t[1]
@@ -184,9 +187,6 @@ vips_sharpen_build( VipsObject *object )
 
 #define l_band l_band_and_convolution[0]
 #define convolution l_band_and_convolution[1]
-
-	VipsInterpretation old_interpretation;
-	int i;
 
 	VIPS_GATE_START( "vips_sharpen_build: build" ); 
 
@@ -225,52 +225,10 @@ vips_sharpen_build( VipsObject *object )
 
 	/* Index with the signed difference between two 0 - 32767 images.
 	 */
-	if( !(sharpen->lut = VIPS_ARRAY( object, 65536, int )) )
+	if( !(sharpen->lut = vips_sharpen_make_lut(object, sharpen)) )
 		return( -1 );
 
-	for( i = 0; i < 65536; i++ ) { 
-		/* Rescale to +/- 100.
-		 */
-		double v = (i - 32767) / 327.67;
-		double y;
-
-		if( v < -sharpen->x1 ) 
-			/* Left of -x1.
-			 */
-			y = (v + sharpen->x1) * sharpen->m2 +
-				-sharpen->x1 * sharpen->m1;
-		else if( v < sharpen->x1 ) 
-			/* Centre section.
-			 */
-			y = v * sharpen->m1;
-		else 
-			/* Right of x1.
-			 */
-			y = (v - sharpen->x1) * sharpen->m2 +
-				sharpen->x1 * sharpen->m1;
-
-		if( y < -sharpen->y3 )
-			y = -sharpen->y3;
-		if( y > sharpen->y2 )
-			y = sharpen->y2;
-
-		sharpen->lut[i] = VIPS_RINT( y * 327.67 );
-	}
-
-#ifdef DEBUG
-{
-	VipsImage *mat;
-
-	mat = vips_image_new_matrix( 65536, 1 );
-	for( i = 0; i < 65536; i++ )
-		*VIPS_MATRIX( mat, i, 0 ) = sharpen->lut[i];
-	vips_image_write_to_file( mat, "x.v", NULL ); 
-	printf( "lut written to x.v\n" ); 
-	g_object_unref( mat );
-}
-#endif /*DEBUG*/
-
-	/* Extract L and the rest, convolve L.
+    /* Extract L and the rest, convolve L.
 	 */
 	if( vips_extract_band( in_labs, &l_band, 0, NULL ) ||
 		vips_extract_band( in_labs, &other_bands, 1, "n", in_labs->Bands - 1, NULL ) ||
@@ -301,6 +259,56 @@ vips_sharpen_build( VipsObject *object )
 	VIPS_GATE_STOP( "vips_sharpen_build: build" ); 
 
 	return( 0 );
+}
+
+int* vips_sharpen_make_lut(VipsObject *object, const VipsSharpen *sharpen) {
+    int *lut;
+    int i;
+
+    if( !(lut = VIPS_ARRAY( object, 65536, int )))
+        return NULL;
+
+    for (i = 0; i < 65536; i++) {
+        /* Rescale to +/- 100.
+         */
+        double v = (i - 32767) / 327.67;
+        double y;
+
+        if (v < -sharpen->x1)
+            /* Left of -x1.
+             */
+            y = (v + sharpen->x1) * sharpen->m2 +
+                -sharpen->x1 * sharpen->m1;
+        else if (v < sharpen->x1)
+            /* Centre section.
+             */
+            y = v * sharpen->m1;
+        else
+            /* Right of x1.
+             */
+            y = (v - sharpen->x1) * sharpen->m2 +
+                sharpen->x1 * sharpen->m1;
+
+        if (y < -sharpen->y3)
+            y = -sharpen->y3;
+        if (y > sharpen->y2)
+            y = sharpen->y2;
+
+        lut[i] = VIPS_RINT(y * 327.67);
+    }
+
+#ifdef DEBUG
+    {
+        VipsImage *mat = vips_image_new_matrix(65536, 1);
+        for (i = 0; i < 65536; i++)
+            *VIPS_MATRIX(mat, i1, 0) = lut[i];
+        vips_image_write_to_file(mat, "x.v", NULL);
+        printf("lut written to x.v\n");
+        g_object_unref(mat);
+    }
+#endif /*DEBUG*/
+
+    return lut;
 }
 
 static void
