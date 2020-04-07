@@ -175,7 +175,7 @@ vips_sharpen_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsSharpen *sharpen = (VipsSharpen *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 8 );
-	VipsImage **l_band_and_convolution = (VipsImage **) vips_object_local_array(object, 2 );
+	VipsImage **bands_and_convolutions[4];
     VipsInterpretation old_interpretation;
 
 #define in_color_space t[0]
@@ -225,27 +225,28 @@ vips_sharpen_build( VipsObject *object )
 	if( !(sharpen->lut = vips_sharpen_make_lut(object, sharpen)) )
 		return( -1 );
 
-    /* Extract L and the rest, convolve L.
+    bands_and_convolutions[0] = (VipsImage **) vips_object_local_array(object, 2 );
+	/* Extract L and the rest, convolve L.
 	 */
-	if( vips_extract_band(in_color_space, &l_band_and_convolution[0], 0, NULL ))
+	if( vips_extract_band(in_color_space, &bands_and_convolutions[0][0], 0, NULL ))
         return( -1 );
 
 	if( vips_extract_band(in_color_space, &other_bands, 1, "n", in_color_space->Bands - 1, NULL ))
         return( -1 );
 
-    if( vips_convsep(l_band_and_convolution[0], &l_band_and_convolution[1], gaussmat,
-			"precision", VIPS_PRECISION_INTEGER,
-			NULL ) )
+    if( vips_convsep(bands_and_convolutions[0][0], &bands_and_convolutions[0][1], gaussmat,
+                     "precision", VIPS_PRECISION_INTEGER,
+                     NULL ) )
 		return( -1 );
 
 	sharpened_l_band = vips_image_new();
 	if( vips_image_pipeline_array(sharpened_l_band,
-                                  VIPS_DEMAND_STYLE_FATSTRIP, l_band_and_convolution ) )
+                                  VIPS_DEMAND_STYLE_FATSTRIP, bands_and_convolutions[0] ) )
 		return( -1 );
 
 	if( vips_image_generate(sharpened_l_band,
                             vips_start_many, vips_sharpen_generate, vips_stop_many,
-                            l_band_and_convolution, sharpen ) )
+                            bands_and_convolutions[0], sharpen ) )
 		return( -1 );
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
