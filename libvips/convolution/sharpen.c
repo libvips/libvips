@@ -227,9 +227,13 @@ vips_sharpen_build( VipsObject *object )
 
     /* Extract L and the rest, convolve L.
 	 */
-	if(vips_extract_band(in_color_space, &l_band_and_convolution[0], 0, NULL ) ||
-       vips_extract_band(in_color_space, &other_bands, 1, "n", in_color_space->Bands - 1, NULL ) ||
-       vips_convsep(l_band_and_convolution[0], &l_band_and_convolution[1], gaussmat,
+	if( vips_extract_band(in_color_space, &l_band_and_convolution[0], 0, NULL ))
+        return( -1 );
+
+	if( vips_extract_band(in_color_space, &other_bands, 1, "n", in_color_space->Bands - 1, NULL ))
+        return( -1 );
+
+    if( vips_convsep(l_band_and_convolution[0], &l_band_and_convolution[1], gaussmat,
 			"precision", VIPS_PRECISION_INTEGER,
 			NULL ) )
 		return( -1 );
@@ -248,9 +252,13 @@ vips_sharpen_build( VipsObject *object )
 
 	/* Reattach the rest.
 	 */
-	if( vips_bandjoin2( sharpened_l_band, other_bands, &joined_bands, NULL ) ||
-		vips_colourspace( joined_bands, &joined_bands_old_interpretation, old_interpretation, NULL ) ||
-		vips_image_write( joined_bands_old_interpretation, sharpen->out ) )
+	if( vips_bandjoin2( sharpened_l_band, other_bands, &joined_bands, NULL ))
+        return( -1 );
+
+    if( vips_colourspace( joined_bands, &joined_bands_old_interpretation, old_interpretation, NULL ))
+        return( -1 );
+
+    if( vips_image_write( joined_bands_old_interpretation, sharpen->out ) )
 		return( -1 );
 
 	VIPS_GATE_STOP( "vips_sharpen_build: build" ); 
