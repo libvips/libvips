@@ -178,17 +178,14 @@ vips_sharpen_build( VipsObject *object )
 	VipsImage **l_band_and_convolution = (VipsImage **) vips_object_local_array(object, 2 );
     VipsInterpretation old_interpretation;
 
-#define in_labs t[0]
+#define in_color_space t[0]
 #define gaussmat t[1]
 #define other_bands t[3]
 #define sharpened_l_band t[5]
 #define joined_bands t[6]
 #define joined_bands_old_interpretation t[7]
 
-#define l_band l_band_and_convolution[0]
-#define convolution l_band_and_convolution[1]
-
-	VIPS_GATE_START( "vips_sharpen_build: build" ); 
+    VIPS_GATE_START( "vips_sharpen_build: build" );
 
 	if( VIPS_OBJECT_CLASS( vips_sharpen_parent_class )->build( object ) )
 		return( -1 );
@@ -201,12 +198,12 @@ vips_sharpen_build( VipsObject *object )
 		sharpen->sigma = 1 + sharpen->radius / 2;
 
 	old_interpretation = sharpen->in->Type;
-	if( vips_colourspace( sharpen->in, &in_labs, VIPS_INTERPRETATION_LABS, NULL ) )
+	if( vips_colourspace(sharpen->in, &in_color_space, VIPS_INTERPRETATION_LABS, NULL ) )
 		return( -1 );
 
-  	if( vips_check_uncoded( class->nickname, in_labs ) ||
-		vips_check_bands_atleast( class->nickname, in_labs, 3 ) ||
-		vips_check_format( class->nickname, in_labs, VIPS_FORMAT_SHORT ) )
+  	if(vips_check_uncoded(class->nickname, in_color_space ) ||
+       vips_check_bands_atleast(class->nickname, in_color_space, 3 ) ||
+       vips_check_format(class->nickname, in_color_space, VIPS_FORMAT_SHORT ) )
   		return( -1 );
 
 	/* Stop at 10% of max ... a bit mean. We always sharpen a short, 
@@ -230,9 +227,9 @@ vips_sharpen_build( VipsObject *object )
 
     /* Extract L and the rest, convolve L.
 	 */
-	if( vips_extract_band( in_labs, &l_band, 0, NULL ) ||
-		vips_extract_band( in_labs, &other_bands, 1, "n", in_labs->Bands - 1, NULL ) ||
-		vips_convsep( l_band, &convolution, gaussmat,
+	if(vips_extract_band(in_color_space, &l_band_and_convolution[0], 0, NULL ) ||
+       vips_extract_band(in_color_space, &other_bands, 1, "n", in_color_space->Bands - 1, NULL ) ||
+       vips_convsep(l_band_and_convolution[0], &l_band_and_convolution[1], gaussmat,
 			"precision", VIPS_PRECISION_INTEGER,
 			NULL ) )
 		return( -1 );
