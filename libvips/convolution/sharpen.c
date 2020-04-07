@@ -205,8 +205,8 @@ vips_sharpen_build( VipsObject *object )
 		sharpen->sigma = 1 + sharpen->radius / 2;
 
 	//TODO: Set this outside
-	sharpen->color_space = VIPS_INTERPRETATION_LABS;
-	sharpen->bands_to_sharpen = 1;
+	sharpen->color_space = VIPS_INTERPRETATION_sRGB;
+	sharpen->bands_to_sharpen = 4;
 	///////////
 
 	old_interpretation = sharpen->in->Type;
