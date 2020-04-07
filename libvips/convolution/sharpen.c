@@ -91,6 +91,9 @@ typedef struct _VipsSharpen {
 	VipsImage *in;
 	VipsImage *out;
 
+	VipsInterpretation color_space;
+	int bands_to_sharpen;
+
 	double sigma; 
 	double x1;
 	double y2;
@@ -180,6 +183,8 @@ vips_sharpen_build( VipsObject *object )
 	VipsImage **bands_and_convolutions[MAX_BANDS];
     VipsImage **sharpened_bands = (VipsImage **) vips_object_local_array(object, MAX_BANDS);
     VipsInterpretation old_interpretation;
+    int i;
+    int num_other_bands;
 
 #define in_color_space t[0]
 #define gaussmat t[1]
@@ -199,8 +204,13 @@ vips_sharpen_build( VipsObject *object )
 		vips_object_argument_isset( object, "radius" ) )
 		sharpen->sigma = 1 + sharpen->radius / 2;
 
+	//TODO: Set this outside
+	sharpen->color_space = VIPS_INTERPRETATION_LABS;
+	sharpen->bands_to_sharpen = 1;
+	///////////
+
 	old_interpretation = sharpen->in->Type;
-	if( vips_colourspace(sharpen->in, &in_color_space, VIPS_INTERPRETATION_LABS, NULL ) )
+	if( vips_colourspace(sharpen->in, &in_color_space, sharpen->color_space, NULL ) )
 		return( -1 );
 
   	if(vips_check_uncoded(class->nickname, in_color_space ) ||
@@ -227,40 +237,73 @@ vips_sharpen_build( VipsObject *object )
 	if( !(sharpen->lut = vips_sharpen_make_lut(object, sharpen)) )
 		return( -1 );
 
-    bands_and_convolutions[0] = (VipsImage **) vips_object_local_array(object, 2 );
-	/* Extract L and the rest, convolve L.
+    printf("    /* Initialize bands and convolutions array\n");
+    /* Initialize bands and convolutions array
+     */
+	for( i = 0; i < sharpen->bands_to_sharpen; i++ )
+        bands_and_convolutions[i] = (VipsImage **) vips_object_local_array(object, 2);
+
+    printf("    /* Extract the bands we want to sharpen\n");
+    /* Extract the bands we want to sharpen
+     */
+	for( i = 0; i < sharpen->bands_to_sharpen; i++ )
+        if (vips_extract_band(in_color_space, &(bands_and_convolutions[i])[0], i, NULL))
+            return (-1);
+
+    printf("    /* Extract the other bands (if any)\n");
+	/* Extract the other bands (if any)
 	 */
-	if( vips_extract_band(in_color_space, &bands_and_convolutions[0][0], 0, NULL ))
-        return( -1 );
+	num_other_bands = in_color_space->Bands - sharpen->bands_to_sharpen;
+	if( num_other_bands > 0)
+        if( vips_extract_band(in_color_space, &other_bands, sharpen->bands_to_sharpen,
+                "n", num_other_bands, NULL ))
+            return( -1 );
 
-	if( vips_extract_band(in_color_space, &other_bands, 1, "n", in_color_space->Bands - 1, NULL ))
-        return( -1 );
+    printf("    /* Convolve\n");
+    /* Convolve
+     */
+    for( i = 0; i < sharpen->bands_to_sharpen; i++) {
+        if (vips_convsep(bands_and_convolutions[i][0], &(bands_and_convolutions[i])[1], gaussmat,
+                         "precision", VIPS_PRECISION_INTEGER,
+                         NULL))
+            return (-1);
 
-    if( vips_convsep(bands_and_convolutions[0][0], &bands_and_convolutions[0][1], gaussmat,
-                     "precision", VIPS_PRECISION_INTEGER,
-                     NULL ) )
-		return( -1 );
+        sharpened_bands[i] = vips_image_new();
+        if (vips_image_pipeline_array(sharpened_bands[i],
+                                      VIPS_DEMAND_STYLE_FATSTRIP, bands_and_convolutions[i]))
+            return (-1);
 
-    sharpened_bands[0] = vips_image_new();
-	if( vips_image_pipeline_array(sharpened_bands[0],
-                                  VIPS_DEMAND_STYLE_FATSTRIP, bands_and_convolutions[0] ) )
-		return( -1 );
-
-	if( vips_image_generate(sharpened_bands[0],
-                            vips_start_many, vips_sharpen_generate, vips_stop_many,
-                            bands_and_convolutions[0], sharpen ) )
-		return( -1 );
+        if (vips_image_generate(sharpened_bands[i],
+                                vips_start_many, vips_sharpen_generate, vips_stop_many,
+                                bands_and_convolutions[i], sharpen))
+            return (-1);
+    }
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
-	/* Reattach the rest.
+	printf("/* Join sharpened bands and other bands.\n");
+	/* Join sharpened bands and other bands.
 	 */
-	if( vips_bandjoin2( sharpened_bands[0], other_bands, &joined_bands, NULL ))
-        return( -1 );
+    {
+        VipsImage *bands_to_join[MAX_BANDS];
+
+        for( i = 0; i < sharpen->bands_to_sharpen; i++)
+            bands_to_join[i] = sharpened_bands[i];
+
+        if( num_other_bands ) {
+            bands_to_join[i++] = other_bands;
+        }
+
+        if (vips_bandjoin(bands_to_join, &joined_bands, i, NULL))
+            return (-1);
+    }
+
+    printf("/* vips_colourspace\n");
 
     if( vips_colourspace( joined_bands, &joined_bands_old_interpretation, old_interpretation, NULL ))
         return( -1 );
 
+    printf("/* vips_image_write\n");
     if( vips_image_write( joined_bands_old_interpretation, sharpen->out ) )
 		return( -1 );
 
