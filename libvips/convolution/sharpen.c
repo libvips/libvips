@@ -110,7 +110,9 @@ typedef struct _VipsSharpen {
 
 typedef VipsOperationClass VipsSharpenClass;
 
-G_DEFINE_TYPE( VipsSharpen, vips_sharpen, VIPS_TYPE_OPERATION )
+#define MAX_BANDS 4
+
+G_DEFINE_TYPE(VipsSharpen, vips_sharpen, VIPS_TYPE_OPERATION )
 
 int *vips_sharpen_make_lut(VipsObject *object, const VipsSharpen *sharpen);
 
@@ -175,13 +177,13 @@ vips_sharpen_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsSharpen *sharpen = (VipsSharpen *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 8 );
-	VipsImage **bands_and_convolutions[4];
+	VipsImage **bands_and_convolutions[MAX_BANDS];
+    VipsImage **sharpened_bands = (VipsImage **) vips_object_local_array(object, MAX_BANDS);
     VipsInterpretation old_interpretation;
 
 #define in_color_space t[0]
 #define gaussmat t[1]
 #define other_bands t[3]
-#define sharpened_l_band t[5]
 #define joined_bands t[6]
 #define joined_bands_old_interpretation t[7]
 
@@ -239,12 +241,12 @@ vips_sharpen_build( VipsObject *object )
                      NULL ) )
 		return( -1 );
 
-	sharpened_l_band = vips_image_new();
-	if( vips_image_pipeline_array(sharpened_l_band,
+    sharpened_bands[0] = vips_image_new();
+	if( vips_image_pipeline_array(sharpened_bands[0],
                                   VIPS_DEMAND_STYLE_FATSTRIP, bands_and_convolutions[0] ) )
 		return( -1 );
 
-	if( vips_image_generate(sharpened_l_band,
+	if( vips_image_generate(sharpened_bands[0],
                             vips_start_many, vips_sharpen_generate, vips_stop_many,
                             bands_and_convolutions[0], sharpen ) )
 		return( -1 );
@@ -253,7 +255,7 @@ vips_sharpen_build( VipsObject *object )
 
 	/* Reattach the rest.
 	 */
-	if( vips_bandjoin2( sharpened_l_band, other_bands, &joined_bands, NULL ))
+	if( vips_bandjoin2( sharpened_bands[0], other_bands, &joined_bands, NULL ))
         return( -1 );
 
     if( vips_colourspace( joined_bands, &joined_bands_old_interpretation, old_interpretation, NULL ))
