@@ -1,8 +1,8 @@
 libvips Code of Conduct
 =======================
 
-libvips, is developed and maintained by a 
-mixed group of professionals and volunteers from all over the world.
+libvips, is developed and maintained by a mixed group of professionals and
+volunteers from all over the world.
 
 We ask people to adhere to a few ground rules. They apply equally to founders,
 maintainers, contributors and those seeking help and guidance.
@@ -12,14 +12,14 @@ We rather would like you to think of it as a guide to enrich our community and
 the technical community in general with new knowledge and perspectives by
 allowing everyone to participate.
 
-This code of conduct applies to all spaces managed by the libvips community. This
-includes the mailing list, our GitHub projects, face to face events, and
-any other forums created by the community for communication within the
-community. In addition, violations of this code outside these spaces may also
-affect a person's ability to participate within them.
+This code of conduct applies to all spaces managed by the libvips
+community. This includes the mailing list, our GitHub projects, face to face
+events, and any other forums created by the community for communication
+within the community. In addition, violations of this code outside these
+spaces may also affect a person's ability to participate within them.
 
-If you believe someone is violating the code of conduct, we ask that you report
-it. 
+If you believe someone is violating the code of conduct, we ask that you
+report it.
 
 -   **Be friendly and patient.**
 -   **Be welcoming.** We strive to be a community that welcomes and supports
@@ -52,16 +52,15 @@ it.
     -   Repeated harassment of others. In general, if someone asks you to stop,
         then stop.
 -   **When we disagree, try to understand why.** Disagreements, both social and
-    technical, happen all the time. It is important
-    that we resolve disagreements and differing views constructively. Remember
-    that we’re different. The strength of group software development comes from its varied community,
-    people from a wide range of backgrounds. Different people have different
-    perspectives on issues. Being unable to understand why someone holds a
-    viewpoint doesn’t mean that they’re wrong. Don’t forget we all make mistakes
-    and blaming each other doesn’t get us anywhere. Instead, focus on
-    helping to resolve issues and learning from mistakes.
+    technical, happen all the time. It is important that we resolve
+    disagreements and differing views constructively. Remember that we’re
+    different. The strength of group software development comes from its
+    varied community, people from a wide range of backgrounds. Different
+    people have different perspectives on issues. Being unable to understand
+    why someone holds a viewpoint doesn’t mean that they’re wrong. Don’t
+    forget we all make mistakes and blaming each other doesn’t get us
+    anywhere. Instead, focus on helping to resolve issues and learning
+    from mistakes.
 
 Text based on the Code of Conduct of the [Django
 community](https://www.djangoproject.com/conduct/).
-
-
