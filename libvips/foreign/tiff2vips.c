@@ -195,6 +195,8 @@
  * 	- support ASSOCALPHA in any alpha band
  * 27/1/20
  * 	- read logluv images as XYZ
+ * 11/4/20 petoor 
+ * 	- better handling of aligned reads in multipage tiffs
  */
 
 /*
@@ -1612,6 +1614,10 @@ rtiff_seq_start( VipsImage *out, void *a, void *b )
 static int
 rtiff_read_tile( Rtiff *rtiff, tdata_t *buf, int x, int y )
 {
+#ifdef DEBUG_VERBOSE
+	printf( "rtiff_read_tile: x = %d, y = %d\n", x, y ); 
+#endif /*DEBUG_VERBOSE*/
+
 	if( TIFFReadTile( rtiff->tiff, buf, x, y, 0, 0 ) < 0 ) { 
 		vips_foreign_load_invalidate( rtiff->out );
 		return( -1 ); 
@@ -1626,10 +1632,14 @@ rtiff_read_tile( Rtiff *rtiff, tdata_t *buf, int x, int y )
  * region.
  */
 static int
-rtiff_fill_region_aligned( VipsRegion *out, void *seq, void *a, void *b )
+rtiff_fill_region_aligned( VipsRegion *out, 
+	void *seq, void *a, void *b, gboolean *stop )
 {
 	Rtiff *rtiff = (Rtiff *) a;
 	VipsRect *r = &out->valid;
+	int page_height = rtiff->header.height;
+	int page_no = r->top / page_height;
+	int page_y = r->top % page_height;
 
 	g_assert( (r->left % rtiff->header.tile_width) == 0 );
 	g_assert( (r->top % rtiff->header.tile_height) == 0 );
@@ -1638,22 +1648,16 @@ rtiff_fill_region_aligned( VipsRegion *out, void *seq, void *a, void *b )
 	g_assert( VIPS_REGION_LSKIP( out ) == VIPS_REGION_SIZEOF_LINE( out ) );
 
 #ifdef DEBUG_VERBOSE
-	printf( "rtiff_fill_region_aligned: left = %d, top = %d\n", 
-		r->left, r->top ); 
+	printf( "rtiff_fill_region_aligned:\n" ); 
 #endif /*DEBUG_VERBOSE*/
-
-	VIPS_GATE_START( "rtiff_fill_region_aligned: work" ); 
 
 	/* Read that tile directly into the vips tile.
 	 */
-	if( rtiff_read_tile( rtiff,
-		(tdata_t *) VIPS_REGION_ADDR( out, r->left, r->top ), 
-		r->left, r->top ) ) {
-		VIPS_GATE_STOP( "rtiff_fill_region_aligned: work" ); 
+	if( rtiff_set_page( rtiff, rtiff->page + page_no ) ||
+		rtiff_read_tile( rtiff,
+			(tdata_t *) VIPS_REGION_ADDR( out, r->left, r->top ), 
+		r->left, page_y ) ) 
 		return( -1 );
-	}
-
-	VIPS_GATE_STOP( "rtiff_fill_region_aligned: work" ); 
 
 	return( 0 );
 }
@@ -1661,30 +1665,22 @@ rtiff_fill_region_aligned( VipsRegion *out, void *seq, void *a, void *b )
 /* Loop over the output region, painting in tiles from the file.
  */
 static int
-rtiff_fill_region( VipsRegion *out, 
+rtiff_fill_region_unaligned( VipsRegion *out, 
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	tdata_t *buf = (tdata_t *) seq;
 	Rtiff *rtiff = (Rtiff *) a;
 	int tile_width = rtiff->header.tile_width;
 	int tile_height = rtiff->header.tile_height;
+	int page_height = rtiff->header.height;
 	int tile_row_size = rtiff->header.tile_row_size;
 	VipsRect *r = &out->valid;
 
 	int x, y, z;
 
-	/* Special case: we are filling a single tile exactly sized to match
-	 * the tiff tile and we have no repacking to do for this format.
-	 */
-	if( rtiff->memcpy &&
-		r->left % tile_width == 0 &&
-		r->top % tile_height == 0 &&
-		r->width == tile_width &&
-		r->height == tile_height &&
-		VIPS_REGION_LSKIP( out ) == VIPS_REGION_SIZEOF_LINE( out ) )
-		return( rtiff_fill_region_aligned( out, seq, a, b ) );
-
-	VIPS_GATE_START( "rtiff_fill_region: work" ); 
+#ifdef DEBUG_VERBOSE
+	printf( "rtiff_fill_region_unaligned:\n" ); 
+#endif /*DEBUG_VERBOSE*/
 
 	y = 0;
 	while( y < r->height ) {
@@ -1701,8 +1697,8 @@ rtiff_fill_region( VipsRegion *out,
 			 * file page number ... add the number of the start
 			 * page to get that.
 			 */
-			int page_no = (r->top + y) / rtiff->header.height;
-			int page_y = (r->top + y) % rtiff->header.height;
+			int page_no = (r->top + y) / page_height;
+			int page_y = (r->top + y) % page_height;
 
 			/* Coordinate of the tile on this page that xy falls in.
 			 */
@@ -1710,10 +1706,8 @@ rtiff_fill_region( VipsRegion *out,
 			int ys = (page_y / tile_height) * tile_height;
 
 			if( rtiff_set_page( rtiff, rtiff->page + page_no ) ||
-				rtiff_read_tile( rtiff, buf, xs, ys ) ) { 
-				VIPS_GATE_STOP( "rtiff_fill_region: work" ); 
+				rtiff_read_tile( rtiff, buf, xs, ys ) )  
 				return( -1 );
-			}
 
 			/* Position of tile on the page. 
 			 */
@@ -1732,7 +1726,7 @@ rtiff_fill_region( VipsRegion *out,
 
 			/* To image coordinates.
 			 */
-			tile.top += page_no * rtiff->header.height;
+			tile.top += page_no * page_height;
 
 			/* And clip again by this region.
 			 */
@@ -1763,6 +1757,57 @@ rtiff_fill_region( VipsRegion *out,
 		}
 
 		y += tile.height;
+	}
+
+	return( 0 );
+}
+
+/* Loop over the output region, painting in tiles from the file.
+ */
+static int
+rtiff_fill_region( VipsRegion *out, 
+	void *seq, void *a, void *b, gboolean *stop )
+{
+	Rtiff *rtiff = (Rtiff *) a;
+	int tile_width = rtiff->header.tile_width;
+	int tile_height = rtiff->header.tile_height;
+	int page_width = rtiff->header.width;
+	int page_height = rtiff->header.height;
+	VipsRect *r = &out->valid;
+	int page_no = r->top / page_height;
+	int page_y = r->top % page_height;
+
+	VipsGenerateFn generate;
+
+#ifdef DEBUG_VERBOSE
+	printf( "rtiff_fill_region: left = %d, top = %d, "
+		"width = %d, height = %d\n", 
+		r->left, r->top, r->width, r->height ); 
+#endif /*DEBUG_VERBOSE*/
+
+	/* Special case: we are filling a single cache tile exactly sized to 
+	 * match the tiff tile, and we have no repacking to do for this format.
+	 *
+	 * If we are not on the first page, pages must be a multiple of the 
+	 * tile size of we'll miss alignment.
+	 */
+	if( (page_no == 0 || page_height % tile_height == 0) &&
+		r->left % tile_width == 0 &&
+		r->top % tile_height == 0 &&
+		r->width == tile_width &&
+		r->height == tile_height &&
+		r->left + tile_width <= page_width &&
+		page_y + tile_height <= page_height &&
+		VIPS_REGION_LSKIP( out ) == VIPS_REGION_SIZEOF_LINE( out ) )
+		generate = rtiff_fill_region_aligned;
+	else
+		generate = rtiff_fill_region_unaligned;
+
+	VIPS_GATE_START( "rtiff_fill_region: work" ); 
+
+	if( generate( out, seq, a, b, stop ) ) {
+		VIPS_GATE_STOP( "rtiff_fill_region: work" ); 
+		return( -1 );
 	}
 
 	VIPS_GATE_STOP( "rtiff_fill_region: work" ); 
@@ -2632,7 +2677,6 @@ vips__tiff_read_source( VipsSource *source, VipsImage *out,
 
 #ifdef DEBUG
 	printf( "tiff2vips: libtiff version is \"%s\"\n", TIFFGetVersion() );
-	printf( "tiff2vips: libtiff starting for buffer %p\n", buf );
 #endif /*DEBUG*/
 
 	vips__tiff_init();

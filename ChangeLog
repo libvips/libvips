@@ -17,6 +17,7 @@
 - add PAGENUMBER support to tiff write [jclavoie-jive]
 - add all to smartcrop 
 - flood fill could stop half-way for some very complex shapes
+- better handling of unaligned reads in multipage tiffs [petoor]
 
 31/1/19 started 8.9.2
 - fix a deadlock with --vips-leak [DarthSim]
