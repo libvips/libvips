@@ -63,6 +63,8 @@ typedef struct _VipsUnpremultiply {
 
 	double max_alpha;
 
+	int band_alpha;
+
 } VipsUnpremultiply;
 
 typedef VipsConversionClass VipsUnpremultiplyClass;
@@ -76,15 +78,15 @@ G_DEFINE_TYPE( VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION );
 	OUT * restrict q = (OUT *) out; \
 	\
 	for( x = 0; x < width; x++ ) { \
-		IN alpha = p[bands - 1]; \
+		IN alpha = p[band_alpha]; \
 		IN clip_alpha = VIPS_CLIP( 0, alpha, max_alpha ); \
 		OUT nalpha = (OUT) clip_alpha / max_alpha; \
 		\
 		if( nalpha == 0 ) \
-			for( i = 0; i < bands - 1; i++ ) \
+			for( i = 0; i < band_alpha; i++ ) \
 				q[i] = 0; \
 		else \
-			for( i = 0; i < bands - 1; i++ ) \
+			for( i = 0; i < band_alpha; i++ ) \
 				q[i] = p[i] / nalpha; \
 		q[i] = clip_alpha; \
 		\
@@ -140,6 +142,7 @@ vips_unpremultiply_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	VipsRect *r = &or->valid;
 	int width = r->width;
 	int bands = im->Bands; 
+	int band_alpha = unpremultiply->band_alpha;
 	double max_alpha = unpremultiply->max_alpha;
 
 	int x, y, i;
@@ -203,6 +206,9 @@ vips_unpremultiply_build( VipsObject *object )
 	VipsUnpremultiply *unpremultiply = (VipsUnpremultiply *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 1 );
 
+	char ink_tag[128];
+	int ink_type = -1;
+
 	VipsImage *in;
 
 	if( VIPS_OBJECT_CLASS( vips_unpremultiply_parent_class )->
@@ -239,6 +245,21 @@ vips_unpremultiply_build( VipsObject *object )
 		conversion->out->BandFmt = VIPS_FORMAT_DOUBLE;
 	else
 		conversion->out->BandFmt = VIPS_FORMAT_FLOAT;
+
+	unpremultiply->band_alpha = in->Bands - 1;
+
+	for (int i = 0; i < in->Bands; ++i)
+	{
+		vips_snprintf(ink_tag, 128, VIPS_META_INK_TYPE, i);
+		if (vips_image_get_int(in, ink_tag, &ink_type) == 0)
+		{
+			if (ink_type == VIPS_INK_TRANSPARENCY)
+			{
+				unpremultiply->band_alpha = i;
+				break;
+			}
+		}
+	}
 
 	if( vips_image_generate( conversion->out,
 		vips_start_one, vips_unpremultiply_gen, vips_stop_one, 
