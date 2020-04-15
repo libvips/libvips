@@ -341,6 +341,10 @@ vips_remapfilerw( VipsImage *image )
 {
 	void *baseaddr;
 
+#ifdef DEBUG
+	printf( "vips_remapfilerw:\n" ); 
+#endif /*DEBUG*/
+
 #ifdef OS_WIN32
 {
 	HANDLE hFile = (HANDLE) _get_osfhandle( image->fd );
