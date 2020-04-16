@@ -3535,6 +3535,9 @@ vips__image_wio_output( VipsImage *image )
  * After calling this function you can both read and write the image with 
  * VIPS_IMAGE_ADDR().
  *
+ * This method is called for you by the base class of the draw operations, 
+ * there's no need to call it yourself.
+ *
  * Since this function modifies @image, it is not thread-safe. Only call it on
  * images which you are sure have not been shared with another thread. 
  * All in-place operations are inherently not thread-safe, so you need to take
