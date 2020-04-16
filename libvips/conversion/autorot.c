@@ -190,7 +190,7 @@ vips_autorot_build( VipsObject *object )
 			return( -1 );
 	}
 
-	if( vips_image_write( t[0], conversion->out ) )
+	if( vips_image_write( t[1], conversion->out ) )
 		return( -1 );
 
 	return( 0 );
