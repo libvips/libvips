@@ -25,6 +25,7 @@
 - ban ppm max_value < 0 
 - add fuzz corpus to dist
 - detect read errors correctly in source_sniff
+- fix regression in autorot [malomalo]
 
 20/6/19 started 8.9.1
 - don't use the new source loaders for new_from_file or new_from_buffer, it
