@@ -205,7 +205,7 @@ vips_sharpen_build( VipsObject *object )
 		sharpen->sigma = 1 + sharpen->radius / 2;
 
 	//TODO: Set this outside
-	sharpen->color_space = VIPS_INTERPRETATION_sRGB;
+	sharpen->color_space = VIPS_INTERPRETATION_RGB16;
 	sharpen->bands_to_sharpen = 4;
 	///////////
 
@@ -215,7 +215,7 @@ vips_sharpen_build( VipsObject *object )
 
   	if(vips_check_uncoded(class->nickname, in_color_space ) ||
        vips_check_bands_atleast(class->nickname, in_color_space, 3 ) ||
-       vips_check_format(class->nickname, in_color_space, VIPS_FORMAT_SHORT ) )
+       vips_check_format(class->nickname, in_color_space, VIPS_FORMAT_USHORT ) )
   		return( -1 );
 
 	/* Stop at 10% of max ... a bit mean. We always sharpen a short, 
