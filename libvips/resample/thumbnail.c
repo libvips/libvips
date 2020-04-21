@@ -495,15 +495,18 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 		/* 'factor' is a gboolean which enables thumbnail load instead
 		 * of image load.
 		 *
-		 * Use the thumbnail if, by using it, we could get a factor >=
-		 * 1.0, ie. we would not need to expand the thumbnail.
+		 * Use the thumbnail if, by using it, we could get a factor >
+		 * 1.0, ie. we would not need to expand the thumbnail. 
+		 *
+		 * Don't use >= since factor can be clipped to 1.0 under some
+		 * resizing modes.
 		 */
 		double shrink_factor = vips_thumbnail_calculate_common_shrink( 
 			thumbnail, 
 			thumbnail->heif_thumbnail_width, 
 			thumbnail->heif_thumbnail_height );
 
-		factor = shrink_factor >= 1.0 ? 1 : 0;
+		factor = shrink_factor > 1.0 ? 1 : 0;
 	}
 
 	g_info( "loading with factor %g pre-shrink", factor ); 
