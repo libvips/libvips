@@ -445,7 +445,7 @@ int vips_webpsave_mime( VipsImage *in, ... )
  *
  * Use @Q to set the jpeg compression level, default 75.
  *
- * Use @prediction to set the lzw or deflate prediction, default none.
+ * Use @predictor to set the lzw or deflate prediction, default horizontal.
  *
  * Use @lossless to set WEBP lossless compression.
  *
@@ -464,7 +464,7 @@ typedef enum {
 } VipsForeignTiffCompression;
 
 /**
- * VipsForeignTiffPredictor:
+ * VipsForeignTiffPoor:
  * @VIPS_FOREIGN_TIFF_PREDICTOR_NONE: no prediction
  * @VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL: horizontal differencing
  * @VIPS_FOREIGN_TIFF_PREDICTOR_FLOAT: float predictor
