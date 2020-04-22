@@ -1,118 +1,50 @@
 language: cpp
 
-before_script:
-  - $PYTHON -m pip download --no-deps https://github.com/libvips/pyvips/archive/$PYVIPS_VERSION.tar.gz
-  - tar xf $PYVIPS_VERSION.tar.gz
-  - $PYTHON -m pip install --user --upgrade pyvips-$PYVIPS_VERSION/[test]
-  - ./autogen.sh
-    --disable-dependency-tracking
-    --with-jpeg-includes=$JPEG/include
-    --with-jpeg-libraries=$JPEG/lib
-    --with-magick=$WITH_MAGICK
-  - make -j$JOBS -s 
-script:
-  - make -j$JOBS -s -k V=0 VERBOSE=1 check
-  - LD_LIBRARY_PATH=$PWD/libvips/.libs
-    DYLD_LIBRARY_PATH=$PWD/libvips/.libs
-    LD_PRELOAD=$ASAN_DSO
-    $PYTHON -m pytest -sv --log-cli-level=WARNING test/test-suite
-
-matrix:
-  allow_failures:
-    - os: osx
-  fast_finish: true
-  include:
-    - os: linux
-      sudo: required
-      dist: xenial
-      compiler: gcc
-      env:
-        - PYTHON=python2
-        - PYVIPS_VERSION=master
-        - JPEG=/usr
-        - JOBS=`nproc`
-        - WITH_MAGICK=yes
-      cache: ccache
-
-    - os: linux
-      sudo: required
-      dist: xenial
-      compiler: clang
-      env:
-        - PYTHON=python2
-        - PYVIPS_VERSION=master
-        - JPEG=/usr
-        - JOBS=`nproc`
-        - WITH_MAGICK=no
-        - CFLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -fopenmp -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION"
-        - LDFLAGS="-fsanitize=address,undefined -dynamic-asan -fopenmp=libiomp5"
-        - ASAN_DSO=/usr/local/clang-7.0.0/lib/clang/7.0.0/lib/linux/libclang_rt.asan-x86_64.so
-        - LSAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/suppressions/lsan.supp"
-        - UBSAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/suppressions/ubsan.supp"
-        # comment these out, I get strange parse errors from asan for some
-        # reason
-        #
-        # ASAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/suppressions/asan.supp"
-      install:
-        # add support for WebP
-        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebp-dev_0.6.1-2_amd64.deb
-        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebpdemux2_0.6.1-2_amd64.deb
-        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebpmux3_0.6.1-2_amd64.deb
-        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebp6_0.6.1-2_amd64.deb
-        - sudo dpkg -i *.deb
-      cache: ccache
-
-    - os: osx
-      osx_image: xcode10.1
-      env:
-        - PYTHON=python2
-        - PYVIPS_VERSION=master
-        - JPEG=/usr/local
-        - JOBS="`sysctl -n hw.ncpu`"
-        - WITH_MAGICK=yes
-        - PATH="/usr/local/opt/ccache/libexec:$PATH"
-        - HOMEBREW_NO_AUTO_UPDATE=1
-      cache: ccache
+env:
+  global:
+    - PYTHON=python3
+    - PYVIPS_VERSION=master
 
 addons:
   apt:
     update: true
-    sources:
+    sources: &common_sources
       # use a more recent imagemagick instead of 6.8.9-9 
-      - sourceline: 'ppa:opencpu/imagemagick'
+      - sourceline: 'ppa:cran/imagemagick'
       # add support for HEIF files
       - sourceline: 'ppa:strukturag/libheif'
       - sourceline: 'ppa:strukturag/libde265'
-    packages:
-      - automake 
-      - gtk-doc-tools 
+    packages: &common_packages
+      - automake
+      - gtk-doc-tools
       - gobject-introspection
-      - libfftw3-dev 
-      - libexif-dev 
+      - python3-pip
+      - python3-setuptools
+      - python3-wheel
+      - libfftw3-dev
+      - libexif-dev
       - libjpeg-turbo8-dev
-      - libpng12-dev 
+      - libpng12-dev
       - libwebp-dev
       # missing on xenial, unfortunately
       # - libwebpmux2
-      - libtiff5-dev 
+      - libtiff5-dev
       - libheif-dev
       - libexpat1-dev
-      - libmagick++-dev 
-      - bc
+      - libmagick++-dev
       - libcfitsio3-dev
-      - libgsl0-dev 
+      - libgsl0-dev
       - libmatio-dev
       - liborc-0.4-dev
       - liblcms2-dev
       - libpoppler-glib-dev
-      - librsvg2-dev 
+      - librsvg2-dev
       - libgif-dev
       - libopenexr-dev
-      - libpango1.0-dev 
-      - libgsf-1-dev 
+      - libpango1.0-dev
+      - libgsf-1-dev
       - libopenslide-dev
       - libffi-dev
-      - libiomp-dev
   homebrew:
     packages:
       - ccache
@@ -120,6 +52,7 @@ addons:
       - gobject-introspection
       - fftw
       - libexif
+      - libjpeg-turbo
       - webp
       - imagemagick
       - cfitsio
@@ -133,3 +66,90 @@ addons:
       - pango
       - libgsf
       - openslide
+
+jobs:
+  allow_failures:
+    - os: osx
+  fast_finish: true
+  include:
+    - os: linux
+      sudo: required
+      dist: xenial
+      compiler: gcc
+      env:
+        - JPEG=/usr
+        - JOBS=`nproc`
+        - WITH_MAGICK=yes
+      cache: ccache
+    - os: linux
+      sudo: required
+      dist: xenial
+      compiler: clang
+      addons:
+        apt:
+          sources:
+            - *common_sources
+            - sourceline: deb https://apt.llvm.org/xenial/ llvm-toolchain-xenial-10 main
+              key_url: https://apt.llvm.org/llvm-snapshot.gpg.key
+          packages:
+            - *common_packages
+            - clang-10
+            - libomp-10-dev
+      env:
+        - JPEG=/usr
+        - JOBS=`nproc`
+        - WITH_MAGICK=no
+        - LDSHARED="clang -shared"
+        - CFLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -fopenmp -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION"
+        - LDFLAGS="-fsanitize=address,undefined -shared-libasan -fopenmp=libomp"
+        - ASAN_DSO=`clang-10 -print-file-name=libclang_rt.asan-x86_64.so`
+        - ASAN_SYMBOLIZER_PATH=`which llvm-symbolizer-10`
+        - ASAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/suppressions/asan.supp"
+        - LSAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/suppressions/lsan.supp"
+        - UBSAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/suppressions/ubsan.supp"
+        - LD_LIBRARY_PATH="`dirname $ASAN_DSO`:/usr/lib/llvm-10/lib:$LD_LIBRARY_PATH"
+        - DLCLOSE_PRELOAD="$TRAVIS_BUILD_DIR/dlclose.so"
+      install:
+        # add support for WebP
+        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebp-dev_0.6.1-2_amd64.deb
+        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebpdemux2_0.6.1-2_amd64.deb
+        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebpmux3_0.6.1-2_amd64.deb
+        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebp6_0.6.1-2_amd64.deb
+        - sudo dpkg -i *.deb
+        # switch to Clang 10 using update-alternatives
+        - sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-10 100
+          --slave /usr/bin/clang++ clang++ /usr/bin/clang++-10
+        # workaround for https://github.com/google/sanitizers/issues/89
+        # otherwise libIlmImf-2_2.so ends up as <unknown module>
+        - echo -e '#include <stdio.h>\nint dlclose(void*handle){return 0;}' | clang -shared -xc -odlclose.so -
+      cache: ccache
+    - os: osx
+      osx_image: xcode11
+      env:
+        - JPEG=/usr/local/opt/jpeg-turbo
+        - JOBS="`sysctl -n hw.ncpu`"
+        - WITH_MAGICK=yes
+        - PATH="/usr/local/opt/ccache/libexec:$PATH"
+        - PKG_CONFIG_PATH="/usr/local/opt/jpeg-turbo/lib/pkgconfig:/usr/local/opt/libxml2/lib/pkgconfig:$PKG_CONFIG_PATH"
+        - HOMEBREW_NO_AUTO_UPDATE=1
+        - CC="gcc-9"
+        - CXX="g++-9"
+      cache: ccache
+
+before_script:
+  - $PYTHON -m pip download --no-deps https://github.com/libvips/pyvips/archive/$PYVIPS_VERSION.tar.gz
+  - tar xf $PYVIPS_VERSION.tar.gz
+  - $PYTHON -m pip install --user --upgrade pyvips-$PYVIPS_VERSION/[test]
+  - ./autogen.sh
+    --disable-dependency-tracking
+    --with-jpeg-includes=$JPEG/include
+    --with-jpeg-libraries=$JPEG/lib
+    --with-magick=$WITH_MAGICK
+  - make -j$JOBS -s
+
+script:
+  - make -j$JOBS -s -k V=0 VERBOSE=1 check
+  - LD_LIBRARY_PATH=$PWD/libvips/.libs
+    DYLD_LIBRARY_PATH=$PWD/libvips/.libs
+    LD_PRELOAD="$ASAN_DSO $DLCLOSE_PRELOAD"
+    $PYTHON -m pytest -sv --log-cli-level=WARNING test/test-suite
