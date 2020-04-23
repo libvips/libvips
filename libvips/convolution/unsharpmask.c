@@ -39,6 +39,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
+
 #include <vips/intl.h>
 
 #include <stdio.h>
@@ -47,8 +48,7 @@
 
 #include <vips/vips.h>
 
-typedef struct _VipsUnsharpMask
-{
+typedef struct _VipsUnsharpMask {
     VipsOperation parent_instance;
 
     VipsImage *in;
@@ -66,12 +66,183 @@ typedef struct _VipsUnsharpMask
 
 typedef VipsOperationClass VipsUnsharpMaskClass;
 
-G_DEFINE_TYPE( VipsUnsharpMask, vips_unsharpmask, VIPS_TYPE_OPERATION );
+G_DEFINE_TYPE(VipsUnsharpMask, vips_unsharpmask, VIPS_TYPE_OPERATION)
+
+#define MAX_KERNEL_WIDTH 257
+#define SQRT_2_PI 2.50662827463100024161235523934010416269302368164062 // sqrt(2 * pi)
+#define EPSILON 1.0e-15
+#define KERNEL_RANK 3
 
 static int
-vips_unsharpmask_generate( VipsRegion *or, void *vseq, void *a, void *b,
-                           gboolean *stop )
-{
+vips_unsharpmask_build(VipsObject *object);
+
+static int
+vips_unsharpmask_generate(VipsRegion *or, void *vseq, void *a, void *b,
+                          gboolean *stop);
+
+static int
+vips_unsharpmask_calculate_kernel(VipsUnsharpMask *unsharp_mask, float *kernel, int *kernel_width);
+
+static int
+vips_unsharpmask_optimal_kernel_width_1d(double sigma, double bit_cond);
+
+static void
+vips_unsharpmask_class_init(VipsUnsharpMaskClass *class) {
+    GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+    VipsObjectClass *object_class = (VipsObjectClass *) class;
+    VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
+
+    gobject_class->set_property = vips_object_set_property;
+    gobject_class->get_property = vips_object_get_property;
+
+    object_class->nickname = "unsharpmask";
+    object_class->description = _("unsharp masking for screen");
+    object_class->build = vips_unsharpmask_build;
+
+    operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+
+    VIPS_ARG_IMAGE(class, "in", 1,
+                   _("Input"),
+                   _("Input image"),
+                   VIPS_ARGUMENT_REQUIRED_INPUT,
+                   G_STRUCT_OFFSET(VipsUnsharpMask, in));
+
+    VIPS_ARG_IMAGE(class, "out", 2,
+                   _("Output"),
+                   _("Output image"),
+                   VIPS_ARGUMENT_REQUIRED_OUTPUT,
+                   G_STRUCT_OFFSET(VipsUnsharpMask, out));
+
+    VIPS_ARG_DOUBLE(class, "radius", 3,
+                    _("Radius"),
+                    _("The radius of the gaussian"),
+                    VIPS_ARGUMENT_OPTIONAL_INPUT,
+                    G_STRUCT_OFFSET(VipsUnsharpMask, radius),
+                    0.000001, 128, 0.66);
+
+    VIPS_ARG_DOUBLE(class, "sigma", 4,
+                    _("Sigma"),
+                    _("The standard deviation of the gaussian"),
+                    VIPS_ARGUMENT_OPTIONAL_INPUT,
+                    G_STRUCT_OFFSET(VipsUnsharpMask, sigma),
+                    0.000001, 10000.0, 0.5);
+
+    VIPS_ARG_DOUBLE(class, "amount", 5,
+                    _("Amount"),
+                    _("The percentage of difference that is added"),
+                    VIPS_ARGUMENT_OPTIONAL_INPUT,
+                    G_STRUCT_OFFSET(VipsUnsharpMask, amount),
+                    0, 1000000, 1.0);
+
+    VIPS_ARG_DOUBLE(class, "threshold", 6,
+                    _("Threshold"),
+                    _("Threshold controls the minimal brightness change that will be applied"),
+                    VIPS_ARGUMENT_OPTIONAL_INPUT,
+                    G_STRUCT_OFFSET(VipsUnsharpMask, threshold),
+                    0, 1000000, 0.01);
+}
+
+static void
+vips_unsharpmask_init(VipsUnsharpMask *unsharpmask) {
+    unsharpmask->radius = 0.66;
+    unsharpmask->sigma = 0.5;
+    unsharpmask->amount = 1.0;
+    unsharpmask->threshold = 0.01;
+}
+
+
+static int
+vips_unsharpmask_build(VipsObject *object) {
+    VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
+    VipsUnsharpMask *unsharp_mask = (VipsUnsharpMask *) object;
+    float kernel[MAX_KERNEL_WIDTH] = {0};
+    int kernel_width;
+
+    if ((unsharp_mask->in->BandFmt != VIPS_FORMAT_UCHAR)  && (unsharp_mask->in->BandFmt != VIPS_FORMAT_USHORT)) {
+        vips_error(class->nickname, "band format must be either UCHAR or USHORT");
+        return -1;
+    }
+
+    if (vips_unsharpmask_calculate_kernel(unsharp_mask, kernel, &kernel_width)) {
+        return (-2);
+    }
+
+    return (0);
+}
+
+static int
+vips_unsharpmask_calculate_kernel(VipsUnsharpMask *unsharp_mask, float *kernel, int *kernel_width) {
+    VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(unsharp_mask);
+    double bit_cond = unsharp_mask->in->BandFmt == VIPS_FORMAT_UCHAR ? 3.921568627450980e-03 : 1.525902189669642e-05;
+    double sigma = unsharp_mask->sigma;
+
+    // calculate kernel width
+    *kernel_width = VIPS_CEIL(unsharp_mask->radius) * 2 + 1;
+
+    if (VIPS_ABS(unsharp_mask->radius) < EPSILON)
+        *kernel_width = vips_unsharpmask_optimal_kernel_width_1d(sigma, bit_cond);
+
+    if (*kernel_width < 0 || *kernel_width > MAX_KERNEL_WIDTH) {
+        vips_error(class->nickname, "unsupported kernel size");
+        return -1;
+    }
+
+    int v = (int) (*kernel_width * KERNEL_RANK - 1) / 2;
+    if (sigma > EPSILON) {
+        double precise_kernel[MAX_KERNEL_WIDTH] = {0}; // calc in double precision and cast to float
+        double sum = 0;
+        int u;
+
+        sigma *= KERNEL_RANK;
+        for (u = -v; u <= v; ++u) {
+            double interval = exp(-(1.0 / (2.0 * sigma * sigma)) * u * u) * (1.0 / (SQRT_2_PI * sigma));
+            precise_kernel[(int) ((u + v) / KERNEL_RANK)] += interval;
+            sum += interval;
+        }
+
+        for (u = 0; u < *kernel_width; ++u) // casting to float
+            kernel[u] = (float) (precise_kernel[u] / sum);
+
+    } else // special case - generate a unity kernel
+        kernel[*kernel_width / 2] = 1.0F;
+
+    return (0);
+}
+
+// The function returns the width of the filter depending on the value of Sigma
+// The kernel width is expected to be between 1 and 253
+static int
+vips_unsharpmask_optimal_kernel_width_1d(double sigma, double bit_cond) {
+    const double GAMMA = VIPS_ABS(sigma);
+    const double ALPHA = 1.0 / (2.0 * GAMMA * GAMMA);
+    const double BETA = 1.0 / (SQRT_2_PI * GAMMA);
+
+    if (GAMMA < EPSILON)
+        return 1;
+
+    int width = 5;
+    for (int index = 0; index < 1000; ++index) {
+        double normalize = 0.0;
+        int j = (width - 1) / 2;
+        int i;
+
+        for (i = -j; i <= j; ++i)
+            normalize += (exp(-ALPHA * (i * i)) * BETA);
+
+        double value = exp(-ALPHA * (j * j)) * BETA / normalize;
+        if (value < bit_cond || value < EPSILON)
+            break;
+
+        width += 2;
+    }
+
+    return width - 2;
+}
+
+
+static int
+vips_unsharpmask_generate(VipsRegion *or, void *vseq, void *a, void *b,
+                          gboolean *stop) {
     VipsRegion **in = (VipsRegion **) vseq;
     VipsUnsharpMask *unsharpmask = (VipsUnsharpMask *) b;
     VipsRect *r = &or->valid;
@@ -79,179 +250,30 @@ vips_unsharpmask_generate( VipsRegion *or, void *vseq, void *a, void *b,
 
     int x, y;
 
-    if ( vips_reorder_prepare_many( or->im, in, r ))
-        return ( -1 );
+    if (vips_reorder_prepare_many(or->im, in, r))
+        return (-1);
 
-    VIPS_GATE_START( "vips_unsharpmask_generate: work" );
+    VIPS_GATE_START("vips_unsharpmask_generate: work");
 
-    for ( y = 0; y < r->height; y++ ) {
+    for (y = 0; y < r->height; y++) {
         short *p1 = (short *restrict)
-            VIPS_REGION_ADDR( in[0], r->left, r->top + y );
+                VIPS_REGION_ADDR(in[0], r->left, r->top + y);
         short *p2 = (short *restrict)
-            VIPS_REGION_ADDR( in[1], r->left, r->top + y );
+                VIPS_REGION_ADDR(in[1], r->left, r->top + y);
         short *q = (short *restrict)
-            VIPS_REGION_ADDR( or, r->left, r->top + y );
+                VIPS_REGION_ADDR(or, r->left, r->top + y);
 
-        for ( x = 0; x < r->width; x++ ) {
+        for (x = 0; x < r->width; x++) {
             int v1 = p1[x];
             int v2 = p2[x];
 
-            /* Our LUT is -32768 - 32767. For the v1, v2
-             * difference to be in this range, both must be 0 -
-             * 32767.
-             */
-            int diff = (( v1 & 0x7fff ) - ( v2 & 0x7fff ));
 
-            int out;
-
-            g_assert( diff + 32768 >= 0 );
-            g_assert( diff + 32768 < 65536 );
-
-            out = v1 + lut[diff + 32768];
-
-            if ( out < 0 )
-                out = 0;
-            if ( out > 32767 )
-                out = 32767;
-
-            q[x] = out;
         }
     }
 
-    VIPS_GATE_STOP( "vips_unsharpmask_generate: work" );
+    VIPS_GATE_STOP("vips_unsharpmask_generate: work");
 
-    return ( 0 );
-}
-
-static int
-vips_unsharpmask_build( VipsObject *object )
-{
-    VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-    VipsUnsharpMask *unsharpmask = (VipsUnsharpMask *) object;
-    VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
-    VipsImage **args = (VipsImage **) vips_object_local_array( object, 2 );
-
-    VipsImage *in;
-    VipsInterpretation original_interpretation;
-
-    VIPS_GATE_START( "vips_unsharpmask_build: build" );
-
-    if ( VIPS_OBJECT_CLASS( vips_unsharpmask_parent_class )->build( object ))
-        return ( -1 );
-
-    in = unsharpmask->in;
-
-    // force RGB colorspace
-    original_interpretation = in->Type;
-    if ( vips_colourspace( in, &t[0], VIPS_INTERPRETATION_sRGB, NULL))
-        return ( -1 );
-
-    // assign RGB image to in 
-    in = t[0];
-
-    if ( vips_check_uncoded( class->nickname, in ) ||
-        vips_check_bands_atleast( class->nickname, in, 3 ) ||
-        vips_check_format( class->nickname, in, VIPS_FORMAT_SHORT ))
-        return ( -1 );
-
-    /* create the blurred image
-     * Stop at 10% of max ... a bit mean.
-     * We always unsharpmask a short, 
-     * so there's no point using a float mask.
-     */
-    if ( vips_gaussblur( in, &t[1], unsharpmask->sigma,
-                         "min_ampl", 0.1,
-                         "precision", VIPS_PRECISION_INTEGER,
-                         NULL))
-        return ( -1 );
-
-    t[2] = vips_image_new( );
-    if ( vips_image_pipeline_array( t[2],
-                                    VIPS_DEMAND_STYLE_FATSTRIP, args ))
-        return ( -1 );
-
-    if ( vips_image_generate( t[2],
-                              vips_start_many, vips_unsharpmask_generate, vips_stop_many,
-                              args, unsharpmask ))
-        return ( -1 );
-
-    g_object_set( object, "out", vips_image_new( ), NULL);
-
-    /* Reattach the rest.
-     */
-    if ( vips_colourspace( t[2], &t[3], original_interpretation, NULL) ||
-        vips_image_write( t[3], unsharpmask->out ))
-        return ( -1 );
-
-    VIPS_GATE_STOP( "vips_unsharpmask_build: build" );
-
-    return ( 0 );
-}
-
-static void
-vips_unsharpmask_class_init( VipsUnsharpMaskClass *class )
-{
-    GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-    VipsObjectClass *object_class = (VipsObjectClass *) class;
-    VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
-
-    gobject_class->set_property = vips_object_set_property;
-    gobject_class->get_property = vips_object_get_property;
-
-    object_class->nickname = "unsharpmask";
-    object_class->description = _( "unsharp masking for print" );
-    object_class->build = vips_unsharpmask_build;
-
-    operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
-
-    VIPS_ARG_IMAGE( class, "in", 1,
-                    _( "Input" ),
-                    _( "Input image" ),
-                    VIPS_ARGUMENT_REQUIRED_INPUT,
-                    G_STRUCT_OFFSET( VipsUnsharpMask, in ));
-
-    VIPS_ARG_IMAGE( class, "out", 2,
-                    _( "Output" ),
-                    _( "Output image" ),
-                    VIPS_ARGUMENT_REQUIRED_OUTPUT,
-                    G_STRUCT_OFFSET( VipsUnsharpMask, out ));
-
-    VIPS_ARG_DOUBLE( class, "radius", 3,
-                     _( "Radius" ),
-                     _( "The radius of the gaussian" ),
-                     VIPS_ARGUMENT_OPTIONAL_INPUT,
-                     G_STRUCT_OFFSET( VipsUnsharpMask, radius ),
-                     0.000001, 128, 0.66 );
-
-    VIPS_ARG_DOUBLE( class, "sigma", 4,
-                     _( "Sigma" ),
-                     _( "The standard deviation of the gaussian" ),
-                     VIPS_ARGUMENT_OPTIONAL_INPUT,
-                     G_STRUCT_OFFSET( VipsUnsharpMask, sigma ),
-                     0.000001, 10000.0, 0.5 );
-
-    VIPS_ARG_DOUBLE( class, "amount", 5,
-                     _( "Amount" ),
-                     _( "The percentage of difference that is added" ),
-                     VIPS_ARGUMENT_OPTIONAL_INPUT,
-                     G_STRUCT_OFFSET( VipsUnsharpMask, amount ),
-                     0, 1000000, 1.0 );
-
-    VIPS_ARG_DOUBLE( class, "threshold", 6,
-                     _( "Threshold" ),
-                     _( "Threshold controls the minimal brightness change that will be applied" ),
-                     VIPS_ARGUMENT_OPTIONAL_INPUT,
-                     G_STRUCT_OFFSET( VipsUnsharpMask, threshold ),
-                     0, 1000000, 0.01 );
-}
-
-static void
-vips_unsharpmask_init( VipsUnsharpMask *unsharpmask )
-{
-    unsharpmask->radius = 0.66;
-    unsharpmask->sigma = 0.5;
-    unsharpmask->amount = 1.0;
-    unsharpmask->threshold = 0.01;
+    return (0);
 }
 
 /**
@@ -273,14 +295,13 @@ vips_unsharpmask_init( VipsUnsharpMask *unsharpmask )
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_unsharpmask( VipsImage *in, VipsImage **out, ... )
-{
+vips_unsharpmask(VipsImage *in, VipsImage **out, ...) {
     va_list ap;
     int result;
 
-    va_start( ap, out );
-    result = vips_call_split( "unsharpmask", ap, in, out );
-    va_end( ap );
+    va_start(ap, out);
+    result = vips_call_split("unsharpmask", ap, in, out);
+    va_end(ap);
 
-    return ( result );
+    return (result);
 }
