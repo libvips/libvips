@@ -90,6 +90,9 @@ G_DEFINE_TYPE( VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION );
 				q[i] = p[i] / nalpha; \
 		q[i] = clip_alpha; \
 		\
+		for(; i < bands; i++ ) \
+				q[i] = p[i]; \
+		\
 		p += bands; \
 		q += bands; \
 	} \
