@@ -167,7 +167,8 @@ vips_convolution_operation_init( void )
 	extern int vips_fastcor_get_type( void ); 
 	extern int vips_spcor_get_type( void ); 
 	extern int vips_sharpen_get_type( void ); 
-	extern int vips_gaussblur_get_type( void ); 
+	extern int vips_unsharpmask_get_type( void );
+	extern int vips_gaussblur_get_type( void );
 	extern int vips_sobel_get_type( void ); 
 	extern int vips_canny_get_type( void ); 
 
@@ -181,7 +182,8 @@ vips_convolution_operation_init( void )
 	vips_fastcor_get_type(); 
 	vips_spcor_get_type(); 
 	vips_sharpen_get_type(); 
-	vips_gaussblur_get_type(); 
+	vips_unsharpmask_get_type();
+	vips_gaussblur_get_type();
 	vips_canny_get_type(); 
 	vips_sobel_get_type(); 
 }

@@ -1857,6 +1857,13 @@ VImage sequential( VOption *options = 0 ) const;
 VImage sharpen( VOption *options = 0 ) const;
 
 /**
+ * Unsharp masking.
+ * @param options Optional options.
+ * @return Output image.
+ */
+VImage unsharpmask( VOption *options = 0 ) const;
+
+/**
  * Shrink an image.
  * @param hshrink Horizontal shrink factor.
  * @param vshrink Vertical shrink factor.

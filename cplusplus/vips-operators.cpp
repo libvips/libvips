@@ -2845,6 +2845,18 @@ VImage VImage::sharpen( VOption *options ) const
     return( out );
 }
 
+VImage VImage::unsharpmask( VOption *options ) const
+{
+    VImage out;
+
+    call( "unsharpmask",
+        (options ? options : VImage::option())->
+            set( "in", *this )->
+            set( "out", &out ) );
+
+    return( out );
+}
+
 VImage VImage::shrink( double hshrink, double vshrink, VOption *options ) const
 {
     VImage out;
