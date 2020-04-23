@@ -81,10 +81,10 @@ vips_unsharpmask_generate(VipsRegion *or, void *vseq, void *a, void *b,
                           gboolean *stop);
 
 static int
-vips_unsharpmask_calculate_kernel(VipsUnsharpMask *unsharp_mask, float *kernel, int *kernel_width);
+vips_unsharpmask_calculate_kernel(VipsUnsharpMask *unsharp_mask, float *kernel, int *out_kernel_width);
 
 static int
-vips_unsharpmask_optimal_kernel_width_1d(double sigma, double bit_cond);
+vips_unsharpmask_optimal_kernel_width_1d(VipsUnsharpMask *unsharp_mask);
 
 static void
 vips_unsharpmask_class_init(VipsUnsharpMaskClass *class) {
@@ -171,60 +171,65 @@ vips_unsharpmask_build(VipsObject *object) {
 }
 
 static int
-vips_unsharpmask_calculate_kernel(VipsUnsharpMask *unsharp_mask, float *kernel, int *kernel_width) {
+vips_unsharpmask_calculate_kernel(VipsUnsharpMask *unsharp_mask, float *kernel, int *out_kernel_width) {
     VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(unsharp_mask);
-    double bit_cond = unsharp_mask->in->BandFmt == VIPS_FORMAT_UCHAR ? 3.921568627450980e-03 : 1.525902189669642e-05;
     double sigma = unsharp_mask->sigma;
+    int kernel_width;
+    double precise_kernel[MAX_KERNEL_WIDTH] = {0}; // calc in double precision and cast to float
+    double sum = 0;
+    int u;
+    int v;
 
     // calculate kernel width
-    *kernel_width = VIPS_CEIL(unsharp_mask->radius) * 2 + 1;
+    kernel_width = VIPS_CEIL(unsharp_mask->radius) * 2 + 1;
 
     if (VIPS_ABS(unsharp_mask->radius) < EPSILON)
-        *kernel_width = vips_unsharpmask_optimal_kernel_width_1d(sigma, bit_cond);
+        kernel_width = vips_unsharpmask_optimal_kernel_width_1d(unsharp_mask);
 
-    if (*kernel_width < 0 || *kernel_width > MAX_KERNEL_WIDTH) {
+    if (kernel_width < 0 || kernel_width > MAX_KERNEL_WIDTH) {
         vips_error(class->nickname, "unsupported kernel size");
         return -1;
     }
 
-    int v = (int) (*kernel_width * KERNEL_RANK - 1) / 2;
-    if (sigma > EPSILON) {
-        double precise_kernel[MAX_KERNEL_WIDTH] = {0}; // calc in double precision and cast to float
-        double sum = 0;
-        int u;
+    if (sigma <= EPSILON) {
+        // special case - generate a unity kernel
+        kernel[kernel_width / 2] = 1.0f;
+        *out_kernel_width = kernel_width;
+        return (0);
+    }
 
-        sigma *= KERNEL_RANK;
-        for (u = -v; u <= v; ++u) {
-            double interval = exp(-(1.0 / (2.0 * sigma * sigma)) * u * u) * (1.0 / (SQRT_2_PI * sigma));
-            precise_kernel[(int) ((u + v) / KERNEL_RANK)] += interval;
-            sum += interval;
-        }
+    v = (kernel_width * KERNEL_RANK - 1) / 2;
+    sigma *= KERNEL_RANK;
+    for (u = -v; u <= v; ++u) {
+        double interval = exp(-(1.0 / (2.0 * sigma * sigma)) * u * u) * (1.0 / (SQRT_2_PI * sigma));
+        precise_kernel[(u + v) / KERNEL_RANK] += interval;
+        sum += interval;
+    }
 
-        for (u = 0; u < *kernel_width; ++u) // casting to float
-            kernel[u] = (float) (precise_kernel[u] / sum);
+    for (u = 0; u < kernel_width; ++u) // casting to float
+        kernel[u] = (float) (precise_kernel[u] / sum);
 
-    } else // special case - generate a unity kernel
-        kernel[*kernel_width / 2] = 1.0F;
-
+    *out_kernel_width = kernel_width;
     return (0);
 }
 
 // The function returns the width of the filter depending on the value of Sigma
 // The kernel width is expected to be between 1 and 253
 static int
-vips_unsharpmask_optimal_kernel_width_1d(double sigma, double bit_cond) {
-    const double GAMMA = VIPS_ABS(sigma);
-    const double ALPHA = 1.0 / (2.0 * GAMMA * GAMMA);
-    const double BETA = 1.0 / (SQRT_2_PI * GAMMA);
+vips_unsharpmask_optimal_kernel_width_1d(VipsUnsharpMask *unsharp_mask) {
+    double bit_cond = unsharp_mask->in->BandFmt == VIPS_FORMAT_UCHAR ? 3.921568627450980e-03 : 1.525902189669642e-05;
+    double GAMMA = VIPS_ABS(unsharp_mask->sigma);
+    double ALPHA = 1.0 / (2.0 * GAMMA * GAMMA);
+    double BETA = 1.0 / (SQRT_2_PI * GAMMA);
+    int width = 5;
 
     if (GAMMA < EPSILON)
         return 1;
 
-    int width = 5;
     for (int index = 0; index < 1000; ++index) {
         double normalize = 0.0;
-        int j = (width - 1) / 2;
         int i;
+        int j = (width - 1) / 2;
 
         for (i = -j; i <= j; ++i)
             normalize += (exp(-ALPHA * (i * i)) * BETA);
@@ -241,8 +246,7 @@ vips_unsharpmask_optimal_kernel_width_1d(double sigma, double bit_cond) {
 
 
 static int
-vips_unsharpmask_generate(VipsRegion *or, void *vseq, void *a, void *b,
-                          gboolean *stop) {
+vips_unsharpmask_generate(VipsRegion *or, void *vseq, void *a, void *b, gboolean *stop) {
     VipsRegion **in = (VipsRegion **) vseq;
     VipsUnsharpMask *unsharpmask = (VipsUnsharpMask *) b;
     VipsRect *r = &or->valid;
