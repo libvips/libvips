@@ -85,6 +85,8 @@
  * 	- add @no_strip
  * 9/11/19
  * 	- add IIIF layout
+ * 24/4/20 [IllyaMoskvin]
+ * 	- better IIIF tile naming
  */
 
 /*
@@ -1360,6 +1362,7 @@ static GsfOutput *
 tile_name( Layer *layer, int x, int y )
 {
 	VipsForeignSaveDz *dz = layer->dz;
+	VipsForeignSave *save = (VipsForeignSave *) dz;
 
 	GsfOutput *out; 
 	char name[VIPS_PATH_MAX];
@@ -1422,13 +1425,16 @@ tile_name( Layer *layer, int x, int y )
 {
 		/* Tiles are addressed in full resolution coordinates, so
 		 * scale up by layer->sub and dz->tile_size
+		 *
+		 * We always clip against the full-sized image, not the scaled
+		 * up layer.
 		 */
 		int left = x * dz->tile_size * layer->sub;
 		int top = y * dz->tile_size * layer->sub;
 		int width = VIPS_MIN( dz->tile_size * layer->sub, 
-			layer->width * layer->sub - left );
+			save->ready->Xsize - left );
 		int height = VIPS_MIN( dz->tile_size * layer->sub, 
-			layer->height * layer->sub - top );
+			save->ready->Ysize - top );
 
 		/* IIIF "size" is just real tile width, I think.
 		 *
