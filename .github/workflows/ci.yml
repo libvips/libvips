@@ -103,6 +103,7 @@ jobs:
           echo "ASAN_DSO=$ASAN_DSO" >> $GITHUB_ENV
           echo "ASAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/asan.supp" >> $GITHUB_ENV
           echo "LSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/lsan.supp" >> $GITHUB_ENV
+          echo "TSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/tsan.supp" >> $GITHUB_ENV
           echo "UBSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/ubsan.supp:print_stacktrace=1" >> $GITHUB_ENV
           echo "LD_LIBRARY_PATH=$LLVM_PREFIX/lib:`dirname $ASAN_DSO`" >> $GITHUB_ENV
           echo "$LLVM_PREFIX/bin" >> $GITHUB_PATH

@@ -1,0 +1,115 @@
+# an unlocked FALSE/TRUE assignment, which is fine
+race:vips_region_prepare_to
+race:render_kill
+race:render_reschedule
+
+# an unlocked NULL assignment, which is fine
+race:render_thread
+
+# unlocked read of pixels-processed-so-far, which is fine
+race:vips_sink_base_progress
+race:wbuffer_allocate_fn
+race:sink_memory_area_allocate_fn
+
+# use of *stop from generate funcs is unlocked, but fine
+race:vips_threadpool_run
+
+# guarded with vips_tracked_mutex, so it should be fine
+race:vips_tracked_mem
+race:vips_tracked_allocs
+race:vips_tracked_files
+
+# guarded with task->allocate_lock, so it should be fine
+race:vips_thread_allocate
+race:vips_task_work_unit
+
+# guarded with vips_cache_lock, so it should be fine
+race:vips_cache_table
+race:vips_cache_drop_all
+race:vips_cache_get_first
+race:vips_cache_get_lru_cb
+race:vips_cache_remove
+
+# guarded with vips__global_lock, so it should be fine
+race:vips_error_freeze_count
+race:vips__link_make
+race:vips__link_map
+race:vips__link_break_all
+race:tile_name
+
+# the double-buffered output and write-behind thread are non-racy
+race:wbuffer_new
+race:wbuffer_write
+race:wbuffer_work_fn
+race:wbuffer_free
+race:write_thread_state_new
+
+# thread-local variables (i.e. GPrivate) are harmless
+race:vips_thread_profile_key
+race:buffer_thread_key
+
+# glib signals are probably non-racy
+race:vips_image_preeval
+race:vips_image_eval
+race:vips_image_posteval
+race:vips_image_written
+race:vips_image_real_written
+race:vips_image_save_cb
+race:render_close_cb
+race:readjpeg_close_cb
+
+# semaphores are probably non-racy
+race:vips_semaphore_*
+
+# guarded with sink->sslock, so it should be fine
+race:sink_call_start
+race:sink_call_stop
+race:vips_hist_find_start
+race:vips_hist_find_stop
+race:vips_statistic_scan_start
+race:vips_statistic_scan_stop
+race:vips_max_stop
+race:vips_values_add
+race:vips_deviate_stop
+race:vips_arithmetic_start
+race:histogram_new
+
+# per-thread state allocate/dispose functions are non-racy
+race:sink_thread_state_class_init
+race:vips_thread_state_init
+race:vips_thread_state_build
+race:vips_thread_state_set
+race:vips_thread_state_dispose
+race:write_thread_state_new
+race:vips_sink_base_init
+race:vips_sink_thread_state_new
+race:sink_memory_init
+race:sink_memory_thread_state_new
+race:sink_memory_free
+race:sink_thread_state_build
+race:sink_thread_state_dispose
+race:buffer_cache_free
+race:sink_init
+race:sink_free
+race:vips_sequential_dispose
+race:vips_block_cache_dispose
+race:vips_image_init
+race:vips_image_build
+race:vips_image_finalize
+race:vips_image_dispose
+
+# guarded with image->sslock, so it should be fine
+race:vips__region_start
+race:vips__region_stop
+race:vips_region_dispose
+race:vips__region_take_ownership
+
+# is fine now, see: https://github.com/libvips/libvips/pull/1211
+race:vips_image_temp_name
+
+# is fine now, see: https://github.com/libvips/libvips/pull/1483
+race:meta_new
+race:meta_cp
+race:vips_image_set
+race:vips__image_copy_fields_array
+race:vips__image_meta_copy
