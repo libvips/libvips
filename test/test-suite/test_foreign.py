@@ -132,7 +132,9 @@ class TestForeign:
     def test_jpeg(self):
         def jpeg_valid(im):
             a = im(10, 10)
-            assert_almost_equal_objects(a, [141, 127, 90])
+            # different versions of libjpeg decode have slightly different 
+            # rounding
+            assert_almost_equal_objects(a, [141, 127, 90], threshold=3)
             profile = im.get("icc-profile-data")
             assert len(profile) == 564
             assert im.width == 290
