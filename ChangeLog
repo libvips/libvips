@@ -1,3 +1,6 @@
+24/4/20 started 8.9.3
+- better iiif tile naming [IllyaMoskvin]
+
 31/1/19 started 8.9.2
 - fix a deadlock with --vips-leak [DarthSim]
 - better gifload behaviour for DISPOSAL_UNSPECIFIED [DarthSim]
