@@ -69,19 +69,19 @@
 #include "pcreate.h"
 
 typedef struct _VipsGaussmat {
-    VipsCreate parent_instance;
+	VipsCreate parent_instance;
 
-    double sigma;
-    double min_ampl;
+	double sigma;
+	double min_ampl;
 
-    gboolean separable;
-    gboolean integer;        /* Deprecated */
-    VipsPrecision precision;
+	gboolean separable;
+	gboolean integer;		/* Deprecated */
+	VipsPrecision precision;
 
 } VipsGaussmat;
 
 typedef struct _VipsGaussmatClass {
-    VipsCreateClass parent_class;
+	VipsCreateClass parent_class;
 
 } VipsGaussmatClass;
 
@@ -90,156 +90,141 @@ G_DEFINE_TYPE( VipsGaussmat, vips_gaussmat, VIPS_TYPE_CREATE );
 /* Don't allow mask radius to go over this.
  */
 #define MASK_SANITY (5000)
-#define SQ2PI  2.50662827463100024161235523934010416269302368164062
-
-/* Find the size of the mask. Limit the mask size to 10k x 10k for 
-* sanity. We allow x == 0, meaning a 1x1 mask.
-*/
-static int
-vips_gaussmat_mask_width( VipsGaussmat *gaussmat )
-{
-    double sigma = gaussmat->sigma;
-    double alpha = 1.0 / 2.0 * sigma * sigma;
-
-    int max_x = VIPS_CLIP( 0, 8 * sigma, MASK_SANITY );
-    int x;
-    for ( x = 0; x < max_x; x++ ) {
-        double value = exp( -alpha * (double) ( x * x ));
-
-        if ( value < gaussmat->min_ampl )
-            break;
-    }
-
-    if ( x >= MASK_SANITY) {
-        vips_error( "gaussmat", "%s", _( "mask too large" ));
-        return ( -1 );
-    }
-
-    return 2 * x - 1;
-}
 
 static int
 vips_gaussmat_build( VipsObject *object )
 {
-    VipsCreate *create = VIPS_CREATE( object );
-    VipsGaussmat *gaussmat = (VipsGaussmat *) object;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	VipsCreate *create = VIPS_CREATE( object );
+	VipsGaussmat *gaussmat = (VipsGaussmat *) object;
+	double sig2 =  2. * gaussmat->sigma * gaussmat->sigma;
+	int max_x = VIPS_CLIP( 0, 8 * gaussmat->sigma, MASK_SANITY );
 
-    // todo: radius?
+	int x, y;
+	int width, height;
+	double sum;
 
-    double sig2 = 2. * gaussmat->sigma * gaussmat->sigma;
+	if( VIPS_OBJECT_CLASS( vips_gaussmat_parent_class )->build( object ) )
+		return( -1 );
 
-    int x, y;
-    int mask_width, mask_height;
-    double sum;
+	/* The old, deprecated @integer property has been deliberately set to
+	 * FALSE and they've not used the new @precision property ... switch
+	 * to float to help them out.
+	 */
+	if( vips_object_argument_isset( object, "integer" ) &&
+		!vips_object_argument_isset( object, "precision" ) &&
+		!gaussmat->integer )
+		gaussmat->precision = VIPS_PRECISION_FLOAT;
 
-    if ( VIPS_OBJECT_CLASS( vips_gaussmat_parent_class )->build( object ))
-        return ( -1 );
+	/* Find the size of the mask. Limit the mask size to 10k x 10k for
+	 * sanity. We allow x == 0, meaning a 1x1 mask.
+	 */
+	for( x = 0; x < max_x; x++ ) {
+		double v = exp( - ((double)(x * x)) / sig2 );
 
-    /* The old, deprecated @integer property has been deliberately set to
-     * FALSE and they've not used the new @precision property ... switch
-     * to float to help them out.
-     */
-    if ( vips_object_argument_isset( object, "integer" ) &&
-        !vips_object_argument_isset( object, "precision" ) &&
-        !gaussmat->integer )
-        gaussmat->precision = VIPS_PRECISION_FLOAT;
+		if( v < gaussmat->min_ampl )
+			break;
+	}
+	if( x >= MASK_SANITY ) {
+		vips_error( class->nickname, "%s", _( "mask too large" ) );
+		return( -1 );
+	}
+	width = 2 * x - 1;
+	height = gaussmat->separable ? 1 : width;
 
-    mask_width = vips_gaussmat_mask_width( gaussmat );
-    mask_height = gaussmat->separable ? 1 : mask_width;
+	vips_image_init_fields( create->out,
+		width, height, 1,
+		VIPS_FORMAT_DOUBLE, VIPS_CODING_NONE,
+		VIPS_INTERPRETATION_MULTIBAND,
+		1.0, 1.0 );
+	vips_image_pipelinev( create->out,
+		VIPS_DEMAND_STYLE_ANY, NULL );
+	if( vips_image_write_prepare( create->out ) )
+		return( -1 );
 
-    vips_image_init_fields( create->out,
-                            mask_width, mask_height, 1,
-                            VIPS_FORMAT_DOUBLE, VIPS_CODING_NONE,
-                            VIPS_INTERPRETATION_MULTIBAND,
-                            1.0, 1.0 );
-    vips_image_pipelinev( create->out,
-                          VIPS_DEMAND_STYLE_ANY, NULL);
-    if ( vips_image_write_prepare( create->out ))
-        return ( -1 );
+	sum = 0.0;
+	for( y = 0; y < height; y++ ) {
+		for( x = 0; x < width; x++ ) {
+			int xo = x - width / 2;
+			int yo = y - height / 2;
+			double distance = xo * xo + yo * yo;
+			double v = exp( -distance / sig2 );
 
-    sum = 0.0;
-    for ( y = 0; y < mask_height; y++ ) {
-        for ( x = 0; x < mask_width; x++ ) {
-            int xo = x - mask_width / 2;
-            int yo = y - mask_height / 2;
-            double distance = xo * xo + yo * yo;
-            double v = exp( -distance / sig2 );
+			if( gaussmat->precision != VIPS_PRECISION_FLOAT )
+				v = VIPS_RINT( 20 * v );
 
-            if ( gaussmat->precision != VIPS_PRECISION_FLOAT )
-                v = VIPS_RINT( 20 * v );
+			*VIPS_MATRIX( create->out, x, y ) = v;
+			sum += v;
+		}
+	}
 
-            *VIPS_MATRIX( create->out, x, y ) = v;
-            sum += v;
-        }
-    }
+	/* Make sure we can't make sum == 0: it'd certainly cause /0 later.
+	 */
+	if( sum == 0 )
+		sum = 1;
 
-    /* Make sure we can't make sum == 0: it'd certainly cause /0 later. 
-     */
-    if ( sum == 0 )
-        sum = 1;
+	vips_image_set_double( create->out, "scale", sum );
+	vips_image_set_double( create->out, "offset", 0.0 );
 
-    vips_image_set_double( create->out, "scale", sum );
-    vips_image_set_double( create->out, "offset", 0.0 );
-
-    return ( 0 );
+	return( 0 );
 }
 
 static void
 vips_gaussmat_class_init( VipsGaussmatClass *class )
 {
-    GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-    VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS( class );
 
-    gobject_class->set_property = vips_object_set_property;
-    gobject_class->get_property = vips_object_get_property;
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
 
-    vobject_class->nickname = "gaussmat";
-    vobject_class->description = _( "make a gaussian image" );
-    vobject_class->build = vips_gaussmat_build;
+	vobject_class->nickname = "gaussmat";
+	vobject_class->description = _( "make a gaussian image" );
+	vobject_class->build = vips_gaussmat_build;
 
-    VIPS_ARG_DOUBLE( class, "sigma", 2,
-                     _( "Sigma" ),
-                     _( "Sigma of Gaussian" ),
-                     VIPS_ARGUMENT_REQUIRED_INPUT,
-                     G_STRUCT_OFFSET( VipsGaussmat, sigma ),
-                     0.000001, 10000.0, 1.0 );
+	VIPS_ARG_DOUBLE( class, "sigma", 2,
+		_( "Sigma" ),
+		_( "Sigma of Gaussian" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsGaussmat, sigma ),
+		0.000001, 10000.0, 1.0 );
 
-    VIPS_ARG_DOUBLE( class, "min_ampl", 3,
-                     _( "Minimum amplitude" ),
-                     _( "Minimum amplitude of Gaussian" ),
-                     VIPS_ARGUMENT_REQUIRED_INPUT,
-                     G_STRUCT_OFFSET( VipsGaussmat, min_ampl ),
-                     0.000001, 10000.0, 0.1 );
+	VIPS_ARG_DOUBLE( class, "min_ampl", 3,
+		_( "Minimum amplitude" ),
+		_( "Minimum amplitude of Gaussian" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET( VipsGaussmat, min_ampl ),
+		0.000001, 10000.0, 0.1 );
 
-    VIPS_ARG_BOOL( class, "separable", 4,
-                   _( "Separable" ),
-                   _( "Generate separable Gaussian" ),
-                   VIPS_ARGUMENT_OPTIONAL_INPUT,
-                   G_STRUCT_OFFSET( VipsGaussmat, separable ),
-                   FALSE );
+	VIPS_ARG_BOOL( class, "separable", 4,
+		_( "Separable" ),
+		_( "Generate separable Gaussian" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsGaussmat, separable ),
+		FALSE );
 
-    VIPS_ARG_BOOL( class, "integer", 5,
-                   _( "Integer" ),
-                   _( "Generate integer Gaussian" ),
-                   VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
-                   G_STRUCT_OFFSET( VipsGaussmat, integer ),
-                   FALSE );
+	VIPS_ARG_BOOL( class, "integer", 5,
+		_( "Integer" ),
+		_( "Generate integer Gaussian" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsGaussmat, integer ),
+		FALSE );
 
-    VIPS_ARG_ENUM( class, "precision", 6,
-                   _( "Precision" ),
-                   _( "Generate with this precision" ),
-                   VIPS_ARGUMENT_OPTIONAL_INPUT,
-                   G_STRUCT_OFFSET( VipsGaussmat, precision ),
-                   VIPS_TYPE_PRECISION, VIPS_PRECISION_INTEGER );
+	VIPS_ARG_ENUM( class, "precision", 6,
+		_( "Precision" ),
+		_( "Generate with this precision" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsGaussmat, precision ),
+		VIPS_TYPE_PRECISION, VIPS_PRECISION_INTEGER );
 
 }
 
 static void
 vips_gaussmat_init( VipsGaussmat *gaussmat )
 {
-    gaussmat->sigma = 1;
-    gaussmat->min_ampl = 0.1;
-    gaussmat->precision = VIPS_PRECISION_INTEGER;
+	gaussmat->sigma = 1;
+	gaussmat->min_ampl = 0.1;
+	gaussmat->precision = VIPS_PRECISION_INTEGER;
 }
 
 /**
@@ -254,9 +239,9 @@ vips_gaussmat_init( VipsGaussmat *gaussmat )
  * * @separable: generate a separable gaussian
  * * @precision: #VipsPrecision for @out
  *
- * Creates a circularly symmetric Gaussian image of radius 
- * @sigma.  The size of the mask is determined by the variable @min_ampl; 
- * if for instance the value .1 is entered this means that the produced mask 
+ * Creates a circularly symmetric Gaussian image of radius
+ * @sigma.  The size of the mask is determined by the variable @min_ampl;
+ * if for instance the value .1 is entered this means that the produced mask
  * is clipped at values less than 10 percent of the maximum amplitude.
  *
  * The program uses the following equation:
@@ -267,10 +252,10 @@ vips_gaussmat_init( VipsGaussmat *gaussmat )
  * 1.0, unless @precision is #VIPS_PRECISION_INTEGER.
  *
  * If @separable is set, only the centre horizontal is generated. This is
- * useful for separable convolutions. 
+ * useful for separable convolutions.
  *
- * If @precision is #VIPS_PRECISION_INTEGER, an integer gaussian is generated. 
- * This is useful for integer convolutions. 
+ * If @precision is #VIPS_PRECISION_INTEGER, an integer gaussian is generated.
+ * This is useful for integer convolutions.
  *
  * "scale" is set to the sum of all the mask elements.
  *
@@ -281,12 +266,12 @@ vips_gaussmat_init( VipsGaussmat *gaussmat )
 int
 vips_gaussmat( VipsImage **out, double sigma, double min_ampl, ... )
 {
-    va_list ap;
-    int result;
+	va_list ap;
+	int result;
 
-    va_start( ap, min_ampl );
-    result = vips_call_split( "gaussmat", ap, out, sigma, min_ampl );
-    va_end( ap );
+	va_start( ap, min_ampl );
+	result = vips_call_split( "gaussmat", ap, out, sigma, min_ampl );
+	va_end( ap );
 
-    return ( result );
+	return( result );
 }

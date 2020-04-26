@@ -127,6 +127,8 @@ vips_sharpen_generate( VipsRegion *or,
 	VipsSharpen *sharpen = (VipsSharpen *) b;
 	VipsRect *r = &or->valid;
 	int *lut = sharpen->lut;
+    const double quantum_range = 65535;
+    const double amount = 1.0;
 
 	int x, y; 
 
@@ -136,11 +138,11 @@ vips_sharpen_generate( VipsRegion *or,
 	VIPS_GATE_START( "vips_sharpen_generate: work" ); 
 
 	for( y = 0; y < r->height; y++ ) {
-		short *p1 = (short * restrict) 
+		unsigned short *p1 = (short * restrict)
 			VIPS_REGION_ADDR( in[0], r->left, r->top + y );
-		short *p2 = (short * restrict) 
+        unsigned short *p2 = (short * restrict)
 			VIPS_REGION_ADDR( in[1], r->left, r->top + y );
-		short *q = (short * restrict) 
+        unsigned short *q = (short * restrict)
 			VIPS_REGION_ADDR( or, r->left, r->top + y );
 
 		for( x = 0; x < r->width; x++ ) {
@@ -151,20 +153,44 @@ vips_sharpen_generate( VipsRegion *or,
 			 * difference to be in this range, both must be 0 -
 			 * 32767.
 			 */
-			int diff = ((v1 & 0x7fff) - (v2 & 0x7fff));
 
-			int out;
+			//int diff = ((v1 & 0x7fff) - (v2 & 0x7fff));
 
-			g_assert( diff + 32768 >= 0 );
-			g_assert( diff + 32768 < 65536 );
+			//alon - trying to do it like saips
+            double diff = v1 - (double)v2;
+            //alon - trying to do it like saips
 
-			out = v1 + lut[diff + 32768];
-			
-			if( out < 0 )
-				out = 0;
-			if( out > 32767 )
-				out = 32767;
+			double out;
 
+//			g_assert( diff + 32768 >= 0 );
+//			g_assert( diff + 32768 < 65536 );
+
+//			out = v1 + lut[diff + 32768];
+			//alon - trying to do it like saips
+
+			out = v1;
+//			if (VIPS_ABS(2.0 * diff) >= quantum_range)
+//                out += diff * amount;
+
+//            clamp to quantum
+            if (out < 0)
+                out = 0;
+            else if (out > quantum_range)
+                out = quantum_range;
+            else
+                out = VIPS_FLOOR(out + 0.5);
+//            clamp to quantum
+
+
+			//alon
+//			if( out < 0 )
+//				out = 0;
+//			if( out > 32767 )
+//				out = 32767;
+//            out = 65535;
+//            if (out != v1) {
+//                printf("yep\n");
+//            }
 			q[x] = out;
 		}
 	}
@@ -173,6 +199,7 @@ vips_sharpen_generate( VipsRegion *or,
 
 	return( 0 );
 }
+
 
 static int
 vips_sharpen_build( VipsObject *object )
@@ -206,7 +233,7 @@ vips_sharpen_build( VipsObject *object )
 
 	//TODO: Set this outside
 	sharpen->color_space = VIPS_INTERPRETATION_RGB16;
-	sharpen->bands_to_sharpen = 4;
+	sharpen->bands_to_sharpen = 3;
 	///////////
 
 	old_interpretation = sharpen->in->Type;
@@ -231,6 +258,15 @@ vips_sharpen_build( VipsObject *object )
 	printf( "sharpen: blurring with:\n" ); 
 	vips_matrixprint( gaussmat, NULL );
 #endif /*DEBUG*/
+
+    gaussmat->Xsize = 3;
+	double* kernel = (double*)gaussmat->data;
+    const double a = 0.153275475;
+	const double b = 0.693449079;
+    kernel[0] = VIPS_RINT(a * 20);
+    kernel[1] = VIPS_RINT(b * 20);
+    kernel[2] = VIPS_RINT(a * 20);
+    vips_image_set_double( gaussmat, "scale", a + b + a);
 
 	/* Index with the signed difference between two 0 - 32767 images.
 	 */
