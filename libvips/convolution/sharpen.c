@@ -261,14 +261,17 @@ vips_sharpen_build( VipsObject *object )
 	vips_matrixprint( gaussmat, NULL );
 #endif /*DEBUG*/
 
-    gaussmat->Xsize = 3;
-	double* kernel = (double*)gaussmat->data;
-    const double a = 0.153275475;
-	const double b = 0.693449079;
-    kernel[0] = VIPS_RINT(a * 20);
-    kernel[1] = VIPS_RINT(b * 20);
-    kernel[2] = VIPS_RINT(a * 20);
-    vips_image_set_double( gaussmat, "scale", a + b + a);
+//    gaussmat->Xsize = 3;
+//	double* kernel = (double*)gaussmat->data;
+//    const double a = 0.153275475;
+//	const double b = 0.693449079;
+//    kernel[0] = VIPS_RINT(a * 20);
+//    kernel[1] = VIPS_RINT(b * 20);
+//    kernel[2] = VIPS_RINT(a * 20);
+//    vips_image_set_double( gaussmat, "scale", kernel[0] + kernel[1] + kernel[2]);
+//    kernel[0] = a;
+//    kernel[1] = b;
+//    kernel[2] = a;
 
 	/* Index with the signed difference between two 0 - 32767 images.
 	 */
