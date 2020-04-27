@@ -85,6 +85,7 @@
 
 #include <vips/vips.h>
 
+
 typedef struct _VipsSharpen {
 	VipsOperation parent_instance;
 
@@ -103,6 +104,7 @@ typedef struct _VipsSharpen {
      */
     int bands_to_sharpen;
     VipsInterpretation color_space;
+    VipsBandFormat band_format;
     VipsGenerateFn generate_fn;
 
     /* The lut we build.
@@ -125,8 +127,14 @@ static int*
 vips_sharpen_make_lut(VipsSharpen *sharpen);
 
 static int
+vips_sharpen_generate_luminescence( VipsRegion *or,
+                                    void *vseq, void *a, void *b, gboolean *stop );
+static int
 vips_sharpen_generate_rgb16(VipsRegion *or,
                             void *vseq, void *a, void *b, gboolean *stop );
+static int
+vips_sharpen_generate_rgb8(VipsRegion *or,
+                           void *vseq, void *a, void *b, gboolean *stop );
 
 static int
 vips_sharpen_build( VipsObject *object );
@@ -271,7 +279,7 @@ vips_sharpen_build( VipsObject *object )
 
   	if(vips_check_uncoded(class->nickname, in_color_space ) ||
        vips_check_bands_atleast(class->nickname, in_color_space, 3 ) ||
-       vips_check_format(class->nickname, in_color_space, VIPS_FORMAT_USHORT ) )
+       vips_check_format(class->nickname, in_color_space, sharpen->band_format ) )
   		return( -1 );
 
 	/* Stop at 10% of max ... a bit mean. We always sharpen a short,
@@ -359,22 +367,24 @@ static int
 vips_sharpen_configure_mode(VipsSharpen *sharpen) {
     switch (sharpen->mode) {
 	    case VIPS_SHARPEN_MODE_LUMINESCENCE:
-            sharpen->color_space = VIPS_INTERPRETATION_LABS;
             sharpen->bands_to_sharpen = 1;
+            sharpen->band_format = VIPS_FORMAT_SHORT;
+            sharpen->color_space = VIPS_INTERPRETATION_LABS;
+            sharpen->generate_fn = vips_sharpen_generate_luminescence;
+
             if( !(sharpen->lut = vips_sharpen_make_lut(sharpen)) )
                 return( -1 );
-            //TODO generate_fn = vips_sharpen_generate_luminescence;
+
             break;
 	    case VIPS_SHARPEN_MODE_RGB:
             sharpen->bands_to_sharpen = 3;
-            if (sharpen->in->Type == VIPS_INTERPRETATION_RGB) {
-//TODO
-//                color_space = VIPS_INTERPRETATION_RGB;
-//                generate_fn = vips_sharpen_generate_rgb8;
-                sharpen->color_space = VIPS_INTERPRETATION_RGB16;
-                sharpen->generate_fn = vips_sharpen_generate_rgb16;
 
+            if (sharpen->in->Type == VIPS_INTERPRETATION_RGB) {
+                sharpen->band_format = VIPS_FORMAT_UCHAR;
+                sharpen->color_space = VIPS_INTERPRETATION_RGB;
+                sharpen->generate_fn = vips_sharpen_generate_rgb8;
             } else {
+                sharpen->band_format = VIPS_FORMAT_USHORT;
                 sharpen->color_space = VIPS_INTERPRETATION_RGB16;
                 sharpen->generate_fn = vips_sharpen_generate_rgb16;
             }
@@ -442,6 +452,61 @@ vips_sharpen_make_lut(VipsSharpen *sharpen) {
 }
 
 static int
+vips_sharpen_generate_luminescence( VipsRegion *or,
+    void *vseq, void *a, void *b, gboolean *stop )
+{
+    VipsRegion **in = (VipsRegion **) vseq;
+    VipsSharpen *sharpen = (VipsSharpen *) b;
+    VipsRect *r = &or->valid;
+    int *lut = sharpen->lut;
+
+    int x, y;
+
+    if( vips_reorder_prepare_many( or->im, in, r ) )
+        return( -1 );
+
+    VIPS_GATE_START( "vips_sharpen_generate: work" );
+
+    for( y = 0; y < r->height; y++ ) {
+        short *p1 = (short * restrict)
+                VIPS_REGION_ADDR( in[0], r->left, r->top + y );
+        short *p2 = (short * restrict)
+                VIPS_REGION_ADDR( in[1], r->left, r->top + y );
+        short *q = (short * restrict)
+                VIPS_REGION_ADDR( or, r->left, r->top + y );
+
+        for( x = 0; x < r->width; x++ ) {
+            int v1 = p1[x];
+            int v2 = p2[x];
+
+            /* Our LUT is -32768 - 32767. For the v1, v2
+             * difference to be in this range, both must be 0 -
+             * 32767.
+             */
+            int diff = ((v1 & 0x7fff) - (v2 & 0x7fff));
+
+            int out;
+
+            g_assert( diff + 32768 >= 0 );
+            g_assert( diff + 32768 < 65536 );
+
+            out = v1 + lut[diff + 32768];
+
+            if( out < 0 )
+                out = 0;
+            if( out > 32767 )
+                out = 32767;
+
+            q[x] = out;
+        }
+    }
+
+    VIPS_GATE_STOP( "vips_sharpen_generate: work" );
+
+    return( 0 );
+}
+
+static int
 vips_sharpen_generate_rgb16(VipsRegion *or,
                             void *vseq, void *a, void *b, gboolean *stop )
 {
@@ -466,6 +531,58 @@ vips_sharpen_generate_rgb16(VipsRegion *or,
         unsigned short *p2 = (unsigned short * restrict)
                 VIPS_REGION_ADDR( in[1], r->left, r->top + y );
         unsigned short *q = (unsigned short * restrict)
+                VIPS_REGION_ADDR( or, r->left, r->top + y );
+
+        for( x = 0; x < r->width; x++ ) {
+            int v1 = p1[x];
+            int v2 = p2[x];
+            int diff = v1 - v2;
+            double out = v1;
+
+            if (VIPS_ABS(2.0 * diff) >= quantum_threshold)
+                out += diff * amount;
+
+            if (out < 0)
+                out = 0;
+            else if (out > quantum_range)
+                out = quantum_range;
+            else
+                out = VIPS_FLOOR(out + 0.5);
+
+            q[x] = (unsigned short)out;
+        }
+    }
+
+    VIPS_GATE_STOP( "vips_sharpen_generate_rgb16: work" );
+
+    return( 0 );
+}
+
+static int
+vips_sharpen_generate_rgb8(VipsRegion *or,
+    void *vseq, void *a, void *b, gboolean *stop )
+{
+    VipsRegion **in = (VipsRegion **) vseq;
+    VipsSharpen *sharpen = (VipsSharpen *) b;
+    VipsRect *r = &or->valid;
+    double threshold = sharpen->x1 / 100.0;
+    const double amount = sharpen->m2;
+    const double quantum_range = 255;
+    const double quantum_threshold = threshold * quantum_range;
+
+    int x, y;
+
+    if( vips_reorder_prepare_many( or->im, in, r ) )
+        return( -1 );
+
+    VIPS_GATE_START( "vips_sharpen_generate_rgb8: work" );
+
+    for( y = 0; y < r->height; y++ ) {
+        unsigned char *p1 = (unsigned char * restrict)
+                VIPS_REGION_ADDR( in[0], r->left, r->top + y );
+        unsigned char *p2 = (unsigned char * restrict)
+                VIPS_REGION_ADDR( in[1], r->left, r->top + y );
+        unsigned char *q = (unsigned char * restrict)
                 VIPS_REGION_ADDR( or, r->left, r->top + y );
 
         for( x = 0; x < r->width; x++ ) {
