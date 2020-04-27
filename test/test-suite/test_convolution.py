@@ -190,14 +190,24 @@ class TestConvolution:
                     assert_almost_equal_objects(a_point, b_point,
                                                 threshold=0.1)
 
-    def test_sharpen_no_alpha(self):
+    def test_sharpen_rgb_no_alpha(self):
         im = pyvips.Image.new_from_file(PNG_FILE)
         sharp = im.sharpen(mode='rgb', sigma=(1 + 0.66) / 2, m2=1.0, x1=1.0)
         sharp.write_to_file('%s.sharpened.png' % PNG_FILE)
 
-    def test_sharpen_with_alpha(self):
+    def test_sharpen_rgb_with_alpha(self):
         im = pyvips.Image.new_from_file(LOGO2_PNG_FILE)
         sharp = im.sharpen(mode='rgb', sigma=(1 + 0.66) / 2, m2=1.0, x1=1.0)
+        sharp.write_to_file('%s.sharpened.png' % LOGO2_PNG_FILE)
+
+    def test_sharpen_luminescence_no_alpha(self):
+        im = pyvips.Image.new_from_file(PNG_FILE)
+        sharp = im.sharpen(mode='luminescence', sigma=(1 + 0.66) / 2, m2=1.0, x1=1.0)
+        sharp.write_to_file('%s.sharpened.png' % PNG_FILE)
+
+    def test_sharpen_luminescence_with_alpha(self):
+        im = pyvips.Image.new_from_file(LOGO2_PNG_FILE)
+        sharp = im.sharpen(mode='luminescence', sigma=(1 + 0.66) / 2, m2=1.0, x1=1.0)
         sharp.write_to_file('%s.sharpened.png' % LOGO2_PNG_FILE)
 
     def test_unsharpmask_no_alpha(self):

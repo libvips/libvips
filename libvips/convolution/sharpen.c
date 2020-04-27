@@ -99,7 +99,12 @@ typedef struct _VipsSharpen {
 	double m2;
     VipsSharpenMode mode;
 
-	/* The lut we build.
+    /* Determined by mode
+     */
+    VipsInterpretation color_space;
+    VipsGenerateFn generate_fn;
+
+    /* The lut we build.
 	 */
 	int *lut;
 
@@ -115,60 +120,115 @@ typedef VipsOperationClass VipsSharpenClass;
 
 G_DEFINE_TYPE(VipsSharpen, vips_sharpen, VIPS_TYPE_OPERATION )
 
-int *vips_sharpen_make_lut(VipsObject *object, const VipsSharpen *sharpen);
+static int
+*vips_sharpen_make_lut(VipsObject *object, const VipsSharpen *sharpen);
 
 static int
 vips_sharpen_generate_rgb16(VipsRegion *or,
-    void *vseq, void *a, void *b, gboolean *stop )
+                            void *vseq, void *a, void *b, gboolean *stop );
+
+static int
+vips_sharpen_build( VipsObject *object );
+
+static void
+vips_sharpen_class_init( VipsSharpenClass *class )
 {
-	VipsRegion **in = (VipsRegion **) vseq;
-	VipsSharpen *sharpen = (VipsSharpen *) b;
-	VipsRect *r = &or->valid;
-    double threshold = sharpen->x1 / 100.0;
-    const double amount = sharpen->m2;
-    const double quantum_range = 65535;
-    const double quantum_threshold = threshold * quantum_range;
+    GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+    VipsObjectClass *object_class = (VipsObjectClass *) class;
+    VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 
-	int x, y;
+    gobject_class->set_property = vips_object_set_property;
+    gobject_class->get_property = vips_object_get_property;
 
-	if( vips_reorder_prepare_many( or->im, in, r ) )
-		return( -1 );
+    object_class->nickname = "sharpen";
+    object_class->description = _( "unsharp masking for print" );
+    object_class->build = vips_sharpen_build;
 
-	VIPS_GATE_START( "vips_sharpen_generate_rgb16: work" );
+    operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
-	for( y = 0; y < r->height; y++ ) {
-		unsigned short *p1 = (short * restrict)
-			VIPS_REGION_ADDR( in[0], r->left, r->top + y );
-        unsigned short *p2 = (short * restrict)
-			VIPS_REGION_ADDR( in[1], r->left, r->top + y );
-        unsigned short *q = (short * restrict)
-			VIPS_REGION_ADDR( or, r->left, r->top + y );
+    VIPS_ARG_IMAGE( class, "in", 1,
+                    _( "Input" ),
+                    _( "Input image" ),
+                    VIPS_ARGUMENT_REQUIRED_INPUT,
+                    G_STRUCT_OFFSET( VipsSharpen, in ) );
 
-		for( x = 0; x < r->width; x++ ) {
-			int v1 = p1[x];
-			int v2 = p2[x];
-            int diff = v1 - v2;
-			double out = v1;
+    VIPS_ARG_IMAGE( class, "out", 2,
+                    _( "Output" ),
+                    _( "Output image" ),
+                    VIPS_ARGUMENT_REQUIRED_OUTPUT,
+                    G_STRUCT_OFFSET( VipsSharpen, out ) );
 
-			if (VIPS_ABS(2.0 * diff) >= quantum_threshold)
-                out += diff * amount;
+    VIPS_ARG_DOUBLE( class, "sigma", 3,
+                     _( "Sigma" ),
+                     _( "Sigma of Gaussian" ),
+                     VIPS_ARGUMENT_OPTIONAL_INPUT,
+                     G_STRUCT_OFFSET( VipsSharpen, sigma ),
+                     0.000001, 10000.0, 0.5 );
 
-            if (out < 0)
-                out = 0;
-            else if (out > quantum_range)
-                out = quantum_range;
-            else
-                out = VIPS_FLOOR(out + 0.5);
+    VIPS_ARG_DOUBLE( class, "x1", 5,
+                     _( "x1" ),
+                     _( "Flat/jaggy threshold" ),
+                     VIPS_ARGUMENT_OPTIONAL_INPUT,
+                     G_STRUCT_OFFSET( VipsSharpen, x1 ),
+                     0, 1000000, 2.0 );
 
-			q[x] = (unsigned short)out;
-		}
-	}
+    VIPS_ARG_DOUBLE( class, "y2", 6,
+                     _( "y2" ),
+                     _( "Maximum brightening" ),
+                     VIPS_ARGUMENT_OPTIONAL_INPUT,
+                     G_STRUCT_OFFSET( VipsSharpen, y2 ),
+                     0, 1000000, 10 );
 
-	VIPS_GATE_STOP( "vips_sharpen_generate_rgb16: work" );
+    VIPS_ARG_DOUBLE( class, "y3", 7,
+                     _( "y3" ),
+                     _( "Maximum darkening" ),
+                     VIPS_ARGUMENT_OPTIONAL_INPUT,
+                     G_STRUCT_OFFSET( VipsSharpen, y3 ),
+                     0, 1000000, 20 );
 
-	return( 0 );
+    VIPS_ARG_DOUBLE( class, "m1", 8,
+                     _( "m1" ),
+                     _( "Slope for flat areas" ),
+                     VIPS_ARGUMENT_OPTIONAL_INPUT,
+                     G_STRUCT_OFFSET( VipsSharpen, m1 ),
+                     0, 1000000, 0.0 );
+
+    VIPS_ARG_DOUBLE( class, "m2", 9,
+                     _( "m2" ),
+                     _( "Slope for jaggy areas" ),
+                     VIPS_ARGUMENT_OPTIONAL_INPUT,
+                     G_STRUCT_OFFSET( VipsSharpen, m2 ),
+                     0, 1000000, 3.0 );
+
+    VIPS_ARG_ENUM( class, "mode", 10,
+                   _( "Mode" ),
+                   _( "Sharpen mode" ),
+                   VIPS_ARGUMENT_OPTIONAL_INPUT,
+                   G_STRUCT_OFFSET( VipsSharpen, mode ),
+                   VIPS_TYPE_SHARPEN_MODE, VIPS_SHARPEN_MODE_LUMINESCENCE );
+
+    /* We used to have a radius control.
+     */
+    VIPS_ARG_INT( class, "radius", 3,
+                  _( "Radius" ),
+                  _( "radius of Gaussian" ),
+                  VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+                  G_STRUCT_OFFSET( VipsSharpen, radius ),
+                  1, 100, 1 );
+
 }
 
+static void
+vips_sharpen_init( VipsSharpen *sharpen )
+{
+    sharpen->sigma = 0.5;
+    sharpen->x1 = 2.0;
+    sharpen->y2 = 10.0;
+    sharpen->y3 = 20.0;
+    sharpen->m1 = 0.0;
+    sharpen->m2 = 3.0;
+    sharpen->mode = VIPS_SHARPEN_MODE_LUMINESCENCE;
+}
 
 static int
 vips_sharpen_build( VipsObject *object )
@@ -178,12 +238,9 @@ vips_sharpen_build( VipsObject *object )
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 8 );
 	VipsImage **bands_and_convolutions[MAX_BANDS];
     VipsImage **sharpened_bands = (VipsImage **) vips_object_local_array(object, MAX_BANDS);
-    VipsInterpretation old_interpretation;
     int i;
     int num_other_bands;
     int bands_to_sharpen;
-    VipsInterpretation color_space;
-    VipsGenerateFn generate_fn;
 
 #define in_color_space t[0]
 #define gaussmat t[1]
@@ -203,11 +260,9 @@ vips_sharpen_build( VipsObject *object )
 		vips_object_argument_isset( object, "radius" ) )
 		sharpen->sigma = 1 + sharpen->radius / 2;
 
-    old_interpretation = sharpen->in->Type;
-
-	switch (sharpen->mode) {
+    switch (sharpen->mode) {
 	    case VIPS_SHARPEN_MODE_LUMINESCENCE:
-            color_space = VIPS_INTERPRETATION_LABS;
+            sharpen->color_space = VIPS_INTERPRETATION_LABS;
             bands_to_sharpen = 1;
             if( !(sharpen->lut = vips_sharpen_make_lut(object, sharpen)) )
                 return( -1 );
@@ -215,16 +270,16 @@ vips_sharpen_build( VipsObject *object )
             break;
 	    case VIPS_SHARPEN_MODE_RGB:
             bands_to_sharpen = 3;
-            if (old_interpretation == VIPS_INTERPRETATION_RGB) {
+            if (sharpen->in->Type == VIPS_INTERPRETATION_RGB) {
 //TODO
 //                color_space = VIPS_INTERPRETATION_RGB;
 //                generate_fn = vips_sharpen_generate_rgb8;
-                color_space = VIPS_INTERPRETATION_RGB16;
-                generate_fn = vips_sharpen_generate_rgb16;
+                sharpen->color_space = VIPS_INTERPRETATION_RGB16;
+                sharpen->generate_fn = vips_sharpen_generate_rgb16;
 
             } else {
-                color_space = VIPS_INTERPRETATION_RGB16;
-                generate_fn = vips_sharpen_generate_rgb16;
+                sharpen->color_space = VIPS_INTERPRETATION_RGB16;
+                sharpen->generate_fn = vips_sharpen_generate_rgb16;
             }
 	        break;
 	    default:
@@ -233,7 +288,7 @@ vips_sharpen_build( VipsObject *object )
 
     }
 
-	if( vips_colourspace(sharpen->in, &in_color_space, color_space, NULL ) )
+	if( vips_colourspace(sharpen->in, &in_color_space, sharpen->color_space, NULL ) )
 		return( -1 );
 
   	if(vips_check_uncoded(class->nickname, in_color_space ) ||
@@ -288,7 +343,7 @@ vips_sharpen_build( VipsObject *object )
             return( -1 );
 
         if (vips_image_generate(sharpened_bands[i],
-                                vips_start_many, generate_fn, vips_stop_many,
+                                vips_start_many, sharpen->generate_fn, vips_stop_many,
                                 bands_and_convolutions[i], sharpen))
             return( -1 );
     }
@@ -311,7 +366,7 @@ vips_sharpen_build( VipsObject *object )
             return( -1 );
     }
 
-    if( vips_colourspace( joined_bands, &joined_bands_old_interpretation, old_interpretation, NULL ))
+    if( vips_colourspace(joined_bands, &joined_bands_old_interpretation, sharpen->in->Type, NULL ))
         return( -1 );
 
     if( vips_image_write( joined_bands_old_interpretation, sharpen->out ) )
@@ -322,7 +377,8 @@ vips_sharpen_build( VipsObject *object )
 	return( 0 );
 }
 
-int* vips_sharpen_make_lut(VipsObject *object, const VipsSharpen *sharpen) {
+static int*
+vips_sharpen_make_lut(VipsObject *object, const VipsSharpen *sharpen) {
     int *lut;
     int i;
 
@@ -374,105 +430,58 @@ int* vips_sharpen_make_lut(VipsObject *object, const VipsSharpen *sharpen) {
     return lut;
 }
 
-static void
-vips_sharpen_class_init( VipsSharpenClass *class )
+static int
+vips_sharpen_generate_rgb16(VipsRegion *or,
+                            void *vseq, void *a, void *b, gboolean *stop )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
+    VipsRegion **in = (VipsRegion **) vseq;
+    VipsSharpen *sharpen = (VipsSharpen *) b;
+    VipsRect *r = &or->valid;
+    double threshold = sharpen->x1 / 100.0;
+    const double amount = sharpen->m2;
+    const double quantum_range = 65535;
+    const double quantum_threshold = threshold * quantum_range;
 
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
+    int x, y;
 
-	object_class->nickname = "sharpen";
-	object_class->description = _( "unsharp masking for print" );
-	object_class->build = vips_sharpen_build;
+    if( vips_reorder_prepare_many( or->im, in, r ) )
+        return( -1 );
 
-	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
+    VIPS_GATE_START( "vips_sharpen_generate_rgb16: work" );
 
-	VIPS_ARG_IMAGE( class, "in", 1,
-		_( "Input" ),
-		_( "Input image" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET( VipsSharpen, in ) );
+    for( y = 0; y < r->height; y++ ) {
+        unsigned short *p1 = (short * restrict)
+                VIPS_REGION_ADDR( in[0], r->left, r->top + y );
+        unsigned short *p2 = (short * restrict)
+                VIPS_REGION_ADDR( in[1], r->left, r->top + y );
+        unsigned short *q = (short * restrict)
+                VIPS_REGION_ADDR( or, r->left, r->top + y );
 
-	VIPS_ARG_IMAGE( class, "out", 2,
-		_( "Output" ),
-		_( "Output image" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT,
-		G_STRUCT_OFFSET( VipsSharpen, out ) );
+        for( x = 0; x < r->width; x++ ) {
+            int v1 = p1[x];
+            int v2 = p2[x];
+            int diff = v1 - v2;
+            double out = v1;
 
-	VIPS_ARG_DOUBLE( class, "sigma", 3,
-		_( "Sigma" ),
-		_( "Sigma of Gaussian" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsSharpen, sigma ),
-		0.000001, 10000.0, 0.5 );
+            if (VIPS_ABS(2.0 * diff) >= quantum_threshold)
+                out += diff * amount;
 
-	VIPS_ARG_DOUBLE( class, "x1", 5,
-		_( "x1" ),
-		_( "Flat/jaggy threshold" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsSharpen, x1 ),
-		0, 1000000, 2.0 );
+            if (out < 0)
+                out = 0;
+            else if (out > quantum_range)
+                out = quantum_range;
+            else
+                out = VIPS_FLOOR(out + 0.5);
 
-	VIPS_ARG_DOUBLE( class, "y2", 6,
-		_( "y2" ),
-		_( "Maximum brightening" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsSharpen, y2 ),
-		0, 1000000, 10 );
+            q[x] = (unsigned short)out;
+        }
+    }
 
-	VIPS_ARG_DOUBLE( class, "y3", 7,
-		_( "y3" ),
-		_( "Maximum darkening" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsSharpen, y3 ),
-		0, 1000000, 20 );
+    VIPS_GATE_STOP( "vips_sharpen_generate_rgb16: work" );
 
-	VIPS_ARG_DOUBLE( class, "m1", 8,
-		_( "m1" ),
-		_( "Slope for flat areas" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsSharpen, m1 ),
-		0, 1000000, 0.0 );
-
-	VIPS_ARG_DOUBLE( class, "m2", 9,
-		_( "m2" ),
-		_( "Slope for jaggy areas" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsSharpen, m2 ),
-		0, 1000000, 3.0 );
-
-    VIPS_ARG_ENUM( class, "mode", 10,
-                   _( "Mode" ),
-                   _( "Sharpen mode" ),
-                   VIPS_ARGUMENT_OPTIONAL_INPUT,
-                   G_STRUCT_OFFSET( VipsSharpen, mode ),
-                   VIPS_TYPE_SHARPEN_MODE, VIPS_SHARPEN_MODE_LUMINESCENCE );
-
-    /* We used to have a radius control.
-     */
-	VIPS_ARG_INT( class, "radius", 3,
-		_( "Radius" ),
-		_( "radius of Gaussian" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
-		G_STRUCT_OFFSET( VipsSharpen, radius ),
-		1, 100, 1 );
-
+    return( 0 );
 }
 
-static void
-vips_sharpen_init( VipsSharpen *sharpen )
-{
-	sharpen->sigma = 0.5;
-	sharpen->x1 = 2.0;
-	sharpen->y2 = 10.0;
-	sharpen->y3 = 20.0;
-	sharpen->m1 = 0.0;
-	sharpen->m2 = 3.0;
-	sharpen->mode = VIPS_SHARPEN_MODE_LUMINESCENCE;
-}
 
 /**
  * vips_sharpen: (method)
