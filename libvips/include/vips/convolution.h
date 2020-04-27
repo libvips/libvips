@@ -45,6 +45,11 @@ typedef enum {
 	VIPS_COMBINE_LAST
 } VipsCombine;
 
+typedef enum {
+    VIPS_SHARPEN_MODE_LUMINESCENCE,
+    VIPS_SHARPEN_MODE_RGB
+} VipsSharpenMode;
+
 int vips_conv( VipsImage *in, VipsImage **out, VipsImage *mask, ... )
 	__attribute__((sentinel));
 int vips_convf( VipsImage *in, VipsImage **out, VipsImage *mask, ... )

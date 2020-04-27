@@ -436,6 +436,23 @@ vips_combine_get_type( void )
 
 	return( etype );
 }
+GType
+vips_sharpen_mode_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_SHARPEN_MODE_LUMINESCENCE, "VIPS_SHARPEN_MODE_LUMINESCENCE", "luminescence"},
+			{VIPS_SHARPEN_MODE_RGB, "VIPS_SHARPEN_MODE_RGB", "rgb"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsSharpenMode", values );
+	}
+
+	return( etype );
+}
 /* enumerations from "../../libvips/include/vips/draw.h" */
 GType
 vips_combine_mode_get_type( void )

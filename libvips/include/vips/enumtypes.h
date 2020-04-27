@@ -50,6 +50,8 @@ GType vips_blend_mode_get_type (void) G_GNUC_CONST;
 /* enumerations from "../../../libvips/include/vips/convolution.h" */
 GType vips_combine_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_COMBINE (vips_combine_get_type())
+GType vips_sharpen_mode_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_SHARPEN_MODE (vips_sharpen_mode_get_type())
 /* enumerations from "../../../libvips/include/vips/draw.h" */
 GType vips_combine_mode_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_COMBINE_MODE (vips_combine_mode_get_type())

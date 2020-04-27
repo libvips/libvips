@@ -91,15 +91,13 @@ typedef struct _VipsSharpen {
 	VipsImage *in;
 	VipsImage *out;
 
-	VipsInterpretation color_space;
-	int bands_to_sharpen;
-
 	double sigma;
 	double x1;
 	double y2;
 	double y3;
 	double m1;
 	double m2;
+    VipsSharpenMode mode;
 
 	/* The lut we build.
 	 */
@@ -120,13 +118,12 @@ G_DEFINE_TYPE(VipsSharpen, vips_sharpen, VIPS_TYPE_OPERATION )
 int *vips_sharpen_make_lut(VipsObject *object, const VipsSharpen *sharpen);
 
 static int
-vips_sharpen_generate( VipsRegion *or,
-	void *vseq, void *a, void *b, gboolean *stop )
+vips_sharpen_generate_rgb16(VipsRegion *or,
+    void *vseq, void *a, void *b, gboolean *stop )
 {
 	VipsRegion **in = (VipsRegion **) vseq;
 	VipsSharpen *sharpen = (VipsSharpen *) b;
 	VipsRect *r = &or->valid;
-	int *lut = sharpen->lut;
     double threshold = sharpen->x1 / 100.0;
     const double amount = sharpen->m2;
     const double quantum_range = 65535;
@@ -137,7 +134,7 @@ vips_sharpen_generate( VipsRegion *or,
 	if( vips_reorder_prepare_many( or->im, in, r ) )
 		return( -1 );
 
-	VIPS_GATE_START( "vips_sharpen_generate: work" );
+	VIPS_GATE_START( "vips_sharpen_generate_rgb16: work" );
 
 	for( y = 0; y < r->height; y++ ) {
 		unsigned short *p1 = (short * restrict)
@@ -150,54 +147,24 @@ vips_sharpen_generate( VipsRegion *or,
 		for( x = 0; x < r->width; x++ ) {
 			int v1 = p1[x];
 			int v2 = p2[x];
-
-			/* Our LUT is -32768 - 32767. For the v1, v2
-			 * difference to be in this range, both must be 0 -
-			 * 32767.
-			 */
-
-			//int diff = ((v1 & 0x7fff) - (v2 & 0x7fff));
-
-			//alon - trying to do it like saips
             int diff = v1 - v2;
-            //alon - trying to do it like saips
+			double out = v1;
 
-			double out;
-
-//			g_assert( diff + 32768 >= 0 );
-//			g_assert( diff + 32768 < 65536 );
-
-//			out = v1 + lut[diff + 32768];
-			//alon - trying to do it like saips
-
-			out = v1;
 			if (VIPS_ABS(2.0 * diff) >= quantum_threshold)
                 out += diff * amount;
 
-//            clamp to quantum
             if (out < 0)
                 out = 0;
             else if (out > quantum_range)
                 out = quantum_range;
             else
                 out = VIPS_FLOOR(out + 0.5);
-//            clamp to quantum
 
-
-			//alon
-//			if( out < 0 )
-//				out = 0;
-//			if( out > 32767 )
-//				out = 32767;
-//            out = 65535;
-//            if (out != v1) {
-//                printf("yep\n");
-//            }
-			q[x] = out;
+			q[x] = (unsigned short)out;
 		}
 	}
 
-	VIPS_GATE_STOP( "vips_sharpen_generate: work" );
+	VIPS_GATE_STOP( "vips_sharpen_generate_rgb16: work" );
 
 	return( 0 );
 }
@@ -214,6 +181,9 @@ vips_sharpen_build( VipsObject *object )
     VipsInterpretation old_interpretation;
     int i;
     int num_other_bands;
+    int bands_to_sharpen;
+    VipsInterpretation color_space;
+    VipsGenerateFn generate_fn;
 
 #define in_color_space t[0]
 #define gaussmat t[1]
@@ -233,13 +203,37 @@ vips_sharpen_build( VipsObject *object )
 		vips_object_argument_isset( object, "radius" ) )
 		sharpen->sigma = 1 + sharpen->radius / 2;
 
-	//TODO: Set this outside
-	sharpen->color_space = VIPS_INTERPRETATION_RGB16;
-	sharpen->bands_to_sharpen = 3;
-	///////////
+    old_interpretation = sharpen->in->Type;
 
-	old_interpretation = sharpen->in->Type;
-	if( vips_colourspace(sharpen->in, &in_color_space, sharpen->color_space, NULL ) )
+	switch (sharpen->mode) {
+	    case VIPS_SHARPEN_MODE_LUMINESCENCE:
+            color_space = VIPS_INTERPRETATION_LABS;
+            bands_to_sharpen = 1;
+            if( !(sharpen->lut = vips_sharpen_make_lut(object, sharpen)) )
+                return( -1 );
+            //TODO generate_fn = vips_sharpen_generate_luminescence;
+            break;
+	    case VIPS_SHARPEN_MODE_RGB:
+            bands_to_sharpen = 3;
+            if (old_interpretation == VIPS_INTERPRETATION_RGB) {
+//TODO
+//                color_space = VIPS_INTERPRETATION_RGB;
+//                generate_fn = vips_sharpen_generate_rgb8;
+                color_space = VIPS_INTERPRETATION_RGB16;
+                generate_fn = vips_sharpen_generate_rgb16;
+
+            } else {
+                color_space = VIPS_INTERPRETATION_RGB16;
+                generate_fn = vips_sharpen_generate_rgb16;
+            }
+	        break;
+	    default:
+            vips_error( class->nickname, "Unsupported sharpen mode %d", sharpen->mode );
+            return( -1);
+
+    }
+
+	if( vips_colourspace(sharpen->in, &in_color_space, color_space, NULL ) )
 		return( -1 );
 
   	if(vips_check_uncoded(class->nickname, in_color_space ) ||
@@ -261,74 +255,52 @@ vips_sharpen_build( VipsObject *object )
 	vips_matrixprint( gaussmat, NULL );
 #endif /*DEBUG*/
 
-//    gaussmat->Xsize = 3;
-//	double* kernel = (double*)gaussmat->data;
-//    const double a = 0.153275475;
-//	const double b = 0.693449079;
-//    kernel[0] = VIPS_RINT(a * 20);
-//    kernel[1] = VIPS_RINT(b * 20);
-//    kernel[2] = VIPS_RINT(a * 20);
-//    vips_image_set_double( gaussmat, "scale", kernel[0] + kernel[1] + kernel[2]);
-//    kernel[0] = a;
-//    kernel[1] = b;
-//    kernel[2] = a;
-
-	/* Index with the signed difference between two 0 - 32767 images.
-	 */
-	if( !(sharpen->lut = vips_sharpen_make_lut(object, sharpen)) )
-		return( -1 );
-
-    printf("    /* Initialize bands and convolutions array\n");
     /* Initialize bands and convolutions array
      */
-	for( i = 0; i < sharpen->bands_to_sharpen; i++ )
+	for( i = 0; i < bands_to_sharpen; i++ )
         bands_and_convolutions[i] = (VipsImage **) vips_object_local_array(object, 2);
 
-    printf("    /* Extract the bands we want to sharpen\n");
     /* Extract the bands we want to sharpen
      */
-	for( i = 0; i < sharpen->bands_to_sharpen; i++ )
+	for( i = 0; i < bands_to_sharpen; i++ )
         if (vips_extract_band(in_color_space, &(bands_and_convolutions[i])[0], i, NULL))
-            return (-1);
+            return( -1 );
 
-    printf("    /* Extract the other bands (if any)\n");
 	/* Extract the other bands (if any)
 	 */
-	num_other_bands = in_color_space->Bands - sharpen->bands_to_sharpen;
+	num_other_bands = in_color_space->Bands - bands_to_sharpen;
 	if( num_other_bands > 0)
-        if( vips_extract_band(in_color_space, &other_bands, sharpen->bands_to_sharpen,
+        if( vips_extract_band(in_color_space, &other_bands, bands_to_sharpen,
                 "n", num_other_bands, NULL ))
             return( -1 );
 
-    printf("    /* Convolve\n");
     /* Convolve
      */
-    for( i = 0; i < sharpen->bands_to_sharpen; i++) {
+    for( i = 0; i < bands_to_sharpen; i++) {
         if (vips_convsep(bands_and_convolutions[i][0], &(bands_and_convolutions[i])[1], gaussmat,
                          "precision", VIPS_PRECISION_INTEGER,
                          NULL))
-            return (-1);
+            return( -1 );
 
         sharpened_bands[i] = vips_image_new();
         if (vips_image_pipeline_array(sharpened_bands[i],
                                       VIPS_DEMAND_STYLE_FATSTRIP, bands_and_convolutions[i]))
-            return (-1);
+            return( -1 );
 
         if (vips_image_generate(sharpened_bands[i],
-                                vips_start_many, vips_sharpen_generate, vips_stop_many,
+                                vips_start_many, generate_fn, vips_stop_many,
                                 bands_and_convolutions[i], sharpen))
-            return (-1);
+            return( -1 );
     }
 
 	g_object_set( object, "out", vips_image_new(), NULL );
 
-	printf("/* Join sharpened bands and other bands.\n");
 	/* Join sharpened bands and other bands.
 	 */
     {
         VipsImage *bands_to_join[MAX_BANDS];
 
-        for( i = 0; i < sharpen->bands_to_sharpen; i++)
+        for( i = 0; i < bands_to_sharpen; i++)
             bands_to_join[i] = sharpened_bands[i];
 
         if( num_other_bands ) {
@@ -336,15 +308,12 @@ vips_sharpen_build( VipsObject *object )
         }
 
         if (vips_bandjoin(bands_to_join, &joined_bands, i, NULL))
-            return (-1);
+            return( -1 );
     }
-
-    printf("/* vips_colourspace\n");
 
     if( vips_colourspace( joined_bands, &joined_bands_old_interpretation, old_interpretation, NULL ))
         return( -1 );
 
-    printf("/* vips_image_write\n");
     if( vips_image_write( joined_bands_old_interpretation, sharpen->out ) )
 		return( -1 );
 
@@ -356,6 +325,8 @@ vips_sharpen_build( VipsObject *object )
 int* vips_sharpen_make_lut(VipsObject *object, const VipsSharpen *sharpen) {
     int *lut;
     int i;
+
+    /* Index with the signed difference between two 0 - 32767 images. */
 
     if( !(lut = VIPS_ARRAY( object, 65536, int )))
         return NULL;
@@ -473,8 +444,15 @@ vips_sharpen_class_init( VipsSharpenClass *class )
 		G_STRUCT_OFFSET( VipsSharpen, m2 ),
 		0, 1000000, 3.0 );
 
-	/* We used to have a radius control.
-	 */
+    VIPS_ARG_ENUM( class, "mode", 10,
+                   _( "Mode" ),
+                   _( "Sharpen mode" ),
+                   VIPS_ARGUMENT_OPTIONAL_INPUT,
+                   G_STRUCT_OFFSET( VipsSharpen, mode ),
+                   VIPS_TYPE_SHARPEN_MODE, VIPS_SHARPEN_MODE_LUMINESCENCE );
+
+    /* We used to have a radius control.
+     */
 	VIPS_ARG_INT( class, "radius", 3,
 		_( "Radius" ),
 		_( "radius of Gaussian" ),
@@ -493,6 +471,7 @@ vips_sharpen_init( VipsSharpen *sharpen )
 	sharpen->y3 = 20.0;
 	sharpen->m1 = 0.0;
 	sharpen->m2 = 3.0;
+	sharpen->mode = VIPS_SHARPEN_MODE_LUMINESCENCE;
 }
 
 /**
@@ -505,10 +484,14 @@ vips_sharpen_init( VipsSharpen *sharpen )
  *
  * * @sigma: sigma of gaussian
  * * @x1: flat/jaggy threshold
- * * @y2: maximum amount of brightening
- * * @y3: maximum amount of darkening
- * * @m1: slope for flat areas
+ * * @y2: maximum amount of brightening (luminescence mode only)
+ * * @y3: maximum amount of darkening (luminescence mode only)
+ * * @m1: slope for flat areas (luminescence mode only)
  * * @m2: slope for jaggy areas
+ * * @mode: sharpen mode, either luminescence or RGB, default is luminescence
+ *
+ *
+ * Luminescence Mode:
  *
  * Selectively sharpen the L channel of a LAB image. The input image is
  * transformed to #VIPS_INTERPRETATION_LABS. 
@@ -559,6 +542,18 @@ vips_sharpen_init( VipsSharpen *sharpen )
  * 1.0 for 12 pixels/mm and 1.5 for 16 pixels/mm (300 dpi == 12 
  * pixels/mm). These figures refer to the image raster, not the half-tone 
  * resolution.
+ *
+ * RGB Mode:
+ *
+ * Sharpen each of the RGB channels. If the input image is RGB or RGB16,
+ * it's used as-is, otherwise it's transformed to RGB16.
+ *
+ * In this mode, the arguments are used this way:
+ * * @sigma is the sigma of the gaussian
+ * * @x1 is the threshold to decide if the signal should be sharpened
+ * * @m2 is the amount by which to amplify the sharpened signal
+ * * @x2, @y2, @y3 and @m1 are ignored
+ *
  *
  * See also: vips_conv().
  * 
