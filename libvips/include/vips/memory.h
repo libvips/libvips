@@ -74,7 +74,7 @@ size_t vips_tracked_get_mem( void );
 size_t vips_tracked_get_mem_highwater( void );
 int vips_tracked_get_allocs( void );
 
-int vips_tracked_open( const char *pathname, int flags, ... );
+int vips_tracked_open( const char *pathname, int flags, mode_t mode );
 int vips_tracked_close( int fd );
 int vips_tracked_get_files( void );
 
