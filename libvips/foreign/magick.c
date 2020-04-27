@@ -287,10 +287,17 @@ int
 magick_set_image_size( Image *image, const size_t width, const size_t height,
 	ExceptionInfo *exception )
 {
-	(void) exception;
 #ifdef HAVE_SETIMAGEEXTENT
-	return( SetImageExtent( image, width, height ) );
+	int result = SetImageExtent( image, width, height );
+
+	/* IM6 sets the exception on the image.
+	 */
+	if( !result )
+		magick_inherit_exception( exception, image );
+
+	return( result ); 
 #else /*!HAVE_SETIMAGEEXTENT*/
+	(void) exception;
 	image->columns = width;
 	image->rows = height;
 

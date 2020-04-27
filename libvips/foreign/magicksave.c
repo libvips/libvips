@@ -149,8 +149,10 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 	}
 
 	if( !magick_set_image_size( image, 
-		im->Xsize, magick->page_height, magick->exception ) )
+		im->Xsize, magick->page_height, magick->exception ) ) {
+		magick_vips_error( class->nickname, magick->exception ); 
 		return( -1 );
+	}
 
 	/* Delay must be converted from milliseconds into centiseconds
 	 * as GIF image requires centiseconds.
