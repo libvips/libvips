@@ -519,10 +519,9 @@ vips_sharpen_generate_rgb16(VipsRegion *or,
     VipsRegion **in = (VipsRegion **) vseq;
     VipsSharpen *sharpen = (VipsSharpen *) b;
     VipsRect *r = &or->valid;
-    double threshold = sharpen->x1 / 100.0;
     const double amount = sharpen->m2;
-    const double quantum_range = 65535;
-    const double quantum_threshold = threshold * quantum_range;
+    const double range = 65535.0;
+    const double threshold = sharpen->x1 / 100.0 * range;
 
     int x, y;
 
@@ -540,22 +539,20 @@ vips_sharpen_generate_rgb16(VipsRegion *or,
                 VIPS_REGION_ADDR( or, r->left, r->top + y );
 
         for( x = 0; x < r->width; x++ ) {
-            int v1 = p1[x];
-            int v2 = p2[x];
-            int diff = v1 - v2;
-            double out = v1;
+            int diff = p1[x] - p2[x];
+            double out = p1[x];
 
-            if (VIPS_ABS(2.0 * diff) >= quantum_threshold)
-                out += diff * amount;
+            if (VIPS_ABS(2.0 * diff) >= threshold)
+                out += (diff * amount);
 
             if (out < 0)
                 out = 0;
-            else if (out > quantum_range)
-                out = quantum_range;
+            else if (out > range)
+                out = range;
             else
                 out = VIPS_FLOOR(out + 0.5);
 
-            q[x] = (unsigned short)out;
+            q[x] = out;
         }
     }
 
@@ -571,10 +568,9 @@ vips_sharpen_generate_rgb8(VipsRegion *or,
     VipsRegion **in = (VipsRegion **) vseq;
     VipsSharpen *sharpen = (VipsSharpen *) b;
     VipsRect *r = &or->valid;
-    double threshold = sharpen->x1 / 100.0;
     const double amount = sharpen->m2;
-    const double quantum_range = 255;
-    const double quantum_threshold = threshold * quantum_range;
+    const double range = 255.0;
+    const double threshold = sharpen->x1 / 100.0 * range;
 
     int x, y;
 
@@ -592,18 +588,16 @@ vips_sharpen_generate_rgb8(VipsRegion *or,
                 VIPS_REGION_ADDR( or, r->left, r->top + y );
 
         for( x = 0; x < r->width; x++ ) {
-            int v1 = p1[x];
-            int v2 = p2[x];
-            int diff = v1 - v2;
-            double out = v1;
+            int diff = p1[x] - p2[x];
+            double out = p1[x];
 
-            if (VIPS_ABS(2.0 * diff) >= quantum_threshold)
+            if (VIPS_ABS(2.0 * diff) >= threshold)
                 out += diff * amount;
 
             if (out < 0)
                 out = 0;
-            else if (out > quantum_range)
-                out = quantum_range;
+            else if (out > range)
+                out = range;
             else
                 out = VIPS_FLOOR(out + 0.5);
 
