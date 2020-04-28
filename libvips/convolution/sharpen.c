@@ -46,7 +46,7 @@
 /*
 
     This file is part of VIPS.
-    
+
     VIPS is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -85,13 +85,6 @@
 
 #include <vips/vips.h>
 
-typedef struct _VipsSharpenConfig {
-    int bands_to_sharpen;
-    VipsInterpretation colour_space;
-    VipsBandFormat band_format;
-    VipsGenerateFn generate_fn;
-} VipsSharpenConfig;
-
 typedef struct _VipsSharpen {
 	VipsOperation parent_instance;
 
@@ -118,12 +111,23 @@ typedef struct _VipsSharpen {
 
 typedef VipsOperationClass VipsSharpenClass;
 
+typedef struct _VipsSharpenConfig {
+    int bands_to_sharpen;
+    VipsInterpretation interpretation;
+    VipsBandFormat band_format;
+    VipsGenerateFn generate_fn;
+} VipsSharpenConfig;
+
+
 #define MAX_BANDS 4
 
 G_DEFINE_TYPE(VipsSharpen, vips_sharpen, VIPS_TYPE_OPERATION )
 
+static int
+vips_sharpen_build( VipsObject *object );
+
 static int*
-vips_sharpen_make_lut(VipsSharpen *sharpen);
+vips_sharpen_build_lut(VipsSharpen *sharpen);
 
 static int
 vips_sharpen_generate_luminescence( VipsRegion *or,
@@ -135,11 +139,8 @@ static int
 vips_sharpen_generate_rgb8(VipsRegion *or,
                            void *vseq, void *a, void *b, gboolean *stop );
 
-static int
-vips_sharpen_build( VipsObject *object );
-
 static const VipsSharpenConfig
-*vips_sharpen_configure(VipsSharpenMode mode, VipsInterpretation interpretation);
+*vips_sharpen_configure(VipsSharpenMode mode, VipsInterpretation source_interpretation);
 
 static void
 vips_sharpen_class_init( VipsSharpenClass *class )
@@ -251,13 +252,13 @@ vips_sharpen_build( VipsObject *object )
     VipsImage **sharpened_bands = (VipsImage **) vips_object_local_array(object, MAX_BANDS);
     int i;
     int num_other_bands;
-    VipsSharpenConfig *config;
+    const VipsSharpenConfig *config;
 
-#define in_colour_space t[0]
+#define input_in_new_interpretation t[0]
 #define gaussmat t[1]
 #define other_bands t[3]
 #define joined_bands t[6]
-#define joined_bands_old_interpretation t[7]
+#define joined_bands_in_original_interpretation t[7]
 
     VIPS_GATE_START( "vips_sharpen_build: build" );
 
@@ -277,16 +278,16 @@ vips_sharpen_build( VipsObject *object )
     }
 
     if( sharpen->mode == VIPS_SHARPEN_MODE_LUMINESCENCE &&
-       !(sharpen->lut = vips_sharpen_make_lut(sharpen)) )
+       !(sharpen->lut = vips_sharpen_build_lut(sharpen)) )
         return( -1 );
 
 
-    if( vips_colourspace(sharpen->in, &in_colour_space, config->colour_space, NULL ) )
+    if( vips_colourspace(sharpen->in, &input_in_new_interpretation, config->interpretation, NULL ) )
 		return( -1 );
 
-  	if(vips_check_uncoded(class->nickname, in_colour_space ) ||
-       vips_check_bands_atleast(class->nickname, in_colour_space, 3 ) ||
-       vips_check_format(class->nickname, in_colour_space, config->band_format ) )
+  	if(vips_check_uncoded(class->nickname, input_in_new_interpretation ) ||
+       vips_check_bands_atleast(class->nickname, input_in_new_interpretation, 3 ) ||
+       vips_check_format(class->nickname, input_in_new_interpretation, config->band_format ) )
   		return( -1 );
 
 	/* Stop at 10% of max ... a bit mean. We always sharpen a short,
@@ -311,14 +312,14 @@ vips_sharpen_build( VipsObject *object )
     /* Extract the bands we want to sharpen
      */
 	for( i = 0; i < config->bands_to_sharpen; i++ )
-        if (vips_extract_band(in_colour_space, &(bands_and_convolutions[i])[0], i, NULL))
+        if (vips_extract_band(input_in_new_interpretation, &(bands_and_convolutions[i])[0], i, NULL))
             return( -1 );
 
 	/* Extract the other bands (if any)
 	 */
-	num_other_bands = in_colour_space->Bands - config->bands_to_sharpen;
+	num_other_bands = input_in_new_interpretation->Bands - config->bands_to_sharpen;
 	if( num_other_bands > 0)
-        if( vips_extract_band(in_colour_space, &other_bands, config->bands_to_sharpen,
+        if( vips_extract_band(input_in_new_interpretation, &other_bands, config->bands_to_sharpen,
                               "n", num_other_bands, NULL ))
             return( -1 );
 
@@ -359,10 +360,10 @@ vips_sharpen_build( VipsObject *object )
             return( -1 );
     }
 
-    if( vips_colourspace(joined_bands, &joined_bands_old_interpretation, sharpen->in->Type, NULL ))
+    if( vips_colourspace(joined_bands, &joined_bands_in_original_interpretation, sharpen->in->Type, NULL ))
         return( -1 );
 
-    if( vips_image_write( joined_bands_old_interpretation, sharpen->out ) )
+    if( vips_image_write(joined_bands_in_original_interpretation, sharpen->out ) )
 		return( -1 );
 
 	VIPS_GATE_STOP( "vips_sharpen_build: build" );
@@ -371,26 +372,26 @@ vips_sharpen_build( VipsObject *object )
 }
 
 static const VipsSharpenConfig
-*vips_sharpen_configure(VipsSharpenMode mode, VipsInterpretation interpretation) {
+*vips_sharpen_configure(VipsSharpenMode mode, VipsInterpretation source_interpretation) {
 
     static const VipsSharpenConfig luminescence_config = {
             .bands_to_sharpen = 1,
             .band_format = VIPS_FORMAT_SHORT,
-            .colour_space = VIPS_INTERPRETATION_LABS,
+            .interpretation = VIPS_INTERPRETATION_LABS,
             .generate_fn = vips_sharpen_generate_luminescence,
     };
 
     static const VipsSharpenConfig rgb_config = {
             .bands_to_sharpen = 3,
             .band_format = VIPS_FORMAT_UCHAR,
-            .colour_space = VIPS_INTERPRETATION_RGB,
+            .interpretation = VIPS_INTERPRETATION_RGB,
             .generate_fn = vips_sharpen_generate_rgb8,
     };
 
     static const VipsSharpenConfig rgb16_config = {
             .bands_to_sharpen = 3,
             .band_format = VIPS_FORMAT_USHORT,
-            .colour_space = VIPS_INTERPRETATION_RGB16,
+            .interpretation = VIPS_INTERPRETATION_RGB16,
             .generate_fn = vips_sharpen_generate_rgb16,
     };
 
@@ -398,14 +399,14 @@ static const VipsSharpenConfig
         case VIPS_SHARPEN_MODE_LUMINESCENCE:
             return &luminescence_config;
         case VIPS_SHARPEN_MODE_RGB:
-            return (interpretation == VIPS_INTERPRETATION_RGB) ? &rgb_config : &rgb16_config;
+            return (source_interpretation == VIPS_INTERPRETATION_RGB) ? &rgb_config : &rgb16_config;
         default:
             return NULL;
     }
 }
 
 static int*
-vips_sharpen_make_lut(VipsSharpen *sharpen) {
+vips_sharpen_build_lut(VipsSharpen *sharpen) {
     int *lut;
     int i;
 
@@ -514,14 +515,14 @@ vips_sharpen_generate_luminescence( VipsRegion *or,
 
 static int
 vips_sharpen_generate_rgb16(VipsRegion *or,
-                            void *vseq, void *a, void *b, gboolean *stop )
+    void *vseq, void *a, void *b, gboolean *stop )
 {
     VipsRegion **in = (VipsRegion **) vseq;
     VipsSharpen *sharpen = (VipsSharpen *) b;
     VipsRect *r = &or->valid;
-    const double amount = sharpen->m2;
     const double range = 65535.0;
-    const double threshold = sharpen->x1 / 100.0 * range;
+    double amount = sharpen->m2;
+    double threshold = sharpen->x1 / 100.0 * range;
 
     int x, y;
 
@@ -542,7 +543,7 @@ vips_sharpen_generate_rgb16(VipsRegion *or,
             int diff = p1[x] - p2[x];
             double out = p1[x];
 
-            if (VIPS_ABS(2.0 * diff) >= threshold)
+            if ( VIPS_ABS(diff) >= threshold / 2.0 )
                 out += (diff * amount);
 
             if (out < 0)
@@ -568,9 +569,9 @@ vips_sharpen_generate_rgb8(VipsRegion *or,
     VipsRegion **in = (VipsRegion **) vseq;
     VipsSharpen *sharpen = (VipsSharpen *) b;
     VipsRect *r = &or->valid;
-    const double amount = sharpen->m2;
     const double range = 255.0;
-    const double threshold = sharpen->x1 / 100.0 * range;
+    double amount = sharpen->m2;
+    double threshold = sharpen->x1 / 100.0 * range;
 
     int x, y;
 
@@ -591,7 +592,7 @@ vips_sharpen_generate_rgb8(VipsRegion *or,
             int diff = p1[x] - p2[x];
             double out = p1[x];
 
-            if (VIPS_ABS(2.0 * diff) >= threshold)
+            if (VIPS_ABS( diff) >= threshold / 2.0)
                 out += diff * amount;
 
             if (out < 0)
@@ -631,7 +632,7 @@ vips_sharpen_generate_rgb8(VipsRegion *or,
  * Luminescence Mode:
  *
  * Selectively sharpen the L channel of a LAB image. The input image is
- * transformed to #VIPS_INTERPRETATION_LABS. 
+ * transformed to #VIPS_INTERPRETATION_LABS.
  *
  * The operation performs a gaussian blur and subtracts from @in to generate a
  * high-frequency signal. This signal is passed through a lookup table formed
@@ -642,12 +643,12 @@ vips_sharpen_generate_rgb8(VipsRegion *or,
  * |[
  * .                     ^
  * .                  y2 |- - - - - -----------
- * .                     |         / 
+ * .                     |         /
  * .                     |        / slope m2
- * .                     |    .../    
- * .             -x1     | ...   |    
+ * .                     |    .../
+ * .             -x1     | ...   |
  * . -------------------...---------------------->
- * .             |   ... |      x1           
+ * .             |   ... |      x1
  * .             |... slope m1
  * .             /       |
  * .            / m2     |
