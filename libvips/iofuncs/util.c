@@ -1688,14 +1688,23 @@ vips__temp_dir( void )
 char *
 vips__temp_name( const char *format )
 {
-	static int serial = 0;
+	static int global_serial = 0;
 
 	char file[FILENAME_MAX];
 	char file2[FILENAME_MAX];
 	char *name;
 
+	/* Old glibs named this differently.
+	 */
+	int serial =
+#if GLIB_CHECK_VERSION( 2, 30, 0 )
+			g_atomic_int_add( &global_serial, 1 );
+#else
+			g_atomic_int_exchange_and_add( &global_serial, 1 );
+#endif
+
 	vips_snprintf( file, FILENAME_MAX, "vips-%d-%u", 
-		serial++, g_random_int() );
+		serial, g_random_int() );
 	vips_snprintf( file2, FILENAME_MAX, format, file );
 	name = g_build_filename( vips__temp_dir(), file2, NULL );
 
