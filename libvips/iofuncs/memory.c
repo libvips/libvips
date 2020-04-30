@@ -356,7 +356,7 @@ vips_tracked_malloc( size_t size )
  * vips_tracked_open:
  * @pathname: name of file to open
  * @flags: flags for open()
- * @...: open mode
+ * @mode: open mode
  *
  * Exactly as open(2), but the number of files currently open via
  * vips_tracked_open() is available via vips_tracked_get_files(). This is used
@@ -372,18 +372,9 @@ vips_tracked_malloc( size_t size )
  * Returns: a file descriptor, or -1 on error.
  */
 int
-vips_tracked_open( const char *pathname, int flags, ... )
+vips_tracked_open( const char *pathname, int flags, mode_t mode )
 {
 	int fd;
-	mode_t mode;
-	va_list ap;
-
-	/* mode_t is promoted to int in ..., so we have to pull it out as an
-	 * int.
-	 */
-	va_start( ap, flags );
-	mode = va_arg( ap, int );
-	va_end( ap );
 
 	if( (fd = vips__open( pathname, flags, mode )) == -1 )
 		return( -1 );

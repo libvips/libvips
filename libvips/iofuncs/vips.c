@@ -165,11 +165,11 @@ vips__open_image_read( const char *filename )
 	 * work. When we later mmap this file, we set read-only, so there 
 	 * is little danger of scrubbing over files we own.
 	 */
-	fd = vips_tracked_open( filename, MODE_READWRITE );
+	fd = vips_tracked_open( filename, MODE_READWRITE, 0 );
 	if( fd == -1 ) 
 		/* Open read-write failed. Fall back to open read-only.
 		 */
-		fd = vips_tracked_open( filename, MODE_READONLY );
+		fd = vips_tracked_open( filename, MODE_READONLY, 0 );
 	
 	if( fd == -1 ) {
 		vips_error_system( errno, "VipsImage", 

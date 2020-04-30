@@ -624,15 +624,9 @@ vips__set_create_time( int fd )
 /* open() with a utf8 filename, setting errno.
  */
 int
-vips__open( const char *filename, int flags, ... )
+vips__open( const char *filename, int flags, mode_t mode )
 {
 	int fd;
-	mode_t mode;
-	va_list ap;
-
-	va_start( ap, flags );
-	mode = va_arg( ap, int );
-	va_end( ap );
 
 	/* Various bad things happen if you accidentally open a directory as a
 	 * file.
@@ -655,7 +649,7 @@ vips__open( const char *filename, int flags, ... )
 int 
 vips__open_read( const char *filename )
 {
-	return( vips__open( filename, MODE_READONLY ) );
+	return( vips__open( filename, MODE_READONLY, 0 ) );
 }
 
 /* fopen() with utf8 filename and mode, setting errno.

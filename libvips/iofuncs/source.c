@@ -596,7 +596,7 @@ vips_source_unminimise( VipsSource *source )
 		int fd;
 
 		if( (fd = vips_tracked_open( connection->filename, 
-			MODE_READ )) == -1 ) {
+			MODE_READ, 0 )) == -1 ) {
 			vips_error_system( errno, 
 				vips_connection_nick( connection ),
 				"%s", _( "unable to open for read" ) );
