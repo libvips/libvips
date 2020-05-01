@@ -70,12 +70,11 @@ typedef struct _VipsForeignLoadPng {
 
 	spng_ctx *ctx;
 	struct spng_ihdr ihdr;
+	struct spng_trns trns;
 	enum spng_format fmt;
 	int bands;
 	VipsInterpretation interpretation;
 	VipsBandFormat format;
-	size_t out_size;
-	size_t out_line_size;
 	int y_pos;
 
 } VipsForeignLoadPng;
@@ -195,16 +194,22 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
+	int flags;
 	int error;
 
-	/* Flags can be eg. SPNG_CTX_IGNORE_ADLER32 to ignore CRC chaekcs in
-	 * deflate.
-	 *
-	 * FIXME ... fail handling
+	/* In non-fail mode, ignore CRC errors.
 	 */
-	png->ctx = spng_ctx_new( 0 );
-	spng_set_crc_action( png->ctx, SPNG_CRC_USE, SPNG_CRC_USE );
+	flags = 0;
+	if( !load->fail )
+		flags |= SPNG_CTX_IGNORE_ADLER32;
+	png->ctx = spng_ctx_new( flags );
+	if( !load->fail )
+		/* Ignore and don't calculate checksums.
+		 */
+		spng_set_crc_action( png->ctx, SPNG_CRC_USE, SPNG_CRC_USE );
 
+	if( vips_source_rewind( png->source ) ) 
+		return( -1 );
 	spng_set_png_stream( png->ctx, 
 		vips_foreign_load_png_stream, png->source );
 	if( (error = spng_get_ihdr( png->ctx, &png->ihdr )) ) {
@@ -212,40 +217,20 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 		return( -1 );
 	}
 
-	printf(" width: %d\nheight: %d\nbit depth: %d\ncolor type: %d\n",
+	/*
+	printf( "width: %d\nheight: %d\nbit depth: %d\ncolor type: %d\n",
 		png->ihdr.width, png->ihdr.height,
 		png->ihdr.bit_depth, png->ihdr.color_type );
 	printf( "compression method: %d\nfilter method: %d\n"
 		"interlace method: %d\n",
 		png->ihdr.compression_method, png->ihdr.filter_method,
 		png->ihdr.interlace_method );
+	 */
 
-	switch( png->ihdr.color_type ) {
-	case SPNG_COLOR_TYPE_GRAYSCALE:
-		png->interpretation = VIPS_INTERPRETATION_B_W;
-		png->bands = 1;
-		break;
-
-	case SPNG_COLOR_TYPE_GRAYSCALE_ALPHA:
-		png->interpretation = VIPS_INTERPRETATION_B_W;
-		png->bands = 2;
-		break;
-
-	case SPNG_COLOR_TYPE_TRUECOLOR:
-	case SPNG_COLOR_TYPE_INDEXED:
-		png->interpretation = VIPS_INTERPRETATION_sRGB;
-		png->bands = 3;
-		break;
-
-	case SPNG_COLOR_TYPE_TRUECOLOR_ALPHA:
-		png->interpretation = VIPS_INTERPRETATION_sRGB;
-		png->bands = 4;
-		break;
-
-	default:
-		vips_error( class->nickname, "%s", "unknown color_type" ); 
-		return( -1 );
-	}
+	/* For now, libspng always outputs RGBA.
+	 */
+	png->interpretation = VIPS_INTERPRETATION_sRGB;
+	png->bands = 4;
 
 	if( png->ihdr.bit_depth == 16 ) {
 		png->fmt = SPNG_FMT_RGBA16;
@@ -260,21 +245,12 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 		png->format = VIPS_FORMAT_UCHAR;
 	}
 
-	/* FIXME ... get resolution.
+	/* FIXME ... get resolution, profile, exif, xmp, etc. etc.
 	 */
 
 	vips_source_minimise( png->source );
 
 	vips_foreign_load_png_set_header( png, load->out );
-
-	return( 0 );
-}
-
-static int
-vips_foreign_load_png_interlace( VipsForeignLoadPng *png, VipsImage *image )
-{
-	/* FIXME ... load interlaced PNG to huge memory image.
-	 */
 
 	return( 0 );
 }
@@ -323,10 +299,11 @@ vips_foreign_load_png_generate( VipsRegion *or,
 		error = spng_decode_row( png->ctx, 
 			VIPS_REGION_ADDR( or, 0, r->top + y ),
 			VIPS_REGION_SIZEOF_LINE( or ) );
-
-		/* FIXME .. should allow SPNG_EOI here?
+		/* libspng returns EOI when successfully reading the 
+		 * final line of input.
 		 */
-		if( error ) { 
+		if( error != 0 &&
+			error != SPNG_EOI ) { 
 			/* We've failed to read some pixels. Knock this 
 			 * operation out of cache. 
 			 */
@@ -336,8 +313,8 @@ vips_foreign_load_png_generate( VipsRegion *or,
 			printf( "vips_foreign_load_png_generate:\n" ); 
 			printf( "  spng_decode_row() failed, line %d\n", 
 				r->top + y ); 
-			printf( "  file %s\n", read->name );
 			printf( "  thread %p\n", g_thread_self() );
+			printf( "  error %s\n", spng_strerror( error ) ); 
 #endif /*DEBUG*/
 
 			/* And bail if fail is on. We have to add an error
@@ -367,23 +344,6 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 
 	int error;
 
-	if( (error = spng_decoded_image_size( png->ctx, 
-		png->fmt, &png->out_size )) ) {
-		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
-		return( -1 );
-	}
-	png->out_line_size = png->out_size / png->ihdr.height;
-
-	/* Initialize for progressive decoding.
-	 */
-	if( (error = spng_decode_image( png->ctx, NULL, 0, 
-		png->fmt, SPNG_DECODE_PROGRESSIVE )) ) {
-		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
-		return( -1 );
-	}
-
-	t[0] = vips_image_new_memory();
-	vips_foreign_load_png_set_header( png, t[0] );
 	if( vips_source_decode( png->source ) )
 		return( -1 );
 
@@ -391,14 +351,39 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 		/* Arg awful interlaced image. We have to load to a huge mem 
 		 * buffer, then copy to out.
 		 */
-		if( vips_foreign_load_png_interlace( png, t[0] ) ||
-			vips_image_write( t[0], load->real ) )
+		t[0] = vips_image_new_memory();
+		vips_foreign_load_png_set_header( png, t[0] );
+		if( vips_image_write_prepare( t[0] ) )
+			return( -1 );
+
+		if( (error = spng_decode_image( png->ctx, 
+			VIPS_IMAGE_ADDR( t[0], 0, 0 ), 
+			VIPS_IMAGE_SIZEOF_IMAGE( t[0] ), 
+			png->fmt, 0 )) ) {
+			vips_error( class->nickname, 
+				"%s", spng_strerror( error ) ); 
+			return( -1 );
+		}
+
+		if( vips_image_write( t[0], load->real ) )
 			return( -1 );
 	}
 	else {
+		t[0] = vips_image_new();
+		vips_foreign_load_png_set_header( png, t[0] );
+
+		/* Initialize for progressive decoding.
+		 */
+		if( (error = spng_decode_image( png->ctx, NULL, 0, 
+			png->fmt, SPNG_DECODE_PROGRESSIVE )) ) {
+			vips_error( class->nickname, 
+				"%s", spng_strerror( error ) ); 
+			return( -1 );
+		}
+
 		if( vips_image_generate( t[0], 
 				NULL, vips_foreign_load_png_generate, NULL, 
-				read, NULL ) ||
+				png, NULL ) ||
 			vips_sequential( t[0], &t[1], 
 				"tile_height", VIPS__FATSTRIP_HEIGHT, 
 				NULL ) ||
