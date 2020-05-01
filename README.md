@@ -4,6 +4,30 @@
 [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/libvips.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=2&q=proj:libvips)
 [![Coverity Status](https://scan.coverity.com/projects/6503/badge.svg)](https://scan.coverity.com/projects/jcupitt-libvips)
 
+# This branch
+
+Is for experiemtning with [libspng](https://github.com/randy408/libspng).
+
+## Notes
+
+Build libspng:
+
+```
+cd libspng
+meson build --prefix=/home/john/vips --libdir=/home/john/vips/lib
+cd build 
+ninja
+ninja install
+```
+
+Installs `spng.pc`.
+
+Sample code:
+
+https://github.com/randy408/libspng/blob/master/examples/example.c
+
+# Introduction
+
 libvips is a [demand-driven, horizontally
 threaded](https://github.com/libvips/libvips/wiki/Why-is-libvips-quick)
 image processing library. Compared to similar
