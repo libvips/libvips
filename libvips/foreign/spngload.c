@@ -36,6 +36,13 @@
  * an enum for interlace_method would be nice ... ADAM7 == 1, 
  *   no interlace == 0.
  * an equivalent of png_sig_cmp() from libpng (is_a_png on a memory area)
+ *
+ * This always reads RGBA8 or RGBA16. Other formst G8/G16/GA8 etc. etc. are
+ * in the roadmap.
+ *
+ * Most metadata support (eg. XMP, ICC, etc. etc.) is missing.
+ *
+ * Load only, there's no save support for now.
  */
 
 /*
@@ -70,7 +77,6 @@ typedef struct _VipsForeignLoadPng {
 
 	spng_ctx *ctx;
 	struct spng_ihdr ihdr;
-	struct spng_trns trns;
 	enum spng_format fmt;
 	int bands;
 	VipsInterpretation interpretation;
@@ -96,9 +102,6 @@ vips_foreign_load_png_dispose( GObject *gobject )
 		dispose( gobject );
 }
 
-/* libspng read callbacks should copy length bytes to dest and return 0 
- * or SPNG_IO_EOF/SPNG_IO_ERROR on error.
- */
 static int 
 vips_foreign_load_png_stream( spng_ctx *ctx, void *user, 
 	void *dest, size_t length )
@@ -123,7 +126,7 @@ vips_foreign_load_png_get_flags_source( VipsSource *source )
 	struct spng_ihdr ihdr;
 	VipsForeignFlags flags;
 
-	ctx = spng_ctx_new( 0 );
+	ctx = spng_ctx_new( SPNG_CTX_IGNORE_ADLER32 );
 	spng_set_crc_action( ctx, SPNG_CRC_USE, SPNG_CRC_USE );
 	spng_set_png_stream( ctx, 
 		vips_foreign_load_png_stream, source );
@@ -317,9 +320,7 @@ vips_foreign_load_png_generate( VipsRegion *or,
 			printf( "  error %s\n", spng_strerror( error ) ); 
 #endif /*DEBUG*/
 
-			/* And bail if fail is on. We have to add an error
-			 * message, since the handler we install just does
-			 * g_warning().
+			/* And bail if fail is on. 
 			 */
 			if( load->fail ) {
 				vips_error( class->nickname, 

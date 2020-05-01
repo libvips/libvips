@@ -14,7 +14,8 @@ Build libspng:
 
 ```
 cd libspng
-meson build --prefix=/home/john/vips --libdir=/home/john/vips/lib
+meson build --prefix=/home/john/vips --libdir=/home/john/vips/lib \
+    --buildtype=release
 cd build 
 ninja
 ninja install
@@ -25,6 +26,30 @@ Installs `spng.pc`.
 Sample code:
 
 https://github.com/randy408/libspng/blob/master/examples/example.c
+
+libspng benchmark:
+
+```
+$ time vips avg wtc.png
+151.549325
+
+real	0m3.167s
+user	0m3.714s
+sys	0m0.194s
+```
+
+And for libpng:
+
+```
+$ time vips avg wtc.png
+117.065766
+
+real	0m3.816s
+user	0m4.177s
+sys	0m0.221s
+```
+
+The avg is different since libspng is generating alpha 255.
 
 # Introduction
 

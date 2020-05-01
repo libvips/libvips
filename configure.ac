@@ -1176,13 +1176,13 @@ FIND_GIFLIB(
 )
 
 # Look for libspng first
-AC_ARG_WITH([spng], 
-  AS_HELP_STRING([--without-spng], [build without libspng (default: test)]))
+AC_ARG_WITH([libspng], 
+  AS_HELP_STRING([--without-libspng], [build without libspng (default: test)]))
 
-if test x"$with_spng" != x"no"; then
+if test x"$with_libspng" != x"no"; then
   PKG_CHECK_MODULES(SPNG, spng >= 0.6,
     [AC_DEFINE(HAVE_SPNG,1,[define if you have libspng installed.])
-     with_spng=yes
+     with_libspng=yes
      PACKAGES_USED="$PACKAGES_USED spng"
      with_png=no
     ],
@@ -1413,7 +1413,7 @@ file import with cfitsio: 		$with_cfitsio
 file import/export with libwebp:	$with_libwebp
   (requires libwebp, libwebpmux, libwebpdemux 0.6.0 or later)
 text rendering with pangoft2: 		$with_pangoft2
-file import/export with libspng: 	$with_spng
+file import/export with libspng: 	$with_libspng
   (requires libspng-0.6 or later)
 file import/export with libpng: 	$with_png
   (requires libpng-1.2.9 or later)
