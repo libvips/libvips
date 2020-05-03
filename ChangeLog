@@ -18,6 +18,7 @@
 - add all to smartcrop 
 - flood fill could stop half-way for some very complex shapes
 - better handling of unaligned reads in multipage tiffs [petoor]
+- mark old --delete option to vipsthumbnail as deprecated [UweOhse]
 
 24/4/20 started 8.9.3
 - better iiif tile naming [IllyaMoskvin]
