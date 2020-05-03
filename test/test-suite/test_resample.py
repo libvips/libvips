@@ -133,7 +133,7 @@ class TestResample:
     def test_thumbnail(self):
         im = pyvips.Image.thumbnail(JPEG_FILE, 100)
 
-        assert im.height == 100
+        assert im.width == 100
         assert im.bands == 3
         assert im.bands == 3
 
@@ -142,9 +142,9 @@ class TestResample:
         assert abs(im_orig.avg() - im.avg()) < 1
 
         # make sure we always get the right width
-        for height in range(440, 1, -13):
-            im = pyvips.Image.thumbnail(JPEG_FILE, height)
-            assert im.height == height
+        for width in range(440, 1, -13):
+            im = pyvips.Image.thumbnail(JPEG_FILE, width)
+            assert im.width == width
 
         # should fit one of width or height
         im = pyvips.Image.thumbnail(JPEG_FILE, 100, height=300)
@@ -176,7 +176,7 @@ class TestResample:
 
             # thumb should be portrait 
             assert thumb.width < thumb.height
-            assert thumb.height == 100
+            assert thumb.width == 100
 
     def test_similarity(self):
         im = pyvips.Image.new_from_file(JPEG_FILE)

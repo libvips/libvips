@@ -28,6 +28,8 @@
  * 	- smarter heif thumbnail selection
  * 12/10/19
  * 	- add thumbnail_source
+ * 3/5/20 kleisauke
+ *	- prevent reduction in the vertical axis when the height is omitted
  */
 
 /*
@@ -560,9 +562,6 @@ vips_thumbnail_build( VipsObject *object )
 	if( vips_object_argument_isset( object, "no_rotate" ) ) 
 		thumbnail->auto_rotate = !thumbnail->no_rotate;
 
-	if( !vips_object_argument_isset( object, "height" ) )
-		thumbnail->height = thumbnail->width;
-
 	/* Open and do any pre-shrinking.
 	 */
 	if( !(t[0] = vips_thumbnail_open( thumbnail )) )
@@ -825,7 +824,7 @@ vips_thumbnail_class_init( VipsThumbnailClass *class )
 		_( "Size to this height" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsThumbnail, height ),
-		1, VIPS_MAX_COORD, 1 );
+		1, VIPS_MAX_COORD, VIPS_MAX_COORD );
 
 	VIPS_ARG_ENUM( class, "size", 114, 
 		_( "size" ), 
@@ -895,7 +894,7 @@ static void
 vips_thumbnail_init( VipsThumbnail *thumbnail )
 {
 	thumbnail->width = 1;
-	thumbnail->height = 1;
+	thumbnail->height = VIPS_MAX_COORD;
 	thumbnail->auto_rotate = TRUE;
 	thumbnail->intent = VIPS_INTENT_RELATIVE;
 }
