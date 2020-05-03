@@ -1520,7 +1520,12 @@ vips_thumbnail_image_init( VipsThumbnailImage *image )
  * * @export_profile: %gchararray, export ICC profile
  * * @intent: #VipsIntent, rendering intent
  *
- * Exacty as vips_thumbnail(), but read from an existing image.
+ * Exacty as vips_thumbnail(), but read from an existing image. 
+ *
+ * This operation
+ * is not able to exploit shrink-on-load features of image load libraries, so
+ * it can be much slower than `vips_thumbnail()` and produce poorer quality
+ * output. Only use it if you really have to.
  *
  * See also: vips_thumbnail().
  *
