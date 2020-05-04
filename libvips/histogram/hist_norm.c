@@ -77,7 +77,7 @@ vips_hist_norm_build( VipsObject *object )
 	VipsHistNorm *norm = (VipsHistNorm *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 3 );
 
-	guint64 px;
+	guint64 new_max;
 	int bands; 
 	double *a, *b;
 	int y;
@@ -95,13 +95,13 @@ vips_hist_norm_build( VipsObject *object )
 
 	/* Scale each channel by px / channel max
 	 */
-	px = VIPS_IMAGE_N_PELS( norm->in );
+	new_max = VIPS_IMAGE_N_PELS( norm->in ) - 1;
 	bands = norm->in->Bands;
 	if( !(a = VIPS_ARRAY( object, bands, double )) ||
 		!(b = VIPS_ARRAY( object, bands, double )) )
 		return( -1 );
 	for( y = 0; y < bands; y++ ) {
-		a[y] = px / *VIPS_MATRIX( t[0], 1, y + 1 );
+		a[y] = new_max / *VIPS_MATRIX( t[0], 1, y + 1 );
 		b[y] = 0;
 	}
 
@@ -110,9 +110,9 @@ vips_hist_norm_build( VipsObject *object )
 
 	/* Make output format as small as we can.
 	 */
-	if( px <= 256 ) 
+	if( new_max <= 255 ) 
 		fmt = VIPS_FORMAT_UCHAR;
-	else if( px <= 65536 ) 
+	else if( new_max <= 65535 ) 
 		fmt = VIPS_FORMAT_USHORT;
 	else 
 		fmt = VIPS_FORMAT_UINT;
@@ -161,8 +161,9 @@ vips_hist_norm_init( VipsHistNorm *hist_norm )
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  * 
- * Normalise histogram ... normalise range to make it square (ie. max ==
- * number of elements). Normalise each band separately.
+ * Normalise histogram. The maximum of each band becomes equal to the maximum 
+ * index, so for example the max for a uchar image becomes 255.
+ * Normalise each band separately.
  *
  * See also: vips_hist_cum().
  *
