@@ -104,6 +104,8 @@
  * 	- close input on minimise rather than Y read position
  * 3/10/19
  * 	- restart after minimise
+ * 5/5/20 angelmixu
+ * 	- better handling of JFIF res unit 0
  */
 
 /*
@@ -578,16 +580,17 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 		cinfo->X_density != 1U && 
 		cinfo->Y_density != 1U ) {
 #ifdef DEBUG
-		printf( "read_jpeg_header: seen jfif _density %d, %d\n",
-			cinfo->X_density, cinfo->Y_density );
+		printf( "read_jpeg_header: jfif _density %d, %d, unit %d\n",
+			cinfo->X_density, cinfo->Y_density,
+			cinfo->density_unit );
 #endif /*DEBUG*/
 
 		switch( cinfo->density_unit ) {
 		case 0:
-			/* None. Just set.
+			/* X_density / Y_density gives the pixel aspect ratio.
+			 * Leave xres, but adjust yres.
 			 */
-			xres = cinfo->X_density;
-			yres = cinfo->Y_density;
+			yres = xres * cinfo->X_density / cinfo->Y_density;
 			break;
 
 		case 1:
