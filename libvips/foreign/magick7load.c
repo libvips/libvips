@@ -841,7 +841,7 @@ G_DEFINE_TYPE( VipsForeignLoadMagick7Buffer, vips_foreign_load_magick7_buffer,
 static gboolean
 vips_foreign_load_magick7_buffer_is_a_buffer( const void *buf, size_t len )
 {
-	return( magick_ismagick( (const unsigned char *) buf, len ) );
+	return( len > 10 && magick_ismagick( (const unsigned char *) buf, len ) );
 }
 
 static int
