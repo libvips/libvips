@@ -524,7 +524,9 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 			/* X_density / Y_density gives the pixel aspect ratio.
 			 * Leave xres, but adjust yres.
 			 */
-			yres = xres * cinfo->X_density / cinfo->Y_density;
+			if( cinfo->Y_density > 0 )
+				yres = xres * cinfo->X_density / 
+					cinfo->Y_density;
 			break;
 
 		case 1:
