@@ -129,7 +129,7 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
  * CAST_UINT() for an INT source, and vice versa.
  */
 #define CAST_UINT( X ) VIPS_MAX( 0, (X) )
-#define CAST_INT( X ) VIPS_MIN( (X), INT_MAX )
+#define CAST_INT( X ) (X)
 
 /* Rightshift an integer type, ie. sizeof(ITYPE) > sizeof(OTYPE).
  */
@@ -222,7 +222,7 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 	OTYPE * restrict q = (OTYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
-		q[x] = p[x]; \
+		q[x] = CAST( p[x] ); \
 }
 
 /* Cast complex types to an int type. Just take the real part.
@@ -232,7 +232,7 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 	OTYPE * restrict q = (OTYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
-		q[x] = p[0]; \
+		q[x] = CAST( p[0] ); \
 		p += 2; \
 	} \
 }
