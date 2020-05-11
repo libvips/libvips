@@ -126,8 +126,40 @@ G_DEFINE_TYPE( VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION );
 	} \
 }
 
+ /* Unpremultiply a LabS image.
+  */
+#define UNPRE_LABS( IN, OUT ) { \
+	IN * restrict p = (IN *) in; \
+	OUT * restrict q = (OUT *) out; \
+	\
+	for( x = 0; x < width; x++ ) { \
+		unsigned short alpha = p[band_alpha]; \
+		unsigned short clip_alpha = VIPS_CLIP( 0, alpha, max_alpha ); \
+		OUT nalpha = (OUT) clip_alpha / max_alpha; \
+		\
+		if( nalpha == 0 ) \
+			for( i = 0; i < band_alpha; i++ ) \
+				q[i] = 0; \
+		else { \
+			q[0] = (OUT)p[0] / nalpha; \
+			for (i = 1; i < band_alpha; i++) \
+				q[i] = (((OUT)p[i] + 0x7FFF) / nalpha) - 0x7FFF; \
+		} \
+		q[i] = clip_alpha; \
+		\
+		for(; i < bands; i++ ) \
+				q[i] = p[i]; \
+		\
+		p += bands; \
+		q += bands; \
+	} \
+}
+
 #define UNPRE( IN, OUT ) { \
-	if( bands == 4 ) { \
+	if( im->Type == VIPS_INTERPRETATION_LABS ) {\
+		UNPRE_LABS( IN, OUT ); \
+	} \
+	else if( bands == 4 ) { \
 		UNPRE_RGBA( IN, OUT ); \
 	} \
 	else { \
@@ -240,8 +272,8 @@ vips_unpremultiply_build( VipsObject *object )
 	 * interpretation.
 	 */
 	if( !vips_object_argument_isset( object, "max_alpha" ) ) 
-		if( in->Type == VIPS_INTERPRETATION_GREY16 ||
-			in->Type == VIPS_INTERPRETATION_RGB16 )
+		if( in->BandFmt == VIPS_FORMAT_SHORT ||
+			in->BandFmt == VIPS_FORMAT_USHORT )
 			unpremultiply->max_alpha = 65535;
 
 	if( in->BandFmt == VIPS_FORMAT_DOUBLE )
