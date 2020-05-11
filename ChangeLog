@@ -19,6 +19,7 @@
 - flood fill could stop half-way for some very complex shapes
 - better handling of unaligned reads in multipage tiffs [petoor]
 - mark old --delete option to vipsthumbnail as deprecated [UweOhse]
+- png save with a bad ICC profile just gives a warning
 
 24/4/20 started 8.9.3
 - better iiif tile naming [IllyaMoskvin]
