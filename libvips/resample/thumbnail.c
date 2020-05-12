@@ -1238,8 +1238,11 @@ vips_thumbnail_buffer_init( VipsThumbnailBuffer *buffer )
  * * @import_profile: %gchararray, fallback import ICC profile
  * * @export_profile: %gchararray, export ICC profile
  * * @intent: #VipsIntent, rendering intent
+ * * @option_string: %gchararray, extra loader options
  *
- * Exacty as vips_thumbnail(), but read from a memory buffer. 
+ * Exacty as vips_thumbnail(), but read from a memory buffer. One extra
+ * optional argument, @option_string, lets you pass options to the underlying
+ * loader.
  *
  * See also: vips_thumbnail().
  *
@@ -1414,8 +1417,11 @@ vips_thumbnail_source_init( VipsThumbnailSource *source )
  * * @import_profile: %gchararray, fallback import ICC profile
  * * @export_profile: %gchararray, export ICC profile
  * * @intent: #VipsIntent, rendering intent
+ * * @option_string: %gchararray, extra loader options
  *
- * Exactly as vips_thumbnail(), but read from a source. 
+ * Exacty as vips_thumbnail(), but read from a source. One extra
+ * optional argument, @option_string, lets you pass options to the underlying
+ * loader.
  *
  * See also: vips_thumbnail().
  *
