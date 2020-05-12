@@ -101,19 +101,19 @@ vips_reduce_get_points( VipsKernel kernel, double shrink )
 		return( 1 ); 
 
 	case VIPS_KERNEL_LINEAR:
-		return( rint( 2 * shrink ) + 1 ); 
+		return( 2 * rint( shrink ) + 1 ); 
 
 	case VIPS_KERNEL_CUBIC:
 	case VIPS_KERNEL_MITCHELL:
-		return( rint( 4 * shrink ) + 1 ); 
+		return( 2 * rint( 2 * shrink ) + 1 ); 
 
 	case VIPS_KERNEL_LANCZOS2:
 		/* Needs to be in sync with calculate_coefficients_lanczos().
 		 */
-		return( rint( 2 * 2 * shrink ) + 1 ); 
+		return( 2 * rint( 2 * shrink ) + 1 ); 
 
 	case VIPS_KERNEL_LANCZOS3:
-		return( rint( 2 * 3 * shrink ) + 1 ); 
+		return( 2 * rint( 3 * shrink ) + 1 ); 
 
 	default:
 		g_assert_not_reached();

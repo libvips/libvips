@@ -77,6 +77,8 @@
  * 	- restart after minimise
  * 14/10/19
  * 	- revise for connection IO
+ * 11/5/20
+ * 	- only warn for saving bad profiles, don't fail
  */
 
 /*
@@ -1047,10 +1049,28 @@ write_vips( Write *write,
 				"of ICC profile\n", length );
 #endif /*DEBUG*/
 
-			png_set_iCCP( write->pPng, write->pInfo, "icc",
-				PNG_COMPRESSION_TYPE_BASE, 
-				(void *) data, length );
+			/* We need to ignore any errors from png_set_iCCP()
+			 * since we want to drop incompatible profiles rather
+			 * than simply failing.
+			 */
+			if( setjmp( png_jmpbuf( write->pPng ) ) ) {
+				/* Silent ignore of error.
+				 */
+				g_warning( "bad ICC profile not saved" );
+			}
+			else {
+				/* This will jump back to the line above on
+				 * error.
+				 */
+				png_set_iCCP( write->pPng, write->pInfo, "icc",
+					PNG_COMPRESSION_TYPE_BASE, 
+					(void *) data, length );
+			}
 
+			/* And restore the setjmp.
+			 */
+			if( setjmp( png_jmpbuf( write->pPng ) ) ) 
+				return( -1 );
 		}
 
 		if( vips_image_get_typeof( in, VIPS_META_XMP_NAME ) ) {
