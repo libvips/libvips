@@ -574,8 +574,8 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 
 	/* Get the jfif resolution. exif may overwrite this later.
 	 */
-	xres = 1.0;
-	yres = 1.0;
+    xres = 1;
+    yres = 1;
 	if( cinfo->saw_JFIF_marker &&
 		cinfo->X_density != 1U && 
 		cinfo->Y_density != 1U ) {
@@ -590,7 +590,10 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 			/* X_density / Y_density gives the pixel aspect ratio.
 			 * Leave xres, but adjust yres.
 			 */
+            xres = 72.0 / 25.4;
 			yres = xres * cinfo->X_density / cinfo->Y_density;
+            vips_image_set_string( out,
+                VIPS_META_RESOLUTION_UNIT, "in" );
 			break;
 
 		case 1:
