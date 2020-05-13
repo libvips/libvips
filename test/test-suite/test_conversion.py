@@ -769,7 +769,7 @@ class TestConversion:
             if '.autorot.' not in f and not f.startswith('.'):
                 source_filename = os.path.join(rotation_images, f)
 
-                actual_filename = temp_filename(self.tempdir, '.png')
+                actual_filename = temp_filename(self.tempdir, '.jpg')
 
                 pyvips.Image.new_from_file(source_filename).autorot().write_to_file(actual_filename)
 
