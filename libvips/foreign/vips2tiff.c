@@ -334,6 +334,7 @@ struct _Wtiff {
 	int level;			/* zstd compression level */
 	gboolean lossless;		/* webp lossless mode */
 	VipsForeignDzDepth depth;	/* Pyr depth */
+	gboolean subifd;		/* Write pyr layers into subifds */
 
 	/* True if we've detected a toilet-roll image, plus the page height,
 	 * which has been checked to be a factor of im->Ysize. page_number
@@ -1858,7 +1859,7 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 	return( 0 );
 }
 
-/* Append all of the lower layers we wrote to the output.
+/* Append all of the layers we wrote to the output.
  */
 static int
 wtiff_gather( Wtiff *wtiff )
@@ -1999,7 +2000,8 @@ vips__tiff_write( VipsImage *input, const char *filename,
 	VipsRegionShrink region_shrink,
 	int level, 
 	gboolean lossless,
-	VipsForeignDzDepth depth )
+	VipsForeignDzDepth depth,
+	gboolean subifd )
 {
 	Wtiff *wtiff;
 
@@ -2043,7 +2045,8 @@ vips__tiff_write_buf( VipsImage *input,
 	VipsRegionShrink region_shrink,
 	int level, 
 	gboolean lossless,
-	VipsForeignDzDepth depth )
+	VipsForeignDzDepth depth,
+	gboolean subifd )
 {
 	Wtiff *wtiff;
 
