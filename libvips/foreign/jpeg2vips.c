@@ -106,6 +106,8 @@
  * 	- restart after minimise
  * 14/10/19
  * 	- revise for source IO
+ * 5/5/20 angelmixu
+ * 	- better handling of JFIF res unit 0
  */
 
 /*
@@ -504,24 +506,28 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 		break;
 	}
 
-	/* Get the jfif resolution. exif may overwrite this later.
+	/* Get the jfif resolution. exif may overwrite this later. Default to
+	 * 72dpi (as EXIF does).
 	 */
-	xres = 1.0;
-	yres = 1.0;
+	xres = 72.0 / 25.4;
+	yres = 72.0 / 25.4;
 	if( cinfo->saw_JFIF_marker &&
 		cinfo->X_density != 1U && 
 		cinfo->Y_density != 1U ) {
 #ifdef DEBUG
-		printf( "read_jpeg_header: seen jfif _density %d, %d\n",
-			cinfo->X_density, cinfo->Y_density );
+		printf( "read_jpeg_header: jfif _density %d, %d, unit %d\n",
+			cinfo->X_density, cinfo->Y_density,
+			cinfo->density_unit );
 #endif /*DEBUG*/
 
 		switch( cinfo->density_unit ) {
 		case 0:
-			/* None. Just set.
+			/* X_density / Y_density gives the pixel aspect ratio.
+			 * Leave xres, but adjust yres.
 			 */
-			xres = cinfo->X_density;
-			yres = cinfo->Y_density;
+			if( cinfo->Y_density > 0 )
+				yres = xres * cinfo->X_density / 
+					cinfo->Y_density;
 			break;
 
 		case 1:

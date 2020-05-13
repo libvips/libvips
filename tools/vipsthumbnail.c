@@ -100,6 +100,8 @@
  * 	- add --no-rotate
  * 	- add --import-profile / --export-profile names
  * 	- back to -o for output
+ * 29/2/20
+ * 	- deprecate --delete
  */
 
 #ifdef HAVE_CONFIG_H
@@ -128,7 +130,6 @@ static VipsSize size_restriction = VIPS_SIZE_BOTH;
 static char *output_format = "tn_%s.jpg";
 static char *export_profile = NULL;
 static char *import_profile = NULL;
-static gboolean delete_profile = FALSE;
 static gboolean linear_processing = FALSE;
 static gboolean crop_image = FALSE;
 static gboolean no_rotate_image = FALSE;
@@ -137,6 +138,7 @@ static char *thumbnail_intent = NULL;
 
 /* Deprecated and unused.
  */
+static gboolean delete_profile = FALSE;
 static gboolean nosharpen = FALSE;
 static gboolean nodelete_profile = FALSE;
 static gboolean verbose = FALSE;
@@ -172,9 +174,9 @@ static GOptionEntry options[] = {
 		G_OPTION_ARG_STRING, &thumbnail_intent, 
 		N_( "ICC transform with INTENT" ), 
 		N_( "INTENT" ) },
-	{ "delete", 'd', 0, 
+	{ "delete", 'd', G_OPTION_FLAG_HIDDEN, 
 		G_OPTION_ARG_NONE, &delete_profile, 
-		N_( "delete profile from exported image" ), NULL },
+		N_( "(deprecated, does nothing)" ), NULL },
 	{ "no-rotate", 0, 0, 
 		G_OPTION_ARG_NONE, &no_rotate_image, 
 		N_( "don't auto-rotate" ), NULL },

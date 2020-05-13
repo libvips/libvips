@@ -267,10 +267,11 @@ $ ls -l tn_shark.jpg
 -rw-r–r– 1 john john 7295 Nov  9 14:33 tn_shark.jpg
 ```
 
-Now encode with sRGB and delete any embedded profile:
+Now transform to sRGB and don't attach a profile (you can also use `strip`,
+though that will remove *all* metadata from the image):
 
 ```
-$ vipsthumbnail shark.jpg --eprofile srgb --delete
+$ vipsthumbnail shark.jpg --eprofile srgb -o tn_shark.jpg[profile=none]
 $ ls -l tn_shark.jpg 
 -rw-r–r– 1 john john 4229 Nov  9 14:33 tn_shark.jpg
 ```
@@ -307,6 +308,7 @@ Putting all this together, I suggest this as a sensible set of options:
 ```
 $ vipsthumbnail fred.jpg \
     --size 128 \
+    --eprofile srgb \
     -o tn_%s.jpg[optimize_coding,strip] \
     --eprofile srgb
 ```

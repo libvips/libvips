@@ -321,14 +321,15 @@ calculate_coefficients_triangle( double *c,
 {
 	/* Needs to be in sync with vips_reduce_get_points().
 	 */
-	const int n_points = rint( 2 * shrink ) + 1;
+	const int n_points = 2 * rint( shrink ) + 1;
+        const double half = x + n_points / 2.0 - 1;
 
 	int i;
 	double sum; 
 
 	sum = 0;
 	for( i = 0; i < n_points; i++ ) {
-		double xp = (i - (shrink - 0.5) - x) / shrink;
+		const double xp = (i - half) / shrink;
 
 		double l;
 
@@ -358,14 +359,15 @@ calculate_coefficients_cubic( double *c,
 {
 	/* Needs to be in sync with vips_reduce_get_points().
 	 */
-	const int n_points = rint( 4 * shrink ) + 1; 
+	const int n_points = 2 * rint( 2 * shrink ) + 1; 
+        const double half = x + n_points / 2.0 - 1;
 
 	int i;
 	double sum; 
 
 	sum = 0;
 	for( i = 0; i < n_points; i++ ) {
-		const double xp = (i - (2 * shrink - 1) - x) / shrink;
+		const double xp = (i - half) / shrink;
 		const double axp = VIPS_FABS( xp ); 
 		const double axp2 = axp * axp;
 		const double axp3 = axp2 * axp;
@@ -406,14 +408,15 @@ calculate_coefficients_lanczos( double *c,
 {
 	/* Needs to be in sync with vips_reduce_get_points().
 	 */
-	const int n_points = rint( 2 * a * shrink ) + 1; 
+	const int n_points = 2 * rint( a * shrink ) + 1; 
+        const double half = x + n_points / 2.0 - 1;
 
 	int i;
 	double sum; 
 
 	sum = 0;
 	for( i = 0; i < n_points; i++ ) {
-		double xp = (i - (n_points - 2) / 2 - x) / shrink;
+		double xp = (i - half) / shrink;
 
 		double l;
 
