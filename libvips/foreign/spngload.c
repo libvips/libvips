@@ -37,10 +37,10 @@
  *   no interlace == 0.
  * an equivalent of png_sig_cmp() from libpng (is_a_png on a memory area)
  *
- * This always reads RGBA8 or RGBA16. Other formst G8/G16/GA8 etc. etc. are
- * in the roadmap.
+ * test indexed decode
  *
- * Most metadata support (eg. XMP, ICC, etc. etc.) is missing.
+ * Most metadata support (eg. XMP, ICC, etc. etc.) is missing. We will need 
+ * to set a chunk size limit with spng_set_chunks_limits().
  *
  * Load only, there's no save support for now.
  */
@@ -211,6 +211,14 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 		 */
 		spng_set_crc_action( png->ctx, SPNG_CRC_USE, SPNG_CRC_USE );
 
+	/* Set limits to avoid decompression bombs. We should set
+	 * spng_set_chunks_limits() as well, once that API goes in.
+	 *
+	 * No need to test the decoded image size -- the user can do that if
+	 * they wish.
+	 */
+	spng_set_image_limits( png->ctx, VIPS_MAX_COORD, VIPS_MAX_COORD );
+
 	if( vips_source_rewind( png->source ) ) 
 		return( -1 );
 	spng_set_png_stream( png->ctx, 
@@ -230,23 +238,55 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 		png->ihdr.interlace_method );
 	 */
 
-	/* For now, libspng always outputs RGBA.
-	 */
-	png->interpretation = VIPS_INTERPRETATION_sRGB;
-	png->bands = 4;
+
+	switch( png->ihdr.color_type ) {
+	case SPNG_COLOR_TYPE_GRAYSCALE:
+		png->bands = 1;
+		png->interpretation = VIPS_INTERPRETATION_B_W;
+		png->fmt = SPNG_FMT_PNG;
+		break;
+
+	case SPNG_COLOR_TYPE_GRAYSCALE_ALPHA:
+		png->bands = 2;
+		png->interpretation = VIPS_INTERPRETATION_B_W;
+		png->fmt = SPNG_FMT_PNG;
+		break;
+
+	case SPNG_COLOR_TYPE_TRUECOLOR:
+		png->bands = 3;
+		png->interpretation = VIPS_INTERPRETATION_sRGB;
+		png->fmt = SPNG_FMT_PNG;
+		break;
+
+	case SPNG_COLOR_TYPE_INDEXED:
+		png->bands = 3;
+		png->interpretation = VIPS_INTERPRETATION_sRGB;
+
+		/* Expand indexed images to RGB8.
+		 */
+		png->fmt = SPNG_FMT_RGB8;
+		break;
+
+	case SPNG_COLOR_TYPE_TRUECOLOR_ALPHA:
+		png->bands = 4;
+		png->interpretation = VIPS_INTERPRETATION_sRGB;
+		png->fmt = SPNG_FMT_PNG;
+		break;
+
+	default:
+		vips_error( class->nickname, "%s", _( "unknown color type" ) );
+		return( -1 );
+	}
 
 	if( png->ihdr.bit_depth == 16 ) {
-		png->fmt = SPNG_FMT_RGBA16;
 		png->format = VIPS_FORMAT_USHORT;
 		if( png->interpretation == VIPS_INTERPRETATION_B_W )
 			png->interpretation = VIPS_INTERPRETATION_GREY16;
 		if( png->interpretation == VIPS_INTERPRETATION_sRGB )
 			png->interpretation = VIPS_INTERPRETATION_RGB16;
 	}
-	else {
-		png->fmt = SPNG_FMT_RGBA8;
+	else 
 		png->format = VIPS_FORMAT_UCHAR;
-	}
 
 	/* FIXME ... get resolution, profile, exif, xmp, etc. etc.
 	 */
