@@ -31,18 +31,19 @@
 
  */
 
-/* Notes:
+/* TODO
  *
- * an enum for interlace_method would be nice ... ADAM7 == 1, 
- *   no interlace == 0.
+ * an enum for interlace_method would be nice ... ADAM7 == 1, no interlace == 0
+ *
  * an equivalent of png_sig_cmp() from libpng (is_a_png on a memory area)
  *
  * test indexed decode
  *
- * Most metadata support (eg. XMP, ICC, etc. etc.) is missing. We will need 
- * to set a chunk size limit with spng_set_chunks_limits().
+ * most metadata support (eg. XMP, ICC, etc. etc.) is missing ... we will need 
+ * to set a chunk size limit with spng_set_chunks_limits()
  *
- * Load only, there's no save support for now.
+ * load only, there's no save support for now
+ *
  */
 
 /*

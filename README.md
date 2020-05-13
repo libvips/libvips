@@ -31,11 +31,11 @@ libspng benchmark:
 
 ```
 $ time vips avg wtc.png
-151.549325
+117.065766
 
-real	0m3.167s
-user	0m3.714s
-sys	0m0.194s
+real	0m2.972s
+user	0m3.376s
+sys	0m0.197s
 ```
 
 And for libpng:
@@ -48,8 +48,6 @@ real	0m3.816s
 user	0m4.177s
 sys	0m0.221s
 ```
-
-The avg is different since libspng is generating alpha 255.
 
 # Introduction
 
