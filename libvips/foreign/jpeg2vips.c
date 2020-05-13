@@ -574,8 +574,8 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 
 	/* Get the jfif resolution. exif may overwrite this later.
 	 */
-    xres = 1;
-    yres = 1;
+    xres = 1.0;
+    yres = 1.0;
 	if( cinfo->saw_JFIF_marker &&
 		cinfo->X_density != 1U && 
 		cinfo->Y_density != 1U ) {
