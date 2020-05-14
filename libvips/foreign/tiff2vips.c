@@ -953,14 +953,12 @@ rtiff_parse_onebit( Rtiff *rtiff, VipsImage *out )
 	p1 = (TYPE *) p; \
 	q1 = (TYPE *) q; \
 	for( x = 0; x < n; x++ ) { \
-		if( invert ) \
-			q1[0] = MAX - p1[0]; \
-		else \
-			q1[0] = p1[0]; \
-		\
-		for( i = 1; i < samples_per_pixel; i++ ) \
-			q1[i] = p1[i]; \
-		\
+        for( i = 0; i < samples_per_pixel; i++ ) {\
+            if( invert ) \
+                q1[i] = MAX - p1[i]; \
+            else \
+                q1[i] = p1[i]; \
+        }\
 		q1 += samples_per_pixel; \
 		p1 += samples_per_pixel; \
 	} \

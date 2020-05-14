@@ -1184,13 +1184,11 @@ eightbit2onebit( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
 	p1 = (TYPE *) p; \
 	q1 = (TYPE *) q; \
 	for( x = 0; x < n; x++ ) { \
-		if( invert ) \
-			q1[0] = MAX - p1[0]; \
-		else \
-			q1[0] = p1[0]; \
-		\
-		for( i = 1; i < im->Bands; i++ ) \
-			q1[i] = p1[i]; \
+		for( i = 0; i < im->Bands; i++ ) \
+            if( invert ) \
+                q1[0] = MAX - p1[0]; \
+            else \
+                q1[i] = p1[i]; \
 		\
 		q1 += im->Bands; \
 		p1 += im->Bands; \
