@@ -1033,7 +1033,8 @@ wtiff_new( VipsImage *input, const char *filename,
 	VipsRegionShrink region_shrink,
 	int level, 
 	gboolean lossless,
-	VipsForeignDzDepth depth )
+	VipsForeignDzDepth depth, 
+	gboolean subifd )
 {
 	Wtiff *wtiff;
 
@@ -1065,6 +1066,7 @@ wtiff_new( VipsImage *input, const char *filename,
 	wtiff->level = level;
 	wtiff->lossless = lossless;
 	wtiff->depth = depth;
+	wtiff->subifd = subifd;
 	wtiff->toilet_roll = FALSE;
 	wtiff->page_height = vips_image_get_page_height( input );
 	wtiff->page_number = 0;
@@ -1878,9 +1880,8 @@ wtiff_gather( Wtiff *wtiff )
 #endif /*DEBUG*/
 
 			if( layer->lname ) {
-				if( !(source = 
-					vips_source_new_from_file( 
-						layer->lname )) ) 
+				if( !(source = vips_source_new_from_file( 
+					layer->lname )) ) 
 					return( -1 );
 			}
 			else {
@@ -1893,12 +1894,14 @@ wtiff_gather( Wtiff *wtiff )
 				VIPS_UNREF( source );
 				return( -1 );
 			}
+
 			VIPS_UNREF( source );
 
 			if( wtiff_copy_tiff( wtiff, wtiff->layer->tif, in ) ) {
 				TIFFClose( in );
 				return( -1 );
 			}
+
 			TIFFClose( in );
 
 			if( !TIFFWriteDirectory( wtiff->layer->tif ) ) 
@@ -1947,6 +1950,46 @@ wtiff_write_image( Wtiff *wtiff )
 				return( -1 );
 		}
 	}
+	else if( wtiff->pyramid &&
+		wtiff->subifd ) {
+		int n_layers;
+		toff_t *subifd_offsets;
+		Layer *p;
+
+#ifdef DEBUG
+		printf( "wtiff_write_image: OME pyr mode\n" ); 
+#endif /*DEBUG*/
+
+		/* This magic tag makes the n_layers directories we write 
+		 * after this one into subdirectories. We set the offsets to 0
+		 * and libtiff will fill them in automatically.
+		 */
+		for( n_layers = 0, p = wtiff->layer; p; p = p->below )
+			n_layers += 1;
+		subifd_offsets = VIPS_ARRAY( NULL, n_layers, toff_t );
+		memset( subifd_offsets, 0, n_layers * sizeof( toff_t ) );
+		TIFFSetField( wtiff->layer->tif, TIFFTAG_SUBIFD, 
+			n_layers, subifd_offsets );
+
+		if( vips_sink_disc( wtiff->ready, write_strip, wtiff ) ) 
+			return( -1 );
+
+		if( !TIFFWriteDirectory( wtiff->layer->tif ) ) 
+			return( -1 );
+
+		/* Free lower pyramid resources ... this will 
+		 * TIFFClose() (but not delete) the smaller layers 
+		 * ready for us to read from them again.
+		 */
+		if( wtiff->layer->below )
+			layer_free_all( wtiff->layer->below );
+
+		/* Append smaller layers to the main file.
+		 */
+		if( wtiff_gather( wtiff ) ) 
+			return( -1 );
+
+	}
 	else if( wtiff->pyramid ) {
 #ifdef DEBUG
 		printf( "wtiff_write_image: pyramid mode\n" ); 
@@ -1958,19 +2001,18 @@ wtiff_write_image( Wtiff *wtiff )
 		if( !TIFFWriteDirectory( wtiff->layer->tif ) ) 
 			return( -1 );
 
-		if( wtiff->pyramid ) { 
-			/* Free lower pyramid resources ... this will 
-			 * TIFFClose() (but not delete) the smaller layers 
-			 * ready for us to read from them again.
-			 */
-			if( wtiff->layer->below )
-				layer_free_all( wtiff->layer->below );
+		/* Free lower pyramid resources ... this will 
+		 * TIFFClose() (but not delete) the smaller layers 
+		 * ready for us to read from them again.
+		 */
+		if( wtiff->layer->below )
+			layer_free_all( wtiff->layer->below );
 
-			/* Append smaller layers to the main file.
-			 */
-			if( wtiff_gather( wtiff ) ) 
-				return( -1 );
-		}
+		/* Append smaller layers to the main file.
+		 */
+		if( wtiff_gather( wtiff ) ) 
+			return( -1 );
+
 	}
 	else {
 #ifdef DEBUG
@@ -2015,7 +2057,8 @@ vips__tiff_write( VipsImage *input, const char *filename,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
-		properties, strip, region_shrink, level, lossless, depth )) )
+		properties, strip, region_shrink, level, lossless, depth,
+		subifd )) )
 		return( -1 );
 
 	if( wtiff_write_image( wtiff ) ) { 
@@ -2056,7 +2099,8 @@ vips__tiff_write_buf( VipsImage *input,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
-		properties, strip, region_shrink, level, lossless, depth )) )
+		properties, strip, region_shrink, level, lossless, depth,
+		subifd )) )
 		return( -1 );
 
 	wtiff->obuf = obuf;
