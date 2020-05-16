@@ -559,7 +559,7 @@ vips_text_init( VipsText *text )
  * * @fontfile: %gchararray, load this font file
  * * @width: %gint, image should be no wider than this many pixels
  * * @height: %gint, image should be no higher than this many pixels
- * * @align: #VipsAlign, left/centre/right alignment
+ * * @align: #VipsAlign, set alignment justification
  * * @justify: %gboolean, justify lines
  * * @dpi: %gint, render at this resolution
  * * @autofit_dpi: %gint, read out auto-fitted DPI 
