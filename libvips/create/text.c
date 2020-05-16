@@ -30,6 +30,8 @@
  * 	- set Xoffset/Yoffset to ink left/top
  * 27/6/19
  * 	- fitting could occasionally terminate early [levmorozov]
+ * 16/5/20 [keiviv]
+ * 	- don't add fontfiles repeatedly
  */
 
 /*
@@ -103,6 +105,10 @@ typedef VipsCreateClass VipsTextClass;
 
 G_DEFINE_TYPE( VipsText, vips_text, VIPS_TYPE_CREATE );
 
+/* ... single-thread the body of vips_text() with this.
+ */
+static GMutex *vips_text_lock = NULL; 
+
 /* Just have one of these and reuse it.
  *
  * This does not unref cleanly on many platforms, so we will leak horribly
@@ -111,9 +117,10 @@ G_DEFINE_TYPE( VipsText, vips_text, VIPS_TYPE_CREATE );
  */
 static PangoFontMap *vips_text_fontmap = NULL;
 
-/* ... single-thread the body of vips_text() with this.
+/* All the fontfiles we've loaded. fontconfig lets you add a fontfile
+ * repeatedly, and we obviously don't want that.
  */
-static GMutex *vips_text_lock = NULL; 
+static GHashTable *vips_text_fontfiles = NULL;
 
 static void
 vips_text_dispose( GObject *gobject )
@@ -350,17 +357,26 @@ vips_text_build( VipsObject *object )
 
 	if( !vips_text_fontmap )
 		vips_text_fontmap = pango_ft2_font_map_new();
+	if( !vips_text_fontfiles )
+		vips_text_fontfiles = 
+			g_hash_table_new( g_str_hash, g_str_equal );
 
 	text->context = pango_font_map_create_context( 
 		PANGO_FONT_MAP( vips_text_fontmap ) );
 
 	if( text->fontfile &&
-		!FcConfigAppFontAddFile( NULL, 
+		!g_hash_table_lookup( vips_text_fontfiles, text->fontfile ) ) {
+		if( !FcConfigAppFontAddFile( NULL, 
 			(const FcChar8 *) text->fontfile ) ) {
-		vips_error( class->nickname, 
-			_( "unable to load font \"%s\"" ), text->fontfile );
-		g_mutex_unlock( vips_text_lock ); 
-		return( -1 );
+			vips_error( class->nickname, 
+				_( "unable to load font \"%s\"" ), 
+				text->fontfile );
+			g_mutex_unlock( vips_text_lock ); 
+			return( -1 );
+		}
+		g_hash_table_insert( vips_text_fontfiles, 
+			text->fontfile,
+			g_strdup( text->fontfile ) );
 	}
 
 	/* If our caller set height and not dpi, we adjust dpi until 
