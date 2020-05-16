@@ -559,7 +559,7 @@ vips_text_init( VipsText *text )
  * * @fontfile: %gchararray, load this font file
  * * @width: %gint, image should be no wider than this many pixels
  * * @height: %gint, image should be no higher than this many pixels
- * * @align: #VipsAlign, set alignment justification
+ * * @align: #VipsAlign, set justification alignment
  * * @justify: %gboolean, justify lines
  * * @dpi: %gint, render at this resolution
  * * @autofit_dpi: %gint, read out auto-fitted DPI 
@@ -580,11 +580,12 @@ vips_text_init( VipsText *text )
  *
  * @width is the number of pixels to word-wrap at. Lines of text wider than
  * this will be broken at word boundaries. 
- * @align can be used to set the alignment style for multi-line
- * text. Note that the output image can be wider than @width if there are no
- * word breaks, or narrower if the lines don't break exactly at @width. 
  *
  * Set @justify to turn on line justification.
+ * @align can be used to set the alignment style for multi-line
+ * text to the low (left) edge centre, or high (right) edge. Note that the 
+ * output image can be wider than @width if there are no
+ * word breaks, or narrower if the lines don't break exactly at @width. 
  *
  * @height is the maximum number of pixels high the generated text can be. This
  * only takes effect when @dpi is not set, and @width is set, making a box. 
