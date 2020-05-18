@@ -237,7 +237,8 @@ static const char *heif_magic[] = {
 	"ftyphevm",	/* Multiview sequence */
 	"ftyphevs",	/* Scaleable sequence */
 	"ftypmif1",	/* Nokia alpha_ image */
-	"ftypmsf1"	/* Nokia animation image */
+	"ftypmsf1",	/* Nokia animation image */
+	"ftypavif"	/* AV1 image format */
 };
 
 /* THe API has:
