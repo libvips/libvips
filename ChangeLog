@@ -20,6 +20,8 @@
 - better handling of unaligned reads in multipage tiffs [petoor]
 - mark old --delete option to vipsthumbnail as deprecated [UweOhse]
 - png save with a bad ICC profile just gives a warning
+- add "premultipled" option to vips_affine(), clarified vips_resize() 
+  behaviour with alpha channels
 
 24/4/20 started 8.9.3
 - better iiif tile naming [IllyaMoskvin]

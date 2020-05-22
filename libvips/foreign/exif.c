@@ -418,10 +418,8 @@ vips_image_resolution_from_exif( VipsImage *image, ExifData *ed )
 
 	switch( unit ) {
 	case 1:
-		/* No unit ... just pass the fields straight to vips.
+		/* No units, instead xres / yres gives the pixel aspect ratio.
 		 */
-		vips_image_set_string( image, 
-			VIPS_META_RESOLUTION_UNIT, "none" );
 		break;
 
 	case 2:

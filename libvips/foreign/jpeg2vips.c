@@ -506,10 +506,11 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 		break;
 	}
 
-	/* Get the jfif resolution. exif may overwrite this later.
+	/* Get the jfif resolution. exif may overwrite this later. Default to
+	 * 72dpi (as EXIF does).
 	 */
-	xres = 1.0;
-	yres = 1.0;
+	xres = 72.0 / 25.4;
+	yres = 72.0 / 25.4;
 	if( cinfo->saw_JFIF_marker &&
 		cinfo->X_density != 1U && 
 		cinfo->Y_density != 1U ) {

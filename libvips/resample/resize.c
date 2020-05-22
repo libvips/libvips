@@ -289,6 +289,7 @@ vips_resize_build( VipsObject *object )
 				"idx", id, 
 				"idy", id, 
 				"extend", VIPS_EXTEND_COPY, 
+				"premultiplied", TRUE, 
 				NULL ) )  
 				return( -1 );
 			in = t[4];
@@ -300,6 +301,7 @@ vips_resize_build( VipsObject *object )
 				"idx", id, 
 				"idy", id, 
 				"extend", VIPS_EXTEND_COPY, 
+				"premultiplied", TRUE, 
 				NULL ) )  
 				return( -1 );
 			in = t[4];
@@ -311,6 +313,7 @@ vips_resize_build( VipsObject *object )
 				"idx", id, 
 				"idy", id, 
 				"extend", VIPS_EXTEND_COPY, 
+				"premultiplied", TRUE, 
 				NULL ) )  
 				return( -1 );
 			in = t[4];
@@ -444,7 +447,10 @@ vips_resize_init( VipsResize *resize )
  * This operation does not change xres or yres. The image resolution needs to
  * be updated by the application. 
  *
- * See also: vips_shrink(), vips_reduce().
+ * This operation does not premultiply alpha. If your image has an alpha
+ * channel, you should use vips_premultiply() on it first.
+ *
+ * See also: vips_premultiply(), vips_shrink(), vips_reduce().
  *
  * Returns: 0 on success, -1 on error
  */
