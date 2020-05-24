@@ -457,9 +457,9 @@ wtiff_layer_init( Wtiff *wtiff, Layer **layer, Layer *above,
 		}
 
 		/*
-		 */
 		printf( "wtiff_layer_init: sub = %d, width = %d, height = %d\n",
 			(*layer)->sub, width, height );
+		 */
 	}
 
 	if( wtiff->pyramid ) {
@@ -1879,8 +1879,8 @@ wtiff_gather( Wtiff *wtiff )
 			TIFF *in;
 
 #ifdef DEBUG
-#endif /*DEBUG*/
 			printf( "appending layer %s ...\n", layer->lname );
+#endif /*DEBUG*/
 
 			if( layer->lname ) {
 				if( !(source = vips_source_new_from_file( 
