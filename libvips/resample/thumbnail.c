@@ -524,13 +524,12 @@ vips_thumbnail_build( VipsObject *object )
 {
 	VipsThumbnail *thumbnail = VIPS_THUMBNAIL( object );
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 15 );
-	VipsInterpretation interpretation = thumbnail->linear ?
-		VIPS_INTERPRETATION_scRGB : VIPS_INTERPRETATION_sRGB; 
 
 	VipsImage *in;
 	int preshrunk_page_height;
 	double hshrink;
 	double vshrink;
+	VipsInterpretation interpretation;
 
 	/* TRUE if we've done the import of an ICC transform and still need to
 	 * export.
@@ -628,6 +627,12 @@ vips_thumbnail_build( VipsObject *object )
 	 */
 	if( in->Type == VIPS_INTERPRETATION_CMYK )
 		have_imported = TRUE;
+	if( thumbnail->linear )
+		interpretation = VIPS_INTERPRETATION_scRGB;
+	else if( in->Bands < 3 )
+		interpretation = VIPS_INTERPRETATION_B_W; 
+	else 
+		interpretation = VIPS_INTERPRETATION_sRGB; 
 	g_info( "converting to processing space %s",
 		vips_enum_nick( VIPS_TYPE_INTERPRETATION, interpretation ) ); 
 	if( vips_colourspace( in, &t[2], interpretation, NULL ) ) 

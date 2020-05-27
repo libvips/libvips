@@ -628,6 +628,11 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 
 	int orientation; 
 
+#ifdef DEBUG
+	printf( "wtiff_write_header: sub %d, width %d, height %d\n",
+		layer->sub, layer->width, layer->height );
+#endif /*DEBUG*/
+
 	/* Output base header fields.
 	 */
 	TIFFSetField( tif, TIFFTAG_IMAGEWIDTH, layer->width );
@@ -1699,10 +1704,10 @@ write_strip( VipsRegion *region, VipsRect *area, void *a )
 	Wtiff *wtiff = (Wtiff *) a;
 	Layer *layer = wtiff->layer; 
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "write_strip: strip at %d, height %d\n", 
 		area->top, area->height );
-#endif/*DEBUG*/
+#endif/*DEBUG_VERBOSE*/
 
 	for(;;) {
 		VipsRect *to = &layer->strip->valid;
