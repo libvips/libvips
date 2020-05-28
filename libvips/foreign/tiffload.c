@@ -69,6 +69,10 @@ typedef struct _VipsForeignLoadTiff {
 	 */
 	int n;
 
+	/* Select subifd index. -1 for main image.
+	 */
+	int subifd;
+
 	/* Autorotate using orientation tag.
 	 */
 	gboolean autorotate;
@@ -133,7 +137,7 @@ vips_foreign_load_tiff_header( VipsForeignLoad *load )
 	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
 
 	if( vips__tiff_read_header_source( tiff->source, load->out, 
-		tiff->page, tiff->n, tiff->autorotate ) ) 
+		tiff->page, tiff->n, tiff->autorotate, tiff->subifd ) ) 
 		return( -1 );
 
 	return( 0 );
@@ -145,7 +149,7 @@ vips_foreign_load_tiff_load( VipsForeignLoad *load )
 	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
 
 	if( vips__tiff_read_source( tiff->source, load->real, 
-		tiff->page, tiff->n,  tiff->autorotate ) ) 
+		tiff->page, tiff->n,  tiff->autorotate, tiff->subifd ) ) 
 		return( -1 );
 
 	return( 0 );
@@ -203,6 +207,14 @@ vips_foreign_load_tiff_class_init( VipsForeignLoadTiffClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadTiff, autorotate ),
 		FALSE );
+
+	VIPS_ARG_INT( class, "subifd", 21,
+		_( "subifd" ),
+		_( "Select subifd index" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadTiff, subifd ),
+		-1, 100000, -1 );
+
 }
 
 static void
@@ -210,6 +222,7 @@ vips_foreign_load_tiff_init( VipsForeignLoadTiff *tiff )
 {
 	tiff->page = 0; 
 	tiff->n = 1; 
+	tiff->subifd = -1; 
 }
 
 typedef struct _VipsForeignLoadTiffSource {
@@ -454,6 +467,7 @@ vips_foreign_load_tiff_buffer_init( VipsForeignLoadTiffBuffer *buffer )
  * * @n: %gint, load this many pages
  * * @autorotate: %gboolean, use orientation tag to rotate the image 
  *   during load
+ * * @subifd: %gint, select this subifd index
  *
  * Read a TIFF file into a VIPS image. It is a full baseline TIFF 6 reader, 
  * with extensions for tiled images, multipage images, XYZ and LAB colour 
@@ -477,6 +491,14 @@ vips_foreign_load_tiff_buffer_init( VipsForeignLoadTiffBuffer *buffer )
  * as they wish later in processing. See vips_autorot(). Save
  * operations will use #VIPS_META_ORIENTATION, if present, to set the
  * orientation of output images. 
+ *
+ * If @autorotate is TRUE, the image will be rotated upright during load and
+ * no metadata attached. This can be very slow.
+ *
+ * If @subifd is -1 (the default), the main image is selected for each page.
+ * If it is 0 or greater and there is a SUBIFD tag, the indexed SUBIFD is
+ * selected. This can be used to read lower resolution layers from
+ * bioformats-style image pyramids.
  *
  * Any ICC profile is read and attached to the VIPS image as
  * #VIPS_META_ICC_NAME. Any XMP metadata is read and attached to the image
@@ -515,6 +537,7 @@ vips_tiffload( const char *filename, VipsImage **out, ... )
  * * @n: %gint, load this many pages
  * * @autorotate: %gboolean, use orientation tag to rotate the image 
  *   during load
+ * * @subifd: %gint, select this subifd index
  *
  * Read a TIFF-formatted memory block into a VIPS image. Exactly as
  * vips_tiffload(), but read from a memory source. 
@@ -558,6 +581,7 @@ vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * * @n: %gint, load this many pages
  * * @autorotate: %gboolean, use orientation tag to rotate the image 
  *   during load
+ * * @subifd: %gint, select this subifd index
  *
  * Exactly as vips_tiffload(), but read from a source. 
  *

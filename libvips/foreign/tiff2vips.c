@@ -197,6 +197,8 @@
  * 	- read logluv images as XYZ
  * 11/4/20 petoor 
  * 	- better handling of aligned reads in multipage tiffs
+ * 28/5/20
+ * 	- add subifd
  */
 
 /*
@@ -320,6 +322,7 @@ typedef struct _Rtiff {
 	int page;
 	int n;
 	gboolean autorotate;
+	int subifd;
 
 	/* The TIFF we read.
 	 */
@@ -527,7 +530,7 @@ rtiff_minimise_cb( VipsImage *image, Rtiff *rtiff )
 
 static Rtiff *
 rtiff_new( VipsSource *source, VipsImage *out, 
-	int page, int n, gboolean autorotate )
+	int page, int n, gboolean autorotate, int subifd )
 {
 	Rtiff *rtiff;
 
@@ -540,6 +543,7 @@ rtiff_new( VipsSource *source, VipsImage *out,
 	rtiff->page = page;
 	rtiff->n = n;
 	rtiff->autorotate = autorotate;
+	rtiff->subifd = subifd;
 	rtiff->tiff = NULL;
 	rtiff->n_pages = 0;
 	rtiff->current_page = -1;
@@ -608,13 +612,43 @@ rtiff_set_page( Rtiff *rtiff, int page )
 {
 	if( rtiff->current_page != page ) {
 #ifdef DEBUG
-		printf( "rtiff_set_page: selecting page %d\n", page ); 
+		printf( "rtiff_set_page: selecting page %d, subifd %d\n", 
+			page, rtiff->subifd ); 
 #endif /*DEBUG*/
 
 		if( !TIFFSetDirectory( rtiff->tiff, page ) ) {
 			vips_error( "tiff2vips", 
 				_( "TIFF does not contain page %d" ), page );
 			return( -1 );
+		}
+
+		if( rtiff->subifd >= 0 ) {
+			int subifd_count;
+			toff_t *subifd_offsets;
+
+			if( !TIFFGetField( rtiff->tiff, TIFFTAG_SUBIFD, 
+				&subifd_count, &subifd_offsets ) ) {
+				vips_error( "tiff2vips", 
+					"%s", _( "no SUBIFD tag" ) );
+				return( -1 );
+			}
+
+			if( subifd_count <= 0 || 
+				rtiff->subifd >= subifd_count ) {
+				vips_error( "tiff2vips", 
+					_( "subifd %d out of range, "
+						"only %d available" ),
+					rtiff->subifd,
+					subifd_count );
+				return( -1 );
+			}
+
+			if( !TIFFSetSubDirectory( rtiff->tiff, 
+				subifd_offsets[rtiff->subifd] ) ) { 
+				vips_error( "tiff2vips", 
+					"%s", _( "subdirectory unreadable" ) );
+				return( -1 );
+			}
 		}
 
 		rtiff->current_page = page;
@@ -2646,13 +2680,13 @@ vips__istifftiled_source( VipsSource *source )
 
 int
 vips__tiff_read_header_source( VipsSource *source, VipsImage *out, 
-	int page, int n, gboolean autorotate )
+	int page, int n, gboolean autorotate, int subifd )
 {
 	Rtiff *rtiff;
 
 	vips__tiff_init();
 
-	if( !(rtiff = rtiff_new( source, out, page, n, autorotate )) ||
+	if( !(rtiff = rtiff_new( source, out, page, n, autorotate, subifd )) ||
 		rtiff_header_read_all( rtiff ) )
 		return( -1 );
 
@@ -2671,7 +2705,7 @@ vips__tiff_read_header_source( VipsSource *source, VipsImage *out,
 
 int
 vips__tiff_read_source( VipsSource *source, VipsImage *out, 
-	int page, int n, gboolean autorotate )
+	int page, int n, gboolean autorotate, int subifd )
 {
 	Rtiff *rtiff;
 
@@ -2681,7 +2715,7 @@ vips__tiff_read_source( VipsSource *source, VipsImage *out,
 
 	vips__tiff_init();
 
-	if( !(rtiff = rtiff_new( source, out, page, n, autorotate )) ||
+	if( !(rtiff = rtiff_new( source, out, page, n, autorotate, subifd )) ||
 		rtiff_header_read_all( rtiff ) )
 		return( -1 );
 
