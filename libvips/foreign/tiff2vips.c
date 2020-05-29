@@ -637,9 +637,9 @@ rtiff_set_page( Rtiff *rtiff, int page )
 				rtiff->subifd >= subifd_count ) {
 				vips_error( "tiff2vips", 
 					_( "subifd %d out of range, "
-						"only %d available" ),
+						"only 0-%d available" ),
 					rtiff->subifd,
-					subifd_count );
+					subifd_count - 1 );
 				return( -1 );
 			}
 
@@ -2422,8 +2422,11 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 	}
 
 	/* Tiles and strip images have slightly different fields.
+	 *
+	 * We can't use TIFFIsTiled() since some TIFFs have a mix of tiled and
+	 * stip layouts. Test for TILEWIDTH in this directory.
 	 */
-	header->tiled = TIFFIsTiled( rtiff->tiff );
+	header->tiled = tfexists( rtiff->tiff, TIFFTAG_TILEWIDTH );
 
 	if( header->tiled ) {
 		if( !tfget32( rtiff->tiff, 
