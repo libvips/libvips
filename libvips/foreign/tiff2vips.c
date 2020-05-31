@@ -271,7 +271,7 @@ typedef struct _RtiffHeader {
 	int alpha_band;
 	uint16 compression;
 
-	/* Result of TIFFIsTiled().
+	/* Is this directory tiled.
 	 */
 	gboolean tiled;
 
@@ -667,7 +667,7 @@ rtiff_n_pages( Rtiff *rtiff )
 	for( n = 1; TIFFReadDirectory( rtiff->tiff ); n++ )
 		;
 
-	(void) TIFFSetDirectory( rtiff->tiff, rtiff->current_page );
+	rtiff->current_page = n - 1;
 
 #ifdef DEBUG
 	printf( "rtiff_n_pages: found %d pages\n", n ); 
@@ -1554,17 +1554,6 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	 */
         vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
-#ifdef DEBUG
-	printf( "rtiff_set_header: header.samples_per_pixel = %d\n", 
-		rtiff->header.samples_per_pixel );
-	printf( "rtiff_set_header: header.bits_per_sample = %d\n", 
-		rtiff->header.bits_per_sample );
-	printf( "rtiff_set_header: header.sample_format = %d\n", 
-		rtiff->header.sample_format );
-	printf( "rtiff_set_header: header.orientation = %d\n", 
-		rtiff->header.orientation );
-#endif /*DEBUG*/
-
 	/* We have a range of output paths. Look at the tiff header and try to
 	 * route the input image to the best output path.
 	 */
@@ -2231,19 +2220,6 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 
         vips_image_pipelinev( t[0], VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
-#ifdef DEBUG
-	printf( "rtiff_read_stripwise: header.rows_per_strip = %u\n", 
-		rtiff->header.rows_per_strip );
-	printf( "rtiff_read_stripwise: header.strip_size = %zd\n", 
-		rtiff->header.strip_size );
-	printf( "rtiff_read_stripwise: header.number_of_strips = %d\n", 
-		rtiff->header.number_of_strips );
-	printf( "rtiff_read_stripwise: header.read_height = %u\n", 
-		rtiff->header.read_height );
-	printf( "rtiff_read_stripwise: header.read_size = %zd\n", 
-		rtiff->header.read_size );
-#endif /*DEBUG*/
-
 	/* Double check: in memcpy mode, the vips linesize should exactly
 	 * match the tiff line size.
 	 */
@@ -2422,11 +2398,25 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 	}
 
 	/* Tiles and strip images have slightly different fields.
-	 *
-	 * We can't use TIFFIsTiled() since some TIFFs have a mix of tiled and
-	 * stip layouts. Test for TILEWIDTH in this directory.
 	 */
-	header->tiled = tfexists( rtiff->tiff, TIFFTAG_TILEWIDTH );
+	header->tiled = TIFFIsTiled( rtiff->tiff );
+
+#ifdef DEBUG
+	printf( "rtiff_header_read: header.width = %d\n", 
+		header->width );
+	printf( "rtiff_header_read: header.height = %d\n", 
+		header->height );
+	printf( "rtiff_header_read: header.samples_per_pixel = %d\n", 
+		header->samples_per_pixel );
+	printf( "rtiff_header_read: header.bits_per_sample = %d\n", 
+		header->bits_per_sample );
+	printf( "rtiff_header_read: header.sample_format = %d\n", 
+		header->sample_format );
+	printf( "rtiff_header_read: header.orientation = %d\n", 
+		header->orientation );
+	printf( "rtiff_header_read: header.tiled = %d\n", 
+		header->tiled );
+#endif /*DEBUG*/
 
 	if( header->tiled ) {
 		if( !tfget32( rtiff->tiff, 
@@ -2434,6 +2424,13 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 			!tfget32( rtiff->tiff, 
 				TIFFTAG_TILELENGTH, &header->tile_height ) )
 			return( -1 );
+
+#ifdef DEBUG
+		printf( "rtiff_header_read: header.tile_width = %d\n", 
+			header->tile_width );
+		printf( "rtiff_header_read: header.tile_height = %d\n", 
+			header->tile_height );
+#endif /*DEBUG*/
 
 		/* Arbitrary sanity-checking limits.
 		 */
@@ -2448,6 +2445,13 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 
 		header->tile_size = TIFFTileSize( rtiff->tiff );
 		header->tile_row_size = TIFFTileRowSize( rtiff->tiff );
+
+#ifdef DEBUG
+		printf( "rtiff_header_read: header.tile_size = %zd\n", 
+			header->tile_size );
+		printf( "rtiff_header_read: header.tile_row_size = %zd\n", 
+			header->tile_row_size );
+#endif /*DEBUG*/
 
 		/* Fuzzed TIFFs can give crazy values for tile_size. Sanity
 		 * check at 100mb per tile.
@@ -2476,6 +2480,17 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 		header->strip_size = TIFFStripSize( rtiff->tiff );
 		header->scanline_size = TIFFScanlineSize( rtiff->tiff );
 		header->number_of_strips = TIFFNumberOfStrips( rtiff->tiff );
+
+#ifdef DEBUG
+		printf( "rtiff_header_read: header.rows_per_strip = %d\n", 
+			header->rows_per_strip );
+		printf( "rtiff_header_read: header.strip_size = %zd\n", 
+			header->strip_size );
+		printf( "rtiff_header_read: header.scanline_size = %zd\n", 
+			header->scanline_size );
+		printf( "rtiff_header_read: header.number_of_strips = %d\n", 
+			header->number_of_strips );
+#endif /*DEBUG*/
 
 		/* libtiff has two strip-wise readers. TIFFReadEncodedStrip()
 		 * decompresses an entire strip to memory. It's fast, but it
@@ -2514,6 +2529,15 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 				header->rows_per_strip, header->height );
 			header->read_size = header->strip_size;
 		}
+
+#ifdef DEBUG
+		printf( "rtiff_header_read: header.read_scanlinewise = %d\n", 
+			header->read_scanlinewise );
+		printf( "rtiff_header_read: header.read_height = %d\n", 
+			header->read_height );
+		printf( "rtiff_header_read: header.read_size = %zd\n", 
+			header->read_size );
+#endif /*DEBUG*/
 
 		/* Stop some compiler warnings.
 		 */

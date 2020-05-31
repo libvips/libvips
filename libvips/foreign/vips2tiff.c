@@ -251,6 +251,115 @@
 
 /* TODO:
  *
+ * verify image contents:
+ *
+ * 	$ vips copy LuCa-7color_Scan1.ome.tiff[page=0] x.v
+ *		whole slice, 25k x 35k
+ * 	$ vips copy LuCa-7color_Scan1.ome.tiff[page=0,subifd=0] x.v
+ *		top-left corner, 12k x 17k
+ * 	$ vips copy LuCa-7color_Scan1.ome.tiff[page=0,subifd=1] x.v
+ *		top-left corner, cropped in from subifd=0, 6k x 9k
+ * 	$ vips copy LuCa-7color_Scan1.ome.tiff[page=0,subifd=2] x.v
+ *		"cannot read scanlines from tiled image" 
+ *
+ *	$ vips copy LuCa-7color_Scan1.ome.tiff[page=1] x.v
+ *		whole slice, 25k x 35k
+ *	$ vips copy LuCa-7color_Scan1.ome.tiff[page=1,subifd=0] x.v
+ *		top-left corner, 12k x 17k
+ *	$ vips copy LuCa-7color_Scan1.ome.tiff[page=1,subifd=1] x.v
+ *		top-left corner, cropped in from subifd=0, 6k x 9k
+ *	$ vips copy LuCa-7color_Scan1.ome.tiff[page=1,subifd=2] x.v
+ *		"cannot read scanlines from tiled image" 
+ *
+ * top-level tiffinfo:
+ *
+ * 	$ tiffinfo LuCa-7color_Scan1.ome.tiff 
+ *	TIFF Directory at offset 0x10 (16)
+ *	  Image Width: 24960 Image Length: 34560
+ *	  Tile Width: 512 Tile Length: 512
+ *	  Resolution: 20080.5, 20080.5 pixels/cm
+ *	  Bits/Sample: 8
+ *	  Sample Format: unsigned integer
+ *	  Compression Scheme: LZW
+ *	  Photometric Interpretation: min-is-black
+ *	  Samples/Pixel: 1
+ *	  Planar Configuration: single image plane
+ *	  SubIFD Offsets: 1533039599 1920856308 2021666749 2052152209 2060362679
+ *	  ImageDescription:...
+ *	  Software: OME Bio-Formats 6.0.0-rc1
+ *	TIFF Directory at offset 0x14d40236 (349438518)
+ * 	  Image Width: 24960 Image Length: 34560
+ * 	  ...
+ *
+ * tiffinfo for page=0, subifd=0
+ *
+ * 	$ tiffinfo LuCa-7color_Scan1.ome.tiff -o 1533039599
+ * 	TIFF Directory at offset 0x5b6053ef (1533039599)
+ *	  Subfile Type: reduced-resolution image (1 = 0x1)
+ *	  Image Width: 12480 Image Length: 17280
+ *	  Tile Width: 512 Tile Length: 512
+ *	  Resolution: 20080.5, 20080.5 pixels/cm
+ *	  Bits/Sample: 8
+ *	  Sample Format: unsigned integer
+ *	  Compression Scheme: LZW
+ *	  Photometric Interpretation: min-is-black
+ *	  Samples/Pixel: 1
+ *	  Planar Configuration: single image plane
+ *	  ImageDescription: ...
+ *	  Software: OME Bio-Formats 6.0.0-rc1
+ *
+ * tiffinfo for page=0, subifd=2
+ *
+ * 	$ tiffinfo LuCa-7color_Scan1.ome.tiff -o 2021666749
+ *	TIFF Directory at offset 0x78802fbd (2021666749)
+ *	  Subfile Type: reduced-resolution image (1 = 0x1)
+ *	  Image Width: 3120 Image Length: 4320
+ *	  Resolution: 20080.5, 20080.5 pixels/cm
+ *	  Bits/Sample: 8
+ *	  Sample Format: unsigned integer
+ *	  Compression Scheme: LZW
+ *	  Photometric Interpretation: min-is-black
+ *	  Samples/Pixel: 1
+ *	  Rows/Strip: 1
+ *	  Planar Configuration: single image plane
+ *	  ImageDescription: ...
+ *	  Software: OME Bio-Formats 6.0.0-rc1
+ *
+ *  this subifd is untiled! same for 3 & 4.
+
+
+
+
+
+ *
+ * try:
+ *
+ * 	vips copy LuCa-7color_Scan1.ome.tiff[n=5] x.tif[pyramid,tile-width=512,tile-height=512,compression=lzw]
+ * 	vips copy x.tif[page=1] x.v
+ *
+ * horizontal stripes in image (page 0 is fine) ... a problem in rewind? it 
+ * looks like the stripes are half a tile high
+ *
+ * try:
+ *
+ * 	$ vips copy LuCa-7color_Scan1.ome.tiff[subifd=4] x.png
+ *	(vips:1284665): VIPS-WARNING **: 13:59:15.555: error in tile 0 x 0
+ *	source input: Can not read scanlines from a tiled image
+ *	tiff2vips: read error
+ *	vips2png: unable to write to target
+ *
+ * subifd=3 seems to work, curiously ... are some subifds tiled and some
+ * striped? how come we don't pick up tile/strip from the subifd?
+ *
+ * try:
+ *
+ * 	vips copy test.tif x.tif[page-height=2048,pyramid]
+ * 	vips copy x.tif[page=1] x.png
+ *
+ * test.tif is k2.jpg split into bands and joined top to bottom ... no stripes
+ * visible
+ *
+ *
  * - have a layout enum rather than a bool
  * - revise docs
  * - revise tests
