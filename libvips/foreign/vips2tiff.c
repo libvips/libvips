@@ -251,9 +251,8 @@
 
 /* TODO:
  *
- * - have a layout enum rather than a bool
- * - revise docs
  * - revise tests
+ * - vipsthumbnail support for subifd pyramids
  */
 
 /* Max number of alpha channels we allow.

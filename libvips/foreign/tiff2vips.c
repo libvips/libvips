@@ -304,6 +304,11 @@ typedef struct _RtiffHeader {
 	/* Scale factor to get absolute cd/m2 from XYZ.
 	 */
 	double stonits;
+
+	/* Number of subifds, if any.
+	 */
+	int subifd_count;
+
 } RtiffHeader;
 
 /* Scanline-type process function.
@@ -1546,6 +1551,10 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 		vips_image_set_int( out, 
 			VIPS_META_PAGE_HEIGHT, rtiff->header.height );
 
+	if( rtiff->header.subifd_count > 0 ) 
+		vips_image_set_int( out, 
+			VIPS_META_N_SUBIFDS, rtiff->header.subifd_count );
+
 	vips_image_set_int( out, VIPS_META_N_PAGES, rtiff->n_pages );
 
 	/* Even though we could end up serving tiled data, always hint
@@ -2303,6 +2312,7 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 {
 	uint16 extra_samples_count;
 	uint16 *extra_samples_types;
+	toff_t *subifd_offsets;
 
 	if( !tfget32( rtiff->tiff, TIFFTAG_IMAGEWIDTH, 
 			&header->width ) ||
@@ -2399,6 +2409,11 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 		if( v == PLANARCONFIG_SEPARATE )
 			header->separate = TRUE; 
 	}
+
+	/* Stays zero if there's no SUBIFD.
+	 */
+	TIFFGetField( rtiff->tiff, TIFFTAG_SUBIFD, 
+		&header->subifd_count, &subifd_offsets );
 
 	/* Tiles and strip images have slightly different fields.
 	 */

@@ -150,6 +150,13 @@ extern "C" {
  */
 #define VIPS_META_N_PAGES "n-pages"
 
+/**
+ * VIPS_META_N_SUBIFDS:
+ *
+ * If set, the number of subifds in the first page of the file.
+ */
+#define VIPS_META_N_SUBIFDS "n-subifds"
+
 guint64 vips_format_sizeof( VipsBandFormat format );
 guint64 vips_format_sizeof_unsafe( VipsBandFormat format );
 
