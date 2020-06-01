@@ -251,34 +251,6 @@
 
 /* TODO:
  *
- * try:
- *
- * 	vips copy LuCa-7color_Scan1.ome.tiff[n=5] x.tif[pyramid,tile-width=512,tile-height=512,compression=lzw]
- * 	vips copy x.tif[page=1] x.v
- *
- * horizontal stripes in image (page 0 is fine) ... a problem in rewind? it 
- * looks like the stripes are half a tile high
- *
- * try:
- *
- * 	$ vips copy LuCa-7color_Scan1.ome.tiff[subifd=4] x.png
- *	(vips:1284665): VIPS-WARNING **: 13:59:15.555: error in tile 0 x 0
- *	source input: Can not read scanlines from a tiled image
- *	tiff2vips: read error
- *	vips2png: unable to write to target
- *
- * subifd=3 seems to work, curiously ... are some subifds tiled and some
- * striped? how come we don't pick up tile/strip from the subifd?
- *
- * try:
- *
- * 	vips copy test.tif x.tif[page-height=2048,pyramid]
- * 	vips copy x.tif[page=1] x.png
- *
- * test.tif is k2.jpg split into bands and joined top to bottom ... no stripes
- * visible
- *
- *
  * - have a layout enum rather than a bool
  * - revise docs
  * - revise tests

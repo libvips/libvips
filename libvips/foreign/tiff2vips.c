@@ -1712,7 +1712,7 @@ rtiff_fill_region_unaligned( VipsRegion *out,
 		/* Not necessary, but it stops static analyzers complaining
 		 * about a used-before-set.
 		 */
-		tile.height = 0;
+		hit.height = 0;
 
 		x = 0;
 		while( x < r->width ) { 
@@ -1776,10 +1776,13 @@ rtiff_fill_region_unaligned( VipsRegion *out,
 					q, p, hit.width, rtiff->client );
 			}
 
-			x += tile.width;
+			x += hit.width;
 		}
 
-		y += tile.height;
+		/* This will be the same for all tiles in the row we've just
+		 * done.
+		 */
+		y += hit.height;
 	}
 
 	return( 0 );
