@@ -818,7 +818,7 @@ vips_image_get_page_height( VipsImage *image )
  * vips_image_get_n_pages: (method)
  * @image: image to get from
  *
- * Fetch and sanity-check VIPS_META_N_PAGES. Default to 1 if not present or
+ * Fetch and sanity-check #VIPS_META_N_PAGES. Default to 1 if not present or
  * crazy.
  *
  * This is the number of pages in the image file, not the number of pages that
@@ -838,6 +838,29 @@ vips_image_get_n_pages( VipsImage *image )
 		return( n_pages );
 
 	return(	1 );
+}
+
+/**
+ * vips_image_get_n_subifds: (method)
+ * @image: image to get from
+ *
+ * Fetch and sanity-check #VIPS_META_N_SUBIFDS. Default to 0 if not present or
+ * crazy.
+ *
+ * Returns: the number of subifds in the image file
+ */
+int
+vips_image_get_n_subifds( VipsImage *image )
+{
+	int n_subifds;
+
+	if( vips_image_get_typeof( image, VIPS_META_N_SUBIFDS ) &&
+		!vips_image_get_int( image, VIPS_META_N_SUBIFDS, &n_subifds ) &&
+		n_subifds > 1 &&
+		n_subifds < 1000 )
+		return( n_subifds );
+
+	return(	0 );
 }
 
 /**
