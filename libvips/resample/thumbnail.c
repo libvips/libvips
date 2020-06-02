@@ -247,7 +247,7 @@ vips_thumbnail_read_header( VipsThumbnail *thumbnail, VipsImage *image )
  *
  * This may not be a pyr tiff, so no error if we can't find the layers. 
  */
-static gboolean
+static void
 vips_thumbnail_get_tiff_pyramid_page( VipsThumbnail *thumbnail ) 
 {
 	VipsThumbnailClass *class = VIPS_THUMBNAIL_GET_CLASS( thumbnail );
@@ -257,6 +257,10 @@ vips_thumbnail_get_tiff_pyramid_page( VipsThumbnail *thumbnail )
 	printf( "vips_thumbnail_get_tiff_pyramid_page:\n" );
 #endif /*DEBUG*/
 
+	/* Tell open() that we want to open pages rather than subifds.
+	 */
+	thumbnail->subifd_pyramid = FALSE;
+
 	for( i = 0; i < thumbnail->n_pages; i++ ) {
 		VipsImage *page;
 		int level_width;
@@ -265,7 +269,7 @@ vips_thumbnail_get_tiff_pyramid_page( VipsThumbnail *thumbnail )
 		int expected_level_height;
 
 		if( !(page = class->open( thumbnail, i )) )
-			return( FALSE );
+			return;
 		level_width = page->Xsize;
 		level_height = page->Ysize;
 		VIPS_UNREF( page );
@@ -277,10 +281,10 @@ vips_thumbnail_get_tiff_pyramid_page( VipsThumbnail *thumbnail )
 		 */
 		if( abs( level_width - expected_level_width ) > 5 ||
 			level_width < 2 )
-			return( FALSE );
+			return;
 		if( abs( level_height - expected_level_height ) > 5 ||
 			level_height < 2 )
-			return( FALSE );
+			return;
 
 		thumbnail->level_width[i] = level_width;
 		thumbnail->level_height[i] = level_height;
@@ -294,15 +298,13 @@ vips_thumbnail_get_tiff_pyramid_page( VipsThumbnail *thumbnail )
 		thumbnail->n_pages );
 #endif /*DEBUG*/
 	thumbnail->level_count = thumbnail->n_pages;
-
-	return( thumbnail->n_pages > 1 );
 }
 
 /* Detect a TIFF pyramid made of subifds following a roughly /2 shrink.
  *
  * This may not be a pyr tiff, so no error if we can't find the layers. 
  */
-static gboolean
+static void
 vips_thumbnail_get_tiff_pyramid_subifd( VipsThumbnail *thumbnail ) 
 {
 	VipsThumbnailClass *class = VIPS_THUMBNAIL_GET_CLASS( thumbnail );
@@ -324,7 +326,7 @@ vips_thumbnail_get_tiff_pyramid_subifd( VipsThumbnail *thumbnail )
 		int expected_level_height;
 
 		if( !(page = class->open( thumbnail, i )) )
-			return( FALSE );
+			return;
 		level_width = page->Xsize;
 		level_height = page->Ysize;
 		VIPS_UNREF( page );
@@ -338,10 +340,10 @@ vips_thumbnail_get_tiff_pyramid_subifd( VipsThumbnail *thumbnail )
 		 */
 		if( abs( level_width - expected_level_width ) > 5 ||
 			level_width < 2 )
-			return( FALSE );
+			return;
 		if( abs( level_height - expected_level_height ) > 5 ||
 			level_height < 2 )
-			return( FALSE );
+			return;
 
 		thumbnail->level_width[i] = level_width;
 		thumbnail->level_height[i] = level_height;
@@ -355,8 +357,6 @@ vips_thumbnail_get_tiff_pyramid_subifd( VipsThumbnail *thumbnail )
 		thumbnail->n_pages );
 #endif /*DEBUG*/
 	thumbnail->level_count = thumbnail->n_pages;
-
-	return( TRUE );
 }
 
 static int
@@ -540,8 +540,13 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 	 * pyramids. 
 	 */
 	if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) {
-		if( !vips_thumbnail_get_tiff_pyramid_page( thumbnail ) )
-			vips_thumbnail_get_tiff_pyramid_subifd( thumbnail );
+		/* Test for a subifd pyr first, since we can do that from just
+		 * one page.
+		 */
+		vips_thumbnail_get_tiff_pyramid_subifd( thumbnail );
+
+		if( thumbnail->level_count == 0 ) 
+			vips_thumbnail_get_tiff_pyramid_page( thumbnail );
 	}
 
 	/* For heif, we need to fetch the thumbnail size, in case we can use

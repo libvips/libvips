@@ -2624,7 +2624,8 @@ static int
 rtiff_header_read_all( Rtiff *rtiff )
 {
 #ifdef DEBUG
-	printf( "tiff2vips: reading header for page %d ...\n", rtiff->page );
+	printf( "rtiff_header_read_all: "
+		"reading header for page %d ...\n", rtiff->page );
 #endif /*DEBUG*/
 
 	if( rtiff_set_page( rtiff, rtiff->page ) ||
@@ -2646,7 +2647,8 @@ rtiff_header_read_all( Rtiff *rtiff )
 			RtiffHeader header;
 
 #ifdef DEBUG
-			printf( "tiff2vips: verifying header for page %d ...\n",
+			printf( "rtiff_header_read_all: "
+				"verifying header for page %d ...\n",
 				rtiff->page + i );
 #endif /*DEBUG*/
 
