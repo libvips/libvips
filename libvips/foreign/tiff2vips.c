@@ -657,6 +657,13 @@ rtiff_set_page( Rtiff *rtiff, int page )
 		}
 
 		rtiff->current_page = page;
+
+		/* This can get unset when we change directories. Make sure
+		 * it's set again.
+		 */
+		if( rtiff->header.compression == COMPRESSION_JPEG )
+			TIFFSetField( rtiff->tiff, 
+				TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
 	}
 
 	return( 0 );

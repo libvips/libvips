@@ -340,8 +340,12 @@ class TestForeign:
                             self.colour, 0)
         self.save_load_file(".tif", "[tile]", self.colour, 0)
         self.save_load_file(".tif", "[tile,pyramid]", self.colour, 0)
+        self.save_load_file(".tif", "[tile,pyramid,subifd]", self.colour, 0)
         self.save_load_file(".tif",
                             "[tile,pyramid,compression=jpeg]", self.colour, 80)
+        self.save_load_file(".tif",
+                            "[tile,pyramid,subifd,compression=jpeg]", 
+                            self.colour, 80)
         self.save_load_file(".tif", "[bigtiff]", self.colour, 0)
         self.save_load_file(".tif", "[compression=jpeg]", self.colour, 80)
         self.save_load_file(".tif",
