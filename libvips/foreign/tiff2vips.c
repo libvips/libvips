@@ -679,7 +679,9 @@ rtiff_n_pages( Rtiff *rtiff )
 	for( n = 1; TIFFReadDirectory( rtiff->tiff ); n++ )
 		;
 
-	rtiff->current_page = n - 1;
+	/* Make sure the nest set_page() will set the directory.
+	 */
+	rtiff->current_page = -1;
 
 #ifdef DEBUG
 	printf( "rtiff_n_pages: found %d pages\n", n ); 
