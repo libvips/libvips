@@ -309,6 +309,10 @@ typedef struct _RtiffHeader {
 	 */
 	int subifd_count;
 
+	/* Optional IMAGEDESCRIPTION.
+	 */
+	char *image_description;
+
 } RtiffHeader;
 
 /* Scanline-type process function.
@@ -1581,18 +1585,16 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	/* Read any ICC profile.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
-		TIFFTAG_ICCPROFILE, &data_length, &data ) ) {
+		TIFFTAG_ICCPROFILE, &data_length, &data ) ) 
 		vips_image_set_blob_copy( out, 
 			VIPS_META_ICC_NAME, data, data_length );
-	}
 
 	/* Read any XMP metadata.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
-		TIFFTAG_XMLPACKET, &data_length, &data ) ) {
+		TIFFTAG_XMLPACKET, &data_length, &data ) ) 
 		vips_image_set_blob_copy( out, 
 			VIPS_META_XMP_NAME, data, data_length );
-	}
 
 	/* Read any IPTC metadata.
 	 */
@@ -1610,20 +1612,13 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	/* Read any photoshop metadata.
 	 */
 	if( TIFFGetField( rtiff->tiff, 
-		TIFFTAG_PHOTOSHOP, &data_length, &data ) ) {
+		TIFFTAG_PHOTOSHOP, &data_length, &data ) ) 
 		vips_image_set_blob_copy( out, 
 			VIPS_META_PHOTOSHOP_NAME, data, data_length );
-	}
 
-	/* IMAGEDESCRIPTION often has useful metadata.
-	 */
-	if( TIFFGetField( rtiff->tiff, TIFFTAG_IMAGEDESCRIPTION, &data ) ) {
-		/* libtiff makes sure that data is null-terminated and contains
-		 * no embedded null characters.
-		 */
-		vips_image_set_string( out, 
-			VIPS_META_IMAGEDESCRIPTION, (char *) data ); 
-	}
+	if( rtiff->header.image_description )
+		vips_image_set_string( out, VIPS_META_IMAGEDESCRIPTION, 
+			rtiff->header.image_description );
 
 	if( get_resolution( rtiff->tiff, out ) )
 		return( -1 );
@@ -2322,6 +2317,7 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 	uint16 extra_samples_count;
 	uint16 *extra_samples_types;
 	toff_t *subifd_offsets;
+	char *image_description;
 
 	if( !tfget32( rtiff->tiff, TIFFTAG_IMAGEWIDTH, 
 			&header->width ) ||
@@ -2423,6 +2419,16 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 	 */
 	TIFFGetField( rtiff->tiff, TIFFTAG_SUBIFD, 
 		&header->subifd_count, &subifd_offsets );
+
+	/* IMAGEDESCRIPTION often has useful metadata. libtiff makes sure 
+	 * that data is null-terminated and contains no embedded null 
+	 * characters.
+	 */
+	if( TIFFGetField( rtiff->tiff, 
+		TIFFTAG_IMAGEDESCRIPTION, &image_description ) )
+		header->image_description = 
+			vips_strdup( VIPS_OBJECT( rtiff->out ), 
+				image_description );
 
 	/* Tiles and strip images have slightly different fields.
 	 */
