@@ -15,13 +15,15 @@
 - add subsample_mode, deprecate no_subsample in jpegsave [Elad-Laufer]
 - add vips_isdirf()
 - add PAGENUMBER support to tiff write [jclavoie-jive]
-- add all to smartcrop 
+- add "all" mode to smartcrop 
 - flood fill could stop half-way for some very complex shapes
 - better handling of unaligned reads in multipage tiffs [petoor]
 - mark old --delete option to vipsthumbnail as deprecated [UweOhse]
 - png save with a bad ICC profile just gives a warning
 - add "premultipled" option to vips_affine(), clarified vips_resize() 
   behaviour with alpha channels
+- improve bioformats support with read and write of tiff subifd pyramids
+- thumbnail exploits subifd pyramids
 
 24/4/20 started 8.9.3
 - better iiif tile naming [IllyaMoskvin]
