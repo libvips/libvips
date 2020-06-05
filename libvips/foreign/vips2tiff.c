@@ -251,8 +251,17 @@
 
 /* TODO:
  *
- * - revise tests
- * - vipsthumbnail support for subifd pyramids
+ * - add a flag for plane-separate write
+ *
+ *   	At the moment, we write bioformats-style TIFFs by splitting bands up,
+ *   	making a toilet-roll image and writing out in pages. The TIFFs we make
+ *   	are not tagged as plane-separate and do not have (eg.) RGB photometric
+ *   	interpretation. Moreover, when working from an RGB source, we'll end
+ *   	up reading the input three times.
+ *
+ *   	A write-plane-separate flag to the TIFF writer could let us set the
+ *   	photometric interpretation correctly, and save all planes in a single
+ *   	pass before doing a final gather sweep.
  */
 
 /* Max number of alpha channels we allow.
