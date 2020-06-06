@@ -201,13 +201,11 @@ reduceh_signed_int_tab( VipsReduceh *reduceh,
 	for( int z = 0; z < bands; z++ ) {
 		int sum;
 
-		sum = reduce_sum<T, int>( in, bands, cx, n );
+		sum = reduce_sum<T, int>( in + z, bands, cx, n );
 		sum = signed_fixed_round( sum ); 
 		sum = VIPS_CLIP( min_value, sum, max_value ); 
 
 		out[z] = sum;
-
-		in += 1;
 	}
 }
 
@@ -223,10 +221,8 @@ reduceh_float_tab( VipsReduceh *reduceh,
 	const T* restrict in = (T *) pin;
 	const int n = reduceh->n_point;
 
-	for( int z = 0; z < bands; z++ ) {
-		out[z] = reduce_sum<T, double>( in, bands, cx, n );
-		in += 1;
-	}
+	for( int z = 0; z < bands; z++ )
+		out[z] = reduce_sum<T, double>( in + z, bands, cx, n );
 }
 
 /* 32-bit int output needs a double intermediate.
@@ -245,10 +241,8 @@ reduceh_unsigned_int32_tab( VipsReduceh *reduceh,
 	for( int z = 0; z < bands; z++ ) {
 		double sum;
 
-		sum = reduce_sum<T, double>( in, bands, cx, n );
-		out[z] = VIPS_CLIP( 0, sum, max_value ); 
-
-		in += 1;
+		sum = reduce_sum<T, double>( in + z, bands, cx, n );
+		out[z] = VIPS_CLIP( 0, sum, max_value );
 	}
 }
 
@@ -265,11 +259,9 @@ reduceh_signed_int32_tab( VipsReduceh *reduceh,
 	for( int z = 0; z < bands; z++ ) {
 		double sum;
 
-		sum = reduce_sum<T, double>( in, bands, cx, n );
+		sum = reduce_sum<T, double>( in + z, bands, cx, n );
 		sum = VIPS_CLIP( min_value, sum, max_value ); 
 		out[z] = sum;
-
-		in += 1;
 	}
 }
 
@@ -289,11 +281,8 @@ reduceh_notab( VipsReduceh *reduceh,
 
 	vips_reduce_make_mask( cx, reduceh->kernel, reduceh->hshrink, x ); 
 
-	for( int z = 0; z < bands; z++ ) {
-		out[z] = reduce_sum<T, double>( in, bands, cx, n );
-
-		in += 1;
-	}
+	for( int z = 0; z < bands; z++ )
+		out[z] = reduce_sum<T, double>( in + z, bands, cx, n );
 }
 
 /* Tried a vector path (see reducev) but it was slower. The vectors for
