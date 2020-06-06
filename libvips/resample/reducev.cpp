@@ -653,10 +653,9 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 #endif /*DEBUG_PIXELS*/
 
 	s.left = r->left;
-	s.top = r->top * reducev->vshrink;
+	s.top = r->top * reducev->vshrink - reducev->voffset;
 	s.width = r->width;
-	s.height = r->height * reducev->vshrink + reducev->n_point - 
-		reducev->voffset;
+	s.height = r->height * reducev->vshrink + reducev->n_point;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
 
