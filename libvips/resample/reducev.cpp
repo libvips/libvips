@@ -21,6 +21,7 @@
  * 	- deprecate @centre option, it's now always on
  * 	- fix pixel shift
  * 	- speed up the mask construction for uchar/ushort images
+ * 	- remove unnecessary round-to-nearest behaviour
  */
 
 /*
@@ -117,15 +118,14 @@ typedef struct _VipsReducev {
 	double voffset;
 
 	/* Precalculated interpolation matrices. int (used for pel
-	 * sizes up to short), and double (for all others). We go to
-	 * scale + 1 so we can round-to-nearest safely.
+	 * sizes up to short), and double (for all others).
 	 */
-	int *matrixi[VIPS_TRANSFORM_SCALE + 1];
-	double *matrixf[VIPS_TRANSFORM_SCALE + 1];
+	int *matrixi[VIPS_TRANSFORM_SCALE];
+	double *matrixf[VIPS_TRANSFORM_SCALE];
 
 	/* And another set for orc: we want 2.6 precision.
 	 */
-	int *matrixo[VIPS_TRANSFORM_SCALE + 1];
+	int *matrixo[VIPS_TRANSFORM_SCALE];
 
 	/* The passes we generate for this mask.
 	 */
@@ -154,7 +154,7 @@ vips_reducev_finalize( GObject *gobject )
 	for( int i = 0; i < reducev->n_pass; i++ )
 		VIPS_FREEF( vips_vector_free, reducev->pass[i].vector );
 	reducev->n_pass = 0;
-	for( int i = 0; i < VIPS_TRANSFORM_SCALE + 1; i++ ) {
+	for( int i = 0; i < VIPS_TRANSFORM_SCALE; i++ ) {
 		VIPS_FREE( reducev->matrixf[i] );
 		VIPS_FREE( reducev->matrixi[i] );
 		VIPS_FREE( reducev->matrixo[i] );
@@ -550,14 +550,13 @@ vips_reducev_gen( VipsRegion *out_region, void *vseq,
 	double Y = (r->top + 0.5) * reducev->vshrink - 0.5 - 
 		reducev->voffset;
 
-	for( int y = 0; y < r->height; y ++ ) { 
+	for( int y = 0; y < r->height; y++ ) { 
 		VipsPel *q = 
 			VIPS_REGION_ADDR( out_region, r->left, r->top + y );
 		const int py = (int) Y;
 		VipsPel *p = VIPS_REGION_ADDR( ir, r->left, py );
-		const int sy = Y * VIPS_TRANSFORM_SCALE * 2;
-		const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
-		const int ty = (siy + 1) >> 1;
+		const int sy = Y * VIPS_TRANSFORM_SCALE;
+		const int ty = sy & (VIPS_TRANSFORM_SCALE - 1);
 		const int *cyi = reducev->matrixi[ty];
 		const double *cyf = reducev->matrixf[ty];
 		const int lskip = VIPS_REGION_LSKIP( ir );
@@ -675,13 +674,12 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 	double Y = (r->top + 0.5) * reducev->vshrink - 0.5 - 
 		reducev->voffset;
 
-	for( int y = 0; y < r->height; y ++ ) { 
+	for( int y = 0; y < r->height; y++ ) { 
 		VipsPel *q = 
 			VIPS_REGION_ADDR( out_region, r->left, r->top + y );
 		const int py = (int) Y;
-		const int sy = Y * VIPS_TRANSFORM_SCALE * 2;
-		const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
-		const int ty = (siy + 1) >> 1;
+		const int sy = Y * VIPS_TRANSFORM_SCALE;
+		const int ty = sy & (VIPS_TRANSFORM_SCALE - 1);
 		const int *cyo = reducev->matrixo[ty];
 
 #ifdef DEBUG_PIXELS
@@ -742,7 +740,7 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in, VipsImage **out )
 	 */
 	if( in->BandFmt == VIPS_FORMAT_UCHAR &&
 		vips_vector_isenabled() ) 
-		for( int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++ ) {
+		for( int y = 0; y < VIPS_TRANSFORM_SCALE; y++ ) {
 			reducev->matrixo[y] = 
 				VIPS_ARRAY( NULL, reducev->n_point, int ); 
 			if( !reducev->matrixo[y] )
@@ -854,7 +852,7 @@ vips_reducev_build( VipsObject *object )
 
 	/* Build the tables of pre-computed coefficients.
 	 */
-	for( int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++ ) {
+	for( int y = 0; y < VIPS_TRANSFORM_SCALE; y++ ) {
 		reducev->matrixf[y] = 
 			VIPS_ARRAY( NULL, reducev->n_point, double ); 
 		reducev->matrixi[y] = 
