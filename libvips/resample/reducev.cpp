@@ -765,7 +765,7 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in, VipsImage **out )
 
 	*out = vips_image_new();
 	if( vips_image_pipelinev( *out, 
-		VIPS_DEMAND_STYLE_FATSTRIP, in, (void *) NULL ) )
+		VIPS_DEMAND_STYLE_THINSTRIP, in, (void *) NULL ) )
 		return( -1 );
 
 	/* Size output. We need to always round to nearest, so round(), not
