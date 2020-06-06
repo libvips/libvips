@@ -116,7 +116,8 @@ typedef struct _VipsThumbnail {
 	int input_width;
 	int input_height;
 	int page_height;
-	VipsAngle angle; 		/* From vips_autorot_get_angle() */
+	int orientation; 		/* From vips_image_get_orientation() */
+	gboolean swap; 			/* If we must swap width / height */
 	int n_pages;			/* Pages in file */
 	int n_loaded_pages;		/* Pages we've loaded from file */
 	int n_subifds;			/* Number of subifds */
@@ -203,7 +204,8 @@ vips_thumbnail_read_header( VipsThumbnail *thumbnail, VipsImage *image )
 {
 	thumbnail->input_width = image->Xsize;
 	thumbnail->input_height = image->Ysize;
-	thumbnail->angle = vips_autorot_get_angle( image );
+	thumbnail->orientation = vips_image_get_orientation( image );
+	thumbnail->swap = vips_image_get_orientation_swap( image );
 	thumbnail->page_height = vips_image_get_page_height( image );
 	thumbnail->n_pages = vips_image_get_n_pages( image );
 	thumbnail->n_subifds = vips_image_get_n_subifds( image );
@@ -390,11 +392,10 @@ static void
 vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail, 
 	int input_width, int input_height, double *hshrink, double *vshrink )
 {
-	/* If we will be rotating, swap the target width and height.
+	/* If we will be rotating, swap the target width and height. 
 	 */
 	gboolean rotate = 
-		(thumbnail->angle == VIPS_ANGLE_D90 || 
-		 thumbnail->angle == VIPS_ANGLE_D270) &&
+		thumbnail->swap &&
 		thumbnail->auto_rotate;
 	int target_width = rotate ? 
 		thumbnail->height : thumbnail->width;
@@ -831,21 +832,12 @@ vips_thumbnail_build( VipsObject *object )
 	}
 
 	if( thumbnail->auto_rotate &&
-		thumbnail->angle != VIPS_ANGLE_D0 ) {
-		VipsAngle angle = vips_autorot_get_angle( in );
-
-		g_info( "rotating by %s", 
-			vips_enum_nick( VIPS_TYPE_ANGLE, angle ) ); 
-
-		/* Need to copy to memory, we have to stay seq.
-		 */
-		if( !(t[9] = vips_image_copy_memory( in )) ||
-			vips_rot( t[9], &t[10], angle, NULL ) ||
-			vips_copy( t[10], &t[14], NULL ) )
-			return( -1 ); 
+		thumbnail->orientation != 1 ) {
+		g_info( "rotating by EXIF orientation %d", 
+			thumbnail->orientation ); 
+		if( vips_autorot( in, &t[14], NULL ) )
+			return( -1 );
 		in = t[14];
-
-		vips_autorot_remove_angle( in );
 	}
 
 	/* Crop after rotate so we don't need to rotate the crop box.

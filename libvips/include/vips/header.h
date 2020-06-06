@@ -179,6 +179,8 @@ double vips_image_get_offset( const VipsImage *image );
 int vips_image_get_page_height( VipsImage *image );
 int vips_image_get_n_pages( VipsImage *image );
 int vips_image_get_n_subifds( VipsImage *image );
+int vips_image_get_orientation( VipsImage *image );
+gboolean vips_image_get_orientation_swap( VipsImage *image );
 const void *vips_image_get_data( VipsImage *image );
 
 void vips_image_init_fields( VipsImage *image, 

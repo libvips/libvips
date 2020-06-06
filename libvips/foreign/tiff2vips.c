@@ -1862,59 +1862,6 @@ rtiff_seq_stop( void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Auto-rotate handling. 
- */
-static int
-rtiff_autorotate( Rtiff *rtiff, VipsImage *in, VipsImage **out )
-{
-	VipsAngle angle = vips_autorot_get_angle( in );
-
-	if( rtiff->autorotate &&
-		angle != VIPS_ANGLE_D0 ) { 
-		/* Need to copy to memory or disc, we have to stay seq.
-		 */
-		const guint64 image_size = VIPS_IMAGE_SIZEOF_IMAGE( in );
-		const guint64 disc_threshold = vips_get_disc_threshold();
-
-		VipsImage *im;
-		VipsImage *x;
-
-		if( image_size > disc_threshold ) 
-			im = vips_image_new_temp_file( "%s.v" );
-		else
-			im = vips_image_new_memory();
-
-		if( vips_image_write( in, im ) ) {
-			g_object_unref( im );
-			return( -1 );
-		}
-
-		if( vips_rot( im, &x, angle, NULL ) ) {
-			g_object_unref( im );
-			return( -1 );
-		}
-		g_object_unref( im );
-		im = x;
-
-		if( vips_copy( im, out, NULL ) ) {
-			g_object_unref( im );
-			return( -1 );
-		}
-		g_object_unref( im );
-
-		/* We must remove the tag to prevent accidental
-		 * double rotations.
-		 */
-		vips_autorot_remove_angle( *out ); 
-	}
-	else {
-		*out = in;
-		g_object_ref( in ); 
-	}
-
-	return( 0 );
-}
-
 /* Unpremultiply associative alpha, if any.
  */
 static int
@@ -1951,6 +1898,8 @@ rtiff_read_tilewise( Rtiff *rtiff, VipsImage *out )
 	int tile_height = rtiff->header.tile_height;
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( out ), 4 );
+
+	VipsImage *in;
 
 #ifdef DEBUG
 	printf( "tiff2vips: rtiff_read_tilewise\n" );
@@ -1991,21 +1940,31 @@ rtiff_read_tilewise( Rtiff *rtiff, VipsImage *out )
 	 */
         vips_image_pipelinev( t[0], VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
-	if( vips_image_generate( t[0], 
-		rtiff_seq_start, rtiff_fill_region, rtiff_seq_stop, 
-		rtiff, NULL ) )
-		return( -1 );
-
-	/* Copy to out, adding a cache. Enough tiles for two complete rows.
+	/* Generate to out, adding a cache. Enough tiles for two complete rows.
 	 */
-	if( vips_tilecache( t[0], &t[1],
-		"tile_width", tile_width,
-		"tile_height", tile_height,
-		"max_tiles", 2 * (1 + t[0]->Xsize / tile_width),
-		NULL ) ||
-		rtiff_autorotate( rtiff, t[1], &t[2] ) ||
-		rtiff_unpremultiply( rtiff, t[2], &t[3] ) ||
-		vips_image_write( t[3], out ) )
+	if( 
+		vips_image_generate( t[0], 
+			rtiff_seq_start, rtiff_fill_region, rtiff_seq_stop, 
+			rtiff, NULL ) ||
+		vips_tilecache( t[0], &t[1],
+			"tile_width", tile_width,
+			"tile_height", tile_height,
+			"max_tiles", 2 * (1 + t[0]->Xsize / tile_width),
+			NULL ) ||
+		rtiff_unpremultiply( rtiff, t[1], &t[2] ) )
+		return( -1 );
+	in = t[2];
+
+	/* Only do this if we have to.
+	 */
+	if( rtiff->autorotate &&
+		vips_image_get_orientation( in ) != 1 ) {
+		if( vips_autorot( in, &t[3], NULL ) )
+			return( -1 );
+		in = t[3];
+	}
+
+	if( vips_image_write( in, out ) )
 		return( -1 );
 
 	return( 0 );
@@ -2226,6 +2185,8 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( out ), 4 );
 
+	VipsImage *in;
+
 #ifdef DEBUG
 	printf( "tiff2vips: rtiff_read_stripwise\n" );
 #endif /*DEBUG*/
@@ -2301,9 +2262,20 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 		vips_sequential( t[0], &t[1], 
 			"tile_height", rtiff->header.read_height,
 			NULL ) ||
-		rtiff_autorotate( rtiff, t[1], &t[2] ) ||
-		rtiff_unpremultiply( rtiff, t[2], &t[3] ) ||
-		vips_image_write( t[3], out ) )
+		rtiff_unpremultiply( rtiff, t[1], &t[2] ) )
+		return( -1 );
+	in = t[2];
+
+	/* Only do this if we have to.
+	 */
+	if( rtiff->autorotate &&
+		vips_image_get_orientation( in ) != 1 ) {
+		if( vips_autorot( in, &t[3], NULL ) )
+			return( -1 );
+		in = t[3];
+	}
+
+	if( vips_image_write( in, out ) )
 		return( -1 );
 
 	return( 0 );
@@ -2683,29 +2655,6 @@ rtiff_header_read_all( Rtiff *rtiff )
 	return( 0 );
 }
 
-/* On a header-only read, we can just swap width/height if orientation is 6 or
- * 8. 
- */
-static void
-vips__tiff_read_header_orientation( Rtiff *rtiff, VipsImage *out )
-{
-	int orientation;
-
-	if( rtiff->autorotate &&
-		vips_image_get_typeof( out, VIPS_META_ORIENTATION ) &&
-		!vips_image_get_int( out, 
-			VIPS_META_ORIENTATION, &orientation ) ) {
-		if( orientation == 3 || 
-			orientation == 6 )
-			VIPS_SWAP( int, out->Xsize, out->Ysize );
-
-		/* We must remove VIPS_META_ORIENTATION to prevent accidental
-		 * double rotations.
-		 */
-		vips_image_remove( out, VIPS_META_ORIENTATION );
-	}
-}
-
 typedef gboolean (*TiffPropertyFn)( TIFF *tif );
 
 static gboolean
@@ -2755,7 +2704,11 @@ vips__tiff_read_header_source( VipsSource *source, VipsImage *out,
 	if( rtiff_set_header( rtiff, out ) )
 		return( -1 );
 
-	vips__tiff_read_header_orientation( rtiff, out ); 
+	if( rtiff->autorotate &&
+		vips_image_get_orientation_swap( out ) ) {
+		VIPS_SWAP( int, out->Xsize, out->Ysize );
+		vips_autorot_remove_angle( out );
+	}
 
 	/* We never call vips_source_decode() since we need to be able to
 	 * seek() the whole way through the file. Just minimise instead,

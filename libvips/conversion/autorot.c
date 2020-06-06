@@ -8,6 +8,7 @@
  * 	- don't remove orientation if it's one of the cases we don't handle
  * 10/5/20
  * 	- handle mirrored images
+ * 	- deprecate vips_autorot_get_angle()
  */
 
 /*
@@ -56,59 +57,13 @@ typedef struct _VipsAutorot {
 	VipsImage *in;
 
 	VipsAngle angle;
-
-    gboolean flip;
+	gboolean flip;
 
 } VipsAutorot;
 
 typedef VipsConversionClass VipsAutorotClass;
 
 G_DEFINE_TYPE( VipsAutorot, vips_autorot, VIPS_TYPE_CONVERSION );
-
-/**
- * vips_autorot_get_angle:
- * @image: image to fetch orientation from
- *
- * Examine the metadata on @im and return the #VipsAngle to rotate by to turn
- * the image upright. 
- *
- * See also: vips_autorot(). 
- *
- * Returns: the #VipsAngle to rotate by to make the image upright.
- */
-VipsAngle
-vips_autorot_get_angle( VipsImage *im )
-{
-	int orientation;
-	VipsAngle angle;
-
-	if( !vips_image_get_typeof( im, VIPS_META_ORIENTATION ) ||
-		vips_image_get_int( im, VIPS_META_ORIENTATION, &orientation ) )
-		orientation = 1;
-
-	switch( orientation ) {
-	case 6:
-		angle = VIPS_ANGLE_D90;
-		break;
-
-	case 8:
-		angle = VIPS_ANGLE_D270;
-		break;
-
-	case 3:
-		angle = VIPS_ANGLE_D180;
-		break;
-
-	default:
-		/* Other values do rotate + mirror, don't bother handling them
-		 * though, how common can mirroring be.
-		 */
-		angle = VIPS_ANGLE_D0;
-		break;
-	}
-
-	return( angle ); 
-}
 
 static void *
 vips_autorot_remove_angle_sub( VipsImage *image, 
@@ -130,14 +85,14 @@ vips_autorot_remove_angle_sub( VipsImage *image,
  * vips_autorot_remove_angle: (method)
  * @image: image to remove orientation from
  *
- * Remove the orientation tag on @image. Also remove any exif orientation tags. 
- *
- * See also: vips_autorot_get_angle(). 
+ * Remove the orientation tag on @image. Also remove any exif orientation tags.
+ * You must vips_copy() the image before calling this function since it
+ * modifies metadata.
  */
 void
 vips_autorot_remove_angle( VipsImage *image )
 {
-	(void) vips_image_remove( image, VIPS_META_ORIENTATION ); 
+	(void) vips_image_remove( image, VIPS_META_ORIENTATION );
 	(void) vips_image_map( image, vips_autorot_remove_angle_sub, NULL );
 }
 
@@ -151,88 +106,82 @@ vips_autorot_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_autorot_parent_class )->build( object ) )
 		return( -1 );
 	
-    int orientation = 0;
-    VipsAngle angle;
-    gboolean flip = FALSE;
-    
-    if( !vips_image_get_typeof( autorot->in, VIPS_META_ORIENTATION ) ||
-        vips_image_get_int( autorot->in, VIPS_META_ORIENTATION, &orientation ) )
-        orientation = 1;
+	VipsAngle angle;
+	gboolean flip;
+	VipsImage *in;
 
-    switch( orientation ) {
+	in = autorot->in;
 
-    case 2:
-        angle = VIPS_ANGLE_D0;
-        flip = TRUE;
-        break;
+	switch( vips_image_get_orientation( in ) ) {
+	case 2:
+		angle = VIPS_ANGLE_D0;
+		flip = TRUE;
+		break;
 
-    case 4:
-        flip = TRUE;
+	case 3:
+		angle = VIPS_ANGLE_D180;
+		flip = FALSE;
+		break;
 
-    case 3:
-        angle = VIPS_ANGLE_D180;
-        break;
-        
-    case 5:
-        flip = TRUE;
+	case 4:
+		angle = VIPS_ANGLE_D180;
+		flip = TRUE;
+		break;
 
-    case 6:
-        angle = VIPS_ANGLE_D90;
-        break;
-        
-    case 7:
-        flip = TRUE;
+	case 5:
+		angle = VIPS_ANGLE_D90;
+		flip = TRUE;
+		break;
 
-    case 8:
-        angle = VIPS_ANGLE_D270;
-        break;
-        
-    default:
-        angle = VIPS_ANGLE_D0;
-        flip = FALSE;
-        break;
-        
-    }
+	case 6:
+		angle = VIPS_ANGLE_D90;
+		flip = FALSE;
+		break;
 
-    g_object_set( object,
-                  "angle", angle,
-                  NULL );
+	case 7:
+		angle = VIPS_ANGLE_D270;
+		flip = TRUE;
+		break;
 
-    g_object_set( object,
-                  "flip", flip,
-                  NULL );
+	case 8:
+		angle = VIPS_ANGLE_D270;
+		flip = FALSE;
+		break;
 
-    if( angle != VIPS_ANGLE_D0 && flip) {
-        if( vips_rot( autorot->in, &t[0], angle, NULL ) )
-            return( -1 );
+	case 1:
+	default:
+		angle = VIPS_ANGLE_D0;
+		flip = FALSE;
+		break;
 
-        if( vips_flip( t[0], &t[1], VIPS_DIRECTION_HORIZONTAL, NULL ) )
-            return ( -1 );
+	}
 
-        if( vips_copy( t[1], &t[2], NULL ) )
-            return( -1 );
-    }
-    else if( angle != VIPS_ANGLE_D0 ) {
-        if( vips_rot( autorot->in, &t[0], angle, NULL))
-            return ( -1 );
+	g_object_set( object,
+		"angle", angle,
+		"flip", flip,
+		NULL );
 
-        if( vips_copy( t[0], &t[2], NULL))
-            return ( -1 );
-    }
-    else if( flip ) {
-        if( vips_flip( autorot->in, &t[0], VIPS_DIRECTION_HORIZONTAL, NULL ) )
-            return ( -1 );
+	if( angle != VIPS_ANGLE_D0 ) {
+		if( vips_rot( in, &t[0], angle, NULL ) )
+			return( -1 );
+		in = t[0];
+	}
 
-        if( vips_copy( t[0], &t[2], NULL ) )
-            return( -1 );
-    } else {
-        if( vips_copy( autorot->in, &t[2], NULL ) )
-            return( -1 );
-    }
+	if( flip ) { 
+		if( vips_flip( in, &t[1], VIPS_DIRECTION_HORIZONTAL, NULL ) )
+			return( -1 );
+		in = t[1];
+	}
 
-    vips_autorot_remove_angle( t[2] );
-    
-	if( vips_image_write( t[2], conversion->out ) )
+	/* We must copy before modifying metadata.
+	 */
+	if( vips_copy( in, &t[2], NULL ) )
+		return( -1 );
+	in = t[2];
+
+	vips_autorot_remove_angle( in );
+
+	if( vips_image_write( in, conversion->out ) )
 		return( -1 );
 
 	return( 0 );
@@ -265,11 +214,11 @@ vips_autorot_class_init( VipsAutorotClass *class )
 		VIPS_TYPE_ANGLE, VIPS_ANGLE_D0 );
 
     VIPS_ARG_BOOL( class, "flip", 7,
-                   _( "Flip" ),
-                   _( "Whether the image was flipped or not" ),
-                   VIPS_ARGUMENT_OPTIONAL_OUTPUT,
-                   G_STRUCT_OFFSET( VipsAutorot, flip ),
-                    FALSE);
+		_( "Flip" ),
+		_( "Whether the image was flipped or not" ),
+		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
+		G_STRUCT_OFFSET( VipsAutorot, flip ),
+		FALSE );
 }
 
 static void
@@ -288,15 +237,14 @@ vips_autorot_init( VipsAutorot *autorot )
  * Optional arguments:
  *
  * * @angle: output #VipsAngle the image was rotated by
- * * @flip: output whether the image was flipped 
+ * * @flip: output %gboolean whether the image was flipped 
  *
- * Look at the image metadata and rotate the image to make it upright. The
- * #VIPS_META_ORIENTATION tag is removed from @out to prevent accidental 
- * double rotation. 
+ * Look at the image metadata and rotate and flip the image to make it 
+ * upright. The #VIPS_META_ORIENTATION tag is removed from @out to prevent 
+ * accidental double rotation. 
  *
- * Read @angle to find the amount the image was rotated by.
- *
- * See also: vips_autorot_get_angle(), vips_autorot_remove_angle(), vips_rot().
+ * Read @angle to find the amount the image was rotated by. Read @flip to 
+ * see if the image was also flipped.
  *
  * Returns: 0 on success, -1 on error
  */
