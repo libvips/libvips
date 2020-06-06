@@ -20,6 +20,7 @@
  * 6/6/20 kleisauke
  * 	- deprecate @centre option, it's now always on
  * 	- fix pixel shift
+ * 	- speed up the mask construction for uchar/ushort images
  */
 
 /*
@@ -737,41 +738,7 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in, VipsImage **out )
 
 	VipsGenerateFn generate;
 
-	/* Build masks.
-	 */
-	for( int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++ ) {
-		reducev->matrixf[y] = 
-			VIPS_ARRAY( NULL, reducev->n_point, double ); 
-		if( !reducev->matrixf[y] )
-			return( -1 ); 
-
-		vips_reduce_make_mask( reducev->matrixf[y],
-			reducev->kernel, reducev->vshrink, 
-			(float) y / VIPS_TRANSFORM_SCALE ); 
-
-#ifdef DEBUG
-		printf( "%6.2g", (double) y / VIPS_TRANSFORM_SCALE ); 
-		for( int i = 0; i < reducev->n_point; i++ ) 
-			printf( ", %6.2g", reducev->matrixf[y][i] );
-		printf( "\n" ); 
-#endif /*DEBUG*/
-	}
-
-	/* uchar and ushort need an int version of the masks.
-	 */
-	if( VIPS_IMAGE_SIZEOF_ELEMENT( in ) <= 2 ) 
-		for( int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++ ) {
-			reducev->matrixi[y] = 
-				VIPS_ARRAY( NULL, reducev->n_point, int ); 
-			if( !reducev->matrixi[y] )
-				return( -1 ); 
-
-			vips_vector_to_fixed_point( 
-				reducev->matrixf[y], reducev->matrixi[y], 
-				reducev->n_point, VIPS_INTERPOLATE_SCALE );
-		}
-
-	/* And we need an 2.6 version if we will use the vector path.
+	/* We need an 2.6 version if we will use the vector path.
 	 */
 	if( in->BandFmt == VIPS_FORMAT_UCHAR &&
 		vips_vector_isenabled() ) 
@@ -884,6 +851,33 @@ vips_reducev_build( VipsObject *object )
 	 * from left and right. 
 	 */
 	reducev->voffset = (1 + extra_pixels) / 2.0;
+
+	/* Build the tables of pre-computed coefficients.
+	 */
+	for( int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++ ) {
+		reducev->matrixf[y] = 
+			VIPS_ARRAY( NULL, reducev->n_point, double ); 
+		reducev->matrixi[y] = 
+			VIPS_ARRAY( NULL, reducev->n_point, int ); 
+		if( !reducev->matrixf[y] ||
+			!reducev->matrixi[y] )
+			return( -1 ); 
+
+		vips_reduce_make_mask( reducev->matrixf[y],
+			reducev->kernel, reducev->vshrink, 
+			(float) y / VIPS_TRANSFORM_SCALE ); 
+
+		for( int i = 0; i < reducev->n_point; i++ )
+			reducev->matrixi[y][i] = reducev->matrixf[y][i] *
+				VIPS_INTERPOLATE_SCALE;
+
+#ifdef DEBUG
+		printf( "vips_reducev_build: mask %d\n    ", y ); 
+		for( int i = 0; i < reducev->n_point; i++ ) 
+			printf( "%d ", reducev->matrixi[y][i] );
+		printf( "\n" ); 
+#endif /*DEBUG*/
+	}
 
 	/* Unpack for processing.
 	 */
