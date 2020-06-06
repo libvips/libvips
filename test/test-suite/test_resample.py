@@ -82,8 +82,9 @@ class TestResample:
 
         for fac in [1, 1.1, 1.5, 1.999]:
             for fmt in all_formats:
-                for kernel in ["nearest", "linear",
-                               "cubic", "lanczos2", "lanczos3"]:
+                # TODO: Add nearest kernel when https://github.com/libvips/libvips/issues/1518 is done.
+                #       (running the test suite with VIPS_NOVECTOR=1 should also work)
+                for kernel in ["linear", "cubic", "lanczos2", "lanczos3"]:
                     x = im.cast(fmt)
                     r = x.reduce(fac, fac, kernel=kernel)
                     d = abs(r.avg() - im.avg())

@@ -17,6 +17,9 @@
  * 	- add @centre option
  * 7/3/17
  * 	- add a seq line cache
+ * 6/6/20 kleisauke
+ * 	- deprecate @centre option, it's now always on
+ * 	- fix pixel shift
  */
 
 /*
@@ -104,13 +107,13 @@ typedef struct _VipsReducev {
 	 */
 	VipsKernel kernel;
 
-	/* Use centre rather than corner sampling convention.
-	 */
-	gboolean centre;
-
 	/* Number of points in kernel.
 	 */
 	int n_point;
+
+	/* Vertical displacement.
+	 */
+	double voffset;
 
 	/* Precalculated interpolation matrices. int (used for pel
 	 * sizes up to short), and double (for all others). We go to
@@ -127,6 +130,10 @@ typedef struct _VipsReducev {
 	 */
 	int n_pass;	
 	Pass pass[MAX_PASS];
+
+	/* Deprecated.
+	 */
+	gboolean centre;
 
 } VipsReducev;
 
@@ -531,22 +538,22 @@ vips_reducev_gen( VipsRegion *out_region, void *vseq,
 #endif /*DEBUG*/
 
 	s.left = r->left;
-	s.top = r->top * reducev->vshrink;
+	s.top = r->top * reducev->vshrink - reducev->voffset;
 	s.width = r->width;
 	s.height = r->height * reducev->vshrink + reducev->n_point;
-	if( reducev->centre )
-		s.height += 1;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
 
 	VIPS_GATE_START( "vips_reducev_gen: work" ); 
 
+	double Y = (r->top + 0.5) * reducev->vshrink - 0.5 - 
+		reducev->voffset;
+
 	for( int y = 0; y < r->height; y ++ ) { 
 		VipsPel *q = 
 			VIPS_REGION_ADDR( out_region, r->left, r->top + y );
-		const double Y = (r->top + y) * reducev->vshrink + 
-			(reducev->centre ? 0.5 : 0.0); 
-		VipsPel *p = VIPS_REGION_ADDR( ir, r->left, (int) Y ); 
+		const int py = (int) Y; 
+		VipsPel *p = VIPS_REGION_ADDR( ir, r->left, py ); 
 		const int sy = Y * VIPS_TRANSFORM_SCALE * 2;
 		const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
 		const int ty = (siy + 1) >> 1;
@@ -606,13 +613,15 @@ vips_reducev_gen( VipsRegion *out_region, void *vseq,
 		case VIPS_FORMAT_DPCOMPLEX:
 		case VIPS_FORMAT_DOUBLE:
 			reducev_notab<double>( reducev,
-				q, p, ne, lskip, Y - (int) Y );
+				q, p, ne, lskip, Y - py );
 			break;
 
 		default:
 			g_assert_not_reached();
 			break;
 		}
+
+		Y += reducev->vshrink;
 	}
 
 	VIPS_GATE_STOP( "vips_reducev_gen: work" ); 
@@ -646,9 +655,8 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 	s.left = r->left;
 	s.top = r->top * reducev->vshrink;
 	s.width = r->width;
-	s.height = r->height * reducev->vshrink + reducev->n_point;
-	if( reducev->centre )
-		s.height += 1;
+	s.height = r->height * reducev->vshrink + reducev->n_point - 
+		reducev->voffset;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
 
@@ -663,11 +671,12 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 
 	VIPS_GATE_START( "vips_reducev_vector_gen: work" ); 
 
+	double Y = (r->top + 0.5) * reducev->vshrink - 0.5 - 
+		reducev->voffset;
+
 	for( int y = 0; y < r->height; y ++ ) { 
 		VipsPel *q = 
 			VIPS_REGION_ADDR( out_region, r->left, r->top + y );
-		const double Y = (r->top + y) * reducev->vshrink + 
-			(reducev->centre ? 0.5 : 0.0); 
 		const int py = (int) Y; 
 		const int sy = Y * VIPS_TRANSFORM_SCALE * 2;
 		const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
@@ -682,7 +691,7 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 		printf( "first column of pixel values:\n" ); 
 		for( int i = 0; i < reducev->n_point; i++ ) 
 			printf( "\t%d - %d\n", i, 
-				*VIPS_REGION_ADDR( ir, r->left, r->top + y + i ) ); 
+				*VIPS_REGION_ADDR( ir, r->left, py ) ); 
 #endif /*DEBUG_PIXELS*/
 
 		/* We run our n passes to generate this scanline.
@@ -709,6 +718,8 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 		printf( "pixel result:\n" );
 		printf( "\t%d\n", *q ); 
 #endif /*DEBUG_PIXELS*/
+
+		Y += reducev->vshrink;
 	}
 
 	VIPS_GATE_STOP( "vips_reducev_vector_gen: work" ); 
@@ -830,7 +841,7 @@ vips_reducev_build( VipsObject *object )
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
 	VipsImage *in;
-	int height;
+	double height, extra_pixels;
 
 	if( VIPS_OBJECT_CLASS( vips_reducev_parent_class )->build( object ) )
 		return( -1 );
@@ -855,6 +866,25 @@ vips_reducev_build( VipsObject *object )
 		return( -1 );
 	}
 
+	/* Output size. We need to always round to nearest, so round(), not
+	 * rint().
+	 */
+	height = VIPS_ROUND_UINT(
+		(double) resample->in->Ysize / reducev->vshrink );
+
+	/* How many pixels we are inventing in the input, -ve for
+	 * discarding.
+	 */
+	extra_pixels =
+		height * reducev->vshrink - resample->in->Ysize;
+
+	/* If we are rounding down, we are not using some input
+	 * pixels. We need to move the origin *inside* the input image
+	 * by half that distance so that we discard pixels equally
+	 * from left and right. 
+	 */
+	reducev->voffset = (1 + extra_pixels) / 2.0;
+
 	/* Unpack for processing.
 	 */
 	if( vips_image_decode( in, &t[0] ) )
@@ -863,12 +893,9 @@ vips_reducev_build( VipsObject *object )
 
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
-	height = in->Ysize + reducev->n_point - 1;
-	if( reducev->centre )
-		height += 1;
 	if( vips_embed( in, &t[1], 
 		0, reducev->n_point / 2 - 1, 
-		in->Xsize, height, 
+		in->Xsize, in->Ysize + reducev->n_point, 
 		"extend", VIPS_EXTEND_COPY,
 		(void *) NULL ) )
 		return( -1 );
@@ -939,13 +966,6 @@ vips_reducev_class_init( VipsReducevClass *reducev_class )
 		G_STRUCT_OFFSET( VipsReducev, kernel ),
 		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
 
-	VIPS_ARG_BOOL( reducev_class, "centre", 7, 
-		_( "Centre" ), 
-		_( "Use centre sampling convention" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsReducev, centre ),
-		FALSE );
-
 	/* Old name.
 	 */
 	VIPS_ARG_DOUBLE( reducev_class, "yshrink", 3, 
@@ -954,6 +974,15 @@ vips_reducev_class_init( VipsReducevClass *reducev_class )
 		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsReducev, vshrink ),
 		1, 1000000, 1 );
+
+	/* We used to let people pick centre or corner, but it's automatic now.
+	 */
+	VIPS_ARG_BOOL( reducev_class, "centre", 7,
+		_( "Centre" ),
+		_( "Use centre sampling convention" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsReducev, centre ),
+		FALSE );
 
 }
 
