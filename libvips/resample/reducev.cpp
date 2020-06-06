@@ -553,8 +553,8 @@ vips_reducev_gen( VipsRegion *out_region, void *vseq,
 	for( int y = 0; y < r->height; y ++ ) { 
 		VipsPel *q = 
 			VIPS_REGION_ADDR( out_region, r->left, r->top + y );
-		const int py = (int) Y; 
-		VipsPel *p = VIPS_REGION_ADDR( ir, r->left, py ); 
+		const int py = (int) Y;
+		VipsPel *p = VIPS_REGION_ADDR( ir, r->left, py );
 		const int sy = Y * VIPS_TRANSFORM_SCALE * 2;
 		const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
 		const int ty = (siy + 1) >> 1;
@@ -678,7 +678,7 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 	for( int y = 0; y < r->height; y ++ ) { 
 		VipsPel *q = 
 			VIPS_REGION_ADDR( out_region, r->left, r->top + y );
-		const int py = (int) Y; 
+		const int py = (int) Y;
 		const int sy = Y * VIPS_TRANSFORM_SCALE * 2;
 		const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
 		const int ty = (siy + 1) >> 1;
@@ -872,7 +872,7 @@ vips_reducev_build( VipsObject *object )
 				VIPS_INTERPOLATE_SCALE;
 
 #ifdef DEBUG
-		printf( "vips_reducev_build: mask %d\n    ", y ); 
+		printf( "vips_reducev_build: mask %d\n    ", y );
 		for( int i = 0; i < reducev->n_point; i++ ) 
 			printf( "%d ", reducev->matrixi[y][i] );
 		printf( "\n" ); 

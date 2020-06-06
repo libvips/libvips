@@ -498,7 +498,7 @@ vips_reduceh_build( VipsObject *object )
 				VIPS_INTERPOLATE_SCALE;
 
 #ifdef DEBUG
-		printf( "vips_reduceh_build: mask %d\n    ", x ); 
+		printf( "vips_reduceh_build: mask %d\n    ", x );
 		for( int i = 0; i < reduceh->n_point; i++ )
 			printf( "%d ", reduceh->matrixi[x][i] );
 		printf( "\n" ); 
