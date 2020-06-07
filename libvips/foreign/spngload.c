@@ -171,12 +171,45 @@ vips_foreign_load_png_get_flags_filename( const char *filename )
 static void
 vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 {
+	struct spng_iccp iccp;
+	struct spng_text *text;
+	guint32 n_text;
+	int ret;
+
 	vips_image_init_fields( image,
 		png->ihdr.width, png->ihdr.height, png->bands,
 		png->format, VIPS_CODING_NONE, png->interpretation, 
 		1.0, 1.0 );
 	VIPS_SETSTR( image->filename, 
 		vips_connection_filename( VIPS_CONNECTION( png->source ) ) );
+
+	/* Attach ICC profile.
+	 */
+	if( !spng_get_iccp( png->ctx, &iccp ) ) {
+		printf( "attaching profile %s, %zd bytes\n", 
+			iccp.profile_name, iccp.profile_len );
+
+		vips_image_set_blob_copy( image, 
+			VIPS_META_ICC_NAME, iccp.profile, iccp.profile_len );
+	}
+
+	/*
+	spng_get_text( png->ctx, NULL, &n_text );
+	printf( "reading %" G_GUINT32_FORMAT " text chunks\n", n_text );
+	text = VIPS_ARRAY( VIPS_OBJECT( png ), n_text, struct spng_text );
+	if( !spng_get_text( png->ctx, text, &n_text ) ) {
+		guint32 i;
+
+		for( i = 0; i < n_text; i++ ) {
+			printf( "chunk %d: keyword %s, type %d, length %zd\n",
+				i, text[i].keyword, text[i].type, 
+				text[i].length );
+		}
+	}
+	 */
+
+	/* FIXME ... get resolution, exif, xmp, etc. etc.
+	 */
 
 	/* 0 is no interlace.
 	 */
@@ -288,9 +321,6 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 	}
 	else 
 		png->format = VIPS_FORMAT_UCHAR;
-
-	/* FIXME ... get resolution, profile, exif, xmp, etc. etc.
-	 */
 
 	vips_source_minimise( png->source );
 
