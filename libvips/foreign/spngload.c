@@ -168,48 +168,55 @@ vips_foreign_load_png_get_flags_filename( const char *filename )
 	return( flags );
 }
 
+/* Set the png text data as metadata on the vips image. These are always
+ * null-terminated strings.
+ */
+static void
+vips_foreign_load_png_set_text( VipsImage *out, 
+	int i, const char *key, const char *value ) 
+{
+#ifdef DEBUG
+	printf( "vips_foreign_load_png_set_text: key %s, value %s\n", 
+		key, value );
+#endif /*DEBUG*/
+
+	if( strcmp( key, "XML:com.adobe.xmp" ) == 0 ) {
+		/* Save as an XMP tag. This must be a BLOB, for compatibility
+		 * for things like the XMP blob that the tiff loader adds.
+		 *
+		 * Note that this will remove the null-termination from the
+		 * string. We must carefully reattach this.
+		 */
+		vips_image_set_blob_copy( out, 
+			VIPS_META_XMP_NAME, value, strlen( value ) );
+	}
+	else  {
+		char name[256];
+
+		/* Save as a string comment. Some PNGs have EXIF data as
+		 * text segments, unfortunately.
+		 */
+		vips_snprintf( name, 256, "png-comment-%d-%s", i, key );
+
+		vips_image_set_string( out, name, value );
+	}
+}
+
 static void
 vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 {
 	struct spng_iccp iccp;
 	struct spng_text *text;
+	struct spng_exif exif;
 	guint32 n_text;
-	int ret;
 
 	vips_image_init_fields( image,
 		png->ihdr.width, png->ihdr.height, png->bands,
 		png->format, VIPS_CODING_NONE, png->interpretation, 
 		1.0, 1.0 );
+
 	VIPS_SETSTR( image->filename, 
 		vips_connection_filename( VIPS_CONNECTION( png->source ) ) );
-
-	/* Attach ICC profile.
-	 */
-	if( !spng_get_iccp( png->ctx, &iccp ) ) {
-		printf( "attaching profile %s, %zd bytes\n", 
-			iccp.profile_name, iccp.profile_len );
-
-		vips_image_set_blob_copy( image, 
-			VIPS_META_ICC_NAME, iccp.profile, iccp.profile_len );
-	}
-
-	/*
-	spng_get_text( png->ctx, NULL, &n_text );
-	printf( "reading %" G_GUINT32_FORMAT " text chunks\n", n_text );
-	text = VIPS_ARRAY( VIPS_OBJECT( png ), n_text, struct spng_text );
-	if( !spng_get_text( png->ctx, text, &n_text ) ) {
-		guint32 i;
-
-		for( i = 0; i < n_text; i++ ) {
-			printf( "chunk %d: keyword %s, type %d, length %zd\n",
-				i, text[i].keyword, text[i].type, 
-				text[i].length );
-		}
-	}
-	 */
-
-	/* FIXME ... get resolution, exif, xmp, etc. etc.
-	 */
 
 	/* 0 is no interlace.
 	 */
@@ -223,6 +230,43 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 		/* Interlaced images are read via a huge memory buffer.
 		 */
 		vips_image_pipelinev( image, VIPS_DEMAND_STYLE_ANY, NULL );
+
+	if( !spng_get_iccp( png->ctx, &iccp ) ) 
+		vips_image_set_blob_copy( image, 
+			VIPS_META_ICC_NAME, iccp.profile, iccp.profile_len );
+
+	spng_get_text( png->ctx, NULL, &n_text );
+	text = VIPS_ARRAY( VIPS_OBJECT( png ), n_text, struct spng_text );
+	if( !spng_get_text( png->ctx, text, &n_text ) ) {
+		guint32 i;
+
+		for( i = 0; i < n_text; i++ ) 
+			/* .text is always a null-terminated C string.
+			 */
+			vips_foreign_load_png_set_text( image, 
+				i, text[i].keyword, text[i].text );
+	}
+
+	if( !spng_get_exif( png->ctx, &exif ) ) 
+		vips_image_set_blob_copy( image, VIPS_META_EXIF_NAME, 
+			exif.data, exif.length );
+
+	/* Attach original palette bit depth, if any, as metadata.
+	 *
+	 * FIXME ... when we get palette support done
+	 *
+	if( color_type == PNG_COLOR_TYPE_PALETTE )
+		vips_image_set_int( out, "palette-bit-depth", bit_depth );
+	 */
+
+	/* Let our caller know. These are very expensive to decode.
+	 */
+	if( png->ihdr.interlace_method != 0 ) 
+		vips_image_set_int( image, "interlaced", 1 ); 
+
+	/* FIXME ... get resolution, etc. etc.
+	 */
+
 }
 
 static int
