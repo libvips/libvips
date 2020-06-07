@@ -33,14 +33,12 @@
 
 /* TODO
  *
- * an enum for interlace_method would be nice ... ADAM7 == 1, no interlace == 0
- *
  * an equivalent of png_sig_cmp() from libpng (is_a_png on a memory area)
+ * would be useful
  *
  * test indexed decode
  *
- * most metadata support (eg. XMP, ICC, etc. etc.) is missing ... we will need 
- * to set a chunk size limit with spng_set_chunks_limits()
+ * set a chunk size limit with spng_set_chunks_limits() when that API is done
  *
  * load only, there's no save support for now
  *
@@ -138,7 +136,7 @@ vips_foreign_load_png_get_flags_source( VipsSource *source )
 	spng_ctx_free( ctx );
 
 	flags = 0;
-	if( ihdr.interlace_method != 0 )
+	if( ihdr.interlace_method != SPNG_INTERLACE_NONE )
 		flags |= VIPS_FOREIGN_PARTIAL;
 	else
 		flags |= VIPS_FOREIGN_SEQUENTIAL;
@@ -220,7 +218,7 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 
 	/* 0 is no interlace.
 	 */
-	if( png->ihdr.interlace_method == 0 ) 
+	if( png->ihdr.interlace_method == SPNG_INTERLACE_NONE ) 
 		/* Sequential mode needs thinstrip to work with things like
 		 * vips_shrink().
 		 */
@@ -261,7 +259,7 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 
 	/* Let our caller know. These are very expensive to decode.
 	 */
-	if( png->ihdr.interlace_method != 0 ) 
+	if( png->ihdr.interlace_method != SPNG_INTERLACE_NONE ) 
 		vips_image_set_int( image, "interlaced", 1 ); 
 
 	/* FIXME ... get resolution, etc. etc.
@@ -463,7 +461,7 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 	if( vips_source_decode( png->source ) )
 		return( -1 );
 
-	if( png->ihdr.interlace_method != 0 ) {
+	if( png->ihdr.interlace_method != SPNG_INTERLACE_NONE ) {
 		/* Arg awful interlaced image. We have to load to a huge mem 
 		 * buffer, then copy to out.
 		 */
