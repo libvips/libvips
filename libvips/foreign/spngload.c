@@ -41,12 +41,11 @@
  * set a chunk size limit with spng_set_chunks_limits() when that API is done
  *
  * load only, there's no save support for now
- *
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -316,37 +315,28 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 
 
 	switch( png->ihdr.color_type ) {
+	case SPNG_COLOR_TYPE_GRAYSCALE_ALPHA:
 	case SPNG_COLOR_TYPE_GRAYSCALE:
 		png->bands = 1;
-		png->interpretation = VIPS_INTERPRETATION_B_W;
-		png->fmt = SPNG_FMT_PNG;
-		break;
-
-	case SPNG_COLOR_TYPE_GRAYSCALE_ALPHA:
-		png->bands = 2;
+		if( !spng_get_trns( png->ctx ) ) 
+			png->bands += 1;
 		png->interpretation = VIPS_INTERPRETATION_B_W;
 		png->fmt = SPNG_FMT_PNG;
 		break;
 
 	case SPNG_COLOR_TYPE_TRUECOLOR:
+	case SPNG_COLOR_TYPE_TRUECOLOR_ALPHA:
 		png->bands = 3;
+		if( !spng_get_trns( png->ctx ) ) 
+			png->bands += 1;
 		png->interpretation = VIPS_INTERPRETATION_sRGB;
 		png->fmt = SPNG_FMT_PNG;
 		break;
 
 	case SPNG_COLOR_TYPE_INDEXED:
-		png->bands = 3;
-		png->interpretation = VIPS_INTERPRETATION_sRGB;
-
-		/* Expand indexed images to RGB8.
-		 */
-		png->fmt = SPNG_FMT_RGB8;
-		break;
-
-	case SPNG_COLOR_TYPE_TRUECOLOR_ALPHA:
 		png->bands = 4;
 		png->interpretation = VIPS_INTERPRETATION_sRGB;
-		png->fmt = SPNG_FMT_PNG;
+		png->fmt = SPNG_FMT_RGBA8;
 		break;
 
 	default:
@@ -457,9 +447,14 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 		vips_object_local_array( VIPS_OBJECT( load ), 3 );
 
 	int error;
+	enum spng_decode_flags;
 
 	if( vips_source_decode( png->source ) )
 		return( -1 );
+
+	/* We want the alpha, if present.
+	 */
+	flags = SPNG_DECODE_TRNS;
 
 	if( png->ihdr.interlace_method != SPNG_INTERLACE_NONE ) {
 		/* Arg awful interlaced image. We have to load to a huge mem 
@@ -473,7 +468,7 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 		if( (error = spng_decode_image( png->ctx, 
 			VIPS_IMAGE_ADDR( t[0], 0, 0 ), 
 			VIPS_IMAGE_SIZEOF_IMAGE( t[0] ), 
-			png->fmt, 0 )) ) {
+			png->fmt, flags )) ) {
 			vips_error( class->nickname, 
 				"%s", spng_strerror( error ) ); 
 			return( -1 );
@@ -486,10 +481,12 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 		t[0] = vips_image_new();
 		vips_foreign_load_png_set_header( png, t[0] );
 
-		/* Initialize for progressive decoding.
+		/* We can decode regular PNGs progressively.
 		 */
+		flags |= SPNG_DECODE_PROGRESSIVE;
+
 		if( (error = spng_decode_image( png->ctx, NULL, 0, 
-			png->fmt, SPNG_DECODE_PROGRESSIVE )) ) {
+			png->fmt, flags )) ) {
 			vips_error( class->nickname, 
 				"%s", spng_strerror( error ) ); 
 			return( -1 );
