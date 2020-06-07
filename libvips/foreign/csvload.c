@@ -413,6 +413,10 @@ vips_foreign_load_csv_load( VipsForeignLoad *load )
 	for( y = 0; y < load->real->Ysize; y++ ) {
 		csv->colno = 0;
 
+		/* Not needed, but stops a used-before-set compiler warning.
+		 */
+		ch = EOF;
+
 		for( x = 0; x < load->real->Xsize; x++ ) {
 			double value;
 

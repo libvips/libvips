@@ -21,6 +21,8 @@
  * 	- xres/yres params were in pixels/cm
  * 26/1/20
  * 	- add "depth" to set pyr depth
+ * 12/5/20
+ * 	- add "subifd" to create pyr layers as sub-directories
  */
 
 /*
@@ -98,6 +100,8 @@ typedef struct _VipsForeignSaveTiff {
 	int level;
 	gboolean lossless;
 	VipsForeignDzDepth depth;
+	gboolean subifd;
+
 } VipsForeignSaveTiff;
 
 typedef VipsForeignSaveClass VipsForeignSaveTiffClass;
@@ -327,7 +331,7 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 		1, 22, 10 );
 
 	VIPS_ARG_BOOL( class, "lossless", 24, 
-		_( "lossless" ), 
+		_( "Lossless" ), 
 		_( "Enable WEBP lossless mode" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, lossless ),
@@ -339,6 +343,13 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, depth ),
 		VIPS_TYPE_FOREIGN_DZ_DEPTH, VIPS_FOREIGN_DZ_DEPTH_ONETILE ); 
+
+	VIPS_ARG_BOOL( class, "subifd", 24, 
+		_( "Sub-IFD" ), 
+		_( "Save pyr layers as sub-IFDs" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveTiff, subifd ),
+		FALSE );
 
 }
 
@@ -396,7 +407,8 @@ vips_foreign_save_tiff_file_build( VipsObject *object )
 		tiff->region_shrink,
 		tiff->level,
 		tiff->lossless,
-		tiff->depth ) )
+		tiff->depth,
+		tiff->subifd ) )
 		return( -1 );
 
 	return( 0 );
@@ -468,7 +480,8 @@ vips_foreign_save_tiff_buffer_build( VipsObject *object )
 		tiff->region_shrink,
 		tiff->level,
 		tiff->lossless, 
-		tiff->depth ) )
+		tiff->depth,
+		tiff->subifd ) )
 		return( -1 );
 
 	/* vips__tiff_write_buf() makes a buffer that needs g_free(), not
@@ -537,6 +550,7 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * * @level: %gint, Zstd compression level
  * * @lossless: %gboolean, WebP losssless mode
  * * @depth: #VipsForeignDzDepth how deep to make the pyramid
+ * * @subifd: %gboolean write pyr layers as sub-ifds
  *
  * Write a VIPS image to a file as TIFF.
  *
@@ -620,6 +634,10 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * #VIPS_META_PHOTOSHOP_NAME (if set) is used to set the value of the PHOTOSHOP
  * tag.
  *
+ * By default, pyramid layers are saved as consecutive pages. 
+ * Set @subifd to save pyramid layers as sub-directories of the main image.
+ * Setting this option can improve compatibility with formats like OME.
+ *
  * See also: vips_tiffload(), vips_image_write_to_file().
  *
  * Returns: 0 on success, -1 on error.
@@ -665,6 +683,7 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
  * * @level: %gint, Zstd compression level
  * * @lossless: %gboolean, WebP losssless mode
  * * @depth: #VipsForeignDzDepth how deep to make the pyramid
+ * * @subifd: %gboolean write pyr layers as sub-ifds
  *
  * As vips_tiffsave(), but save to a memory buffer. 
  *

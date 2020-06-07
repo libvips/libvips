@@ -818,7 +818,7 @@ vips_image_get_page_height( VipsImage *image )
  * vips_image_get_n_pages: (method)
  * @image: image to get from
  *
- * Fetch and sanity-check VIPS_META_N_PAGES. Default to 1 if not present or
+ * Fetch and sanity-check #VIPS_META_N_PAGES. Default to 1 if not present or
  * crazy.
  *
  * This is the number of pages in the image file, not the number of pages that
@@ -838,6 +838,70 @@ vips_image_get_n_pages( VipsImage *image )
 		return( n_pages );
 
 	return(	1 );
+}
+
+/**
+ * vips_image_get_n_subifds: (method)
+ * @image: image to get from
+ *
+ * Fetch and sanity-check #VIPS_META_N_SUBIFDS. Default to 0 if not present or
+ * crazy.
+ *
+ * Returns: the number of subifds in the image file
+ */
+int
+vips_image_get_n_subifds( VipsImage *image )
+{
+	int n_subifds;
+
+	if( vips_image_get_typeof( image, VIPS_META_N_SUBIFDS ) &&
+		!vips_image_get_int( image, VIPS_META_N_SUBIFDS, &n_subifds ) &&
+		n_subifds > 1 &&
+		n_subifds < 1000 )
+		return( n_subifds );
+
+	return(	0 );
+}
+
+/**
+ * vips_image_get_orientation: (method)
+ * @image: image to get from
+ *
+ * Fetch and sanity-check #VIPS_META_ORIENTATION. Default to 1 (no rotate, 
+ * no flip) if not present or crazy.
+ *
+ * Returns: the image orientation.
+ */
+int
+vips_image_get_orientation( VipsImage *image )
+{
+	int orientation;
+
+	if( vips_image_get_typeof( image, VIPS_META_ORIENTATION ) &&
+		!vips_image_get_int( image, VIPS_META_ORIENTATION, 
+			&orientation ) &&
+		orientation > 0 &&
+		orientation < 9 )
+		return( orientation );
+
+	return( 1 );
+}
+
+/**
+ * vips_image_get_orientation_swap: (method)
+ * @image: image to get from
+ *
+ * Return %TRUE if applying the orientation would swap width and height.
+ *
+ * Returns: if width/height will swap
+ */
+gboolean
+vips_image_get_orientation_swap( VipsImage *image )
+{
+	int orientation = vips_image_get_orientation( image );
+
+	return( orientation >= 5 &&
+		orientation <= 8 );
 }
 
 /**
@@ -934,14 +998,11 @@ static int
 meta_cp( VipsImage *dst, const VipsImage *src )
 {
 	if( src->meta ) {
-		/* Loop, copying fields.
-		 */
-		meta_init( dst );
-
 		/* We lock with vips_image_set() to stop races in highly-
 		 * threaded applications.
 		 */
 		g_mutex_lock( vips__meta_lock );
+		meta_init( dst );
 		vips_slist_map2( src->meta_traverse,
 			(VipsSListMap2Fn) meta_cp_field, dst, NULL );
 		g_mutex_unlock( vips__meta_lock );
@@ -1032,8 +1093,6 @@ vips_image_set( VipsImage *image, const char *name, GValue *value )
 	g_assert( name );
 	g_assert( value );
 
-	meta_init( image );
-
 	/* We lock between modifying metadata and copying metadata between
 	 * images, see meta_cp().
 	 *
@@ -1042,6 +1101,7 @@ vips_image_set( VipsImage *image, const char *name, GValue *value )
 	 * highly-threaded applications.
 	 */
 	g_mutex_lock( vips__meta_lock );
+	meta_init( image );
 	(void) meta_new( image, name, value );
 	g_mutex_unlock( vips__meta_lock );
 

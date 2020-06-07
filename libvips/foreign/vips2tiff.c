@@ -193,6 +193,8 @@
  * 	- write XYZ images as logluv
  * 7/2/20 [jclavoie-jive]
  * 	- add PAGENUMBER support
+ * 23/5/20
+ * 	- add support for subifd pyramid layers
  */
 
 /*
@@ -246,6 +248,21 @@
 
 #include "pforeign.h"
 #include "tiff.h"
+
+/* TODO:
+ *
+ * - add a flag for plane-separate write
+ *
+ *   	At the moment, we write bioformats-style TIFFs by splitting bands up,
+ *   	making a toilet-roll image and writing out in pages. The TIFFs we make
+ *   	are not tagged as plane-separate and do not have (eg.) RGB photometric
+ *   	interpretation. Moreover, when working from an RGB source, we'll end
+ *   	up reading the input three times.
+ *
+ *   	A write-plane-separate flag to the TIFF writer could let us set the
+ *   	photometric interpretation correctly, and save all planes in a single
+ *   	pass before doing a final gather sweep.
+ */
 
 /* Max number of alpha channels we allow.
  */
@@ -334,6 +351,7 @@ struct _Wtiff {
 	int level;			/* zstd compression level */
 	gboolean lossless;		/* webp lossless mode */
 	VipsForeignDzDepth depth;	/* Pyr depth */
+	gboolean subifd;		/* Write pyr layers into subifds */
 
 	/* True if we've detected a toilet-roll image, plus the page height,
 	 * which has been checked to be a factor of im->Ysize. page_number
@@ -395,40 +413,62 @@ embed_profile_meta( TIFF *tif, VipsImage *im )
 	return( 0 );
 }
 
-static Layer *
-wtiff_layer_new( Wtiff *wtiff, Layer *above, int width, int height )
+static void
+wtiff_layer_init( Wtiff *wtiff, Layer **layer, Layer *above, 
+	int width, int height )
 {
-	Layer *layer;
+	if( !*layer ) {
+		*layer = VIPS_NEW( wtiff->ready, Layer );
+		(*layer)->wtiff = wtiff;
+		(*layer)->width = width;
+		(*layer)->height = height; 
 
-	layer = VIPS_NEW( wtiff->ready, Layer );
-	layer->wtiff = wtiff;
-	layer->width = width;
-	layer->height = height; 
+		if( !above )
+			/* Top of pyramid.
+			 */
+			(*layer)->sub = 1;	
+		else
+			(*layer)->sub = above->sub * 2;
 
-	if( !above )
-		/* Top of pyramid.
+		(*layer)->lname = NULL;
+		(*layer)->buf = NULL;
+		(*layer)->len = 0;
+		(*layer)->tif = NULL;
+		(*layer)->image = NULL;
+		(*layer)->write_y = 0;
+		(*layer)->y = 0;
+		(*layer)->strip = NULL;
+		(*layer)->copy = NULL;
+
+		(*layer)->below = NULL;
+		(*layer)->above = above;
+
+		/* The name for the top layer is the output filename.
+		 *
+		 * We need lname to be freed automatically: it has to stay 
+		 * alive until after wtiff_gather().
 		 */
-		layer->sub = 1;	
-	else
-		layer->sub = above->sub * 2;
+		if( wtiff->filename ) { 
+			if( !above ) 
+				(*layer)->lname = vips_strdup( 
+					VIPS_OBJECT( wtiff->ready ),
+					wtiff->filename );
+			else {
+				char *lname;
 
-	layer->lname = NULL;
-	layer->buf = NULL;
-	layer->len = 0;
-	layer->tif = NULL;
-	layer->image = NULL;
-	layer->write_y = 0;
-	layer->y = 0;
-	layer->strip = NULL;
-	layer->copy = NULL;
+				lname = vips__temp_name( "%s.tif" );
+				(*layer)->lname = vips_strdup( 
+					VIPS_OBJECT( wtiff->ready ),
+					lname );
+				g_free( lname );
+			}
+		}
 
-	layer->below = NULL;
-	layer->above = above;
-
-	/*
-	printf( "wtiff_layer_new: sub = %d, width = %d, height = %d\n",
-		layer->sub, width, height );
-	 */
+		/*
+		printf( "wtiff_layer_init: sub = %d, width = %d, height = %d\n",
+			(*layer)->sub, width, height );
+		 */
+	}
 
 	if( wtiff->pyramid ) {
 		int limitw, limith;
@@ -458,34 +498,13 @@ wtiff_layer_new( Wtiff *wtiff, Layer *above, int width, int height )
 		 * Very tall or wide images might end up with a smallest layer
 		 * larger than one tile.
 		 */
-		if( (layer->width > limitw || 
-			layer->height > limith) && 
-		 	layer->width > 1 && 
-		 	layer->height > 1 ) 
-			layer->below = wtiff_layer_new( wtiff, layer, 
+		if( ((*layer)->width > limitw || 
+			(*layer)->height > limith) && 
+		 	(*layer)->width > 1 && 
+		 	(*layer)->height > 1 ) 
+			wtiff_layer_init( wtiff, &(*layer)->below, *layer, 
 				width / 2, height / 2 );
 	}
-
-	/* The name for the top layer is the output filename.
-	 *
-	 * We need lname to be freed automatically: it has to stay 
-	 * alive until after wtiff_gather().
-	 */
-	if( wtiff->filename ) { 
-		if( !above ) 
-			layer->lname = vips_strdup( VIPS_OBJECT( wtiff->ready ),
-				wtiff->filename );
-		else {
-			char *lname;
-
-			lname = vips__temp_name( "%s.tif" );
-			layer->lname = vips_strdup( VIPS_OBJECT( wtiff->ready ),
-				lname );
-			g_free( lname );
-		}
-	}
-
-	return( layer );
 }
 
 static int
@@ -616,6 +635,11 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 	TIFF *tif = layer->tif;
 
 	int orientation; 
+
+#ifdef DEBUG
+	printf( "wtiff_write_header: sub %d, width %d, height %d\n",
+		layer->sub, layer->width, layer->height );
+#endif /*DEBUG*/
 
 	/* Output base header fields.
 	 */
@@ -845,37 +869,53 @@ wtiff_allocate_layers( Wtiff *wtiff )
 {
 	Layer *layer;
 
+	g_assert( wtiff->layer );
+
 	for( layer = wtiff->layer; layer; layer = layer->below ) {
-		layer->image = vips_image_new();
-		if( vips_image_pipelinev( layer->image, 
-			VIPS_DEMAND_STYLE_ANY, wtiff->ready, NULL ) ) 
-			return( -1 );
-		layer->image->Xsize = layer->width;
-		layer->image->Ysize = layer->height;
+		if( !layer->image ) {
+			layer->image = vips_image_new();
+			if( vips_image_pipelinev( layer->image, 
+				VIPS_DEMAND_STYLE_ANY, wtiff->ready, NULL ) ) 
+				return( -1 );
+			layer->image->Xsize = layer->width;
+			layer->image->Ysize = layer->height;
 
-		layer->strip = vips_region_new( layer->image );
-		layer->copy = vips_region_new( layer->image );
+			layer->strip = vips_region_new( layer->image );
+			layer->copy = vips_region_new( layer->image );
 
-		/* The regions will get used in the bg thread callback, so 
-		 * make sure we don't own them.
-		 */
-		vips__region_no_ownership( layer->strip );
-		vips__region_no_ownership( layer->copy );
+			/* The regions will get used in the bg thread callback,
+			 * so make sure we don't own them.
+			 */
+			vips__region_no_ownership( layer->strip );
+			vips__region_no_ownership( layer->copy );
+
+			if( layer->lname ) 
+				layer->tif = vips__tiff_openout( 
+					layer->lname, wtiff->bigtiff );
+			else {
+				layer->tif = vips__tiff_openout_buffer( 
+					wtiff->ready, wtiff->bigtiff, 
+					&layer->buf, &layer->len );
+			}
+			if( !layer->tif ) 
+				return( -1 );
+		}
 
 		if( wtiff_layer_rewind( wtiff, layer ) )
 			return( -1 ); 
 
-		if( layer->lname ) 
-			layer->tif = vips__tiff_openout( 
-				layer->lname, wtiff->bigtiff );
-		else {
-			layer->tif = vips__tiff_openout_buffer( wtiff->ready, 
-				wtiff->bigtiff, &layer->buf, &layer->len );
-		}
-		if( !layer->tif ) 
-			return( -1 );
-
 		if( wtiff_write_header( wtiff, layer ) )  
+			return( -1 );
+	}
+
+	if( !wtiff->tbuf ) { 
+		if( wtiff->tile ) 
+			wtiff->tbuf = vips_malloc( NULL, 
+				TIFFTileSize( wtiff->layer->tif ) );
+		else
+			wtiff->tbuf = vips_malloc( NULL, 
+				TIFFScanlineSize( wtiff->layer->tif ) );
+		if( !wtiff->tbuf ) 
 			return( -1 );
 	}
 
@@ -1032,7 +1072,8 @@ wtiff_new( VipsImage *input, const char *filename,
 	VipsRegionShrink region_shrink,
 	int level, 
 	gboolean lossless,
-	VipsForeignDzDepth depth )
+	VipsForeignDzDepth depth, 
+	gboolean subifd )
 {
 	Wtiff *wtiff;
 
@@ -1064,6 +1105,7 @@ wtiff_new( VipsImage *input, const char *filename,
 	wtiff->level = level;
 	wtiff->lossless = lossless;
 	wtiff->depth = depth;
+	wtiff->subifd = subifd;
 	wtiff->toilet_roll = FALSE;
 	wtiff->page_height = vips_image_get_page_height( input );
 	wtiff->page_number = 0;
@@ -1096,28 +1138,6 @@ wtiff_new( VipsImage *input, const char *filename,
 		wtiff->toilet_roll = TRUE;
 		wtiff->image_height = wtiff->page_height;
 		wtiff->n_pages = wtiff->ready->Ysize / wtiff->page_height;
-
-		/* We can't pyramid toilet roll images.
-		 */
-		if( wtiff->pyramid ) {
-			g_warning( "%s", 
-				_( "can't pyramid multi page images --- "
-					"disabling pyramid" ) ); 
-			wtiff->pyramid = FALSE;
-		}
-	}
-
-	/* In strip mode we use tileh to set rowsperstrip, and that does not
-	 * have the multiple-of-16 restriction.
-	 */
-	if( tile ) { 
-		if( (wtiff->tilew & 0xf) != 0 || 
-			(wtiff->tileh & 0xf) != 0 ) {
-			wtiff_free( wtiff );
-			vips_error( "vips2tiff", 
-				"%s", _( "tile size not a multiple of 16" ) );
-			return( NULL );
-		}
 	}
 
 	/* We can only pyramid LABQ and non-complex images. 
@@ -1129,6 +1149,41 @@ wtiff_new( VipsImage *input, const char *filename,
 			vips_error( "vips2tiff", 
 				"%s", _( "can only pyramid LABQ and "
 				"non-complex images" ) );
+			return( NULL );
+		}
+	}
+
+	/* Pyramid images must be tiled.
+	 */
+	if( wtiff->pyramid &&
+		!wtiff->tile )
+		wtiff->tile = TRUE;
+
+	/* Multi-page pyramids must be in subifd mode.
+	 */
+	if( wtiff->pyramid &&
+		wtiff->toilet_roll )
+		wtiff->subifd = TRUE;
+
+	/* If compression is off and we're writing a >4gb image, automatically
+	 * enable bigtiff.
+	 *
+	 * This won't always work. If the image data is just under 4gb but
+	 * there's a lot of metadata, we could be pushed over the 4gb limit.
+	 */
+	if( wtiff->compression == COMPRESSION_NONE &&
+		VIPS_IMAGE_SIZEOF_IMAGE( wtiff->ready ) > UINT_MAX )
+		wtiff->bigtiff = TRUE;
+
+	/* In strip mode we use tileh to set rowsperstrip, and that does not
+	 * have the multiple-of-16 restriction.
+	 */
+	if( wtiff->tile ) { 
+		if( (wtiff->tilew & 0xf) != 0 || 
+			(wtiff->tileh & 0xf) != 0 ) {
+			wtiff_free( wtiff );
+			vips_error( "vips2tiff", 
+				"%s", _( "tile size not a multiple of 16" ) );
 			return( NULL );
 		}
 	}
@@ -1189,42 +1244,6 @@ wtiff_new( VipsImage *input, const char *filename,
 	else
 		wtiff->tls = VIPS_IMAGE_SIZEOF_PEL( wtiff->ready ) * 
 			wtiff->tilew;
-
-	/* If compression is off and we're writing a >4gb image, automatically
-	 * enable bigtiff.
-	 *
-	 * This won't always work. If the image data is just under 4gb but
-	 * there's a lot of metadata, we could be pushed over the 4gb limit.
-	 */
-	if( wtiff->compression == COMPRESSION_NONE &&
-		VIPS_IMAGE_SIZEOF_IMAGE( wtiff->ready ) > UINT_MAX && 
-		!wtiff->bigtiff ) { 
-		g_warning( "%s", _( "image over 4gb, enabling bigtiff" ) );
-		wtiff->bigtiff = TRUE;
-	}
-
-	/* Build the pyramid framework.
-	 */
-	wtiff->layer = wtiff_layer_new( wtiff, NULL, 
-		wtiff->ready->Xsize, wtiff->image_height );
-
-	/* Fill all the layers.
-	 */
-	if( wtiff_allocate_layers( wtiff ) ) {
-		wtiff_free( wtiff );
-		return( NULL );
-	}
-
-	if( tile ) 
-		wtiff->tbuf = vips_malloc( NULL, 
-			TIFFTileSize( wtiff->layer->tif ) );
-	else
-		wtiff->tbuf = vips_malloc( NULL, 
-			TIFFScanlineSize( wtiff->layer->tif ) );
-	if( !wtiff->tbuf ) {
-		wtiff_free( wtiff );
-		return( NULL );
-	}
 
 	return( wtiff );
 }
@@ -1693,10 +1712,10 @@ write_strip( VipsRegion *region, VipsRect *area, void *a )
 	Wtiff *wtiff = (Wtiff *) a;
 	Layer *layer = wtiff->layer; 
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "write_strip: strip at %d, height %d\n", 
 		area->top, area->height );
-#endif/*DEBUG*/
+#endif/*DEBUG_VERBOSE*/
 
 	for(;;) {
 		VipsRect *to = &layer->strip->valid;
@@ -1858,7 +1877,7 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 	return( 0 );
 }
 
-/* Append all of the lower layers we wrote to the output.
+/* Append all of the layers we wrote to the output.
  */
 static int
 wtiff_gather( Wtiff *wtiff )
@@ -1873,13 +1892,12 @@ wtiff_gather( Wtiff *wtiff )
 			TIFF *in;
 
 #ifdef DEBUG
-			printf( "Appending layer %s ...\n", layer->lname );
+			printf( "appending layer %s ...\n", layer->lname );
 #endif /*DEBUG*/
 
 			if( layer->lname ) {
-				if( !(source = 
-					vips_source_new_from_file( 
-						layer->lname )) ) 
+				if( !(source = vips_source_new_from_file( 
+					layer->lname )) ) 
 					return( -1 );
 			}
 			else {
@@ -1892,12 +1910,14 @@ wtiff_gather( Wtiff *wtiff )
 				VIPS_UNREF( source );
 				return( -1 );
 			}
+
 			VIPS_UNREF( source );
 
 			if( wtiff_copy_tiff( wtiff, wtiff->layer->tif, in ) ) {
 				TIFFClose( in );
 				return( -1 );
 			}
+
 			TIFFClose( in );
 
 			if( !TIFFWriteDirectory( wtiff->layer->tif ) ) 
@@ -1907,77 +1927,109 @@ wtiff_gather( Wtiff *wtiff )
 	return( 0 );
 }
 
-/* Three types of write: single image, multipage and pyramid. 
+/* Write one page from our input image, optionally pyramiding it.
+ */
+static int
+wtiff_write_page( Wtiff *wtiff, VipsImage *page )
+{
+#ifdef DEBUG
+	printf( "wtiff_write_page:\n" ); 
+#endif /*DEBUG*/
+
+	/* Init the pyramid framework for this page. This will just make a 
+	 * single layer if we're not pyramiding.
+	 */
+	wtiff_layer_init( wtiff, &wtiff->layer, NULL, 
+		page->Xsize, page->Ysize );
+
+	/* Fill all the layers and write the TIFF headers.
+	 */
+	if( wtiff_allocate_layers( wtiff ) ) 
+		return( -1 );
+
+	/* In ifd mode, we write the pyramid layers as subdirectories of this
+	 * page.
+	 */
+	if( wtiff->subifd ) {
+		int n_layers;
+		toff_t *subifd_offsets;
+		Layer *p;
+
+#ifdef DEBUG
+		printf( "wtiff_write_page: OME pyr mode\n" ); 
+#endif /*DEBUG*/
+
+		/* This magic tag makes the n_layers directories we write 
+		 * after this one into subdirectories. We set the offsets to 0
+		 * and libtiff will fill them in automatically.
+		 */
+		for( n_layers = 0, p = wtiff->layer->below; p; p = p->below )
+			n_layers += 1;
+		subifd_offsets = VIPS_ARRAY( NULL, n_layers, toff_t );
+		memset( subifd_offsets, 0, n_layers * sizeof( toff_t ) );
+		TIFFSetField( wtiff->layer->tif, TIFFTAG_SUBIFD, 
+			n_layers, subifd_offsets );
+		g_free( subifd_offsets );
+	}
+
+	if( vips_sink_disc( page, write_strip, wtiff ) ) 
+		return( -1 );
+
+	if( !TIFFWriteDirectory( wtiff->layer->tif ) ) 
+		return( -1 );
+
+	/* Append any pyr layers, if necessary.
+	 */
+	if( wtiff->layer->below ) {
+		/* Free any lower pyramid resources ... this will 
+		 * TIFFClose() (but not delete) the smaller layers 
+		 * ready for us to read from them again.
+		 */
+		layer_free_all( wtiff->layer->below );
+
+		/* Append smaller layers to the main file.
+		 */
+		if( wtiff_gather( wtiff ) ) 
+			return( -1 );
+
+		/* We can delete any temps now ready for the next page.
+		 */
+		wtiff_delete_temps( wtiff );
+
+		/* And free all lower pyr layers ready to be rebuilt for the
+		 * next page.
+		 */
+		VIPS_FREEF( layer_free_all, wtiff->layer->below );
+	}
+
+	return( 0 );
+}
+
+/* Write all pages.
  */
 static int
 wtiff_write_image( Wtiff *wtiff )
 {
-	if( wtiff->toilet_roll ) {
-		int y;
+	int y;
+
+	for( y = 0; y < wtiff->ready->Ysize; y += wtiff->page_height ) {
+		VipsImage *page;
 
 #ifdef DEBUG
-		printf( "wtiff_write_image: toilet-roll mode\n" ); 
+		printf( "writing page %d ...\n", wtiff->page_number );
 #endif /*DEBUG*/
 
-		y = 0;
-		for(;;) {
-			VipsImage *page;
-
-			if( vips_crop( wtiff->ready, &page, 
-				0, y, wtiff->ready->Xsize, wtiff->page_height,
-				NULL ) )
-				return( -1 ); 
-			if( vips_sink_disc( page, write_strip, wtiff ) ) {
-				g_object_unref( page );
-				return( -1 );
-			}
+		if( vips_crop( wtiff->ready, &page, 
+			0, y, wtiff->ready->Xsize, wtiff->page_height,
+			NULL ) )
+			return( -1 ); 
+		if( wtiff_write_page( wtiff, page ) ) {
 			g_object_unref( page );
-
-			wtiff->page_number += 1;
-			y += wtiff->page_height;
-			if( y >= wtiff->ready->Ysize )
-				break;
-
-			if( !TIFFWriteDirectory( wtiff->layer->tif ) || 
-				wtiff_layer_rewind( wtiff, 
-					wtiff->layer ) ||
-				wtiff_write_header( wtiff, 
-					wtiff->layer ) )
-				return( -1 );
+			return( -1 );
 		}
-	}
-	else if( wtiff->pyramid ) {
-#ifdef DEBUG
-		printf( "wtiff_write_image: pyramid mode\n" ); 
-#endif /*DEBUG*/
+		g_object_unref( page );
 
-		if( vips_sink_disc( wtiff->ready, write_strip, wtiff ) ) 
-			return( -1 );
-
-		if( !TIFFWriteDirectory( wtiff->layer->tif ) ) 
-			return( -1 );
-
-		if( wtiff->pyramid ) { 
-			/* Free lower pyramid resources ... this will 
-			 * TIFFClose() (but not delete) the smaller layers 
-			 * ready for us to read from them again.
-			 */
-			if( wtiff->layer->below )
-				layer_free_all( wtiff->layer->below );
-
-			/* Append smaller layers to the main file.
-			 */
-			if( wtiff_gather( wtiff ) ) 
-				return( -1 );
-		}
-	}
-	else {
-#ifdef DEBUG
-		printf( "wtiff_write_image: single-image mode\n" ); 
-#endif /*DEBUG*/
-
-		if( vips_sink_disc( wtiff->ready, write_strip, wtiff ) ) 
-			return( -1 );
+		wtiff->page_number += 1;
 	}
 
 	return( 0 );
@@ -1999,7 +2051,8 @@ vips__tiff_write( VipsImage *input, const char *filename,
 	VipsRegionShrink region_shrink,
 	int level, 
 	gboolean lossless,
-	VipsForeignDzDepth depth )
+	VipsForeignDzDepth depth,
+	gboolean subifd )
 {
 	Wtiff *wtiff;
 
@@ -2013,7 +2066,8 @@ vips__tiff_write( VipsImage *input, const char *filename,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
-		properties, strip, region_shrink, level, lossless, depth )) )
+		properties, strip, region_shrink, level, lossless, depth,
+		subifd )) )
 		return( -1 );
 
 	if( wtiff_write_image( wtiff ) ) { 
@@ -2043,7 +2097,8 @@ vips__tiff_write_buf( VipsImage *input,
 	VipsRegionShrink region_shrink,
 	int level, 
 	gboolean lossless,
-	VipsForeignDzDepth depth )
+	VipsForeignDzDepth depth,
+	gboolean subifd )
 {
 	Wtiff *wtiff;
 
@@ -2053,7 +2108,8 @@ vips__tiff_write_buf( VipsImage *input,
 		compression, Q, predictor, profile,
 		tile, tile_width, tile_height, pyramid, squash,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
-		properties, strip, region_shrink, level, lossless, depth )) )
+		properties, strip, region_shrink, level, lossless, depth,
+		subifd )) )
 		return( -1 );
 
 	wtiff->obuf = obuf;

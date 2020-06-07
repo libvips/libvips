@@ -88,6 +88,8 @@
  * 	- add "background" parameter
  * 	- better clipping means we have no jaggies on edges
  * 	- premultiply alpha 
+ * 18/5/20
+ * 	- add "premultiplied" flag
  */
 
 /*
@@ -165,6 +167,10 @@ typedef struct _VipsAffine {
 	/* The [double] converted to the input image format.
 	 */
 	VipsPel *ink;
+
+	/* True if the input is already premultiplied (and we don't need to).
+	 */
+	gboolean premultiplied;
 
 } VipsAffine;
 
@@ -524,11 +530,13 @@ vips_affine_build( VipsObject *object )
 	affine->trn.idx -= 1;
 	affine->trn.idy -= 1;
 
-	/* If there's an alpha, we have to premultiply before resampling. See
+	/* If there's an alpha and we've not premultiplied, we have to 
+	 * premultiply before resampling. See 
 	 * https://github.com/libvips/libvips/issues/291
 	 */
 	have_premultiplied = FALSE;
-	if( vips_image_hasalpha( in ) ) { 
+	if( vips_image_hasalpha( in ) &&
+		!affine->premultiplied ) { 
 		if( vips_premultiply( in, &t[3], NULL ) ) 
 			return( -1 );
 		have_premultiplied = TRUE;
@@ -680,6 +688,13 @@ vips_affine_class_init( VipsAffineClass *class )
 		G_STRUCT_OFFSET( VipsAffine, background ),
 		VIPS_TYPE_ARRAY_DOUBLE );
 
+	VIPS_ARG_BOOL( class, "premultiplied", 117,
+		_( "Premultiplied" ),
+		_( "Images have premultiplied alpha" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsAffine, premultiplied ),
+		FALSE );
+
 }
 
 static void
@@ -709,6 +724,7 @@ vips_affine_init( VipsAffine *affine )
  * * @ody: %gdouble, output vertical offset
  * * @extend: #VipsExtend how to generate new pixels 
  * * @background: #VipsArrayDouble colour for new pixels 
+ * * @premultiplied: %gboolean, images are already premultiplied
  *
  * This operator performs an affine transform on an image using @interpolate.
  *
@@ -736,6 +752,10 @@ vips_affine_init( VipsAffine *affine )
  * @interpolate defaults to bilinear. 
  *
  * @idx, @idy, @odx, @ody default to zero.
+ *
+ * Image are normally treated as unpremultiplied, so this operation can be used
+ * directly on PNG images. If your images have been through vips_premultiply(),
+ * set @premultiplied. 
  *
  * This operation does not change xres or yres. The image resolution needs to
  * be updated by the application. 

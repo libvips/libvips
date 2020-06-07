@@ -76,7 +76,7 @@ im_tiff_read_header( const char *filename, VipsImage *out,
 	if( !(source = vips_source_new_from_file( filename )) )
 		return( -1 );
 	if( vips__tiff_read_header_source( source, 
-		out, page, n, autorotate ) ) {
+		out, page, n, autorotate, -1 ) ) {
 		VIPS_UNREF( source );
 		return( -1 );
 	}
@@ -93,7 +93,7 @@ im_tiff_read( const char *filename, VipsImage *out,
 
 	if( !(source = vips_source_new_from_file( filename )) )
 		return( -1 );
-	if( vips__tiff_read_source( source, out, page, n, autorotate ) ) {
+	if( vips__tiff_read_source( source, out, page, n, autorotate, -1 ) ) {
 		VIPS_UNREF( source );
 		return( -1 );
 	}

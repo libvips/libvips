@@ -1,17 +1,24 @@
 # vim: set fileencoding=utf-8 :
+import filecmp
 from functools import reduce
+
+import os
 import pytest
+import tempfile
+import shutil
 
 import pyvips
-from helpers import JPEG_FILE, unsigned_formats, \
+from helpers import IMAGES, JPEG_FILE, unsigned_formats, \
     signed_formats, float_formats, int_formats, \
     noncomplex_formats, all_formats, max_value, \
     sizeof_format, rot45_angles, rot45_angle_bonds, \
     rot_angles, rot_angle_bonds, run_cmp, run_cmp2, \
-    assert_almost_equal_objects
+    assert_almost_equal_objects, temp_filename
 
 
 class TestConversion:
+    tempdir = None
+    
     # run a function on an image,
     # 50,50 and 10,10 should have different values on the test image
     # don't loop over band elements
@@ -37,6 +44,7 @@ class TestConversion:
 
     @classmethod
     def setup_class(cls):
+        cls.tempdir = tempfile.mkdtemp()
         im = pyvips.Image.mask_ideal(100, 100, 0.5,
                                      reject=True, optical=True)
         cls.colour = (im * [1, 2, 3] + [2, 3, 4]).copy(interpretation="srgb")
@@ -46,6 +54,7 @@ class TestConversion:
 
     @classmethod
     def teardown_class(cls):
+        shutil.rmtree(cls.tempdir, ignore_errors=True)
         cls.colour = None
         cls.mono = None
         cls.image = None
@@ -738,6 +747,39 @@ class TestConversion:
                 diff = (after - im).abs().max()
                 assert diff == 0
 
+    def test_autorot(self):
+        rotation_images = os.path.join(IMAGES, 'rotation')
+        files = os.listdir(rotation_images)
+        files.sort()
+
+        meta = {
+            0: {'w': 290, 'h': 442},
+            1: {'w': 308, 'h': 410},
+            2: {'w': 308, 'h': 410},
+            3: {'w': 308, 'h': 410},
+            4: {'w': 308, 'h': 410},
+            5: {'w': 231, 'h': 308},
+            6: {'w': 231, 'h': 308},
+            7: {'w': 231, 'h': 308},
+            8: {'w': 231, 'h': 308},
+        }
+
+        i = 0
+        for f in files:
+            if '.autorot.' not in f and not f.startswith('.'):
+                source_filename = os.path.join(rotation_images, f)
+
+                actual_filename = temp_filename(self.tempdir, '.jpg')
+
+                pyvips.Image.new_from_file(source_filename).autorot().write_to_file(actual_filename)
+
+                actual = pyvips.Image.new_from_file(actual_filename)
+
+                assert actual.width == meta[i]['w']
+                assert actual.height == meta[i]['h']
+                assert actual.get('orientation') if actual.get_typeof('orientation') else None is None
+                i = i + 1
+       
     def test_scaleimage(self):
         for fmt in noncomplex_formats:
             test = self.colour.cast(fmt)
