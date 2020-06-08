@@ -201,7 +201,8 @@ vips_thread_main_loop( gpointer thread_data, gpointer pool_data )
 	VipsThreadExec *exec = (VipsThreadExec *) thread_data;
 
 	/* Set this to something (anything) to tag this thread as a vips 
-	 * worker.
+	 * worker. No need to call g_private_replace as there is no
+	 * GDestroyNotify handler associated with a worker.
 	 */
 	g_private_set( is_worker_key, thread_data );
 
