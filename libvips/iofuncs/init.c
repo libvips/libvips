@@ -672,6 +672,7 @@ void
 vips_thread_shutdown( void )
 {
 	vips__thread_profile_detach();
+	vips__buffer_shutdown();
 }
 
 /**
