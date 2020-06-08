@@ -1,8 +1,9 @@
 # vim: set fileencoding=utf-8 :
+import os
 import pytest
 
 import pyvips
-from helpers import JPEG_FILE, HEIC_FILE, all_formats, have
+from helpers import JPEG_FILE, HEIC_FILE, all_formats, have, LOGO2_PNG_FILE, LOGO3_PNG_FILE
 
 
 # Run a function expecting a complex image on a two-band image
@@ -113,6 +114,32 @@ class TestResample:
         x = im.resize(0.5)
         assert x.width == 50
         assert x.height == 1
+
+    def test_resize_and_sharpen_logo2(self):
+        self.resize_and_sharpen(LOGO2_PNG_FILE, 328.0)
+
+    def test_resize_and_sharpen_logo3(self):
+        self.resize_and_sharpen(LOGO3_PNG_FILE, 328.0)
+
+    @staticmethod
+    def resize_and_sharpen(filename, new_width, new_height=None):
+        _, ext = os.path.splitext(filename)
+        im = pyvips.Image.new_from_file(filename)
+        new_height = new_height or im.height * new_width / im.width
+
+        # print('Writing resized')
+        resized = im.premultiply()
+        resized = resized.resize(new_width / im.width, vscale=new_height / im.height)
+        resized = resized.unpremultiply()
+        resized.write_to_file('%s.resized%s' % (filename, ext))
+        sharpened = resized.sharpen(sigma=0.66, m2=1.0, x1=1.0)
+        sharpened.write_to_file('%s.resized-sharpened%s' % (filename, ext))
+
+        # print('Writing alpha-resized')
+        alpha_resized = im.alpha_resize(new_width / im.width, vscale=new_height / im.height)
+        alpha_resized.write_to_file('%s.alpha-resized%s' % (filename, ext))
+        sharpened = alpha_resized.sharpen(sigma=0.66, m2=1.0, x1=1.0)
+        sharpened.write_to_file('%s.alpha-resized-sharpened%s' % (filename, ext))
 
     def test_shrink(self):
         im = pyvips.Image.new_from_file(JPEG_FILE)

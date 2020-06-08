@@ -45,6 +45,7 @@ typedef enum {
 	VIPS_KERNEL_MITCHELL,
 	VIPS_KERNEL_LANCZOS2,
 	VIPS_KERNEL_LANCZOS3,
+	VIPS_KERNEL_APPROX_LANCZOS3,
 	VIPS_KERNEL_LAST
 } VipsKernel;
 
@@ -71,6 +72,13 @@ int vips_reduceh( VipsImage *in, VipsImage **out, double hshrink, ... )
 	__attribute__((sentinel));
 int vips_reducev( VipsImage *in, VipsImage **out, double vshrink, ... )
 	__attribute__((sentinel));
+int vips_alpha_reduce( VipsImage *in, VipsImage **out,
+                       double hshrink, double vshrink, ... )
+__attribute__((sentinel));
+int vips_alpha_reduceh( VipsImage *in, VipsImage **out, double hshrink, ... )
+__attribute__((sentinel));
+int vips_alpha_reducev( VipsImage *in, VipsImage **out, double vshrink, ... )
+__attribute__((sentinel));
 
 int vips_thumbnail( const char *filename, VipsImage **out, int width, ... )
 	__attribute__((sentinel));
@@ -93,7 +101,10 @@ int vips_affine( VipsImage *in, VipsImage **out,
 int vips_resize( VipsImage *in, VipsImage **out, double scale, ... )
 	__attribute__((sentinel));
 
-int vips_mapim( VipsImage *in, VipsImage **out, VipsImage *index, ... ) 
+int vips_alpha_resize( VipsImage *in, VipsImage **out, double scale, ... )
+	__attribute__((sentinel));
+
+int vips_mapim( VipsImage *in, VipsImage **out, VipsImage *index, ... )
 	__attribute__((sentinel));
 
 int vips_quadratic( VipsImage *in, VipsImage **out, VipsImage *coeff, ... )
