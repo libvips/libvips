@@ -318,21 +318,33 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 
 	switch( png->ihdr.color_type ) {
 	case SPNG_COLOR_TYPE_GRAYSCALE:
+	case SPNG_COLOR_TYPE_GRAYSCALE_ALPHA:
 		png->bands = 1;
 		png->interpretation = VIPS_INTERPRETATION_B_W;
 		png->fmt = SPNG_FMT_PNG;
-		break;
 
-	case SPNG_COLOR_TYPE_GRAYSCALE_ALPHA:
-		png->bands = 2;
-		png->interpretation = VIPS_INTERPRETATION_B_W;
-		png->fmt = SPNG_FMT_PNG;
+		if( !spng_get_trns( png->ctx, &trns ) ) {
+			png->bands += 1;
+
+			/* Expand 1/2/4 bit images to 8 bit.
+			 */
+			if( png->ihdr.bit_depth < 8 ) 
+				png->fmt = SPNG_FMT_GA8;
+		}
+		else {
+			if( png->ihdr.bit_depth < 8 ) 
+				png->fmt = SPNG_FMT_G8;
+		}
 		break;
 
 	case SPNG_COLOR_TYPE_TRUECOLOR:
+	case SPNG_COLOR_TYPE_TRUECOLOR_ALPHA:
 		png->bands = 3;
 		png->interpretation = VIPS_INTERPRETATION_sRGB;
 		png->fmt = SPNG_FMT_PNG;
+
+		if( !spng_get_trns( png->ctx, &trns ) ) 
+			png->bands += 1;
 		break;
 
 	case SPNG_COLOR_TYPE_INDEXED:
@@ -341,35 +353,17 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 
 		/* Expand indexed images to RGB8.
 		 */
-		png->fmt = SPNG_FMT_RGB8;
-		break;
-
-	case SPNG_COLOR_TYPE_TRUECOLOR_ALPHA:
-		png->bands = 4;
-		png->interpretation = VIPS_INTERPRETATION_sRGB;
-		png->fmt = SPNG_FMT_PNG;
+		if( !spng_get_trns( png->ctx, &trns ) ) {
+			png->bands += 1;
+			png->fmt = SPNG_FMT_RGBA8;
+		}
+		else
+			png->fmt = SPNG_FMT_RGB8;
 		break;
 
 	default:
 		vips_error( class->nickname, "%s", _( "unknown color type" ) );
 		return( -1 );
-	}
-
-	if( !spng_get_trns( png->ctx, &trns ) ) {
-		if( png->ihdr.color_type == SPNG_COLOR_TYPE_TRUECOLOR ) {
-			if( png->ihdr.bit_depth == 16 ) 
-				png->fmt = SPNG_FMT_RGBA16;
-			else 
-				png->fmt = SPNG_FMT_RGBA8;
-		}
-		else if( png->ihdr.color_type == SPNG_COLOR_TYPE_INDEXED ) 
-			png->fmt = SPNG_FMT_RGBA8;
-		else if( png->ihdr.color_type == SPNG_COLOR_TYPE_GRAYSCALE ) {
-			if( png->ihdr.bit_depth == 16 ) 
-				png->fmt = SPNG_FMT_GA16;
-			else 
-				png->fmt = SPNG_FMT_GA8;
-		}
 	}
 
 	if( png->ihdr.bit_depth == 16 ) {
