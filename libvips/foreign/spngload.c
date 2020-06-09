@@ -275,6 +275,7 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 
 	int flags;
 	int error;
+	struct spng_trns trns;
 
 	/* In non-fail mode, ignore CRC errors.
 	 */
@@ -352,6 +353,23 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 	default:
 		vips_error( class->nickname, "%s", _( "unknown color type" ) );
 		return( -1 );
+	}
+
+	if( !spng_get_trns( png->ctx, &trns ) ) {
+		if( png->ihdr.color_type == SPNG_COLOR_TYPE_TRUECOLOR ) {
+			if( png->ihdr.bit_depth == 16 ) 
+				png->fmt = SPNG_FMT_RGBA16;
+			else 
+				png->fmt = SPNG_FMT_RGBA8;
+		}
+		else if( png->ihdr.color_type == SPNG_COLOR_TYPE_INDEXED ) 
+			png->fmt = SPNG_FMT_RGBA8;
+		else if( png->ihdr.color_type == SPNG_COLOR_TYPE_GRAYSCALE ) {
+			if( png->ihdr.bit_depth == 16 ) 
+				png->fmt = SPNG_FMT_GA16;
+			else 
+				png->fmt = SPNG_FMT_GA8;
+		}
 	}
 
 	if( png->ihdr.bit_depth == 16 ) {
