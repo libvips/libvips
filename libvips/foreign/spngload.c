@@ -382,8 +382,8 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 				png->fmt = SPNG_FMT_GA8;
 		}
 	}
-	else if( png->ihdr.color_type == PNG_COLOR_TYPE_GRAY_ALPHA || 
-		     png->ihdr.color_type == PNG_COLOR_TYPE_RGB_ALPHA ) {
+	else if( png->ihdr.color_type == SPNG_COLOR_TYPE_GRAYSCALE_ALPHA || 
+		     png->ihdr.color_type == SPNG_COLOR_TYPE_TRUECOLOR_ALPHA ) {
 		/* Some images have their own alpha channel,
 		 * not just a transparent color.
 		 */
