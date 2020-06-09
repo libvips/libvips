@@ -195,7 +195,8 @@
  * 	- add PAGENUMBER support
  * 23/5/20
  * 	- add support for subifd pyramid layers
- */
+ * 8/6/20
+ * 	- add bitdepth support for 2 and 4 bit greyscale images
 
 /*
 
@@ -337,7 +338,7 @@ struct _Wtiff {
 	int tile;			/* Tile or not */
 	int tilew, tileh;		/* Tile size */
 	int pyramid;			/* Wtiff pyramid */
-	int squash;			/* Write as small format */
+	int bitdepth;                   /* Write as 1, 2 or 4 bit */
 	int miniswhite;			/* Wtiff as 0 == white */
         int resunit;                    /* Resolution unit (inches or cm) */
         double xres;                   	/* Resolution in X */
@@ -694,13 +695,14 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 		TIFFSetField( tif, TIFFTAG_BITSPERSAMPLE, 8 );
 		TIFFSetField( tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_CIELAB );
 	}
-	else if( wtiff->squash ) {
+	else if( wtiff->bitdepth == 1 || wtiff->bitdepth == 2 ||
+                 wtiff->bitdepth == 4 ) {
 		TIFFSetField( tif, TIFFTAG_SAMPLESPERPIXEL, 1 );
-		TIFFSetField( tif, TIFFTAG_BITSPERSAMPLE, 1 );
-		TIFFSetField( tif, TIFFTAG_PHOTOMETRIC, 
-			wtiff->miniswhite ? 
-				PHOTOMETRIC_MINISWHITE :  
-				PHOTOMETRIC_MINISBLACK ); 
+		TIFFSetField( tif, TIFFTAG_BITSPERSAMPLE, wtiff->bitdepth );
+		TIFFSetField( tif, TIFFTAG_PHOTOMETRIC,
+			wtiff->miniswhite ?
+				PHOTOMETRIC_MINISWHITE :
+				PHOTOMETRIC_MINISBLACK );
 	}
 	else {
 		int photometric;
@@ -1039,13 +1041,13 @@ ready_to_write( Wtiff *wtiff )
 
 	/* "squash" float LAB down to LABQ.
 	 */
-	if( wtiff->squash &&
+	if( wtiff->bitdepth == 1 &&
 		wtiff->input->Bands == 3 &&
 		wtiff->input->BandFmt == VIPS_FORMAT_FLOAT &&
 		wtiff->input->Type == VIPS_INTERPRETATION_LAB ) {
 		if( vips_Lab2LabQ( wtiff->input, &wtiff->ready, NULL ) )
 			return( -1 );
-		wtiff->squash = 0;
+		wtiff->bitdepth = 0;
 	}
 	else {
 		wtiff->ready = wtiff->input;
@@ -1062,7 +1064,7 @@ wtiff_new( VipsImage *input, const char *filename,
 	char *profile,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,
-	gboolean squash,
+	int bitdepth,
 	gboolean miniswhite,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
@@ -1091,7 +1093,7 @@ wtiff_new( VipsImage *input, const char *filename,
 	wtiff->tilew = tile_width;
 	wtiff->tileh = tile_height;
 	wtiff->pyramid = pyramid;
-	wtiff->squash = squash;
+	wtiff->bitdepth = bitdepth;
 	wtiff->miniswhite = miniswhite;
 	wtiff->resunit = get_resunit( resunit );
 	wtiff->xres = xres;
@@ -1188,23 +1190,32 @@ wtiff_new( VipsImage *input, const char *filename,
 		}
 	}
 
-	/* Can only squash 8 bit mono. 3-band float should have been squashed
-	 * above.
+	if( wtiff->bitdepth && !(wtiff->bitdepth == 1 || wtiff->bitdepth == 2 
+		|| wtiff->bitdepth == 4) ) {
+			g_warning( "%s",
+                _( "allows only bitdepth values 1,2 or 4. "
+					"-- disabling bitdepth") );
+            wtiff->bitdepth = 0;
+	}
+	
+    /* Can only have byte fractional bit depths for 8 bit mono.
+     * 3-band float should have been packed above.
 	 */
-	if( wtiff->squash &&
-		!(wtiff->ready->Coding == VIPS_CODING_NONE && 
+	if( wtiff->bitdepth && (wtiff->bitdepth == 1 || wtiff->bitdepth == 2 
+		|| wtiff->bitdepth == 4 )
+        && !(wtiff->ready->Coding == VIPS_CODING_NONE &&
 			wtiff->ready->BandFmt == VIPS_FORMAT_UCHAR &&
 			wtiff->ready->Bands == 1) ) { 
 		g_warning( "%s",
-			_( "can only squash 1-band uchar and "
-				"3-band float lab -- disabling squash" ) );
-		wtiff->squash = 0;
+                ( "can only set bitdepth for 1-band uchar and "
+                        "3-band float lab -- disabling bitdepth" ) );
+        wtiff->bitdepth = 0;
 	}
 
-	if( wtiff->squash && 
+    if( wtiff->bitdepth &&
 		wtiff->compression == COMPRESSION_JPEG ) {
 		g_warning( "%s", 
-			_( "can't have 1-bit JPEG -- disabling JPEG" ) );
+            _( "can't have 1,2 or 4-bit JPEG -- disabling JPEG" ) );
 		wtiff->compression = COMPRESSION_NONE;
 	}
  
@@ -1239,8 +1250,12 @@ wtiff_new( VipsImage *input, const char *filename,
 	 */
 	if( wtiff->ready->Coding == VIPS_CODING_LABQ )
 		wtiff->tls = wtiff->tilew * 3;
-	else if( wtiff->squash )
+	else if( wtiff->bitdepth == 1)
 		wtiff->tls = VIPS_ROUND_UP( wtiff->tilew, 8 ) / 8;
+	else if( wtiff->bitdepth == 2)
+		wtiff->tls = VIPS_ROUND_UP( wtiff->tilew, 4 ) / 4;
+	else if( wtiff->bitdepth == 4)
+		wtiff->tls = VIPS_ROUND_UP( wtiff->tilew, 2 ) / 2;
 	else
 		wtiff->tls = VIPS_IMAGE_SIZEOF_PEL( wtiff->ready ) * 
 			wtiff->tilew;
@@ -1298,6 +1313,82 @@ eightbit2onebit( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
 	 */
 	if( (x & 0x7) != 0 ) 
 		*q++ = bits << (8 - (x & 0x7));
+}
+
+/* Pack 8 bit VIPS to 2 bit TIFF.
+ */
+static void
+eightbit2twobit( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
+{
+	int x;
+	VipsPel bits;
+
+	bits = 0;
+	if( !wtiff->miniswhite ) { //avoid unnecessary branches
+		for( x = 0; x < n; x++ ) {
+			bits <<= 2;
+			bits |= p[x] >> 6;
+
+			if( (x & 0x3) == 0x3 ) {
+				*q++ = bits;
+				bits = 0;
+			}
+		}
+	}
+	else {
+		for( x = 0; x < n; x++ ) {
+			bits <<= 2;
+			bits |= p[x] >> 6;
+
+			if( (x & 0x3) == 0x3 ) {
+				*q++ = ~bits;
+				bits = 0;
+			}
+		}
+	}
+
+	/* Any left-over bits? Need to be left-aligned.
+	*/
+	if( (x & 0x3) != 0 )
+		*q++ = (wtiff->miniswhite ? ~bits : bits) << (8 - ((x & 0x3) << 1));
+}
+
+/* Pack 8 bit VIPS to 4 bit TIFF.
+ */
+static void
+eightbit2fourbit( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
+{
+    int x;
+    VipsPel bits;
+
+    bits = 0;
+	if( !wtiff->miniswhite ) { //avoid unnecessary branches
+		for( x = 0; x < n; x++ ) {
+				bits <<= 4;
+				bits |= p[x] >> 4;
+
+				if( (x & 0x1) == 0x1 ) {
+						*q++ = bits;
+						bits = 0;
+				}
+		}
+	}
+	else {
+		for( x = 0; x < n; x++ ) {
+				bits <<= 4;
+				bits |= p[x] >> 4;
+
+				if( (x & 0x1) == 0x1 ) {
+						*q++ = ~bits;
+						bits = 0;
+				}
+		}
+	}
+    /* Any left-over bits? Need to be left-aligned.
+     */
+    if( (x & 0x1) != 0 )
+        *q++ = ((VipsPel)(wtiff->miniswhite ? ~bits : bits)) 
+				<< (8 - ((x & 0x1) << 2));
 }
 
 /* Swap the sense of the first channel, if necessary. 
@@ -1444,8 +1535,12 @@ wtiff_pack2tiff( Wtiff *wtiff, Layer *layer,
 
 		if( wtiff->ready->Coding == VIPS_CODING_LABQ )
 			LabQ2LabC( q, p, area->width );
-		else if( wtiff->squash ) 
+		else if( wtiff->bitdepth == 1 )
 			eightbit2onebit( wtiff, q, p, area->width );
+		else if( wtiff->bitdepth == 2 )
+			eightbit2twobit( wtiff, q, p, area->width );
+		else if( wtiff->bitdepth == 4 )
+			eightbit2fourbit( wtiff, q, p, area->width );
 		else if( wtiff->input->Type == VIPS_INTERPRETATION_XYZ )
 			XYZ2tiffxyz( q, p, area->width, in->im->Bands );
 		else if( (in->im->Bands == 1 || in->im->Bands == 2) && 
@@ -1543,8 +1638,16 @@ wtiff_layer_write_strip( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 			XYZ2tiffxyz( wtiff->tbuf, p, im->Xsize, im->Bands );
 			p = wtiff->tbuf;
 		}
-		else if( wtiff->squash ) {
+		else if( wtiff->bitdepth == 1 ) {
 			eightbit2onebit( wtiff, wtiff->tbuf, p, im->Xsize );
+			p = wtiff->tbuf;
+		}
+		else if( wtiff->bitdepth == 2) {
+			eightbit2twobit( wtiff, wtiff->tbuf, p, im->Xsize );
+			p = wtiff->tbuf;
+		}
+		else if( wtiff->bitdepth == 4) {
+			eightbit2fourbit( wtiff, wtiff->tbuf, p, im->Xsize );
 			p = wtiff->tbuf;
 		}
 		else if( (im->Bands == 1 || im->Bands == 2) && 
@@ -2042,7 +2145,7 @@ vips__tiff_write( VipsImage *input, const char *filename,
 	char *profile,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,
-	gboolean squash,
+	int bitdepth,
 	gboolean miniswhite,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
@@ -2064,7 +2167,7 @@ vips__tiff_write( VipsImage *input, const char *filename,
 
 	if( !(wtiff = wtiff_new( input, filename, 
 		compression, Q, predictor, profile,
-		tile, tile_width, tile_height, pyramid, squash,
+                tile, tile_width, tile_height, pyramid, bitdepth,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
 		properties, strip, region_shrink, level, lossless, depth,
 		subifd )) )
@@ -2088,7 +2191,7 @@ vips__tiff_write_buf( VipsImage *input,
 	char *profile,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,
-	gboolean squash,
+	int bitdepth,
 	gboolean miniswhite,
 	VipsForeignTiffResunit resunit, double xres, double yres,
 	gboolean bigtiff,
@@ -2106,7 +2209,7 @@ vips__tiff_write_buf( VipsImage *input,
 
 	if( !(wtiff = wtiff_new( input, NULL, 
 		compression, Q, predictor, profile,
-		tile, tile_width, tile_height, pyramid, squash,
+                tile, tile_width, tile_height, pyramid, bitdepth,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
 		properties, strip, region_shrink, level, lossless, depth,
 		subifd )) )

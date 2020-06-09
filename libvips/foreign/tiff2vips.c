@@ -199,6 +199,8 @@
  * 	- better handling of aligned reads in multipage tiffs
  * 28/5/20
  * 	- add subifd
+ * 06/6/20
+ *  - add load functionality for 2 and 4 bit greyscale tiffs
  */
 
 /*
@@ -1056,6 +1058,76 @@ rtiff_onebit_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *flg )
 	}
 }
 
+/* Per-scanline process function for 2 bit greyscale images.
+ */
+static void
+rtiff_twobit_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *flg )
+{
+        int x, i, z;
+        int minisblack = 
+			rtiff->header.photometric_interpretation == PHOTOMETRIC_MINISBLACK;
+        VipsPel bits;
+
+        x = 0;
+        for( i = 0; i < (n >> 2); i++ ) {
+                bits = (VipsPel) minisblack ? p[i] : ~p[i];
+
+                for( z = 0; z < 4; z++ ) {
+					/* The grey shade is the value four times concatenated */
+                        q[x] = (bits & 0xC0) | ((bits & 0xC0) >> 2) 
+							| ((bits & 0xC0) >> 4) | (bits >> 6);
+                        bits <<= 2;
+                        x += 1;
+                }
+        }
+
+        /* Do last byte in line.
+         */
+        if( n & 3 ) {
+                bits = (VipsPel) minisblack ? p[i] : ~p[i];
+                for( z = 0; z < (n & 3) ; z++ ) {
+                    q[x + z] = (bits & 0xC0) | ((bits & 0xC0) >> 2) 
+						| ((bits & 0xC0) >> 4) | (bits >> 6);
+                    bits <<= 2;
+                }
+        }
+}
+
+/* Per-scanline process function for 4 bit greyscale images.
+ */
+static void
+rtiff_fourbit_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *flg )
+{
+        int x, i, z;
+        int minisblack = 
+			rtiff->header.photometric_interpretation == PHOTOMETRIC_MINISBLACK;
+        VipsPel bits;
+
+        x = 0;
+
+        for( i = 0; i < (n >> 1); i++ ) {
+                bits = (VipsPel) minisblack ? p[i] : ~p[i];
+
+                for( z = 0; z < 2; z++ ) {
+					/* The grey shade is the value two times concatenated */
+                        q[x] = (bits & 0xF0) | (bits >> 4);
+                        bits <<= 4;
+                        x += 1;
+                }
+        }
+
+        /* Do last byte in line.
+         */
+        if( n & 1) {
+                bits = (VipsPel) minisblack ? p[i] : ~p[i];
+                for( z = 0; z < (n & 1) ; z++ ) {
+                    q[x + z] = (bits & 0xF0) | (bits >> 4);
+                    bits <<= 4;
+                }
+        }
+}
+
+
 /* Read a 1-bit TIFF image. 
  */
 static int
@@ -1071,6 +1143,44 @@ rtiff_parse_onebit( Rtiff *rtiff, VipsImage *out )
 	out->Type = VIPS_INTERPRETATION_B_W; 
 
 	rtiff->sfn = rtiff_onebit_line;
+
+	return( 0 );
+}
+
+/* Read a 2-bit TIFF image. 
+ */
+static int
+rtiff_parse_twobit( Rtiff *rtiff, VipsImage *out )
+{
+	if( rtiff_check_samples( rtiff, 1 ) ||
+		rtiff_check_bits( rtiff, 2 ) )
+		return( -1 );
+
+	out->Bands = 1; 
+	out->BandFmt = VIPS_FORMAT_UCHAR; 
+	out->Coding = VIPS_CODING_NONE; 
+	out->Type = VIPS_INTERPRETATION_B_W; 
+
+	rtiff->sfn = rtiff_twobit_line;
+
+	return( 0 );
+}
+
+/* Read a 4-bit TIFF image. 
+ */
+static int
+rtiff_parse_fourbit( Rtiff *rtiff, VipsImage *out )
+{
+	if( rtiff_check_samples( rtiff, 1 ) ||
+		rtiff_check_bits( rtiff, 4 ) )
+		return( -1 );
+
+	out->Bands = 1; 
+	out->BandFmt = VIPS_FORMAT_UCHAR; 
+	out->Coding = VIPS_CODING_NONE; 
+	out->Type = VIPS_INTERPRETATION_B_W; 
+
+	rtiff->sfn = rtiff_fourbit_line;
 
 	return( 0 );
 }
@@ -1517,8 +1627,13 @@ rtiff_pick_reader( Rtiff *rtiff )
 
 	if( photometric_interpretation == PHOTOMETRIC_MINISWHITE ||
 		photometric_interpretation == PHOTOMETRIC_MINISBLACK ) {
-		if( bits_per_sample == 1 )
-			return( rtiff_parse_onebit ); 
+
+		if( bits_per_sample == 1)
+			return ( rtiff_parse_onebit );
+		else if ( bits_per_sample == 2 )
+			return ( rtiff_parse_twobit);
+		else if ( bits_per_sample == 4 )
+			return ( rtiff_parse_fourbit);
 		else
 			return( rtiff_parse_greyscale ); 
 	}
