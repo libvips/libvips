@@ -11,7 +11,7 @@ from helpers import \
     JPEG_FILE, SRGB_FILE, MATLAB_FILE, PNG_FILE, TIF_FILE, OME_FILE, \
     ANALYZE_FILE, GIF_FILE, WEBP_FILE, EXR_FILE, FITS_FILE, OPENSLIDE_FILE, \
     PDF_FILE, SVG_FILE, SVGZ_FILE, SVG_GZ_FILE, GIF_ANIM_FILE, DICOM_FILE, \
-    BMP_FILE, NIFTI_FILE, ICO_FILE, HEIC_FILE, TRUNCATED_FILE, \
+    BMP_FILE, NIFTI_FILE, ICO_FILE, HEIC_FILE, HEIC2_FILE, TRUNCATED_FILE, \
     GIF_ANIM_EXPECTED_PNG_FILE, \
     GIF_ANIM_DISPOSE_BACKGROUND_FILE, GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE, \
     GIF_ANIM_DISPOSE_PREVIOUS_FILE, GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, \
@@ -973,8 +973,9 @@ class TestForeign:
             assert im.height == 3024
             assert im.bands == 3
 
-        self.file_loader("heifload", HEIC_FILE, heif_valid)
-        self.buffer_loader("heifload_buffer", HEIC_FILE, heif_valid)
+        for filename in [HEIC_FILE, HEIC2_FILE]:
+            self.file_loader("heifload", filename, heif_valid)
+            self.buffer_loader("heifload_buffer", filename, heif_valid)
 
     @skip_if_no("heifsave")
     def test_heifsave(self):

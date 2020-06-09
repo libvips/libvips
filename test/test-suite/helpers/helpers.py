@@ -37,6 +37,7 @@ BMP_FILE = os.path.join(IMAGES, "MARBLES.BMP")
 NIFTI_FILE = os.path.join(IMAGES, "avg152T1_LR_nifti.nii.gz")
 ICO_FILE = os.path.join(IMAGES, "favicon.ico")
 HEIC_FILE = os.path.join(IMAGES, "Example1.heic")
+HEIC2_FILE = os.path.join(IMAGES, "heic-orientation-6.heic")
 
 unsigned_formats = [pyvips.BandFormat.UCHAR,
                     pyvips.BandFormat.USHORT,
