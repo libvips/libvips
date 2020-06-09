@@ -1188,7 +1188,6 @@ if test x"$with_libspng" != x"no"; then
     [AC_DEFINE(HAVE_SPNG,1,[define if you have libspng installed.])
      with_libspng=yes
      PACKAGES_USED="$PACKAGES_USED spng"
-     with_png=no
     ],
     [
     ]
