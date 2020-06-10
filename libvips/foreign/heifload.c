@@ -419,11 +419,11 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 	}
 
 #ifdef HAVE_HEIF_COLOR_PROFILE
-#ifdef DEBUG
-{
 	enum heif_color_profile_type profile_type = 
 		heif_image_handle_get_color_profile_type( heif->handle );
 
+#ifdef DEBUG
+{
 	printf( "profile type = " ); 
 	switch( profile_type ) {
 	case heif_color_profile_type_not_present: 
@@ -450,10 +450,10 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 }
 #endif /*DEBUG*/
 
-	/* FIXME should probably check the profile type ... lcms seems to be
-	 * able to load at least rICC and prof.
+	/* lcms can load standard (prof) and reduced (rICC) profiles
 	 */
-	if( heif_image_handle_get_color_profile_type( heif->handle ) ) {
+	if( profile_type == heif_color_profile_type_prof ||
+		profile_type == heif_color_profile_type_rICC ) {
 		size_t length = heif_image_handle_get_raw_color_profile_size( 
 			heif->handle );
 
@@ -474,6 +474,9 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 
 		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
 			(VipsCallbackFn) NULL, data, length );
+	}
+	else if( profile_type == heif_color_profile_type_nclx ) {
+		g_warning( "heifload: ignoring nclx profile" );
 	}
 #endif /*HAVE_HEIF_COLOR_PROFILE*/
 
@@ -717,6 +720,11 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 #ifdef HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH
 		options->ignore_transformations = !heif->autorotate;
 #endif /*HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH*/
+#ifdef HAVE_HEIF_DECODING_OPTIONS_CONVERT_HDR_TO_8BIT
+		/* VIPS_FORMAT_UCHAR is assumed so downsample HDR to 8bpc
+		 */
+		options->convert_hdr_to_8bit = TRUE;
+#endif /*HAVE_HEIF_DECODING_OPTIONS_CONVERT_HDR_TO_8BIT*/
 		error = heif_decode_image( heif->handle, &heif->img, 
 			heif_colorspace_RGB, chroma, 
 			options );
