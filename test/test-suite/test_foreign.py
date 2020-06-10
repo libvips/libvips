@@ -973,9 +973,21 @@ class TestForeign:
             assert im.height == 3024
             assert im.bands == 3
 
-        for filename in [HEIC_FILE, HEIC2_FILE]:
+        for filename in [HEIC_FILE]:
             self.file_loader("heifload", filename, heif_valid)
             self.buffer_loader("heifload_buffer", filename, heif_valid)
+
+    @skip_if_no("heifload")
+    def test_heifload__save_to_jpg(self):
+        def export_heif_to_jpg(im):
+            assert im.width == 4032
+            assert im.height == 3024
+            assert im.bands == 3
+
+            im.jpegsave_buffer()
+
+        for filename in [HEIC2_FILE]:
+            self.buffer_loader("heifload_buffer", filename, export_heif_to_jpg)
 
     @skip_if_no("heifsave")
     def test_heifsave(self):
