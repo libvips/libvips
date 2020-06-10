@@ -968,9 +968,9 @@ class TestForeign:
             a = im(10, 10)
             # different versions of HEIC decode have slightly different 
             # rounding
-            assert_almost_equal_objects(a, [75.0, 86.0, 81.0], threshold=2)
-            assert im.width == 4032
-            assert im.height == 3024
+            assert_almost_equal_objects(a, [197.0, 181.0, 158.0], threshold=2)
+            assert im.width == 3024
+            assert im.height == 4032
             assert im.bands == 3
 
         self.file_loader("heifload", HEIC_FILE, heif_valid)

@@ -928,18 +928,6 @@ if test x"$with_heif" = x"yes"; then
   LIBS="$save_LIBS"
 fi
 
-# fetch untransformed width/height added in 1.3.4
-if test x"$with_heif" = x"yes"; then
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $HEIF_LIBS"
-  AC_CHECK_FUNCS(heif_image_handle_get_ispe_width,[
-     AC_DEFINE(HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH,1,
-	       [define if you have heif_image_handle_get_ispe_width.])
-   ],[]
-  )
-  LIBS="$save_LIBS"
-fi
-
 # heif_decoding_options.convert_hdr_to_8bit added in 1.7.0
 if test x"$with_heif" = x"yes"; then
   save_CFLAGS="$CFLAGS"
