@@ -1189,7 +1189,7 @@ if test x"$with_libspng" != x"no"; then
      with_libspng=yes
      PACKAGES_USED="$PACKAGES_USED spng"
     ],
-    [
+    [with_libspng=no
     ]
   )
 fi

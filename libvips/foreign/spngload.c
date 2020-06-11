@@ -315,23 +315,23 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 		png->ihdr.interlace_method );
 	 */
 
-    /* Just convert to host-endian if nothing else applies.
+	/* Just convert to host-endian if nothing else applies.
 	 */ 
 	png->fmt = SPNG_FMT_PNG;
 
 	switch( png->ihdr.color_type ) {
 	case SPNG_COLOR_TYPE_INDEXED: 
-		bands = 3; 
+		png->bands = 3; 
 		break;
 
 	case SPNG_COLOR_TYPE_GRAYSCALE_ALPHA: 
 	case SPNG_COLOR_TYPE_GRAYSCALE: 
-		bands = 1; 
+		png->bands = 1; 
 		break;
 
-	case SPNG_COLOR_TYPE_RGB: 
-	case SPNG_COLOR_TYPE_RGB_ALPHA: 
-		bands = 3; 
+	case SPNG_COLOR_TYPE_TRUECOLOR: 
+	case SPNG_COLOR_TYPE_TRUECOLOR_ALPHA: 
+		png->bands = 3; 
 		break;
 
 	default:
@@ -339,17 +339,17 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 		return( -1 );
 	}
 
-	if( bit_depth > 8 ) {
-		if( bands < 3 )
-			interpretation = VIPS_INTERPRETATION_GREY16;
+	if( png->ihdr.bit_depth > 8 ) {
+		if( png->bands < 3 )
+			png->interpretation = VIPS_INTERPRETATION_GREY16;
 		else
-			interpretation = VIPS_INTERPRETATION_RGB16;
+			png->interpretation = VIPS_INTERPRETATION_RGB16;
 	}
 	else {
-		if( bands < 3 )
-			interpretation = VIPS_INTERPRETATION_B_W;
+		if( png->bands < 3 )
+			png->interpretation = VIPS_INTERPRETATION_B_W;
 		else
-			interpretation = VIPS_INTERPRETATION_sRGB;
+			png->interpretation = VIPS_INTERPRETATION_sRGB;
 	}
 
 	/* Expand palette images.
@@ -360,13 +360,14 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 	/* Expand <8 bit images to full bytes.
 	 */
 	if( png->ihdr.color_type == SPNG_COLOR_TYPE_GRAYSCALE &&
-		    png->ihdr.bit_depth < 8 )
-			png->fmt = SPNG_FMT_G8;
+		png->ihdr.bit_depth < 8 )
+		png->fmt = SPNG_FMT_G8;
 
 	/* Expand transparency.
 	 */
 	if( !spng_get_trns( png->ctx, &trns ) ) {
-		bands += 1;
+		png->bands += 1;
+
 		if( png->ihdr.color_type == SPNG_COLOR_TYPE_TRUECOLOR ) {
 			if( png->ihdr.bit_depth == 16 ) 
 				png->fmt = SPNG_FMT_RGBA16;
@@ -383,12 +384,11 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 		}
 	}
 	else if( png->ihdr.color_type == SPNG_COLOR_TYPE_GRAYSCALE_ALPHA || 
-		     png->ihdr.color_type == SPNG_COLOR_TYPE_TRUECOLOR_ALPHA ) {
-		/* Some images have their own alpha channel,
-		 * not just a transparent color.
+		png->ihdr.color_type == SPNG_COLOR_TYPE_TRUECOLOR_ALPHA ) 
+		/* Some images have an alpha channel, just not a transparent 
+		 * colour.
 		 */
-		bands += 1;
-	}
+		png->bands += 1;
 
 	vips_source_minimise( png->source );
 
