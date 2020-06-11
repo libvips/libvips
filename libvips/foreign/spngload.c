@@ -339,17 +339,23 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 		return( -1 );
 	}
 
+	/* Set libvips format and interpretation.
+	 */
 	if( png->ihdr.bit_depth > 8 ) {
 		if( png->bands < 3 )
 			png->interpretation = VIPS_INTERPRETATION_GREY16;
 		else
 			png->interpretation = VIPS_INTERPRETATION_RGB16;
+
+		png->format = VIPS_FORMAT_USHORT;
 	}
 	else {
 		if( png->bands < 3 )
 			png->interpretation = VIPS_INTERPRETATION_B_W;
 		else
 			png->interpretation = VIPS_INTERPRETATION_sRGB;
+
+		png->format = VIPS_FORMAT_UCHAR;
 	}
 
 	/* Expand palette images.
@@ -364,8 +370,15 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 		png->fmt = SPNG_FMT_G8;
 
 	/* Expand transparency.
+	 *
+	 * The _ALPHA types should not have the optional trns chunk (they 
+	 * always have a transparent band), see 
+	 * https://www.w3.org/TR/2003/REC-PNG-20031110/#11tRNS
 	 */
-	if( !spng_get_trns( png->ctx, &trns ) ) {
+	if( png->ihdr.color_type == SPNG_COLOR_TYPE_GRAYSCALE_ALPHA || 
+		png->ihdr.color_type == SPNG_COLOR_TYPE_TRUECOLOR_ALPHA ) 
+		png->bands += 1;
+	else if( !spng_get_trns( png->ctx, &trns ) ) {
 		png->bands += 1;
 
 		if( png->ihdr.color_type == SPNG_COLOR_TYPE_TRUECOLOR ) {
@@ -383,12 +396,6 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 				png->fmt = SPNG_FMT_GA8;
 		}
 	}
-	else if( png->ihdr.color_type == SPNG_COLOR_TYPE_GRAYSCALE_ALPHA || 
-		png->ihdr.color_type == SPNG_COLOR_TYPE_TRUECOLOR_ALPHA ) 
-		/* Some images have an alpha channel, just not a transparent 
-		 * colour.
-		 */
-		png->bands += 1;
 
 	vips_source_minimise( png->source );
 
