@@ -171,9 +171,6 @@ class TestResample:
             im = pyvips.Image.new_from_file(HEIC_FILE)
             thumb = pyvips.Image.thumbnail(HEIC_FILE, 100)
 
-            # original is landscape
-            assert im.width > im.height
-
             # thumb should be portrait 
             assert thumb.width < thumb.height
             assert thumb.height == 100

@@ -24,8 +24,9 @@
   behaviour with alpha channels
 - improve bioformats support with read and write of tiff subifd pyramids
 - thumbnail exploits subifd pyramids
-- handle all EXIF orientation cases, deprecate 
-  vips_autorot_get_angle() [Elad-Laufer]
+- handle all EXIF orientation cases, deprecate vips_autorot_get_angle() 
+  [Elad-Laufer]
+- deprecate heifload autorotate -- it's now always on
 
 24/4/20 started 8.9.3
 - better iiif tile naming [IllyaMoskvin]
