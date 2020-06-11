@@ -873,9 +873,13 @@ vips_foreign_load_heif_read( void *data, size_t size, void *userdata )
 	gint64 result;
 
 	result = vips_source_read( heif->source, data, size );
-	/* On EOF, make a note of the file length.
+	/* On EOF, make a note of the file length. 
+	 *
+	 * libheif can sometimes ask for zero bytes, be careful not to 
+	 * interpret that as EOF.
 	 */
-	if( result == 0 &&
+	if( size > 0 &&
+		result == 0 &&
 		heif->length == -1 ) 
 		result = heif->length = 
 			vips_source_seek( heif->source, 0L, SEEK_CUR );
