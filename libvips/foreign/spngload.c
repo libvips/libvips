@@ -483,10 +483,15 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( load ), 3 );
 
+	enum spng_decode_flags flags;
 	int error;
 
 	if( vips_source_decode( png->source ) )
 		return( -1 );
+
+	/* Decode transparency, if available.
+	 */
+	flags = SPNG_DECODE_TRNS;
 
 	if( png->ihdr.interlace_method != SPNG_INTERLACE_NONE ) {
 		/* Arg awful interlaced image. We have to load to a huge mem 
@@ -500,7 +505,7 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 		if( (error = spng_decode_image( png->ctx, 
 			VIPS_IMAGE_ADDR( t[0], 0, 0 ), 
 			VIPS_IMAGE_SIZEOF_IMAGE( t[0] ), 
-			png->fmt, 0 )) ) {
+			png->fmt, flags )) ) {
 			vips_error( class->nickname, 
 				"%s", spng_strerror( error ) ); 
 			return( -1 );
@@ -513,10 +518,12 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 		t[0] = vips_image_new();
 		vips_foreign_load_png_set_header( png, t[0] );
 
-		/* Initialize for progressive decoding.
+		/* We can decode these progressively.
 		 */
+		flags |= SPNG_DECODE_PROGRESSIVE;
+
 		if( (error = spng_decode_image( png->ctx, NULL, 0, 
-			png->fmt, SPNG_DECODE_PROGRESSIVE )) ) {
+			png->fmt, flags )) ) {
 			vips_error( class->nickname, 
 				"%s", spng_strerror( error ) ); 
 			return( -1 );
