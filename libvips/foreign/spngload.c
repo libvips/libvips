@@ -1,6 +1,6 @@
 /* load PNG with libspng
  *
- * 5/12/11
+ * 1/5/20
  * 	- from pngload.c
  */
 
@@ -29,19 +29,6 @@
 
     These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
- */
-
-/* TODO
- *
- * an equivalent of png_sig_cmp() from libpng (is_a_png on a memory area)
- * would be useful
- *
- * test indexed decode
- *
- * set a chunk size limit with spng_set_chunks_limits() when that API is done
- *
- * load only, there's no save support for now
- *
  */
 
 /*
@@ -203,21 +190,33 @@ vips_foreign_load_png_set_text( VipsImage *out,
 static void
 vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 {
+	double xres, yres;
 	struct spng_iccp iccp;
 	struct spng_text *text;
 	struct spng_exif exif;
+	struct spng_phys phys;
 	guint32 n_text;
+
+	/* Get resolution. Default to 72 pixels per inch.
+	 */
+	xres = (72.0 / 2.54 * 100.0);
+	yres = (72.0 / 2.54 * 100.0);
+	if( !spng_get_phys( png->ctx, &phys ) ) {
+		/* There's phys.units, but it's always 0, meaning pixels per
+		 * metre.
+		 */
+		xres = phys.ppu_x / 1000.0;
+		yres = phys.ppu_y / 1000.0;
+	}
 
 	vips_image_init_fields( image,
 		png->ihdr.width, png->ihdr.height, png->bands,
 		png->format, VIPS_CODING_NONE, png->interpretation, 
-		1.0, 1.0 );
+		xres, yres );
 
 	VIPS_SETSTR( image->filename, 
 		vips_connection_filename( VIPS_CONNECTION( png->source ) ) );
 
-	/* 0 is no interlace.
-	 */
 	if( png->ihdr.interlace_method == SPNG_INTERLACE_NONE ) 
 		/* Sequential mode needs thinstrip to work with things like
 		 * vips_shrink().
@@ -250,21 +249,15 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 			exif.data, exif.length );
 
 	/* Attach original palette bit depth, if any, as metadata.
-	 *
-	 * FIXME ... when we get palette support done
-	 *
-	if( color_type == PNG_COLOR_TYPE_PALETTE )
-		vips_image_set_int( out, "palette-bit-depth", bit_depth );
 	 */
+	if( png->ihdr.color_type == SPNG_COLOR_TYPE_INDEXED )
+		vips_image_set_int( image, 
+			"palette-bit-depth", png->ihdr.bit_depth );
 
 	/* Let our caller know. These are very expensive to decode.
 	 */
 	if( png->ihdr.interlace_method != SPNG_INTERLACE_NONE ) 
 		vips_image_set_int( image, "interlaced", 1 ); 
-
-	/* FIXME ... get resolution, etc. etc.
-	 */
-
 }
 
 static int
@@ -288,13 +281,14 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 		 */
 		spng_set_crc_action( png->ctx, SPNG_CRC_USE, SPNG_CRC_USE );
 
-	/* Set limits to avoid decompression bombs. We should set
-	 * spng_set_chunks_limits() as well, once that API goes in.
+	/* Set limits to avoid decompression bombs. Set chunk limits to 60mb
+	 * -- we've seen 50mb XMP blocks in the wild.
 	 *
 	 * No need to test the decoded image size -- the user can do that if
 	 * they wish.
 	 */
 	spng_set_image_limits( png->ctx, VIPS_MAX_COORD, VIPS_MAX_COORD );
+	spng_set_chunk_limits( png->ctx, 60 * 1024 * 1024, 60 * 1024 * 1024 );
 
 	if( vips_source_rewind( png->source ) ) 
 		return( -1 );
