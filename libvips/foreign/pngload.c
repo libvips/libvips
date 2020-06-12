@@ -50,7 +50,7 @@
 
 #include "pforeign.h"
 
-#ifdef HAVE_PNG
+#if defined(HAVE_PNG) && !defined(HAVE_SPNG)
 
 typedef struct _VipsForeignLoadPng {
 	VipsForeignLoad parent_object;
@@ -387,7 +387,7 @@ vips_foreign_load_png_buffer_init( VipsForeignLoadPngBuffer *buffer )
 {
 }
 
-#endif /*HAVE_PNG*/
+#endif /*defined(HAVE_PNG) && !defined(HAVE_SPNG)*/
 
 /**
  * vips_pngload:

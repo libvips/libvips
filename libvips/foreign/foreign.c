@@ -2206,6 +2206,12 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_png_target_get_type(); 
 #endif /*HAVE_PNG*/
 
+#ifdef HAVE_SPNG
+	vips_foreign_load_png_file_get_type(); 
+	vips_foreign_load_png_buffer_get_type(); 
+	vips_foreign_load_png_source_get_type(); 
+#endif /*HAVE_SPNG*/
+
 #ifdef HAVE_MATIO
 	vips_foreign_load_mat_get_type(); 
 #endif /*HAVE_MATIO*/

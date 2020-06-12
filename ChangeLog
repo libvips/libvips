@@ -18,6 +18,7 @@
 - add "all" mode to smartcrop 
 - flood fill could stop half-way for some very complex shapes
 - better handling of unaligned reads in multipage tiffs [petoor]
+- add experimental libspng reader 
 - mark old --delete option to vipsthumbnail as deprecated [UweOhse]
 - png save with a bad ICC profile just gives a warning
 - add "premultipled" option to vips_affine(), clarified vips_resize() 
@@ -26,6 +27,7 @@
 - thumbnail exploits subifd pyramids
 - handle all EXIF orientation cases, deprecate 
   vips_autorot_get_angle() [Elad-Laufer]
+- load PNGs with libspng, if possible
 - deprecate heifload autorotate -- it's now always on
 - revised resize improves accuracy [kleisauke]
 - add --vips-config flag to show configuration info
