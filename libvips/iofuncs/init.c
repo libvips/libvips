@@ -742,6 +742,15 @@ vips_lib_version_cb( const gchar *option_name, const gchar *value,
 }
 
 static gboolean
+vips_lib_config_cb( const gchar *option_name, const gchar *value, 
+	gpointer data, GError **error )
+{
+	printf( "%s\n", VIPS_CONFIG );
+	vips_shutdown();
+	exit( 0 );
+}
+
+static gboolean
 vips_cache_max_cb( const gchar *option_name, const gchar *value, 
 	gpointer data, GError **error )
 {
@@ -823,6 +832,9 @@ static GOptionEntry option_entries[] = {
 	{ "vips-version", 0, G_OPTION_FLAG_NO_ARG, 
 		G_OPTION_ARG_CALLBACK, (gpointer) &vips_lib_version_cb, 
 		N_( "print libvips version" ), NULL },
+	{ "vips-config", 0, G_OPTION_FLAG_NO_ARG, 
+		G_OPTION_ARG_CALLBACK, (gpointer) &vips_lib_config_cb, 
+		N_( "print libvips config" ), NULL },
 	{ "vips-pipe-read-limit", 0, 0, 
 		G_OPTION_ARG_INT64, (gpointer) &vips_pipe_read_limit, 
 		N_( "read at most this many bytes from a pipe" ), NULL },

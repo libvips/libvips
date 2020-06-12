@@ -28,6 +28,7 @@
   vips_autorot_get_angle() [Elad-Laufer]
 - deprecate heifload autorotate -- it's now always on
 - revised resize improves accuracy [kleisauke]
+- add --vips-config flag to show configuration info
 
 24/4/20 started 8.9.3
 - better iiif tile naming [IllyaMoskvin]
