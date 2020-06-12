@@ -16,6 +16,8 @@
  * 	- restart after minimise
  * 15/3/20
  * 	- revise for new VipsSource API
+ * 10/5/20
+ * 	- deprecate autorotate -- it's too difficult to support properly
  */
 
 /*
@@ -99,6 +101,11 @@ typedef struct _VipsForeignLoadHeif {
 	gboolean thumbnail;
 
 	/* Apply any orientation tags in the header.
+	 *
+	 * This is deprecated and does nothing. Non-autorotated reads from
+	 * libheif are surprisingly hard to support well, since orientation can
+	 * be represented in several different ways in HEIC files and devices
+	 * vary in how they do this.
 	 */
 	gboolean autorotate;
 
@@ -364,7 +371,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 #endif /*DEBUG*/
 	bands = heif->has_alpha ? 4 : 3;
 
-	/* FIXME .. need to test XMP and IPCT.
+	/* FIXME .. IPTC as well?
 	 */
 	n_metadata = heif_image_handle_get_list_of_metadata_block_IDs( 
 		heif->handle, NULL, id, VIPS_NUMBER( id ) );
@@ -414,16 +421,26 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		vips_image_set_blob( out, name, 
 			(VipsCallbackFn) NULL, data, length );
 
-		if( g_ascii_strcasecmp( type, "exif" ) == 0 ) 
-			(void) vips__exif_parse( out );
+		/* image_set will automatically parse EXIF, if necessary.
+		 */
 	}
 
+	/* We use libheif's autorotate, so we need to remove any EXIF
+	 * orientaion tags.
+	 *
+	 * According to the HEIF standard, EXIF orientation tags are only
+	 * informational and images should not be rotated because of them.
+	 * Unless we strip these tags, there's a danger downstream processing
+	 * could double-rotate.
+	 */
+	vips_autorot_remove_angle( out );
+
 #ifdef HAVE_HEIF_COLOR_PROFILE
-#ifdef DEBUG
-{
 	enum heif_color_profile_type profile_type = 
 		heif_image_handle_get_color_profile_type( heif->handle );
 
+#ifdef DEBUG
+{
 	printf( "profile type = " ); 
 	switch( profile_type ) {
 	case heif_color_profile_type_not_present: 
@@ -450,10 +467,10 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 }
 #endif /*DEBUG*/
 
-	/* FIXME should probably check the profile type ... lcms seems to be
-	 * able to load at least rICC and prof.
+	/* lcms can load standard (prof) and reduced (rICC) profiles
 	 */
-	if( heif_image_handle_get_color_profile_type( heif->handle ) ) {
+	if( profile_type == heif_color_profile_type_prof ||
+		profile_type == heif_color_profile_type_rICC ) {
 		size_t length = heif_image_handle_get_raw_color_profile_size( 
 			heif->handle );
 
@@ -475,14 +492,10 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
 			(VipsCallbackFn) NULL, data, length );
 	}
+	else if( profile_type == heif_color_profile_type_nclx ) {
+		g_warning( "heifload: ignoring nclx profile" );
+	}
 #endif /*HAVE_HEIF_COLOR_PROFILE*/
-
-	/* If we are using libheif's autorotate, remove the exif one. 
-	 */
-#ifdef HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH
-	if( heif->autorotate )
-		vips_autorot_remove_angle( out );
-#endif /*HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH*/
 
 	vips_image_set_int( out, "heif-primary", heif->primary_page );
 	vips_image_set_int( out, "n-pages", heif->n_top );
@@ -503,40 +516,6 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		vips_connection_filename( VIPS_CONNECTION( heif->source ) ) );
 
 	return( 0 );
-}
-
-static int
-vips_foreign_load_heif_get_width( VipsForeignLoadHeif *heif, 
-	struct heif_image_handle *handle )
-{
-	int width;
-
-	/* _get_ipse_width() fetches the untransformed dimension, but was only
-	 * added in 1.3.4. Without it, we just use the transformed dimension
-	 * and have to autorotate.
-	 */
-	width = heif_image_handle_get_width( handle );
-#ifdef HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH
-	if( !heif->autorotate ) 
-		width = heif_image_handle_get_ispe_width( handle );
-#endif /*HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH*/
-
-	return( width );
-}
-
-static int
-vips_foreign_load_heif_get_height( VipsForeignLoadHeif *heif,
-	struct heif_image_handle *handle )
-{
-	int height;
-
-	height = heif_image_handle_get_height( handle );
-#ifdef HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH
-	if( !heif->autorotate )
-		height = heif_image_handle_get_ispe_height( handle );
-#endif /*HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH*/
-
-	return( height );
 }
 
 static int
@@ -582,10 +561,6 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	}
 
 #ifdef DEBUG
-#ifdef HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH
-	if( !heif->autorotate )
-		printf( "using _get_ispe_width() / _height()\n" );
-#endif /*HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH*/
 	for( i = heif->page; i < heif->page + heif->n; i++ ) {
 		heif_item_id thumb_ids[1];
 		int n_items;
@@ -616,11 +591,9 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 
 			printf( "  thumb %d\n", j );
 			printf( "    width = %d\n", 
-				vips_foreign_load_heif_get_width( heif, 
-					thumb_handle ) );
+				heif_image_handle_get_width( thumb_handle ) );
 			printf( "    height = %d\n", 
-				vips_foreign_load_heif_get_height( heif, 
-					thumb_handle ) );
+				heif_image_handle_get_height( thumb_handle ) );
 		}
 	}
 #endif /*DEBUG*/
@@ -630,18 +603,16 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	if( vips_foreign_load_heif_set_page( heif, 
 		heif->page, heif->thumbnail ) )
 		return( -1 );
-	heif->page_width = vips_foreign_load_heif_get_width( heif, 
-		heif->handle );
-	heif->page_height = vips_foreign_load_heif_get_height( heif, 
-		heif->handle );
+	heif->page_width = heif_image_handle_get_width( heif->handle );
+	heif->page_height = heif_image_handle_get_height( heif->handle );
 	for( i = heif->page + 1; i < heif->page + heif->n; i++ ) {
 		if( vips_foreign_load_heif_set_page( heif, 
 			i, heif->thumbnail ) )
 			return( -1 );
-		if( vips_foreign_load_heif_get_width( heif, 
-				heif->handle ) != heif->page_width ||
-			vips_foreign_load_heif_get_height( heif, 
-				heif->handle ) != heif->page_height ) {
+		if( heif_image_handle_get_width( heif->handle ) 
+				!= heif->page_width ||
+			heif_image_handle_get_height( heif->handle ) 
+				!= heif->page_height ) {
 			vips_error( class->nickname, "%s", 
 				_( "not all pages are the same size" ) ); 
 			return( -1 ); 
@@ -655,11 +626,9 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 		if( vips_foreign_load_heif_set_page( heif, i, FALSE ) )
 			return( -1 );
 		printf( "    width = %d\n", 
-			vips_foreign_load_heif_get_width( heif, 
-				heif->handle ) );
+			heif_image_handle_get_width( heif->handle ) );
 		printf( "    height = %d\n", 
-			vips_foreign_load_heif_get_height( heif, 
-				heif->handle ) );
+			heif_image_handle_get_height( heif->handle ) );
 		printf( "    has_depth = %d\n", 
 			heif_image_handle_has_depth_image( heif->handle ) );
 		printf( "    has_alpha = %d\n", 
@@ -710,13 +679,12 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 			heif_chroma_interleaved_RGBA :
 			heif_chroma_interleaved_RGB;
 
-		/* Only disable transforms if we have been able to fetch the
-		 * untransformed dimensions.
-		 */
 		options = heif_decoding_options_alloc();
-#ifdef HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH
-		options->ignore_transformations = !heif->autorotate;
-#endif /*HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH*/
+#ifdef HAVE_HEIF_DECODING_OPTIONS_CONVERT_HDR_TO_8BIT
+		/* VIPS_FORMAT_UCHAR is assumed so downsample HDR to 8bpc
+		 */
+		options->convert_hdr_to_8bit = TRUE;
+#endif /*HAVE_HEIF_DECODING_OPTIONS_CONVERT_HDR_TO_8BIT*/
 		error = heif_decode_image( heif->handle, &heif->img, 
 			heif_colorspace_RGB, chroma, 
 			options );
@@ -883,7 +851,7 @@ vips_foreign_load_heif_class_init( VipsForeignLoadHeifClass *class )
 	VIPS_ARG_BOOL( class, "autorotate", 21, 
 		_( "Autorotate" ), 
 		_( "Rotate image using exif orientation" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignLoadHeif, autorotate ),
 		FALSE );
 
@@ -905,9 +873,16 @@ vips_foreign_load_heif_read( void *data, size_t size, void *userdata )
 	gint64 result;
 
 	result = vips_source_read( heif->source, data, size );
-	if( result == 0 &&
+	/* On EOF, make a note of the file length. 
+	 *
+	 * libheif can sometimes ask for zero bytes, be careful not to 
+	 * interpret that as EOF.
+	 */
+	if( size > 0 &&
+		result == 0 &&
 		heif->length == -1 ) 
-		heif->length = vips_source_seek( heif->source, 0L, SEEK_CUR );
+		result = heif->length = 
+			vips_source_seek( heif->source, 0L, SEEK_CUR );
 	if( result < 0 ) 
 		return( -1 );
 
@@ -1203,7 +1178,6 @@ vips_foreign_load_heif_source_init( VipsForeignLoadHeifSource *source )
  * * @page: %gint, page (top-level image number) to read
  * * @n: %gint, load this many pages
  * * @thumbnail: %gboolean, fetch thumbnail instead of image
- * * @autorotate: %gboolean, rotate image upright during load 
  *
  * Read a HEIF image file into a VIPS image. 
  *
@@ -1219,17 +1193,6 @@ vips_foreign_load_heif_source_init( VipsForeignLoadHeifSource *source )
  *
  * If @thumbnail is %TRUE, then fetch a stored thumbnail rather than the
  * image.
- *
- * Setting @autorotate to %TRUE will make the loader interpret the 
- * orientation tag and automatically rotate the image appropriately during
- * load. 
- *
- * If @autorotate is %FALSE, the metadata field #VIPS_META_ORIENTATION is set 
- * to the value of the orientation tag. Applications may read and interpret 
- * this field
- * as they wish later in processing. See vips_autorot(). Save
- * operations will use #VIPS_META_ORIENTATION, if present, to set the
- * orientation of output images. 
  *
  * See also: vips_image_new_from_file().
  *
@@ -1260,7 +1223,6 @@ vips_heifload( const char *filename, VipsImage **out, ... )
  * * @page: %gint, page (top-level image number) to read
  * * @n: %gint, load this many pages
  * * @thumbnail: %gboolean, fetch thumbnail instead of image
- * * @autorotate: %gboolean, rotate image upright during load 
  *
  * Read a HEIF image file into a VIPS image. 
  * Exactly as vips_heifload(), but read from a memory buffer. 
@@ -1303,7 +1265,6 @@ vips_heifload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * * @page: %gint, page (top-level image number) to read
  * * @n: %gint, load this many pages
  * * @thumbnail: %gboolean, fetch thumbnail instead of image
- * * @autorotate: %gboolean, rotate image upright during load 
  *
  * Exactly as vips_heifload(), but read from a source. 
  *

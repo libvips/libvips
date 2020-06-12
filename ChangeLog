@@ -28,6 +28,8 @@
 - handle all EXIF orientation cases, deprecate 
   vips_autorot_get_angle() [Elad-Laufer]
 - load PNGs with libspng, if possible
+- deprecate heifload autorotate -- it's now always on
+- revised resize improves accuracy [kleisauke]
 
 24/4/20 started 8.9.3
 - better iiif tile naming [IllyaMoskvin]

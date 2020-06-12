@@ -33,6 +33,8 @@
  * 	  affine nearest interpolator is always centre 
  * 7/7/19 [lovell]
  * 	- don't let either axis drop below 1px
+ * 12/7/20
+ * 	- much better handling of "nearest"
  */
 
 /*
@@ -105,45 +107,6 @@ typedef VipsResampleClass VipsResizeClass;
 
 G_DEFINE_TYPE( VipsResize, vips_resize, VIPS_TYPE_RESAMPLE ); 
 
-/* How much of a scale should be by an integer shrink factor?
- *
- * This depends on the scale and the kernel we will use for residual resizing.
- * For upsizing and nearest-neighbour downsize, we want no shrinking. 
- *
- * The others are adaptive: the size of the kernel changes with the shrink 
- * factor. We will get the best quality (but be the slowest) if we let 
- * reduce do all the work. Leave it the final 200 - 300% to do as a compromise 
- * for efficiency. 
- *
- * FIXME: this is rather ugly. Kernel should be a class and this info should be
- * stored in there. 
- */
-static int
-vips_resize_int_shrink( VipsResize *resize, double scale )
-{
-	int shrink;
-
-	if( scale > 1.0 )
-		shrink = 1;
-	else
-		switch( resize->kernel ) { 
-		case VIPS_KERNEL_NEAREST:
-			shrink = 1; 
-			break;
-
-		case VIPS_KERNEL_LINEAR:
-		case VIPS_KERNEL_CUBIC:
-		case VIPS_KERNEL_MITCHELL:
-		case VIPS_KERNEL_LANCZOS2:
-		case VIPS_KERNEL_LANCZOS3:
-		default:
-			shrink = VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (scale * 2) ) );
-			break;
-		}
-
-	return( shrink );
-}
-
 /* Suggest a VipsInterpolate which corresponds to a VipsKernel. We use
  * this to pick a thing for affine().
  */
@@ -192,10 +155,10 @@ vips_resize_build( VipsObject *object )
 	else
 		vscale = resize->scale;
 
-	/* The int part of our scale.
+	/* The int part of our scale. Leave the final 200 - 300% to reduce.
 	 */
-	int_hshrink = vips_resize_int_shrink( resize, hscale );
-	int_vshrink = vips_resize_int_shrink( resize, vscale );
+	int_hshrink = VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (hscale * 2) ) );
+	int_vshrink = VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (vscale * 2) ) );
 
 	/* Unpack for processing.
 	 */
@@ -203,22 +166,38 @@ vips_resize_build( VipsObject *object )
 		return( -1 );
 	in = t[5];
 
-	if( int_vshrink > 1 ) { 
-		g_info( "shrinkv by %d", int_vshrink );
-		if( vips_shrinkv( in, &t[0], int_vshrink, NULL ) )
-			return( -1 );
-		in = t[0];
+	if( resize->kernel == VIPS_KERNEL_NEAREST ) {
+		if( int_vshrink > 1 ||
+			int_hshrink > 1 ) { 
+			g_info( "subsample by %d, %d", 
+				int_hshrink, int_vshrink );
+			if( vips_subsample( in, &t[0], 
+				int_hshrink, int_vshrink, NULL ) )
+				return( -1 );
+			in = t[0];
 
-		vscale *= int_vshrink;
-	}
+			hscale *= int_hshrink;
+			vscale *= int_vshrink;
+		}
+	} 
+	else {
+		if( int_vshrink > 1 ) { 
+			g_info( "shrinkv by %d", int_vshrink );
+			if( vips_shrinkv( in, &t[0], int_vshrink, NULL ) )
+				return( -1 );
+			in = t[0];
 
-	if( int_hshrink > 1 ) { 
-		g_info( "shrinkh by %d", int_hshrink );
-		if( vips_shrinkh( in, &t[1], int_hshrink, NULL ) )
-			return( -1 );
-		in = t[1];
+			vscale *= int_vshrink;
+		}
 
-		hscale *= int_hshrink;
+		if( int_hshrink > 1 ) { 
+			g_info( "shrinkh by %d", int_hshrink );
+			if( vips_shrinkh( in, &t[1], int_hshrink, NULL ) )
+				return( -1 );
+			in = t[1];
+
+			hscale *= int_hshrink;
+		}
 	}
 
 	/* Don't let either axis drop below 1 px.
@@ -232,7 +211,6 @@ vips_resize_build( VipsObject *object )
 		g_info( "residual reducev by %g", vscale );
 		if( vips_reducev( in, &t[2], 1.0 / vscale, 
 			"kernel", resize->kernel, 
-			"centre", TRUE, 
 			NULL ) )  
 			return( -1 );
 		in = t[2];
@@ -243,7 +221,6 @@ vips_resize_build( VipsObject *object )
 			hscale );
 		if( vips_reduceh( in, &t[3], 1.0 / hscale, 
 			"kernel", resize->kernel, 
-			"centre", TRUE, 
 			NULL ) )  
 			return( -1 );
 		in = t[3];
