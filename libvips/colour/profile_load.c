@@ -89,17 +89,14 @@ vips_profile_load_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( g_ascii_strcasecmp( load->name, "none" ) == 0 ) {
+	if( g_ascii_strcasecmp( load->name, "none" ) == 0 ) 
 		profile = NULL;
-	}
-	else if( (data = vips_profile_fallback_get( load->name, &length )) ) {
+	else if( (data = vips_profile_fallback_get( load->name, &length )) ) 
 		profile = vips_blob_new( NULL, data, length );
-	}
 	else if( (data = vips__file_read_name( load->name, 
-		vips__icc_dir(), &length )) ) {
+		vips__icc_dir(), &length )) ) 
 		profile = vips_blob_new( 
 			(VipsCallbackFn) g_free, data, length );
-	}
 	else {
 		vips_error( class->nickname, 
 			_( "unable to load profile \"%s\"" ), load->name );
