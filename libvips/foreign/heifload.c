@@ -493,17 +493,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 			(VipsCallbackFn) NULL, data, length );
 	}
 	else if( profile_type == heif_color_profile_type_nclx ) {
-		/* nclx default coefficients are the same as bt709
-		 * FIXME .. apply any deltas to these defaults
-		 */
-		VipsBlob *blob;
-		size_t length;
-		const void *data;
-
-		vips_profile_load( "bt709", &blob, NULL );
-		data = vips_blob_get( blob, &length );
-		vips_image_set_blob( out, VIPS_META_ICC_NAME,
-			(VipsCallbackFn) NULL, data, length );
+		g_warning( "heifload: ignoring nclx profile" );
 	}
 #endif /*HAVE_HEIF_COLOR_PROFILE*/
 
