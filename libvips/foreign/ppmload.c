@@ -492,23 +492,22 @@ vips_foreign_load_ppm_generate_1bit_binary( VipsRegion *or,
 	VipsImage *image = or->im;
 
 	int x, y;
-	int bits;
 
-	bits = VIPS_SBUF_GETC( ppm->sbuf );
 	for( y = 0; y < r->height; y++ ) {
 		VipsPel *q = VIPS_REGION_ADDR( or, 0, r->top + y );
 
+		int bits;
+
+		/* Not needed, but stop a compiler warning.
+		 */
+		bits = 0;
+
 		for( x = 0; x < image->Xsize; x++ ) {
+			if( (x & 7) == 0 )
+				bits = VIPS_SBUF_GETC( ppm->sbuf );
 			q[x] = (bits & 128) ? 0 : 255;
 			bits = VIPS_LSHIFT_INT( bits, 1 );
-			if( (x & 7) == 7 )
-				bits = VIPS_SBUF_GETC( ppm->sbuf );
 		}
-
-		/* Skip any unaligned bits at end of line.
-		 */
-		if( (x & 7) != 0 )
-			bits = VIPS_SBUF_GETC( ppm->sbuf );
 	}
 
 	return( 0 );

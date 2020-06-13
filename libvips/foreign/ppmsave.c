@@ -161,7 +161,7 @@ vips_foreign_save_ppm_line_binary_squash( VipsForeignSavePpm *ppm,
 	for( x = 0; x < image->Xsize; x++ ) {
 		bits = VIPS_LSHIFT_INT( bits, 1 );
 		n_bits += 1;
-		bits |= p[x] ? 0 : 1;
+		bits |= p[x] > 128 ? 0 : 1;
 
 		if( n_bits == 8 ) {
 			if( VIPS_TARGET_PUTC( ppm->target, bits ) ) 
