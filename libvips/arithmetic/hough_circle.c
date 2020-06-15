@@ -279,6 +279,9 @@ vips_hough_circle_init( VipsHoughCircle *hough_circle )
  * votes by circle circumference so circles of differing size are given equal
  * weight. 
  *
+ * The output pixel at (x, y, band) is the strength of the circle centred on
+ * (x, y) and with radius (band).
+ *
  * Use @max_radius and @min_radius to set the range of radii to search for.
  *
  * Use @scale to set how @in coordinates are scaled to @out coordinates. A
