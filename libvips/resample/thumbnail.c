@@ -259,11 +259,15 @@ vips_thumbnail_get_tiff_pyramid_page( VipsThumbnail *thumbnail )
 	printf( "vips_thumbnail_get_tiff_pyramid_page:\n" );
 #endif /*DEBUG*/
 
-	/* Tell open() that we want to open pages rather than subifds.
+	/* Single-page docs can't be pyramids.
 	 */
-	thumbnail->subifd_pyramid = FALSE;
+	if( thumbnail->n_loaded_pages < 2 )
+		return;
 
-	for( i = 0; i < thumbnail->n_pages; i++ ) {
+	/* Use n_loaded_pages not n_pages since we support thumbnailing a page
+	 * or range of pages from a many-page tiff.
+	 */
+	for( i = 0; i < thumbnail->n_loaded_pages; i++ ) {
 		VipsImage *page;
 		int level_width;
 		int level_height;
@@ -297,9 +301,9 @@ vips_thumbnail_get_tiff_pyramid_page( VipsThumbnail *thumbnail )
 #ifdef DEBUG
 	printf( "vips_thumbnail_get_tiff_pyramid_page: "
 		"%d layer pyramid detected\n",
-		thumbnail->n_pages );
+		thumbnail->n_loaded_pages );
 #endif /*DEBUG*/
-	thumbnail->level_count = thumbnail->n_pages;
+	thumbnail->level_count = thumbnail->n_loaded_pages;
 }
 
 /* Detect a TIFF pyramid made of subifds following a roughly /2 shrink.
@@ -315,10 +319,6 @@ vips_thumbnail_get_tiff_pyramid_subifd( VipsThumbnail *thumbnail )
 #ifdef DEBUG
 	printf( "vips_thumbnail_get_tiff_pyramid_subifd:\n" );
 #endif /*DEBUG*/
-
-	/* Tell open() that we want to open subifds rather than pages.
-	 */
-	thumbnail->subifd_pyramid = TRUE;
 
 	for( i = 0; i < thumbnail->n_subifds; i++ ) {
 		VipsImage *page;
@@ -544,10 +544,13 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 		/* Test for a subifd pyr first, since we can do that from just
 		 * one page.
 		 */
+		thumbnail->subifd_pyramid = TRUE;
 		vips_thumbnail_get_tiff_pyramid_subifd( thumbnail );
 
-		if( thumbnail->level_count == 0 ) 
+		if( thumbnail->level_count == 0 ) {
+			thumbnail->subifd_pyramid = FALSE;
 			vips_thumbnail_get_tiff_pyramid_page( thumbnail );
+		}
 	}
 
 	/* For heif, we need to fetch the thumbnail size, in case we can use
@@ -567,9 +570,12 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 			thumbnail->input_width, thumbnail->input_height );
 	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ||
 		vips_isprefix( "VipsForeignLoadOpenslide", 
-		thumbnail->loader ) ) 
-		factor = vips_thumbnail_find_pyrlevel( thumbnail, 
-			thumbnail->input_width, thumbnail->input_height );
+		thumbnail->loader ) ) {
+		if( thumbnail->level_count > 0 )
+			factor = vips_thumbnail_find_pyrlevel( thumbnail, 
+				thumbnail->input_width, 
+				thumbnail->input_height );
+	}
 	else if( vips_isprefix( "VipsForeignLoadPdf", thumbnail->loader ) ||
 		vips_isprefix( "VipsForeignLoadWebp", thumbnail->loader ) ||
 		vips_isprefix( "VipsForeignLoadSvg", thumbnail->loader ) ) 
@@ -1043,16 +1049,24 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) {
+		/* We support three modes: subifd pyramids, page-based
+		 * pyramids, and simple multi-page TIFFs (no pyramid).
+		 */
 		if( thumbnail->subifd_pyramid )
 			return( vips_image_new_from_file( file->filename, 
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"subifd", (int) factor,
 				NULL ) );
-		else
+		else if( thumbnail->level_count > 0 ) 
 			return( vips_image_new_from_file( file->filename, 
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"page", (int) factor,
 				NULL ) );
+		else
+			return( vips_image_new_from_file( file->filename, 
+				"access", VIPS_ACCESS_SEQUENTIAL,
+				NULL ) );
+
 	}
 	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
