@@ -356,9 +356,9 @@ vips_thumbnail_get_tiff_pyramid_subifd( VipsThumbnail *thumbnail )
 #ifdef DEBUG
 	printf( "vips_thumbnail_get_tiff_pyramid_subifd: "
 		"%d layer pyramid detected\n",
-		thumbnail->n_pages );
+		thumbnail->n_subifds );
 #endif /*DEBUG*/
-	thumbnail->level_count = thumbnail->n_pages;
+	thumbnail->level_count = thumbnail->n_subifds;
 }
 
 static int
