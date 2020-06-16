@@ -199,8 +199,8 @@
  * 	- better handling of aligned reads in multipage tiffs
  * 28/5/20
  * 	- add subifd
- * 06/6/20
- *  - add load functionality for 2 and 4 bit greyscale tiffs
+ * 06/6/20 MathemanFlo
+ * 	- support 2 and 4 bit greyscale load
  */
 
 /*
@@ -1026,13 +1026,12 @@ rtiff_onebit_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *flg )
 {
 	int photometric_interpretation = 
 		rtiff->header.photometric_interpretation;
-
-	int x, i, z;
-	VipsPel bits;
-
 	int black = photometric_interpretation == PHOTOMETRIC_MINISBLACK ?
 		0 : 255;
 	int white = black ^ 0xff;
+
+	int x, i, z;
+	VipsPel bits;
 
 	/* (sigh) how many times have I written this?
 	 */
@@ -1051,6 +1050,7 @@ rtiff_onebit_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *flg )
 	 */
 	if( n & 7 ) {
 		bits = p[i];
+
 		for( z = 0; z < (n & 7); z++ ) {
 			q[x + z] = (bits & 128) ? white : black;
 			bits <<= 1;
@@ -1063,9 +1063,11 @@ rtiff_onebit_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *flg )
 static void
 rtiff_twobit_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *flg )
 {
+	int photometric_interpretation = 
+		rtiff->header.photometric_interpretation;
+	int minisblack = photometric_interpretation == PHOTOMETRIC_MINISBLACK;
+
 	int x, i, z;
-	int minisblack = 
-		rtiff->header.photometric_interpretation == PHOTOMETRIC_MINISBLACK;
 	VipsPel twobits, fourbits, bits;
 
 	x = 0;
@@ -1073,7 +1075,8 @@ rtiff_twobit_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *flg )
 		bits = (VipsPel) minisblack ? p[i] : ~p[i];
 
 		for( z = 0; z < 4; z++ ) {
-			/* The grey shade is the value four times concatenated */
+			/* The grey shade is the value four times concatenated.
+			 */
 			twobits = bits >> 6;
 			fourbits = twobits | (twobits << 2);
 			q[x] = fourbits | (fourbits << 4);
@@ -1086,7 +1089,8 @@ rtiff_twobit_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *flg )
 	*/
 	if( n & 3 ) {
 		bits = (VipsPel) minisblack ? p[i] : ~p[i];
-		for( z = 0; z < (n & 3) ; z++ ) {
+
+		for( z = 0; z < (n & 3); z++ ) {
 			twobits = bits >> 6;
 			fourbits = twobits | (twobits << 2);
 			q[x + z] = fourbits | (fourbits << 4);
@@ -1100,18 +1104,20 @@ rtiff_twobit_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *flg )
 static void
 rtiff_fourbit_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *flg )
 {
+	int photometric_interpretation = 
+		rtiff->header.photometric_interpretation;
+	int minisblack = photometric_interpretation == PHOTOMETRIC_MINISBLACK;
+
 	int x, i, z;
-	int minisblack = 
-		rtiff->header.photometric_interpretation == PHOTOMETRIC_MINISBLACK;
 	VipsPel bits;
 
 	x = 0;
-
 	for( i = 0; i < (n >> 1); i++ ) {
 		bits = (VipsPel) minisblack ? p[i] : ~p[i];
 
 		for( z = 0; z < 2; z++ ) {
-			/* The grey shade is the value two times concatenated */
+			/* The grey shade is the value two times concatenated.
+			 */
 			q[x] = (bits & 0xF0) | (bits >> 4);
 			bits <<= 4;
 			x += 1;
@@ -1119,10 +1125,10 @@ rtiff_fourbit_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *flg )
 	}
 
 	/* Do last byte in line.
-	*/
-	if( n & 1) {
+	 */
+	if( n & 1 ) {
 		bits = (VipsPel) minisblack ? p[i] : ~p[i];
-		for( z = 0; z < (n & 1) ; z++ ) {
+		for( z = 0; z < (n & 1); z++ ) {
 			q[x + z] = (bits & 0xF0) | (bits >> 4);
 			bits <<= 4;
 		}
