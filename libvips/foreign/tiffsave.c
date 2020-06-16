@@ -638,6 +638,8 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * In case @miniswhite is set to true this behavior is inverted.
  * In case of depth 4: values < 16 are written as black, and so on for the
  * lighter shades. In case @miniswhite is set to true this behavior is inverted.
+ * 
+ * Set @bitdepth to 8 to squash 3-band float CIELAB images down to 8-bit CIELAB.
  *
  * Use @resunit to override the default resolution unit.  
  * The default 
@@ -703,7 +705,7 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
  * * @tile_height: %gint for tile size
  * * @pyramid: %gboolean, write an image pyramid
  * * @squash: %gboolean, squash 8-bit images down to 1 bit
- * * @bitdepth: %int, change bit depth to 1,2 or 4-bit
+ * * @bitdepth: %int, change bit depth to 1,2 or 4-bit or squash float to 8 bit
  * * @miniswhite: %gboolean, write 1-bit images as MINISWHITE
  * * @resunit: #VipsForeignTiffResunit for resolution unit
  * * @xres: %gdouble horizontal resolution in pixels/mm

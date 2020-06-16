@@ -197,7 +197,7 @@
  * 	- add support for subifd pyramid layers
  * 8/6/20
  * 	- add bitdepth support for 2 and 4 bit greyscale images
-
+ */
 /*
 
     This file is part of VIPS.
@@ -1041,7 +1041,7 @@ ready_to_write( Wtiff *wtiff )
 
 	/* "squash" float LAB down to LABQ.
 	 */
-	if( wtiff->bitdepth == 1 &&
+	if( (wtiff->bitdepth &&
 		wtiff->input->Bands == 3 &&
 		wtiff->input->BandFmt == VIPS_FORMAT_FLOAT &&
 		wtiff->input->Type == VIPS_INTERPRETATION_LAB ) {
@@ -1201,11 +1201,9 @@ wtiff_new( VipsImage *input, const char *filename,
     /* Can only have byte fractional bit depths for 8 bit mono.
      * 3-band float should have been packed above.
 	 */
-	if( wtiff->bitdepth && (wtiff->bitdepth == 1 || wtiff->bitdepth == 2 
-		|| wtiff->bitdepth == 4 )
-        && !(wtiff->ready->Coding == VIPS_CODING_NONE &&
-			wtiff->ready->BandFmt == VIPS_FORMAT_UCHAR &&
-			wtiff->ready->Bands == 1) ) { 
+	if( wtiff->bitdepth && !(wtiff->ready->Coding == VIPS_CODING_NONE &&
+		wtiff->ready->BandFmt == VIPS_FORMAT_UCHAR && 
+		wtiff->ready->Bands == 1) ) { 
 		g_warning( "%s",
                 ( "can only set bitdepth for 1-band uchar and "
                         "3-band float lab -- disabling bitdepth" ) );
@@ -1250,11 +1248,11 @@ wtiff_new( VipsImage *input, const char *filename,
 	 */
 	if( wtiff->ready->Coding == VIPS_CODING_LABQ )
 		wtiff->tls = wtiff->tilew * 3;
-	else if( wtiff->bitdepth == 1)
+	else if( wtiff->bitdepth == 1 )
 		wtiff->tls = VIPS_ROUND_UP( wtiff->tilew, 8 ) / 8;
-	else if( wtiff->bitdepth == 2)
+	else if( wtiff->bitdepth == 2 )
 		wtiff->tls = VIPS_ROUND_UP( wtiff->tilew, 4 ) / 4;
-	else if( wtiff->bitdepth == 4)
+	else if( wtiff->bitdepth == 4 )
 		wtiff->tls = VIPS_ROUND_UP( wtiff->tilew, 2 ) / 2;
 	else
 		wtiff->tls = VIPS_IMAGE_SIZEOF_PEL( wtiff->ready ) * 
@@ -1322,28 +1320,17 @@ eightbit2twobit( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
 {
 	int x;
 	VipsPel bits;
+	VipsPel mask = wtiff->miniswhite ? 3 : 0;
 
 	bits = 0;
-	if( !wtiff->miniswhite ) { //avoid unnecessary branches
-		for( x = 0; x < n; x++ ) {
-			bits <<= 2;
-			bits |= p[x] >> 6;
+	
+	for( x = 0; x < n; x++ ) {
+		bits <<= 2;
+		bits |= (p[x] >> 6) ^ mask;
 
-			if( (x & 0x3) == 0x3 ) {
-				*q++ = bits;
-				bits = 0;
-			}
-		}
-	}
-	else {
-		for( x = 0; x < n; x++ ) {
-			bits <<= 2;
-			bits |= p[x] >> 6;
-
-			if( (x & 0x3) == 0x3 ) {
-				*q++ = ~bits;
-				bits = 0;
-			}
+		if( (x & 0x3) == 0x3 ) {
+			*q++ = bits;
+			bits = 0;
 		}
 	}
 
@@ -1360,30 +1347,19 @@ eightbit2fourbit( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
 {
     int x;
     VipsPel bits;
-
+	VipsPel mask = wtiff->miniswhite ? 15 : 0;
     bits = 0;
-	if( !wtiff->miniswhite ) { //avoid unnecessary branches
-		for( x = 0; x < n; x++ ) {
-				bits <<= 4;
-				bits |= p[x] >> 4;
+	
+	for( x = 0; x < n; x++ ) {
+		bits <<= 4;
+		bits |= (p[x] >> 4) ^ mask;
 
-				if( (x & 0x1) == 0x1 ) {
-						*q++ = bits;
-						bits = 0;
-				}
+		if( (x & 0x1) == 0x1 ) {
+				*q++ = bits;
+				bits = 0;
 		}
 	}
-	else {
-		for( x = 0; x < n; x++ ) {
-				bits <<= 4;
-				bits |= p[x] >> 4;
 
-				if( (x & 0x1) == 0x1 ) {
-						*q++ = ~bits;
-						bits = 0;
-				}
-		}
-	}
     /* Any left-over bits? Need to be left-aligned.
      */
     if( (x & 0x1) != 0 )
@@ -1642,11 +1618,11 @@ wtiff_layer_write_strip( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 			eightbit2onebit( wtiff, wtiff->tbuf, p, im->Xsize );
 			p = wtiff->tbuf;
 		}
-		else if( wtiff->bitdepth == 2) {
+		else if( wtiff->bitdepth == 2 ) {
 			eightbit2twobit( wtiff, wtiff->tbuf, p, im->Xsize );
 			p = wtiff->tbuf;
 		}
-		else if( wtiff->bitdepth == 4) {
+		else if( wtiff->bitdepth == 4 ) {
 			eightbit2fourbit( wtiff, wtiff->tbuf, p, im->Xsize );
 			p = wtiff->tbuf;
 		}

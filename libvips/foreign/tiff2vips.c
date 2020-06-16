@@ -1063,34 +1063,36 @@ rtiff_onebit_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *flg )
 static void
 rtiff_twobit_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *flg )
 {
-        int x, i, z;
-        int minisblack = 
-			rtiff->header.photometric_interpretation == PHOTOMETRIC_MINISBLACK;
-        VipsPel bits;
+	int x, i, z;
+	int minisblack = 
+		rtiff->header.photometric_interpretation == PHOTOMETRIC_MINISBLACK;
+	VipsPel twobits, fourbits, bits;
 
-        x = 0;
-        for( i = 0; i < (n >> 2); i++ ) {
-                bits = (VipsPel) minisblack ? p[i] : ~p[i];
+	x = 0;
+	for( i = 0; i < (n >> 2); i++ ) {
+		bits = (VipsPel) minisblack ? p[i] : ~p[i];
 
-                for( z = 0; z < 4; z++ ) {
-					/* The grey shade is the value four times concatenated */
-                        q[x] = (bits & 0xC0) | ((bits & 0xC0) >> 2) 
-							| ((bits & 0xC0) >> 4) | (bits >> 6);
-                        bits <<= 2;
-                        x += 1;
-                }
-        }
+		for( z = 0; z < 4; z++ ) {
+			/* The grey shade is the value four times concatenated */
+			twobits = bits >> 6;
+			fourbits = twobits | (twobits << 2);
+			q[x] = fourbits | (fourbits << 4);
+			bits <<= 2;
+			x += 1;
+		}
+	}
 
-        /* Do last byte in line.
-         */
-        if( n & 3 ) {
-                bits = (VipsPel) minisblack ? p[i] : ~p[i];
-                for( z = 0; z < (n & 3) ; z++ ) {
-                    q[x + z] = (bits & 0xC0) | ((bits & 0xC0) >> 2) 
-						| ((bits & 0xC0) >> 4) | (bits >> 6);
-                    bits <<= 2;
-                }
-        }
+	/* Do last byte in line.
+	*/
+	if( n & 3 ) {
+		bits = (VipsPel) minisblack ? p[i] : ~p[i];
+		for( z = 0; z < (n & 3) ; z++ ) {
+			twobits = bits >> 6;
+			fourbits = twobits | (twobits << 2);
+			q[x + z] = fourbits | (fourbits << 4);
+			bits <<= 2;
+		}
+	}
 }
 
 /* Per-scanline process function for 4 bit greyscale images.
@@ -1098,33 +1100,33 @@ rtiff_twobit_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *flg )
 static void
 rtiff_fourbit_line( Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *flg )
 {
-        int x, i, z;
-        int minisblack = 
-			rtiff->header.photometric_interpretation == PHOTOMETRIC_MINISBLACK;
-        VipsPel bits;
+	int x, i, z;
+	int minisblack = 
+		rtiff->header.photometric_interpretation == PHOTOMETRIC_MINISBLACK;
+	VipsPel bits;
 
-        x = 0;
+	x = 0;
 
-        for( i = 0; i < (n >> 1); i++ ) {
-                bits = (VipsPel) minisblack ? p[i] : ~p[i];
+	for( i = 0; i < (n >> 1); i++ ) {
+		bits = (VipsPel) minisblack ? p[i] : ~p[i];
 
-                for( z = 0; z < 2; z++ ) {
-					/* The grey shade is the value two times concatenated */
-                        q[x] = (bits & 0xF0) | (bits >> 4);
-                        bits <<= 4;
-                        x += 1;
-                }
-        }
+		for( z = 0; z < 2; z++ ) {
+			/* The grey shade is the value two times concatenated */
+			q[x] = (bits & 0xF0) | (bits >> 4);
+			bits <<= 4;
+			x += 1;
+		}
+	}
 
-        /* Do last byte in line.
-         */
-        if( n & 1) {
-                bits = (VipsPel) minisblack ? p[i] : ~p[i];
-                for( z = 0; z < (n & 1) ; z++ ) {
-                    q[x + z] = (bits & 0xF0) | (bits >> 4);
-                    bits <<= 4;
-                }
-        }
+	/* Do last byte in line.
+	*/
+	if( n & 1) {
+		bits = (VipsPel) minisblack ? p[i] : ~p[i];
+		for( z = 0; z < (n & 1) ; z++ ) {
+			q[x + z] = (bits & 0xF0) | (bits >> 4);
+			bits <<= 4;
+		}
+	}
 }
 
 
