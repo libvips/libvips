@@ -1041,7 +1041,7 @@ ready_to_write( Wtiff *wtiff )
 
 	/* "squash" float LAB down to LABQ.
 	 */
-	if( (wtiff->bitdepth &&
+	if( wtiff->bitdepth &&
 		wtiff->input->Bands == 3 &&
 		wtiff->input->BandFmt == VIPS_FORMAT_FLOAT &&
 		wtiff->input->Type == VIPS_INTERPRETATION_LAB ) {
