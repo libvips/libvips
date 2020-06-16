@@ -12,10 +12,12 @@ from helpers import \
     ANALYZE_FILE, GIF_FILE, WEBP_FILE, EXR_FILE, FITS_FILE, OPENSLIDE_FILE, \
     PDF_FILE, SVG_FILE, SVGZ_FILE, SVG_GZ_FILE, GIF_ANIM_FILE, DICOM_FILE, \
     BMP_FILE, NIFTI_FILE, ICO_FILE, HEIC_FILE, TRUNCATED_FILE, \
-    GIF_ANIM_EXPECTED_PNG_FILE, \
-    GIF_ANIM_DISPOSE_BACKGROUND_FILE, GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE, \
-    GIF_ANIM_DISPOSE_PREVIOUS_FILE, GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, \
-    temp_filename, assert_almost_equal_objects, have, skip_if_no
+    GIF_ANIM_EXPECTED_PNG_FILE, GIF_ANIM_DISPOSE_BACKGROUND_FILE, \
+    GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE, \
+    GIF_ANIM_DISPOSE_PREVIOUS_FILE, \
+    GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, \
+    temp_filename, assert_almost_equal_objects, have, skip_if_no, \
+    TIF2_FILE, TIF4_FILE
 
 
 class TestForeign:
@@ -322,6 +324,25 @@ class TestForeign:
 
         self.file_loader("tiffload", TIF_FILE, tiff_valid)
         self.buffer_loader("tiffload_buffer", TIF_FILE, tiff_valid)
+
+        def tiff2_valid(im):
+            a = im(80, 0)
+            assert_almost_equal_objects(a, [85.0])
+            assert im.width == 256
+            assert im.height == 4
+            assert im.bands == 1
+
+        self.file_loader("tiffload", TIF2_FILE, tiff2_valid)
+
+        def tiff4_valid(im):
+            a = im(109, 0)
+            assert_almost_equal_objects(a, [102.0])
+            assert im.width == 256
+            assert im.height == 4
+            assert im.bands == 1
+
+        self.file_loader("tiffload", TIF4_FILE, tiff4_valid)
+
         if pyvips.at_least_libvips(8, 5):
             self.save_load_buffer("tiffsave_buffer",
                                   "tiffload_buffer",
@@ -331,9 +352,9 @@ class TestForeign:
         self.save_load("%s.tif", self.cmyk)
 
         self.save_load("%s.tif", self.onebit)
-        self.save_load_file(".tif", "[squash]", self.onebit, 0)
+        self.save_load_file(".tif", "[bitdepth=1]", self.onebit, 0)
         self.save_load_file(".tif", "[miniswhite]", self.onebit, 0)
-        self.save_load_file(".tif", "[squash,miniswhite]", self.onebit, 0)
+        self.save_load_file(".tif", "[bitdepth=1,miniswhite]", self.onebit, 0)
 
         self.save_load_file(".tif",
                             "[profile={0}]".format(SRGB_FILE),
@@ -350,6 +371,11 @@ class TestForeign:
         self.save_load_file(".tif", "[compression=jpeg]", self.colour, 80)
         self.save_load_file(".tif",
                             "[tile,tile-width=256]", self.colour, 10)
+
+        im = pyvips.Image.new_from_file(TIF4_FILE)
+        self.save_load_file(".tif", "[bitdepth=4]", im, 0)
+        im = pyvips.Image.new_from_file(TIF2_FILE)
+        self.save_load_file(".tif", "[bitdepth=2]", im, 0)
 
         filename = temp_filename(self.tempdir, '.tif')
         x = pyvips.Image.new_from_file(TIF_FILE)
