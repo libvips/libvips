@@ -1285,91 +1285,33 @@ LabQ2LabC( VipsPel *q, VipsPel *p, int n )
 	}
 }
 
-/* Pack 8 bit VIPS to 1 bit TIFF.
+/* Pack 8 bit VIPS to N bit TIFF.
  */
 static void
-eightbit2onebit( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
+eightbit2nbit( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
 {
 	/* Invert in miniswhite mode.
 	 */
-	int white = wtiff->miniswhite ? 0 : 1;
-	int black = white ^ 1;
+	VipsPel mask = wtiff->miniswhite ? 255 : 0;
+	int pixel_mask = 8 / wtiff->bitdepth - 1;
+	int shift = 8 - wtiff->bitdepth;
 
-        int x;
 	VipsPel bits;
+        int x;
 
 	bits = 0;
         for( x = 0; x < n; x++ ) {
-		bits <<= 1;
-		if( p[x] >= 128 )
-			bits |= white;
-		else
-			bits |= black;
+		bits <<= wtiff->bitdepth;
+		bits |= p[x] >> shift;
 
-		if( (x & 0x7) == 0x7 ) {
-			*q++ = bits;
-			bits = 0;
-		}
+		if( (x & pixel_mask) == pixel_mask ) 
+			*q++ = bits ^ mask;
         }
 
 	/* Any left-over bits? Need to be left-aligned.
 	 */
-	if( (x & 0x7) != 0 ) 
-		*q++ = bits << (8 - (x & 0x7));
-}
-
-/* Pack 8 bit VIPS to 2 bit TIFF.
- */
-static void
-eightbit2twobit( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
-{
-	VipsPel mask = wtiff->miniswhite ? 3 : 0;
-
-	int x;
-	VipsPel bits;
-
-	bits = 0;
-	for( x = 0; x < n; x++ ) {
-		bits <<= 2;
-		bits |= (p[x] >> 6) ^ mask;
-
-		if( (x & 0x3) == 0x3 ) {
-			*q++ = bits;
-			bits = 0;
-		}
-	}
-
-	/* Any left-over bits? Need to be left-aligned.
-	 */
-	if( (x & 0x3) != 0 )
-		*q++ = bits << (8 - ((x & 0x3) << 1));
-}
-
-/* Pack 8 bit VIPS to 4 bit TIFF.
- */
-static void
-eightbit2fourbit( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
-{
-	VipsPel mask = wtiff->miniswhite ? 0xf : 0;
-
-	VipsPel bits;
-	int x;
-	
-	bits = 0;
-	for( x = 0; x < n; x++ ) {
-		bits <<= 4;
-		bits |= (p[x] >> 4) ^ mask;
-
-		if( (x & 0x1) == 0x1 ) {
-			*q++ = bits;
-			bits = 0;
-		}
-	}
-
-	/* Any left-over bits? Need to be left-aligned.
-	 */
-	if( (x & 0x1) != 0 )
-		*q++ = bits << (8 - ((x & 0x1) << 2));
+	if( (x & pixel_mask) != 0 ) 
+		*q++ = (bits ^ mask) << (8 - (x & pixel_mask));
 }
 
 /* Swap the sense of the first channel, if necessary. 
@@ -1516,12 +1458,8 @@ wtiff_pack2tiff( Wtiff *wtiff, Layer *layer,
 
 		if( wtiff->ready->Coding == VIPS_CODING_LABQ )
 			LabQ2LabC( q, p, area->width );
-		else if( wtiff->bitdepth == 1 )
-			eightbit2onebit( wtiff, q, p, area->width );
-		else if( wtiff->bitdepth == 2 )
-			eightbit2twobit( wtiff, q, p, area->width );
-		else if( wtiff->bitdepth == 4 )
-			eightbit2fourbit( wtiff, q, p, area->width );
+		else if( wtiff->bitdepth > 0 )
+			eightbit2nbit( wtiff, q, p, area->width );
 		else if( wtiff->input->Type == VIPS_INTERPRETATION_XYZ )
 			XYZ2tiffxyz( q, p, area->width, in->im->Bands );
 		else if( (in->im->Bands == 1 || in->im->Bands == 2) && 
@@ -1619,16 +1557,8 @@ wtiff_layer_write_strip( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 			XYZ2tiffxyz( wtiff->tbuf, p, im->Xsize, im->Bands );
 			p = wtiff->tbuf;
 		}
-		else if( wtiff->bitdepth == 1 ) {
-			eightbit2onebit( wtiff, wtiff->tbuf, p, im->Xsize );
-			p = wtiff->tbuf;
-		}
-		else if( wtiff->bitdepth == 2 ) {
-			eightbit2twobit( wtiff, wtiff->tbuf, p, im->Xsize );
-			p = wtiff->tbuf;
-		}
-		else if( wtiff->bitdepth == 4 ) {
-			eightbit2fourbit( wtiff, wtiff->tbuf, p, im->Xsize );
+		else if( wtiff->bitdepth > 0 ) {
+			eightbit2nbit( wtiff, wtiff->tbuf, p, im->Xsize );
 			p = wtiff->tbuf;
 		}
 		else if( (im->Bands == 1 || im->Bands == 2) && 
