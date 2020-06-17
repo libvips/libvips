@@ -195,7 +195,7 @@
  * 	- add PAGENUMBER support
  * 23/5/20
  * 	- add support for subifd pyramid layers
- * 06/6/20 MathemanFlo
+ * 6/6/20 MathemanFlo
  * 	- add bitdepth support for 2 and 4 bit greyscale images
  */
 
@@ -1301,7 +1301,7 @@ eightbit2onebit( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
 	bits = 0;
         for( x = 0; x < n; x++ ) {
 		bits <<= 1;
-		if( p[x] > 128 )
+		if( p[x] >= 128 )
 			bits |= white;
 		else
 			bits |= black;

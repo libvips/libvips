@@ -17,7 +17,7 @@ from helpers import \
     GIF_ANIM_DISPOSE_PREVIOUS_FILE, \
     GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, \
     temp_filename, assert_almost_equal_objects, have, skip_if_no, \
-    TIF2_FILE, TIF4_FILE
+    TIF1_FILE, TIF2_FILE, TIF4_FILE
 
 
 class TestForeign:
@@ -325,9 +325,22 @@ class TestForeign:
         self.file_loader("tiffload", TIF_FILE, tiff_valid)
         self.buffer_loader("tiffload_buffer", TIF_FILE, tiff_valid)
 
+        def tiff1_valid(im):
+            a = im(127, 0)
+            assert_almost_equal_objects(a, [0.0])
+            a = im(128, 0)
+            assert_almost_equal_objects(a, [255.0])
+            assert im.width == 256
+            assert im.height == 4
+            assert im.bands == 1
+
+        self.file_loader("tiffload", TIF1_FILE, tiff1_valid)
+
         def tiff2_valid(im):
-            a = im(80, 0)
+            a = im(127, 0)
             assert_almost_equal_objects(a, [85.0])
+            a = im(128, 0)
+            assert_almost_equal_objects(a, [170.0])
             assert im.width == 256
             assert im.height == 4
             assert im.bands == 1
@@ -335,8 +348,10 @@ class TestForeign:
         self.file_loader("tiffload", TIF2_FILE, tiff2_valid)
 
         def tiff4_valid(im):
-            a = im(109, 0)
-            assert_almost_equal_objects(a, [102.0])
+            a = im(127, 0)
+            assert_almost_equal_objects(a, [119.0])
+            a = im(128, 0)
+            assert_almost_equal_objects(a, [136.0])
             assert im.width == 256
             assert im.height == 4
             assert im.bands == 1
@@ -372,10 +387,10 @@ class TestForeign:
         self.save_load_file(".tif",
                             "[tile,tile-width=256]", self.colour, 10)
 
-        im = pyvips.Image.new_from_file(TIF4_FILE)
-        self.save_load_file(".tif", "[bitdepth=4]", im, 0)
         im = pyvips.Image.new_from_file(TIF2_FILE)
         self.save_load_file(".tif", "[bitdepth=2]", im, 0)
+        im = pyvips.Image.new_from_file(TIF4_FILE)
+        self.save_load_file(".tif", "[bitdepth=4]", im, 0)
 
         filename = temp_filename(self.tempdir, '.tif')
         x = pyvips.Image.new_from_file(TIF_FILE)
