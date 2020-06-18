@@ -1,14 +1,14 @@
 /* @(#)  Function which calculates the coefficients between corresponding
  * @(#) points from reference and secondary images (probably from the scanner),
- * @(#) previously calculated using the functions im_calcon() and im_chpair()
- * @(#) It is assummed that a selection of the best(?) possible points has
+ * @(#) previously calculated using the functions vips__{lr,bt}calcon() and vips_chpair()
+ * @(#) It is assumed that a selection of the best(?) possible points has
  * @(#) been already carried out and that those nopoints points are in arrays
  * @(#) x1, y1 and x2, y2
- * @(#) No IMAGES are involved in this function and the calculated parameters
- * @(#) are returned in scale angle deltax and deltay of the TIE_POINTS struct.
+ * @(#) No images are involved in this function and the calculated parameters
+ * @(#) are returned in scale angle deltax and deltay of the TiePoints struct.
  * @(#)
- * @(#) int im_clinear( points )
- * @(#) TIE_POINTS *points;
+ * @(#) int vips_clinear( points )
+ * @(#) TiePoints *points;
  * @(#) 
  * @(#) Returns 0 on sucess  and -1 on error.
  *
@@ -19,6 +19,8 @@
  * Modified on : 18/04/1991
  * 24/1/97 JC
  *	- tiny mem leak fixed
+ * 18/6/20 kleisauke
+ * 	- convert to vips8
  */
 
 /*
@@ -57,19 +59,18 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 #include <vips/internal.h>
 
 #include "pmosaicing.h"
 
 int 
-im__clinear( TIE_POINTS *points )
+vips__clinear( TiePoints *points )
 {
-	double **mat;  /* matrix mar[4][4] */
-	double *g;	/* vector g[1][4] */
+	VipsImage *mat, *matinv;
+	double *g;
 	double value;
-	double sx1=0.0, sx1x1=0.0, sy1=0.0, sy1y1=0.0, sx1y1 = 0.0;
-	double sx2x1=0.0, sx2y1=0.0, sx2=0.0, sy2=0.0, sy2y1=0.0, sy2x1=0.0;
+	double sx1 = 0.0, sx1x1 = 0.0, sy1 = 0.0, sy1y1 = 0.0, sx1y1 = 0.0;
+	double sx2x1 = 0.0, sx2y1 = 0.0, sx2 = 0.0, sy2 = 0.0, sy2y1 = 0.0, sy2x1 = 0.0;
 
 	int i, j;
 	int elms;
@@ -86,10 +87,10 @@ im__clinear( TIE_POINTS *points )
 	dev = &points->deviation[0];
 	elms = points->nopoints;
 
-	if( !(mat = im_dmat_alloc( 0, 3, 0, 3 )) )
+	if( !(mat = vips_image_new_matrix( 4, 4 )) )
 		return( -1 );
-	if( !(g = im_dvector( 0, 3 )) ) {
-		im_free_dmat( mat, 0, 3, 0, 3 );
+	if( !(g = VIPS_ARRAY( NULL, 4, double )) ) {
+		g_object_unref( mat );
 		return( -1 );
 	}
 
@@ -107,47 +108,51 @@ im__clinear( TIE_POINTS *points )
 		sy2 += ysec[i];
 	}
 
-	mat[0][0] = sx1x1 + sy1y1;
-	mat[0][1] = 0;
-	mat[0][2] = sx1;
-	mat[0][3] = sy1;
+	*VIPS_MATRIX( mat, 0, 0 ) = sx1x1 + sy1y1;
+	*VIPS_MATRIX( mat, 1, 0 ) = 0;
+	*VIPS_MATRIX( mat, 2, 0 ) = sx1;
+	*VIPS_MATRIX( mat, 3, 0 ) = sy1;
 
-	mat[1][0] = 0;
-	mat[1][1] = sx1x1 + sy1y1;
-	mat[1][2] = -sy1;
-	mat[1][3] = sx1;
+	*VIPS_MATRIX( mat, 0, 1 ) = 0;
+	*VIPS_MATRIX( mat, 1, 1 ) = sx1x1 + sy1y1;
+	*VIPS_MATRIX( mat, 2, 1 ) = -sy1;
+	*VIPS_MATRIX( mat, 3, 1 ) = sx1;
 
-	mat[2][0] = sx1;
-	mat[2][1] = -sy1;
-	mat[2][2] = (double)elms;
-	mat[2][3] = 0.0;
+	*VIPS_MATRIX( mat, 0, 2 ) = sx1;
+	*VIPS_MATRIX( mat, 1, 2 ) = -sy1;
+	*VIPS_MATRIX( mat, 2, 2 ) = (double) elms;
+	*VIPS_MATRIX( mat, 3, 2 ) = 0.0;
 
-	mat[3][0] = sy1;
-	mat[3][1] = sx1;
-	mat[3][2] = 0.0;
-	mat[3][3] = (double)elms;
+	*VIPS_MATRIX( mat, 0, 3 ) = sy1;
+	*VIPS_MATRIX( mat, 1, 3 ) = sx1;
+	*VIPS_MATRIX( mat, 2, 3 ) = 0.0;
+	*VIPS_MATRIX( mat, 3, 3 ) = (double) elms;
 
 	g[0] = sx2x1 + sy2y1;
 	g[1] = -sx2y1 + sy2x1;
 	g[2] = sx2;
 	g[3] = sy2;
 
-	if( im_invmat( mat, 4 ) ) {
-		im_free_dmat( mat, 0, 3, 0, 3 );
-		im_free_dvector( g, 0, 3 );
-		im_error( "im_clinear", "%s", _( "im_invmat failed" ) ); 
+	if( vips_matrixinvert( mat, &matinv, NULL ) ) {
+		g_object_unref( mat );
+		g_free( g );
+		vips_error( "vips_clinear", "%s", _( "vips_invmat failed" ) ); 
 		return( -1 );
 	}
-	
+
 	scale = 0.0; angle = 0.0;
 	xdelta = 0.0; ydelta = 0.0;
 
 	for( j = 0; j < 4; j++ ) {
-		scale += mat[0][j] * g[j];
-		angle += mat[1][j] * g[j];
-		xdelta += mat[2][j] * g[j];
-		ydelta += mat[3][j] * g[j];
+		scale += *VIPS_MATRIX( matinv, j, 0 ) * g[j];
+		angle += *VIPS_MATRIX( matinv, j, 1 ) * g[j];
+		xdelta += *VIPS_MATRIX( matinv, j, 2 ) * g[j];
+		ydelta += *VIPS_MATRIX( matinv, j, 3 ) * g[j];
 	}
+
+	g_object_unref( mat );
+	g_object_unref( matinv );
+	g_free( g );
 
 	/* find the deviation of each point for the estimated variables
 	 * if it greater than 1 then the solution is not good enough
@@ -160,7 +165,7 @@ im__clinear( TIE_POINTS *points )
 		dy[i] = ysec[i] - 
 			((angle * xref[i]) + (scale * yref[i]) + ydelta);
 
-		value = sqrt( dx[i]*dx[i] + dy[i]*dy[i] );
+		value = sqrt( dx[i] * dx[i] + dy[i] * dy[i] );
 		dev[i] = value;
 	}
 
@@ -168,9 +173,6 @@ im__clinear( TIE_POINTS *points )
 	points->l_angle = angle;
 	points->l_deltax = xdelta;
 	points->l_deltay = ydelta;
-
-	im_free_dmat( mat, 0, 3, 0, 3 );
-	im_free_dvector( g, 0, 3 );
 
 	return( 0 );
 }

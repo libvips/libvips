@@ -123,7 +123,7 @@ lrmosaic_vec( im_object *argv )
 	int balancetype = *((int *) argv[10]);
 	int mwidth = *((int *) argv[11]);
 
-	return( im_lrmosaic( argv[0], argv[1], argv[2], 
+	return( vips_lrmosaic( argv[0], argv[1], argv[2], 
 		bandno, 
 		xr, yr, xs, ys, 
 		halfcorrelation, halfarea,
@@ -210,7 +210,7 @@ find_lroverlap_vec( im_object *argv )
 
 	if( !(t = im_open( "find_lroverlap_vec", "p" )) )
 		return( -1 );
-	result = im__find_lroverlap( argv[0], argv[1], t, 
+	result = vips__find_lroverlap( argv[0], argv[1], t, 
 		bandno, 
 		xr, yr, xs, ys, 
 		halfcorrelation, halfarea,
@@ -257,7 +257,7 @@ tbmosaic_vec( im_object *argv )
 	int balancetype = *((int *) argv[10]);
 	int mwidth = *((int *) argv[11]);
 
-	return( im_tbmosaic( argv[0], argv[1], argv[2], 
+	return( vips_tbmosaic( argv[0], argv[1], argv[2], 
 		bandno, 
 		x1, y1, x2, y2, 
 		halfcorrelation, halfarea,
@@ -315,7 +315,7 @@ find_tboverlap_vec( im_object *argv )
 
 	if( !(t = im_open( "find_tboverlap_vec", "p" )) )
 		return( -1 );
-	result = im__find_tboverlap( argv[0], argv[1], t, 
+	result = vips__find_tboverlap( argv[0], argv[1], t, 
 		bandno, 
 		xr, yr, xs, ys, 
 		halfcorrelation, halfarea,
@@ -367,7 +367,7 @@ lrmerge_vec( im_object *argv )
 	int dy = *((int *) argv[4]);
 	int mwidth = *((int *) argv[5]);
 
-	return( im_lrmerge( argv[0], argv[1], argv[2], dx, dy, mwidth ) );
+	return( vips_lrmerge( argv[0], argv[1], argv[2], dx, dy, mwidth ) );
 }
 
 /* Call im_lrmerge1 via arg vector.
@@ -421,7 +421,7 @@ tbmerge_vec( im_object *argv )
 	int dy = *((int *) argv[4]);
 	int mwidth = *((int *) argv[5]);
 
-	return( im_tbmerge( argv[0], argv[1], argv[2], dx, dy, mwidth ) );
+	return( vips_tbmerge( argv[0], argv[1], argv[2], dx, dy, mwidth ) );
 }
 
 /* Call im_tbmerge1 via arg vector.
@@ -594,7 +594,7 @@ correl_vec( im_object *argv )
 	int *y = (int *) argv[9];
 	double *correlation = (double *) argv[10];
 
-	return( im_correl( argv[0], argv[1], 
+	return( vips_correl( argv[0], argv[1], 
 		xref, yref, xsec, ysec, cor, area, correlation, x, y ) );
 }
 

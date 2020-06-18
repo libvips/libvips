@@ -4,6 +4,8 @@
  * 	- from vips_mosaic()
  * 4/9/18
  * 	- add docs for transform output
+ * 18/6/20 kleisauke
+ * 	- convert to vips8
  */
 
 /*
@@ -33,11 +35,6 @@
 
  */
 
-/* This is a simple wrapper over the old vips7 functions. At some point we
- * should rewrite this as a pure vips8 class and redo the vips7 functions as
- * wrappers over this.
- */
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -46,7 +43,6 @@
 #include <stdio.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 #include "pmosaicing.h"
 
@@ -103,7 +99,7 @@ vips_mosaic_build( VipsObject *object )
 
 	switch( mosaic->direction ) { 
 	case VIPS_DIRECTION_HORIZONTAL:
-		if( im__find_lroverlap( mosaic->ref, mosaic->sec, x,
+		if( vips__find_lroverlap( mosaic->ref, mosaic->sec, x,
 			mosaic->bandno, 
 			mosaic->xref, mosaic->yref, mosaic->xsec, mosaic->ysec,
 			mosaic->hwindow, mosaic->harea, 
@@ -117,7 +113,7 @@ vips_mosaic_build( VipsObject *object )
 		break;
 
 	case VIPS_DIRECTION_VERTICAL:
-		if( im__find_tboverlap( mosaic->ref, mosaic->sec, x,
+		if( vips__find_tboverlap( mosaic->ref, mosaic->sec, x,
 			mosaic->bandno, 
 			mosaic->xref, mosaic->yref, mosaic->xsec, mosaic->ysec,
 			mosaic->hwindow, mosaic->harea, 

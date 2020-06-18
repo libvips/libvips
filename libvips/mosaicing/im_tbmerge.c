@@ -4,8 +4,8 @@
  * Usage:
  *
  *   int 
- *   im_tbmerge( ref, sec, out, dx, dy )
- *   IMAGE *ref, *sec, *out;
+ *   vips_tbmerge( ref, sec, out, dx, dy )
+ *   VipsImage *ref, *sec, *out;
  *   int dx, dy;
  *   
  * Returns 0 on success and -1 on error
@@ -71,6 +71,8 @@
  * 24/1/11
  * 	- gtk-doc
  * 	- match formats and bands automatically
+ * 18/6/20 kleisauke
+ * 	- convert to vips8
  */
 
 /*
@@ -110,7 +112,6 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 #include <vips/thread.h>
 #include <vips/transform.h>
 #include <vips/internal.h>
@@ -120,11 +121,11 @@
 /* Return the position of the first non-zero pel from the top.
  */
 static int
-find_top( REGION *ir, int *pos, int x, int y, int h )
+find_top( VipsRegion *ir, int *pos, int x, int y, int h )
 {
-	VipsPel *pr = IM_REGION_ADDR( ir, x, y );
-	IMAGE *im = ir->im;
-	int ls = IM_REGION_LSKIP( ir ) / IM_IMAGE_SIZEOF_ELEMENT( im );
+	VipsPel *pr = VIPS_REGION_ADDR( ir, x, y );
+	VipsImage *im = ir->im;
+	int ls = VIPS_REGION_LSKIP( ir ) / VIPS_IMAGE_SIZEOF_ELEMENT( im );
 	int b = im->Bands;
 	int i, j;
 
@@ -150,19 +151,19 @@ find_top( REGION *ir, int *pos, int x, int y, int h )
 }
 
 	switch( im->BandFmt ) {
-	case IM_BANDFMT_UCHAR: 	tsearch( unsigned char ); break; 
-	case IM_BANDFMT_CHAR: 	tsearch( signed char ); break; 
-	case IM_BANDFMT_USHORT: tsearch( unsigned short ); break; 
-	case IM_BANDFMT_SHORT: 	tsearch( signed short ); break; 
-	case IM_BANDFMT_UINT: 	tsearch( unsigned int ); break; 
-	case IM_BANDFMT_INT: 	tsearch( signed int );  break; 
-	case IM_BANDFMT_FLOAT: 	tsearch( float ); break; 
-	case IM_BANDFMT_DOUBLE:	tsearch( double ); break; 
-	case IM_BANDFMT_COMPLEX:tsearch( float ); break; 
-	case IM_BANDFMT_DPCOMPLEX:tsearch( double ); break;
+	case VIPS_FORMAT_UCHAR:	tsearch( unsigned char ); break; 
+	case VIPS_FORMAT_CHAR:	tsearch( signed char ); break; 
+	case VIPS_FORMAT_USHORT:	tsearch( unsigned short ); break; 
+	case VIPS_FORMAT_SHORT:	tsearch( signed short ); break; 
+	case VIPS_FORMAT_UINT:	tsearch( unsigned int ); break; 
+	case VIPS_FORMAT_INT:	tsearch( signed int );  break; 
+	case VIPS_FORMAT_FLOAT:	tsearch( float ); break; 
+	case VIPS_FORMAT_DOUBLE:	tsearch( double ); break; 
+	case VIPS_FORMAT_COMPLEX:	tsearch( float ); break; 
+	case VIPS_FORMAT_DPCOMPLEX:	tsearch( double ); break;
 
 	default:
-		im_error( "im_tbmerge", "%s", _( "internal error" ) );
+		vips_error( "vips_tbmerge", "%s", _( "internal error" ) );
 		return( -1 );
 	}
 
@@ -174,11 +175,11 @@ find_top( REGION *ir, int *pos, int x, int y, int h )
 /* Return the position of the first non-zero pel from the bottom.
  */
 static int
-find_bot( REGION *ir, int *pos, int x, int y, int h )
+find_bot( VipsRegion *ir, int *pos, int x, int y, int h )
 {
-	VipsPel *pr = IM_REGION_ADDR( ir, x, y );
-	IMAGE *im = ir->im;
-	int ls = IM_REGION_LSKIP( ir ) / IM_IMAGE_SIZEOF_ELEMENT( ir->im );
+	VipsPel *pr = VIPS_REGION_ADDR( ir, x, y );
+	VipsImage *im = ir->im;
+	int ls = VIPS_REGION_LSKIP( ir ) / VIPS_IMAGE_SIZEOF_ELEMENT( ir->im );
 	int b = im->Bands;
 	int i, j;
 
@@ -204,19 +205,19 @@ find_bot( REGION *ir, int *pos, int x, int y, int h )
 }
 
 	switch( im->BandFmt ) {
-	case IM_BANDFMT_UCHAR: 	rsearch( unsigned char ); break; 
-	case IM_BANDFMT_CHAR: 	rsearch( signed char ); break; 
-	case IM_BANDFMT_USHORT: rsearch( unsigned short ); break; 
-	case IM_BANDFMT_SHORT: 	rsearch( signed short ); break; 
-	case IM_BANDFMT_UINT: 	rsearch( unsigned int ); break; 
-	case IM_BANDFMT_INT: 	rsearch( signed int );  break; 
-	case IM_BANDFMT_FLOAT: 	rsearch( float ); break; 
-	case IM_BANDFMT_DOUBLE:	rsearch( double ); break; 
-	case IM_BANDFMT_COMPLEX:rsearch( float ); break; 
-	case IM_BANDFMT_DPCOMPLEX:rsearch( double ); break;
+	case VIPS_FORMAT_UCHAR:	rsearch( unsigned char ); break;
+	case VIPS_FORMAT_CHAR:	rsearch( signed char ); break;
+	case VIPS_FORMAT_USHORT:	rsearch( unsigned short ); break;
+	case VIPS_FORMAT_SHORT:	rsearch( signed short ); break;
+	case VIPS_FORMAT_UINT:	rsearch( unsigned int ); break;
+	case VIPS_FORMAT_INT:	rsearch( signed int );  break;
+	case VIPS_FORMAT_FLOAT:	rsearch( float ); break;
+	case VIPS_FORMAT_DOUBLE:	rsearch( double ); break;
+	case VIPS_FORMAT_COMPLEX:	rsearch( float ); break;
+	case VIPS_FORMAT_DPCOMPLEX:	rsearch( double ); break;
 
 	default:
-		im_error( "im_tbmerge", "%s", _( "internal error" ) );
+		vips_error( "vips_tbmerge", "%s", _( "internal error" ) );
 		return( -1 );
 	}
 
@@ -228,11 +229,11 @@ find_bot( REGION *ir, int *pos, int x, int y, int h )
 /* Make first/last for oreg.
  */
 static int
-make_firstlast( MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
+make_firstlast( MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg )
 {
-	REGION *rir = inf->rir;
-	REGION *sir = inf->sir;
-	Rect rr, sr;
+	VipsRegion *rir = inf->rir;
+	VipsRegion *sir = inf->sir;
+	VipsRect rr, sr;
 	int x;
 	int missing;
 
@@ -245,7 +246,7 @@ make_firstlast( MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
 	/* Do we already have first/last for this area? Bail out if we do.
 	 */
 	missing = 0;
-	for( x = oreg->left; x < IM_RECT_RIGHT( oreg ); x++ ) {
+	for( x = oreg->left; x < VIPS_RECT_RIGHT( oreg ); x++ ) {
 		const int j = x - ovlap->overlap.left;
 		const int first = ovlap->first[j];
 
@@ -282,7 +283,8 @@ make_firstlast( MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
 
 	/* Make pixels.
 	 */
-	if( im_prepare( rir, &rr ) || im_prepare( sir, &sr ) ) {
+	if( vips_region_prepare( rir, &rr ) || 
+		vips_region_prepare( sir, &sr ) ) {
 		g_mutex_unlock( ovlap->fl_lock );
 		return( -1 );
 	}
@@ -387,12 +389,12 @@ make_firstlast( MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
 				const int bheight = last[x] - first[x]; \
 				const int inx = ((y - first[x]) << \
 					BLEND_SHIFT) / bheight; \
-				int c1 = im__icoef1[inx];  \
-				int c2 = im__icoef2[inx];  \
+				int c1 = vips__icoef1[inx];  \
+				int c2 = vips__icoef2[inx];  \
 				\
 				for( b = 0; b < cb; b++, i++ ) \
-					tq[i] = c1*tr[i] / BLEND_SCALE + \
-						c2*ts[i] / BLEND_SCALE; \
+					tq[i] = c1 * tr[i] / BLEND_SCALE + \
+						c2 * ts[i] / BLEND_SCALE; \
 			} \
 			else if( !ref_zero ) \
 				for( b = 0; b < cb; b++, i++ )  \
@@ -447,8 +449,8 @@ make_firstlast( MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
 				const int bheight = last[x] - first[x]; \
 				const int inx = ((y - first[x]) << \
 					BLEND_SHIFT) / bheight; \
-				double c1 = im__coef1[inx];  \
-				double c2 = im__coef2[inx];  \
+				double c1 = vips__coef1[inx];  \
+				double c2 = vips__coef2[inx];  \
 				\
 				for( b = 0; b < cb; b++, i++ ) \
 					tq[i] = c1 * tr[i] + c2 * ts[i]; \
@@ -466,13 +468,13 @@ make_firstlast( MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
 /* Top-bottom blend function for non-labpack images.
  */
 static int
-tb_blend( REGION *or, MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
+tb_blend( VipsRegion *or, MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg )
 {
-	REGION *rir = inf->rir;
-	REGION *sir = inf->sir;
-	IMAGE *im = or->im;
+	VipsRegion *rir = inf->rir;
+	VipsRegion *sir = inf->sir;
+	VipsImage *im = or->im;
 
-	Rect prr, psr;
+	VipsRect prr, psr;
 	int y, yr, ys;
 
 	/* Make sure we have a complete first/last set for this area.
@@ -494,47 +496,46 @@ tb_blend( REGION *or, MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
 
 	/* Make pixels.
 	 */
-	if( im_prepare( rir, &prr ) )
-		return( -1 );
-	if( im_prepare( sir, &psr ) )
+	if( vips_region_prepare( rir, &prr ) ||
+		vips_region_prepare( sir, &psr ) )
 		return( -1 );
 
 	/* Loop down overlap area.
 	 */
 	for( y = oreg->top, yr = prr.top, ys = psr.top; 
-		y < IM_RECT_BOTTOM( oreg ); y++, yr++, ys++ ) { 
-		VipsPel *pr = IM_REGION_ADDR( rir, prr.left, yr );
-		VipsPel *ps = IM_REGION_ADDR( sir, psr.left, ys );
-		VipsPel *q = IM_REGION_ADDR( or, oreg->left, y );
+		y < VIPS_RECT_BOTTOM( oreg ); y++, yr++, ys++ ) { 
+		VipsPel *pr = VIPS_REGION_ADDR( rir, prr.left, yr );
+		VipsPel *ps = VIPS_REGION_ADDR( sir, psr.left, ys );
+		VipsPel *q = VIPS_REGION_ADDR( or, oreg->left, y );
 
 		const int j = oreg->left - ovlap->overlap.left;
 		const int *first = ovlap->first + j;
 		const int *last = ovlap->last + j;
 
 		switch( im->BandFmt ) {
-		case IM_BANDFMT_UCHAR: 	
+		case VIPS_FORMAT_UCHAR: 	
 			iblend( unsigned char, im->Bands, pr, ps, q ); break; 
-		case IM_BANDFMT_CHAR: 	
+		case VIPS_FORMAT_CHAR: 	
 			iblend( signed char, im->Bands, pr, ps, q ); break; 
-		case IM_BANDFMT_USHORT: 
+		case VIPS_FORMAT_USHORT: 
 			iblend( unsigned short, im->Bands, pr, ps, q ); break; 
-		case IM_BANDFMT_SHORT: 	
+		case VIPS_FORMAT_SHORT: 	
 			iblend( signed short, im->Bands, pr, ps, q ); break; 
-		case IM_BANDFMT_UINT: 	
+		case VIPS_FORMAT_UINT: 	
 			iblend( unsigned int, im->Bands, pr, ps, q ); break; 
-		case IM_BANDFMT_INT: 	
+		case VIPS_FORMAT_INT: 	
 			iblend( signed int, im->Bands, pr, ps, q );  break; 
-		case IM_BANDFMT_FLOAT: 	
+		case VIPS_FORMAT_FLOAT: 	
 			fblend( float, im->Bands, pr, ps, q ); break; 
-		case IM_BANDFMT_DOUBLE:	
+		case VIPS_FORMAT_DOUBLE:	
 			fblend( double, im->Bands, pr, ps, q ); break; 
-		case IM_BANDFMT_COMPLEX:
-			fblend( float, im->Bands*2, pr, ps, q ); break; 
-		case IM_BANDFMT_DPCOMPLEX:
-			fblend( double, im->Bands*2, pr, ps, q ); break;
+		case VIPS_FORMAT_COMPLEX:
+			fblend( float, im->Bands * 2, pr, ps, q ); break; 
+		case VIPS_FORMAT_DPCOMPLEX:
+			fblend( double, im->Bands * 2, pr, ps, q ); break;
 
 		default:
-			im_error( "im_tbmerge", "%s", _( "internal error" ) );
+			vips_error( "vips_tbmerge", "%s", _( "internal error" ) );
 			return( -1 );
 		}
 	}
@@ -542,14 +543,14 @@ tb_blend( REGION *or, MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
 	return( 0 );
 }
 
-/* Top-bottom blend function for IM_CODING_LABQ images.
+/* Top-bottom blend function for VIPS_CODING_LABQ images.
  */
 static int
-tb_blend_labpack( REGION *or, MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
+tb_blend_labpack( VipsRegion *or, MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg )
 {
-	REGION *rir = inf->rir;
-	REGION *sir = inf->sir;
-	Rect prr, psr;
+	VipsRegion *rir = inf->rir;
+	VipsRegion *sir = inf->sir;
+	VipsRect prr, psr;
 	int y, yr, ys;
 
 	/* Make sure we have a complete first/last set for this area. This
@@ -572,18 +573,17 @@ tb_blend_labpack( REGION *or, MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
 
 	/* Make pixels.
 	 */
-	if( im_prepare( rir, &prr ) )
-		return( -1 );
-	if( im_prepare( sir, &psr ) )
+	if( vips_region_prepare( rir, &prr ) || 
+		vips_region_prepare( sir, &psr ) )
 		return( -1 );
 
 	/* Loop down overlap area.
 	 */
 	for( y = oreg->top, yr = prr.top, ys = psr.top; 
-		y < IM_RECT_BOTTOM( oreg ); y++, yr++, ys++ ) { 
-		VipsPel *pr = IM_REGION_ADDR( rir, prr.left, yr );
-		VipsPel *ps = IM_REGION_ADDR( sir, psr.left, ys );
-		VipsPel *q = IM_REGION_ADDR( or, oreg->left, y );
+		y < VIPS_RECT_BOTTOM( oreg ); y++, yr++, ys++ ) { 
+		VipsPel *pr = VIPS_REGION_ADDR( rir, prr.left, yr );
+		VipsPel *ps = VIPS_REGION_ADDR( sir, psr.left, ys );
+		VipsPel *q = VIPS_REGION_ADDR( or, oreg->left, y );
 
 		const int j = oreg->left - ovlap->overlap.left;
 		const int *first = ovlap->first + j;
@@ -613,27 +613,27 @@ tb_blend_labpack( REGION *or, MergeInfo *inf, Overlapping *ovlap, Rect *oreg )
 /* Build per-call state.
  */
 static Overlapping *
-build_tbstate( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
+build_tbstate( VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, int mwidth )
 {
    	Overlapping *ovlap;
 
-	if( !(ovlap = im__build_mergestate( "im_tbmerge", 
+	if( !(ovlap = vips__build_mergestate( "vips_tbmerge", 
 		ref, sec, out, dx, dy, mwidth )) )
 		return( NULL );
 
 	/* Select blender.
 	 */
 	switch( ovlap->ref->Coding ) {
-	case IM_CODING_LABQ:
+	case VIPS_CODING_LABQ:
 		ovlap->blend = tb_blend_labpack;
 		break;
 
-	case IM_CODING_NONE:
+	case VIPS_CODING_NONE:
 		ovlap->blend = tb_blend;
 		break;
 
 	default:
-		im_error( "im_tbmerge", "%s", _( "unknown coding type" ) );
+		vips_error( "vips_tbmerge", "%s", _( "unknown coding type" ) );
 		return( NULL );
 	}
 
@@ -649,9 +649,9 @@ build_tbstate( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 	 * than bottom edge of sec image, or top edge of ref > top edge of
 	 * sec.
 	 */
-	if( IM_RECT_BOTTOM( &ovlap->rarea ) > IM_RECT_BOTTOM( &ovlap->sarea ) ||
+	if( VIPS_RECT_BOTTOM( &ovlap->rarea ) > VIPS_RECT_BOTTOM( &ovlap->sarea ) ||
 		ovlap->rarea.top > ovlap->sarea.top ) {
-		im_error( "im_tbmerge", "%s", _( "too much overlap" ) );
+		vips_error( "vips_tbmerge", "%s", _( "too much overlap" ) );
 		return( NULL );
 	}
 
@@ -663,14 +663,16 @@ build_tbstate( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 }
 
 int
-im__tbmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
+vips__tbmerge( VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, int mwidth )
 {  
 	Overlapping *ovlap;
 
 	if( dy > 0 || dy < 1 - ref->Ysize ) {
 		/* No overlap, use insert instead.
 		 */
-  		if( im_insert( ref, sec, out, -dx, -dy ) )
+  		if( vips_insert( ref, sec, &out, -dx, -dy,
+			"expand", TRUE,
+			NULL ) )
 			return( -1 );
 		out->Xoffset = -dx;
 		out->Yoffset = -dy;
@@ -681,34 +683,33 @@ im__tbmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
 	if( !(ovlap = build_tbstate( ref, sec, out, dx, dy, mwidth )) )
 		return( -1 );
 
-	if( im_cp_descv( out, ref, sec, NULL ) )
+	if( vips_image_pipelinev( out,
+		VIPS_DEMAND_STYLE_THINSTRIP, ovlap->ref, ovlap->sec, NULL ) )
 		return( -1 );
+
 	out->Xsize = ovlap->oarea.width;
 	out->Ysize = ovlap->oarea.height;
 	out->Xoffset = -dx;
 	out->Yoffset = -dy;
 
-	if( im_demand_hint( out, IM_THINSTRIP, ref, sec, NULL ) )
-		return( -1 );
-
-	if( im_generate( out,
-		im__start_merge, im__merge_gen, im__stop_merge, ovlap, NULL ) )
+	if( vips_image_generate( out,
+		vips__start_merge, vips__merge_gen, vips__stop_merge, ovlap, NULL ) )
 		return( -1 );
 
 	return ( 0 );
 }
 
 int
-im_tbmerge( IMAGE *ref, IMAGE *sec, IMAGE *out, int dx, int dy, int mwidth )
+vips_tbmerge( VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, int mwidth )
 { 
-	if( im__tbmerge( ref, sec, out, dx, dy, mwidth ) )
+	if( vips__tbmerge( ref, sec, out, dx, dy, mwidth ) )
 		return( -1 );
 
-	im__add_mosaic_name( out );
-	if( im_histlin( out, "#TBJOIN <%s> <%s> <%s> <%d> <%d> <%d>", 
-		im__get_mosaic_name( ref ), 
-		im__get_mosaic_name( sec ), 
-		im__get_mosaic_name( out ), 
+	vips__add_mosaic_name( out );
+	if( vips_image_history_printf( out, "#TBJOIN <%s> <%s> <%s> <%d> <%d> <%d>", 
+		vips__get_mosaic_name( ref ), 
+		vips__get_mosaic_name( sec ), 
+		vips__get_mosaic_name( out ), 
 		-dx, -dy, mwidth ) )
 		return( -1 );
 
