@@ -42,6 +42,9 @@
  * 	- parse options in two passes (thanks Haida)
  * 26/11/17
  * 	- remove throw() decls, they are now deprecated everywhere
+ * 18/6/20 kleisauke
+ * 	- avoid using vips7 symbols
+ * 	- remove deprecated vips7 C++ generator
  */
 
 /*
@@ -92,8 +95,11 @@
 #include <locale.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 #include <vips/internal.h>
+
+#if VIPS_ENABLE_DEPRECATED
+#include <vips/vips7compat.h>
+#endif
 
 #ifdef OS_WIN32
 #define strcasecmp(a,b) _stricmp(a,b)
@@ -180,6 +186,7 @@ static GOptionEntry main_option[] = {
 	{ NULL }
 };
 
+#if VIPS_ENABLE_DEPRECATED
 typedef void *(*map_name_fn)( im_function * );
 
 /* Loop over a package.
@@ -241,13 +248,18 @@ list_function( im_function *func )
 	
 	return( NULL );
 }
+#endif
 
 static int
 print_list( int argc, char **argv )
 {
+#if VIPS_ENABLE_DEPRECATED
 	if( !argv[0] || strcmp( argv[0], "packages" ) == 0 ) 
 		im_map_packages( (VSListMap2Fn) list_package, NULL );
 	else if( strcmp( argv[0], "classes" ) == 0 ) 
+#else
+	if( !argv[0] || strcmp( argv[0], "classes" ) == 0 )
+#endif
 		vips_type_map_all( g_type_from_name( "VipsObject" ), 
 			(VipsTypeMapFn) list_class, NULL );
 	else if( g_type_from_name( argv[0] ) &&
@@ -256,13 +268,18 @@ print_list( int argc, char **argv )
 			(VipsTypeMapFn) list_class, NULL );
 	}
 	else {
+#if VIPS_ENABLE_DEPRECATED
 		if( map_name( argv[0], list_function ) )
 			vips_error_exit( "unknown package \"%s\"", argv[0] ); 
+#else
+		vips_error_exit( "unknown operation \"%s\"", argv[0] );
+#endif
 	}
 
 	return( 0 );
 }
 
+#if VIPS_ENABLE_DEPRECATED
 /* Print "ln -s" lines for this package.
  */
 static void *
@@ -301,6 +318,7 @@ has_print( im_function *fn )
 
 	return( 0 );
 }
+#endif
 
 static int
 isvips( const char *name )
@@ -313,6 +331,7 @@ isvips( const char *name )
 	return( vips_isprefix( "vips", name ) );
 }
 
+#if VIPS_ENABLE_DEPRECATED
 /* Print a usage string from an im_function descriptor.
  */
 static void
@@ -382,6 +401,7 @@ usage( im_function *fn )
 
 	fprintf( stderr, "\n" );
 }
+#endif
 
 static int
 print_help( int argc, char **argv ) 
@@ -406,10 +426,16 @@ static GOptionEntry empty_options[] = {
 };
 
 static ActionEntry actions[] = {
+#if VIPS_ENABLE_DEPRECATED
 	{ "list", N_( "list classes|packages|all|package-name|operation-name" ),
+#else
+	{ "list", N_( "list classes|all|operation-name" ),
+#endif
 		&empty_options[0], print_list },
+#if VIPS_ENABLE_DEPRECATED
 	{ "links", N_( "generate links for vips/bin" ),
 		&empty_options[0], print_links },
+#endif
 	{ "help", N_( "list possible actions" ),
 		&empty_options[0], print_help },
 };
@@ -489,14 +515,16 @@ main( int argc, char **argv )
 	GOptionGroup *main_group;
 	GOptionGroup *group;
 	VipsOperation *operation;
+#if VIPS_ENABLE_DEPRECATED
 	im_function *fn;
+#endif
 	int i, j;
 	gboolean handled;
 
 	GError *error = NULL;
 
 	if( VIPS_INIT( argv[0] ) )
-	        vips_error_exit( NULL );
+		vips_error_exit( NULL );
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
 
@@ -575,8 +603,18 @@ main( int argc, char **argv )
 		;
 
 	if( main_option_plugin ) {
+#if VIPS_ENABLE_DEPRECATED
 		if( !im_load_plugin( main_option_plugin ) )
-			vips_error_exit( NULL ); 
+			vips_error_exit( NULL );
+#else /*!VIPS_ENABLE_DEPRECATED*/
+		GModule *module;
+
+		module = g_module_open( main_option_plugin, G_MODULE_BIND_LAZY );
+		if( !module ) {
+			vips_error_exit( _( "unable to load \"%s\" -- %s" ),
+				main_option_plugin, g_module_error() );
+		}
+#endif
 	}
 
 	if( main_option_version ) 
@@ -634,6 +672,7 @@ main( int argc, char **argv )
 				break;
 			}
 
+#if VIPS_ENABLE_DEPRECATED
 	/* Could be a vips7 im_function. We need to test for vips7 first,
 	 * since we don't want to use the vips7 compat wrappers in vips8
 	 * unless we have to. They don't support all args types.
@@ -656,6 +695,7 @@ main( int argc, char **argv )
 	if( action &&
 		!handled )
 		vips_error_clear();
+#endif
 
 	/* Could be a vips8 VipsOperation.
 	 */
