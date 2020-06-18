@@ -4,6 +4,8 @@
  * 	- wrap a class around the ppm writer
  * 13/11/19
  * 	- redone with targets
+ * 18/6/20
+ * 	- add "bitdepth" param, cf. tiffsave
  */
 
 /*
@@ -63,9 +65,13 @@ typedef struct _VipsForeignSavePpm {
 
 	VipsTarget *target;
 	gboolean ascii;
-	gboolean squash;
+	int bitdepth;
 
 	VipsSavePpmFn fn;
+
+	/* Deprecated.
+	 */
+	gboolean squash;
 } VipsForeignSavePpm;
 
 typedef VipsForeignSaveClass VipsForeignSavePpmClass;
@@ -123,7 +129,7 @@ vips_foreign_save_ppm_line_ascii( VipsForeignSavePpm *ppm,
 }
 
 static int
-vips_foreign_save_ppm_line_ascii_squash( VipsForeignSavePpm *ppm, 
+vips_foreign_save_ppm_line_ascii_1bit( VipsForeignSavePpm *ppm, 
         VipsImage *image, VipsPel *p )
 {
 	int x;
@@ -149,7 +155,7 @@ vips_foreign_save_ppm_line_binary( VipsForeignSavePpm *ppm,
 }
 
 static int
-vips_foreign_save_ppm_line_binary_squash( VipsForeignSavePpm *ppm, 
+vips_foreign_save_ppm_line_binary_1bit( VipsForeignSavePpm *ppm, 
 	VipsImage *image, VipsPel *p )
 {
 	int x;
@@ -214,14 +220,14 @@ vips_foreign_save_ppm( VipsForeignSavePpm *ppm, VipsImage *image )
 		magic = "Pf";
 	else if( image->Bands == 1 && 
 		ppm->ascii && 
-		ppm->squash )
+		ppm->bitdepth )
 		magic = "P1";
 	else if( image->Bands == 1 && 
 		ppm->ascii )
 		magic = "P2";
 	else if( image->Bands == 1 && 
 		!ppm->ascii && 
-		ppm->squash )
+		ppm->bitdepth )
 		magic = "P4";
 	else if( image->Bands == 1 && 
 		!ppm->ascii )
@@ -243,7 +249,7 @@ vips_foreign_save_ppm( VipsForeignSavePpm *ppm, VipsImage *image )
 	vips_target_writef( ppm->target, 
 		"%d %d\n", image->Xsize, image->Ysize );
 
-	if( !ppm->squash ) 
+	if( !ppm->bitdepth ) 
 		switch( image->BandFmt ) {
 		case VIPS_FORMAT_UCHAR:
 			vips_target_writef( ppm->target, 
@@ -281,10 +287,10 @@ vips_foreign_save_ppm( VipsForeignSavePpm *ppm, VipsImage *image )
 			g_assert_not_reached();
 		}
 
-	if( ppm->squash )
+	if( ppm->bitdepth )
 		ppm->fn = ppm->ascii ? 
-			vips_foreign_save_ppm_line_ascii_squash : 
-			vips_foreign_save_ppm_line_binary_squash;
+			vips_foreign_save_ppm_line_ascii_1bit : 
+			vips_foreign_save_ppm_line_binary_1bit;
 	else
 		ppm->fn = ppm->ascii ? 
 			vips_foreign_save_ppm_line_ascii : 
@@ -308,6 +314,11 @@ vips_foreign_save_ppm_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
+        /* Handle the deprecated squash parameter.
+	 */
+        if( vips_object_argument_isset( object, "squash" ) ) 
+		ppm->bitdepth = 1;
+
 	image = save->ready;
 	if( vips_check_uintorf( "vips2ppm", image ) || 
 		vips_check_bands_1or3( "vips2ppm", image ) || 
@@ -324,13 +335,13 @@ vips_foreign_save_ppm_build( VipsObject *object )
 
 	/* One bit images must come from a 8 bit, one band source. 
 	 */
-	if( ppm->squash && 
+	if( ppm->bitdepth && 
 		(image->Bands != 1 || 
 		 image->BandFmt != VIPS_FORMAT_UCHAR) ) {
 		g_warning( "%s", 
-			_( "can only squash 1 band uchar images -- " 
-				"disabling squash" ) );
-		ppm->squash = FALSE; 
+			_( "can only save 1 band uchar images as 1 bit -- " 
+				"disabling 1 bit save" ) );
+		ppm->bitdepth = 0; 
 	}
 
 	if( vips_foreign_save_ppm( ppm, image ) )
@@ -385,10 +396,17 @@ vips_foreign_save_ppm_class_init( VipsForeignSavePpmClass *class )
 		G_STRUCT_OFFSET( VipsForeignSavePpm, ascii ),
 		FALSE );
 
+	VIPS_ARG_INT( class, "bitdepth", 15,
+		_( "bitdepth" ),
+		_( "Write as a 1 bit image" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSavePpm, bitdepth ),
+		0, 1, 0 );
+
 	VIPS_ARG_BOOL( class, "squash", 11, 
 		_( "Squash" ), 
 		_( "save as one bit" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignSavePpm, squash ),
 		FALSE );
 
