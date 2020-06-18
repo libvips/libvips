@@ -110,6 +110,9 @@ int vips_mask_fractal( VipsImage **out, int width, int height,
 	double fractal_dimension, ... )
 	__attribute__((sentinel));
 
+int vips_matrixinvert( VipsImage *m, VipsImage **out, ... )
+	__attribute__((sentinel));
+
 int vips_fractsurf( VipsImage **out, 
 	int width, int height, double fractal_dimension, ... )
 	__attribute__((sentinel));
