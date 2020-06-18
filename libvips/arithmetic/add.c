@@ -261,7 +261,7 @@ vips_add_init( VipsAdd *add )
  * range of possible values.
  *
  * Operations on integer images are performed using the processor's vector unit,
- * if possible. Disable this with --vips-novector or IM_NOVECTOR.
+ * if possible. Disable this with --vips-novector or VIPS_NOVECTOR.
  *
  * See also: vips_subtract(), vips_linear().
  *

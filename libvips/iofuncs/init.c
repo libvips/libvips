@@ -434,8 +434,12 @@ vips_init( const char *argv0 )
 	g_free( locale );
 	bind_textdomain_codeset( GETTEXT_PACKAGE, "UTF-8" );
 
+#if VIPS_ENABLE_DEPRECATED
 	if( g_getenv( "VIPS_INFO" ) || 
 		g_getenv( "IM_INFO" ) ) 
+#else
+	if( g_getenv( "VIPS_INFO" ) ) 
+#endif
 		vips_info_set( TRUE );
 	if( g_getenv( "VIPS_PROFILE" ) )
 		vips_profile_set( TRUE );
@@ -544,8 +548,12 @@ vips_init( const char *argv0 )
 	 * set up if you are using libvips from something like Ruby. Allow this
 	 * env var hack as a workaround. 
 	 */
+#if VIPS_ENABLE_DEPRECATED
 	if( g_getenv( "VIPS_WARNING" ) ||
 		g_getenv( "IM_WARNING" ) ) 
+#else
+	if( g_getenv( "VIPS_WARNING" ) )
+#endif
 		g_log_set_handler( "VIPS", G_LOG_LEVEL_WARNING, 
 			empty_log_handler, NULL );
 

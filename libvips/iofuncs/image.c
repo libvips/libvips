@@ -801,8 +801,12 @@ static void
 vips_image_add_progress( VipsImage *image )
 {
 	if( vips__progress || 
+#if VIPS_ENABLE_DEPRECATED
 		g_getenv( "VIPS_PROGRESS" ) ||
 		g_getenv( "IM_PROGRESS" ) ) {
+#else
+		g_getenv( "VIPS_PROGRESS" ) ) {
+#endif
 
 		/* Keep the %complete we displayed last time here.
 		 */
@@ -2513,8 +2517,12 @@ vips_get_disc_threshold( void )
 		 */
 		threshold = 100 * 1024 * 1024;
 
+#if VIPS_ENABLE_DEPRECATED
 		if( (env = g_getenv( "VIPS_DISC_THRESHOLD" )) || 
 			(env = g_getenv( "IM_DISC_THRESHOLD" )) ) 
+#else
+		if( (env = g_getenv( "VIPS_DISC_THRESHOLD" )) )
+#endif
 			threshold = vips__parse_size( env );
 
 		if( vips__disc_threshold ) 
