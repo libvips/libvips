@@ -192,7 +192,6 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 {
 	double xres, yres;
 	struct spng_iccp iccp;
-	struct spng_text *text;
 	struct spng_exif exif;
 	struct spng_phys phys;
 	guint32 n_text;
@@ -232,16 +231,20 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 		vips_image_set_blob_copy( image, 
 			VIPS_META_ICC_NAME, iccp.profile, iccp.profile_len );
 
-	spng_get_text( png->ctx, NULL, &n_text );
-	text = VIPS_ARRAY( VIPS_OBJECT( png ), n_text, struct spng_text );
-	if( !spng_get_text( png->ctx, text, &n_text ) ) {
-		guint32 i;
+	if( !spng_get_text( png->ctx, NULL, &n_text ) ) {
+		struct spng_text *text;
 
-		for( i = 0; i < n_text; i++ ) 
-			/* .text is always a null-terminated C string.
-			 */
-			vips_foreign_load_png_set_text( image, 
-				i, text[i].keyword, text[i].text );
+		text = VIPS_ARRAY( VIPS_OBJECT( png ), 
+			n_text, struct spng_text );
+		if( !spng_get_text( png->ctx, text, &n_text ) ) {
+			guint32 i;
+
+			for( i = 0; i < n_text; i++ ) 
+				/* .text is always a null-terminated C string.
+				 */
+				vips_foreign_load_png_set_text( image, 
+					i, text[i].keyword, text[i].text );
+		}
 	}
 
 	if( !spng_get_exif( png->ctx, &exif ) ) 
