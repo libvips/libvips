@@ -287,7 +287,6 @@ libvips/morphology/countlines.c
 libvips/morphology/nearest.c
 libvips/morphology/labelregions.c
 libvips/morphology/morphology.c
-libvips/morphology/hitmiss.c
 libvips/mosaicing/im_tbmerge.c
 libvips/mosaicing/im_improve.c
 libvips/mosaicing/im_chkpair.c
