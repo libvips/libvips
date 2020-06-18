@@ -401,6 +401,12 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 	return( 0 );
 }
 
+static void
+vips_foreign_load_png_minimise( VipsObject *object, VipsForeignLoadPng *png )
+{
+	vips_source_minimise( png->source );
+}
+
 static int
 vips_foreign_load_png_generate( VipsRegion *or, 
 	void *seq, void *a, void *b, gboolean *stop )
@@ -514,6 +520,10 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 			return( -1 );
 		}
 
+		/* We've now finished reading the file.
+		 */
+		vips_source_minimise( png->source );
+
 		if( vips_image_write( t[0], load->real ) )
 			return( -1 );
 	}
@@ -531,6 +541,11 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 				"%s", spng_strerror( error ) ); 
 			return( -1 );
 		}
+
+		/* Close input immediately at end of read.
+		 */
+		g_signal_connect( t[0], "minimise",
+			G_CALLBACK( vips_foreign_load_png_minimise ), png );
 
 		if( vips_image_generate( t[0], 
 				NULL, vips_foreign_load_png_generate, NULL, 
