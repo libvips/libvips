@@ -40,6 +40,17 @@ BMP_FILE = os.path.join(IMAGES, "MARBLES.BMP")
 NIFTI_FILE = os.path.join(IMAGES, "avg152T1_LR_nifti.nii.gz")
 ICO_FILE = os.path.join(IMAGES, "favicon.ico")
 HEIC_FILE = os.path.join(IMAGES, "heic-orientation-6.heic")
+MOSAIC_FILES = [os.path.join(IMAGES, "cd1.1.jpg"), os.path.join(IMAGES, "cd1.2.jpg"),
+                os.path.join(IMAGES, "cd2.1.jpg"), os.path.join(IMAGES, "cd2.2.jpg"),
+                os.path.join(IMAGES, "cd3.1.jpg"), os.path.join(IMAGES, "cd3.2.jpg"),
+                os.path.join(IMAGES, "cd4.1.jpg"), os.path.join(IMAGES, "cd4.2.jpg")]
+MOSAIC_MARKS = [[489, 140], [66, 141],
+                [453, 40], [15, 43],
+                [500, 122], [65, 121],
+                [495, 58], [40, 57]]
+MOSAIC_VERTICAL_MARKS = [[388, 44], [364, 346],
+                         [384, 17], [385, 629],
+                         [527, 42], [503, 959]]
 
 unsigned_formats = [pyvips.BandFormat.UCHAR,
                     pyvips.BandFormat.USHORT,
