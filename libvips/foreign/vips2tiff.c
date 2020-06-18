@@ -1310,8 +1310,14 @@ eightbit2nbit( Wtiff *wtiff, VipsPel *q, VipsPel *p, int n )
 
 	/* Any left-over bits? Need to be left-aligned.
 	 */
-	if( (x & pixel_mask) != 0 ) 
-		*q++ = (bits ^ mask) << (8 - (x & pixel_mask));
+	if( (x & pixel_mask) != 0 ) {
+		/* The number of bits we've collected in bits and must
+		 * left-align and flush.
+		 */
+		int collected_bits = (x & pixel_mask) << (wtiff->bitdepth - 1);
+
+		*q++ = (bits ^ mask) << (8 - collected_bits);
+	}
 }
 
 /* Swap the sense of the first channel, if necessary. 
