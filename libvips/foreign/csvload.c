@@ -98,7 +98,7 @@ typedef struct _VipsForeignLoadCsv {
 
 typedef VipsForeignLoadClass VipsForeignLoadCsvClass;
 
-G_DEFINE_TYPE( VipsForeignLoadCsv, vips_foreign_load_csv, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadCsv, vips_foreign_load_csv, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void

@@ -363,13 +363,23 @@
 </row>
 <row>
   <entry>csvload</entry>
-  <entry>Load csv from file</entry>
+  <entry>Load csv</entry>
   <entry>vips_csvload()</entry>
 </row>
 <row>
+  <entry>csvload_source</entry>
+  <entry>Load csv</entry>
+  <entry>vips_csvload_source()</entry>
+</row>
+<row>
   <entry>csvsave</entry>
-  <entry>Save image to csv file</entry>
+  <entry>Save image to csv</entry>
   <entry>vips_csvsave()</entry>
+</row>
+<row>
+  <entry>csvsave_target</entry>
+  <entry>Save image to csv</entry>
+  <entry>vips_csvsave_target()</entry>
 </row>
 <row>
   <entry>dE00</entry>
@@ -557,6 +567,11 @@
   <entry>vips_gifload_buffer()</entry>
 </row>
 <row>
+  <entry>gifload_source</entry>
+  <entry>Load gif with giflib</entry>
+  <entry>vips_gifload_source()</entry>
+</row>
+<row>
   <entry>globalbalance</entry>
   <entry>Global balance an image mosaic</entry>
   <entry>vips_globalbalance()</entry>
@@ -587,6 +602,11 @@
   <entry>vips_heifload_buffer()</entry>
 </row>
 <row>
+  <entry>heifload_source</entry>
+  <entry>Load a heif image</entry>
+  <entry>vips_heifload_source()</entry>
+</row>
+<row>
   <entry>heifsave</entry>
   <entry>Save image in heif format</entry>
   <entry>vips_heifsave()</entry>
@@ -595,6 +615,11 @@
   <entry>heifsave_buffer</entry>
   <entry>Save image in heif format</entry>
   <entry>vips_heifsave_buffer()</entry>
+</row>
+<row>
+  <entry>heifsave_target</entry>
+  <entry>Save image in heif format</entry>
+  <entry>vips_heifsave_target()</entry>
 </row>
 <row>
   <entry>hist_cum</entry>
@@ -872,9 +897,19 @@
   <entry>vips_matload()</entry>
 </row>
 <row>
+  <entry>matrixinvert</entry>
+  <entry>Invert an matrix</entry>
+  <entry>vips_matrixinvert()</entry>
+</row>
+<row>
   <entry>matrixload</entry>
-  <entry>Load matrix from file</entry>
+  <entry>Load matrix</entry>
   <entry>vips_matrixload()</entry>
+</row>
+<row>
+  <entry>matrixload_source</entry>
+  <entry>Load matrix</entry>
+  <entry>vips_matrixload_source()</entry>
 </row>
 <row>
   <entry>matrixprint</entry>
@@ -883,8 +918,13 @@
 </row>
 <row>
   <entry>matrixsave</entry>
-  <entry>Save image to matrix file</entry>
+  <entry>Save image to matrix</entry>
   <entry>vips_matrixsave()</entry>
+</row>
+<row>
+  <entry>matrixsave_target</entry>
+  <entry>Save image to matrix</entry>
+  <entry>vips_matrixsave_target()</entry>
 </row>
 <row>
   <entry>max</entry>
@@ -953,13 +993,18 @@
 </row>
 <row>
   <entry>pdfload</entry>
-  <entry>Load pdf with libpoppler</entry>
+  <entry>Load pdf from file</entry>
   <entry>vips_pdfload()</entry>
 </row>
 <row>
   <entry>pdfload_buffer</entry>
-  <entry>Load pdf with libpoppler</entry>
+  <entry>Load pdf from buffer</entry>
   <entry>vips_pdfload_buffer()</entry>
+</row>
+<row>
+  <entry>pdfload_source</entry>
+  <entry>Load pdf from source</entry>
+  <entry>vips_pdfload_source()</entry>
 </row>
 <row>
   <entry>percent</entry>
