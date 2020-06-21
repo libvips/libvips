@@ -605,7 +605,7 @@ rtiff_strip_read( Rtiff *rtiff, int strip, tdata_t buf )
 
 	if( rtiff->header.read_scanlinewise )  
 		length = TIFFReadScanline( rtiff->tiff, 
-			buf, strip, (tsize_t) -1 );
+			buf, strip, (tsample_t) 0 );
 	else 
 		length = TIFFReadEncodedStrip( rtiff->tiff, 
 			strip, buf, (tsize_t) -1 );
@@ -617,6 +617,25 @@ rtiff_strip_read( Rtiff *rtiff, int strip, tdata_t buf )
 	}
 
 	return( 0 );
+}
+
+/* We need to hint to libtiff what format we'd like pixels in.
+ */
+static void
+rtiff_set_decode_format( Rtiff *rtiff )
+{
+	/* Ask for YCbCr->RGB for jpg data.
+	 */
+	if( rtiff->header.compression == COMPRESSION_JPEG )
+		TIFFSetField( rtiff->tiff, 
+			TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
+
+	/* Ask for SGI LOGLUV as 3xfloat.
+	 */
+	if( rtiff->header.photometric_interpretation == 
+		PHOTOMETRIC_LOGLUV ) 
+		TIFFSetField( rtiff->tiff, 
+			TIFFTAG_SGILOGDATAFMT, SGILOGDATAFMT_FLOAT );
 }
 
 static int
@@ -665,12 +684,10 @@ rtiff_set_page( Rtiff *rtiff, int page )
 
 		rtiff->current_page = page;
 
-		/* This can get unset when we change directories. Make sure
-		 * it's set again.
+		/* These can get unset when we change directories. Make sure
+		 * they are set again.
 		 */
-		if( rtiff->header.compression == COMPRESSION_JPEG )
-			TIFFSetField( rtiff->tiff, 
-				TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
+		rtiff_set_decode_format( rtiff );
 	}
 
 	return( 0 );
@@ -1601,21 +1618,10 @@ rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 	uint32 data_length;
 	void *data;
 
-	/* Request YCbCr expansion. libtiff complains if you do this for
-	 * non-jpg images.
-	 */
-	if( rtiff->header.compression == COMPRESSION_JPEG )
-		TIFFSetField( rtiff->tiff, 
-			TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
+	rtiff_set_decode_format( rtiff );
 
-	/* Ask for LOGLUV as 3 x float XYZ. 
-	 */
-	if( rtiff->header.photometric_interpretation == PHOTOMETRIC_LOGLUV ) {
-		TIFFSetField( rtiff->tiff, 
-			TIFFTAG_SGILOGDATAFMT, SGILOGDATAFMT_FLOAT );
-
+	if( rtiff->header.photometric_interpretation == PHOTOMETRIC_LOGLUV )
 		vips_image_set_double( out, "stonits", rtiff->header.stonits );
-	}
 
 	out->Xsize = rtiff->header.width;
 	out->Ysize = rtiff->header.height * rtiff->n;
@@ -2371,14 +2377,16 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 	TIFFGetFieldDefaulted( rtiff->tiff, 
 		TIFFTAG_COMPRESSION, &header->compression );
 
+	/* We must set this here since it'll change the value of scanline_size.
+	 */
+	rtiff_set_decode_format( rtiff );
+
 	/* Request YCbCr expansion. libtiff complains if you do this for
 	 * non-jpg images. We must set this here since it changes the result
 	 * of scanline_size.
 	 */
-	if( header->compression == COMPRESSION_JPEG )
-		TIFFSetField( rtiff->tiff, 
-			TIFFTAG_JPEGCOLORMODE, JPEGCOLORMODE_RGB );
-	else if( header->photometric_interpretation == PHOTOMETRIC_YCBCR ) {
+	if( header->compression != COMPRESSION_JPEG &&
+		header->photometric_interpretation == PHOTOMETRIC_YCBCR ) {
 		/* We rely on the jpg decompressor to upsample chroma
 		 * subsampled images. If there is chroma subsampling but
 		 * no jpg compression, we have to give up.
@@ -2404,12 +2412,6 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 				"%s", _( "not SGI-compressed LOGLUV" ) );
 			return( -1 );
 		}
-
-		/* Always get LOGLUV as 3 x float XYZ. We must set this here 
-		 * since it'll change the value of scanline_size.
-		 */
-		TIFFSetField( rtiff->tiff, 
-			TIFFTAG_SGILOGDATAFMT, SGILOGDATAFMT_FLOAT );
 	}
 
 	/* For logluv, the calibration factor to get to absolute luminance.
