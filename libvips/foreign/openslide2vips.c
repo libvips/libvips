@@ -51,6 +51,8 @@
  * 	- reorganise to support invalidate on read error
  * 27/1/18
  * 	- option to attach associated images as metadata
+ * 22/6/20 adamu
+ * 	- set libvips xres/yres from openslide mpp-x/mpp-y
  */
 
 /*
@@ -361,6 +363,17 @@ readslide_attach_associated( ReadSlide *rslide, VipsImage *image )
 	return( 0 );
 }
 
+/* Read out a resolution field, converting to pixels per mm.
+ */
+static double
+readslice_parse_res( ReadSlide *rslide, const char *name )
+{
+	const char *value = openslide_get_property_value( rslide->osr, name );
+	double mpp = g_ascii_strtod( value, NULL );
+
+	return( mpp == 0 ? 1.0 : 1000.0 / mpp );
+}
+
 static int
 readslide_parse( ReadSlide *rslide, VipsImage *image )
 {
@@ -369,6 +382,8 @@ readslide_parse( ReadSlide *rslide, VipsImage *image )
 	const char *background;
 	const char * const *properties;
 	char *associated_names;
+	double xres;
+	double yres;
 
 	rslide->osr = openslide_open( rslide->filename );
 	if( rslide->osr == NULL ) {
@@ -493,20 +508,31 @@ readslide_parse( ReadSlide *rslide, VipsImage *image )
 		rslide->bounds.height = h;
 	}
 
-	vips_image_init_fields( image, w, h, 4, VIPS_FORMAT_UCHAR,
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
+	/* Try to get resolution from openslide properties.
+	 */
+	xres = 1.0;
+	yres = 1.0;
 
 	for( properties = openslide_get_property_names( rslide->osr );
-		*properties != NULL; properties++ )
+		*properties != NULL; properties++ ) {
 		vips_image_set_string( image, *properties,
 			openslide_get_property_value( rslide->osr,
 			*properties ) );
+
+		if( strcmp( *properties, "openslide.mpp-x" ) == 0 ) 
+			xres = readslice_parse_res( rslide, *properties );
+		if( strcmp( *properties, "openslide.mpp-y" ) == 0 ) 
+			yres = readslice_parse_res( rslide, *properties );
+	}
 
 	associated_names = g_strjoinv( ", ", (char **)
 		openslide_get_associated_image_names( rslide->osr ) );
 	vips_image_set_string( image, 
 		"slide-associated-images", associated_names );
 	VIPS_FREE( associated_names );
+
+	vips_image_init_fields( image, w, h, 4, VIPS_FORMAT_UCHAR,
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, xres, yres );
 
 	return( 0 );
 }
