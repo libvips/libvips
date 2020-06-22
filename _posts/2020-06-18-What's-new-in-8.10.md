@@ -17,22 +17,35 @@ the improved Bioformats pyramid compatibility, see below.
 
 We've put quite a bit of time into improving image resize.
 
-Thanks to hard work by Kleis 
+Thanks to hard work by kleisauke, libvips downsize is now fully symmetrical.
+This means that whatever orientation you image has, downsizing will produce
+the same result. This ought to eliminate the pizel shifts you used to be
+able to  see between libvips output and the output of other resize software.
 
-- revised resize improves accuracy [kleisauke]
-- add "premultipled" option to vips_affine(), clarified vips_resize()
-  behaviour with alpha channels
-- thumbnail exploits subifd pyramids
-- add "all" mode to smartcrop
-- handle all EXIF orientation cases, deprecate
-  vips_autorot_get_angle() [Elad-Laufer]
+We've also revised the kernel computation and it should be more accurate than
+before. A problem with upsizing images containing transparent elements has also
+been fixed.
+
+`smartcrop` now has an `all` mode, so you can disable cropping, and libvips now
+handles all the EXIF image orientations for all formats.
 
 # Pyramids
+
+The libvips pyramid builders have seen some improvements too. 
+
+Thanks to sponsorship from Lunaphore, the TIFF pyramid reader and writer now
+supports SUBIFS tags. This makes libvips capable of reading and writing
+Bioformats-style image pyramids. You can use this new mode for 
+
+The TIFF pyramid
+builder has a new mode where it'll write lower resolution layers into SUBIFD
+tags.
 
 - more conformat IIIF output from dzsave [regisrob]
 - add @id to dzsave to set IIIF id property [regisrob]
 - add max and min to region shrink [rgluskin]
 - improve bioformats support with read and write of tiff subifd pyramids
+- thumbnail exploits subifd pyramids
 
 # libspng
 
