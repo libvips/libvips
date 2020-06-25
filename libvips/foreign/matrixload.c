@@ -305,8 +305,8 @@ vips_foreign_load_matrix_file_get_flags_filename( const char *filename )
 static int
 vips_foreign_load_matrix_file_build( VipsObject *object )
 {
-	VipsForeignLoadMatrixFile *file = (VipsForeignLoadMatrixFile *) object;
 	VipsForeignLoadMatrix *matrix = (VipsForeignLoadMatrix *) object;
+	VipsForeignLoadMatrixFile *file = (VipsForeignLoadMatrixFile *) object;
 
 	if( file->filename ) 
 		if( !(matrix->source = 
@@ -398,11 +398,11 @@ G_DEFINE_TYPE( VipsForeignLoadMatrixSource, vips_foreign_load_matrix_source,
 static int
 vips_foreign_load_matrix_source_build( VipsObject *object )
 {
+	VipsForeignLoadMatrix *matrix = (VipsForeignLoadMatrix *) object;
 	VipsForeignLoadMatrixSource *source = 
 		(VipsForeignLoadMatrixSource *) object;
-	VipsForeignLoadMatrix *matrix = (VipsForeignLoadMatrix *) object;
 
-	if( matrix->source ) {
+	if( source->source ) {
 		matrix->source = source->source;
 		g_object_ref( matrix->source );
 	}

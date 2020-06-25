@@ -320,8 +320,8 @@ vips_foreign_load_csv_read_double( VipsForeignLoadCsv *csv, double *out )
 static int
 vips_foreign_load_csv_header( VipsForeignLoad *load )
 {
-	VipsForeignLoadCsv *csv = (VipsForeignLoadCsv *) load;
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
+	VipsForeignLoadCsv *csv = (VipsForeignLoadCsv *) load;
 
 	int i;
 	double value;
@@ -381,8 +381,8 @@ vips_foreign_load_csv_header( VipsForeignLoad *load )
 static int
 vips_foreign_load_csv_load( VipsForeignLoad *load )
 {
-	VipsForeignLoadCsv *csv = (VipsForeignLoadCsv *) load;
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
+	VipsForeignLoadCsv *csv = (VipsForeignLoadCsv *) load;
 
 	int i;
 	int x, y;
@@ -533,8 +533,8 @@ vips_foreign_load_csv_file_get_flags_filename( const char *filename )
 static int
 vips_foreign_load_csv_file_build( VipsObject *object )
 {
-	VipsForeignLoadCsvFile *file = (VipsForeignLoadCsvFile *) object;
 	VipsForeignLoadCsv *csv = (VipsForeignLoadCsv *) object;
+	VipsForeignLoadCsvFile *file = (VipsForeignLoadCsvFile *) object;
 
 	if( file->filename ) 
 		if( !(csv->source = 
@@ -601,10 +601,10 @@ G_DEFINE_TYPE( VipsForeignLoadCsvSource, vips_foreign_load_csv_source,
 static int
 vips_foreign_load_csv_source_build( VipsObject *object )
 {
-	VipsForeignLoadCsvSource *source = (VipsForeignLoadCsvSource *) object;
 	VipsForeignLoadCsv *csv = (VipsForeignLoadCsv *) object;
+	VipsForeignLoadCsvSource *source = (VipsForeignLoadCsvSource *) object;
 
-	if( csv->source ) {
+	if( source->source ) {
 		csv->source = source->source;
 		g_object_ref( csv->source );
 	}

@@ -1346,8 +1346,8 @@ G_DEFINE_TYPE( VipsForeignLoadGifFile, vips_foreign_load_gif_file,
 static int
 vips_foreign_load_gif_file_build( VipsObject *object )
 {
-	VipsForeignLoadGifFile *file = (VipsForeignLoadGifFile *) object;
 	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) object;
+	VipsForeignLoadGifFile *file = (VipsForeignLoadGifFile *) object;
 
 	if( file->filename )
 		if( !(gif->source =

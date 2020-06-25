@@ -958,8 +958,8 @@ G_DEFINE_TYPE( VipsForeignLoadHeifFile, vips_foreign_load_heif_file,
 static int
 vips_foreign_load_heif_file_build( VipsObject *object )
 {
-	VipsForeignLoadHeifFile *file = (VipsForeignLoadHeifFile *) object;
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) object;
+	VipsForeignLoadHeifFile *file = (VipsForeignLoadHeifFile *) object;
 
 	if( file->filename ) 
 		if( !(heif->source = 
@@ -1040,9 +1040,9 @@ G_DEFINE_TYPE( VipsForeignLoadHeifBuffer, vips_foreign_load_heif_buffer,
 static int
 vips_foreign_load_heif_buffer_build( VipsObject *object )
 {
+	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) object;
 	VipsForeignLoadHeifBuffer *buffer = 
 		(VipsForeignLoadHeifBuffer *) object;
-	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) object;
 
 	if( buffer->buf )
 		if( !(heif->source = vips_source_new_from_memory( 
@@ -1110,9 +1110,9 @@ G_DEFINE_TYPE( VipsForeignLoadHeifSource, vips_foreign_load_heif_source,
 static int
 vips_foreign_load_heif_source_build( VipsObject *object )
 {
+	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) object;
 	VipsForeignLoadHeifSource *source = 
 		(VipsForeignLoadHeifSource *) object;
-	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) object;
 
 	if( source->source ) {
 		heif->source = source->source;
