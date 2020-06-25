@@ -355,7 +355,7 @@ static int
 png2vips_header( Read *read, VipsImage *out )
 {
 	png_uint_32 width, height;
-	int bit_depth, color_type;
+	int bitdepth, color_type;
 	int interlace_type;
 
 	png_uint_32 res_x, res_y;
@@ -385,7 +385,7 @@ png2vips_header( Read *read, VipsImage *out )
 		return( -1 );
 
 	png_get_IHDR( read->pPng, read->pInfo, 
-		&width, &height, &bit_depth, &color_type,
+		&width, &height, &bitdepth, &color_type,
 		&interlace_type, NULL, NULL );
 
 	/* png_get_channels() gives us 1 band for palette images ... so look
@@ -413,7 +413,7 @@ png2vips_header( Read *read, VipsImage *out )
 		return( -1 );
 	}
 
-	if( bit_depth > 8 ) {
+	if( bitdepth > 8 ) {
 		if( bands < 3 )
 			interpretation = VIPS_INTERPRETATION_GREY16;
 		else
@@ -448,13 +448,13 @@ png2vips_header( Read *read, VipsImage *out )
 	/* Expand <8 bit images to full bytes.
 	 */
 	if( color_type == PNG_COLOR_TYPE_GRAY &&
-		bit_depth < 8 ) 
+		bitdepth < 8 ) 
 		png_set_expand_gray_1_2_4_to_8( read->pPng );
 
 	/* If we're an INTEL byte order machine and this is 16bits, we need
 	 * to swap bytes.
 	 */
-	if( bit_depth > 8 && 
+	if( bitdepth > 8 && 
 		!vips_amiMSBfirst() )
 		png_set_swap( read->pPng );
 
@@ -480,8 +480,7 @@ png2vips_header( Read *read, VipsImage *out )
 	 */
 	vips_image_init_fields( out,
 		width, height, bands,
-		bit_depth > 8 ? 
-			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR,
+		bitdepth > 8 ? VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, interpretation, 
 		Xres, Yres );
 
@@ -556,7 +555,7 @@ png2vips_header( Read *read, VipsImage *out )
 	/* Attach original palette bit depth, if any, as metadata.
 	 */
 	if( color_type == PNG_COLOR_TYPE_PALETTE )
-		vips_image_set_int( out, "palette-bit-depth", bit_depth );
+		vips_image_set_int( out, "palette-bit-depth", bitdepth );
 
 	return( 0 );
 }
@@ -924,11 +923,11 @@ static int
 write_vips( Write *write, 
 	int compress, int interlace, const char *profile,
 	VipsForeignPngFilter filter, gboolean strip,
-	gboolean palette, int colours, int Q, double dither )
+	gboolean palette, int Q, double dither,
+	int bitdepth )
 {
 	VipsImage *in = write->in;
 
-	int bit_depth;
 	int color_type;
 	int interlace_type;
 	int i, nb_passes;
@@ -970,8 +969,6 @@ write_vips( Write *write,
 	 */
 	png_set_filter( write->pPng, 0, filter );
 
-	bit_depth = in->BandFmt == VIPS_FORMAT_UCHAR ? 8 : 16;
-
 	switch( in->Bands ) {
 	case 1: color_type = PNG_COLOR_TYPE_GRAY; break;
 	case 2: color_type = PNG_COLOR_TYPE_GRAY_ALPHA; break;
@@ -987,12 +984,8 @@ write_vips( Write *write,
 #ifdef HAVE_IMAGEQUANT
 	/* Enable image quantisation to paletted 8bpp PNG if colours is set.
 	 */
-	if( palette ) {
-		g_assert( colours >= 2 && 
-			colours <= 256 );
-		bit_depth = 8;
+	if( palette ) 
 		color_type = PNG_COLOR_TYPE_PALETTE;
-	}
 #else
 	if( palette )
 		g_warning( "%s",
@@ -1002,7 +995,7 @@ write_vips( Write *write,
 	interlace_type = interlace ? PNG_INTERLACE_ADAM7 : PNG_INTERLACE_NONE;
 
 	png_set_IHDR( write->pPng, write->pInfo, 
-		in->Xsize, in->Ysize, bit_depth, color_type, interlace_type, 
+		in->Xsize, in->Ysize, bitdepth, color_type, interlace_type, 
 		PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT );
 
 	/* Set resolution. libpng uses pixels per meter.
@@ -1107,7 +1100,7 @@ write_vips( Write *write,
 		int trans_count;
 
 		if( vips__quantise_image( in, &im_index, &im_palette, 
-			colours, Q, dither ) ) 
+			1 << bitdepth, Q, dither ) ) 
 			return( -1 );
 
 		palette_count = im_palette->Xsize;
@@ -1167,9 +1160,13 @@ write_vips( Write *write,
 	/* If we're an intel byte order CPU and this is a 16bit image, we need
 	 * to swap bytes.
 	 */
-	if( bit_depth > 8 && 
+	if( bitdepth > 8 && 
 		!vips_amiMSBfirst() ) 
 		png_set_swap( write->pPng ); 
+
+	/* If bitdepth is 1/2/4, pack pixels into bytes.
+	 */
+	png_set_packing( write->pPng );
 
 	if( interlace )	
 		nb_passes = png_set_interlace_handling( write->pPng );
@@ -1196,7 +1193,8 @@ int
 vips__png_write_target( VipsImage *in, VipsTarget *target,
 	int compression, int interlace,
 	const char *profile, VipsForeignPngFilter filter, gboolean strip,
-	gboolean palette, int colours, int Q, double dither )
+	gboolean palette, int Q, double dither,
+	int bitdepth )
 {
 	Write *write;
 
@@ -1205,7 +1203,7 @@ vips__png_write_target( VipsImage *in, VipsTarget *target,
 
 	if( write_vips( write, 
 		compression, interlace, profile, filter, strip, palette,
-		colours, Q, dither ) ) {
+		Q, dither, bitdepth ) ) {
 		write_finish( write );
 		vips_error( "vips2png", 
 			"%s", _( "unable to write to target" ) );

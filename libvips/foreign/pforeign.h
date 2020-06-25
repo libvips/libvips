@@ -184,7 +184,8 @@ extern const char *vips__png_suffs[];
 int vips__png_write_target( VipsImage *in, VipsTarget *target,
 	int compress, int interlace, const char *profile,
 	VipsForeignPngFilter filter, gboolean strip,
-	gboolean palette, int colours, int Q, double dither );
+	gboolean palette, int Q, double dither,
+	int bitdepth );
 
 /* Map WEBP metadata names to vips names.
  */

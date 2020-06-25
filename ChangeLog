@@ -31,8 +31,9 @@
 - deprecate heifload autorotate -- it's now always on
 - revised resize improves accuracy [kleisauke]
 - add --vips-config flag to show configuration info
-- add "bitdepth" param to tiff load and save, deprecate "squash" [MathemanFlo]
+- add "bitdepth" param to tiff save, deprecate "squash" [MathemanFlo]
 - tiff load and save now supports 2 and 4 bit data [MathemanFlo]
+- pngsave @bitdepth parameter lets you write 1, 2 and 4 bit PNGs
 - ppmsave also uses "bitdepth" now, for consistency
 
 24/4/20 started 8.9.3

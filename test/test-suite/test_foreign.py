@@ -313,6 +313,22 @@ class TestForeign:
         self.save_load_file(".png", "[interlace]", self.colour, 0)
         self.save_load_file(".png", "[interlace]", self.mono, 0)
 
+        # size of a regular mono PNG 
+        len_mono = len(self.mono.write_to_buffer(".png"))
+
+        # 4-bit should be smaller
+        len_mono4 = len(self.mono.write_to_buffer(".png", bitdepth=4))
+        assert( len_mono4 < len_mono )
+
+        len_mono2 = len(self.mono.write_to_buffer(".png", bitdepth=2))
+        assert( len_mono2 < len_mono4 )
+
+        len_mono1 = len(self.mono.write_to_buffer(".png", bitdepth=1))
+        assert( len_mono1 < len_mono2 )
+
+        # we can't test palette save since we can't be sure libimagequant is
+        # available
+
     @skip_if_no("tiffload")
     def test_tiff(self):
         def tiff_valid(im):

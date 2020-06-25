@@ -6,6 +6,8 @@
  * 	- compression should be 0-9, not 1-10
  * 20/6/18 [felixbuenemann]
  * 	- support png8 palette write with palette, colours, Q, dither
+ * 24/6/20
+ * 	- add @bitdepth, deprecate @colours
  */
 
 /*
@@ -63,15 +65,72 @@ typedef struct _VipsForeignSavePng {
 	char *profile;
 	VipsForeignPngFilter filter;
 	gboolean palette;
-	int colours;
 	int Q;
 	double dither;
+	int bitdepth;
+
+	/* Set by subclasses.
+	 */
+	VipsTarget *target;
+
+	/* Deprecated.
+	 */
+	int colours;
 } VipsForeignSavePng;
 
 typedef VipsForeignSaveClass VipsForeignSavePngClass;
 
 G_DEFINE_ABSTRACT_TYPE( VipsForeignSavePng, vips_foreign_save_png, 
 	VIPS_TYPE_FOREIGN_SAVE );
+
+static void
+vips_foreign_save_png_dispose( GObject *gobject )
+{
+	VipsForeignSavePng *png = (VipsForeignSavePng *) gobject;
+
+	if( png->target ) 
+		vips_target_finish( png->target );
+	VIPS_UNREF( png->target );
+
+	G_OBJECT_CLASS( vips_foreign_save_png_parent_class )->
+		dispose( gobject );
+}
+
+static int
+vips_foreign_save_png_build( VipsObject *object )
+{
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSavePng *png = (VipsForeignSavePng *) object;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_png_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	/* Deprecated "colours" arg just sets bitdepth large enough to hold
+	 * that many colours.
+	 */
+        if( vips_object_argument_isset( object, "colours" ) ) 
+		png->bitdepth = ceil( log2( png->colours ) );
+
+        if( !vips_object_argument_isset( object, "bitdepth" ) ) 
+		png->bitdepth = 
+			save->ready->BandFmt == VIPS_FORMAT_UCHAR ? 8 : 16;
+
+	/* If this is a RGB or RGBA image and a low bit depth has been
+	 * requested, enable palettization.
+	 */
+        if( save->ready->Bands > 2 &&
+		png->bitdepth < 8 )
+		png->palette = TRUE;
+
+	if( vips__png_write_target( save->ready, png->target,
+		png->compression, png->interlace, png->profile, png->filter,
+		save->strip, png->palette, png->Q, png->dither,
+		png->bitdepth ) )
+		return( -1 );
+
+	return( 0 );
+}
 
 /* Save a bit of typing.
  */
@@ -99,11 +158,13 @@ vips_foreign_save_png_class_init( VipsForeignSavePngClass *class )
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
+	gobject_class->dispose = vips_foreign_save_png_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pngsave_base";
 	object_class->description = _( "save png" );
+	object_class->build = vips_foreign_save_png_build;
 
 	foreign_class->suffs = vips__png_suffs;
 
@@ -146,13 +207,6 @@ vips_foreign_save_png_class_init( VipsForeignSavePngClass *class )
 		G_STRUCT_OFFSET( VipsForeignSavePng, palette ),
 		FALSE );
 
-	VIPS_ARG_INT( class, "colours", 14,
-		_( "Colours" ),
-		_( "Max number of palette colours" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSavePng, colours ),
-		2, 256, 256 );
-
 	VIPS_ARG_INT( class, "Q", 15,
 		_( "Quality" ),
 		_( "Quantisation quality" ),
@@ -167,6 +221,20 @@ vips_foreign_save_png_class_init( VipsForeignSavePngClass *class )
 		G_STRUCT_OFFSET( VipsForeignSavePng, dither ),
 		0.0, 1.0, 1.0 );
 
+	VIPS_ARG_INT( class, "bitdepth", 17,
+		_( "Bit depth" ),
+		_( "Write as a 1, 2, 4 or 8 bit image" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSavePng, bitdepth ),
+		0, 8, 0 );
+
+	VIPS_ARG_INT( class, "colours", 14,
+		_( "Colours" ),
+		_( "Max number of palette colours" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsForeignSavePng, colours ),
+		2, 256, 256 );
+
 }
 
 static void
@@ -174,7 +242,6 @@ vips_foreign_save_png_init( VipsForeignSavePng *png )
 {
 	png->compression = 6;
 	png->filter = VIPS_FOREIGN_PNG_FILTER_ALL;
-	png->colours = 256;
 	png->Q = 100;
 	png->dither = 1.0;
 }
@@ -193,17 +260,14 @@ G_DEFINE_TYPE( VipsForeignSavePngTarget, vips_foreign_save_png_target,
 static int
 vips_foreign_save_png_target_build( VipsObject *object )
 {
-	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSavePng *png = (VipsForeignSavePng *) object;
 	VipsForeignSavePngTarget *target = (VipsForeignSavePngTarget *) object;
 
+	png->target = target->target;
+	g_object_ref( png->target );
+
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_png_target_parent_class )->
 		build( object ) )
-		return( -1 );
-
-	if( vips__png_write_target( save->ready, target->target,
-		png->compression, png->interlace, png->profile, png->filter,
-		save->strip, png->palette, png->colours, png->Q, png->dither ) )
 		return( -1 );
 
 	return( 0 );
@@ -250,26 +314,15 @@ G_DEFINE_TYPE( VipsForeignSavePngFile, vips_foreign_save_png_file,
 static int
 vips_foreign_save_png_file_build( VipsObject *object )
 {
-	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSavePng *png = (VipsForeignSavePng *) object;
-	VipsForeignSavePngFile *png_file = (VipsForeignSavePngFile *) object;
+	VipsForeignSavePngFile *file = (VipsForeignSavePngFile *) object;
 
-	VipsTarget *target;
+	if( !(png->target = vips_target_new_to_file( file->filename )) )
+		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_png_file_parent_class )->
 		build( object ) )
 		return( -1 );
-
-	if( !(target = vips_target_new_to_file( png_file->filename )) )
-		return( -1 );
-	if( vips__png_write_target( save->ready, target, 
-		png->compression, png->interlace, 
-		png->profile, png->filter, save->strip, png->palette,
-		png->colours, png->Q, png->dither ) ) {
-		VIPS_UNREF( target );
-		return( -1 );
-	}
-	VIPS_UNREF( target );
 
 	return( 0 );
 }
@@ -314,33 +367,21 @@ G_DEFINE_TYPE( VipsForeignSavePngBuffer, vips_foreign_save_png_buffer,
 static int
 vips_foreign_save_png_buffer_build( VipsObject *object )
 {
-	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSavePng *png = (VipsForeignSavePng *) object;
 	VipsForeignSavePngBuffer *buffer = (VipsForeignSavePngBuffer *) object;
 
-	VipsTarget *target;
 	VipsBlob *blob;
+
+	if( !(png->target = vips_target_new_to_memory()) )
+		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_png_buffer_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( !(target = vips_target_new_to_memory()) )
-		return( -1 );
-
-	if( vips__png_write_target( save->ready, target,
-		png->compression, png->interlace, png->profile, png->filter,
-		save->strip, png->palette, png->colours, png->Q, 
-		png->dither ) ) {
-		VIPS_UNREF( target );
-		return( -1 );
-	}
-
-	g_object_get( target, "blob", &blob, NULL );
+	g_object_get( png->target, "blob", &blob, NULL );
 	g_object_set( buffer, "buffer", blob, NULL );
 	vips_area_unref( VIPS_AREA( blob ) );
-
-	VIPS_UNREF( target );
 
 	return( 0 );
 }
@@ -386,9 +427,9 @@ vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
  * * @profile: %gchararray, ICC profile to embed
  * * @filter: #VipsForeignPngFilter row filter flag(s)
  * * @palette: %gboolean, enable quantisation to 8bpp palette
- * * @colours: %gint, max number of palette colours for quantisation
- * * @Q: %gint, quality for 8bpp quantisation (does not exceed @colours)
+ * * @Q: %gint, quality for 8bpp quantisation 
  * * @dither: %gdouble, amount of dithering for 8bpp quantization
+ * * @bitdepth: %int, set write bit depth to 1, 2, 4 or 8
  *
  * Write a VIPS image to a file as PNG.
  *
@@ -414,12 +455,14 @@ vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
  * alpha before saving. Images with more than one byte per band element are
  * saved as 16-bit PNG, others are saved as 8-bit PNG.
  *
- * Set @palette to %TRUE to enable quantisation to an 8-bit per pixel palette
- * image with alpha transparency support. If @colours is given, it limits the
- * maximum number of palette entries. Similar to JPEG the quality can also be
- * be changed with the @Q parameter which further reduces the palette size and
- * @dither controls the amount of Floyd-Steinberg dithering.
+ * Set @palette to %TRUE to enable palette mode for RGB or RGBA images. A
+ * palette will be computed with enough space for @bitdepth (1, 2, 4 or 8) 
+ * bits. Use @Q to set the optimisation effort, and @dither to set the degree of
+ * Floyd-Steinberg dithering.
  * This feature requires libvips to be compiled with libimagequant.
+ *
+ * You can also set @bitdepth for mono and mono + alpha images, and the image
+ * will be quantized.
  *
  * XMP metadata is written to the XMP chunk. PNG comments are written to
  * separate text chunks.
@@ -455,9 +498,9 @@ vips_pngsave( VipsImage *in, const char *filename, ... )
  * * @profile: %gchararray, ICC profile to embed
  * * @filter: #VipsForeignPngFilter row filter flag(s)
  * * @palette: %gboolean, enable quantisation to 8bpp palette
- * * @colours: %gint, max number of palette colours for quantisation
- * * @Q: %gint, quality for 8bpp quantisation (does not exceed @colours)
+ * * @Q: %gint, quality for 8bpp quantisation 
  * * @dither: %gdouble, amount of dithering for 8bpp quantization
+ * * @bitdepth: %int, set write bit depth to 1, 2, 4 or 8
  *
  * As vips_pngsave(), but save to a memory buffer. 
  *
@@ -510,9 +553,9 @@ vips_pngsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @profile: ICC profile to embed
  * * @filter: libpng row filter flag(s)
  * * @palette: enable quantisation to 8bpp palette
- * * @colours: max number of palette colours for quantisation
- * * @Q: quality for 8bpp quantisation (does not exceed @colours)
+ * * @Q: quality for 8bpp quantisation 
  * * @dither: amount of dithering for 8bpp quantization
+ * * @bitdepth: %int, set write bit depth to 1, 2, 4 or 8
  *
  * As vips_pngsave(), but save to a target.
  *
