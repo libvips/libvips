@@ -2047,7 +2047,9 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_mat_get_type( void ); 
 
 	extern GType vips_foreign_load_ppm_file_get_type( void ); 
+	extern GType vips_foreign_load_ppm_source_get_type( void ); 
 	extern GType vips_foreign_save_ppm_file_get_type( void ); 
+	extern GType vips_foreign_save_ppm_target_get_type( void ); 
 
 	extern GType vips_foreign_load_png_file_get_type( void ); 
 	extern GType vips_foreign_load_png_buffer_get_type( void ); 
@@ -2157,7 +2159,9 @@ vips_foreign_operation_init( void )
 
 #ifdef HAVE_PPM
 	vips_foreign_load_ppm_file_get_type(); 
+	vips_foreign_load_ppm_source_get_type(); 
 	vips_foreign_save_ppm_file_get_type(); 
+	vips_foreign_save_ppm_target_get_type(); 
 #endif /*HAVE_PPM*/
 
 #ifdef HAVE_RADIANCE

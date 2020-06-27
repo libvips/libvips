@@ -327,7 +327,7 @@ class TestForeign:
         assert( len_mono1 < len_mono2 )
 
         # we can't test palette save since we can't be sure libimagequant is
-        # available
+        # available and there's no easy test for its presence
 
     @skip_if_no("tiffload")
     def test_tiff(self):

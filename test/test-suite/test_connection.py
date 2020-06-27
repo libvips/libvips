@@ -94,5 +94,35 @@ class TestConnection:
 
         assert x.get("blob") == y
 
+    @skip_if_no("matrixload_source")
+    @skip_if_no("matrixsave_target")
+    def test_connection_matrix(self):
+        x = pyvips.Target.new_to_memory()
+        self.mono.matrixsave_target(x)
+        y = pyvips.Source.new_from_memory(x.get("blob"))
+        im = pyvips.Image.matrixload_source(y)
+
+        assert (im - self.mono).abs().max() == 0
+
+    @skip_if_no("csvload_source")
+    @skip_if_no("csvsave_target")
+    def test_connection_csv(self):
+        x = pyvips.Target.new_to_memory()
+        self.mono.csvsave_target(x)
+        y = pyvips.Source.new_from_memory(x.get("blob"))
+        im = pyvips.Image.csvload_source(y)
+
+        assert (im - self.mono).abs().max() == 0
+
+    @skip_if_no("ppmload_source")
+    @skip_if_no("ppmsave_target")
+    def test_connection_ppm(self):
+        x = pyvips.Target.new_to_memory()
+        self.mono.ppmsave_target(x)
+        y = pyvips.Source.new_from_memory(x.get("blob"))
+        im = pyvips.Image.ppmload_source(y)
+
+        assert (im - self.mono).abs().max() == 0
+
 if __name__ == '__main__':
     pytest.main()

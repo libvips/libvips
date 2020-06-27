@@ -6,6 +6,8 @@
  * 	- redone with targets
  * 18/6/20
  * 	- add "bitdepth" param, cf. tiffsave
+ * 27/6/20
+ * 	- add ppmsave_target
  */
 
 /*
@@ -469,6 +471,61 @@ vips_foreign_save_ppm_file_init( VipsForeignSavePpmFile *file )
 {
 }
 
+typedef struct _VipsForeignSavePpmTarget {
+	VipsForeignSavePpm parent_object;
+
+	VipsTarget *target;
+} VipsForeignSavePpmTarget;
+
+typedef VipsForeignSavePpmClass VipsForeignSavePpmTargetClass;
+
+G_DEFINE_TYPE( VipsForeignSavePpmTarget, vips_foreign_save_ppm_target, 
+	vips_foreign_save_ppm_get_type() );
+
+static int
+vips_foreign_save_ppm_target_build( VipsObject *object )
+{
+	VipsForeignSavePpm *ppm = (VipsForeignSavePpm *) object;
+	VipsForeignSavePpmTarget *target = 
+		(VipsForeignSavePpmTarget *) object;
+
+	if( target->target ) {
+		ppm->target = target->target; 
+		g_object_ref( ppm->target );
+	}
+
+	return( VIPS_OBJECT_CLASS( 
+		vips_foreign_save_ppm_target_parent_class )->
+			build( object ) );
+}
+
+static void
+vips_foreign_save_ppm_target_class_init( 
+	VipsForeignSavePpmTargetClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "ppmsave_target";
+	object_class->build = vips_foreign_save_ppm_target_build;
+
+	VIPS_ARG_OBJECT( class, "target", 1,
+		_( "Target" ),
+		_( "Target to save to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSavePpmTarget, target ),
+		VIPS_TYPE_TARGET );
+
+}
+
+static void
+vips_foreign_save_ppm_target_init( VipsForeignSavePpmTarget *target )
+{
+}
+
 #endif /*HAVE_PPM*/
 
 /**
@@ -508,6 +565,31 @@ vips_ppmsave( VipsImage *in, const char *filename, ... )
 
 	va_start( ap, filename );
 	result = vips_call_split( "ppmsave", ap, in, filename );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_ppmsave_target: (method)
+ * @in: image to save 
+ * @target: save image to this target
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * As vips_ppmsave(), but save to a target.
+ *
+ * See also: vips_ppmsave().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_ppmsave_target( VipsImage *in, VipsTarget *target, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, target );
+	result = vips_call_split( "ppmsave_target", ap, in, target );
 	va_end( ap );
 
 	return( result );
