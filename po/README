@@ -36,6 +36,7 @@ find libvips tools cplusplus \
   sort -t '\0' -n | \
   awk -F '\0' '{print $3}' >> po/POTFILES.in
 
+cd vips-8.x/po
 intltool-update --pot
 
 	make a new vips8.x.pot translation template from the sources

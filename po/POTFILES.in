@@ -209,7 +209,6 @@ libvips/create/mask_gaussian_ring.c
 libvips/create/mask_ideal_band.c
 libvips/create/mask_ideal.c
 libvips/create/mask_ideal_ring.c
-libvips/create/matrixinvert.c
 libvips/create/perlin.c
 libvips/create/point.c
 libvips/create/sines.c
@@ -364,6 +363,7 @@ libvips/mosaicing/im_tbcalcon.c
 libvips/mosaicing/im_tbmerge.c
 libvips/mosaicing/im_tbmosaic.c
 libvips/mosaicing/match.c
+libvips/mosaicing/matrixinvert.c
 libvips/mosaicing/merge.c
 libvips/mosaicing/mosaic1.c
 libvips/mosaicing/mosaic.c
