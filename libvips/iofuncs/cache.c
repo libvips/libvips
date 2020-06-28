@@ -78,7 +78,7 @@ gboolean vips__cache_trace = FALSE;
  * It was 10,000, but this was too high for batch-style applications with
  * little reuse. 
  */
-static int vips_cache_max = 1000;
+static int vips_cache_max = 100;
 
 /* How many tracked open files we allow before we start dropping cache.
  */
