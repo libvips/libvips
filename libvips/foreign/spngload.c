@@ -52,7 +52,7 @@
 
 #ifdef HAVE_SPNG
 
-#include <spng/spng.h>
+#include <spng.h>
 
 typedef struct _VipsForeignLoadPng {
 	VipsForeignLoad parent_object;
