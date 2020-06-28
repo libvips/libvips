@@ -36,6 +36,7 @@
 - tiff load and save now supports 2 and 4 bit data [MathemanFlo]
 - pngsave @bitdepth parameter lets you write 1, 2 and 4 bit PNGs
 - ppmsave also uses "bitdepth" now, for consistency
+- reduce operation cache max to 100
 
 24/4/20 started 8.9.3
 - better iiif tile naming [IllyaMoskvin]
