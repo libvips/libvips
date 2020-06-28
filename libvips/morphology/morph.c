@@ -192,7 +192,6 @@ vips_morph_start( VipsImage *out, void *a, void *b )
 {
 	VipsImage *in = (VipsImage *) a;
 	VipsMorph *morph = (VipsMorph *) b;
-	VipsImage *M = morph->M;
 
 	VipsMorphSequence *seq;
 
@@ -227,8 +226,10 @@ vips_morph_start( VipsImage *out, void *a, void *b )
 	/* Vector mode.
 	 */
 	if( morph->n_pass ) {
-		seq->t1 = VIPS_ARRAY( NULL, VIPS_IMAGE_N_ELEMENTS( in ), VipsPel );
-		seq->t2 = VIPS_ARRAY( NULL, VIPS_IMAGE_N_ELEMENTS( in ), VipsPel );
+		seq->t1 = VIPS_ARRAY( NULL, 
+			VIPS_IMAGE_N_ELEMENTS( in ), VipsPel );
+		seq->t2 = VIPS_ARRAY( NULL, 
+			VIPS_IMAGE_N_ELEMENTS( in ), VipsPel );
 
 		if( !seq->t1 || 
 			!seq->t2 ) {
@@ -628,7 +629,6 @@ vips_morph_gen_vector( VipsRegion *or,
 	VipsMorphSequence *seq = (VipsMorphSequence *) vseq;
 	VipsMorph *morph = (VipsMorph *) b;
 	VipsImage *M = morph->M;
-	VipsImage *in = (VipsImage *) a;
 	VipsRegion *ir = seq->ir;
 	VipsRect *r = &or->valid;
 	int sz = VIPS_REGION_N_ELEMENTS( or );

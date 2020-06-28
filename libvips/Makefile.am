@@ -24,8 +24,7 @@ SUBDIRS = \
 	iofuncs \
 	morphology \
 	mosaicing \
-	create \
-	.
+	create
 
 lib_LTLIBRARIES = libvips.la
 

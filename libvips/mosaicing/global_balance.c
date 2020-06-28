@@ -1483,7 +1483,7 @@ vips__build_mosaic( SymbolTable *st, VipsImage *out, transform_fn tfn, void *a )
 }
 
 static int
-vips__transposematrix( VipsImage *in, VipsImage **out )
+vips__matrixtranspose( VipsImage *in, VipsImage **out )
 {
 	int yc, xc;
 
@@ -1502,7 +1502,7 @@ vips__transposematrix( VipsImage *in, VipsImage **out )
 }
 
 static int
-vips__multiplymatrix( VipsImage *in1, VipsImage *in2, VipsImage **out )
+vips__matrixmultiply( VipsImage *in1, VipsImage *in2, VipsImage **out )
 {
 	int xc, yc, col;
 	double sum;
@@ -1512,7 +1512,7 @@ vips__multiplymatrix( VipsImage *in1, VipsImage *in2, VipsImage **out )
 	/* Check matrix sizes.
 	 */
 	if( in1->Xsize != in2->Ysize ) {
-		vips_error( "vips__multiplymatrix", "%s", _( "bad sizes" ) );
+		vips_error( "vips__matrixmultiply", "%s", _( "bad sizes" ) );
 		return( -1 );
 	}
 
@@ -1577,11 +1577,11 @@ find_factors( SymbolTable *st, double gamma )
 
 	/* Calculate LMS.
 	 */
-	if( vips__transposematrix( t[1], &t[2] ) ||
-		vips__multiplymatrix( t[2], t[1], &t[3] ) ||
+	if( vips__matrixtranspose( t[1], &t[2] ) ||
+		vips__matrixmultiply( t[2], t[1], &t[3] ) ||
 		vips_matrixinvert( t[3], &t[4], NULL ) ||
-		vips__multiplymatrix( t[4], t[2], &t[5] ) ||
-		vips__multiplymatrix( t[5], t[0], &t[6] ) )
+		vips__matrixmultiply( t[4], t[2], &t[5] ) ||
+		vips__matrixmultiply( t[5], t[0], &t[6] ) )
 		return( -1 );
 
 	/* Make array of correction factors.

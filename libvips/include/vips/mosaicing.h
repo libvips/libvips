@@ -92,6 +92,9 @@ int vips_remosaic( VipsImage *in, VipsImage **out,
 	const char *old_str, const char *new_str, ... )
 	__attribute__((sentinel));
 
+int vips_matrixinvert( VipsImage *m, VipsImage **out, ... )
+	__attribute__((sentinel));
+
 
 #ifdef __cplusplus
 }

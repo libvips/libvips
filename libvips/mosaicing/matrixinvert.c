@@ -46,16 +46,13 @@
 
 #include <vips/vips.h>
 
-#include "pcreate.h"
-
 /* Our state.
  */
 typedef struct _VipsMatrixinvert {
-	VipsCreate parent_instance;
+	VipsOperation parent_instance;
 
-	/* Input image.
-	 */
 	VipsImage *in;
+	VipsImage *out;
 
 	/* .. and cast to a matrix.
 	 */
@@ -66,9 +63,9 @@ typedef struct _VipsMatrixinvert {
 	VipsImage *lu;
 } VipsMatrixinvert;
 
-typedef VipsCreateClass VipsMatrixinvertClass;
+typedef VipsOperationClass VipsMatrixinvertClass;
 
-G_DEFINE_TYPE( VipsMatrixinvert, vips_matrixinvert, VIPS_TYPE_CREATE );
+G_DEFINE_TYPE( VipsMatrixinvert, vips_matrixinvert, VIPS_TYPE_OPERATION );
 
 static void
 vips_matrixinvert_dispose( GObject *gobject )
@@ -83,11 +80,11 @@ vips_matrixinvert_dispose( GObject *gobject )
 
 /* DBL_MIN is smallest *normalized* double precision float 
  */
-#define TOO_SMALL 2.0 * DBL_MIN
+#define TOO_SMALL (2.0 * DBL_MIN)
 
 /* Save a bit of typing.
  */
-#define ME( m, i, j ) *VIPS_MATRIX( (m), (i), (j) )
+#define ME( m, i, j ) (*VIPS_MATRIX( (m), (i), (j) ))
 
 /**
  * lu_decomp:
@@ -268,149 +265,132 @@ lu_solve( VipsImage *lu, double *vec )
 }
 
 static int
-vips_matrixinvert_direct( VipsImage *mat, VipsImage **out ) {
-	switch( mat->Xsize ) {
-		case 1: {
-			double det = ME( mat, 0, 0 );
-
-			if( fabs( det ) < TOO_SMALL ) {
-				/* divisor is near zero */
-				vips_error( "matrixinvert",
-					"%s", _( "singular or near-singular matrix" ) );
-				return( -1 );
-			}
-
-			ME( *out, 0, 0 ) = 1.0 / det;
-
-			return( 0 );
-		}
-		case 2: {
-			double det = ME( mat, 0, 0 ) * ME( mat, 1, 1 ) - 
-				ME( mat, 0, 1 ) * ME( mat, 1, 0 );
-
-			if( fabs( det ) < TOO_SMALL ) {
-				/* divisor is near zero */
-				vips_error( "matrixinvert",
-					"%s", _( "singular or near-singular matrix" ) );
-				return( -1 );
-			}
-
-			double tmp = 1.0 / det;
-
-			ME( *out, 0, 0 ) = tmp * ME( mat, 1, 1 );
-			ME( *out, 0, 1 ) = -tmp * ME( mat, 0, 1 );
-			ME( *out, 1, 0 ) = -tmp * ME( mat, 1, 0 );
-			ME( *out, 1, 1 ) = tmp * ME( mat,  0, 0 );
-
-			return( 0 );
-		}
-		case 3: {
-			double det = ME( mat, 0, 0 ) * ( ME( mat, 1, 1 ) * 
-				ME( mat, 2, 2 ) - ME( mat, 1, 2 ) * ME( mat, 2, 1 ) );
-			det -= ME( mat, 0, 1 ) * ( ME( mat, 1, 0 ) * 
-				ME( mat, 2, 2 ) - ME( mat, 1, 2 ) * ME( mat, 2, 0) );
-			det += ME( mat, 0, 2)  *  ( ME( mat, 1, 0 ) * 
-				ME( mat, 2, 1 ) - ME( mat, 1, 1 ) * ME( mat, 2, 0 ) );
-
-			if( fabs( det ) < TOO_SMALL ) {
-				/* divisor is near zero */
-				vips_error( "matrixinvert",
-					"%s", _( "singular or near-singular matrix" ) );
-				return( -1 );
-			}
-
-			double tmp = 1.0 / det;
-
-			ME( *out, 0, 0 ) = tmp * ( ME( mat, 1, 1 ) * ME( mat, 2, 2 ) -
-				ME( mat, 1, 2 ) * ME( mat, 2, 1 ) );
-			ME( *out, 1, 0 ) = tmp * ( ME( mat, 1, 2 ) * ME( mat, 2, 0 ) -
-				ME( mat, 1, 0 ) * ME( mat, 2, 2 ) );
-			ME( *out, 2, 0 ) = tmp * ( ME( mat, 1, 0 ) * ME( mat, 2, 1 ) -
-				ME( mat, 1, 1 ) * ME( mat, 2, 0 ) );
-
-			ME( *out, 0, 1 ) = tmp * ( ME( mat, 0, 2 ) * ME( mat, 2, 1 ) -
-				ME( mat, 0, 1 ) * ME( mat, 2, 2 ) );
-			ME( *out, 1, 1 ) = tmp * ( ME( mat, 0, 0 ) * ME( mat, 2, 2 ) -
-				ME( mat, 0, 2 ) * ME( mat, 2, 0 ) );
-			ME( *out, 2, 1 ) = tmp * ( ME( mat, 0, 1 ) * ME( mat, 2, 0 ) -
-				ME( mat, 0, 0 ) * ME( mat, 2, 1 ) );
-
-			ME( *out, 0, 2 ) = tmp * ( ME( mat, 0, 1 ) * ME( mat, 1, 2 ) -
-				ME( mat, 0, 2 ) * ME( mat, 1, 1 ) );
-			ME( *out, 1, 2 ) = tmp * ( ME( mat, 0, 2 ) * ME( mat, 1, 0 ) -
-				ME( mat, 0, 0 ) * ME( mat, 1, 2 ) );
-			ME( *out, 2, 2 ) = tmp * ( ME( mat, 0, 0 ) * ME( mat, 1, 1 ) -
-				ME( mat, 0, 1 ) * ME( mat, 1, 0 ) );
-
-			return( 0 );
-		}
-		/* TODO(kleisauke):
-		 * We sometimes use 4x4 matrices, could we also make a
-		 * direct version for those? For e.g.:
-		 * https://stackoverflow.com/a/1148405/10952119 */
-		default:
-			return( -1 );
-	}
-}
-
-static int
-vips_matrixinvert_build_init( VipsMatrixinvert *matrix )
+vips_matrixinvert_solve( VipsMatrixinvert *matrix )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( matrix );
+	VipsImage *out = matrix->out;
 
-	int x, y;
-
-	if( !matrix->mat ||
-		matrix->mat->Xsize != matrix->mat->Ysize ) {
-		vips_error( class->nickname, "%s", _( "non-square matrix" ) );
-		return( -1 );
-	}
-
-	/* No need to LU decompose the matrix for < 4x4 matrices
-	 */
-	if( matrix->mat->Xsize < 4 )
-		return( 0 );
+	int i, j;
+	double *vec;
 
 	if( !(matrix->lu = lu_decomp( matrix->mat ) ) )
 		return( -1 );
 
-	return( 0 );
-}
-
-static int
-vips_matrixinvert_build_create( VipsMatrixinvert *matrix, VipsImage **out )
-{
-	int i, j;
-	double *vec;
-
-	*out = vips_image_new_matrix( matrix->mat->Xsize, matrix->mat->Ysize );
-
-	/* Direct path for < 4x4 matrices 
-	 */
-	if( matrix->mat->Xsize < 4 )
-		return( vips_matrixinvert_direct( matrix->mat, out ) );
-
-	vec = VIPS_ARRAY( NULL, matrix->lu->Xsize, double );
-
-	if( !vec )
+	if( !(vec = VIPS_ARRAY( matrix, matrix->lu->Xsize, double )) )
 		return( -1 );
 
 	for( j = 0; j < matrix->lu->Xsize; ++j ) {
-
 		for( i = 0; i < matrix->lu->Xsize; ++i )
 			vec[i] = 0.0;
 
 		vec[j] = 1.0;
 
-		if ( lu_solve( matrix->lu, vec ) ) {
-			g_free( vec );
+		if( lu_solve( matrix->lu, vec ) ) 
+			return( -1 );
+
+		for( i = 0; i < matrix->lu->Xsize; ++i )
+			ME( out, i, j ) = vec[i];
+	}
+
+	return( 0 );
+}
+
+static int
+vips_matrixinvert_direct( VipsMatrixinvert *matrix )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( matrix );
+	VipsImage *in = matrix->mat;
+	VipsImage *out = matrix->out;
+
+	switch( matrix->mat->Xsize ) {
+	case 1: 
+{
+		double det = ME( in, 0, 0 );
+
+		if( fabs( det ) < TOO_SMALL ) {
+			/* divisor is near zero */
+			vips_error( class->nickname,
+				"%s", _( "singular or near-singular matrix" ) );
 			return( -1 );
 		}
 
-		for( i = 0; i < matrix->lu->Xsize; ++i )
-			ME( *out, i, j ) = vec[i];
+		ME( out, 0, 0 ) = 1.0 / det;
+}
+		break;
+
+	case 2: 
+{
+		double det = ME( in, 0, 0 ) * ME( in, 1, 1 ) - 
+			ME( in, 0, 1 ) * ME( in, 1, 0 );
+
+		double tmp;
+
+		if( fabs( det ) < TOO_SMALL ) {
+			/* divisor is near zero */
+			vips_error( class->nickname,
+				"%s", _( "singular or near-singular matrix" ) );
+			return( -1 );
+		}
+
+		tmp = 1.0 / det;
+		ME( out, 0, 0 ) = tmp * ME( in, 1, 1 );
+		ME( out, 0, 1 ) = -tmp * ME( in, 0, 1 );
+		ME( out, 1, 0 ) = -tmp * ME( in, 1, 0 );
+		ME( out, 1, 1 ) = tmp * ME( in,  0, 0 );
+}
+		break;
+
+	case 3: 
+{
+		double det;
+		double tmp;
+
+		det = ME( in, 0, 0 ) * ( ME( in, 1, 1 ) * 
+			ME( in, 2, 2 ) - ME( in, 1, 2 ) * ME( in, 2, 1 ) );
+		det -= ME( in, 0, 1 ) * ( ME( in, 1, 0 ) * 
+			ME( in, 2, 2 ) - ME( in, 1, 2 ) * ME( in, 2, 0) );
+		det += ME( in, 0, 2)  *  ( ME( in, 1, 0 ) * 
+			ME( in, 2, 1 ) - ME( in, 1, 1 ) * ME( in, 2, 0 ) );
+
+		if( fabs( det ) < TOO_SMALL ) {
+			/* divisor is near zero */
+			vips_error( class->nickname,
+				"%s", _( "singular or near-singular matrix" ) );
+			return( -1 );
+		}
+
+		tmp = 1.0 / det;
+
+		ME( out, 0, 0 ) = tmp * ( ME( in, 1, 1 ) * ME( in, 2, 2 ) -
+			ME( in, 1, 2 ) * ME( in, 2, 1 ) );
+		ME( out, 1, 0 ) = tmp * ( ME( in, 1, 2 ) * ME( in, 2, 0 ) -
+			ME( in, 1, 0 ) * ME( in, 2, 2 ) );
+		ME( out, 2, 0 ) = tmp * ( ME( in, 1, 0 ) * ME( in, 2, 1 ) -
+			ME( in, 1, 1 ) * ME( in, 2, 0 ) );
+
+		ME( out, 0, 1 ) = tmp * ( ME( in, 0, 2 ) * ME( in, 2, 1 ) -
+			ME( in, 0, 1 ) * ME( in, 2, 2 ) );
+		ME( out, 1, 1 ) = tmp * ( ME( in, 0, 0 ) * ME( in, 2, 2 ) -
+			ME( in, 0, 2 ) * ME( in, 2, 0 ) );
+		ME( out, 2, 1 ) = tmp * ( ME( in, 0, 1 ) * ME( in, 2, 0 ) -
+			ME( in, 0, 0 ) * ME( in, 2, 1 ) );
+
+		ME( out, 0, 2 ) = tmp * ( ME( in, 0, 1 ) * ME( in, 1, 2 ) -
+			ME( in, 0, 2 ) * ME( in, 1, 1 ) );
+		ME( out, 1, 2 ) = tmp * ( ME( in, 0, 2 ) * ME( in, 1, 0 ) -
+			ME( in, 0, 0 ) * ME( in, 1, 2 ) );
+		ME( out, 2, 2 ) = tmp * ( ME( in, 0, 0 ) * ME( in, 1, 1 ) -
+			ME( in, 0, 1 ) * ME( in, 1, 0 ) );
+}
+		break;
+
+	/* TODO(kleisauke):
+	 * We sometimes use 4x4 matrices, could we also make a
+	 * direct version for those? For e.g.:
+	 * https://stackoverflow.com/a/1148405/10952119 */
+	default:
+		g_assert( 0 );
+		return( -1 );
 	}
-	g_free( vec );
 
 	return( 0 );
 }
@@ -419,19 +399,35 @@ static int
 vips_matrixinvert_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsCreate *create = VIPS_CREATE( object );
 	VipsMatrixinvert *matrix = (VipsMatrixinvert *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 1 );
 
-	if( VIPS_OBJECT_CLASS( vips_matrixinvert_parent_class )->build( object ) )
+	if( VIPS_OBJECT_CLASS( vips_matrixinvert_parent_class )->
+		build( object ) )
 		return( -1 );
 
 	if( vips_check_matrix( class->nickname, matrix->in, &matrix->mat ) )
 		return( -1 );
 
-	if( vips_matrixinvert_build_init( matrix ) ||
-		vips_matrixinvert_build_create( matrix, &create->out ) )
+	if( matrix->mat->Xsize != matrix->mat->Ysize ) {
+		vips_error( class->nickname, "%s", _( "non-square matrix" ) );
 		return( -1 );
+	}
+
+	g_object_set( matrix, 
+		"out", vips_image_new_matrix( matrix->mat->Xsize, 
+			matrix->mat->Ysize ),
+		NULL );
+
+	/* Direct path for < 4x4 matrices 
+	 */
+	if( matrix->mat->Xsize >= 4 ) {
+		if( vips_matrixinvert_solve( matrix ) )
+			return( -1 );
+	}
+	else {
+		if( vips_matrixinvert_direct( matrix ) )
+			return( -1 );
+	}
 
 	return( 0 );
 }
@@ -455,6 +451,12 @@ vips_matrixinvert_class_init( VipsMatrixinvertClass *class )
 		_( "An square matrix" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsMatrixinvert, in ) );
+
+	VIPS_ARG_IMAGE( class, "out", 1, 
+		_( "Output" ), 
+		_( "Output matrix" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsMatrixinvert, out ) );
 }
 
 static void
@@ -465,7 +467,7 @@ vips_matrixinvert_init( VipsMatrixinvert *matrix )
 /**
  * vips_matrixinvert: (method)
  * @m: matrix to invert
- * @out: (out): output image
+ * @out: (out): output matrix
  * @...: %NULL-terminated list of optional named arguments
  *
  * This operation calculates the inverse of the matrix represented in @m.

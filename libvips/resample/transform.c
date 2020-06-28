@@ -43,8 +43,9 @@
 #include <vips/internal.h>
 #include <vips/transform.h>
 
-/* DBL_MIN is smallest *normalized* double precision float */
-#define TOO_SMALL 2.0 * DBL_MIN
+/* DBL_MIN is smallest *normalized* double precision float 
+ */
+#define TOO_SMALL (2.0 * DBL_MIN)
 
 /* Calculate the inverse transformation.
  */
