@@ -21,14 +21,20 @@ tips
 ----
 
 cd vips-8.x
-find */* -name "*.c" > po/POTFILES.in
-find */* -name "*.cc" >> po/POTFILES.in
-find */* -name "*.h" >> po/POTFILES.in
-find */* -name "*.cxx" >> po/POTFILES.in
-find */* -name "*.cpp" >> po/POTFILES.in
-
-	regenerate the list of files to search for strings ... don't forget to
-	remove: fuzz/ test/ deprecated/ examples/ non-public includes
+find cplusplus/include libvips/include \
+  -name '*deprecated*' -prune -o \
+  -name '*.h' \
+  -printf '%h\0%d\0%p\n' | \
+  sort -t '\0' -n | \
+  awk -F '\0' '{print $3}' > po/POTFILES.in
+find libvips tools cplusplus \
+  -path libvips/deprecated -prune -o \
+  -name dummy.c -prune -o \
+  -path cplusplus/examples -prune -o \
+  \( -name '*.c' -o -name '*.cpp' \) \
+  -printf '%h\0%d\0%p\n' | \
+  sort -t '\0' -n | \
+  awk -F '\0' '{print $3}' >> po/POTFILES.in
 
 intltool-update --pot
 

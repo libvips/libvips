@@ -1168,7 +1168,7 @@ vips__rad_save( VipsImage *in, VipsTarget *target )
 #endif /*DEBUG*/
 
 	if( vips_image_pio_input( in ) ||
-		vips_check_coding_rad( "vips2rad", in ) )
+		vips_check_coding( "vips2rad", in, VIPS_CODING_RAD ) )
 		return( -1 );
 	if( !(write = write_new( in, target )) ) 
 		return( -1 );

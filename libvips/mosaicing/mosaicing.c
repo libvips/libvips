@@ -29,7 +29,7 @@
 
  */
 
-/*
+/* Define for debug output.
 #define DEBUG
  */
 
@@ -52,14 +52,14 @@
  * @include: vips/vips.h
  *
  * These functions are useful for joining many small images together to make
- * one large image. They can cope with unstable contrast and arbitary sub-image
+ * one large image. They can cope with unstable contrast and arbitrary sub-image
  * layout, but will not do any geometric correction. Geometric errors should
  * be removed before using these functions.
  *
  * The mosaicing functions can be grouped into layers:
  *
- * The lowest level functions are im_correl() and vips_merge().
- * im_correl() 
+ * The lowest level functions are vips_correl() and vips_merge().
+ * vips_correl() 
  * searches a large image for a small sub-image, returning
  * the position of the best sub-image match. vips_merge() 
  * joins two images together
@@ -69,7 +69,7 @@
  * search function plus the two low-level merge operations to join two images 
  * given just an approximate overlap as a start point. 
  *
- * The functions im_lrmosaic1() and im_tbmosaic1() are
+ * The functions vips_lrmosaic1() and vips_tbmosaic1() are
  * first-order
  * analogues of the basic mosaic functions: they take two approximate 
  * tie-points and use
@@ -82,7 +82,7 @@
  * measures image contrast differences along the seams, finds a set of
  * correction factors which will minimise these differences, and reassembles
  * the mosaic.
- * im_remosaic() uses the
+ * vips_remosaic() uses the
  * same
  * techniques, but will reassemble the image from a different set of source
  * images.

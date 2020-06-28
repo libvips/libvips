@@ -50,9 +50,6 @@ pkginclude_HEADERS = \
 	vips7compat.h \
 	vips.h 
 
-vipsc++.h:
-	vips --cpph all > vipsc++.h
-
 EXTRA_DIST = version.h.in internal.h enumtemplate
 
 # the headers we scan for enums etc.

@@ -142,6 +142,7 @@ before_script:
   - $PYTHON -m pip install --user --upgrade pyvips-$PYVIPS_VERSION/[test]
   - ./autogen.sh
     --disable-dependency-tracking
+    --disable-deprecated
     --with-jpeg-includes=$JPEG/include
     --with-jpeg-libraries=$JPEG/lib
     --with-magick=$WITH_MAGICK

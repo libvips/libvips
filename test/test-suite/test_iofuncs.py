@@ -8,6 +8,8 @@ from helpers import assert_equal_objects
 class TestIofuncs:
     # test the vips7 filename splitter ... this is very fragile and annoying
     # code with lots of cases
+
+    @pytest.mark.xfail(raises=AttributeError, reason="uses deprecated symbols")
     def test_split7(self):
         def split(path):
             filename7 = pyvips.path_filename7(path)

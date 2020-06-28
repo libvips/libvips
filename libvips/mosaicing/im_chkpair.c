@@ -15,6 +15,8 @@
  *	- order of args changed to help C++ API
  * 24/1/11
  * 	- gtk-doc
+ * 18/6/20 kleisauke
+ * 	- convert to vips8
  */
 
 /*
@@ -54,12 +56,11 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 #include "pmosaicing.h"
 
 /**
- * im_correl:
+ * vips_correl:
  * @ref: reference image
  * @sec: secondary image
  * @xref: position in reference image
@@ -82,32 +83,26 @@
  *
  * Only  the  first  band  of each image is correlated. @ref and @sec may be
  * very large --- the function  extracts  and  generates  just  the
- * parts needed.  Correlation is done with im_spcor(); the position of
- * the maximum is found with im_maxpos().
+ * parts needed.  Correlation is done with vips_spcor(); the position of
+ * the maximum is found with vips_max().
  * 
- * See also: im_match_linear(), im_match_linear_search(), im_lrmosaic().
+ * See also: vips_match(), vips_lrmosaic().
  *
  * Returns: 0 on success, -1 on error
  */
 int 
-im_correl( IMAGE *ref, IMAGE *sec, 
+vips_correl( VipsImage *ref, VipsImage *sec, 
 	int xref, int yref, int xsec, int ysec,
 	int hwindowsize, int hsearchsize,
 	double *correlation, int *x, int *y )
 {
-	IMAGE *surface = im_open( "surface", "t" );
-	IMAGE *t1, *t2, *t3, *t4;
+	VipsImage *surface = vips_image_new();
+	VipsImage **t = (VipsImage **)
+			vips_object_local_array( VIPS_OBJECT( surface ), 4 );
 
-	Rect refr, secr;
-	Rect winr, srhr;
-	Rect wincr, srhcr;
-
-	if( !surface || 
-		!(t1 = im_open_local( surface, "correlate:1", "p" )) ||
-		!(t2 = im_open_local( surface, "correlate:1", "p" )) ||
-		!(t3 = im_open_local( surface, "correlate:1", "p" )) ||
-		!(t4 = im_open_local( surface, "correlate:1", "p" )) )
-		return( -1 );
+	VipsRect refr, secr;
+	VipsRect winr, srhr;
+	VipsRect wincr, srhcr;
 	
 	/* Find position of window and search area, and clip against image
 	 * size.
@@ -118,9 +113,9 @@ im_correl( IMAGE *ref, IMAGE *sec,
 	refr.height = ref->Ysize;
 	winr.left = xref - hwindowsize;
 	winr.top = yref - hwindowsize;
-	winr.width = hwindowsize*2 + 1;
-	winr.height = hwindowsize*2 + 1;
-	im_rect_intersectrect( &refr, &winr, &wincr );
+	winr.width = hwindowsize * 2 + 1;
+	winr.height = hwindowsize * 2 + 1;
+	vips_rect_intersectrect( &refr, &winr, &wincr );
 
 	secr.left = 0;
 	secr.top = 0;
@@ -128,52 +123,52 @@ im_correl( IMAGE *ref, IMAGE *sec,
 	secr.height = sec->Ysize;
 	srhr.left = xsec - hsearchsize;
 	srhr.top = ysec - hsearchsize;
-	srhr.width = hsearchsize*2 + 1;
-	srhr.height = hsearchsize*2 + 1;
-	im_rect_intersectrect( &secr, &srhr, &srhcr );
+	srhr.width = hsearchsize * 2 + 1;
+	srhr.height = hsearchsize * 2 + 1;
+	vips_rect_intersectrect( &secr, &srhr, &srhcr );
 
 	/* Extract window and search area.
 	 */
-	if( im_extract_area( ref, t1, 
-			wincr.left, wincr.top, wincr.width, wincr.height ) ||
-		im_extract_area( sec, t2, 
-			srhcr.left, srhcr.top, srhcr.width, srhcr.height ) ) {
-		im_close( surface );
+	if( vips_extract_area( ref, &t[0], 
+			wincr.left, wincr.top, wincr.width, wincr.height, NULL ) ||
+		vips_extract_area( sec, &t[1], 
+			srhcr.left, srhcr.top, srhcr.width, srhcr.height, NULL ) ) {
+		g_object_unref( surface );
 		return( -1 );
 	}
 
-	/* Make sure we have just one band. From im_*mosaic() we will, but
-	 * from im_match_linear_search() etc. we may not.
+	/* Make sure we have just one band. From vips_*mosaic() we will, but
+	 * from vips_match() etc. we may not.
 	 */
-	if( t1->Bands != 1 ) {
-		if( im_extract_band( t1, t3, 0 ) ) {
-			im_close( surface );
+	if( t[0]->Bands != 1 ) {
+		if( vips_extract_band( t[0], &t[2], 0, NULL ) ) {
+			g_object_unref( surface );
 			return( -1 );
 		}
-		t1 = t3;
+		t[0] = t[2];
 	}
-	if( t2->Bands != 1 ) {
-		if( im_extract_band( t2, t4, 0 ) ) {
-			im_close( surface );
+	if( t[1]->Bands != 1 ) {
+		if( vips_extract_band( t[1], &t[3], 0, NULL ) ) {
+			g_object_unref( surface );
 			return( -1 );
 		}
-		t2 = t4;
+		t[1] = t[3];
 	}
 
 	/* Search!
 	 */
-	if( im_spcor( t2, t1, surface ) ) {
-		im_close( surface );
+	if( vips_spcor( t[1], t[0], &surface, NULL ) ) {
+		g_object_unref( surface );
 		return( -1 );
 	}
 
 	/* Find maximum of correlation surface.
 	 */
-	if( im_maxpos( surface, x, y, correlation ) ) {
-		im_close( surface );
+	if( vips_max( surface, correlation, "x", x, "y", y, NULL ) ) {
+		g_object_unref( surface );
 		return( -1 );
 	}
-	im_close( surface );
+	g_object_unref( surface );
 
 	/* Translate back to position within sec.
 	 */
@@ -184,7 +179,7 @@ im_correl( IMAGE *ref, IMAGE *sec,
 }
 
 int 
-im__chkpair( IMAGE *ref, IMAGE *sec, TIE_POINTS *points )
+vips__chkpair( VipsImage *ref, VipsImage *sec, TiePoints *points )
 {
 	int i;
 	int x, y;
@@ -195,22 +190,22 @@ im__chkpair( IMAGE *ref, IMAGE *sec, TIE_POINTS *points )
 
 	/* Check images.
 	 */
-	if( im_incheck( ref ) || im_incheck( sec ) ) 
+	if( vips_image_wio_input( ref ) || vips_image_wio_input( sec ) ) 
 		return( -1 );
 	if( ref->Bands != sec->Bands || ref->BandFmt != sec->BandFmt || 
 		ref->Coding != sec->Coding ) {
-		im_error( "im_chkpair", "%s", _( "inputs incompatible" ) ); 
+		vips_error( "vips_chkpair", "%s", _( "inputs incompatible" ) ); 
 		return( -1 ); 
 	}
-	if( ref->Bands != 1 || ref->BandFmt != IM_BANDFMT_UCHAR ) { 
-		im_error( "im_chkpair", "%s", _( "help!" ) );
+	if( ref->Bands != 1 || ref->BandFmt != VIPS_FORMAT_UCHAR ) {
+		vips_error( "vips_chkpair", "%s", _( "help!" ) );
 		return( -1 );
 	}
 
 	for( i = 0; i < points->nopoints; i++ ) {
 		/* Find correlation point.
 		 */
-		if( im_correl( ref, sec, 
+		if( vips_correl( ref, sec, 
 			points->x_reference[i], points->y_reference[i],
 			points->x_reference[i], points->y_reference[i],
 			hcor, harea, 

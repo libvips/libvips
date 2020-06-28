@@ -4371,6 +4371,68 @@ im_profile( IMAGE *in, IMAGE *out, int dir )
 }
 
 int
+im_erode( IMAGE *in, IMAGE *out, INTMASK *mask )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_imask2vips( mask, t1 ) )
+		return( -1 );
+
+	if( vips_morph( in, &t2, t1, VIPS_OPERATION_MORPHOLOGY_ERODE,
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+
+int
+im_erode_raw( IMAGE *in, IMAGE *out, INTMASK *m )
+{
+	return( im_erode( in, out, m ) );
+}
+
+int
+im_dilate( IMAGE *in, IMAGE *out, INTMASK *mask )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_imask2vips( mask, t1 ) )
+		return( -1 );
+
+	if( vips_morph( in, &t2, t1, VIPS_OPERATION_MORPHOLOGY_DILATE,
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+
+int
+im_dilate_raw( IMAGE *in, IMAGE *out, INTMASK *m )
+{
+	return( im_dilate( in, out, m ) );
+}
+
+int
 im_mpercent( IMAGE *in, double percent, int *out )
 {
 	if( vips_percent( in, percent * 100.0, out, NULL ) )

@@ -203,6 +203,23 @@ class TestCreate:
         p = im(0.1 * 255, 0)
         assert p[2] == pytest.approx(0.1, abs=0.1)
 
+    def test_matrixinvert(self):
+        # 4x4 matrix to check if PLU decomposition works
+        mat = pyvips.Image.new_from_array([[4, 0, 0, 0],
+                                           [0, 0, 2, 0],
+                                           [0, 1, 2, 0],
+                                           [1, 0, 0, 1]])
+        im = mat.matrixinvert()
+        assert im.width == 4
+        assert im.height == 4
+        assert im.bands == 1
+        assert im.format == pyvips.BandFormat.DOUBLE
+
+        p = im(0, 0)
+        assert p[0] == 0.25
+        p = im(3, 3)
+        assert p[0] == 1.0
+
     def test_logmat(self):
         im = pyvips.Image.logmat(1, 0.1)
         assert im.width == 7

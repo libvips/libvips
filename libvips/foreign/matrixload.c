@@ -71,7 +71,7 @@ typedef struct _VipsForeignLoadMatrix {
 
 typedef VipsForeignLoadClass VipsForeignLoadMatrixClass;
 
-G_DEFINE_TYPE( VipsForeignLoadMatrix, vips_foreign_load_matrix, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadMatrix, vips_foreign_load_matrix, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void

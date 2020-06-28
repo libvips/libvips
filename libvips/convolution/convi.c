@@ -147,9 +147,6 @@ typedef struct {
 typedef struct {
 	VipsConvolution parent_instance;
 
-	/* An int version of M.
-	 */
-	VipsImage *iM;
 	int n_point;		/* w * h for our matrix */
 
 	/* We make a smaller version of the mask with the zeros squeezed out.
@@ -853,7 +850,6 @@ vips__image_intize( VipsImage *in, VipsImage **out )
 static int
 vips_convi_intize( VipsConvi *convi, VipsImage *M )
 {
-	int n_point;
 	VipsImage *t;
 	double scale;
 	double *scaled;
@@ -862,21 +858,17 @@ vips_convi_intize( VipsConvi *convi, VipsImage *M )
 	int shift;
 	int i;
 
-	n_point = M->Xsize * M->Ysize;
-
-	g_assert( convi->n_point == n_point ); 
-
 	if( vips_check_matrix( "vips2imask", M, &t ) )
 		return( -1 ); 
 
 	/* Bake the scale into the mask to make a double version.
 	 */
 	scale = vips_image_get_scale( t );
-        if( !(scaled = VIPS_ARRAY( convi, n_point, double )) ) {
+        if( !(scaled = VIPS_ARRAY( convi, convi->n_point, double )) ) {
 		g_object_unref( t ); 
 		return( -1 );
 	}
-	for( i = 0; i < n_point; i++ ) 
+	for( i = 0; i < convi->n_point; i++ ) 
 		scaled[i] = VIPS_MATRIX( t, 0, 0 )[i] / scale;
 	g_object_unref( t ); 
 
@@ -896,7 +888,7 @@ vips_convi_intize( VipsConvi *convi, VipsImage *M )
 
 	mx = scaled[0];
 	mn = scaled[0];
-	for( i = 1; i < n_point; i++ ) {
+	for( i = 1; i < convi->n_point; i++ ) {
 		if( scaled[i] > mx )
 			mx = scaled[i];
 		if( scaled[i] < mn )
@@ -915,7 +907,7 @@ vips_convi_intize( VipsConvi *convi, VipsImage *M )
 	/* We need to sum n_points, so we have to shift right before adding a
 	 * new value to make sure we have enough range. 
 	 */
-	convi->sexp = ceil( log2( n_point ) );
+	convi->sexp = ceil( log2( convi->n_point ) );
 	if( convi->sexp > 10 ) {
 		g_info( "vips_convi_intize: mask too large" ); 
 		return( -1 ); 
@@ -925,9 +917,9 @@ vips_convi_intize( VipsConvi *convi, VipsImage *M )
 	 */
 	convi->exp = 7 - shift - convi->sexp;
 
-	if( !(convi->mant = VIPS_ARRAY( convi, n_point, int )) )
+	if( !(convi->mant = VIPS_ARRAY( convi, convi->n_point, int )) )
 		return( -1 );
-	for( i = 0; i < n_point; i++ ) {
+	for( i = 0; i < convi->n_point; i++ ) {
 		/* 128 since this is signed. 
 		 */
 		convi->mant[i] = VIPS_RINT( 128 * scaled[i] * pow(2, -shift) );
@@ -965,7 +957,7 @@ vips_convi_intize( VipsConvi *convi, VipsImage *M )
 
 	true_sum = 0.0;
 	int_sum = 0;
-	for( i = 0; i < n_point; i++ ) {
+	for( i = 0; i < convi->n_point; i++ ) {
 		int value;
 
 		true_sum += 128 * scaled[i];
@@ -1001,7 +993,6 @@ vips_convi_build( VipsObject *object )
 
 	VipsImage *in;
 	VipsImage *M;
-	int n_point;
 	VipsGenerateFn generate;
 	double *coeff;
         int i;
@@ -1047,19 +1038,18 @@ vips_convi_build( VipsObject *object )
 		 */
 		if( vips__image_intize( M, &t[1] ) )
 			return( -1 ); 
-		convi->iM = M = t[1];
+		M = t[1];
 
 		coeff = VIPS_MATRIX( M, 0, 0 ); 
-		n_point = M->Xsize * M->Ysize;
-		if( !(convi->coeff = VIPS_ARRAY( object, n_point, int )) ||
+		if( !(convi->coeff = VIPS_ARRAY( object, convi->n_point, int )) ||
 			!(convi->coeff_pos = 
-				VIPS_ARRAY( object, n_point, int )) )
+				VIPS_ARRAY( object, convi->n_point, int )) )
 			return( -1 );
 
 		/* Squeeze out zero mask elements. 
 		 */
 		convi->nnz = 0;
-		for( i = 0; i < n_point; i++ )
+		for( i = 0; i < convi->n_point; i++ )
 			if( coeff[i] ) {
 				convi->coeff[convi->nnz] = coeff[i];
 				convi->coeff_pos[convi->nnz] = i;

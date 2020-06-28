@@ -1,5 +1,5 @@
 // headers for vips operations
-// Wed 01 Jan 2020 12:22:11 PM CET
+// Thu 18 Jun 2020 01:19:31 PM CEST
 // this file is generated automatically, do not edit!
 
 /**
@@ -454,7 +454,7 @@ double countlines( VipsDirection direction, VOption *options = 0 ) const;
 VImage crop( int left, int top, int width, int height, VOption *options = 0 ) const;
 
 /**
- * Load csv from file.
+ * Load csv.
  * @param filename Filename to load from.
  * @param options Optional options.
  * @return Output image.
@@ -462,11 +462,26 @@ VImage crop( int left, int top, int width, int height, VOption *options = 0 ) co
 static VImage csvload( const char *filename, VOption *options = 0 );
 
 /**
- * Save image to csv file.
+ * Load csv.
+ * @param source Source to load from.
+ * @param options Optional options.
+ * @return Output image.
+ */
+static VImage csvload_source( VSource source, VOption *options = 0 );
+
+/**
+ * Save image to csv.
  * @param filename Filename to save to.
  * @param options Optional options.
  */
 void csvsave( const char *filename, VOption *options = 0 ) const;
+
+/**
+ * Save image to csv.
+ * @param target Target to save to.
+ * @param options Optional options.
+ */
+void csvsave_target( VTarget target, VOption *options = 0 ) const;
 
 /**
  * Calculate de00.
@@ -783,6 +798,14 @@ static VImage gifload( const char *filename, VOption *options = 0 );
 static VImage gifload_buffer( VipsBlob *buffer, VOption *options = 0 );
 
 /**
+ * Load gif with giflib.
+ * @param source Source to load from.
+ * @param options Optional options.
+ * @return Output image.
+ */
+static VImage gifload_source( VSource source, VOption *options = 0 );
+
+/**
  * Global balance an image mosaic.
  * @param options Optional options.
  * @return Output image.
@@ -835,6 +858,14 @@ static VImage heifload( const char *filename, VOption *options = 0 );
 static VImage heifload_buffer( VipsBlob *buffer, VOption *options = 0 );
 
 /**
+ * Load a heif image.
+ * @param source Source to load from.
+ * @param options Optional options.
+ * @return Output image.
+ */
+static VImage heifload_source( VSource source, VOption *options = 0 );
+
+/**
  * Save image in heif format.
  * @param filename Filename to load from.
  * @param options Optional options.
@@ -847,6 +878,13 @@ void heifsave( const char *filename, VOption *options = 0 ) const;
  * @return Buffer to save to.
  */
 VipsBlob *heifsave_buffer( VOption *options = 0 ) const;
+
+/**
+ * Save image in heif format.
+ * @param target Target to save to.
+ * @param options Optional options.
+ */
+void heifsave_target( VTarget target, VOption *options = 0 ) const;
 
 /**
  * Form cumulative histogram.
@@ -1319,12 +1357,27 @@ VImage math2_const( VipsOperationMath2 math2, std::vector<double> c, VOption *op
 static VImage matload( const char *filename, VOption *options = 0 );
 
 /**
- * Load matrix from file.
+ * Invert an matrix.
+ * @param options Optional options.
+ * @return Output image.
+ */
+VImage matrixinvert( VOption *options = 0 ) const;
+
+/**
+ * Load matrix.
  * @param filename Filename to load from.
  * @param options Optional options.
  * @return Output image.
  */
 static VImage matrixload( const char *filename, VOption *options = 0 );
+
+/**
+ * Load matrix.
+ * @param source Source to load from.
+ * @param options Optional options.
+ * @return Output image.
+ */
+static VImage matrixload_source( VSource source, VOption *options = 0 );
 
 /**
  * Print matrix.
@@ -1333,11 +1386,18 @@ static VImage matrixload( const char *filename, VOption *options = 0 );
 void matrixprint( VOption *options = 0 ) const;
 
 /**
- * Save image to matrix file.
+ * Save image to matrix.
  * @param filename Filename to save to.
  * @param options Optional options.
  */
 void matrixsave( const char *filename, VOption *options = 0 ) const;
+
+/**
+ * Save image to matrix.
+ * @param target Target to save to.
+ * @param options Optional options.
+ */
+void matrixsave_target( VTarget target, VOption *options = 0 ) const;
 
 /**
  * Find image maximum.
@@ -1459,7 +1519,7 @@ static VImage openexrload( const char *filename, VOption *options = 0 );
 static VImage openslideload( const char *filename, VOption *options = 0 );
 
 /**
- * Load pdf with libpoppler.
+ * Load pdf from file.
  * @param filename Filename to load from.
  * @param options Optional options.
  * @return Output image.
@@ -1467,12 +1527,20 @@ static VImage openslideload( const char *filename, VOption *options = 0 );
 static VImage pdfload( const char *filename, VOption *options = 0 );
 
 /**
- * Load pdf with libpoppler.
+ * Load pdf from buffer.
  * @param buffer Buffer to load from.
  * @param options Optional options.
  * @return Output image.
  */
 static VImage pdfload_buffer( VipsBlob *buffer, VOption *options = 0 );
+
+/**
+ * Load pdf from source.
+ * @param source Source to load from.
+ * @param options Optional options.
+ * @return Output image.
+ */
+static VImage pdfload_source( VSource source, VOption *options = 0 );
 
 /**
  * Find threshold for percent of pixels.

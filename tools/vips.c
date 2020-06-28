@@ -42,6 +42,9 @@
  * 	- parse options in two passes (thanks Haida)
  * 26/11/17
  * 	- remove throw() decls, they are now deprecated everywhere
+ * 18/6/20 kleisauke
+ * 	- avoid using vips7 symbols
+ * 	- remove deprecated vips7 C++ generator
  */
 
 /*
@@ -92,8 +95,11 @@
 #include <locale.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 #include <vips/internal.h>
+
+#if VIPS_ENABLE_DEPRECATED
+#include <vips/vips7compat.h>
+#endif
 
 #ifdef OS_WIN32
 #define strcasecmp(a,b) _stricmp(a,b)
@@ -180,6 +186,7 @@ static GOptionEntry main_option[] = {
 	{ NULL }
 };
 
+#if VIPS_ENABLE_DEPRECATED
 typedef void *(*map_name_fn)( im_function * );
 
 /* Loop over a package.
@@ -241,13 +248,18 @@ list_function( im_function *func )
 	
 	return( NULL );
 }
+#endif
 
 static int
 print_list( int argc, char **argv )
 {
+#if VIPS_ENABLE_DEPRECATED
 	if( !argv[0] || strcmp( argv[0], "packages" ) == 0 ) 
 		im_map_packages( (VSListMap2Fn) list_package, NULL );
 	else if( strcmp( argv[0], "classes" ) == 0 ) 
+#else
+	if( !argv[0] || strcmp( argv[0], "classes" ) == 0 )
+#endif
 		vips_type_map_all( g_type_from_name( "VipsObject" ), 
 			(VipsTypeMapFn) list_class, NULL );
 	else if( g_type_from_name( argv[0] ) &&
@@ -256,13 +268,18 @@ print_list( int argc, char **argv )
 			(VipsTypeMapFn) list_class, NULL );
 	}
 	else {
+#if VIPS_ENABLE_DEPRECATED
 		if( map_name( argv[0], list_function ) )
 			vips_error_exit( "unknown package \"%s\"", argv[0] ); 
+#else
+		vips_error_exit( "unknown operation \"%s\"", argv[0] );
+#endif
 	}
 
 	return( 0 );
 }
 
+#if VIPS_ENABLE_DEPRECATED
 /* Print "ln -s" lines for this package.
  */
 static void *
@@ -301,6 +318,7 @@ has_print( im_function *fn )
 
 	return( 0 );
 }
+#endif
 
 static int
 isvips( const char *name )
@@ -313,6 +331,7 @@ isvips( const char *name )
 	return( vips_isprefix( "vips", name ) );
 }
 
+#if VIPS_ENABLE_DEPRECATED
 /* Print a usage string from an im_function descriptor.
  */
 static void
@@ -382,600 +401,7 @@ usage( im_function *fn )
 
 	fprintf( stderr, "\n" );
 }
-
-/* Convert VIPS type name to C++ type name. NULL for type unsupported by C++
- * layer.
- */
-static char *
-vips2cpp( im_type_desc *ty )
-{
-	int k;
-
-	/* VIPS types.
-	 */
-	static char *vtypes[] = {
-		IM_TYPE_DOUBLE,
-		IM_TYPE_INT,  
-		IM_TYPE_COMPLEX,
-		IM_TYPE_STRING,
-		IM_TYPE_IMAGE,
-		IM_TYPE_IMASK,
-		IM_TYPE_DMASK,
-		IM_TYPE_DISPLAY,
-		IM_TYPE_IMAGEVEC,
-		IM_TYPE_DOUBLEVEC,
-		IM_TYPE_INTVEC,
-		IM_TYPE_INTERPOLATE
-	};
-
-	/* Corresponding C++ types.
-	 */
-	static char *ctypes[] = {
-		"double",
-		"int",
-		"std::complex<double>",
-		"char*",
-		"VImage",
-		"VIMask",
-		"VDMask",
-		"VDisplay",
-		"std::vector<VImage>",
-		"std::vector<double>",
-		"std::vector<int>",
-		"char*"
-	};
-
-	for( k = 0; k < IM_NUMBER( vtypes ); k++ )
-		if( strcmp( ty->type, vtypes[k] ) == 0 ) 
-			return( ctypes[k] );
-
-	return( NULL );
-}
-
-/* Test a function definition for C++ suitability.
- */
-static int
-is_cppable( im_function *fn )
-{
-	int j;
-
-	/* Don't wrap im_remainderconst_vec().
-	 *
-	 * This has been replaced by the saner name im_remainder_vec(). If we
-	 * generate wrappers for both names we get a overloading clash.
-	 */
-	if( strcmp( fn->name, "im_remainderconst_vec" ) == 0 )
-		return( 0 );
-
-	/* Check we know all the types.
-	 */
-	for( j = 0; j < fn->argc; j++ ) {
-		im_type_desc *ty = fn->argv[j].desc;
-
-		if( !vips2cpp( ty ) )
-			return( 0 );
-	}
-
-	/* We dont wrap output IMAGEVEC/DOUBLEVEC/INTVEC.
-	 */
-	for( j = 0; j < fn->argc; j++ ) {
-		im_type_desc *ty = fn->argv[j].desc;
-
-		if( ty->flags & IM_TYPE_OUTPUT ) 
-			if( strcmp( ty->type, IM_TYPE_IMAGEVEC ) == 0 ||
-				strcmp( ty->type, IM_TYPE_DOUBLEVEC ) == 0 ||
-				strcmp( ty->type, IM_TYPE_INTVEC ) == 0 )
-			return( 0 );
-	}
-
-	/* Must be at least one image argument (input or output) ... since we 
-	 * get inserted in the VImage class. Other funcs get wrapped by hand.
-	 */
-	for( j = 0; j < fn->argc; j++ ) 
-		if( strcmp( fn->argv[j].desc->type, IM_TYPE_IMAGE ) == 0 ) 
-			break;
-	if( j == fn->argc )
-		return( 0 );
-
-	return( -1 );
-}
-
-/* Search for the first output arg, and the first IMAGE input arg.
- */
-static void
-find_ioargs( im_function *fn, int *ia, int *oa )
-{
-	int j;
-
-	/* Look for first output arg - this will be the result of the
-	 * function.
-	 */
-	*oa = -1;
-	for( j = 0; j < fn->argc; j++ ) {
-		im_type_desc *ty = fn->argv[j].desc;
-
-		if( ty->flags & IM_TYPE_OUTPUT ) {
-			*oa = j;
-			break;
-		}
-	}
-
-	/* Look for first input IMAGE arg. This will become the implicit
-	 * "this" arg.
-	 */
-	*ia = -1;
-	for( j = 0; j < fn->argc; j++ ) {
-		im_type_desc *ty = fn->argv[j].desc;
-
-		if( !(ty->flags & IM_TYPE_OUTPUT) && 
-			strcmp( ty->type, IM_TYPE_IMAGE ) == 0 ) {
-				*ia = j;
-				break;
-			}
-	}
-}
-
-static gboolean
-drop_postfix( char *str, const char *postfix )
-{
-	if( vips_ispostfix( str, postfix ) ) {
-		str[strlen( str ) - strlen( postfix )] = '\0';
-
-		return( TRUE );
-	}
-
-	return( FALSE );
-}
-
-/* Turn a VIPS name into a C++ name. Eg. im_lintra_vec becomes lin.
- */
-static void
-c2cpp_name( const char *in, char *out )
-{
-	static const char *dont_drop[] = {
-		"_set",
-	};
-	static const char *drop[] = {
-		"_vec",
-		"const",
-		"tra",
-		"set",
-		"_f"
-	};
-
-	int i;
-	gboolean changed;
-
-	/* Copy, chopping off "im_" prefix.
-	 */
-	if( vips_isprefix( "im_", in ) )
-		strcpy( out, in + 3 );
-	else
-		strcpy( out, in );
-
-	/* Repeatedly drop postfixes while we can. Stop if we see a dont_drop
-	 * postfix.
-	 */
-	do {
-		gboolean found;
-
-		found = FALSE;
-		for( i = 0; i < IM_NUMBER( dont_drop ); i++ )
-			if( vips_ispostfix( out, dont_drop[i] ) ) {
-				found = TRUE;
-				break;
-			}
-		if( found )
-			break;
-
-		changed = FALSE;
-		for( i = 0; i < IM_NUMBER( drop ); i++ )
-			changed |= drop_postfix( out, drop[i] );
-	} while( changed );
-}
-
-/* Print prototype for a function (ie. will be followed by code). 
- *
- * Eg.:
- *	VImage VImage::lin( double a, double b ) 
- */
-static void *
-print_cppproto( im_function *fn )
-{
-	int j;
-	char name[4096];
-	int oa, ia;
-	int flg;
-
-	/* If it's not cppable, do nothing.
-	 */
-	if( !is_cppable( fn ) )
-		return( NULL );
-
-	/* Make C++ name.
-	 */
-	c2cpp_name( fn->name, name );
-
-	/* Find input and output args. 
-	 */
-	find_ioargs( fn, &ia, &oa );
-
-	/* Print output type.
-	 */
-	if( oa == -1 )
-		printf( "void " );
-	else 
-		printf( "%s ", vips2cpp( fn->argv[oa].desc ) );
-
-	printf( "VImage::%s(", name );
-
-	/* Print arg list.
-	 */
-	flg = 0;
-	for( j = 0; j < fn->argc; j++ ) {
-		im_type_desc *ty = fn->argv[j].desc;
-
-		/* Skip ia and oa.
-		 */
-		if( j == ia || j == oa )
-			continue;
-
-		/* Print arg type.
-		 */
-		if( flg )
-			printf( ", %s", vips2cpp( ty ) );
-		else {
-			printf( " %s", vips2cpp( ty ) );
-			flg = 1;
-		}
-
-		/* If it's an putput arg, print a "&" to make a reference
-		 * argument.
-		 */
-		if( ty->flags & IM_TYPE_OUTPUT )
-			printf( "&" );
-
-		/* Print arg name.
-		 */
-		printf( " %s", fn->argv[j].name );
-	}
-
-	/* End of arg list!
-	 */
-	if( flg )
-		printf( " " );
-	printf( ")\n" );
-
-	return( NULL );
-}
-
-/* Print cpp decl for a function. 
- *
- * Eg.
- *	VImage lin( double, double ) 
- */
-static void *
-print_cppdecl( im_function *fn )
-{
-	int j;
-	char name[4096];
-	int oa, ia;
-	int flg;
-
-	/* If it's not cppable, do nothing.
-	 */
-	if( !is_cppable( fn ) )
-		return( NULL );
-
-	/* Make C++ name.
-	 */
-	c2cpp_name( fn->name, name );
-
-	/* Find input and output args. 
-	 */
-	find_ioargs( fn, &ia, &oa );
-	if( ia == -1 ) 
-		/* No input image, so make it a static in the class
-		 * declaration.
-		 */
-		printf( "static " );
-
-	/* Print output type.
-	 */
-	if( oa == -1 )
-		printf( "void " );
-	else 
-		printf( "%s ", vips2cpp( fn->argv[oa].desc ) );
-
-	/* Print function name and start arg list.
-	 */
-	printf( "%s(", name );
-
-	/* Print arg list.
-	 */
-	flg = 0;
-	for( j = 0; j < fn->argc; j++ ) {
-		im_type_desc *ty = fn->argv[j].desc;
-
-		/* Skip ia and oa.
-		 */
-		if( j == ia || j == oa )
-			continue;
-
-		/* Print arg type.
-		 */
-		if( flg )
-			printf( ", %s", vips2cpp( ty ) );
-		else {
-			printf( " %s", vips2cpp( ty ) );
-			flg = 1;
-		}
-
-		/* If it's an putput arg, print a "&" to make a reference
-		 * argument.
-		 */
-		if( ty->flags & IM_TYPE_OUTPUT )
-			printf( "&" );
-
-		/* Print arg name. 
-		 *
-		 * Prepend the member name to make the arg
-		 * unique. This is important for SWIG since it needs to have
-		 * unique names for %apply.
-		 */
-		printf( " %s_%s", name, fn->argv[j].name );
-	}
-
-	/* End of arg list!
-	 */
-	if( flg )
-		printf( " " );
-
-	printf( ");\n" );
-
-	return( NULL );
-}
-
-static void
-print_invec( int j, const char *arg, 
-	const char *vips_name, const char *c_name, const char *extract )
-{
-	printf( "\t((%s*) _vec.data(%d))->n = %s.size();\n",
-		vips_name, j, arg );
-	printf( "\t((%s*) _vec.data(%d))->vec = new %s[%s.size()];\n",
-		vips_name, j, c_name, arg );
-	printf( "\tfor( unsigned int i = 0; i < %s.size(); i++ )\n",
-		arg );
-	printf( "\t\t((%s*) _vec.data(%d))->vec[i] = %s[i]%s;\n",
-		vips_name, j, arg, extract );
-}
-
-/* Print the definition for a function.
- */
-static void *
-print_cppdef( im_function *fn )
-{
-	int j;
-	int ia, oa;
-
-	/* If it's not cppable, do nothing.
-	 */
-	if( !is_cppable( fn ) )
-		return( NULL );
-
-	find_ioargs( fn, &ia, &oa );
-
-	printf( "// %s: %s\n", fn->name, _( fn->desc ) );
-	print_cppproto( fn );
-	printf( "{\n" );
-
-	/* Declare the implicit input image.
-	 */
-	if( ia != -1 )
-		printf( "\tVImage %s = *this;\n", fn->argv[ia].name );
-
-	/* Declare return value, if any.
-	 */
-	if( oa != -1 )
-		printf( "\t%s %s;\n\n", 
-			vips2cpp( fn->argv[oa].desc ),
-			fn->argv[oa].name );
-
-	/* Declare the arg vector.
-	 */
-	printf( "\tVargv _vec( \"%s\" );\n\n", fn->name );
-
-	/* Create the input args.
-	 */
-	for( j = 0; j < fn->argc; j++ ) {
-		im_type_desc *ty = fn->argv[j].desc;
-
-		/* Images are special - have to init the vector, even
-		 * for output args. Have to translate VImage.
-		 */
-		if( strcmp( ty->type, IM_TYPE_IMAGE ) == 0 ) {
-			printf( "\t_vec.data(%d) = %s.image();\n",
-				j, fn->argv[j].name );
-			continue;
-		}
-
-		/* For output masks, we have to set an input filename. Not
-		 * freed, so constant string is OK.
-		 */
-		if( (ty->flags & IM_TYPE_OUTPUT) && 
-			(strcmp( ty->type, IM_TYPE_IMASK ) == 0 ||
-			strcmp( ty->type, IM_TYPE_DMASK ) == 0) ) {
-			printf( "\t((im_mask_object*) _vec.data(%d))->name = "
-				"(char*)\"noname\";\n", j );
-			continue;
-		}
-
-		/* Skip other output args.
-		 */
-		if( ty->flags & IM_TYPE_OUTPUT )
-			continue;
-
-		if( strcmp( ty->type, IM_TYPE_IMASK ) == 0 )
-			/* Mask types are different - have to use
-			 * im_mask_object.
-			 */
-			printf( "\t((im_mask_object*) "
-				"_vec.data(%d))->mask = %s.mask().iptr;\n",
-				j, fn->argv[j].name );
-		else if( strcmp( ty->type, IM_TYPE_DMASK ) == 0 ) 
-			printf( "\t((im_mask_object*) "
-				"_vec.data(%d))->mask = %s.mask().dptr;\n",
-				j, fn->argv[j].name );
-		else if( strcmp( ty->type, IM_TYPE_DISPLAY ) == 0 )
-			/* Display have to use VDisplay.
-			 */
-			printf( "\t_vec.data(%d) = %s.disp();\n",
-				j, fn->argv[j].name );
-		else if( strcmp( ty->type, IM_TYPE_STRING ) == 0 )
-			/* Zap input strings directly into _vec.
-			 */
-			printf( "\t_vec.data(%d) = (im_object) %s;\n",
-				j, fn->argv[j].name );
-		else if( strcmp( ty->type, IM_TYPE_IMAGEVEC ) == 0 ) 
-			print_invec( j, fn->argv[j].name, 
-				"im_imagevec_object", "IMAGE *", ".image()" );
-		else if( strcmp( ty->type, IM_TYPE_DOUBLEVEC ) == 0 ) 
-			print_invec( j, fn->argv[j].name, 
-				"im_doublevec_object", "double", "" );
-		else if( strcmp( ty->type, IM_TYPE_INTVEC ) == 0 ) 
-			print_invec( j, fn->argv[j].name, 
-				"im_intvec_object", "int", "" );
-		else if( strcmp( ty->type, IM_TYPE_INTERPOLATE ) == 0 ) {
-			printf( "\tif( vips__input_interpolate_init( "
-				"&_vec.data(%d), %s ) )\n",
-				j, fn->argv[j].name );
-			printf( "\t\tverror();\n" );
-		}
-		else
-			/* Just use vips2cpp().
-			 */
-			printf( "\t*((%s*) _vec.data(%d)) = %s;\n",
-				vips2cpp( ty ), j, fn->argv[j].name );
-	}
-
-	/* Call function.
-	 */
-	printf( "\t_vec.call();\n" );
-
-	/* Extract output args.
-	 */
-	for( j = 0; j < fn->argc; j++ ) {
-		im_type_desc *ty = fn->argv[j].desc;
-
-		/* Skip input args.
-		 */
-		if( !(ty->flags & IM_TYPE_OUTPUT) )
-			continue;
-
-		/* Skip images (done on input side, really).
-		 */
-		if( strcmp( ty->type, IM_TYPE_IMAGE ) == 0 )
-			continue;
-
-		if( strcmp( ty->type, IM_TYPE_IMASK ) == 0 ||
-			strcmp( ty->type, IM_TYPE_DMASK ) == 0 ) 
-			/* Mask types are different - have to use
-			 * im_mask_object.
-			 */
-			printf( "\t%s.embed( (DOUBLEMASK *)((im_mask_object*)"
-				"_vec.data(%d))->mask );\n",
-				fn->argv[j].name, j );
-		else if( strcmp( ty->type, IM_TYPE_STRING ) == 0 )
-			/* Strings are grabbed out of the vec.
-			 */
-			printf( "\t%s = (char*) _vec.data(%d);\n",
-				fn->argv[j].name, j ); 
-		else 
-			/* Just use vips2cpp().
-			 */
-			printf( "\t%s = *((%s*)_vec.data(%d));\n",
-				fn->argv[j].name, vips2cpp( ty ), j ); 
-	}
-
-	/* Note dependancies if out is an image and this function uses
-	 * PIO.
-	 */
-	if( oa != -1 ) {
-		im_type_desc *ty = fn->argv[oa].desc;
-		
-		if( strcmp( ty->type, IM_TYPE_IMAGE ) == 0 &&
-			(fn->flags & IM_FN_PIO) ) {
-			/* Loop for all input args again ..
-			 */
-			for( j = 0; j < fn->argc; j++ ) {
-				im_type_desc *ty2 = fn->argv[j].desc;
-
-				/* Skip output args.
-				 */
-				if( ty2->flags & IM_TYPE_OUTPUT )
-					continue;
-
-				/* Input image.
-				 */
-				if( strcmp( ty2->type, IM_TYPE_IMAGE ) == 0 ) 
-					printf( "\t%s._ref->addref( "
-						"%s._ref );\n",
-						fn->argv[oa].name,
-						fn->argv[j].name );
-				else if( strcmp( ty2->type, IM_TYPE_IMAGEVEC ) 
-					== 0 ) {
-					/* The out depends on every image in
-					 * the input vector.
-					 */
-					printf( "\tfor( unsigned int i = 0; "
-						"i < %s.size(); i++ )\n",
-						fn->argv[j].name );
-					printf( "\t\t%s._ref->addref( "
-						"%s[i]._ref );\n",
-						fn->argv[oa].name,
-						fn->argv[j].name );
-				}
-			}
-		}
-	}
-
-	/* Return result.
-	 */
-	if( oa != -1 )
-		printf( "\n\treturn( %s );\n", fn->argv[oa].name );
-
-	printf( "}\n\n" );
-
-	return( NULL );
-}
-
-/* Print C++ decls for function, package or all.
- */
-static int
-print_cppdecls( int argc, char **argv )
-{
-	printf( "// this file automatically generated from\n"
-		"// VIPS library %s\n", vips_version_string() );
-
-	if( map_name( argv[0], print_cppdecl ) )
-		vips_error_exit( NULL );
-
-	return( 0 );
-}
-
-/* Print C++ bindings for function, package or all.
- */
-static int
-print_cppdefs( int argc, char **argv ) 
-{
-	printf( "// this file automatically generated from\n"
-		"// VIPS library %s\n", vips_version_string() );
-
-	if( map_name( argv[0], print_cppdef ) )
-		vips_error_exit( NULL );
-
-	return( 0 );
-}
+#endif
 
 static int
 print_help( int argc, char **argv ) 
@@ -1000,14 +426,16 @@ static GOptionEntry empty_options[] = {
 };
 
 static ActionEntry actions[] = {
+#if VIPS_ENABLE_DEPRECATED
 	{ "list", N_( "list classes|packages|all|package-name|operation-name" ),
+#else
+	{ "list", N_( "list classes|all|operation-name" ),
+#endif
 		&empty_options[0], print_list },
-	{ "cpph", N_( "generate headers for C++ binding" ),
-		&empty_options[0], print_cppdecls },
-	{ "cppc", N_( "generate bodies for C++ binding" ),
-		&empty_options[0], print_cppdefs },
+#if VIPS_ENABLE_DEPRECATED
 	{ "links", N_( "generate links for vips/bin" ),
 		&empty_options[0], print_links },
+#endif
 	{ "help", N_( "list possible actions" ),
 		&empty_options[0], print_help },
 };
@@ -1087,14 +515,16 @@ main( int argc, char **argv )
 	GOptionGroup *main_group;
 	GOptionGroup *group;
 	VipsOperation *operation;
+#if VIPS_ENABLE_DEPRECATED
 	im_function *fn;
+#endif
 	int i, j;
 	gboolean handled;
 
 	GError *error = NULL;
 
 	if( VIPS_INIT( argv[0] ) )
-	        vips_error_exit( NULL );
+		vips_error_exit( NULL );
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
 
@@ -1173,8 +603,18 @@ main( int argc, char **argv )
 		;
 
 	if( main_option_plugin ) {
+#if VIPS_ENABLE_DEPRECATED
 		if( !im_load_plugin( main_option_plugin ) )
-			vips_error_exit( NULL ); 
+			vips_error_exit( NULL );
+#else /*!VIPS_ENABLE_DEPRECATED*/
+		GModule *module;
+
+		module = g_module_open( main_option_plugin, G_MODULE_BIND_LAZY );
+		if( !module ) {
+			vips_error_exit( _( "unable to load \"%s\" -- %s" ),
+				main_option_plugin, g_module_error() );
+		}
+#endif
 	}
 
 	if( main_option_version ) 
@@ -1232,6 +672,7 @@ main( int argc, char **argv )
 				break;
 			}
 
+#if VIPS_ENABLE_DEPRECATED
 	/* Could be a vips7 im_function. We need to test for vips7 first,
 	 * since we don't want to use the vips7 compat wrappers in vips8
 	 * unless we have to. They don't support all args types.
@@ -1254,6 +695,7 @@ main( int argc, char **argv )
 	if( action &&
 		!handled )
 		vips_error_clear();
+#endif
 
 	/* Could be a vips8 VipsOperation.
 	 */

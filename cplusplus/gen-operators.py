@@ -28,10 +28,6 @@ import argparse
 from pyvips import Introspect, Operation, GValue, Error, \
     ffi, gobject_lib, type_map, type_from_name, nickname_find, type_name
 
-# TODO Move to pyvips.GValue
-source_type = type_from_name('VipsSource')
-target_type = type_from_name('VipsTarget')
-
 # turn a GType into a C++ type
 gtype_to_cpp = {
     GValue.gbool_type: 'bool',
@@ -41,8 +37,8 @@ gtype_to_cpp = {
     GValue.refstr_type: 'char *',
     GValue.gflags_type: 'int',
     GValue.image_type: 'VImage',
-    source_type: 'VSource',
-    target_type: 'VTarget',
+    GValue.source_type: 'VSource',
+    GValue.target_type: 'VTarget',
     GValue.array_int_type: 'std::vector<int>',
     GValue.array_double_type: 'std::vector<double>',
     GValue.array_image_type: 'std::vector<VImage>',
