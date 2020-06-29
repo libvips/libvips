@@ -34,15 +34,14 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 #include "pmosaicing.h"
 
 int 
-im__initialize( TIE_POINTS *points )
+vips__initialize( TiePoints *points )
 {
-	if( im__clinear( points ) ) {
-		/* im_clinear failed! Set some sensible fallback values.
+	if( vips__clinear( points ) ) {
+		/* vips_clinear failed! Set some sensible fallback values.
 		 */
 		int i, j;
 		double xdelta, ydelta, max_cor;
@@ -76,7 +75,7 @@ im__initialize( TIE_POINTS *points )
 			}
 
 		if( j == 0 ) {
-			vips_error( "im_initialize", "no tie points" );
+			vips_error( "vips_initialize", "no tie points" );
 			return( -1 );
 		}
 

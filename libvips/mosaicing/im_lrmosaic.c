@@ -25,6 +25,8 @@
  * 	- remove balance stuff
  * 	- any mix of types and bands
  * 	- cleanups
+ * 18/6/20 kleisauke
+ * 	- convert to vips8
  */
 
 /*
@@ -54,6 +56,10 @@
 
  */
 
+/* Define for debug output.
+#define DEBUG
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -63,13 +69,12 @@
 #include <string.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 #include "pmosaicing.h"
 
 #ifdef DEBUG
 static void
-im__print_mdebug( TIE_POINTS *points )
+vips__print_mdebug( TiePoints *points )
 {
 	int i;
 	double adx = 0.0;
@@ -93,26 +98,27 @@ im__print_mdebug( TIE_POINTS *points )
 #endif /*DEBUG*/
 
 int 
-im__find_lroverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
+vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 	int bandno_in, 
 	int xref, int yref, int xsec, int ysec, 
 	int halfcorrelation, int halfarea,
 	int *dx0, int *dy0,
 	double *scale1, double *angle1, double *dx1, double *dy1 )
 {
-	Rect left, right, overlap;
-	IMAGE *ref, *sec;
-	IMAGE *t[6];
-	TIE_POINTS points, *p_points;
-	TIE_POINTS newpoints, *p_newpoints;
-	int dx, dy;
+	VipsImage **t = (VipsImage **)
+		vips_object_local_array( VIPS_OBJECT( out ), 6 );
+
+	VipsRect left, right, overlap;
+	TiePoints points, *p_points;
+	TiePoints newpoints, *p_newpoints;
 	int i;
+	int dx, dy;
 
 	/* Test cor and area.
 	 */
 	if( halfcorrelation < 0 || halfarea < 0 || 
 		halfarea < halfcorrelation ) {
-		im_error( "im_lrmosaic", "%s", _( "bad area parameters" ) );
+		vips_error( "vips_lrmosaic", "%s", _( "bad area parameters" ) );
 		return( -1 );
 	}
 
@@ -129,54 +135,49 @@ im__find_lroverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 
 	/* Find overlap.
 	 */
-	im_rect_intersectrect( &left, &right, &overlap );
+	vips_rect_intersectrect( &left, &right, &overlap );
 	if( overlap.width < 2 * halfarea + 1 ||
 		overlap.height < 2 * halfarea + 1 ) {
-		im_error( "im_lrmosaic", 
+		vips_error( "vips_lrmosaic", 
 			"%s", _( "overlap too small for search" ) );
 		return( -1 );
 	}
 
 	/* Extract overlaps as 8-bit, 1 band.
 	 */
-	if( !(ref = im_open_local( out, "temp_one", "t" )) ||
-		!(sec = im_open_local( out, "temp_two", "t" )) ||
-		im_open_local_array( out, t, 6, "im_lrmosaic", "p" ) ||
-		im_extract_area( ref_in, t[0], 
+	if( vips_extract_area( ref_in, &t[0],
 			overlap.left, overlap.top, 
-			overlap.width, overlap.height ) ||
-		im_extract_area( sec_in, t[1], 
+			overlap.width, overlap.height, NULL ) ||
+		vips_extract_area( sec_in, &t[1], 
 			overlap.left - right.left, overlap.top - right.top, 
-			overlap.width, overlap.height ) )
+			overlap.width, overlap.height, NULL ) )
 		return( -1 );
-	if( ref_in->Coding == IM_CODING_LABQ ) {
-		if( im_LabQ2Lab( t[0], t[2] ) || 
-			im_LabQ2Lab( t[1], t[3] ) ||
-	    		im_Lab2disp( t[2], t[4], im_col_displays( 1 ) ) || 
-			im_Lab2disp( t[3], t[5], im_col_displays( 1 ) ) ||
-			im_extract_band( t[4], ref, 1 ) ||
-			im_extract_band( t[5], sec, 1 ) )
+	if( ref_in->Coding == VIPS_CODING_LABQ ) {
+		if( vips_LabQ2sRGB( t[0], &t[2], NULL ) ||
+			vips_LabQ2sRGB( t[1], &t[3], NULL ) ||
+			vips_extract_band( t[2], &t[4], 1, NULL ) ||
+			vips_extract_band( t[3], &t[5], 1, NULL ) )
 			return( -1 );
 	}
-	else if( ref_in->Coding == IM_CODING_NONE ) {
-		if( im_extract_band( t[0], t[2], bandno_in ) ||
-			im_extract_band( t[1], t[3], bandno_in ) ||
-			im_scale( t[2], ref ) ||
-			im_scale( t[3], sec ) )
+	else if( ref_in->Coding == VIPS_CODING_NONE ) {
+		if( vips_extract_band( t[0], &t[2], bandno_in, NULL ) ||
+			vips_extract_band( t[1], &t[3], bandno_in, NULL ) ||
+			vips_scale( t[2], &t[4], NULL ) ||
+			vips_scale( t[3], &t[5], NULL ) )
 			return( -1 );
 	}
 	else {
-		im_error( "im_lrmosaic", "%s", _( "unknown Coding type" ) );
+		vips_error( "vips_lrmosaic", "%s", _( "unknown Coding type" ) );
 		return( -1 );
 	}
 
-	/* Initialise and fill TIE_POINTS 
+	/* Initialise and fill TiePoints 
 	 */
 	p_points = &points;
 	p_newpoints = &newpoints;
 	p_points->reference = ref_in->filename;
 	p_points->secondary = sec_in->filename;
-	p_points->nopoints = IM_MAXPOINTS;
+	p_points->nopoints = VIPS_MAXPOINTS;
 	p_points->deltax = 0;
 	p_points->deltay = 0;
 	p_points->halfcorsize = halfcorrelation; 	
@@ -184,7 +185,7 @@ im__find_lroverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 
 	/* Initialise the structure 
 	 */
-	for( i = 0; i < IM_MAXPOINTS; i++ ) {
+	for( i = 0; i < VIPS_MAXPOINTS; i++ ) {
 		p_points->x_reference[i] = 0;
 		p_points->y_reference[i] = 0;
 		p_points->x_secondary[i] = 0;
@@ -199,29 +200,29 @@ im__find_lroverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 	/* Search ref for possible tie-points. Sets: p_points->contrast, 
 	 * p_points->x,y_reference.
  	 */
-	if( im__lrcalcon( ref, p_points ) )
+	if( vips__lrcalcon( t[4], p_points ) )
 		return( -1 ); 
 
 	/* For each candidate point, correlate against corresponding part of
 	 * sec. Sets x,y_secondary and fills correlation and dx, dy.
  	 */
-	if( im__chkpair( ref, sec, p_points ) )
+	if( vips__chkpair( t[4], t[5], p_points ) )
 		return( -1 );
 
-	/* First call to im_clinear().
+	/* First call to vips_clinear().
 	 */
-  	if( im__initialize( p_points ) )
+  	if( vips__initialize( p_points ) )
 		return( -1 );
 
 	/* Improve the selection of tiepoints until all abs(deviations) are 
 	 * < 1.0 by deleting all wrong points.
  	 */
-	if( im__improve( p_points, p_newpoints ) )
+	if( vips__improve( p_points, p_newpoints ) )
 		return( -1 );
 
 	/* Average remaining offsets.
 	 */
-	if( im__avgdxdy( p_newpoints, &dx, &dy ) )
+	if( vips__avgdxdy( p_newpoints, &dx, &dy ) )
 		return( -1 );
 
 	/* Offset with overlap position.
@@ -240,7 +241,7 @@ im__find_lroverlap( IMAGE *ref_in, IMAGE *sec_in, IMAGE *out,
 }
 
 int 
-im_lrmosaic( IMAGE *ref, IMAGE *sec, IMAGE *out, 
+vips_lrmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out, 
 	int bandno, 
 	int xref, int yref, int xsec, int ysec, 
 	int hwindowsize, int hsearchsize,
@@ -249,27 +250,26 @@ im_lrmosaic( IMAGE *ref, IMAGE *sec, IMAGE *out,
 {
 	int dx0, dy0;
 	double scale1, angle1, dx1, dy1;
-	IMAGE *dummy;
+	VipsImage *dummy;
 
 	/* Correct overlap. dummy is just a placeholder used to ensure that
 	 * memory used by the analysis phase is freed as soon as possible.
 	 */
-	if( !(dummy = im_open( "placeholder:1", "p" )) )
-		return( -1 );
-	if( im__find_lroverlap( ref, sec, dummy,
+	dummy = vips_image_new();
+	if( vips__find_lroverlap( ref, sec, dummy,
 		bandno, 
 		xref, yref, xsec, ysec,
 		hwindowsize, hsearchsize,
 		&dx0, &dy0,
 		&scale1, &angle1, &dx1, &dy1 ) ) {
-		im_close( dummy );
+		g_object_unref( dummy );
 		return( -1 );
 	}
-	im_close( dummy );
+	g_object_unref( dummy );
 
 	/* Merge left right.
 	 */
-        if( im_lrmerge( ref, sec, out, dx0, dy0, mwidth ) )
+	if( vips_lrmerge( ref, sec, out, dx0, dy0, mwidth ) )
 		return( -1 ); 
 
 	return( 0 );

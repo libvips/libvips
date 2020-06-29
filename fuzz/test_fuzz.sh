@@ -3,7 +3,7 @@
 #set -x
 set -e
 
-# Glib is build without -fno-omit-frame-pointer. We need
+# Glib is built without -fno-omit-frame-pointer. We need
 # to disable the fast unwinder to get full stacktraces.
 export ASAN_OPTIONS="fast_unwind_on_malloc=0:allocator_may_return_null=1"
 export UBSAN_OPTIONS="print_stacktrace=1"
@@ -14,8 +14,12 @@ export VIPS_WARNING=0
 ret=0
 
 for fuzzer in *_fuzzer; do
-	find "common_fuzzer_corpus" -type f -not -empty -print0 \
-	  | xargs -0 -n1 "./$fuzzer" || ret=1
+  for file in common_fuzzer_corpus/*; do
+    if ! ./$fuzzer $file; then
+      echo FAIL $fuzzer $file
+      ret=1
+    fi
+  done
 done
 
 exit $ret

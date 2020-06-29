@@ -43,26 +43,30 @@
 #include <vips/internal.h>
 #include <vips/transform.h>
 
+/* DBL_MIN is smallest *normalized* double precision float 
+ */
+#define TOO_SMALL (2.0 * DBL_MIN)
+
 /* Calculate the inverse transformation.
  */
 int
 vips__transform_calc_inverse( VipsTransformation *trn )
 {
-	DOUBLEMASK *msk, *msk2;
+	double det = trn->a * trn->d - trn->b * trn->c;
 
-	if( !(msk = im_create_dmaskv( "boink", 2, 2, 
-		trn->a, trn->b, trn->c, trn->d )) )
-		return( -1 );
-	if( !(msk2 = im_matinv( msk, "boink2" )) ) {
-		(void) im_free_dmask( msk );
+	if( fabs( det ) < TOO_SMALL ) {
+		/* divisor is near zero */
+		vips_error( "vips__transform_calc_inverse",
+			"%s", _( "singular or near-singular matrix" ) );
 		return( -1 );
 	}
-	trn->ia = msk2->coeff[0];
-	trn->ib = msk2->coeff[1];
-	trn->ic = msk2->coeff[2];
-	trn->id = msk2->coeff[3];
-	(void) im_free_dmask( msk );
-	(void) im_free_dmask( msk2 );
+
+	double tmp = 1.0 / det;
+
+	trn->ia = tmp * trn->d;
+	trn->ib = -tmp * trn->b;
+	trn->ic = -tmp * trn->c;
+	trn->id = tmp * trn->a;
 
 	return( 0 );
 }

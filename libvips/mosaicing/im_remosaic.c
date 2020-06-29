@@ -6,6 +6,8 @@
  *	- detect size change
  * 10/4/06
  * 	- spot file-not-found
+ * 18/6/20 kleisauke
+ * 	- convert to vips8
  */
 
 /*
@@ -51,7 +53,6 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 #include <vips/transform.h>
 
 #include "pmosaicing.h"
@@ -74,18 +75,18 @@ typedef VipsOperationClass VipsRemosaicClass;
 
 G_DEFINE_TYPE( VipsRemosaic, vips_remosaic, VIPS_TYPE_OPERATION );
 
-static IMAGE *
+static VipsImage *
 remosaic_fn( JoinNode *node, VipsRemosaic *remosaic )
 {
 	SymbolTable *st = node->st;
-	IMAGE *im = node->im;
+	VipsImage *im = node->im;
 
-	IMAGE *out;
+	VipsImage *out;
 	char filename[FILENAME_MAX];
 	char *p;
 
 	if( !im ) {
-		im_error( "im_remosaic", _( "file \"%s\" not found" ), 
+		vips_error( "vips_remosaic", _( "file \"%s\" not found" ), 
 			node->name );
 		return( NULL );
 	}
@@ -93,26 +94,26 @@ remosaic_fn( JoinNode *node, VipsRemosaic *remosaic )
 	/* Remove substring remosaic->old_str from in->filename, replace with
 	 * remosaic->new_str.
 	 */
-	im_strncpy( filename, im->filename, FILENAME_MAX );
-	if( (p = im_strrstr( filename, remosaic->old_str )) ) {
+	vips_strncpy( filename, im->filename, FILENAME_MAX );
+	if( (p = vips_strrstr( filename, remosaic->old_str )) ) {
 		int offset = p - &filename[0];
 
-		im_strncpy( p, remosaic->new_str, FILENAME_MAX - offset );
-		im_strncpy( p + remosaic->new_len,
+		vips_strncpy( p, remosaic->new_str, FILENAME_MAX - offset );
+		vips_strncpy( p + remosaic->new_len,
 			im->filename + offset + remosaic->old_len, 
 			FILENAME_MAX - offset - remosaic->new_len );
 	}
 
 #ifdef DEBUG
-	printf( "im_remosaic: filename \"%s\" -> \"%s\"\n", 
+	printf( "vips_remosaic: filename \"%s\" -> \"%s\"\n", 
 		im->filename, filename );
 #endif /*DEBUG*/
 
-	if( !(out = im__global_open_image( st, filename )) ) 
+	if( !(out = vips__global_open_image( st, filename )) ) 
 		return( NULL );
 
 	if( out->Xsize != im->Xsize || out->Ysize != im->Ysize ) {
-		im_error( "im_remosaic", 
+		vips_error( "vips_remosaic", 
 			_( "substitute image \"%s\" is not "
 				"the same size as \"%s\"" ), 
 			filename, im->filename );
@@ -135,13 +136,13 @@ vips_remosaic_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	if( !(st = im__build_symtab( remosaic->out, SYM_TAB_SIZE )) ||
-		im__parse_desc( st, remosaic->in ) )
+	if( !(st = vips__build_symtab( remosaic->out, SYM_TAB_SIZE )) ||
+		vips__parse_desc( st, remosaic->in ) )
 		return( -1 );
 
 	remosaic->old_len = strlen( remosaic->old_str );
 	remosaic->new_len = strlen( remosaic->new_str );
-	if( im__build_mosaic( st, remosaic->out, 
+	if( vips__build_mosaic( st, remosaic->out, 
 		(transform_fn) remosaic_fn, remosaic ) )
 		return( -1 );
 
@@ -158,7 +159,7 @@ vips_remosaic_class_init( VipsRemosaicClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "remosaic";
-	object_class->description = _( "global balance an image mosaic" );
+	object_class->description = _( "rebuild an mosaiced image" );
 	object_class->build = vips_remosaic_build;
 
 	VIPS_ARG_IMAGE( class, "in", 1, 
@@ -206,7 +207,7 @@ vips_remosaic_init( VipsRemosaic *remosaic )
  * mosaiced image @in and rebuilds it, substituting images.
  *
  * Unlike vips_globalbalance(), images are substituted based on their file‐
- * names.  The  rightmost  occurence  of the string @old_str is swapped
+ * names.  The  rightmost  occurrence  of the string @old_str is swapped
  * for @new_str, that file is opened, and that image substituted  for
  * the old image.
  *

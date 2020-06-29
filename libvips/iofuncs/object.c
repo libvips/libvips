@@ -71,11 +71,11 @@
  *
  * <emphasis>Functional class creation</emphasis> Vips objects have a very 
  * regular lifecycle: initialise, build, use, destroy. They behave rather like
- * function calls and are free of side-effects. 
+ * function calls and are free of side-effects.
  *
  * <emphasis>Run-time introspection</emphasis> Vips objects can be fully 
- * introspected at run-time. There is not need for separate source-code 
- * analysis. 
+ * introspected at run-time. There is no need for separate source-code 
+ * analysis.
  *
  * <emphasis>Command-line interface</emphasis> Any vips object can be run from
  * the command-line with the `vips` driver program. 
@@ -1886,29 +1886,48 @@ vips_object_set_argument_from_string( VipsObject *object,
 		VipsImage *out;
 		VipsOperationFlags flags;
 		VipsAccess access;
-
-		if( !value ) {
-			vips_object_no_value( object, name );
-			return( -1 );
-		}
+		char filename[VIPS_PATH_MAX];
+		char option_string[VIPS_PATH_MAX];
 
 		flags = 0;
 		if( VIPS_IS_OPERATION( object ) )
 			flags = vips_operation_get_flags( 
 				VIPS_OPERATION( object ) );
 
-		/* Read the filename. 
-		 */
-		if( flags & (VIPS_OPERATION_SEQUENTIAL_UNBUFFERED |
-			     VIPS_OPERATION_SEQUENTIAL) ) 
+		if( flags & 
+			(VIPS_OPERATION_SEQUENTIAL_UNBUFFERED | 
+			 VIPS_OPERATION_SEQUENTIAL) ) 
 			access = VIPS_ACCESS_SEQUENTIAL;
 		else
 			access = VIPS_ACCESS_RANDOM; 
 
-		if( !(out = vips_image_new_from_file( value, 
-			"access", access,
-			NULL )) )
+		if( !value ) {
+			vips_object_no_value( object, name );
 			return( -1 );
+		}
+		vips__filename_split8( value, filename, option_string );
+
+		if( strcmp( "stdin", filename ) == 0 ) {
+			VipsSource *source;
+
+			if( !(source = 
+				vips_source_new_from_descriptor( 0 )) )
+				return( -1 );
+			if( !(out = vips_image_new_from_source( source, 
+				option_string, 
+				"access", access,
+				NULL )) ) {
+				VIPS_UNREF( source );
+				return( -1 );
+			}
+			VIPS_UNREF( source );
+		}
+		else {
+			if( !(out = vips_image_new_from_file( value, 
+				"access", access,
+				NULL )) )
+				return( -1 );
+		}
 
 		g_value_init( &gvalue, VIPS_TYPE_IMAGE );
 		g_value_set_object( &gvalue, out );
@@ -1917,6 +1936,25 @@ vips_object_set_argument_from_string( VipsObject *object,
 		 * go back to 1 so that gvalue has the only ref.
 		 */
 		g_object_unref( out );
+	}
+	else if( g_type_is_a( otype, VIPS_TYPE_SOURCE ) ) { 
+		VipsSource *source;
+
+		if( !value ) {
+			vips_object_no_value( object, name );
+			return( -1 );
+		}
+
+		if( !(source = vips_source_new_from_options( value )) )
+			return( -1 );
+	
+		g_value_init( &gvalue, VIPS_TYPE_SOURCE );
+		g_value_set_object( &gvalue, source );
+
+		/* Setting gvalue will have upped @out's count again,
+		 * go back to 1 so that gvalue has the only ref.
+		 */
+		g_object_unref( source );
 	}
 	else if( g_type_is_a( otype, VIPS_TYPE_ARRAY_IMAGE ) ) { 
 		/* We have to have a special case for this, we can't just rely
@@ -2166,14 +2204,36 @@ vips_object_get_argument_to_string( VipsObject *object,
 
 	if( g_type_is_a( otype, VIPS_TYPE_IMAGE ) ) { 
 		VipsImage *in;
-/* Pull out the image and write it.
-		 */
-		g_object_get( object, name, &in, NULL );
-		if( vips_image_write_to_file( in, arg, NULL ) ) {
-			g_object_unref( in );
-			return( -1 );
+		char filename[VIPS_PATH_MAX];
+		char option_string[VIPS_PATH_MAX];
+
+		vips__filename_split8( arg, filename, option_string );
+
+		if( vips_isprefix( ".", filename ) ) {
+			VipsTarget *target;
+
+			if( !(target = vips_target_new_to_descriptor( 1 )) )
+				return( -1 );
+			g_object_get( object, name, &in, NULL );
+			if( vips_image_write_to_target( in, 
+				arg, target, NULL ) ) {
+				VIPS_UNREF( in );
+				VIPS_UNREF( target );
+				return( -1 );
+			}
+			VIPS_UNREF( in );
+			VIPS_UNREF( target );
 		}
-		g_object_unref( in );
+		else {
+			/* Pull out the image and write it.
+			 */
+			g_object_get( object, name, &in, NULL );
+			if( vips_image_write_to_file( in, arg, NULL ) ) {
+				VIPS_UNREF( in );
+				return( -1 );
+			}
+			VIPS_UNREF( in );
+		}
 	}
 	else if( g_type_is_a( otype, VIPS_TYPE_OBJECT ) &&
 		(oclass = g_type_class_ref( otype )) &&

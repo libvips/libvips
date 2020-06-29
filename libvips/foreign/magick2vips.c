@@ -377,14 +377,8 @@ parse_header( Read *read )
 			im->Type = VIPS_INTERPRETATION_B_W;
 		break;
 
-	case RGBColorspace:
-		if( im->BandFmt == VIPS_FORMAT_USHORT )
-			im->Type = VIPS_INTERPRETATION_RGB16;
-		else
-			im->Type = VIPS_INTERPRETATION_RGB;
-		break;
-
 	case sRGBColorspace:
+	case RGBColorspace:
 		if( im->BandFmt == VIPS_FORMAT_USHORT )
 			im->Type = VIPS_INTERPRETATION_RGB16;
 		else

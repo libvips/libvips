@@ -12,10 +12,6 @@ set -e
 poppler=$test_images/blankpage.pdf
 poppler_ref=$test_images/blankpage.pdf.png
 
-# rsvg / svgload reference image
-rsvg=$test_images/blankpage.svg
-rsvg_ref=$test_images/blankpage.svg.png
-
 # giflib / gifload reference image
 giflib=$test_images/trans-x.gif
 giflib_ref=$test_images/trans-x.png
@@ -51,30 +47,6 @@ save_load() {
 	if ! $vips copy $tmp/t1.$format $tmp/back.v ; then
 		echo "read from $tmp/t1.format failed"
 		echo "  (was written by $vips copy $in $tmp/t1.$format$mode)"
-		exit 1
-	fi
-}
-
-# is a difference beyond a threshold? return 0 (meaning all ok) or 1 (meaning
-# error, or outside threshold)
-break_threshold() {
-	diff=$1
-	threshold=$2
-	return $(echo "$diff <= $threshold" | bc -l)
-}
-
-# subtract, look for max difference less than a threshold
-test_difference() {
-	before=$1
-	after=$2
-	threshold=$3
-
-	$vips subtract $before $after $tmp/difference.v
-	$vips abs $tmp/difference.v $tmp/abs.v 
-	dif=$($vips max $tmp/abs.v)
-
-	if break_threshold $dif $threshold; then
-		echo "save / load difference is $dif"
 		exit 1
 	fi
 }
@@ -171,20 +143,6 @@ test_saver() {
 	echo "ok"
 }
 
-# test for file format supported
-test_supported() {
-	format=$1
-
-	if $vips $format > /dev/null 2>&1; then
-		result=0
-	else
-		echo "support for $format not configured, skipping test"
-		result=1
-	fi
-
-	return $result
-}
-
 test_format $image v 0
 if test_supported tiffload; then
 	test_format $image tif 0
@@ -234,10 +192,7 @@ if test_supported pdfload; then
 	test_loader $poppler_ref $poppler pdfload 0
 fi
 
-if test_supported svgload; then
-	# librsvg can give small differences on some platforms
-	test_loader $rsvg_ref $rsvg svgload 10
-fi
+# don't test SVG --- the output varies too much between librsvg versions
 
 if test_supported gifload; then
 	test_loader $giflib_ref $giflib gifload 0

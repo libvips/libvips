@@ -343,6 +343,13 @@ vips_composite_base_max_band( VipsCompositeBase *composite, double *max_band )
 		max_band[2] = 255;
 		break;
 
+	case VIPS_INTERPRETATION_CMYK:
+		max_band[0] = 255;
+		max_band[1] = 255;
+		max_band[2] = 255;
+		max_band[3] = 255;
+		break;
+
 	case VIPS_INTERPRETATION_RGB16:
 		max_band[0] = 65535;
 		max_band[1] = 65535;
@@ -621,7 +628,7 @@ vips_composite_base_blend( VipsCompositeBase *composite,
 
 		case VIPS_BLEND_MODE_DIFFERENCE:
 			for( int b = 0; b < bands; b++ ) 
-				f[b] = abs( B[b] - A[b] );
+				f[b] = fabs( B[b] - A[b] );
 			break;
 
 		case VIPS_BLEND_MODE_EXCLUSION:

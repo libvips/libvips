@@ -23,5 +23,5 @@
 #   BOOL        deprecated alias for BOOLEAN
 
 INT: VOID
-
-
+INT64: INT64, INT
+INT64: POINTER, INT64 

@@ -38,6 +38,8 @@
  * 	  functions, so "header" is now obsolete
  * 27/2/13
  * 	- convert to vips8 API
+ * 29/6/20
+ * 	- allow "stdin" as a filename
  */
 
 /*
@@ -109,7 +111,8 @@ print_field_fn( VipsImage *image, const char *field, GValue *value, void *a )
 	char str[256];
 	VipsBuf buf = VIPS_BUF_STATIC( str );
 
-	if( *many ) 
+	if( *many &&
+		image->filename )
 		printf( "%s: ", image->filename );
 
 	printf( "%s: ", field ); 
@@ -123,33 +126,35 @@ print_field_fn( VipsImage *image, const char *field, GValue *value, void *a )
 /* Print header, or parts of header.
  */
 static int
-print_header( VipsImage *im, gboolean many )
+print_header( VipsImage *image, gboolean many )
 {
 	if( !main_option_field ) {
-		printf( "%s: ", im->filename );
+		if( image->filename )
+			printf( "%s: ", image->filename );
 
-		vips_object_print_summary( VIPS_OBJECT( im ) );
+		vips_object_print_summary( VIPS_OBJECT( image ) );
 
 		if( main_option_all )
-			(void) vips_image_map( im, print_field_fn, &many );
+			(void) vips_image_map( image, print_field_fn, &many );
 	}
 	else if( strcmp( main_option_field, "getext" ) == 0 ) {
-		if( vips__has_extension_block( im ) ) {
+		if( vips__has_extension_block( image ) ) {
 			void *buf;
 			int size;
 
-			if( !(buf = vips__read_extension_block( im, &size )) )
+			if( !(buf = 
+				vips__read_extension_block( image, &size )) )
 				return( -1 );
 			printf( "%s", (char *) buf );
 			g_free( buf );
 		}
 	}
 	else if( strcmp( main_option_field, "Hist" ) == 0 ) 
-		printf( "%s", vips_image_get_history( im ) );
+		printf( "%s", vips_image_get_history( image ) );
 	else {
 		char *str;
 
-		if( vips_image_get_as_string( im, main_option_field, &str ) )
+		if( vips_image_get_as_string( image, main_option_field, &str ) )
 			return( -1 );
 		printf( "%s\n", str );
 		g_free( str );
@@ -205,21 +210,39 @@ main( int argc, char *argv[] )
 	result = 0;
 
 	for( i = 1; argv[i]; i++ ) {
-		VipsImage *im;
+		VipsImage *image;
+		char filename[VIPS_PATH_MAX];
+                char option_string[VIPS_PATH_MAX];
 
-		if( !(im = vips_image_new_from_file( argv[i], NULL )) ) {
+		vips__filename_split8( argv[i], filename, option_string );
+		if( strcmp( filename, "stdin" ) == 0 ) {
+			VipsSource *source;
+
+                        if( !(source = vips_source_new_from_descriptor( 0 )) )
+                                return( -1 );
+                        if( !(image = vips_image_new_from_source( source,
+                                option_string, NULL )) ) {
+                                VIPS_UNREF( source );
+                                return( -1 );
+                        }
+                        VIPS_UNREF( source );
+		}
+		else {
+			if( !(image = 
+				vips_image_new_from_file( argv[i], NULL )) ) {
+				print_error();
+				result = 1;
+			}
+		}
+
+		if( image && 
+			print_header( image, argv[2] != NULL ) ) {
 			print_error();
 			result = 1;
 		}
 
-		if( im && 
-			print_header( im, argv[2] != NULL ) ) {
-			print_error();
-			result = 1;
-		}
-
-		if( im )
-			g_object_unref( im );
+		if( image )
+			g_object_unref( image );
 	}
 
 	/* We don't free this on error exit, sadly.

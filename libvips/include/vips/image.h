@@ -133,9 +133,6 @@ typedef enum {
 	VIPS_ACCESS_LAST
 } VipsAccess;
 
-struct _VipsImage; 
-struct _VipsRegion; 
-
 typedef void *(*VipsStartFn)( struct _VipsImage *out, void *a, void *b );
 typedef int (*VipsGenerateFn)( struct _VipsRegion *out, 
 	void *seq, void *a, void *b, gboolean *stop );
@@ -450,13 +447,16 @@ VipsImage *vips_image_new_from_memory_copy( const void *data, size_t size,
 VipsImage *vips_image_new_from_buffer( const void *buf, size_t len, 
 	const char *option_string, ... )
 	__attribute__((sentinel));
+VipsImage *vips_image_new_from_source( VipsSource *source, 
+	const char *option_string, ... ) __attribute__((sentinel));
 VipsImage *vips_image_new_matrix( int width, int height );
 VipsImage *vips_image_new_matrixv( int width, int height, ... );
 VipsImage *vips_image_new_matrix_from_array( int width, int height, 
 	const double *array, int size );
 VipsImage *vips_image_matrix_from_array( int width, int height, 
 	const double *array, int size );
-VipsImage *vips_image_new_from_image( VipsImage *image, const double *c, int n );
+VipsImage *vips_image_new_from_image( VipsImage *image, 
+	const double *c, int n );
 VipsImage *vips_image_new_from_image1( VipsImage *image, double c );
 
 void vips_image_set_delete_on_close( VipsImage *image, 
@@ -469,6 +469,9 @@ int vips_image_write_to_file( VipsImage *image, const char *name, ... )
 	__attribute__((sentinel));
 int vips_image_write_to_buffer( VipsImage *in, 
 	const char *suffix, void **buf, size_t *size, ... )
+	__attribute__((sentinel));
+int vips_image_write_to_target( VipsImage *in, 
+	const char *suffix, VipsTarget *target, ... )
 	__attribute__((sentinel));
 void *vips_image_write_to_memory( VipsImage *in, size_t *size );
 

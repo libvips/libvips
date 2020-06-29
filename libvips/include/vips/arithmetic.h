@@ -185,14 +185,14 @@ int vips_multiply( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 int vips_divide( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_linear( VipsImage *in, VipsImage **out, 
-	double *a, double *b, int n, ... )
+	const double *a, const double *b, int n, ... )
 	__attribute__((sentinel));
 int vips_linear1( VipsImage *in, VipsImage **out, double a, double b, ... )
 	__attribute__((sentinel));
 int vips_remainder( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_remainder_const( VipsImage *in, VipsImage **out, 
-	double *c, int n, ... )
+	const double *c, int n, ... )
 	__attribute__((sentinel));
 int vips_remainder_const1( VipsImage *in, VipsImage **out, 
 	double c, ... )
@@ -279,19 +279,25 @@ int vips_more( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 int vips_moreeq( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_relational_const( VipsImage *in, VipsImage **out, 
-	VipsOperationRelational relational, double *c, int n, ... )
+	VipsOperationRelational relational, const double *c, int n, ... )
 	__attribute__((sentinel));
-int vips_equal_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+int vips_equal_const( VipsImage *in, VipsImage **out, 
+	const double *c, int n, ... )
 	__attribute__((sentinel));
-int vips_notequal_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+int vips_notequal_const( VipsImage *in, VipsImage **out, 
+	const double *c, int n, ... )
 	__attribute__((sentinel));
-int vips_less_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+int vips_less_const( VipsImage *in, VipsImage **out, 
+	const double *c, int n, ... )
 	__attribute__((sentinel));
-int vips_lesseq_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+int vips_lesseq_const( VipsImage *in, VipsImage **out, 
+	const double *c, int n, ... )
 	__attribute__((sentinel));
-int vips_more_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+int vips_more_const( VipsImage *in, VipsImage **out, 
+	const double *c, int n, ... )
 	__attribute__((sentinel));
-int vips_moreeq_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+int vips_moreeq_const( VipsImage *in, VipsImage **out, 
+	const double *c, int n, ... )
 	__attribute__((sentinel));
 int vips_relational_const1( VipsImage *in, VipsImage **out, 
 	VipsOperationRelational relational, double c, ... )
@@ -324,17 +330,22 @@ int vips_rshift( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	__attribute__((sentinel));
 
 int vips_boolean_const( VipsImage *in, VipsImage **out, 
-	VipsOperationBoolean boolean, double *c, int n, ... )
+	VipsOperationBoolean boolean, const double *c, int n, ... )
 	__attribute__((sentinel));
-int vips_andimage_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+int vips_andimage_const( VipsImage *in, VipsImage **out, 
+	const double *c, int n, ... )
 	__attribute__((sentinel));
-int vips_orimage_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+int vips_orimage_const( VipsImage *in, VipsImage **out, 
+	const double *c, int n, ... )
 	__attribute__((sentinel));
-int vips_eorimage_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+int vips_eorimage_const( VipsImage *in, VipsImage **out, 
+	const double *c, int n, ... )
 	__attribute__((sentinel));
-int vips_lshift_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+int vips_lshift_const( VipsImage *in, VipsImage **out, 
+	const double *c, int n, ... )
 	__attribute__((sentinel));
-int vips_rshift_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+int vips_rshift_const( VipsImage *in, VipsImage **out, 
+	const double *c, int n, ... )
 	__attribute__((sentinel));
 int vips_boolean_const1( VipsImage *in, VipsImage **out, 
 	VipsOperationBoolean boolean, double c, ... )
@@ -358,11 +369,13 @@ int vips_pow( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 int vips_wop( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_math2_const( VipsImage *in, VipsImage **out, 
-	VipsOperationMath2 math2, double *c, int n, ... )
+	VipsOperationMath2 math2, const double *c, int n, ... )
 	__attribute__((sentinel));
-int vips_pow_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+int vips_pow_const( VipsImage *in, VipsImage **out, 
+	const double *c, int n, ... )
 	__attribute__((sentinel));
-int vips_wop_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+int vips_wop_const( VipsImage *in, VipsImage **out, 
+	const double *c, int n, ... )
 	__attribute__((sentinel));
 int vips_math2_const1( VipsImage *in, VipsImage **out, 
 	VipsOperationMath2 math2, double c, ... )

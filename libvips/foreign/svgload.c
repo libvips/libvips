@@ -64,10 +64,10 @@
 #include <ctype.h>
 
 #include <vips/vips.h>
-#include <vips/buf.h>
 #include <vips/internal.h>
+#include <vips/debug.h>
 
-#ifdef HAVE_RSVG
+#if defined(HAVE_RSVG)
 
 #include <cairo.h>
 #include <librsvg/rsvg.h>
@@ -150,7 +150,7 @@ vips_foreign_load_svg_is_a( const void *buf, size_t len )
 	/* If the buffer looks like a zip, deflate to here and then search
 	 * that for <svg.
 	 */
-	char obuf[224];
+	char obuf[SVG_HEADER_SIZE];
 #endif /*HANDLE_SVGZ*/
 
 	int i;
@@ -186,8 +186,10 @@ vips_foreign_load_svg_is_a( const void *buf, size_t len )
 		do {
 			zs.avail_out = sizeof( obuf ) - opos;
 			zs.next_out = (unsigned char *) obuf + opos;
-			if( inflate( &zs, Z_NO_FLUSH ) < Z_OK ) 
+			if( inflate( &zs, Z_NO_FLUSH ) < Z_OK ) {
+				inflateEnd( &zs );
 				return( FALSE );
+			}
 			opos = sizeof( obuf ) - zs.avail_out;
 		} while( opos < sizeof( obuf ) && 
 			zs.avail_in > 0 );
@@ -280,9 +282,10 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
 			 * cairo instead.
 			 */
 			svg->cairo_scale = scale;
-			width = width * scale;
-			height = height * scale;
-		} else {
+			width = VIPS_ROUND_UINT( width * scale );
+			height = VIPS_ROUND_UINT( height * scale );
+		} 
+		else {
 			/* SVG with width and height reports correctly scaled 
 			 * dimensions.
 			 */
@@ -411,6 +414,7 @@ vips_foreign_load_svg_class_init( VipsForeignLoadSvgClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_svg_dispose;
@@ -419,6 +423,10 @@ vips_foreign_load_svg_class_init( VipsForeignLoadSvgClass *class )
 
 	object_class->nickname = "svgload";
 	object_class->description = _( "load SVG with rsvg" );
+
+	/* is_a() is not that quick ... lower the priority.
+	 */
+	foreign_class->priority = -5;
 
 	load_class->get_flags_filename = 
 		vips_foreign_load_svg_get_flags_filename;
@@ -454,6 +462,104 @@ vips_foreign_load_svg_init( VipsForeignLoadSvg *svg )
 	svg->dpi = 72.0;
 	svg->scale = 1.0;
 	svg->cairo_scale = 1.0;
+}
+
+typedef struct _VipsForeignLoadSvgSource {
+	VipsForeignLoadSvg parent_object;
+
+	/* Load from a source.
+	 */
+	VipsSource *source;
+
+} VipsForeignLoadSvgSource;
+
+typedef VipsForeignLoadClass VipsForeignLoadSvgSourceClass;
+
+G_DEFINE_TYPE( VipsForeignLoadSvgSource, vips_foreign_load_svg_source, 
+	vips_foreign_load_svg_get_type() );
+
+gboolean
+vips_foreign_load_svg_source_is_a_source( VipsSource *source )
+{
+	unsigned char *data;
+	size_t bytes_read;
+
+	if( (bytes_read = vips_source_sniff_at_most( source, 
+		&data, SVG_HEADER_SIZE )) <= 0 )
+		return( FALSE );
+
+	return( vips_foreign_load_svg_is_a( data, bytes_read ) );
+}
+
+static int
+vips_foreign_load_svg_source_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) load;
+	VipsForeignLoadSvgSource *source = 
+		(VipsForeignLoadSvgSource *) load;
+	RsvgHandleFlags flags = svg->unlimited ? RSVG_HANDLE_FLAG_UNLIMITED : 0;
+
+	GError *error = NULL;
+
+	GInputStream *gstream;
+
+	if( vips_source_rewind( source->source ) )
+		return( -1 );
+
+	gstream = vips_g_input_stream_new_from_source( source->source );
+	if( !(svg->page = rsvg_handle_new_from_stream_sync( 
+		gstream, NULL, flags, NULL, &error )) ) {
+		g_object_unref( gstream );
+		vips_g_error( &error );
+		return( -1 ); 
+	}
+	g_object_unref( gstream );
+
+	return( vips_foreign_load_svg_header( load ) );
+}
+
+static int
+vips_foreign_load_svg_source_load( VipsForeignLoad *load )
+{
+	VipsForeignLoadSvgSource *source = (VipsForeignLoadSvgSource *) load;
+
+	if( vips_source_rewind( source->source ) ||
+		vips_foreign_load_svg_load( load ) ||
+		vips_source_decode( source->source ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_load_svg_source_class_init( VipsForeignLoadSvgSourceClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "svgload_source";
+	object_class->description = _( "load svg from source" );
+
+	load_class->is_a_source = vips_foreign_load_svg_source_is_a_source;
+	load_class->header = vips_foreign_load_svg_source_header;
+	load_class->load = vips_foreign_load_svg_source_load;
+
+	VIPS_ARG_OBJECT( class, "source", 1,
+		_( "Source" ),
+		_( "Source to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadSvgSource, source ),
+		VIPS_TYPE_SOURCE );
+
+}
+
+static void
+vips_foreign_load_svg_source_init( VipsForeignLoadSvgSource *source )
+{
 }
 
 typedef struct _VipsForeignLoadSvgFile {
@@ -701,6 +807,31 @@ vips_svgload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	va_end( ap );
 
 	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
+
+/**
+ * vips_svgload_source:
+ * @source: source to load from
+ * @out: (out): image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Exactly as vips_svgload(), but read from a source. 
+ *
+ * See also: vips_svgload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_svgload_source( VipsSource *source, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "svgload_source", ap, source, out );
+	va_end( ap );
 
 	return( result );
 }

@@ -34,11 +34,6 @@
 
  */
 
-/* This is a simple wrapper over the old vips7 functions. At some point we
- * should rewrite this as a pure vips8 class and redo the vips7 functions as
- * wrappers over this.
- */
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/

@@ -1029,19 +1029,16 @@ render_thread_main( void *client )
 	return( NULL );
 }
 
-static void
-vips_sink_screen_init( void )
+void
+vips__sink_screen_init( void )
 {
 	g_assert( !render_thread ); 
 	g_assert( !render_dirty_lock ); 
 
 	render_dirty_lock = vips_g_mutex_new();
+	vips_semaphore_init( &n_render_dirty_sem, 0, "n_render_dirty" );
 	render_thread = vips_g_thread_new( "sink_screen",
 		render_thread_main, NULL );
-	vips_semaphore_init( &n_render_dirty_sem, 0, "n_render_dirty" );
-
-	g_assert( render_thread ); 
-	g_assert( render_dirty_lock ); 
 }
 
 /**
@@ -1101,11 +1098,7 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 	int priority,
 	VipsSinkNotify notify_fn, void *a )
 {
-	static GOnce once = G_ONCE_INIT;
-
 	Render *render;
-
-	VIPS_ONCE( &once, (GThreadFunc) vips_sink_screen_init, NULL );
 
 	if( tile_width <= 0 || tile_height <= 0 || 
 		max_tiles < -1 ) {

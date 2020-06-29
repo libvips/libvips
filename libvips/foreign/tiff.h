@@ -37,11 +37,9 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-TIFF *vips__tiff_openout( const char *path, gboolean bigtiff );
-TIFF *vips__tiff_openin( const char *path );
+TIFF *vips__tiff_openin_source( VipsSource *source );
 
-TIFF *vips__tiff_openin_buffer( VipsImage *image, 
-	const void *data, size_t length );
+TIFF *vips__tiff_openout( const char *path, gboolean bigtiff );
 TIFF *vips__tiff_openout_buffer( VipsImage *image, 
 	gboolean bigtiff, void **out_data, size_t *out_length );
 

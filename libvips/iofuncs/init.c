@@ -98,7 +98,10 @@
 #include <vips/thread.h>
 #include <vips/internal.h>
 #include <vips/vector.h>
+
+#if VIPS_ENABLE_DEPRECATED
 #include <vips/vips7compat.h>
+#endif
 
 /* abort() on the first warning or error.
  */
@@ -126,6 +129,8 @@ int vips__leak = 0;
  */
 GQuark vips__image_pixels_quark = 0; 
 #endif /*DEBUG_LEAK*/
+
+static gint64 vips_pipe_read_limit = 1024 * 1024 * 1024;
 
 /**
  * vips_get_argv0:
@@ -310,6 +315,32 @@ set_stacksize( guint64 size )
 #endif /*HAVE_PTHREAD_DEFAULT_NP*/
 }
 
+static void
+vips_verbose( void ) 
+{
+	/* Older glibs were showing G_LOG_LEVEL_{INFO,DEBUG} messages
+	 * by default
+	 */
+#if GLIB_CHECK_VERSION ( 2, 31, 0 )
+	const char *old;
+
+	old = g_getenv( "G_MESSAGES_DEBUG" );
+
+	if( !old ) {
+		g_setenv( "G_MESSAGES_DEBUG", G_LOG_DOMAIN, TRUE );
+	}
+	else if( !g_str_equal( old, "all" ) &&
+		!g_strrstr( old, G_LOG_DOMAIN ) ) {
+		char *new;
+
+		new = g_strconcat( old, " ", G_LOG_DOMAIN, NULL );
+		g_setenv( "G_MESSAGES_DEBUG", new, TRUE );
+
+		g_free( new );
+	}
+#endif /*GLIB_CHECK_VERSION( 2, 31, 0 )*/
+}
+
 /**
  * vips_init:
  * @argv0: name of application
@@ -330,6 +361,11 @@ vips_init( const char *argv0 )
 	extern GType write_thread_state_get_type( void );
 	extern GType sink_memory_thread_state_get_type( void ); 
 	extern GType render_thread_state_get_type( void ); 
+	extern GType vips_source_get_type( void ); 
+	extern GType vips_source_custom_get_type( void ); 
+	extern GType vips_target_get_type( void ); 
+	extern GType vips_target_custom_get_type( void ); 
+	extern GType vips_g_input_stream_get_type( void ); 
 
 	static gboolean started = FALSE;
 	static gboolean done = FALSE;
@@ -377,13 +413,17 @@ vips_init( const char *argv0 )
 #endif /*HAVE_THREAD_NEW*/
 
 	vips__threadpool_init();
+	vips__sink_screen_init();
 	vips__buffer_init();
+	vips__meta_init();
 
 	/* This does an unsynchronised static hash table init on first call --
 	 * we have to make sure we do this single-threaded. See: 
 	 * https://github.com/openslide/openslide/issues/161
 	 */
+#if !GLIB_CHECK_VERSION( 2, 48, 1 )
 	(void) g_get_language_names(); 
+#endif
 
 	if( !vips__global_lock )
 		vips__global_lock = vips_g_mutex_new();
@@ -423,19 +463,24 @@ vips_init( const char *argv0 )
 	g_free( locale );
 	bind_textdomain_codeset( GETTEXT_PACKAGE, "UTF-8" );
 
-	/* Deprecated, this is just for compat.
-	 */
+#if VIPS_ENABLE_DEPRECATED
 	if( g_getenv( "VIPS_INFO" ) || 
 		g_getenv( "IM_INFO" ) ) 
-		vips_info_set( TRUE );
-
+#else
+	if( g_getenv( "VIPS_INFO" ) ) 
+#endif
+		vips_verbose();
 	if( g_getenv( "VIPS_PROFILE" ) )
 		vips_profile_set( TRUE );
-
-	/* Default various settings from env.
-	 */
+	if( g_getenv( "VIPS_LEAK" ) )
+		vips_leak_set( TRUE );
 	if( g_getenv( "VIPS_TRACE" ) )
 		vips_cache_set_trace( TRUE );
+	if( g_getenv( "VIPS_PIPE_READ_LIMIT" ) ) 
+		vips_pipe_read_limit = 
+			g_ascii_strtoll( g_getenv( "VIPS_PIPE_READ_LIMIT" ),
+				NULL, 10 );
+	vips_pipe_read_limit_set( vips_pipe_read_limit );
 
 	/* Register base vips types.
 	 */
@@ -444,9 +489,16 @@ vips_init( const char *argv0 )
 	(void) write_thread_state_get_type();
 	(void) sink_memory_thread_state_get_type(); 
 	(void) render_thread_state_get_type(); 
+	(void) vips_source_get_type(); 
+	(void) vips_source_custom_get_type(); 
+	(void) vips_target_get_type(); 
+	(void) vips_target_custom_get_type(); 
 	vips__meta_init_types();
 	vips__interpolate_init();
+
+#if VIPS_ENABLE_DEPRECATED
 	im__format_init();
+#endif
 
 	/* Start up operator cache.
 	 */
@@ -471,6 +523,7 @@ vips_init( const char *argv0 )
 	vips_morphology_operation_init();
 	vips_draw_operation_init();
 	vips_mosaicing_operation_init();
+	vips_g_input_stream_get_type(); 
 
 	/* Load any vips8 plugins from the vips libdir. Keep going, even if
 	 * some plugins fail to load. 
@@ -478,6 +531,7 @@ vips_init( const char *argv0 )
 	(void) vips_load_plugins( "%s/vips-plugins-%d.%d", 
 		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION );
 
+#if VIPS_ENABLE_DEPRECATED
 	/* Load up any vips7 plugins in the vips libdir. We don't error on 
 	 * failure, it's too annoying to have VIPS refuse to start because of 
 	 * a broken plugin.
@@ -495,6 +549,7 @@ vips_init( const char *argv0 )
 		g_warning( "%s", vips_error_buffer() );
 		vips_error_clear();
 	}
+#endif
 
 	/* Get the run-time compiler going.
 	 */
@@ -527,9 +582,13 @@ vips_init( const char *argv0 )
 	 * set up if you are using libvips from something like Ruby. Allow this
 	 * env var hack as a workaround. 
 	 */
+#if VIPS_ENABLE_DEPRECATED
 	if( g_getenv( "VIPS_WARNING" ) ||
 		g_getenv( "IM_WARNING" ) ) 
-		g_log_set_handler( "VIPS", G_LOG_LEVEL_WARNING, 
+#else
+	if( g_getenv( "VIPS_WARNING" ) )
+#endif
+		g_log_set_handler( G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, 
 			empty_log_handler, NULL );
 
 	/* Set a minimum stacksize, if we can.
@@ -634,7 +693,9 @@ vips_shutdown( void )
 
 	vips_cache_drop_all();
 
+#if VIPS_ENABLE_DEPRECATED
 	im_close_plugins();
+#endif
 
 	/* Mustn't run this more than once. Don't use the VIPS_GATE macro,
 	 * since we don't for gate start.
@@ -692,7 +753,7 @@ static gboolean
 vips_lib_info_cb( const gchar *option_name, const gchar *value, 
 	gpointer data, GError **error )
 {
-	vips_info_set( TRUE ); 
+	vips_verbose();
 
 	return( TRUE );
 }
@@ -720,6 +781,15 @@ vips_lib_version_cb( const gchar *option_name, const gchar *value,
 	gpointer data, GError **error )
 {
 	printf( "libvips %s\n", VIPS_VERSION_STRING );
+	vips_shutdown();
+	exit( 0 );
+}
+
+static gboolean
+vips_lib_config_cb( const gchar *option_name, const gchar *value, 
+	gpointer data, GError **error )
+{
+	printf( "%s\n", VIPS_CONFIG );
 	vips_shutdown();
 	exit( 0 );
 }
@@ -806,6 +876,12 @@ static GOptionEntry option_entries[] = {
 	{ "vips-version", 0, G_OPTION_FLAG_NO_ARG, 
 		G_OPTION_ARG_CALLBACK, (gpointer) &vips_lib_version_cb, 
 		N_( "print libvips version" ), NULL },
+	{ "vips-config", 0, G_OPTION_FLAG_NO_ARG, 
+		G_OPTION_ARG_CALLBACK, (gpointer) &vips_lib_config_cb, 
+		N_( "print libvips config" ), NULL },
+	{ "vips-pipe-read-limit", 0, 0, 
+		G_OPTION_ARG_INT64, (gpointer) &vips_pipe_read_limit, 
+		N_( "read at most this many bytes from a pipe" ), NULL },
 	{ NULL }
 };
 
@@ -871,7 +947,7 @@ extract_prefix( const char *dir, const char *name )
 	for( i = 0; i < (int) strlen( vname ); i++ ) 
 		if( vips_isprefix( G_DIR_SEPARATOR_S "." G_DIR_SEPARATOR_S, 
 			vname + i ) )
-			memcpy( vname + i, vname + i + 2, 
+			memmove( vname + i, vname + i + 2, 
 				strlen( vname + i + 2 ) + 1 );
 	if( vips_ispostfix( vname, G_DIR_SEPARATOR_S "." ) )
 		vname[strlen( vname ) - 2] = '\0';
@@ -998,7 +1074,8 @@ guess_prefix( const char *argv0, const char *name )
 
 	/* Try to guess from cwd. Only if this is a relative path, though. 
 	 */
-	if( !g_path_is_absolute( argv0 ) ) {
+	if( argv0 &&
+		!g_path_is_absolute( argv0 ) ) {
 		char *dir;
 		char full_path[VIPS_PATH_MAX];
 		char *resolved;
@@ -1183,8 +1260,8 @@ vips_version( int flag )
  * vips_leak_set:
  * @leak: turn leak checking on or off
  *
- * Turn on or off vips leak checking. See also --vips-leak and
- * vips_add_option_entries(). 
+ * Turn on or off vips leak checking. See also --vips-leak,
+ * vips_add_option_entries() and the `VIPS_LEAK` environment variable.
  *
  * You should call this very early in your program. 
  */

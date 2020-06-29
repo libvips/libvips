@@ -112,17 +112,20 @@ VIPS_ARGUMENT_OPTIONAL_OUTPUT   Eg. the x pos of the image minimum
 		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
 
-#define VIPS_ARG_INTERPOLATE( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET ) { \
+#define VIPS_ARG_OBJECT( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, TYPE ) { \
 	GParamSpec *pspec; \
 	\
 	pspec = g_param_spec_object( (NAME), (LONG), (DESC),  \
-		VIPS_TYPE_INTERPOLATE, \
+		TYPE, \
 		(GParamFlags) (G_PARAM_READWRITE) ); \
 	g_object_class_install_property( G_OBJECT_CLASS( CLASS ), \
 		vips_argument_get_id(), pspec ); \
 	vips_object_class_install_argument( VIPS_OBJECT_CLASS( CLASS ), \
 		pspec, (VipsArgumentFlags) (FLAGS), (PRIORITY), (OFFSET) ); \
 }
+
+#define VIPS_ARG_INTERPOLATE( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET ) \
+	VIPS_ARG_OBJECT( CLASS, NAME, PRIORITY, LONG, DESC, FLAGS, OFFSET, VIPS_TYPE_INTERPOLATE )
 
 #define VIPS_ARG_BOOL( CLASS, NAME, PRIORITY, LONG, DESC, \
 	FLAGS, OFFSET, VALUE ) { \

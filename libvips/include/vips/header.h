@@ -150,6 +150,13 @@ extern "C" {
  */
 #define VIPS_META_N_PAGES "n-pages"
 
+/**
+ * VIPS_META_N_SUBIFDS:
+ *
+ * If set, the number of subifds in the first page of the file.
+ */
+#define VIPS_META_N_SUBIFDS "n-subifds"
+
 guint64 vips_format_sizeof( VipsBandFormat format );
 guint64 vips_format_sizeof_unsafe( VipsBandFormat format );
 
@@ -171,6 +178,9 @@ double vips_image_get_scale( const VipsImage *image );
 double vips_image_get_offset( const VipsImage *image );
 int vips_image_get_page_height( VipsImage *image );
 int vips_image_get_n_pages( VipsImage *image );
+int vips_image_get_n_subifds( VipsImage *image );
+int vips_image_get_orientation( VipsImage *image );
+gboolean vips_image_get_orientation_swap( VipsImage *image );
 const void *vips_image_get_data( VipsImage *image );
 
 void vips_image_init_fields( VipsImage *image, 

@@ -96,6 +96,12 @@
  * 	- add --intent
  * 23/10/17
  * 	- --size Nx didn't work, argh ... thanks jrochkind 
+ * 3/2/20
+ * 	- add --no-rotate
+ * 	- add --import-profile / --export-profile names
+ * 	- back to -o for output
+ * 29/2/20
+ * 	- deprecate --delete
  */
 
 #ifdef HAVE_CONFIG_H
@@ -124,39 +130,36 @@ static VipsSize size_restriction = VIPS_SIZE_BOTH;
 static char *output_format = "tn_%s.jpg";
 static char *export_profile = NULL;
 static char *import_profile = NULL;
-static gboolean delete_profile = FALSE;
 static gboolean linear_processing = FALSE;
 static gboolean crop_image = FALSE;
+static gboolean no_rotate_image = FALSE;
 static char *smartcrop_image = NULL;
-static gboolean rotate_image = FALSE;
 static char *thumbnail_intent = NULL;
 
 /* Deprecated and unused.
  */
+static gboolean delete_profile = FALSE;
 static gboolean nosharpen = FALSE;
 static gboolean nodelete_profile = FALSE;
 static gboolean verbose = FALSE;
 static char *convolution_mask = NULL;
 static char *interpolator = NULL;
+static gboolean rotate_image = FALSE;
 
 static GOptionEntry options[] = {
 	{ "size", 's', 0, 
 		G_OPTION_ARG_STRING, &thumbnail_size, 
 		N_( "shrink to SIZE or to WIDTHxHEIGHT" ), 
 		N_( "SIZE" ) },
-	{ "output", 'o', G_OPTION_FLAG_HIDDEN, 
+	{ "output", 'o', 0, 
 		G_OPTION_ARG_STRING, &output_format, 
-		N_( "set output to FORMAT" ), 
+		N_( "output to FORMAT" ), 
 		N_( "FORMAT" ) },
-	{ "format", 'f', 0, 
-		G_OPTION_ARG_STRING, &output_format, 
-		N_( "set output format string to FORMAT" ), 
-		N_( "FORMAT" ) },
-	{ "eprofile", 'e', 0, 
+	{ "export-profile", 'e', 0, 
 		G_OPTION_ARG_FILENAME, &export_profile, 
 		N_( "export with PROFILE" ), 
 		N_( "PROFILE" ) },
-	{ "iprofile", 'i', 0, 
+	{ "import-profile", 'i', 0, 
 		G_OPTION_ARG_FILENAME, &import_profile, 
 		N_( "import untagged images with PROFILE" ), 
 		N_( "PROFILE" ) },
@@ -171,13 +174,28 @@ static GOptionEntry options[] = {
 		G_OPTION_ARG_STRING, &thumbnail_intent, 
 		N_( "ICC transform with INTENT" ), 
 		N_( "INTENT" ) },
-	{ "rotate", 't', 0, 
-		G_OPTION_ARG_NONE, &rotate_image, 
-		N_( "auto-rotate" ), NULL },
-	{ "delete", 'd', 0, 
+	{ "delete", 'd', G_OPTION_FLAG_HIDDEN, 
 		G_OPTION_ARG_NONE, &delete_profile, 
-		N_( "delete profile from exported image" ), NULL },
+		N_( "(deprecated, does nothing)" ), NULL },
+	{ "no-rotate", 0, 0, 
+		G_OPTION_ARG_NONE, &no_rotate_image, 
+		N_( "don't auto-rotate" ), NULL },
 
+	{ "format", 'f', G_OPTION_FLAG_HIDDEN, 
+		G_OPTION_ARG_STRING, &output_format, 
+		N_( "set output format string to FORMAT" ), 
+		N_( "FORMAT" ) },
+	{ "eprofile", 0, G_OPTION_FLAG_HIDDEN, 
+		G_OPTION_ARG_FILENAME, &export_profile, 
+		N_( "export with PROFILE" ), 
+		N_( "PROFILE" ) },
+	{ "iprofile", 0, G_OPTION_FLAG_HIDDEN, 
+		G_OPTION_ARG_FILENAME, &import_profile, 
+		N_( "import untagged images with PROFILE" ), 
+		N_( "PROFILE" ) },
+	{ "rotate", 't', G_OPTION_FLAG_HIDDEN, 
+		G_OPTION_ARG_NONE, &rotate_image, 
+		N_( "(deprecated, does nothing)" ), NULL },
 	{ "crop", 'c', G_OPTION_FLAG_HIDDEN, 
 		G_OPTION_ARG_NONE, &crop_image, 
 		N_( "(deprecated, crop exactly to SIZE)" ), NULL },
@@ -280,11 +298,11 @@ thumbnail_process( VipsObject *process, const char *filename )
 	if( vips_thumbnail( filename, &image, thumbnail_width, 
 		"height", thumbnail_height, 
 		"size", size_restriction, 
-		"auto_rotate", rotate_image, 
+		"no-rotate", no_rotate_image, 
 		"crop", interesting, 
 		"linear", linear_processing, 
-		"import_profile", import_profile, 
-		"export_profile", export_profile, 
+		"import-profile", import_profile, 
+		"export-profile", export_profile, 
 		"intent", intent, 
 		NULL ) )
 		return( -1 );

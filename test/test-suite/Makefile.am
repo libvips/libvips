@@ -15,6 +15,7 @@ EXTRA_DIST = \
 	test_histogram.py \
 	test_iofuncs.py \
 	test_morphology.py \
-	test_resample.py
+	test_resample.py \
+	test_connection.py
 
 

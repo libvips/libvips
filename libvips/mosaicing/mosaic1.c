@@ -15,6 +15,8 @@
  *	- works for LABQ as well
  * 25/1/11
  * 	- gtk-doc
+ * 18/6/20 kleisauke
+ * 	- convert to vips8
  */
 
 /*
@@ -53,13 +55,12 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 #include <vips/buf.h>
 #include <vips/transform.h>
 
 #include "pmosaicing.h"
 
-/*
+/* Define for debug output.
 #define DEBUG
  */
 
@@ -67,10 +68,10 @@
 #define OLD
  */
 
-/* Like im_similarity(), but return the transform we generated. 
+/* Like vips_similarity(), but return the transform we generated. 
  */
 static int 
-apply_similarity( VipsTransformation *trn, IMAGE *in, IMAGE *out, 
+apply_similarity( VipsTransformation *trn, VipsImage *in, VipsImage *out, 
 	double a, double b, double dx, double dy )
 {
 	trn->iarea.left = 0;
@@ -89,7 +90,7 @@ apply_similarity( VipsTransformation *trn, IMAGE *in, IMAGE *out,
 	if( vips__transform_calc_inverse( trn ) )
 		return( -1 );
 
-	if( vips__affine( in, out, trn ) )
+	if( vips__affinei( in, out, trn ) )
 		return( -1 );
 
 	return( 0 );
@@ -97,40 +98,41 @@ apply_similarity( VipsTransformation *trn, IMAGE *in, IMAGE *out,
 
 /* A join function ... either left-right or top-bottom rotscalemerge.
  */
-typedef int (*joinfn)( IMAGE *, IMAGE *, IMAGE *, 
+typedef int (*joinfn)( VipsImage *, VipsImage *, VipsImage *, 
 	double, double, double, double, int );
 
 /* similarity+lrmerge.
  */
 int
-im__lrmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
+vips__lrmerge1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	double a, double b, double dx, double dy, int mwidth )
 {
 	VipsTransformation trn;
-	IMAGE *t1 = im_open_local( out, "im_lrmosaic1:1", "p" );
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( out ), 1 );
 	VipsBuf buf;
 	char text[1024];
 
 	/* Scale, rotate and displace sec.
 	 */
-	if( !t1 || apply_similarity( &trn, sec, t1, a, b, dx, dy ) )
+	if( apply_similarity( &trn, sec, t[0], a, b, dx, dy ) )
 		return( -1 );
 
 	/* And join to ref.
 	 */
-	if( im__lrmerge( ref, t1, out, 
+	if( vips__lrmerge( ref, t[0], out, 
 		-trn.oarea.left, -trn.oarea.top, mwidth ) )
 		return( -1 );
 
 	/* Note parameters in history file ... for global balance to pick up
 	 * later.
 	 */
-	im__add_mosaic_name( out );
+	vips__add_mosaic_name( out );
 	vips_buf_init_static( &buf, text, 1024 );
 	vips_buf_appendf( &buf, "#LRROTSCALE <%s> <%s> <%s> <",
-		im__get_mosaic_name( ref ), 
-		im__get_mosaic_name( sec ), 
-		im__get_mosaic_name( out ) );  
+		vips__get_mosaic_name( ref ), 
+		vips__get_mosaic_name( sec ), 
+		vips__get_mosaic_name( out ) );  
 	vips_buf_appendg( &buf, a );
 	vips_buf_appendf( &buf, "> <" );
 	vips_buf_appendg( &buf, b );
@@ -139,7 +141,7 @@ im__lrmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	vips_buf_appendf( &buf, "> <" );
 	vips_buf_appendg( &buf, dy );
 	vips_buf_appendf( &buf, "> <%d>", mwidth );
-	if( im_histlin( out, "%s", vips_buf_all( &buf ) ) )
+	if( vips_image_history_printf( out, "%s", vips_buf_all( &buf ) ) )
 		return( -1 );
 
 	return( 0 );
@@ -148,34 +150,35 @@ im__lrmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 /* similarity+tbmerge.
  */
 int
-im__tbmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
+vips__tbmerge1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	double a, double b, double dx, double dy, int mwidth )
 {
 	VipsTransformation trn;
-	IMAGE *t1 = im_open_local( out, "im_lrmosaic1:2", "p" );
+	VipsImage **t = (VipsImage **)
+		vips_object_local_array( VIPS_OBJECT( out ), 1 );
 	VipsBuf buf;
 	char text[1024];
 
 	/* Scale, rotate and displace sec.
 	 */
-	if( !t1 || apply_similarity( &trn, sec, t1, a, b, dx, dy ) )
+	if( apply_similarity( &trn, sec, t[0], a, b, dx, dy ) )
 		return( -1 );
 
 	/* And join to ref.
 	 */
-	if( im__tbmerge( ref, t1, out, 
+	if( vips__tbmerge( ref, t[0], out, 
 		-trn.oarea.left, -trn.oarea.top, mwidth ) )
 		return( -1 );
 
 	/* Note parameters in history file ... for global balance to pick up
 	 * later.
 	 */
-	im__add_mosaic_name( out );
+	vips__add_mosaic_name( out );
 	vips_buf_init_static( &buf, text, 1024 );
 	vips_buf_appendf( &buf, "#TBROTSCALE <%s> <%s> <%s> <",
-		im__get_mosaic_name( ref ), 
-		im__get_mosaic_name( sec ), 
-		im__get_mosaic_name( out ) );  
+		vips__get_mosaic_name( ref ),
+		vips__get_mosaic_name( sec ),
+		vips__get_mosaic_name( out ) );  
 	vips_buf_appendg( &buf, a );
 	vips_buf_appendf( &buf, "> <" );
 	vips_buf_appendg( &buf, b );
@@ -184,7 +187,7 @@ im__tbmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	vips_buf_appendf( &buf, "> <" );
 	vips_buf_appendg( &buf, dy );
 	vips_buf_appendf( &buf, "> <%d>", mwidth );
-	if( im_histlin( out, "%s", vips_buf_all( &buf ) ) )
+	if( vips_image_history_printf( out, "%s", vips_buf_all( &buf ) ) )
 		return( -1 );
 
 	return( 0 );
@@ -193,7 +196,7 @@ im__tbmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 /* Join two images, using a pair of tie-points as parameters.
  */
 static int
-rotjoin( IMAGE *ref, IMAGE *sec, IMAGE *out, joinfn jfn,
+rotjoin( VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
 	int xr1, int yr1, int xs1, int ys1, 
 	int xr2, int yr2, int xs2, int ys2,
 	int mwidth )
@@ -202,7 +205,7 @@ rotjoin( IMAGE *ref, IMAGE *sec, IMAGE *out, joinfn jfn,
 
 	/* Solve to get scale + rot + disp.
 	 */
-	if( im__coeff( xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2, 
+	if( vips__coeff( xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2, 
 		&a, &b, &dx, &dy ) )
 		return( -1 );
 
@@ -217,7 +220,7 @@ rotjoin( IMAGE *ref, IMAGE *sec, IMAGE *out, joinfn jfn,
 /* Like rotjoin, but do a search to refine the tie-points.
  */
 static int
-rotjoin_search( IMAGE *ref, IMAGE *sec, IMAGE *out, joinfn jfn,
+rotjoin_search( VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
 	int bandno,
 	int xr1, int yr1, int xs1, int ys1, 
 	int xr2, int yr2, int xs2, int ys2,
@@ -237,21 +240,19 @@ rotjoin_search( IMAGE *ref, IMAGE *sec, IMAGE *out, joinfn jfn,
 
 	/* Temps.
 	 */
-	IMAGE *t[3];
-
-	if( im_open_local_array( out, t, 3, "rotjoin_search", "p" ) )
-		return( -1 );
+	VipsImage **t = (VipsImage **)
+		vips_object_local_array( VIPS_OBJECT( out ), 3 );
 
 	/* Unpack LABQ to LABS for correlation.
 	 */
-	if( ref->Coding == IM_CODING_LABQ ) {
-		if( im_LabQ2LabS( ref, t[0] ) )
+	if( ref->Coding == VIPS_CODING_LABQ ) {
+		if( vips_LabQ2LabS( ref, &t[0], NULL ) )
 			return( -1 );
 	}
 	else
 		t[0] = ref;
-	if( sec->Coding == IM_CODING_LABQ ) {
-		if( im_LabQ2LabS( sec, t[1] ) )
+	if( sec->Coding == VIPS_CODING_LABQ ) {
+		if( vips_LabQ2LabS( sec, &t[1], NULL ) )
 			return( -1 );
 	}
 	else
@@ -259,7 +260,7 @@ rotjoin_search( IMAGE *ref, IMAGE *sec, IMAGE *out, joinfn jfn,
 
 	/* Solve to get scale + rot + disp.
 	 */
-	if( im__coeff( xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2, 
+	if( vips__coeff( xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2, 
 		&a, &b, &dx, &dy ) ||
 		apply_similarity( &trn, t[1], t[2], a, b, dx, dy ) ) 
 		return( -1 );
@@ -273,11 +274,11 @@ rotjoin_search( IMAGE *ref, IMAGE *sec, IMAGE *out, joinfn jfn,
 	 * vips__transform_set_area() has set, and move the sec tie-points 
 	 * accordingly.
 	 */
-	if( im_correl( t[0], t[2], xr1, yr1, 
+	if( vips_correl( t[0], t[2], xr1, yr1, 
 		xs3 - trn.oarea.left, ys3 - trn.oarea.top,
 		halfcorrelation, halfarea, &cor1, &xs5, &ys5 ) )
 		return( -1 );
-	if( im_correl( t[0], t[2], xr2, yr2, 
+	if( vips_correl( t[0], t[2], xr2, yr2, 
 		xs4 - trn.oarea.left, ys4 - trn.oarea.top,
 		halfcorrelation, halfarea, &cor2, &xs6, &ys6 ) )
 		return( -1 );
@@ -305,7 +306,7 @@ rotjoin_search( IMAGE *ref, IMAGE *sec, IMAGE *out, joinfn jfn,
 
 	/* Recalc the transform using the refined points.
 	 */
-	if( im__coeff( xr1, yr1, xs7, ys7, xr2, yr2, xs8, ys8, 
+	if( vips__coeff( xr1, yr1, xs7, ys7, xr2, yr2, xs8, ys8, 
 		&a, &b, &dx, &dy ) )
 		return( -1 );
 
@@ -318,11 +319,11 @@ rotjoin_search( IMAGE *ref, IMAGE *sec, IMAGE *out, joinfn jfn,
 }
 
 #ifdef OLD
-/* 1st order mosaic using im__find_lroverlap() ... does not work too well :(
- * Look at im__find_lroverlap() for problem?
+/* 1st order mosaic using vips__find_lroverlap() ... does not work too well :(
+ * Look at vips__find_lroverlap() for problem?
  */
 static int
-old_lrmosaic1( IMAGE *ref, IMAGE *sec, IMAGE *out,
+old_lrmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int bandno,
 	int xr1, int yr1, int xs1, int ys1, 
 	int xr2, int yr2, int xs2, int ys2,
@@ -340,35 +341,31 @@ old_lrmosaic1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 
 	/* Temps.
 	 */
-	IMAGE *t1 = im_open_local( out, "im_lrmosaic1:1", "p" );
-	IMAGE *t2 = im_open_local( out, "im_lrmosaic1:2", "p" );
-	IMAGE *dummy;
-
-	if( !t1 || !t2 )
-		return( -1 );
+	VipsImage **t = (VipsImage **)
+		vips_object_local_array( VIPS_OBJECT( out ), 2 );
+	VipsImage *dummy;
 
 	/* Solve to get scale + rot + disp.
 	 */
-	if( im__coeff( xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2, 
+	if( vips__coeff( xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2, 
 		&a, &b, &dx, &dy ) ||
-		apply_similarity( &trn1, sec, t1, a, b, dx, dy ) )
+		apply_similarity( &trn1, sec, t[0], a, b, dx, dy ) )
 		return( -1 );
 
 	/* Correct tie-points. dummy is just a placeholder used to ensure that
 	 * memory used by the analysis phase is freed as soon as possible.
 	 */
-	if( !(dummy = im_open( "placeholder:1", "p" )) )
-		return( -1 );
-	if( im__find_lroverlap( ref, t1, dummy,
+	dummy = vips_image_new();
+	if( vips__find_lroverlap( ref, t[0], dummy,
 		bandno, 
 		-trn1.area.left, -trn1.area.top, 0, 0,
 		halfcorrelation, halfarea,
 		&dx0, &dy0,
 		&a1, &b1, &dx1, &dy1 ) ) {
-		im_close( dummy );
+		g_object_unref( dummy );
 		return( -1 );
 	}
-	im_close( dummy );
+	g_object_unref( dummy );
 
 	/* Now combine the two transformations to get a corrected transform.
 	 */
@@ -386,7 +383,7 @@ old_lrmosaic1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 
 	/* Scale and rotate final.
 	 */
-	if( apply_similarity( &trn2, sec, t2, af, bf, dxf, dyf ) )
+	if( apply_similarity( &trn2, sec, t[1], af, bf, dxf, dyf ) )
 		return( -1 );
 
 	printf( "disp: trn1 left = %d, top = %d\n", 
@@ -396,7 +393,7 @@ old_lrmosaic1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 
 	/* And join to ref.
 	 */
-	if( im_lrmerge( ref, t2, out, 
+	if( vips_lrmerge( ref, t[1], out, 
 		-trn2.area.left, -trn2.area.top, mwidth ) )
 		return( -1 );
 
@@ -448,7 +445,7 @@ vips_mosaic1_build( VipsObject *object )
 		mosaic1->interpolate = vips_interpolate_new( "bilinear" );
 
 	jfn = mosaic1->direction == VIPS_DIRECTION_HORIZONTAL ?
-		im__lrmerge1 : im__tbmerge1;
+		vips__lrmerge1 : vips__tbmerge1;
 
 	if( mosaic1->search ) {
 		if( rotjoin_search( mosaic1->ref, mosaic1->sec, mosaic1->out, 

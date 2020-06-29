@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [8.9.0], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [8.10.0], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
@@ -17,7 +17,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # user-visible library versioning
 m4_define([vips_major_version], [8])
-m4_define([vips_minor_version], [9])
+m4_define([vips_minor_version], [10])
 m4_define([vips_micro_version], [0])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
@@ -38,7 +38,7 @@ VIPS_VERSION_STRING=$VIPS_VERSION-`date -u -r ChangeLog`
 #   binary interface changes not backwards compatible?: reset age to 0
 
 LIBRARY_CURRENT=54
-LIBRARY_REVISION=0
+LIBRARY_REVISION=3
 LIBRARY_AGE=12
 
 # patched into include/vips/version.h
@@ -450,33 +450,12 @@ AC_CHECK_LIB(m,cbrt,[AC_DEFINE(HAVE_CBRT,1,[have cbrt() in libm.])])
 AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 AC_CHECK_LIB(m,atan2,[AC_DEFINE(HAVE_ATAN2,1,[have atan2() in libm.])])
 
-# have to have these
-# need glib 2.6 for GOption
-PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.6 gmodule-2.0 gobject-2.0)
-PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-2.0 gobject-2.0"
-
-# from 2.12 we have g_base64_encode()
-PKG_CHECK_MODULES(BASE64_ENCODE, glib-2.0 >= 2.12,
-  [AC_DEFINE(HAVE_BASE64_ENCODE,1,
-	    [define if your glib has g_base64_encode().]
-   )
-  ],
-  [:
-  ]
-)
-
-# from 2.14 we have g_option_context_get_help()
-PKG_CHECK_MODULES(CONTEXT_GET_HELP, glib-2.0 >= 2.14,
-  [AC_DEFINE(HAVE_CONTEXT_GET_HELP,1,
-	    [define if your glib has g_option_context_get_help().]
-   )
-  ],
-  [:
-  ]
-)
+# have to have these parts of glib ... we need glib 2.15 for gio
+PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.15 gmodule-2.0 gobject-2.0 gio-2.0)
+PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-2.0 gobject-2.0 gio-2.0"
 
 # from 2.28 we have a monotonic timer
-PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,
+PKG_CHECK_MODULES(MONOTONIC_TIME, glib-2.0 >= 2.28,
   [AC_DEFINE(HAVE_MONOTONIC_TIME,1,
 	    [define if your glib has g_get_monotonic_time().]
    )
@@ -485,11 +464,18 @@ PKG_CHECK_MODULES(MONOTONIC, glib-2.0 >= 2.28,
   ]
 )
 
-# the old threading system 
-PKG_CHECK_MODULES(GTHREAD, gthread-2.0)
-PACKAGES_USED="$PACKAGES_USED gthread-2.0"
+# from 2.62 we have datetime
+PKG_CHECK_MODULES(DATE_TIME_FORMAT_ISO8601, glib-2.0 >= 2.62,
+  [AC_DEFINE(HAVE_DATE_TIME_FORMAT_ISO8601,1,
+	    [define if your glib has g_date_time_format_iso8601().]
+   )
+  ],
+  [:
+  ]
+)
 
-# from 2.32 there are a new set of thread functions, annoyingly
+# from 2.32 there are a new set of thread functions, it is no longer
+# necessary to use g_thread_init() or to link against libgthread
 PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
   [AC_DEFINE(HAVE_MUTEX_INIT,1,[define if your glib has g_mutex_init().])
    AC_DEFINE(HAVE_COND_INIT,1,[define if your glib has g_cond_init().])
@@ -498,6 +484,9 @@ PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
    AC_DEFINE(HAVE_VALUE_GET_SCHAR,1,
 	     [define if your glib has g_value_get_schar().]
    )
+  ],
+  [PKG_CHECK_MODULES(GTHREAD, gthread-2.0)
+   PACKAGES_USED="$PACKAGES_USED gthread-2.0"
   ]
 )
 
@@ -553,9 +542,16 @@ PKG_CHECK_MODULES(HAVE_CHECKED_MUL, glib-2.0 >= 2.48,
 # check for gtk-doc
 GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
 
-# we need expat ... we'd love to use expat.pc, but sadly this is only available
-# for recent linuxes, so we have to use the old and horrible expat.m4
-AM_WITH_EXPAT
+# we need expat ... the .pc file for expat is only available
+# for recent linuxes, so we fall back to AM_WITH_EXPAT
+PKG_CHECK_MODULES(EXPAT, expat,
+  [expat_found=yes
+   PACKAGES_USED="$PACKAGES_USED expat"
+  ],
+  [AM_WITH_EXPAT
+  ]
+)
+
 if test x"$expat_found" = x"no"; then
   exit 1
 fi
@@ -699,6 +695,16 @@ if test x"$magick6" = x"yes"; then
     ]
   )
 
+  AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM(
+      [#include <magick/api.h>],
+      [ColorspaceType colorspace = HCLpColorspace]
+    )],
+    [AC_DEFINE(HAVE_HCLPCOLORSPACE,1,
+         [define if your Magick has HCLpColorspace.])
+    ]
+  )
+
   # GetImageMagick() takes two args under GM, three under IM
   AC_COMPILE_IFELSE(
     [AC_LANG_PROGRAM(
@@ -778,6 +784,19 @@ if test x"$with_orc" != x"no"; then
   )
 fi
 
+# orc 0.4.30+ works with cf-protection, but 0.4.30 has a bug with multiple
+# definitions of OrcTargetPowerPCFlags, so insist on 0.4.31
+if test x"$with_orc" = x"yes"; then
+  PKG_CHECK_MODULES(ORC_CF_PROTECTION, orc-0.4 >= 0.4.31,
+    [AC_DEFINE(HAVE_ORC_CF_PROTECTION,1,
+	       [define if your orc works with cf-protection.]
+     )
+    ],
+    [:
+    ]
+  )
+fi
+
 # lcms ... refuse to use lcms1
 AC_ARG_WITH([lcms], 
   AS_HELP_STRING([--without-lcms], [build without lcms (default: test)]))
@@ -836,14 +855,16 @@ if test x"$with_heif" != x"no"; then
   PKG_CHECK_MODULES(HEIF, libheif,
     [with_heif=yes
      have_h265_decoder=`$PKG_CONFIG libheif --variable builtin_h265_decoder`
+     have_avif_decoder=`$PKG_CONFIG libheif --variable builtin_avif_decoder`
      # test for !=no so that we work for older libheif which does not have
      # this variable
-     if test x"$have_h265_decoder" != x"no"; then
+     if test x"$have_h265_decoder" != x"no" -o x"$have_avif_decoder" = x"yes"; then
         AC_DEFINE(HAVE_HEIF_DECODER,1,
 	     [define if your libheif has decode support.])
      fi
      have_h265_encoder=`$PKG_CONFIG libheif --variable builtin_h265_encoder`
-     if test x"$have_h265_encoder" != x"no"; then
+     have_avif_encoder=`$PKG_CONFIG libheif --variable builtin_avif_encoder`
+     if test x"$have_h265_encoder" != x"no" -o x"$have_avif_encoder" = x"yes"; then
         AC_DEFINE(HAVE_HEIF_ENCODER,1,
 	     [define if your libheif has encode support.])
      fi
@@ -853,6 +874,8 @@ if test x"$with_heif" != x"no"; then
      with_heif=no
      have_h265_decoder=
      have_h265_encoder=
+     have_avif_decoder=
+     have_avif_encoder=
     ]
   )
 fi
@@ -905,16 +928,16 @@ if test x"$with_heif" = x"yes"; then
   LIBS="$save_LIBS"
 fi
 
-# fetch untransformed width/height added in 1.3.4
+# heif_decoding_options.convert_hdr_to_8bit added in 1.7.0
 if test x"$with_heif" = x"yes"; then
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $HEIF_LIBS"
-  AC_CHECK_FUNCS(heif_image_handle_get_ispe_width,[
-     AC_DEFINE(HAVE_HEIF_IMAGE_HANDLE_GET_ISPE_WIDTH,1,
-	       [define if you have heif_image_handle_get_ispe_width.])
-   ],[]
-  )
-  LIBS="$save_LIBS"
+  save_CFLAGS="$CFLAGS"
+  CFLAGS="$CFLAGS $HEIF_CFLAGS"
+  AC_CHECK_MEMBER([struct heif_decoding_options.convert_hdr_to_8bit],[
+     AC_DEFINE(HAVE_HEIF_DECODING_OPTIONS_CONVERT_HDR_TO_8BIT,1,
+	       [define if you have heif_decoding_options.convert_hdr_to_8bit])
+   ],[],
+   [#include <libheif/heif.h>])
+  CFLAGS="$save_CFLAGS"
 fi
 
 # pdfium
@@ -1176,6 +1199,21 @@ fi
   )
 #fi
 
+# Look for libspng first
+AC_ARG_WITH([libspng], 
+  AS_HELP_STRING([--without-libspng], [build without libspng (default: test)]))
+
+if test x"$with_libspng" != x"no"; then
+  PKG_CHECK_MODULES(SPNG, spng >= 0.6,
+    [AC_DEFINE(HAVE_SPNG,1,[define if you have libspng installed.])
+     with_libspng=yes
+     PACKAGES_USED="$PACKAGES_USED spng"
+    ],
+    [with_libspng=no
+    ]
+  )
+fi
+
 # look for PNG with pkg-config ... fall back to our tester
 AC_ARG_WITH([png], 
   AS_HELP_STRING([--without-png], [build without libpng (default: test)]))
@@ -1298,23 +1336,21 @@ if test x"$LIB_FUZZING_ENGINE" = x; then
   LIB_FUZZING_ENGINE="libstandaloneengine.a"
 fi
 
-# Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS 
-# sort includes to get longer, more specific dirs first
-# helps, for example, selecting graphicsmagick over imagemagick
-VIPS_CFLAGS=`for i in $VIPS_CFLAGS $GTHREAD_CFLAGS $REQUIRED_CFLAGS $EXPAT_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $JPEG_CFLAGS $PNG_CFLAGS $IMAGEQUANT_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $LIBWEBPMUX_CFLAGS $LIBNSGIF_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $PDFIUM_INCLUDES $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS $HEIF_CFLAGS
-do 
-	echo $i 
-done | sort -ru`
-VIPS_CFLAGS=`echo $VIPS_CFLAGS`
+# Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS
+VIPS_CFLAGS="$VIPS_CFLAGS $GTHREAD_CFLAGS $GIO_CFLAGS $REQUIRED_CFLAGS $EXPAT_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $JPEG_CFLAGS $SPNG_CFLAGS $PNG_CFLAGS $IMAGEQUANT_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $LIBWEBPMUX_CFLAGS $LIBNSGIF_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $PDFIUM_INCLUDES $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS $HEIF_CFLAGS"
 VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
 VIPS_INCLUDES="$ZLIB_INCLUDES $PNG_INCLUDES $TIFF_INCLUDES $JPEG_INCLUDES $NIFTI_INCLUDES" 
-VIPS_LIBS="$ZLIB_LIBS $HEIF_LIBS $MAGICK_LIBS $PNG_LIBS $IMAGEQUANT_LIBS $TIFF_LIBS $JPEG_LIBS $GTHREAD_LIBS $REQUIRED_LIBS $EXPAT_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $LIBNSGIF_LIBS $GIFLIB_LIBS $RSVG_LIBS $NIFTI_LIBS $PDFIUM_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $LIBWEBPMUX_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
+VIPS_LIBS="$ZLIB_LIBS $HEIF_LIBS $MAGICK_LIBS $SPNG_LIBS $PNG_LIBS $IMAGEQUANT_LIBS $TIFF_LIBS $JPEG_LIBS $GTHREAD_LIBS $GIO_LIBS $REQUIRED_LIBS $EXPAT_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $LIBNSGIF_LIBS $GIFLIB_LIBS $RSVG_LIBS $NIFTI_LIBS $PDFIUM_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $LIBWEBPMUX_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
 
+# autoconf hates multi-line AC_SUBST so we have to have another copy of this
+# thing
+VIPS_CONFIG="native win32: $vips_os_win32, native OS X: $vips_os_darwin, open files in binary mode: $vips_binary_open, enable debug: $enable_debug, enable deprecated library components: $enable_deprecated, enable docs with gtkdoc: $enable_gtk_doc, gobject introspection: $found_introspection, enable radiance support: $with_radiance, enable analyze support: $with_analyze, enable PPM support: $with_ppm, use fftw3 for FFT: $with_fftw, Magick package: $with_magickpackage, Magick API version: $magick_version, load with libMagick: $enable_magickload, save with libMagick: $enable_magicksave, accelerate loops with orc: $with_orc, ICC profile support with lcms: $with_lcms, file import with niftiio: $with_nifti, file import with libheif: $with_heif, file import with OpenEXR: $with_OpenEXR, file import with OpenSlide: $with_openslide, file import with matio: $with_matio, PDF import with PDFium: $with_pdfium, PDF import with poppler-glib: $with_poppler, SVG import with librsvg-2.0: $with_rsvg, zlib: $with_zlib, file import with cfitsio: $with_cfitsio, file import/export with libwebp: $with_libwebp, text rendering with pangoft2: $with_pangoft2, file import/export with libpng: $with_png, support 8bpp PNG quantisation: $with_imagequant, file import/export with libtiff: $with_tiff, file import/export with giflib: $with_giflib, file import/export with libjpeg: $with_jpeg, image pyramid export: $with_gsf, use libexif to load/save JPEG metadata: $with_libexif, file import/export with libspng: $with_libspng, file import/export with libnsgif: $with_libnsgif"
 AC_SUBST(VIPS_LIBDIR)
 
 AC_SUBST(VIPS_CFLAGS)
 AC_SUBST(VIPS_INCLUDES)
 AC_SUBST(VIPS_LIBS)
+AC_SUBST(VIPS_CONFIG)
 AC_SUBST(PACKAGES_USED)
 AC_SUBST(EXTRA_LIBS_USED)
 
@@ -1333,6 +1369,7 @@ AC_OUTPUT([
 	libvips/Makefile 
 	libvips/arithmetic/Makefile 
 	libvips/colour/Makefile 
+	libvips/colour/profiles/Makefile 
 	libvips/conversion/Makefile 
 	libvips/convolution/Makefile 
 	libvips/deprecated/Makefile 
@@ -1365,6 +1402,7 @@ AC_OUTPUT([
 	fuzz/Makefile
 ])
 
+# also add any new items to VIPS_CONFIG above
 AC_MSG_RESULT([dnl
 * build options
 native win32:				$vips_os_win32
@@ -1393,7 +1431,7 @@ file import with OpenEXR: 		$with_OpenEXR
 file import with OpenSlide:		$with_openslide
   (requires openslide-3.3.0 or later)
 file import with matio: 		$with_matio
-PDF import with PDFium 			$with_pdfium
+PDF import with PDFium: 		$with_pdfium
 PDF import with poppler-glib: 		$with_poppler
   (requires poppler-glib 0.16.0 or later)
 SVG import with librsvg-2.0: 		$with_rsvg
@@ -1403,6 +1441,8 @@ file import with cfitsio: 		$with_cfitsio
 file import/export with libwebp:	$with_libwebp
   (requires libwebp, libwebpmux, libwebpdemux 0.6.0 or later)
 text rendering with pangoft2: 		$with_pangoft2
+file import/export with libspng: 	$with_libspng
+  (requires libspng-0.6 or later)
 file import/export with libpng: 	$with_png
   (requires libpng-1.2.9 or later)
 support 8bpp PNG quantisation:		$with_imagequant

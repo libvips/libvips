@@ -141,9 +141,14 @@ vips_percent_init( VipsPercent *percent )
  * @...: %NULL-terminated list of optional named arguments
  *
  * vips_percent() returns (through the @threshold parameter) the threshold 
- * above which there are @percent values of @in. If for example percent=10, the
- * number of pels of the input image with values greater than @threshold
- * will correspond to 10% of all pels of the image.
+ * below which there are @percent values of @in. For example:
+ *
+ * |[
+ * $ vips precent k2.jpg 90
+ * 214
+ * ]|
+ *
+ * Means that 90% of pixels in `k2.jpg` have a value less than 214.
  *
  * The function works for uchar and ushort images only.  It can be used 
  * to threshold the scaled result of a filtering operation.

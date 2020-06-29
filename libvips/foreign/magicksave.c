@@ -149,8 +149,10 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 	}
 
 	if( !magick_set_image_size( image, 
-		im->Xsize, magick->page_height, magick->exception ) )
+		im->Xsize, magick->page_height, magick->exception ) ) {
+		magick_vips_error( class->nickname, magick->exception ); 
 		return( -1 );
+	}
 
 	/* Delay must be converted from milliseconds into centiseconds
 	 * as GIF image requires centiseconds.
@@ -167,13 +169,21 @@ vips_foreign_save_magick_next_image( VipsForeignSaveMagick *magick )
 	 * 	1 - don't write the netscape extension block
 	 * 	2 - loop once
 	 * 	3 - loop twice etc.
-	 *
-	 * We have the simple gif meaning, so we must add one unless it's
-	 * zero.
 	 */
-	if( vips_image_get_typeof( im, "gif-loop" ) &&
-		!vips_image_get_int( im, "gif-loop", &number ) )
-		image->iterations = (size_t) (number ? number + 1 : 0);
+	if( vips_image_get_typeof( im, "loop" ) &&
+		!vips_image_get_int( im, "loop", &number ) ) {
+		image->iterations = (size_t) number;
+	}
+	else {
+		/* DEPRECATED "gif-loop"
+		 *
+		 * We have the simple gif meaning, so we must add one unless 
+		 * it's zero.
+		 */
+		if( vips_image_get_typeof( im, "gif-loop" ) &&
+			!vips_image_get_int( im, "gif-loop", &number ) )
+			image->iterations = (size_t) (number ? number + 1 : 0);
+	}
 
 	if( vips_image_get_typeof( im, "gif-comment" ) &&
 		!vips_image_get_string( im, "gif-comment", &str ) )
@@ -359,6 +369,7 @@ vips_foreign_save_magick_build( VipsObject *object )
 	 * need it.
 	 */
 	if( vips_image_get_typeof( im, "delay" ) ) {
+		g_value_unset( &magick->delay_gvalue );
 		if( vips_image_get( im, "delay", &magick->delay_gvalue ) ) 
 			return( -1 );
 		magick->delays = vips_value_get_array_int( 
@@ -370,8 +381,10 @@ vips_foreign_save_magick_build( VipsObject *object )
 		return( -1 );
 
 	if( magick->optimize_gif_frames ) {
-		if( !magick_optimize_image_layers(&magick->images, magick->exception ) ) {
-			magick_inherit_exception( magick->exception, magick->images );
+		if( !magick_optimize_image_layers( &magick->images, 
+			magick->exception ) ) {
+			magick_inherit_exception( magick->exception, 
+				magick->images );
 			magick_vips_error( class->nickname, magick->exception );
 
 			return( -1 );
@@ -379,8 +392,10 @@ vips_foreign_save_magick_build( VipsObject *object )
 	}
 
 	if( magick->optimize_gif_transparency ) {
-		if( !magick_optimize_image_transparency(magick->images, magick->exception) ) {
-			magick_inherit_exception( magick->exception, magick->images );
+		if( !magick_optimize_image_transparency( magick->images, 
+			magick->exception ) ) {
+			magick_inherit_exception( magick->exception, 
+				magick->images );
 			magick_vips_error( class->nickname, magick->exception );
 
 			return( -1 );
@@ -462,13 +477,18 @@ vips_foreign_save_magick_class_init( VipsForeignSaveMagickClass *class )
 		_( "Optimize_gif_transparency" ),
 		_( "Apply GIF transparency optimization" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveMagick, optimize_gif_transparency ),
+		G_STRUCT_OFFSET( VipsForeignSaveMagick, 
+			optimize_gif_transparency ),
 		FALSE );
 }
 
 static void
 vips_foreign_save_magick_init( VipsForeignSaveMagick *magick )
 {
+	/* Init to an int just to have something there. It is swapped for an
+	 * int array later.
+	 */
+	g_value_init( &magick->delay_gvalue, G_TYPE_INT );
 }
 
 typedef struct _VipsForeignSaveMagickFile {

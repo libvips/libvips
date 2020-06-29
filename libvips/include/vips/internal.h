@@ -114,6 +114,7 @@ void vips__threadpool_init( void );
 
 void vips__cache_init( void );
 
+void vips__sink_screen_init( void );
 void vips__print_renders( void );
 
 void vips__type_leak( void );
@@ -133,9 +134,7 @@ void vips__link_break_all( VipsImage *im );
 void *vips__link_map( VipsImage *image, gboolean upstream, 
 	VipsSListMap2Fn fn, void *a, void *b );
 
-char *vips__b64_encode( const unsigned char *data, size_t data_length );
-unsigned char *vips__b64_decode( const char *buffer, size_t *data_length );
-
+gboolean vips__mmap_supported( int fd );
 void *vips__mmap( int fd, int writeable, size_t length, gint64 offset );
 int vips__munmap( const void *start, size_t length );
 int vips_mapfile( VipsImage * );

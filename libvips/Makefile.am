@@ -1,6 +1,6 @@
-OPTIONAL_COMPILE_DIR = 
+OPTIONAL_COMPILE_DIR =
 OPTIONAL_DIST_DIR =
-OPTIONAL_LIB = 
+OPTIONAL_LIB =
 
 if ENABLE_DEPRECATED
 OPTIONAL_COMPILE_DIR += deprecated
@@ -24,8 +24,7 @@ SUBDIRS = \
 	iofuncs \
 	morphology \
 	mosaicing \
-	create 
-	.
+	create
 
 lib_LTLIBRARIES = libvips.la
 
@@ -87,7 +86,7 @@ AM_LDFLAGS = \
 LDADD = @INTROSPECTION_LIBS@ @VIPS_CFLAGS@ libvips.la @VIPS_LIBS@ 
 
 noinst_PROGRAMS = \
-	introspect
+	introspect$(EXEEXT)
 introspect_SOURCES = \
 	introspect.c
 
@@ -96,7 +95,7 @@ introspect_SOURCES = \
 introspection_sources = @vips_introspection_sources@
 
 # we make the vips8 API
-Vips-8.0.gir: introspect
+Vips-8.0.gir: introspect$(EXEEXT)
 Vips_8_0_gir_INCLUDES = GObject-2.0
 Vips_8_0_gir_CFLAGS = $(INCLUDES) -I${top_srcdir}/libvips/include
 Vips_8_0_gir_LIBS = libvips.la

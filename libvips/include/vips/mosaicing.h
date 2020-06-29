@@ -51,6 +51,36 @@ int vips_mosaic1( VipsImage *ref, VipsImage *sec, VipsImage **out,
 	int xr2, int yr2, int xs2, int ys2, ... )
 	__attribute__((sentinel));
 
+/* TODO(kleisauke): Convert these to pure vips8 classes? */
+int vips_correl( VipsImage *ref, VipsImage *sec,
+	int xref, int yref, int xsec, int ysec,
+	int hwindowsize, int hsearchsize,
+	double *correlation, int *x, int *y/*, ...*/ )
+	/*__attribute__((sentinel))*/;
+
+int vips_lrmerge( VipsImage *ref, VipsImage *sec, VipsImage *out,
+	int dx, int dy, int mwidth/*, ...*/ )
+	/*__attribute__((sentinel))*/;
+int vips_tbmerge( VipsImage *ref, VipsImage *sec, VipsImage *out,
+	int dx, int dy, int mwidth/*, ...*/ )
+	/*__attribute__((sentinel))*/;
+
+int vips_lrmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out,
+	int bandno,
+	int xref, int yref, int xsec, int ysec,
+	int hwindowsize, int hsearchsize,
+	int balancetype,
+	int mwidth/*, ...*/ )
+	/*__attribute__((sentinel))*/;
+
+int vips_tbmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out,
+	int bandno,
+	int xref, int yref, int xsec, int ysec,
+	int hwindowsize, int hsearchsize,
+	int balancetype,
+	int mwidth/*, ...*/ )
+	/*__attribute__((sentinel))*/;
+
 int vips_match( VipsImage *ref, VipsImage *sec, VipsImage **out, 
 	int xr1, int yr1, int xs1, int ys1, 
 	int xr2, int yr2, int xs2, int ys2, ... )
@@ -60,6 +90,9 @@ int vips_globalbalance( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_remosaic( VipsImage *in, VipsImage **out, 
 	const char *old_str, const char *new_str, ... )
+	__attribute__((sentinel));
+
+int vips_matrixinvert( VipsImage *m, VipsImage **out, ... )
 	__attribute__((sentinel));
 
 

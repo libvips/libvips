@@ -1,6 +1,13 @@
 noinst_LTLIBRARIES = libiofuncs.la
 
 libiofuncs_la_SOURCES = \
+	ginputsource.c \
+	connection.c \
+	source.c \
+	sourcecustom.c \
+	target.c \
+	targetcustom.c \
+	sbuf.c \
 	dbuf.c \
 	reorder.c \
 	vipsmarshal.h \
@@ -9,7 +16,6 @@ libiofuncs_la_SOURCES = \
 	gate.c \
 	enumtypes.c \
 	object.c \
-	base64.c \
 	error.c \
 	image.c \
 	vips.c \
@@ -36,9 +42,9 @@ libiofuncs_la_SOURCES = \
 	system.c \
 	buffer.c 
 
-vipsmarshal.h:
+vipsmarshal.h: vipsmarshal.list
 	glib-genmarshal --prefix=vips --header vipsmarshal.list > vipsmarshal.h
-vipsmarshal.c:
+vipsmarshal.c: vipsmarshal.list
 	echo "#include \"vipsmarshal.h\"" > vipsmarshal.c 
 	glib-genmarshal --prefix=vips --body vipsmarshal.list >> vipsmarshal.c
 

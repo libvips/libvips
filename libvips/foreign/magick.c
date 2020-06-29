@@ -214,13 +214,14 @@ magick_optimize_image_layers( Image **images, ExceptionInfo *exception )
 {
 	Image *tmp;
 
-	tmp = OptimizePlusImageLayers(*images, exception );
+	tmp = OptimizePlusImageLayers( *images, exception );
 
-	if ( exception->severity != UndefinedException )
+	if( exception->severity != UndefinedException ) {
+		VIPS_FREEF( DestroyImageList, tmp );
 		return MagickFalse;
+	}
 
 	VIPS_FREEF( DestroyImageList, *images );
-
 	*images = tmp;
 
 	return MagickTrue;
@@ -230,8 +231,9 @@ int
 magick_optimize_image_transparency( const Image *images,
 	ExceptionInfo *exception )
 {
-	OptimizeImageTransparency(images, exception);
-	return ( exception->severity == UndefinedException );
+	OptimizeImageTransparency( images, exception );
+
+	return( exception->severity == UndefinedException );
 }
 
 /* Does a few bytes look like a file IM can handle?
@@ -285,10 +287,17 @@ int
 magick_set_image_size( Image *image, const size_t width, const size_t height,
 	ExceptionInfo *exception )
 {
-	(void) exception;
 #ifdef HAVE_SETIMAGEEXTENT
-	return( SetImageExtent( image, width, height ) );
+	int result = SetImageExtent( image, width, height );
+
+	/* IM6 sets the exception on the image.
+	 */
+	if( !result )
+		magick_inherit_exception( exception, image );
+
+	return( result ); 
 #else /*!HAVE_SETIMAGEEXTENT*/
+	(void) exception;
 	image->columns = width;
 	image->rows = height;
 
@@ -577,21 +586,24 @@ static MagickColorspaceTypeNames magick_colorspace_names[] = {
 #ifdef HAVE_CMYCOLORSPACE
 	{ CMYColorspace, "CMYColorspace" },
 	{ HCLColorspace, "HCLColorspace" },
-	{ HCLpColorspace, "HCLpColorspace" },
 	{ HSBColorspace, "HSBColorspace" },
+	{ LabColorspace, "LabColorspace" },
+	{ LogColorspace, "LogColorspace" },
+	{ LuvColorspace, "LuvColorspace" },
+#endif /*HAVE_CMYCOLORSPACE*/
+
+#ifdef HAVE_HCLPCOLORSPACE
+	{ HCLpColorspace, "HCLpColorspace" },
 	{ HSIColorspace, "HSIColorspace" },
 	{ HSVColorspace, "HSVColorspace" },
-	{ LabColorspace, "LabColorspace" },
 	{ LCHColorspace, "LCHColorspace" },
 	{ LCHabColorspace, "LCHabColorspace" },
 	{ LCHuvColorspace, "LCHuvColorspace" },
-	{ LogColorspace, "LogColorspace" },
 	{ LMSColorspace, "LMSColorspace" },
-	{ LuvColorspace, "LuvColorspace" },
 	{ scRGBColorspace, "scRGBColorspace" },
 	{ xyYColorspace, "xyYColorspace" },
 	{ YDbDrColorspace, "YDbDrColorspace" },
-#endif /*HAVE_CMYCOLORSPACE*/
+#endif /*HAVE_HCLPCOLORSPACE*/
 
 	/* im7 has this, I think
 	 *
@@ -631,6 +643,8 @@ magick_vips_error( const char *domain, ExceptionInfo *exception )
 static void *
 magick_genesis_cb( void *client )
 {
+	ExceptionInfo *exception;
+
 #ifdef DEBUG
 	printf( "magick_genesis_cb:\n" ); 
 #endif /*DEBUG*/
@@ -638,8 +652,17 @@ magick_genesis_cb( void *client )
 #if defined(HAVE_MAGICKCOREGENESIS) || defined(HAVE_MAGICK7) 
 	MagickCoreGenesis( vips_get_argv0(), MagickFalse );
 #else /*!HAVE_MAGICKCOREGENESIS*/
-	InitializeMagick( "" );
+	InitializeMagick( vips_get_argv0() );
 #endif /*HAVE_MAGICKCOREGENESIS*/
+
+	/* This forces *magick to init all loaders. We have to do this so we
+	 * can sniff files with GetImageMagick(). 
+	 *
+	 * We don't care about errors from magickinit.
+	 */
+	exception = magick_acquire_exception();
+	(void) GetMagickInfo( "*", exception );
+	magick_destroy_exception(exception);
 
 	return( NULL );
 }

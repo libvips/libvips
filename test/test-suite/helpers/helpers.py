@@ -8,11 +8,15 @@ import pytest
 import pyvips
 
 IMAGES = os.path.join(os.path.dirname(__file__), os.pardir, 'images')
-JPEG_FILE = os.path.join(IMAGES, "йцук.jpg")
+JPEG_FILE = os.path.join(IMAGES, "sample.jpg")
+TRUNCATED_FILE = os.path.join(IMAGES, "truncated.jpg")
 SRGB_FILE = os.path.join(IMAGES, "sRGB.icm")
 MATLAB_FILE = os.path.join(IMAGES, "sample.mat")
 PNG_FILE = os.path.join(IMAGES, "sample.png")
 TIF_FILE = os.path.join(IMAGES, "sample.tif")
+TIF1_FILE = os.path.join(IMAGES, "1bit.tif")
+TIF2_FILE = os.path.join(IMAGES, "2bit.tif")
+TIF4_FILE = os.path.join(IMAGES, "4bit.tif")
 OME_FILE = os.path.join(IMAGES, "multi-channel-z-series.ome.tif")
 ANALYZE_FILE = os.path.join(IMAGES, "t00740_tr1_segm.hdr")
 GIF_FILE = os.path.join(IMAGES, "cramps.gif")
@@ -26,11 +30,27 @@ SVG_FILE = os.path.join(IMAGES, "logo.svg")
 SVGZ_FILE = os.path.join(IMAGES, "logo.svgz")
 SVG_GZ_FILE = os.path.join(IMAGES, "logo.svg.gz")
 GIF_ANIM_FILE = os.path.join(IMAGES, "cogs.gif")
+GIF_ANIM_EXPECTED_PNG_FILE = os.path.join(IMAGES, "cogs.png")
+GIF_ANIM_DISPOSE_BACKGROUND_FILE = os.path.join(IMAGES, "dispose-background.gif")
+GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE = os.path.join(IMAGES, "dispose-background.png")
+GIF_ANIM_DISPOSE_PREVIOUS_FILE = os.path.join(IMAGES, "dispose-previous.gif")
+GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE = os.path.join(IMAGES, "dispose-previous.png")
 DICOM_FILE = os.path.join(IMAGES, "dicom_test_image.dcm")
 BMP_FILE = os.path.join(IMAGES, "MARBLES.BMP")
 NIFTI_FILE = os.path.join(IMAGES, "avg152T1_LR_nifti.nii.gz")
 ICO_FILE = os.path.join(IMAGES, "favicon.ico")
-HEIC_FILE = os.path.join(IMAGES, "Example1.heic")
+HEIC_FILE = os.path.join(IMAGES, "heic-orientation-6.heic")
+MOSAIC_FILES = [os.path.join(IMAGES, "cd1.1.jpg"), os.path.join(IMAGES, "cd1.2.jpg"),
+                os.path.join(IMAGES, "cd2.1.jpg"), os.path.join(IMAGES, "cd2.2.jpg"),
+                os.path.join(IMAGES, "cd3.1.jpg"), os.path.join(IMAGES, "cd3.2.jpg"),
+                os.path.join(IMAGES, "cd4.1.jpg"), os.path.join(IMAGES, "cd4.2.jpg")]
+MOSAIC_MARKS = [[489, 140], [66, 141],
+                [453, 40], [15, 43],
+                [500, 122], [65, 121],
+                [495, 58], [40, 57]]
+MOSAIC_VERTICAL_MARKS = [[388, 44], [364, 346],
+                         [384, 17], [385, 629],
+                         [527, 42], [503, 959]]
 
 unsigned_formats = [pyvips.BandFormat.UCHAR,
                     pyvips.BandFormat.USHORT,

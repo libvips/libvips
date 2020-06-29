@@ -96,7 +96,7 @@ class TestHistogram:
 
         ent = im.hist_find().hist_entropy()
 
-        assert pytest.approx(ent, 0.01) == 4.37
+        assert pytest.approx(ent, 0.01) == 6.67
 
     def test_stdif(self):
         im = pyvips.Image.new_from_file(JPEG_FILE)

@@ -22,17 +22,15 @@ LLVMFuzzerTestOneInput( const guint8 *data, size_t size )
 	struct mosaic_opt *opt;
 	double d;
 
-	if( size < sizeof(struct mosaic_opt) )
+	if( size < sizeof( struct mosaic_opt ) )
 		return( 0 );
 
 	if( !(ref = vips_image_new_from_buffer( data, size, "", NULL )) )
 		return( 0 );
 
-	/* Skip big images. They are likely to timeout.
-	 */
-	if( ref->Xsize > 1024 ||
-	    ref->Ysize > 1024 ||
-	    ref->Bands > 10 ) {
+	if( ref->Xsize > 100 ||
+		ref->Ysize > 100 ||
+		ref->Bands > 4 ) {
 		g_object_unref( ref );
 		return( 0 );
 	}
@@ -44,10 +42,10 @@ LLVMFuzzerTestOneInput( const guint8 *data, size_t size )
 
 	/* Extract some bytes from the tail to fuzz the arguments of the API.
 	 */
-	opt = (struct mosaic_opt *) (data + size - sizeof(struct mosaic_opt));
+	opt = (struct mosaic_opt *) (data + size - sizeof( struct mosaic_opt ));
 
 	if( vips_mosaic( ref, sec, &out, (VipsDirection) opt->dir,
-	                 opt->xref, opt->yref, opt->xsec, opt->ysec, NULL ) ) {
+		opt->xref, opt->yref, opt->xsec, opt->ysec, NULL ) ) {
 		g_object_unref( sec );
 		g_object_unref( ref );
 		return( 0 );

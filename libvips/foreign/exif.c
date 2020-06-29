@@ -418,10 +418,8 @@ vips_image_resolution_from_exif( VipsImage *image, ExifData *ed )
 
 	switch( unit ) {
 	case 1:
-		/* No unit ... just pass the fields straight to vips.
+		/* No units, instead xres / yres gives the pixel aspect ratio.
 		 */
-		vips_image_set_string( image, 
-			VIPS_META_RESOLUTION_UNIT, "none" );
 		break;
 
 	case 2:
@@ -525,7 +523,9 @@ vips__exif_parse( VipsImage *image )
 		int orientation;
 
 		orientation = atoi( str );
-		orientation = VIPS_CLIP( 1, orientation, 8 );
+		if( orientation < 1 || 
+			orientation > 8 )
+			orientation = 1;
 		vips_image_set_int( image, VIPS_META_ORIENTATION, orientation );
 	}
 

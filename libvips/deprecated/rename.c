@@ -801,3 +801,15 @@ vips_warn( const char *domain, const char *fmt, ... )
 	va_end( ap );
 }
 
+/**
+ * vips_autorot_get_angle:
+ * @image: image to fetch orientation from
+ *
+ * This function is deprecated. Use vips_autorot() instead.
+ */
+VipsAngle
+vips_autorot_get_angle( VipsImage *im )
+{
+	return( VIPS_ANGLE_D0 );
+}
+

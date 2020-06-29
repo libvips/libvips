@@ -292,6 +292,8 @@ void vips_info( const char *domain, const char *fmt, ... )
 	__attribute__((format(printf, 2, 3)));
 void vips_vinfo( const char *domain, const char *fmt, va_list ap );
 
+VipsAngle vips_autorot_get_angle( VipsImage *image );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

@@ -99,7 +99,7 @@ vips_rank_stop( void *vseq, void *a, void *b )
 {
 	VipsRankSequence *seq = (VipsRankSequence *) vseq;
 
-	VIPS_FREEF( g_object_unref, seq->ir );
+	VIPS_UNREF( seq->ir );
 
 	return( 0 );
 }

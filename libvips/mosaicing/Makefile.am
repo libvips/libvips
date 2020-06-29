@@ -6,6 +6,7 @@ libmosaicing_la_SOURCES = \
 	mosaic.c \
 	match.c \
 	mosaic1.c  \
+	matrixinvert.c \
 	global_balance.c \
 	im_avgdxdy.c \
 	im_chkpair.c \

@@ -254,7 +254,7 @@ wbuffer_flush( Write *write )
 	if( write->buf->area.top > 0 ) {
 		vips_semaphore_down( &write->buf_back->done );
 
-		/* Previous write suceeded?
+		/* Previous write succeeded?
 		 */
 		if( write->buf_back->write_errno ) {
 			vips_error_system( write->buf_back->write_errno,

@@ -17,10 +17,8 @@ libforeign_la_SOURCES = \
 	radiance.c \
 	radload.c \
 	radsave.c \
-	ppm.c \
 	ppmload.c \
 	ppmsave.c \
-	csv.c \
 	csvload.c \
 	csvsave.c \
 	matrixload.c \
@@ -42,6 +40,7 @@ libforeign_la_SOURCES = \
 	magickload.c \
 	magick7load.c \
 	magicksave.c \
+	spngload.c \
 	pngload.c \
 	pngsave.c \
 	vipspng.c \

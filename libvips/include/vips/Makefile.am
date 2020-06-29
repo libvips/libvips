@@ -1,4 +1,6 @@
 pkginclude_HEADERS = \
+	connection.h \
+	sbuf.h \
 	basic.h \
 	type.h \
 	gate.h \
@@ -47,9 +49,6 @@ pkginclude_HEADERS = \
 	vector.h \
 	vips7compat.h \
 	vips.h 
-
-vipsc++.h:
-	vips --cpph all > vipsc++.h
 
 EXTRA_DIST = version.h.in internal.h enumtemplate
 

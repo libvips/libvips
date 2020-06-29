@@ -195,6 +195,11 @@ vips_sequential_build( VipsObject *object )
 	if( vips_linecache( sequential->in, &t, 
 		"tile_height", sequential->tile_height,
 		"access", VIPS_ACCESS_SEQUENTIAL,
+		/* We need seq caches to persist across minimise in case
+		 * someone is trying to read an image with a series of crop
+		 * operations.
+		 */
+		"persistent", TRUE,
 		NULL ) )
 		return( -1 );
 

@@ -30,6 +30,8 @@
  * 	- use Draw base class
  * 21/1/14
  * 	- redo as a class
+ * 5/4/20
+ * 	- could fail to complete for some very complex shapes
  */
 
 /*
@@ -184,7 +186,7 @@ buffer_free( Buffer *buf )
 /* Add a scanline to a buffer, prepending a new buffer if necessary. Return
  * the new head buffer.
  */
-static Buffer * 
+static Buffer *
 buffer_add( Buffer *buf, Flood *flood, int x1, int x2, int y, int dir )
 {
 	/* Clip against image size.
@@ -197,19 +199,19 @@ buffer_add( Buffer *buf, Flood *flood, int x1, int x2, int y, int dir )
 	if( x2 - x1 < 0 )
 		return( buf );
 
-	buf->scan[buf->n].x1 = x1;
-	buf->scan[buf->n].x2 = x2;
-	buf->scan[buf->n].y = y;
-	buf->scan[buf->n].dir = dir;
-	buf->n += 1; 
-
 	if( buf->n == PBUFSIZE ) { 
 		Buffer *new;
 
 		new = buffer_build();
 		new->next = buf;
 		buf = new;
-	} 
+	}
+
+	buf->scan[buf->n].x1 = x1;
+	buf->scan[buf->n].x2 = x2;
+	buf->scan[buf->n].y = y;
+	buf->scan[buf->n].dir = dir;
+	buf->n += 1;
 
 	return( buf );
 }
@@ -297,7 +299,6 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 {
 	const int width = flood->test->Xsize;
 
-	VipsPel *p;
 	int i;
 
 	g_assert( flood_connected( flood, 
@@ -309,23 +310,33 @@ flood_scanline( Flood *flood, int x, int y, int *x1, int *x2 )
 	 * pixel is unpainted, we know all the intervening pixels must be
 	 * unpainted too.
 	 */
-	p = VIPS_IMAGE_ADDR( flood->test, x + 1, y );
-	for( i = x + 1; i < width; i++ ) {
-		if( !flood_connected( flood, p ) )
-			break;
-		p += flood->tsize;
+	if( x < width ) {
+		VipsPel *p = VIPS_IMAGE_ADDR( flood->test, x + 1, y );
+
+		for( i = x + 1; i < width; i++ ) {
+			if( !flood_connected( flood, p ) )
+				break;
+			p += flood->tsize;
+		}
+		*x2 = i - 1;
 	}
-	*x2 = i - 1;
+	else 
+		*x2 = width;
 
 	/* Search left.
 	 */
-	p = VIPS_IMAGE_ADDR( flood->test, x - 1, y );
-	for( i = x - 1; i >= 0; i-- ) {
-		if( !flood_connected( flood, p ) )
-			break;
-		p -= flood->tsize;
+	if( x > 0 ) {
+		VipsPel *p = VIPS_IMAGE_ADDR( flood->test, x - 1, y );
+
+		for( i = x - 1; i >= 0; i-- ) {
+			if( !flood_connected( flood, p ) )
+				break;
+			p -= flood->tsize;
+		}
+		*x1 = i + 1;
 	}
-	*x1 = i + 1;
+	else
+		*x1 = 0;
 
 	/* Paint the range we discovered.
 	 */
