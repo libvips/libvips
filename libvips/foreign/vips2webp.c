@@ -310,6 +310,7 @@ write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 	}
 
 	anim_config.minimize_size = write->min_size;
+	anim_config.allow_mixed = write->min_size;
 	anim_config.kmin = write->kmin;
 	anim_config.kmax = write->kmax;
 
