@@ -57,6 +57,7 @@
 #include <vips/vips.h>
 #include <vips/buf.h>
 #include <vips/transform.h>
+#include <vips/internal.h>
 
 #include "pmosaicing.h"
 

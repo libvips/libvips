@@ -111,6 +111,7 @@
 
 #include <vips/vips.h>
 #include <vips/transform.h>
+#include <vips/internal.h>
 
 #include "pmosaicing.h"
 #include "global_balance.h"
