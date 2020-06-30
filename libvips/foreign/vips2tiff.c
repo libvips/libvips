@@ -979,9 +979,9 @@ wtiff_free( Wtiff *wtiff )
 	wtiff_delete_temps( wtiff );
 
 	VIPS_UNREF( wtiff->ready );
-	VIPS_FREEF( vips_free, wtiff->tbuf );
+	VIPS_FREE( wtiff->tbuf );
 	VIPS_FREEF( layer_free_all, wtiff->layer );
-	VIPS_FREEF( vips_free, wtiff->icc_profile );
+	VIPS_FREE( wtiff->icc_profile );
 	VIPS_FREE( wtiff->filename );
 	VIPS_FREE( wtiff );
 }
@@ -1888,11 +1888,11 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 		len = TIFFReadEncodedTile( in, tile, buf, -1 );
 		if( len < 0 ||
 			TIFFWriteEncodedTile( out, tile, buf, len ) < 0 ) {
-			vips_free( buf );
+			g_free( buf );
 			return( -1 );
 		}
 	}
-	vips_free( buf );
+	g_free( buf );
 
 	return( 0 );
 }

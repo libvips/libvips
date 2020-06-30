@@ -309,7 +309,7 @@ read_header( const char *header )
 	if( len != sizeof( struct dsr ) ) {
 		vips_error( "analyze2vips", 
 			"%s", _( "header file size incorrect" ) );
-		vips_free( d );
+		g_free( d );
 		return( NULL );
 	}
 
@@ -354,7 +354,7 @@ read_header( const char *header )
 	if( (int) len != d->hk.sizeof_hdr ) {
 		vips_error( "analyze2vips", 
 			"%s", _( "header size incorrect" ) );
-		vips_free( d );
+		g_free( d );
 		return( NULL );
 	}
 
@@ -444,7 +444,7 @@ attach_meta( VipsImage *out, struct dsr *d )
 	int i;
 
 	vips_image_set_blob( out, "dsr", 
-		(VipsCallbackFn) vips_free, d, d->hk.sizeof_hdr );
+		(VipsCallbackFn) vips_area_free_cb, d, d->hk.sizeof_hdr );
 
 	for( i = 0; i < VIPS_NUMBER( dsr_header ); i++ ) {
 		switch( dsr_header[i].type ) {
@@ -514,7 +514,7 @@ vips__isanalyze( const char *filename )
 	result = get_vips_properties( d, &width, &height, &bands, &fmt );
 	vips_error_thaw();
 
-	vips_free( d );
+	g_free( d );
 
 	return( result == 0 );
 }
@@ -538,7 +538,7 @@ vips__analyze_read_header( const char *filename, VipsImage *out )
 #endif /*DEBUG*/
 
 	if( get_vips_properties( d, &width, &height, &bands, &fmt ) ) {
-		vips_free( d );
+		g_free( d );
 		return( -1 );
 	}
 

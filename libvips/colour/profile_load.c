@@ -96,7 +96,7 @@ vips_profile_load_build( VipsObject *object )
 	else if( (data = vips__file_read_name( load->name, 
 		vips__icc_dir(), &length )) ) 
 		profile = vips_blob_new( 
-			(VipsCallbackFn) g_free, data, length );
+			(VipsCallbackFn) vips_area_free_cb, data, length );
 	else {
 		vips_error( class->nickname, 
 			_( "unable to load profile \"%s\"" ), load->name );

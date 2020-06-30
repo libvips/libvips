@@ -153,7 +153,7 @@ vips_buffer_dump( VipsBuffer *buffer, size_t *reserve, size_t *alive )
 
 #ifdef DEBUG_CREATE
 static void *
-vips_buffer_cache_dump( VipsBufferCache *cache )
+vips_buffer_cache_dump( VipsBufferCache *cache, void *a, void *b )
 {
 	printf( "VipsBufferCache: %p\n", cache );
 	printf( "\t%d buffers\n", g_slist_length( cache->buffers ) );

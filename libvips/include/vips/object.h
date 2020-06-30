@@ -455,7 +455,7 @@ struct _VipsObjectClass {
 
 	/* Just after build ... the object is fully ready for work. 
 	 */
-	int (*postbuild)( VipsObject *object );
+	int (*postbuild)( VipsObject *object, void *data );
 
 	/* Try to print something about the class, handy for help displays.
 	 * Keep to one line.

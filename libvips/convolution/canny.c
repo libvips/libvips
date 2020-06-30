@@ -225,7 +225,7 @@ vips_canny_polar( VipsImage **args, VipsImage **out )
 {
 	static GOnce once = G_ONCE_INIT;
 
-	g_once( &once, (GThreadFunc) vips_atan2_init, NULL );
+	g_once( &once, vips_atan2_init, NULL );
 
 	*out = vips_image_new();
 	if( vips_image_pipeline_array( *out, 

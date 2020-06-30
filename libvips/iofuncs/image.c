@@ -651,7 +651,7 @@ vips_image_summary( VipsObject *object, VipsBuf *buf )
 }
 
 static void *
-vips_image_sanity_upstream( VipsImage *up, VipsImage *down )
+vips_image_sanity_upstream( VipsImage *up, VipsImage *down, void *b )
 {
 	if( !g_slist_find( up->downstream, down ) ||
 		!g_slist_find( down->upstream, up ) )
@@ -661,9 +661,9 @@ vips_image_sanity_upstream( VipsImage *up, VipsImage *down )
 }
 
 static void *
-vips_image_sanity_downstream( VipsImage *down, VipsImage *up )
+vips_image_sanity_downstream( VipsImage *down, VipsImage *up, void *b )
 {
-	return( vips_image_sanity_upstream( up, down ) );
+	return( vips_image_sanity_upstream( up, down, b ) );
 }
 
 static void
@@ -738,7 +738,7 @@ vips_image_rewind( VipsObject *object )
 /* From "written" callback: save to image->filename using VipsForeign.
  */
 static void
-vips_image_save_cb( VipsImage *image, int *result )
+vips_image_save_cb( VipsImage *image, int *result, void *data )
 {
 	if( vips_foreign_save( image, image->filename, NULL ) )
 		*result = -1;
@@ -786,7 +786,7 @@ vips_image_eval_cb( VipsImage *image, VipsProgress *progress, int *last )
 }
 
 static void
-vips_image_posteval_cb( VipsImage *image, VipsProgress *progress )
+vips_image_posteval_cb( VipsImage *image, VipsProgress *progress, void *data )
 {
 	/* Spaces at end help to erase the %complete message we overwrite.
 	 */
@@ -1016,7 +1016,7 @@ vips_image_build( VipsObject *object )
 }
 
 static void *
-vips_image_real_invalidate_cb( VipsRegion *reg )
+vips_image_real_invalidate_cb( VipsRegion *reg, void *a, void *b )
 {
 	vips_region_invalidate( reg );
 
@@ -1024,7 +1024,7 @@ vips_image_real_invalidate_cb( VipsRegion *reg )
 }
 
 static void 
-vips_image_real_invalidate( VipsImage *image )
+vips_image_real_invalidate( VipsImage *image, void *data )
 {
 	VIPS_DEBUG_MSG( "vips_image_real_invalidate: %p\n", image );
 
@@ -1041,13 +1041,13 @@ vips_image_real_invalidate( VipsImage *image )
 }
 
 static void 
-vips_image_real_minimise( VipsImage *image )
+vips_image_real_minimise( VipsImage *image, void *data )
 {
 	VIPS_DEBUG_MSG( "vips_image_real_minimise: %p\n", image );
 }
 
 static void 
-vips_image_real_written( VipsImage *image, int *result )
+vips_image_real_written( VipsImage *image, int *result, void *data )
 {
 	VIPS_DEBUG_MSG( "vips_image_real_written: %p\n", image );
 
@@ -1390,7 +1390,7 @@ vips_image_invalidate( VipsImage *image )
 }
 
 static void *
-vips_image_invalidate_all_cb( VipsImage *image )
+vips_image_invalidate_all_cb( VipsImage *image, void *a, void *b )
 {
 	vips_image_invalidate( image );
 
@@ -1430,7 +1430,7 @@ vips_image_minimise( VipsImage *image )
 }
 
 static void *
-vips_image_minimise_all_cb( VipsImage *image )
+vips_image_minimise_all_cb( VipsImage *image, void *a, void *b )
 {
 	vips_image_minimise( image );
 

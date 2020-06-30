@@ -453,7 +453,7 @@ vips_operation_equal( VipsOperation *a, VipsOperation *b )
 }
 
 void *
-vips__cache_once_init( void )
+vips__cache_once_init( void *data )
 {
 	vips_cache_lock = vips_g_mutex_new();
 
@@ -469,7 +469,7 @@ vips__cache_init( void )
 {
 	static GOnce once = G_ONCE_INIT;
 
-	VIPS_ONCE( &once, (GThreadFunc) vips__cache_once_init, NULL );
+	VIPS_ONCE( &once, vips__cache_once_init, NULL );
 }
 
 static void *

@@ -129,7 +129,7 @@ vips_window_free( VipsWindow *window )
 
 	window->im = NULL;
 
-	vips_free( window );
+	g_free( window );
 
 	return( 0 );
 }
@@ -307,7 +307,7 @@ typedef struct {
 } request_t;
 
 static void *
-vips_window_fits( VipsWindow *window, request_t *req )
+vips_window_fits( VipsWindow *window, request_t *req, void *b )
 {
 	if( window->top <= req->top && 
 		window->top + window->height >= req->top + req->height )

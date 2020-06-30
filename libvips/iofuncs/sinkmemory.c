@@ -126,7 +126,7 @@ static void
 sink_memory_area_free( SinkMemoryArea *area )
 {
 	vips_semaphore_destroy( &area->nwrite );
-	vips_free( area );
+	g_free( area );
 }
 
 static SinkMemoryArea *

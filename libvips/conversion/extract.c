@@ -172,6 +172,14 @@ vips_extract_area_build( VipsObject *object )
 	return( 0 );
 }
 
+#ifdef __EMSCRIPTEN__
+static void
+vips_crop_class_init_adapter( VipsExtractAreaClass *class, void *dummy )
+{
+	vips_extract_area_class_init( class );
+}
+#endif
+
 static void
 vips_extract_area_class_init( VipsExtractAreaClass *class )
 {
@@ -226,6 +234,14 @@ vips_extract_area_class_init( VipsExtractAreaClass *class )
 
 }
 
+#ifdef __EMSCRIPTEN__
+static void
+vips_crop_init_adapter( VipsExtractArea *extract, void *dummy )
+{
+	vips_extract_area_init( extract );
+}
+#endif
+
 static void
 vips_extract_area_init( VipsExtractArea *extract )
 {
@@ -275,12 +291,20 @@ vips_crop_get_type( void )
 			sizeof( VipsExtractAreaClass ),
 			NULL,           /* base_init */
 			NULL,           /* base_finalize */
+#ifdef __EMSCRIPTEN__
+			(GClassInitFunc) vips_crop_class_init_adapter,
+#else
 			(GClassInitFunc) vips_extract_area_class_init,
+#endif
 			NULL,           /* class_finalize */
 			NULL,           /* class_data */
 			sizeof( VipsExtractArea ),
 			32,             /* n_preallocs */
+#ifdef __EMSCRIPTEN__
+			(GInstanceInitFunc) vips_crop_init_adapter,
+#else
 			(GInstanceInitFunc) vips_extract_area_init,
+#endif
 		};
 
 		type = g_type_register_static( VIPS_TYPE_CONVERSION, 

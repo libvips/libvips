@@ -503,10 +503,7 @@ vips_foreign_save_tiff_buffer_build( VipsObject *object )
 		tiff->subifd ) )
 		return( -1 );
 
-	/* vips__tiff_write_buf() makes a buffer that needs g_free(), not
-	 * vips_free().
-	 */
-	blob = vips_blob_new( (VipsCallbackFn) g_free, obuf, olen );
+	blob = vips_blob_new( (VipsCallbackFn) vips_area_free_cb, obuf, olen );
 	g_object_set( object, "buffer", blob, NULL );
 	vips_area_unref( VIPS_AREA( blob ) );
 

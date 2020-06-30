@@ -1258,7 +1258,7 @@ vips_exif_exif_entry( ExifEntry *entry, VipsExifRemove *ve )
 }
 
 static void *
-vips_exif_exif_remove( ExifEntry *entry, VipsExifRemove *ve )
+vips_exif_exif_remove( ExifEntry *entry, VipsExifRemove *ve, void *b )
 {
 #ifdef DEBUG
 {
@@ -1405,7 +1405,7 @@ vips__exif_update( VipsImage *image )
 #endif /*DEBUG*/
 
 	vips_image_set_blob( image, VIPS_META_EXIF_NAME, 
-		(VipsCallbackFn) vips_free, data, length );
+		(VipsCallbackFn) vips_area_free_cb, data, length );
 
 	exif_data_free( ed );
 

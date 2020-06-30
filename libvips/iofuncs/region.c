@@ -1576,7 +1576,7 @@ vips_region_shrink( VipsRegion *from, VipsRegion *to, const VipsRect *target )
 /* Generate into a region. 
  */
 static int
-vips_region_generate( VipsRegion *reg )
+vips_region_generate( VipsRegion *reg, void *a )
 {
 	VipsImage *im = reg->im;
 
@@ -1659,8 +1659,7 @@ vips_region_prepare( VipsRegion *reg, const VipsRect *r )
 
 	switch( im->dtype ) {
 	case VIPS_IMAGE_PARTIAL:
-		if( vips_region_fill( reg, r, 
-			(VipsRegionFillFn) vips_region_generate, NULL ) )
+		if( vips_region_fill( reg, r, vips_region_generate, NULL ) )
 			return( -1 );
 
 		break;
@@ -1716,7 +1715,7 @@ vips_region_prepare_to_generate( VipsRegion *reg,
 
 	/* Run sequence into reg.
 	 */
-	if( vips_region_generate( reg ) )
+	if( vips_region_generate( reg, NULL ) )
 		return( -1 );
 
 	/* The generate function may not have actually made any pixels ... it
@@ -2007,7 +2006,7 @@ vips_region_invalidate( VipsRegion *reg )
 
 #ifdef VIPS_DEBUG
 static void *
-vips_region_dump_all_cb( VipsRegion *region, size_t *alive )
+vips_region_dump_all_cb( VipsRegion *region, size_t *alive, void *b )
 {
 	char str[2048];
 	VipsBuf buf = VIPS_BUF_STATIC( str );
