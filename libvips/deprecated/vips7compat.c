@@ -5368,6 +5368,25 @@ im_tbmosaic1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 }
 
 int
+im_lrmerge( IMAGE *ref, IMAGE *sec, IMAGE *out,
+	int dx, int dy, int mwidth )
+{
+	VipsImage *x;
+
+	if( vips_merge( ref, sec, &x, VIPS_DIRECTION_HORIZONTAL, dx, dy,
+		"mblend", mwidth,
+		NULL ) ) 
+		return( -1 );
+	if( vips_image_write( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int
 im_lrmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	int xr1, int yr1, int xs1, int ys1, 
 	int xr2, int yr2, int xs2, int ys2,
@@ -5377,6 +5396,25 @@ im_lrmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 
 	if( vips_mosaic1( ref, sec, &x, VIPS_DIRECTION_HORIZONTAL,
 		xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2,
+		"mblend", mwidth,
+		NULL ) ) 
+		return( -1 );
+	if( vips_image_write( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int
+im_tbmerge( IMAGE *ref, IMAGE *sec, IMAGE *out,
+	int dx, int dy, int mwidth )
+{
+	VipsImage *x;
+
+	if( vips_merge( ref, sec, &x, VIPS_DIRECTION_VERTICAL, dx, dy,
 		"mblend", mwidth,
 		NULL ) ) 
 		return( -1 );

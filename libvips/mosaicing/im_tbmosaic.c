@@ -223,6 +223,7 @@ vips_tbmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int dx0, dy0;
 	double scale1, angle1, dx1, dy1;
 	VipsImage *dummy;
+	VipsImage *x;
 
 	/* Correct overlap. dummy is just a placeholder used to ensure that
 	 * memory used by the analysis phase is freed as soon as possible.
@@ -241,8 +242,15 @@ vips_tbmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out,
 
 	/* Merge top-bottom.
 	 */
-	if( vips_tbmerge( ref, sec, out, dx0, dy0, mwidth ) )
+	if( vips_merge( ref, sec, &x, VIPS_DIRECTION_VERTICAL, dx0, dy0, 
+		"mblend", mwidth,
+		NULL ) )
 		return( -1 ); 
+	if( vips_image_write( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
 
 	return( 0 );
 }

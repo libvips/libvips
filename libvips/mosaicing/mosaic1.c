@@ -394,7 +394,7 @@ old_lrmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 
 	/* And join to ref.
 	 */
-	if( vips_lrmerge( ref, t[1], out, 
+	if( vips_merge( ref, t[1], out, VIPS_DIRECtION_HORIZONTAL,
 		-trn2.area.left, -trn2.area.top, mwidth ) )
 		return( -1 );
 

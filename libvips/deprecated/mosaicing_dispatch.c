@@ -367,7 +367,7 @@ lrmerge_vec( im_object *argv )
 	int dy = *((int *) argv[4]);
 	int mwidth = *((int *) argv[5]);
 
-	return( vips_lrmerge( argv[0], argv[1], argv[2], dx, dy, mwidth ) );
+	return( im_lrmerge( argv[0], argv[1], argv[2], dx, dy, mwidth ) );
 }
 
 /* Call im_lrmerge1 via arg vector.
@@ -421,7 +421,7 @@ tbmerge_vec( im_object *argv )
 	int dy = *((int *) argv[4]);
 	int mwidth = *((int *) argv[5]);
 
-	return( vips_tbmerge( argv[0], argv[1], argv[2], dx, dy, mwidth ) );
+	return( im_tbmerge( argv[0], argv[1], argv[2], dx, dy, mwidth ) );
 }
 
 /* Call im_tbmerge1 via arg vector.

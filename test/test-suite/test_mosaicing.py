@@ -16,21 +16,24 @@ class TestMosaicing:
 
             im = pyvips.Image.new_from_file(files[0])
             sec_im = pyvips.Image.new_from_file(files[1])
-            horizontal_part = im.mosaic(sec_im, pyvips.Direction.HORIZONTAL,
-                                        marks[0][0], marks[0][1], marks[1][0], marks[1][1])
+            horizontal_part = im.mosaic(sec_im, 
+                    pyvips.Direction.HORIZONTAL,
+                    marks[0][0], marks[0][1], 
+                    marks[1][0], marks[1][1])
 
             if mosaiced_image is None:
                 mosaiced_image = horizontal_part
             else:
                 vertical_marks = MOSAIC_VERTICAL_MARKS[i - 2:i]
-                mosaiced_image = mosaiced_image.mosaic(horizontal_part, pyvips.Direction.VERTICAL, 
-                                                       vertical_marks[1][0], vertical_marks[1][1],
-                                                       vertical_marks[0][0], vertical_marks[0][1])
+                mosaiced_image = mosaiced_image.mosaic(horizontal_part, 
+                       pyvips.Direction.VERTICAL, 
+                       vertical_marks[1][0], vertical_marks[1][1],
+                       vertical_marks[0][0], vertical_marks[0][1])
 
-            mosaiced_image = mosaiced_image.globalbalance()
+        mosaiced_image = mosaiced_image.globalbalance()
 
         # Uncomment to see output file
-        # mosaiced_image.write_to_file('1-pt-mosaic.jpg')
+        #mosaiced_image.write_to_file('after.jpg')
 
         # hard to test much more than this
         assert mosaiced_image.width == 1005

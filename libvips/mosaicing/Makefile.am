@@ -8,16 +8,16 @@ libmosaicing_la_SOURCES = \
 	mosaic1.c  \
 	matrixinvert.c \
 	global_balance.c \
+	lrmerge.c \
+	tbmerge.c \
 	im_avgdxdy.c \
 	im_chkpair.c \
 	im_clinear.c \
 	im_improve.c \
 	im_initialize.c \
 	im_lrcalcon.c \
-	im_lrmerge.c \
 	im_lrmosaic.c \
 	im_tbcalcon.c \
-	im_tbmerge.c \
 	im_remosaic.c \
 	im_tbmosaic.c \
 	global_balance.h \

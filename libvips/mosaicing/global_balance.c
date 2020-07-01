@@ -1340,21 +1340,16 @@ make_mos_image( SymbolTable *st, JoinNode *node, transform_fn tfn, void *a )
 			!(im2 = make_mos_image( st, node->arg2, tfn, a )) )
 			return( NULL );
 
-		out = vips_image_new();
+		if( vips_merge( im1, im2, &out, 
+			node->type == JOIN_LR ? 
+				VIPS_DIRECTION_HORIZONTAL : 
+				VIPS_DIRECTION_VERTICAL,
+			-node->dx, -node->dy, 
+			"mblend", node->mwidth,
+			NULL ) )
+			return( NULL );
 		vips_object_local( st->im, out );
-
 		vips_image_set_string( out, "mosaic-name", node->name );
-
-		if( node->type == JOIN_LR ) {
-			if( vips_lrmerge( im1, im2, out, 
-				-node->dx, -node->dy, node->mwidth ) )
-				return( NULL );
-		}
-		else {
-			if( vips_tbmerge( im1, im2, out, 
-				-node->dx, -node->dy, node->mwidth ) )
-				return( NULL );
-		}
 
 		break;
 
@@ -1415,6 +1410,7 @@ vips__build_mosaic( SymbolTable *st, VipsImage *out, transform_fn tfn, void *a )
 {
 	JoinNode *root = st->root;
 	VipsImage *im1, *im2;
+	VipsImage *x;
 
 	switch( root->type ) {
 	case JOIN_LR:
@@ -1423,16 +1419,19 @@ vips__build_mosaic( SymbolTable *st, VipsImage *out, transform_fn tfn, void *a )
 			!(im2 = make_mos_image( st, root->arg2, tfn, a )) )
 			return( -1 );
 
-		if( root->type == JOIN_LR ) {
-			if( vips_lrmerge( im1, im2, out, 
-				-root->dx, -root->dy, root->mwidth ) )
-				return( -1 );
+		if( vips_merge( im1, im2, &x, 
+			root->type == JOIN_LR ? 
+				VIPS_DIRECTION_HORIZONTAL : 
+				VIPS_DIRECTION_VERTICAL,
+			-root->dx, -root->dy, 
+			"mblend", root->mwidth,
+			NULL ) )
+			return( -1 );
+		if( vips_image_write( x, out ) ) {
+			g_object_unref( x );
+			return( -1 );
 		}
-		else {
-			if( vips_tbmerge( im1, im2, out, 
-				-root->dx, -root->dy, root->mwidth ) )
-				return( -1 );
-		}
+		g_object_unref( x );
 
 		break;
 

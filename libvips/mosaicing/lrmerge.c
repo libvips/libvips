@@ -203,19 +203,19 @@ find_first( VipsRegion *ir, int *pos, int x, int y, int w )
 }
 
 	switch( im->BandFmt ) {
-	case VIPS_FORMAT_UCHAR:	lsearch( unsigned char ); break; 
-	case VIPS_FORMAT_CHAR:	lsearch( signed char ); break; 
+	case VIPS_FORMAT_UCHAR:		lsearch( unsigned char ); break; 
+	case VIPS_FORMAT_CHAR:		lsearch( signed char ); break; 
 	case VIPS_FORMAT_USHORT:	lsearch( unsigned short ); break; 
-	case VIPS_FORMAT_SHORT:	lsearch( signed short ); break; 
-	case VIPS_FORMAT_UINT:	lsearch( unsigned int ); break; 
-	case VIPS_FORMAT_INT:	lsearch( signed int );  break; 
-	case VIPS_FORMAT_FLOAT:	lsearch( float ); break; 
+	case VIPS_FORMAT_SHORT:		lsearch( signed short ); break; 
+	case VIPS_FORMAT_UINT:		lsearch( unsigned int ); break; 
+	case VIPS_FORMAT_INT:		lsearch( signed int );  break; 
+	case VIPS_FORMAT_FLOAT:		lsearch( float ); break; 
 	case VIPS_FORMAT_DOUBLE:	lsearch( double ); break; 
 	case VIPS_FORMAT_COMPLEX:	lsearch( float ); break; 
 	case VIPS_FORMAT_DPCOMPLEX:	lsearch( double ); break;
 
 	default:
-		vips_error( "vips_lrmerge", "%s", _( "internal error" ) );
+		g_assert_not_reached(); 
 		return( -1 );
 	}
 
@@ -252,19 +252,19 @@ find_last( VipsRegion *ir, int *pos, int x, int y, int w )
 }
 
 	switch( im->BandFmt ) {
-	case VIPS_FORMAT_UCHAR:	rsearch( unsigned char ); break; 
-	case VIPS_FORMAT_CHAR:	rsearch( signed char ); break; 
+	case VIPS_FORMAT_UCHAR:		rsearch( unsigned char ); break; 
+	case VIPS_FORMAT_CHAR:		rsearch( signed char ); break; 
 	case VIPS_FORMAT_USHORT:	rsearch( unsigned short ); break; 
-	case VIPS_FORMAT_SHORT:	rsearch( signed short ); break; 
-	case VIPS_FORMAT_UINT:	rsearch( unsigned int ); break; 
-	case VIPS_FORMAT_INT:	rsearch( signed int );  break; 
-	case VIPS_FORMAT_FLOAT:	rsearch( float ); break; 
+	case VIPS_FORMAT_SHORT:		rsearch( signed short ); break; 
+	case VIPS_FORMAT_UINT:		rsearch( unsigned int ); break; 
+	case VIPS_FORMAT_INT:		rsearch( signed int );  break; 
+	case VIPS_FORMAT_FLOAT:		rsearch( float ); break; 
 	case VIPS_FORMAT_DOUBLE:	rsearch( double ); break; 
 	case VIPS_FORMAT_COMPLEX:	rsearch( float ); break; 
 	case VIPS_FORMAT_DPCOMPLEX:	rsearch( double ); break;
 
 	default:
-		vips_error( "vipslrmerge", "%s", _( "internal error" ) );
+		vips_error( "lrmerge", "%s", _( "internal error" ) );
 		return( -1 );
 	}
 
@@ -330,7 +330,7 @@ make_firstlast( MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg )
 	sr.top -= ovlap->sarea.top;
 
 #ifdef DEBUG
-	printf( "vips__lrmerge: making first/last for areas:\n" );
+	printf( "lrmerge: making first/last for areas:\n" );
 	printf( "ref: left = %d, top = %d, width = %d, height = %d\n",
 		rr.left, rr.top, rr.width, rr.height );
 	printf( "sec: left = %d, top = %d, width = %d, height = %d\n",
@@ -605,7 +605,7 @@ lr_blend( VipsRegion *or, MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg )
 			fblend( double, im->Bands * 2, pr, ps, q ); break;
 
 		default:
-			vips_error( "vips_lrmerge", "%s", _( "internal error" ) );
+			g_assert_not_reached();
 			return( -1 );
 		}
 	}
@@ -616,7 +616,8 @@ lr_blend( VipsRegion *or, MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg )
 /* Left-right blend function for VIPS_CODING_LABQ images.
  */
 static int
-lr_blend_labpack( VipsRegion *or, MergeInfo *inf, Overlapping *ovlap, VipsRect *oreg )
+lr_blend_labpack( VipsRegion *or, MergeInfo *inf, Overlapping *ovlap, 
+	VipsRect *oreg )
 {
 	VipsRegion *rir = inf->rir;
 	VipsRegion *sir = inf->sir;
@@ -688,11 +689,12 @@ lock_free( VipsImage *image, GMutex *lock )
 }
 
 /* Build basic per-call state and do some geometry calculations. Shared with
- * vips_tbmerge, so not static.
+ * tbmerge, so not static.
  */
 Overlapping *
 vips__build_mergestate( const char *domain,
-	VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, int mwidth )
+	VipsImage *ref, VipsImage *sec, VipsImage *out, 
+	int dx, int dy, int mwidth )
 {
 	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( out ), 4 );
@@ -703,14 +705,13 @@ vips__build_mergestate( const char *domain,
 
 	/* TODO(kleisauke): Copied from vips_insert, perhaps we
 	 *                  need a separate function for this? 
-	 *                  (just like im__insert_base) */
+	 *                  (just like im__insert_base) 
+	 */
 	if( vips_image_pio_input( ref ) ||
 		vips_image_pio_input( sec ) ||
-		vips_check_bands_1orn( domain,
-			ref, sec ) ||
+		vips_check_bands_1orn( domain, ref, sec ) ||
 		vips_check_coding_known( domain, ref ) ||
-		vips_check_coding_same( domain,
-			ref, sec ) )
+		vips_check_coding_same( domain, ref, sec ) )
 		return( NULL );
 
 	/* Cast our input images up to a common format and bands.
@@ -809,11 +810,12 @@ vips__build_mergestate( const char *domain,
 /* Build per-call state.
  */
 static Overlapping *
-build_lrstate( VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, int mwidth )
+build_lrstate( VipsImage *ref, VipsImage *sec, VipsImage *out, 
+	int dx, int dy, int mwidth )
 {
    	Overlapping *ovlap;
 
-	if( !(ovlap = vips__build_mergestate( "vips_lrmerge", 
+	if( !(ovlap = vips__build_mergestate( "lrmerge", 
 		ref, sec, out, dx, dy, mwidth )) )
 		return( NULL );
 
@@ -829,7 +831,7 @@ build_lrstate( VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, i
 		break;
 
 	default:
-		vips_error( "vips_lrmerge", "%s", _( "unknown coding type" ) );
+		vips_error( "lrmerge", "%s", _( "unknown coding type" ) );
 		return( NULL );
 	}
 
@@ -844,9 +846,10 @@ build_lrstate( VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, i
 	/* Is there too much overlap? ie. right edge of ref image is greater
 	 * than right edge of sec image, or left > left.
 	 */
-	if( VIPS_RECT_RIGHT( &ovlap->rarea ) > VIPS_RECT_RIGHT( &ovlap->sarea ) ||
+	if( VIPS_RECT_RIGHT( &ovlap->rarea ) > 
+		VIPS_RECT_RIGHT( &ovlap->sarea ) ||
 		ovlap->rarea.left > ovlap->sarea.left ) {
-		vips_error( "vips_lrmerge", "%s", _( "too much overlap" ) );
+		vips_error( "lrmerge", "%s", _( "too much overlap" ) );
 		return( NULL );
 	}
 
@@ -861,7 +864,7 @@ build_lrstate( VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, i
  * or the sec images. Attach output to the appropriate part of the input image. 
  * area is the position that ir->im occupies in the output image.
  *
- * Shared with vips_tbmerge(), so not static.
+ * Shared with tbmerge, so not static.
  */
 int
 vips__attach_input( VipsRegion *or, VipsRegion *ir, VipsRect *area )
@@ -890,10 +893,11 @@ vips__attach_input( VipsRegion *or, VipsRegion *ir, VipsRect *area )
  * above, but just do a sub-area of the output, and make sure we copy rather 
  * than just pointer-fiddling. reg is the sub-area of or->valid we should do.
  *
- * Shared with vips_tbmerge(), so not static.
+ * Shared with tbmerge, so not static.
  */
 int
-vips__copy_input( VipsRegion *or, VipsRegion *ir, VipsRect *area, VipsRect *reg )
+vips__copy_input( VipsRegion *or, VipsRegion *ir, 
+	VipsRect *area, VipsRect *reg )
 {
 	VipsRect r = *reg;
 
@@ -910,8 +914,8 @@ vips__copy_input( VipsRegion *or, VipsRegion *ir, VipsRect *area, VipsRect *reg 
 	return( 0 );
 }
 
-/* Generate function for merge. This is shared between vips_lrmerge() and
- * vips_tbmerge().
+/* Generate function for merge. This is shared between lrmerge and
+ * tbmerge.
  */
 int
 vips__merge_gen( VipsRegion *or, void *seq, void *a, void *b, 
@@ -981,7 +985,7 @@ vips__merge_gen( VipsRegion *or, void *seq, void *a, void *b,
 	return( 0 );
 }
 
-/* Stop function. Shared with vips_tbmerge(). Free explicitly to reduce mem
+/* Stop function. Shared with tbmerge. Free explicitly to reduce mem
  * requirements quickly for large mosaics.
  */
 int
@@ -999,7 +1003,7 @@ vips__stop_merge( void *seq, void *a, void *b )
 	return( 0 );
 }
 
-/* Start function. Shared with vips_tbmerge().
+/* Start function. Shared with tbmerge.
  */
 void *
 vips__start_merge( VipsImage *out, void *a, void *b )
@@ -1041,12 +1045,13 @@ vips__start_merge( VipsImage *out, void *a, void *b )
 }
 
 int
-vips__lrmerge( VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, int mwidth )
+vips__lrmerge( VipsImage *ref, VipsImage *sec, VipsImage *out, 
+	int dx, int dy, int mwidth )
 {
 	Overlapping *ovlap;
 
 #ifdef DEBUG
-	printf( "vips__lrmerge %s %s %s %d %d %d\n", 
+	printf( "lrmerge %s %s %s %d %d %d\n", 
 		ref->filename, sec->filename, out->filename, 
 		dx, dy, mwidth );
 	printf( "ref is %d x %d pixels\n", ref->Xsize, ref->Ysize );
@@ -1054,16 +1059,24 @@ vips__lrmerge( VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, i
 #endif
 
 	if( dx > 0 || dx < 1 - ref->Xsize ) {
+		VipsImage *x;
+
 #ifdef DEBUG
-		printf( "vips__lrmerge: no overlap, using insert\n" ); 
+		printf( "lrmerge: no overlap, using insert\n" ); 
 #endif
 
 		/* No overlap, use insert instead.
 		 */
-  		if( vips_insert( ref, sec, &out, -dx, -dy,
+  		if( vips_insert( ref, sec, &x, -dx, -dy,
   			"expand", TRUE,
 			NULL ) )
 			return( -1 );
+		if( vips_image_write( x, out ) ) {
+			g_object_unref( x );
+			return( -1 );
+		}
+		g_object_unref( x );
+
 		out->Xoffset = -dx;
 		out->Yoffset = -dy;
 
@@ -1083,7 +1096,8 @@ vips__lrmerge( VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, i
 	out->Yoffset = -dy;
 
 	if( vips_image_generate( out,
-		vips__start_merge, vips__merge_gen, vips__stop_merge, ovlap, NULL ) )
+		vips__start_merge, vips__merge_gen, vips__stop_merge, 
+		ovlap, NULL ) )
 		return( -1 );
 
 	return ( 0 );
@@ -1109,8 +1123,9 @@ vips__add_mosaic_name( VipsImage *image )
 {
 	static int global_serial = 0;
 
-	/* TODO(kleisauke): Could we call vips_image_temp_name instead? */
 	/* Old glibs named this differently.
+	 *
+	 * TODO(kleisauke): Could we call vips_image_temp_name instead?
 	 */
 	int serial =
 #if GLIB_CHECK_VERSION( 2, 30, 0 )
@@ -1128,19 +1143,3 @@ vips__add_mosaic_name( VipsImage *image )
 	vips_image_set_string( image, "mosaic-name", name );
 }
 
-int
-vips_lrmerge( VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, int mwidth )
-{ 
-	if( vips__lrmerge( ref, sec, out, dx, dy, mwidth ) )
-		return( -1 );
-
-	vips__add_mosaic_name( out );
-	if( vips_image_history_printf( out, "#LRJOIN <%s> <%s> <%s> <%d> <%d> <%d>", 
-		vips__get_mosaic_name( ref ), 
-		vips__get_mosaic_name( sec ), 
-		vips__get_mosaic_name( out ), 
-		-dx, -dy, mwidth ) )
-		return( -1 );
-
-	return( 0 );
-}

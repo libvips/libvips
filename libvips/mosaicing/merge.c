@@ -41,7 +41,7 @@
 #include <stdio.h>
 
 #include <vips/vips.h>
-#include <vips/internal.h>
+#include "pmosaicing.h"
 
 typedef struct {
 	VipsOperation parent_instance;
@@ -72,13 +72,13 @@ vips_merge_build( VipsObject *object )
 
 	switch( merge->direction ) { 
 	case VIPS_DIRECTION_HORIZONTAL:
-		if( vips_lrmerge( merge->ref, merge->sec, merge->out, 
+		if( vips__lrmerge( merge->ref, merge->sec, merge->out, 
 			merge->dx, merge->dy, merge->mblend ) )
 			return( -1 ); 
 		break;
 
 	case VIPS_DIRECTION_VERTICAL:
-		if( vips_tbmerge( merge->ref, merge->sec, merge->out, 
+		if( vips__tbmerge( merge->ref, merge->sec, merge->out, 
 			merge->dx, merge->dy, merge->mblend ) )
 			return( -1 ); 
 		break;
@@ -86,6 +86,17 @@ vips_merge_build( VipsObject *object )
 	default:
 		g_assert_not_reached();
 	}
+
+	vips__add_mosaic_name( merge->out );
+	if( vips_image_history_printf( merge->out, 
+		"#%s <%s> <%s> <%s> <%d> <%d> <%d>", 
+		merge->direction == VIPS_DIRECTION_HORIZONTAL ?
+			"LRJOIN" : "TBJOIN",
+		vips__get_mosaic_name( merge->ref ), 
+		vips__get_mosaic_name( merge->sec ), 
+		vips__get_mosaic_name( merge->out ), 
+		-merge->dx, -merge->dy, merge->mblend ) ) 
+		return( -1 );
 
 	return( 0 );
 }
