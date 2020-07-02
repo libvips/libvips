@@ -33,9 +33,12 @@ handles all the EXIF image orientations for all formats.
 
 libvips now has support for [libspng](https://libspng.org/), a new PNG
 library which is simpler, faster and more secure than the usual libpng.
-
 You can expect roughly a 25% speedup for PNG load. For now, save is still
 via libpng.
+
+The Windows binary is built with libspng. Homebrew already includes libspng. 
+When libspng is packaged by the linux distributions, libvips should start using
+it there too.
 
 # Pyramids
 
