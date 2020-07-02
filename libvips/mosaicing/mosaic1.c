@@ -275,11 +275,11 @@ rotjoin_search( VipsImage *ref, VipsImage *sec, VipsImage *out, joinfn jfn,
 	 * vips__transform_set_area() has set, and move the sec tie-points 
 	 * accordingly.
 	 */
-	if( vips_correl( t[0], t[2], xr1, yr1, 
+	if( vips__correl( t[0], t[2], xr1, yr1, 
 		xs3 - trn.oarea.left, ys3 - trn.oarea.top,
 		halfcorrelation, halfarea, &cor1, &xs5, &ys5 ) )
 		return( -1 );
-	if( vips_correl( t[0], t[2], xr2, yr2, 
+	if( vips__correl( t[0], t[2], xr2, yr2, 
 		xs4 - trn.oarea.left, ys4 - trn.oarea.top,
 		halfcorrelation, halfarea, &cor2, &xs6, &ys6 ) )
 		return( -1 );

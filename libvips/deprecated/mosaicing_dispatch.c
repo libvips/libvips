@@ -123,7 +123,7 @@ lrmosaic_vec( im_object *argv )
 	int balancetype = *((int *) argv[10]);
 	int mwidth = *((int *) argv[11]);
 
-	return( vips_lrmosaic( argv[0], argv[1], argv[2], 
+	return( vips__lrmosaic( argv[0], argv[1], argv[2], 
 		bandno, 
 		xr, yr, xs, ys, 
 		halfcorrelation, halfarea,
@@ -257,7 +257,7 @@ tbmosaic_vec( im_object *argv )
 	int balancetype = *((int *) argv[10]);
 	int mwidth = *((int *) argv[11]);
 
-	return( vips_tbmosaic( argv[0], argv[1], argv[2], 
+	return( vips__tbmosaic( argv[0], argv[1], argv[2], 
 		bandno, 
 		x1, y1, x2, y2, 
 		halfcorrelation, halfarea,
@@ -594,7 +594,7 @@ correl_vec( im_object *argv )
 	int *y = (int *) argv[9];
 	double *correlation = (double *) argv[10];
 
-	return( vips_correl( argv[0], argv[1], 
+	return( vips__correl( argv[0], argv[1], 
 		xref, yref, xsec, ysec, cor, area, correlation, x, y ) );
 }
 

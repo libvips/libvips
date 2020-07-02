@@ -59,8 +59,7 @@
 
 #include "pmosaicing.h"
 
-/**
- * vips_correl:
+/* vips__correl:
  * @ref: reference image
  * @sec: secondary image
  * @xref: position in reference image
@@ -86,19 +85,19 @@
  * parts needed.  Correlation is done with vips_spcor(); the position of
  * the maximum is found with vips_max().
  * 
- * See also: vips_match(), vips_lrmosaic().
+ * See also: vips_match(), vips__lrmosaic().
  *
  * Returns: 0 on success, -1 on error
  */
 int 
-vips_correl( VipsImage *ref, VipsImage *sec, 
+vips__correl( VipsImage *ref, VipsImage *sec, 
 	int xref, int yref, int xsec, int ysec,
 	int hwindowsize, int hsearchsize,
 	double *correlation, int *x, int *y )
 {
 	VipsImage *surface = vips_image_new();
 	VipsImage **t = (VipsImage **)
-			vips_object_local_array( VIPS_OBJECT( surface ), 4 );
+		vips_object_local_array( VIPS_OBJECT( surface ), 4 );
 
 	VipsRect refr, secr;
 	VipsRect winr, srhr;
@@ -130,9 +129,11 @@ vips_correl( VipsImage *ref, VipsImage *sec,
 	/* Extract window and search area.
 	 */
 	if( vips_extract_area( ref, &t[0], 
-			wincr.left, wincr.top, wincr.width, wincr.height, NULL ) ||
+			wincr.left, wincr.top, wincr.width, wincr.height, 
+			NULL ) ||
 		vips_extract_area( sec, &t[1], 
-			srhcr.left, srhcr.top, srhcr.width, srhcr.height, NULL ) ) {
+			srhcr.left, srhcr.top, srhcr.width, srhcr.height, 
+			NULL ) ) {
 		g_object_unref( surface );
 		return( -1 );
 	}
@@ -205,7 +206,7 @@ vips__chkpair( VipsImage *ref, VipsImage *sec, TiePoints *points )
 	for( i = 0; i < points->nopoints; i++ ) {
 		/* Find correlation point.
 		 */
-		if( vips_correl( ref, sec, 
+		if( vips__correl( ref, sec, 
 			points->x_reference[i], points->y_reference[i],
 			points->x_reference[i], points->y_reference[i],
 			hcor, harea, 

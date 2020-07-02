@@ -1,21 +1,21 @@
-/* join left-right with an approximate overlap
+/* join top-bottom with an approximate overlap
  *
  * Copyright: 1990, N. Dessipris.
  *
  * Author: Nicos Dessipris
  * Written on: 07/11/1989
  * Modified on : 29/11/1989, 18/04/1991
- *
- *
  * Modified and debugged by Ahmed Abbood . 1995
  * 14/6/95 JC
- *	- rewritten for new balance ideas
+ *	- adapted for new balance ideas
  *	- more bug-fixes
  * 1/11/95 JC
  *	- frees memory used by analysis phase as soon as possible
  *	- means large mosaics use significantly less peak memory
  * 26/3/96 JC
- *	- now calls im_lrmerge() rather than im__lrmerge()
+ *	- now calls im_tbmerge() rather than im__tbmerge()
+ * 30/7/97 JC
+ * 	- im__find_tboverlap() returns 1st order params too
  * 2/2/01 JC
  *	- added tunable max blend width
  * 24/2/05
@@ -56,10 +56,6 @@
 
  */
 
-/* Define for debug output.
-#define DEBUG
- */
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -73,33 +69,8 @@
 
 #include "pmosaicing.h"
 
-#ifdef DEBUG
-static void
-vips__print_mdebug( TiePoints *points )
-{
-	int i;
-	double adx = 0.0;
-	double ady = 0.0;
-	double acor = 0.0;
-
-	for( i = 0; i < points->nopoints; i++ ) {
-		adx += points->dx[i];
-		ady += points->dy[i];
-		acor += points->correlation[i];
-	}
-	adx = adx / (double) points->nopoints;
-	ady = ady / (double) points->nopoints;
-	acor = acor / (double) points->nopoints;
-
-	printf( "points: %d\n", points->nopoints );
-	printf( "average dx, dy: %g %g\n", adx, ady );
-	printf( "average correlation: %g\n", acor );
-	printf( "deltax, deltay: %g %g\n", points->l_deltax, points->l_deltay );
-}
-#endif /*DEBUG*/
-
 int 
-vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
+vips__find_tboverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 	int bandno_in, 
 	int xref, int yref, int xsec, int ysec, 
 	int halfcorrelation, int halfarea,
@@ -107,10 +78,10 @@ vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 	double *scale1, double *angle1, double *dx1, double *dy1 )
 {
 	VipsImage **t = (VipsImage **)
-		vips_object_local_array( VIPS_OBJECT( out ), 6 );
+			vips_object_local_array( VIPS_OBJECT( out ), 6 );
 
-	VipsRect left, right, overlap;
-	TiePoints points, *p_points;
+	VipsRect top, bottom, overlap;
+	TiePoints points, *p_points;		/* defined in mosaic.h */
 	TiePoints newpoints, *p_newpoints;
 	int i;
 	int dx, dy;
@@ -119,38 +90,38 @@ vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 	 */
 	if( halfcorrelation < 0 || halfarea < 0 || 
 		halfarea < halfcorrelation ) {
-		vips_error( "vips_lrmosaic", "%s", _( "bad area parameters" ) );
+		vips_error( "vips_tbmosaic", "%s", _( "bad area parameters" ) );
 		return( -1 );
 	}
 
-	/* Set positions of left and right.
+	/* Set positions of top and bottom.
 	 */
-	left.left = 0;
-	left.top = 0;
-	left.width = ref_in->Xsize;
-	left.height = ref_in->Ysize;
-	right.left = xref - xsec;
-	right.top = yref - ysec;
-	right.width = sec_in->Xsize;
-	right.height = sec_in->Ysize;
+	top.left = 0;
+	top.top = 0;
+	top.width = ref_in->Xsize;
+	top.height = ref_in->Ysize;
+	bottom.left = xref - xsec;
+	bottom.top = yref - ysec;
+	bottom.width = sec_in->Xsize;
+	bottom.height = sec_in->Ysize;
 
 	/* Find overlap.
 	 */
-	vips_rect_intersectrect( &left, &right, &overlap );
+	vips_rect_intersectrect( &top, &bottom, &overlap );
 	if( overlap.width < 2 * halfarea + 1 ||
 		overlap.height < 2 * halfarea + 1 ) {
-		vips_error( "vips_lrmosaic", 
-			"%s", _( "overlap too small for search" ) );
+		vips_error( "vips_tbmosaic", "%s", 
+			_( "overlap too small for search" ) );
 		return( -1 );
 	}
 
 	/* Extract overlaps as 8-bit, 1 band.
 	 */
-	if( vips_extract_area( ref_in, &t[0],
+	if( vips_extract_area( ref_in, &t[0], 
 			overlap.left, overlap.top, 
 			overlap.width, overlap.height, NULL ) ||
 		vips_extract_area( sec_in, &t[1], 
-			overlap.left - right.left, overlap.top - right.top, 
+			overlap.left - bottom.left, overlap.top - bottom.top, 
 			overlap.width, overlap.height, NULL ) )
 		return( -1 );
 	if( ref_in->Coding == VIPS_CODING_LABQ ) {
@@ -168,7 +139,7 @@ vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 			return( -1 );
 	}
 	else {
-		vips_error( "vips_lrmosaic", "%s", _( "unknown Coding type" ) );
+		vips_error( "vips_tbmosaic", "%s", _( "unknown Coding type" ) );
 		return( -1 );
 	}
 
@@ -201,7 +172,7 @@ vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 	/* Search ref for possible tie-points. Sets: p_points->contrast, 
 	 * p_points->x,y_reference.
  	 */
-	if( vips__lrcalcon( t[4], p_points ) )
+	if( vips__tbcalcon( t[4], p_points ) )
 		return( -1 ); 
 
 	/* For each candidate point, correlate against corresponding part of
@@ -228,8 +199,8 @@ vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 
 	/* Offset with overlap position.
 	 */
-	*dx0 = -right.left + dx;
-	*dy0 = -right.top + dy;
+	*dx0 = -bottom.left + dx;
+	*dy0 = -bottom.top + dy;
 
 	/* Write 1st order parameters too.
 	 */
@@ -242,8 +213,8 @@ vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 }
 
 int 
-vips_lrmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out, 
-	int bandno, 
+vips__tbmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out, 
+	int bandno,
 	int xref, int yref, int xsec, int ysec, 
 	int hwindowsize, int hsearchsize,
 	int balancetype,
@@ -258,7 +229,7 @@ vips_lrmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	 * memory used by the analysis phase is freed as soon as possible.
 	 */
 	dummy = vips_image_new();
-	if( vips__find_lroverlap( ref, sec, dummy,
+	if( vips__find_tboverlap( ref, sec, dummy,
 		bandno, 
 		xref, yref, xsec, ysec,
 		hwindowsize, hsearchsize,
@@ -269,9 +240,9 @@ vips_lrmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	}
 	g_object_unref( dummy );
 
-	/* Merge left right.
+	/* Merge top-bottom.
 	 */
-	if( vips_merge( ref, sec, &x, VIPS_DIRECTION_HORIZONTAL, dx0, dy0, 
+	if( vips_merge( ref, sec, &x, VIPS_DIRECTION_VERTICAL, dx0, dy0, 
 		"mblend", mwidth,
 		NULL ) )
 		return( -1 ); 
@@ -283,3 +254,4 @@ vips_lrmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out,
 
 	return( 0 );
 }
+
