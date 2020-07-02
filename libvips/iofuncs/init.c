@@ -639,7 +639,7 @@ vips_leak( void )
 		vips_buf_appendf( &buf, "error buffer: %s", 
 			vips_error_buffer() );
 
-	if( vips__n_active_threads != 0 )
+	if( vips__n_active_threads > 0 )
 		vips_buf_appendf( &buf, "threads: %d not joined\n", 
 			vips__n_active_threads ); 
 
