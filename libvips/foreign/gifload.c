@@ -41,6 +41,7 @@
  * 	- fix DISPOSE_BACKGROUND and DISPOSE_PREVIOUS
  * 2/7/20
  * 	- clip out of bounds images against canvas
+ * 	- fix PREVIOUS handling, again
  */
 
 /*
@@ -215,11 +216,6 @@ typedef struct _VipsForeignLoadGif {
 	 * frame.
 	 */
 	int transparent_index;
-
-	/* Params for DGifOpen(). Set by subclasses, called by base class in
-	 * _open().
-	 */
-	InputFunc read_func;
 
 } VipsForeignLoadGif;
 
@@ -927,14 +923,14 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 	 */
 	vips_foreign_load_gif_build_cmap( gif );
 
-	/* PREVIOUS means we init the frame with the last un-disposed frame. 
-	 * So the last un-disposed frame is used as a backdrop for the new 
-	 * frame.
+	/* If this is PREVIOUS, then after we're done, we'll need to restore
+	 * the frame to what it was previously. Make a note of the current
+	 * state.
 	 */
 	if( gif->dispose == DISPOSE_PREVIOUS ) 
-		memcpy( VIPS_IMAGE_ADDR( gif->scratch, 0, 0 ),
-			VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
-			VIPS_IMAGE_SIZEOF_IMAGE( gif->scratch ) );
+		memcpy( VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
+			VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
+			VIPS_IMAGE_SIZEOF_IMAGE( gif->previous ) );
 
 	if( file->Image.Interlace ) {
 		int i;
@@ -996,39 +992,52 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 		VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
 
 	if( gif->dispose == DISPOSE_BACKGROUND ) {
-		/* BACKGROUND means we reset the frame to transparent before we
-		 * render the next set of pixels.
+		/* BACKGROUND means we reset the area we just painted to 
+		 * transparent. We have to clip against the canvas.
 		 */
-		guint32 *q = (guint32 *) VIPS_IMAGE_ADDR( gif->scratch, 
-			file->Image.Left, file->Image.Top );
+		VipsRect canvas;
+		VipsRect image;
+		VipsRect overlap;
 
-		/* What we write for transparent pixels. We want RGB to be
-		 * 255, and A to be 0.
-		 */
-		guint32 ink = GUINT32_TO_BE( 0xffffff00 );
+		canvas.left = 0;
+		canvas.top = 0;
+		canvas.width = gif->file->SWidth;
+		canvas.height = gif->file->SHeight;
+		image.left = file->Image.Left,
+		image.top = file->Image.Top,
+		image.width = file->Image.Width,
+		image.height = file->Image.Height,
+		vips_rect_intersectrect( &canvas, &image, &overlap );
 
-		int x, y;
+		if( !vips_rect_isempty( &overlap ) ) { 
+			guint32 *q = (guint32 *) VIPS_IMAGE_ADDR( gif->scratch, 
+				overlap.left, overlap.top );
 
-		/* Generate the first line a pixel at a time, memcpy() for
-		 * subsequent lines.
-		 */
-		if( file->Image.Height > 0 ) 
-			for( x = 0; x < file->Image.Width; x++ )
-				q[x] = ink;
+			/* What we write for transparent pixels. We want RGB 
+			 * to be 255, and A to be 0.
+			 */
+			guint32 transparent = GUINT32_TO_BE( 0xffffff00 );
 
-		for( y = 1; y < file->Image.Height; y++ )
-			memcpy( q + gif->scratch->Xsize * y, 
-				q, 
-				file->Image.Width * sizeof( guint32 ) );
+			int x, y;
+
+			/* Generate the first line a pixel at a time, 
+			 * memcpy() for subsequent lines.
+			 */
+			for( x = 0; x < overlap.width; x++ )
+				q[x] = transparent;
+
+			for( y = 1; y < overlap.height; y++ )
+				memcpy( q + gif->scratch->Xsize * y, 
+					q, 
+					overlap.width * sizeof( guint32 ) );
+		}
 	}
-	else if( gif->dispose == DISPOSAL_UNSPECIFIED || 
-		gif->dispose == DISPOSE_DO_NOT ) 
-		/* Copy the frame to previous, so it can be restored if 
-		 * DISPOSE_PREVIOUS is specified in a later frame.
+	else if( gif->dispose == DISPOSE_PREVIOUS ) 
+		/* If this is PREVIOUS, put everything back.
 		 */
-		memcpy( VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
-			VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
-			VIPS_IMAGE_SIZEOF_IMAGE( gif->previous ) );
+		memcpy( VIPS_IMAGE_ADDR( gif->scratch, 0, 0 ),
+			VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
+			VIPS_IMAGE_SIZEOF_IMAGE( gif->scratch ) );
 
 	/* Reset values, as Graphic Control Extension is optional
 	 */
