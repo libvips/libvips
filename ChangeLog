@@ -39,7 +39,8 @@
 - rework the final bits of vips7 for vips8 [kleisauke]
 - --disable-deprecated now works [kleisauke]
 - vipsheader allows "stdin" as a filename
-- gifload clips out of bounds images against the canvas
+- gifload allows gifs with images outside the canvas
+- wasm compatibility patches [kleisauke]
 
 24/4/20 started 8.9.3
 - better iiif tile naming [IllyaMoskvin]
