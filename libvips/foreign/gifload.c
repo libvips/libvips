@@ -116,7 +116,6 @@
 #define DISPOSE_PREVIOUS          3
 #endif
 
-
 #define NO_TRANSPARENT_INDEX      -1
 #define TRANSPARENT_MASK          0x01
 #define DISPOSE_MASK              0x07
@@ -893,7 +892,7 @@ vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif,
 		VipsPel *dst = VIPS_IMAGE_ADDR( gif->scratch, 
 			overlap.left, overlap.top );
 		guint32 * restrict idst = (guint32 *) dst;
-		VipsPel * restrict src = line + overlap.left - row.left;
+		VipsPel * restrict src = line + (overlap.left - row.left);
 
 		int x;
 
@@ -985,7 +984,7 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 		}
 	}
 
-	/* Copy the result to frame, which then is picked up from outside
+	/* Copy the result to frame, ready to be copied to our output.
 	 */
 	memcpy( VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
 		VIPS_IMAGE_ADDR( gif->scratch, 0, 0 ),
@@ -1033,13 +1032,14 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 		}
 	}
 	else if( gif->dispose == DISPOSE_PREVIOUS ) 
-		/* If this is PREVIOUS, put everything back.
+		/* PREVIOUS means we restore the previous state of the scratch
+		 * area.
 		 */
 		memcpy( VIPS_IMAGE_ADDR( gif->scratch, 0, 0 ),
 			VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
 			VIPS_IMAGE_SIZEOF_IMAGE( gif->scratch ) );
 
-	/* Reset values, as Graphic Control Extension is optional
+	/* Reset values, as the Graphic Control Extension is optional
 	 */
 	gif->dispose = DISPOSAL_UNSPECIFIED;
 	gif->transparent_index = NO_TRANSPARENT_INDEX;
@@ -1605,17 +1605,16 @@ vips_foreign_load_gif_source_init( VipsForeignLoadGifSource *source )
  * * @page: %gint, page (frame) to read
  * * @n: %gint, load this many pages
  *
- * Read a GIF file into a VIPS image.
+ * Read a GIF file into a libvips image.
  *
  * Use @page to select a page to render, numbering from zero.
  *
  * Use @n to select the number of pages to render. The default is 1. Pages are
- * rendered in a vertical column, with each individual page aligned to the
- * left. Set to -1 to mean "until the end of the document". Use vips_grid()
- * to change page layout.
+ * rendered in a vertical column. Set to -1 to mean "until the end of the 
+ * document". Use vips_grid() to change page layout.
  *
- * The whole GIF is rendered into memory on header access. The output image
- * will be 1, 2, 3 or 4 bands depending on what the reader finds in the file.
+ * The output image will be 1, 2, 3 or 4 bands for mono, mono plus
+ * transparency, RGB, or RGB plus transparency.
  *
  * See also: vips_image_new_from_file().
  *
