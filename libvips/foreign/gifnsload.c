@@ -56,6 +56,10 @@
  *
  * - libnsgif does not seem to support comment metadata
  *
+ * - dispose_previous is not handled correctly by libnsgif
+ *
+ * - it always loads the entire source file into memory
+ *
  * Notes:
  *
  * - hard to detect mono images -- local_colour_table in libnsgif is only set
