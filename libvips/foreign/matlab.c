@@ -92,7 +92,7 @@ read_destroy( Read *read )
 	VIPS_FREEF( Mat_VarFree, read->var );
 	VIPS_FREEF( Mat_Close, read->mat );
 
-	vips_free( read );
+	g_free( read );
 }
 
 static Read *

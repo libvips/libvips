@@ -58,21 +58,17 @@
  *
  * The mosaicing functions can be grouped into layers:
  *
- * The lowest level functions are vips_correl() and vips_merge().
- * vips_correl() 
- * searches a large image for a small sub-image, returning
- * the position of the best sub-image match. vips_merge() 
+ * The lowest level operation is vips_merge()  which
  * joins two images together
  * left-right or up-down with a smooth seam.
  *
- * Next, vips_mosaic() use the
- * search function plus the two low-level merge operations to join two images 
+ * Next, vips_mosaic() uses
+ * search functions plus the two low-level merge operations to join two images 
  * given just an approximate overlap as a start point. 
  *
- * The functions vips_lrmosaic1() and vips_tbmosaic1() are
- * first-order
- * analogues of the basic mosaic functions: they take two approximate 
- * tie-points and use
+ * vips_mosaic1() is a first-order
+ * analogue of the basic mosaic functions: it takes two approximate 
+ * tie-points and uses
  * them to rotate and scale the right-hand or bottom image before starting to
  * join.
  *

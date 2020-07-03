@@ -390,7 +390,7 @@ file_add_class( VipsForeignClass *class, GSList **files )
 }
 
 static gint
-file_compare( VipsForeignClass *a, VipsForeignClass *b )
+file_compare( VipsForeignClass *a, VipsForeignClass *b, void *user_data )
 {
         return( b->priority - a->priority );
 }
@@ -479,7 +479,7 @@ vips_foreign_load_summary_class( VipsObjectClass *object_class, VipsBuf *buf )
  */
 static void *
 vips_foreign_find_load_sub( VipsForeignLoadClass *load_class, 
-	const char *filename )
+	const char *filename, void *b )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( load_class );
 	VipsForeignClass *class = VIPS_FOREIGN_CLASS( load_class );
@@ -1763,7 +1763,7 @@ vips_foreign_save_init( VipsForeignSave *save )
  */
 static void *
 vips_foreign_find_save_sub( VipsForeignSaveClass *save_class, 
-	const char *filename )
+	const char *filename, void *b )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( save_class );
 	VipsForeignClass *class = VIPS_FOREIGN_CLASS( save_class );
@@ -1919,7 +1919,7 @@ vips_foreign_save( VipsImage *in, const char *name, ... )
  */
 static void *
 vips_foreign_find_save_target_sub( VipsForeignSaveClass *save_class, 
-	const char *suffix )
+	const char *suffix, void *b )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( save_class );
 	VipsForeignClass *class = VIPS_FOREIGN_CLASS( save_class );
@@ -1977,7 +1977,7 @@ vips_foreign_find_save_target( const char *name )
  */
 static void *
 vips_foreign_find_save_buffer_sub( VipsForeignSaveClass *save_class, 
-	const char *suffix )
+	const char *suffix, void *b )
 {
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( save_class );
 	VipsForeignClass *class = VIPS_FOREIGN_CLASS( save_class );

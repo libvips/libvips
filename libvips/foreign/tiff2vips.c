@@ -522,7 +522,7 @@ rtiff_free( Rtiff *rtiff )
 }
 
 static void
-rtiff_close_cb( VipsObject *object, Rtiff *rtiff )
+rtiff_close_cb( VipsImage *image, Rtiff *rtiff )
 {
 	rtiff_free( rtiff ); 
 }
@@ -1926,7 +1926,7 @@ rtiff_fill_region( VipsRegion *out,
 static int
 rtiff_seq_stop( void *seq, void *a, void *b )
 {
-	vips_free( seq );
+	g_free( seq );
 
 	return( 0 );
 }

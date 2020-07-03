@@ -276,6 +276,25 @@ VipsWindow *vips_window_take( VipsWindow *window,
 
 int vips__profile_set( VipsImage *image, const char *name );
 
+int vips__lrmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out,
+	int bandno,
+	int xref, int yref, int xsec, int ysec,
+	int hwindowsize, int hsearchsize,
+	int balancetype,
+	int mwidth );
+
+int vips__tbmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out,
+	int bandno,
+	int xref, int yref, int xsec, int ysec,
+	int hwindowsize, int hsearchsize,
+	int balancetype,
+	int mwidth );
+
+int vips__correl( VipsImage *ref, VipsImage *sec, 
+	int xref, int yref, int xsec, int ysec,
+	int hwindowsize, int hsearchsize,
+	double *correlation, int *x, int *y );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

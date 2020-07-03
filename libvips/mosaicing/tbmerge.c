@@ -663,17 +663,30 @@ build_tbstate( VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, i
 }
 
 int
-vips__tbmerge( VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, int mwidth )
+vips__tbmerge( VipsImage *ref, VipsImage *sec, VipsImage *out, 
+	int dx, int dy, int mwidth )
 {  
 	Overlapping *ovlap;
 
 	if( dy > 0 || dy < 1 - ref->Ysize ) {
+		VipsImage *x;
+
+#ifdef DEBUG
+		printf( "vips__tbmerge: no overlap, using insert\n" ); 
+#endif
+
 		/* No overlap, use insert instead.
 		 */
-  		if( vips_insert( ref, sec, &out, -dx, -dy,
+  		if( vips_insert( ref, sec, &x, -dx, -dy,
 			"expand", TRUE,
 			NULL ) )
 			return( -1 );
+		if( vips_image_write( x, out ) ) {
+			g_object_unref( x );
+			return( -1 );
+		}
+		g_object_unref( x );
+
 		out->Xoffset = -dx;
 		out->Yoffset = -dy;
 
@@ -699,19 +712,3 @@ vips__tbmerge( VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, i
 	return ( 0 );
 }
 
-int
-vips_tbmerge( VipsImage *ref, VipsImage *sec, VipsImage *out, int dx, int dy, int mwidth )
-{ 
-	if( vips__tbmerge( ref, sec, out, dx, dy, mwidth ) )
-		return( -1 );
-
-	vips__add_mosaic_name( out );
-	if( vips_image_history_printf( out, "#TBJOIN <%s> <%s> <%s> <%d> <%d> <%d>", 
-		vips__get_mosaic_name( ref ), 
-		vips__get_mosaic_name( sec ), 
-		vips__get_mosaic_name( out ), 
-		-dx, -dy, mwidth ) )
-		return( -1 );
-
-	return( 0 );
-}

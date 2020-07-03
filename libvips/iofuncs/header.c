@@ -235,7 +235,7 @@ vips_format_sizeof_unsafe( VipsBandFormat format )
 /* Check that this meta is on the hash table.
  */
 static void *
-meta_sanity_on_hash( VipsMeta *meta, VipsImage *im )
+meta_sanity_on_hash( VipsMeta *meta, VipsImage *im, void *b )
 {
 	VipsMeta *found;
 
@@ -970,7 +970,7 @@ vips_image_init_fields( VipsImage *image,
 }
 
 static void *
-meta_cp_field( VipsMeta *meta, VipsImage *dst )
+meta_cp_field( VipsMeta *meta, VipsImage *dst, void *b )
 {
 #ifdef DEBUG
 {
@@ -1569,7 +1569,7 @@ vips_image_set_blob_copy( VipsImage *image,
 	((unsigned char *) data_copy)[length] = '\0';
 
 	vips_image_set_blob( image, 
-		name, (VipsCallbackFn) vips_free, data_copy, length );
+		name, (VipsCallbackFn) vips_area_free_cb, data_copy, length );
 }
 
 /** 

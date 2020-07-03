@@ -319,27 +319,27 @@ typedef struct _VipsImageClass {
 
 	/* Evaluation is starting.
 	 */
-	void (*preeval)( VipsImage *image, VipsProgress *progress );
+	void (*preeval)( VipsImage *image, VipsProgress *progress, void *data );
 
 	/* Evaluation progress.
 	 */
-	void (*eval)( VipsImage *image, VipsProgress *progress );
+	void (*eval)( VipsImage *image, VipsProgress *progress, void *data );
 
 	/* Evaluation is ending.
 	 */
-	void (*posteval)( VipsImage *image, VipsProgress *progress );
+	void (*posteval)( VipsImage *image, VipsProgress *progress, void *data );
 
 	/* An image has been written to. 
 	 * Used by eg. vips_image_new_mode("x.jpg", "w") to do the 
 	 * final write to jpeg.
 	 * Set *result to non-zero to indicate an error on write.
 	 */
-	void (*written)( VipsImage *image, int *result );
+	void (*written)( VipsImage *image, int *result, void *data );
 
 	/* An image has been modified in some way and all caches 
 	 * need dropping. 
 	 */
-	void (*invalidate)( VipsImage *image );
+	void (*invalidate)( VipsImage *image, void *data );
 
 	/* Minimise this pipeline. 
 	 *
@@ -349,7 +349,7 @@ typedef struct _VipsImageClass {
 	 *
 	 * See vips_tilecache().
 	 */
-	void (*minimise)( VipsImage *image );
+	void (*minimise)( VipsImage *image, void *data );
 
 } VipsImageClass;
 

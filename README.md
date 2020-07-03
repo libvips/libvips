@@ -4,51 +4,6 @@
 [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/libvips.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=2&q=proj:libvips)
 [![Coverity Status](https://scan.coverity.com/projects/6503/badge.svg)](https://scan.coverity.com/projects/jcupitt-libvips)
 
-# This branch
-
-Is for experiemtning with [libspng](https://github.com/randy408/libspng).
-
-## Notes
-
-Build libspng:
-
-```
-cd libspng
-meson build --prefix=/home/john/vips --libdir=/home/john/vips/lib \
-    --buildtype=release
-cd build 
-ninja
-ninja install
-```
-
-Installs `spng.pc`.
-
-Sample code:
-
-https://github.com/randy408/libspng/blob/master/examples/example.c
-
-libspng benchmark:
-
-```
-$ time vips avg wtc.png
-117.065766
-
-real	0m2.972s
-user	0m3.376s
-sys	0m0.197s
-```
-
-And for libpng:
-
-```
-$ time vips avg wtc.png
-117.065766
-
-real	0m3.816s
-user	0m4.177s
-sys	0m0.221s
-```
-
 # Introduction
 
 libvips is a [demand-driven, horizontally

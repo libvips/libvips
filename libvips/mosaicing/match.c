@@ -37,6 +37,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pmosaicing.h"
 
@@ -127,7 +128,7 @@ vips_match_build( VipsObject *object )
 		int xs, ys;
 		double cor;
 
-		if( vips_correl( match->ref, match->sec, 
+		if( vips__correl( match->ref, match->sec, 
 			match->xr1, match->yr1, match->xs1, match->ys1,
 			match->hwindow, match->harea, 
 			&cor, &xs, &ys ) )
@@ -135,7 +136,7 @@ vips_match_build( VipsObject *object )
 		match->xs1 = xs;
 		match->ys1 = ys;
 
-		if( vips_correl( match->ref, match->sec, 
+		if( vips__correl( match->ref, match->sec, 
 			match->xr2, match->yr2, match->xs2, match->ys2,
 			match->hwindow, match->harea, 
 			&cor, &xs, &ys ) )

@@ -39,6 +39,9 @@
  * 	- add gifload_source
  * 5/2/20 alon-ne
  * 	- fix DISPOSE_BACKGROUND and DISPOSE_PREVIOUS
+ * 2/7/20
+ * 	- clip out of bounds images against canvas
+ * 	- fix PREVIOUS handling, again
  */
 
 /*
@@ -177,7 +180,8 @@ typedef struct _VipsForeignLoadGif {
 	 */
 	VipsImage *frame;
 
-	/* A scratch buffer the size of frame, used for rendering.
+	/* A scratch buffer the size of the largest Image inside the GIF. We 
+	 * decompress lines from the GIF to this.
 	 */
 	VipsImage *scratch;
 
@@ -189,8 +193,10 @@ typedef struct _VipsForeignLoadGif {
 	 */
 	int current_page;
 
-	/* Decompress lines of the gif file to here.
+	/* Decompress lines of the gif file to here. This is large enough to
+	 * hold one line of the widest sub-image in the GIF.
 	 */
+	int max_image_width;
 	GifPixelType *line;
 
 	/* The current dispose method.
@@ -210,11 +216,6 @@ typedef struct _VipsForeignLoadGif {
 	 * frame.
 	 */
 	int transparent_index;
-
-	/* Params for DGifOpen(). Set by subclasses, called by base class in
-	 * _open().
-	 */
-	InputFunc read_func;
 
 } VipsForeignLoadGif;
 
@@ -400,6 +401,7 @@ vips_foreign_load_gif_open_giflib( VipsForeignLoadGif *gif )
 
 	gif->eof = FALSE;
 	gif->current_page = 0;
+	gif->max_image_width = 0;
 
 	return( 0 );
 }
@@ -478,8 +480,10 @@ vips_foreign_load_gif_ext_next( VipsForeignLoadGif *gif,
 		return( -1 );
 	}
 
+#ifdef DEBUG_VERBOSE
 	if( *extension )
-		VIPS_DEBUG_MSG( "gifload: EXTENSION_NEXT\n" );
+		printf( "gifload: EXTENSION_NEXT\n" );
+#endif /*DEBUG_VERBOSE*/
 
 	return( 0 );
 }
@@ -493,8 +497,10 @@ vips_foreign_load_gif_code_next( VipsForeignLoadGif *gif,
 		return( -1 );
 	}
 
+#ifdef DEBUG_VERBOSE
 	if( *extension )
-		VIPS_DEBUG_MSG( "gifload: CODE_NEXT\n" );
+		printf( "gifload: CODE_NEXT\n" );
+#endif /*DEBUG_VERBOSE*/
 
 	return( 0 );
 }
@@ -510,25 +516,32 @@ vips_foreign_load_gif_scan_image( VipsForeignLoadGif *gif )
 	ColorMapObject *map;
 	GifByteType *extension;
 
-	if( DGifGetImageDesc( gif->file ) == GIF_ERROR ) {
+	if( DGifGetImageDesc( file ) == GIF_ERROR ) {
 		vips_foreign_load_gif_error( gif );
 		return( -1 );
 	}
 
-	/* Check that the frame looks sane. Perhaps giflib checks
-	 * this for us.
+	VIPS_DEBUG_MSG( "vips_foreign_load_gif_scan_image: "
+		"frame of %dx%d pixels at %dx%d\n",
+		file->Image.Width, file->Image.Height,
+		file->Image.Left, file->Image.Top );
+
+	/* giflib does no checking of image dimensions, not even for 0.
 	 */
-	if( file->Image.Left < 0 ||
-		file->Image.Width < 1 ||
-		file->Image.Width > 10000 ||
-		file->Image.Left + file->Image.Width > file->SWidth ||
-		file->Image.Top < 0 ||
-		file->Image.Height < 1 ||
-		file->Image.Height > 10000 ||
-		file->Image.Top + file->Image.Height > file->SHeight ) {
-		vips_error( class->nickname, "%s", _( "bad frame size" ) );
+	if( file->Image.Width <= 0 ||
+		file->Image.Width > VIPS_MAX_COORD ||
+		file->Image.Height <= 0 ||
+		file->Image.Height > VIPS_MAX_COORD ) {
+		vips_error( class->nickname,
+			"%s", _( "image size out of bounds" ) );
 		return( -1 );
 	}
+
+	/* We need to find the max scanline size inside the GIF 
+	 * so we can allocate the decompress buffer.
+	 */
+	gif->max_image_width = VIPS_MAX( gif->max_image_width, 
+		file->Image.Width );
 
 	/* Test for a non-greyscale colourmap for this frame.
 	 */
@@ -713,7 +726,7 @@ vips_foreign_load_gif_set_header( VipsForeignLoadGif *gif, VipsImage *image )
 }
 
 /* Attempt to quickly scan a GIF and discover what we need for our header. We
- * need to scan the whole file to get n_pages, transparency and colour. 
+ * need to scan the whole file to get n_pages, transparency, colour etc. 
  *
  * Don't flag errors during header scan. Many GIFs do not follow spec.
  */
@@ -769,6 +782,12 @@ vips_foreign_load_gif_scan( VipsForeignLoadGif *gif )
 		return( -1 );
 	}
 
+	if( gif->max_image_width <= 0 ||
+		gif->max_image_width > VIPS_MAX_COORD ) {
+		vips_error( class->nickname, "%s", _( "bad image size" ) );
+		return( -1 );
+	}
+
 	return( 0 );
 }
 
@@ -801,9 +820,9 @@ vips_foreign_load_gif_header( VipsForeignLoad *load )
 
 	/* Allocate a line buffer now that we have the GIF width.
 	 */
-	if( !(gif->line =
-		VIPS_ARRAY( NULL, gif->file->SWidth, GifPixelType )) ||
-		vips_foreign_load_gif_scan( gif ) ||
+	if( vips_foreign_load_gif_scan( gif ) ||
+		!(gif->line = VIPS_ARRAY( NULL, 
+			gif->max_image_width, GifPixelType )) ||
 		vips_foreign_load_gif_set_header( gif, load->out ) ) {
 		(void) vips_foreign_load_gif_close_giflib( gif );
 
@@ -844,19 +863,46 @@ vips_foreign_load_gif_build_cmap( VipsForeignLoadGif *gif )
 	}
 }
 
+/* Paint line y from the image left/top/width/height into scratch, clipping as
+ * we go.
+ */
 static void
 vips_foreign_load_gif_render_line( VipsForeignLoadGif *gif, 
-	int width, VipsPel * restrict dst, VipsPel * restrict src )
+	int y, 
+	int left, int top, int width, int height,
+	VipsPel *line )
 {
-	guint32 * restrict idst = (guint32 *) dst;
+	VipsRect canvas;
+	VipsRect row;
+	VipsRect overlap;
 
-	int x;
+	/* Many GIFs have frames which lie outside the canvas. We have to
+	 * clip.
+	 */
+	canvas.left = 0;
+	canvas.top = 0;
+	canvas.width = gif->file->SWidth;
+	canvas.height = gif->file->SHeight;
+	row.left = left;
+	row.top = top + y;
+	row.width = width;
+	row.height = height;
+	vips_rect_intersectrect( &canvas, &row, &overlap );
 
-	for( x = 0; x < width; x++ ) {
-		VipsPel v = src[x];
+	if( !vips_rect_isempty( &overlap ) ) { 
+		VipsPel *dst = VIPS_IMAGE_ADDR( gif->scratch, 
+			overlap.left, overlap.top );
+		guint32 * restrict idst = (guint32 *) dst;
+		VipsPel * restrict src = line + overlap.left - row.left;
 
-		if( v != gif->transparent_index ) 
-			idst[x] = gif->cmap[v];
+		int x;
+
+		for( x = 0; x < overlap.width; x++ ) {
+			VipsPel v = src[x];
+
+			if( v != gif->transparent_index ) 
+				idst[x] = gif->cmap[v];
+		}
 	}
 }
 
@@ -873,44 +919,18 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 		return( -1 );
 	}
 
-	/* giflib does not check that the Left / Top / Width / Height for this
-	 * Image is inside the canvas.
-	 *
-	 * We could clip against the canvas, but for now, just ignore out of
-	 * bounds frames. Watch for int overflow too.
-	 */
-	if( file->Image.Left < 0 ||
-		file->Image.Left > VIPS_MAX_COORD ||
-		file->Image.Width <= 0 ||
-		file->Image.Width > VIPS_MAX_COORD ||
-		file->Image.Left + file->Image.Width > file->SWidth ||
-		file->Image.Top < 0 ||
-		file->Image.Top > VIPS_MAX_COORD ||
-		file->Image.Height <= 0 ||
-		file->Image.Height > VIPS_MAX_COORD ||
-		file->Image.Top + file->Image.Height > file->SHeight ) {
-		VIPS_DEBUG_MSG( "vips_foreign_load_gif_render: "
-			"out of bounds frame of %d x %d pixels at %d x %d\n",
-			file->Image.Width, file->Image.Height,
-			file->Image.Left, file->Image.Top );
-
-		/* Don't flag an error -- many GIFs have this problem.
-		 */
-		return( 0 );
-	}
-
 	/* Update the colour map for this frame.
 	 */
 	vips_foreign_load_gif_build_cmap( gif );
 
-	/* PREVIOUS means we init the frame with the last un-disposed frame. 
-	 * So the last un-disposed frame is used as a backdrop for the new 
-	 * frame.
+	/* If this is PREVIOUS, then after we're done, we'll need to restore
+	 * the frame to what it was previously. Make a note of the current
+	 * state.
 	 */
 	if( gif->dispose == DISPOSE_PREVIOUS ) 
-		memcpy( VIPS_IMAGE_ADDR( gif->scratch, 0, 0 ),
-			VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
-			VIPS_IMAGE_SIZEOF_IMAGE( gif->scratch ) );
+		memcpy( VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
+			VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
+			VIPS_IMAGE_SIZEOF_IMAGE( gif->previous ) );
 
 	if( file->Image.Interlace ) {
 		int i;
@@ -925,9 +945,6 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 
 			for( y = InterlacedOffset[i]; y < file->Image.Height; 
 				y += InterlacedJumps[i] ) {
-				VipsPel *dst = VIPS_IMAGE_ADDR( gif->scratch, 
-					file->Image.Left, file->Image.Top + y );
-
 				if( DGifGetLine( gif->file, 
 					gif->line, file->Image.Width ) == 
 						GIF_ERROR ) {
@@ -935,8 +952,12 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 					return( -1 );
 				}
 
-				vips_foreign_load_gif_render_line( gif, 
-					file->Image.Width, dst, gif->line );
+				vips_foreign_load_gif_render_line( gif, y,
+					file->Image.Left,
+					file->Image.Top,
+					file->Image.Width,
+					file->Image.Height,
+					gif->line );
 			}
 		}
 	}
@@ -949,17 +970,18 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 			file->Image.Left, file->Image.Top );
 
 		for( y = 0; y < file->Image.Height; y++ ) {
-			VipsPel *dst = VIPS_IMAGE_ADDR( gif->scratch, 
-				file->Image.Left, file->Image.Top + y );
-
 			if( DGifGetLine( gif->file, 
 				gif->line, file->Image.Width ) == GIF_ERROR ) {
 				vips_foreign_load_gif_error( gif );
 				return( -1 );
 			}
 
-			vips_foreign_load_gif_render_line( gif, 
-				file->Image.Width, dst, gif->line );
+			vips_foreign_load_gif_render_line( gif, y,
+				file->Image.Left,
+				file->Image.Top,
+				file->Image.Width,
+				file->Image.Height,
+				gif->line );
 		}
 	}
 
@@ -970,39 +992,52 @@ vips_foreign_load_gif_render( VipsForeignLoadGif *gif )
 		VIPS_IMAGE_SIZEOF_IMAGE( gif->frame ) );
 
 	if( gif->dispose == DISPOSE_BACKGROUND ) {
-		/* BACKGROUND means we reset the frame to transparent before we
-		 * render the next set of pixels.
+		/* BACKGROUND means we reset the area we just painted to 
+		 * transparent. We have to clip against the canvas.
 		 */
-		guint32 *q = (guint32 *) VIPS_IMAGE_ADDR( gif->scratch, 
-			file->Image.Left, file->Image.Top );
+		VipsRect canvas;
+		VipsRect image;
+		VipsRect overlap;
 
-		/* What we write for transparent pixels. We want RGB to be
-		 * 255, and A to be 0.
-		 */
-		guint32 ink = GUINT32_TO_BE( 0xffffff00 );
+		canvas.left = 0;
+		canvas.top = 0;
+		canvas.width = gif->file->SWidth;
+		canvas.height = gif->file->SHeight;
+		image.left = file->Image.Left,
+		image.top = file->Image.Top,
+		image.width = file->Image.Width,
+		image.height = file->Image.Height,
+		vips_rect_intersectrect( &canvas, &image, &overlap );
 
-		int x, y;
+		if( !vips_rect_isempty( &overlap ) ) { 
+			guint32 *q = (guint32 *) VIPS_IMAGE_ADDR( gif->scratch, 
+				overlap.left, overlap.top );
 
-		/* Generate the first line a pixel at a time, memcpy() for
-		 * subsequent lines.
-		 */
-		if( file->Image.Height > 0 ) 
-			for( x = 0; x < file->Image.Width; x++ )
-				q[x] = ink;
+			/* What we write for transparent pixels. We want RGB 
+			 * to be 255, and A to be 0.
+			 */
+			guint32 transparent = GUINT32_TO_BE( 0xffffff00 );
 
-		for( y = 1; y < file->Image.Height; y++ )
-			memcpy( q + gif->scratch->Xsize * y, 
-				q, 
-				file->Image.Width * sizeof( guint32 ) );
+			int x, y;
+
+			/* Generate the first line a pixel at a time, 
+			 * memcpy() for subsequent lines.
+			 */
+			for( x = 0; x < overlap.width; x++ )
+				q[x] = transparent;
+
+			for( y = 1; y < overlap.height; y++ )
+				memcpy( q + gif->scratch->Xsize * y, 
+					q, 
+					overlap.width * sizeof( guint32 ) );
+		}
 	}
-	else if( gif->dispose == DISPOSAL_UNSPECIFIED || 
-		gif->dispose == DISPOSE_DO_NOT ) 
-		/* Copy the frame to previous, so it can be restored if 
-		 * DISPOSE_PREVIOUS is specified in a later frame.
+	else if( gif->dispose == DISPOSE_PREVIOUS ) 
+		/* If this is PREVIOUS, put everything back.
 		 */
-		memcpy( VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
-			VIPS_IMAGE_ADDR( gif->frame, 0, 0 ),
-			VIPS_IMAGE_SIZEOF_IMAGE( gif->previous ) );
+		memcpy( VIPS_IMAGE_ADDR( gif->scratch, 0, 0 ),
+			VIPS_IMAGE_ADDR( gif->previous, 0, 0 ),
+			VIPS_IMAGE_SIZEOF_IMAGE( gif->scratch ) );
 
 	/* Reset values, as Graphic Control Extension is optional
 	 */

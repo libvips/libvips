@@ -334,7 +334,7 @@ readjpeg_free( ReadJpeg *jpeg )
 }
 
 static void
-readjpeg_close_cb( VipsObject *object, ReadJpeg *jpeg )
+readjpeg_close_cb( VipsImage *image, ReadJpeg *jpeg )
 {
 	(void) readjpeg_free( jpeg );
 }
@@ -728,7 +728,7 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 		}
 
 		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
-			(VipsCallbackFn) vips_free, data, data_length );
+			(VipsCallbackFn) vips_area_free_cb, data, data_length );
 	}
 
 	return( 0 );
