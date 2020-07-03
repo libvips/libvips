@@ -490,7 +490,7 @@ read_chunk( int fd, gint64 offset, size_t length )
 	if( !(buf = vips_malloc( NULL, length + 1 )) )
 		return( NULL );
 	if( read( fd, buf, length ) != (ssize_t) length ) {
-		vips_free( buf );
+		g_free( buf );
 		vips_error( "VipsImage", "%s", _( "unable to read history" ) );
 		return( NULL );
 	}
@@ -828,7 +828,7 @@ target_write_quotes( VipsTarget *target, const char *str )
 }
 
 static void *
-build_xml_meta( VipsMeta *meta, VipsTarget *target )
+build_xml_meta( VipsMeta *meta, VipsTarget *target, void *b )
 {
 	GType type = G_VALUE_TYPE( &meta->value );
 

@@ -413,7 +413,7 @@ vips_target_finish( VipsTarget *target )
 		data = g_byte_array_free( target->memory_buffer, FALSE );
 		target->memory_buffer = NULL;
 		vips_blob_set( target->blob,
-			(VipsCallbackFn) g_free, data, length );
+			(VipsCallbackFn) vips_area_free_cb, data, length );
 	}
 	else
 		class->finish( target );

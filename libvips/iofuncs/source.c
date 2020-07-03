@@ -1000,9 +1000,8 @@ vips_source_map( VipsSource *source, size_t *length_out )
 }
 
 static int
-vips_source_map_cb( void *a, void *b )
+vips_source_map_cb( void *a, VipsArea *area )
 {
-	VipsArea *area = VIPS_AREA( b );
 	GObject *gobject = G_OBJECT( area->client );
 
 	VIPS_UNREF( gobject );
@@ -1027,7 +1026,8 @@ vips_source_map_blob( VipsSource *source )
 	VipsBlob *blob;
 
 	if( !(buf = vips_source_map( source, &len )) ||
-		!(blob = vips_blob_new( vips_source_map_cb, buf, len )) ) 
+		!(blob = vips_blob_new( (VipsCallbackFn) vips_source_map_cb, 
+			buf, len )) ) 
 		return( NULL );
 
 	/* The source must stay alive until the blob is done.

@@ -813,3 +813,13 @@ vips_autorot_get_angle( VipsImage *im )
 	return( VIPS_ANGLE_D0 );
 }
 
+/* The old vips_free(), now replaced by g_free() and vips_area_free_cb().
+ */
+int
+vips_free( void *buf )
+{
+	g_free( buf );
+
+	return( 0 );
+}
+

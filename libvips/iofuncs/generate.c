@@ -148,7 +148,7 @@ vips__link_make( VipsImage *image_up, VipsImage *image_down )
 }
 
 static void *
-vips__link_break( VipsImage *image_up, VipsImage *image_down )
+vips__link_break( VipsImage *image_up, VipsImage *image_down, void *b )
 {
 	g_assert( image_up );
 	g_assert( image_down );
@@ -171,9 +171,9 @@ vips__link_break( VipsImage *image_up, VipsImage *image_down )
 }
 
 static void *
-vips__link_break_rev( VipsImage *image_down, VipsImage *image_up )
+vips__link_break_rev( VipsImage *image_down, VipsImage *image_up, void *b )
 {
-	return( vips__link_break( image_up, image_down ) );
+	return( vips__link_break( image_up, image_down, b ) );
 }
 
 /* A VipsImage is going ... break all links.
@@ -203,7 +203,7 @@ typedef struct _LinkMap {
 } LinkMap;
 
 static void *
-vips__link_mapp( VipsImage *image, LinkMap *map ) 
+vips__link_mapp( VipsImage *image, LinkMap *map, void *b ) 
 {
 	void *res;
 
@@ -222,7 +222,7 @@ vips__link_mapp( VipsImage *image, LinkMap *map )
 }
 
 static void *
-vips__link_map_cb( VipsImage *image, GSList **images )
+vips__link_map_cb( VipsImage *image, GSList **images, void *b )
 {
 	*images = g_slist_prepend( *images, image );
 
@@ -265,7 +265,7 @@ vips__link_map( VipsImage *image, gboolean upstream,
 	serial += 1;
 	map.serial = serial;
 
-	vips__link_mapp( image, &map ); 
+	vips__link_mapp( image, &map, NULL ); 
 
 	for( p = images; p; p = p->next ) 
 		g_object_ref( p->data );
@@ -494,7 +494,7 @@ vips_stop_many( void *seq, void *a, void *b )
 
 		for( i = 0; ar[i]; i++ )
 			g_object_unref( ar[i] );
-		vips_free( (char *) ar );
+		g_free( (char *) ar );
 	}
 
 	return( 0 );
@@ -630,7 +630,7 @@ vips_allocate_input_array( VipsImage *out, ... )
 /* A write function for VIPS images. Just write() the pixel data.
  */
 static int
-write_vips( VipsRegion *region, VipsRect *area, void *a, void *b )
+write_vips( VipsRegion *region, VipsRect *area, void *a )
 {
 	size_t nwritten, count;
 	void *buf;
@@ -753,8 +753,7 @@ vips_image_generate( VipsImage *image,
                         return( -1 );
 
                 if( image->dtype == VIPS_IMAGE_OPENOUT ) 
-			res = vips_sink_disc( image,
-				(VipsRegionWrite) write_vips, NULL );
+			res = vips_sink_disc( image, write_vips, NULL );
                 else 
                         res = vips_sink_memory( image );
 

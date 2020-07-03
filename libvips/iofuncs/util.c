@@ -222,10 +222,10 @@ vips_slist_filter( GSList *list, VipsSListMap2Fn fn, void *a, void *b )
 static void
 vips_slist_free_all_cb( void * thing, void * dummy )
 {
-	vips_free( thing );
+	g_free( thing );
 }
 
-/* Free a g_slist of things which need vips_free()ing.
+/* Free a g_slist of things which need g_free()ing.
  */
 void
 vips_slist_free_all( GSList *list )
@@ -815,7 +815,7 @@ vips__file_read( FILE *fp, const char *filename, size_t *length_out )
 		rewind( fp );
 		read = fread( str, sizeof( char ), (size_t) len, fp );
 		if( read != (size_t) len ) {
-			vips_free( str );
+			g_free( str );
 			vips_error( "vips__file_read", 
 				_( "error reading from file \"%s\"" ), 
 				filename );
@@ -944,7 +944,7 @@ vips__gvalue_copy( GValue *value )
 }
 
 static void
-vips__gvalue_free( GValue *value )
+vips__gvalue_free( GValue *value, void *user_data )
 {
 	g_value_unset( value );
 	g_free( value );
@@ -2031,7 +2031,7 @@ vips__icc_dir( void )
 	static GOnce once = G_ONCE_INIT;
 
 	return( (const char *) g_once( &once, 
-		(GThreadFunc) vips_icc_dir_once, NULL ) );
+		vips_icc_dir_once, NULL ) );
 }
 
 #ifdef OS_WIN32
@@ -2069,7 +2069,7 @@ vips__windows_prefix( void )
 	static GOnce once = G_ONCE_INIT;
 
 	return( (const char *) g_once( &once, 
-		(GThreadFunc) vips__windows_prefix_once, NULL ) );
+		vips__windows_prefix_once, NULL ) );
 }
 
 char *

@@ -473,7 +473,7 @@ vips_tile_destroy( VipsTile *tile )
 
 	VIPS_UNREF( tile->region );
 
-	vips_free( tile );
+	g_free( tile );
 }
 
 static void

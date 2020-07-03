@@ -216,24 +216,6 @@ vips_strdup( VipsObject *object, const char *str )
 }
 
 /**
- * vips_free:
- * @buf: memory to free
- *
- * Frees memory with g_free() and returns 0. Handy for callbacks.
- *
- * See also: vips_malloc().
- *
- * Returns: 0
- */
-int
-vips_free( void *buf )
-{
-	g_free( buf );
-
-	return( 0 );
-}
-
-/**
  * vips_tracked_free:
  * @s: (transfer full): memory to free
  *
@@ -273,10 +255,12 @@ vips_tracked_free( void *s )
 	VIPS_GATE_FREE( size ); 
 }
 
-static void
-vips_tracked_init_mutex( void )
+static void *
+vips_tracked_init_mutex( void *data )
 {
 	vips_tracked_mutex = vips_g_mutex_new(); 
+
+	return( NULL );
 }
 
 static void
@@ -285,7 +269,7 @@ vips_tracked_init( void )
 	static GOnce vips_tracked_once = G_ONCE_INIT;
 
 	VIPS_ONCE( &vips_tracked_once, 
-		(GThreadFunc) vips_tracked_init_mutex, NULL );
+		vips_tracked_init_mutex, NULL );
 }
 
 /**

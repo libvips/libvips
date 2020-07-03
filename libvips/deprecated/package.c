@@ -910,7 +910,7 @@ im_free_vargv( im_function *fn, im_object *vargv )
 			/* If there is local storage, free it.
 			 */
 			if( fn->argv[i].desc->size != 0 )
-				vips_free( vargv[i] );
+				g_free( vargv[i] );
 
 			/* NULL out pointer.
 			 */
