@@ -19,20 +19,21 @@ We've put quite a bit of time into improving image resize.
 
 Thanks to hard work by kleisauke, libvips downsize is now fully symmetrical.
 This means that whatever orientation your image has, downsizing will produce
-an identical result. This ought to eliminate the pizel shifts you used to be
-able to see between libvips output and the output of other resize software.
+an identical result. This ought to eliminate the pixel shifts you used to be
+able to see between libvips output and the output of some other resize
+software.
 
 We've also revised kernel computation and it should be more accurate than
-before. A problem with upsizing images containing transparent elements has also
-been fixed.
+before. A problem with upsizing images containing transparent elements has
+also been fixed.
 
 `smartcrop` now has an `all` mode, so you can disable cropping, and libvips now
 handles all the EXIF image orientations for all formats.
 
 # libspng
 
-libvips now has support for [libspng](https://libspng.org/), a new PNG
-library which is simpler, faster and more secure than the usual libpng.
+libvips now has support for [libspng](https://libspng.org/), a new PNG library
+which aims to be simpler, faster and more secure than the usual libpng.
 You can expect roughly a 25% speedup for PNG load. For now, save is still
 via libpng.
 
@@ -46,7 +47,7 @@ The libvips pyramid builders have seen some improvements too.
 
 Thanks to sponsorship from Lunaphore, the TIFF pyramid reader and writer
 now supports SUBIFD tags. This means libvips can now read and write
-Bioformats-style image pyramids.
+Bioformats-style (OME-TIFF) image pyramids.
 
 libvips used to only write TIFF pyramids like this:
 
@@ -57,12 +58,12 @@ file. This is easy and convenient, and how most TIFF pyramids writers work, but
 it means that many-page images can't also have pyramids, since that dimension is
 already used to represent pyramid layers.
 
-Bioformats OME is a varient of TIFF used in technical microscopy. OME-TIFF 
-images can have many, many bands (RGB, flourescence, volume, and so on),
+OME is a varient of TIFF used in technical microscopy. OME-TIFF 
+images can have many, many bands (RGB, flourescence, z, and so on),
 and these bands can differ in size. This makes them difficult to store in 
-regular TIFF files.
+the obvious way in TIFF colour bands.
 
-To get around this, OME-TIFF makes all images stored in the TIFF file one
+To get around this, OME-TIFF makes all images stored in the file one
 band only, and uses the pages dimension to represent original image bands. To
 store pyramids, Bioformats uses the TIFF SUBIFD tag to put the pyramid layers
 for each band inside the page. 
@@ -110,14 +111,14 @@ more conformant, you can set the IIIF id property, and there are new `min` and
 # TIFF load and save
 
 As well as OME pyramid support, TIFF load and save has seen some other useful
-improvements. There's now a `depth` parameter to set maximum pyramid depth, CIE
-XYZ images are saved and loaded as libtiff LOGLUV, and it sets `PAGENUMBER` for
-multi-page files.
+improvements. There's now a `depth` parameter to set maximum pyramid depth,
+CIE XYZ images are saved and loaded as libtiff LOGLUV, and it sets the
+`PAGENUMBER` tag for multi-page files.
 
 # 1, 2 and 4 bit images
 
-There's a new `bitdepth` option to the PNG, TIFF and PPM save operations which
-lets you set the depth at which images write. 
+There's a new `bitdepth` option to the PNG, TIFF and PPM save operations
+which lets you set the depth at which images write.
 
 libvips has supported 1 bit TIFF and PPM save for a long time, but 2 and
 4 bit support is new, and the unified interface is an improvement.
