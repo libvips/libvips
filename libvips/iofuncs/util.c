@@ -624,7 +624,7 @@ vips__set_create_time( int fd )
 /* open() with a utf8 filename, setting errno.
  */
 int
-vips__open( const char *filename, int flags, mode_t mode )
+vips__open( const char *filename, int flags, int mode )
 {
 	int fd;
 

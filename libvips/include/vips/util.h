@@ -254,7 +254,7 @@ int vips_filename_suffix_match( const char *path, const char *suffixes[] );
 gint64 vips_file_length( int fd );
 int vips__write( int fd, const void *buf, size_t count );
 
-int vips__open( const char *filename, int flags, mode_t mode );
+int vips__open( const char *filename, int flags, int mode );
 int vips__open_read( const char *filename );
 FILE *vips__fopen( const char *filename, const char *mode );
 
