@@ -1,5 +1,5 @@
 // headers for vips operations
-// Thu 18 Jun 2020 01:19:31 PM CEST
+// Sun  5 Jul 22:36:46 BST 2020
 // this file is generated automatically, do not edit!
 
 /**
@@ -1359,7 +1359,7 @@ static VImage matload( const char *filename, VOption *options = 0 );
 /**
  * Invert an matrix.
  * @param options Optional options.
- * @return Output image.
+ * @return Output matrix.
  */
 VImage matrixinvert( VOption *options = 0 ) const;
 
@@ -1621,11 +1621,26 @@ void pngsave_target( VTarget target, VOption *options = 0 ) const;
 static VImage ppmload( const char *filename, VOption *options = 0 );
 
 /**
+ * Load ppm base class.
+ * @param source Source to load from.
+ * @param options Optional options.
+ * @return Output image.
+ */
+static VImage ppmload_source( VSource source, VOption *options = 0 );
+
+/**
  * Save image to ppm file.
  * @param filename Filename to save to.
  * @param options Optional options.
  */
 void ppmsave( const char *filename, VOption *options = 0 ) const;
+
+/**
+ * Save to ppm.
+ * @param target Target to save to.
+ * @param options Optional options.
+ */
+void ppmsave_target( VTarget target, VOption *options = 0 ) const;
 
 /**
  * Premultiply image alpha.
