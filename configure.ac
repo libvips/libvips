@@ -12,7 +12,7 @@ AC_PREREQ(2.62)
 # subdir-objects lets us have dumy.cc in a subdir
 AM_INIT_AUTOMAKE([-Wno-portability foreign subdir-objects])
 
-AC_CONFIG_HEADERS(config.h)
+AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
 # user-visible library versioning
@@ -1340,39 +1340,39 @@ AC_SUBST(EXTRA_LIBS_USED)
 TOP_SRCDIR=$ac_pwd
 AC_SUBST(TOP_SRCDIR)
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
 	vips.pc
 	vips-cpp.pc
-	Makefile 
-	libvips/include/vips/version.h 
-	libvips/include/Makefile 
-	libvips/include/vips/Makefile 
-	libvips/Makefile 
-	libvips/arithmetic/Makefile 
-	libvips/colour/Makefile 
-	libvips/colour/profiles/Makefile 
-	libvips/conversion/Makefile 
-	libvips/convolution/Makefile 
-	libvips/deprecated/Makefile 
-	libvips/foreign/Makefile 
-	libvips/freqfilt/Makefile 
-	libvips/histogram/Makefile 
-	libvips/draw/Makefile 
-	libvips/iofuncs/Makefile 
-	libvips/morphology/Makefile 
-	libvips/mosaicing/Makefile 
-	libvips/create/Makefile 
-	libvips/resample/Makefile 
-	cplusplus/include/Makefile 
-	cplusplus/include/vips/Makefile 
-	cplusplus/Makefile 
-	tools/Makefile 
-	tools/batch_crop 
-	tools/batch_image_convert 
-	tools/batch_rubber_sheet 
-	tools/light_correct 
-	tools/shrink_width 
-	test/Makefile 
+	Makefile
+	libvips/include/vips/version.h
+	libvips/include/Makefile
+	libvips/include/vips/Makefile
+	libvips/Makefile
+	libvips/arithmetic/Makefile
+	libvips/colour/Makefile
+	libvips/colour/profiles/Makefile
+	libvips/conversion/Makefile
+	libvips/convolution/Makefile
+	libvips/deprecated/Makefile
+	libvips/foreign/Makefile
+	libvips/freqfilt/Makefile
+	libvips/histogram/Makefile
+	libvips/draw/Makefile
+	libvips/iofuncs/Makefile
+	libvips/morphology/Makefile
+	libvips/mosaicing/Makefile
+	libvips/create/Makefile
+	libvips/resample/Makefile
+	cplusplus/include/Makefile
+	cplusplus/include/vips/Makefile
+	cplusplus/Makefile
+	tools/Makefile
+	tools/batch_crop
+	tools/batch_image_convert
+	tools/batch_rubber_sheet
+	tools/light_correct
+	tools/shrink_width
+	test/Makefile
 	test/variables.sh
 	test/test-suite/Makefile
 	test/test-suite/helpers/Makefile
@@ -1382,6 +1382,7 @@ AC_OUTPUT([
 	po/Makefile.in
 	fuzz/Makefile
 ])
+AC_OUTPUT
 
 # also add any new items to VIPS_CONFIG above
 AC_MSG_RESULT([dnl
