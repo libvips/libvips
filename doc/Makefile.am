@@ -81,10 +81,10 @@ IGNORE_VIPS_C = \
 	nary.h \
 	parithmetic.h \
 	statistic.h \
-	unaryconst.h \
 	unary.h \
-	CImg.h \
+	unaryconst.h \
 	pcolour.h \
+	profiles.h \
 	bandary.h \
 	pconversion.h \
 	correlation.h \
@@ -94,25 +94,14 @@ IGNORE_VIPS_C = \
 	point.h \
 	drawink.h \
 	pdraw.h \
-	analyze2vips.h \
-	csv.h \
 	dbh.h \
-	fits.h \
 	jpeg.h \
 	magick.h \
-	matlab.h \
-	openexr2vips.h \
-	openslide2vips.h \
-	ppm.h \
-	radiance.h \
+	pforeign.h \
 	tiff.h \
-	vipsjpeg.h \
-	vipspng.h \
-	webp.h \
 	pfreqfilt.h \
 	hist_unary.h \
 	phistogram.h \
-	base64.h \
 	sink.h \
 	vipsmarshal.h \
 	pmorphology.h \
