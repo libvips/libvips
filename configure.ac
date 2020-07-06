@@ -9,7 +9,7 @@ AC_PREREQ(2.62)
 # gobject-introspection recommends -Wno-portability
 # foreign stops complaints about a missing README (we use README.md instead)
 # and missing INSTALL (the standard Gnu INSTALL is not very useful)
-# subdir-objects lets us have dumy.cc in a subdir
+# subdir-objects lets us have dummy.cc in a subdir
 AM_INIT_AUTOMAKE([-Wno-portability foreign subdir-objects])
 
 AC_CONFIG_HEADERS([config.h])
@@ -26,7 +26,7 @@ VIPS_MAJOR_VERSION=vips_major_version()
 VIPS_MINOR_VERSION=vips_minor_version()
 VIPS_MICRO_VERSION=vips_micro_version()
 VIPS_VERSION=vips_version()
-VIPS_VERSION_STRING=$VIPS_VERSION-`date -u -r ChangeLog`
+VIPS_VERSION_STRING=$VIPS_VERSION-`date -u -r $srcdir/ChangeLog`
 
 # libtool library versioning ... not user-visible (except as part of the
 # library file name) and does not correspond to major/minor/micro above
@@ -60,37 +60,10 @@ GOBJECT_INTROSPECTION_CHECK([1.30.0])
 #
 # build with a glob and a list of files to exclude from scanning
 # see also IGNORE_HFILES in doc/Makefile.am
-introspection_sources=$(cd libvips ; find . -name "*.c"; find . -name "*.cpp")
-filter_list="deprecated introspect.c dummy.c fuzz "
-
-# contains(string, substring)
-#
-# Returns 0 if the specified string contains the specified substring,
-# otherwise returns 1.
-contains() {
-  string="$1"
-  substring="$2"
-  if test x"${string#*$substring}" != x"$string"; then
-    return 0    # $substring is in $string
-  else
-    return 1 	# $substring is not in $string
-  fi
-}
-
-introspection_sources2=
+introspection_sources=$(cd $srcdir/libvips ; find . -path ./deprecated -prune -o -name dummy.c -prune -o -name introspect.c -prune -o \( -name "*.c" -o -name "*.cpp" \) -print)
 for name in $introspection_sources; do
-  found=0
-  for filter in $filter_list; do
-    if contains $name ${filter}; then
-      found=1
-    fi
-  done    
-
-  if [[ $found -eq 0 ]]; then
-    introspection_sources2="$introspection_sources2 $name"
-  fi      
-done    
-vips_introspection_sources="$introspection_sources2"
+  vips_introspection_sources="$vips_introspection_sources $name"
+done
 
 # add headers that form the public vips8 API .. don't do a find and exclude,
 # we end up excluding almost everything argh
@@ -1344,7 +1317,7 @@ AC_CONFIG_FILES([
 	vips.pc
 	vips-cpp.pc
 	Makefile
-	libvips/include/vips/version.h
+	$srcdir/libvips/include/vips/version.h
 	libvips/include/Makefile
 	libvips/include/vips/Makefile
 	libvips/Makefile
