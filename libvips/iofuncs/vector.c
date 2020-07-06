@@ -102,7 +102,7 @@ vips_vector_init( void )
 	/* Look for the environment variable VIPS_NOVECTOR and use that to turn
 	 * off as well.
 	 */
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 	if( g_getenv( "VIPS_NOVECTOR" ) || 
 		g_getenv( "IM_NOVECTOR" ) ) 
 #else

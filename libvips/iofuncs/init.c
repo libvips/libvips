@@ -99,7 +99,7 @@
 #include <vips/internal.h>
 #include <vips/vector.h>
 
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 #include <vips/vips7compat.h>
 #endif
 
@@ -463,7 +463,7 @@ vips_init( const char *argv0 )
 	g_free( locale );
 	bind_textdomain_codeset( GETTEXT_PACKAGE, "UTF-8" );
 
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 	if( g_getenv( "VIPS_INFO" ) || 
 		g_getenv( "IM_INFO" ) ) 
 #else
@@ -496,7 +496,7 @@ vips_init( const char *argv0 )
 	vips__meta_init_types();
 	vips__interpolate_init();
 
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 	im__format_init();
 #endif
 
@@ -531,7 +531,7 @@ vips_init( const char *argv0 )
 	(void) vips_load_plugins( "%s/vips-plugins-%d.%d", 
 		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION );
 
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 	/* Load up any vips7 plugins in the vips libdir. We don't error on 
 	 * failure, it's too annoying to have VIPS refuse to start because of 
 	 * a broken plugin.
@@ -582,7 +582,7 @@ vips_init( const char *argv0 )
 	 * set up if you are using libvips from something like Ruby. Allow this
 	 * env var hack as a workaround. 
 	 */
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 	if( g_getenv( "VIPS_WARNING" ) ||
 		g_getenv( "IM_WARNING" ) ) 
 #else
@@ -693,7 +693,7 @@ vips_shutdown( void )
 
 	vips_cache_drop_all();
 
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 	im_close_plugins();
 #endif
 

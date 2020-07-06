@@ -129,6 +129,7 @@ if test x"$enable_deprecated" != x"no"; then
   VIPS_ENABLE_DEPRECATED=1
   enable_deprecated=yes
 fi
+AC_DEFINE_UNQUOTED(ENABLE_DEPRECATED,$VIPS_ENABLE_DEPRECATED,[define to build deprecated components])
 AM_CONDITIONAL(ENABLE_DEPRECATED, [test x"$enable_deprecated" = x"yes"])
 
 # this gets pasted into version.h as a #define
