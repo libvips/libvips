@@ -76,4 +76,4 @@ vips_scan_headers = \
 	${top_srcdir}/libvips/include/vips/region.h
 
 enumtypes.h: $(vips_scan_headers) Makefile.am
-	glib-mkenums --template enumtemplate $(vips_scan_headers) > enumtypes.h
+	glib-mkenums --template ${top_srcdir}/libvips/include/vips/enumtemplate $(vips_scan_headers) > enumtypes.h
