@@ -545,8 +545,6 @@ vips_source_new_from_options( const char *options )
  *
  * Loaders should call this in response to the minimise signal on their output
  * image.
- *
- * Returns: 0 on success, or -1 on error.
  */
 void
 vips_source_minimise( VipsSource *source )
