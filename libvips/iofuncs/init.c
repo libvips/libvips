@@ -789,7 +789,16 @@ static gboolean
 vips_lib_config_cb( const gchar *option_name, const gchar *value, 
 	gpointer data, GError **error )
 {
-	printf( "%s\n", VIPS_CONFIG );
+	char **split;
+	char *config;
+
+	split = g_strsplit( VIPS_CONFIG, ", ", -1 );
+	config = g_strjoinv( "\n", split );
+
+	printf( "%s\n", config );
+	g_strfreev( split );
+	g_free( config );
+
 	vips_shutdown();
 	exit( 0 );
 }

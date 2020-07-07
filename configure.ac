@@ -56,6 +56,12 @@ AC_SUBST(LIBRARY_AGE)
 # init introspection support
 GOBJECT_INTROSPECTION_CHECK([1.30.0])
 
+# remove the '(disabled, use --enable-introspection to enable)'
+# suffix from the found_introspection variable
+if test "x$found_introspection" != x"yes"; then
+  found_introspection=no
+fi
+
 # gir needs a list of source files to scan for introspection
 #
 # build with a glob and a list of files to exclude from scanning
@@ -1298,7 +1304,7 @@ VIPS_LIBS="$ZLIB_LIBS $HEIF_LIBS $MAGICK_LIBS $SPNG_LIBS $PNG_LIBS $IMAGEQUANT_L
 
 # autoconf hates multi-line AC_SUBST so we have to have another copy of this
 # thing
-VIPS_CONFIG="native win32: $vips_os_win32, native OS X: $vips_os_darwin, open files in binary mode: $vips_binary_open, enable debug: $enable_debug, enable deprecated library components: $enable_deprecated, enable docs with gtkdoc: $enable_gtk_doc, gobject introspection: $found_introspection, enable radiance support: $with_radiance, enable analyze support: $with_analyze, enable PPM support: $with_ppm, use fftw3 for FFT: $with_fftw, Magick package: $with_magickpackage, Magick API version: $magick_version, load with libMagick: $enable_magickload, save with libMagick: $enable_magicksave, accelerate loops with orc: $with_orc, ICC profile support with lcms: $with_lcms, file import with niftiio: $with_nifti, file import with libheif: $with_heif, file import with OpenEXR: $with_OpenEXR, file import with OpenSlide: $with_openslide, file import with matio: $with_matio, PDF import with PDFium: $with_pdfium, PDF import with poppler-glib: $with_poppler, SVG import with librsvg-2.0: $with_rsvg, zlib: $with_zlib, file import with cfitsio: $with_cfitsio, file import/export with libwebp: $with_libwebp, text rendering with pangoft2: $with_pangoft2, file import/export with libpng: $with_png, support 8bpp PNG quantisation: $with_imagequant, file import/export with libtiff: $with_tiff, file import/export with giflib: $with_giflib, file import/export with libjpeg: $with_jpeg, image pyramid export: $with_gsf, use libexif to load/save JPEG metadata: $with_libexif, file import/export with libspng: $with_libspng"
+VIPS_CONFIG="native win32: $vips_os_win32, native OS X: $vips_os_darwin, open files in binary mode: $vips_binary_open, enable debug: $enable_debug, enable deprecated library components: $enable_deprecated, enable docs with gtkdoc: $enable_gtk_doc, gobject introspection: $found_introspection, enable radiance support: $with_radiance, enable analyze support: $with_analyze, enable PPM support: $with_ppm, use fftw3 for FFT: $with_fftw, Magick package: $with_magickpackage, Magick API version: $magick_version, load with libMagick: $enable_magickload, save with libMagick: $enable_magicksave, accelerate loops with orc: $with_orc, ICC profile support with lcms: $with_lcms, file import with niftiio: $with_nifti, file import with libheif: $with_heif, file import with OpenEXR: $with_OpenEXR, file import with OpenSlide: $with_openslide, file import with matio: $with_matio, PDF import with PDFium: $with_pdfium, PDF import with poppler-glib: $with_poppler, SVG import with librsvg-2.0: $with_rsvg, zlib: $with_zlib, file import with cfitsio: $with_cfitsio, file import/export with libwebp: $with_libwebp, text rendering with pangoft2: $with_pangoft2, file import/export with libspng: $with_libspng, file import/export with libpng: $with_png, support 8bpp PNG quantisation: $with_imagequant, file import/export with libtiff: $with_tiff, file import/export with giflib: $with_giflib, file import/export with libjpeg: $with_jpeg, image pyramid export: $with_gsf, use libexif to load/save JPEG metadata: $with_libexif"
 
 AC_SUBST(VIPS_LIBDIR)
 
