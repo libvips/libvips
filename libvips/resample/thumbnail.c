@@ -841,7 +841,10 @@ vips_thumbnail_build( VipsObject *object )
 		thumbnail->orientation != 1 ) {
 		g_info( "rotating by EXIF orientation %d", 
 			thumbnail->orientation ); 
-		if( vips_autorot( in, &t[14], NULL ) )
+		/* Need to copy to memory, we have to stay seq.
+		 */
+		if( !(t[9] = vips_image_copy_memory( in )) ||
+			vips_autorot( t[9], &t[14], NULL ) )
 			return( -1 );
 		in = t[14];
 	}
