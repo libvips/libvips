@@ -227,12 +227,14 @@ AC_DEFINE_UNQUOTED(VIPS_ICC_DIR,"$profile_dir",[default directory for ICC profil
 # we want largefile support, if possible
 AC_SYS_LARGEFILE
 
+# we use libtool
+LT_INIT
+
 # Checks for programs.
 AC_PROG_AWK
 AC_PROG_CC
 AC_PROG_CC_STDC
 AC_PROG_CXX
-AC_PROG_RANLIB
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AM_WITH_DMALLOC
