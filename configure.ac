@@ -9,10 +9,10 @@ AC_PREREQ(2.62)
 # gobject-introspection recommends -Wno-portability
 # foreign stops complaints about a missing README (we use README.md instead)
 # and missing INSTALL (the standard Gnu INSTALL is not very useful)
-# subdir-objects lets us have dumy.cc in a subdir
+# subdir-objects lets us have dummy.cc in a subdir
 AM_INIT_AUTOMAKE([-Wno-portability foreign subdir-objects])
 
-AC_CONFIG_HEADERS(config.h)
+AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
 # user-visible library versioning
@@ -26,7 +26,7 @@ VIPS_MAJOR_VERSION=vips_major_version()
 VIPS_MINOR_VERSION=vips_minor_version()
 VIPS_MICRO_VERSION=vips_micro_version()
 VIPS_VERSION=vips_version()
-VIPS_VERSION_STRING=$VIPS_VERSION-`date -u -r ChangeLog`
+VIPS_VERSION_STRING=$VIPS_VERSION-`date -u -r $srcdir/ChangeLog`
 
 # libtool library versioning ... not user-visible (except as part of the
 # library file name) and does not correspond to major/minor/micro above
@@ -56,41 +56,20 @@ AC_SUBST(LIBRARY_AGE)
 # init introspection support
 GOBJECT_INTROSPECTION_CHECK([1.30.0])
 
+# remove the '(disabled, use --enable-introspection to enable)'
+# suffix from the found_introspection variable
+if test "x$found_introspection" != x"yes"; then
+  found_introspection=no
+fi
+
 # gir needs a list of source files to scan for introspection
 #
 # build with a glob and a list of files to exclude from scanning
 # see also IGNORE_HFILES in doc/Makefile.am
-introspection_sources=$(cd libvips ; find . -name "*.c"; find . -name "*.cpp")
-filter_list="deprecated introspect.c dummy.c fuzz "
-
-# contains(string, substring)
-#
-# Returns 0 if the specified string contains the specified substring,
-# otherwise returns 1.
-contains() {
-  string="$1"
-  substring="$2"
-  if test x"${string#*$substring}" != x"$string"; then
-    return 0    # $substring is in $string
-  else
-    return 1 	# $substring is not in $string
-  fi
-}
-
-introspection_sources2=
+introspection_sources=$(cd $srcdir/libvips ; find . -path ./deprecated -prune -o -name dummy.c -prune -o -name introspect.c -prune -o \( -name "*.c" -o -name "*.cpp" \) -print)
 for name in $introspection_sources; do
-  found=0
-  for filter in $filter_list; do
-    if contains $name ${filter}; then
-      found=1
-    fi
-  done    
-
-  if [[ $found -eq 0 ]]; then
-    introspection_sources2="$introspection_sources2 $name"
-  fi      
-done    
-vips_introspection_sources="$introspection_sources2"
+  vips_introspection_sources="$vips_introspection_sources $name"
+done
 
 # add headers that form the public vips8 API .. don't do a find and exclude,
 # we end up excluding almost everything argh
@@ -156,6 +135,7 @@ if test x"$enable_deprecated" != x"no"; then
   VIPS_ENABLE_DEPRECATED=1
   enable_deprecated=yes
 fi
+AC_DEFINE_UNQUOTED(ENABLE_DEPRECATED,$VIPS_ENABLE_DEPRECATED,[define to build deprecated components])
 AM_CONDITIONAL(ENABLE_DEPRECATED, [test x"$enable_deprecated" = x"yes"])
 
 # this gets pasted into version.h as a #define
@@ -1324,7 +1304,7 @@ VIPS_LIBS="$ZLIB_LIBS $HEIF_LIBS $MAGICK_LIBS $SPNG_LIBS $PNG_LIBS $IMAGEQUANT_L
 
 # autoconf hates multi-line AC_SUBST so we have to have another copy of this
 # thing
-VIPS_CONFIG="native win32: $vips_os_win32, native OS X: $vips_os_darwin, open files in binary mode: $vips_binary_open, enable debug: $enable_debug, enable deprecated library components: $enable_deprecated, enable docs with gtkdoc: $enable_gtk_doc, gobject introspection: $found_introspection, enable radiance support: $with_radiance, enable analyze support: $with_analyze, enable PPM support: $with_ppm, use fftw3 for FFT: $with_fftw, Magick package: $with_magickpackage, Magick API version: $magick_version, load with libMagick: $enable_magickload, save with libMagick: $enable_magicksave, accelerate loops with orc: $with_orc, ICC profile support with lcms: $with_lcms, file import with niftiio: $with_nifti, file import with libheif: $with_heif, file import with OpenEXR: $with_OpenEXR, file import with OpenSlide: $with_openslide, file import with matio: $with_matio, PDF import with PDFium: $with_pdfium, PDF import with poppler-glib: $with_poppler, SVG import with librsvg-2.0: $with_rsvg, zlib: $with_zlib, file import with cfitsio: $with_cfitsio, file import/export with libwebp: $with_libwebp, text rendering with pangoft2: $with_pangoft2, file import/export with libpng: $with_png, support 8bpp PNG quantisation: $with_imagequant, file import/export with libtiff: $with_tiff, file import/export with giflib: $with_giflib, file import/export with libjpeg: $with_jpeg, image pyramid export: $with_gsf, use libexif to load/save JPEG metadata: $with_libexif, file import/export with libspng: $with_libspng"
+VIPS_CONFIG="native win32: $vips_os_win32, native OS X: $vips_os_darwin, open files in binary mode: $vips_binary_open, enable debug: $enable_debug, enable deprecated library components: $enable_deprecated, enable docs with gtkdoc: $enable_gtk_doc, gobject introspection: $found_introspection, enable radiance support: $with_radiance, enable analyze support: $with_analyze, enable PPM support: $with_ppm, use fftw3 for FFT: $with_fftw, Magick package: $with_magickpackage, Magick API version: $magick_version, load with libMagick: $enable_magickload, save with libMagick: $enable_magicksave, accelerate loops with orc: $with_orc, ICC profile support with lcms: $with_lcms, file import with niftiio: $with_nifti, file import with libheif: $with_heif, file import with OpenEXR: $with_OpenEXR, file import with OpenSlide: $with_openslide, file import with matio: $with_matio, PDF import with PDFium: $with_pdfium, PDF import with poppler-glib: $with_poppler, SVG import with librsvg-2.0: $with_rsvg, zlib: $with_zlib, file import with cfitsio: $with_cfitsio, file import/export with libwebp: $with_libwebp, text rendering with pangoft2: $with_pangoft2, file import/export with libspng: $with_libspng, file import/export with libpng: $with_png, support 8bpp PNG quantisation: $with_imagequant, file import/export with libtiff: $with_tiff, file import/export with giflib: $with_giflib, file import/export with libjpeg: $with_jpeg, image pyramid export: $with_gsf, use libexif to load/save JPEG metadata: $with_libexif"
 
 AC_SUBST(VIPS_LIBDIR)
 
@@ -1340,39 +1320,39 @@ AC_SUBST(EXTRA_LIBS_USED)
 TOP_SRCDIR=$ac_pwd
 AC_SUBST(TOP_SRCDIR)
 
-AC_OUTPUT([
+AC_CONFIG_FILES([
 	vips.pc
 	vips-cpp.pc
-	Makefile 
-	libvips/include/vips/version.h 
-	libvips/include/Makefile 
-	libvips/include/vips/Makefile 
-	libvips/Makefile 
-	libvips/arithmetic/Makefile 
-	libvips/colour/Makefile 
-	libvips/colour/profiles/Makefile 
-	libvips/conversion/Makefile 
-	libvips/convolution/Makefile 
-	libvips/deprecated/Makefile 
-	libvips/foreign/Makefile 
-	libvips/freqfilt/Makefile 
-	libvips/histogram/Makefile 
-	libvips/draw/Makefile 
-	libvips/iofuncs/Makefile 
-	libvips/morphology/Makefile 
-	libvips/mosaicing/Makefile 
-	libvips/create/Makefile 
-	libvips/resample/Makefile 
-	cplusplus/include/Makefile 
-	cplusplus/include/vips/Makefile 
-	cplusplus/Makefile 
-	tools/Makefile 
-	tools/batch_crop 
-	tools/batch_image_convert 
-	tools/batch_rubber_sheet 
-	tools/light_correct 
-	tools/shrink_width 
-	test/Makefile 
+	Makefile
+	$srcdir/libvips/include/vips/version.h
+	libvips/include/Makefile
+	libvips/include/vips/Makefile
+	libvips/Makefile
+	libvips/arithmetic/Makefile
+	libvips/colour/Makefile
+	libvips/colour/profiles/Makefile
+	libvips/conversion/Makefile
+	libvips/convolution/Makefile
+	libvips/deprecated/Makefile
+	libvips/foreign/Makefile
+	libvips/freqfilt/Makefile
+	libvips/histogram/Makefile
+	libvips/draw/Makefile
+	libvips/iofuncs/Makefile
+	libvips/morphology/Makefile
+	libvips/mosaicing/Makefile
+	libvips/create/Makefile
+	libvips/resample/Makefile
+	cplusplus/include/Makefile
+	cplusplus/include/vips/Makefile
+	cplusplus/Makefile
+	tools/Makefile
+	tools/batch_crop
+	tools/batch_image_convert
+	tools/batch_rubber_sheet
+	tools/light_correct
+	tools/shrink_width
+	test/Makefile
 	test/variables.sh
 	test/test-suite/Makefile
 	test/test-suite/helpers/Makefile
@@ -1382,6 +1362,7 @@ AC_OUTPUT([
 	po/Makefile.in
 	fuzz/Makefile
 ])
+AC_OUTPUT
 
 # also add any new items to VIPS_CONFIG above
 AC_MSG_RESULT([dnl

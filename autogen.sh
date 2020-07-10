@@ -1,66 +1,42 @@
 #!/bin/sh
+# Based on: https://wiki.gnome.org/Projects/GnomeCommon/Migration#autogen.sh
+# Run this to generate all the initial makefiles, etc.
+test -n "$srcdir" || srcdir=$(dirname "$0")
+test -n "$srcdir" || srcdir=.
 
-# set -x
+olddir=$(pwd)
 
-# a bunch of cleaning up ... make certain everything will be regenerated
-rm -f Makefile Makefile.in aclocal.m4 
-rm -rf autom4te.cache
+cd $srcdir
 
-# remove m4/ macros put there by libtool etc.
-rm -f m4/libtool.m4
-rm -f m4/lt~obsolete.m4
-rm -f m4/ltoptions.m4
-rm -f m4/ltsugar.m4
-rm -f m4/ltversion.m4
-rm -f m4/gtk-doc.m4
+(test -f configure.ac) || {
+        echo "*** ERROR: Directory '$srcdir' does not look like the top-level project directory ***"
+        exit 1
+}
 
-rm -f config.* configure depcomp
-rm -f install-sh intltool-* libtool ltmain.sh missing mkinstalldirs
-rm -f stamp-* 
-rm -f benchmark/temp*
-find doc -depth \( \
-      -path doc/libvips-docs.xml.in \
-   -o -path doc/Makefile.am \
-   -o -path 'doc/images/*' \
-   -o -name '*.xml' ! -name libvips-docs.xml ! -path 'doc/xml/*' \
-   -o -name '*.py' \
-   -o -name '*.md' \
-   -o -name '*.docbook' \
-\) -prune -or \( \
-      -type f \
-   -o -type d -empty \
-\) -delete
+# shellcheck disable=SC2016
+PKG_NAME=$(autoconf --trace 'AC_INIT:$1' configure.ac)
 
-ACDIR=`aclocal --print-ac-dir`
-# OS X with brew has a dirlist in ACDIR that points to several directories
-# dirlist supports wildcards, but that would require eval ... which is evil
-if [ -e $ACDIR/dirlist ]; then
-  ACDIR=`cat $ACDIR/dirlist`
+if [ "$#" = 0 -a "x$NOCONFIGURE" = "x" ]; then
+        echo "*** WARNING: I am going to run 'configure' with no arguments." >&2
+        echo "*** If you wish to pass any to it, please specify them on the" >&2
+        echo "*** '$0' command line." >&2
+        echo "" >&2
 fi
 
+aclocal -I m4 --install || exit 1
+glib-gettextize --force --copy > /dev/null || exit 1
 gtkdocize --copy --docdir doc --flavour no-tmpl || exit 1
+autoreconf --verbose --force --install -Wno-portability || exit 1
 
-# some systems need libtoolize, some glibtoolize ... how annoying
-printf "testing for glibtoolize ... "
-if glibtoolize --version >/dev/null 2>&1; then
-  LIBTOOLIZE=glibtoolize
-  echo using glibtoolize
-else 
-  LIBTOOLIZE=libtoolize
-  echo using libtoolize
-fi
+cd "$olddir"
+if [ "$NOCONFIGURE" = "" ]; then
+        $srcdir/configure "$@" || exit 1
 
-test -r aclocal.m4 || touch aclocal.m4
-# gettextize produces quite a bit of benign and misleading text output, hide
-# it ... hopefully any errors will go to stderr and not be hidden
-glib-gettextize --force --copy > /dev/null
-test -r aclocal.m4 && chmod u+w aclocal.m4
-aclocal -I m4
-autoconf
-autoheader
-$LIBTOOLIZE --copy --force --automake
-automake --add-missing --copy
-
-if test -z "$NOCONFIGURE"; then
-  ./configure $*
+        if [ "$1" = "--help" ]; then
+                exit 0
+        else
+                echo "Now type 'make' to compile $PKG_NAME" || exit 1
+        fi
+else
+        echo "Skipping configure process."
 fi

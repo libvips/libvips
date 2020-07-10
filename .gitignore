@@ -52,6 +52,8 @@ libtool
 libvips/include/vips/version.h
 fred
 ltmain.sh
+m4/glib-gettext.m4
+m4/pkg.m4
 m4/gtk-doc.m4
 m4/intltool.m4
 m4/libtool.m4
