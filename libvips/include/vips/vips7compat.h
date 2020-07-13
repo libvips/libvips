@@ -1078,10 +1078,22 @@ int im_tbmerge1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int xr2, int yr2, int xs2, int ys2,
 	int mwidth );
 
+int im_lrmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out,
+	int bandno,
+	int xref, int yref, int xsec, int ysec,
+	int hwindowsize, int hsearchsize,
+	int balancetype,
+	int mwidth );
 int im_lrmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out, 
 	int bandno,
 	int xr1, int yr1, int xs1, int ys1, 
 	int xr2, int yr2, int xs2, int ys2,
+	int hwindowsize, int hsearchsize,
+	int balancetype,
+	int mwidth );
+int im_tbmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out, 
+	int bandno,
+	int xref, int yref, int xsec, int ysec, 
 	int hwindowsize, int hsearchsize,
 	int balancetype,
 	int mwidth );
