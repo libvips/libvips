@@ -71,16 +71,23 @@ jobs:
       os: linux
       dist: bionic
       compiler: gcc
-      name: "Ubuntu 18.04 / GCC 7.4.0"
+      name: "Ubuntu 18.04 / GCC 10"
       addons:
         apt:
+          sources:
+            - *common_sources
+            - ubuntu-toolchain-r-test
           packages:
             - *common_packages
             - libmagick++-dev
+            - g++-10
       env:
         - JPEG=/usr
         - JOBS=`nproc`
         - WITH_MAGICK=yes
+        - CC="gcc-10"
+        - CXX="g++-10"
+        - LDSHARED="$CC -shared"
       cache: ccache
     - os: linux
       dist: bionic
