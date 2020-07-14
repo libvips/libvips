@@ -221,8 +221,10 @@ typedef struct _VipsGsfDirectory {
 static void *vips_gsf_tree_close( VipsGsfDirectory *tree );
 
 static void *
-vips_gsf_tree_close_cb( VipsGsfDirectory *tree, void *a, void *b )
+vips_gsf_tree_close_cb( void *item, void *a, void *b )
 {
+	VipsGsfDirectory *tree = (VipsGsfDirectory *) tree;
+
 	return( vips_gsf_tree_close( tree ) );
 }
 
