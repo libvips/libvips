@@ -119,7 +119,7 @@ vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 	 */
 	if( halfcorrelation < 0 || halfarea < 0 || 
 		halfarea < halfcorrelation ) {
-		vips_error( "vips_lrmosaic", "%s", _( "bad area parameters" ) );
+		vips_error( "vips__lrmosaic", "%s", _( "bad area parameters" ) );
 		return( -1 );
 	}
 
@@ -139,7 +139,7 @@ vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 	vips_rect_intersectrect( &left, &right, &overlap );
 	if( overlap.width < 2 * halfarea + 1 ||
 		overlap.height < 2 * halfarea + 1 ) {
-		vips_error( "vips_lrmosaic", 
+		vips_error( "vips__lrmosaic", 
 			"%s", _( "overlap too small for search" ) );
 		return( -1 );
 	}
@@ -168,7 +168,7 @@ vips__find_lroverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 			return( -1 );
 	}
 	else {
-		vips_error( "vips_lrmosaic", "%s", _( "unknown Coding type" ) );
+		vips_error( "vips__lrmosaic", "%s", _( "unknown Coding type" ) );
 		return( -1 );
 	}
 

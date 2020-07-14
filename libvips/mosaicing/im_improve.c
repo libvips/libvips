@@ -10,7 +10,7 @@
  * @(#) int vips__improve( inpoints, outpoints )
  * @(#) TiePoints *inpoints, *outpoints;
  * @(#) 
- * @(#) Returns 0 on sucess  and -1 on error.
+ * @(#) Returns 0 on success  and -1 on error.
  *
  * Copyright: 1990, N. Dessipris.
  *
