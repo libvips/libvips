@@ -9,13 +9,10 @@ addons:
   apt:
     update: true
     sources: &common_sources
-      # use a more recent imagemagick instead of 6.8.9-9 
-      - sourceline: 'ppa:cran/imagemagick'
       # add support for HEIF files
       - sourceline: 'ppa:strukturag/libheif'
       - sourceline: 'ppa:strukturag/libde265'
     packages: &common_packages
-      - automake
       - gtk-doc-tools
       - gobject-introspection
       - python3-pip
@@ -24,17 +21,15 @@ addons:
       - libfftw3-dev
       - libexif-dev
       - libjpeg-turbo8-dev
-      - libpng12-dev
+      - libpng-dev
       - libwebp-dev
-      # missing on xenial, unfortunately
-      # - libwebpmux2
       - libtiff5-dev
       - libheif-dev
       - libexpat1-dev
-      - libmagick++-dev
-      - libcfitsio3-dev
-      - libgsl0-dev
+      - libcfitsio-dev
+      - libgsl-dev
       - libmatio-dev
+      - libnifti-dev
       - liborc-0.4-dev
       - liblcms2-dev
       - libpoppler-glib-dev
@@ -72,24 +67,30 @@ jobs:
     - os: osx
   fast_finish: true
   include:
-    - os: linux
-      sudo: required
-      dist: xenial
+    - stage: "Test Linux"
+      os: linux
+      dist: bionic
       compiler: gcc
+      name: "Ubuntu 18.04 / GCC 7.4.0"
+      addons:
+        apt:
+          packages:
+            - *common_packages
+            - libmagick++-dev
       env:
         - JPEG=/usr
         - JOBS=`nproc`
         - WITH_MAGICK=yes
       cache: ccache
     - os: linux
-      sudo: required
-      dist: xenial
+      dist: bionic
       compiler: clang
+      name: "Ubuntu 18.04 / Clang 10 with ASan and UBSan"
       addons:
         apt:
           sources:
             - *common_sources
-            - sourceline: deb https://apt.llvm.org/xenial/ llvm-toolchain-xenial-10 main
+            - sourceline: deb https://apt.llvm.org/bionic/ llvm-toolchain-bionic-10 main
               key_url: https://apt.llvm.org/llvm-snapshot.gpg.key
           packages:
             - *common_packages
@@ -99,32 +100,28 @@ jobs:
         - JPEG=/usr
         - JOBS=`nproc`
         - WITH_MAGICK=no
-        - LDSHARED="clang -shared"
+        - CC="clang-10"
+        - CXX="clang++-10"
+        - LDSHARED="$CC -shared"
         - CFLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -fopenmp -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION"
+        - CXXFLAGS="$CFLAGS"
         - LDFLAGS="-fsanitize=address,undefined -shared-libasan -fopenmp=libomp"
-        - ASAN_DSO=`clang-10 -print-file-name=libclang_rt.asan-x86_64.so`
+        - ASAN_DSO=`$CC -print-file-name=libclang_rt.asan-x86_64.so`
         - ASAN_SYMBOLIZER_PATH=`which llvm-symbolizer-10`
         - ASAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/suppressions/asan.supp"
         - LSAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/suppressions/lsan.supp"
-        - UBSAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/suppressions/ubsan.supp"
-        - LD_LIBRARY_PATH="`dirname $ASAN_DSO`:/usr/lib/llvm-10/lib:$LD_LIBRARY_PATH"
+        - UBSAN_OPTIONS="suppressions=$TRAVIS_BUILD_DIR/suppressions/ubsan.supp:print_stacktrace=1"
+        - LD_LIBRARY_PATH="/usr/lib/llvm-10/lib:`dirname $ASAN_DSO`"
         - DLCLOSE_PRELOAD="$TRAVIS_BUILD_DIR/dlclose.so"
-      install:
-        # add support for WebP
-        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebp-dev_0.6.1-2_amd64.deb
-        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebpdemux2_0.6.1-2_amd64.deb
-        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebpmux3_0.6.1-2_amd64.deb
-        - wget http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebp6_0.6.1-2_amd64.deb
-        - sudo dpkg -i *.deb
-        # switch to Clang 10 using update-alternatives
-        - sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-10 100
-          --slave /usr/bin/clang++ clang++ /usr/bin/clang++-10
+      before_script:
         # workaround for https://github.com/google/sanitizers/issues/89
         # otherwise libIlmImf-2_2.so ends up as <unknown module>
-        - echo -e '#include <stdio.h>\nint dlclose(void*handle){return 0;}' | clang -shared -xc -odlclose.so -
+        - echo -e '#include <stdio.h>\nint dlclose(void*handle){return 0;}' | $CC -shared -xc -odlclose.so -
       cache: ccache
-    - os: osx
+    - stage: "Test macOS"
+      os: osx
       osx_image: xcode11
+      name: "macOS 10.14.6 / GCC 9"
       env:
         - JPEG=/usr/local/opt/jpeg-turbo
         - JOBS="`sysctl -n hw.ncpu`"
@@ -136,7 +133,7 @@ jobs:
         - CXX="g++-9"
       cache: ccache
 
-before_script:
+install:
   - $PYTHON -m pip download --no-deps https://github.com/libvips/pyvips/archive/$PYVIPS_VERSION.tar.gz
   - tar xf $PYVIPS_VERSION.tar.gz
   - $PYTHON -m pip install --user --upgrade pyvips-$PYVIPS_VERSION/[test]
@@ -150,7 +147,7 @@ before_script:
 
 script:
   - make -j$JOBS -s -k V=0 VERBOSE=1 check
-  - LD_LIBRARY_PATH=$PWD/libvips/.libs
+  - LD_LIBRARY_PATH="$PWD/libvips/.libs:$LD_LIBRARY_PATH"
     DYLD_LIBRARY_PATH=$PWD/libvips/.libs
     LD_PRELOAD="$ASAN_DSO $DLCLOSE_PRELOAD"
     $PYTHON -m pytest -sv --log-cli-level=WARNING test/test-suite
