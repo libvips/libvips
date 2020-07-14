@@ -203,8 +203,10 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 	if( !spng_get_phys( png->ctx, &phys ) ) {
 		/* unit 1 means pixels per metre, otherwise unspecified.
 		 */
-		xres = phys.units == 1 ? phys.ppu_x / 1000.0 : phys.ppu_x;
-		yres = phys.units == 1 ? phys.ppu_y / 1000.0 : phys.ppu_y;
+		xres = phys.unit_specifier == 1 ? 
+			phys.ppu_x / 1000.0 : phys.ppu_x;
+		yres = phys.unit_specifier == 1 ? 
+			phys.ppu_y / 1000.0 : phys.ppu_y;
 	}
 
 	vips_image_init_fields( image,
@@ -467,6 +469,9 @@ vips_foreign_load_png_generate( VipsRegion *or,
 			printf( "  thread %p\n", g_thread_self() );
 			printf( "  error %s\n", spng_strerror( error ) ); 
 #endif /*DEBUG*/
+
+			g_warning( "%s: %s", 
+				class->nickname, spng_strerror( error ) );
 
 			/* And bail if fail is on. 
 			 */
