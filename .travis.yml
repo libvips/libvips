@@ -88,6 +88,7 @@ jobs:
         - CC="gcc-10"
         - CXX="g++-10"
         - LDSHARED="$CC -shared"
+        - CFLAGS="-Wcast-function-type"
       cache: ccache
     - os: linux
       dist: bionic
