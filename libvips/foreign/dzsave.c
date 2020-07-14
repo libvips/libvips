@@ -223,7 +223,7 @@ static void *vips_gsf_tree_close( VipsGsfDirectory *tree );
 static void *
 vips_gsf_tree_close_cb( void *item, void *a, void *b )
 {
-	VipsGsfDirectory *tree = (VipsGsfDirectory *) tree;
+	VipsGsfDirectory *tree = (VipsGsfDirectory *) item;
 
 	return( vips_gsf_tree_close( tree ) );
 }
