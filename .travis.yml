@@ -67,8 +67,7 @@ jobs:
     - os: osx
   fast_finish: true
   include:
-    - stage: "Test Linux"
-      os: linux
+    - os: linux
       dist: bionic
       compiler: gcc
       name: "Ubuntu 18.04 / GCC 10"
@@ -126,8 +125,7 @@ jobs:
         # otherwise libIlmImf-2_2.so ends up as <unknown module>
         - echo -e '#include <stdio.h>\nint dlclose(void*handle){return 0;}' | $CC -shared -xc -odlclose.so -
       cache: ccache
-    - stage: "Test macOS"
-      os: osx
+    - os: osx
       osx_image: xcode11
       name: "macOS 10.14.6 / GCC 9"
       env:
