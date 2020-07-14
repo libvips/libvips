@@ -218,13 +218,20 @@ typedef struct _VipsGsfDirectory {
 
 } VipsGsfDirectory; 
 
+static void *vips_gsf_tree_close( VipsGsfDirectory *tree );
+
+static void *
+vips_gsf_tree_close_cb( VipsGsfDirectory *tree, void *a, void *b )
+{
+	return( vips_gsf_tree_close( tree ) );
+}
+
 /* Close all dirs, non-NULL on error.
  */
 static void *
 vips_gsf_tree_close( VipsGsfDirectory *tree )
 {
-	vips_slist_map2( tree->children, 
-		(VipsSListMap2Fn) vips_gsf_tree_close, NULL, NULL );
+	vips_slist_map2( tree->children, vips_gsf_tree_close_cb, NULL, NULL );
 
 	if( tree->out ) {
 		if( !gsf_output_is_closed( tree->out ) &&

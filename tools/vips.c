@@ -109,7 +109,7 @@ static char *main_option_plugin = NULL;
 static gboolean main_option_version;
 
 static void *
-list_class( GType type )
+list_class( GType type, void *user_data )
 {
 	VipsObjectClass *class = VIPS_OBJECT_CLASS( g_type_class_ref( type ) );
 	int depth = vips_type_depth( type );
@@ -156,7 +156,7 @@ parse_main_option_list( const gchar *option_name, const gchar *value,
 			g_type_from_name( "VipsObject" ), 
 			test_nickname, (void *) value )) ) { 
 		vips_type_map_all( G_TYPE_FROM_CLASS( class ), 
-			(VipsTypeMapFn) list_class, NULL );
+			list_class, NULL );
 	}
 	else if( value ) {
 		vips_error( g_get_prgname(), 
@@ -167,7 +167,7 @@ parse_main_option_list( const gchar *option_name, const gchar *value,
 	}
 	else {
 		vips_type_map_all( g_type_from_name( "VipsOperation" ), 
-			(VipsTypeMapFn) list_class, NULL );
+			list_class, NULL );
 	}
 
 	exit( 0 );
@@ -261,11 +261,11 @@ print_list( int argc, char **argv )
 	if( !argv[0] || strcmp( argv[0], "classes" ) == 0 )
 #endif
 		vips_type_map_all( g_type_from_name( "VipsObject" ), 
-			(VipsTypeMapFn) list_class, NULL );
+			list_class, NULL );
 	else if( g_type_from_name( argv[0] ) &&
 		g_type_is_a( g_type_from_name( argv[0] ), VIPS_TYPE_OBJECT ) ) {
 		vips_type_map_all( g_type_from_name( argv[0] ), 
-			(VipsTypeMapFn) list_class, NULL );
+			list_class, NULL );
 	}
 	else {
 #if ENABLE_DEPRECATED
