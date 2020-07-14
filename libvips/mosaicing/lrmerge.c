@@ -704,8 +704,8 @@ vips__build_mergestate( const char *domain,
 	int x;
 
 	/* TODO(kleisauke): Copied from vips_insert, perhaps we
-	 *                  need a separate function for this? 
-	 *                  (just like im__insert_base) 
+	 * need a separate function for this?
+	 * (just like im__insert_base)
 	 */
 	if( vips_image_pio_input( ref ) ||
 		vips_image_pio_input( sec ) ||

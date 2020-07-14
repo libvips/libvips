@@ -227,7 +227,7 @@ lu_decomp( VipsImage *mat )
  *   PRESS, W. et al, 1992.  Numerical Recipies in C; The Art of Scientific 
  *   Computing, 2nd ed.  Cambridge: Cambridge University Press, pp. 43-50.
  *
- * See also: im_mattrn(), im_matinv().
+ * See also: vips__matrixtranspose(), vips__matrixmultiply().
  *
  * Returns: 0 on success, -1 on error
  */

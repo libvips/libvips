@@ -135,11 +135,6 @@ int vips__tbmerge1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	double a, double b, double dx, double dy, 
 	int mwidth );
 
-int vips_correl( VipsImage *ref, VipsImage *sec,
-	int xref, int yref, int xsec, int ysec,
-	int hwindowsize, int hsearchsize,
-	double *correlation, int *x, int *y );
-
 #define VIPS_MAXPOINTS (60)	/* VIPS_MAXPOINTS % AREAS must be zero */
 #define AREAS (3)	
 

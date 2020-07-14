@@ -78,7 +78,7 @@ vips__find_tboverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 	double *scale1, double *angle1, double *dx1, double *dy1 )
 {
 	VipsImage **t = (VipsImage **)
-			vips_object_local_array( VIPS_OBJECT( out ), 6 );
+		vips_object_local_array( VIPS_OBJECT( out ), 6 );
 
 	VipsRect top, bottom, overlap;
 	TiePoints points, *p_points;		/* defined in mosaic.h */
@@ -90,7 +90,7 @@ vips__find_tboverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 	 */
 	if( halfcorrelation < 0 || halfarea < 0 || 
 		halfarea < halfcorrelation ) {
-		vips_error( "vips_tbmosaic", "%s", _( "bad area parameters" ) );
+		vips_error( "vips__tbmosaic", "%s", _( "bad area parameters" ) );
 		return( -1 );
 	}
 
@@ -110,7 +110,7 @@ vips__find_tboverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 	vips_rect_intersectrect( &top, &bottom, &overlap );
 	if( overlap.width < 2 * halfarea + 1 ||
 		overlap.height < 2 * halfarea + 1 ) {
-		vips_error( "vips_tbmosaic", "%s", 
+		vips_error( "vips__tbmosaic", "%s", 
 			_( "overlap too small for search" ) );
 		return( -1 );
 	}
@@ -139,7 +139,7 @@ vips__find_tboverlap( VipsImage *ref_in, VipsImage *sec_in, VipsImage *out,
 			return( -1 );
 	}
 	else {
-		vips_error( "vips_tbmosaic", "%s", _( "unknown Coding type" ) );
+		vips_error( "vips__tbmosaic", "%s", _( "unknown Coding type" ) );
 		return( -1 );
 	}
 

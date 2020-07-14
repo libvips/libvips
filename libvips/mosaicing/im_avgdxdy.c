@@ -3,11 +3,11 @@
  * @(#)  The rounded integer result is returned into dx, dy
  * @(#) No images are involved in this function.
  * @(#)
- * @(#) int vips_avgdxdy( points, dx, dy )
+ * @(#) int vips__avgdxdy( points, dx, dy )
  * @(#) TiePoints *points;
  * @(#) int *dx, *dy;
  * @(#) 
- * @(#) Returns 0 on sucess  and -1 on error.
+ * @(#) Returns 0 on success  and -1 on error.
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -62,7 +62,7 @@ vips__avgdxdy( TiePoints *points, int *dx, int *dy )
 	int i;
 
 	if( points->nopoints == 0 ) {
-		vips_error( "vips_avgdxdy", "%s", _( "no points to average" ) );
+		vips_error( "vips__avgdxdy", "%s", _( "no points to average" ) );
 		return( -1 );
 	}
 

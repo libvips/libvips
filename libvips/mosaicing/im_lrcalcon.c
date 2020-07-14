@@ -8,7 +8,7 @@
  * @(#) Results are saved in the structure points
  * @(#) The function expects the following valid data in points:
  * @(#) deltax, deltay, nopoints, halfcorsize, halfareasize
- * @(#) and fills in the memebers:
+ * @(#) and fills in the members:
  * @(#) x, y_reference[], contrast and x,y_secondary[],
  * @(#) based on deltax and deltay
  * @(#) Input image should are either memory mapped or in a buffer.

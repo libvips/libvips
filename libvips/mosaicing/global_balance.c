@@ -174,8 +174,8 @@ vips__global_open_image( SymbolTable *st, char *name )
 
 	if( !(image = vips_image_new_from_file( name, NULL ))) {
 		/* TODO(kleisauke): Is this behavior the same as im_skip_dir?
-		 *					i.e. could we open a filename which came
-		 *					from a win32 (`\\`) on a *nix machine? */
+		 * i.e. could we open a filename which came
+		 * from a win32 (`\\`) on a *nix machine? */
 		basename = g_path_get_basename( name );
 
 		if( !(image = vips_image_new_from_file( basename, NULL ))) {
