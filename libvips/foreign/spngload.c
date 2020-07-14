@@ -201,11 +201,10 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 	xres = (72.0 / 2.54 * 100.0);
 	yres = (72.0 / 2.54 * 100.0);
 	if( !spng_get_phys( png->ctx, &phys ) ) {
-		/* There's phys.units, but it's always 0, meaning pixels per
-		 * metre.
+		/* unit 1 means pixels per metre, otherwise unspecified.
 		 */
-		xres = phys.ppu_x / 1000.0;
-		yres = phys.ppu_y / 1000.0;
+		xres = phys.units == 1 ? phys.ppu_x / 1000.0 : phys.ppu_x;
+		yres = phys.units == 1 ? phys.ppu_y / 1000.0 : phys.ppu_y;
 	}
 
 	vips_image_init_fields( image,
