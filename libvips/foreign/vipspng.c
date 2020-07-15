@@ -461,8 +461,8 @@ png2vips_header( Read *read, VipsImage *out )
 	/* Get resolution. Default to 72 pixels per inch, the usual png value. 
 	 */
 	unit_type = PNG_RESOLUTION_METER;
-	res_x = (72 / 2.54 * 100);
-	res_y = (72 / 2.54 * 100);
+	res_x = 72.0 / 2.54 * 100.0;
+	res_y = 72.0 / 2.54 * 100.0;
 	png_get_pHYs( read->pPng, read->pInfo, &res_x, &res_y, &unit_type );
 	switch( unit_type ) {
 	case PNG_RESOLUTION_METER:

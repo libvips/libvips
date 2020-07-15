@@ -198,8 +198,8 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 
 	/* Get resolution. Default to 72 pixels per inch.
 	 */
-	xres = (72.0 / 2.54 * 100.0);
-	yres = (72.0 / 2.54 * 100.0);
+	xres = 72.0 / 25.4;
+	yres = 72.0 / 25.4;
 	if( !spng_get_phys( png->ctx, &phys ) ) {
 		/* unit 1 means pixels per metre, otherwise unspecified.
 		 */
