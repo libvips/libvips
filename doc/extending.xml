@@ -350,7 +350,7 @@ negative_generate( VipsRegion *or,
 			include the source in your program, or use %GModule to make a binary 
 			plugin that will be loaded by libvips at startup. There are some <ulink 
 				role="online-location"
-				url="https://github.com/libvips/vips-gmic">example
+				url="https://github.com/jcupitt/vips-gmic">example
 			plugins available</ulink>.
     </para>
 
