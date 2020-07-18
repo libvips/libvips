@@ -235,8 +235,10 @@ write_new( VipsImage *in )
 	write->eman.fp = NULL;
 	write->inverted = NULL;
 
-	if( vips_copy( in, &write->in, NULL ) ||
-		vips__exif_update( write->in ) ) { 
+	/* Make a copy of the input image since we may modify it with
+	 * vips__exif_update() etc.
+	 */
+	if( vips_copy( in, &write->in, NULL ) ) {
 		write_destroy( write );
 		return( NULL );
 	}
@@ -653,7 +655,11 @@ write_vips( Write *write, int qfac, const char *profile,
 	/* Write any APP markers we need.
 	 */
 	if( !strip ) { 
-		if( write_exif( write ) ||
+		/* We need to rebuild the exif data block from any exif tags
+		 * on the image.
+		 */
+		if( vips__exif_update( write->in ) ||  
+			write_exif( write ) ||
 			write_xmp( write ) ||
 			write_blob( write, 
 				VIPS_META_IPTC_NAME, JPEG_APP0 + 13 ) )
@@ -662,13 +668,15 @@ write_vips( Write *write, int qfac, const char *profile,
 		/* A profile supplied as an argument overrides an embedded 
 		 * profile. 
 		 */
-		if( profile &&
-			write_profile_file( write, profile ) )
-			return( -1 );
-		if( !profile && 
-			vips_image_get_typeof( in, VIPS_META_ICC_NAME ) && 
-			write_profile_meta( write ) )
-			return( -1 );
+		if( profile ) {
+			if( write_profile_file( write, profile ) )
+				return( -1 );
+		}
+		else {
+			if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) && 
+				write_profile_meta( write ) )
+				return( -1 );
+		}
 	}
 
 	/* Write data. Note that the write function grabs the longjmp()!
