@@ -1204,7 +1204,11 @@ vips_exif_image_field( VipsImage *image,
 		return( NULL ); 
 	}
 
-	if( !(tag = exif_tag_from_name( p + 1 )) ) {
+	/* GPSVersionID is tag 0 (the error return) so we have to
+	 * test the name too.
+	 */
+	if( !(tag = exif_tag_from_name( p + 1 )) &&
+		strcmp( p + 1, "GPSVersionID" ) != 0 ) {
 		g_warning( _( "bad exif meta \"%s\"" ), field );
 		return( NULL ); 
 	}
