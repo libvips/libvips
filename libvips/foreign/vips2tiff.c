@@ -344,7 +344,7 @@ struct _Wtiff {
         int resunit;                    /* Resolution unit (inches or cm) */
         double xres;                   	/* Resolution in X */
         double yres;                   	/* Resolution in Y */
-	char *icc_profile;		/* Profile to embed */
+	const char *profile;		/* Profile to embed */
 	int bigtiff;			/* True for bigtiff write */
 	int rgbjpeg;			/* True for RGB not YCbCr */
 	int properties;			/* Set to save XML props */
@@ -512,11 +512,11 @@ wtiff_layer_init( Wtiff *wtiff, Layer **layer, Layer *above,
 static int
 wtiff_embed_profile( Wtiff *wtiff, TIFF *tif )
 {
-	if( wtiff->icc_profile &&
-		embed_profile_file( tif, wtiff->icc_profile ) )
+	if( wtiff->profile &&
+		embed_profile_file( tif, wtiff->profile ) )
 		return( -1 );
 
-	if( !wtiff->icc_profile && 
+	if( !wtiff->profile && 
 		vips_image_get_typeof( wtiff->ready, VIPS_META_ICC_NAME ) &&
 		embed_profile_meta( tif, wtiff->ready ) )
 		return( -1 );
@@ -981,7 +981,6 @@ wtiff_free( Wtiff *wtiff )
 	VIPS_UNREF( wtiff->ready );
 	VIPS_FREE( wtiff->tbuf );
 	VIPS_FREEF( layer_free_all, wtiff->layer );
-	VIPS_FREE( wtiff->icc_profile );
 	VIPS_FREE( wtiff->filename );
 	VIPS_FREE( wtiff );
 }
@@ -1062,7 +1061,7 @@ static Wtiff *
 wtiff_new( VipsImage *input, const char *filename, 
 	VipsForeignTiffCompression compression, int Q, 
 	VipsForeignTiffPredictor predictor,
-	char *profile,
+	const char *profile,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,
 	int bitdepth,
@@ -1099,7 +1098,7 @@ wtiff_new( VipsImage *input, const char *filename,
 	wtiff->resunit = get_resunit( resunit );
 	wtiff->xres = xres;
 	wtiff->yres = yres;
-	wtiff->icc_profile = vips_strdup( NULL, profile );
+	wtiff->profile = profile;
 	wtiff->bigtiff = bigtiff;
 	wtiff->rgbjpeg = rgbjpeg;
 	wtiff->properties = properties;
@@ -1866,7 +1865,7 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 		TIFFSetField( out, TIFFTAG_ZSTD_LEVEL, wtiff->level );
 #endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 
-	/* We can't copy profiles or xmp :( Set again from Wtiff.
+	/* We can't copy profiles or xmp :( Set again from wtiff.
 	 */
 	if( !wtiff->strip ) 
 		if( wtiff_embed_profile( wtiff, out ) ||
@@ -2059,7 +2058,7 @@ int
 vips__tiff_write( VipsImage *input, const char *filename, 
 	VipsForeignTiffCompression compression, int Q, 
 	VipsForeignTiffPredictor predictor,
-	char *profile,
+	const char *profile,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,
 	int bitdepth,
@@ -2105,7 +2104,7 @@ vips__tiff_write_buf( VipsImage *input,
 	void **obuf, size_t *olen, 
 	VipsForeignTiffCompression compression, int Q, 
 	VipsForeignTiffPredictor predictor,
-	char *profile,
+	const char *profile,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,
 	int bitdepth,

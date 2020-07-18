@@ -50,7 +50,7 @@ void vips__tiff_init( void );
 int vips__tiff_write( VipsImage *in, const char *filename, 
 	VipsForeignTiffCompression compression, int Q, 
 	VipsForeignTiffPredictor predictor,
-	char *profile,
+	const char *profile,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,
 	int bitdepth,
@@ -70,7 +70,7 @@ int vips__tiff_write_buf( VipsImage *in,
 	void **obuf, size_t *olen, 
 	VipsForeignTiffCompression compression, int Q, 
 	VipsForeignTiffPredictor predictor,
-	char *profile,
+	const char *profile,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,
 	int bitdepth,
@@ -211,7 +211,7 @@ int vips__webp_write_target( VipsImage *image, VipsTarget *target,
 	gboolean smart_subsample, gboolean near_lossless,
 	int alpha_q, int reduction_effort,
 	gboolean min_size, int kmin, int kmax,
-	gboolean strip );
+	gboolean strip, const char *profile );
 
 int vips__openslide_isslide( const char *filename );
 int vips__openslide_read_header( const char *filename, VipsImage *out, 

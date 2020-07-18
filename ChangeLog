@@ -41,6 +41,7 @@
 - vipsheader allows "stdin" as a filename
 - gifload allows gifs with images outside the canvas
 - wasm compatibility patches [kleisauke]
+- webpsave has a @profile param
 
 24/4/20 started 8.9.3
 - better iiif tile naming [IllyaMoskvin]

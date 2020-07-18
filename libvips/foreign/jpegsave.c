@@ -525,7 +525,7 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * Optional arguments:
  *
  * * @Q: %gint, quality factor
- * * @profile: filename of ICC profile to attach
+ * * @profile: %gchararray, filename of ICC profile to attach
  * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
  * * @interlace: %gboolean, write an interlaced (progressive) jpeg
  * * @strip: %gboolean, remove all metadata from image
@@ -641,7 +641,7 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
  * Optional arguments:
  *
  * * @Q: %gint, quality factor
- * * @profile: filename of ICC profile to attach
+ * * @profile: %gchararray, filename of ICC profile to attach
  * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
  * * @interlace: %gboolean, write an interlaced (progressive) jpeg
  * * @strip: %gboolean, remove all metadata from image
@@ -680,7 +680,7 @@ vips_jpegsave_target( VipsImage *in, VipsTarget *target, ... )
  * Optional arguments:
  *
  * * @Q: %gint, quality factor
- * * @profile: filename of ICC profile to attach
+ * * @profile: %gchararray, filename of ICC profile to attach
  * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
  * * @interlace: %gboolean, write an interlaced (progressive) jpeg
  * * @strip: %gboolean, remove all metadata from image
@@ -736,7 +736,7 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * Optional arguments:
  *
  * * @Q: %gint, quality factor
- * * @profile: filename of ICC profile to attach
+ * * @profile: %gchararray, filename of ICC profile to attach
  * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
  * * @interlace: %gboolean, write an interlaced (progressive) jpeg
  * * @strip: %gboolean, remove all metadata from image

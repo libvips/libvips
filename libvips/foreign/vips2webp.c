@@ -18,6 +18,8 @@
  * 	- set loop even if we strip
  * 14/10/19
  * 	- revise for target IO
+ * 18/7/20
+ * 	- add @profile param to match tiff, jpg, etc.
  */
 
 /*
@@ -88,6 +90,7 @@ typedef struct {
 	int kmin;
 	int kmax;
 	gboolean strip;
+	const char *profile;
 
 	WebPConfig config;
 
@@ -146,7 +149,7 @@ vips_webp_write_init( VipsWebPWrite *write, VipsImage *image,
 	gboolean smart_subsample, gboolean near_lossless,
 	int alpha_q, int reduction_effort,
 	gboolean min_size, int kmin, int kmax,
-	gboolean strip )
+	gboolean strip, const char *profile )
 {
 	write->image = NULL;
 	write->Q = Q;
@@ -160,14 +163,15 @@ vips_webp_write_init( VipsWebPWrite *write, VipsImage *image,
 	write->kmin = kmin;
 	write->kmax = kmax;
 	write->strip = strip;
+	write->profile = profile;
 	WebPMemoryWriterInit( &write->memory_writer );
 	write->enc = NULL;
 	write->mux = NULL;
 
-	/* Rebuild exif on image. We must do this on a copy. 
+	/* We need a copy of the input image in case we change the metadata
+	 * eg. in vips__exif_update().
 	 */
-	if( vips_copy( image, &write->image, NULL ) ||
-		vips__exif_update( write->image ) ) {
+	if( vips_copy( image, &write->image, NULL ) ) {
 		vips_webp_write_unset( write );
 		return( -1 );
 	}
@@ -456,6 +460,9 @@ vips_webp_add_chunks( VipsWebPWrite *write )
 		const char *vips_name = vips__webp_names[i].vips;
 		const char *webp_name = vips__webp_names[i].webp;
 
+		if( strcmp( vips_name, VIPS_META_ICC_NAME ) == 0 &&
+				write->profile )
+
 		if( vips_image_get_typeof( write->image, vips_name ) ) {
 			const void *data;
 			size_t length;
@@ -507,9 +514,22 @@ vips_webp_add_metadata( VipsWebPWrite *write )
 
 	/* Add extra metadata.
 	 */
-	if( !write->strip &&
-		vips_webp_add_chunks( write ) ) 
-		return( -1 );
+	if( !write->strip ) {
+		/* We need to rebuild exif from the other image tags before
+		 * writing the metadata.
+		 */
+		if( vips__exif_update( write->image ) )
+			return( -1 );
+
+		/* Override profile.
+		 */
+		if( write->profile &&
+			vips__profile_set( write->image, write->profile ) )
+			return( -1 );
+
+		if( vips_webp_add_chunks( write ) ) 
+			return( -1 );
+	}
 
 	if( WebPMuxAssemble( write->mux, &data ) != WEBP_MUX_OK ) {
 		vips_error( "vips2webp", "%s", _( "mux error" ) );
@@ -531,13 +551,14 @@ vips__webp_write_target( VipsImage *image, VipsTarget *target,
 	gboolean smart_subsample, gboolean near_lossless,
 	int alpha_q, int reduction_effort,
 	gboolean min_size, int kmin, int kmax,
-	gboolean strip )
+	gboolean strip, const char *profile )
 {
 	VipsWebPWrite write;
 
 	if( vips_webp_write_init( &write, image,
 		Q, lossless, preset, smart_subsample, near_lossless,
-		alpha_q, reduction_effort, min_size, kmin, kmax, strip ) )
+		alpha_q, reduction_effort, min_size, kmin, kmax, strip,
+		profile ) )
 		return( -1 );
 
 	if( write_webp( &write ) ) {
