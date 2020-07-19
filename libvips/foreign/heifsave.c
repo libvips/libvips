@@ -147,9 +147,14 @@ static int
 vips_foreign_save_heif_write_metadata( VipsForeignSaveHeif *heif )
 {
 #ifdef HAVE_HEIF_CONTEXT_ADD_EXIF_METADATA
-
 	int i;
 	struct heif_error error;
+
+	/* Rebuild exif from tags, if we'll be saving it.
+	 */
+	if( vips_image_get_typeof( heif->image, VIPS_META_EXIF_NAME ) ) 
+		if( vips__exif_update( heif->image ) )
+			return( -1 );
 
 	for( i = 0; i < VIPS_NUMBER( libheif_metadata ); i++ )  
 		if( vips_image_get_typeof( heif->image, 
@@ -163,7 +168,7 @@ vips_foreign_save_heif_write_metadata( VipsForeignSaveHeif *heif )
 #endif /*DEBUG*/
 
 			if( vips_image_get_blob( heif->image, 
-				VIPS_META_EXIF_NAME, &data, &length ) )
+				libheif_metadata[i].name, &data, &length ) )
 				return( -1 );
 
 			error = libheif_metadata[i].saver( heif->ctx, 
@@ -327,14 +332,11 @@ vips_foreign_save_heif_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	/* Only rebuild exif if there's an EXIF block or we'll make a
-	 * default set of tags. EXIF is not required for heif.
+	/* Make a copy of the image in case we modify the metadata eg. for
+	 * exif_update.
 	 */
 	if( vips_copy( save->ready, &heif->image, NULL ) ) 
 		return( -1 );
-	if( vips_image_get_typeof( heif->image, VIPS_META_EXIF_NAME ) ) 
-		if( vips__exif_update( heif->image ) )
-			return( -1 );
 
 	error = heif_context_get_encoder_for_format( heif->ctx, 
 		(enum heif_compression_format) heif->compression, 
