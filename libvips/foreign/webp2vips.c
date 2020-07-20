@@ -506,10 +506,12 @@ read_header( Read *read, VipsImage *out )
 		read->frame_count = 1;
 	}
 
+	/* height can be huge if this is an animated webp image.
+	 */
 	if( read->width <= 0 ||
 		read->height <= 0 ||
 		read->width > 0x3FFF ||
-		read->height > 0x3FFF ) {
+		read->height > VIPS_MAX_COORD ) {
 		vips_error( "webp", "%s", _( "bad image dimensions" ) ); 
 		return( -1 ); 
 	}
