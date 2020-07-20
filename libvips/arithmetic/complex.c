@@ -136,6 +136,8 @@ vips_complex_hypot( double a, double b )
 {
 	double d;
 
+	/* hypot() is less sensitive to overflow. Use it if we can.
+	 */
 #ifdef HAVE_HYPOT
 	d = hypot( a, b ); 
 #else
@@ -150,6 +152,9 @@ vips_complex_atan2( double a, double b )
 {
 	double h;
 
+	/* atan2() is very slow, but is better behaved when a is near 0. Use
+	 * it in preference when we can.
+	 */
 #ifdef HAVE_ATAN2
 	h = VIPS_DEG( atan2( b, a ) );
 	if( h < 0.0 )
