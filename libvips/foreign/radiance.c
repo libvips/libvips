@@ -544,9 +544,9 @@ scanline_read_old( VipsSbuf *sbuf, COLR *scanline, int width )
 		if( scanline[0][RED] == 1 &&
 			scanline[0][GRN] == 1 &&
 			scanline[0][BLU] == 1 ) {
-			int i;
+			guint i;
 
-			for( i = scanline[0][EXP] << rshift; 
+			for( i = ((guint32) scanline[0][EXP] << rshift); 
 				i > 0 && width > 0; i-- ) {
 				copycolr( scanline[0], scanline[-1] );
 				scanline += 1;
