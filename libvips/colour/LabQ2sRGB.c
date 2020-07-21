@@ -253,7 +253,7 @@ vips_col_scRGB2sRGB( int range, int *lut,
 	int Yi;
 	float v;
 
-	/* XYZ can be NaN. Throw those values out, they will break
+	/* RGB can be NaN. Throw those values out, they will break
 	 * our clipping.
 	 *
 	 * Don't use isnormal(), it is false for 0.0 and for subnormal
