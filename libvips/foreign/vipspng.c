@@ -714,8 +714,11 @@ vips__png_header_source( VipsSource *source, VipsImage *out )
 	Read *read;
 
 	if( !(read = read_new( source, out, TRUE )) ||
-		png2vips_header( read, out ) )
+		png2vips_header( read, out ) ) {
+		vips_error( "png2vips", _( "unable to read source %s" ),
+			vips_connection_nick( VIPS_CONNECTION( source ) ) );
 		return( -1 );
+	}
 
 	vips_source_minimise( source );
 
@@ -729,8 +732,11 @@ vips__png_read_source( VipsSource *source, VipsImage *out, gboolean fail )
 
 	if( !(read = read_new( source, out, fail )) ||
 		png2vips_image( read, out ) ||
-		vips_source_decode( source ) )
+		vips_source_decode( source ) ) {
+		vips_error( "png2vips", _( "unable to read source %s" ),
+			vips_connection_nick( VIPS_CONNECTION( source ) ) );
 		return( -1 );
+	}
 
 	return( 0 );
 }
