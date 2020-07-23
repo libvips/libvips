@@ -1205,8 +1205,8 @@ vips__png_write_target( VipsImage *in, VipsTarget *target,
 		compression, interlace, profile, filter, strip, palette,
 		Q, dither, bitdepth ) ) {
 		write_finish( write );
-		vips_error( "vips2png", 
-			"%s", _( "unable to write to target" ) );
+		vips_error( "vips2png", _( "unable to write to target %s" ),
+			vips_connection_nick( VIPS_CONNECTION( target ) ) );
 		return( -1 );
 	}
 
