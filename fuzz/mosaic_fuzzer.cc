@@ -25,6 +25,9 @@ LLVMFuzzerTestOneInput( const guint8 *data, size_t size )
 	if( size < sizeof( struct mosaic_opt ) )
 		return( 0 );
 
+	if( size > 100 * 1024 * 1024 )
+		return( 0 );
+
 	if( !(ref = vips_image_new_from_buffer( data, size, "", NULL )) )
 		return( 0 );
 

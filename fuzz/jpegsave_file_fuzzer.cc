@@ -42,6 +42,9 @@ LLVMFuzzerTestOneInput( const guint8 *data, size_t size )
 {
 	char *name;
 
+	if( size > 100 * 1024 * 1024 )
+		return( 0 );
+
 	if( !(name = vips__temp_name( "%s" )) )
 		return( 0 );
 
