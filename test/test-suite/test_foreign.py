@@ -17,7 +17,7 @@ from helpers import \
     GIF_ANIM_DISPOSE_PREVIOUS_FILE, \
     GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, \
     temp_filename, assert_almost_equal_objects, have, skip_if_no, \
-    TIF1_FILE, TIF2_FILE, TIF4_FILE
+    TIF1_FILE, TIF2_FILE, TIF4_FILE, IMAGES
 
 
 class TestForeign:
@@ -610,6 +610,17 @@ class TestForeign:
             assert x1.get("page-height") == x2.get("page-height")
             # magicks vary in how they handle this ... just pray we are close
             assert abs(x1.get("gif-loop") - x2.get("gif-loop")) < 5
+
+    @skip_if_no("webpload")
+    def test_webp_orientation_tag(self):
+        source_filename = os.path.join(IMAGES, 'rotation', '6.jpg')
+
+        im = pyvips.Image.new_from_file(source_filename)
+        buf = im.webpsave_buffer()
+
+        im = pyvips.Image.new_from_buffer(buf, "")
+
+        assert im.get('orientation') == 6
 
     @skip_if_no("webpload")
     def test_webp(self):
