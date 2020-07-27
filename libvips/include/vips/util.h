@@ -286,8 +286,6 @@ int vips_mkdirf( const char *name, ... )
 int vips_rmdirf( const char *name, ... )
 	__attribute__((format(printf, 1, 2)));
 int vips_rename( const char *old_name, const char *new_name );
-FILE *vips_popenf( const char *fmt, const char *mode, ... )
-	__attribute__((format(printf, 1, 3)));
 
 /** 
  * VipsToken:

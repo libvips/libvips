@@ -94,10 +94,6 @@
 #include <expat.h>
 #include <errno.h>
 
-#ifdef OS_WIN32
-#include <windows.h>
-#endif /*OS_WIN32*/
-
 #include <vips/vips.h>
 #include <vips/internal.h>
 #include <vips/debug.h>

@@ -1191,40 +1191,6 @@ vips_isdirf( const char *name, ... )
 	return( result ); 
 }
 
-#ifdef OS_WIN32
-#ifndef popen
-#define popen(b,m) _popen(b,m)
-#endif
-#ifndef pclose
-#define pclose(f) _pclose(f)
-#endif
-#endif /*OS_WIN32*/
-
-/* Do popen(), with printf-style args.
- */
-FILE *
-vips_popenf( const char *fmt, const char *mode, ... )
-{
-        va_list args;
-	char buf[VIPS_PATH_MAX];
-	FILE *fp;
-
-        va_start( args, mode );
-        (void) vips_vsnprintf( buf, VIPS_PATH_MAX, fmt, args );
-        va_end( args );
-
-#ifdef DEBUG
-	printf( "vips_popenf: running: %s\n", buf );
-#endif /*DEBUG*/
-
-        if( !(fp = popen( buf, mode )) ) {
-		vips_error( "popenf", "%s", strerror( errno ) );
-		return( NULL );
-	}
-
-	return( fp );
-}
-
 /* Make a directory.
  */
 int

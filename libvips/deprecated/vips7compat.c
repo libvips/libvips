@@ -5692,3 +5692,14 @@ vips_get_option_group( void )
 
 	return( option_group );
 }
+
+/* We used to use this for system() back in the day. But it's awkward to make
+ * it work properly on win32, so this is nonw deprecated.
+ */
+FILE *
+vips_popenf( const char *fmt, const char *mode, ... )
+{
+        vips_error( "popenf", "%s", _( "deprecated" ) );
+        return( NULL );
+}
+
