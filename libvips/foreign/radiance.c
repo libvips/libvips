@@ -554,6 +554,11 @@ scanline_read_old( VipsSbuf *sbuf, COLR *scanline, int width )
 			}
 
 			rshift += 8;
+
+			/* This can happen with badly-formed input files.
+			 */
+			if( rshift > 24 )
+				return( -1 );
 		} 
 		else {
 			scanline += 1;
