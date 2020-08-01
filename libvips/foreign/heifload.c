@@ -285,61 +285,61 @@ vips_foreign_load_heif_get_flags( VipsForeignLoad *load )
 static int
 vips_foreign_load_heif_set_thumbnail( VipsForeignLoadHeif *heif )
 {
-	double main_aspect;
-	double thumb_aspect;
 	heif_item_id thumb_ids[1];
 	int n_thumbs;
 	struct heif_image_handle *thumb_handle;
 	struct heif_image *thumb_img;
 	struct heif_error error;
+	double main_aspect;
+	double thumb_aspect;
 
-	/* We need the main image aspect ratio so we can sanity-check
-	 * the thumbnail.
+	n_thumbs = heif_image_handle_get_list_of_thumbnail_IDs( 
+		heif->handle, thumb_ids, 1 );
+	if( n_thumbs == 0 )
+		return( 0 );
+
+	error = heif_image_handle_get_thumbnail( heif->handle,
+		thumb_ids[0], &thumb_handle );
+	if( error.code ) {
+		vips__heif_error( &error );
+		return( -1 );
+	}
+
+	/* Just checking the width and height of the handle isn't
+	 * enough -- we have to experimentally decode it and test the 
+	 * decoded dimensions. 
 	 */
+	error = heif_decode_image( thumb_handle, &thumb_img,
+		heif_colorspace_RGB, 
+		heif_chroma_interleaved_RGB,
+		NULL );
+	if( error.code ) {
+		VIPS_FREEF( heif_image_handle_release, thumb_handle );
+		vips__heif_error( &error );
+		return( -1 );
+	}
+
+	thumb_aspect = (double) 
+		heif_image_get_width( thumb_img, heif_channel_interleaved ) /
+		heif_image_get_height( thumb_img, heif_channel_interleaved );
+
+	VIPS_FREEF( heif_image_release, thumb_img );
+
 	main_aspect = (double) 
 		heif_image_handle_get_width( heif->handle ) /
 		heif_image_handle_get_height( heif->handle );
 
-	n_thumbs = heif_image_handle_get_list_of_thumbnail_IDs( 
-		heif->handle, thumb_ids, 1 );
-
-	if( n_thumbs > 0 ) {
-		error = heif_image_handle_get_thumbnail( heif->handle,
-			thumb_ids[0], &thumb_handle );
-		if( error.code ) {
-			vips__heif_error( &error );
-			return( -1 );
-		}
-
-		/* Just checking the width and height of the handle isn't
-		 * enough -- we have to decode it and test the decoded
-		 * dimensions. 
-		 */
-		error = heif_decode_image( thumb_handle, &thumb_img,
-			heif_colorspace_RGB, 
-			heif_chroma_interleaved_RGB,
-			NULL );
-		if( error.code ) {
-			vips__heif_error( &error );
-			return( -1 );
-		}
-
-		thumb_aspect = (double) 
-			heif_image_get_width( thumb_img, 
-				heif_channel_interleaved ) /
-			heif_image_get_height( thumb_img, 
-				heif_channel_interleaved );
-
-		VIPS_FREEF( heif_image_release, thumb_img );
-
-		if( fabs( main_aspect - thumb_aspect ) < 0.1 ) {
-			VIPS_FREEF( heif_image_handle_release, heif->handle );
-			heif->handle = thumb_handle;
-		}
-		else {
-			VIPS_FREEF( heif_image_handle_release, thumb_handle );
-		}
+	/* The bug we are working around has decoded thumbs as 512x512 
+	 * with the main image as 6kx4k, so a 0.1 threshold is more 
+	 * than tight enough to spot the error.
+	 */
+	if( fabs( main_aspect - thumb_aspect ) > 0.1 ) {
+		VIPS_FREEF( heif_image_handle_release, thumb_handle );
+		return( 0 );
 	}
+
+	VIPS_FREEF( heif_image_handle_release, heif->handle );
+	heif->handle = thumb_handle;
 
 	return( 0 );
 }
