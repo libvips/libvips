@@ -522,6 +522,8 @@ int vips_reorder_prepare_many( VipsImage *image,
 	struct _VipsRegion **regions, VipsRect *r );
 void vips_reorder_margin_hint( VipsImage *image, int margin );
 
+void vips_image_free_buffer( VipsImage* image, void* buffer );
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
