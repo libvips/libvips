@@ -560,9 +560,8 @@ public:
 			width, height, bands, format )) )
 			throw( VError() );
 
-		if( g_signal_connect( image, "postclose",
-		    G_CALLBACK(vips_image_free_buffer), data) < 0 )
-			throw( VError() );
+		g_signal_connect( image, "postclose",
+			G_CALLBACK(vips_image_free_buffer), data);
 
 		return( VImage( image ) ); 
 	}
