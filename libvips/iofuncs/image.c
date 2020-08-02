@@ -3882,31 +3882,9 @@ vips_band_format_iscomplex( VipsBandFormat format )
  * allocated buffer.
  */
 void
-vips_image_free_buffer( VipsImage* image, void* buffer )
+vips_image_free_buffer( VipsImage *, void *buffer )
 {
-	switch( vips_image_get_format( image ) ) {
-	case VIPS_FORMAT_UCHAR:
-		free( (unsigned char*)buffer ); break;
-	case VIPS_FORMAT_CHAR:
-		free( (char*)buffer ); break;
-	case VIPS_FORMAT_USHORT:
-		free( (unsigned short*)buffer ); break;
-	case VIPS_FORMAT_SHORT:
-		free( (short*)buffer ); break;
-	case VIPS_FORMAT_UINT:
-		free( (unsigned int*)buffer ); break;
-	case VIPS_FORMAT_INT:
-		free( (int*)buffer ); break;
-	case VIPS_FORMAT_FLOAT:
-	case VIPS_FORMAT_COMPLEX:
-		free( (float*)buffer ); break;
-	case VIPS_FORMAT_DOUBLE:
-	case VIPS_FORMAT_DPCOMPLEX:
-		free( (double*)buffer ); break;
-
-	default:
-		g_assert_not_reached();
-	}
+	free( buffer );
 }
 
 /* Handy for debugging: view an image in nip2.
