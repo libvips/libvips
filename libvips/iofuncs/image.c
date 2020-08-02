@@ -3881,7 +3881,7 @@ vips_band_format_iscomplex( VipsBandFormat format )
  * is intened to be used with g_signal_connect.
  */
 void
-vips_image_free_buffer( VipsImage *, void *buffer )
+vips_image_free_buffer( VipsImage *image, void *buffer )
 {
 	free( buffer );
 }
