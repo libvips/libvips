@@ -183,7 +183,9 @@ vips_resize_build( VipsObject *object )
 	else {
 		if( int_vshrink > 1 ) { 
 			g_info( "shrinkv by %d", int_vshrink );
-			if( vips_shrinkv( in, &t[0], int_vshrink, NULL ) )
+			if( vips_shrinkv( in, &t[0], int_vshrink,
+				"ceil", TRUE,
+				NULL ) )
 				return( -1 );
 			in = t[0];
 
@@ -192,7 +194,9 @@ vips_resize_build( VipsObject *object )
 
 		if( int_hshrink > 1 ) { 
 			g_info( "shrinkh by %d", int_hshrink );
-			if( vips_shrinkh( in, &t[1], int_hshrink, NULL ) )
+			if( vips_shrinkh( in, &t[1], int_hshrink,
+				"ceil", TRUE,
+				NULL ) )
 				return( -1 );
 			in = t[1];
 
@@ -217,8 +221,7 @@ vips_resize_build( VipsObject *object )
 	}
 
 	if( hscale < 1.0 ) { 
-		g_info( "residual reduceh by %g", 
-			hscale );
+		g_info( "residual reduceh by %g", hscale );
 		if( vips_reduceh( in, &t[3], 1.0 / hscale, 
 			"kernel", resize->kernel, 
 			NULL ) )  
