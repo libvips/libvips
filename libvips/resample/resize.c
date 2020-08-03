@@ -141,6 +141,8 @@ vips_resize_build( VipsObject *object )
 	double vscale;
 	int int_hshrink;
 	int int_vshrink;
+	int target_width;
+	int target_height;
 
 	if( VIPS_OBJECT_CLASS( vips_resize_parent_class )->build( object ) )
 		return( -1 );
@@ -155,10 +157,15 @@ vips_resize_build( VipsObject *object )
 	else
 		vscale = resize->scale;
 
-	/* The int part of our scale. Leave the final 200 - 300% to reduce.
+	target_width = VIPS_ROUND_UINT( in->Xsize / (1.0 / hscale) );
+	target_height = VIPS_ROUND_UINT( in->Ysize / (1.0 / vscale) );
+
+	/* The int part of our scale. Leave the final 200% to reduce.
 	 */
-	int_hshrink = VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (hscale * 2) ) );
-	int_vshrink = VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (vscale * 2) ) );
+	int_hshrink = VIPS_MAX( 1, 
+		VIPS_FLOOR( (double) in->Xsize / target_width / 2 ) );
+	int_vshrink = VIPS_MAX( 1, 
+		VIPS_FLOOR( (double) in->Ysize / target_height / 2 ) );
 
 	/* Unpack for processing.
 	 */
@@ -183,20 +190,24 @@ vips_resize_build( VipsObject *object )
 	else {
 		if( int_vshrink > 1 ) { 
 			g_info( "shrinkv by %d", int_vshrink );
-			if( vips_shrinkv( in, &t[0], int_vshrink, NULL ) )
+			if( vips_shrinkv( in, &t[0], int_vshrink, 
+				"ceil", TRUE, 
+				NULL ) )
 				return( -1 );
 			in = t[0];
 
-			vscale *= int_vshrink;
+			vscale *= (double) resample->in->Ysize / in->Ysize;
 		}
 
 		if( int_hshrink > 1 ) { 
 			g_info( "shrinkh by %d", int_hshrink );
-			if( vips_shrinkh( in, &t[1], int_hshrink, NULL ) )
+			if( vips_shrinkh( in, &t[1], int_hshrink, 
+				"ceil", TRUE, 
+				NULL ) )
 				return( -1 );
 			in = t[1];
 
-			hscale *= int_hshrink;
+			hscale *= (double) resample->in->Xsize / in->Xsize;
 		}
 	}
 

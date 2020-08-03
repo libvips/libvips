@@ -433,7 +433,8 @@ vips_reduceh_build( VipsObject *object )
 		vips_object_local_array( object, 2 );
 
 	VipsImage *in;
-	double width, extra_pixels;
+	int width;
+	double extra_pixels;
 
 	if( VIPS_OBJECT_CLASS( vips_reduceh_parent_class )->build( object ) )
 		return( -1 );

@@ -805,7 +805,8 @@ vips_reducev_build( VipsObject *object )
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
 	VipsImage *in;
-	double height, extra_pixels;
+	int height;
+	double extra_pixels;
 
 	if( VIPS_OBJECT_CLASS( vips_reducev_parent_class )->build( object ) )
 		return( -1 );
