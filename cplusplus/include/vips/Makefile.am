@@ -3,6 +3,7 @@ pkginclude_HEADERS = \
 	VImage8.h \
 	VInterpolate8.h \
 	VConnection8.h \
+	VRegion8.h \
 	vips8 \
 	vips-operators.h 
 
