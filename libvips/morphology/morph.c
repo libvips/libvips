@@ -55,6 +55,10 @@
 
  */
 
+/*
+#define DEBUG_VERBOSE
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -66,10 +70,12 @@
 
 #include <vips/vips.h>
 #include <vips/vector.h>
-#include <vips/debug.h>
 #include <vips/internal.h>
 
 #include "pmorphology.h"
+
+#ifdef HAVE_ORC
+#include <orc/orc.h>
 
 /* We can't run more than this many passes. Larger than this and we
  * fall back to C.
@@ -77,18 +83,28 @@
  */
 #define MAX_PASS (10)
 
+#define MAX_SOURCES (8 /*ORC_MAX_SRC_VARS*/)
+
 /* A pass with a vector.
  */
 typedef struct {
 	int first; /* The index of the first mask coff we use */
 	int last;  /* The index of the last mask coff we use */
 
-	int r; /* Set previous result in this var */
+	int r;	/* Set previous result in this var */
+	int d1; /* The destination var */
+
+	int n_scanline;
+
+	/* The associated line corresponding to the scanline.
+	 */
+	int line[MAX_SOURCES];
 
 	/* The code we generate for this section of this mask.
 	 */
-	VipsVector *vector;
+	OrcProgram *program;
 } Pass;
+#endif /*HAVE_ORC*/
 
 /**
  * VipsOperationMorphology:
@@ -115,10 +131,12 @@ typedef struct {
 
 	int *coeff; /* Mask coefficients */
 
+#ifdef HAVE_ORC
 	/* The passes we generate for this mask.
 	 */
 	int n_pass;
 	Pass pass[MAX_PASS];
+#endif /*HAVE_ORC*/
 } VipsMorph;
 
 typedef VipsMorphologyClass VipsMorphClass;
@@ -138,38 +156,28 @@ typedef struct {
 
 	int last_bpl; /* Avoid recalcing offsets, if we can */
 
+#ifdef HAVE_ORC
 	/* In vector mode we need a pair of intermediate buffers to keep the
 	 * results of each pass in.
 	 */
 	void *t1;
 	void *t2;
+#endif /*HAVE_ORC*/
 } VipsMorphSequence;
 
+#ifdef HAVE_ORC
 static void
-vips_morph_compile_free(VipsMorph *morph)
-{
-	int i;
-
-	for (i = 0; i < morph->n_pass; i++)
-		VIPS_FREEF(vips_vector_free, morph->pass[i].vector);
-	morph->n_pass = 0;
-}
-
-static void
-vips_morph_dispose(GObject *gobject)
+vips_morph_finalize(GObject *gobject)
 {
 	VipsMorph *morph = (VipsMorph *) gobject;
 
-#ifdef DEBUG
-	printf("vips_morph_dispose: ");
-	vips_object_print_name(VIPS_OBJECT(gobject));
-	printf("\n");
-#endif /*DEBUG*/
+	for (int i = 0; i < morph->n_pass; i++)
+		VIPS_FREEF(orc_program_free, morph->pass[i].program);
+	morph->n_pass = 0;
 
-	vips_morph_compile_free(morph);
-
-	G_OBJECT_CLASS(vips_morph_parent_class)->dispose(gobject);
+	G_OBJECT_CLASS(vips_morph_parent_class)->finalize(gobject);
 }
+#endif /*HAVE_ORC*/
 
 /* Free a sequence value.
  */
@@ -179,8 +187,10 @@ vips_morph_stop(void *vseq, void *a, void *b)
 	VipsMorphSequence *seq = (VipsMorphSequence *) vseq;
 
 	VIPS_UNREF(seq->ir);
+#ifdef HAVE_ORC
 	VIPS_FREE(seq->t1);
 	VIPS_FREE(seq->t2);
+#endif /*HAVE_ORC*/
 
 	return 0;
 }
@@ -207,13 +217,13 @@ vips_morph_start(VipsImage *out, void *a, void *b)
 	seq->coff = NULL;
 	seq->cs = 0;
 	seq->last_bpl = -1;
+#ifdef HAVE_ORC
 	seq->t1 = NULL;
 	seq->t2 = NULL;
+#endif /*HAVE_ORC*/
 
 	seq->ir = vips_region_new(in);
 
-	/* C mode.
-	 */
 	seq->soff = VIPS_ARRAY(out, morph->n_point, int);
 	seq->coff = VIPS_ARRAY(out, morph->n_point, int);
 
@@ -223,6 +233,7 @@ vips_morph_start(VipsImage *out, void *a, void *b)
 		return NULL;
 	}
 
+#ifdef HAVE_ORC
 	/* Vector mode.
 	 */
 	if (morph->n_pass) {
@@ -237,15 +248,18 @@ vips_morph_start(VipsImage *out, void *a, void *b)
 			return NULL;
 		}
 	}
+#endif /*HAVE_ORC*/
 
 	return seq;
 }
 
-#define TEMP(N, S) vips_vector_temporary(v, N, S)
-#define SCANLINE(N, P, S) vips_vector_source_scanline(v, N, P, S)
-#define CONST(N, V, S) vips_vector_constant(v, N, V, S)
-#define ASM2(OP, A, B) vips_vector_asm2(v, OP, A, B)
-#define ASM3(OP, A, B, C) vips_vector_asm3(v, OP, A, B, C)
+#ifdef HAVE_ORC
+
+#define TEMP(N, S) orc_program_add_temporary(p, S, N)
+#define SCANLINE(N, S) orc_program_add_source(p, S, N)
+#define CONST(N, V, S) orc_program_add_constant(p, S, V, N)
+#define ASM2(OP, A, B) orc_program_append_ds_str(p, OP, A, B)
+#define ASM3(OP, A, B, C) orc_program_append_str(p, OP, A, B, C)
 
 /* Generate code for a section of the mask. first is the index we start
  * at, we set last to the index of the last one we use before we run
@@ -260,22 +274,26 @@ vips_morph_compile_section(VipsMorph *morph, Pass *pass, gboolean first_pass)
 	VipsMorphology *morphology = (VipsMorphology *) morph;
 	VipsImage *M = morph->M;
 
-	VipsVector *v;
-	char offset[256];
-	char source[256];
-	char zero[256];
-	char one[256];
+	OrcProgram *p;
+	OrcCompileResult result;
 	int i;
 
-	pass->vector = v = vips_vector_new("morph", 1);
+	pass->program = p = orc_program_new();
+
+	pass->d1 = orc_program_add_destination(p, 1, "d1");
+
+	/* "r" is the result of the previous pass.
+	 */
+	if (!(pass->r = orc_program_add_source(p, 1, "r")))
+		return -1;
 
 	/* The value we fetch from the image, the accumulated sum.
 	 */
 	TEMP("value", 1);
 	TEMP("sum", 1);
 
-	CONST(zero, 0, 1);
-	CONST(one, 255, 1);
+	CONST("zero", 0, 1);
+	CONST("one", 255, 1);
 
 	/* Init the sum. If this is the first pass, it's a constant. If this
 	 * is a later pass, we have to init the sum from the result
@@ -283,20 +301,19 @@ vips_morph_compile_section(VipsMorph *morph, Pass *pass, gboolean first_pass)
 	 */
 	if (first_pass) {
 		if (morph->morph == VIPS_OPERATION_MORPHOLOGY_DILATE)
-			ASM2("copyb", "sum", zero);
+			ASM2("copyb", "sum", "zero");
 		else
-			ASM2("copyb", "sum", one);
+			ASM2("copyb", "sum", "one");
 	}
-	else {
-		/* "r" is the result of the previous pass.
-		 */
-		pass->r = vips_vector_source_name(v, "r", 1);
+	else
 		ASM2("loadb", "sum", "r");
-	}
 
 	for (i = pass->first; i < morph->n_point; i++) {
 		int x = i % M->Xsize;
 		int y = i / M->Xsize;
+
+		char offset[256];
+		char source[256];
 
 		/* Exclude don't-care elements.
 		 */
@@ -305,12 +322,19 @@ vips_morph_compile_section(VipsMorph *morph, Pass *pass, gboolean first_pass)
 
 		/* The source. sl0 is the first scanline in the mask.
 		 */
-		SCANLINE(source, y, 1);
+		vips_snprintf(source, 256, "sl%d", y);
+		if (orc_program_find_var_by_name(p, source) == -1) {
+			SCANLINE(source, 1);
+			pass->line[pass->n_scanline] = y;
+			pass->n_scanline++;
+		}
 
 		/* The offset, only for non-first-columns though.
 		 */
 		if (x > 0) {
-			CONST(offset, morphology->in->Bands * x, 1);
+			vips_snprintf(offset, 256, "c%db", x);
+			if (orc_program_find_var_by_name(p, offset) == -1)
+				CONST(offset, morphology->in->Bands * x, 1);
 			ASM3("loadoffb", "value", source, offset);
 		}
 		else
@@ -321,7 +345,7 @@ vips_morph_compile_section(VipsMorph *morph, Pass *pass, gboolean first_pass)
 		 */
 		if (morph->morph == VIPS_OPERATION_MORPHOLOGY_DILATE) {
 			if (!morph->coeff[i])
-				ASM3("xorb", "value", "value", one);
+				ASM3("xorb", "value", "value", "one");
 			ASM3("orb", "sum", "sum", "value");
 		}
 		else {
@@ -330,14 +354,17 @@ vips_morph_compile_section(VipsMorph *morph, Pass *pass, gboolean first_pass)
 				 * fails on some machines with some orc
 				 * versions :(
 				 */
-				ASM3("xorb", "value", "value", one);
+				ASM3("xorb", "value", "value", "one");
 				ASM3("andb", "sum", "sum", "value");
 			}
 			else
 				ASM3("andb", "sum", "sum", "value");
 		}
 
-		if (vips_vector_full(v))
+		/* You can have 8 sources, and pass->r counts as one of them,
+		 * so +1 there.
+		 */
+		if (pass->n_scanline + 1 >= 7 /*ORC_MAX_SRC_VARS - 1*/)
 			break;
 	}
 
@@ -345,12 +372,17 @@ vips_morph_compile_section(VipsMorph *morph, Pass *pass, gboolean first_pass)
 
 	ASM2("copyb", "d1", "sum");
 
-	if (!vips_vector_compile(v))
+	/* Some orcs seem to be unstable with many compilers active at once.
+	 */
+	g_mutex_lock(vips__global_lock);
+	result = orc_program_compile(p);
+	g_mutex_unlock(vips__global_lock);
+
+	if (!ORC_COMPILE_RESULT_IS_SUCCESSFUL(result))
 		return -1;
 
 #ifdef DEBUG
 	printf("done matrix coeffs %d to %d\n", pass->first, pass->last);
-	vips_vector_print(v);
 #endif /*DEBUG*/
 
 	return 0;
@@ -389,6 +421,7 @@ vips_morph_compile(VipsMorph *morph)
 		pass->first = i;
 		pass->last = i;
 		pass->r = -1;
+		pass->n_scanline = 0;
 
 		if (vips_morph_compile_section(morph, pass, morph->n_pass == 1))
 			return -1;
@@ -400,6 +433,78 @@ vips_morph_compile(VipsMorph *morph)
 
 	return 0;
 }
+
+/* The vector codepath.
+ */
+static int
+vips_morph_gen_vector(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
+{
+	VipsMorphSequence *seq = (VipsMorphSequence *) vseq;
+	VipsMorph *morph = (VipsMorph *) b;
+	VipsImage *M = morph->M;
+	VipsRegion *ir = seq->ir;
+	VipsRect *r = &out_region->valid;
+	int sz = VIPS_REGION_N_ELEMENTS(out_region);
+
+	VipsRect s;
+	int j, i, y;
+	OrcExecutor executor[MAX_PASS];
+
+	/* Prepare the section of the input image we need. A little larger
+	 * than the section of the output image we are producing.
+	 */
+	s = *r;
+	s.width += M->Xsize - 1;
+	s.height += M->Ysize - 1;
+	if (vips_region_prepare(ir, &s))
+		return -1;
+
+#ifdef DEBUG_VERBOSE
+	printf("vips_morph_gen_vector: preparing %dx%d@%dx%d pixels\n",
+		s.width, s.height, s.left, s.top);
+#endif /*DEBUG_VERBOSE*/
+
+	for (i = 0; i < morph->n_pass; i++) {
+		orc_executor_set_program(&executor[i], morph->pass[i].program);
+		orc_executor_set_n(&executor[i], sz);
+	}
+
+	VIPS_GATE_START("vips_morph_gen_vector: work");
+
+	for (y = 0; y < r->height; y++) {
+		for (i = 0; i < morph->n_pass; i++) {
+			Pass *pass = &morph->pass[i];
+			void *d;
+
+			/* The last pass goes to the output image,
+			 * intermediate passes go to t2.
+			 */
+			if (i == morph->n_pass - 1)
+				d = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
+			else
+				d = seq->t2;
+
+			for (j = 0; j < pass->n_scanline; j++)
+				orc_executor_set_array(&executor[i], pass->r + 1 + j,
+					VIPS_REGION_ADDR(ir, r->left, r->top + y + pass->line[j]));
+			orc_executor_set_array(&executor[i],
+				pass->r, seq->t1);
+			orc_executor_set_array(&executor[i],
+				pass->d1, d);
+			orc_executor_run(&executor[i]);
+
+			VIPS_SWAP(void *, seq->t1, seq->t2);
+		}
+	}
+
+	VIPS_GATE_STOP("vips_morph_gen_vector: work");
+
+	VIPS_COUNT_PIXELS(out_region, "vips_morph_gen_vector");
+
+	return 0;
+}
+#endif /*HAVE_OCR*/
 
 /* Dilate!
  */
@@ -473,6 +578,8 @@ vips_dilate_gen(VipsRegion *out_region,
 				}
 	}
 
+	VIPS_GATE_START("vips_dilate_gen: work");
+
 	/* Dilate!
 	 */
 	for (y = to; y < bo; y++) {
@@ -508,6 +615,10 @@ vips_dilate_gen(VipsRegion *out_region,
 			*q = result;
 		}
 	}
+
+	VIPS_GATE_STOP("vips_dilate_gen: work");
+
+	VIPS_COUNT_PIXELS(out_region, "vips_dilate_gen");
 
 	return 0;
 }
@@ -584,6 +695,8 @@ vips_erode_gen(VipsRegion *out_region,
 				}
 	}
 
+	VIPS_GATE_START("vips_erode_gen: work");
+
 	/* Erode!
 	 */
 	for (y = to; y < bo; y++) {
@@ -617,72 +730,9 @@ vips_erode_gen(VipsRegion *out_region,
 		}
 	}
 
-	return 0;
-}
+	VIPS_GATE_STOP("vips_erode_gen: work");
 
-/* The vector codepath.
- */
-static int
-vips_morph_gen_vector(VipsRegion *out_region,
-	void *vseq, void *a, void *b, gboolean *stop)
-{
-	VipsMorphSequence *seq = (VipsMorphSequence *) vseq;
-	VipsMorph *morph = (VipsMorph *) b;
-	VipsImage *M = morph->M;
-	VipsRegion *ir = seq->ir;
-	VipsRect *r = &out_region->valid;
-	int sz = VIPS_REGION_N_ELEMENTS(out_region);
-
-	VipsRect s;
-	int y, j;
-	VipsExecutor executor[MAX_PASS];
-
-	/* Prepare the section of the input image we need. A little larger
-	 * than the section of the output image we are producing.
-	 */
-	s = *r;
-	s.width += M->Xsize - 1;
-	s.height += M->Ysize - 1;
-	if (vips_region_prepare(ir, &s))
-		return -1;
-
-#ifdef DEBUG_VERBOSE
-	printf("vips_morph_gen_vector: preparing %dx%d@%dx%d pixels\n",
-		s.width, s.height, s.left, s.top);
-#endif /*DEBUG_VERBOSE*/
-
-	for (j = 0; j < morph->n_pass; j++)
-		vips_executor_set_program(&executor[j],
-			morph->pass[j].vector, sz);
-
-	VIPS_GATE_START("vips_morph_gen_vector: work");
-
-	for (y = 0; y < r->height; y++) {
-		for (j = 0; j < morph->n_pass; j++) {
-			void *d;
-
-			/* The last pass goes to the output image,
-			 * intermediate passes go to t2.
-			 */
-			if (j == morph->n_pass - 1)
-				d = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
-			else
-				d = seq->t2;
-
-			vips_executor_set_scanline(&executor[j],
-				ir, r->left, r->top + y);
-			vips_executor_set_array(&executor[j],
-				morph->pass[j].r, seq->t1);
-			vips_executor_set_destination(&executor[j], d);
-			vips_executor_run(&executor[j]);
-
-			VIPS_SWAP(void *, seq->t1, seq->t2);
-		}
-	}
-
-	VIPS_GATE_STOP("vips_morph_gen_vector: work");
-
-	VIPS_COUNT_PIXELS(out_region, "vips_morph_gen_vector");
+	VIPS_COUNT_PIXELS(out_region, "vips_erode_gen");
 
 	return 0;
 }
@@ -753,22 +803,21 @@ vips_morph_build(VipsObject *object)
 		morph->coeff[i] = coeff[i];
 	}
 
-	/* Default to the C path.
-	 */
-	generate = morph->morph == VIPS_OPERATION_MORPHOLOGY_DILATE
-		? vips_dilate_gen
-		: vips_erode_gen;
-
+#ifdef HAVE_ORC
 	/* Generate code for this mask / image, if possible.
 	 */
-	if (vips_vector_isenabled()) {
-		if (!vips_morph_compile(morph)) {
-			generate = vips_morph_gen_vector;
-			g_info("morph: using vector path");
-		}
-		else
-			vips_morph_compile_free(morph);
+	if (vips_vector_isenabled() &&
+		!vips_morph_compile(morph)) {
+		generate = vips_morph_gen_vector;
+		g_info("morph: using vector path");
 	}
+	else
+#endif /*HAVE_ORC*/
+		/* Default to the C path.
+		 */
+		generate = morph->morph == VIPS_OPERATION_MORPHOLOGY_DILATE
+			? vips_dilate_gen
+			: vips_erode_gen;
 
 	g_object_set(morph, "out", vips_image_new(), NULL);
 	if (vips_image_pipelinev(morph->out,
@@ -802,7 +851,9 @@ vips_morph_class_init(VipsMorphClass *class)
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	gobject_class->dispose = vips_morph_dispose;
+#ifdef HAVE_ORC
+	gobject_class->finalize = vips_morph_finalize;
+#endif /*HAVE_ORC*/
 
 	object_class->nickname = "morph";
 	object_class->description = _("morphology operation");
@@ -873,7 +924,8 @@ vips_morph_init(VipsMorph *morph)
  * for analogues of the usual set difference and set union operations.
  *
  * Operations are performed using the processor's vector unit,
- * if possible. Disable this with --vips-novector or VIPS_NOVECTOR.
+ * if possible. Disable this with `--vips-novector` or `VIPS_NOVECTOR` or
+ * vips_vector_set_enabled()
  *
  * Returns: 0 on success, -1 on error
  */

@@ -123,13 +123,19 @@
 #include <limits.h>
 
 #include <vips/vips.h>
+#include <vips/vector.h>
 #include <vips/internal.h>
 
 #include "pconvolution.h"
 
+#ifdef HAVE_ORC
+#include <orc/orc.h>
+
 /* Larger than this and we fall back to C.
  */
 #define MAX_PASS (20)
+
+#define MAX_SOURCES (8 /*ORC_MAX_SRC_VARS*/)
 
 /* A pass with a vector.
  */
@@ -137,12 +143,21 @@ typedef struct {
 	int first; /* The index of the first mask coff we use */
 	int last;  /* The index of the last mask coff we use */
 
-	int r; /* Set previous result in this var */
+	int r;	/* Set previous result in this var */
+	int d1; /* The destination var */
+
+	int n_const;
+	int n_scanline;
+
+	/* The associated line corresponding to the scanline.
+	 */
+	int line[MAX_SOURCES];
 
 	/* The code we generate for this section of the mask.
 	 */
-	VipsVector *vector;
+	OrcProgram *program;
 } Pass;
+#endif /*HAVE_ORC*/
 
 typedef struct {
 	VipsConvolution parent_instance;
@@ -155,14 +170,17 @@ typedef struct {
 	int *coeff;		/* Array of non-zero mask coefficients */
 	int *coeff_pos; /* Index of each nnz element in mask->coeff */
 
+#ifdef HAVE_ORC
 	/* And a half float version for the vector path. mant has the signed
-	 * 8-bit mantissas in [-1, +1), sexp has the exponent shift after the
-	 * mul and before the add, and exp has the final exponent shift before
+	 * 8-bit mantissas in [-1, +1), exp has the final exponent shift before
 	 * write-back.
 	 */
-	int *mant;
-	int sexp;
+	short *mant;
 	int exp;
+
+	/* sexp has the exponent shift after the mul and before the add.
+	 */
+	int sexp;
 
 	/* The set of passes we need for this mask.
 	 */
@@ -172,7 +190,9 @@ typedef struct {
 	/* Code for the final clip back to 8 bits.
 	 */
 	int r;
-	VipsVector *vector;
+	int d1;
+	OrcProgram *program;
+#endif /*HAVE_ORC*/
 } VipsConvi;
 
 typedef VipsConvolutionClass VipsConviClass;
@@ -189,39 +209,29 @@ typedef struct {
 
 	int last_bpl; /* Avoid recalcing offsets, if we can */
 
+#ifdef HAVE_ORC
 	/* We need a pair of intermediate buffers to keep the results of each
 	 * vector conv pass.
 	 */
 	short *t1;
 	short *t2;
+#endif /*HAVE_ORC*/
 } VipsConviSequence;
 
+#ifdef HAVE_ORC
 static void
-vips_convi_compile_free(VipsConvi *convi)
-{
-	int i;
-
-	for (i = 0; i < convi->n_pass; i++)
-		VIPS_FREEF(vips_vector_free, convi->pass[i].vector);
-	convi->n_pass = 0;
-	VIPS_FREEF(vips_vector_free, convi->vector);
-}
-
-static void
-vips_convi_dispose(GObject *gobject)
+vips_convi_finalize(GObject *gobject)
 {
 	VipsConvi *convi = (VipsConvi *) gobject;
 
-#ifdef DEBUG
-	printf("vips_convi_dispose: ");
-	vips_object_print_name(VIPS_OBJECT(gobject));
-	printf("\n");
-#endif /*DEBUG*/
+	for (int i = 0; i < convi->n_pass; i++)
+		VIPS_FREEF(orc_program_free, convi->pass[i].program);
+	convi->n_pass = 0;
+	VIPS_FREEF(orc_program_free, convi->program);
 
-	vips_convi_compile_free(convi);
-
-	G_OBJECT_CLASS(vips_convi_parent_class)->dispose(gobject);
+	G_OBJECT_CLASS(vips_convi_parent_class)->finalize(gobject);
 }
+#endif /*HAVE_ORC*/
 
 /* Free a sequence value.
  */
@@ -232,8 +242,10 @@ vips_convi_stop(void *vseq, void *a, void *b)
 
 	VIPS_UNREF(seq->ir);
 	VIPS_FREE(seq->offsets);
+#ifdef HAVE_ORC
 	VIPS_FREE(seq->t1);
 	VIPS_FREE(seq->t2);
+#endif /*HAVE_ORC*/
 
 	return 0;
 }
@@ -252,15 +264,15 @@ vips_convi_start(VipsImage *out, void *a, void *b)
 
 	seq->convi = convi;
 	seq->ir = NULL;
-	seq->offsets = NULL;
 	seq->last_bpl = -1;
+#ifdef HAVE_ORC
+	seq->offsets = NULL;
 	seq->t1 = NULL;
 	seq->t2 = NULL;
+#endif /*HAVE_ORC*/
 
 	seq->ir = vips_region_new(in);
 
-	/* C mode.
-	 */
 	if (convi->nnz) {
 		if (!(seq->offsets = VIPS_ARRAY(NULL, convi->nnz, int))) {
 			vips_convi_stop(seq, in, convi);
@@ -268,6 +280,7 @@ vips_convi_start(VipsImage *out, void *a, void *b)
 		}
 	}
 
+#ifdef HAVE_ORC
 	/* Vector mode.
 	 */
 	if (convi->n_pass) {
@@ -280,16 +293,18 @@ vips_convi_start(VipsImage *out, void *a, void *b)
 			return NULL;
 		}
 	}
+#endif /*HAVE_ORC*/
 
 	return (void *) seq;
 }
 
-#define TEMP(N, S) vips_vector_temporary(v, (char *) N, S)
-#define PARAM(N, S) vips_vector_parameter(v, (char *) N, S)
-#define SCANLINE(N, P, S) vips_vector_source_scanline(v, (char *) N, P, S)
-#define CONST(N, V, S) vips_vector_constant(v, (char *) N, V, S)
-#define ASM2(OP, A, B) vips_vector_asm2(v, (char *) OP, A, B)
-#define ASM3(OP, A, B, C) vips_vector_asm3(v, (char *) OP, A, B, C)
+#ifdef HAVE_ORC
+
+#define TEMP(N, S) orc_program_add_temporary(p, S, N)
+#define SCANLINE(N, S) orc_program_add_source(p, S, N)
+#define CONST(N, V, S) orc_program_add_constant(p, S, V, N)
+#define ASM2(OP, A, B) orc_program_append_ds_str(p, OP, A, B)
+#define ASM3(OP, A, B, C) orc_program_append_str(p, OP, A, B, C)
 
 /* Generate code for a section of the mask. first is the index we start
  * at, we set last to the index of the last one we use before we run
@@ -304,18 +319,22 @@ vips_convi_compile_section(VipsConvi *convi, VipsImage *in, Pass *pass)
 	VipsConvolution *convolution = (VipsConvolution *) convi;
 	VipsImage *M = convolution->M;
 
-	VipsVector *v;
+	OrcProgram *p;
+	OrcCompileResult result;
 	int i;
 
 #ifdef DEBUG_COMPILE
 	printf("starting pass %d\n", pass->first);
 #endif /*DEBUG_COMPILE*/
 
-	pass->vector = v = vips_vector_new("convi", 2);
+	pass->program = p = orc_program_new();
+
+	pass->d1 = orc_program_add_destination(p, 2, "d1");
 
 	/* "r" is the array of sums from the previous pass (if any).
 	 */
-	pass->r = vips_vector_source_name(v, "r", 2);
+	if (!(pass->r = orc_program_add_source(p, 2, "r")))
+		return -1;
 
 	/* The value we fetch from the image, the accumulated sum.
 	 */
@@ -323,15 +342,18 @@ vips_convi_compile_section(VipsConvi *convi, VipsImage *in, Pass *pass)
 	TEMP("valueb", 1);
 	TEMP("sum", 2);
 
+	CONST("sexp", convi->sexp, 2);
+	CONST("rnd", 1 << (convi->sexp - 1), 2);
+	pass->n_const += 2;
+
 	/* Init the sum. If this is the first pass, it's a constant. If this
 	 * is a later pass, we have to init the sum from the result
 	 * of the previous pass.
 	 */
 	if (pass->first == 0) {
-		char rnd[256];
-
-		CONST(rnd, 1 << (convi->exp - 1), 2);
-		ASM2("loadpw", "sum", rnd);
+		CONST("rnd2", 1 << (convi->exp - 1), 2);
+		ASM2("loadpw", "sum", "rnd2");
+		pass->n_const++;
 	}
 	else
 		ASM2("loadw", "sum", "r");
@@ -342,8 +364,6 @@ vips_convi_compile_section(VipsConvi *convi, VipsImage *in, Pass *pass)
 
 		char source[256];
 		char off[256];
-		char rnd[256];
-		char sexp[256];
 		char coeff[256];
 
 		/* Exclude zero elements.
@@ -353,14 +373,23 @@ vips_convi_compile_section(VipsConvi *convi, VipsImage *in, Pass *pass)
 
 		/* The source. sl0 is the first scanline in the mask.
 		 */
-		SCANLINE(source, y, 1);
+		vips_snprintf(source, 256, "sl%d", y);
+		if (orc_program_find_var_by_name(p, source) == -1) {
+			SCANLINE(source, 1);
+			pass->line[pass->n_scanline] = y;
+			pass->n_scanline++;
+		}
 
 		/* Load with an offset. Only for non-first-columns though.
 		 */
 		if (x == 0)
 			ASM2("convubw", "value", source);
 		else {
-			CONST(off, in->Bands * x, 1);
+			vips_snprintf(off, 256, "c%db", x);
+			if (orc_program_find_var_by_name(p, off) == -1) {
+				CONST(off, in->Bands * x, 1);
+				pass->n_const++;
+			}
 			ASM3("loadoffb", "valueb", source, off);
 			ASM2("convubw", "value", "valueb");
 		}
@@ -370,22 +399,34 @@ vips_convi_compile_section(VipsConvi *convi, VipsImage *in, Pass *pass)
 		 * of the image and coefficient are interesting, so we can take
 		 * the bottom half of a 16x16->32 multiply.
 		 */
-		CONST(coeff, convi->mant[i], 2);
+		vips_snprintf(coeff, 256, "c%dw", convi->mant[i]);
+		if (orc_program_find_var_by_name(p, coeff) == -1) {
+			CONST(coeff, convi->mant[i], 2);
+			pass->n_const++;
+		}
+
 		ASM3("mullw", "value", "value", coeff);
 
 		/* Shift right before add to prevent overflow on large masks.
 		 */
-		CONST(sexp, convi->sexp, 2);
-		CONST(rnd, 1 << (convi->sexp - 1), 2);
-		ASM3("addw", "value", "value", rnd);
-		ASM3("shrsw", "value", "value", sexp);
+		ASM3("addw", "value", "value", "rnd");
+		ASM3("shrsw", "value", "value", "sexp");
 
 		/* We accumulate the signed 16-bit result in sum. Saturated
 		 * add.
 		 */
 		ASM3("addssw", "sum", "sum", "value");
 
-		if (vips_vector_full(v))
+		/* orc allows up to 8 constants, so break early once we
+		 * approach this limit.
+		 */
+		if (pass->n_const >= 7 /*ORC_MAX_CONST_VARS - 1*/)
+			break;
+
+		/* You can have 8 sources, and pass->r counts as one of them,
+		 * so +1 there.
+		 */
+		if (pass->n_scanline + 1 >= 7 /*ORC_MAX_SRC_VARS - 1*/)
 			break;
 	}
 
@@ -395,12 +436,17 @@ vips_convi_compile_section(VipsConvi *convi, VipsImage *in, Pass *pass)
 	 */
 	ASM2("copyw", "d1", "sum");
 
-	if (!vips_vector_compile(v))
+	/* Some orcs seem to be unstable with many compilers active at once.
+	 */
+	g_mutex_lock(vips__global_lock);
+	result = orc_program_compile(p);
+	g_mutex_unlock(vips__global_lock);
+
+	if (!ORC_COMPILE_RESULT_IS_SUCCESSFUL(result))
 		return -1;
 
 #ifdef DEBUG_COMPILE
 	printf("done coeffs %d to %d\n", pass->first, pass->last);
-	vips_vector_print(v);
 #endif /*DEBUG_COMPILE*/
 
 	return 0;
@@ -417,29 +463,37 @@ vips_convi_compile_clip(VipsConvi *convi)
 	VipsImage *M = convolution->M;
 	int offset = VIPS_RINT(vips_image_get_offset(M));
 
-	VipsVector *v;
-	char exp[256];
-	char off[256];
+	OrcProgram *p;
+	OrcCompileResult result;
 
-	convi->vector = v = vips_vector_new("convi", 1);
+	convi->program = p = orc_program_new();
+
+	convi->d1 = orc_program_add_destination(p, 1, "d1");
 
 	/* "r" is the array of sums we clip down.
 	 */
-	convi->r = vips_vector_source_name(v, "r", 2);
+	if (!(convi->r = orc_program_add_source(p, 2, "r")))
+		return -1;
 
 	/* The value we fetch from the image.
 	 */
 	TEMP("value", 2);
 
-	CONST(exp, convi->exp, 2);
-	ASM3("shrsw", "value", "r", exp);
+	CONST("exp", convi->exp, 2);
+	ASM3("shrsw", "value", "r", "exp");
 
-	CONST(off, offset, 2);
-	ASM3("addw", "value", "value", off);
+	CONST("off", offset, 2);
+	ASM3("addw", "value", "value", "off");
 
 	ASM2("convsuswb", "d1", "value");
 
-	if (!vips_vector_compile(v))
+	/* Some orcs seem to be unstable with many compilers active at once.
+	 */
+	g_mutex_lock(vips__global_lock);
+	result = orc_program_compile(p);
+	g_mutex_unlock(vips__global_lock);
+
+	if (!ORC_COMPILE_RESULT_IS_SUCCESSFUL(result))
 		return -1;
 
 	return 0;
@@ -463,6 +517,8 @@ vips_convi_compile(VipsConvi *convi, VipsImage *in)
 
 		pass->first = i;
 		pass->r = -1;
+		pass->n_const = 0;
+		pass->n_scanline = 0;
 
 		if (vips_convi_compile_section(convi, in, pass))
 			return -1;
@@ -492,9 +548,9 @@ vips_convi_gen_vector(VipsRegion *out_region,
 	int ne = r->width * in->Bands;
 
 	VipsRect s;
-	int i, y;
-	VipsExecutor executor[MAX_PASS];
-	VipsExecutor clip;
+	int i, j, y;
+	OrcExecutor executor[MAX_PASS];
+	OrcExecutor clip;
 
 #ifdef DEBUG_PIXELS
 	printf("vips_convi_gen_vector: generating %d x %d at %d x %d\n",
@@ -510,10 +566,12 @@ vips_convi_gen_vector(VipsRegion *out_region,
 	if (vips_region_prepare(ir, &s))
 		return -1;
 
-	for (i = 0; i < convi->n_pass; i++)
-		vips_executor_set_program(&executor[i],
-			convi->pass[i].vector, ne);
-	vips_executor_set_program(&clip, convi->vector, ne);
+	for (i = 0; i < convi->n_pass; i++) {
+		orc_executor_set_program(&executor[i], convi->pass[i].program);
+		orc_executor_set_n(&executor[i], ne);
+	}
+	orc_executor_set_program(&clip, convi->program);
+	orc_executor_set_n(&clip, ne);
 
 	VIPS_GATE_START("vips_convi_gen_vector: work");
 
@@ -541,12 +599,12 @@ vips_convi_gen_vector(VipsRegion *out_region,
 		for (i = 0; i < convi->n_pass; i++) {
 			Pass *pass = &convi->pass[i];
 
-			vips_executor_set_scanline(&executor[i],
-				ir, r->left, r->top + y);
-			vips_executor_set_array(&executor[i],
-				pass->r, seq->t1);
-			vips_executor_set_destination(&executor[i], seq->t2);
-			vips_executor_run(&executor[i]);
+			for (j = 0; j < pass->n_scanline; j++)
+				orc_executor_set_array(&executor[i], pass->r + 1 + j,
+					VIPS_REGION_ADDR(ir, r->left, r->top + y + pass->line[j]));
+			orc_executor_set_array(&executor[i], pass->r, seq->t1);
+			orc_executor_set_array(&executor[i], pass->d1, seq->t2);
+			orc_executor_run(&executor[i]);
 
 			VIPS_SWAP(signed short *, seq->t1, seq->t2);
 		}
@@ -555,9 +613,9 @@ vips_convi_gen_vector(VipsRegion *out_region,
 		printf("before clip: %d\n", ((signed short *) seq->t1)[0]);
 #endif /*DEBUG_PIXELS*/
 
-		vips_executor_set_array(&clip, convi->r, seq->t1);
-		vips_executor_set_destination(&clip, q);
-		vips_executor_run(&clip);
+		orc_executor_set_array(&clip, convi->r, seq->t1);
+		orc_executor_set_array(&clip, convi->d1, q);
+		orc_executor_run(&clip);
 
 #ifdef DEBUG_PIXELS
 		printf("after clip: %d\n",
@@ -571,6 +629,7 @@ vips_convi_gen_vector(VipsRegion *out_region,
 
 	return 0;
 }
+#endif /*HAVE_ORC*/
 
 /* INT inner loops.
  */
@@ -588,9 +647,7 @@ vips_convi_gen_vector(VipsRegion *out_region,
 			for (i = 0; i < nnz; i++) \
 				sum += t[i] * p[offsets[i]]; \
 \
-			sum = ((sum + rounding) / scale) + offset; \
-\
-			CLIP; \
+			sum = CLIP(((sum + rounding) / scale) + offset); \
 \
 			q[x] = sum; \
 			p += 1; \
@@ -620,51 +677,13 @@ vips_convi_gen_vector(VipsRegion *out_region,
 		} \
 	}
 
-/* Various integer range clips. Record over/under flows.
+/* Various integer range clips.
  */
-#define CLIP_UCHAR(V) \
-	G_STMT_START \
-	{ \
-		if ((V) < 0) \
-			(V) = 0; \
-		else if ((V) > UCHAR_MAX) \
-			(V) = UCHAR_MAX; \
-	} \
-	G_STMT_END
-
-#define CLIP_CHAR(V) \
-	G_STMT_START \
-	{ \
-		if ((V) < SCHAR_MIN) \
-			(V) = SCHAR_MIN; \
-		else if ((V) > SCHAR_MAX) \
-			(V) = SCHAR_MAX; \
-	} \
-	G_STMT_END
-
-#define CLIP_USHORT(V) \
-	G_STMT_START \
-	{ \
-		if ((V) < 0) \
-			(V) = 0; \
-		else if ((V) > USHRT_MAX) \
-			(V) = USHRT_MAX; \
-	} \
-	G_STMT_END
-
-#define CLIP_SHORT(V) \
-	G_STMT_START \
-	{ \
-		if ((V) < SHRT_MIN) \
-			(V) = SHRT_MIN; \
-		else if ((V) > SHRT_MAX) \
-			(V) = SHRT_MAX; \
-	} \
-	G_STMT_END
-
-#define CLIP_NONE(V) \
-	{ \
-	}
+#define CLIP_UCHAR(X) VIPS_CLIP(0, (X), UCHAR_MAX)
+#define CLIP_CHAR(X) VIPS_CLIP(SCHAR_MIN, (X), SCHAR_MAX)
+#define CLIP_USHORT(X) VIPS_CLIP(0, (X), USHRT_MAX)
+#define CLIP_SHORT(X) VIPS_CLIP(SHRT_MIN, (X), SHRT_MAX)
+#define CLIP_NONE(X) (X)
 
 /* Convolve!
  */
@@ -725,27 +744,27 @@ vips_convi_gen(VipsRegion *out_region,
 	for (y = to; y < bo; y++) {
 		switch (in->BandFmt) {
 		case VIPS_FORMAT_UCHAR:
-			CONV_INT(unsigned char, CLIP_UCHAR(sum));
+			CONV_INT(unsigned char, CLIP_UCHAR);
 			break;
 
 		case VIPS_FORMAT_CHAR:
-			CONV_INT(signed char, CLIP_CHAR(sum));
+			CONV_INT(signed char, CLIP_CHAR);
 			break;
 
 		case VIPS_FORMAT_USHORT:
-			CONV_INT(unsigned short, CLIP_USHORT(sum));
+			CONV_INT(unsigned short, CLIP_USHORT);
 			break;
 
 		case VIPS_FORMAT_SHORT:
-			CONV_INT(signed short, CLIP_SHORT(sum));
+			CONV_INT(signed short, CLIP_SHORT);
 			break;
 
 		case VIPS_FORMAT_UINT:
-			CONV_INT(unsigned int, CLIP_NONE(sum));
+			CONV_INT(unsigned int, CLIP_NONE);
 			break;
 
 		case VIPS_FORMAT_INT:
-			CONV_INT(signed int, CLIP_NONE(sum));
+			CONV_INT(signed int, CLIP_NONE);
 			break;
 
 		case VIPS_FORMAT_FLOAT:
@@ -841,6 +860,7 @@ vips__image_intize(VipsImage *in, VipsImage **out)
 	return 0;
 }
 
+#ifdef HAVE_ORC
 /* Make an int version of a mask. Each element is 8.8 float, with the same
  * exponent for each element (so just 8 bits in @out).
  *
@@ -916,8 +936,9 @@ vips_convi_intize(VipsConvi *convi, VipsImage *M)
 	 */
 	convi->exp = 7 - shift - convi->sexp;
 
-	if (!(convi->mant = VIPS_ARRAY(convi, convi->n_point, int)))
+	if (!(convi->mant = VIPS_ARRAY(convi, convi->n_point, short)))
 		return -1;
+
 	for (i = 0; i < convi->n_point; i++) {
 		/* 128 since this is signed.
 		 */
@@ -982,6 +1003,7 @@ vips_convi_intize(VipsConvi *convi, VipsImage *M)
 
 	return 0;
 }
+#endif /*HAVE_ORC*/
 
 static int
 vips_convi_build(VipsObject *object)
@@ -1011,22 +1033,21 @@ vips_convi_build(VipsObject *object)
 		return -1;
 	in = t[0];
 
-	/* Default to the C path.
-	 */
-	generate = vips_convi_gen;
-
 	/* For uchar input, try to make a vector path.
 	 */
-	if (vips_vector_isenabled() &&
-		in->BandFmt == VIPS_FORMAT_UCHAR) {
-		if (!vips_convi_intize(convi, M) &&
-			!vips_convi_compile(convi, in)) {
-			generate = vips_convi_gen_vector;
-			g_info("convi: using vector path");
-		}
-		else
-			vips_convi_compile_free(convi);
+#ifdef HAVE_ORC
+	if (in->BandFmt == VIPS_FORMAT_UCHAR &&
+		vips_vector_isenabled() &&
+		!vips_convi_intize(convi, M) &&
+		!vips_convi_compile(convi, in)) {
+		generate = vips_convi_gen_vector;
+		g_info("convi: using vector path");
 	}
+	else
+#endif /*HAVE_ORC*/
+		/* Default to the C path.
+		 */
+		generate = vips_convi_gen;
 
 	/* Make the data for the C path.
 	 */
@@ -1070,6 +1091,9 @@ vips_convi_build(VipsObject *object)
 			VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
 		return -1;
 
+	convolution->out->Xoffset = 0;
+	convolution->out->Yoffset = 0;
+
 	/* Prepare output. Consider a 7x7 mask and a 7x7 image --- the output
 	 * would be 1x1.
 	 */
@@ -1089,10 +1113,14 @@ vips_convi_build(VipsObject *object)
 static void
 vips_convi_class_init(VipsConviClass *class)
 {
+#ifdef HAVE_ORC
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+#endif /*HAVE_ORC*/
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 
-	gobject_class->dispose = vips_convi_dispose;
+#ifdef HAVE_ORC
+	gobject_class->finalize = vips_convi_finalize;
+#endif /*HAVE_ORC*/
 
 	object_class->nickname = "convi";
 	object_class->description = _("int convolution operation");
@@ -1105,6 +1133,9 @@ vips_convi_init(VipsConvi *convi)
 	convi->nnz = 0;
 	convi->coeff = NULL;
 	convi->coeff_pos = NULL;
+#ifdef HAVE_ORC
+	convi->mant = NULL;
+#endif /*HAVE_ORC*/
 }
 
 /**

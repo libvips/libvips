@@ -1654,6 +1654,72 @@ int vips__init(const char *argv0);
 
 size_t vips__get_sizeof_vipsobject(void);
 
+/* This is deprecated to make room for highway.
+ */
+typedef void VipsVector;
+
+#define VIPS_VECTOR_SOURCE_MAX (10)
+
+typedef struct {
+	VipsVector *vector;
+} VipsExecutor;
+
+VIPS_DEPRECATED
+void vips_vector_init(void);
+
+VIPS_DEPRECATED
+void vips_vector_free(VipsVector *vector);
+VIPS_DEPRECATED
+VipsVector *vips_vector_new(const char *name, int dsize);
+
+VIPS_DEPRECATED
+void vips_vector_constant(VipsVector *vector,
+	char *name, int value, int size);
+VIPS_DEPRECATED
+void vips_vector_source_scanline(VipsVector *vector,
+	char *name, int line, int size);
+VIPS_DEPRECATED
+int vips_vector_source_name(VipsVector *vector, const char *name, int size);
+VIPS_DEPRECATED
+void vips_vector_temporary(VipsVector *vector, const char *name, int size);
+VIPS_DEPRECATED
+int vips_vector_parameter(VipsVector *vector, const char *name, int size);
+VIPS_DEPRECATED
+int vips_vector_destination(VipsVector *vector, const char *name, int size);
+VIPS_DEPRECATED
+void vips_vector_asm2(VipsVector *vector,
+	const char *op, const char *a, const char *b);
+VIPS_DEPRECATED
+void vips_vector_asm3(VipsVector *vector,
+	const char *op, const char *a, const char *b, const char *c);
+VIPS_DEPRECATED
+gboolean vips_vector_full(VipsVector *vector);
+
+VIPS_DEPRECATED
+gboolean vips_vector_compile(VipsVector *vector);
+
+VIPS_DEPRECATED
+void vips_vector_print(VipsVector *vector);
+
+VIPS_DEPRECATED
+void vips_executor_set_program(VipsExecutor *executor,
+	VipsVector *vector, int n);
+VIPS_DEPRECATED
+void vips_executor_set_scanline(VipsExecutor *executor,
+	VipsRegion *ir, int x, int y);
+VIPS_DEPRECATED
+void vips_executor_set_destination(VipsExecutor *executor, void *value);
+VIPS_DEPRECATED
+void vips_executor_set_parameter(VipsExecutor *executor, int var, int value);
+VIPS_DEPRECATED
+void vips_executor_set_array(VipsExecutor *executor, int var, void *value);
+
+VIPS_DEPRECATED
+void vips_executor_run(VipsExecutor *executor);
+
+VIPS_DEPRECATED
+void vips_vector_to_fixed_point(double *in, int *out, int n, int scale);
+
 /* This stuff is very, very old and should not be used by anyone now.
  */
 #ifdef VIPS_ENABLE_ANCIENT

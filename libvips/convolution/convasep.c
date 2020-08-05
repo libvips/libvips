@@ -83,7 +83,6 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vector.h>
 #include <vips/debug.h>
 #include <vips/internal.h>
 

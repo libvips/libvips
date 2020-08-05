@@ -130,10 +130,9 @@ h( v4f B )
 }
 '''
 
-if cpp.compiles(vector_arithmetic_check, name: 'Has vector arithmetic', dependencies: m_dep)
-    if cpp.compiles(signed_constants_check, name: 'Has signed constants in vector templates', dependencies: m_dep)
-        cfg_var.set('HAVE_VECTOR_ARITH', '1')
-    endif
+if cpp.compiles(vector_arithmetic_check, name: 'Has vector arithmetic', dependencies: m_dep) and \
+    cpp.compiles(signed_constants_check, name: 'Has signed constants in vector templates', dependencies: m_dep)
+    cfg_var.set('HAVE_VECTOR_ARITH', '1')
 endif
 
 # HAVE_TARGET_CLONES
@@ -441,9 +440,6 @@ if orc_dep.found()
     # definitions of OrcTargetPowerPCFlags, so insist on 0.4.31
     if orc_dep.version().version_compare('>=0.4.31')
         cfg_var.set('HAVE_ORC_CF_PROTECTION', '1')
-    endif
-    if cc.has_function('orc_program_get_error', prefix: '#include <orc/orc.h>', dependencies: orc_dep)
-        cfg_var.set('HAVE_ORC_PROGRAM_GET_ERROR', '1')
     endif
 endif
 
