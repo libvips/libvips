@@ -196,7 +196,7 @@ vips_resize_build( VipsObject *object )
 				return( -1 );
 			in = t[0];
 
-			vscale *= (double) resample->in->Ysize / in->Ysize;
+			vscale *= int_vshrink;
 		}
 
 		if( int_hshrink > 1 ) { 
@@ -207,7 +207,7 @@ vips_resize_build( VipsObject *object )
 				return( -1 );
 			in = t[1];
 
-			hscale *= (double) resample->in->Xsize / in->Xsize;
+			hscale *= int_hshrink;
 		}
 	}
 
@@ -222,6 +222,7 @@ vips_resize_build( VipsObject *object )
 		g_info( "residual reducev by %g", vscale );
 		if( vips_reducev( in, &t[2], 1.0 / vscale, 
 			"kernel", resize->kernel, 
+			"ysize", (double) resample->in->Ysize / int_vshrink,
 			NULL ) )  
 			return( -1 );
 		in = t[2];
@@ -232,6 +233,7 @@ vips_resize_build( VipsObject *object )
 			hscale );
 		if( vips_reduceh( in, &t[3], 1.0 / hscale, 
 			"kernel", resize->kernel, 
+			"xsize", (double) resample->in->Xsize / int_hshrink,
 			NULL ) )  
 			return( -1 );
 		in = t[3];
