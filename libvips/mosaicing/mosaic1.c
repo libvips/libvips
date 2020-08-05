@@ -504,7 +504,7 @@ vips_mosaic1_class_init( VipsMosaic1Class *class )
 
 	VIPS_ARG_ENUM( class, "direction", 4, 
 		_( "Direction" ), 
-		_( "Horizontal or vertcial mosaic" ),
+		_( "Horizontal or vertical mosaic" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsMosaic1, direction ), 
 		VIPS_TYPE_DIRECTION, VIPS_DIRECTION_HORIZONTAL ); 
