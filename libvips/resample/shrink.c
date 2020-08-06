@@ -77,7 +77,7 @@ vips_shrink_build( VipsObject *object )
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsShrink *shrink = (VipsShrink *) object;
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( object, 3 );
+		vips_object_local_array( object, 4 );
 
 	int hshrink_int;
 	int vshrink_int;
@@ -103,8 +103,13 @@ vips_shrink_build( VipsObject *object )
 			 NULL ) )
 			return( -1 ); 
 
-		if( vips_reduce( t[1], &t[2], xresidual, yresidual, NULL ) ||
-			vips_image_write( t[2], resample->out ) )
+		if( vips_reducev( t[1], &t[2], yresidual,
+			"ysize", (double) resample->in->Ysize / vshrink_int,
+			NULL ) ||
+			vips_reduceh( t[2], &t[3], xresidual,
+			"xsize", (double) resample->in->Xsize / hshrink_int,
+			NULL ) ||
+			vips_image_write( t[3], resample->out ) )
 			return( -1 );
 	}
 	else {
