@@ -65,9 +65,6 @@
 
 #include "pforeign.h"
 
-/* TODO ... put minimise support back in.
- */
-
 #if defined(HAVE_POPPLER)
 
 #include <cairo.h>
@@ -376,6 +373,12 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 	return( 0 );
 }
 
+static void
+vips_foreign_load_pdf_minimise( VipsImage *image, VipsForeignLoadPdf *pdf )
+{
+	vips_source_minimise( pdf->source );
+}
+
 static int
 vips_foreign_load_pdf_generate( VipsRegion *or, 
 	void *seq, void *a, void *b, gboolean *stop )
@@ -464,25 +467,20 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 	 */
 	t[0] = vips_image_new(); 
 
-	/* Don't minimise on ::minimise (end of computation): we support 
-	 * threaded read, and minimise will happen outside the cache lock.
+	/* Close input immediately at end of read.
 	 */
+	g_signal_connect( t[0], "minimise",
+		G_CALLBACK( vips_foreign_load_pdf_minimise ), pdf );
 
+	/* Very large strips to limit render calls per page.
+	 */
 	vips_foreign_load_pdf_set_image( pdf, t[0] ); 
 	if( vips_image_generate( t[0], 
-		NULL, vips_foreign_load_pdf_generate, NULL, pdf, NULL ) )
-		return( -1 );
-
-	/* Don't use tilecache to keep the number of calls to
-	 * pdf_page_render() low. Don't thread the cache, we rely on
-	 * locking to keep pdf single-threaded. Use a large strip size to
-	 * (again) keep the number of calls to page_render low. 
-	 */
-	if( vips_linecache( t[0], &t[1],
-		"tile_height", VIPS_MIN( 5000, pdf->pages[0].height ), 
-		NULL ) ) 
-		return( -1 );
-	if( vips_image_write( t[1], load->real ) ) 
+		NULL, vips_foreign_load_pdf_generate, NULL, pdf, NULL ) ||
+		vips_sequential( t[0], &t[1],
+			"tile_height", VIPS_MIN( 5000, pdf->pages[0].height ), 
+			NULL ) || 
+		vips_image_write( t[1], load->real ) ) 
 		return( -1 );
 
 	return( 0 );
