@@ -106,8 +106,12 @@ typedef struct _Render {
 	 * threads. We can't easily use the gobject ref count system since we
 	 * need a lock around operations.
 	 */
+#if GLIB_CHECK_VERSION( 2, 58, 0 )
+	gatomicrefcount ref_count;
+#else
 	int ref_count;
-	GMutex *ref_count_lock;	
+	GMutex *ref_count_lock;
+#endif
 
 	/* Parameters.
 	 */
@@ -228,7 +232,11 @@ render_free( Render *render )
 {
 	VIPS_DEBUG_MSG_AMBER( "render_free: %p\n", render );
 
+#if GLIB_CHECK_VERSION( 2, 58, 0 )
+	g_assert ( g_atomic_ref_count_compare( &render->ref_count, 0 ) );
+#else
 	g_assert( render->ref_count == 0 );
+#endif
 
 	g_mutex_lock( render_dirty_lock );
 	if( g_slist_find( render_dirty_all, render ) ) {
@@ -241,7 +249,9 @@ render_free( Render *render )
 	}
 	g_mutex_unlock( render_dirty_lock );
 
+#if !GLIB_CHECK_VERSION( 2, 58, 0 )
 	vips_g_mutex_free( render->ref_count_lock );
+#endif
 	vips_g_mutex_free( render->lock );
 
 	vips_slist_map2( render->all, (VipsSListMap2Fn) tile_free, NULL, NULL );
@@ -266,10 +276,15 @@ render_free( Render *render )
 static int
 render_ref( Render *render )
 {
+#if GLIB_CHECK_VERSION( 2, 58, 0 )
+	g_assert( !g_atomic_ref_count_compare( &render->ref_count, 0 ) );
+	g_atomic_ref_count_inc( &render->ref_count );
+#else
 	g_mutex_lock( render->ref_count_lock );
 	g_assert( render->ref_count != 0 );
 	render->ref_count += 1;
 	g_mutex_unlock( render->ref_count_lock );
+#endif
 
 	return( 0 );
 }
@@ -279,11 +294,16 @@ render_unref( Render *render )
 {
 	int kill;
 
+#if GLIB_CHECK_VERSION( 2, 58, 0 )
+	g_assert( !g_atomic_ref_count_compare( &render->ref_count, 0 ) );
+	kill = g_atomic_ref_count_dec( &render->ref_count );
+#else
 	g_mutex_lock( render->ref_count_lock );
 	g_assert( render->ref_count > 0 );
 	render->ref_count -= 1;
 	kill = render->ref_count == 0;
 	g_mutex_unlock( render->ref_count_lock );
+#endif
 
 	if( kill )
 		render_free( render );
@@ -554,8 +574,12 @@ render_new( VipsImage *in, VipsImage *out, VipsImage *mask,
 	 */
 	g_object_ref( in );
 
+#if GLIB_CHECK_VERSION( 2, 58, 0 )
+	g_atomic_ref_count_init( &render->ref_count );
+#else
 	render->ref_count = 1;
 	render->ref_count_lock = vips_g_mutex_new();
+#endif
 
 	render->in = in;
 	render->out = out;
