@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>libvips</title>
+    <meta name="description" content="A fast image processing library with low memory needs.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/libvips/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="/libvips/favicon.ico">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name"><a href="/libvips">libvips</a></h1>
+      <h2 class="project-tagline">A fast image processing library with low memory needs.</h2>
+      <a href="https://github.com/libvips/libvips" class="btn">Project on GitHub</a>
+      <a href="https://github.com/libvips/libvips/releases" class="btn">Download</a>
+      <a href="/libvips/install.html" class="btn">Install</a>
+      <a href="/libvips/API/current" class="btn">Documentation</a>
+      <a href="https://github.com/libvips/libvips/issues" class="btn">Issues</a>
+      <a href="https://github.com/libvips/libvips/wiki" class="btn">Wiki</a>
+    </section>
+
+    <section class="main-content">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="final-suggestion.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="Cite.md.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="Examples.md"></a><div class="titlepage"></div>
+<p>
+  
+</p>
+<p>
+  </p>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2>libvips examples</h2>
+<p>libvips examples — A few example Python programs using libvips</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<p>
+</p>
+<p>
+  This page shows a few libvips examples using Python. They will work with small syntax changes in any language with a libvips binding.
+</p>
+<p>
+  The libvips test suite is written in Python and exercises every operation in the API. It’s also a useful source of examples.
+</p>
+<div class="refsect3">
+<a name="average-a-region-of-interest-box-on-an-image"></a><h4>Average a region of interest box on an image</h4>
+<pre class="programlisting">
+#!/usr/bin/env python
+
+import sys
+import pyvips
+
+left = 10
+top = 10
+width = 64
+height = 64
+
+image = pyvips.Image.new_from_file(sys.argv[1])
+roi = image.crop(left, top, width, height)
+print 'average:', roi.avg()
+</pre>
+</div>
+<div class="refsect3">
+<a name="libvips-and-numpy"></a><h4>libvips and numpy</h4>
+<p>
+    You can use <code class="literal">pyvips.Image.new_from_memory()</code> to make a vips image from an area of memory. The memory array needs to be laid out band-interleaved, as a set of scanlines, with no padding between lines.
+  </p>
+<pre class="programlisting">
+#!/usr/bin/env python
+
+import sys
+import time
+
+import pyvips
+from PIL import Image
+import numpy as np
+
+if len(sys.argv) != 3:
+    print('usage: {0} input-filename output-filename'.format(sys.argv[0]))
+    sys.exit(-1)
+
+# map vips formats to np dtypes
+format_to_dtype = {
+    'uchar': np.uint8,
+    'char': np.int8,
+    'ushort': np.uint16,
+    'short': np.int16,
+    'uint': np.uint32,
+    'int': np.int32,
+    'float': np.float32,
+    'double': np.float64,
+    'complex': np.complex64,
+    'dpcomplex': np.complex128,
+}
+
+# map np dtypes to vips
+dtype_to_format = {
+    'uint8': 'uchar',
+    'int8': 'char',
+    'uint16': 'ushort',
+    'int16': 'short',
+    'uint32': 'uint',
+    'int32': 'int',
+    'float32': 'float',
+    'float64': 'double',
+    'complex64': 'complex',
+    'complex128': 'dpcomplex',
+}
+
+# load with PIL
+start_pillow = time.time()
+pillow_img = np.asarray(Image.open(sys.argv[1]))
+print('Pillow Time:', time.time()-start_pillow)
+print('original shape', pillow_img.shape)
+
+# load with vips to a memory array
+start_vips = time.time()
+img = pyvips.Image.new_from_file(sys.argv[1], access='sequential')
+mem_img = img.write_to_memory()
+
+# then make a numpy array from that buffer object
+np_3d = np.ndarray(buffer=mem_img,
+                   dtype=format_to_dtype[img.format],
+                   shape=[img.height, img.width, img.bands])
+
+print('Vips Time:', time.time()-start_vips)
+print('final shape', np_3d.shape)
+
+# verify we have the same result
+print('Sum of the Differences:', np.sum(np_3d-pillow_img))
+
+# make a vips image from the numpy array
+height, width, bands = np_3d.shape
+linear = np_3d.reshape(width * height * bands)
+vi = pyvips.Image.new_from_memory(linear.data, width, height, bands,
+                                  dtype_to_format[str(np_3d.dtype)])
+
+# and write back to disc for checking
+vi.write_to_file(sys.argv[2])
+</pre>
+</div>
+<div class="refsect3">
+<a name="build-huge-image-mosaic"></a><h4>Build huge image mosaic</h4>
+<p>
+    This makes a 100,000 x 100,000 black image, then inserts all the images you pass on the command-line into it at random positions. libvips is able to run this program in sequential mode: it’ll open all the input images at the same time, and stream pixels from them as it needs them to generate the output.
+  </p>
+<p>
+    To test it, first make a large 1-bit image. This command will take the green channel and write as a 1-bit fax image. <code class="literal">wtc.jpg</code> is a test 10,000 x 10,000 jpeg:
+  </p>
+<pre class="programlisting">
+$ vips extract_band wtc.jpg x.tif[squash,compression=ccittfax4,strip] 1
+</pre>
+<p>
+    Now make 1,000 copies of that image in a subdirectory:
+  </p>
+<pre class="programlisting">
+$ mkdir test
+$ for i in {1..1000}; do cp x.tif test/$i.tif; done
+</pre>
+<p>
+    And run this Python program on them:
+  </p>
+<pre class="programlisting">
+$ time ./try255.py x.tif[squash,compression=ccittfax4,strip,bigtif] test/*
+real    1m59.924s
+user    4m5.388s
+sys 0m8.936s
+</pre>
+<p>
+    It completes in just under two minutes on this laptop, and needs about 7gb of RAM to run. It would need about the same amount of memory for a full-colour RGB image, I was just keen to keep disc usage down.
+  </p>
+<p>
+    If you wanted to handle transparency, or if you wanted mixed CMYK and RGB images, you’d need to do some more work to convert them all into the same colourspace before inserting them.
+  </p>
+<pre class="programlisting">
+#!/usr/bin/env python
+
+import sys
+import random
+import pyvips
+
+# this makes a 8-bit, mono image of 100,000 x 100,000 pixels, each pixel zero
+im = pyvips.Image.black(100000, 100000)
+
+for filename in sys.argv[2:]:
+    tile = pyvips.Image.new_from_file(filename, access='sequential')
+
+    im = im.insert(tile,
+                   random.randint(0, im.width - tile.width),
+                   random.randint(0, im.height - tile.height))
+
+im.write_to_file(sys.argv[1])
+</pre>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.32</div>
+</section>
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48550036-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
+</html>

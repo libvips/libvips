@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>libvips</title>
+    <meta name="description" content="A fast image processing library with low memory needs.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/libvips/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="/libvips/favicon.ico">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name"><a href="/libvips">libvips</a></h1>
+      <h2 class="project-tagline">A fast image processing library with low memory needs.</h2>
+      <a href="https://github.com/libvips/libvips" class="btn">Project on GitHub</a>
+      <a href="https://github.com/libvips/libvips/releases" class="btn">Download</a>
+      <a href="/libvips/install.html" class="btn">Install</a>
+      <a href="/libvips/API/current" class="btn">Documentation</a>
+      <a href="https://github.com/libvips/libvips/issues" class="btn">Issues</a>
+      <a href="https://github.com/libvips/libvips/wiki" class="btn">Wiki</a>
+    </section>
+
+    <section class="main-content">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="Using-vipsthumbnail.md.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="output-directory.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="colour-management.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="output-format-and-options"></a>Output format and options</h2></div></div></div>
+<p>
+    You can use <code class="literal">-o</code> to specify the thumbnail image format too. For example: 
+  </p>
+<pre class="programlisting">
+$ vipsthumbnail fred.jpg ../jim.tif -o tn_%s.png
+</pre>
+<p>
+    Will write thumbnails in PNG format.
+  </p>
+<p>
+    You can give options to the image write operation as a list of comma-separated arguments in square brackets. For example:
+  </p>
+<pre class="programlisting">
+$ vipsthumbnail fred.jpg ../jim.tif -o tn_%s.jpg[Q=90,optimize_coding]
+</pre>
+<p>
+    will write jpeg images with quality 90, and will turn on the libjpeg coding optimizer.
+  </p>
+<p>
+    Check the image write operations to see all the possible options. For example:
+  </p>
+<pre class="programlisting">
+$ vips jpegsave
+save image to jpeg file
+usage:
+   jpegsave in filename
+where:
+   in           - Image to save, input VipsImage
+   filename     - Filename to save to, input gchararray
+optional arguments:
+   Q            - Q factor, input gint
+            default: 75
+            min: 1, max: 100
+   profile      - ICC profile to embed, input gchararray
+   optimize-coding - Compute optimal Huffman coding tables, input gboolean
+            default: false
+   interlace    - Generate an interlaced (progressive) jpeg, input gboolean
+            default: false
+   no-subsample - Disable chroma subsample, input gboolean
+            default: false
+   trellis-quant - Apply trellis quantisation to each 8x8 block, input gboolean
+            default: false
+   overshoot-deringing - Apply overshooting to samples with extreme values, input gboolean
+            default: false
+   optimize-scans - Split the spectrum of DCT coefficients into separate scans, input gboolean
+            default: false
+   quant-table  - Use predefined quantization table with given index, input gint
+            default: 0
+            min: 0, max: 8
+   strip        - Strip all metadata from image, input gboolean
+            default: false
+   background   - Background value, input VipsArrayDouble
+</pre>
+<p>
+    The <code class="literal">strip</code> option is especially useful. Many image have very large IPCT, ICC or XMP metadata items embedded in them, and removing these can give a large saving.
+  </p>
+<p>
+    For example:
+  </p>
+<pre class="programlisting">
+$ vipsthumbnail 42-32157534.jpg
+$ ls -l tn_42-32157534.jpg
+-rw-r–r– 1 john john 6682 Nov 12 21:27 tn_42-32157534.jpg
+</pre>
+<p>
+    <code class="literal">strip</code> almost halves the size of the thumbnail:
+  </p>
+<pre class="programlisting">
+$ vipsthumbnail 42-32157534.jpg -o x.jpg[optimize_coding,strip]
+$ ls -l x.jpg
+-rw-r–r– 1 john john 3600 Nov 12 21:27 x.jpg
+</pre>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.32</div>
+</section>
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48550036-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
+</html>
