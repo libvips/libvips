@@ -5,37 +5,15 @@
       <sub name="VIPS from the command-line" link="using-cli.html"/>
       <sub name="VIPS from C" link="using-from-c.html"/>
       <sub name="VIPS from C++" link="using-from-cpp.html"/>
-      <sub name="" link="binding.md.html">
-        <sub name="Don’t bind the top-level C API" link="binding.md.html#dont-bind-the-top-level-c-api"/>
-        <sub name="Compiled language which can call C" link="compiled-language-which-can-call-c.html"/>
-        <sub name="Dynamic language with FFI" link="dynamic-language-with-ffi.html"/>
-        <sub name="Dynamic langauge without FFI" link="dynamic-langauge-without-ffi.html"/>
-        <sub name="gobject-introspection" link="gobject-introspection.html"/>
-        <sub name="Documentation" link="documentation.html"/>
-      </sub>
+      <sub name="" link="binding.md.html"/>
       <sub name="Extending VIPS" link="extending.html"/>
       <sub name="VIPS function list" link="func-list.html"/>
       <sub name="The VIPS file format" link="file-format.html"/>
       <sub name="VIPS and threads" link="using-threads.html"/>
       <sub name="" link="How-it-works.md.html"/>
-      <sub name="" link="How-it-opens-files.md.html">
-        <sub name="Direct access" link="How-it-opens-files.md.html#direct-access"/>
-        <sub name="Random access via load library" link="random-access-via-load-library.html"/>
-        <sub name="Full decompression" link="full-decompression.html"/>
-        <sub name="Sequential access" link="sequential-access.html"/>
-      </sub>
+      <sub name="" link="How-it-opens-files.md.html"/>
       <sub name="" link="Making-image-pyramids.md.html"/>
-      <sub name="" link="Using-vipsthumbnail.md.html">
-        <sub name="libvips options" link="Using-vipsthumbnail.md.html#libvips-options"/>
-        <sub name="Looping" link="looping.html"/>
-        <sub name="Thumbnail size" link="thumbnail-size.html"/>
-        <sub name="Cropping" link="cropping.html"/>
-        <sub name="Linear light" link="linear-light.html"/>
-        <sub name="Output directory" link="output-directory.html"/>
-        <sub name="Output format and options" link="output-format-and-options.html"/>
-        <sub name="Colour management" link="colour-management.html"/>
-        <sub name="Final suggestion" link="final-suggestion.html"/>
-      </sub>
+      <sub name="" link="Using-vipsthumbnail.md.html"/>
       <sub name="" link="Examples.md.html"/>
       <sub name="" link="Cite.md.html"/>
     </sub>

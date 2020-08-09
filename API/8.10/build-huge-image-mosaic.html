@@ -28,131 +28,13 @@
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
 <td width="100%" align="left" class="shortcuts"></td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
-<td><a accesskey="u" href="ch01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
-<td><a accesskey="p" href="Using-vipsthumbnail.md.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="Examples.md.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="libvips-and-numpy.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
 <td><a accesskey="n" href="Cite.md.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
-<div class="refentry">
-<a name="Examples.md"></a><div class="titlepage"></div>
-<p>
-  
-</p>
-<p>
-  </p>
-<div class="refnamediv"><table width="100%"><tr>
-<td valign="top">
-<h2>libvips examples</h2>
-<p>libvips examples — A few example Python programs using libvips</p>
-</td>
-<td class="gallery_image" valign="top" align="right"></td>
-</tr></table></div>
-<p>
-</p>
-<p>
-  This page shows a few libvips examples using Python. They will work with small syntax changes in any language with a libvips binding.
-</p>
-<p>
-  The libvips test suite is written in Python and exercises every operation in the API. It’s also a useful source of examples.
-</p>
-<div class="refsect3">
-<a name="average-a-region-of-interest-box-on-an-image"></a><h4>Average a region of interest box on an image</h4>
-<pre class="programlisting">
-#!/usr/bin/env python
-
-import sys
-import pyvips
-
-left = 10
-top = 10
-width = 64
-height = 64
-
-image = pyvips.Image.new_from_file(sys.argv[1])
-roi = image.crop(left, top, width, height)
-print 'average:', roi.avg()
-</pre>
-</div>
-<div class="refsect3">
-<a name="libvips-and-numpy"></a><h4>libvips and numpy</h4>
-<p>
-    You can use <code class="literal">pyvips.Image.new_from_memory()</code> to make a vips image from an area of memory. The memory array needs to be laid out band-interleaved, as a set of scanlines, with no padding between lines.
-  </p>
-<pre class="programlisting">
-#!/usr/bin/env python
-
-import sys
-import time
-
-import pyvips
-from PIL import Image
-import numpy as np
-
-if len(sys.argv) != 3:
-    print('usage: {0} input-filename output-filename'.format(sys.argv[0]))
-    sys.exit(-1)
-
-# map vips formats to np dtypes
-format_to_dtype = {
-    'uchar': np.uint8,
-    'char': np.int8,
-    'ushort': np.uint16,
-    'short': np.int16,
-    'uint': np.uint32,
-    'int': np.int32,
-    'float': np.float32,
-    'double': np.float64,
-    'complex': np.complex64,
-    'dpcomplex': np.complex128,
-}
-
-# map np dtypes to vips
-dtype_to_format = {
-    'uint8': 'uchar',
-    'int8': 'char',
-    'uint16': 'ushort',
-    'int16': 'short',
-    'uint32': 'uint',
-    'int32': 'int',
-    'float32': 'float',
-    'float64': 'double',
-    'complex64': 'complex',
-    'complex128': 'dpcomplex',
-}
-
-# load with PIL
-start_pillow = time.time()
-pillow_img = np.asarray(Image.open(sys.argv[1]))
-print('Pillow Time:', time.time()-start_pillow)
-print('original shape', pillow_img.shape)
-
-# load with vips to a memory array
-start_vips = time.time()
-img = pyvips.Image.new_from_file(sys.argv[1], access='sequential')
-mem_img = img.write_to_memory()
-
-# then make a numpy array from that buffer object
-np_3d = np.ndarray(buffer=mem_img,
-                   dtype=format_to_dtype[img.format],
-                   shape=[img.height, img.width, img.bands])
-
-print('Vips Time:', time.time()-start_vips)
-print('final shape', np_3d.shape)
-
-# verify we have the same result
-print('Sum of the Differences:', np.sum(np_3d-pillow_img))
-
-# make a vips image from the numpy array
-height, width, bands = np_3d.shape
-linear = np_3d.reshape(width * height * bands)
-vi = pyvips.Image.new_from_memory(linear.data, width, height, bands,
-                                  dtype_to_format[str(np_3d.dtype)])
-
-# and write back to disc for checking
-vi.write_to_file(sys.argv[2])
-</pre>
-</div>
-<div class="refsect3">
-<a name="build-huge-image-mosaic"></a><h4>Build huge image mosaic</h4>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="build-huge-image-mosaic"></a>Build huge image mosaic</h2></div></div></div>
 <p>
     This makes a 100,000 x 100,000 black image, then inserts all the images you pass on the command-line into it at random positions. libvips is able to run this program in sequential mode: it’ll open all the input images at the same time, and stream pixels from them as it needs them to generate the output.
   </p>
@@ -203,7 +85,6 @@ for filename in sys.argv[2:]:
 
 im.write_to_file(sys.argv[1])
 </pre>
-</div>
 </div>
 <div class="footer">
 <hr>Generated by GTK-Doc V1.32</div>

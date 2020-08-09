@@ -30,7 +30,7 @@
 <td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
 <td><a accesskey="u" href="ch01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
 <td><a accesskey="p" href="using-from-cpp.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="compiled-language-which-can-call-c.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<td><a accesskey="n" href="extending.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="refentry">
 <a name="binding.md"></a><div class="titlepage"></div>
@@ -54,9 +54,8 @@
 <p>
   This chapter runs through the four main styles that have been found to work well. If you want to write a new binding, one of these should be close to what you need.
 </p>
-<div class="section">
-<div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="dont-bind-the-top-level-c-api"></a>Don’t bind the top-level C API</h2></div></div></div>
+<div class="refsect3">
+<a name="dont-bind-the-top-level-c-api"></a><h4>Don’t bind the top-level C API</h4>
 <p>
     The libvips C API (<a class="link" href="libvips-arithmetic.html#vips-add" title="vips_add ()"><code class="function">vips_add()</code></a> and so on) is very inconvenient and dangerous to use from other languages due to its heavy use of varargs.
   </p>
@@ -155,6 +154,91 @@ main( int argc, char **argv )
   </p>
 <p>
     Use <a class="link" href="VipsOperation.html#vips-operation-get-flags" title="vips_operation_get_flags ()"><code class="function">vips_operation_get_flags()</code></a> to get general information about an operator.
+  </p>
+</div>
+<div class="refsect3">
+<a name="compiled-language-which-can-call-c"></a><h4>Compiled language which can call C</h4>
+<p>
+    The C++ binding uses this lower layer to define a function called <code class="literal">VImage::<code class="function">call()</code></code> which can call any libvips operator with a not-varargs set of variable arguments.
+  </p>
+<p>
+    A small Python program walks the set of all libvips operators and generates a set of static bindings. For example:
+  </p>
+<pre class="programlisting">
+VImage VImage::invert( VOption *options )
+{
+    VImage out;
+
+    call( "invert", (options ? options : VImage::option()) -&gt;
+        set( "in", *this ) -&gt;
+        set( "out", &amp;out ) );
+
+    return( out );
+}
+</pre>
+<p>
+    So from C++ you can call any libvips operator (though without type-safety) with <code class="literal">VImage::<code class="function">call()</code></code>, or use the member functions on <code class="literal">VImage</code> to get type-safe calls for at least the required operator arguments.
+  </p>
+<p>
+    The <code class="literal">VImage</code> class also adds automatic reference counting, constant expansion, operator overloads, and various other useful features.
+  </p>
+</div>
+<div class="refsect3">
+<a name="dynamic-language-with-ffi"></a><h4>Dynamic language with FFI</h4>
+<p>
+    Languages like Ruby, Python, JavaScript and LuaJIT can’t call C directly, but they do support FFI. The bindings for these languages work rather like C++, but use FFI to call into libvips and run operations.
+  </p>
+<p>
+    Since these languages are dynamic, they can add another trick: they intercept the method-missing hook and attempt to run any method calls not implemented by the <code class="literal">Image</code> class as libvips operators. This makes these bindings self-writing: they only contain a small amount of code and just expose everything they find in the libvips class hierarchy.
+  </p>
+</div>
+<div class="refsect3">
+<a name="dynamic-langauge-without-ffi"></a><h4>Dynamic langauge without FFI</h4>
+<p>
+    PHP does not have FFI, unfortunately, so for this language a small native module implements the general <code class="literal"><a class="link" href="VipsOperation.html#vips-call" title="vips_call ()"><code class="function">vips_call()</code></a></code> function for PHP language types, and a larger pure PHP layer makes it convenient to use.
+  </p>
+</div>
+<div class="refsect3">
+<a name="gobject-introspection"></a><h4>gobject-introspection</h4>
+<p>
+    The C source code to libvips has been marked up with special comments describing the interface in a standard way. These comments are read by the <code class="literal">gobject-introspection</code> package when libvips is compiled and used to generate a typelib, a description of how to call the library. Many languages have gobject-introspection packages: all you need to do to call libvips from your favorite language is to start g-o-i, load the libvips typelib, and you should have the whole library available. For example, from Python it’s as simple as:
+  </p>
+<pre class="programlisting">
+from gi.repository import Vips
+</pre>
+<p>
+    You can now use all of the libvips introspection machinery, as noted above.
+  </p>
+<p>
+    Unfortunately g-o-i has some strong disadvantages. It is not very portable, since you will need a g-o-i layer for whatever platform you are targetting; it does not cross-compile well, since typelibs include a lot of very-low level data (such as exact structure layouts); and installation for your users is likely to be tricky.
+  </p>
+<p>
+    If you have a choice, I would recommend simply using FFI.
+  </p>
+</div>
+<div class="refsect3">
+<a name="documentation"></a><h4>Documentation</h4>
+<p>
+    You can generate searchable docs from a <code class="code">.gir</code> (the thing that is built from scanning libvips and which in turn turn the typelib is made from) with <span class="command"><strong>g-ir-doc-tool</strong></span>, for example:
+  </p>
+<pre class="programlisting">
+$ g-ir-doc-tool --language=Python -o ~/mydocs Vips-8.0.gir
+</pre>
+<p>
+    Then to view them, either:
+  </p>
+<pre class="programlisting">
+$ yelp ~/mydocs 
+</pre>
+<p>
+    Or perhaps:
+  </p>
+<pre class="programlisting">
+$ cd ~/mydocs 
+$ yelp-build html .
+</pre>
+<p>
+    To make HTML docs. This is an easy way to see what you can call in the library.
   </p>
 </div>
 </div>
