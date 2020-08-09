@@ -16,7 +16,7 @@
 <para>
   This chapter runs through the four main styles that have been found to work well. If you want to write a new binding, one of these should be close to what you need.
 </para>
-<section xml:id="dont-bind-the-top-level-c-api">
+<refsect3 xml:id="dont-bind-the-top-level-c-api">
   <title>Don’t bind the top-level C API</title>
   <para>
     The libvips C API (vips_add() and so on) is very inconvenient and dangerous to use from other languages due to its heavy use of varargs.
@@ -117,8 +117,8 @@ main( int argc, char **argv )
   <para>
     Use vips_operation_get_flags() to get general information about an operator.
   </para>
-</section>
-<section xml:id="compiled-language-which-can-call-c">
+</refsect3>
+<refsect3 xml:id="compiled-language-which-can-call-c">
   <title>Compiled language which can call C</title>
   <para>
     The C++ binding uses this lower layer to define a function called <literal>VImage::call()</literal> which can call any libvips operator with a not-varargs set of variable arguments.
@@ -144,8 +144,8 @@ VImage VImage::invert( VOption *options )
   <para>
     The <literal>VImage</literal> class also adds automatic reference counting, constant expansion, operator overloads, and various other useful features.
   </para>
-</section>
-<section xml:id="dynamic-language-with-ffi">
+</refsect3>
+<refsect3 xml:id="dynamic-language-with-ffi">
   <title>Dynamic language with FFI</title>
   <para>
     Languages like Ruby, Python, JavaScript and LuaJIT can’t call C directly, but they do support FFI. The bindings for these languages work rather like C++, but use FFI to call into libvips and run operations.
@@ -153,14 +153,14 @@ VImage VImage::invert( VOption *options )
   <para>
     Since these languages are dynamic, they can add another trick: they intercept the method-missing hook and attempt to run any method calls not implemented by the <literal>Image</literal> class as libvips operators. This makes these bindings self-writing: they only contain a small amount of code and just expose everything they find in the libvips class hierarchy.
   </para>
-</section>
-<section xml:id="dynamic-langauge-without-ffi">
+</refsect3>
+<refsect3 xml:id="dynamic-langauge-without-ffi">
   <title>Dynamic langauge without FFI</title>
   <para>
     PHP does not have FFI, unfortunately, so for this language a small native module implements the general <literal>vips_call()</literal> function for PHP language types, and a larger pure PHP layer makes it convenient to use.
   </para>
-</section>
-<section xml:id="gobject-introspection">
+</refsect3>
+<refsect3 xml:id="gobject-introspection">
   <title>gobject-introspection</title>
   <para>
     The C source code to libvips has been marked up with special comments describing the interface in a standard way. These comments are read by the <literal>gobject-introspection</literal> package when libvips is compiled and used to generate a typelib, a description of how to call the library. Many languages have gobject-introspection packages: all you need to do to call libvips from your favorite language is to start g-o-i, load the libvips typelib, and you should have the whole library available. For example, from Python it’s as simple as:
@@ -177,8 +177,8 @@ from gi.repository import Vips
   <para>
     If you have a choice, I would recommend simply using FFI.
   </para>
-</section>
-<section xml:id="documentation">
+</refsect3>
+<refsect3 xml:id="documentation">
   <title>Documentation</title>
   <para>
     You can generate searchable docs from a <code>.gir</code> (the thing that is built from scanning libvips and which in turn turn the typelib is made from) with <command>g-ir-doc-tool</command>, for example:
@@ -202,7 +202,7 @@ $ yelp-build html .
   <para>
     To make HTML docs. This is an easy way to see what you can call in the library.
   </para>
-</section>
+</refsect3>
 
 
 </refentry>
