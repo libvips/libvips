@@ -77,8 +77,10 @@ typedef enum {
 } VipsRegionShrink;
 
 /* Sub-area of image.
+ *
+ * Matching typedef in basic.h.
  */
-typedef struct _VipsRegion {
+struct _VipsRegion {
 	VipsObject parent_object;
 
 	/*< public >*/
@@ -112,7 +114,7 @@ typedef struct _VipsRegion {
 	 * dropped.
 	 */
 	gboolean invalid;	
-} VipsRegion;
+};
 
 typedef struct _VipsRegionClass {
 	VipsObjectClass parent_class;
