@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [8.10.1], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [8.11.0], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ(2.62)
 
@@ -17,8 +17,8 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # user-visible library versioning
 m4_define([vips_major_version], [8])
-m4_define([vips_minor_version], [10])
-m4_define([vips_micro_version], [1])
+m4_define([vips_minor_version], [11])
+m4_define([vips_micro_version], [0])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
 
@@ -37,9 +37,9 @@ VIPS_VERSION_STRING=$VIPS_VERSION-`date -u -r $srcdir/ChangeLog`
 #   binary interface changes backwards compatible?: increment age
 #   binary interface changes not backwards compatible?: reset age to 0
 
-LIBRARY_CURRENT=54
-LIBRARY_REVISION=3
-LIBRARY_AGE=12
+LIBRARY_CURRENT=55
+LIBRARY_REVISION=0
+LIBRARY_AGE=13
 
 # patched into include/vips/version.h
 AC_SUBST(VIPS_VERSION)

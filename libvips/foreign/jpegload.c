@@ -550,3 +550,36 @@ vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
 
 	return( result );
 }
+
+/**
+ * vips_jpegload_source:
+ * @source: source to load
+ * @out: (out): image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @shrink: %gint, shrink by this much on load
+ * * @fail: %gboolean, fail on errors
+ * * @autorotate: %gboolean, use exif Orientation tag to rotate the image 
+ *   during load
+ *
+ * Read a JPEG-formatted memory block into a VIPS image. Exactly as
+ * vips_jpegload(), but read from a source. 
+ *
+ * See also: vips_jpegload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jpegload_source( VipsSource *source, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "jpegload_source", ap, source, out );
+	va_end( ap );
+
+	return( result );
+}
