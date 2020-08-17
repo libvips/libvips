@@ -31,4 +31,5 @@ vips-operators.cpp:
 EXTRA_DIST = \
 	README \
 	vips-operators.cpp \
+	Doxyfile \
 	gen-operators.py
