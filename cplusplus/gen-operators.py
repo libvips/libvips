@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 # This file generates the member definitions and declarations for all vips 
 # operators.
@@ -94,6 +94,15 @@ def generate_operation(operation_name, declaration_only=False):
     # @return)
     if declaration_only:
         result = '\n/**\n * {}.'.format(intro.description.capitalize())
+
+        if len(intro.optional_input) > 0:
+            result += '\n *\n * **Optional parameters**'
+            for name in intro.optional_input:
+                details = intro.details[name]
+                result += f'\n *   - {cppize(name)} -- '
+                result += f'{details["blurb"]}, '
+                result += f'{get_cpp_type(details["type"])}.'
+            result += '\n *'
 
         for name in intro.method_args:
             result += '\n * @param {} {}.' \
