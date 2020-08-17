@@ -60,7 +60,7 @@ _OPERATION_DEPRECATED = 8
 
 
 def get_cpp_type(gtype):
-    """Map a gtype to C++ type name we use to represent it.
+    """Map a gtype to the C++ type name we use to represent it.
     """
     if gtype in gtype_to_cpp:
         return gtype_to_cpp[gtype]
@@ -85,7 +85,8 @@ def cppize(name):
 def generate_operation(operation_name, declaration_only=False):
     intro = Introspect.get(operation_name)
 
-    required_output = [name for name in intro.required_output if name != intro.member_x]
+    required_output = [name 
+        for name in intro.required_output if name != intro.member_x]
 
     has_output = len(required_output) >= 1
 
@@ -104,7 +105,7 @@ def generate_operation(operation_name, declaration_only=False):
                 result += '\n * @param {} {}.' \
                           .format(cppize(name), intro.details[name]['blurb'])
 
-        result += '\n * @param options Optional options.'
+        result += '\n * @param options Set of options.'
 
         if has_output:
             result += '\n * @return {}.' \

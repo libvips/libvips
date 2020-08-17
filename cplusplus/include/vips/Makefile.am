@@ -3,8 +3,7 @@ pkginclude_HEADERS = \
 	VImage8.h \
 	VInterpolate8.h \
 	VConnection8.h \
-	vips8 \
-	vips-operators.h 
+	vips8 
 
 vips-operators.h:
 	echo "// headers for vips operations" > vips-operators.h; \

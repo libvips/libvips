@@ -839,7 +839,6 @@ INPUT                  = \
 	include/vips/VError8.h \
 	include/vips/VImage8.h \
 	include/vips/VInterpolate8.h \
-	include/vips/vips-operators.h \
 	include/vips/vips8
 
 # This tag can be used to specify the character encoding of the source files
