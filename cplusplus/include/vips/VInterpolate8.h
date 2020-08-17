@@ -37,14 +37,25 @@ VIPS_NAMESPACE_START
 class VInterpolate : VObject
 {
 public:
+	/**
+	 * Create a VInterpolate that wraps a VipsInterpolate object. If steal
+	 * is STEAL, then this VInterpolate takes over ownership of the libvips
+	 * object and will automatically unref it.
+	 */
 	VInterpolate( VipsInterpolate *interpolate, VSteal steal = STEAL ) : 
 		VObject( (VipsObject *) interpolate, steal )
 	{
 	}
 
+	/**
+	 * Create a VInterpolate from a name, for example `"bicubic"`.
+	 */
 	static 
 	VInterpolate new_from_name( const char *name, VOption *options = 0 );
 
+	/**
+	 * Get a pointer to the underlying VipsInterpolate object.
+	 */
 	VipsInterpolate *
 	get_interpolate() const
 	{
