@@ -256,7 +256,7 @@ G_DEFINE_TYPE( VipsForeignLoadMagickBuffer, vips_foreign_load_magick_buffer,
 static gboolean
 vips_foreign_load_magick_buffer_is_a_buffer( const void *buf, size_t len )
 {
-	return( magick_ismagick( (const unsigned char *) buf, len ) );
+	return( len > 10 && magick_ismagick( (const unsigned char *) buf, len ) );
 }
 
 /* Unfortunately, libMagick does not support header-only reads very well. See
