@@ -28,8 +28,24 @@ vips-operators.cpp:
 	echo "// this file is generated automatically, do not edit!" >> vips-operators.cpp; \
 	./gen-operators.py -g cpp >> vips-operators.cpp
 
+if HAVE_DOXYGEN
+
+html_DATA = html
+
+html: doxygen.stamp
+
+doxygen.stamp: Doxyfile
+	$(DOXYGEN) $^
+	touch doxygen.stamp
+
+install-htmlDATA:
+	-mkdir -p $(DESTDIR)$(htmldir)
+	-cp -r html $(DESTDIR)$(htmldir)
+
+endif
+
 EXTRA_DIST = \
 	README \
 	vips-operators.cpp \
-	Doxyfile \
+	Doxyfile.in \
 	gen-operators.py
