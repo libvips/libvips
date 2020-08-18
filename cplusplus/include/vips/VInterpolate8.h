@@ -34,6 +34,13 @@
 
 VIPS_NAMESPACE_START
 
+/** 
+ * An interpolation. You can pass one of these to something like
+ * VImage::affine for it to use to interpolate pixels.
+ *
+ * The available interpolators vary a bit with your libvips version and how it
+ * was built, but will include `nearest`, `bilinear` and `bicubic`.
+ */
 class VInterpolate : VObject
 {
 public:

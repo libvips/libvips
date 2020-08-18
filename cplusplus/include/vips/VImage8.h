@@ -54,8 +54,9 @@ enum VSteal {
 	STEAL = 1
 };
 
-/* A smart VipsObject pointer class ... use g_object_ref()/_unref() for
- * lifetime management.
+/**
+ * A smart VipsObject pointer. It calls g_object_ref()/_unref() for you
+ * automatically.
  */
 class VObject
 {
