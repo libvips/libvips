@@ -140,20 +140,6 @@ VOption::set( const char *name, int value )
 	return( this );
 }
 
-// input double
-VOption *
-VOption::set( const char *name, double value )
-{
-	Pair *pair = new Pair( name );
-
-	pair->input = true;
-	g_value_init( &pair->value, G_TYPE_DOUBLE );
-	g_value_set_double( &pair->value, value );
-	options.push_back( pair );
-
-	return( this );
-}
-
 // input guint64
 VOption *
 VOption::set( const char *name, guint64 value )
@@ -163,6 +149,20 @@ VOption::set( const char *name, guint64 value )
 	pair->input = true;
 	g_value_init( &pair->value, G_TYPE_UINT64 );
 	g_value_set_uint64( &pair->value, value );
+	options.push_back( pair );
+
+	return( this );
+}
+
+// input double
+VOption *
+VOption::set( const char *name, double value )
+{
+	Pair *pair = new Pair( name );
+
+	pair->input = true;
+	g_value_init( &pair->value, G_TYPE_DOUBLE );
+	g_value_set_double( &pair->value, value );
 	options.push_back( pair );
 
 	return( this );
@@ -181,39 +181,17 @@ VOption::set( const char *name, const char *value )
 	return( this );
 }
 
-// input image
+// input vips object (image, source, target, etc. etc.)
 VOption *
-VOption::set( const char *name, const VImage value )
+VOption::set( const char *name, const VObject value )
 {
 	Pair *pair = new Pair( name );
+	VipsObject *object = value.get_object();
+	GType type = G_VALUE_TYPE( object );
 
 	pair->input = true;
-	g_value_init( &pair->value, VIPS_TYPE_IMAGE );
-	g_value_set_object( &pair->value, value.get_image() );
-	options.push_back( pair );
-
-	return( this );
-}
-
-// input double array
-VOption *
-VOption::set( const char *name, std::vector<double> value )
-{
-	Pair *pair = new Pair( name );
-
-	double *array;
-	unsigned int i;
-
-	pair->input = true;
-
-	g_value_init( &pair->value, VIPS_TYPE_ARRAY_DOUBLE );
-	vips_value_set_array_double( &pair->value, NULL,
-		static_cast< int >( value.size() ) );
-	array = vips_value_get_array_double( &pair->value, NULL );
-
-	for( i = 0; i < value.size(); i++ ) 
-		array[i] = value[i];
-
+	g_value_init( &pair->value, type );
+	g_value_set_object( &pair->value, object );
 	options.push_back( pair );
 
 	return( this );
@@ -234,6 +212,30 @@ VOption::set( const char *name, std::vector<int> value )
 	vips_value_set_array_int( &pair->value, NULL,
 		static_cast< int >( value.size() ) );
 	array = vips_value_get_array_int( &pair->value, NULL );
+
+	for( i = 0; i < value.size(); i++ ) 
+		array[i] = value[i];
+
+	options.push_back( pair );
+
+	return( this );
+}
+
+// input double array
+VOption *
+VOption::set( const char *name, std::vector<double> value )
+{
+	Pair *pair = new Pair( name );
+
+	double *array;
+	unsigned int i;
+
+	pair->input = true;
+
+	g_value_init( &pair->value, VIPS_TYPE_ARRAY_DOUBLE );
+	vips_value_set_array_double( &pair->value, NULL,
+		static_cast< int >( value.size() ) );
+	array = vips_value_get_array_double( &pair->value, NULL );
 
 	for( i = 0; i < value.size(); i++ ) 
 		array[i] = value[i];

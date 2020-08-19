@@ -34,7 +34,7 @@
 
 VIPS_NAMESPACE_START
 
-class VSource : VObject
+class VSource : public VObject
 {
 public:
 	VSource( VipsSource *input, VSteal steal = STEAL ) : 
@@ -66,7 +66,7 @@ public:
 
 };
 
-class VTarget : VObject
+class VTarget : public VObject
 {
 public:
 	VTarget( VipsTarget *output, VSteal steal = STEAL ) : 

@@ -41,7 +41,7 @@ VIPS_NAMESPACE_START
  * The available interpolators vary a bit with your libvips version and how it
  * was built, but will include `nearest`, `bilinear` and `bicubic`.
  */
-class VInterpolate : VObject
+class VInterpolate : public VObject
 {
 public:
 	/**

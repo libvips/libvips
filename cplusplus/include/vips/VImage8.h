@@ -223,13 +223,10 @@ public:
 	VOption *set( const char *name, guint64 value );
 	VOption *set( const char *name, double value );
 	VOption *set( const char *name, const char *value );
-	VOption *set( const char *name, const VImage value );
-	VOption *set( const char *name, const VInterpolate value ); 
-	VOption *set( const char *name, const VSource value );
-	VOption *set( const char *name, const VTarget value );
-	VOption *set( const char *name, std::vector<VImage> value );
-	VOption *set( const char *name, std::vector<double> value );
+	VOption *set( const char *name, const VObject value );
 	VOption *set( const char *name, std::vector<int> value );
+	VOption *set( const char *name, std::vector<double> value );
+	VOption *set( const char *name, std::vector<VImage> value );
 	VOption *set( const char *name, VipsBlob *value ); 
 
 	VOption *set( const char *name, bool *value ); 
@@ -244,7 +241,7 @@ public:
 
 };
 
-class VImage : VObject
+class VImage : public VObject
 {
 public:
 	using VObject::is_null;
