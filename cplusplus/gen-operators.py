@@ -39,6 +39,8 @@ gtype_to_cpp = {
     GValue.image_type: 'VImage',
     GValue.source_type: 'VSource',
     GValue.target_type: 'VTarget',
+    GValue.guint64_type: 'guint64',
+    type_from_name('VipsInterpolate'): 'VInterpolate',
     GValue.array_int_type: 'std::vector<int>',
     GValue.array_double_type: 'std::vector<double>',
     GValue.array_image_type: 'std::vector<VImage>',

@@ -220,6 +220,7 @@ public:
 
 	VOption *set( const char *name, bool value ); 
 	VOption *set( const char *name, int value );
+	VOption *set( const char *name, guint64 value );
 	VOption *set( const char *name, double value );
 	VOption *set( const char *name, const char *value );
 	VOption *set( const char *name, const VImage value );
@@ -1140,7 +1141,7 @@ public:
 	 */
 
 // headers for vips operations
-// Mon 17 Aug 18:04:42 BST 2020
+// Wed 19 Aug 14:34:56 BST 2020
 // this file is generated automatically, do not edit!
 
 /**
@@ -1303,7 +1304,7 @@ VImage add( VImage right, VOption *options = 0 ) const;
  * Affine transform of an image.
  *
  * **Optional parameters**
- *   - **interpolate** -- Interpolate pixels with this, <unknown type>.
+ *   - **interpolate** -- Interpolate pixels with this, VInterpolate.
  *   - **oarea** -- Area of output to generate, std::vector<int>.
  *   - **odx** -- Horizontal output displacement, double.
  *   - **ody** -- Vertical output displacement, double.
@@ -2954,7 +2955,7 @@ VipsBlob *magicksave_buffer( VOption *options = 0 ) const;
  * Resample with a map image.
  *
  * **Optional parameters**
- *   - **interpolate** -- Interpolate pixels with this, <unknown type>.
+ *   - **interpolate** -- Interpolate pixels with this, VInterpolate.
  *
  * @param index Index pixels with this.
  * @param options Set of options.
@@ -3169,7 +3170,7 @@ static VImage mask_ideal_ring( int width, int height, double frequency_cutoff, d
  *   - **hwindow** -- Half window size, int.
  *   - **harea** -- Half area size, int.
  *   - **search** -- Search to improve tie-points, bool.
- *   - **interpolate** -- Interpolate pixels with this, <unknown type>.
+ *   - **interpolate** -- Interpolate pixels with this, VInterpolate.
  *
  * @param sec Secondary image.
  * @param xr1 Position of first reference tie-point.
@@ -3393,7 +3394,7 @@ VImage mosaic( VImage sec, VipsDirection direction, int xref, int yref, int xsec
  *   - **hwindow** -- Half window size, int.
  *   - **harea** -- Half area size, int.
  *   - **search** -- Search to improve tie-points, bool.
- *   - **interpolate** -- Interpolate pixels with this, <unknown type>.
+ *   - **interpolate** -- Interpolate pixels with this, VInterpolate.
  *   - **mblend** -- Maximum blend size, int.
  *   - **bandno** -- Band to search for features on, int.
  *
@@ -3806,7 +3807,7 @@ VImage project( VImage *rows, VOption *options = 0 ) const;
  * Resample an image with a quadratic transform.
  *
  * **Optional parameters**
- *   - **interpolate** -- Interpolate values with this, <unknown type>.
+ *   - **interpolate** -- Interpolate values with this, VInterpolate.
  *
  * @param coeff Coefficient matrix.
  * @param options Set of options.
@@ -3922,7 +3923,7 @@ VImage rank( int width, int height, int index, VOption *options = 0 ) const;
  * Load raw data from a file.
  *
  * **Optional parameters**
- *   - **offset** -- Offset in bytes from start of file, <unknown type>.
+ *   - **offset** -- Offset in bytes from start of file, guint64.
  *   - **format** -- Pixel format in image, VipsBandFormat.
  *   - **interpretation** -- Pixel interpretation, VipsInterpretation.
  *   - **memory** -- Force open via memory, bool.
@@ -4061,7 +4062,7 @@ VImage replicate( int across, int down, VOption *options = 0 ) const;
  * Resize an image.
  *
  * **Optional parameters**
- *   - **interpolate** -- Interpolate pixels with this, <unknown type>.
+ *   - **interpolate** -- Interpolate pixels with this, VInterpolate.
  *   - **kernel** -- Resampling kernel, VipsKernel.
  *   - **centre** -- Use centre sampling convention, bool.
  *   - **vscale** -- Vertical scale image by this factor, double.
@@ -4097,7 +4098,7 @@ VImage rot45( VOption *options = 0 ) const;
  * Rotate an image by a number of degrees.
  *
  * **Optional parameters**
- *   - **interpolate** -- Interpolate pixels with this, <unknown type>.
+ *   - **interpolate** -- Interpolate pixels with this, VInterpolate.
  *   - **background** -- Background value, std::vector<double>.
  *   - **odx** -- Horizontal output displacement, double.
  *   - **ody** -- Vertical output displacement, double.
@@ -4241,7 +4242,7 @@ VImage sign( VOption *options = 0 ) const;
  * **Optional parameters**
  *   - **scale** -- Scale by this factor, double.
  *   - **angle** -- Rotate anticlockwise by this many degrees, double.
- *   - **interpolate** -- Interpolate pixels with this, <unknown type>.
+ *   - **interpolate** -- Interpolate pixels with this, VInterpolate.
  *   - **background** -- Background value, std::vector<double>.
  *   - **odx** -- Horizontal output displacement, double.
  *   - **ody** -- Vertical output displacement, double.
@@ -4948,7 +4949,6 @@ static VImage zone( int width, int height, VOption *options = 0 );
  * @return Output image.
  */
 VImage zoom( int xfac, int yfac, VOption *options = 0 ) const;
-
 };
 
 VIPS_NAMESPACE_END

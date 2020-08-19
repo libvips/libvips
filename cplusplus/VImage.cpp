@@ -154,6 +154,20 @@ VOption::set( const char *name, double value )
 	return( this );
 }
 
+// input guint64
+VOption *
+VOption::set( const char *name, guint64 value )
+{
+	Pair *pair = new Pair( name );
+
+	pair->input = true;
+	g_value_init( &pair->value, G_TYPE_UINT64 );
+	g_value_set_uint64( &pair->value, value );
+	options.push_back( pair );
+
+	return( this );
+}
+
 VOption *
 VOption::set( const char *name, const char *value )
 {
