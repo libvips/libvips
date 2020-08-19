@@ -4,6 +4,9 @@
 9/8/20 started 8.10.1
 - fix markdown -> xml conversion in doc generation
 - remove typedef redefinitions to please old gccs
+- fix regression in tiff pyramid thumbnailing [tand826]
+- stop 0-length buffer being passed to imagemagick [lovell]
+- convert no-profile CMYK to RGB on save [augustocdias]
 
 24/1/20 started 8.10.0
 - more conformat IIIF output from dzsave [regisrob]

@@ -135,9 +135,13 @@ typedef struct _VipsThumbnail {
 	int heif_thumbnail_width;
 	int heif_thumbnail_height;
 
-	/* For TIFF sources, open subifds rather than pages to get pyr layers.
+	/* For TIFF sources, open subifds to get pyr layers.
 	 */
 	gboolean subifd_pyramid;
+
+	/* For TIFF sources, open pages to get pyr layers.
+	 */
+	gboolean page_pyramid;
 
 } VipsThumbnail;
 
@@ -261,13 +265,10 @@ vips_thumbnail_get_tiff_pyramid_page( VipsThumbnail *thumbnail )
 
 	/* Single-page docs can't be pyramids.
 	 */
-	if( thumbnail->n_loaded_pages < 2 )
+	if( thumbnail->n_pages < 2 )
 		return;
 
-	/* Use n_loaded_pages not n_pages since we support thumbnailing a page
-	 * or range of pages from a many-page tiff.
-	 */
-	for( i = 0; i < thumbnail->n_loaded_pages; i++ ) {
+	for( i = 0; i < thumbnail->n_pages; i++ ) {
 		VipsImage *page;
 		int level_width;
 		int level_height;
@@ -301,9 +302,9 @@ vips_thumbnail_get_tiff_pyramid_page( VipsThumbnail *thumbnail )
 #ifdef DEBUG
 	printf( "vips_thumbnail_get_tiff_pyramid_page: "
 		"%d layer pyramid detected\n",
-		thumbnail->n_loaded_pages );
+		thumbnail->n_pages );
 #endif /*DEBUG*/
-	thumbnail->level_count = thumbnail->n_loaded_pages;
+	thumbnail->level_count = thumbnail->n_pages;
 }
 
 /* Detect a TIFF pyramid made of subifds following a roughly /2 shrink.
@@ -549,7 +550,12 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 
 		if( thumbnail->level_count == 0 ) {
 			thumbnail->subifd_pyramid = FALSE;
+			thumbnail->page_pyramid = TRUE;
+
 			vips_thumbnail_get_tiff_pyramid_page( thumbnail );
+
+			if( thumbnail->level_count == 0 ) 
+				thumbnail->page_pyramid = FALSE;
 		}
 	}
 
@@ -1060,7 +1066,7 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"subifd", (int) factor,
 				NULL ) );
-		else if( thumbnail->level_count > 0 ) 
+		else if( thumbnail->page_pyramid )
 			return( vips_image_new_from_file( file->filename, 
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"page", (int) factor,
