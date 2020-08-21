@@ -211,7 +211,7 @@ vips_foreign_load_svg_is_a( const void *buf, size_t len )
 	 * before the <svg line.
 	 *
 	 * Simple rules:
-	 * - first 24 chars are plain ascii
+	 * - first 24 chars are plain ascii (x09-x7F)
 	 * - first SVG_HEADER_SIZE chars contain "<svg", upper or lower case.
 	 *
 	 * We could rsvg_handle_new_from_data() on the buffer, but that can be
@@ -220,7 +220,7 @@ vips_foreign_load_svg_is_a( const void *buf, size_t len )
 	if( len < 24 )
 		return( 0 );
 	for( i = 0; i < 24; i++ )
-		if( !isascii( str[i] ) )
+		if( !isascii( str[i] ) || str[i] < 9 )
 			return( FALSE );
 	for( i = 0; i < SVG_HEADER_SIZE && i < len - 5; i++ )
 		if( g_ascii_strncasecmp( str + i, "<svg", 4 ) == 0 )
