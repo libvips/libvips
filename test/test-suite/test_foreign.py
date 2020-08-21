@@ -17,7 +17,7 @@ from helpers import \
     GIF_ANIM_DISPOSE_PREVIOUS_FILE, \
     GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, \
     temp_filename, assert_almost_equal_objects, have, skip_if_no, \
-    TIF1_FILE, TIF2_FILE, TIF4_FILE
+    TIF1_FILE, TIF2_FILE, TIF4_FILE, WEBP_LOOKS_LIKE_SVG_FILE
 
 
 class TestForeign:
@@ -675,6 +675,11 @@ class TestForeign:
             assert x1.get("delay") == x2.get("delay")
             assert x1.get("page-height") == x2.get("page-height")
             assert x1.get("gif-loop") == x2.get("gif-loop")
+
+        # WebP image that happens to contain the string "<svg"
+        if have("svgload"):
+            x = pyvips.Image.new_from_file(WEBP_LOOKS_LIKE_SVG_FILE)
+            assert x.get("vips-loader") == "webpload"
 
     @skip_if_no("analyzeload")
     def test_analyzeload(self):
