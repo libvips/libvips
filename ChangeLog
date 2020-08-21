@@ -4,6 +4,7 @@
 - fix regression in tiff pyramid thumbnailing [tand826]
 - stop 0-length buffer being passed to imagemagick [lovell]
 - convert no-profile CMYK to RGB on save [augustocdias]
+- ensure SVG loader skips input with chars outside x09-x7F range [lovell]
 
 24/1/20 started 8.10.0
 - more conformat IIIF output from dzsave [regisrob]
