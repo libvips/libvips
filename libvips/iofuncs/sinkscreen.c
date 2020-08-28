@@ -454,9 +454,6 @@ vips__render_shutdown( void )
 		VIPS_FREEF( vips_g_mutex_free, render_dirty_lock );
 		vips_semaphore_destroy( &n_render_dirty_sem );
 	}
-
-	VIPS_FREEF( vips_g_mutex_free, render_dirty_lock );
-	vips_semaphore_destroy( &n_render_dirty_sem );
 }
 
 static int       
