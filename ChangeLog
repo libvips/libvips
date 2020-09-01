@@ -9,6 +9,7 @@
 - convert no-profile CMYK to RGB on save [augustocdias]
 - ensure SVG loader skips input with chars outside x09-x7F range [lovell]
 - better mask sizing in gaussmat [johntrunc]
+- fix tiffsave "squash" handling [barryspearce]
 
 24/1/20 started 8.10.0
 - more conformat IIIF output from dzsave [regisrob]
