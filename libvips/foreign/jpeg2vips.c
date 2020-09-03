@@ -837,7 +837,7 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 {
 	struct jpeg_decompress_struct *cinfo = &jpeg->cinfo;
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( VIPS_OBJECT( out ), 4 );
+		vips_object_local_array( VIPS_OBJECT( out ), 5 );
 
 	VipsImage *im;
 
@@ -872,11 +872,13 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 
 	if( jpeg->autorotate &&
 		vips_image_get_orientation( im ) != 1 ) {
-		/* This will go via a huge memory buffer :-( 
+		/* We have to copy to memory before calling autorot, since it
+		 * needs random access.
 		 */
-		if( vips_autorot( im, &t[3], NULL ) )
+		if( !(t[3] = vips_image_copy_memory( im )) ||
+			vips_autorot( t[3], &t[4], NULL ) )
 			return( -1 );
-		im = t[3];
+		im = t[4];
 	}
 
 	if( vips_image_write( im, out ) )
