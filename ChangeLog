@@ -8,6 +8,7 @@
 - better mask sizing in gaussmat [johntrunc]
 - fix tiffsave "squash" handling [barryspearce]
 - fix jpegload autorotate [chregu]
+- only start the background render thread on first use
 
 24/1/20 started 8.10.0
 - more conformat IIIF output from dzsave [regisrob]
