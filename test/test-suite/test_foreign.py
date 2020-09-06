@@ -580,6 +580,10 @@ class TestForeign:
         assert im.width == 16
         assert im.height == 16
 
+        # load should see metadata like eg. icc profiles 
+        im = pyvips.Image.magickload(JPEG_FILE)
+        assert len(im.get("icc-profile-data")) == 564
+
     # added in 8.7
     @skip_if_no("magicksave")
     def test_magicksave(self):
@@ -597,6 +601,7 @@ class TestForeign:
         assert self.colour.bands == x.bands
         max_diff = (self.colour - x).abs().max()
         assert max_diff < 60
+        assert len(x.get("icc-profile-data")) == 564
 
         self.save_load_buffer("magicksave_buffer", "magickload_buffer",
                               self.colour, 60, format="JPG")
