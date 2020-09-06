@@ -1,6 +1,9 @@
 14/8/20 started 8.11
 - add vips_jpegload_source() and vips_svgload_source() to public C API
 
+6/9/20 started 8.10.2
+- update magicksave/load profile handling [kelilevi]
+
 9/8/20 started 8.10.1
 - fix markdown -> xml conversion in doc generation
 - remove typedef redefinitions to please old gccs
