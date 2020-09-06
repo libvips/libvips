@@ -239,6 +239,12 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AM_WITH_DMALLOC
 
+AC_CHECK_PROGS([DOXYGEN], [doxygen])
+if test -z "$DOXYGEN"; then
+    AC_MSG_WARN([doxygen not found; C++ docs will not be generated])
+fi
+AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
+
 # we need a fully expanded version of $libdir
 # without this we get something like
 #    define VIPS_LIBDIR ${exec_prefix}/lib
@@ -248,11 +254,11 @@ test x"$exec_prefix" = x"NONE" && exec_prefix='${prefix}'
 
 # set $expanded_value to the fully-expanded value of the argument
 expand () {
-	eval expanded_value=$1
+    eval expanded_value=$1
 
-	if test x"$expanded_value" != x"$1"; then
-		expand "$expanded_value"
-	fi
+    if test x"$expanded_value" != x"$1"; then
+        expand "$expanded_value"
+    fi
 }
 
 expand $libdir
@@ -1345,6 +1351,7 @@ AC_CONFIG_FILES([
 	libvips/mosaicing/Makefile
 	libvips/create/Makefile
 	libvips/resample/Makefile
+	cplusplus/Doxyfile
 	cplusplus/include/Makefile
 	cplusplus/include/vips/Makefile
 	cplusplus/Makefile
@@ -1379,6 +1386,7 @@ gobject introspection: 			$found_introspection
 enable radiance support: 		$with_radiance
 enable analyze support: 		$with_analyze
 enable PPM support: 			$with_ppm
+generate C++ docs: 			$DOXYGEN
 
 * optional dependencies
 use fftw3 for FFT: 			$with_fftw

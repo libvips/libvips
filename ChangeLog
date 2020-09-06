@@ -1,5 +1,8 @@
 14/8/20 started 8.11
 - add vips_jpegload_source() and vips_svgload_source() to public C API
+- integrate doxygen in build system to generate C++ API docs
+- improve C++ API doc comments
+- add VipsInterpolate and guint64 support to C++ API 
 
 6/9/20 started 8.10.2
 - update magicksave/load profile handling [kelilevi]

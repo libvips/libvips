@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 # This file generates the member definitions and declarations for all vips 
 # operators.
@@ -39,6 +39,8 @@ gtype_to_cpp = {
     GValue.image_type: 'VImage',
     GValue.source_type: 'VSource',
     GValue.target_type: 'VTarget',
+    GValue.guint64_type: 'guint64',
+    type_from_name('VipsInterpolate'): 'VInterpolate',
     GValue.array_int_type: 'std::vector<int>',
     GValue.array_double_type: 'std::vector<double>',
     GValue.array_image_type: 'std::vector<VImage>',
@@ -60,7 +62,7 @@ _OPERATION_DEPRECATED = 8
 
 
 def get_cpp_type(gtype):
-    """Map a gtype to C++ type name we use to represent it.
+    """Map a gtype to the C++ type name we use to represent it.
     """
     if gtype in gtype_to_cpp:
         return gtype_to_cpp[gtype]
@@ -85,30 +87,40 @@ def cppize(name):
 def generate_operation(operation_name, declaration_only=False):
     intro = Introspect.get(operation_name)
 
-    required_output = [name for name in intro.required_output if name != intro.member_x]
+    required_output = [name 
+        for name in intro.required_output if name != intro.member_x]
 
     has_output = len(required_output) >= 1
 
     # Add a C++ style comment block with some additional markings (@param,
     # @return)
     if declaration_only:
-        result = '\n/**\n * {}.'.format(intro.description.capitalize())
+        result = f'\n/**\n * {intro.description.capitalize()}.'
+
+        if len(intro.optional_input) > 0:
+            result += '\n *\n * **Optional parameters**'
+            for name in intro.optional_input:
+                details = intro.details[name]
+                result += f'\n *   - **{cppize(name)}** -- '
+                result += f'{details["blurb"]}, '
+                result += f'{get_cpp_type(details["type"])}.'
+            result += '\n *'
 
         for name in intro.method_args:
-            result += '\n * @param {} {}.' \
-                      .format(cppize(name), intro.details[name]['blurb'])
+            details = intro.details[name]
+            result += f'\n * @param {cppize(name)} {details["blurb"]}.'
 
         if has_output:
             # skip the first element
             for name in required_output[1:]:
-                result += '\n * @param {} {}.' \
-                          .format(cppize(name), intro.details[name]['blurb'])
+                details = intro.details[name]
+                result += f'\n * @param {cppize(name)} {details["blurb"]}.'
 
-        result += '\n * @param options Optional options.'
+        result += '\n * @param options Set of options.'
 
         if has_output:
-            result += '\n * @return {}.' \
-                      .format(intro.details[required_output[0]]['blurb'])
+            details = intro.details[required_output[0]]
+            result += f'\n * @return {details["blurb"]}.'
 
         result += '\n */\n'
     else:
@@ -120,7 +132,7 @@ def generate_operation(operation_name, declaration_only=False):
         # the first output arg will be used as the result
         cpp_type = get_cpp_type(intro.details[required_output[0]]['type'])
         spacing = '' if cpp_type.endswith(cplusplus_suffixes) else ' '
-        result += '{0}{1}'.format(cpp_type, spacing)
+        result += f'{cpp_type}{spacing}'
     else:
         result += 'void '
 
@@ -131,13 +143,13 @@ def generate_operation(operation_name, declaration_only=False):
     if operation_name in cplusplus_keywords:
         cplusplus_operation += '_image'
 
-    result += '{0}( '.format(cplusplus_operation)
+    result += f'{cplusplus_operation}( '
     for name in intro.method_args:
         details = intro.details[name]
         gtype = details['type']
         cpp_type = get_cpp_type(gtype)
         spacing = '' if cpp_type.endswith(cplusplus_suffixes) else ' '
-        result += '{0}{1}{2}, '.format(cpp_type, spacing, cppize(name))
+        result += f'{cpp_type}{spacing}{cppize(name)}, '
 
     # output params are passed by reference
     if has_output:
@@ -147,9 +159,9 @@ def generate_operation(operation_name, declaration_only=False):
             gtype = details['type']
             cpp_type = get_cpp_type(gtype)
             spacing = '' if cpp_type.endswith(cplusplus_suffixes) else ' '
-            result += '{0}{1}*{2}, '.format(cpp_type, spacing, cppize(name))
+            result += f'{cpp_type}{spacing}*{cppize(name)}, '
 
-    result += 'VOption *options {0})'.format('= 0 ' if declaration_only else '')
+    result += f'VOption *options {"= 0 " if declaration_only else ""})'
 
     # if no 'this' available, it's a class method and they are all const
     if intro.member_x is not None:
@@ -167,36 +179,35 @@ def generate_operation(operation_name, declaration_only=False):
         name = required_output[0]
         cpp_type = get_cpp_type(intro.details[name]['type'])
         spacing = '' if cpp_type.endswith(cplusplus_suffixes) else ' '
-        result += '    {0}{1}{2};\n\n'.format(cpp_type, spacing, cppize(name))
+        result += f'    {cpp_type}{spacing}{cppize(name)};\n\n'
 
-    result += '    call( "{0}",\n'.format(operation_name)
-    result += '        (options ? options : VImage::option())'
+    result += f'    call( "{operation_name}",\n'
+    result += f'        (options ? options : VImage::option())'
     if intro.member_x is not None:
-        result += '->\n'
-        result += '            set( "{0}", *this )'.format(intro.member_x)
+        result += f'->\n'
+        result += f'            set( "{intro.member_x}", *this )'
 
     all_required = intro.method_args
 
     if has_output:
         # first element needs to be passed by reference
         arg = cppize(required_output[0])
-        result += '->\n'
-        result += '            set( "{0}", &{1} )' \
-                  .format(required_output[0], arg)
+        result += f'->\n'
+        result += f'            set( "{required_output[0]}", &{arg} )'
 
         # append the remaining list
         all_required += required_output[1:]
 
     for name in all_required:
         arg = cppize(name)
-        result += '->\n'
-        result += '            set( "{0}", {1} )'.format(name, arg)
+        result += f'->\n'
+        result += f'            set( "{name}", {arg} )'
 
     result += ' );\n'
 
     if has_output:
-        result += '\n'
-        result += '    return( {0} );\n'.format(required_output[0])
+        result += f'\n'
+        result += f'    return( {required_output[0]} );\n'
 
     result += '}'
 

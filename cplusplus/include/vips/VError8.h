@@ -39,16 +39,35 @@
 
 VIPS_NAMESPACE_START
 
+/**
+ * The libvips error class. It holds a single string containing an 
+ * internationalized error message in utf-8 encoding.
+ */
 class VIPS_CPLUSPLUS_API VError : public std::exception {
 	std::string _what;
 
 public:
+	/**
+	 * Construct a VError, setting the error message.
+	 */
 	VError( const std::string &what ) : _what( what ) {}
+
+	/** 
+	 * Construct a VError, fetching the error message from the libvips
+	 * error buffer.
+	 */
 	VError() : _what( vips_error_buffer() ) {}
+
 	virtual ~VError() throw() {}
 
-	// Extract string
+	/**
+	 * Get a reference to the underlying C string.
+	 */
 	virtual const char *what() const throw() { return _what.c_str(); }
+
+	/**
+	 * Print the error message to a stream.
+	 */
 	void ostream_print( std::ostream & ) const;
 };
 
