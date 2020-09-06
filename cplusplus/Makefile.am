@@ -45,7 +45,7 @@ install-htmlDATA:
 endif
 
 EXTRA_DIST = \
-	README \
+	README.md \
 	vips-operators.cpp \
 	Doxyfile.in \
 	gen-operators.py

@@ -51,6 +51,12 @@
 
 VIPS_NAMESPACE_START
 
+/**
+ * \namespace vips
+ *
+ * General docs for the vips namespace.
+ */
+
 std::vector<double>
 to_vectorv( int n, ... )
 {
