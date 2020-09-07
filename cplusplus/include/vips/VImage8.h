@@ -168,7 +168,8 @@ public:
 	 * reference -- you'll need to g_object_ref() the result if you want
 	 * to keep it.
 	 */
-	VipsObject *get_object() const
+	VipsObject *
+	get_object() const
 	{
 		g_assert( !vobject ||
 			VIPS_IS_OBJECT( vobject ) ); 
@@ -260,30 +261,35 @@ public:
 	/**
 	 * Set an input boolean option.
 	 */
-	VOption *set( const char *name, bool value ); 
+	VOption *
+	set( const char *name, bool value ); 
 
 	/**
 	 * Set an input int option. This is used for enums as well, or you can
 	 * use the string version.
 	 */
-	VOption *set( const char *name, int value );
+	VOption *
+	set( const char *name, int value );
 
 	/** 
 	 * Set an input unsigned 64-bit integer option.
 	 */
-	VOption *set( const char *name, guint64 value );
+	VOption *
+	set( const char *name, guint64 value );
 
 	/**
 	 * Set an input double option.
 	 */
-	VOption *set( const char *name, double value );
+	VOption *
+	set( const char *name, double value );
 
 	/**
 	 * Set an input string option. 
 	 *
 	 * A copy is taken of the object.
 	 */
-	VOption *set( const char *name, const char *value );
+	VOption *
+	set( const char *name, const char *value );
 
 	/**
 	 * Set a libvips object as an option. These can be images, sources,
@@ -291,28 +297,32 @@ public:
 	 *
 	 * A copy is taken of the object.
 	 */
-	VOption *set( const char *name, const VObject value );
+	VOption *
+	set( const char *name, const VObject value );
 
 	/**
 	 * Set an array of integers as an input option.
 	 *
 	 * A copy is taken of the object.
 	 */
-	VOption *set( const char *name, std::vector<int> value );
+	VOption *
+	set( const char *name, std::vector<int> value );
 
 	/**
 	 * Set an array of doubles as an input option.
 	 *
 	 * A copy is taken of the object.
 	 */
-	VOption *set( const char *name, std::vector<double> value );
+	VOption *
+	set( const char *name, std::vector<double> value );
 
 	/**
 	 * Set an array of images as an input option.
 	 *
 	 * A copy is taken of the object.
 	 */
-	VOption *set( const char *name, std::vector<VImage> value );
+	VOption *
+	set( const char *name, std::vector<VImage> value );
 
 	/**
 	 * Set a binary object an input option. Use vips_blob_new() to make
@@ -320,50 +330,59 @@ public:
 	 *
 	 * A copy is taken of the object.
 	 */
-	VOption *set( const char *name, VipsBlob *value ); 
+	VOption *
+	set( const char *name, VipsBlob *value ); 
 
 	/**
 	 * Set an option which will return a bool value.
 	 */
-	VOption *set( const char *name, bool *value ); 
+	VOption *
+	set( const char *name, bool *value ); 
 
 	/**
 	 * Set an option which will return an integer value.
 	 */
-	VOption *set( const char *name, int *value );
+	VOption *
+	set( const char *name, int *value );
 
 	/**
 	 * Set an option which will return a double value.
 	 */
-	VOption *set( const char *name, double *value );
+	VOption *
+	set( const char *name, double *value );
 
 	/**
 	 * Set an option which will return a reference to an image. 
 	 */
-	VOption *set( const char *name, VImage *value );
+	VOption *
+	set( const char *name, VImage *value );
 
 	/**
 	 * Set an option which will return an array of doubles.
 	 */
-	VOption *set( const char *name, std::vector<double> *value );
+	VOption *
+	set( const char *name, std::vector<double> *value );
 
 	/**
 	 * Set an option which will return a binary object, such as an ICC
 	 * profile.
 	 */
-	VOption *set( const char *name, VipsBlob **blob ); 
+	VOption *
+	set( const char *name, VipsBlob **blob ); 
 
 	/**
 	 * Walk the set of options, setting options on the operation. This is
 	 * used internally by VImage::call().
 	 */
-	void set_operation( VipsOperation *operation );
+	void 
+	set_operation( VipsOperation *operation );
 
 	/**
 	 * Walk the set of options, fetching any output values. This is used
 	 * internally by VImage::call().
 	 */
-	void get_operation( VipsOperation *operation );
+	void 
+	get_operation( VipsOperation *operation );
 
 };
 
@@ -474,7 +493,7 @@ public:
 
 	/**
 	 * Try to guess the image interpretation from other fields. This is
-	 * handy if the inperpretaion has not been set correctly.
+	 * handy if the interpretation has not been set correctly.
 	 */
 	VipsInterpretation 
 	guess_interpretation() const
@@ -500,48 +519,80 @@ public:
 		return( vips_image_get_yres( get_image() ) ); 
 	}
 
+	/**
+	 * The horizontal offset of the origin in pixels.
+	 */
 	int
 	xoffset() const
 	{
 		return( vips_image_get_xoffset( get_image() ) ); 
 	}
 
+	/**
+	 * The vertical offset of the origin in pixels.
+	 */
 	int
 	yoffset() const
 	{
 		return( vips_image_get_yoffset( get_image() ) ); 
 	}
 
+	/**
+	 * TRUE if the image has an alpha channel.
+	 */
 	bool
 	has_alpha() const
 	{
 		return( vips_image_hasalpha( get_image() ) );
 	}
 
+	/**
+	 * The name of the file this image originally came from, or NULL if 
+	 * it's not a file image. 
+	 */
 	const char *
 	filename() const
 	{
 		return( vips_image_get_filename( get_image() ) ); 
 	}
 
+	/**
+	 * Arrange for the underlying object to be entirely in memory, then
+	 * return a pointer to the first pixel.
+	 * 
+	 * This can take a long time and need a very large amount of RAM.
+	 */
 	const void *
 	data() const
 	{
 		return( vips_image_get_data( get_image() ) ); 
 	}
 
+	/**
+	 * Set the value of an int metadata item on an image.
+	 */
 	void 
 	set( const char *field, int value )
 	{
 		vips_image_set_int( this->get_image(), field, value ); 
 	}
 
+	/**
+	 * Set the value of an int array metadata item on an image.
+	 *
+	 * A copy of the array is taken.
+	 */
 	void 
 	set( const char *field, int *value, int n )
 	{
 		vips_image_set_array_int( this->get_image(), field, value, n ); 
 	}
 
+	/**
+	 * Set the value of an int array metadata item on an image.
+	 *
+	 * A copy of the array is taken.
+	 */
 	void 
 	set( const char *field, std::vector<int> value )
 	{
@@ -549,18 +600,33 @@ public:
 			static_cast<int>( value.size() ) );
 	}
 
+	/**
+	 * Set the value of a double metadata item on an image.
+	 */
 	void 
 	set( const char *field, double value )
 	{
 		vips_image_set_double( this->get_image(), field, value ); 
 	}
 
+	/**
+	 * Set the value of a string metadata item on an image.
+	 *
+	 * A copy of the string is taken.
+	 */
 	void 
 	set( const char *field, const char *value )
 	{
 		vips_image_set_string( this->get_image(), field, value ); 
 	}
 
+	/**
+	 * Set the value of a binary object metadata item on an image, such as
+	 * an ICC profile.
+	 *
+	 * When libvips no longer needs the value, it will be disposed with
+	 * the free function. This can be NULL.
+	 */
 	void 
 	set( const char *field, 
 		VipsCallbackFn free_fn, void *data, size_t length )
@@ -569,12 +635,21 @@ public:
 			free_fn, data, length ); 
 	}
 
+	/**
+	 * Return the GType of a metadata item, or 0 if the named item does not
+	 * exist.
+	 */
 	GType 
 	get_typeof( const char *field ) const
 	{
 		return( vips_image_get_typeof( this->get_image(), field ) ); 
 	}
 
+	/**
+	 * Get the value of a metadata item as an int. 
+	 *
+	 * If the item is not of this type, an exception is thrown.
+	 */
 	int 
 	get_int( const char *field ) const
 	{
@@ -586,6 +661,12 @@ public:
 		return( value ); 
 	}
 
+	/**
+	 * Get the value of a metadata item as an array of ints. Do not free
+	 * the result. 
+	 *
+	 * If the item is not of this type, an exception is thrown.
+	 */
 	void
 	get_array_int( const char *field, int **out, int *n ) const
 	{
@@ -593,6 +674,11 @@ public:
 			throw( VError() ); 
 	}
 
+	/**
+	 * Get the value of a metadata item as an array of ints. 
+	 *
+	 * If the item is not of this type, an exception is thrown.
+	 */
 	std::vector<int> 
 	get_array_int( const char *field ) const
 	{
@@ -607,6 +693,11 @@ public:
 		return( vector );
 	}
 
+	/**
+	 * Get the value of a metadata item as a double.
+	 *
+	 * If the item is not of this type, an exception is thrown.
+	 */
 	double 
 	get_double( const char *field ) const
 	{
@@ -618,6 +709,12 @@ public:
 		return( value ); 
 	}
 
+	/**
+	 * Get the value of a metadata item as a string. You must not free the
+	 * result.
+	 *
+	 * If the item is not of this type, an exception is thrown.
+	 */
 	const char *
 	get_string( const char *field ) const
 	{
@@ -629,6 +726,12 @@ public:
 		return( value ); 
 	}
 
+	/**
+	 * Get the value of a metadata item as a binary object. You must not 
+	 * free the result.
+	 *
+	 * If the item is not of this type, an exception is thrown.
+	 */
 	const void *
 	get_blob( const char *field, size_t *length ) const
 	{
@@ -641,28 +744,53 @@ public:
 		return( value ); 
 	}
 
+	/**
+	 * Remove a metadata item. This does nothing if the item does not
+	 * exist.
+	 */
 	bool
 	remove( const char *name ) const
 	{
 		return( vips_image_remove( get_image(), name ) );
 	}
 
+	/**
+	 * Make a new VOption. Can save some typing.
+	 */
 	static VOption *
 	option()
 	{
 		return( new VOption() );
 	}
 
-	static void call_option_string( const char *operation_name, 
+	/**
+	 * Call any libvips operation, with a set of string-encoded options as
+	 * well as VOption.
+	 */
+	static void 
+	call_option_string( const char *operation_name, 
 		const char *option_string, VOption *options = 0 );
-	static void call( const char *operation_name, VOption *options = 0 );
 
+	/**
+	 * Call any libvips operation.
+	 */
+	static void 
+	call( const char *operation_name, VOption *options = 0 );
+
+	/**
+	 * Make a new image which, when written to, will create a large memory
+	 * object. See VImage::write().
+	 */
 	static VImage 
 	new_memory()
 	{
 		return( VImage( vips_image_new_memory() ) ); 
 	}
 
+	/**
+	 * Make a new VImage which, when written to, will craete a temporary
+	 * file on disc. See VImage::write().
+	 */
 	static VImage 
 	new_temp_file( const char *file_format = ".v" )
 	{
@@ -674,8 +802,16 @@ public:
 		return( VImage( image ) ); 
 	}
 
-	static VImage new_from_file( const char *name, VOption *options = 0 );
+	/**
+	 * Create a new VImage object from a file on disc.
+	 */
+	static VImage 
+	new_from_file( const char *name, VOption *options = 0 );
 
+	/**
+	 * Create a new VImage object from an area of memory containing a
+	 * C-style array.
+	 */
 	static VImage 
 	new_from_memory( void *data, size_t size,
 		int width, int height, int bands, VipsBandFormat format )
@@ -689,17 +825,39 @@ public:
 		return( VImage( image ) ); 
 	}
 
-	static VImage new_from_buffer( const void *buf, size_t len,
+	/**
+	 * Create a new VImage object from an area of memory containing an
+	 * image encoded in some format such as JPEG.
+	 */
+	static VImage 
+	new_from_buffer( const void *buf, size_t len,
 		const char *option_string, VOption *options = 0 );
 
-	static VImage new_from_buffer( const std::string &buf,
+	/**
+	 * Create a new VImage object from an area of memory containing an
+	 * image encoded in some format such as JPEG.
+	 */
+	static VImage 
+	new_from_buffer( const std::string &buf,
 		const char *option_string, VOption *options = 0 );
 
-	static VImage new_from_source( VSource source, 
+	/**
+	 * Create a new VImage object from a generic source object.
+	 */
+	static VImage 
+	new_from_source( VSource source, 
 		const char *option_string, VOption *options = 0 );
 
+	/**
+	 * Create a matrix image of a specified size. All elements will be
+	 * zero.
+	 */
 	static VImage new_matrix( int width, int height );
 
+	/**
+	 * Create a matrix image of a specified size, initialized from the
+	 * array.
+	 */
 	static VImage 
 	new_matrix( int width, int height, double *array, int size )
 	{
@@ -712,8 +870,17 @@ public:
 		return( VImage( image ) ); 
 	}
 
-	static VImage new_matrixv( int width, int height, ... );
+	/**
+	 * Create a matrix image of a specified size, initialized from the
+	 * function parameters.
+	 */
+	static VImage 
+	new_matrixv( int width, int height, ... );
 
+	/**
+	 * Make a new image of the same size and type as self, but with each
+	 * pixel initialized with the constant.
+	 */
 	VImage 
 	new_from_image( std::vector<double> pixel ) const
 	{
@@ -726,12 +893,20 @@ public:
 		return( VImage( image ) ); 
 	}
 
+	/**
+	 * Make a new image of the same size and type as self, but with each
+	 * pixel initialized with the constant.
+	 */
 	VImage 
 	new_from_image( double pixel ) const
 	{
 		return( new_from_image( to_vectorv( 1, pixel ) ) ); 
 	}
 
+	/**
+	 * Make a new image by rendering self to a large memory area, 
+	 * wrapping a VImage around it, and setting all metadata from self.
+	 */ 
 	VImage 
 	copy_memory() const
 	{
@@ -743,16 +918,39 @@ public:
 		return( VImage( image ) );
 	}
 
+	/**
+	 * Write self to out. See VImage::new_memory() etc.
+	 */
 	VImage write( VImage out ) const;
 
+	/**
+	 * Write an image to a file.
+	 */
 	void write_to_file( const char *name, VOption *options = 0 ) const;
 
+	/**
+	 * Write an image to an area of memory in the specified format. You
+	 * must free() the memory area once you are done with it.
+	 *
+	 * For example:
+	 *
+	 *     void *buf;
+	 *     size_t size;
+	 *     image.write_to_buffer( ".jpg", &buf, &size );
+	 *
+	 */
 	void write_to_buffer( const char *suffix, void **buf, size_t *size, 
 		VOption *options = 0 ) const;
 
+	/**
+	 * Write an image to a generic target object in the specified format. 
+	 */
 	void write_to_target( const char *suffix, VTarget target, 
 		VOption *options = 0 ) const;
 
+	/**
+	 * Write an image to an area of memory as a C-style array.
+	 */
 	void *
 	write_to_memory( size_t *size ) const
 	{
@@ -765,8 +963,11 @@ public:
 		return( result ); 
 	}
 
-	// a few useful things
-
+	/**
+	 * Apply a linear transform to an image. For every pixel,
+	 *
+	 *     out = in * a + b
+	 */
 	VImage
 	linear( double a, double b, VOption *options = 0 ) const
 	{
@@ -774,71 +975,124 @@ public:
 			options ) ); 
 	}
 
+	/**
+	 * Apply a linear transform to an image. For every pixel,
+	 *
+	 *     out = in * a + b
+	 */
 	VImage
 	linear( std::vector<double> a, double b, VOption *options = 0 ) const
 	{
 		return( this->linear( a, to_vector( b ), options ) ); 
 	}
 
+	/**
+	 * Apply a linear transform to an image. For every pixel,
+	 *
+	 *     out = in * a + b
+	 */
 	VImage
 	linear( double a, std::vector<double> b, VOption *options = 0 ) const
 	{
 		return( this->linear( to_vector( a ), b, options ) ); 
 	}
 
+	/**
+	 * Split a many-band image into an array of one-band images. 
+	 */
 	std::vector<VImage> bandsplit( VOption *options = 0 ) const;
 
+	/**
+	 * Join two images bandwise.
+	 */
 	VImage bandjoin( VImage other, VOption *options = 0 ) const;
 
+	/**
+	 * Append a band to an image, with each element initialized to the
+	 * constant value.
+	 */
 	VImage
 	bandjoin( double other, VOption *options = 0 ) const
 	{
 		return( bandjoin( to_vector( other ), options ) ); 
 	}
 
+	/**
+	 * Append a series of bands to an image, with each element initialized 
+	 * to the constant values.
+	 */
 	VImage
 	bandjoin( std::vector<double> other, VOption *options = 0 ) const
 	{
 		return( bandjoin_const( other, options ) ); 
 	}
 
+	/**
+	 * Composite other on top of self using the specified blending mode.
+	 */
 	VImage composite( VImage other, VipsBlendMode mode, 
 		VOption *options = 0 ) const;
 
+	/**
+	 * Find the position of the image minimum as (x, y).
+	 */
 	std::complex<double> minpos( VOption *options = 0 ) const;
 
+	/**
+	 * Find the position of the image maximum as (x, y).
+	 */
 	std::complex<double> maxpos( VOption *options = 0 ) const;
 
+	/**
+	 * Flip the image left-right.
+	 */
 	VImage 
 	fliphor( VOption *options = 0 ) const
 	{
 		return( flip( VIPS_DIRECTION_HORIZONTAL, options ) ); 
 	}
 
+	/**
+	 * Flip the image top-bottom.
+	 */
 	VImage 
 	flipver( VOption *options = 0 ) const
 	{
 		return( flip( VIPS_DIRECTION_VERTICAL, options ) ); 
 	}
 
+	/**
+	 * Rotate the image by 90 degrees clockwise.
+	 */
 	VImage 
 	rot90( VOption *options = 0 ) const
 	{
 		return( rot( VIPS_ANGLE_D90, options ) ); 
 	}
 
+	/**
+	 * Rotate the image by 180 degrees.
+	 */
 	VImage 
 	rot180( VOption *options = 0 ) const
 	{
 		return( rot( VIPS_ANGLE_D180, options ) ); 
 	}
 
+	/**
+	 * Rotate the image by 270 degrees clockwise.
+	 */
 	VImage 
 	rot270( VOption *options = 0 ) const
 	{
 		return( rot( VIPS_ANGLE_D270, options ) ); 
 	}
 
+	/**
+	 * Dilate the image with the specified strucuring element, see
+	 * VImage::new_matrix(). Stucturing element values can be 0 for 
+	 * black, 255 for white and 128 for don't care. See VImage::morph().
+	 */
 	VImage 
 	dilate( VImage mask, VOption *options = 0 ) const
 	{
@@ -846,6 +1100,11 @@ public:
 			options ) ); 
 	}
 
+	/**
+	 * Erode the image with the specified strucuring element, see
+	 * VImage::new_matrix(). Stucturing element values can be 0 for 
+	 * black, 255 for white and 128 for don't care. See VImage::morph().
+	 */
 	VImage 
 	erode( VImage mask, VOption *options = 0 ) const
 	{
@@ -853,6 +1112,9 @@ public:
 			options ) ); 
 	}
 
+	/**
+	 * A median filter of the specified size. See VImage::rank().
+	 */
 	VImage 
 	median( int size = 3, VOption *options = 0 ) const
 	{
