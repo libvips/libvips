@@ -49,6 +49,10 @@ VIPS_CPLUSPLUS_API std::vector<double> to_vector( int n, double array[] );
 VIPS_CPLUSPLUS_API std::vector<double> negate( std::vector<double> value );
 VIPS_CPLUSPLUS_API std::vector<double> invert( std::vector<double> value );
 
+/**
+ * Whether or not VObject should take over the reference that you pass in. See
+ * VObject().
+ */
 enum VSteal {
 	NOSTEAL = 0,
 	STEAL = 1
@@ -57,6 +61,8 @@ enum VSteal {
 /**
  * A smart VipsObject pointer. It calls g_object_ref()/_unref() for you
  * automatically.
+ *
+ * VObjects can be null (have no value set). See is_null().
  */
 class VObject
 {
@@ -65,6 +71,12 @@ private:
 	VipsObject *vobject; 
 
 public:
+	/**
+	 * Wrap a VObject around the underlying VipsObject pointer.
+	 *
+	 * If steal is STEAL, then the new VObject takes over the reference
+	 * that you pass in.
+	 */
 	VObject( VipsObject *new_vobject, VSteal steal = STEAL ) : 
 		vobject( new_vobject )
 	{
@@ -95,7 +107,6 @@ public:
 	{
 	}
 
-	// copy constructor 
 	VObject( const VObject &a ) : 
 		vobject( a.vobject )
 	{
@@ -152,6 +163,11 @@ public:
 			g_object_unref( vobject ); 
 	}
 
+	/**
+	 * Return the underlying VipsObject pointer. This does not make a new
+	 * reference -- you'll need to g_object_ref() the result if you want
+	 * to keep it.
+	 */
 	VipsObject *get_object() const
 	{
 		g_assert( !vobject ||
@@ -160,6 +176,9 @@ public:
 		return( vobject ); 
 	}
 
+	/**
+	 * TRUE if this is a null VObject.
+	 */
 	bool is_null() const
 	{
 		return vobject == 0;
@@ -173,8 +192,28 @@ class VIPS_CPLUSPLUS_API VSource;
 class VIPS_CPLUSPLUS_API VTarget;
 class VIPS_CPLUSPLUS_API VOption;
 
-class VOption
-{
+/**
+ * A list of name-value pairs. Pass these to libvips operations to set
+ * options. For example:
+ *
+ *     VImage out = in.embed( 10, 10, 1000, 1000, VImage::option()
+ *         ->set( "extend", "background" )
+ *         ->set( "background", 128 ) );
+ *
+ * The `set` member functions will take copies (or hold references to)
+ * compound objects, so you can free them immediately afterwards if necessary.
+ *
+ * You can get values back from operations by using the * form of the set
+ * member functions. For example:
+ *
+ *     VImage in = VImage::new_from_file( argv[1] );
+ *     int x, y;
+ *     double value = in.max( VImage::option()
+ *         set( "x", &x )
+ *         set( "y", &y ) );
+ *
+ */
+class VOption {
 private:
 	struct Pair {
 		const char *name;
@@ -218,99 +257,243 @@ public:
 
 	virtual ~VOption();
 
+	/**
+	 * Set an input boolean option.
+	 */
 	VOption *set( const char *name, bool value ); 
+
+	/**
+	 * Set an input int option. This is used for enums as well, or you can
+	 * use the string version.
+	 */
 	VOption *set( const char *name, int value );
+
+	/** 
+	 * Set an input unsigned 64-bit integer option.
+	 */
 	VOption *set( const char *name, guint64 value );
+
+	/**
+	 * Set an input double option.
+	 */
 	VOption *set( const char *name, double value );
+
+	/**
+	 * Set an input string option. 
+	 *
+	 * A copy is taken of the object.
+	 */
 	VOption *set( const char *name, const char *value );
+
+	/**
+	 * Set a libvips object as an option. These can be images, sources,
+	 * targets, etc.
+	 *
+	 * A copy is taken of the object.
+	 */
 	VOption *set( const char *name, const VObject value );
+
+	/**
+	 * Set an array of integers as an input option.
+	 *
+	 * A copy is taken of the object.
+	 */
 	VOption *set( const char *name, std::vector<int> value );
+
+	/**
+	 * Set an array of doubles as an input option.
+	 *
+	 * A copy is taken of the object.
+	 */
 	VOption *set( const char *name, std::vector<double> value );
+
+	/**
+	 * Set an array of images as an input option.
+	 *
+	 * A copy is taken of the object.
+	 */
 	VOption *set( const char *name, std::vector<VImage> value );
+
+	/**
+	 * Set a binary object an input option. Use vips_blob_new() to make
+	 * blobs. 
+	 *
+	 * A copy is taken of the object.
+	 */
 	VOption *set( const char *name, VipsBlob *value ); 
 
+	/**
+	 * Set an option which will return a bool value.
+	 */
 	VOption *set( const char *name, bool *value ); 
+
+	/**
+	 * Set an option which will return an integer value.
+	 */
 	VOption *set( const char *name, int *value );
+
+	/**
+	 * Set an option which will return a double value.
+	 */
 	VOption *set( const char *name, double *value );
+
+	/**
+	 * Set an option which will return a reference to an image. 
+	 */
 	VOption *set( const char *name, VImage *value );
+
+	/**
+	 * Set an option which will return an array of doubles.
+	 */
 	VOption *set( const char *name, std::vector<double> *value );
+
+	/**
+	 * Set an option which will return a binary object, such as an ICC
+	 * profile.
+	 */
 	VOption *set( const char *name, VipsBlob **blob ); 
 
+	/**
+	 * Walk the set of options, setting options on the operation. This is
+	 * used internally by VImage::call().
+	 */
 	void set_operation( VipsOperation *operation );
+
+	/**
+	 * Walk the set of options, fetching any output values. This is used
+	 * internally by VImage::call().
+	 */
 	void get_operation( VipsOperation *operation );
 
 };
 
+/**
+ * An image object. 
+ *
+ * Image processing operations on images are member functions of VImage. For
+ * example:
+ *
+ *     VImage in = VImage::new_from_file( argv[1], VImage::option()
+ *         ->set( "access", "sequential" ) ); 
+ *     VImage out = in.embed( 10, 10, 1000, 1000, VImage::option()
+ *         ->set( "extend", "copy" ) );
+ *     out.write_to_file( argv[2] );
+ *
+ * VImage objects are smart pointers over the underlying VipsImage objects. 
+ * They manage the complications of GLib's ref and unref system for you.
+ */
 class VImage : public VObject
 {
 public:
 	using VObject::is_null;
 
+	/**
+	 * Wrap a VImage around an underlying VipsImage object. 
+	 *
+	 * If steal is STEAL, then the VImage will take ownership of the 
+	 * reference to the VipsImage.
+	 */
 	VImage( VipsImage *image, VSteal steal = STEAL ) : 
 		VObject( (VipsObject *) image, steal )
 	{
 	}
 
-	// an empty (NULL) VImage, eg. "VImage a;"
+	/**
+	 * An empty (NULL) VImage, eg. "VImage a;"
+	 */
 	VImage() :
 		VObject( 0 )
 	{
 	}
 
+	/**
+	 * Return the underlying VipsImage reference that this VImage holds.
+	 * This does not make a new reference -- you'll need to g_object_ref()
+	 * the pointer if you need it to last.
+	 */
 	VipsImage * 
 	get_image() const
 	{
 		return( (VipsImage *) VObject::get_object() );
 	}
 
+	/**
+	 * Return the width of the image in pixels.
+	 */
 	int 
 	width() const
 	{
 		return( vips_image_get_width( get_image() ) ); 
 	}
 
+	/**
+	 * Return the height of the image in pixels.
+	 */
 	int 
 	height() const
 	{
 		return( vips_image_get_height( get_image() ) ); 
 	}
 
+	/**
+	 * Return the number of image bands.
+	 */
 	int 
 	bands() const
 	{
 		return( vips_image_get_bands( get_image() ) ); 
 	}
 
+	/**
+	 * Return the image format, for example VIPS_FORMAT_UCHAR.
+	 */
 	VipsBandFormat 
 	format() const
 	{
 		return( vips_image_get_format( get_image() ) ); 
 	}
 
+	/**
+	 * Return the image coding, for example VIPS_CODING_NONE.
+	 */
 	VipsCoding 
 	coding() const
 	{
 		return( vips_image_get_coding( get_image() ) ); 
 	}
 
+	/**
+	 * Return the image interpretation, for example
+	 * VIPS_INTERPRETATION_sRGB.
+	 */
 	VipsInterpretation 
 	interpretation() const
 	{
 		return( vips_image_get_interpretation( get_image() ) ); 
 	}
 
+	/**
+	 * Try to guess the image interpretation from other fields. This is
+	 * handy if the inperpretaion has not been set correctly.
+	 */
 	VipsInterpretation 
 	guess_interpretation() const
 	{
 		return( vips_image_guess_interpretation( get_image() ) ); 
 	}
 
+	/**
+	 * The horizontal resolution in pixels per millimeter.
+	 */
 	double 
 	xres() const
 	{
 		return( vips_image_get_xres( get_image() ) ); 
 	}
 
+	/**
+	 * The vertical resolution in pixels per millimeter.
+	 */
 	double 
 	yres() const
 	{
