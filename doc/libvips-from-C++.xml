@@ -14,7 +14,7 @@
   libvips comes with a convenient C++ API. It is a very thin wrapper over the C API and adds automatic reference counting, exceptions, operator overloads, and automatic constant expansion.
 </para>
 <para>
-  The documentation for this API is in a <link xlink:href="/libvips/API/current/cpp">separate refsect3 of the website</link>.
+  The documentation for this API is in a <link xlink:href="https://libvips.github.io/libvips/API/current/cpp">different part of the website</link>.
 </para>
 
 
