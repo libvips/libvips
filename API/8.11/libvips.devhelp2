@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
-<book xmlns="http://www.devhelp.net/book" title="VIPS Reference Manual" link="index.html" author="" name="libvips" version="2" language="c" online="http://libvips.github.io/libvips/API/current/">
+<book xmlns="http://www.devhelp.net/book" title="libvips Reference Manual" link="index.html" author="" name="libvips" version="2" language="c" online="http://libvips.github.io/libvips/API/current/">
   <chapters>
-    <sub name="VIPS Overview" link="ch01.html">
+    <sub name="libvips Overview" link="ch01.html">
       <sub name="VIPS from the command-line" link="using-cli.html"/>
       <sub name="VIPS from C" link="using-from-c.html"/>
       <sub name="" link="libvips-from-C++.md.html"/>
@@ -17,7 +17,7 @@
       <sub name="" link="Examples.md.html"/>
       <sub name="" link="Cite.md.html"/>
     </sub>
-    <sub name="Core VIPS API" link="ch02.html">
+    <sub name="Core libvips API" link="ch02.html">
       <sub name="vips" link="libvips-vips.html"/>
       <sub name="VipsImage" link="VipsImage.html"/>
       <sub name="header" link="libvips-header.html"/>
@@ -35,7 +35,7 @@
       <sub name="VipsSbuf" link="VipsSbuf.html"/>
       <sub name="basic" link="libvips-basic.html"/>
     </sub>
-    <sub name="VIPS operation API by section" link="ch03.html">
+    <sub name="libvips operation API by section" link="ch03.html">
       <sub name="arithmetic" link="libvips-arithmetic.html"/>
       <sub name="colour" link="libvips-colour.html"/>
       <sub name="conversion" link="libvips-conversion.html"/>
