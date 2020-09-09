@@ -32,7 +32,7 @@
 
     <xi:include href="xml/using-command-line.xml"/>
     <xi:include href="xml/using-C.xml"/>
-    <xi:include href="xml/using-cpp.xml"/>
+    <xi:include href="xml/libvips-from-C++.xml"/>
     <xi:include href="xml/binding.xml"/>
     <xi:include href="xml/extending.xml"/>
     <xi:include href="xml/function-list.xml"/>

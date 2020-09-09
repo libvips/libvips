@@ -1,9 +1,11 @@
 ### Introduction
 
-libvips comes with a convenient C++ API. It is a very thin wrapper over the C
-API and adds automatic reference counting, exceptions, operator overloads,
-and automatic constant expansion. You can drop down to the C API at any
-point, so all the C API docs also work for C++.
+This API is a thing layer over the libvips GObject API.  it adds automatic
+reference counting, exceptions, operator overloads, and automatic constant
+expansion.
+
+You can drop down to the C API at any point, so all the C API docs also
+work for C++.
 
 ### Example
 
@@ -47,7 +49,7 @@ point, so all the C API docs also work for C++.
       return 0;
     }
 
-Everything before `VImage in = VImage::new_from_file` is exactly as the C
+Everything before `VImage in = VImage::new_from_file()` is exactly as the C
 API. `vips_error_exit()` just prints the arguments plus the libvips error
 log and exits with an error code.
 
