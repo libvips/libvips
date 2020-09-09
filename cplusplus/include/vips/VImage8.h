@@ -670,7 +670,8 @@ public:
 	void
 	get_array_int( const char *field, int **out, int *n ) const
 	{
-		if( vips_image_get_array_int( this->get_image(), field, out, n ) )
+		if( vips_image_get_array_int( this->get_image(), 
+			field, out, n ) )
 			throw( VError() ); 
 	}
 
@@ -685,7 +686,8 @@ public:
 		int length;
 		int *array;
 
-		if( vips_image_get_array_int( this->get_image(), field, &array, &length ) )
+		if( vips_image_get_array_int( this->get_image(), 
+			field, &array, &length ) )
 			throw( VError() ); 
 
 		std::vector<int> vector( array, array + length );
@@ -804,9 +806,44 @@ public:
 
 	/**
 	 * Create a new VImage object from a file on disc.
+	 *
+	 * The available options depends on the image format. See for example
+	 * VImage::jpegload().
 	 */
 	static VImage 
 	new_from_file( const char *name, VOption *options = 0 );
+
+	/**
+	 * Create a new VImage object from an area of memory containing an
+	 * image encoded in some format such as JPEG.
+	 *
+	 * The available options depends on the image format. See for example
+	 * VImage::jpegload().
+	 */
+	static VImage 
+	new_from_buffer( const void *buf, size_t len,
+		const char *option_string, VOption *options = 0 );
+
+	/**
+	 * Create a new VImage object from an area of memory containing an
+	 * image encoded in some format such as JPEG.
+	 *
+	 * The available options depends on the image format. See for example
+	 * VImage::jpegload().
+	 */
+	static VImage 
+	new_from_buffer( const std::string &buf,
+		const char *option_string, VOption *options = 0 );
+
+	/**
+	 * Create a new VImage object from a generic source object.
+	 *
+	 * The available options depends on the image format. See for example
+	 * VImage::jpegload().
+	 */
+	static VImage 
+	new_from_source( VSource source, 
+		const char *option_string, VOption *options = 0 );
 
 	/**
 	 * Create a new VImage object from an area of memory containing a
@@ -824,29 +861,6 @@ public:
 
 		return( VImage( image ) ); 
 	}
-
-	/**
-	 * Create a new VImage object from an area of memory containing an
-	 * image encoded in some format such as JPEG.
-	 */
-	static VImage 
-	new_from_buffer( const void *buf, size_t len,
-		const char *option_string, VOption *options = 0 );
-
-	/**
-	 * Create a new VImage object from an area of memory containing an
-	 * image encoded in some format such as JPEG.
-	 */
-	static VImage 
-	new_from_buffer( const std::string &buf,
-		const char *option_string, VOption *options = 0 );
-
-	/**
-	 * Create a new VImage object from a generic source object.
-	 */
-	static VImage 
-	new_from_source( VSource source, 
-		const char *option_string, VOption *options = 0 );
 
 	/**
 	 * Create a matrix image of a specified size. All elements will be
@@ -905,7 +919,8 @@ public:
 
 	/**
 	 * Make a new image by rendering self to a large memory area, 
-	 * wrapping a VImage around it, and setting all metadata from self.
+	 * wrapping a VImage around it, and copying all metadata over from 
+	 * self.
 	 */ 
 	VImage 
 	copy_memory() const
@@ -925,6 +940,9 @@ public:
 
 	/**
 	 * Write an image to a file.
+	 *
+	 * The available options depends on the file format. See
+	 * VImage::jpegsave(), for example.
 	 */
 	void write_to_file( const char *name, VOption *options = 0 ) const;
 
@@ -938,12 +956,17 @@ public:
 	 *     size_t size;
 	 *     image.write_to_buffer( ".jpg", &buf, &size );
 	 *
+	 * The available options depends on the file format. See
+	 * VImage::jpegsave(), for example.
 	 */
 	void write_to_buffer( const char *suffix, void **buf, size_t *size, 
 		VOption *options = 0 ) const;
 
 	/**
 	 * Write an image to a generic target object in the specified format. 
+	 *
+	 * The available options depends on the file format. See
+	 * VImage::jpegsave(), for example.
 	 */
 	void write_to_target( const char *suffix, VTarget target, 
 		VOption *options = 0 ) const;
@@ -1121,138 +1144,216 @@ public:
 		return( rank( size, size, (size * size) / 2, options ) ); 
 	}
 
+	/**
+	 * Convert to integer, rounding down.
+	 */
 	VImage 
 	floor( VOption *options = 0 ) const
 	{
 		return( round( VIPS_OPERATION_ROUND_FLOOR, options ) ); 
 	}
 
+	/**
+	 * Convert to integer, rounding up.
+	 */
 	VImage 
 	ceil( VOption *options = 0 ) const
 	{
 		return( round( VIPS_OPERATION_ROUND_CEIL, options ) ); 
 	}
 
+	/**
+	 * Convert to integer, rounding to nearest.
+	 */
 	VImage 
 	rint( VOption *options = 0 ) const
 	{
 		return( round( VIPS_OPERATION_ROUND_RINT, options ) ); 
 	}
 
+	/**
+	 * AND all bands of an image together to make a one-band image. Useful
+	 * with the relational operators, for example:
+	 *
+	 *     VImage mask = (in > 128).bandand()
+	 */
 	VImage 
 	bandand( VOption *options = 0 ) const
 	{
 		return( bandbool( VIPS_OPERATION_BOOLEAN_AND, options ) ); 
 	}
 
+	/**
+	 * OR all bands of an image together to make a one-band image. Useful
+	 * with the relational operators, for example:
+	 *
+	 *     VImage mask = (in > 128).bandand()
+	 */
 	VImage 
 	bandor( VOption *options = 0 ) const
 	{
 		return( bandbool( VIPS_OPERATION_BOOLEAN_OR, options ) ); 
 	}
 
+	/**
+	 * EOR all bands of an image together to make a one-band image. Useful
+	 * with the relational operators, for example:
+	 *
+	 *     VImage mask = (in > 128).bandand()
+	 */
 	VImage 
 	bandeor( VOption *options = 0 ) const
 	{
 		return( bandbool( VIPS_OPERATION_BOOLEAN_EOR, options ) ); 
 	}
 
+	/**
+	 * Return the real part of a complex image.
+	 */
 	VImage 
 	real( VOption *options = 0 ) const
 	{
 		return( complexget( VIPS_OPERATION_COMPLEXGET_REAL, options ) );
 	}
 
+	/**
+	 * Return the imaginary part of a complex image.
+	 */
 	VImage 
 	imag( VOption *options = 0 ) const
 	{
 		return( complexget( VIPS_OPERATION_COMPLEXGET_IMAG, options ) );
 	}
 
+	/**
+	 * Convert a complex image to polar coordinates.
+	 */
 	VImage 
 	polar( VOption *options = 0 ) const
 	{
 		return( complex( VIPS_OPERATION_COMPLEX_POLAR, options ) );
 	}
 
+	/**
+	 * Convert a complex image to rectangular coordinates.
+	 */
 	VImage 
 	rect( VOption *options = 0 ) const
 	{
 		return( complex( VIPS_OPERATION_COMPLEX_RECT, options ) );
 	}
 
+	/**
+	 * Find the complex conjugate.
+	 */
 	VImage 
 	conj( VOption *options = 0 ) const
 	{
 		return( complex( VIPS_OPERATION_COMPLEX_CONJ, options ) );
 	}
 
+	/**
+	 * Find the sine of each pixel. Angles are in degrees.
+	 */
 	VImage 
 	sin( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_SIN, options ) );
 	}
 
+	/**
+	 * Find the cosine of each pixel. Angles are in degrees.
+	 */
 	VImage 
 	cos( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_COS, options ) );
 	}
 
+	/**
+	 * Find the tangent of each pixel. Angles are in degrees.
+	 */
 	VImage 
 	tan( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_TAN, options ) );
 	}
 
+	/**
+	 * Find the arc sine of each pixel. Angles are in degrees.
+	 */
 	VImage 
 	asin( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_ASIN, options ) );
 	}
 
+	/**
+	 * Find the arc cosine of each pixel. Angles are in degrees.
+	 */
 	VImage 
 	acos( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_ACOS, options ) );
 	}
 
+	/**
+	 * Find the arc tangent of each pixel. Angles are in degrees.
+	 */
 	VImage 
 	atan( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_ATAN, options ) );
 	}
 
+	/**
+	 * Find the natural log of each pixel. 
+	 */
 	VImage 
 	log( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_LOG, options ) );
 	}
 
+	/**
+	 * Find the base 10 log of each pixel. 
+	 */
 	VImage 
 	log10( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_LOG10, options ) );
 	}
 
+	/**
+	 * Find e to the power of each pixel.
+	 */
 	VImage 
 	exp( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_EXP, options ) );
 	}
 
+	/**
+	 * Find 10 to the power of each pixel.
+	 */
 	VImage 
 	exp10( VOption *options = 0 ) const
 	{
 		return( math( VIPS_OPERATION_MATH_EXP10, options ) );
 	}
 
+	/**
+	 * Raise each pixel to the specified power.
+	 */
 	VImage 
 	pow( VImage other, VOption *options = 0 ) const
 	{
 		return( math2( other, VIPS_OPERATION_MATH2_POW, options ) );
 	}
 
+	/**
+	 * Raise each pixel to the specified power.
+	 */
 	VImage 
 	pow( double other, VOption *options = 0 ) const
 	{
@@ -1260,6 +1361,9 @@ public:
 			to_vector( other ), options ) );
 	}
 
+	/**
+	 * Raise each pixel to the specified power.
+	 */
 	VImage 
 	pow( std::vector<double> other, VOption *options = 0 ) const
 	{
@@ -1267,12 +1371,18 @@ public:
 			other, options ) );
 	}
 
+	/**
+	 * Raise other to the power of each pixel (the opposite of pow).
+	 */
 	VImage 
 	wop( VImage other, VOption *options = 0 ) const
 	{
 		return( math2( other, VIPS_OPERATION_MATH2_WOP, options ) );
 	}
 
+	/**
+	 * Raise the constant to the power of each pixel (the opposite of pow).
+	 */
 	VImage 
 	wop( double other, VOption *options = 0 ) const
 	{
@@ -1280,6 +1390,9 @@ public:
 			to_vector( other ), options ) );
 	}
 
+	/**
+	 * Raise the constant to the power of each pixel (the opposite of pow).
+	 */
 	VImage 
 	wop( std::vector<double> other, VOption *options = 0 ) const
 	{
@@ -1287,6 +1400,10 @@ public:
 			other, options ) );
 	}
 
+	/**
+	 * Use self as a conditional image (not zero meaning TRUE) to pick
+	 * pixels from th (then) or el (else).
+	 */
 	VImage 
 	ifthenelse( std::vector<double> th, VImage el, 
 		VOption *options = 0 ) const
@@ -1294,6 +1411,10 @@ public:
 		return( ifthenelse( el.new_from_image( th ), el, options ) ); 
 	}
 
+	/**
+	 * Use self as a conditional image (not zero meaning TRUE) to pick
+	 * pixels from th (then) or el (else).
+	 */
 	VImage 
 	ifthenelse( VImage th, std::vector<double> el, 
 		VOption *options = 0 ) const
@@ -1301,6 +1422,10 @@ public:
 		return( ifthenelse( th, th.new_from_image( el ), options ) ); 
 	}
 
+	/**
+	 * Use self as a conditional image (not zero meaning TRUE) to pick
+	 * pixels from th (then) or el (else).
+	 */
 	VImage 
 	ifthenelse( std::vector<double> th, std::vector<double> el, 
 		VOption *options = 0 ) const
@@ -1309,18 +1434,30 @@ public:
 			options ) ); 
 	}
 
+	/**
+	 * Use self as a conditional image (not zero meaning TRUE) to pick
+	 * pixels from th (then) or el (else).
+	 */
 	VImage 
 	ifthenelse( double th, VImage el, VOption *options = 0 ) const
 	{
 		return( ifthenelse( to_vector( th ), el, options ) ); 
 	}
 
+	/**
+	 * Use self as a conditional image (not zero meaning TRUE) to pick
+	 * pixels from th (then) or el (else).
+	 */
 	VImage 
 	ifthenelse( VImage th, double el, VOption *options = 0 ) const
 	{
 		return( ifthenelse( th, to_vector( el ), options ) ); 
 	}
 
+	/**
+	 * Use self as a conditional image (not zero meaning TRUE) to pick
+	 * pixels from th (then) or el (else).
+	 */
 	VImage 
 	ifthenelse( double th, double el, VOption *options = 0 ) const
 	{
