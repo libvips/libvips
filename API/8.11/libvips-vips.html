@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>libvips</title>
+    <meta name="description" content="A fast image processing library with low memory needs.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/libvips/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="/libvips/favicon.ico">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name"><a href="/libvips">libvips</a></h1>
+      <h2 class="project-tagline">A fast image processing library with low memory needs.</h2>
+      <a href="https://github.com/libvips/libvips" class="btn">Project on GitHub</a>
+      <a href="https://github.com/libvips/libvips/releases" class="btn">Download</a>
+      <a href="/libvips/install.html" class="btn">Install</a>
+      <a href="/libvips/API/current" class="btn">Documentation</a>
+      <a href="https://github.com/libvips/libvips/issues" class="btn">Issues</a>
+      <a href="https://github.com/libvips/libvips/wiki" class="btn">Wiki</a>
+    </section>
+
+    <section class="main-content">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts">
+<a href="#" class="shortcut">Top</a><span id="nav_description">  <span class="dim">|</span> 
+                  <a href="#libvips-vips.description" class="shortcut">Description</a></span>
+</td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><a accesskey="u" href="ch02.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
+<td><a accesskey="p" href="ch02.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="VipsImage.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="libvips-vips"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="libvips-vips.top_of_page"></a>vips</span></h2>
+<p>vips — startup, shutdown, version</p>
+</td>
+<td class="gallery_image" valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsect1">
+<a name="libvips-vips.stability-level"></a><h2>Stability Level</h2>
+<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
+develop applications to these interfaces, release them, and have confidence that
+they will run on all minor releases of the product (after the one in which the
+interface was introduced, and within the same major release). Even at a major
+release, incompatible changes are expected to be rare, and to have strong
+justifications.
+"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
+</div>
+<div class="refsect1">
+<a name="libvips-vips.functions"></a><h2>Functions</h2>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="functions_proto_type">
+<col class="functions_proto_name">
+</colgroup>
+<tbody>
+<tr>
+<td class="define_keyword">#define</td>
+<td class="function_name">
+<a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()">VIPS_INIT</a><span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-vips.html#vips-init" title="vips_init ()">vips_init</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-vips.html#vips-get-argv0" title="vips_get_argv0 ()">vips_get_argv0</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-vips.html#vips-shutdown" title="vips_shutdown ()">vips_shutdown</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-vips.html#vips-thread-shutdown" title="vips_thread_shutdown ()">vips_thread_shutdown</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-vips.html#vips-add-option-entries" title="vips_add_option_entries ()">vips_add_option_entries</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">void</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-vips.html#vips-leak-set" title="vips_leak_set ()">vips_leak_set</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-vips.html#vips-version-string" title="vips_version_string ()">vips_version_string</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-vips.html#vips-version" title="vips_version ()">vips_version</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-vips.html#vips-guess-prefix" title="vips_guess_prefix ()">vips_guess_prefix</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-vips.html#vips-guess-libdir" title="vips_guess_libdir ()">vips_guess_libdir</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="libvips-vips.includes"></a><h2>Includes</h2>
+<pre class="synopsis">#include &lt;vips/vips.h&gt;
+</pre>
+</div>
+<div class="refsect1">
+<a name="libvips-vips.description"></a><h2>Description</h2>
+<p>Start VIPS up, shut VIPS down, get version information, relocation. </p>
+<p>VIPS is a relocatable package, meaning you can move the directory tree you
+compiled it to at runtime and it will still be able to find all data files.
+This is required for OS X and Windows, but slightly unusual in the Unix
+world. See <a class="link" href="libvips-vips.html#vips-init" title="vips_init ()"><code class="function">vips_init()</code></a> and <a class="link" href="libvips-vips.html#vips-guess-prefix" title="vips_guess_prefix ()"><code class="function">vips_guess_prefix()</code></a>.</p>
+</div>
+<div class="refsect1">
+<a name="libvips-vips.functions_details"></a><h2>Functions</h2>
+<div class="refsect2">
+<a name="VIPS-INIT:CAPS"></a><h3>VIPS_INIT()</h3>
+<pre class="programlisting">#define             VIPS_INIT( ARGV0 )</pre>
+<p>gtk-doc mistakenly tags this macro as deprecated for unknown reasons. It is
+*NOT* deprecated, please ignore the warning above. </p>
+<p>VIPS_INIT() starts up the world of VIPS. You should call this on
+program startup before using any other VIPS operations. If you do not call
+<a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a>, VIPS will call it for you when you use your first VIPS 
+operation, but it may not be able to get hold of <em class="parameter"><code>ARGV0</code></em>
+ and VIPS may 
+therefore be unable to find its data files. It is much better to call 
+this macro yourself.</p>
+<p><em class="parameter"><code>ARGV0</code></em>
+ is used to help discover message catalogues if libvips has been 
+relocated. If you don't need a relocatable package, you can just pass <code class="literal">""</code>
+and it'll be fine.</p>
+<p>Additionally, <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a> can be run from any thread, but it must not be
+called from more than one thread at the same time. This is much easier to 
+guarantee if you call it yourself.</p>
+<p>VIPS_INIT() is a macro, since it tries to check ABI compatibility
+between the caller and the library. You can also call <a class="link" href="libvips-vips.html#vips-init" title="vips_init ()"><code class="function">vips_init()</code></a>, the
+non-macro version, if macros are not available to you.</p>
+<p>You may call <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a> many times and <a class="link" href="libvips-vips.html#vips-shutdown" title="vips_shutdown ()"><code class="function">vips_shutdown()</code></a> many times, but you 
+must not call <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a> after <a class="link" href="libvips-vips.html#vips-shutdown" title="vips_shutdown ()"><code class="function">vips_shutdown()</code></a>. In other words, you cannot
+stop and restart vips. </p>
+<p>Use the environment variable <code class="literal">VIPS_MIN_STACK_SIZE</code> to set the minimum stack
+size. For example, <code class="literal">2m</code> for a minimum of two megabytes of stack. This can
+be important for systems like musl where the default stack is very small.</p>
+<p>VIPS_INIT() does approximately the following:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p>checks that the libvips your program is expecting is 
+binary-compatible with the vips library you're running against</p></li>
+<li class="listitem"><p>sets a minimum stack size, see above</p></li>
+<li class="listitem"><p>initialises any libraries that VIPS is using, including GObject
+and the threading system, if neccessary</p></li>
+<li class="listitem"><p>guesses where the VIPS data files are and sets up
+internationalisation --- see <a class="link" href="libvips-vips.html#vips-guess-prefix" title="vips_guess_prefix ()"><code class="function">vips_guess_prefix()</code></a></p></li>
+<li class="listitem"><p>creates the main vips types, including <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> and friends</p></li>
+<li class="listitem"><p>loads any plugins from $libdir/vips-x.y/, where x and y are the
+major and minor version numbers for this VIPS.</p></li>
+<li class="listitem"><p>if your platform supports <code class="function">atexit()</code>, <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a> will ask for
+<a class="link" href="libvips-vips.html#vips-shutdown" title="vips_shutdown ()"><code class="function">vips_shutdown()</code></a> to be called on program exit</p></li>
+</ul></div>
+<p>Example:</p>
+<div class="informalexample">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="kt">int</span> <span class="nf">main</span> <span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">VIPS_INIT</span> <span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="n">vips_error_exit</span> <span class="p">(</span><span class="s">"unable to start VIPS"</span><span class="p">);</span>
+
+  <span class="n">vips_shutdown</span> <span class="p">();</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p></p>
+<p>See also: <a class="link" href="libvips-vips.html#vips-shutdown" title="vips_shutdown ()"><code class="function">vips_shutdown()</code></a>, <a class="link" href="libvips-vips.html#vips-add-option-entries" title="vips_add_option_entries ()"><code class="function">vips_add_option_entries()</code></a>, <a class="link" href="libvips-vips.html#vips-version" title="vips_version ()"><code class="function">vips_version()</code></a>, 
+<a class="link" href="libvips-vips.html#vips-guess-prefix" title="vips_guess_prefix ()"><code class="function">vips_guess_prefix()</code></a>, <a class="link" href="libvips-vips.html#vips-guess-libdir" title="vips_guess_libdir ()"><code class="function">vips_guess_libdir()</code></a>.</p>
+<div class="refsect3">
+<a name="VIPS-INIT.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>ARGV0</p></td>
+<td class="parameter_description"><p>name of application</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="VIPS-INIT.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 otherwise</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-init"></a><h3>vips_init ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_init (<em class="parameter"><code>const <span class="type">char</span> *argv0</code></em>);</pre>
+<p>This function starts up libvips, see <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a>. </p>
+<p>This function is for bindings which need to start up vips. C programs
+should use the <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a> macro, which does some extra checks. </p>
+<p>See also: <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a>.</p>
+<div class="refsect3">
+<a name="vips-init.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>argv0</p></td>
+<td class="parameter_description"><p>name of application</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-init.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 otherwise</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-get-argv0"></a><h3>vips_get_argv0 ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips_get_argv0 (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>See also: <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a>.</p>
+<div class="refsect3">
+<a name="vips-get-argv0.returns"></a><h4>Returns</h4>
+<p> a pointer to an internal copy of the argv0 string passed to
+<a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a>. Do not free this value</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-shutdown"></a><h3>vips_shutdown ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_shutdown (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Call this to drop caches and close plugins. Run with "--vips-leak" to do 
+a leak check too. </p>
+<p>You may call <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a> many times and <a class="link" href="libvips-vips.html#vips-shutdown" title="vips_shutdown ()"><code class="function">vips_shutdown()</code></a> many times, but you 
+must not call <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a> after <a class="link" href="libvips-vips.html#vips-shutdown" title="vips_shutdown ()"><code class="function">vips_shutdown()</code></a>. In other words, you cannot
+stop and restart vips.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-thread-shutdown"></a><h3>vips_thread_shutdown ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_thread_shutdown (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Free any thread-private data and flush any profiling information.</p>
+<p>This function needs to be called when a thread that has been using vips
+exits. It is called for you by <a class="link" href="libvips-vips.html#vips-shutdown" title="vips_shutdown ()"><code class="function">vips_shutdown()</code></a> and for any threads created
+by <code class="function">vips_g_thread_new()</code>. </p>
+<p>You will need to call it from threads created in
+other ways or there will be memory leaks. If you do not call it, vips 
+will generate a warning message.</p>
+<p>It may be called many times, and you can continue using vips after 
+calling it. Calling it too often will reduce performance.</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-add-option-entries"></a><h3>vips_add_option_entries ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_add_option_entries (<em class="parameter"><code><span class="type">GOptionGroup</span> *option_group</code></em>);</pre>
+<p>Add the standard vips <code class="literal">GOptionEntry</code> to a <code class="literal">GOptionGroup</code>. </p>
+<p>See also: <code class="function">g_option_group_new()</code>.</p>
+<div class="refsect3">
+<a name="vips-add-option-entries.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>option_group</p></td>
+<td class="parameter_description"><p>group to add to</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-leak-set"></a><h3>vips_leak_set ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>
+vips_leak_set (<em class="parameter"><code><span class="type">gboolean</span> leak</code></em>);</pre>
+<p>Turn on or off vips leak checking. See also --vips-leak,
+<a class="link" href="libvips-vips.html#vips-add-option-entries" title="vips_add_option_entries ()"><code class="function">vips_add_option_entries()</code></a> and the <code class="literal">VIPS_LEAK</code> environment variable.</p>
+<p>You should call this very early in your program.</p>
+<div class="refsect3">
+<a name="vips-leak-set.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>leak</p></td>
+<td class="parameter_description"><p>turn leak checking on or off</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-version-string"></a><h3>vips_version_string ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips_version_string (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Get the VIPS version as a static string, including a build date and time.
+Do not free.</p>
+<div class="refsect3">
+<a name="vips-version-string.returns"></a><h4>Returns</h4>
+<p>a static version string. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-version"></a><h3>vips_version ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_version (<em class="parameter"><code><span class="type">int</span> flag</code></em>);</pre>
+<p>Get the major, minor or micro library version, with <em class="parameter"><code>flag</code></em>
+ values 0, 1 and
+2.</p>
+<p>Get the ABI current, revision and age (as used by libtool) with <em class="parameter"><code>flag</code></em>
+ 
+values 3, 4, 5.</p>
+<div class="refsect3">
+<a name="vips-version.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody><tr>
+<td class="parameter_name"><p>flag</p></td>
+<td class="parameter_description"><p>which field of the version to get</p></td>
+<td class="parameter_annotations"> </td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-version.returns"></a><h4>Returns</h4>
+<p> library version number</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-guess-prefix"></a><h3>vips_guess_prefix ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips_guess_prefix (<em class="parameter"><code>const <span class="type">char</span> *argv0</code></em>,
+                   <em class="parameter"><code>const <span class="type">char</span> *env_name</code></em>);</pre>
+<p>vips_guess_prefix() tries to guess the install directory. You should pass 
+in the value of argv[0] (the name your program was run as) as a clue to 
+help it out, plus the name of the environment variable you let the user 
+override your package install area with (eg. "VIPSHOME"). </p>
+<p>On success, <a class="link" href="libvips-vips.html#vips-guess-prefix" title="vips_guess_prefix ()"><code class="function">vips_guess_prefix()</code></a> returns the prefix it discovered, and as a 
+side effect, sets the environment variable (if it's not set).</p>
+<p>Don't free the return string!</p>
+<p>See also: <a class="link" href="libvips-vips.html#vips-guess-libdir" title="vips_guess_libdir ()"><code class="function">vips_guess_libdir()</code></a>.</p>
+<div class="refsect3">
+<a name="vips-guess-prefix.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>argv0</p></td>
+<td class="parameter_description"><p>program name (typically argv[0])</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>env_name</p></td>
+<td class="parameter_description"><p>save prefix in this environment variable</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-guess-prefix.returns"></a><h4>Returns</h4>
+<p>the install prefix as a static string, do not free. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-guess-libdir"></a><h3>vips_guess_libdir ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips_guess_libdir (<em class="parameter"><code>const <span class="type">char</span> *argv0</code></em>,
+                   <em class="parameter"><code>const <span class="type">char</span> *env_name</code></em>);</pre>
+<p>vips_guess_libdir() tries to guess the install directory (usually the 
+configure libdir, or $prefix/lib). You should pass 
+in the value of argv[0] (the name your program was run as) as a clue to 
+help it out, plus the name of the environment variable you let the user 
+override your package install area with (eg. "VIPSHOME"). </p>
+<p>On success, <a class="link" href="libvips-vips.html#vips-guess-libdir" title="vips_guess_libdir ()"><code class="function">vips_guess_libdir()</code></a> returns the libdir it discovered, and as a 
+side effect, sets the prefix environment variable (if it's not set).</p>
+<p>Don't free the return string!</p>
+<p>See also: <a class="link" href="libvips-vips.html#vips-guess-prefix" title="vips_guess_prefix ()"><code class="function">vips_guess_prefix()</code></a>.</p>
+<div class="refsect3">
+<a name="vips-guess-libdir.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>argv0</p></td>
+<td class="parameter_description"><p>program name (typically argv[0])</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>env_name</p></td>
+<td class="parameter_description"><p>save prefix in this environment variable</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-guess-libdir.returns"></a><h4>Returns</h4>
+<p>the libdir as a static string, do not free. </p>
+<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+</div>
+<div class="refsect1">
+<a name="libvips-vips.see-also"></a><h2>See Also</h2>
+<a class="link" href="VipsOperation.html" title="VipsOperation">VipsOperation</a>
+</div>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.32</div>
+</section>
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48550036-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
+</html>

@@ -1,0 +1,28 @@
+var searchData=
+[
+  ['gamma_495',['gamma',['../classVImage.html#a29f2b64d6b5c4180879af7d2b1b9523c',1,'VImage']]],
+  ['gaussblur_496',['gaussblur',['../classVImage.html#af942c27f7595c66e124d3ec8c572709f',1,'VImage']]],
+  ['gaussmat_497',['gaussmat',['../classVImage.html#ae7af88d9ed38052b3e891386d220b3ef',1,'VImage']]],
+  ['gaussnoise_498',['gaussnoise',['../classVImage.html#ac035fd3680850f404973ffa2462e2334',1,'VImage']]],
+  ['get_5farray_5fint_499',['get_array_int',['../classVImage.html#ad6c985e23a019b77ad68b8f4e2bf9780',1,'VImage::get_array_int(const char *field, int **out, int *n) const'],['../classVImage.html#ac8734a2005768abe048bf39ec0b8cfe9',1,'VImage::get_array_int(const char *field) const']]],
+  ['get_5fblob_500',['get_blob',['../classVImage.html#aa5587b6308dabf81f94cd58c6cf0d456',1,'VImage']]],
+  ['get_5fdouble_501',['get_double',['../classVImage.html#aafde1ff59abb0d369c91fc198fcdc9f6',1,'VImage']]],
+  ['get_5fimage_502',['get_image',['../classVImage.html#af3a71b803601f131c42edb88724a0617',1,'VImage']]],
+  ['get_5fint_503',['get_int',['../classVImage.html#a0a33a40017eedaec15b184003a7f3cbd',1,'VImage']]],
+  ['get_5finterpolate_504',['get_interpolate',['../classVInterpolate.html#a654f40d18d5e846db9b3bdcdf54e3e7a',1,'VInterpolate']]],
+  ['get_5fobject_505',['get_object',['../classVObject.html#a275ee3a6e6e6d8aca95e09bf82523a36',1,'VObject']]],
+  ['get_5foperation_506',['get_operation',['../classVOption.html#a20ec392e32537664e5c639d3eb9b68c8',1,'VOption']]],
+  ['get_5fsource_507',['get_source',['../classVSource.html#a5d5b79f3a5d3458ab02e11a437d8857f',1,'VSource']]],
+  ['get_5fstring_508',['get_string',['../classVImage.html#adf9b1b7990e041057653d0ae851defe7',1,'VImage']]],
+  ['get_5ftarget_509',['get_target',['../classVTarget.html#a53305f3ec708f26462f4eae2c9e74ec6',1,'VTarget']]],
+  ['get_5ftypeof_510',['get_typeof',['../classVImage.html#aa9d2524738d4434a96d0b58ecc580a92',1,'VImage']]],
+  ['getpoint_511',['getpoint',['../classVImage.html#a6a7884618fd655971efdfa6eae08de07',1,'VImage']]],
+  ['gifload_512',['gifload',['../classVImage.html#adca857ab1b9662f8810040fbb851578c',1,'VImage']]],
+  ['gifload_5fbuffer_513',['gifload_buffer',['../classVImage.html#adf29a360bcfb7d90f8ff72601ffb5f77',1,'VImage']]],
+  ['gifload_5fsource_514',['gifload_source',['../classVImage.html#a2feed9f92509fa7b2b0de748ef74841a',1,'VImage']]],
+  ['globalbalance_515',['globalbalance',['../classVImage.html#ab9f8db04711305d697198f161448fca6',1,'VImage']]],
+  ['gravity_516',['gravity',['../classVImage.html#a3b1147b879a93b8eeafd32fd66e97846',1,'VImage']]],
+  ['grey_517',['grey',['../classVImage.html#a70e2c97ab18de3891f00fe68ea006c2e',1,'VImage']]],
+  ['grid_518',['grid',['../classVImage.html#a30b397554c9ffd651c5f1435689a6cfa',1,'VImage']]],
+  ['guess_5finterpretation_519',['guess_interpretation',['../classVImage.html#aafacfed02e15b492e9a6b58d334ac02c',1,'VImage']]]
+];

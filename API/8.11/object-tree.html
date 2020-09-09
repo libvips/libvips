@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title>libvips</title>
+    <meta name="description" content="A fast image processing library with low memory needs.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="/libvips/assets/css/style.css">
+    <link rel="shortcut icon" type="image/x-icon" href="/libvips/favicon.ico">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name"><a href="/libvips">libvips</a></h1>
+      <h2 class="project-tagline">A fast image processing library with low memory needs.</h2>
+      <a href="https://github.com/libvips/libvips" class="btn">Project on GitHub</a>
+      <a href="https://github.com/libvips/libvips/releases" class="btn">Download</a>
+      <a href="/libvips/install.html" class="btn">Install</a>
+      <a href="/libvips/API/current" class="btn">Documentation</a>
+      <a href="https://github.com/libvips/libvips/issues" class="btn">Issues</a>
+      <a href="https://github.com/libvips/libvips/wiki" class="btn">Wiki</a>
+    </section>
+
+    <section class="main-content">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
+<td width="100%" align="left" class="shortcuts"></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
+<td><img src="up-insensitive.png" width="16" height="16" border="0"></td>
+<td><a accesskey="p" href="libvips-semaphore.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
+<td><a accesskey="n" href="api-index-full.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="chapter">
+<div class="titlepage"><div><div><h1 class="title">
+<a name="object-tree"></a>Object Hierarchy</h1></div></div></div>
+<pre class="screen">
+    GObject
+    <span class="lineart">├──</span> <a class="link" href="VipsObject.html" title="VipsObject">VipsObject</a>
+    <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="VipsTargetCustom.html#VipsConnection">VipsConnection</a>
+    <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="VipsTargetCustom.html#VipsSource">VipsSource</a>
+    <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">╰──</span> <a class="link" href="VipsTargetCustom.html#VipsSourceCustom">VipsSourceCustom</a>
+    <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">╰──</span> <a class="link" href="VipsTargetCustom.html#VipsTarget">VipsTarget</a>
+    <span class="lineart">│</span>   <span class="lineart">│</span>       <span class="lineart">╰──</span> <a class="link" href="VipsTargetCustom.html" title="VipsConnection">VipsTargetCustom</a>
+    <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="VipsOperation.html" title="VipsOperation">VipsOperation</a>
+    <span class="lineart">│</span>   <span class="lineart">│</span>   <span class="lineart">╰──</span> <a class="link" href="VipsForeignSave.html#VipsForeign">VipsForeign</a>
+    <span class="lineart">│</span>   <span class="lineart">│</span>       <span class="lineart">├──</span> <a class="link" href="VipsForeignSave.html#VipsForeignLoad">VipsForeignLoad</a>
+    <span class="lineart">│</span>   <span class="lineart">│</span>       <span class="lineart">╰──</span> <a class="link" href="VipsForeignSave.html" title="VipsForeign">VipsForeignSave</a>
+    <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="VipsImage.html" title="VipsImage">VipsImage</a>
+    <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="VipsInterpolate.html" title="VipsInterpolate">VipsInterpolate</a>
+    <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="VipsRegion.html" title="VipsRegion">VipsRegion</a>
+    <span class="lineart">│</span>   <span class="lineart">├──</span> <a class="link" href="VipsSbuf.html" title="VipsSbuf">VipsSbuf</a>
+    <span class="lineart">│</span>   <span class="lineart">╰──</span> <a class="link" href="VipsThreadState.html" title="VipsThreadpool">VipsThreadState</a>
+    <span class="lineart">╰──</span> GInputStream
+        <span class="lineart">╰──</span> <a class="link" href="VipsTargetCustom.html#VipsGInputStream">VipsGInputStream</a>
+    <a href="/usr/share/gtk-doc/html/gobject/gobject-Boxed-Types.html">GBoxed</a>
+    <span class="lineart">├──</span> <a class="link" href="libvips-type.html#VipsArea">VipsArea</a>
+    <span class="lineart">├──</span> <a class="link" href="libvips-type.html#VipsArrayDouble">VipsArrayDouble</a>
+    <span class="lineart">├──</span> <a class="link" href="libvips-type.html#VipsArrayInt">VipsArrayInt</a>
+    <span class="lineart">├──</span> <a class="link" href="libvips-type.html#VipsArrayImage">VipsArrayImage</a>
+    <span class="lineart">├──</span> <a class="link" href="libvips-type.html#VipsBlob">VipsBlob</a>
+    <span class="lineart">├──</span> <a class="link" href="libvips-type.html#VipsRefString">VipsRefString</a>
+    <span class="lineart">╰──</span> <a class="link" href="libvips-type.html#VipsThing">VipsThing</a>
+</pre>
+</div>
+<div class="footer">
+<hr>Generated by GTK-Doc V1.32</div>
+</section>
+
+    <script type="text/javascript">
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-48550036-2', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
+</html>

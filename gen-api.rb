@@ -1,13 +1,13 @@
-#!/usr/bin/env ruby
+#!/usr/bin/ruby
 
 require 'fileutils'
 require 'nokogiri'
 require 'vips'
 
 if ARGV.length != 1 
-    puts "usage: ./gen-api.rb vips-docs-directory"
-	puts "\teg. ./gen-api.rb ~/vips/share/gtk-doc/html/libvips"
-	exit 1
+    puts "usage: ./gen-api.rb vips-install-prefix"
+    uts "\teg. ./gen-api.rb ~/vips"
+    exit 1
 end
 
 version = Vips::version(0).to_s + "." + Vips::version(1).to_s
@@ -20,21 +20,26 @@ FileUtils.mkdir(out_dir)
 puts "loading template ..."
 template = Nokogiri::HTML(File.open("_layouts/api-default.html"))
 
-puts "copying formatted docs ..."
-Dir.foreach(ARGV[0]) do |filename|
-    next if filename[0] == "." 
+puts "copying gtk-doc output ..."
+base = "#{ARGV[0]}/share/gtk-doc/html/libvips"
+Dir.foreach(base) do |filename|
+    next if filename[0] == "." || filename[0] == ".." 
 
     if File.extname(filename) == ".html"
         puts "processing #{filename} ..." 
-        doc = Nokogiri::HTML(File.open(File.join(ARGV[0], filename)))
+        doc = Nokogiri::HTML(File.open("#{base}/#{filename}"))
 
         template.at_css(".main-content").children = doc.at_css("body").children
 
         File.open(File.join(out_dir, filename), 'w') {|f| f << template.to_html}
     else
         puts "copying #{filename} ..." 
-        FileUtils.copy(File.join(ARGV[0], filename), File.join(out_dir, filename))
+        FileUtils.copy("#{base}/#{filename}", "#{out_dir}/#{filename}")
     end
 end
+
+puts "copying doxygen output ..."
+FileUtils.copy_entry "#{ARGV[0]}/share/doc/vips/html", "#{out_dir}/cpp"
+
 
 
