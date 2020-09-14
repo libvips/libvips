@@ -1057,6 +1057,7 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 			"scale", 1.0 / factor,
 			NULL ) );
 	}
+
 	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) {
 		/* We support three modes: subifd pyramids, page-based
 		 * pyramids, and simple multi-page TIFFs (no pyramid).
@@ -1075,8 +1076,8 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 			return( vips_image_new_from_file( file->filename, 
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				NULL ) );
-
 	}
+
 	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
@@ -1270,12 +1271,29 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) {
-		return( vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, 
-			buffer->option_string,
-			"access", VIPS_ACCESS_SEQUENTIAL,
-			"page", (int) factor,
-			NULL ) );
+		/* We support three modes: subifd pyramids, page-based
+		 * pyramids, and simple multi-page TIFFs (no pyramid).
+		 */
+		if( thumbnail->subifd_pyramid )
+			return( vips_image_new_from_buffer( 
+				buffer->buf->data, buffer->buf->length, 
+				buffer->option_string,
+				"access", VIPS_ACCESS_SEQUENTIAL,
+				"subifd", (int) factor,
+				NULL ) );
+		else if( thumbnail->page_pyramid )
+			return( vips_image_new_from_buffer( 
+				buffer->buf->data, buffer->buf->length, 
+				buffer->option_string,
+				"access", VIPS_ACCESS_SEQUENTIAL,
+				"page", (int) factor,
+				NULL ) );
+		else
+			return( vips_image_new_from_buffer( 
+				buffer->buf->data, buffer->buf->length, 
+				buffer->option_string,
+				"access", VIPS_ACCESS_SEQUENTIAL,
+				NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
@@ -1449,12 +1467,29 @@ vips_thumbnail_source_open( VipsThumbnail *thumbnail, double factor )
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) {
-		return( vips_image_new_from_source( 
-			source->source, 
-			source->option_string,
-			"access", VIPS_ACCESS_SEQUENTIAL,
-			"page", (int) factor,
-			NULL ) );
+		/* We support three modes: subifd pyramids, page-based
+		 * pyramids, and simple multi-page TIFFs (no pyramid).
+		 */
+		if( thumbnail->subifd_pyramid )
+			return( vips_image_new_from_source(
+				source->source, 
+				source->option_string,
+				"access", VIPS_ACCESS_SEQUENTIAL,
+				"subifd", (int) factor,
+				NULL ) );
+		else if( thumbnail->page_pyramid )
+			return( vips_image_new_from_source(
+				source->source, 
+				source->option_string,
+				"access", VIPS_ACCESS_SEQUENTIAL,
+				"page", (int) factor,
+				NULL ) );
+		else
+			return( vips_image_new_from_source(
+				source->source, 
+				source->option_string,
+				"access", VIPS_ACCESS_SEQUENTIAL,
+				NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
 		return( vips_image_new_from_source( 

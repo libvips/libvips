@@ -1,6 +1,7 @@
 6/9/20 started 8.10.2
 - update magicksave/load profile handling [kelilevi]
 - better demand hint rules [kaas3000]
+- fix tiff thumbnail from buffer and source [vansante]
 
 9/8/20 started 8.10.1
 - fix markdown -> xml conversion in doc generation
