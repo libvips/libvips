@@ -193,7 +193,7 @@ VOption::set( const char *name, const VObject value )
 {
 	Pair *pair = new Pair( name );
 	VipsObject *object = value.get_object();
-	GType type = G_VALUE_TYPE( object );
+	GType type = G_OBJECT_TYPE( object );
 
 	pair->input = true;
 	g_value_init( &pair->value, type );
