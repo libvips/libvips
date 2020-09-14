@@ -6,6 +6,8 @@
 
 6/9/20 started 8.10.2
 - update magicksave/load profile handling [kelilevi]
+- better demand hint rules [kaas3000]
+- in jpegsave, don't set JFIF resolution if we set EXIF resolution
 
 9/8/20 started 8.10.1
 - fix markdown -> xml conversion in doc generation

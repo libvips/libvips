@@ -297,25 +297,18 @@ vips__demand_hint_array( VipsImage *image,
 		if( in[i]->dhint == VIPS_DEMAND_STYLE_ANY )
 			nany++;
 
+	/* Find the most restrictive of all the hints available to us.
+	 *
+	 * We have tried to be smarter about this in the past -- for example,
+	 * detecting all ANY inputs and ignoring the hint in this case, but
+	 * there are inevitably odd cases which cause problems. For example,
+	 * new_from_memory, resize, affine, write_to_memory would run with
+	 * FATSTRIP.
+	 */
 	set_hint = hint;
-	if( len == 0 ) 
-		/* No input images? Just set the requested hint. We don't 
-		 * force ANY, since the operation might be something like 
-		 * tiled read of an EXR image, where we certainly don't want 
-		 * ANY.
-		 */
-		;
-	else if( nany == len ) 
-		/* Special case: if all the inputs are ANY, then output can 
-		 * be ANY regardless of what this function wants. 
-		 */
-		set_hint = VIPS_DEMAND_STYLE_ANY;
-	else
-		/* Find the most restrictive of all the hints available to us.
-		 */
-		for( i = 0; i < len; i++ )
-			set_hint = (VipsDemandStyle) VIPS_MIN( 
-				(int) set_hint, (int) in[i]->dhint );
+	for( i = 0; i < len; i++ )
+		set_hint = (VipsDemandStyle) VIPS_MIN( 
+			(int) set_hint, (int) in[i]->dhint );
 
 	image->dhint = set_hint;
 
