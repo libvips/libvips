@@ -848,7 +848,7 @@ AC_ARG_WITH([heif],
   AS_HELP_STRING([--without-heif], [build without libheif (default: test)]))
 
 if test x"$with_heif" != x"no"; then
-  PKG_CHECK_MODULES(HEIF, libheif,
+  PKG_CHECK_MODULES(HEIF, libheif >= 1.3.0,
     [with_heif=yes
      have_h265_decoder=`$PKG_CONFIG libheif --variable builtin_h265_decoder`
      have_avif_decoder=`$PKG_CONFIG libheif --variable builtin_avif_decoder`
@@ -866,7 +866,7 @@ if test x"$with_heif" != x"no"; then
      fi
      PACKAGES_USED="$PACKAGES_USED libheif"
     ],
-    [AC_MSG_WARN([libheif not found; disabling HEIF support])
+    [AC_MSG_WARN([libheif >= 1.3.0 not found; disabling HEIF support])
      with_heif=no
      have_h265_decoder=
      have_h265_encoder=
@@ -874,42 +874,6 @@ if test x"$with_heif" != x"no"; then
      have_avif_encoder=
     ]
   )
-fi
-
-# heif_context_set_primary_image not in 1.1
-if test x"$with_heif" = x"yes"; then
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $HEIF_LIBS"
-  AC_CHECK_FUNCS(heif_context_set_primary_image,[
-     AC_DEFINE(HAVE_HEIF_CONTEXT_SET_PRIMARY_IMAGE,1,
-	       [define if you have heif_context_set_primary_image.])
-   ],[]
-  )
-  LIBS="$save_LIBS"
-fi
-
-# heif_encoding_options_alloc not in 1.1
-if test x"$with_heif" = x"yes"; then
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $HEIF_LIBS"
-  AC_CHECK_FUNCS(heif_encoding_options_alloc,[
-     AC_DEFINE(HAVE_HEIF_ENCODING_OPTIONS_ALLOC,1,
-	       [define if you have heif_encoding_options_alloc.])
-   ],[]
-  )
-  LIBS="$save_LIBS"
-fi
-
-# exif/xmp profile support not in 1.1
-if test x"$with_heif" = x"yes"; then
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $HEIF_LIBS"
-  AC_CHECK_FUNCS(heif_context_add_exif_metadata,[
-     AC_DEFINE(HAVE_HEIF_CONTEXT_ADD_EXIF_METADATA,1,
-	       [define if you have heif_context_add_exif_metadata.])
-   ],[]
-  )
-  LIBS="$save_LIBS"
 fi
 
 # color profile support added in 1.3.3
