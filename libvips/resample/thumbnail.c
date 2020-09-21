@@ -736,24 +736,6 @@ vips_thumbnail_build( VipsObject *object )
 		return( -1 ); 
 	in = t[2];
 
-	/* If there's an alpha, we have to premultiply before shrinking. See
-	 * https://github.com/libvips/libvips/issues/291
-	 */
-	have_premultiplied = FALSE;
-	if( vips_image_hasalpha( in ) ) { 
-		g_info( "premultiplying alpha" ); 
-		if( vips_premultiply( in, &t[3], NULL ) ) 
-			return( -1 );
-		have_premultiplied = TRUE;
-
-		/* vips_premultiply() makes a float image. When we
-		 * vips_unpremultiply() below, we need to cast back to the
-		 * pre-premultiply format.
-		 */
-		unpremultiplied_format = in->BandFmt;
-		in = t[3];
-	}
-
 	/* Shrink to preshrunk_page_height, so we work for multi-page images.
 	 */
 	vips_thumbnail_calculate_shrink( thumbnail, 
@@ -769,6 +751,26 @@ vips_thumbnail_build( VipsObject *object )
 			thumbnail->n_loaded_pages;
 
 		vshrink = (double) in->Ysize / target_image_height;
+	}
+
+	/* If there's an alpha, we have to premultiply before shrinking. See
+	 * https://github.com/libvips/libvips/issues/291
+	 */
+	have_premultiplied = FALSE;
+	if( vips_image_hasalpha( in ) && 
+	 	hshrink != 1.0 &&
+		vshrink != 1.0  ) { 
+		g_info( "premultiplying alpha" ); 
+		if( vips_premultiply( in, &t[3], NULL ) ) 
+			return( -1 );
+		have_premultiplied = TRUE;
+
+		/* vips_premultiply() makes a float image. When we
+		 * vips_unpremultiply() below, we need to cast back to the
+		 * pre-premultiply format.
+		 */
+		unpremultiplied_format = in->BandFmt;
+		in = t[3];
 	}
 
 	if( vips_resize( in, &t[4], 1.0 / hshrink, 

@@ -11,6 +11,8 @@
 - in jpegsave, don't set JFIF resolution if we set EXIF resolution
 - bump minimum libheif version to 1.3 [lovell]
 - dzsave in iiif mode could set info.json dimensions off by one [Linden6]
+- pdfload allows dpi and scale to both be set [le0daniel]
+- allow gaussblur sigma zero, meaning no blur
 
 9/8/20 started 8.10.1
 - fix markdown -> xml conversion in doc generation
