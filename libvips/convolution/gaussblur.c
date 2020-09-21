@@ -79,7 +79,7 @@ vips_gaussblur_build( VipsObject *object )
 	/* vips_gaussmat() will make a 1x1 pixel mask for anything smaller than
 	 * this.
 	 */
-	if( sigma < 0.2 ) {
+	if( gaussblur->sigma < 0.2 ) {
 		if( vips_copy( gaussblur->in, &t[1], NULL ) )
 			return( -1 ); 
 	}
