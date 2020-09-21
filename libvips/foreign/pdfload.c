@@ -16,6 +16,8 @@
  * 	- reopen the input if we minimised too early
  * 11/3/20
  * 	- move on top of VipsSource
+ * 21/9/20
+ * 	- allow dpi and scale to both be set [le0daniel]
  */
 
 /*
@@ -109,9 +111,13 @@ typedef struct _VipsForeignLoadPdf {
 	 */
 	double dpi;
 
-	/* Calculate this from DPI. At 72 DPI, we render 1:1 with cairo.
+	/* Scale by this factor.
 	 */
 	double scale;
+
+	/* The total scale factor we render with.
+	 */
+	double total_scale;
 
 	/* Background colour.
 	 */
@@ -170,8 +176,7 @@ vips_foreign_load_pdf_build( VipsObject *object )
 
 	GError *error = NULL;
 
-	if( !vips_object_argument_isset( object, "scale" ) )
-		pdf->scale = pdf->dpi / 72.0;
+	pdf->total_scale = pdf->scale * pdf->dpi / 72.0;
 
 	pdf->stream = vips_g_input_stream_new_from_source( pdf->source );
 	if( !(pdf->doc = poppler_document_new_from_stream( pdf->stream, 
@@ -338,8 +343,8 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 		 * does round to nearest. Without this, things like
 		 * shrink-on-load will break.
 		 */
-		pdf->pages[i].width = VIPS_RINT( width * pdf->scale );
-		pdf->pages[i].height = VIPS_RINT( height * pdf->scale );
+		pdf->pages[i].width = VIPS_RINT( width * pdf->total_scale );
+		pdf->pages[i].height = VIPS_RINT( height * pdf->total_scale );
 
 		if( pdf->pages[i].width > pdf->image.width )
 			pdf->image.width = pdf->pages[i].width;
@@ -421,10 +426,10 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		cr = cairo_create( surface );
 		cairo_surface_destroy( surface );
 
-		cairo_scale( cr, pdf->scale, pdf->scale );
+		cairo_scale( cr, pdf->total_scale, pdf->total_scale );
 		cairo_translate( cr, 
-			(pdf->pages[i].left - rect.left) / pdf->scale, 
-			(pdf->pages[i].top - rect.top) / pdf->scale );
+			(pdf->pages[i].left - rect.left) / pdf->total_scale, 
+			(pdf->pages[i].top - rect.top) / pdf->total_scale );
 
 		/* poppler is single-threaded, but we don't need to lock since 
 		 * we're running inside a non-threaded tilecache.
@@ -862,9 +867,8 @@ vips_foreign_load_pdf_is_a( const char *filename )
  * left. Set to -1 to mean "until the end of the document". Use vips_grid() 
  * to change page layout.
  *
- * Use @dpi to set the rendering resolution. The default is 72. Alternatively,
- * you can scale the rendering from the default 1 point == 1 pixel by 
- * setting @scale.
+ * Use @dpi to set the rendering resolution. The default is 72. Additionally,
+ * you can scale by setting @scale. If you set both, they combine.
  *
  * Use @background to set the background RGBA colour. The default is 255 
  * (solid white), use eg. 0 for a transparent background.
