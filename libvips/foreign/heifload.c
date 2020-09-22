@@ -260,8 +260,14 @@ static const char *heif_magic[] = {
 static int
 vips_foreign_load_heif_is_a( const char *buf, int len )
 {
+	static unsigned char iso[4] = { 0, 0, 0, 24 };
+	static unsigned char three_gp[4] = { 0, 0, 0, 32 };
+
 	if( len >= 12 ) {
 		int i;
+
+		if ( memcmp( buf, iso, 4 ) != 0 && memcmp( buf, three_gp, 4 ) != 0 )
+			return ( 0 );
 
 		for( i = 0; i < VIPS_NUMBER( heif_magic ); i++ )
 			if( strncmp( buf + 4, heif_magic[i], 8 ) == 0 )
