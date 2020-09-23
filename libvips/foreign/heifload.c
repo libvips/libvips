@@ -260,14 +260,11 @@ static const char *heif_magic[] = {
 static int
 vips_foreign_load_heif_is_a( const char *buf, int len )
 {
-	static unsigned char iso[4] = { 0, 0, 0, 24 };
-	static unsigned char three_gp[4] = { 0, 0, 0, 32 };
-
 	if( len >= 12 ) {
 		int i;
 
-		if( memcmp( buf, iso, 4 ) != 0 && 
-			memcmp( buf, three_gp, 4 ) != 0 )
+		const guint32 chunk_len = GUINT_FROM_BE( *buf );
+		if( chunk_len > 32 || chunk_len % 4 != 0 )
 			return ( 0 );
 
 		for( i = 0; i < VIPS_NUMBER( heif_magic ); i++ )
