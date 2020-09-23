@@ -254,7 +254,7 @@ static const char *heif_magic[] = {
  *
  *	enum heif_filetype_result result = heif_check_filetype( buf, 12 );
  *
- * but it's very conservative and seems to be missing some of the Noka hief
+ * but it's very conservative and seems to be missing some of the Nokia hief
  * types.
  */
 static int
@@ -266,7 +266,8 @@ vips_foreign_load_heif_is_a( const char *buf, int len )
 	if( len >= 12 ) {
 		int i;
 
-		if ( memcmp( buf, iso, 4 ) != 0 && memcmp( buf, three_gp, 4 ) != 0 )
+		if( memcmp( buf, iso, 4 ) != 0 && 
+			memcmp( buf, three_gp, 4 ) != 0 )
 			return ( 0 );
 
 		for( i = 0; i < VIPS_NUMBER( heif_magic ); i++ )
