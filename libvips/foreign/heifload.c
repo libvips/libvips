@@ -261,11 +261,13 @@ static int
 vips_foreign_load_heif_is_a( const char *buf, int len )
 {
 	if( len >= 12 ) {
+		const guint chunk_len = GUINT_FROM_BE( *((guint32 *) buf) );
+
 		int i;
 
-		const guint32 chunk_len = GUINT_FROM_BE( *buf );
-		if( chunk_len > 32 || chunk_len % 4 != 0 )
-			return ( 0 );
+		if( chunk_len > 32 || 
+			chunk_len % 4 != 0 )
+			return( 0 );
 
 		for( i = 0; i < VIPS_NUMBER( heif_magic ); i++ )
 			if( strncmp( buf + 4, heif_magic[i], 8 ) == 0 )
