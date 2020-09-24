@@ -383,6 +383,8 @@ int vips_jpegload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_jpegload_source( VipsSource *source, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 int vips_jpegsave_target( VipsImage *in, VipsTarget *target, ... )
 	__attribute__((sentinel));
@@ -620,6 +622,8 @@ int vips_pdfload_source( VipsSource *source, VipsImage **out, ... )
 int vips_svgload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_svgload_buffer( void *buf, size_t len, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_svgload_source( VipsSource *source, VipsImage **out, ... )
 	__attribute__((sentinel));
 
 int vips_gifload( const char *filename, VipsImage **out, ... )

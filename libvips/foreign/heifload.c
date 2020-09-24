@@ -18,6 +18,8 @@
  * 	- revise for new VipsSource API
  * 10/5/20
  * 	- deprecate autorotate -- it's too difficult to support properly
+ * 31/7/20
+ * 	- block broken thumbnails, if we can
  */
 
 /*
@@ -252,14 +254,20 @@ static const char *heif_magic[] = {
  *
  *	enum heif_filetype_result result = heif_check_filetype( buf, 12 );
  *
- * but it's very conservative and seems to be missing some of the Noka hief
+ * but it's very conservative and seems to be missing some of the Nokia hief
  * types.
  */
 static int
 vips_foreign_load_heif_is_a( const char *buf, int len )
 {
 	if( len >= 12 ) {
+		const guint chunk_len = GUINT_FROM_BE( *((guint32 *) buf) );
+
 		int i;
+
+		if( chunk_len > 32 || 
+			chunk_len % 4 != 0 )
+			return( 0 );
 
 		for( i = 0; i < VIPS_NUMBER( heif_magic ); i++ )
 			if( strncmp( buf + 4, heif_magic[i], 8 ) == 0 )
@@ -275,6 +283,71 @@ vips_foreign_load_heif_get_flags( VipsForeignLoad *load )
 	/* FIXME .. could support random access for grid images.
 	 */
 	return( VIPS_FOREIGN_SEQUENTIAL );
+}
+
+/* We've selcted the page. Try to select the associated thumbnail instead, 
+ * if we can.
+ */
+static int
+vips_foreign_load_heif_set_thumbnail( VipsForeignLoadHeif *heif )
+{
+	heif_item_id thumb_ids[1];
+	int n_thumbs;
+	struct heif_image_handle *thumb_handle;
+	struct heif_image *thumb_img;
+	struct heif_error error;
+	double main_aspect;
+	double thumb_aspect;
+
+	n_thumbs = heif_image_handle_get_list_of_thumbnail_IDs( 
+		heif->handle, thumb_ids, 1 );
+	if( n_thumbs == 0 )
+		return( 0 );
+
+	error = heif_image_handle_get_thumbnail( heif->handle,
+		thumb_ids[0], &thumb_handle );
+	if( error.code ) {
+		vips__heif_error( &error );
+		return( -1 );
+	}
+
+	/* Just checking the width and height of the handle isn't
+	 * enough -- we have to experimentally decode it and test the 
+	 * decoded dimensions. 
+	 */
+	error = heif_decode_image( thumb_handle, &thumb_img,
+		heif_colorspace_RGB, 
+		heif_chroma_interleaved_RGB,
+		NULL );
+	if( error.code ) {
+		VIPS_FREEF( heif_image_handle_release, thumb_handle );
+		vips__heif_error( &error );
+		return( -1 );
+	}
+
+	thumb_aspect = (double) 
+		heif_image_get_width( thumb_img, heif_channel_interleaved ) /
+		heif_image_get_height( thumb_img, heif_channel_interleaved );
+
+	VIPS_FREEF( heif_image_release, thumb_img );
+
+	main_aspect = (double) 
+		heif_image_handle_get_width( heif->handle ) /
+		heif_image_handle_get_height( heif->handle );
+
+	/* The bug we are working around has decoded thumbs as 512x512 
+	 * with the main image as 6kx4k, so a 0.1 threshold is more 
+	 * than tight enough to spot the error.
+	 */
+	if( fabs( main_aspect - thumb_aspect ) > 0.1 ) {
+		VIPS_FREEF( heif_image_handle_release, thumb_handle );
+		return( 0 );
+	}
+
+	VIPS_FREEF( heif_image_handle_release, heif->handle );
+	heif->handle = thumb_handle;
+
+	return( 0 );
 }
 
 /* Select a page. If thumbnail is set, select the thumbnail for that page, if
@@ -307,26 +380,8 @@ vips_foreign_load_heif_set_page( VipsForeignLoadHeif *heif,
 		}
 
 		if( thumbnail ) {
-			heif_item_id thumb_ids[1];
-			int n_thumbs;
-			struct heif_image_handle *thumb_handle;
-
-			n_thumbs = heif_image_handle_get_list_of_thumbnail_IDs( 
-				heif->handle, thumb_ids, 1 );
-
-			if( n_thumbs > 0 ) {
-				error = heif_image_handle_get_thumbnail( 
-					heif->handle,
-					thumb_ids[0], &thumb_handle );
-				if( error.code ) {
-					vips__heif_error( &error );
-					return( -1 );
-				}
-
-				VIPS_FREEF( heif_image_handle_release, 
-					heif->handle );
-				heif->handle = thumb_handle;
-			}
+			if( vips_foreign_load_heif_set_thumbnail( heif ) )
+				return( -1 );
 
 			/* If we were asked to select the thumbnail, say we
 			 * did, even if there are no thumbnails and we just

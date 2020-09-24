@@ -21,7 +21,7 @@ $filename = &quot;image.jpg&quot;;
 $image = Vips\Image::thumbnail($filename, 200, [&quot;height&quot; =&gt; 200]);
 $image-&gt;writeToFile(&quot;my-thumbnail.jpg&quot;);
 </programlisting>
-<section xml:id="libvips-options">
+<refsect3 xml:id="libvips-options">
   <title>libvips options</title>
   <para>
     <literal>vipsthumbnail</literal> supports the usual range of vips command-line options. A few of them are useful:
@@ -38,8 +38,8 @@ $image-&gt;writeToFile(&quot;my-thumbnail.jpg&quot;);
   <para>
     <literal>--vips-info</literal> shows a higher level view of the operations that <literal>vipsthumbnail</literal> is running. 
   </para>
-</section>
-<section xml:id="looping">
+</refsect3>
+<refsect3 xml:id="looping">
   <title>Looping</title>
   <para>
     <literal>vipsthumbnail</literal> can process many images in one command. For example:
@@ -48,7 +48,7 @@ $image-&gt;writeToFile(&quot;my-thumbnail.jpg&quot;);
 $ vipsthumbnail *.jpg
 </programlisting>
   <para>
-    will make a thumbnail for every jpeg in the current directory.  See the <link linkend="output-directory">Output directory</link> section below to see how to change where thumbnails are written.
+    will make a thumbnail for every jpeg in the current directory.  See the <link linkend="output-directory">Output directory</link> refsect3 below to see how to change where thumbnails are written.
   </para>
   <para>
     <literal>vipsthumbnail</literal> will process images one after the other. You can get a good speedup by running several <literal>vipsthumbnail</literal>s in parallel, depending on how much load you want to put on your system. For example:
@@ -56,8 +56,8 @@ $ vipsthumbnail *.jpg
   <programlisting>
 $ parallel vipsthumbnail ::: *.jpg
 </programlisting>
-</section>
-<section xml:id="thumbnail-size">
+</refsect3>
+<refsect3 xml:id="thumbnail-size">
   <title>Thumbnail size</title>
   <para>
     You can set the bounding box of the generated thumbnail with the <literal>--size</literal> option. For example:
@@ -80,8 +80,8 @@ $ vipsthumbnail shark.jpg --size 200x
   <para>
     You can append <literal>!</literal> to force a resize to the exact target size, breaking the aspect ratio.
   </para>
-</section>
-<section xml:id="cropping">
+</refsect3>
+<refsect3 xml:id="cropping">
   <title>Cropping</title>
   <para>
     <literal>vipsthumbnail</literal> normally shrinks images to fit within the box set by <literal>--size</literal>. You can use the <literal>--smartcrop</literal> option to crop to fill the box instead. Excess pixels are trimmed away using the strategy you set. For example:
@@ -112,8 +112,8 @@ $ vipsthumbnail owl.jpg --smartcrop attention -s 128
   <para>
     First it shrinks the image to get the vertical axis to 128 pixels, then crops down to 128 pixels across using the <literal>attention</literal> strategy. This one searches the image for features which might catch a human eye, see <literal>vips_smartcrop()</literal> for details.
   </para>
-</section>
-<section xml:id="linear-light">
+</refsect3>
+<refsect3 xml:id="linear-light">
   <title>Linear light</title>
   <para>
     Shrinking images involves combining many pixels into one. Arithmetic averaging really ought to be in terms of the number of photons, but (for historical reasons) the values stored in image files are usually related to the voltage that should be applied to the electron gun in a CRT display.
@@ -140,8 +140,8 @@ real    0m4.660s
 user    0m4.640s
 sys 0m0.016s
 </programlisting>
-</section>
-<section xml:id="output-directory">
+</refsect3>
+<refsect3 xml:id="output-directory">
   <title>Output directory</title>
   <para>
     You set the thumbnail write parameters with the <literal>-o</literal> option. This is a pattern which the input filename is pasted into to produce the output filename. For example:
@@ -170,8 +170,8 @@ $ vipsthumbnail fred.jpg ../jim.tif -o mythumbs/tn_%s.jpg
   <para>
     Now both input files will have thumbnails written to a subdirectory of their current directory.
   </para>
-</section>
-<section xml:id="output-format-and-options">
+</refsect3>
+<refsect3 xml:id="output-format-and-options">
   <title>Output format and options</title>
   <para>
     You can use <literal>-o</literal> to specify the thumbnail image format too. For example: 
@@ -245,8 +245,8 @@ $ vipsthumbnail 42-32157534.jpg -o x.jpg[optimize_coding,strip]
 $ ls -l x.jpg
 -rw-r–r– 1 john john 3600 Nov 12 21:27 x.jpg
 </programlisting>
-</section>
-<section xml:id="colour-management">
+</refsect3>
+<refsect3 xml:id="colour-management">
   <title>Colour management</title>
   <para>
     <literal>vipsthumbnail</literal> will optionally put images through LittleCMS for you. You can use this to move all thumbnails to the same colour space. All web browsers assume that images without an ICC profile are in sRGB colourspace, so if you move your thumbnails to sRGB, you can strip all the embedded profiles. This can save several kb per thumbnail.
@@ -290,8 +290,8 @@ $ vipsthumbnail kgdev.jpg --iprofile cmyk
   <para>
     (As before, the magic string <literal>cmyk</literal> selects a high-quality CMYK profile that’s built into libvips, but you can use any CMYK profile you like.)
   </para>
-</section>
-<section xml:id="final-suggestion">
+</refsect3>
+<refsect3 xml:id="final-suggestion">
   <title>Final suggestion</title>
   <para>
     Putting all this together, I suggest this as a sensible set of options:
@@ -303,7 +303,7 @@ $ vipsthumbnail fred.jpg \
     -o tn_%s.jpg[optimize_coding,strip] \
     --eprofile srgb
 </programlisting>
-</section>
+</refsect3>
 
 
 </refentry>

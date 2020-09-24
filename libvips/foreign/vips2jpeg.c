@@ -94,6 +94,8 @@
  * 	- revise for target IO
  * 18/2/20 Elad-Laufer
  * 	- add subsample_mode, deprecate no_subsample
+ * 13/9/20
+ * 	- only write JFIF resolution if we don't have EXIF
  */
 
 /*
@@ -412,6 +414,59 @@ write_profile_data (j_compress_ptr cinfo,
   }
 }
 
+#ifndef HAVE_EXIF
+/* Set the JFIF resolution from the vips xres/yres tags.
+ */
+static void
+vips_jfif_resolution_from_image( struct jpeg_compress_struct *cinfo, 
+	VipsImage *image )
+{
+	int xres, yres;
+	const char *p;
+	int unit;
+
+	/* Default to inches, more progs support it.
+	 */
+	unit = 1;
+	if( vips_image_get_typeof( image, VIPS_META_RESOLUTION_UNIT ) &&
+		!vips_image_get_string( image, 
+			VIPS_META_RESOLUTION_UNIT, &p ) ) {
+		if( vips_isprefix( "cm", p ) ) 
+			unit = 2;
+		else if( vips_isprefix( "none", p ) ) 
+			unit = 0;
+	}
+
+	switch( unit ) {
+	case 0:
+		xres = VIPS_RINT( image->Xres );
+		yres = VIPS_RINT( image->Yres );
+		break;
+
+	case 1:
+		xres = VIPS_RINT( image->Xres * 25.4 );
+		yres = VIPS_RINT( image->Yres * 25.4 );
+		break;
+
+	case 2:
+		xres = VIPS_RINT( image->Xres * 10.0 );
+		yres = VIPS_RINT( image->Yres * 10.0 );
+		break;
+
+	default:
+		g_assert_not_reached();
+		break;
+	}
+
+	VIPS_DEBUG_MSG( "vips_jfif_resolution_from_image: "
+		"setting xres = %d, yres = %d, unit = %d\n", xres, yres, unit );
+
+	cinfo->density_unit = unit;
+	cinfo->X_density = xres;
+	cinfo->Y_density = yres;
+}
+#endif /*HAVE_EXIF*/
+
 /* Write an ICC Profile from a file into the JPEG stream.
  */
 static int
@@ -643,18 +698,24 @@ write_vips( Write *write, int qfac, const char *profile,
 		}
 	}
 
-	/* Don't write the APP0 JFIF headers if we are stripping.
+	/* Only write the JFIF headers if we are not stripping and we have no
+	 * EXIF. Some readers get confused if you set both.
 	 */
-	if( strip ) 
-		write->cinfo.write_JFIF_header = FALSE;
+	write->cinfo.write_JFIF_header = FALSE;
+#ifndef HAVE_EXIF
+	if( !strip ) {
+		vips_jfif_resolution_from_image( &write->cinfo,  write->in );
+		write->cinfo.write_JFIF_header = TRUE;
+	}
+#endif /*HAVE_EXIF*/
 
-	/* Build compress tables.
+	/* Write app0 and build compress tables.
 	 */
 	jpeg_start_compress( &write->cinfo, TRUE );
 
-	/* Write any APP markers we need.
+	/* All the other APP chunks come next.
 	 */
-	if( !strip ) { 
+	if( !strip ) {
 		/* We need to rebuild the exif data block from any exif tags
 		 * on the image.
 		 */

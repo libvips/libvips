@@ -1,5 +1,5 @@
 // bodies for vips operations
-// Sun  5 Jul 22:36:37 BST 2020
+// Mon 17 Aug 18:04:15 BST 2020
 // this file is generated automatically, do not edit!
 
 VImage VImage::CMC2LCh( VOption *options ) const

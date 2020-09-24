@@ -424,7 +424,10 @@ vips_arrayjoinv( VipsImage **in, VipsImage **out, int n, va_list ap )
  * Smallest common format in 
  * <link linkend="libvips-arithmetic">arithmetic</link>).
  *
- * See also: vips_join(), vips_insert().
+ * vips_colourspace() can be useful for moving the images to a common
+ * colourspace for compositing.
+ *
+ * See also: vips_join(), vips_insert(), vips_colourspace().
  *
  * Returns: 0 on success, -1 on error
  */

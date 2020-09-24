@@ -137,7 +137,7 @@ vips_merge_class_init( VipsMergeClass *class )
 
 	VIPS_ARG_ENUM( class, "direction", 4, 
 		_( "Direction" ), 
-		_( "Horizontal or vertcial merge" ),
+		_( "Horizontal or vertical merge" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsMerge, direction ), 
 		VIPS_TYPE_DIRECTION, VIPS_DIRECTION_HORIZONTAL ); 

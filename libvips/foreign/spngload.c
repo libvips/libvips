@@ -303,7 +303,8 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 		return( -1 );
 	}
 
-	/*
+
+#ifdef DEBUG
 	printf( "width: %d\nheight: %d\nbit depth: %d\ncolor type: %d\n",
 		png->ihdr.width, png->ihdr.height,
 		png->ihdr.bit_depth, png->ihdr.color_type );
@@ -311,7 +312,7 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 		"interlace method: %d\n",
 		png->ihdr.compression_method, png->ihdr.filter_method,
 		png->ihdr.interlace_method );
-	 */
+#endif /*DEBUG*/
 
 	/* Just convert to host-endian if nothing else applies.
 	 */ 

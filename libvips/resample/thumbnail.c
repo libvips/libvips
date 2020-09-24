@@ -135,9 +135,13 @@ typedef struct _VipsThumbnail {
 	int heif_thumbnail_width;
 	int heif_thumbnail_height;
 
-	/* For TIFF sources, open subifds rather than pages to get pyr layers.
+	/* For TIFF sources, open subifds to get pyr layers.
 	 */
 	gboolean subifd_pyramid;
+
+	/* For TIFF sources, open pages to get pyr layers.
+	 */
+	gboolean page_pyramid;
 
 } VipsThumbnail;
 
@@ -261,13 +265,10 @@ vips_thumbnail_get_tiff_pyramid_page( VipsThumbnail *thumbnail )
 
 	/* Single-page docs can't be pyramids.
 	 */
-	if( thumbnail->n_loaded_pages < 2 )
+	if( thumbnail->n_pages < 2 )
 		return;
 
-	/* Use n_loaded_pages not n_pages since we support thumbnailing a page
-	 * or range of pages from a many-page tiff.
-	 */
-	for( i = 0; i < thumbnail->n_loaded_pages; i++ ) {
+	for( i = 0; i < thumbnail->n_pages; i++ ) {
 		VipsImage *page;
 		int level_width;
 		int level_height;
@@ -301,9 +302,9 @@ vips_thumbnail_get_tiff_pyramid_page( VipsThumbnail *thumbnail )
 #ifdef DEBUG
 	printf( "vips_thumbnail_get_tiff_pyramid_page: "
 		"%d layer pyramid detected\n",
-		thumbnail->n_loaded_pages );
+		thumbnail->n_pages );
 #endif /*DEBUG*/
-	thumbnail->level_count = thumbnail->n_loaded_pages;
+	thumbnail->level_count = thumbnail->n_pages;
 }
 
 /* Detect a TIFF pyramid made of subifds following a roughly /2 shrink.
@@ -549,7 +550,12 @@ vips_thumbnail_open( VipsThumbnail *thumbnail )
 
 		if( thumbnail->level_count == 0 ) {
 			thumbnail->subifd_pyramid = FALSE;
+			thumbnail->page_pyramid = TRUE;
+
 			vips_thumbnail_get_tiff_pyramid_page( thumbnail );
+
+			if( thumbnail->level_count == 0 ) 
+				thumbnail->page_pyramid = FALSE;
 		}
 	}
 
@@ -730,24 +736,6 @@ vips_thumbnail_build( VipsObject *object )
 		return( -1 ); 
 	in = t[2];
 
-	/* If there's an alpha, we have to premultiply before shrinking. See
-	 * https://github.com/libvips/libvips/issues/291
-	 */
-	have_premultiplied = FALSE;
-	if( vips_image_hasalpha( in ) ) { 
-		g_info( "premultiplying alpha" ); 
-		if( vips_premultiply( in, &t[3], NULL ) ) 
-			return( -1 );
-		have_premultiplied = TRUE;
-
-		/* vips_premultiply() makes a float image. When we
-		 * vips_unpremultiply() below, we need to cast back to the
-		 * pre-premultiply format.
-		 */
-		unpremultiplied_format = in->BandFmt;
-		in = t[3];
-	}
-
 	/* Shrink to preshrunk_page_height, so we work for multi-page images.
 	 */
 	vips_thumbnail_calculate_shrink( thumbnail, 
@@ -763,6 +751,26 @@ vips_thumbnail_build( VipsObject *object )
 			thumbnail->n_loaded_pages;
 
 		vshrink = (double) in->Ysize / target_image_height;
+	}
+
+	/* If there's an alpha, we have to premultiply before shrinking. See
+	 * https://github.com/libvips/libvips/issues/291
+	 */
+	have_premultiplied = FALSE;
+	if( vips_image_hasalpha( in ) && 
+	 	hshrink != 1.0 &&
+		vshrink != 1.0  ) { 
+		g_info( "premultiplying alpha" ); 
+		if( vips_premultiply( in, &t[3], NULL ) ) 
+			return( -1 );
+		have_premultiplied = TRUE;
+
+		/* vips_premultiply() makes a float image. When we
+		 * vips_unpremultiply() below, we need to cast back to the
+		 * pre-premultiply format.
+		 */
+		unpremultiplied_format = in->BandFmt;
+		in = t[3];
 	}
 
 	if( vips_resize( in, &t[4], 1.0 / hshrink, 
@@ -1051,6 +1059,7 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 			"scale", 1.0 / factor,
 			NULL ) );
 	}
+
 	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) {
 		/* We support three modes: subifd pyramids, page-based
 		 * pyramids, and simple multi-page TIFFs (no pyramid).
@@ -1060,7 +1069,7 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"subifd", (int) factor,
 				NULL ) );
-		else if( thumbnail->level_count > 0 ) 
+		else if( thumbnail->page_pyramid )
 			return( vips_image_new_from_file( file->filename, 
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"page", (int) factor,
@@ -1069,8 +1078,8 @@ vips_thumbnail_file_open( VipsThumbnail *thumbnail, double factor )
 			return( vips_image_new_from_file( file->filename, 
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				NULL ) );
-
 	}
+
 	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
 		return( vips_image_new_from_file( file->filename, 
 			"access", VIPS_ACCESS_SEQUENTIAL,
@@ -1264,12 +1273,29 @@ vips_thumbnail_buffer_open( VipsThumbnail *thumbnail, double factor )
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) {
-		return( vips_image_new_from_buffer( 
-			buffer->buf->data, buffer->buf->length, 
-			buffer->option_string,
-			"access", VIPS_ACCESS_SEQUENTIAL,
-			"page", (int) factor,
-			NULL ) );
+		/* We support three modes: subifd pyramids, page-based
+		 * pyramids, and simple multi-page TIFFs (no pyramid).
+		 */
+		if( thumbnail->subifd_pyramid )
+			return( vips_image_new_from_buffer( 
+				buffer->buf->data, buffer->buf->length, 
+				buffer->option_string,
+				"access", VIPS_ACCESS_SEQUENTIAL,
+				"subifd", (int) factor,
+				NULL ) );
+		else if( thumbnail->page_pyramid )
+			return( vips_image_new_from_buffer( 
+				buffer->buf->data, buffer->buf->length, 
+				buffer->option_string,
+				"access", VIPS_ACCESS_SEQUENTIAL,
+				"page", (int) factor,
+				NULL ) );
+		else
+			return( vips_image_new_from_buffer( 
+				buffer->buf->data, buffer->buf->length, 
+				buffer->option_string,
+				"access", VIPS_ACCESS_SEQUENTIAL,
+				NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
 		return( vips_image_new_from_buffer( 
@@ -1443,12 +1469,29 @@ vips_thumbnail_source_open( VipsThumbnail *thumbnail, double factor )
 			NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadTiff", thumbnail->loader ) ) {
-		return( vips_image_new_from_source( 
-			source->source, 
-			source->option_string,
-			"access", VIPS_ACCESS_SEQUENTIAL,
-			"page", (int) factor,
-			NULL ) );
+		/* We support three modes: subifd pyramids, page-based
+		 * pyramids, and simple multi-page TIFFs (no pyramid).
+		 */
+		if( thumbnail->subifd_pyramid )
+			return( vips_image_new_from_source(
+				source->source, 
+				source->option_string,
+				"access", VIPS_ACCESS_SEQUENTIAL,
+				"subifd", (int) factor,
+				NULL ) );
+		else if( thumbnail->page_pyramid )
+			return( vips_image_new_from_source(
+				source->source, 
+				source->option_string,
+				"access", VIPS_ACCESS_SEQUENTIAL,
+				"page", (int) factor,
+				NULL ) );
+		else
+			return( vips_image_new_from_source(
+				source->source, 
+				source->option_string,
+				"access", VIPS_ACCESS_SEQUENTIAL,
+				NULL ) );
 	}
 	else if( vips_isprefix( "VipsForeignLoadHeif", thumbnail->loader ) ) {
 		return( vips_image_new_from_source( 

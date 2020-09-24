@@ -124,7 +124,6 @@ prepend_var $libvar $VIPSHOME/lib
 prepend_var PATH $VIPSHOME/bin
 prepend_var PKG_CONFIG_PATH $VIPSHOME/lib/pkgconfig
 prepend_var GI_TYPELIB_PATH $VIPSHOME/lib/girepository-1.0
-prepend_var PYTHONPATH $VIPSHOME/lib/python2.7/site-packages
 
 # run, passing in args we were passed
 exec $*

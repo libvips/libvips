@@ -686,13 +686,13 @@ magick_set_vips_profile_cb( Image *image,
 	char name_text[256];
 	VipsBuf vips_name = VIPS_BUF_STATIC( name_text );
 
-	if( strcmp( name, "XMP" ) == 0 )
+	if( strcasecmp( name, "XMP" ) == 0 )
 		vips_buf_appendf( &vips_name, VIPS_META_XMP_NAME );
-	else if( strcmp( name, "IPTC" ) == 0 )
+	else if( strcasecmp( name, "IPTC" ) == 0 )
 		vips_buf_appendf( &vips_name, VIPS_META_IPTC_NAME );
-	else if( strcmp( name, "ICM" ) == 0 )
+	else if( strcasecmp( name, "ICC" ) == 0 )
 		vips_buf_appendf( &vips_name, VIPS_META_ICC_NAME );
-	else if( strcmp( name, "EXIF" ) == 0 )
+	else if( strcasecmp( name, "EXIF" ) == 0 )
 		vips_buf_appendf( &vips_name, VIPS_META_EXIF_NAME );
 	else
 		vips_buf_appendf( &vips_name, "magickprofile-%s", name );
@@ -736,7 +736,7 @@ magick_set_magick_profile_cb( VipsImage *im,
 	else if( strcmp( name, VIPS_META_IPTC_NAME ) == 0 )
 		vips_buf_appendf( &buf, "IPTC" );
 	else if( strcmp( name, VIPS_META_ICC_NAME ) == 0 )
-		vips_buf_appendf( &buf, "ICM" );
+		vips_buf_appendf( &buf, "ICC" );
 	else if( strcmp( name, VIPS_META_EXIF_NAME ) == 0 )
 		vips_buf_appendf( &buf, "EXIF" );
 	else if( vips_isprefix( "magickprofile-", name ) ) 

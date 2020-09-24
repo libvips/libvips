@@ -460,9 +460,6 @@ vips_webp_add_chunks( VipsWebPWrite *write )
 		const char *vips_name = vips__webp_names[i].vips;
 		const char *webp_name = vips__webp_names[i].webp;
 
-		if( strcmp( vips_name, VIPS_META_ICC_NAME ) == 0 &&
-				write->profile )
-
 		if( vips_image_get_typeof( write->image, vips_name ) ) {
 			const void *data;
 			size_t length;

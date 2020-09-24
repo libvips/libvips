@@ -406,7 +406,7 @@ vips_foreign_save_tiff_file_build( VipsObject *object )
 
         /* Handle the deprecated squash parameter.
 	 */
-        if( vips_object_argument_isset( object, "squash" ) ) 
+        if( tiff->squash )
 		/* We set that even in the case of LAB to LABQ.
 		 */
 		tiff->bitdepth = 1;
