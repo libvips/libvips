@@ -863,10 +863,22 @@ public:
 	}
 
 	/**
+	 * Create a new VImage object from an area of memory containing a
+	 * C-style array.
+	 *
+	 * The VImage steals ownership of @data and will free() it when it
+	 * goes out of scope.
+	 */
+	static VImage 
+	new_from_memory_steal( void *data, size_t size,
+		int width, int height, int bands, VipsBandFormat format );
+
+	/**
 	 * Create a matrix image of a specified size. All elements will be
 	 * zero.
 	 */
-	static VImage new_matrix( int width, int height );
+	static VImage
+	new_matrix( int width, int height );
 
 	/**
 	 * Create a matrix image of a specified size, initialized from the
@@ -915,22 +927,6 @@ public:
 	new_from_image( double pixel ) const
 	{
 		return( new_from_image( to_vectorv( 1, pixel ) ) ); 
-	}
-
-	static VImage 
-	new_from_memory_steal( void *data, size_t size,
-		int width, int height, int bands, VipsBandFormat format )
-	{
-		VipsImage *image;
-
-		if( !(image = vips_image_new_from_memory( data, size, 
-			width, height, bands, format )) )
-			throw( VError() );
-
-		g_signal_connect( image, "postclose",
-			G_CALLBACK(vips_image_free_buffer), data);
-
-		return( VImage( image ) ); 
 	}
 
 	/**

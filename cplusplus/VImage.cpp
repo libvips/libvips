@@ -641,6 +641,22 @@ VImage::new_from_source( VSource source, const char *option_string,
 	return( out );
 }
 
+VImage 
+VImage::new_from_memory_steal( void *data, size_t size,
+	int width, int height, int bands, VipsBandFormat format )
+{
+	VipsImage *image;
+
+	if( !(image = vips_image_new_from_memory( data, size, 
+		width, height, bands, format )) )
+		throw( VError() );
+
+	g_signal_connect( image, "postclose",
+		G_CALLBACK( vips_image_free_buffer ), data);
+
+	return( VImage( image ) ); 
+}
+
 VImage
 VImage::new_matrix( int width, int height )
 {
