@@ -917,6 +917,22 @@ public:
 		return( new_from_image( to_vectorv( 1, pixel ) ) ); 
 	}
 
+	static VImage 
+	new_from_memory_steal( void *data, size_t size,
+		int width, int height, int bands, VipsBandFormat format )
+	{
+		VipsImage *image;
+
+		if( !(image = vips_image_new_from_memory( data, size, 
+			width, height, bands, format )) )
+			throw( VError() );
+
+		g_signal_connect( image, "postclose",
+			G_CALLBACK(vips_image_free_buffer), data);
+
+		return( VImage( image ) ); 
+	}
+
 	/**
 	 * Make a new image by rendering self to a large memory area, 
 	 * wrapping a VImage around it, and copying all metadata over from 

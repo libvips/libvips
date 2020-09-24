@@ -3872,6 +3872,20 @@ vips_band_format_iscomplex( VipsBandFormat format )
 	}
 }
 
+/**
+ * vips_image_free_buffer:
+ * @image: the image that contains the buffer
+ * @buffer: the orignal buffer that was stolen
+ *
+ * Free the externally allocated buffer found in the input image. This function
+ * is intened to be used with g_signal_connect.
+ */
+void
+vips_image_free_buffer( VipsImage *image, void *buffer )
+{
+	free( buffer );
+}
+
 /* Handy for debugging: view an image in nip2.
  */
 int
