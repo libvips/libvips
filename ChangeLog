@@ -15,6 +15,7 @@
 - pdfload allows dpi and scale to both be set [le0daniel]
 - allow gaussblur sigma zero, meaning no blur
 - better heif signature detection [lovell]
+- fix vips_fractsurf() typo [kleisauke]
 
 9/8/20 started 8.10.1
 - fix markdown -> xml conversion in doc generation
