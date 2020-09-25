@@ -74,8 +74,10 @@ vips_fractsurf_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_fractsurf_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_gaussnoise( &t[0], 
-		fractsurf->width, fractsurf->height, 0.0, 1.0, NULL ) || 
+	if( vips_gaussnoise( &t[0], fractsurf->width, fractsurf->height,
+			"mean", 0.0,
+			"sigma", 1.0,
+			NULL ) || 
 		vips_mask_fractal( &t[1], fractsurf->width, fractsurf->height, 
 			fractsurf->fractal_dimension, NULL ) ||
 		vips_freqmult( t[0], t[1], &t[2], NULL ) ||
