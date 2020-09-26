@@ -961,7 +961,11 @@ vips_foreign_load_heif_wait_for_file_size( gint64 target_size, void *userdata )
 
 	enum heif_reader_grow_status status;
 
-	if( heif->length == -1 )
+	if( heif->source->data != NULL && target_size > heif->source->length )
+		/* Target size is beyond known buffer length
+		 */
+		status = heif_reader_grow_status_size_beyond_eof;
+	else if( heif->length == -1 )
 		/* We've not seen EOF yet, so seeking to any point is fine (as
 		 * far as we know).
 		 */
