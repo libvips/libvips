@@ -173,10 +173,6 @@ typedef struct _VipsForeignLoadHeif {
 	 */
 	struct heif_reader *reader;
 
-	/* When we see EOF from read(), record the source length here.
-	 */
-	gint64 length;
-
 } VipsForeignLoadHeif;
 
 typedef struct _VipsForeignLoadHeifClass {
@@ -920,6 +916,11 @@ vips_foreign_load_heif_get_position( void *userdata )
 	return( vips_source_seek( heif->source, 0L, SEEK_CUR ) );
 }
 
+/* libheif read() does not work like unix read(). 
+ *
+ * This method is cannot return EOF. Instead, the separate wait_for_file_size() 
+ * is called beforehand to make sure that there's enough data there.
+ */
 static int
 vips_foreign_load_heif_read( void *data, size_t size, void *userdata )
 {
@@ -928,16 +929,6 @@ vips_foreign_load_heif_read( void *data, size_t size, void *userdata )
 	gint64 result;
 
 	result = vips_source_read( heif->source, data, size );
-	/* On EOF, make a note of the file length. 
-	 *
-	 * libheif can sometimes ask for zero bytes, be careful not to 
-	 * interpret that as EOF.
-	 */
-	if( size > 0 &&
-		result == 0 &&
-		heif->length == -1 ) 
-		result = heif->length = 
-			vips_source_seek( heif->source, 0L, SEEK_CUR );
 	if( result < 0 ) 
 		return( -1 );
 
@@ -954,30 +945,33 @@ vips_foreign_load_heif_seek( gint64 position, void *userdata )
 	return( 0 );
 }
 
+/* libheif calls this to mean "I intend to read() to this position, please
+ * check it is OK".
+ */
 static enum heif_reader_grow_status 
 vips_foreign_load_heif_wait_for_file_size( gint64 target_size, void *userdata )
 {
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) userdata;
 
+	gint64 old_position;
+	gint64 result;
 	enum heif_reader_grow_status status;
 
-	if( heif->source->data != NULL && target_size > heif->source->length )
-		/* Target size is beyond known buffer length
+	/* We seek the VipsSource to the position and check for errors. 
+	 */
+	old_position = vips_source_seek( heif->source, 0L, SEEK_CUR );
+	result = vips_source_seek( heif->source, target_size, SEEK_SET );
+	vips_source_seek( heif->source, old_position, SEEK_SET );
+
+	if( result < 0 )
+		/* Unable to seek to this point, so it's beyond EOF.
 		 */
 		status = heif_reader_grow_status_size_beyond_eof;
-	else if( heif->length == -1 )
-		/* We've not seen EOF yet, so seeking to any point is fine (as
-		 * far as we know).
-		 */
-		status = heif_reader_grow_status_size_reached;
-	else if( target_size <= heif->length ) 
-		/* We've seen EOF, and this target is less than that.
-		 */
-		status = heif_reader_grow_status_size_reached;
 	else
-		/* We've seen EOF, we know the length, and this is too far.
+		/* Successfully read to the requested point, but the requested
+		 * point is not necessarily EOF.
 		 */
-		status = heif_reader_grow_status_size_beyond_eof;
+		status = heif_reader_grow_status_size_reached;
 
 	return( status );
 }
@@ -986,7 +980,6 @@ static void
 vips_foreign_load_heif_init( VipsForeignLoadHeif *heif )
 {
 	heif->n = 1;
-	heif->length = -1;
 
 	heif->reader = VIPS_ARRAY( NULL, 1, struct heif_reader );
 
