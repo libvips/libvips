@@ -45,7 +45,7 @@
 #include <vips/vips.h>
 
 /**
- * SECTION: rect
+ * SECTION: rectangle
  * @short_description: the VIPS rectangle class
  * @stability: Stable
  * @see_also: <link linkend="VipsRegion">region</link>
