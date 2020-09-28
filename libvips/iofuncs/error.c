@@ -71,7 +71,7 @@
 #endif /*OS_WIN32*/
 
 /**
- * SECTION: error
+ * SECTION: errors
  * @short_description: error messages and error handling
  * @stability: Stable
  * @include: vips/vips.h

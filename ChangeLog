@@ -17,6 +17,7 @@
 - better heif signature detection [lovell]
 - fix vips_fractsurf() typo [kleisauke]
 - better heif EOF detection [lovell]
+- fix gir build with g-o-i 1.66+ [László]
 
 9/8/20 started 8.10.1
 - fix markdown -> xml conversion in doc generation
