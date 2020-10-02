@@ -4,6 +4,7 @@
 - improve C++ API doc comments
 - add VipsInterpolate and guint64 support to C++ API 
 - add VImage::new_from_memory_steal [Zeranoe]
+- vipsthumbnail supports stdin / stdout thumbnailing
 
 6/9/20 started 8.10.2
 - update magicksave/load profile handling [kelilevi]
