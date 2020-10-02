@@ -279,7 +279,7 @@ Now transform to sRGB and don't attach a profile (you can also use `strip`,
 though that will remove *all* metadata from the image):
 
 ```
-$ vipsthumbnail shark.jpg --eprofile srgb -o tn_shark.jpg[profile=none]
+$ vipsthumbnail shark.jpg --export-profile srgb -o tn_shark.jpg[profile=none]
 $ ls -l tn_shark.jpg 
 -rw-r–r– 1 john john 4229 Nov  9 14:33 tn_shark.jpg
 ```
@@ -295,7 +295,7 @@ space, even though it has no embedded profile.
 
 
 ```
-$ vipsthumbnail kgdev.jpg --iprofile /my/profiles/a98.icm 
+$ vipsthumbnail kgdev.jpg --input-profile /my/profiles/a98.icm 
 ```
 
 # Final suggestion
@@ -305,6 +305,6 @@ Putting all this together, I suggest this as a sensible set of options:
 ```
 $ vipsthumbnail fred.jpg \
     --size 128 \
-    --eprofile srgb \
+    --export-profile srgb \
     -o tn_%s.jpg[optimize_coding,strip] 
 ```
