@@ -213,6 +213,13 @@ vips_foreign_load_heif_build( VipsObject *object )
 {
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) object;
 
+#ifdef DEBUG
+	printf( "vips_foreign_load_heif_build:\n" );
+#endif /*DEBUG*/
+
+	if( vips_source_rewind( heif->source ) )
+		return( -1 );
+
 	if( !heif->ctx ) {
 		struct heif_error error;
 
@@ -224,6 +231,7 @@ vips_foreign_load_heif_build( VipsObject *object )
 			return( -1 );
 		}
 	}
+
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_heif_parent_class )->
 		build( object ) )
@@ -281,7 +289,7 @@ vips_foreign_load_heif_get_flags( VipsForeignLoad *load )
 	return( VIPS_FOREIGN_SEQUENTIAL );
 }
 
-/* We've selcted the page. Try to select the associated thumbnail instead, 
+/* We've selected the page. Try to select the associated thumbnail instead, 
  * if we can.
  */
 static int
@@ -294,6 +302,10 @@ vips_foreign_load_heif_set_thumbnail( VipsForeignLoadHeif *heif )
 	struct heif_error error;
 	double main_aspect;
 	double thumb_aspect;
+
+#ifdef DEBUG
+	printf( "vips_foreign_load_heif_set_thumbnail:\n" );
+#endif /*DEBUG*/
 
 	n_thumbs = heif_image_handle_get_list_of_thumbnail_IDs( 
 		heif->handle, thumb_ids, 1 );
@@ -353,15 +365,15 @@ static int
 vips_foreign_load_heif_set_page( VipsForeignLoadHeif *heif, 
 	int page_no, gboolean thumbnail )
 {
-#ifdef DEBUG
-	printf( "vips_foreign_load_heif_set_page: %d, thumbnail = %d\n",
-		page_no, thumbnail );
-#endif /*DEBUG*/
-
 	if( !heif->handle ||
 		page_no != heif->page_no ||
 		thumbnail != heif->thumbnail_set ) {
 		struct heif_error error;
+
+#ifdef DEBUG
+		printf( "vips_foreign_load_heif_set_page: %d, thumbnail = %d\n",
+			page_no, thumbnail );
+#endif /*DEBUG*/
 
 		VIPS_FREEF( heif_image_handle_release, heif->handle );
 		VIPS_FREEF( heif_image_release, heif->img );
@@ -578,6 +590,10 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	struct heif_error error;
 	heif_item_id primary_id;
 	int i;
+
+#ifdef DEBUG
+	printf( "vips_foreign_load_heif_header:\n" );
+#endif /*DEBUG*/
 
 	heif->n_top = heif_context_get_number_of_top_level_images( heif->ctx );
 	heif->id = VIPS_ARRAY( NULL, heif->n_top, heif_item_id );
@@ -940,9 +956,9 @@ vips_foreign_load_heif_seek( gint64 position, void *userdata )
 {
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) userdata;
 
-	vips_source_seek( heif->source, position, SEEK_SET );
-
-	return( 0 );
+	/* Return 0 on success.
+	 */
+	return( vips_source_seek( heif->source, position, SEEK_SET ) == -1 );
 }
 
 /* libheif calls this to mean "I intend to read() to this position, please
@@ -1171,7 +1187,7 @@ vips_foreign_load_heif_source_build( VipsObject *object )
 		g_object_ref( heif->source );
 	}
 
-	if( VIPS_OBJECT_CLASS( vips_foreign_load_heif_file_parent_class )->
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_heif_source_parent_class )->
 		build( object ) )
 		return( -1 );
 
