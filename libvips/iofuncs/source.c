@@ -5,6 +5,8 @@
  *
  * 3/2/20
  * 	- add vips_pipe_read_limit_set()
+ * 3/10/20
+ * 	- improve behaviour with read and seek on pipes
  */
 
 /*
@@ -40,8 +42,8 @@
  */
 
 /*
-#define VIPS_DEBUG
 #define TEST_SANITY
+#define VIPS_DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -759,34 +761,45 @@ vips_source_read( VipsSource *source, void *buffer, size_t length )
 	return( total_read );
 }
 
-/* Read to a position. -1 means read to end of source. Does not change 
- * read_position.
+#ifdef DEBUG
+static void
+vips_source_print( VipsSource *source )
+{
+	printf( "vips_source_print: %p\n", source );
+	printf( "  source->read_position = %zd\n", source->read_position );
+	printf( "  source->is_pipe = %d\n", source->is_pipe );
+	printf( "  source->length = %zd\n", source->length );
+	printf( "  source->data = %p\n", source->data );
+	printf( "  source->header_bytes = %p\n", source->header_bytes );
+	if( source->header_bytes ) 
+		printf( "  source->header_bytes->len = %d\n", 
+			source->header_bytes->len );
+	printf( "  source->sniff = %p\n", source->sniff );
+	if( source->sniff )
+		printf( "  source->sniff->len = %d\n", source->sniff->len );
+}
+#endif /*DEBUG*/
+
+/* Read to a position. 
+ *
+ * target == -1 means read to end of source -- useful for forcing a pipe into
+ * memory, for example. 
+ *
+ * If we hit EOF, set length on the pipe.
+ *
+ * read_position is left somewhere indeterminate.
  */
 static int
 vips_source_pipe_read_to_position( VipsSource *source, gint64 target )
 {
 	const char *nick = vips_connection_nick( VIPS_CONNECTION( source ) );
 
-	gint64 old_read_position;
 	unsigned char buffer[4096];
 
-	VIPS_DEBUG_MSG( "vips_source_pipe_read_position: %" G_GINT64_FORMAT 
-		"\n", target );
-
-	g_assert( !source->decode );
-	g_assert( source->header_bytes );
-	g_assert( source->is_pipe );
-
-	if( target != -1 &&
-		(target < 0 ||
-			(source->length != -1 && 
-			 target > source->length)) ) {
-		vips_error( nick, 
-			_( "bad read to %" G_GINT64_FORMAT ), target );
-		return( -1 );
-	}
-
-	old_read_position = source->read_position;
+	/* This is only useful for pipes (sources where we don't know the
+	 * length).
+	 */
+	g_assert( source->length == -1 );
 
 	while( target == -1 ||
 		source->read_position < target ) {
@@ -795,8 +808,13 @@ vips_source_pipe_read_to_position( VipsSource *source, gint64 target )
 		bytes_read = vips_source_read( source, buffer, 4096 );
 		if( bytes_read == -1 )
 			return( -1 );
-		if( bytes_read == 0 )
+
+		if( bytes_read == 0 ) {
+			/* No more bytes available, we must be at EOF.
+			 */
+			source->length = source->read_position;
 			break;
+		}
 
 		if( target == -1 &&
 			vips__pipe_read_limit != -1 &&
@@ -805,8 +823,6 @@ vips_source_pipe_read_to_position( VipsSource *source, gint64 target )
 			return( -1 );
 		}
 	}
-
-	source->read_position = old_read_position;
 
 	return( 0 );
 }
@@ -1126,9 +1142,25 @@ vips_source_seek( VipsSource *source, gint64 offset, int whence )
 
 	/* For pipes, we have to fake seek by reading to that point.
 	 */
-	if( source->is_pipe &&
-		vips_source_pipe_read_to_position( source, new_pos ) )
-		return( -1 );
+	if( source->is_pipe ) {
+		if( vips_source_pipe_read_to_position( source, new_pos ) )
+			return( -1 );
+
+		/* We've hit EOF in the pipe, and we've got the whole thing 
+		 * buffered. Steal the header_bytes pointer and turn into a 
+		 * memory source.
+		 */
+		if( source->length != -1 &&
+			source->header_bytes ) {
+			source->length = source->header_bytes->len;
+			source->data = source->header_bytes->data;
+			source->is_pipe = FALSE;
+
+			/* TODO ... we could close more fds here.
+			 */
+			vips_source_minimise( source );
+		}
+	}
 
 	source->read_position = new_pos;
 
