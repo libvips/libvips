@@ -2,7 +2,7 @@
 import pytest
 
 import pyvips
-from helpers import JPEG_FILE, OME_FILE, HEIC_FILE, TIF_FILE, all_formats, have
+from helpers import JPEG_FILE, OME_FILE, AVIF_FILE, TIF_FILE, all_formats, have
 
 
 # Run a function expecting a complex image on a two-band image
@@ -195,8 +195,8 @@ class TestResample:
 
         if have("heifload"):
             # this image is orientation 6 ... thumbnail should flip it
-            im = pyvips.Image.new_from_file(HEIC_FILE)
-            thumb = pyvips.Image.thumbnail(HEIC_FILE, 100)
+            im = pyvips.Image.new_from_file(AVIF_FILE)
+            thumb = pyvips.Image.thumbnail(AVIF_FILE, 100)
 
             # thumb should be portrait 
             assert thumb.width < thumb.height

@@ -9,7 +9,7 @@ addons:
   apt:
     update: true
     sources: &common_sources
-      # add support for HEIF files
+      # add support for AVIF files
       - sourceline: 'ppa:strukturag/libheif'
       - sourceline: 'ppa:strukturag/libde265'
     packages: &common_packages

@@ -72,6 +72,8 @@ class TestCreate:
         assert im.max() == 255.0
         assert im.min() == 0.0
 
+    @pytest.mark.skipif(pyvips.type_find("VipsOperation", "fwfft") == 0,
+                        reason="no FFTW, skipping test")
     def test_fractsurf(self):
         im = pyvips.Image.fractsurf(100, 90, 2.5)
         assert im.width == 100
