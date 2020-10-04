@@ -872,6 +872,9 @@ vips_foreign_load_heif_load( VipsForeignLoad *load )
 		vips_image_write( t[1], load->real ) )
 		return( -1 );
 
+	if( vips_source_decode( heif->source ) )
+		return( -1 );
+
 	return( 0 );
 }
 

@@ -173,6 +173,9 @@ vips_foreign_load_pdf_build( VipsObject *object )
 
 	GError *error = NULL;
 
+	if( vips_source_rewind( pdf->source ) )
+		return( -1 );
+
 	pdf->total_scale = pdf->scale * pdf->dpi / 72.0;
 
 	pdf->stream = vips_g_input_stream_new_from_source( pdf->source );
