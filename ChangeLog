@@ -12,6 +12,7 @@
 - better heif EOF detection [lovell]
 - fix gir build with g-o-i 1.66+ [László]
 - improve seek behaviour on pipes
+- add "speed" param to heifsave [lovell]
 
 9/8/20 started 8.10.1
 - fix markdown -> xml conversion in doc generation
