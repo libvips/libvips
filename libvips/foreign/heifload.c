@@ -68,11 +68,32 @@
 #include <vips/debug.h>
 #include <vips/internal.h>
 
-#ifdef HAVE_HEIF_DECODER
+/* These are shared with the encoder.
+ */
+#if defined(HAVE_HEIF_DECODER) || defined(HAVE_HEIF_ENCODER)
 
 #include <libheif/heif.h>
 
 #include "pforeign.h"
+
+void
+vips__heif_error( struct heif_error *error )
+{
+	if( error->code ) 
+		vips_error( "heif", "%s (%d.%d)", error->message, error->code,
+			error->subcode );
+}
+
+const char *vips__heif_suffs[] = { 
+	".heic",
+	".heif",
+	".avif",
+	NULL 
+};
+
+#endif /*defined(DECODE) || defined(ENCODE)*/
+
+#ifdef HAVE_HEIF_DECODER
 
 #define VIPS_TYPE_FOREIGN_LOAD_HEIF (vips_foreign_load_heif_get_type())
 #define VIPS_FOREIGN_LOAD_HEIF( obj ) \
@@ -198,14 +219,6 @@ vips_foreign_load_heif_dispose( GObject *gobject )
 
 	G_OBJECT_CLASS( vips_foreign_load_heif_parent_class )->
 		dispose( gobject );
-}
-
-void
-vips__heif_error( struct heif_error *error )
-{
-	if( error->code ) 
-		vips_error( "heif", "%s (%d.%d)", error->message, error->code,
-			error->subcode );
 }
 
 static int
@@ -1054,13 +1067,6 @@ vips_foreign_load_heif_file_is_a( const char *filename )
 
 	return( vips_foreign_load_heif_is_a( buf, 12 ) );
 }
-
-const char *vips__heif_suffs[] = { 
-	".heic",
-	".heif",
-	".avif",
-	NULL 
-};
 
 static void
 vips_foreign_load_heif_file_class_init( VipsForeignLoadHeifFileClass *class )
