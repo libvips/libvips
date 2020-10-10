@@ -420,6 +420,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 	heif_item_id id[16];
 	int n_metadata;
 	struct heif_error error;
+	VipsForeignHeifCompression compression;
 
 	/* We take the metadata from the non-thumbnail first page. HEIC 
 	 * thumbnails don't have metadata.
@@ -565,6 +566,25 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 	if( vips_object_argument_isset( VIPS_OBJECT( heif ), "n" ) )
 		vips_image_set_int( out, 
 			VIPS_META_PAGE_HEIGHT, heif->page_height );
+
+	/* Determine compression from HEIF "brand"
+	 * Requires libheif 1.4.0+, prior versions were HEVC only
+	 */
+	compression = VIPS_FOREIGN_HEIF_COMPRESSION_HEVC;
+
+#ifdef HAVE_HEIF_MAIN_BRAND
+	const unsigned char *brand_data;
+	if ( brand_data = vips_source_sniff( heif->source, 12 ) ) {
+		enum heif_brand brand;
+		brand = heif_main_brand( brand_data, 12 );
+		if( brand == heif_avif || brand == heif_avis )
+			compression = VIPS_FOREIGN_HEIF_COMPRESSION_AV1;
+	}
+#endif /*HAVE_HEIF_MAIN_BRAND*/
+
+	vips_image_set_string( out, "heif-compression",
+		vips_enum_nick( VIPS_TYPE_FOREIGN_HEIF_COMPRESSION,
+			compression ) );
 
 	/* FIXME .. we always decode to RGB in generate. We should check for
 	 * all grey images, perhaps. 
