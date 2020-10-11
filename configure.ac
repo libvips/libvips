@@ -888,16 +888,13 @@ if test x"$with_heif" = x"yes"; then
   LIBS="$save_LIBS"
 fi
 
-# heif_main_brand added in 1.4.0
+# heif_main_brand added in 1.4.0, but heif_avif appeared in 1.7 ... just check
+# the libheif version number since testing for enums is annoying
 if test x"$with_heif" = x"yes"; then
-  save_LIBS="$LIBS"
-  LIBS="$LIBS $HEIF_LIBS"
-  AC_CHECK_FUNCS(heif_main_brand,[
-     AC_DEFINE(HAVE_HEIF_MAIN_BRAND,1,
-	       [define if you have heif_main_brand.])
-   ],[]
-  )
-  LIBS="$save_LIBS"
+  PKG_CHECK_MODULES(HEIF_AVIF, libheif >= 1.7.0, [
+    AC_DEFINE(HAVE_HEIF_AVIF,1,[define if you have heif_avif.])
+  ], [
+  ])
 fi
 
 # heif_decoding_options.convert_hdr_to_8bit added in 1.7.0

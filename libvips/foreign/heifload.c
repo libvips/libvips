@@ -567,20 +567,24 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		vips_image_set_int( out, 
 			VIPS_META_PAGE_HEIGHT, heif->page_height );
 
-	/* Determine compression from HEIF "brand"
-	 * Requires libheif 1.4.0+, prior versions were HEVC only
+	/* Determine compression from HEIF "brand". heif_avif and heif_avis
+	 * were added in v1.7.
 	 */
 	compression = VIPS_FOREIGN_HEIF_COMPRESSION_HEVC;
 
-#ifdef HAVE_HEIF_MAIN_BRAND
+#ifdef HAVE_HEIF_AVIF
+{
 	const unsigned char *brand_data;
-	if ( brand_data = vips_source_sniff( heif->source, 12 ) ) {
+
+	if( (brand_data = vips_source_sniff( heif->source, 12 )) ) {
 		enum heif_brand brand;
 		brand = heif_main_brand( brand_data, 12 );
-		if( brand == heif_avif || brand == heif_avis )
+		if( brand == heif_avif || 
+			brand == heif_avis )
 			compression = VIPS_FOREIGN_HEIF_COMPRESSION_AV1;
 	}
-#endif /*HAVE_HEIF_MAIN_BRAND*/
+}
+#endif /*HAVE_HEIF_AVIF*/
 
 	vips_image_set_string( out, "heif-compression",
 		vips_enum_nick( VIPS_TYPE_FOREIGN_HEIF_COMPRESSION,
