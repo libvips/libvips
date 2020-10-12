@@ -35,7 +35,7 @@
 VIPS_NAMESPACE_START
 
 template <typename T>
-class VRegion
+class VRegion : public VObject
 {
 public:
 	VRegion( VImage &vimage ) :
