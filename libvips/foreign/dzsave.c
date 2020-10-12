@@ -1049,8 +1049,8 @@ write_json( VipsForeignSaveDz *dz )
 	gsf_output_printf( out, 
 		"  \"width\": %d,\n"
 		"  \"height\": %d\n", 
-			dz->layer->image->Xsize,
-			dz->layer->image->Ysize );
+			dz->layer->width,
+			dz->layer->height );
 
 	gsf_output_printf( out, 
 		"}\n" );

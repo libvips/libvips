@@ -1,5 +1,0 @@
-This is the vips8 C++ binding.
-
-The old vips7 binding is still there, but this one is better. See the vips API
-docs for documentation.
-

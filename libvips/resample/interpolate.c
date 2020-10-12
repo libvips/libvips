@@ -63,7 +63,7 @@
 #include <vips/internal.h>
 
 /**
- * SECTION: interpolate
+ * SECTION: interpolator
  * @short_description: various interpolators: nearest, bilinear, and
  * some non-linear
  * @stability: Stable

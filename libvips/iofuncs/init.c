@@ -413,7 +413,6 @@ vips_init( const char *argv0 )
 #endif /*HAVE_THREAD_NEW*/
 
 	vips__threadpool_init();
-	vips__sink_screen_init();
 	vips__buffer_init();
 	vips__meta_init();
 

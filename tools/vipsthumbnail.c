@@ -102,6 +102,9 @@
  * 	- back to -o for output
  * 29/2/20
  * 	- deprecate --delete
+ * 2/10/20
+ * 	- support "stdin" as a magic input filename for thumbnail_source
+ * 	- support ".suffix" as a magic ouput format for stdout write
  */
 
 #ifdef HAVE_CONFIG_H
@@ -219,9 +222,11 @@ static GOptionEntry options[] = {
 
 /* Given (eg.) "/poop/somefile.png", write @im to the thumbnail name,
  * (eg.) "/poop/tn_somefile.jpg".
+ *
+ * If 
  */
 static int
-thumbnail_write( VipsObject *process, VipsImage *im, const char *filename )
+thumbnail_write_file( VipsObject *process, VipsImage *im, const char *filename )
 {
 	char *file;
 	char *p;
@@ -268,11 +273,13 @@ thumbnail_write( VipsObject *process, VipsImage *im, const char *filename )
 }
 
 static int
-thumbnail_process( VipsObject *process, const char *filename )
+thumbnail_process( VipsObject *process, const char *name )
 {
 	VipsInteresting interesting;
 	VipsImage *image;
 	VipsIntent intent;
+	char filename[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
 
 	interesting = VIPS_INTERESTING_NONE;
 	if( crop_image )
@@ -285,6 +292,7 @@ thumbnail_process( VipsObject *process, const char *filename )
 			return( -1 ); 
 		interesting = n;
 	}
+
 	intent = VIPS_INTENT_RELATIVE;
 	if( thumbnail_intent ) {
 		int n;
@@ -295,24 +303,73 @@ thumbnail_process( VipsObject *process, const char *filename )
 		intent = n;
 	}
 
-	if( vips_thumbnail( filename, &image, thumbnail_width, 
-		"height", thumbnail_height, 
-		"size", size_restriction, 
-		"no-rotate", no_rotate_image, 
-		"crop", interesting, 
-		"linear", linear_processing, 
-		"import-profile", import_profile, 
-		"export-profile", export_profile, 
-		"intent", intent, 
-		NULL ) )
-		return( -1 );
+	vips__filename_split8( name, filename, option_string );
+	if( strcmp( filename, "stdin" ) == 0 ) {
+		VipsSource *source;
 
-	if( thumbnail_write( process, image, filename ) ) {
-		g_object_unref( image ); 
-		return( -1 );
+		if( !(source = 
+			vips_source_new_from_descriptor( 0 )) )
+			return( -1 );
+
+		if( vips_thumbnail_source( source, &image, thumbnail_width, 
+			"option-string", option_string, 
+			"height", thumbnail_height, 
+			"size", size_restriction, 
+			"no-rotate", no_rotate_image, 
+			"crop", interesting, 
+			"linear", linear_processing, 
+			"import-profile", import_profile, 
+			"export-profile", export_profile, 
+			"intent", intent, 
+			NULL ) ) {
+			VIPS_UNREF( source );
+			return( -1 );
+		}
+		VIPS_UNREF( source );
+	}
+	else {
+		if( vips_thumbnail( name, &image, thumbnail_width, 
+			"height", thumbnail_height, 
+			"size", size_restriction, 
+			"no-rotate", no_rotate_image, 
+			"crop", interesting, 
+			"linear", linear_processing, 
+			"import-profile", import_profile, 
+			"export-profile", export_profile, 
+			"intent", intent, 
+			NULL ) )
+			return( -1 );
 	}
 
-	g_object_unref( image ); 
+	/* If the output format is something like ".jpg", we write to stdout
+	 * instead. 
+	 *
+	 * (but allow "./%s.jpg" as a output format)
+	 */
+	if( vips_isprefix( ".", output_format ) &&
+		!vips_isprefix( "./", output_format ) ) {
+		VipsTarget *target;
+
+		if( !(target = vips_target_new_to_descriptor( 1 )) )
+			return( -1 );
+
+		if( vips_image_write_to_target( image, 
+			output_format, target, NULL ) ) {
+			VIPS_UNREF( image ); 
+			VIPS_UNREF( target );
+			return( -1 );
+		}
+
+		VIPS_UNREF( target );
+	}
+	else {
+		if( thumbnail_write_file( process, image, name ) ) {
+			VIPS_UNREF( image ); 
+			return( -1 );
+		}
+	}
+
+	VIPS_UNREF( image ); 
 
 	return( 0 );
 }

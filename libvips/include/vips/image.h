@@ -133,8 +133,8 @@ typedef enum {
 	VIPS_ACCESS_LAST
 } VipsAccess;
 
-typedef void *(*VipsStartFn)( struct _VipsImage *out, void *a, void *b );
-typedef int (*VipsGenerateFn)( struct _VipsRegion *out, 
+typedef void *(*VipsStartFn)( VipsImage *out, void *a, void *b );
+typedef int (*VipsGenerateFn)( VipsRegion *out, 
 	void *seq, void *a, void *b, gboolean *stop );
 typedef int (*VipsStopFn)( void *seq, void *a, void *b );
 
@@ -143,7 +143,7 @@ typedef int (*VipsStopFn)( void *seq, void *a, void *b );
  */
 typedef struct _VipsProgress {
 	/*< private >*/
-	struct _VipsImage *im;	/* Image we are part of */
+	VipsImage *im;		/* Image we are part of */
 
 	/*< public >*/
 	int run;		/* Time we have been running */
@@ -169,7 +169,9 @@ typedef struct _VipsProgress {
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 	VIPS_TYPE_IMAGE, VipsImageClass ))
 
-typedef struct _VipsImage {
+/* Matching typedef in basic.h.
+ */
+struct _VipsImage {
 	VipsObject parent_instance;
 
 	/*< private >*/
@@ -281,7 +283,7 @@ typedef struct _VipsImage {
 
 	/* The VipsImage (if any) we should signal eval progress on.
 	 */
-	struct _VipsImage *progress_signal;
+	VipsImage *progress_signal;
 
 	/* Record the file length here. We use this to stop ourselves mapping
 	 * things beyond the end of the file in the case that the file has
@@ -309,7 +311,7 @@ typedef struct _VipsImage {
 	 */
 	gboolean delete_on_close;
 	char *delete_on_close_filename;
-} VipsImage;
+};
 
 typedef struct _VipsImageClass {
 	VipsObjectClass parent_class;
@@ -519,8 +521,10 @@ void vips_value_set_array_image( GValue *value, int n );
 /* Defined in reorder.c, but really a function on image.
  */
 int vips_reorder_prepare_many( VipsImage *image, 
-	struct _VipsRegion **regions, VipsRect *r );
+	VipsRegion **regions, VipsRect *r );
 void vips_reorder_margin_hint( VipsImage *image, int margin );
+
+void vips_image_free_buffer( VipsImage *image, void *buffer );
 
 #ifdef __cplusplus
 }

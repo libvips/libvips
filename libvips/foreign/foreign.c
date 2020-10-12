@@ -1336,8 +1336,7 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 	}
 
 	/* If this image is CMYK and the saver is RGB-only, use lcms to try to
-	 * import to XYZ. This will only work if the image has an embedded
-	 * profile. 
+	 * import to XYZ. 
 	 */
 	if( in->Type == VIPS_INTERPRETATION_CMYK &&
 		in->Bands >= 4 &&
@@ -1348,6 +1347,8 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 
 		if( vips_icc_import( in, &out, 
 			"pcs", VIPS_PCS_XYZ,
+			"embedded", TRUE,
+			"input_profile", "cmyk",
 			NULL ) ) {
 			g_object_unref( in );
 			return( -1 );

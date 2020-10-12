@@ -11,7 +11,7 @@
   <refnamediv> <refname>Pyramids</refname> <refpurpose>How to use libvips to make image pyramids</refpurpose> </refnamediv>
 </para>
 <para>
-  libvips includes <literal>vips_dzsave()</literal>, an operation that can build image pyramids compatible with <ulink url="http://en.wikipedia.org/wiki/Deep_Zoom">DeepZoom</ulink>, Zoomify and <ulink url="https://developers.google.com/maps/">Google Maps</ulink> image viewers. It’s fast and can generate pyramids for large images using only a small amount of memory.
+  libvips includes <literal>vips_dzsave()</literal>, an operation that can build image pyramids compatible with <link xlink:href="http://en.wikipedia.org/wiki/Deep_Zoom">DeepZoom</link>, Zoomify and <link xlink:href="https://developers.google.com/maps/">Google Maps</link> image viewers. It’s fast and can generate pyramids for large images using only a small amount of memory.
 </para>
 <para>
   The TIFF writer, <literal>vips_tiffsave()</literal> can also build tiled pyramidal TIFF images, but that’s very simple to use. This page concentrates on the DeepZoom builder.
@@ -64,8 +64,8 @@ operation flags: sequential nocache
 <para>
   You can also call <literal>vips_dzsave()</literal> from any language with a libvips binding, or by using <literal>.dz</literal> or <literal>.szi</literal> as an output file suffix.
 </para>
-<refsect3 id="writing-deepzoom-pyramids">
-  <title>Writing <ulink url="http://en.wikipedia.org/wiki/Deep_Zoom">DeepZoom</ulink> pyramids</title>
+<refsect3 xml:id="writing-deepzoom-pyramids">
+  <title>Writing <link xlink:href="http://en.wikipedia.org/wiki/Deep_Zoom">DeepZoom</link> pyramids</title>
   <para>
     The <literal>--layout</literal> option sets the basic mode of operation. With no <literal>--layout</literal>, dzsave writes DeepZoom pyramids. For example:
   </para>
@@ -85,7 +85,7 @@ $ vips dzsave huge.tif mydz --suffix .jpg[Q=90]
     will write JPEG tiles with the quality factor set to 90. You can set any format write options you like, see the API docs for <literal>vips_jpegsave()</literal> for details.
   </para>
 </refsect3>
-<refsect3 id="writing-zoomify-pyramids">
+<refsect3 xml:id="writing-zoomify-pyramids">
   <title>Writing Zoomify pyramids</title>
   <para>
     Use <literal>--layout zoomify</literal> to put dzsave into zoomify mode. For example:
@@ -100,10 +100,10 @@ $ vips dzsave huge.tif myzoom --layout zoomify
     As with DeepZoom, you can use <literal>--suffix</literal> to set jpeg quality.
   </para>
 </refsect3>
-<refsect3 id="writing-google-maps-pyramids">
-  <title>Writing <ulink url="https://developers.google.com/maps/">Google Maps</ulink> pyramids</title>
+<refsect3 xml:id="writing-google-maps-pyramids">
+  <title>Writing <link xlink:href="https://developers.google.com/maps/">Google Maps</link> pyramids</title>
   <para>
-    Use <literal>--layout google</literal> to write Google maps-style pyramids. These are compatible with <ulink url="http://leafletjs.com/">leaflet</ulink>. For example:
+    Use <literal>--layout google</literal> to write Google maps-style pyramids. These are compatible with <link xlink:href="http://leafletjs.com/">leaflet</link>. For example:
   </para>
   <programlisting>
 $ vips dzsave wtc.tif gmapdir --layout google
@@ -127,7 +127,7 @@ $ vips dzsave wtc.tif gmapdir --layout google
 $ vips dzsave wtc.tif gmapdir --layout google --background 0 --centre
 </programlisting>
 </refsect3>
-<refsect3 id="other-options">
+<refsect3 xml:id="other-options">
   <title>Other options</title>
   <para>
     You can use <literal>--tile-size</literal> and <literal>--overlap</literal> to control how large the tiles are and how they overlap (obviously). They default to the correct values for the selected layout.
@@ -151,7 +151,7 @@ $ vips dzsave wtc.tif mypyr.zip
     Use <literal>--properties</literal> to output an XML file called <literal>vips-properties.xml</literal>. This contains a dump of all the metadata vips has about the image as a set of name-value pairs. It’s handy with openslide image sources.
   </para>
 </refsect3>
-<refsect3 id="preprocessing-images">
+<refsect3 xml:id="preprocessing-images">
   <title>Preprocessing images</title>
   <para>
     You can use <literal>.dz</literal> as a filename suffix, meaning send the image to <literal>vips_dzsave()</literal>. This means you can write the output of any vips operation to a pyramid. For example:
@@ -172,7 +172,7 @@ $ vips dzsave CMU-1.mrxs[level=1] x
     Will pull out level 1 (the half-resolution level of an MRXS slide) and make a pyramid from that.
   </para>
 </refsect3>
-<refsect3 id="troubleshooting">
+<refsect3 xml:id="troubleshooting">
   <title>Troubleshooting</title>
   <para>
     If you are building vips from source you do need to check the summary at the end of configure carefully. You must have the <literal>libgsf-1-dev</literal> package for <literal>vips_dzsave()</literal> to work.

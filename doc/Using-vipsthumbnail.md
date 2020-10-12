@@ -23,6 +23,14 @@ $image = Vips\Image::thumbnail($filename, 200, ["height" => 200]);
 $image->writeToFile("my-thumbnail.jpg");
 ```
 
+You can also call `thumbnail_source` from the CLI, for example:
+
+```
+$ cat k2.jpg | \
+    vips thumbnail_source [descriptor=0] .jpg[Q=90] 128 | \
+    cat > x.jpg
+```
+
 # libvips options
 
 `vipsthumbnail` supports the usual range of vips command-line options. A
@@ -271,7 +279,7 @@ Now transform to sRGB and don't attach a profile (you can also use `strip`,
 though that will remove *all* metadata from the image):
 
 ```
-$ vipsthumbnail shark.jpg --eprofile srgb -o tn_shark.jpg[profile=none]
+$ vipsthumbnail shark.jpg --export-profile srgb -o tn_shark.jpg[profile=none]
 $ ls -l tn_shark.jpg 
 -rw-r–r– 1 john john 4229 Nov  9 14:33 tn_shark.jpg
 ```
@@ -282,24 +290,13 @@ high-quality sRGB profile that's built into libvips.)
 `tn_shark.jpg` will look identical to a user, but it's almost half the size. 
 
 You can also specify a fallback input profile to use if the image has no
-embedded one. This can often happen with CMYK images, producing an error
-message like:
+embedded one. For example, perhaps you somehow know that a JPG is in Adobe98
+space, even though it has no embedded profile. 
+
 
 ```
-$ vipsthumbnail kgdev.jpg
-vipsthumbnail: unable to thumbnail kgdev.jpg
-vips_colourspace: no known route from 'cmyk' to 'srgb'
+$ vipsthumbnail kgdev.jpg --input-profile /my/profiles/a98.icm 
 ```
-
-If you supply a CMYK profile, it will be able to convert the image, 
-for example:
-
-```
-$ vipsthumbnail kgdev.jpg --iprofile cmyk 
-```
-
-(As before, the magic string `cmyk` selects a high-quality CMYK profile that's
-built into libvips, but you can use any CMYK profile you like.)
 
 # Final suggestion
 
@@ -308,7 +305,6 @@ Putting all this together, I suggest this as a sensible set of options:
 ```
 $ vipsthumbnail fred.jpg \
     --size 128 \
-    --eprofile srgb \
-    -o tn_%s.jpg[optimize_coding,strip] \
-    --eprofile srgb
+    --export-profile srgb \
+    -o tn_%s.jpg[optimize_coding,strip] 
 ```

@@ -450,6 +450,9 @@ vips__render_shutdown( void )
 		}
 		else
 			g_mutex_unlock( render_dirty_lock );
+
+		VIPS_FREEF( vips_g_mutex_free, render_dirty_lock );
+		vips_semaphore_destroy( &n_render_dirty_sem );
 	}
 }
 
@@ -1027,8 +1030,8 @@ render_thread_main( void *client )
 	return( NULL );
 }
 
-void
-vips__sink_screen_init( void )
+static void *
+vips__sink_screen_init( void *data )
 {
 	g_assert( !render_thread ); 
 	g_assert( !render_dirty_lock ); 
@@ -1037,6 +1040,8 @@ vips__sink_screen_init( void )
 	vips_semaphore_init( &n_render_dirty_sem, 0, "n_render_dirty" );
 	render_thread = vips_g_thread_new( "sink_screen",
 		render_thread_main, NULL );
+
+	return( NULL );
 }
 
 /**
@@ -1096,7 +1101,11 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 	int priority,
 	VipsSinkNotify notify_fn, void *a )
 {
+	static GOnce once = G_ONCE_INIT;
+
 	Render *render;
+
+	VIPS_ONCE( &once, vips__sink_screen_init, NULL );
 
 	if( tile_width <= 0 || tile_height <= 0 || 
 		max_tiles < -1 ) {

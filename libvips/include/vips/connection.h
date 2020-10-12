@@ -159,7 +159,7 @@ typedef struct _VipsSource {
 	 * we rewind and try again, serve data from this until it runs out.
 	 *
 	 * If we need to force the whole pipe into memory, read everything to
-	 * this and put a copy pf the pointer in data.
+	 * this and put a copy of the pointer in data.
 	 */
 	GByteArray *header_bytes;
 
@@ -171,7 +171,7 @@ typedef struct _VipsSource {
 	 */
 	VipsBlob *blob;
 
-	/* If we mmaped the file, whet we need to unmmap on finalize.
+	/* If we mmaped the file, what we need to unmmap on finalize.
 	 */
 	void *mmap_baseaddr;
 	size_t mmap_length;

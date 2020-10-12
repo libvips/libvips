@@ -16,7 +16,7 @@
 <para>
   The libvips test suite is written in Python and exercises every operation in the API. It’s also a useful source of examples.
 </para>
-<refsect3 id="average-a-region-of-interest-box-on-an-image">
+<refsect3 xml:id="average-a-region-of-interest-box-on-an-image">
   <title>Average a region of interest box on an image</title>
   <programlisting language="python">
 #!/usr/bin/env python
@@ -34,7 +34,7 @@ roi = image.crop(left, top, width, height)
 print 'average:', roi.avg()
 </programlisting>
 </refsect3>
-<refsect3 id="libvips-and-numpy">
+<refsect3 xml:id="libvips-and-numpy">
   <title>libvips and numpy</title>
   <para>
     You can use <literal>pyvips.Image.new_from_memory()</literal> to make a vips image from an area of memory. The memory array needs to be laid out band-interleaved, as a set of scanlines, with no padding between lines.
@@ -113,7 +113,7 @@ vi = pyvips.Image.new_from_memory(linear.data, width, height, bands,
 vi.write_to_file(sys.argv[2])
 </programlisting>
 </refsect3>
-<refsect3 id="build-huge-image-mosaic">
+<refsect3 xml:id="build-huge-image-mosaic">
   <title>Build huge image mosaic</title>
   <para>
     This makes a 100,000 x 100,000 black image, then inserts all the images you pass on the command-line into it at random positions. libvips is able to run this program in sequential mode: it’ll open all the input images at the same time, and stream pixels from them as it needs them to generate the output.

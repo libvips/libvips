@@ -79,6 +79,10 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	VipsForeignHeifCompression compression;
 
+	/* CPU effort (0-8).
+	 */
+	int speed;
+
 	/* The image we save. This is a copy of save->ready since we need to
 	 * be able to update the metadata.
 	 */
@@ -129,7 +133,6 @@ vips_foreign_save_heif_dispose( GObject *gobject )
 		dispose( gobject );
 }
 
-#ifdef HAVE_HEIF_CONTEXT_ADD_EXIF_METADATA
 typedef struct heif_error (*libheif_metadata_fn)( struct heif_context *,
 	 const struct heif_image_handle *,
 	 const void *, int );
@@ -141,12 +144,10 @@ struct _VipsForeignSaveHeifMetadata {
 	{ VIPS_META_EXIF_NAME, heif_context_add_exif_metadata },
 	{ VIPS_META_XMP_NAME, heif_context_add_XMP_metadata }
 };
-#endif /*HAVE_HEIF_CONTEXT_ADD_EXIF_METADATA*/
 
 static int
 vips_foreign_save_heif_write_metadata( VipsForeignSaveHeif *heif )
 {
-#ifdef HAVE_HEIF_CONTEXT_ADD_EXIF_METADATA
 	int i;
 	struct heif_error error;
 
@@ -178,7 +179,6 @@ vips_foreign_save_heif_write_metadata( VipsForeignSaveHeif *heif )
 				return( -1 );
 			}
 		}
-#endif /*HAVE_HEIF_CONTEXT_ADD_EXIF_METADATA*/
 
 	return( 0 );
 }
@@ -216,13 +216,9 @@ vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif, int page )
 	}
 #endif /*HAVE_HEIF_COLOR_PROFILE*/
 
-#ifdef HAVE_HEIF_ENCODING_OPTIONS_ALLOC
 	options = heif_encoding_options_alloc();
 	if( vips_image_hasalpha( heif->image ) )
 		options->save_alpha_channel = 1;
-#else /*!HAVE_HEIF_ENCODING_OPTIONS_ALLOC*/
-	options = NULL;
-#endif /*HAVE_HEIF_ENCODING_OPTIONS_ALLOC*/
 
 #ifdef DEBUG
 	printf( "encoding ..\n" ); 
@@ -230,16 +226,13 @@ vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif, int page )
 	error = heif_context_encode_image( heif->ctx, 
 		heif->img, heif->encoder, options, &heif->handle );
 
-#ifdef HAVE_HEIF_ENCODING_OPTIONS_ALLOC
 	heif_encoding_options_free( options );
-#endif /*HAVE_HEIF_ENCODING_OPTIONS_ALLOC*/
 
 	if( error.code ) {
 		vips__heif_error( &error );
 		return( -1 );
 	}
 
-#ifdef HAVE_HEIF_CONTEXT_SET_PRIMARY_IMAGE
 	if( vips_image_get_typeof( heif->image, "heif-primary" ) ) { 
 		int primary;
 
@@ -256,7 +249,6 @@ vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif, int page )
 			}
 		}
 	}
-#endif /*HAVE_HEIF_CONTEXT_SET_PRIMARY_IMAGE*/
 
 	if( !save->strip &&
 		vips_foreign_save_heif_write_metadata( heif ) )
@@ -359,6 +351,14 @@ vips_foreign_save_heif_build( VipsObject *object )
 
 	error = heif_encoder_set_lossless( heif->encoder, heif->lossless );
 	if( error.code ) {
+		vips__heif_error( &error );
+		return( -1 );
+	}
+
+	error = heif_encoder_set_parameter_integer( heif->encoder,
+		"speed", heif->speed );
+	if( error.code &&
+		error.subcode != heif_suberror_Unsupported_parameter ) {
 		vips__heif_error( &error );
 		return( -1 );
 	}
@@ -470,6 +470,13 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 		VIPS_TYPE_FOREIGN_HEIF_COMPRESSION,
 		VIPS_FOREIGN_HEIF_COMPRESSION_HEVC );
 
+	VIPS_ARG_INT( class, "speed", 15,
+		_( "speed" ),
+		_( "CPU effort" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveHeif, speed ),
+		0, 8, 5 );
+
 }
 
 static void
@@ -478,6 +485,7 @@ vips_foreign_save_heif_init( VipsForeignSaveHeif *heif )
 	heif->ctx = heif_context_alloc();
 	heif->Q = 50;
 	heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_HEVC;
+	heif->speed = 5;
 }
 
 typedef struct _VipsForeignSaveHeifFile {
@@ -670,6 +678,7 @@ vips_foreign_save_heif_target_init( VipsForeignSaveHeifTarget *target )
  * * @Q: %gint, quality factor
  * * @lossless: %gboolean, enable lossless encoding
  * * @compression: #VipsForeignHeifCompression, write with this compression
+ * * @speed: %gint, CPU effort, 0 slowest - 8 fastest, AV1 compression only
  *
  * Write a VIPS image to a file in HEIF format. 
  *
@@ -679,6 +688,9 @@ vips_foreign_save_heif_target_init( VipsForeignSaveHeifTarget *target )
  * Set @lossless %TRUE to switch to lossless compression.
  *
  * Use @compression to set the encoder e.g. HEVC, AVC, AV1
+ *
+ * Use @speed to control the CPU effort spent improving compression.
+ * This is currently only applicable to AV1 encoders, defaults to 5.
  *
  * See also: vips_image_write_to_file(), vips_heifload().
  *
@@ -709,6 +721,7 @@ vips_heifsave( VipsImage *in, const char *filename, ... )
  * * @Q: %gint, quality factor
  * * @lossless: %gboolean, enable lossless encoding
  * * @compression: #VipsForeignHeifCompression, write with this compression
+ * * @speed: %gint, CPU effort, 0 slowest - 8 fastest, AV1 compression only
  *
  * As vips_heifsave(), but save to a memory buffer. 
  *
@@ -759,6 +772,7 @@ vips_heifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @Q: %gint, quality factor
  * * @lossless: %gboolean, enable lossless encoding
  * * @compression: #VipsForeignHeifCompression, write with this compression
+ * * @speed: %gint, CPU effort, 0 slowest - 8 fastest, AV1 compression only
  *
  * As vips_heifsave(), but save to a target.
  *

@@ -108,6 +108,8 @@
  * 	- revise for source IO
  * 5/5/20 angelmixu
  * 	- better handling of JFIF res unit 0
+ * 13/9/20
+ * 	- set resolution unit from JFIF 
  */
 
 /*
@@ -506,6 +508,13 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 		break;
 	}
 
+#ifdef DEBUG
+	if( cinfo->saw_JFIF_marker )
+		printf( "read_jpeg_header: jfif _density %d, %d, unit %d\n",
+			cinfo->X_density, cinfo->Y_density,
+			cinfo->density_unit );
+#endif /*DEBUG*/
+
 	/* Get the jfif resolution. exif may overwrite this later. Default to
 	 * 72dpi (as EXIF does).
 	 */
@@ -514,12 +523,6 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 	if( cinfo->saw_JFIF_marker &&
 		cinfo->X_density != 1U && 
 		cinfo->Y_density != 1U ) {
-#ifdef DEBUG
-		printf( "read_jpeg_header: jfif _density %d, %d, unit %d\n",
-			cinfo->X_density, cinfo->Y_density,
-			cinfo->density_unit );
-#endif /*DEBUG*/
-
 		switch( cinfo->density_unit ) {
 		case 0:
 			/* X_density / Y_density gives the pixel aspect ratio.
@@ -535,6 +538,8 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 			 */
 			xres = cinfo->X_density / 25.4;
 			yres = cinfo->Y_density / 25.4;
+			vips_image_set_string( out, 
+				VIPS_META_RESOLUTION_UNIT, "in" );
 			break;
 
 		case 2:
@@ -542,6 +547,8 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 			 */
 			xres = cinfo->X_density / 10.0;
 			yres = cinfo->Y_density / 10.0;
+			vips_image_set_string( out, 
+				VIPS_META_RESOLUTION_UNIT, "cm" );
 			break;
 
 		default:
@@ -837,7 +844,7 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 {
 	struct jpeg_decompress_struct *cinfo = &jpeg->cinfo;
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( VIPS_OBJECT( out ), 4 );
+		vips_object_local_array( VIPS_OBJECT( out ), 5 );
 
 	VipsImage *im;
 
@@ -872,11 +879,13 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 
 	if( jpeg->autorotate &&
 		vips_image_get_orientation( im ) != 1 ) {
-		/* This will go via a huge memory buffer :-( 
+		/* We have to copy to memory before calling autorot, since it
+		 * needs random access.
 		 */
-		if( vips_autorot( im, &t[3], NULL ) )
+		if( !(t[3] = vips_image_copy_memory( im )) ||
+			vips_autorot( t[3], &t[4], NULL ) )
 			return( -1 );
-		im = t[3];
+		im = t[4];
 	}
 
 	if( vips_image_write( im, out ) )

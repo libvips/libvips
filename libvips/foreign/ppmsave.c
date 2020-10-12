@@ -62,7 +62,7 @@ typedef struct _VipsForeignSavePpm VipsForeignSavePpm;
 
 typedef int (*VipsSavePpmFn)( VipsForeignSavePpm *, VipsImage *, VipsPel * );
 
-typedef struct _VipsForeignSavePpm {
+struct _VipsForeignSavePpm {
 	VipsForeignSave parent_object;
 
 	VipsTarget *target;
@@ -74,7 +74,7 @@ typedef struct _VipsForeignSavePpm {
 	/* Deprecated.
 	 */
 	gboolean squash;
-} VipsForeignSavePpm;
+};
 
 typedef VipsForeignSaveClass VipsForeignSavePpmClass;
 
