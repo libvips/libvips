@@ -261,7 +261,7 @@ justifications.
 </div>
 <div class="refsect1">
 <a name="VipsRegion.object-hierarchy"></a><h2>Object Hierarchy</h2>
-<pre class="screen">    <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject-struct">GObject</a>
+<pre class="screen">    GObject
     <span class="lineart">╰──</span> <a class="link" href="VipsObject.html" title="VipsObject">VipsObject</a>
         <span class="lineart">╰──</span> VipsRegion
 </pre>
@@ -280,7 +280,7 @@ at once.</p>
 other image, or part of some other region.</p>
 <p>Regions must be created, used and freed all within the same thread, since
 they can reference private per-thread caches. VIPS sanity-checks region
-ownership in various places, so you are likely to see <a href="/usr/share/gtk-doc/html/glib/glib-Testing.html#g-assert"><code class="function">g_assert()</code></a> errors if
+ownership in various places, so you are likely to see <code class="function">g_assert()</code> errors if
 you don't follow this rule.</p>
 <p>There
 is API to transfer ownership of regions between threads, but hopefully this
@@ -963,7 +963,7 @@ vips_region_fetch (<em class="parameter"><code><a class="link" href="VipsRegion.
                    <em class="parameter"><code><span class="type">int</span> height</code></em>,
                    <em class="parameter"><code><span class="type">size_t</span> *len</code></em>);</pre>
 <p>Generate an area of pixels and return a copy. The result must be freed
-with <a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>. The requested area must be completely inside the image.</p>
+with <code class="function">g_free()</code>. The requested area must be completely inside the image.</p>
 <p>This is equivalent to <a class="link" href="VipsRegion.html#vips-region-prepare" title="vips_region_prepare ()"><code class="function">vips_region_prepare()</code></a>, followed by a memcpy. It is
 convenient for language bindings.</p>
 <p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>

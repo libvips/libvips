@@ -206,9 +206,9 @@ vips_conv (<em class="parameter"><code><a class="link" href="VipsImage.html" tit
 <li class="listitem"><p><em class="parameter"><code>precision</code></em>
 : <a class="link" href="libvips-basic.html#VipsPrecision" title="enum VipsPrecision"><span class="type">VipsPrecision</span></a>, calculation accuracy</p></li>
 <li class="listitem"><p><em class="parameter"><code>layers</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, number of layers for approximation</p></li>
+: <code class="literal">gint</code>, number of layers for approximation</p></li>
 <li class="listitem"><p><em class="parameter"><code>cluster</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, cluster lines closer than this distance</p></li>
+: <code class="literal">gint</code>, cluster lines closer than this distance</p></li>
 </ul></div>
 <p>Convolution. </p>
 <p>Perform a convolution of <em class="parameter"><code>in</code></em>
@@ -294,7 +294,7 @@ and use more memory. 10% of the mask radius is a good rule of thumb.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -355,7 +355,7 @@ is always <a class="link" href="VipsImage.html#VIPS-FORMAT-FLOAT:CAPS"><span cla
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -424,7 +424,7 @@ Disable the vector path with <code class="literal">--vips-novector</code> or <co
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -446,9 +446,9 @@ vips_conva (<em class="parameter"><code><a class="link" href="VipsImage.html" ti
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>layers</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, number of layers for approximation</p></li>
+: <code class="literal">gint</code>, number of layers for approximation</p></li>
 <li class="listitem"><p><em class="parameter"><code>cluster</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, cluster lines closer than this distance</p></li>
+: <code class="literal">gint</code>, cluster lines closer than this distance</p></li>
 </ul></div>
 <p>Perform an approximate integer convolution of <em class="parameter"><code>in</code></em>
  with <em class="parameter"><code>mask</code></em>
@@ -499,7 +499,7 @@ and use more memory. 10% of the mask radius is a good rule of thumb.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -565,7 +565,7 @@ rotated by 90 degrees. This is much faster for certain types of mask
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -586,7 +586,7 @@ vips_convasep (<em class="parameter"><code><a class="link" href="VipsImage.html"
                <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>layers</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, number of layers for approximation</p></li></ul></div>
+: <code class="literal">gint</code>, number of layers for approximation</p></li></ul></div>
 <p>Approximate separable integer convolution. This is a low-level operation, see 
 <a class="link" href="libvips-convolution.html#vips-convsep" title="vips_convsep ()"><code class="function">vips_convsep()</code></a> for something more convenient. </p>
 <p>The image is convolved twice: once with <em class="parameter"><code>mask</code></em>
@@ -636,7 +636,7 @@ always has the same <a class="link" href="VipsImage.html#VipsBandFormat" title="
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -658,7 +658,7 @@ vips_compass (<em class="parameter"><code><a class="link" href="VipsImage.html" 
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>times</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, how many times to rotate and convolve</p></li>
+: <code class="literal">gint</code>, how many times to rotate and convolve</p></li>
 <li class="listitem"><p><em class="parameter"><code>angle</code></em>
 : <a class="link" href="libvips-conversion.html#VipsAngle45" title="enum VipsAngle45"><span class="type">VipsAngle45</span></a>, rotate mask by this much between colvolutions</p></li>
 <li class="listitem"><p><em class="parameter"><code>combine</code></em>
@@ -666,9 +666,9 @@ vips_compass (<em class="parameter"><code><a class="link" href="VipsImage.html" 
 <li class="listitem"><p><em class="parameter"><code>precision</code></em>
 : <a class="link" href="libvips-basic.html#VipsPrecision" title="enum VipsPrecision"><span class="type">VipsPrecision</span></a>, precision for blur, default float</p></li>
 <li class="listitem"><p><em class="parameter"><code>layers</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, number of layers for approximation</p></li>
+: <code class="literal">gint</code>, number of layers for approximation</p></li>
 <li class="listitem"><p><em class="parameter"><code>cluster</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, cluster lines closer than this distance</p></li>
+: <code class="literal">gint</code>, cluster lines closer than this distance</p></li>
 </ul></div>
 <p>This convolves <em class="parameter"><code>in</code></em>
  with <em class="parameter"><code>mask</code></em>
@@ -706,7 +706,7 @@ the maximum result.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -765,7 +765,7 @@ larger to make the blur more blurry. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -905,7 +905,7 @@ resolution.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -990,7 +990,7 @@ double, in which case the output is also double.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1053,7 +1053,7 @@ range of possible values.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1095,7 +1095,7 @@ vips_sobel (<em class="parameter"><code><a class="link" href="VipsImage.html" ti
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1116,7 +1116,7 @@ vips_canny (<em class="parameter"><code><a class="link" href="VipsImage.html" ti
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>sigma</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, sigma for gaussian blur</p></li>
+: <code class="literal">gdouble</code>, sigma for gaussian blur</p></li>
 <li class="listitem"><p><em class="parameter"><code>precision</code></em>
 : <a class="link" href="libvips-basic.html#VipsPrecision" title="enum VipsPrecision"><span class="type">VipsPrecision</span></a>, calculation accuracy</p></li>
 </ul></div>
@@ -1161,7 +1161,7 @@ edges. </p>
 </tr>
 <tr>
 <td class="parameter_name"><p>...</p></td>
-<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_description"><p><code class="literal">NULL</code>-terminated list of optional named arguments</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>

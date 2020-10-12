@@ -64,7 +64,7 @@ justifications.
 <tbody>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint64"><span class="returnvalue">guint64</span></a>
+<span class="returnvalue">guint64</span>
 </td>
 <td class="function_name">
 <a class="link" href="libvips-header.html#vips-format-sizeof" title="vips_format_sizeof ()">vips_format_sizeof</a> <span class="c_punctuation">()</span>
@@ -72,7 +72,7 @@ justifications.
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint64"><span class="returnvalue">guint64</span></a>
+<span class="returnvalue">guint64</span>
 </td>
 <td class="function_name">
 <a class="link" href="libvips-header.html#vips-format-sizeof-unsafe" title="vips_format_sizeof_unsafe ()">vips_format_sizeof_unsafe</a> <span class="c_punctuation">()</span>
@@ -238,7 +238,7 @@ justifications.
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+<span class="returnvalue">gboolean</span>
 </td>
 <td class="function_name">
 <a class="link" href="libvips-header.html#vips-image-get-orientation-swap" title="vips_image_get_orientation_swap ()">vips_image_get_orientation_swap</a> <span class="c_punctuation">()</span>
@@ -285,7 +285,7 @@ justifications.
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#GType"><span class="returnvalue">GType</span></a>
+<span class="returnvalue">GType</span>
 </td>
 <td class="function_name">
 <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()">vips_image_get_typeof</a> <span class="c_punctuation">()</span>
@@ -293,7 +293,7 @@ justifications.
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+<span class="returnvalue">gboolean</span>
 </td>
 <td class="function_name">
 <a class="link" href="libvips-header.html#vips-image-remove" title="vips_image_remove ()">vips_image_remove</a> <span class="c_punctuation">()</span>
@@ -317,7 +317,7 @@ justifications.
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> **
+<span class="returnvalue">gchar</span> **
 </td>
 <td class="function_name">
 <a class="link" href="libvips-header.html#vips-image-get-fields" title="vips_image_get_fields ()">vips_image_get_fields</a> <span class="c_punctuation">()</span>
@@ -550,7 +550,7 @@ justifications.
 <p>These functions let you get at image header data (including metadata) in a
 uniform way. </p>
 <p>Use <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a> to test for the 
-existence and <a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#GType"><span class="type">GType</span></a> of a header field.</p>
+existence and <span class="type">GType</span> of a header field.</p>
 <p>You can attach arbitrary metadata to images. Metadata is copied as images
 are processed, so all images which used this image as input, directly or
 indirectly, will have this same bit of metadata attached to them. Copying
@@ -569,11 +569,11 @@ example the ICC profile for an image is known by convention as
 below) is automatically saved for you in a block of XML at the end of the
 file. When you load a VIPS image, the metadata is restored. You can use the
 <code class="literal">vipsedit</code> command-line tool to extract or replace this block of XML.</p>
-<p>VIPS metadata is based on <a href="/usr/share/gtk-doc/html/gobject/gobject-Generic-values.html#GValue-struct"><code class="literal">GValue</code></a>. See the docs for that system if you want
+<p>VIPS metadata is based on <code class="literal">GValue</code>. See the docs for that system if you want
 to do fancy stuff such as defining a new metadata type.
-VIPS defines a new <a href="/usr/share/gtk-doc/html/gobject/gobject-Generic-values.html#GValue-struct"><code class="literal">GValue</code></a> called <code class="literal">vips_save_string</code>, a variety of string,
+VIPS defines a new <code class="literal">GValue</code> called <code class="literal">vips_save_string</code>, a variety of string,
 see <a class="link" href="libvips-type.html#vips-value-set-save-string" title="vips_value_set_save_string ()"><code class="function">vips_value_set_save_string()</code></a>. 
-If your <a href="/usr/share/gtk-doc/html/gobject/gobject-Generic-values.html#GValue-struct"><code class="literal">GValue</code></a> can be transformed to <code class="literal">vips_save_string</code>, it will be 
+If your <code class="literal">GValue</code> can be transformed to <code class="literal">vips_save_string</code>, it will be 
 saved and loaded to and from VIPS files for you.</p>
 <p>VIPS provides a couple of base classes which implement
 reference-counted areas of memory. If you base your metadata on one of
@@ -583,7 +583,7 @@ these types, it can be copied between images efficiently.</p>
 <a name="libvips-header.functions_details"></a><h2>Functions</h2>
 <div class="refsect2">
 <a name="vips-format-sizeof"></a><h3>vips_format_sizeof ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint64"><span class="returnvalue">guint64</span></a>
+<pre class="programlisting"><span class="returnvalue">guint64</span>
 vips_format_sizeof (<em class="parameter"><code><a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="type">VipsBandFormat</span></a> format</code></em>);</pre>
 <div class="refsect3">
 <a name="vips-format-sizeof.parameters"></a><h4>Parameters</h4>
@@ -608,7 +608,7 @@ vips_format_sizeof (<em class="parameter"><code><a class="link" href="VipsImage.
 <hr>
 <div class="refsect2">
 <a name="vips-format-sizeof-unsafe"></a><h3>vips_format_sizeof_unsafe ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint64"><span class="returnvalue">guint64</span></a>
+<pre class="programlisting"><span class="returnvalue">guint64</span>
 vips_format_sizeof_unsafe (<em class="parameter"><code><a class="link" href="VipsImage.html#VipsBandFormat" title="enum VipsBandFormat"><span class="type">VipsBandFormat</span></a> format</code></em>);</pre>
 <p>A fast but dangerous version of <a class="link" href="libvips-header.html#vips-format-sizeof" title="vips_format_sizeof ()"><code class="function">vips_format_sizeof()</code></a>. You must have
 previously range-checked <em class="parameter"><code>format</code></em>
@@ -1182,9 +1182,9 @@ no flip) if not present or crazy.</p>
 <hr>
 <div class="refsect2">
 <a name="vips-image-get-orientation-swap"></a><h3>vips_image_get_orientation_swap ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
 vips_image_get_orientation_swap (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
-<p>Return <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if applying the orientation would swap width and height.</p>
+<p>Return <code class="literal">TRUE</code> if applying the orientation would swap width and height.</p>
 <p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
 <div class="refsect3">
 <a name="vips-image-get-orientation-swap.parameters"></a><h4>Parameters</h4>
@@ -1325,10 +1325,10 @@ fields yourself.</p>
 <pre class="programlisting"><span class="returnvalue">void</span>
 vips_image_set (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
                 <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
-                <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobject/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> *value</code></em>);</pre>
+                <em class="parameter"><code><span class="type">GValue</span> *value</code></em>);</pre>
 <p>Set a piece of metadata on <em class="parameter"><code>image</code></em>
 . Any old metadata with that name is
-destroyed. The <a href="/usr/share/gtk-doc/html/gobject/gobject-Generic-values.html#GValue-struct"><code class="literal">GValue</code></a> is copied into the image, so you need to unset the
+destroyed. The <code class="literal">GValue</code> is copied into the image, so you need to unset the
 value when you're done with it.</p>
 <p>For example, to set an integer on an image (though you would use the
 convenience function <a class="link" href="libvips-header.html#vips-image-set-int" title="vips_image_set_int ()"><code class="function">vips_image_set_int()</code></a> in practice), you would do:</p>
@@ -1377,7 +1377,7 @@ convenience function <a class="link" href="libvips-header.html#vips-image-set-in
 </tr>
 <tr>
 <td class="parameter_name"><p>value</p></td>
-<td class="parameter_description"><p>the <a href="/usr/share/gtk-doc/html/gobject/gobject-Generic-values.html#GValue-struct"><code class="literal">GValue</code></a> to copy into the image</p></td>
+<td class="parameter_description"><p>the <code class="literal">GValue</code> to copy into the image</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 </tbody>
@@ -1390,7 +1390,7 @@ convenience function <a class="link" href="libvips-header.html#vips-image-set-in
 <pre class="programlisting"><span class="returnvalue">int</span>
 vips_image_get (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
                 <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
-                <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobject/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> *value_copy</code></em>);</pre>
+                <em class="parameter"><code><span class="type">GValue</span> *value_copy</code></em>);</pre>
 <p>Fill <em class="parameter"><code>value_copy</code></em>
  with a copy of the header field. <em class="parameter"><code>value_copy</code></em>
  must be zeroed 
@@ -1467,7 +1467,7 @@ existence of a field first if you are not certain it will be there.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>value_copy</p></td>
-<td class="parameter_description"><p>the <a href="/usr/share/gtk-doc/html/gobject/gobject-Generic-values.html#GValue-struct"><code class="literal">GValue</code></a> is copied into this. </p></td>
+<td class="parameter_description"><p>the <code class="literal">GValue</code> is copied into this. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Out parameter, where caller must allocate storage."><span class="acronym">out caller-allocates</span></acronym>]</span></td>
 </tr>
 </tbody>
@@ -1491,7 +1491,7 @@ vips_image_get_as_string (<em class="parameter"><code>const <a class="link" href
  in <em class="parameter"><code>out</code></em>
 . 
 This function will read any field, returning it as a printable string.
-You need to free the string with <a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a> when you are done with it.</p>
+You need to free the string with <code class="function">g_free()</code> when you are done with it.</p>
 <p>This will base64-encode BLOBs, for example. Use <a class="link" href="libvips-buf.html#vips-buf-appendgv" title="vips_buf_appendgv ()"><code class="function">vips_buf_appendgv()</code></a> to 
 make a string that's for humans. </p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>, <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a>, <a class="link" href="libvips-buf.html#vips-buf-appendgv" title="vips_buf_appendgv ()"><code class="function">vips_buf_appendgv()</code></a>.</p>
@@ -1531,10 +1531,10 @@ make a string that's for humans. </p>
 <hr>
 <div class="refsect2">
 <a name="vips-image-get-typeof"></a><h3>vips_image_get_typeof ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#GType"><span class="returnvalue">GType</span></a>
+<pre class="programlisting"><span class="returnvalue">GType</span>
 vips_image_get_typeof (<em class="parameter"><code>const <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
                        <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
-<p>Read the <a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#GType"><code class="literal">GType</code></a> for a header field. Returns zero if there is no
+<p>Read the <code class="literal">GType</code> for a header field. Returns zero if there is no
 field of that name. </p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>.</p>
 <p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
@@ -1562,17 +1562,17 @@ field of that name. </p>
 </div>
 <div class="refsect3">
 <a name="vips-image-get-typeof.returns"></a><h4>Returns</h4>
-<p> the <a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#GType"><code class="literal">GType</code></a> of the field, or zero if there is no
+<p> the <code class="literal">GType</code> of the field, or zero if there is no
 field of that name.</p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="vips-image-remove"></a><h3>vips_image_remove ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
 vips_image_remove (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
                    <em class="parameter"><code>const <span class="type">char</span> *name</code></em>);</pre>
-<p>Find and remove an item of metadata. Return <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if no metadata of that
+<p>Find and remove an item of metadata. Return <code class="literal">FALSE</code> if no metadata of that
 name was found.</p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-set" title="vips_image_set ()"><code class="function">vips_image_set()</code></a>, <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a>.</p>
 <p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
@@ -1600,7 +1600,7 @@ name was found.</p>
 </div>
 <div class="refsect3">
 <a name="vips-image-remove.returns"></a><h4>Returns</h4>
-<p> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if an item of metadata of that name was found and removed</p>
+<p> <code class="literal">TRUE</code> if an item of metadata of that name was found and removed</p>
 </div>
 </div>
 <hr>
@@ -1609,7 +1609,7 @@ name was found.</p>
 <pre class="programlisting"><span class="returnvalue">void</span> *
 <span class="c_punctuation">(</span>*VipsImageMapFn<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>,
                    <em class="parameter"><code>const <span class="type">char</span> *name</code></em>,
-                   <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobject/gobject-Generic-values.html#GValue-struct"><span class="type">GValue</span></a> *value</code></em>,
+                   <em class="parameter"><code><span class="type">GValue</span> *value</code></em>,
                    <em class="parameter"><code><span class="type">void</span> *a</code></em>);</pre>
 </div>
 <hr>
@@ -1622,8 +1622,8 @@ vips_image_map (<em class="parameter"><code><a class="link" href="VipsImage.html
 <p>This function calls <em class="parameter"><code>fn</code></em>
  for every header field, including every item of 
 metadata. </p>
-<p>Like all _map functions, the user function should return <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to continue
-iteration, or a non-<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> pointer to indicate early termination.</p>
+<p>Like all _map functions, the user function should return <code class="literal">NULL</code> to continue
+iteration, or a non-<code class="literal">NULL</code> pointer to indicate early termination.</p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a>, <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>.</p>
 <p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
 <div class="refsect3">
@@ -1655,18 +1655,18 @@ iteration, or a non-<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.h
 </div>
 <div class="refsect3">
 <a name="vips-image-map.returns"></a><h4>Returns</h4>
-<p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on success, the failing pointer otherwise. </p>
+<p><code class="literal">NULL</code> on success, the failing pointer otherwise. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="vips-image-get-fields"></a><h3>vips_image_get_fields ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> **
+<pre class="programlisting"><span class="returnvalue">gchar</span> **
 vips_image_get_fields (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *image</code></em>);</pre>
-<p>Get a <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array listing all the metadata field names on <em class="parameter"><code>image</code></em>
+<p>Get a <code class="literal">NULL</code>-terminated array listing all the metadata field names on <em class="parameter"><code>image</code></em>
 . 
-Free the return result with <a href="/usr/share/gtk-doc/html/glib/glib-String-Utility-Functions.html#g-strfreev"><code class="function">g_strfreev()</code></a>.</p>
+Free the return result with <code class="function">g_strfreev()</code>.</p>
 <p>This is handy for language bindings. From C, it's usually more convenient to
 use <a class="link" href="libvips-header.html#vips-image-map" title="vips_image_map ()"><code class="function">vips_image_map()</code></a>.</p>
 <p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
@@ -1687,7 +1687,7 @@ use <a class="link" href="libvips-header.html#vips-image-map" title="vips_image_
 </div>
 <div class="refsect3">
 <a name="vips-image-get-fields.returns"></a><h4>Returns</h4>
-<p>metadata fields in image, as a <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated
+<p>metadata fields in image, as a <code class="literal">NULL</code>-terminated
 array. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -2269,7 +2269,7 @@ vips_image_get_image (<em class="parameter"><code>const <a class="link" href="Vi
 . 
 The field must be of type
 <span class="type">VIPS_TYPE_IMAGE</span>. You must unref <em class="parameter"><code>out</code></em>
- with <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>.</p>
+ with <code class="function">g_object_unref()</code>.</p>
 <p>Use <a class="link" href="libvips-header.html#vips-image-get-typeof" title="vips_image_get_typeof ()"><code class="function">vips_image_get_typeof()</code></a> to test for the 
 existence of a piece of metadata.</p>
 <p>See also: <a class="link" href="libvips-header.html#vips-image-get" title="vips_image_get ()"><code class="function">vips_image_get()</code></a>, <a class="link" href="libvips-header.html#vips-image-set-image" title="vips_image_set_image ()"><code class="function">vips_image_set_image()</code></a></p>

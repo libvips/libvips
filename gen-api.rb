@@ -6,7 +6,7 @@ require 'vips'
 
 if ARGV.length != 1 
     puts "usage: ./gen-api.rb vips-install-prefix"
-    uts "\teg. ./gen-api.rb ~/vips"
+    puts "\teg. ./gen-api.rb ~/vips"
     exit 1
 end
 
@@ -38,8 +38,8 @@ Dir.foreach(base) do |filename|
     end
 end
 
-puts "copying doxygen output ..."
-FileUtils.copy_entry "#{ARGV[0]}/share/doc/vips/html", "#{out_dir}/cpp"
-
-
-
+doxy_dir = "#{ARGV[0]}/share/doc/vips/html"
+if File.directory? doxy_dir
+  puts "copying doxygen output ..."
+  FileUtils.copy_entry doxy_dir, "#{out_dir}/cpp"
+end
