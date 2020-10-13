@@ -54,7 +54,7 @@ public:
 		region = vips_region_new( vimage->get_image() );
 		if ( vips_region_prepare( region, &rect ) != 0 )
 			return( false );
-		region_addr = reinterpret_cast<T*>(VIPS_REGION_ADDR_TOPLEFT( region ) );
+		region_addr = reinterpret_cast<T*>( VIPS_REGION_ADDR_TOPLEFT( region ) );
 		return( true );
 	}
 
