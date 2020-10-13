@@ -8,6 +8,8 @@
  * 	- shut down the input file as soon as we can [kleisauke]
  * 8/8/19
  * 	- add locks, since pdfium is not threadsafe in any way
+ * 13/10/20
+ * 	- have a lock just for pdfium [DarthSim]
  */
 
 /*
@@ -168,6 +170,8 @@ static void *
 vips_pdfium_init_cb( void *dummy )
 {
 	FPDF_LIBRARY_CONFIG config;
+
+	vips_pdfium_mutex = vips_g_mutex_new();
 
 	config.version = 2;
 	config.m_pUserFontPaths = NULL;
@@ -524,19 +528,9 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 	return( 0 );
 }
 
-static void *
-vips_pdfium_init_mutex( void *data )
-{
-	vips_pdfium_mutex = vips_g_mutex_new();
-	return( NULL );
-}
-
 static void
 vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 {
-	static GOnce vips_pdfium_once = G_ONCE_INIT;
-	VIPS_ONCE( &vips_pdfium_once, vips_pdfium_init_mutex, NULL );
-
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;

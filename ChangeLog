@@ -5,6 +5,7 @@
 - add VipsInterpolate and guint64 support to C++ API 
 - add VImage::new_from_memory_steal [Zeranoe]
 - vipsthumbnail supports stdin / stdout thumbnailing
+- have a lock just for pdfium [DarthSim]
 
 6/9/20 started 8.10.2
 - update magicksave/load profile handling [kelilevi]
