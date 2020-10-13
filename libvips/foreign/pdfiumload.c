@@ -128,6 +128,8 @@ static char *vips_pdfium_errors[] = {
 	"page not found or content error"
 };
 
+static GMutex *vips_pdfium_mutex = NULL;
+
 static void
 vips_pdfium_error( void )
 {
@@ -143,12 +145,12 @@ vips_pdfium_error( void )
 static void
 vips_foreign_load_pdf_close( VipsForeignLoadPdf *pdf )
 {
-	g_mutex_lock( vips__global_lock );
+	g_mutex_lock( vips_pdfium_mutex );
 
 	VIPS_FREEF( FPDF_ClosePage, pdf->page ); 
 	VIPS_FREEF( FPDF_CloseDocument, pdf->doc ); 
 
-	g_mutex_unlock( vips__global_lock );
+	g_mutex_unlock( vips_pdfium_mutex );
 }
 
 static void
@@ -217,7 +219,7 @@ vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 	if( pdf->current_page != page_no ) { 
 		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( pdf );
 
-		g_mutex_lock( vips__global_lock );
+		g_mutex_lock( vips_pdfium_mutex );
 
 		VIPS_FREEF( FPDF_ClosePage, pdf->page ); 
 		pdf->current_page = -1;
@@ -227,7 +229,7 @@ vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 #endif /*DEBUG*/
 
 		if( !(pdf->page = FPDF_LoadPage( pdf->doc, page_no )) ) {
-			g_mutex_unlock( vips__global_lock );
+			g_mutex_unlock( vips_pdfium_mutex );
 			vips_pdfium_error();
 			vips_error( class->nickname, 
 				_( "unable to load page %d" ), page_no );
@@ -235,7 +237,7 @@ vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 		}
 		pdf->current_page = page_no;
 
-		g_mutex_unlock( vips__global_lock );
+		g_mutex_unlock( vips_pdfium_mutex );
 	}
 
 	return( 0 );
@@ -285,9 +287,9 @@ vips_foreign_load_pdf_set_image( VipsForeignLoadPdf *pdf, VipsImage *out )
 		char text[1024];
 		int len;
 
-		g_mutex_lock( vips__global_lock );
+		g_mutex_lock( vips_pdfium_mutex );
 		len = FPDF_GetMetaText( pdf->doc, metadata->tag, text, 1024 );
-		g_mutex_unlock( vips__global_lock );
+		g_mutex_unlock( vips_pdfium_mutex );
 		if( len > 0 ) { 
 			char *str;
 
@@ -327,9 +329,9 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 	printf( "vips_foreign_load_pdf_header: %p\n", pdf );
 #endif /*DEBUG*/
 
-	g_mutex_lock( vips__global_lock );
+	g_mutex_lock( vips_pdfium_mutex );
 	pdf->n_pages = FPDF_GetPageCount( pdf->doc );
-	g_mutex_unlock( vips__global_lock );
+	g_mutex_unlock( vips_pdfium_mutex );
 
 	/* @n == -1 means until the end of the doc.
 	 */
@@ -448,7 +450,7 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 
 		/* 4 means RGBA.
 		 */
-		g_mutex_lock( vips__global_lock );
+		g_mutex_lock( vips_pdfium_mutex );
 
 		bitmap = FPDFBitmap_CreateEx( rect.width, rect.height, 4, 
 			VIPS_REGION_ADDR( or, rect.left, rect.top ), 
@@ -460,7 +462,7 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 
 		FPDFBitmap_Destroy( bitmap ); 
 
-		g_mutex_unlock( vips__global_lock );
+		g_mutex_unlock( vips_pdfium_mutex );
 
 		top += rect.height;
 		i += 1;
@@ -522,9 +524,19 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 	return( 0 );
 }
 
+static void *
+vips_pdfium_init_mutex( void *data )
+{
+	vips_pdfium_mutex = vips_g_mutex_new();
+	return( NULL );
+}
+
 static void
 vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 {
+	static GOnce vips_pdfium_once = G_ONCE_INIT;
+	VIPS_ONCE( &vips_pdfium_once, vips_pdfium_init_mutex, NULL );
+
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
@@ -609,17 +621,17 @@ vips_foreign_load_pdf_file_header( VipsForeignLoad *load )
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) load;
 	VipsForeignLoadPdfFile *file = (VipsForeignLoadPdfFile *) load;
 
-	g_mutex_lock( vips__global_lock );
+	g_mutex_lock( vips_pdfium_mutex );
 
 	if( !(pdf->doc = FPDF_LoadDocument( file->filename, NULL )) ) { 
-		g_mutex_unlock( vips__global_lock );
+		g_mutex_unlock( vips_pdfium_mutex );
 		vips_pdfium_error();
 		vips_error( "pdfload", 
 			_( "unable to load \"%s\"" ), file->filename ); 
 		return( -1 ); 
 	}
 
-	g_mutex_unlock( vips__global_lock );
+	g_mutex_unlock( vips_pdfium_mutex );
 
 	VIPS_SETSTR( load->out->filename, file->filename );
 
@@ -685,18 +697,18 @@ vips_foreign_load_pdf_buffer_header( VipsForeignLoad *load )
 	VipsForeignLoadPdfBuffer *buffer = 
 		(VipsForeignLoadPdfBuffer *) load;
 
-	g_mutex_lock( vips__global_lock );
+	g_mutex_lock( vips_pdfium_mutex );
 
 	if( !(pdf->doc = FPDF_LoadMemDocument( buffer->buf->data, 
 		buffer->buf->length, NULL )) ) { 
-		g_mutex_unlock( vips__global_lock );
+		g_mutex_unlock( vips_pdfium_mutex );
 		vips_pdfium_error();
 		vips_error( "pdfload", 
 			"%s", _( "unable to load from buffer" ) );
 		return( -1 ); 
 	}
 
-	g_mutex_unlock( vips__global_lock );
+	g_mutex_unlock( vips_pdfium_mutex );
 
 	return( vips_foreign_load_pdf_header( load ) );
 }
