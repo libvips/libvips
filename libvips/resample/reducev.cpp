@@ -104,7 +104,7 @@ typedef struct _VipsReducev {
 	VipsResample parent_instance;
 
 	double vshrink;		/* Shrink factor */
-	double Ysize;		/* Image height as double-precision */
+	double ysize;		/* Image source height as double-precision */
 
 	/* The thing we use to make the kernel.
 	 */
@@ -773,7 +773,7 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in, VipsImage **out )
 	 * example, vipsthumbnail knows the true reduce factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	(*out)->Ysize = VIPS_ROUND_UINT( reducev->Ysize / reducev->vshrink );
+	(*out)->Ysize = VIPS_ROUND_UINT( reducev->ysize / reducev->vshrink );
 	if( (*out)->Ysize <= 0 ) { 
 		vips_error( object_class->nickname, 
 			"%s", _( "image has shrunk to nothing" ) );
@@ -814,7 +814,7 @@ vips_reducev_build( VipsObject *object )
 	in = resample->in;
 
 	if( !vips_object_argument_isset( object, "ysize" ) )
-		reducev->Ysize = (double) in->Ysize;
+		reducev->ysize = (double) in->Ysize;
 
 	if( reducev->vshrink < 1 ) { 
 		vips_error( object_class->nickname, 
@@ -837,12 +837,12 @@ vips_reducev_build( VipsObject *object )
 	/* Output size. We need to always round to nearest, so round(), not
 	 * rint().
 	 */
-	height = VIPS_ROUND_UINT( reducev->Ysize / reducev->vshrink );
+	height = VIPS_ROUND_UINT( reducev->ysize / reducev->vshrink );
 
 	/* How many pixels we are inventing in the input, -ve for
 	 * discarding.
 	 */
-	extra_pixels = height * reducev->vshrink - reducev->Ysize;
+	extra_pixels = height * reducev->vshrink - reducev->ysize;
 
 	/* If we are rounding down, we are not using some input
 	 * pixels. We need to move the origin *inside* the input image
@@ -961,9 +961,9 @@ vips_reducev_class_init( VipsReducevClass *reducev_class )
 
 	VIPS_ARG_DOUBLE( reducev_class, "ysize", 5, 
 		_( "Ysize" ), 
-		_( "Image height as double-precision" ),
+		_( "Image source height as double-precision" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsReducev, Ysize ),
+		G_STRUCT_OFFSET( VipsReducev, ysize ),
 		1, VIPS_MAX_COORD, 1 );
 
 	/* Old name.
