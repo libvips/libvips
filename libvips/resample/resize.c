@@ -141,6 +141,8 @@ vips_resize_build( VipsObject *object )
 	double vscale;
 	int int_hshrink;
 	int int_vshrink;
+	int target_width;
+	int target_height;
 
 	if( VIPS_OBJECT_CLASS( vips_resize_parent_class )->build( object ) )
 		return( -1 );
@@ -155,10 +157,15 @@ vips_resize_build( VipsObject *object )
 	else
 		vscale = resize->scale;
 
-	/* The int part of our scale. Leave the final 200 - 300% to reduce.
+	target_width = VIPS_ROUND_UINT( in->Xsize * hscale );
+	target_height = VIPS_ROUND_UINT( in->Ysize * vscale );
+
+	/* The int part of our scale. Leave the final 200% to reduce.
 	 */
-	int_hshrink = VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (hscale * 2) ) );
-	int_vshrink = VIPS_MAX( 1, VIPS_FLOOR( 1.0 / (vscale * 2) ) );
+	int_hshrink = VIPS_MAX( 1, 
+		VIPS_FLOOR( (double) in->Xsize / target_width / 2 ) );
+	int_vshrink = VIPS_MAX( 1, 
+		VIPS_FLOOR( (double) in->Ysize / target_height / 2 ) );
 
 	/* Unpack for processing.
 	 */
