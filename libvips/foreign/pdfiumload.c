@@ -202,8 +202,6 @@ vips_pdfium_init_cb( void *dummy )
 {
 	FPDF_LIBRARY_CONFIG config;
 
-	vips_pdfium_mutex = vips_g_mutex_new();
-
 	config.version = 2;
 	config.m_pUserFontPaths = NULL;
 	config.m_pIsolate = NULL;
@@ -448,7 +446,6 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) a;
-	VipsForeignLoad *load = (VipsForeignLoad *) pdf;
 	VipsRect *r = &or->valid;
 
 	int top;
@@ -505,7 +502,7 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 
 	/* PDFium writes BRGA, we must swap.
 	 *
-	 * FIXME ... this is a bit slow.
+	 * FIXME ... this is slow.
 	 */
 	for( y = 0; y < r->height; y++ ) {
 		VipsPel *p;
@@ -559,12 +556,27 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 	return( 0 );
 }
 
+static void *
+vips_foreign_load_pdf_once_init( void *client )
+{
+	/* We must make the mutex on class init (not _build) since we
+	 * can lock ebven if build is not called.
+	 */
+	vips_pdfium_mutex = vips_g_mutex_new();
+
+	return( NULL );
+}
+
 static void
 vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 {
+	static GOnce once = G_ONCE_INIT;
+
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	VIPS_ONCE( &once, vips_foreign_load_pdf_once_init, NULL );
 
 	gobject_class->dispose = vips_foreign_load_pdf_dispose;
 	gobject_class->set_property = vips_object_set_property;
