@@ -913,18 +913,20 @@ fi
 AC_ARG_WITH([pdfium],
   AS_HELP_STRING([--without-pdfium], [build without pdfium (default: test)]))
 
+# pick 4200 as the starting version number ... no reason, really, it'd
+# probably work with much older versions
 if test x"$with_pdfium" != x"no"; then
-  FIND_PDFIUM([
-     if test x"$with_poppler" != x"no"; then
-       AC_MSG_WARN([PDFium found, disabling poppler])
-       with_poppler=no
-     fi
-     EXTRA_LIBS_USED="$EXTRA_LIBS_USED $PDFIUM_LIBS"
-     with_pdfium=yes
-    ],[
-     with_pdfium=no
-    ]
-  )
+  PKG_CHECK_MODULES(PDFIUM, pdfium >= 4200, [
+    AC_DEFINE(HAVE_PDFIUM,1,[define if you have pdfium > 4200.])
+    if test x"$with_poppler" != x"no"; then
+      AC_MSG_WARN([PDFium found, disabling poppler])
+      with_poppler=no
+    fi
+    with_pdfium=yes
+    PACKAGES_USED="$PACKAGES_USED pdfium"
+  ], [
+    with_pdfium=no
+  ])
 fi
 
 # poppler
@@ -932,15 +934,14 @@ AC_ARG_WITH([poppler],
   AS_HELP_STRING([--without-poppler], [build without poppler (default: test)]))
 
 if test x"$with_poppler" != x"no"; then
-  PKG_CHECK_MODULES(POPPLER, [poppler-glib >= 0.16.0 cairo >= 1.2],
-    [AC_DEFINE(HAVE_POPPLER,1,[define if you have poppler-glib >= 0.16.0 and cairo >= 1.2 installed.])
-     with_poppler=yes
-     PACKAGES_USED="$PACKAGES_USED poppler-glib cairo"
-    ],
-    [AC_MSG_WARN([poppler-glib >= 0.16.0 or cairo >= 1.2 not found; disabling PDF load via poppler])
-     with_poppler=no
-    ]
-  )
+  PKG_CHECK_MODULES(POPPLER, [poppler-glib >= 0.16.0 cairo >= 1.2], [
+    AC_DEFINE(HAVE_POPPLER,1,[define if you have poppler-glib >= 0.16.0 and cairo >= 1.2 installed.])
+    with_poppler=yes
+    PACKAGES_USED="$PACKAGES_USED poppler-glib cairo"
+  ], [
+    AC_MSG_WARN([poppler-glib >= 0.16.0 or cairo >= 1.2 not found; disabling PDF load via poppler])
+    with_poppler=no
+  ])
 fi
 
 # librsvg
@@ -949,15 +950,14 @@ AC_ARG_WITH([rsvg],
 
 # 2.40.3 so we get the UNLIMITED open flag
 if test x"$with_rsvg" != x"no"; then
-  PKG_CHECK_MODULES(RSVG, [librsvg-2.0 >= 2.40.3 cairo >= 1.2],
-    [AC_DEFINE(HAVE_RSVG,1,[define if you have librsvg-2.0 >= 2.40.3 and cairo >= 1.2 installed.])
-     with_rsvg=yes
-     PACKAGES_USED="$PACKAGES_USED librsvg-2.0 cairo"
-    ],
-    [AC_MSG_WARN([librsvg-2.0 >= 2.40.3 or cairo >= 1.2 not found; disabling SVG load via rsvg])
-     with_rsvg=no
-    ]
-  )
+  PKG_CHECK_MODULES(RSVG, [librsvg-2.0 >= 2.40.3 cairo >= 1.2], [
+    AC_DEFINE(HAVE_RSVG,1,[define if you have librsvg-2.0 >= 2.40.3 and cairo >= 1.2 installed.])
+    with_rsvg=yes
+    PACKAGES_USED="$PACKAGES_USED librsvg-2.0 cairo"
+  ], [
+    AC_MSG_WARN([librsvg-2.0 >= 2.40.3 or cairo >= 1.2 not found; disabling SVG load via rsvg])
+    with_rsvg=no
+  ])
 fi
 
 # zlib
@@ -1286,8 +1286,7 @@ if test x"$LIB_FUZZING_ENGINE" = x; then
 fi
 
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS
-VIPS_CFLAGS="$VIPS_CFLAGS $GTHREAD_CFLAGS $GIO_CFLAGS $REQUIRED_CFLAGS $EXPAT_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $JPEG_CFLAGS $SPNG_CFLAGS $PNG_CFLAGS $IMAGEQUANT_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $LIBWEBPMUX_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $PDFIUM_INCLUDES $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS $HEIF_CFLAGS"
-VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
+VIPS_CFLAGS="$VIPS_CFLAGS $GTHREAD_CFLAGS $GIO_CFLAGS $REQUIRED_CFLAGS $EXPAT_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $JPEG_CFLAGS $SPNG_CFLAGS $PNG_CFLAGS $IMAGEQUANT_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $LIBWEBPMUX_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $PDFIUM_CFLAGS $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS $HEIF_CFLAGS" VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
 VIPS_INCLUDES="$ZLIB_INCLUDES $PNG_INCLUDES $TIFF_INCLUDES $JPEG_INCLUDES $NIFTI_INCLUDES" 
 VIPS_LIBS="$ZLIB_LIBS $HEIF_LIBS $MAGICK_LIBS $SPNG_LIBS $PNG_LIBS $IMAGEQUANT_LIBS $TIFF_LIBS $JPEG_LIBS $GTHREAD_LIBS $GIO_LIBS $REQUIRED_LIBS $EXPAT_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $GIFLIB_LIBS $RSVG_LIBS $NIFTI_LIBS $PDFIUM_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $LIBWEBPMUX_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
 

@@ -7,6 +7,7 @@
 - vipsthumbnail supports stdin / stdout thumbnailing
 - have a lock just for pdfium [DarthSim]
 - better GraphicsMagick image write [bfriesen]
+- get pdfium load building again [Projkt-James]
 
 6/9/20 started 8.10.2
 - update magicksave/load profile handling [kelilevi]

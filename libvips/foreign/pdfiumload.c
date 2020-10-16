@@ -39,6 +39,37 @@
 
  */
 
+/* How to build against PDFium:
+ *
+ * Download the prebuilt binary from: 
+ *
+ * 	https://github.com/bblanchon/pdfium-binaries
+ *
+ * Untar to the libvips install prefix, for example:
+ *
+ * 	cd ~/vips
+ * 	tar xf ~/pdfium-linux.tgz
+ *
+ * Create a pdfium.pc like this (update the version number):
+ *
+
+VIPSHOME=/home/john/vips
+cat > $VIPSHOME/lib/pkgconfig/pdfium.pc << EOF
+     prefix=$VIPSHOME
+     exec_prefix=\${prefix}
+     libdir=\${exec_prefix}/lib
+     includedir=\${prefix}/include
+     Name: pdfium
+     Description: pdfium
+     Version: 4290
+     Requires:
+     Libs: -L\${libdir} -lpdfium
+     Cflags: -I\${includedir}
+EOF
+
+ * 
+ */
+
 /* TODO 
  *
  * - needs the reopen-after-minimise system that pdfload has, but we'll need
@@ -95,8 +126,8 @@ typedef struct _VipsForeignLoadPdf {
 	 */
 	VipsArrayDouble *background;
 
-	FPDF_DOCUMENT *doc;
-	FPDF_PAGE *page;
+	FPDF_DOCUMENT doc;
+	FPDF_PAGE page;
 	int current_page;
 
 	/* Doc has this many pages. 
