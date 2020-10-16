@@ -2174,7 +2174,7 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_rad_target_get_type(); 
 #endif /*HAVE_RADIANCE*/
 
-#if defined(HAVE_POPPLER)
+#ifdef HAVE_POPPLER
 	vips_foreign_load_pdf_file_get_type(); 
 	vips_foreign_load_pdf_buffer_get_type(); 
 	vips_foreign_load_pdf_source_get_type(); 
@@ -2183,6 +2183,7 @@ vips_foreign_operation_init( void )
 #ifdef HAVE_PDFIUM
 	vips_foreign_load_pdf_file_get_type(); 
 	vips_foreign_load_pdf_buffer_get_type(); 
+	vips_foreign_load_pdf_source_get_type(); 
 #endif /*HAVE_PDFIUM*/
 
 #ifdef HAVE_RSVG

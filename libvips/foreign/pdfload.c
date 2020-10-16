@@ -220,8 +220,7 @@ vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 		printf( "vips_foreign_load_pdf_get_page: %d\n", page_no );
 #endif /*DEBUG*/
 
-		if( !(pdf->page = poppler_document_get_page( pdf->doc, 
-			page_no )) ) {
+		if( !(pdf->page = poppler_document_get_page( pdf->doc, page_no )) ) {
 			vips_error( class->nickname, 
 				_( "unable to load page %d" ), page_no );
 			return( -1 ); 
