@@ -43,7 +43,6 @@
 
 /* TODO 
  *
- * - speed up BRGA -> RGBA conversion
  * - what about filename encodings?
  * - need to test on Windows
  */
@@ -569,19 +568,25 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		i += 1;
 	}
 
-	/* PDFium writes BRGA, we must swap.
-	 *
-	 * FIXME ... this is slow, try using vips__cairo2rgba()? Do we need to
-	 * unpremultiply as well?
+	/* PDFium writes BGRA, we must swap.
 	 */
 	for( y = 0; y < r->height; y++ ) {
-		VipsPel *p;
+		guint32 * restrict p = 
+			(guint32 *) VIPS_REGION_ADDR( or, r->left, r->top + y );
+
 		int x;
 
-		p = VIPS_REGION_ADDR( or, r->left, r->top + y );
 		for( x = 0; x < r->width; x++ ) { 
-			VIPS_SWAP( VipsPel, p[0], p[2] );
-			p += 4;
+			guint32 bgra = GUINT32_FROM_BE( p[x] );
+
+			guint rgba;
+
+			rgba = 
+				(bgra & 0x00ff00ff) |
+			        (bgra & 0x0000ff00) << 16 |
+			        (bgra & 0xff000000) >> 16;
+
+			p[x] = GUINT32_TO_BE( rgba );
 		}
 	}
 
