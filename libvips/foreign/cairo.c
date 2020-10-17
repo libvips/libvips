@@ -35,17 +35,17 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-/* Convert from Cairo's BGRA to RGBA and undo premultiplication. 
+/* Convert from Cairo-style premultiplied BGRA to RGBA.
  *
  * See also openslide's argb2rgba().
  */
 void
-vips__cairo2rgba( guint32 * restrict buf, int n )
+vips__premultiplied_bgra2rgba( guint32 * restrict p, int n )
 {
-	int i;
+	int x;
 
-	for( i = 0; i < n; i++ ) {
-		guint32 bgra = GUINT32_FROM_BE( buf[i] );
+	for( x = 0; x < n; x++ ) {
+		guint32 bgra = GUINT32_FROM_BE( p[x] );
 		guint8 a = bgra & 0xff;
 
                 guint32 rgba;
@@ -65,6 +65,29 @@ vips__cairo2rgba( guint32 * restrict buf, int n )
                                 ((255 * ((bgra >> 24) & 0xff) / a) << 8) |
                                 a;
 
-                buf[i] = GUINT32_TO_BE( rgba );
+                p[x] = GUINT32_TO_BE( rgba );
 	}
+}
+
+/* Convert from PDFium-style BGRA to RGBA.
+ */
+void
+vips__bgra2rgba( guint32 * restrict p, int n )
+{
+        int x;
+
+        for( x = 0; x < n; x++ ) { 
+                guint32 bgra = GUINT32_FROM_BE( p[x] );
+
+                guint rgba;
+
+                /* Leave G and A, swap R and B.
+                 */
+                rgba = 
+                        (bgra & 0x00ff00ff) |
+                        (bgra & 0x0000ff00) << 16 |
+                        (bgra & 0xff000000) >> 16;
+
+                p[x] = GUINT32_TO_BE( rgba );
+        }
 }

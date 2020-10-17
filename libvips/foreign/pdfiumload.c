@@ -570,25 +570,10 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 
 	/* PDFium writes BGRA, we must swap.
 	 */
-	for( y = 0; y < r->height; y++ ) {
-		guint32 * restrict p = 
-			(guint32 *) VIPS_REGION_ADDR( or, r->left, r->top + y );
-
-		int x;
-
-		for( x = 0; x < r->width; x++ ) { 
-			guint32 bgra = GUINT32_FROM_BE( p[x] );
-
-			guint rgba;
-
-			rgba = 
-				(bgra & 0x00ff00ff) |
-			        (bgra & 0x0000ff00) << 16 |
-			        (bgra & 0xff000000) >> 16;
-
-			p[x] = GUINT32_TO_BE( rgba );
-		}
-	}
+	for( y = 0; y < r->height; y++ )
+		vips__bgra2rgba( 
+			(guint32 *) VIPS_REGION_ADDR( or, r->left, r->top + y ),
+			r->width );
 
 	return( 0 ); 
 }
