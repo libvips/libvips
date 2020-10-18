@@ -271,7 +271,7 @@ static const char *heif_magic[] = {
  *
  *	enum heif_filetype_result result = heif_check_filetype( buf, 12 );
  *
- * but it's very conservative and seems to be missing some of the Nokia hief
+ * but it's very conservative and seems to be missing some of the Nokia heif
  * types.
  */
 static int
@@ -282,7 +282,10 @@ vips_foreign_load_heif_is_a( const char *buf, int len )
 
 		int i;
 
-		if( chunk_len > 32 || 
+                /* We've seen real files with 36 here, so 64 should be
+                 * plenty.
+                 */
+		if( chunk_len > 64 || 
 			chunk_len % 4 != 0 )
 			return( 0 );
 
