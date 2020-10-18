@@ -68,11 +68,32 @@
 #include <vips/debug.h>
 #include <vips/internal.h>
 
-#ifdef HAVE_HEIF_DECODER
+/* These are shared with the encoder.
+ */
+#if defined(HAVE_HEIF_DECODER) || defined(HAVE_HEIF_ENCODER)
 
 #include <libheif/heif.h>
 
 #include "pforeign.h"
+
+void
+vips__heif_error( struct heif_error *error )
+{
+	if( error->code ) 
+		vips_error( "heif", "%s (%d.%d)", error->message, error->code,
+			error->subcode );
+}
+
+const char *vips__heif_suffs[] = { 
+	".heic",
+	".heif",
+	".avif",
+	NULL 
+};
+
+#endif /*defined(DECODE) || defined(ENCODE)*/
+
+#ifdef HAVE_HEIF_DECODER
 
 #define VIPS_TYPE_FOREIGN_LOAD_HEIF (vips_foreign_load_heif_get_type())
 #define VIPS_FOREIGN_LOAD_HEIF( obj ) \
@@ -200,14 +221,6 @@ vips_foreign_load_heif_dispose( GObject *gobject )
 		dispose( gobject );
 }
 
-void
-vips__heif_error( struct heif_error *error )
-{
-	if( error->code ) 
-		vips_error( "heif", "%s (%d.%d)", error->message, error->code,
-			error->subcode );
-}
-
 static int
 vips_foreign_load_heif_build( VipsObject *object )
 {
@@ -258,7 +271,7 @@ static const char *heif_magic[] = {
  *
  *	enum heif_filetype_result result = heif_check_filetype( buf, 12 );
  *
- * but it's very conservative and seems to be missing some of the Nokia hief
+ * but it's very conservative and seems to be missing some of the Nokia heif
  * types.
  */
 static int
@@ -269,7 +282,10 @@ vips_foreign_load_heif_is_a( const char *buf, int len )
 
 		int i;
 
-		if( chunk_len > 32 || 
+                /* We've seen real files with 36 here, so 64 should be
+                 * plenty.
+                 */
+		if( chunk_len > 64 || 
 			chunk_len % 4 != 0 )
 			return( 0 );
 
@@ -1078,13 +1094,6 @@ vips_foreign_load_heif_file_is_a( const char *filename )
 
 	return( vips_foreign_load_heif_is_a( buf, 12 ) );
 }
-
-const char *vips__heif_suffs[] = { 
-	".heic",
-	".heif",
-	".avif",
-	NULL 
-};
 
 static void
 vips_foreign_load_heif_file_class_init( VipsForeignLoadHeifFileClass *class )

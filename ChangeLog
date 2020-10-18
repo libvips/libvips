@@ -10,6 +10,9 @@
 - get pdfium load building again [Projkt-James]
 - add _source load support for pdfium
 
+18/10/20 started 8.10.3
+- relax heic is_a rules [hisham]
+
 6/9/20 started 8.10.2
 - update magicksave/load profile handling [kelilevi]
 - better demand hint rules [kaas3000]
@@ -26,6 +29,7 @@
 - improve seek behaviour on pipes
 - add "speed" param to heifsave [lovell]
 - fix regression in C path for dilate / erode [kleisauke]
+- fix build with libheif save but no load [estepnv]
 
 9/8/20 started 8.10.1
 - fix markdown -> xml conversion in doc generation
