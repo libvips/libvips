@@ -511,8 +511,12 @@ reducev_notab( VipsReducev *reducev,
 
 	vips_reduce_make_mask( cy, reducev->kernel, reducev->vshrink, y ); 
 
-	for( int z = 0; z < ne; z++ ) 
-		out[z] = reduce_sum<T, double>( in + z, l1, cy, n );
+	for( int z = 0; z < ne; z++ ) {
+		double sum;
+		sum = reduce_sum<T, double>( in + z, l1, cy, n );
+
+		out[z] = VIPS_ROUND_UINT( sum );
+	}
 }
 
 static int
