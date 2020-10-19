@@ -480,7 +480,7 @@ vips_reduceh_build( VipsObject *object )
 	 * by half that distance so that we discard pixels equally
 	 * from left and right. 
 	 */
-	reduceh->hoffset = (1 + extra_pixels) / 2.0;
+	reduceh->hoffset = (1 + extra_pixels) / 2.0 - 1;
 
 	/* Build the tables of pre-computed coefficients.
 	 */
@@ -518,7 +518,7 @@ vips_reduceh_build( VipsObject *object )
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
 	if( vips_embed( in, &t[1], 
-		reduceh->n_point / 2 - 1, 0, 
+		VIPS_CEIL( reduceh->n_point / 2.0 ) - 1, 0, 
 		in->Xsize + reduceh->n_point, in->Ysize,
 		"extend", VIPS_EXTEND_COPY,
 		(void *) NULL ) )
