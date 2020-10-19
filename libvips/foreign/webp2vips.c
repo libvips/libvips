@@ -81,6 +81,7 @@
 /* What we track during a read.
  */
 typedef struct {
+	VipsImage *out;
 	VipsSource *source;
 
 	/* The data we load, as a webp object.
@@ -340,14 +341,21 @@ read_free( Read *read )
 	return( 0 );
 }
 
+static void
+read_close_cb( VipsImage *image, Read *read )
+{
+	read_free( read );
+}
+
 static Read *
-read_new( VipsSource *source, int page, int n, double scale )
+read_new( VipsImage *out, VipsSource *source, int page, int n, double scale )
 {
 	Read *read;
 
 	if( !(read = VIPS_NEW( NULL, Read )) )
 		return( NULL );
 
+	read->out = out;
 	read->source = source;
 	g_object_ref( source );
 	read->page = page;
@@ -359,15 +367,19 @@ read_new( VipsSource *source, int page, int n, double scale )
 	read->dispose_method = WEBP_MUX_DISPOSE_NONE;
 	read->frame_no = 0;
 
+	/* Everything has to stay open until read has finished, unfortunately,
+	 * since webp relies on us mapping the whole file.
+	 */
+	g_signal_connect( out, "close", 
+		G_CALLBACK( read_close_cb ), read ); 
+
 	WebPInitDecoderConfig( &read->config );
 	read->config.options.use_threads = 1;
 	read->config.output.is_external_memory = 1;
 
 	if( !(read->data.bytes = 
-		vips_source_map( source, &read->data.size )) ) {
-		read_free( read );
+		vips_source_map( source, &read->data.size )) ) 
 		return( NULL );
-	}
 
 	return( read );
 }
@@ -774,15 +786,9 @@ vips__webp_read_header_source( VipsSource *source, VipsImage *out,
 {
 	Read *read;
 
-	if( !(read = read_new( source, page, n, scale )) ) 
+	if( !(read = read_new( out, source, page, n, scale )) || 
+		read_header( read, out ) )
 		return( -1 );
-
-	if( read_header( read, out ) ) {
-		read_free( read );
-		return( -1 );
-	}
-
-	read_free( read );
 
 	return( 0 );
 }
@@ -793,15 +799,9 @@ vips__webp_read_source( VipsSource *source, VipsImage *out,
 {
 	Read *read;
 
-	if( !(read = read_new( source, page, n, scale )) ) 
+	if( !(read = read_new( out, source, page, n, scale )) || 
+		read_image( read, out ) )
 		return( -1 );
-
-	if( read_image( read, out ) ) {
-		read_free( read );
-		return( -1 );
-	}
-
-	read_free( read );
 
 	return( 0 );
 }

@@ -12,6 +12,7 @@
 
 18/10/20 started 8.10.3
 - relax heic is_a rules [hisham]
+- fix vips7 webp load [barryspearce]
 
 6/9/20 started 8.10.2
 - update magicksave/load profile handling [kelilevi]
