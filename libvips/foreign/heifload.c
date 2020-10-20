@@ -465,7 +465,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		char name[256];
 
 #ifdef DEBUG
-		printf( "metadata type = %s, length = %zd\n", type, length ); 
+		printf( "metadata type = %s, length = %zu\n", type, length ); 
 #endif /*DEBUG*/
 
 		if( !(data = VIPS_ARRAY( out, length, unsigned char )) )
@@ -480,7 +480,8 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		/* We need to skip the first four bytes of EXIF, they just
 		 * contain the offset.
 		 */
-		if( g_ascii_strcasecmp( type, "exif" ) == 0 ) {
+		if( length > 4 &&
+			g_ascii_strcasecmp( type, "exif" ) == 0 ) {
 			data += 4;
 			length -= 4;
 		}
@@ -493,6 +494,7 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		if( g_ascii_strcasecmp( type, "exif" ) == 0 )
 			vips_snprintf( name, 256, VIPS_META_EXIF_NAME );
 		else if( g_ascii_strcasecmp( type, "mime" ) == 0 &&
+			length > 10 &&
 			vips_isprefix( "<x:xmpmeta", (const char *) data ) ) 
 			vips_snprintf( name, 256, VIPS_META_XMP_NAME );
 		else
