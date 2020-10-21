@@ -38,56 +38,52 @@ template <typename T>
 class VRegion : public VObject
 {
 public:
-	VRegion( VImage &vimage ) :
-		vimage{ &vimage }
+	/**
+	 * Wrap a VRegion around an underlying VipsRegion object.
+	 */
+	VRegion( VipsRegion *region, VSteal steal = STEAL ) : 
+		VObject( (VipsObject *) region, steal )
 	{
 	}
 
 	bool
-	load( int left, int top, int width, int height )
+	prepare( const VipsRect *rect )
+	{
+		if ( vips_region_prepare( (VipsRegion *) this, rect ) != 0 )
+			return( false );
+		return( true );
+	}
+
+	bool
+	prepare( int left, int top, int width, int height )
 	{
 		VipsRect rect;
 		rect.left = left;
 		rect.top = top;
 		rect.width = width;
 		rect.height = height;
-		region = vips_region_new( vimage->get_image() );
-		if ( vips_region_prepare( region, &rect ) != 0 )
-			return( false );
-		region_addr = reinterpret_cast<T*>( VIPS_REGION_ADDR_TOPLEFT( region ) );
-		return( true );
+		return( prepare( &rect ) );
 	}
 
 	T
 	operator[]( size_t index ) const
 	{
-		return( region_addr[index] );
+		return( (T*) VIPS_REGION_ADDR_TOPLEFT( (VipsRegion *) this )[index] );
 	}
 
 	std::vector<T>
 	operator()( int x, int y ) const
 	{
-		return( std::vector<T>( VIPS_REGION_ADDR( region, x, y ),
-			VIPS_REGION_ADDR( region, x, y ) + vimage->bands() ) );
+		return( std::vector<T>( VIPS_REGION_ADDR( (VipsRegion *) this, x, y ),
+			VIPS_REGION_ADDR( (VipsRegion *) this, x, y ) +
+				vips_image_get_bands( ( (VipsRegion *) this )->im ) ) );
 	}
 
 	VipsRect
 	valid() const
 	{
-		return( region->valid );
+		return( ( (VipsRegion *) this )->valid );
 	}
-
-	VImage*
-	get_vimage() const
-	{
-		return( vimage );
-	}
-
-private:
-	VImage *vimage;
-	VipsRegion *region;
-	T *region_addr;
-
 };
 
 VIPS_NAMESPACE_END
