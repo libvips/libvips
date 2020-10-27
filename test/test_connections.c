@@ -10,7 +10,7 @@
 
 typedef struct _MyInput {
 	const char *filename; 
-	const unsigned char *contents; 
+	unsigned char *contents; 
 	size_t length;
 	size_t read_position;
 } MyInput;
@@ -106,7 +106,7 @@ main( int argc, char **argv )
 	VipsTargetCustom *target_custom;
 	VipsImage *image;
 
-	if( VIPS_INIT( NULL ) )
+	if( VIPS_INIT( argv[0] ) )
 		return( -1 );
 
 	if( argc != 3 ) 
@@ -153,6 +153,7 @@ main( int argc, char **argv )
 	VIPS_UNREF( image );
 	VIPS_UNREF( source_custom );
 	VIPS_UNREF( target_custom );
+	g_free( my_input.contents );
 
 	return( 0 );
 }
