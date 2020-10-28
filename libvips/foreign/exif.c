@@ -158,9 +158,17 @@ show_values( ExifData *data )
  * their default value and we won't know about it. 
  */
 static ExifData *
-vips_exif_load_data_without_fix( const void *data, int length )
+vips_exif_load_data_without_fix( const void *data, size_t length )
 {
 	ExifData *ed;
+
+	/* exif_data_load_data() only allows uint for length. Limit it to less
+	 * than that: 2**20 should be enough for anyone.
+	 */
+	if( length > 1 << 20 ) {
+		vips_error( "exif", "%s", _( "exif too large" ) ); 
+		return( NULL );
+	}
 
 	if( !(ed = exif_data_new()) ) {
 		vips_error( "exif", "%s", _( "unable to init exif" ) ); 

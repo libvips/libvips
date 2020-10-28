@@ -220,8 +220,7 @@ vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 		printf( "vips_foreign_load_pdf_get_page: %d\n", page_no );
 #endif /*DEBUG*/
 
-		if( !(pdf->page = poppler_document_get_page( pdf->doc, 
-			page_no )) ) {
+		if( !(pdf->page = poppler_document_get_page( pdf->doc, page_no )) ) {
 			vips_error( class->nickname, 
 				_( "unable to load page %d" ), page_no );
 			return( -1 ); 
@@ -368,7 +367,7 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 	/* Convert the background to the image format. 
 	 *
 	 * FIXME ... we probably should convert this to pre-multiplied BGRA
-	 * to match the Cairo convention. See vips__cairo2rgba().
+	 * to match the Cairo convention. See vips__premultiplied_bgra2rgba().
 	 */
 	if( !(pdf->ink = vips__vector_to_ink( class->nickname, 
 		load->out, 
@@ -453,7 +452,7 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 	/* Cairo makes pre-multipled BRGA, we must byteswap and unpremultiply.
 	 */
 	for( y = 0; y < r->height; y++ ) 
-		vips__cairo2rgba( 
+		vips__premultiplied_bgra2rgba( 
 			(guint32 *) VIPS_REGION_ADDR( or, r->left, r->top + y ),
 			r->width ); 
 

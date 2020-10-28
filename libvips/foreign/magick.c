@@ -4,6 +4,8 @@
  *
  * 24/7/18
  * 	- add the sniffer
+ * 16/10/20 [bfriesen]
+ * 	- set matte and depth appropriately for GM in magick_import_pixels()
  */
 
 /*
@@ -319,6 +321,7 @@ magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
 		type, pixels ) );
 #else /*!HAVE_IMPORTIMAGEPIXELS*/
 	Image *constitute_image;
+	unsigned int storage_type_depth;
 
 	g_assert( image );
 	g_assert( image->signature == MagickSignature );
@@ -328,7 +331,43 @@ magick_import_pixels( Image *image, const ssize_t x, const ssize_t y,
 	if( !constitute_image ) 
 		return( MagickFalse );
 
+	/* image needs to inherit these fields from constitute_image.
+	 */
+	switch( type ) {
+	case CharPixel: 
+		storage_type_depth = sizeof( unsigned char ) * 8; 
+		break;
+
+	case ShortPixel: 
+		storage_type_depth = sizeof( unsigned short ) * 8; 
+		break;
+
+	case IntegerPixel: 
+		storage_type_depth = sizeof( unsigned short ) * 8; 
+		break;
+
+	case LongPixel: 
+		storage_type_depth = sizeof( unsigned long ) * 8; 
+		break;
+
+	case FloatPixel: 
+		storage_type_depth = sizeof( float ) * 8; 
+		break;
+
+	case DoublePixel: 
+		storage_type_depth = sizeof( double ) * 8; 
+		break;
+
+	default:
+		storage_type_depth = QuantumDepth;
+		break;
+
+	}
+	image->depth = VIPS_MIN( storage_type_depth, QuantumDepth );
+	image->matte = constitute_image->matte;
+
 	(void) CompositeImage( image, CopyCompositeOp, constitute_image, x, y );
+
 	DestroyImage( constitute_image );
 
 	return( image->exception.severity == UndefinedException );

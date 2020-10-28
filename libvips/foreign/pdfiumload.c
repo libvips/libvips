@@ -8,6 +8,10 @@
  * 	- shut down the input file as soon as we can [kleisauke]
  * 8/8/19
  * 	- add locks, since pdfium is not threadsafe in any way
+ * 13/10/20
+ * 	- have a lock just for pdfium [DarthSim]
+ * 	- update for current pdfium
+ * 	- add _source input
  */
 
 /*
@@ -39,10 +43,39 @@
 
 /* TODO 
  *
- * - needs the reopen-after-minimise system that pdfload has, but we'll need
- *   to be able to actually build and test this before we can do that
- * - what about filename encodings
+ * - what about filename encodings?
  * - need to test on Windows
+ */
+
+/* How to build against PDFium:
+ *
+ * Download the prebuilt binary from: 
+ *
+ * 	https://github.com/bblanchon/pdfium-binaries
+ *
+ * Untar to the libvips install prefix, for example:
+ *
+ * 	cd ~/vips
+ * 	tar xf ~/pdfium-linux.tgz
+ *
+ * Create a pdfium.pc like this (update the version number):
+ *
+
+VIPSHOME=/home/john/vips
+cat > $VIPSHOME/lib/pkgconfig/pdfium.pc << EOF
+     prefix=$VIPSHOME
+     exec_prefix=\${prefix}
+     libdir=\${exec_prefix}/lib
+     includedir=\${prefix}/include
+     Name: pdfium
+     Description: pdfium
+     Version: 4290
+     Requires:
+     Libs: -L\${libdir} -lpdfium
+     Cflags: -I\${includedir}
+EOF
+
+ * 
  */
 
 /*
@@ -73,6 +106,10 @@
 typedef struct _VipsForeignLoadPdf {
 	VipsForeignLoad parent_object;
 
+	/* Set by subclasses.
+	 */
+	VipsSource *source;
+
 	/* Load this page.
 	 */
 	int page_no;
@@ -93,8 +130,9 @@ typedef struct _VipsForeignLoadPdf {
 	 */
 	VipsArrayDouble *background;
 
-	FPDF_DOCUMENT *doc;
-	FPDF_PAGE *page;
+	FPDF_FILEACCESS file_access;
+	FPDF_DOCUMENT doc;
+	FPDF_PAGE page;
 	int current_page;
 
 	/* Doc has this many pages. 
@@ -128,6 +166,8 @@ static char *vips_pdfium_errors[] = {
 	"page not found or content error"
 };
 
+static GMutex *vips_pdfium_mutex = NULL;
+
 static void
 vips_pdfium_error( void )
 {
@@ -143,12 +183,12 @@ vips_pdfium_error( void )
 static void
 vips_foreign_load_pdf_close( VipsForeignLoadPdf *pdf )
 {
-	g_mutex_lock( vips__global_lock );
+	g_mutex_lock( vips_pdfium_mutex );
 
 	VIPS_FREEF( FPDF_ClosePage, pdf->page ); 
 	VIPS_FREEF( FPDF_CloseDocument, pdf->doc ); 
 
-	g_mutex_unlock( vips__global_lock );
+	g_mutex_unlock( vips_pdfium_mutex );
 }
 
 static void
@@ -177,17 +217,81 @@ vips_pdfium_init_cb( void *dummy )
 	return( NULL );
 }
 
+/* This is the m_GetBlock function for FPDF_FILEACCESS.
+ */
+static gboolean
+vips_pdfium_GetBlock( void *param, 
+	unsigned long position, unsigned char *pBuf, unsigned long size )
+{
+	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) param;
+
+	/* PDFium guarantees these.
+	 */
+	g_assert( size > 0 );
+	g_assert( position >= 0 );
+	g_assert( position + size <= pdf->file_access.m_FileLen );
+
+	if( vips_source_seek( pdf->source, position, SEEK_SET ) < 0 )
+		return( FALSE );
+
+	while( size > 0 ) {
+		size_t n_read;
+
+		if( (n_read = vips_source_read( pdf->source, pBuf, size )) < 0 )
+			return( FALSE );
+		pBuf += n_read;
+		size -= n_read;
+	}
+
+	return( TRUE );
+}
+
 static int
 vips_foreign_load_pdf_build( VipsObject *object )
 {
 	static GOnce once = G_ONCE_INIT;
 
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) object;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( pdf );
+
+	gint64 length;
 
 	VIPS_ONCE( &once, vips_pdfium_init_cb, NULL );
 
 	if( !vips_object_argument_isset( object, "scale" ) )
 		pdf->scale = pdf->dpi / 72.0;
+
+	/* pdfium must know the file length, unfortunately.
+	 */
+	if( pdf->source ) { 
+		if( (length = vips_source_length( pdf->source )) <= 0 )
+			return( -1 );
+		if( length > 1 << 30 ) {
+			vips_error( class->nickname, 
+				_( "%s: too large for pdfium" ),
+				vips_connection_nick( 
+					VIPS_CONNECTION( pdf->source ) ) );
+			return( -1 );
+		}
+		pdf->file_access.m_FileLen = length;
+		pdf->file_access.m_GetBlock = vips_pdfium_GetBlock;
+		pdf->file_access.m_Param = pdf;
+
+		g_mutex_lock( vips_pdfium_mutex );
+
+		if( !(pdf->doc = FPDF_LoadCustomDocument( &pdf->file_access, 
+			NULL )) ) {
+			g_mutex_unlock( vips_pdfium_mutex );
+			vips_pdfium_error();
+			vips_error( "pdfload", 
+				_( "%s: unable to load" ), 
+				vips_connection_nick( 
+					VIPS_CONNECTION( pdf->source ) ) );
+			return( -1 ); 
+		}
+
+		g_mutex_unlock( vips_pdfium_mutex );
+	}
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_pdf_parent_class )->
 		build( object ) )
@@ -217,7 +321,7 @@ vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 	if( pdf->current_page != page_no ) { 
 		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( pdf );
 
-		g_mutex_lock( vips__global_lock );
+		g_mutex_lock( vips_pdfium_mutex );
 
 		VIPS_FREEF( FPDF_ClosePage, pdf->page ); 
 		pdf->current_page = -1;
@@ -227,7 +331,7 @@ vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 #endif /*DEBUG*/
 
 		if( !(pdf->page = FPDF_LoadPage( pdf->doc, page_no )) ) {
-			g_mutex_unlock( vips__global_lock );
+			g_mutex_unlock( vips_pdfium_mutex );
 			vips_pdfium_error();
 			vips_error( class->nickname, 
 				_( "unable to load page %d" ), page_no );
@@ -235,7 +339,7 @@ vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 		}
 		pdf->current_page = page_no;
 
-		g_mutex_unlock( vips__global_lock );
+		g_mutex_unlock( vips_pdfium_mutex );
 	}
 
 	return( 0 );
@@ -278,6 +382,8 @@ vips_foreign_load_pdf_set_image( VipsForeignLoadPdf *pdf, VipsImage *out )
 	vips_image_set_int( out, "pdf-n_pages", pdf->n_pages ); 
 	vips_image_set_int( out, VIPS_META_N_PAGES, pdf->n_pages ); 
 
+	g_mutex_lock( vips_pdfium_mutex );
+
 	for( i = 0; i < n_metadata; i++ ) {
 		VipsForeignLoadPdfMetadata *metadata = 
 			&vips_foreign_load_pdf_metadata[i];
@@ -285,9 +391,7 @@ vips_foreign_load_pdf_set_image( VipsForeignLoadPdf *pdf, VipsImage *out )
 		char text[1024];
 		int len;
 
-		g_mutex_lock( vips__global_lock );
 		len = FPDF_GetMetaText( pdf->doc, metadata->tag, text, 1024 );
-		g_mutex_unlock( vips__global_lock );
 		if( len > 0 ) { 
 			char *str;
 
@@ -301,6 +405,8 @@ vips_foreign_load_pdf_set_image( VipsForeignLoadPdf *pdf, VipsImage *out )
 			}
 		}
 	}
+
+	g_mutex_unlock( vips_pdfium_mutex );
 
 	/* We need pixels/mm for vips.
 	 */
@@ -327,9 +433,9 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 	printf( "vips_foreign_load_pdf_header: %p\n", pdf );
 #endif /*DEBUG*/
 
-	g_mutex_lock( vips__global_lock );
+	g_mutex_lock( vips_pdfium_mutex );
 	pdf->n_pages = FPDF_GetPageCount( pdf->doc );
-	g_mutex_unlock( vips__global_lock );
+	g_mutex_unlock( vips_pdfium_mutex );
 
 	/* @n == -1 means until the end of the doc.
 	 */
@@ -400,10 +506,7 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 static void
 vips_foreign_load_pdf_minimise( VipsObject *object, VipsForeignLoadPdf *pdf )
 {
-	/* In seq mode, we can shut down the input at the end of computation.
-	 */
-	if( VIPS_FOREIGN_LOAD( pdf )->access == VIPS_ACCESS_SEQUENTIAL )
-		vips_foreign_load_pdf_close( pdf ); 
+	vips_source_minimise( pdf->source );
 }
 
 static int
@@ -411,7 +514,6 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) a;
-	VipsForeignLoad *load = (VipsForeignLoad *) pdf;
 	VipsRect *r = &or->valid;
 
 	int top;
@@ -448,7 +550,7 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 
 		/* 4 means RGBA.
 		 */
-		g_mutex_lock( vips__global_lock );
+		g_mutex_lock( vips_pdfium_mutex );
 
 		bitmap = FPDFBitmap_CreateEx( rect.width, rect.height, 4, 
 			VIPS_REGION_ADDR( or, rect.left, rect.top ), 
@@ -460,26 +562,18 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 
 		FPDFBitmap_Destroy( bitmap ); 
 
-		g_mutex_unlock( vips__global_lock );
+		g_mutex_unlock( vips_pdfium_mutex );
 
 		top += rect.height;
 		i += 1;
 	}
 
-	/* PDFium writes BRGA, we must swap.
-	 *
-	 * FIXME ... this is a bit slow.
+	/* PDFium writes BGRA, we must swap.
 	 */
-	for( y = 0; y < r->height; y++ ) {
-		VipsPel *p;
-		int x;
-
-		p = VIPS_REGION_ADDR( or, r->left, r->top + y );
-		for( x = 0; x < r->width; x++ ) { 
-			VIPS_SWAP( VipsPel, p[0], p[2] );
-			p += 4;
-		}
-	}
+	for( y = 0; y < r->height; y++ )
+		vips__bgra2rgba( 
+			(guint32 *) VIPS_REGION_ADDR( or, r->left, r->top + y ),
+			r->width );
 
 	return( 0 ); 
 }
@@ -522,24 +616,40 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 	return( 0 );
 }
 
+static void *
+vips_foreign_load_pdf_once_init( void *client )
+{
+	/* We must make the mutex on class init (not _build) since we
+	 * can lock ebven if build is not called.
+	 */
+	vips_pdfium_mutex = vips_g_mutex_new();
+
+	return( NULL );
+}
+
 static void
 vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 {
+	static GOnce once = G_ONCE_INIT;
+
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	VIPS_ONCE( &once, vips_foreign_load_pdf_once_init, NULL );
 
 	gobject_class->dispose = vips_foreign_load_pdf_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pdfload_base";
-	object_class->description = _( "load PDF with libpoppler" );
+	object_class->description = _( "load PDF with PDFium" );
 	object_class->build = vips_foreign_load_pdf_build;
 
 	load_class->get_flags_filename = 
 		vips_foreign_load_pdf_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_pdf_get_flags;
+	load_class->header = vips_foreign_load_pdf_header;
 	load_class->load = vips_foreign_load_pdf_load;
 
 	VIPS_ARG_INT( class, "page", 10,
@@ -606,30 +716,36 @@ G_DEFINE_TYPE( VipsForeignLoadPdfFile, vips_foreign_load_pdf_file,
 static int
 vips_foreign_load_pdf_file_header( VipsForeignLoad *load )
 {
-	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) load;
 	VipsForeignLoadPdfFile *file = (VipsForeignLoadPdfFile *) load;
-
-	g_mutex_lock( vips__global_lock );
-
-	if( !(pdf->doc = FPDF_LoadDocument( file->filename, NULL )) ) { 
-		g_mutex_unlock( vips__global_lock );
-		vips_pdfium_error();
-		vips_error( "pdfload", 
-			_( "unable to load \"%s\"" ), file->filename ); 
-		return( -1 ); 
-	}
-
-	g_mutex_unlock( vips__global_lock );
 
 	VIPS_SETSTR( load->out->filename, file->filename );
 
-	return( vips_foreign_load_pdf_header( load ) );
+	return( VIPS_FOREIGN_LOAD_CLASS(
+		vips_foreign_load_pdf_file_parent_class )->header( load ) );
 }
 
 static const char *vips_foreign_pdf_suffs[] = {
 	".pdf",
 	NULL
 };
+
+static int
+vips_foreign_load_pdf_file_build( VipsObject *object )
+{
+	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) object;
+	VipsForeignLoadPdfFile *file = (VipsForeignLoadPdfFile *) pdf;
+
+#ifdef DEBUG
+	printf( "vips_foreign_load_pdf_file_build: %s\n", file->filename );
+#endif /*DEBUG*/
+
+	if( file->filename &&
+		!(pdf->source = vips_source_new_from_file( file->filename )) )
+		return( -1 );
+
+	return( VIPS_OBJECT_CLASS( vips_foreign_load_pdf_file_parent_class )->
+		build( object ) );
+}
 
 static void
 vips_foreign_load_pdf_file_class_init( 
@@ -644,6 +760,8 @@ vips_foreign_load_pdf_file_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pdfload";
+	object_class->description = _( "load PDF from file" );
+	object_class->build = vips_foreign_load_pdf_file_build;
 
 	foreign_class->suffs = vips_foreign_pdf_suffs;
 
@@ -679,26 +797,19 @@ G_DEFINE_TYPE( VipsForeignLoadPdfBuffer, vips_foreign_load_pdf_buffer,
 	vips_foreign_load_pdf_get_type() );
 
 static int
-vips_foreign_load_pdf_buffer_header( VipsForeignLoad *load )
+vips_foreign_load_pdf_buffer_build( VipsObject *object )
 {
-	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) load;
-	VipsForeignLoadPdfBuffer *buffer = 
-		(VipsForeignLoadPdfBuffer *) load;
+	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) object;
+	VipsForeignLoadPdfBuffer *buffer = (VipsForeignLoadPdfBuffer *) pdf;
 
-	g_mutex_lock( vips__global_lock );
+	if( buffer->buf &&
+		!(pdf->source = vips_source_new_from_memory( 
+			VIPS_AREA( buffer->buf )->data, 
+			VIPS_AREA( buffer->buf )->length )) )
+		return( -1 );
 
-	if( !(pdf->doc = FPDF_LoadMemDocument( buffer->buf->data, 
-		buffer->buf->length, NULL )) ) { 
-		g_mutex_unlock( vips__global_lock );
-		vips_pdfium_error();
-		vips_error( "pdfload", 
-			"%s", _( "unable to load from buffer" ) );
-		return( -1 ); 
-	}
-
-	g_mutex_unlock( vips__global_lock );
-
-	return( vips_foreign_load_pdf_header( load ) );
+	return( VIPS_OBJECT_CLASS( vips_foreign_load_pdf_buffer_parent_class )->
+		build( object ) );
 }
 
 static void
@@ -713,9 +824,10 @@ vips_foreign_load_pdf_buffer_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pdfload_buffer";
+	object_class->description = _( "load PDF from buffer" );
+	object_class->build = vips_foreign_load_pdf_buffer_build;
 
 	load_class->is_a_buffer = vips_foreign_load_pdf_is_a_buffer;
-	load_class->header = vips_foreign_load_pdf_buffer_header;
 
 	VIPS_ARG_BOXED( class, "buffer", 1, 
 		_( "Buffer" ),
@@ -728,6 +840,76 @@ vips_foreign_load_pdf_buffer_class_init(
 
 static void
 vips_foreign_load_pdf_buffer_init( VipsForeignLoadPdfBuffer *buffer )
+{
+}
+
+typedef struct _VipsForeignLoadPdfSource {
+	VipsForeignLoadPdf parent_object;
+
+	VipsSource *source;
+
+} VipsForeignLoadPdfSource;
+
+typedef VipsForeignLoadPdfClass VipsForeignLoadPdfSourceClass;
+
+G_DEFINE_TYPE( VipsForeignLoadPdfSource, vips_foreign_load_pdf_source, 
+	vips_foreign_load_pdf_get_type() );
+
+static int
+vips_foreign_load_pdf_source_build( VipsObject *object )
+{
+	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) object;
+	VipsForeignLoadPdfSource *source = (VipsForeignLoadPdfSource *) pdf;
+
+	if( source->source ) {
+		pdf->source = source->source;
+		g_object_ref( pdf->source );
+	}
+
+	return( VIPS_OBJECT_CLASS( vips_foreign_load_pdf_source_parent_class )->
+		build( object ) );
+}
+
+static gboolean
+vips_foreign_load_pdf_source_is_a_source( VipsSource *source )
+{
+	const unsigned char *p;
+
+	return( (p = vips_source_sniff( source, 4 )) &&
+		p[0] == '%' && 
+		p[1] == 'P' &&
+		p[2] == 'D' &&
+		p[3] == 'F' );
+}
+
+static void
+vips_foreign_load_pdf_source_class_init( 
+	VipsForeignLoadPdfSourceClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "pdfload_source";
+	object_class->description = _( "load PDF from source" );
+	object_class->build = vips_foreign_load_pdf_source_build;
+
+	load_class->is_a_source = vips_foreign_load_pdf_source_is_a_source;
+
+	VIPS_ARG_OBJECT( class, "source", 1,
+		_( "Source" ),
+		_( "Source to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadPdfSource, source ),
+		VIPS_TYPE_SOURCE );
+
+}
+
+static void
+vips_foreign_load_pdf_source_init( VipsForeignLoadPdfSource *source )
 {
 }
 

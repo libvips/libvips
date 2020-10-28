@@ -260,6 +260,8 @@ vips_source_finalize( GObject *gobject )
 {
 	VipsSource *source = VIPS_SOURCE( gobject );
 
+	VIPS_DEBUG_MSG( "vips_source_finalize: %p\n", source );
+
 	VIPS_FREEF( g_byte_array_unref, source->header_bytes ); 
 	VIPS_FREEF( g_byte_array_unref, source->sniff ); 
 	if( source->mmap_baseaddr ) {
@@ -555,8 +557,6 @@ vips_source_minimise( VipsSource *source )
 {
 	VipsConnection *connection = VIPS_CONNECTION( source );
 
-	VIPS_DEBUG_MSG( "vips_source_minimise:\n" );
-
 	SANITY( source );
 
 	(void) vips_source_test_features( source );
@@ -565,7 +565,7 @@ vips_source_minimise( VipsSource *source )
 		connection->descriptor != -1 &&
 		connection->tracked_descriptor == connection->descriptor &&
 		!source->is_pipe ) {
-		VIPS_DEBUG_MSG( "    tracked_close()\n" );
+		VIPS_DEBUG_MSG( "vips_source_minimise:\n" );
 		vips_tracked_close( connection->tracked_descriptor );
 		connection->tracked_descriptor = -1;
 		connection->descriptor = -1;
@@ -590,12 +590,12 @@ vips_source_unminimise( VipsSource *source )
 {
 	VipsConnection *connection = VIPS_CONNECTION( source );
 
-	VIPS_DEBUG_MSG( "vips_source_unminimise:\n" );
-
 	if( connection->descriptor == -1 &&
 		connection->tracked_descriptor == -1 &&
 		connection->filename ) {
 		int fd;
+
+		VIPS_DEBUG_MSG( "vips_source_unminimise: %p\n", source );
 
 		if( (fd = vips_tracked_open( connection->filename, 
 			MODE_READ, 0 )) == -1 ) {

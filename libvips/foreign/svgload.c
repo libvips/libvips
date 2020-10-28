@@ -368,7 +368,7 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 	/* Cairo makes pre-multipled BRGA -- we must byteswap and unpremultiply.
 	 */
 	for( y = 0; y < r->height; y++ ) 
-		vips__cairo2rgba( 
+                vips__premultiplied_bgra2rgba( 
 			(guint32 *) VIPS_REGION_ADDR( or, r->left, r->top + y ),
 			r->width ); 
 

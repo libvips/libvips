@@ -5,6 +5,15 @@
 - add VipsInterpolate and guint64 support to C++ API 
 - add VImage::new_from_memory_steal [Zeranoe]
 - vipsthumbnail supports stdin / stdout thumbnailing
+- have a lock just for pdfium [DarthSim]
+- better GraphicsMagick image write [bfriesen]
+- get pdfium load building again [Projkt-James]
+- add _source load support for pdfium
+
+18/10/20 started 8.10.3
+- relax heic is_a rules [hisham]
+- fix vips7 webp load [barryspearce]
+- fix out of bounds exif read in heifload
 
 6/9/20 started 8.10.2
 - update magicksave/load profile handling [kelilevi]
@@ -22,6 +31,7 @@
 - improve seek behaviour on pipes
 - add "speed" param to heifsave [lovell]
 - fix regression in C path for dilate / erode [kleisauke]
+- fix build with libheif save but no load [estepnv]
 
 9/8/20 started 8.10.1
 - fix markdown -> xml conversion in doc generation
