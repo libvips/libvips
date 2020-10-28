@@ -173,6 +173,7 @@ main( int argc, char **argv )
 	if( argc != 2 ) { 
 		fprintf( stderr, _( "usage: %s [OPTION...] vips-file\n" ), 
 			g_get_prgname() );
+
 		exit( -1 );
 	}
 
@@ -269,8 +270,8 @@ main( int argc, char **argv )
 
 	g_object_unref( im );
 
-	/* We don't free this on error exit, sadly.
-	 */
+	g_option_context_free( context );
+
 #ifdef HAVE_G_WIN32_GET_COMMAND_LINE
 	g_strfreev( argv ); 
 #endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/

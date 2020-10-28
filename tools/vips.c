@@ -753,8 +753,6 @@ main( int argc, char **argv )
 
 	g_option_context_free( context );
 
-	/* We don't free this on error exit, sadly.
-	 */
 #ifdef HAVE_G_WIN32_GET_COMMAND_LINE
 	g_strfreev( argv ); 
 #endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
