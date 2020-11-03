@@ -1629,7 +1629,8 @@ layer_strip_shrink( Layer *layer )
 		if( vips_rect_isempty( &target ) )
 			break;
 
-		(void) vips_region_shrink( from, to, &target );
+		(void) vips_region_shrink_method( from, to, &target,
+			layer->wtiff->region_shrink );
 
 		below->write_y += target.height;
 

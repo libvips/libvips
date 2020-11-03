@@ -3,6 +3,7 @@
 - fix vips7 webp load [barryspearce]
 - fix out of bounds exif read in heifload
 - fix out of bounds read in tiffload
+- fix tiffsave region shrink mode [imgifty]
 
 6/9/20 started 8.10.2
 - update magicksave/load profile handling [kelilevi]
