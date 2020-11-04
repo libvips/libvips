@@ -1192,6 +1192,8 @@ write_vips( Write *write,
 
 	png_write_end( write->pPng, write->pInfo );
 
+	vips_target_finish( write->target );
+
 	return( 0 );
 }
 

@@ -301,6 +301,8 @@ vips_foreign_save_ppm( VipsForeignSavePpm *ppm, VipsImage *image )
 	if( vips_sink_disc( image, vips_foreign_save_ppm_block, ppm ) )
 		return( -1 );
 
+	vips_target_finish( ppm->target );
+
 	return( 0 );
 }
 
