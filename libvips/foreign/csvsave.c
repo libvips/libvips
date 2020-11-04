@@ -179,6 +179,8 @@ vips_foreign_save_csv_build( VipsObject *object )
 	if( vips_sink_disc( save->ready, vips_foreign_save_csv_block, csv ) )
 		return( -1 );
 
+	vips_target_finish( csv->target );
+
 	return( 0 );
 }
 
