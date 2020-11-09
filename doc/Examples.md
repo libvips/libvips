@@ -138,7 +138,7 @@ $ for i in {1..1000}; do cp x.tif test/$i.tif; done
 And run this Python program on them:
 
 ```
-$ time ./try255.py x.tif[squash,compression=ccittfax4,strip,bigtif] test/*
+$ time python try255.py x.tif[squash,compression=ccittfax4,strip,bigtiff] test/*
 real	1m59.924s
 user	4m5.388s
 sys	0m8.936s
@@ -154,6 +154,7 @@ colourspace before inserting them.
 
 ``` python
 #!/usr/bin/env python
+#file try255.py
 
 import sys
 import random
