@@ -50,6 +50,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#include <string.h>
+
 #include <vips/vips.h>
 
 #include "pconversion.h"
