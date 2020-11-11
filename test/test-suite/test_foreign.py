@@ -1026,6 +1026,13 @@ class TestForeign:
         buf = self.colour.dzsave_buffer(region_shrink="mode")
         buf = self.colour.dzsave_buffer(region_shrink="median")
 
+        # test no-strip ... icc profiles should be passed down
+        filename = temp_filename(self.tempdir, '')
+        self.colour.dzsave(filename, no_strip=True)
+
+        y = pyvips.Image.new_from_file(filename + "_files/0/0_0.jpeg")
+        assert y.get_typeof("icc-profile-data") != 0
+
     @skip_if_no("heifload")
     def test_heifload(self):
         def heif_valid(im):
