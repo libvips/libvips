@@ -94,13 +94,18 @@ vips_foreign_load_png_stream( spng_ctx *ctx, void *user,
 {
 	VipsSource *source = VIPS_SOURCE( user );
 
-	gint64 bytes_read;
+	while( length > 0 ) {
+		gint64 bytes_read;
 
-	bytes_read = vips_source_read( source, dest, length );
-	if( bytes_read < 0 )
-		return( SPNG_IO_ERROR );
-	if( bytes_read < length )
-		return( SPNG_IO_EOF);
+		bytes_read = vips_source_read( source, dest, length );
+		if( bytes_read < 0 )
+			return( SPNG_IO_ERROR );
+		if( bytes_read == 0 )
+			return( SPNG_IO_EOF );
+
+		dest += bytes_read;
+		length -= bytes_read;
+	}
 
 	return( 0 );
 }
