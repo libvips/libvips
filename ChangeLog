@@ -6,6 +6,7 @@
 - fix tiffsave region shrink mode [imgifty]
 - add missing flushes on write to target [harukizaemon]
 - hide info messages you could get with some older glibs [kleisauke]
+- fix --no-strip on dzsave with icc-profiles [altert]
 
 6/9/20 started 8.10.2
 - update magicksave/load profile handling [kelilevi]

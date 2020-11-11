@@ -152,6 +152,7 @@ int vips__write_extension_block( VipsImage *im, void *buf, int size );
 int vips__writehist( VipsImage *image );
 int vips__read_header_bytes( VipsImage *im, unsigned char *from );
 int vips__write_header_bytes( VipsImage *im, unsigned char *to );
+int vips__image_meta_copy( VipsImage *dst, const VipsImage *src );
 
 extern GMutex *vips__global_lock;
 

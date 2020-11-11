@@ -994,8 +994,8 @@ meta_cp_field( VipsMeta *meta, VipsImage *dst, void *b )
 
 /* Copy meta on to dst. 
  */
-static int
-meta_cp( VipsImage *dst, const VipsImage *src )
+int
+vips__image_meta_copy( VipsImage *dst, const VipsImage *src )
 {
 	if( src->meta ) {
 		/* We lock with vips_image_set() to stop races in highly-
@@ -1051,7 +1051,7 @@ vips__image_copy_fields_array( VipsImage *out, VipsImage *in[] )
 	 * subclass loaders will sometimes write to an image. 
 	 */
 	for( i = ni - 1; i >= 0; i-- ) 
-		if( meta_cp( out, in[i] ) )
+		if( vips__image_meta_copy( out, in[i] ) )
 			return( -1 );
 
 	/* Merge hists first to last.
@@ -1094,7 +1094,7 @@ vips_image_set( VipsImage *image, const char *name, GValue *value )
 	g_assert( value );
 
 	/* We lock between modifying metadata and copying metadata between
-	 * images, see meta_cp().
+	 * images, see vips__image_meta_copy().
 	 *
 	 * This prevents modification of metadata by one thread racing with
 	 * metadata copy on another -- this can lead to crashes in
@@ -1302,7 +1302,7 @@ vips_image_remove( VipsImage *image, const char *name )
 
 	if( image->meta ) {
 		/* We lock between modifying metadata and copying metadata 
-		 * between images, see meta_cp().
+		 * between images, see vips__image_meta_copy().
 		 *
 		 * This prevents modification of metadata by one thread 
 		 * racing with metadata copy on another -- this can lead to 

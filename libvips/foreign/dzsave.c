@@ -613,8 +613,8 @@ write_image( VipsForeignSaveDz *dz,
 	if( vips_copy( image, &t, NULL ) ) 
 		return( -1 );
 
-	/* We default to stripping all metadata. Only "no_strip" turns this
-	 * off. Very few people really want metadata on every tile.
+	/* We default to stripping all metadata. "no_strip" turns this
+	 * off. Most people don't want metadata on every tile.
 	 */
 	vips_image_set_int( t, "hide-progress", 1 );
 	if( vips_image_write_to_buffer( t, format, &buf, &len,
@@ -1308,6 +1308,13 @@ strip_init( Strip *strip, Layer *layer )
 		VIPS_IMAGE_SIZEOF_LINE( layer->image ) * line.height,
 		line.width, line.height, 
 		layer->image->Bands, layer->image->BandFmt )) ) {
+		strip_free( strip );
+		return;
+	}
+
+	/* The strip needs to inherit the layer's metadata.
+	 */
+	if( vips__image_meta_copy( strip->image, layer->image ) ) {
 		strip_free( strip );
 		return;
 	}
