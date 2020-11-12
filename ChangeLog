@@ -19,7 +19,7 @@
 - hide info messages you could get with some older glibs [kleisauke]
 - fix --no-strip on dzsave with icc-profiles [altert]
 - better GraphicsMagick image write [bfriesen]
-- Add missing read loops to spng, heif and ppm load [kleisauke]
+- Add missing read loops to spng, heif, giflib and ppm load [kleisauke]
 
 6/9/20 started 8.10.2
 - update magicksave/load profile handling [kelilevi]
