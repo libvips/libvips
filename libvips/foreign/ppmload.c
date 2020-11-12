@@ -458,13 +458,21 @@ vips_foreign_load_ppm_generate_binary( VipsRegion *or,
 	for( y = 0; y < r->height; y++ ) {
 		VipsPel *q = VIPS_REGION_ADDR( or, 0, r->top + y );
 
-		size_t bytes_read;
+		size_t n_bytes;
 
-		bytes_read = vips_source_read( ppm->source, q, sizeof_line );
-		if( bytes_read != sizeof_line ) {
-			vips_error( class->nickname, 
-				"%s", _( "file truncated" ) );
-			return( -1 );
+		n_bytes = sizeof_line;
+		while( n_bytes > 0 ) {
+			size_t bytes_read;
+
+			bytes_read = vips_source_read( ppm->source, 
+				q, sizeof_line );
+			if( bytes_read == 0 ) {
+				vips_error( class->nickname, 
+					"%s", _( "file truncated" ) );
+				return( -1 );
+			}
+
+			n_bytes -= bytes_read;
 		}
 	}
 

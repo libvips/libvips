@@ -987,11 +987,15 @@ vips_foreign_load_heif_read( void *data, size_t size, void *userdata )
 {
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) userdata;
 
-	gint64 result;
+	while( size > 0 ) {
+		gint64 result;
 
-	result = vips_source_read( heif->source, data, size );
-	if( result < 0 ) 
-		return( -1 );
+		result = vips_source_read( heif->source, data, size );
+		if( result <= 0 ) 
+			return( -1 );
+
+		size -= result;
+	}
 
 	return( 0 );
 }
