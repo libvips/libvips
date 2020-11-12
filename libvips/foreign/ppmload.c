@@ -473,6 +473,7 @@ vips_foreign_load_ppm_generate_binary( VipsRegion *or,
 			}
 
 			n_bytes -= bytes_read;
+			q += bytes_read;
 		}
 	}
 
