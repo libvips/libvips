@@ -6,7 +6,6 @@
 - add VImage::new_from_memory_steal [Zeranoe]
 - vipsthumbnail supports stdin / stdout thumbnailing
 - have a lock just for pdfium [DarthSim]
-- better GraphicsMagick image write [bfriesen]
 - get pdfium load building again [Projkt-James]
 - add _source load support for pdfium
 
