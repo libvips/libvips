@@ -351,20 +351,34 @@ vips_foreign_load_gif_close_giflib( VipsForeignLoadGif *gif )
 
 /* Callback from the gif loader.
  *
- * Read up to len bytes into buffer, return number of bytes read, 0 for EOF.
+ * Read up to len bytes into buffer, return number of bytes read. This is
+ * called by giflib exactly as fread, so it does not distinguish between EOF
+ * and read error.
  */
 static int
 vips_giflib_read( GifFileType *file, GifByteType *buf, int n )
 {
 	VipsForeignLoadGif *gif = (VipsForeignLoadGif *) file->UserData;
 
-	gint64 read;
+	int to_read;
 
-	read = vips_source_read( gif->source, buf, n );
-	if( read == 0 )
-		gif->eof = TRUE;
+	to_read = n;
+	while( to_read > 0 ) {
+		gint64 bytes_read;
 
-	return( (int) read );
+		bytes_read = vips_source_read( gif->source, buf, n );
+		if( bytes_read == 0 )
+			gif->eof = TRUE;
+		if( bytes_read <= 0 )
+			return( -1 );
+		if( bytes_read > INT_MAX ) 
+			return( -1 );
+
+		to_read -= bytes_read;
+		buf += bytes_read;
+	}
+
+	return( (int) n );
 }
 
 /* Open any underlying file resource, then giflib.
