@@ -244,8 +244,6 @@ vips_perlin_build( VipsObject *object )
 		VIPS_ROUND_UP( perlin->height, perlin->cell_size ) / 
 		perlin->cell_size;
 
-	perlin->seed = g_random_double() * 0xffffffffu;
-
 	vips_image_init_fields( create->out,
 		perlin->width, perlin->height, 1,
 		perlin->uchar ? VIPS_FORMAT_UCHAR : VIPS_FORMAT_FLOAT, 
@@ -321,12 +319,20 @@ vips_perlin_class_init( VipsPerlinClass *class )
 		G_STRUCT_OFFSET( VipsPerlin, uchar ),
 		FALSE );
 
+	VIPS_ARG_INT( class, "seed", 5, 
+		_( "Seed" ), 
+		_( "Random number seed" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsPerlin, seed ),
+		INT_MIN, INT_MAX, 0 );
+
 }
 
 static void
 vips_perlin_init( VipsPerlin *perlin )
 {
 	perlin->cell_size = 256;
+	perlin->seed = UINT_MAX * g_random_double();
 }
 
 /**

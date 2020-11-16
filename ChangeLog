@@ -8,6 +8,7 @@
 - have a lock just for pdfium [DarthSim]
 - get pdfium load building again [Projkt-James]
 - add _source load support for pdfium
+- add "seed" param to perlin, worley and gaussnoise
 
 18/10/20 started 8.10.3
 - relax heic is_a rules [hisham]
