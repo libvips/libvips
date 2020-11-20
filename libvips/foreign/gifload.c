@@ -367,9 +367,11 @@ vips_giflib_read( GifFileType *file, GifByteType *buf, int n )
 		gint64 bytes_read;
 
 		bytes_read = vips_source_read( gif->source, buf, n );
-		if( bytes_read == 0 )
+		if( bytes_read == 0 ) {
 			gif->eof = TRUE;
-		if( bytes_read <= 0 )
+			return( -1 );
+		}
+		if( bytes_read < 0 )
 			return( -1 );
 		if( bytes_read > INT_MAX ) 
 			return( -1 );
