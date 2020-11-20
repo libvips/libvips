@@ -454,7 +454,7 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 		out->Bands <= 0 ||
 		out->Xsize >= VIPS_MAX_COORD ||
 		out->Ysize >= VIPS_MAX_COORD ||
-		out->Bands >= VIPS_MAX_COORD ) ||
+		out->Bands >= VIPS_MAX_COORD ) {
 		vips_error( class->nickname, 
 			_( "bad image dimensions %d x %d pixels, %d bands" ),
 			out->Xsize, out->Ysize, out->Bands );
