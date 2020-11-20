@@ -336,8 +336,18 @@ parse_header( Read *read )
 	im->Xsize = image->columns;
 	im->Ysize = image->rows;
 	read->frame_height = image->rows;
-	if( (im->Bands = get_bands( image )) < 0 )
+	im->Bands = get_bands( image );
+	if( im->Xsize <= 0 ||
+		im->Ysize <= 0 ||
+		im->Bands <= 0 ||
+		im->Xsize >= VIPS_MAX_COORD ||
+		im->Ysize >= VIPS_MAX_COORD ||
+		im->Bands >= VIPS_MAX_COORD ) {
+		vips_error( "magick2vips",
+			_( "bad image dimensions %d x %d pixels, %d bands" ),
+			im->Xsize, im->Ysize, im->Bands );
 		return( -1 );
+	}
 
 	/* Depth can be 'fractional'. 
 	 *
