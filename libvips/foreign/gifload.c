@@ -700,8 +700,16 @@ vips_foreign_load_gif_scan_extension( VipsForeignLoadGif *gif )
 static int
 vips_foreign_load_gif_set_header( VipsForeignLoadGif *gif, VipsImage *image )
 {
+	const gint64 total_height = (gint64) gif->file->SHeight * gif->n;
+
+	if( total_height <= 0 || 
+		total_height > VIPS_MAX_COORD ) {
+		vips_error( "gifload", "%s", _( "image size out of bounds" ) );
+		return( -1 );
+	}
+
 	vips_image_init_fields( image,
-		gif->file->SWidth, gif->file->SHeight * gif->n,
+		gif->file->SWidth, total_height,
 		(gif->has_colour ? 3 : 1) + (gif->has_transparency ? 1 : 0),
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		gif->has_colour ?

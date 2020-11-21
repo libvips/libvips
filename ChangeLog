@@ -10,6 +10,7 @@
 - better GraphicsMagick image write [bfriesen]
 - add missing read loops to spng, heif, giflib and ppm load [kleisauke]
 - block zero width or height images from imagemagick load [Koen1999]
+- check for overflow in gifload height [lovell]
 
 6/9/20 started 8.10.2
 - update magicksave/load profile handling [kelilevi]
