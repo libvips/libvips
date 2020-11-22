@@ -23,7 +23,7 @@
 - add missing read loops to spng, heif, giflib and ppm load [kleisauke]
 - block zero width or height images from imagemagick load [Koen1999]
 - check for overflow in gifload height [lovell]
-- fix msb_first default in ppm load [ewelot]
+- fix msb_first default in ppm load and save [ewelot]
 
 6/9/20 started 8.10.2
 - update magicksave/load profile handling [kelilevi]
