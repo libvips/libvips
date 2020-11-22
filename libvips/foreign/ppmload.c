@@ -39,6 +39,8 @@
  * 	- ban max_vaue < 0 
  * 27/6/20
  * 	- add ppmload_source
+ * 22/11/20
+ * 	- fix msb_first default [ewelot]
  */
 
 /*
@@ -254,7 +256,7 @@ vips_foreign_load_ppm_parse_header( VipsForeignLoadPpm *ppm )
 
 	/* Default ... can be changed below for PFM images.
 	 */
-	ppm->msb_first = 0;
+	ppm->msb_first = 1;
 
 	/* Read in size.
 	 */
