@@ -8,6 +8,8 @@
  * 	- add "bitdepth" param, cf. tiffsave
  * 27/6/20
  * 	- add ppmsave_target
+ * 20/11/20
+ * 	- byteswap on save, if necessary [ewelot]
  */
 
 /*
@@ -298,6 +300,19 @@ vips_foreign_save_ppm( VipsForeignSavePpm *ppm, VipsImage *image )
 			vips_foreign_save_ppm_line_ascii : 
 			vips_foreign_save_ppm_line_binary;
 
+	/* 16 and 32-bit binary write might need byteswapping.
+	 */
+	if( !ppm->ascii &&
+		(image->BandFmt == VIPS_FORMAT_USHORT ||
+		 image->BandFmt == VIPS_FORMAT_UINT) ) {
+		VipsImage *x;
+
+		if( vips__byteswap_bool( image, &x, !vips_amiMSBfirst() ) )
+			return( -1 );
+		VIPS_UNREF( image );
+		image = x;
+	}
+
 	if( vips_sink_disc( image, vips_foreign_save_ppm_block, ppm ) )
 		return( -1 );
 
@@ -402,7 +417,7 @@ vips_foreign_save_ppm_class_init( VipsForeignSavePpmClass *class )
 
 	VIPS_ARG_INT( class, "bitdepth", 15,
 		_( "bitdepth" ),
-		_( "Write as a 1 bit image" ),
+		_( "set to 1 to write as a 1 bit image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSavePpm, bitdepth ),
 		0, 1, 0 );
