@@ -859,10 +859,7 @@ vips_image_build( VipsObject *object )
 		if( (magic = vips__file_magic( filename )) ) {
 			/* We may need to byteswap.
 			 */
-			guint32 us = vips_amiMSBfirst() ? 
-				VIPS_MAGIC_INTEL : VIPS_MAGIC_SPARC;
-
-			if( magic == us ) {
+			if( GUINT_FROM_BE( magic ) == image->magic ) {
 				/* Native open.
 				 */
 				if( vips_image_open_input( image ) )
