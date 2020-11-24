@@ -1602,16 +1602,13 @@ vips_ispoweroftwo( int p )
 int
 vips_amiMSBfirst( void )
 {
-        int test;
-        unsigned char *p = (unsigned char *) &test;
-
-        test = 0;
-        p[0] = 255;
-
-        if( test == 255 )
-                return( 0 );
-        else
-                return( 1 );
+#if G_BYTE_ORDER == G_BIG_ENDIAN
+	return( 1 );
+#elif G_BYTE_ORDER == G_LITTLE_ENDIAN
+	return( 0 );
+#else
+#error "Byte order not recognised"
+#endif
 }
 
 /* Return the tmp dir. On Windows, GetTempPath() will also check the values of 
