@@ -7,6 +7,9 @@
  * 	- add vips_pipe_read_limit_set()
  * 3/10/20
  * 	- improve behaviour with read and seek on pipes
+ * 26/11/20
+ * 	- use _setmode() on win to force binary read for previously opened
+ * 	  descriptors
  */
 
 /*
@@ -62,6 +65,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#ifdef OS_WIN32
+#include <io.h>
+#endif /*OS_WIN32*/
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -300,6 +306,13 @@ vips_source_build( VipsObject *object )
 	if( vips_object_argument_isset( object, "descriptor" ) ) {
 		connection->descriptor = dup( connection->descriptor );
 		connection->close_descriptor = connection->descriptor;
+
+#ifdef OS_WIN32
+		/* Windows will create eg. stdin and stdout in text mode.
+		 * We always read in binary mode.
+		 */
+		_setmode( connection->descriptor, _O_BINARY );
+#endif /*OS_WIN32*/
 	}
 
 	if( vips_object_argument_isset( object, "blob" ) ) {

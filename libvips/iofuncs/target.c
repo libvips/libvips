@@ -2,6 +2,10 @@
  * socket, node.js stream, etc.
  * 
  * J.Cupitt, 19/6/14
+ *
+ * 26/11/20
+ * 	- use _setmode() on win to force binary write for previously opened
+ * 	  descriptors
  */
 
 /*
@@ -51,6 +55,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#ifdef OS_WIN32
+#include <io.h>
+#endif /*OS_WIN32*/
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -135,10 +142,16 @@ vips_target_build( VipsObject *object )
 	else if( vips_object_argument_isset( object, "descriptor" ) ) {
 		connection->descriptor = dup( connection->descriptor );
 		connection->close_descriptor = connection->descriptor;
+
+#ifdef OS_WIN32
+		/* Windows will create eg. stdin and stdout in text mode.
+		 * We always write in binary mode.
+		 */
+		_setmode( connection->descriptor, _O_BINARY );
+#endif /*OS_WIN32*/
 	}
-	else if( target->memory ) {
+	else if( target->memory ) 
 		target->memory_buffer = g_byte_array_new();
-	}
 
 	return( 0 );
 }
