@@ -173,7 +173,13 @@
 
 #ifdef HAVE_GSF
 
+/* Disable deprecation warnings from gsf. There are loads, and still not
+ * patched as of 12/2020.
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <gsf/gsf.h>
+#pragma GCC diagnostic pop
 
 /* Simple wrapper around libgsf.
  *
