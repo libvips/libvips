@@ -2176,6 +2176,17 @@ vips_object_print_arg( VipsObject *object, GParamSpec *pspec, VipsBuf *buf )
 	g_value_unset( &value );
 }
 
+/* Is a filename a target, ie. it is of the form ".jpg". Any trailing options 
+ * have already been stripped. Watch out for cases like "./x.jpg".
+ */
+static gboolean
+vips_filename_istarget( const char *filename )
+{
+	const char *p;
+
+	return( (p = strrchr( filename, '.' )) && p == filename );
+}
+
 /* Write a named arg to the string. If the arg does not need a string (see
  * above), arg will be NULL.
  */
@@ -2209,7 +2220,7 @@ vips_object_get_argument_to_string( VipsObject *object,
 
 		vips__filename_split8( arg, filename, option_string );
 
-		if( vips_isprefix( ".", filename ) ) {
+		if( vips_filename_istarget( filename ) ) {
 			VipsTarget *target;
 
 			if( !(target = vips_target_new_to_descriptor( 1 )) )
