@@ -52,5 +52,6 @@
 #include "VError8.h"
 #include "VImage8.h"
 #include "VInterpolate8.h"
+#include "VConnection8.h"
 
 #endif /*VIPS_CPLUSPLUS*/

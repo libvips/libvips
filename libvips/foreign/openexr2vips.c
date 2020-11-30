@@ -139,7 +139,7 @@ read_destroy( VipsImage *out, Read *read )
 
 	read_close( read ); 
 
-	vips_free( read );
+	g_free( read );
 }
 
 static Read *

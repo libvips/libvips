@@ -64,7 +64,7 @@
 #include <vips/internal.h>
 #include <vips/thread.h>
 
-/* Cleared by the command-line --vips-novector switch and the IM_NOVECTOR env
+/* Cleared by the command-line --vips-novector switch and the VIPS_NOVECTOR env
  * var.
  */
 gboolean vips__vector_enabled = TRUE;
@@ -99,11 +99,15 @@ vips_vector_init( void )
 	orc_debug_set_level( 99 );
 #endif /*DEBUG_ORC*/
 
-	/* Look for the environment variable IM_NOVECTOR and use that to turn
+	/* Look for the environment variable VIPS_NOVECTOR and use that to turn
 	 * off as well.
 	 */
+#if ENABLE_DEPRECATED
 	if( g_getenv( "VIPS_NOVECTOR" ) || 
 		g_getenv( "IM_NOVECTOR" ) ) 
+#else
+	if( g_getenv( "VIPS_NOVECTOR" ) )
+#endif
 		vips__vector_enabled = FALSE;
 
 #endif /*HAVE_ORC*/

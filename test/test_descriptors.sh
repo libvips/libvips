@@ -2,31 +2,31 @@
 
 # test the various restartable loaders
 
+# webp and ppm use streams, but they mmap the input, so you can't close() the
+# fd on minimise
+
 # set -x
 set -e
 
 . ./variables.sh
 
-if test_supported jpegload; then
+if test_supported jpegload_source; then
 	./test_descriptors $image
 fi
 
-if test_supported heifload; then
-	./test_descriptors $test_images/Example1.heic
-fi
-
-if test_supported gifload; then
-	./test_descriptors $test_images/cogs.gif
-fi
-
-if test_supported pdfload; then
-	./test_descriptors $test_images/ISO_12233-reschart.pdf 
-fi
-
-if test_supported pngload; then
+if test_supported pngload_source; then
 	./test_descriptors $test_images/sample.png
 fi
 
-if test_supported webpload; then
-	./test_descriptors $test_images/1.webp
+if test_supported tiffload_source; then
+	./test_descriptors $test_images/sample.tif
 fi
+
+if test_supported radload_source; then
+	./test_descriptors $test_images/sample.hdr
+fi
+
+if test_supported svgload_source; then
+	./test_descriptors $test_images/logo.svg
+fi
+

@@ -241,7 +241,6 @@ vips_quadratic_build( VipsObject *object )
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsQuadratic *quadratic = (VipsQuadratic *) object;
 
-	VipsInterpolate *interpolate;
 	int window_size;
 	int window_offset;
 	VipsImage *in;
@@ -294,12 +293,11 @@ vips_quadratic_build( VipsObject *object )
 		return( -1 );
 	} 
 
-	if( !vips_object_argument_isset( object, "interpolator" ) )
+	if( !quadratic->interpolate )
 		quadratic->interpolate = vips_interpolate_new( "bilinear" );
-	interpolate = quadratic->interpolate;
 
-	window_size = vips_interpolate_get_window_size( interpolate );
-	window_offset = vips_interpolate_get_window_offset( interpolate );
+	window_size = vips_interpolate_get_window_size( quadratic->interpolate );
+	window_offset = vips_interpolate_get_window_offset( quadratic->interpolate );
 
 	/* Enlarge the input image. 
 	 */

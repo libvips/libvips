@@ -210,8 +210,8 @@ vips__thread_profile_init_cb( VipsThreadProfile *profile )
 	vips_thread_profile_free( profile );
 }
 
-static void
-vips__thread_profile_init( void )
+static void *
+vips__thread_profile_init( void *data )
 {
 #ifdef HAVE_PRIVATE_INIT
 	static GPrivate private = 
@@ -223,6 +223,8 @@ vips__thread_profile_init( void )
 		vips_thread_profile_key = g_private_new( 
 			(GDestroyNotify) vips__thread_profile_init_cb );
 #endif
+
+	return( NULL );
 }
 
 static VipsThreadGate *
@@ -245,7 +247,7 @@ vips__thread_profile_attach( const char *thread_name )
 
 	VipsThreadProfile *profile;
 
-	VIPS_ONCE( &once, (GThreadFunc) vips__thread_profile_init, NULL );
+	VIPS_ONCE( &once, vips__thread_profile_init, NULL );
 
 	VIPS_DEBUG_MSG( "vips__thread_profile_attach: %s\n", thread_name ); 
 

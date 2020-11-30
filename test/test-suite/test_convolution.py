@@ -55,6 +55,17 @@ class TestConvolution:
                                                  [-1, -2, -1]])
         cls.all_masks = [cls.sharp, cls.blur, cls.line, cls.sobel]
 
+    @classmethod
+    def teardown_class(cls):
+        cls.colour = None
+        cls.mono = None
+        cls.all_images = None
+        cls.sharp = None
+        cls.blur = None
+        cls.line = None
+        cls.sobel = None
+        cls.all_masks = None
+
     def test_conv(self):
         for im in self.all_images:
             for msk in self.all_masks:

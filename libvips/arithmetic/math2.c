@@ -420,7 +420,7 @@ vips_math2_const_init( VipsMath2Const *math2_const )
 
 static int
 vips_math2_constv( VipsImage *in, VipsImage **out, 
-	VipsOperationMath2 math2, double *c, int n, va_list ap )
+	VipsOperationMath2 math2, const double *c, int n, va_list ap )
 {
 	VipsArea *area_c;
 	double *array; 
@@ -470,7 +470,7 @@ vips_math2_constv( VipsImage *in, VipsImage **out,
  */
 int
 vips_math2_const( VipsImage *in, VipsImage **out, 
-	VipsOperationMath2 math2, double *c, int n, ... )
+	VipsOperationMath2 math2, const double *c, int n, ... )
 {
 	va_list ap;
 	int result;
@@ -496,7 +496,7 @@ vips_math2_const( VipsImage *in, VipsImage **out,
  * Returns: 0 on success, -1 on error
  */
 int
-vips_pow_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+vips_pow_const( VipsImage *in, VipsImage **out, const double *c, int n, ... )
 {
 	va_list ap;
 	int result;
@@ -523,7 +523,7 @@ vips_pow_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
  * Returns: 0 on success, -1 on error
  */
 int
-vips_wop_const( VipsImage *in, VipsImage **out, double *c, int n, ... )
+vips_wop_const( VipsImage *in, VipsImage **out, const double *c, int n, ... )
 {
 	va_list ap;
 	int result;

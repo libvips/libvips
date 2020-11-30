@@ -66,7 +66,6 @@ extern "C" {
  */
 #if defined(__clang__) || (__GNUC__ >= 4)
 #define VIPS_ISNAN( V ) __builtin_isnan( V )
-#define VIPS_ISINF( V ) __builtin_isinf( V )
 #define VIPS_FLOOR( V ) __builtin_floor( V )
 #define VIPS_CEIL( V ) __builtin_ceil( V )
 #define VIPS_RINT( V ) __builtin_rint( V )
@@ -76,7 +75,6 @@ extern "C" {
 #define VIPS_FMIN( A, B ) __builtin_fmin( A, B )
 #else
 #define VIPS_ISNAN( V ) isnan( V )
-#define VIPS_ISINF( V ) isinf( V )
 #define VIPS_FLOOR( V ) floor( V )
 #define VIPS_CEIL( V ) ceil( V )
 #define VIPS_RINT( V ) rint( V )
@@ -254,7 +252,7 @@ int vips_filename_suffix_match( const char *path, const char *suffixes[] );
 gint64 vips_file_length( int fd );
 int vips__write( int fd, const void *buf, size_t count );
 
-int vips__open( const char *filename, int flags, ... );
+int vips__open( const char *filename, int flags, int mode );
 int vips__open_read( const char *filename );
 FILE *vips__fopen( const char *filename, const char *mode );
 
@@ -266,8 +264,8 @@ char *vips__file_read( FILE *fp, const char *name, size_t *length_out );
 char *vips__file_read_name( const char *name, const char *fallback_dir, 
 	size_t *length_out );
 int vips__file_write( void *data, size_t size, size_t nmemb, FILE *stream );
-guint64 vips__get_bytes( const char *filename, 
-	unsigned char buf[], guint64 len );
+gint64 vips__get_bytes( const char *filename, 
+	unsigned char buf[], gint64 len );
 int vips__fgetc( FILE *fp );
 
 GValue *vips__gvalue_ref_string_new( const char *text );
@@ -276,17 +274,18 @@ GSList *vips__gslist_gvalue_copy( const GSList *list );
 GSList *vips__gslist_gvalue_merge( GSList *a, const GSList *b );
 char *vips__gslist_gvalue_get( const GSList *list );
 
-int vips__seek( int fd, gint64 pos );
+gint64 vips__seek_no_error( int fd, gint64 pos, int whence );
+gint64 vips__seek( int fd, gint64 pos, int whence );
 int vips__ftruncate( int fd, gint64 pos );
 int vips_existsf( const char *name, ... )
+	__attribute__((format(printf, 1, 2)));
+int vips_isdirf( const char *name, ... )
 	__attribute__((format(printf, 1, 2)));
 int vips_mkdirf( const char *name, ... )
 	__attribute__((format(printf, 1, 2)));
 int vips_rmdirf( const char *name, ... )
 	__attribute__((format(printf, 1, 2)));
 int vips_rename( const char *old_name, const char *new_name );
-FILE *vips_popenf( const char *fmt, const char *mode, ... )
-	__attribute__((format(printf, 1, 3)));
 
 /** 
  * VipsToken:
@@ -342,6 +341,10 @@ guint32 vips__random_add( guint32 seed, int value );
 
 const char *vips__icc_dir( void );
 const char *vips__windows_prefix( void );
+
+char *vips__get_iso8601( void );
+
+int vips_strtod( const char *str, double *out );
 
 #ifdef __cplusplus
 }

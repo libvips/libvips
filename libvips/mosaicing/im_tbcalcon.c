@@ -14,15 +14,15 @@
  * @(#) Input image should are either memory mapped or in a buffer.
  * @(#) To make the calculation faster set FACTOR to 1, 2 or 3
  * @(#)  Calculations are based on bandno only.
- * @(#)  The function uses functions im_calculate_contrast() 
- * @(#) which is in im_lrcalcon()
+ * @(#)  The function uses functions vips__find_best_contrast() 
+ * @(#) which is in vips_lrcalcon()
  * @(#)
- * @(#) int im_tbcalcon( ref, sec, bandno, points )
- * @(#) IMAGE *ref, *sec;
+ * @(#) int vips_tbcalcon( ref, sec, bandno, points )
+ * @(#) VipsImage *ref, *sec;
  * @(#) int bandno;
- * @(#) TIE_POINTS *points; 	see mosaic.h
+ * @(#) TiePoints *points; 	see mosaic.h
  * @(#) 
- * @(#) Returns 0 on sucess  and -1 on error.
+ * @(#) Returns 0 on success  and -1 on error.
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -35,6 +35,8 @@
  * 12/7/95 JC
  *	- reworked
  *	- what a lot of horrible old code there was too
+ * 18/6/20 kleisauke
+ * 	- convert to vips8
  */
 
 /*
@@ -73,13 +75,12 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 #include <vips/internal.h>
 
 #include "pmosaicing.h"
 
 int 
-im__tbcalcon( IMAGE *ref, TIE_POINTS *points )
+vips__tbcalcon( VipsImage *ref, TiePoints *points )
 {
 	/* Geometry: border we must leave around each area.
 	 */
@@ -94,14 +95,14 @@ im__tbcalcon( IMAGE *ref, TIE_POINTS *points )
 	const int len = points->nopoints / AREAS;
 
 	int i;
-	Rect area;
+	VipsRect area;
 
 	/* Make sure we can read image.
 	 */
-	if( im_incheck( ref ) )
+	if( vips_image_wio_input( ref ) )
 		return( -1 );
-	if( ref->Bands != 1 || ref->BandFmt != IM_BANDFMT_UCHAR ) { 
-		im_error( "im__tbcalcon", "%s", _( "help!" ) );
+	if( ref->Bands != 1 || ref->BandFmt != VIPS_FORMAT_UCHAR ) { 
+		vips_error( "vips__tbcalcon", "%s", _( "help!" ) );
 		return( -1 );
 	}
 
@@ -111,22 +112,22 @@ im__tbcalcon( IMAGE *ref, TIE_POINTS *points )
 	area.height = ref->Ysize;
 	area.left = 0;
 	area.top = 0;
-	im_rect_marginadjust( &area, -border );
+	vips_rect_marginadjust( &area, -border );
 	area.width--;
 	area.height--;
 	if( area.width < 0 || area.height < 0 ) {
-		im_error( "im__tbcalcon", "%s", _( "overlap too small" ) );
+		vips_error( "vips__tbcalcon", "%s", _( "overlap too small" ) );
 		return( -1 );
 	}
 
 	/* Loop over areas, finding points.
 	 */
 	for( i = 0; area.left < ref->Xsize; area.left += awidth, i++ ) 
-		if( im__find_best_contrast( ref, 
+		if( vips__find_best_contrast( ref, 
 			area.left, area.top, area.width, area.height,
-			points->x_reference + i*len,
-			points->y_reference + i*len,
-			points->contrast + i*len, 
+			points->x_reference + i * len,
+			points->y_reference + i * len,
+			points->contrast + i * len, 
 			len,
 			points->halfcorsize ) )
 				return( -1 );

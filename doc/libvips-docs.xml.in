@@ -61,6 +61,8 @@
     <xi:include href="xml/object.xml"/>
     <xi:include href="xml/threadpool.xml"/>
     <xi:include href="xml/buf.xml"/>
+    <xi:include href="xml/connection.xml"/>
+    <xi:include href="xml/sbuf.xml"/>
     <xi:include href="xml/basic.xml"/>
   </chapter>
 

@@ -56,7 +56,6 @@
 typedef struct _VipsForeignSaveRad {
 	VipsForeignSave parent_object;
 
-	char *filename; 
 } VipsForeignSaveRad;
 
 typedef VipsForeignSaveClass VipsForeignSaveRadClass;
@@ -85,13 +84,9 @@ static int vips_foreign_save_rad_format_table[10] = {
 static void
 vips_foreign_save_rad_class_init( VipsForeignSaveRadClass *class )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
-
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "radsave_base";
 	object_class->description = _( "save Radiance" );
@@ -127,12 +122,19 @@ vips_foreign_save_rad_file_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveRadFile *file = (VipsForeignSaveRadFile *) object;
 
+	VipsTarget *target;
+
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_rad_file_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips__rad_save( save->ready, file->filename ) )
+	if( !(target = vips_target_new_to_file( file->filename )) )
 		return( -1 );
+	if( vips__rad_save( save->ready, target ) ) {
+		VIPS_UNREF( target );
+		return( -1 );
+	}
+	VIPS_UNREF( target );
 
 	return( 0 );
 }
@@ -163,6 +165,60 @@ vips_foreign_save_rad_file_init( VipsForeignSaveRadFile *file )
 {
 }
 
+typedef struct _VipsForeignSaveRadTarget {
+	VipsForeignSaveRad parent_object;
+
+	VipsTarget *target;
+} VipsForeignSaveRadTarget;
+
+typedef VipsForeignSaveRadClass VipsForeignSaveRadTargetClass;
+
+G_DEFINE_TYPE( VipsForeignSaveRadTarget, vips_foreign_save_rad_target, 
+	vips_foreign_save_rad_get_type() );
+
+static int
+vips_foreign_save_rad_target_build( VipsObject *object )
+{
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveRadTarget *target = (VipsForeignSaveRadTarget *) object;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_rad_target_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( vips__rad_save( save->ready, target->target ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_rad_target_class_init( VipsForeignSaveRadTargetClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "radsave_target";
+	object_class->description = _( "save image to Radiance target" );
+	object_class->build = vips_foreign_save_rad_target_build;
+
+	VIPS_ARG_OBJECT( class, "target", 1,
+		_( "Target" ),
+		_( "Target to save to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveRadTarget, target ),
+		VIPS_TYPE_TARGET );
+
+}
+
+static void
+vips_foreign_save_rad_target_init( VipsForeignSaveRadTarget *target )
+{
+}
+
 typedef struct _VipsForeignSaveRadBuffer {
 	VipsForeignSaveRad parent_object;
 
@@ -179,23 +235,26 @@ vips_foreign_save_rad_buffer_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 
-	void *obuf;
-	size_t olen;
+	VipsTarget *target;
 	VipsBlob *blob;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_rad_buffer_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( vips__rad_save_buf( save->ready, &obuf, &olen ) )
+	if( !(target = vips_target_new_to_memory()) )
 		return( -1 );
 
-	/* vips__rad_save_buf() makes a buffer that needs g_free(), not
-	 * vips_free().
-	 */
-	blob = vips_blob_new( (VipsCallbackFn) g_free, obuf, olen );
-	g_object_set( object, "buffer", blob, NULL );
+	if( vips__rad_save( save->ready, target ) ) {
+		VIPS_UNREF( target );
+		return( -1 );
+	}
+
+	g_object_get( target, "blob", &blob, NULL );
+	g_object_set( save, "buffer", blob, NULL );
 	vips_area_unref( VIPS_AREA( blob ) );
+
+	VIPS_UNREF( target );
 
 	return( 0 );
 }
@@ -296,6 +355,31 @@ vips_radsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 
 		vips_area_unref( area );
 	}
+
+	return( result );
+}
+
+/**
+ * vips_radsave_target: (method)
+ * @in: image to save 
+ * @target: save image to this target
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * As vips_radsave(), but save to a target.
+ *
+ * See also: vips_radsave().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_radsave_target( VipsImage *in, VipsTarget *target, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, target );
+	result = vips_call_split( "radsave_target", ap, in, target );
+	va_end( ap );
 
 	return( result );
 }

@@ -326,7 +326,7 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 		if( format == VIPS_FORMAT_USHORT )
 			type = VIPS_INTERPRETATION_RGB16;
 		else
-			type = VIPS_INTERPRETATION_RGB;
+			type = VIPS_INTERPRETATION_sRGB;
 	}
 	else
 		type = VIPS_INTERPRETATION_MULTIBAND;

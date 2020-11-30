@@ -4,6 +4,9 @@
  * 	- from vips_sharpen()
  * 19/11/14
  * 	- change parameters to be more imagemagick-like
+ * 21/9/20
+ * 	- allow sigma zero, meaning no blur
+ * 	- sigma < 0.2 is just copy
  */
 
 /*
@@ -73,23 +76,33 @@ vips_gaussblur_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_gaussblur_parent_class )->build( object ) )
 		return( -1 );
 
-	if( vips_gaussmat( &t[0], gaussblur->sigma, gaussblur->min_ampl, 
-		"separable", TRUE,
-		"precision", gaussblur->precision,
-		NULL ) )
-		return( -1 ); 
+	/* vips_gaussmat() will make a 1x1 pixel mask for anything smaller than
+	 * this.
+	 */
+	if( gaussblur->sigma < 0.2 ) {
+		if( vips_copy( gaussblur->in, &t[1], NULL ) )
+			return( -1 ); 
+	}
+	else {
+		if( vips_gaussmat( &t[0], 
+			gaussblur->sigma, gaussblur->min_ampl, 
+			"separable", TRUE,
+			"precision", gaussblur->precision,
+			NULL ) )
+			return( -1 ); 
 
 #ifdef DEBUG
-	printf( "gaussblur: blurring with:\n" ); 
-	vips_matrixprint( t[0], NULL ); 
+		printf( "gaussblur: blurring with:\n" ); 
+		vips_matrixprint( t[0], NULL ); 
 #endif /*DEBUG*/
 
-	g_info( "gaussblur mask width %d", t[0]->Xsize );
+		g_info( "gaussblur mask width %d", t[0]->Xsize );
 
-	if( vips_convsep( gaussblur->in, &t[1], t[0], 
-		"precision", gaussblur->precision,
-		NULL ) )
-		return( -1 );
+		if( vips_convsep( gaussblur->in, &t[1], t[0], 
+			"precision", gaussblur->precision,
+			NULL ) )
+			return( -1 );
+	}
 
 	g_object_set( object, "out", vips_image_new(), NULL ); 
 
@@ -132,7 +145,7 @@ vips_gaussblur_class_init( VipsGaussblurClass *class )
 		_( "Sigma of Gaussian" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsGaussblur, sigma ),
-		0.01, 1000, 1.5 );
+		0.0, 1000, 1.5 );
 
 	VIPS_ARG_DOUBLE( class, "min_ampl", 3, 
 		_( "Minimum amplitude" ), 

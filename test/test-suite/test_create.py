@@ -121,8 +121,8 @@ class TestCreate:
         sigma = im.deviate()
         mean = im.avg()
 
-        assert pytest.approx(sigma, 0.2) == 10
-        assert pytest.approx(mean, 0.2) == 100
+        assert sigma == pytest.approx(10, abs=0.4)
+        assert mean == pytest.approx(100, abs=0.4)
 
     def test_grey(self):
         im = pyvips.Image.grey(100, 90)
@@ -197,11 +197,28 @@ class TestCreate:
         p = im(255, 0)
         assert_almost_equal_objects(p, [1, 1, 1])
         p = im(0.2 * 255, 0)
-        assert pytest.approx(p[0], 0.1) == 0.1
+        assert p[0] == pytest.approx(0.1, abs=0.1)
         p = im(0.3 * 255, 0)
-        assert pytest.approx(p[1], 0.1) == 0.1
+        assert p[1] == pytest.approx(0.1, abs=0.1)
         p = im(0.1 * 255, 0)
-        assert pytest.approx(p[2], 0.1) == 0.1
+        assert p[2] == pytest.approx(0.1, abs=0.1)
+
+    def test_matrixinvert(self):
+        # 4x4 matrix to check if PLU decomposition works
+        mat = pyvips.Image.new_from_array([[4, 0, 0, 0],
+                                           [0, 0, 2, 0],
+                                           [0, 1, 2, 0],
+                                           [1, 0, 0, 1]])
+        im = mat.matrixinvert()
+        assert im.width == 4
+        assert im.height == 4
+        assert im.bands == 1
+        assert im.format == pyvips.BandFormat.DOUBLE
+
+        p = im(0, 0)
+        assert p[0] == 0.25
+        p = im(3, 3)
+        assert p[0] == 1.0
 
     def test_logmat(self):
         im = pyvips.Image.logmat(1, 0.1)
@@ -237,7 +254,7 @@ class TestCreate:
         assert im.height == 128
         assert im.bands == 1
         assert im.format == pyvips.BandFormat.FLOAT
-        assert pytest.approx(im.max(), 0.01) == 1
+        assert im.max() == pytest.approx(1, abs=0.01)
         p = im(32, 32)
         assert p[0] == 1.0
 
@@ -275,7 +292,7 @@ class TestCreate:
         assert im.height == 128
         assert im.bands == 1
         assert im.format == pyvips.BandFormat.FLOAT
-        assert pytest.approx(im.min(), 0.01) == 0
+        assert im.min() == pytest.approx(0, abs=0.01)
         p = im(0, 0)
         assert p[0] == 0.0
         v, x, y = im.maxpos()
@@ -288,7 +305,7 @@ class TestCreate:
         assert im.height == 128
         assert im.bands == 1
         assert im.format == pyvips.BandFormat.UCHAR
-        assert pytest.approx(im.min(), 0.01) == 0
+        assert im.min() == pytest.approx(0, abs=0.01)
         p = im(64, 64)
         assert p[0] == 255
 
@@ -300,7 +317,7 @@ class TestCreate:
         assert im.bands == 1
         assert im.format == pyvips.BandFormat.FLOAT
         p = im(45, 0)
-        assert pytest.approx(p[0], 0.0001) == 1.0
+        assert p[0] == pytest.approx(1.0, abs=0.0001)
         v, x, y = im.minpos()
         assert x == 64
         assert y == 64
@@ -318,7 +335,7 @@ class TestCreate:
         assert im.height == 128
         assert im.bands == 1
         assert im.format == pyvips.BandFormat.FLOAT
-        assert pytest.approx(im.max(), 0.01) == 1
+        assert im.max() == pytest.approx(1, abs=0.01)
         p = im(32, 32)
         assert p[0] == 1.0
 
@@ -329,7 +346,7 @@ class TestCreate:
         assert im.height == 128
         assert im.bands == 1
         assert im.format == pyvips.BandFormat.FLOAT
-        assert pytest.approx(im.min(), 0.01) == 0
+        assert im.min() == pytest.approx(0, abs=0.01)
         p = im(0, 0)
         assert p[0] == 0.0
 
@@ -341,7 +358,7 @@ class TestCreate:
         assert im.bands == 1
         assert im.format == pyvips.BandFormat.FLOAT
         p = im(45, 0)
-        assert pytest.approx(p[0], 0.001) == 1.0
+        assert p[0] == pytest.approx(1.0, abs=0.001)
 
     def test_mask_ideal_band(self):
         im = pyvips.Image.mask_ideal_band(128, 128, 0.5, 0.5, 0.7)
@@ -349,7 +366,7 @@ class TestCreate:
         assert im.height == 128
         assert im.bands == 1
         assert im.format == pyvips.BandFormat.FLOAT
-        assert pytest.approx(im.max(), 0.01) == 1
+        assert im.max() == pytest.approx(1, abs=0.01)
         p = im(32, 32)
         assert p[0] == 1.0
 
@@ -360,7 +377,7 @@ class TestCreate:
         assert im.height == 128
         assert im.bands == 1
         assert im.format == pyvips.BandFormat.FLOAT
-        assert pytest.approx(im.min(), 0.01) == 0
+        assert im.min() == pytest.approx(0, abs=0.01)
         p = im(0, 0)
         assert p[0] == 0.0
 
@@ -372,7 +389,7 @@ class TestCreate:
         assert im.bands == 1
         assert im.format == pyvips.BandFormat.FLOAT
         p = im(45, 0)
-        assert pytest.approx(p[0], 0.001) == 1.0
+        assert p[0] == pytest.approx(1, abs=0.001)
 
     def test_sines(self):
         im = pyvips.Image.sines(128, 128)
@@ -391,6 +408,12 @@ class TestCreate:
         assert im.format == pyvips.BandFormat.UCHAR
         assert im.max() == 255
         assert im.min() == 0
+
+        # test autofit
+        im = pyvips.Image.text("Hello, world!", width=500, height=500)
+        # quite a large threshold, since we need to work with a huge range of 
+        # text rendering systems
+        assert abs(im.width - 500) < 50
 
     def test_tonelut(self):
         im = pyvips.Image.tonelut()

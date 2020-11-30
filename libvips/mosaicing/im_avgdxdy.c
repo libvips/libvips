@@ -1,13 +1,13 @@
 /* @(#)  Function which averages the difference x_secondary[] - x_reference[]
  * @(#) and y_secondary[] - y_reference[] of the structure points;
- * @(#)  The rounded integer result is returnd into dx, dy
- * @(#) No IMAGES are involved in this function.
+ * @(#)  The rounded integer result is returned into dx, dy
+ * @(#) No images are involved in this function.
  * @(#)
- * @(#) int im_avgdxdy( points, dx, dy )
- * @(#) TIE_POINTS *points;
+ * @(#) int vips__avgdxdy( points, dx, dy )
+ * @(#) TiePoints *points;
  * @(#) int *dx, *dy;
  * @(#) 
- * @(#) Returns 0 on sucess  and -1 on error.
+ * @(#) Returns 0 on success  and -1 on error.
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -52,18 +52,17 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 #include "pmosaicing.h"
 
 int 
-im__avgdxdy( TIE_POINTS *points, int *dx, int *dy )
+vips__avgdxdy( TiePoints *points, int *dx, int *dy )
 {
 	int sumdx, sumdy;
 	int i;
 
 	if( points->nopoints == 0 ) {
-		im_error( "im_avgdxdy", "%s", _( "no points to average" ) );
+		vips_error( "vips__avgdxdy", "%s", _( "no points to average" ) );
 		return( -1 );
 	}
 
@@ -76,8 +75,8 @@ im__avgdxdy( TIE_POINTS *points, int *dx, int *dy )
 		sumdy += points->y_secondary[i] - points->y_reference[i];
 	}
 
-	*dx =  IM_RINT( (double) sumdx / (double) points->nopoints );
-	*dy =  IM_RINT( (double) sumdy / (double) points->nopoints );
+	*dx = VIPS_RINT( (double) sumdx / (double) points->nopoints );
+	*dy = VIPS_RINT( (double) sumdy / (double) points->nopoints );
 
 	return( 0 );
 }

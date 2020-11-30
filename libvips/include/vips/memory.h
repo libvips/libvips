@@ -66,7 +66,6 @@ G_STMT_START { \
 
 void *vips_malloc( VipsObject *object, size_t size );
 char *vips_strdup( VipsObject *object, const char *str );
-int vips_free( void *buf );
 
 void vips_tracked_free( void *s );
 void *vips_tracked_malloc( size_t size );
@@ -74,7 +73,7 @@ size_t vips_tracked_get_mem( void );
 size_t vips_tracked_get_mem_highwater( void );
 int vips_tracked_get_allocs( void );
 
-int vips_tracked_open( const char *pathname, int flags, ... );
+int vips_tracked_open( const char *pathname, int flags, int mode );
 int vips_tracked_close( int fd );
 int vips_tracked_get_files( void );
 

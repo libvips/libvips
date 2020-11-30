@@ -133,15 +133,17 @@ vips_XYZ2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 		nZ = QUANT_ELEMENTS * p[2] / XYZ2Lab->Z0;
 		p += 3;
 
-		i = VIPS_FCLIP( 0, nX, QUANT_ELEMENTS - 2 );
+		/* CLIP is much faster than FCLIP, and we want an int result.
+		 */
+		i = VIPS_CLIP( 0, (int) nX, QUANT_ELEMENTS - 2 );
 		f = nX - i;
 		cbx = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
 
-		i = VIPS_FCLIP( 0, nY, QUANT_ELEMENTS - 2 );
+		i = VIPS_CLIP( 0, (int) nY, QUANT_ELEMENTS - 2 );
 		f = nY - i;
 		cby = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
 
-		i = VIPS_FCLIP( 0, nZ, QUANT_ELEMENTS - 2 );
+		i = VIPS_CLIP( 0, (int) nZ, QUANT_ELEMENTS - 2 );
 		f = nZ - i;
 		cbz = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
 

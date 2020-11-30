@@ -216,24 +216,6 @@ vips_strdup( VipsObject *object, const char *str )
 }
 
 /**
- * vips_free:
- * @buf: memory to free
- *
- * Frees memory with g_free() and returns 0. Handy for callbacks.
- *
- * See also: vips_malloc().
- *
- * Returns: 0
- */
-int
-vips_free( void *buf )
-{
-	g_free( buf );
-
-	return( 0 );
-}
-
-/**
  * vips_tracked_free:
  * @s: (transfer full): memory to free
  *
@@ -273,10 +255,12 @@ vips_tracked_free( void *s )
 	VIPS_GATE_FREE( size ); 
 }
 
-static void
-vips_tracked_init_mutex( void )
+static void *
+vips_tracked_init_mutex( void *data )
 {
 	vips_tracked_mutex = vips_g_mutex_new(); 
+
+	return( NULL );
 }
 
 static void
@@ -285,7 +269,7 @@ vips_tracked_init( void )
 	static GOnce vips_tracked_once = G_ONCE_INIT;
 
 	VIPS_ONCE( &vips_tracked_once, 
-		(GThreadFunc) vips_tracked_init_mutex, NULL );
+		vips_tracked_init_mutex, NULL );
 }
 
 /**
@@ -356,32 +340,25 @@ vips_tracked_malloc( size_t size )
  * vips_tracked_open:
  * @pathname: name of file to open
  * @flags: flags for open()
- * @...: open mode
+ * @mode: open mode
  *
- * Exactly as open(2), but the number of files current open via
+ * Exactly as open(2), but the number of files currently open via
  * vips_tracked_open() is available via vips_tracked_get_files(). This is used
  * by the vips operation cache to drop cache when the number of files
  * available is low.
  *
  * You must only close the file descriptor with vips_tracked_close().
  *
+ * @pathname should be utf8.
+ *
  * See also: vips_tracked_close(), vips_tracked_get_files().
  *
  * Returns: a file descriptor, or -1 on error.
  */
 int
-vips_tracked_open( const char *pathname, int flags, ... )
+vips_tracked_open( const char *pathname, int flags, int mode )
 {
 	int fd;
-	mode_t mode;
-	va_list ap;
-
-	/* mode_t is promoted to int in ..., so we have to pull it out as an
-	 * int.
-	 */
-	va_start( ap, flags );
-	mode = va_arg( ap, int );
-	va_end( ap );
 
 	if( (fd = vips__open( pathname, flags, mode )) == -1 )
 		return( -1 );

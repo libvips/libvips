@@ -111,9 +111,18 @@ jpeg2vips( const char *name, IMAGE *out, gboolean header_only )
 	}
 
 #ifdef HAVE_JPEG
-	if( vips__jpeg_read_file( filename, out, 
-		header_only, shrink, fail_on_warn, FALSE ) )
+{
+	VipsSource *source;
+
+	if( !(source = vips_source_new_from_file( filename )) ) 
 		return( -1 );
+	if( vips__jpeg_read_source( source, out,
+		header_only, shrink, fail_on_warn, FALSE ) ) {
+		VIPS_UNREF( source );
+		return( -1 );
+	}
+	VIPS_UNREF( source );
+}
 #else
 	vips_error( "im_jpeg2vips", 
 		"%s", _( "no JPEG support in your libvips" ) ); 

@@ -1,4 +1,4 @@
-/* Header for the .desc file parser in im_global_balance()
+/* Header for the .desc file parser in vips_global_balance()
  *
  * 1/11/01 JC
  *	- cut from global_balance.c
@@ -42,16 +42,16 @@ typedef struct _SymbolTable SymbolTable;
 
 /* Type of a transform function.
  */
-typedef IMAGE *(*transform_fn)( JoinNode *, void * );
+typedef VipsImage *(*transform_fn)( JoinNode *, void * );
 
 /* Join type.
  */
 enum _JoinType {
-	JOIN_LR,		/* im_lrmerge join */
-	JOIN_TB,		/* im_tbmerge join */
+	JOIN_LR,		/* vips__lrmerge join */
+	JOIN_TB,		/* vips__tbmerge join */
 	JOIN_LRROTSCALE,	/* 1st oder lrmerge */
 	JOIN_TBROTSCALE,	/* 1st oder tbmerge */
-	JOIN_CP,		/* im_copy operation */
+	JOIN_CP,		/* vips_copy operation */
 	JOIN_LEAF		/* Base file */
 };
 
@@ -61,9 +61,9 @@ enum _JoinType {
 struct _OverlapInfo {
 	JoinNode *node;		/* The base node - we are on this list */
 	JoinNode *other;	/* Node we overlap with */
-	Rect overlap;		/* The overlap area */
-	DOUBLEMASK *nstats;	/* Node's stats for overlap area */
-	DOUBLEMASK *ostats;	/* Other's stats for overlap area */
+	VipsRect overlap;		/* The overlap area */
+	VipsImage *nstats;	/* Node's stats for overlap area */
+	VipsImage *ostats;	/* Other's stats for overlap area */
 };
 
 /* Struct for a join node.
@@ -93,11 +93,11 @@ struct _JoinNode {
 	VipsTransformation thistrn;	/* Transformation for arg2 */
 
 	/* Special for leaves: all the join_nodes we overlap with, the
-	 * IMAGE for that file, and the index.
+	 * VipsImage for that file, and the index.
 	 */
 	GSList *overlaps;
-	IMAGE *im;
-	IMAGE *trnim;		/* Transformed image .. used in 2nd pass */
+	VipsImage *im;
+	VipsImage *trnim;		/* Transformed image .. used in 2nd pass */
 	int index;
 };
 
@@ -108,7 +108,7 @@ struct _JoinNode {
 struct _SymbolTable {
 	GSList **table;		/* Ptr to base of hash table */
 	int sz;			/* Size of hash table */
-	IMAGE *im;		/* Malloc relative to this */
+	VipsImage *im;		/* Malloc relative to this */
 
 	int novl;		/* Number of unique overlaps */
 	int nim;		/* Number of leaf images */
@@ -119,9 +119,9 @@ struct _SymbolTable {
 	double *fac;		/* Correction factors */
 };
 
-IMAGE *im__global_open_image( SymbolTable *st, char *name );
-SymbolTable *im__build_symtab( IMAGE *out, int sz );
-int im__parse_desc( SymbolTable *st, IMAGE *in );
-void *im__map_table( SymbolTable *st, VSListMap2Fn fn, void *a, void *b );
-int im__build_mosaic( SymbolTable *st, 
-	IMAGE *out, transform_fn tfn, void * );
+VipsImage *vips__global_open_image( SymbolTable *st, char *name );
+SymbolTable *vips__build_symtab( VipsImage *out, int sz );
+int vips__parse_desc( SymbolTable *st, VipsImage *in );
+void *vips__map_table( SymbolTable *st, VipsSListMap2Fn fn, void *a, void *b );
+int vips__build_mosaic( SymbolTable *st,
+	VipsImage *out, transform_fn tfn, void *a );

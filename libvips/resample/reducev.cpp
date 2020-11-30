@@ -17,6 +17,11 @@
  * 	- add @centre option
  * 7/3/17
  * 	- add a seq line cache
+ * 6/6/20 kleisauke
+ * 	- deprecate @centre option, it's now always on
+ * 	- fix pixel shift
+ * 	- speed up the mask construction for uchar/ushort images
+ * 	- remove unnecessary round-to-nearest behaviour
  */
 
 /*
@@ -104,29 +109,32 @@ typedef struct _VipsReducev {
 	 */
 	VipsKernel kernel;
 
-	/* Use centre rather than corner sampling convention.
-	 */
-	gboolean centre;
-
 	/* Number of points in kernel.
 	 */
 	int n_point;
 
-	/* Precalculated interpolation matrices. int (used for pel
-	 * sizes up to short), and double (for all others). We go to
-	 * scale + 1 so we can round-to-nearest safely.
+	/* Vertical displacement.
 	 */
-	int *matrixi[VIPS_TRANSFORM_SCALE + 1];
-	double *matrixf[VIPS_TRANSFORM_SCALE + 1];
+	double voffset;
+
+	/* Precalculated interpolation matrices. int (used for pel
+	 * sizes up to short), and double (for all others).
+	 */
+	int *matrixi[VIPS_TRANSFORM_SCALE];
+	double *matrixf[VIPS_TRANSFORM_SCALE];
 
 	/* And another set for orc: we want 2.6 precision.
 	 */
-	int *matrixo[VIPS_TRANSFORM_SCALE + 1];
+	int *matrixo[VIPS_TRANSFORM_SCALE];
 
 	/* The passes we generate for this mask.
 	 */
 	int n_pass;	
 	Pass pass[MAX_PASS];
+
+	/* Deprecated.
+	 */
+	gboolean centre;
 
 } VipsReducev;
 
@@ -146,7 +154,7 @@ vips_reducev_finalize( GObject *gobject )
 	for( int i = 0; i < reducev->n_pass; i++ )
 		VIPS_FREEF( vips_vector_free, reducev->pass[i].vector );
 	reducev->n_pass = 0;
-	for( int i = 0; i < VIPS_TRANSFORM_SCALE + 1; i++ ) {
+	for( int i = 0; i < VIPS_TRANSFORM_SCALE; i++ ) {
 		VIPS_FREE( reducev->matrixf[i] );
 		VIPS_FREE( reducev->matrixi[i] );
 		VIPS_FREE( reducev->matrixo[i] );
@@ -531,25 +539,24 @@ vips_reducev_gen( VipsRegion *out_region, void *vseq,
 #endif /*DEBUG*/
 
 	s.left = r->left;
-	s.top = r->top * reducev->vshrink;
+	s.top = r->top * reducev->vshrink - reducev->voffset;
 	s.width = r->width;
 	s.height = r->height * reducev->vshrink + reducev->n_point;
-	if( reducev->centre )
-		s.height += 1;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
 
 	VIPS_GATE_START( "vips_reducev_gen: work" ); 
 
-	for( int y = 0; y < r->height; y ++ ) { 
+	double Y = (r->top + 0.5) * reducev->vshrink - 0.5 - 
+		reducev->voffset;
+
+	for( int y = 0; y < r->height; y++ ) { 
 		VipsPel *q = 
 			VIPS_REGION_ADDR( out_region, r->left, r->top + y );
-		const double Y = (r->top + y) * reducev->vshrink + 
-			(reducev->centre ? 0.5 : 0.0); 
-		VipsPel *p = VIPS_REGION_ADDR( ir, r->left, (int) Y ); 
-		const int sy = Y * VIPS_TRANSFORM_SCALE * 2;
-		const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
-		const int ty = (siy + 1) >> 1;
+		const int py = (int) Y;
+		VipsPel *p = VIPS_REGION_ADDR( ir, r->left, py );
+		const int sy = Y * VIPS_TRANSFORM_SCALE;
+		const int ty = sy & (VIPS_TRANSFORM_SCALE - 1);
 		const int *cyi = reducev->matrixi[ty];
 		const double *cyf = reducev->matrixf[ty];
 		const int lskip = VIPS_REGION_LSKIP( ir );
@@ -606,13 +613,15 @@ vips_reducev_gen( VipsRegion *out_region, void *vseq,
 		case VIPS_FORMAT_DPCOMPLEX:
 		case VIPS_FORMAT_DOUBLE:
 			reducev_notab<double>( reducev,
-				q, p, ne, lskip, Y - (int) Y );
+				q, p, ne, lskip, Y - py );
 			break;
 
 		default:
 			g_assert_not_reached();
 			break;
 		}
+
+		Y += reducev->vshrink;
 	}
 
 	VIPS_GATE_STOP( "vips_reducev_gen: work" ); 
@@ -644,11 +653,9 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 #endif /*DEBUG_PIXELS*/
 
 	s.left = r->left;
-	s.top = r->top * reducev->vshrink;
+	s.top = r->top * reducev->vshrink - reducev->voffset;
 	s.width = r->width;
 	s.height = r->height * reducev->vshrink + reducev->n_point;
-	if( reducev->centre )
-		s.height += 1;
 	if( vips_region_prepare( ir, &s ) )
 		return( -1 );
 
@@ -663,15 +670,15 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 
 	VIPS_GATE_START( "vips_reducev_vector_gen: work" ); 
 
-	for( int y = 0; y < r->height; y ++ ) { 
+	double Y = (r->top + 0.5) * reducev->vshrink - 0.5 - 
+		reducev->voffset;
+
+	for( int y = 0; y < r->height; y++ ) { 
 		VipsPel *q = 
 			VIPS_REGION_ADDR( out_region, r->left, r->top + y );
-		const double Y = (r->top + y) * reducev->vshrink + 
-			(reducev->centre ? 0.5 : 0.0); 
-		const int py = (int) Y; 
-		const int sy = Y * VIPS_TRANSFORM_SCALE * 2;
-		const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
-		const int ty = (siy + 1) >> 1;
+		const int py = (int) Y;
+		const int sy = Y * VIPS_TRANSFORM_SCALE;
+		const int ty = sy & (VIPS_TRANSFORM_SCALE - 1);
 		const int *cyo = reducev->matrixo[ty];
 
 #ifdef DEBUG_PIXELS
@@ -682,7 +689,7 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 		printf( "first column of pixel values:\n" ); 
 		for( int i = 0; i < reducev->n_point; i++ ) 
 			printf( "\t%d - %d\n", i, 
-				*VIPS_REGION_ADDR( ir, r->left, r->top + y + i ) ); 
+				*VIPS_REGION_ADDR( ir, r->left, py ) ); 
 #endif /*DEBUG_PIXELS*/
 
 		/* We run our n passes to generate this scanline.
@@ -709,6 +716,8 @@ vips_reducev_vector_gen( VipsRegion *out_region, void *vseq,
 		printf( "pixel result:\n" );
 		printf( "\t%d\n", *q ); 
 #endif /*DEBUG_PIXELS*/
+
+		Y += reducev->vshrink;
 	}
 
 	VIPS_GATE_STOP( "vips_reducev_vector_gen: work" ); 
@@ -726,45 +735,11 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in, VipsImage **out )
 
 	VipsGenerateFn generate;
 
-	/* Build masks.
-	 */
-	for( int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++ ) {
-		reducev->matrixf[y] = 
-			VIPS_ARRAY( NULL, reducev->n_point, double ); 
-		if( !reducev->matrixf[y] )
-			return( -1 ); 
-
-		vips_reduce_make_mask( reducev->matrixf[y],
-			reducev->kernel, reducev->vshrink, 
-			(float) y / VIPS_TRANSFORM_SCALE ); 
-
-#ifdef DEBUG
-		printf( "%6.2g", (double) y / VIPS_TRANSFORM_SCALE ); 
-		for( int i = 0; i < reducev->n_point; i++ ) 
-			printf( ", %6.2g", reducev->matrixf[y][i] );
-		printf( "\n" ); 
-#endif /*DEBUG*/
-	}
-
-	/* uchar and ushort need an int version of the masks.
-	 */
-	if( VIPS_IMAGE_SIZEOF_ELEMENT( in ) <= 2 ) 
-		for( int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++ ) {
-			reducev->matrixi[y] = 
-				VIPS_ARRAY( NULL, reducev->n_point, int ); 
-			if( !reducev->matrixi[y] )
-				return( -1 ); 
-
-			vips_vector_to_fixed_point( 
-				reducev->matrixf[y], reducev->matrixi[y], 
-				reducev->n_point, VIPS_INTERPOLATE_SCALE );
-		}
-
-	/* And we need an 2.6 version if we will use the vector path.
+	/* We need an 2.6 version if we will use the vector path.
 	 */
 	if( in->BandFmt == VIPS_FORMAT_UCHAR &&
 		vips_vector_isenabled() ) 
-		for( int y = 0; y < VIPS_TRANSFORM_SCALE + 1; y++ ) {
+		for( int y = 0; y < VIPS_TRANSFORM_SCALE; y++ ) {
 			reducev->matrixo[y] = 
 				VIPS_ARRAY( NULL, reducev->n_point, int ); 
 			if( !reducev->matrixo[y] )
@@ -787,7 +762,7 @@ vips_reducev_raw( VipsReducev *reducev, VipsImage *in, VipsImage **out )
 
 	*out = vips_image_new();
 	if( vips_image_pipelinev( *out, 
-		VIPS_DEMAND_STYLE_FATSTRIP, in, (void *) NULL ) )
+		VIPS_DEMAND_STYLE_THINSTRIP, in, (void *) NULL ) )
 		return( -1 );
 
 	/* Size output. We need to always round to nearest, so round(), not
@@ -830,7 +805,7 @@ vips_reducev_build( VipsObject *object )
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
 	VipsImage *in;
-	int height;
+	double height, extra_pixels;
 
 	if( VIPS_OBJECT_CLASS( vips_reducev_parent_class )->build( object ) )
 		return( -1 );
@@ -855,6 +830,52 @@ vips_reducev_build( VipsObject *object )
 		return( -1 );
 	}
 
+	/* Output size. We need to always round to nearest, so round(), not
+	 * rint().
+	 */
+	height = VIPS_ROUND_UINT(
+		(double) resample->in->Ysize / reducev->vshrink );
+
+	/* How many pixels we are inventing in the input, -ve for
+	 * discarding.
+	 */
+	extra_pixels =
+		height * reducev->vshrink - resample->in->Ysize;
+
+	/* If we are rounding down, we are not using some input
+	 * pixels. We need to move the origin *inside* the input image
+	 * by half that distance so that we discard pixels equally
+	 * from left and right. 
+	 */
+	reducev->voffset = (1 + extra_pixels) / 2.0;
+
+	/* Build the tables of pre-computed coefficients.
+	 */
+	for( int y = 0; y < VIPS_TRANSFORM_SCALE; y++ ) {
+		reducev->matrixf[y] = 
+			VIPS_ARRAY( NULL, reducev->n_point, double ); 
+		reducev->matrixi[y] = 
+			VIPS_ARRAY( NULL, reducev->n_point, int ); 
+		if( !reducev->matrixf[y] ||
+			!reducev->matrixi[y] )
+			return( -1 ); 
+
+		vips_reduce_make_mask( reducev->matrixf[y],
+			reducev->kernel, reducev->vshrink, 
+			(float) y / VIPS_TRANSFORM_SCALE ); 
+
+		for( int i = 0; i < reducev->n_point; i++ )
+			reducev->matrixi[y][i] = reducev->matrixf[y][i] *
+				VIPS_INTERPOLATE_SCALE;
+
+#ifdef DEBUG
+		printf( "vips_reducev_build: mask %d\n    ", y );
+		for( int i = 0; i < reducev->n_point; i++ ) 
+			printf( "%d ", reducev->matrixi[y][i] );
+		printf( "\n" ); 
+#endif /*DEBUG*/
+	}
+
 	/* Unpack for processing.
 	 */
 	if( vips_image_decode( in, &t[0] ) )
@@ -863,12 +884,9 @@ vips_reducev_build( VipsObject *object )
 
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
-	height = in->Ysize + reducev->n_point - 1;
-	if( reducev->centre )
-		height += 1;
 	if( vips_embed( in, &t[1], 
 		0, reducev->n_point / 2 - 1, 
-		in->Xsize, height, 
+		in->Xsize, in->Ysize + reducev->n_point, 
 		"extend", VIPS_EXTEND_COPY,
 		(void *) NULL ) )
 		return( -1 );
@@ -939,13 +957,6 @@ vips_reducev_class_init( VipsReducevClass *reducev_class )
 		G_STRUCT_OFFSET( VipsReducev, kernel ),
 		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
 
-	VIPS_ARG_BOOL( reducev_class, "centre", 7, 
-		_( "Centre" ), 
-		_( "Use centre sampling convention" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsReducev, centre ),
-		FALSE );
-
 	/* Old name.
 	 */
 	VIPS_ARG_DOUBLE( reducev_class, "yshrink", 3, 
@@ -954,6 +965,15 @@ vips_reducev_class_init( VipsReducevClass *reducev_class )
 		VIPS_ARGUMENT_REQUIRED_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsReducev, vshrink ),
 		1, 1000000, 1 );
+
+	/* We used to let people pick centre or corner, but it's automatic now.
+	 */
+	VIPS_ARG_BOOL( reducev_class, "centre", 7,
+		_( "Centre" ),
+		_( "Use centre sampling convention" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsReducev, centre ),
+		FALSE );
 
 }
 

@@ -493,9 +493,7 @@ static VipsColourRoute vips_colour_routes[] = {
  * vips_colourspace_issupported:
  * @image: input image
  *
- * Test if @image is in a colourspace that vips_colourspace() can process. For
- * example, #VIPS_INTERPRETATION_RGB images are not in a well-defined 
- * colourspace, but #VIPS_INTERPRETATION_sRGB ones are.
+ * Test if @image is in a colourspace that vips_colourspace() can process. 
  *
  * Returns: %TRUE if @image is in a supported colourspace.
  */

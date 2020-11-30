@@ -101,6 +101,7 @@ typedef enum {
 	VIPS_INTERESTING_ATTENTION,
 	VIPS_INTERESTING_LOW,
 	VIPS_INTERESTING_HIGH,
+	VIPS_INTERESTING_ALL,
 	VIPS_INTERESTING_LAST
 } VipsInteresting;
 
@@ -191,7 +192,6 @@ int vips_rot270( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_rot45( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
-VipsAngle vips_autorot_get_angle( VipsImage *image );
 void vips_autorot_remove_angle( VipsImage *image );
 int vips_autorot( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));

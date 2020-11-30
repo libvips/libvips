@@ -6,7 +6,6 @@ libmorphology_la_SOURCES = \
 	pmorphology.h \
 	countlines.c \
 	rank.c \
-	hitmiss.c \
 	morph.c \
 	labelregions.c 
 

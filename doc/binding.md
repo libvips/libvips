@@ -1,13 +1,13 @@
-  <refmeta>
-    <refentrytitle>How to write bindings</refentrytitle>
-    <manvolnum>3</manvolnum>
-    <refmiscinfo>libvips</refmiscinfo>
-  </refmeta>
+<refmeta>
+  <refentrytitle>How to write bindings</refentrytitle>
+  <manvolnum>3</manvolnum>
+  <refmiscinfo>libvips</refmiscinfo>
+</refmeta>
 
-  <refnamediv>
-    <refname>Binding</refname>
-    <refpurpose>Writing bindings for libvips</refpurpose>
-  </refnamediv>
+<refnamediv>
+  <refname>Binding</refname>
+  <refpurpose>Writing bindings for libvips</refpurpose>
+</refnamediv>
 
 There are full libvips bindings for quite a few environments now: C, C++,
 command-line, Ruby, PHP, Lua, Python and JavaScript (node). 
@@ -80,7 +80,7 @@ main( int argc, char **argv )
 
 	/* Call the operation. This will look up the operation+args in the vips
 	 * operation cache and either return a previous operation, or build
-	 * this one. In either case, we have a new ref we mst release.
+	 * this one. In either case, we have a new ref we must release.
 	 */
 	if( !(new_op = vips_cache_operation_build( op )) ) {
 		g_object_unref( op );
@@ -114,7 +114,7 @@ main( int argc, char **argv )
 ```
 
 libvips has a couple of extra things to let you examine the arguments and
-types of an operator at runtime. Use vips_lib.vips_argument_map() to loop
+types of an operator at runtime. Use vips_argument_map() to loop
 over all the arguments of an operator, and vips_object_get_argument()
 to fetch the type and flags of a specific argument.
 
@@ -151,7 +151,7 @@ operator overloads, and various other useful features.
 
 # Dynamic language with FFI
 
-Languages like Ruby, Python, JavaScript and Lua can't call C directly, but
+Languages like Ruby, Python, JavaScript and LuaJIT can't call C directly, but
 they do support FFI. The bindings for these languages work rather like C++,
 but use FFI to call into libvips and run operations.
 
@@ -216,4 +216,4 @@ $ yelp-build html .
 ```
 
 To make HTML docs. This is an easy way to see what you can call in the 
-library. 
+library.

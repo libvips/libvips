@@ -4371,6 +4371,68 @@ im_profile( IMAGE *in, IMAGE *out, int dir )
 }
 
 int
+im_erode( IMAGE *in, IMAGE *out, INTMASK *mask )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_imask2vips( mask, t1 ) )
+		return( -1 );
+
+	if( vips_morph( in, &t2, t1, VIPS_OPERATION_MORPHOLOGY_ERODE,
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+
+int
+im_erode_raw( IMAGE *in, IMAGE *out, INTMASK *m )
+{
+	return( im_erode( in, out, m ) );
+}
+
+int
+im_dilate( IMAGE *in, IMAGE *out, INTMASK *mask )
+{
+	VipsImage *t1, *t2;
+
+	if( !(t1 = vips_image_new()) ||
+		im_imask2vips( mask, t1 ) )
+		return( -1 );
+
+	if( vips_morph( in, &t2, t1, VIPS_OPERATION_MORPHOLOGY_DILATE,
+		NULL ) ) {
+		g_object_unref( t1 );
+		return( -1 );
+	}
+	g_object_unref( t1 );
+
+	if( vips_image_write( t2, out ) ) {
+		g_object_unref( t2 );
+		return( -1 );
+	}
+	g_object_unref( t2 );
+
+	return( 0 );
+}
+
+int
+im_dilate_raw( IMAGE *in, IMAGE *out, INTMASK *m )
+{
+	return( im_dilate( in, out, m ) );
+}
+
+int
 im_mpercent( IMAGE *in, double percent, int *out )
 {
 	if( vips_percent( in, percent * 100.0, out, NULL ) )
@@ -5248,6 +5310,32 @@ im_remosaic( IMAGE *in, IMAGE *out, const char *old_str, const char *new_str )
 }
 
 int
+im_lrmosaic( IMAGE *ref, IMAGE *sec, IMAGE *out,
+	int bandno,
+	int xref, int yref, int xsec, int ysec,
+ 	int hwindowsize, int hsearchsize,
+	int balancetype,
+	int mwidth )
+{
+	VipsImage *x;
+
+	if( vips_mosaic( ref, sec, &x, VIPS_DIRECTION_HORIZONTAL,
+		xref, yref, xsec, ysec,
+		"hwindow", hwindowsize,
+		"harea", hsearchsize,
+		"mblend", mwidth,
+		NULL ) ) 
+		return( -1 );
+	if( vips_image_write( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int
 im_lrmosaic1( IMAGE *ref, IMAGE *sec, IMAGE *out, 
 	int bandno,
 	int xr1, int yr1, int xs1, int ys1, 
@@ -5262,6 +5350,32 @@ im_lrmosaic1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 		xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2,
 		"search", TRUE,
 		"bandno", bandno,
+		"hwindow", hwindowsize,
+		"harea", hsearchsize,
+		"mblend", mwidth,
+		NULL ) ) 
+		return( -1 );
+	if( vips_image_write( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int
+im_tbmosaic( IMAGE *ref, IMAGE *sec, IMAGE *out,
+	int bandno,
+	int xref, int yref, int xsec, int ysec,
+ 	int hwindowsize, int hsearchsize,
+	int balancetype,
+	int mwidth )
+{
+	VipsImage *x;
+
+	if( vips_mosaic( ref, sec, &x, VIPS_DIRECTION_VERTICAL,
+		xref, yref, xsec, ysec,
 		"hwindow", hwindowsize,
 		"harea", hsearchsize,
 		"mblend", mwidth,
@@ -5306,6 +5420,35 @@ im_tbmosaic1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 }
 
 int
+im_correl( VipsImage *ref, VipsImage *sec,
+	int xref, int yref, int xsec, int ysec,
+	int hwindowsize, int hsearchsize,
+	double *correlation, int *x, int *y )
+{
+	return( vips__correl( ref, sec, xref, yref, xsec, ysec,
+		hwindowsize, hsearchsize, correlation, x, y ) );
+}
+
+int
+im_lrmerge( IMAGE *ref, IMAGE *sec, IMAGE *out,
+	int dx, int dy, int mwidth )
+{
+	VipsImage *x;
+
+	if( vips_merge( ref, sec, &x, VIPS_DIRECTION_HORIZONTAL, dx, dy,
+		"mblend", mwidth,
+		NULL ) ) 
+		return( -1 );
+	if( vips_image_write( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int
 im_lrmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 	int xr1, int yr1, int xs1, int ys1, 
 	int xr2, int yr2, int xs2, int ys2,
@@ -5315,6 +5458,25 @@ im_lrmerge1( IMAGE *ref, IMAGE *sec, IMAGE *out,
 
 	if( vips_mosaic1( ref, sec, &x, VIPS_DIRECTION_HORIZONTAL,
 		xr1, yr1, xs1, ys1, xr2, yr2, xs2, ys2,
+		"mblend", mwidth,
+		NULL ) ) 
+		return( -1 );
+	if( vips_image_write( x, out ) ) {
+		g_object_unref( x );
+		return( -1 );
+	}
+	g_object_unref( x );
+
+	return( 0 );
+}
+
+int
+im_tbmerge( IMAGE *ref, IMAGE *sec, IMAGE *out,
+	int dx, int dy, int mwidth )
+{
+	VipsImage *x;
+
+	if( vips_merge( ref, sec, &x, VIPS_DIRECTION_VERTICAL, dx, dy,
 		"mblend", mwidth,
 		NULL ) ) 
 		return( -1 );
@@ -5530,3 +5692,14 @@ vips_get_option_group( void )
 
 	return( option_group );
 }
+
+/* We used to use this for system() back in the day. But it's awkward to make
+ * it work properly on win32, so this is nonw deprecated.
+ */
+FILE *
+vips_popenf( const char *fmt, const char *mode, ... )
+{
+        vips_error( "popenf", "%s", _( "deprecated" ) );
+        return( NULL );
+}
+

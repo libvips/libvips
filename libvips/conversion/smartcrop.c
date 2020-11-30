@@ -12,6 +12,8 @@
  * 	- move shrink to start of processing
  * 22/9/18 jcupitt
  * 	- add low and high
+ * 19/3/20 jcupitt
+ * 	- add all
  */
 
 /*
@@ -345,8 +347,8 @@ vips_smartcrop_build( VipsObject *object )
 		break;
 
 	case VIPS_INTERESTING_CENTRE:
-		left = (smartcrop->in->Xsize - smartcrop->width) / 2;
-		top = (smartcrop->in->Ysize - smartcrop->height) / 2;
+		left = (in->Xsize - smartcrop->width) / 2;
+		top = (in->Ysize - smartcrop->height) / 2;
 		break;
 
 	case VIPS_INTERESTING_ENTROPY:
@@ -360,8 +362,15 @@ vips_smartcrop_build( VipsObject *object )
 		break;
 
 	case VIPS_INTERESTING_HIGH:
-		left = smartcrop->in->Xsize - smartcrop->width;
-		top = smartcrop->in->Ysize - smartcrop->height;
+		left = in->Xsize - smartcrop->width;
+		top = in->Ysize - smartcrop->height;
+		break;
+
+	case VIPS_INTERESTING_ALL:
+		left = 0;
+		top = 0;
+		smartcrop->width = in->Xsize;
+		smartcrop->height = in->Ysize;
 		break;
 
 	default:
@@ -448,10 +457,10 @@ vips_smartcrop_init( VipsSmartcrop *smartcrop )
  * Crop an image down to a specified width and height by removing boring parts. 
  *
  * Use @interesting to pick the method vips uses to decide which bits of the
- * image should be kept. 
+ * image should be kept.
  *
  * You can test xoffset / yoffset on @out to find the location of the crop
- * within the input image. 
+ * within the input image.
  *
  * See also: vips_extract_area().
  * 

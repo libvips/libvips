@@ -50,29 +50,40 @@
 
 #include "pforeign.h"
 
-#ifdef HAVE_PNG
+#if defined(HAVE_PNG) && !defined(HAVE_SPNG)
 
 typedef struct _VipsForeignLoadPng {
 	VipsForeignLoad parent_object;
 
-	/* Filename for load.
+	/* Set by subclasses.
 	 */
-	char *filename; 
+	VipsSource *source;
 
 } VipsForeignLoadPng;
 
 typedef VipsForeignLoadClass VipsForeignLoadPngClass;
 
-G_DEFINE_TYPE( VipsForeignLoadPng, vips_foreign_load_png, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadPng, vips_foreign_load_png, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
+static void
+vips_foreign_load_png_dispose( GObject *gobject )
+{
+	VipsForeignLoadPng *png = (VipsForeignLoadPng *) gobject;
+
+	VIPS_UNREF( png->source );
+
+	G_OBJECT_CLASS( vips_foreign_load_png_parent_class )->
+		dispose( gobject );
+}
+
 static VipsForeignFlags
-vips_foreign_load_png_get_flags_filename( const char *filename )
+vips_foreign_load_png_get_flags_source( VipsSource *source )
 {
 	VipsForeignFlags flags;
 
 	flags = 0;
-	if( vips__png_isinterlaced( filename ) )
+	if( vips__png_isinterlaced_source( source ) )
 		flags |= VIPS_FOREIGN_PARTIAL;
 	else
 		flags |= VIPS_FOREIGN_SEQUENTIAL;
@@ -85,7 +96,21 @@ vips_foreign_load_png_get_flags( VipsForeignLoad *load )
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
-	return( vips_foreign_load_png_get_flags_filename( png->filename ) ); 
+	return( vips_foreign_load_png_get_flags_source( png->source ) );
+}
+
+static VipsForeignFlags
+vips_foreign_load_png_get_flags_filename( const char *filename )
+{
+	VipsSource *source;
+	VipsForeignFlags flags;
+
+	if( !(source = vips_source_new_from_file( filename )) )
+		return( 0 );
+	flags = vips_foreign_load_png_get_flags_source( source );
+	VIPS_UNREF( source );
+
+	return( flags );
 }
 
 static int
@@ -93,10 +118,8 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
-	if( vips__png_header( png->filename, load->out ) )
+	if( vips__png_header_source( png->source, load->out ) )
 		return( -1 );
-
-	VIPS_SETSTR( load->out->filename, png->filename );
 
 	return( 0 );
 }
@@ -106,7 +129,7 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
-	if( vips__png_read( png->filename, load->real, load->fail ) )
+	if( vips__png_read_source( png->source, load->real, load->fail ) )
 		return( -1 );
 
 	return( 0 );
@@ -120,31 +143,21 @@ vips_foreign_load_png_class_init( VipsForeignLoadPngClass *class )
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
+	gobject_class->dispose = vips_foreign_load_png_dispose;
 
-	object_class->nickname = "pngload";
-	object_class->description = _( "load png from file" );
-
-	foreign_class->suffs = vips__png_suffs;
+	object_class->nickname = "pngload_base";
+	object_class->description = _( "load png base class" );
 
 	/* We are fast at is_a(), so high priority.
 	 */
 	foreign_class->priority = 200;
 
-	load_class->is_a = vips__png_ispng;
 	load_class->get_flags_filename = 
 		vips_foreign_load_png_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_png_get_flags;
 	load_class->header = vips_foreign_load_png_header;
 	load_class->load = vips_foreign_load_png_load;
 
-	VIPS_ARG_STRING( class, "filename", 1, 
-		_( "Filename" ),
-		_( "Filename to load from" ),
-		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadPng, filename ),
-		NULL );
 }
 
 static void
@@ -152,59 +165,196 @@ vips_foreign_load_png_init( VipsForeignLoadPng *png )
 {
 }
 
+typedef struct _VipsForeignLoadPngSource {
+	VipsForeignLoadPng parent_object;
+
+	/* Load from a source.
+	 */
+	VipsSource *source;
+
+} VipsForeignLoadPngSource;
+
+typedef VipsForeignLoadPngClass VipsForeignLoadPngSourceClass;
+
+G_DEFINE_TYPE( VipsForeignLoadPngSource, vips_foreign_load_png_source, 
+	vips_foreign_load_png_get_type() );
+
+static int
+vips_foreign_load_png_source_build( VipsObject *object )
+{
+	VipsForeignLoadPng *png = (VipsForeignLoadPng *) object;
+	VipsForeignLoadPngSource *source = (VipsForeignLoadPngSource *) object;
+
+	if( source->source ) {
+		png->source = source->source;
+		g_object_ref( png->source );
+	}
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_png_source_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static gboolean
+vips_foreign_load_png_source_is_a_source( VipsSource *source )
+{
+	return( vips__png_ispng_source( source ) );
+}
+
+static void
+vips_foreign_load_png_source_class_init( VipsForeignLoadPngSourceClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "pngload_source";
+	object_class->description = _( "load png from source" );
+	object_class->build = vips_foreign_load_png_source_build;
+
+	load_class->is_a_source = vips_foreign_load_png_source_is_a_source;
+
+	VIPS_ARG_OBJECT( class, "source", 1,
+		_( "Source" ),
+		_( "Source to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadPngSource, source ),
+		VIPS_TYPE_SOURCE );
+
+}
+
+static void
+vips_foreign_load_png_source_init( VipsForeignLoadPngSource *source )
+{
+}
+
+typedef struct _VipsForeignLoadPngFile {
+	VipsForeignLoadPng parent_object;
+
+	/* Filename for load.
+	 */
+	char *filename; 
+
+} VipsForeignLoadPngFile;
+
+typedef VipsForeignLoadPngClass VipsForeignLoadPngFileClass;
+
+G_DEFINE_TYPE( VipsForeignLoadPngFile, vips_foreign_load_png_file, 
+	vips_foreign_load_png_get_type() );
+
+static int
+vips_foreign_load_png_file_build( VipsObject *object )
+{
+	VipsForeignLoadPng *png = (VipsForeignLoadPng *) object;
+	VipsForeignLoadPngFile *file = (VipsForeignLoadPngFile *) object;
+
+	if( file->filename &&
+		!(png->source = vips_source_new_from_file( file->filename )) )
+		return( -1 );
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_png_file_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static gboolean
+vips_foreign_load_png_file_is_a( const char *filename )
+{
+	VipsSource *source;
+	gboolean result;
+
+	if( !(source = vips_source_new_from_file( filename )) )
+		return( FALSE );
+	result = vips_foreign_load_png_source_is_a_source( source );
+	VIPS_UNREF( source );
+
+	return( result );
+}
+
+static void
+vips_foreign_load_png_file_class_init( VipsForeignLoadPngFileClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "pngload";
+	object_class->description = _( "load png from file" );
+	object_class->build = vips_foreign_load_png_file_build;
+
+	foreign_class->suffs = vips__png_suffs;
+
+	load_class->is_a = vips_foreign_load_png_file_is_a;
+
+	VIPS_ARG_STRING( class, "filename", 1, 
+		_( "Filename" ),
+		_( "Filename to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadPngFile, filename ),
+		NULL );
+}
+
+static void
+vips_foreign_load_png_file_init( VipsForeignLoadPngFile *file )
+{
+}
+
 typedef struct _VipsForeignLoadPngBuffer {
-	VipsForeignLoad parent_object;
+	VipsForeignLoadPng parent_object;
 
 	/* Load from a buffer.
 	 */
-	VipsArea *buf;
+	VipsBlob *blob;
 
 } VipsForeignLoadPngBuffer;
 
-typedef VipsForeignLoadClass VipsForeignLoadPngBufferClass;
+typedef VipsForeignLoadPngClass VipsForeignLoadPngBufferClass;
 
 G_DEFINE_TYPE( VipsForeignLoadPngBuffer, vips_foreign_load_png_buffer, 
-	VIPS_TYPE_FOREIGN_LOAD );
-
-static VipsForeignFlags
-vips_foreign_load_png_buffer_get_flags( VipsForeignLoad *load )
-{
-	VipsForeignLoadPngBuffer *buffer = (VipsForeignLoadPngBuffer *) load;
-
-	VipsForeignFlags flags;
-
-	flags = 0;
-	if( vips__png_isinterlaced_buffer( buffer->buf->data, 
-		buffer->buf->length ) )
-		flags |= VIPS_FOREIGN_PARTIAL;
-	else
-		flags |= VIPS_FOREIGN_SEQUENTIAL;
-
-	return( flags );
-}
+	vips_foreign_load_png_get_type() );
 
 static int
-vips_foreign_load_png_buffer_header( VipsForeignLoad *load )
+vips_foreign_load_png_buffer_build( VipsObject *object )
 {
-	VipsForeignLoadPngBuffer *buffer = (VipsForeignLoadPngBuffer *) load;
+	VipsForeignLoadPng *png = (VipsForeignLoadPng *) object;
+	VipsForeignLoadPngBuffer *buffer = (VipsForeignLoadPngBuffer *) object;
 
-	if( vips__png_header_buffer( buffer->buf->data, buffer->buf->length, 
-		load->out ) )
+	if( buffer->blob &&
+		!(png->source = vips_source_new_from_memory( 
+			VIPS_AREA( buffer->blob )->data, 
+			VIPS_AREA( buffer->blob )->length )) )
+		return( -1 );
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_png_buffer_parent_class )->
+		build( object ) )
 		return( -1 );
 
 	return( 0 );
 }
 
-static int
-vips_foreign_load_png_buffer_load( VipsForeignLoad *load )
+static gboolean
+vips_foreign_load_png_buffer_is_a_buffer( const void *buf, size_t len )
 {
-	VipsForeignLoadPngBuffer *buffer = (VipsForeignLoadPngBuffer *) load;
+	VipsSource *source;
+	gboolean result;
 
-	if( vips__png_read_buffer( buffer->buf->data, buffer->buf->length, 
-		load->real, load->fail ) )
-		return( -1 );
+	if( !(source = vips_source_new_from_memory( buf, len )) )
+		return( FALSE );
+	result = vips_foreign_load_png_source_is_a_source( source );
+	VIPS_UNREF( source );
 
-	return( 0 );
+	return( result );
 }
 
 static void
@@ -219,17 +369,15 @@ vips_foreign_load_png_buffer_class_init( VipsForeignLoadPngBufferClass *class )
 
 	object_class->nickname = "pngload_buffer";
 	object_class->description = _( "load png from buffer" );
+	object_class->build = vips_foreign_load_png_buffer_build;
 
-	load_class->is_a_buffer = vips__png_ispng_buffer;
-	load_class->get_flags = vips_foreign_load_png_buffer_get_flags;
-	load_class->header = vips_foreign_load_png_buffer_header;
-	load_class->load = vips_foreign_load_png_buffer_load;
+	load_class->is_a_buffer = vips_foreign_load_png_buffer_is_a_buffer;
 
 	VIPS_ARG_BOXED( class, "buffer", 1, 
 		_( "Buffer" ),
 		_( "Buffer to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadPngBuffer, buf ),
+		G_STRUCT_OFFSET( VipsForeignLoadPngBuffer, blob ),
 		VIPS_TYPE_BLOB );
 
 }
@@ -239,7 +387,7 @@ vips_foreign_load_png_buffer_init( VipsForeignLoadPngBuffer *buffer )
 {
 }
 
-#endif /*HAVE_PNG*/
+#endif /*defined(HAVE_PNG) && !defined(HAVE_SPNG)*/
 
 /**
  * vips_pngload:
@@ -277,11 +425,7 @@ vips_pngload( const char *filename, VipsImage **out, ... )
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
- * Read a PNG-formatted memory block into a VIPS image. It can read all png 
- * images, including 8- and 16-bit images, 1 and 3 channel, with and without 
- * an alpha channel.
- *
- * Any ICC profile is read and attached to the VIPS image.
+ * Exactly as vips_pngload(), but read from a PNG-formatted memory block.
  *
  * You must not free the buffer while @out is active. The 
  * #VipsObject::postclose signal on @out is a good place to free. 
@@ -310,4 +454,27 @@ vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	return( result );
 }
 
+/**
+ * vips_pngload_source:
+ * @source: source to load from
+ * @out: (out): image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Exactly as vips_pngload(), but read from a source. 
+ *
+ * See also: vips_pngload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_pngload_source( VipsSource *source, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
 
+	va_start( ap, out );
+	result = vips_call_split( "pngload_source", ap, source, out );
+	va_end( ap );
+
+	return( result );
+}

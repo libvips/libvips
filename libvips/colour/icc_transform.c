@@ -282,7 +282,7 @@ vips_icc_build( VipsObject *object )
 		case cmsSigRgbData:
 			colour->interpretation = 
 				icc->depth == 8 ? 
-				VIPS_INTERPRETATION_RGB : 
+				VIPS_INTERPRETATION_sRGB : 
 					VIPS_INTERPRETATION_RGB16;
 			colour->format = 
 				icc->depth == 8 ? 

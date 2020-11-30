@@ -29,7 +29,7 @@
 
  */
 
-/*
+/* Define for debug output.
 #define DEBUG
  */
 
@@ -52,27 +52,23 @@
  * @include: vips/vips.h
  *
  * These functions are useful for joining many small images together to make
- * one large image. They can cope with unstable contrast and arbitary sub-image
+ * one large image. They can cope with unstable contrast and arbitrary sub-image
  * layout, but will not do any geometric correction. Geometric errors should
  * be removed before using these functions.
  *
  * The mosaicing functions can be grouped into layers:
  *
- * The lowest level functions are im_correl() and vips_merge().
- * im_correl() 
- * searches a large image for a small sub-image, returning
- * the position of the best sub-image match. vips_merge() 
+ * The lowest level operation is vips_merge()  which
  * joins two images together
  * left-right or up-down with a smooth seam.
  *
- * Next, vips_mosaic() use the
- * search function plus the two low-level merge operations to join two images 
+ * Next, vips_mosaic() uses
+ * search functions plus the two low-level merge operations to join two images 
  * given just an approximate overlap as a start point. 
  *
- * The functions im_lrmosaic1() and im_tbmosaic1() are
- * first-order
- * analogues of the basic mosaic functions: they take two approximate 
- * tie-points and use
+ * vips_mosaic1() is a first-order
+ * analogue of the basic mosaic functions: it takes two approximate 
+ * tie-points and uses
  * them to rotate and scale the right-hand or bottom image before starting to
  * join.
  *
@@ -82,7 +78,7 @@
  * measures image contrast differences along the seams, finds a set of
  * correction factors which will minimise these differences, and reassembles
  * the mosaic.
- * im_remosaic() uses the
+ * vips_remosaic() uses the
  * same
  * techniques, but will reassemble the image from a different set of source
  * images.
@@ -95,15 +91,17 @@
 void
 vips_mosaicing_operation_init( void )
 {
-	extern int vips_merge_get_type( void ); 
-	extern int vips_mosaic_get_type( void ); 
-	extern int vips_mosaic1_get_type( void ); 
-	extern int vips_match_get_type( void ); 
-	extern int vips_globalbalance_get_type( void ); 
+	extern GType vips_merge_get_type( void ); 
+	extern GType vips_mosaic_get_type( void ); 
+	extern GType vips_mosaic1_get_type( void ); 
+	extern GType vips_match_get_type( void ); 
+	extern GType vips_globalbalance_get_type( void ); 
+	extern GType vips_matrixinvert_get_type( void );
 
 	vips_merge_get_type(); 
 	vips_mosaic_get_type(); 
 	vips_mosaic1_get_type(); 
+	vips_matrixinvert_get_type();
 	vips_match_get_type(); 
 	vips_globalbalance_get_type(); 
 }

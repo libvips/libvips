@@ -214,6 +214,7 @@
  * @VIPS_INTERESTING_ATTENTION: look for features likely to draw human attention
  * @VIPS_INTERESTING_LOW: position the crop towards the low coordinate
  * @VIPS_INTERESTING_HIGH: position the crop towards the high coordinate
+ * @VIPS_INTERESTING_ALL: everything is interesting
  *
  * Pick the algorithm vips uses to decide image "interestingness". This is used
  * by vips_smartcrop(), for example, to decide what parts of the image to

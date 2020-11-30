@@ -171,6 +171,26 @@ vips_area_copy( VipsArea *area )
 	return( area );
 }
 
+int
+vips_area_free_cb( void *mem, VipsArea *area )
+{
+	g_free( mem );
+
+	return( 0 );
+}
+
+void
+vips_area_free( VipsArea *area )
+{
+	if( area->free_fn && 
+		area->data ) {
+		area->free_fn( area->data, area );
+		area->free_fn = NULL;
+	}
+
+	area->data = NULL;
+}
+
 void
 vips_area_unref( VipsArea *area )
 {
@@ -191,11 +211,7 @@ vips_area_unref( VipsArea *area )
 	}
 
 	if( area->count == 0 ) {
-		if( area->free_fn && area->data ) {
-			area->free_fn( area->data, area );
-			area->data = NULL;
-			area->free_fn = NULL;
-		}
+		vips_area_free( area );
 
 		g_mutex_unlock( area->lock );
 
@@ -306,7 +322,7 @@ vips_area_new_array( GType type, size_t sizeof_type, int n )
 	void *array;
 
 	array = g_malloc( n * sizeof_type );
-	area = vips_area_new( (VipsCallbackFn) g_free, array );
+	area = vips_area_new( (VipsCallbackFn) vips_area_free_cb, array );
 	area->n = n;
 	area->length = n * sizeof_type;
 	area->type = type;
@@ -315,7 +331,7 @@ vips_area_new_array( GType type, size_t sizeof_type, int n )
 	return( area );
 }
 
-static void
+static int
 vips_area_free_array_object( GObject **array, VipsArea *area )
 {
 	int i;
@@ -325,6 +341,8 @@ vips_area_free_array_object( GObject **array, VipsArea *area )
 	VIPS_FREE( array ); 
 
 	area->n = 0;
+
+	return( 0 );
 }
 
 /**
@@ -548,7 +566,7 @@ vips_ref_string_new( const char *str )
 	if( !g_utf8_validate( str, -1, NULL ) ) 
 		str = "<invalid utf-8 string>";
 
-	area = vips_area_new( (VipsCallbackFn) g_free, g_strdup( str ) );
+	area = vips_area_new( (VipsCallbackFn) vips_area_free_cb, g_strdup( str ) );
 
 	/* Handy place to cache this.
 	 */
@@ -647,7 +665,7 @@ vips_blob_copy( const void *data, size_t length )
 
 	data_copy = vips_malloc( NULL, length );
 	memcpy( data_copy, data, length );
-	area = vips_area_new( (VipsCallbackFn) g_free, data_copy );
+	area = vips_area_new( (VipsCallbackFn) vips_area_free_cb, data_copy );
 	area->length = length;
 
 	return( (VipsBlob *) area );
@@ -662,13 +680,44 @@ vips_blob_copy( const void *data, size_t length )
  * 
  * See also: vips_blob_new().
  *
- * Returns: (array length=length) (element-type guint8) (transfer none): the data
+ * Returns: (array length=length) (element-type guint8) (transfer none): the 
+ * data
  */
 const void *
 vips_blob_get( VipsBlob *blob, size_t *length )
 {
 	return( vips_area_get_data( VIPS_AREA( blob ), 
 		length, NULL, NULL, NULL ) ); 
+}
+
+/* vips_blob_set:
+ * @blob: #VipsBlob to set
+ * @free_fn: (scope async) (allow-none): @data will be freed with this function
+ * @data: (array length=length) (element-type guint8) (transfer full): data to store
+ * @length: number of bytes in @data
+ *
+ * Any old data is freed and new data attached.
+ *
+ * It's sometimes useful to be able to create blobs as empty and then fill
+ * them later.
+ *
+ * See also: vips_blob_new().
+ */
+void
+vips_blob_set( VipsBlob *blob, 
+	VipsCallbackFn free_fn, const void *data, size_t length )
+{
+	VipsArea *area = VIPS_AREA( blob );
+
+	g_mutex_lock( area->lock );
+
+	vips_area_free( area );
+
+	area->free_fn = free_fn;
+	area->length = length;
+	area->data = (void *) data;
+
+	g_mutex_unlock( area->lock );
 }
 
 /* Transform a blob to a G_TYPE_STRING.
@@ -696,9 +745,9 @@ transform_blob_save_string( const GValue *src_value, GValue *dest_value )
 	char *b64;
 
 	blob = vips_value_get_blob( src_value, &length );
-	if( (b64 = vips__b64_encode( blob, length )) ) {
+	if( (b64 = g_base64_encode( blob, length )) ) {
 		vips_value_set_save_string( dest_value, b64 );
-		vips_free( b64 );
+		g_free( b64 );
 	}
 	else
 		/* No error return from transform, but we should set it to
@@ -715,9 +764,9 @@ transform_save_string_blob( const GValue *src_value, GValue *dest_value )
 	size_t length;
 
 	b64 = vips_value_get_save_string( src_value );
-	if( (blob = vips__b64_decode( b64, &length )) )
+	if( (blob = g_base64_decode( b64, &length )) )
 		vips_value_set_blob( dest_value, 
-			(VipsCallbackFn) vips_free, blob, length );
+			(VipsCallbackFn) vips_area_free_cb, blob, length );
 	else
 		/* No error return from transform, but we should set it to
 		 * something.
@@ -1602,7 +1651,7 @@ vips_value_set_blob_free( GValue *value, void *data, size_t length )
 
 	g_assert( G_VALUE_TYPE( value ) == VIPS_TYPE_BLOB );
 
-	blob = vips_blob_new( (VipsCallbackFn) g_free, data, length );
+	blob = vips_blob_new( (VipsCallbackFn) vips_area_free_cb, data, length );
 	g_value_set_boxed( value, blob );
 	vips_area_unref( VIPS_AREA( blob ) );
 }

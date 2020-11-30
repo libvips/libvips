@@ -57,6 +57,10 @@
 typedef struct _VipsForeignLoadTiff {
 	VipsForeignLoad parent_object;
 
+	/* Set by subclasses.
+	 */
+	VipsSource *source;
+
 	/* Load this page. 
 	 */
 	int page;
@@ -64,6 +68,10 @@ typedef struct _VipsForeignLoadTiff {
 	/* Load this many pages. 
 	 */
 	int n;
+
+	/* Select subifd index. -1 for main image.
+	 */
+	int subifd;
 
 	/* Autorotate using orientation tag.
 	 */
@@ -77,10 +85,83 @@ G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadTiff, vips_foreign_load_tiff,
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void
+vips_foreign_load_tiff_dispose( GObject *gobject )
+{
+	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) gobject;
+
+	VIPS_UNREF( tiff->source );
+
+	G_OBJECT_CLASS( vips_foreign_load_tiff_parent_class )->
+		dispose( gobject );
+}
+
+static VipsForeignFlags
+vips_foreign_load_tiff_get_flags_source( VipsSource *source )
+{
+	VipsForeignFlags flags;
+
+	flags = 0;
+	if( vips__istifftiled_source( source ) ) 
+		flags |= VIPS_FOREIGN_PARTIAL;
+	else
+		flags |= VIPS_FOREIGN_SEQUENTIAL;
+
+	return( flags );
+}
+
+static VipsForeignFlags
+vips_foreign_load_tiff_get_flags_filename( const char *filename )
+{
+	VipsSource *source;
+	VipsForeignFlags flags;
+
+	if( !(source = vips_source_new_from_file( filename )) )
+		return( 0 );
+	flags = vips_foreign_load_tiff_get_flags_source( source );
+	VIPS_UNREF( source );
+
+	return( flags );
+}
+
+static VipsForeignFlags
+vips_foreign_load_tiff_get_flags( VipsForeignLoad *load )
+{
+	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
+
+	return( vips_foreign_load_tiff_get_flags_source( tiff->source ) );
+}
+
+static int
+vips_foreign_load_tiff_header( VipsForeignLoad *load )
+{
+	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
+
+	if( vips__tiff_read_header_source( tiff->source, load->out, 
+		tiff->page, tiff->n, tiff->autorotate, tiff->subifd ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_load_tiff_load( VipsForeignLoad *load )
+{
+	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
+
+	if( vips__tiff_read_source( tiff->source, load->real, 
+		tiff->page, tiff->n,  tiff->autorotate, tiff->subifd ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
 vips_foreign_load_tiff_class_init( VipsForeignLoadTiffClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	/* Other libraries may be using libtiff, we want to capture tiff
 	 * warning and error as soon as we can.
@@ -89,11 +170,22 @@ vips_foreign_load_tiff_class_init( VipsForeignLoadTiffClass *class )
 	 */
 	vips__tiff_init();
 
+	gobject_class->dispose = vips_foreign_load_tiff_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "tiffload_base";
 	object_class->description = _( "load tiff" );
+
+	/* We are fast, but must test after openslideload.
+	 */
+	foreign_class->priority = 50;
+
+	load_class->get_flags_filename = 
+		vips_foreign_load_tiff_get_flags_filename;
+	load_class->get_flags = vips_foreign_load_tiff_get_flags;
+	load_class->header = vips_foreign_load_tiff_header;
+	load_class->load = vips_foreign_load_tiff_load;
 
 	VIPS_ARG_INT( class, "page", 20, 
 		_( "Page" ), 
@@ -115,6 +207,14 @@ vips_foreign_load_tiff_class_init( VipsForeignLoadTiffClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadTiff, autorotate ),
 		FALSE );
+
+	VIPS_ARG_INT( class, "subifd", 21,
+		_( "subifd" ),
+		_( "Select subifd index" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadTiff, subifd ),
+		-1, 100000, -1 );
+
 }
 
 static void
@@ -122,6 +222,77 @@ vips_foreign_load_tiff_init( VipsForeignLoadTiff *tiff )
 {
 	tiff->page = 0; 
 	tiff->n = 1; 
+	tiff->subifd = -1; 
+}
+
+typedef struct _VipsForeignLoadTiffSource {
+	VipsForeignLoadTiff parent_object;
+
+	/* Load from a source.
+	 */
+	VipsSource *source;
+
+} VipsForeignLoadTiffSource;
+
+typedef VipsForeignLoadTiffClass VipsForeignLoadTiffSourceClass;
+
+G_DEFINE_TYPE( VipsForeignLoadTiffSource, vips_foreign_load_tiff_source, 
+	vips_foreign_load_tiff_get_type() );
+
+static int
+vips_foreign_load_tiff_source_build( VipsObject *object )
+{
+	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) object;
+	VipsForeignLoadTiffSource *source = 
+		(VipsForeignLoadTiffSource *) object;
+
+	if( source->source ) {
+		tiff->source = source->source;
+		g_object_ref( tiff->source );
+	}
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_tiff_source_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static gboolean
+vips_foreign_load_tiff_source_is_a_source( VipsSource *source )
+{
+	return( vips__istiff_source( source ) );
+}
+
+static void
+vips_foreign_load_tiff_source_class_init( 
+	VipsForeignLoadTiffSourceClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "tiffload_source";
+	object_class->description = _( "load tiff from source" );
+	object_class->build = vips_foreign_load_tiff_source_build;
+
+	load_class->is_a_source = vips_foreign_load_tiff_source_is_a_source;
+
+	VIPS_ARG_OBJECT( class, "source", 1,
+		_( "Source" ),
+		_( "Source to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadTiffSource, source ),
+		VIPS_TYPE_SOURCE );
+
+}
+
+static void
+vips_foreign_load_tiff_source_init( VipsForeignLoadTiffSource *source )
+{
 }
 
 typedef struct _VipsForeignLoadTiffFile {
@@ -138,55 +309,36 @@ typedef VipsForeignLoadTiffClass VipsForeignLoadTiffFileClass;
 G_DEFINE_TYPE( VipsForeignLoadTiffFile, vips_foreign_load_tiff_file, 
 	vips_foreign_load_tiff_get_type() );
 
-static VipsForeignFlags
-vips_foreign_load_tiff_file_get_flags_filename( const char *filename )
-{
-	VipsForeignFlags flags;
-
-	flags = 0;
-	if( vips__istifftiled( filename ) ) 
-		flags |= VIPS_FOREIGN_PARTIAL;
-	else
-		flags |= VIPS_FOREIGN_SEQUENTIAL;
-
-	return( flags );
-}
-
-static VipsForeignFlags
-vips_foreign_load_tiff_file_get_flags( VipsForeignLoad *load )
-{
-	VipsForeignLoadTiffFile *file = (VipsForeignLoadTiffFile *) load;
-
-	return( vips_foreign_load_tiff_file_get_flags_filename( 
-		file->filename ) );
-}
-
 static int
-vips_foreign_load_tiff_file_header( VipsForeignLoad *load )
+vips_foreign_load_tiff_file_build( VipsObject *object )
 {
-	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
-	VipsForeignLoadTiffFile *file = (VipsForeignLoadTiffFile *) load;
+	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) object;
+	VipsForeignLoadTiffFile *file = (VipsForeignLoadTiffFile *) object;
 
-	if( vips__tiff_read_header( file->filename, load->out, 
-		tiff->page, tiff->n, tiff->autorotate ) )
+	if( file->filename &&
+		!(tiff->source = 
+			vips_source_new_from_file( file->filename )) )
 		return( -1 );
 
-	VIPS_SETSTR( load->out->filename, file->filename );
-
-	return( 0 );
-}
-
-static int
-vips_foreign_load_tiff_file_load( VipsForeignLoad *load )
-{
-	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
-	VipsForeignLoadTiffFile *file = (VipsForeignLoadTiffFile *) load;
-
-	if( vips__tiff_read( file->filename, load->real, 
-		tiff->page, tiff->n,  tiff->autorotate ) )
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_tiff_file_parent_class )->
+		build( object ) )
 		return( -1 );
 
 	return( 0 );
+}
+
+static gboolean
+vips_foreign_load_tiff_file_is_a( const char *filename )
+{
+	VipsSource *source;
+	gboolean result;
+
+	if( !(source = vips_source_new_from_file( filename )) )
+		return( FALSE );
+	result = vips_foreign_load_tiff_source_is_a_source( source );
+	VIPS_UNREF( source );
+
+	return( result );
 }
 
 const char *vips__foreign_tiff_suffs[] = { ".tif", ".tiff", NULL };
@@ -204,19 +356,11 @@ vips_foreign_load_tiff_file_class_init( VipsForeignLoadTiffFileClass *class )
 
 	object_class->nickname = "tiffload";
 	object_class->description = _( "load tiff from file" );
-
-	/* We are fast, but must test after openslideload.
-	 */
-	foreign_class->priority = 50;
+	object_class->build = vips_foreign_load_tiff_file_build;
 
 	foreign_class->suffs = vips__foreign_tiff_suffs;
 
-	load_class->is_a = vips__istiff;
-	load_class->get_flags_filename = 
-		vips_foreign_load_tiff_file_get_flags_filename;
-	load_class->get_flags = vips_foreign_load_tiff_file_get_flags;
-	load_class->header = vips_foreign_load_tiff_file_header;
-	load_class->load = vips_foreign_load_tiff_file_load;
+	load_class->is_a = vips_foreign_load_tiff_file_is_a;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
@@ -236,7 +380,7 @@ typedef struct _VipsForeignLoadTiffBuffer {
 
 	/* Load from a buffer.
 	 */
-	VipsArea *buf;
+	VipsBlob *blob;
 
 } VipsForeignLoadTiffBuffer;
 
@@ -245,48 +389,38 @@ typedef VipsForeignLoadTiffClass VipsForeignLoadTiffBufferClass;
 G_DEFINE_TYPE( VipsForeignLoadTiffBuffer, vips_foreign_load_tiff_buffer, 
 	vips_foreign_load_tiff_get_type() );
 
-static VipsForeignFlags
-vips_foreign_load_tiff_buffer_get_flags( VipsForeignLoad *load )
-{
-	VipsForeignLoadTiffBuffer *buffer = (VipsForeignLoadTiffBuffer *) load;
-
-	VipsForeignFlags flags;
-
-	flags = 0;
-	if( vips__istifftiled_buffer( buffer->buf->data, buffer->buf->length ) )
-		flags |= VIPS_FOREIGN_PARTIAL;
-	else
-		flags |= VIPS_FOREIGN_SEQUENTIAL;
-
-	return( flags );
-}
-
 static int
-vips_foreign_load_tiff_buffer_header( VipsForeignLoad *load )
+vips_foreign_load_tiff_buffer_build( VipsObject *object )
 {
-	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
-	VipsForeignLoadTiffBuffer *buffer = (VipsForeignLoadTiffBuffer *) load;
+	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) object;
+	VipsForeignLoadTiffBuffer *buffer = 
+		(VipsForeignLoadTiffBuffer *) object;
 
-	if( vips__tiff_read_header_buffer( 
-		buffer->buf->data, buffer->buf->length, load->out, 
-		tiff->page, tiff->n, tiff->autorotate ) ) 
+	if( buffer->blob &&
+		!(tiff->source = vips_source_new_from_memory( 
+			VIPS_AREA( buffer->blob )->data, 
+			VIPS_AREA( buffer->blob )->length )) )
+		return( -1 );
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_tiff_buffer_parent_class )->
+		build( object ) )
 		return( -1 );
 
 	return( 0 );
 }
 
-static int
-vips_foreign_load_tiff_buffer_load( VipsForeignLoad *load )
+static gboolean
+vips_foreign_load_tiff_buffer_is_a_buffer( const void *buf, size_t len )
 {
-	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
-	VipsForeignLoadTiffBuffer *buffer = (VipsForeignLoadTiffBuffer *) load;
+	VipsSource *source;
+	gboolean result;
 
-	if( vips__tiff_read_buffer( 
-		buffer->buf->data, buffer->buf->length, load->real, 
-		tiff->page, tiff->n, tiff->autorotate ) )
-		return( -1 );
+	if( !(source = vips_source_new_from_memory( buf, len )) )
+		return( FALSE );
+	result = vips_foreign_load_tiff_source_is_a_source( source );
+	VIPS_UNREF( source );
 
-	return( 0 );
+	return( result );
 }
 
 static void
@@ -302,17 +436,15 @@ vips_foreign_load_tiff_buffer_class_init(
 
 	object_class->nickname = "tiffload_buffer";
 	object_class->description = _( "load tiff from buffer" );
+	object_class->build = vips_foreign_load_tiff_buffer_build;
 
-	load_class->is_a_buffer = vips__istiff_buffer;
-	load_class->get_flags = vips_foreign_load_tiff_buffer_get_flags;
-	load_class->header = vips_foreign_load_tiff_buffer_header;
-	load_class->load = vips_foreign_load_tiff_buffer_load;
+	load_class->is_a_buffer = vips_foreign_load_tiff_buffer_is_a_buffer;
 
 	VIPS_ARG_BOXED( class, "buffer", 1, 
 		_( "Buffer" ),
 		_( "Buffer to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadTiffBuffer, buf ),
+		G_STRUCT_OFFSET( VipsForeignLoadTiffBuffer, blob ),
 		VIPS_TYPE_BLOB );
 }
 
@@ -335,10 +467,11 @@ vips_foreign_load_tiff_buffer_init( VipsForeignLoadTiffBuffer *buffer )
  * * @n: %gint, load this many pages
  * * @autorotate: %gboolean, use orientation tag to rotate the image 
  *   during load
+ * * @subifd: %gint, select this subifd index
  *
  * Read a TIFF file into a VIPS image. It is a full baseline TIFF 6 reader, 
- * with extensions for tiled images, multipage images, LAB colour space, 
- * pyramidal images and JPEG compression. including CMYK and YCbCr.
+ * with extensions for tiled images, multipage images, XYZ and LAB colour 
+ * space, pyramidal images and JPEG compression, including CMYK and YCbCr.
  *
  * @page means load this page from the file. By default the first page (page
  * 0) is read. 
@@ -358,6 +491,14 @@ vips_foreign_load_tiff_buffer_init( VipsForeignLoadTiffBuffer *buffer )
  * as they wish later in processing. See vips_autorot(). Save
  * operations will use #VIPS_META_ORIENTATION, if present, to set the
  * orientation of output images. 
+ *
+ * If @autorotate is TRUE, the image will be rotated upright during load and
+ * no metadata attached. This can be very slow.
+ *
+ * If @subifd is -1 (the default), the main image is selected for each page.
+ * If it is 0 or greater and there is a SUBIFD tag, the indexed SUBIFD is
+ * selected. This can be used to read lower resolution layers from
+ * bioformats-style image pyramids.
  *
  * Any ICC profile is read and attached to the VIPS image as
  * #VIPS_META_ICC_NAME. Any XMP metadata is read and attached to the image
@@ -396,6 +537,7 @@ vips_tiffload( const char *filename, VipsImage **out, ... )
  * * @n: %gint, load this many pages
  * * @autorotate: %gboolean, use orientation tag to rotate the image 
  *   during load
+ * * @subifd: %gint, select this subifd index
  *
  * Read a TIFF-formatted memory block into a VIPS image. Exactly as
  * vips_tiffload(), but read from a memory source. 
@@ -423,6 +565,39 @@ vips_tiffload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	va_end( ap );
 
 	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
+
+/**
+ * vips_tiffload_source:
+ * @source: source to load
+ * @out: (out): image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, load this page
+ * * @n: %gint, load this many pages
+ * * @autorotate: %gboolean, use orientation tag to rotate the image 
+ *   during load
+ * * @subifd: %gint, select this subifd index
+ *
+ * Exactly as vips_tiffload(), but read from a source. 
+ *
+ * See also: vips_tiffload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_tiffload_source( VipsSource *source, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "tiffload_source", ap, source, out );
+	va_end( ap );
 
 	return( result );
 }

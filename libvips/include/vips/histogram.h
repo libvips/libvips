@@ -40,8 +40,6 @@ extern "C" {
 
 int vips_maplut( VipsImage *in, VipsImage **out, VipsImage *lut, ... )
 	__attribute__((sentinel));
-int vips_mapimage( VipsImage *in, VipsImage **out, VipsImage **lut, int n, ... )
-	__attribute__((sentinel));
 int vips_percent( VipsImage *in, double percent, int *threshold, ... )
 	__attribute__((sentinel));
 int vips_stdif( VipsImage *in, VipsImage **out, int width, int height, ... )

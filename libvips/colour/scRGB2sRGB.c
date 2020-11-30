@@ -98,9 +98,8 @@ vips_scRGB2sRGB_line_8( VipsPel * restrict q, float * restrict p,
 		float B = p[2];
 
 		int r, g, b;
-		int or;
 
-		vips_col_scRGB2sRGB_8( R, G, B, &r, &g, &b, &or );
+		vips_col_scRGB2sRGB_8( R, G, B, &r, &g, &b, NULL );
 
 		p += 3;
 
@@ -129,9 +128,8 @@ vips_scRGB2sRGB_line_16( unsigned short * restrict q, float * restrict p,
 		float B = p[2];
 
 		int r, g, b;
-		int or;
 
-		vips_col_scRGB2sRGB_16( R, G, B, &r, &g, &b, &or );
+		vips_col_scRGB2sRGB_16( R, G, B, &r, &g, &b, NULL );
 
 		p += 3;
 

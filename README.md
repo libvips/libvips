@@ -4,6 +4,8 @@
 [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/libvips.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=2&q=proj:libvips)
 [![Coverity Status](https://scan.coverity.com/projects/6503/badge.svg)](https://scan.coverity.com/projects/jcupitt-libvips)
 
+# Introduction
+
 libvips is a [demand-driven, horizontally
 threaded](https://github.com/libvips/libvips/wiki/Why-is-libvips-quick)
 image processing library. Compared to similar
@@ -67,7 +69,7 @@ Untar, then in the libvips directory you should just be able to do:
     ./configure
 
 Check the summary at the end of `configure` carefully.  libvips must have
-`build-essential`, `pkg-config`, `glib2.0-dev`, `libexpat1-dev`.
+`build-essential`, `pkg-config`, `libglib2.0-dev`, `libexpat1-dev`.
 
 You'll need the dev packages for the file format support you want. For basic
 jpeg and tiff support, you'll need `libtiff5-dev`, `libjpeg-turbo8-dev`,
@@ -89,7 +91,6 @@ Run the test suite with:
 
 Run a specific test with:
 
-    pytest --verbose
     pytest test/test-suite/test_foreign.py -k test_tiff
 
 # Building libvips from git
@@ -103,7 +104,7 @@ and `gobject-introspection`, see the dependencies section below. For example:
 
     brew install gtk-doc 
 
-Then build the build system with:
+Then generate the build system with:
 
     ./autogen.sh --prefix=/home/john/vips
 
@@ -114,62 +115,12 @@ Debug build:
     make
     make install
 
-Leak check. Use the suppressions file `supp/valgrind.supp`.
-
-    export G_DEBUG=gc-friendly
-    valgrind --suppressions=vips-x.y.z/supp/valgrind.supp \
-	     --leak-check=yes \
-      vips ... > vips-vg.log 2>&1
-
-Memory error debug:
-
-    valgrind --vgdb=yes --vgdb-error=0 vips  ...
-
-valgrind threading check:
-
-    valgrind --tool=helgrind vips ... > vips-vg.log 2>&1
-
-Clang build:
-
-    CC=clang CXX=clang++ ./configure --prefix=/home/john/vips
-
-Clang static analysis:
-
-    scan-build ./configure --disable-introspection --disable-debug
-    scan-build -o scan -v make 
-    scan-view scan/2013-11-22-2
-
-Clang dynamic analysis:
-
-    FLAGS="-g -O1 -fno-omit-frame-pointer"
-    CC=clang CXX=clang++ LD=clang \
-      CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" LDFLAGS=-fsanitize=address \
-      ./configure --prefix=/home/john/vips 
-
-    FLAGS="-O1 -g -fsanitize=thread"
-    FLAGS="$FLAGS -fPIC"
-    FLAGS="$FLAGS -fno-omit-frame-pointer -fno-optimize-sibling-calls"
-    CC=clang CXX=clang++ LD=clang \
-      CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
-      LDFLAGS="-fsanitize=thread -fPIC" \
-      ./configure --prefix=/home/john/vips \
-        --without-magick \
-        --disable-introspection
-    G_DEBUG=gc-friendly vips copy ~/pics/k2.jpg x.jpg >& log
-
-Build with the GCC auto-vectorizer and diagnostics (or just -O3):
-
-    FLAGS="-O2 -march=native -ffast-math"
-    FLAGS="$FLAGS -ftree-vectorize -fdump-tree-vect-details"
-    CFLAGS="$FLAGS" CXXFLAGS="$FLAGS" \
-      ./configure --prefix=/home/john/vips 
-
 # Dependencies 
 
-libvips has to have `glib2.0-dev` and `libexpat1-dev`. Other dependencies
-are optional, see below.
+libvips has to have `libglib2.0-dev` and `libexpat1-dev`. Other dependencies
+are optional.
 
-# Optional dependencies
+## Optional dependencies
 
 If suitable versions are found, libvips will add support for the following
 libraries automatically. See `./configure --help` for a set of flags to
@@ -284,7 +235,7 @@ If available, vips can load and save WebP images.
 
 ### libniftiio
 
-If available, vips can load and save NIFTI images.
+If available, vips can load and save NIfTI images.
 
 ### OpenEXR
 
@@ -300,9 +251,25 @@ files: Aperio, Hamamatsu, Leica, MIRAX, Sakura, Trestle, and Ventana.
 
 If available, libvips can load and save HEIC images. 
 
-# Disclaimer
+# Contributors
 
-No guarantees of performance accompany this software, nor is any
-responsibility assumed on the part of the authors. Please read the licence
-agreement.
+### Code Contributors
 
+This project exists thanks to all the people who contribute. 
+
+<a href="https://github.com/libvips/libvips/graphs/contributors"><img src="https://opencollective.com/libvips/contributors.svg?width=890&button=false" /></a>
+
+### Organizations
+
+Support this project with your organization. Your logo will show up here with a link to your website. 
+
+<a href="https://opencollective.com/libvips/organization/0/website"><img src="https://opencollective.com/libvips/organization/0/avatar.svg"></a>
+<a href="https://opencollective.com/libvips/organization/1/website"><img src="https://opencollective.com/libvips/organization/1/avatar.svg"></a>
+<a href="https://opencollective.com/libvips/organization/2/website"><img src="https://opencollective.com/libvips/organization/2/avatar.svg"></a>
+<a href="https://opencollective.com/libvips/organization/3/website"><img src="https://opencollective.com/libvips/organization/3/avatar.svg"></a>
+<a href="https://opencollective.com/libvips/organization/4/website"><img src="https://opencollective.com/libvips/organization/4/avatar.svg"></a>
+<a href="https://opencollective.com/libvips/organization/5/website"><img src="https://opencollective.com/libvips/organization/5/avatar.svg"></a>
+<a href="https://opencollective.com/libvips/organization/6/website"><img src="https://opencollective.com/libvips/organization/6/avatar.svg"></a>
+<a href="https://opencollective.com/libvips/organization/7/website"><img src="https://opencollective.com/libvips/organization/7/avatar.svg"></a>
+<a href="https://opencollective.com/libvips/organization/8/website"><img src="https://opencollective.com/libvips/organization/8/avatar.svg"></a>
+<a href="https://opencollective.com/libvips/organization/9/website"><img src="https://opencollective.com/libvips/organization/9/avatar.svg"></a>

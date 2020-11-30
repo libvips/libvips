@@ -132,11 +132,11 @@ vips_morphology_init( VipsMorphology *morphology )
 void
 vips_morphology_operation_init( void )
 {
-	extern int vips_morph_get_type( void ); 
-	extern int vips_rank_get_type( void ); 
-	extern int vips_countlines_get_type( void ); 
-	extern int vips_labelregions_get_type( void ); 
-	extern int vips_fill_nearest_get_type( void ); 
+	extern GType vips_morph_get_type( void ); 
+	extern GType vips_rank_get_type( void ); 
+	extern GType vips_countlines_get_type( void ); 
+	extern GType vips_labelregions_get_type( void ); 
+	extern GType vips_fill_nearest_get_type( void ); 
 
 	vips_morph_get_type(); 
 	vips_rank_get_type(); 

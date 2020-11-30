@@ -75,6 +75,10 @@
  * 	- allow huge xmp metadata
  * 7/10/19
  * 	- restart after minimise
+ * 14/10/19
+ * 	- revise for connection IO
+ * 11/5/20
+ * 	- only warn for saving bad profiles, don't fail
  */
 
 /*
@@ -157,6 +161,8 @@ user_warning_function( png_structp png_ptr, png_const_charp warning_msg )
 	g_warning( "%s", warning_msg );
 }
 
+#define INPUT_BUFFER_SIZE (4096)
+
 /* What we track during a PNG read.
  */
 typedef struct {
@@ -169,62 +175,29 @@ typedef struct {
 	png_infop pInfo;
 	png_bytep *row_pointer;
 
-	/* For FILE input. If we close and reopen, save the ftell point in
-	 * seek_position.
-	 */
-	FILE *fp;
-	long seek_position;
+	VipsSource *source;
 
-	/* For memory input.
+	/* read() to this buffer, copy to png as required. libpng does many
+	 * very small reads and we want to avoid a syscall for each one.
 	 */
-	const void *buffer;
-	size_t length;
-	size_t read_pos;
+	unsigned char input_buffer[INPUT_BUFFER_SIZE];
+	unsigned char *next_byte;
+	gint64 bytes_in_buffer;
 
 } Read;
-
-/* This can be called many times. 
- */
-static void
-read_close_input( Read *read )
-{
-#ifdef DEBUG
-	printf( "read_close_input:\n" );
-#endif /*DEBUG*/
-
-	if( read->fp ) {
-		read->seek_position = ftell( read->fp );
-		VIPS_FREEF( fclose, read->fp );
-	}
-}
-
-static int
-read_open_input( Read *read )
-{
-	if( !read->fp &&
-		read->name ) {
-		if( !(read->fp = 
-			vips__file_open_read( read->name, NULL, FALSE )) ) 
-			return( -1 );
-		if( read->seek_position != -1 ) 
-			fseek( read->fp, read->seek_position, SEEK_SET );
-
-		/* Just takes a copy of the fp.
-		 */
-		png_init_io( read->pPng, read->fp );
-	}
-
-	return( 0 );
-}
 
 /* Can be called many times.
  */
 static void
 read_destroy( Read *read )
 {
-	read_close_input( read );
+	/* We never call png_read_end(), perhaps we should. It can fail on
+	 * truncated files, so we'd need a setjmp().
+	 */
+
 	if( read->pPng )
 		png_destroy_read_struct( &read->pPng, &read->pInfo, NULL );
+	VIPS_UNREF( read->source );
 	VIPS_FREE( read->row_pointer );
 }
 
@@ -235,13 +208,50 @@ read_close_cb( VipsImage *out, Read *read )
 }
 
 static void
-read_minimise_cb( VipsImage *out, Read *read )
+read_minimise_cb( VipsImage *image, Read *read )
 {
-	read_close_input( read );
+	if( read->source )
+		vips_source_minimise( read->source );
+}
+
+static void
+vips_png_read_source( png_structp pPng, png_bytep data, png_size_t length )
+{
+	Read *read = png_get_io_ptr( pPng ); 
+
+#ifdef DEBUG
+	printf( "vips_png_read_source: read %zd bytes\n", length ); 
+#endif /*DEBUG*/
+
+	/* libpng makes many small reads, which hurts performance if you do a
+	 * syscall for each one. Read via our own buffer.
+	 */
+	while( length > 0 ) {
+		gint64 bytes_available;
+
+		if( read->bytes_in_buffer <= 0 ) {
+			gint64 bytes_read;
+
+			bytes_read = vips_source_read( read->source, 
+				read->input_buffer, INPUT_BUFFER_SIZE );
+			if( bytes_read <= 0 )
+				png_error( pPng, "not enough data" );
+
+			read->next_byte = read->input_buffer;
+			read->bytes_in_buffer = bytes_read;
+		}
+
+		bytes_available = VIPS_MIN( read->bytes_in_buffer, length );
+		memcpy( data, read->next_byte, bytes_available );
+		data += bytes_available;
+		length -= bytes_available;
+		read->next_byte += bytes_available;
+		read->bytes_in_buffer -= bytes_available;
+	}
 }
 
 static Read *
-read_new( VipsImage *out, gboolean fail )
+read_new( VipsSource *source, VipsImage *out, gboolean fail )
 {
 	Read *read;
 
@@ -255,15 +265,12 @@ read_new( VipsImage *out, gboolean fail )
 	read->pPng = NULL;
 	read->pInfo = NULL;
 	read->row_pointer = NULL;
-	read->fp = NULL;
-	read->seek_position = -1;
-	read->buffer = NULL;
-	read->length = 0;
-	read->read_pos = 0;
+	read->source = source;
+	g_object_ref( source );
 
 	g_signal_connect( out, "close", 
 		G_CALLBACK( read_close_cb ), read ); 
-	g_signal_connect( out, "minimise", 
+	g_signal_connect( out, "minimise",
 		G_CALLBACK( read_minimise_cb ), read ); 
 
 	if( !(read->pPng = png_create_read_struct( 
@@ -271,21 +278,27 @@ read_new( VipsImage *out, gboolean fail )
 		user_error_function, user_warning_function )) ) 
 		return( NULL );
 
-#ifdef PNG_SKIP_sRGB_CHECK_PROFILE
-	/* Prevent libpng (>=1.6.11) verifying sRGB profiles.
+	/* Prevent libpng (>=1.6.11) verifying sRGB profiles. Many PNGs have
+	 * broken profiles, but we still want to be able to open them.
 	 */
+#ifdef PNG_SKIP_sRGB_CHECK_PROFILE
 	png_set_option( read->pPng, 
 		PNG_SKIP_sRGB_CHECK_PROFILE, PNG_OPTION_ON );
 #endif /*PNG_SKIP_sRGB_CHECK_PROFILE*/
 
-#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-	/* Disable CRC checking in fuzzing mode.
+	/* Disable CRC checking in fuzzing mode. Most fuzzed images will have
+	 * bad CRCs so this check would break fuzzing.
 	 */
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	png_set_crc_action( read->pPng,
 		PNG_CRC_QUIET_USE, PNG_CRC_QUIET_USE );
 #endif /*FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION*/
 
-	/* Catch PNG errors from png_create_info_struct().
+	if( vips_source_rewind( source ) ) 
+		return( NULL );
+	png_set_read_fn( read->pPng, read, vips_png_read_source ); 
+
+	/* Catch PNG errors from png_read_info() etc.
 	 */
 	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
 		return( NULL );
@@ -293,42 +306,14 @@ read_new( VipsImage *out, gboolean fail )
 	if( !(read->pInfo = png_create_info_struct( read->pPng )) ) 
 		return( NULL );
 
-	return( read );
-}
-
-static void
-read_info( Read *read ) 
-{
 	/* By default, libpng refuses to open files with a metadata chunk 
 	 * larger than 8mb. We've seen real files with 20mb, so set 50mb.
 	 */
 #ifdef HAVE_PNG_SET_CHUNK_MALLOC_MAX
 	png_set_chunk_malloc_max( read->pPng, 50 * 1024 * 1024 );
 #endif /*HAVE_PNG_SET_CHUNK_MALLOC_MAX*/
+
 	png_read_info( read->pPng, read->pInfo );
-}
-
-static Read *
-read_new_filename( VipsImage *out, const char *name, gboolean fail )
-{
-	Read *read;
-
-	if( !(read = read_new( out, fail )) )
-		return( NULL );
-
-	read->name = vips_strdup( VIPS_OBJECT( out ), name );
-
-	if( read_open_input( read ) )
-		return( NULL );
-
-	/* Catch PNG errors from png_read_info().
-	 */
-	if( setjmp( png_jmpbuf( read->pPng ) ) ) {
-		read_destroy( read );
-		return( NULL );
-	}
-
-	read_info( read ); 
 
 	return( read );
 }
@@ -370,7 +355,7 @@ static int
 png2vips_header( Read *read, VipsImage *out )
 {
 	png_uint_32 width, height;
-	int bit_depth, color_type;
+	int bitdepth, color_type;
 	int interlace_type;
 
 	png_uint_32 res_x, res_y;
@@ -396,14 +381,11 @@ png2vips_header( Read *read, VipsImage *out )
 	VipsInterpretation interpretation;
 	double Xres, Yres;
 
-	char ink_tag[128];
-	int has_alpha = 0;
-	
 	if( setjmp( png_jmpbuf( read->pPng ) ) ) 
 		return( -1 );
 
 	png_get_IHDR( read->pPng, read->pInfo, 
-		&width, &height, &bit_depth, &color_type,
+		&width, &height, &bitdepth, &color_type,
 		&interlace_type, NULL, NULL );
 
 	/* png_get_channels() gives us 1 band for palette images ... so look
@@ -431,7 +413,7 @@ png2vips_header( Read *read, VipsImage *out )
 		return( -1 );
 	}
 
-	if( bit_depth > 8 ) {
+	if( bitdepth > 8 ) {
 		if( bands < 3 )
 			interpretation = VIPS_INTERPRETATION_GREY16;
 		else
@@ -454,7 +436,6 @@ png2vips_header( Read *read, VipsImage *out )
 	if( png_get_valid( read->pPng, read->pInfo, PNG_INFO_tRNS ) ) {
 		png_set_tRNS_to_alpha( read->pPng );
 		bands += 1;
-		has_alpha = 1;
 	}
 	else if( color_type == PNG_COLOR_TYPE_GRAY_ALPHA || 
 		color_type == PNG_COLOR_TYPE_RGB_ALPHA ) {
@@ -462,27 +443,26 @@ png2vips_header( Read *read, VipsImage *out )
 		 * color_type to alpha.
 		 */
 		bands += 1;
-		has_alpha = 1;
 	}
 
 	/* Expand <8 bit images to full bytes.
 	 */
 	if( color_type == PNG_COLOR_TYPE_GRAY &&
-		bit_depth < 8 ) 
+		bitdepth < 8 ) 
 		png_set_expand_gray_1_2_4_to_8( read->pPng );
 
 	/* If we're an INTEL byte order machine and this is 16bits, we need
 	 * to swap bytes.
 	 */
-	if( bit_depth > 8 && 
+	if( bitdepth > 8 && 
 		!vips_amiMSBfirst() )
 		png_set_swap( read->pPng );
 
 	/* Get resolution. Default to 72 pixels per inch, the usual png value. 
 	 */
 	unit_type = PNG_RESOLUTION_METER;
-	res_x = (72 / 2.54 * 100);
-	res_y = (72 / 2.54 * 100);
+	res_x = 72.0 / 2.54 * 100.0;
+	res_y = 72.0 / 2.54 * 100.0;
 	png_get_pHYs( read->pPng, read->pInfo, &res_x, &res_y, &unit_type );
 	switch( unit_type ) {
 	case PNG_RESOLUTION_METER:
@@ -500,10 +480,12 @@ png2vips_header( Read *read, VipsImage *out )
 	 */
 	vips_image_init_fields( out,
 		width, height, bands,
-		bit_depth > 8 ? 
-			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR,
+		bitdepth > 8 ? VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, interpretation, 
 		Xres, Yres );
+
+	VIPS_SETSTR( out->filename, 
+		vips_connection_filename( VIPS_CONNECTION( read->source ) ) );
 
 	/* Uninterlaced images will be read in seq mode. Interlaced images are
 	 * read via a huge memory buffer.
@@ -573,35 +555,7 @@ png2vips_header( Read *read, VipsImage *out )
 	/* Attach original palette bit depth, if any, as metadata.
 	 */
 	if( color_type == PNG_COLOR_TYPE_PALETTE )
-		vips_image_set_int( out, "palette-bit-depth", bit_depth );
-
-	/* Attach ink information as metadata.
-	 */
-	for (int i = 0; i < bands; ++i) {
-		vips_snprintf(ink_tag, 128, VIPS_META_INK_TYPE, i);
-		if (i == (bands-1) && has_alpha)
-			vips_image_set_int(out, ink_tag, VIPS_INK_TRANSPARENCY);
-		else
-			vips_image_set_int(out, ink_tag, VIPS_INK_COLOUR);
-	}
-
-	return( 0 );
-}
-
-/* Read a PNG file header into a VIPS header.
- */
-int
-vips__png_header( const char *name, VipsImage *out )
-{
-	Read *read;
-
-	if( !(read = read_new_filename( out, name, TRUE )) )
-		return( -1 );
-	if( png2vips_header( read, out ) ) {
-		read_close_input( read );
-		return( -1 );
-	}
-	read_close_input( read );
+		vips_image_set_int( out, "palette-bit-depth", bitdepth );
 
 	return( 0 );
 }
@@ -629,8 +583,6 @@ png2vips_interlace( Read *read, VipsImage *out )
 		read->row_pointer[y] = VIPS_IMAGE_ADDR( out, 0, y );
 
 	png_read_image( read->pPng, read->row_pointer );
-
-	png_read_end( read->pPng, NULL ); 
 
 	read_destroy( read );
 
@@ -662,10 +614,7 @@ png2vips_generate( VipsRegion *or,
 	 * strip.
 	 */
 	g_assert( r->height == VIPS_MIN( VIPS__FATSTRIP_HEIGHT, 
-			or->im->Ysize - r->top ) ); 
-
-	if( read_open_input( read ) )
-		return( -1 );
+		or->im->Ysize - r->top ) ); 
 
 	/* And check that y_pos is correct. It should be, since we are inside
 	 * a vips_sequential().
@@ -711,47 +660,7 @@ png2vips_generate( VipsRegion *or,
 		read->y_pos += 1;
 	}
 
-	/* Catch errors from png_read_end(). This can fail on a truncated
-	 * file.
-	 */
-	if( setjmp( png_jmpbuf( read->pPng ) ) ) {
-		if( read->fail ) {
-			vips_error( "vipspng", "%s", _( "libpng read error" ) );
-			return( -1 );
-		}
-
-		return( 0 );
-	}
-
-	/* Early close to free the fd as soon as we can.
-	 */
-	if( read->y_pos >= read->out->Ysize ) {
-		png_read_end( read->pPng, NULL );
-		read_destroy( read );
-	}
-
 	return( 0 );
-}
-
-/* Interlaced PNGs need to be entirely decompressed into memory then can be
- * served partially from there. Non-interlaced PNGs may be read sequentially.
- */
-gboolean
-vips__png_isinterlaced( const char *filename )
-{
-	VipsImage *image;
-	Read *read;
-	int interlace_type;
-
-	image = vips_image_new();
-	if( !(read = read_new_filename( image, filename, TRUE )) ) {
-		g_object_unref( image );
-		return( -1 );
-	}
-	interlace_type = png_get_interlace_type( read->pPng, read->pInfo );
-	g_object_unref( image );
-
-	return( interlace_type != PNG_INTERLACE_NONE );
 }
 
 static int
@@ -784,115 +693,50 @@ png2vips_image( Read *read, VipsImage *out )
 			return( -1 );
 	}
 
-	/* _generate will reopen.
-	 */
-	read_close_input( read );
-
-	return( 0 );
-}
-
-int
-vips__png_read( const char *filename, VipsImage *out, gboolean fail )
-{
-	Read *read;
-
-#ifdef DEBUG
-	printf( "vips__png_read: reading \"%s\"\n", filename );
-#endif /*DEBUG*/
-
-	if( !(read = read_new_filename( out, filename, fail )) ||
-		png2vips_image( read, out ) )
-		return( -1 ); 
-
-#ifdef DEBUG
-	printf( "vips__png_read: done\n" );
-#endif /*DEBUG*/
-
 	return( 0 );
 }
 
 gboolean
-vips__png_ispng_buffer( const void *buf, size_t len )
+vips__png_ispng_source( VipsSource *source )
 {
-	if( len >= 8 &&
-		!png_sig_cmp( (png_bytep) buf, 0, 8 ) )
+	const unsigned char *p;
+
+	if( (p = vips_source_sniff( source, 8 )) &&
+		!png_sig_cmp( (png_bytep) p, 0, 8 ) )
 		return( TRUE ); 
 
 	return( FALSE ); 
 }
 
 int
-vips__png_ispng( const char *filename )
-{
-	unsigned char buf[8];
-
-	return( vips__get_bytes( filename, buf, 8 ) == 8 &&
-		vips__png_ispng_buffer( buf, 8 ) ); 
-}
-
-static void
-vips_png_read_buffer( png_structp pPng, png_bytep data, png_size_t length )
-{
-	Read *read = png_get_io_ptr( pPng ); 
-
-#ifdef DEBUG
-	printf( "vips_png_read_buffer: read %zd bytes\n", length ); 
-#endif /*DEBUG*/
-
-	if( read->read_pos + length > read->length )
-		png_error( pPng, "not enough data in buffer" );
-
-	memcpy( data, (VipsPel *) read->buffer + read->read_pos, length );
-	read->read_pos += length;
-}
-
-static Read *
-read_new_buffer( VipsImage *out, const void *buffer, size_t length, 
-	gboolean fail )
+vips__png_header_source( VipsSource *source, VipsImage *out )
 {
 	Read *read;
 
-	if( !(read = read_new( out, fail )) )
-		return( NULL );
-
-	read->length = length;
-	read->buffer = buffer;
-
-	png_set_read_fn( read->pPng, read, vips_png_read_buffer ); 
-
-	/* Catch PNG errors from png_read_info().
-	 */
-	if( setjmp( png_jmpbuf( read->pPng ) ) ) {
-		read_destroy( read );
-		return( NULL );
+	if( !(read = read_new( source, out, TRUE )) ||
+		png2vips_header( read, out ) ) {
+		vips_error( "png2vips", _( "unable to read source %s" ),
+			vips_connection_nick( VIPS_CONNECTION( source ) ) );
+		return( -1 );
 	}
 
-	read_info( read ); 
-
-	return( read );
-}
-
-int
-vips__png_header_buffer( const void *buffer, size_t length, VipsImage *out )
-{
-	Read *read;
-
-	if( !(read = read_new_buffer( out, buffer, length, TRUE )) ||
-		png2vips_header( read, out ) ) 
-		return( -1 );
+	vips_source_minimise( source );
 
 	return( 0 );
 }
 
 int
-vips__png_read_buffer( const void *buffer, size_t length, VipsImage *out, 
-	gboolean fail )
+vips__png_read_source( VipsSource *source, VipsImage *out, gboolean fail )
 {
 	Read *read;
 
-	if( !(read = read_new_buffer( out, buffer, length, fail )) ||
-		png2vips_image( read, out ) )
-		return( -1 ); 
+	if( !(read = read_new( source, out, fail )) ||
+		png2vips_image( read, out ) ||
+		vips_source_decode( source ) ) {
+		vips_error( "png2vips", _( "unable to read source %s" ),
+			vips_connection_nick( VIPS_CONNECTION( source ) ) );
+		return( -1 );
+	}
 
 	return( 0 );
 }
@@ -901,7 +745,7 @@ vips__png_read_buffer( const void *buffer, size_t length, VipsImage *out,
  * served partially from there. Non-interlaced PNGs may be read sequentially.
  */
 gboolean
-vips__png_isinterlaced_buffer( const void *buffer, size_t length )
+vips__png_isinterlaced_source( VipsSource *source )
 {
 	VipsImage *image;
 	Read *read;
@@ -909,7 +753,7 @@ vips__png_isinterlaced_buffer( const void *buffer, size_t length )
 
 	image = vips_image_new();
 
-	if( !(read = read_new_buffer( image, buffer, length, TRUE )) ) { 
+	if( !(read = read_new( source, image, TRUE )) ) { 
 		g_object_unref( image );
 		return( -1 );
 	}
@@ -927,8 +771,7 @@ typedef struct {
 	VipsImage *in;
 	VipsImage *memory;
 
-	FILE *fp;
-	VipsDbuf dbuf;
+	VipsTarget *target;
 
 	png_structp pPng;
 	png_infop pInfo;
@@ -938,55 +781,69 @@ typedef struct {
 static void
 write_finish( Write *write )
 {
-	VIPS_FREEF( fclose, write->fp );
 	VIPS_UNREF( write->memory );
-	vips_dbuf_destroy( &write->dbuf );
+	if( write->target ) 
+		vips_target_finish( write->target );
+	VIPS_UNREF( write->target );
 	if( write->pPng )
 		png_destroy_write_struct( &write->pPng, &write->pInfo );
+	VIPS_FREE( write->row_pointer );
+	VIPS_FREE( write );
 }
 
 static void
-write_destroy( VipsImage *out, Write *write )
+user_write_data( png_structp pPng, png_bytep data, png_size_t length )
 {
-	write_finish( write ); 
+	Write *write = (Write *) png_get_io_ptr( pPng );
+
+	if( vips_target_write( write->target, data, length ) ) 
+		png_error( pPng, "not enough data" );
 }
 
 static Write *
-write_new( VipsImage *in )
+write_new( VipsImage *in, VipsTarget *target )
 {
 	Write *write;
 
-	if( !(write = VIPS_NEW( in, Write )) )
+	if( !(write = VIPS_NEW( NULL, Write )) )
 		return( NULL );
 	memset( write, 0, sizeof( Write ) );
 	write->in = in;
 	write->memory = NULL;
-	write->fp = NULL;
-	vips_dbuf_init( &write->dbuf );
-	g_signal_connect( in, "close", 
-		G_CALLBACK( write_destroy ), write ); 
+	write->target = target;
+	g_object_ref( target );
 
-	if( !(write->row_pointer = VIPS_ARRAY( in, in->Ysize, png_bytep )) )
+	if( !(write->row_pointer = VIPS_ARRAY( NULL, in->Ysize, png_bytep )) )
 		return( NULL );
 	if( !(write->pPng = png_create_write_struct( 
 		PNG_LIBPNG_VER_STRING, NULL,
-		user_error_function, user_warning_function )) ) 
+		user_error_function, user_warning_function )) ) {
+		write_finish( write );
 		return( NULL );
+	}
 
-#ifdef PNG_SKIP_sRGB_CHECK_PROFILE
-	/* Prevent libpng (>=1.6.11) verifying sRGB profiles.
+	/* Prevent libpng (>=1.6.11) verifying sRGB profiles. We are often
+	 * asked to copy images containing bad profiles, and this check would
+	 * prevent that.
 	 */
+#ifdef PNG_SKIP_sRGB_CHECK_PROFILE
 	png_set_option( write->pPng, 
 		PNG_SKIP_sRGB_CHECK_PROFILE, PNG_OPTION_ON );
 #endif /*PNG_SKIP_sRGB_CHECK_PROFILE*/
 
+	png_set_write_fn( write->pPng, write, user_write_data, NULL );
+
 	/* Catch PNG errors from png_create_info_struct().
 	 */
-	if( setjmp( png_jmpbuf( write->pPng ) ) ) 
+	if( setjmp( png_jmpbuf( write->pPng ) ) ) {
+		write_finish( write );
 		return( NULL );
+	}
 
-	if( !(write->pInfo = png_create_info_struct( write->pPng )) ) 
+	if( !(write->pInfo = png_create_info_struct( write->pPng )) ) {
+		write_finish( write );
 		return( NULL );
+	}
 
 	return( write );
 }
@@ -1004,7 +861,7 @@ write_png_block( VipsRegion *region, VipsRect *area, void *a )
 	g_assert( area->width == region->im->Xsize );
 	g_assert( area->top + area->height <= region->im->Ysize );
 
-	/* Catch PNG errors. Yuk.
+	/* Catch PNG errors. 
 	 */
 	if( setjmp( png_jmpbuf( write->pPng ) ) ) 
 		return( -1 );
@@ -1072,11 +929,11 @@ static int
 write_vips( Write *write, 
 	int compress, int interlace, const char *profile,
 	VipsForeignPngFilter filter, gboolean strip,
-	gboolean palette, int colours, int Q, double dither )
+	gboolean palette, int Q, double dither,
+	int bitdepth )
 {
 	VipsImage *in = write->in;
 
-	int bit_depth;
 	int color_type;
 	int interlace_type;
 	int i, nb_passes;
@@ -1118,8 +975,6 @@ write_vips( Write *write,
 	 */
 	png_set_filter( write->pPng, 0, filter );
 
-	bit_depth = in->BandFmt == VIPS_FORMAT_UCHAR ? 8 : 16;
-
 	switch( in->Bands ) {
 	case 1: color_type = PNG_COLOR_TYPE_GRAY; break;
 	case 2: color_type = PNG_COLOR_TYPE_GRAY_ALPHA; break;
@@ -1135,12 +990,8 @@ write_vips( Write *write,
 #ifdef HAVE_IMAGEQUANT
 	/* Enable image quantisation to paletted 8bpp PNG if colours is set.
 	 */
-	if( palette ) {
-		g_assert( colours >= 2 && 
-			colours <= 256 );
-		bit_depth = 8;
+	if( palette ) 
 		color_type = PNG_COLOR_TYPE_PALETTE;
-	}
 #else
 	if( palette )
 		g_warning( "%s",
@@ -1150,7 +1001,7 @@ write_vips( Write *write,
 	interlace_type = interlace ? PNG_INTERLACE_ADAM7 : PNG_INTERLACE_NONE;
 
 	png_set_IHDR( write->pPng, write->pInfo, 
-		in->Xsize, in->Ysize, bit_depth, color_type, interlace_type, 
+		in->Xsize, in->Ysize, bitdepth, color_type, interlace_type, 
 		PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT );
 
 	/* Set resolution. libpng uses pixels per meter.
@@ -1197,10 +1048,28 @@ write_vips( Write *write,
 				"of ICC profile\n", length );
 #endif /*DEBUG*/
 
-			png_set_iCCP( write->pPng, write->pInfo, "icc",
-				PNG_COMPRESSION_TYPE_BASE, 
-				(void *) data, length );
+			/* We need to ignore any errors from png_set_iCCP()
+			 * since we want to drop incompatible profiles rather
+			 * than simply failing.
+			 */
+			if( setjmp( png_jmpbuf( write->pPng ) ) ) {
+				/* Silent ignore of error.
+				 */
+				g_warning( "bad ICC profile not saved" );
+			}
+			else {
+				/* This will jump back to the line above on
+				 * error.
+				 */
+				png_set_iCCP( write->pPng, write->pInfo, "icc",
+					PNG_COMPRESSION_TYPE_BASE, 
+					(void *) data, length );
+			}
 
+			/* And restore the setjmp.
+			 */
+			if( setjmp( png_jmpbuf( write->pPng ) ) ) 
+				return( -1 );
 		}
 
 		if( vips_image_get_typeof( in, VIPS_META_XMP_NAME ) ) {
@@ -1237,7 +1106,7 @@ write_vips( Write *write,
 		int trans_count;
 
 		if( vips__quantise_image( in, &im_index, &im_palette, 
-			colours, Q, dither ) ) 
+			1 << bitdepth, Q, dither ) ) 
 			return( -1 );
 
 		palette_count = im_palette->Xsize;
@@ -1297,9 +1166,13 @@ write_vips( Write *write,
 	/* If we're an intel byte order CPU and this is a 16bit image, we need
 	 * to swap bytes.
 	 */
-	if( bit_depth > 8 && 
+	if( bitdepth > 8 && 
 		!vips_amiMSBfirst() ) 
 		png_set_swap( write->pPng ); 
+
+	/* If bitdepth is 1/2/4, pack pixels into bytes.
+	 */
+	png_set_packing( write->pPng );
 
 	if( interlace )	
 		nb_passes = png_set_interlace_handling( write->pPng );
@@ -1323,79 +1196,25 @@ write_vips( Write *write,
 }
 
 int
-vips__png_write( VipsImage *in, const char *filename, 
-	int compress, int interlace, const char *profile,
-	VipsForeignPngFilter filter, gboolean strip,
-	gboolean palette, int colours, int Q, double dither )
-{
-	Write *write;
-
-#ifdef DEBUG
-	printf( "vips__png_write: writing \"%s\"\n", filename );
-#endif /*DEBUG*/
-
-	if( !(write = write_new( in )) )
-		return( -1 );
-
-	/* Make output.
-	 */
-        if( !(write->fp = vips__file_open_write( filename, FALSE )) ) 
-		return( -1 );
-	png_init_io( write->pPng, write->fp );
-
-	/* Convert it!
-	 */
-	if( write_vips( write, 
-		compress, interlace, profile, filter, strip, palette,
-		colours, Q, dither ) ) {
-		vips_error( "vips2png", 
-			_( "unable to write \"%s\"" ), filename );
-
-		return( -1 );
-	}
-
-	write_finish( write );
-
-#ifdef DEBUG
-	printf( "vips__png_write: done\n" ); 
-#endif /*DEBUG*/
-
-	return( 0 );
-}
-
-static void
-user_write_data( png_structp png_ptr, png_bytep data, png_size_t length )
-{
-	Write *write = (Write *) png_get_io_ptr( png_ptr );
-
-	vips_dbuf_write( &write->dbuf, data, length ); 
-}
-
-int
-vips__png_write_buf( VipsImage *in, 
-	void **obuf, size_t *olen, int compression, int interlace,
+vips__png_write_target( VipsImage *in, VipsTarget *target,
+	int compression, int interlace,
 	const char *profile, VipsForeignPngFilter filter, gboolean strip,
-	gboolean palette, int colours, int Q, double dither )
+	gboolean palette, int Q, double dither,
+	int bitdepth )
 {
 	Write *write;
 
-	if( !(write = write_new( in )) ) 
+	if( !(write = write_new( in, target )) ) 
 		return( -1 );
 
-	png_set_write_fn( write->pPng, write, user_write_data, NULL );
-
-	/* Convert it!
-	 */
 	if( write_vips( write, 
 		compression, interlace, profile, filter, strip, palette,
-		colours, Q, dither ) ) {
-		vips_error( "vips2png", 
-			"%s", _( "unable to write to buffer" ) );
-
+		Q, dither, bitdepth ) ) {
+		write_finish( write );
+		vips_error( "vips2png", _( "unable to write to target %s" ),
+			vips_connection_nick( VIPS_CONNECTION( target ) ) );
 		return( -1 );
 	}
-
-	*obuf = vips_dbuf_steal( &write->dbuf, olen );
 
 	write_finish( write );
 

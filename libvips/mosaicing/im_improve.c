@@ -1,16 +1,16 @@
 /* @(#)  Function which improves the selection of tiepoints carried out by 
- * @(#) im_clinear() until no points have deviation greater than 1 pixel
+ * @(#) vips_clinear() until no points have deviation greater than 1 pixel
  * @(#) No reference or secondary images are involved
- * @(#) Function im_improve assumes that im_clinear has been applied on points
- * @(#) No IMAGES are involved in this function and the result is
+ * @(#) Function vips__improve assumes that vips_clinear has been applied on points
+ * @(#) No images are involved in this function and the result is
  * @(#) returned in outpoints which is declared as a pointer in the
  * @(#) calling routine. Space for outpoints should be allocated in the calling 
  * @(#) routine
  * @(#)
- * @(#) int im_improve( inpoints, outpoints )
- * @(#) TIE_POINTS *inpoints, *outpoints;
+ * @(#) int vips__improve( inpoints, outpoints )
+ * @(#) TiePoints *inpoints, *outpoints;
  * @(#) 
- * @(#) Returns 0 on sucess  and -1 on error.
+ * @(#) Returns 0 on success  and -1 on error.
  *
  * Copyright: 1990, N. Dessipris.
  *
@@ -56,25 +56,24 @@
 #include <string.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 #include "pmosaicing.h"
 
 static void
-copypoints( TIE_POINTS *pnew, TIE_POINTS *pold )
+copypoints( TiePoints *pnew, TiePoints *pold )
 {
-        int i;
+	int i;
 
-        pnew->reference = pold->reference;
-        pnew->secondary = pold->secondary;
+	pnew->reference = pold->reference;
+	pnew->secondary = pold->secondary;
 
-        pnew->deltax = pold->deltax;
-        pnew->deltay = pold->deltay;
-        pnew->nopoints = pold->nopoints;
-        pnew->halfcorsize = pold->halfcorsize;
+	pnew->deltax = pold->deltax;
+	pnew->deltay = pold->deltay;
+	pnew->nopoints = pold->nopoints;
+	pnew->halfcorsize = pold->halfcorsize;
 	pnew->halfareasize = pold->halfareasize;
 
-        for( i = 0; i < pold->nopoints; i++ ) {
+	for( i = 0; i < pold->nopoints; i++ ) {
 		pnew->x_reference[i] = pold->x_reference[i];
 		pnew->y_reference[i] = pold->y_reference[i];
 		pnew->x_secondary[i] = pold->x_secondary[i];
@@ -95,10 +94,10 @@ copypoints( TIE_POINTS *pnew, TIE_POINTS *pold )
 /* exclude all points with deviation greater or equal to 1.0 pixel
  */
 static int
-copydevpoints( TIE_POINTS *pnew, TIE_POINTS *pold )
+copydevpoints( TiePoints *pnew, TiePoints *pold )
 {
-        int i;
-        int j;
+	int i;
+	int j;
 	double thresh_dev,max_dev, min_dev;
 	double *corr;
 
@@ -108,19 +107,19 @@ copydevpoints( TIE_POINTS *pnew, TIE_POINTS *pold )
 
 	for( i = 0; i < pold->nopoints; i++ )
 		if( corr[i] > 0.01 ) { 
-			if( pold->deviation[i]/corr[i] < min_dev )
+			if( pold->deviation[i] / corr[i] < min_dev )
 				min_dev = pold->deviation[i]/corr[i] ;
-			if( pold->deviation[i]/corr[i] > max_dev )
+			if( pold->deviation[i] / corr[i] > max_dev )
 				max_dev = pold->deviation[i]/corr[i];
-	        }
+		}
 
-	thresh_dev = min_dev + (max_dev - min_dev)*0.3;
+	thresh_dev = min_dev + (max_dev - min_dev) * 0.3;
 	if( thresh_dev <= 1.0 ) 
 		thresh_dev = 1.0;
 
-        for( i = 0, j = 0; i < pold->nopoints; i++ ) 
+	for( i = 0, j = 0; i < pold->nopoints; i++ ) 
 		if( pold->correlation[i] > 0.01 )
-                	if( pold->deviation[i]/corr[i] <= thresh_dev ) {
+			if( pold->deviation[i] / corr[i] <= thresh_dev ) {
 				pnew->x_reference[j] = pold->x_reference[i];
 				pnew->y_reference[j] = pold->y_reference[i];
 				pnew->x_secondary[j] = pold->x_secondary[i];
@@ -132,9 +131,9 @@ copydevpoints( TIE_POINTS *pnew, TIE_POINTS *pold )
 				pnew->dy[j] = pold->dy[i];
 				j++;
 			}
-        pnew->nopoints = j;
+	pnew->nopoints = j;
 
-	for( i = j; i < IM_MAXPOINTS; i++ ) {
+	for( i = j; i < VIPS_MAXPOINTS; i++ ) {
 		pnew->x_reference[i] = 0;
 		pnew->y_reference[i] = 0;
 		pnew->x_secondary[i] = 0;
@@ -155,11 +154,11 @@ copydevpoints( TIE_POINTS *pnew, TIE_POINTS *pold )
 }
 
 int 
-im__improve( TIE_POINTS *inpoints, TIE_POINTS *outpoints )
+vips__improve( TiePoints *inpoints, TiePoints *outpoints )
 {
-	TIE_POINTS points1, points2;
-	TIE_POINTS *p = &points1;
-	TIE_POINTS *q = &points2;
+	TiePoints points1, points2;
+	TiePoints *p = &points1;
+	TiePoints *q = &points2;
 
 	/* p has the current state - make a new state, q, with only those
 	 * points which have a small deviation.
@@ -173,12 +172,12 @@ im__improve( TIE_POINTS *inpoints, TIE_POINTS *outpoints )
 
 		/* Fit the model to the new set of points.
 		 */
-		if( im__clinear( q ) )
+		if( vips__clinear( q ) )
 			return( -1 );
 
 		/* And loop.
 		 */
-		IM_SWAP( void *, p, q );
+		VIPS_SWAP( void *, p, q );
 	}
 
 	/* q has the output - copy to outpoints.

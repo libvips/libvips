@@ -206,12 +206,12 @@ render_thread_state_new( VipsImage *im, void *a )
 }
 
 static void *
-tile_free( Tile *tile )
+tile_free( Tile *tile, void *a, void *b )
 {
 	VIPS_DEBUG_MSG_AMBER( "tile_free\n" );
 
 	VIPS_UNREF( tile->region );
-	vips_free( tile );
+	g_free( tile );
 
 	return( NULL );
 }
@@ -245,7 +245,7 @@ render_free( Render *render )
 
 	VIPS_UNREF( render->in ); 
 
-	vips_free( render );
+	g_free( render );
 
 #ifdef VIPS_DEBUG_AMBER
 	render_num_renders -= 1;
@@ -450,11 +450,14 @@ vips__render_shutdown( void )
 		}
 		else
 			g_mutex_unlock( render_dirty_lock );
+
+		VIPS_FREEF( vips_g_mutex_free, render_dirty_lock );
+		vips_semaphore_destroy( &n_render_dirty_sem );
 	}
 }
 
 static int       
-render_dirty_sort( Render *a, Render *b )
+render_dirty_sort( Render *a, Render *b, void *user_data )
 {
 	return( b->priority - a->priority );
 }
@@ -504,7 +507,7 @@ tile_equal( gconstpointer a, gconstpointer b )
 		rect1->top == rect2->top );
 }
 
-static int
+static void
 render_close_cb( VipsImage *image, Render *render )
 {
 	VIPS_DEBUG_MSG_AMBER( "render_close_cb\n" );
@@ -523,8 +526,6 @@ render_close_cb( VipsImage *image, Render *render )
 	 */
 	VIPS_DEBUG_MSG_GREEN( "render_close_cb: reschedule\n" );
 	render_reschedule = TRUE;
-
-	return( 0 );
 }
 
 static Render *
@@ -617,7 +618,7 @@ tile_new( Render *render )
 	tile->ticks = render->ticks;
 
 	if( !(tile->region = vips_region_new( render->in )) ) {
-		(void) tile_free( tile );
+		(void) tile_free( tile, NULL, NULL );
 		return( NULL );
 	}
 
@@ -1029,19 +1030,18 @@ render_thread_main( void *client )
 	return( NULL );
 }
 
-static void
-vips_sink_screen_init( void )
+static void *
+vips__sink_screen_init( void *data )
 {
 	g_assert( !render_thread ); 
 	g_assert( !render_dirty_lock ); 
 
 	render_dirty_lock = vips_g_mutex_new();
+	vips_semaphore_init( &n_render_dirty_sem, 0, "n_render_dirty" );
 	render_thread = vips_g_thread_new( "sink_screen",
 		render_thread_main, NULL );
-	vips_semaphore_init( &n_render_dirty_sem, 0, "n_render_dirty" );
 
-	g_assert( render_thread ); 
-	g_assert( render_dirty_lock ); 
+	return( NULL );
 }
 
 /**
@@ -1105,7 +1105,7 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 
 	Render *render;
 
-	VIPS_ONCE( &once, (GThreadFunc) vips_sink_screen_init, NULL );
+	VIPS_ONCE( &once, vips__sink_screen_init, NULL );
 
 	if( tile_width <= 0 || tile_height <= 0 || 
 		max_tiles < -1 ) {

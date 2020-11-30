@@ -418,10 +418,8 @@ vips_image_resolution_from_exif( VipsImage *image, ExifData *ed )
 
 	switch( unit ) {
 	case 1:
-		/* No unit ... just pass the fields straight to vips.
+		/* No units, instead xres / yres gives the pixel aspect ratio.
 		 */
-		vips_image_set_string( image, 
-			VIPS_META_RESOLUTION_UNIT, "none" );
 		break;
 
 	case 2:
@@ -525,7 +523,9 @@ vips__exif_parse( VipsImage *image )
 		int orientation;
 
 		orientation = atoi( str );
-		orientation = VIPS_CLIP( 1, orientation, 8 );
+		if( orientation < 1 || 
+			orientation > 8 )
+			orientation = 1;
 		vips_image_set_int( image, VIPS_META_ORIENTATION, orientation );
 	}
 
@@ -1204,7 +1204,11 @@ vips_exif_image_field( VipsImage *image,
 		return( NULL ); 
 	}
 
-	if( !(tag = exif_tag_from_name( p + 1 )) ) {
+	/* GPSVersionID is tag 0 (the error return) so we have to
+	 * test the name too.
+	 */
+	if( !(tag = exif_tag_from_name( p + 1 )) &&
+		strcmp( p + 1, "GPSVersionID" ) != 0 ) {
 		g_warning( _( "bad exif meta \"%s\"" ), field );
 		return( NULL ); 
 	}
@@ -1258,7 +1262,7 @@ vips_exif_exif_entry( ExifEntry *entry, VipsExifRemove *ve )
 }
 
 static void *
-vips_exif_exif_remove( ExifEntry *entry, VipsExifRemove *ve )
+vips_exif_exif_remove( ExifEntry *entry, VipsExifRemove *ve, void *b )
 {
 #ifdef DEBUG
 {
@@ -1405,7 +1409,7 @@ vips__exif_update( VipsImage *image )
 #endif /*DEBUG*/
 
 	vips_image_set_blob( image, VIPS_META_EXIF_NAME, 
-		(VipsCallbackFn) vips_free, data, length );
+		(VipsCallbackFn) vips_area_free_cb, data, length );
 
 	exif_data_free( ed );
 

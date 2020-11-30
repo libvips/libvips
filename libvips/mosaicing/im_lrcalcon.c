@@ -8,7 +8,7 @@
  * @(#) Results are saved in the structure points
  * @(#) The function expects the following valid data in points:
  * @(#) deltax, deltay, nopoints, halfcorsize, halfareasize
- * @(#) and fills in the memebers:
+ * @(#) and fills in the members:
  * @(#) x, y_reference[], contrast and x,y_secondary[],
  * @(#) based on deltax and deltay
  * @(#) Input image should are either memory mapped or in a buffer.
@@ -20,10 +20,10 @@
  * @(#)  The calculation of the contrast is carried out based on bandno only.
  * @(#) The variable bandno should be between 1 and ref->Bands
  * @(#)
- * @(#) int im_lrcalcon( ref, sec, bandno, points )
- * @(#) IMAGE *ref, *sec;
+ * @(#) int vips_lrcalcon( ref, sec, bandno, points )
+ * @(#) VipsImage *ref, *sec;
  * @(#) int bandno;
- * @(#) TIE_POINTS *points; 	see mosaic.h
+ * @(#) TiePoints *points; 	see mosaic.h
  * @(#) 
  * @(#) Returns 0 on sucess  and -1 on error.
  * @(#) 
@@ -47,6 +47,8 @@
  *	- ooops, < 0 should have been <= 0 
  * 10/3/03 JC
  *	- better error message for overlap too small
+ * 18/6/20 kleisauke
+ * 	- convert to vips8
  */
 
 /*
@@ -86,7 +88,6 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
 
 #include "pmosaicing.h"
 
@@ -101,9 +102,9 @@ typedef struct {
  * One-band uchar only.
  */
 static int
-all_black( IMAGE *im, int xpos, int ypos, int winsize )
+all_black( VipsImage *im, int xpos, int ypos, int winsize )
 {
-	const int hwinsize = (winsize - 1)/2;
+	const int hwinsize = (winsize - 1) / 2;
 	const int left = xpos - hwinsize;
 	const int top = ypos - hwinsize;
 	const int ls = im->Xsize;
@@ -132,9 +133,9 @@ all_black( IMAGE *im, int xpos, int ypos, int winsize )
  * One band uchar only, 
  */
 static int 
-calculate_contrast( IMAGE *im, int xpos, int ypos, int winsize )
+calculate_contrast( VipsImage *im, int xpos, int ypos, int winsize )
 {
-	const int hwinsize = (winsize - 1)/2;
+	const int hwinsize = (winsize - 1) / 2;
 	const int left = xpos - hwinsize;
 	const int top = ypos - hwinsize;
 	const int ls = im->Xsize;
@@ -144,10 +145,10 @@ calculate_contrast( IMAGE *im, int xpos, int ypos, int winsize )
 	int total;
 
 	line = im->data + top*ls + left;
-	for( total = 0, y = 0; y < winsize-1; y++ ) {
+	for( total = 0, y = 0; y < winsize - 1; y++ ) {
 		p = line;
 
-		for( x = 0; x < winsize-1; x++ ) {
+		for( x = 0; x < winsize - 1; x++ ) {
 			const int lrd = (int) p[0] - p[1];
 			const int tbd = (int) p[0] - p[ls];
 
@@ -175,7 +176,7 @@ pos_compare( const void *vl, const void *vr )
 /* Search an area for the n best contrast areas. 
  */
 int 
-im__find_best_contrast( IMAGE *im, 
+vips__find_best_contrast( VipsImage *im, 
 	int xpos, int ypos, int xsize, int ysize,
 	int xarray[], int yarray[], int cont[], 
 	int nbest, int hcorsize )
@@ -201,7 +202,7 @@ im__find_best_contrast( IMAGE *im,
 	int x, y, i;
 
 	if( nacross <= 0 || ndown <= 0 ) {
-		im_error( "im__lrcalcon", "%s", 
+		vips_error( "vips__lrcalcon", "%s", 
 			_( "overlap too small for your search size" ) );
 		return( -1 );
 	}
@@ -209,7 +210,7 @@ im__find_best_contrast( IMAGE *im,
 	/* Malloc space for 3 int arrays, to keep the int coordinates and
  	 * the contrast.
 	 */
-	if( !(pc = IM_ARRAY( NULL, nacross * ndown, PosCont )) )
+	if( !(pc = VIPS_ARRAY( NULL, nacross * ndown, PosCont )) )
 		return( -1 );
 
 	/* Find contrast for each area.
@@ -240,10 +241,10 @@ im__find_best_contrast( IMAGE *im,
 	/* Found enough tie-points?
 	 */
 	if( elms < nbest ) {
-		im_error( "im_mosaic", 
+		vips_error( "vips_mosaic", 
 			_( "found %d tie-points, need at least %d" ), 
 			elms, nbest );
-		im_free( pc );
+		g_free( pc );
 		return( -1 );
 	}
 
@@ -258,13 +259,13 @@ im__find_best_contrast( IMAGE *im,
 		yarray[i] = pc[i].y;
 		cont[i] = pc[i].cont;
 	}
-	im_free( pc );
+	g_free( pc );
 
 	return( 0 );
 }
 
 int 
-im__lrcalcon( IMAGE *ref, TIE_POINTS *points )
+vips__lrcalcon( VipsImage *ref, TiePoints *points )
 {
 	/* Geometry: border we must leave around each area.
 	 */
@@ -279,14 +280,14 @@ im__lrcalcon( IMAGE *ref, TIE_POINTS *points )
 	const int len = points->nopoints / AREAS;
 
 	int i;
-	Rect area;
+	VipsRect area;
 
 	/* Make sure we can read image.
 	 */
-	if( im_incheck( ref ) )
+	if( vips_image_wio_input( ref ) )
 		return( -1 );
-	if( ref->Bands != 1 || ref->BandFmt != IM_BANDFMT_UCHAR ) { 
-		im_error( "im__lrcalcon", "%s", _( "not 1-band uchar image" ) );
+	if( ref->Bands != 1 || ref->BandFmt != VIPS_FORMAT_UCHAR ) { 
+		vips_error( "vips__lrcalcon", "%s", _( "not 1-band uchar image" ) );
 		return( -1 );
 	}
 
@@ -297,14 +298,14 @@ im__lrcalcon( IMAGE *ref, TIE_POINTS *points )
 	area.width = ref->Xsize;
 	area.left = 0;
 	area.top = 0;
-	im_rect_marginadjust( &area, -border );
+	vips_rect_marginadjust( &area, -border );
 	area.width--;
 	area.height--;
 
 	/* Loop over areas, finding points.
 	 */
 	for( i = 0; area.top < ref->Ysize; area.top += aheight, i++ ) 
-		if( im__find_best_contrast( ref, 
+		if( vips__find_best_contrast( ref, 
 			area.left, area.top, area.width, area.height,
 			points->x_reference + i*len,
 			points->y_reference + i*len,

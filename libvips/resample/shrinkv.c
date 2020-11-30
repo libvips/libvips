@@ -124,6 +124,8 @@ vips_shrinkv_stop( void *vseq, void *a, void *b )
 	VipsShrinkvSequence *seq = (VipsShrinkvSequence *) vseq;
 
 	VIPS_FREEF( g_object_unref, seq->ir );
+	VIPS_FREE( seq->sum );
+	VIPS_FREE( seq );
 
 	return( 0 );
 }
@@ -137,14 +139,14 @@ vips_shrinkv_start( VipsImage *out, void *a, void *b )
 	VipsShrinkv *shrink = (VipsShrinkv *) b;
 	VipsShrinkvSequence *seq;
 
-	if( !(seq = VIPS_NEW( out, VipsShrinkvSequence )) )
+	if( !(seq = VIPS_NEW( NULL, VipsShrinkvSequence )) )
 		return( NULL );
 
 	seq->ir = vips_region_new( in );
 
 	/* Big enough for the largest intermediate .. a whole scanline. 
 	 */
-	seq->sum = VIPS_ARRAY( out, shrink->sizeof_line_buffer, VipsPel );
+	seq->sum = VIPS_ARRAY( NULL, shrink->sizeof_line_buffer, VipsPel );
 
 	return( (void *) seq );
 }
@@ -344,12 +346,6 @@ vips_shrinkv_build( VipsObject *object )
 
 	if( shrink->vshrink == 1 )
 		return( vips_image_write( in, resample->out ) );
-
-	/* Unpack for processing.
-	 */
-	if( vips_image_decode( in, &t[0] ) )
-		return( -1 );
-	in = t[0];
 
 	/* Make the height a multiple of the shrink factor so we don't need to
 	 * average half pixels.

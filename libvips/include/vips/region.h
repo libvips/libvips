@@ -60,6 +60,9 @@ extern "C" {
  * @VIPS_REGION_SHRINK_MEAN: use the average
  * @VIPS_REGION_SHRINK_MEDIAN: use the median
  * @VIPS_REGION_SHRINK_MODE: use the mode
+ * @VIPS_REGION_SHRINK_MAX: use the maximum
+ * @VIPS_REGION_SHRINK_MIN: use the minimum
+ * @VIPS_REGION_SHRINK_NEAREST: use the top-left pixel
  *
  * How to calculate the output pixels when shrinking a 2x2 region.
  */
@@ -67,12 +70,17 @@ typedef enum {
 	VIPS_REGION_SHRINK_MEAN,
 	VIPS_REGION_SHRINK_MEDIAN,
 	VIPS_REGION_SHRINK_MODE,
+	VIPS_REGION_SHRINK_MAX,
+	VIPS_REGION_SHRINK_MIN,
+	VIPS_REGION_SHRINK_NEAREST,
 	VIPS_REGION_SHRINK_LAST
 } VipsRegionShrink;
 
 /* Sub-area of image.
+ *
+ * Matching typedef in basic.h.
  */
-typedef struct _VipsRegion {
+struct _VipsRegion {
 	VipsObject parent_object;
 
 	/*< public >*/
@@ -106,7 +114,7 @@ typedef struct _VipsRegion {
 	 * dropped.
 	 */
 	gboolean invalid;	
-} VipsRegion;
+};
 
 typedef struct _VipsRegionClass {
 	VipsObjectClass parent_class;

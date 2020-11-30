@@ -41,6 +41,12 @@ class TestArithmetic:
         cls.mono = cls.colour.extract_band(1)
         cls.all_images = [cls.mono, cls.colour]
 
+    @classmethod
+    def teardown_class(cls):
+        cls.colour = None
+        cls.mono = None
+        cls.all_images = None
+
     # test all operator overloads we define
 
     def test_add(self):

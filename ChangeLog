@@ -1,3 +1,100 @@
+6/9/20 started 8.10.2
+- update magicksave/load profile handling [kelilevi]
+- better demand hint rules [kaas3000]
+- fix tiff thumbnail from buffer and source [vansante]
+- in jpegsave, don't set JFIF resolution if we set EXIF resolution
+- bump minimum libheif version to 1.3 [lovell]
+- dzsave in iiif mode could set info.json dimensions off by one [Linden6]
+- pdfload allows dpi and scale to both be set [le0daniel]
+- allow gaussblur sigma zero, meaning no blur
+- better heif signature detection [lovell]
+- fix vips_fractsurf() typo [kleisauke]
+- better heif EOF detection [lovell]
+- fix gir build with g-o-i 1.66+ [László]
+- improve seek behaviour on pipes
+- add "speed" param to heifsave [lovell]
+- fix regression in C path for dilate / erode [kleisauke]
+- fix build with libheif save but no load [estepnv]
+
+9/8/20 started 8.10.1
+- fix markdown -> xml conversion in doc generation
+- remove typedef redefinitions to please old gccs
+- fix regression in tiff pyramid thumbnailing [tand826]
+- stop 0-length buffer being passed to imagemagick [lovell]
+- convert no-profile CMYK to RGB on save [augustocdias]
+- ensure SVG loader skips input with chars outside x09-x7F range [lovell]
+- better mask sizing in gaussmat [johntrunc]
+- fix tiffsave "squash" handling [barryspearce]
+- fix jpegload autorotate [chregu]
+- only start the background render thread on first use
+
+24/1/20 started 8.10.0
+- more conformat IIIF output from dzsave [regisrob]
+- add @id to dzsave to set IIIF id property [regisrob]
+- add max and min to region shrink [rgluskin]
+- allow \ as an escape character in vips_break_token() [akemrir]
+- tiffsave has a "depth" param to set max pyr depth
+- libtiff LOGLUV images load and save as libvips XYZ 
+- add gifload_source, csvload_source, csvsave_target, matrixload_source,
+  matrixsave_source, pdfload_source, heifload_source, heifsave_target,
+  ppmload_source, ppmsave_target
+- revise vipsthumbnail flags
+- add VIPS_LEAK env var
+- add vips_pipe_read_limit_set(), --vips-pipe-read-limit,
+  VIPS_PIPE_READ_LIMIT
+- revise gifload to fix BACKGROUND and PREVIOUS dispose [alon-ne]
+- add subsample_mode, deprecate no_subsample in jpegsave [Elad-Laufer]
+- add vips_isdirf()
+- add PAGENUMBER support to tiff write [jclavoie-jive]
+- add "all" mode to smartcrop 
+- flood fill could stop half-way for some very complex shapes
+- better handling of unaligned reads in multipage tiffs [petoor]
+- mark old --delete option to vipsthumbnail as deprecated [UweOhse]
+- png save with a bad ICC profile just gives a warning
+- add "premultipled" option to vips_affine(), clarified vips_resize() 
+  behaviour with alpha channels
+- improve bioformats support with read and write of tiff subifd pyramids
+- thumbnail exploits subifd pyramids
+- handle all EXIF orientation cases, deprecate 
+  vips_autorot_get_angle() [Elad-Laufer]
+- load PNGs with libspng, if possible
+- deprecate heifload autorotate -- it's now always on
+- revised resize improves accuracy [kleisauke]
+- add --vips-config flag to show configuration info
+- add "bitdepth" param to tiff save, deprecate "squash" [MathemanFlo]
+- tiff load and save now supports 2 and 4 bit data [MathemanFlo]
+- pngsave @bitdepth parameter lets you write 1, 2 and 4 bit PNGs
+- ppmsave also uses "bitdepth" now, for consistency
+- reduce operation cache max to 100
+- rework the final bits of vips7 for vips8 [kleisauke]
+- --disable-deprecated now works [kleisauke]
+- vipsheader allows "stdin" as a filename
+- gifload allows gifs with images outside the canvas
+- wasm compatibility patches [kleisauke]
+- webpsave has a @profile param
+
+24/4/20 started 8.9.3
+- better iiif tile naming [IllyaMoskvin]
+
+31/1/19 started 8.9.2
+- fix a deadlock with --vips-leak [DarthSim]
+- better gifload behaviour for DISPOSAL_UNSPECIFIED [DarthSim]
+- ban ppm max_value < 0 
+- add fuzz corpus to dist
+- detect read errors correctly in source_sniff
+- fix regression in autorot [malomalo]
+- thumbnail on HEIC images could select the thumbnail incorrectly under some
+  size modes [ZorinArsenij]
+
+20/6/19 started 8.9.1
+- don't use the new source loaders for new_from_file or new_from_buffer, it
+  will break the loader priority system
+- fix thumbnail autorot [janko]
+- fix a warning with magicksave with no delay array [chregu]
+- fix a race in tiled tiff load [kleisauke]
+- better imagemagick init [LebronCurry]
+- lock for metadata changes [jcupitt]
+
 20/6/19 started 8.9.0
 - add vips_image_get/set_array_int()
 - disable webp alpha output if all frame fill the canvas and are solid
@@ -16,12 +113,21 @@
 - add @interpretation and @format to rawload
 - nifti load/save uses double for all floating point metadata
 - add vips_error_buffer_copy()
+- add VipsSource and VipsTarget: a universal IO class for loaders and savers
+- jpeg, png, tiff (though not tiffsave), rad, svg, ppm and webp use the 
+  new IO class
+- rewritten ppm load/save is faster and uses less memory
 - add @no_strip option to dzsave [kalozka1]
 - add iiif layout to dzsave
 - fix use of resolution-unit metadata on tiff save [kayarre]
 - support TIFF CIELAB images with alpha [angelmixu]
+- support TIFF with premultiplied alpha in any band 
+- block metadata changes on shared images [pvdz]
+- RGB and sRGB are synonmous
 
 17/9/19 started 8.8.4
+- improve compatibility with older imagemagick versions
+- remove realpath, since it can fail on systems with grsec
 
 31/8/19 started 8.8.3
 - revert sharpen restoring the input colourspace

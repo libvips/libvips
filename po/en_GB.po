@@ -5318,18 +5318,6 @@ msgstr ""
 msgid "TB"
 msgstr ""
 
-#. We shouldn't really be used for large amounts of data, plus
-#. * we are using int offsets.
-#. *
-#. * A large ICC profile can be 1MB, so allow 10MB of b64.
-#.
-#. We shouldn't really be used for large amounts of data, plus
-#. * we are using an int for offset.
-#.
-#: ../libvips/iofuncs/base64.c:177 ../libvips/iofuncs/base64.c:244
-msgid "too much data"
-msgstr ""
-
 #: ../libvips/morphology/morph.c:139
 msgid "morphology operation"
 msgstr ""

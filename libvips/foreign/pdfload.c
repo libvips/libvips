@@ -14,6 +14,10 @@
  * 	- shut down the input file as soon as we can 
  * 19/9/19
  * 	- reopen the input if we minimised too early
+ * 11/3/20
+ * 	- move on top of VipsSource
+ * 21/9/20
+ * 	- allow dpi and scale to both be set [le0daniel]
  */
 
 /*
@@ -63,7 +67,10 @@
 
 #include "pforeign.h"
 
-#ifdef HAVE_POPPLER
+/* TODO ... put minimise support back in.
+ */
+
+#if defined(HAVE_POPPLER)
 
 #include <cairo.h>
 #include <poppler.h>
@@ -86,6 +93,12 @@
 typedef struct _VipsForeignLoadPdf {
 	VipsForeignLoad parent_object;
 
+	/* The VipsSource we load from, and the GInputStream we wrap around
+	 * it. Set from subclasses.
+	 */
+	VipsSource *source;
+	GInputStream *stream;
+
 	/* Load this page.
 	 */
 	int page_no;
@@ -98,9 +111,13 @@ typedef struct _VipsForeignLoadPdf {
 	 */
 	double dpi;
 
-	/* Calculate this from DPI. At 72 DPI, we render 1:1 with cairo.
+	/* Scale by this factor.
 	 */
 	double scale;
+
+	/* The total scale factor we render with.
+	 */
+	double total_scale;
 
 	/* Background colour.
 	 */
@@ -133,9 +150,6 @@ typedef struct _VipsForeignLoadPdf {
 typedef struct _VipsForeignLoadPdfClass {
 	VipsForeignLoadClass parent_class;
 
-	int (*open)( VipsForeignLoadPdf *pdf );
-
-	void (*close)( VipsForeignLoadPdf *pdf );
 } VipsForeignLoadPdfClass;
 
 G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadPdf, vips_foreign_load_pdf, 
@@ -145,9 +159,11 @@ static void
 vips_foreign_load_pdf_dispose( GObject *gobject )
 {
 	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF( gobject );
-	VipsForeignLoadPdfClass *class = VIPS_FOREIGN_LOAD_PDF_GET_CLASS( pdf );
 
-	class->close( pdf ); 
+	VIPS_UNREF( pdf->page );
+	VIPS_UNREF( pdf->doc );
+	VIPS_UNREF( pdf->source ); 
+	VIPS_UNREF( pdf->stream ); 
 
 	G_OBJECT_CLASS( vips_foreign_load_pdf_parent_class )->
 		dispose( gobject );
@@ -158,8 +174,19 @@ vips_foreign_load_pdf_build( VipsObject *object )
 {
 	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF( object );
 
-	if( !vips_object_argument_isset( object, "scale" ) )
-		pdf->scale = pdf->dpi / 72.0;
+	GError *error = NULL;
+
+	if( vips_source_rewind( pdf->source ) )
+		return( -1 );
+
+	pdf->total_scale = pdf->scale * pdf->dpi / 72.0;
+
+	pdf->stream = vips_g_input_stream_new_from_source( pdf->source );
+	if( !(pdf->doc = poppler_document_new_from_stream( pdf->stream, 
+		vips_source_length( pdf->source ), NULL, NULL, &error )) ) { 
+		vips_g_error( &error );
+		return( -1 ); 
+	}
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_pdf_parent_class )->
 		build( object ) )
@@ -274,8 +301,6 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF( load );
-	VipsForeignLoadPdfClass *pdf_class = 
-		VIPS_FOREIGN_LOAD_PDF_GET_CLASS( pdf );
 
 	int top;
 	int i;
@@ -283,9 +308,6 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 #ifdef DEBUG
 	printf( "vips_foreign_load_pdf_header: %p\n", pdf );
 #endif /*DEBUG*/
-
-	if( pdf_class->open( pdf ) )
-		return( -1 );
 
 	pdf->n_pages = poppler_document_get_n_pages( pdf->doc );
 
@@ -324,8 +346,8 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 		 * does round to nearest. Without this, things like
 		 * shrink-on-load will break.
 		 */
-		pdf->pages[i].width = VIPS_RINT( width * pdf->scale );
-		pdf->pages[i].height = VIPS_RINT( height * pdf->scale );
+		pdf->pages[i].width = VIPS_RINT( width * pdf->total_scale );
+		pdf->pages[i].height = VIPS_RINT( height * pdf->total_scale );
 
 		if( pdf->pages[i].width > pdf->image.width )
 			pdf->image.width = pdf->pages[i].width;
@@ -357,21 +379,9 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 		VIPS_AREA( pdf->background )->n )) )
 		return( -1 );
 
-	pdf_class->close( pdf ); 
+	vips_source_minimise( pdf->source );
 
 	return( 0 );
-}
-
-static void
-vips_foreign_load_pdf_minimise( VipsObject *object, VipsForeignLoadPdf *pdf )
-{
-	VipsForeignLoadPdfClass *class = VIPS_FOREIGN_LOAD_PDF_GET_CLASS( pdf );
-
-#ifdef DEBUG
-	printf( "vips_foreign_load_pdf_minimise: %p\n", pdf );
-#endif /*DEBUG*/
-
-	class->close( pdf ); 
 }
 
 static int
@@ -379,7 +389,6 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF( a );
-	VipsForeignLoadPdfClass *class = VIPS_FOREIGN_LOAD_PDF_GET_CLASS( pdf );
 	VipsRect *r = &or->valid;
 
 	int top;
@@ -391,11 +400,6 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		"left = %d, top = %d, width = %d, height = %d\n", 
 		r->left, r->top, r->width, r->height ); 
 	 */
-
-	/* We may have been minimised. Make sure the doc is open.
-	 */
-	if( class->open( pdf ) )
-		return( -1 );
 
 	/* Poppler won't always paint the background. 
 	 */
@@ -425,10 +429,10 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		cr = cairo_create( surface );
 		cairo_surface_destroy( surface );
 
-		cairo_scale( cr, pdf->scale, pdf->scale );
+		cairo_scale( cr, pdf->total_scale, pdf->total_scale );
 		cairo_translate( cr, 
-			(pdf->pages[i].left - rect.left) / pdf->scale, 
-			(pdf->pages[i].top - rect.top) / pdf->scale );
+			(pdf->pages[i].left - rect.left) / pdf->total_scale, 
+			(pdf->pages[i].top - rect.top) / pdf->total_scale );
 
 		/* poppler is single-threaded, but we don't need to lock since 
 		 * we're running inside a non-threaded tilecache.
@@ -457,7 +461,6 @@ static int
 vips_foreign_load_pdf_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF( load );
-	VipsForeignLoadPdfClass *class = VIPS_FOREIGN_LOAD_PDF_GET_CLASS( pdf );
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( (VipsObject *) load, 2 );
 
@@ -465,17 +468,13 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 	printf( "vips_foreign_load_pdf_load: %p\n", pdf );
 #endif /*DEBUG*/
 
-	if( class->open( pdf ) )
-		return( -1 );
-
 	/* Read to this image, then cache to out, see below.
 	 */
 	t[0] = vips_image_new(); 
 
-	/* Close input immediately at end of read.
+	/* Don't minimise on ::minimise (end of computation): we support 
+	 * threaded read, and minimise will happen outside the cache lock.
 	 */
-	g_signal_connect( t[0], "minimise", 
-		G_CALLBACK( vips_foreign_load_pdf_minimise ), pdf ); 
 
 	vips_foreign_load_pdf_set_image( pdf, t[0] ); 
 	if( vips_image_generate( t[0], 
@@ -495,23 +494,6 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 		return( -1 );
 
 	return( 0 );
-}
-
-static int
-vips_foreign_load_pdf_open( VipsForeignLoadPdf *pdf )
-{
-	return( 0 );
-}
-
-static void
-vips_foreign_load_pdf_close( VipsForeignLoadPdf *pdf )
-{
-#ifdef DEBUG
-	printf( "vips_foreign_load_pdf_file_close:\n" );
-#endif /*DEBUG*/
-
-	VIPS_UNREF( pdf->page );
-	VIPS_UNREF( pdf->doc );
 }
 
 static void
@@ -534,9 +516,6 @@ vips_foreign_load_pdf_class_init( VipsForeignLoadPdfClass *class )
 	load_class->get_flags = vips_foreign_load_pdf_get_flags;
 	load_class->header = vips_foreign_load_pdf_header;
 	load_class->load = vips_foreign_load_pdf_load;
-
-	class->open = vips_foreign_load_pdf_open;
-	class->close = vips_foreign_load_pdf_close;
 
 	VIPS_ARG_INT( class, "page", 20,
 		_( "Page" ),
@@ -630,18 +609,18 @@ static const char *vips_foreign_pdf_suffs[] = {
 };
 
 static int
-vips_foreign_load_pdf_file_open( VipsForeignLoadPdf *pdf )
+vips_foreign_load_pdf_file_build( VipsObject *object )
 {
+	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF( object );
 	VipsForeignLoadPdfFile *file = (VipsForeignLoadPdfFile *) pdf;
 
-	GError *error = NULL;
-
 #ifdef DEBUG
-	printf( "vips_foreign_load_pdf_file_open: %s\n", file->filename );
+	printf( "vips_foreign_load_pdf_file_build: %s\n", file->filename );
 #endif /*DEBUG*/
 
-	if( !file->uri ) { 
+	if( file->filename ) { 
 		char *path;
+		GError *error = NULL;
 
 		/* We need an absolute path for a URI.
 		 */
@@ -652,17 +631,15 @@ vips_foreign_load_pdf_file_open( VipsForeignLoadPdf *pdf )
 			return( -1 ); 
 		}
 		g_free( path );
+
+		if( !(pdf->source = 
+			vips_source_new_from_file( file->filename )) )
+			return( -1 );
+
 	}
 
-	if( !pdf->doc &&
-		!(pdf->doc = poppler_document_new_from_file( 
-			file->uri, NULL, &error )) ) { 
-		vips_g_error( &error );
-		return( -1 ); 
-	}
-
-	return( VIPS_FOREIGN_LOAD_PDF_CLASS(
-		vips_foreign_load_pdf_file_parent_class )->open( pdf ) );
+	return( VIPS_OBJECT_CLASS( vips_foreign_load_pdf_file_parent_class )->
+		build( object ) );
 }
 
 static void
@@ -679,13 +656,13 @@ vips_foreign_load_pdf_file_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pdfload";
+	object_class->description = _( "load PDF from file" );
+	object_class->build = vips_foreign_load_pdf_file_build;
 
 	foreign_class->suffs = vips_foreign_pdf_suffs;
 
 	load_class->is_a = vips_foreign_load_pdf_is_a;
 	load_class->header = vips_foreign_load_pdf_file_header;
-
-	class->open = vips_foreign_load_pdf_file_open;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
@@ -716,21 +693,19 @@ G_DEFINE_TYPE( VipsForeignLoadPdfBuffer, vips_foreign_load_pdf_buffer,
 	vips_foreign_load_pdf_get_type() );
 
 static int
-vips_foreign_load_pdf_buffer_open( VipsForeignLoadPdf *pdf )
+vips_foreign_load_pdf_buffer_build( VipsObject *object )
 {
+	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF( object );
 	VipsForeignLoadPdfBuffer *buffer = (VipsForeignLoadPdfBuffer *) pdf;
 
-	GError *error = NULL;
+	if( buffer->buf &&
+		!(pdf->source = vips_source_new_from_memory( 
+			VIPS_AREA( buffer->buf )->data, 
+			VIPS_AREA( buffer->buf )->length )) )
+		return( -1 );
 
-	if( !pdf->doc &&
-		!(pdf->doc = poppler_document_new_from_data( 
-		buffer->buf->data, buffer->buf->length, NULL, &error )) ) { 
-		vips_g_error( &error );
-		return( -1 ); 
-	}
-
-	return( VIPS_FOREIGN_LOAD_PDF_CLASS(
-		vips_foreign_load_pdf_buffer_parent_class )->open( pdf ) );
+	return( VIPS_OBJECT_CLASS( vips_foreign_load_pdf_buffer_parent_class )->
+		build( object ) );
 }
 
 static void
@@ -745,10 +720,10 @@ vips_foreign_load_pdf_buffer_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pdfload_buffer";
+	object_class->description = _( "load PDF from buffer" );
+	object_class->build = vips_foreign_load_pdf_buffer_build;
 
 	load_class->is_a_buffer = vips_foreign_load_pdf_is_a_buffer;
-
-	class->open = vips_foreign_load_pdf_buffer_open;
 
 	VIPS_ARG_BOXED( class, "buffer", 1, 
 		_( "Buffer" ),
@@ -764,7 +739,77 @@ vips_foreign_load_pdf_buffer_init( VipsForeignLoadPdfBuffer *buffer )
 {
 }
 
-#endif /*HAVE_POPPLER*/
+typedef struct _VipsForeignLoadPdfSource {
+	VipsForeignLoadPdf parent_object;
+
+	VipsSource *source;
+
+} VipsForeignLoadPdfSource;
+
+typedef VipsForeignLoadPdfClass VipsForeignLoadPdfSourceClass;
+
+G_DEFINE_TYPE( VipsForeignLoadPdfSource, vips_foreign_load_pdf_source, 
+	vips_foreign_load_pdf_get_type() );
+
+static int
+vips_foreign_load_pdf_source_build( VipsObject *object )
+{
+	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF( object );
+	VipsForeignLoadPdfSource *source = (VipsForeignLoadPdfSource *) pdf;
+
+	if( source->source ) {
+		pdf->source = source->source;
+		g_object_ref( pdf->source );
+	}
+
+	return( VIPS_OBJECT_CLASS( vips_foreign_load_pdf_source_parent_class )->
+		build( object ) );
+}
+
+static gboolean
+vips_foreign_load_pdf_source_is_a_source( VipsSource *source )
+{
+	const unsigned char *p;
+
+	return( (p = vips_source_sniff( source, 4 )) &&
+		p[0] == '%' && 
+		p[1] == 'P' &&
+		p[2] == 'D' &&
+		p[3] == 'F' );
+}
+
+static void
+vips_foreign_load_pdf_source_class_init( 
+	VipsForeignLoadPdfSourceClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "pdfload_source";
+	object_class->description = _( "load PDF from source" );
+	object_class->build = vips_foreign_load_pdf_source_build;
+
+	load_class->is_a_source = vips_foreign_load_pdf_source_is_a_source;
+
+	VIPS_ARG_OBJECT( class, "source", 1,
+		_( "Source" ),
+		_( "Source to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadPdfSource, source ),
+		VIPS_TYPE_SOURCE );
+
+}
+
+static void
+vips_foreign_load_pdf_source_init( VipsForeignLoadPdfSource *source )
+{
+}
+
+#endif /*defined(HAVE_POPPLER)*/
 
 /* Also used by the pdfium loader.
  */
@@ -825,9 +870,8 @@ vips_foreign_load_pdf_is_a( const char *filename )
  * left. Set to -1 to mean "until the end of the document". Use vips_grid() 
  * to change page layout.
  *
- * Use @dpi to set the rendering resolution. The default is 72. Alternatively,
- * you can scale the rendering from the default 1 point == 1 pixel by 
- * setting @scale.
+ * Use @dpi to set the rendering resolution. The default is 72. Additionally,
+ * you can scale by setting @scale. If you set both, they combine.
  *
  * Use @background to set the background RGBA colour. The default is 255 
  * (solid white), use eg. 0 for a transparent background.
@@ -896,6 +940,39 @@ vips_pdfload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	va_end( ap );
 
 	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
+
+/**
+ * vips_pdfload_source:
+ * @source: source to load from
+ * @out: (out): image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, load this page, numbered from zero
+ * * @n: %gint, load this many pages
+ * * @dpi: %gdouble, render at this DPI
+ * * @scale: %gdouble, scale render by this factor
+ * * @background: #VipsArrayDouble background colour
+ *
+ * Exactly as vips_pdfload(), but read from a source. 
+ *
+ * See also: vips_pdfload()
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_pdfload_source( VipsSource *source, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "pdfload_source", ap, source, out );
+	va_end( ap );
 
 	return( result );
 }

@@ -37,7 +37,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/vips7compat.h>
+#include <vips/internal.h>
 
 #include "pmosaicing.h"
 
@@ -45,48 +45,39 @@
  * image with.
  */
 int 
-im__coeff( int xr1, int yr1, int xs1, int ys1, 
+vips__coeff( int xr1, int yr1, int xs1, int ys1, 
 	int xr2, int yr2, int xs2, int ys2, 
 	double *a, double *b, double *dx, double *dy )
-{	
-	DOUBLEMASK *in, *out;
+{
+	VipsImage **t = VIPS_ARRAY( NULL, 2, VipsImage * );
 
-	if( !(in = im_create_dmask( "in", 4, 4 )) ) 
-		return( -1 );
-
-	in->coeff[0] = (double)xs1;
-	in->coeff[1] = (double)-ys1;
-	in->coeff[2] = 1.0;
-	in->coeff[3] = 0.0;
-	in->coeff[4] = (double)ys1;
-	in->coeff[5] = (double)xs1;
-	in->coeff[6] = 0.0;
-	in->coeff[7] = 1.0;
-	in->coeff[8] = (double)xs2;
-	in->coeff[9] = (double)-ys2;
-	in->coeff[10] = 1.0;
-	in->coeff[11] = 0.0;
-	in->coeff[12] = (double)ys2;
-	in->coeff[13] = (double)xs2;
-	in->coeff[14] = 0.0;
-	in->coeff[15] = 1.0;
-
-	if( !(out = im_matinv( in, "out" )) ) {
-		im_free_dmask( in );
+	if( !(t[0] = vips_image_new_matrixv( 4, 4,
+		(double)xs1, (double)-ys1, 1.0, 0.0,
+		(double)ys1, (double)xs1, 0.0, 1.0,
+		(double)xs2, (double)-ys2, 1.0, 0.0,
+		(double)ys2, (double)xs2, 0.0, 1.0 )) ) {
+		g_free( t );
 		return( -1 );
 	}
 
-	*a = out->coeff[0]*xr1 + out->coeff[1]*yr1 + 
-		out->coeff[2]*xr2 + out->coeff[3]*yr2;
-	*b = out->coeff[4]*xr1 + out->coeff[5]*yr1 + 
-		out->coeff[6]*xr2 + out->coeff[7]*yr2;
-	*dx= out->coeff[8]*xr1 + out->coeff[9]*yr1 + 	
-		out->coeff[10]*xr2 + out->coeff[11]*yr2;
-	*dy= out->coeff[12]*xr1 + out->coeff[13]*yr1 + 
-		out->coeff[14]*xr2 + out->coeff[15]*yr2;
+	if( vips_matrixinvert( t[0], &t[1], NULL ) ) {
+		g_object_unref( t[0] );
+		g_free( t );
+		return( -1 );
+	}
 
-	im_free_dmask( in );
-	im_free_dmask( out );
+	*a = *VIPS_MATRIX( t[1], 0, 0 ) * xr1 + *VIPS_MATRIX( t[1], 0, 1 ) * yr1 +
+		*VIPS_MATRIX( t[1], 0, 2 ) * xr2 + *VIPS_MATRIX( t[1], 0, 3 ) * yr2;
+	*b = *VIPS_MATRIX( t[1], 1, 0 ) * xr1 + *VIPS_MATRIX( t[1], 1, 1 ) * yr1 +
+		*VIPS_MATRIX( t[1], 1, 2 ) * xr2 + *VIPS_MATRIX( t[1], 1, 3 ) * yr2;
+	*dx= *VIPS_MATRIX( t[1], 2, 0 ) * xr1 + *VIPS_MATRIX( t[1], 2, 1 ) * yr1 +
+		*VIPS_MATRIX( t[1], 2, 2 ) * xr2 + *VIPS_MATRIX( t[1], 2, 3 ) * yr2;
+	*dy= *VIPS_MATRIX( t[1], 3, 0 ) * xr1 + *VIPS_MATRIX( t[1], 3, 1 ) * yr1 +
+		*VIPS_MATRIX( t[1], 3, 2 ) * xr2 + *VIPS_MATRIX( t[1], 3, 3 ) * yr2;
+
+	g_object_unref( t[0] );
+	g_object_unref( t[1] );
+	g_free( t );
 
 	return( 0 );
 }
@@ -137,7 +128,7 @@ vips_match_build( VipsObject *object )
 		int xs, ys;
 		double cor;
 
-		if( im_correl( match->ref, match->sec, 
+		if( vips__correl( match->ref, match->sec, 
 			match->xr1, match->yr1, match->xs1, match->ys1,
 			match->hwindow, match->harea, 
 			&cor, &xs, &ys ) )
@@ -145,7 +136,7 @@ vips_match_build( VipsObject *object )
 		match->xs1 = xs;
 		match->ys1 = ys;
 
-		if( im_correl( match->ref, match->sec, 
+		if( vips__correl( match->ref, match->sec, 
 			match->xr2, match->yr2, match->xs2, match->ys2,
 			match->hwindow, match->harea, 
 			&cor, &xs, &ys ) )
@@ -157,7 +148,7 @@ vips_match_build( VipsObject *object )
 
 	/* Solve to get scale + rot + disp to obtain match.
 	 */
-	if( im__coeff( match->xr1, match->yr1, match->xs1, match->ys1, 
+	if( vips__coeff( match->xr1, match->yr1, match->xs1, match->ys1, 
 		match->xr2, match->yr2, match->xs2, match->ys2, 
 		&a, &b, &dx, &dy ) )
 		return( -1 );

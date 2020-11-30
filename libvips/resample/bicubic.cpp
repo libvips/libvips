@@ -79,16 +79,15 @@ typedef VipsInterpolate VipsInterpolateBicubic;
 typedef VipsInterpolateClass VipsInterpolateBicubicClass;
 
 /* Precalculated interpolation matrices. int (used for pel
- * sizes up to short), and double (for all others). We go to
- * scale + 1 so we can round-to-nearest safely.
+ * sizes up to short), and double (for all others).
  */
 
 /* We could keep a large set of 2d 4x4 matricies, but this actually
  * works out slower since for many resizes the thing will no longer
  * fit in L1.
  */
-static int vips_bicubic_matrixi[VIPS_TRANSFORM_SCALE + 1][4];
-static double vips_bicubic_matrixf[VIPS_TRANSFORM_SCALE + 1][4];
+static int vips_bicubic_matrixi[VIPS_TRANSFORM_SCALE][4];
+static double vips_bicubic_matrixf[VIPS_TRANSFORM_SCALE][4];
 
 /* We need C linkage for this.
  */
@@ -498,19 +497,13 @@ static void
 vips_interpolate_bicubic_interpolate( VipsInterpolate *interpolate,
 	void *out, VipsRegion *in, double x, double y )
 {
-	/* Find the mask index. We round-to-nearest, so we need to generate 
-	 * indexes in 0 to VIPS_TRANSFORM_SCALE, 2^n + 1 values. We multiply 
-	 * by 2 more than we need to, add one, mask, then shift down again to 
-	 * get the extra range.
+	/* Find the mask index.
 	 */
-	const int sx = x * VIPS_TRANSFORM_SCALE * 2;
-	const int sy = y * VIPS_TRANSFORM_SCALE * 2;
+	const int sx = x * VIPS_TRANSFORM_SCALE;
+	const int sy = y * VIPS_TRANSFORM_SCALE;
 
-	const int six = sx & (VIPS_TRANSFORM_SCALE * 2 - 1);
-	const int siy = sy & (VIPS_TRANSFORM_SCALE * 2 - 1);
-
-	const int tx = (six + 1) >> 1;
-	const int ty = (siy + 1) >> 1;
+	const int tx = sx & (VIPS_TRANSFORM_SCALE - 1);
+	const int ty = sy & (VIPS_TRANSFORM_SCALE - 1);
 
 	/* We know x/y are always positive, so we can just (int) them. 
 	 */
@@ -643,7 +636,7 @@ vips_interpolate_bicubic_class_init( VipsInterpolateBicubicClass *iclass )
 
 	/* Build the tables of pre-computed coefficients.
 	 */
-	for( int x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++ ) {
+	for( int x = 0; x < VIPS_TRANSFORM_SCALE; x++ ) {
 		calculate_coefficients_catmull( vips_bicubic_matrixf[x], 
 			(float) x / VIPS_TRANSFORM_SCALE ); 
 

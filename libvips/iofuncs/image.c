@@ -18,6 +18,8 @@
  * 	- better rules for hasalpha
  * 9/10/18
  * 	- fix up vips_image_dump(), it was still using ints not enums
+ * 10/12/19
+ * 	- add vips_image_new_from_source() / vips_image_write_to_target()
  */
 
 /*
@@ -228,9 +230,8 @@
  * three-band float image of type #VIPS_INTERPRETATION_LAB should have its 
  * pixels interpreted as coordinates in CIE Lab space.
  *
- * These values are set by operations as hints to user-interfaces built on top 
- * of VIPS to help them show images to the user in a meaningful way. 
- * Operations do not use these values to decide their action.
+ * RGB and sRGB are treated in the same way. Use the colourspace functions if
+ * you want some other behaviour.
  *
  * The gaps in numbering are historical and must be maintained. Allocate 
  * new numbers from the end.
@@ -650,7 +651,7 @@ vips_image_summary( VipsObject *object, VipsBuf *buf )
 }
 
 static void *
-vips_image_sanity_upstream( VipsImage *up, VipsImage *down )
+vips_image_sanity_upstream( VipsImage *up, VipsImage *down, void *b )
 {
 	if( !g_slist_find( up->downstream, down ) ||
 		!g_slist_find( down->upstream, up ) )
@@ -660,18 +661,15 @@ vips_image_sanity_upstream( VipsImage *up, VipsImage *down )
 }
 
 static void *
-vips_image_sanity_downstream( VipsImage *down, VipsImage *up )
+vips_image_sanity_downstream( VipsImage *down, VipsImage *up, void *b )
 {
-	return( vips_image_sanity_upstream( up, down ) );
+	return( vips_image_sanity_upstream( up, down, b ) );
 }
 
 static void
 vips_image_sanity( VipsObject *object, VipsBuf *buf )
 {
 	VipsImage *image = VIPS_IMAGE( object );
-
-	if( !image->filename ) 
-		vips_buf_appends( buf, "NULL filename\n" );
 
 	/* All 0 means im has been inited but never used.
 	 */
@@ -740,7 +738,7 @@ vips_image_rewind( VipsObject *object )
 /* From "written" callback: save to image->filename using VipsForeign.
  */
 static void
-vips_image_save_cb( VipsImage *image, int *result )
+vips_image_save_cb( VipsImage *image, int *result, void *data )
 {
 	if( vips_foreign_save( image, image->filename, NULL ) )
 		*result = -1;
@@ -788,7 +786,7 @@ vips_image_eval_cb( VipsImage *image, VipsProgress *progress, int *last )
 }
 
 static void
-vips_image_posteval_cb( VipsImage *image, VipsProgress *progress )
+vips_image_posteval_cb( VipsImage *image, VipsProgress *progress, void *data )
 {
 	/* Spaces at end help to erase the %complete message we overwrite.
 	 */
@@ -803,8 +801,12 @@ static void
 vips_image_add_progress( VipsImage *image )
 {
 	if( vips__progress || 
+#if ENABLE_DEPRECATED
 		g_getenv( "VIPS_PROGRESS" ) ||
 		g_getenv( "IM_PROGRESS" ) ) {
+#else
+		g_getenv( "VIPS_PROGRESS" ) ) {
+#endif
 
 		/* Keep the %complete we displayed last time here.
 		 */
@@ -960,7 +962,7 @@ vips_image_build( VipsObject *object )
 		if( image->Bands == 1 )
 			image->Type = VIPS_INTERPRETATION_B_W;
 		else if( image->Bands == 3 )
-			image->Type = VIPS_INTERPRETATION_RGB;
+			image->Type = VIPS_INTERPRETATION_sRGB;
 		else 
 			image->Type = VIPS_INTERPRETATION_MULTIBAND;
 
@@ -993,7 +995,7 @@ vips_image_build( VipsObject *object )
 		if( image->Bands == 1 )
 			image->Type = VIPS_INTERPRETATION_B_W;
 		else if( image->Bands == 3 )
-			image->Type = VIPS_INTERPRETATION_RGB;
+			image->Type = VIPS_INTERPRETATION_sRGB;
 		else 
 			image->Type = VIPS_INTERPRETATION_MULTIBAND;
 
@@ -1014,7 +1016,7 @@ vips_image_build( VipsObject *object )
 }
 
 static void *
-vips_image_real_invalidate_cb( VipsRegion *reg )
+vips_image_real_invalidate_cb( VipsRegion *reg, void *a, void *b )
 {
 	vips_region_invalidate( reg );
 
@@ -1022,7 +1024,7 @@ vips_image_real_invalidate_cb( VipsRegion *reg )
 }
 
 static void 
-vips_image_real_invalidate( VipsImage *image )
+vips_image_real_invalidate( VipsImage *image, void *data )
 {
 	VIPS_DEBUG_MSG( "vips_image_real_invalidate: %p\n", image );
 
@@ -1039,13 +1041,13 @@ vips_image_real_invalidate( VipsImage *image )
 }
 
 static void 
-vips_image_real_minimise( VipsImage *image )
+vips_image_real_minimise( VipsImage *image, void *data )
 {
 	VIPS_DEBUG_MSG( "vips_image_real_minimise: %p\n", image );
 }
 
 static void 
-vips_image_real_written( VipsImage *image, int *result )
+vips_image_real_written( VipsImage *image, int *result, void *data )
 {
 	VIPS_DEBUG_MSG( "vips_image_real_written: %p\n", image );
 
@@ -1388,7 +1390,7 @@ vips_image_invalidate( VipsImage *image )
 }
 
 static void *
-vips_image_invalidate_all_cb( VipsImage *image )
+vips_image_invalidate_all_cb( VipsImage *image, void *a, void *b )
 {
 	vips_image_invalidate( image );
 
@@ -1428,7 +1430,7 @@ vips_image_minimise( VipsImage *image )
 }
 
 static void *
-vips_image_minimise_all_cb( VipsImage *image )
+vips_image_minimise_all_cb( VipsImage *image, void *a, void *b )
 {
 	vips_image_minimise( image );
 
@@ -1911,18 +1913,19 @@ vips_image_new_from_file( const char *name, ... )
 	char option_string[VIPS_PATH_MAX];
 	const char *operation_name;
 	va_list ap;
-	VipsImage *out;
 	int result;
+	VipsImage *out;
 
 	vips_check_init();
 
 	vips__filename_split8( name, filename, option_string );
+
 	if( !(operation_name = vips_foreign_find_load( filename )) )
 		return( NULL );
 
 	va_start( ap, name );
-	result = vips_call_split_option_string( operation_name, option_string, 
-		ap, filename, &out );
+	result = vips_call_split_option_string( operation_name, 
+		option_string, ap, filename, &out );
 	va_end( ap );
 
 	if( result )
@@ -2047,11 +2050,7 @@ vips_image_new_from_memory( const void *data, size_t size,
 		return( NULL );
 	}
 
-	/* Allow len == 0, meaning don't check. Used for im_image()
-	 * compatibility.
-	 */
-	if( size > 0 && 
-		size < VIPS_IMAGE_SIZEOF_IMAGE( image ) ) {
+	if( size < VIPS_IMAGE_SIZEOF_IMAGE( image ) ) {
 		vips_error( "VipsImage",
 			_( "memory area too small --- "
 				"should be %" G_GINT64_FORMAT " bytes, "
@@ -2140,14 +2139,15 @@ vips_image_new_from_buffer( const void *buf, size_t len,
 	const char *option_string, ... )
 {
 	const char *operation_name;
-	VipsBlob *blob;
 	va_list ap;
 	int result;
 	VipsImage *out;
+	VipsBlob *blob;
 
 	vips_check_init();
 
-	if( !(operation_name = vips_foreign_find_load_buffer( buf, len )) )
+	if( !(operation_name = 
+		vips_foreign_find_load_buffer( buf, len )) )
 		return( NULL );
 
 	/* We don't take a copy of the data or free it.
@@ -2155,7 +2155,7 @@ vips_image_new_from_buffer( const void *buf, size_t len,
 	blob = vips_blob_new( NULL, buf, len );
 
 	va_start( ap, option_string );
-	result = vips_call_split_option_string( operation_name, 
+	result = vips_call_split_option_string( operation_name,
 		option_string, ap, blob, &out );
 	va_end( ap );
 
@@ -2165,6 +2165,94 @@ vips_image_new_from_buffer( const void *buf, size_t len,
 		return( NULL );
 
 	return( out ); 
+}
+
+/**
+ * vips_image_new_from_source: (constructor)
+ * @source: (transfer none): source to fetch image from
+ * @option_string: set of extra options as a string
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Loads an image from the formatted source @input, 
+ * loader recommended by vips_foreign_find_load_source(). 
+ *
+ * Load options may be given in @option_string as "[name=value,...]" or given as
+ * a NULL-terminated list of name-value pairs at the end of the arguments.
+ * Options given in the function call override options given in the string. 
+ *
+ * See also: vips_image_write_to_target().
+ *
+ * Returns: (transfer full): the new #VipsImage, or %NULL on error.
+ */
+VipsImage *
+vips_image_new_from_source( VipsSource *source, 
+	const char *option_string, ... )
+{
+	const char *filename = 
+		vips_connection_filename( VIPS_CONNECTION( source ) );
+
+	const char *operation_name;
+	va_list ap;
+	int result;
+	VipsImage *out;
+
+	vips_check_init();
+
+	vips_error_freeze();
+	operation_name = vips_foreign_find_load_source( source );
+	vips_error_thaw();
+
+        if( operation_name ) { 
+		va_start( ap, option_string );
+		result = vips_call_split_option_string( operation_name,
+			option_string, ap, source, &out );
+		va_end( ap );
+	}
+	else if( filename ) {
+		/* Try with the old file-based loaders.
+		 */
+		if( !(operation_name = vips_foreign_find_load( filename )) )
+			return( NULL );
+
+		va_start( ap, option_string );
+		result = vips_call_split_option_string( operation_name, 
+			option_string, ap, filename, &out );
+		va_end( ap );
+	}
+	else if( vips_source_is_mappable( source ) ) {
+		/* Try with the old buffer-based loaders.
+		 */
+		VipsBlob *blob;
+		const void *buf;
+		size_t len;
+
+		if( !(blob = vips_source_map_blob( source )) )
+			return( NULL );
+
+		buf = vips_blob_get( blob, &len );
+		if( !(operation_name = 
+			vips_foreign_find_load_buffer( buf, len )) ) {
+			vips_area_unref( VIPS_AREA( blob ) );
+			return( NULL );
+		}
+
+                va_start( ap, option_string );
+                result = vips_call_split_option_string( operation_name,
+                        option_string, ap, blob, &out );
+                va_end( ap );
+
+		vips_area_unref( VIPS_AREA( blob ) );
+	}
+	else {
+		vips_error( "VipsImage",
+			"%s", _( "unable to load source" ) );
+		result = -1;
+	}
+
+        if( result )
+                return( NULL );
+
+        return( out );
 }
 
 /**
@@ -2429,8 +2517,12 @@ vips_get_disc_threshold( void )
 		 */
 		threshold = 100 * 1024 * 1024;
 
+#if ENABLE_DEPRECATED
 		if( (env = g_getenv( "VIPS_DISC_THRESHOLD" )) || 
 			(env = g_getenv( "IM_DISC_THRESHOLD" )) ) 
+#else
+		if( (env = g_getenv( "VIPS_DISC_THRESHOLD" )) )
+#endif
 			threshold = vips__parse_size( env );
 
 		if( vips__disc_threshold ) 
@@ -2586,14 +2678,38 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
 	va_list ap;
 	int result;
 
+	/* Save with the new target API if we can. Fall back to the older
+	 * mechanism in case the loader we need has not been converted yet.
+	 *
+	 * We need to hide any errors from this first phase.
+	 */
 	vips__filename_split8( name, filename, option_string );
-	if( !(operation_name = vips_foreign_find_save( filename )) )
-		return( -1 );
 
-	va_start( ap, name );
-	result = vips_call_split_option_string( operation_name, option_string, 
-		ap, image, filename );
-	va_end( ap );
+	vips_error_freeze();
+	operation_name = vips_foreign_find_save_target( filename );
+	vips_error_thaw();
+
+	if( operation_name ) {
+		VipsTarget *target;
+
+		if( !(target = vips_target_new_to_file( filename )) )
+			return( -1 );
+
+		va_start( ap, name );
+		result = vips_call_split_option_string( operation_name, 
+			option_string, ap, image, target );
+		va_end( ap );
+
+		VIPS_UNREF( target );
+	}
+	else if( (operation_name = vips_foreign_find_save( filename )) ) {
+		va_start( ap, name );
+		result = vips_call_split_option_string( operation_name, 
+			option_string, ap, image, filename );
+		va_end( ap );
+	}
+	else
+		return( -1 );
 
 	return( result );
 }
@@ -2634,20 +2750,44 @@ vips_image_write_to_buffer( VipsImage *in,
 	int result;
 
 	vips__filename_split8( suffix, filename, option_string );
-	if( !(operation_name = vips_foreign_find_save_buffer( filename )) )
-		return( -1 );
 
-	va_start( ap, size );
-	result = vips_call_split_option_string( operation_name, option_string, 
-		ap, in, &blob );
-	va_end( ap );
+	if( (operation_name = vips_foreign_find_save_target( filename )) ) {
+		VipsTarget *target;
 
-	if( result )
+		if( !(target = vips_target_new_to_memory()) )
+			return( -1 );
+
+		va_start( ap, size );
+		result = vips_call_split_option_string( operation_name, 
+			option_string, ap, in, target );
+		va_end( ap );
+
+		if( result ) {
+			VIPS_UNREF( target );
+			return( -1 );
+		}
+
+		g_object_get( target, "blob", &blob, NULL );
+		VIPS_UNREF( target );
+	}
+	else if( (operation_name = 
+		vips_foreign_find_save_buffer( filename )) ) {
+
+		va_start( ap, size );
+		result = vips_call_split_option_string( operation_name, 
+			option_string, ap, in, &blob );
+		va_end( ap );
+
+		if( result )
+			return( -1 );
+	}
+	else
 		return( -1 );
 
 	*buf = NULL;
 	if( size ) 
 		*size = 0;
+
 	if( blob ) { 
 		if( buf ) {
 			*buf = VIPS_AREA( blob )->data;
@@ -2658,6 +2798,51 @@ vips_image_write_to_buffer( VipsImage *in,
 
 		vips_area_unref( VIPS_AREA( blob ) );
 	}
+
+	return( 0 );
+}
+
+/**
+ * vips_image_write_to_target: (method)
+ * @in: image to write
+ * @suffix: format to write 
+ * @target: target to write to
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Writes @in to @output in format @suffix.
+ *
+ * Save options may be appended to @suffix as "[name=value,...]" or given as
+ * a NULL-terminated list of name-value pairs at the end of the arguments.
+ * Options given in the function call override options given in the filename. 
+ *
+ * You can call the various save operations directly if you wish, see
+ * vips_jpegsave_target(), for example. 
+ *
+ * See also: vips_image_write_to_file().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_image_write_to_target( VipsImage *in, 
+	const char *suffix, VipsTarget *target, ... )
+{
+	char filename[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
+	const char *operation_name;
+	va_list ap;
+	int result;
+
+	vips__filename_split8( suffix, filename, option_string );
+	if( !(operation_name = vips_foreign_find_save_target( filename )) )
+		return( -1 );
+
+	va_start( ap, target );
+	result = vips_call_split_option_string( operation_name, option_string, 
+		ap, in, target );
+	va_end( ap );
+
+	if( result )
+		return( -1 );
 
 	return( 0 );
 }
@@ -2837,7 +3022,8 @@ vips_image_isMSBfirst( VipsImage *image )
  *
  * Return %TRUE if @image represents a file on disc in some way. 
  */
-gboolean vips_image_isfile( VipsImage *image )
+gboolean 
+vips_image_isfile( VipsImage *image )
 {
 	switch( image->dtype ) {
 	case VIPS_IMAGE_MMAPIN:
@@ -2878,7 +3064,7 @@ vips_image_ispartial( VipsImage *image )
  * @image: image to check
  *
  * Look at an image's interpretation and see if it has extra alpha bands. For
- * example, a 4-band #VIPS_INTERPRETATION_RGB would, but a six-band 
+ * example, a 4-band #VIPS_INTERPRETATION_sRGB would, but a six-band 
  * #VIPS_INTERPRETATION_MULTIBAND would not. 
  *
  * Return %TRUE if @image has an alpha channel.
@@ -3356,6 +3542,9 @@ vips__image_wio_output( VipsImage *image )
  * Gets @image ready for an in-place operation, such as vips_draw_circle().
  * After calling this function you can both read and write the image with 
  * VIPS_IMAGE_ADDR().
+ *
+ * This method is called for you by the base class of the draw operations, 
+ * there's no need to call it yourself.
  *
  * Since this function modifies @image, it is not thread-safe. Only call it on
  * images which you are sure have not been shared with another thread. 

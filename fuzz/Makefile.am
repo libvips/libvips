@@ -25,4 +25,6 @@ libstandaloneengine_a_SOURCES = StandaloneFuzzTargetMain.c
 check_PROGRAMS = $(FUZZPROGS)
 noinst_LIBRARIES = $(FUZZLIBS)
 
-EXTRA_DIST = $(TESTS)
+EXTRA_DIST = \
+	$(TESTS) \
+	common_fuzzer_corpus

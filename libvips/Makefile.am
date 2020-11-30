@@ -1,6 +1,6 @@
-OPTIONAL_COMPILE_DIR = 
+OPTIONAL_COMPILE_DIR =
 OPTIONAL_DIST_DIR =
-OPTIONAL_LIB = 
+OPTIONAL_LIB =
 
 if ENABLE_DEPRECATED
 OPTIONAL_COMPILE_DIR += deprecated
@@ -24,8 +24,7 @@ SUBDIRS = \
 	iofuncs \
 	morphology \
 	mosaicing \
-	create 
-	.
+	create
 
 lib_LTLIBRARIES = libvips.la
 
