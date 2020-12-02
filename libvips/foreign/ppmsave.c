@@ -10,6 +10,8 @@
  * 	- add ppmsave_target
  * 20/11/20
  * 	- byteswap on save, if necessary [ewelot]
+ * 2/12/20
+ * 	- don't add date with @strip [ewelot]
  */
 
 /*
@@ -212,6 +214,8 @@ vips_foreign_save_ppm_block( VipsRegion *region, VipsRect *area, void *a )
 static int
 vips_foreign_save_ppm( VipsForeignSavePpm *ppm, VipsImage *image )
 {
+	VipsForeignSave *save = (VipsForeignSave *) ppm;
+
 	char *magic;
 	char *date;
 
@@ -245,11 +249,13 @@ vips_foreign_save_ppm( VipsForeignSavePpm *ppm, VipsImage *image )
 	else
 		g_assert_not_reached();
 
-	vips_target_writef( ppm->target, "%s\n", magic );
-	date = vips__get_iso8601();
-	vips_target_writef( ppm->target, 
-		"#vips2ppm - %s\n", date );
-	g_free( date );
+	if( !save->strip ) {
+		vips_target_writef( ppm->target, "%s\n", magic );
+		date = vips__get_iso8601();
+		vips_target_writef( ppm->target, 
+			"#vips2ppm - %s\n", date );
+		g_free( date );
+	}
 	vips_target_writef( ppm->target, 
 		"%d %d\n", image->Xsize, image->Ysize );
 
