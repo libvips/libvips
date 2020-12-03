@@ -267,7 +267,7 @@ static const char *heif_magic[] = {
 	"ftypavif"	/* AV1 image format */
 };
 
-/* THe API has:
+/* The API has:
  *
  *	enum heif_filetype_result result = heif_check_filetype( buf, 12 );
  *
