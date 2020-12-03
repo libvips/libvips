@@ -249,8 +249,8 @@ vips_foreign_save_ppm( VipsForeignSavePpm *ppm, VipsImage *image )
 	else
 		g_assert_not_reached();
 
+	vips_target_writef( ppm->target, "%s\n", magic );
 	if( !save->strip ) {
-		vips_target_writef( ppm->target, "%s\n", magic );
 		date = vips__get_iso8601();
 		vips_target_writef( ppm->target, 
 			"#vips2ppm - %s\n", date );
