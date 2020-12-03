@@ -175,7 +175,7 @@ vips_source_custom_class_init( VipsSourceCustomClass *class )
 	 *
 	 * This signal is emitted to read bytes from the source into @buffer.
 	 *
-	 * Returns: the number of bytes read.
+	 * Returns: the number of bytes read. Return 0 for EOF.
 	 */
 	vips_source_custom_signals[SIG_READ] = g_signal_new( "read",
 		G_TYPE_FROM_CLASS( class ),
@@ -229,7 +229,8 @@ vips_source_custom_new( void )
 
 	VIPS_DEBUG_MSG( "vips_source_custom_new:\n" );
 
-	source_custom = VIPS_SOURCE_CUSTOM( g_object_new( VIPS_TYPE_SOURCE_CUSTOM, NULL ) );
+	source_custom = VIPS_SOURCE_CUSTOM(
+		g_object_new( VIPS_TYPE_SOURCE_CUSTOM, NULL ) );
 
 	if( vips_object_build( VIPS_OBJECT( source_custom ) ) ) {
 		VIPS_UNREF( source_custom );

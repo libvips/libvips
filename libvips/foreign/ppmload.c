@@ -786,12 +786,15 @@ vips_foreign_load_ppm_source_class_init( VipsForeignLoadPpmFileClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "ppmload_source";
 	object_class->build = vips_foreign_load_ppm_source_build;
+
+	load_class->is_a_source = vips_foreign_load_ppm_is_a_source;
 
 	VIPS_ARG_OBJECT( class, "source", 1,
 		_( "Source" ),
