@@ -692,6 +692,7 @@ read_next_frame( Read *read )
 	 */
 	vips_image_paint_image( read->frame, frame, 
 		area.left, area.top, 
+		read->iter.frame_num > 1 &&
 		read->iter.blend_method == WEBP_MUX_BLEND );
 
 	g_object_unref( frame );
