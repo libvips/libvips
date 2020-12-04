@@ -232,7 +232,7 @@ vips_image_paint_area( VipsImage *image, const VipsRect *r, const VipsPel *ink )
 /* Blend two guint8.
  */
 #define BLEND( X, aX, Y, aY, scale ) \
-	((X * aX + Y * aY) * scale >> 24)
+	(((X * aX + Y * aY) * scale + (1 << 12)) >> 24)
 
 /* Extract R, G, B, A, assuming little-endian.
  */
@@ -260,7 +260,7 @@ blend_pixel( guint32 A, guint32 B )
 
 	guint8 aB = getA( B );
 
-	guint8 fac = (aB * (256 - aA)) >> 8;
+	guint8 fac = (aB * (256 - aA) + 128) >> 8;
 	guint8 aR =  aA + fac;
 	int scale = (1 << 24) / aR;
 
@@ -693,7 +693,7 @@ read_next_frame( Read *read )
 	vips_image_paint_image( read->frame, frame, 
 		area.left, area.top, 
 		read->iter.frame_num > 1 &&
-		read->iter.blend_method == WEBP_MUX_BLEND );
+			read->iter.blend_method == WEBP_MUX_BLEND );
 
 	g_object_unref( frame );
 
