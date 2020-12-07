@@ -467,6 +467,8 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 		printf( "metadata type = %s, length = %zu\n", type, length ); 
 #endif /*DEBUG*/
 
+		if( !length )
+			continue;
 		if( !(data = VIPS_ARRAY( out, length, unsigned char )) )
 			return( -1 );
 		error = heif_image_handle_get_metadata( 
