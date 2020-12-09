@@ -27,6 +27,9 @@
 - force binary mode on win for connection read / write [Alreiber]
 - better testing for output to target [barryspearce]
 - ppmload_source was missing is_a [ewelot]
+- improve webpload rounding and blending behaviour [lovell]
+- fix range clip in int32 -> unsigned casts [ewelot]
+- fix precision error in clip of float -> int casts [ewelot]
 
 6/9/20 started 8.10.2
 - update magicksave/load profile handling [kelilevi]

@@ -54,6 +54,8 @@
  * 14/11/18
  * 	- revise for better uint/int clipping [erdmann]
  * 	- remove old overflow/underflow detect
+ * 8/12/20
+ * 	- fix range clip in int32 -> unsigned casts [ewelot]
  */
 
 /*
@@ -116,21 +118,17 @@ typedef VipsConversionClass VipsCastClass;
 
 G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 
-/* Various saturated casts. We want to cast int to uchar, for example, and
- * clip the range. X is an int.
+/* Cast down from an int.
  */
-
 #define CAST_UCHAR( X ) VIPS_CLIP( 0, (X), UCHAR_MAX )
 #define CAST_CHAR( X ) VIPS_CLIP( SCHAR_MIN, (X), SCHAR_MAX )
 #define CAST_USHORT( X ) VIPS_CLIP( 0, (X), USHRT_MAX )
 #define CAST_SHORT( X ) VIPS_CLIP( SHRT_MIN, (X), SHRT_MAX )
 
-/* We know the source cannot be the same as the dest, so we will only use
- * CAST_UINT() for an INT source, and vice versa. We don't need to clip to
- * INT_MAX, since float->int does that for us.
+/* These cast down from gint64 to uint32 or int32. 
  */
-#define CAST_UINT( X ) VIPS_MAX( 0, (X) )
-#define CAST_INT( X ) (X)
+#define CAST_UINT( X ) VIPS_CLIP( 0, (X), UINT_MAX )
+#define CAST_INT( X ) VIPS_CLIP( INT_MIN, (X), INT_MAX )
 
 /* Rightshift an integer type, ie. sizeof(ITYPE) > sizeof(OTYPE).
  */
@@ -146,7 +144,7 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 }
 
 /* Leftshift an integer type, ie. sizeof(ITYPE) < sizeof(OTYPE). We need to
- * copy the bottom bit up into the fresh new bits
+ * copy the bottom bit up into the fresh new bits.
  */
 #define SHIFT_LEFT( ITYPE, OTYPE ) { \
 	ITYPE * restrict p = (ITYPE *) in; \
@@ -172,7 +170,7 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 }
 
 /* Cast int types to an int type. We need to pass in the type of the
- * intermediate value, either uint or int, or we'll have problems with uint
+ * intermediate value, either int or int64, or we'll have problems with uint
  * sources turning -ve.
  */
 #define CAST_INT_INT( ITYPE, OTYPE, TEMP, CAST ) { \
@@ -217,23 +215,29 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 } 
 
 /* Cast float types to an int type.
+ *
+ * We need to do the range clip as double or we'll get errors for int max,
+ * since that can't be represented as a 32-bit float.
  */
 #define CAST_FLOAT_INT( ITYPE, OTYPE, TEMP, CAST ) { \
 	ITYPE * restrict p = (ITYPE *) in; \
 	OTYPE * restrict q = (OTYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) \
-		q[x] = CAST( p[x] ); \
+		q[x] = CAST( (double) p[x] ); \
 }
 
 /* Cast complex types to an int type. Just take the real part.
+ *
+ * We need to do the range clip as double or we'll get errors for int max,
+ * since that can't be represented as a 32-bit float.
  */
 #define CAST_COMPLEX_INT( ITYPE, OTYPE, TEMP, CAST ) { \
 	ITYPE * restrict p = (ITYPE *) in; \
 	OTYPE * restrict q = (OTYPE *) out; \
 	\
 	for( x = 0; x < sz; x++ ) { \
-		q[x] = CAST( p[0] ); \
+		q[x] = CAST( (double) p[0] ); \
 		p += 2; \
 	} \
 }
@@ -290,7 +294,7 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 #define BAND_SWITCH_INNER( ITYPE, INT, FLOAT, COMPLEX ) { \
 	switch( conversion->out->BandFmt ) { \
 	case VIPS_FORMAT_UCHAR: \
-		INT( ITYPE, unsigned char, unsigned int, CAST_UCHAR ); \
+		INT( ITYPE, unsigned char, int, CAST_UCHAR ); \
 		break; \
 	\
 	case VIPS_FORMAT_CHAR: \
@@ -298,7 +302,7 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 		break; \
 	\
 	case VIPS_FORMAT_USHORT: \
-		INT( ITYPE, unsigned short, unsigned int, CAST_USHORT ); \
+		INT( ITYPE, unsigned short, int, CAST_USHORT ); \
 		break; \
 	\
 	case VIPS_FORMAT_SHORT: \
@@ -306,11 +310,11 @@ G_DEFINE_TYPE( VipsCast, vips_cast, VIPS_TYPE_CONVERSION );
 		break; \
 	\
 	case VIPS_FORMAT_UINT: \
-		INT( ITYPE, unsigned int, unsigned int, CAST_UINT ); \
+		INT( ITYPE, unsigned int, gint64, CAST_UINT ); \
 		break; \
 	\
 	case VIPS_FORMAT_INT: \
-		INT( ITYPE, signed int, int, CAST_INT ); \
+		INT( ITYPE, signed int, gint64, CAST_INT ); \
 		break; \
 	\
 	case VIPS_FORMAT_FLOAT: \
