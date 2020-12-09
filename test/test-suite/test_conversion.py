@@ -60,6 +60,26 @@ class TestConversion:
         cls.image = None
         cls.all_images = None
 
+    def test_cast(self):
+        # casting negative pixels to an unsigned format should clip to zero
+        for signed in signed_formats: 
+            im = (pyvips.Image.black(1, 1) - 10).cast(signed)
+            for unsigned in unsigned_formats:
+                im2 = im.cast(unsigned)
+                assert im2.avg() == 0
+
+        # casting very positive pixels to a signed format should clip to max
+        im = (pyvips.Image.black(1, 1) + max_value["uint"]).cast("uint")
+        assert im.avg() == max_value["uint"]
+        im2 = im.cast("int")
+        assert im2.avg() == max_value["int"]
+        im = (pyvips.Image.black(1, 1) + max_value["ushort"]).cast("ushort")
+        im2 = im.cast("short")
+        assert im2.avg() == max_value["short"]
+        im = (pyvips.Image.black(1, 1) + max_value["uchar"]).cast("uchar")
+        im2 = im.cast("char")
+        assert im2.avg() == max_value["char"]
+
     def test_band_and(self):
         def band_and(x):
             if isinstance(x, pyvips.Image):
