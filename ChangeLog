@@ -30,6 +30,7 @@
 - improve webpload rounding and blending behaviour [lovell]
 - fix range clip in int32 -> unsigned casts [ewelot]
 - fix precision error in clip of float -> int casts [ewelot]
+- fix load of HEIC images with 0 length metadata [ddennedy-gpsw]
 
 6/9/20 started 8.10.2
 - update magicksave/load profile handling [kelilevi]
