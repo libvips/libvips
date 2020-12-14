@@ -1126,6 +1126,7 @@ FIND_GIFLIB(
 )
 
 # Look for libspng first
+# 0.6.1 uses "libspng.pc", git master libspng uses "spng.pc"
 AC_ARG_WITH([libspng], 
   AS_HELP_STRING([--without-libspng], [build without libspng (default: test)]))
 
@@ -1133,14 +1134,23 @@ if test x"$with_libspng" != x"no"; then
   PKG_CHECK_MODULES(SPNG, libspng >= 0.6,
     [AC_DEFINE(HAVE_SPNG,1,[define if you have libspng installed.])
      with_libspng=yes
-     PACKAGES_USED="$PACKAGES_USED spng"
+     PACKAGES_USED="$PACKAGES_USED libspng"
     ],
-    [with_libspng=no
+    [PKG_CHECK_MODULES(SPNG, spng >= 0.6,
+      [AC_DEFINE(HAVE_SPNG,1,[define if you have libspng installed.])
+       with_libspng=yes
+       PACKAGES_USED="$PACKAGES_USED spng"
+      ],
+      [with_libspng=no
+      ]
+     )
     ]
   )
 fi
 
 # look for PNG with pkg-config ... fall back to our tester
+# we can have both PNG and SPNG enabled, with SPNG for read and PNG for
+# write
 AC_ARG_WITH([png], 
   AS_HELP_STRING([--without-png], [build without libpng (default: test)]))
 
