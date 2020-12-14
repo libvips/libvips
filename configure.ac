@@ -1130,7 +1130,7 @@ AC_ARG_WITH([libspng],
   AS_HELP_STRING([--without-libspng], [build without libspng (default: test)]))
 
 if test x"$with_libspng" != x"no"; then
-  PKG_CHECK_MODULES(SPNG, spng >= 0.6,
+  PKG_CHECK_MODULES(SPNG, libspng >= 0.6,
     [AC_DEFINE(HAVE_SPNG,1,[define if you have libspng installed.])
      with_libspng=yes
      PACKAGES_USED="$PACKAGES_USED spng"
