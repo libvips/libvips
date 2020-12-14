@@ -9,10 +9,9 @@
   <bookinfo>
     <title>VIPS Reference Manual</title>
     <releaseinfo>
-      For VIPS @VIPS_VERSION@.
-      The latest version of this documentation can be found on the 
-      <ulink role="online-location"
-        url="http://libvips.github.io/libvips/API/current/">VIPS website</ulink>.
+      For VIPS @VIPS_VERSION@. The latest version of this documentation can be 
+      found on the <ulink role="online-location" url="/libvips">VIPS 
+      website</ulink>.
     </releaseinfo>
   </bookinfo>
 
