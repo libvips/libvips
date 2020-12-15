@@ -10,6 +10,9 @@
 - add _source load support for pdfium
 - add "seed" param to perlin, worley and gaussnoise
 
+14/12/20 started 8.10.4
+- fix spng detection
+
 18/10/20 started 8.10.3
 - relax heic is_a rules [hisham]
 - fix vips7 webp load [barryspearce]
