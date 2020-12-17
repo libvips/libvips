@@ -260,9 +260,9 @@ blend_pixel( guint32 A, guint32 B )
 
 	guint8 aB = getA( B );
 
-	guint8 fac = (aB * (256 - aA) + 128) >> 8;
+	guint8 fac = (aB * (255 - aA) + 127) >> 8;
 	guint8 aR =  aA + fac;
-	int scale = (1 << 24) / aR;
+	int scale = aR == 0 ? 0 : (1 << 24) / aR;
 
 	guint8 rR = BLEND( getR( A ), aA, getR( B ), fac, scale );
 	guint8 gR = BLEND( getG( A ), aA, getG( B ), fac, scale );
