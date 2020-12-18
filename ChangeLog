@@ -10,6 +10,9 @@
 - add _source load support for pdfium
 - add "seed" param to perlin, worley and gaussnoise
 
+18/12/20 started 8.10.5
+- fix potential /0 in animated webp load [lovell]
+
 14/12/20 started 8.10.4
 - fix spng detection
 
