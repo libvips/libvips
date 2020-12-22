@@ -858,13 +858,20 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 			heif_channel_interleaved );
 
 		/* We can sometimes get inconsistency between the dimensions
-		 * reported on the handle, and the final image we fetch. Error
-		 * out to prevent a segv.
+		 * reported on the handle, and the final image we fetch. 
+		 *
+		 * If the decoded image is larger than the reported
+		 * size, we can just ignore this, since the memcpy below will
+		 * just copy fewer pixels than are available
+		 *
+		 * If there are fewer pixels in the image than we need, we
+		 * would need to pad each line out. Error out for now, since
+		 * this must be a rare case.
 		 */
-		if( image_width != heif->page_width ||
-			image_height != heif->page_height ) {
+		if( image_width < heif->page_width ||
+			image_height < heif->page_height ) {
 			vips_error( class->nickname, 
-				"%s", _( "bad image dimensions on decode" ) );
+				"%s", _( "not enough pixels on decode" ) );
 			return( -1 );
 		}
 
