@@ -184,6 +184,13 @@ typedef struct _VipsForeignLoadHeif {
 	int stride;
 	const uint8_t *data;
 
+	/* The size of the currently decoded image. This can be smaller or
+	 * larger than the page size due to eg. clap boxes. We need to clip or
+	 * expand as we copy pixels out to the destination.
+	 */
+	int img_width;
+	int img_height;
+
 	/* Set from subclasses.
 	 */
 	VipsSource *source;
@@ -805,6 +812,18 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 			return( -1 );
 		}
 
+		heif->img_width = heif_image_get_width( heif->img, 
+			heif_channel_interleaved );
+		heif->img_height = heif_image_get_height( heif->img, 
+			heif_channel_interleaved );
+
+		if( !(heif->data = heif_image_get_plane_readonly( heif->img, 
+			heif_channel_interleaved, &heif->stride )) ) {
+			vips_error( class->nickname, 
+				"%s", _( "unable to get image data" ) );
+			return( -1 );
+		}
+
 #ifdef DEBUG
 {
 		const static enum heif_channel channel[] = {
@@ -832,6 +851,8 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 		int i;
 
 		printf( "vips_foreign_load_heif_generate:\n" );
+		printf( "\tdecoded image width: %d\n", heif->img_width );
+		printf( "\tdecoded image height: %d\n", heif->img_height );
 		for( i = 0; i < VIPS_NUMBER( channel ); i++ ) {
 			printf( "\t%s:\n", channel_name[i] ); 
 			printf( "\t\twidth = %d\n", 
@@ -851,41 +872,15 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 #endif /*DEBUG*/
 	}
 
-	if( !heif->data ) {
-		int image_width = heif_image_get_width( heif->img, 
-			heif_channel_interleaved );
-		int image_height = heif_image_get_height( heif->img, 
-			heif_channel_interleaved );
-
-		/* We can sometimes get inconsistency between the dimensions
-		 * reported on the handle, and the final image we fetch. 
-		 *
-		 * If the decoded image is larger than the reported
-		 * size, we can just ignore this, since the memcpy below will
-		 * just copy fewer pixels than are available
-		 *
-		 * If there are fewer pixels in the image than we need, we
-		 * would need to pad each line out. Error out for now, since
-		 * this must be a rare case.
-		 */
-		if( image_width < heif->page_width ||
-			image_height < heif->page_height ) {
-			vips_error( class->nickname, 
-				"%s", _( "not enough pixels on decode" ) );
-			return( -1 );
-		}
-
-		if( !(heif->data = heif_image_get_plane_readonly( heif->img, 
-			heif_channel_interleaved, &heif->stride )) ) {
-			vips_error( class->nickname, 
-				"%s", _( "unable to get image data" ) );
-			return( -1 );
-		}
-	}
-
-	memcpy( VIPS_REGION_ADDR( or, 0, r->top ),
-		heif->data + heif->stride * line, 
-		VIPS_IMAGE_SIZEOF_LINE( or->im ) );
+	/* We need to clear the line, then clip against the real line of
+	 * pixels.
+	 */
+	vips_region_black( or );
+	if( line < heif->img_height ) 
+		memcpy( VIPS_REGION_ADDR( or, 0, r->top ),
+			heif->data + heif->stride * line, 
+			VIPS_IMAGE_SIZEOF_PEL( or->im ) * 
+				VIPS_MIN( heif->img_width, r->width ) );
 
 	return( 0 );
 }
