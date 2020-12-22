@@ -153,7 +153,8 @@ vips_source_test_features( VipsSource *source )
 	 * vips_source_seek() etc. or we might trigger seek emulation.
 	 */
 	if( source->data ||
-		class->seek( source, 0, SEEK_CUR ) != -1 ) { 
+		(VIPS_CONNECTION( source )->descriptor != -1 &&
+			class->seek( source, 0, SEEK_CUR ) != -1) ) { 
 		gint64 length;
 
 		VIPS_DEBUG_MSG( "    seekable source\n" );
