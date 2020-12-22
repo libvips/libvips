@@ -318,7 +318,9 @@ vips_source_build( VipsObject *object )
 	if( vips_object_argument_isset( object, "blob" ) ) {
 		size_t length;
 
-		source->data = vips_blob_get( source->blob, &length );
+		if( !(source->data = vips_blob_get( source->blob, &length )) )
+			return( -1 );
+
 		source->length = VIPS_MIN( length, G_MAXSSIZE );
 	}
 
