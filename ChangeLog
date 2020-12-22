@@ -12,6 +12,8 @@
 
 18/12/20 started 8.10.5
 - fix potential /0 in animated webp load [lovell]
+- don't seek on bad file descriptors [kleisauke]
+- check for null memory sources [kleisauke]
 
 14/12/20 started 8.10.4
 - fix spng detection

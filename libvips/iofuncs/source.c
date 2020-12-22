@@ -318,7 +318,9 @@ vips_source_build( VipsObject *object )
 	if( vips_object_argument_isset( object, "blob" ) ) {
 		size_t length;
 
-		source->data = vips_blob_get( source->blob, &length );
+		if( !(source->data = vips_blob_get( source->blob, &length )) )
+			return( -1 );
+
 		source->length = VIPS_MIN( length, G_MAXSSIZE );
 	}
 
@@ -346,16 +348,15 @@ vips_source_seek_real( VipsSource *source, gint64 offset, int whence )
 {
 	VipsConnection *connection = VIPS_CONNECTION( source );
 
-	gint64 new_pos;
-
 	VIPS_DEBUG_MSG( "vips_source_seek_real:\n" );
 
 	/* Like _read_real(), we must not set a vips_error. We need to use the
 	 * vips__seek() wrapper so we can seek long files on Windows.
 	 */
-	new_pos = vips__seek_no_error( connection->descriptor, offset, whence );
+	if( connection->descriptor != -1 )
+		return( vips__seek_no_error( connection->descriptor, offset, whence ) );
 
-	return( new_pos );
+	return( -1 );
 }
 
 static void
