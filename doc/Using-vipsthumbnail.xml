@@ -21,6 +21,14 @@ $filename = &quot;image.jpg&quot;;
 $image = Vips\Image::thumbnail($filename, 200, [&quot;height&quot; =&gt; 200]);
 $image-&gt;writeToFile(&quot;my-thumbnail.jpg&quot;);
 </programlisting>
+<para>
+  You can also call <literal>thumbnail_source</literal> from the CLI, for example:
+</para>
+<programlisting>
+$ cat k2.jpg | \
+    vips thumbnail_source [descriptor=0] .jpg[Q=90] 128 | \
+    cat &gt; x.jpg
+</programlisting>
 <refsect3 xml:id="libvips-options">
   <title>libvips options</title>
   <para>
@@ -263,7 +271,7 @@ $ ls -l tn_shark.jpg
     Now transform to sRGB and don’t attach a profile (you can also use <literal>strip</literal>, though that will remove <emphasis>all</emphasis> metadata from the image):
   </para>
   <programlisting>
-$ vipsthumbnail shark.jpg --eprofile srgb -o tn_shark.jpg[profile=none]
+$ vipsthumbnail shark.jpg --export-profile srgb -o tn_shark.jpg[profile=none]
 $ ls -l tn_shark.jpg 
 -rw-r–r– 1 john john 4229 Nov  9 14:33 tn_shark.jpg
 </programlisting>
@@ -274,22 +282,11 @@ $ ls -l tn_shark.jpg
     <literal>tn_shark.jpg</literal> will look identical to a user, but it’s almost half the size.
   </para>
   <para>
-    You can also specify a fallback input profile to use if the image has no embedded one. This can often happen with CMYK images, producing an error message like:
+    You can also specify a fallback input profile to use if the image has no embedded one. For example, perhaps you somehow know that a JPG is in Adobe98 space, even though it has no embedded profile.
   </para>
   <programlisting>
-$ vipsthumbnail kgdev.jpg
-vipsthumbnail: unable to thumbnail kgdev.jpg
-vips_colourspace: no known route from 'cmyk' to 'srgb'
+$ vipsthumbnail kgdev.jpg --input-profile /my/profiles/a98.icm 
 </programlisting>
-  <para>
-    If you supply a CMYK profile, it will be able to convert the image, for example:
-  </para>
-  <programlisting>
-$ vipsthumbnail kgdev.jpg --iprofile cmyk 
-</programlisting>
-  <para>
-    (As before, the magic string <literal>cmyk</literal> selects a high-quality CMYK profile that’s built into libvips, but you can use any CMYK profile you like.)
-  </para>
 </refsect3>
 <refsect3 xml:id="final-suggestion">
   <title>Final suggestion</title>
@@ -299,9 +296,8 @@ $ vipsthumbnail kgdev.jpg --iprofile cmyk
   <programlisting>
 $ vipsthumbnail fred.jpg \
     --size 128 \
-    --eprofile srgb \
-    -o tn_%s.jpg[optimize_coding,strip] \
-    --eprofile srgb
+    --export-profile srgb \
+    -o tn_%s.jpg[optimize_coding,strip] 
 </programlisting>
 </refsect3>
 
