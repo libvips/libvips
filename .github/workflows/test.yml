@@ -30,6 +30,7 @@ jobs:
         run:
           sudo apt-get update -qq -o Acquire::Retries=3
 
+      # libaom-dev is required by libheif-dev in the ppa, but not listed
       - name: Install platform dependencies
         env:
           DEBIAN_FRONTEND: noninteractive
@@ -46,7 +47,6 @@ jobs:
                 libpng-dev
                 libwebp-dev
                 libtiff5-dev
-                # required by libheif-dev in the ppa, but not listed
                 libaom-dev
                 libheif-dev
                 libexpat1-dev
