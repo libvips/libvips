@@ -833,6 +833,9 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 
 		printf( "vips_foreign_load_heif_generate:\n" );
 		for( i = 0; i < VIPS_NUMBER( channel ); i++ ) {
+			if( !heif_image_has_channel( heif->img, channel[i] ) )
+				continue;
+
 			printf( "\t%s:\n", channel_name[i] ); 
 			printf( "\t\twidth = %d\n", 
 				heif_image_get_width( heif->img, 
