@@ -847,6 +847,9 @@ fi
 AC_ARG_WITH([heif], 
   AS_HELP_STRING([--without-heif], [build without libheif (default: test)]))
 
+echo -n testing for libheif ... pkg-config reports
+pkg-config libheif --modversion
+
 if test x"$with_heif" != x"no"; then
   PKG_CHECK_MODULES(HEIF, libheif >= 1.3.0,
     [with_heif=yes
