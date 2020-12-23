@@ -1,7 +1,6 @@
 name: Test
 
 # to-do:
-#   - libheif is still not being detected
 #   - add a macos test with brew etc.
 #   - build with clang/asan/etc. and run the fuzz tests
 
@@ -47,6 +46,8 @@ jobs:
                 libpng-dev
                 libwebp-dev
                 libtiff5-dev
+                # required by libheif-dev in the ppa, but not listed
+                libaom-dev
                 libheif-dev
                 libexpat1-dev
                 libcfitsio-dev
@@ -63,11 +64,6 @@ jobs:
                 libgsf-1-dev
                 libopenslide-dev
                 libffi-dev
-
-      - name: List installed packages 
-        run: |
-                pkg-config --list-all
-                echo -n "libheif: "; pkg-config libheif --modversion
 
       - name: Configure libvips
         run: CFLAGS=-Wall CXXFLAGS=-Wall ./autogen.sh
