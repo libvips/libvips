@@ -21,6 +21,14 @@ jobs:
         run:
           sudo apt-get update -qq -o Acquire::Retries=3
 
+      - name: Add libheif PPA
+        run:
+          sudo add-apt-repository ppa:strukturag/libheif
+
+      - name: Add libde265 PPA
+        run:
+          sudo add-apt-repository ppa:strukturag/libde265
+
       - name: Install platform dependencies
         env:
           DEBIAN_FRONTEND: noninteractive
@@ -37,7 +45,6 @@ jobs:
                 libpng-dev
                 libwebp-dev
                 libtiff5-dev
-                libde265-0
                 libheif-dev
                 libexpat1-dev
                 libcfitsio-dev
@@ -73,4 +80,4 @@ jobs:
         run: pip3 install pyvips pytest
 
       - name: Run test suite
-        run: pytest
+        run: python3 -m pytest
