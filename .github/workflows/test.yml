@@ -37,6 +37,8 @@ jobs:
                 libpng-dev
                 libwebp-dev
                 libtiff5-dev
+                libde265-0
+                libimagequant-dev
                 libheif-dev
                 libexpat1-dev
                 libcfitsio-dev
@@ -55,7 +57,7 @@ jobs:
                 libffi-dev
 
       - name: Configure libvips
-        run: ./autogen.sh
+        run: CFLAGS=-Wall CXXFLAGS=-Wall ./autogen.sh
             --disable-dependency-tracking
             --disable-deprecated
 
@@ -66,12 +68,10 @@ jobs:
         run: make V=0 check
 
       - name: Install libvips
-        run: make V=0 install
+        run: sudo make V=0 install
 
       - name: Install pyvips
         run: pip3 install pyvips pytest
 
       - name: Run test suite
         run: pytest
-
-
