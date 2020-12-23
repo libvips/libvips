@@ -1,5 +1,9 @@
 name: Test
 
+# to-do:
+#   - add a macos test with brew etc.
+#   - build with clang/asan/etc. and run the fuzz tests
+
 on:
   push:
     branches: [ master ]
@@ -9,7 +13,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - name: Checkout code
@@ -75,6 +79,7 @@ jobs:
 
       - name: Install libvips
         run: sudo make V=0 install
+        run: sudo ldconfig
 
       - name: Install pyvips
         run: pip3 install pyvips pytest
