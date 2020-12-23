@@ -1,6 +1,7 @@
 name: Test
 
 # to-do:
+#   - libheif is still not being detected
 #   - add a macos test with brew etc.
 #   - build with clang/asan/etc. and run the fuzz tests
 
@@ -62,6 +63,11 @@ jobs:
                 libgsf-1-dev
                 libopenslide-dev
                 libffi-dev
+
+      - name: List installed packages 
+        run: |
+                pkg-config --list-all
+                echo -n "libheif: "; pkg-config libheif --modversion
 
       - name: Configure libvips
         run: CFLAGS=-Wall CXXFLAGS=-Wall ./autogen.sh
