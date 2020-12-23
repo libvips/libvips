@@ -19,10 +19,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Add libheif PPA
-        run: |
-          sudo add-apt-repository ppa:strukturag/libde265
-          sudo add-apt-repository ppa:strukturag/libheif
+        # libvips work with 1.6.1 in ubuntu-20.04, but fails with 1.10
+        # - name: Add libheif PPA
+        # run: |
+        #   sudo add-apt-repository ppa:strukturag/libde265
+        #   sudo add-apt-repository ppa:strukturag/libheif
+        # you need to add libaom-dev, libde265-dev, libx265-dev below to get
+        # this to work, see https://github.com/strukturag/libheif/issues/404
 
       - name: Update apt
         env:
@@ -30,9 +33,6 @@ jobs:
         run:
           sudo apt-get update -qq -o Acquire::Retries=3
 
-      # libaom-dev, libde265-dev, libx265-dev are required by the libheif.pc in 
-      # libheif-dev in the ppa, but not listed as deps in the debian package
-      # see https://github.com/strukturag/libheif/issues/404
       - name: Install platform dependencies
         env:
           DEBIAN_FRONTEND: noninteractive
@@ -49,9 +49,6 @@ jobs:
                 libpng-dev
                 libwebp-dev
                 libtiff5-dev
-                libaom-dev
-                libde265-dev
-                libx265-dev
                 libheif-dev
                 libexpat1-dev
                 libcfitsio-dev
