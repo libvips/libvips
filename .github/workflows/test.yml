@@ -3,6 +3,14 @@ name: Test
 # to-do:
 #   - add a macos test with brew etc.
 #   - build with clang/asan/etc. and run the fuzz tests
+#   - libvips work with 1.6.1 in ubuntu-20.04, but fails with 1.10, strangely
+#   - paste this back when it's working
+#       - name: Add libheif PPA
+#         run: |
+#               sudo add-apt-repository ppa:strukturag/libde265
+#               sudo add-apt-repository ppa:strukturag/libheif
+#     you may also need to add libaom-dev, libde265-dev, libx265-dev to get 
+#     this to work, see https://github.com/strukturag/libheif/issues/404
 
 on:
   push:
@@ -18,14 +26,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-        # libvips work with 1.6.1 in ubuntu-20.04, but fails with 1.10
-        # - name: Add libheif PPA
-        # run: |
-        #   sudo add-apt-repository ppa:strukturag/libde265
-        #   sudo add-apt-repository ppa:strukturag/libheif
-        # you need to add libaom-dev, libde265-dev, libx265-dev below to get
-        # this to work, see https://github.com/strukturag/libheif/issues/404
 
       - name: Update apt
         env:
