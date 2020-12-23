@@ -19,19 +19,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Add libheif PPA
+        run: |
+          sudo add-apt-repository ppa:strukturag/libde265
+          sudo add-apt-repository ppa:strukturag/libheif
+
       - name: Update apt
         env:
           DEBIAN_FRONTEND: noninteractive
         run:
           sudo apt-get update -qq -o Acquire::Retries=3
-
-      - name: Add libheif PPA
-        run:
-          sudo add-apt-repository ppa:strukturag/libheif
-
-      - name: Add libde265 PPA
-        run:
-          sudo add-apt-repository ppa:strukturag/libde265
 
       - name: Install platform dependencies
         env:
