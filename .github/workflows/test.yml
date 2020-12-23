@@ -30,7 +30,7 @@ jobs:
         run:
           sudo apt-get update -qq -o Acquire::Retries=3
 
-      # libaom-dev and libde265-dev are required by the libheif.pc in 
+      # libaom-dev, libde265-dev, libx265-dev are required by the libheif.pc in 
       # libheif-dev in the ppa, but not listed as deps in the debian package
       # see https://github.com/strukturag/libheif/issues/404
       - name: Install platform dependencies
@@ -51,6 +51,7 @@ jobs:
                 libtiff5-dev
                 libaom-dev
                 libde265-dev
+                libx265-dev
                 libheif-dev
                 libexpat1-dev
                 libcfitsio-dev

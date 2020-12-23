@@ -848,9 +848,6 @@ AC_ARG_WITH([heif],
   AS_HELP_STRING([--without-heif], [build without libheif (default: test)]))
 
 if test x"$with_heif" != x"no"; then
-  echo trying to detect libheif
-  pkg-config --exists --print-errors "libheif >= 1.3.0"
-
   PKG_CHECK_MODULES(HEIF, libheif >= 1.3.0,
     [with_heif=yes
      have_h265_decoder=`$PKG_CONFIG libheif --variable builtin_h265_decoder`
@@ -870,6 +867,7 @@ if test x"$with_heif" != x"no"; then
      PACKAGES_USED="$PACKAGES_USED libheif"
     ],
     [AC_MSG_WARN([libheif >= 1.3.0 not found; disabling HEIF support])
+     pkg-config --exists --print-errors "libheif >= 1.3.0"
      with_heif=no
      have_h265_decoder=
      have_h265_encoder=
