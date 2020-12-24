@@ -374,6 +374,12 @@ vips_foreign_save_heif_build( VipsObject *object )
 	/* Make a heif image the size of a page. We send sink_disc() output 
 	 * here and write a frame each time it fills.
 	 */
+#ifdef DEBUG
+	printf( "vips_foreign_save_heif_build:\n" );
+	printf( "\twidth = %d\n", heif->page_width );
+	printf( "\theight = %d\n", heif->page_height );
+	printf( "\talpha = %d\n", vips_image_hasalpha( heif->image ) );
+#endif /*DEBUG*/
 	error = heif_image_create( heif->page_width, heif->page_height, 
 		heif_colorspace_RGB, 
 		vips_image_hasalpha( heif->image ) ?
@@ -392,6 +398,10 @@ vips_foreign_save_heif_build( VipsObject *object )
 		vips__heif_error( &error );
 		return( -1 );
 	}
+
+#ifdef DEBUG
+	vips__heif_image_print( heif->img );
+#endif /*DEBUG*/
 
 	heif->data = heif_image_get_plane( heif->img, 
 		heif_channel_interleaved, &heif->stride );

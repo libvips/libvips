@@ -731,6 +731,9 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 	}
 
 #ifdef DEBUG
+	printf( "page_width = %d\n", heif->page_width );
+	printf( "page_height = %d\n", heif->page_height );
+
 	printf( "n_top = %d\n", heif->n_top );
 	for( i = 0; i < heif->n_top; i++ ) {
 		printf( "  id[%d] = %d\n", i, heif->id[i] );
@@ -762,6 +765,50 @@ vips_foreign_load_heif_header( VipsForeignLoad *load )
 
 	return( 0 );
 }
+
+#ifdef DEBUG
+void
+vips__heif_image_print( struct heif_image *img )
+{
+	const static enum heif_channel channel[] = {
+		heif_channel_Y,
+		heif_channel_Cb,
+		heif_channel_Cr,
+		heif_channel_R,
+		heif_channel_G,
+		heif_channel_B,
+		heif_channel_Alpha,
+		heif_channel_interleaved
+	};
+
+	const static char *channel_name[] = {
+		"heif_channel_Y",
+		"heif_channel_Cb",
+		"heif_channel_Cr",
+		"heif_channel_R",
+		"heif_channel_G",
+		"heif_channel_B",
+		"heif_channel_Alpha",
+		"heif_channel_interleaved"
+	};
+
+	int i;
+
+	printf( "vips__heif_image_print:\n" );
+	for( i = 0; i < VIPS_NUMBER( channel ); i++ ) {
+		if( !heif_image_has_channel( img, channel[i] ) )
+			continue;
+
+		printf( "\t%s:\n", channel_name[i] ); 
+		printf( "\t\twidth = %d\n", 
+			heif_image_get_width( img, channel[i] ) );
+		printf( "\t\theight = %d\n", 
+			heif_image_get_height( img, channel[i] ) );
+		printf( "\t\tbits = %d\n", 
+			heif_image_get_bits_per_pixel( img, channel[i] ) );
+	}
+}
+#endif /*DEBUG*/
 
 static int
 vips_foreign_load_heif_generate( VipsRegion *or, 
@@ -806,51 +853,7 @@ vips_foreign_load_heif_generate( VipsRegion *or,
 		}
 
 #ifdef DEBUG
-{
-		const static enum heif_channel channel[] = {
-			heif_channel_Y,
-			heif_channel_Cb,
-			heif_channel_Cr,
-			heif_channel_R,
-			heif_channel_G,
-			heif_channel_B,
-			heif_channel_Alpha,
-			heif_channel_interleaved
-		};
-
-		const static char *channel_name[] = {
-			"heif_channel_Y",
-			"heif_channel_Cb",
-			"heif_channel_Cr",
-			"heif_channel_R",
-			"heif_channel_G",
-			"heif_channel_B",
-			"heif_channel_Alpha",
-			"heif_channel_interleaved"
-		};
-
-		int i;
-
-		printf( "vips_foreign_load_heif_generate:\n" );
-		for( i = 0; i < VIPS_NUMBER( channel ); i++ ) {
-			if( !heif_image_has_channel( heif->img, channel[i] ) )
-				continue;
-
-			printf( "\t%s:\n", channel_name[i] ); 
-			printf( "\t\twidth = %d\n", 
-				heif_image_get_width( heif->img, 
-					channel[i] ) );
-			printf( "\t\theight = %d\n", 
-				heif_image_get_height( heif->img, 
-					channel[i] ) );
-			printf( "\t\tbits = %d\n", 
-				heif_image_get_bits_per_pixel( heif->img, 
-					channel[i] ) );
-			printf( "\t\thas_channel = %d\n", 
-				heif_image_has_channel( heif->img, 
-					channel[i] ) );
-		}
-}
+		vips__heif_image_print( heif->img );
 #endif /*DEBUG*/
 	}
 
