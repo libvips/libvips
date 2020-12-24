@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/libvips/libvips.svg?branch=master)](https://travis-ci.org/libvips/libvips)
 [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/libvips.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=2&q=proj:libvips)
 [![Coverity Status](https://scan.coverity.com/projects/6503/badge.svg)](https://scan.coverity.com/projects/jcupitt-libvips)
+[![Test](https://github.com/libvips/libvips/workflows/Test/badge.svg)](https://github.com/libvips/libvips/actions?query=workflow%3ATest)
 
 # Introduction
 
