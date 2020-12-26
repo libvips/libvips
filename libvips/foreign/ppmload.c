@@ -41,6 +41,10 @@
  * 	- add ppmload_source
  * 22/11/20
  * 	- fix msb_first default [ewelot]
+ * 26/12/20
+ * 	- don't byteswap ascii formats
+ * 	- set metadata for map loads
+ * 	- byteswap binary loads
  */
 
 /*
@@ -705,7 +709,10 @@ vips_foreign_load_ppm_load( VipsForeignLoad *load )
 		vips_amiMSBfirst() != ppm->msb_first );
 #endif /*DEBUG*/
 
+	/* Don't byteswap the ascii formats.
+	 */
 	if( vips__byteswap_bool( t[0], &t[1],
+			!ppm->ascii &&
                         vips_amiMSBfirst() != ppm->msb_first ) ||
 		vips_image_write( t[1], load->real ) ) 
 		return( -1 );

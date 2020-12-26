@@ -891,6 +891,20 @@ class TestForeign:
         self.save_load("%s.ppm", self.mono)
         self.save_load("%s.ppm", self.colour)
 
+        self.save_load_file("%s.ppm", "[ascii]", self.mono, 0)
+        self.save_load_file("%s.ppm", "[ascii]", self.colour, 0)
+
+        self.save_load_file("%s.ppm", "[ascii,bitdepth=1]", self.onebit, 0)
+
+        rgb16 = self.colour.colourspace("rgb16")
+        grey16 = self.mono.colourspace("rgb16")
+
+        self.save_load("%s.ppm", grey16)
+        self.save_load("%s.ppm", rgb16)
+
+        self.save_load_file("%s.ppm", "[ascii]", grey16, 0)
+        self.save_load_file("%s.ppm", "[ascii]", rgb16, 0)
+
     @skip_if_no("radload")
     def test_rad(self):
         self.save_load("%s.hdr", self.colour)
