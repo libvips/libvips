@@ -214,9 +214,15 @@ If libvips finds this library, it uses it for fourier transforms.
 If present, `vips_icc_import()`, `vips_icc_export()` and `vips_icc_transform()`
 are available for transforming images with ICC profiles. 
 
+### libspng
+
+If present, libvips will load PNG files using libspng. At the moment, libpng
+is still necessary for save.
+
 ### libpng
 
-If present, libvips can load and save png files. 
+If libspng is not present and libpng is, libvips will load PNG files with
+libpng. It will always save PNG files with libpng.
 
 ### libimagequant
 
