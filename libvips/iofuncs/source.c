@@ -354,7 +354,8 @@ vips_source_seek_real( VipsSource *source, gint64 offset, int whence )
 	 * vips__seek() wrapper so we can seek long files on Windows.
 	 */
 	if( connection->descriptor != -1 )
-		return( vips__seek_no_error( connection->descriptor, offset, whence ) );
+		return( vips__seek_no_error( connection->descriptor, 
+			offset, whence ) );
 
 	return( -1 );
 }

@@ -265,8 +265,8 @@ typedef struct _VipsSourceCustomClass {
 GType vips_source_custom_get_type( void );
 VipsSourceCustom *vips_source_custom_new( void );
 
-/* A GInputStream that's actually a VipsSource under the hood. This lets us
- * hook librsvg up to libvips using the GInputStream interface.
+/* A GInputStream that wraps a VipsSource. This lets us eg. 
+ * hook librsvg up to libvips using their GInputStream interface.
  */
 
 #define VIPS_TYPE_G_INPUT_STREAM (vips_g_input_stream_get_type())
@@ -284,8 +284,6 @@ VipsSourceCustom *vips_source_custom_new( void );
 	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
 	VIPS_TYPE_G_INPUT_STREAM, VipsGInputStreamClass ))
 
-/* GInputStream <--> VipsSource
- */
 typedef struct _VipsGInputStream {
 	GInputStream parent_instance;
 
@@ -303,6 +301,43 @@ typedef struct _VipsGInputStreamClass {
 } VipsGInputStreamClass;
 
 GInputStream *vips_g_input_stream_new_from_source( VipsSource *source );
+
+/* A VipsSource that wraps a GInputStream. This lets us eg. load PNGs from 
+ * GFile objects.
+ */
+
+#define VIPS_TYPE_SOURCE_G_INPUT_STREAM (vips_source_g_input_stream_get_type())
+#define VIPS_SOURCE_G_INPUT_STREAM( obj ) \
+	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
+	VIPS_TYPE_SOURCE_G_INPUT_STREAM, VipsSourceGInputStream ))
+#define VIPS_SOURCE_G_INPUT_STREAM_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_CAST( (klass), \
+	VIPS_TYPE_SOURCE_G_INPUT_STREAM, VipsSourceGInputStreamClass))
+#define VIPS_IS_SOURCE_G_INPUT_STREAM( obj ) \
+	(G_TYPE_CHECK_INSTANCE_TYPE( (obj), VIPS_TYPE_SOURCE_G_INPUT_STREAM ))
+#define VIPS_IS_SOURCE_G_INPUT_STREAM_CLASS( klass ) \
+	(G_TYPE_CHECK_CLASS_TYPE( (klass), VIPS_TYPE_SOURCE_G_INPUT_STREAM ))
+#define VIPS_SOURCE_G_INPUT_STREAM_GET_CLASS( obj ) \
+	(G_TYPE_INSTANCE_GET_CLASS( (obj), \
+	VIPS_TYPE_SOURCE_G_INPUT_STREAM, VipsSourceGInputStreamClass ))
+
+typedef struct _VipsSourceGInputStream {
+	VipsSource parent_instance;
+
+	/*< private >*/
+
+	/* The GInputStream we wrap.
+	 */
+	GInputStream *stream;
+
+} VipsSourceGInputStream;
+
+typedef struct _VipsSourceGInputStreamClass {
+	VipsSourceClass parent_class;
+
+} VipsSourceGInputStreamClass;
+
+VipsSourceGInputStream *vips_source_g_input_stream_new( GInputStream *stream );
 
 #define VIPS_TYPE_TARGET (vips_target_get_type())
 #define VIPS_TARGET( obj ) \
