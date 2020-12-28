@@ -99,6 +99,7 @@ vips_source_g_input_stream_build( VipsObject *object )
 		printf( "stream attributes:\n" );
 		for( i = 0; attributes[i]; i++ )
 			printf( "\t%s\n", attributes[i] );
+		g_strfreev( attributes );
 }
 #endif /*VIPS_DEBUG*/
 
