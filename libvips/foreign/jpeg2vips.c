@@ -212,6 +212,7 @@ typedef struct {
 
 	/* Private stuff during read.
 	 */
+	ReadJpeg *jpeg;
 	VipsSource *source;
 	unsigned char buf[SOURCE_BUFFER_SIZE];
 
@@ -248,7 +249,10 @@ source_fill_input_buffer( j_decompress_ptr cinfo )
 		src->pub.bytes_in_buffer = read;
 	}
 	else {
-		WARNMS( cinfo, JWRN_JPEG_EOF );
+		if( src->jpeg->fail )
+			ERREXIT( cinfo, JERR_INPUT_EOF );
+		else
+			WARNMS( cinfo, JWRN_JPEG_EOF );
 		src->pub.next_input_byte = eoi_buffer;
 		src->pub.bytes_in_buffer = 2;
 	}
@@ -294,6 +298,7 @@ readjpeg_open_input( ReadJpeg *jpeg )
 				sizeof( Source ) );
 
 		src = (Source *) cinfo->src;
+		src->jpeg = jpeg;
 		src->source = jpeg->source;
 		src->pub.init_source = source_init_source;
 		src->pub.fill_input_buffer = source_fill_input_buffer;
