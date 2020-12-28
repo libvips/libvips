@@ -32,8 +32,8 @@
  */
 
 /*
-#define VIPS_DEBUG
  */
+#define VIPS_DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -64,7 +64,58 @@ G_DEFINE_TYPE( VipsSourceGInputStream, vips_source_g_input_stream,
 /* TODO:
  * 	- can get get a fileno out? it'd be useful if we could make
  * 	  vips_source_map() work for eg. vips or ppm images
+ * 	- can we set the filename? it would let eg. openslide work
  */
+
+static int
+vips_source_g_input_stream_build( VipsObject *object )
+{
+	VipsSource *source = VIPS_SOURCE( object );
+	VipsSourceGInputStream *source_ginput = 
+		VIPS_SOURCE_G_INPUT_STREAM( source );
+	GError *error = NULL;
+
+	VIPS_DEBUG_MSG( "vips_source_g_input_stream_build: %p\n", source );
+
+	if( VIPS_OBJECT_CLASS( vips_source_g_input_stream_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	if( G_IS_FILE_INPUT_STREAM( source_ginput->stream ) ) {
+		if( !(source_ginput->info = g_file_input_stream_query_info( 
+			G_FILE_INPUT_STREAM( source_ginput->stream ), 
+			G_FILE_ATTRIBUTE_STANDARD_NAME, NULL, &error )) ) {
+			vips_g_error( &error );
+			return( -1 );
+		}
+
+#ifdef VIPS_DEBUG
+{
+		char **attributes;
+		int i;
+
+		attributes = g_file_info_list_attributes( 
+			source_ginput->info, NULL );
+		printf( "stream attributes:\n" );
+		for( i = 0; attributes[i]; i++ )
+			printf( "\t%s\n", attributes[i] );
+}
+#endif /*VIPS_DEBUG*/
+
+		printf( "setting filename: %s\n", 
+			g_file_info_get_name( source_ginput->info ) );
+
+		g_object_set( object,
+			"filename", g_file_info_get_name( source_ginput->info ),
+			NULL );
+	}	
+
+	if( G_IS_SEEKABLE( source_ginput->stream ) &&
+		g_seekable_can_seek( G_SEEKABLE( source_ginput->stream ) ) ) 
+		source_ginput->seekable = G_SEEKABLE( source_ginput->stream );
+
+	return( 0 );
+}
 
 static gint64
 vips_source_g_input_stream_read( VipsSource *source, 
@@ -115,24 +166,22 @@ vips_source_g_input_stream_seek( VipsSource *source, gint64 offset, int whence )
 	GSeekType type = lseek_to_seek_type( whence );
 	GError *error = NULL;
 
-	GSeekable *seekable;
 	gint64 new_position;
 
 	VIPS_DEBUG_MSG( "vips_source_g_input_stream_seek: "
 		"offset = %zd, whence = %d\n", offset, whence );
 
-	if( !G_IS_SEEKABLE( source_ginput->stream ) ) 
-		return( -1 );
-	seekable = G_SEEKABLE( source_ginput->stream );
-	if( !g_seekable_can_seek( seekable ) )
-		return( -1 );
+	if( source_ginput->seekable ) {
+		if( !g_seekable_seek( source_ginput->seekable, 
+			offset, type, NULL, &error ) ) {
+			vips_g_error( &error );
+			return( -1 );
+		}
 
-	if( !g_seekable_seek( seekable, offset, type, NULL, &error ) ) {
-		vips_g_error( &error );
-		return( -1 );
+		new_position = g_seekable_tell( source_ginput->seekable );
 	}
-
-	new_position = g_seekable_tell( seekable );
+	else
+		new_position = -1;
 
 	VIPS_DEBUG_MSG( "  (new position = %zd)\n", new_position );
 
@@ -151,6 +200,8 @@ vips_source_g_input_stream_class_init( VipsSourceGInputStreamClass *class )
 
 	object_class->nickname = "source_g_input_stream";
 	object_class->description = _( "GInputStream source" );
+
+	object_class->build = vips_source_g_input_stream_build;
 
 	source_class->read = vips_source_g_input_stream_read;
 	source_class->seek = vips_source_g_input_stream_seek;

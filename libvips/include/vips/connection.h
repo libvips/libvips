@@ -330,6 +330,9 @@ typedef struct _VipsSourceGInputStream {
 	 */
 	GInputStream *stream;
 
+	GSeekable *seekable;
+	GFileInfo *info;
+
 } VipsSourceGInputStream;
 
 typedef struct _VipsSourceGInputStreamClass {
