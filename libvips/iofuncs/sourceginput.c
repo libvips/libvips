@@ -1,7 +1,4 @@
-/* A Source subclass with signals you can easily hook up to other input
- * sources.
- * 
- * J.Cupitt, 21/11/19
+/* A Source subclass which wraps a ginputstream.
  */
 
 /*
@@ -32,8 +29,8 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -62,9 +59,16 @@ G_DEFINE_TYPE( VipsSourceGInputStream, vips_source_g_input_stream,
 	VIPS_TYPE_SOURCE );
 
 /* TODO:
- * 	- can get get a fileno out? it'd be useful if we could make
- * 	  vips_source_map() work for eg. vips or ppm images
- * 	- can we set the filename? it would let eg. openslide work
+ * 	- some more docs
+ */
+
+/* This will only be useful for memory and pipe-style streams. It's not
+ * possible to get filename or filenos from GInputStream objects. 
+ * Without those two bits of information, important VipsSource features like
+ * mmap and openslide load will not work.
+ *
+ * For sources which are files on local disc, you should use
+ * vips_source_new_from_file() instead.
  */
 
 static int
@@ -82,9 +86,14 @@ vips_source_g_input_stream_build( VipsObject *object )
 		return( -1 );
 
 	if( G_IS_FILE_INPUT_STREAM( source_ginput->stream ) ) {
+		const char *name;
+
+		/* It's unclear if this will ever produce useful output.
+		 */
 		if( !(source_ginput->info = g_file_input_stream_query_info( 
 			G_FILE_INPUT_STREAM( source_ginput->stream ), 
-			G_FILE_ATTRIBUTE_STANDARD_NAME, NULL, &error )) ) {
+			G_FILE_ATTRIBUTE_STANDARD_NAME,
+			NULL, &error )) ) {
 			vips_g_error( &error );
 			return( -1 );
 		}
@@ -94,21 +103,29 @@ vips_source_g_input_stream_build( VipsObject *object )
 		char **attributes;
 		int i;
 
+		/* Swap G_FILE_ATTRIBUTE_STANDARD_NAME above for "*" to get a
+		 * list of all available attributes.
+		 */
 		attributes = g_file_info_list_attributes( 
 			source_ginput->info, NULL );
 		printf( "stream attributes:\n" );
-		for( i = 0; attributes[i]; i++ )
-			printf( "\t%s\n", attributes[i] );
+		for( i = 0; attributes[i]; i++ ) {
+			char *name = attributes[i];
+			char *value;
+
+			value = g_file_info_get_attribute_as_string( 
+				source_ginput->info, name );
+			printf( "\t%s = %s\n", name, value );
+			g_free( value );
+		}
 		g_strfreev( attributes );
 }
 #endif /*VIPS_DEBUG*/
 
-		printf( "setting filename: %s\n", 
-			g_file_info_get_name( source_ginput->info ) );
-
-		g_object_set( object,
-			"filename", g_file_info_get_name( source_ginput->info ),
-			NULL );
+		if( (name = g_file_info_get_name( source_ginput->info )) ) 
+			g_object_set( object,
+				"filename", name,
+				NULL );
 	}	
 
 	if( G_IS_SEEKABLE( source_ginput->stream ) &&
