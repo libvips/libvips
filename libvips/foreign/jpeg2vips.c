@@ -253,6 +253,7 @@ source_fill_input_buffer( j_decompress_ptr cinfo )
 			ERREXIT( cinfo, JERR_INPUT_EOF );
 		else
 			WARNMS( cinfo, JWRN_JPEG_EOF );
+
 		src->pub.next_input_byte = eoi_buffer;
 		src->pub.bytes_in_buffer = 2;
 	}
