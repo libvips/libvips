@@ -161,6 +161,8 @@ user_warning_function( png_structp png_ptr, png_const_charp warning_msg )
 	g_warning( "%s", warning_msg );
 }
 
+#ifndef HAVE_SPNG
+
 #define INPUT_BUFFER_SIZE (4096)
 
 /* What we track during a PNG read.
@@ -762,6 +764,8 @@ vips__png_isinterlaced_source( VipsSource *source )
 
 	return( interlace_type != PNG_INTERLACE_NONE );
 }
+
+#endif /*!defined(HAVE_SPNG)*/
 
 const char *vips__png_suffs[] = { ".png", NULL };
 
