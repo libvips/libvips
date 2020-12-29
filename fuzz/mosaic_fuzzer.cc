@@ -6,7 +6,7 @@ struct mosaic_opt {
 	guint16 yref;
 	guint16 xsec;
 	guint16 ysec;
-};
+} __attribute__ ((packed));
 
 extern "C" int
 LLVMFuzzerInitialize( int *argc, char ***argv )
@@ -19,16 +19,23 @@ extern "C" int
 LLVMFuzzerTestOneInput( const guint8 *data, size_t size )
 {
 	VipsImage *ref, *sec, *out;
-	struct mosaic_opt *opt;
+	mosaic_opt opt = {};
 	double d;
 
-	if( size < sizeof( struct mosaic_opt ) )
+	if( size < sizeof( mosaic_opt ) )
 		return( 0 );
 
 	if( size > 100 * 1024 * 1024 )
 		return( 0 );
 
-	if( !(ref = vips_image_new_from_buffer( data, size, "", NULL )) )
+	/* The beginning of `data` is treated as mosaic configuration
+	 */
+	memcpy( &opt, data, sizeof( mosaic_opt ) );
+
+	/* Remainder of input is the image
+	 */
+	if( !(ref = vips_image_new_from_buffer( data + sizeof( mosaic_opt ),
+		size - sizeof( mosaic_opt ), "", NULL )) )
 		return( 0 );
 
 	if( ref->Xsize > 100 ||
@@ -43,12 +50,8 @@ LLVMFuzzerTestOneInput( const guint8 *data, size_t size )
 		return( 0 );
 	}
 
-	/* Extract some bytes from the tail to fuzz the arguments of the API.
-	 */
-	opt = (struct mosaic_opt *) (data + size - sizeof( struct mosaic_opt ));
-
-	if( vips_mosaic( ref, sec, &out, (VipsDirection) opt->dir,
-		opt->xref, opt->yref, opt->xsec, opt->ysec, NULL ) ) {
+	if( vips_mosaic( ref, sec, &out, (VipsDirection) opt.dir,
+		opt.xref, opt.yref, opt.xsec, opt.ysec, NULL ) ) {
 		g_object_unref( sec );
 		g_object_unref( ref );
 		return( 0 );
