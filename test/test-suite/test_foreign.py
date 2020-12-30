@@ -771,6 +771,10 @@ class TestForeign:
 
         self.file_loader("openslideload", OPENSLIDE_FILE, openslide_valid)
 
+        source = pyvips.Source.new_from_file(OPENSLIDE_FILE)
+        x = pyvips.Image.new_from_source(source, "")
+        assert openslide_valid(x)
+
     @skip_if_no("pdfload")
     def test_pdfload(self):
         def pdf_valid(im):
