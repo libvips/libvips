@@ -363,6 +363,8 @@ int vips_vipssave( VipsImage *in, const char *filename, ... )
 
 int vips_openslideload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_openslideload_source( VipsSource *source, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 /**
  * VipsForeignJpegSubsample:
