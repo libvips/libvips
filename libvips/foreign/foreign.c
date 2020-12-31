@@ -424,6 +424,18 @@ vips_foreign_map( const char *base, VipsSListMap2Fn fn, void *a, void *b )
 		(VipsClassMapFn) file_add_class, (void *) &files );
 
 	files = g_slist_sort( files, (GCompareFunc) file_compare );
+#ifdef DEBUG
+{
+	GSList *p;
+
+	printf( "vips_foreign_map: search order\n" );
+	for( p = files; p; p = p->next ) {
+		VipsForeignClass *class = (VipsForeignClass *) p->data;
+
+		printf( "\t%s\n", VIPS_OBJECT_CLASS( class )->nickname );
+	}
+}
+#endif /*DEBUG*/
 	result = vips_slist_map2( files, fn, a, b );
 	g_slist_free( files );
 
@@ -2077,8 +2089,12 @@ vips_foreign_operation_init( void )
 
 	extern GType vips_foreign_load_openexr_get_type( void ); 
 
-	extern GType vips_foreign_load_openslide_get_type( void ); 
+	extern GType vips_foreign_load_openslide_file_get_type( void ); 
 	extern GType vips_foreign_load_openslide_source_get_type( void ); 
+
+	extern GType vips_foreign_load_vips_file_get_type( void ); 
+	extern GType vips_foreign_load_vips_source_get_type( void ); 
+	extern GType vips_foreign_save_vips_get_type( void ); 
 
 	extern GType vips_foreign_load_jpeg_file_get_type( void ); 
 	extern GType vips_foreign_load_jpeg_buffer_get_type( void ); 
@@ -2093,9 +2109,6 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_tiff_source_get_type( void ); 
 	extern GType vips_foreign_save_tiff_file_get_type( void ); 
 	extern GType vips_foreign_save_tiff_buffer_get_type( void ); 
-
-	extern GType vips_foreign_load_vips_get_type( void ); 
-	extern GType vips_foreign_save_vips_get_type( void ); 
 
 	extern GType vips_foreign_load_raw_get_type( void ); 
 	extern GType vips_foreign_save_raw_get_type( void ); 
@@ -2152,7 +2165,8 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_raw_get_type(); 
 	vips_foreign_save_raw_get_type(); 
 	vips_foreign_save_raw_fd_get_type(); 
-	vips_foreign_load_vips_get_type(); 
+	vips_foreign_load_vips_file_get_type(); 
+	vips_foreign_load_vips_source_get_type(); 
 	vips_foreign_save_vips_get_type(); 
 
 #ifdef HAVE_ANALYZE
@@ -2251,7 +2265,7 @@ vips_foreign_operation_init( void )
 #endif /*HAVE_TIFF*/
 
 #ifdef HAVE_OPENSLIDE
-	vips_foreign_load_openslide_get_type(); 
+	vips_foreign_load_openslide_file_get_type(); 
 	vips_foreign_load_openslide_source_get_type(); 
 #endif /*HAVE_OPENSLIDE*/
 

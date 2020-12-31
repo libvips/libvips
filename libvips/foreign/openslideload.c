@@ -114,20 +114,23 @@ vips_foreign_load_openslide_build( VipsObject *object )
 	VipsForeignLoadOpenslide *openslide = 
 		(VipsForeignLoadOpenslide *) object;
 
-	if( VIPS_OBJECT_CLASS( vips_foreign_load_openslide_parent_class )->
-		build( object ) )
-		return( -1 );
-
 	/* We can only open source which have an associated filename, since
 	 * the openslide library works in terms of filenames.
 	 */
-	openslide->filename = vips_connection_filename( VIPS_CONNECTION( 
-		openslide->source ) );
-	if( !openslide->filename ) {
-		vips_error( class->nickname, "%s", 
-			_( "no filename available" ) );
-		return( -1 );
+	if( openslide->source ) {
+		openslide->filename = 
+			vips_connection_filename( VIPS_CONNECTION( 
+				openslide->source ) );
+		if( !openslide->filename ) {
+			vips_error( class->nickname, "%s", 
+				_( "no filename available" ) );
+			return( -1 );
+		}
 	}
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_openslide_parent_class )->
+		build( object ) )
+		return( -1 );
 
 	return( 0 );
 }

@@ -358,6 +358,8 @@ const char *vips_foreign_find_save_target( const char *suffix );
 
 int vips_vipsload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_vipsload_source( VipsSource *source, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_vipssave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
 
