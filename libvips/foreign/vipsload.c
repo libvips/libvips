@@ -114,6 +114,7 @@ vips_foreign_load_vips_header( VipsForeignLoad *load )
 
 	const char *filename;
 	VipsImage *image;
+	VipsImage *x;
 
 	if( (filename = 
 		vips_connection_filename( VIPS_CONNECTION( vips->source ) )) ) {
@@ -134,7 +135,14 @@ vips_foreign_load_vips_header( VipsForeignLoad *load )
 		return( -1 );
 	}
 
-	g_object_set( load, "out", image, NULL ); 
+	/* What a hack. Remove the @out that's there now and replace it with
+	 * our image. 
+	 */
+	g_object_get( load, "out", &x, NULL );
+	g_object_unref( x );
+	g_object_unref( x );
+
+	g_object_set( load, "out", image, NULL );
 
 	return( 0 );
 }
