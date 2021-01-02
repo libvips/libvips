@@ -122,9 +122,7 @@ typedef struct _VipsThumbnail {
 	int n_loaded_pages;		/* Pages we've loaded from file */
 	int n_subifds;			/* Number of subifds */
 
-	/* For openslide, we need to read out the size of each level too.
-	 *
-	 * These are filled out for pyr tiffs as well.
+	/* For pyramidal formats, we need to read out the size of each level.
 	 */
 	int level_count;
 	int level_width[MAX_LEVELS];

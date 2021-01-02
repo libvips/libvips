@@ -1806,19 +1806,26 @@ vips_foreign_find_save_sub( VipsForeignSaveClass *save_class,
 	VipsObjectClass *object_class = VIPS_OBJECT_CLASS( save_class );
 	VipsForeignClass *class = VIPS_FOREIGN_CLASS( save_class );
 
-	/* All concrete savers needs suffs, since we use the suff to pick the 
+	const char **p;
+
+	/* All savers needs suffs defined since we use the suff to pick the 
 	 * saver.
 	 */
-	if( !G_TYPE_IS_ABSTRACT( G_TYPE_FROM_CLASS( class ) ) &&
-		!class->suffs )
+	if( !class->suffs )
 		g_warning( "no suffix defined for %s", object_class->nickname );
 
-	if( !G_TYPE_IS_ABSTRACT( G_TYPE_FROM_CLASS( class ) ) &&
-		class->suffs &&
-		!vips_ispostfix( object_class->nickname, "_buffer" ) &&
-		!vips_ispostfix( object_class->nickname, "_target" ) &&
-		vips_filename_suffix_match( filename, class->suffs ) )
-		return( save_class );
+	/* Skip non-file savers.
+	 */
+	if( vips_ispostfix( object_class->nickname, "_buffer" ) ||
+		vips_ispostfix( object_class->nickname, "_target" ) )
+		return( NULL );
+
+	/* vips_foreign_find_save() has already removed any options from the
+	 * end of the filename, so we can test directly against the suffix.
+	 */
+	for( p = class->suffs; *p; p++ ) 
+		if( vips_iscasepostfix( filename, *p ) ) 
+			return( save_class );
 
 	return( NULL );
 }
@@ -2119,7 +2126,8 @@ vips_foreign_operation_init( void )
 
 	extern GType vips_foreign_load_vips_file_get_type( void ); 
 	extern GType vips_foreign_load_vips_source_get_type( void ); 
-	extern GType vips_foreign_save_vips_get_type( void ); 
+	extern GType vips_foreign_save_vips_file_get_type( void ); 
+	extern GType vips_foreign_save_vips_target_get_type( void ); 
 
 	extern GType vips_foreign_load_jpeg_file_get_type( void ); 
 	extern GType vips_foreign_load_jpeg_buffer_get_type( void ); 
@@ -2192,7 +2200,8 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_raw_fd_get_type(); 
 	vips_foreign_load_vips_file_get_type(); 
 	vips_foreign_load_vips_source_get_type(); 
-	vips_foreign_save_vips_get_type(); 
+	vips_foreign_save_vips_file_get_type(); 
+	vips_foreign_save_vips_target_get_type(); 
 
 #ifdef HAVE_ANALYZE
 	vips_foreign_load_analyze_get_type(); 

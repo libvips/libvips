@@ -1522,7 +1522,7 @@ vips__find_rightmost_brackets( const char *p )
 
 	/* Too many tokens?
 	 */
-	if( n == MAX_TOKENS )
+	if( n >= MAX_TOKENS )
 		return( NULL );
 
 	/* No rightmost close bracket?

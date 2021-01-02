@@ -121,12 +121,16 @@ vips_foreign_load_vips_header( VipsForeignLoad *load )
 			return( -1 );
 	}
 	else {
+		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
+
 		/* We could add load vips from memory, fd, via mmap etc. here.
 		 * We should perhaps move iofuncs/vips.c into this file.
 		 *
 		 * For now, just fail unless there's a filename associated
 		 * with this source.
 		 */
+		vips_error( class->nickname, 
+			"%s", _( "no filename associated with source" ) );
 		return( -1 );
 	}
 

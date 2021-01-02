@@ -362,6 +362,8 @@ int vips_vipsload_source( VipsSource *source, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_vipssave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
+int vips_vipssave_target( VipsImage *in, VipsTarget *target, ... )
+	__attribute__((sentinel));
 
 int vips_openslideload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
