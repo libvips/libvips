@@ -921,7 +921,7 @@ vips_image_build( VipsObject *object )
 		/* Make sure the vips saver is there ... strange things will
 		 * happen if this type is renamed or removed.
 		 */
-		g_assert( g_type_from_name( "VipsForeignSaveVipsFile" ) );
+		g_assert( g_type_from_name( "VipsForeignSaveVips" ) );
 
 		if( !(file_op = vips_foreign_find_save( filename )) )
 			return( -1 );
@@ -930,7 +930,7 @@ vips_image_build( VipsObject *object )
 		 * Otherwise save with VipsForeign when the image has been 
 		 * written to.
 		 */
-		if( strcmp( file_op, "VipsForeignSaveVipsFile" ) == 0 )
+		if( vips_isprefix( "VipsForeignSaveVips", file_op ) )
 			image->dtype = VIPS_IMAGE_OPENOUT;
 		else {
 			image->dtype = VIPS_IMAGE_PARTIAL;
