@@ -29,8 +29,8 @@ vips-operators.cpp:
 	./gen-operators.py -g cpp >> vips-operators.cpp
 
 if HAVE_DOXYGEN
-
 html_DATA = html
+endif
 
 html: doxygen.stamp
 
@@ -42,10 +42,9 @@ install-htmlDATA:
 	-mkdir -p $(DESTDIR)$(htmldir)
 	-cp -r html $(DESTDIR)$(htmldir)
 
-endif
-
 EXTRA_DIST = \
 	README.md \
 	vips-operators.cpp \
 	Doxyfile.in \
 	gen-operators.py
+

@@ -233,7 +233,7 @@ if test x"$with_doxygen" != x"no"; then
     with_doxygen=no
   fi
 fi
-AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
+AM_CONDITIONAL(HAVE_DOXYGEN, [test x"$with_doxygen" = x"yes"])
 
 # we need a fully expanded version of $libdir
 # without this we get something like
