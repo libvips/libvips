@@ -373,11 +373,25 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 		png->ihdr.bit_depth < 8 )
 		png->fmt = SPNG_FMT_G8;
 
+	/* Try reading the optional transparency chunk. This will cause all
+	 * chunks up to the first IDAT to be read in, so it can fail if any
+	 * chunk has an error.
+	 */
+	error = spng_get_trns( png->ctx, &trns );
+	if( error &&
+		error != SPNG_ECHUNKAVAIL ) {
+		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
+		return( -1 );
+	}
+
 	/* Expand transparency.
 	 *
 	 * The _ALPHA types should not have the optional trns chunk (they 
 	 * always have a transparent band), see 
 	 * https://www.w3.org/TR/2003/REC-PNG-20031110/#11tRNS
+	 *
+	 * It's quick and safe to call spng_get_trns() again, and we now know 
+	 * it will only fail for no transparency chunk.
 	 */
 	if( png->ihdr.color_type == SPNG_COLOR_TYPE_GRAYSCALE_ALPHA || 
 		png->ihdr.color_type == SPNG_COLOR_TYPE_TRUECOLOR_ALPHA ) 
