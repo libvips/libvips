@@ -82,7 +82,9 @@ png2vips( const char *name, IMAGE *out, gboolean header_only )
 			return( -1 );
 	}
 
-#ifdef HAVE_PNG
+	/* spngload does not define these vips7 compat functions.
+	 */
+#if defined(HAVE_PNG) && !defined(HAVE_SPNG)
 {
 	VipsSource *source;
 	int result;
@@ -103,7 +105,7 @@ png2vips( const char *name, IMAGE *out, gboolean header_only )
 		"%s", _( "no PNG support in your libvips" ) ); 
 
 	return( -1 );
-#endif /*HAVE_PNG*/
+#endif /*HAVE_PNG && !HAVE_SPNG*/
 
 	return( 0 );
 }
