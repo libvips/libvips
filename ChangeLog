@@ -3,6 +3,7 @@
 - check for null memory sources [kleisauke]
 - revise ppmload, fixing a couple of small bugs
 - signal error on EOF in jpegload more reliably [bozaro]
+- better error detection in spngload [randy408]
 
 18/12/20 started 8.10.5
 - fix potential /0 in animated webp load [lovell]
