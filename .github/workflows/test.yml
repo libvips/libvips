@@ -5,11 +5,9 @@ name: Test
 #   - build with clang/asan/etc. and run the fuzz tests
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-  workflow_dispatch:
+  - push
+  - pull_request
+  - workflow_dispatch # manually triggered workflow
 
 jobs:
   build:
