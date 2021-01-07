@@ -41,6 +41,7 @@ addons:
       - libopenslide-dev
       - libffi-dev
   homebrew:
+    update: true
     packages:
       - ccache
       - gtk-doc
