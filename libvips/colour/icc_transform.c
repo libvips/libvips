@@ -71,6 +71,10 @@
     These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
+
+/*
+#define DEBUG
+ */
  
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -81,7 +85,6 @@
 
 #include <stdio.h>
 #include <math.h>
-#include <assert.h>
 
 /* Has to be before VIPS to avoid nameclashes.
  */
@@ -417,20 +420,6 @@ typedef VipsIccClass VipsIccImportClass;
 
 G_DEFINE_TYPE( VipsIccImport, vips_icc_import, VIPS_TYPE_ICC );
 
-static void
-vips_check_intent( const char *domain, 
-	cmsHPROFILE profile, VipsIntent intent, int direction )
-{
-	if( profile &&
-		!cmsIsIntentSupported( profile, intent, direction ) )
-		g_warning( _( "%s: intent %d (%s) not supported by "
-			"%s profile; falling back to default intent" ), 
-			domain, 
-			intent, vips_enum_nick( VIPS_TYPE_INTENT, intent ),
-			direction == LCMS_USED_AS_INPUT ?
-				_( "input" ) : _( "output" ) );
-}
-
 static int
 vips_icc_profile_needs_bands( cmsHPROFILE profile )
 {
@@ -607,10 +596,76 @@ vips_icc_get_profile_image( VipsImage *image )
 	return( vips_blob_new( NULL, data, size ) );
 }
 
-/* Load a profile from a blob and check compatibility.
+#ifdef DEBUG
+static void
+vips_icc_print_profile( const char *name, cmsHPROFILE profile )
+{
+	static const cmsInfoType info_types[] = {
+	     cmsInfoDescription,
+             cmsInfoManufacturer,
+             cmsInfoModel,
+             cmsInfoCopyright
+	};
+	static const char *info_names[] = {
+	     "description",
+             "manufacturer",
+             "model",
+             "copyright"
+	};
+
+	int i;
+	cmsUInt32Number n_bytes;
+	cmsUInt32Number n_intents;
+	cmsUInt32Number *intent_codes;
+	char **intent_descriptions;
+	
+	printf( "icc profile %s: %p\n", name, profile );
+	for( i = 0; i < VIPS_NUMBER( info_types ); i++ ) {
+		if( (n_bytes = cmsGetProfileInfoASCII( profile, 
+			info_types[i], "en", "US", 
+			NULL, 0 )) ) {
+			char *buffer;
+
+			buffer = VIPS_ARRAY( NULL, n_bytes, char );
+			(void) cmsGetProfileInfoASCII( profile, 
+				info_types[i], "en", "US", 
+				buffer, n_bytes );
+			printf( "%s: %s\n", info_names[i], buffer );
+			g_free( buffer );
+		}
+	}
+
+	printf( "profile class: %#x\n", cmsGetDeviceClass( profile ) );
+	printf( "PCS: %#x\n", cmsGetPCS( profile ) );
+
+	printf( "matrix shaper: %d\n", cmsIsMatrixShaper( profile ) );
+	printf( "version: %g\n", cmsGetProfileVersion( profile ) );
+
+	n_intents = cmsGetSupportedIntents( 0, NULL, NULL );
+	printf( "n_intents = %u\n", n_intents );
+	intent_codes = VIPS_ARRAY( NULL, n_intents, cmsUInt32Number );
+	intent_descriptions = VIPS_ARRAY( NULL, n_intents, char * );
+	(void) cmsGetSupportedIntents( n_intents, 
+		intent_codes, intent_descriptions );
+	for( i = 0; i < n_intents; i++ ) {
+		printf( "  %#x: %s, in CLUT = %d, out CLUT = %d\n", 
+			intent_codes[i], intent_descriptions[i],
+			cmsIsCLUT( profile, 
+				intent_codes[i], LCMS_USED_AS_INPUT ),
+			cmsIsCLUT( profile, 
+				intent_codes[i], LCMS_USED_AS_OUTPUT ) );
+	}
+	g_free( intent_codes );
+	g_free( intent_descriptions );
+}
+#endif /*DEBUG*/
+
+/* Load a profile from a blob and check compatibility with image, intent and
+ * direction.
  */
 static cmsHPROFILE
-vips_icc_load_profile_blob( VipsBlob *blob, VipsImage *image )
+vips_icc_load_profile_blob( VipsBlob *blob, 
+	VipsImage *image, VipsIntent intent, int direction )
 {
 	const void *data;
 	size_t size;
@@ -622,6 +677,10 @@ vips_icc_load_profile_blob( VipsBlob *blob, VipsImage *image )
 		return( NULL ); 
 	}
 
+#ifdef DEBUG
+	vips_icc_print_profile( "from blob", profile );
+#endif /*DEBUG*/
+
 	if( image &&
 		vips_image_expected_bands( image ) != 
 			vips_icc_profile_needs_bands( profile ) ) {
@@ -629,12 +688,22 @@ vips_icc_load_profile_blob( VipsBlob *blob, VipsImage *image )
 		g_warning( "%s", _( "profile incompatible with image" ) );
 		return( NULL );
 	}
+
 	if( image &&
 		vips_image_expected_sig( image ) != 
 			cmsGetColorSpace( profile ) ) {
 		VIPS_FREEF( cmsCloseProfile, profile );
 		g_warning( "%s", 
 			_( "profile colourspace differs from image" ) );
+		return( NULL );
+	}
+
+	if( !cmsIsIntentSupported( profile, intent, direction ) ) {
+		VIPS_FREEF( cmsCloseProfile, profile );
+		g_warning( _( "%s profile does not support %s intent" ),
+			direction == LCMS_USED_AS_INPUT ?
+				_( "input" ) : _( "output" ),
+			vips_enum_nick( VIPS_TYPE_INTENT, intent ) );
 		return( NULL );
 	}
 
@@ -646,12 +715,14 @@ vips_icc_load_profile_blob( VipsBlob *blob, VipsImage *image )
  * unref the blob if it's useless.
  */
 static cmsHPROFILE
-vips_icc_verify_blob( VipsBlob **blob, VipsImage *image )
+vips_icc_verify_blob( VipsBlob **blob, 
+	VipsImage *image, VipsIntent intent, int direction )
 {
 	if( *blob ) {
 		cmsHPROFILE profile;
 
-		if( !(profile = vips_icc_load_profile_blob( *blob, image )) ) {
+		if( !(profile = vips_icc_load_profile_blob( *blob, 
+			image, intent, direction )) ) {
 			vips_area_unref( (VipsArea *) *blob );
 			*blob = NULL;
 		}
@@ -689,7 +760,8 @@ vips_icc_import_build( VipsObject *object )
 			!import->input_profile_filename) ) {
 		icc->in_blob = vips_icc_get_profile_image( code->in );
 		icc->in_profile = 
-			vips_icc_verify_blob( &icc->in_blob, code->in );
+			vips_icc_verify_blob( &icc->in_blob,
+				code->in, icc->intent, LCMS_USED_AS_INPUT );
 	}
 
 	if( code->in &&
@@ -699,7 +771,8 @@ vips_icc_import_build( VipsObject *object )
 			&icc->in_blob, NULL ) )
 			return( -1 ); 
 		icc->in_profile = 
-			vips_icc_verify_blob( &icc->in_blob, code->in );
+			vips_icc_verify_blob( &icc->in_blob, 
+				code->in, icc->intent, LCMS_USED_AS_INPUT );
 	 	used_fallback = TRUE;
 	}
 
@@ -707,9 +780,6 @@ vips_icc_import_build( VipsObject *object )
 		vips_error( class->nickname, "%s", _( "no input profile" ) ); 
 		return( -1 );
 	}
-
-	vips_check_intent( class->nickname, 
-		icc->in_profile, icc->intent, LCMS_USED_AS_INPUT );
 
 	if( icc->pcs == VIPS_PCS_LAB ) { 
 		cmsCIExyY white;
@@ -896,15 +966,11 @@ vips_icc_export_build( VipsObject *object )
 	}
 
 	if( icc->out_blob &&
-		!(icc->out_profile = 
-			vips_icc_load_profile_blob( icc->out_blob, NULL )) ) {
+		!(icc->out_profile = vips_icc_load_profile_blob( icc->out_blob,
+			NULL, icc->intent, LCMS_USED_AS_OUTPUT )) ) {
 		vips_error( class->nickname, "%s", _( "no output profile" ) ); 
 		return( -1 );
 	}
-
-	if( icc->out_profile )
-		vips_check_intent( class->nickname, 
-			icc->out_profile, icc->intent, LCMS_USED_AS_OUTPUT );
 
 	if( VIPS_OBJECT_CLASS( vips_icc_export_parent_class )->build( object ) )
 		return( -1 );
@@ -1093,7 +1159,8 @@ vips_icc_transform_build( VipsObject *object )
 			!transform->input_profile_filename) ) {
 		icc->in_blob = vips_icc_get_profile_image( code->in );
 		icc->in_profile = 
-			vips_icc_verify_blob( &icc->in_blob, code->in );
+			vips_icc_verify_blob( &icc->in_blob, 
+				code->in, icc->intent, LCMS_USED_AS_INPUT );
 	}
 
 	if( code->in &&
@@ -1103,7 +1170,8 @@ vips_icc_transform_build( VipsObject *object )
 			&icc->in_blob, NULL ) )
 			return( -1 ); 
 		icc->in_profile = 
-			vips_icc_verify_blob( &icc->in_blob, code->in );
+			vips_icc_verify_blob( &icc->in_blob, 
+				code->in, icc->intent, LCMS_USED_AS_INPUT );
 	}
 
 	if( !icc->in_profile ) {
@@ -1124,18 +1192,13 @@ vips_icc_transform_build( VipsObject *object )
 	}
 
 	if( icc->out_blob )
-		icc->out_profile = 
-			vips_icc_load_profile_blob( icc->out_blob, NULL );
+		icc->out_profile = vips_icc_load_profile_blob( icc->out_blob, 
+			NULL, icc->intent, LCMS_USED_AS_OUTPUT );
 
 	if( !icc->out_profile ) { 
 		vips_error( class->nickname, "%s", _( "no output profile" ) ); 
 		return( -1 );
 	}
-
-	vips_check_intent( class->nickname, 
-		icc->in_profile, icc->intent, LCMS_USED_AS_INPUT );
-	vips_check_intent( class->nickname, 
-		icc->out_profile, icc->intent, LCMS_USED_AS_OUTPUT );
 
 	if( VIPS_OBJECT_CLASS( vips_icc_transform_parent_class )->
 		build( object ) )
@@ -1234,6 +1297,10 @@ vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
 	if( !(profile = cmsOpenProfileFromFile( profile_filename, "r" )) )
 		return( -1 );
 
+#ifdef DEBUG
+	vips_icc_print_profile( profile_filename, profile );
+#endif /*DEBUG*/
+
 	if( !(media = cmsReadTag( profile, cmsSigMediaWhitePointTag )) ) {
 		vips_error( "vips_icc_ac2rc", 
 			"%s", _( "unable to get media white point" ) );
@@ -1292,6 +1359,10 @@ vips_icc_is_compatible_profile( VipsImage *image,
 		/* Corrupt profile. 
 		 */
 		return( FALSE ); 
+
+#ifdef DEBUG
+	vips_icc_print_profile( "from memory", profile );
+#endif /*DEBUG*/
 
 	if( vips_image_expected_bands( image ) != 
 		vips_icc_profile_needs_bands( profile ) ) {
