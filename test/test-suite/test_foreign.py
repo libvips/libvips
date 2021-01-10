@@ -11,7 +11,7 @@ from helpers import \
     JPEG_FILE, SRGB_FILE, MATLAB_FILE, PNG_FILE, TIF_FILE, OME_FILE, \
     ANALYZE_FILE, GIF_FILE, WEBP_FILE, EXR_FILE, FITS_FILE, OPENSLIDE_FILE, \
     PDF_FILE, SVG_FILE, SVGZ_FILE, SVG_GZ_FILE, GIF_ANIM_FILE, DICOM_FILE, \
-    BMP_FILE, NIFTI_FILE, ICO_FILE, HEIC_FILE, TRUNCATED_FILE, \
+    BMP_FILE, NIFTI_FILE, ICO_FILE, AVIF_FILE, TRUNCATED_FILE, \
     GIF_ANIM_EXPECTED_PNG_FILE, GIF_ANIM_DISPOSE_BACKGROUND_FILE, \
     GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE, \
     GIF_ANIM_DISPOSE_PREVIOUS_FILE, \
@@ -75,7 +75,7 @@ class TestForeign:
         max_diff = (im - x).abs().max()
         assert max_diff == 0
 
-    def save_load_file(self, format, options, im, thresh):
+    def save_load_file(self, format, options, im, max_diff=0):
         # yuk!
         # but we can't set format parameters for pyvips.Image.new_temp_file()
         filename = temp_filename(self.tempdir, format)
@@ -86,8 +86,7 @@ class TestForeign:
         assert im.width == x.width
         assert im.height == x.height
         assert im.bands == x.bands
-        max_diff = (im - x).abs().max()
-        assert max_diff <= thresh
+        assert (im - x).abs().max() <= max_diff
         x = None
 
     def save_load_buffer(self, saver, loader, im, max_diff=0, **kwargs):
@@ -115,7 +114,7 @@ class TestForeign:
         assert (im - x).abs().max() <= max_diff
 
     def test_vips(self):
-        self.save_load_file(".v", "", self.colour, 0)
+        self.save_load_file(".v", "", self.colour)
 
         # check we can save and restore metadata
         filename = temp_filename(self.tempdir, ".v")
@@ -321,8 +320,8 @@ class TestForeign:
         self.save_load_buffer("pngsave_buffer", "pngload_buffer", self.colour)
         self.save_load("%s.png", self.mono)
         self.save_load("%s.png", self.colour)
-        self.save_load_file(".png", "[interlace]", self.colour, 0)
-        self.save_load_file(".png", "[interlace]", self.mono, 0)
+        self.save_load_file(".png", "[interlace]", self.colour)
+        self.save_load_file(".png", "[interlace]", self.mono)
 
         # size of a regular mono PNG 
         len_mono = len(self.mono.write_to_buffer(".png"))
@@ -391,30 +390,30 @@ class TestForeign:
         self.save_load("%s.tif", self.cmyk)
 
         self.save_load("%s.tif", self.onebit)
-        self.save_load_file(".tif", "[bitdepth=1]", self.onebit, 0)
-        self.save_load_file(".tif", "[miniswhite]", self.onebit, 0)
-        self.save_load_file(".tif", "[bitdepth=1,miniswhite]", self.onebit, 0)
+        self.save_load_file(".tif", "[bitdepth=1]", self.onebit)
+        self.save_load_file(".tif", "[miniswhite]", self.onebit)
+        self.save_load_file(".tif", "[bitdepth=1,miniswhite]", self.onebit)
 
         self.save_load_file(".tif",
                             "[profile={0}]".format(SRGB_FILE),
-                            self.colour, 0)
-        self.save_load_file(".tif", "[tile]", self.colour, 0)
-        self.save_load_file(".tif", "[tile,pyramid]", self.colour, 0)
-        self.save_load_file(".tif", "[tile,pyramid,subifd]", self.colour, 0)
+                            self.colour)
+        self.save_load_file(".tif", "[tile]", self.colour)
+        self.save_load_file(".tif", "[tile,pyramid]", self.colour)
+        self.save_load_file(".tif", "[tile,pyramid,subifd]", self.colour)
         self.save_load_file(".tif",
                             "[tile,pyramid,compression=jpeg]", self.colour, 80)
         self.save_load_file(".tif",
                             "[tile,pyramid,subifd,compression=jpeg]", 
                             self.colour, 80)
-        self.save_load_file(".tif", "[bigtiff]", self.colour, 0)
+        self.save_load_file(".tif", "[bigtiff]", self.colour)
         self.save_load_file(".tif", "[compression=jpeg]", self.colour, 80)
         self.save_load_file(".tif",
                             "[tile,tile-width=256]", self.colour, 10)
 
         im = pyvips.Image.new_from_file(TIF2_FILE)
-        self.save_load_file(".tif", "[bitdepth=2]", im, 0)
+        self.save_load_file(".tif", "[bitdepth=2]", im)
         im = pyvips.Image.new_from_file(TIF4_FILE)
-        self.save_load_file(".tif", "[bitdepth=4]", im, 0)
+        self.save_load_file(".tif", "[bitdepth=4]", im)
 
         filename = temp_filename(self.tempdir, '.tif')
         x = pyvips.Image.new_from_file(TIF_FILE)
@@ -1072,37 +1071,42 @@ class TestForeign:
     def test_heifload(self):
         def heif_valid(im):
             a = im(10, 10)
-            # different versions of HEIC decode have slightly different 
+            # different versions of libheif decode have slightly different 
             # rounding
             assert_almost_equal_objects(a, [197.0, 181.0, 158.0], threshold=2)
             assert im.width == 3024
             assert im.height == 4032
             assert im.bands == 3
 
-        self.file_loader("heifload", HEIC_FILE, heif_valid)
-        self.buffer_loader("heifload_buffer", HEIC_FILE, heif_valid)
+        self.file_loader("heifload", AVIF_FILE, heif_valid)
+        self.buffer_loader("heifload_buffer", AVIF_FILE, heif_valid)
 
     @skip_if_no("heifsave")
     def test_heifsave(self):
         self.save_load_buffer("heifsave_buffer", "heifload_buffer",
-                              self.colour, 80)
-        self.save_load("%s.heic", self.colour)
+                              self.colour, 80, compression="av1")
+        # TODO: perhaps we should automatically set the compression to
+        # av1 when we save to *.avif?
+        #self.save_load("%s.avif", self.colour)
+        self.save_load_file(".avif", "[compression=av1]",
+                            self.colour, 80)
 
-        # test lossless mode
-        im = pyvips.Image.new_from_file(HEIC_FILE)
-        buf = im.heifsave_buffer(lossless=True)
-        im2 = pyvips.Image.new_from_buffer(buf, "")
+        # uncomment to test lossless mode, will take a while
+        #im = pyvips.Image.new_from_file(AVIF_FILE)
+        #buf = im.heifsave_buffer(lossless=True, compression="av1")
+        #im2 = pyvips.Image.new_from_buffer(buf, "")
         # not in fact quite lossless
-        assert abs(im.avg() - im2.avg()) < 3
+        #assert abs(im.avg() - im2.avg()) < 3
 
-        # higher Q should mean a bigger buffer
-        b1 = im.heifsave_buffer(Q=10)
-        b2 = im.heifsave_buffer(Q=90)
+        # higher Q should mean a bigger buffer, needs libheif >= v1.8.0,
+        # see: https://github.com/libvips/libvips/issues/1757
+        b1 = self.mono.heifsave_buffer(Q=10, compression="av1")
+        b2 = self.mono.heifsave_buffer(Q=90, compression="av1")
         assert len(b2) > len(b1)
 
         # try saving an image with an ICC profile and reading it back 
         # not all libheif have profile support, so put it in an if
-        buf = self.colour.heifsave_buffer()
+        buf = self.colour.heifsave_buffer(Q=10, compression="av1")
         im = pyvips.Image.new_from_buffer(buf, "")
         p1 = self.colour.get("icc-profile-data")
         if im.get_typeof("icc-profile-data") != 0:
@@ -1113,18 +1117,16 @@ class TestForeign:
         # the exif test will need us to be able to walk the header,
         # we can't just check exif-data
 
-        # libheif 1.1 (on ubuntu 18.04, current LTS) does not support exif
-        # write, so this test is commented out
-
         # test that exif changes change the output of heifsave
         # first make sure we have exif support
-        #z = pyvips.Image.new_from_file(JPEG_FILE)
-        #if z.get_typeof("exif-ifd0-Orientation") != 0:
-        #    x = self.colour.copy()
-        #    x.set("exif-ifd0-Make", "banana")
-        #    buf = x.heifsave_buffer()
-        #    y = pyvips.Image.new_from_buffer(buf, "")
-        #    assert y.get("exif-ifd0-Make").split(" ")[0] == "banana"
+        z = pyvips.Image.new_from_file(AVIF_FILE)
+        if z.get_typeof("exif-ifd0-Make") != 0:
+            x = z.copy()
+            x.set("exif-ifd0-Make", "banana")
+            buf = x.heifsave_buffer(Q=10, compression="av1")
+            y = pyvips.Image.new_from_buffer(buf, "")
+            assert y.get("exif-ifd0-Make").split(" ")[0] == "banana"
+
 
 if __name__ == '__main__':
     pytest.main()
