@@ -1104,6 +1104,11 @@ class TestForeign:
         b2 = self.mono.heifsave_buffer(Q=90, compression="av1")
         assert len(b2) > len(b1)
 
+        # Chroma subsampling should produce smaller file size for same Q
+        b1 = self.colour.heifsave_buffer(compression="av1", subsample_mode="on")
+        b2 = self.colour.heifsave_buffer(compression="av1", subsample_mode="off")
+        assert len(b2) > len(b1)
+
         # try saving an image with an ICC profile and reading it back 
         # not all libheif have profile support, so put it in an if
         buf = self.colour.heifsave_buffer(Q=10, compression="av1")

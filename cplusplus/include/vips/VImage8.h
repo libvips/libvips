@@ -2977,6 +2977,8 @@ static VImage heifload_source( VSource source, VOption *options = 0 );
  *   - **Q** -- Q factor, int.
  *   - **lossless** -- Enable lossless compression, bool.
  *   - **compression** -- Compression format, VipsForeignHeifCompression.
+ *   - **speed**: -- CPU effort, 0 slowest - 8 fastest, AV1 compression only, int.
+ *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -2993,6 +2995,8 @@ void heifsave( const char *filename, VOption *options = 0 ) const;
  *   - **Q** -- Q factor, int.
  *   - **lossless** -- Enable lossless compression, bool.
  *   - **compression** -- Compression format, VipsForeignHeifCompression.
+ *   - **speed**: -- CPU effort, 0 slowest - 8 fastest, AV1 compression only, int.
+ *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -3009,6 +3013,8 @@ VipsBlob *heifsave_buffer( VOption *options = 0 ) const;
  *   - **Q** -- Q factor, int.
  *   - **lossless** -- Enable lossless compression, bool.
  *   - **compression** -- Compression format, VipsForeignHeifCompression.
+ *   - **speed**: -- CPU effort, 0 slowest - 8 fastest, AV1 compression only, int.
+ *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -3341,7 +3347,7 @@ static VImage jpegload_source( VSource source, VOption *options = 0 );
  *   - **overshoot_deringing** -- Apply overshooting to samples with extreme values, bool.
  *   - **optimize_scans** -- Split spectrum of DCT coefficients into separate scans, bool.
  *   - **quant_table** -- Use predefined quantization table with given index, int.
- *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignJpegSubsample.
+ *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -3364,7 +3370,7 @@ void jpegsave( const char *filename, VOption *options = 0 ) const;
  *   - **overshoot_deringing** -- Apply overshooting to samples with extreme values, bool.
  *   - **optimize_scans** -- Split spectrum of DCT coefficients into separate scans, bool.
  *   - **quant_table** -- Use predefined quantization table with given index, int.
- *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignJpegSubsample.
+ *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -3387,7 +3393,7 @@ VipsBlob *jpegsave_buffer( VOption *options = 0 ) const;
  *   - **overshoot_deringing** -- Apply overshooting to samples with extreme values, bool.
  *   - **optimize_scans** -- Split spectrum of DCT coefficients into separate scans, bool.
  *   - **quant_table** -- Use predefined quantization table with given index, int.
- *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignJpegSubsample.
+ *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -3409,7 +3415,7 @@ void jpegsave_mime( VOption *options = 0 ) const;
  *   - **overshoot_deringing** -- Apply overshooting to samples with extreme values, bool.
  *   - **optimize_scans** -- Split spectrum of DCT coefficients into separate scans, bool.
  *   - **quant_table** -- Use predefined quantization table with given index, int.
- *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignJpegSubsample.
+ *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
