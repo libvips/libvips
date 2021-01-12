@@ -9,7 +9,7 @@ addons:
   apt:
     update: true
     sources: &common_sources
-      # add support for HEIF files
+      # add support for AVIF files
       - sourceline: 'ppa:strukturag/libheif'
       - sourceline: 'ppa:strukturag/libde265'
     packages: &common_packages
@@ -41,26 +41,30 @@ addons:
       - libopenslide-dev
       - libffi-dev
   homebrew:
+    update: true
     packages:
       - ccache
-      - gtk-doc
-      - gobject-introspection
-      - fftw
-      - libexif
-      - libjpeg-turbo
-      - webp
-      - imagemagick
       - cfitsio
-      - gsl
-      - libmatio
-      - orc
-      - little-cms2
-      - poppler
-      - librsvg
-      - openexr
-      - pango
+      - fftw
+      - giflib
+      - glib
+      - gobject-introspection
+      - gtk-doc
+      - libexif
       - libgsf
+      - libheif
+      - libjpeg-turbo
+      - libmatio
+      - librsvg
+      - libspng
+      - libtiff
+      - little-cms2
+      - openexr
       - openslide
+      - orc
+      - pango
+      - poppler
+      - webp
 
 jobs:
   allow_failures:
@@ -70,7 +74,7 @@ jobs:
     - os: linux
       dist: bionic
       compiler: gcc
-      name: "Ubuntu 18.04 / GCC 10"
+      name: "Linux x64 (Ubuntu 18.04) - GCC 10"
       addons:
         apt:
           sources:
@@ -92,7 +96,7 @@ jobs:
     - os: linux
       dist: bionic
       compiler: clang
-      name: "Ubuntu 18.04 / Clang 10 with ASan and UBSan"
+      name: "Linux x64 (Ubuntu 18.04) - Clang 10 with ASan and UBSan"
       addons:
         apt:
           sources:
@@ -127,16 +131,16 @@ jobs:
       cache: ccache
     - os: osx
       osx_image: xcode11
-      name: "macOS 10.14.6 / GCC 9"
+      name: "macOS (10.14.6) - Xcode 11"
       env:
         - JPEG=/usr/local/opt/jpeg-turbo
         - JOBS="`sysctl -n hw.ncpu`"
-        - WITH_MAGICK=yes
+        - WITH_MAGICK=no
         - PATH="/usr/local/opt/ccache/libexec:$PATH"
         - PKG_CONFIG_PATH="/usr/local/opt/jpeg-turbo/lib/pkgconfig:/usr/local/opt/libxml2/lib/pkgconfig:$PKG_CONFIG_PATH"
         - HOMEBREW_NO_AUTO_UPDATE=1
-        - CC="gcc-9"
-        - CXX="g++-9"
+        - CC="clang"
+        - CXX="clang++"
       cache: ccache
 
 install:

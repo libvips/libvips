@@ -3,19 +3,11 @@ name: Test
 # to-do:
 #   - add a macos test with brew etc.
 #   - build with clang/asan/etc. and run the fuzz tests
-#   - libvips work with 1.6.1 in ubuntu-20.04, but 1.10 has a bug in heic write
-#     paste this back when it's working
-#       - name: Add libheif PPA
-#         run: |
-#               sudo add-apt-repository ppa:strukturag/libde265
-#               sudo add-apt-repository ppa:strukturag/libheif
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-  workflow_dispatch:
+  - push
+  - pull_request
+  - workflow_dispatch # manually triggered workflow
 
 jobs:
   build:
@@ -30,6 +22,11 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
         run:
           sudo apt-get update -qq -o Acquire::Retries=3
+
+      - name: Add libheif PPA
+        run: |
+          sudo add-apt-repository ppa:strukturag/libde265
+          sudo add-apt-repository ppa:strukturag/libheif
 
       - name: Install platform dependencies
         env:
@@ -70,15 +67,15 @@ jobs:
             --disable-deprecated
 
       - name: Build libvips
-        run: make V=0
+        run: make V=0 -j$(nproc)
 
       - name: Check libvips
         run: make V=0 check
 
       - name: Install libvips
         run: |
-                sudo make V=0 install
-                sudo ldconfig
+          sudo make V=0 install
+          sudo ldconfig
 
       - name: Install pyvips
         run: pip3 install pyvips pytest
