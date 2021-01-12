@@ -11,6 +11,7 @@
 - add "seed" param to perlin, worley and gaussnoise
 - add vips_source_g_input_stream_new() to load images from a GInputStream
 - add openslideload_source(), vipsload_source(), vipssave_target()
+- add hist path to rank for large windows on uchar images
 
 22/12/20 start 8.10.6
 - don't seek on bad file descriptors [kleisauke]
