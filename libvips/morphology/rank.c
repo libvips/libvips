@@ -479,13 +479,14 @@ vips_rank_build( VipsObject *object )
 	/* Enable the hist path if it'll probably help.
 	 */
 	if( in->BandFmt == VIPS_FORMAT_UCHAR ) {
-		/* The hist path gets faster for windows larger than about 
-		 * 3x3, or 10x10 for the special max/min case.
+		/* The hist path is always faster for windows larger than about 
+		 * 10x10, and faster for >3x3 on the non-max/min case.
 		 */
-		if( rank->n < 10 )
+		if( rank->n > 90 )
 			rank->hist_path = TRUE;
-		else if( rank->n < 90 && 
-			(rank->index == 0 || rank->index == rank->n - 1)  )
+		else if( rank->n > 10 && 
+			rank->index != 0 &&
+		       	rank->index != rank->n - 1 )
 			rank->hist_path = TRUE;
 	}
 
