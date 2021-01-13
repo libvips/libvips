@@ -83,6 +83,10 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	int speed;
 
+	/* Chroma subsampling.
+	 */
+	VipsForeignSubsample subsample_mode;
+
 	/* The image we save. This is a copy of save->ready since we need to
 	 * be able to update the metadata.
 	 */
@@ -319,6 +323,7 @@ vips_foreign_save_heif_build( VipsObject *object )
 
 	struct heif_error error;
 	struct heif_writer writer;
+	char *chroma;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_heif_parent_class )->
 		build( object ) )
@@ -357,6 +362,17 @@ vips_foreign_save_heif_build( VipsObject *object )
 
 	error = heif_encoder_set_parameter_integer( heif->encoder,
 		"speed", heif->speed );
+	if( error.code &&
+		error.subcode != heif_suberror_Unsupported_parameter ) {
+		vips__heif_error( &error );
+		return( -1 );
+	}
+
+	chroma = heif->subsample_mode == VIPS_FOREIGN_SUBSAMPLE_OFF ||
+		( heif->subsample_mode == VIPS_FOREIGN_SUBSAMPLE_AUTO &&
+			heif->Q > 90 ) ? "444" : "420";
+	error = heif_encoder_set_parameter_string( heif->encoder,
+		"chroma", chroma );
 	if( error.code &&
 		error.subcode != heif_suberror_Unsupported_parameter ) {
 		vips__heif_error( &error );
@@ -487,6 +503,13 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveHeif, speed ),
 		0, 8, 5 );
 
+	VIPS_ARG_ENUM( class, "subsample_mode", 16,
+		_( "Subsample mode" ),
+		_( "Select chroma subsample operation mode" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveHeif, subsample_mode ),
+		VIPS_TYPE_FOREIGN_SUBSAMPLE,
+		VIPS_FOREIGN_SUBSAMPLE_AUTO );
 }
 
 static void
@@ -496,6 +519,7 @@ vips_foreign_save_heif_init( VipsForeignSaveHeif *heif )
 	heif->Q = 50;
 	heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_HEVC;
 	heif->speed = 5;
+	heif->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_AUTO;
 }
 
 typedef struct _VipsForeignSaveHeifFile {
@@ -689,6 +713,7 @@ vips_foreign_save_heif_target_init( VipsForeignSaveHeifTarget *target )
  * * @lossless: %gboolean, enable lossless encoding
  * * @compression: #VipsForeignHeifCompression, write with this compression
  * * @speed: %gint, CPU effort, 0 slowest - 8 fastest, AV1 compression only
+ * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  *
  * Write a VIPS image to a file in HEIF format. 
  *
@@ -701,6 +726,9 @@ vips_foreign_save_heif_target_init( VipsForeignSaveHeifTarget *target )
  *
  * Use @speed to control the CPU effort spent improving compression.
  * This is currently only applicable to AV1 encoders, defaults to 5.
+ *
+ * Chroma subsampling is normally automatically disabled for Q > 90. You can
+ * force the subsampling mode with @subsample_mode.
  *
  * See also: vips_image_write_to_file(), vips_heifload().
  *
@@ -732,6 +760,7 @@ vips_heifsave( VipsImage *in, const char *filename, ... )
  * * @lossless: %gboolean, enable lossless encoding
  * * @compression: #VipsForeignHeifCompression, write with this compression
  * * @speed: %gint, CPU effort, 0 slowest - 8 fastest, AV1 compression only
+ * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  *
  * As vips_heifsave(), but save to a memory buffer. 
  *
@@ -783,6 +812,7 @@ vips_heifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @lossless: %gboolean, enable lossless encoding
  * * @compression: #VipsForeignHeifCompression, write with this compression
  * * @speed: %gint, CPU effort, 0 slowest - 8 fastest, AV1 compression only
+ * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  *
  * As vips_heifsave(), but save to a target.
  *
