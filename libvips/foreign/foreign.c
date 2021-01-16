@@ -1395,12 +1395,15 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
-	/* If this is something other than CMYK or RAD, eg. maybe a LAB image,
-	 * we need to transform to RGB.
+	/* If this is something other than CMYK or RAD, and it's not already
+	 * an RGB image, eg. maybe a LAB or scRGB image, we need to transform 
+	 * to RGB.
 	 */
 	if( !coding[VIPS_CODING_RAD] &&
 		in->Bands >= 3 &&
 		in->Type != VIPS_INTERPRETATION_CMYK &&
+		in->Type != VIPS_INTERPRETATION_sRGB &&
+		in->Type != VIPS_INTERPRETATION_RGB16 &&
 		vips_colourspace_issupported( in ) &&
 		(saveable == VIPS_SAVEABLE_RGB ||
 		 saveable == VIPS_SAVEABLE_RGBA ||
@@ -1426,7 +1429,7 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
-	/* VIPS_SAVEABLE_RGBA_ONLY does not support 1 or 2 bands ... convert 
+	/* VIPS_SAVEABLE_RGBA_ONLY does not support mono types ... convert 
 	 * to sRGB. 
 	 */
 	if( !coding[VIPS_CODING_RAD] &&
