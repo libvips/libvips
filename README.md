@@ -212,7 +212,7 @@ If libvips finds this library, it uses it for fourier transforms.
 ### lcms2
 
 If present, `vips_icc_import()`, `vips_icc_export()` and `vips_icc_transform()`
-are available for transforming images with ICC profiles. 
+can be used to manipulate images with ICC profiles. 
 
 ### libspng
 
@@ -279,7 +279,22 @@ files: Aperio, Hamamatsu, Leica, MIRAX, Sakura, Trestle, and Ventana.
 
 ### libheif
 
-If available, libvips can load and save HEIC and AVIF images. 
+If available, libvips can load and save HEIC and AVIF images. Your libheif (in
+turn) needs to be built with the correct decoders and encoders. You can check
+with eg.:
+
+```
+$ pkg-config libheif --print-variables
+builtin_avif_decoder
+builtin_avif_encoder
+builtin_h265_decoder
+builtin_h265_encoder
+exec_prefix
+includedir
+libdir
+pcfiledir
+prefix
+```
 
 # Contributors
 
