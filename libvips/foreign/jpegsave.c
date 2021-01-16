@@ -84,7 +84,7 @@ typedef struct _VipsForeignSaveJpeg {
 	 * on will always enable subsampling
 	 * off will always disable subsampling
 	 */
-	VipsForeignJpegSubsample subsample_mode;
+	VipsForeignSubsample subsample_mode;
 
 	/* Apply trellis quantisation to each 8x8 block.
 	 */
@@ -133,8 +133,8 @@ vips_foreign_save_jpeg_build( VipsObject *object )
 	 */
 	if( vips_object_argument_isset( object, "no_subsample" ) )
 		jpeg->subsample_mode = jpeg->no_subsample ? 
-			VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF : 
-			VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO;
+			VIPS_FOREIGN_SUBSAMPLE_OFF :
+			VIPS_FOREIGN_SUBSAMPLE_AUTO;
 
 	return( 0 );
 }
@@ -229,15 +229,15 @@ vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 		_( "Select chroma subsample operation mode" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveJpeg, subsample_mode ),
-		VIPS_TYPE_FOREIGN_JPEG_SUBSAMPLE,
-		VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO );
+		VIPS_TYPE_FOREIGN_SUBSAMPLE,
+		VIPS_FOREIGN_SUBSAMPLE_AUTO );
 }
 
 static void
 vips_foreign_save_jpeg_init( VipsForeignSaveJpeg *jpeg )
 {
 	jpeg->Q = 75;
-	jpeg->subsample_mode = VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO;
+	jpeg->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_AUTO;
 }
 
 typedef struct _VipsForeignSaveJpegTarget {
@@ -529,7 +529,7 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
  * * @interlace: %gboolean, write an interlaced (progressive) jpeg
  * * @strip: %gboolean, remove all metadata from image
- * * @subsample_mode: #VipsForeignJpegSubsample, chroma subsampling mode
+ * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
@@ -558,7 +558,7 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * written into the output file.
  *
  * Chroma subsampling is normally automatically disabled for Q > 90. You can
- * force the subsampling mode with @@subsample_mode.
+ * force the subsampling mode with @subsample_mode.
  *
  * If @trellis_quant is set and the version of libjpeg supports it
  * (e.g. mozjpeg >= 3.0), apply trellis quantisation to each 8x8 block.
@@ -645,7 +645,7 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
  * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
  * * @interlace: %gboolean, write an interlaced (progressive) jpeg
  * * @strip: %gboolean, remove all metadata from image
- * * @subsample_mode: #VipsForeignJpegSubsample, chroma subsampling mode
+ * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
@@ -684,7 +684,7 @@ vips_jpegsave_target( VipsImage *in, VipsTarget *target, ... )
  * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
  * * @interlace: %gboolean, write an interlaced (progressive) jpeg
  * * @strip: %gboolean, remove all metadata from image
- * * @subsample_mode: #VipsForeignJpegSubsample, chroma subsampling mode
+ * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
@@ -740,7 +740,7 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @optimize_coding: %gboolean, compute optimal Huffman coding tables
  * * @interlace: %gboolean, write an interlaced (progressive) jpeg
  * * @strip: %gboolean, remove all metadata from image
- * * @subsample_mode: #VipsForeignJpegSubsample, chroma subsampling mode
+ * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  * * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans

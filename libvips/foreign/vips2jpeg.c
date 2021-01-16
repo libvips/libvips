@@ -540,7 +540,7 @@ write_vips( Write *write, int qfac, const char *profile,
 	gboolean optimize_coding, gboolean progressive, gboolean strip, 
 	gboolean trellis_quant, gboolean overshoot_deringing,
 	gboolean optimize_scans, int quant_table,
-	VipsForeignJpegSubsample subsample_mode )
+	VipsForeignSubsample subsample_mode )
 {
 	VipsImage *in;
 	J_COLOR_SPACE space;
@@ -687,8 +687,8 @@ write_vips( Write *write, int qfac, const char *profile,
 	if( progressive ) 
 		jpeg_simple_progression( &write->cinfo ); 
 
-	if( subsample_mode == VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF ||
-		(subsample_mode == VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO && 
+	if( subsample_mode == VIPS_FOREIGN_SUBSAMPLE_OFF ||
+		(subsample_mode == VIPS_FOREIGN_SUBSAMPLE_AUTO &&
 			qfac >= 90) ) {
 		int i;
 
@@ -846,7 +846,7 @@ vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	gboolean optimize_coding, gboolean progressive,
 	gboolean strip, gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans,
-	int quant_table, VipsForeignJpegSubsample subsample_mode)
+	int quant_table, VipsForeignSubsample subsample_mode)
 {
 	Write *write;
 
