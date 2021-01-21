@@ -260,7 +260,7 @@ vips_foreign_load_openslide_class_init( VipsForeignLoadOpenslideClass *class )
 
 	VIPS_ARG_BOOL( class, "attach-associated", 13,
 		_( "Attach associated" ),
-		_( "Attach all asssociated images" ),
+		_( "Attach all associated images" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadOpenslide, attach_associated ),
 		FALSE ); 

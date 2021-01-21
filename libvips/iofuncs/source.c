@@ -1159,8 +1159,10 @@ vips_source_seek( VipsSource *source, gint64 offset, int whence )
  * vips_source_rewind:
  * @source: source to operate on
  *
- * Rewind the source to the start. You can't do this after pixel decode phase
- * starts.
+ * Rewind the source to the start. 
+ *
+ * You can't always do this after the pixel decode phase starts -- for
+ * example, pipe-like sources can't be rewound.
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -1174,6 +1176,12 @@ vips_source_rewind( VipsSource *source )
 	if( vips_source_test_features( source ) ||
 		vips_source_seek( source, 0, SEEK_SET ) != 0 )
 		return( -1 );
+
+	/* Back into sniff + header decode state.
+	 */
+	source->decode = FALSE;
+	if( !source->sniff )
+		source->sniff = g_byte_array_new();
 
 	SANITY( source );
 
