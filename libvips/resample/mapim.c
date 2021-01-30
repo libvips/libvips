@@ -7,6 +7,8 @@
  * 	- a bit quicker
  * 17/12/18
  * 	- we were not offsetting pixel fetches by window_offset
+ * 30/1/21 afontenot
+ * 	- avoid NaN
  */
 
 /*
@@ -75,10 +77,58 @@ typedef VipsResampleClass VipsMapimClass;
 
 G_DEFINE_TYPE( VipsMapim, vips_mapim, VIPS_TYPE_RESAMPLE );
 
+/* Minmax of a line of float pixels. We have to ignore NaN. 
+ */
+#define FMINMAX( TYPE ) { \
+	TYPE * restrict p1 = (TYPE *) p; \
+	TYPE t_max_x = max_x; \
+	TYPE t_min_x = min_x; \
+	TYPE t_max_y = max_y; \
+	TYPE t_min_y = min_y; \
+	\
+	for( x = 0; x < r->width; x++ ) { \
+		TYPE px = p1[0]; \
+		TYPE py = p1[1]; \
+		\
+		if( VIPS_ISNAN( px ) || \
+			VIPS_ISNAN( py ) ) \
+			continue; \
+		\
+		if( first ) { \
+			t_min_x = px; \
+			t_max_x = px; \
+			t_min_y = py; \
+			t_max_y = py; \
+			\
+			first = FALSE; \
+		} \
+		else { \
+			if( px > t_max_x ) \
+				t_max_x = px; \
+			else if( px < t_min_x ) \
+				t_min_x = px; \
+			\
+			if( py > t_max_y ) \
+				t_max_y = py; \
+			else if( py < t_min_y ) \
+				t_min_y = py; \
+		} \
+		\
+		p1 += 2; \
+	} \
+	\
+	if( !first ) { \
+		min_x = VIPS_CLIP( 0, floor( t_min_x ), VIPS_MAX_COORD ); \
+		max_x = VIPS_CLIP( 0, floor( t_max_x ), VIPS_MAX_COORD ); \
+		min_y = VIPS_CLIP( 0, floor( t_min_y ), VIPS_MAX_COORD ); \
+		max_y = VIPS_CLIP( 0, floor( t_max_y ), VIPS_MAX_COORD ); \
+	} \
+}
+
 /* Minmax of a line of pixels. Pass in a thing to convert back to int 
  * coordinates.
  */
-#define MINMAX( TYPE, CLIP_LOW, CLIP_HIGH ) { \
+#define MINMAX( TYPE, CLIP ) { \
 	TYPE * restrict p1 = (TYPE *) p; \
 	TYPE t_max_x = max_x; \
 	TYPE t_min_x = min_x; \
@@ -112,10 +162,10 @@ G_DEFINE_TYPE( VipsMapim, vips_mapim, VIPS_TYPE_RESAMPLE );
 		p1 += 2; \
 	} \
 	\
-	min_x = CLIP_LOW( t_min_x ); \
-	max_x = CLIP_HIGH( t_max_x ); \
-	min_y = CLIP_LOW( t_min_y ); \
-	max_y = CLIP_HIGH( t_max_y ); \
+	min_x = CLIP( t_min_x ); \
+	max_x = CLIP( t_max_x ); \
+	min_y = CLIP( t_min_y ); \
+	max_y = CLIP( t_max_y ); \
 }
 
 /* All the clippers. These vary with TYPE.
@@ -136,11 +186,6 @@ G_DEFINE_TYPE( VipsMapim, vips_mapim, VIPS_TYPE_RESAMPLE );
 /* A large signed int.
  */
 #define CLIP_SINT_LARGE( X ) VIPS_CLIP( 0, X, VIPS_MAX_COORD );
-
-/* Float types must clip the range, and also round up or down at the extremes.
- */
-#define CLIP_FLOAT_LOW( X ) VIPS_CLIP( 0, floor( X ), VIPS_MAX_COORD );
-#define CLIP_FLOAT_HIGH( X ) VIPS_CLIP( 0, ceil( X ), VIPS_MAX_COORD );
 
 /* Scan a region and find min/max in the two axes.
  */
@@ -165,45 +210,37 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 
 		switch( region->im->BandFmt ) {
 		case VIPS_FORMAT_UCHAR: 	
-			MINMAX( unsigned char, 
-				CLIP_UINT_SMALL, CLIP_UINT_SMALL ); 
+			MINMAX( unsigned char, CLIP_UINT_SMALL ); 
 			break; 
 
 		case VIPS_FORMAT_CHAR: 	
-			MINMAX( signed char,
-				CLIP_SINT_SMALL, CLIP_SINT_SMALL ); 
+			MINMAX( signed char, CLIP_SINT_SMALL ); 
 			break; 
 
 		case VIPS_FORMAT_USHORT: 
-			MINMAX( unsigned short,
-				CLIP_UINT_SMALL, CLIP_UINT_SMALL ); 
+			MINMAX( unsigned short, CLIP_UINT_SMALL ); 
 			break; 
 
 		case VIPS_FORMAT_SHORT: 	
-			MINMAX( signed short,
-				CLIP_SINT_SMALL, CLIP_SINT_SMALL ); 
+			MINMAX( signed short, CLIP_SINT_SMALL ); 
 			break; 
 
 		case VIPS_FORMAT_UINT: 	
-			MINMAX( unsigned int,
-				CLIP_UINT_LARGE, CLIP_UINT_LARGE ); 
+			MINMAX( unsigned int, CLIP_UINT_LARGE ); 
 			break; 
 
 		case VIPS_FORMAT_INT: 	
-			MINMAX( signed int,
-				CLIP_SINT_LARGE, CLIP_SINT_LARGE ); 
+			MINMAX( signed int, CLIP_SINT_LARGE ); 
 			break; 
 
 		case VIPS_FORMAT_FLOAT: 		
 		case VIPS_FORMAT_COMPLEX: 
-			MINMAX( float,
-				CLIP_FLOAT_LOW, CLIP_FLOAT_HIGH ); 
+			FMINMAX( float );
 			break; 
 
 		case VIPS_FORMAT_DOUBLE:	
 		case VIPS_FORMAT_DPCOMPLEX: 
-			MINMAX( double,
-				CLIP_FLOAT_LOW, CLIP_FLOAT_HIGH ); 
+			FMINMAX( double );
 			break;
 
 		default:
@@ -217,6 +254,8 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 	bounds->height = max_y - min_y + 1;
 }
 
+/* Unsigned int types.
+ */
 #define ULOOKUP( TYPE ) { \
 	TYPE * restrict p1 = (TYPE *) p; \
 	\
@@ -238,6 +277,8 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 	} \
 }
 
+/* Signed int types.
+ */
 #define LOOKUP( TYPE ) { \
 	TYPE * restrict p1 = (TYPE *) p; \
 	\
@@ -246,6 +287,33 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 		TYPE py = p1[1]; \
 		\
 		if( px < 0 || \
+			px >= clip_width || \
+			py < 0 || \
+			py >= clip_height ) { \
+			for( z = 0; z < ps; z++ )  \
+				q[z] = 0; \
+		} \
+		else \
+			interpolate( mapim->interpolate, q, ir[0], \
+				px + window_offset, py + window_offset ); \
+		\
+		p1 += 2; \
+		q += ps; \
+	} \
+}
+
+/* Float types.
+ */
+#define FLOOKUP( TYPE ) { \
+	TYPE * restrict p1 = (TYPE *) p; \
+	\
+	for( x = 0; x < r->width; x++ ) { \
+		TYPE px = p1[0]; \
+		TYPE py = p1[1]; \
+		\
+		if( VIPS_ISNAN( px ) || \
+			VIPS_ISNAN( py ) || \
+			px < 0 || \
 			px >= clip_width || \
 			py < 0 || \
 			py >= clip_height ) { \
@@ -306,7 +374,6 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 
 	/* The bounding box of that area is what we will need from @in. Add
 	 * enough for the interpolation stencil as well.
-	 * 
 	 */
 	bounds.width += window_size - 1;
 	bounds.height += window_size - 1;
@@ -361,12 +428,12 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 
 		case VIPS_FORMAT_FLOAT: 		
 		case VIPS_FORMAT_COMPLEX: 
-			LOOKUP( float ); break; 
+			FLOOKUP( float ); break; 
 			break;
 
 		case VIPS_FORMAT_DOUBLE:	
 		case VIPS_FORMAT_DPCOMPLEX: 
-			LOOKUP( double ); break;
+			FLOOKUP( double ); break;
 
 		default:
 			g_assert_not_reached();
