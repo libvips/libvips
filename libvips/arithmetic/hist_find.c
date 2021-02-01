@@ -26,6 +26,8 @@
  * 	- redo as a class
  * 28/2/16 lovell
  * 	- unroll common cases
+ * 1/2/21 erdmann
+ * 	- use double for very large histograms
  */
 
 /*
@@ -69,11 +71,11 @@
 /* Accumulate a histogram in one of these.
  */
 typedef struct {
-	int bands;		/* Number of bands in output */
-	int which;		/* If one band in out, which band of input */
+	int n_bands;		/* Number of bands in output */
+	int band;		/* If one band in out, which band of input */
 	int size;		/* Number of bins for each band */
 	int mx;			/* Maximum value we have seen */
-	unsigned int **bins;	/* All the bins! */
+	VipsPel **bins;		/* double or uint bins */
 } Histogram;
 
 typedef struct _VipsHistFind {
@@ -81,7 +83,7 @@ typedef struct _VipsHistFind {
 
 	/* -1 for all bands, or the band we scan.
 	 */
-	int which;
+	int band;
 
 	/* Main image histogram. Subhists accumulate to this.
 	 */
@@ -90,6 +92,11 @@ typedef struct _VipsHistFind {
 	/* Write hist to this output image.
 	 */
 	VipsImage *out; 
+
+	/* TRUE for "large" histograms ... causes double output rather than
+	 * uint.
+	 */
+	gboolean large;
 
 } VipsHistFind;
 
@@ -100,24 +107,28 @@ G_DEFINE_TYPE( VipsHistFind, vips_hist_find, VIPS_TYPE_STATISTIC );
 /* Build a Histogram.
  */
 static Histogram *
-histogram_new( VipsHistFind *hist_find, int bands, int which, int size )
+histogram_new( VipsHistFind *hist_find, int n_bands, int band, int size )
 {
+	/* We won't use all of this for uint accumulators.
+	 */
+	int n_bytes = size * sizeof( double );
+
 	Histogram *hist;
 	int i;
 
 	if( !(hist = VIPS_NEW( hist_find, Histogram )) ||
-		!(hist->bins = VIPS_ARRAY( hist_find, bands, unsigned int * )) )
+		!(hist->bins = VIPS_ARRAY( hist_find, n_bands, VipsPel * )) )
 		return( NULL );
 
-	for( i = 0; i < bands; i++ ) {
-		if( !(hist->bins[i] = 
-			VIPS_ARRAY( hist_find, size, unsigned int )) )
+	for( i = 0; i < n_bands; i++ ) {
+		if( !(hist->bins[i] = VIPS_ARRAY( hist_find, 
+			n_bytes, VipsPel )) )
 			return( NULL );
-		memset( hist->bins[i], 0, size * sizeof( unsigned int ) );
+		memset( hist->bins[i], 0, n_bytes );
 	}
 
-	hist->bands = bands;
-	hist->which = which;
+	hist->n_bands = n_bands;
+	hist->band = band;
 	hist->size = size;
 	hist->mx = 0;
 
@@ -130,21 +141,27 @@ vips_hist_find_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsStatistic *statistic = VIPS_STATISTIC( object ); 
 	VipsHistFind *hist_find = (VipsHistFind *) object;
+	VipsImage *in = statistic->in;
 
-	unsigned int *obuffer;
-	unsigned int *q;
-	int i, j;
+	VipsPel *obuffer;
 
 	g_object_set( object, 
 		"out", vips_image_new(),
 		NULL );
 
-	if( statistic->in &&
-		vips_check_bandno( class->nickname, 
-			statistic->in, hist_find->which ) )
+	if( in &&
+		vips_check_bandno( class->nickname, in, hist_find->band ) )
 		return( -1 ); 
 
-	/* main hist made on first thread start.
+	/* Is this a large histogram? We want to avoid overflow of the uint
+	 * accumulators.
+	 */
+	if( in &&
+		(guint64) in->Xsize * (guint64) in->Ysize >= 
+			((guint64) 1 << 32) ) 
+		hist_find->large = TRUE;
+
+	/* main hist made on in vips_hist_find_start().
 	 */
 
 	if( VIPS_OBJECT_CLASS( vips_hist_find_parent_class )->build( object ) )
@@ -156,20 +173,33 @@ vips_hist_find_build( VipsObject *object )
 		VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) ) 
 		return( -1 );
 	vips_image_init_fields( hist_find->out,
-		hist_find->hist->mx + 1, 1, hist_find->hist->bands, 
-		VIPS_FORMAT_UINT, 
+		hist_find->hist->mx + 1, 1, hist_find->hist->n_bands, 
+		hist_find->large ? VIPS_FORMAT_DOUBLE : VIPS_FORMAT_UINT, 
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_HISTOGRAM, 1.0, 1.0 );
 
 	/* Interleave for output.
 	 */
 	if( !(obuffer = VIPS_ARRAY( object, 
-		VIPS_IMAGE_N_ELEMENTS( hist_find->out ), unsigned int )) )
+		VIPS_IMAGE_SIZEOF_LINE( hist_find->out ), VipsPel )) )
 		return( -1 );
-	for( q = obuffer, j = 0; j < hist_find->out->Xsize; j++ )
-		for( i = 0; i < hist_find->out->Bands; i++ )
-			*q++ = hist_find->hist->bins[i][j];
 
-	if( vips_image_write_line( hist_find->out, 0, (VipsPel *) obuffer ) )
+#define INTERLEAVE( TYPE ) G_STMT_START { \
+	TYPE **bins = (TYPE **) hist_find->hist->bins; \
+	\
+	TYPE *q; \
+	int i, j; \
+	\
+	for( q = (TYPE *) obuffer, j = 0; j < hist_find->out->Xsize; j++ ) \
+		for( i = 0; i < hist_find->out->Bands; i++ ) \
+			*q++ = bins[i][j]; \
+} G_STMT_END
+
+	if( hist_find->large )  
+		INTERLEAVE( double );
+	else
+		INTERLEAVE( unsigned int );
+
+	if( vips_image_write_line( hist_find->out, 0, obuffer ) )
 		return( -1 );
 
 	return( 0 );
@@ -186,15 +216,15 @@ vips_hist_find_start( VipsStatistic *statistic )
 	 */
 	if( !hist_find->hist ) 
 		hist_find->hist = histogram_new( hist_find, 
-			hist_find->which == -1 ?
+			hist_find->band == -1 ?
 				statistic->ready->Bands : 1,
-			hist_find->which, 
+			hist_find->band, 
 			statistic->ready->BandFmt == VIPS_FORMAT_UCHAR ? 
 				256 : 65536 );
 
 	return( (void *) histogram_new( hist_find, 
-		hist_find->hist->bands, 
-		hist_find->hist->which, 
+		hist_find->hist->n_bands, 
+		hist_find->hist->band, 
 		hist_find->hist->size ) );
 }
 
@@ -209,210 +239,143 @@ vips_hist_find_stop( VipsStatistic *statistic, void *seq )
 
 	int i, j;
 
-	g_assert( sub_hist->bands == hist->bands && 
+	g_assert( sub_hist->n_bands == hist->n_bands && 
 		sub_hist->size == hist->size );
 
 	/* Add on sub-data.
 	 */
 	hist->mx = VIPS_MAX( hist->mx, sub_hist->mx );
-	for( i = 0; i < hist->bands; i++ )
-		for( j = 0; j < hist->size; j++ )
-			hist->bins[i][j] += sub_hist->bins[i][j];
 
+#define SUM( TYPE ) G_STMT_START { \
+	TYPE **main_bins = (TYPE **) hist->bins; \
+	TYPE **sub_bins = (TYPE **) sub_hist->bins; \
+	\
+	for( i = 0; i < hist->n_bands; i++ ) \
+		for( j = 0; j < hist->size; j++ ) \
+			main_bins[i][j] += sub_bins[i][j]; \
+} G_STMT_END
+
+	if( hist_find->large ) 
+		SUM( double );
+	else
+		SUM( unsigned int ); 
+			
 	/* Blank out sub-hist to make sure we can't add it again.
 	 */
 	sub_hist->mx = 0;
-	for( i = 0; i < sub_hist->bands; i++ )
+	for( i = 0; i < sub_hist->n_bands; i++ )
 		sub_hist->bins[i] = NULL;
 
 	return( 0 );
 }
 
-/* Hist of all bands of uchar.
+#define SCANOP G_STMT_START { \
+	for( z = 0; z < nb; z++ ) { \
+		int v = p[z]; \
+		\
+		if( v > mx ) \
+			mx = v; \
+		\
+		bins[z][v] += 1; \
+	} \
+	\
+	p += nb; \
+} G_STMT_END
+
+/* No need to track max for uchar images (it's always 255).
  */
-static int
-vips_hist_find_uchar_scan( VipsStatistic *statistic, 
-	void *seq, int x, int y, void *in, int n )
-{
-	Histogram *hist = (Histogram *) seq;
-	unsigned int *bins = hist->bins[0];
-	int nb = statistic->ready->Bands;
-	VipsPel *p = (VipsPel *) in;
+#define UCSCANOP G_STMT_START { \
+	for( z = 0; z < nb; z++ ) { \
+		int v = p[z]; \
+		\
+		bins[z][v] += 1; \
+	} \
+	\
+	p += nb; \
+} G_STMT_END
 
-	int j;
-
-	/* The inner loop cannot be auto-vectorized by the compiler.
-	 * Unroll for common cases. 
-	 */
-	switch( nb ) {
-	case 1:
-		for( j = 0; j < n; j++ )
-			bins[p[j]] += 1;
-		break;
-
-	case 2:
-		for( j = 0; j < n; j++ ) {
-			hist->bins[0][p[0]] += 1;
-			hist->bins[1][p[1]] += 1;
-
-			p += 2;
-		}
-		break;
-
-	case 3:
-		for( j = 0; j < n; j++ ) {
-			hist->bins[0][p[0]] += 1;
-			hist->bins[1][p[1]] += 1;
-			hist->bins[2][p[2]] += 1;
-
-			p += 3;
-		}
-		break;
-
-	case 4:
-		for( j = 0; j < n; j++ ) {
-			hist->bins[0][p[0]] += 1;
-			hist->bins[1][p[1]] += 1;
-			hist->bins[2][p[2]] += 1;
-			hist->bins[3][p[3]] += 1;
-
-			p += 4;
-		}
-		break;
-
-	default:
-		/* Loop when >4 bands
-		 */
-		for( j = 0; j < n; j++ ) {
-			int z;
-
-			for( z = 0; z < nb; z++ ) 
-				hist->bins[z][p[z]] += 1;
-
-			p += nb;
-		}
-	}
-
-	/* Note the maximum.
-	 */
-	hist->mx = 255;
-
-	return( 0 );
-}
-
-/* Histogram of a selected band of a uchar image.
+/* Hist of all bands. This one is just about worth unrolling.
  */
-static int
-vips_hist_find_uchar_extract_scan( VipsStatistic *statistic, 
-	void *seq, int x, int y, void *in, int n )
-{
-	Histogram *hist = (Histogram *) seq;
-	int nb = statistic->ready->Bands;
-	int max = n * nb;
-	unsigned int *bins = hist->bins[0];
-	VipsPel *p = (VipsPel *) in;
+#define SCAN( IMAGE_TYPE, HIST_TYPE, OP ) G_STMT_START { \
+	HIST_TYPE **bins = (HIST_TYPE **) hist->bins; \
+	IMAGE_TYPE *p = (IMAGE_TYPE *) in; \
+	\
+	int z; \
+	\
+	VIPS_UNROLL( n, OP ); \
+} G_STMT_END
 
-	int i;
-
-	for( i = hist->which; i < max; i += nb ) 
-		bins[p[i]] += 1;
-
-	/* Note the maximum.
-	 */
-	hist->mx = 255;
-
-	return( 0 );
-}
-
-/* Histogram of all bands of a ushort image.
+/* Hist of selected band.
  */
-static int
-vips_hist_find_ushort_scan( VipsStatistic *statistic, 
-	void *seq, int x, int y, void *in, int n )
-{
-	Histogram *hist = (Histogram *) seq;
-	int mx = hist->mx;
-	int nb = statistic->ready->Bands;
-	unsigned short *p = (unsigned short *) in; 
-
-	int j, z; 
-
-	for( j = 0; j < n; j++ ) {
-		for( z = 0; z < nb; z++ ) {
-			int v = p[z];
-
-			/* Adjust maximum.
-			 */
-			if( v > mx )
-				mx = v;
-
-			hist->bins[z][v] += 1;
-		}
-
-		p += nb;
-	}
-
-	/* Note the maximum.
-	 */
-	hist->mx = mx;
-
-	return( 0 );
-}
-
-/* Histogram of one band of a ushort image.
- */
-static int
-vips_hist_find_ushort_extract_scan( VipsStatistic *statistic, 
-	void *seq, int x, int y, void *in, int n )
-{
-	Histogram *hist = (Histogram *) seq;
-	int mx = hist->mx;
-	unsigned int *bins = hist->bins[0];
-	unsigned short *p = (unsigned short *) in;
-	int nb = statistic->ready->Bands;
-	int max = nb * n;
-
-	int i; 
-
-	for( i = hist->which; i < max; i += nb ) {
-		int v = p[i];
-
-		/* Adjust maximum.
-		 */
-		if( v > mx )
-			mx = v;
-
-		bins[v] += 1;
-	}
-
-	/* Note the maximum.
-	 */
-	hist->mx = mx;
-
-	return( 0 );
-}
+#define SCAN1( IMAGE_TYPE, HIST_TYPE ) G_STMT_START { \
+	HIST_TYPE *bins = (HIST_TYPE *) hist->bins[0]; \
+	IMAGE_TYPE *p = (IMAGE_TYPE *) in; \
+	int max = nb * n; \
+	\
+	for( i = hist->band; i < max; i += nb ) { \
+		int v = p[i]; \
+		\
+		if( v > mx ) \
+			mx = v; \
+		\
+		bins[v] += 1; \
+	} \
+} G_STMT_END
 
 static int
 vips_hist_find_scan( VipsStatistic *statistic, void *seq, 
 	int x, int y, void *in, int n )
 {
 	VipsHistFind *hist_find = (VipsHistFind *) statistic;
-	VipsStatisticScanFn scan;
+	Histogram *hist = (Histogram *) seq;
+	int nb = statistic->ready->Bands; 
+	int mx = hist->mx;
 
-	if( hist_find->which < 0 ) {
-		if( statistic->ready->BandFmt == VIPS_FORMAT_UCHAR ) 
-			scan = vips_hist_find_uchar_scan;
-		else
-			scan = vips_hist_find_ushort_scan;
-	}
-	else {
-		if( statistic->ready->BandFmt == VIPS_FORMAT_UCHAR ) 
-			scan = vips_hist_find_uchar_extract_scan;
-		else
-			scan = vips_hist_find_ushort_extract_scan;
-	}
+	int i;
 
-	return( scan( statistic, seq, x, y, in, n ) ); 
+	if( hist_find->band < 0 ) 
+		switch( statistic->ready->BandFmt ) {
+		case VIPS_FORMAT_UCHAR:
+			if( hist_find->large )
+				SCAN( unsigned char, double, UCSCANOP );
+			else
+				SCAN( unsigned char, unsigned int, UCSCANOP );
+			mx = 255;
+			break;
+
+		case VIPS_FORMAT_USHORT:
+			if( hist_find->large )
+				SCAN( unsigned short, double, SCANOP );
+			else
+				SCAN( unsigned short, unsigned int, SCANOP );
+			break;
+
+		default:
+			g_assert_not_reached();
+		}
+	else 
+		switch( statistic->ready->BandFmt ) {
+		case VIPS_FORMAT_UCHAR:
+			if( hist_find->large )
+				SCAN1( unsigned char, double );
+			else
+				SCAN1( unsigned char, unsigned int );
+			break;
+
+		case VIPS_FORMAT_USHORT:
+			if( hist_find->large )
+				SCAN1( unsigned short, double );
+			else
+				SCAN1( unsigned short, unsigned int );
+			break;
+
+		default:
+			g_assert_not_reached();
+		}
+
+	hist->mx = mx;
+
+	return( 0 );
 }
 
 /* Save a bit of typing.
@@ -456,7 +419,7 @@ vips_hist_find_class_init( VipsHistFindClass *class )
 		_( "Band" ), 
 		_( "Find histogram of band" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
-		G_STRUCT_OFFSET( VipsHistFind, which ),
+		G_STRUCT_OFFSET( VipsHistFind, band ),
 		-1, 100000, -1 );
 
 }
@@ -464,7 +427,7 @@ vips_hist_find_class_init( VipsHistFindClass *class )
 static void
 vips_hist_find_init( VipsHistFind *hist_find )
 {
-	hist_find->which = -1;
+	hist_find->band = -1;
 }
 
 /**
