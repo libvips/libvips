@@ -5,6 +5,43 @@ import pyvips
 from helpers import MOSAIC_FILES, MOSAIC_MARKS, MOSAIC_VERTICAL_MARKS
 
 class TestMosaicing:
+
+    def test_lrmerge(self):
+        left = pyvips.Image.new_from_file(MOSAIC_FILES[0])
+        right = pyvips.Image.new_from_file(MOSAIC_FILES[1])
+        join = left.merge(right, 'horizontal', 10 - left.width, 0)
+
+        assert join.width == left.width + right.width - 10
+        assert join.height == max(left.height, right.height)
+        assert join.bands == 1
+
+    def test_tbmerge(self):
+        top = pyvips.Image.new_from_file(MOSAIC_FILES[0])
+        bottom = pyvips.Image.new_from_file(MOSAIC_FILES[2])
+        join = top.merge(bottom, 'vertical', 0, 10 - top.height)
+
+        assert join.width == max(top.width, bottom.width)
+        assert join.height == top.height + bottom.height - 10
+        assert join.bands == 1
+
+    def test_lrmosaic(self):
+        left = pyvips.Image.new_from_file(MOSAIC_FILES[0])
+        right = pyvips.Image.new_from_file(MOSAIC_FILES[1])
+        join = left.mosaic(right, 'horizontal', left.width - 30, 0, 30, 0)
+
+        assert join.width == 1014
+        assert join.height == 379
+        assert join.bands == 1
+
+    def test_tbmosaic(self):
+        top = pyvips.Image.new_from_file(MOSAIC_FILES[0])
+        bottom = pyvips.Image.new_from_file(MOSAIC_FILES[2])
+        join = top.mosaic(bottom, 'vertical', 0, top.height - 30, 0, 30)
+
+        assert join.width == 542
+        assert join.height == 688
+        assert join.bands == 1
+
     def test_mosaic(self):
         # ported from https://github.com/libvips/nip2/tree/master/share/nip2/data/examples/1_point_mosaic
 
