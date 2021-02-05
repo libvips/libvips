@@ -3084,7 +3084,7 @@ vips_object_local_array_cb( VipsObject *parent, VipsObjectLocal *local )
  * |[
  * VipsObject **t;
  *
- * t = vips_object_local_array( a, 5 );
+ * t = vips_object_local_array( parent, 5 );
  * if( 
  *   vips_add( a, b, &t[0], NULL ) ||
  *   vips_invert( t[0], &t[1], NULL ) ||

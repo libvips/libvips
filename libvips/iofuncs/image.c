@@ -1607,7 +1607,7 @@ vips_image_set_progress( VipsImage *image, gboolean progress )
 			image, image->filename );
 		image->progress_signal = image;
 	}
-	else
+	else if( !progress )
 		image->progress_signal = NULL;
 }
 

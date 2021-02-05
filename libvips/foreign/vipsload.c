@@ -318,7 +318,6 @@ vips_foreign_load_vips_source_init( VipsForeignLoadVipsSource *source )
 {
 }
 
-
 /**
  * vips_vipsload:
  * @filename: file to load
