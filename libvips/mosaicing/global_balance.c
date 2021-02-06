@@ -175,7 +175,8 @@ vips__global_open_image( SymbolTable *st, char *name )
 	if( !(image = vips_image_new_from_file( name, NULL ))) {
 		/* TODO(kleisauke): Is this behavior the same as im_skip_dir?
 		 * i.e. could we open a filename which came
-		 * from a win32 (`\\`) on a *nix machine? */
+		 * from a win32 (`\\`) on a *nix machine? 
+		 */
 		basename = g_path_get_basename( name );
 
 		if( !(image = vips_image_new_from_file( basename, NULL ))) {
@@ -1018,7 +1019,8 @@ extract_rect( VipsImage *in, VipsImage **out, VipsRect *r )
  * has 255 for every pixel where both images are non-zero.
  */
 static int
-make_overlap_mask( VipsImage *mem, VipsImage *ref, VipsImage *sec, VipsImage **mask, 
+make_overlap_mask( VipsImage *mem, 
+	VipsImage *ref, VipsImage *sec, VipsImage **mask, 
 	VipsRect *rarea, VipsRect *sarea )
 {
 	VipsImage **t = (VipsImage **) 
@@ -1054,12 +1056,12 @@ count_nonzero( VipsImage *in, gint64 *count )
  * mask is true.
  */
 static VipsImage *
-find_image_stats( VipsImage *mem, VipsImage *in, VipsImage *mask, VipsRect *area )
+find_image_stats( VipsImage *mem, 
+	VipsImage *in, VipsImage *mask, VipsRect *area )
 {
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( VIPS_OBJECT( mem ), 4 );
+		vips_object_local_array( VIPS_OBJECT( mem ), 5 );
 
-	VipsImage *stats;
 	gint64 count;
 
 	/* Extract area, build black image, mask out pixels we want.
@@ -1074,7 +1076,7 @@ find_image_stats( VipsImage *mem, VipsImage *in, VipsImage *mask, VipsRect *area
 
 	/* Get stats from masked image.
 	 */
-	if( vips_stats( t[3], &stats, NULL ) )
+	if( vips_stats( t[3], &t[4], NULL ) )
 		return( NULL );
 
 	/* Number of non-zero pixels in mask.
@@ -1084,19 +1086,20 @@ find_image_stats( VipsImage *mem, VipsImage *in, VipsImage *mask, VipsRect *area
 
 	/* And scale masked average to match.
 	 */
-	*VIPS_MATRIX( stats, 4, 0 ) *= (double) count / VIPS_IMAGE_N_PELS( mask );
+	*VIPS_MATRIX( t[4], 4, 0 ) *= 
+		(double) count / VIPS_IMAGE_N_PELS( mask );
 
 	/* Yuk! Zap the deviation column with the pixel count. Used later to
 	 * determine if this is likely to be a significant overlap.
 	 */
-	*VIPS_MATRIX( stats, 5, 0 )  = count;
+	*VIPS_MATRIX( t[4], 5, 0 )  = count;
 
 #ifdef DEBUG
 	if( count == 0 )
 		g_warning( "global_balance %s", _( "empty overlap!" ) );
 #endif /*DEBUG*/
 
-	return( stats );
+	return( t[4] );
 }
 
 /* Find the stats for an overlap struct.
