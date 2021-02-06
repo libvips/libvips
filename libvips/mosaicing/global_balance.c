@@ -1770,7 +1770,7 @@ transform( JoinNode *node, double *gamma )
 	VipsImage *in = node->im;
 	double fac = st->fac[node->index];
 	VipsImage **t = (VipsImage **)
-		vips_object_local_array( VIPS_OBJECT( st->im ), 5 );
+		vips_object_local_array( VIPS_OBJECT( st->im ), 8 );
 
 	VipsImage *out;
 
@@ -1779,7 +1779,8 @@ transform( JoinNode *node, double *gamma )
 		 */
 		out = in;
 	}
-	/* TODO(kleisauke): Could we call vips_gamma instead? */
+	/* TODO(kleisauke): Could we call vips_gamma instead? 
+	 */
 	else if( in->BandFmt == VIPS_FORMAT_UCHAR || 
 		in->BandFmt == VIPS_FORMAT_USHORT ) {
 		if( vips_identity( &t[0],
@@ -1792,15 +1793,17 @@ transform( JoinNode *node, double *gamma )
 			vips_linear1( t[1], &t[2], fac, 0.0, NULL ) ||
 			vips_pow_const1( t[2], &t[3], *gamma, NULL ) ||
 			vips_cast( t[3], &t[4], in->BandFmt, NULL ) ||
-			vips_maplut( in, &out, t[4], NULL ) )
+			vips_maplut( in, &t[5], t[4], NULL ) )
 			return( NULL );
+		out = t[5];
 	}
 	else {
 		/* Just vips_linear1 it.
 		 */
-		if( vips_linear1( in, &t[0], fac, 0.0, NULL ) ||
-			vips_cast( t[0], &out, in->BandFmt, NULL ) )
+		if( vips_linear1( in, &t[6], fac, 0.0, NULL ) ||
+			vips_cast( t[6], &t[7], in->BandFmt, NULL ) )
 			return( NULL );
+		out = t[7];
 	}
 
 	vips_image_set_string( out, "mosaic-name", node->name );
@@ -1817,7 +1820,7 @@ transformf( JoinNode *node, double *gamma )
 	VipsImage *in = node->im;
 	double fac = node->st->fac[node->index];
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( VIPS_OBJECT( st->im ), 4 );
+		vips_object_local_array( VIPS_OBJECT( st->im ), 6 );
 
 	VipsImage *out;
 
@@ -1837,14 +1840,16 @@ transformf( JoinNode *node, double *gamma )
 				1.0 / (*gamma), NULL ) ||
 			vips_linear1( t[1], &t[2], fac, 0.0, NULL ) ||
 			vips_pow_const1( t[2], &t[3], *gamma, NULL ) ||
-			vips_maplut( in, &out, t[3], NULL ) )
+			vips_maplut( in, &t[4], t[3], NULL ) )
 			return( NULL );
+		out = t[4];
 	}
 	else {
 		/* Just vips_linear1 it.
 		 */
-		if( vips_linear1( in, &out, fac, 0.0, NULL ) )
+		if( vips_linear1( in, &t[5], fac, 0.0, NULL ) )
 			return( NULL );
+		out = t[5];
 	}
 
 	vips_image_set_string( out, "mosaic-name", node->name );
