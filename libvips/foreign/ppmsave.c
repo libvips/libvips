@@ -315,8 +315,11 @@ vips_foreign_save_ppm( VipsForeignSavePpm *ppm, VipsImage *image )
 
 		if( vips__byteswap_bool( image, &x, !vips_amiMSBfirst() ) )
 			return( -1 );
-		VIPS_UNREF( image );
 		image = x;
+
+                /* image must now be unreffed on exit.
+                 */
+                vips_object_local( VIPS_OBJECT( ppm->target ), image );
 	}
 
 	if( vips_sink_disc( image, vips_foreign_save_ppm_block, ppm ) )
