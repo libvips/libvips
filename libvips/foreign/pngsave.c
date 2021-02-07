@@ -146,8 +146,12 @@ vips_foreign_save_png_build( VipsObject *object )
 	if( vips__png_write_target( in, png->target,
 		png->compression, png->interlace, png->profile, png->filter,
 		save->strip, png->palette, png->Q, png->dither,
-		png->bitdepth ) )
+		png->bitdepth ) ) {
+		g_object_unref( in );
 		return( -1 );
+	}
+
+	g_object_unref( in );
 
 	return( 0 );
 }
