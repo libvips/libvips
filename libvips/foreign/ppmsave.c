@@ -212,12 +212,49 @@ vips_foreign_save_ppm_block( VipsRegion *region, VipsRect *area, void *a )
 }
 
 static int
-vips_foreign_save_ppm( VipsForeignSavePpm *ppm, VipsImage *image )
+vips_foreign_save_ppm_build( VipsObject *object )
 {
-	VipsForeignSave *save = (VipsForeignSave *) ppm;
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSavePpm *ppm = (VipsForeignSavePpm *) object;
 
+	VipsImage *image;
 	char *magic;
 	char *date;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_ppm_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	image = save->ready;
+
+        /* Handle the deprecated squash parameter.
+	 */
+        if( vips_object_argument_isset( object, "squash" ) ) 
+		ppm->bitdepth = 1;
+
+	if( vips_check_uintorf( "vips2ppm", image ) || 
+		vips_check_bands_1or3( "vips2ppm", image ) || 
+		vips_check_uncoded( "vips2ppm", image ) || 
+		vips_image_pio_input( image ) )
+		return( -1 );
+
+	if( ppm->ascii && 
+		image->BandFmt == VIPS_FORMAT_FLOAT ) {
+		g_warning( "%s", 
+			_( "float images must be binary -- disabling ascii" ) );
+		ppm->ascii = FALSE;
+	}
+
+	/* One bit images must come from a 8 bit, one band source. 
+	 */
+	if( ppm->bitdepth && 
+		(image->Bands != 1 || 
+		 image->BandFmt != VIPS_FORMAT_UCHAR) ) {
+		g_warning( "%s", 
+			_( "can only save 1 band uchar images as 1 bit -- " 
+				"disabling 1 bit save" ) );
+		ppm->bitdepth = 0; 
+	}
 
 	magic = "unset";
 	if( image->BandFmt == VIPS_FORMAT_FLOAT && 
@@ -317,63 +354,15 @@ vips_foreign_save_ppm( VipsForeignSavePpm *ppm, VipsImage *image )
 			return( -1 );
 		image = x;
 
-                /* image must now be unreffed on exit.
-                 */
-                vips_object_local( VIPS_OBJECT( ppm->target ), image );
+		/* image must now be unreffed on exit.
+		 */
+		vips_object_local( VIPS_OBJECT( ppm->target ), image );
 	}
 
 	if( vips_sink_disc( image, vips_foreign_save_ppm_block, ppm ) )
 		return( -1 );
 
 	vips_target_finish( ppm->target );
-
-	return( 0 );
-}
-
-static int
-vips_foreign_save_ppm_build( VipsObject *object )
-{
-	VipsForeignSave *save = (VipsForeignSave *) object;
-	VipsForeignSavePpm *ppm = (VipsForeignSavePpm *) object;
-
-	VipsImage *image;
-
-	if( VIPS_OBJECT_CLASS( vips_foreign_save_ppm_parent_class )->
-		build( object ) )
-		return( -1 );
-
-        /* Handle the deprecated squash parameter.
-	 */
-        if( vips_object_argument_isset( object, "squash" ) ) 
-		ppm->bitdepth = 1;
-
-	image = save->ready;
-	if( vips_check_uintorf( "vips2ppm", image ) || 
-		vips_check_bands_1or3( "vips2ppm", image ) || 
-		vips_check_uncoded( "vips2ppm", image ) || 
-		vips_image_pio_input( image ) )
-		return( -1 );
-
-	if( ppm->ascii && 
-		image->BandFmt == VIPS_FORMAT_FLOAT ) {
-		g_warning( "%s", 
-			_( "float images must be binary -- disabling ascii" ) );
-		ppm->ascii = FALSE;
-	}
-
-	/* One bit images must come from a 8 bit, one band source. 
-	 */
-	if( ppm->bitdepth && 
-		(image->Bands != 1 || 
-		 image->BandFmt != VIPS_FORMAT_UCHAR) ) {
-		g_warning( "%s", 
-			_( "can only save 1 band uchar images as 1 bit -- " 
-				"disabling 1 bit save" ) );
-		ppm->bitdepth = 0; 
-	}
-
-	if( vips_foreign_save_ppm( ppm, image ) )
-		return( -1 );
 
 	return( 0 );
 }

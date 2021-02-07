@@ -194,6 +194,10 @@ vips_foreign_load_ppm_dispose( GObject *gobject )
 {
 	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) gobject;
 
+#ifdef DEBUG
+	printf( "vips_foreign_load_ppm_dispose: %p\n", ppm );
+#endif /*DEBUG*/
+
 	VIPS_UNREF( ppm->sbuf );
 	VIPS_UNREF( ppm->source );
 
@@ -789,12 +793,9 @@ vips_foreign_load_ppm_file_build( VipsObject *object )
 	VipsForeignLoadPpmFile *file = (VipsForeignLoadPpmFile *) object;
 	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) object;
 
-	if( file->filename ) {
-		if( !(ppm->source = 
-			vips_source_new_from_file( file->filename )) )
-			return( -1 );
-		ppm->sbuf = vips_sbuf_new_from_source( ppm->source );
-	}
+	if( file->filename &&
+		!(ppm->source = vips_source_new_from_file( file->filename )) )
+		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_ppm_file_parent_class )->
 		build( object ) )
