@@ -81,4 +81,4 @@ jobs:
         run: pip3 install pyvips pytest
 
       - name: Run test suite
-        run: python3 -m pytest
+        run: VIPS_LEAK=1 python3 -m pytest

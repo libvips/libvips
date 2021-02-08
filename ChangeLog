@@ -16,6 +16,7 @@
 - avoid NaN in mapim [afontenot]
 - hist_find outputs a double histogram for large images [erdmann]
 - fix ref leaks in mosaicing package
+- run libvips leak test in CI 
 
 22/12/20 start 8.10.6
 - don't seek on bad file descriptors [kleisauke]
