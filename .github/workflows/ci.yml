@@ -45,37 +45,37 @@ jobs:
         if: contains(matrix.os, 'ubuntu')
         env:
           DEBIAN_FRONTEND: noninteractive
-        run: |
-          sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3 \
-            gtk-doc-tools gobject-introspection \
-            python3-pip python3-setuptools python3-wheel \
-            libfftw3-dev libexif-dev libjpeg-turbo8-dev \
-            libpng-dev libwebp-dev libtiff5-dev \
-            libheif-dev libexpat1-dev libcfitsio-dev \
-            libmatio-dev libnifti-dev liborc-0.4-dev \
-            liblcms2-dev libpoppler-glib-dev librsvg2-dev \
-            libgif-dev libopenexr-dev libpango1.0-dev \
+        run:
+          sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3
+            gtk-doc-tools gobject-introspection
+            python3-pip python3-setuptools python3-wheel
+            libfftw3-dev libexif-dev libjpeg-turbo8-dev
+            libpng-dev libwebp-dev libtiff5-dev
+            libheif-dev libexpat1-dev libcfitsio-dev
+            libmatio-dev libnifti-dev liborc-0.4-dev
+            liblcms2-dev libpoppler-glib-dev librsvg2-dev
+            libgif-dev libopenexr-dev libpango1.0-dev
             libgsf-1-dev libopenslide-dev libffi-dev
 
       - name: Install macOS dependencies
         if: contains(matrix.os, 'macos')
-        run: |
-          brew install \
-            autoconf automake libtool \
-            gtk-doc gobject-introspection \
-            cfitsio fftw giflib \
-            glib libexif libgsf \
-            libheif libjpeg-turbo libmatio \
-            librsvg libspng libtiff \
-            little-cms2 openexr openslide \
+        run:
+          brew install
+            autoconf automake libtool
+            gtk-doc gobject-introspection
+            cfitsio fftw giflib
+            glib libexif libgsf
+            libheif libjpeg-turbo libmatio
+            librsvg libspng libtiff
+            little-cms2 openexr openslide
             orc pango poppler webp
 
       - name: Install Clang 10
         env:
           DEBIAN_FRONTEND: noninteractive
         if: contains(matrix.os, 'ubuntu') && matrix.build.cc == 'clang-10'
-        run: |
-          sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3 \
+        run:
+          sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3
             clang-10 libomp-10-dev lld-10 llvm-10
 
       - name: Prepare build environment
@@ -116,9 +116,9 @@ jobs:
           echo -e '#include <stdio.h>\nint dlclose(void*handle){return 0;}' | $CC -shared -xc -odlclose.so -
 
       - name: Configure libvips
-        run: |
-          ./autogen.sh \
-            --disable-dependency-tracking \
+        run:
+          ./autogen.sh
+            --disable-dependency-tracking
             --disable-deprecated || (cat config.log && exit 1)
 
       - name: Build libvips
