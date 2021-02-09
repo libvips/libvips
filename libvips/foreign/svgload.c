@@ -80,13 +80,6 @@
  */
 #define RSVG_MAX_WIDTH (32767)
 
-/* Old librsvg versions don't include librsvg-features.h by default.
- * Newer versions deprecate direct inclusion.
- */
-#ifndef LIBRSVG_FEATURES_H
-#include <librsvg/librsvg-features.h>
-#endif
-
 /* A handy #define for we-will-handle-svgz.
  */
 #if LIBRSVG_CHECK_FEATURE(SVGZ) && defined(HAVE_ZLIB)
