@@ -2117,7 +2117,8 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_matrix_target_get_type( void ); 
 	extern GType vips_foreign_print_matrix_get_type( void ); 
 
-	extern GType vips_foreign_load_fits_get_type( void ); 
+	extern GType vips_foreign_load_fits_file_get_type( void ); 
+	extern GType vips_foreign_load_fits_source_get_type( void ); 
 	extern GType vips_foreign_save_fits_get_type( void ); 
 
 	extern GType vips_foreign_load_analyze_get_type( void ); 
@@ -2324,7 +2325,8 @@ vips_foreign_operation_init( void )
 #endif /*ENABLE_MAGICKSAVE*/
 
 #ifdef HAVE_CFITSIO
-	vips_foreign_load_fits_get_type(); 
+	vips_foreign_load_fits_file_get_type(); 
+	vips_foreign_load_fits_source_get_type(); 
 	vips_foreign_save_fits_get_type(); 
 #endif /*HAVE_CFITSIO*/
 

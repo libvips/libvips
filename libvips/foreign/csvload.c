@@ -616,17 +616,30 @@ vips_foreign_load_csv_source_build( VipsObject *object )
 	return( 0 );
 }
 
+static gboolean
+vips_foreign_load_csv_source_is_a_source( VipsSource *source )
+{
+	/* Detecting CSV files automatically is tricky. Define this method to
+	 * prevent a warning, but users will need to run the csv loader
+	 * explicitly.
+	 */
+	return( FALSE );
+}
+
 static void
 vips_foreign_load_csv_source_class_init( VipsForeignLoadCsvFileClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "csvload_source";
 	object_class->build = vips_foreign_load_csv_source_build;
+
+	load_class->is_a_source = vips_foreign_load_csv_source_is_a_source;
 
 	VIPS_ARG_OBJECT( class, "source", 1,
 		_( "Source" ),

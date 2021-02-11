@@ -217,7 +217,9 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 	int status;
 	int bitpix;
 
-	int width, height, bands, format, type;
+	int width, height, bands;
+	VipsBandFormat format;
+	VipsInterpretation interpretation;
 	int keysexist;
 	int i;
 
@@ -318,24 +320,24 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 
 	if( bands == 1 ) {
 		if( format == VIPS_FORMAT_USHORT )
-			type = VIPS_INTERPRETATION_GREY16;
+			interpretation = VIPS_INTERPRETATION_GREY16;
 		else
-			type = VIPS_INTERPRETATION_B_W;
+			interpretation = VIPS_INTERPRETATION_B_W;
 	}
 	else if( bands == 3 ) {
 		if( format == VIPS_FORMAT_USHORT )
-			type = VIPS_INTERPRETATION_RGB16;
+			interpretation = VIPS_INTERPRETATION_RGB16;
 		else
-			type = VIPS_INTERPRETATION_sRGB;
+			interpretation = VIPS_INTERPRETATION_sRGB;
 	}
 	else
-		type = VIPS_INTERPRETATION_MULTIBAND;
+		interpretation = VIPS_INTERPRETATION_MULTIBAND;
 
 	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 	vips_image_init_fields( out,
 		 width, height, bands,
 		 format,
-		 VIPS_CODING_NONE, type, 1.0, 1.0 );
+		 VIPS_CODING_NONE, interpretation, 1.0, 1.0 );
 
 	/* Read all keys into meta.
 	 */
@@ -517,7 +519,8 @@ int
 vips__fits_read( const char *filename, VipsImage *out )
 {
 	VipsImage *t;
-	int n_bands;
+	int bands;
+	VipsInterpretation interpretation;
 
 	VIPS_DEBUG_MSG( "fits2vips: reading \"%s\"\n", filename );
 
@@ -531,22 +534,26 @@ vips__fits_read( const char *filename, VipsImage *out )
 		g_object_unref( t );
 		return( -1 );
 	}
-	n_bands = t->Bands;
+	bands = t->Bands;
+	interpretation = t->Type;
 	g_object_unref( t );
 
-	if( n_bands == 1 ) {
+	if( bands == 1 ) {
 		if( fits2vips( filename, out, 0 ) )
 			return( -1 );
 	}
 	else {
 		VipsImage **x;
+		VipsImage **y;
 		int i;
 
 		t = vips_image_new();
 		x = (VipsImage **) vips_object_local_array( VIPS_OBJECT( t ), 
-			n_bands + 1 );
+			bands );
+		y = (VipsImage **) vips_object_local_array( VIPS_OBJECT( t ), 
+			3 );
 
-		for( i = 0; i < n_bands; i++ ) {
+		for( i = 0; i < bands; i++ ) {
 			x[i] = vips_image_new();
 			if( fits2vips( filename, x[i], i ) ) {
 				g_object_unref( t );
@@ -554,8 +561,11 @@ vips__fits_read( const char *filename, VipsImage *out )
 			}
 		}
 
-		if( vips_bandjoin( x, &x[n_bands], n_bands, NULL ) ||
-			vips_image_write( x[n_bands], out ) ) {
+		if( vips_bandjoin( x, &y[0], bands, NULL ) ||
+			vips_copy( y[0], &y[1], 
+				"interpretation", interpretation,
+				NULL ) ||
+			vips_image_write( y[1], out ) ) {
 			g_object_unref( t );
 			return( -1 );
 		}
