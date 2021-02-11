@@ -227,8 +227,8 @@ vips_get_argv0( void )
  * Returns: 0 on success, -1 otherwise
  */
 
-/* Load all plugins in a directory ... look for '.plg' suffix. Error if we had
- * any probs.
+/* Load all plugins in a directory ... look for '.<G_MODULE_SUFFIX>' or
+ * '.plg' (deprecated) suffix. Error if we had any probs.
  */
 static int
 vips_load_plugins( const char *fmt, ... )
@@ -259,7 +259,11 @@ vips_load_plugins( const char *fmt, ... )
 
         result = 0;
         while( (name = g_dir_read_name( dir )) )
-                if( vips_ispostfix( name, ".plg" ) ) { 
+                if( vips_ispostfix( name, "." G_MODULE_SUFFIX )
+#if ENABLE_DEPRECATED
+				|| vips_ispostfix( name, ".plg" ) 
+#endif
+			) { 
 			char path[VIPS_PATH_MAX];
 			GModule *module;
 
