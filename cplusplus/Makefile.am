@@ -42,6 +42,9 @@ install-htmlDATA:
 	-mkdir -p $(DESTDIR)$(htmldir)
 	-cp -r html $(DESTDIR)$(htmldir)
 
+uninstall-htmlDATA:
+	rm -rf $(DESTDIR)$(htmldir)/html
+
 EXTRA_DIST = \
 	README.md \
 	vips-operators.cpp \
