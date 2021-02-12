@@ -2183,7 +2183,8 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_heif_buffer_get_type( void ); 
 	extern GType vips_foreign_save_heif_target_get_type( void ); 
 
-	extern GType vips_foreign_load_nifti_get_type( void ); 
+	extern GType vips_foreign_load_nifti_file_get_type( void ); 
+	extern GType vips_foreign_load_nifti_source_get_type( void ); 
 	extern GType vips_foreign_save_nifti_get_type( void ); 
 
 	extern GType vips_foreign_load_gif_file_get_type( void ); 
@@ -2335,7 +2336,8 @@ vips_foreign_operation_init( void )
 #endif /*HAVE_OPENEXR*/
 
 #ifdef HAVE_NIFTI
-	vips_foreign_load_nifti_get_type(); 
+	vips_foreign_load_nifti_file_get_type(); 
+	vips_foreign_load_nifti_source_get_type(); 
 	vips_foreign_save_nifti_get_type(); 
 #endif /*HAVE_NIFTI*/
 

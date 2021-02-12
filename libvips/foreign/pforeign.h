@@ -229,7 +229,7 @@ int vips__quantise_image( VipsImage *in,
 	VipsImage **index_out, VipsImage **palette_out,
 	int colours, int Q, double dither );
 
-extern const char *vips__nifti_suffs[];
+extern const char *vips_foreign_nifti_suffs[];
 
 VipsBandFormat vips__foreign_nifti_datatype2BandFmt( int datatype );
 int vips__foreign_nifti_BandFmt2datatype( VipsBandFormat fmt );

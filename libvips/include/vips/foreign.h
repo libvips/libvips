@@ -671,6 +671,8 @@ int vips_heifsave_target( VipsImage *in, VipsTarget *target, ... )
 
 int vips_niftiload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_niftiload_source( VipsSource *source, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_niftisave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
 
