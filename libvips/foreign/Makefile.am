@@ -72,6 +72,9 @@ libforeign_la_SOURCES = \
 	webpload.c \
 	webpsave.c
 
+# We still need to include the GObject part of a loader/saver
+# if it is not built as a dynamically loadable module.
+
 EXTRA_DIST = libnsgif
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@

@@ -399,8 +399,8 @@ AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 AC_CHECK_LIB(m,atan2,[AC_DEFINE(HAVE_ATAN2,1,[have atan2() in libm.])])
 
 # have to have these parts of glib ... we need glib 2.15 for gio
-PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.40 gmodule-2.0 gobject-2.0 gio-2.0)
-PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-2.0 gobject-2.0 gio-2.0"
+PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.40 gmodule-no-export-2.0 gobject-2.0 gio-2.0)
+PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-no-export-2.0 gobject-2.0 gio-2.0"
 
 # from 2.62 we have datetime
 PKG_CHECK_MODULES(DATE_TIME_FORMAT_ISO8601, glib-2.0 >= 2.62,
@@ -436,6 +436,30 @@ PKG_CHECK_MODULES(HAVE_CHECKED_MUL, glib-2.0 >= 2.48,
   [:
   ]
 )
+
+AC_MSG_CHECKING([whether to build dynamic modules])
+
+AC_ARG_ENABLE([modules], 
+  AS_HELP_STRING([--disable-modules], [disable dynamic modules (default: enabled)]))
+
+gmodule_supported_bool=false
+gmodule_supported_flag=no
+gmodule_with_flag=yes
+
+if test x"$enable_modules" = x"no"; then
+  AC_MSG_RESULT(no)
+else
+  AC_MSG_RESULT(yes)
+  AC_MSG_CHECKING(whether dynamic modules work)
+  gmodule_supported_bool=`$PKG_CONFIG gmodule-no-export-2.0 --variable gmodule_supported`
+  if $gmodule_supported_bool; then
+    gmodule_supported_flag=yes
+    gmodule_with_flag='module'
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT(no)
+  fi
+fi
 
 # check for gtk-doc
 GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
@@ -1334,6 +1358,7 @@ VIPS_LIBS="$VIPS_LIBS $REQUIRED_LIBS -lm"
 VIPS_CONFIG="\
 enable debug: $enable_debug, \
 enable deprecated library components: $enable_deprecated, \
+enable modules: $gmodule_supported_flag, \
 enable docs with gtkdoc: $enable_gtk_doc, \
 gobject introspection:  $found_introspection, \
 RAD load/save: $with_radiance, \
@@ -1434,6 +1459,7 @@ AC_MSG_RESULT([dnl
 ## Build options
 enable debug:                           $enable_debug
 enable deprecated library components:   $enable_deprecated
+enable modules:                         $gmodule_supported_flag
 enable docs with gtkdoc:                $enable_gtk_doc
 gobject introspection:                  $found_introspection
 RAD load/save:                          $with_radiance

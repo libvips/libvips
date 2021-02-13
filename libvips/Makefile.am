@@ -61,6 +61,7 @@ libvips_la_LDFLAGS = \
 	-version-info @LIBRARY_CURRENT@:@LIBRARY_REVISION@:@LIBRARY_AGE@ 
 
 EXTRA_DIST = \
+	module \
 	$(OPTIONAL_DIST_DIR)
 
 CLEANFILES = 
@@ -71,6 +72,35 @@ install-exec-hook:
 	echo "#define VIPS_SONAME \"$$dlname\"" >> soname.h && \
 	cp soname.h $(DESTDIR)$(pkgincludedir) && \
 	rm soname.h
+
+# Modules
+
+module_LTLIBRARIES = 
+
+# All modules within the $VIPSHOME/lib/vips-modules-MAJOR.MINOR
+# directory are automatically loaded on vips_init.
+
+moduledir = @VIPS_LIBDIR@/vips-modules-@VIPS_MAJOR_VERSION@.@VIPS_MINOR_VERSION@
+
+MODULE_CPPFLAGS = \
+	-I${top_srcdir}/libvips/include \
+	$(REQUIRED_CFLAGS)
+
+MODULE_LDFLAGS = \
+	-no-undefined \
+	-shared \
+	-module \
+	-avoid-version
+
+MODULE_LIBADD = \
+	libvips.la \
+	$(REQUIRED_LIBS)
+
+# Note that only the GObject part should be included in a
+# dynamically loadable module. The C definitions are always
+# included in the main library.
+
+# Introspection
 
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
