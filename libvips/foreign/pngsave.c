@@ -136,6 +136,13 @@ vips_foreign_save_png_build( VipsObject *object )
         if( !vips_object_argument_isset( object, "bitdepth" ) ) 
 		png->bitdepth = in->BandFmt == VIPS_FORMAT_UCHAR ? 8 : 16;
 
+	/* Filtering usually reduces the compression ratio for palette images,
+	 * so default off.
+	 */
+        if( !vips_object_argument_isset( object, "filter" ) &&
+		png->palette )
+		png->filter = VIPS_FOREIGN_PNG_FILTER_NONE;
+
 	/* If this is a RGB or RGBA image and a low bit depth has been
 	 * requested, enable palettization.
 	 */
@@ -476,7 +483,8 @@ vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
  * profile from the VIPS header will be attached.
  *
  * Use @filter to specify one or more filters (instead of adaptive filtering),
- * see #VipsForeignPngFilter. 
+ * see #VipsForeignPngFilter. @filter defaults to NONE for palette images, 
+ * since they generally have very low local correlation.
  *
  * The image is automatically converted to RGB, RGBA, Monochrome or Mono +
  * alpha before saving. Images with more than one byte per band element are
