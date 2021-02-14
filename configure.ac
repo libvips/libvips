@@ -826,7 +826,14 @@ VIPS_LIBS="$VIPS_LIBS $LIBOPENJP2_LIBS"
 
 # libheif
 AC_ARG_WITH([heif], 
-  AS_HELP_STRING([--without-heif], [build without libheif (default: test)]))
+  AS_HELP_STRING([--without-heif], [build without libheif (default: test)]),
+  [with_heif=$withval],
+  [with_heif=$gmodule_with_flag])
+
+# libheif as a dynamically loadable module
+AS_IF([test x"$with_heif" = x"module"],
+  [with_heif_module=$gmodule_supported_flag],
+  [with_heif_module=no])
 
 if test x"$with_heif" != x"no"; then
   PKG_CHECK_MODULES(HEIF, libheif >= 1.3.0,
@@ -845,11 +852,13 @@ if test x"$with_heif" != x"no"; then
         AC_DEFINE(HAVE_HEIF_ENCODER,1,
              [define if your libheif has encode support.])
      fi
-     PACKAGES_USED="$PACKAGES_USED libheif"
+    AS_IF([test x"$with_heif_module" = x"no"],
+      [PACKAGES_USED="$PACKAGES_USED libheif"])
     ],
     [AC_MSG_WARN([libheif >= 1.3.0 not found; disabling HEIF support])
      pkg-config --exists --print-errors "libheif >= 1.3.0"
      with_heif=no
+     with_heif_module=no
      have_h265_decoder=
      have_h265_encoder=
      have_avif_decoder=
@@ -857,6 +866,12 @@ if test x"$with_heif" != x"no"; then
     ]
   )
 fi
+
+AS_IF([test x"$with_heif_module" = x"yes"],
+  [AC_DEFINE([HEIF_MODULE], [1], [define to build libheif as a dynamically loadable module.])],
+  [VIPS_CFLAGS="$VIPS_CFLAGS $HEIF_CFLAGS"
+   VIPS_LIBS="$VIPS_LIBS $HEIF_LIBS"])
+AM_CONDITIONAL(HEIF_MODULE, [test x"$with_heif_module" = x"yes"])
 
 # color profile support added in 1.3.3
 if test x"$with_heif" = x"yes"; then
@@ -890,9 +905,6 @@ if test x"$with_heif" = x"yes"; then
    [#include <libheif/heif.h>])
   CFLAGS="$save_CFLAGS"
 fi
-
-VIPS_CFLAGS="$VIPS_CFLAGS $HEIF_CFLAGS"
-VIPS_LIBS="$VIPS_LIBS $HEIF_LIBS"
 
 # pdfium
 AC_ARG_WITH([pdfium],
@@ -1391,7 +1403,7 @@ PNG load/save with libpng: $with_png, \
 8bpp PNG quantisation: $with_imagequant, \
 TIFF load/save with libtiff: $with_tiff, \
 image pyramid save: $with_gsf, \
-HEIC/AVIF load/save with libheif: $with_heif, \
+HEIC/AVIF load/save with libheif: $with_heif (dynamic module: $with_heif_module), \
 WebP load/save with libwebp: $with_libwebp, \
 PDF load with PDFium:  $with_pdfium, \
 PDF load with poppler-glib: $with_poppler, \
@@ -1501,7 +1513,7 @@ PNG load/save with libpng:              $with_png
 TIFF load/save with libtiff:            $with_tiff
 image pyramid save:                     $with_gsf
  (requires libgsf-1 1.14.26 or later)
-HEIC/AVIF load/save with libheif:       $with_heif
+HEIC/AVIF load/save with libheif:       $with_heif (dynamic module: $with_heif_module)
 WebP load/save with libwebp:            $with_libwebp
  (requires libwebp, libwebpmux, libwebpdemux 0.6.0 or later)
 PDF load with PDFium:                   $with_pdfium

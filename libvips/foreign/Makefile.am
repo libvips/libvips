@@ -74,6 +74,10 @@ libforeign_la_SOURCES = \
 # We still need to include the GObject part of a loader/saver
 # if it is not built as a dynamically loadable module.
 
+if !HEIF_MODULE
+libforeign_la_SOURCES += heif2vips.c vips2heif.c
+endif # !HEIF_MODULE
+
 if !OPENSLIDE_MODULE
 libforeign_la_SOURCES += openslide2vips.c
 endif # !OPENSLIDE_MODULE

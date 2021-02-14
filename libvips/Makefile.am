@@ -82,6 +82,10 @@ module_LTLIBRARIES =
 
 moduledir = @VIPS_LIBDIR@/vips-modules-@VIPS_MAJOR_VERSION@.@VIPS_MINOR_VERSION@
 
+if HEIF_MODULE
+module_LTLIBRARIES += vips-heif.la
+endif # HEIF_MODULE
+
 if OPENSLIDE_MODULE
 module_LTLIBRARIES += vips-openslide.la
 endif # OPENSLIDE_MODULE
@@ -103,6 +107,11 @@ MODULE_LIBADD = \
 # Note that only the GObject part should be included in a
 # dynamically loadable module. The C definitions are always
 # included in the main library.
+
+vips_heif_la_SOURCES = module/heif.c foreign/heif2vips.c foreign/vips2heif.c
+vips_heif_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(HEIF_CFLAGS)
+vips_heif_la_LDFLAGS = $(MODULE_LDFLAGS)
+vips_heif_la_LIBADD = $(MODULE_LIBADD) $(HEIF_LIBS)
 
 vips_openslide_la_SOURCES = module/openslide.c foreign/openslide2vips.c
 vips_openslide_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(OPENSLIDE_CFLAGS)
