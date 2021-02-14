@@ -1146,23 +1146,29 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 	return( 0 );
 }
 
-void
+int
 vips__print_renders( void )
 {
+	int n_leaks;
+
+	n_leaks = 0;
+
 #ifdef VIPS_DEBUG_AMBER
-	if( render_num_renders > 0 )
+	if( render_num_renders > 0 ) {
 		printf( "%d active renders\n", render_num_renders );
+		n_leaks += render_num_renders;
+	}
 #endif /*VIPS_DEBUG_AMBER*/
 
 	if( render_dirty_lock ) { 
-		int n_dirty;
-
 		g_mutex_lock( render_dirty_lock );
 
-		n_dirty = g_slist_length( render_dirty_all );
-		if( n_dirty > 0 ) 
-			printf( "%d dirty renders\n", n_dirty );
+		n_leaks += g_slist_length( render_dirty_all );
+		if( render_dirty_all ) 
+			printf( "dirty renders\n" );
 
 		g_mutex_unlock( render_dirty_lock );
 	}
+
+	return( n_leaks );
 }

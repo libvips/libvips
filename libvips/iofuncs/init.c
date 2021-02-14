@@ -643,13 +643,20 @@ vips_check_init( void )
 		vips_error_clear();
 }
 
-static void
+static int
 vips_leak( void ) 
 {
 	char txt[1024];
 	VipsBuf buf = VIPS_BUF_STATIC( txt );
+	int n_leaks;
 
-	vips_object_print_all();
+	n_leaks = 0;
+
+	n_leaks += vips__object_leak();
+	n_leaks += vips__type_leak();
+	n_leaks += vips_tracked_get_allocs();
+	n_leaks += vips_tracked_get_mem();
+	n_leaks += vips_tracked_get_files();
 
 	if( vips_tracked_get_allocs() || 
 		vips_tracked_get_mem() ||
@@ -664,21 +671,27 @@ vips_leak( void )
 	vips_buf_append_size( &buf, vips_tracked_get_mem_highwater() );
 	vips_buf_appends( &buf, "\n" );
 
-	if( strlen( vips_error_buffer() ) > 0 ) 
+	if( strlen( vips_error_buffer() ) > 0 ) {
 		vips_buf_appendf( &buf, "error buffer: %s", 
 			vips_error_buffer() );
+		n_leaks += strlen( vips_error_buffer() );
+	}
 
-	if( vips__n_active_threads > 0 )
+	if( vips__n_active_threads > 0 ) {
 		vips_buf_appendf( &buf, "threads: %d not joined\n", 
 			vips__n_active_threads ); 
+		n_leaks += vips__n_active_threads;
+	}
 
 	fprintf( stderr, "%s", vips_buf_all( &buf ) );
 
-	vips__print_renders();
+	n_leaks += vips__print_renders();
 
 #ifdef DEBUG
 	vips_buffer_dump_all();
 #endif /*DEBUG*/
+
+	return( n_leaks );
 }
 
 /**
@@ -755,8 +768,9 @@ vips_shutdown( void )
 	{
 		static gboolean done = FALSE;
 
-		if( !done ) 
-			vips_leak();
+		if( !done &&
+			vips_leak() ) 
+			exit( 1 );
 
 		done = TRUE;
 	}

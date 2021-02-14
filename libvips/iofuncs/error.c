@@ -200,7 +200,7 @@ vips_error_buffer_copy( void )
 
 	g_mutex_lock( vips__global_lock );
 	msg = g_strdup( vips_buf_all( &vips_error_buf ) );
-	vips_error_clear();
+	vips_buf_rewind( &vips_error_buf );
 	g_mutex_unlock( vips__global_lock );
 
 	return( msg );
