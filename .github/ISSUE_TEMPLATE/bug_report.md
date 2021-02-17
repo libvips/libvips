@@ -1,8 +1,8 @@
 ---
 name: Bug Report
 about: Create A Bug Report
-title: 'A concise title of what the bug is.'
-labels: 'bug'
+title: A concise title of what the bug is.
+labels: bug
 assignees: ''
 
 ---
