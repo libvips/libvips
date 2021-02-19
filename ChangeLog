@@ -18,6 +18,7 @@
 - fix ref leaks in mosaicing package
 - run libvips leak test in CI 
 - add vips_fitsload_source()m vips_niftiload_source()
+- png load notes background colour as metadata [781545872]
 
 22/12/20 start 8.10.6
 - don't seek on bad file descriptors [kleisauke]

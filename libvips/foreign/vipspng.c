@@ -79,6 +79,8 @@
  * 	- revise for connection IO
  * 11/5/20
  * 	- only warn for saving bad profiles, don't fail
+ * 19/2/21 781545872
+ * 	- read out background, if we can
  */
 
 /*
@@ -558,6 +560,54 @@ png2vips_header( Read *read, VipsImage *out )
 	 */
 	if( color_type == PNG_COLOR_TYPE_PALETTE )
 		vips_image_set_int( out, "palette-bit-depth", bitdepth );
+
+	/* Note the PNG background colour, if any.
+	 */
+#ifdef PNG_bKGD_SUPPORTED
+{
+	png_color_16 *background;
+
+	if( png_get_bKGD( read->pPng, read->pInfo, &background ) ) {
+		const int scale = out->BandFmt == VIPS_FORMAT_UCHAR ? 1 : 256;
+
+		double array[3];
+		int n;
+
+		switch( color_type ) {
+		case PNG_COLOR_TYPE_GRAY:
+		case PNG_COLOR_TYPE_GRAY_ALPHA:
+			array[0] = background->gray / scale;
+			n = 1;
+			break;
+
+		case PNG_COLOR_TYPE_RGB:
+		case PNG_COLOR_TYPE_RGB_ALPHA:
+			array[0] = background->red / scale;
+			array[1] = background->green / scale;
+			array[2] = background->blue / scale;
+			n = 3;
+			break;
+
+		case PNG_COLOR_TYPE_PALETTE:
+		default:
+			/* Not sure what to do here. I suppose we should read
+			 * the palette.
+			 */
+			n = 0;
+			break;
+		}
+
+		if( n > 0 ) {
+			GValue value = { 0 };
+
+			g_value_init( &value, VIPS_TYPE_ARRAY_DOUBLE );
+			vips_value_set_array_double( &value, array, n );
+			vips_image_set( out, "background", &value );
+			g_value_unset( &value );
+		}
+	}
+}
+#endif
 
 	return( 0 );
 }

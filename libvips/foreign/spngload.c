@@ -2,6 +2,8 @@
  *
  * 1/5/20
  * 	- from pngload.c
+ * 19/2/21 781545872
+ * 	- read out background, if we can
  */
 
 /*
@@ -199,6 +201,7 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 	struct spng_iccp iccp;
 	struct spng_exif exif;
 	struct spng_phys phys;
+	struct spng_bkgd bkgd;
 	guint32 n_text;
 
 	/* Get resolution. Default to 72 pixels per inch.
@@ -267,6 +270,47 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 	 */
 	if( png->ihdr.interlace_method != SPNG_INTERLACE_NONE ) 
 		vips_image_set_int( image, "interlaced", 1 ); 
+
+	if( !spng_get_bkgd( png->ctx, &bkgd ) ) {
+		const int scale = image->BandFmt == 
+			VIPS_FORMAT_UCHAR ? 1 : 256;
+
+		double array[3];
+		int n;
+
+		switch( png->ihdr.color_type ) { 
+		case SPNG_COLOR_TYPE_GRAYSCALE:
+		case SPNG_COLOR_TYPE_GRAYSCALE_ALPHA:
+			array[0] = bkgd.gray / scale;
+			n = 1;
+			break;
+
+		case SPNG_COLOR_TYPE_TRUECOLOR:
+		case SPNG_COLOR_TYPE_TRUECOLOR_ALPHA:
+			array[0] = bkgd.red / scale;
+			array[1] = bkgd.green / scale;
+			array[2] = bkgd.blue / scale;
+			n = 3;
+			break;
+
+		case SPNG_COLOR_TYPE_INDEXED:
+		default:
+			/* Not sure what to do here. I suppose we should read
+			 * the palette.
+			 */
+			n = 0;
+			break;
+		}
+
+		if( n > 0 ) {
+			GValue value = { 0 };
+
+			g_value_init( &value, VIPS_TYPE_ARRAY_DOUBLE );
+			vips_value_set_array_double( &value, array, n );
+			vips_image_set( image, "background", &value );
+			g_value_unset( &value );
+		}
+	}
 }
 
 static int
@@ -307,7 +351,6 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
 		return( -1 );
 	}
-
 
 #ifdef DEBUG
 	printf( "width: %d\nheight: %d\nbit depth: %d\ncolor type: %d\n",
