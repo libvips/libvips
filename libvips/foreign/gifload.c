@@ -42,6 +42,8 @@
  * 2/7/20
  * 	- clip out of bounds images against canvas
  * 	- fix PREVIOUS handling, again
+ * 19/2/21 781545872
+ * 	- read out background, if we can
  */
 
 /*
@@ -701,6 +703,7 @@ static int
 vips_foreign_load_gif_set_header( VipsForeignLoadGif *gif, VipsImage *image )
 {
 	const gint64 total_height = (gint64) gif->file->SHeight * gif->n;
+	ColorMapObject *map = gif->file->SColorMap;
 
 	if( total_height <= 0 || 
 		total_height > VIPS_MAX_COORD ) {
@@ -744,6 +747,18 @@ vips_foreign_load_gif_set_header( VipsForeignLoadGif *gif, VipsImage *image )
 
 	if( gif->comment )
 		vips_image_set_string( image, "gif-comment", gif->comment );
+
+	if( map && 
+		gif->file->SBackGroundColor >= 0 &&
+		gif->file->SBackGroundColor < map->ColorCount ) { 
+		double array[3];
+
+		array[0] = map->Colors[gif->file->SBackGroundColor].Red;
+		array[1] = map->Colors[gif->file->SBackGroundColor].Green;
+		array[2] = map->Colors[gif->file->SBackGroundColor].Blue;
+
+		vips_image_set_array_double( image, "background", array, 3 );
+	}
 
 	return( 0 );
 }

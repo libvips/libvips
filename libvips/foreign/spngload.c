@@ -302,14 +302,9 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 			break;
 		}
 
-		if( n > 0 ) {
-			GValue value = { 0 };
-
-			g_value_init( &value, VIPS_TYPE_ARRAY_DOUBLE );
-			vips_value_set_array_double( &value, array, n );
-			vips_image_set( image, "background", &value );
-			g_value_unset( &value );
-		}
+		if( n > 0 ) 
+			vips_image_set_array_double( image, "background", 
+				array, n );
 	}
 }
 

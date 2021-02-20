@@ -1959,6 +1959,64 @@ vips_image_set_array_int( VipsImage *image, const char *name,
 	g_value_unset( &value );
 }
 
+/** 
+ * vips_image_get_array_double: (method)
+ * @image: image to get the metadata from
+ * @name: metadata name
+ * @out: (transfer none): return pointer to array
+ * @n: (allow-none): return the number of elements here, optionally
+ *
+ * Gets @out from @im under the name @name. 
+ * The field must be of type
+ * #VIPS_TYPE_ARRAY_INT.
+ *
+ * Do not free @out. @out is valid as long as @image is valid.
+ *
+ * Use vips_image_get_typeof() to test for the 
+ * existence of a piece of metadata.
+ *
+ * See also: vips_image_get(), vips_image_set_image()
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_image_get_array_double( VipsImage *image, const char *name,
+	double **out, int *n )
+{
+	GValue value = { 0 };
+
+	if( meta_get_value( image, name, VIPS_TYPE_ARRAY_DOUBLE, &value ) ) 
+		return( -1 );
+	*out = vips_value_get_array_double( &value, n );
+	g_value_unset( &value );
+
+	return( 0 );
+}
+
+/**
+ * vips_image_set_array_double: (method)
+ * @image: image to attach the metadata to
+ * @name: metadata name
+ * @array: (array length=n) (allow-none): array of doubles
+ * @n: the number of elements 
+ *
+ * Attaches @array as a metadata item on @image as @name. 
+ * A convenience function over vips_image_set().
+ *
+ * See also: vips_image_get_image(), vips_image_set().
+ */
+void
+vips_image_set_array_double( VipsImage *image, const char *name,
+	const double *array, int n )
+{
+	GValue value = { 0 };
+
+	g_value_init( &value, VIPS_TYPE_ARRAY_DOUBLE );
+	vips_value_set_array_double( &value, array, n );
+	vips_image_set( image, name, &value );
+	g_value_unset( &value );
+}
+
 /**
  * vips_image_history_printf: (method)
  * @image: add history line to this image

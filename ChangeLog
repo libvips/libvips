@@ -17,8 +17,9 @@
 - hist_find outputs a double histogram for large images [erdmann]
 - fix ref leaks in mosaicing package
 - run libvips leak test in CI 
-- add vips_fitsload_source()m vips_niftiload_source()
-- png load notes background colour as metadata [781545872]
+- add vips_fitsload_source(), vips_niftiload_source()
+- png and gif load note background colour as metadata [781545872]
+- add vips_image_[set|get]_array_double()
 
 22/12/20 start 8.10.6
 - don't seek on bad file descriptors [kleisauke]
