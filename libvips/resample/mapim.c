@@ -77,54 +77,6 @@ typedef VipsResampleClass VipsMapimClass;
 
 G_DEFINE_TYPE( VipsMapim, vips_mapim, VIPS_TYPE_RESAMPLE );
 
-/* Minmax of a line of float pixels. We have to ignore NaN. 
- */
-#define FMINMAX( TYPE ) { \
-	TYPE * restrict p1 = (TYPE *) p; \
-	TYPE t_max_x = max_x; \
-	TYPE t_min_x = min_x; \
-	TYPE t_max_y = max_y; \
-	TYPE t_min_y = min_y; \
-	\
-	for( x = 0; x < r->width; x++ ) { \
-		TYPE px = p1[0]; \
-		TYPE py = p1[1]; \
-		\
-		if( VIPS_ISNAN( px ) || \
-			VIPS_ISNAN( py ) ) \
-			continue; \
-		\
-		if( first ) { \
-			t_min_x = px; \
-			t_max_x = px; \
-			t_min_y = py; \
-			t_max_y = py; \
-			\
-			first = FALSE; \
-		} \
-		else { \
-			if( px > t_max_x ) \
-				t_max_x = px; \
-			else if( px < t_min_x ) \
-				t_min_x = px; \
-			\
-			if( py > t_max_y ) \
-				t_max_y = py; \
-			else if( py < t_min_y ) \
-				t_min_y = py; \
-		} \
-		\
-		p1 += 2; \
-	} \
-	\
-	if( !first ) { \
-		min_x = VIPS_CLIP( 0, floor( t_min_x ), VIPS_MAX_COORD ); \
-		max_x = VIPS_CLIP( 0, floor( t_max_x ), VIPS_MAX_COORD ); \
-		min_y = VIPS_CLIP( 0, floor( t_min_y ), VIPS_MAX_COORD ); \
-		max_y = VIPS_CLIP( 0, floor( t_max_y ), VIPS_MAX_COORD ); \
-	} \
-}
-
 /* Minmax of a line of pixels. Pass in a thing to convert back to int 
  * coordinates.
  */
@@ -166,6 +118,53 @@ G_DEFINE_TYPE( VipsMapim, vips_mapim, VIPS_TYPE_RESAMPLE );
 	max_x = CLIP( t_max_x ); \
 	min_y = CLIP( t_min_y ); \
 	max_y = CLIP( t_max_y ); \
+}
+
+/* Minmax of a line of float pixels. We have to ignore NaN. 
+ */
+#define FMINMAX( TYPE ) { \
+	TYPE * restrict p1 = (TYPE *) p; \
+	TYPE t_max_x = max_x; \
+	TYPE t_min_x = min_x; \
+	TYPE t_max_y = max_y; \
+	TYPE t_min_y = min_y; \
+	\
+	for( x = 0; x < r->width; x++ ) { \
+		TYPE px = p1[0]; \
+		TYPE py = p1[1]; \
+		\
+		if( !VIPS_ISNAN( px ) && \
+			!VIPS_ISNAN( py ) ) { \
+			if( first ) { \
+				t_min_x = px; \
+				t_max_x = px; \
+				t_min_y = py; \
+				t_max_y = py; \
+				\
+				first = FALSE; \
+			} \
+			else { \
+				if( px > t_max_x ) \
+					t_max_x = px; \
+				else if( px < t_min_x ) \
+					t_min_x = px; \
+				\
+				if( py > t_max_y ) \
+					t_max_y = py; \
+				else if( py < t_min_y ) \
+					t_min_y = py; \
+			} \
+		}\
+		\
+		p1 += 2; \
+	} \
+	\
+	if( !first ) { \
+		min_x = VIPS_CLIP( 0, floor( t_min_x ), VIPS_MAX_COORD ); \
+		max_x = VIPS_CLIP( 0, floor( t_max_x ), VIPS_MAX_COORD ); \
+		min_y = VIPS_CLIP( 0, floor( t_min_y ), VIPS_MAX_COORD ); \
+		max_y = VIPS_CLIP( 0, floor( t_max_y ), VIPS_MAX_COORD ); \
+	} \
 }
 
 /* All the clippers. These vary with TYPE.
