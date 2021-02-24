@@ -626,12 +626,16 @@ vips_thumbnail_build( VipsObject *object )
 	int preshrunk_page_height;
 	double hshrink;
 	double vshrink;
-	VipsInterpretation interpretation;
 
 	/* TRUE if we've done the import of an ICC transform and still need to
 	 * export.
 	 */
 	gboolean have_imported;
+
+	/* If we shrink in linear space, we need to return to the input
+	 * colourspace after the shrink.
+	 */
+	VipsInterpretation input_interpretation;
 
 	/* TRUE if we've premultiplied and need to unpremultiply.
 	 */
@@ -669,7 +673,7 @@ vips_thumbnail_build( VipsObject *object )
 	 */
 	preshrunk_page_height = vips_image_get_page_height( in );
 
-	/* RAD needs special unpacking.
+	/* Coded forms need special unpacking.
 	 */
 	if( in->Coding == VIPS_CODING_RAD ) {
 		g_info( "unpacking Rad to float" );
@@ -680,61 +684,68 @@ vips_thumbnail_build( VipsObject *object )
 			return( -1 );
 		in = t[12];
 	}
+	else if( in->Coding == VIPS_CODING_LABQ ) {
+		g_info( "unpacking LABQ to float" );
 
-	/* In linear mode, we import right at the start. 
-	 *
-	 * We also have to import the whole image if it's CMYK, since
-	 * vips_colourspace() (see below) doesn't let you specify the fallback
-	 * profile.
-	 *
-	 * This is only going to work for images in device space. If you have
-	 * an image in PCS which also has an attached profile, strange things
-	 * will happen. 
-	 */
-	have_imported = FALSE;
-	if( thumbnail->linear &&
-		in->Coding == VIPS_CODING_NONE &&
-		(in->BandFmt == VIPS_FORMAT_UCHAR ||
-		 in->BandFmt == VIPS_FORMAT_USHORT) &&
-		(vips_image_get_typeof( in, VIPS_META_ICC_NAME ) || 
-		 thumbnail->import_profile) ) {
-		g_info( "importing to XYZ PCS" );
-		if( thumbnail->import_profile ) 
-			g_info( "fallback input profile %s", 
-				thumbnail->import_profile );
-
-		if( vips_icc_import( in, &t[1], 
-			"input_profile", thumbnail->import_profile,
-			"embedded", TRUE,
-			"intent", thumbnail->intent,
-			"pcs", VIPS_PCS_XYZ,
-			NULL ) )  
+		if( vips_LabQ2Lab( in, &t[12], NULL ) )
 			return( -1 );
-
-		in = t[1];
-
-		have_imported = TRUE;
+		in = t[12];
 	}
 
-	/* To the processing colourspace. This will unpack LABQ, import CMYK,
-	 * etc.
+	/* In linear mode, we need to transform to a linear space before 
+	 * vips_resize(). 
 	 *
-	 * If this is a CMYK image, we need to set have_imported since we only
-	 * want to export at the end.
+	 * If we are doing colour management (there's an import profile), 
+	 * then we use XYZ PCS as the resize space.
 	 */
-	if( in->Type == VIPS_INTERPRETATION_CMYK )
-		have_imported = TRUE;
-	if( thumbnail->linear )
-		interpretation = VIPS_INTERPRETATION_scRGB;
-	else if( in->Bands < 3 )
-		interpretation = VIPS_INTERPRETATION_B_W; 
-	else 
-		interpretation = VIPS_INTERPRETATION_sRGB; 
-	g_info( "converting to processing space %s",
-		vips_enum_nick( VIPS_TYPE_INTERPRETATION, interpretation ) ); 
-	if( vips_colourspace( in, &t[2], interpretation, NULL ) ) 
-		return( -1 ); 
-	in = t[2];
+	have_imported = FALSE;
+	if( thumbnail->linear ) {
+		if( in->Coding == VIPS_CODING_NONE &&
+			(in->BandFmt == VIPS_FORMAT_UCHAR ||
+			 in->BandFmt == VIPS_FORMAT_USHORT) &&
+			(vips_image_get_typeof( in, VIPS_META_ICC_NAME ) || 
+			 thumbnail->import_profile) ) {
+			g_info( "importing to XYZ PCS" );
+			if( thumbnail->import_profile ) 
+				g_info( "fallback input profile %s", 
+					thumbnail->import_profile );
+
+			if( vips_icc_import( in, &t[1], 
+				"input_profile", thumbnail->import_profile,
+				"embedded", TRUE,
+				"intent", thumbnail->intent,
+				"pcs", VIPS_PCS_XYZ,
+				NULL ) )  
+				return( -1 );
+
+			in = t[1];
+
+			have_imported = TRUE;
+		}
+		else {
+			/* Otherwise, use scRGB or GREY16 for linear shrink.
+			 */
+			VipsInterpretation interpretation;
+
+			/* Note the interpretation we will revert to after 
+			 * linear.
+			 */
+			input_interpretation = in->Type;
+
+			if( in->Bands < 3 )
+				interpretation = VIPS_INTERPRETATION_GREY16; 
+			else 
+				interpretation = VIPS_INTERPRETATION_scRGB; 
+
+			g_info( "converting to processing space %s",
+				vips_enum_nick( VIPS_TYPE_INTERPRETATION, 
+					interpretation ) ); 
+			if( vips_colourspace( in, &t[2], interpretation, 
+				NULL ) ) 
+				return( -1 ); 
+			in = t[2];
+		}
+	}
 
 	/* Shrink to preshrunk_page_height, so we work for multi-page images.
 	 */
@@ -767,7 +778,7 @@ vips_thumbnail_build( VipsObject *object )
 
 		/* vips_premultiply() makes a float image. When we
 		 * vips_unpremultiply() below, we need to cast back to the
-		 * pre-premultiply format.
+		 * pre-premultiplied format.
 		 */
 		unpremultiplied_format = in->BandFmt;
 		in = t[3];
@@ -778,6 +789,14 @@ vips_thumbnail_build( VipsObject *object )
 		NULL ) ) 
 		return( -1 );
 	in = t[4];
+
+	if( have_premultiplied ) {
+		g_info( "unpremultiplying alpha" ); 
+		if( vips_unpremultiply( in, &t[5], NULL ) || 
+			vips_cast( t[5], &t[6], unpremultiplied_format, NULL ) )
+			return( -1 );
+		in = t[6];
+	}
 
 	/* Only set page-height if we have more than one page, or this could
 	 * accidentally turn into an animated image later.
@@ -794,21 +813,12 @@ vips_thumbnail_build( VipsObject *object )
 			VIPS_META_PAGE_HEIGHT, output_page_height );
 	}
 
-	if( have_premultiplied ) {
-		g_info( "unpremultiplying alpha" ); 
-		if( vips_unpremultiply( in, &t[5], NULL ) || 
-			vips_cast( t[5], &t[6], unpremultiplied_format, NULL ) )
-			return( -1 );
-		in = t[6];
-	}
-
 	/* Colour management.
-	 *
-	 * If we've already imported, just export. Otherwise, we're in 
-	 * device space and we need a combined import/export to transform to 
-	 * the target space.
 	 */
 	if( have_imported ) { 
+		/* We've already imported, just export. Go to sRGB if there's
+		 * no export profile.
+		 */
 		if( thumbnail->export_profile ||
 			vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
 			g_info( "exporting to device space with a profile" );
@@ -827,9 +837,10 @@ vips_thumbnail_build( VipsObject *object )
 			in = t[7];
 		}
 	}
-	else if( thumbnail->export_profile &&
-		(vips_image_get_typeof( in, VIPS_META_ICC_NAME ) || 
-		 thumbnail->import_profile) ) {
+	else if( thumbnail->export_profile ) {
+		/* Not imported, but we are doing colourmanagement. Transform
+		 * to the output space.
+		 */
 		g_info( "transforming to %s", thumbnail->export_profile );
 		if( thumbnail->import_profile ) 
 			g_info( "fallback input profile %s", 
@@ -842,6 +853,19 @@ vips_thumbnail_build( VipsObject *object )
 			"embedded", TRUE,
 			NULL ) ) 
 			return( -1 );
+		in = t[7];
+	}
+	else if( thumbnail->linear ) {
+		/* Linear mode, no colour management. We went to scRGB for
+		 * precessing, so we now revert to the input
+		 * colourspace.
+		 */
+		g_info( "reverting to input space %s",
+			vips_enum_nick( VIPS_TYPE_INTERPRETATION, 
+				input_interpretation ) ); 
+		if( vips_colourspace( in, &t[7], 
+			input_interpretation, NULL ) ) 
+			return( -1 ); 
 		in = t[7];
 	}
 
