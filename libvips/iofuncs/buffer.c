@@ -658,16 +658,10 @@ buffer_thread_destroy_notify( VipsBufferThread *buffer_thread )
 void
 vips__buffer_init( void )
 {
-#ifdef HAVE_PRIVATE_INIT
 	static GPrivate private = 
 		G_PRIVATE_INIT( (GDestroyNotify) buffer_thread_destroy_notify );
 
 	buffer_thread_key = &private;
-#else
-	if( !buffer_thread_key ) 
-		buffer_thread_key = g_private_new( 
-			(GDestroyNotify) buffer_thread_destroy_notify );
-#endif
 
 	if( buffer_cache_max_reserve < 1 )
 		printf( "vips__buffer_init: buffer reserve disabled\n" );

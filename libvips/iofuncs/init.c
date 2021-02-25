@@ -417,19 +417,6 @@ vips_init( const char *argv0 )
 	(void) _setmaxstdio( 2048 );
 #endif /*OS_WIN32*/
 
-#ifdef HAVE_TYPE_INIT
-	/* Before glib 2.36 you have to call this on startup.
-	 */
-	g_type_init();
-#endif /*HAVE_TYPE_INIT*/
-
-	/* Older glibs need this.
-	 */
-#ifndef HAVE_THREAD_NEW
-	if( !g_thread_supported() ) 
-		g_thread_init( NULL );
-#endif /*HAVE_THREAD_NEW*/
-
 	vips__threadpool_init();
 	vips__buffer_init();
 	vips__meta_init();
