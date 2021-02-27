@@ -72,7 +72,8 @@ typedef VipsConversionClass VipsUnpremultiplyClass;
 
 G_DEFINE_TYPE( VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION );
 
-/* Unpremultiply an N-band image.
+/* Unpremultiply an N-band image. Don't use clip_alpha to calculate factor: we
+ * want over and undershoots on alpha and RGB to cancel.
  */
 #define UNPRE_MANY( IN, OUT ) { \
 	IN * restrict p = (IN *) in; \
@@ -80,12 +81,11 @@ G_DEFINE_TYPE( VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION );
 	\
 	for( x = 0; x < width; x++ ) { \
 		IN alpha = p[alpha_band]; \
-		IN clip_alpha = VIPS_CLIP( 0.0, alpha, max_alpha ); \
-		OUT factor = max_alpha * vips_recip( clip_alpha ); \
+		OUT factor = max_alpha * vips_recip( alpha ); \
 		\
 		for( i = 0; i < alpha_band; i++ ) \
 			q[i] = factor * p[i]; \
-		q[alpha_band] = clip_alpha; \
+		q[alpha_band] = VIPS_CLIP( 0, alpha, max_alpha ); \
 		for( i = alpha_band + 1; i < bands; i++ ) \
 			q[i] = p[i]; \
 		\
@@ -102,13 +102,12 @@ G_DEFINE_TYPE( VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION );
 	\
 	for( x = 0; x < width; x++ ) { \
 		IN alpha = p[3]; \
-		IN clip_alpha = VIPS_CLIP( 0.0, alpha, max_alpha ); \
-		OUT factor = max_alpha * vips_recip( clip_alpha ); \
+		OUT factor = max_alpha * vips_recip( alpha ); \
 		\
 		q[0] = factor * p[0]; \
 		q[1] = factor * p[1]; \
 		q[2] = factor * p[2]; \
-		q[3] = clip_alpha; \
+		q[3] = VIPS_CLIP( 0, alpha, max_alpha ); \
 		\
 		p += 4; \
 		q += 4; \
