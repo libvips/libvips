@@ -7,6 +7,8 @@
  * 	- max_alpha defaults to 65535 for RGB16/GREY16
  * 24/11/17 lovell
  * 	- match normalised alpha to output type
+ * 27/2/21 jjonesrs
+ * 	- revise range clipping and 1/x, again
  */
 
 /*
@@ -78,18 +80,12 @@ G_DEFINE_TYPE( VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION );
 	\
 	for( x = 0; x < width; x++ ) { \
 		IN alpha = p[alpha_band]; \
+		IN clip_alpha = VIPS_CLIP( 0.0, alpha, max_alpha ); \
+		OUT factor = max_alpha * vips_recip( clip_alpha ); \
 		\
-		if( alpha != 0 ) { \
-			OUT factor = max_alpha / alpha; \
-			\
-			for( i = 0; i < alpha_band; i++ ) \
-				q[i] = factor * p[i]; \
-			q[alpha_band] = alpha; \
-		} \
-		else \
-			for( i = 0; i < alpha_band + 1; i++ ) \
-				q[i] = 0; \
-		\
+		for( i = 0; i < alpha_band; i++ ) \
+			q[i] = factor * p[i]; \
+		q[alpha_band] = clip_alpha; \
 		for( i = alpha_band + 1; i < bands; i++ ) \
 			q[i] = p[i]; \
 		\
@@ -106,21 +102,13 @@ G_DEFINE_TYPE( VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION );
 	\
 	for( x = 0; x < width; x++ ) { \
 		IN alpha = p[3]; \
+		IN clip_alpha = VIPS_CLIP( 0.0, alpha, max_alpha ); \
+		OUT factor = max_alpha * vips_recip( clip_alpha ); \
 		\
-		if( alpha != 0 ) { \
-			OUT factor = max_alpha / alpha; \
-			\
-			q[0] = factor * p[0]; \
-			q[1] = factor * p[1]; \
-			q[2] = factor * p[2]; \
-			q[3] = alpha; \
-		} \
-		else { \
-			q[0] = 0; \
-			q[1] = 0; \
-			q[2] = 0; \
-			q[3] = 0; \
-		} \
+		q[0] = factor * p[0]; \
+		q[1] = factor * p[1]; \
+		q[2] = factor * p[2]; \
+		q[3] = clip_alpha; \
 		\
 		p += 4; \
 		q += 4; \

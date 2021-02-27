@@ -84,6 +84,20 @@ extern "C" {
 #define VIPS_FMIN( A, B ) VIPS_MIN( A, B )
 #endif
 
+/* Calculate 1.0 / x, avoiding division by zero when near zero.
+ */
+static inline double
+vips_recip( double x )
+{
+	static const double epsilon = 1e-10;
+
+	int sign = x < 0.0 ? -1.0 : 1.0;
+
+	return( sign * x >= epsilon ?
+		1.0 / x :
+		sign / epsilon );
+}
+
 /* Testing status before the function call saves a lot of time.
  */
 #define VIPS_ONCE( ONCE, FUNC, CLIENT ) \

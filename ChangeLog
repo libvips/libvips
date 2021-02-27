@@ -7,6 +7,7 @@
 - fix includes of glib headers in C++ [lovell]
 - fix build with more modern librsvg [lovell]
 - fix a possible segv with very wide images [f1ac]
+- revise premultiply, again [jjonesrs]
 
 18/12/20 started 8.10.5
 - fix potential /0 in animated webp load [lovell]
