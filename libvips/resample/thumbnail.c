@@ -694,12 +694,12 @@ vips_thumbnail_build( VipsObject *object )
 
 	/* In linear mode, we need to transform to a linear space before 
 	 * vips_resize(). 
-	 *
-	 * If we are doing colour management (there's an import profile), 
-	 * then we use XYZ PCS as the resize space.
 	 */
 	have_imported = FALSE;
 	if( thumbnail->linear ) {
+		/* If we are doing colour management (there's an import 
+		 * profile), then we can use XYZ PCS as the resize space.
+		 */
 		if( in->Coding == VIPS_CODING_NONE &&
 			(in->BandFmt == VIPS_FORMAT_UCHAR ||
 			 in->BandFmt == VIPS_FORMAT_USHORT) &&
@@ -717,7 +717,6 @@ vips_thumbnail_build( VipsObject *object )
 				"pcs", VIPS_PCS_XYZ,
 				NULL ) )  
 				return( -1 );
-
 			in = t[1];
 
 			have_imported = TRUE;
@@ -771,16 +770,16 @@ vips_thumbnail_build( VipsObject *object )
 	if( vips_image_hasalpha( in ) && 
 	 	hshrink != 1.0 &&
 		vshrink != 1.0  ) { 
-		g_info( "premultiplying alpha" ); 
-		if( vips_premultiply( in, &t[3], NULL ) ) 
-			return( -1 );
-		have_premultiplied = TRUE;
-
 		/* vips_premultiply() makes a float image. When we
 		 * vips_unpremultiply() below, we need to cast back to the
 		 * pre-premultiplied format.
 		 */
+		g_info( "premultiplying alpha" ); 
+		have_premultiplied = TRUE;
 		unpremultiplied_format = in->BandFmt;
+
+		if( vips_premultiply( in, &t[3], NULL ) ) 
+			return( -1 );
 		in = t[3];
 	}
 
@@ -838,7 +837,7 @@ vips_thumbnail_build( VipsObject *object )
 		}
 	}
 	else if( thumbnail->export_profile ) {
-		/* Not imported, but we are doing colourmanagement. Transform
+		/* Not imported, but we are doing colour management. Transform
 		 * to the output space.
 		 */
 		g_info( "transforming to %s", thumbnail->export_profile );
