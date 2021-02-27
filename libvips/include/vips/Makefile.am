@@ -45,10 +45,11 @@ pkginclude_HEADERS = \
 	thread.h \
 	transform.h \
 	util.h \
-	version.h \
 	vector.h \
 	vips7compat.h \
-	vips.h 
+	vips.h
+
+nodist_pkginclude_HEADERS = version.h
 
 EXTRA_DIST = version.h.in internal.h enumtemplate
 
@@ -75,4 +76,4 @@ vips_scan_headers = \
 	${top_srcdir}/libvips/include/vips/region.h
 
 enumtypes.h: $(vips_scan_headers) Makefile.am
-	glib-mkenums --template enumtemplate $(vips_scan_headers) > enumtypes.h
+	glib-mkenums --template ${top_srcdir}/libvips/include/vips/enumtemplate $(vips_scan_headers) > enumtypes.h

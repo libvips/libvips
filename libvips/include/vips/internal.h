@@ -114,10 +114,9 @@ void vips__threadpool_init( void );
 
 void vips__cache_init( void );
 
-void vips__sink_screen_init( void );
-void vips__print_renders( void );
-
-void vips__type_leak( void );
+int vips__print_renders( void );
+int vips__type_leak( void );
+int vips__object_leak( void );
 
 typedef int (*im__fftproc_fn)( VipsImage *, VipsImage *, VipsImage * );
 int im__fftproc( VipsImage *dummy, 
@@ -153,6 +152,7 @@ int vips__write_extension_block( VipsImage *im, void *buf, int size );
 int vips__writehist( VipsImage *image );
 int vips__read_header_bytes( VipsImage *im, unsigned char *from );
 int vips__write_header_bytes( VipsImage *im, unsigned char *to );
+int vips__image_meta_copy( VipsImage *dst, const VipsImage *src );
 
 extern GMutex *vips__global_lock;
 
@@ -237,7 +237,8 @@ int vips__byteswap_bool( VipsImage *in, VipsImage **out, gboolean swap );
 
 char *vips__xml_properties( VipsImage *image );
 
-void vips__cairo2rgba( guint32 *buf, int n );
+void vips__premultiplied_bgra2rgba( guint32 * restrict p, int n );
+void vips__bgra2rgba( guint32 * restrict p, int n );
 void vips__Lab2LabQ_vec( VipsPel *out, float *in, int width );
 void vips__LabQ2Lab_vec( float *out, VipsPel *in, int width );
 

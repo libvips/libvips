@@ -11,7 +11,6 @@
  * 6/6/20 kleisauke
  * 	- deprecate @centre option, it's now always on
  * 	- fix pixel shift
- * 	- remove unnecessary round-to-nearest behaviour
  */
 
 /*
@@ -79,10 +78,11 @@ typedef struct _VipsReduceh {
 	double hoffset;
 
 	/* Precalculated interpolation matrices. int (used for pel
-	 * sizes up to short), and double (for all others).
+	 * sizes up to short), and double (for all others). We go to
+	 * scale + 1 so we can round-to-nearest safely.
 	 */
-	int *matrixi[VIPS_TRANSFORM_SCALE];
-	double *matrixf[VIPS_TRANSFORM_SCALE];
+	int *matrixi[VIPS_TRANSFORM_SCALE + 1];
+	double *matrixf[VIPS_TRANSFORM_SCALE + 1];
 
 	/* Deprecated.
 	 */
@@ -281,8 +281,12 @@ reduceh_notab( VipsReduceh *reduceh,
 
 	vips_reduce_make_mask( cx, reduceh->kernel, reduceh->hshrink, x ); 
 
-	for( int z = 0; z < bands; z++ )
-		out[z] = reduce_sum<T, double>( in + z, bands, cx, n );
+	for( int z = 0; z < bands; z++ ) {
+		double sum;
+		sum = reduce_sum<T, double>( in + z, bands, cx, n );
+
+		out[z] = VIPS_ROUND_UINT( sum );
+	}
 }
 
 /* Tried a vector path (see reducev) but it was slower. The vectors for
@@ -346,8 +350,9 @@ vips_reduceh_gen( VipsRegion *out_region, void *seq,
 		for( int x = 0; x < r->width; x++ ) {
 			const int ix = (int) X;
 			VipsPel *p = p0 + ix * ps;
-			const int sx = X * VIPS_TRANSFORM_SCALE;
-			const int tx = sx & (VIPS_TRANSFORM_SCALE - 1);
+			const int sx = X * VIPS_TRANSFORM_SCALE * 2;
+			const int six = sx & (VIPS_TRANSFORM_SCALE * 2 - 1);
+			const int tx = (six + 1) >> 1;
 			const int *cxi = reduceh->matrixi[tx];
 			const double *cxf = reduceh->matrixf[tx];
 
@@ -475,11 +480,11 @@ vips_reduceh_build( VipsObject *object )
 	 * by half that distance so that we discard pixels equally
 	 * from left and right. 
 	 */
-	reduceh->hoffset = (1 + extra_pixels) / 2.0;
+	reduceh->hoffset = (1 + extra_pixels) / 2.0 - 1;
 
 	/* Build the tables of pre-computed coefficients.
 	 */
-	for( int x = 0; x < VIPS_TRANSFORM_SCALE; x++ ) {
+	for( int x = 0; x < VIPS_TRANSFORM_SCALE + 1; x++ ) {
 		reduceh->matrixf[x] = 
 			VIPS_ARRAY( object, reduceh->n_point, double ); 
 		reduceh->matrixi[x] = 
@@ -513,7 +518,7 @@ vips_reduceh_build( VipsObject *object )
 	/* Add new pixels around the input so we can interpolate at the edges.
 	 */
 	if( vips_embed( in, &t[1], 
-		reduceh->n_point / 2 - 1, 0, 
+		VIPS_CEIL( reduceh->n_point / 2.0 ) - 1, 0, 
 		in->Xsize + reduceh->n_point, in->Ysize,
 		"extend", VIPS_EXTEND_COPY,
 		(void *) NULL ) )

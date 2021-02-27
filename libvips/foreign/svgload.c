@@ -80,13 +80,6 @@
  */
 #define RSVG_MAX_WIDTH (32767)
 
-/* Old librsvg versions don't include librsvg-features.h by default.
- * Newer versions deprecate direct inclusion.
- */
-#ifndef LIBRSVG_FEATURES_H
-#include <librsvg/librsvg-features.h>
-#endif
-
 /* A handy #define for we-will-handle-svgz.
  */
 #if LIBRSVG_CHECK_FEATURE(SVGZ) && defined(HAVE_ZLIB)
@@ -211,7 +204,7 @@ vips_foreign_load_svg_is_a( const void *buf, size_t len )
 	 * before the <svg line.
 	 *
 	 * Simple rules:
-	 * - first 24 chars are plain ascii
+	 * - first 24 chars are plain ascii (x09-x7F)
 	 * - first SVG_HEADER_SIZE chars contain "<svg", upper or lower case.
 	 *
 	 * We could rsvg_handle_new_from_data() on the buffer, but that can be
@@ -220,7 +213,7 @@ vips_foreign_load_svg_is_a( const void *buf, size_t len )
 	if( len < 24 )
 		return( 0 );
 	for( i = 0; i < 24; i++ )
-		if( !isascii( str[i] ) )
+		if( !isascii( str[i] ) || str[i] < 9 )
 			return( FALSE );
 	for( i = 0; i < SVG_HEADER_SIZE && i < len - 5; i++ )
 		if( g_ascii_strncasecmp( str + i, "<svg", 4 ) == 0 )
@@ -368,7 +361,7 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 	/* Cairo makes pre-multipled BRGA -- we must byteswap and unpremultiply.
 	 */
 	for( y = 0; y < r->height; y++ ) 
-		vips__cairo2rgba( 
+                vips__premultiplied_bgra2rgba( 
 			(guint32 *) VIPS_REGION_ADDR( or, r->left, r->top + y ),
 			r->width ); 
 
@@ -421,7 +414,7 @@ vips_foreign_load_svg_class_init( VipsForeignLoadSvgClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "svgload";
+	object_class->nickname = "svgload_base";
 	object_class->description = _( "load SVG with rsvg" );
 
 	/* is_a() is not that quick ... lower the priority.

@@ -66,10 +66,30 @@ vips_profile_fallback_get( const char *name, size_t *length )
 
 	for( i = 0; (fallback = vips__profile_fallback_table[i]); i++ ) 
 		if( g_ascii_strcasecmp( fallback->name, name ) == 0 ) {
-			if( length )
-				*length = fallback->length;
+			void *data;
+			GConverter *converter;
+			GConverterResult res;
+			gsize bytes_read;
+			gsize bytes_written;
 
-			return( fallback->data );
+			data = g_malloc0( fallback->length );
+			converter = G_CONVERTER( g_zlib_decompressor_new(
+				G_ZLIB_COMPRESSOR_FORMAT_ZLIB ) );
+
+			res = g_converter_convert( converter,
+				fallback->data, fallback->length,
+				data, fallback->length,
+				G_CONVERTER_INPUT_AT_END,
+				&bytes_read, &bytes_written, NULL );
+			g_object_unref( converter );
+
+			if( res == G_CONVERTER_FINISHED ) {
+				*length = fallback->length;
+				return( data );
+			} else {
+				g_free( data );
+				g_warning( "fallback profile decompression failed" );
+			}
 		}
 
 	return( NULL );
@@ -92,7 +112,8 @@ vips_profile_load_build( VipsObject *object )
 	if( g_ascii_strcasecmp( load->name, "none" ) == 0 ) 
 		profile = NULL;
 	else if( (data = vips_profile_fallback_get( load->name, &length )) ) 
-		profile = vips_blob_new( NULL, data, length );
+		profile = vips_blob_new(
+			(VipsCallbackFn) vips_area_free_cb, data, length );
 	else if( (data = vips__file_read_name( load->name, 
 		vips__icc_dir(), &length )) ) 
 		profile = vips_blob_new( 

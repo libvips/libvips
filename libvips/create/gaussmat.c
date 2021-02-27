@@ -129,7 +129,7 @@ vips_gaussmat_build( VipsObject *object )
 		vips_error( class->nickname, "%s", _( "mask too large" ) );
 		return( -1 );
 	}
-	width = 2 * x - 1;
+	width = 2 * VIPS_MAX( x - 1, 0 ) + 1;
 	height = gaussmat->separable ? 1 : width; 
 
 	vips_image_init_fields( create->out,

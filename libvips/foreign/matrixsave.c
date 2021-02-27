@@ -136,6 +136,8 @@ vips_foreign_save_matrix_build( VipsObject *object )
 		vips_foreign_save_matrix_block, matrix ) )
 		return( -1 );
 
+	vips_target_finish( matrix->target );
+
 	return( 0 );
 }
 

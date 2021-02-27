@@ -285,9 +285,13 @@ vips_area_new( VipsCallbackFn free_fn, void *data )
 	return( area );
 }
 
-void
+int
 vips__type_leak( void )
 {
+	int n_leaks;
+
+	n_leaks = 0;
+
 	if( vips_area_all ) {
 		GSList *p; 
 
@@ -298,8 +302,12 @@ vips__type_leak( void )
 
 			fprintf( stderr, "\t%p count = %d, bytes = %zd\n", 
 				area, area->count, area->length );
+
+			n_leaks += 1;
 		}
 	}
+
+	return( n_leaks );
 }
 
 /**

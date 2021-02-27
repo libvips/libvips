@@ -21,6 +21,8 @@ OME_FILE = os.path.join(IMAGES, "multi-channel-z-series.ome.tif")
 ANALYZE_FILE = os.path.join(IMAGES, "t00740_tr1_segm.hdr")
 GIF_FILE = os.path.join(IMAGES, "cramps.gif")
 WEBP_FILE = os.path.join(IMAGES, "1.webp")
+WEBP_LOOKS_LIKE_SVG_FILE = os.path.join(IMAGES, "looks-like-svg.webp")
+WEBP_ANIMATED_FILE = os.path.join(IMAGES, "big-height.webp")
 EXR_FILE = os.path.join(IMAGES, "sample.exr")
 FITS_FILE = os.path.join(IMAGES, "WFPC2u5780205r_c0fx.fits")
 OPENSLIDE_FILE = os.path.join(IMAGES, "CMU-1-Small-Region.svs")
@@ -39,7 +41,7 @@ DICOM_FILE = os.path.join(IMAGES, "dicom_test_image.dcm")
 BMP_FILE = os.path.join(IMAGES, "MARBLES.BMP")
 NIFTI_FILE = os.path.join(IMAGES, "avg152T1_LR_nifti.nii.gz")
 ICO_FILE = os.path.join(IMAGES, "favicon.ico")
-HEIC_FILE = os.path.join(IMAGES, "heic-orientation-6.heic")
+AVIF_FILE = os.path.join(IMAGES, "avif-orientation-6.avif")
 MOSAIC_FILES = [os.path.join(IMAGES, "cd1.1.jpg"), os.path.join(IMAGES, "cd1.2.jpg"),
                 os.path.join(IMAGES, "cd2.1.jpg"), os.path.join(IMAGES, "cd2.2.jpg"),
                 os.path.join(IMAGES, "cd3.1.jpg"), os.path.join(IMAGES, "cd3.2.jpg"),

@@ -6,6 +6,8 @@
  * 	- add animated webp support
  * 15/1/19 lovell
  * 	- add @reduction_effort 
+ * 18/7/20
+ * 	- add @profile param to match tiff, jpg, etc.
  */
 
 /*
@@ -98,6 +100,10 @@ typedef struct _VipsForeignSaveWebp {
 	/* Max between keyframes.
 	 */
 	int kmax;
+
+	/* Profile to embed.
+	 */
+	char *profile;
 
 } VipsForeignSaveWebp;
 
@@ -204,6 +210,13 @@ vips_foreign_save_webp_class_init( VipsForeignSaveWebpClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveWebp, reduction_effort ),
 		0, 6, 4 );
+
+	VIPS_ARG_STRING( class, "profile", 20, 
+		_( "Profile" ), 
+		_( "ICC profile to embed" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveWebp, profile ),
+		NULL );
 }
 
 static void
@@ -248,7 +261,7 @@ vips_foreign_save_webp_target_build( VipsObject *object )
 		webp->smart_subsample, webp->near_lossless,
 		webp->alpha_q, webp->reduction_effort,
 		webp->min_size, webp->kmin, webp->kmax,
-		save->strip ) )
+		save->strip, webp->profile ) )
 		return( -1 );
 
 	return( 0 );
@@ -316,7 +329,7 @@ vips_foreign_save_webp_file_build( VipsObject *object )
 		webp->smart_subsample, webp->near_lossless,
 		webp->alpha_q, webp->reduction_effort,
 		webp->min_size, webp->kmin, webp->kmax,
-		save->strip ) ) {
+		save->strip, webp->profile ) ) {
 		VIPS_UNREF( target );
 		return( -1 );
 	}
@@ -388,7 +401,7 @@ vips_foreign_save_webp_buffer_build( VipsObject *object )
 		webp->smart_subsample, webp->near_lossless,
 		webp->alpha_q, webp->reduction_effort,
 		webp->min_size, webp->kmin, webp->kmax,
-		save->strip ) ) {
+		save->strip, webp->profile ) ) {
 		VIPS_UNREF( target );
 		return( -1 );
 	}
@@ -462,7 +475,7 @@ vips_foreign_save_webp_mime_build( VipsObject *object )
 		webp->smart_subsample, webp->near_lossless,
 		webp->alpha_q, webp->reduction_effort,
 		webp->min_size, webp->kmin, webp->kmax,
-		save->strip ) ) {
+		save->strip, webp->profile ) ) {
 		VIPS_UNREF( target );
 		return( -1 );
 	}
@@ -520,6 +533,7 @@ vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
  * * @strip: %gboolean, remove all metadata from image
+ * * @profile: %gchararray, filename of ICC profile to attach
  *
  * Write an image to a file in WebP format. 
  *
@@ -549,6 +563,10 @@ vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
  * keyframes. Setting 0 means only keyframes. @kmin sets the minimum number of
  * frames between frames. Setting 0 means no keyframes. By default, keyframes
  * are disabled.
+ *
+ * Use @profile to give the name of a profile to be embedded in the file.
+ * This does not affect the pixels which are written, just the way 
+ * they are tagged. See vips_profile_load() for details on profile naming. 
  *
  * Use the metadata items `loop` and `delay` to set the number of
  * loops for the animation and the frame delays.
@@ -593,6 +611,7 @@ vips_webpsave( VipsImage *in, const char *filename, ... )
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
  * * @strip: %gboolean, remove all metadata from image
+ * * @profile: %gchararray, filename of ICC profile to attach
  *
  * As vips_webpsave(), but save to a memory buffer.
  *
@@ -650,6 +669,7 @@ vips_webpsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
  * * @strip: %gboolean, remove all metadata from image
+ * * @profile: %gchararray, filename of ICC profile to attach
  *
  * As vips_webpsave(), but save as a mime webp on stdout.
  *
@@ -689,6 +709,7 @@ vips_webpsave_mime( VipsImage *in, ... )
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
  * * @strip: %gboolean, remove all metadata from image
+ * * @profile: %gchararray, filename of ICC profile to attach
  *
  * As vips_webpsave(), but save to a target.
  *

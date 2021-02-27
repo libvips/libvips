@@ -35,32 +35,59 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-/* Convert from ARGB to RGBA and undo premultiplication. 
+/* Convert from Cairo-style premultiplied BGRA to RGBA.
  *
  * See also openslide's argb2rgba().
  */
 void
-vips__cairo2rgba( guint32 * restrict buf, int n )
+vips__premultiplied_bgra2rgba( guint32 * restrict p, int n )
 {
-	int i;
+	int x;
 
-	for( i = 0; i < n; i++ ) {
-		guint32 * restrict p = buf + i;
-		guint32 x = *p;
-		guint8 a = x >> 24;
-		VipsPel * restrict out = (VipsPel *) p;
+	for( x = 0; x < n; x++ ) {
+		guint32 bgra = GUINT32_FROM_BE( p[x] );
+		guint8 a = bgra & 0xff;
 
-		if( a == 255 ) 
-			*p = GUINT32_TO_BE( (x << 8) | 255 );
-		else if( a == 0 ) 
-			*p = GUINT32_TO_BE( x << 8 );
-		else {
-			/* Undo premultiplication.
-			 */
-			out[0] = 255 * ((x >> 16) & 255) / a;
-			out[1] = 255 * ((x >> 8) & 255) / a;
-			out[2] = 255 * (x & 255) / a;
-			out[3] = a;
-		}
+                guint32 rgba;
+
+                if( a == 0 || 
+                        a == 255 )
+			rgba = 
+				(bgra & 0x00ff00ff) |
+			        (bgra & 0x0000ff00) << 16 |
+			        (bgra & 0xff000000) >> 16;
+                else
+                        /* Undo premultiplication.
+                         */
+                        rgba = 
+                                ((255 * ((bgra >> 8) & 0xff) / a) << 24) |
+                                ((255 * ((bgra >> 16) & 0xff) / a) << 16) |
+                                ((255 * ((bgra >> 24) & 0xff) / a) << 8) |
+                                a;
+
+                p[x] = GUINT32_TO_BE( rgba );
 	}
+}
+
+/* Convert from PDFium-style BGRA to RGBA.
+ */
+void
+vips__bgra2rgba( guint32 * restrict p, int n )
+{
+        int x;
+
+        for( x = 0; x < n; x++ ) { 
+                guint32 bgra = GUINT32_FROM_BE( p[x] );
+
+                guint rgba;
+
+                /* Leave G and A, swap R and B.
+                 */
+                rgba = 
+                        (bgra & 0x00ff00ff) |
+                        (bgra & 0x0000ff00) << 16 |
+                        (bgra & 0xff000000) >> 16;
+
+                p[x] = GUINT32_TO_BE( rgba );
+        }
 }

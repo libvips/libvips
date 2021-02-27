@@ -94,10 +94,6 @@
 #include <expat.h>
 #include <errno.h>
 
-#ifdef OS_WIN32
-#include <windows.h>
-#endif /*OS_WIN32*/
-
 #include <vips/vips.h>
 #include <vips/internal.h>
 #include <vips/debug.h>
@@ -358,7 +354,7 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 	/* We need to swap for other fields if the file byte order is 
 	 * different from ours.
 	 */
-	swap = vips_amiMSBfirst() != (im->magic == VIPS_MAGIC_SPARC);
+	swap = vips_amiMSBfirst() != vips_image_isMSBfirst( im );
 
 	for( i = 0; i < VIPS_NUMBER( fields ); i++ ) {
 		fields[i].copy( swap,
@@ -439,7 +435,7 @@ vips__write_header_bytes( VipsImage *im, unsigned char *to )
 	/* Swap if the byte order we are asked to write the header in is
 	 * different from ours.
 	 */
-	gboolean swap = vips_amiMSBfirst() != (im->magic == VIPS_MAGIC_SPARC);
+	gboolean swap = vips_amiMSBfirst() != vips_image_isMSBfirst( im );
 
 	int i;
 	unsigned char *q;

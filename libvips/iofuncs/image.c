@@ -801,7 +801,7 @@ static void
 vips_image_add_progress( VipsImage *image )
 {
 	if( vips__progress || 
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 		g_getenv( "VIPS_PROGRESS" ) ||
 		g_getenv( "IM_PROGRESS" ) ) {
 #else
@@ -859,10 +859,7 @@ vips_image_build( VipsObject *object )
 		if( (magic = vips__file_magic( filename )) ) {
 			/* We may need to byteswap.
 			 */
-			guint32 us = vips_amiMSBfirst() ? 
-				VIPS_MAGIC_INTEL : VIPS_MAGIC_SPARC;
-
-			if( magic == us ) {
+			if( GUINT_FROM_BE( magic ) == image->magic ) {
 				/* Native open.
 				 */
 				if( vips_image_open_input( image ) )
@@ -933,7 +930,7 @@ vips_image_build( VipsObject *object )
 		 * Otherwise save with VipsForeign when the image has been 
 		 * written to.
 		 */
-		if( strcmp( file_op, "VipsForeignSaveVips" ) == 0 )
+		if( vips_isprefix( "VipsForeignSaveVips", file_op ) )
 			image->dtype = VIPS_IMAGE_OPENOUT;
 		else {
 			image->dtype = VIPS_IMAGE_PARTIAL;
@@ -1610,7 +1607,7 @@ vips_image_set_progress( VipsImage *image, gboolean progress )
 			image, image->filename );
 		image->progress_signal = image;
 	}
-	else
+	else if( !progress )
 		image->progress_signal = NULL;
 }
 
@@ -2517,7 +2514,7 @@ vips_get_disc_threshold( void )
 		 */
 		threshold = 100 * 1024 * 1024;
 
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 		if( (env = g_getenv( "VIPS_DISC_THRESHOLD" )) || 
 			(env = g_getenv( "IM_DISC_THRESHOLD" )) ) 
 #else
@@ -3870,6 +3867,20 @@ vips_band_format_iscomplex( VipsBandFormat format )
 		g_assert_not_reached();
 		return( FALSE );
 	}
+}
+
+/**
+ * vips_image_free_buffer:
+ * @image: the image that contains the buffer
+ * @buffer: the orignal buffer that was stolen
+ *
+ * Free the externally allocated buffer found in the input image. This function
+ * is intended to be used with g_signal_connect.
+ */
+void
+vips_image_free_buffer( VipsImage *image, void *buffer )
+{
+	free( buffer );
 }
 
 /* Handy for debugging: view an image in nip2.

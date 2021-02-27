@@ -1078,10 +1078,22 @@ int im_tbmerge1( VipsImage *ref, VipsImage *sec, VipsImage *out,
 	int xr2, int yr2, int xs2, int ys2,
 	int mwidth );
 
+int im_lrmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out,
+	int bandno,
+	int xref, int yref, int xsec, int ysec,
+	int hwindowsize, int hsearchsize,
+	int balancetype,
+	int mwidth );
 int im_lrmosaic1( VipsImage *ref, VipsImage *sec, VipsImage *out, 
 	int bandno,
 	int xr1, int yr1, int xs1, int ys1, 
 	int xr2, int yr2, int xs2, int ys2,
+	int hwindowsize, int hsearchsize,
+	int balancetype,
+	int mwidth );
+int im_tbmosaic( VipsImage *ref, VipsImage *sec, VipsImage *out, 
+	int bandno,
+	int xref, int yref, int xsec, int ysec, 
 	int hwindowsize, int hsearchsize,
 	int balancetype,
 	int mwidth );
@@ -1208,6 +1220,9 @@ GOptionGroup *vips_get_option_group( void );
 /* old window manager API
  */
 VipsWindow *vips_window_ref( VipsImage *im, int top, int height );
+
+FILE *vips_popenf( const char *fmt, const char *mode, ... )
+	__attribute__((format(printf, 1, 3)));
 
 /* This stuff is very, very old and should not be used by anyone now.
  */

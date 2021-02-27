@@ -23,7 +23,7 @@
  *	- ANSIfied
  *	- proper freeing on errors, ready for partial
  * 8/11/93 JC
- *	- now propogates both input histories
+ *	- now propagates both input histories
  *	- adds magic lines for global mosaic optimisation
  *
  *

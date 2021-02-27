@@ -129,12 +129,8 @@ vips_g_mutex_new( void )
 {
 	GMutex *mutex;
 
-#ifdef HAVE_MUTEX_INIT
 	mutex = g_new( GMutex, 1 );
 	g_mutex_init( mutex );
-#else
-	mutex = g_mutex_new();
-#endif
 
 	return( mutex );
 }
@@ -142,12 +138,8 @@ vips_g_mutex_new( void )
 void
 vips_g_mutex_free( GMutex *mutex )
 {
-#ifdef HAVE_MUTEX_INIT
 	g_mutex_clear( mutex );
 	g_free( mutex );
-#else
-	g_mutex_free( mutex );
-#endif
 }
 
 GCond *
@@ -155,12 +147,8 @@ vips_g_cond_new( void )
 {
 	GCond *cond;
 
-#ifdef HAVE_COND_INIT
 	cond = g_new( GCond, 1 );
 	g_cond_init( cond );
-#else
-	cond = g_cond_new();
-#endif
 
 	return( cond );
 }
@@ -168,12 +156,8 @@ vips_g_cond_new( void )
 void
 vips_g_cond_free( GCond *cond )
 {
-#ifdef HAVE_COND_INIT
 	g_cond_clear( cond );
 	g_free( cond );
-#else
-	g_cond_free( cond );
-#endif
 }
 
 /* TRUE if we are a vips worker thread. We sometimes manage resource allocation
@@ -239,11 +223,7 @@ vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
 	else {
 #endif /*DEBUG_OUT_OF_THREADS*/
 
-#ifdef HAVE_THREAD_NEW
 	thread = g_thread_try_new( domain, vips_thread_run, info, &error );
-#else
-	thread = g_thread_create( vips_thread_run, info, TRUE, &error );
-#endif
 
 	VIPS_DEBUG_MSG_RED( "vips_g_thread_new: g_thread_create( %s ) = %p\n",
 		domain, thread );
@@ -426,7 +406,7 @@ vips_concurrency_get( void )
 	 */
 	if( vips__concurrency > 0 )
 		nthr = vips__concurrency;
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 	else if( ((str = g_getenv( "VIPS_CONCURRENCY" )) ||
 		(str = g_getenv( "IM_CONCURRENCY" ))) && 
 #else
@@ -1015,16 +995,9 @@ vips_threadpool_run( VipsImage *im,
 void
 vips__threadpool_init( void )
 {
-	/* We need to work with the pre-2.32 threading API.
-	 */
-#ifdef HAVE_PRIVATE_INIT
 	static GPrivate private = { 0 }; 
 
 	is_worker_key = &private;
-#else
-	if( !is_worker_key ) 
-		is_worker_key = g_private_new( NULL ); 
-#endif
 
 	if( g_getenv( "VIPS_STALL" ) )
 		vips__stall = TRUE;

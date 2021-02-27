@@ -90,8 +90,14 @@
 #include <limits.h>
 #include <string.h>
 
+/* Disable deprecation warnings from gsf. There are loads, and still not
+ * patched as of 12/2020.
+ */
 #ifdef HAVE_GSF
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <gsf/gsf.h>
+#pragma GCC diagnostic pop
 #endif /*HAVE_GSF*/
 
 #include <vips/vips.h>
@@ -99,7 +105,7 @@
 #include <vips/internal.h>
 #include <vips/vector.h>
 
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 #include <vips/vips7compat.h>
 #endif
 
@@ -284,6 +290,24 @@ empty_log_handler( const gchar *log_domain, GLogLevelFlags log_level,
 {       
 }
 
+#if !GLIB_CHECK_VERSION( 2, 31, 0 )
+static void
+default_log_handler( const gchar *log_domain, GLogLevelFlags log_level,
+	const gchar *message, gpointer user_data )
+{
+	if( log_level & (G_LOG_LEVEL_DEBUG | G_LOG_LEVEL_INFO) ) {
+		const char *domains = g_getenv( "G_MESSAGES_DEBUG" );
+
+		if( !domains || 
+			(!g_str_equal( domains, "all" ) &&
+			 !g_strrstr( domains, log_domain )) ) 
+	  		return;
+	}
+
+	g_log_default_handler( log_domain, log_level, message, user_data );
+}
+#endif /*!GLIB_CHECK_VERSION( 2, 31, 0 )*/
+
 /* Attempt to set a minimum stacksize. This can be important on systems with a
  * very low default, like musl.
  */
@@ -318,17 +342,12 @@ set_stacksize( guint64 size )
 static void
 vips_verbose( void ) 
 {
-	/* Older glibs were showing G_LOG_LEVEL_{INFO,DEBUG} messages
-	 * by default
-	 */
-#if GLIB_CHECK_VERSION ( 2, 31, 0 )
 	const char *old;
 
 	old = g_getenv( "G_MESSAGES_DEBUG" );
 
-	if( !old ) {
+	if( !old ) 
 		g_setenv( "G_MESSAGES_DEBUG", G_LOG_DOMAIN, TRUE );
-	}
 	else if( !g_str_equal( old, "all" ) &&
 		!g_strrstr( old, G_LOG_DOMAIN ) ) {
 		char *new;
@@ -338,7 +357,6 @@ vips_verbose( void )
 
 		g_free( new );
 	}
-#endif /*GLIB_CHECK_VERSION( 2, 31, 0 )*/
 }
 
 /**
@@ -399,21 +417,7 @@ vips_init( const char *argv0 )
 	(void) _setmaxstdio( 2048 );
 #endif /*OS_WIN32*/
 
-#ifdef HAVE_TYPE_INIT
-	/* Before glib 2.36 you have to call this on startup.
-	 */
-	g_type_init();
-#endif /*HAVE_TYPE_INIT*/
-
-	/* Older glibs need this.
-	 */
-#ifndef HAVE_THREAD_NEW
-	if( !g_thread_supported() ) 
-		g_thread_init( NULL );
-#endif /*HAVE_THREAD_NEW*/
-
 	vips__threadpool_init();
-	vips__sink_screen_init();
 	vips__buffer_init();
 	vips__meta_init();
 
@@ -463,7 +467,7 @@ vips_init( const char *argv0 )
 	g_free( locale );
 	bind_textdomain_codeset( GETTEXT_PACKAGE, "UTF-8" );
 
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 	if( g_getenv( "VIPS_INFO" ) || 
 		g_getenv( "IM_INFO" ) ) 
 #else
@@ -496,7 +500,7 @@ vips_init( const char *argv0 )
 	vips__meta_init_types();
 	vips__interpolate_init();
 
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 	im__format_init();
 #endif
 
@@ -531,7 +535,7 @@ vips_init( const char *argv0 )
 	(void) vips_load_plugins( "%s/vips-plugins-%d.%d", 
 		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION );
 
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 	/* Load up any vips7 plugins in the vips libdir. We don't error on 
 	 * failure, it's too annoying to have VIPS refuse to start because of 
 	 * a broken plugin.
@@ -582,7 +586,7 @@ vips_init( const char *argv0 )
 	 * set up if you are using libvips from something like Ruby. Allow this
 	 * env var hack as a workaround. 
 	 */
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 	if( g_getenv( "VIPS_WARNING" ) ||
 		g_getenv( "IM_WARNING" ) ) 
 #else
@@ -590,6 +594,18 @@ vips_init( const char *argv0 )
 #endif
 		g_log_set_handler( G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, 
 			empty_log_handler, NULL );
+
+#if !GLIB_CHECK_VERSION( 2, 31, 0 )
+	/* Older glibs can sometimes show G_LOG_LEVEL_{INFO,DEBUG} messages.
+	 * Block them ourselves. We test the env var inside the handler since
+	 * vips_verbose() can be toggled at runtime.
+	 *
+	 * Again, we should not call g_log_set_handler(), but this is the only
+	 * convenient way to fix this behaviour.
+	 */
+	g_log_set_handler( G_LOG_DOMAIN, G_LOG_LEVEL_INFO | G_LOG_LEVEL_DEBUG, 
+		default_log_handler, NULL );
+#endif /*!GLIB_CHECK_VERSION( 2, 31, 0 )*/
 
 	/* Set a minimum stacksize, if we can.
 	 */
@@ -614,13 +630,20 @@ vips_check_init( void )
 		vips_error_clear();
 }
 
-static void
+static int
 vips_leak( void ) 
 {
 	char txt[1024];
 	VipsBuf buf = VIPS_BUF_STATIC( txt );
+	int n_leaks;
 
-	vips_object_print_all();
+	n_leaks = 0;
+
+	n_leaks += vips__object_leak();
+	n_leaks += vips__type_leak();
+	n_leaks += vips_tracked_get_allocs();
+	n_leaks += vips_tracked_get_mem();
+	n_leaks += vips_tracked_get_files();
 
 	if( vips_tracked_get_allocs() || 
 		vips_tracked_get_mem() ||
@@ -635,21 +658,27 @@ vips_leak( void )
 	vips_buf_append_size( &buf, vips_tracked_get_mem_highwater() );
 	vips_buf_appends( &buf, "\n" );
 
-	if( strlen( vips_error_buffer() ) > 0 ) 
+	if( strlen( vips_error_buffer() ) > 0 ) {
 		vips_buf_appendf( &buf, "error buffer: %s", 
 			vips_error_buffer() );
+		n_leaks += strlen( vips_error_buffer() );
+	}
 
-	if( vips__n_active_threads > 0 )
+	if( vips__n_active_threads > 0 ) {
 		vips_buf_appendf( &buf, "threads: %d not joined\n", 
 			vips__n_active_threads ); 
+		n_leaks += vips__n_active_threads;
+	}
 
 	fprintf( stderr, "%s", vips_buf_all( &buf ) );
 
-	vips__print_renders();
+	n_leaks += vips__print_renders();
 
 #ifdef DEBUG
 	vips_buffer_dump_all();
 #endif /*DEBUG*/
+
+	return( n_leaks );
 }
 
 /**
@@ -693,7 +722,7 @@ vips_shutdown( void )
 
 	vips_cache_drop_all();
 
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 	im_close_plugins();
 #endif
 
@@ -726,8 +755,9 @@ vips_shutdown( void )
 	{
 		static gboolean done = FALSE;
 
-		if( !done ) 
-			vips_leak();
+		if( !done &&
+			vips_leak() ) 
+			exit( 1 );
 
 		done = TRUE;
 	}
@@ -789,7 +819,16 @@ static gboolean
 vips_lib_config_cb( const gchar *option_name, const gchar *value, 
 	gpointer data, GError **error )
 {
-	printf( "%s\n", VIPS_CONFIG );
+	char **split;
+	char *config;
+
+	split = g_strsplit( VIPS_CONFIG, ", ", -1 );
+	config = g_strjoinv( "\n", split );
+
+	printf( "%s\n", config );
+	g_strfreev( split );
+	g_free( config );
+
 	vips_shutdown();
 	exit( 0 );
 }

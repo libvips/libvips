@@ -43,7 +43,12 @@ Vips-8.0.typelib
 .deps
 .libs
 aclocal.m4
-config.*
+config.log
+config.h
+config.h.*
+config.guess
+config.status
+config.sub
 configure
 depcomp
 autom4te.cache/
@@ -52,6 +57,8 @@ libtool
 libvips/include/vips/version.h
 fred
 ltmain.sh
+m4/glib-gettext.m4
+m4/pkg.m4
 m4/gtk-doc.m4
 m4/intltool.m4
 m4/libtool.m4

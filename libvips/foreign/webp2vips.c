@@ -81,6 +81,7 @@
 /* What we track during a read.
  */
 typedef struct {
+	VipsImage *out;
 	VipsSource *source;
 
 	/* The data we load, as a webp object.
@@ -231,7 +232,7 @@ vips_image_paint_area( VipsImage *image, const VipsRect *r, const VipsPel *ink )
 /* Blend two guint8.
  */
 #define BLEND( X, aX, Y, aY, scale ) \
-	((X * aX + Y * aY) * scale >> 24)
+	(((X * aX + Y * aY) * scale + (1 << 12)) >> 24)
 
 /* Extract R, G, B, A, assuming little-endian.
  */
@@ -259,9 +260,9 @@ blend_pixel( guint32 A, guint32 B )
 
 	guint8 aB = getA( B );
 
-	guint8 fac = (aB * (256 - aA)) >> 8;
+	guint8 fac = (aB * (255 - aA) + 127) >> 8;
 	guint8 aR =  aA + fac;
-	int scale = (1 << 24) / aR;
+	int scale = aR == 0 ? 0 : (1 << 24) / aR;
 
 	guint8 rR = BLEND( getR( A ), aA, getR( B ), fac, scale );
 	guint8 gR = BLEND( getG( A ), aA, getG( B ), fac, scale );
@@ -340,14 +341,21 @@ read_free( Read *read )
 	return( 0 );
 }
 
+static void
+read_close_cb( VipsImage *image, Read *read )
+{
+	read_free( read );
+}
+
 static Read *
-read_new( VipsSource *source, int page, int n, double scale )
+read_new( VipsImage *out, VipsSource *source, int page, int n, double scale )
 {
 	Read *read;
 
 	if( !(read = VIPS_NEW( NULL, Read )) )
 		return( NULL );
 
+	read->out = out;
 	read->source = source;
 	g_object_ref( source );
 	read->page = page;
@@ -359,15 +367,19 @@ read_new( VipsSource *source, int page, int n, double scale )
 	read->dispose_method = WEBP_MUX_DISPOSE_NONE;
 	read->frame_no = 0;
 
+	/* Everything has to stay open until read has finished, unfortunately,
+	 * since webp relies on us mapping the whole file.
+	 */
+	g_signal_connect( out, "close", 
+		G_CALLBACK( read_close_cb ), read ); 
+
 	WebPInitDecoderConfig( &read->config );
 	read->config.options.use_threads = 1;
 	read->config.output.is_external_memory = 1;
 
 	if( !(read->data.bytes = 
-		vips_source_map( source, &read->data.size )) ) {
-		read_free( read );
+		vips_source_map( source, &read->data.size )) ) 
 		return( NULL );
-	}
 
 	return( read );
 }
@@ -506,10 +518,16 @@ read_header( Read *read, VipsImage *out )
 		read->frame_count = 1;
 	}
 
+	/* height can be huge if this is an animated webp image.
+	 */
 	if( read->width <= 0 ||
 		read->height <= 0 ||
 		read->width > 0x3FFF ||
-		read->height > 0x3FFF ) {
+		read->height > VIPS_MAX_COORD ||
+		read->frame_width <= 0 ||
+		read->frame_height <= 0 ||
+		read->frame_width > 0x3FFF ||
+		read->frame_height > 0x3FFF ) { 
 		vips_error( "webp", "%s", _( "bad image dimensions" ) ); 
 		return( -1 ); 
 	}
@@ -674,7 +692,8 @@ read_next_frame( Read *read )
 	 */
 	vips_image_paint_image( read->frame, frame, 
 		area.left, area.top, 
-		read->iter.blend_method == WEBP_MUX_BLEND );
+		read->iter.frame_num > 1 &&
+			read->iter.blend_method == WEBP_MUX_BLEND );
 
 	g_object_unref( frame );
 
@@ -768,15 +787,9 @@ vips__webp_read_header_source( VipsSource *source, VipsImage *out,
 {
 	Read *read;
 
-	if( !(read = read_new( source, page, n, scale )) ) 
+	if( !(read = read_new( out, source, page, n, scale )) || 
+		read_header( read, out ) )
 		return( -1 );
-
-	if( read_header( read, out ) ) {
-		read_free( read );
-		return( -1 );
-	}
-
-	read_free( read );
 
 	return( 0 );
 }
@@ -787,15 +800,9 @@ vips__webp_read_source( VipsSource *source, VipsImage *out,
 {
 	Read *read;
 
-	if( !(read = read_new( source, page, n, scale )) ) 
+	if( !(read = read_new( out, source, page, n, scale )) || 
+		read_image( read, out ) )
 		return( -1 );
-
-	if( read_image( read, out ) ) {
-		read_free( read );
-		return( -1 );
-	}
-
-	read_free( read );
 
 	return( 0 );
 }

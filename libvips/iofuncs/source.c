@@ -5,6 +5,11 @@
  *
  * 3/2/20
  * 	- add vips_pipe_read_limit_set()
+ * 3/10/20
+ * 	- improve behaviour with read and seek on pipes
+ * 26/11/20
+ * 	- use _setmode() on win to force binary read for previously opened
+ * 	  descriptors
  */
 
 /*
@@ -60,6 +65,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#ifdef OS_WIN32
+#include <io.h>
+#endif /*OS_WIN32*/
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -258,6 +266,8 @@ vips_source_finalize( GObject *gobject )
 {
 	VipsSource *source = VIPS_SOURCE( gobject );
 
+	VIPS_DEBUG_MSG( "vips_source_finalize: %p\n", source );
+
 	VIPS_FREEF( g_byte_array_unref, source->header_bytes ); 
 	VIPS_FREEF( g_byte_array_unref, source->sniff ); 
 	if( source->mmap_baseaddr ) {
@@ -296,12 +306,21 @@ vips_source_build( VipsObject *object )
 	if( vips_object_argument_isset( object, "descriptor" ) ) {
 		connection->descriptor = dup( connection->descriptor );
 		connection->close_descriptor = connection->descriptor;
+
+#ifdef OS_WIN32
+		/* Windows will create eg. stdin and stdout in text mode.
+		 * We always read in binary mode.
+		 */
+		_setmode( connection->descriptor, _O_BINARY );
+#endif /*OS_WIN32*/
 	}
 
 	if( vips_object_argument_isset( object, "blob" ) ) {
 		size_t length;
 
-		source->data = vips_blob_get( source->blob, &length );
+		if( !(source->data = vips_blob_get( source->blob, &length )) )
+			return( -1 );
+
 		source->length = VIPS_MIN( length, G_MAXSSIZE );
 	}
 
@@ -329,16 +348,16 @@ vips_source_seek_real( VipsSource *source, gint64 offset, int whence )
 {
 	VipsConnection *connection = VIPS_CONNECTION( source );
 
-	gint64 new_pos;
-
 	VIPS_DEBUG_MSG( "vips_source_seek_real:\n" );
 
 	/* Like _read_real(), we must not set a vips_error. We need to use the
 	 * vips__seek() wrapper so we can seek long files on Windows.
 	 */
-	new_pos = vips__seek_no_error( connection->descriptor, offset, whence );
+	if( connection->descriptor != -1 )
+		return( vips__seek_no_error( connection->descriptor, 
+			offset, whence ) );
 
-	return( new_pos );
+	return( -1 );
 }
 
 static void
@@ -551,8 +570,6 @@ vips_source_minimise( VipsSource *source )
 {
 	VipsConnection *connection = VIPS_CONNECTION( source );
 
-	VIPS_DEBUG_MSG( "vips_source_minimise:\n" );
-
 	SANITY( source );
 
 	(void) vips_source_test_features( source );
@@ -561,7 +578,7 @@ vips_source_minimise( VipsSource *source )
 		connection->descriptor != -1 &&
 		connection->tracked_descriptor == connection->descriptor &&
 		!source->is_pipe ) {
-		VIPS_DEBUG_MSG( "    tracked_close()\n" );
+		VIPS_DEBUG_MSG( "vips_source_minimise:\n" );
 		vips_tracked_close( connection->tracked_descriptor );
 		connection->tracked_descriptor = -1;
 		connection->descriptor = -1;
@@ -586,12 +603,12 @@ vips_source_unminimise( VipsSource *source )
 {
 	VipsConnection *connection = VIPS_CONNECTION( source );
 
-	VIPS_DEBUG_MSG( "vips_source_unminimise:\n" );
-
 	if( connection->descriptor == -1 &&
 		connection->tracked_descriptor == -1 &&
 		connection->filename ) {
 		int fd;
+
+		VIPS_DEBUG_MSG( "vips_source_unminimise: %p\n", source );
 
 		if( (fd = vips_tracked_open( connection->filename, 
 			MODE_READ, 0 )) == -1 ) {
@@ -635,13 +652,15 @@ vips_source_decode( VipsSource *source )
 
 	SANITY( source );
 
-	/* We have finished reading the header. We can discard the header bytes
-	 * we saved.
-	 */
 	if( !source->decode ) {
 		source->decode = TRUE;
-		VIPS_FREEF( g_byte_array_unref, source->header_bytes ); 
 		VIPS_FREEF( g_byte_array_unref, source->sniff ); 
+
+		/* If this is still a pipe source, we can discard the header 
+		 * bytes we saved.
+		 */
+		if( source->is_pipe ) 
+			VIPS_FREEF( g_byte_array_unref, source->header_bytes ); 
 	}
 
 	vips_source_minimise( source );
@@ -650,6 +669,25 @@ vips_source_decode( VipsSource *source )
 
 	return( 0 );
 }
+
+#ifdef VIPS_DEBUG
+static void
+vips_source_print( VipsSource *source )
+{
+	printf( "vips_source_print: %p\n", source );
+	printf( "  source->read_position = %zd\n", source->read_position );
+	printf( "  source->is_pipe = %d\n", source->is_pipe );
+	printf( "  source->length = %zd\n", source->length );
+	printf( "  source->data = %p\n", source->data );
+	printf( "  source->header_bytes = %p\n", source->header_bytes );
+	if( source->header_bytes ) 
+		printf( "  source->header_bytes->len = %d\n", 
+			source->header_bytes->len );
+	printf( "  source->sniff = %p\n", source->sniff );
+	if( source->sniff )
+		printf( "  source->sniff->len = %d\n", source->sniff->len );
+}
+#endif /*VIPS_DEBUG*/
 
 /**
  * vips_source_read:
@@ -757,34 +795,28 @@ vips_source_read( VipsSource *source, void *buffer, size_t length )
 	return( total_read );
 }
 
-/* Read to a position. -1 means read to end of source. Does not change 
- * read_position.
+/* Read to a position. 
+ *
+ * target == -1 means read to end of source -- useful for forcing a pipe into
+ * memory, for example. This will always set length to the pipe length.
+ *
+ * If we hit EOF and we're buffering, set length on the pipe and turn it into
+ * a memory source.
+ *
+ * read_position is left somewhere indeterminate.
  */
 static int
 vips_source_pipe_read_to_position( VipsSource *source, gint64 target )
 {
 	const char *nick = vips_connection_nick( VIPS_CONNECTION( source ) );
 
-	gint64 old_read_position;
 	unsigned char buffer[4096];
 
-	VIPS_DEBUG_MSG( "vips_source_pipe_read_position: %" G_GINT64_FORMAT 
-		"\n", target );
-
-	g_assert( !source->decode );
-	g_assert( source->header_bytes );
+	/* This is only useful for pipes (sources where we don't know the
+	 * length).
+	 */
+	g_assert( source->length == -1 );
 	g_assert( source->is_pipe );
-
-	if( target != -1 &&
-		(target < 0 ||
-			(source->length != -1 && 
-			 target > source->length)) ) {
-		vips_error( nick, 
-			_( "bad read to %" G_GINT64_FORMAT ), target );
-		return( -1 );
-	}
-
-	old_read_position = source->read_position;
 
 	while( target == -1 ||
 		source->read_position < target ) {
@@ -793,8 +825,26 @@ vips_source_pipe_read_to_position( VipsSource *source, gint64 target )
 		bytes_read = vips_source_read( source, buffer, 4096 );
 		if( bytes_read == -1 )
 			return( -1 );
-		if( bytes_read == 0 )
+
+		if( bytes_read == 0 ) {
+			/* No more bytes available, we must be at EOF.
+			 */
+			source->length = source->read_position;
+
+			/* Have we been buffering the whole thing? We can
+			 * become a memory source.
+			 */
+			if( source->header_bytes ) {
+				source->data = source->header_bytes->data;
+				source->is_pipe = FALSE;
+
+				/* TODO ... we could close more fds here.
+				 */
+				vips_source_minimise( source );
+			}
+
 			break;
+		}
 
 		if( target == -1 &&
 			vips__pipe_read_limit != -1 &&
@@ -803,8 +853,6 @@ vips_source_pipe_read_to_position( VipsSource *source, gint64 target )
 			return( -1 );
 		}
 	}
-
-	source->read_position = old_read_position;
 
 	return( 0 );
 }
@@ -835,8 +883,6 @@ vips_source_read_to_memory( VipsSource *source )
 	byte_array = g_byte_array_new();
 	g_byte_array_set_size( byte_array, source->length );
 
-	/* Read in a series of chunks to reduce stress upstream.
-	 */
 	read_position = 0;
 	q = byte_array->data;
 	while( read_position < source->length ) {
@@ -864,34 +910,6 @@ vips_source_read_to_memory( VipsSource *source )
 	source->is_pipe = FALSE;
 	source->header_bytes = byte_array;
 
-	vips_source_minimise( source );
-
-	return( 0 );
-}
-
-/* Read the entire pipe into memory and turn this into a memory source.
- */
-static int
-vips_source_pipe_to_memory( VipsSource *source )
-{
-	VIPS_DEBUG_MSG( "vips_source_pipe_to_memory:\n" );
-
-	g_assert( source->is_pipe );
-	g_assert( !source->blob );
-	g_assert( !source->decode );
-	g_assert( source->header_bytes );
-
-	if( vips_source_pipe_read_to_position( source, -1 ) )
-		return( -1 );
-
-	/* Steal the header_bytes pointer and turn into a memory source.
-	 */
-	source->length = source->header_bytes->len;
-	source->data = source->header_bytes->data;
-	source->is_pipe = FALSE;
-
-	/* TODO ... we could close more fds here.
-	 */
 	vips_source_minimise( source );
 
 	return( 0 );
@@ -984,7 +1002,7 @@ vips_source_map( VipsSource *source, size_t *length_out )
 				return( NULL );
 		}
 		else {
-			if( vips_source_pipe_to_memory( source ) )
+			if( vips_source_pipe_read_to_position( source, -1 ) )
 				return( NULL );
 		}
 	}
@@ -1095,8 +1113,7 @@ vips_source_seek( VipsSource *source, gint64 offset, int whence )
 			/* We have to read the whole source into memory to get
 			 * the length.
 			 */
-			if( source->length == -1 &&
-				vips_source_pipe_to_memory( source ) )
+			if( vips_source_pipe_read_to_position( source, -1 ) )
 				return( -1 );
 
 			new_pos = source->length + offset;
@@ -1112,6 +1129,13 @@ vips_source_seek( VipsSource *source, gint64 offset, int whence )
 			return( -1 );
 	}
 
+	/* For pipes, we have to fake seek by reading to that point. This
+	 * might hit EOF and turn the pipe into a memory source.
+	 */
+	if( source->is_pipe &&
+		vips_source_pipe_read_to_position( source, new_pos ) )
+		return( -1 );
+
 	/* Don't allow out of range seeks.
 	 */
 	if( new_pos < 0 ||
@@ -1121,12 +1145,6 @@ vips_source_seek( VipsSource *source, gint64 offset, int whence )
 			_( "bad seek to %" G_GINT64_FORMAT ), new_pos );
                 return( -1 );
 	}
-
-	/* For pipes, we have to fake seek by reading to that point.
-	 */
-	if( source->is_pipe &&
-		vips_source_pipe_read_to_position( source, new_pos ) )
-		return( -1 );
 
 	source->read_position = new_pos;
 
@@ -1139,8 +1157,10 @@ vips_source_seek( VipsSource *source, gint64 offset, int whence )
  * vips_source_rewind:
  * @source: source to operate on
  *
- * Rewind the source to the start. You can't do this after pixel decode phase
- * starts.
+ * Rewind the source to the start. 
+ *
+ * You can't always do this after the pixel decode phase starts -- for
+ * example, pipe-like sources can't be rewound.
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -1154,6 +1174,12 @@ vips_source_rewind( VipsSource *source )
 	if( vips_source_test_features( source ) ||
 		vips_source_seek( source, 0, SEEK_SET ) != 0 )
 		return( -1 );
+
+	/* Back into sniff + header decode state.
+	 */
+	source->decode = FALSE;
+	if( !source->sniff )
+		source->sniff = g_byte_array_new();
 
 	SANITY( source );
 

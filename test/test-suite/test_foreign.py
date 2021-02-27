@@ -11,14 +11,14 @@ from helpers import \
     JPEG_FILE, SRGB_FILE, MATLAB_FILE, PNG_FILE, TIF_FILE, OME_FILE, \
     ANALYZE_FILE, GIF_FILE, WEBP_FILE, EXR_FILE, FITS_FILE, OPENSLIDE_FILE, \
     PDF_FILE, SVG_FILE, SVGZ_FILE, SVG_GZ_FILE, GIF_ANIM_FILE, DICOM_FILE, \
-    BMP_FILE, NIFTI_FILE, ICO_FILE, HEIC_FILE, TRUNCATED_FILE, \
+    BMP_FILE, NIFTI_FILE, ICO_FILE, AVIF_FILE, TRUNCATED_FILE, \
     GIF_ANIM_EXPECTED_PNG_FILE, GIF_ANIM_DISPOSE_BACKGROUND_FILE, \
     GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE, \
     GIF_ANIM_DISPOSE_PREVIOUS_FILE, \
     GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, \
     temp_filename, assert_almost_equal_objects, have, skip_if_no, \
-    TIF1_FILE, TIF2_FILE, TIF4_FILE
-
+    TIF1_FILE, TIF2_FILE, TIF4_FILE, WEBP_LOOKS_LIKE_SVG_FILE, \
+    WEBP_ANIMATED_FILE
 
 class TestForeign:
     tempdir = None
@@ -75,7 +75,7 @@ class TestForeign:
         max_diff = (im - x).abs().max()
         assert max_diff == 0
 
-    def save_load_file(self, format, options, im, thresh):
+    def save_load_file(self, format, options, im, max_diff=0):
         # yuk!
         # but we can't set format parameters for pyvips.Image.new_temp_file()
         filename = temp_filename(self.tempdir, format)
@@ -86,8 +86,7 @@ class TestForeign:
         assert im.width == x.width
         assert im.height == x.height
         assert im.bands == x.bands
-        max_diff = (im - x).abs().max()
-        assert max_diff <= thresh
+        assert (im - x).abs().max() <= max_diff
         x = None
 
     def save_load_buffer(self, saver, loader, im, max_diff=0, **kwargs):
@@ -115,7 +114,7 @@ class TestForeign:
         assert (im - x).abs().max() <= max_diff
 
     def test_vips(self):
-        self.save_load_file(".v", "", self.colour, 0)
+        self.save_load_file(".v", "", self.colour)
 
         # check we can save and restore metadata
         filename = temp_filename(self.tempdir, ".v")
@@ -127,6 +126,17 @@ class TestForeign:
         assert len(before_exif) == len(after_exif)
         for i in range(len(before_exif)):
             assert before_exif[i] == after_exif[i]
+
+        # https://github.com/libvips/libvips/issues/1847
+        filename = temp_filename(self.tempdir, ".v")
+        x = pyvips.Image.black(16, 16) + 128
+        x.write_to_file(filename)
+
+        x = pyvips.Image.new_from_file(filename)
+        assert x.width == 16
+        assert x.height == 16
+        assert x.bands == 1
+        assert x.avg() == 128
 
         x = None
 
@@ -310,8 +320,8 @@ class TestForeign:
         self.save_load_buffer("pngsave_buffer", "pngload_buffer", self.colour)
         self.save_load("%s.png", self.mono)
         self.save_load("%s.png", self.colour)
-        self.save_load_file(".png", "[interlace]", self.colour, 0)
-        self.save_load_file(".png", "[interlace]", self.mono, 0)
+        self.save_load_file(".png", "[interlace]", self.colour)
+        self.save_load_file(".png", "[interlace]", self.mono)
 
         # size of a regular mono PNG 
         len_mono = len(self.mono.write_to_buffer(".png"))
@@ -374,39 +384,36 @@ class TestForeign:
 
         self.file_loader("tiffload", TIF4_FILE, tiff4_valid)
 
-        if pyvips.at_least_libvips(8, 5):
-            self.save_load_buffer("tiffsave_buffer",
-                                  "tiffload_buffer",
-                                  self.colour)
+        self.save_load_buffer("tiffsave_buffer", "tiffload_buffer", self.colour)
         self.save_load("%s.tif", self.mono)
         self.save_load("%s.tif", self.colour)
         self.save_load("%s.tif", self.cmyk)
 
         self.save_load("%s.tif", self.onebit)
-        self.save_load_file(".tif", "[bitdepth=1]", self.onebit, 0)
-        self.save_load_file(".tif", "[miniswhite]", self.onebit, 0)
-        self.save_load_file(".tif", "[bitdepth=1,miniswhite]", self.onebit, 0)
+        self.save_load_file(".tif", "[bitdepth=1]", self.onebit)
+        self.save_load_file(".tif", "[miniswhite]", self.onebit)
+        self.save_load_file(".tif", "[bitdepth=1,miniswhite]", self.onebit)
 
         self.save_load_file(".tif",
                             "[profile={0}]".format(SRGB_FILE),
-                            self.colour, 0)
-        self.save_load_file(".tif", "[tile]", self.colour, 0)
-        self.save_load_file(".tif", "[tile,pyramid]", self.colour, 0)
-        self.save_load_file(".tif", "[tile,pyramid,subifd]", self.colour, 0)
+                            self.colour)
+        self.save_load_file(".tif", "[tile]", self.colour)
+        self.save_load_file(".tif", "[tile,pyramid]", self.colour)
+        self.save_load_file(".tif", "[tile,pyramid,subifd]", self.colour)
         self.save_load_file(".tif",
                             "[tile,pyramid,compression=jpeg]", self.colour, 80)
         self.save_load_file(".tif",
                             "[tile,pyramid,subifd,compression=jpeg]", 
                             self.colour, 80)
-        self.save_load_file(".tif", "[bigtiff]", self.colour, 0)
+        self.save_load_file(".tif", "[bigtiff]", self.colour)
         self.save_load_file(".tif", "[compression=jpeg]", self.colour, 80)
         self.save_load_file(".tif",
                             "[tile,tile-width=256]", self.colour, 10)
 
         im = pyvips.Image.new_from_file(TIF2_FILE)
-        self.save_load_file(".tif", "[bitdepth=2]", im, 0)
+        self.save_load_file(".tif", "[bitdepth=2]", im)
         im = pyvips.Image.new_from_file(TIF4_FILE)
-        self.save_load_file(".tif", "[bitdepth=4]", im, 0)
+        self.save_load_file(".tif", "[bitdepth=4]", im)
 
         filename = temp_filename(self.tempdir, '.tif')
         x = pyvips.Image.new_from_file(TIF_FILE)
@@ -510,14 +517,14 @@ class TestForeign:
         assert a.height == b.height
         assert a.avg() == b.avg()
 
-        x = pyvips.Image.new_from_file(TIF_FILE)
-        buf = x.tiffsave_buffer(tile=True, pyramid=True, region_shrink="mean")
-        buf = x.tiffsave_buffer(tile=True, pyramid=True, region_shrink="mode")
-        buf = x.tiffsave_buffer(tile=True, pyramid=True, region_shrink="median")
-        buf = x.tiffsave_buffer(tile=True, pyramid=True, region_shrink="max")
-        buf = x.tiffsave_buffer(tile=True, pyramid=True, region_shrink="min")
-        buf = x.tiffsave_buffer(tile=True, pyramid=True,
-                                region_shrink="nearest")
+        # just 0/255 in each band, shrink with mode and all pixels should be 0
+        # or 255 in layer 1
+        x = pyvips.Image.new_from_file(TIF_FILE) > 128
+        for shrink in ["mode", "median", "max", "min"]:
+            buf = x.tiffsave_buffer(pyramid=True, region_shrink=shrink)
+            y = pyvips.Image.new_from_buffer(buf, "", page=1)
+            z = y.hist_find(band=0)
+            assert z(0, 0)[0] + z(255, 0)[0] == y.width * y.height
 
     @skip_if_no("magickload")
     def test_magickload(self):
@@ -580,6 +587,10 @@ class TestForeign:
         assert im.width == 16
         assert im.height == 16
 
+        # load should see metadata like eg. icc profiles 
+        im = pyvips.Image.magickload(JPEG_FILE)
+        assert len(im.get("icc-profile-data")) == 564
+
     # added in 8.7
     @skip_if_no("magicksave")
     def test_magicksave(self):
@@ -597,6 +608,7 @@ class TestForeign:
         assert self.colour.bands == x.bands
         max_diff = (self.colour - x).abs().max()
         assert max_diff < 60
+        assert len(x.get("icc-profile-data")) == 564
 
         self.save_load_buffer("magicksave_buffer", "magickload_buffer",
                               self.colour, 60, format="JPG")
@@ -676,6 +688,17 @@ class TestForeign:
             assert x1.get("page-height") == x2.get("page-height")
             assert x1.get("gif-loop") == x2.get("gif-loop")
 
+        # WebP image that happens to contain the string "<svg"
+        if have("svgload"):
+            x = pyvips.Image.new_from_file(WEBP_LOOKS_LIKE_SVG_FILE)
+            assert x.get("vips-loader") == "webpload"
+
+        # Animated WebP roundtrip
+        x = pyvips.Image.new_from_file(WEBP_ANIMATED_FILE, n=-1)
+        assert x.width == 13
+        assert x.height == 16393
+        buf = x.webpsave_buffer()
+
     @skip_if_no("analyzeload")
     def test_analyzeload(self):
         def analyze_valid(im):
@@ -746,6 +769,10 @@ class TestForeign:
             assert im.bands == 4
 
         self.file_loader("openslideload", OPENSLIDE_FILE, openslide_valid)
+
+        source = pyvips.Source.new_from_file(OPENSLIDE_FILE)
+        x = pyvips.Image.new_from_source(source, "")
+        openslide_valid(x)
 
     @skip_if_no("pdfload")
     def test_pdfload(self):
@@ -866,6 +893,20 @@ class TestForeign:
     def test_ppm(self):
         self.save_load("%s.ppm", self.mono)
         self.save_load("%s.ppm", self.colour)
+
+        self.save_load_file("%s.ppm", "[ascii]", self.mono, 0)
+        self.save_load_file("%s.ppm", "[ascii]", self.colour, 0)
+
+        self.save_load_file("%s.ppm", "[ascii,bitdepth=1]", self.onebit, 0)
+
+        rgb16 = self.colour.colourspace("rgb16")
+        grey16 = self.mono.colourspace("rgb16")
+
+        self.save_load("%s.ppm", grey16)
+        self.save_load("%s.ppm", rgb16)
+
+        self.save_load_file("%s.ppm", "[ascii]", grey16, 0)
+        self.save_load_file("%s.ppm", "[ascii]", rgb16, 0)
 
     @skip_if_no("radload")
     def test_rad(self):
@@ -1019,41 +1060,58 @@ class TestForeign:
         buf = self.colour.dzsave_buffer(region_shrink="mode")
         buf = self.colour.dzsave_buffer(region_shrink="median")
 
+        # test no-strip ... icc profiles should be passed down
+        filename = temp_filename(self.tempdir, '')
+        self.colour.dzsave(filename, no_strip=True)
+
+        y = pyvips.Image.new_from_file(filename + "_files/0/0_0.jpeg")
+        assert y.get_typeof("icc-profile-data") != 0
+
     @skip_if_no("heifload")
     def test_heifload(self):
         def heif_valid(im):
             a = im(10, 10)
-            # different versions of HEIC decode have slightly different 
+            # different versions of libheif decode have slightly different 
             # rounding
             assert_almost_equal_objects(a, [197.0, 181.0, 158.0], threshold=2)
             assert im.width == 3024
             assert im.height == 4032
             assert im.bands == 3
 
-        self.file_loader("heifload", HEIC_FILE, heif_valid)
-        self.buffer_loader("heifload_buffer", HEIC_FILE, heif_valid)
+        self.file_loader("heifload", AVIF_FILE, heif_valid)
+        self.buffer_loader("heifload_buffer", AVIF_FILE, heif_valid)
 
     @skip_if_no("heifsave")
     def test_heifsave(self):
         self.save_load_buffer("heifsave_buffer", "heifload_buffer",
-                              self.colour, 80)
-        self.save_load("%s.heic", self.colour)
+                              self.colour, 80, compression="av1")
+        # TODO: perhaps we should automatically set the compression to
+        # av1 when we save to *.avif?
+        #self.save_load("%s.avif", self.colour)
+        self.save_load_file(".avif", "[compression=av1]",
+                            self.colour, 80)
 
-        # test lossless mode
-        im = pyvips.Image.new_from_file(HEIC_FILE)
-        buf = im.heifsave_buffer(lossless=True)
-        im2 = pyvips.Image.new_from_buffer(buf, "")
+        # uncomment to test lossless mode, will take a while
+        #im = pyvips.Image.new_from_file(AVIF_FILE)
+        #buf = im.heifsave_buffer(lossless=True, compression="av1")
+        #im2 = pyvips.Image.new_from_buffer(buf, "")
         # not in fact quite lossless
-        assert abs(im.avg() - im2.avg()) < 3
+        #assert abs(im.avg() - im2.avg()) < 3
 
-        # higher Q should mean a bigger buffer
-        b1 = im.heifsave_buffer(Q=10)
-        b2 = im.heifsave_buffer(Q=90)
+        # higher Q should mean a bigger buffer, needs libheif >= v1.8.0,
+        # see: https://github.com/libvips/libvips/issues/1757
+        b1 = self.mono.heifsave_buffer(Q=10, compression="av1")
+        b2 = self.mono.heifsave_buffer(Q=90, compression="av1")
+        assert len(b2) > len(b1)
+
+        # Chroma subsampling should produce smaller file size for same Q
+        b1 = self.colour.heifsave_buffer(compression="av1", subsample_mode="on")
+        b2 = self.colour.heifsave_buffer(compression="av1", subsample_mode="off")
         assert len(b2) > len(b1)
 
         # try saving an image with an ICC profile and reading it back 
         # not all libheif have profile support, so put it in an if
-        buf = self.colour.heifsave_buffer()
+        buf = self.colour.heifsave_buffer(Q=10, compression="av1")
         im = pyvips.Image.new_from_buffer(buf, "")
         p1 = self.colour.get("icc-profile-data")
         if im.get_typeof("icc-profile-data") != 0:
@@ -1064,18 +1122,16 @@ class TestForeign:
         # the exif test will need us to be able to walk the header,
         # we can't just check exif-data
 
-        # libheif 1.1 (on ubuntu 18.04, current LTS) does not support exif
-        # write, so this test is commented out
-
         # test that exif changes change the output of heifsave
         # first make sure we have exif support
-        #z = pyvips.Image.new_from_file(JPEG_FILE)
-        #if z.get_typeof("exif-ifd0-Orientation") != 0:
-        #    x = self.colour.copy()
-        #    x.set("exif-ifd0-Make", "banana")
-        #    buf = x.heifsave_buffer()
-        #    y = pyvips.Image.new_from_buffer(buf, "")
-        #    assert y.get("exif-ifd0-Make").split(" ")[0] == "banana"
+        z = pyvips.Image.new_from_file(AVIF_FILE)
+        if z.get_typeof("exif-ifd0-Make") != 0:
+            x = z.copy()
+            x.set("exif-ifd0-Make", "banana")
+            buf = x.heifsave_buffer(Q=10, compression="av1")
+            y = pyvips.Image.new_from_buffer(buf, "")
+            assert y.get("exif-ifd0-Make").split(" ")[0] == "banana"
+
 
 if __name__ == '__main__':
     pytest.main()

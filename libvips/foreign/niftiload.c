@@ -74,9 +74,13 @@
 typedef struct _VipsForeignLoadNifti {
 	VipsForeignLoad parent_object;
 
-	/* Filename for load.
+	/* Source to load from (set by subclasses).
 	 */
-	char *filename; 
+	VipsSource *source;
+
+	/* Filename from source.
+	 */
+	const char *filename;
 
 	/* The NIFTI image loaded to memory.
 	 */
@@ -99,6 +103,7 @@ vips_foreign_load_nifti_dispose( GObject *gobject )
 {
 	VipsForeignLoadNifti *nifti = (VipsForeignLoadNifti *) gobject;
 
+	VIPS_UNREF( nifti->source );
 	VIPS_UNREF( nifti->memory );
 	VIPS_FREEF( nifti_image_free, nifti->nim );
 
@@ -107,38 +112,27 @@ vips_foreign_load_nifti_dispose( GObject *gobject )
 }
 
 static int
-vips_foreign_load_nifti_is_a( const char *filename )
+vips_foreign_load_nifti_build( VipsObject *object )
 {
-	char *hfile;
-	znzFile fp;
-	nifti_1_header nhdr;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	VipsForeignLoadNifti *nifti = (VipsForeignLoadNifti *) object;
 
-	/* Unfortunately is_nifti_file() is very slow and produces lots of
-	 * output. We have to make our own.
+	/* We can only open source which have an associated filename, since
+	 * the nifti library works in terms of filenames.
 	 */
-
-	if( !(hfile = nifti_findhdrname( filename )) )
-		return( 0 );
-
-	fp = znzopen( hfile, "rb", nifti_is_gzfile( hfile ));
-	if( znz_isnull( fp ) ) { 
-		free( hfile );
-		return( 0 );
+	if( nifti->source ) {
+		nifti->filename = vips_connection_filename( VIPS_CONNECTION( 
+			nifti->source ) );
+		if( !nifti->filename ) {
+			vips_error( class->nickname, "%s", 
+				_( "no filename available" ) );
+			return( -1 );
+		}
 	}
-	free( hfile );
 
-	(void) znzread( &nhdr, 1, sizeof( nhdr ), fp );
-
-	znzclose( fp );
-
-	/* Test for sanity both ways around. There's a thing to test for byte
-	 * order in niftilib, but it's static :(
-	 */
-	if( nifti_hdr_looks_good( &nhdr ) ) 
-		return( 1 );
-	swap_nifti_header( &nhdr, FALSE );
-	if( nifti_hdr_looks_good( &nhdr ) ) 
-		return( 1 );
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_nifti_parent_class )->
+		build( object ) )
+		return( -1 );
 
 	return( 0 );
 }
@@ -576,14 +570,6 @@ vips_foreign_load_nifti_load( VipsForeignLoad *load )
 	return( 0 );
 }
 
-const char *vips__nifti_suffs[] = { 
-	".nii", ".nii.gz", 
-	".hdr", ".hdr.gz", 
-	".img", ".img.gz", 
-	".nia", ".nia.gz", 
-	NULL 
-};
-
 static void
 vips_foreign_load_nifti_class_init( VipsForeignLoadNiftiClass *class )
 {
@@ -596,29 +582,208 @@ vips_foreign_load_nifti_class_init( VipsForeignLoadNiftiClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "niftiload";
+	object_class->nickname = "niftiload_base";
 	object_class->description = _( "load a NIFTI image" );
+	object_class->build = vips_foreign_load_nifti_build;
 
 	/* is_a() is not that quick ... lower the priority.
 	 */
 	foreign_class->priority = -50;
 
-	foreign_class->suffs = vips__nifti_suffs;
-
-	load_class->is_a = vips_foreign_load_nifti_is_a;
 	load_class->header = vips_foreign_load_nifti_header;
 	load_class->load = vips_foreign_load_nifti_load;
+}
+
+static void
+vips_foreign_load_nifti_init( VipsForeignLoadNifti *nifti )
+{
+}
+
+typedef struct _VipsForeignLoadNiftiFile {
+	VipsForeignLoadNifti parent_object;
+
+	/* Filename for load.
+	 */
+	char *filename; 
+
+} VipsForeignLoadNiftiFile;
+
+typedef VipsForeignLoadNiftiClass VipsForeignLoadNiftiFileClass;
+
+G_DEFINE_TYPE( VipsForeignLoadNiftiFile, vips_foreign_load_nifti_file, 
+	vips_foreign_load_nifti_get_type() );
+
+static int
+vips_foreign_load_nifti_file_build( VipsObject *object )
+{
+	VipsForeignLoadNifti *nifti = (VipsForeignLoadNifti *) object;
+	VipsForeignLoadNiftiFile *file = (VipsForeignLoadNiftiFile *) object;
+
+	if( file->filename &&
+		!(nifti->source = 
+			vips_source_new_from_file( file->filename )) )
+		return( -1 );
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_nifti_file_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+const char *vips_foreign_nifti_suffs[] = { 
+	".nii", ".nii.gz", 
+	".hdr", ".hdr.gz", 
+	".img", ".img.gz", 
+	".nia", ".nia.gz", 
+	NULL 
+};
+
+static int
+vips_foreign_load_nifti_is_a( const char *filename )
+{
+	char *hfile;
+	znzFile fp;
+	nifti_1_header nhdr;
+
+	/* Unfortunately is_nifti_file() is very slow and produces lots of
+	 * output. We have to make our own.
+	 */
+
+	if( !(hfile = nifti_findhdrname( filename )) )
+		return( 0 );
+
+	fp = znzopen( hfile, "rb", nifti_is_gzfile( hfile ));
+	if( znz_isnull( fp ) ) { 
+		free( hfile );
+		return( 0 );
+	}
+	free( hfile );
+
+	(void) znzread( &nhdr, 1, sizeof( nhdr ), fp );
+
+	znzclose( fp );
+
+	/* Test for sanity both ways around. There's a thing to test for byte
+	 * order in niftilib, but it's static :(
+	 */
+	if( nifti_hdr_looks_good( &nhdr ) ) 
+		return( 1 );
+	swap_nifti_header( &nhdr, FALSE );
+	if( nifti_hdr_looks_good( &nhdr ) ) 
+		return( 1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_load_nifti_file_class_init( 
+	VipsForeignLoadNiftiFileClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "niftiload";
+	object_class->description = _( "load NIfTI volume" );
+	object_class->build = vips_foreign_load_nifti_file_build;
+
+	foreign_class->suffs = vips_foreign_nifti_suffs;
+
+	load_class->is_a = vips_foreign_load_nifti_is_a;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
 		_( "Filename to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignLoadNifti, filename ),
+		G_STRUCT_OFFSET( VipsForeignLoadNiftiFile, filename ),
 		NULL );
+
 }
 
 static void
-vips_foreign_load_nifti_init( VipsForeignLoadNifti *nifti )
+vips_foreign_load_nifti_file_init( VipsForeignLoadNiftiFile *nifti )
+{
+}
+
+typedef struct _VipsForeignLoadNiftiSource {
+	VipsForeignLoadNifti parent_object;
+
+	/* Load from a source.
+	 */
+	VipsSource *source;
+
+} VipsForeignLoadNiftiSource;
+
+typedef VipsForeignLoadNiftiClass VipsForeignLoadNiftiSourceClass;
+
+G_DEFINE_TYPE( VipsForeignLoadNiftiSource, vips_foreign_load_nifti_source, 
+	vips_foreign_load_nifti_get_type() );
+
+static int
+vips_foreign_load_nifti_source_build( VipsObject *object )
+{
+	VipsForeignLoadNifti *nifti = (VipsForeignLoadNifti *) object;
+	VipsForeignLoadNiftiSource *source = 
+		(VipsForeignLoadNiftiSource *) object;
+
+	if( source->source ) {
+		nifti->source = source->source;
+		g_object_ref( nifti->source );
+	}
+
+	if( VIPS_OBJECT_CLASS( 
+		vips_foreign_load_nifti_source_parent_class )->
+			build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static gboolean
+vips_foreign_load_nifti_source_is_a_source( VipsSource *source )
+{
+	const char *filename;
+
+	return( (filename = 
+		vips_connection_filename( VIPS_CONNECTION( source ) )) &&
+		vips_foreign_load_nifti_is_a( filename ) );
+}
+
+static void
+vips_foreign_load_nifti_source_class_init( 
+	VipsForeignLoadNiftiSourceClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "niftiload_source";
+	object_class->description = _( "load NIfTI volumes" );
+	object_class->build = vips_foreign_load_nifti_source_build;
+
+	load_class->is_a_source = 
+		vips_foreign_load_nifti_source_is_a_source;
+
+	VIPS_ARG_OBJECT( class, "source", 1,
+		_( "Source" ),
+		_( "Source to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadNiftiSource, source ),
+		VIPS_TYPE_SOURCE );
+
+}
+
+static void
+vips_foreign_load_nifti_source_init( 
+	VipsForeignLoadNiftiSource *nifti )
 {
 }
 
@@ -646,6 +811,29 @@ vips_niftiload( const char *filename, VipsImage **out, ... )
 
 	va_start( ap, out );
 	result = vips_call_split( "niftiload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_niftiload_source:
+ * @source: source to load from
+ * @out: (out): decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Exactly as vips_niftiload(), but read from a source. 
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_niftiload_source( VipsSource *source, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "niftiload_source", ap, source, out );
 	va_end( ap );
 
 	return( result );

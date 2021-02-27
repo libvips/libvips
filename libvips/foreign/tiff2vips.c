@@ -2680,18 +2680,23 @@ rtiff_header_read_all( Rtiff *rtiff )
 		"reading header for page %d ...\n", rtiff->page );
 #endif /*DEBUG*/
 
+	/* -1 means "to the end". 
+	 *
+	 * We must count pages before selecting and reading the header of the 
+	 * first page, since scanning a TIFF can change the value of libtiff's 
+	 * internal header fields in strange ways, especially if the TIFF is 
+	 * corrupt.  
+	 */
+	rtiff->n_pages = rtiff_n_pages( rtiff );
+
 	if( rtiff_set_page( rtiff, rtiff->page ) ||
 		rtiff_header_read( rtiff, &rtiff->header ) )
 		return( -1 ); 
 
-	/* -1 means "to the end".
-	 */
-	rtiff->n_pages = rtiff_n_pages( rtiff );
-	if( rtiff->n == -1 )
-		rtiff->n = rtiff->n_pages - rtiff->page;
-
 	/* If we're to read many pages, verify that they are all identical. 
 	 */
+	if( rtiff->n == -1 )
+		rtiff->n = rtiff->n_pages - rtiff->page;
 	if( rtiff->n > 1 ) {
 		int i;
 
@@ -2715,6 +2720,10 @@ rtiff_header_read_all( Rtiff *rtiff )
 				return( -1 );
 			}
 		}
+
+		/* Make sure the next set_page() will reread the directory.
+		 */
+		rtiff->current_page = -1;
 	}
 
 	return( 0 );

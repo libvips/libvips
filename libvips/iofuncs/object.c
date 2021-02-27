@@ -2176,6 +2176,17 @@ vips_object_print_arg( VipsObject *object, GParamSpec *pspec, VipsBuf *buf )
 	g_value_unset( &value );
 }
 
+/* Is a filename a target, ie. it is of the form ".jpg". Any trailing options 
+ * have already been stripped. Watch out for cases like "./x.jpg".
+ */
+static gboolean
+vips_filename_istarget( const char *filename )
+{
+	const char *p;
+
+	return( (p = strrchr( filename, '.' )) && p == filename );
+}
+
 /* Write a named arg to the string. If the arg does not need a string (see
  * above), arg will be NULL.
  */
@@ -2209,7 +2220,7 @@ vips_object_get_argument_to_string( VipsObject *object,
 
 		vips__filename_split8( arg, filename, option_string );
 
-		if( vips_isprefix( ".", filename ) ) {
+		if( vips_filename_istarget( filename ) ) {
 			VipsTarget *target;
 
 			if( !(target = vips_target_new_to_descriptor( 1 )) )
@@ -3073,7 +3084,7 @@ vips_object_local_array_cb( VipsObject *parent, VipsObjectLocal *local )
  * |[
  * VipsObject **t;
  *
- * t = vips_object_local_array( a, 5 );
+ * t = vips_object_local_array( parent, 5 );
  * if( 
  *   vips_add( a, b, &t[0], NULL ) ||
  *   vips_invert( t[0], &t[1], NULL ) ||
@@ -3156,23 +3167,34 @@ vips_object_print_all_cb( VipsObject *object, int *n, void *b )
 	return( NULL );
 }
 
-void
-vips_object_print_all( void )
+int
+vips__object_leak( void )
 {
+	int n_leaks;
+
+	n_leaks = 0;
+
+	/* Don't count static objects.
+	 */
 	if( vips__object_all &&
 		g_hash_table_size( vips__object_all ) > 
 			vips_object_n_static() ) {
-		int n;
-
 		fprintf( stderr, "%d objects alive:\n", 
 			g_hash_table_size( vips__object_all ) ); 
 
-		n = 0;
 		vips_object_map( 
-			(VipsSListMap2Fn) vips_object_print_all_cb, &n, NULL );
+			(VipsSListMap2Fn) vips_object_print_all_cb, 
+			&n_leaks, NULL );
 	}
 
-	vips__type_leak();
+	return( n_leaks );
+}
+
+void
+vips_object_print_all( void )
+{
+	(void) vips__object_leak();
+	(void) vips__type_leak();
 }
 
 static void *

@@ -515,14 +515,20 @@ readslide_parse( ReadSlide *rslide, VipsImage *image )
 
 	for( properties = openslide_get_property_names( rslide->osr );
 		*properties != NULL; properties++ ) {
-		vips_image_set_string( image, *properties,
-			openslide_get_property_value( rslide->osr,
-			*properties ) );
+		const char *name = *properties;
+		const char *value = 
+			openslide_get_property_value( rslide->osr, name );
 
-		if( strcmp( *properties, "openslide.mpp-x" ) == 0 ) 
-			xres = readslice_parse_res( rslide, *properties );
-		if( strcmp( *properties, "openslide.mpp-y" ) == 0 ) 
-			yres = readslice_parse_res( rslide, *properties );
+		/* Can be NULL for some openslides with some images.
+		 */
+		if( value ) { 
+			vips_image_set_string( image, name, value ); 
+
+			if( strcmp( *properties, "openslide.mpp-x" ) == 0 ) 
+				xres = readslice_parse_res( rslide, name );
+			if( strcmp( *properties, "openslide.mpp-y" ) == 0 ) 
+				yres = readslice_parse_res( rslide, name );
+		}
 	}
 
 	associated_names = g_strjoinv( ", ", (char **)

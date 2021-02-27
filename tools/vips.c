@@ -97,7 +97,7 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 #include <vips/vips7compat.h>
 #endif
 
@@ -109,7 +109,7 @@ static char *main_option_plugin = NULL;
 static gboolean main_option_version;
 
 static void *
-list_class( GType type )
+list_class( GType type, void *user_data )
 {
 	VipsObjectClass *class = VIPS_OBJECT_CLASS( g_type_class_ref( type ) );
 	int depth = vips_type_depth( type );
@@ -156,7 +156,7 @@ parse_main_option_list( const gchar *option_name, const gchar *value,
 			g_type_from_name( "VipsObject" ), 
 			test_nickname, (void *) value )) ) { 
 		vips_type_map_all( G_TYPE_FROM_CLASS( class ), 
-			(VipsTypeMapFn) list_class, NULL );
+			list_class, NULL );
 	}
 	else if( value ) {
 		vips_error( g_get_prgname(), 
@@ -167,7 +167,7 @@ parse_main_option_list( const gchar *option_name, const gchar *value,
 	}
 	else {
 		vips_type_map_all( g_type_from_name( "VipsOperation" ), 
-			(VipsTypeMapFn) list_class, NULL );
+			list_class, NULL );
 	}
 
 	exit( 0 );
@@ -186,7 +186,7 @@ static GOptionEntry main_option[] = {
 	{ NULL }
 };
 
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 typedef void *(*map_name_fn)( im_function * );
 
 /* Loop over a package.
@@ -253,7 +253,7 @@ list_function( im_function *func )
 static int
 print_list( int argc, char **argv )
 {
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 	if( !argv[0] || strcmp( argv[0], "packages" ) == 0 ) 
 		im_map_packages( (VSListMap2Fn) list_package, NULL );
 	else if( strcmp( argv[0], "classes" ) == 0 ) 
@@ -261,14 +261,14 @@ print_list( int argc, char **argv )
 	if( !argv[0] || strcmp( argv[0], "classes" ) == 0 )
 #endif
 		vips_type_map_all( g_type_from_name( "VipsObject" ), 
-			(VipsTypeMapFn) list_class, NULL );
+			list_class, NULL );
 	else if( g_type_from_name( argv[0] ) &&
 		g_type_is_a( g_type_from_name( argv[0] ), VIPS_TYPE_OBJECT ) ) {
 		vips_type_map_all( g_type_from_name( argv[0] ), 
-			(VipsTypeMapFn) list_class, NULL );
+			list_class, NULL );
 	}
 	else {
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 		if( map_name( argv[0], list_function ) )
 			vips_error_exit( "unknown package \"%s\"", argv[0] ); 
 #else
@@ -279,7 +279,7 @@ print_list( int argc, char **argv )
 	return( 0 );
 }
 
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 /* Print "ln -s" lines for this package.
  */
 static void *
@@ -331,7 +331,7 @@ isvips( const char *name )
 	return( vips_isprefix( "vips", name ) );
 }
 
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 /* Print a usage string from an im_function descriptor.
  */
 static void
@@ -426,13 +426,13 @@ static GOptionEntry empty_options[] = {
 };
 
 static ActionEntry actions[] = {
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 	{ "list", N_( "list classes|packages|all|package-name|operation-name" ),
 #else
 	{ "list", N_( "list classes|all|operation-name" ),
 #endif
 		&empty_options[0], print_list },
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 	{ "links", N_( "generate links for vips/bin" ),
 		&empty_options[0], print_links },
 #endif
@@ -515,7 +515,7 @@ main( int argc, char **argv )
 	GOptionGroup *main_group;
 	GOptionGroup *group;
 	VipsOperation *operation;
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 	im_function *fn;
 #endif
 	int i, j;
@@ -603,10 +603,10 @@ main( int argc, char **argv )
 		;
 
 	if( main_option_plugin ) {
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 		if( !im_load_plugin( main_option_plugin ) )
 			vips_error_exit( NULL );
-#else /*!VIPS_ENABLE_DEPRECATED*/
+#else /*!ENABLE_DEPRECATED*/
 		GModule *module;
 
 		module = g_module_open( main_option_plugin, G_MODULE_BIND_LAZY );
@@ -672,7 +672,7 @@ main( int argc, char **argv )
 				break;
 			}
 
-#if VIPS_ENABLE_DEPRECATED
+#if ENABLE_DEPRECATED
 	/* Could be a vips7 im_function. We need to test for vips7 first,
 	 * since we don't want to use the vips7 compat wrappers in vips8
 	 * unless we have to. They don't support all args types.
@@ -753,8 +753,6 @@ main( int argc, char **argv )
 
 	g_option_context_free( context );
 
-	/* We don't free this on error exit, sadly.
-	 */
 #ifdef HAVE_G_WIN32_GET_COMMAND_LINE
 	g_strfreev( argv ); 
 #endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/

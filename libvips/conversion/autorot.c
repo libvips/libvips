@@ -9,6 +9,9 @@
  * 10/5/20
  * 	- handle mirrored images
  * 	- deprecate vips_autorot_get_angle()
+ * 24/10/20
+ * 	- only remove main image orientation, since we don't rotate the
+ * 	  embedded thumbnail
  */
 
 /*
@@ -47,6 +50,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
+#include <string.h>
+
 #include <vips/vips.h>
 
 #include "pconversion.h"
@@ -69,8 +74,7 @@ static void *
 vips_autorot_remove_angle_sub( VipsImage *image, 
 	const char *field, GValue *value, void *my_data )
 {
-	if( vips_isprefix( "exif-", field ) &&
-		vips_ispostfix( field, "-Orientation" ) ) {
+	if( strcmp( field, "exif-ifd0-Orientation" ) == 0 ) {
 #ifdef DEBUG
 		printf( "vips_autorot_remove_angle: %s\n", field ); 
 #endif /*DEBUG*/

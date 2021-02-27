@@ -2,6 +2,8 @@
  *
  * 1/5/20
  * 	- from pngload.c
+ * 19/2/21 781545872
+ * 	- read out background, if we can
  */
 
 /*
@@ -94,13 +96,18 @@ vips_foreign_load_png_stream( spng_ctx *ctx, void *user,
 {
 	VipsSource *source = VIPS_SOURCE( user );
 
-	gint64 bytes_read;
+	while( length > 0 ) {
+		gint64 bytes_read;
 
-	bytes_read = vips_source_read( source, dest, length );
-	if( bytes_read < 0 )
-		return( SPNG_IO_ERROR );
-	if( bytes_read < length )
-		return( SPNG_IO_EOF);
+		bytes_read = vips_source_read( source, dest, length );
+		if( bytes_read < 0 )
+			return( SPNG_IO_ERROR );
+		if( bytes_read == 0 )
+			return( SPNG_IO_EOF );
+
+		dest += bytes_read;
+		length -= bytes_read;
+	}
 
 	return( 0 );
 }
@@ -194,18 +201,20 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 	struct spng_iccp iccp;
 	struct spng_exif exif;
 	struct spng_phys phys;
+	struct spng_bkgd bkgd;
 	guint32 n_text;
 
 	/* Get resolution. Default to 72 pixels per inch.
 	 */
-	xres = (72.0 / 2.54 * 100.0);
-	yres = (72.0 / 2.54 * 100.0);
+	xres = 72.0 / 25.4;
+	yres = 72.0 / 25.4;
 	if( !spng_get_phys( png->ctx, &phys ) ) {
-		/* There's phys.units, but it's always 0, meaning pixels per
-		 * metre.
+		/* unit 1 means pixels per metre, otherwise unspecified.
 		 */
-		xres = phys.ppu_x / 1000.0;
-		yres = phys.ppu_y / 1000.0;
+		xres = phys.unit_specifier == 1 ? 
+			phys.ppu_x / 1000.0 : phys.ppu_x;
+		yres = phys.unit_specifier == 1 ? 
+			phys.ppu_y / 1000.0 : phys.ppu_y;
 	}
 
 	vips_image_init_fields( image,
@@ -261,6 +270,42 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 	 */
 	if( png->ihdr.interlace_method != SPNG_INTERLACE_NONE ) 
 		vips_image_set_int( image, "interlaced", 1 ); 
+
+	if( !spng_get_bkgd( png->ctx, &bkgd ) ) {
+		const int scale = image->BandFmt == 
+			VIPS_FORMAT_UCHAR ? 1 : 256;
+
+		double array[3];
+		int n;
+
+		switch( png->ihdr.color_type ) { 
+		case SPNG_COLOR_TYPE_GRAYSCALE:
+		case SPNG_COLOR_TYPE_GRAYSCALE_ALPHA:
+			array[0] = bkgd.gray / scale;
+			n = 1;
+			break;
+
+		case SPNG_COLOR_TYPE_TRUECOLOR:
+		case SPNG_COLOR_TYPE_TRUECOLOR_ALPHA:
+			array[0] = bkgd.red / scale;
+			array[1] = bkgd.green / scale;
+			array[2] = bkgd.blue / scale;
+			n = 3;
+			break;
+
+		case SPNG_COLOR_TYPE_INDEXED:
+		default:
+			/* Not sure what to do here. I suppose we should read
+			 * the palette.
+			 */
+			n = 0;
+			break;
+		}
+
+		if( n > 0 ) 
+			vips_image_set_array_double( image, "background", 
+				array, n );
+	}
 }
 
 static int
@@ -302,7 +347,7 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 		return( -1 );
 	}
 
-	/*
+#ifdef DEBUG
 	printf( "width: %d\nheight: %d\nbit depth: %d\ncolor type: %d\n",
 		png->ihdr.width, png->ihdr.height,
 		png->ihdr.bit_depth, png->ihdr.color_type );
@@ -310,7 +355,7 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 		"interlace method: %d\n",
 		png->ihdr.compression_method, png->ihdr.filter_method,
 		png->ihdr.interlace_method );
-	 */
+#endif /*DEBUG*/
 
 	/* Just convert to host-endian if nothing else applies.
 	 */ 
@@ -366,11 +411,25 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 		png->ihdr.bit_depth < 8 )
 		png->fmt = SPNG_FMT_G8;
 
+	/* Try reading the optional transparency chunk. This will cause all
+	 * chunks up to the first IDAT to be read in, so it can fail if any
+	 * chunk has an error.
+	 */
+	error = spng_get_trns( png->ctx, &trns );
+	if( error &&
+		error != SPNG_ECHUNKAVAIL ) {
+		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
+		return( -1 );
+	}
+
 	/* Expand transparency.
 	 *
 	 * The _ALPHA types should not have the optional trns chunk (they 
 	 * always have a transparent band), see 
 	 * https://www.w3.org/TR/2003/REC-PNG-20031110/#11tRNS
+	 *
+	 * It's quick and safe to call spng_get_trns() again, and we now know 
+	 * it will only fail for no transparency chunk.
 	 */
 	if( png->ihdr.color_type == SPNG_COLOR_TYPE_GRAYSCALE_ALPHA || 
 		png->ihdr.color_type == SPNG_COLOR_TYPE_TRUECOLOR_ALPHA ) 
@@ -468,6 +527,9 @@ vips_foreign_load_png_generate( VipsRegion *or,
 			printf( "  thread %p\n", g_thread_self() );
 			printf( "  error %s\n", spng_strerror( error ) ); 
 #endif /*DEBUG*/
+
+			g_warning( "%s: %s", 
+				class->nickname, spng_strerror( error ) );
 
 			/* And bail if fail is on. 
 			 */

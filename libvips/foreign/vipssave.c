@@ -51,34 +51,70 @@
 typedef struct _VipsForeignSaveVips {
 	VipsForeignSave parent_object;
 
-	char *filename;
+	VipsTarget *target;
 
 } VipsForeignSaveVips;
 
 typedef VipsForeignSaveClass VipsForeignSaveVipsClass;
 
-G_DEFINE_TYPE( VipsForeignSaveVips, vips_foreign_save_vips, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveVips, vips_foreign_save_vips, 
 	VIPS_TYPE_FOREIGN_SAVE );
+
+static void
+vips_foreign_save_vips_dispose( GObject *gobject )
+{
+	VipsForeignSaveVips *vips = (VipsForeignSaveVips *) gobject;
+
+	if( vips->target ) 
+		vips_target_finish( vips->target );
+	VIPS_UNREF( vips->target );
+
+	G_OBJECT_CLASS( vips_foreign_save_vips_parent_class )->
+		dispose( gobject );
+}
 
 static int
 vips_foreign_save_vips_build( VipsObject *object )
 {
-	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveVips *vips = (VipsForeignSaveVips *) object;
 
-	VipsImage *x;
+	const char *filename;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_vips_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	if( !(x = vips_image_new_mode( vips->filename, "w" )) )
-		return( -1 );
-	if( vips_image_write( save->ready, x ) ) {
+	if( (filename = 
+		vips_connection_filename( VIPS_CONNECTION( vips->target ) )) ) {
+		VipsForeignSave *save = (VipsForeignSave *) object;
+
+		VipsImage *x;
+
+		/* vips_image_build() has some magic for "w"
+		 * preventing recursion and sending this directly to the
+		 * saver built into iofuncs.
+		 */
+		if( !(x = vips_image_new_mode( filename, "w" )) )
+			return( -1 );
+		if( vips_image_write( save->ready, x ) ) {
+			g_object_unref( x );
+			return( -1 ); 
+		}
 		g_object_unref( x );
-		return( -1 ); 
 	}
-	g_object_unref( x );
+	else {
+		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+
+		/* We could add load vips from memory, fd, via mmap etc. here.
+		 * We should perhaps move iofuncs/vips.c into this file.
+		 *
+		 * For now, just fail unless there's a filename associated
+		 * with this source.
+		 */
+		vips_error( class->nickname, 
+			"%s", _( "no filename associated with target" ) );
+		return( -1 );
+	}
 
 	return( 0 );
 }
@@ -97,11 +133,10 @@ vips_foreign_save_vips_class_init( VipsForeignSaveVipsClass *class )
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
+	gobject_class->dispose = vips_foreign_save_vips_dispose;
 
-	object_class->nickname = "vipssave";
-	object_class->description = _( "save image to vips file" );
+	object_class->nickname = "vipssave_base";
+	object_class->description = _( "save vips base class" );
 	object_class->build = vips_foreign_save_vips_build;
 
 	foreign_class->suffs = vips__suffs;
@@ -109,17 +144,120 @@ vips_foreign_save_vips_class_init( VipsForeignSaveVipsClass *class )
 	save_class->saveable = VIPS_SAVEABLE_ANY;
 	for( i = 0; i < VIPS_CODING_LAST; i++ )
 		save_class->coding[i] = TRUE;
+}
+
+static void
+vips_foreign_save_vips_init( VipsForeignSaveVips *vips )
+{
+}
+
+typedef struct _VipsForeignSaveVipsFile {
+	VipsForeignSaveVips parent_object;
+
+	char *filename;
+} VipsForeignSaveVipsFile;
+
+typedef VipsForeignSaveVipsClass VipsForeignSaveVipsFileClass;
+
+G_DEFINE_TYPE( VipsForeignSaveVipsFile, vips_foreign_save_vips_file, 
+	vips_foreign_save_vips_get_type() );
+
+static int
+vips_foreign_save_vips_file_build( VipsObject *object )
+{
+	VipsForeignSaveVips *vips = (VipsForeignSaveVips *) object;
+	VipsForeignSaveVipsFile *file = (VipsForeignSaveVipsFile *) object;
+
+	if( !(vips->target = vips_target_new_to_file( file->filename )) )
+		return( -1 );
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_vips_file_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_vips_file_class_init( VipsForeignSaveVipsFileClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "vipssave";
+	object_class->description = _( "save image to file in vips format" );
+	object_class->build = vips_foreign_save_vips_file_build;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
 		_( "Filename to save to" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
-		G_STRUCT_OFFSET( VipsForeignSaveVips, filename ),
+		G_STRUCT_OFFSET( VipsForeignSaveVipsFile, filename ),
 		NULL );
 }
 
 static void
-vips_foreign_save_vips_init( VipsForeignSaveVips *vips )
+vips_foreign_save_vips_file_init( VipsForeignSaveVipsFile *file )
+{
+}
+
+typedef struct _VipsForeignSaveVipsTarget {
+	VipsForeignSaveVips parent_object;
+
+	VipsTarget *target;
+
+} VipsForeignSaveVipsTarget;
+
+typedef VipsForeignSaveVipsClass VipsForeignSaveVipsTargetClass;
+
+G_DEFINE_TYPE( VipsForeignSaveVipsTarget, vips_foreign_save_vips_target, 
+	vips_foreign_save_vips_get_type() );
+
+static int
+vips_foreign_save_vips_target_build( VipsObject *object )
+{
+	VipsForeignSaveVips *vips = (VipsForeignSaveVips *) object;
+	VipsForeignSaveVipsTarget *target = 
+		(VipsForeignSaveVipsTarget *) object;
+
+	vips->target = target->target;
+	g_object_ref( vips->target );
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_vips_target_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_vips_target_class_init( 
+	VipsForeignSaveVipsTargetClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "vipssave_target";
+	object_class->description = _( "save image to target in vips format" );
+	object_class->build = vips_foreign_save_vips_target_build;
+
+	VIPS_ARG_OBJECT( class, "target", 1,
+		_( "Target" ),
+		_( "Target to save to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveVipsTarget, target ),
+		VIPS_TYPE_TARGET );
+
+}
+
+static void
+vips_foreign_save_vips_target_init( VipsForeignSaveVipsTarget *target )
 {
 }
 
@@ -148,3 +286,25 @@ vips_vipssave( VipsImage *in, const char *filename, ... )
 	return( result );
 }
 
+/**
+ * vips_vipssave_target: (method)
+ * @in: image to save 
+ * @target: save image to this target
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * As vips_vipssave(), but save to a target.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_vipssave_target( VipsImage *in, VipsTarget *target, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, target );
+	result = vips_call_split( "vipssave_target", ap, in, target );
+	va_end( ap );
+
+	return( result );
+}

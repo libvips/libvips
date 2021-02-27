@@ -50,7 +50,7 @@ void vips__tiff_init( void );
 int vips__tiff_write( VipsImage *in, const char *filename, 
 	VipsForeignTiffCompression compression, int Q, 
 	VipsForeignTiffPredictor predictor,
-	char *profile,
+	const char *profile,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,
 	int bitdepth,
@@ -70,7 +70,7 @@ int vips__tiff_write_buf( VipsImage *in,
 	void **obuf, size_t *olen, 
 	VipsForeignTiffCompression compression, int Q, 
 	VipsForeignTiffPredictor predictor,
-	char *profile,
+	const char *profile,
 	gboolean tile, int tile_width, int tile_height,
 	gboolean pyramid,
 	int bitdepth,
@@ -168,7 +168,7 @@ int vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	gboolean optimize_coding, gboolean progressive, gboolean strip,
 	gboolean trellis_quant, gboolean overshoot_deringing,
 	gboolean optimize_scans, int quant_table,
-	VipsForeignJpegSubsample subsample_mode );
+	VipsForeignSubsample subsample_mode );
 
 int vips__jpeg_read_source( VipsSource *source, VipsImage *out,
 	gboolean header_only, int shrink, int fail, gboolean autorotate );
@@ -211,7 +211,7 @@ int vips__webp_write_target( VipsImage *image, VipsTarget *target,
 	gboolean smart_subsample, gboolean near_lossless,
 	int alpha_q, int reduction_effort,
 	gboolean min_size, int kmin, int kmax,
-	gboolean strip );
+	gboolean strip, const char *profile );
 
 int vips__openslide_isslide( const char *filename );
 int vips__openslide_read_header( const char *filename, VipsImage *out, 
@@ -229,7 +229,7 @@ int vips__quantise_image( VipsImage *in,
 	VipsImage **index_out, VipsImage **palette_out,
 	int colours, int Q, double dither );
 
-extern const char *vips__nifti_suffs[];
+extern const char *vips_foreign_nifti_suffs[];
 
 VipsBandFormat vips__foreign_nifti_datatype2BandFmt( int datatype );
 int vips__foreign_nifti_BandFmt2datatype( VipsBandFormat fmt );
@@ -241,6 +241,9 @@ void *vips__foreign_nifti_map( VipsNiftiMapFn fn, void *a, void *b );
 extern const char *vips__heif_suffs[];
 struct heif_error;
 void vips__heif_error( struct heif_error *error );
+
+struct heif_image;
+void vips__heif_image_print( struct heif_image *img );
 
 #ifdef __cplusplus
 }

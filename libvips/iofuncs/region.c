@@ -48,6 +48,9 @@
  * 9/6/19
  * 	- saner behaviour for vips_region_fetch() if the request is partly 
  * 	  outside the image
+ * 22/2/21 f1ac
+ * 	- fix int overflow in vips_region_copy(), could cause crashes with
+ * 	  very wide images
  */
 
 /*
@@ -1048,12 +1051,13 @@ void
 vips_region_copy( VipsRegion *reg, 
 	VipsRegion *dest, const VipsRect *r, int x, int y )
 {
-	int z;
-	int len = VIPS_IMAGE_SIZEOF_PEL( reg->im ) * r->width;
+	size_t len = VIPS_IMAGE_SIZEOF_PEL( reg->im ) * r->width;
 	VipsPel *p = VIPS_REGION_ADDR( reg, r->left, r->top );
 	VipsPel *q = VIPS_REGION_ADDR( dest, x, y );
-	int plsk = VIPS_REGION_LSKIP( reg );
-	int qlsk = VIPS_REGION_LSKIP( dest );
+	size_t plsk = VIPS_REGION_LSKIP( reg );
+	size_t qlsk = VIPS_REGION_LSKIP( dest );
+
+	int z;
 
 #ifdef DEBUG
 	/* Find the area we will write to in dest.

@@ -16,10 +16,10 @@
 <para>
   The libvips test suite is written in Python and exercises every operation in the API. It’s also a useful source of examples.
 </para>
-<refsect3 id="average-a-region-of-interest-box-on-an-image">
+<refsect3 xml:id="average-a-region-of-interest-box-on-an-image">
   <title>Average a region of interest box on an image</title>
   <programlisting language="python">
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 import sys
 import pyvips
@@ -31,16 +31,16 @@ height = 64
 
 image = pyvips.Image.new_from_file(sys.argv[1])
 roi = image.crop(left, top, width, height)
-print 'average:', roi.avg()
+print('average:', roi.avg())
 </programlisting>
 </refsect3>
-<refsect3 id="libvips-and-numpy">
+<refsect3 xml:id="libvips-and-numpy">
   <title>libvips and numpy</title>
   <para>
     You can use <literal>pyvips.Image.new_from_memory()</literal> to make a vips image from an area of memory. The memory array needs to be laid out band-interleaved, as a set of scanlines, with no padding between lines.
   </para>
   <programlisting language="python">
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 import sys
 import time
@@ -50,7 +50,7 @@ from PIL import Image
 import numpy as np
 
 if len(sys.argv) != 3:
-    print('usage: {0} input-filename output-filename'.format(sys.argv[0]))
+    print(f'usage: {sys.argv[0]} input-filename output-filename')
     sys.exit(-1)
 
 # map vips formats to np dtypes
@@ -113,7 +113,7 @@ vi = pyvips.Image.new_from_memory(linear.data, width, height, bands,
 vi.write_to_file(sys.argv[2])
 </programlisting>
 </refsect3>
-<refsect3 id="build-huge-image-mosaic">
+<refsect3 xml:id="build-huge-image-mosaic">
   <title>Build huge image mosaic</title>
   <para>
     This makes a 100,000 x 100,000 black image, then inserts all the images you pass on the command-line into it at random positions. libvips is able to run this program in sequential mode: it’ll open all the input images at the same time, and stream pixels from them as it needs them to generate the output.
@@ -135,7 +135,7 @@ $ for i in {1..1000}; do cp x.tif test/$i.tif; done
     And run this Python program on them:
   </para>
   <programlisting>
-$ time ./try255.py x.tif[squash,compression=ccittfax4,strip,bigtif] test/*
+$ time python try255.py x.tif[squash,compression=ccittfax4,strip,bigtiff] test/*
 real    1m59.924s
 user    4m5.388s
 sys 0m8.936s
@@ -147,7 +147,8 @@ sys 0m8.936s
     If you wanted to handle transparency, or if you wanted mixed CMYK and RGB images, you’d need to do some more work to convert them all into the same colourspace before inserting them.
   </para>
   <programlisting language="python">
-#!/usr/bin/env python
+#!/usr/bin/python3
+#file try255.py
 
 import sys
 import random

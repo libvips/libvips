@@ -356,7 +356,7 @@ vips_tracked_malloc( size_t size )
  * Returns: a file descriptor, or -1 on error.
  */
 int
-vips_tracked_open( const char *pathname, int flags, mode_t mode )
+vips_tracked_open( const char *pathname, int flags, int mode )
 {
 	int fd;
 

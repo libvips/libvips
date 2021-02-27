@@ -81,10 +81,10 @@ IGNORE_VIPS_C = \
 	nary.h \
 	parithmetic.h \
 	statistic.h \
-	unaryconst.h \
 	unary.h \
-	CImg.h \
+	unaryconst.h \
 	pcolour.h \
+	profiles.h \
 	bandary.h \
 	pconversion.h \
 	correlation.h \
@@ -94,25 +94,14 @@ IGNORE_VIPS_C = \
 	point.h \
 	drawink.h \
 	pdraw.h \
-	analyze2vips.h \
-	csv.h \
 	dbh.h \
-	fits.h \
 	jpeg.h \
 	magick.h \
-	matlab.h \
-	openexr2vips.h \
-	openslide2vips.h \
-	ppm.h \
-	radiance.h \
+	pforeign.h \
 	tiff.h \
-	vipsjpeg.h \
-	vipspng.h \
-	webp.h \
 	pfreqfilt.h \
 	hist_unary.h \
 	phistogram.h \
-	base64.h \
 	sink.h \
 	vipsmarshal.h \
 	pmorphology.h \
@@ -136,14 +125,15 @@ HTML_IMAGES = \
 	$(top_srcdir)/doc/images/Vips-smp.png
 
 # we have some files in markdown ... convert to docbook for gtk-doc
-# pandoc makes sect1 headers, we want refsect3 for gtk-doc
+# pandoc makes section headers, we want refsect3 for gtk-doc
 .md.xml:
 	pandoc -s --template="$(realpath pandoc-docbook-template.docbook)" --wrap=none -V title="$<" -f markdown+smart -t docbook-smart -o $@ $<
-	sed -e s/sect1/refsect3/g < $@ > x && mv x $@
+	sed -e s/section/refsect3/g < $@ > x && mv x $@
 
 # Our markdown source files
 markdown_content_files = \
 	How-it-works.md \
+	libvips-from-C++.md \
 	Using-vipsthumbnail.md \
 	How-it-opens-files.md \
 	Examples.md \
@@ -160,7 +150,6 @@ content_files = \
 	using-command-line.xml \
 	using-C.xml \
 	using-threads.xml \
-	using-cpp.xml \
 	extending.xml \
 	function-list.xml \
 	file-format.xml \
@@ -173,7 +162,6 @@ expand_content_files = \
 	using-command-line.xml \
 	using-C.xml \
 	using-threads.xml \
-	using-cpp.xml \
 	extending.xml \
 	function-list.xml \
 	file-format.xml \

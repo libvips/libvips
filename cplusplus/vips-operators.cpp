@@ -1,5 +1,5 @@
 // bodies for vips operations
-// Thu 18 Jun 2020 01:19:31 PM CEST
+// Mon 17 Aug 18:04:15 BST 2020
 // this file is generated automatically, do not edit!
 
 VImage VImage::CMC2LCh( VOption *options ) const
@@ -2467,12 +2467,32 @@ VImage VImage::ppmload( const char *filename, VOption *options )
     return( out );
 }
 
+VImage VImage::ppmload_source( VSource source, VOption *options )
+{
+    VImage out;
+
+    call( "ppmload_source",
+        (options ? options : VImage::option())->
+            set( "out", &out )->
+            set( "source", source ) );
+
+    return( out );
+}
+
 void VImage::ppmsave( const char *filename, VOption *options ) const
 {
     call( "ppmsave",
         (options ? options : VImage::option())->
             set( "in", *this )->
             set( "filename", filename ) );
+}
+
+void VImage::ppmsave_target( VTarget target, VOption *options ) const
+{
+    call( "ppmsave_target",
+        (options ? options : VImage::option())->
+            set( "in", *this )->
+            set( "target", target ) );
 }
 
 VImage VImage::premultiply( VOption *options ) const

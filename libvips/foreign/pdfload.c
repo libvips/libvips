@@ -16,6 +16,8 @@
  * 	- reopen the input if we minimised too early
  * 11/3/20
  * 	- move on top of VipsSource
+ * 21/9/20
+ * 	- allow dpi and scale to both be set [le0daniel]
  */
 
 /*
@@ -65,9 +67,6 @@
 
 #include "pforeign.h"
 
-/* TODO ... put minimise support back in.
- */
-
 #if defined(HAVE_POPPLER)
 
 #include <cairo.h>
@@ -109,9 +108,13 @@ typedef struct _VipsForeignLoadPdf {
 	 */
 	double dpi;
 
-	/* Calculate this from DPI. At 72 DPI, we render 1:1 with cairo.
+	/* Scale by this factor.
 	 */
 	double scale;
+
+	/* The total scale factor we render with.
+	 */
+	double total_scale;
 
 	/* Background colour.
 	 */
@@ -170,8 +173,10 @@ vips_foreign_load_pdf_build( VipsObject *object )
 
 	GError *error = NULL;
 
-	if( !vips_object_argument_isset( object, "scale" ) )
-		pdf->scale = pdf->dpi / 72.0;
+	if( vips_source_rewind( pdf->source ) )
+		return( -1 );
+
+	pdf->total_scale = pdf->scale * pdf->dpi / 72.0;
 
 	pdf->stream = vips_g_input_stream_new_from_source( pdf->source );
 	if( !(pdf->doc = poppler_document_new_from_stream( pdf->stream, 
@@ -215,8 +220,7 @@ vips_foreign_load_pdf_get_page( VipsForeignLoadPdf *pdf, int page_no )
 		printf( "vips_foreign_load_pdf_get_page: %d\n", page_no );
 #endif /*DEBUG*/
 
-		if( !(pdf->page = poppler_document_get_page( pdf->doc, 
-			page_no )) ) {
+		if( !(pdf->page = poppler_document_get_page( pdf->doc, page_no )) ) {
 			vips_error( class->nickname, 
 				_( "unable to load page %d" ), page_no );
 			return( -1 ); 
@@ -338,8 +342,8 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 		 * does round to nearest. Without this, things like
 		 * shrink-on-load will break.
 		 */
-		pdf->pages[i].width = VIPS_RINT( width * pdf->scale );
-		pdf->pages[i].height = VIPS_RINT( height * pdf->scale );
+		pdf->pages[i].width = VIPS_RINT( width * pdf->total_scale );
+		pdf->pages[i].height = VIPS_RINT( height * pdf->total_scale );
 
 		if( pdf->pages[i].width > pdf->image.width )
 			pdf->image.width = pdf->pages[i].width;
@@ -363,7 +367,7 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 	/* Convert the background to the image format. 
 	 *
 	 * FIXME ... we probably should convert this to pre-multiplied BGRA
-	 * to match the Cairo convention. See vips__cairo2rgba().
+	 * to match the Cairo convention. See vips__premultiplied_bgra2rgba().
 	 */
 	if( !(pdf->ink = vips__vector_to_ink( class->nickname, 
 		load->out, 
@@ -374,6 +378,12 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 	vips_source_minimise( pdf->source );
 
 	return( 0 );
+}
+
+static void
+vips_foreign_load_pdf_minimise( VipsImage *image, VipsForeignLoadPdf *pdf )
+{
+	vips_source_minimise( pdf->source );
 }
 
 static int
@@ -421,10 +431,10 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 		cr = cairo_create( surface );
 		cairo_surface_destroy( surface );
 
-		cairo_scale( cr, pdf->scale, pdf->scale );
+		cairo_scale( cr, pdf->total_scale, pdf->total_scale );
 		cairo_translate( cr, 
-			(pdf->pages[i].left - rect.left) / pdf->scale, 
-			(pdf->pages[i].top - rect.top) / pdf->scale );
+			(pdf->pages[i].left - rect.left) / pdf->total_scale, 
+			(pdf->pages[i].top - rect.top) / pdf->total_scale );
 
 		/* poppler is single-threaded, but we don't need to lock since 
 		 * we're running inside a non-threaded tilecache.
@@ -442,7 +452,7 @@ vips_foreign_load_pdf_generate( VipsRegion *or,
 	/* Cairo makes pre-multipled BRGA, we must byteswap and unpremultiply.
 	 */
 	for( y = 0; y < r->height; y++ ) 
-		vips__cairo2rgba( 
+		vips__premultiplied_bgra2rgba( 
 			(guint32 *) VIPS_REGION_ADDR( or, r->left, r->top + y ),
 			r->width ); 
 
@@ -464,25 +474,20 @@ vips_foreign_load_pdf_load( VipsForeignLoad *load )
 	 */
 	t[0] = vips_image_new(); 
 
-	/* Don't minimise on ::minimise (end of computation): we support 
-	 * threaded read, and minimise will happen outside the cache lock.
+	/* Close input immediately at end of read.
 	 */
+	g_signal_connect( t[0], "minimise",
+		G_CALLBACK( vips_foreign_load_pdf_minimise ), pdf );
 
+	/* Very large strips to limit render calls per page.
+	 */
 	vips_foreign_load_pdf_set_image( pdf, t[0] ); 
 	if( vips_image_generate( t[0], 
-		NULL, vips_foreign_load_pdf_generate, NULL, pdf, NULL ) )
-		return( -1 );
-
-	/* Don't use tilecache to keep the number of calls to
-	 * pdf_page_render() low. Don't thread the cache, we rely on
-	 * locking to keep pdf single-threaded. Use a large strip size to
-	 * (again) keep the number of calls to page_render low. 
-	 */
-	if( vips_linecache( t[0], &t[1],
-		"tile_height", VIPS_MIN( 5000, pdf->pages[0].height ), 
-		NULL ) ) 
-		return( -1 );
-	if( vips_image_write( t[1], load->real ) ) 
+		NULL, vips_foreign_load_pdf_generate, NULL, pdf, NULL ) ||
+		vips_sequential( t[0], &t[1],
+			"tile_height", VIPS_MIN( 5000, pdf->pages[0].height ), 
+			NULL ) || 
+		vips_image_write( t[1], load->real ) ) 
 		return( -1 );
 
 	return( 0 );
@@ -862,9 +867,8 @@ vips_foreign_load_pdf_is_a( const char *filename )
  * left. Set to -1 to mean "until the end of the document". Use vips_grid() 
  * to change page layout.
  *
- * Use @dpi to set the rendering resolution. The default is 72. Alternatively,
- * you can scale the rendering from the default 1 point == 1 pixel by 
- * setting @scale.
+ * Use @dpi to set the rendering resolution. The default is 72. Additionally,
+ * you can scale by setting @scale. If you set both, they combine.
  *
  * Use @background to set the background RGBA colour. The default is 255 
  * (solid white), use eg. 0 for a transparent background.

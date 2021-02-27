@@ -449,6 +449,17 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	out->Ysize = image->rows;
 	magick7->frame_height = image->rows;
 	out->Bands = magick7_get_bands( image ); 
+	if( out->Xsize <= 0 ||
+		out->Ysize <= 0 ||
+		out->Bands <= 0 ||
+		out->Xsize >= VIPS_MAX_COORD ||
+		out->Ysize >= VIPS_MAX_COORD ||
+		out->Bands >= VIPS_MAX_COORD ) {
+		vips_error( class->nickname, 
+			_( "bad image dimensions %d x %d pixels, %d bands" ),
+			out->Xsize, out->Ysize, out->Bands );
+		return( -1 );
+	}
 
 	/* Depth can be 'fractional'. You'd think we should use
 	 * GetImageDepth() but that seems to compute something very complex. 

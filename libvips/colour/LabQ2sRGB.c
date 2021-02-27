@@ -238,7 +238,7 @@ vips_col_XYZ2scRGB( float X, float Y, float Z, float *R, float *G, float *B )
 /* Turn scRGB into sRGB. Return og=1 for out of gamut - rgb will contain an 
  * approximation of the right colour.
  *
- * Return -1 for NaN, Inf etc. 
+ * Return -1 for NaN.
  */
 static int
 vips_col_scRGB2sRGB( int range, int *lut, 
@@ -253,15 +253,13 @@ vips_col_scRGB2sRGB( int range, int *lut,
 	int Yi;
 	float v;
 
-	/* XYZ can be Nan, Inf etc. Throw those values out, they will break
+	/* RGB can be NaN. Throw those values out, they will break
 	 * our clipping.
 	 *
 	 * Don't use isnormal(), it is false for 0.0 and for subnormal
 	 * numbers. 
 	 */
-	if( VIPS_ISNAN( R ) || VIPS_ISINF( R ) ||
-		VIPS_ISNAN( G ) || VIPS_ISINF( G ) ||
-		VIPS_ISNAN( B ) || VIPS_ISINF( B ) ) {
+	if( VIPS_ISNAN( R ) || VIPS_ISNAN( G ) || VIPS_ISNAN( B ) ) {
 		*r = 0; 
 		*g = 0; 
 		*b = 0; 
@@ -276,7 +274,7 @@ vips_col_scRGB2sRGB( int range, int *lut,
 		(V) = (L); \
 		og = 1; \
 	} \
-	if( (V) > (H) ) { \
+	else if( (V) > (H) ) { \
 		(V) = (H); \
 		og = 1; \
 	} \
@@ -336,7 +334,7 @@ vips_col_scRGB2sRGB_16( float R, float G, float B,
 /* Turn scRGB into BW. Return or=1 for out of gamut - g will contain an 
  * approximation of the right colour.
  *
- * Return -1 for NaN, Inf etc. 
+ * Return -1 for NaN.
  */
 static int
 vips_col_scRGB2BW( int range, int *lut, float R, float G, float B, 
@@ -354,10 +352,10 @@ vips_col_scRGB2BW( int range, int *lut, float R, float G, float B,
 	 */
 	Y = 0.2 * R + 0.7 * G + 0.1 * B;
 
-	/* Y can be Nan, Inf etc. Throw those values out, they will break
+	/* Y can be Nan. Throw those values out, they will break
 	 * our clipping.
 	 */
-	if( VIPS_ISNAN( Y ) || VIPS_ISINF( Y ) ) {
+	if( VIPS_ISNAN( Y ) ) {
 		*g = 0; 
 
 		return( -1 );
@@ -418,12 +416,11 @@ build_tables( void *client )
                                 float X, Y, Z;
                                 float Rf, Gf, Bf;
                                 int rb, gb, bb;
-                                int oflow;
  
                                 vips_col_Lab2XYZ( L, A, B, &X, &Y, &Z );
                                 vips_col_XYZ2scRGB( X, Y, Z, &Rf, &Gf, &Bf );
                                 vips_col_scRGB2sRGB_8( Rf, Gf, Bf,
-					&rb, &gb, &bb, &oflow );
+					&rb, &gb, &bb, NULL );
 
 				t = INDEX( l, a, b );
                                 vips_red[t] = rb;

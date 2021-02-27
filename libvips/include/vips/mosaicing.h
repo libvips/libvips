@@ -31,8 +31,8 @@
 
  */
 
-#ifndef IM_MOSAICING_H
-#define IM_MOSAICING_H
+#ifndef VIPS_MOSAICING_H
+#define VIPS_MOSAICING_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -70,4 +70,4 @@ int vips_matrixinvert( VipsImage *m, VipsImage **out, ... )
 }
 #endif /*__cplusplus*/
 
-#endif /*IM_MOSAICING_H*/
+#endif /*VIPS_MOSAICING_H*/

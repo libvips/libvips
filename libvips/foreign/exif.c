@@ -158,9 +158,17 @@ show_values( ExifData *data )
  * their default value and we won't know about it. 
  */
 static ExifData *
-vips_exif_load_data_without_fix( const void *data, int length )
+vips_exif_load_data_without_fix( const void *data, size_t length )
 {
 	ExifData *ed;
+
+	/* exif_data_load_data() only allows uint for length. Limit it to less
+	 * than that: 2**20 should be enough for anyone.
+	 */
+	if( length > 1 << 20 ) {
+		vips_error( "exif", "%s", _( "exif too large" ) ); 
+		return( NULL );
+	}
 
 	if( !(ed = exif_data_new()) ) {
 		vips_error( "exif", "%s", _( "unable to init exif" ) ); 
@@ -837,21 +845,16 @@ vips_exif_set_string_encoding( ExifData *ed,
 	ExifEntry *entry, unsigned long component, const char *data )
 {
 	char *str;
+	char *ascii;
 	int len;
 
 	str = drop_tail( data );
 
 	/* libexif can only really save ASCII to things like UserComment.
 	 */
-#ifdef HAVE_G_STR_TO_ASCII
-{
-	char *ascii;
-
 	ascii = g_str_to_ascii( str, NULL );
 	g_free( str );
 	str = ascii;
-}
-#endif /*HAVE_G_STR_TO_ASCII*/
 
 	/* libexif comment strings are not NULL-terminated, and have an 
 	 * encoding tag (always ASCII) in the first 8 bytes.
@@ -872,21 +875,16 @@ vips_exif_set_string_ascii( ExifData *ed,
 	ExifEntry *entry, unsigned long component, const char *data )
 {
 	char *str;
+	char *ascii;
 	int len;
 
 	str = drop_tail( data );
 
 	/* libexif can only really save ASCII to things like UserComment.
 	 */
-#ifdef HAVE_G_STR_TO_ASCII
-{
-	char *ascii;
-
 	ascii = g_str_to_ascii( str, NULL );
 	g_free( str );
 	str = ascii;
-}
-#endif /*HAVE_G_STR_TO_ASCII*/
 
 	/* ASCII strings are NULL-terminated.
 	 */
@@ -1204,7 +1202,11 @@ vips_exif_image_field( VipsImage *image,
 		return( NULL ); 
 	}
 
-	if( !(tag = exif_tag_from_name( p + 1 )) ) {
+	/* GPSVersionID is tag 0 (the error return) so we have to
+	 * test the name too.
+	 */
+	if( !(tag = exif_tag_from_name( p + 1 )) &&
+		strcmp( p + 1, "GPSVersionID" ) != 0 ) {
 		g_warning( _( "bad exif meta \"%s\"" ), field );
 		return( NULL ); 
 	}

@@ -994,8 +994,8 @@ meta_cp_field( VipsMeta *meta, VipsImage *dst, void *b )
 
 /* Copy meta on to dst. 
  */
-static int
-meta_cp( VipsImage *dst, const VipsImage *src )
+int
+vips__image_meta_copy( VipsImage *dst, const VipsImage *src )
 {
 	if( src->meta ) {
 		/* We lock with vips_image_set() to stop races in highly-
@@ -1051,7 +1051,7 @@ vips__image_copy_fields_array( VipsImage *out, VipsImage *in[] )
 	 * subclass loaders will sometimes write to an image. 
 	 */
 	for( i = ni - 1; i >= 0; i-- ) 
-		if( meta_cp( out, in[i] ) )
+		if( vips__image_meta_copy( out, in[i] ) )
 			return( -1 );
 
 	/* Merge hists first to last.
@@ -1094,7 +1094,7 @@ vips_image_set( VipsImage *image, const char *name, GValue *value )
 	g_assert( value );
 
 	/* We lock between modifying metadata and copying metadata between
-	 * images, see meta_cp().
+	 * images, see vips__image_meta_copy().
 	 *
 	 * This prevents modification of metadata by one thread racing with
 	 * metadata copy on another -- this can lead to crashes in
@@ -1302,7 +1302,7 @@ vips_image_remove( VipsImage *image, const char *name )
 
 	if( image->meta ) {
 		/* We lock between modifying metadata and copying metadata 
-		 * between images, see meta_cp().
+		 * between images, see vips__image_meta_copy().
 		 *
 		 * This prevents modification of metadata by one thread 
 		 * racing with metadata copy on another -- this can lead to 
@@ -1955,6 +1955,64 @@ vips_image_set_array_int( VipsImage *image, const char *name,
 
 	g_value_init( &value, VIPS_TYPE_ARRAY_INT );
 	vips_value_set_array_int( &value, array, n );
+	vips_image_set( image, name, &value );
+	g_value_unset( &value );
+}
+
+/** 
+ * vips_image_get_array_double: (method)
+ * @image: image to get the metadata from
+ * @name: metadata name
+ * @out: (transfer none): return pointer to array
+ * @n: (allow-none): return the number of elements here, optionally
+ *
+ * Gets @out from @im under the name @name. 
+ * The field must be of type
+ * #VIPS_TYPE_ARRAY_INT.
+ *
+ * Do not free @out. @out is valid as long as @image is valid.
+ *
+ * Use vips_image_get_typeof() to test for the 
+ * existence of a piece of metadata.
+ *
+ * See also: vips_image_get(), vips_image_set_image()
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_image_get_array_double( VipsImage *image, const char *name,
+	double **out, int *n )
+{
+	GValue value = { 0 };
+
+	if( meta_get_value( image, name, VIPS_TYPE_ARRAY_DOUBLE, &value ) ) 
+		return( -1 );
+	*out = vips_value_get_array_double( &value, n );
+	g_value_unset( &value );
+
+	return( 0 );
+}
+
+/**
+ * vips_image_set_array_double: (method)
+ * @image: image to attach the metadata to
+ * @name: metadata name
+ * @array: (array length=n) (allow-none): array of doubles
+ * @n: the number of elements 
+ *
+ * Attaches @array as a metadata item on @image as @name. 
+ * A convenience function over vips_image_set().
+ *
+ * See also: vips_image_get_image(), vips_image_set().
+ */
+void
+vips_image_set_array_double( VipsImage *image, const char *name,
+	const double *array, int n )
+{
+	GValue value = { 0 };
+
+	g_value_init( &value, VIPS_TYPE_ARRAY_DOUBLE );
+	vips_value_set_array_double( &value, array, n );
 	vips_image_set( image, name, &value );
 	g_value_unset( &value );
 }

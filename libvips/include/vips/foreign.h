@@ -358,11 +358,32 @@ const char *vips_foreign_find_save_target( const char *suffix );
 
 int vips_vipsload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_vipsload_source( VipsSource *source, VipsImage **out, ... )
+	__attribute__((sentinel));
 int vips_vipssave( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
+int vips_vipssave_target( VipsImage *in, VipsTarget *target, ... )
 	__attribute__((sentinel));
 
 int vips_openslideload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_openslideload_source( VipsSource *source, VipsImage **out, ... )
+	__attribute__((sentinel));
+
+/**
+ * VipsForeignSubsample:
+ * @VIPS_FOREIGN_SUBSAMPLE_AUTO: prevent subsampling when quality > 90
+ * @VIPS_FOREIGN_SUBSAMPLE_ON: always perform subsampling
+ * @VIPS_FOREIGN_SUBSAMPLE_OFF: never perform subsampling
+ *
+ * Set subsampling mode.
+ */
+typedef enum {
+	VIPS_FOREIGN_SUBSAMPLE_AUTO,
+	VIPS_FOREIGN_SUBSAMPLE_ON,
+	VIPS_FOREIGN_SUBSAMPLE_OFF,
+	VIPS_FOREIGN_SUBSAMPLE_LAST
+} VipsForeignSubsample;
 
 /**
  * VipsForeignJpegSubsample:
@@ -371,6 +392,8 @@ int vips_openslideload( const char *filename, VipsImage **out, ... )
  * @VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF: never perform subsampling
  *
  * Set jpeg subsampling mode.
+ *
+ * DEPRECATED: use #VipsForeignSubsample
  */
 typedef enum {
 	VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO,
@@ -382,6 +405,8 @@ typedef enum {
 int vips_jpegload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_jpegload_source( VipsSource *source, VipsImage **out, ... )
 	__attribute__((sentinel));
 
 int vips_jpegsave_target( VipsImage *in, VipsTarget *target, ... )
@@ -621,6 +646,8 @@ int vips_svgload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_svgload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_svgload_source( VipsSource *source, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 int vips_gifload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
@@ -643,6 +670,8 @@ int vips_heifsave_target( VipsImage *in, VipsTarget *target, ... )
 	__attribute__((sentinel));
 
 int vips_niftiload( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_niftiload_source( VipsSource *source, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_niftisave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));

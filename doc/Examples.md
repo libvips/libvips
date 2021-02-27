@@ -18,7 +18,7 @@ in the API.  It's also a useful source of examples.
 # Average a region of interest box on an image
 
 ``` python
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 import sys
 import pyvips
@@ -30,7 +30,7 @@ height = 64
 
 image = pyvips.Image.new_from_file(sys.argv[1])
 roi = image.crop(left, top, width, height)
-print 'average:', roi.avg()
+print('average:', roi.avg())
 ```
 
 # libvips and numpy
@@ -40,7 +40,7 @@ an area of memory. The memory array needs to be laid out band-interleaved,
 as a set of scanlines, with no padding between lines.
 
 ```python
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 import sys
 import time
@@ -50,7 +50,7 @@ from PIL import Image
 import numpy as np
 
 if len(sys.argv) != 3:
-    print('usage: {0} input-filename output-filename'.format(sys.argv[0]))
+    print(f'usage: {sys.argv[0]} input-filename output-filename')
     sys.exit(-1)
 
 # map vips formats to np dtypes
@@ -138,7 +138,7 @@ $ for i in {1..1000}; do cp x.tif test/$i.tif; done
 And run this Python program on them:
 
 ```
-$ time ./try255.py x.tif[squash,compression=ccittfax4,strip,bigtif] test/*
+$ time python try255.py x.tif[squash,compression=ccittfax4,strip,bigtiff] test/*
 real	1m59.924s
 user	4m5.388s
 sys	0m8.936s
@@ -153,7 +153,8 @@ images, you'd need to do some more work to convert them all into the same
 colourspace before inserting them.
 
 ``` python
-#!/usr/bin/env python
+#!/usr/bin/python3
+#file try255.py
 
 import sys
 import random

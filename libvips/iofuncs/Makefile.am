@@ -2,6 +2,7 @@ noinst_LTLIBRARIES = libiofuncs.la
 
 libiofuncs_la_SOURCES = \
 	ginputsource.c \
+	sourceginput.c \
 	connection.c \
 	source.c \
 	sourcecustom.c \
@@ -79,4 +80,4 @@ vips_scan_headers = \
 	${top_srcdir}/libvips/include/vips/region.h
 
 enumtypes.c: $(vips_scan_headers) Makefile.am
-	glib-mkenums --template enumtemplate $(vips_scan_headers) > enumtypes.c
+	glib-mkenums --template ${top_srcdir}/libvips/iofuncs/enumtemplate $(vips_scan_headers) > enumtypes.c

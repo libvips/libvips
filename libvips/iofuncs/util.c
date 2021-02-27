@@ -624,7 +624,7 @@ vips__set_create_time( int fd )
 /* open() with a utf8 filename, setting errno.
  */
 int
-vips__open( const char *filename, int flags, mode_t mode )
+vips__open( const char *filename, int flags, int mode )
 {
 	int fd;
 
@@ -1191,40 +1191,6 @@ vips_isdirf( const char *name, ... )
 	return( result ); 
 }
 
-#ifdef OS_WIN32
-#ifndef popen
-#define popen(b,m) _popen(b,m)
-#endif
-#ifndef pclose
-#define pclose(f) _pclose(f)
-#endif
-#endif /*OS_WIN32*/
-
-/* Do popen(), with printf-style args.
- */
-FILE *
-vips_popenf( const char *fmt, const char *mode, ... )
-{
-        va_list args;
-	char buf[VIPS_PATH_MAX];
-	FILE *fp;
-
-        va_start( args, mode );
-        (void) vips_vsnprintf( buf, VIPS_PATH_MAX, fmt, args );
-        va_end( args );
-
-#ifdef DEBUG
-	printf( "vips_popenf: running: %s\n", buf );
-#endif /*DEBUG*/
-
-        if( !(fp = popen( buf, mode )) ) {
-		vips_error( "popenf", "%s", strerror( errno ) );
-		return( NULL );
-	}
-
-	return( fp );
-}
-
 /* Make a directory.
  */
 int
@@ -1556,7 +1522,7 @@ vips__find_rightmost_brackets( const char *p )
 
 	/* Too many tokens?
 	 */
-	if( n == MAX_TOKENS )
+	if( n >= MAX_TOKENS )
 		return( NULL );
 
 	/* No rightmost close bracket?
@@ -1636,16 +1602,13 @@ vips_ispoweroftwo( int p )
 int
 vips_amiMSBfirst( void )
 {
-        int test;
-        unsigned char *p = (unsigned char *) &test;
-
-        test = 0;
-        p[0] = 255;
-
-        if( test == 255 )
-                return( 0 );
-        else
-                return( 1 );
+#if G_BYTE_ORDER == G_BIG_ENDIAN
+	return( 1 );
+#elif G_BYTE_ORDER == G_LITTLE_ENDIAN
+	return( 0 );
+#else
+#error "Byte order not recognised"
+#endif
 }
 
 /* Return the tmp dir. On Windows, GetTempPath() will also check the values of 

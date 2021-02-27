@@ -66,7 +66,6 @@ extern "C" {
  */
 #if defined(__clang__) || (__GNUC__ >= 4)
 #define VIPS_ISNAN( V ) __builtin_isnan( V )
-#define VIPS_ISINF( V ) __builtin_isinf( V )
 #define VIPS_FLOOR( V ) __builtin_floor( V )
 #define VIPS_CEIL( V ) __builtin_ceil( V )
 #define VIPS_RINT( V ) __builtin_rint( V )
@@ -76,7 +75,6 @@ extern "C" {
 #define VIPS_FMIN( A, B ) __builtin_fmin( A, B )
 #else
 #define VIPS_ISNAN( V ) isnan( V )
-#define VIPS_ISINF( V ) isinf( V )
 #define VIPS_FLOOR( V ) floor( V )
 #define VIPS_CEIL( V ) ceil( V )
 #define VIPS_RINT( V ) rint( V )
@@ -254,7 +252,7 @@ int vips_filename_suffix_match( const char *path, const char *suffixes[] );
 gint64 vips_file_length( int fd );
 int vips__write( int fd, const void *buf, size_t count );
 
-int vips__open( const char *filename, int flags, mode_t mode );
+int vips__open( const char *filename, int flags, int mode );
 int vips__open_read( const char *filename );
 FILE *vips__fopen( const char *filename, const char *mode );
 
@@ -288,8 +286,6 @@ int vips_mkdirf( const char *name, ... )
 int vips_rmdirf( const char *name, ... )
 	__attribute__((format(printf, 1, 2)));
 int vips_rename( const char *old_name, const char *new_name );
-FILE *vips_popenf( const char *fmt, const char *mode, ... )
-	__attribute__((format(printf, 1, 3)));
 
 /** 
  * VipsToken:
