@@ -30,6 +30,9 @@
  * 	- add thumbnail_source
  * 2/6/20
  * 	- add subifd pyr support
+ * 27/2/21
+ * 	- simplify rules re. processing space, colour management and linear
+ * 	  mode
  */
 
 /*
@@ -673,7 +676,7 @@ vips_thumbnail_build( VipsObject *object )
 	 */
 	preshrunk_page_height = vips_image_get_page_height( in );
 
-	/* Coded forms need special unpacking.
+	/* RAD needs special unpacking.
 	 */
 	if( in->Coding == VIPS_CODING_RAD ) {
 		g_info( "unpacking Rad to float" );
@@ -681,13 +684,6 @@ vips_thumbnail_build( VipsObject *object )
 		/* rad is scrgb.
 		 */
 		if( vips_rad2float( in, &t[12], NULL ) )
-			return( -1 );
-		in = t[12];
-	}
-	else if( in->Coding == VIPS_CODING_LABQ ) {
-		g_info( "unpacking LABQ to float" );
-
-		if( vips_LabQ2Lab( in, &t[12], NULL ) )
 			return( -1 );
 		in = t[12];
 	}
@@ -744,6 +740,25 @@ vips_thumbnail_build( VipsObject *object )
 				return( -1 ); 
 			in = t[2];
 		}
+	}
+	else {
+		/* In non-linear mode, use sRGB or B_W as the processing
+		 * space.
+		 */
+		VipsInterpretation interpretation;
+
+		if( in->Bands < 3 )
+			interpretation = VIPS_INTERPRETATION_B_W; 
+		else 
+			interpretation = VIPS_INTERPRETATION_sRGB; 
+
+		g_info( "converting to processing space %s",
+			vips_enum_nick( VIPS_TYPE_INTERPRETATION, 
+				interpretation ) ); 
+		if( vips_colourspace( in, &t[2], interpretation, 
+			NULL ) ) 
+			return( -1 ); 
+		in = t[2];
 	}
 
 	/* Shrink to preshrunk_page_height, so we work for multi-page images.
@@ -1393,7 +1408,7 @@ vips_thumbnail_buffer_init( VipsThumbnailBuffer *buffer )
  * * @intent: #VipsIntent, rendering intent
  * * @option_string: %gchararray, extra loader options
  *
- * Exacty as vips_thumbnail(), but read from a memory buffer. One extra
+ * Exactly as vips_thumbnail(), but read from a memory buffer. One extra
  * optional argument, @option_string, lets you pass options to the underlying
  * loader.
  *
@@ -1589,7 +1604,7 @@ vips_thumbnail_source_init( VipsThumbnailSource *source )
  * * @intent: #VipsIntent, rendering intent
  * * @option_string: %gchararray, extra loader options
  *
- * Exacty as vips_thumbnail(), but read from a source. One extra
+ * Exactly as vips_thumbnail(), but read from a source. One extra
  * optional argument, @option_string, lets you pass options to the underlying
  * loader.
  *
@@ -1696,7 +1711,7 @@ vips_thumbnail_image_init( VipsThumbnailImage *image )
  * * @export_profile: %gchararray, export ICC profile
  * * @intent: #VipsIntent, rendering intent
  *
- * Exacty as vips_thumbnail(), but read from an existing image. 
+ * Exactly as vips_thumbnail(), but read from an existing image. 
  *
  * This operation
  * is not able to exploit shrink-on-load features of image load libraries, so
