@@ -1,18 +1,16 @@
 # libnsgif
 
 This is [libnsgif](https://www.netsurf-browser.org/projects/libnsgif/),
-but within the libviops build system.
-
-Based on libnsgif-0.2.1, with one patch to prevent it modifying the input 
-buffer on error.
+but within the libvips build system. 
 
 # To update
 
-When netsurf release a new version:
+Run `./update.sh` to update this copy of libnsgif from the upstream repo. It
+will also patch libnsgif.c to prevent it modifying the input.
 
-* copy in sources
-* reapply any patches from git, eg. no input modification
+Last updated 28 Feb 2021.
 
 # To do
 
-No attempt made to run tests or build docs.
+No attempt made to run tests or build docs. Though the gif loader is tested as
+part of the libvips test suite.

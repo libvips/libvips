@@ -440,7 +440,7 @@ static gif_result gif_initialise_frame(gif_animation *gif)
 			 * There was code here to set a TRAILER tag. But this
 			 * wrote to the input buffer, which will not work for
 			 * libvips, where buffers can be mmaped read only files.
-			 * 
+			 *
 			 * Instead, just signal insufficient frame data.
 			 */
 			return GIF_INSUFFICIENT_FRAME_DATA;
@@ -565,6 +565,73 @@ static gif_result gif_error_from_lzw(lzw_result l_res)
         return g_res[l_res];
 }
 
+static void gif__record_previous_frame(gif_animation *gif)
+{
+        bool need_alloc = gif->prev_frame == NULL;
+        const uint32_t *frame_data;
+        uint32_t *prev_frame;
+
+        if (gif->decoded_frame == GIF_INVALID_FRAME ||
+            gif->decoded_frame == gif->prev_index) {
+                /* No frame to copy, or already have this frame recorded. */
+                return;
+        }
+
+        assert(gif->bitmap_callbacks.bitmap_get_buffer);
+        frame_data = (void *)gif->bitmap_callbacks.bitmap_get_buffer(gif->frame_image);
+        if (!frame_data) {
+                return;
+        }
+
+        if (gif->prev_frame != NULL &&
+            gif->width * gif->height > gif->prev_width * gif->prev_height) {
+                need_alloc = true;
+        }
+
+        if (need_alloc) {
+                prev_frame = realloc(gif->prev_frame,
+                                gif->width * gif->height * 4);
+                if (prev_frame == NULL) {
+                        return;
+                }
+        } else {
+                prev_frame = gif->prev_frame;
+        }
+
+        memcpy(prev_frame, frame_data, gif->width * gif->height * 4);
+
+        gif->prev_frame  = prev_frame;
+        gif->prev_width  = gif->width;
+        gif->prev_height = gif->height;
+        gif->prev_index  = gif->decoded_frame;
+}
+
+static gif_result gif__recover_previous_frame(const gif_animation *gif)
+{
+        const uint32_t *prev_frame = gif->prev_frame;
+        unsigned height = gif->height < gif->prev_height ? gif->height : gif->prev_height;
+        unsigned width  = gif->width  < gif->prev_width  ? gif->width  : gif->prev_width;
+        uint32_t *frame_data;
+
+        if (prev_frame == NULL) {
+                return GIF_FRAME_DATA_ERROR;
+        }
+
+        assert(gif->bitmap_callbacks.bitmap_get_buffer);
+        frame_data = (void *)gif->bitmap_callbacks.bitmap_get_buffer(gif->frame_image);
+        if (!frame_data) {
+                return GIF_INSUFFICIENT_MEMORY;
+        }
+
+        for (unsigned y = 0; y < height; y++) {
+                memcpy(frame_data, prev_frame, width * 4);
+
+                frame_data += gif->width;
+                prev_frame += gif->prev_width;
+        }
+
+        return GIF_OK;
+}
 
 /**
  * decode a gif frame
@@ -578,6 +645,7 @@ gif_internal_decode_frame(gif_animation *gif,
                           unsigned int frame,
                           bool clear_image)
 {
+        gif_result err;
         unsigned int index = 0;
         unsigned char *gif_data, *gif_end;
         int gif_bytes;
@@ -605,6 +673,11 @@ gif_internal_decode_frame(gif_animation *gif,
         if ((!clear_image) &&
             ((int)frame == gif->decoded_frame)) {
                 return GIF_OK;
+        }
+
+        if (gif->frames[frame].disposal_method == GIF_FRAME_RESTORE) {
+                /* Store the previous frame for later restoration */
+                gif__record_previous_frame(gif);
         }
 
         /* Get the start of our frame data and the end of the GIF data */
@@ -783,34 +856,16 @@ gif_internal_decode_frame(gif_animation *gif,
                            (gif->frames[frame - 1].disposal_method == GIF_FRAME_RESTORE)) {
                         /*
                          * If the previous frame's disposal method requires we
-                         * restore the previous image, find the last image set
-                         * to "do not dispose" and get that frame data
+                         * restore the previous image, restore our saved image.
                          */
-                        int last_undisposed_frame = frame - 2;
-                        while ((last_undisposed_frame >= 0) &&
-                               (gif->frames[last_undisposed_frame].disposal_method == GIF_FRAME_RESTORE)) {
-                                last_undisposed_frame--;
-                        }
-
-                        /* If we don't find one, clear the frame data */
-                        if (last_undisposed_frame == -1) {
+                        err = gif__recover_previous_frame(gif);
+                        if (err != GIF_OK) {
                                 /* see notes above on transparency
                                  * vs. background color
                                  */
                                 memset((char*)frame_data,
                                        GIF_TRANSPARENT_COLOUR,
                                        gif->width * gif->height * sizeof(int));
-                        } else {
-                                return_value = gif_internal_decode_frame(gif, last_undisposed_frame, false);
-                                if (return_value != GIF_OK) {
-                                        goto gif_decode_frame_exit;
-                                }
-                                /* Get this frame's data */
-                                assert(gif->bitmap_callbacks.bitmap_get_buffer);
-                                frame_data = (void *)gif->bitmap_callbacks.bitmap_get_buffer(gif->frame_image);
-                                if (!frame_data) {
-                                        return GIF_INSUFFICIENT_MEMORY;
-                                }
                         }
                 }
                 gif->decoded_frame = frame;
@@ -918,6 +973,7 @@ void gif_create(gif_animation *gif, gif_bitmap_callback_vt *bitmap_callbacks)
         memset(gif, 0, sizeof(gif_animation));
         gif->bitmap_callbacks = *bitmap_callbacks;
         gif->decoded_frame = GIF_INVALID_FRAME;
+        gif->prev_index = GIF_INVALID_FRAME;
 }
 
 
@@ -1158,6 +1214,9 @@ void gif_finalise(gif_animation *gif)
         gif->local_colour_table = NULL;
         free(gif->global_colour_table);
         gif->global_colour_table = NULL;
+
+        free(gif->prev_frame);
+        gif->prev_frame = NULL;
 
         lzw_context_destroy(gif->lzw_ctx);
         gif->lzw_ctx = NULL;

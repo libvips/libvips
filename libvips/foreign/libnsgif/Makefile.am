@@ -1,6 +1,8 @@
 EXTRA_DIST = \
 	README-ns \
 	README.md \
+	patches \
+  update.sh \	
 	utils 
 
 noinst_LTLIBRARIES = libnsgif.la
