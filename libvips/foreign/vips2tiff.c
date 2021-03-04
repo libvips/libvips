@@ -659,8 +659,13 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 		TIFFSetField( tif, TIFFTAG_WEBP_LEVEL, wtiff->Q );
 		TIFFSetField( tif, TIFFTAG_WEBP_LOSSLESS, wtiff->lossless );
 	}
-	if( wtiff->compression == COMPRESSION_ZSTD ) 
+	if( wtiff->compression == COMPRESSION_ZSTD ) {
 		TIFFSetField( tif, TIFFTAG_ZSTD_LEVEL, wtiff->level );
+
+		if( wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE )
+			TIFFSetField( tif, TIFFTAG_PREDICTOR,
+				wtiff->predictor );
+	}
 #endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 
 	if( (wtiff->compression == COMPRESSION_ADOBE_DEFLATE ||
@@ -1862,8 +1867,13 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 		TIFFSetField( out, TIFFTAG_WEBP_LEVEL, wtiff->Q );
 		TIFFSetField( out, TIFFTAG_WEBP_LOSSLESS, wtiff->lossless );
 	}
-	if( wtiff->compression == COMPRESSION_ZSTD ) 
+	if( wtiff->compression == COMPRESSION_ZSTD ) {
 		TIFFSetField( out, TIFFTAG_ZSTD_LEVEL, wtiff->level );
+
+		if( wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE )
+			TIFFSetField( out, TIFFTAG_PREDICTOR,
+				wtiff->predictor );
+	}
 #endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 
 	if( (wtiff->compression == COMPRESSION_ADOBE_DEFLATE ||
