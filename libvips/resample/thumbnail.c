@@ -870,7 +870,7 @@ vips_thumbnail_build( VipsObject *object )
 	}
 	else if( thumbnail->linear ) {
 		/* Linear mode, no colour management. We went to scRGB for
-		 * precessing, so we now revert to the input
+		 * processing, so we now revert to the input
 		 * colourspace.
 		 */
 		g_info( "reverting to input space %s",
