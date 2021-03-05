@@ -640,9 +640,8 @@ vips_thumbnail_build( VipsObject *object )
 	 */
 	VipsInterpretation input_interpretation;
 
-	/* TRUE if we've premultiplied and need to unpremultiply.
+	/* The format we need to revert to after unpremultiply.
 	 */
-	gboolean have_premultiplied;
 	VipsBandFormat unpremultiplied_format;
 
 #ifdef DEBUG
@@ -778,19 +777,19 @@ vips_thumbnail_build( VipsObject *object )
 		vshrink = (double) in->Ysize / target_image_height;
 	}
 
+	/* vips_premultiply() makes a float image, so when we unpremultiply
+	 * below we must cast back to the original format. Use NOTSET to
+	 * meran no pre/unmultiply.
+	 */
+	unpremultiplied_format = VIPS_FORMAT_NOTSET;
+
 	/* If there's an alpha, we have to premultiply before shrinking. See
 	 * https://github.com/libvips/libvips/issues/291
 	 */
-	have_premultiplied = FALSE;
 	if( vips_image_hasalpha( in ) && 
 	 	hshrink != 1.0 &&
 		vshrink != 1.0  ) { 
-		/* vips_premultiply() makes a float image. When we
-		 * vips_unpremultiply() below, we need to cast back to the
-		 * pre-premultiplied format.
-		 */
 		g_info( "premultiplying alpha" ); 
-		have_premultiplied = TRUE;
 		unpremultiplied_format = in->BandFmt;
 
 		if( vips_premultiply( in, &t[3], NULL ) ) 
@@ -804,7 +803,7 @@ vips_thumbnail_build( VipsObject *object )
 		return( -1 );
 	in = t[4];
 
-	if( have_premultiplied ) {
+	if( unpremultiplied_format != VIPS_FORMAT_NOTSET ) {
 		g_info( "unpremultiplying alpha" ); 
 		if( vips_unpremultiply( in, &t[5], NULL ) || 
 			vips_cast( t[5], &t[6], unpremultiplied_format, NULL ) )
