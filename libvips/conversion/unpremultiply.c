@@ -81,7 +81,7 @@ G_DEFINE_TYPE( VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION );
 	\
 	for( x = 0; x < width; x++ ) { \
 		IN alpha = p[alpha_band]; \
-		OUT factor = max_alpha * vips_recip( alpha ); \
+		OUT factor = alpha == 0 ? 0 : max_alpha / alpha; \
 		\
 		for( i = 0; i < alpha_band; i++ ) \
 			q[i] = factor * p[i]; \
@@ -102,7 +102,7 @@ G_DEFINE_TYPE( VipsUnpremultiply, vips_unpremultiply, VIPS_TYPE_CONVERSION );
 	\
 	for( x = 0; x < width; x++ ) { \
 		IN alpha = p[3]; \
-		OUT factor = max_alpha * vips_recip( alpha ); \
+		OUT factor = alpha == 0 ? 0 : max_alpha / alpha; \
 		\
 		q[0] = factor * p[0]; \
 		q[1] = factor * p[1]; \
