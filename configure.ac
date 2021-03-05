@@ -1084,7 +1084,7 @@ if test x"$with_tiff" != x"no"; then
   )
 fi
 
-# WEBP in TIFF added in libtiff 4.0.10
+# ZSTD and WEBP in TIFF added in libtiff 4.0.10
 if test x"$with_tiff" != x"no"; then
   save_INCLUDES="$INCLUDES"
   INCLUDES="$INCLUDES $TIFF_INCLUDES"
