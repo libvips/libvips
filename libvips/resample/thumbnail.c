@@ -855,23 +855,41 @@ vips_thumbnail_build( VipsObject *object )
 		 * to the output space.
 		 */
 		g_info( "transforming to %s", thumbnail->export_profile );
-		if( thumbnail->import_profile ) 
-			g_info( "fallback input profile %s", 
-				thumbnail->import_profile );
 
-		if( vips_icc_transform( in, &t[7], 
-			thumbnail->export_profile,
-			"input_profile", thumbnail->import_profile,
-			"intent", thumbnail->intent,
-			"embedded", TRUE,
-			NULL ) ) 
-			return( -1 );
-		in = t[7];
+		/* If there's some kind of import profile, we can transform to
+		 * the output. Otherwise we have to convert to PCS and then
+		 * export.
+		 */
+		if( thumbnail->import_profile ||
+			(vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ||
+			 thumbnail->import_profile) ) {
+			g_info( "transforming with supplied profiles" ); 
+			if( vips_icc_transform( in, &t[7], 
+				thumbnail->export_profile,
+				"input_profile", thumbnail->import_profile,
+				"intent", thumbnail->intent,
+				"embedded", TRUE,
+				NULL ) ) 
+				return( -1 );
+
+			in = t[7];
+		}
+		else {
+			g_info( "exporting with %s", 
+				thumbnail->export_profile ); 
+			if( vips_colourspace( in, &t[7], 
+				VIPS_INTERPRETATION_XYZ, NULL ) || 
+		  	    vips_icc_export( t[7], &t[8], 
+				"output_profile", thumbnail->export_profile,
+				"intent", thumbnail->intent,
+				NULL ) )  
+				return( -1 ); 
+			in = t[8];
+		}
 	}
 	else if( thumbnail->linear ) {
 		/* Linear mode, no colour management. We went to scRGB for
-		 * processing, so we now revert to the input
-		 * colourspace.
+		 * processing, so we now revert to the input colourspace.
 		 */
 		g_info( "reverting to input space %s",
 			vips_enum_nick( VIPS_TYPE_INTERPRETATION, 
