@@ -53,13 +53,13 @@
 #endif /*HAVE_IO_H*/
 #include <fcntl.h>
 
-#ifdef OS_WIN32
-#include <windows.h>
-#endif /*OS_WIN32*/
-
 #include <vips/vips.h>
 #include <vips/debug.h>
 #include <vips/internal.h>
+
+#ifdef G_OS_WIN32
+#include <windows.h>
+#endif /*G_OS_WIN32*/
 
 /* Temp buffer for snprintf() layer on old systems.
  */
@@ -67,13 +67,13 @@
 
 /* Try to make an O_BINARY ... sometimes need the leading '_'.
  */
-#ifdef BINARY_OPEN
+#ifdef G_PLATFORM_WIN32
 #ifndef O_BINARY
 #ifdef _O_BINARY
 #define O_BINARY _O_BINARY
 #endif /*_O_BINARY*/
 #endif /*!O_BINARY*/
-#endif /*BINARY_OPEN*/
+#endif /*G_PLATFORM_WIN32*/
 
 /* If we have O_BINARY, add it to a mode flags set.
  */
@@ -562,15 +562,15 @@ vips_filename_suffix_match( const char *path, const char *suffixes[] )
 gint64
 vips_file_length( int fd )
 {
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 	struct _stati64 st;
 
 	if( _fstati64( fd, &st ) == -1 ) {
-#else /*!OS_WIN32*/
+#else /*!G_OS_WIN32*/
 	struct stat st;
 
 	if( fstat( fd, &st ) == -1 ) {
-#endif /*OS_WIN32*/
+#endif /*G_OS_WIN32*/
 		vips_error_system( errno, "vips_file_length", 
 			"%s", _( "unable to get file stats" ) );
 		return( -1 );
@@ -600,7 +600,7 @@ vips__write( int fd, const void *buf, size_t count )
 	return( 0 );
 }
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 /* Set the create date on a file. On Windows, the create date may be copied 
  * over from an existing file of the same name, unless you reset it. 
  *
@@ -619,7 +619,7 @@ vips__set_create_time( int fd )
 	SystemTimeToFileTime( &st, &ft );
 	SetFileTime( handle, &ft, &ft, &ft );
 }
-#endif /*OS_WIN32*/
+#endif /*G_OS_WIN32*/
 
 /* open() with a utf8 filename, setting errno.
  */
@@ -638,10 +638,10 @@ vips__open( const char *filename, int flags, int mode )
 
 	fd = g_open( filename, flags, mode );
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 	if( mode & O_CREAT )
 		vips__set_create_time( fd ); 
-#endif
+#endif /*G_OS_WIN32*/
 
 	return( fd );
 }
@@ -661,10 +661,10 @@ vips__fopen( const char *filename, const char *mode )
 
 	fp = g_fopen( filename, mode );
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 	if( mode[0] == 'w' )
 		vips__set_create_time( _fileno( fp ) ); 
-#endif
+#endif /*G_OS_WIN32*/
 
 	return( fp );
 }
@@ -698,14 +698,14 @@ vips__file_open_read( const char *filename, const char *fallback_dir,
 	char *mode;
 	FILE *fp;
 
-#ifdef BINARY_OPEN
+#ifdef G_PLATFORM_WIN32
 	if( text_mode )
 		mode = "r";
 	else
 		mode = "rb";
-#else /*BINARY_OPEN*/
+#else /*!G_PLATFORM_WIN32*/
 	mode = "r";
-#endif /*BINARY_OPEN*/
+#endif /*G_PLATFORM_WIN32*/
 
 	if( (fp = vips__fopen( filename, mode )) )
 		return( fp );
@@ -734,14 +734,14 @@ vips__file_open_write( const char *filename, gboolean text_mode )
 	char *mode;
 	FILE *fp;
 
-#ifdef BINARY_OPEN
+#ifdef G_PLATFORM_WIN32
 	if( text_mode )
 		mode = "w";
 	else
 		mode = "wb";
-#else /*BINARY_OPEN*/
+#else /*!G_PLATFORM_WIN32*/
 	mode = "w";
-#endif /*BINARY_OPEN*/
+#endif /*G_PLATFORM_WIN32*/
 
         if( !(fp = vips__fopen( filename, mode )) ) {
 		vips_error_system( errno, "vips__file_open_write", 
@@ -1089,15 +1089,15 @@ vips__seek_no_error( int fd, gint64 pos, int whence )
 {
 	gint64 new_pos;
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 	new_pos = _lseeki64( fd, pos, whence );
-#else /*!OS_WIN32*/
+#else /*!G_OS_WIN32*/
 	/* On error, eg. opening a directory and seeking to the end, lseek() 
 	 * on linux seems to return 9223372036854775807 ((1 << 63) - 1)
 	 * rather than (off_t) -1 for reasons I don't understand. 
 	 */
 	new_pos = lseek( fd, pos, whence );
-#endif /*OS_WIN32*/
+#endif /*G_OS_WIN32*/
 
 	return( new_pos );
 }
@@ -1128,7 +1128,7 @@ vips__seek( int fd, gint64 pos, int whence )
 int
 vips__ftruncate( int fd, gint64 pos )
 {
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 {
 	HANDLE hFile = (HANDLE) _get_osfhandle( fd );
 
@@ -1140,13 +1140,13 @@ vips__ftruncate( int fd, gint64 pos )
 		return( -1 );
 	}
 }
-#else /*!OS_WIN32*/
+#else /*!G_OS_WIN32*/
 	if( ftruncate( fd, pos ) ) {
 		vips_error_system( errno, "vips__ftruncate", 
 			"%s", _( "unable to truncate" ) );
 		return( -1 );
 	}
-#endif /*OS_WIN32*/
+#endif /*G_OS_WIN32*/
 
 	return( 0 );
 }
@@ -1620,7 +1620,7 @@ vips__temp_dir( void )
 	const char *tmpd;
 
 	if( !(tmpd = g_getenv( "TMPDIR" )) ) {
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 		static gboolean done = FALSE;
 		static char buf[256];
 
@@ -1629,9 +1629,9 @@ vips__temp_dir( void )
 				strcpy( buf, "C:\\temp" );
 		}
 		tmpd = buf;
-#else /*!OS_WIN32*/
+#else /*!G_OS_WIN32*/
 		tmpd = "/tmp";
-#endif /*!OS_WIN32*/
+#endif /*!G_OS_WIN32*/
 	}
 
 	return( tmpd );
@@ -1651,14 +1651,7 @@ vips__temp_name( const char *format )
 	char file2[FILENAME_MAX];
 	char *name;
 
-	/* Old glibs named this differently.
-	 */
-	int serial =
-#if GLIB_CHECK_VERSION( 2, 30, 0 )
-			g_atomic_int_add( &global_serial, 1 );
-#else
-			g_atomic_int_exchange_and_add( &global_serial, 1 );
-#endif
+	int serial = g_atomic_int_add( &global_serial, 1 );
 
 	vips_snprintf( file, FILENAME_MAX, "vips-%d-%u", 
 		serial, g_random_int() );
@@ -1961,7 +1954,7 @@ vips__random_add( guint32 seed, int value )
 static void *
 vips_icc_dir_once( void *null )
 {
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 	/* From glib get_windows_directory_root()
 	 */
 	wchar_t wwindowsdir[MAX_PATH];
@@ -1983,7 +1976,7 @@ vips_icc_dir_once( void *null )
 			return( (void *) full_path );
 		}
 	}
-#endif
+#endif /*G_OS_WIN32*/
 
 	return( (void *) VIPS_ICC_DIR );
 }
@@ -1997,7 +1990,7 @@ vips__icc_dir( void )
 		vips_icc_dir_once, NULL ) );
 }
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 static HMODULE vips__dll = NULL;
 #ifdef DLL_EXPORT
 BOOL WINAPI
@@ -2009,19 +2002,19 @@ DllMain( HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved )
 	return( TRUE );
 }
 #endif
-#endif
+#endif /*G_OS_WIN32*/
 
 static void *
 vips__windows_prefix_once( void *null )
 {
 	char *prefix;
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 	prefix = g_win32_get_package_installation_directory_of_module( 
 		vips__dll );
-#else
+#else /*!G_OS_WIN32*/
         prefix = (char *) g_getenv( "VIPSHOME" );
-#endif
+#endif /*G_OS_WIN32*/
 
 	return( (void *) prefix ); 
 }

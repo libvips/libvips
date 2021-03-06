@@ -180,9 +180,9 @@ main( int argc, char *argv[] )
 	/* On Windows, argv is ascii-only .. use this to get a utf-8 version of
 	 * the args.
 	 */
-#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+#ifdef G_OS_WIN32
 	argv = g_win32_get_command_line();
-#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
+#endif /*G_OS_WIN32*/
 
         context = g_option_context_new( _( "- print image header" ) );
 	main_group = g_option_group_new( NULL, NULL, NULL, NULL, NULL );
@@ -191,11 +191,11 @@ main( int argc, char *argv[] )
 	g_option_group_set_translation_domain( main_group, GETTEXT_PACKAGE );
 	g_option_context_set_main_group( context, main_group );
 
-#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+#ifdef G_OS_WIN32
 	if( !g_option_context_parse_strv( context, &argv, &error ) ) 
-#else /*!HAVE_G_WIN32_GET_COMMAND_LINE*/
+#else /*!G_OS_WIN32*/
 	if( !g_option_context_parse( context, &argc, &argv, &error ) ) 
-#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
+#endif /*G_OS_WIN32*/
 	{
 		if( error ) {
 			fprintf( stderr, "%s\n", error->message );
@@ -247,9 +247,9 @@ main( int argc, char *argv[] )
 
 	/* We don't free this on error exit, sadly.
 	 */
-#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+#ifdef G_OS_WIN32
 	g_strfreev( argv ); 
-#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
+#endif /*G_OS_WIN32*/
 
 	vips_shutdown();
 

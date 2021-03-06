@@ -65,10 +65,10 @@
 #include <vips/thread.h>
 #include <vips/debug.h>
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 #include <windows.h>
 #include <lmerr.h>
-#endif /*OS_WIN32*/
+#endif /*G_OS_WIN32*/
 
 /**
  * SECTION: errors
@@ -294,7 +294,7 @@ vips_verror_system( int err, const char *domain, const char *fmt, va_list ap )
 {
 	vips_verror( domain, fmt, ap );
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 {
 	char *buf;
 
@@ -310,7 +310,7 @@ vips_verror_system( int err, const char *domain, const char *fmt, va_list ap )
 		LocalFree( buf );
 	}
 }
-#else /*OS_WIN32*/
+#else /*!G_OS_WIN32*/
 {
 	char *buf;
 
@@ -318,7 +318,7 @@ vips_verror_system( int err, const char *domain, const char *fmt, va_list ap )
 	vips_error( _( "unix error" ), "%s", buf );
 	g_free( buf );
 }
-#endif /*OS_WIN32*/
+#endif /*G_OS_WIN32*/
 }
 
 /**

@@ -58,9 +58,9 @@
 #include <vips/internal.h>
 #include <vips/thread.h>
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 #include <windows.h>
-#endif /*OS_WIN32*/
+#endif /*G_OS_WIN32*/
 
 /* Sanity checking ... write to this during read tests to make sure we don't
  * get optimized out.
@@ -189,15 +189,15 @@ vips_getpagesize( void )
 	static int pagesize = 0;
 
 	if( !pagesize ) {
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 		SYSTEM_INFO si;
 
 		GetSystemInfo( &si );
 
 		pagesize = si.dwAllocationGranularity;
-#else /*OS_WIN32*/
+#else /*!G_OS_WIN32*/
 		pagesize = getpagesize();
-#endif /*OS_WIN32*/
+#endif /*G_OS_WIN32*/
 
 #ifdef DEBUG_TOTAL
 		printf( "vips_getpagesize: 0x%x\n", pagesize );
