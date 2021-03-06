@@ -7,6 +7,8 @@
 - fix includes of glib headers in C++ [lovell]
 - fix build with more modern librsvg [lovell]
 - fix a possible segv with very wide images [f1ac]
+- revise premultiply, again [jjonesrs]
+- revise profile handling in vipsthumbnail
 - fix tiff deflate predictor setting [Adios]
 
 18/12/20 started 8.10.5
