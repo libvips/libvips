@@ -67,7 +67,7 @@ typedef struct _VipsFlatten {
 	 */
 	VipsArrayDouble *background;
 
-	/* The [double] converted to the input image format.
+	/* The [double] background converted to the input image format.
 	 */
 	VipsPel *ink;
 

@@ -590,8 +590,8 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * User @level to set the ZSTD compression level. Use @lossless to
  * set WEBP lossless mode on. Use @Q to set the WEBP compression level.
  *
- * Use @predictor to set the predictor for lzw and deflate compression. It
- * defaults to #VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL, meaning horizontal
+ * Use @predictor to set the predictor for lzw, deflate and zstd compression.
+ * It defaults to #VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL, meaning horizontal
  * differencing. Please refer to the libtiff 
  * specifications for further discussion of various predictors. 
  *

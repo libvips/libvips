@@ -333,9 +333,9 @@ struct _Wtiff {
 	VipsPel *tbuf;			/* TIFF output buffer */
 	int tls;			/* Tile line size */
 
-	int compression;		/* Compression type */
+	int compression;		/* libtiff compression type */
 	int Q;				/* JPEG q-factor, webp level */
-	int predictor;			/* Predictor value */
+	int predictor;			/* libtiff predictor type */
 	int tile;			/* Tile or not */
 	int tilew, tileh;		/* Tile size */
 	int pyramid;			/* Wtiff pyramid */
@@ -659,12 +659,16 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 		TIFFSetField( tif, TIFFTAG_WEBP_LEVEL, wtiff->Q );
 		TIFFSetField( tif, TIFFTAG_WEBP_LOSSLESS, wtiff->lossless );
 	}
-	if( wtiff->compression == COMPRESSION_ZSTD ) 
+	if( wtiff->compression == COMPRESSION_ZSTD ) {
 		TIFFSetField( tif, TIFFTAG_ZSTD_LEVEL, wtiff->level );
+		if( wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE ) 
+			TIFFSetField( tif, 
+				TIFFTAG_PREDICTOR, wtiff->predictor );
+	}
 #endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 
-	if( (wtiff->compression == VIPS_FOREIGN_TIFF_COMPRESSION_DEFLATE ||
-		wtiff->compression == VIPS_FOREIGN_TIFF_COMPRESSION_LZW) &&
+	if( (wtiff->compression == COMPRESSION_ADOBE_DEFLATE ||
+		wtiff->compression == COMPRESSION_LZW) &&
 		wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE ) 
 		TIFFSetField( tif, TIFFTAG_PREDICTOR, wtiff->predictor );
 
@@ -1862,9 +1866,18 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 		TIFFSetField( out, TIFFTAG_WEBP_LEVEL, wtiff->Q );
 		TIFFSetField( out, TIFFTAG_WEBP_LOSSLESS, wtiff->lossless );
 	}
-	if( wtiff->compression == COMPRESSION_ZSTD ) 
+	if( wtiff->compression == COMPRESSION_ZSTD ) {
 		TIFFSetField( out, TIFFTAG_ZSTD_LEVEL, wtiff->level );
+		if( wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE ) 
+			TIFFSetField( out, 
+				TIFFTAG_PREDICTOR, wtiff->predictor );
+	}
 #endif /*HAVE_TIFF_COMPRESSION_WEBP*/
+
+	if( (wtiff->compression == COMPRESSION_ADOBE_DEFLATE ||
+		wtiff->compression == COMPRESSION_LZW) &&
+		wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE ) 
+		TIFFSetField( out, TIFFTAG_PREDICTOR, wtiff->predictor );
 
 	/* We can't copy profiles or xmp :( Set again from wtiff.
 	 */
