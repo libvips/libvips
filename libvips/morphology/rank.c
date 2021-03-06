@@ -26,6 +26,8 @@
  * 	- redone as a class
  * 12/11/16
  * 	- oop, allow index == 0, thanks Rob
+ * 12/1/21
+ * 	- add hist path for large windows on uchar images
  */
 
 /*
@@ -81,6 +83,8 @@ typedef struct _VipsRank {
 
 	int n; 
 
+	gboolean hist_path;
+
 } VipsRank;
 
 typedef VipsMorphologyClass VipsRankClass;
@@ -91,15 +95,33 @@ G_DEFINE_TYPE( VipsRank, vips_rank, VIPS_TYPE_MORPHOLOGY );
  */
 typedef struct {
 	VipsRegion *ir;
+
+	/* Sort array.
+	 */
 	VipsPel *sort;
+
+	/* For large uchar images, the sort histogram.
+	 */
+	unsigned int **hist;
 } VipsRankSequence;
 
 static int
 vips_rank_stop( void *vseq, void *a, void *b )
 {
 	VipsRankSequence *seq = (VipsRankSequence *) vseq;
+	VipsImage *in = (VipsImage *) a;
 
 	VIPS_UNREF( seq->ir );
+	VIPS_FREE( seq->sort );
+
+	if( seq->hist &&
+		in ) {
+		int i;
+
+		for( i = 0; i < in->Bands; i++ ) 
+			VIPS_FREE( seq->hist[i] );
+	}
+	VIPS_FREE( seq->hist );
 
 	return( 0 );
 }
@@ -115,15 +137,107 @@ vips_rank_start( VipsImage *out, void *a, void *b )
 		return( NULL );
 	seq->ir = NULL;
 	seq->sort = NULL;
+	seq->hist = NULL;
 
 	seq->ir = vips_region_new( in );
-	if( !(seq->sort = VIPS_ARRAY( out, 
+	if( !(seq->sort = VIPS_ARRAY( NULL, 
 		VIPS_IMAGE_SIZEOF_ELEMENT( in ) * rank->n, VipsPel )) ) { 
 		vips_rank_stop( seq, in, rank );
 		return( NULL );
 	}
 
+	if( rank->hist_path ) {
+		int i;
+
+		if( !(seq->hist = 
+			VIPS_ARRAY( NULL, in->Bands, unsigned int * )) ) {
+			vips_rank_stop( seq, in, rank );
+			return( NULL );
+		}
+
+		for( i = 0; i < in->Bands; i++ ) 
+			if( !(seq->hist[i] = 
+				VIPS_ARRAY( NULL, 256, unsigned int )) ) {
+				vips_rank_stop( seq, in, rank );
+				return( NULL );
+			}
+	}
+
 	return( (void *) seq );
+}
+
+/* Histogram path for large uchar ranks.
+ */
+static void
+vips_rank_generate_uchar( VipsRegion *or, 
+	VipsRankSequence *seq, VipsRank *rank, int y )
+{
+	VipsImage *in = seq->ir->im;
+	VipsRect *r = &or->valid;
+	const int bands = in->Bands; 
+
+	/* Get input and output pointers for this line.
+	 */
+	VipsPel * restrict p = 
+		VIPS_REGION_ADDR( seq->ir, r->left, r->top + y );
+	VipsPel * restrict q = 
+		VIPS_REGION_ADDR( or, r->left, r->top + y );
+
+	VipsPel * restrict p1;
+	int lsk;
+	int x, i, j, b;
+
+	lsk = VIPS_REGION_LSKIP( seq->ir );
+
+	/* Find histogram for the first output pixel.
+	 */
+	for( b = 0; b < bands; b++ )
+		memset( seq->hist[b], 0, 256 * sizeof( unsigned int ) );
+	p1 = p;
+	for( j = 0; j < rank->height; j++ ) {
+		for( i = 0, x = 0; x < rank->width; x++ )
+			for( b = 0; b < bands; b++, i++ )
+				seq->hist[b][p1[i]] += 1;
+
+		p1 += lsk;
+	}
+
+	/* Loop for output pels.
+	 */
+	for( x = 0; x < r->width; x++ ) {
+		for( b = 0; b < bands; b++ ) {
+			/* Calculate cumulative histogram -- the value is the
+			 * index at which we pass the rank.
+			 */
+			unsigned int * restrict hist = seq->hist[b]; 
+
+			int sum;
+			int i;
+
+			sum = 0;
+			for( i = 0; i < 256; i++ ) {
+				sum += hist[i];
+				if( sum > rank->index )
+					break;
+			}
+			q[b] = i;
+
+			/* Adapt histogram --- remove the pels from 
+			 * the left hand column, add in pels for a 
+			 * new right-hand column.
+			 */
+			p1 = p + b;
+			for( j = 0; j < rank->height; j++ ) {
+				hist[p1[0]] -= 1;
+				hist[p1[bands * rank->width]] += 1;
+
+				p1 += lsk;
+			}
+		}
+
+		p += bands;
+		q += bands;
+	}
 }
 
 /* Inner loop for select-sorting TYPE.
@@ -318,7 +432,9 @@ vips_rank_generate( VipsRegion *or,
 	ls = VIPS_REGION_LSKIP( ir ) / VIPS_IMAGE_SIZEOF_ELEMENT( in );
 
 	for( y = 0; y < r->height; y++ ) { 
-		if( rank->index == 0 )
+		if( rank->hist_path ) 
+			vips_rank_generate_uchar( or, seq, rank, y );
+		else if( rank->index == 0 )
 			SWITCH( LOOP_MIN )
 		else if( rank->index == rank->n - 1 ) 
 			SWITCH( LOOP_MAX )
@@ -358,6 +474,20 @@ vips_rank_build( VipsObject *object )
 	if( rank->index < 0 || rank->index > rank->n - 1 ) {
 		vips_error( class->nickname, "%s", _( "index out of range" ) );
 		return( -1 );
+	}
+
+	/* Enable the hist path if it'll probably help.
+	 */
+	if( in->BandFmt == VIPS_FORMAT_UCHAR ) {
+		/* The hist path is always faster for windows larger than about 
+		 * 10x10, and faster for >3x3 on the non-max/min case.
+		 */
+		if( rank->n > 90 )
+			rank->hist_path = TRUE;
+		else if( rank->n > 10 && 
+			rank->index != 0 &&
+		       	rank->index != rank->n - 1 )
+			rank->hist_path = TRUE;
 	}
 
 	/* Expand the input. 

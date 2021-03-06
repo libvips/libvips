@@ -41,7 +41,10 @@ DICOM_FILE = os.path.join(IMAGES, "dicom_test_image.dcm")
 BMP_FILE = os.path.join(IMAGES, "MARBLES.BMP")
 NIFTI_FILE = os.path.join(IMAGES, "avg152T1_LR_nifti.nii.gz")
 ICO_FILE = os.path.join(IMAGES, "favicon.ico")
+AVIF_FILE = os.path.join(IMAGES, "avif-orientation-6.avif")
 HEIC_FILE = os.path.join(IMAGES, "heic-orientation-6.heic")
+RGBA_FILE = os.path.join(IMAGES, "rgba.png")
+RGBA_CORRECT_FILE = os.path.join(IMAGES, "rgba-correct.ppm")
 MOSAIC_FILES = [os.path.join(IMAGES, "cd1.1.jpg"), os.path.join(IMAGES, "cd1.2.jpg"),
                 os.path.join(IMAGES, "cd2.1.jpg"), os.path.join(IMAGES, "cd2.2.jpg"),
                 os.path.join(IMAGES, "cd3.1.jpg"), os.path.join(IMAGES, "cd3.2.jpg"),

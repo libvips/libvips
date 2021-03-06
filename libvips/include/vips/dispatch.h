@@ -33,11 +33,12 @@
 #ifndef IM_DISPATCH_H
 #define IM_DISPATCH_H
 
+#include <glib-object.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
 
-#include <glib-object.h>
 #include <vips/vips.h>
 #include <vips/util.h>
 

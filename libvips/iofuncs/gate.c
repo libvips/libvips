@@ -213,16 +213,10 @@ vips__thread_profile_init_cb( VipsThreadProfile *profile )
 static void *
 vips__thread_profile_init( void *data )
 {
-#ifdef HAVE_PRIVATE_INIT
 	static GPrivate private = 
 		G_PRIVATE_INIT( (GDestroyNotify) vips__thread_profile_init_cb );
 
 	vips_thread_profile_key = &private;
-#else
-	if( !vips_thread_profile_key ) 
-		vips_thread_profile_key = g_private_new( 
-			(GDestroyNotify) vips__thread_profile_init_cb );
-#endif
 
 	return( NULL );
 }
@@ -300,20 +294,6 @@ vips_thread_gate_block_add( VipsThreadGateBlock **block )
 	*block = new_block;
 }
 
-static gint64
-vips_get_time( void )
-{
-#ifdef HAVE_MONOTONIC_TIME
-	return( g_get_monotonic_time() );  
-#else
-	GTimeVal time;
-
-	g_get_current_time( &time );
-
-	return( (gint64) time.tv_usec ); 
-#endif
-}
-
 void
 vips__thread_gate_start( const char *gate_name )
 {
@@ -322,7 +302,7 @@ vips__thread_gate_start( const char *gate_name )
 	VIPS_DEBUG_MSG_RED( "vips__thread_gate_start: %s\n", gate_name ); 
 
 	if( (profile = vips_thread_profile_get()) ) { 
-		gint64 time = vips_get_time(); 
+		gint64 time = g_get_monotonic_time();
 
 		VipsThreadGate *gate;
 
@@ -350,7 +330,7 @@ vips__thread_gate_stop( const char *gate_name )
 	VIPS_DEBUG_MSG_RED( "vips__thread_gate_stop: %s\n", gate_name ); 
 
 	if( (profile = vips_thread_profile_get()) ) { 
-		gint64 time = vips_get_time(); 
+		gint64 time = g_get_monotonic_time();
 
 		VipsThreadGate *gate;
 
@@ -385,7 +365,7 @@ vips__thread_malloc_free( gint64 size )
 #endif /*VIPS_DEBUG*/
 
 	if( (profile = vips_thread_profile_get()) ) { 
-		gint64 time = vips_get_time(); 
+		gint64 time = g_get_monotonic_time();
 		VipsThreadGate *gate = profile->memory;
 
 		if( gate->start->i >= VIPS_GATE_SIZE ) {

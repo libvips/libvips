@@ -2,7 +2,7 @@ Authors of VIPS
 
 See also the files THANKS and ChangeLog
 
-Nicos Dessipris and Kirk Martinez started VIPS in 1990.
+Kirk Martinez and Nicos Dessipris started VIPS in 1990.
 
 John Cupitt started ip in late 1990, and took over maintenance of the VIPS 
 library in 1995.
@@ -22,3 +22,5 @@ contributed the tmake VIPS.DLL build system and the MSVC project files.
 Nicolas Robidoux contributed optimized bilinear and bicubic code to
 the VipsInterpolate class and, with Chantal Racette and Adam Turcotte,
 contributed the novel LBB, Nohalo and VSQBS interpolators.
+
+Many other active contributors, see https://github.com/libvips/libvips/graphs/contributors

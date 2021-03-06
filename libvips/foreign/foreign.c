@@ -1395,12 +1395,15 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
-	/* If this is something other than CMYK or RAD, eg. maybe a LAB image,
-	 * we need to transform to RGB.
+	/* If this is something other than CMYK or RAD, and it's not already
+	 * an RGB image, eg. maybe a LAB or scRGB image, we need to transform 
+	 * to RGB.
 	 */
 	if( !coding[VIPS_CODING_RAD] &&
 		in->Bands >= 3 &&
 		in->Type != VIPS_INTERPRETATION_CMYK &&
+		in->Type != VIPS_INTERPRETATION_sRGB &&
+		in->Type != VIPS_INTERPRETATION_RGB16 &&
 		vips_colourspace_issupported( in ) &&
 		(saveable == VIPS_SAVEABLE_RGB ||
 		 saveable == VIPS_SAVEABLE_RGBA ||
@@ -1426,7 +1429,7 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
-	/* VIPS_SAVEABLE_RGBA_ONLY does not support 1 or 2 bands ... convert 
+	/* VIPS_SAVEABLE_RGBA_ONLY does not support mono types ... convert 
 	 * to sRGB. 
 	 */
 	if( !coding[VIPS_CODING_RAD] &&
@@ -2114,7 +2117,8 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_matrix_target_get_type( void ); 
 	extern GType vips_foreign_print_matrix_get_type( void ); 
 
-	extern GType vips_foreign_load_fits_get_type( void ); 
+	extern GType vips_foreign_load_fits_file_get_type( void ); 
+	extern GType vips_foreign_load_fits_source_get_type( void ); 
 	extern GType vips_foreign_save_fits_get_type( void ); 
 
 	extern GType vips_foreign_load_analyze_get_type( void ); 
@@ -2179,7 +2183,8 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_heif_buffer_get_type( void ); 
 	extern GType vips_foreign_save_heif_target_get_type( void ); 
 
-	extern GType vips_foreign_load_nifti_get_type( void ); 
+	extern GType vips_foreign_load_nifti_file_get_type( void ); 
+	extern GType vips_foreign_load_nifti_source_get_type( void ); 
 	extern GType vips_foreign_save_nifti_get_type( void ); 
 
 	extern GType vips_foreign_load_gif_file_get_type( void ); 
@@ -2321,7 +2326,8 @@ vips_foreign_operation_init( void )
 #endif /*ENABLE_MAGICKSAVE*/
 
 #ifdef HAVE_CFITSIO
-	vips_foreign_load_fits_get_type(); 
+	vips_foreign_load_fits_file_get_type(); 
+	vips_foreign_load_fits_source_get_type(); 
 	vips_foreign_save_fits_get_type(); 
 #endif /*HAVE_CFITSIO*/
 
@@ -2330,7 +2336,8 @@ vips_foreign_operation_init( void )
 #endif /*HAVE_OPENEXR*/
 
 #ifdef HAVE_NIFTI
-	vips_foreign_load_nifti_get_type(); 
+	vips_foreign_load_nifti_file_get_type(); 
+	vips_foreign_load_nifti_source_get_type(); 
 	vips_foreign_save_nifti_get_type(); 
 #endif /*HAVE_NIFTI*/
 

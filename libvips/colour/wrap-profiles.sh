@@ -15,7 +15,7 @@ echo "#include \"profiles.h\"" >> $out
 echo "" >> $out
 
 profile_names=
-for file in $in/*; do 
+for file in $in/*.icm; do
   root=${file%.icm}
   base=${root##*/} 
   profile_name=vips__profile_fallback_$base
@@ -24,7 +24,7 @@ for file in $in/*; do
   echo "    \"$base\"," >> $out
   echo "    $(stat --format=%s $file)," >> $out
   echo "    {" >> $out
-  hexdump -v -e '" 0x" 1/1 "%02X,"' $file | fmt >> $out
+  pigz -c -z -11 $file | hexdump -v -e '" 0x" 1/1 "%02X,"' | fmt >> $out
   echo "    }" >> $out
   echo "};" >> $out
   echo  >> $out

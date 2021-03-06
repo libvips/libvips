@@ -97,7 +97,7 @@ vips__correl( VipsImage *ref, VipsImage *sec,
 {
 	VipsImage *surface = vips_image_new();
 	VipsImage **t = (VipsImage **)
-		vips_object_local_array( VIPS_OBJECT( surface ), 4 );
+		vips_object_local_array( VIPS_OBJECT( surface ), 5 );
 
 	VipsRect refr, secr;
 	VipsRect winr, srhr;
@@ -137,35 +137,37 @@ vips__correl( VipsImage *ref, VipsImage *sec,
 		g_object_unref( surface );
 		return( -1 );
 	}
+	ref = t[0];
+	sec = t[1];
 
 	/* Make sure we have just one band. From vips_*mosaic() we will, but
 	 * from vips_match() etc. we may not.
 	 */
-	if( t[0]->Bands != 1 ) {
-		if( vips_extract_band( t[0], &t[2], 0, NULL ) ) {
+	if( ref->Bands != 1 ) {
+		if( vips_extract_band( ref, &t[2], 0, NULL ) ) {
 			g_object_unref( surface );
 			return( -1 );
 		}
-		t[0] = t[2];
+		ref = t[2];
 	}
-	if( t[1]->Bands != 1 ) {
-		if( vips_extract_band( t[1], &t[3], 0, NULL ) ) {
+	if( sec->Bands != 1 ) {
+		if( vips_extract_band( sec, &t[3], 0, NULL ) ) {
 			g_object_unref( surface );
 			return( -1 );
 		}
-		t[1] = t[3];
+		sec = t[3];
 	}
 
 	/* Search!
 	 */
-	if( vips_spcor( t[1], t[0], &surface, NULL ) ) {
+	if( vips_spcor( sec, ref, &t[4], NULL ) ) {
 		g_object_unref( surface );
 		return( -1 );
 	}
 
 	/* Find maximum of correlation surface.
 	 */
-	if( vips_max( surface, correlation, "x", x, "y", y, NULL ) ) {
+	if( vips_max( t[4], correlation, "x", x, "y", y, NULL ) ) {
 		g_object_unref( surface );
 		return( -1 );
 	}

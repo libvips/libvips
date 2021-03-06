@@ -168,7 +168,7 @@ int vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	gboolean optimize_coding, gboolean progressive, gboolean strip,
 	gboolean trellis_quant, gboolean overshoot_deringing,
 	gboolean optimize_scans, int quant_table,
-	VipsForeignJpegSubsample subsample_mode );
+	VipsForeignSubsample subsample_mode );
 
 int vips__jpeg_read_source( VipsSource *source, VipsImage *out,
 	gboolean header_only, int shrink, int fail, gboolean autorotate );
@@ -229,7 +229,7 @@ int vips__quantise_image( VipsImage *in,
 	VipsImage **index_out, VipsImage **palette_out,
 	int colours, int Q, double dither );
 
-extern const char *vips__nifti_suffs[];
+extern const char *vips_foreign_nifti_suffs[];
 
 VipsBandFormat vips__foreign_nifti_datatype2BandFmt( int datatype );
 int vips__foreign_nifti_BandFmt2datatype( VipsBandFormat fmt );

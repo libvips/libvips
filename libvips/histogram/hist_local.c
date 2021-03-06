@@ -108,8 +108,8 @@ vips_hist_local_stop( void *vseq, void *a, void *b )
 
 		for( i = 0; i < in->Bands; i++ )
 			VIPS_FREE( seq->hist[i] );
-		VIPS_FREE( seq->hist );
 	}
+	VIPS_FREE( seq->hist );
 	VIPS_FREE( seq );
 
 	return( 0 );

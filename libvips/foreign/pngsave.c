@@ -102,9 +102,30 @@ vips_foreign_save_png_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSavePng *png = (VipsForeignSavePng *) object;
 
+	VipsImage *in;
+
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_png_parent_class )->
 		build( object ) )
 		return( -1 );
+
+	in = save->ready;
+	g_object_ref( in );
+
+	/* save->ready will have been converted to uint16 for high-bitdepth
+	 * formats (eg. float) ... we need to check Type to see if we want 
+	 * to save as 8 or 16-bits. Eg. imagine a float image tagged as sRGB.
+	 */
+	if( in->Type == VIPS_INTERPRETATION_sRGB ||
+		in->Type == VIPS_INTERPRETATION_B_W ) {
+		VipsImage *x;
+
+		if( vips_cast( in, &x, VIPS_FORMAT_UCHAR, NULL ) ) {
+			g_object_unref( in );
+			return( -1 );
+		}
+		g_object_unref( in );
+		in = x;
+	}
 
 	/* Deprecated "colours" arg just sets bitdepth large enough to hold
 	 * that many colours.
@@ -113,21 +134,31 @@ vips_foreign_save_png_build( VipsObject *object )
 		png->bitdepth = ceil( log2( png->colours ) );
 
         if( !vips_object_argument_isset( object, "bitdepth" ) ) 
-		png->bitdepth = 
-			save->ready->BandFmt == VIPS_FORMAT_UCHAR ? 8 : 16;
+		png->bitdepth = in->BandFmt == VIPS_FORMAT_UCHAR ? 8 : 16;
+
+	/* Filtering usually reduces the compression ratio for palette images,
+	 * so default off.
+	 */
+        if( !vips_object_argument_isset( object, "filter" ) &&
+		png->palette )
+		png->filter = VIPS_FOREIGN_PNG_FILTER_NONE;
 
 	/* If this is a RGB or RGBA image and a low bit depth has been
 	 * requested, enable palettization.
 	 */
-        if( save->ready->Bands > 2 &&
+        if( in->Bands > 2 &&
 		png->bitdepth < 8 )
 		png->palette = TRUE;
 
-	if( vips__png_write_target( save->ready, png->target,
+	if( vips__png_write_target( in, png->target,
 		png->compression, png->interlace, png->profile, png->filter,
 		save->strip, png->palette, png->Q, png->dither,
-		png->bitdepth ) )
+		png->bitdepth ) ) {
+		g_object_unref( in );
 		return( -1 );
+	}
+
+	g_object_unref( in );
 
 	return( 0 );
 }
@@ -145,9 +176,12 @@ vips_foreign_save_png_build( VipsObject *object )
 #define D VIPS_FORMAT_DOUBLE
 #define DX VIPS_FORMAT_DPCOMPLEX
 
+/* Except for 8-bit inputs, we send everything else to 16. We decide on png8
+ * vs. png16 based on Type in_build(), see above.
+ */
 static int bandfmt_png[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, UC, US, US, US, US, UC, UC, UC, UC
+   UC, UC, US, US, US, US, US, US, US, US
 };
 
 static void
@@ -449,7 +483,8 @@ vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
  * profile from the VIPS header will be attached.
  *
  * Use @filter to specify one or more filters (instead of adaptive filtering),
- * see #VipsForeignPngFilter. 
+ * see #VipsForeignPngFilter. @filter defaults to NONE for palette images, 
+ * since they generally have very low local correlation.
  *
  * The image is automatically converted to RGB, RGBA, Monochrome or Mono +
  * alpha before saving. Images with more than one byte per band element are

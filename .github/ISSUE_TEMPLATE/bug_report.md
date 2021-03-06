@@ -1,11 +1,19 @@
 ---
 name: Bug Report
 about: Create A Bug Report
-title: 'A concise title of what the bug is.'
-labels: 'bug'
+title: A concise title of what the bug is.
+labels: bug
 assignees: ''
 
 ---
+
+## Questions, enhancements, tips, etc.
+
+Please use libvips discussions for other topics.
+
+https://github.com/libvips/libvips/discussions
+
+## Bug report
 
 **Describe the bug**
 A clear and concise description of what the bug is.

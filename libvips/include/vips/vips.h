@@ -80,10 +80,6 @@
 #ifndef VIPS_VIPS_H
 #define VIPS_VIPS_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif /*__cplusplus*/
-
 #include <glib.h>
 #include <glib/gstdio.h>
 #include <gmodule.h>
@@ -92,6 +88,10 @@ extern "C" {
 /* Needed for VipsGInputStream.
  */
 #include <gio/gio.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif /*__cplusplus*/
 
 /* If we're being parsed by SWIG, remove gcc attributes.
  */

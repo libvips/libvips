@@ -114,9 +114,9 @@ void vips__threadpool_init( void );
 
 void vips__cache_init( void );
 
-void vips__print_renders( void );
-
-void vips__type_leak( void );
+int vips__print_renders( void );
+int vips__type_leak( void );
+int vips__object_leak( void );
 
 typedef int (*im__fftproc_fn)( VipsImage *, VipsImage *, VipsImage * );
 int im__fftproc( VipsImage *dummy, 

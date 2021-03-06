@@ -79,6 +79,8 @@
  * 	- revise for connection IO
  * 11/5/20
  * 	- only warn for saving bad profiles, don't fail
+ * 19/2/21 781545872
+ * 	- read out background, if we can
  */
 
 /*
@@ -559,6 +561,49 @@ png2vips_header( Read *read, VipsImage *out )
 	if( color_type == PNG_COLOR_TYPE_PALETTE )
 		vips_image_set_int( out, "palette-bit-depth", bitdepth );
 
+	/* Note the PNG background colour, if any.
+	 */
+#ifdef PNG_bKGD_SUPPORTED
+{
+	png_color_16 *background;
+
+	if( png_get_bKGD( read->pPng, read->pInfo, &background ) ) {
+		const int scale = out->BandFmt == VIPS_FORMAT_UCHAR ? 1 : 256;
+
+		double array[3];
+		int n;
+
+		switch( color_type ) {
+		case PNG_COLOR_TYPE_GRAY:
+		case PNG_COLOR_TYPE_GRAY_ALPHA:
+			array[0] = background->gray / scale;
+			n = 1;
+			break;
+
+		case PNG_COLOR_TYPE_RGB:
+		case PNG_COLOR_TYPE_RGB_ALPHA:
+			array[0] = background->red / scale;
+			array[1] = background->green / scale;
+			array[2] = background->blue / scale;
+			n = 3;
+			break;
+
+		case PNG_COLOR_TYPE_PALETTE:
+		default:
+			/* Not sure what to do here. I suppose we should read
+			 * the palette.
+			 */
+			n = 0;
+			break;
+		}
+
+		if( n > 0 )
+			vips_image_set_array_double( out, "background", 
+				array, n );
+	}
+}
+#endif
+
 	return( 0 );
 }
 
@@ -783,12 +828,15 @@ typedef struct {
 } Write;
 
 static void
-write_finish( Write *write )
+write_destroy( Write *write )
 {
+#ifdef DEBUG
+	printf( "write_destroy: %p\n", write ); 
+#endif /*DEBUG*/
+
 	VIPS_UNREF( write->memory );
 	if( write->target ) 
 		vips_target_finish( write->target );
-	VIPS_UNREF( write->target );
 	if( write->pPng )
 		png_destroy_write_struct( &write->pPng, &write->pInfo );
 	VIPS_FREE( write->row_pointer );
@@ -811,18 +859,19 @@ write_new( VipsImage *in, VipsTarget *target )
 
 	if( !(write = VIPS_NEW( NULL, Write )) )
 		return( NULL );
-	memset( write, 0, sizeof( Write ) );
 	write->in = in;
-	write->memory = NULL;
 	write->target = target;
-	g_object_ref( target );
+
+#ifdef DEBUG
+	printf( "write_new: %p\n", write ); 
+#endif /*DEBUG*/
 
 	if( !(write->row_pointer = VIPS_ARRAY( NULL, in->Ysize, png_bytep )) )
 		return( NULL );
 	if( !(write->pPng = png_create_write_struct( 
 		PNG_LIBPNG_VER_STRING, NULL,
 		user_error_function, user_warning_function )) ) {
-		write_finish( write );
+		write_destroy( write );
 		return( NULL );
 	}
 
@@ -840,12 +889,12 @@ write_new( VipsImage *in, VipsTarget *target )
 	/* Catch PNG errors from png_create_info_struct().
 	 */
 	if( setjmp( png_jmpbuf( write->pPng ) ) ) {
-		write_finish( write );
+		write_destroy( write );
 		return( NULL );
 	}
 
 	if( !(write->pInfo = png_create_info_struct( write->pPng )) ) {
-		write_finish( write );
+		write_destroy( write );
 		return( NULL );
 	}
 
@@ -1196,8 +1245,6 @@ write_vips( Write *write,
 
 	png_write_end( write->pPng, write->pInfo );
 
-	vips_target_finish( write->target );
-
 	return( 0 );
 }
 
@@ -1216,13 +1263,13 @@ vips__png_write_target( VipsImage *in, VipsTarget *target,
 	if( write_vips( write, 
 		compression, interlace, profile, filter, strip, palette,
 		Q, dither, bitdepth ) ) {
-		write_finish( write );
+		write_destroy( write );
 		vips_error( "vips2png", _( "unable to write to target %s" ),
 			vips_connection_nick( VIPS_CONNECTION( target ) ) );
 		return( -1 );
 	}
 
-	write_finish( write );
+	write_destroy( write );
 
 	return( 0 );
 }

@@ -401,7 +401,7 @@ vips_buf_removec( VipsBuf *buf, char ch )
  * @ap: arguments to format string
  *
  * Append to @buf, args as <function>vprintf()</function>.
- * 
+ *
  * Returns: %FALSE on overflow, %TRUE otherwise.
  */
 gboolean

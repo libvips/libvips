@@ -175,7 +175,8 @@ vips__global_open_image( SymbolTable *st, char *name )
 	if( !(image = vips_image_new_from_file( name, NULL ))) {
 		/* TODO(kleisauke): Is this behavior the same as im_skip_dir?
 		 * i.e. could we open a filename which came
-		 * from a win32 (`\\`) on a *nix machine? */
+		 * from a win32 (`\\`) on a *nix machine? 
+		 */
 		basename = g_path_get_basename( name );
 
 		if( !(image = vips_image_new_from_file( basename, NULL ))) {
@@ -1018,7 +1019,8 @@ extract_rect( VipsImage *in, VipsImage **out, VipsRect *r )
  * has 255 for every pixel where both images are non-zero.
  */
 static int
-make_overlap_mask( VipsImage *mem, VipsImage *ref, VipsImage *sec, VipsImage **mask, 
+make_overlap_mask( VipsImage *mem, 
+	VipsImage *ref, VipsImage *sec, VipsImage **mask, 
 	VipsRect *rarea, VipsRect *sarea )
 {
 	VipsImage **t = (VipsImage **) 
@@ -1054,12 +1056,12 @@ count_nonzero( VipsImage *in, gint64 *count )
  * mask is true.
  */
 static VipsImage *
-find_image_stats( VipsImage *mem, VipsImage *in, VipsImage *mask, VipsRect *area )
+find_image_stats( VipsImage *mem, 
+	VipsImage *in, VipsImage *mask, VipsRect *area )
 {
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( VIPS_OBJECT( mem ), 4 );
+		vips_object_local_array( VIPS_OBJECT( mem ), 5 );
 
-	VipsImage *stats;
 	gint64 count;
 
 	/* Extract area, build black image, mask out pixels we want.
@@ -1074,7 +1076,7 @@ find_image_stats( VipsImage *mem, VipsImage *in, VipsImage *mask, VipsRect *area
 
 	/* Get stats from masked image.
 	 */
-	if( vips_stats( t[3], &stats, NULL ) )
+	if( vips_stats( t[3], &t[4], NULL ) )
 		return( NULL );
 
 	/* Number of non-zero pixels in mask.
@@ -1084,19 +1086,20 @@ find_image_stats( VipsImage *mem, VipsImage *in, VipsImage *mask, VipsRect *area
 
 	/* And scale masked average to match.
 	 */
-	*VIPS_MATRIX( stats, 4, 0 ) *= (double) count / VIPS_IMAGE_N_PELS( mask );
+	*VIPS_MATRIX( t[4], 4, 0 ) *= 
+		(double) count / VIPS_IMAGE_N_PELS( mask );
 
 	/* Yuk! Zap the deviation column with the pixel count. Used later to
 	 * determine if this is likely to be a significant overlap.
 	 */
-	*VIPS_MATRIX( stats, 5, 0 )  = count;
+	*VIPS_MATRIX( t[4], 5, 0 )  = count;
 
 #ifdef DEBUG
 	if( count == 0 )
 		g_warning( "global_balance %s", _( "empty overlap!" ) );
 #endif /*DEBUG*/
 
-	return( stats );
+	return( t[4] );
 }
 
 /* Find the stats for an overlap struct.
@@ -1767,7 +1770,7 @@ transform( JoinNode *node, double *gamma )
 	VipsImage *in = node->im;
 	double fac = st->fac[node->index];
 	VipsImage **t = (VipsImage **)
-		vips_object_local_array( VIPS_OBJECT( st->im ), 5 );
+		vips_object_local_array( VIPS_OBJECT( st->im ), 8 );
 
 	VipsImage *out;
 
@@ -1776,7 +1779,8 @@ transform( JoinNode *node, double *gamma )
 		 */
 		out = in;
 	}
-	/* TODO(kleisauke): Could we call vips_gamma instead? */
+	/* TODO(kleisauke): Could we call vips_gamma instead? 
+	 */
 	else if( in->BandFmt == VIPS_FORMAT_UCHAR || 
 		in->BandFmt == VIPS_FORMAT_USHORT ) {
 		if( vips_identity( &t[0],
@@ -1789,15 +1793,17 @@ transform( JoinNode *node, double *gamma )
 			vips_linear1( t[1], &t[2], fac, 0.0, NULL ) ||
 			vips_pow_const1( t[2], &t[3], *gamma, NULL ) ||
 			vips_cast( t[3], &t[4], in->BandFmt, NULL ) ||
-			vips_maplut( in, &out, t[4], NULL ) )
+			vips_maplut( in, &t[5], t[4], NULL ) )
 			return( NULL );
+		out = t[5];
 	}
 	else {
 		/* Just vips_linear1 it.
 		 */
-		if( vips_linear1( in, &t[0], fac, 0.0, NULL ) ||
-			vips_cast( t[0], &out, in->BandFmt, NULL ) )
+		if( vips_linear1( in, &t[6], fac, 0.0, NULL ) ||
+			vips_cast( t[6], &t[7], in->BandFmt, NULL ) )
 			return( NULL );
+		out = t[7];
 	}
 
 	vips_image_set_string( out, "mosaic-name", node->name );
@@ -1814,7 +1820,7 @@ transformf( JoinNode *node, double *gamma )
 	VipsImage *in = node->im;
 	double fac = node->st->fac[node->index];
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( VIPS_OBJECT( st->im ), 4 );
+		vips_object_local_array( VIPS_OBJECT( st->im ), 6 );
 
 	VipsImage *out;
 
@@ -1834,14 +1840,16 @@ transformf( JoinNode *node, double *gamma )
 				1.0 / (*gamma), NULL ) ||
 			vips_linear1( t[1], &t[2], fac, 0.0, NULL ) ||
 			vips_pow_const1( t[2], &t[3], *gamma, NULL ) ||
-			vips_maplut( in, &out, t[3], NULL ) )
+			vips_maplut( in, &t[4], t[3], NULL ) )
 			return( NULL );
+		out = t[4];
 	}
 	else {
 		/* Just vips_linear1 it.
 		 */
-		if( vips_linear1( in, &out, fac, 0.0, NULL ) )
+		if( vips_linear1( in, &t[5], fac, 0.0, NULL ) )
 			return( NULL );
+		out = t[5];
 	}
 
 	vips_image_set_string( out, "mosaic-name", node->name );

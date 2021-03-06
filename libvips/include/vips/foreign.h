@@ -371,12 +371,29 @@ int vips_openslideload_source( VipsSource *source, VipsImage **out, ... )
 	__attribute__((sentinel));
 
 /**
+ * VipsForeignSubsample:
+ * @VIPS_FOREIGN_SUBSAMPLE_AUTO: prevent subsampling when quality > 90
+ * @VIPS_FOREIGN_SUBSAMPLE_ON: always perform subsampling
+ * @VIPS_FOREIGN_SUBSAMPLE_OFF: never perform subsampling
+ *
+ * Set subsampling mode.
+ */
+typedef enum {
+	VIPS_FOREIGN_SUBSAMPLE_AUTO,
+	VIPS_FOREIGN_SUBSAMPLE_ON,
+	VIPS_FOREIGN_SUBSAMPLE_OFF,
+	VIPS_FOREIGN_SUBSAMPLE_LAST
+} VipsForeignSubsample;
+
+/**
  * VipsForeignJpegSubsample:
  * @VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO: default preset
  * @VIPS_FOREIGN_JPEG_SUBSAMPLE_ON: always perform subsampling
  * @VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF: never perform subsampling
  *
  * Set jpeg subsampling mode.
+ *
+ * DEPRECATED: use #VipsForeignSubsample
  */
 typedef enum {
 	VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO,
@@ -653,6 +670,8 @@ int vips_heifsave_target( VipsImage *in, VipsTarget *target, ... )
 	__attribute__((sentinel));
 
 int vips_niftiload( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_niftiload_source( VipsSource *source, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_niftisave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));

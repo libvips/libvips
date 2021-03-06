@@ -429,18 +429,8 @@ AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 AC_CHECK_LIB(m,atan2,[AC_DEFINE(HAVE_ATAN2,1,[have atan2() in libm.])])
 
 # have to have these parts of glib ... we need glib 2.15 for gio
-PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.15 gmodule-2.0 gobject-2.0 gio-2.0)
+PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.40 gmodule-2.0 gobject-2.0 gio-2.0)
 PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-2.0 gobject-2.0 gio-2.0"
-
-# from 2.28 we have a monotonic timer
-PKG_CHECK_MODULES(MONOTONIC_TIME, glib-2.0 >= 2.28,
-  [AC_DEFINE(HAVE_MONOTONIC_TIME,1,
-	    [define if your glib has g_get_monotonic_time().]
-   )
-  ],
-  [:
-  ]
-)
 
 # from 2.62 we have datetime
 PKG_CHECK_MODULES(DATE_TIME_FORMAT_ISO8601, glib-2.0 >= 2.62,
@@ -449,22 +439,6 @@ PKG_CHECK_MODULES(DATE_TIME_FORMAT_ISO8601, glib-2.0 >= 2.62,
    )
   ],
   [:
-  ]
-)
-
-# from 2.32 there are a new set of thread functions, it is no longer
-# necessary to use g_thread_init() or to link against libgthread
-PKG_CHECK_MODULES(THREADS, glib-2.0 >= 2.32,
-  [AC_DEFINE(HAVE_MUTEX_INIT,1,[define if your glib has g_mutex_init().])
-   AC_DEFINE(HAVE_COND_INIT,1,[define if your glib has g_cond_init().])
-   AC_DEFINE(HAVE_THREAD_NEW,1,[define if your glib has g_thread_new().])
-   AC_DEFINE(HAVE_PRIVATE_INIT,1,[define if your glib has G_PRIVATE_INIT().])
-   AC_DEFINE(HAVE_VALUE_GET_SCHAR,1,
-	     [define if your glib has g_value_get_schar().]
-   )
-  ],
-  [PKG_CHECK_MODULES(GTHREAD, gthread-2.0)
-   PACKAGES_USED="$PACKAGES_USED gthread-2.0"
   ]
 )
 
@@ -482,32 +456,10 @@ AC_CHECK_FUNC(pthread_setattr_default_np,
 LIBS="$save_pthread_LIBS"
 CFLAGS="$save_pthread_CFLAGS"
 
-# from 2.36 the type system inits itself
-PKG_CHECK_MODULES(TYPE_INIT, glib-2.0 < 2.36,
-  [AC_DEFINE(HAVE_TYPE_INIT,1,[define if your glib needs g_type_init().])
-  ],
-  [:
-  ]
-)
-
-# from 2.40, on win32 we have g_win32_get_command_line() 
-PKG_CHECK_MODULES(WIN32_GET_COMMAND_LINE, glib-2.0 >= 2.40,
-  [if test x"$vips_os_win32" = x"yes"; then
-     AC_DEFINE(HAVE_G_WIN32_GET_COMMAND_LINE,1,[define if your glib has g_win32_get_command_line().])
-     have_g_win32_get_command_line=yes
-   fi
-  ],
-  [:
-  ]
-)
-
-# from 2.40, have g_str_to_ascii()
-PKG_CHECK_MODULES(STR_TO_ASCII, glib-2.0 >= 2.40,
-  [AC_DEFINE(HAVE_G_STR_TO_ASCII,1,[define if your glib has g_str_to_ascii().])
-  ],
-  [:
-  ]
-)
+if test x"$vips_os_win32" = x"yes"; then
+  AC_DEFINE(HAVE_G_WIN32_GET_COMMAND_LINE,1,[define if your glib has g_win32_get_command_line().])
+  have_g_win32_get_command_line=yes
+fi
 
 # from 2.48 we have g_uint_checked_mul() etc.
 PKG_CHECK_MODULES(HAVE_CHECKED_MUL, glib-2.0 >= 2.48,
@@ -1108,7 +1060,7 @@ if test x"$with_tiff" != x"no"; then
   )
 fi
 
-# WEBP in TIFF added in libtiff 4.0.10
+# ZSTD and WEBP in TIFF added in libtiff 4.0.10
 if test x"$with_tiff" != x"no"; then
   save_INCLUDES="$INCLUDES"
   INCLUDES="$INCLUDES $TIFF_INCLUDES"
