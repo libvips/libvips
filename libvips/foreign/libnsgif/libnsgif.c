@@ -571,8 +571,6 @@ static void gif__record_previous_frame(gif_animation *gif)
         const uint32_t *frame_data;
         uint32_t *prev_frame;
 
-	printf( "gif__record_previous_frame:\n" );
-
         if (gif->decoded_frame == GIF_INVALID_FRAME ||
             gif->decoded_frame == gif->prev_index) {
                 /* No frame to copy, or already have this frame recorded. */
@@ -614,8 +612,6 @@ static gif_result gif__recover_previous_frame(const gif_animation *gif)
         unsigned height = gif->height < gif->prev_height ? gif->height : gif->prev_height;
         unsigned width  = gif->width  < gif->prev_width  ? gif->width  : gif->prev_width;
         uint32_t *frame_data;
-
-	printf( "gif__recover_previous_frame:\n" );
 
         if (prev_frame == NULL) {
                 return GIF_FRAME_DATA_ERROR;
@@ -662,31 +658,6 @@ gif_internal_decode_frame(gif_animation *gif,
         unsigned int return_value = 0;
         unsigned int x, y, decode_y, burst_bytes;
         register unsigned char colour;
-
-	printf( "gif_internal_decode_frame: frame = %d, clear_image = %d\n",
-	     frame, clear_image );
-	printf( "gif->frames[frame].disposal_method == " );
-	switch( gif->frames[frame].disposal_method ) {
-	case 0:
-		printf( "NONE\n" );
-		break;
-
-	case GIF_FRAME_COMBINE:
-		printf( "COMBINE\n" );
-		break;
-
-	case GIF_FRAME_CLEAR:
-		printf( "CLEAR\n" );
-		break;
-
-	case GIF_FRAME_RESTORE:
-		printf( "RESTORE\n" );
-		break;
-
-	case GIF_FRAME_QUIRKS_RESTORE:
-		printf( "QUIRKS_RESTORE\n" );
-		break;
-	}
 
         /* Ensure this frame is supposed to be decoded */
         if (gif->frames[frame].display == false) {
@@ -910,7 +881,6 @@ gif_internal_decode_frame(gif_animation *gif,
                 }
 
                 /* Decompress the data */
-		printf( "... decompressing frame data\n" );
                 for (y = 0; y < height; y++) {
                         if (interlace) {
                                 decode_y = gif_interlaced_line(height, y) + offset_y;
@@ -955,7 +925,6 @@ gif_internal_decode_frame(gif_animation *gif,
                         }
                 }
         } else {
-		printf( "... clearing frame\n" );
                 /* Clear our frame */
                 if (gif->frames[frame].disposal_method == GIF_FRAME_CLEAR) {
                         for (y = 0; y < height; y++) {
