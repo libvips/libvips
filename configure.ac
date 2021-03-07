@@ -141,69 +141,35 @@ AM_CONDITIONAL(ENABLE_DEPRECATED, [test x"$enable_deprecated" = x"yes"])
 # this gets pasted into version.h as a #define
 AC_SUBST(VIPS_ENABLE_DEPRECATED)
 
-AC_MSG_CHECKING([for native Win32])
-case "$host" in
-  *-*-mingw*)
-    vips_os_win32=yes
-    ;;
-  *)
-    vips_os_win32=no
-    ;;
-esac
-AC_MSG_RESULT([$vips_os_win32])
-
-if test x"$vips_os_win32" = x"yes"; then
-  AC_DEFINE(OS_WIN32,1,[native win32])
-
-  # makes gcc use win native alignment
-  VIPS_CFLAGS="-mms-bitfields $VIPS_CFLAGS"
-fi
-
-# CImg needs flags changed on win32
-AM_CONDITIONAL(OS_WIN32, [test x"$vips_os_win32" = x"yes"])
-
-# Cygwin/mingw need binary open to avoid CR/LF madness
-# ... should be a better way to test for this
-AC_MSG_CHECKING([for binary open needed])
+AC_MSG_CHECKING([for -mms-bitfields support])
 case "$host_os" in
-  cygwin* | mingw*)
-    vips_binary_open=yes
+  mingw*)
+    # makes gcc use win native alignment
+    # GCC >= 4.7 and Clang >= 11 does this automatically, see:
+    # https://gitlab.gnome.org/GNOME/glib/-/merge_requests/1510#note_841637
+    VIPS_CFLAGS="-mms-bitfields $VIPS_CFLAGS"
+    AC_MSG_RESULT([yes])
     ;;
   *)
-    vips_binary_open=no
+    AC_MSG_RESULT([no])
     ;;
 esac
-AC_MSG_RESULT([$vips_binary_open])
-if test x"$vips_binary_open" = x"yes"; then
-  AC_DEFINE(BINARY_OPEN,1,[define to open non-text files in binary mode])
-fi
-
-AC_MSG_CHECKING([for Mac OS X])
-case "$host" in
-  *-*-darwin*)
-    vips_os_darwin=yes
-    ;;
-  *)
-    vips_os_darwin=no
-    ;;
-esac
-AC_MSG_RESULT([$vips_os_darwin])
-
-if test x"$vips_os_darwin" = x"yes"; then
-  AC_DEFINE(VIPS_OS_DARWIN,1,[native Mac OS X])
-fi
 
 # set the default directory for ICC profiles
-if test x"$vips_os_darwin" = x"yes"; then
-  profile_dir="/Library/ColorSync/Profiles"
-elif test x"$vips_os_win32" = x"yes"; then
-  # need double escapes since this will get pasted into a #define in a C
-  # header ... the C:\Windows is usually overrwritten with the result of
-  # GetWindowsDirectoryW()
-  profile_dir="C:\\\\Windows\\\\System32\\\\spool\\\\drivers\\\\color"
-else
-  profile_dir="/usr/share/color/icc"
-fi
+case "$host_os" in
+  darwin*)
+    profile_dir="/Library/ColorSync/Profiles"
+    ;;
+  mingw*)
+    # need double escapes since this will get pasted into a #define in a C
+    # header ... the C:\Windows is usually overwritten with the result of
+    # GetWindowsDirectoryW()
+    profile_dir="C:\\\\Windows\\\\System32\\\\spool\\\\drivers\\\\color"
+    ;;
+  *)
+    profile_dir="/usr/share/color/icc"
+    ;;
+esac
 AC_DEFINE_UNQUOTED(VIPS_ICC_DIR,"$profile_dir",[default directory for ICC profiles])
 
 # we want largefile support, if possible
@@ -447,19 +413,14 @@ PKG_CHECK_MODULES(DATE_TIME_FORMAT_ISO8601, glib-2.0 >= 2.62,
 # thread by default
 save_pthread_LIBS="$LIBS"
 save_pthread_CFLAGS="$CFLAGS"
-LIBS="$LIBS $GTHREAD_LIBS"
-CFLAGS="$CFLAGS $GTHREAD_CFLAGS"
+LIBS="$LIBS $REQUIRED_LIBS"
+CFLAGS="$CFLAGS $REQUIRED_CFLAGS"
 AC_CHECK_FUNC(pthread_setattr_default_np,
   [AC_DEFINE(HAVE_PTHREAD_DEFAULT_NP,1,[have pthread_setattr_default_np().])
   ]
 )
 LIBS="$save_pthread_LIBS"
 CFLAGS="$save_pthread_CFLAGS"
-
-if test x"$vips_os_win32" = x"yes"; then
-  AC_DEFINE(HAVE_G_WIN32_GET_COMMAND_LINE,1,[define if your glib has g_win32_get_command_line().])
-  have_g_win32_get_command_line=yes
-fi
 
 # from 2.48 we have g_uint_checked_mul() etc.
 PKG_CHECK_MODULES(HAVE_CHECKED_MUL, glib-2.0 >= 2.48,
@@ -1231,13 +1192,13 @@ if test x"$LIB_FUZZING_ENGINE" = x; then
 fi
 
 # Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS
-VIPS_CFLAGS="$VIPS_CFLAGS $GTHREAD_CFLAGS $GIO_CFLAGS $REQUIRED_CFLAGS $EXPAT_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $JPEG_CFLAGS $SPNG_CFLAGS $PNG_CFLAGS $IMAGEQUANT_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $LIBWEBPMUX_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $PDFIUM_CFLAGS $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS $HEIF_CFLAGS" VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
+VIPS_CFLAGS="$VIPS_CFLAGS $GIO_CFLAGS $REQUIRED_CFLAGS $EXPAT_CFLAGS $ZLIB_CFLAGS $PANGOFT2_CFLAGS $GSF_CFLAGS $FFTW_CFLAGS $MAGICK_CFLAGS $JPEG_CFLAGS $SPNG_CFLAGS $PNG_CFLAGS $IMAGEQUANT_CFLAGS $EXIF_CFLAGS $MATIO_CFLAGS $CFITSIO_CFLAGS $LIBWEBP_CFLAGS $GIFLIB_INCLUDES $RSVG_CFLAGS $PDFIUM_CFLAGS $POPPLER_CFLAGS $OPENEXR_CFLAGS $OPENSLIDE_CFLAGS $ORC_CFLAGS $TIFF_CFLAGS $LCMS_CFLAGS $HEIF_CFLAGS" VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
 VIPS_INCLUDES="$ZLIB_INCLUDES $PNG_INCLUDES $TIFF_INCLUDES $JPEG_INCLUDES $NIFTI_INCLUDES" 
-VIPS_LIBS="$ZLIB_LIBS $HEIF_LIBS $MAGICK_LIBS $SPNG_LIBS $PNG_LIBS $IMAGEQUANT_LIBS $TIFF_LIBS $JPEG_LIBS $GTHREAD_LIBS $GIO_LIBS $REQUIRED_LIBS $EXPAT_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $GIFLIB_LIBS $RSVG_LIBS $NIFTI_LIBS $PDFIUM_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $LIBWEBPMUX_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
+VIPS_LIBS="$ZLIB_LIBS $HEIF_LIBS $MAGICK_LIBS $SPNG_LIBS $PNG_LIBS $IMAGEQUANT_LIBS $TIFF_LIBS $JPEG_LIBS $GIO_LIBS $REQUIRED_LIBS $EXPAT_LIBS $PANGOFT2_LIBS $GSF_LIBS $FFTW_LIBS $ORC_LIBS $LCMS_LIBS $GIFLIB_LIBS $RSVG_LIBS $NIFTI_LIBS $PDFIUM_LIBS $POPPLER_LIBS $OPENEXR_LIBS $OPENSLIDE_LIBS $CFITSIO_LIBS $LIBWEBP_LIBS $MATIO_LIBS $EXIF_LIBS -lm"
 
 # autoconf hates multi-line AC_SUBST so we have to have another copy of this
 # thing
-VIPS_CONFIG="native win32: $vips_os_win32, native OS X: $vips_os_darwin, open files in binary mode: $vips_binary_open, enable debug: $enable_debug, enable deprecated library components: $enable_deprecated, enable docs with gtkdoc: $enable_gtk_doc, gobject introspection: $found_introspection, enable radiance support: $with_radiance, enable analyze support: $with_analyze, enable PPM support: $with_ppm, generate C++ docs: $with_doxygen, use fftw3 for FFT: $with_fftw, Magick package: $with_magickpackage, Magick API version: $magick_version, load with libMagick: $enable_magickload, save with libMagick: $enable_magicksave, accelerate loops with orc: $with_orc, ICC profile support with lcms: $with_lcms, file import with niftiio: $with_nifti, file import with libheif: $with_heif, file import with OpenEXR: $with_OpenEXR, file import with OpenSlide: $with_openslide, file import with matio: $with_matio, PDF import with PDFium: $with_pdfium, PDF import with poppler-glib: $with_poppler, SVG import with librsvg-2.0: $with_rsvg, zlib: $with_zlib, file import with cfitsio: $with_cfitsio, file import/export with libwebp: $with_libwebp, text rendering with pangoft2: $with_pangoft2, file import/export with libspng: $with_libspng, file import/export with libpng: $with_png, support 8bpp PNG quantisation: $with_imagequant, file import/export with libtiff: $with_tiff, file import/export with giflib: $with_giflib, file import/export with libjpeg: $with_jpeg, image pyramid export: $with_gsf, use libexif to load/save JPEG metadata: $with_libexif"
+VIPS_CONFIG="enable debug: $enable_debug, enable deprecated library components: $enable_deprecated, enable docs with gtkdoc: $enable_gtk_doc, gobject introspection: $found_introspection, enable radiance support: $with_radiance, enable analyze support: $with_analyze, enable PPM support: $with_ppm, generate C++ docs: $with_doxygen, use fftw3 for FFT: $with_fftw, Magick package: $with_magickpackage, Magick API version: $magick_version, load with libMagick: $enable_magickload, save with libMagick: $enable_magicksave, accelerate loops with orc: $with_orc, ICC profile support with lcms: $with_lcms, file import with niftiio: $with_nifti, file import with libheif: $with_heif, file import with OpenEXR: $with_OpenEXR, file import with OpenSlide: $with_openslide, file import with matio: $with_matio, PDF import with PDFium: $with_pdfium, PDF import with poppler-glib: $with_poppler, SVG import with librsvg-2.0: $with_rsvg, zlib: $with_zlib, file import with cfitsio: $with_cfitsio, file import/export with libwebp: $with_libwebp, text rendering with pangoft2: $with_pangoft2, file import/export with libspng: $with_libspng, file import/export with libpng: $with_png, support 8bpp PNG quantisation: $with_imagequant, file import/export with libtiff: $with_tiff, file import/export with giflib: $with_giflib, file import/export with libjpeg: $with_jpeg, image pyramid export: $with_gsf, use libexif to load/save JPEG metadata: $with_libexif"
 
 AC_SUBST(VIPS_LIBDIR)
 
@@ -1301,9 +1262,6 @@ AC_OUTPUT
 # also add any new items to VIPS_CONFIG above
 AC_MSG_RESULT([dnl
 * build options
-native win32:				$vips_os_win32
-native OS X:				$vips_os_darwin
-open files in binary mode: 		$vips_binary_open
 enable debug:				$enable_debug
 enable deprecated library components:	$enable_deprecated
 enable docs with gtkdoc:		$enable_gtk_doc
@@ -1351,11 +1309,3 @@ image pyramid export:			$with_gsf
   (requires libgsf-1 1.14.26 or later)
 use libexif to load/save JPEG metadata: $with_libexif
 ])
-
-if test x"$vips_os_win32" = x"yes"; then
-  if test x"$have_g_win32_get_command_line" != x"yes"; then
-    AC_MSG_RESULT([dnl
-Your glib is too old, vips will not support unicode command-line arguments.
-    ])
-  fi
-fi

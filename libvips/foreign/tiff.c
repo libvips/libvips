@@ -104,7 +104,7 @@ vips__tiff_openout( const char *path, gboolean bigtiff )
 
 	/* Need the utf-16 version on Windows.
 	 */
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 {
 	GError *error = NULL;
 	wchar_t *path16;
@@ -119,9 +119,9 @@ vips__tiff_openout( const char *path, gboolean bigtiff )
 
 	g_free( path16 );
 }
-#else /*!OS_WIN32*/
+#else /*!G_OS_WIN32*/
 	tif = TIFFOpen( path, mode );
-#endif /*OS_WIN32*/
+#endif /*G_OS_WIN32*/
 
 	if( !tif ) {
 		vips_error( "tiff",

@@ -1123,16 +1123,9 @@ vips__add_mosaic_name( VipsImage *image )
 {
 	static int global_serial = 0;
 
-	/* Old glibs named this differently.
-	 *
-	 * TODO(kleisauke): Could we call vips_image_temp_name instead?
+	/* TODO(kleisauke): Could we call vips_image_temp_name instead?
 	 */
-	int serial =
-#if GLIB_CHECK_VERSION( 2, 30, 0 )
-		g_atomic_int_add( &global_serial, 1 );
-#else
-		g_atomic_int_exchange_and_add( &global_serial, 1 );
-#endif
+	int serial = g_atomic_int_add( &global_serial, 1 );
 
 	char name[256];
 
