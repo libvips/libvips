@@ -877,13 +877,13 @@ vips_thumbnail_build( VipsObject *object )
 				thumbnail->export_profile ); 
 			if( vips_colourspace( in, &t[7], 
 				VIPS_INTERPRETATION_XYZ, NULL ) || 
-				vips_icc_export( t[7], &t[8], 
+				vips_icc_export( t[7], &t[10], 
 					"output_profile", 
 						thumbnail->export_profile,
 					"intent", thumbnail->intent,
 					NULL ) )  
 				return( -1 ); 
-			in = t[8];
+			in = t[10];
 		}
 	}
 	else if( thumbnail->linear ) {
