@@ -1348,6 +1348,7 @@ AC_CONFIG_FILES([
         libvips/convolution/Makefile
         libvips/deprecated/Makefile
         libvips/foreign/Makefile
+        libvips/foreign/libnsgif/Makefile
         libvips/freqfilt/Makefile
         libvips/histogram/Makefile
         libvips/draw/Makefile
