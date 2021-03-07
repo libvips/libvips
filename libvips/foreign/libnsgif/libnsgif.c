@@ -704,11 +704,6 @@ gif_internal_decode_frame(gif_animation *gif,
                 return GIF_OK;
         }
 
-        if (gif->frames[frame].disposal_method == GIF_FRAME_RESTORE) {
-                /* Store the previous frame for later restoration */
-                gif__record_previous_frame(gif);
-        }
-
         /* Get the start of our frame data and the end of the GIF data */
         gif_data = gif->gif_data + gif->frames[frame].frame_pointer;
         gif_end = gif->gif_data + gif->buffer_size;
@@ -897,6 +892,12 @@ gif_internal_decode_frame(gif_animation *gif,
                                        gif->width * gif->height * sizeof(int));
                         }
                 }
+
+		if (gif->frames[frame].disposal_method == GIF_FRAME_RESTORE) {
+			/* Store the previous frame for later restoration */
+			gif__record_previous_frame(gif);
+		}
+
                 gif->decoded_frame = frame;
                 gif->buffer_position = (gif_data - gif->gif_data) + 1;
 
