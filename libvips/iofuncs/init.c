@@ -290,24 +290,6 @@ empty_log_handler( const gchar *log_domain, GLogLevelFlags log_level,
 {       
 }
 
-#if !GLIB_CHECK_VERSION( 2, 31, 0 )
-static void
-default_log_handler( const gchar *log_domain, GLogLevelFlags log_level,
-	const gchar *message, gpointer user_data )
-{
-	if( log_level & (G_LOG_LEVEL_DEBUG | G_LOG_LEVEL_INFO) ) {
-		const char *domains = g_getenv( "G_MESSAGES_DEBUG" );
-
-		if( !domains || 
-			(!g_str_equal( domains, "all" ) &&
-			 !g_strrstr( domains, log_domain )) ) 
-	  		return;
-	}
-
-	g_log_default_handler( log_domain, log_level, message, user_data );
-}
-#endif /*!GLIB_CHECK_VERSION( 2, 31, 0 )*/
-
 /* Attempt to set a minimum stacksize. This can be important on systems with a
  * very low default, like musl.
  */
@@ -407,7 +389,7 @@ vips_init( const char *argv0 )
 		return( 0 );
 	started = TRUE;
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 	/* Windows has a limit of 512 files open at once for the fopen() family
 	 * of functions, and 2048 for the _open() family. This raises the limit
 	 * of fopen() to the same level as _open().
@@ -415,7 +397,7 @@ vips_init( const char *argv0 )
 	 * It will not go any higher than this, unfortunately.  
 	 */
 	(void) _setmaxstdio( 2048 );
-#endif /*OS_WIN32*/
+#endif /*G_OS_WIN32*/
 
 	vips__threadpool_init();
 	vips__buffer_init();
@@ -594,18 +576,6 @@ vips_init( const char *argv0 )
 #endif
 		g_log_set_handler( G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, 
 			empty_log_handler, NULL );
-
-#if !GLIB_CHECK_VERSION( 2, 31, 0 )
-	/* Older glibs can sometimes show G_LOG_LEVEL_{INFO,DEBUG} messages.
-	 * Block them ourselves. We test the env var inside the handler since
-	 * vips_verbose() can be toggled at runtime.
-	 *
-	 * Again, we should not call g_log_set_handler(), but this is the only
-	 * convenient way to fix this behaviour.
-	 */
-	g_log_set_handler( G_LOG_DOMAIN, G_LOG_LEVEL_INFO | G_LOG_LEVEL_DEBUG, 
-		default_log_handler, NULL );
-#endif /*!GLIB_CHECK_VERSION( 2, 31, 0 )*/
 
 	/* Set a minimum stacksize, if we can.
 	 */
@@ -1057,7 +1027,7 @@ find_file( const char *name )
 	printf( "vips_guess_prefix: g_getenv( \"PATH\" ) == \"%s\"\n", path );
 #endif /*DEBUG*/
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 {
 	char *dir; 
 
@@ -1068,9 +1038,9 @@ find_file( const char *name )
 		"%s" G_SEARCHPATH_SEPARATOR_S "%s", dir, path );
 	g_free( dir ); 
 }
-#else /*!OS_WIN32*/
+#else /*!G_OS_WIN32*/
 	vips_strncpy( full_path, path, VIPS_PATH_MAX );
-#endif /*OS_WIN32*/
+#endif /*G_OS_WIN32*/
 
 	if( (prefix = scan_path( full_path, name )) ) 
 		return( prefix );
@@ -1177,9 +1147,9 @@ vips_guess_prefix( const char *argv0, const char *env_name )
                 return( prefix );
 	}
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 	prefix = vips__windows_prefix();
-#else
+#else /*!G_OS_WIN32*/
 {
         char *basename;
 
@@ -1187,7 +1157,7 @@ vips_guess_prefix( const char *argv0, const char *env_name )
 	prefix = guess_prefix( argv0, basename );
 	g_free( basename ); 
 }
-#endif
+#endif /*G_OS_WIN32*/
 
 	g_setenv( env_name, prefix, TRUE );
 

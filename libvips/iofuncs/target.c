@@ -55,23 +55,24 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#ifdef OS_WIN32
-#include <io.h>
-#endif /*OS_WIN32*/
 
 #include <vips/vips.h>
 #include <vips/internal.h>
 #include <vips/debug.h>
 
+#ifdef G_OS_WIN32
+#include <io.h>
+#endif /*G_OS_WIN32*/
+
 /* Try to make an O_BINARY ... sometimes need the leading '_'.
  */
-#ifdef BINARY_OPEN
+#ifdef G_PLATFORM_WIN32
 #ifndef O_BINARY
 #ifdef _O_BINARY
 #define O_BINARY _O_BINARY
 #endif /*_O_BINARY*/
 #endif /*!O_BINARY*/
-#endif /*BINARY_OPEN*/
+#endif /*G_PLATFORM_WIN32*/
 
 /* If we have O_BINARY, add it to a mode flags set.
  */
@@ -143,12 +144,12 @@ vips_target_build( VipsObject *object )
 		connection->descriptor = dup( connection->descriptor );
 		connection->close_descriptor = connection->descriptor;
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 		/* Windows will create eg. stdin and stdout in text mode.
 		 * We always write in binary mode.
 		 */
 		_setmode( connection->descriptor, _O_BINARY );
-#endif /*OS_WIN32*/
+#endif /*G_OS_WIN32*/
 	}
 	else if( target->memory ) 
 		target->memory_buffer = g_byte_array_new();

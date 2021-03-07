@@ -26,7 +26,12 @@ VIPS_MAJOR_VERSION=vips_major_version()
 VIPS_MINOR_VERSION=vips_minor_version()
 VIPS_MICRO_VERSION=vips_micro_version()
 VIPS_VERSION=vips_version()
-VIPS_VERSION_STRING=$VIPS_VERSION-`date -u -r $srcdir/ChangeLog`
+VIPS_VERSION_STRING="$VIPS_VERSION-$(date -u -r $srcdir/ChangeLog)"
+
+# packages add to these as we find them
+VIPS_CFLAGS=""
+VIPS_INCLUDES=""
+VIPS_LIBS=""
 
 # libtool library versioning ... not user-visible (except as part of the
 # library file name) and does not correspond to major/minor/micro above
@@ -74,31 +79,31 @@ done
 # add headers that form the public vips8 API .. don't do a find and exclude,
 # we end up excluding almost everything argh
 headers="\
-	basic.h \
-	vips.h \
-	object.h \
-	image.h \
-	error.h \
-	foreign.h \
-	freqfilt.h \
-	interpolate.h \
-	header.h \
-	histogram.h \
-	operation.h \
-	enumtypes.h \
-	conversion.h \
-	arithmetic.h \
-	colour.h \
-	convolution.h \
-	create.h \
-	draw.h \
-	morphology.h \
-	mosaicing.h \
-	type.h \
-	rect.h \
-	resample.h \
-	memory.h \
-	region.h"
+        basic.h \
+        vips.h \
+        object.h \
+        image.h \
+        error.h \
+        foreign.h \
+        freqfilt.h \
+        interpolate.h \
+        header.h \
+        histogram.h \
+        operation.h \
+        enumtypes.h \
+        conversion.h \
+        arithmetic.h \
+        colour.h \
+        convolution.h \
+        create.h \
+        draw.h \
+        morphology.h \
+        mosaicing.h \
+        type.h \
+        rect.h \
+        resample.h \
+        memory.h \
+        region.h"
 
 for name in $headers; do
   vips_introspection_sources="$vips_introspection_sources include/vips/$name"
@@ -141,69 +146,35 @@ AM_CONDITIONAL(ENABLE_DEPRECATED, [test x"$enable_deprecated" = x"yes"])
 # this gets pasted into version.h as a #define
 AC_SUBST(VIPS_ENABLE_DEPRECATED)
 
-AC_MSG_CHECKING([for native Win32])
-case "$host" in
-  *-*-mingw*)
-    vips_os_win32=yes
-    ;;
-  *)
-    vips_os_win32=no
-    ;;
-esac
-AC_MSG_RESULT([$vips_os_win32])
-
-if test x"$vips_os_win32" = x"yes"; then
-  AC_DEFINE(OS_WIN32,1,[native win32])
-
-  # makes gcc use win native alignment
-  VIPS_CFLAGS="-mms-bitfields $VIPS_CFLAGS"
-fi
-
-# CImg needs flags changed on win32
-AM_CONDITIONAL(OS_WIN32, [test x"$vips_os_win32" = x"yes"])
-
-# Cygwin/mingw need binary open to avoid CR/LF madness
-# ... should be a better way to test for this
-AC_MSG_CHECKING([for binary open needed])
+AC_MSG_CHECKING([for -mms-bitfields support])
 case "$host_os" in
-  cygwin* | mingw*)
-    vips_binary_open=yes
+  mingw*)
+    # makes gcc use win native alignment
+    # GCC >= 4.7 and Clang >= 11 does this automatically, see:
+    # https://gitlab.gnome.org/GNOME/glib/-/merge_requests/1510#note_841637
+    VIPS_CFLAGS="-mms-bitfields $VIPS_CFLAGS"
+    AC_MSG_RESULT([yes])
     ;;
   *)
-    vips_binary_open=no
+    AC_MSG_RESULT([no])
     ;;
 esac
-AC_MSG_RESULT([$vips_binary_open])
-if test x"$vips_binary_open" = x"yes"; then
-  AC_DEFINE(BINARY_OPEN,1,[define to open non-text files in binary mode])
-fi
-
-AC_MSG_CHECKING([for Mac OS X])
-case "$host" in
-  *-*-darwin*)
-    vips_os_darwin=yes
-    ;;
-  *)
-    vips_os_darwin=no
-    ;;
-esac
-AC_MSG_RESULT([$vips_os_darwin])
-
-if test x"$vips_os_darwin" = x"yes"; then
-  AC_DEFINE(VIPS_OS_DARWIN,1,[native Mac OS X])
-fi
 
 # set the default directory for ICC profiles
-if test x"$vips_os_darwin" = x"yes"; then
-  profile_dir="/Library/ColorSync/Profiles"
-elif test x"$vips_os_win32" = x"yes"; then
-  # need double escapes since this will get pasted into a #define in a C
-  # header ... the C:\Windows is usually overrwritten with the result of
-  # GetWindowsDirectoryW()
-  profile_dir="C:\\\\Windows\\\\System32\\\\spool\\\\drivers\\\\color"
-else
-  profile_dir="/usr/share/color/icc"
-fi
+case "$host_os" in
+  darwin*)
+    profile_dir="/Library/ColorSync/Profiles"
+    ;;
+  mingw*)
+    # need double escapes since this will get pasted into a #define in a C
+    # header ... the C:\Windows is usually overwritten with the result of
+    # GetWindowsDirectoryW()
+    profile_dir="C:\\\\Windows\\\\System32\\\\spool\\\\drivers\\\\color"
+    ;;
+  *)
+    profile_dir="/usr/share/color/icc"
+    ;;
+esac
 AC_DEFINE_UNQUOTED(VIPS_ICC_DIR,"$profile_dir",[default directory for ICC profiles])
 
 # we want largefile support, if possible
@@ -435,31 +406,29 @@ PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-2.0 gobject-2.0 gio-2.0"
 # from 2.62 we have datetime
 PKG_CHECK_MODULES(DATE_TIME_FORMAT_ISO8601, glib-2.0 >= 2.62,
   [AC_DEFINE(HAVE_DATE_TIME_FORMAT_ISO8601,1,
-	    [define if your glib has g_date_time_format_iso8601().]
+            [define if your glib has g_date_time_format_iso8601().]
    )
   ],
   [:
   ]
 )
 
+VIPS_CFLAGS="$VIPS_CFLAGS $GIO_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $GIO_LIBS"
+
 # if available, we use pthread_setattr_default_np() to raise the per-thread 
 # stack size ... musl (libc on Alpine), for example, has a very small stack per 
 # thread by default
 save_pthread_LIBS="$LIBS"
 save_pthread_CFLAGS="$CFLAGS"
-LIBS="$LIBS $GTHREAD_LIBS"
-CFLAGS="$CFLAGS $GTHREAD_CFLAGS"
+LIBS="$LIBS $REQUIRED_LIBS"
+CFLAGS="$CFLAGS $REQUIRED_CFLAGS"
 AC_CHECK_FUNC(pthread_setattr_default_np,
   [AC_DEFINE(HAVE_PTHREAD_DEFAULT_NP,1,[have pthread_setattr_default_np().])
   ]
 )
 LIBS="$save_pthread_LIBS"
 CFLAGS="$save_pthread_CFLAGS"
-
-if test x"$vips_os_win32" = x"yes"; then
-  AC_DEFINE(HAVE_G_WIN32_GET_COMMAND_LINE,1,[define if your glib has g_win32_get_command_line().])
-  have_g_win32_get_command_line=yes
-fi
 
 # from 2.48 we have g_uint_checked_mul() etc.
 PKG_CHECK_MODULES(HAVE_CHECKED_MUL, glib-2.0 >= 2.48,
@@ -486,6 +455,9 @@ if test x"$expat_found" = x"no"; then
   exit 1
 fi
 
+VIPS_CFLAGS="$VIPS_CFLAGS $EXPAT_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $EXPAT_LIBS"
+
 # optional supporting libraries
 
 AC_ARG_WITH([gsf], 
@@ -510,12 +482,15 @@ if test x"$with_gsf" != x"no"; then
   PKG_CHECK_MODULES(GSF_ZIP64, libgsf-1 >= 1.14.31,
     [AC_DEFINE(HAVE_GSF_ZIP64,1,[define if your libgsf supports zip64.])
      AC_DEFINE(HAVE_GSF_DEFLATE_LEVEL,1,
-	       [define if your libgsf supports deflate-level.])
+               [define if your libgsf supports deflate-level.])
     ],
     [:
     ]
   )
 fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $GSF_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $GSF_LIBS"
 
 AC_ARG_WITH([fftw], 
   AS_HELP_STRING([--without-fftw], [build without fftw (default: test)]))
@@ -531,6 +506,9 @@ if test x"$with_fftw" != x"no"; then
     ]
   )
 fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $FFTW_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $FFTW_LIBS"
 
 # ImageMagick 
 AC_ARG_WITH([magick], 
@@ -595,7 +573,7 @@ if test x"$magick6" = x"yes"; then
   CFLAGS="$CFLAGS $MAGICK_CFLAGS"
   AC_CHECK_MEMBER([struct _ImageInfo.number_scenes],
     AC_DEFINE(HAVE_NUMBER_SCENES,1,
-	      [define if your magick has ImageInfo.number_scenes.]),
+              [define if your magick has ImageInfo.number_scenes.]),
     [],
     [#include <magick/api.h>])
   CFLAGS="$save_CFLAGS"
@@ -653,11 +631,11 @@ fi
 # save but not load, for example
 AC_ARG_ENABLE([magickload], 
   AS_HELP_STRING([--disable-magickload], 
-		 [disable libMagic load (default: enabled)]))
+                 [disable libMagic load (default: enabled)]))
 
 AC_ARG_ENABLE([magicksave], 
   AS_HELP_STRING([--disable-magicksave], 
-		 [disable libMagic save (default: enabled)]))
+                 [disable libMagic save (default: enabled)]))
 
 if test x"$enable_magicksave" != x"yes"; then
   # we need ImportImagePixels ... GM is missing this sadly
@@ -665,12 +643,12 @@ if test x"$enable_magicksave" != x"yes"; then
   LIBS="$LIBS $MAGICK_LIBS"
   AC_CHECK_FUNCS(ImportImagePixels,[
      AC_DEFINE(HAVE_IMPORTIMAGEPIXELS,1,
-	       [define if you have ImportImagePixels.])
+               [define if you have ImportImagePixels.])
    ],[]
   )
   AC_CHECK_FUNCS(ImagesToBlob,[
      AC_DEFINE(HAVE_IMAGESTOBLOB,1,
-	       [define if you have ImagesToBlob.])
+               [define if you have ImagesToBlob.])
    ],[]
   ) 
   LIBS="$save_LIBS"
@@ -691,6 +669,9 @@ else
   enable_magicksave=no
 fi
 
+VIPS_CFLAGS="$VIPS_CFLAGS $MAGICK_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $MAGICK_LIBS"
+
 # orc
 AC_ARG_WITH([orc], 
   AS_HELP_STRING([--without-orc], [build without orc (default: test)]))
@@ -705,7 +686,7 @@ if test x"$with_orc" != x"no"; then
      LIBS="$LIBS $ORC_LIBS"
      AC_CHECK_FUNCS(orc_program_get_error,
        AC_DEFINE(HAVE_ORC_PROGRAM_GET_ERROR,1,
-	      [define if your orc has orc_program_get_error.]))
+              [define if your orc has orc_program_get_error.]))
      LIBS="$save_LIBS"
     ],
     [AC_MSG_WARN([orc-0.4.11 or later not found; disabling orc support])
@@ -719,13 +700,16 @@ fi
 if test x"$with_orc" = x"yes"; then
   PKG_CHECK_MODULES(ORC_CF_PROTECTION, orc-0.4 >= 0.4.31,
     [AC_DEFINE(HAVE_ORC_CF_PROTECTION,1,
-	       [define if your orc works with cf-protection.]
+               [define if your orc works with cf-protection.]
      )
     ],
     [:
     ]
   )
 fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $ORC_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $ORC_LIBS"
 
 # lcms ... refuse to use lcms1
 AC_ARG_WITH([lcms], 
@@ -747,6 +731,9 @@ fi
 # is detected
 AM_CONDITIONAL(ENABLE_LCMS, [test x"$with_lcms" != x"no"])
 
+VIPS_CFLAGS="$VIPS_CFLAGS $LCMS_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $LCMS_LIBS"
+
 # OpenEXR
 AC_ARG_WITH([OpenEXR], 
   AS_HELP_STRING([--without-OpenEXR], [build without OpenEXR (default: test)]))
@@ -764,6 +751,9 @@ if test x"$with_OpenEXR" != x"no"; then
   )
 fi
 
+VIPS_CFLAGS="$VIPS_CFLAGS $OPENEXR_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $OPENEXR_LIBS"
+
 # nifti
 AC_ARG_WITH([nifti],
   AS_HELP_STRING([--without-nifti], [build without nifti (default: test)]))
@@ -776,6 +766,10 @@ if test x"$with_nifti" != x"no"; then
     ]
   )
 fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $NIFTI_CFLAGS"
+VIPS_INCLUDES="$VIPS_INCLUDES $NIFTI_INCLUDES"
+VIPS_LIBS="$VIPS_LIBS $NIFTI_LIBS"
 
 # libheif
 AC_ARG_WITH([heif], 
@@ -790,13 +784,13 @@ if test x"$with_heif" != x"no"; then
      # this variable
      if test x"$have_h265_decoder" != x"no" -o x"$have_avif_decoder" = x"yes"; then
         AC_DEFINE(HAVE_HEIF_DECODER,1,
-	     [define if your libheif has decode support.])
+             [define if your libheif has decode support.])
      fi
      have_h265_encoder=`$PKG_CONFIG libheif --variable builtin_h265_encoder`
      have_avif_encoder=`$PKG_CONFIG libheif --variable builtin_avif_encoder`
      if test x"$have_h265_encoder" != x"no" -o x"$have_avif_encoder" = x"yes"; then
         AC_DEFINE(HAVE_HEIF_ENCODER,1,
-	     [define if your libheif has encode support.])
+             [define if your libheif has encode support.])
      fi
      PACKAGES_USED="$PACKAGES_USED libheif"
     ],
@@ -817,7 +811,7 @@ if test x"$with_heif" = x"yes"; then
   LIBS="$LIBS $HEIF_LIBS"
   AC_CHECK_FUNCS(heif_image_handle_get_raw_color_profile,[
      AC_DEFINE(HAVE_HEIF_COLOR_PROFILE,1,
-	       [define if you have heif_image_handle_get_raw_color_profile.])
+               [define if you have heif_image_handle_get_raw_color_profile.])
    ],[]
   )
   LIBS="$save_LIBS"
@@ -838,11 +832,14 @@ if test x"$with_heif" = x"yes"; then
   CFLAGS="$CFLAGS $HEIF_CFLAGS"
   AC_CHECK_MEMBER([struct heif_decoding_options.convert_hdr_to_8bit],[
      AC_DEFINE(HAVE_HEIF_DECODING_OPTIONS_CONVERT_HDR_TO_8BIT,1,
-	       [define if you have heif_decoding_options.convert_hdr_to_8bit])
+               [define if you have heif_decoding_options.convert_hdr_to_8bit])
    ],[],
    [#include <libheif/heif.h>])
   CFLAGS="$save_CFLAGS"
 fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $HEIF_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $HEIF_LIBS"
 
 # pdfium
 AC_ARG_WITH([pdfium],
@@ -864,6 +861,9 @@ if test x"$with_pdfium" != x"no"; then
   ])
 fi
 
+VIPS_CFLAGS="$VIPS_CFLAGS $PDFIUM_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $PDFIUM_LIBS"
+
 # poppler
 AC_ARG_WITH([poppler],
   AS_HELP_STRING([--without-poppler], [build without poppler (default: test)]))
@@ -878,6 +878,9 @@ if test x"$with_poppler" != x"no"; then
     with_poppler=no
   ])
 fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $POPPLER_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $POPPLER_LIBS"
 
 # librsvg
 AC_ARG_WITH([rsvg],
@@ -894,6 +897,9 @@ if test x"$with_rsvg" != x"no"; then
     with_rsvg=no
   ])
 fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $RSVG_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $RSVG_LIBS"
 
 # zlib
 # some platforms, like macosx, are missing the .pc files for zlib, so
@@ -917,6 +923,10 @@ if test x"$with_zlib" != x"no"; then
     ]
   )
 fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $ZLIB_CFLAGS"
+VIPS_INCLUDES="$VIPS_INCLUDES $ZLIB_INCLUDES"
+VIPS_LIBS="$VIPS_LIBS $ZLIB_LIBS"
 
 # OpenSlide
 AC_ARG_WITH([openslide],
@@ -945,6 +955,9 @@ if test x"$with_openslide" != x"no"; then
   )
 fi
 
+VIPS_CFLAGS="$VIPS_CFLAGS $OPENSLIDE_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $OPENSLIDE_LIBS"
+
 # matio
 AC_ARG_WITH([matio], 
   AS_HELP_STRING([--without-matio], [build without matio (default: test)]))
@@ -960,6 +973,9 @@ if test x"$with_matio" != x"no"; then
     ]
   )
 fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $MATIO_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $MATIO_LIBS"
 
 # not external libraries, but have options to disable them, helps to
 # reduce attack surface
@@ -1014,6 +1030,9 @@ if test x"$with_cfitsio" != x"no"; then
   )
 fi
 
+VIPS_CFLAGS="$VIPS_CFLAGS $CFITSIO_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $CFITSIO_LIBS"
+
 # libwebp ... target 0.6+ to reduce complication
 # webp has the stuff for handling metadata in two separate libraries  -- we
 # insit on having all of them
@@ -1032,6 +1051,9 @@ if test x"$with_libwebp" != x"no"; then
   )
 fi
 
+VIPS_CFLAGS="$VIPS_CFLAGS $LIBWEBP_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $LIBWEBP_LIBS"
+
 # pangoft2
 AC_ARG_WITH([pangoft2], 
   AS_HELP_STRING([--without-pangoft2], 
@@ -1048,6 +1070,9 @@ if test x"$with_pangoft2" != x"no"; then
     ]
   )
 fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $PANGOFT2_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $PANGOFT2_LIBS"
 
 # look for TIFF with pkg-config ... fall back to our tester
 # pkgconfig support for libtiff starts with libtiff-4
@@ -1070,7 +1095,7 @@ if test x"$with_tiff" != x"no"; then
   )
 fi
 
-# WEBP in TIFF added in libtiff 4.0.10
+# ZSTD and WEBP in TIFF added in libtiff 4.0.10
 if test x"$with_tiff" != x"no"; then
   save_INCLUDES="$INCLUDES"
   INCLUDES="$INCLUDES $TIFF_INCLUDES"
@@ -1083,6 +1108,10 @@ if test x"$with_tiff" != x"no"; then
   )
   INCLUDES="$save_INCLUDES"
 fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $TIFF_CFLAGS"
+VIPS_INCLUDES="$VIPS_INCLUDES $TIFF_INCLUDES"
+VIPS_LIBS="$VIPS_LIBS $TIFF_LIBS"
 
 # Look for libspng first
 # 0.6.1 uses "libspng.pc", git master libspng uses "spng.pc"
@@ -1106,6 +1135,9 @@ if test x"$with_libspng" != x"no"; then
     ]
   )
 fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $SPNG_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $SPNG_LIBS"
 
 # look for PNG with pkg-config ... fall back to our tester
 # we can have both PNG and SPNG enabled, with SPNG for read and PNG for
@@ -1137,10 +1169,14 @@ if test x"$with_png" != x"no"; then
   CFLAGS="$PNG_INCLUDES $CFLAGS"
   AC_CHECK_FUNCS(png_set_chunk_malloc_max,
     AC_DEFINE(HAVE_PNG_SET_CHUNK_MALLOC_MAX,1,
-	      [define if your libpng has png_set_chunk_malloc_max.]))
+              [define if your libpng has png_set_chunk_malloc_max.]))
   LIBS="$save_LIBS"
   CFLAGS="$save_CFLAGS"
 fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $PNG_CFLAGS"
+VIPS_INCLUDES="$VIPS_INCLUDES $PNG_INCLUDES"
+VIPS_LIBS="$VIPS_LIBS $PNG_LIBS"
 
 # look for libimagequant with pkg-config (only if libpng is enabled)
 AC_ARG_WITH([imagequant],
@@ -1159,6 +1195,9 @@ if test x"$with_imagequant" != x"no" && test x"$with_png" != x"no"; then
 else
   with_imagequant=no
 fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $IMAGEQUANT_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $IMAGEQUANT_LIBS"
 
 # look for libjpeg with pkg-config ... fall back to our tester
 AC_ARG_WITH([jpeg], 
@@ -1192,10 +1231,14 @@ if test x"$with_jpeg" != x"no"; then
   CFLAGS="$JPEG_INCLUDES $CFLAGS"
   AC_CHECK_FUNCS(jpeg_c_bool_param_supported,
     AC_DEFINE(HAVE_JPEG_EXT_PARAMS,1,
-	      [define if your libjpeg has extension parameters.]))
+              [define if your libjpeg has extension parameters.]))
   LIBS="$save_LIBS"
   CFLAGS="$save_CFLAGS"
 fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $JPEG_CFLAGS"
+VIPS_INCLUDES="$VIPS_INCLUDES $JPEG_INCLUDES"
+VIPS_LIBS="$VIPS_LIBS $JPEG_LIBS"
 
 # libexif
 AC_ARG_WITH([libexif], 
@@ -1224,6 +1267,9 @@ if test x"$with_libexif" != x"no"; then
   CPPFLAGS="$save_CPPFLAGS"
 fi
 
+VIPS_CFLAGS="$VIPS_CFLAGS $EXIF_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $EXIF_LIBS"
+
 # fuzzing
 AC_ARG_VAR([LIB_FUZZING_ENGINE],
            [fuzzing library, e.g. /path/to/libFuzzer.a])
@@ -1231,71 +1277,47 @@ if test x"$LIB_FUZZING_ENGINE" = x; then
   LIB_FUZZING_ENGINE="libstandaloneengine.a"
 fi
 
-# Gather all up for VIPS_CFLAGS, VIPS_INCLUDES, VIPS_LIBS
-VIPS_CFLAGS="$VIPS_CFLAGS \
-  $GTHREAD_CFLAGS \
-  $GIO_CFLAGS \
-  $REQUIRED_CFLAGS \
-  $EXPAT_CFLAGS \
-  $ZLIB_CFLAGS \
-  $PANGOFT2_CFLAGS \
-  $GSF_CFLAGS \
-  $FFTW_CFLAGS \
-  $MAGICK_CFLAGS \
-  $JPEG_CFLAGS \
-  $SPNG_CFLAGS \
-  $PNG_CFLAGS \
-  $IMAGEQUANT_CFLAGS \
-  $EXIF_CFLAGS \
-  $MATIO_CFLAGS \
-  $CFITSIO_CFLAGS \
-  $LIBWEBP_CFLAGS \
-  $LIBWEBPMUX_CFLAGS \
-  $RSVG_CFLAGS \
-  $PDFIUM_CFLAGS \
-  $POPPLER_CFLAGS \
-  $OPENEXR_CFLAGS \
-  $OPENSLIDE_CFLAGS \
-  $ORC_CFLAGS \
-  $TIFF_CFLAGS \
-  $LCMS_CFLAGS \
-  $HEIF_CFLAGS" 
-VIPS_CFLAGS="$VIPS_DEBUG_FLAGS $VIPS_CFLAGS"
-
-VIPS_INCLUDES="$ZLIB_INCLUDES $PNG_INCLUDES $TIFF_INCLUDES $JPEG_INCLUDES $NIFTI_INCLUDES" 
-VIPS_LIBS="$ZLIB_LIBS \
-  $HEIF_LIBS \
-  $MAGICK_LIBS \
-  $SPNG_LIBS \
-  $PNG_LIBS \
-  $IMAGEQUANT_LIBS \
-  $TIFF_LIBS \
-  $JPEG_LIBS \
-  $GTHREAD_LIBS \
-  $GIO_LIBS \
-  $REQUIRED_LIBS \
-  $EXPAT_LIBS \
-  $PANGOFT2_LIBS \
-  $GSF_LIBS \
-  $FFTW_LIBS \
-  $ORC_LIBS \
-  $LCMS_LIBS \
-  $RSVG_LIBS \
-  $NIFTI_LIBS \
-  $PDFIUM_LIBS \
-  $POPPLER_LIBS \
-  $OPENEXR_LIBS \
-  $OPENSLIDE_LIBS \
-  $CFITSIO_LIBS \
-  $LIBWEBP_LIBS \
-  $LIBWEBPMUX_LIBS \
-  $MATIO_LIBS \
-  $EXIF_LIBS \
-  -lm"
+VIPS_CFLAGS="$VIPS_CFLAGS $VIPS_DEBUG_FLAGS $REQUIRED_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $REQUIRED_LIBS -lm"
 
 # autoconf hates multi-line AC_SUBST so we have to have another copy of this
 # thing
-VIPS_CONFIG="native win32: $vips_os_win32, native OS X: $vips_os_darwin, open files in binary mode: $vips_binary_open, enable debug: $enable_debug, enable deprecated library components: $enable_deprecated, enable docs with gtkdoc: $enable_gtk_doc, gobject introspection: $found_introspection, enable radiance support: $with_radiance, enable analyze support: $with_analyze, enable PPM load/save: $with_ppm, enable GIF load: $with_nsgif, generate C++ docs: $with_doxygen, use fftw3 for FFT: $with_fftw, Magick package: $with_magickpackage, Magick API version: $magick_version, load with libMagick: $enable_magickload, save with libMagick: $enable_magicksave, accelerate loops with orc: $with_orc, ICC profile support with lcms: $with_lcms, NIfTI load/save with niftiio: $with_nifti, HEIC/AVIF load/save with libheif: $with_heif, EXR load/save with OpenEXR: $with_OpenEXR, slide load with OpenSlide: $with_openslide, Matlab load with matio: $with_matio, PDF load with PDFium: $with_pdfium, PDF load with poppler-glib: $with_poppler, SVG load with librsvg-2.0: $with_rsvg, zlib: $with_zlib, FITS load with cfitsio: $with_cfitsio, WebP load/save with libwebp: $with_libwebp, text rendering with pangoft2: $with_pangoft2, PNG load with libspng: $with_libspng, PNG load/save with libpng: $with_png, support 8bpp PNG quantisation: $with_imagequant, TIFF load/save with libtiff: $with_tiff, JPEG load/save with libjpeg: $with_jpeg, image pyramid export: $with_gsf, use libexif to load/save JPEG metadata: $with_libexif"
+VIPS_CONFIG="\
+enable debug: $enable_debug, \
+enable deprecated library components: $enable_deprecated, \
+enable docs with gtkdoc: $enable_gtk_doc, \
+gobject introspection:  $found_introspection, \
+RAD load/save: $with_radiance, \
+Analyze7 load/save: $with_analyze, \
+PPM load/save: $with_ppm, \
+GIF load:  $with_nsgif, \
+generate C++ docs: $with_doxygen, \
+use fftw3 for FFT: $with_fftw, \
+accelerate loops with orc: $with_orc, \
+ICC profile support with lcms: $with_lcms, \
+zlib: $with_zlib, \
+text rendering with pangoft2: $with_pangoft2, \
+EXIF metadata support with libexif: $with_libexif, \
+JPEG load/save with libjpeg: $with_jpeg, \
+PNG load with libspng: $with_libspng, \
+PNG load/save with libpng: $with_png, \
+8bpp PNG quantisation: $with_imagequant, \
+TIFF load/save with libtiff: $with_tiff, \
+image pyramid save: $with_gsf, \
+HEIC/AVIF load/save with libheif: $with_heif, \
+WebP load/save with libwebp: $with_libwebp, \
+PDF load with PDFium:  $with_pdfium, \
+PDF load with poppler-glib: $with_poppler, \
+SVG load with librsvg-2.0: $with_rsvg, \
+EXR load with OpenEXR: $with_OpenEXR, \
+slide load with OpenSlide: $with_openslide, \
+Matlab load with matio: $with_matio, \
+NIfTI load/save with niftiio: $with_nifti, \
+FITS load/save with cfitsio: $with_cfitsio, \
+Magick package: $with_magickpackage, \
+Magick API version: $magick_version, \
+load with libMagickCore: $enable_magickload, \
+save with libMagickCore: $enable_magicksave"
 
 AC_SUBST(VIPS_LIBDIR)
 
@@ -1312,109 +1334,99 @@ TOP_SRCDIR=$ac_pwd
 AC_SUBST(TOP_SRCDIR)
 
 AC_CONFIG_FILES([
-	vips.pc
-	vips-cpp.pc
-	Makefile
-	$srcdir/libvips/include/vips/version.h
-	libvips/include/Makefile
-	libvips/include/vips/Makefile
-	libvips/Makefile
-	libvips/arithmetic/Makefile
-	libvips/colour/Makefile
-	libvips/colour/profiles/Makefile
-	libvips/conversion/Makefile
-	libvips/convolution/Makefile
-	libvips/deprecated/Makefile
-	libvips/foreign/Makefile
-	libvips/foreign/libnsgif/Makefile
-	libvips/freqfilt/Makefile
-	libvips/histogram/Makefile
-	libvips/draw/Makefile
-	libvips/iofuncs/Makefile
-	libvips/morphology/Makefile
-	libvips/mosaicing/Makefile
-	libvips/create/Makefile
-	libvips/resample/Makefile
-	cplusplus/Doxyfile
-	cplusplus/include/Makefile
-	cplusplus/include/vips/Makefile
-	cplusplus/Makefile
-	tools/Makefile
-	tools/batch_crop
-	tools/batch_image_convert
-	tools/batch_rubber_sheet
-	tools/light_correct
-	tools/shrink_width
-	test/Makefile
-	test/variables.sh
-	test/test-suite/Makefile
-	test/test-suite/helpers/Makefile
-	man/Makefile
-	doc/Makefile
-	doc/libvips-docs.xml
-	po/Makefile.in
-	fuzz/Makefile
+        vips.pc
+        vips-cpp.pc
+        Makefile
+        $srcdir/libvips/include/vips/version.h
+        libvips/include/Makefile
+        libvips/include/vips/Makefile
+        libvips/Makefile
+        libvips/arithmetic/Makefile
+        libvips/colour/Makefile
+        libvips/colour/profiles/Makefile
+        libvips/conversion/Makefile
+        libvips/convolution/Makefile
+        libvips/deprecated/Makefile
+        libvips/foreign/Makefile
+        libvips/freqfilt/Makefile
+        libvips/histogram/Makefile
+        libvips/draw/Makefile
+        libvips/iofuncs/Makefile
+        libvips/morphology/Makefile
+        libvips/mosaicing/Makefile
+        libvips/create/Makefile
+        libvips/resample/Makefile
+        cplusplus/Doxyfile
+        cplusplus/include/Makefile
+        cplusplus/include/vips/Makefile
+        cplusplus/Makefile
+        tools/Makefile
+        tools/batch_crop
+        tools/batch_image_convert
+        tools/batch_rubber_sheet
+        tools/light_correct
+        tools/shrink_width
+        test/Makefile
+        test/variables.sh
+        test/test-suite/Makefile
+        test/test-suite/helpers/Makefile
+        man/Makefile
+        doc/Makefile
+        doc/libvips-docs.xml
+        po/Makefile.in
+        fuzz/Makefile
 ])
 AC_OUTPUT
 
 # also add any new items to VIPS_CONFIG above
 AC_MSG_RESULT([dnl
-* build options
-native win32:				$vips_os_win32
-native OS X:				$vips_os_darwin
-open files in binary mode: 		$vips_binary_open
-enable debug:				$enable_debug
-enable deprecated library components:	$enable_deprecated
-enable docs with gtkdoc:		$enable_gtk_doc
-gobject introspection: 			$found_introspection
-enable radiance load/save: 		$with_radiance
-enable analyze load/save: 		$with_analyze
-enable PPM load/save: 			$with_ppm
-enable GIF load: 			$with_nsgif
+## Build options
+enable debug:                           $enable_debug
+enable deprecated library components:   $enable_deprecated
+enable docs with gtkdoc:                $enable_gtk_doc
+gobject introspection:                  $found_introspection
+RAD load/save:                          $with_radiance
+Analyze7 load/save:                     $with_analyze
+PPM load/save:                          $with_ppm
+GIF load:                               $with_nsgif
 generate C++ docs:                      $with_doxygen
 
-* optional dependencies
-use fftw3 for FFT: 			$with_fftw
-Magick package: 			$with_magickpackage
-Magick API version: 			$magick_version
-load with libMagick: 			$enable_magickload
-save with libMagick: 			$enable_magicksave
-accelerate loops with orc: 		$with_orc
-  (requires orc-0.4.11 or later)
-ICC profile support with lcms: 		$with_lcms
-NIfTI load/save with niftiio: 		$with_nifti
-HEIC/AVIF load/save with libheif: 	$with_heif
-EXR load/save with OpenEXR: 		$with_OpenEXR
-slide load with OpenSlide:		$with_openslide
-  (requires openslide-3.3.0 or later)
-Matlab load with matio: 		$with_matio
-PDF load with PDFium:			$with_pdfium
-PDF load with poppler-glib: 		$with_poppler
-  (requires poppler-glib 0.16.0 or later)
-SVG load with librsvg-2.0: 		$with_rsvg
-  (requires librsvg-2.0 2.34.0 or later)
-zlib: 					$with_zlib
-FITS load/save with cfitsio: 		$with_cfitsio
-WebP load/save with libwebp:		$with_libwebp
-  (requires libwebp, libwebpmux, libwebpdemux 0.6.0 or later)
-text rendering with pangoft2: 		$with_pangoft2
-PNG load with libspng:			$with_libspng
-  (requires libspng-0.6 or later)
-PNG load/save with libpng:		$with_png
-  (requires libpng-1.2.9 or later)
-support 8bpp PNG quantisation:		$with_imagequant
-  (requires libimagequant)
-TIFF load/save with libtiff:    	$with_tiff
-JPEG load/save with libjpeg:    	$with_jpeg
-image pyramid export:			$with_gsf
-  (requires libgsf-1 1.14.26 or later)
-use libexif to load/save JPEG metadata: $with_libexif
-])
+## Optional dependencies
+use fftw3 for FFT:                      $with_fftw
+accelerate loops with orc:              $with_orc
+ (requires orc-0.4.11 or later)
+ICC profile support with lcms:          $with_lcms
+zlib:                                   $with_zlib
+text rendering with pangoft2:           $with_pangoft2
+EXIF metadata support with libexif:     $with_libexif
 
-if test x"$vips_os_win32" = x"yes"; then
-  if test x"$have_g_win32_get_command_line" != x"yes"; then
-    AC_MSG_RESULT([dnl
-Your glib is too old, vips will not support unicode command-line arguments.
-    ])
-  fi
-fi
+## File format support
+JPEG load/save with libjpeg:            $with_jpeg
+PNG load with libspng:                  $with_libspng
+ (requires libspng-0.6 or later)
+PNG load/save with libpng:              $with_png
+ (requires libpng-1.2.9 or later)
+8bpp PNG quantisation:                  $with_imagequant
+ (requires libimagequant)
+TIFF load/save with libtiff:            $with_tiff
+image pyramid save:                     $with_gsf
+ (requires libgsf-1 1.14.26 or later)
+HEIC/AVIF load/save with libheif:       $with_heif
+WebP load/save with libwebp:            $with_libwebp
+ (requires libwebp, libwebpmux, libwebpdemux 0.6.0 or later)
+PDF load with PDFium:                   $with_pdfium
+PDF load with poppler-glib:             $with_poppler
+ (requires poppler-glib 0.16.0 or later)
+SVG load with librsvg-2.0:              $with_rsvg
+ (requires librsvg-2.0 2.34.0 or later)
+EXR load with OpenEXR:                  $with_OpenEXR
+slide load with OpenSlide:              $with_openslide
+ (requires openslide-3.3.0 or later)
+Matlab load with matio:                 $with_matio
+NIfTI load/save with niftiio:           $with_nifti
+FITS load/save with cfitsio:            $with_cfitsio
+Magick package:                         $with_magickpackage
+Magick API version:                     $magick_version
+load with libMagickCore:                $enable_magickload
+save with libMagickCore:                $enable_magicksave
+])

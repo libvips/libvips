@@ -2,7 +2,8 @@
 import pytest
 
 import pyvips
-from helpers import JPEG_FILE, OME_FILE, AVIF_FILE, TIF_FILE, all_formats, have
+from helpers import JPEG_FILE, OME_FILE, HEIC_FILE, TIF_FILE, all_formats, \
+    have, RGBA_FILE, RGBA_CORRECT_FILE, AVIF_FILE
 
 
 # Run a function expecting a complex image on a two-band image
@@ -192,6 +193,11 @@ class TestResample:
             buf = f.read()
         im2 = pyvips.Image.thumbnail_buffer(buf, 100)
         assert abs(im1.avg() - im2.avg()) < 1
+
+        # linear shrink should work on rgba images
+        im1 = pyvips.Image.thumbnail(RGBA_FILE, 64, linear=True)
+        im2 = pyvips.Image.new_from_file(RGBA_CORRECT_FILE)
+        assert abs(im1.flatten(background=255).avg() - im2.avg()) < 1
 
         if have("heifload"):
             # this image is orientation 6 ... thumbnail should flip it

@@ -365,7 +365,6 @@ int vips_object_get_argument_priority( VipsObject *object, const char *name );
 	VIPS_ARGUMENT_COLLECT_END
  
  */
-#if GLIB_CHECK_VERSION( 2, 24, 0 )
 #define VIPS_ARGUMENT_COLLECT_SET( PSPEC, ARG_CLASS, AP ) \
 	if( (ARG_CLASS->flags & VIPS_ARGUMENT_INPUT) ) { \
 		GValue value = { 0, }; \
@@ -383,25 +382,6 @@ int vips_object_get_argument_priority( VipsObject *object, const char *name );
 			VIPS_DEBUG_MSG( "VIPS_OBJECT_COLLECT_SET: err\n" ); \
 			g_free( error ); \
 		}
-#else
-#define VIPS_ARGUMENT_COLLECT_SET( PSPEC, ARG_CLASS, AP ) \
-	if( (ARG_CLASS->flags & VIPS_ARGUMENT_INPUT) ) { \
-		GValue value = { 0, }; \
-		gchar *error = NULL; \
- 		\
-		/* Input args are given inline, eg. ("factor", 12.0)  \
-		 * and must be collected. \
-		 */ \
-		g_value_init( &value, G_PARAM_SPEC_VALUE_TYPE( PSPEC ) ); \
-		G_VALUE_COLLECT( &value, AP, 0, &error ); \
-		\
-		/* Don't bother with the error message. \
-		 */ \
-		if( error ) { \
-			VIPS_DEBUG_MSG( "VIPS_OBJECT_COLLECT_SET: err\n" ); \
-			g_free( error ); \
-		}
-#endif
 
 #define VIPS_ARGUMENT_COLLECT_GET( PSPEC, ARG_CLASS, AP ) \
 		g_value_unset( &value ); \

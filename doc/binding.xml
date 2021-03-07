@@ -19,10 +19,35 @@
 <refsect3 xml:id="dont-bind-the-top-level-c-api">
   <title>Don’t bind the top-level C API</title>
   <para>
-    The libvips C API (vips_add() and so on) is very inconvenient and dangerous to use from other languages due to its heavy use of varargs.
+    The libvips C API (vips_add() and so on) was designed to be easy for humans to write. It is inconvenient and dangerous to use from other languages due to its heavy use of varargs.
   </para>
   <para>
-    It’s much better to use the layer below. This lower layer is structured as create operator, set parameters, execute, extract results. For example, you can execute vips_invert() like this:
+    It’s much better to use the layer below. This lower layer is structured as:
+  </para>
+  <itemizedlist>
+    <listitem>
+      <para>
+        Create operator. You can use vips_operation_new() to make a new <literal>VipsOperation</literal> object from an operator nickname, like <literal>&quot;add&quot;</literal>.
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+        Set parameters. You can loop over the operation with vips_argument_map() to get the name and type of each input argument. For each argument, you need to get the value from your language, convert to a <literal>GValue</literal>, then use g_object_set_property() to set that value on the operator.
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+        Execute with vips_cache_operation_build().
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+        Extract results. Again, you loop over the operator arguments with vips_argument_map(), but instead of inputs, this time you look for output arguments. You extract their value with g_object_get_property(), and pass the value back to your language.
+      </para>
+    </listitem>
+  </itemizedlist>
+  <para>
+    For example, you can execute vips_invert() like this:
   </para>
   <programlisting language="c">
 /* compile with
@@ -111,17 +136,11 @@ main( int argc, char **argv )
     return( 0 ); 
 }
 </programlisting>
-  <para>
-    libvips has a couple of extra things to let you examine the arguments and types of an operator at runtime. Use vips_argument_map() to loop over all the arguments of an operator, and vips_object_get_argument() to fetch the type and flags of a specific argument.
-  </para>
-  <para>
-    Use vips_operation_get_flags() to get general information about an operator.
-  </para>
 </refsect3>
 <refsect3 xml:id="compiled-language-which-can-call-c">
   <title>Compiled language which can call C</title>
   <para>
-    The C++ binding uses this lower layer to define a function called <literal>VImage::call()</literal> which can call any libvips operator with a not-varargs set of variable arguments.
+    The C++ binding uses this lower layer to define a function called <literal>VImage::call()</literal> which can call any libvips operator with a set of variable arguments.
   </para>
   <para>
     A small Python program walks the set of all libvips operators and generates a set of static bindings. For example:
@@ -139,7 +158,7 @@ VImage VImage::invert( VOption *options )
 }
 </programlisting>
   <para>
-    So from C++ you can call any libvips operator (though without type-safety) with <literal>VImage::call()</literal>, or use the member functions on <literal>VImage</literal> to get type-safe calls for at least the required operator arguments.
+    So from C++ you can call any libvips operator (though without static typechecking) with <literal>VImage::call()</literal>, or use the member functions on <literal>VImage</literal> to get type-checked calls for at least the required operator arguments.
   </para>
   <para>
     The <literal>VImage</literal> class also adds automatic reference counting, constant expansion, operator overloads, and various other useful features.
@@ -151,13 +170,13 @@ VImage VImage::invert( VOption *options )
     Languages like Ruby, Python, JavaScript and LuaJIT can’t call C directly, but they do support FFI. The bindings for these languages work rather like C++, but use FFI to call into libvips and run operations.
   </para>
   <para>
-    Since these languages are dynamic, they can add another trick: they intercept the method-missing hook and attempt to run any method calls not implemented by the <literal>Image</literal> class as libvips operators. This makes these bindings self-writing: they only contain a small amount of code and just expose everything they find in the libvips class hierarchy.
+    Since these languages are dynamic, they can add another trick: they intercept the method-missing hook and attempt to run any method calls not implemented by the <literal>Image</literal> class as libvips operators. In effect, the binding is generated at runtime.
   </para>
 </refsect3>
 <refsect3 xml:id="dynamic-langauge-without-ffi">
   <title>Dynamic langauge without FFI</title>
   <para>
-    PHP does not have FFI, unfortunately, so for this language a small native module implements the general <literal>vips_call()</literal> function for PHP language types, and a larger pure PHP layer makes it convenient to use.
+    PHP does not have a useful FFI, unfortunately, so for this language a small C module implements the general <literal>vips_call()</literal> function for PHP language types, and a larger pure PHP layer makes it convenient to use.
   </para>
 </refsect3>
 <refsect3 xml:id="gobject-introspection">
