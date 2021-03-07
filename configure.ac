@@ -1312,7 +1312,7 @@ WebP load/save with libwebp: $with_libwebp, \
 PDF load with PDFium:  $with_pdfium, \
 PDF load with poppler-glib: $with_poppler, \
 SVG load with librsvg-2.0: $with_rsvg, \
-EXR load/save with OpenEXR: $with_OpenEXR, \
+EXR load with OpenEXR: $with_OpenEXR, \
 slide load with OpenSlide: $with_openslide, \
 Matlab load with matio: $with_matio, \
 NIfTI load/save with niftiio: $with_nifti, \
@@ -1422,7 +1422,7 @@ PDF load with poppler-glib:             $with_poppler
  (requires poppler-glib 0.16.0 or later)
 SVG load with librsvg-2.0:              $with_rsvg
  (requires librsvg-2.0 2.34.0 or later)
-EXR load/save with OpenEXR:             $with_OpenEXR
+EXR load with OpenEXR:                  $with_OpenEXR
 slide load with OpenSlide:              $with_openslide
  (requires openslide-3.3.0 or later)
 Matlab load with matio:                 $with_matio
