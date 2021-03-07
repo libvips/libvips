@@ -79,31 +79,31 @@ done
 # add headers that form the public vips8 API .. don't do a find and exclude,
 # we end up excluding almost everything argh
 headers="\
-	basic.h \
-	vips.h \
-	object.h \
-	image.h \
-	error.h \
-	foreign.h \
-	freqfilt.h \
-	interpolate.h \
-	header.h \
-	histogram.h \
-	operation.h \
-	enumtypes.h \
-	conversion.h \
-	arithmetic.h \
-	colour.h \
-	convolution.h \
-	create.h \
-	draw.h \
-	morphology.h \
-	mosaicing.h \
-	type.h \
-	rect.h \
-	resample.h \
-	memory.h \
-	region.h"
+        basic.h \
+        vips.h \
+        object.h \
+        image.h \
+        error.h \
+        foreign.h \
+        freqfilt.h \
+        interpolate.h \
+        header.h \
+        histogram.h \
+        operation.h \
+        enumtypes.h \
+        conversion.h \
+        arithmetic.h \
+        colour.h \
+        convolution.h \
+        create.h \
+        draw.h \
+        morphology.h \
+        mosaicing.h \
+        type.h \
+        rect.h \
+        resample.h \
+        memory.h \
+        region.h"
 
 for name in $headers; do
   vips_introspection_sources="$vips_introspection_sources include/vips/$name"
@@ -406,7 +406,7 @@ PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-2.0 gobject-2.0 gio-2.0"
 # from 2.62 we have datetime
 PKG_CHECK_MODULES(DATE_TIME_FORMAT_ISO8601, glib-2.0 >= 2.62,
   [AC_DEFINE(HAVE_DATE_TIME_FORMAT_ISO8601,1,
-	    [define if your glib has g_date_time_format_iso8601().]
+            [define if your glib has g_date_time_format_iso8601().]
    )
   ],
   [:
@@ -482,7 +482,7 @@ if test x"$with_gsf" != x"no"; then
   PKG_CHECK_MODULES(GSF_ZIP64, libgsf-1 >= 1.14.31,
     [AC_DEFINE(HAVE_GSF_ZIP64,1,[define if your libgsf supports zip64.])
      AC_DEFINE(HAVE_GSF_DEFLATE_LEVEL,1,
-	       [define if your libgsf supports deflate-level.])
+               [define if your libgsf supports deflate-level.])
     ],
     [:
     ]
@@ -573,7 +573,7 @@ if test x"$magick6" = x"yes"; then
   CFLAGS="$CFLAGS $MAGICK_CFLAGS"
   AC_CHECK_MEMBER([struct _ImageInfo.number_scenes],
     AC_DEFINE(HAVE_NUMBER_SCENES,1,
-	      [define if your magick has ImageInfo.number_scenes.]),
+              [define if your magick has ImageInfo.number_scenes.]),
     [],
     [#include <magick/api.h>])
   CFLAGS="$save_CFLAGS"
@@ -631,11 +631,11 @@ fi
 # save but not load, for example
 AC_ARG_ENABLE([magickload], 
   AS_HELP_STRING([--disable-magickload], 
-		 [disable libMagic load (default: enabled)]))
+                 [disable libMagic load (default: enabled)]))
 
 AC_ARG_ENABLE([magicksave], 
   AS_HELP_STRING([--disable-magicksave], 
-		 [disable libMagic save (default: enabled)]))
+                 [disable libMagic save (default: enabled)]))
 
 if test x"$enable_magicksave" != x"yes"; then
   # we need ImportImagePixels ... GM is missing this sadly
@@ -643,12 +643,12 @@ if test x"$enable_magicksave" != x"yes"; then
   LIBS="$LIBS $MAGICK_LIBS"
   AC_CHECK_FUNCS(ImportImagePixels,[
      AC_DEFINE(HAVE_IMPORTIMAGEPIXELS,1,
-	       [define if you have ImportImagePixels.])
+               [define if you have ImportImagePixels.])
    ],[]
   )
   AC_CHECK_FUNCS(ImagesToBlob,[
      AC_DEFINE(HAVE_IMAGESTOBLOB,1,
-	       [define if you have ImagesToBlob.])
+               [define if you have ImagesToBlob.])
    ],[]
   ) 
   LIBS="$save_LIBS"
@@ -686,7 +686,7 @@ if test x"$with_orc" != x"no"; then
      LIBS="$LIBS $ORC_LIBS"
      AC_CHECK_FUNCS(orc_program_get_error,
        AC_DEFINE(HAVE_ORC_PROGRAM_GET_ERROR,1,
-	      [define if your orc has orc_program_get_error.]))
+              [define if your orc has orc_program_get_error.]))
      LIBS="$save_LIBS"
     ],
     [AC_MSG_WARN([orc-0.4.11 or later not found; disabling orc support])
@@ -700,7 +700,7 @@ fi
 if test x"$with_orc" = x"yes"; then
   PKG_CHECK_MODULES(ORC_CF_PROTECTION, orc-0.4 >= 0.4.31,
     [AC_DEFINE(HAVE_ORC_CF_PROTECTION,1,
-	       [define if your orc works with cf-protection.]
+               [define if your orc works with cf-protection.]
      )
     ],
     [:
@@ -784,13 +784,13 @@ if test x"$with_heif" != x"no"; then
      # this variable
      if test x"$have_h265_decoder" != x"no" -o x"$have_avif_decoder" = x"yes"; then
         AC_DEFINE(HAVE_HEIF_DECODER,1,
-	     [define if your libheif has decode support.])
+             [define if your libheif has decode support.])
      fi
      have_h265_encoder=`$PKG_CONFIG libheif --variable builtin_h265_encoder`
      have_avif_encoder=`$PKG_CONFIG libheif --variable builtin_avif_encoder`
      if test x"$have_h265_encoder" != x"no" -o x"$have_avif_encoder" = x"yes"; then
         AC_DEFINE(HAVE_HEIF_ENCODER,1,
-	     [define if your libheif has encode support.])
+             [define if your libheif has encode support.])
      fi
      PACKAGES_USED="$PACKAGES_USED libheif"
     ],
@@ -811,7 +811,7 @@ if test x"$with_heif" = x"yes"; then
   LIBS="$LIBS $HEIF_LIBS"
   AC_CHECK_FUNCS(heif_image_handle_get_raw_color_profile,[
      AC_DEFINE(HAVE_HEIF_COLOR_PROFILE,1,
-	       [define if you have heif_image_handle_get_raw_color_profile.])
+               [define if you have heif_image_handle_get_raw_color_profile.])
    ],[]
   )
   LIBS="$save_LIBS"
@@ -832,7 +832,7 @@ if test x"$with_heif" = x"yes"; then
   CFLAGS="$CFLAGS $HEIF_CFLAGS"
   AC_CHECK_MEMBER([struct heif_decoding_options.convert_hdr_to_8bit],[
      AC_DEFINE(HAVE_HEIF_DECODING_OPTIONS_CONVERT_HDR_TO_8BIT,1,
-	       [define if you have heif_decoding_options.convert_hdr_to_8bit])
+               [define if you have heif_decoding_options.convert_hdr_to_8bit])
    ],[],
    [#include <libheif/heif.h>])
   CFLAGS="$save_CFLAGS"
@@ -1172,7 +1172,7 @@ if test x"$with_png" != x"no"; then
   CFLAGS="$PNG_INCLUDES $CFLAGS"
   AC_CHECK_FUNCS(png_set_chunk_malloc_max,
     AC_DEFINE(HAVE_PNG_SET_CHUNK_MALLOC_MAX,1,
-	      [define if your libpng has png_set_chunk_malloc_max.]))
+              [define if your libpng has png_set_chunk_malloc_max.]))
   LIBS="$save_LIBS"
   CFLAGS="$save_CFLAGS"
 fi
@@ -1234,7 +1234,7 @@ if test x"$with_jpeg" != x"no"; then
   CFLAGS="$JPEG_INCLUDES $CFLAGS"
   AC_CHECK_FUNCS(jpeg_c_bool_param_supported,
     AC_DEFINE(HAVE_JPEG_EXT_PARAMS,1,
-	      [define if your libjpeg has extension parameters.]))
+              [define if your libjpeg has extension parameters.]))
   LIBS="$save_LIBS"
   CFLAGS="$save_CFLAGS"
 fi
@@ -1337,99 +1337,99 @@ TOP_SRCDIR=$ac_pwd
 AC_SUBST(TOP_SRCDIR)
 
 AC_CONFIG_FILES([
-	vips.pc
-	vips-cpp.pc
-	Makefile
-	$srcdir/libvips/include/vips/version.h
-	libvips/include/Makefile
-	libvips/include/vips/Makefile
-	libvips/Makefile
-	libvips/arithmetic/Makefile
-	libvips/colour/Makefile
-	libvips/colour/profiles/Makefile
-	libvips/conversion/Makefile
-	libvips/convolution/Makefile
-	libvips/deprecated/Makefile
-	libvips/foreign/Makefile
-	libvips/freqfilt/Makefile
-	libvips/histogram/Makefile
-	libvips/draw/Makefile
-	libvips/iofuncs/Makefile
-	libvips/morphology/Makefile
-	libvips/mosaicing/Makefile
-	libvips/create/Makefile
-	libvips/resample/Makefile
-	cplusplus/Doxyfile
-	cplusplus/include/Makefile
-	cplusplus/include/vips/Makefile
-	cplusplus/Makefile
-	tools/Makefile
-	tools/batch_crop
-	tools/batch_image_convert
-	tools/batch_rubber_sheet
-	tools/light_correct
-	tools/shrink_width
-	test/Makefile
-	test/variables.sh
-	test/test-suite/Makefile
-	test/test-suite/helpers/Makefile
-	man/Makefile
-	doc/Makefile
-	doc/libvips-docs.xml
-	po/Makefile.in
-	fuzz/Makefile
+        vips.pc
+        vips-cpp.pc
+        Makefile
+        $srcdir/libvips/include/vips/version.h
+        libvips/include/Makefile
+        libvips/include/vips/Makefile
+        libvips/Makefile
+        libvips/arithmetic/Makefile
+        libvips/colour/Makefile
+        libvips/colour/profiles/Makefile
+        libvips/conversion/Makefile
+        libvips/convolution/Makefile
+        libvips/deprecated/Makefile
+        libvips/foreign/Makefile
+        libvips/freqfilt/Makefile
+        libvips/histogram/Makefile
+        libvips/draw/Makefile
+        libvips/iofuncs/Makefile
+        libvips/morphology/Makefile
+        libvips/mosaicing/Makefile
+        libvips/create/Makefile
+        libvips/resample/Makefile
+        cplusplus/Doxyfile
+        cplusplus/include/Makefile
+        cplusplus/include/vips/Makefile
+        cplusplus/Makefile
+        tools/Makefile
+        tools/batch_crop
+        tools/batch_image_convert
+        tools/batch_rubber_sheet
+        tools/light_correct
+        tools/shrink_width
+        test/Makefile
+        test/variables.sh
+        test/test-suite/Makefile
+        test/test-suite/helpers/Makefile
+        man/Makefile
+        doc/Makefile
+        doc/libvips-docs.xml
+        po/Makefile.in
+        fuzz/Makefile
 ])
 AC_OUTPUT
 
 # also add any new items to VIPS_CONFIG above
 AC_MSG_RESULT([dnl
 ## Build options
-enable debug:				$enable_debug
-enable deprecated library components:	$enable_deprecated
-enable docs with gtkdoc:		$enable_gtk_doc
-gobject introspection:			$found_introspection
-RAD load/save:		 		$with_radiance
-Analyze7 load/save:			$with_analyze
-PPM load/save:				$with_ppm
-generate C++ docs:			$with_doxygen
+enable debug:                           $enable_debug
+enable deprecated library components:   $enable_deprecated
+enable docs with gtkdoc:                $enable_gtk_doc
+gobject introspection:                  $found_introspection
+RAD load/save:                          $with_radiance
+Analyze7 load/save:                     $with_analyze
+PPM load/save:                          $with_ppm
+generate C++ docs:                      $with_doxygen
 
 ## Optional dependencies
-use fftw3 for FFT:			$with_fftw
-accelerate loops with orc:		$with_orc
+use fftw3 for FFT:                      $with_fftw
+accelerate loops with orc:              $with_orc
  (requires orc-0.4.11 or later)
-ICC profile support with lcms:		$with_lcms
-zlib:			 		$with_zlib
-text rendering with pangoft2:		$with_pangoft2
-EXIF metadata support with libexif:	$with_libexif
+ICC profile support with lcms:          $with_lcms
+zlib:                                   $with_zlib
+text rendering with pangoft2:           $with_pangoft2
+EXIF metadata support with libexif:     $with_libexif
 
 ## File format support
-JPEG load/save with libjpeg:	 	$with_jpeg
-PNG load with libspng:			$with_libspng
+JPEG load/save with libjpeg:            $with_jpeg
+PNG load with libspng:                  $with_libspng
  (requires libspng-0.6 or later)
-PNG load/save with libpng:		$with_png
+PNG load/save with libpng:              $with_png
  (requires libpng-1.2.9 or later)
-8bpp PNG quantisation:			$with_imagequant
+8bpp PNG quantisation:                  $with_imagequant
  (requires libimagequant)
-TIFF load/save with libtiff:		$with_tiff
-image pyramid save:			$with_gsf
+TIFF load/save with libtiff:            $with_tiff
+image pyramid save:                     $with_gsf
  (requires libgsf-1 1.14.26 or later)
-GIF load with giflib:			$with_giflib
-HEIC/AVIF load/save with libheif:	$with_heif
-WebP load/save with libwebp:	 	$with_libwebp
+GIF load with giflib:                   $with_giflib
+HEIC/AVIF load/save with libheif:       $with_heif
+WebP load/save with libwebp:            $with_libwebp
  (requires libwebp, libwebpmux, libwebpdemux 0.6.0 or later)
-PDF load with PDFium:		 	$with_pdfium
-PDF load with poppler-glib:		$with_poppler
+PDF load with PDFium:                   $with_pdfium
+PDF load with poppler-glib:             $with_poppler
  (requires poppler-glib 0.16.0 or later)
-SVG load with librsvg-2.0:		$with_rsvg
+SVG load with librsvg-2.0:              $with_rsvg
  (requires librsvg-2.0 2.34.0 or later)
-EXR load/save with OpenEXR:		$with_OpenEXR
-slide load with OpenSlide:		$with_openslide
+EXR load/save with OpenEXR:             $with_OpenEXR
+slide load with OpenSlide:              $with_openslide
  (requires openslide-3.3.0 or later)
-Matlab load with matio:			$with_matio
-NIfTI load/save with niftiio:		$with_nifti
-FITS load/save with cfitsio:		$with_cfitsio
-Magick package:				$with_magickpackage
-Magick API version:			$magick_version
-load with libMagickCore:		$enable_magickload
-save with libMagickCore:		$enable_magicksave
+Matlab load with matio:                 $with_matio
+NIfTI load/save with niftiio:           $with_nifti
+FITS load/save with cfitsio:            $with_cfitsio
+Magick package:                         $with_magickpackage
+Magick API version:                     $magick_version
+load with libMagickCore:                $enable_magickload
+save with libMagickCore:                $enable_magicksave
 ])
