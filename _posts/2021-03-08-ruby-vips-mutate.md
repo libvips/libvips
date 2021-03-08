@@ -9,25 +9,24 @@ efficiently and safely.
 # Draw operations
 
 Up until now, ruby-vips has been purely functional, in other words, all
-operations created new images, and no operations modified the objects they
-were passed as arguments. 
+operations created new images, and no operations modified their arguments. 
 
 For example, you could draw a circle on an image, but you were given a new
-image back and the original was not modified. 
+image back and the original was not changed. 
 
 ```ruby
 y = x.draw_circle 255, 50, 50, 10, fill: true
 ```
 
-This would take image `x`, make a copy of it in memory, draw a circle with
-centre at (50, 50) and radius 10 filled with pixels of value 255, and return
+This takes image `x`, makes a copy in memory, draws a circle with
+centre at (50, 50) and radius 10 filled with pixels of value 255, and returns
 this new image as `y`.
 
-This purity has the huge advantage of allowing safe sharing: if another
-part of your program is using image referred to by `x`, it won't see a
-circle unexpectedly appear on its image. This is fine for small images,
-but can become very slow for large ones. And what if you want to draw a
-series of circles? It becomes very painful indeed. For example:
+Purely functional operations have the huge advantage of allowing safe
+sharing: if another part of your program is using image referred to by
+`x`, it won't see a circle unexpectedly appear on its image. This is fine
+for small images, but can become very slow for large ones. And what if you
+want to draw a series of circles? It becomes very painful indeed. For example:
 
 ```ruby
 #!/usr/bin/ruby
@@ -44,7 +43,7 @@ end
 x.write_to_file ARGV[1]
 ```
 
-I can run this program like this (`nina.jpg` is 6,000 x 4,000 pixels, not
+I can run the program like this (`nina.jpg` is 6,000 x 4,000 pixels, not
 unusual for modern DSLR camera):
 
 ```
@@ -74,7 +73,7 @@ x.write_to_file "x.jpg"
 
 It works in simple cases, but actually, this is not correct. The `x.set`
 is modifying image `x` (though only modifying the image metadata rather
-than any pixels) and in a large program, `x` could be shared. Really,
+than any pixels) and in a large program, `x` could be shared. To be safe,
 you need to make a private copy of the image before you change it, like this:
 
 ```ruby
@@ -111,7 +110,7 @@ end
 x.write_to_file ARGV[1]
 ```
 
-The `mutate` method takes a private copy of the image,
+The `mutate` method builds a private copy of the image,
 uses it to construct an instance of [a new class called
 `MutableImage`](https://www.rubydoc.info/gems/ruby-vips/2.1.0/Vips/MutableImage),
 and then yields that instance to the block.
@@ -122,7 +121,7 @@ of operations like `draw_circle` (with the usual `!` naming convention)
 which really do modify their argument. 
 
 After the block finishes, `mutate` unwraps the mutable image and returns a
-new `Image` object. Because it can manage the transition to `MutableImage` and
+new `Image` object. Because it manages the transition to `MutableImage` and
 back, ruby-vips can enforce all the obvious rules to guarantee run-time
 safety.
 
