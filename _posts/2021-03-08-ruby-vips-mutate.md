@@ -8,11 +8,11 @@ efficiently and safely.
 
 # Draw operations
 
-Up until now, ruby-vips has been purely functional, in other words, all
-operations created new images, and no operations modified their arguments. 
+Up until now ruby-vips has been purely functional, in other words, all
+operations created new images and no operations modified their arguments. 
 
-For example, you could draw a circle on an image, but you were given a new
-image back and the original was not changed. 
+For example, you can draw a circle on an image, but you are given a new
+image back and the original is not changed: 
 
 ```ruby
 y = x.draw_circle 255, 50, 50, 10, fill: true
@@ -55,14 +55,14 @@ To make this:
 
 ![random circles]({{ site.baseurl }}/assets/images/circles1.jpg)
 
-It works but, on a powerful desktop machine, 13s and almost 5gb of memory 
-to draw 1,000 circles is really not good. 
+It works, but 13s and almost 5gb of memory to draw 1,000 circles is really
+not good.
 
 # Metadata
 
 There's a second case where mutability is important: metadata updates.
 
-ruby-vips lets you set image metadata, for example, you can set the EXIF
+ruby-vips lets you set image metadata. For example, you can set the EXIF
 orientation tag on an image like this:
 
 ```ruby
@@ -71,7 +71,7 @@ x.set "orientation", 6
 x.write_to_file "x.jpg"
 ```
 
-It works in simple cases, but actually, this is not correct. The `x.set`
+It works in simple cases, but actually this is not correct. The `x.set`
 is modifying image `x` (though only modifying the image metadata rather
 than any pixels) and in a large program, `x` could be shared. To be safe,
 you need to make a private copy of the image before you change it, like this:
@@ -83,8 +83,9 @@ x.set "orientation", 6
 x.write_to_file "x.jpg"
 ```
 
-This is annoying, and ruby-vips does not enforce this rule so, in some large
-programs, you can get bizarre behaviour and even races and crashes.
+This is annoying, and worse than that, ruby-vips does not enforce this
+rule. In some large programs, you can get bizarre behaviour and even races
+and crashes.
 
 # The `mutate` block
 
