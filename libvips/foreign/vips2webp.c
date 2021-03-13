@@ -328,10 +328,17 @@ write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 
 	/* There might just be the old gif-delay field. This is centiseconds.
 	 */
-	gif_delay = 4;
+	gif_delay = 10;
 	if( vips_image_get_typeof( image, "gif-delay" ) &&
 		vips_image_get_int( image, "gif-delay", &gif_delay ) )
 		return( -1 );
+
+	/* Force frames with a small or no duration to 100ms
+	 * to be consistent with web browsers and other
+	 * transcoding tools.
+	 */
+	if( gif_delay <= 1 )
+		gif_delay = 10;
 
 	/* New images have an array of ints instead.
 	 */
@@ -371,7 +378,8 @@ write_webp_anim( VipsWebPWrite *write, VipsImage *image, int page_height )
 		page_index = top / page_height;
 		if( delay &&
 			page_index < delay_length )
-			timestamp_ms += delay[page_index];
+			timestamp_ms += delay[page_index] <= 10 ?
+				100 : delay[page_index];
 		else 
 			timestamp_ms += gif_delay * 10;
 	}
