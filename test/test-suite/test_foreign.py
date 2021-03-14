@@ -681,10 +681,14 @@ class TestForeign:
             x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
             w1 = x1.webpsave_buffer(Q=10)
 
+            # our test gif has delay 0 for the first frame set in error,
+            # when converting to WebP this should result in a 100ms delay.
+            expected_delay = [100 if d <= 10 else d for d in x1.get("delay")]
+
             x2 = pyvips.Image.new_from_buffer(w1, "", n=-1)
             assert x1.width == x2.width
             assert x1.height == x2.height
-            assert x1.get("delay") == x2.get("delay")
+            assert expected_delay == x2.get("delay")
             assert x1.get("page-height") == x2.get("page-height")
             assert x1.get("gif-loop") == x2.get("gif-loop")
 
