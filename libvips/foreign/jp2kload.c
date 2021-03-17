@@ -35,9 +35,9 @@
  */
 
 /*
- */
 #define DEBUG
 #define VIPS_DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -58,6 +58,10 @@
 
 #include "pforeign.h"
 
+/* Surely enough ... does anyone do multispectral imaging with jp2k?
+ */
+#define MAX_BANDS (100)
+
 typedef struct _VipsForeignLoadJp2k {
 	VipsForeignLoad parent_object;
 
@@ -77,6 +81,9 @@ typedef struct _VipsForeignLoadJp2k {
 	 */
 	int n_errors;
 
+	/* An array of int* plane pointers for unpack.
+	 */
+	int *planes[MAX_BANDS];
 } VipsForeignLoadJp2k;
 
 typedef VipsForeignLoadClass VipsForeignLoadJp2kClass;
@@ -89,9 +96,19 @@ vips_foreign_load_jp2k_dispose( GObject *gobject )
 {
 	VipsForeignLoadJp2k *jp2k = (VipsForeignLoadJp2k *) gobject;
 
+#ifdef DEBUG
+	printf( "vips_foreign_load_jp2k_dispose:\n" );
+#endif /*DEBUG*/
+
+	/*
+	 * FIXME ... do we need this? seems to just cause warnings
+	 *
 	if( jp2k->codec &&
 		jp2k->stream ) 
-		opj_end_decompress( jp2k->codec,  jp2k->stream );
+		opj_end_decompress( jp2k->codec, jp2k->stream );
+	 *
+	 */
+
 	opj_destroy_cstr_info( &jp2k->info );
 	VIPS_FREEF( opj_destroy_codec, jp2k->codec );
 	VIPS_FREEF( opj_stream_destroy, jp2k->stream );
@@ -131,7 +148,7 @@ vips_foreign_load_jp2k_seek_source( OPJ_OFF_T position, void *client )
 {
 	VipsSource *source = VIPS_SOURCE( client );
 
-	if( vips_source_seek( source, position, SEEK_SET ) )
+	if( vips_source_seek( source, position, SEEK_SET ) == -1 )
 		/* openjpeg seek uses FALSE for both end of stream and error.
 		 */
 		return( OPJ_FALSE );
@@ -172,6 +189,16 @@ vips_foreign_load_jp2k_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsForeignLoadJp2k *jp2k = (VipsForeignLoadJp2k *) object;
+
+#ifdef DEBUG
+	printf( "vips_foreign_load_jp2k_build:\n" );
+#endif /*DEBUG*/
+
+	/* Default parameters.
+	 */
+        jp2k->parameters.decod_format = -1;
+        jp2k->parameters.cod_format = -1;
+        opj_set_default_decoder_parameters( &jp2k->parameters );
 
 	/* Link the openjpeg stream to our VipsSource.
 	 */
@@ -240,20 +267,28 @@ vips_foreign_load_jp2k_error_callback( const char *msg, void *client )
 	jp2k->n_errors += 1;
 }
 
+/* The openjpeg info and warning callbacks are incredibly chatty.
+ */
 static void 
 vips_foreign_load_jp2k_warning_callback( const char *msg, void *client )
 {
+#ifdef DEBUG
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( client );
 
 	g_warning( "%s: %s",  class->nickname, msg );
+#endif /*DEBUG*/
 }
 
+/* The openjpeg info and warning callbacks are incredibly chatty.
+ */
 static void 
 vips_foreign_load_jp2k_info_callback( const char *msg, void *client )
 {
+#ifdef DEBUG
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( client );
 
 	g_info( "%s: %s",  class->nickname, msg );
+#endif /*DEBUG*/
 }
 
 static void
@@ -311,7 +346,6 @@ vips_foreign_load_jp2k_print( VipsForeignLoadJp2k *jp2k )
 		jp2k->info->tw, jp2k->info->th );
 	printf( "nbcomps = %u\n", 
 		jp2k->info->nbcomps );
-
 }
 #endif /*DEBUG*/
 
@@ -442,7 +476,12 @@ vips_foreign_load_jp2k_header( VipsForeignLoad *load )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadJp2k *jp2k = (VipsForeignLoadJp2k *) load;
 
+#ifdef DEBUG
+	printf( "vips_foreign_load_jp2k_header:\n" );
+#endif /*DEBUG*/
+
 	jp2k->format = vips_foreign_load_jp2k_get_format( jp2k->source );
+	vips_source_rewind( jp2k->source );
 	if( !(jp2k->codec = opj_create_decompress( jp2k->format )) ) {
 		vips_error( class->nickname, 
 			"%s", _( "format not supported by openjpeg" ) );
@@ -461,13 +500,16 @@ vips_foreign_load_jp2k_header( VipsForeignLoad *load )
 	 */
 	opj_codec_set_threads( jp2k->codec, vips_concurrency_get() );
 
-	if( vips_source_rewind( jp2k->source ) ||
-		!opj_read_header( jp2k->stream, jp2k->codec, &jp2k->image ) )
+	if( !opj_read_header( jp2k->stream, jp2k->codec, &jp2k->image ) )
 		return( -1 );
-
 	if( !(jp2k->info = opj_get_cstr_info( jp2k->codec )) ) {
 		vips_error( class->nickname, 
 			"%s", _( "unable to read codec info" ) );
+		return( -1 );
+	}
+	if( jp2k->image->numcomps > MAX_BANDS ) {
+		vips_error( class->nickname, 
+			"%s", _( "too many image bands" ) );
 		return( -1 );
 	}
 
@@ -484,6 +526,46 @@ vips_foreign_load_jp2k_header( VipsForeignLoad *load )
 	return( 0 );
 }
 
+#define REPACK( TYPE ) { \
+	TYPE *tq = (TYPE *) q; \
+	\
+	for( x = 0; x < length; x++ ) \
+		for( i = 0; i < b; i++ ) \
+			*tq++ = planes[i][x]; \
+}
+
+/* Write a line of pels to vips from openjpeg. openjpeg stores everything as
+ * plane-separated arrays of int32.
+ */
+static void
+vips_foreign_load_jp2k_repack( VipsForeignLoadJp2k *jp2k, 
+	VipsImage *image, VipsPel *q, 
+	int left, int top, int length )
+{
+	int **planes = jp2k->planes;
+	int b = jp2k->image->numcomps;
+
+	int x, i;
+
+	for( i = 0; i < b; i++ )
+		planes[i] = jp2k->image->comps[i].data + 
+			top * jp2k->image->x1 + left;
+
+	switch( image->BandFmt ) {
+	case VIPS_FORMAT_UCHAR:
+		REPACK( unsigned char );
+		break;
+
+	case VIPS_FORMAT_USHORT:
+		REPACK( unsigned short );
+		break;
+
+	default:
+		g_assert_not_reached();
+		break;
+	}
+}
+
 /* Loop over the output region, painting in tiles from the file.
  */
 static int
@@ -495,22 +577,66 @@ vips_foreign_load_jp2k_generate( VipsRegion *out,
 	int tile_height = jp2k->info->tdy;
 	VipsRect *r = &out->valid;
 
-	int tile_index;
-
-	tile_index = 0;
-#ifdef DEBUG
-	printf( "vips_foreign_load_jp2k_generate: decoding tile_index %d\n", 
-		tile_index );
-#endif /*DEBUG*/
-	if( !opj_get_decoded_tile( jp2k->codec, jp2k->stream, jp2k->image, 
-		tile_index ) )
-		return( -1 );
+	int x, y, z;
 
 #ifdef DEBUG
-	printf( "vips_foreign_load_jp2k_generate: decode success!\n" );
+	printf( "vips_foreign_load_jp2k_generate:\n" );
 #endif /*DEBUG*/
 
-	vips_foreign_load_jp2k_print_image( jp2k->image );
+	y = 0;
+	while( y < r->height ) {
+		VipsRect tile, hit;
+
+		/* Not necessary, but it stops static analyzers complaining
+		 * about a used-before-set.
+		 */
+		hit.height = 0;
+
+		x = 0;
+		while( x < r->width ) { 
+			/* Coordinate of the tile on this page that xy falls in.
+			 */
+			int xs = ((r->left + x) / tile_width) * tile_width;
+			int ys = ((r->top + y) / tile_height) * tile_height;
+
+			int tile_index = ys * jp2k->info->tw + xs;
+
+			/* Fetch the tile.
+			 */
+			if( !opj_get_decoded_tile( jp2k->codec, 
+				jp2k->stream, jp2k->image, tile_index ) )
+				return( -1 );
+
+			/* Intersect tile with request to get pixels we need
+			 * to copy out.
+			 */
+			tile.left = xs;
+			tile.top = ys;
+			tile.width = tile_width;
+			tile.height = tile_height;
+			vips_rect_intersectrect( &tile, r, &hit );
+
+			/* Unpack hit pixels to buffer in vips layout. 
+			 */
+			for( z = 0; z < hit.height; z++ ) {
+				VipsPel *q = VIPS_REGION_ADDR( out, 
+					hit.left, hit.top + z );
+
+				vips_foreign_load_jp2k_repack( jp2k,
+					out->im, q,
+					hit.left - tile.left,
+					hit.top - tile.top + z,
+					hit.width ); 
+			}
+
+			x += hit.width;
+		}
+
+		/* This will be the same for all tiles in the row we've just
+		 * done.
+		 */
+		y += hit.height;
+	}
 
 	return( 0 );
 }
@@ -518,7 +644,6 @@ vips_foreign_load_jp2k_generate( VipsRegion *out,
 static int
 vips_foreign_load_jp2k_load( VipsForeignLoad *load )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadJp2k *jp2k = (VipsForeignLoadJp2k *) load;
 	int tile_width = jp2k->info->tdx;
 	int tile_height = jp2k->info->tdy;
@@ -527,7 +652,7 @@ vips_foreign_load_jp2k_load( VipsForeignLoad *load )
 		vips_object_local_array( VIPS_OBJECT( load ), 3 );
 
 #ifdef DEBUG
-	printf( "vips_foreign_load_jp2k_load: loading image\n" );
+	printf( "vips_foreign_load_jp2k_load:\n" );
 #endif /*DEBUG*/
 
 	/* Tile cache: keep enough for two complete rows of tiles.
