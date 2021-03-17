@@ -2176,6 +2176,9 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_svg_buffer_get_type( void ); 
 	extern GType vips_foreign_load_svg_source_get_type( void ); 
 
+	extern GType vips_foreign_load_jp2k_file_get_type( void ); 
+	extern GType vips_foreign_load_jp2k_source_get_type( void ); 
+
 	extern GType vips_foreign_load_heif_file_get_type( void ); 
 	extern GType vips_foreign_load_heif_buffer_get_type( void ); 
 	extern GType vips_foreign_load_heif_source_get_type( void ); 
@@ -2245,6 +2248,11 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_svg_buffer_get_type(); 
 	vips_foreign_load_svg_source_get_type(); 
 #endif /*HAVE_RSVG*/
+
+#ifdef HAVE_LIBOPENJP2
+	vips_foreign_load_jp2k_file_get_type(); 
+	vips_foreign_load_jp2k_source_get_type(); 
+#endif /*HAVE_LIBOPENJP2*/
 
 #ifdef HAVE_GIFLIB
 	vips_foreign_load_gif_file_get_type(); 

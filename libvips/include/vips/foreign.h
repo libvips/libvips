@@ -676,6 +676,11 @@ int vips_niftiload_source( VipsSource *source, VipsImage **out, ... )
 int vips_niftisave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
 
+int vips_jp2kload( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_jp2kload_source( VipsSource *source, VipsImage **out, ... )
+	__attribute__((sentinel));
+
 /**
  * VipsForeignDzLayout:
  * @VIPS_FOREIGN_DZ_LAYOUT_DZ: use DeepZoom directory layout
