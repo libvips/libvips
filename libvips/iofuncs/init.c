@@ -665,7 +665,7 @@ vips_leak( void )
  *
  * This function needs to be called when a thread that has been using vips
  * exits. It is called for you by vips_shutdown() and for any threads created
- * by vips_g_thread_new(). 
+ * within the #VipsThreadPool. 
  *
  * You will need to call it from threads created in
  * other ways or there will be memory leaks. If you do not call it, vips 
@@ -718,6 +718,8 @@ vips_shutdown( void )
 	vips_thread_shutdown();
 
 	vips__thread_profile_stop();
+
+	vips__threadpool_shutdown();
 
 #ifdef HAVE_GSF
 	gsf_shutdown(); 
