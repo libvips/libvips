@@ -35,9 +35,9 @@
  */
 
 /*
- */
-#define DEBUG
 #define DEBUG_VERBOSE
+#define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -59,12 +59,10 @@
 #include "pforeign.h"
 
 /* TODO:
- *
  *	- we only support 8 and 16-bit images, is this OK?
  *
  *	- we only support images where all components have the same numeric
  *	  type, is this OK?
- *
  */
 
 /* Surely enough ... does anyone do multispectral imaging with jp2k?
@@ -78,8 +76,9 @@ typedef struct _VipsForeignLoadJp2k {
 	 */
 	VipsSource *source;
 
-	/* Shrink on load factor.
+	/* Page set by user, then we translate that into shrink factor.
 	 */
+	int page;
 	int shrink;
 
 	/* Decompress state.
@@ -151,11 +150,11 @@ vips_foreign_load_jp2k_skip_source( OPJ_OFF_T n_bytes, void *client )
 {
 	VipsSource *source = VIPS_SOURCE( client );
 
-	if( vips_source_seek( source, n_bytes, SEEK_CUR ) )
+	if( vips_source_seek( source, n_bytes, SEEK_CUR ) == -1 )
+		/* openjpeg skip uses -1 for both end of stream and error.
+		 */
 		return( -1 );
 
-	/* openjpeg skip uses -1 for both end of stream and error.
-	 */
 	return( n_bytes );
 }
 
@@ -360,8 +359,8 @@ vips_foreign_load_jp2k_print( VipsForeignLoadJp2k *jp2k )
 		jp2k->info->tx0, jp2k->info->ty0, 
 		jp2k->info->tdx, jp2k->info->tdy, 
 		jp2k->info->tw, jp2k->info->th );
-	printf( "nbcomps = %u\n", 
-		jp2k->info->nbcomps );
+	printf( "nbcomps = %u, tile_info = %p\n", 
+		jp2k->info->nbcomps, jp2k->info->tile_info );
 }
 #endif /*DEBUG*/
 
@@ -372,8 +371,6 @@ vips_foreign_load_jp2k_set_header( VipsForeignLoadJp2k *jp2k, VipsImage *out )
 
 	opj_image_comp_t *first;
 	int i;
-	int width;
-	int height;
 	VipsBandFormat format;
 	VipsInterpretation interpretation;
 
@@ -408,18 +405,6 @@ vips_foreign_load_jp2k_set_header( VipsForeignLoadJp2k *jp2k, VipsImage *out )
 				"%s", _( "components differ in precision" ) );
 			return( -1 );
 		}
-	}
-
-	/* Image size shrunk down should match components in size. jp2k uses
-	 * round to nearest.
-	 */
-	width = VIPS_ROUND_UINT( (double) jp2k->image->x1 / jp2k->shrink );
-	height = VIPS_ROUND_UINT( (double) jp2k->image->y1 / jp2k->shrink );
-	if( width != first->w ||
-		height != first->h ) { 
-		vips_error( class->nickname, 
-			"%s", _( "components not same size as image" ) );
-		return( -1 );
 	}
 
 	switch( first->prec ) {
@@ -481,7 +466,7 @@ vips_foreign_load_jp2k_set_header( VipsForeignLoadJp2k *jp2k, VipsImage *out )
         vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	vips_image_init_fields( out,
-		width, height, jp2k->image->numcomps, format, 
+		first->w, first->h, jp2k->image->numcomps, format, 
 		VIPS_CODING_NONE, interpretation, 1.0, 1.0 );
 
 	/* openjpeg allows left and top of the coordinate grid to be
@@ -498,6 +483,14 @@ vips_foreign_load_jp2k_set_header( VipsForeignLoadJp2k *jp2k, VipsImage *out )
 			jp2k->image->icc_profile_buf,
 			jp2k->image->icc_profile_len );
 
+	/* Map number of layers in image to pages. 
+	 */
+	if( jp2k->info &&
+		jp2k->info->m_default_tile_info.tccp_info )
+		vips_image_set_int( out, VIPS_META_N_PAGES, 
+			jp2k->info->m_default_tile_info.tccp_info->
+				numresolutions );
+
 	return( 0 );
 }
 
@@ -511,8 +504,6 @@ vips_foreign_load_jp2k_header( VipsForeignLoad *load )
 	printf( "vips_foreign_load_jp2k_header:\n" );
 #endif /*DEBUG*/
 
-	int bits;
-
 	jp2k->format = vips_foreign_load_jp2k_get_format( jp2k->source );
 	vips_source_rewind( jp2k->source );
 	if( !(jp2k->codec = opj_create_decompress( jp2k->format )) ) {
@@ -523,13 +514,8 @@ vips_foreign_load_jp2k_header( VipsForeignLoad *load )
 
 	vips_foreign_load_jp2k_attach_handlers( jp2k, jp2k->codec );
 
-	bits = vips_ispoweroftwo( jp2k->shrink );
-	if( !bits ) {
-		vips_error( class->nickname, 
-			"%s", _( "shrink must be a power of two" ) );
-		return( -1 );
-	}
-	jp2k->parameters.cp_reduce = bits - 1;
+	jp2k->shrink = 1 << jp2k->page;
+	jp2k->parameters.cp_reduce = jp2k->page;
 	if( !opj_setup_decoder( jp2k->codec, &jp2k->parameters ) ) 
 		return( -1 );
 
@@ -629,6 +615,12 @@ vips_foreign_load_jp2k_generate( VipsRegion *out,
 		"left = %d, top = %d, width = %d, height = %d\n", 
 		r->left, r->top, r->width, r->height ); 
 #endif /*DEBUG_VERBOSE*/
+
+	/* If openjpeg has flagged an error, the library is not in a known
+	 * state and it's not safe to call again.
+	 */
+	if( jp2k->n_errors )
+		return( 0 );
 
 	y = 0;
 	while( y < r->height ) {
@@ -765,18 +757,18 @@ vips_foreign_load_jp2k_class_init( VipsForeignLoadJp2kClass *class )
 	load_class->header = vips_foreign_load_jp2k_header;
 	load_class->load = vips_foreign_load_jp2k_load;
 
-	VIPS_ARG_INT( class, "shrink", 20, 
-		_( "Shrink" ), 
-		_( "Shrink factor on load" ),
+	VIPS_ARG_INT( class, "page", 20, 
+		_( "Page" ), 
+		_( "Load this page from the image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignLoadJp2k, shrink ),
-		1, 1000, 1 );
+		G_STRUCT_OFFSET( VipsForeignLoadJp2k, page ),
+		0, 100000, 0 );
+
 }
 
 static void
 vips_foreign_load_jp2k_init( VipsForeignLoadJp2k *jp2k )
 {
-	jp2k->shrink = 1;
 }
 
 typedef struct _VipsForeignLoadJp2kFile {
@@ -934,7 +926,15 @@ vips_foreign_load_jp2k_source_init(
  * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Read a JP2k image file into a VIPS image. 
+ * Optional arguments:
+ *
+ * * @page: %gint, load this page
+ *
+ * Read a JPEG2000 image.
+ *
+ * Use @page to set the page to load, where page 0 is the base resolution
+ * image, and higher-numbered pages are x2 reductions. Use the metadata item
+ * "n-pages" to find the number of pyramid layers.
  *
  * See also: vips_image_new_from_file().
  *
@@ -958,6 +958,10 @@ vips_jp2kload( const char *filename, VipsImage **out, ... )
  * @source: source to load from
  * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, load this page
  *
  * Exactly as vips_jp2kload(), but read from a source. 
  *
