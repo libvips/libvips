@@ -35,9 +35,9 @@
  */
 
 /*
-#define DEBUG
-#define VIPS_DEBUG
  */
+#define DEBUG
+#define DEBUG_VERBOSE
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -549,7 +549,7 @@ vips_foreign_load_jp2k_repack( VipsForeignLoadJp2k *jp2k,
 
 	for( i = 0; i < b; i++ )
 		planes[i] = jp2k->image->comps[i].data + 
-			top * jp2k->image->x1 + left;
+			top * jp2k->image->comps[i].w + left;
 
 	switch( image->BandFmt ) {
 	case VIPS_FORMAT_UCHAR:
@@ -579,9 +579,11 @@ vips_foreign_load_jp2k_generate( VipsRegion *out,
 
 	int x, y, z;
 
-#ifdef DEBUG
-	printf( "vips_foreign_load_jp2k_generate:\n" );
-#endif /*DEBUG*/
+#ifdef DEBUG_VERBOSE
+	printf( "vips_foreign_load_jp2k_generate: "
+		"left = %d, top = %d, width = %d, height = %d\n", 
+		r->left, r->top, r->width, r->height ); 
+#endif /*DEBUG_VERBOSE*/
 
 	y = 0;
 	while( y < r->height ) {
@@ -594,15 +596,23 @@ vips_foreign_load_jp2k_generate( VipsRegion *out,
 
 		x = 0;
 		while( x < r->width ) { 
-			/* Coordinate of the tile on this page that xy falls in.
+			/* Tile the xy falls in, in tile numbers.
 			 */
-			int xs = ((r->left + x) / tile_width) * tile_width;
-			int ys = ((r->top + y) / tile_height) * tile_height;
+			int tx = (r->left + x) / tile_width;
+			int ty = (r->top + y) / tile_height;
 
-			int tile_index = ys * jp2k->info->tw + xs;
+			/* Pixel coordinates of the tile that xy falls in.
+			 */
+			int xs = tx * tile_width;
+			int ys = ty * tile_height;
+
+			int tile_index = ty * jp2k->info->tw + tx;
 
 			/* Fetch the tile.
 			 */
+#ifdef DEBUG_VERBOSE
+			printf( "   fetch file %d\n", tile_index );
+#endif /*DEBUG_VERBOSE*/
 			if( !opj_get_decoded_tile( jp2k->codec, 
 				jp2k->stream, jp2k->image, tile_index ) )
 				return( -1 );
