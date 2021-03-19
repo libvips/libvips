@@ -680,6 +680,10 @@ int vips_jp2kload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_jp2kload_source( VipsSource *source, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_jp2ksave( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
+int vips_jp2ksave_target( VipsImage *in, VipsTarget *target, ... )
+	__attribute__((sentinel));
 
 /**
  * VipsForeignDzLayout:

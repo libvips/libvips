@@ -245,6 +245,8 @@ void vips__heif_error( struct heif_error *error );
 struct heif_image;
 void vips__heif_image_print( struct heif_image *img );
 
+extern const char *vips__jp2k_suffs[];
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

@@ -20,7 +20,8 @@
 - add vips_fitsload_source(), vips_niftiload_source()
 - png and gif load note background colour as metadata [781545872]
 - add vips_image_[set|get]_array_double()
-- add vips_jp2kload(), vips_jp2kload_source()
+- add vips_jp2kload(), vips_jp2kload_source(), vips_jp2ksave(),
+  vips_jp2ksave_target()
 
 22/12/20 start 8.10.6
 - don't seek on bad file descriptors [kleisauke]

@@ -17,6 +17,7 @@ libforeign_la_SOURCES = \
 	heifload.c \
 	heifsave.c \
 	jp2kload.c \
+	jp2ksave.c \
 	jpeg2vips.c \
 	jpeg.h \
 	jpegload.c \

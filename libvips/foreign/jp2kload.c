@@ -1,10 +1,7 @@
-/* load jp2k from a file
+/* load jpeg2000
  *
- * 29/6/18
- * 	- from fitsload.c
- * 9/9/19
- * 	- use double for all floating point scalar metadata, like other loaders
- * 	- remove stray use of "n" property
+ * 18/3/20
+ * 	- from heifload.c
  */
 
 /*
@@ -59,10 +56,17 @@
 #include "pforeign.h"
 
 /* TODO:
- *	- we only support 8 and 16-bit images, is this OK?
  *
- *	- we only support images where all components have the same numeric
- *	  type, is this OK?
+ * 	- set alpha on save
+ *
+ * 	- params for compression ratio, chrominance subsampling, etc. ...
+ * 	  imagemagick jp2 files are half the size of ours
+ *
+ *	- we only support 8 and 16-bit unsigned images ... add 32-bit, plus
+ *	  signed and unsigned
+ *
+ * 	- tests
+ *
  */
 
 /* Surely enough ... does anyone do multispectral imaging with jp2k?
@@ -94,10 +98,6 @@ typedef struct _VipsForeignLoadJp2k {
 	 * corrupted images.
 	 */
 	int n_errors;
-
-	/* An array of int* plane pointers for unpack.
-	 */
-	int *planes[MAX_BANDS];
 } VipsForeignLoadJp2k;
 
 typedef VipsForeignLoadClass VipsForeignLoadJp2kClass;
@@ -423,16 +423,16 @@ vips_foreign_load_jp2k_set_header( VipsForeignLoadJp2k *jp2k, VipsImage *out )
 	}
 
 	switch( jp2k->image->color_space ) {
-	case OPJ_CLRSPC_SRGB:
-		interpretation = format == VIPS_FORMAT_UCHAR ? 
-			VIPS_INTERPRETATION_sRGB :
-			VIPS_INTERPRETATION_RGB16;
-		break;
-
 	case OPJ_CLRSPC_GRAY:
 		interpretation = format == VIPS_FORMAT_UCHAR ? 
 			VIPS_INTERPRETATION_B_W :
 			VIPS_INTERPRETATION_GREY16;
+		break;
+
+	case OPJ_CLRSPC_SRGB:
+		interpretation = format == VIPS_FORMAT_UCHAR ? 
+			VIPS_INTERPRETATION_sRGB :
+			VIPS_INTERPRETATION_RGB16;
 		break;
 
 	case OPJ_CLRSPC_CMYK:
@@ -506,11 +506,8 @@ vips_foreign_load_jp2k_header( VipsForeignLoad *load )
 
 	jp2k->format = vips_foreign_load_jp2k_get_format( jp2k->source );
 	vips_source_rewind( jp2k->source );
-	if( !(jp2k->codec = opj_create_decompress( jp2k->format )) ) {
-		vips_error( class->nickname, 
-			"%s", _( "format not supported by openjpeg" ) );
+	if( !(jp2k->codec = opj_create_decompress( jp2k->format )) )
 		return( -1 );
-	}
 
 	vips_foreign_load_jp2k_attach_handlers( jp2k, jp2k->codec );
 
@@ -525,11 +522,8 @@ vips_foreign_load_jp2k_header( VipsForeignLoad *load )
 
 	if( !opj_read_header( jp2k->stream, jp2k->codec, &jp2k->image ) )
 		return( -1 );
-	if( !(jp2k->info = opj_get_cstr_info( jp2k->codec )) ) {
-		vips_error( class->nickname, 
-			"%s", _( "unable to read codec info" ) );
+	if( !(jp2k->info = opj_get_cstr_info( jp2k->codec )) )
 		return( -1 );
-	}
 	if( jp2k->image->numcomps > MAX_BANDS ) {
 		vips_error( class->nickname, 
 			"%s", _( "too many image bands" ) );
@@ -565,7 +559,7 @@ vips_foreign_load_jp2k_repack( VipsForeignLoadJp2k *jp2k,
 	VipsImage *image, VipsPel *q, 
 	int left, int top, int length )
 {
-	int **planes = jp2k->planes;
+	int *planes[MAX_BANDS];
 	int b = jp2k->image->numcomps;
 
 	int x, i;
@@ -686,12 +680,8 @@ vips_foreign_load_jp2k_generate( VipsRegion *out,
 	}
 
 	if( load->fail &&
-		jp2k->n_errors > 0 ) {
-		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( jp2k );
-
-		vips_error( class->nickname, "%s", _( "load error" ) );
+		jp2k->n_errors > 0 ) 
 		return( -1 );
-	}
 
 	return( 0 );
 }
@@ -803,7 +793,7 @@ vips_foreign_load_jp2k_file_build( VipsObject *object )
 	return( 0 );
 }
 
-const char *vips_foreign_jp2k_suffs[] = 
+const char *vips__jp2k_suffs[] = 
 	{ ".j2k", ".jp2", ".jpt", ".j2c", ".jpc", NULL };
 
 static int
@@ -835,7 +825,7 @@ vips_foreign_load_jp2k_file_class_init(
 	object_class->nickname = "jp2kload";
 	object_class->build = vips_foreign_load_jp2k_file_build;
 
-	foreign_class->suffs = vips_foreign_jp2k_suffs;
+	foreign_class->suffs = vips__jp2k_suffs;
 
 	load_class->is_a = vips_foreign_load_jp2k_is_a;
 
