@@ -57,14 +57,6 @@
 
 /* TODO:
  *
- * 	- set alpha on save
- *
- * 	- params for compression ratio, chrominance subsampling, etc. ...
- * 	  imagemagick jp2 files are half the size of ours
- *
- *	- we only support 8 and 16-bit unsigned images ... add 32-bit, plus
- *	  signed and unsigned
- *
  * 	- tests
  *
  */
@@ -409,11 +401,15 @@ vips_foreign_load_jp2k_set_header( VipsForeignLoadJp2k *jp2k, VipsImage *out )
 
 	switch( first->prec ) {
 	case 8:
-		format = VIPS_FORMAT_UCHAR;
+		format = first->sgnd ? VIPS_FORMAT_CHAR : VIPS_FORMAT_UCHAR;
 		break;
 
 	case 16:
-		format = VIPS_FORMAT_USHORT;
+		format = first->sgnd ? VIPS_FORMAT_SHORT : VIPS_FORMAT_USHORT;
+		break;
+
+	case 32:
+		format = first->sgnd ? VIPS_FORMAT_INT : VIPS_FORMAT_UINT;
 		break;
 
 	default:
@@ -424,13 +420,13 @@ vips_foreign_load_jp2k_set_header( VipsForeignLoadJp2k *jp2k, VipsImage *out )
 
 	switch( jp2k->image->color_space ) {
 	case OPJ_CLRSPC_GRAY:
-		interpretation = format == VIPS_FORMAT_UCHAR ? 
+		interpretation = vips_format_sizeof( format ) == 1 ? 
 			VIPS_INTERPRETATION_B_W :
 			VIPS_INTERPRETATION_GREY16;
 		break;
 
 	case OPJ_CLRSPC_SRGB:
-		interpretation = format == VIPS_FORMAT_UCHAR ? 
+		interpretation = vips_format_sizeof( format ) == 1 ? 
 			VIPS_INTERPRETATION_sRGB :
 			VIPS_INTERPRETATION_RGB16;
 		break;
@@ -443,11 +439,11 @@ vips_foreign_load_jp2k_set_header( VipsForeignLoadJp2k *jp2k, VipsImage *out )
 		/* Try to guess something sensible.
 		 */
 		if( jp2k->image->numcomps < 3 )
-			interpretation = format == VIPS_FORMAT_UCHAR ?
+			interpretation = vips_format_sizeof( format ) == 1 ? 
 				VIPS_INTERPRETATION_B_W :
 				VIPS_INTERPRETATION_GREY16;
 		else
-			interpretation = format == VIPS_FORMAT_UCHAR ? 
+			interpretation = vips_format_sizeof( format ) == 1 ? 
 				VIPS_INTERPRETATION_sRGB :
 				VIPS_INTERPRETATION_RGB16;
 		break;
@@ -569,11 +565,18 @@ vips_foreign_load_jp2k_repack( VipsForeignLoadJp2k *jp2k,
 			top * jp2k->image->comps[i].w + left;
 
 	switch( image->BandFmt ) {
+	case VIPS_FORMAT_CHAR:
 	case VIPS_FORMAT_UCHAR:
 		REPACK( unsigned char );
 		break;
 
+	case VIPS_FORMAT_SHORT:
 	case VIPS_FORMAT_USHORT:
+		REPACK( unsigned short );
+		break;
+
+	case VIPS_FORMAT_INT:
+	case VIPS_FORMAT_UINT:
 		REPACK( unsigned short );
 		break;
 
@@ -782,8 +785,7 @@ vips_foreign_load_jp2k_file_build( VipsObject *object )
 	VipsForeignLoadJp2kFile *file = (VipsForeignLoadJp2kFile *) object;
 
 	if( file->filename &&
-		!(jp2k->source = 
-			vips_source_new_from_file( file->filename )) )
+		!(jp2k->source = vips_source_new_from_file( file->filename )) )
 		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_jp2k_file_parent_class )->

@@ -36,6 +36,20 @@
 #define DEBUG
  */
 
+/* TODO:
+ *
+ * 	- params for compression ratio, chrominance subsampling, etc. ...
+ * 	  imagemagick jp2 files are half the size of ours
+ *
+ * 	  https://imagemagick.org/script/jp2.php
+ *
+ * 	- metadata, eg. icc profile etc.
+ *
+ * 	- alpha channels do not seem to be tagged correctly
+ *
+ * 	- tests
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -184,9 +198,17 @@ vips_foreign_save_jp2k_attach_handlers( VipsForeignSaveJp2k *jp2k,
 	TYPE **tplanes = (TYPE **) planes; \
 	TYPE *tp = (TYPE *) p; \
 	\
-	for( x = 0; x < tile->width; x++ ) \
-		for( i = 0; i < b; i++ ) \
-			*(tplanes[i])++ = *tp++; \
+	for( i = 0; i < b; i++ ) { \
+		TYPE *q = tplanes[i]; \
+		TYPE *tp1 = tp + i; \
+		\
+		for( x = 0; x < tile->width; x++ ) { \
+			q[x] = *tp1; \
+			tp1 += b; \
+		} \
+		\
+		tplanes[i] += tile->width; \
+	} \
 }
 
 static void
@@ -208,12 +230,19 @@ vips_foreign_save_jp2k_unpack( VipsForeignSaveJp2k *jp2k, VipsRect *tile )
 			tile->left, tile->top + y );
 
 		switch( save->ready->BandFmt ) {
+		case VIPS_FORMAT_CHAR:
 		case VIPS_FORMAT_UCHAR:
 			UNPACK( unsigned char );
 			break;
 
+		case VIPS_FORMAT_SHORT:
 		case VIPS_FORMAT_USHORT:
 			UNPACK( unsigned short );
+			break;
+
+		case VIPS_FORMAT_INT:
+		case VIPS_FORMAT_UINT:
+			UNPACK( unsigned int );
 			break;
 
 		default:
@@ -318,6 +347,7 @@ vips_foreign_save_jp2k_write_block( VipsRegion *region, VipsRect *area,
 static int
 vips_foreign_save_jp2k_build( VipsObject *object )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveJp2k *jp2k = (VipsForeignSaveJp2k *) object;
 
@@ -330,6 +360,12 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_jp2k_parent_class )->
 		build( object ) )
 		return( -1 );
+
+	if( !vips_band_format_isint( save->ready->BandFmt ) ) {
+		vips_error( class->nickname,
+			"%s", _( "not an integer format" ) );
+		return( -1 );
+	}
 
 	/* A JPEG2000 codestream.
 	 */
@@ -345,17 +381,9 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	jp2k->parameters.cp_tdx = jp2k->tile_width;
 	jp2k->parameters.cp_tdy = jp2k->tile_height;
 
-	/*
-	jp2k->parameters.tcp_numlayers = 1;
-	jp2k->parameters.decod_format = 17;
-	jp2k->parameters.tcp_mct = 1;
+	/* Lossy mode.
 	 */
-
-	/* Enable YCC encoding for RGB images.
-	    if ((parameters.tcp_mct == 1) && (image->numcomps < 3)) {
-                fprintf(stderr, "RGB->YCC conversion cannot be used:\n");
-                fprintf(stderr, "Input image has less than 3 components\n");
-	 */
+	jp2k->parameters.irreversible = TRUE;
 
 	/* CIELAB etc. do not seem to be well documented.
 	 */
@@ -370,6 +398,12 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	case VIPS_INTERPRETATION_RGB16:
 		color_space = OPJ_CLRSPC_SRGB;
 		expected_bands = 3;
+
+		/* Enable mct (YCC mode?).
+		 */
+		if( save->ready->Bands >= 3 )
+			jp2k->parameters.tcp_mct = 1;
+
 		break;
 
 	case VIPS_INTERPRETATION_CMYK:
@@ -391,14 +425,19 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 		jp2k->comps[i].x0 = 0;
 		jp2k->comps[i].y0 = 0;
 		jp2k->comps[i].prec = jp2k->comps[i].bpp = 
-			save->ready->BandFmt == VIPS_FORMAT_UCHAR ? 8 : 16;
-		jp2k->comps[i].sgnd = 0;
-		//jp2k->comps[i].alpha = i >= expected_bands;
+			8 * vips_format_sizeof( save->ready->BandFmt );
+		jp2k->comps[i].sgnd = 
+			!vips_band_format_isuint( save->ready->BandFmt );
 	}
 	jp2k->image = opj_image_create( save->ready->Bands, 
 		jp2k->comps, color_space );
 	jp2k->image->x1 = save->ready->Xsize;
 	jp2k->image->y1 = save->ready->Ysize;
+
+	/* Tag alpha channels. 
+	 */
+	for( i = 0; i < save->ready->Bands; i++ )
+		jp2k->image->comps[i].alpha = i >= expected_bands;
 
         if( !opj_setup_encoder( jp2k->codec, &jp2k->parameters, jp2k->image ) ) 
 		return( -1 );
@@ -408,7 +447,7 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	if( !(jp2k->stream = vips_foreign_save_jp2k_target( jp2k->target )) )
 		return( -1 );
 
-	if( !opj_start_compress( jp2k->codec,  jp2k->image,  jp2k->stream ) )
+	if( !opj_start_compress( jp2k->codec, jp2k->image,  jp2k->stream ) )
 		return( -1 );
 
 	/* The buffer we repack tiles to for write. Large enough for one
@@ -446,16 +485,6 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	return( 0 );
 }
 
-/* Save a bit of typing.
- */
-#define UC VIPS_FORMAT_UCHAR
-#define US VIPS_FORMAT_USHORT
-
-static int vips_jp2k_bandfmt[10] = {
-/* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, UC, US, US, US, US, US, US, US, US
-};
-
 static void
 vips_foreign_save_jp2k_class_init( VipsForeignSaveJp2kClass *class )
 {
@@ -475,7 +504,6 @@ vips_foreign_save_jp2k_class_init( VipsForeignSaveJp2kClass *class )
 	foreign_class->suffs = vips__jp2k_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
-	save_class->format_table = vips_jp2k_bandfmt;
 
 	VIPS_ARG_INT( class, "tile_width", 11, 
 		_( "Tile width" ), 
