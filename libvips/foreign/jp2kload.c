@@ -32,9 +32,9 @@
  */
 
 /*
+ */
 #define DEBUG_VERBOSE
 #define DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -54,12 +54,6 @@
 #include <openjpeg.h>
 
 #include "pforeign.h"
-
-/* TODO:
- *
- * 	- tests
- *
- */
 
 /* Surely enough ... does anyone do multispectral imaging with jp2k?
  */

@@ -36,20 +36,6 @@
 #define DEBUG
  */
 
-/* TODO:
- *
- * 	- params for compression ratio, chrominance subsampling, etc. ...
- * 	  imagemagick jp2 files are half the size of ours
- *
- * 	  https://imagemagick.org/script/jp2.php
- *
- * 	- metadata, eg. icc profile etc.
- *
- * 	- alpha channels do not seem to be tagged correctly
- *
- * 	- tests
- */
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -81,6 +67,14 @@ typedef struct _VipsForeignSaveJp2k {
 
 	int tile_width;
 	int tile_height;
+
+	/* Lossless mode.
+	 */
+	gboolean lossless;
+
+	/* Quality factor.
+	 */
+	int Q;
 
 	/* Encoder state.
 	 */
@@ -381,9 +375,33 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	jp2k->parameters.cp_tdx = jp2k->tile_width;
 	jp2k->parameters.cp_tdy = jp2k->tile_height;
 
+	/* Number of layers to write. Smallest layer is c. 2^5 on the smallest
+	 * axis.
+	 */
+	jp2k->parameters.numresolution = VIPS_MAX( 1, 
+		log( VIPS_MIN( save->ready->Xsize, save->ready->Ysize ) ) / 
+		log( 2 ) - 4 );
+#ifdef DEBUG
+	printf( "vips_foreign_save_jp2k_build: numresolutions = %d\n", 
+		jp2k->parameters.numresolution );
+#endif /*DEBUG*/
+
 	/* Lossy mode.
 	 */
-	jp2k->parameters.irreversible = TRUE;
+	if( !jp2k->lossless ) {
+		jp2k->parameters.irreversible = TRUE;
+
+		/* Allowed distortion
+		 */
+		jp2k->parameters.cp_disto_alloc = 1;
+		jp2k->parameters.cp_fixed_quality = TRUE;
+		jp2k->parameters.tcp_distoratio[0] = jp2k->Q;
+		jp2k->parameters.tcp_numlayers = 1;
+
+		/* Enable mct (YCC mode?).
+		 */
+		jp2k->parameters.tcp_mct = save->ready->Bands == 3 ? 1 : 0;
+	}
 
 	/* CIELAB etc. do not seem to be well documented.
 	 */
@@ -398,11 +416,6 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	case VIPS_INTERPRETATION_RGB16:
 		color_space = OPJ_CLRSPC_SRGB;
 		expected_bands = 3;
-
-		/* Enable mct (YCC mode?).
-		 */
-		if( save->ready->Bands >= 3 )
-			jp2k->parameters.tcp_mct = 1;
 
 		break;
 
@@ -519,6 +532,20 @@ vips_foreign_save_jp2k_class_init( VipsForeignSaveJp2kClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveJp2k, tile_height ),
 		1, 32768, 512 );
 
+	VIPS_ARG_BOOL( class, "lossless", 13, 
+		_( "Lossless" ), 
+		_( "Enable lossless compression" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveJp2k, lossless ),
+		FALSE ); 
+
+	VIPS_ARG_INT( class, "Q", 14, 
+		_( "Q" ), 
+		_( "Q factor" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveJp2k, Q ),
+		1, 100, 45 );
+
 }
 
 static void
@@ -526,6 +553,10 @@ vips_foreign_save_jp2k_init( VipsForeignSaveJp2k *jp2k )
 {
 	jp2k->tile_width = 512;
 	jp2k->tile_height = 512;
+
+	/* 45 gives about the same filesize as default regular jpg.
+	 */
+	jp2k->Q = 45;
 }
 
 typedef struct _VipsForeignSaveJp2kFile {
@@ -649,7 +680,23 @@ vips_foreign_save_jp2k_target_init( VipsForeignSaveJp2kTarget *target )
  * @filename: file to write to 
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * * @Q: %gint, quality factor
+ * * @lossless: %gboolean, enables lossless compression
+ * * @tile_width: %gint for tile size
+ * * @tile_height: %gint for tile size
+ *
  * Write a VIPS image to a file in JPEG2000 format. 
+ *
+ * Use @Q to set the compression quality factor. The default value of 45
+ * produces file with approximately the same size as regular JPEG Q 75.
+ *
+ * Set @lossless to enable lossless compresion.
+ *
+ * Use @tile_width and @tile_height to set the tile size. The default is 512.
+ *
+ * This operation always writes a pyramid.
  *
  * See also: vips_image_write_to_file(), vips_jp2kload().
  *
@@ -673,6 +720,13 @@ vips_jp2ksave( VipsImage *in, const char *filename, ... )
  * @in: image to save 
  * @target: save image to this target
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @Q: %gint, quality factor
+ * * @lossless: %gboolean, enables lossless compression
+ * * @tile_width: %gint for tile size
+ * * @tile_height: %gint for tile size
  *
  * As vips_jp2ksave(), but save to a target.
  *
