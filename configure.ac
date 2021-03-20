@@ -787,6 +787,14 @@ if test x"$with_libopenjp2" != x"no"; then
      with_libopenjp2=no
     ]
   )
+
+  # 2.3 and earlier have threading problems
+  PKG_CHECK_MODULES(LIBOPENJP2_THREADING, libopenjp2 >= 2.4,
+    [AC_DEFINE(HAVE_LIBOPENJP2_THREADING,1,[define if your libopenjp2 threading works.])
+    ],
+    [:
+    ]
+  )
 fi
 
 VIPS_CFLAGS="$VIPS_CFLAGS $LIBOPENJP2_CFLAGS"

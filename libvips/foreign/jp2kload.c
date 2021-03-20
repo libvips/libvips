@@ -506,9 +506,12 @@ vips_foreign_load_jp2k_header( VipsForeignLoad *load )
 	if( !opj_setup_decoder( jp2k->codec, &jp2k->parameters ) ) 
 		return( -1 );
 
-	/* Use eg. VIPS_CONCURRENCY etc. to set n-cpus. 
+#ifdef HAVE_LIBOPENJP2_THREADING
+	/* Use eg. VIPS_CONCURRENCY etc. to set n-cpus, if this openjpeg has
+	 * stable support. 
 	 */
 	opj_codec_set_threads( jp2k->codec, vips_concurrency_get() );
+#endif /*HAVE_LIBOPENJP2_THREADING*/
 
 	if( !opj_read_header( jp2k->stream, jp2k->codec, &jp2k->image ) )
 		return( -1 );
