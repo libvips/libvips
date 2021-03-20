@@ -32,9 +32,9 @@
  */
 
 /*
- */
 #define DEBUG_VERBOSE
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -839,6 +839,84 @@ vips_foreign_load_jp2k_file_init( VipsForeignLoadJp2kFile *jp2k )
 {
 }
 
+typedef struct _VipsForeignLoadJp2kBuffer {
+	VipsForeignLoadJp2k parent_object;
+
+	/* Load from a buffer.
+	 */
+	VipsArea *buf;
+
+} VipsForeignLoadJp2kBuffer;
+
+typedef VipsForeignLoadJp2kClass VipsForeignLoadJp2kBufferClass;
+
+G_DEFINE_TYPE( VipsForeignLoadJp2kBuffer, vips_foreign_load_jp2k_buffer, 
+	vips_foreign_load_jp2k_get_type() );
+
+static int
+vips_foreign_load_jp2k_buffer_build( VipsObject *object )
+{
+	VipsForeignLoadJp2k *jp2k = (VipsForeignLoadJp2k *) object;
+	VipsForeignLoadJp2kBuffer *buffer = 
+		(VipsForeignLoadJp2kBuffer *) object;
+
+	if( buffer->buf )
+		if( !(jp2k->source = vips_source_new_from_memory( 
+			VIPS_AREA( buffer->buf )->data, 
+			VIPS_AREA( buffer->buf )->length )) )
+			return( -1 );
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_jp2k_file_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static gboolean
+vips_foreign_load_jp2k_buffer_is_a( const void *buf, size_t len )
+{
+	VipsSource *source;
+	gboolean result;
+
+	if( !(source = vips_source_new_from_memory( buf, len )) )
+		return( FALSE );
+	result = vips_foreign_load_jp2k_is_a_source( source );
+	VIPS_UNREF( source );
+
+	return( result );
+}
+
+static void
+vips_foreign_load_jp2k_buffer_class_init( 
+	VipsForeignLoadJp2kBufferClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "jp2kload_buffer";
+	object_class->build = vips_foreign_load_jp2k_buffer_build;
+
+	load_class->is_a_buffer = vips_foreign_load_jp2k_buffer_is_a;
+
+	VIPS_ARG_BOXED( class, "buffer", 1, 
+		_( "Buffer" ),
+		_( "Buffer to load from" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignLoadJp2kBuffer, buf ),
+		VIPS_TYPE_BLOB );
+
+}
+
+static void
+vips_foreign_load_jp2k_buffer_init( VipsForeignLoadJp2kBuffer *buffer )
+{
+}
+
 typedef struct _VipsForeignLoadJp2kSource {
 	VipsForeignLoadJp2k parent_object;
 
@@ -935,6 +1013,41 @@ vips_jp2kload( const char *filename, VipsImage **out, ... )
 	va_start( ap, out );
 	result = vips_call_split( "jp2kload", ap, filename, out );
 	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_jp2kload_buffer:
+ * @buf: (array length=len) (element-type guint8): memory area to load
+ * @len: (type gsize): size of memory area
+ * @out: (out): image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, load this page
+ *
+ * Exactly as vips_jp2kload(), but read from a source. 
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jp2kload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "jp2kload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
 
 	return( result );
 }
