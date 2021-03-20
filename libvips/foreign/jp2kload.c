@@ -592,8 +592,10 @@ vips_foreign_load_jp2k_generate( VipsRegion *out,
 
 	/* jp2k get smaller with the layer size.
 	 */
-	int tile_width = jp2k->info->tdx / jp2k->shrink;
-	int tile_height = jp2k->info->tdy / jp2k->shrink;
+	int tile_width = VIPS_ROUND_UINT( 
+		(double) jp2k->info->tdx / jp2k->shrink );
+	int tile_height = VIPS_ROUND_UINT( 
+		(double) jp2k->info->tdy / jp2k->shrink );
 
 	/* ... so tiles_across is always the same.
 	 */
