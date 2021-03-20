@@ -752,6 +752,9 @@ vips_foreign_save_jp2k_target_init( VipsForeignSaveJp2kTarget *target )
  * * @tile_height: %gint for tile size
  *
  * Write a VIPS image to a file in JPEG2000 format. 
+ * The saver supports 8, 16 and 32-bit int pixel
+ * values, signed and unsigned. It supports greyscale, RGB, CMYK and
+ * multispectral images. 
  *
  * Use @Q to set the compression quality factor. The default value of 45
  * produces file with approximately the same size as regular JPEG Q 75.

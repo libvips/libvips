@@ -994,7 +994,13 @@ vips_foreign_load_jp2k_source_init(
  *
  * * @page: %gint, load this page
  *
- * Read a JPEG2000 image.
+ * Read a JPEG2000 image. The loader supports 8, 16 and 32-bit int pixel
+ * values, signed and unsigned. 
+ * It will read any ICC profile on
+ * the image. It supports greyscale, RGB, CMYK and
+ * multispectral images. 
+ *
+ * It will only load images where all channels are the same size and format.
  *
  * Use @page to set the page to load, where page 0 is the base resolution
  * image, and higher-numbered pages are x2 reductions. Use the metadata item
