@@ -85,7 +85,7 @@
 #ifdef HAVE_VECTOR_ARITH
 /* A vector of four floats.
  */
-typedef float v4f __attribute__((vector_size(4 * sizeof(float))));
+typedef float v4f __attribute__((vector_size(4 * sizeof(float)),aligned(16)));
 #endif /*HAVE_VECTOR_ARITH*/
 
 typedef struct _VipsCompositeBase {
