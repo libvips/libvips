@@ -84,6 +84,14 @@ typedef struct _VipsForeignLoadJp2k {
 	 * corrupted images.
 	 */
 	int n_errors;
+
+	/* If we need to upsample tiles read from opj.
+	 */
+	gboolean upsample;
+
+	/* If we need to do ycc->rgb conversion on load.
+	 */
+	gboolean ycc_to_rgb;
 } VipsForeignLoadJp2k;
 
 typedef VipsForeignLoadClass VipsForeignLoadJp2kClass;
@@ -354,44 +362,10 @@ static int
 vips_foreign_load_jp2k_set_header( VipsForeignLoadJp2k *jp2k, VipsImage *out )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( jp2k );
+	opj_image_comp_t *first = &jp2k->image->comps[0];
 
-	opj_image_comp_t *first;
-	int i;
 	VipsBandFormat format;
 	VipsInterpretation interpretation;
-
-	/* We only allow images with all components having the same format.
-	 */
-	if( jp2k->image->numcomps == 0 ) {
-		vips_error( class->nickname, 
-			"%s", _( "no image components" ) );
-		return( -1 );
-	}
-	first = &jp2k->image->comps[0];
-	for( i = 1; i < jp2k->image->numcomps; i++ ) {
-		opj_image_comp_t *this = &jp2k->image->comps[i];
-
-		if( this->x0 != first->x0 ||
-			this->y0 != first->y0 ||
-			this->w != first->w ||
-			this->h != first->h ||
-			this->dx != first->dx ||
-			this->dy != first->dy ||
-			this->resno_decoded != first->resno_decoded ||
-			this->factor != first->factor ) {
-			vips_error( class->nickname, 
-				"%s", _( "components differ in geometry" ) );
-			return( -1 );
-		}
-
-		if( this->prec != first->prec ||
-			this->bpp != first->bpp ||
-			this->sgnd != first->sgnd ) {
-			vips_error( class->nickname, 
-				"%s", _( "components differ in precision" ) );
-			return( -1 );
-		}
-	}
 
 	switch( first->prec ) {
 	case 8:
@@ -413,6 +387,16 @@ vips_foreign_load_jp2k_set_header( VipsForeignLoadJp2k *jp2k, VipsImage *out )
 	}
 
 	switch( jp2k->image->color_space ) {
+	case OPJ_CLRSPC_SYCC:
+	case OPJ_CLRSPC_EYCC:
+		/* Map these to RGB.
+		 */
+		interpretation = vips_format_sizeof( format ) == 1 ? 
+			VIPS_INTERPRETATION_sRGB :
+			VIPS_INTERPRETATION_RGB16;
+		jp2k->ycc_to_rgb = TRUE;
+		break;
+
 	case OPJ_CLRSPC_GRAY:
 		interpretation = vips_format_sizeof( format ) == 1 ? 
 			VIPS_INTERPRETATION_B_W :
@@ -440,6 +424,19 @@ vips_foreign_load_jp2k_set_header( VipsForeignLoadJp2k *jp2k, VipsImage *out )
 			interpretation = vips_format_sizeof( format ) == 1 ? 
 				VIPS_INTERPRETATION_sRGB :
 				VIPS_INTERPRETATION_RGB16;
+
+		/* Unspecified with three bands and subsampling on bands 2 and
+		 * 3 is usually YCC. 
+		 */
+		if( jp2k->image->numcomps == 3 &&
+			jp2k->image->comps[0].dx == 1 &&
+			jp2k->image->comps[0].dy == 1 &&
+			jp2k->image->comps[1].dx > 1 &&
+			jp2k->image->comps[1].dy > 1 &&
+			jp2k->image->comps[2].dx > 1 &&
+			jp2k->image->comps[2].dy > 1)
+			jp2k->ycc_to_rgb = TRUE;
+
 		break;
 
 	default:
@@ -490,6 +487,9 @@ vips_foreign_load_jp2k_header( VipsForeignLoad *load )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadJp2k *jp2k = (VipsForeignLoadJp2k *) load;
 
+	opj_image_comp_t *first;
+	int i;
+
 #ifdef DEBUG
 	printf( "vips_foreign_load_jp2k_header:\n" );
 #endif /*DEBUG*/
@@ -517,15 +517,55 @@ vips_foreign_load_jp2k_header( VipsForeignLoad *load )
 		return( -1 );
 	if( !(jp2k->info = opj_get_cstr_info( jp2k->codec )) )
 		return( -1 );
+
+#ifdef DEBUG
+	vips_foreign_load_jp2k_print( jp2k );
+#endif /*DEBUG*/
+
+	/* We only allow images where all components have the same format.
+	 */
 	if( jp2k->image->numcomps > MAX_BANDS ) {
 		vips_error( class->nickname, 
 			"%s", _( "too many image bands" ) );
 		return( -1 );
 	}
+	if( jp2k->image->numcomps == 0 ) {
+		vips_error( class->nickname, 
+			"%s", _( "no image components" ) );
+		return( -1 );
+	}
+	first = &jp2k->image->comps[0];
+	for( i = 1; i < jp2k->image->numcomps; i++ ) {
+		opj_image_comp_t *this = &jp2k->image->comps[i];
 
-#ifdef DEBUG
-	vips_foreign_load_jp2k_print( jp2k );
-#endif /*DEBUG*/
+		if( this->x0 != first->x0 ||
+			this->y0 != first->y0 ||
+			this->w * this->dx != first->w * first->dx ||
+			this->h * this->dy != first->h * first->dy ||
+			this->resno_decoded != first->resno_decoded ||
+			this->factor != first->factor ) {
+			vips_error( class->nickname, 
+				"%s", _( "components differ in geometry" ) );
+			return( -1 );
+		}
+
+		if( this->prec != first->prec ||
+			this->bpp != first->bpp ||
+			this->sgnd != first->sgnd ) {
+			vips_error( class->nickname, 
+				"%s", _( "components differ in precision" ) );
+			return( -1 );
+		}
+
+		/* If dx/dy are not 1, we'll need to upsample components during
+		 * tile packing.
+		 */
+		if( this->dx != first->dx ||
+			this->dy != first->dy ||
+			first->dx != 1 ||
+			first->dy != 1 )
+			jp2k->upsample = TRUE;
+	}
 
 	if( vips_foreign_load_jp2k_set_header( jp2k, load->out ) ) 
 		return( -1 );
@@ -536,19 +576,37 @@ vips_foreign_load_jp2k_header( VipsForeignLoad *load )
 	return( 0 );
 }
 
-#define REPACK( TYPE ) { \
+#define PACK( TYPE ) { \
 	TYPE *tq = (TYPE *) q; \
 	\
-	for( x = 0; x < length; x++ ) \
+	for( x = 0; x < length; x++ ) { \
 		for( i = 0; i < b; i++ ) \
-			*tq++ = planes[i][x]; \
+			tq[i] = planes[i][x]; \
+		\
+		tq += b; \
+	} \
 }
 
-/* Write a line of pels to vips from openjpeg. openjpeg stores everything as
- * plane-separated arrays of int32.
+#define PACK_UPSAMPLE( TYPE ) { \
+	TYPE *tq = (TYPE *) q; \
+	\
+	for( x = 0; x < length; x++ ) { \
+		for( i = 0; i < b; i++ ) { \
+			int dx = jp2k->image->comps[i].dx; \
+			int pixel = planes[i][x / dx]; \
+			\
+			tq[i] = pixel; \
+		} \
+		\
+		tq += b; \
+	} \
+}
+
+/* Pack the set of openjpeg components into a libvips region. left/top are the
+ * offsets into the tile in pixel coordinates where we should start reading.
  */
 static void
-vips_foreign_load_jp2k_repack( VipsForeignLoadJp2k *jp2k, 
+vips_foreign_load_jp2k_pack( VipsForeignLoadJp2k *jp2k, 
 	VipsImage *image, VipsPel *q, 
 	int left, int top, int length )
 {
@@ -557,24 +615,111 @@ vips_foreign_load_jp2k_repack( VipsForeignLoadJp2k *jp2k,
 
 	int x, i;
 
-	for( i = 0; i < b; i++ )
-		planes[i] = jp2k->image->comps[i].data + 
-			top * jp2k->image->comps[i].w + left;
+	for( i = 0; i < b; i++ ) {
+		opj_image_comp_t *comp = &jp2k->image->comps[i];
 
-	switch( image->BandFmt ) {
+		planes[i] = comp->data + (top / comp->dy) * comp->w + 
+			(left / comp->dx);
+	}
+
+	if( jp2k->upsample ) 
+		switch( image->BandFmt ) {
+		case VIPS_FORMAT_CHAR:
+		case VIPS_FORMAT_UCHAR:
+			PACK_UPSAMPLE( unsigned char );
+			break;
+
+		case VIPS_FORMAT_SHORT:
+		case VIPS_FORMAT_USHORT:
+			PACK_UPSAMPLE( unsigned short );
+			break;
+
+		case VIPS_FORMAT_INT:
+		case VIPS_FORMAT_UINT:
+			PACK_UPSAMPLE( unsigned int );
+			break;
+
+		default:
+			g_assert_not_reached();
+			break;
+		}
+	else 
+		/* Fast no-upsample path.
+		 */
+		switch( image->BandFmt ) {
+		case VIPS_FORMAT_CHAR:
+		case VIPS_FORMAT_UCHAR:
+			PACK( unsigned char );
+			break;
+
+		case VIPS_FORMAT_SHORT:
+		case VIPS_FORMAT_USHORT:
+			PACK( unsigned short );
+			break;
+
+		case VIPS_FORMAT_INT:
+		case VIPS_FORMAT_UINT:
+			PACK( unsigned int );
+			break;
+
+		default:
+			g_assert_not_reached();
+			break;
+		}
+}
+
+/* ycc->rgb coversion adapted from openjpeg src/bin/common/color.c.
+ */
+#define YCC_TO_RGB( TYPE ) { \
+	TYPE *tq = (TYPE *) q; \
+	\
+	for( x = 0; x < length; x++ ) { \
+		int y = tq[0]; \
+		int cb = tq[1] - offset; \
+		int cr = tq[2] - offset; \
+		\
+		int r, g, b; \
+		\
+		r = y + (int)(1.402 * (float)cr); \
+		tq[0] = VIPS_CLIP( 0, r, upb ); \
+		\
+		g = y - (int)(0.344 * (float)cb + 0.714 * (float)cr); \
+		tq[1] = VIPS_CLIP( 0, g, upb ); \
+		\
+		b = y + (int)(1.772 * (float)cb); \
+		tq[2] = VIPS_CLIP( 0, b, upb ); \
+		\
+		tq += 3; \
+	} \
+}
+
+/* YCC->RGB for a line of pels.
+ */
+static void
+vips_foreign_load_jp2k_ycc_to_rgb( VipsForeignLoadJp2k *jp2k, 
+	VipsPel *q, int length )
+{
+	VipsForeignLoad *load = (VipsForeignLoad *) jp2k;
+	int prec = jp2k->image->comps[0].prec;
+	int offset = 1 << (prec - 1);
+	int upb = (1 << prec) - 1;
+
+	int x;
+
+	switch( load->out->BandFmt ) {
 	case VIPS_FORMAT_CHAR:
 	case VIPS_FORMAT_UCHAR:
-		REPACK( unsigned char );
+		YCC_TO_RGB( unsigned char );
 		break;
 
 	case VIPS_FORMAT_SHORT:
 	case VIPS_FORMAT_USHORT:
-		REPACK( unsigned short );
+		YCC_TO_RGB( unsigned short );
 		break;
 
 	case VIPS_FORMAT_INT:
 	case VIPS_FORMAT_UINT:
-		REPACK( unsigned short );
+		YCC_TO_RGB( unsigned int );
 		break;
 
 	default:
@@ -665,11 +810,15 @@ vips_foreign_load_jp2k_generate( VipsRegion *out,
 				VipsPel *q = VIPS_REGION_ADDR( out, 
 					hit.left, hit.top + z );
 
-				vips_foreign_load_jp2k_repack( jp2k,
+				vips_foreign_load_jp2k_pack( jp2k,
 					out->im, q,
 					hit.left - tile.left,
 					hit.top - tile.top + z,
 					hit.width ); 
+
+				if( jp2k->ycc_to_rgb )
+					vips_foreign_load_jp2k_ycc_to_rgb( jp2k,
+						q, hit.width );
 			}
 
 			x += hit.width;
@@ -1001,14 +1150,15 @@ vips_foreign_load_jp2k_source_init(
  *
  * Read a JPEG2000 image. The loader supports 8, 16 and 32-bit int pixel
  * values, signed and unsigned. 
+ * It supports greyscale, RGB, YCC, CMYK and
+ * multispectral colour spaces. 
  * It will read any ICC profile on
- * the image. It supports greyscale, RGB, CMYK and
- * multispectral images. 
+ * the image. 
  *
- * It will only load images where all channels are the same size and format.
+ * It will only load images where all channels are the same format.
  *
  * Use @page to set the page to load, where page 0 is the base resolution
- * image, and higher-numbered pages are x2 reductions. Use the metadata item
+ * image and higher-numbered pages are x2 reductions. Use the metadata item
  * "n-pages" to find the number of pyramid layers.
  *
  * See also: vips_image_new_from_file().
