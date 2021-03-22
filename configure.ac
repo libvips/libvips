@@ -190,7 +190,6 @@ AC_PROG_CC_STDC
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LN_S
-AM_WITH_DMALLOC
 
 AC_ARG_WITH([doxygen], 
   AS_HELP_STRING([--without-doxygen], [build without doxygen (default: test)]))
