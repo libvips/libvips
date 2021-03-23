@@ -38,9 +38,6 @@
 
 /* TODO
  *
- * - we will have 0.5 pixels if the image width or height is odd and chroma
- *   subsampling is on ... this will cause at least read out of bounds.
- *
  * - could support tiff-like depth parameter
  *
  * - could support png-like bitdepth parameter
@@ -624,13 +621,8 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 		break;
 	}
 
-	if( jp2k->downsample ) {
+	if( jp2k->downsample ) 
 		jp2k->save_as_ycc = TRUE;
-
-		/* MCT does not work with subsample.
-		 */
-		jp2k->parameters.tcp_mct = FALSE;
-	}
 
 	/* CIELAB etc. do not seem to be well documented.
 	 */
@@ -717,7 +709,8 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 
 	/* Makes three band images smaller, somehow.
 	 */
-	jp2k->parameters.tcp_mct = save->ready->Bands == 3 ? 1 : 0;
+	jp2k->parameters.tcp_mct = 
+		(save->ready->Bands == 3 && !jp2k->downsample) ? 1 : 0;
 
 	/* Lossy mode.
 	 */
