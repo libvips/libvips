@@ -256,7 +256,7 @@ AM_GLIB_GNU_GETTEXT
 #   [ax_gcc_version_option=yes],
 #   [ax_gcc_version_option=no]
 # )
-AC_MSG_CHECKING([for gcc version])
+AC_MSG_CHECKING([for $CC version])
 GCC_VERSION=""
 version=$($CC -dumpversion)
 if test $? = 0; then 
@@ -310,7 +310,7 @@ AC_TYPE_SIZE_T
 
 # g++/gcc 4.x and 5.x have rather broken vector support ... 5.4.1 seems to
 # work, but 5.4.0 fails to even compile
-AC_MSG_CHECKING([for gcc with working vector support])
+AC_MSG_CHECKING([for $CC with working vector support])
 if test x"$GCC_VERSION_MAJOR" != x"4" -a x"$GCC_VERSION_MAJOR" != x"5"; then
   AC_MSG_RESULT([yes])
 else
@@ -323,7 +323,7 @@ if test x"$ax_cv_have_var_attribute_vector_size" = x"yes"; then
   AC_MSG_CHECKING([for C++ vector shuffle])
   AC_LANG_PUSH([C++])
   AC_TRY_COMPILE([
-    typedef float v4f __attribute__((vector_size(4 * sizeof(float))));
+    typedef float v4f __attribute__((vector_size(4 * sizeof(float)),aligned(16)));
   ],[
     v4f f; f[3] = 99;
   ],[
@@ -346,7 +346,7 @@ if test x"$have_vector_shuffle" = x"yes"; then
   AC_MSG_CHECKING([for C++ vector arithmetic])
   AC_LANG_PUSH([C++])
   AC_TRY_COMPILE([
-    typedef float v4f __attribute__((vector_size(4 * sizeof(float))));
+    typedef float v4f __attribute__((vector_size(4 * sizeof(float)),aligned(16)));
   ],[
     v4f f = {1, 2, 3, 4}; f *= 12.0; 
     v4f g = {5, 6, 7, 8}; f = g > 0 ? g : -1 * g;
@@ -366,7 +366,7 @@ if test x"$have_vector_arith" = x"yes"; then
   AC_MSG_CHECKING([for C++ signed constants in vector templates])
   AC_LANG_PUSH([C++])
   AC_TRY_COMPILE([
-    typedef float v4f __attribute__((vector_size(4 * sizeof(float))));
+    typedef float v4f __attribute__((vector_size(4 * sizeof(float)),aligned(16)));
     template <typename T>
     static void
     h( v4f B )
@@ -393,7 +393,7 @@ fi
 AC_FUNC_MEMCMP
 AC_FUNC_MMAP
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([getcwd gettimeofday getwd memset munmap putenv realpath strcasecmp strchr strcspn strdup strerror strrchr strspn vsnprintf realpath mkstemp mktemp random rand sysconf atexit])
+AC_CHECK_FUNCS([getcwd gettimeofday getwd memset munmap putenv realpath strcasecmp strchr strcspn strdup strerror strrchr strspn vsnprintf realpath mkstemp mktemp random rand sysconf atexit _aligned_malloc posix_memalign memalign])
 AC_CHECK_LIB(m,cbrt,[AC_DEFINE(HAVE_CBRT,1,[have cbrt() in libm.])])
 AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 AC_CHECK_LIB(m,atan2,[AC_DEFINE(HAVE_ATAN2,1,[have atan2() in libm.])])
