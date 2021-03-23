@@ -38,12 +38,8 @@
 
 /* TODO
  *
- * - we will have 0.5 pixels if the image width or hight is odd and chroma
+ * - we will have 0.5 pixels if the image width or height is odd and chroma
  *   subsampling is on ... this will cause at least read out of bounds.
- *
- * - add 16 and 32-bit images to tests
- *
- * - add chroma modes to tests
  *
  * - could support tiff-like depth parameter
  *
@@ -451,6 +447,9 @@ vips_foreign_save_jp2k_unpack( VipsForeignSaveJp2k *jp2k, VipsRect *tile )
 static size_t
 vips_foreign_save_jp2k_sizeof_tile( VipsForeignSaveJp2k *jp2k, VipsRect *tile )
 {
+	VipsForeignSave *save = (VipsForeignSave *) jp2k;
+	size_t sizeof_element = VIPS_IMAGE_SIZEOF_ELEMENT( save->ready );
+
 	size_t size;
 	int i;
 
@@ -466,7 +465,7 @@ vips_foreign_save_jp2k_sizeof_tile( VipsForeignSaveJp2k *jp2k, VipsRect *tile )
 		int output_height = VIPS_ROUND_UINT( 
 			(double) tile->height / comp->dy );;
 
-		size += output_width * output_height * (comp->bpp / 8);
+		size += output_width * output_height * sizeof_element;
 	}
 
 	return( size );
@@ -579,6 +578,7 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 
 	OPJ_COLOR_SPACE color_space;
 	int expected_bands;
+	int bits_per_pixel;
 	int i;
 	size_t sizeof_tile;
 	size_t sizeof_line;
@@ -632,6 +632,56 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 		jp2k->parameters.tcp_mct = FALSE;
 	}
 
+	/* CIELAB etc. do not seem to be well documented.
+	 */
+	switch( save->ready->Type ) {
+	case VIPS_INTERPRETATION_B_W:
+	case VIPS_INTERPRETATION_GREY16:
+		color_space = OPJ_CLRSPC_GRAY;
+		expected_bands = 1;
+		break;
+
+	case VIPS_INTERPRETATION_sRGB:
+	case VIPS_INTERPRETATION_RGB16:
+		color_space = jp2k->save_as_ycc ? 
+			OPJ_CLRSPC_SYCC : OPJ_CLRSPC_SRGB;
+		expected_bands = 3;
+		break;
+
+	case VIPS_INTERPRETATION_CMYK:
+		color_space = OPJ_CLRSPC_CMYK;
+		expected_bands = 4;
+		break;
+
+	default:
+		color_space = OPJ_CLRSPC_UNSPECIFIED;
+		expected_bands = save->ready->Bands;
+		break;
+	}
+
+	switch( save->ready->BandFmt ) {
+	case VIPS_FORMAT_CHAR:
+	case VIPS_FORMAT_UCHAR:
+		bits_per_pixel = 8;
+		break;
+
+	case VIPS_FORMAT_SHORT:
+	case VIPS_FORMAT_USHORT:
+		bits_per_pixel = 16;
+		break;
+
+	case VIPS_FORMAT_INT:
+	case VIPS_FORMAT_UINT:
+		/* OpenJPEG only supports up to 31.
+		 */
+		bits_per_pixel = 31;
+		break;
+
+	default:
+		g_assert_not_reached();
+		break;
+	}
+
 	/* Set parameters for compressor.
 	 */ 
 
@@ -659,8 +709,8 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 		jp2k->comps[i].h = save->ready->Ysize;
 		jp2k->comps[i].x0 = 0;
 		jp2k->comps[i].y0 = 0;
-		jp2k->comps[i].prec = jp2k->comps[i].bpp = 
-			8 * vips_format_sizeof( save->ready->BandFmt );
+		jp2k->comps[i].prec = bits_per_pixel;
+		jp2k->comps[i].bpp = bits_per_pixel;
 		jp2k->comps[i].sgnd = 
 			!vips_band_format_isuint( save->ready->BandFmt );
 	}
@@ -684,33 +734,6 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 
 	/* Create output image.
 	 */
-
-	/* CIELAB etc. do not seem to be well documented.
-	 */
-	switch( save->ready->Type ) {
-	case VIPS_INTERPRETATION_B_W:
-	case VIPS_INTERPRETATION_GREY16:
-		color_space = OPJ_CLRSPC_GRAY;
-		expected_bands = 1;
-		break;
-
-	case VIPS_INTERPRETATION_sRGB:
-	case VIPS_INTERPRETATION_RGB16:
-		color_space = jp2k->save_as_ycc ? 
-			OPJ_CLRSPC_SYCC : OPJ_CLRSPC_SRGB;
-		expected_bands = 3;
-		break;
-
-	case VIPS_INTERPRETATION_CMYK:
-		color_space = OPJ_CLRSPC_CMYK;
-		expected_bands = 4;
-		break;
-
-	default:
-		color_space = OPJ_CLRSPC_UNSPECIFIED;
-		expected_bands = save->ready->Bands;
-		break;
-	}
 
 	jp2k->image = opj_image_create( save->ready->Bands, 
 		jp2k->comps, color_space );

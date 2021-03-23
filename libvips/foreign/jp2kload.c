@@ -367,24 +367,14 @@ vips_foreign_load_jp2k_set_header( VipsForeignLoadJp2k *jp2k, VipsImage *out )
 	VipsBandFormat format;
 	VipsInterpretation interpretation;
 
-	switch( first->prec ) {
-	case 8:
+	/* OpenJPEG only supports up to 31 bpp. Treat it as 32.
+	 */
+	if( first->prec <= 8 ) 
 		format = first->sgnd ? VIPS_FORMAT_CHAR : VIPS_FORMAT_UCHAR;
-		break;
-
-	case 16:
+	else if( first->prec <= 16 ) 
 		format = first->sgnd ? VIPS_FORMAT_SHORT : VIPS_FORMAT_USHORT;
-		break;
-
-	case 32:
+	else
 		format = first->sgnd ? VIPS_FORMAT_INT : VIPS_FORMAT_UINT;
-		break;
-
-	default:
-		vips_error( class->nickname, 
-			_( "unsupported precision %d" ), first->prec );
-		return( -1 );
-	}
 
 	switch( jp2k->image->color_space ) {
 	case OPJ_CLRSPC_SYCC:

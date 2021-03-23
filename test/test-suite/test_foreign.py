@@ -1155,12 +1155,34 @@ class TestForeign:
 
         buf = self.colour.jp2ksave_buffer(lossless=True)
         im2 = pyvips.Image.new_from_buffer(buf, "")
-        assert self.colour.avg() == im2.avg()
+        assert (self.colour == im2).min() == 255
 
         # higher Q should mean a bigger buffer
         b1 = self.mono.jp2ksave_buffer(Q=10)
         b2 = self.mono.jp2ksave_buffer(Q=90)
         assert len(b2) > len(b1)
+
+        # disabling chroma subsample should mean a bigger buffer
+        b1 = self.colour.jp2ksave_buffer(subsample_mode="on")
+        b2 = self.colour.jp2ksave_buffer(subsample_mode="off")
+        assert len(b2) > len(b1)
+
+        # enabling lossless should mean a bigger buffer
+        b1 = self.colour.jp2ksave_buffer(lossless=False)
+        b2 = self.colour.jp2ksave_buffer(lossless=True)
+        assert len(b2) > len(b1)
+
+        # 16-bit colour load and save
+        im = self.colour.colourspace("rgb16")
+        buf = im.jp2ksave_buffer(lossless=True)
+        im2 = pyvips.Image.new_from_buffer(buf, "")
+        assert (im == im2).min() == 255
+
+        # openjpeg 32-bit load and save doesn't seem to work, comment out
+        # im = self.colour.colourspace("rgb16").cast("uint") << 14
+        # buf = im.jp2ksave_buffer(lossless=True)
+        # im2 = pyvips.Image.new_from_buffer(buf, "")
+        # assert (im == im2).min() == 255
 
 
 if __name__ == '__main__':
