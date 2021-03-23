@@ -36,6 +36,21 @@
 #define DEBUG
  */
 
+/* TODO
+ *
+ * - we will have 0.5 pixels if the image width or hight is odd and chroma
+ *   subsampling is on ... this will cause at least read out of bounds.
+ *
+ * - add 16 and 32-bit images to tests
+ *
+ * - add chroma modes to tests
+ *
+ * - could support tiff-like depth parameter
+ *
+ * - could support png-like bitdepth parameter
+ *
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -573,6 +588,11 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
+	opj_set_default_encoder_parameters( &jp2k->parameters );
+
+	/* Analyze our arguments.
+	 */
+
 	if( !vips_band_format_isint( save->ready->BandFmt ) ) {
 		vips_error( class->nickname,
 			"%s", _( "not an integer format" ) );
@@ -582,6 +602,7 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	switch( jp2k->subsample_mode ) {
 	case VIPS_FOREIGN_SUBSAMPLE_AUTO:
 		jp2k->downsample =
+			!jp2k->lossless &&
 			jp2k->Q < 90 &&
 			save->ready->Xsize % 2 == 0 &&
 			save->ready->Ysize % 2 == 0 &&
@@ -603,13 +624,16 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 		break;
 	}
 
-	/* A JPEG2000 codestream.
-	 */
-	jp2k->codec = opj_create_compress( OPJ_CODEC_J2K );
+	if( jp2k->downsample ) {
+		jp2k->save_as_ycc = TRUE;
 
-	vips_foreign_save_jp2k_attach_handlers( jp2k, jp2k->codec );
+		/* MCT does not work with subsample.
+		 */
+		jp2k->parameters.tcp_mct = FALSE;
+	}
 
-	opj_set_default_encoder_parameters( &jp2k->parameters );
+	/* Set parameters for compressor.
+	 */ 
 
 	/* Always tile.
 	 */
@@ -645,14 +669,6 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	 */
 	jp2k->parameters.tcp_mct = save->ready->Bands == 3 ? 1 : 0;
 
-	if( jp2k->downsample ) {
-		jp2k->save_as_ycc = TRUE;
-
-		/* MCT does not work with subsample.
-		 */
-		jp2k->parameters.tcp_mct = FALSE;
-	}
-
 	/* Lossy mode.
 	 */
 	if( !jp2k->lossless ) {
@@ -665,6 +681,9 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 		jp2k->parameters.tcp_distoratio[0] = jp2k->Q;
 		jp2k->parameters.tcp_numlayers = 1;
 	}
+
+	/* Create output image.
+	 */
 
 	/* CIELAB etc. do not seem to be well documented.
 	 */
@@ -703,6 +722,11 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	for( i = 0; i < save->ready->Bands; i++ )
 		jp2k->image->comps[i].alpha = i >= expected_bands;
 
+	/* Set up compressor.
+	 */
+
+	jp2k->codec = opj_create_compress( OPJ_CODEC_J2K );
+	vips_foreign_save_jp2k_attach_handlers( jp2k, jp2k->codec );
         if( !opj_setup_encoder( jp2k->codec, &jp2k->parameters, jp2k->image ) ) 
 		return( -1 );
 
