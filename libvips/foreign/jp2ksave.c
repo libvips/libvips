@@ -76,6 +76,10 @@ typedef struct _VipsForeignSaveJp2k {
 	 */
 	int Q;
 
+	/* Chroma subsample mode.
+	 */
+	VipsForeignSubsample subsample_mode;
+
 	/* Encoder state.
 	 */
 	opj_stream_t *stream;
@@ -84,11 +88,23 @@ typedef struct _VipsForeignSaveJp2k {
 	opj_image_cmptparm_t comps[MAX_BANDS];
 	opj_image_t *image;
 
-	/* The line of tiles we are building, and a contiguous buffer we
-	 * repack to for output.
+	/* The line of tiles we are building, and the buffer we
+	 * unpack to for output.
 	 */
 	VipsRegion *strip;
 	VipsPel *tile_buffer;
+
+	/* If we need to downsample during unpacking.
+	 */
+	gboolean downsample;
+
+	/* If we converto RGB to YCC during save.
+	 */
+	gboolean save_as_ycc;
+
+	/* Accumulate a line of sums here during chroma subsample.
+	 */
+	VipsPel *accumulate;
 } VipsForeignSaveJp2k;
 
 typedef VipsForeignSaveClass VipsForeignSaveJp2kClass;
@@ -109,6 +125,7 @@ vips_foreign_save_jp2k_dispose( GObject *gobject )
 	VIPS_UNREF( jp2k->strip );
 
 	VIPS_FREE( jp2k->tile_buffer );
+	VIPS_FREE( jp2k->accumulate );
 
 	G_OBJECT_CLASS( vips_foreign_save_jp2k_parent_class )->
 		dispose( gobject );
@@ -188,6 +205,176 @@ vips_foreign_save_jp2k_attach_handlers( VipsForeignSaveJp2k *jp2k,
 		vips_foreign_save_jp2k_error_callback, jp2k );
 }
 
+/* See also https://en.wikipedia.org/wiki/YCbCr#JPEG_conversion
+ */
+#define RGB_TO_YCC( TYPE ) { \
+	TYPE *tq = (TYPE *) q; \
+	\
+	for( x = 0; x < tile->width; x++ ) { \
+		int r = tq[0]; \
+		int g = tq[1]; \
+		int b = tq[2]; \
+		\
+		int y, cb, cr; \
+		\
+		y = 0.299 * r + 0.587 * g + 0.114 * b; \
+		tq[0] = VIPS_CLIP( 0, y, upb ); \
+		\
+		cb = offset - (int)(0.168736 * r + 0.331264 * g - 0.5 * b); \
+		tq[1] = VIPS_CLIP( 0, cb, upb ); \
+		\
+		cr = offset - (int)(-0.5 * r + 0.418688 * g + 0.081312 * b); \
+		tq[2] = VIPS_CLIP( 0, cr, upb ); \
+		\
+		tq += 3; \
+	} \
+}
+
+/* RGB->YCC for a line of pels.
+ */
+static void
+vips_foreign_save_jp2k_rgb_to_ycc( VipsForeignSaveJp2k *jp2k, VipsRect *tile )
+{
+	VipsForeignSave *save = (VipsForeignSave *) jp2k;
+	int prec = jp2k->image->comps[0].prec;
+	int offset = 1 << (prec - 1);
+	int upb = (1 << prec) - 1;
+
+	int x, y;
+
+	for( y = 0; y < tile->height; y++ ) {
+		VipsPel *q = VIPS_REGION_ADDR( jp2k->strip, 
+			tile->left, tile->top + y );
+
+		switch( save->ready->BandFmt ) {
+		case VIPS_FORMAT_CHAR:
+		case VIPS_FORMAT_UCHAR:
+			RGB_TO_YCC( unsigned char );
+			break;
+
+		case VIPS_FORMAT_SHORT:
+		case VIPS_FORMAT_USHORT:
+			RGB_TO_YCC( unsigned short );
+			break;
+
+		case VIPS_FORMAT_INT:
+		case VIPS_FORMAT_UINT:
+			RGB_TO_YCC( unsigned int );
+			break;
+
+		default:
+			g_assert_not_reached();
+			break;
+		}
+	}
+}
+
+/* Shrink in three stages:
+ *   1. copy the first line of input pels to acc
+ *   2. add subsequent lines in comp.dy.
+ *   3. horizontal average to output line
+ */
+#define SHRINK( ACC_TYPE, PIXEL_TYPE ) { \
+	ACC_TYPE *acc = (ACC_TYPE *) jp2k->accumulate; \
+	PIXEL_TYPE *tq = (PIXEL_TYPE *) q; \
+	const int n_pels = comp->dx * comp->dy; \
+	\
+	PIXEL_TYPE *tp; \
+	ACC_TYPE *ap; \
+	\
+	tp = (PIXEL_TYPE *) p; \
+	for( x = 0; x < tile->width; x++ ) { \
+		acc[x] = *tp; \
+		tp += n_bands; \
+	} \
+	\
+	for( z = 1; z < comp->dy; z++ ) { \
+		tp = (PIXEL_TYPE *) (p + z * lskip); \
+		for( x = 0; x < tile->width; x++ ) { \
+			acc[x] += *tp; \
+			tp += n_bands; \
+		} \
+	} \
+	\
+	ap = acc; \
+	for( x = 0; x < output_width; x++ ) { \
+		ACC_TYPE sum; \
+		\
+		sum = 0; \
+		for( z = 0; z < comp->dx; z++ ) \
+			sum += ap[z]; \
+		\
+		tq[x] = (sum + n_pels / 2) / n_pels; \
+		ap += comp->dx; \
+	} \
+}
+
+static void
+vips_foreign_save_jp2k_unpack_downsample( VipsForeignSaveJp2k *jp2k, 
+	VipsRect *tile )
+{
+	VipsForeignSave *save = (VipsForeignSave *) jp2k;
+	size_t sizeof_element = VIPS_IMAGE_SIZEOF_ELEMENT( save->ready );
+	size_t lskip = VIPS_REGION_LSKIP( jp2k->strip );
+	int n_bands = save->ready->Bands;
+
+	VipsPel *q;
+	int x, y, z, band_index;
+
+	q = jp2k->tile_buffer;
+	for( band_index = 0; band_index < n_bands; band_index++ ) {
+		opj_image_comp_t *comp = &jp2k->image->comps[band_index];
+
+		/* The number of pixels we write for this component. Round to
+		 * nearest, and we may have to write half-pixels at the edges.
+		 */
+		int output_width = VIPS_ROUND_UINT( 
+			(double) tile->width / comp->dx );
+		int output_height = VIPS_ROUND_UINT( 
+			(double) tile->height / comp->dy );;
+
+		for( y = 0; y < output_height; y++ ) {
+			VipsPel *p = band_index * sizeof_element + 
+				VIPS_REGION_ADDR( jp2k->strip, 
+					tile->left, tile->top + y * comp->dy );
+
+			/* Shrink a line of pels to q.
+			 */
+			switch( save->ready->BandFmt ) {
+			case VIPS_FORMAT_CHAR:
+				SHRINK( int, signed char );
+				break;
+
+			case VIPS_FORMAT_UCHAR:
+				SHRINK( int, unsigned char );
+				break;
+
+			case VIPS_FORMAT_SHORT:
+				SHRINK( int, signed short );
+				break;
+
+			case VIPS_FORMAT_USHORT:
+				SHRINK( int, unsigned short );
+				break;
+
+			case VIPS_FORMAT_INT:
+				SHRINK( gint64, signed int );
+				break;
+
+			case VIPS_FORMAT_UINT:
+				SHRINK( gint64, unsigned int );
+				break;
+
+			default:
+				g_assert_not_reached();
+				break;
+			}
+
+			q += sizeof_element * output_width;
+		}
+	}
+}
+
 #define UNPACK( TYPE ) { \
 	TYPE **tplanes = (TYPE **) planes; \
 	TYPE *tp = (TYPE *) p; \
@@ -246,11 +433,34 @@ vips_foreign_save_jp2k_unpack( VipsForeignSaveJp2k *jp2k, VipsRect *tile )
 	}
 }
 
+static size_t
+vips_foreign_save_jp2k_sizeof_tile( VipsForeignSaveJp2k *jp2k, VipsRect *tile )
+{
+	size_t size;
+	int i;
+
+	size = 0;
+	for( i = 0; i < jp2k->image->numcomps; i++ ) {
+		opj_image_comp_t *comp = &jp2k->image->comps[i];
+
+		/* The number of pixels we write for this component. Round to
+		 * nearest, and we may have to write half-pixels at the edges.
+		 */
+		int output_width = VIPS_ROUND_UINT( 
+			(double) tile->width / comp->dx );
+		int output_height = VIPS_ROUND_UINT( 
+			(double) tile->height / comp->dy );;
+
+		size += output_width * output_height * (comp->bpp / 8);
+	}
+
+	return( size );
+}
+
 static int
 vips_foreign_save_jp2k_write_tiles( VipsForeignSaveJp2k *jp2k )
 {
 	VipsForeignSave *save = (VipsForeignSave *) jp2k;
-	size_t sizeof_pel = VIPS_IMAGE_SIZEOF_PEL( save->ready );
 	int tiles_across = 
 		VIPS_ROUND_UP( save->ready->Xsize, jp2k->tile_width ) /
 			jp2k->tile_width;
@@ -268,13 +478,20 @@ vips_foreign_save_jp2k_write_tiles( VipsForeignSaveJp2k *jp2k )
 		tile.height = jp2k->tile_height;
 		vips_rect_intersectrect( &tile, &jp2k->strip->valid, &tile );
 
-		vips_foreign_save_jp2k_unpack( jp2k, &tile );
+		if( jp2k->save_as_ycc ) 
+			vips_foreign_save_jp2k_rgb_to_ycc( jp2k, &tile );
 
-		sizeof_tile = sizeof_pel * tile.width * tile.height;
+		if( jp2k->downsample )
+			vips_foreign_save_jp2k_unpack_downsample( jp2k, &tile );
+		else
+			vips_foreign_save_jp2k_unpack( jp2k, &tile );
+
+		sizeof_tile = vips_foreign_save_jp2k_sizeof_tile( jp2k, &tile );
 		tile_index = tiles_across * tile.top / jp2k->tile_height +
 			x / jp2k->tile_width;
 		if( !opj_write_tile( jp2k->codec, tile_index, 
-			jp2k->tile_buffer, sizeof_tile, jp2k->stream ) )
+			(VipsPel *) jp2k->tile_buffer, sizeof_tile, 
+			jp2k->stream ) )
 			return( -1 );
 	}
 
@@ -349,6 +566,7 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	int expected_bands;
 	int i;
 	size_t sizeof_tile;
+	size_t sizeof_line;
 	VipsRect strip_position;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_jp2k_parent_class )->
@@ -359,6 +577,30 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 		vips_error( class->nickname,
 			"%s", _( "not an integer format" ) );
 		return( -1 );
+	}
+
+	switch( jp2k->subsample_mode ) {
+	case VIPS_FOREIGN_SUBSAMPLE_AUTO:
+		jp2k->downsample =
+			jp2k->Q < 90 &&
+			save->ready->Xsize % 2 == 0 &&
+			save->ready->Ysize % 2 == 0 &&
+			(save->ready->Type == VIPS_INTERPRETATION_sRGB ||
+			 save->ready->Type == VIPS_INTERPRETATION_RGB16) &&
+			save->ready->Bands == 3;
+		break;
+
+	case VIPS_FOREIGN_SUBSAMPLE_ON:
+		jp2k->downsample = TRUE;
+		break;
+
+	case VIPS_FOREIGN_SUBSAMPLE_OFF:
+		jp2k->downsample = FALSE;
+		break;
+
+	default:
+		g_assert_not_reached();
+		break;
 	}
 
 	/* A JPEG2000 codestream.
@@ -386,21 +628,42 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 		jp2k->parameters.numresolution );
 #endif /*DEBUG*/
 
+	for( i = 0; i < save->ready->Bands; i++ ) {
+		jp2k->comps[i].dx = (jp2k->downsample && i > 0) ? 2 : 1;
+		jp2k->comps[i].dy = (jp2k->downsample && i > 0) ? 2 : 1;
+		jp2k->comps[i].w = save->ready->Xsize;
+		jp2k->comps[i].h = save->ready->Ysize;
+		jp2k->comps[i].x0 = 0;
+		jp2k->comps[i].y0 = 0;
+		jp2k->comps[i].prec = jp2k->comps[i].bpp = 
+			8 * vips_format_sizeof( save->ready->BandFmt );
+		jp2k->comps[i].sgnd = 
+			!vips_band_format_isuint( save->ready->BandFmt );
+	}
+
+	/* Makes three band images smaller, somehow.
+	 */
+	jp2k->parameters.tcp_mct = save->ready->Bands == 3 ? 1 : 0;
+
+	if( jp2k->downsample ) {
+		jp2k->save_as_ycc = TRUE;
+
+		/* MCT does not work with subsample.
+		 */
+		jp2k->parameters.tcp_mct = FALSE;
+	}
+
 	/* Lossy mode.
 	 */
 	if( !jp2k->lossless ) {
 		jp2k->parameters.irreversible = TRUE;
 
-		/* Allowed distortion
+		/* Map Q to allowed distortion.
 		 */
 		jp2k->parameters.cp_disto_alloc = 1;
 		jp2k->parameters.cp_fixed_quality = TRUE;
 		jp2k->parameters.tcp_distoratio[0] = jp2k->Q;
 		jp2k->parameters.tcp_numlayers = 1;
-
-		/* Enable mct (YCC mode?).
-		 */
-		jp2k->parameters.tcp_mct = save->ready->Bands == 3 ? 1 : 0;
 	}
 
 	/* CIELAB etc. do not seem to be well documented.
@@ -414,9 +677,9 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 
 	case VIPS_INTERPRETATION_sRGB:
 	case VIPS_INTERPRETATION_RGB16:
-		color_space = OPJ_CLRSPC_SRGB;
+		color_space = jp2k->save_as_ycc ? 
+			OPJ_CLRSPC_SYCC : OPJ_CLRSPC_SRGB;
 		expected_bands = 3;
-
 		break;
 
 	case VIPS_INTERPRETATION_CMYK:
@@ -430,24 +693,12 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 		break;
 	}
 
-	for( i = 0; i < save->ready->Bands; i++ ) {
-		jp2k->comps[i].dx = 1;
-		jp2k->comps[i].dy = 1;
-		jp2k->comps[i].w = save->ready->Xsize;
-		jp2k->comps[i].h = save->ready->Ysize;
-		jp2k->comps[i].x0 = 0;
-		jp2k->comps[i].y0 = 0;
-		jp2k->comps[i].prec = jp2k->comps[i].bpp = 
-			8 * vips_format_sizeof( save->ready->BandFmt );
-		jp2k->comps[i].sgnd = 
-			!vips_band_format_isuint( save->ready->BandFmt );
-	}
 	jp2k->image = opj_image_create( save->ready->Bands, 
 		jp2k->comps, color_space );
 	jp2k->image->x1 = save->ready->Xsize;
 	jp2k->image->y1 = save->ready->Ysize;
 
-	/* Tag alpha channels. 
+	/* Tag alpha channels.
 	 */
 	for( i = 0; i < save->ready->Bands; i++ )
 		jp2k->image->comps[i].alpha = i >= expected_bands;
@@ -474,6 +725,12 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	sizeof_tile = VIPS_IMAGE_SIZEOF_PEL( save->ready ) *
 		jp2k->tile_width * jp2k->tile_height;
 	if( !(jp2k->tile_buffer = VIPS_ARRAY( NULL, sizeof_tile, VipsPel )) )
+		return( -1 );
+
+	/* We need a line of sums for chroma subsample. At worst, gint64.
+	 */
+	sizeof_line = sizeof( gint64 ) * jp2k->tile_width;
+	if( !(jp2k->accumulate = VIPS_ARRAY( NULL, sizeof_line, VipsPel )) )
 		return( -1 );
 
 	/* The line of tiles we are building.
@@ -544,6 +801,14 @@ vips_foreign_save_jp2k_class_init( VipsForeignSaveJp2kClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveJp2k, lossless ),
 		FALSE ); 
 
+	VIPS_ARG_ENUM( class, "subsample_mode", 19,
+		_( "Subsample mode" ),
+		_( "Select chroma subsample operation mode" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveJp2k, subsample_mode ),
+		VIPS_TYPE_FOREIGN_SUBSAMPLE,
+		VIPS_FOREIGN_SUBSAMPLE_AUTO );
+
 	VIPS_ARG_INT( class, "Q", 14, 
 		_( "Q" ), 
 		_( "Q factor" ),
@@ -562,6 +827,8 @@ vips_foreign_save_jp2k_init( VipsForeignSaveJp2k *jp2k )
 	/* 45 gives about the same filesize as default regular jpg.
 	 */
 	jp2k->Q = 45;
+
+	jp2k->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_AUTO;
 }
 
 typedef struct _VipsForeignSaveJp2kFile {
@@ -755,6 +1022,7 @@ vips_foreign_save_jp2k_target_init( VipsForeignSaveJp2kTarget *target )
  * * @lossless: %gboolean, enables lossless compression
  * * @tile_width: %gint for tile size
  * * @tile_height: %gint for tile size
+ * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  *
  * Write a VIPS image to a file in JPEG2000 format. 
  * The saver supports 8, 16 and 32-bit int pixel
@@ -767,6 +1035,9 @@ vips_foreign_save_jp2k_target_init( VipsForeignSaveJp2kTarget *target )
  * Set @lossless to enable lossless compresion.
  *
  * Use @tile_width and @tile_height to set the tile size. The default is 512.
+ *
+ * Chroma subsampling is normally automatically disabled for Q > 90. You can
+ * force the subsampling mode with @subsample_mode.
  *
  * This operation always writes a pyramid.
  *
@@ -800,6 +1071,7 @@ vips_jp2ksave( VipsImage *in, const char *filename, ... )
  * * @lossless: %gboolean, enables lossless compression
  * * @tile_width: %gint for tile size
  * * @tile_height: %gint for tile size
+ * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  *
  * As vips_jp2ksave(), but save to a target.
  *
@@ -847,6 +1119,7 @@ vips_jp2ksave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @lossless: %gboolean, enables lossless compression
  * * @tile_width: %gint for tile size
  * * @tile_height: %gint for tile size
+ * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  *
  * As vips_jp2ksave(), but save to a target.
  *

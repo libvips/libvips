@@ -668,7 +668,9 @@ vips_foreign_load_jp2k_pack( VipsForeignLoadJp2k *jp2k,
 		}
 }
 
-/* ycc->rgb coversion adapted from openjpeg src/bin/common/color.c.
+/* ycc->rgb coversion adapted from openjpeg src/bin/common/color.c
+ *
+ * See also https://en.wikipedia.org/wiki/YCbCr#JPEG_conversion
  */
 #define YCC_TO_RGB( TYPE ) { \
 	TYPE *tq = (TYPE *) q; \
@@ -816,7 +818,7 @@ vips_foreign_load_jp2k_generate( VipsRegion *out,
 					hit.top - tile.top + z,
 					hit.width ); 
 
-				if( jp2k->ycc_to_rgb )
+				//if( jp2k->ycc_to_rgb )
 					vips_foreign_load_jp2k_ycc_to_rgb( jp2k,
 						q, hit.width );
 			}
