@@ -163,10 +163,17 @@ vips_composite_base_dispose( GObject *gobject )
 	G_OBJECT_CLASS( vips_composite_base_parent_class )->dispose( gobject );
 }
 
-/* Our sequence value. This must be aligned on a 16-byte boundary when
- * HAVE_VECTOR_ARITH is defined.
+/* Our sequence value.
  */
 typedef struct {
+#ifdef HAVE_VECTOR_ARITH
+	/* max_band as a vector, for the RGBA case. This must be
+	 * defined first to ensure that the member is aligned
+	 * on a 16-byte boundary.
+	 */
+	v4f max_band_vec;
+#endif /*HAVE_VECTOR_ARITH*/
+
 	VipsCompositeBase *composite;
 
 	/* Full set of input regions, each made on the corresponding input
@@ -192,12 +199,6 @@ typedef struct {
 	/* For each enabled image, an input pointer.
 	 */
 	VipsPel **p;
-
-#ifdef HAVE_VECTOR_ARITH
-	/* max_band as a vector, for the RGBA case.
-	 */
-	v4f max_band_vec;
-#endif /*HAVE_VECTOR_ARITH*/
 
 } VipsCompositeSequence;
 
