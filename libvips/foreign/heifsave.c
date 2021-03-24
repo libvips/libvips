@@ -566,7 +566,7 @@ vips_foreign_save_heif_file_class_init( VipsForeignSaveHeifFileClass *class )
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
-		_( "Filename to load from" ),
+		_( "Filename to save to" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignSaveHeifFile, filename ),
 		NULL );
