@@ -2983,7 +2983,7 @@ static VImage heifload_source( VSource source, VOption *options = 0 );
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
  *
- * @param filename Filename to load from.
+ * @param filename Filename to save to.
  * @param options Set of options.
  */
 void heifsave( const char *filename, VOption *options = 0 ) const;
