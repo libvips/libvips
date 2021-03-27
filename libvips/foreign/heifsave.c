@@ -321,6 +321,7 @@ vips_foreign_save_heif_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) object;
 
+	const char *filename;
 	struct heif_error error;
 	struct heif_writer writer;
 	char *chroma;
@@ -334,6 +335,15 @@ vips_foreign_save_heif_build( VipsObject *object )
 	 */
 	if( vips_copy( save->ready, &heif->image, NULL ) ) 
 		return( -1 );
+
+	/* Compression defaults to VIPS_FOREIGN_HEIF_COMPRESSION_AV1 for .avif
+	 * suffix.
+	 */
+	filename = vips_connection_filename( VIPS_CONNECTION( heif->target ) );
+	if( !vips_object_argument_isset( object, "compression" ) &&
+		filename &&
+		vips_iscasepostfix( filename, ".avif" ) )
+		heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_AV1;
 
 	error = heif_context_get_encoder_for_format( heif->ctx, 
 		(enum heif_compression_format) heif->compression, 
@@ -566,7 +576,7 @@ vips_foreign_save_heif_file_class_init( VipsForeignSaveHeifFileClass *class )
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
-		_( "Filename to load from" ),
+		_( "Filename to save to" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignSaveHeifFile, filename ),
 		NULL );
@@ -722,7 +732,8 @@ vips_foreign_save_heif_target_init( VipsForeignSaveHeifTarget *target )
  *
  * Set @lossless %TRUE to switch to lossless compression.
  *
- * Use @compression to set the encoder e.g. HEVC, AVC, AV1
+ * Use @compression to set the encoder e.g. HEVC, AVC, AV1. It defaults to AV1
+ * if the target filename ends with ".avif", otherwise HEVC.
  *
  * Use @speed to control the CPU effort spent improving compression.
  * This is currently only applicable to AV1 encoders, defaults to 5.

@@ -1,5 +1,4 @@
 # vim: set fileencoding=utf-8 :
-import filecmp
 import sys
 import os
 import shutil
@@ -38,7 +37,7 @@ class TestForeign:
         cls.cmyk.remove("icc-profile-data")
 
         im = pyvips.Image.new_from_file(GIF_FILE)
-        cls.onebit = im > 128
+        cls.onebit = im[1] > 128
 
     @classmethod
     def teardown_class(cls):
@@ -804,10 +803,10 @@ class TestForeign:
     def test_gifload(self):
         def gif_valid(im):
             a = im(10, 10)
-            assert_almost_equal_objects(a, [33])
+            assert_almost_equal_objects(a, [33, 33, 33, 255])
             assert im.width == 159
             assert im.height == 203
-            assert im.bands == 1
+            assert im.bands == 4
 
         self.file_loader("gifload", GIF_FILE, gif_valid)
         self.buffer_loader("gifload_buffer", GIF_FILE, gif_valid)
@@ -828,37 +827,21 @@ class TestForeign:
             x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, page=1, n=-1)
             assert x2.height == 4 * x1.height
 
-            animation = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
-            filename = temp_filename(self.tempdir, '.png')
-            animation.write_to_file(filename)
-            # Uncomment to see output file
-            # animation.write_to_file('cogs.png')
-
-            assert filecmp.cmp(GIF_ANIM_EXPECTED_PNG_FILE, filename, shallow=False)
+            x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
+            x2 = pyvips.Image.new_from_file(GIF_ANIM_EXPECTED_PNG_FILE)
+            assert (x1 - x2).abs().max() == 0
 
     @skip_if_no("gifload")
     def test_gifload_animation_dispose_background(self):
-        animation = pyvips.Image.new_from_file(GIF_ANIM_DISPOSE_BACKGROUND_FILE, n=-1)
-
-        filename = temp_filename(self.tempdir, '.png')
-        animation.write_to_file(filename)
-
-        # Uncomment to see output file
-        # animation.write_to_file('dispose-background.png')
-
-        assert filecmp.cmp(GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE, filename, shallow=False)
+        x1 = pyvips.Image.new_from_file(GIF_ANIM_DISPOSE_BACKGROUND_FILE, n=-1)
+        x2 = pyvips.Image.new_from_file(GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE)
+        assert (x1 - x2).abs().max() == 0
 
     @skip_if_no("gifload")
     def test_gifload_animation_dispose_previous(self):
-        animation = pyvips.Image.new_from_file(GIF_ANIM_DISPOSE_PREVIOUS_FILE, n=-1)
-
-        filename = temp_filename(self.tempdir, '.png')
-        animation.write_to_file(filename)
-
-        # Uncomment to see output file
-        # animation.write_to_file('dispose-previous.png')
-
-        assert filecmp.cmp(GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, filename, shallow=False)
+        x1 = pyvips.Image.new_from_file(GIF_ANIM_DISPOSE_PREVIOUS_FILE, n=-1)
+        x2 = pyvips.Image.new_from_file(GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE)
+        assert (x1 - x2).abs().max() == 0
 
     @skip_if_no("svgload")
     def test_svgload(self):

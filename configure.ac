@@ -190,7 +190,6 @@ AC_PROG_CC_STDC
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LN_S
-AM_WITH_DMALLOC
 
 AC_ARG_WITH([doxygen], 
   AS_HELP_STRING([--without-doxygen], [build without doxygen (default: test)]))
@@ -257,7 +256,7 @@ AM_GLIB_GNU_GETTEXT
 #   [ax_gcc_version_option=yes],
 #   [ax_gcc_version_option=no]
 # )
-AC_MSG_CHECKING([for gcc version])
+AC_MSG_CHECKING([for $CC version])
 GCC_VERSION=""
 version=$($CC -dumpversion)
 if test $? = 0; then 
@@ -311,7 +310,7 @@ AC_TYPE_SIZE_T
 
 # g++/gcc 4.x and 5.x have rather broken vector support ... 5.4.1 seems to
 # work, but 5.4.0 fails to even compile
-AC_MSG_CHECKING([for gcc with working vector support])
+AC_MSG_CHECKING([for $CC with working vector support])
 if test x"$GCC_VERSION_MAJOR" != x"4" -a x"$GCC_VERSION_MAJOR" != x"5"; then
   AC_MSG_RESULT([yes])
 else
@@ -324,7 +323,7 @@ if test x"$ax_cv_have_var_attribute_vector_size" = x"yes"; then
   AC_MSG_CHECKING([for C++ vector shuffle])
   AC_LANG_PUSH([C++])
   AC_TRY_COMPILE([
-    typedef float v4f __attribute__((vector_size(4 * sizeof(float))));
+    typedef float v4f __attribute__((vector_size(4 * sizeof(float)),aligned(16)));
   ],[
     v4f f; f[3] = 99;
   ],[
@@ -347,7 +346,7 @@ if test x"$have_vector_shuffle" = x"yes"; then
   AC_MSG_CHECKING([for C++ vector arithmetic])
   AC_LANG_PUSH([C++])
   AC_TRY_COMPILE([
-    typedef float v4f __attribute__((vector_size(4 * sizeof(float))));
+    typedef float v4f __attribute__((vector_size(4 * sizeof(float)),aligned(16)));
   ],[
     v4f f = {1, 2, 3, 4}; f *= 12.0; 
     v4f g = {5, 6, 7, 8}; f = g > 0 ? g : -1 * g;
@@ -367,7 +366,7 @@ if test x"$have_vector_arith" = x"yes"; then
   AC_MSG_CHECKING([for C++ signed constants in vector templates])
   AC_LANG_PUSH([C++])
   AC_TRY_COMPILE([
-    typedef float v4f __attribute__((vector_size(4 * sizeof(float))));
+    typedef float v4f __attribute__((vector_size(4 * sizeof(float)),aligned(16)));
     template <typename T>
     static void
     h( v4f B )
@@ -394,7 +393,7 @@ fi
 AC_FUNC_MEMCMP
 AC_FUNC_MMAP
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([getcwd gettimeofday getwd memset munmap putenv realpath strcasecmp strchr strcspn strdup strerror strrchr strspn vsnprintf realpath mkstemp mktemp random rand sysconf atexit])
+AC_CHECK_FUNCS([getcwd gettimeofday getwd memset munmap putenv realpath strcasecmp strchr strcspn strdup strerror strrchr strspn vsnprintf realpath mkstemp mktemp random rand sysconf atexit _aligned_malloc posix_memalign memalign])
 AC_CHECK_LIB(m,cbrt,[AC_DEFINE(HAVE_CBRT,1,[have cbrt() in libm.])])
 AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 AC_CHECK_LIB(m,atan2,[AC_DEFINE(HAVE_ATAN2,1,[have atan2() in libm.])])
@@ -1010,6 +1009,16 @@ VIPS_LIBS="$VIPS_LIBS $MATIO_LIBS"
 # not external libraries, but have options to disable them, helps to
 # reduce attack surface
 
+AC_ARG_WITH([nsgif], 
+  AS_HELP_STRING([--without-nsgif], [build without nsgif load (default: with)]))
+
+if test x"$with_nsgif" != x"no"; then
+  AC_DEFINE(HAVE_NSGIF,1,[define to build nsgif load support.])
+  with_nsgif=yes
+fi
+
+AM_CONDITIONAL(ENABLE_NSGIF, [test x"$with_nsgif" = x"yes"])
+
 AC_ARG_WITH([ppm], 
   AS_HELP_STRING([--without-ppm], [build without ppm (default: with)]))
 
@@ -1132,19 +1141,6 @@ fi
 VIPS_CFLAGS="$VIPS_CFLAGS $TIFF_CFLAGS"
 VIPS_INCLUDES="$VIPS_INCLUDES $TIFF_INCLUDES"
 VIPS_LIBS="$VIPS_LIBS $TIFF_LIBS"
-
-# giflib
-FIND_GIFLIB(
-  [with_giflib="yes (found by search)"
-  ], 
-  [AC_MSG_WARN([giflib not found; disabling direct GIF support])
-   with_giflib=no
-  ]
-)
-
-VIPS_CFLAGS="$VIPS_CFLAGS $GIFLIB_CFLAGS"
-VIPS_INCLUDES="$VIPS_INCLUDES $GIFLIB_INCLUDES"
-VIPS_LIBS="$VIPS_LIBS $GIFLIB_LIBS"
 
 # Look for libspng first
 # 0.6.1 uses "libspng.pc", git master libspng uses "spng.pc"
@@ -1323,6 +1319,7 @@ gobject introspection:  $found_introspection, \
 RAD load/save: $with_radiance, \
 Analyze7 load/save: $with_analyze, \
 PPM load/save: $with_ppm, \
+GIF load:  $with_nsgif, \
 generate C++ docs: $with_doxygen, \
 use fftw3 for FFT: $with_fftw, \
 accelerate loops with orc: $with_orc, \
@@ -1336,7 +1333,6 @@ PNG load/save with libpng: $with_png, \
 8bpp PNG quantisation: $with_imagequant, \
 TIFF load/save with libtiff: $with_tiff, \
 image pyramid save: $with_gsf, \
-GIF load with giflib:  $with_giflib, \
 HEIC/AVIF load/save with libheif: $with_heif, \
 WebP load/save with libwebp: $with_libwebp, \
 PDF load with PDFium:  $with_pdfium, \
@@ -1381,6 +1377,7 @@ AC_CONFIG_FILES([
         libvips/convolution/Makefile
         libvips/deprecated/Makefile
         libvips/foreign/Makefile
+        libvips/foreign/libnsgif/Makefile
         libvips/freqfilt/Makefile
         libvips/histogram/Makefile
         libvips/draw/Makefile
@@ -1421,6 +1418,7 @@ gobject introspection:                  $found_introspection
 RAD load/save:                          $with_radiance
 Analyze7 load/save:                     $with_analyze
 PPM load/save:                          $with_ppm
+GIF load:                               $with_nsgif
 generate C++ docs:                      $with_doxygen
 
 ## Optional dependencies
@@ -1443,7 +1441,6 @@ PNG load/save with libpng:              $with_png
 TIFF load/save with libtiff:            $with_tiff
 image pyramid save:                     $with_gsf
  (requires libgsf-1 1.14.26 or later)
-GIF load with giflib:                   $with_giflib
 HEIC/AVIF load/save with libheif:       $with_heif
 WebP load/save with libwebp:            $with_libwebp
  (requires libwebp, libwebpmux, libwebpdemux 0.6.0 or later)

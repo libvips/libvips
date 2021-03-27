@@ -900,6 +900,21 @@ transform_array_int_g_string( const GValue *src_value, GValue *dest_value )
 	g_value_set_string( dest_value, vips_buf_all( &buf ) );
 }
 
+static void
+transform_array_int_save_string( const GValue *src_value, GValue *dest_value )
+{
+	GValue intermediate = { 0 };
+
+	g_value_init( &intermediate, G_TYPE_STRING );
+
+	transform_array_int_g_string( src_value, &intermediate );
+
+	vips_value_set_save_string( dest_value, 
+		g_value_get_string( &intermediate ) );
+
+	g_value_unset( &intermediate ); 
+}
+
 /* It'd be great to be able to write a generic string->array function, but
  * it doesn't seem possible.
  */
@@ -949,6 +964,21 @@ transform_g_string_array_int( const GValue *src_value, GValue *dest_value )
 	}
 
 	g_free( str );
+}
+
+static void
+transform_save_string_array_int( const GValue *src_value, GValue *dest_value )
+{
+	GValue intermediate = { 0 };
+
+	g_value_init( &intermediate, G_TYPE_STRING );
+
+	g_value_set_string( &intermediate, 
+		vips_value_get_save_string( src_value ) ); 
+
+	transform_g_string_array_int( &intermediate, dest_value );
+
+	g_value_unset( &intermediate ); 
 }
 
 /* We need a arrayint, we have an int, make a one-element array.
@@ -1006,6 +1036,10 @@ vips_array_int_get_type( void )
 			transform_double_array_int );
 		g_value_register_transform_func( VIPS_TYPE_ARRAY_DOUBLE, type,
 			transform_array_double_array_int );
+		g_value_register_transform_func( type, VIPS_TYPE_SAVE_STRING,
+			transform_array_int_save_string );
+		g_value_register_transform_func( VIPS_TYPE_SAVE_STRING, type,
+			transform_save_string_array_int );
 	}
 
 	return( type );

@@ -54,10 +54,6 @@
 
 #include "templates.h"
 
-#ifdef WITH_DMALLOC
-#include <dmalloc.h>
-#endif /*WITH_DMALLOC*/
-
 #define VIPS_TYPE_INTERPOLATE_BICUBIC \
 	(vips_interpolate_bicubic_get_type())
 #define VIPS_INTERPOLATE_BICUBIC( obj ) \

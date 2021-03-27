@@ -1,3 +1,7 @@
+if ENABLE_NSGIF
+SUBDIRS = libnsgif 
+endif
+
 noinst_LTLIBRARIES = libforeign.la
 
 libforeign_la_SOURCES = \
@@ -34,10 +38,13 @@ libforeign_la_SOURCES = \
 	matrixsave.c \
 	niftiload.c \
 	niftisave.c \
+	nsgifload.c \
 	openexr2vips.c \
 	openexrload.c \
 	openslide2vips.c \
 	openslideload.c \
+	quantise.c \
+	pdfload.c \
 	pdfiumload.c \
 	pdfload.c \
 	pforeign.h \
@@ -68,7 +75,7 @@ libforeign_la_SOURCES = \
 	webpload.c \
 	webpsave.c
 
-EXTRA_DIST = 
+EXTRA_DIST = libnsgif
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
 
