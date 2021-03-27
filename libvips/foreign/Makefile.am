@@ -42,7 +42,6 @@ libforeign_la_SOURCES = \
 	openexrload.c \
 	openslide2vips.c \
 	openslideload.c \
-	quantise.c \
 	pdfiumload.c \
 	pdfload.c \
 	pforeign.h \
