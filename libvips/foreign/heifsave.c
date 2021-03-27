@@ -380,7 +380,7 @@ vips_foreign_save_heif_build( VipsObject *object )
 
 	chroma = heif->subsample_mode == VIPS_FOREIGN_SUBSAMPLE_OFF ||
 		( heif->subsample_mode == VIPS_FOREIGN_SUBSAMPLE_AUTO &&
-			heif->Q > 90 ) ? "444" : "420";
+			heif->Q >= 90 ) ? "444" : "420";
 	error = heif_encoder_set_parameter_string( heif->encoder,
 		"chroma", chroma );
 	if( error.code &&
@@ -738,7 +738,7 @@ vips_foreign_save_heif_target_init( VipsForeignSaveHeifTarget *target )
  * Use @speed to control the CPU effort spent improving compression.
  * This is currently only applicable to AV1 encoders, defaults to 5.
  *
- * Chroma subsampling is normally automatically disabled for Q > 90. You can
+ * Chroma subsampling is normally automatically disabled for Q >= 90. You can
  * force the subsampling mode with @subsample_mode.
  *
  * See also: vips_image_write_to_file(), vips_heifload().

@@ -17,7 +17,7 @@ from helpers import \
     GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, \
     temp_filename, assert_almost_equal_objects, have, skip_if_no, \
     TIF1_FILE, TIF2_FILE, TIF4_FILE, WEBP_LOOKS_LIKE_SVG_FILE, \
-    WEBP_ANIMATED_FILE
+    WEBP_ANIMATED_FILE, JP2K_FILE
 
 class TestForeign:
     tempdir = None
@@ -1118,6 +1118,54 @@ class TestForeign:
             buf = x.heifsave_buffer(Q=10, compression="av1")
             y = pyvips.Image.new_from_buffer(buf, "")
             assert y.get("exif-ifd0-Make").split(" ")[0] == "banana"
+
+    @skip_if_no("jp2kload")
+    def test_jp2kload(self):
+        def jp2k_valid(im):
+            a = im(402, 73)
+            assert_almost_equal_objects(a, [141, 144, 73], threshold=2)
+            assert im.width == 800
+            assert im.height == 400
+            assert im.bands == 3
+
+        self.file_loader("jp2kload", JP2K_FILE, jp2k_valid)
+        self.buffer_loader("jp2kload_buffer", JP2K_FILE, jp2k_valid)
+
+    @skip_if_no("jp2ksave")
+    def test_jp2ksave(self):
+        self.save_load_buffer("jp2ksave_buffer", "jp2kload_buffer",
+                              self.colour, 80)
+
+        buf = self.colour.jp2ksave_buffer(lossless=True)
+        im2 = pyvips.Image.new_from_buffer(buf, "")
+        assert (self.colour == im2).min() == 255
+
+        # higher Q should mean a bigger buffer
+        b1 = self.mono.jp2ksave_buffer(Q=10)
+        b2 = self.mono.jp2ksave_buffer(Q=90)
+        assert len(b2) > len(b1)
+
+        # disabling chroma subsample should mean a bigger buffer
+        b1 = self.colour.jp2ksave_buffer(subsample_mode="on")
+        b2 = self.colour.jp2ksave_buffer(subsample_mode="off")
+        assert len(b2) > len(b1)
+
+        # enabling lossless should mean a bigger buffer
+        b1 = self.colour.jp2ksave_buffer(lossless=False)
+        b2 = self.colour.jp2ksave_buffer(lossless=True)
+        assert len(b2) > len(b1)
+
+        # 16-bit colour load and save
+        im = self.colour.colourspace("rgb16")
+        buf = im.jp2ksave_buffer(lossless=True)
+        im2 = pyvips.Image.new_from_buffer(buf, "")
+        assert (im == im2).min() == 255
+
+        # openjpeg 32-bit load and save doesn't seem to work, comment out
+        # im = self.colour.colourspace("rgb16").cast("uint") << 14
+        # buf = im.jp2ksave_buffer(lossless=True)
+        # im2 = pyvips.Image.new_from_buffer(buf, "")
+        # assert (im == im2).min() == 255
 
 
 if __name__ == '__main__':

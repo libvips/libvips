@@ -230,7 +230,8 @@ vips_foreign_load_heif_build( VipsObject *object )
 	printf( "vips_foreign_load_heif_build:\n" );
 #endif /*DEBUG*/
 
-	if( vips_source_rewind( heif->source ) )
+	if( heif->source &&
+		vips_source_rewind( heif->source ) )
 		return( -1 );
 
 	if( !heif->ctx ) {
@@ -245,14 +246,12 @@ vips_foreign_load_heif_build( VipsObject *object )
 		}
 	}
 
-
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_heif_parent_class )->
 		build( object ) )
 		return( -1 );
 
 	return( 0 );
 }
-
 
 static const char *heif_magic[] = {
 	"ftypheic",	/* A regular heif image */

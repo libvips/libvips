@@ -56,6 +56,7 @@ jobs:
             liblcms2-dev libpoppler-glib-dev librsvg2-dev
             libgif-dev libopenexr-dev libpango1.0-dev
             libgsf-1-dev libopenslide-dev libffi-dev
+            libopenjp2-7-dev
 
       - name: Install macOS dependencies
         if: contains(matrix.os, 'macos')
@@ -69,6 +70,7 @@ jobs:
             librsvg libspng libtiff
             little-cms2 openexr openslide
             orc pango poppler webp
+            openjpeg
 
       - name: Install Clang 10
         env:
