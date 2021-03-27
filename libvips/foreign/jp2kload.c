@@ -1128,6 +1128,55 @@ vips_foreign_load_jp2k_source_init(
 {
 }
 
+
+/* Called from tiff2vips to decode a jp2k-compressed tile.
+ */
+int
+vips__foreign_load_jp2k_decompress_buffer( void *data, tsize_t length, 
+	int width, int height, 
+	void *dest, size_t dest_length )
+{
+	struct read_callback_params read_params = {
+		.data = data,
+		.datalen = length,
+	};
+
+	/* Read all the data in one chunk. TRUE means a read stream.
+	 */
+	if( !(stream = opj_stream_create( length, TRUE )) ) 
+		return( NULL );
+
+
+	opj_stream_set_user_data(stream, &read_params, NULL);
+	opj_stream_set_user_data_length(stream, datalen);
+	opj_stream_set_read_function(stream, read_callback);
+
+  // init codec
+  opj_codec_t *codec = opj_create_decompress(OPJ_CODEC_J2K);
+  opj_dparameters_t parameters;
+  opj_set_default_decoder_parameters(&parameters);
+  opj_setup_decoder(codec, &parameters);
+
+  // enable error handlers
+  // note: don't use info_handler, it outputs lots of junk
+  opj_set_warning_handler(codec, warning_callback, &tmp_err);
+  opj_set_error_handler(codec, error_callback, &tmp_err);
+
+
+}
+
+#else /*!HAVE_LIBOPENJP2*/
+
+int
+vips__foreign_load_jp2k_decompress_buffer( void *data, tsize_t length, 
+	int width, int height, 
+	void *dest, size_t dest_length )
+{
+	vips_error( "tiff2vips", 
+		"%s", _( "libvips built without JPEG2000 support" ) );
+	return( -1 );
+}
+
 #endif /*HAVE_LIBOPENJP2*/
 
 /**
