@@ -685,6 +685,10 @@ vips_thumbnail_build( VipsObject *object )
 		in = t[12];
 	}
 
+	/* Note the interpretation we will revert to after linear.
+	 */
+	input_interpretation = in->Type;
+
 	/* In linear mode, we need to transform to a linear space before 
 	 * vips_resize(). 
 	 */
@@ -718,11 +722,6 @@ vips_thumbnail_build( VipsObject *object )
 			/* Otherwise, use scRGB or GREY16 for linear shrink.
 			 */
 			VipsInterpretation interpretation;
-
-			/* Note the interpretation we will revert to after 
-			 * linear.
-			 */
-			input_interpretation = in->Type;
 
 			if( in->Bands < 3 )
 				interpretation = VIPS_INTERPRETATION_GREY16; 
