@@ -17,7 +17,6 @@ libforeign_la_SOURCES = \
 	fitsload.c \
 	fitssave.c \
 	foreign.c \
-	gifload.c \
 	heifload.c \
 	heifsave.c \
 	jp2kload.c \

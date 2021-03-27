@@ -20,6 +20,7 @@
 - add vips_fitsload_source(), vips_niftiload_source()
 - png and gif load note background colour as metadata [781545872]
 - add vips_image_[set|get]_array_double()
+- add GIF load with libnsgif
 - add JPEG2000 load and save
 
 22/12/20 start 8.10.6
