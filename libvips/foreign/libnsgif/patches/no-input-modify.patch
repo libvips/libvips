@@ -1,0 +1,32 @@
+--- libnsgif-orig.c	2021-02-28 14:10:41.818557190 +0000
++++ libnsgif.c	2021-02-28 14:11:55.942285930 +0000
+@@ -435,20 +435,15 @@
+                 block_size = gif_data[0] + 1;
+                 /* Check if the frame data runs off the end of the file	*/
+                 if ((int)(gif_bytes - block_size) < 0) {
+-                        /* Try to recover by signaling the end of the gif.
+-                         * Once we get garbage data, there is no logical way to
+-                         * determine where the next frame is.  It's probably
+-                         * better to partially load the gif than not at all.
+-                         */
+-                        if (gif_bytes >= 2) {
+-                                gif_data[0] = 0;
+-                                gif_data[1] = GIF_TRAILER;
+-                                gif_bytes = 1;
+-                                ++gif_data;
+-                                break;
+-                        } else {
+-                                return GIF_INSUFFICIENT_FRAME_DATA;
+-                        }
++			/* jcupitt 15/9/19
++			 *
++			 * There was code here to set a TRAILER tag. But this
++			 * wrote to the input buffer, which will not work for
++			 * libvips, where buffers can be mmaped read only files.
++			 *
++			 * Instead, just signal insufficient frame data.
++			 */
++			return GIF_INSUFFICIENT_FRAME_DATA;
+                 } else {
+                         gif_bytes -= block_size;
+                         gif_data += block_size;

@@ -979,6 +979,16 @@ VIPS_LIBS="$VIPS_LIBS $MATIO_LIBS"
 # not external libraries, but have options to disable them, helps to
 # reduce attack surface
 
+AC_ARG_WITH([nsgif], 
+  AS_HELP_STRING([--without-nsgif], [build without nsgif load (default: with)]))
+
+if test x"$with_nsgif" != x"no"; then
+  AC_DEFINE(HAVE_NSGIF,1,[define to build nsgif load support.])
+  with_nsgif=yes
+fi
+
+AM_CONDITIONAL(ENABLE_NSGIF, [test x"$with_nsgif" = x"yes"])
+
 AC_ARG_WITH([ppm], 
   AS_HELP_STRING([--without-ppm], [build without ppm (default: with)]))
 
@@ -1101,19 +1111,6 @@ fi
 VIPS_CFLAGS="$VIPS_CFLAGS $TIFF_CFLAGS"
 VIPS_INCLUDES="$VIPS_INCLUDES $TIFF_INCLUDES"
 VIPS_LIBS="$VIPS_LIBS $TIFF_LIBS"
-
-# giflib
-FIND_GIFLIB(
-  [with_giflib="yes (found by search)"
-  ], 
-  [AC_MSG_WARN([giflib not found; disabling direct GIF support])
-   with_giflib=no
-  ]
-)
-
-VIPS_CFLAGS="$VIPS_CFLAGS $GIFLIB_CFLAGS"
-VIPS_INCLUDES="$VIPS_INCLUDES $GIFLIB_INCLUDES"
-VIPS_LIBS="$VIPS_LIBS $GIFLIB_LIBS"
 
 # Look for libspng first
 # 0.6.1 uses "libspng.pc", git master libspng uses "spng.pc"
@@ -1292,6 +1289,7 @@ gobject introspection:  $found_introspection, \
 RAD load/save: $with_radiance, \
 Analyze7 load/save: $with_analyze, \
 PPM load/save: $with_ppm, \
+GIF load:  $with_nsgif, \
 generate C++ docs: $with_doxygen, \
 use fftw3 for FFT: $with_fftw, \
 accelerate loops with orc: $with_orc, \
@@ -1305,7 +1303,6 @@ PNG load/save with libpng: $with_png, \
 8bpp PNG quantisation: $with_imagequant, \
 TIFF load/save with libtiff: $with_tiff, \
 image pyramid save: $with_gsf, \
-GIF load with giflib:  $with_giflib, \
 HEIC/AVIF load/save with libheif: $with_heif, \
 WebP load/save with libwebp: $with_libwebp, \
 PDF load with PDFium:  $with_pdfium, \
@@ -1350,6 +1347,7 @@ AC_CONFIG_FILES([
         libvips/convolution/Makefile
         libvips/deprecated/Makefile
         libvips/foreign/Makefile
+        libvips/foreign/libnsgif/Makefile
         libvips/freqfilt/Makefile
         libvips/histogram/Makefile
         libvips/draw/Makefile
@@ -1390,6 +1388,7 @@ gobject introspection:                  $found_introspection
 RAD load/save:                          $with_radiance
 Analyze7 load/save:                     $with_analyze
 PPM load/save:                          $with_ppm
+GIF load:                               $with_nsgif
 generate C++ docs:                      $with_doxygen
 
 ## Optional dependencies
@@ -1412,7 +1411,6 @@ PNG load/save with libpng:              $with_png
 TIFF load/save with libtiff:            $with_tiff
 image pyramid save:                     $with_gsf
  (requires libgsf-1 1.14.26 or later)
-GIF load with giflib:                   $with_giflib
 HEIC/AVIF load/save with libheif:       $with_heif
 WebP load/save with libwebp:            $with_libwebp
  (requires libwebp, libwebpmux, libwebpdemux 0.6.0 or later)

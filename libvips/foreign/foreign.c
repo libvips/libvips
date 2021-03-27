@@ -2187,22 +2187,25 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_nifti_source_get_type( void ); 
 	extern GType vips_foreign_save_nifti_get_type( void ); 
 
-	extern GType vips_foreign_load_gif_file_get_type( void ); 
-	extern GType vips_foreign_load_gif_buffer_get_type( void ); 
-	extern GType vips_foreign_load_gif_source_get_type( void ); 
+	extern GType vips_foreign_load_nsgif_file_get_type( void ); 
+	extern GType vips_foreign_load_nsgif_buffer_get_type( void ); 
+	extern GType vips_foreign_load_nsgif_source_get_type( void ); 
 
 	vips_foreign_load_csv_file_get_type(); 
 	vips_foreign_load_csv_source_get_type(); 
 	vips_foreign_save_csv_file_get_type(); 
 	vips_foreign_save_csv_target_get_type(); 
+
 	vips_foreign_load_matrix_file_get_type(); 
 	vips_foreign_load_matrix_source_get_type(); 
 	vips_foreign_save_matrix_file_get_type(); 
 	vips_foreign_save_matrix_target_get_type(); 
 	vips_foreign_print_matrix_get_type(); 
+
 	vips_foreign_load_raw_get_type(); 
 	vips_foreign_save_raw_get_type(); 
 	vips_foreign_save_raw_fd_get_type(); 
+
 	vips_foreign_load_vips_file_get_type(); 
 	vips_foreign_load_vips_source_get_type(); 
 	vips_foreign_save_vips_file_get_type(); 
@@ -2246,11 +2249,11 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_svg_source_get_type(); 
 #endif /*HAVE_RSVG*/
 
-#ifdef HAVE_GIFLIB
-	vips_foreign_load_gif_file_get_type(); 
-	vips_foreign_load_gif_buffer_get_type(); 
-	vips_foreign_load_gif_source_get_type(); 
-#endif /*HAVE_GIFLIB*/
+#ifdef HAVE_NSGIF
+	vips_foreign_load_nsgif_file_get_type(); 
+	vips_foreign_load_nsgif_buffer_get_type(); 
+	vips_foreign_load_nsgif_source_get_type(); 
+#endif /*HAVE_NSGIF*/
 
 #ifdef HAVE_GSF
 	vips_foreign_save_dz_file_get_type(); 

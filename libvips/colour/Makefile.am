@@ -1,6 +1,6 @@
-noinst_LTLIBRARIES = libcolour.la
-
 SUBDIRS = profiles
+
+noinst_LTLIBRARIES = libcolour.la
 
 libcolour_la_SOURCES = \
 	profiles.c \

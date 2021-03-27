@@ -9,6 +9,10 @@ else
 OPTIONAL_DIST_DIR += deprecated
 endif
 
+if ENABLE_NSGIF
+OPTIONAL_LIB += foreign/libnsgif/libnsgif.la
+endif
+
 SUBDIRS = \
 	include \
 	foreign \
