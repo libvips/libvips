@@ -984,32 +984,44 @@ VIPS_LIBS="$VIPS_LIBS $ZLIB_LIBS"
 # OpenSlide
 AC_ARG_WITH([openslide],
   AS_HELP_STRING([--without-openslide], 
-    [build without OpenSlide (default: test)])
-)
+    [build without OpenSlide (default: test)]),
+  [with_openslide=$withval],
+  [with_openslide=$gmodule_with_flag])
+
+# OpenSlide as a dynamically loadable module
+AS_IF([test x"$with_openslide" = x"module"],
+  [with_openslide_module=$gmodule_supported_flag],
+  [with_openslide_module=no])
 
 if test x"$with_openslide" != x"no"; then
   PKG_CHECK_MODULES(OPENSLIDE, [openslide >= 3.4.0],
     [AC_DEFINE(HAVE_OPENSLIDE_3_4,1,[define if you have OpenSlide >= 3.4.0 installed.])
      AC_DEFINE(HAVE_OPENSLIDE,1,[define if you have OpenSlide >= 3.3.0 installed.])
      with_openslide=yes
-     PACKAGES_USED="$PACKAGES_USED openslide"
+     AS_IF([test x"$with_openslide_module" = x"no"],
+       [PACKAGES_USED="$PACKAGES_USED openslide"])
     ],
     [AC_MSG_NOTICE([OpenSlide >= 3.4.0 not found; checking for >= 3.3.0])
      PKG_CHECK_MODULES(OPENSLIDE, [openslide >= 3.3.0],
        [AC_DEFINE(HAVE_OPENSLIDE,1,[define if you have OpenSlide >= 3.3.0 installed.])
         with_openslide=yes
-        PACKAGES_USED="$PACKAGES_USED openslide"
+        AS_IF([test x"$with_openslide_module" = x"no"],
+          [PACKAGES_USED="$PACKAGES_USED openslide"])
        ],
        [AC_MSG_WARN([OpenSlide >= 3.3.0 not found; disabling virtual slide support])
         with_openslide=no
+        with_openslide_module=no
        ]
      )
     ]
   )
 fi
 
-VIPS_CFLAGS="$VIPS_CFLAGS $OPENSLIDE_CFLAGS"
-VIPS_LIBS="$VIPS_LIBS $OPENSLIDE_LIBS"
+AS_IF([test x"$with_openslide_module" = x"yes"],
+  [AC_DEFINE([OPENSLIDE_MODULE], [1], [define to build OpenSlide as a dynamically loadable module.])],
+  [VIPS_CFLAGS="$VIPS_CFLAGS $OPENSLIDE_CFLAGS"
+   VIPS_LIBS="$VIPS_LIBS $OPENSLIDE_LIBS"])
+AM_CONDITIONAL(OPENSLIDE_MODULE, [test x"$with_openslide_module" = x"yes"])
 
 # matio
 AC_ARG_WITH([matio], 
@@ -1385,7 +1397,7 @@ PDF load with PDFium:  $with_pdfium, \
 PDF load with poppler-glib: $with_poppler, \
 SVG load with librsvg-2.0: $with_rsvg, \
 EXR load with OpenEXR: $with_OpenEXR, \
-slide load with OpenSlide: $with_openslide, \
+slide load with OpenSlide: $with_openslide (dynamic module: $with_openslide_module), \
 Matlab load with matio: $with_matio, \
 NIfTI load/save with niftiio: $with_nifti, \
 FITS load/save with cfitsio: $with_cfitsio, \
@@ -1500,7 +1512,7 @@ SVG load with librsvg-2.0:              $with_rsvg
 EXR load with OpenEXR:                  $with_OpenEXR
 JPEG2000 load/save with libopenjp2:     $with_libopenjp2
  (requires libopenjp2 2.2 or later)
-slide load with OpenSlide:              $with_openslide
+slide load with OpenSlide:              $with_openslide (dynamic module: $with_openslide_module)
  (requires openslide-3.3.0 or later)
 Matlab load with matio:                 $with_matio
 NIfTI load/save with niftiio:           $with_nifti

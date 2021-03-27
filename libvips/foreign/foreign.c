@@ -2322,10 +2322,10 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_tiff_buffer_get_type(); 
 #endif /*HAVE_TIFF*/
 
-#ifdef HAVE_OPENSLIDE
+#if defined(HAVE_OPENSLIDE) && !defined(OPENSLIDE_MODULE)
 	vips_foreign_load_openslide_file_get_type(); 
 	vips_foreign_load_openslide_source_get_type(); 
-#endif /*HAVE_OPENSLIDE*/
+#endif /*defined(HAVE_OPENSLIDE) && !defined(OPENSLIDE_MODULE)*/
 
 #ifdef ENABLE_MAGICKLOAD
 #ifdef HAVE_MAGICK6

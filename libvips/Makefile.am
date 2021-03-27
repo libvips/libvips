@@ -82,6 +82,10 @@ module_LTLIBRARIES =
 
 moduledir = @VIPS_LIBDIR@/vips-modules-@VIPS_MAJOR_VERSION@.@VIPS_MINOR_VERSION@
 
+if OPENSLIDE_MODULE
+module_LTLIBRARIES += vips-openslide.la
+endif # OPENSLIDE_MODULE
+
 MODULE_CPPFLAGS = \
 	-I${top_srcdir}/libvips/include \
 	$(REQUIRED_CFLAGS)
@@ -99,6 +103,11 @@ MODULE_LIBADD = \
 # Note that only the GObject part should be included in a
 # dynamically loadable module. The C definitions are always
 # included in the main library.
+
+vips_openslide_la_SOURCES = module/openslide.c foreign/openslide2vips.c
+vips_openslide_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(OPENSLIDE_CFLAGS)
+vips_openslide_la_LDFLAGS = $(MODULE_LDFLAGS)
+vips_openslide_la_LIBADD = $(MODULE_LIBADD) $(OPENSLIDE_LIBS)
 
 # Introspection
 

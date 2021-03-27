@@ -40,7 +40,6 @@ libforeign_la_SOURCES = \
 	nsgifload.c \
 	openexr2vips.c \
 	openexrload.c \
-	openslide2vips.c \
 	openslideload.c \
 	pdfiumload.c \
 	pdfload.c \
@@ -74,6 +73,10 @@ libforeign_la_SOURCES = \
 
 # We still need to include the GObject part of a loader/saver
 # if it is not built as a dynamically loadable module.
+
+if !OPENSLIDE_MODULE
+libforeign_la_SOURCES += openslide2vips.c
+endif # !OPENSLIDE_MODULE
 
 EXTRA_DIST = libnsgif
 

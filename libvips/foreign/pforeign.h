@@ -213,15 +213,6 @@ int vips__webp_write_target( VipsImage *image, VipsTarget *target,
 	gboolean min_size, int kmin, int kmax,
 	gboolean strip, const char *profile );
 
-int vips__openslide_isslide( const char *filename );
-int vips__openslide_read_header( const char *filename, VipsImage *out, 
-	int level, gboolean autocrop, 
-	char *associated, gboolean attach_associated );
-int vips__openslide_read( const char *filename, VipsImage *out, 
-	int level, gboolean autocrop, gboolean attach_associated );
-int vips__openslide_read_associated( const char *filename, VipsImage *out, 
-	const char *associated );
-
 gboolean vips_foreign_load_pdf_is_a_buffer( const void *buf, size_t len );
 gboolean vips_foreign_load_pdf_is_a( const char *filename );
 
