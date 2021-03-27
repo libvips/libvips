@@ -201,6 +201,8 @@
  * 	- add subifd
  * 6/6/20 MathemanFlo
  * 	- support 2 and 4 bit greyscale load
+ * 27/3/21
+ * 	- add jp2k decompresion
  */
 
 /*
@@ -231,9 +233,9 @@
  */
 
 /* 
+ */
 #define DEBUG_VERBOSE
 #define DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -252,6 +254,23 @@
 
 #include "pforeign.h"
 #include "tiff.h"
+
+/* Aperio TIFFs use these compression types for jp2k-compressed tiles.
+ */
+#define JP2K_YCC 33003
+#define JP2K_RGB 33005
+
+/* Bioformats uses this tag for jp2k compressed tiles.
+ */
+#define JP2K_LOSSY 33004
+
+/* Compression types we habndle ourselves.
+ */
+static int rtiff_we_decompress[] = {
+	JP2K_YCC,
+	JP2K_RGB,
+	JP2K_LOSSY
+};
 
 /* What we read from the tiff dir to set our read strategy. For multipage
  * read, we need to read and compare lots of these, so it needs to be broken
@@ -316,6 +335,11 @@ typedef struct _RtiffHeader {
 	 */
 	char *image_description;
 
+	/* TRUE if the compression type is not supported by libtiff directly
+	 * and we must read the raw data and decompress ourselves.
+	 */
+	gboolean we_decompress;
+
 } RtiffHeader;
 
 /* Scanline-type process function.
@@ -370,6 +394,12 @@ typedef struct _Rtiff {
 	 * strips or tiles interleaved. 
 	 */
 	tdata_t contig_buf;
+
+	/* If we are decompressing, we need a buffer to read the raw tile to
+	 * before running the decompressor.
+	 */
+	tdata_t decompress_buf;
+	tsize_t decompress_buf_length;
 
 	/* The Y we are reading at. Used to verify strip read is sequential.
 	 */
@@ -1723,9 +1753,39 @@ rtiff_read_tile( Rtiff *rtiff, tdata_t *buf, int x, int y )
 	printf( "rtiff_read_tile: x = %d, y = %d\n", x, y ); 
 #endif /*DEBUG_VERBOSE*/
 
-	if( TIFFReadTile( rtiff->tiff, buf, x, y, 0, 0 ) < 0 ) { 
-		vips_foreign_load_invalidate( rtiff->out );
-		return( -1 ); 
+	if( rtiff->header.we_decompress ) {
+		ttile_t tile_no = TIFFComputeTile( rtiff->tiff, x, y, 0, 0 );
+
+		tsize_t size;
+
+		size = TIFFReadRawTile( rtiff->tiff, tile_no, 
+			rtiff->decompress_buf, rtiff->decompress_buf_length );
+		if( size <= 0 ) {
+			vips_foreign_load_invalidate( rtiff->out );
+			return( -1 ); 
+		}
+
+		switch( rtiff->header.compression ) {
+		case JP2K_YCC:
+		case JP2K_RGB:
+		case JP2K_LOSSY:
+			if( vips__foreign_load_jp2k_decompress_buffer( 
+				rtiff->decompress_buf, size,
+				rtiff->header.tile_width, 
+				rtiff->header.tile_height,
+				buf, rtiff->header.tile_size ) )
+			break;
+
+		default:
+			g_assert_not_reached();
+			break;
+		}
+	}
+	else {
+		if( TIFFReadTile( rtiff->tiff, buf, x, y, 0, 0 ) < 0 ) { 
+			vips_foreign_load_invalidate( rtiff->out );
+			return( -1 ); 
+		}
 	}
 
 	return( 0 ); 
@@ -1980,6 +2040,20 @@ rtiff_read_tilewise( Rtiff *rtiff, VipsImage *out )
 		vips_error( "tiff2vips", 
 			"%s", _( "tiled separate planes not supported" ) ); 
 		return( -1 );
+	}
+
+	/* If we will be decompressing, we need a buffer large enough to hold
+	 * the largest compressed tile in any page.
+	 *
+	 * Allocate a buffer 2x the uncompressed tile size ... much simpler
+	 * than searching every page for the largest tile with
+	 * TIFFTAG_TILEBYTECOUNTS.
+	 */
+	if( rtiff->header.we_decompress ) {
+		rtiff->decompress_buf_length = 2 * rtiff->header.tile_size;
+		if( !(rtiff->decompress_buf, vips_malloc( VIPS_OBJECT( out ), 
+			rtiff->decompress_buf_length )) )
+			return( -1 );
 	}
 
 	/* Read to this image, then cache to out, see below.
@@ -2355,6 +2429,7 @@ rtiff_read_stripwise( Rtiff *rtiff, VipsImage *out )
 static int
 rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 {
+	int i;
 	uint16 extra_samples_count;
 	uint16 *extra_samples_types;
 	toff_t *subifd_offsets;
@@ -2376,6 +2451,18 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 
 	TIFFGetFieldDefaulted( rtiff->tiff, 
 		TIFFTAG_COMPRESSION, &header->compression );
+
+	/* One of the types we decompress?
+	 */
+	for( i = 0; i < VIPS_NUMBER( rtiff_we_decompress ); i++ )
+		if( header->compression == rtiff_we_decompress[i] ) {
+#ifdef DEBUG
+		printf( "rtiff_header_read: compression %d handled by us\n", 
+			header->compression );
+#endif /*DEBUG*/
+			header->we_decompress = TRUE;
+			break;
+		}
 
 	/* We must set this here since it'll change the value of scanline_size.
 	 */
@@ -2470,6 +2557,8 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 	/* Tiles and strip images have slightly different fields.
 	 */
 	header->tiled = TIFFIsTiled( rtiff->tiff );
+
+
 
 #ifdef DEBUG
 	printf( "rtiff_header_read: header.width = %d\n", 
@@ -2652,6 +2741,7 @@ rtiff_header_equal( RtiffHeader *h1, RtiffHeader *h2 )
 		h1->photometric_interpretation != 
 			h2->photometric_interpretation ||
 		h1->sample_format != h2->sample_format ||
+		h1->compression != h2->compression ||
 		h1->separate != h2->separate ||
 		h1->tiled != h2->tiled ||
 		h1->orientation != h2->orientation )
