@@ -372,7 +372,7 @@ int vips_openslideload_source( VipsSource *source, VipsImage **out, ... )
 
 /**
  * VipsForeignSubsample:
- * @VIPS_FOREIGN_SUBSAMPLE_AUTO: prevent subsampling when quality > 90
+ * @VIPS_FOREIGN_SUBSAMPLE_AUTO: prevent subsampling when quality >= 90
  * @VIPS_FOREIGN_SUBSAMPLE_ON: always perform subsampling
  * @VIPS_FOREIGN_SUBSAMPLE_OFF: never perform subsampling
  *

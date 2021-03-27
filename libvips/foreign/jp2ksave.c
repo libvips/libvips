@@ -1076,7 +1076,7 @@ vips_foreign_save_jp2k_target_init( VipsForeignSaveJp2kTarget *target )
  *
  * Use @tile_width and @tile_height to set the tile size. The default is 512.
  *
- * Chroma subsampling is normally automatically disabled for Q > 90. You can
+ * Chroma subsampling is normally automatically disabled for Q >= 90. You can
  * force the subsampling mode with @subsample_mode.
  *
  * This operation always writes a pyramid.
