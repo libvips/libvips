@@ -43,7 +43,6 @@ libforeign_la_SOURCES = \
 	openslide2vips.c \
 	openslideload.c \
 	quantise.c \
-	pdfload.c \
 	pdfiumload.c \
 	pdfload.c \
 	pforeign.h \
