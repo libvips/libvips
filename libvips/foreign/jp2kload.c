@@ -1128,41 +1128,35 @@ vips_foreign_load_jp2k_source_init(
 {
 }
 
-
 /* Called from tiff2vips to decode a jp2k-compressed tile.
  */
 int
-vips__foreign_load_jp2k_decompress_buffer( void *data, tsize_t length, 
+vips__foreign_load_jp2k_decompress_buffer( void *data, size_t length, 
 	int width, int height, 
 	void *dest, size_t dest_length )
 {
-	struct read_callback_params read_params = {
-		.data = data,
-		.datalen = length,
-	};
+	opj_dinfo_t *dinfo;
+	opj_dparameters_t parameters;
+	opj_cio_t *stream;
+	opj_event_mgr_t event_callbacks;
+	opj_image_t *image;
 
-	/* Read all the data in one chunk. TRUE means a read stream.
-	 */
-	if( !(stream = opj_stream_create( length, TRUE )) ) 
-		return( NULL );
+	dinfo = opj_create_decompress( CODEC_J2K );
+	opj_set_default_decoder_parameters( &parameters );
+	opj_setup_decoder( dinfo, &parameters );
 
+	stream = opj_cio_open( (opj_common_ptr) dinfo, data, length );
+	event_callbacks.error_handler = error_callback;
+	event_callbacks.warning_handler = warning_callback;
+	opj_set_event_mgr( (opj_common_ptr) dinfo, &event_callbacks, NULL );
 
-	opj_stream_set_user_data(stream, &read_params, NULL);
-	opj_stream_set_user_data_length(stream, datalen);
-	opj_stream_set_read_function(stream, read_callback);
-
-  // init codec
-  opj_codec_t *codec = opj_create_decompress(OPJ_CODEC_J2K);
-  opj_dparameters_t parameters;
-  opj_set_default_decoder_parameters(&parameters);
-  opj_setup_decoder(codec, &parameters);
-
-  // enable error handlers
-  // note: don't use info_handler, it outputs lots of junk
-  opj_set_warning_handler(codec, warning_callback, &tmp_err);
-  opj_set_error_handler(codec, error_callback, &tmp_err);
+	if( !(image = opj_decode( dinfo, stream )) ) {
+		return( -1 );
+	}
 
 
+
+	return( 0 );
 }
 
 #else /*!HAVE_LIBOPENJP2*/
