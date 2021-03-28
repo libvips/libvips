@@ -582,7 +582,7 @@ vips_foreign_load_jp2k_header( VipsForeignLoad *load )
 	\
 	for( x = 0; x < length; x++ ) { \
 		for( i = 0; i < b; i++ ) { \
-			int dx = jp2k->image->comps[i].dx; \
+			int dx = image->comps[i].dx; \
 			int pixel = planes[i][x / dx]; \
 			\
 			tq[i] = pixel; \
@@ -592,28 +592,28 @@ vips_foreign_load_jp2k_header( VipsForeignLoad *load )
 	} \
 }
 
-/* Pack the set of openjpeg components into a libvips region. left/top are the
+/* Pack a line of openjpeg pixels into libvips format. left/top are the
  * offsets into the tile in pixel coordinates where we should start reading.
  */
 static void
-vips_foreign_load_jp2k_pack( VipsForeignLoadJp2k *jp2k, 
-	VipsImage *image, VipsPel *q, 
+vips_foreign_load_jp2k_pack( opj_image_t *image, gboolean upsample, 
+	VipsBandFormat format, VipsPel *q, 
 	int left, int top, int length )
 {
 	int *planes[MAX_BANDS];
-	int b = jp2k->image->numcomps;
+	int b = image->numcomps;
 
 	int x, i;
 
 	for( i = 0; i < b; i++ ) {
-		opj_image_comp_t *comp = &jp2k->image->comps[i];
+		opj_image_comp_t *comp = &image->comps[i];
 
 		planes[i] = comp->data + (top / comp->dy) * comp->w + 
 			(left / comp->dx);
 	}
 
-	if( jp2k->upsample ) 
-		switch( image->BandFmt ) {
+	if( upsample ) 
+		switch( format ) {
 		case VIPS_FORMAT_CHAR:
 		case VIPS_FORMAT_UCHAR:
 			PACK_UPSAMPLE( unsigned char );
@@ -636,7 +636,7 @@ vips_foreign_load_jp2k_pack( VipsForeignLoadJp2k *jp2k,
 	else 
 		/* Fast no-upsample path.
 		 */
-		switch( image->BandFmt ) {
+		switch( format ) {
 		case VIPS_FORMAT_CHAR:
 		case VIPS_FORMAT_UCHAR:
 			PACK( unsigned char );
@@ -802,8 +802,8 @@ vips_foreign_load_jp2k_generate( VipsRegion *out,
 				VipsPel *q = VIPS_REGION_ADDR( out, 
 					hit.left, hit.top + z );
 
-				vips_foreign_load_jp2k_pack( jp2k,
-					out->im, q,
+				vips_foreign_load_jp2k_pack( jp2k->image,
+					jp2k->upsample, out->im->BandFmt, q,
 					hit.left - tile.left,
 					hit.top - tile.top + z,
 					hit.width ); 
@@ -1154,6 +1154,7 @@ vips__foreign_load_jp2k_decompress_buffer( void *data, size_t length,
         opj_codec_t *codec;
 	opj_dparameters_t parameters;
 	opj_image_t *image;
+	int x, y, z;
 
 	codec = opj_create_decompress( OPJ_CODEC_J2K );
 	opj_set_default_decoder_parameters( &parameters );
@@ -1181,7 +1182,28 @@ vips__foreign_load_jp2k_decompress_buffer( void *data, size_t length,
 		return( -1 );
 	}
 
-	vips_foreign_load_jp2k_print_image( image );
+	/* Unpack hit pixels to buffer in vips layout. 
+	 */
+	for( y = 0; y < hit.height; y++ ) {
+		vips_foreign_load_jp2k_pack( image,
+			upsample, out->im->BandFmt, q,
+			0, y, width ); 
+
+		VipsPel *q = VIPS_REGION_ADDR( out, 
+			hit.left, hit.top + z );
+
+				vips_foreign_load_jp2k_pack( jp2k,
+					out->im, q,
+					hit.left - tile.left,
+					hit.top - tile.top + z,
+					hit.width ); 
+
+				if( jp2k->ycc_to_rgb )
+					vips_foreign_load_jp2k_ycc_to_rgb( jp2k,
+						q, hit.width );
+			}
+
+	unpack( space, image->comps, dest, width, height );
 
 	return( 0 );
 }
