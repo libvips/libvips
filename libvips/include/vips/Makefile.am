@@ -33,7 +33,6 @@ pkginclude_HEADERS = \
 	mosaicing.h \
 	create.h \
 	video.h \
-	cimg_funcs.h \
 	object.h \
 	private.h \
 	rect.h \

@@ -61,7 +61,6 @@ EXTRA_HFILES=
 
 IGNORE_VIPS_INCLUDE = \
 	almostdeprecated.h \
-	cimg_funcs.h \
 	deprecated.h \
 	vips7compat.h \
 	dispatch.h \
