@@ -355,15 +355,8 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 #ifdef VERBOSE
 	print_animation( gif->anim );
 #endif /*VERBOSE*/
-	if( result != GIF_OK && 
-		result != GIF_WORKING &&
-		result != GIF_INSUFFICIENT_FRAME_DATA ) {
+	if( result != GIF_OK && result != GIF_WORKING ) {
 		vips_foreign_load_nsgif_error( gif, result ); 
-		return( -1 );
-	}
-	else if( result == GIF_INSUFFICIENT_FRAME_DATA &&
-		load->fail ) {
-		vips_error( class->nickname, "%s", _( "truncated GIF" ) );
 		return( -1 );
 	}
 
