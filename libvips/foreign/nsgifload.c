@@ -285,8 +285,10 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 	vips_image_set_int( image, VIPS_META_N_PAGES, 
 		gif->frame_count_displayable );
 	vips_image_set_int( image, "gif-loop", gif->anim->loop_count );
+	vips_image_set_int( image, "loop", gif->anim->loop_count );
 
-	vips_image_set_array_int( image, "delay", gif->delay, gif->n );
+	vips_image_set_array_int( image, "delay", gif->delay,
+		gif->frame_count_displayable );
 
 	/* The deprecated gif-delay field is in centiseconds.
 	 */
@@ -371,9 +373,10 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 	/* In ms, frame_delay in cs.
 	 */
 	VIPS_FREE( gif->delay );
-	if( !(gif->delay = VIPS_ARRAY( NULL, gif->n, int )) )
+	if( !(gif->delay = VIPS_ARRAY( NULL,
+		gif->frame_count_displayable, int )) )
 		return( -1 );
-	for( i = 0; i < gif->n; i++ )
+	for( i = 0; i < gif->frame_count_displayable; i++ )
 		gif->delay[i] = 
 			10 * gif->anim->frames[gif->page + i].frame_delay;
 
