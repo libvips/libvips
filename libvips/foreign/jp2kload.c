@@ -32,9 +32,9 @@
  */
 
 /*
+ */
 #define DEBUG_VERBOSE
 #define DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1128,6 +1128,20 @@ vips_foreign_load_jp2k_source_init(
 {
 }
 
+static void 
+warning_callback( const char *msg G_GNUC_UNUSED, void *data G_GNUC_UNUSED ) 
+{
+	/* There are a lot of warnings ...
+	 */
+}
+
+static void 
+error_callback( const char *msg, void *data ) 
+{
+	printf( "OpenJPEG: %s", msg ); 
+	vips_error( "OpenJPEG", "%s", msg ); 
+}
+
 /* Called from tiff2vips to decode a jp2k-compressed tile.
  */
 int
@@ -1135,26 +1149,39 @@ vips__foreign_load_jp2k_decompress_buffer( void *data, size_t length,
 	int width, int height, 
 	void *dest, size_t dest_length )
 {
-	opj_dinfo_t *dinfo;
+	VipsSource *source;
+        opj_stream_t *stream;
+        opj_codec_t *codec;
 	opj_dparameters_t parameters;
-	opj_cio_t *stream;
-	opj_event_mgr_t event_callbacks;
 	opj_image_t *image;
 
-	dinfo = opj_create_decompress( CODEC_J2K );
+	codec = opj_create_decompress( OPJ_CODEC_J2K );
 	opj_set_default_decoder_parameters( &parameters );
-	opj_setup_decoder( dinfo, &parameters );
+	opj_setup_decoder( codec, &parameters );
+	opj_set_warning_handler( codec, warning_callback, NULL );
+	opj_set_error_handler( codec, error_callback, NULL );
 
-	stream = opj_cio_open( (opj_common_ptr) dinfo, data, length );
-	event_callbacks.error_handler = error_callback;
-	event_callbacks.warning_handler = warning_callback;
-	opj_set_event_mgr( (opj_common_ptr) dinfo, &event_callbacks, NULL );
-
-	if( !(image = opj_decode( dinfo, stream )) ) {
+	source = vips_source_new_from_memory( data, length );
+	stream = vips_foreign_load_jp2k_stream( source );
+	if( !opj_read_header( stream, codec, &image ) ) {
+		printf( "vips__foreign_load_jp2k_decompress_buffer: "
+			"header error\n" );
 		return( -1 );
 	}
 
+	if( image->x1 != width || 
+		image->y1 != height ) {
+		printf( "bad tile dimensions\n" );
+    		return( -1 );
+	}
 
+	if( !opj_decode( codec, stream, image ) ) {
+		printf( "vips__foreign_load_jp2k_decompress_buffer: "
+			"decode error\n" );
+		return( -1 );
+	}
+
+	vips_foreign_load_jp2k_print_image( image );
 
 	return( 0 );
 }
@@ -1162,7 +1189,7 @@ vips__foreign_load_jp2k_decompress_buffer( void *data, size_t length,
 #else /*!HAVE_LIBOPENJP2*/
 
 int
-vips__foreign_load_jp2k_decompress_buffer( void *data, tsize_t length, 
+vips__foreign_load_jp2k_decompress_buffer( void *data, size_t length, 
 	int width, int height, 
 	void *dest, size_t dest_length )
 {

@@ -246,7 +246,7 @@ struct heif_image;
 void vips__heif_image_print( struct heif_image *img );
 
 extern const char *vips__jp2k_suffs[];
-int vips__foreign_load_jp2k_decompress_buffer( void *data, tsize_t length, 
+int vips__foreign_load_jp2k_decompress_buffer( void *data, size_t length, 
 	int width, int height, 
 	void *dest, size_t dest_length );
 
