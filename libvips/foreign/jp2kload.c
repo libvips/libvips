@@ -862,7 +862,7 @@ vips_foreign_load_jp2k_load( VipsForeignLoad *load )
 	if( vips_tilecache( t[0], &t[1], 
 		"tile_width", tile_width,
 		"tile_height", tile_height,
-		"max_tiles", (int) (2.5 * tiles_across),
+		"max_tiles", 3 * tiles_across,
 		NULL ) ) 
 		return( -1 );
 	if( vips_image_write( t[1], load->real ) ) 
@@ -1183,7 +1183,6 @@ vips__foreign_load_jp2k_decompress_buffer( void *data, size_t length,
 	}
 
 	/* Unpack hit pixels to buffer in vips layout. 
-	 */
 	for( y = 0; y < hit.height; y++ ) {
 		vips_foreign_load_jp2k_pack( image,
 			upsample, out->im->BandFmt, q,
@@ -1204,6 +1203,7 @@ vips__foreign_load_jp2k_decompress_buffer( void *data, size_t length,
 			}
 
 	unpack( space, image->comps, dest, width, height );
+	 */
 
 	return( 0 );
 }
