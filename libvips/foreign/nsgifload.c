@@ -534,10 +534,17 @@ vips_foreign_load_nsgif_class_init( VipsForeignLoadNsgifClass *class )
 static void *
 vips_foreign_load_nsgif_bitmap_create( int width, int height )
 {
-        /* ensure a stupidly large bitmap is not created 
+	/* Check GIF dimensions fit within 16-bit unsigned.
 	 */
-
-        return calloc( width * height, 4 );
+	if( width <= 0 ||
+		width > 65535 ||
+		height <= 0 ||
+		height > 65535 ) {
+		vips_error( "gifload",
+			"%s", _( "dimensions out of range ") );
+		return( NULL );
+	}
+	return g_malloc0( width * height * 4 );
 }
 
 static void 
@@ -569,7 +576,7 @@ static void
 vips_foreign_load_nsgif_bitmap_destroy( void *bitmap )
 {
         g_assert( bitmap );
-        free( bitmap );
+        g_free( bitmap );
 }
 
 static void 
