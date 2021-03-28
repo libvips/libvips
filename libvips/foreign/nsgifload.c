@@ -116,7 +116,8 @@ typedef struct _VipsForeignLoadNsgif {
 	 */
 	int frame_count_displayable;
 
-	/* Delays between frames (in milliseconds). Array of length @n.
+	/* Delays between frames (in milliseconds). Array of length 
+	 * @frame_count_displayable.
 	 */
 	int *delay;
 
@@ -284,9 +285,35 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 			VIPS_META_PAGE_HEIGHT, gif->anim->height );
 	vips_image_set_int( image, VIPS_META_N_PAGES, 
 		gif->frame_count_displayable );
-	vips_image_set_int( image, "gif-loop", gif->anim->loop_count );
+	vips_image_set_int( image, "loop", gif->anim->loop_count );
+	vips_image_set_array_int( image, "delay", 
+		gif->delay, gif->frame_count_displayable );
 
-	vips_image_set_array_int( image, "delay", gif->delay, gif->n );
+	if( gif->anim->global_colours &&
+		gif->anim->global_colour_table &&
+		gif->anim->background_index >= 0 &&
+		gif->anim->background_index < gif->anim->colour_table_size ) {
+		int index = gif->anim->background_index;
+		unsigned char *entry = (unsigned char *) 
+			&gif->anim->global_colour_table[index];
+
+		double array[3];
+
+		array[0] = entry[0];
+		array[1] = entry[1];
+		array[2] = entry[2];
+
+		vips_image_set_array_double( image, "background", array, 3 );
+	}
+
+	/* DEPRECATED "gif-loop"
+	 *
+	 * Not the correct behavior as loop=1 became gif-loop=0
+	 * but we want to keep the old behavior untouched!
+	 */
+	vips_image_set_int( image,
+		"gif-loop", gif->anim->loop_count == 0 ? 
+			0 : gif->anim->loop_count - 1 );
 
 	/* The deprecated gif-delay field is in centiseconds.
 	 */
@@ -371,11 +398,11 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 	/* In ms, frame_delay in cs.
 	 */
 	VIPS_FREE( gif->delay );
-	if( !(gif->delay = VIPS_ARRAY( NULL, gif->n, int )) )
+	if( !(gif->delay = VIPS_ARRAY( NULL, 
+		gif->frame_count_displayable, int )) )
 		return( -1 );
-	for( i = 0; i < gif->n; i++ )
-		gif->delay[i] = 
-			10 * gif->anim->frames[gif->page + i].frame_delay;
+	for( i = 0; i < gif->frame_count_displayable; i++ )
+		gif->delay[i] = 10 * gif->anim->frames[i].frame_delay;
 
 	gif->gif_delay = gif->anim->frames[0].frame_delay;
 
