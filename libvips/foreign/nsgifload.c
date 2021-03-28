@@ -306,6 +306,9 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 		vips_image_set_array_double( image, "background", array, 3 );
 	}
 
+	VIPS_SETSTR( image->filename, 
+		vips_connection_filename( VIPS_CONNECTION( gif->source ) ) );
+
 	/* DEPRECATED "gif-loop"
 	 *
 	 * Not the correct behavior as loop=1 became gif-loop=0
