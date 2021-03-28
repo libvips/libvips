@@ -2051,7 +2051,7 @@ rtiff_read_tilewise( Rtiff *rtiff, VipsImage *out )
 	 */
 	if( rtiff->header.we_decompress ) {
 		rtiff->decompress_buf_length = 2 * rtiff->header.tile_size;
-		if( !(rtiff->decompress_buf, vips_malloc( VIPS_OBJECT( out ), 
+		if( !(rtiff->decompress_buf = vips_malloc( VIPS_OBJECT( out ), 
 			rtiff->decompress_buf_length )) )
 			return( -1 );
 	}
