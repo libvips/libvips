@@ -418,7 +418,7 @@ static gif_result gif_initialise_frame(gif_animation *gif)
         if (gif_bytes < 1) {
                 return GIF_INSUFFICIENT_FRAME_DATA;
         }
-        if (gif_data[0] > LZW_CODE_MAX) {
+        if (gif_data[0] >= LZW_CODE_MAX) {
                 return GIF_DATA_ERROR;
         }
 
@@ -864,10 +864,10 @@ gif_internal_decode_frame(gif_animation *gif,
                         }
                 }
 
-		if (gif->frames[frame].disposal_method == GIF_FRAME_RESTORE) {
-			/* Store the previous frame for later restoration */
-			gif__record_previous_frame(gif);
-		}
+                if (gif->frames[frame].disposal_method == GIF_FRAME_RESTORE) {
+                        /* Store the previous frame for later restoration */
+                        gif__record_previous_frame(gif);
+                }
 
                 gif->decoded_frame = frame;
                 gif->buffer_position = (gif_data - gif->gif_data) + 1;

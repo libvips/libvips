@@ -160,7 +160,6 @@ static inline lzw_result lzw__next_code(
 	uint32_t code = 0;
 	uint8_t current_bit = ctx->sb_bit & 0x7;
 	uint8_t byte_advance = (current_bit + code_size) >> 3;
-	uint32_t new_code;
 
 	assert(byte_advance <= 2);
 
@@ -210,11 +209,7 @@ static inline lzw_result lzw__next_code(
 		}
 	}
 
-	new_code = (code >> current_bit) & ((1 << code_size) - 1);
-	if (new_code > ((1 << LZW_CODE_MAX) - 1))
-		return LZW_BAD_CODE;
-	*code_out = new_code;
-
+	*code_out = (code >> current_bit) & ((1 << code_size) - 1);
 	return LZW_OK;
 }
 
@@ -235,7 +230,7 @@ static lzw_result lzw__clear_codes(
 
 	/* Reset dictionary building context */
 	ctx->current_code_size = ctx->initial_code_size + 1;
-	ctx->current_code_size_max = (1 << ctx->current_code_size) - 1;;
+	ctx->current_code_size_max = (1 << ctx->current_code_size) - 1;
 	ctx->current_entry = (1 << ctx->initial_code_size) + 2;
 
 	/* There might be a sequence of clear codes, so process them all */
@@ -276,6 +271,10 @@ lzw_result lzw_decode_init(
 		const uint8_t ** const stack_pos_out)
 {
 	struct lzw_dictionary_entry *table = ctx->table;
+
+	if (code_size >= LZW_CODE_MAX) {
+		return LZW_BAD_ICODE;
+	}
 
 	/* Initialise the input reading context */
 	ctx->input.data = compressed_data;
