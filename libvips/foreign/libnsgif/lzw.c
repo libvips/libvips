@@ -4,6 +4,7 @@
  *                http://www.opensource.org/licenses/mit-license.php
  *
  * Copyright 2017 Michael Drake <michael.drake@codethink.co.uk>
+ * Copyright 2021 Michael Drake <tlsa@netsurf-browser.org>
  */
 
 #include <assert.h>
@@ -307,7 +308,6 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 {
 	lzw_result res;
 	uint32_t code_new;
-	uint32_t code_out;
 	uint8_t last_value;
 	uint8_t *stack_pos = ctx->stack_base;
 	uint32_t clear_code = ctx->clear_code;
@@ -335,12 +335,9 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 
 	} else if (code_new < current_entry) {
 		/* Code is in table */
-		code_out = code_new;
 		last_value = table[code_new].first_value;
 	} else {
 		/* Code not in table */
-		*stack_pos++ = ctx->previous_code_first;
-		code_out = ctx->previous_code;
 		last_value = ctx->previous_code_first;
 	}
 
@@ -366,15 +363,13 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 	ctx->previous_code_first = table[code_new].first_value;
 	ctx->previous_code = code_new;
 
-	/* Put rest of data for this code on output stack.
-	 * Note, in the case of "code not in table", the last entry of the
-	 * current code has already been placed on the stack above. */
-	while (code_out > clear_code) {
-		struct lzw_dictionary_entry *entry = table + code_out;
+	/* Put data for this code on output stack. */
+	while (code_new > clear_code) {
+		struct lzw_dictionary_entry *entry = table + code_new;
 		*stack_pos++ = entry->last_value;
-		code_out = entry->previous_entry;
+		code_new = entry->previous_entry;
 	}
-	*stack_pos++ = table[code_out].last_value;
+	*stack_pos++ = table[code_new].last_value;
 
 	*stack_pos_out = stack_pos;
 	return LZW_OK;
