@@ -357,6 +357,11 @@ static gif_result gif_initialise_frame(gif_animation *gif)
         width = gif_data[5] | (gif_data[6] << 8);
         height = gif_data[7] | (gif_data[8] << 8);
 
+        /* Ensure frame offset is within existing dimensions */
+        if (offset_x >= gif->width || offset_y >= gif->height) {
+                return GIF_FRAME_DATA_ERROR;
+        }
+
         /* Set up the redraw characteristics. We have to check for extending
          * the area due to multi-image frames.
          */
