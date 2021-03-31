@@ -303,6 +303,24 @@ lzw_result lzw_decode_init(
 	return lzw__clear_codes(ctx, stack_pos_out);
 }
 
+/**
+ * Create new dictionary entry.
+ *
+ * \param[in]  ctx   LZW reading context, updated.
+ * \param[in]  code  Last value code for new dictionary entry.
+ */
+static inline void lzw__dictionary_add_entry(
+		struct lzw_ctx *ctx,
+		uint32_t code)
+{
+	struct lzw_dictionary_entry *entry = &ctx->table[ctx->current_entry];
+
+	entry->last_value     = code;
+	entry->first_value    = ctx->previous_code_first;
+	entry->previous_entry = ctx->previous_code;
+
+	ctx->current_entry++;
+}
 
 /* Exported function, documented in lzw.h */
 lzw_result lzw_decode(struct lzw_ctx *ctx,
@@ -310,7 +328,6 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 {
 	lzw_result res;
 	uint32_t code_new;
-	uint8_t last_value;
 	uint8_t *stack_pos = ctx->stack_base;
 	uint32_t clear_code = ctx->clear_code;
 	uint32_t current_entry = ctx->current_entry;
@@ -334,22 +351,12 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 	} else if (code_new > current_entry) {
 		/* Code is invalid */
 		return LZW_BAD_CODE;
-
-	} else if (code_new < current_entry) {
-		/* Code is in table */
-		last_value = table[code_new].first_value;
-	} else {
-		/* Code not in table */
-		last_value = ctx->previous_code_first;
 	}
 
-	/* Add to the dictionary, only if there's space */
 	if (current_entry < LZW_TABLE_ENTRY_MAX) {
-		struct lzw_dictionary_entry *entry = table + current_entry;
-		entry->last_value     = last_value;
-		entry->first_value    = ctx->previous_code_first;
-		entry->previous_entry = ctx->previous_code;
-		ctx->current_entry++;
+		lzw__dictionary_add_entry(ctx, (code_new < current_entry) ?
+				table[code_new].first_value :
+				ctx->previous_code_first);
 	}
 
 	/* Ensure code size is increased, if needed. */
