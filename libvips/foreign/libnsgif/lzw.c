@@ -232,9 +232,9 @@ static lzw_result lzw__clear_codes(
 	uint8_t *stack_pos;
 
 	/* Reset dictionary building context */
-	ctx->current_code_size = ctx->initial_code_size + 1;
-	ctx->current_code_size_max = (1 << ctx->current_code_size) - 1;
-	ctx->current_entry = (1 << ctx->initial_code_size) + 2;
+	ctx->current_code_size = ctx->initial_code_size;
+	ctx->current_code_size_max = (1 << ctx->initial_code_size) - 1;
+	ctx->current_entry = ctx->eoi_code + 1;
 
 	/* There might be a sequence of clear codes, so process them all */
 	do {
@@ -288,7 +288,7 @@ lzw_result lzw_decode_init(
 	ctx->input.sb_bit_count = 0;
 
 	/* Initialise the dictionary building context */
-	ctx->initial_code_size = code_size;
+	ctx->initial_code_size = code_size + 1;
 
 	ctx->clear_code = (1 << code_size) + 0;
 	ctx->eoi_code   = (1 << code_size) + 1;
