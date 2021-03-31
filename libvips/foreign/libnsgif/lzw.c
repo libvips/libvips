@@ -357,11 +357,10 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 		lzw__dictionary_add_entry(ctx, (code_new < current_entry) ?
 				table[code_new].first_value :
 				ctx->previous_code_first);
-	}
 
-	/* Ensure code size is increased, if needed. */
-	if (current_entry == ctx->current_code_size_max) {
-		if (ctx->current_code_size < LZW_CODE_MAX) {
+		/* Ensure code size is increased, if needed. */
+		if (current_entry == ctx->current_code_size_max &&
+				ctx->current_code_size < LZW_CODE_MAX) {
 			ctx->current_code_size++;
 			ctx->current_code_size_max =
 					(1 << ctx->current_code_size) - 1;
