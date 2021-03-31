@@ -65,7 +65,7 @@ void lzw_context_destroy(
  * \param[in]  compressed_data_len  Byte length of compressed data.
  * \param[in]  compressed_data_pos  Start position in data.  Must be position
  *                                  of a size byte at sub-block start.
- * \param[in]  code_size            The initial LZW code size to use.
+ * \param[in]  minimum_code_size    The LZW Minimum Code Size.
  * \param[out] stack_base_out       Returns base of decompressed data stack.
  * \param[out] stack_pos_out        Returns current stack position.
  *                                  There are `stack_pos_out - stack_base_out`
@@ -77,7 +77,7 @@ lzw_result lzw_decode_init(
 		const uint8_t *compressed_data,
 		uint32_t compressed_data_len,
 		uint32_t compressed_data_pos,
-		uint8_t code_size,
+		uint8_t minimum_code_size,
 		const uint8_t ** const stack_base_out,
 		const uint8_t ** const stack_pos_out);
 

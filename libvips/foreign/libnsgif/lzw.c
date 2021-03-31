@@ -269,13 +269,13 @@ lzw_result lzw_decode_init(
 		const uint8_t *compressed_data,
 		uint32_t compressed_data_len,
 		uint32_t compressed_data_pos,
-		uint8_t code_size,
+		uint8_t minimum_code_size,
 		const uint8_t ** const stack_base_out,
 		const uint8_t ** const stack_pos_out)
 {
 	struct lzw_dictionary_entry *table = ctx->table;
 
-	if (code_size >= LZW_CODE_MAX) {
+	if (minimum_code_size >= LZW_CODE_MAX) {
 		return LZW_BAD_ICODE;
 	}
 
@@ -288,10 +288,10 @@ lzw_result lzw_decode_init(
 	ctx->input.sb_bit_count = 0;
 
 	/* Initialise the dictionary building context */
-	ctx->initial_code_size = code_size + 1;
+	ctx->initial_code_size = minimum_code_size + 1;
 
-	ctx->clear_code = (1 << code_size) + 0;
-	ctx->eoi_code   = (1 << code_size) + 1;
+	ctx->clear_code = (1 << minimum_code_size) + 0;
+	ctx->eoi_code   = (1 << minimum_code_size) + 1;
 
 	/* Initialise the standard dictionary entries */
 	for (uint32_t i = 0; i < ctx->clear_code; ++i) {
