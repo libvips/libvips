@@ -21,6 +21,8 @@
  * Decoder for GIF LZW data.
  */
 
+/** Maximum number of dictionary entries. */
+#define LZW_TABLE_ENTRY_MAX (1u << LZW_CODE_MAX)
 
 /**
  * Context for reading LZW data.
@@ -79,10 +81,10 @@ struct lzw_ctx {
 	uint32_t current_entry; /**< Next position in table to fill. */
 
 	/** Output value stack. */
-	uint8_t stack_base[1 << LZW_CODE_MAX];
+	uint8_t stack_base[LZW_TABLE_ENTRY_MAX];
 
 	/** LZW decode dictionary. Generated during decode. */
-	struct lzw_dictionary_entry table[1 << LZW_CODE_MAX];
+	struct lzw_dictionary_entry table[LZW_TABLE_ENTRY_MAX];
 };
 
 
@@ -342,7 +344,7 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 	}
 
 	/* Add to the dictionary, only if there's space */
-	if (current_entry < (1 << LZW_CODE_MAX)) {
+	if (current_entry < LZW_TABLE_ENTRY_MAX) {
 		struct lzw_dictionary_entry *entry = table + current_entry;
 		entry->last_value     = last_value;
 		entry->first_value    = ctx->previous_code_first;
