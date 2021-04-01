@@ -770,6 +770,28 @@ VIPS_CFLAGS="$VIPS_CFLAGS $NIFTI_CFLAGS"
 VIPS_INCLUDES="$VIPS_INCLUDES $NIFTI_INCLUDES"
 VIPS_LIBS="$VIPS_LIBS $NIFTI_LIBS"
 
+# jpeg-xl
+AC_ARG_WITH([libjxl],
+  AS_HELP_STRING([--without-libjxl], 
+                 [build without libjxl (default: test)]))
+
+if test x"$with_libjxl" != x"no"; then
+  PKG_CHECK_MODULES(LIBJXL, libjxl >= 0.3.7,
+    [AC_DEFINE(HAVE_LIBJXL,1,
+       [define if you have libjxl >=2.2 installed.])
+     with_libjxl=yes
+     PACKAGES_USED="$PACKAGES_USED libjxl"
+    ],
+    [AC_MSG_WARN([libjxl not found; disabling libjxl support])
+     with_libjxl=no
+    ]
+  )
+fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $LIBJXL_CFLAGS"
+VIPS_INCLUDES="$VIPS_INCLUDES $LIBJXL_INCLUDES"
+VIPS_LIBS="$VIPS_LIBS $LIBJXL_LIBS"
+
 # openjpeg
 AC_ARG_WITH([libopenjp2],
   AS_HELP_STRING([--without-libopenjp2], 
@@ -1442,6 +1464,7 @@ TIFF load/save with libtiff:            $with_tiff
 image pyramid save:                     $with_gsf
  (requires libgsf-1 1.14.26 or later)
 HEIC/AVIF load/save with libheif:       $with_heif
+JXL load/save with libjxl:              $with_libjxl
 WebP load/save with libwebp:            $with_libwebp
  (requires libwebp, libwebpmux, libwebpdemux 0.6.0 or later)
 PDF load with PDFium:                   $with_pdfium
