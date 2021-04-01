@@ -75,6 +75,8 @@ typedef struct _VipsForeignLoadJxl {
 	/* Base image properties.
 	 */
 	JxlBasicInfo info;
+	size_t icc_size;
+	uint8_t *icc_data;
 
 	/* Decompress state.
 	 */
@@ -120,15 +122,25 @@ vips_foreign_load_jxl_dispose( GObject *gobject )
 
 	VIPS_FREEF( JxlThreadParallelRunnerDestroy, jxl->runner );
 	VIPS_FREEF( JxlDecoderDestroy, jxl->decoder );
+	VIPS_FREE( jxl->icc_data );
 
 	G_OBJECT_CLASS( vips_foreign_load_jxl_parent_class )->
 		dispose( gobject );
 }
 
+static void
+vips_foreign_load_jxl_error( VipsForeignLoadJxl *jxl, const char *details )
+{
+	VipsObjectClass *klass = VIPS_OBJECT_GET_CLASS( object );
+
+	/* TODO ... jxl has no way to get error messages at the moemnt.
+	 */
+	vips_error( klass->nickname, "%s", details );
+}
+
 static int
 vips_foreign_load_jxl_build( VipsObject *object )
 {
-	VipsObjectClass *klass = VIPS_OBJECT_GET_CLASS( object );
 	VipsForeignLoadJxl *jxl = (VipsForeignLoadJxl *) object;
 
 	JxlDecoderStatus status;
@@ -141,18 +153,18 @@ vips_foreign_load_jxl_build( VipsObject *object )
 		vips_concurrency_get() );
 	jxl->decoder = JxlDecoderCreate( nullptr );
 
+	/* We are only interested in end of header and end of pixel data.
+	 */
 	if( JxlDecoderSubscribeEvents( jxl->decoder, 
-		JXL_DEC_BASIC_INFO |
 		JXL_DEC_COLOR_ENCODING |
 		JXL_DEC_FULL_IMAGE ) != JXL_DEC_SUCCESS ) {
-		vips_error( klass->nickname, 
-			"%s", _( "JxlDecoderSubscribeEvents failed" ) );
+		vips_foreign_load_jxl_error( jxl, "JxlDecoderSubscribeEvents" );
 		return( -1 );
 	}
 	if( JxlDecoderSetParallelRunner( jxl->decoder, 
 		JxlThreadParallelRunner, jxl->runner ) != JXL_DEC_SUCCESS ) {
-		vips_error( klass->nickname, 
-			"%s", _( "JxlDecoderSetParallelRunner failed" ) );
+		vips_foreign_load_jxl_error( jxl, 
+			"JxlDecoderSetParallelRunner" );
 		return( -1 );
 	}
 
@@ -163,115 +175,31 @@ vips_foreign_load_jxl_build( VipsObject *object )
 	return( 0 );
 }
 
+/* Always read as scRGBA.
+ */
+static JxlPixelFormat vips_foreign_load_jxl_format = 
+	{ 4, JXL_TYPE_FLOAT, JXL_NATIVE_ENDIAN, 0 };
+
 static int
 vips_foreign_load_jxl_set_header( VipsForeignLoadJxl *jxl, VipsImage *out )
 {
-	VipsObjectClass *klass = VIPS_OBJECT_GET_CLASS( jxl );
-	opj_image_comp_t *first = &jxl->image->comps[0];
-
-	VipsBandFormat format;
-	VipsInterpretation interpretation;
-
-	/* OpenJPEG only supports up to 31 bpp. Treat it as 32.
-	 */
-	if( first->prec <= 8 ) 
-		format = first->sgnd ? VIPS_FORMAT_CHAR : VIPS_FORMAT_UCHAR;
-	else if( first->prec <= 16 ) 
-		format = first->sgnd ? VIPS_FORMAT_SHORT : VIPS_FORMAT_USHORT;
-	else
-		format = first->sgnd ? VIPS_FORMAT_INT : VIPS_FORMAT_UINT;
-
-	switch( jxl->image->color_space ) {
-	case OPJ_CLRSPC_SYCC:
-	case OPJ_CLRSPC_EYCC:
-		/* Map these to RGB.
-		 */
-		interpretation = vips_format_sizeof( format ) == 1 ? 
-			VIPS_INTERPRETATION_sRGB :
-			VIPS_INTERPRETATION_RGB16;
-		jxl->ycc_to_rgb = TRUE;
-		break;
-
-	case OPJ_CLRSPC_GRAY:
-		interpretation = vips_format_sizeof( format ) == 1 ? 
-			VIPS_INTERPRETATION_B_W :
-			VIPS_INTERPRETATION_GREY16;
-		break;
-
-	case OPJ_CLRSPC_SRGB:
-		interpretation = vips_format_sizeof( format ) == 1 ? 
-			VIPS_INTERPRETATION_sRGB :
-			VIPS_INTERPRETATION_RGB16;
-		break;
-
-	case OPJ_CLRSPC_CMYK:
-		interpretation = VIPS_INTERPRETATION_CMYK;
-		break;
-
-	case OPJ_CLRSPC_UNSPECIFIED:
-		/* Try to guess something sensible.
-		 */
-		if( jxl->image->numcomps < 3 )
-			interpretation = vips_format_sizeof( format ) == 1 ? 
-				VIPS_INTERPRETATION_B_W :
-				VIPS_INTERPRETATION_GREY16;
-		else
-			interpretation = vips_format_sizeof( format ) == 1 ? 
-				VIPS_INTERPRETATION_sRGB :
-				VIPS_INTERPRETATION_RGB16;
-
-		/* Unspecified with three bands and subsampling on bands 2 and
-		 * 3 is usually YCC. 
-		 */
-		if( jxl->image->numcomps == 3 &&
-			jxl->image->comps[0].dx == 1 &&
-			jxl->image->comps[0].dy == 1 &&
-			jxl->image->comps[1].dx > 1 &&
-			jxl->image->comps[1].dy > 1 &&
-			jxl->image->comps[2].dx > 1 &&
-			jxl->image->comps[2].dy > 1)
-			jxl->ycc_to_rgb = TRUE;
-
-		break;
-
-	default:
-		vips_error( klass->nickname, 
-			_( "unsupported colourspace %d" ), 
-			jxl->image->color_space );
-		return( -1 );
-	}
-
-	/* Even though this is a tiled reader, we hint thinstrip since with
-	 * the cache we are quite happy serving that if anything downstream 
+	/* Even though this is a full image reader, we hint thinstrip since 
+	 * we are quite happy serving that if anything downstream 
 	 * would like it.
 	 */
         vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	vips_image_init_fields( out,
-		first->w, first->h, jxl->image->numcomps, format, 
-		VIPS_CODING_NONE, interpretation, 1.0, 1.0 );
+		jxl->info.width, jxl->info.height, 4, VIPS_FORMAT_FLOAT, 
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_scRGB, 1.0, 1.0 );
 
-	/* openjpeg allows left and top of the coordinate grid to be
-	 * non-zero. These are always in unshrunk coordinates.
-	 */
-	out->Xoffset = 
-		-VIPS_ROUND_INT( (double) jxl->image->x0 / jxl->shrink );
-	out->Yoffset = 
-		-VIPS_ROUND_INT( (double) jxl->image->y0 / jxl->shrink );
-
-	if( jxl->image->icc_profile_buf &&
-		jxl->image->icc_profile_len > 0 )
-		vips_image_set_blob_copy( out, VIPS_META_ICC_NAME, 
-			jxl->image->icc_profile_buf,
-			jxl->image->icc_profile_len );
-
-	/* Map number of layers in image to pages. 
-	 */
-	if( jxl->info &&
-		jxl->info->m_default_tile_info.tccp_info )
-		vips_image_set_int( out, VIPS_META_N_PAGES, 
-			jxl->info->m_default_tile_info.tccp_info->
-				numresolutions );
+	if( jxl->icc_data &&
+		jxl->icc_size > 0 ) {
+		vips_image_set_blob( out, VIPS_META_ICC_NAME, vips_free, 
+			jxl->icc_data, jxl->icc_size );
+		jxl->icc_data = nullptr;
+		jxl->icc_size = 0;
+	}
 
 	return( 0 );
 }
@@ -371,10 +299,11 @@ vips_foreign_load_jxl_process( VipsForeignLoadJxl *jxl )
 
 	while( (status = JxlDecoderProcessInput( jx->decoder )) == 
 		JXL_DEC_NEED_MORE_INPUT ) {
-		size_t bytes_remaining;
+		size_t unused;
 
-		bytes_remaining = JxlDecoderReleaseInput( jxl->decoder );
-		if( vips_foreign_load_jxl_fill_input( jxl, bytes_remaining ) )
+		unused = JxlDecoderReleaseInput( jxl->decoder );
+		if( vips_foreign_load_jxl_fill_input( jxl, unused ) &&
+			unused == 0 )
 			return( JXL_DEC_ERROR );
 		JxlDecoderSetInput( jxl->decoder,
 			jxl->input_buffer, jxl->bytes_remaining );
@@ -386,16 +315,27 @@ vips_foreign_load_jxl_process( VipsForeignLoadJxl *jxl )
 	return( status );
 }
 
-
 static int
 vips_foreign_load_jxl_header( VipsForeignLoad *load )
 {
 	VipsObjectClass *klass = VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadJxl *jxl = (VipsForeignLoadJxl *) load;
 
+	JxlDecoderStatus status;
+
 #ifdef DEBUG
 	printf( "vips_foreign_load_jxl_header:\n" );
 #endif /*DEBUG*/
+
+	/* Even though this is a full image reader, we hint thinstrip since 
+	 * we are quite happy serving that if anything downstream 
+	 * would like it.
+	 */
+        vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+
+	vips_image_init_fields( out,
+		jxl->info.width, first->h, jxl->image->numcomps, format, 
+		VIPS_CODING_NONE, interpretation, 1.0, 1.0 );
 
 	if( vips_foreign_load_jxl_fill_input( jxl, 0 ) )
 		return( -1 );
@@ -405,88 +345,47 @@ vips_foreign_load_jxl_header( VipsForeignLoad *load )
 	/* Read to the end of the header.
 	 */
 	do {
-		JxlDecoderStatus status;
-
-		status = vips_foreign_load_jxl_process( jxl );
-		if( status == JXL_DEC_ERROR )
+		switch( (status = vips_foreign_load_jxl_process( jxl )) ) {
+		case JXL_DEC_ERROR:   
+			vips_foreign_load_jxl_error( jxl, 
+				"JxlDecoderProcessInput" );
 			return( -1 );
+
+		case JXL_DEC_BASIC_INFO:   
+			if( JxlDecoderGetBasicInfo( jxl->decoder, 
+				&jxl->info ) ) {
+				vips_foreign_load_jxl_error( jxl, 
+					"JxlDecoderGetBasicInfo" );
+				return( -1 );
+			}
+			break;
+
+		case JXL_DEC_COLOR_ENCODING:
+			if( JxlDecoderGetICCProfileSize( jxl->decoder,
+				&vips_foreign_load_jxl_format, 
+				JXL_COLOR_PROFILE_TARGET_DATA, 
+				&jxl->icc_size ) ) {
+				vips_foreign_load_jxl_error( jxl, 
+					"JxlDecoderGetICCProfileSize" );
+				return( -1 );
+			}
+			if( !(jxl->icc_data = vips_malloc( nullptr, 
+				jxl->icc_size )) ) 
+				return( -1 );
+			if( JxlDecoderGetColorAsICCProfile(
+				jxl->decoder,
+				JXL_COLOR_PROFILE_TARGET_DATA,
+				jxl->icc_data, jxl->icc_size ) ) {
+				vips_foreign_load_jxl_error( jxl, 
+					"JxlDecoderGetColorAsICCProfile" );
+				return( -1 );
+			}
+			break;
+
+		default:
+			break;
+		}
 	} while( status != JXL_DEC_COLOR_ENCODING );
-
-	JxlDecoderGetBasicInfo( jxl->decoder, &jxl->info );
-
-
-	jxl->format = vips_foreign_load_jxl_get_format( jxl->source );
-	vips_source_rewind( jxl->source );
-	if( !(jxl->codec = opj_create_decompress( jxl->format )) )
-		return( -1 );
-
-	vips_foreign_load_jxl_attach_handlers( jxl, jxl->codec );
-
-	jxl->shrink = 1 << jxl->page;
-	jxl->parameters.cp_reduce = jxl->page;
-	if( !opj_setup_decoder( jxl->codec, &jxl->parameters ) ) 
-		return( -1 );
-
-#ifdef HAVE_LIBJXL_THREADING
-	/* Use eg. VIPS_CONCURRENCY etc. to set n-cpus, if this openjpeg has
-	 * stable support. 
-	 */
-	opj_codec_set_threads( jxl->codec, vips_concurrency_get() );
-#endif /*HAVE_LIBJXL_THREADING*/
-
-	if( !opj_read_header( jxl->stream, jxl->codec, &jxl->image ) )
-		return( -1 );
-	if( !(jxl->info = opj_get_cstr_info( jxl->codec )) )
-		return( -1 );
-
-#ifdef DEBUG
-	vips_foreign_load_jxl_print( jxl );
-#endif /*DEBUG*/
-
-	/* We only allow images where all components have the same format.
-	 */
-	if( jxl->image->numcomps > MAX_BANDS ) {
-		vips_error( klass->nickname, 
-			"%s", _( "too many image bands" ) );
-		return( -1 );
-	}
-	if( jxl->image->numcomps == 0 ) {
-		vips_error( klass->nickname, 
-			"%s", _( "no image components" ) );
-		return( -1 );
-	}
-	first = &jxl->image->comps[0];
-	for( i = 1; i < jxl->image->numcomps; i++ ) {
-		opj_image_comp_t *this = &jxl->image->comps[i];
-
-		if( this->x0 != first->x0 ||
-			this->y0 != first->y0 ||
-			this->w * this->dx != first->w * first->dx ||
-			this->h * this->dy != first->h * first->dy ||
-			this->resno_decoded != first->resno_decoded ||
-			this->factor != first->factor ) {
-			vips_error( klass->nickname, 
-				"%s", _( "components differ in geometry" ) );
-			return( -1 );
-		}
-
-		if( this->prec != first->prec ||
-			this->bpp != first->bpp ||
-			this->sgnd != first->sgnd ) {
-			vips_error( klass->nickname, 
-				"%s", _( "components differ in precision" ) );
-			return( -1 );
-		}
-
-		/* If dx/dy are not 1, we'll need to upsample components during
-		 * tile packing.
-		 */
-		if( this->dx != first->dx ||
-			this->dy != first->dy ||
-			first->dx != 1 ||
-			first->dy != 1 )
-			jxl->upsample = TRUE;
-	}
 
 	if( vips_foreign_load_jxl_set_header( jxl, load->out ) ) 
 		return( -1 );
@@ -497,280 +396,10 @@ vips_foreign_load_jxl_header( VipsForeignLoad *load )
 	return( 0 );
 }
 
-#define PACK( TYPE ) { \
-	TYPE *tq = (TYPE *) q; \
-	\
-	for( x = 0; x < length; x++ ) { \
-		for( i = 0; i < b; i++ ) \
-			tq[i] = planes[i][x]; \
-		\
-		tq += b; \
-	} \
-}
-
-#define PACK_UPSAMPLE( TYPE ) { \
-	TYPE *tq = (TYPE *) q; \
-	\
-	for( x = 0; x < length; x++ ) { \
-		for( i = 0; i < b; i++ ) { \
-			int dx = jxl->image->comps[i].dx; \
-			int pixel = planes[i][x / dx]; \
-			\
-			tq[i] = pixel; \
-		} \
-		\
-		tq += b; \
-	} \
-}
-
-/* Pack the set of openjpeg components into a libvips region. left/top are the
- * offsets into the tile in pixel coordinates where we should start reading.
- */
-static void
-vips_foreign_load_jxl_pack( VipsForeignLoadJxl *jxl, 
-	VipsImage *image, VipsPel *q, 
-	int left, int top, int length )
-{
-	int *planes[MAX_BANDS];
-	int b = jxl->image->numcomps;
-
-	int x, i;
-
-	for( i = 0; i < b; i++ ) {
-		opj_image_comp_t *comp = &jxl->image->comps[i];
-
-		planes[i] = comp->data + (top / comp->dy) * comp->w + 
-			(left / comp->dx);
-	}
-
-	if( jxl->upsample ) 
-		switch( image->BandFmt ) {
-		case VIPS_FORMAT_CHAR:
-		case VIPS_FORMAT_UCHAR:
-			PACK_UPSAMPLE( unsigned char );
-			break;
-
-		case VIPS_FORMAT_SHORT:
-		case VIPS_FORMAT_USHORT:
-			PACK_UPSAMPLE( unsigned short );
-			break;
-
-		case VIPS_FORMAT_INT:
-		case VIPS_FORMAT_UINT:
-			PACK_UPSAMPLE( unsigned int );
-			break;
-
-		default:
-			g_assert_not_reached();
-			break;
-		}
-	else 
-		/* Fast no-upsample path.
-		 */
-		switch( image->BandFmt ) {
-		case VIPS_FORMAT_CHAR:
-		case VIPS_FORMAT_UCHAR:
-			PACK( unsigned char );
-			break;
-
-		case VIPS_FORMAT_SHORT:
-		case VIPS_FORMAT_USHORT:
-			PACK( unsigned short );
-			break;
-
-		case VIPS_FORMAT_INT:
-		case VIPS_FORMAT_UINT:
-			PACK( unsigned int );
-			break;
-
-		default:
-			g_assert_not_reached();
-			break;
-		}
-}
-
-/* ycc->rgb coversion adapted from openjpeg src/bin/common/color.c
- *
- * See also https://en.wikipedia.org/wiki/YCbCr#JPEG_conversion
- */
-#define YCC_TO_RGB( TYPE ) { \
-	TYPE *tq = (TYPE *) q; \
-	\
-	for( x = 0; x < length; x++ ) { \
-		int y = tq[0]; \
-		int cb = tq[1] - offset; \
-		int cr = tq[2] - offset; \
-		\
-		int r, g, b; \
-		\
-		r = y + (int)(1.402 * (float)cr); \
-		tq[0] = VIPS_CLIP( 0, r, upb ); \
-		\
-		g = y - (int)(0.344 * (float)cb + 0.714 * (float)cr); \
-		tq[1] = VIPS_CLIP( 0, g, upb ); \
-		\
-		b = y + (int)(1.772 * (float)cb); \
-		tq[2] = VIPS_CLIP( 0, b, upb ); \
-		\
-		tq += 3; \
-	} \
-}
-
-/* YCC->RGB for a line of pels.
- */
-static void
-vips_foreign_load_jxl_ycc_to_rgb( VipsForeignLoadJxl *jxl, 
-	VipsPel *q, int length )
-{
-	VipsForeignLoad *load = (VipsForeignLoad *) jxl;
-	int prec = jxl->image->comps[0].prec;
-	int offset = 1 << (prec - 1);
-	int upb = (1 << prec) - 1;
-
-	int x;
-
-	switch( load->out->BandFmt ) {
-	case VIPS_FORMAT_CHAR:
-	case VIPS_FORMAT_UCHAR:
-		YCC_TO_RGB( unsigned char );
-		break;
-
-	case VIPS_FORMAT_SHORT:
-	case VIPS_FORMAT_USHORT:
-		YCC_TO_RGB( unsigned short );
-		break;
-
-	case VIPS_FORMAT_INT:
-	case VIPS_FORMAT_UINT:
-		YCC_TO_RGB( unsigned int );
-		break;
-
-	default:
-		g_assert_not_reached();
-		break;
-	}
-}
-
-/* Loop over the output region, painting in tiles from the file.
- */
-static int
-vips_foreign_load_jxl_generate( VipsRegion *out, 
-	void *seq, void *a, void *b, gboolean *stop )
-{
-	VipsForeignLoad *load = (VipsForeignLoad *) a;
-	VipsForeignLoadJxl *jxl = (VipsForeignLoadJxl *) load;
-	VipsRect *r = &out->valid;
-
-	/* jxl get smaller with the layer size.
-	 */
-	int tile_width = VIPS_ROUND_UINT( 
-		(double) jxl->info->tdx / jxl->shrink );
-	int tile_height = VIPS_ROUND_UINT( 
-		(double) jxl->info->tdy / jxl->shrink );
-
-	/* ... so tiles_across is always the same.
-	 */
-	int tiles_across = jxl->info->tw;
-
-	int x, y, z;
-
-#ifdef DEBUG_VERBOSE
-	printf( "vips_foreign_load_jxl_generate: "
-		"left = %d, top = %d, width = %d, height = %d\n", 
-		r->left, r->top, r->width, r->height ); 
-#endif /*DEBUG_VERBOSE*/
-
-	/* If openjpeg has flagged an error, the library is not in a known
-	 * state and it's not safe to call again.
-	 */
-	if( jxl->n_errors )
-		return( 0 );
-
-	y = 0;
-	while( y < r->height ) {
-		VipsRect tile, hit;
-
-		/* Not necessary, but it stops static analyzers complaining
-		 * about a used-before-set.
-		 */
-		hit.height = 0;
-
-		x = 0;
-		while( x < r->width ) { 
-			/* Tile the xy falls in, in tile numbers.
-			 */
-			int tx = (r->left + x) / tile_width;
-			int ty = (r->top + y) / tile_height;
-
-			/* Pixel coordinates of the tile that xy falls in.
-			 */
-			int xs = tx * tile_width;
-			int ys = ty * tile_height;
-
-			int tile_index = ty * tiles_across + tx;
-
-			/* Fetch the tile.
-			 */
-#ifdef DEBUG_VERBOSE
-			printf( "   fetch tile %d\n", tile_index );
-#endif /*DEBUG_VERBOSE*/
-			if( !opj_get_decoded_tile( jxl->codec, 
-				jxl->stream, jxl->image, tile_index ) )
-				return( -1 );
-
-			/* Intersect tile with request to get pixels we need
-			 * to copy out.
-			 */
-			tile.left = xs;
-			tile.top = ys;
-			tile.width = tile_width;
-			tile.height = tile_height;
-			vips_rect_intersectrect( &tile, r, &hit );
-
-			/* Unpack hit pixels to buffer in vips layout. 
-			 */
-			for( z = 0; z < hit.height; z++ ) {
-				VipsPel *q = VIPS_REGION_ADDR( out, 
-					hit.left, hit.top + z );
-
-				vips_foreign_load_jxl_pack( jxl,
-					out->im, q,
-					hit.left - tile.left,
-					hit.top - tile.top + z,
-					hit.width ); 
-
-				if( jxl->ycc_to_rgb )
-					vips_foreign_load_jxl_ycc_to_rgb( jxl,
-						q, hit.width );
-			}
-
-			x += hit.width;
-		}
-
-		/* This will be the same for all tiles in the row we've just
-		 * done.
-		 */
-		y += hit.height;
-	}
-
-	if( load->fail &&
-		jxl->n_errors > 0 ) 
-		return( -1 );
-
-	return( 0 );
-}
-
 static int
 vips_foreign_load_jxl_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadJxl *jxl = (VipsForeignLoadJxl *) load;
-
-	/* jxl tiles get smaller with the layer size, but we don't want tiny
-	 * tiles for the libvips tile cache, so leave them at the base size.
-	 */
-	int tile_width = jxl->info->tdx;
-	int tile_height = jxl->info->tdy;
-	int tiles_across = jxl->info->tw;
 
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( load ), 3 );
@@ -783,20 +412,7 @@ vips_foreign_load_jxl_load( VipsForeignLoad *load )
 	if( vips_foreign_load_jxl_set_header( jxl, t[0] ) ) 
 		return( -1 );
 
-	if( vips_image_generate( t[0], 
-		NULL, vips_foreign_load_jxl_generate, NULL, jxl, NULL ) )
-		return( -1 );
-
-	/* Copy to out, adding a cache. Enough tiles for two complete 
-	 * rows, plus 50%.
-	 */
-	if( vips_tilecache( t[0], &t[1], 
-		"tile_width", tile_width,
-		"tile_height", tile_height,
-		"max_tiles", 3 * tiles_across,
-		NULL ) ) 
-		return( -1 );
-	if( vips_image_write( t[1], load->real ) ) 
+	if( vips_image_write( t[0], load->real ) ) 
 		return( -1 );
 
 	return( 0 );
@@ -814,19 +430,12 @@ vips_foreign_load_jxl_class_init( VipsForeignLoadJxlClass *klass )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "jxlload_base";
-	object_class->description = _( "load JPEG2000 image" );
+	object_class->description = _( "load JPEG-XL image" );
 	object_class->build = vips_foreign_load_jxl_build;
 
 	load_class->get_flags = vips_foreign_load_jxl_get_flags;
 	load_class->header = vips_foreign_load_jxl_header;
 	load_class->load = vips_foreign_load_jxl_load;
-
-	VIPS_ARG_INT( klass, "page", 20, 
-		_( "Page" ), 
-		_( "Load this page from the image" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignLoadJxl, page ),
-		0, 100000, 0 );
 
 }
 
@@ -871,7 +480,7 @@ vips_foreign_load_jxl_file_build( VipsObject *object )
 }
 
 const char *vips__jxl_suffs[] = 
-	{ ".j2k", ".jp2", ".jpt", ".j2c", ".jpc", NULL };
+	{ ".jxl", NULL };
 
 static int
 vips_foreign_load_jxl_is_a( const char *filename )
@@ -1079,22 +688,7 @@ vips_foreign_load_jxl_source_init(
  * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Optional arguments:
- *
- * * @page: %gint, load this page
- *
- * Read a JPEG2000 image. The loader supports 8, 16 and 32-bit int pixel
- * values, signed and unsigned. 
- * It supports greyscale, RGB, YCC, CMYK and
- * multispectral colour spaces. 
- * It will read any ICC profile on
- * the image. 
- *
- * It will only load images where all channels are the same format.
- *
- * Use @page to set the page to load, where page 0 is the base resolution
- * image and higher-numbered pages are x2 reductions. Use the metadata item
- * "n-pages" to find the number of pyramid layers.
+ * Read a JPEG-XL image. 
  *
  * See also: vips_image_new_from_file().
  *
@@ -1119,10 +713,6 @@ vips_jxlload( const char *filename, VipsImage **out, ... )
  * @len: (type gsize): size of memory area
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
- *
- * Optional arguments:
- *
- * * @page: %gint, load this page
  *
  * Exactly as vips_jxlload(), but read from a source. 
  *
@@ -1153,10 +743,6 @@ vips_jxlload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * @source: source to load from
  * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
- *
- * Optional arguments:
- *
- * * @page: %gint, load this page
  *
  * Exactly as vips_jxlload(), but read from a source. 
  *

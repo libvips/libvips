@@ -1454,6 +1454,9 @@ EXIF metadata support with libexif:     $with_libexif
 
 ## File format support
 JPEG load/save with libjpeg:            $with_jpeg
+JXL load/save with libjxl:              $with_libjxl
+JPEG2000 load/save with libopenjp2:     $with_libopenjp2
+ (requires libopenjp2 2.2 or later)
 PNG load with libspng:                  $with_libspng
  (requires libspng-0.6 or later)
 PNG load/save with libpng:              $with_png
@@ -1464,7 +1467,6 @@ TIFF load/save with libtiff:            $with_tiff
 image pyramid save:                     $with_gsf
  (requires libgsf-1 1.14.26 or later)
 HEIC/AVIF load/save with libheif:       $with_heif
-JXL load/save with libjxl:              $with_libjxl
 WebP load/save with libwebp:            $with_libwebp
  (requires libwebp, libwebpmux, libwebpdemux 0.6.0 or later)
 PDF load with PDFium:                   $with_pdfium
@@ -1473,8 +1475,6 @@ PDF load with poppler-glib:             $with_poppler
 SVG load with librsvg-2.0:              $with_rsvg
  (requires librsvg-2.0 2.34.0 or later)
 EXR load with OpenEXR:                  $with_OpenEXR
-JPEG2000 load/save with libopenjp2:     $with_libopenjp2
- (requires libopenjp2 2.2 or later)
 slide load with OpenSlide:              $with_openslide
  (requires openslide-3.3.0 or later)
 Matlab load with matio:                 $with_matio
