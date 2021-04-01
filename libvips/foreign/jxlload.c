@@ -145,10 +145,9 @@ vips_foreign_load_jxl_build( VipsObject *object )
 		vips_concurrency_get() );
 	jxl->decoder = JxlDecoderCreate( NULL );
 
-	/* We are only interested in end of header and end of pixel data.
-	 */
 	if( JxlDecoderSubscribeEvents( jxl->decoder, 
 		JXL_DEC_COLOR_ENCODING |
+		JXL_DEC_BASIC_INFO |
 		JXL_DEC_FULL_IMAGE ) != JXL_DEC_SUCCESS ) {
 		vips_foreign_load_jxl_error( jxl, "JxlDecoderSubscribeEvents" );
 		return( -1 );
@@ -174,7 +173,7 @@ vips_foreign_load_jxl_is_a_source( VipsSource *source )
 	JxlSignature sig;
 
 	return( (p = vips_source_sniff( source, 12 )) &&
-		(sig = JxlSignatureCheck( p, 12 )) == JXL_SIG_CONTAINER );
+		(sig = JxlSignatureCheck( p, 12 )) == JXL_SIG_CODESTREAM );
 }
 
 static VipsForeignFlags
@@ -385,7 +384,7 @@ vips_foreign_load_jxl_header( VipsForeignLoad *load )
 		default:
 			break;
 		}
-	} while( status != JXL_DEC_COLOR_ENCODING );
+	} while( status != JXL_DEC_NEED_IMAGE_OUT_BUFFER );
 
 	if( vips_foreign_load_jxl_set_header( jxl, load->out ) ) 
 		return( -1 );
