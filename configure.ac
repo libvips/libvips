@@ -776,7 +776,7 @@ AC_ARG_WITH([libjxl],
                  [build without libjxl (default: test)]))
 
 if test x"$with_libjxl" != x"no"; then
-  PKG_CHECK_MODULES(LIBJXL, libjxl >= 0.3.7,
+  PKG_CHECK_MODULES(LIBJXL, libjxl_threads >= 0.3.7 libjxl >= 0.3.7,
     [AC_DEFINE(HAVE_LIBJXL,1,
        [define if you have libjxl >=2.2 installed.])
      with_libjxl=yes

@@ -327,6 +327,7 @@ vips_foreign_save_ppm_build( VipsObject *object )
 			 */
 			g_ascii_dtostr( buf, G_ASCII_DTOSTR_BUF_SIZE, scale );
 			vips_target_writes( ppm->target, buf );
+			vips_target_writes( ppm->target, "\n" );
 }
 			break;
 

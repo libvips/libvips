@@ -1396,7 +1396,7 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 	}
 
 	/* If this is something other than CMYK or RAD, and it's not already
-	 * an RGB image, eg. maybe a LAB or scRGB image, we need to transform 
+	 * an RGB image, eg. maybe a LAB image, we need to transform 
 	 * to RGB.
 	 */
 	if( !coding[VIPS_CODING_RAD] &&
@@ -1404,6 +1404,7 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 		in->Type != VIPS_INTERPRETATION_CMYK &&
 		in->Type != VIPS_INTERPRETATION_sRGB &&
 		in->Type != VIPS_INTERPRETATION_RGB16 &&
+		in->Type != VIPS_INTERPRETATION_scRGB &&
 		vips_colourspace_issupported( in ) &&
 		(saveable == VIPS_SAVEABLE_RGB ||
 		 saveable == VIPS_SAVEABLE_RGBA ||
