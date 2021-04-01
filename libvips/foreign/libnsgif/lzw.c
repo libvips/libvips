@@ -322,16 +322,41 @@ static inline void lzw__dictionary_add_entry(
 	ctx->current_entry++;
 }
 
+/**
+ * Write values for this code to the output stack.
+ *
+ * \param[in]  ctx            LZW reading context, updated.
+ * \param[in]  code           LZW code to output values for.
+ * \param[out] stack_pos_out  Returns current stack position.
+ *                            There are `stack_pos_out - ctx->stack_base`
+ *                            current stack entries.
+ */
+static inline void lzw__write_pixels(struct lzw_ctx *ctx,
+		uint32_t code,
+		const uint8_t ** const stack_pos_out)
+{
+	uint8_t *stack_pos = ctx->stack_base;
+	uint32_t clear_code = ctx->clear_code;
+	struct lzw_dictionary_entry * const table = ctx->table;
+
+	while (code > clear_code) {
+		struct lzw_dictionary_entry *entry = table + code;
+		*stack_pos++ = entry->last_value;
+		code = entry->previous_entry;
+	}
+	*stack_pos++ = table[code].last_value;
+
+	*stack_pos_out = stack_pos;
+	return;
+}
+
 /* Exported function, documented in lzw.h */
 lzw_result lzw_decode(struct lzw_ctx *ctx,
 		const uint8_t ** const stack_pos_out)
 {
 	lzw_result res;
 	uint32_t code_new;
-	uint8_t *stack_pos = ctx->stack_base;
-	uint32_t clear_code = ctx->clear_code;
 	uint32_t current_entry = ctx->current_entry;
-	struct lzw_dictionary_entry * const table = ctx->table;
 
 	/* Get a new code from the input */
 	res = lzw__next_code(&ctx->input, ctx->current_code_size, &code_new);
@@ -340,7 +365,7 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 	}
 
 	/* Handle the new code */
-	if (code_new == clear_code) {
+	if (code_new == ctx->clear_code) {
 		/* Got Clear code */
 		return lzw__clear_codes(ctx, stack_pos_out);
 
@@ -355,7 +380,7 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 
 	if (current_entry < LZW_TABLE_ENTRY_MAX) {
 		lzw__dictionary_add_entry(ctx, (code_new < current_entry) ?
-				table[code_new].first_value :
+				ctx->table[code_new].first_value :
 				ctx->previous_code_first);
 
 		/* Ensure code size is increased, if needed. */
@@ -368,17 +393,9 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 	}
 
 	/* Store details of this code as "previous code" to the context. */
-	ctx->previous_code_first = table[code_new].first_value;
+	ctx->previous_code_first = ctx->table[code_new].first_value;
 	ctx->previous_code = code_new;
 
-	/* Put data for this code on output stack. */
-	while (code_new > clear_code) {
-		struct lzw_dictionary_entry *entry = table + code_new;
-		*stack_pos++ = entry->last_value;
-		code_new = entry->previous_entry;
-	}
-	*stack_pos++ = table[code_new].last_value;
-
-	*stack_pos_out = stack_pos;
+	lzw__write_pixels(ctx, code_new, stack_pos_out);
 	return LZW_OK;
 }
