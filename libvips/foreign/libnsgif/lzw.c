@@ -21,7 +21,7 @@
  * Decoder for GIF LZW data.
  */
 
-/** Maximum number of dictionary entries. */
+/** Maximum number of lzw table entries. */
 #define LZW_TABLE_ENTRY_MAX (1u << LZW_CODE_MAX)
 
 /**
@@ -46,45 +46,45 @@ struct lzw_read_ctx {
 };
 
 /**
- * LZW dictionary entry.
+ * LZW table entry.
  *
- * Records in the dictionary are composed of 1 or more entries.
- * Entries point to previous entries which can be followed to compose
+ * Records in the table are composed of 1 or more entries.
+ * Entries refer to the entry they extend which can be followed to compose
  * the complete record.  To compose the record in reverse order, take
- * the `last_value` from each entry, and move to the previous entry.
- * If the previous_entry's index is < the current clear_code, then it
+ * the `value` from each entry, and move to the entry it extends.
+ * If the extended entries index is < the current clear_code, then it
  * is the last entry in the record.
  */
-struct lzw_dictionary_entry {
-	uint8_t last_value;      /**< Last value for record ending at entry. */
-	uint8_t first_value;     /**< First value for entry's record. */
-	uint16_t previous_entry; /**< Offset in dictionary to previous entry. */
+struct lzw_table_entry {
+	uint8_t  value;   /**< Last value for record ending at entry. */
+	uint8_t  first;   /**< First value in entry's entire record. */
+	uint16_t extends; /**< Offset in table to previous entry. */
 };
 
 /**
  * LZW decompression context.
  */
 struct lzw_ctx {
-	/** Input reading context */
-	struct lzw_read_ctx input;
+	struct lzw_read_ctx input; /**< Input reading context */
 
-	uint32_t previous_code;       /**< Code read from input previously. */
-	uint32_t previous_code_first; /**< First value of previous code. */
+	uint32_t prev_code;       /**< Code read from input previously. */
+	uint32_t prev_code_first; /**< First value of previous code. */
 
-	uint32_t initial_code_size;     /**< Starting LZW code size. */
-	uint32_t current_code_size;     /**< Current LZW code size. */
-	uint32_t current_code_size_max; /**< Max code value for current size. */
+	uint32_t initial_code_size; /**< Starting LZW code size. */
+
+	uint32_t code_size; /**< Current LZW code size. */
+	uint32_t code_max;  /**< Max code value for current code size. */
 
 	uint32_t clear_code; /**< Special Clear code value */
 	uint32_t eoi_code;   /**< Special End of Information code value */
 
-	uint32_t current_entry; /**< Next position in table to fill. */
+	uint32_t table_size; /**< Next position in table to fill. */
 
 	/** Output value stack. */
 	uint8_t stack_base[LZW_TABLE_ENTRY_MAX];
 
-	/** LZW decode dictionary. Generated during decode. */
-	struct lzw_dictionary_entry table[LZW_TABLE_ENTRY_MAX];
+	/** LZW code table. Generated during decode. */
+	struct lzw_table_entry table[LZW_TABLE_ENTRY_MAX];
 };
 
 
@@ -155,7 +155,7 @@ static lzw_result lzw__block_advance(struct lzw_read_ctx *ctx)
  * \param[out] code_out   Returns an LZW code on success.
  * \return LZW_OK or LZW_OK_EOD on success, appropriate error otherwise.
  */
-static inline lzw_result lzw__next_code(
+static inline lzw_result lzw__read_code(
 		struct lzw_read_ctx *ctx,
 		uint8_t code_size,
 		uint32_t *code_out)
@@ -218,7 +218,7 @@ static inline lzw_result lzw__next_code(
 
 
 /**
- * Clear LZW code dictionary.
+ * Clear LZW code table.
  *
  * \param[in]  ctx            LZW reading context, updated.
  * \param[out] stack_pos_out  Returns current stack position.
@@ -231,28 +231,28 @@ static lzw_result lzw__clear_codes(
 	uint32_t code;
 	uint8_t *stack_pos;
 
-	/* Reset dictionary building context */
-	ctx->current_code_size = ctx->initial_code_size;
-	ctx->current_code_size_max = (1 << ctx->initial_code_size) - 1;
-	ctx->current_entry = ctx->eoi_code + 1;
+	/* Reset table building context */
+	ctx->code_size = ctx->initial_code_size;
+	ctx->code_max = (1 << ctx->initial_code_size) - 1;
+	ctx->table_size = ctx->eoi_code + 1;
 
 	/* There might be a sequence of clear codes, so process them all */
 	do {
-		lzw_result res = lzw__next_code(&ctx->input,
-				ctx->current_code_size, &code);
+		lzw_result res = lzw__read_code(&ctx->input,
+				ctx->code_size, &code);
 		if (res != LZW_OK) {
 			return res;
 		}
 	} while (code == ctx->clear_code);
 
-	/* The initial code must be from the initial dictionary. */
+	/* The initial code must be from the initial table. */
 	if (code > ctx->clear_code) {
 		return LZW_BAD_ICODE;
 	}
 
 	/* Record this initial code as "previous" code, needed during decode. */
-	ctx->previous_code = code;
-	ctx->previous_code_first = code;
+	ctx->prev_code = code;
+	ctx->prev_code_first = code;
 
 	/* Reset the stack, and add first non-clear code added as first item. */
 	stack_pos = ctx->stack_base;
@@ -273,7 +273,7 @@ lzw_result lzw_decode_init(
 		const uint8_t ** const stack_base_out,
 		const uint8_t ** const stack_pos_out)
 {
-	struct lzw_dictionary_entry *table = ctx->table;
+	struct lzw_table_entry *table = ctx->table;
 
 	if (minimum_code_size >= LZW_CODE_MAX) {
 		return LZW_BAD_ICODE;
@@ -287,16 +287,16 @@ lzw_result lzw_decode_init(
 	ctx->input.sb_bit = 0;
 	ctx->input.sb_bit_count = 0;
 
-	/* Initialise the dictionary building context */
+	/* Initialise the table building context */
 	ctx->initial_code_size = minimum_code_size + 1;
 
 	ctx->clear_code = (1 << minimum_code_size) + 0;
 	ctx->eoi_code   = (1 << minimum_code_size) + 1;
 
-	/* Initialise the standard dictionary entries */
+	/* Initialise the standard table entries */
 	for (uint32_t i = 0; i < ctx->clear_code; ++i) {
-		table[i].first_value = i;
-		table[i].last_value  = i;
+		table[i].first = i;
+		table[i].value = i;
 	}
 
 	*stack_base_out = ctx->stack_base;
@@ -304,22 +304,22 @@ lzw_result lzw_decode_init(
 }
 
 /**
- * Create new dictionary entry.
+ * Create new table entry.
  *
  * \param[in]  ctx   LZW reading context, updated.
- * \param[in]  code  Last value code for new dictionary entry.
+ * \param[in]  code  Last value code for new table entry.
  */
-static inline void lzw__dictionary_add_entry(
+static inline void lzw__table_add_entry(
 		struct lzw_ctx *ctx,
 		uint32_t code)
 {
-	struct lzw_dictionary_entry *entry = &ctx->table[ctx->current_entry];
+	struct lzw_table_entry *entry = &ctx->table[ctx->table_size];
 
-	entry->last_value     = code;
-	entry->first_value    = ctx->previous_code_first;
-	entry->previous_entry = ctx->previous_code;
+	entry->value = code;
+	entry->first = ctx->prev_code_first;
+	entry->extends = ctx->prev_code;
 
-	ctx->current_entry++;
+	ctx->table_size++;
 }
 
 /**
@@ -337,14 +337,14 @@ static inline void lzw__write_pixels(struct lzw_ctx *ctx,
 {
 	uint8_t *stack_pos = ctx->stack_base;
 	uint32_t clear_code = ctx->clear_code;
-	struct lzw_dictionary_entry * const table = ctx->table;
+	struct lzw_table_entry * const table = ctx->table;
 
 	while (code > clear_code) {
-		struct lzw_dictionary_entry *entry = table + code;
-		*stack_pos++ = entry->last_value;
-		code = entry->previous_entry;
+		struct lzw_table_entry *entry = table + code;
+		*stack_pos++ = entry->value;
+		code = entry->extends;
 	}
-	*stack_pos++ = table[code].last_value;
+	*stack_pos++ = table[code].value;
 
 	*stack_pos_out = stack_pos;
 	return;
@@ -355,47 +355,45 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 		const uint8_t ** const stack_pos_out)
 {
 	lzw_result res;
-	uint32_t code_new;
-	uint32_t current_entry = ctx->current_entry;
+	uint32_t code;
 
 	/* Get a new code from the input */
-	res = lzw__next_code(&ctx->input, ctx->current_code_size, &code_new);
+	res = lzw__read_code(&ctx->input, ctx->code_size, &code);
 	if (res != LZW_OK) {
 		return res;
 	}
 
 	/* Handle the new code */
-	if (code_new == ctx->clear_code) {
+	if (code == ctx->clear_code) {
 		/* Got Clear code */
 		return lzw__clear_codes(ctx, stack_pos_out);
 
-	} else if (code_new == ctx->eoi_code) {
+	} else if (code == ctx->eoi_code) {
 		/* Got End of Information code */
 		return LZW_EOI_CODE;
 
-	} else if (code_new > current_entry) {
+	} else if (code > ctx->table_size) {
 		/* Code is invalid */
 		return LZW_BAD_CODE;
 	}
 
-	if (current_entry < LZW_TABLE_ENTRY_MAX) {
-		lzw__dictionary_add_entry(ctx, (code_new < current_entry) ?
-				ctx->table[code_new].first_value :
-				ctx->previous_code_first);
+	if (ctx->table_size < LZW_TABLE_ENTRY_MAX) {
+		uint32_t size = ctx->table_size;
+		lzw__table_add_entry(ctx, (code < size) ?
+				ctx->table[code].first :
+				ctx->prev_code_first);
 
 		/* Ensure code size is increased, if needed. */
-		if (current_entry == ctx->current_code_size_max &&
-				ctx->current_code_size < LZW_CODE_MAX) {
-			ctx->current_code_size++;
-			ctx->current_code_size_max =
-					(1 << ctx->current_code_size) - 1;
+		if (size == ctx->code_max && ctx->code_size < LZW_CODE_MAX) {
+			ctx->code_size++;
+			ctx->code_max = (1 << ctx->code_size) - 1;
 		}
 	}
 
 	/* Store details of this code as "previous code" to the context. */
-	ctx->previous_code_first = ctx->table[code_new].first_value;
-	ctx->previous_code = code_new;
+	ctx->prev_code_first = ctx->table[code].first;
+	ctx->prev_code = code;
 
-	lzw__write_pixels(ctx, code_new, stack_pos_out);
+	lzw__write_pixels(ctx, code, stack_pos_out);
 	return LZW_OK;
 }
