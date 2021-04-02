@@ -58,6 +58,7 @@ struct lzw_read_ctx {
 struct lzw_table_entry {
 	uint8_t  value;   /**< Last value for record ending at entry. */
 	uint8_t  first;   /**< First value in entry's entire record. */
+	uint16_t count;   /**< Count of values in this entry's record. */
 	uint16_t extends; /**< Offset in table to previous entry. */
 };
 
@@ -69,6 +70,7 @@ struct lzw_ctx {
 
 	uint32_t prev_code;       /**< Code read from input previously. */
 	uint32_t prev_code_first; /**< First value of previous code. */
+	uint32_t prev_code_count; /**< Total values for previous code. */
 
 	uint32_t initial_code_size; /**< Starting LZW code size. */
 
@@ -253,6 +255,7 @@ static lzw_result lzw__clear_codes(
 	/* Record this initial code as "previous" code, needed during decode. */
 	ctx->prev_code = code;
 	ctx->prev_code_first = code;
+	ctx->prev_code_count = 1;
 
 	/* Reset the stack, and add first non-clear code added as first item. */
 	stack_pos = ctx->stack_base;
@@ -297,6 +300,7 @@ lzw_result lzw_decode_init(
 	for (uint32_t i = 0; i < ctx->clear_code; ++i) {
 		table[i].first = i;
 		table[i].value = i;
+		table[i].count = 1;
 	}
 
 	*stack_base_out = ctx->stack_base;
@@ -317,6 +321,7 @@ static inline void lzw__table_add_entry(
 
 	entry->value = code;
 	entry->first = ctx->prev_code_first;
+	entry->count = ctx->prev_code_count + 1;
 	entry->extends = ctx->prev_code;
 
 	ctx->table_size++;
@@ -392,6 +397,7 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 
 	/* Store details of this code as "previous code" to the context. */
 	ctx->prev_code_first = ctx->table[code].first;
+	ctx->prev_code_count = ctx->table[code].count;
 	ctx->prev_code = code;
 
 	lzw__write_pixels(ctx, code, stack_pos_out);
