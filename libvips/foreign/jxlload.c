@@ -125,11 +125,11 @@ vips_foreign_load_jxl_dispose( GObject *gobject )
 static void
 vips_foreign_load_jxl_error( VipsForeignLoadJxl *jxl, const char *details )
 {
-	VipsObjectClass *klass = VIPS_OBJECT_GET_CLASS( jxl );
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( jxl );
 
 	/* TODO ... jxl has no way to get error messages at the moemnt.
 	 */
-	vips_error( klass->nickname, "%s", details );
+	vips_error( class->nickname, "%s", details );
 }
 
 static int
@@ -186,31 +186,6 @@ vips_foreign_load_jxl_get_flags( VipsForeignLoad *load )
  */
 static JxlPixelFormat vips_foreign_load_jxl_format = 
 	{ 4, JXL_TYPE_FLOAT, JXL_NATIVE_ENDIAN, 0 };
-
-static int
-vips_foreign_load_jxl_set_header( VipsForeignLoadJxl *jxl, VipsImage *out )
-{
-	/* Even though this is a full image reader, we hint thinstrip since 
-	 * we are quite happy serving that if anything downstream 
-	 * would like it.
-	 */
-        vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
-
-	vips_image_init_fields( out,
-		jxl->info.xsize, jxl->info.ysize, 4, VIPS_FORMAT_FLOAT, 
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_scRGB, 1.0, 1.0 );
-
-	if( jxl->icc_data &&
-		jxl->icc_size > 0 ) {
-		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
-			(VipsCallbackFn) vips_area_free_cb, 
-			jxl->icc_data, jxl->icc_size );
-		jxl->icc_data = NULL;
-		jxl->icc_size = 0;
-	}
-
-	return( 0 );
-}
 
 static int
 vips_foreign_load_jxl_fill_input( VipsForeignLoadJxl *jxl, 
@@ -323,6 +298,67 @@ vips_foreign_load_jxl_process( VipsForeignLoadJxl *jxl )
 	return( status );
 }
 
+static void
+vips_foreign_load_jxl_print_info( VipsForeignLoadJxl *jxl )
+{
+	printf( "vips_foreign_load_jxl_print_info:\n" );
+	printf( "  have_container = %d\n", jxl->info.have_container );
+	printf( "  xsize = %d\n", jxl->info.xsize );
+	printf( "  ysize = %d\n", jxl->info.ysize );
+	printf( "  bits_per_sample = %d\n", jxl->info.bits_per_sample );
+	printf( "  exponent_bits_per_sample = %d\n", 
+		jxl->info.exponent_bits_per_sample );
+	printf( "  intensity_target = %g\n", jxl->info.intensity_target );
+	printf( "  min_nits = %g\n", jxl->info.min_nits );
+	printf( "  relative_to_max_display = %d\n", 
+		jxl->info.relative_to_max_display );
+	printf( "  linear_below = %g\n", jxl->info.linear_below );
+	printf( "  uses_original_profile = %d\n", 
+		jxl->info.uses_original_profile );
+	printf( "  have_preview = %d\n", jxl->info.have_preview );
+	printf( "  have_animation = %d\n", jxl->info.have_animation );
+	printf( "  orientation = %d\n", jxl->info.orientation );
+	printf( "  num_color_channels = %d\n", jxl->info.num_color_channels );
+	printf( "  num_extra_channels = %d\n", jxl->info.num_extra_channels );
+	printf( "  alpha_bits = %d\n", jxl->info.alpha_bits );
+	printf( "  alpha_exponent_bits = %d\n", jxl->info.alpha_exponent_bits );
+	printf( "  alpha_premultiplied = %d\n", jxl->info.alpha_premultiplied );
+	printf( "  preview.xsize = %d\n", jxl->info.preview.xsize );
+	printf( "  preview.ysize = %d\n", jxl->info.preview.ysize );
+	printf( "  animation.tps_numerator = %d\n", 
+		jxl->info.animation.tps_numerator );
+	printf( "  animation.tps_denominator = %d\n", 
+		jxl->info.animation.tps_denominator );
+	printf( "  animation.num_loops = %d\n", jxl->info.animation.num_loops );
+	printf( "  animation.have_timecodes = %d\n", 
+		jxl->info.animation.have_timecodes );
+}
+
+static int
+vips_foreign_load_jxl_set_header( VipsForeignLoadJxl *jxl, VipsImage *out )
+{
+	/* Even though this is a full image reader, we hint thinstrip since 
+	 * we are quite happy serving that if anything downstream 
+	 * would like it.
+	 */
+        vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+
+	vips_image_init_fields( out,
+		jxl->info.xsize, jxl->info.ysize, 4, VIPS_FORMAT_FLOAT, 
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_scRGB, 1.0, 1.0 );
+
+	if( jxl->icc_data &&
+		jxl->icc_size > 0 ) {
+		vips_image_set_blob( out, VIPS_META_ICC_NAME, 
+			(VipsCallbackFn) vips_area_free_cb, 
+			jxl->icc_data, jxl->icc_size );
+		jxl->icc_data = NULL;
+		jxl->icc_size = 0;
+	}
+
+	return( 0 );
+}
+
 static int
 vips_foreign_load_jxl_header( VipsForeignLoad *load )
 {
@@ -355,6 +391,7 @@ vips_foreign_load_jxl_header( VipsForeignLoad *load )
 					"JxlDecoderGetBasicInfo" );
 				return( -1 );
 			}
+			vips_foreign_load_jxl_print_info( jxl );
 			break;
 
 		case JXL_DEC_COLOR_ENCODING:
@@ -398,10 +435,13 @@ vips_foreign_load_jxl_header( VipsForeignLoad *load )
 static int
 vips_foreign_load_jxl_load( VipsForeignLoad *load )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadJxl *jxl = (VipsForeignLoadJxl *) load;
-
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( load ), 3 );
+
+	size_t buffer_size;
+	JxlDecoderStatus status;
 
 #ifdef DEBUG
 	printf( "vips_foreign_load_jxl_load:\n" );
@@ -411,6 +451,52 @@ vips_foreign_load_jxl_load( VipsForeignLoad *load )
 	if( vips_foreign_load_jxl_set_header( jxl, t[0] ) ) 
 		return( -1 );
 
+	/* Read to the end of the image.
+	 */
+	do {
+		switch( (status = vips_foreign_load_jxl_process( jxl )) ) {
+		case JXL_DEC_ERROR:   
+			vips_foreign_load_jxl_error( jxl, 
+				"JxlDecoderProcessInput" );
+			return( -1 );
+
+		case JXL_DEC_NEED_IMAGE_OUT_BUFFER:   
+			if( vips_image_write_prepare( t[0] ) )
+				return( -1 );
+
+			if( JxlDecoderImageOutBufferSize( jxl->decoder, 
+				&vips_foreign_load_jxl_format, 
+				&buffer_size ) ) {
+				vips_foreign_load_jxl_error( jxl, 
+					"JxlDecoderImageOutBufferSize" );
+				return( -1 );
+			}
+			if( buffer_size != 
+				VIPS_IMAGE_SIZEOF_IMAGE( t[0] ) ) {
+				vips_error( class->nickname, 
+					"%s", _( "bad buffer size" ) );
+				return( -1 );
+			}
+			if( JxlDecoderSetImageOutBuffer( jxl->decoder,
+				&vips_foreign_load_jxl_format, 
+				VIPS_IMAGE_ADDR( t[0], 0, 0 ),
+				VIPS_IMAGE_SIZEOF_IMAGE( t[0] ) ) ) {
+				vips_foreign_load_jxl_error( jxl, 
+					"JxlDecoderSetImageOutBuffer" );
+				return( -1 );
+			}
+			break;
+
+		case JXL_DEC_FULL_IMAGE:
+			/* Image decoded.
+			 */
+			break;
+
+		default:
+			break;
+		}
+	} while( status != JXL_DEC_SUCCESS );
+
 	if( vips_image_write( t[0], load->real ) ) 
 		return( -1 );
 
@@ -418,11 +504,11 @@ vips_foreign_load_jxl_load( VipsForeignLoad *load )
 }
 
 static void
-vips_foreign_load_jxl_class_init( VipsForeignLoadJxlClass *klass )
+vips_foreign_load_jxl_class_init( VipsForeignLoadJxlClass *class )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( klass );
-	VipsObjectClass *object_class = (VipsObjectClass *) klass;
-	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) klass;
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_jxl_dispose;
 	gobject_class->set_property = vips_object_set_property;
@@ -492,13 +578,12 @@ vips_foreign_load_jxl_is_a( const char *filename )
 }
 
 static void
-vips_foreign_load_jxl_file_class_init( 
-	VipsForeignLoadJxlFileClass *klass )
+vips_foreign_load_jxl_file_class_init( VipsForeignLoadJxlFileClass *class )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( klass );
-	VipsObjectClass *object_class = (VipsObjectClass *) klass;
-	VipsForeignClass *foreign_class = (VipsForeignClass *) klass;
-	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) klass;
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -510,7 +595,7 @@ vips_foreign_load_jxl_file_class_init(
 
 	load_class->is_a = vips_foreign_load_jxl_is_a;
 
-	VIPS_ARG_STRING( klass, "filename", 1, 
+	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
 		_( "Filename to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
@@ -573,12 +658,11 @@ vips_foreign_load_jxl_buffer_is_a( const void *buf, size_t len )
 }
 
 static void
-vips_foreign_load_jxl_buffer_class_init( 
-	VipsForeignLoadJxlBufferClass *klass )
+vips_foreign_load_jxl_buffer_class_init( VipsForeignLoadJxlBufferClass *class )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( klass );
-	VipsObjectClass *object_class = (VipsObjectClass *) klass;
-	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) klass;
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -588,7 +672,7 @@ vips_foreign_load_jxl_buffer_class_init(
 
 	load_class->is_a_buffer = vips_foreign_load_jxl_buffer_is_a;
 
-	VIPS_ARG_BOXED( klass, "buffer", 1, 
+	VIPS_ARG_BOXED( class, "buffer", 1, 
 		_( "Buffer" ),
 		_( "Buffer to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
@@ -637,12 +721,11 @@ vips_foreign_load_jxl_source_build( VipsObject *object )
 }
 
 static void
-vips_foreign_load_jxl_source_class_init( 
-	VipsForeignLoadJxlSourceClass *klass )
+vips_foreign_load_jxl_source_class_init( VipsForeignLoadJxlSourceClass *class )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( klass );
-	VipsObjectClass *object_class = (VipsObjectClass *) klass;
-	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) klass;
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -652,7 +735,7 @@ vips_foreign_load_jxl_source_class_init(
 
 	load_class->is_a_source = vips_foreign_load_jxl_is_a_source;
 
-	VIPS_ARG_OBJECT( klass, "source", 1,
+	VIPS_ARG_OBJECT( class, "source", 1,
 		_( "Source" ),
 		_( "Source to load from" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
