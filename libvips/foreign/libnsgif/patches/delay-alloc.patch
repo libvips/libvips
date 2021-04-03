@@ -1,5 +1,5 @@
---- libnsgif-orig.c	2021-04-02 11:59:38.120048459 +0100
-+++ libnsgif.c	2021-04-02 11:59:44.439972362 +0100
+--- libnsgif-orig.c	2021-04-03 12:23:43.700260070 +0100
++++ libnsgif.c	2021-04-03 12:24:44.079567702 +0100
 @@ -79,34 +79,17 @@
                        unsigned int width,
                        unsigned int height)
@@ -69,3 +69,18 @@
          /* Decode the flags */
          flags = gif_data[9];
          colour_table_size = 2 << (flags & GIF_COLOUR_TABLE_SIZE_MASK);
+@@ -1115,14 +1106,6 @@
+                 }
+                 gif->frame_holders = 1;
+ 
+-                /* Initialise the bitmap header */
+-                assert(gif->bitmap_callbacks.bitmap_create);
+-                gif->frame_image = gif->bitmap_callbacks.bitmap_create(gif->width, gif->height);
+-                if (gif->frame_image == NULL) {
+-                        gif_finalise(gif);
+-                        return GIF_INSUFFICIENT_MEMORY;
+-                }
+-
+                 /* Remember we've done this now */
+                 gif->buffer_position = gif_data - gif->gif_data;
+         }

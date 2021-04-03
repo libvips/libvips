@@ -1106,14 +1106,6 @@ gif_result gif_initialise(gif_animation *gif, size_t size, unsigned char *data)
                 }
                 gif->frame_holders = 1;
 
-                /* Initialise the bitmap header */
-                assert(gif->bitmap_callbacks.bitmap_create);
-                gif->frame_image = gif->bitmap_callbacks.bitmap_create(gif->width, gif->height);
-                if (gif->frame_image == NULL) {
-                        gif_finalise(gif);
-                        return GIF_INSUFFICIENT_MEMORY;
-                }
-
                 /* Remember we've done this now */
                 gif->buffer_position = gif_data - gif->gif_data;
         }
