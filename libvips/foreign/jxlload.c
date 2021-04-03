@@ -73,6 +73,7 @@ typedef struct _VipsForeignLoadJxl {
 	/* Base image properties.
 	 */
 	JxlBasicInfo info;
+	JxlPixelFormat format;
 	size_t icc_size;
 	uint8_t *icc_data;
 
@@ -181,11 +182,6 @@ vips_foreign_load_jxl_get_flags( VipsForeignLoad *load )
 {
 	return( VIPS_FOREIGN_PARTIAL );
 }
-
-/* Always read as scRGBA.
- */
-static JxlPixelFormat vips_foreign_load_jxl_format = 
-	{ 4, JXL_TYPE_FLOAT, JXL_NATIVE_ENDIAN, 0 };
 
 static int
 vips_foreign_load_jxl_fill_input( VipsForeignLoadJxl *jxl, 
@@ -337,6 +333,74 @@ vips_foreign_load_jxl_print_info( VipsForeignLoadJxl *jxl )
 static int
 vips_foreign_load_jxl_set_header( VipsForeignLoadJxl *jxl, VipsImage *out )
 {
+	VipsBandFormat format;
+	VipsInterpretation interpretation;
+
+	switch( jxl->format.data_type ) {
+	case JXL_TYPE_UINT8:
+		format = VIPS_FORMAT_UCHAR;
+		break;
+
+	case JXL_TYPE_UINT16:
+		format = VIPS_FORMAT_USHORT;
+		break;
+
+	case JXL_TYPE_UINT32:
+		format = VIPS_FORMAT_UINT;
+		break;
+
+	case JXL_TYPE_FLOAT:
+		format = VIPS_FORMAT_FLOAT;
+		break;
+
+	default:
+		g_assert_not_reached();
+	}
+
+	switch( jxl->info.num_color_channels ) {
+	case 1:
+		switch( format ) {
+		case VIPS_FORMAT_UCHAR:
+			interpretation = VIPS_INTERPRETATION_B_W;
+			break;
+
+		case VIPS_FORMAT_USHORT:
+		case VIPS_FORMAT_UINT:
+			interpretation = VIPS_INTERPRETATION_GREY16;
+			break;
+
+		default:
+			interpretation = VIPS_INTERPRETATION_B_W;
+			break;
+		}
+		break;
+
+	case 3:
+		switch( format ) {
+		case VIPS_FORMAT_UCHAR:
+			interpretation = VIPS_INTERPRETATION_sRGB;
+			break;
+
+		case VIPS_FORMAT_USHORT:
+		case VIPS_FORMAT_UINT:
+			interpretation = VIPS_INTERPRETATION_RGB16;
+			break;
+
+		case VIPS_FORMAT_FLOAT:
+			interpretation = VIPS_INTERPRETATION_scRGB;
+			break;
+
+		default:
+			interpretation = VIPS_INTERPRETATION_sRGB;
+			break;
+		}
+		break;
+
+	default:
+		interpretation = VIPS_INTERPRETATION_MULTIBAND;
+		break;
+	}
+
 	/* Even though this is a full image reader, we hint thinstrip since 
 	 * we are quite happy serving that if anything downstream 
 	 * would like it.
@@ -344,8 +408,8 @@ vips_foreign_load_jxl_set_header( VipsForeignLoadJxl *jxl, VipsImage *out )
         vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	vips_image_init_fields( out,
-		jxl->info.xsize, jxl->info.ysize, 4, VIPS_FORMAT_FLOAT, 
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_scRGB, 1.0, 1.0 );
+		jxl->info.xsize, jxl->info.ysize, jxl->format.num_channels, 
+		format, VIPS_CODING_NONE, interpretation, 1.0, 1.0 );
 
 	if( jxl->icc_data &&
 		jxl->icc_size > 0 ) {
@@ -392,11 +456,29 @@ vips_foreign_load_jxl_header( VipsForeignLoad *load )
 				return( -1 );
 			}
 			vips_foreign_load_jxl_print_info( jxl );
+
+			/* Pick a pixel format to decode to.
+			 */
+			jxl->format.num_channels = 
+				jxl->info.num_color_channels + 
+				jxl->info.num_extra_channels;
+			if( jxl->info.exponent_bits_per_sample > 0 ||
+				jxl->info.alpha_exponent_bits > 0 )
+				jxl->format.data_type = JXL_TYPE_FLOAT;
+			else if( jxl->info.bits_per_sample > 16 )
+				jxl->format.data_type = JXL_TYPE_UINT32;
+			else if( jxl->info.bits_per_sample > 8 )
+				jxl->format.data_type = JXL_TYPE_UINT16;
+			else
+				jxl->format.data_type = JXL_TYPE_UINT8;
+			jxl->format.endianness = JXL_NATIVE_ENDIAN;
+			jxl->format.align = 0;
+
 			break;
 
 		case JXL_DEC_COLOR_ENCODING:
 			if( JxlDecoderGetICCProfileSize( jxl->decoder,
-				&vips_foreign_load_jxl_format, 
+				&jxl->format, 
 				JXL_COLOR_PROFILE_TARGET_DATA, 
 				&jxl->icc_size ) ) {
 				vips_foreign_load_jxl_error( jxl, 
@@ -407,9 +489,8 @@ vips_foreign_load_jxl_header( VipsForeignLoad *load )
 				jxl->icc_size )) ) 
 				return( -1 );
 
-
 			if( JxlDecoderGetColorAsICCProfile( jxl->decoder, 
-				&vips_foreign_load_jxl_format, 
+				&jxl->format, 
 				JXL_COLOR_PROFILE_TARGET_DATA,
 				jxl->icc_data, jxl->icc_size ) ) {
 				vips_foreign_load_jxl_error( jxl, 
@@ -465,7 +546,7 @@ vips_foreign_load_jxl_load( VipsForeignLoad *load )
 				return( -1 );
 
 			if( JxlDecoderImageOutBufferSize( jxl->decoder, 
-				&vips_foreign_load_jxl_format, 
+				&jxl->format, 
 				&buffer_size ) ) {
 				vips_foreign_load_jxl_error( jxl, 
 					"JxlDecoderImageOutBufferSize" );
@@ -478,7 +559,7 @@ vips_foreign_load_jxl_load( VipsForeignLoad *load )
 				return( -1 );
 			}
 			if( JxlDecoderSetImageOutBuffer( jxl->decoder,
-				&vips_foreign_load_jxl_format, 
+				&jxl->format, 
 				VIPS_IMAGE_ADDR( t[0], 0, 0 ),
 				VIPS_IMAGE_SIZEOF_IMAGE( t[0] ) ) ) {
 				vips_foreign_load_jxl_error( jxl, 
