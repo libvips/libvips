@@ -55,6 +55,15 @@
 
 #include "pforeign.h"
 
+/* TODO:
+ *
+ * - libjxl currently seems to be missing API to attach a profile
+ *
+ * - libjxl seems to only work in one shot mode, so there's no way to write in
+ *   chunks
+ *
+ */
+
 #define OUTPUT_BUFFER_SIZE (4096)
 
 typedef struct _VipsForeignSaveJxl {
@@ -68,8 +77,7 @@ typedef struct _VipsForeignSaveJxl {
 	 */
 	JxlBasicInfo info;
 	JxlColorEncoding color_encoding;
-	size_t icc_size;
-	uint8_t *icc_data;
+	JxlPixelFormat format;
 
 	/* Encoder state.
 	 */
@@ -109,9 +117,6 @@ vips_foreign_save_jxl_error( VipsForeignSaveJxl *jxl, const char *details )
 	vips_error( class->nickname, "%s", details );
 }
 
-static JxlPixelFormat vips_foreign_save_jxl_format = 
-	{3, JXL_TYPE_FLOAT, JXL_NATIVE_ENDIAN, 0};
-
 static int
 vips_foreign_save_jxl_build( VipsObject *object )
 {
@@ -136,32 +141,120 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		return( -1 );
 	}
 
+	switch( save->ready->BandFmt ) {
+	case VIPS_FORMAT_UCHAR:
+		jxl->info.bits_per_sample = 8;
+		jxl->info.exponent_bits_per_sample = 0;
+		jxl->format.data_type = JXL_TYPE_UINT8;
+		break;
+
+	case VIPS_FORMAT_USHORT:
+		jxl->info.bits_per_sample = 16;
+		jxl->info.exponent_bits_per_sample = 0;
+		jxl->format.data_type = JXL_TYPE_UINT16;
+		break;
+
+	case VIPS_FORMAT_UINT:
+		jxl->info.bits_per_sample = 32;
+		jxl->info.exponent_bits_per_sample = 0;
+		jxl->format.data_type = JXL_TYPE_UINT32;
+		break;
+
+	case VIPS_FORMAT_FLOAT:
+		jxl->info.bits_per_sample = 32;
+		jxl->info.exponent_bits_per_sample = 8;
+		jxl->format.data_type = JXL_TYPE_FLOAT;
+		break;
+
+	default:
+		g_assert_not_reached();
+		break;
+	}
+
+	switch( save->ready->Type ) {
+	case VIPS_INTERPRETATION_B_W:
+	case VIPS_INTERPRETATION_GREY16:
+		jxl->info.num_color_channels = 1;
+		break;
+
+	case VIPS_INTERPRETATION_sRGB:
+	case VIPS_INTERPRETATION_scRGB:
+	case VIPS_INTERPRETATION_RGB16:
+		jxl->info.num_color_channels = 3;
+		break;
+
+	default:
+		jxl->info.num_color_channels = save->ready->Bands;
+	}
+	jxl->info.num_extra_channels = VIPS_MAX( 0, 
+		save->ready->Bands - jxl->info.num_color_channels );
+
 	jxl->info.xsize = save->ready->Xsize;
 	jxl->info.ysize = save->ready->Ysize;
-	jxl->info.bits_per_sample = 32;
-	jxl->info.exponent_bits_per_sample = 8;
-	jxl->info.alpha_exponent_bits = 0;
-	jxl->info.alpha_bits = 0;
+	jxl->format.num_channels = save->ready->Bands;
+	jxl->format.endianness = JXL_NATIVE_ENDIAN;
+	jxl->format.align = 0;
+
+	if( vips_image_hasalpha( save->ready ) ) {
+		jxl->info.alpha_bits = jxl->info.bits_per_sample;
+		jxl->info.alpha_exponent_bits = 
+			jxl->info.exponent_bits_per_sample;
+	}
+	else {
+		jxl->info.alpha_exponent_bits = 0;
+		jxl->info.alpha_bits = 0;
+	}
+
+	if( vips_image_get_typeof( save->ready, "stonits" ) ) {
+		double stonits;
+
+		if( vips_image_get_double( save->ready, "stonits", &stonits ) )
+			return( -1 );
+		jxl->info.intensity_target = stonits;
+	}
+
+	/* FIXME libjxl doesn't seem to have this API yet.
+	 *
+	if( vips_image_get_typeof( save->ready, VIPS_META_ICC_NAME ) ) {
+		const void *data;
+		size_t length;
+
+		if( vips_image_get_blob( save->ready, 
+			VIPS_META_ICC_NAME, &data, &length ) )
+			return( -1 );
+
+		jxl->info.uses_original_profile = JXL_TRUE;
+		... attach profile
+	}
+	else 
+		jxl->info.uses_original_profile = JXL_FALSE;
+	 */
+
+	/* Remove this when libjxl gets API to attach an ICC profile.
+	 */
 	jxl->info.uses_original_profile = JXL_FALSE;
+
 	if( JxlEncoderSetBasicInfo( jxl->encoder, &jxl->info ) ) {
 		vips_foreign_save_jxl_error( jxl, "JxlEncoderSetBasicInfo" );
 		return( -1 );
 	}
 
 	JxlColorEncodingSetToSRGB( &jxl->color_encoding, 
-		vips_foreign_save_jxl_format.num_channels < 3 );
+		jxl->format.num_channels < 3 );
 	if( JxlEncoderSetColorEncoding( jxl->encoder, &jxl->color_encoding ) ) {
 		vips_foreign_save_jxl_error( jxl, 
 			"JxlEncoderSetColorEncoding" );
 		return( -1 );
 	}
 
+	/* Render the entire image in memory. libjxl seems to be missing
+	 * tile-based write.
+	 */
 	if( vips_image_wio_input( save->ready ) )
 		return( -1 );
 	
 	encoder_options = JxlEncoderOptionsCreate( jxl->encoder, NULL );
-	if( JxlEncoderAddImageFrame( encoder_options, 
-		&vips_foreign_save_jxl_format, 
+	if( JxlEncoderAddImageFrame( encoder_options, &jxl->format, 
 		VIPS_IMAGE_ADDR( save->ready, 0, 0 ),
 		VIPS_IMAGE_SIZEOF_IMAGE( save->ready ) ) ) { 
 		vips_foreign_save_jxl_error( jxl, "JxlEncoderAddImageFrame" );
@@ -197,13 +290,18 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	return( 0 );
 }
 
+/* Save a bit of typing.
+ */
+#define UC VIPS_FORMAT_UCHAR
+#define US VIPS_FORMAT_USHORT
+#define UI VIPS_FORMAT_UINT
 #define F VIPS_FORMAT_FLOAT
 
-/* Type promotion for save ... just always go to uchar.
+/* Type promotion for save ... unsigned ints + float + double.
  */
 static int bandfmt_jpeg[10] = {
-     /* UC  C US  S UI  I  F  X  D DX */
-	 F, F, F, F, F, F, F, F, F, F
+     /* UC   C  US   S  UI   I  F  X  D DX */
+	UC, UC, US, US, UI, UI, F, F, F, F
 };
 
 static void
