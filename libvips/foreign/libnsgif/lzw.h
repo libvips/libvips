@@ -67,9 +67,6 @@ void lzw_context_destroy(
  *                                  of a size byte at sub-block start.
  * \param[in]  minimum_code_size    The LZW Minimum Code Size.
  * \param[out] stack_base_out       Returns base of decompressed data stack.
- * \param[out] stack_pos_out        Returns current stack position.
- *                                  There are `stack_pos_out - stack_base_out`
- *                                  current stack entries.
  * \return LZW_OK on success, or appropriate error code otherwise.
  */
 lzw_result lzw_decode_init(
@@ -78,8 +75,7 @@ lzw_result lzw_decode_init(
 		uint32_t compressed_data_len,
 		uint32_t compressed_data_pos,
 		uint8_t minimum_code_size,
-		const uint8_t ** const stack_base_out,
-		const uint8_t ** const stack_pos_out);
+		const uint8_t ** const stack_base_out);
 
 /**
  * Fill the LZW stack with decompressed data
@@ -87,19 +83,14 @@ lzw_result lzw_decode_init(
  * Ensure anything on the stack is used before calling this, as anything
  * on the stack before this call will be trampled.
  *
- * Caller does not own `stack_pos_out`.
- *
- * \param[in]  ctx            LZW reading context, updated.
- * \param[out] stack_pos_out  Returns current stack position.
- *                            Use with `stack_base_out` value from previous
- *                            lzw_decode_init() call.
- *                            There are `stack_pos_out - stack_base_out`
- *                            current stack entries.
+ * \param[in]  ctx      LZW reading context, updated.
+ * \param[out] written  Returns the number of values written.
+ *                      Use with `stack_base_out` value from previous
+ *                      lzw_decode_init() call.
  * \return LZW_OK on success, or appropriate error code otherwise.
  */
 lzw_result lzw_decode(
 		struct lzw_ctx *ctx,
-		const uint8_t ** const stack_pos_out);
-
+		uint32_t *written);
 
 #endif

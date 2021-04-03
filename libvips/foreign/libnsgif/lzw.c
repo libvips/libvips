@@ -83,6 +83,7 @@ struct lzw_ctx {
 	uint32_t table_size; /**< Next position in table to fill. */
 
 	/** Output value stack. */
+	uint32_t written;
 	uint8_t stack_base[LZW_TABLE_ENTRY_MAX];
 
 	/** LZW code table. Generated during decode. */
@@ -223,15 +224,12 @@ static inline lzw_result lzw__read_code(
  * Clear LZW code table.
  *
  * \param[in]  ctx            LZW reading context, updated.
- * \param[out] stack_pos_out  Returns current stack position.
  * \return LZW_OK or error code.
  */
 static lzw_result lzw__clear_codes(
-		struct lzw_ctx *ctx,
-		const uint8_t ** const stack_pos_out)
+		struct lzw_ctx *ctx)
 {
 	uint32_t code;
-	uint8_t *stack_pos;
 
 	/* Reset table building context */
 	ctx->code_size = ctx->initial_code_size;
@@ -258,10 +256,8 @@ static lzw_result lzw__clear_codes(
 	ctx->prev_code_count = 1;
 
 	/* Reset the stack, and add first non-clear code added as first item. */
-	stack_pos = ctx->stack_base;
-	*stack_pos++ = code;
+	ctx->stack_base[ctx->written++] = code;
 
-	*stack_pos_out = stack_pos;
 	return LZW_OK;
 }
 
@@ -273,8 +269,7 @@ lzw_result lzw_decode_init(
 		uint32_t compressed_data_len,
 		uint32_t compressed_data_pos,
 		uint8_t minimum_code_size,
-		const uint8_t ** const stack_base_out,
-		const uint8_t ** const stack_pos_out)
+		const uint8_t ** const stack_base_out)
 {
 	struct lzw_table_entry *table = ctx->table;
 
@@ -303,8 +298,10 @@ lzw_result lzw_decode_init(
 		table[i].count = 1;
 	}
 
+	ctx->written = 0;
+
 	*stack_base_out = ctx->stack_base;
-	return lzw__clear_codes(ctx, stack_pos_out);
+	return lzw__clear_codes(ctx);
 }
 
 /**
@@ -332,32 +329,28 @@ static inline void lzw__table_add_entry(
  *
  * \param[in]  ctx            LZW reading context, updated.
  * \param[in]  code           LZW code to output values for.
- * \param[out] stack_pos_out  Returns current stack position.
- *                            There are `stack_pos_out - ctx->stack_base`
- *                            current stack entries.
  */
 static inline void lzw__write_pixels(struct lzw_ctx *ctx,
-		uint32_t code,
-		const uint8_t ** const stack_pos_out)
+		uint32_t code)
 {
-	uint8_t *stack_pos = ctx->stack_base;
-	uint32_t clear_code = ctx->clear_code;
+	uint8_t *stack_pos = ctx->stack_base + ctx->written;
 	struct lzw_table_entry * const table = ctx->table;
+	uint32_t count = table[code].count;
 
-	while (code > clear_code) {
+	stack_pos += count;
+	for (unsigned i = count; i != 0; i--) {
 		struct lzw_table_entry *entry = table + code;
-		*stack_pos++ = entry->value;
+		*--stack_pos = entry->value;
 		code = entry->extends;
 	}
-	*stack_pos++ = table[code].value;
 
-	*stack_pos_out = stack_pos;
+	ctx->written += count;
 	return;
 }
 
 /* Exported function, documented in lzw.h */
 lzw_result lzw_decode(struct lzw_ctx *ctx,
-		const uint8_t ** const stack_pos_out)
+		uint32_t *written)
 {
 	lzw_result res;
 	uint32_t code;
@@ -371,7 +364,12 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 	/* Handle the new code */
 	if (code == ctx->clear_code) {
 		/* Got Clear code */
-		return lzw__clear_codes(ctx, stack_pos_out);
+		res = lzw__clear_codes(ctx);
+		if (res == LZW_OK) {
+			*written = ctx->written;
+			ctx->written = 0;
+		}
+		return res;
 
 	} else if (code == ctx->eoi_code) {
 		/* Got End of Information code */
@@ -400,6 +398,10 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 	ctx->prev_code_count = ctx->table[code].count;
 	ctx->prev_code = code;
 
-	lzw__write_pixels(ctx, code, stack_pos_out);
+	lzw__write_pixels(ctx, code);
+
+	*written = ctx->written;
+	ctx->written = 0;
+
 	return LZW_OK;
 }

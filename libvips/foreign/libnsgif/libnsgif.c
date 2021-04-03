@@ -632,17 +632,19 @@ gif__decode(gif_animation *gif,
 {
         const uint8_t *stack_base;
         const uint8_t *stack_pos;
+        uint32_t written = 0;
         gif_result ret = GIF_OK;
         lzw_result res;
 
         /* Initialise the LZW decoding */
         res = lzw_decode_init(gif->lzw_ctx, gif->gif_data,
                         gif->buffer_size, gif->buffer_position,
-                        minimum_code_size, &stack_base, &stack_pos);
+                        minimum_code_size, &stack_base);
         if (res != LZW_OK) {
                 return gif_error_from_lzw(res);
         }
 
+        stack_pos = stack_base;
         for (unsigned int y = 0; y < height; y++) {
                 unsigned int x;
                 unsigned int decode_y;
@@ -655,21 +657,18 @@ gif__decode(gif_animation *gif,
                 }
                 frame_scanline = frame_data + offset_x + (decode_y * gif->width);
 
-                /* Rather than decoding pixel by pixel, we try to burst
-                 * out streams of data to remove the need for end-of
-                 * data checks every pixel.
-                 */
                 x = width;
                 while (x > 0) {
-                        unsigned int burst_bytes = (stack_pos - stack_base);
-                        if (burst_bytes > 0) {
+                        if (written > 0) {
+                                unsigned burst_bytes = written;
                                 if (burst_bytes > x) {
                                         burst_bytes = x;
                                 }
                                 x -= burst_bytes;
+                                written -= burst_bytes;
                                 while (burst_bytes-- > 0) {
                                         register unsigned char colour;
-                                        colour = *--stack_pos;
+                                        colour = *stack_pos++;
                                         if (((gif->frames[frame].transparency) &&
                                              (colour != gif->frames[frame].transparency_index)) ||
                                             (!gif->frames[frame].transparency)) {
@@ -678,7 +677,7 @@ gif__decode(gif_animation *gif,
                                         frame_scanline++;
                                 }
                         } else {
-                                res = lzw_decode(gif->lzw_ctx, &stack_pos);
+                                res = lzw_decode(gif->lzw_ctx, &written);
                                 if (res != LZW_OK) {
                                         /* Unexpected end of frame, try to recover */
                                         if (res == LZW_OK_EOD) {
@@ -688,10 +687,10 @@ gif__decode(gif_animation *gif,
                                         }
                                         break;
                                 }
+                                stack_pos = stack_base;
                         }
                 }
         }
-
         return ret;
 }
 
