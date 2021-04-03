@@ -1113,7 +1113,7 @@ vips_jp2ksave( VipsImage *in, const char *filename, ... )
  * * @tile_height: %gint for tile size
  * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  *
- * As vips_jp2ksave(), but save to a target.
+ * As vips_jp2ksave(), but save to a memory buffer.
  *
  * See also: vips_jp2ksave(), vips_image_write_to_target().
  *
