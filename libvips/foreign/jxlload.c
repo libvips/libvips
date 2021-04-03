@@ -66,6 +66,8 @@
  * - check scRGB encoding
  *
  * - add "shrink" option to read out 8x shrunk image?
+ *
+ * - add animation support
  */
 
 #define INPUT_BUFFER_SIZE (4096)
@@ -214,6 +216,7 @@ vips_foreign_load_jxl_fill_input( VipsForeignLoadJxl *jxl,
 	return( 0 );
 }
 
+#ifdef DEBUG
 static void
 vips_foreign_load_jxl_print_status( JxlDecoderStatus status )
 {
@@ -282,6 +285,7 @@ vips_foreign_load_jxl_print_status( JxlDecoderStatus status )
 		g_assert_not_reached();
 	}
 }
+#endif /*DEBUG*/
 
 static JxlDecoderStatus 
 vips_foreign_load_jxl_process( VipsForeignLoadJxl *jxl )
@@ -300,12 +304,15 @@ vips_foreign_load_jxl_process( VipsForeignLoadJxl *jxl )
 			jxl->input_buffer, jxl->bytes_in_buffer );
 	}
 
+#ifdef DEBUG
 	printf( "vips_foreign_load_jxl_process: seen " );
 	vips_foreign_load_jxl_print_status( status );
+#endif /*DEBUG*/
 
 	return( status );
 }
 
+#ifdef DEBUG
 static void
 vips_foreign_load_jxl_print_info( VipsForeignLoadJxl *jxl )
 {
@@ -341,6 +348,7 @@ vips_foreign_load_jxl_print_info( VipsForeignLoadJxl *jxl )
 	printf( "  animation.have_timecodes = %d\n", 
 		jxl->info.animation.have_timecodes );
 }
+#endif /*DEBUG*/
 
 static int
 vips_foreign_load_jxl_set_header( VipsForeignLoadJxl *jxl, VipsImage *out )
@@ -432,6 +440,9 @@ vips_foreign_load_jxl_set_header( VipsForeignLoadJxl *jxl, VipsImage *out )
 		jxl->icc_size = 0;
 	}
 
+	vips_image_set_int( out, 
+		VIPS_META_ORIENTATION, jxl->info.orientation );
+
 	return( 0 );
 }
 
@@ -467,7 +478,9 @@ vips_foreign_load_jxl_header( VipsForeignLoad *load )
 					"JxlDecoderGetBasicInfo" );
 				return( -1 );
 			}
+#ifdef DEBUG
 			vips_foreign_load_jxl_print_info( jxl );
+#endif /*DEBUG*/
 
 			/* Pick a pixel format to decode to.
 			 */
