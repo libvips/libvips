@@ -223,42 +223,16 @@ static inline lzw_result lzw__read_code(
 /**
  * Clear LZW code table.
  *
- * \param[in]  ctx            LZW reading context, updated.
+ * \param[in]  ctx  LZW reading context, updated.
  * \return LZW_OK or error code.
  */
-static lzw_result lzw__clear_codes(
+static inline void lzw__clear_table(
 		struct lzw_ctx *ctx)
 {
-	uint32_t code;
-
 	/* Reset table building context */
 	ctx->code_size = ctx->initial_code_size;
 	ctx->code_max = (1 << ctx->initial_code_size) - 1;
 	ctx->table_size = ctx->eoi_code + 1;
-
-	/* There might be a sequence of clear codes, so process them all */
-	do {
-		lzw_result res = lzw__read_code(&ctx->input,
-				ctx->code_size, &code);
-		if (res != LZW_OK) {
-			return res;
-		}
-	} while (code == ctx->clear_code);
-
-	/* The initial code must be from the initial table. */
-	if (code > ctx->clear_code) {
-		return LZW_BAD_ICODE;
-	}
-
-	/* Record this initial code as "previous" code, needed during decode. */
-	ctx->prev_code = code;
-	ctx->prev_code_first = code;
-	ctx->prev_code_count = 1;
-
-	/* Reset the stack, and add first non-clear code added as first item. */
-	ctx->stack_base[ctx->written++] = code;
-
-	return LZW_OK;
 }
 
 
@@ -298,10 +272,11 @@ lzw_result lzw_decode_init(
 		table[i].count = 1;
 	}
 
-	ctx->written = 0;
+	lzw__clear_table(ctx);
+	ctx->prev_code = ctx->clear_code;
 
 	*stack_base_out = ctx->stack_base;
-	return lzw__clear_codes(ctx);
+	return LZW_OK;
 }
 
 /**
@@ -355,6 +330,8 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 	lzw_result res;
 	uint32_t code;
 
+	ctx->written = 0;
+
 	/* Get a new code from the input */
 	res = lzw__read_code(&ctx->input, ctx->code_size, &code);
 	if (res != LZW_OK) {
@@ -362,35 +339,33 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 	}
 
 	/* Handle the new code */
-	if (code == ctx->clear_code) {
-		/* Got Clear code */
-		res = lzw__clear_codes(ctx);
-		if (res == LZW_OK) {
-			*written = ctx->written;
-			ctx->written = 0;
-		}
-		return res;
-
-	} else if (code == ctx->eoi_code) {
+	if (code == ctx->eoi_code) {
 		/* Got End of Information code */
 		return LZW_EOI_CODE;
 
 	} else if (code > ctx->table_size) {
 		/* Code is invalid */
 		return LZW_BAD_CODE;
-	}
 
-	if (ctx->table_size < LZW_TABLE_ENTRY_MAX) {
-		uint32_t size = ctx->table_size;
-		lzw__table_add_entry(ctx, (code < size) ?
-				ctx->table[code].first :
-				ctx->prev_code_first);
+	} else if (code == ctx->clear_code) {
+		lzw__clear_table(ctx);
+	} else {
+		if (ctx->prev_code != ctx->clear_code &&
+		    ctx->table_size < LZW_TABLE_ENTRY_MAX) {
+			uint32_t size = ctx->table_size;
+			lzw__table_add_entry(ctx, (code < size) ?
+					ctx->table[code].first :
+					ctx->prev_code_first);
 
-		/* Ensure code size is increased, if needed. */
-		if (size == ctx->code_max && ctx->code_size < LZW_CODE_MAX) {
-			ctx->code_size++;
-			ctx->code_max = (1 << ctx->code_size) - 1;
+			/* Ensure code size is increased, if needed. */
+			if (size == ctx->code_max &&
+			    ctx->code_size < LZW_CODE_MAX) {
+				ctx->code_size++;
+				ctx->code_max = (1 << ctx->code_size) - 1;
+			}
 		}
+
+		lzw__write_pixels(ctx, code);
 	}
 
 	/* Store details of this code as "previous code" to the context. */
@@ -398,10 +373,7 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 	ctx->prev_code_count = ctx->table[code].count;
 	ctx->prev_code = code;
 
-	lzw__write_pixels(ctx, code);
-
 	*written = ctx->written;
-	ctx->written = 0;
 
 	return LZW_OK;
 }
