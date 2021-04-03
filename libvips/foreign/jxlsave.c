@@ -62,6 +62,9 @@
  * - libjxl seems to only work in one shot mode, so there's no way to write in
  *   chunks
  *
+ * - embed a preview image? EXIF? XMP?
+ *
+ * - check scRGB encoding
  */
 
 #define OUTPUT_BUFFER_SIZE (4096)
@@ -72,6 +75,13 @@ typedef struct _VipsForeignSaveJxl {
 	/* Where to write (set by subclasses).
 	 */
 	VipsTarget *target;
+
+	/* Encoder options.
+	 */
+	int tier;
+	double distance;
+	int effort;
+	gboolean lossless;
 
 	/* Base image properties.
 	 */
@@ -123,7 +133,7 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) object;
 
-	JxlEncoderOptions *encoder_options;
+	JxlEncoderOptions *options;
 	JxlEncoderStatus status;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_jxl_parent_class )->
@@ -253,8 +263,13 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	if( vips_image_wio_input( save->ready ) )
 		return( -1 );
 	
-	encoder_options = JxlEncoderOptionsCreate( jxl->encoder, NULL );
-	if( JxlEncoderAddImageFrame( encoder_options, &jxl->format, 
+	options = JxlEncoderOptionsCreate( jxl->encoder, NULL );
+	JxlEncoderOptionsSetDecodingSpeed( options, jxl->tier );
+	JxlEncoderOptionsSetDistance( options, jxl->distance );
+	JxlEncoderOptionsSetEffort( options, jxl->effort );
+	JxlEncoderOptionsSetLossless( options, jxl->lossless );
+
+	if( JxlEncoderAddImageFrame( options, &jxl->format, 
 		VIPS_IMAGE_ADDR( save->ready, 0, 0 ),
 		VIPS_IMAGE_SIZEOF_IMAGE( save->ready ) ) ) { 
 		vips_foreign_save_jxl_error( jxl, "JxlEncoderAddImageFrame" );
@@ -325,11 +340,43 @@ vips_foreign_save_jxl_class_init( VipsForeignSaveJxlClass *class )
 	save_class->saveable = VIPS_SAVEABLE_ANY;
 	save_class->format_table = bandfmt_jpeg;
 
+	VIPS_ARG_INT( class, "tier", 10, 
+		_( "Tier" ), 
+		_( "Decode speed tier" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveJxl, tier ),
+		0, 4, 0 );
+
+	VIPS_ARG_DOUBLE( class, "distance", 11, 
+		_( "Distance" ), 
+		_( "Target butteraugli distance" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveJxl, distance ),
+		0, 15, 1.0 );
+
+	VIPS_ARG_INT( class, "effort", 12, 
+		_( "effort" ), 
+		_( "Encoding effort" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveJxl, effort ),
+		3, 9, 7 );
+
+	VIPS_ARG_BOOL( class, "lossless", 13, 
+		_( "Lossless" ), 
+		_( "Enable lossless compression" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveJxl, lossless ),
+		FALSE ); 
+
 }
 
 static void
 vips_foreign_save_jxl_init( VipsForeignSaveJxl *jxl )
 {
+	jxl->tier = 0;
+	jxl->distance = 1.0;
+	jxl->effort = 7;
+	jxl->lossless = FALSE;
 }
 
 typedef struct _VipsForeignSaveJxlFile {
@@ -517,9 +564,23 @@ vips_foreign_save_jxl_target_init( VipsForeignSaveJxlTarget *target )
  * @filename: file to write to 
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * * @tier: %gint, decode speed tier
+ * * @distance: %gdouble, maximum encoding error
+ * * @effort: %gint, encoding effort
+ * * @lossless: %gboolean, enables lossless compression
+ *
  * Write a VIPS image to a file in JPEG-XL format. 
  *
- * See also: vips_image_write_to_file(), vips_jxlload().
+ * @tier sets the overall decode speed the encoder will target. Minimum is 0 
+ * (highest quality), and maximum is 4 (lowest quality). Default is 0.
+ *
+ * @distance sets the target maximum encoding error. Minimum is 0 
+ * (highest quality), and maximum is 15 (lowest quality). Default is 1.0
+ * (visually lossless). 
+ *
+ * Set @lossless to enable lossless compresion.
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -542,6 +603,13 @@ vips_jxlsave( VipsImage *in, const char *filename, ... )
  * @buf: (array length=len) (element-type guint8): return output buffer here
  * @len: (type gsize): return output length here
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @tier: %gint, decode speed tier
+ * * @distance: %gdouble, maximum encoding error
+ * * @effort: %gint, encoding effort
+ * * @lossless: %gboolean, enables lossless compression
  *
  * As vips_jxlsave(), but save to a memory buffer.
  *
@@ -582,6 +650,13 @@ vips_jxlsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * @in: image to save 
  * @target: save image to this target
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @tier: %gint, decode speed tier
+ * * @distance: %gdouble, maximum encoding error
+ * * @effort: %gint, encoding effort
+ * * @lossless: %gboolean, enables lossless compression
  *
  * As vips_jxlsave(), but save to a target.
  *

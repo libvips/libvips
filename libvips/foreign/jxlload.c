@@ -32,9 +32,9 @@
  */
 
 /*
- */
 #define DEBUG_VERBOSE
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -55,6 +55,18 @@
 #include <jxl/thread_parallel_runner.h>
 
 #include "pforeign.h"
+
+/* TODO:
+ *
+ * - libjxl seems to only work in one shot mode, so there's no way to read in
+ *   chunks
+ *
+ * - preview image? EXIF? XMP?
+ *
+ * - check scRGB encoding
+ *
+ * - add "shrink" option to read out 8x shrunk image?
+ */
 
 #define INPUT_BUFFER_SIZE (4096)
 
