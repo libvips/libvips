@@ -2270,7 +2270,7 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_jxl_source_get_type(); 
 	vips_foreign_save_jxl_file_get_type(); 
 	vips_foreign_save_jxl_buffer_get_type(); 
-	vips_foreign_save_jxl_source_get_type(); 
+	vips_foreign_save_jxl_target_get_type(); 
 #endif /*HAVE_LIBJXL*/
 
 #ifdef HAVE_LIBOPENJP2

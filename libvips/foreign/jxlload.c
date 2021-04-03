@@ -148,12 +148,12 @@ vips_foreign_load_jxl_build( VipsObject *object )
 	if( JxlDecoderSubscribeEvents( jxl->decoder, 
 		JXL_DEC_COLOR_ENCODING |
 		JXL_DEC_BASIC_INFO |
-		JXL_DEC_FULL_IMAGE ) != JXL_DEC_SUCCESS ) {
+		JXL_DEC_FULL_IMAGE ) ) {
 		vips_foreign_load_jxl_error( jxl, "JxlDecoderSubscribeEvents" );
 		return( -1 );
 	}
 	if( JxlDecoderSetParallelRunner( jxl->decoder, 
-		JxlThreadParallelRunner, jxl->runner ) != JXL_DEC_SUCCESS ) {
+		JxlThreadParallelRunner, jxl->runner ) ) {
 		vips_foreign_load_jxl_error( jxl, 
 			"JxlDecoderSetParallelRunner" );
 		return( -1 );
