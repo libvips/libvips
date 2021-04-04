@@ -42,6 +42,9 @@
 /** Transparent colour */
 #define GIF_TRANSPARENT_COLOUR 0x00
 
+/** No transparency */
+#define GIF_NO_TRANSPARENCY (0xFFFFFFFFu)
+
 /* GIF Flags */
 #define GIF_FRAME_COMBINE 1
 #define GIF_FRAME_CLEAR 2
@@ -630,6 +633,7 @@ gif__decode(gif_animation *gif,
                 unsigned int *restrict frame_data,
                 unsigned int *restrict colour_table)
 {
+        unsigned int transparency_index;
         const uint8_t *stack_base;
         const uint8_t *stack_pos;
         uint32_t written = 0;
@@ -643,6 +647,10 @@ gif__decode(gif_animation *gif,
         if (res != LZW_OK) {
                 return gif_error_from_lzw(res);
         }
+
+        transparency_index = gif->frames[frame].transparency ?
+                        gif->frames[frame].transparency_index :
+                        GIF_NO_TRANSPARENCY;
 
         stack_pos = stack_base;
         for (unsigned int y = 0; y < height; y++) {
@@ -667,11 +675,9 @@ gif__decode(gif_animation *gif,
                                 x -= burst_bytes;
                                 written -= burst_bytes;
                                 while (burst_bytes-- > 0) {
-                                        register unsigned char colour;
+                                        register unsigned int colour;
                                         colour = *stack_pos++;
-                                        if (((gif->frames[frame].transparency) &&
-                                             (colour != gif->frames[frame].transparency_index)) ||
-                                            (!gif->frames[frame].transparency)) {
+                                        if (colour != transparency_index) {
                                                 *frame_scanline = colour_table[colour];
                                         }
                                         frame_scanline++;
