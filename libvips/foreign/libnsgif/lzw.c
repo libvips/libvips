@@ -437,3 +437,29 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 	return lzw__decode(ctx, ctx->stack_base, sizeof(ctx->stack_base),
 			lzw__write_pixels, used);
 }
+
+/* Exported function, documented in lzw.h */
+lzw_result lzw_decode_continuous(struct lzw_ctx *ctx,
+		const uint8_t ** const data,
+		uint32_t *restrict used)
+{
+	*used = 0;
+	*data = ctx->stack_base;
+
+	if (ctx->output_left != 0) {
+		*used += lzw__write_pixels(ctx,
+				ctx->stack_base, sizeof(ctx->stack_base), *used,
+				ctx->output_code, ctx->output_left);
+	}
+
+	while (*used != sizeof(ctx->stack_base)) {
+		lzw_result res = lzw__decode(ctx,
+				ctx->stack_base, sizeof(ctx->stack_base),
+				lzw__write_pixels, used);
+		if (res != LZW_OK) {
+			return res;
+		}
+	}
+
+	return LZW_OK;
+}

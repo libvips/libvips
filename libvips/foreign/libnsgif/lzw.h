@@ -91,4 +91,19 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 		const uint8_t *restrict *const restrict data,
 		uint32_t *restrict used);
 
+/**
+ * Read input codes until end of lzw context owned output buffer.
+ *
+ * Ensure anything in output is used before calling this, as anything
+ * on the there before this call will be trampled.
+ *
+ * \param[in]  ctx   LZW reading context, updated.
+ * \param[out] data  Returns pointer to array of output values.
+ * \param[out] used  Returns the number of values written to data.
+ * \return LZW_OK on success, or appropriate error code otherwise.
+ */
+lzw_result lzw_decode_continuous(struct lzw_ctx *ctx,
+		const uint8_t ** const data,
+		uint32_t *restrict used);
+
 #endif
