@@ -106,4 +106,29 @@ lzw_result lzw_decode_continuous(struct lzw_ctx *ctx,
 		const uint8_t ** const data,
 		uint32_t *restrict used);
 
+/**
+ * Read LZW codes into client buffer, mapping output to colours.
+ *
+ * Ensure anything in output is used before calling this, as anything
+ * on the there before this call will be trampled.
+ *
+ * For transparency to work correctly, the given client buffer must have
+ * the values from the previous frame.  The transparency_idx should be a value
+ * of 256 or above, if the frame does not have transparency.
+ *
+ * \param[in]  ctx              LZW reading context, updated.
+ * \param[in]  transparency_idx Index representing transparency.
+ * \param[in]  colour_map       Index to pixel colour mapping
+ * \param[in]  data             Client buffer to fill with colour mapped values.
+ * \param[in]  length           Size of output array.
+ * \param[out] used             Returns the number of values written to data.
+ * \return LZW_OK on success, or appropriate error code otherwise.
+ */
+lzw_result lzw_decode_map_continuous(struct lzw_ctx *ctx,
+		uint32_t transparency_idx,
+		uint32_t *restrict colour_table,
+		uint32_t *restrict data,
+		uint32_t length,
+		uint32_t *restrict used);
+
 #endif
