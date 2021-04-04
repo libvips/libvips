@@ -636,7 +636,7 @@ gif__decode(gif_animation *gif,
         unsigned int transparency_index;
         const uint8_t *stack_base;
         const uint8_t *stack_pos;
-        uint32_t written = 0;
+        uint32_t available = 0;
         gif_result ret = GIF_OK;
         lzw_result res;
 
@@ -667,23 +667,9 @@ gif__decode(gif_animation *gif,
 
                 x = width;
                 while (x > 0) {
-                        if (written > 0) {
-                                unsigned burst_bytes = written;
-                                if (burst_bytes > x) {
-                                        burst_bytes = x;
-                                }
-                                x -= burst_bytes;
-                                written -= burst_bytes;
-                                while (burst_bytes-- > 0) {
-                                        register unsigned int colour;
-                                        colour = *stack_pos++;
-                                        if (colour != transparency_index) {
-                                                *frame_scanline = colour_table[colour];
-                                        }
-                                        frame_scanline++;
-                                }
-                        } else {
-                                res = lzw_decode(gif->lzw_ctx, &written);
+                        unsigned row_available;
+                        if (available == 0) {
+                                res = lzw_decode(gif->lzw_ctx, &available);
                                 if (res != LZW_OK) {
                                         /* Unexpected end of frame, try to recover */
                                         if (res == LZW_OK_EOD) {
@@ -694,6 +680,18 @@ gif__decode(gif_animation *gif,
                                         break;
                                 }
                                 stack_pos = stack_base;
+                        }
+
+                        row_available = x < available ? x : available;
+                        x -= row_available;
+                        available -= row_available;
+                        while (row_available-- > 0) {
+                                register unsigned int colour;
+                                colour = *stack_pos++;
+                                if (colour != transparency_index) {
+                                        *frame_scanline = colour_table[colour];
+                                }
+                                frame_scanline++;
                         }
                 }
         }
