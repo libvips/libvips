@@ -83,7 +83,6 @@ struct lzw_ctx {
 	uint32_t table_size; /**< Next position in table to fill. */
 
 	/** Output value stack. */
-	uint32_t written;
 	uint8_t stack_base[LZW_TABLE_ENTRY_MAX];
 
 	/** LZW code table. Generated during decode. */
@@ -302,13 +301,14 @@ static inline void lzw__table_add_entry(
 /**
  * Write values for this code to the output stack.
  *
- * \param[in]  ctx            LZW reading context, updated.
- * \param[in]  code           LZW code to output values for.
+ * \param[in]  ctx   LZW reading context, updated.
+ * \param[in]  code  LZW code to output values for.
+ * \return Number of pixel values written.
  */
-static inline void lzw__write_pixels(struct lzw_ctx *ctx,
+static inline uint32_t lzw__write_pixels(struct lzw_ctx *ctx,
 		uint32_t code)
 {
-	uint8_t *stack_pos = ctx->stack_base + ctx->written;
+	uint8_t *stack_pos = ctx->stack_base;
 	struct lzw_table_entry * const table = ctx->table;
 	uint32_t count = table[code].count;
 
@@ -319,8 +319,7 @@ static inline void lzw__write_pixels(struct lzw_ctx *ctx,
 		code = entry->extends;
 	}
 
-	ctx->written += count;
-	return;
+	return count;
 }
 
 /* Exported function, documented in lzw.h */
@@ -329,8 +328,6 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 {
 	lzw_result res;
 	uint32_t code;
-
-	ctx->written = 0;
 
 	/* Get a new code from the input */
 	res = lzw__read_code(&ctx->input, ctx->code_size, &code);
@@ -365,15 +362,13 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 			}
 		}
 
-		lzw__write_pixels(ctx, code);
+		*written += lzw__write_pixels(ctx, code);
 	}
 
 	/* Store details of this code as "previous code" to the context. */
 	ctx->prev_code_first = ctx->table[code].first;
 	ctx->prev_code_count = ctx->table[code].count;
 	ctx->prev_code = code;
-
-	*written = ctx->written;
 
 	return LZW_OK;
 }
