@@ -676,7 +676,7 @@ gif__decode_complex(gif_animation *gif,
                                         }
                                         break;
                                 }
-                                res = lzw_decode(gif->lzw_ctx,
+                                res = lzw_decode_continuous(gif->lzw_ctx,
                                                 &uncompressed, &available);
                         }
 
