@@ -1750,7 +1750,8 @@ static int
 rtiff_read_tile( Rtiff *rtiff, tdata_t *buf, int x, int y )
 {
 #ifdef DEBUG_VERBOSE
-	printf( "rtiff_read_tile: x = %d, y = %d\n", x, y ); 
+	printf( "rtiff_read_tile: x = %d, y = %d, we_decompress = %d\n", 
+		x, y, rtiff->header.we_decompress ); 
 #endif /*DEBUG_VERBOSE*/
 
 	if( rtiff->header.we_decompress ) {
@@ -1770,10 +1771,13 @@ rtiff_read_tile( Rtiff *rtiff, tdata_t *buf, int x, int y )
 		case JP2K_RGB:
 		case JP2K_LOSSY:
 			if( vips__foreign_load_jp2k_decompress_buffer( 
-				rtiff->decompress_buf, size,
+				rtiff->out, 
 				rtiff->header.tile_width, 
 				rtiff->header.tile_height,
-				buf, rtiff->header.tile_size ) )
+				rtiff->header.compression == JP2K_YCC,
+				rtiff->decompress_buf, size,
+				buf, rtiff->header.tile_size ) ) 
+				return( -1 );
 			break;
 
 		default:
