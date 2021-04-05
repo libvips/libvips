@@ -241,8 +241,7 @@ lzw_result lzw_decode_init(
 		const uint8_t *compressed_data,
 		uint32_t compressed_data_len,
 		uint32_t compressed_data_pos,
-		uint8_t minimum_code_size,
-		const uint8_t ** const stack_base_out)
+		uint8_t minimum_code_size)
 {
 	struct lzw_table_entry *table = ctx->table;
 
@@ -274,7 +273,6 @@ lzw_result lzw_decode_init(
 	lzw__clear_table(ctx);
 	ctx->prev_code = ctx->clear_code;
 
-	*stack_base_out = ctx->stack_base;
 	return LZW_OK;
 }
 
@@ -301,30 +299,45 @@ static inline void lzw__table_add_entry(
 /**
  * Write values for this code to the output stack.
  *
- * \param[in]  ctx   LZW reading context, updated.
- * \param[in]  code  LZW code to output values for.
+ * \param[in]  ctx     LZW reading context, updated.
+ * \param[in]  output  Array to write output values into.
+ * \param[in]  code    LZW code to output values for.
  * \return Number of pixel values written.
  */
 static inline uint32_t lzw__write_pixels(struct lzw_ctx *ctx,
+		void *restrict output,
 		uint32_t code)
 {
-	uint8_t *stack_pos = ctx->stack_base;
+	uint8_t *restrict output_pos = (uint8_t *)output;
 	struct lzw_table_entry * const table = ctx->table;
 	uint32_t count = table[code].count;
 
-	stack_pos += count;
+	output_pos += count;
 	for (unsigned i = count; i != 0; i--) {
 		struct lzw_table_entry *entry = table + code;
-		*--stack_pos = entry->value;
+		*--output_pos = entry->value;
 		code = entry->extends;
 	}
 
 	return count;
 }
 
-/* Exported function, documented in lzw.h */
-lzw_result lzw_decode(struct lzw_ctx *ctx,
-		uint32_t *written)
+/**
+ * Fill the LZW stack with decompressed data
+ *
+ * Ensure anything in output is used before calling this, as anything
+ * on the there before this call will be trampled.
+ *
+ * \param[in]  ctx     LZW reading context, updated.
+ * \param[in]  output  Array to write output values into.
+ * \param[out] used    Returns the number of values written.
+ *                     Use with `stack_base_out` value from previous
+ *                     lzw_decode_init() call.
+ * \return LZW_OK on success, or appropriate error code otherwise.
+ */
+static inline lzw_result lzw__decode(struct lzw_ctx *ctx,
+		uint8_t *restrict output,
+		uint32_t *restrict used)
 {
 	lzw_result res;
 	uint32_t code;
@@ -362,7 +375,7 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 			}
 		}
 
-		*written += lzw__write_pixels(ctx, code);
+		*used += lzw__write_pixels(ctx, output, code);
 	}
 
 	/* Store details of this code as "previous code" to the context. */
@@ -371,4 +384,14 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 	ctx->prev_code = code;
 
 	return LZW_OK;
+}
+
+/* Exported function, documented in lzw.h */
+lzw_result lzw_decode(struct lzw_ctx *ctx,
+		const uint8_t *restrict* const restrict data,
+		uint32_t *restrict used)
+{
+	*used = 0;
+	*data = ctx->stack_base;
+	return lzw__decode(ctx, ctx->stack_base, used);
 }

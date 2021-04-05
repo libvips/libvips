@@ -634,8 +634,6 @@ gif__decode(gif_animation *gif,
                 unsigned int *restrict colour_table)
 {
         unsigned int transparency_index;
-        const uint8_t *stack_base;
-        const uint8_t *stack_pos;
         uint32_t available = 0;
         gif_result ret = GIF_OK;
         lzw_result res;
@@ -643,7 +641,7 @@ gif__decode(gif_animation *gif,
         /* Initialise the LZW decoding */
         res = lzw_decode_init(gif->lzw_ctx, gif->gif_data,
                         gif->buffer_size, gif->buffer_position,
-                        minimum_code_size, &stack_base);
+                        minimum_code_size);
         if (res != LZW_OK) {
                 return gif_error_from_lzw(res);
         }
@@ -652,7 +650,6 @@ gif__decode(gif_animation *gif,
                         gif->frames[frame].transparency_index :
                         GIF_NO_TRANSPARENCY;
 
-        stack_pos = stack_base;
         for (unsigned int y = 0; y < height; y++) {
                 unsigned int x;
                 unsigned int decode_y;
@@ -667,9 +664,11 @@ gif__decode(gif_animation *gif,
 
                 x = width;
                 while (x > 0) {
+                        const uint8_t *uncompressed;
                         unsigned row_available;
                         if (available == 0) {
-                                res = lzw_decode(gif->lzw_ctx, &available);
+                                res = lzw_decode(gif->lzw_ctx,
+                                                &uncompressed, &available);
                                 if (res != LZW_OK) {
                                         /* Unexpected end of frame, try to recover */
                                         if (res == LZW_OK_EOD) {
@@ -679,7 +678,6 @@ gif__decode(gif_animation *gif,
                                         }
                                         break;
                                 }
-                                stack_pos = stack_base;
                         }
 
                         row_available = x < available ? x : available;
@@ -687,7 +685,7 @@ gif__decode(gif_animation *gif,
                         available -= row_available;
                         while (row_available-- > 0) {
                                 register unsigned int colour;
-                                colour = *stack_pos++;
+                                colour = *uncompressed++;
                                 if (colour != transparency_index) {
                                         *frame_scanline = colour_table[colour];
                                 }
