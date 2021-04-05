@@ -82,6 +82,9 @@ struct lzw_ctx {
 
 	uint32_t table_size; /**< Next position in table to fill. */
 
+	uint32_t output_code; /**< Code that has been partially output. */
+	uint32_t output_left; /**< Number of values left for output_code. */
+
 	/** Output value stack. */
 	uint8_t stack_base[LZW_TABLE_ENTRY_MAX];
 
@@ -263,6 +266,8 @@ lzw_result lzw_decode_init(
 	ctx->clear_code = (1 << minimum_code_size) + 0;
 	ctx->eoi_code   = (1 << minimum_code_size) + 1;
 
+	ctx->output_left = 0;
+
 	/* Initialise the standard table entries */
 	for (uint32_t i = 0; i < ctx->clear_code; ++i) {
 		table[i].first = i;
@@ -296,47 +301,28 @@ static inline void lzw__table_add_entry(
 	ctx->table_size++;
 }
 
-/**
- * Write values for this code to the output stack.
- *
- * \param[in]  ctx     LZW reading context, updated.
- * \param[in]  output  Array to write output values into.
- * \param[in]  code    LZW code to output values for.
- * \return Number of pixel values written.
- */
-static inline uint32_t lzw__write_pixels(struct lzw_ctx *ctx,
+typedef uint32_t (*lzw_writer_fn)(
+		struct lzw_ctx *ctx,
 		void *restrict output,
-		uint32_t code)
-{
-	uint8_t *restrict output_pos = (uint8_t *)output;
-	struct lzw_table_entry * const table = ctx->table;
-	uint32_t count = table[code].count;
-
-	output_pos += count;
-	for (unsigned i = count; i != 0; i--) {
-		struct lzw_table_entry *entry = table + code;
-		*--output_pos = entry->value;
-		code = entry->extends;
-	}
-
-	return count;
-}
+		uint32_t length,
+		uint32_t used,
+		uint32_t code,
+		uint32_t left);
 
 /**
- * Fill the LZW stack with decompressed data
+ * Get the next LZW code and write its value(s) to output buffer.
  *
- * Ensure anything in output is used before calling this, as anything
- * on the there before this call will be trampled.
- *
- * \param[in]  ctx     LZW reading context, updated.
- * \param[in]  output  Array to write output values into.
- * \param[out] used    Returns the number of values written.
- *                     Use with `stack_base_out` value from previous
- *                     lzw_decode_init() call.
+ * \param[in]     ctx           LZW reading context, updated.
+ * \param[in]     output        Array to write output values into.
+ * \param[in]     length        Size of output array.
+ * \param[in]     write_pixels  Function for writing pixels to output.
+ * \param[in,out] used          Number of values written. Updated on exit.
  * \return LZW_OK on success, or appropriate error code otherwise.
  */
 static inline lzw_result lzw__decode(struct lzw_ctx *ctx,
 		uint8_t *restrict output,
+		uint32_t length,
+		lzw_writer_fn write_pixels,
 		uint32_t *restrict used)
 {
 	lzw_result res;
@@ -375,7 +361,8 @@ static inline lzw_result lzw__decode(struct lzw_ctx *ctx,
 			}
 		}
 
-		*used += lzw__write_pixels(ctx, output, code);
+		*used += write_pixels(ctx, output, length, *used, code,
+				ctx->table[code].count);
 	}
 
 	/* Store details of this code as "previous code" to the context. */
@@ -386,6 +373,60 @@ static inline lzw_result lzw__decode(struct lzw_ctx *ctx,
 	return LZW_OK;
 }
 
+/**
+ * Write values for this code to the output stack.
+ *
+ * If there isn't enough space in the output stack, this function will write
+ * the as many as it can into the output.  If `ctx->output_left > 0` after
+ * this call, then there is more data for this code left to output.  The code
+ * is stored to the context as `ctx->output_code`.
+ *
+ * \param[in]  ctx     LZW reading context, updated.
+ * \param[in]  output  Array to write output values into.
+ * \param[in]  length  Size of output array.
+ * \param[in]  used    Current position in output array.
+ * \param[in]  code    LZW code to output values for.
+ * \param[in]  left    Number of values remaining to output for this value.
+ * \return Number of pixel values written.
+ */
+static inline uint32_t lzw__write_pixels(struct lzw_ctx *ctx,
+		void *restrict output,
+		uint32_t length,
+		uint32_t used,
+		uint32_t code,
+		uint32_t left)
+{
+	uint8_t *restrict output_pos = (uint8_t *)output + used;
+	struct lzw_table_entry * const table = ctx->table;
+	uint32_t space = length - used;
+	uint32_t count = left;
+
+	if (count > space) {
+		left = count - space;
+		count = space;
+	} else {
+		left = 0;
+	}
+
+	ctx->output_code = code;
+	ctx->output_left = left;
+
+	/* Skip over any values we don't have space for. */
+	for (unsigned i = left; i != 0; i--) {
+		struct lzw_table_entry *entry = table + code;
+		code = entry->extends;
+	}
+
+	output_pos += count;
+	for (unsigned i = count; i != 0; i--) {
+		struct lzw_table_entry *entry = table + code;
+		*--output_pos = entry->value;
+		code = entry->extends;
+	}
+
+	return count;
+}
+
 /* Exported function, documented in lzw.h */
 lzw_result lzw_decode(struct lzw_ctx *ctx,
 		const uint8_t *restrict* const restrict data,
@@ -393,5 +434,6 @@ lzw_result lzw_decode(struct lzw_ctx *ctx,
 {
 	*used = 0;
 	*data = ctx->stack_base;
-	return lzw__decode(ctx, ctx->stack_base, used);
+	return lzw__decode(ctx, ctx->stack_base, sizeof(ctx->stack_base),
+			lzw__write_pixels, used);
 }
