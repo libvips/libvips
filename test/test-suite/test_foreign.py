@@ -811,25 +811,33 @@ class TestForeign:
         self.file_loader("gifload", GIF_FILE, gif_valid)
         self.buffer_loader("gifload_buffer", GIF_FILE, gif_valid)
 
-        # 'n' param added in 8.5
-        if pyvips.at_least_libvips(8, 5):
-            x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE)
-            x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=2)
-            assert x2.height == 2 * x1.height
-            page_height = x2.get("page-height")
-            assert page_height == x1.height
+        # test metadata
+        x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
+        # our test gif has delay 0 for the first frame set in error
+        assert x2.get("delay") == [0, 50, 50, 50, 50]
+        assert x2.get("loop") == 32760
+        assert x2.get("background") == [255, 255, 255]
+        # test deprecated fields too
+        assert x2.get("gif-loop") == 32759
+        assert x2.get("gif-delay") == 0
 
-            x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
-            assert x2.height == 5 * x1.height
-            # our test gif has delay 0 for the first frame set in error
-            assert x2.get("delay") == [0, 50, 50, 50, 50]
+        # test every pixel
+        x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
+        x2 = pyvips.Image.new_from_file(GIF_ANIM_EXPECTED_PNG_FILE)
+        assert (x1 - x2).abs().max() == 0
 
-            x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, page=1, n=-1)
-            assert x2.height == 4 * x1.height
+        # test page handling
+        x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE)
+        x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=2)
+        assert x2.height == 2 * x1.height
+        page_height = x2.get("page-height")
+        assert page_height == x1.height
 
-            x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
-            x2 = pyvips.Image.new_from_file(GIF_ANIM_EXPECTED_PNG_FILE)
-            assert (x1 - x2).abs().max() == 0
+        x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
+        assert x2.height == 5 * x1.height
+
+        x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, page=1, n=-1)
+        assert x2.height == 4 * x1.height
 
     @skip_if_no("gifload")
     def test_gifload_animation_dispose_background(self):

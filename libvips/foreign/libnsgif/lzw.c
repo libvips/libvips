@@ -230,7 +230,7 @@ static lzw_result lzw__clear_codes(
 
 	/* Reset dictionary building context */
 	ctx->current_code_size = ctx->initial_code_size + 1;
-	ctx->current_code_size_max = (1 << ctx->current_code_size) - 1;;
+	ctx->current_code_size_max = (1 << ctx->current_code_size) - 1;
 	ctx->current_entry = (1 << ctx->initial_code_size) + 2;
 
 	/* There might be a sequence of clear codes, so process them all */
@@ -271,6 +271,10 @@ lzw_result lzw_decode_init(
 		const uint8_t ** const stack_pos_out)
 {
 	struct lzw_dictionary_entry *table = ctx->table;
+
+	if (code_size >= LZW_CODE_MAX) {
+		return LZW_BAD_ICODE;
+	}
 
 	/* Initialise the input reading context */
 	ctx->input.data = compressed_data;

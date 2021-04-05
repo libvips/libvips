@@ -22,7 +22,7 @@ operations, frequency filtering, colour, resampling,
 statistics and others. It supports a large range of [numeric
 types](https://libvips.github.io/libvips/API/current/VipsImage.html#VipsBandFormat),
 from 8-bit int to 128-bit complex. Images can have any number of bands.
-It supports a good range of image formats, including JPEG, TIFF, PNG,
+It supports a good range of image formats, including JPEG, JPEG2000, TIFF, PNG,
 WebP, HEIC, AVIF, FITS, Matlab, OpenEXR, PDF, SVG, HDR, PPM / PGM / PFM,
 CSV, GIF, Analyze, NIfTI, DeepZoom, and OpenSlide. It can also load images
 via ImageMagick or GraphicsMagick, letting it work with formats like DICOM.
@@ -273,6 +273,10 @@ If available, vips can load and save NIfTI images.
 
 If available, libvips will directly read (but not write, sadly)
 OpenEXR images.
+
+### OpenJPEG
+
+If available, libvips will read and write JPEG2000 images.
 
 ### OpenSlide
 
