@@ -397,8 +397,6 @@ vips_target_write( VipsTarget *target, const void *buffer, size_t length )
 /**
  * vips_target_finish:
  * @target: target to operate on
- * @buffer: bytes to write
- * @length: length of @buffer in bytes
  *
  * Call this at the end of write to make the target do any cleaning up. You
  * can call it many times. 
