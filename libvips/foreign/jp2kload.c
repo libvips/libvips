@@ -1148,7 +1148,7 @@ error_callback( const char *msg, void *data )
 /* Called from tiff2vips to decode a jp2k-compressed tile.
  */
 int
-vips__foreign_load_jp2k_decompress_buffer( VipsImage *out, 
+vips__foreign_load_jp2k_decompress( VipsImage *out, 
 	int width, int height, gboolean ycc_to_rgb, 
 	void *from, size_t from_length, 
 	void *to, size_t to_length )

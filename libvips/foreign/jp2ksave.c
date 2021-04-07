@@ -93,7 +93,6 @@ typedef struct _VipsForeignSaveJp2k {
 	opj_stream_t *stream;
 	opj_codec_t *codec;
 	opj_cparameters_t parameters;
-	opj_image_cmptparm_t comps[MAX_BANDS];
 	opj_image_t *image;
 
 	/* The line of tiles we are building, and the buffer we
@@ -102,9 +101,9 @@ typedef struct _VipsForeignSaveJp2k {
 	VipsRegion *strip;
 	VipsPel *tile_buffer;
 
-	/* If we need to downsample during unpacking.
+	/* If we need to subsample during unpacking.
 	 */
-	gboolean downsample;
+	gboolean subsample;
 
 	/* If we converto RGB to YCC during save.
 	 */
@@ -218,7 +217,7 @@ vips_foreign_save_jp2k_attach_handlers( VipsForeignSaveJp2k *jp2k,
 #define RGB_TO_YCC( TYPE ) { \
 	TYPE *tq = (TYPE *) q; \
 	\
-	for( x = 0; x < tile->width; x++ ) { \
+	for( x = 0; x < width; x++ ) { \
 		int r = tq[0]; \
 		int g = tq[1]; \
 		int b = tq[2]; \
@@ -237,43 +236,38 @@ vips_foreign_save_jp2k_attach_handlers( VipsForeignSaveJp2k *jp2k,
 		tq += 3; \
 	} \
 }
-
 /* RGB->YCC for a line of pels.
  */
 static void
-vips_foreign_save_jp2k_rgb_to_ycc( VipsForeignSaveJp2k *jp2k, VipsRect *tile )
+vips_foreign_save_jp2k_rgb_to_ycc( VipsImage *im, int width, int prec, 
+	VipsPel *q )
 {
-	VipsForeignSave *save = (VipsForeignSave *) jp2k;
-	int prec = jp2k->image->comps[0].prec;
 	int offset = 1 << (prec - 1);
 	int upb = (1 << prec) - 1;
 
-	int x, y;
+	int x;
 
-	for( y = 0; y < tile->height; y++ ) {
-		VipsPel *q = VIPS_REGION_ADDR( jp2k->strip, 
-			tile->left, tile->top + y );
+	g_assert( im->Bands == 3 );
 
-		switch( save->ready->BandFmt ) {
-		case VIPS_FORMAT_CHAR:
-		case VIPS_FORMAT_UCHAR:
-			RGB_TO_YCC( unsigned char );
-			break;
+	switch( save->ready->BandFmt ) {
+	case VIPS_FORMAT_CHAR:
+	case VIPS_FORMAT_UCHAR:
+		RGB_TO_YCC( unsigned char );
+		break;
 
-		case VIPS_FORMAT_SHORT:
-		case VIPS_FORMAT_USHORT:
-			RGB_TO_YCC( unsigned short );
-			break;
+	case VIPS_FORMAT_SHORT:
+	case VIPS_FORMAT_USHORT:
+		RGB_TO_YCC( unsigned short );
+		break;
 
-		case VIPS_FORMAT_INT:
-		case VIPS_FORMAT_UINT:
-			RGB_TO_YCC( unsigned int );
-			break;
+	case VIPS_FORMAT_INT:
+	case VIPS_FORMAT_UINT:
+		RGB_TO_YCC( unsigned int );
+		break;
 
-		default:
-			g_assert_not_reached();
-			break;
-		}
+	default:
+		g_assert_not_reached();
+		break;
 	}
 }
 
@@ -318,7 +312,7 @@ vips_foreign_save_jp2k_rgb_to_ycc( VipsForeignSaveJp2k *jp2k, VipsRect *tile )
 }
 
 static void
-vips_foreign_save_jp2k_unpack_downsample( VipsForeignSaveJp2k *jp2k, 
+vips_foreign_save_jp2k_unpack_subsample( VipsForeignSaveJp2k *jp2k, 
 	VipsRect *tile )
 {
 	VipsForeignSave *save = (VipsForeignSave *) jp2k;
@@ -327,11 +321,11 @@ vips_foreign_save_jp2k_unpack_downsample( VipsForeignSaveJp2k *jp2k,
 	int n_bands = save->ready->Bands;
 
 	VipsPel *q;
-	int x, y, z, band_index;
+	int x, y, z, i;
 
 	q = jp2k->tile_buffer;
-	for( band_index = 0; band_index < n_bands; band_index++ ) {
-		opj_image_comp_t *comp = &jp2k->image->comps[band_index];
+	for( i = 0; i < n_bands; i++ ) {
+		opj_image_comp_t *comp = &jp2k->image->comps[i];
 
 		/* The number of pixels we write for this component. Round to
 		 * nearest, and we may have to write half-pixels at the edges.
@@ -342,7 +336,7 @@ vips_foreign_save_jp2k_unpack_downsample( VipsForeignSaveJp2k *jp2k,
 			(double) tile->height / comp->dy );;
 
 		for( y = 0; y < output_height; y++ ) {
-			VipsPel *p = band_index * sizeof_element + 
+			VipsPel *p = i * sizeof_element + 
 				VIPS_REGION_ADDR( jp2k->strip, 
 					tile->left, tile->top + y * comp->dy );
 
@@ -472,13 +466,13 @@ static int
 vips_foreign_save_jp2k_write_tiles( VipsForeignSaveJp2k *jp2k )
 {
 	VipsForeignSave *save = (VipsForeignSave *) jp2k;
-	int tiles_across = 
-		VIPS_ROUND_UP( save->ready->Xsize, jp2k->tile_width ) /
-			jp2k->tile_width;
+	VipsImage *im = save->ready;
+	int tiles_across = VIPS_ROUND_UP( im->Xsize, jp2k->tile_width ) /
+		jp2k->tile_width;
 
 	int x;
 
-	for( x = 0; x < save->ready->Xsize; x += jp2k->tile_width ) {
+	for( x = 0; x < im->Xsize; x += jp2k->tile_width ) {
 		VipsRect tile;
 		size_t sizeof_tile;
 		int tile_index;
@@ -489,15 +483,25 @@ vips_foreign_save_jp2k_write_tiles( VipsForeignSaveJp2k *jp2k )
 		tile.height = jp2k->tile_height;
 		vips_rect_intersectrect( &tile, &jp2k->strip->valid, &tile );
 
-		if( jp2k->save_as_ycc ) 
-			vips_foreign_save_jp2k_rgb_to_ycc( jp2k, &tile );
+		if( jp2k->save_as_ycc ) {
+			int y;
 
-		if( jp2k->downsample )
-			vips_foreign_save_jp2k_unpack_downsample( jp2k, &tile );
+			for( y = 0; y < tile.height; y++ ) {
+				VipsPel *q = VIPS_REGION_ADDR( jp2k->strip, 
+					tile.left, tile.top + y );
+
+				vips_foreign_save_jp2k_rgb_to_ycc( im, 
+					tile.width, jp2k->comps[0].prec, q );
+			}
+		}
+
+		if( jp2k->subsample )
+			vips_foreign_save_jp2k_unpack_subsample( jp2k, &tile );
 		else
 			vips_foreign_save_jp2k_unpack( jp2k, &tile );
 
-		sizeof_tile = vips_foreign_save_jp2k_sizeof_tile( jp2k, &tile );
+		sizeof_tile = 
+			vips_foreign_save_jp2k_sizeof_tile( jp2k, &tile );
 		tile_index = tiles_across * tile.top / jp2k->tile_height +
 			x / jp2k->tile_width;
 		if( !opj_write_tile( jp2k->codec, tile_index, 
@@ -550,7 +554,7 @@ vips_foreign_save_jp2k_write_block( VipsRegion *region, VipsRect *area,
 			break;
 
 		/* We have reached the bottom of the strip. Write this line of
-		 * pixels and ove the strip down.
+		 * pixels and move the strip down.
 		 */
 		if( vips_foreign_save_jp2k_write_tiles( jp2k ) )
 			return( -1 );
@@ -566,67 +570,23 @@ vips_foreign_save_jp2k_write_block( VipsRegion *region, VipsRect *area,
 	return( 0 );
 }
 
-static int
-vips_foreign_save_jp2k_build( VipsObject *object )
+static opj_image_t *
+vips_foreign_save_jp2k_new_image( VipsImage *im, 
+	int width, int height, gboolean subsample, gboolean save_as_ycc )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
-	VipsForeignSave *save = (VipsForeignSave *) object;
-	VipsForeignSaveJp2k *jp2k = (VipsForeignSaveJp2k *) object;
-
 	OPJ_COLOR_SPACE color_space;
 	int expected_bands;
 	int bits_per_pixel;
+	opj_image_cmptparm_t comps[MAX_BANDS];
+	opj_image_t *image;
 	int i;
-	size_t sizeof_tile;
-	size_t sizeof_line;
-	VipsRect strip_position;
 
-	if( VIPS_OBJECT_CLASS( vips_foreign_save_jp2k_parent_class )->
-		build( object ) )
+	if( im->Bands > MAX_BANDS )
 		return( -1 );
-
-	opj_set_default_encoder_parameters( &jp2k->parameters );
-
-	/* Analyze our arguments.
-	 */
-
-	if( !vips_band_format_isint( save->ready->BandFmt ) ) {
-		vips_error( class->nickname,
-			"%s", _( "not an integer format" ) );
-		return( -1 );
-	}
-
-	switch( jp2k->subsample_mode ) {
-	case VIPS_FOREIGN_SUBSAMPLE_AUTO:
-		jp2k->downsample =
-			!jp2k->lossless &&
-			jp2k->Q < 90 &&
-			save->ready->Xsize % 2 == 0 &&
-			save->ready->Ysize % 2 == 0 &&
-			(save->ready->Type == VIPS_INTERPRETATION_sRGB ||
-			 save->ready->Type == VIPS_INTERPRETATION_RGB16) &&
-			save->ready->Bands == 3;
-		break;
-
-	case VIPS_FOREIGN_SUBSAMPLE_ON:
-		jp2k->downsample = TRUE;
-		break;
-
-	case VIPS_FOREIGN_SUBSAMPLE_OFF:
-		jp2k->downsample = FALSE;
-		break;
-
-	default:
-		g_assert_not_reached();
-		break;
-	}
-
-	if( jp2k->downsample ) 
-		jp2k->save_as_ycc = TRUE;
 
 	/* CIELAB etc. do not seem to be well documented.
 	 */
-	switch( save->ready->Type ) {
+	switch( im->Type ) {
 	case VIPS_INTERPRETATION_B_W:
 	case VIPS_INTERPRETATION_GREY16:
 		color_space = OPJ_CLRSPC_GRAY;
@@ -635,8 +595,7 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 
 	case VIPS_INTERPRETATION_sRGB:
 	case VIPS_INTERPRETATION_RGB16:
-		color_space = jp2k->save_as_ycc ? 
-			OPJ_CLRSPC_SYCC : OPJ_CLRSPC_SRGB;
+		color_space = save_as_ycc ? OPJ_CLRSPC_SYCC : OPJ_CLRSPC_SRGB;
 		expected_bands = 3;
 		break;
 
@@ -647,11 +606,11 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 
 	default:
 		color_space = OPJ_CLRSPC_UNSPECIFIED;
-		expected_bands = save->ready->Bands;
+		expected_bands = im->Bands;
 		break;
 	}
 
-	switch( save->ready->BandFmt ) {
+	switch( im->BandFmt ) {
 	case VIPS_FORMAT_CHAR:
 	case VIPS_FORMAT_UCHAR:
 		bits_per_pixel = 8;
@@ -674,8 +633,89 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 		break;
 	}
 
+	for( i = 0; i < im->Bands; i++ ) {
+		comps[i].dx = (subsample && i > 0) ? 2 : 1;
+		comps[i].dy = (subsample && i > 0) ? 2 : 1;
+		comps[i].w = width;
+		comps[i].h = height;
+		comps[i].x0 = 0;
+		comps[i].y0 = 0;
+		comps[i].prec = bits_per_pixel;
+		comps[i].bpp = bits_per_pixel;
+		comps[i].sgnd = !vips_band_format_isuint( im->BandFmt );
+	}
+
+	image = opj_image_create( im->Bands, comps, color_space );
+	image->x1 = width;
+	image->y1 = height;
+
+	/* Tag alpha channels.
+	 */
+	for( i = 0; i < im->Bands; i++ )
+		image->comps[i].alpha = i >= expected_bands;
+
+	return( image );
+}
+
+static int
+vips_foreign_save_jp2k_build( VipsObject *object )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveJp2k *jp2k = (VipsForeignSaveJp2k *) object;
+
+	OPJ_COLOR_SPACE color_space;
+	int expected_bands;
+	int bits_per_pixel;
+	int i;
+	size_t sizeof_tile;
+	size_t sizeof_line;
+	VipsRect strip_position;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_jp2k_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	/* Analyze our arguments.
+	 */
+
+	if( !vips_band_format_isint( save->ready->BandFmt ) ) {
+		vips_error( class->nickname,
+			"%s", _( "not an integer format" ) );
+		return( -1 );
+	}
+
+	switch( jp2k->subsample_mode ) {
+	case VIPS_FOREIGN_SUBSAMPLE_AUTO:
+		jp2k->subsample =
+			!jp2k->lossless &&
+			jp2k->Q < 90 &&
+			save->ready->Xsize % 2 == 0 &&
+			save->ready->Ysize % 2 == 0 &&
+			(save->ready->Type == VIPS_INTERPRETATION_sRGB ||
+			 save->ready->Type == VIPS_INTERPRETATION_RGB16) &&
+			save->ready->Bands == 3;
+		break;
+
+	case VIPS_FOREIGN_SUBSAMPLE_ON:
+		jp2k->subsample = TRUE;
+		break;
+
+	case VIPS_FOREIGN_SUBSAMPLE_OFF:
+		jp2k->subsample = FALSE;
+		break;
+
+	default:
+		g_assert_not_reached();
+		break;
+	}
+
+	if( jp2k->subsample ) 
+		jp2k->save_as_ycc = TRUE;
+
 	/* Set parameters for compressor.
 	 */ 
+	opj_set_default_encoder_parameters( &jp2k->parameters );
 
 	/* Always tile.
 	 */
@@ -694,23 +734,10 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 		jp2k->parameters.numresolution );
 #endif /*DEBUG*/
 
-	for( i = 0; i < save->ready->Bands; i++ ) {
-		jp2k->comps[i].dx = (jp2k->downsample && i > 0) ? 2 : 1;
-		jp2k->comps[i].dy = (jp2k->downsample && i > 0) ? 2 : 1;
-		jp2k->comps[i].w = save->ready->Xsize;
-		jp2k->comps[i].h = save->ready->Ysize;
-		jp2k->comps[i].x0 = 0;
-		jp2k->comps[i].y0 = 0;
-		jp2k->comps[i].prec = bits_per_pixel;
-		jp2k->comps[i].bpp = bits_per_pixel;
-		jp2k->comps[i].sgnd = 
-			!vips_band_format_isuint( save->ready->BandFmt );
-	}
-
 	/* Makes three band images smaller, somehow.
 	 */
 	jp2k->parameters.tcp_mct = 
-		(save->ready->Bands == 3 && !jp2k->downsample) ? 1 : 0;
+		(save->ready->Bands >= 3 && !jp2k->subsample) ? 1 : 0;
 
 	/* Lossy mode.
 	 */
@@ -725,25 +752,17 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 		jp2k->parameters.tcp_numlayers = 1;
 	}
 
-	/* Create output image.
-	 */
-
-	jp2k->image = opj_image_create( save->ready->Bands, 
-		jp2k->comps, color_space );
-	jp2k->image->x1 = save->ready->Xsize;
-	jp2k->image->y1 = save->ready->Ysize;
-
-	/* Tag alpha channels.
-	 */
-	for( i = 0; i < save->ready->Bands; i++ )
-		jp2k->image->comps[i].alpha = i >= expected_bands;
-
 	/* Set up compressor.
 	 */
 
 	jp2k->codec = opj_create_compress( OPJ_CODEC_J2K );
 	vips_foreign_save_jp2k_attach_handlers( jp2k, jp2k->codec );
-        if( !opj_setup_encoder( jp2k->codec, &jp2k->parameters, jp2k->image ) ) 
+	if( !(jp2k->image = vips_foreign_save_jp2k_new_image( save->ready,
+		save->ready->Xsize, save->ready->Ysize, 
+		jp2k->subsample, jp2k->save_as_ycc )) )
+		return( -1 );
+        if( !opj_setup_encoder( jp2k->codec, 
+		&jp2k->parameters, jp2k->image ) ) 
 		return( -1 );
 
 #ifdef HAVE_LIBOPENJP2_THREADING
@@ -756,7 +775,7 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	if( !(jp2k->stream = vips_foreign_save_jp2k_target( jp2k->target )) )
 		return( -1 );
 
-	if( !opj_start_compress( jp2k->codec, jp2k->image,  jp2k->stream ) )
+	if( !opj_start_compress( jp2k->codec, jp2k->image, jp2k->stream ) )
 		return( -1 );
 
 	/* The buffer we repack tiles to for write. Large enough for one
@@ -1046,6 +1065,171 @@ vips_foreign_save_jp2k_target_class_init(
 static void
 vips_foreign_save_jp2k_target_init( VipsForeignSaveJp2kTarget *target )
 {
+}
+
+void
+vips__foreign_load_jp2k_compress_free( TileCompress *compress )
+{
+	VIPS_FREEF( opj_destroy_codec, compress->codec );
+	VIPS_FREEF( opj_image_destroy, compress->image );
+	VIPS_FREE( compress->accumulate );
+	VIPS_FREE( compress->unpack );
+	VIPS_FREE( compress );
+}
+
+/* Get ready to compress a set of tiles. Tiles are up to width * height
+ * pixels.
+ */
+TileCompress *
+vips__foreign_load_jp2k_compress_create( VipsImage *im,
+        int width, int height, gboolean save_as_ycc, gboolean subsample,
+        gboolean lossless, int Q )
+{
+	TileCompress *compress;
+	size_t sizeof_tile;
+	opj_dparameters_t parameters;
+	int i;
+
+	compress = g_new0( TileCompress, 1 );
+
+	/* Set compression params.
+	 */
+	opj_set_default_encoder_parameters( &compress->parameters );
+	compress->parameters.numresolution = 1;
+	compress->save_as_ycc = save_as_ycc;
+	compress->subsample = subsample;
+	compress->sizeof_element = VIPS_IMAGE_SIZEOF_ELEMENT( im );;
+	compress->sizeof_pel = VIPS_IMAGE_SIZEOF_PEL( im );;
+
+	/* Makes three band images smaller, somehow.
+	 */
+	compress->parameters.tcp_mct = (im->Bands >= 3 && !subsample) ? 1 : 0;
+
+	/* Lossy mode.
+	 */
+	if( !lossless ) {
+		compress->parameters.irreversible = TRUE;
+
+		/* Map Q to allowed distortion.
+		 */
+		compress->parameters.cp_disto_alloc = 1;
+		compress->parameters.cp_fixed_quality = TRUE;
+		compress->parameters.tcp_distoratio[0] = Q;
+		compress->parameters.tcp_numlayers = 1;
+	}
+
+	/* Create output image.
+	 */
+	if( !(compress->image = vips_foreign_save_jp2k_new_image( im,
+		width, height, subsample, save_as_ycc )) ) {
+		vips__foreign_load_jp2k_compress_free( compress );
+		return( NULL );
+	}
+
+	/* We need a line of sums for chroma subsample. At worst, gint64.
+	 */
+	sizeof_line = sizeof( gint64 ) * width;
+	if( !(compress->accumulate = 
+		VIPS_ARRAY( NULL, sizeof_line, VipsPel )) ) {
+		vips__foreign_load_jp2k_compress_free( compress );
+		return( NULL );
+	}
+
+	/* Need to split tile to separate subsampled planes in @unpack. 
+	 */
+	sizeof_tile = VIPS_IMAGE_SIZEOF_PEL( im ) * width * height;
+	if( !(compress->unpack = VIPS_ARRAY( NULL, sizeof_tile, VipsPel )) ) {
+		vips__foreign_load_jp2k_compress_free( compress );
+		return( NULL );
+	}
+
+	compress->codec = opj_create_compress( OPJ_CODEC_J2K );
+	opj_set_info_handler( compress->codec, NULL, NULL );
+	opj_set_warning_handler( compress->codec, NULL, NULL );
+	opj_set_error_handler( compress->codec, NULL, NULL );
+        if( !opj_setup_encoder( compress->codec, 
+		&compress->parameters, compress->image ) ) {
+		vips__foreign_load_jp2k_compress_free( compress );
+		return( NULL );
+	}
+
+#ifdef HAVE_LIBOPENJP2_THREADING
+	/* Use eg. VIPS_CONCURRENCY etc. to set n-cpus, if this openjpeg has
+	 * stable support. 
+	 */
+	opj_codec_set_threads( compress->codec, vips_concurrency_get() );
+#endif /*HAVE_LIBOPENJP2_THREADING*/
+
+	return( compress );
+}
+
+/* Called from eg. tiffsave to compress a tile of pixels. The return pointer
+ * must be freed with g_free().
+ */
+unsigned char *
+vips__foreign_load_jp2k_compress( TileCompress *compress, 
+	int width, int height, VipsPel *from, size_t *length )
+{
+	opj_stream_t *stream;
+	VipsTarget *target;
+	int i;
+
+	/* Set the size for this tile.
+	 */
+	image->x1 = width;
+	image->y1 = height;
+	for( i = 0; i < im->Bands; i++ ) {
+		comps[i].w = width;
+		comps[i].h = height;
+	}
+
+	if( compress->save_as_ycc ) {
+		int y;
+
+		for( y = 0; y < height; y++ ) {
+			VipsPel *q = from + y * compress->sizeof_pel * width;
+
+			vips_foreign_save_jp2k_rgb_to_ycc( im, 
+				width, compress->image->comps[0].prec, q );
+		}
+	}
+
+	if( compress->subsample )
+		vips_foreign_save_jp2k_unpack_subsample( im, cmpress->image, 
+			width, height, ciompress->accumulate, compress->unpack )
+
+
+		vips_foreign_save_jp2k_unpack_subsample( jp2k, &tile );
+	else
+		vips_foreign_save_jp2k_unpack( jp2k, &tile );
+
+	target = vips_target_new_to_memory();
+	if( !(stream = vips_foreign_save_jp2k_target( target )) ) {
+		VIPS_UNREF( target );
+		return( NULL );
+	}
+
+	if( opj_start_compress( compress->codec, compress->image, stream ) ) {
+		VIPS_UNREF( target );
+		VIPS_FREEF( opj_stream_destroy, stream );
+		return( NULL );
+	}
+
+
+	if( opj_encode( compress->codec, stream ) ) {
+		VIPS_UNREF( target );
+		VIPS_FREEF( opj_stream_destroy, stream );
+		return( NULL );
+	}
+
+	opj_end_compress( compress->codec, stream );
+	vips_target_finish( target );
+	buffer = vips_target_steal( target, length );
+
+	VIPS_FREEF( opj_stream_destroy, stream );
+	VIPS_UNREF( target );
+
+	return buffer;
 }
 
 #endif /*HAVE_LIBOPENJP2*/

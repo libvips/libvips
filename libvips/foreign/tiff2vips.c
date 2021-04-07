@@ -264,7 +264,7 @@
  */
 #define JP2K_LOSSY 33004
 
-/* Compression types we habndle ourselves.
+/* Compression types we handle ourselves.
  */
 static int rtiff_we_decompress[] = {
 	JP2K_YCC,
@@ -1770,7 +1770,7 @@ rtiff_read_tile( Rtiff *rtiff, tdata_t *buf, int x, int y )
 		case JP2K_YCC:
 		case JP2K_RGB:
 		case JP2K_LOSSY:
-			if( vips__foreign_load_jp2k_decompress_buffer( 
+			if( vips__foreign_load_jp2k_decompress( 
 				rtiff->out, 
 				rtiff->header.tile_width, 
 				rtiff->header.tile_height,
@@ -1784,6 +1784,7 @@ rtiff_read_tile( Rtiff *rtiff, tdata_t *buf, int x, int y )
 			g_assert_not_reached();
 			break;
 		}
+
 	}
 	else {
 		if( TIFFReadTile( rtiff->tiff, buf, x, y, 0, 0 ) < 0 ) { 
@@ -2461,8 +2462,9 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 	for( i = 0; i < VIPS_NUMBER( rtiff_we_decompress ); i++ )
 		if( header->compression == rtiff_we_decompress[i] ) {
 #ifdef DEBUG
-		printf( "rtiff_header_read: compression %d handled by us\n", 
-			header->compression );
+			printf( "rtiff_header_read: "
+				"compression %d handled by us\n", 
+				header->compression );
 #endif /*DEBUG*/
 			header->we_decompress = TRUE;
 			break;

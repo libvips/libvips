@@ -246,10 +246,31 @@ struct heif_image;
 void vips__heif_image_print( struct heif_image *img );
 
 extern const char *vips__jp2k_suffs[];
-int vips__foreign_load_jp2k_decompress_buffer( VipsImage *out, 
+int vips__foreign_load_jp2k_decompress( VipsImage *out, 
 	int width, int height, gboolean ycc_to_rgb, 
 	void *from, size_t from_length, 
 	void *to, size_t to_length );
+
+/* Stuff we track during tile compress.
+ */
+typedef struct _TileCompress {
+	opj_dparameters_t parameters;
+        opj_codec_t *codec;
+	opj_image_t *image;
+	VipsPel *accumulate;
+	unsigned char *unpack;
+        gboolean save_as_ycc;
+       	gboolean subsample;
+       	size_t sizeof_element;
+       	size_t sizeof_pel;
+} TileCompress;
+
+void vips__foreign_load_jp2k_compress_free( TileCompress *compress );
+TileCompress *vips__foreign_load_jp2k_compress_create( VipsImage *im,
+        int width, int height, gboolean save_as_ycc, gboolean subsample,
+        gboolean lossless, int Q );
+unsigned char *vips__foreign_load_jp2k_compress( TileCompress *compress, 
+	int width, int height, VipsPel *from, size_t *length );
 
 #ifdef __cplusplus
 }
