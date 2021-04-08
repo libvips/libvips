@@ -459,12 +459,13 @@ vips_target_steal( VipsTarget *target, size_t *length )
 	if( !target->memory_buffer ||
 		target->finished ) {
 		if( length )
-			*length = target->memory_buffer->len;
+			*length = 0;
 
 		return( NULL );
 	}
 
-	if( length )
+	if( length &&
+		target->memory_buffer )
 		*length = target->memory_buffer->len;
 	data = g_byte_array_free( target->memory_buffer, FALSE );
 	target->memory_buffer = NULL;
