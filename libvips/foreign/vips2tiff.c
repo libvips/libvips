@@ -227,9 +227,9 @@
  */
 
 /* 
+ */
 #define DEBUG_VERBOSE
 #define DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -380,9 +380,10 @@ struct _Wtiff {
 	int image_height;
 
 	/* TRUE if the compression type is not supported by libtiff directly
-	 * and we must compress ourselves.
+	 * and we must compress ourselves. 
 	 */
 	gboolean we_compress;
+	void *handle;
 };
 
 /* Write an ICC Profile from a file into the JPEG stream.
@@ -1004,6 +1005,16 @@ wtiff_free( Wtiff *wtiff )
 {
 	wtiff_delete_temps( wtiff );
 
+	switch( wtiff->compression ) {
+	case JP2K_LOSSY:
+		VIPS_FREEF( vips__foreign_load_jp2k_compress_free, 
+			wtiff->handle );
+		break;
+
+	default:
+		break;
+	}
+
 	VIPS_UNREF( wtiff->ready );
 	VIPS_FREE( wtiff->tbuf );
 	VIPS_FREEF( layer_free_all, wtiff->layer );
@@ -1545,37 +1556,33 @@ wtiff_layer_write_tiles( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 			ttile_t tile_no = TIFFComputeTile( layer->tif,
 				tile.left, tile.top, 0, 0 );
 
+			unsigned char *buffer;
 			size_t length;
 
-			length = 0;
 			switch( wtiff->compression ) {
 			case JP2K_LOSSY:
-				/*
-				length = vips__foreign_load_jp2k_compress( 
-					wtiff->out, 
-					wtiff->header.tile_width, 
-					wtiff->header.tile_height,
-					wtiff->header.compression == JP2K_YCC,
-					wtiff->decompress_buf, size,
-					buf, rtiff->header.tile_size );
-					*/
+				buffer = vips__foreign_load_jp2k_compress( 
+					wtiff->handle, strip, &tile, &length );
 				break;
 
 			default:
+				buffer = NULL;
 				g_assert_not_reached();
 				break;
 			}
 
-			if( length < 0 )
+			if( !buffer )
 				return( -1 );
 
 			if( TIFFWriteRawTile( layer->tif, tile_no, 
-				wtiff->tbuf, 
-				length ) < 0 ) {
+				buffer, length ) < 0 ) {
+				g_free( buffer );
 				vips_error( "vips2tiff", 
 					"%s", _( "TIFF write tile failed" ) );
 				return( -1 );
 			}
+
+			g_free( buffer );
 		}
 		else {
 			/* Have to repack pixels for libtiff.
@@ -2066,6 +2073,22 @@ wtiff_write_page( Wtiff *wtiff, VipsImage *page )
 		TIFFSetField( wtiff->layer->tif, TIFFTAG_SUBIFD, 
 			n_layers, subifd_offsets );
 		g_free( subifd_offsets );
+	}
+
+	switch( wtiff->compression ) {
+	case JP2K_LOSSY:
+		wtiff->handle = 
+			vips__foreign_load_jp2k_compress_create( 
+			wtiff->input, 
+			wtiff->tilew, wtiff->tileh,
+			!wtiff->rgbjpeg,		  /* use ycc */
+			!wtiff->rgbjpeg && wtiff->Q < 90, /* subsample */
+			wtiff->lossless, 
+			wtiff->Q );
+		break;
+
+	default:
+		break;
 	}
 
 	if( vips_sink_disc( page, write_strip, wtiff ) ) 
