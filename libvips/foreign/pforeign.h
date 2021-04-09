@@ -253,6 +253,7 @@ int vips__foreign_load_jp2k_decompress( VipsImage *out,
 
 int vips__foreign_load_jp2k_compress( VipsRegion *region, 
 	VipsRect *tile, VipsTarget *target,
+	int tile_width, int tile_height,
         gboolean save_as_ycc, gboolean subsample, gboolean lossless, int Q );
 
 #ifdef __cplusplus

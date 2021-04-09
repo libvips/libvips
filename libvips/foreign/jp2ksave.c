@@ -1256,9 +1256,9 @@ vips__foreign_load_jp2k_compress_free( TileCompress *compress )
 	VIPS_FREE( compress->accumulate );
 }
 
-/* Compress area @tile within @region and write to @target as a jp2k
- * compressed image. This is called from eg. vips2tiff to write
- * jp2k-compressed tiles.
+/* Compress area @tile within @region and write to @target as a @tile_width by
+ * @tile_height jp2k compressed image. This is called from eg. vips2tiff to 
+ * write jp2k-compressed tiles.
  *
  * You'd think we could reuse things like the encoder between calls but ...
  * nope, openjpeg does not allow that.
@@ -1266,6 +1266,7 @@ vips__foreign_load_jp2k_compress_free( TileCompress *compress )
 int
 vips__foreign_load_jp2k_compress( VipsRegion *region, 
 	VipsRect *tile, VipsTarget *target,
+	int tile_width, int tile_height,
         gboolean save_as_ycc, gboolean subsample, gboolean lossless, int Q )
 {
 	TileCompress compress = { 0 };
@@ -1303,7 +1304,7 @@ vips__foreign_load_jp2k_compress( VipsRegion *region,
 	 * planes.
 	 */
 	if( !(compress.image = vips_foreign_save_jp2k_new_image( region->im,
-		tile->width, tile->height, subsample, save_as_ycc, TRUE )) ) {
+		tile_width, tile_height, subsample, save_as_ycc, TRUE )) ) {
 		vips__foreign_load_jp2k_compress_free( &compress );
 		return( -1 );
 	}
