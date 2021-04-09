@@ -1157,9 +1157,9 @@ vips_foreign_save_jp2k_unpack_subsample_image( VipsRegion *region,
 		 * nearest, and we may have to write half-pixels at the edges.
 		 */
 		int output_width = VIPS_ROUND_UINT( 
-			(double) tile->width / comp->dx );
+			(double) comp->w / comp->dx );
 		int output_height = VIPS_ROUND_UINT( 
-			(double) tile->height / comp->dy );;
+			(double) comp->h / comp->dy );
 
 		for( y = 0; y < output_height; y++ ) {
 			VipsPel *p = i * sizeof_element + 
@@ -1277,6 +1277,8 @@ vips__foreign_load_jp2k_compress( VipsRegion *region,
 	 */
 	save_as_ycc = save_as_ycc && region->im->Bands == 3;
 	subsample = subsample && save_as_ycc;
+
+	subsample = TRUE;
 
 	/* Set compression params.
 	 */
