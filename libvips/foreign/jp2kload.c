@@ -1145,7 +1145,26 @@ error_callback( const char *msg, void *data )
 	vips_error( "OpenJPEG", "%s", msg ); 
 }
 
-/* Called from tiff2vips to decode a jp2k-compressed tile.
+typedef struct _TileDecompress {
+	VipsSource *source;
+        opj_stream_t *stream;
+        opj_codec_t *codec;
+	opj_image_t *image;
+} TileDecompress;
+
+void
+vips__foreign_load_jp2k_decompress_free( TileDecompress *decompress )
+{
+	VIPS_FREEF( opj_destroy_codec, decompress->codec );
+	VIPS_FREEF( opj_image_destroy, decompress->image );
+	VIPS_FREEF( opj_stream_destroy, decompress->stream );
+	VIPS_UNREF( decompress->source );
+}
+
+/* Called from tiff2vips to decode a jp2k-compressed tile. 
+ *
+ * width/height is the tile size. If this is an edge tile, and smaller than 
+ * this, we still write a full-size tile and our caller will clip.
  */
 int
 vips__foreign_load_jp2k_decompress( VipsImage *out, 
@@ -1156,58 +1175,52 @@ vips__foreign_load_jp2k_decompress( VipsImage *out,
 	size_t pel_size = VIPS_IMAGE_SIZEOF_PEL( out );
 	size_t line_size = pel_size * width;
 
-	VipsSource *source;
-        opj_stream_t *stream;
-        opj_codec_t *codec;
+	TileDecompress decompress = { 0 };
 	opj_dparameters_t parameters;
-	opj_image_t *image;
 	int i;
 	gboolean upsample;
 	VipsPel *q;
 	int y;
 
-	codec = opj_create_decompress( OPJ_CODEC_J2K );
-	opj_set_default_decoder_parameters( &parameters );
-	opj_setup_decoder( codec, &parameters );
-	opj_set_warning_handler( codec, warning_callback, NULL );
-	opj_set_error_handler( codec, error_callback, NULL );
+	/* Our ycc->rgb only works for exactly 3 bands.
+	 */
+	ycc_to_rgb = ycc_to_rgb && out->Bands == 3;
 
-	source = vips_source_new_from_memory( from, from_length );
-	stream = vips_foreign_load_jp2k_stream( source );
-	if( !opj_read_header( stream, codec, &image ) ) {
+	decompress.codec = opj_create_decompress( OPJ_CODEC_J2K );
+	opj_set_default_decoder_parameters( &parameters );
+	opj_setup_decoder( decompress.codec, &parameters );
+	opj_set_warning_handler( decompress.codec, warning_callback, NULL );
+	opj_set_error_handler( decompress.codec, error_callback, NULL );
+
+	decompress.source = vips_source_new_from_memory( from, from_length );
+	decompress.stream = vips_foreign_load_jp2k_stream( decompress.source );
+	if( !opj_read_header( decompress.stream, 
+		decompress.codec, &decompress.image ) ) {
 		vips_error( "jp2kload", "%s", ( "header error" ) );
-		VIPS_FREEF( opj_destroy_codec, codec );
-		VIPS_FREEF( opj_stream_destroy, stream );
-		VIPS_FREEF( opj_image_destroy, image );
-		VIPS_UNREF( source );
+		vips__foreign_load_jp2k_decompress_free( &decompress ); 
 		return( -1 );
 	}
 
-	if( image->x1 != width || 
-		image->y1 != height ||
+	if( decompress.image->x1 > width || 
+		decompress.image->y1 > height ||
 		line_size * height > to_length ) {
 		vips_error( "jp2kload", "%s", ( "bad dimensions" ) );
-		VIPS_FREEF( opj_destroy_codec, codec );
-		VIPS_FREEF( opj_stream_destroy, stream );
-		VIPS_FREEF( opj_image_destroy, image );
-		VIPS_UNREF( source );
+		vips__foreign_load_jp2k_decompress_free( &decompress ); 
     		return( -1 );
 	}
 
-	if( !opj_decode( codec, stream, image ) ) {
+	if( !opj_decode( decompress.codec, 
+		decompress.stream, decompress.image ) ) {
 		vips_error( "jp2kload", "%s", ( "decode error" ) );
-		VIPS_FREEF( opj_destroy_codec, codec );
-		VIPS_FREEF( opj_stream_destroy, stream );
-		VIPS_FREEF( opj_image_destroy, image );
-		VIPS_UNREF( source );
+		vips__foreign_load_jp2k_decompress_free( &decompress ); 
 		return( -1 );
 	}
 
 	/* Do any components need upsampling?
 	 */
 	upsample = FALSE;
-	for( i = 0; i < image->numcomps; i++ ) {
-		opj_image_comp_t *this = &image->comps[i];
+	for( i = 0; i < decompress.image->numcomps; i++ ) {
+		opj_image_comp_t *this = &decompress.image->comps[i];
 
 		if( this->dx > 1 ||
 			this->dy > 1 )
@@ -1219,21 +1232,18 @@ vips__foreign_load_jp2k_decompress( VipsImage *out,
 	q = to;
 	for( y = 0; y < height; y++ ) {
 		vips_foreign_load_jp2k_pack( upsample, 
-			image, out, q,
+			decompress.image, out, q,
 			0, y, width ); 
 
 		if( ycc_to_rgb )
 			vips_foreign_load_jp2k_ycc_to_rgb( 
-				image, out, q, 
+				decompress.image, out, q, 
 				width );
 
 		q += line_size;
 	}
 
-	VIPS_FREEF( opj_destroy_codec, codec );
-	VIPS_FREEF( opj_stream_destroy, stream );
-	VIPS_FREEF( opj_image_destroy, image );
-	VIPS_UNREF( source );
+	vips__foreign_load_jp2k_decompress_free( &decompress ); 
 
 	return( 0 );
 }
