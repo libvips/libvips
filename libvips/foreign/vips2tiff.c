@@ -1560,6 +1560,7 @@ wtiff_layer_write_tiles( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 			case JP2K_LOSSY:
 				result = vips__foreign_load_jp2k_compress( 
 					strip, &tile, target,
+					wtiff->tilew, wtiff->tileh,
 					!wtiff->rgbjpeg,
 					!wtiff->rgbjpeg && wtiff->Q < 90,
 					wtiff->lossless, 
