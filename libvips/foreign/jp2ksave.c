@@ -279,9 +279,9 @@ vips_foreign_save_jp2k_rgb_to_ycc( VipsRegion *region,
  *   2. add subsequent lines in comp.dy.
  *   3. horizontal average to output line
  */
-#define SHRINK( ACC_TYPE, PIXEL_TYPE ) { \
+#define SHRINK( OUTPUT_TYPE, ACC_TYPE, PIXEL_TYPE ) { \
 	ACC_TYPE *acc = (ACC_TYPE *) accumulate; \
-	PIXEL_TYPE *tq = (PIXEL_TYPE *) q; \
+	OUTPUT_TYPE *tq = (OUTPUT_TYPE *) q; \
 	const int n_pels = comp->dx * comp->dy; \
 	\
 	PIXEL_TYPE *tp; \
@@ -347,27 +347,27 @@ vips_foreign_save_jp2k_unpack_subsample( VipsRegion *region, VipsRect *tile,
 			 */
 			switch( im->BandFmt ) {
 			case VIPS_FORMAT_CHAR:
-				SHRINK( int, signed char );
+				SHRINK( signed char, int, signed char );
 				break;
 
 			case VIPS_FORMAT_UCHAR:
-				SHRINK( int, unsigned char );
+				SHRINK( unsigned char, int, unsigned char );
 				break;
 
 			case VIPS_FORMAT_SHORT:
-				SHRINK( int, signed short );
+				SHRINK( signed short, int, signed short );
 				break;
 
 			case VIPS_FORMAT_USHORT:
-				SHRINK( int, unsigned short );
+				SHRINK( unsigned short, int, unsigned short );
 				break;
 
 			case VIPS_FORMAT_INT:
-				SHRINK( gint64, signed int );
+				SHRINK( signed int, gint64, signed int );
 				break;
 
 			case VIPS_FORMAT_UINT:
-				SHRINK( gint64, unsigned int );
+				SHRINK( unsigned int, gint64, unsigned int );
 				break;
 
 			default:
@@ -380,20 +380,13 @@ vips_foreign_save_jp2k_unpack_subsample( VipsRegion *region, VipsRect *tile,
 	}
 }
 
-#define UNPACK( TYPE ) { \
-	TYPE **tplanes = (TYPE **) planes; \
-	TYPE *tp = (TYPE *) p; \
+#define UNPACK( OUT, IN ) { \
+	OUT *tq = (OUT *) q; \
+	IN *tp = (IN *) p + i; \
 	\
-	for( i = 0; i < b; i++ ) { \
-		TYPE *q = tplanes[i]; \
-		TYPE *tp1 = tp + i; \
-		\
-		for( x = 0; x < tile->width; x++ ) { \
-			q[x] = *tp1; \
-			tp1 += b; \
-		} \
-		\
-		tplanes[i] += tile->width; \
+	for( x = 0; x < tile->width; x++ ) { \
+		tq[x] = *tp; \
+		tp += b; \
 	} \
 }
 
@@ -403,38 +396,40 @@ vips_foreign_save_jp2k_unpack( VipsRegion *region, VipsRect *tile,
 {
 	VipsImage *im = region->im;
 	size_t sizeof_element = VIPS_REGION_SIZEOF_ELEMENT( region );
+	size_t sizeof_line = sizeof_element * tile->width;
+	size_t sizeof_tile = sizeof_line * tile->height;
 	int b = im->Bands;
 
-	VipsPel *planes[MAX_BANDS];
 	int x, y, i;
-
-	for( i = 0; i < b; i++ )
-		planes[i] = tile_buffer +
-			i * sizeof_element * tile->width * tile->height;
 
 	for( y = 0; y < tile->height; y++ ) {
 		VipsPel *p = VIPS_REGION_ADDR( region, 
 			tile->left, tile->top + y );
 
-		switch( im->BandFmt ) {
-		case VIPS_FORMAT_CHAR:
-		case VIPS_FORMAT_UCHAR:
-			UNPACK( unsigned char );
-			break;
+		for( i = 0; i < b; i++ ) {
+			VipsPel *q = tile_buffer + 
+				i * sizeof_tile + y * sizeof_line;
 
-		case VIPS_FORMAT_SHORT:
-		case VIPS_FORMAT_USHORT:
-			UNPACK( unsigned short );
-			break;
+			switch( im->BandFmt ) {
+			case VIPS_FORMAT_CHAR:
+			case VIPS_FORMAT_UCHAR:
+				UNPACK( unsigned char, unsigned char );
+				break;
 
-		case VIPS_FORMAT_INT:
-		case VIPS_FORMAT_UINT:
-			UNPACK( unsigned int );
-			break;
+			case VIPS_FORMAT_SHORT:
+			case VIPS_FORMAT_USHORT:
+				UNPACK( unsigned short, unsigned short );
+				break;
 
-		default:
-			g_assert_not_reached();
-			break;
+			case VIPS_FORMAT_INT:
+			case VIPS_FORMAT_UINT:
+				UNPACK( unsigned int, unsigned int );
+				break;
+
+			default:
+				g_assert_not_reached();
+				break;
+			}
 		}
 	}
 }
@@ -1142,48 +1137,12 @@ typedef struct _TileCompress {
 	VipsPel *accumulate;
 } TileCompress;
 
-/* Shrink in three stages:
- *   1. copy the first line of input pels to acc
- *   2. add subsequent lines in comp.dy.
- *   3. horizontal average to output line
+/* Unpack from @tile within @region to the int data pointers on @image with
+ * subsampling.
  */
-#define SHRINK_IMAGE( ACC_TYPE, PIXEL_TYPE ) { \
-	ACC_TYPE *acc = (ACC_TYPE *) accumulate; \
-	const int n_pels = comp->dx * comp->dy; \
-	\
-	PIXEL_TYPE *tp; \
-	ACC_TYPE *ap; \
-	\
-	tp = (PIXEL_TYPE *) p; \
-	for( x = 0; x < tile->width; x++ ) { \
-		acc[x] = *tp; \
-		tp += n_bands; \
-	} \
-	\
-	for( z = 1; z < comp->dy; z++ ) { \
-		tp = (PIXEL_TYPE *) (p + z * lskip); \
-		for( x = 0; x < tile->width; x++ ) { \
-			acc[x] += *tp; \
-			tp += n_bands; \
-		} \
-	} \
-	\
-	ap = acc; \
-	for( x = 0; x < output_width; x++ ) { \
-		ACC_TYPE sum; \
-		\
-		sum = 0; \
-		for( z = 0; z < comp->dx; z++ ) \
-			sum += ap[z]; \
-		\
-		q[x] = (sum + n_pels / 2) / n_pels; \
-		ap += comp->dx; \
-	} \
-}
-
 static void
-vips_foreign_save_jp2k_unpack_subsample_image( VipsRegion *region, VipsRect *tile,
-	opj_image_t *image, VipsPel *accumulate )
+vips_foreign_save_jp2k_unpack_subsample_image( VipsRegion *region, 
+	VipsRect *tile, opj_image_t *image, VipsPel *accumulate )
 {
 	VipsImage *im = region->im;
 	size_t sizeof_element = VIPS_REGION_SIZEOF_ELEMENT( region );
@@ -1213,27 +1172,27 @@ vips_foreign_save_jp2k_unpack_subsample_image( VipsRegion *region, VipsRect *til
 			 */
 			switch( im->BandFmt ) {
 			case VIPS_FORMAT_CHAR:
-				SHRINK_IMAGE( int, signed char );
+				SHRINK( int, int, signed char );
 				break;
 
 			case VIPS_FORMAT_UCHAR:
-				SHRINK_IMAGE( int, unsigned char );
+				SHRINK( int, int, unsigned char );
 				break;
 
 			case VIPS_FORMAT_SHORT:
-				SHRINK_IMAGE( int, signed short );
+				SHRINK( int, int, signed short );
 				break;
 
 			case VIPS_FORMAT_USHORT:
-				SHRINK_IMAGE( int, unsigned short );
+				SHRINK( int, int, unsigned short );
 				break;
 
 			case VIPS_FORMAT_INT:
-				SHRINK_IMAGE( gint64, signed int );
+				SHRINK( int, gint64, signed int );
 				break;
 
 			case VIPS_FORMAT_UINT:
-				SHRINK_IMAGE( gint64, unsigned int );
+				SHRINK( int, gint64, unsigned int );
 				break;
 
 			default:
@@ -1246,22 +1205,7 @@ vips_foreign_save_jp2k_unpack_subsample_image( VipsRegion *region, VipsRect *til
 	}
 }
 
-#define UNPACK_IMAGE( TYPE ) { \
-	TYPE *tp = (TYPE *) p; \
-	\
-	for( i = 0; i < b; i++ ) { \
-		opj_image_comp_t *comp = &image->comps[i]; \
-		int *q = comp->data + y * comp->w; \
-		TYPE *tp1 = tp + i; \
-		\
-		for( x = 0; x < tile->width; x++ ) { \
-			q[x] = *tp1; \
-			tp1 += b; \
-		} \
-	} \
-}
-
-/* Pixels in tile, with region, unpacked to the int data pointers on image. No
+/* Unpack from @tile within @region to the int data pointers on @image. No
  * subsampling.
  */
 static void
@@ -1277,25 +1221,30 @@ vips_foreign_save_jp2k_unpack_image( VipsRegion *region, VipsRect *tile,
 		VipsPel *p = VIPS_REGION_ADDR( region, 
 			tile->left, tile->top + y );
 
-		switch( im->BandFmt ) {
-		case VIPS_FORMAT_CHAR:
-		case VIPS_FORMAT_UCHAR:
-			UNPACK_IMAGE( unsigned char );
-			break;
+		for( i = 0; i < b; i++ ) {
+			opj_image_comp_t *comp = &image->comps[i];
+                        int *q = comp->data + y * comp->w; 
 
-		case VIPS_FORMAT_SHORT:
-		case VIPS_FORMAT_USHORT:
-			UNPACK_IMAGE( unsigned short );
-			break;
+			switch( im->BandFmt ) {
+			case VIPS_FORMAT_CHAR:
+			case VIPS_FORMAT_UCHAR:
+				UNPACK( int, unsigned char );
+				break;
 
-		case VIPS_FORMAT_INT:
-		case VIPS_FORMAT_UINT:
-			UNPACK_IMAGE( unsigned int );
-			break;
+			case VIPS_FORMAT_SHORT:
+			case VIPS_FORMAT_USHORT:
+				UNPACK( int, unsigned short );
+				break;
 
-		default:
-			g_assert_not_reached();
-			break;
+			case VIPS_FORMAT_INT:
+			case VIPS_FORMAT_UINT:
+				UNPACK( int, unsigned int );
+				break;
+
+			default:
+				g_assert_not_reached();
+				break;
+			}
 		}
 	}
 }
