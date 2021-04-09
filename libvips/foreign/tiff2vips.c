@@ -233,9 +233,9 @@
  */
 
 /* 
- */
 #define DEBUG_VERBOSE
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -398,8 +398,8 @@ typedef struct _Rtiff {
 	/* If we are decompressing, we need a buffer to read the raw tile to
 	 * before running the decompressor.
 	 */
-	tdata_t decompress_buf;
-	tsize_t decompress_buf_length;
+	tdata_t compressed_buf;
+	tsize_t compressed_buf_length;
 
 	/* The Y we are reading at. Used to verify strip read is sequential.
 	 */
@@ -1760,7 +1760,7 @@ rtiff_read_tile( Rtiff *rtiff, tdata_t *buf, int x, int y )
 		tsize_t size;
 
 		size = TIFFReadRawTile( rtiff->tiff, tile_no, 
-			rtiff->decompress_buf, rtiff->decompress_buf_length );
+			rtiff->compressed_buf, rtiff->compressed_buf_length );
 		if( size <= 0 ) {
 			vips_foreign_load_invalidate( rtiff->out );
 			return( -1 ); 
@@ -1775,7 +1775,7 @@ rtiff_read_tile( Rtiff *rtiff, tdata_t *buf, int x, int y )
 				rtiff->header.tile_width, 
 				rtiff->header.tile_height,
 				TRUE,
-				rtiff->decompress_buf, size,
+				rtiff->compressed_buf, size,
 				buf, rtiff->header.tile_size ) ) 
 				return( -1 );
 			break;
@@ -2055,9 +2055,9 @@ rtiff_read_tilewise( Rtiff *rtiff, VipsImage *out )
 	 * TIFFTAG_TILEBYTECOUNTS.
 	 */
 	if( rtiff->header.we_decompress ) {
-		rtiff->decompress_buf_length = 2 * rtiff->header.tile_size;
-		if( !(rtiff->decompress_buf = vips_malloc( VIPS_OBJECT( out ), 
-			rtiff->decompress_buf_length )) )
+		rtiff->compressed_buf_length = 2 * rtiff->header.tile_size;
+		if( !(rtiff->compressed_buf = vips_malloc( VIPS_OBJECT( out ), 
+			rtiff->compressed_buf_length )) )
 			return( -1 );
 	}
 
