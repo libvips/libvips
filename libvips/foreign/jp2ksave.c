@@ -42,6 +42,8 @@
  *
  * - could support png-like bitdepth parameter
  *
+ * - could support cp_comment field? not very useful
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -142,9 +144,6 @@ static OPJ_SIZE_T
 vips_foreign_save_jp2k_write_target( void *buffer, size_t length, void *client )
 {
 	VipsTarget *target = VIPS_TARGET( client );
-
-	printf( "vips_foreign_save_jp2k_write_target: writing %ld bytes\n", 
-		length );
 
 	if( vips_target_write( target, buffer, length ) )
 		return( 0 );
@@ -822,8 +821,7 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 		save->ready->Xsize, save->ready->Ysize, 
 		jp2k->subsample, jp2k->save_as_ycc, FALSE )) )
 		return( -1 );
-        if( !opj_setup_encoder( jp2k->codec, 
-		&jp2k->parameters, jp2k->image ) ) 
+        if( !opj_setup_encoder( jp2k->codec, &jp2k->parameters, jp2k->image ) ) 
 		return( -1 );
 
 #ifdef HAVE_LIBOPENJP2_THREADING

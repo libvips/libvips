@@ -227,9 +227,9 @@
  */
 
 /* 
- */
 #define DEBUG_VERBOSE
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -361,7 +361,7 @@ struct _Wtiff {
 	int strip;			/* Don't write metadata */
 	VipsRegionShrink region_shrink; /* How to shrink regions */
 	int level;			/* zstd compression level */
-	gboolean lossless;		/* webp lossless mode */
+	gboolean lossless;		/* lossless mode */
 	VipsForeignDzDepth depth;	/* Pyr depth */
 	gboolean subifd;		/* Write pyr layers into subifds */
 
@@ -383,6 +383,11 @@ struct _Wtiff {
 	 * and we must compress ourselves. 
 	 */
 	gboolean we_compress;
+
+	/* If we are copying, we need a buffer to read the compressed tile to.
+	 */
+	tdata_t compressed_buf;
+	tsize_t compressed_buf_length;
 };
 
 /* Write an ICC Profile from a file into the JPEG stream.
@@ -948,6 +953,20 @@ wtiff_allocate_layers( Wtiff *wtiff )
 			return( -1 );
 	}
 
+	/* If we will be copying layers we need a buffer large enough to hold
+	 * the largest compressed tile in any page.
+	 *
+	 * Allocate a buffer 2x the uncompressed tile size ... much simpler
+	 * than searching every page for the largest tile with
+	 * TIFFTAG_TILEBYTECOUNTS.
+	 */
+	if( wtiff->pyramid ) {
+		wtiff->compressed_buf_length = 2 * wtiff->tls * wtiff->tileh;
+		if( !(wtiff->compressed_buf = vips_malloc( NULL,
+			wtiff->compressed_buf_length )) )
+			return( -1 );
+	}
+
 	return( 0 );
 }
 
@@ -1007,6 +1026,7 @@ wtiff_free( Wtiff *wtiff )
 	VIPS_FREE( wtiff->tbuf );
 	VIPS_FREEF( layer_free_all, wtiff->layer );
 	VIPS_FREE( wtiff->filename );
+	VIPS_FREE( wtiff->compressed_buf );
 	VIPS_FREE( wtiff );
 }
 
@@ -1259,21 +1279,6 @@ wtiff_new( VipsImage *input, const char *filename,
 				"as miniswhite -- disabling miniswhite" ) );
 		wtiff->miniswhite = FALSE;
 	}
-
-	/* lossless is for webp only.
-	 */
-#ifdef HAVE_TIFF_COMPRESSION_WEBP
-	if( wtiff->lossless ) {
-		if( wtiff->compression == COMPRESSION_NONE )
-			wtiff->compression = COMPRESSION_WEBP;
-
-		if( wtiff->compression != COMPRESSION_WEBP ) {
-			g_warning( "%s", 
-				_( "lossless is for WEBP compression only" ) );
-			wtiff->lossless = FALSE;
-		}
-	}
-#endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 
 	/* Sizeof a line of bytes in the TIFF tile.
 	 */
@@ -1876,7 +1881,7 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 	uint16 ui16_2;
 	float f;
 	tdata_t buf;
-	ttile_t tile;
+	ttile_t tile_no;
 	ttile_t n;
 	uint16 *a;
 
@@ -1964,19 +1969,15 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 
 	buf = vips_malloc( NULL, TIFFTileSize( in ) );
 	n = TIFFNumberOfTiles( in );
-	for( tile = 0; tile < n; tile++ ) {
+	for( tile_no = 0; tile_no < n; tile_no++ ) {
 		tsize_t len;
 
-		/* It'd be good to use TIFFReadRawTile()/TIFFWriteRawTile() 
-		 * here to save compression/decompression, but sadly it seems
-		 * not to work :-( investigate at some point.
-		 */
-		len = TIFFReadEncodedTile( in, tile, buf, -1 );
-		if( len < 0 ||
-			TIFFWriteEncodedTile( out, tile, buf, len ) < 0 ) {
-			g_free( buf );
+		len = TIFFReadRawTile( in, tile_no, 
+			wtiff->compressed_buf, wtiff->compressed_buf_length );
+		if( len <= 0 ||
+			TIFFWriteRawTile( out, tile_no, 
+				wtiff->compressed_buf, len ) < 0 )
 			return( -1 );
-		}
 	}
 	g_free( buf );
 
