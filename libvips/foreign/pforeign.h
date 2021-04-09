@@ -251,12 +251,9 @@ int vips__foreign_load_jp2k_decompress( VipsImage *out,
 	void *from, size_t from_length, 
 	void *to, size_t to_length );
 
-void vips__foreign_load_jp2k_compress_free( void *handle );
-void *vips__foreign_load_jp2k_compress_create( VipsImage *im,
-        int width, int height, gboolean save_as_ycc, gboolean subsample,
-        gboolean lossless, int Q );
-unsigned char *vips__foreign_load_jp2k_compress( void *handle, 
-	VipsRegion *region, VipsRect *tile, size_t *length );
+int vips__foreign_load_jp2k_compress( VipsRegion *region, 
+	VipsRect *tile, VipsTarget *target,
+        gboolean save_as_ycc, gboolean subsample, gboolean lossless, int Q );
 
 #ifdef __cplusplus
 }

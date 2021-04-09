@@ -255,7 +255,7 @@
 #include "pforeign.h"
 #include "tiff.h"
 
-/* Aperio TIFFs use these compression types for jp2k-compressed tiles.
+/* Aperio TIFFs (svs) use these compression types for jp2k-compressed tiles.
  */
 #define JP2K_YCC 33003
 #define JP2K_RGB 33005
@@ -1774,7 +1774,7 @@ rtiff_read_tile( Rtiff *rtiff, tdata_t *buf, int x, int y )
 				rtiff->out, 
 				rtiff->header.tile_width, 
 				rtiff->header.tile_height,
-				rtiff->header.compression == JP2K_YCC,
+				TRUE,
 				rtiff->decompress_buf, size,
 				buf, rtiff->header.tile_size ) ) 
 				return( -1 );
