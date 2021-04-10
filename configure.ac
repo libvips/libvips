@@ -1363,48 +1363,48 @@ TOP_SRCDIR=$ac_pwd
 AC_SUBST(TOP_SRCDIR)
 
 AC_CONFIG_FILES([
-        vips.pc
-        vips-cpp.pc
-        Makefile
         $srcdir/libvips/include/vips/version.h
-        libvips/include/Makefile
-        libvips/include/vips/Makefile
-        libvips/Makefile
+        cplusplus/Doxyfile
+        cplusplus/include/Makefile
+        cplusplus/include/vips/Makefile
+        cplusplus/Makefile
+        doc/libvips-docs.xml
+        doc/Makefile
+        fuzz/Makefile
         libvips/arithmetic/Makefile
         libvips/colour/Makefile
         libvips/colour/profiles/Makefile
         libvips/conversion/Makefile
         libvips/convolution/Makefile
+        libvips/create/Makefile
         libvips/deprecated/Makefile
+        libvips/draw/Makefile
         libvips/foreign/Makefile
-        libvips/foreign/libnsgif/Makefile
         libvips/freqfilt/Makefile
         libvips/histogram/Makefile
-        libvips/draw/Makefile
+        libvips/include/Makefile
+        libvips/include/vips/Makefile
         libvips/iofuncs/Makefile
+        libvips/libnsgif/Makefile
+        libvips/Makefile
         libvips/morphology/Makefile
         libvips/mosaicing/Makefile
-        libvips/create/Makefile
         libvips/resample/Makefile
-        cplusplus/Doxyfile
-        cplusplus/include/Makefile
-        cplusplus/include/vips/Makefile
-        cplusplus/Makefile
-        tools/Makefile
+        Makefile
+        man/Makefile
+        po/Makefile.in
+        test/Makefile
+        test/test-suite/helpers/Makefile
+        test/test-suite/Makefile
+        test/variables.sh
         tools/batch_crop
         tools/batch_image_convert
         tools/batch_rubber_sheet
         tools/light_correct
+        tools/Makefile
         tools/shrink_width
-        test/Makefile
-        test/variables.sh
-        test/test-suite/Makefile
-        test/test-suite/helpers/Makefile
-        man/Makefile
-        doc/Makefile
-        doc/libvips-docs.xml
-        po/Makefile.in
-        fuzz/Makefile
+        vips-cpp.pc
+        vips.pc
 ])
 AC_OUTPUT
 

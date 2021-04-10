@@ -279,8 +279,11 @@ vips_buf_appendns( VipsBuf *buf, const char *str, int sz )
 
 	/* Can't use vips_strncpy() here, we don't want to drop the end of the
 	 * string.
+	 *
+	 * Use avail as the bound, even though cpy is guaranted to be smaller,
+	 * since otherwise we get a compiler warning.
 	 */
-	strncpy( buf->base + buf->i, str, cpy );
+	strncpy( buf->base + buf->i, str, avail );
 	buf->i += cpy;
 
 	if( buf->i >= buf->mx - 4 ) {

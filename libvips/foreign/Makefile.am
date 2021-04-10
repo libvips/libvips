@@ -1,8 +1,4 @@
-if ENABLE_NSGIF
-SUBDIRS = libnsgif 
-endif
-
-noinst_LTLIBRARIES = libforeign.la
+noinst_LTLIBRARIES = libforeign.la ${OPTIONAL_LIB}
 
 libforeign_la_SOURCES = \
 	analyze2vips.c \
@@ -71,8 +67,6 @@ libforeign_la_SOURCES = \
 	webp2vips.c \
 	webpload.c \
 	webpsave.c
-
-EXTRA_DIST = libnsgif
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
 

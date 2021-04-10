@@ -10,7 +10,10 @@ OPTIONAL_DIST_DIR += deprecated
 endif
 
 if ENABLE_NSGIF
-OPTIONAL_LIB += foreign/libnsgif/libnsgif.la
+OPTIONAL_COMPILE_DIR += libnsgif
+OPTIONAL_LIB += libnsgif/libnsgif.la
+else
+OPTIONAL_DIST_DIR += libnsgif
 endif
 
 SUBDIRS = \

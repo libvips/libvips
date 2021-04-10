@@ -609,7 +609,7 @@ vips__write( int fd, const void *buf, size_t count )
 void
 vips__set_create_time( int fd )
 {
-	HANDLE handle;
+	intptr_t handle;
 	SYSTEMTIME st;
 	FILETIME ft;
 

@@ -564,9 +564,10 @@ vips_foreign_save_jp2k_write_block( VipsRegion *region, VipsRect *area,
 	return( 0 );
 }
 
-void *opj_calloc(size_t numOfElements, size_t sizeOfElements);
+/* We can't call opj_calloc on win, sadly.
+ */
 #define VIPS_OPJ_CALLOC( N, TYPE ) \
-	((TYPE *) opj_calloc( (N), sizeof( TYPE ) ))
+	((TYPE *) calloc( (N), sizeof( TYPE ) ))
 
 /* Allocate an openjpeg image structure. Openjpeg has opj_image_create(), but
  * that always allocates memory for each channel, and we don't want that when
