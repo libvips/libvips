@@ -329,8 +329,8 @@ vips_foreign_save_jp2k_unpack_subsample( VipsRegion *region, VipsRect *tile,
 	for( i = 0; i < n_bands; i++ ) {
 		opj_image_comp_t *comp = &image->comps[i];
 
-		/* The number of pixels we write for this component. Round to
-		 * nearest, and we may have to write half-pixels at the edges.
+		/* The number of pixels we write for this component. No
+		 * padding.
 		 */
 		int output_width = VIPS_ROUND_UINT( 
 			(double) tile->width / comp->dx );
@@ -1153,8 +1153,8 @@ vips_foreign_save_jp2k_unpack_subsample_image( VipsRegion *region,
 		opj_image_comp_t *comp = &image->comps[i];
 		int *q = comp->data;
 
-		/* The number of pixels we write for this component. Round to
-		 * nearest, and we may have to write half-pixels at the edges.
+		/* The number of pixels we write for this component. Lines
+		 * align to scanlines on comp.
 		 */
 		int output_width = VIPS_ROUND_UINT( 
 			(double) comp->w / comp->dx );
@@ -1277,8 +1277,6 @@ vips__foreign_load_jp2k_compress( VipsRegion *region,
 	 */
 	save_as_ycc = save_as_ycc && region->im->Bands == 3;
 	subsample = subsample && save_as_ycc;
-
-	subsample = TRUE;
 
 	/* Set compression params.
 	 */
