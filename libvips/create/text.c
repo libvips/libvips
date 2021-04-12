@@ -94,6 +94,7 @@ typedef struct _VipsText {
 	gboolean justify;
 	int dpi;
 	char *fontfile;
+	gboolean rgba;
 
 	FT_Bitmap bitmap;
 	PangoContext *context;
@@ -342,6 +343,9 @@ vips_text_build( VipsObject *object )
 	VipsText *text = (VipsText *) object;
 
 	VipsRect extents;
+	int bands;
+	VipsInterpretation interpretation;
+	FT_Pixel_Mode pixel_mode;
 	int y;
 
 	if( VIPS_OBJECT_CLASS( vips_text_parent_class )->build( object ) )
@@ -399,8 +403,19 @@ vips_text_build( VipsObject *object )
 		return( -1 );
 	}
 
+	if( text->rgba ) {
+		interpretation = VIPS_INTERPRETATION_sRGB;
+		bands = 4;
+		pixel_mode = FT_PIXEL_MODE_BGRA;
+	}
+	else {
+		interpretation = VIPS_INTERPRETATION_MULTIBAND;
+		bands = 1;
+		pixel_mode = FT_PIXEL_MODE_GRAY;
+	}
+
 	text->bitmap.width = extents.width;
-	text->bitmap.pitch = (text->bitmap.width + 3) & ~3;
+	text->bitmap.pitch = (bands * text->bitmap.width + 3) & ~3;
 	text->bitmap.rows = extents.height;
 	if( !(text->bitmap.buffer = 
 		VIPS_ARRAY( NULL, 
@@ -409,24 +424,30 @@ vips_text_build( VipsObject *object )
 		return( -1 );
 	}
 	text->bitmap.num_grays = 256;
-	text->bitmap.pixel_mode = ft_pixel_mode_grays;
+	text->bitmap.pixel_mode = pixel_mode;
 	memset( text->bitmap.buffer, 0x00, 
 		text->bitmap.pitch * text->bitmap.rows );
 
 	pango_ft2_render_layout( &text->bitmap, text->layout, 
 		-extents.left, -extents.top );
 
+	/* Set DPI as pixels/mm.
+	 */
+	vips_image_init_fields( create->out,
+		text->bitmap.width, text->bitmap.rows, bands, 
+		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, 
+		interpretation, text->dpi / 25.4, text->dpi / 25.4 );
+
 	g_mutex_unlock( vips_text_lock ); 
 
-	vips_image_init_fields( create->out,
-		text->bitmap.width, text->bitmap.rows, 1, 
-		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, 
-		VIPS_INTERPRETATION_MULTIBAND,
-		1.0, 1.0 ); 
-	vips_image_pipelinev( create->out, 
-		VIPS_DEMAND_STYLE_ANY, NULL );
+	vips_image_pipelinev( create->out, VIPS_DEMAND_STYLE_ANY, NULL );
 	create->out->Xoffset = extents.left;
 	create->out->Yoffset = extents.top;
+
+	if( text->rgba ) {
+		/* Convert premultiplied BGRA to RGBA.
+		 */
+	}
 
 	for( y = 0; y < text->bitmap.rows; y++ ) 
 		if( vips_image_write_line( create->out, y, 
@@ -534,6 +555,13 @@ vips_text_class_init( VipsTextClass *class )
 		G_STRUCT_OFFSET( VipsText, fontfile ),
 		NULL ); 
 
+	VIPS_ARG_BOOL( class, "rgba", 9, 
+		_( "RGBA" ), 
+		_( "Enable RGBA output" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsText, rgba ),
+		FALSE );
+
 }
 
 static void
@@ -563,17 +591,22 @@ vips_text_init( VipsText *text )
  * * @justify: %gboolean, justify lines
  * * @dpi: %gint, render at this resolution
  * * @autofit_dpi: %gint, read out auto-fitted DPI 
+ * * @rgba: %gboolean, enable RGBA output
  * * @spacing: %gint, space lines by this in points
  *
- * Draw the string @text to an image. @out is a one-band 8-bit
+ * Draw the string @text to an image. @out is normally a one-band 8-bit
  * unsigned char image, with 0 for no text and 255 for text. Values between
  * are used for anti-aliasing.
  *
+ * Set @rgba to enable RGBA output. This is useful for colour emoji rendering,
+ * or support for pango markup features like `<span
+ * foreground="red">Red!</span>`.
+ *
  * @text is the text to render as a UTF-8 string. It can contain Pango markup,
- * for example "&lt;i&gt;The&lt;/i&gt;Guardian".
+ * for example `<i>The</i>Guardian`.
  *
  * @font is the font to render with, as a fontconfig name. Examples might be
- * "sans 12" or perhaps "bitstream charter bold 10".
+ * `sans 12` or perhaps `bitstream charter bold 10`.
  *
  * You can specify a font to load with @fontfile. You'll need to also set the
  * name of the font with @font.
