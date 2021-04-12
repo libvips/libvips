@@ -62,7 +62,6 @@ jobs:
         if: contains(matrix.os, 'macos')
         run: |
           brew update 
-          brew upgrade
           brew install
             autoconf automake libtool
             gtk-doc gobject-introspection
