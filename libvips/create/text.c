@@ -84,6 +84,7 @@
 #include <cairo.h>
 #include <pango/pango.h>
 #include <pango/pangocairo.h>
+#include <fontconfig/fontconfig.h>
 
 #include "pcreate.h"
 
@@ -371,7 +372,6 @@ vips_text_build( VipsObject *object )
 	text->context = pango_font_map_create_context( 
 		PANGO_FONT_MAP( vips_text_fontmap ) );
 
-	/*
 	if( text->fontfile &&
 		!g_hash_table_lookup( vips_text_fontfiles, text->fontfile ) ) {
 		if( !FcConfigAppFontAddFile( NULL, 
@@ -386,7 +386,6 @@ vips_text_build( VipsObject *object )
 			text->fontfile,
 			g_strdup( text->fontfile ) );
 	}
-	 */
 
 	/* If our caller set height and not dpi, we adjust dpi until 
 	 * we get a fit.
