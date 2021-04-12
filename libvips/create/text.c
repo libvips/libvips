@@ -32,6 +32,9 @@
  * 	- fitting could occasionally terminate early [levmorozov]
  * 16/5/20 [keiviv]
  * 	- don't add fontfiles repeatedly
+ * 12/4/21
+ * 	- switch to cairo for text rendering
+ * 	- add rgba flag
  */
 
 /*
@@ -74,11 +77,13 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
-#ifdef HAVE_PANGOFT2
+#ifdef HAVE_PANGOCAIRO
 
+#include <cairo.h>
 #include <pango/pango.h>
-#include <pango/pangoft2.h>
+#include <pango/pangocairo.h>
 
 #include "pcreate.h"
 
@@ -96,7 +101,6 @@ typedef struct _VipsText {
 	char *fontfile;
 	gboolean rgba;
 
-	FT_Bitmap bitmap;
 	PangoContext *context;
 	PangoLayout *layout;
 
@@ -130,7 +134,6 @@ vips_text_dispose( GObject *gobject )
 
 	VIPS_UNREF( text->layout ); 
 	VIPS_UNREF( text->context ); 
-	VIPS_FREE( text->bitmap.buffer ); 
 
 	G_OBJECT_CLASS( vips_text_parent_class )->dispose( gobject );
 }
@@ -187,8 +190,8 @@ vips_text_get_extents( VipsText *text, VipsRect *extents )
 	PangoRectangle ink_rect;
 	PangoRectangle logical_rect;
 
-	pango_ft2_font_map_set_resolution( 
-		PANGO_FT2_FONT_MAP( vips_text_fontmap ), text->dpi, text->dpi );
+	pango_cairo_font_map_set_resolution( 
+		PANGO_CAIRO_FONT_MAP( vips_text_fontmap ), text->dpi );
 
 	VIPS_UNREF( text->layout );
 	if( !(text->layout = text_layout_new( text->context, 
@@ -345,8 +348,8 @@ vips_text_build( VipsObject *object )
 	VipsRect extents;
 	int bands;
 	VipsInterpretation interpretation;
-	FT_Pixel_Mode pixel_mode;
-	int y;
+	cairo_surface_t *surface;
+	cairo_t *cr;
 
 	if( VIPS_OBJECT_CLASS( vips_text_parent_class )->build( object ) )
 		return( -1 );
@@ -360,7 +363,7 @@ vips_text_build( VipsObject *object )
 	g_mutex_lock( vips_text_lock ); 
 
 	if( !vips_text_fontmap )
-		vips_text_fontmap = pango_ft2_font_map_new();
+		vips_text_fontmap = pango_cairo_font_map_new();
 	if( !vips_text_fontfiles )
 		vips_text_fontfiles = 
 			g_hash_table_new( g_str_hash, g_str_equal );
@@ -368,6 +371,7 @@ vips_text_build( VipsObject *object )
 	text->context = pango_font_map_create_context( 
 		PANGO_FONT_MAP( vips_text_fontmap ) );
 
+	/*
 	if( text->fontfile &&
 		!g_hash_table_lookup( vips_text_fontfiles, text->fontfile ) ) {
 		if( !FcConfigAppFontAddFile( NULL, 
@@ -382,6 +386,7 @@ vips_text_build( VipsObject *object )
 			text->fontfile,
 			g_strdup( text->fontfile ) );
 	}
+	 */
 
 	/* If our caller set height and not dpi, we adjust dpi until 
 	 * we get a fit.
@@ -406,54 +411,56 @@ vips_text_build( VipsObject *object )
 	if( text->rgba ) {
 		interpretation = VIPS_INTERPRETATION_sRGB;
 		bands = 4;
-		pixel_mode = FT_PIXEL_MODE_BGRA;
 	}
 	else {
 		interpretation = VIPS_INTERPRETATION_MULTIBAND;
 		bands = 1;
-		pixel_mode = FT_PIXEL_MODE_GRAY;
 	}
-
-	text->bitmap.width = extents.width;
-	text->bitmap.pitch = (bands * text->bitmap.width + 3) & ~3;
-	text->bitmap.rows = extents.height;
-	if( !(text->bitmap.buffer = 
-		VIPS_ARRAY( NULL, 
-			text->bitmap.pitch * text->bitmap.rows, VipsPel )) ) {
-		g_mutex_unlock( vips_text_lock ); 
-		return( -1 );
-	}
-	text->bitmap.num_grays = 256;
-	text->bitmap.pixel_mode = pixel_mode;
-	memset( text->bitmap.buffer, 0x00, 
-		text->bitmap.pitch * text->bitmap.rows );
-
-	pango_ft2_render_layout( &text->bitmap, text->layout, 
-		-extents.left, -extents.top );
 
 	/* Set DPI as pixels/mm.
 	 */
 	vips_image_init_fields( create->out,
-		text->bitmap.width, text->bitmap.rows, bands, 
+		extents.width, extents.height, bands, 
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, 
 		interpretation, text->dpi / 25.4, text->dpi / 25.4 );
-
-	g_mutex_unlock( vips_text_lock ); 
 
 	vips_image_pipelinev( create->out, VIPS_DEMAND_STYLE_ANY, NULL );
 	create->out->Xoffset = extents.left;
 	create->out->Yoffset = extents.top;
 
-	if( text->rgba ) {
-		/* Convert premultiplied BGRA to RGBA.
-		 */
+	if( vips_image_write_prepare( create->out ) ) {
+		g_mutex_unlock( vips_text_lock ); 
+		return( -1 );
 	}
 
-	for( y = 0; y < text->bitmap.rows; y++ ) 
-		if( vips_image_write_line( create->out, y, 
-			(VipsPel *) text->bitmap.buffer + 
-				y * text->bitmap.pitch ) )
-			return( -1 );
+	surface = cairo_image_surface_create_for_data( 
+		VIPS_IMAGE_ADDR( create->out, 0, 0 ), 
+		text->rgba ? CAIRO_FORMAT_ARGB32 : CAIRO_FORMAT_A8, 
+		create->out->Xsize, create->out->Ysize,
+		VIPS_IMAGE_SIZEOF_LINE( create->out ) );
+	cr = cairo_create( surface );
+	cairo_surface_destroy( surface );
+
+	cairo_translate( cr, -extents.left, -extents.top );
+
+	pango_cairo_show_layout( cr, text->layout );
+
+	cairo_destroy( cr );
+
+	g_mutex_unlock( vips_text_lock ); 
+
+	if( text->rgba ) {
+		int y;
+
+		/* Cairo makes pre-multipled BRGA -- we must byteswap and 
+		 * unpremultiply.
+		 */
+		for( y = 0; y < create->out->Ysize; y++ ) 
+			vips__premultiplied_bgra2rgba( 
+				(guint32 *) 
+					VIPS_IMAGE_ADDR( create->out, 0, y ),
+				create->out->Xsize ); 
+	}
 
 	return( 0 );
 }
@@ -569,11 +576,10 @@ vips_text_init( VipsText *text )
 {
 	text->align = VIPS_ALIGN_LOW;
 	text->dpi = 72;
-	text->bitmap.buffer = NULL;
 	VIPS_SETSTR( text->font, "sans 12" ); 
 }
 
-#endif /*HAVE_PANGOFT2*/
+#endif /*HAVE_PANGOCAIRO*/
 
 /**
  * vips_text:
