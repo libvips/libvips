@@ -345,10 +345,10 @@ vips_text_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsCreate *create = VIPS_CREATE( object );
 	VipsText *text = (VipsText *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 3 );
 
 	VipsRect extents;
-	int bands;
-	VipsInterpretation interpretation;
+	VipsImage *image;
 	cairo_surface_t *surface;
 	cairo_t *cr;
 
@@ -407,36 +407,29 @@ vips_text_build( VipsObject *object )
 		return( -1 );
 	}
 
-	if( text->rgba ) {
-		interpretation = VIPS_INTERPRETATION_sRGB;
-		bands = 4;
-	}
-	else {
-		interpretation = VIPS_INTERPRETATION_MULTIBAND;
-		bands = 1;
-	}
-
 	/* Set DPI as pixels/mm.
 	 */
-	vips_image_init_fields( create->out,
-		extents.width, extents.height, bands, 
+	image = t[0] = vips_image_new_memory();
+	vips_image_init_fields( image,
+		extents.width, extents.height, 4, 
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, 
-		interpretation, text->dpi / 25.4, text->dpi / 25.4 );
+		VIPS_INTERPRETATION_sRGB,
+		text->dpi / 25.4, text->dpi / 25.4 );
 
-	vips_image_pipelinev( create->out, VIPS_DEMAND_STYLE_ANY, NULL );
-	create->out->Xoffset = extents.left;
-	create->out->Yoffset = extents.top;
+	vips_image_pipelinev( image, VIPS_DEMAND_STYLE_ANY, NULL );
+	image->Xoffset = extents.left;
+	image->Yoffset = extents.top;
 
-	if( vips_image_write_prepare( create->out ) ) {
+	if( vips_image_write_prepare( image ) ) {
 		g_mutex_unlock( vips_text_lock ); 
 		return( -1 );
 	}
 
 	surface = cairo_image_surface_create_for_data( 
-		VIPS_IMAGE_ADDR( create->out, 0, 0 ), 
-		text->rgba ? CAIRO_FORMAT_ARGB32 : CAIRO_FORMAT_A8, 
-		create->out->Xsize, create->out->Ysize,
-		VIPS_IMAGE_SIZEOF_LINE( create->out ) );
+		VIPS_IMAGE_ADDR( image, 0, 0 ), 
+		CAIRO_FORMAT_ARGB32,
+		image->Xsize, image->Ysize,
+		VIPS_IMAGE_SIZEOF_LINE( image ) );
 	cr = cairo_create( surface );
 	cairo_surface_destroy( surface );
 
@@ -454,12 +447,25 @@ vips_text_build( VipsObject *object )
 		/* Cairo makes pre-multipled BRGA -- we must byteswap and 
 		 * unpremultiply.
 		 */
-		for( y = 0; y < create->out->Ysize; y++ ) 
+		for( y = 0; y < image->Ysize; y++ ) 
 			vips__premultiplied_bgra2rgba( 
 				(guint32 *) 
-					VIPS_IMAGE_ADDR( create->out, 0, y ),
-				create->out->Xsize ); 
+					VIPS_IMAGE_ADDR( image, 0, y ),
+				image->Xsize ); 
 	}
+	else {
+		/* We just want the alpha channel.
+		 */
+		if( vips_extract_band( image, &t[1], 3, NULL ) ||
+			vips_copy( t[1], &t[2], 
+				"interpretation", VIPS_INTERPRETATION_MULTIBAND,
+				NULL ) )
+			return( -1 );
+		image = t[2];
+	}
+
+	if( vips_image_write( image, create->out ) )
+		return( -1 );
 
 	return( 0 );
 }
