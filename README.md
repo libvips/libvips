@@ -243,10 +243,10 @@ If you are going to be using libvips with untrusted images, perhaps in a
 web server, for example, you should consider the security implications of
 enabling a package with such a large attack surface. 
 
-### pangoft2
+### pangocairo
 
 If available, libvips adds support for text rendering. You need the
-package pangoft2 in `pkg-config --list-all`.
+package pangocairo in `pkg-config --list-all`.
 
 ### orc-0.4
 
