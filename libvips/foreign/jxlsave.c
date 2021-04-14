@@ -62,9 +62,11 @@
  * - libjxl encode only works in one shot mode, so there's no way to write in
  *   chunks
  *
- * - embed a preview image? EXIF? XMP? api for this is on the way
+ * - add metadata support EXIF, XMP, etc. api for this is on the way
  *
- * - check scRGB encoding
+ * - add animation support
+ *
+ * - libjxl is currently missing error messages (I think)
  */
 
 #define OUTPUT_BUFFER_SIZE (4096)
@@ -127,6 +129,58 @@ vips_foreign_save_jxl_error( VipsForeignSaveJxl *jxl, const char *details )
 	 */
 	vips_error( class->nickname, "%s", details );
 }
+
+#ifdef DEBUG
+static void
+vips_foreign_save_jxl_print_info( JxlBasicInfo *info )
+{
+	printf( "JxlBasicInfo:\n" );
+	printf( "    xsize = %d\n", info->xsize );
+	printf( "    ysize = %d\n", info->ysize );
+	printf( "    num_color_channels = %d\n", info->num_color_channels );
+	printf( "    num_extra_channels = %d\n", info->num_extra_channels );
+	printf( "    bits_per_sample = %d\n", info->bits_per_sample );
+	printf( "    exponent_bits_per_sample = %d\n", 
+		info->exponent_bits_per_sample );
+	printf( "    alpha_bits = %d\n", info->alpha_bits );
+	printf( "    alpha_exponent_bits = %d\n", info->alpha_exponent_bits );
+	printf( "    intensity_target = %g\n", info->intensity_target );
+	printf( "    uses_original_profile = %d\n", 
+		info->uses_original_profile );
+}
+
+static void
+vips_foreign_save_jxl_print_format( JxlPixelFormat *format )
+{
+	printf( "JxlPixelFormat:\n" );
+	printf( "    data_type = " );
+	switch( format->data_type ) {
+	case JXL_TYPE_UINT8: 
+		printf( "JXL_TYPE_UINT8" );
+		break;
+
+	case JXL_TYPE_UINT16: 
+		printf( "JXL_TYPE_UINT16" );
+		break;
+
+	case JXL_TYPE_UINT32: 
+		printf( "JXL_TYPE_UINT32" );
+		break;
+
+	case JXL_TYPE_FLOAT: 
+		printf( "JXL_TYPE_FLOAT" );
+		break;
+
+	default:
+		printf( "(unknown)" );
+		break;
+	}
+	printf( "\n" );
+	printf( "    num_channels = %d\n", format->num_channels );
+	printf( "    endianness = %d\n", format->endianness );
+	printf( "    align = %zd\n", format->align );
+}
+#endif /*DEBUG*/
 
 static int
 vips_foreign_save_jxl_build( VipsObject *object )
@@ -278,7 +332,9 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	JxlEncoderOptionsSetLossless( options, jxl->lossless );
 
 #ifdef DEBUG
-	printf( "jxl encode options:\n" );
+	vips_foreign_save_jxl_print_info( &jxl->info );
+	vips_foreign_save_jxl_print_format( &jxl->format );
+	printf( "JxlEncoderOptions:\n" );
 	printf( "    tier = %d\n", jxl->tier );
 	printf( "    distance = %g\n", jxl->distance );
 	printf( "    effort = %d\n", jxl->effort );

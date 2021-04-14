@@ -63,11 +63,11 @@
  *
  * - preview image? EXIF? XMP?
  *
- * - check scRGB encoding
- *
- * - add "shrink" option to read out 8x shrunk image?
+ * - check scRGB load
  *
  * - add animation support
+ *
+ * - add "shrink" option to read out 8x shrunk image?
  */
 
 #define INPUT_BUFFER_SIZE (4096)
