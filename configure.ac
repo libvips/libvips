@@ -1105,25 +1105,25 @@ fi
 VIPS_CFLAGS="$VIPS_CFLAGS $LIBWEBP_CFLAGS"
 VIPS_LIBS="$VIPS_LIBS $LIBWEBP_LIBS"
 
-# pangoft2
-AC_ARG_WITH([pangoft2], 
-  AS_HELP_STRING([--without-pangoft2], 
-    [build without pangoft2 (default: test)]))
+# pangocairo for text rendering
+AC_ARG_WITH([pangocairo], 
+  AS_HELP_STRING([--without-pangocairo], 
+    [build without pangocairo (default: test)]))
 
-if test x"$with_pangoft2" != x"no"; then
-  PKG_CHECK_MODULES(PANGOFT2, pangoft2,
-    [AC_DEFINE(HAVE_PANGOFT2,1,[define if you have pangoft2 installed.])
-     with_pangoft2=yes
-     PACKAGES_USED="$PACKAGES_USED pangoft2"
+if test x"$with_pangocairo" != x"no"; then
+  PKG_CHECK_MODULES(PANGOCAIRO, pangocairo,
+    [AC_DEFINE(HAVE_PANGOCAIRO,1,[define if you have pangocairo installed.])
+     with_pangocairo=yes
+     PACKAGES_USED="$PACKAGES_USED pangocairo"
     ],
-    [AC_MSG_WARN([pangoft2 not found; disabling pangoft2 support])
-     with_pangoft2=no
+    [AC_MSG_WARN([pangocairo not found; disabling pangocairo support])
+     with_pangocairo=no
     ]
   )
 fi
 
-VIPS_CFLAGS="$VIPS_CFLAGS $PANGOFT2_CFLAGS"
-VIPS_LIBS="$VIPS_LIBS $PANGOFT2_LIBS"
+VIPS_CFLAGS="$VIPS_CFLAGS $PANGOCAIRO_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $PANGOCAIRO_LIBS"
 
 # look for TIFF with pkg-config ... fall back to our tester
 # pkgconfig support for libtiff starts with libtiff-4
@@ -1347,7 +1347,7 @@ use fftw3 for FFT: $with_fftw, \
 accelerate loops with orc: $with_orc, \
 ICC profile support with lcms: $with_lcms, \
 zlib: $with_zlib, \
-text rendering with pangoft2: $with_pangoft2, \
+text rendering with pangocairo: $with_pangocairo, \
 EXIF metadata support with libexif: $with_libexif, \
 JPEG load/save with libjpeg: $with_jpeg, \
 PNG load with libspng: $with_libspng, \
@@ -1449,7 +1449,7 @@ accelerate loops with orc:              $with_orc
  (requires orc-0.4.11 or later)
 ICC profile support with lcms:          $with_lcms
 zlib:                                   $with_zlib
-text rendering with pangoft2:           $with_pangoft2
+text rendering with pangocairo:         $with_pangocairo
 EXIF metadata support with libexif:     $with_libexif
 
 ## File format support

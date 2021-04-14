@@ -79,34 +79,17 @@ gif_initialise_sprite(gif_animation *gif,
                       unsigned int width,
                       unsigned int height)
 {
-        unsigned int max_width;
-        unsigned int max_height;
-        struct bitmap *buffer;
-
-        /* Check if we've changed */
-        if ((width <= gif->width) && (height <= gif->height)) {
+	/* Already allocated? */
+	if (gif->frame_image) {
                 return GIF_OK;
         }
 
-        /* Get our maximum values */
-        max_width = (width > gif->width) ? width : gif->width;
-        max_height = (height > gif->height) ? height : gif->height;
-
-        /* Allocate some more memory */
         assert(gif->bitmap_callbacks.bitmap_create);
-        buffer = gif->bitmap_callbacks.bitmap_create(max_width, max_height);
-        if (buffer == NULL) {
+        gif->frame_image = gif->bitmap_callbacks.bitmap_create(width, height);
+        if (gif->frame_image == NULL) {
                 return GIF_INSUFFICIENT_MEMORY;
         }
 
-        assert(gif->bitmap_callbacks.bitmap_destroy);
-        gif->bitmap_callbacks.bitmap_destroy(gif->frame_image);
-        gif->frame_image = buffer;
-        gif->width = max_width;
-        gif->height = max_height;
-
-        /* Invalidate our currently decoded image */
-        gif->decoded_frame = GIF_INVALID_FRAME;
         return GIF_OK;
 }
 
@@ -392,10 +375,12 @@ static gif_result gif_initialise_frame(gif_animation *gif)
         gif->frames[frame].redraw_required = ((gif->frames[frame].disposal_method == GIF_FRAME_CLEAR) ||
                                                 (gif->frames[frame].disposal_method == GIF_FRAME_RESTORE));
 
-        /* Boundary checking - shouldn't ever happen except with junk data */
-        if (gif_initialise_sprite(gif, (offset_x + width), (offset_y + height))) {
-                return GIF_INSUFFICIENT_MEMORY;
-        }
+	/* Frame size may have grown.
+	 */
+        gif->width = (offset_x + width > gif->width) ? 
+		offset_x + width : gif->width;
+        gif->height = (offset_y + height > gif->height) ? 
+		offset_y + height : gif->height;
 
         /* Decode the flags */
         flags = gif_data[9];
@@ -737,6 +722,12 @@ gif_internal_decode_frame(gif_animation *gif,
             (offset_y + height > gif->height)) {
                 return_value = GIF_DATA_ERROR;
                 goto gif_decode_frame_exit;
+        }
+
+	/* Make sure we have a buffer to decode to.
+	 */
+	if (gif_initialise_sprite(gif, gif->width, gif->height)) {
+                return GIF_INSUFFICIENT_MEMORY;
         }
 
         /* Decode the flags */
@@ -1114,14 +1105,6 @@ gif_result gif_initialise(gif_animation *gif, size_t size, unsigned char *data)
                         return GIF_INSUFFICIENT_MEMORY;
                 }
                 gif->frame_holders = 1;
-
-                /* Initialise the bitmap header */
-                assert(gif->bitmap_callbacks.bitmap_create);
-                gif->frame_image = gif->bitmap_callbacks.bitmap_create(gif->width, gif->height);
-                if (gif->frame_image == NULL) {
-                        gif_finalise(gif);
-                        return GIF_INSUFFICIENT_MEMORY;
-                }
 
                 /* Remember we've done this now */
                 gif->buffer_position = gif_data - gif->gif_data;

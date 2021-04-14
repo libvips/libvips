@@ -33,8 +33,8 @@
 
 /*
 #define DEBUG_VERBOSE
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -58,10 +58,7 @@
 
 /* TODO:
  *
- * - libjxl seems to only work in one shot mode, so there's no way to read in
- *   chunks
- *
- * - preview image? EXIF? XMP?
+ * - add metadata support
  *
  * - check scRGB load
  *
@@ -285,6 +282,74 @@ vips_foreign_load_jxl_print_status( JxlDecoderStatus status )
 		g_assert_not_reached();
 	}
 }
+
+static void
+vips_foreign_load_jxl_print_info( JxlBasicInfo *info )
+{
+	printf( "JxlBasicInfo:\n" );
+	printf( "    have_container = %d\n", info->have_container );
+	printf( "    xsize = %d\n", info->xsize );
+	printf( "    ysize = %d\n", info->ysize );
+	printf( "    bits_per_sample = %d\n", info->bits_per_sample );
+	printf( "    exponent_bits_per_sample = %d\n", 
+		info->exponent_bits_per_sample );
+	printf( "    intensity_target = %g\n", info->intensity_target );
+	printf( "    min_nits = %g\n", info->min_nits );
+	printf( "    relative_to_max_display = %d\n", 
+		info->relative_to_max_display );
+	printf( "    linear_below = %g\n", info->linear_below );
+	printf( "    uses_original_profile = %d\n", 
+		info->uses_original_profile );
+	printf( "    have_preview = %d\n", info->have_preview );
+	printf( "    have_animation = %d\n", info->have_animation );
+	printf( "    orientation = %d\n", info->orientation );
+	printf( "    num_color_channels = %d\n", info->num_color_channels );
+	printf( "    num_extra_channels = %d\n", info->num_extra_channels );
+	printf( "    alpha_bits = %d\n", info->alpha_bits );
+	printf( "    alpha_exponent_bits = %d\n", info->alpha_exponent_bits );
+	printf( "    alpha_premultiplied = %d\n", info->alpha_premultiplied );
+	printf( "    preview.xsize = %d\n", info->preview.xsize );
+	printf( "    preview.ysize = %d\n", info->preview.ysize );
+	printf( "    animation.tps_numerator = %d\n", 
+		info->animation.tps_numerator );
+	printf( "    animation.tps_denominator = %d\n", 
+		info->animation.tps_denominator );
+	printf( "    animation.num_loops = %d\n", info->animation.num_loops );
+	printf( "    animation.have_timecodes = %d\n", 
+		info->animation.have_timecodes );
+}
+
+static void
+vips_foreign_load_jxl_print_format( JxlPixelFormat *format )
+{
+	printf( "JxlPixelFormat:\n" );
+	printf( "    data_type = " );
+	switch( format->data_type ) {
+	case JXL_TYPE_UINT8: 
+		printf( "JXL_TYPE_UINT8" );
+		break;
+
+	case JXL_TYPE_UINT16: 
+		printf( "JXL_TYPE_UINT16" );
+		break;
+
+	case JXL_TYPE_UINT32: 
+		printf( "JXL_TYPE_UINT32" );
+		break;
+
+	case JXL_TYPE_FLOAT: 
+		printf( "JXL_TYPE_FLOAT" );
+		break;
+
+	default:
+		printf( "(unknown)" );
+		break;
+	}
+	printf( "\n" );
+	printf( "    num_channels = %d\n", format->num_channels );
+	printf( "    endianness = %d\n", format->endianness );
+	printf( "    align = %zd\n", format->align );
+}
 #endif /*DEBUG*/
 
 static JxlDecoderStatus 
@@ -311,44 +376,6 @@ vips_foreign_load_jxl_process( VipsForeignLoadJxl *jxl )
 
 	return( status );
 }
-
-#ifdef DEBUG
-static void
-vips_foreign_load_jxl_print_info( VipsForeignLoadJxl *jxl )
-{
-	printf( "vips_foreign_load_jxl_print_info:\n" );
-	printf( "  have_container = %d\n", jxl->info.have_container );
-	printf( "  xsize = %d\n", jxl->info.xsize );
-	printf( "  ysize = %d\n", jxl->info.ysize );
-	printf( "  bits_per_sample = %d\n", jxl->info.bits_per_sample );
-	printf( "  exponent_bits_per_sample = %d\n", 
-		jxl->info.exponent_bits_per_sample );
-	printf( "  intensity_target = %g\n", jxl->info.intensity_target );
-	printf( "  min_nits = %g\n", jxl->info.min_nits );
-	printf( "  relative_to_max_display = %d\n", 
-		jxl->info.relative_to_max_display );
-	printf( "  linear_below = %g\n", jxl->info.linear_below );
-	printf( "  uses_original_profile = %d\n", 
-		jxl->info.uses_original_profile );
-	printf( "  have_preview = %d\n", jxl->info.have_preview );
-	printf( "  have_animation = %d\n", jxl->info.have_animation );
-	printf( "  orientation = %d\n", jxl->info.orientation );
-	printf( "  num_color_channels = %d\n", jxl->info.num_color_channels );
-	printf( "  num_extra_channels = %d\n", jxl->info.num_extra_channels );
-	printf( "  alpha_bits = %d\n", jxl->info.alpha_bits );
-	printf( "  alpha_exponent_bits = %d\n", jxl->info.alpha_exponent_bits );
-	printf( "  alpha_premultiplied = %d\n", jxl->info.alpha_premultiplied );
-	printf( "  preview.xsize = %d\n", jxl->info.preview.xsize );
-	printf( "  preview.ysize = %d\n", jxl->info.preview.ysize );
-	printf( "  animation.tps_numerator = %d\n", 
-		jxl->info.animation.tps_numerator );
-	printf( "  animation.tps_denominator = %d\n", 
-		jxl->info.animation.tps_denominator );
-	printf( "  animation.num_loops = %d\n", jxl->info.animation.num_loops );
-	printf( "  animation.have_timecodes = %d\n", 
-		jxl->info.animation.have_timecodes );
-}
-#endif /*DEBUG*/
 
 static int
 vips_foreign_load_jxl_set_header( VipsForeignLoadJxl *jxl, VipsImage *out )
@@ -479,7 +506,7 @@ vips_foreign_load_jxl_header( VipsForeignLoad *load )
 				return( -1 );
 			}
 #ifdef DEBUG
-			vips_foreign_load_jxl_print_info( jxl );
+			vips_foreign_load_jxl_print_info( &jxl->info );
 #endif /*DEBUG*/
 
 			/* Pick a pixel format to decode to.
@@ -498,6 +525,10 @@ vips_foreign_load_jxl_header( VipsForeignLoad *load )
 				jxl->format.data_type = JXL_TYPE_UINT8;
 			jxl->format.endianness = JXL_NATIVE_ENDIAN;
 			jxl->format.align = 0;
+
+#ifdef DEBUG
+			vips_foreign_load_jxl_print_format( &jxl->format );
+#endif /*DEBUG*/
 
 			break;
 

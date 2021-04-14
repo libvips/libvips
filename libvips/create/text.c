@@ -32,6 +32,9 @@
  * 	- fitting could occasionally terminate early [levmorozov]
  * 16/5/20 [keiviv]
  * 	- don't add fontfiles repeatedly
+ * 12/4/21
+ * 	- switch to cairo for text rendering
+ * 	- add rgba flag
  */
 
 /*
@@ -74,11 +77,14 @@
 #include <string.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
-#ifdef HAVE_PANGOFT2
+#ifdef HAVE_PANGOCAIRO
 
+#include <cairo.h>
 #include <pango/pango.h>
-#include <pango/pangoft2.h>
+#include <pango/pangocairo.h>
+#include <fontconfig/fontconfig.h>
 
 #include "pcreate.h"
 
@@ -94,8 +100,8 @@ typedef struct _VipsText {
 	gboolean justify;
 	int dpi;
 	char *fontfile;
+	gboolean rgba;
 
-	FT_Bitmap bitmap;
 	PangoContext *context;
 	PangoLayout *layout;
 
@@ -129,7 +135,6 @@ vips_text_dispose( GObject *gobject )
 
 	VIPS_UNREF( text->layout ); 
 	VIPS_UNREF( text->context ); 
-	VIPS_FREE( text->bitmap.buffer ); 
 
 	G_OBJECT_CLASS( vips_text_parent_class )->dispose( gobject );
 }
@@ -186,8 +191,8 @@ vips_text_get_extents( VipsText *text, VipsRect *extents )
 	PangoRectangle ink_rect;
 	PangoRectangle logical_rect;
 
-	pango_ft2_font_map_set_resolution( 
-		PANGO_FT2_FONT_MAP( vips_text_fontmap ), text->dpi, text->dpi );
+	pango_cairo_font_map_set_resolution( 
+		PANGO_CAIRO_FONT_MAP( vips_text_fontmap ), text->dpi );
 
 	VIPS_UNREF( text->layout );
 	if( !(text->layout = text_layout_new( text->context, 
@@ -340,9 +345,12 @@ vips_text_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsCreate *create = VIPS_CREATE( object );
 	VipsText *text = (VipsText *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 3 );
 
 	VipsRect extents;
-	int y;
+	VipsImage *image;
+	cairo_surface_t *surface;
+	cairo_t *cr;
 
 	if( VIPS_OBJECT_CLASS( vips_text_parent_class )->build( object ) )
 		return( -1 );
@@ -356,7 +364,7 @@ vips_text_build( VipsObject *object )
 	g_mutex_lock( vips_text_lock ); 
 
 	if( !vips_text_fontmap )
-		vips_text_fontmap = pango_ft2_font_map_new();
+		vips_text_fontmap = pango_cairo_font_map_new();
 	if( !vips_text_fontfiles )
 		vips_text_fontfiles = 
 			g_hash_table_new( g_str_hash, g_str_equal );
@@ -399,40 +407,65 @@ vips_text_build( VipsObject *object )
 		return( -1 );
 	}
 
-	text->bitmap.width = extents.width;
-	text->bitmap.pitch = (text->bitmap.width + 3) & ~3;
-	text->bitmap.rows = extents.height;
-	if( !(text->bitmap.buffer = 
-		VIPS_ARRAY( NULL, 
-			text->bitmap.pitch * text->bitmap.rows, VipsPel )) ) {
+	/* Set DPI as pixels/mm.
+	 */
+	image = t[0] = vips_image_new_memory();
+	vips_image_init_fields( image,
+		extents.width, extents.height, 4, 
+		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, 
+		VIPS_INTERPRETATION_sRGB,
+		text->dpi / 25.4, text->dpi / 25.4 );
+
+	vips_image_pipelinev( image, VIPS_DEMAND_STYLE_ANY, NULL );
+	image->Xoffset = extents.left;
+	image->Yoffset = extents.top;
+
+	if( vips_image_write_prepare( image ) ) {
 		g_mutex_unlock( vips_text_lock ); 
 		return( -1 );
 	}
-	text->bitmap.num_grays = 256;
-	text->bitmap.pixel_mode = ft_pixel_mode_grays;
-	memset( text->bitmap.buffer, 0x00, 
-		text->bitmap.pitch * text->bitmap.rows );
 
-	pango_ft2_render_layout( &text->bitmap, text->layout, 
-		-extents.left, -extents.top );
+	surface = cairo_image_surface_create_for_data( 
+		VIPS_IMAGE_ADDR( image, 0, 0 ), 
+		CAIRO_FORMAT_ARGB32,
+		image->Xsize, image->Ysize,
+		VIPS_IMAGE_SIZEOF_LINE( image ) );
+	cr = cairo_create( surface );
+	cairo_surface_destroy( surface );
+
+	cairo_translate( cr, -extents.left, -extents.top );
+
+	pango_cairo_show_layout( cr, text->layout );
+
+	cairo_destroy( cr );
 
 	g_mutex_unlock( vips_text_lock ); 
 
-	vips_image_init_fields( create->out,
-		text->bitmap.width, text->bitmap.rows, 1, 
-		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, 
-		VIPS_INTERPRETATION_MULTIBAND,
-		1.0, 1.0 ); 
-	vips_image_pipelinev( create->out, 
-		VIPS_DEMAND_STYLE_ANY, NULL );
-	create->out->Xoffset = extents.left;
-	create->out->Yoffset = extents.top;
+	if( text->rgba ) {
+		int y;
 
-	for( y = 0; y < text->bitmap.rows; y++ ) 
-		if( vips_image_write_line( create->out, y, 
-			(VipsPel *) text->bitmap.buffer + 
-				y * text->bitmap.pitch ) )
+		/* Cairo makes pre-multipled BRGA -- we must byteswap and 
+		 * unpremultiply.
+		 */
+		for( y = 0; y < image->Ysize; y++ ) 
+			vips__premultiplied_bgra2rgba( 
+				(guint32 *) 
+					VIPS_IMAGE_ADDR( image, 0, y ),
+				image->Xsize ); 
+	}
+	else {
+		/* We just want the alpha channel.
+		 */
+		if( vips_extract_band( image, &t[1], 3, NULL ) ||
+			vips_copy( t[1], &t[2], 
+				"interpretation", VIPS_INTERPRETATION_MULTIBAND,
+				NULL ) )
 			return( -1 );
+		image = t[2];
+	}
+
+	if( vips_image_write( image, create->out ) )
+		return( -1 );
 
 	return( 0 );
 }
@@ -534,6 +567,13 @@ vips_text_class_init( VipsTextClass *class )
 		G_STRUCT_OFFSET( VipsText, fontfile ),
 		NULL ); 
 
+	VIPS_ARG_BOOL( class, "rgba", 9, 
+		_( "RGBA" ), 
+		_( "Enable RGBA output" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsText, rgba ),
+		FALSE );
+
 }
 
 static void
@@ -541,11 +581,10 @@ vips_text_init( VipsText *text )
 {
 	text->align = VIPS_ALIGN_LOW;
 	text->dpi = 72;
-	text->bitmap.buffer = NULL;
 	VIPS_SETSTR( text->font, "sans 12" ); 
 }
 
-#endif /*HAVE_PANGOFT2*/
+#endif /*HAVE_PANGOCAIRO*/
 
 /**
  * vips_text:
@@ -563,17 +602,22 @@ vips_text_init( VipsText *text )
  * * @justify: %gboolean, justify lines
  * * @dpi: %gint, render at this resolution
  * * @autofit_dpi: %gint, read out auto-fitted DPI 
+ * * @rgba: %gboolean, enable RGBA output
  * * @spacing: %gint, space lines by this in points
  *
- * Draw the string @text to an image. @out is a one-band 8-bit
+ * Draw the string @text to an image. @out is normally a one-band 8-bit
  * unsigned char image, with 0 for no text and 255 for text. Values between
  * are used for anti-aliasing.
  *
+ * Set @rgba to enable RGBA output. This is useful for colour emoji rendering,
+ * or support for pango markup features like `<span
+ * foreground="red">Red!</span>`.
+ *
  * @text is the text to render as a UTF-8 string. It can contain Pango markup,
- * for example "&lt;i&gt;The&lt;/i&gt;Guardian".
+ * for example `<i>The</i>Guardian`.
  *
  * @font is the font to render with, as a fontconfig name. Examples might be
- * "sans 12" or perhaps "bitstream charter bold 10".
+ * `sans 12` or perhaps `bitstream charter bold 10`.
  *
  * You can specify a font to load with @fontfile. You'll need to also set the
  * name of the font with @font.
