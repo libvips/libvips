@@ -1,7 +1,7 @@
 /* load jpeg-xl
  *
  * 18/3/20
- * 	- from jxlload.c
+ * 	- from heifload.c
  */
 
 /*
@@ -60,11 +60,11 @@
  *
  * - add metadata support
  *
- * - check scRGB load
- *
  * - add animation support
  *
  * - add "shrink" option to read out 8x shrunk image?
+ *
+ * - fix scRGB gamma 
  */
 
 #define INPUT_BUFFER_SIZE (4096)

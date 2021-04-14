@@ -67,6 +67,8 @@
  * - add animation support
  *
  * - libjxl is currently missing error messages (I think)
+ *
+ * - fix scRGB gamma 
  */
 
 #define OUTPUT_BUFFER_SIZE (4096)
