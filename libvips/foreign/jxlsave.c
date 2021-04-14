@@ -215,11 +215,13 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		return( -1 );
 
 	/* If Q is set and distance is not, use Q to set a rough distance
-	 * value. Q 75 is distance 1.0, Q 100 is distance 0.0.
+	 * value. Formula stolen from cjxl.c and very roughly approximates
+	 * libjpeg values.
 	 */
-	if( vips_object_argument_isset( object, "Q" ) &&
-		!vips_object_argument_isset( object, "distance" ) ) 
-		jxl->distance = (100 - jxl->Q) / 25.0;
+	if( !vips_object_argument_isset( object, "distance" ) ) 
+		jxl->distance = jxl->Q >= 30 ?
+			0.1 + (100 - jxl->Q) * 0.09 :
+			6.4 + pow(2.5, (30 - jxl->Q) / 5.0f) / 6.25f;
 
 	jxl->runner = JxlThreadParallelRunnerCreate( NULL, 
 		vips_concurrency_get() );
@@ -475,6 +477,7 @@ vips_foreign_save_jxl_init( VipsForeignSaveJxl *jxl )
 	jxl->distance = 1.0;
 	jxl->effort = 7;
 	jxl->lossless = FALSE;
+	jxl->Q = 75;
 }
 
 typedef struct _VipsForeignSaveJxlFile {
