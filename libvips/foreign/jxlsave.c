@@ -1,7 +1,7 @@
 /* save as jpeg2000
  *
  * 18/3/20
- * 	- from jxlload.c
+ * 	- from heifload.c
  */
 
 /*
@@ -33,8 +33,8 @@
 
 /*
 #define DEBUG_VERBOSE
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -59,10 +59,10 @@
  *
  * - libjxl currently seems to be missing API to attach a profile
  *
- * - libjxl seems to only work in one shot mode, so there's no way to write in
+ * - libjxl encode only works in one shot mode, so there's no way to write in
  *   chunks
  *
- * - embed a preview image? EXIF? XMP?
+ * - embed a preview image? EXIF? XMP? api for this is on the way
  *
  * - check scRGB encoding
  */
@@ -82,6 +82,7 @@ typedef struct _VipsForeignSaveJxl {
 	double distance;
 	int effort;
 	gboolean lossless;
+	int Q;
 
 	/* Base image properties.
 	 */
@@ -139,6 +140,13 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_jxl_parent_class )->
 		build( object ) )
 		return( -1 );
+
+	/* If Q is set and distance is not, use Q to set a rough distance
+	 * value. Q 75 is distance 1.0, Q 100 is distance 0.0.
+	 */
+	if( vips_object_argument_isset( object, "Q" ) &&
+		!vips_object_argument_isset( object, "distance" ) ) 
+		jxl->distance = (100 - jxl->Q) / 25.0;
 
 	jxl->runner = JxlThreadParallelRunnerCreate( NULL, 
 		vips_concurrency_get() );
@@ -258,16 +266,24 @@ vips_foreign_save_jxl_build( VipsObject *object )
 	}
 
 	/* Render the entire image in memory. libjxl seems to be missing
-	 * tile-based write.
+	 * tile-based write at the moment.
 	 */
 	if( vips_image_wio_input( save->ready ) )
 		return( -1 );
-	
+
 	options = JxlEncoderOptionsCreate( jxl->encoder, NULL );
 	JxlEncoderOptionsSetDecodingSpeed( options, jxl->tier );
 	JxlEncoderOptionsSetDistance( options, jxl->distance );
 	JxlEncoderOptionsSetEffort( options, jxl->effort );
 	JxlEncoderOptionsSetLossless( options, jxl->lossless );
+
+#ifdef DEBUG
+	printf( "jxl encode options:\n" );
+	printf( "    tier = %d\n", jxl->tier );
+	printf( "    distance = %g\n", jxl->distance );
+	printf( "    effort = %d\n", jxl->effort );
+	printf( "    lossless = %d\n", jxl->lossless );
+#endif /*DEBUG*/
 
 	if( JxlEncoderAddImageFrame( options, &jxl->format, 
 		VIPS_IMAGE_ADDR( save->ready, 0, 0 ),
@@ -367,6 +383,13 @@ vips_foreign_save_jxl_class_init( VipsForeignSaveJxlClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveJxl, lossless ),
 		FALSE ); 
+
+	VIPS_ARG_INT( class, "Q", 14, 
+		_( "Q" ), 
+		_( "Quality factor" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveJxl, Q ),
+		0, 100, 75 );
 
 }
 
@@ -570,6 +593,7 @@ vips_foreign_save_jxl_target_init( VipsForeignSaveJxlTarget *target )
  * * @distance: %gdouble, maximum encoding error
  * * @effort: %gint, encoding effort
  * * @lossless: %gboolean, enables lossless compression
+ * * @Q: %gint, quality setting
  *
  * Write a VIPS image to a file in JPEG-XL format. 
  *
@@ -579,6 +603,9 @@ vips_foreign_save_jxl_target_init( VipsForeignSaveJxlTarget *target )
  * @distance sets the target maximum encoding error. Minimum is 0 
  * (highest quality), and maximum is 15 (lowest quality). Default is 1.0
  * (visually lossless). 
+ *
+ * As a convenience, you can use @Q to set @distance. @Q of 75 is distance
+ * 1.0, @Q of 100 is distance 0.0.
  *
  * Set @lossless to enable lossless compresion.
  *
@@ -610,6 +637,7 @@ vips_jxlsave( VipsImage *in, const char *filename, ... )
  * * @distance: %gdouble, maximum encoding error
  * * @effort: %gint, encoding effort
  * * @lossless: %gboolean, enables lossless compression
+ * * @Q: %gint, quality setting
  *
  * As vips_jxlsave(), but save to a memory buffer.
  *
@@ -657,6 +685,7 @@ vips_jxlsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @distance: %gdouble, maximum encoding error
  * * @effort: %gint, encoding effort
  * * @lossless: %gboolean, enables lossless compression
+ * * @Q: %gint, quality setting
  *
  * As vips_jxlsave(), but save to a target.
  *
