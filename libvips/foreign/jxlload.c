@@ -139,7 +139,7 @@ vips_foreign_load_jxl_error( VipsForeignLoadJxl *jxl, const char *details )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( jxl );
 
-	/* TODO ... jxl has no way to get error messages at the moemnt.
+	/* TODO ... jxl has no way to get error messages at the moment.
 	 */
 	vips_error( class->nickname, "%s", details );
 }

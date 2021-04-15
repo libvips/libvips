@@ -127,7 +127,7 @@ vips_foreign_save_jxl_error( VipsForeignSaveJxl *jxl, const char *details )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( jxl );
 
-	/* TODO ... jxl has no way to get error messages at the moemnt.
+	/* TODO ... jxl has no way to get error messages at the moment.
 	 */
 	vips_error( class->nickname, "%s", details );
 }
@@ -137,34 +137,35 @@ static void
 vips_foreign_save_jxl_print_info( JxlBasicInfo *info )
 {
 	printf( "JxlBasicInfo:\n" );
-	printf( "  have_container = %d\n", info->have_container );
-	printf( "  xsize = %d\n", info->xsize );
-	printf( "  ysize = %d\n", info->ysize );
-	printf( "  bits_per_sample = %d\n", info->bits_per_sample );
-	printf( "  exponent_bits_per_sample = %d\n", 
+	printf( "    have_container = %d\n", info->have_container );
+	printf( "    xsize = %d\n", info->xsize );
+	printf( "    ysize = %d\n", info->ysize );
+	printf( "    bits_per_sample = %d\n", info->bits_per_sample );
+	printf( "    exponent_bits_per_sample = %d\n", 
 		info->exponent_bits_per_sample );
-	printf( "  intensity_target = %g\n", info->intensity_target );
-	printf( "  min_nits = %g\n", info->min_nits );
-	printf( "  relative_to_max_display = %d\n", 
+	printf( "    intensity_target = %g\n", info->intensity_target );
+	printf( "    min_nits = %g\n", info->min_nits );
+	printf( "    relative_to_max_display = %d\n", 
 		info->relative_to_max_display );
-	printf( "  linear_below = %g\n", info->linear_below );
-	printf( "  uses_original_profile = %d\n", info->uses_original_profile );
-	printf( "  have_preview = %d\n", info->have_preview );
-	printf( "  have_animation = %d\n", info->have_animation );
-	printf( "  orientation = %d\n", info->orientation );
-	printf( "  num_color_channels = %d\n", info->num_color_channels );
-	printf( "  num_extra_channels = %d\n", info->num_extra_channels );
-	printf( "  alpha_bits = %d\n", info->alpha_bits );
-	printf( "  alpha_exponent_bits = %d\n", info->alpha_exponent_bits );
-	printf( "  alpha_premultiplied = %d\n", info->alpha_premultiplied );
-	printf( "  preview.xsize = %d\n", info->preview.xsize );
-	printf( "  preview.ysize = %d\n", info->preview.ysize );
-	printf( "  animation.tps_numerator = %d\n", 
+	printf( "    linear_below = %g\n", info->linear_below );
+	printf( "    uses_original_profile = %d\n", 
+		info->uses_original_profile );
+	printf( "    have_preview = %d\n", info->have_preview );
+	printf( "    have_animation = %d\n", info->have_animation );
+	printf( "    orientation = %d\n", info->orientation );
+	printf( "    num_color_channels = %d\n", info->num_color_channels );
+	printf( "    num_extra_channels = %d\n", info->num_extra_channels );
+	printf( "    alpha_bits = %d\n", info->alpha_bits );
+	printf( "    alpha_exponent_bits = %d\n", info->alpha_exponent_bits );
+	printf( "    alpha_premultiplied = %d\n", info->alpha_premultiplied );
+	printf( "    preview.xsize = %d\n", info->preview.xsize );
+	printf( "    preview.ysize = %d\n", info->preview.ysize );
+	printf( "    animation.tps_numerator = %d\n", 
 		info->animation.tps_numerator );
-	printf( "  animation.tps_denominator = %d\n", 
+	printf( "    animation.tps_denominator = %d\n", 
 		info->animation.tps_denominator );
-	printf( "  animation.num_loops = %d\n", info->animation.num_loops );
-	printf( "  animation.have_timecodes = %d\n", 
+	printf( "    animation.num_loops = %d\n", info->animation.num_loops );
+	printf( "    animation.have_timecodes = %d\n", 
 		info->animation.have_timecodes );
 }
 
