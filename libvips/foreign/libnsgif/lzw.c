@@ -36,7 +36,7 @@
  * Note that an individual LZW code can be split over up to three sub-blocks.
  */
 struct lzw_read_ctx {
-	const uint8_t *data;    /**< Pointer to start of input data */
+	const uint8_t *restrict data;    /**< Pointer to start of input data */
 	uint32_t data_len;      /**< Input data length */
 	uint32_t data_sb_next;  /**< Offset to sub-block size */
 
@@ -122,7 +122,7 @@ void lzw_context_destroy(struct lzw_ctx *ctx)
  * \param[in] ctx  LZW reading context, updated on success.
  * \return LZW_OK or LZW_OK_EOD on success, appropriate error otherwise.
  */
-static lzw_result lzw__block_advance(struct lzw_read_ctx *ctx)
+static lzw_result lzw__block_advance(struct lzw_read_ctx *restrict ctx)
 {
 	uint32_t block_size;
 	uint32_t next_block_pos = ctx->data_sb_next;
@@ -164,9 +164,9 @@ static lzw_result lzw__block_advance(struct lzw_read_ctx *ctx)
  * \return LZW_OK or LZW_OK_EOD on success, appropriate error otherwise.
  */
 static inline lzw_result lzw__read_code(
-		struct lzw_read_ctx *ctx,
+		struct lzw_read_ctx *restrict ctx,
 		uint8_t code_size,
-		uint32_t *code_out)
+		uint32_t *restrict code_out)
 {
 	uint32_t code = 0;
 	uint8_t current_bit = ctx->sb_bit & 0x7;
