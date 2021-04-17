@@ -400,7 +400,7 @@ static inline uint32_t lzw__write_pixels(struct lzw_ctx *ctx,
 		uint32_t left)
 {
 	uint8_t *restrict output_pos = (uint8_t *)output + used;
-	struct lzw_table_entry * const table = ctx->table;
+	const struct lzw_table_entry * const table = ctx->table;
 	uint32_t space = length - used;
 	uint32_t count = left;
 
@@ -416,13 +416,13 @@ static inline uint32_t lzw__write_pixels(struct lzw_ctx *ctx,
 
 	/* Skip over any values we don't have space for. */
 	for (unsigned i = left; i != 0; i--) {
-		struct lzw_table_entry *entry = table + code;
+		const struct lzw_table_entry *entry = table + code;
 		code = entry->extends;
 	}
 
 	output_pos += count;
 	for (unsigned i = count; i != 0; i--) {
-		struct lzw_table_entry *entry = table + code;
+		const struct lzw_table_entry *entry = table + code;
 		*--output_pos = entry->value;
 		code = entry->extends;
 	}
@@ -491,7 +491,7 @@ static inline uint32_t lzw__write_pixels_map(struct lzw_ctx *ctx,
 		uint32_t left)
 {
 	uint32_t *restrict stack_pos = (uint32_t *)buffer + used;
-	struct lzw_table_entry * const table = ctx->table;
+	const struct lzw_table_entry * const table = ctx->table;
 	uint32_t space = length - used;
 	uint32_t count = left;
 
@@ -506,13 +506,13 @@ static inline uint32_t lzw__write_pixels_map(struct lzw_ctx *ctx,
 	ctx->output_left = left;
 
 	for (unsigned i = left; i != 0; i--) {
-		struct lzw_table_entry *entry = table + code;
+		const struct lzw_table_entry *entry = table + code;
 		code = entry->extends;
 	}
 
 	stack_pos += count;
 	for (unsigned i = count; i != 0; i--) {
-		struct lzw_table_entry *entry = table + code;
+		const struct lzw_table_entry *entry = table + code;
 		--stack_pos;
 		if (entry->value != ctx->transparency_idx) {
 			*stack_pos = ctx->colour_map[entry->value];
