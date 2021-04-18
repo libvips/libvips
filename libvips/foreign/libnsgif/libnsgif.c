@@ -82,8 +82,8 @@ gif_initialise_sprite(gif_animation *gif,
                       unsigned int width,
                       unsigned int height)
 {
-	/* Already allocated? */
-	if (gif->frame_image) {
+        /* Already allocated? */
+        if (gif->frame_image) {
                 return GIF_OK;
         }
 
@@ -378,12 +378,12 @@ static gif_result gif_initialise_frame(gif_animation *gif)
         gif->frames[frame].redraw_required = ((gif->frames[frame].disposal_method == GIF_FRAME_CLEAR) ||
                                                 (gif->frames[frame].disposal_method == GIF_FRAME_RESTORE));
 
-	/* Frame size may have grown.
-	 */
-        gif->width = (offset_x + width > gif->width) ? 
-		offset_x + width : gif->width;
-        gif->height = (offset_y + height > gif->height) ? 
-		offset_y + height : gif->height;
+        /* Frame size may have grown.
+         */
+        gif->width = (offset_x + width > gif->width) ?
+                        offset_x + width : gif->width;
+        gif->height = (offset_y + height > gif->height) ?
+                        offset_y + height : gif->height;
 
         /* Decode the flags */
         flags = gif_data[9];
@@ -878,9 +878,9 @@ gif_internal_decode_frame(gif_animation *gif,
                 goto gif_decode_frame_exit;
         }
 
-	/* Make sure we have a buffer to decode to.
-	 */
-	if (gif_initialise_sprite(gif, gif->width, gif->height)) {
+        /* Make sure we have a buffer to decode to.
+         */
+        if (gif_initialise_sprite(gif, gif->width, gif->height)) {
                 return GIF_INSUFFICIENT_MEMORY;
         }
 
