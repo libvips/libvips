@@ -41,7 +41,7 @@ struct lzw_read_ctx {
 	uint32_t data_sb_next;  /**< Offset to sub-block size */
 
 	const uint8_t *sb_data; /**< Pointer to current sub-block in data */
-	uint32_t sb_bit;        /**< Current bit offset in sub-block */
+	size_t sb_bit;          /**< Current bit offset in sub-block */
 	uint32_t sb_bit_count;  /**< Bit count in sub-block */
 };
 
@@ -165,35 +165,33 @@ static lzw_result lzw__block_advance(struct lzw_read_ctx *restrict ctx)
  */
 static inline lzw_result lzw__read_code(
 		struct lzw_read_ctx *restrict ctx,
-		uint8_t code_size,
+		uint32_t code_size,
 		uint32_t *restrict code_out)
 {
 	uint32_t code = 0;
-	uint8_t current_bit = ctx->sb_bit & 0x7;
-	uint8_t byte_advance = (current_bit + code_size) >> 3;
+	uint32_t current_bit = ctx->sb_bit & 0x7;
 
-	assert(byte_advance <= 2);
-
-	if (ctx->sb_bit + code_size <= ctx->sb_bit_count) {
-		/* Fast path: code fully inside this sub-block */
+	if (ctx->sb_bit + 24 <= ctx->sb_bit_count) {
+		/* Fast path: read three bytes from this sub-block */
 		const uint8_t *data = ctx->sb_data + (ctx->sb_bit >> 3);
-		switch (byte_advance) {
-			case 2: code |= data[2] << 16; /* Fall through */
-			case 1: code |= data[1] <<  8; /* Fall through */
-			case 0: code |= data[0] <<  0;
-		}
+		code |= *data++ <<  0;
+		code |= *data++ <<  8;
+		code |= *data   << 16;
 		ctx->sb_bit += code_size;
 	} else {
 		/* Slow path: code spans sub-blocks */
+		uint8_t byte_advance = (current_bit + code_size) >> 3;
 		uint8_t byte = 0;
-		uint8_t bits_remaining_0 = (code_size < (8 - current_bit)) ?
-				code_size : (8 - current_bit);
+		uint8_t bits_remaining_0 = (code_size < (8u - current_bit)) ?
+				code_size : (8u - current_bit);
 		uint8_t bits_remaining_1 = code_size - bits_remaining_0;
 		uint8_t bits_used[3] = {
 			[0] = bits_remaining_0,
 			[1] = bits_remaining_1 < 8 ? bits_remaining_1 : 8,
 			[2] = bits_remaining_1 - 8,
 		};
+
+		assert(byte_advance <= 2);
 
 		while (true) {
 			const uint8_t *data = ctx->sb_data;
