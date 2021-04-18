@@ -1,4 +1,4 @@
-/* save as jpeg2000
+/* save as jpeg-xl
  *
  * 18/3/20
  * 	- from heifload.c
@@ -33,8 +33,8 @@
 
 /*
 #define DEBUG_VERBOSE
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -676,6 +676,9 @@ vips_foreign_save_jxl_target_init( VipsForeignSaveJxlTarget *target )
  *
  * Write a VIPS image to a file in JPEG-XL format. 
  *
+ * The JPEG-XL loader and saver are experimental features and may change
+ * in future libvips versions.
+ *
  * @tier sets the overall decode speed the encoder will target. Minimum is 0 
  * (highest quality), and maximum is 4 (lowest quality). Default is 0.
  *
@@ -683,8 +686,8 @@ vips_foreign_save_jxl_target_init( VipsForeignSaveJxlTarget *target )
  * (highest quality), and maximum is 15 (lowest quality). Default is 1.0
  * (visually lossless). 
  *
- * As a convenience, you can use @Q to set @distance. @Q of 75 is distance
- * 1.0, @Q of 100 is distance 0.0.
+ * As a convenience, you can also use @Q to set @distance. @Q uses
+ * approximately the same scale as regular JPEG.
  *
  * Set @lossless to enable lossless compresion.
  *

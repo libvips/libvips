@@ -33,8 +33,8 @@
 
 /*
 #define DEBUG_VERBOSE
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -359,11 +359,11 @@ vips_foreign_load_jxl_process( VipsForeignLoadJxl *jxl )
 
 	while( (status = JxlDecoderProcessInput( jxl->decoder )) == 
 		JXL_DEC_NEED_MORE_INPUT ) {
-		size_t unused;
+		size_t bytes_remaining;
 
-		unused = JxlDecoderReleaseInput( jxl->decoder );
-		if( vips_foreign_load_jxl_fill_input( jxl, unused ) &&
-			unused == 0 )
+		bytes_remaining = JxlDecoderReleaseInput( jxl->decoder );
+		if( vips_foreign_load_jxl_fill_input( jxl, bytes_remaining ) &&
+			bytes_remaining == 0 )
 			return( JXL_DEC_ERROR );
 		JxlDecoderSetInput( jxl->decoder,
 			jxl->input_buffer, jxl->bytes_in_buffer );
@@ -897,6 +897,9 @@ vips_foreign_load_jxl_source_init(
  *
  * Read a JPEG-XL image. 
  *
+ * The JPEG-XL loader and saver are experimental features and may change
+ * in future libvips versions.
+ *
  * See also: vips_image_new_from_file().
  *
  * Returns: 0 on success, -1 on error.
@@ -921,7 +924,7 @@ vips_jxlload( const char *filename, VipsImage **out, ... )
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
  *
- * Exactly as vips_jxlload(), but read from a source. 
+ * Exactly as vips_jxlload(), but read from a buffer. 
  *
  * Returns: 0 on success, -1 on error.
  */
