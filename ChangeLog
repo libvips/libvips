@@ -23,6 +23,7 @@
 - add GIF load with libnsgif
 - add JPEG2000 load and save
 - add black_point_compensation flag for icc transforms
+- add "rgba" flag to vips_text() to enable full colour text rendering
 
 22/12/20 start 8.10.6
 - don't seek on bad file descriptors [kleisauke]

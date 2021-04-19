@@ -60,7 +60,8 @@ jobs:
 
       - name: Install macOS dependencies
         if: contains(matrix.os, 'macos')
-        run:
+        run: |
+          brew update 
           brew install
             autoconf automake libtool
             gtk-doc gobject-introspection

@@ -42,6 +42,9 @@
 /** Transparent colour */
 #define GIF_TRANSPARENT_COLOUR 0x00
 
+/** No transparency */
+#define GIF_NO_TRANSPARENCY (0xFFFFFFFFu)
+
 /* GIF Flags */
 #define GIF_FRAME_COMBINE 1
 #define GIF_FRAME_CLEAR 2
@@ -79,34 +82,17 @@ gif_initialise_sprite(gif_animation *gif,
                       unsigned int width,
                       unsigned int height)
 {
-        unsigned int max_width;
-        unsigned int max_height;
-        struct bitmap *buffer;
-
-        /* Check if we've changed */
-        if ((width <= gif->width) && (height <= gif->height)) {
+        /* Already allocated? */
+        if (gif->frame_image) {
                 return GIF_OK;
         }
 
-        /* Get our maximum values */
-        max_width = (width > gif->width) ? width : gif->width;
-        max_height = (height > gif->height) ? height : gif->height;
-
-        /* Allocate some more memory */
         assert(gif->bitmap_callbacks.bitmap_create);
-        buffer = gif->bitmap_callbacks.bitmap_create(max_width, max_height);
-        if (buffer == NULL) {
+        gif->frame_image = gif->bitmap_callbacks.bitmap_create(width, height);
+        if (gif->frame_image == NULL) {
                 return GIF_INSUFFICIENT_MEMORY;
         }
 
-        assert(gif->bitmap_callbacks.bitmap_destroy);
-        gif->bitmap_callbacks.bitmap_destroy(gif->frame_image);
-        gif->frame_image = buffer;
-        gif->width = max_width;
-        gif->height = max_height;
-
-        /* Invalidate our currently decoded image */
-        gif->decoded_frame = GIF_INVALID_FRAME;
         return GIF_OK;
 }
 
@@ -392,10 +378,12 @@ static gif_result gif_initialise_frame(gif_animation *gif)
         gif->frames[frame].redraw_required = ((gif->frames[frame].disposal_method == GIF_FRAME_CLEAR) ||
                                                 (gif->frames[frame].disposal_method == GIF_FRAME_RESTORE));
 
-        /* Boundary checking - shouldn't ever happen except with junk data */
-        if (gif_initialise_sprite(gif, (offset_x + width), (offset_y + height))) {
-                return GIF_INSUFFICIENT_MEMORY;
-        }
+        /* Frame size may have grown.
+         */
+        gif->width = (offset_x + width > gif->width) ?
+                        offset_x + width : gif->width;
+        gif->height = (offset_y + height > gif->height) ?
+                        offset_y + height : gif->height;
 
         /* Decode the flags */
         flags = gif_data[9];
@@ -633,6 +621,160 @@ static gif_result gif__recover_previous_frame(const gif_animation *gif)
         return GIF_OK;
 }
 
+static gif_result
+gif__decode_complex(gif_animation *gif,
+                unsigned int frame,
+                unsigned int width,
+                unsigned int height,
+                unsigned int offset_x,
+                unsigned int offset_y,
+                unsigned int interlace,
+                uint8_t minimum_code_size,
+                unsigned int *restrict frame_data,
+                unsigned int *restrict colour_table)
+{
+        unsigned int transparency_index;
+        uint32_t available = 0;
+        gif_result ret = GIF_OK;
+        lzw_result res;
+
+        /* Initialise the LZW decoding */
+        res = lzw_decode_init(gif->lzw_ctx, gif->gif_data,
+                        gif->buffer_size, gif->buffer_position,
+                        minimum_code_size);
+        if (res != LZW_OK) {
+                return gif_error_from_lzw(res);
+        }
+
+        transparency_index = gif->frames[frame].transparency ?
+                        gif->frames[frame].transparency_index :
+                        GIF_NO_TRANSPARENCY;
+
+        for (unsigned int y = 0; y < height; y++) {
+                unsigned int x;
+                unsigned int decode_y;
+                unsigned int *frame_scanline;
+
+                if (interlace) {
+                        decode_y = gif_interlaced_line(height, y) + offset_y;
+                } else {
+                        decode_y = y + offset_y;
+                }
+                frame_scanline = frame_data + offset_x + (decode_y * gif->width);
+
+                x = width;
+                while (x > 0) {
+                        const uint8_t *uncompressed;
+                        unsigned row_available;
+                        if (available == 0) {
+                                if (res != LZW_OK) {
+                                        /* Unexpected end of frame, try to recover */
+                                        if (res == LZW_OK_EOD) {
+                                                ret = GIF_OK;
+                                        } else {
+                                                ret = gif_error_from_lzw(res);
+                                        }
+                                        break;
+                                }
+                                res = lzw_decode_continuous(gif->lzw_ctx,
+                                                &uncompressed, &available);
+                        }
+
+                        row_available = x < available ? x : available;
+                        x -= row_available;
+                        available -= row_available;
+                        while (row_available-- > 0) {
+                                register unsigned int colour;
+                                colour = *uncompressed++;
+                                if (colour != transparency_index) {
+                                        *frame_scanline = colour_table[colour];
+                                }
+                                frame_scanline++;
+                        }
+                }
+        }
+        return ret;
+}
+
+static gif_result
+gif__decode_simple(gif_animation *gif,
+                unsigned int frame,
+                unsigned int height,
+                unsigned int offset_y,
+                uint8_t minimum_code_size,
+                unsigned int *restrict frame_data,
+                unsigned int *restrict colour_table)
+{
+        unsigned int transparency_index;
+        uint32_t pixels = gif->width * height;
+        uint32_t written = 0;
+        gif_result ret = GIF_OK;
+        lzw_result res;
+
+        /* Initialise the LZW decoding */
+        res = lzw_decode_init(gif->lzw_ctx, gif->gif_data,
+                        gif->buffer_size, gif->buffer_position,
+                        minimum_code_size);
+        if (res != LZW_OK) {
+                return gif_error_from_lzw(res);
+        }
+
+        transparency_index = gif->frames[frame].transparency ?
+                        gif->frames[frame].transparency_index :
+                        GIF_NO_TRANSPARENCY;
+
+        frame_data += (offset_y * gif->width);
+
+        while (pixels > 0) {
+                res = lzw_decode_map_continuous(gif->lzw_ctx,
+                                transparency_index, colour_table,
+                                frame_data, pixels, &written);
+                pixels -= written;
+                frame_data += written;
+                if (res != LZW_OK) {
+                        /* Unexpected end of frame, try to recover */
+                        if (res == LZW_OK_EOD) {
+                                ret = GIF_OK;
+                        } else {
+                                ret = gif_error_from_lzw(res);
+                        }
+                        break;
+                }
+        }
+
+        if (pixels == 0) {
+                ret = GIF_OK;
+        }
+
+        return ret;
+}
+
+static inline gif_result
+gif__decode(gif_animation *gif,
+                unsigned int frame,
+                unsigned int width,
+                unsigned int height,
+                unsigned int offset_x,
+                unsigned int offset_y,
+                unsigned int interlace,
+                uint8_t minimum_code_size,
+                unsigned int *restrict frame_data,
+                unsigned int *restrict colour_table)
+{
+        gif_result ret;
+
+        if (interlace == false && width == gif->width && offset_x == 0) {
+                ret = gif__decode_simple(gif, frame, height, offset_y,
+                                minimum_code_size, frame_data, colour_table);
+        } else {
+                ret = gif__decode_complex(gif, frame, width, height,
+                                offset_x, offset_y, interlace,
+                                minimum_code_size, frame_data, colour_table);
+        }
+
+        return ret;
+}
+
 /**
  * decode a gif frame
  *
@@ -653,11 +795,8 @@ gif_internal_decode_frame(gif_animation *gif,
         unsigned int flags, colour_table_size, interlace;
         unsigned int *colour_table;
         unsigned int *frame_data = 0;	// Set to 0 for no warnings
-        unsigned int *frame_scanline;
         unsigned int save_buffer_position;
         unsigned int return_value = 0;
-        unsigned int x, y, decode_y, burst_bytes;
-        register unsigned char colour;
 
         /* Ensure this frame is supposed to be decoded */
         if (gif->frames[frame].display == false) {
@@ -739,6 +878,12 @@ gif_internal_decode_frame(gif_animation *gif,
                 goto gif_decode_frame_exit;
         }
 
+        /* Make sure we have a buffer to decode to.
+         */
+        if (gif_initialise_sprite(gif, gif->width, gif->height)) {
+                return GIF_INSUFFICIENT_MEMORY;
+        }
+
         /* Decode the flags */
         flags = gif_data[9];
         colour_table_size = 2 << (flags & GIF_COLOUR_TABLE_SIZE_MASK);
@@ -805,10 +950,6 @@ gif_internal_decode_frame(gif_animation *gif,
 
         /* If we are clearing the image we just clear, if not decode */
         if (!clear_image) {
-                lzw_result res;
-                const uint8_t *stack_base;
-                const uint8_t *stack_pos;
-
                 /* Ensure we have enough data for a 1-byte LZW code size +
                  * 1-byte gif trailer
                  */
@@ -872,62 +1013,15 @@ gif_internal_decode_frame(gif_animation *gif,
                 gif->decoded_frame = frame;
                 gif->buffer_position = (gif_data - gif->gif_data) + 1;
 
-                /* Initialise the LZW decoding */
-                res = lzw_decode_init(gif->lzw_ctx, gif->gif_data,
-                                gif->buffer_size, gif->buffer_position,
-                                gif_data[0], &stack_base, &stack_pos);
-                if (res != LZW_OK) {
-                        return gif_error_from_lzw(res);
-                }
-
-                /* Decompress the data */
-                for (y = 0; y < height; y++) {
-                        if (interlace) {
-                                decode_y = gif_interlaced_line(height, y) + offset_y;
-                        } else {
-                                decode_y = y + offset_y;
-                        }
-                        frame_scanline = frame_data + offset_x + (decode_y * gif->width);
-
-                        /* Rather than decoding pixel by pixel, we try to burst
-                         * out streams of data to remove the need for end-of
-                         * data checks every pixel.
-                         */
-                        x = width;
-                        while (x > 0) {
-                                burst_bytes = (stack_pos - stack_base);
-                                if (burst_bytes > 0) {
-                                        if (burst_bytes > x) {
-                                                burst_bytes = x;
-                                        }
-                                        x -= burst_bytes;
-                                        while (burst_bytes-- > 0) {
-                                                colour = *--stack_pos;
-                                                if (((gif->frames[frame].transparency) &&
-                                                     (colour != gif->frames[frame].transparency_index)) ||
-                                                    (!gif->frames[frame].transparency)) {
-                                                        *frame_scanline = colour_table[colour];
-                                                }
-                                                frame_scanline++;
-                                        }
-                                } else {
-                                        res = lzw_decode(gif->lzw_ctx, &stack_pos);
-                                        if (res != LZW_OK) {
-                                                /* Unexpected end of frame, try to recover */
-                                                if (res == LZW_OK_EOD) {
-                                                        return_value = GIF_OK;
-                                                } else {
-                                                        return_value = gif_error_from_lzw(res);
-                                                }
-                                                goto gif_decode_frame_exit;
-                                        }
-                                }
-                        }
-                }
+                return_value = gif__decode(gif, frame, width, height,
+                                offset_x, offset_y, interlace, gif_data[0],
+                                frame_data, colour_table);
         } else {
                 /* Clear our frame */
                 if (gif->frames[frame].disposal_method == GIF_FRAME_CLEAR) {
+                        unsigned int y;
                         for (y = 0; y < height; y++) {
+                                unsigned int *frame_scanline;
                                 frame_scanline = frame_data + offset_x + ((offset_y + y) * gif->width);
                                 if (gif->frames[frame].transparency) {
                                         memset(frame_scanline,
@@ -1114,14 +1208,6 @@ gif_result gif_initialise(gif_animation *gif, size_t size, unsigned char *data)
                         return GIF_INSUFFICIENT_MEMORY;
                 }
                 gif->frame_holders = 1;
-
-                /* Initialise the bitmap header */
-                assert(gif->bitmap_callbacks.bitmap_create);
-                gif->frame_image = gif->bitmap_callbacks.bitmap_create(gif->width, gif->height);
-                if (gif->frame_image == NULL) {
-                        gif_finalise(gif);
-                        return GIF_INSUFFICIENT_MEMORY;
-                }
 
                 /* Remember we've done this now */
                 gif->buffer_position = gif_data - gif->gif_data;

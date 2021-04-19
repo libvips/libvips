@@ -534,17 +534,19 @@ vips_foreign_load_nsgif_class_init( VipsForeignLoadNsgifClass *class )
 static void *
 vips_foreign_load_nsgif_bitmap_create( int width, int height )
 {
-	/* Check GIF dimensions fit within 16-bit unsigned.
+	/* Enforce max GIF dimensions of 16383 (0x7FFF). This should be enough
+	 * for anyone, and will prevent the worst GIF bombs.
 	 */
 	if( width <= 0 ||
-		width > 65535 ||
+		width > 16383 ||
 		height <= 0 ||
-		height > 65535 ) {
+		height > 16383 ) {
 		vips_error( "gifload",
-			"%s", _( "dimensions out of range ") );
+			"%s", _( "bad image dimensions") );
 		return( NULL );
 	}
-	return g_malloc0( width * height * 4 );
+
+	return g_malloc0( (gsize) width * height * 4 );
 }
 
 static void 
