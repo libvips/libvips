@@ -141,7 +141,7 @@ vips_foreign_load_jxl_error( VipsForeignLoadJxl *jxl, const char *details )
 
 	/* TODO ... jxl has no way to get error messages at the moment.
 	 */
-	vips_error( class->nickname, "%s", details );
+	vips_error( class->nickname, "error %s", details );
 }
 
 static int
@@ -279,7 +279,8 @@ vips_foreign_load_jxl_print_status( JxlDecoderStatus status )
 		break;
 
 	default:
-		g_assert_not_reached();
+		printf( "JXL_DEC_<unknown>\n" );
+		break;
 	}
 }
 

@@ -129,7 +129,7 @@ vips_foreign_save_jxl_error( VipsForeignSaveJxl *jxl, const char *details )
 
 	/* TODO ... jxl has no way to get error messages at the moment.
 	 */
-	vips_error( class->nickname, "%s", details );
+	vips_error( class->nickname, "error %s", details );
 }
 
 #ifdef DEBUG
@@ -200,6 +200,32 @@ vips_foreign_save_jxl_print_format( JxlPixelFormat *format )
 	printf( "    endianness = %d\n", format->endianness );
 	printf( "    align = %zd\n", format->align );
 }
+
+static void
+vips_foreign_save_jxl_print_status( JxlEncoderStatus status )
+{
+	switch( status ) {
+	case JXL_ENC_SUCCESS:
+		printf( "JXL_ENC_SUCCESS\n" );
+		break;
+
+	case JXL_ENC_ERROR:
+		printf( "JXL_ENC_ERROR\n" );
+		break;
+
+	case JXL_ENC_NEED_MORE_OUTPUT:
+		printf( "JXL_ENC_NEED_MORE_OUTPUT\n" );
+		break;
+
+	case JXL_ENC_NOT_SUPPORTED:
+		printf( "JXL_ENC_NOT_SUPPORTED\n" );
+		break;
+
+	default:
+		printf( "JXL_ENC_<unknown>\n" );
+		break;
+	}
+}
 #endif /*DEBUG*/
 
 static int
@@ -223,6 +249,11 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		jxl->distance = jxl->Q >= 30 ?
 			0.1 + (100 - jxl->Q) * 0.09 :
 			6.4 + pow(2.5, (30 - jxl->Q) / 5.0f) / 6.25f;
+
+	/* Distance 0 is lossless. libjxl will fail for lossy distance 0.
+	 */
+	if( jxl->distance == 0 )
+		jxl->lossless = TRUE;
 
 	jxl->runner = JxlThreadParallelRunnerCreate( NULL, 
 		vips_concurrency_get() );
@@ -390,6 +421,9 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		default:
 			vips_foreign_save_jxl_error( jxl, 
 				"JxlEncoderProcessOutput" );
+#ifdef DEBUG
+			vips_foreign_save_jxl_print_status( status );
+#endif /*DEBUG*/
 			return( -1 );
 		}
 	} while( status != JXL_ENC_SUCCESS );
