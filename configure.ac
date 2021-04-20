@@ -1103,6 +1103,26 @@ fi
 VIPS_CFLAGS="$VIPS_CFLAGS $PANGOCAIRO_CFLAGS"
 VIPS_LIBS="$VIPS_LIBS $PANGOCAIRO_LIBS"
 
+# font file support with fontconfig
+AC_ARG_WITH([fontconfig], 
+  AS_HELP_STRING([--without-fontconfig], 
+    [build without fontconfig (default: test)]))
+
+if test x"$with_pangocairo" != x"no" -a x"$with_fontconfig" != x"no"; then
+  PKG_CHECK_MODULES(FONTCONFIG, fontconfig,
+    [AC_DEFINE(HAVE_FONTCONFIG,1,[define if you have fontconfig installed.])
+     with_fontconfig=yes
+     PACKAGES_USED="$PACKAGES_USED fontconfig"
+    ],
+    [AC_MSG_WARN([fontconfig not found; disabling fontconfig support])
+     with_fontconfig=no
+    ]
+  )
+fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $FONTCONFIG_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $FONTCONFIG_LIBS"
+
 # look for TIFF with pkg-config ... fall back to our tester
 # pkgconfig support for libtiff starts with libtiff-4
 AC_ARG_WITH([tiff], 
@@ -1326,6 +1346,7 @@ accelerate loops with orc: $with_orc, \
 ICC profile support with lcms: $with_lcms, \
 zlib: $with_zlib, \
 text rendering with pangocairo: $with_pangocairo, \
+font file support with fontconfig: $with_fontconfig, \
 EXIF metadata support with libexif: $with_libexif, \
 JPEG load/save with libjpeg: $with_jpeg, \
 PNG load with libspng: $with_libspng, \
@@ -1428,6 +1449,7 @@ accelerate loops with orc:              $with_orc
 ICC profile support with lcms:          $with_lcms
 zlib:                                   $with_zlib
 text rendering with pangocairo:         $with_pangocairo
+font file support with fontconfig:      $with_fontconfig
 EXIF metadata support with libexif:     $with_libexif
 
 ## File format support
