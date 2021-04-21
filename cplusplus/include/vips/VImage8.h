@@ -601,6 +601,29 @@ public:
 	}
 
 	/**
+	 * Set the value of an double array metadata item on an image.
+	 *
+	 * A copy of the array is taken.
+	 */
+	void
+	set( const char *field, double *value, int n )
+	{
+		vips_image_set_array_double( this->get_image(), field, value, n );
+	}
+
+	/**
+	 * Set the value of an double array metadata item on an image.
+	 *
+	 * A copy of the array is taken.
+	 */
+	void
+	set( const char *field, std::vector<double> value )
+	{
+		vips_image_set_array_double( this->get_image(), field, &value[0],
+			static_cast<int>( value.size() ) );
+	}
+
+	/**
 	 * Set the value of a double metadata item on an image.
 	 */
 	void 
@@ -691,6 +714,40 @@ public:
 			throw( VError() ); 
 
 		std::vector<int> vector( array, array + length );
+
+		return( vector );
+	}
+
+	/**
+	 * Get the value of a metadata item as an array of doubles. Do not free
+	 * the result. 
+	 *
+	 * If the item is not of this type, an exception is thrown.
+	 */
+	void
+	get_array_double( const char *field, double **out, int *n ) const
+	{
+		if( vips_image_get_array_double( this->get_image(),
+			field, out, n ) )
+			throw( VError() );
+	}
+
+	/**
+	 * Get the value of a metadata item as an array of doubles. 
+	 *
+	 * If the item is not of this type, an exception is thrown.
+	 */
+	std::vector<double>
+	get_array_double( const char *field ) const
+	{
+		int length;
+		double *array;
+
+		if( vips_image_get_array_double( this->get_image(),
+			field, &array, &length ) )
+			throw( VError() );
+
+		std::vector<double> vector( array, array + length );
 
 		return( vector );
 	}
