@@ -2327,7 +2327,7 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_openslide_source_get_type(); 
 #endif /*defined(HAVE_OPENSLIDE) && !defined(OPENSLIDE_MODULE)*/
 
-#ifdef ENABLE_MAGICKLOAD
+#if defined(ENABLE_MAGICKLOAD) && !defined(MAGICK_MODULE)
 #ifdef HAVE_MAGICK6
 	vips_foreign_load_magick_file_get_type();
 	vips_foreign_load_magick_buffer_get_type();
@@ -2337,12 +2337,12 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_magick7_file_get_type();
 	vips_foreign_load_magick7_buffer_get_type();
 #endif /*HAVE_MAGICK7*/
-#endif /*ENABLE_MAGICKLOAD*/
+#endif /*defined(ENABLE_MAGICKLOAD) && !defined(MAGICK_MODULE)*/
 
-#ifdef ENABLE_MAGICKSAVE
+#if defined(ENABLE_MAGICKSAVE) && !defined(MAGICK_MODULE)
 	vips_foreign_save_magick_file_get_type();
 	vips_foreign_save_magick_buffer_get_type();
-#endif /*ENABLE_MAGICKSAVE*/
+#endif /*defined(ENABLE_MAGICKSAVE) && !defined(MAGICK_MODULE)*/
 
 #ifdef HAVE_CFITSIO
 	vips_foreign_load_fits_file_get_type(); 

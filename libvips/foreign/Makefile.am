@@ -25,10 +25,6 @@ libforeign_la_SOURCES = \
 	jpeg.h \
 	jpegload.c \
 	jpegsave.c \
-	magick2vips.c \
-	magick7load.c \
-	magick.c \
-	magick.h \
 	magickload.c \
 	magicksave.c \
 	matlab.c \
@@ -73,6 +69,16 @@ libforeign_la_SOURCES = \
 
 # We still need to include the GObject part of a loader/saver
 # if it is not built as a dynamically loadable module.
+
+if !MAGICK_MODULE
+libforeign_la_SOURCES += \
+	magick.c \
+	magick.h \
+	magick2vips.c \
+	magick6load.c \
+	magick7load.c \
+	vips2magick.c
+endif # !MAGICK_MODULE
 
 if !HEIF_MODULE
 libforeign_la_SOURCES += heif2vips.c vips2heif.c

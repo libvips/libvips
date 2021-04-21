@@ -82,6 +82,10 @@ module_LTLIBRARIES =
 
 moduledir = @VIPS_LIBDIR@/vips-modules-@VIPS_MAJOR_VERSION@.@VIPS_MINOR_VERSION@
 
+if MAGICK_MODULE
+module_LTLIBRARIES += vips-magick.la
+endif # MAGICK_MODULE
+
 if HEIF_MODULE
 module_LTLIBRARIES += vips-heif.la
 endif # HEIF_MODULE
@@ -111,6 +115,18 @@ MODULE_LIBADD = \
 # Note that only the GObject part should be included in a
 # dynamically loadable module. The C definitions are always
 # included in the main library.
+
+vips_magick_la_SOURCES = \
+	module/magick.c \
+	foreign/magick.c \
+	foreign/magick.h \
+	foreign/magick2vips.c \
+	foreign/magick6load.c \
+	foreign/magick7load.c \
+	foreign/vips2magick.c
+vips_magick_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(MAGICK_CFLAGS)
+vips_magick_la_LDFLAGS = $(MODULE_LDFLAGS)
+vips_magick_la_LIBADD = $(MODULE_LIBADD) $(MAGICK_LIBS)
 
 vips_heif_la_SOURCES = module/heif.c foreign/heif2vips.c foreign/vips2heif.c
 vips_heif_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(HEIF_CFLAGS)

@@ -535,7 +535,14 @@ VIPS_LIBS="$VIPS_LIBS $FFTW_LIBS"
 
 # ImageMagick 
 AC_ARG_WITH([magick], 
-  AS_HELP_STRING([--without-magick], [build without libMagic (default: test)]))
+  AS_HELP_STRING([--without-magick], [build without libMagic (default: test)]),
+    [with_magick=$withval],
+    [with_magick=$gmodule_with_flag])
+
+# libMagic as a dynamically loadable module
+AS_IF([test x"$with_magick" = x"module"],
+  [with_magick_module=$gmodule_supported_flag],
+  [with_magick_module=no])
 
 AC_ARG_WITH([magickpackage], 
   AS_HELP_STRING([--with-magickpackage], 
@@ -552,6 +559,7 @@ if test x"$with_magickpackage" = x""; then
        ],
        [AC_MSG_WARN([neither MagickCore nor ImageMagick found; disabling Magick support])
         with_magick=no
+        with_magick_module=no
        ]
      )
     ]
@@ -568,23 +576,27 @@ if test x"$with_magick" != x"no"; then
      with_magick=yes
      magick7=yes
      magick_version=magick7
-     PACKAGES_USED="$PACKAGES_USED $with_magickpackage"
+     AS_IF([test x"$with_magick_module" = x"no"],
+       [PACKAGES_USED="$PACKAGES_USED $with_magickpackage"])
     ],
     [PKG_CHECK_MODULES(MAGICK, $with_magickpackage,  
        [AC_DEFINE(HAVE_MAGICK6,1,[define if you have libMagick6 installed.])
         with_magick=yes
         magick6=yes
         magick_version=magick6
-        PACKAGES_USED="$PACKAGES_USED $with_magickpackage"
+        AS_IF([test x"$with_magick_module" = x"no"],
+          [PACKAGES_USED="$PACKAGES_USED $with_magickpackage"])
        ],
        [AC_MSG_WARN([$with_magickpackage not found; disabling Magick support])
         with_magick=no
+        with_magick_module=no
        ]
      )
     ]  
   )
 else
   with_magick=no
+  with_magick_module=no
   magick6=no
   magick_version=none
   with_magickpackage=none
@@ -692,8 +704,11 @@ else
   enable_magicksave=no
 fi
 
-VIPS_CFLAGS="$VIPS_CFLAGS $MAGICK_CFLAGS"
-VIPS_LIBS="$VIPS_LIBS $MAGICK_LIBS"
+AS_IF([test x"$with_magick_module" = x"yes"],
+  [AC_DEFINE([MAGICK_MODULE], [1], [define to build libMagic as a dynamically loadable module.])],
+  [VIPS_CFLAGS="$VIPS_CFLAGS $MAGICK_CFLAGS"
+   VIPS_LIBS="$VIPS_LIBS $MAGICK_LIBS"])
+AM_CONDITIONAL(MAGICK_MODULE, [test x"$with_magick_module" = x"yes"])
 
 # orc
 AC_ARG_WITH([orc], 
@@ -1425,7 +1440,7 @@ slide load with OpenSlide: $with_openslide (dynamic module: $with_openslide_modu
 Matlab load with matio: $with_matio, \
 NIfTI load/save with niftiio: $with_nifti, \
 FITS load/save with cfitsio: $with_cfitsio, \
-Magick package: $with_magickpackage, \
+Magick package: $with_magickpackage (dynamic module: $with_magick_module), \
 Magick API version: $magick_version, \
 load with libMagickCore: $enable_magickload, \
 save with libMagickCore: $enable_magicksave"
@@ -1541,7 +1556,7 @@ slide load with OpenSlide:              $with_openslide (dynamic module: $with_o
 Matlab load with matio:                 $with_matio
 NIfTI load/save with niftiio:           $with_nifti
 FITS load/save with cfitsio:            $with_cfitsio
-Magick package:                         $with_magickpackage
+Magick package:                         $with_magickpackage (dynamic module: $with_magick_module)
 Magick API version:                     $magick_version
 load with libMagickCore:                $enable_magickload
 save with libMagickCore:                $enable_magicksave
