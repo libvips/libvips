@@ -95,7 +95,7 @@ typedef struct _VipsForeignLoadNifti {
 
 typedef VipsForeignLoadClass VipsForeignLoadNiftiClass;
 
-G_DEFINE_TYPE( VipsForeignLoadNifti, vips_foreign_load_nifti, 
+G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadNifti, vips_foreign_load_nifti, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static void

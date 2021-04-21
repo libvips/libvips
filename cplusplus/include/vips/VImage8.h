@@ -1724,7 +1724,7 @@ public:
 	 *
 	 * Rebuild with:
 	 *
-	 * 	make vips-operators.h
+	 * 	make vips-operators
 	 *
 	 * Then delete from here to the end of the class and paste in
 	 * vips-operators.h. We could just #include vips-operators.h, but 
@@ -1732,7 +1732,7 @@ public:
 	 */
 
 // headers for vips operations
-// Wed 19 Aug 14:34:56 BST 2020
+// Wed Apr 21 06:00:31 PM CEST 2021
 // this file is generated automatically, do not edit!
 
 /**
@@ -2680,6 +2680,22 @@ int find_trim( int *top, int *width, int *height, VOption *options = 0 ) const;
 static VImage fitsload( const char *filename, VOption *options = 0 );
 
 /**
+ * Load fits from a source.
+ *
+ * **Optional parameters**
+ *   - **memory** -- Force open via memory, bool.
+ *   - **access** -- Required access pattern for this file, VipsAccess.
+ *   - **sequential** -- Sequential read only, bool.
+ *   - **fail** -- Fail on first error, bool.
+ *   - **disc** -- Open to disc, bool.
+ *
+ * @param source Source to load from.
+ * @param options Set of options.
+ * @return Output image.
+ */
+static VImage fitsload_source( VSource source, VOption *options = 0 );
+
+/**
  * Save image to fits file.
  *
  * **Optional parameters**
@@ -2789,6 +2805,7 @@ static VImage gaussmat( double sigma, double min_ampl, VOption *options = 0 );
  * **Optional parameters**
  *   - **sigma** -- Standard deviation of pixels in generated image, double.
  *   - **mean** -- Mean of pixels in generated image, double.
+ *   - **seed** -- Random number seed, int.
  *
  * @param width Image width in pixels.
  * @param height Image height in pixels.
@@ -2807,11 +2824,11 @@ static VImage gaussnoise( int width, int height, VOption *options = 0 );
 std::vector<double> getpoint( int x, int y, VOption *options = 0 ) const;
 
 /**
- * Load gif with giflib.
+ * Load gif with libnsgif.
  *
  * **Optional parameters**
- *   - **page** -- Load this page from the file, int.
  *   - **n** -- Load this many pages, int.
+ *   - **page** -- Load this page from the file, int.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
  *   - **sequential** -- Sequential read only, bool.
@@ -2825,11 +2842,11 @@ std::vector<double> getpoint( int x, int y, VOption *options = 0 ) const;
 static VImage gifload( const char *filename, VOption *options = 0 );
 
 /**
- * Load gif with giflib.
+ * Load gif with libnsgif.
  *
  * **Optional parameters**
- *   - **page** -- Load this page from the file, int.
  *   - **n** -- Load this many pages, int.
+ *   - **page** -- Load this page from the file, int.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
  *   - **sequential** -- Sequential read only, bool.
@@ -2843,11 +2860,11 @@ static VImage gifload( const char *filename, VOption *options = 0 );
 static VImage gifload_buffer( VipsBlob *buffer, VOption *options = 0 );
 
 /**
- * Load gif with giflib.
+ * Load gif from source.
  *
  * **Optional parameters**
- *   - **page** -- Load this page from the file, int.
  *   - **n** -- Load this many pages, int.
+ *   - **page** -- Load this page from the file, int.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
  *   - **sequential** -- Sequential read only, bool.
@@ -2977,7 +2994,7 @@ static VImage heifload_source( VSource source, VOption *options = 0 );
  *   - **Q** -- Q factor, int.
  *   - **lossless** -- Enable lossless compression, bool.
  *   - **compression** -- Compression format, VipsForeignHeifCompression.
- *   - **speed**: -- CPU effort, 0 slowest - 8 fastest, AV1 compression only, int.
+ *   - **speed** -- CPU effort, int.
  *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
@@ -2995,7 +3012,7 @@ void heifsave( const char *filename, VOption *options = 0 ) const;
  *   - **Q** -- Q factor, int.
  *   - **lossless** -- Enable lossless compression, bool.
  *   - **compression** -- Compression format, VipsForeignHeifCompression.
- *   - **speed**: -- CPU effort, 0 slowest - 8 fastest, AV1 compression only, int.
+ *   - **speed** -- CPU effort, int.
  *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
@@ -3013,7 +3030,7 @@ VipsBlob *heifsave_buffer( VOption *options = 0 ) const;
  *   - **Q** -- Q factor, int.
  *   - **lossless** -- Enable lossless compression, bool.
  *   - **compression** -- Compression format, VipsForeignHeifCompression.
- *   - **speed**: -- CPU effort, 0 slowest - 8 fastest, AV1 compression only, int.
+ *   - **speed** -- CPU effort, int.
  *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
@@ -3156,6 +3173,7 @@ VImage hough_line( VOption *options = 0 ) const;
  * **Optional parameters**
  *   - **pcs** -- Set Profile Connection Space, VipsPCS.
  *   - **intent** -- Rendering intent, VipsIntent.
+ *   - **black_point_compensation** -- Enable black point compensation, bool.
  *   - **output_profile** -- Filename to load output profile from, const char *.
  *   - **depth** -- Output device space depth in bits, int.
  *
@@ -3170,6 +3188,7 @@ VImage icc_export( VOption *options = 0 ) const;
  * **Optional parameters**
  *   - **pcs** -- Set Profile Connection Space, VipsPCS.
  *   - **intent** -- Rendering intent, VipsIntent.
+ *   - **black_point_compensation** -- Enable black point compensation, bool.
  *   - **embedded** -- Use embedded input profile, if available, bool.
  *   - **input_profile** -- Filename to load input profile from, const char *.
  *
@@ -3184,6 +3203,7 @@ VImage icc_import( VOption *options = 0 ) const;
  * **Optional parameters**
  *   - **pcs** -- Set Profile Connection Space, VipsPCS.
  *   - **intent** -- Rendering intent, VipsIntent.
+ *   - **black_point_compensation** -- Enable black point compensation, bool.
  *   - **embedded** -- Use embedded input profile, if available, bool.
  *   - **input_profile** -- Filename to load input profile from, const char *.
  *   - **depth** -- Output device space depth in bits, int.
@@ -3279,6 +3299,111 @@ VImage invfft( VOption *options = 0 ) const;
  * @return Output image.
  */
 VImage join( VImage in2, VipsDirection direction, VOption *options = 0 ) const;
+
+/**
+ * Load jpeg2000 image.
+ *
+ * **Optional parameters**
+ *   - **page** -- Load this page from the image, int.
+ *   - **memory** -- Force open via memory, bool.
+ *   - **access** -- Required access pattern for this file, VipsAccess.
+ *   - **sequential** -- Sequential read only, bool.
+ *   - **fail** -- Fail on first error, bool.
+ *   - **disc** -- Open to disc, bool.
+ *
+ * @param filename Filename to load from.
+ * @param options Set of options.
+ * @return Output image.
+ */
+static VImage jp2kload( const char *filename, VOption *options = 0 );
+
+/**
+ * Load jpeg2000 image.
+ *
+ * **Optional parameters**
+ *   - **page** -- Load this page from the image, int.
+ *   - **memory** -- Force open via memory, bool.
+ *   - **access** -- Required access pattern for this file, VipsAccess.
+ *   - **sequential** -- Sequential read only, bool.
+ *   - **fail** -- Fail on first error, bool.
+ *   - **disc** -- Open to disc, bool.
+ *
+ * @param buffer Buffer to load from.
+ * @param options Set of options.
+ * @return Output image.
+ */
+static VImage jp2kload_buffer( VipsBlob *buffer, VOption *options = 0 );
+
+/**
+ * Load jpeg2000 image.
+ *
+ * **Optional parameters**
+ *   - **page** -- Load this page from the image, int.
+ *   - **memory** -- Force open via memory, bool.
+ *   - **access** -- Required access pattern for this file, VipsAccess.
+ *   - **sequential** -- Sequential read only, bool.
+ *   - **fail** -- Fail on first error, bool.
+ *   - **disc** -- Open to disc, bool.
+ *
+ * @param source Source to load from.
+ * @param options Set of options.
+ * @return Output image.
+ */
+static VImage jp2kload_source( VSource source, VOption *options = 0 );
+
+/**
+ * Save image in heif format.
+ *
+ * **Optional parameters**
+ *   - **tile_width** -- Tile width in pixels, int.
+ *   - **tile_height** -- Tile height in pixels, int.
+ *   - **lossless** -- Enable lossless compression, bool.
+ *   - **Q** -- Q factor, int.
+ *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
+ *   - **strip** -- Strip all metadata from image, bool.
+ *   - **background** -- Background value, std::vector<double>.
+ *   - **page_height** -- Set page height for multipage save, int.
+ *
+ * @param filename Filename to load from.
+ * @param options Set of options.
+ */
+void jp2ksave( const char *filename, VOption *options = 0 ) const;
+
+/**
+ * Save image in heif format.
+ *
+ * **Optional parameters**
+ *   - **tile_width** -- Tile width in pixels, int.
+ *   - **tile_height** -- Tile height in pixels, int.
+ *   - **lossless** -- Enable lossless compression, bool.
+ *   - **Q** -- Q factor, int.
+ *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
+ *   - **strip** -- Strip all metadata from image, bool.
+ *   - **background** -- Background value, std::vector<double>.
+ *   - **page_height** -- Set page height for multipage save, int.
+ *
+ * @param options Set of options.
+ * @return Buffer to save to.
+ */
+VipsBlob *jp2ksave_buffer( VOption *options = 0 ) const;
+
+/**
+ * Save image in heif format.
+ *
+ * **Optional parameters**
+ *   - **tile_width** -- Tile width in pixels, int.
+ *   - **tile_height** -- Tile height in pixels, int.
+ *   - **lossless** -- Enable lossless compression, bool.
+ *   - **Q** -- Q factor, int.
+ *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
+ *   - **strip** -- Strip all metadata from image, bool.
+ *   - **background** -- Background value, std::vector<double>.
+ *   - **page_height** -- Set page height for multipage save, int.
+ *
+ * @param target Target to save to.
+ * @param options Set of options.
+ */
+void jp2ksave_target( VTarget target, VOption *options = 0 ) const;
 
 /**
  * Load jpeg from file.
@@ -4030,7 +4155,7 @@ VImage msb( VOption *options = 0 ) const;
 VImage multiply( VImage right, VOption *options = 0 ) const;
 
 /**
- * Load a nifti image.
+ * Load nifti volume.
  *
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
@@ -4044,6 +4169,22 @@ VImage multiply( VImage right, VOption *options = 0 ) const;
  * @return Output image.
  */
 static VImage niftiload( const char *filename, VOption *options = 0 );
+
+/**
+ * Load nifti volumes.
+ *
+ * **Optional parameters**
+ *   - **memory** -- Force open via memory, bool.
+ *   - **access** -- Required access pattern for this file, VipsAccess.
+ *   - **sequential** -- Sequential read only, bool.
+ *   - **fail** -- Fail on first error, bool.
+ *   - **disc** -- Open to disc, bool.
+ *
+ * @param source Source to load from.
+ * @param options Set of options.
+ * @return Output image.
+ */
+static VImage niftiload_source( VSource source, VOption *options = 0 );
 
 /**
  * Save image to nifti file.
@@ -4078,7 +4219,7 @@ static VImage openexrload( const char *filename, VOption *options = 0 );
  * Load file with openslide.
  *
  * **Optional parameters**
- *   - **attach_associated** -- Attach all asssociated images, bool.
+ *   - **attach_associated** -- Attach all associated images, bool.
  *   - **level** -- Load this level from the file, int.
  *   - **autocrop** -- Crop to image bounds, bool.
  *   - **associated** -- Load this associated image, const char *.
@@ -4093,6 +4234,26 @@ static VImage openexrload( const char *filename, VOption *options = 0 );
  * @return Output image.
  */
 static VImage openslideload( const char *filename, VOption *options = 0 );
+
+/**
+ * Load source with openslide.
+ *
+ * **Optional parameters**
+ *   - **attach_associated** -- Attach all associated images, bool.
+ *   - **level** -- Load this level from the file, int.
+ *   - **autocrop** -- Crop to image bounds, bool.
+ *   - **associated** -- Load this associated image, const char *.
+ *   - **memory** -- Force open via memory, bool.
+ *   - **access** -- Required access pattern for this file, VipsAccess.
+ *   - **sequential** -- Sequential read only, bool.
+ *   - **fail** -- Fail on first error, bool.
+ *   - **disc** -- Open to disc, bool.
+ *
+ * @param source Source to load from.
+ * @param options Set of options.
+ * @return Output image.
+ */
+static VImage openslideload_source( VSource source, VOption *options = 0 );
 
 /**
  * Load pdf from file.
@@ -4171,6 +4332,7 @@ int percent( double percent, VOption *options = 0 ) const;
  * **Optional parameters**
  *   - **cell_size** -- Size of Perlin cells, int.
  *   - **uchar** -- Output an unsigned char image, bool.
+ *   - **seed** -- Random number seed, int.
  *
  * @param width Image width in pixels.
  * @param height Image height in pixels.
@@ -4339,7 +4501,7 @@ static VImage ppmload_source( VSource source, VOption *options = 0 );
  * **Optional parameters**
  *   - **ascii** -- save as ascii, bool.
  *   - **squash** -- save as one bit, bool.
- *   - **bitdepth** -- Write as a 1 bit image, int.
+ *   - **bitdepth** -- set to 1 to write as a 1 bit image, int.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -4355,7 +4517,7 @@ void ppmsave( const char *filename, VOption *options = 0 ) const;
  * **Optional parameters**
  *   - **ascii** -- save as ascii, bool.
  *   - **squash** -- save as one bit, bool.
- *   - **bitdepth** -- Write as a 1 bit image, int.
+ *   - **bitdepth** -- set to 1 to write as a 1 bit image, int.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -5039,6 +5201,7 @@ static void system( const char *cmd_format, VOption *options = 0 );
  *   - **width** -- Maximum image width in pixels, int.
  *   - **height** -- Maximum image height in pixels, int.
  *   - **align** -- Align on the low, centre or high edge, VipsAlign.
+ *   - **rgba** -- Enable RGBA output, bool.
  *   - **dpi** -- DPI to render at, int.
  *   - **justify** -- Justify lines, bool.
  *   - **spacing** -- Line spacing, int.
@@ -5341,7 +5504,23 @@ VImage unpremultiply( VOption *options = 0 ) const;
 static VImage vipsload( const char *filename, VOption *options = 0 );
 
 /**
- * Save image to vips file.
+ * Load vips from source.
+ *
+ * **Optional parameters**
+ *   - **memory** -- Force open via memory, bool.
+ *   - **access** -- Required access pattern for this file, VipsAccess.
+ *   - **sequential** -- Sequential read only, bool.
+ *   - **fail** -- Fail on first error, bool.
+ *   - **disc** -- Open to disc, bool.
+ *
+ * @param source Source to load from.
+ * @param options Set of options.
+ * @return Output image.
+ */
+static VImage vipsload_source( VSource source, VOption *options = 0 );
+
+/**
+ * Save image to file in vips format.
  *
  * **Optional parameters**
  *   - **strip** -- Strip all metadata from image, bool.
@@ -5352,6 +5531,19 @@ static VImage vipsload( const char *filename, VOption *options = 0 );
  * @param options Set of options.
  */
 void vipssave( const char *filename, VOption *options = 0 ) const;
+
+/**
+ * Save image to target in vips format.
+ *
+ * **Optional parameters**
+ *   - **strip** -- Strip all metadata from image, bool.
+ *   - **background** -- Background value, std::vector<double>.
+ *   - **page_height** -- Set page height for multipage save, int.
+ *
+ * @param target Target to save to.
+ * @param options Set of options.
+ */
+void vipssave_target( VTarget target, VOption *options = 0 ) const;
 
 /**
  * Load webp from file.
@@ -5490,6 +5682,7 @@ void webpsave_target( VTarget target, VOption *options = 0 ) const;
  *
  * **Optional parameters**
  *   - **cell_size** -- Size of Worley cells, int.
+ *   - **seed** -- Random number seed, int.
  *
  * @param width Image width in pixels.
  * @param height Image height in pixels.
