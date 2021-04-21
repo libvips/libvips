@@ -84,7 +84,10 @@
 #include <cairo.h>
 #include <pango/pango.h>
 #include <pango/pangocairo.h>
+
+#ifdef HAVE_FONTCONFIG
 #include <fontconfig/fontconfig.h>
+#endif
 
 #include "pcreate.h"
 
@@ -123,10 +126,12 @@ static GMutex *vips_text_lock = NULL;
  */
 static PangoFontMap *vips_text_fontmap = NULL;
 
+#ifdef HAVE_FONTCONFIG
 /* All the fontfiles we've loaded. fontconfig lets you add a fontfile
  * repeatedly, and we obviously don't want that.
  */
 static GHashTable *vips_text_fontfiles = NULL;
+#endif
 
 static void
 vips_text_dispose( GObject *gobject )
@@ -365,13 +370,17 @@ vips_text_build( VipsObject *object )
 
 	if( !vips_text_fontmap )
 		vips_text_fontmap = pango_cairo_font_map_new();
+
+#ifdef HAVE_FONTCONFIG
 	if( !vips_text_fontfiles )
 		vips_text_fontfiles = 
 			g_hash_table_new( g_str_hash, g_str_equal );
+#endif
 
 	text->context = pango_font_map_create_context( 
 		PANGO_FONT_MAP( vips_text_fontmap ) );
 
+#ifdef HAVE_FONTCONFIG
 	if( text->fontfile &&
 		!g_hash_table_lookup( vips_text_fontfiles, text->fontfile ) ) {
 		if( !FcConfigAppFontAddFile( NULL, 
@@ -386,6 +395,11 @@ vips_text_build( VipsObject *object )
 			text->fontfile,
 			g_strdup( text->fontfile ) );
 	}
+#else
+	if( text->fontfile )
+		g_warning( "%s",
+			_( "ignoring fontfile (no fontconfig support)" ) );
+#endif
 
 	/* If our caller set height and not dpi, we adjust dpi until 
 	 * we get a fit.
