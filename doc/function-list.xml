@@ -497,6 +497,11 @@
   <entry>vips_fitsload()</entry>
 </row>
 <row>
+  <entry>fitsload_source</entry>
+  <entry>Load fits from a source</entry>
+  <entry>vips_fitsload_source()</entry>
+</row>
+<row>
   <entry>fitssave</entry>
   <entry>Save image to fits file</entry>
   <entry>vips_fitssave()</entry>
@@ -558,17 +563,17 @@
 </row>
 <row>
   <entry>gifload</entry>
-  <entry>Load gif with giflib</entry>
+  <entry>Load gif with libnsgif</entry>
   <entry>vips_gifload()</entry>
 </row>
 <row>
   <entry>gifload_buffer</entry>
-  <entry>Load gif with giflib</entry>
+  <entry>Load gif with libnsgif</entry>
   <entry>vips_gifload_buffer()</entry>
 </row>
 <row>
   <entry>gifload_source</entry>
-  <entry>Load gif with giflib</entry>
+  <entry>Load gif from source</entry>
   <entry>vips_gifload_source()</entry>
 </row>
 <row>
@@ -735,6 +740,36 @@
   <entry>join</entry>
   <entry>Join a pair of images</entry>
   <entry>vips_join()</entry>
+</row>
+<row>
+  <entry>jp2kload</entry>
+  <entry>Load jpeg2000 image</entry>
+  <entry>vips_jp2kload()</entry>
+</row>
+<row>
+  <entry>jp2kload_buffer</entry>
+  <entry>Load jpeg2000 image</entry>
+  <entry>vips_jp2kload_buffer()</entry>
+</row>
+<row>
+  <entry>jp2kload_source</entry>
+  <entry>Load jpeg2000 image</entry>
+  <entry>vips_jp2kload_source()</entry>
+</row>
+<row>
+  <entry>jp2ksave</entry>
+  <entry>Save image in heif format</entry>
+  <entry>vips_jp2ksave()</entry>
+</row>
+<row>
+  <entry>jp2ksave_buffer</entry>
+  <entry>Save image in heif format</entry>
+  <entry>vips_jp2ksave_buffer()</entry>
+</row>
+<row>
+  <entry>jp2ksave_target</entry>
+  <entry>Save image in heif format</entry>
+  <entry>vips_jp2ksave_target()</entry>
 </row>
 <row>
   <entry>jpegload</entry>
@@ -973,8 +1008,13 @@
 </row>
 <row>
   <entry>niftiload</entry>
-  <entry>Load a nifti image</entry>
+  <entry>Load nifti volume</entry>
   <entry>vips_niftiload()</entry>
+</row>
+<row>
+  <entry>niftiload_source</entry>
+  <entry>Load nifti volumes</entry>
+  <entry>vips_niftiload_source()</entry>
 </row>
 <row>
   <entry>niftisave</entry>
@@ -990,6 +1030,11 @@
   <entry>openslideload</entry>
   <entry>Load file with openslide</entry>
   <entry>vips_openslideload()</entry>
+</row>
+<row>
+  <entry>openslideload_source</entry>
+  <entry>Load source with openslide</entry>
+  <entry>vips_openslideload_source()</entry>
 </row>
 <row>
   <entry>pdfload</entry>
@@ -1057,9 +1102,19 @@
   <entry>vips_ppmload()</entry>
 </row>
 <row>
+  <entry>ppmload_source</entry>
+  <entry>Load ppm base class</entry>
+  <entry>vips_ppmload_source()</entry>
+</row>
+<row>
   <entry>ppmsave</entry>
   <entry>Save image to ppm file</entry>
   <entry>vips_ppmsave()</entry>
+</row>
+<row>
+  <entry>ppmsave_target</entry>
+  <entry>Save to ppm</entry>
+  <entry>vips_ppmsave_target()</entry>
 </row>
 <row>
   <entry>premultiply</entry>
@@ -1427,9 +1482,19 @@
   <entry>vips_vipsload()</entry>
 </row>
 <row>
+  <entry>vipsload_source</entry>
+  <entry>Load vips from source</entry>
+  <entry>vips_vipsload_source()</entry>
+</row>
+<row>
   <entry>vipssave</entry>
-  <entry>Save image to vips file</entry>
+  <entry>Save image to file in vips format</entry>
   <entry>vips_vipssave()</entry>
+</row>
+<row>
+  <entry>vipssave_target</entry>
+  <entry>Save image to target in vips format</entry>
+  <entry>vips_vipssave_target()</entry>
 </row>
 <row>
   <entry>webpload</entry>
