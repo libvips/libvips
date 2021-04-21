@@ -2238,11 +2238,11 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_rad_target_get_type(); 
 #endif /*HAVE_RADIANCE*/
 
-#ifdef HAVE_POPPLER
+#if defined(HAVE_POPPLER) && !defined(POPPLER_MODULE)
 	vips_foreign_load_pdf_file_get_type(); 
 	vips_foreign_load_pdf_buffer_get_type(); 
 	vips_foreign_load_pdf_source_get_type(); 
-#endif /*HAVE_POPPLER*/
+#endif /*defined(HAVE_POPPLER) && !defined(POPPLER_MODULE)*/
 
 #ifdef HAVE_PDFIUM
 	vips_foreign_load_pdf_file_get_type(); 

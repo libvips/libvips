@@ -931,21 +931,33 @@ VIPS_LIBS="$VIPS_LIBS $PDFIUM_LIBS"
 
 # poppler
 AC_ARG_WITH([poppler],
-  AS_HELP_STRING([--without-poppler], [build without poppler (default: test)]))
+  AS_HELP_STRING([--without-poppler], [build without poppler (default: test)]),
+  [with_poppler=$withval],
+  [with_poppler=$gmodule_with_flag])
+
+# poppler as a dynamically loadable module
+AS_IF([test x"$with_poppler" = x"module"],
+  [with_poppler_module=$gmodule_supported_flag],
+  [with_poppler_module=no])
 
 if test x"$with_poppler" != x"no"; then
   PKG_CHECK_MODULES(POPPLER, [poppler-glib >= 0.16.0 cairo >= 1.2], [
     AC_DEFINE(HAVE_POPPLER,1,[define if you have poppler-glib >= 0.16.0 and cairo >= 1.2 installed.])
     with_poppler=yes
-    PACKAGES_USED="$PACKAGES_USED poppler-glib cairo"
+    AS_IF([test x"$with_poppler_module" = x"no"],
+      [PACKAGES_USED="$PACKAGES_USED poppler-glib cairo"])
   ], [
     AC_MSG_WARN([poppler-glib >= 0.16.0 or cairo >= 1.2 not found; disabling PDF load via poppler])
     with_poppler=no
+    with_poppler_module=no
   ])
 fi
 
-VIPS_CFLAGS="$VIPS_CFLAGS $POPPLER_CFLAGS"
-VIPS_LIBS="$VIPS_LIBS $POPPLER_LIBS"
+AS_IF([test x"$with_poppler_module" = x"yes"],
+  [AC_DEFINE([POPPLER_MODULE], [1], [define to build poppler as a dynamically loadable module.])],
+  [VIPS_CFLAGS="$VIPS_CFLAGS $POPPLER_CFLAGS"
+   VIPS_LIBS="$VIPS_LIBS $POPPLER_LIBS"])
+AM_CONDITIONAL(POPPLER_MODULE, [test x"$with_poppler_module" = x"yes"])
 
 # librsvg
 AC_ARG_WITH([rsvg],
@@ -1406,7 +1418,7 @@ image pyramid save: $with_gsf, \
 HEIC/AVIF load/save with libheif: $with_heif (dynamic module: $with_heif_module), \
 WebP load/save with libwebp: $with_libwebp, \
 PDF load with PDFium:  $with_pdfium, \
-PDF load with poppler-glib: $with_poppler, \
+PDF load with poppler-glib: $with_poppler (dynamic module: $with_poppler_module), \
 SVG load with librsvg-2.0: $with_rsvg, \
 EXR load with OpenEXR: $with_OpenEXR, \
 slide load with OpenSlide: $with_openslide (dynamic module: $with_openslide_module), \
@@ -1517,7 +1529,7 @@ HEIC/AVIF load/save with libheif:       $with_heif (dynamic module: $with_heif_m
 WebP load/save with libwebp:            $with_libwebp
  (requires libwebp, libwebpmux, libwebpdemux 0.6.0 or later)
 PDF load with PDFium:                   $with_pdfium
-PDF load with poppler-glib:             $with_poppler
+PDF load with poppler-glib:             $with_poppler (dynamic module: $with_poppler_module)
  (requires poppler-glib 0.16.0 or later)
 SVG load with librsvg-2.0:              $with_rsvg
  (requires librsvg-2.0 2.34.0 or later)

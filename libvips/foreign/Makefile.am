@@ -78,6 +78,10 @@ if !HEIF_MODULE
 libforeign_la_SOURCES += heif2vips.c vips2heif.c
 endif # !HEIF_MODULE
 
+if !POPPLER_MODULE
+libforeign_la_SOURCES += poppler2vips.c
+endif # !POPPLER_MODULE
+
 if !OPENSLIDE_MODULE
 libforeign_la_SOURCES += openslide2vips.c
 endif # !OPENSLIDE_MODULE

@@ -86,6 +86,10 @@ if HEIF_MODULE
 module_LTLIBRARIES += vips-heif.la
 endif # HEIF_MODULE
 
+if POPPLER_MODULE
+module_LTLIBRARIES += vips-poppler.la
+endif # POPPLER_MODULE
+
 if OPENSLIDE_MODULE
 module_LTLIBRARIES += vips-openslide.la
 endif # OPENSLIDE_MODULE
@@ -112,6 +116,11 @@ vips_heif_la_SOURCES = module/heif.c foreign/heif2vips.c foreign/vips2heif.c
 vips_heif_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(HEIF_CFLAGS)
 vips_heif_la_LDFLAGS = $(MODULE_LDFLAGS)
 vips_heif_la_LIBADD = $(MODULE_LIBADD) $(HEIF_LIBS)
+
+vips_poppler_la_SOURCES = module/poppler.c foreign/poppler2vips.c
+vips_poppler_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(POPPLER_CFLAGS)
+vips_poppler_la_LDFLAGS = $(MODULE_LDFLAGS)
+vips_poppler_la_LIBADD = $(MODULE_LIBADD) $(POPPLER_LIBS)
 
 vips_openslide_la_SOURCES = module/openslide.c foreign/openslide2vips.c
 vips_openslide_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(OPENSLIDE_CFLAGS)
