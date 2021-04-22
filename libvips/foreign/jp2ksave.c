@@ -719,6 +719,48 @@ vips_foreign_save_jp2k_new_image( VipsImage *im,
 	return( image );
 }
 
+/* Compression profile derived from the BM's recommenadations, see:
+ *
+ * https://purl.pt/24107/1/iPres2013_PDF/An%20Analysis%20of%20Contemporary%20JPEG2000%20Codecs%20for%20Image%20Format%20Migration.pdf
+ */
+static void
+vips_foreign_save_jp2k_set_profile( opj_cparameters_t *parameters, 
+	gboolean lossless, int Q )
+{
+	if( lossless )
+		parameters->irreversible = FALSE;
+	else {
+		int i;
+
+		/* Equivalent command-line flags:
+		 *
+		 *   -I -p RPCL -n 7 \
+		 *   	-c[256,256],[256,256],[256,256],[256,256],[256,256],[256,256],[256,256] \
+		 *   	-b 64,64
+		 */
+
+		parameters->irreversible = TRUE;
+		parameters->prog_order = OPJ_RPCL;
+		parameters->numresolution = 7;
+		parameters->cblockw_init = 64;
+		parameters->cblockh_init = 64;
+		parameters->cp_disto_alloc = 1;
+		parameters->cp_fixed_quality = TRUE;
+		parameters->tcp_numlayers = 1;
+
+		/* No idea what this does, but opj_compress sets it.
+		 */
+		parameters->csty = 1;
+
+		parameters->res_spec = 7;
+		for( i = 0; i < parameters->res_spec; i++ ) { 
+			parameters->prch_init[i] = 256;
+			parameters->prcw_init[i] = 256;
+			parameters->tcp_distoratio[i] = Q + 10 * i;
+		}
+	}
+}
+
 static int
 vips_foreign_save_jp2k_build( VipsObject *object )
 {
@@ -794,21 +836,12 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 
 	/* Makes three band images smaller, somehow.
 	 */
-	jp2k->parameters.tcp_mct = 
-		(save->ready->Bands >= 3 && !jp2k->subsample) ? 1 : 0;
+	jp2k->parameters.tcp_mct = save->ready->Bands >= 3 ? 1 : 0;
 
-	/* Lossy mode.
+	/* Set compression profile.
 	 */
-	if( !jp2k->lossless ) {
-		jp2k->parameters.irreversible = TRUE;
-
-		/* Map Q to allowed distortion.
-		 */
-		jp2k->parameters.cp_disto_alloc = 1;
-		jp2k->parameters.cp_fixed_quality = TRUE;
-		jp2k->parameters.tcp_distoratio[0] = jp2k->Q;
-		jp2k->parameters.tcp_numlayers = 1;
-	}
+	vips_foreign_save_jp2k_set_profile( &jp2k->parameters, 
+		jp2k->lossless, jp2k->Q ); 
 
 	/* Set up compressor.
 	 */
@@ -933,7 +966,7 @@ vips_foreign_save_jp2k_class_init( VipsForeignSaveJp2kClass *class )
 		_( "Q factor" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveJp2k, Q ),
-		1, 100, 45 );
+		1, 100, 48 );
 
 }
 
@@ -943,9 +976,9 @@ vips_foreign_save_jp2k_init( VipsForeignSaveJp2k *jp2k )
 	jp2k->tile_width = 512;
 	jp2k->tile_height = 512;
 
-	/* 45 gives about the same filesize as default regular jpg.
+	/* Chosen to give about the same filesize as regular jpg Q75.
 	 */
-	jp2k->Q = 45;
+	jp2k->Q = 48;
 
 	jp2k->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_AUTO;
 }
@@ -1288,18 +1321,9 @@ vips__foreign_load_jp2k_compress( VipsRegion *region,
 	 */
 	parameters.tcp_mct = (region->im->Bands >= 3 && !subsample) ? 1 : 0;
 
-	/* Lossy mode.
+	/* Set compression profile.
 	 */
-	if( !lossless ) {
-		parameters.irreversible = TRUE;
-
-		/* Map Q to allowed distortion.
-		 */
-		parameters.cp_disto_alloc = 1;
-		parameters.cp_fixed_quality = TRUE;
-		parameters.tcp_distoratio[0] = Q;
-		parameters.tcp_numlayers = 1;
-	}
+	vips_foreign_save_jp2k_set_profile( &parameters, lossless, Q ); 
 
 	/* Create output image. TRUE means we alloc memory for the image
 	 * planes.
@@ -1390,9 +1414,9 @@ vips__foreign_load_jp2k_compress( VipsRegion *region,
  * Write a VIPS image to a file in JPEG2000 format. 
  * The saver supports 8, 16 and 32-bit int pixel
  * values, signed and unsigned. It supports greyscale, RGB, CMYK and
- * multispectral images. 
+ * multispectral images.
  *
- * Use @Q to set the compression quality factor. The default value of 45
+ * Use @Q to set the compression quality factor. The default value
  * produces file with approximately the same size as regular JPEG Q 75.
  *
  * Set @lossless to enable lossless compresion.
