@@ -366,7 +366,8 @@ vips_gsf_path( VipsGsfDirectory *tree, const char *name, ... )
 	 * path we are creating.
 	 */
 	tree->file_count += 1;
-	tree->filename_lengths += strlen( tree->out->name ) + strlen( name ) + 1;
+	tree->filename_lengths += 
+		strlen( tree->out->name ) + strlen( name ) + 1;
 
 	dir = tree; 
 	va_start( ap, name );
