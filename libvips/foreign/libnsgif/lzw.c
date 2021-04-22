@@ -347,8 +347,12 @@ static inline lzw_result lzw__decode(struct lzw_ctx *ctx,
 	} else if (code == ctx->clear_code) {
 		lzw__clear_table(ctx);
 	} else {
-		if (ctx->prev_code != ctx->clear_code &&
-		    ctx->table_size < LZW_TABLE_ENTRY_MAX) {
+		if (ctx->prev_code == ctx->clear_code) {
+			if (code > ctx->clear_code) {
+				return LZW_BAD_ICODE;
+			}
+
+		} else if (ctx->table_size < LZW_TABLE_ENTRY_MAX) {
 			uint32_t size = ctx->table_size;
 			lzw__table_add_entry(ctx, (code < size) ?
 					ctx->table[code].first :
