@@ -5,7 +5,6 @@ cplusplus/include/vips/VInterpolate8.h
 libvips/include/vips/arithmetic.h
 libvips/include/vips/basic.h
 libvips/include/vips/buf.h
-libvips/include/vips/cimg_funcs.h
 libvips/include/vips/colour.h
 libvips/include/vips/connection.h
 libvips/include/vips/conversion.h
