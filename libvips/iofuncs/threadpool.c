@@ -406,13 +406,11 @@ vips_concurrency_get( void )
 	 */
 	if( vips__concurrency > 0 )
 		nthr = vips__concurrency;
+	else if( ((str = g_getenv( "VIPS_CONCURRENCY" ))
 #if ENABLE_DEPRECATED
-	else if( ((str = g_getenv( "VIPS_CONCURRENCY" )) ||
-		(str = g_getenv( "IM_CONCURRENCY" ))) && 
-#else
-	else if( (str = g_getenv( "VIPS_CONCURRENCY" )) && 
+		|| (str = g_getenv( "IM_CONCURRENCY" ))
 #endif
-		(x = atoi( str )) > 0 )
+	) && (x = atoi( str )) > 0 )
 		nthr = x;
 	else 
 		nthr = get_num_processors();
