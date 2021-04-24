@@ -224,18 +224,39 @@ static inline lzw_result lzw__read_code(
 
 
 /**
- * Clear LZW code table.
+ * Handle clear code.
  *
- * \param[in]  ctx  LZW reading context, updated.
+ * \param[in]   ctx       LZW reading context, updated.
+ * \param[out]  code_out  Returns next code after a clear code.
  * \return LZW_OK or error code.
  */
-static inline void lzw__clear_table(
-		struct lzw_ctx *ctx)
+static inline lzw_result lzw__handle_clear(
+		struct lzw_ctx *ctx,
+		uint32_t *code_out)
 {
+	uint32_t code;
+
 	/* Reset table building context */
 	ctx->code_size = ctx->initial_code_size;
 	ctx->code_max = (1 << ctx->initial_code_size) - 1;
 	ctx->table_size = ctx->eoi_code + 1;
+
+	/* There might be a sequence of clear codes, so process them all */
+	do {
+		lzw_result res = lzw__read_code(&ctx->input,
+				ctx->code_size, &code);
+		if (res != LZW_OK) {
+			return res;
+		}
+	} while (code == ctx->clear_code);
+
+	/* The initial code must be from the initial table. */
+	if (code > ctx->clear_code) {
+		return LZW_BAD_ICODE;
+	}
+
+	*code_out = code;
+	return LZW_OK;
 }
 
 
@@ -248,6 +269,8 @@ lzw_result lzw_decode_init(
 		uint8_t minimum_code_size)
 {
 	struct lzw_table_entry *table = ctx->table;
+	lzw_result res;
+	uint32_t code;
 
 	if (minimum_code_size >= LZW_CODE_MAX) {
 		return LZW_BAD_ICODE;
@@ -276,8 +299,19 @@ lzw_result lzw_decode_init(
 		table[i].count = 1;
 	}
 
-	lzw__clear_table(ctx);
-	ctx->prev_code = ctx->clear_code;
+	res = lzw__handle_clear(ctx, &code);
+	if (res != LZW_OK) {
+		return res;
+	}
+
+	/* Store details of this code as "previous code" to the context. */
+	ctx->prev_code_first = ctx->table[code].first;
+	ctx->prev_code_count = ctx->table[code].count;
+	ctx->prev_code = code;
+
+	/* Add code to context for immediate output. */
+	ctx->output_code = code;
+	ctx->output_left = 1;
 
 	return LZW_OK;
 }
@@ -345,30 +379,26 @@ static inline lzw_result lzw__decode(struct lzw_ctx *ctx,
 		return LZW_BAD_CODE;
 
 	} else if (code == ctx->clear_code) {
-		lzw__clear_table(ctx);
-	} else {
-		if (ctx->prev_code == ctx->clear_code) {
-			if (code > ctx->clear_code) {
-				return LZW_BAD_ICODE;
-			}
-
-		} else if (ctx->table_size < LZW_TABLE_ENTRY_MAX) {
-			uint32_t size = ctx->table_size;
-			lzw__table_add_entry(ctx, (code < size) ?
-					ctx->table[code].first :
-					ctx->prev_code_first);
-
-			/* Ensure code size is increased, if needed. */
-			if (size == ctx->code_max &&
-			    ctx->code_size < LZW_CODE_MAX) {
-				ctx->code_size++;
-				ctx->code_max = (1 << ctx->code_size) - 1;
-			}
+		res = lzw__handle_clear(ctx, &code);
+		if (res != LZW_OK) {
+			return res;
 		}
 
-		*used += write_pixels(ctx, output, length, *used, code,
-				ctx->table[code].count);
+	} else if (ctx->table_size < LZW_TABLE_ENTRY_MAX) {
+		uint32_t size = ctx->table_size;
+		lzw__table_add_entry(ctx, (code < size) ?
+				ctx->table[code].first :
+				ctx->prev_code_first);
+
+		/* Ensure code size is increased, if needed. */
+		if (size == ctx->code_max && ctx->code_size < LZW_CODE_MAX) {
+			ctx->code_size++;
+			ctx->code_max = (1 << ctx->code_size) - 1;
+		}
 	}
+
+	*used += write_pixels(ctx, output, length, *used, code,
+			ctx->table[code].count);
 
 	/* Store details of this code as "previous code" to the context. */
 	ctx->prev_code_first = ctx->table[code].first;
@@ -433,19 +463,8 @@ static inline uint32_t lzw__write_pixels(struct lzw_ctx *ctx,
 }
 
 /* Exported function, documented in lzw.h */
-lzw_result lzw_decode(struct lzw_ctx *ctx,
-		const uint8_t *restrict* const restrict data,
-		uint32_t *restrict used)
-{
-	*used = 0;
-	*data = ctx->stack_base;
-	return lzw__decode(ctx, ctx->stack_base, sizeof(ctx->stack_base),
-			lzw__write_pixels, used);
-}
-
-/* Exported function, documented in lzw.h */
 lzw_result lzw_decode_continuous(struct lzw_ctx *ctx,
-		const uint8_t ** const data,
+		const uint8_t *restrict *const restrict data,
 		uint32_t *restrict used)
 {
 	*used = 0;
