@@ -88,7 +88,8 @@ vips_profile_fallback_get( const char *name, size_t *length )
 				return( data );
 			} else {
 				g_free( data );
-				g_warning( "fallback profile decompression failed" );
+				g_warning( "fallback profile "
+					"decompression failed" );
 			}
 		}
 
@@ -182,7 +183,7 @@ vips_profile_load_init( VipsProfileLoad *load )
  *   case.
  *
  * - @name can be the name of one of the ICC profiles embedded in libvips.
- *   These names can be at least `"cmyk"` and `"srgb"`.
+ *   These names can be at least `"cmyk"`, `"p3"` and `"srgb"`.
  *
  * - @name can be the full path to a file.
  *
