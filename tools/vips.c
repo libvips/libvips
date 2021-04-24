@@ -101,9 +101,9 @@
 #include <vips/vips7compat.h>
 #endif
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 #define strcasecmp(a,b) _stricmp(a,b)
-#endif
+#endif /*G_OS_WIN32*/
 
 static char *main_option_plugin = NULL;
 static gboolean main_option_version;
@@ -458,11 +458,11 @@ parse_options( GOptionContext *context, int *argc, char **argv )
 		"OPER", _( "execute vips operation OPER" ) );
 	g_option_context_set_summary( context, vips_buf_all( &buf ) );
 
-#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+#ifdef G_OS_WIN32
 	if( !g_option_context_parse_strv( context, &argv, &error ) ) 
-#else /*!HAVE_G_WIN32_GET_COMMAND_LINE*/
+#else /*!G_OS_WIN32*/
 	if( !g_option_context_parse( context, argc, &argv, &error ) ) 
-#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
+#endif /*G_OS_WIN32*/
 	{
 		if( error ) {
 			fprintf( stderr, "%s\n", error->message );
@@ -531,9 +531,9 @@ main( int argc, char **argv )
 	/* On Windows, argv is ascii-only .. use this to get a utf-8 version of
 	 * the args.
 	 */
-#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+#ifdef G_OS_WIN32
 	argv = g_win32_get_command_line();
-#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
+#endif /*G_OS_WIN32*/
 
 #ifdef DEBUG_FATAL
 	/* Set masks for debugging ... stop on any problem. 
@@ -582,11 +582,11 @@ main( int argc, char **argv )
 	 */
 	g_option_context_set_help_enabled( context, FALSE );
 
-#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+#ifdef G_OS_WIN32
 	if( !g_option_context_parse_strv( context, &argv, &error ) ) 
-#else /*!HAVE_G_WIN32_GET_COMMAND_LINE*/
+#else /*!G_OS_WIN32*/
 	if( !g_option_context_parse( context, &argc, &argv, &error ) ) 
-#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
+#endif /*G_OS_WIN32*/
 	{
 		if( error ) {
 			fprintf( stderr, "%s\n", error->message );
@@ -753,9 +753,9 @@ main( int argc, char **argv )
 
 	g_option_context_free( context );
 
-#ifdef HAVE_G_WIN32_GET_COMMAND_LINE
+#ifdef G_OS_WIN32
 	g_strfreev( argv ); 
-#endif /*HAVE_G_WIN32_GET_COMMAND_LINE*/
+#endif /*G_OS_WIN32*/
 
 	vips_shutdown();
 

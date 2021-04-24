@@ -43,6 +43,8 @@
  * 	  they can be triggered under normal circumstances
  * 17/4/19 kleisauke 
  * 	- better rejection of broken embedded profiles
+ * 29/3/21 [hanssonrickard]
+ * 	- add black_point_compensation
  */
 
 /*
@@ -155,6 +157,7 @@ typedef struct _VipsIcc {
 	VipsIntent intent;
 	VipsPCS pcs;
 	int depth;
+	gboolean black_point_compensation;
 
 	VipsBlob *in_blob;
 	cmsHPROFILE in_profile;
@@ -217,6 +220,8 @@ vips_icc_build( VipsObject *object )
 	VipsColour *colour = (VipsColour *) object;
 	VipsColourCode *code = (VipsColourCode *) object;
 	VipsIcc *icc = (VipsIcc *) object;
+
+	cmsUInt32Number flags;
 
 	if( icc->depth != 8 &&
 		icc->depth != 16 ) {
@@ -356,10 +361,15 @@ vips_icc_build( VipsObject *object )
 	/* Use cmsFLAGS_NOCACHE to disable the 1-pixel cache and make
 	 * calling cmsDoTransform() from multiple threads safe.
 	 */
+	flags = cmsFLAGS_NOCACHE;
+
+	if( icc->black_point_compensation ) 
+		flags |= cmsFLAGS_BLACKPOINTCOMPENSATION;
+
 	if( !(icc->trans = cmsCreateTransform( 
 		icc->in_profile, icc->in_icc_format,
 		icc->out_profile, icc->out_icc_format, 
-		icc->intent, cmsFLAGS_NOCACHE )) )
+		icc->intent, flags )) )
 		return( -1 );
 
 	if( VIPS_OBJECT_CLASS( vips_icc_parent_class )->
@@ -779,6 +789,13 @@ vips_icc_class_init( VipsIccClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsIcc, pcs ),
 		VIPS_TYPE_PCS, VIPS_PCS_LAB );
+
+	VIPS_ARG_BOOL( class, "black_point_compensation", 7, 
+		_( "Black point compensation" ), 
+		_( "Enable black point compensation" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsIcc, black_point_compensation ),
+		FALSE );
 
 	cmsSetLogErrorHandler( icc_error );
 }
@@ -1411,10 +1428,11 @@ vips_icc_is_compatible_profile( VipsImage *image,
  *
  * Optional arguments:
  *
- * * @input_profile: get the input profile from here
- * * @intent: transform with this intent
- * * @embedded: use profile embedded in input image
- * * @pcs: use XYZ or LAB PCS
+ * * @pcs: #VipsPCS,  use XYZ or LAB PCS
+ * * @intent: #VipsIntent, transform with this intent
+ * * @black_point_compensation: %gboolean, enable black point compensation
+ * * @embedded: %gboolean, use profile embedded in input image
+ * * @input_profile: %gchararray, get the input profile from here
  *
  * Import an image from device space to D65 LAB with an ICC profile. If @pcs is
  * set to #VIPS_PCS_XYZ, use CIE XYZ PCS instead. 
@@ -1430,6 +1448,9 @@ vips_icc_is_compatible_profile( VipsImage *image,
  * If @embedded is not set, the input profile is taken from
  * @input_profile. If @input_profile is not supplied, the
  * metadata profile, if any, is used as a fall-back. 
+ *
+ * If @black_point_compensation is set, LCMS black point compensation is
+ * enabled.
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -1454,10 +1475,11 @@ vips_icc_import( VipsImage *in, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * * @intent: transform with this intent
- * * @depth: depth of output image in bits
- * * @output_profile: get the output profile from here
- * * @pcs: use XYZ or LAB PCS
+ * * @pcs: #VipsPCS,  use XYZ or LAB PCS
+ * * @intent: #VipsIntent, transform with this intent
+ * * @black_point_compensation: %gboolean, enable black point compensation
+ * * @output_profile: %gchararray, get the output profile from here
+ * * @depth: %gint, depth of output image in bits
  *
  * Export an image from D65 LAB to device space with an ICC profile. 
  * If @pcs is
@@ -1465,6 +1487,9 @@ vips_icc_import( VipsImage *in, VipsImage **out, ... )
  * If @output_profile is not set, use the embedded profile, if any. 
  * If @output_profile is set, export with that and attach it to the output 
  * image. 
+ *
+ * If @black_point_compensation is set, LCMS black point compensation is
+ * enabled.
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -1490,10 +1515,12 @@ vips_icc_export( VipsImage *in, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * * @input_profile: get the input profile from here
- * * @intent: transform with this intent
- * * @depth: depth of output image in bits
- * * @embedded: use profile embedded in input image
+ * * @pcs: #VipsPCS,  use XYZ or LAB PCS
+ * * @intent: #VipsIntent, transform with this intent
+ * * @black_point_compensation: %gboolean, enable black point compensation
+ * * @embedded: %gboolean, use profile embedded in input image
+ * * @input_profile: %gchararray, get the input profile from here
+ * * @depth: %gint, depth of output image in bits
  *
  * Transform an image with a pair of ICC profiles. The input image is moved to
  * profile-connection space with the input profile and then to the output
@@ -1510,6 +1537,9 @@ vips_icc_export( VipsImage *in, VipsImage **out, ... )
  * If @embedded is not set, the input profile is taken from
  * @input_profile. If @input_profile is not supplied, the
  * metadata profile, if any, is used as a fall-back. 
+ *
+ * If @black_point_compensation is set, LCMS black point compensation is
+ * enabled.
  *
  * The output image has the output profile attached to the #VIPS_META_ICC_NAME
  * field. 

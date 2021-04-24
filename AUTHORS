@@ -23,4 +23,6 @@ Nicolas Robidoux contributed optimized bilinear and bicubic code to
 the VipsInterpolate class and, with Chantal Racette and Adam Turcotte,
 contributed the novel LBB, Nohalo and VSQBS interpolators.
 
+Lovell Fuller and Kleis Auke Wolthuizen made many contributions and fixes.
+
 Many other active contributors, see https://github.com/libvips/libvips/graphs/contributors

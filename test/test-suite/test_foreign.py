@@ -1,5 +1,4 @@
 # vim: set fileencoding=utf-8 :
-import filecmp
 import sys
 import os
 import shutil
@@ -18,7 +17,7 @@ from helpers import \
     GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, \
     temp_filename, assert_almost_equal_objects, have, skip_if_no, \
     TIF1_FILE, TIF2_FILE, TIF4_FILE, WEBP_LOOKS_LIKE_SVG_FILE, \
-    WEBP_ANIMATED_FILE
+    WEBP_ANIMATED_FILE, JP2K_FILE
 
 class TestForeign:
     tempdir = None
@@ -38,7 +37,7 @@ class TestForeign:
         cls.cmyk.remove("icc-profile-data")
 
         im = pyvips.Image.new_from_file(GIF_FILE)
-        cls.onebit = im > 128
+        cls.onebit = im[1] > 128
 
     @classmethod
     def teardown_class(cls):
@@ -681,10 +680,14 @@ class TestForeign:
             x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
             w1 = x1.webpsave_buffer(Q=10)
 
+            # our test gif has delay 0 for the first frame set in error,
+            # when converting to WebP this should result in a 100ms delay.
+            expected_delay = [100 if d <= 10 else d for d in x1.get("delay")]
+
             x2 = pyvips.Image.new_from_buffer(w1, "", n=-1)
             assert x1.width == x2.width
             assert x1.height == x2.height
-            assert x1.get("delay") == x2.get("delay")
+            assert expected_delay == x2.get("delay")
             assert x1.get("page-height") == x2.get("page-height")
             assert x1.get("gif-loop") == x2.get("gif-loop")
 
@@ -800,61 +803,53 @@ class TestForeign:
     def test_gifload(self):
         def gif_valid(im):
             a = im(10, 10)
-            assert_almost_equal_objects(a, [33])
+            assert_almost_equal_objects(a, [33, 33, 33, 255])
             assert im.width == 159
             assert im.height == 203
-            assert im.bands == 1
+            assert im.bands == 4
 
         self.file_loader("gifload", GIF_FILE, gif_valid)
         self.buffer_loader("gifload_buffer", GIF_FILE, gif_valid)
 
-        # 'n' param added in 8.5
-        if pyvips.at_least_libvips(8, 5):
-            x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE)
-            x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=2)
-            assert x2.height == 2 * x1.height
-            page_height = x2.get("page-height")
-            assert page_height == x1.height
+        # test metadata
+        x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
+        # our test gif has delay 0 for the first frame set in error
+        assert x2.get("delay") == [0, 50, 50, 50, 50]
+        assert x2.get("loop") == 32760
+        assert x2.get("background") == [255, 255, 255]
+        # test deprecated fields too
+        assert x2.get("gif-loop") == 32759
+        assert x2.get("gif-delay") == 0
 
-            x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
-            assert x2.height == 5 * x1.height
-            # our test gif has delay 0 for the first frame set in error
-            assert x2.get("delay") == [0, 50, 50, 50, 50]
+        # test every pixel
+        x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
+        x2 = pyvips.Image.new_from_file(GIF_ANIM_EXPECTED_PNG_FILE)
+        assert (x1 - x2).abs().max() == 0
 
-            x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, page=1, n=-1)
-            assert x2.height == 4 * x1.height
+        # test page handling
+        x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE)
+        x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=2)
+        assert x2.height == 2 * x1.height
+        page_height = x2.get("page-height")
+        assert page_height == x1.height
 
-            animation = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
-            filename = temp_filename(self.tempdir, '.png')
-            animation.write_to_file(filename)
-            # Uncomment to see output file
-            # animation.write_to_file('cogs.png')
+        x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
+        assert x2.height == 5 * x1.height
 
-            assert filecmp.cmp(GIF_ANIM_EXPECTED_PNG_FILE, filename, shallow=False)
+        x2 = pyvips.Image.new_from_file(GIF_ANIM_FILE, page=1, n=-1)
+        assert x2.height == 4 * x1.height
 
     @skip_if_no("gifload")
     def test_gifload_animation_dispose_background(self):
-        animation = pyvips.Image.new_from_file(GIF_ANIM_DISPOSE_BACKGROUND_FILE, n=-1)
-
-        filename = temp_filename(self.tempdir, '.png')
-        animation.write_to_file(filename)
-
-        # Uncomment to see output file
-        # animation.write_to_file('dispose-background.png')
-
-        assert filecmp.cmp(GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE, filename, shallow=False)
+        x1 = pyvips.Image.new_from_file(GIF_ANIM_DISPOSE_BACKGROUND_FILE, n=-1)
+        x2 = pyvips.Image.new_from_file(GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE)
+        assert (x1 - x2).abs().max() == 0
 
     @skip_if_no("gifload")
     def test_gifload_animation_dispose_previous(self):
-        animation = pyvips.Image.new_from_file(GIF_ANIM_DISPOSE_PREVIOUS_FILE, n=-1)
-
-        filename = temp_filename(self.tempdir, '.png')
-        animation.write_to_file(filename)
-
-        # Uncomment to see output file
-        # animation.write_to_file('dispose-previous.png')
-
-        assert filecmp.cmp(GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, filename, shallow=False)
+        x1 = pyvips.Image.new_from_file(GIF_ANIM_DISPOSE_PREVIOUS_FILE, n=-1)
+        x2 = pyvips.Image.new_from_file(GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE)
+        assert (x1 - x2).abs().max() == 0
 
     @skip_if_no("svgload")
     def test_svgload(self):
@@ -1131,6 +1126,54 @@ class TestForeign:
             buf = x.heifsave_buffer(Q=10, compression="av1")
             y = pyvips.Image.new_from_buffer(buf, "")
             assert y.get("exif-ifd0-Make").split(" ")[0] == "banana"
+
+    @skip_if_no("jp2kload")
+    def test_jp2kload(self):
+        def jp2k_valid(im):
+            a = im(402, 73)
+            assert_almost_equal_objects(a, [141, 144, 73], threshold=2)
+            assert im.width == 800
+            assert im.height == 400
+            assert im.bands == 3
+
+        self.file_loader("jp2kload", JP2K_FILE, jp2k_valid)
+        self.buffer_loader("jp2kload_buffer", JP2K_FILE, jp2k_valid)
+
+    @skip_if_no("jp2ksave")
+    def test_jp2ksave(self):
+        self.save_load_buffer("jp2ksave_buffer", "jp2kload_buffer",
+                              self.colour, 80)
+
+        buf = self.colour.jp2ksave_buffer(lossless=True)
+        im2 = pyvips.Image.new_from_buffer(buf, "")
+        assert (self.colour == im2).min() == 255
+
+        # higher Q should mean a bigger buffer
+        b1 = self.mono.jp2ksave_buffer(Q=10)
+        b2 = self.mono.jp2ksave_buffer(Q=90)
+        assert len(b2) > len(b1)
+
+        # disabling chroma subsample should mean a bigger buffer
+        b1 = self.colour.jp2ksave_buffer(subsample_mode="on")
+        b2 = self.colour.jp2ksave_buffer(subsample_mode="off")
+        assert len(b2) > len(b1)
+
+        # enabling lossless should mean a bigger buffer
+        b1 = self.colour.jp2ksave_buffer(lossless=False)
+        b2 = self.colour.jp2ksave_buffer(lossless=True)
+        assert len(b2) > len(b1)
+
+        # 16-bit colour load and save
+        im = self.colour.colourspace("rgb16")
+        buf = im.jp2ksave_buffer(lossless=True)
+        im2 = pyvips.Image.new_from_buffer(buf, "")
+        assert (im == im2).min() == 255
+
+        # openjpeg 32-bit load and save doesn't seem to work, comment out
+        # im = self.colour.colourspace("rgb16").cast("uint") << 14
+        # buf = im.jp2ksave_buffer(lossless=True)
+        # im2 = pyvips.Image.new_from_buffer(buf, "")
+        # assert (im == im2).min() == 255
 
 
 if __name__ == '__main__':

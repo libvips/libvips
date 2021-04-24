@@ -22,7 +22,7 @@ operations, frequency filtering, colour, resampling,
 statistics and others. It supports a large range of [numeric
 types](https://libvips.github.io/libvips/API/current/VipsImage.html#VipsBandFormat),
 from 8-bit int to 128-bit complex. Images can have any number of bands.
-It supports a good range of image formats, including JPEG, TIFF, PNG,
+It supports a good range of image formats, including JPEG, JPEG2000, TIFF, PNG,
 WebP, HEIC, AVIF, FITS, Matlab, OpenEXR, PDF, SVG, HDR, PPM / PGM / PFM,
 CSV, GIF, Analyze, NIfTI, DeepZoom, and OpenSlide. It can also load images
 via ImageMagick or GraphicsMagick, letting it work with formats like DICOM.
@@ -116,6 +116,13 @@ Debug build:
     make
     make install
 
+# Built-in loaders
+
+libvips has a number of built-in loaders and savers. You can disable these if
+you wish, for example:
+
+    ./configure --prefix=/Users/john/vips --without-nsgif --without-ppm
+
 # Dependencies 
 
 libvips has to have `libglib2.0-dev` and `libexpat1-dev`. Other dependencies
@@ -128,14 +135,14 @@ libraries automatically. See `./configure --help` for a set of flags to
 control library detection. Packages are generally found with `pkg-config`,
 so make sure that is working.
 
-Libraries like giflib and nifti do not use `pkg-config` so libvips will also
+Libraries like nifti do not use `pkg-config` so libvips will also
 look for them in the default path and in `$prefix`. If you have installed
 your own versions of these libraries in a different location, libvips will
 not see them. Use switches to libvips configure like:
 
     ./configure --prefix=/Users/john/vips \
-      --with-giflib-includes=/opt/local/include \
-      --with-giflib-libraries=/opt/local/lib 
+      --with-nifti-includes=/opt/local/include \
+      --with-nifti-libraries=/opt/local/lib 
 
 or perhaps:
 
@@ -150,11 +157,6 @@ The IJG JPEG library. Use the `-turbo` version if you can.
 ### libexif
 
 If available, libvips adds support for EXIF metadata in JPEG files.
-
-### giflib
-
-The standard gif loader. If this is not present, vips will try to load gifs
-via imagemagick instead.
 
 ### librsvg
 
@@ -241,10 +243,10 @@ If you are going to be using libvips with untrusted images, perhaps in a
 web server, for example, you should consider the security implications of
 enabling a package with such a large attack surface. 
 
-### pangoft2
+### pangocairo
 
 If available, libvips adds support for text rendering. You need the
-package pangoft2 in `pkg-config --list-all`.
+package pangocairo in `pkg-config --list-all`.
 
 ### orc-0.4
 
@@ -271,6 +273,10 @@ If available, vips can load and save NIfTI images.
 
 If available, libvips will directly read (but not write, sadly)
 OpenEXR images.
+
+### OpenJPEG
+
+If available, libvips will read and write JPEG2000 images.
 
 ### OpenSlide
 

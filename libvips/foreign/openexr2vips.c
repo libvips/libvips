@@ -226,7 +226,11 @@ read_header( Read *read, VipsImage *out )
 		 VIPS_FORMAT_FLOAT,
 		 VIPS_CODING_NONE, VIPS_INTERPRETATION_scRGB, 1.0, 1.0 );
 	if( read->tiles )
-		vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
+		/* Even though this is a tiled reader, we hint thinstrip 
+		 * since with the cache we are quite happy serving that if 
+		 * anything downstream would like it.
+		 */
+		vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 	else
 		vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 }
@@ -363,7 +367,8 @@ vips__openexr_read( const char *filename, VipsImage *out )
 		VipsImage *raw;
 		VipsImage *t;
 
-		/* Tile cache: keep enough for two complete rows of tiles.
+		/* Tile cache: keep enough for two complete rows of tiles,
+		 * plus 50%.
 		 */
 		raw = vips_image_new();
 		vips_object_local( out, raw );
@@ -375,14 +380,11 @@ vips__openexr_read( const char *filename, VipsImage *out )
 			read, NULL ) )
 			return( -1 );
 
-		/* Copy to out, adding a cache. Enough tiles for a complete 
-		 * row, plus 50%.
-		 */
 		if( vips_tilecache( raw, &t, 
 			"tile_width", read->tile_width, 
 			"tile_height", read->tile_height,
 			"max_tiles", (int) 
-				(1.5 * (1 + raw->Xsize / read->tile_width)),
+				(2.5 * (1 + raw->Xsize / read->tile_width)),
 			NULL ) ) 
 			return( -1 );
 		if( vips_image_write( t, out ) ) {

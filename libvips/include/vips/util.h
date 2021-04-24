@@ -92,7 +92,7 @@ G_STMT_START { \
 		(void) g_once( ONCE, FUNC, CLIENT ); \
 } G_STMT_END
 
-/* VIPS_RINT() does "bankers rounding", it rounds to the nerarest even integer.
+/* VIPS_RINT() does "bankers rounding", it rounds to the nearest even integer.
  * For things like image geometry, we want strict nearest int.
  *
  * If you know it's unsigned, _UINT is a little faster. 

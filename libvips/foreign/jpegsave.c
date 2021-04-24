@@ -557,7 +557,7 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * If @strip is set, no EXIF data, IPTC data, ICC profile or XMP metadata is 
  * written into the output file.
  *
- * Chroma subsampling is normally automatically disabled for Q > 90. You can
+ * Chroma subsampling is normally automatically disabled for Q >= 90. You can
  * force the subsampling mode with @subsample_mode.
  *
  * If @trellis_quant is set and the version of libjpeg supports it

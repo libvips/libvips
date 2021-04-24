@@ -56,6 +56,7 @@ MOSAIC_MARKS = [[489, 140], [66, 141],
 MOSAIC_VERTICAL_MARKS = [[388, 44], [364, 346],
                          [384, 17], [385, 629],
                          [527, 42], [503, 959]]
+JP2K_FILE = os.path.join(IMAGES, "world.jp2")
 
 unsigned_formats = [pyvips.BandFormat.UCHAR,
                     pyvips.BandFormat.USHORT,

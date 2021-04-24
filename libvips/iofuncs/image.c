@@ -801,12 +801,11 @@ static void
 vips_image_add_progress( VipsImage *image )
 {
 	if( vips__progress || 
+		g_getenv( "VIPS_PROGRESS" )
 #if ENABLE_DEPRECATED
-		g_getenv( "VIPS_PROGRESS" ) ||
-		g_getenv( "IM_PROGRESS" ) ) {
-#else
-		g_getenv( "VIPS_PROGRESS" ) ) {
+		|| g_getenv( "IM_PROGRESS" )
 #endif
+		) {
 
 		/* Keep the %complete we displayed last time here.
 		 */
@@ -1676,14 +1675,7 @@ vips_image_temp_name( char *name, int size )
 {
 	static int global_serial = 0;
 
-	/* Old glibs named this differently.
-	 */
-	int serial =
-#if GLIB_CHECK_VERSION( 2, 30, 0 )
-		g_atomic_int_add( &global_serial, 1 );
-#else
-		g_atomic_int_exchange_and_add( &global_serial, 1 );
-#endif
+	int serial = g_atomic_int_add( &global_serial, 1 );
 
 	vips_snprintf( name, size, "temp-%d", serial );
 }
@@ -2514,12 +2506,11 @@ vips_get_disc_threshold( void )
 		 */
 		threshold = 100 * 1024 * 1024;
 
+		if( (env = g_getenv( "VIPS_DISC_THRESHOLD" ))
 #if ENABLE_DEPRECATED
-		if( (env = g_getenv( "VIPS_DISC_THRESHOLD" )) || 
-			(env = g_getenv( "IM_DISC_THRESHOLD" )) ) 
-#else
-		if( (env = g_getenv( "VIPS_DISC_THRESHOLD" )) )
+			|| (env = g_getenv( "IM_DISC_THRESHOLD" ))
 #endif
+		  )
 			threshold = vips__parse_size( env );
 
 		if( vips__disc_threshold ) 

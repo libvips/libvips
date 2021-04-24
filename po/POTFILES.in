@@ -2,11 +2,9 @@ cplusplus/include/vips/VConnection8.h
 cplusplus/include/vips/VError8.h
 cplusplus/include/vips/VImage8.h
 cplusplus/include/vips/VInterpolate8.h
-cplusplus/include/vips/vips-operators.h
 libvips/include/vips/arithmetic.h
 libvips/include/vips/basic.h
 libvips/include/vips/buf.h
-libvips/include/vips/cimg_funcs.h
 libvips/include/vips/colour.h
 libvips/include/vips/connection.h
 libvips/include/vips/conversion.h
@@ -237,7 +235,6 @@ libvips/foreign/fits.c
 libvips/foreign/fitsload.c
 libvips/foreign/fitssave.c
 libvips/foreign/foreign.c
-libvips/foreign/gifload.c
 libvips/foreign/heifload.c
 libvips/foreign/heifsave.c
 libvips/foreign/jpeg2vips.c
@@ -254,6 +251,7 @@ libvips/foreign/matrixload.c
 libvips/foreign/matrixsave.c
 libvips/foreign/niftiload.c
 libvips/foreign/niftisave.c
+libvips/foreign/nsgifload.c
 libvips/foreign/openexr2vips.c
 libvips/foreign/openexrload.c
 libvips/foreign/openslide2vips.c
@@ -285,6 +283,8 @@ libvips/foreign/vipssave.c
 libvips/foreign/webp2vips.c
 libvips/foreign/webpload.c
 libvips/foreign/webpsave.c
+libvips/foreign/libnsgif/libnsgif.c
+libvips/foreign/libnsgif/lzw.c
 libvips/freqfilt/freqfilt.c
 libvips/freqfilt/freqmult.c
 libvips/freqfilt/fwfft.c
@@ -333,6 +333,7 @@ libvips/iofuncs/sinkmemory.c
 libvips/iofuncs/sinkscreen.c
 libvips/iofuncs/source.c
 libvips/iofuncs/sourcecustom.c
+libvips/iofuncs/sourceginput.c
 libvips/iofuncs/system.c
 libvips/iofuncs/target.c
 libvips/iofuncs/targetcustom.c

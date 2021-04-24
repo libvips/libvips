@@ -75,9 +75,9 @@
 #include <vips/thread.h>
 #include <vips/debug.h>
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 #include <windows.h>
-#endif /*OS_WIN32*/
+#endif /*G_OS_WIN32*/
 
 /**
  * SECTION: threadpool
@@ -338,7 +338,7 @@ get_num_processors( void )
 
 #endif /*G_OS_UNIX*/
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 {
 	/* Count the CPUs currently available to this process.  
 	 */
@@ -365,7 +365,7 @@ get_num_processors( void )
 			nproc = af_count;
 	}
 }
-#endif /*OS_WIN32*/
+#endif /*G_OS_WIN32*/
 
 	return( nproc );
 #endif /*!GLIB_CHECK_VERSION( 2, 48, 1 )*/
@@ -406,13 +406,11 @@ vips_concurrency_get( void )
 	 */
 	if( vips__concurrency > 0 )
 		nthr = vips__concurrency;
+	else if( ((str = g_getenv( "VIPS_CONCURRENCY" ))
 #if ENABLE_DEPRECATED
-	else if( ((str = g_getenv( "VIPS_CONCURRENCY" )) ||
-		(str = g_getenv( "IM_CONCURRENCY" ))) && 
-#else
-	else if( (str = g_getenv( "VIPS_CONCURRENCY" )) && 
+		|| (str = g_getenv( "IM_CONCURRENCY" ))
 #endif
-		(x = atoi( str )) > 0 )
+	) && (x = atoi( str )) > 0 )
 		nthr = x;
 	else 
 		nthr = get_num_processors();

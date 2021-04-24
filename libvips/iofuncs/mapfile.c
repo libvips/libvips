@@ -77,18 +77,16 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
-#ifdef OS_WIN32 
-#ifndef S_ISREG
-#define S_ISREG(m) (!!(m & _S_IFREG))
-#endif
-#endif /*OS_WIN32*/
 
 #include <vips/vips.h>
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
+#ifndef S_ISREG
+#define S_ISREG(m) (!!(m & _S_IFREG))
+#endif
 #include <windows.h>
 #include <io.h>
-#endif /*OS_WIN32*/
+#endif /*G_OS_WIN32*/
 
 /* Does this fd support mmap. Pipes won't, for example.
  */
@@ -99,7 +97,7 @@ vips__mmap_supported( int fd )
 	size_t length = 4096;
 	off_t offset = 0;
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 {
 	HANDLE hFile = (HANDLE) _get_osfhandle( fd );
 
@@ -128,7 +126,7 @@ vips__mmap_supported( int fd )
 	CloseHandle( hMMFile );
 	UnmapViewOfFile( baseaddr );
 }
-#else /*!OS_WIN32*/
+#else /*!G_OS_WIN32*/
 {
 	int prot = PROT_READ;
 	int flags = MAP_SHARED;
@@ -138,7 +136,7 @@ vips__mmap_supported( int fd )
 		return( FALSE ); 
 	munmap( baseaddr, length );
 }
-#endif /*OS_WIN32*/
+#endif /*G_OS_WIN32*/
 
 	return( TRUE );
 }
@@ -153,7 +151,7 @@ vips__mmap( int fd, int writeable, size_t length, gint64 offset )
 		length, offset );
 #endif /*DEBUG*/
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 {
 	HANDLE hFile = (HANDLE) _get_osfhandle( fd );
 
@@ -203,7 +201,7 @@ vips__mmap( int fd, int writeable, size_t length, gint64 offset )
 	 */
 	CloseHandle( hMMFile );
 }
-#else /*!OS_WIN32*/
+#else /*!G_OS_WIN32*/
 {
 	int prot;
 	int flags;
@@ -237,7 +235,7 @@ vips__mmap( int fd, int writeable, size_t length, gint64 offset )
 		return( NULL ); 
 	}
 }
-#endif /*OS_WIN32*/
+#endif /*G_OS_WIN32*/
 
 	return( baseaddr );
 }
@@ -245,19 +243,19 @@ vips__mmap( int fd, int writeable, size_t length, gint64 offset )
 int
 vips__munmap( const void *start, size_t length )
 {
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 	if( !UnmapViewOfFile( (void *) start ) ) {
 		vips_error_system( GetLastError(), "vips_mapfile",
 			"%s", _( "unable to UnmapViewOfFile" ) );
 		return( -1 );
 	}
-#else /*!OS_WIN32*/
+#else /*!G_OS_WIN32*/
 	if( munmap( (void *) start, length ) < 0 ) {
 		vips_error_system( errno, "vips_mapfile", 
 			"%s", _( "unable to munmap file" ) );
 		return( -1 );
 	}
-#endif /*OS_WIN32*/
+#endif /*G_OS_WIN32*/
 
 	return( 0 );
 }
@@ -345,7 +343,7 @@ vips_remapfilerw( VipsImage *image )
 	printf( "vips_remapfilerw:\n" ); 
 #endif /*DEBUG*/
 
-#ifdef OS_WIN32
+#ifdef G_OS_WIN32
 {
 	HANDLE hFile = (HANDLE) _get_osfhandle( image->fd );
         HANDLE hMMFile;
@@ -377,7 +375,7 @@ vips_remapfilerw( VipsImage *image )
 	 */
 	CloseHandle( hMMFile );
 }
-#else /*!OS_WIN32*/
+#else /*!G_OS_WIN32*/
 {
 	assert( image->dtype == VIPS_IMAGE_MMAPIN );
 
@@ -390,7 +388,7 @@ vips_remapfilerw( VipsImage *image )
 		return( -1 ); 
 	}
 }
-#endif /*OS_WIN32*/
+#endif /*G_OS_WIN32*/
 
 	image->dtype = VIPS_IMAGE_MMAPINRW;
 

@@ -61,7 +61,6 @@ EXTRA_HFILES=
 
 IGNORE_VIPS_INCLUDE = \
 	almostdeprecated.h \
-	cimg_funcs.h \
 	deprecated.h \
 	vips7compat.h \
 	dispatch.h \
@@ -127,7 +126,7 @@ HTML_IMAGES = \
 # we have some files in markdown ... convert to docbook for gtk-doc
 # pandoc makes section headers, we want refsect3 for gtk-doc
 .md.xml:
-	pandoc -s --template="$(realpath pandoc-docbook-template.docbook)" --wrap=none -V title="$<" -f markdown+smart -t docbook-smart -o $@ $<
+	pandoc -s --template="$(realpath pandoc-docbook-template.docbook)" --wrap=none -V title="$<" -f markdown+smart -t docbook -o $@ $<
 	sed -e s/section/refsect3/g < $@ > x && mv x $@
 
 # Our markdown source files

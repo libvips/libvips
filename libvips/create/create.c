@@ -116,9 +116,9 @@ vips_create_operation_init( void )
 	extern GType vips_gaussmat_get_type( void ); 
 	extern GType vips_logmat_get_type( void ); 
 	extern GType vips_gaussnoise_get_type( void ); 
-#ifdef HAVE_PANGOFT2
+#ifdef HAVE_PANGOCAIRO
 	extern GType vips_text_get_type( void ); 
-#endif /*HAVE_PANGOFT2*/
+#endif /*HAVE_PANGOCAIRO*/
 	extern GType vips_xyz_get_type( void ); 
 	extern GType vips_eye_get_type( void ); 
 	extern GType vips_grey_get_type( void ); 
@@ -146,9 +146,9 @@ vips_create_operation_init( void )
 	vips_gaussmat_get_type();
 	vips_logmat_get_type();
 	vips_gaussnoise_get_type(); 
-#ifdef HAVE_PANGOFT2
+#ifdef HAVE_PANGOCAIRO
 	vips_text_get_type(); 
-#endif /*HAVE_PANGOFT2*/
+#endif /*HAVE_PANGOCAIRO*/
 	vips_xyz_get_type(); 
 	vips_eye_get_type(); 
 	vips_grey_get_type(); 

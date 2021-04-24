@@ -115,13 +115,13 @@
 
 /* Try to make an O_BINARY ... sometimes need the leading '_'.
  */
-#ifdef BINARY_OPEN
+#ifdef G_PLATFORM_WIN32
 #ifndef O_BINARY
 #ifdef _O_BINARY
 #define O_BINARY _O_BINARY
 #endif /*_O_BINARY*/
 #endif /*!O_BINARY*/
-#endif /*BINARY_OPEN*/
+#endif /*G_PLATFORM_WIN32*/
 
 /* If we have O_BINARY, add it to a mode flags set.
  */

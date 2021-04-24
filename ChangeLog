@@ -20,19 +20,24 @@
 - add vips_fitsload_source(), vips_niftiload_source()
 - png and gif load note background colour as metadata [781545872]
 - add vips_image_[set|get]_array_double()
+- add GIF load with libnsgif
+- add JPEG2000 load and save
+- add black_point_compensation flag for icc transforms
+- add "rgba" flag to vips_text() to enable full colour text rendering
 
 22/12/20 start 8.10.6
 - don't seek on bad file descriptors [kleisauke]
 - check for null memory sources [kleisauke]
-- revise ppmload, fixing a couple of small bugs
-- signal error on EOF in jpegload more reliably [bozaro]
-- better error detection in spngload [randy408]
+- improve ppmload, fixing a couple of small bugs
+- improve EOF detection in jpegload [bozaro]
+- improve error detection in spngload [randy408]
 - fix includes of glib headers in C++ [lovell]
 - fix build with more modern librsvg [lovell]
 - fix a possible segv with very wide images [f1ac]
-- revise premultiply, again [jjonesrs]
-- revise profile handling in vipsthumbnail
+- fix issue thumbnailing RGBA images in linear mode [jjonesrs]
+- improve vipsthumbnail profile handling
 - fix tiff deflate predictor setting [Adios]
+- fix vector path for composite on i386 [kleisauke]
 
 18/12/20 started 8.10.5
 - fix potential /0 in animated webp load [lovell]

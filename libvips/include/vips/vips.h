@@ -153,7 +153,6 @@ extern "C" {
 #include <vips/draw.h>
 #include <vips/create.h>
 #include <vips/video.h>
-#include <vips/cimg_funcs.h>
 
 /* We can't use _ here since this will be compiled by our clients and they may
  * not have _().
