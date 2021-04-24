@@ -611,6 +611,8 @@ vips_image_expected_sig( VipsImage *image )
 
 /* Load a profile from a blob and check compatibility with image, intent and
  * direction.
+ *
+ * Don't set any errors since this is used to test compatibility.
  */
 static cmsHPROFILE
 vips_icc_load_profile_blob( VipsBlob *blob, 
@@ -742,7 +744,8 @@ vips_icc_set_import( VipsIcc *icc,
 	}
 
 	if( !icc->in_profile ) {
-		vips_error( class->nickname, "%s", _( "no input profile" ) ); 
+		vips_error( class->nickname, "%s", _( "unable to load or "
+			"find any compatible input profile" ) ); 
 		return( -1 );
 	}
 
