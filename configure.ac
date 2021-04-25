@@ -770,6 +770,28 @@ VIPS_CFLAGS="$VIPS_CFLAGS $NIFTI_CFLAGS"
 VIPS_INCLUDES="$VIPS_INCLUDES $NIFTI_INCLUDES"
 VIPS_LIBS="$VIPS_LIBS $NIFTI_LIBS"
 
+# jpeg-xl
+AC_ARG_WITH([libjxl],
+  AS_HELP_STRING([--without-libjxl], 
+                 [build without libjxl (default: test)]))
+
+if test x"$with_libjxl" != x"no"; then
+  PKG_CHECK_MODULES(LIBJXL, libjxl_threads >= 0.3.7 libjxl >= 0.3.7,
+    [AC_DEFINE(HAVE_LIBJXL,1,
+       [define if you have libjxl >= 0.3.7 installed.])
+     with_libjxl=yes
+     PACKAGES_USED="$PACKAGES_USED libjxl"
+    ],
+    [AC_MSG_WARN([libjxl not found; disabling libjxl support])
+     with_libjxl=no
+    ]
+  )
+fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $LIBJXL_CFLAGS"
+VIPS_INCLUDES="$VIPS_INCLUDES $LIBJXL_INCLUDES"
+VIPS_LIBS="$VIPS_LIBS $LIBJXL_LIBS"
+
 # openjpeg
 AC_ARG_WITH([libopenjp2],
   AS_HELP_STRING([--without-libopenjp2], 
@@ -1454,6 +1476,9 @@ EXIF metadata support with libexif:     $with_libexif
 
 ## File format support
 JPEG load/save with libjpeg:            $with_jpeg
+JXL load/save with libjxl:              $with_libjxl
+JPEG2000 load/save with libopenjp2:     $with_libopenjp2
+ (requires libopenjp2 2.2 or later)
 PNG load with libspng:                  $with_libspng
  (requires libspng-0.6 or later)
 PNG load/save with libpng:              $with_png
@@ -1472,8 +1497,6 @@ PDF load with poppler-glib:             $with_poppler
 SVG load with librsvg-2.0:              $with_rsvg
  (requires librsvg-2.0 2.34.0 or later)
 EXR load with OpenEXR:                  $with_OpenEXR
-JPEG2000 load/save with libopenjp2:     $with_libopenjp2
- (requires libopenjp2 2.2 or later)
 slide load with OpenSlide:              $with_openslide
  (requires openslide-3.3.0 or later)
 Matlab load with matio:                 $with_matio

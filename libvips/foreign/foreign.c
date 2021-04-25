@@ -1396,7 +1396,7 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 	}
 
 	/* If this is something other than CMYK or RAD, and it's not already
-	 * an RGB image, eg. maybe a LAB or scRGB image, we need to transform 
+	 * an RGB image, eg. maybe a LAB image, we need to transform 
 	 * to RGB.
 	 */
 	if( !coding[VIPS_CODING_RAD] &&
@@ -1404,6 +1404,7 @@ vips__foreign_convert_saveable( VipsImage *in, VipsImage **ready,
 		in->Type != VIPS_INTERPRETATION_CMYK &&
 		in->Type != VIPS_INTERPRETATION_sRGB &&
 		in->Type != VIPS_INTERPRETATION_RGB16 &&
+		in->Type != VIPS_INTERPRETATION_scRGB &&
 		vips_colourspace_issupported( in ) &&
 		(saveable == VIPS_SAVEABLE_RGB ||
 		 saveable == VIPS_SAVEABLE_RGBA ||
@@ -2183,6 +2184,13 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_jp2k_buffer_get_type( void ); 
 	extern GType vips_foreign_save_jp2k_target_get_type( void ); 
 
+	extern GType vips_foreign_load_jxl_file_get_type( void ); 
+	extern GType vips_foreign_load_jxl_buffer_get_type( void ); 
+	extern GType vips_foreign_load_jxl_source_get_type( void ); 
+	extern GType vips_foreign_save_jxl_file_get_type( void ); 
+	extern GType vips_foreign_save_jxl_buffer_get_type( void ); 
+	extern GType vips_foreign_save_jxl_target_get_type( void ); 
+
 	extern GType vips_foreign_load_heif_file_get_type( void ); 
 	extern GType vips_foreign_load_heif_buffer_get_type( void ); 
 	extern GType vips_foreign_load_heif_source_get_type( void ); 
@@ -2255,6 +2263,15 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_svg_buffer_get_type(); 
 	vips_foreign_load_svg_source_get_type(); 
 #endif /*HAVE_RSVG*/
+
+#ifdef HAVE_LIBJXL
+	vips_foreign_load_jxl_file_get_type(); 
+	vips_foreign_load_jxl_buffer_get_type(); 
+	vips_foreign_load_jxl_source_get_type(); 
+	vips_foreign_save_jxl_file_get_type(); 
+	vips_foreign_save_jxl_buffer_get_type(); 
+	vips_foreign_save_jxl_target_get_type(); 
+#endif /*HAVE_LIBJXL*/
 
 #ifdef HAVE_LIBOPENJP2
 	vips_foreign_load_jp2k_file_get_type(); 

@@ -274,6 +274,10 @@ vips_foreign_load_jp2k_error_callback( const char *msg, void *client )
 
 	vips_error( class->nickname, "%s", msg ); 
 	jp2k->n_errors += 1;
+
+#ifdef DEBUG
+	printf( "%s: error %s",  class->nickname, msg );
+#endif /*DEBUG*/
 }
 
 /* The openjpeg info and warning callbacks are incredibly chatty.
@@ -862,7 +866,7 @@ vips_foreign_load_jp2k_load( VipsForeignLoad *load )
 	if( vips_tilecache( t[0], &t[1], 
 		"tile_width", tile_width,
 		"tile_height", tile_height,
-		"max_tiles", (int) (2.5 * tiles_across),
+		"max_tiles", 3 * tiles_across,
 		NULL ) ) 
 		return( -1 );
 	if( vips_image_write( t[1], load->real ) ) 

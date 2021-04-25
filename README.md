@@ -22,10 +22,11 @@ operations, frequency filtering, colour, resampling,
 statistics and others. It supports a large range of [numeric
 types](https://libvips.github.io/libvips/API/current/VipsImage.html#VipsBandFormat),
 from 8-bit int to 128-bit complex. Images can have any number of bands.
-It supports a good range of image formats, including JPEG, JPEG2000, TIFF, PNG,
-WebP, HEIC, AVIF, FITS, Matlab, OpenEXR, PDF, SVG, HDR, PPM / PGM / PFM,
-CSV, GIF, Analyze, NIfTI, DeepZoom, and OpenSlide. It can also load images
-via ImageMagick or GraphicsMagick, letting it work with formats like DICOM.
+It supports a good range of image formats, including JPEG, JPEG2000, JPEG-XL,
+TIFF, PNG, WebP, HEIC, AVIF, FITS, Matlab, OpenEXR, PDF, SVG, HDR, PPM / PGM /
+PFM, CSV, GIF, Analyze, NIfTI, DeepZoom, and OpenSlide. It can also load
+images via ImageMagick or GraphicsMagick, letting it work with formats
+like DICOM.
 
 It comes with bindings for
 [C](https://libvips.github.io/libvips/API/current/using-from-c.html),
@@ -47,7 +48,7 @@ Rails](https://edgeguides.rubyonrails.org/active_storage_overview.html),
 [mediawiki](https://www.mediawiki.org/wiki/Extension:VipsScaler),
 [PhotoFlow](https://github.com/aferrero2707/PhotoFlow) and others.
 The official libvips GUI is [nip2](https://github.com/libvips/nip2),
-a strange combination of a spreadsheet and an photo editor.
+a strange combination of a spreadsheet and a photo editor.
 
 # Install
 
@@ -277,6 +278,10 @@ OpenEXR images.
 ### OpenJPEG
 
 If available, libvips will read and write JPEG2000 images.
+
+### libjxl
+
+If available, libvips will read and write JPEG-XL images.
 
 ### OpenSlide
 
