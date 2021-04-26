@@ -270,6 +270,16 @@
  */
 #define MAX_ALPHA (64)
 
+/* Bioformats uses this tag for lossy jp2k compressed tiles.
+ */
+#define JP2K_LOSSY 33004
+
+/* Compression types we handle ourselves.
+ */
+static int wtiff_we_compress[] = {
+	JP2K_LOSSY
+};
+
 typedef struct _Layer Layer;
 typedef struct _Wtiff Wtiff;
 
@@ -351,7 +361,7 @@ struct _Wtiff {
 	int strip;			/* Don't write metadata */
 	VipsRegionShrink region_shrink; /* How to shrink regions */
 	int level;			/* zstd compression level */
-	gboolean lossless;		/* webp lossless mode */
+	gboolean lossless;		/* lossless mode */
 	VipsForeignDzDepth depth;	/* Pyr depth */
 	gboolean subifd;		/* Write pyr layers into subifds */
 
@@ -368,6 +378,16 @@ struct _Wtiff {
 	 * roll mode.
 	 */
 	int image_height;
+
+	/* TRUE if the compression type is not supported by libtiff directly
+	 * and we must compress ourselves. 
+	 */
+	gboolean we_compress;
+
+	/* If we are copying, we need a buffer to read the compressed tile to.
+	 */
+	tdata_t compressed_buf;
+	tsize_t compressed_buf_length;
 };
 
 /* Write an ICC Profile from a file into the JPEG stream.
@@ -636,6 +656,7 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 {
 	TIFF *tif = layer->tif;
 
+	int i;
 	int orientation; 
 
 #ifdef DEBUG
@@ -671,6 +692,12 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 		wtiff->compression == COMPRESSION_LZW) &&
 		wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE ) 
 		TIFFSetField( tif, TIFFTAG_PREDICTOR, wtiff->predictor );
+
+	for( i = 0; i < VIPS_NUMBER( wtiff_we_compress ); i++ )
+		if( wtiff->compression == wtiff_we_compress[i] ) {
+			wtiff->we_compress = TRUE;
+			break;
+		}
 
 	/* Don't write mad resolutions (eg. zero), it confuses some programs.
 	 */
@@ -926,6 +953,20 @@ wtiff_allocate_layers( Wtiff *wtiff )
 			return( -1 );
 	}
 
+	/* If we will be copying layers we need a buffer large enough to hold
+	 * the largest compressed tile in any page.
+	 *
+	 * Allocate a buffer 2x the uncompressed tile size ... much simpler
+	 * than searching every page for the largest tile with
+	 * TIFFTAG_TILEBYTECOUNTS.
+	 */
+	if( wtiff->pyramid ) {
+		wtiff->compressed_buf_length = 2 * wtiff->tls * wtiff->tileh;
+		if( !(wtiff->compressed_buf = vips_malloc( NULL,
+			wtiff->compressed_buf_length )) )
+			return( -1 );
+	}
+
 	return( 0 );
 }
 
@@ -981,11 +1022,11 @@ static void
 wtiff_free( Wtiff *wtiff )
 {
 	wtiff_delete_temps( wtiff );
-
 	VIPS_UNREF( wtiff->ready );
 	VIPS_FREE( wtiff->tbuf );
 	VIPS_FREEF( layer_free_all, wtiff->layer );
 	VIPS_FREE( wtiff->filename );
+	VIPS_FREE( wtiff->compressed_buf );
 	VIPS_FREE( wtiff );
 }
 
@@ -1011,6 +1052,8 @@ get_compression( VipsForeignTiffCompression compression )
 	case VIPS_FOREIGN_TIFF_COMPRESSION_ZSTD:
 		return( COMPRESSION_ZSTD );
 #endif /*HAVE_TIFF_COMPRESSION_WEBP*/
+	case VIPS_FOREIGN_TIFF_COMPRESSION_JP2K:
+		return( JP2K_LOSSY );
 	
 	default:
 		return( COMPRESSION_NONE );
@@ -1236,21 +1279,6 @@ wtiff_new( VipsImage *input, const char *filename,
 				"as miniswhite -- disabling miniswhite" ) );
 		wtiff->miniswhite = FALSE;
 	}
-
-	/* lossless is for webp only.
-	 */
-#ifdef HAVE_TIFF_COMPRESSION_WEBP
-	if( wtiff->lossless ) {
-		if( wtiff->compression == COMPRESSION_NONE )
-			wtiff->compression = COMPRESSION_WEBP;
-
-		if( wtiff->compression != COMPRESSION_WEBP ) {
-			g_warning( "%s", 
-				_( "lossless is for WEBP compression only" ) );
-			wtiff->lossless = FALSE;
-		}
-	}
-#endif /*HAVE_TIFF_COMPRESSION_WEBP*/
 
 	/* Sizeof a line of bytes in the TIFF tile.
 	 */
@@ -1489,7 +1517,7 @@ wtiff_pack2tiff( Wtiff *wtiff, Layer *layer,
 /* Write a set of tiles across the strip.
  */
 static int
-wtiff_layer_write_tile( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
+wtiff_layer_write_tiles( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 {
 	VipsImage *im = layer->image;
 	VipsRect *area = &strip->valid;
@@ -1511,21 +1539,72 @@ wtiff_layer_write_tile( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 		tile.height = wtiff->tileh;
 		vips_rect_intersectrect( &tile, &image, &tile );
 
-		/* Have to repack pixels.
-		 */
-		wtiff_pack2tiff( wtiff, layer, strip, &tile, wtiff->tbuf );
-
 #ifdef DEBUG_VERBOSE
 		printf( "Writing %dx%d tile at position %dx%d to image %s\n",
 			tile.width, tile.height, tile.left, tile.top,
 			TIFFFileName( layer->tif ) );
 #endif /*DEBUG_VERBOSE*/
 
-		if( TIFFWriteTile( layer->tif, wtiff->tbuf, 
-			tile.left, tile.top, 0, 0 ) < 0 ) {
-			vips_error( "vips2tiff", 
-				"%s", _( "TIFF write tile failed" ) );
-			return( -1 );
+		if( wtiff->we_compress ) {
+			ttile_t tile_no = TIFFComputeTile( layer->tif,
+				tile.left, tile.top, 0, 0 );
+
+			VipsTarget *target;
+			int result;
+			unsigned char *buffer;
+			size_t length;
+
+			target = vips_target_new_to_memory();
+
+			switch( wtiff->compression ) {
+			case JP2K_LOSSY:
+				result = vips__foreign_load_jp2k_compress( 
+					strip, &tile, target,
+					wtiff->tilew, wtiff->tileh,
+					!wtiff->rgbjpeg,
+					!wtiff->rgbjpeg && wtiff->Q < 90,
+					wtiff->lossless, 
+					wtiff->Q );
+				break;
+
+			default:
+				result = -1;
+				g_assert_not_reached();
+				break;
+			}
+
+			if( result ) {
+				g_object_unref( target );
+				return( -1 );
+			}
+
+			buffer = vips_target_steal( target, &length );
+
+			g_object_unref( target );
+
+			result = TIFFWriteRawTile( layer->tif, tile_no, 
+				buffer, length );
+
+			g_free( buffer );
+		
+			if( result < 0 ) {
+				vips_error( "vips2tiff", 
+					"%s", _( "TIFF write tile failed" ) );
+				return( -1 );
+			}
+		}
+		else {
+			/* Have to repack pixels for libtiff.
+			 */
+			wtiff_pack2tiff( wtiff, 
+				layer, strip, &tile, wtiff->tbuf );
+
+			if( TIFFWriteTile( layer->tif, wtiff->tbuf, 
+				tile.left, tile.top, 0, 0 ) < 0 ) {
+				vips_error( "vips2tiff", 
+					"%s", _( "TIFF write tile failed" ) );
+				return( -1 );
+			}
 		}
 	}
 
@@ -1672,7 +1751,7 @@ layer_strip_arrived( Layer *layer )
 	VipsRect image_area;
 
 	if( wtiff->tile ) 
-		result = wtiff_layer_write_tile( wtiff, layer, layer->strip );
+		result = wtiff_layer_write_tiles( wtiff, layer, layer->strip );
 	else
 		result = wtiff_layer_write_strip( wtiff, layer, layer->strip );
 	if( result )
@@ -1803,7 +1882,7 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 	uint16 ui16_2;
 	float f;
 	tdata_t buf;
-	ttile_t tile;
+	ttile_t tile_no;
 	ttile_t n;
 	uint16 *a;
 
@@ -1891,19 +1970,15 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 
 	buf = vips_malloc( NULL, TIFFTileSize( in ) );
 	n = TIFFNumberOfTiles( in );
-	for( tile = 0; tile < n; tile++ ) {
+	for( tile_no = 0; tile_no < n; tile_no++ ) {
 		tsize_t len;
 
-		/* It'd be good to use TIFFReadRawTile()/TIFFWtiffRawTile() 
-		 * here to save compression/decompression, but sadly it seems
-		 * not to work :-( investigate at some point.
-		 */
-		len = TIFFReadEncodedTile( in, tile, buf, -1 );
-		if( len < 0 ||
-			TIFFWriteEncodedTile( out, tile, buf, len ) < 0 ) {
-			g_free( buf );
+		len = TIFFReadRawTile( in, tile_no, 
+			wtiff->compressed_buf, wtiff->compressed_buf_length );
+		if( len <= 0 ||
+			TIFFWriteRawTile( out, tile_no, 
+				wtiff->compressed_buf, len ) < 0 )
 			return( -1 );
-		}
 	}
 	g_free( buf );
 
