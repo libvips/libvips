@@ -73,6 +73,10 @@
     These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
  */
+
+/*
+#define DEBUG
+ */
  
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -83,7 +87,6 @@
 
 #include <stdio.h>
 #include <math.h>
-#include <assert.h>
 
 /* Has to be before VIPS to avoid nameclashes.
  */
@@ -163,7 +166,7 @@ typedef struct _VipsIcc {
 	cmsUInt32Number in_icc_format;
 	cmsUInt32Number out_icc_format;
 	cmsHTRANSFORM trans;
-
+	gboolean non_standard_input_profile;
 } VipsIcc;
 
 typedef VipsColourCodeClass VipsIccClass;
@@ -376,105 +379,85 @@ vips_icc_build( VipsObject *object )
 	return( 0 );
 }
 
-static void
-vips_icc_class_init( VipsIccClass *class )
+/* Get from an image.
+ */
+static VipsBlob *
+vips_icc_get_profile_image( VipsImage *image )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	const void *data;
+	size_t size;
 
-	gobject_class->dispose = vips_icc_dispose;
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
+	if( !vips_image_get_typeof( image, VIPS_META_ICC_NAME ) )
+		return( NULL ); 
+	if( vips_image_get_blob( image, VIPS_META_ICC_NAME, &data, &size ) )
+		return( NULL ); 
 
-	object_class->nickname = "icc";
-	object_class->description = _( "transform using ICC profiles" );
-	object_class->build = vips_icc_build;
-
-	VIPS_ARG_ENUM( class, "intent", 6, 
-		_( "Intent" ), 
-		_( "Rendering intent" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsIcc, intent ),
-		VIPS_TYPE_INTENT, VIPS_INTENT_RELATIVE );
-
-	VIPS_ARG_ENUM( class, "pcs", 6, 
-		_( "PCS" ), 
-		_( "Set Profile Connection Space" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsIcc, pcs ),
-		VIPS_TYPE_PCS, VIPS_PCS_LAB );
-
-	VIPS_ARG_BOOL( class, "black_point_compensation", 7, 
-		_( "Black point compensation" ), 
-		_( "Enable black point compensation" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsIcc, black_point_compensation ),
-		FALSE );
-
-	cmsSetLogErrorHandler( icc_error );
+	return( vips_blob_new( NULL, data, size ) );
 }
 
+#ifdef DEBUG
 static void
-vips_icc_init( VipsIcc *icc )
+vips_icc_print_profile( const char *name, cmsHPROFILE profile )
 {
-	icc->intent = VIPS_INTENT_RELATIVE;
-	icc->pcs = VIPS_PCS_LAB;
-	icc->depth = 8;
-}
+	static const cmsInfoType info_types[] = {
+	     cmsInfoDescription,
+             cmsInfoManufacturer,
+             cmsInfoModel,
+             cmsInfoCopyright
+	};
+	static const char *info_names[] = {
+	     "description",
+             "manufacturer",
+             "model",
+             "copyright"
+	};
 
-typedef struct _VipsIccImport {
-	VipsIcc parent_instance;
+	int i;
+	cmsUInt32Number n_bytes;
+	cmsUInt32Number n_intents;
+	cmsUInt32Number *intent_codes;
+	char **intent_descriptions;
+	
+	printf( "icc profile %s: %p\n", name, profile );
+	for( i = 0; i < VIPS_NUMBER( info_types ); i++ ) {
+		if( (n_bytes = cmsGetProfileInfoASCII( profile, 
+			info_types[i], "en", "US", 
+			NULL, 0 )) ) {
+			char *buffer;
 
-	gboolean embedded;
-	char *input_profile_filename;
-
-} VipsIccImport;
-
-typedef VipsIccClass VipsIccImportClass;
-
-G_DEFINE_TYPE( VipsIccImport, vips_icc_import, VIPS_TYPE_ICC );
-
-static void
-vips_check_intent( const char *domain, 
-	cmsHPROFILE profile, VipsIntent intent, int direction )
-{
-	if( profile &&
-		!cmsIsIntentSupported( profile, intent, direction ) )
-		g_warning( _( "%s: intent %d (%s) not supported by "
-			"%s profile; falling back to default intent" ), 
-			domain, 
-			intent, vips_enum_nick( VIPS_TYPE_INTENT, intent ),
-			direction == LCMS_USED_AS_INPUT ?
-				_( "input" ) : _( "output" ) );
-}
-
-static int
-vips_icc_profile_needs_bands( cmsHPROFILE profile )
-{
-	int needs_bands;
-
-	switch( cmsGetColorSpace( profile ) ) {
-	case cmsSigGrayData:
-		needs_bands = 1;
-		break;
-
-	case cmsSigRgbData:
-	case cmsSigLabData:
-	case cmsSigXYZData:
-		needs_bands = 3;
-		break;
-
-	case cmsSigCmykData:
-		needs_bands = 4;
-		break;
-
-	default:
-		needs_bands = -1;
-		break;
+			buffer = VIPS_ARRAY( NULL, n_bytes, char );
+			(void) cmsGetProfileInfoASCII( profile, 
+				info_types[i], "en", "US", 
+				buffer, n_bytes );
+			printf( "%s: %s\n", info_names[i], buffer );
+			g_free( buffer );
+		}
 	}
 
-	return( needs_bands );
+	printf( "profile class: %#x\n", cmsGetDeviceClass( profile ) );
+	printf( "PCS: %#x\n", cmsGetPCS( profile ) );
+
+	printf( "matrix shaper: %d\n", cmsIsMatrixShaper( profile ) );
+	printf( "version: %g\n", cmsGetProfileVersion( profile ) );
+
+	n_intents = cmsGetSupportedIntents( 0, NULL, NULL );
+	printf( "n_intents = %u\n", n_intents );
+	intent_codes = VIPS_ARRAY( NULL, n_intents, cmsUInt32Number );
+	intent_descriptions = VIPS_ARRAY( NULL, n_intents, char * );
+	(void) cmsGetSupportedIntents( n_intents, 
+		intent_codes, intent_descriptions );
+	for( i = 0; i < n_intents; i++ ) {
+		printf( "  %#x: %s, in CLUT = %d, out CLUT = %d\n", 
+			intent_codes[i], intent_descriptions[i],
+			cmsIsCLUT( profile, 
+				intent_codes[i], LCMS_USED_AS_INPUT ),
+			cmsIsCLUT( profile, 
+				intent_codes[i], LCMS_USED_AS_OUTPUT ) );
+	}
+	g_free( intent_codes );
+	g_free( intent_descriptions );
 }
+#endif /*DEBUG*/
 
 /* How many bands we expect to see from an image after preprocessing by our
  * parent classes. This is a bit fragile :-( 
@@ -525,6 +508,34 @@ vips_image_expected_bands( VipsImage *image )
 	expected_bands = VIPS_MIN( expected_bands, image->Bands );
 
 	return( expected_bands );
+}
+
+static int
+vips_icc_profile_needs_bands( cmsHPROFILE profile )
+{
+	int needs_bands;
+
+	switch( cmsGetColorSpace( profile ) ) {
+	case cmsSigGrayData:
+		needs_bands = 1;
+		break;
+
+	case cmsSigRgbData:
+	case cmsSigLabData:
+	case cmsSigXYZData:
+		needs_bands = 3;
+		break;
+
+	case cmsSigCmykData:
+		needs_bands = 4;
+		break;
+
+	default:
+		needs_bands = -1;
+		break;
+	}
+
+	return( needs_bands );
 }
 
 /* What cmsColorSpaceSignature do we expect this image to be (roughly) after 
@@ -608,26 +619,14 @@ vips_image_expected_sig( VipsImage *image )
 	return( expected_sig );
 }
 
-/* Get from an image.
- */
-static VipsBlob *
-vips_icc_get_profile_image( VipsImage *image )
-{
-	const void *data;
-	size_t size;
-
-	if( !vips_image_get_typeof( image, VIPS_META_ICC_NAME ) )
-		return( NULL ); 
-	if( vips_image_get_blob( image, VIPS_META_ICC_NAME, &data, &size ) )
-		return( NULL ); 
-
-	return( vips_blob_new( NULL, data, size ) );
-}
-
-/* Load a profile from a blob and check compatibility.
+/* Load a profile from a blob and check compatibility with image, intent and
+ * direction.
+ *
+ * Don't set any errors since this is used to test compatibility.
  */
 static cmsHPROFILE
-vips_icc_load_profile_blob( VipsBlob *blob, VipsImage *image )
+vips_icc_load_profile_blob( VipsBlob *blob, 
+	VipsImage *image, VipsIntent intent, int direction )
 {
 	const void *data;
 	size_t size;
@@ -639,6 +638,10 @@ vips_icc_load_profile_blob( VipsBlob *blob, VipsImage *image )
 		return( NULL ); 
 	}
 
+#ifdef DEBUG
+	vips_icc_print_profile( "from blob", profile );
+#endif /*DEBUG*/
+
 	if( image &&
 		vips_image_expected_bands( image ) != 
 			vips_icc_profile_needs_bands( profile ) ) {
@@ -646,12 +649,22 @@ vips_icc_load_profile_blob( VipsBlob *blob, VipsImage *image )
 		g_warning( "%s", _( "profile incompatible with image" ) );
 		return( NULL );
 	}
+
 	if( image &&
 		vips_image_expected_sig( image ) != 
 			cmsGetColorSpace( profile ) ) {
 		VIPS_FREEF( cmsCloseProfile, profile );
 		g_warning( "%s", 
 			_( "profile colourspace differs from image" ) );
+		return( NULL );
+	}
+
+	if( !cmsIsIntentSupported( profile, intent, direction ) ) {
+		VIPS_FREEF( cmsCloseProfile, profile );
+		g_warning( _( "%s profile does not support %s intent" ),
+			direction == LCMS_USED_AS_INPUT ?
+				_( "input" ) : _( "output" ),
+			vips_enum_nick( VIPS_TYPE_INTENT, intent ) );
 		return( NULL );
 	}
 
@@ -663,12 +676,14 @@ vips_icc_load_profile_blob( VipsBlob *blob, VipsImage *image )
  * unref the blob if it's useless.
  */
 static cmsHPROFILE
-vips_icc_verify_blob( VipsBlob **blob, VipsImage *image )
+vips_icc_verify_blob( VipsBlob **blob, 
+	VipsImage *image, VipsIntent intent, int direction )
 {
 	if( *blob ) {
 		cmsHPROFILE profile;
 
-		if( !(profile = vips_icc_load_profile_blob( *blob, image )) ) {
+		if( !(profile = vips_icc_load_profile_blob( *blob, 
+			image, intent, direction )) ) {
 			vips_area_unref( (VipsArea *) *blob );
 			*blob = NULL;
 		}
@@ -679,54 +694,142 @@ vips_icc_verify_blob( VipsBlob **blob, VipsImage *image )
 	return( NULL );
 }
 
+/* Try to set the inport profile. We read the input profile like this:
+ *
+ *	embedded	filename	action
+ *	0		0 		image
+ *	1		0		image
+ *	0		1		file
+ *	1		1		image, then fall back to file
+ *
+ * If averything fails, we fall back to our built-in profiles, either
+ * srgb or cmyk, depending on the input image.
+ *
+ * We set attach_input_profile if we used a non-emdedded profile. The profile
+ * in in_blob will need to be attached to the output image in some way.
+ */
 static int
-vips_icc_import_build( VipsObject *object )
+vips_icc_set_import( VipsIcc *icc, 
+	gboolean embedded, const char *input_profile_filename )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
-	VipsColour *colour = (VipsColour *) object;
-	VipsColourCode *code = (VipsColourCode *) object;
-	VipsIcc *icc = (VipsIcc *) object;
-	VipsIccImport *import = (VipsIccImport *) object;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( icc ); 
+	VipsColourCode *code = (VipsColourCode *) icc;
 
-	gboolean used_fallback;
+	icc->non_standard_input_profile = FALSE;
 
-	/* We read the input profile like this:
-	 *
-	 *	embedded	filename	action
-	 *	0		0 		image
-	 *	1		0		image
-	 *	0		1		file
-	 *	1		1		image, then fall back to file
+	/* Try embedded profile.
 	 */
-
-	used_fallback = FALSE;
-
 	if( code->in &&
-		(import->embedded ||
-			!import->input_profile_filename) ) {
+		(embedded || !input_profile_filename) ) {
 		icc->in_blob = vips_icc_get_profile_image( code->in );
-		icc->in_profile = 
-			vips_icc_verify_blob( &icc->in_blob, code->in );
+		icc->in_profile = vips_icc_verify_blob( &icc->in_blob,
+			code->in, icc->intent, LCMS_USED_AS_INPUT );
 	}
 
+	/* Try profile from filename.
+	 */
 	if( code->in &&
 		!icc->in_blob &&
-		import->input_profile_filename ) {
-		if( vips_profile_load( import->input_profile_filename, 
-			&icc->in_blob, NULL ) )
-			return( -1 ); 
-		icc->in_profile = 
-			vips_icc_verify_blob( &icc->in_blob, code->in );
-	 	used_fallback = TRUE;
+		input_profile_filename ) {
+		if( 
+			!vips_profile_load( input_profile_filename, 
+				&icc->in_blob, NULL ) &&
+			(icc->in_profile = vips_icc_verify_blob( &icc->in_blob, 
+				code->in, icc->intent, LCMS_USED_AS_INPUT )) )
+			icc->non_standard_input_profile = TRUE;
+	}
+
+	/* Try built-in profile.
+	 */
+	if( code->in &&
+		!icc->in_profile ) {
+		const char *name = code->in->Type == VIPS_INTERPRETATION_CMYK ?
+			"cmyk" : "srgb";
+
+		if( 
+			!vips_profile_load( name, &icc->in_blob, NULL ) &&
+			(icc->in_profile = vips_icc_verify_blob( &icc->in_blob, 
+				code->in, icc->intent, LCMS_USED_AS_INPUT )) )
+			icc->non_standard_input_profile = TRUE;
 	}
 
 	if( !icc->in_profile ) {
-		vips_error( class->nickname, "%s", _( "no input profile" ) ); 
+		vips_error( class->nickname, "%s", _( "unable to load or "
+			"find any compatible input profile" ) ); 
 		return( -1 );
 	}
 
-	vips_check_intent( class->nickname, 
-		icc->in_profile, icc->intent, LCMS_USED_AS_INPUT );
+	return( 0 );
+}
+
+static void
+vips_icc_class_init( VipsIccClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->dispose = vips_icc_dispose;
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "icc";
+	object_class->description = _( "transform using ICC profiles" );
+	object_class->build = vips_icc_build;
+
+	VIPS_ARG_ENUM( class, "intent", 6, 
+		_( "Intent" ), 
+		_( "Rendering intent" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsIcc, intent ),
+		VIPS_TYPE_INTENT, VIPS_INTENT_RELATIVE );
+
+	VIPS_ARG_ENUM( class, "pcs", 6, 
+		_( "PCS" ), 
+		_( "Set Profile Connection Space" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsIcc, pcs ),
+		VIPS_TYPE_PCS, VIPS_PCS_LAB );
+
+	VIPS_ARG_BOOL( class, "black_point_compensation", 7, 
+		_( "Black point compensation" ), 
+		_( "Enable black point compensation" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsIcc, black_point_compensation ),
+		FALSE );
+
+	cmsSetLogErrorHandler( icc_error );
+}
+
+static void
+vips_icc_init( VipsIcc *icc )
+{
+	icc->intent = VIPS_INTENT_RELATIVE;
+	icc->pcs = VIPS_PCS_LAB;
+	icc->depth = 8;
+}
+
+typedef struct _VipsIccImport {
+	VipsIcc parent_instance;
+
+	gboolean embedded;
+	char *input_profile_filename;
+
+} VipsIccImport;
+
+typedef VipsIccClass VipsIccImportClass;
+
+G_DEFINE_TYPE( VipsIccImport, vips_icc_import, VIPS_TYPE_ICC );
+
+static int
+vips_icc_import_build( VipsObject *object )
+{
+	VipsColour *colour = (VipsColour *) object;
+	VipsIcc *icc = (VipsIcc *) object;
+	VipsIccImport *import = (VipsIccImport *) object;
+
+	if( vips_icc_set_import( icc, 
+		import->embedded, import->input_profile_filename ) )
+		return( -1 );
 
 	if( icc->pcs == VIPS_PCS_LAB ) { 
 		cmsCIExyY white;
@@ -746,7 +849,7 @@ vips_icc_import_build( VipsObject *object )
 	 * In the same way, we don't remove the embedded input profile on
 	 * import.
 	 */
-	if( used_fallback &&
+	if( icc->non_standard_input_profile &&
 		icc->in_blob ) {
 		const void *data;
 		size_t size;
@@ -913,15 +1016,11 @@ vips_icc_export_build( VipsObject *object )
 	}
 
 	if( icc->out_blob &&
-		!(icc->out_profile = 
-			vips_icc_load_profile_blob( icc->out_blob, NULL )) ) {
+		!(icc->out_profile = vips_icc_load_profile_blob( icc->out_blob,
+			NULL, icc->intent, LCMS_USED_AS_OUTPUT )) ) {
 		vips_error( class->nickname, "%s", _( "no output profile" ) ); 
 		return( -1 );
 	}
-
-	if( icc->out_profile )
-		vips_check_intent( class->nickname, 
-			icc->out_profile, icc->intent, LCMS_USED_AS_OUTPUT );
 
 	if( VIPS_OBJECT_CLASS( vips_icc_export_parent_class )->build( object ) )
 		return( -1 );
@@ -1090,48 +1189,12 @@ vips_icc_transform_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object ); 
 	VipsColour *colour = (VipsColour *) object;
-	VipsColourCode *code = (VipsColourCode *) object;
 	VipsIcc *icc = (VipsIcc *) object;
 	VipsIccTransform *transform = (VipsIccTransform *) object;
 
-	/* We read the input profile like this:
-	 *
-	 *	embedded	filename	action
-	 *	0		0 		image
-	 *	1		0		image
-	 *	0		1		file
-	 *	1		1		image, then fall back to file
-	 *	
-	 * see also import_build.
-	 */
-
-	if( code->in &&
-		(transform->embedded ||
-			!transform->input_profile_filename) ) {
-		icc->in_blob = vips_icc_get_profile_image( code->in );
-		icc->in_profile = 
-			vips_icc_verify_blob( &icc->in_blob, code->in );
-	}
-
-	if( code->in &&
-		!icc->in_blob &&
-		transform->input_profile_filename ) {
-		if( vips_profile_load( transform->input_profile_filename, 
-			&icc->in_blob, NULL ) )
-			return( -1 ); 
-		icc->in_profile = 
-			vips_icc_verify_blob( &icc->in_blob, code->in );
-	}
-
-	if( !icc->in_profile ) {
-		vips_error( class->nickname, "%s", _( "no input profile" ) ); 
+	if( vips_icc_set_import( icc, 
+		transform->embedded, transform->input_profile_filename ) )
 		return( -1 );
-	}
-
-	if( !icc->in_profile ) {
-		vips_error( class->nickname, "%s", _( "no input profile" ) ); 
-		return( -1 );
-	}
 
 	if( transform->output_profile_filename ) {
 		if( vips_profile_load( transform->output_profile_filename, 
@@ -1141,18 +1204,13 @@ vips_icc_transform_build( VipsObject *object )
 	}
 
 	if( icc->out_blob )
-		icc->out_profile = 
-			vips_icc_load_profile_blob( icc->out_blob, NULL );
+		icc->out_profile = vips_icc_load_profile_blob( icc->out_blob, 
+			NULL, icc->intent, LCMS_USED_AS_OUTPUT );
 
 	if( !icc->out_profile ) { 
 		vips_error( class->nickname, "%s", _( "no output profile" ) ); 
 		return( -1 );
 	}
-
-	vips_check_intent( class->nickname, 
-		icc->in_profile, icc->intent, LCMS_USED_AS_INPUT );
-	vips_check_intent( class->nickname, 
-		icc->out_profile, icc->intent, LCMS_USED_AS_OUTPUT );
 
 	if( VIPS_OBJECT_CLASS( vips_icc_transform_parent_class )->
 		build( object ) )
@@ -1251,6 +1309,10 @@ vips_icc_ac2rc( VipsImage *in, VipsImage **out, const char *profile_filename )
 	if( !(profile = cmsOpenProfileFromFile( profile_filename, "r" )) )
 		return( -1 );
 
+#ifdef DEBUG
+	vips_icc_print_profile( profile_filename, profile );
+#endif /*DEBUG*/
+
 	if( !(media = cmsReadTag( profile, cmsSigMediaWhitePointTag )) ) {
 		vips_error( "vips_icc_ac2rc", 
 			"%s", _( "unable to get media white point" ) );
@@ -1309,6 +1371,10 @@ vips_icc_is_compatible_profile( VipsImage *image,
 		/* Corrupt profile. 
 		 */
 		return( FALSE ); 
+
+#ifdef DEBUG
+	vips_icc_print_profile( "from memory", profile );
+#endif /*DEBUG*/
 
 	if( vips_image_expected_bands( image ) != 
 		vips_icc_profile_needs_bands( profile ) ) {
