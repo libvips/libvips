@@ -64,7 +64,7 @@ jobs:
           brew update
           brew upgrade
           brew install autoconf automake libtool fftw fontconfig gtk-doc gobject-introspection glib libexif libgsf little-cms2 orc pango
-          brew install cfitsio imagemagick@6 libheif libjpeg-turbo libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
+          brew install cfitsio libheif libjpeg-turbo libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
 
       - name: Install Clang 10
         env:
