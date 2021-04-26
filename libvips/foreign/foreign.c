@@ -2246,11 +2246,11 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_rad_target_get_type(); 
 #endif /*HAVE_RADIANCE*/
 
-#ifdef HAVE_POPPLER
+#if defined(HAVE_POPPLER) && !defined(POPPLER_MODULE)
 	vips_foreign_load_pdf_file_get_type(); 
 	vips_foreign_load_pdf_buffer_get_type(); 
 	vips_foreign_load_pdf_source_get_type(); 
-#endif /*HAVE_POPPLER*/
+#endif /*defined(HAVE_POPPLER) && !defined(POPPLER_MODULE)*/
 
 #ifdef HAVE_PDFIUM
 	vips_foreign_load_pdf_file_get_type(); 
@@ -2339,12 +2339,12 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_tiff_buffer_get_type(); 
 #endif /*HAVE_TIFF*/
 
-#ifdef HAVE_OPENSLIDE
+#if defined(HAVE_OPENSLIDE) && !defined(OPENSLIDE_MODULE)
 	vips_foreign_load_openslide_file_get_type(); 
 	vips_foreign_load_openslide_source_get_type(); 
-#endif /*HAVE_OPENSLIDE*/
+#endif /*defined(HAVE_OPENSLIDE) && !defined(OPENSLIDE_MODULE)*/
 
-#ifdef ENABLE_MAGICKLOAD
+#if defined(ENABLE_MAGICKLOAD) && !defined(MAGICK_MODULE)
 #ifdef HAVE_MAGICK6
 	vips_foreign_load_magick_file_get_type();
 	vips_foreign_load_magick_buffer_get_type();
@@ -2354,12 +2354,12 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_magick7_file_get_type();
 	vips_foreign_load_magick7_buffer_get_type();
 #endif /*HAVE_MAGICK7*/
-#endif /*ENABLE_MAGICKLOAD*/
+#endif /*defined(ENABLE_MAGICKLOAD) && !defined(MAGICK_MODULE)*/
 
-#ifdef ENABLE_MAGICKSAVE
+#if defined(ENABLE_MAGICKSAVE) && !defined(MAGICK_MODULE)
 	vips_foreign_save_magick_file_get_type();
 	vips_foreign_save_magick_buffer_get_type();
-#endif /*ENABLE_MAGICKSAVE*/
+#endif /*defined(ENABLE_MAGICKSAVE) && !defined(MAGICK_MODULE)*/
 
 #ifdef HAVE_CFITSIO
 	vips_foreign_load_fits_file_get_type(); 
@@ -2377,17 +2377,17 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_nifti_get_type(); 
 #endif /*HAVE_NIFTI*/
 
-#ifdef HAVE_HEIF_DECODER
+#if defined(HAVE_HEIF_DECODER) && !defined(HEIF_MODULE)
 	vips_foreign_load_heif_file_get_type(); 
 	vips_foreign_load_heif_buffer_get_type(); 
 	vips_foreign_load_heif_source_get_type(); 
-#endif /*HAVE_HEIF_DECODER*/
+#endif /*defined(HAVE_HEIF_DECODER) && !defined(HEIF_MODULE)*/
 
-#ifdef HAVE_HEIF_ENCODER
+#if defined(HAVE_HEIF_ENCODER) && !defined(HEIF_MODULE)
 	vips_foreign_save_heif_file_get_type(); 
 	vips_foreign_save_heif_buffer_get_type(); 
 	vips_foreign_save_heif_target_get_type(); 
-#endif /*HAVE_HEIF_ENCODER*/
+#endif /*defined(HAVE_HEIF_ENCODER) && !defined(HEIF_MODULE)*/
 
 	vips__foreign_load_operation = 
 		g_quark_from_static_string( "vips-foreign-load-operation" ); 

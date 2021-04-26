@@ -399,8 +399,8 @@ AC_CHECK_LIB(m,hypot,[AC_DEFINE(HAVE_HYPOT,1,[have hypot() in libm.])])
 AC_CHECK_LIB(m,atan2,[AC_DEFINE(HAVE_ATAN2,1,[have atan2() in libm.])])
 
 # have to have these parts of glib ... we need glib 2.15 for gio
-PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.40 gmodule-2.0 gobject-2.0 gio-2.0)
-PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-2.0 gobject-2.0 gio-2.0"
+PKG_CHECK_MODULES(REQUIRED, glib-2.0 >= 2.40 gmodule-no-export-2.0 gobject-2.0 gio-2.0)
+PACKAGES_USED="$PACKAGES_USED glib-2.0 gmodule-no-export-2.0 gobject-2.0 gio-2.0"
 
 # from 2.62 we have datetime
 PKG_CHECK_MODULES(DATE_TIME_FORMAT_ISO8601, glib-2.0 >= 2.62,
@@ -436,6 +436,30 @@ PKG_CHECK_MODULES(HAVE_CHECKED_MUL, glib-2.0 >= 2.48,
   [:
   ]
 )
+
+AC_MSG_CHECKING([whether to build dynamic modules])
+
+AC_ARG_ENABLE([modules], 
+  AS_HELP_STRING([--disable-modules], [disable dynamic modules (default: enabled)]))
+
+gmodule_supported_bool=false
+gmodule_supported_flag=no
+gmodule_with_flag=yes
+
+if test x"$enable_modules" = x"no"; then
+  AC_MSG_RESULT(no)
+else
+  AC_MSG_RESULT(yes)
+  AC_MSG_CHECKING(whether dynamic modules work)
+  gmodule_supported_bool=`$PKG_CONFIG gmodule-no-export-2.0 --variable gmodule_supported`
+  if $gmodule_supported_bool; then
+    gmodule_supported_flag=yes
+    gmodule_with_flag='module'
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT(no)
+  fi
+fi
 
 # check for gtk-doc
 GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
@@ -511,7 +535,14 @@ VIPS_LIBS="$VIPS_LIBS $FFTW_LIBS"
 
 # ImageMagick 
 AC_ARG_WITH([magick], 
-  AS_HELP_STRING([--without-magick], [build without libMagic (default: test)]))
+  AS_HELP_STRING([--without-magick], [build without libMagic (default: test)]),
+    [with_magick=$withval],
+    [with_magick=$gmodule_with_flag])
+
+# libMagic as a dynamically loadable module
+AS_IF([test x"$with_magick" = x"module"],
+  [with_magick_module=$gmodule_supported_flag],
+  [with_magick_module=no])
 
 AC_ARG_WITH([magickpackage], 
   AS_HELP_STRING([--with-magickpackage], 
@@ -528,6 +559,7 @@ if test x"$with_magickpackage" = x""; then
        ],
        [AC_MSG_WARN([neither MagickCore nor ImageMagick found; disabling Magick support])
         with_magick=no
+        with_magick_module=no
        ]
      )
     ]
@@ -544,23 +576,27 @@ if test x"$with_magick" != x"no"; then
      with_magick=yes
      magick7=yes
      magick_version=magick7
-     PACKAGES_USED="$PACKAGES_USED $with_magickpackage"
+     AS_IF([test x"$with_magick_module" = x"no"],
+       [PACKAGES_USED="$PACKAGES_USED $with_magickpackage"])
     ],
     [PKG_CHECK_MODULES(MAGICK, $with_magickpackage,  
        [AC_DEFINE(HAVE_MAGICK6,1,[define if you have libMagick6 installed.])
         with_magick=yes
         magick6=yes
         magick_version=magick6
-        PACKAGES_USED="$PACKAGES_USED $with_magickpackage"
+        AS_IF([test x"$with_magick_module" = x"no"],
+          [PACKAGES_USED="$PACKAGES_USED $with_magickpackage"])
        ],
        [AC_MSG_WARN([$with_magickpackage not found; disabling Magick support])
         with_magick=no
+        with_magick_module=no
        ]
      )
     ]  
   )
 else
   with_magick=no
+  with_magick_module=no
   magick6=no
   magick_version=none
   with_magickpackage=none
@@ -668,8 +704,11 @@ else
   enable_magicksave=no
 fi
 
-VIPS_CFLAGS="$VIPS_CFLAGS $MAGICK_CFLAGS"
-VIPS_LIBS="$VIPS_LIBS $MAGICK_LIBS"
+AS_IF([test x"$with_magick_module" = x"yes"],
+  [AC_DEFINE([MAGICK_MODULE], [1], [define to build libMagic as a dynamically loadable module.])],
+  [VIPS_CFLAGS="$VIPS_CFLAGS $MAGICK_CFLAGS"
+   VIPS_LIBS="$VIPS_LIBS $MAGICK_LIBS"])
+AM_CONDITIONAL(MAGICK_MODULE, [test x"$with_magick_module" = x"yes"])
 
 # orc
 AC_ARG_WITH([orc], 
@@ -824,7 +863,14 @@ VIPS_LIBS="$VIPS_LIBS $LIBOPENJP2_LIBS"
 
 # libheif
 AC_ARG_WITH([heif], 
-  AS_HELP_STRING([--without-heif], [build without libheif (default: test)]))
+  AS_HELP_STRING([--without-heif], [build without libheif (default: test)]),
+  [with_heif=$withval],
+  [with_heif=$gmodule_with_flag])
+
+# libheif as a dynamically loadable module
+AS_IF([test x"$with_heif" = x"module"],
+  [with_heif_module=$gmodule_supported_flag],
+  [with_heif_module=no])
 
 if test x"$with_heif" != x"no"; then
   PKG_CHECK_MODULES(HEIF, libheif >= 1.3.0,
@@ -843,11 +889,13 @@ if test x"$with_heif" != x"no"; then
         AC_DEFINE(HAVE_HEIF_ENCODER,1,
              [define if your libheif has encode support.])
      fi
-     PACKAGES_USED="$PACKAGES_USED libheif"
+    AS_IF([test x"$with_heif_module" = x"no"],
+      [PACKAGES_USED="$PACKAGES_USED libheif"])
     ],
     [AC_MSG_WARN([libheif >= 1.3.0 not found; disabling HEIF support])
      pkg-config --exists --print-errors "libheif >= 1.3.0"
      with_heif=no
+     with_heif_module=no
      have_h265_decoder=
      have_h265_encoder=
      have_avif_decoder=
@@ -855,6 +903,12 @@ if test x"$with_heif" != x"no"; then
     ]
   )
 fi
+
+AS_IF([test x"$with_heif_module" = x"yes"],
+  [AC_DEFINE([HEIF_MODULE], [1], [define to build libheif as a dynamically loadable module.])],
+  [VIPS_CFLAGS="$VIPS_CFLAGS $HEIF_CFLAGS"
+   VIPS_LIBS="$VIPS_LIBS $HEIF_LIBS"])
+AM_CONDITIONAL(HEIF_MODULE, [test x"$with_heif_module" = x"yes"])
 
 # color profile support added in 1.3.3
 if test x"$with_heif" = x"yes"; then
@@ -889,9 +943,6 @@ if test x"$with_heif" = x"yes"; then
   CFLAGS="$save_CFLAGS"
 fi
 
-VIPS_CFLAGS="$VIPS_CFLAGS $HEIF_CFLAGS"
-VIPS_LIBS="$VIPS_LIBS $HEIF_LIBS"
-
 # pdfium
 AC_ARG_WITH([pdfium],
   AS_HELP_STRING([--without-pdfium], [build without pdfium (default: test)]))
@@ -917,21 +968,33 @@ VIPS_LIBS="$VIPS_LIBS $PDFIUM_LIBS"
 
 # poppler
 AC_ARG_WITH([poppler],
-  AS_HELP_STRING([--without-poppler], [build without poppler (default: test)]))
+  AS_HELP_STRING([--without-poppler], [build without poppler (default: test)]),
+  [with_poppler=$withval],
+  [with_poppler=$gmodule_with_flag])
+
+# poppler as a dynamically loadable module
+AS_IF([test x"$with_poppler" = x"module"],
+  [with_poppler_module=$gmodule_supported_flag],
+  [with_poppler_module=no])
 
 if test x"$with_poppler" != x"no"; then
   PKG_CHECK_MODULES(POPPLER, [poppler-glib >= 0.16.0 cairo >= 1.2], [
     AC_DEFINE(HAVE_POPPLER,1,[define if you have poppler-glib >= 0.16.0 and cairo >= 1.2 installed.])
     with_poppler=yes
-    PACKAGES_USED="$PACKAGES_USED poppler-glib cairo"
+    AS_IF([test x"$with_poppler_module" = x"no"],
+      [PACKAGES_USED="$PACKAGES_USED poppler-glib cairo"])
   ], [
     AC_MSG_WARN([poppler-glib >= 0.16.0 or cairo >= 1.2 not found; disabling PDF load via poppler])
     with_poppler=no
+    with_poppler_module=no
   ])
 fi
 
-VIPS_CFLAGS="$VIPS_CFLAGS $POPPLER_CFLAGS"
-VIPS_LIBS="$VIPS_LIBS $POPPLER_LIBS"
+AS_IF([test x"$with_poppler_module" = x"yes"],
+  [AC_DEFINE([POPPLER_MODULE], [1], [define to build poppler as a dynamically loadable module.])],
+  [VIPS_CFLAGS="$VIPS_CFLAGS $POPPLER_CFLAGS"
+   VIPS_LIBS="$VIPS_LIBS $POPPLER_LIBS"])
+AM_CONDITIONAL(POPPLER_MODULE, [test x"$with_poppler_module" = x"yes"])
 
 # librsvg
 AC_ARG_WITH([rsvg],
@@ -982,32 +1045,44 @@ VIPS_LIBS="$VIPS_LIBS $ZLIB_LIBS"
 # OpenSlide
 AC_ARG_WITH([openslide],
   AS_HELP_STRING([--without-openslide], 
-    [build without OpenSlide (default: test)])
-)
+    [build without OpenSlide (default: test)]),
+  [with_openslide=$withval],
+  [with_openslide=$gmodule_with_flag])
+
+# OpenSlide as a dynamically loadable module
+AS_IF([test x"$with_openslide" = x"module"],
+  [with_openslide_module=$gmodule_supported_flag],
+  [with_openslide_module=no])
 
 if test x"$with_openslide" != x"no"; then
   PKG_CHECK_MODULES(OPENSLIDE, [openslide >= 3.4.0],
     [AC_DEFINE(HAVE_OPENSLIDE_3_4,1,[define if you have OpenSlide >= 3.4.0 installed.])
      AC_DEFINE(HAVE_OPENSLIDE,1,[define if you have OpenSlide >= 3.3.0 installed.])
      with_openslide=yes
-     PACKAGES_USED="$PACKAGES_USED openslide"
+     AS_IF([test x"$with_openslide_module" = x"no"],
+       [PACKAGES_USED="$PACKAGES_USED openslide"])
     ],
     [AC_MSG_NOTICE([OpenSlide >= 3.4.0 not found; checking for >= 3.3.0])
      PKG_CHECK_MODULES(OPENSLIDE, [openslide >= 3.3.0],
        [AC_DEFINE(HAVE_OPENSLIDE,1,[define if you have OpenSlide >= 3.3.0 installed.])
         with_openslide=yes
-        PACKAGES_USED="$PACKAGES_USED openslide"
+        AS_IF([test x"$with_openslide_module" = x"no"],
+          [PACKAGES_USED="$PACKAGES_USED openslide"])
        ],
        [AC_MSG_WARN([OpenSlide >= 3.3.0 not found; disabling virtual slide support])
         with_openslide=no
+        with_openslide_module=no
        ]
      )
     ]
   )
 fi
 
-VIPS_CFLAGS="$VIPS_CFLAGS $OPENSLIDE_CFLAGS"
-VIPS_LIBS="$VIPS_LIBS $OPENSLIDE_LIBS"
+AS_IF([test x"$with_openslide_module" = x"yes"],
+  [AC_DEFINE([OPENSLIDE_MODULE], [1], [define to build OpenSlide as a dynamically loadable module.])],
+  [VIPS_CFLAGS="$VIPS_CFLAGS $OPENSLIDE_CFLAGS"
+   VIPS_LIBS="$VIPS_LIBS $OPENSLIDE_LIBS"])
+AM_CONDITIONAL(OPENSLIDE_MODULE, [test x"$with_openslide_module" = x"yes"])
 
 # matio
 AC_ARG_WITH([matio], 
@@ -1356,6 +1431,7 @@ VIPS_LIBS="$VIPS_LIBS $REQUIRED_LIBS -lm"
 VIPS_CONFIG="\
 enable debug: $enable_debug, \
 enable deprecated library components: $enable_deprecated, \
+enable modules: $gmodule_supported_flag, \
 enable docs with gtkdoc: $enable_gtk_doc, \
 gobject introspection:  $found_introspection, \
 RAD load/save: $with_radiance, \
@@ -1376,17 +1452,17 @@ PNG load/save with libpng: $with_png, \
 8bpp PNG quantisation: $with_imagequant, \
 TIFF load/save with libtiff: $with_tiff, \
 image pyramid save: $with_gsf, \
-HEIC/AVIF load/save with libheif: $with_heif, \
+HEIC/AVIF load/save with libheif: $with_heif (dynamic module: $with_heif_module), \
 WebP load/save with libwebp: $with_libwebp, \
 PDF load with PDFium:  $with_pdfium, \
-PDF load with poppler-glib: $with_poppler, \
+PDF load with poppler-glib: $with_poppler (dynamic module: $with_poppler_module), \
 SVG load with librsvg-2.0: $with_rsvg, \
 EXR load with OpenEXR: $with_OpenEXR, \
-slide load with OpenSlide: $with_openslide, \
+slide load with OpenSlide: $with_openslide (dynamic module: $with_openslide_module), \
 Matlab load with matio: $with_matio, \
 NIfTI load/save with niftiio: $with_nifti, \
 FITS load/save with cfitsio: $with_cfitsio, \
-Magick package: $with_magickpackage, \
+Magick package: $with_magickpackage (dynamic module: $with_magick_module), \
 Magick API version: $magick_version, \
 load with libMagickCore: $enable_magickload, \
 save with libMagickCore: $enable_magicksave"
@@ -1456,6 +1532,7 @@ AC_MSG_RESULT([dnl
 ## Build options
 enable debug:                           $enable_debug
 enable deprecated library components:   $enable_deprecated
+enable modules:                         $gmodule_supported_flag
 enable docs with gtkdoc:                $enable_gtk_doc
 gobject introspection:                  $found_introspection
 RAD load/save:                          $with_radiance
@@ -1488,21 +1565,23 @@ PNG load/save with libpng:              $with_png
 TIFF load/save with libtiff:            $with_tiff
 image pyramid save:                     $with_gsf
  (requires libgsf-1 1.14.26 or later)
-HEIC/AVIF load/save with libheif:       $with_heif
+HEIC/AVIF load/save with libheif:       $with_heif (dynamic module: $with_heif_module)
 WebP load/save with libwebp:            $with_libwebp
  (requires libwebp, libwebpmux, libwebpdemux 0.6.0 or later)
 PDF load with PDFium:                   $with_pdfium
-PDF load with poppler-glib:             $with_poppler
+PDF load with poppler-glib:             $with_poppler (dynamic module: $with_poppler_module)
  (requires poppler-glib 0.16.0 or later)
 SVG load with librsvg-2.0:              $with_rsvg
  (requires librsvg-2.0 2.34.0 or later)
 EXR load with OpenEXR:                  $with_OpenEXR
-slide load with OpenSlide:              $with_openslide
+JPEG2000 load/save with libopenjp2:     $with_libopenjp2
+ (requires libopenjp2 2.2 or later)
+slide load with OpenSlide:              $with_openslide (dynamic module: $with_openslide_module)
  (requires openslide-3.3.0 or later)
 Matlab load with matio:                 $with_matio
 NIfTI load/save with niftiio:           $with_nifti
 FITS load/save with cfitsio:            $with_cfitsio
-Magick package:                         $with_magickpackage
+Magick package:                         $with_magickpackage (dynamic module: $with_magick_module)
 Magick API version:                     $magick_version
 load with libMagickCore:                $enable_magickload
 save with libMagickCore:                $enable_magicksave

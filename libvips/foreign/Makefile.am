@@ -27,10 +27,6 @@ libforeign_la_SOURCES = \
 	jpeg.h \
 	jpegload.c \
 	jpegsave.c \
-	magick2vips.c \
-	magick7load.c \
-	magick.c \
-	magick.h \
 	magickload.c \
 	magicksave.c \
 	matlab.c \
@@ -42,7 +38,6 @@ libforeign_la_SOURCES = \
 	nsgifload.c \
 	openexr2vips.c \
 	openexrload.c \
-	openslide2vips.c \
 	openslideload.c \
 	pdfiumload.c \
 	pdfload.c \
@@ -73,6 +68,31 @@ libforeign_la_SOURCES = \
 	webp2vips.c \
 	webpload.c \
 	webpsave.c
+
+# We still need to include the GObject part of a loader/saver
+# if it is not built as a dynamically loadable module.
+
+if !MAGICK_MODULE
+libforeign_la_SOURCES += \
+	magick.c \
+	magick.h \
+	magick2vips.c \
+	magick6load.c \
+	magick7load.c \
+	vips2magick.c
+endif # !MAGICK_MODULE
+
+if !HEIF_MODULE
+libforeign_la_SOURCES += heif2vips.c vips2heif.c
+endif # !HEIF_MODULE
+
+if !POPPLER_MODULE
+libforeign_la_SOURCES += poppler2vips.c
+endif # !POPPLER_MODULE
+
+if !OPENSLIDE_MODULE
+libforeign_la_SOURCES += openslide2vips.c
+endif # !OPENSLIDE_MODULE
 
 EXTRA_DIST = libnsgif
 

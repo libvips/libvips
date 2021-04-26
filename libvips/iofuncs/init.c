@@ -227,8 +227,8 @@ vips_get_argv0( void )
  * Returns: 0 on success, -1 otherwise
  */
 
-/* Load all plugins in a directory ... look for '.plg' suffix. Error if we had
- * any probs.
+/* Load all plugins in a directory ... look for '.<G_MODULE_SUFFIX>' or
+ * '.plg' (deprecated) suffix. Error if we had any probs.
  */
 static int
 vips_load_plugins( const char *fmt, ... )
@@ -259,7 +259,11 @@ vips_load_plugins( const char *fmt, ... )
 
         result = 0;
         while( (name = g_dir_read_name( dir )) )
-                if( vips_ispostfix( name, ".plg" ) ) { 
+                if( vips_ispostfix( name, "." G_MODULE_SUFFIX )
+#if ENABLE_DEPRECATED
+				|| vips_ispostfix( name, ".plg" ) 
+#endif
+			) { 
 			char path[VIPS_PATH_MAX];
 			GModule *module;
 
@@ -510,13 +514,18 @@ vips_init( const char *argv0 )
 	vips_mosaicing_operation_init();
 	vips_g_input_stream_get_type(); 
 
-	/* Load any vips8 plugins from the vips libdir. Keep going, even if
-	 * some plugins fail to load. 
+	/* Load any vips8 modules from the vips libdir. Keep going, even if
+	 * some modules fail to load. 
+	 */
+	(void) vips_load_plugins( "%s/vips-modules-%d.%d", 
+		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION );
+
+#if ENABLE_DEPRECATED
+	/* Load any vips8 plugins from the vips libdir.
 	 */
 	(void) vips_load_plugins( "%s/vips-plugins-%d.%d", 
 		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION );
 
-#if ENABLE_DEPRECATED
 	/* Load up any vips7 plugins in the vips libdir. We don't error on 
 	 * failure, it's too annoying to have VIPS refuse to start because of 
 	 * a broken plugin.

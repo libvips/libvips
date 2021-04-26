@@ -61,6 +61,7 @@ libvips_la_LDFLAGS = \
 	-version-info @LIBRARY_CURRENT@:@LIBRARY_REVISION@:@LIBRARY_AGE@ 
 
 EXTRA_DIST = \
+	module \
 	$(OPTIONAL_DIST_DIR)
 
 CLEANFILES = 
@@ -71,6 +72,78 @@ install-exec-hook:
 	echo "#define VIPS_SONAME \"$$dlname\"" >> soname.h && \
 	cp soname.h $(DESTDIR)$(pkgincludedir) && \
 	rm soname.h
+
+# Modules
+
+module_LTLIBRARIES = 
+
+# All modules within the $VIPSHOME/lib/vips-modules-MAJOR.MINOR
+# directory are automatically loaded on vips_init.
+
+moduledir = @VIPS_LIBDIR@/vips-modules-@VIPS_MAJOR_VERSION@.@VIPS_MINOR_VERSION@
+
+if MAGICK_MODULE
+module_LTLIBRARIES += vips-magick.la
+endif # MAGICK_MODULE
+
+if HEIF_MODULE
+module_LTLIBRARIES += vips-heif.la
+endif # HEIF_MODULE
+
+if POPPLER_MODULE
+module_LTLIBRARIES += vips-poppler.la
+endif # POPPLER_MODULE
+
+if OPENSLIDE_MODULE
+module_LTLIBRARIES += vips-openslide.la
+endif # OPENSLIDE_MODULE
+
+MODULE_CPPFLAGS = \
+	-I${top_srcdir}/libvips/include \
+	$(REQUIRED_CFLAGS)
+
+MODULE_LDFLAGS = \
+	-no-undefined \
+	-shared \
+	-module \
+	-avoid-version
+
+MODULE_LIBADD = \
+	libvips.la \
+	$(REQUIRED_LIBS)
+
+# Note that only the GObject part should be included in a
+# dynamically loadable module. The C definitions are always
+# included in the main library.
+
+vips_magick_la_SOURCES = \
+	module/magick.c \
+	foreign/magick.c \
+	foreign/magick.h \
+	foreign/magick2vips.c \
+	foreign/magick6load.c \
+	foreign/magick7load.c \
+	foreign/vips2magick.c
+vips_magick_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(MAGICK_CFLAGS)
+vips_magick_la_LDFLAGS = $(MODULE_LDFLAGS)
+vips_magick_la_LIBADD = $(MODULE_LIBADD) $(MAGICK_LIBS)
+
+vips_heif_la_SOURCES = module/heif.c foreign/heif2vips.c foreign/vips2heif.c
+vips_heif_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(HEIF_CFLAGS)
+vips_heif_la_LDFLAGS = $(MODULE_LDFLAGS)
+vips_heif_la_LIBADD = $(MODULE_LIBADD) $(HEIF_LIBS)
+
+vips_poppler_la_SOURCES = module/poppler.c foreign/poppler2vips.c
+vips_poppler_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(POPPLER_CFLAGS)
+vips_poppler_la_LDFLAGS = $(MODULE_LDFLAGS)
+vips_poppler_la_LIBADD = $(MODULE_LIBADD) $(POPPLER_LIBS)
+
+vips_openslide_la_SOURCES = module/openslide.c foreign/openslide2vips.c
+vips_openslide_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(OPENSLIDE_CFLAGS)
+vips_openslide_la_LDFLAGS = $(MODULE_LDFLAGS)
+vips_openslide_la_LIBADD = $(MODULE_LIBADD) $(OPENSLIDE_LIBS)
+
+# Introspection
 
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS =
