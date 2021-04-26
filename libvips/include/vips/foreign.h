@@ -689,6 +689,13 @@ int vips_jp2ksave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 int vips_jp2ksave_target( VipsImage *in, VipsTarget *target, ... )
 	__attribute__((sentinel));
 
+int vips_jxlload_source( VipsSource *source, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_jxlload_buffer( void *buf, size_t len, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_jxlload( const char *filename, VipsImage **out, ... )
+	__attribute__((sentinel));
+
 /**
  * VipsForeignDzLayout:
  * @VIPS_FOREIGN_DZ_LAYOUT_DZ: use DeepZoom directory layout
