@@ -25,6 +25,8 @@
 - add JPEG-XL load and save
 - add black_point_compensation flag for icc transforms
 - add "rgba" flag to vips_text() to enable full colour text rendering
+- move openslide, libheif, poppler and magick to loadable modules [kleisauke]
+- better detection of invalid ICC profiles, better fallback paths
 
 22/12/20 start 8.10.6
 - don't seek on bad file descriptors [kleisauke]
