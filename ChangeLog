@@ -28,6 +28,9 @@
 - move openslide, libheif, poppler and magick to loadable modules [kleisauke]
 - better detection of invalid ICC profiles, better fallback paths
 
+30/4/21 start 8.10.7
+- better vips7 PNG load compatibility [SkyDiverCool]
+
 22/12/20 start 8.10.6
 - don't seek on bad file descriptors [kleisauke]
 - check for null memory sources [kleisauke]

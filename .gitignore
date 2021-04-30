@@ -1,5 +1,6 @@
 compile
 .pytest_cache
+.dirstamp
 a.out
 *.log
 *.trs

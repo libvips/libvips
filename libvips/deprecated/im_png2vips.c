@@ -48,80 +48,24 @@
 
 #include "../foreign/pforeign.h"
 
-static int
-png2vips( const char *name, IMAGE *out, gboolean header_only )
-{
-	char filename[FILENAME_MAX];
-	char mode[FILENAME_MAX];
-	char *p, *q;
-	int seq;
-
-	im_filename_split( name, filename, mode );
-
-	seq = 0;
-	p = &mode[0];
-	if( (q = im_getnextoption( &p )) ) {
-		if( im_isprefix( "seq", q ) )
-			seq = 1;
-	}
-
-	/* We need to be compatible with the pre-sequential mode 
-	 * im_png2vips(). This returned a "t" if given a "p" image, since it
-	 * used writeline.
-	 *
-	 * If we're writing the image to a "p", switch it to a "t".
-	 *
-	 * Don't do this for header read, since we don't want to force a
-	 * malloc if all we are doing is looking at fields.
-	 */
-
-	if( !header_only && 
-		!seq &&
-		out->dtype == VIPS_IMAGE_PARTIAL ) {
-		if( vips__image_wio_output( out ) ) 
-			return( -1 );
-	}
-
-	/* spngload does not define these vips7 compat functions.
-	 */
-#if defined(HAVE_PNG) && !defined(HAVE_SPNG)
-{
-	VipsSource *source;
-	int result;
-
-	if( !(source = vips_source_new_from_file( filename )) ) 
-		return( -1 );
-	if( header_only ) 
-		result = vips__png_header_source( source, out );
-	else 
-		result = vips__png_read_source( source, out, TRUE );
-	VIPS_UNREF( source );
-
-	if( result )
-		return( result );
-}
-#else
-	vips_error( "im_png2vips", 
-		"%s", _( "no PNG support in your libvips" ) ); 
-
-	return( -1 );
-#endif /*HAVE_PNG && !HAVE_SPNG*/
-
-	return( 0 );
-}
-
 int
 im_png2vips( const char *name, IMAGE *out )
 {
-	return( png2vips( name, out, FALSE ) ); 
-}
+	char filename[FILENAME_MAX];
+	char mode[FILENAME_MAX];
+	VipsImage *x;
 
-/* By having a separate header func, we get lazy.c to open via disc/mem.
- */
-static int
-im_png2vips_header( const char *name, IMAGE *out )
-{
-	return( png2vips( name, out, TRUE ) ); 
+	im_filename_split( name, filename, mode );
+
+	if( vips_pngload( filename, &x, NULL ) )
+		return( -1 );
+	if( vips_image_write( x, out ) ) {
+		VIPS_UNREF( x );
+		return( -1 );
+	}
+	VIPS_UNREF( x );
+
+	return( 0 );
 }
 
 static int
@@ -145,7 +89,6 @@ vips_format_png_class_init( VipsFormatPngClass *class )
 	object_class->description = _( "PNG" );
 
 	format_class->is_a = ispng;
-	format_class->header = im_png2vips_header;
 	format_class->load = im_png2vips;
 	format_class->save = im_vips2png;
 	format_class->suffs = png_suffs;
