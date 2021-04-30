@@ -274,10 +274,6 @@ vips_foreign_load_jp2k_error_callback( const char *msg, void *client )
 
 	vips_error( class->nickname, "%s", msg ); 
 	jp2k->n_errors += 1;
-
-#ifdef DEBUG
-	printf( "%s: error %s",  class->nickname, msg );
-#endif /*DEBUG*/
 }
 
 /* The openjpeg info and warning callbacks are incredibly chatty.
@@ -500,12 +496,7 @@ vips_foreign_load_jp2k_header( VipsForeignLoad *load )
 	if( !opj_setup_decoder( jp2k->codec, &jp2k->parameters ) ) 
 		return( -1 );
 
-#ifdef HAVE_LIBOPENJP2_THREADING
-	/* Use eg. VIPS_CONCURRENCY etc. to set n-cpus, if this openjpeg has
-	 * stable support. 
-	 */
 	opj_codec_set_threads( jp2k->codec, vips_concurrency_get() );
-#endif /*HAVE_LIBOPENJP2_THREADING*/
 
 	if( !opj_read_header( jp2k->stream, jp2k->codec, &jp2k->image ) )
 		return( -1 );
@@ -586,7 +577,7 @@ vips_foreign_load_jp2k_header( VipsForeignLoad *load )
 	\
 	for( x = 0; x < length; x++ ) { \
 		for( i = 0; i < b; i++ ) { \
-			int dx = jp2k->image->comps[i].dx; \
+			int dx = image->comps[i].dx; \
 			int pixel = planes[i][x / dx]; \
 			\
 			tq[i] = pixel; \
@@ -596,28 +587,37 @@ vips_foreign_load_jp2k_header( VipsForeignLoad *load )
 	} \
 }
 
-/* Pack the set of openjpeg components into a libvips region. left/top are the
- * offsets into the tile in pixel coordinates where we should start reading.
+/* Pack a line of openjpeg pixels into libvips format. left/top are the
+ * offsets into the opj image in pixel coordinates where we should start 
+ * reading.
+ *
+ * Set upsample if any opj component is subsampled.
  */
 static void
-vips_foreign_load_jp2k_pack( VipsForeignLoadJp2k *jp2k, 
-	VipsImage *image, VipsPel *q, 
-	int left, int top, int length )
+vips_foreign_load_jp2k_pack( gboolean upsample, 
+	opj_image_t *image, VipsImage *im, 
+	VipsPel *q, int left, int top, int length )
 {
 	int *planes[MAX_BANDS];
-	int b = jp2k->image->numcomps;
+	int b = image->numcomps;
 
 	int x, i;
 
+#ifdef DEBUG_VERBOSE
+	printf( "vips_foreign_load_jp2k_pack: "
+		"upsample = %d, left = %d, top = %d, length = %d\n", 
+		upsample, left, top, length ); 
+#endif /*DEBUG_VERBOSE*/
+
 	for( i = 0; i < b; i++ ) {
-		opj_image_comp_t *comp = &jp2k->image->comps[i];
+		opj_image_comp_t *comp = &image->comps[i];
 
 		planes[i] = comp->data + (top / comp->dy) * comp->w + 
 			(left / comp->dx);
 	}
 
-	if( jp2k->upsample ) 
-		switch( image->BandFmt ) {
+	if( upsample ) 
+		switch( im->BandFmt ) {
 		case VIPS_FORMAT_CHAR:
 		case VIPS_FORMAT_UCHAR:
 			PACK_UPSAMPLE( unsigned char );
@@ -640,7 +640,7 @@ vips_foreign_load_jp2k_pack( VipsForeignLoadJp2k *jp2k,
 	else 
 		/* Fast no-upsample path.
 		 */
-		switch( image->BandFmt ) {
+		switch( im->BandFmt ) {
 		case VIPS_FORMAT_CHAR:
 		case VIPS_FORMAT_UCHAR:
 			PACK( unsigned char );
@@ -692,17 +692,16 @@ vips_foreign_load_jp2k_pack( VipsForeignLoadJp2k *jp2k,
 /* YCC->RGB for a line of pels.
  */
 static void
-vips_foreign_load_jp2k_ycc_to_rgb( VipsForeignLoadJp2k *jp2k, 
+vips_foreign_load_jp2k_ycc_to_rgb( opj_image_t *image, VipsImage *im, 
 	VipsPel *q, int length )
 {
-	VipsForeignLoad *load = (VipsForeignLoad *) jp2k;
-	int prec = jp2k->image->comps[0].prec;
+	int prec = image->comps[0].prec;
 	int offset = 1 << (prec - 1);
 	int upb = (1 << prec) - 1;
 
 	int x;
 
-	switch( load->out->BandFmt ) {
+	switch( im->BandFmt ) {
 	case VIPS_FORMAT_CHAR:
 	case VIPS_FORMAT_UCHAR:
 		YCC_TO_RGB( unsigned char );
@@ -806,15 +805,16 @@ vips_foreign_load_jp2k_generate( VipsRegion *out,
 				VipsPel *q = VIPS_REGION_ADDR( out, 
 					hit.left, hit.top + z );
 
-				vips_foreign_load_jp2k_pack( jp2k,
-					out->im, q,
+				vips_foreign_load_jp2k_pack( jp2k->upsample, 
+					jp2k->image, out->im, q,
 					hit.left - tile.left,
 					hit.top - tile.top + z,
 					hit.width ); 
 
 				if( jp2k->ycc_to_rgb )
-					vips_foreign_load_jp2k_ycc_to_rgb( jp2k,
-						q, hit.width );
+					vips_foreign_load_jp2k_ycc_to_rgb( 
+						jp2k->image, out->im, q, 
+						hit.width );
 			}
 
 			x += hit.width;
@@ -1130,6 +1130,142 @@ static void
 vips_foreign_load_jp2k_source_init( 
 	VipsForeignLoadJp2kSource *jp2k )
 {
+}
+
+static void 
+warning_callback( const char *msg G_GNUC_UNUSED, void *data G_GNUC_UNUSED ) 
+{
+	/* There are a lot of warnings ...
+	 */
+}
+
+static void 
+error_callback( const char *msg, void *data ) 
+{
+	printf( "OpenJPEG: %s", msg ); 
+	vips_error( "OpenJPEG", "%s", msg ); 
+}
+
+typedef struct _TileDecompress {
+	VipsSource *source;
+        opj_stream_t *stream;
+        opj_codec_t *codec;
+	opj_image_t *image;
+} TileDecompress;
+
+static void
+vips__foreign_load_jp2k_decompress_free( TileDecompress *decompress )
+{
+	VIPS_FREEF( opj_destroy_codec, decompress->codec );
+	VIPS_FREEF( opj_image_destroy, decompress->image );
+	VIPS_FREEF( opj_stream_destroy, decompress->stream );
+	VIPS_UNREF( decompress->source );
+}
+
+/* Called from tiff2vips to decode a jp2k-compressed tile. 
+ *
+ * width/height is the tile size. If this is an edge tile, and smaller than 
+ * this, we still write a full-size tile and our caller will clip.
+ */
+int
+vips__foreign_load_jp2k_decompress( VipsImage *out, 
+	int width, int height, gboolean ycc_to_rgb, 
+	void *from, size_t from_length, 
+	void *to, size_t to_length )
+{
+	size_t pel_size = VIPS_IMAGE_SIZEOF_PEL( out );
+	size_t line_size = pel_size * width;
+
+	TileDecompress decompress = { 0 };
+	opj_dparameters_t parameters;
+	int i;
+	gboolean upsample;
+	VipsPel *q;
+	int y;
+
+#ifdef DEBUG
+	printf( "vips__foreign_load_jp2k_decompress: width = %d, height = %d, "
+		"ycc_to_rgb = %d, from_length = %zd, to_length = %zd\n",
+		width, height, ycc_to_rgb, from_length, to_length );
+#endif /*DEBUG*/
+
+	/* Our ycc->rgb only works for exactly 3 bands.
+	 */
+	ycc_to_rgb = ycc_to_rgb && out->Bands == 3;
+
+	decompress.codec = opj_create_decompress( OPJ_CODEC_J2K );
+	opj_set_default_decoder_parameters( &parameters );
+	opj_setup_decoder( decompress.codec, &parameters );
+	opj_set_warning_handler( decompress.codec, warning_callback, NULL );
+	opj_set_error_handler( decompress.codec, error_callback, NULL );
+
+	decompress.source = vips_source_new_from_memory( from, from_length );
+	decompress.stream = vips_foreign_load_jp2k_stream( decompress.source );
+	if( !opj_read_header( decompress.stream, 
+		decompress.codec, &decompress.image ) ) {
+		vips_error( "jp2kload", "%s", ( "header error" ) );
+		vips__foreign_load_jp2k_decompress_free( &decompress ); 
+		return( -1 );
+	}
+
+	if( decompress.image->x1 > width || 
+		decompress.image->y1 > height ||
+		line_size * height > to_length ) {
+		vips_error( "jp2kload", "%s", ( "bad dimensions" ) );
+		vips__foreign_load_jp2k_decompress_free( &decompress ); 
+    		return( -1 );
+	}
+
+	if( !opj_decode( decompress.codec, 
+		decompress.stream, decompress.image ) ) {
+		vips_error( "jp2kload", "%s", ( "decode error" ) );
+		vips__foreign_load_jp2k_decompress_free( &decompress ); 
+		return( -1 );
+	}
+
+	/* Do any components need upsampling?
+	 */
+	upsample = FALSE;
+	for( i = 0; i < decompress.image->numcomps; i++ ) {
+		opj_image_comp_t *this = &decompress.image->comps[i];
+
+		if( this->dx > 1 ||
+			this->dy > 1 )
+			upsample = TRUE;
+	}
+
+	/* Unpack hit pixels to buffer in vips layout. 
+	 */
+	q = to;
+	for( y = 0; y < height; y++ ) {
+		vips_foreign_load_jp2k_pack( upsample, 
+			decompress.image, out, q,
+			0, y, width ); 
+
+		if( ycc_to_rgb )
+			vips_foreign_load_jp2k_ycc_to_rgb( 
+				decompress.image, out, q, 
+				width );
+
+		q += line_size;
+	}
+
+	vips__foreign_load_jp2k_decompress_free( &decompress ); 
+
+	return( 0 );
+}
+
+#else /*!HAVE_LIBOPENJP2*/
+
+int
+vips__foreign_load_jp2k_decompress( VipsImage *out, 
+	int width, int height, gboolean ycc_to_rgb, 
+	void *from, size_t from_length, 
+	void *to, size_t to_length )
+{
+	vips_error( "jp2k", 
+		"%s", _( "libvips built without JPEG2000 support" ) );
+	return( -1 );
 }
 
 #endif /*HAVE_LIBOPENJP2*/

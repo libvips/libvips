@@ -525,6 +525,16 @@ class TestForeign:
             z = y.hist_find(band=0)
             assert z(0, 0)[0] + z(255, 0)[0] == y.width * y.height
 
+    @skip_if_no("jp2kload")
+    @skip_if_no("tiffload")
+    def test_tiffjp2k(self):
+        self.save_load_file(".tif", "[tile,compression=jp2k]", self.colour, 80)
+        self.save_load_file(".tif",
+                            "[tile,pyramid,compression=jp2k]", self.colour, 80)
+        self.save_load_file(".tif",
+                            "[tile,pyramid,subifd,compression=jp2k]",
+                            self.colour, 80)
+
     @skip_if_no("magickload")
     def test_magickload(self):
         def bmp_valid(im):
