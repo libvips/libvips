@@ -1494,6 +1494,7 @@ AC_CONFIG_FILES([
         libvips/histogram/Makefile
         libvips/draw/Makefile
         libvips/iofuncs/Makefile
+        libvips/module/Makefile
         libvips/morphology/Makefile
         libvips/mosaicing/Makefile
         libvips/create/Makefile
