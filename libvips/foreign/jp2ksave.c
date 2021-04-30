@@ -722,6 +722,8 @@ vips_foreign_save_jp2k_new_image( VipsImage *im,
 /* Compression profile derived from the BM's recommenadations, see:
  *
  * https://purl.pt/24107/1/iPres2013_PDF/An%20Analysis%20of%20Contemporary%20JPEG2000%20Codecs%20for%20Image%20Format%20Migration.pdf
+ *
+ * Some of these settings (eg. numresolution) are overridden later.
  */
 static void
 vips_foreign_save_jp2k_set_profile( opj_cparameters_t *parameters, 
@@ -737,9 +739,6 @@ vips_foreign_save_jp2k_set_profile( opj_cparameters_t *parameters,
 		 *   -I -p RPCL -n 7 \
 		 *   	-c[256,256],[256,256],[256,256],[256,256],[256,256],[256,256],[256,256] \
 		 *   	-b 64,64
-		 *
-		 * except we don't set numresolution -- our caller does that,
-		 * depending on the image size and compression requirements.
 		 */
 
 		parameters->irreversible = TRUE;
@@ -749,6 +748,7 @@ vips_foreign_save_jp2k_set_profile( opj_cparameters_t *parameters,
 		parameters->cp_disto_alloc = 1;
 		parameters->cp_fixed_quality = TRUE;
 		parameters->tcp_numlayers = 1;
+		parameters->numresolution = 7;
 
 		/* No idea what this does, but opj_compress sets it.
 		 */
@@ -1320,10 +1320,6 @@ vips__foreign_load_jp2k_compress( VipsRegion *region,
 	/* Makes three band images smaller, somehow.
 	 */
 	parameters.tcp_mct = region->im->Bands >= 3 ? 1 : 0;
-
-	/* Only one pyramid level.
-	 */
-	parameters.numresolution = 1;
 
 	/* Create output image. TRUE means we alloc memory for the image
 	 * planes.
