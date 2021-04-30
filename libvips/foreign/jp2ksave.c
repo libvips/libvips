@@ -1390,6 +1390,19 @@ vips__foreign_load_jp2k_compress( VipsRegion *region,
 	return( 0 );
 }
 
+#else /*!HAVE_LIBOPENJP2*/
+
+int
+vips__foreign_load_jp2k_compress( VipsRegion *region, 
+	VipsRect *tile, VipsTarget *target,
+	int tile_width, int tile_height,
+        gboolean save_as_ycc, gboolean subsample, gboolean lossless, int Q )
+{
+	vips_error( "jp2k", 
+		"%s", _( "libvips built without JPEG2000 support" ) );
+	return( -1 );
+}
+
 #endif /*HAVE_LIBOPENJP2*/
 
 /**

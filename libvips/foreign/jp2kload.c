@@ -1258,11 +1258,12 @@ vips__foreign_load_jp2k_decompress( VipsImage *out,
 #else /*!HAVE_LIBOPENJP2*/
 
 int
-vips__foreign_load_jp2k_decompress_buffer( void *data, size_t length, 
-	int width, int height, 
-	void *dest, size_t dest_length )
+vips__foreign_load_jp2k_decompress( VipsImage *out, 
+	int width, int height, gboolean ycc_to_rgb, 
+	void *from, size_t from_length, 
+	void *to, size_t to_length )
 {
-	vips_error( "tiff2vips", 
+	vips_error( "jp2k", 
 		"%s", _( "libvips built without JPEG2000 support" ) );
 	return( -1 );
 }
