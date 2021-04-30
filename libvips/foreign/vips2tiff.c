@@ -1558,11 +1558,27 @@ wtiff_layer_write_tiles( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 
 			switch( wtiff->compression ) {
 			case JP2K_LOSSY:
+				/* Sadly chroma subsample seems not to work
+				 * for edge tiles in tiff with jp2k
+				 * compression, so we always pass FALSE
+				 * instead of:
+				 *
+				 * 	!wtiff->rgbjpeg && wtiff->Q < 90,
+				 *
+				 * I've verified that the libvips jp2k
+				 * encode and decode subsample operations fill
+				 * the comps[i].data arrays correctly, so it
+				 * seems to be a openjpeg bug.
+				 *
+				 * FIXME ... try again with openjpeg 2.5,
+				 * when that comes.
+				 */
 				result = vips__foreign_load_jp2k_compress( 
 					strip, &tile, target,
 					wtiff->tilew, wtiff->tileh,
 					!wtiff->rgbjpeg,
-					!wtiff->rgbjpeg && wtiff->Q < 90,
+				 	// !wtiff->rgbjpeg && wtiff->Q < 90,
+					FALSE,
 					wtiff->lossless, 
 					wtiff->Q );
 				break;

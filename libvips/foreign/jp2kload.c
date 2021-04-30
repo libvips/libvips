@@ -496,12 +496,7 @@ vips_foreign_load_jp2k_header( VipsForeignLoad *load )
 	if( !opj_setup_decoder( jp2k->codec, &jp2k->parameters ) ) 
 		return( -1 );
 
-#ifdef HAVE_LIBOPENJP2_THREADING
-	/* Use eg. VIPS_CONCURRENCY etc. to set n-cpus, if this openjpeg has
-	 * stable support. 
-	 */
 	opj_codec_set_threads( jp2k->codec, vips_concurrency_get() );
-#endif /*HAVE_LIBOPENJP2_THREADING*/
 
 	if( !opj_read_header( jp2k->stream, jp2k->codec, &jp2k->image ) )
 		return( -1 );
@@ -607,6 +602,12 @@ vips_foreign_load_jp2k_pack( gboolean upsample,
 	int b = image->numcomps;
 
 	int x, i;
+
+#ifdef DEBUG_VERBOSE
+	printf( "vips_foreign_load_jp2k_pack: "
+		"upsample = %d, left = %d, top = %d, length = %d\n", 
+		upsample, left, top, length ); 
+#endif /*DEBUG_VERBOSE*/
 
 	for( i = 0; i < b; i++ ) {
 		opj_image_comp_t *comp = &image->comps[i];
@@ -1152,7 +1153,7 @@ typedef struct _TileDecompress {
 	opj_image_t *image;
 } TileDecompress;
 
-void
+static void
 vips__foreign_load_jp2k_decompress_free( TileDecompress *decompress )
 {
 	VIPS_FREEF( opj_destroy_codec, decompress->codec );
@@ -1181,6 +1182,12 @@ vips__foreign_load_jp2k_decompress( VipsImage *out,
 	gboolean upsample;
 	VipsPel *q;
 	int y;
+
+#ifdef DEBUG
+	printf( "vips__foreign_load_jp2k_decompress: width = %d, height = %d, "
+		"ycc_to_rgb = %d, from_length = %zd, to_length = %zd\n",
+		width, height, ycc_to_rgb, from_length, to_length );
+#endif /*DEBUG*/
 
 	/* Our ycc->rgb only works for exactly 3 bands.
 	 */

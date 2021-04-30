@@ -737,11 +737,13 @@ vips_foreign_save_jp2k_set_profile( opj_cparameters_t *parameters,
 		 *   -I -p RPCL -n 7 \
 		 *   	-c[256,256],[256,256],[256,256],[256,256],[256,256],[256,256],[256,256] \
 		 *   	-b 64,64
+		 *
+		 * except we don't set numresolution -- our caller does that,
+		 * depending on the image size and compression requirements.
 		 */
 
 		parameters->irreversible = TRUE;
 		parameters->prog_order = OPJ_RPCL;
-		parameters->numresolution = 7;
 		parameters->cblockw_init = 64;
 		parameters->cblockh_init = 64;
 		parameters->cp_disto_alloc = 1;
@@ -817,11 +819,20 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	 */ 
 	opj_set_default_encoder_parameters( &jp2k->parameters );
 
+	/* Set compression profile.
+	 */
+	vips_foreign_save_jp2k_set_profile( &jp2k->parameters, 
+		jp2k->lossless, jp2k->Q ); 
+
 	/* Always tile.
 	 */
 	jp2k->parameters.tile_size_on = OPJ_TRUE;
 	jp2k->parameters.cp_tdx = jp2k->tile_width;
 	jp2k->parameters.cp_tdy = jp2k->tile_height;
+
+	/* Makes three band images smaller, somehow.
+	 */
+	jp2k->parameters.tcp_mct = save->ready->Bands >= 3 ? 1 : 0;
 
 	/* Number of layers to write. Smallest layer is c. 2^5 on the smallest
 	 * axis.
@@ -833,15 +844,6 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	printf( "vips_foreign_save_jp2k_build: numresolutions = %d\n", 
 		jp2k->parameters.numresolution );
 #endif /*DEBUG*/
-
-	/* Makes three band images smaller, somehow.
-	 */
-	jp2k->parameters.tcp_mct = save->ready->Bands >= 3 ? 1 : 0;
-
-	/* Set compression profile.
-	 */
-	vips_foreign_save_jp2k_set_profile( &jp2k->parameters, 
-		jp2k->lossless, jp2k->Q ); 
 
 	/* Set up compressor.
 	 */
@@ -858,12 +860,7 @@ vips_foreign_save_jp2k_build( VipsObject *object )
         if( !opj_setup_encoder( jp2k->codec, &jp2k->parameters, jp2k->image ) ) 
 		return( -1 );
 
-#ifdef HAVE_LIBOPENJP2_THREADING
-	/* Use eg. VIPS_CONCURRENCY etc. to set n-cpus, if this openjpeg has
-	 * stable support. 
-	 */
 	opj_codec_set_threads( jp2k->codec, vips_concurrency_get() );
-#endif /*HAVE_LIBOPENJP2_THREADING*/
 
 	if( !(jp2k->stream = vips_foreign_save_jp2k_target( jp2k->target )) )
 		return( -1 );
@@ -1315,15 +1312,18 @@ vips__foreign_load_jp2k_compress( VipsRegion *region,
 	/* Set compression params.
 	 */
 	opj_set_default_encoder_parameters( &parameters );
-	parameters.numresolution = 1;
-
-	/* Makes three band images smaller, somehow.
-	 */
-	parameters.tcp_mct = (region->im->Bands >= 3 && !subsample) ? 1 : 0;
 
 	/* Set compression profile.
 	 */
 	vips_foreign_save_jp2k_set_profile( &parameters, lossless, Q ); 
+
+	/* Makes three band images smaller, somehow.
+	 */
+	parameters.tcp_mct = region->im->Bands >= 3 ? 1 : 0;
+
+	/* Only one pyramid level.
+	 */
+	parameters.numresolution = 1;
 
 	/* Create output image. TRUE means we alloc memory for the image
 	 * planes.
@@ -1351,12 +1351,7 @@ vips__foreign_load_jp2k_compress( VipsRegion *region,
 		return( -1 );
 	}
 
-#ifdef HAVE_LIBOPENJP2_THREADING
-	/* Use eg. VIPS_CONCURRENCY etc. to set n-cpus, if this openjpeg has
-	 * stable support. 
-	 */
 	opj_codec_set_threads( compress.codec, vips_concurrency_get() );
-#endif /*HAVE_LIBOPENJP2_THREADING*/
 
 	if( save_as_ycc ) 
 		vips_foreign_save_jp2k_rgb_to_ycc( region, 

@@ -836,23 +836,16 @@ AC_ARG_WITH([libopenjp2],
   AS_HELP_STRING([--without-libopenjp2], 
                  [build without libopenjp2 (default: test)]))
 
+# 2.4 is the first one to have working threading and tiling
 if test x"$with_libopenjp2" != x"no"; then
-  PKG_CHECK_MODULES(LIBOPENJP2, libopenjp2 >= 2.3,
+  PKG_CHECK_MODULES(LIBOPENJP2, libopenjp2 >= 2.4,
     [AC_DEFINE(HAVE_LIBOPENJP2,1,
-       [define if you have libopenjp2 >=2.2 installed.])
+       [define if you have libopenjp2 >=2.4 installed.])
      with_libopenjp2=yes
      PACKAGES_USED="$PACKAGES_USED libopenjp2"
     ],
     [AC_MSG_WARN([libopenjp2 not found; disabling libopenjp2 support])
      with_libopenjp2=no
-    ]
-  )
-
-  # 2.3 and earlier have threading problems
-  PKG_CHECK_MODULES(LIBOPENJP2_THREADING, libopenjp2 >= 2.4,
-    [AC_DEFINE(HAVE_LIBOPENJP2_THREADING,1,[define if your libopenjp2 threading works.])
-    ],
-    [:
     ]
   )
 fi
@@ -1555,7 +1548,7 @@ EXIF metadata support with libexif:     $with_libexif
 JPEG load/save with libjpeg:            $with_jpeg
 JXL load/save with libjxl:              $with_libjxl
 JPEG2000 load/save with libopenjp2:     $with_libopenjp2
- (requires libopenjp2 2.2 or later)
+ (requires libopenjp2 2.4 or later)
 PNG load with libspng:                  $with_libspng
  (requires libspng-0.6 or later)
 PNG load/save with libpng:              $with_png
@@ -1574,8 +1567,6 @@ PDF load with poppler-glib:             $with_poppler (dynamic module: $with_pop
 SVG load with librsvg-2.0:              $with_rsvg
  (requires librsvg-2.0 2.34.0 or later)
 EXR load with OpenEXR:                  $with_OpenEXR
-JPEG2000 load/save with libopenjp2:     $with_libopenjp2
- (requires libopenjp2 2.2 or later)
 slide load with OpenSlide:              $with_openslide (dynamic module: $with_openslide_module)
  (requires openslide-3.3.0 or later)
 Matlab load with matio:                 $with_matio
