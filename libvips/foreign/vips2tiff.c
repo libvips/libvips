@@ -364,6 +364,7 @@ struct _Wtiff {
 	gboolean lossless;		/* lossless mode */
 	VipsForeignDzDepth depth;	/* Pyr depth */
 	gboolean subifd;		/* Write pyr layers into subifds */
+	gboolean premultiply;		/* Premultiply alpha */
 
 	/* True if we've detected a toilet-roll image, plus the page height,
 	 * which has been checked to be a factor of im->Ysize. page_number
@@ -818,9 +819,14 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 			/* EXTRASAMPLE_UNASSALPHA means generic extra
 			 * alpha-like channels. ASSOCALPHA means pre-multipled
 			 * alpha only. 
+			 *
+			 * Make the first channel the premultiplied alpha, if
+			 * we are premultiplying.
 			 */
 			for( i = 0; i < alpha_bands; i++ )
-				v[i] = EXTRASAMPLE_UNASSALPHA;
+				v[i] = i == 0 && wtiff->premultiply ? 
+					EXTRASAMPLE_ASSOCALPHA :
+					EXTRASAMPLE_UNASSALPHA;
 			TIFFSetField( tif, 
 				TIFFTAG_EXTRASAMPLES, alpha_bands, v );
 		}
@@ -1083,23 +1089,55 @@ get_resunit( VipsForeignTiffResunit resunit )
 static int
 ready_to_write( Wtiff *wtiff )
 {
-	if( vips_check_coding_known( "vips2tiff", wtiff->input ) )
+	VipsImage *input;
+	VipsImage *x;
+
+	input = wtiff->input;
+	g_object_ref( input );
+
+	if( vips_check_coding_known( "vips2tiff", input ) ) {
+		VIPS_UNREF( input );
 		return( -1 );
+	}
+
+	/* Premultiply any alpha, if necessary.
+	 */
+	if( wtiff->premultiply &&
+		vips_image_hasalpha( input ) ) {
+		VipsBandFormat start_format = input->BandFmt;
+
+		if( vips_premultiply( input, &x, NULL ) ) {
+			VIPS_UNREF( input );
+			return( -1 );
+		}
+		VIPS_UNREF( input );
+		input = x;
+
+		/* Premultiply always makes a float -- cast back again.
+		 */
+		if( vips_cast( input, &x, start_format, NULL ) ) {
+			VIPS_UNREF( input );
+			return( -1 );
+		}
+		VIPS_UNREF( input );
+		input = x;
+	}
 
 	/* "squash" float LAB down to LABQ.
 	 */
 	if( wtiff->bitdepth &&
-		wtiff->input->Bands == 3 &&
-		wtiff->input->BandFmt == VIPS_FORMAT_FLOAT &&
-		wtiff->input->Type == VIPS_INTERPRETATION_LAB ) {
-		if( vips_Lab2LabQ( wtiff->input, &wtiff->ready, NULL ) )
+		input->Bands == 3 &&
+		input->BandFmt == VIPS_FORMAT_FLOAT &&
+		input->Type == VIPS_INTERPRETATION_LAB ) {
+		if( vips_Lab2LabQ( input, &x, NULL ) ) {
+			VIPS_UNREF( input );
 			return( -1 );
-		wtiff->bitdepth = 0;
+		}
+		VIPS_UNREF( input );
+		input = x;
 	}
-	else {
-		wtiff->ready = wtiff->input;
-		g_object_ref( wtiff->ready );
-	}
+
+	wtiff->ready = input;
 
 	return( 0 );
 }
@@ -1122,7 +1160,8 @@ wtiff_new( VipsImage *input, const char *filename,
 	int level, 
 	gboolean lossless,
 	VipsForeignDzDepth depth, 
-	gboolean subifd )
+	gboolean subifd,
+	gboolean premultiply )
 {
 	Wtiff *wtiff;
 
@@ -1155,6 +1194,7 @@ wtiff_new( VipsImage *input, const char *filename,
 	wtiff->lossless = lossless;
 	wtiff->depth = depth;
 	wtiff->subifd = subifd;
+	wtiff->premultiply = premultiply;
 	wtiff->toilet_roll = FALSE;
 	wtiff->page_height = vips_image_get_page_height( input );
 	wtiff->page_number = 0;
@@ -2176,7 +2216,8 @@ vips__tiff_write( VipsImage *input, const char *filename,
 	int level, 
 	gboolean lossless,
 	VipsForeignDzDepth depth,
-	gboolean subifd )
+	gboolean subifd,
+	gboolean premultiply )
 {
 	Wtiff *wtiff;
 
@@ -2191,7 +2232,7 @@ vips__tiff_write( VipsImage *input, const char *filename,
                 tile, tile_width, tile_height, pyramid, bitdepth,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
 		properties, strip, region_shrink, level, lossless, depth,
-		subifd )) )
+		subifd, premultiply )) )
 		return( -1 );
 
 	if( wtiff_write_image( wtiff ) ) { 
@@ -2222,7 +2263,8 @@ vips__tiff_write_buf( VipsImage *input,
 	int level, 
 	gboolean lossless,
 	VipsForeignDzDepth depth,
-	gboolean subifd )
+	gboolean subifd,
+	gboolean premultiply )
 {
 	Wtiff *wtiff;
 
@@ -2233,7 +2275,7 @@ vips__tiff_write_buf( VipsImage *input,
                 tile, tile_width, tile_height, pyramid, bitdepth,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
 		properties, strip, region_shrink, level, lossless, depth,
-		subifd )) )
+		subifd, premultiply )) )
 		return( -1 );
 
 	wtiff->obuf = obuf;

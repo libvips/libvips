@@ -17,7 +17,7 @@ from helpers import \
     GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, \
     temp_filename, assert_almost_equal_objects, have, skip_if_no, \
     TIF1_FILE, TIF2_FILE, TIF4_FILE, WEBP_LOOKS_LIKE_SVG_FILE, \
-    WEBP_ANIMATED_FILE, JP2K_FILE
+    WEBP_ANIMATED_FILE, JP2K_FILE, RGBA_FILE
 
 class TestForeign:
     tempdir = None
@@ -27,6 +27,7 @@ class TestForeign:
         cls.tempdir = tempfile.mkdtemp()
 
         cls.colour = pyvips.Image.jpegload(JPEG_FILE)
+        cls.rgba = pyvips.Image.new_from_file(RGBA_FILE)
         cls.mono = cls.colour.extract_band(1).copy()
         # we remove the ICC profile: the RGB one will no longer be appropriate
         cls.mono.remove("icc-profile-data")
@@ -387,15 +388,14 @@ class TestForeign:
         self.save_load("%s.tif", self.mono)
         self.save_load("%s.tif", self.colour)
         self.save_load("%s.tif", self.cmyk)
-
+        self.save_load("%s.tif", self.rgba)
         self.save_load("%s.tif", self.onebit)
+
         self.save_load_file(".tif", "[bitdepth=1]", self.onebit)
         self.save_load_file(".tif", "[miniswhite]", self.onebit)
         self.save_load_file(".tif", "[bitdepth=1,miniswhite]", self.onebit)
 
-        self.save_load_file(".tif",
-                            "[profile={0}]".format(SRGB_FILE),
-                            self.colour)
+        self.save_load_file(".tif", f"[profile={SRGB_FILE}]", self.colour)
         self.save_load_file(".tif", "[tile]", self.colour)
         self.save_load_file(".tif", "[tile,pyramid]", self.colour)
         self.save_load_file(".tif", "[tile,pyramid,subifd]", self.colour)
@@ -509,6 +509,12 @@ class TestForeign:
         with open(filename, 'rb') as f:
             buf2 = f.read()
         assert len(buf) == len(buf2)
+
+        filename = temp_filename(self.tempdir, '.tif')
+        self.rgba.write_to_file(filename, premultiply=True)
+        a = pyvips.Image.new_from_file(filename)
+        b = self.rgba.premultiply().cast("uchar").unpremultiply().cast("uchar")
+        assert a.avg() == b.avg()
 
         a = pyvips.Image.new_from_buffer(buf, "", page=2)
         b = pyvips.Image.new_from_buffer(buf2, "", page=2)
