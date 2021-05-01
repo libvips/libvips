@@ -514,13 +514,13 @@ class TestForeign:
         self.rgba.write_to_file(filename, premultiply=True)
         a = pyvips.Image.new_from_file(filename)
         b = self.rgba.premultiply().cast("uchar").unpremultiply().cast("uchar")
-        assert a.avg() == b.avg()
+        assert (a == b).min() == 255
 
         a = pyvips.Image.new_from_buffer(buf, "", page=2)
         b = pyvips.Image.new_from_buffer(buf2, "", page=2)
         assert a.width == b.width
         assert a.height == b.height
-        assert a.avg() == b.avg()
+        assert (a == b).min() == 255
 
         # just 0/255 in each band, shrink with mode and all pixels should be 0
         # or 255 in layer 1
