@@ -27,6 +27,7 @@ SUBDIRS = \
 	draw \
 	iofuncs \
 	morphology \
+	module \
 	mosaicing \
 	create
 
@@ -61,7 +62,6 @@ libvips_la_LDFLAGS = \
 	-version-info @LIBRARY_CURRENT@:@LIBRARY_REVISION@:@LIBRARY_AGE@ 
 
 EXTRA_DIST = \
-	module \
 	$(OPTIONAL_DIST_DIR)
 
 CLEANFILES = 

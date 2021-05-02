@@ -21,12 +21,14 @@
 - png and gif load note background colour as metadata [781545872]
 - add vips_image_[set|get]_array_double()
 - add GIF load with libnsgif
-- add JPEG2000 load and save
+- add jp2kload, jp2ksave
+- add jp2k compression to tiff load and save
 - add JPEG-XL load and save
 - add black_point_compensation flag for icc transforms
 - add "rgba" flag to vips_text() to enable full colour text rendering
 - move openslide, libheif, poppler and magick to loadable modules [kleisauke]
 - better detection of invalid ICC profiles, better fallback paths
+- add "premultiply" flag to tiffsave
 
 30/4/21 start 8.10.7
 - better vips7 PNG load compatibility [SkyDiverCool]

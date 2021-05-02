@@ -26,6 +26,8 @@
  * 8/6/20
  * 	- add bitdepth support for 2 and 4 bit greyscale images
  * 	- deprecate "squash"
+ * 1/5/21
+ * 	- add "premultiply" flag
  */
 
 /*
@@ -105,6 +107,7 @@ typedef struct _VipsForeignSaveTiff {
 	gboolean lossless;
 	VipsForeignDzDepth depth;
 	gboolean subifd;
+	gboolean premultiply;
 
 } VipsForeignSaveTiff;
 
@@ -341,11 +344,18 @@ vips_foreign_save_tiff_class_init( VipsForeignSaveTiffClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, depth ),
 		VIPS_TYPE_FOREIGN_DZ_DEPTH, VIPS_FOREIGN_DZ_DEPTH_ONETILE ); 
 
-	VIPS_ARG_BOOL( class, "subifd", 24, 
+	VIPS_ARG_BOOL( class, "subifd", 26, 
 		_( "Sub-IFD" ), 
 		_( "Save pyr layers as sub-IFDs" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveTiff, subifd ),
+		FALSE );
+
+	VIPS_ARG_BOOL( class, "premultiply", 27, 
+		_( "Premultiply" ), 
+		_( "Save with premultiplied alpha" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveTiff, premultiply ),
 		FALSE );
 
 	VIPS_ARG_BOOL( class, "rgbjpeg", 20, 
@@ -427,7 +437,8 @@ vips_foreign_save_tiff_file_build( VipsObject *object )
 		tiff->level,
 		tiff->lossless,
 		tiff->depth,
-		tiff->subifd ) )
+		tiff->subifd,
+		tiff->premultiply ) )
 		return( -1 );
 
 	return( 0 );
@@ -500,7 +511,8 @@ vips_foreign_save_tiff_buffer_build( VipsObject *object )
 		tiff->level,
 		tiff->lossless, 
 		tiff->depth,
-		tiff->subifd ) )
+		tiff->subifd,
+		tiff->premultiply ) )
 		return( -1 );
 
 	blob = vips_blob_new( (VipsCallbackFn) vips_area_free_cb, obuf, olen );
@@ -567,6 +579,7 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * * @lossless: %gboolean, WebP losssless mode
  * * @depth: #VipsForeignDzDepth how deep to make the pyramid
  * * @subifd: %gboolean write pyr layers as sub-ifds
+ * * @premultiply: %gboolean write premultiplied alpha
  *
  * Write a VIPS image to a file as TIFF.
  *
@@ -658,6 +671,9 @@ vips_foreign_save_tiff_buffer_init( VipsForeignSaveTiffBuffer *buffer )
  * Set @subifd to save pyramid layers as sub-directories of the main image.
  * Setting this option can improve compatibility with formats like OME.
  *
+ * Set @premultiply tio save with premultiplied alpha. Some programs, such as
+ * InDesign, will only work with premultiplied alpha.
+ *
  * See also: vips_tiffload(), vips_image_write_to_file().
  *
  * Returns: 0 on success, -1 on error.
@@ -704,6 +720,7 @@ vips_tiffsave( VipsImage *in, const char *filename, ... )
  * * @lossless: %gboolean, WebP losssless mode
  * * @depth: #VipsForeignDzDepth how deep to make the pyramid
  * * @subifd: %gboolean write pyr layers as sub-ifds
+ * * @premultiply: %gboolean write premultiplied alpha
  *
  * As vips_tiffsave(), but save to a memory buffer. 
  *

@@ -17,7 +17,7 @@ from helpers import \
     GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE, \
     temp_filename, assert_almost_equal_objects, have, skip_if_no, \
     TIF1_FILE, TIF2_FILE, TIF4_FILE, WEBP_LOOKS_LIKE_SVG_FILE, \
-    WEBP_ANIMATED_FILE, JP2K_FILE
+    WEBP_ANIMATED_FILE, JP2K_FILE, RGBA_FILE
 
 class TestForeign:
     tempdir = None
@@ -27,6 +27,7 @@ class TestForeign:
         cls.tempdir = tempfile.mkdtemp()
 
         cls.colour = pyvips.Image.jpegload(JPEG_FILE)
+        cls.rgba = pyvips.Image.new_from_file(RGBA_FILE)
         cls.mono = cls.colour.extract_band(1).copy()
         # we remove the ICC profile: the RGB one will no longer be appropriate
         cls.mono.remove("icc-profile-data")
@@ -387,15 +388,14 @@ class TestForeign:
         self.save_load("%s.tif", self.mono)
         self.save_load("%s.tif", self.colour)
         self.save_load("%s.tif", self.cmyk)
-
+        self.save_load("%s.tif", self.rgba)
         self.save_load("%s.tif", self.onebit)
+
         self.save_load_file(".tif", "[bitdepth=1]", self.onebit)
         self.save_load_file(".tif", "[miniswhite]", self.onebit)
         self.save_load_file(".tif", "[bitdepth=1,miniswhite]", self.onebit)
 
-        self.save_load_file(".tif",
-                            "[profile={0}]".format(SRGB_FILE),
-                            self.colour)
+        self.save_load_file(".tif", f"[profile={SRGB_FILE}]", self.colour)
         self.save_load_file(".tif", "[tile]", self.colour)
         self.save_load_file(".tif", "[tile,pyramid]", self.colour)
         self.save_load_file(".tif", "[tile,pyramid,subifd]", self.colour)
@@ -510,11 +510,17 @@ class TestForeign:
             buf2 = f.read()
         assert len(buf) == len(buf2)
 
+        filename = temp_filename(self.tempdir, '.tif')
+        self.rgba.write_to_file(filename, premultiply=True)
+        a = pyvips.Image.new_from_file(filename)
+        b = self.rgba.premultiply().cast("uchar").unpremultiply().cast("uchar")
+        assert (a == b).min() == 255
+
         a = pyvips.Image.new_from_buffer(buf, "", page=2)
         b = pyvips.Image.new_from_buffer(buf2, "", page=2)
         assert a.width == b.width
         assert a.height == b.height
-        assert a.avg() == b.avg()
+        assert (a == b).min() == 255
 
         # just 0/255 in each band, shrink with mode and all pixels should be 0
         # or 255 in layer 1
@@ -524,6 +530,16 @@ class TestForeign:
             y = pyvips.Image.new_from_buffer(buf, "", page=1)
             z = y.hist_find(band=0)
             assert z(0, 0)[0] + z(255, 0)[0] == y.width * y.height
+
+    @skip_if_no("jp2kload")
+    @skip_if_no("tiffload")
+    def test_tiffjp2k(self):
+        self.save_load_file(".tif", "[tile,compression=jp2k]", self.colour, 80)
+        self.save_load_file(".tif",
+                            "[tile,pyramid,compression=jp2k]", self.colour, 80)
+        self.save_load_file(".tif",
+                            "[tile,pyramid,subifd,compression=jp2k]",
+                            self.colour, 80)
 
     @skip_if_no("magickload")
     def test_magickload(self):

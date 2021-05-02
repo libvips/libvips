@@ -67,7 +67,7 @@
  * * @Q: %gint, quality factor
  * * @lossless: %gboolean, enable lossless encoding
  * * @compression: #VipsForeignHeifCompression, write with this compression
- * * @speed: %gint, CPU effort, 0 slowest - 8 fastest, AV1 compression only
+ * * @speed: %gint, encoding speed
  * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  *
  * Write a VIPS image to a file in HEIF format. 
@@ -81,7 +81,8 @@
  * if the target filename ends with ".avif", otherwise HEVC.
  *
  * Use @speed to control the CPU effort spent improving compression.
- * This is currently only applicable to AV1 encoders, defaults to 5.
+ * This is currently only applicable to AV1 encoders. Defaults to 5, 0 is
+ * slowest, 9 is fastest.
  *
  * Chroma subsampling is normally automatically disabled for Q >= 90. You can
  * force the subsampling mode with @subsample_mode.
@@ -115,7 +116,7 @@ vips_heifsave( VipsImage *in, const char *filename, ... )
  * * @Q: %gint, quality factor
  * * @lossless: %gboolean, enable lossless encoding
  * * @compression: #VipsForeignHeifCompression, write with this compression
- * * @speed: %gint, CPU effort, 0 slowest - 8 fastest, AV1 compression only
+ * * @speed: %gint, encoding speed
  * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  *
  * As vips_heifsave(), but save to a memory buffer. 
@@ -167,7 +168,7 @@ vips_heifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @Q: %gint, quality factor
  * * @lossless: %gboolean, enable lossless encoding
  * * @compression: #VipsForeignHeifCompression, write with this compression
- * * @speed: %gint, CPU effort, 0 slowest - 8 fastest, AV1 compression only
+ * * @speed: %gint, encoding speed
  * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
  *
  * As vips_heifsave(), but save to a target.

@@ -64,7 +64,8 @@ int vips__tiff_write( VipsImage *in, const char *filename,
 	int level, 
 	gboolean lossless,
 	VipsForeignDzDepth depth,
-	gboolean subifd );
+	gboolean subifd, 
+	gboolean premultiply );
 
 int vips__tiff_write_buf( VipsImage *in, 
 	void **obuf, size_t *olen, 
@@ -83,7 +84,8 @@ int vips__tiff_write_buf( VipsImage *in,
 	int level, 
 	gboolean lossless,
 	VipsForeignDzDepth depth,
-	gboolean subifd );
+	gboolean subifd,
+	gboolean premultiply );
 
 gboolean vips__istiff_source( VipsSource *source );
 gboolean vips__istifftiled_source( VipsSource *source );
@@ -237,6 +239,14 @@ struct heif_image;
 void vips__heif_image_print( struct heif_image *img );
 
 extern const char *vips__jp2k_suffs[];
+int vips__foreign_load_jp2k_decompress( VipsImage *out,
+	int width, int height, gboolean ycc_to_rgb,
+	void *from, size_t from_length,
+	void *to, size_t to_length );
+int vips__foreign_load_jp2k_compress( VipsRegion *region,
+	VipsRect *tile, VipsTarget *target,
+	int tile_width, int tile_height,
+	gboolean save_as_ycc, gboolean subsample, gboolean lossless, int Q );
 
 extern const char *vips__jxl_suffs[];
 

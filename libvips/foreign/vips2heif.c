@@ -513,7 +513,7 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 		_( "CPU effort" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveHeif, speed ),
-		0, 8, 5 );
+		0, 9, 5 );
 
 	VIPS_ARG_ENUM( class, "subsample_mode", 16,
 		_( "Subsample mode" ),

@@ -1,6 +1,4 @@
-if ENABLE_NSGIF
 SUBDIRS = libnsgif 
-endif
 
 noinst_LTLIBRARIES = libforeign.la
 
@@ -93,8 +91,6 @@ endif # !POPPLER_MODULE
 if !OPENSLIDE_MODULE
 libforeign_la_SOURCES += openslide2vips.c
 endif # !OPENSLIDE_MODULE
-
-EXTRA_DIST = libnsgif
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
 
