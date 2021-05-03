@@ -44,6 +44,7 @@ class TestForeign:
     def teardown_class(cls):
         shutil.rmtree(cls.tempdir, ignore_errors=True)
         cls.colour = None
+        cls.rgba = None
         cls.mono = None
         cls.rad = None
         cls.cmyk = None
