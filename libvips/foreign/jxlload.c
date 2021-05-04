@@ -485,6 +485,9 @@ vips_foreign_load_jxl_header( VipsForeignLoad *load )
 	printf( "vips_foreign_load_jxl_header:\n" );
 #endif /*DEBUG*/
 
+	if( vips_source_rewind( jxl->source ) )
+                return( -1 );
+
 	if( vips_foreign_load_jxl_fill_input( jxl, 0 ) )
 		return( -1 );
 	JxlDecoderSetInput( jxl->decoder, 
