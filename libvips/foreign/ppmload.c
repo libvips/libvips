@@ -510,8 +510,8 @@ vips_foreign_load_ppm_generate_binary( VipsRegion *or,
 		while( n_bytes > 0 ) {
 			gint64 bytes_read;
 
-			bytes_read = vips_source_read( ppm->source, 
-				q, sizeof_line );
+			bytes_read = 
+				vips_source_read( ppm->source, q, n_bytes );
 			if( bytes_read < 0 ) 
 				return( -1 );
 			if( bytes_read == 0 ) {
@@ -520,8 +520,8 @@ vips_foreign_load_ppm_generate_binary( VipsRegion *or,
 				return( -1 );
 			}
 
-			n_bytes -= bytes_read;
 			q += bytes_read;
+			n_bytes -= bytes_read;
 		}
 	}
 
