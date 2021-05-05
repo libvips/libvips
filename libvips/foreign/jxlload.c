@@ -206,7 +206,9 @@ vips_foreign_load_jxl_fill_input( VipsForeignLoadJxl *jxl,
 	bytes_read = vips_source_read( jxl->source,
 		jxl->input_buffer + bytes_remaining,
 		INPUT_BUFFER_SIZE - bytes_remaining );
-	if( bytes_read < 0 ) 
+	/* Read error, or unexpected end of input.
+	 */
+	if( bytes_read <= 0 ) 
 		return( -1 );
 	jxl->bytes_in_buffer = bytes_read + bytes_remaining;
 
@@ -363,8 +365,7 @@ vips_foreign_load_jxl_process( VipsForeignLoadJxl *jxl )
 		size_t bytes_remaining;
 
 		bytes_remaining = JxlDecoderReleaseInput( jxl->decoder );
-		if( vips_foreign_load_jxl_fill_input( jxl, bytes_remaining ) ||
-			jxl->bytes_in_buffer == 0 )
+		if( vips_foreign_load_jxl_fill_input( jxl, bytes_remaining ) )
 			return( JXL_DEC_ERROR );
 
 		JxlDecoderSetInput( jxl->decoder,
