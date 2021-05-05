@@ -1712,7 +1712,7 @@ vips_image_set_double( VipsImage *image, const char *name, double d )
  *
  * Gets @out from @im under the name @name. 
  * The field must be of type
- * G_STRING, VIPS_TYPE_REFSTRING.
+ * G_TYPE_STRING, VIPS_TYPE_REF_STRING.
  *
  * Do not free @out.
  *
