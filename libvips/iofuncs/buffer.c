@@ -675,3 +675,13 @@ vips__buffer_init( void )
 #endif /*DEBUG_CREATE*/
 }
 
+void
+vips__buffer_shutdown( void )
+{
+	VipsBufferThread *buffer_thread;
+
+	if( (buffer_thread = g_private_get( buffer_thread_key )) ) {
+		buffer_thread_free( buffer_thread );
+		g_private_set( buffer_thread_key, NULL );
+	}
+}

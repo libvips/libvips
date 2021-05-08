@@ -75,8 +75,9 @@ typedef struct _WriteBuffer {
         VipsSemaphore go; 	/* Start bg thread loop */
         VipsSemaphore nwrite; 	/* Number of threads writing to region */
         VipsSemaphore done; 	/* Bg thread has done write */
+	VipsSemaphore finish; 	/* Bg thread has finished */
         int write_errno;	/* Save write errors here */
-	GThread *thread;	/* BG writer thread */
+	gboolean running;	/* Whether the bg writer thread is running */
 	gboolean kill;		/* Set to ask thread to exit */
 } WriteBuffer;
 
@@ -141,22 +142,22 @@ wbuffer_free( WriteBuffer *wbuffer )
 {
         /* Is there a thread running this region? Kill it!
          */
-        if( wbuffer->thread ) {
+        if( wbuffer->running ) {
                 wbuffer->kill = TRUE;
 		vips_semaphore_up( &wbuffer->go );
 
-		/* Return value is always NULL (see wbuffer_write_thread).
-		 */
-		(void) vips_g_thread_join( wbuffer->thread );
-		VIPS_DEBUG_MSG( "wbuffer_free: vips_g_thread_join()\n" );
+		vips_semaphore_down( &wbuffer->finish );
 
-		wbuffer->thread = NULL;
+		VIPS_DEBUG_MSG( "wbuffer_free:\n" );
+
+		wbuffer->running = FALSE;
         }
 
 	VIPS_UNREF( wbuffer->region );
 	vips_semaphore_destroy( &wbuffer->go );
 	vips_semaphore_destroy( &wbuffer->nwrite );
 	vips_semaphore_destroy( &wbuffer->done );
+	vips_semaphore_destroy( &wbuffer->finish );
 	g_free( wbuffer );
 }
 
@@ -178,8 +179,8 @@ wbuffer_write( WriteBuffer *wbuffer )
 
 /* Run this as a thread to do a BG write.
  */
-static void *
-wbuffer_write_thread( void *data )
+static void
+wbuffer_write_thread( void *data, void *user_data )
 {
 	WriteBuffer *wbuffer = (WriteBuffer *) data;
 
@@ -202,7 +203,9 @@ wbuffer_write_thread( void *data )
 		vips_semaphore_up( &wbuffer->done );
 	}
 
-	return( NULL );
+	/* We are exiting: tell the main thread.
+	 */
+	vips_semaphore_up( &wbuffer->finish );
 }
 
 static WriteBuffer *
@@ -217,8 +220,9 @@ wbuffer_new( Write *write )
 	vips_semaphore_init( &wbuffer->go, 0, "go" );
 	vips_semaphore_init( &wbuffer->nwrite, 0, "nwrite" );
 	vips_semaphore_init( &wbuffer->done, 0, "done" );
+	vips_semaphore_init( &wbuffer->finish, 0, "finish" );
 	wbuffer->write_errno = 0;
-	wbuffer->thread = NULL;
+	wbuffer->running = FALSE;
 	wbuffer->kill = FALSE;
 
 	if( !(wbuffer->region = vips_region_new( write->sink_base.im )) ) {
@@ -232,11 +236,13 @@ wbuffer_new( Write *write )
 
 	/* Make this last (picks up parts of wbuffer on startup).
 	 */
-	if( !(wbuffer->thread = vips_g_thread_new( "wbuffer", 
-		wbuffer_write_thread, wbuffer )) ) {  
+	if( vips_threadpool_push( "wbuffer", wbuffer_write_thread, 
+		wbuffer ) ) {
 		wbuffer_free( wbuffer );
 		return( NULL );
 	}
+
+	wbuffer->running = TRUE;
 
 	return( wbuffer );
 }

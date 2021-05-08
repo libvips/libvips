@@ -108,9 +108,8 @@ extern char *vips__disc_threshold;
 extern gboolean vips__cache_dump;
 extern gboolean vips__cache_trace;
 
-extern int vips__n_active_threads;
-
 void vips__threadpool_init( void );
+void vips__threadpool_shutdown( void );
 
 void vips__cache_init( void );
 
@@ -141,6 +140,7 @@ int vips_mapfilerw( VipsImage * );
 int vips_remapfilerw( VipsImage * );
 
 void vips__buffer_init( void );
+void vips__buffer_shutdown( void );
 
 void vips__copy_4byte( int swap, unsigned char *to, unsigned char *from );
 void vips__copy_2byte( gboolean swap, unsigned char *to, unsigned char *from );

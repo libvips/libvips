@@ -173,7 +173,7 @@ sink_memory_area_position( SinkMemoryArea *area, int top, int height )
 static gboolean
 sink_memory_area_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 {
-	SinkMemoryThreadState *wstate = (SinkMemoryThreadState *) state;
+	SinkMemoryThreadState *smstate = (SinkMemoryThreadState *) state;
 	SinkMemory *memory = (SinkMemory *) a;
 	SinkBase *sink_base = (SinkBase *) memory;
 
@@ -229,7 +229,7 @@ sink_memory_area_allocate_fn( VipsThreadState *state, void *a, gboolean *stop )
 
 	/* The thread needs to know which area it's writing to.
 	 */
-	wstate->area = memory->area;
+	smstate->area = memory->area;
 
 	VIPS_DEBUG_MSG( "  %p allocated %d x %d:\n", 
 		g_thread_self(), state->pos.left, state->pos.top );
@@ -255,8 +255,8 @@ static int
 sink_memory_area_work_fn( VipsThreadState *state, void *a )
 {
 	SinkMemory *memory = (SinkMemory *) a;
-	SinkMemoryThreadState *wstate = (SinkMemoryThreadState *) state;
-	SinkMemoryArea *area = wstate->area;
+	SinkMemoryThreadState *smstate = (SinkMemoryThreadState *) state;
+	SinkMemoryArea *area = smstate->area;
 
 	int result;
 

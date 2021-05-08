@@ -245,15 +245,13 @@ vips__thread_profile_attach( const char *thread_name )
 
 	VIPS_DEBUG_MSG( "vips__thread_profile_attach: %s\n", thread_name ); 
 
-	g_assert( !g_private_get( vips_thread_profile_key ) );
-
 	profile = g_new( VipsThreadProfile, 1 );
 	profile->name = thread_name; 
 	profile->gates = g_hash_table_new_full( 
 		g_direct_hash, g_str_equal, 
 		NULL, (GDestroyNotify) vips_thread_gate_free );
 	profile->memory = vips_thread_gate_new( "memory" ); 
-	g_private_set( vips_thread_profile_key, profile );
+	g_private_replace( vips_thread_profile_key, profile );
 }
 
 static VipsThreadProfile *

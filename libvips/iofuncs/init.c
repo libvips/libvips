@@ -641,12 +641,6 @@ vips_leak( void )
 		n_leaks += strlen( vips_error_buffer() );
 	}
 
-	if( vips__n_active_threads > 0 ) {
-		vips_buf_appendf( &buf, "threads: %d not joined\n", 
-			vips__n_active_threads ); 
-		n_leaks += vips__n_active_threads;
-	}
-
 	fprintf( stderr, "%s", vips_buf_all( &buf ) );
 
 	n_leaks += vips__print_renders();
@@ -665,7 +659,7 @@ vips_leak( void )
  *
  * This function needs to be called when a thread that has been using vips
  * exits. It is called for you by vips_shutdown() and for any threads created
- * by vips_g_thread_new(). 
+ * within the #VipsThreadPool. 
  *
  * You will need to call it from threads created in
  * other ways or there will be memory leaks. If you do not call it, vips 
@@ -678,6 +672,7 @@ void
 vips_thread_shutdown( void )
 {
 	vips__thread_profile_detach();
+	vips__buffer_shutdown();
 }
 
 /**
@@ -718,6 +713,8 @@ vips_shutdown( void )
 	vips_thread_shutdown();
 
 	vips__thread_profile_stop();
+
+	vips__threadpool_shutdown();
 
 #ifdef HAVE_GSF
 	gsf_shutdown(); 

@@ -5694,7 +5694,7 @@ vips_get_option_group( void )
 }
 
 /* We used to use this for system() back in the day. But it's awkward to make
- * it work properly on win32, so this is nonw deprecated.
+ * it work properly on win32, so this is now deprecated.
  */
 FILE *
 vips_popenf( const char *fmt, const char *mode, ... )
@@ -5703,3 +5703,16 @@ vips_popenf( const char *fmt, const char *mode, ... )
         return( NULL );
 }
 
+GThread *
+vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
+{
+	vips_error( "vips_g_thread_new", "%s", _( "deprecated" ) );
+	return( NULL );
+}
+
+void *
+vips_g_thread_join( GThread *thread )
+{
+	vips_error( "vips_g_thread_join", "%s", _( "deprecated" ) );
+	return( NULL );
+}
