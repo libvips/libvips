@@ -547,6 +547,11 @@ vips_foreign_load_jxl_header( VipsForeignLoad *load )
 					"JxlDecoderGetICCProfileSize" );
 				return( -1 );
 			}
+
+#ifdef DEBUG
+			printf( "vips_foreign_load_jxl_header: "
+				"%zd byte profile\n", jxl->icc_size );
+#endif /*DEBUG*/
 			if( !(jxl->icc_data = vips_malloc( NULL, 
 				jxl->icc_size )) ) 
 				return( -1 );
@@ -564,7 +569,10 @@ vips_foreign_load_jxl_header( VipsForeignLoad *load )
 		default:
 			break;
 		}
-	} while( status != JXL_DEC_NEED_IMAGE_OUT_BUFFER );
+	/* JXL_DEC_COLOR_ENCODING is always the last status signal before
+	 * pixel decoding starts.
+	 */
+	} while( status != JXL_DEC_COLOR_ENCODING );
 
 	if( vips_foreign_load_jxl_set_header( jxl, load->out ) ) 
 		return( -1 );
