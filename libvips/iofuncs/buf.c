@@ -279,8 +279,12 @@ vips_buf_appendns( VipsBuf *buf, const char *str, int sz )
 
 	/* Can't use vips_strncpy() here, we don't want to drop the end of the
 	 * string.
+	 *
+	 * gcc10 issues a false-positive warning about this.
 	 */
+#pragma GCC diagnostic push
 	strncpy( buf->base + buf->i, str, cpy );
+#pragma GCC diagnostic pop
 	buf->i += cpy;
 
 	if( buf->i >= buf->mx - 4 ) {

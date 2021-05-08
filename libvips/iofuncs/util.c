@@ -613,7 +613,7 @@ vips__set_create_time( int fd )
 	SYSTEMTIME st;
 	FILETIME ft;
 
-	if( (handle = _get_osfhandle( fd )) == INVALID_HANDLE_VALUE )
+	if( (handle = (HANDLE) _get_osfhandle( fd )) == INVALID_HANDLE_VALUE )
 		return;
 	GetSystemTime( &st );
 	SystemTimeToFileTime( &st, &ft );
