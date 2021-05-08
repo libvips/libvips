@@ -861,9 +861,9 @@ rad2vips_get_header( Read *read, VipsImage *out )
 	width = scanlen( &read->rs );
 	height = numscans( &read->rs );
 	if( width <= 0 || 
-		width > VIPS_MAX_COORD ||
+		width >= VIPS_MAX_COORD ||
 		height <= 0 || 
-		height > VIPS_MAX_COORD ) {
+		height >= VIPS_MAX_COORD ) {
 		vips_error( "rad2vips", "%s", _( "image size out of bounds" ) );
 		return( -1 );
 	}

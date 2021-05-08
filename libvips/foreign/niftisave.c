@@ -174,7 +174,7 @@ vips_foreign_save_nifti_set_dims( const char *name,
 		vips_snprintf( vips_name, 256, "nifti-%s", name );
 		if( vips_image_get_int( info->image, vips_name, &i ) ||
 			i <= 0 ||
-			i > VIPS_MAX_COORD ) 
+			i >= VIPS_MAX_COORD ) 
 			return( info );
 		info->dims[info->n] = i;
 	}

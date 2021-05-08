@@ -523,7 +523,7 @@ read_header( Read *read, VipsImage *out )
 	if( read->width <= 0 ||
 		read->height <= 0 ||
 		read->width > 0x3FFF ||
-		read->height > VIPS_MAX_COORD ||
+		read->height >= VIPS_MAX_COORD ||
 		read->frame_width <= 0 ||
 		read->frame_height <= 0 ||
 		read->frame_width > 0x3FFF ||

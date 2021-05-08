@@ -2515,9 +2515,9 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 	/* Arbitrary sanity-checking limits.
 	 */
 	if( header->width <= 0 ||
-		header->width > VIPS_MAX_COORD ||
+		header->width >= VIPS_MAX_COORD ||
 		header->height <= 0 ||
-		header->height > VIPS_MAX_COORD ) {
+		header->height >= VIPS_MAX_COORD ) {
 		vips_error( "tiff2vips",
 			"%s", _( "width/height out of range" ) );
 		return( -1 );

@@ -383,8 +383,17 @@ vips_foreign_load_jxl_process( VipsForeignLoadJxl *jxl )
 static int
 vips_foreign_load_jxl_set_header( VipsForeignLoadJxl *jxl, VipsImage *out )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( jxl );
+
 	VipsBandFormat format;
 	VipsInterpretation interpretation;
+
+	if( jxl->info.xsize >= VIPS_MAX_COORD || 
+		jxl->info.ysize >= VIPS_MAX_COORD ) {
+		vips_error( class->nickname, 
+			"%s", _( "image size out of bounds" ) );
+		return( -1 );
+	}
 
 	switch( jxl->format.data_type ) {
 	case JXL_TYPE_UINT8:
