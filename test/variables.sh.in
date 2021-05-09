@@ -12,6 +12,9 @@ vipsheader=$top_srcdir/tools/vipsheader
 # we need bc to use '.' for a decimal separator
 export LC_NUMERIC=C
 
+# raspbian sets this too, annoyingly
+unset LC_ALL
+
 # test for file format supported
 test_supported() {
 	format=$1
