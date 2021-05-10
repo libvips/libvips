@@ -80,6 +80,10 @@ libforeign_la_SOURCES += \
 	vips2magick.c
 endif # !MAGICK_MODULE
 
+if !LIBJXL_MODULE
+libforeign_la_SOURCES += jxl2vips.c vips2jxl.c
+endif # !LIBJXL_MODULE
+
 if !HEIF_MODULE
 libforeign_la_SOURCES += heif2vips.c vips2heif.c
 endif # !HEIF_MODULE

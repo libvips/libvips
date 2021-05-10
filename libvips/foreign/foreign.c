@@ -2264,14 +2264,14 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_svg_source_get_type(); 
 #endif /*HAVE_RSVG*/
 
-#ifdef HAVE_LIBJXL
+#if defined(HAVE_LIBJXL) && !defined(LIBJXL_MODULE)
 	vips_foreign_load_jxl_file_get_type(); 
 	vips_foreign_load_jxl_buffer_get_type(); 
 	vips_foreign_load_jxl_source_get_type(); 
 	vips_foreign_save_jxl_file_get_type(); 
 	vips_foreign_save_jxl_buffer_get_type(); 
 	vips_foreign_save_jxl_target_get_type(); 
-#endif /*HAVE_LIBJXL*/
+#endif /*defined(HAVE_LIBJXL) && !defined(LIBJXL_MODULE)*/
 
 #ifdef HAVE_LIBOPENJP2
 	vips_foreign_load_jp2k_file_get_type(); 

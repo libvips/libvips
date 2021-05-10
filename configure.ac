@@ -811,15 +811,22 @@ VIPS_LIBS="$VIPS_LIBS $NIFTI_LIBS"
 
 # jpeg-xl
 AC_ARG_WITH([libjxl],
-  AS_HELP_STRING([--without-libjxl], 
-                 [build without libjxl (default: test)]))
+  AS_HELP_STRING([--without-libjxl], [build without libjxl (default: test)]),
+  [with_libjxl=$withval],
+  [with_libjxl=$gmodule_with_flag])
+
+# libjxl as a dynamically loadable module
+AS_IF([test x"$with_libjxl" = x"module"],
+  [with_libjxl_module=$gmodule_supported_flag],
+  [with_libjxl_module=no])
 
 if test x"$with_libjxl" != x"no"; then
   PKG_CHECK_MODULES(LIBJXL, libjxl_threads >= 0.3.7 libjxl >= 0.3.7,
     [AC_DEFINE(HAVE_LIBJXL,1,
        [define if you have libjxl >= 0.3.7 installed.])
      with_libjxl=yes
-     PACKAGES_USED="$PACKAGES_USED libjxl"
+     AS_IF([test x"$with_libjxl_module" = x"no"],
+       [PACKAGES_USED="$PACKAGES_USED libjxl"])
     ],
     [AC_MSG_WARN([libjxl not found; disabling libjxl support])
      with_libjxl=no
@@ -827,9 +834,11 @@ if test x"$with_libjxl" != x"no"; then
   )
 fi
 
-VIPS_CFLAGS="$VIPS_CFLAGS $LIBJXL_CFLAGS"
-VIPS_INCLUDES="$VIPS_INCLUDES $LIBJXL_INCLUDES"
-VIPS_LIBS="$VIPS_LIBS $LIBJXL_LIBS"
+AS_IF([test x"$with_libjxl_module" = x"yes"],
+  [AC_DEFINE([LIBJXL_MODULE], [1], [define to build libjxl as a dynamically loadable module.])],
+  [VIPS_CFLAGS="$VIPS_CFLAGS $LIBJXL_CFLAGS"
+   VIPS_LIBS="$VIPS_LIBS $LIBJXL_LIBS"])
+AM_CONDITIONAL(LIBJXL_MODULE, [test x"$with_libjxl_module" = x"yes"])
 
 # openjpeg
 AC_ARG_WITH([libopenjp2],
@@ -882,8 +891,8 @@ if test x"$with_heif" != x"no"; then
         AC_DEFINE(HAVE_HEIF_ENCODER,1,
              [define if your libheif has encode support.])
      fi
-    AS_IF([test x"$with_heif_module" = x"no"],
-      [PACKAGES_USED="$PACKAGES_USED libheif"])
+     AS_IF([test x"$with_heif_module" = x"no"],
+       [PACKAGES_USED="$PACKAGES_USED libheif"])
     ],
     [AC_MSG_WARN([libheif >= 1.3.0 not found; disabling HEIF support])
      pkg-config --exists --print-errors "libheif >= 1.3.0"
@@ -1440,6 +1449,8 @@ text rendering with pangocairo: $with_pangocairo, \
 font file support with fontconfig: $with_fontconfig, \
 EXIF metadata support with libexif: $with_libexif, \
 JPEG load/save with libjpeg: $with_jpeg, \
+JXL load/save with libjxl: $with_libjxl (dynamic module: $with_libjxl_module), \
+JPEG2000 load/save with libopenjp2: $with_libopenjp2, \
 PNG load with libspng: $with_libspng, \
 PNG load/save with libpng: $with_png, \
 8bpp PNG quantisation: $with_imagequant, \
@@ -1547,7 +1558,7 @@ EXIF metadata support with libexif:     $with_libexif
 
 ## File format support
 JPEG load/save with libjpeg:            $with_jpeg
-JXL load/save with libjxl:              $with_libjxl
+JXL load/save with libjxl:              $with_libjxl (dynamic module: $with_libjxl_module)
 JPEG2000 load/save with libopenjp2:     $with_libopenjp2
  (requires libopenjp2 2.4 or later)
 PNG load with libspng:                  $with_libspng

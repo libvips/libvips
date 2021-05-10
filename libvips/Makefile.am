@@ -86,6 +86,10 @@ if MAGICK_MODULE
 module_LTLIBRARIES += vips-magick.la
 endif # MAGICK_MODULE
 
+if LIBJXL_MODULE
+module_LTLIBRARIES += vips-jxl.la
+endif # LIBJXL_MODULE
+
 if HEIF_MODULE
 module_LTLIBRARIES += vips-heif.la
 endif # HEIF_MODULE
@@ -127,6 +131,11 @@ vips_magick_la_SOURCES = \
 vips_magick_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(MAGICK_CFLAGS)
 vips_magick_la_LDFLAGS = $(MODULE_LDFLAGS)
 vips_magick_la_LIBADD = $(MODULE_LIBADD) $(MAGICK_LIBS)
+
+vips_jxl_la_SOURCES = module/jxl.c foreign/jxl2vips.c foreign/vips2jxl.c
+vips_jxl_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(LIBJXL_CFLAGS)
+vips_jxl_la_LDFLAGS = $(MODULE_LDFLAGS)
+vips_jxl_la_LIBADD = $(MODULE_LIBADD) $(LIBJXL_LIBS)
 
 vips_heif_la_SOURCES = module/heif.c foreign/heif2vips.c foreign/vips2heif.c
 vips_heif_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(HEIF_CFLAGS)
