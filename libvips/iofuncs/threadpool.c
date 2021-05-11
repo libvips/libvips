@@ -56,9 +56,9 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
 #define VIPS_DEBUG_RED
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
