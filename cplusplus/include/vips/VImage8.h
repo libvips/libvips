@@ -1789,7 +1789,7 @@ public:
 	 */
 
 // headers for vips operations
-// Wed Apr 21 06:00:31 PM CEST 2021
+// Wed May 12 11:30:00 AM CEST 2021
 // this file is generated automatically, do not edit!
 
 /**
@@ -3409,7 +3409,7 @@ static VImage jp2kload_buffer( VipsBlob *buffer, VOption *options = 0 );
 static VImage jp2kload_source( VSource source, VOption *options = 0 );
 
 /**
- * Save image in heif format.
+ * Save image in jpeg2000 format.
  *
  * **Optional parameters**
  *   - **tile_width** -- Tile width in pixels, int.
@@ -3427,7 +3427,7 @@ static VImage jp2kload_source( VSource source, VOption *options = 0 );
 void jp2ksave( const char *filename, VOption *options = 0 ) const;
 
 /**
- * Save image in heif format.
+ * Save image in jpeg2000 format.
  *
  * **Optional parameters**
  *   - **tile_width** -- Tile width in pixels, int.
@@ -3445,7 +3445,7 @@ void jp2ksave( const char *filename, VOption *options = 0 ) const;
 VipsBlob *jp2ksave_buffer( VOption *options = 0 ) const;
 
 /**
- * Save image in heif format.
+ * Save image in jpeg2000 format.
  *
  * **Optional parameters**
  *   - **tile_width** -- Tile width in pixels, int.
@@ -3606,6 +3606,108 @@ void jpegsave_mime( VOption *options = 0 ) const;
  * @param options Set of options.
  */
 void jpegsave_target( VTarget target, VOption *options = 0 ) const;
+
+/**
+ * Load jpeg-xl image.
+ *
+ * **Optional parameters**
+ *   - **memory** -- Force open via memory, bool.
+ *   - **access** -- Required access pattern for this file, VipsAccess.
+ *   - **sequential** -- Sequential read only, bool.
+ *   - **fail** -- Fail on first error, bool.
+ *   - **disc** -- Open to disc, bool.
+ *
+ * @param filename Filename to load from.
+ * @param options Set of options.
+ * @return Output image.
+ */
+static VImage jxlload( const char *filename, VOption *options = 0 );
+
+/**
+ * Load jpeg-xl image.
+ *
+ * **Optional parameters**
+ *   - **memory** -- Force open via memory, bool.
+ *   - **access** -- Required access pattern for this file, VipsAccess.
+ *   - **sequential** -- Sequential read only, bool.
+ *   - **fail** -- Fail on first error, bool.
+ *   - **disc** -- Open to disc, bool.
+ *
+ * @param buffer Buffer to load from.
+ * @param options Set of options.
+ * @return Output image.
+ */
+static VImage jxlload_buffer( VipsBlob *buffer, VOption *options = 0 );
+
+/**
+ * Load jpeg-xl image.
+ *
+ * **Optional parameters**
+ *   - **memory** -- Force open via memory, bool.
+ *   - **access** -- Required access pattern for this file, VipsAccess.
+ *   - **sequential** -- Sequential read only, bool.
+ *   - **fail** -- Fail on first error, bool.
+ *   - **disc** -- Open to disc, bool.
+ *
+ * @param source Source to load from.
+ * @param options Set of options.
+ * @return Output image.
+ */
+static VImage jxlload_source( VSource source, VOption *options = 0 );
+
+/**
+ * Save image in jpeg-xl format.
+ *
+ * **Optional parameters**
+ *   - **tier** -- Decode speed tier, int.
+ *   - **distance** -- Target butteraugli distance, double.
+ *   - **effort** -- Encoding effort, int.
+ *   - **lossless** -- Enable lossless compression, bool.
+ *   - **Q** -- Quality factor, int.
+ *   - **strip** -- Strip all metadata from image, bool.
+ *   - **background** -- Background value, std::vector<double>.
+ *   - **page_height** -- Set page height for multipage save, int.
+ *
+ * @param filename Filename to load from.
+ * @param options Set of options.
+ */
+void jxlsave( const char *filename, VOption *options = 0 ) const;
+
+/**
+ * Save image in jpeg-xl format.
+ *
+ * **Optional parameters**
+ *   - **tier** -- Decode speed tier, int.
+ *   - **distance** -- Target butteraugli distance, double.
+ *   - **effort** -- Encoding effort, int.
+ *   - **lossless** -- Enable lossless compression, bool.
+ *   - **Q** -- Quality factor, int.
+ *   - **strip** -- Strip all metadata from image, bool.
+ *   - **background** -- Background value, std::vector<double>.
+ *   - **page_height** -- Set page height for multipage save, int.
+ *
+ * @param options Set of options.
+ * @return Buffer to save to.
+ */
+VipsBlob *jxlsave_buffer( VOption *options = 0 ) const;
+
+/**
+ * Save image in jpeg-xl format.
+ *
+ * **Optional parameters**
+ *   - **tier** -- Decode speed tier, int.
+ *   - **distance** -- Target butteraugli distance, double.
+ *   - **effort** -- Encoding effort, int.
+ *   - **lossless** -- Enable lossless compression, bool.
+ *   - **Q** -- Quality factor, int.
+ *   - **strip** -- Strip all metadata from image, bool.
+ *   - **background** -- Background value, std::vector<double>.
+ *   - **page_height** -- Set page height for multipage save, int.
+ *
+ * @param target Target to save to.
+ * @param options Set of options.
+ */
+void jxlsave_target( VTarget target, VOption *options = 0 ) const;
 
 /**
  * Label regions in an image.
@@ -5438,9 +5540,10 @@ static VImage tiffload_source( VSource source, VOption *options = 0 );
  *   - **properties** -- Write a properties document to IMAGEDESCRIPTION, bool.
  *   - **region_shrink** -- Method to shrink regions, VipsRegionShrink.
  *   - **level** -- ZSTD compression level, int.
- *   - **subifd** -- Save pyr layers as sub-IFDs, bool.
  *   - **lossless** -- Enable WEBP lossless mode, bool.
  *   - **depth** -- Pyramid depth, VipsForeignDzDepth.
+ *   - **subifd** -- Save pyr layers as sub-IFDs, bool.
+ *   - **premultiply** -- Save with premultiplied alpha, bool.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -5473,9 +5576,10 @@ void tiffsave( const char *filename, VOption *options = 0 ) const;
  *   - **properties** -- Write a properties document to IMAGEDESCRIPTION, bool.
  *   - **region_shrink** -- Method to shrink regions, VipsRegionShrink.
  *   - **level** -- ZSTD compression level, int.
- *   - **subifd** -- Save pyr layers as sub-IFDs, bool.
  *   - **lossless** -- Enable WEBP lossless mode, bool.
  *   - **depth** -- Pyramid depth, VipsForeignDzDepth.
+ *   - **subifd** -- Save pyr layers as sub-IFDs, bool.
+ *   - **premultiply** -- Save with premultiplied alpha, bool.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
