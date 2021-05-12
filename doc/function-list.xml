@@ -758,17 +758,17 @@
 </row>
 <row>
   <entry>jp2ksave</entry>
-  <entry>Save image in heif format</entry>
+  <entry>Save image in jpeg2000 format</entry>
   <entry>vips_jp2ksave()</entry>
 </row>
 <row>
   <entry>jp2ksave_buffer</entry>
-  <entry>Save image in heif format</entry>
+  <entry>Save image in jpeg2000 format</entry>
   <entry>vips_jp2ksave_buffer()</entry>
 </row>
 <row>
   <entry>jp2ksave_target</entry>
-  <entry>Save image in heif format</entry>
+  <entry>Save image in jpeg2000 format</entry>
   <entry>vips_jp2ksave_target()</entry>
 </row>
 <row>
@@ -805,6 +805,36 @@
   <entry>jpegsave_target</entry>
   <entry>Save image to jpeg target</entry>
   <entry>vips_jpegsave_target()</entry>
+</row>
+<row>
+  <entry>jxlload</entry>
+  <entry>Load jpeg-xl image</entry>
+  <entry>vips_jxlload()</entry>
+</row>
+<row>
+  <entry>jxlload_buffer</entry>
+  <entry>Load jpeg-xl image</entry>
+  <entry>vips_jxlload_buffer()</entry>
+</row>
+<row>
+  <entry>jxlload_source</entry>
+  <entry>Load jpeg-xl image</entry>
+  <entry>vips_jxlload_source()</entry>
+</row>
+<row>
+  <entry>jxlsave</entry>
+  <entry>Save image in jpeg-xl format</entry>
+  <entry>vips_jxlsave()</entry>
+</row>
+<row>
+  <entry>jxlsave_buffer</entry>
+  <entry>Save image in jpeg-xl format</entry>
+  <entry>vips_jxlsave_buffer()</entry>
+</row>
+<row>
+  <entry>jxlsave_target</entry>
+  <entry>Save image in jpeg-xl format</entry>
+  <entry>vips_jxlsave_target()</entry>
 </row>
 <row>
   <entry>labelregions</entry>

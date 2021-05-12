@@ -1,5 +1,5 @@
 // bodies for vips operations
-// Wed Apr 21 06:00:31 PM CEST 2021
+// Wed May 12 11:30:00 AM CEST 2021
 // this file is generated automatically, do not edit!
 
 VImage VImage::CMC2LCh( VOption *options ) const
@@ -1798,6 +1798,70 @@ void VImage::jpegsave_mime( VOption *options ) const
 void VImage::jpegsave_target( VTarget target, VOption *options ) const
 {
     call( "jpegsave_target",
+        (options ? options : VImage::option())->
+            set( "in", *this )->
+            set( "target", target ) );
+}
+
+VImage VImage::jxlload( const char *filename, VOption *options )
+{
+    VImage out;
+
+    call( "jxlload",
+        (options ? options : VImage::option())->
+            set( "out", &out )->
+            set( "filename", filename ) );
+
+    return( out );
+}
+
+VImage VImage::jxlload_buffer( VipsBlob *buffer, VOption *options )
+{
+    VImage out;
+
+    call( "jxlload_buffer",
+        (options ? options : VImage::option())->
+            set( "out", &out )->
+            set( "buffer", buffer ) );
+
+    return( out );
+}
+
+VImage VImage::jxlload_source( VSource source, VOption *options )
+{
+    VImage out;
+
+    call( "jxlload_source",
+        (options ? options : VImage::option())->
+            set( "out", &out )->
+            set( "source", source ) );
+
+    return( out );
+}
+
+void VImage::jxlsave( const char *filename, VOption *options ) const
+{
+    call( "jxlsave",
+        (options ? options : VImage::option())->
+            set( "in", *this )->
+            set( "filename", filename ) );
+}
+
+VipsBlob *VImage::jxlsave_buffer( VOption *options ) const
+{
+    VipsBlob *buffer;
+
+    call( "jxlsave_buffer",
+        (options ? options : VImage::option())->
+            set( "in", *this )->
+            set( "buffer", &buffer ) );
+
+    return( buffer );
+}
+
+void VImage::jxlsave_target( VTarget target, VOption *options ) const
+{
+    call( "jxlsave_target",
         (options ? options : VImage::option())->
             set( "in", *this )->
             set( "target", target ) );
