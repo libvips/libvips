@@ -302,7 +302,7 @@ set_stacksize( guint64 size )
 {
 #ifdef HAVE_PTHREAD_DEFAULT_NP
 	pthread_attr_t attr;
-	guint64 cur_stack_size;
+	size_t cur_stack_size;
 
 	/* Don't allow stacks less than 2mb.
 	 */
