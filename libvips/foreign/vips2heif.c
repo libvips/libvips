@@ -120,6 +120,11 @@ typedef struct _VipsForeignSaveHeif {
 
 typedef VipsForeignSaveClass VipsForeignSaveHeifClass;
 
+/* Defined in heif2vips.c
+ */
+void vips__heif_error( struct heif_error *error );
+void vips__heif_image_print( struct heif_image *img );
+
 G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveHeif, vips_foreign_save_heif, 
 	VIPS_TYPE_FOREIGN_SAVE );
 

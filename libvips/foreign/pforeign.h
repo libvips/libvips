@@ -232,11 +232,6 @@ typedef void *(*VipsNiftiMapFn)( const char *name, GValue *value, glong offset,
 void *vips__foreign_nifti_map( VipsNiftiMapFn fn, void *a, void *b );
 
 extern const char *vips__heif_suffs[];
-struct heif_error;
-void vips__heif_error( struct heif_error *error );
-
-struct heif_image;
-void vips__heif_image_print( struct heif_image *img );
 
 extern const char *vips__jp2k_suffs[];
 int vips__foreign_load_jp2k_decompress( VipsImage *out,
