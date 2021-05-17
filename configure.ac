@@ -830,6 +830,7 @@ if test x"$with_libjxl" != x"no"; then
     ],
     [AC_MSG_WARN([libjxl not found; disabling libjxl support])
      with_libjxl=no
+     with_libjxl_module=no
     ]
   )
 fi
