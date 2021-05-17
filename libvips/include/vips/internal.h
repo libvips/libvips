@@ -110,6 +110,7 @@ extern gboolean vips__cache_trace;
 
 void vips__threadpool_init( void );
 void vips__threadpool_shutdown( void );
+int vips__thread_execute( const char *name, GFunc func, gpointer data );
 
 void vips__cache_init( void );
 

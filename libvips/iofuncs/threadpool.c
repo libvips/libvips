@@ -661,21 +661,20 @@ vips_task_free( VipsTask *task )
 }
 
 /**
- * vips_threadpool_push:
- * @name an name for the thread
- * @func a function to execute in the thread pool
- * @data an argument to supply to @func
+ * vips__thread_execute:
+ * @name: a name for the thread
+ * @func: a function to execute in the thread pool
+ * @data: an argument to supply to @func
  *
- * Add a new function to the list of tasks to be executed by the
- * #VipsThreadPool. A newly created or reused thread will execute
- * @func with with the argument data.
+ * A newly created or reused thread will execute @func with with the 
+ * argument data.
  *
  * See also: vips_concurrency_set().
  *
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_threadpool_push( const char *name, GFunc func, gpointer data )
+vips__thread_execute( const char *name, GFunc func, gpointer data )
 {
 	VipsThreadExec *exec;
 	GError *error = NULL;
@@ -692,7 +691,7 @@ vips_threadpool_push( const char *name, GFunc func, gpointer data )
 		return( -1 );
 	}
 
-	VIPS_DEBUG_MSG( "vips_threadpool_push: %u threads in pool\n",
+	VIPS_DEBUG_MSG( "vips__thread_execute: %u threads in pool\n",
 		g_thread_pool_get_num_threads( vips__pool ) );
 
 	return( result ? 0 : -1 );
@@ -825,7 +824,7 @@ vips_threadpool_run( VipsImage *im,
 	/* Create a set of workers for this pipeline.
 	 */
 	for( i = 0; i < n_tasks; i++ )
-		if( vips_threadpool_push( "worker", vips_task_run, task ) )
+		if( vips__thread_execute( "worker", vips_task_run, task ) )
 			return( -1 );
 
 	for(;;) {

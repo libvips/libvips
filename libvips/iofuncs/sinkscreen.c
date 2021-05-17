@@ -70,6 +70,7 @@
 
 #include <vips/vips.h>
 #include <vips/thread.h>
+#include <vips/internal.h>
 #include <vips/debug.h>
 
 #ifdef VIPS_DEBUG_AMBER
@@ -1069,10 +1070,10 @@ vips__sink_screen_init( void *data )
 	vips_semaphore_init( &n_render_dirty_sem, 0, "n_render_dirty" );
 	vips_semaphore_init( &render_finish, 0, "render_finish" );
 
-	if ( vips_threadpool_push( "sink_screen", render_thread_main,
+	if( vips__thread_execute( "sink_screen", render_thread_main,
 		NULL ) ) {
-		vips_error("vips_sink_screen_init", "%s",
-			_("unable to init render thread"));
+		vips_error( "vips_sink_screen_init", 
+			"%s", _( "unable to init render thread" ) );
 		return( NULL );
 	}
 

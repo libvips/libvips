@@ -236,7 +236,7 @@ wbuffer_new( Write *write )
 
 	/* Make this last (picks up parts of wbuffer on startup).
 	 */
-	if( vips_threadpool_push( "wbuffer", wbuffer_write_thread, 
+	if( vips__thread_execute( "wbuffer", wbuffer_write_thread, 
 		wbuffer ) ) {
 		wbuffer_free( wbuffer );
 		return( NULL );
