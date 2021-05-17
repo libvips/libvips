@@ -66,13 +66,13 @@
 
 /* Try to make an O_BINARY ... sometimes need the leading '_'.
  */
-#ifdef G_PLATFORM_WIN32
+#if defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)
 #ifndef O_BINARY
 #ifdef _O_BINARY
 #define O_BINARY _O_BINARY
 #endif /*_O_BINARY*/
 #endif /*!O_BINARY*/
-#endif /*G_PLATFORM_WIN32*/
+#endif /*defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)*/
 
 /* If we have O_BINARY, add it to a mode flags set.
  */
