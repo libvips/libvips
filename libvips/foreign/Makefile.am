@@ -15,10 +15,6 @@ libforeign_la_SOURCES = \
 	fitsload.c \
 	fitssave.c \
 	foreign.c \
-	heifload.c \
-	heifsave.c \
-	jxlload.c \
-	jxlsave.c \
 	jp2kload.c \
 	jp2ksave.c \
 	jpeg2vips.c \
@@ -36,9 +32,7 @@ libforeign_la_SOURCES = \
 	nsgifload.c \
 	openexr2vips.c \
 	openexrload.c \
-	openslideload.c \
 	pdfiumload.c \
-	pdfload.c \
 	pforeign.h \
 	pngload.c \
 	pngsave.c \
@@ -81,19 +75,19 @@ libforeign_la_SOURCES += \
 endif # !MAGICK_MODULE
 
 if !LIBJXL_MODULE
-libforeign_la_SOURCES += jxl2vips.c vips2jxl.c
+libforeign_la_SOURCES += jxlload.c jxlsave.c
 endif # !LIBJXL_MODULE
 
 if !HEIF_MODULE
-libforeign_la_SOURCES += heif2vips.c vips2heif.c
+libforeign_la_SOURCES += heifload.c heifsave.c
 endif # !HEIF_MODULE
 
 if !POPPLER_MODULE
-libforeign_la_SOURCES += poppler2vips.c
+libforeign_la_SOURCES += popplerload.c
 endif # !POPPLER_MODULE
 
 if !OPENSLIDE_MODULE
-libforeign_la_SOURCES += openslide2vips.c
+libforeign_la_SOURCES += openslideload.c
 endif # !OPENSLIDE_MODULE
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@

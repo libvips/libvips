@@ -132,22 +132,22 @@ vips_magick_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(MAGICK_CFLAGS)
 vips_magick_la_LDFLAGS = $(MODULE_LDFLAGS)
 vips_magick_la_LIBADD = $(MODULE_LIBADD) $(MAGICK_LIBS)
 
-vips_jxl_la_SOURCES = module/jxl.c foreign/jxl2vips.c foreign/vips2jxl.c
+vips_jxl_la_SOURCES = module/jxl.c foreign/jxlload.c foreign/jxlsave.c
 vips_jxl_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(LIBJXL_CFLAGS)
 vips_jxl_la_LDFLAGS = $(MODULE_LDFLAGS)
 vips_jxl_la_LIBADD = $(MODULE_LIBADD) $(LIBJXL_LIBS)
 
-vips_heif_la_SOURCES = module/heif.c foreign/heif2vips.c foreign/vips2heif.c
+vips_heif_la_SOURCES = module/heif.c foreign/heifload.c foreign/heifsave.c
 vips_heif_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(HEIF_CFLAGS)
 vips_heif_la_LDFLAGS = $(MODULE_LDFLAGS)
 vips_heif_la_LIBADD = $(MODULE_LIBADD) $(HEIF_LIBS)
 
-vips_poppler_la_SOURCES = module/poppler.c foreign/poppler2vips.c
+vips_poppler_la_SOURCES = module/poppler.c foreign/popplerload.c
 vips_poppler_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(POPPLER_CFLAGS)
 vips_poppler_la_LDFLAGS = $(MODULE_LDFLAGS)
 vips_poppler_la_LIBADD = $(MODULE_LIBADD) $(POPPLER_LIBS)
 
-vips_openslide_la_SOURCES = module/openslide.c foreign/openslide2vips.c
+vips_openslide_la_SOURCES = module/openslide.c foreign/openslideload.c
 vips_openslide_la_CPPFLAGS = $(MODULE_CPPFLAGS) $(OPENSLIDE_CFLAGS)
 vips_openslide_la_LDFLAGS = $(MODULE_LDFLAGS)
 vips_openslide_la_LIBADD = $(MODULE_LIBADD) $(OPENSLIDE_LIBS)

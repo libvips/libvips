@@ -215,9 +215,6 @@ int vips__webp_write_target( VipsImage *image, VipsTarget *target,
 	gboolean min_size, int kmin, int kmax,
 	gboolean strip, const char *profile );
 
-gboolean vips_foreign_load_pdf_is_a_buffer( const void *buf, size_t len );
-gboolean vips_foreign_load_pdf_is_a( const char *filename );
-
 int vips__quantise_image( VipsImage *in, 
 	VipsImage **index_out, VipsImage **palette_out,
 	int colours, int Q, double dither );

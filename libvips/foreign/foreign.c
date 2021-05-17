@@ -2080,6 +2080,688 @@ vips_foreign_find_save_buffer( const char *name )
 	return( G_OBJECT_CLASS_NAME( save_class ) );
 }
 
+/* C API wrappers for loadable modules go here.
+ */
+
+/**
+ * vips_heifload:
+ * @filename: file to load
+ * @out: (out): decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, page (top-level image number) to read
+ * * @n: %gint, load this many pages
+ * * @thumbnail: %gboolean, fetch thumbnail instead of image
+ *
+ * Read a HEIF image file into a VIPS image. 
+ *
+ * Use @page to select a page to render, numbering from zero. If neither @n
+ * nor @page are set, @page defaults to the primary page, otherwise to 0.
+ *
+ * Use @n to select the number of pages to render. The default is 1. Pages are
+ * rendered in a vertical column. Set to -1 to mean "until the end of the 
+ * document". Use vips_grid() to reorganise pages.
+ *
+ * HEIF images have a primary image. The metadata item `heif-primary` gives 
+ * the page number of the primary.
+ *
+ * If @thumbnail is %TRUE, then fetch a stored thumbnail rather than the
+ * image.
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_heifload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "heifload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_heifload_buffer:
+ * @buf: (array length=len) (element-type guint8): memory area to load
+ * @len: (type gsize): size of memory area
+ * @out: (out): image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, page (top-level image number) to read
+ * * @n: %gint, load this many pages
+ * * @thumbnail: %gboolean, fetch thumbnail instead of image
+ *
+ * Read a HEIF image file into a VIPS image. 
+ * Exactly as vips_heifload(), but read from a memory buffer. 
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_heifload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_heifload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "heifload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
+
+/**
+ * vips_heifload_source:
+ * @source: source to load from
+ * @out: (out): image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, page (top-level image number) to read
+ * * @n: %gint, load this many pages
+ * * @thumbnail: %gboolean, fetch thumbnail instead of image
+ *
+ * Exactly as vips_heifload(), but read from a source. 
+ *
+ * See also: vips_heifload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_heifload_source( VipsSource *source, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "heifload_source", ap, source, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_heifsave: (method)
+ * @in: image to save 
+ * @filename: file to write to 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @Q: %gint, quality factor
+ * * @lossless: %gboolean, enable lossless encoding
+ * * @compression: #VipsForeignHeifCompression, write with this compression
+ * * @speed: %gint, encoding speed
+ * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
+ *
+ * Write a VIPS image to a file in HEIF format. 
+ *
+ * Use @Q to set the compression factor. Default 50, which seems to be roughly
+ * what the iphone uses. Q 30 gives about the same quality as JPEG Q 75.
+ *
+ * Set @lossless %TRUE to switch to lossless compression.
+ *
+ * Use @compression to set the encoder e.g. HEVC, AVC, AV1. It defaults to AV1
+ * if the target filename ends with ".avif", otherwise HEVC.
+ *
+ * Use @speed to control the CPU effort spent improving compression.
+ * This is currently only applicable to AV1 encoders. Defaults to 5, 0 is
+ * slowest, 9 is fastest.
+ *
+ * Chroma subsampling is normally automatically disabled for Q >= 90. You can
+ * force the subsampling mode with @subsample_mode.
+ *
+ * See also: vips_image_write_to_file(), vips_heifload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_heifsave( VipsImage *in, const char *filename, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, filename );
+	result = vips_call_split( "heifsave", ap, in, filename );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_heifsave_buffer: (method)
+ * @in: image to save 
+ * @buf: (array length=len) (element-type guint8): return output buffer here
+ * @len: (type gsize): return output length here
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @Q: %gint, quality factor
+ * * @lossless: %gboolean, enable lossless encoding
+ * * @compression: #VipsForeignHeifCompression, write with this compression
+ * * @speed: %gint, encoding speed
+ * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
+ *
+ * As vips_heifsave(), but save to a memory buffer. 
+ *
+ * The address of the buffer is returned in @obuf, the length of the buffer in
+ * @olen. You are responsible for freeing the buffer with g_free() when you
+ * are done with it.
+ *
+ * See also: vips_heifsave(), vips_image_write_to_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_heifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	int result;
+
+	area = NULL; 
+
+	va_start( ap, len );
+	result = vips_call_split( "heifsave_buffer", ap, in, &area );
+	va_end( ap );
+
+	if( !result &&
+		area ) { 
+		if( buf ) {
+			*buf = area->data;
+			area->free_fn = NULL;
+		}
+		if( len ) 
+			*len = area->length;
+
+		vips_area_unref( area );
+	}
+
+	return( result );
+}
+
+/**
+ * vips_heifsave_target: (method)
+ * @in: image to save 
+ * @target: save image to this target
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @Q: %gint, quality factor
+ * * @lossless: %gboolean, enable lossless encoding
+ * * @compression: #VipsForeignHeifCompression, write with this compression
+ * * @speed: %gint, encoding speed
+ * * @subsample_mode: #VipsForeignSubsample, chroma subsampling mode
+ *
+ * As vips_heifsave(), but save to a target.
+ *
+ * See also: vips_heifsave(), vips_image_write_to_target().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_heifsave_target( VipsImage *in, VipsTarget *target, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, target );
+	result = vips_call_split( "heifsave_target", ap, in, target );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_jxlload:
+ * @filename: file to load
+ * @out: (out): decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Read a JPEG-XL image. 
+ *
+ * The JPEG-XL loader and saver are experimental features and may change
+ * in future libvips versions.
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jxlload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "jxlload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_jxlload_buffer:
+ * @buf: (array length=len) (element-type guint8): memory area to load
+ * @len: (type gsize): size of memory area
+ * @out: (out): image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Exactly as vips_jxlload(), but read from a buffer. 
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jxlload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "jxlload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
+
+/**
+ * vips_jxlload_source:
+ * @source: source to load from
+ * @out: (out): decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Exactly as vips_jxlload(), but read from a source. 
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jxlload_source( VipsSource *source, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "jxlload_source", ap, source, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_jxlsave: (method)
+ * @in: image to save 
+ * @filename: file to write to 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @tier: %gint, decode speed tier
+ * * @distance: %gdouble, maximum encoding error
+ * * @effort: %gint, encoding effort
+ * * @lossless: %gboolean, enables lossless compression
+ * * @Q: %gint, quality setting
+ *
+ * Write a VIPS image to a file in JPEG-XL format. 
+ *
+ * The JPEG-XL loader and saver are experimental features and may change
+ * in future libvips versions.
+ *
+ * @tier sets the overall decode speed the encoder will target. Minimum is 0 
+ * (highest quality), and maximum is 4 (lowest quality). Default is 0.
+ *
+ * @distance sets the target maximum encoding error. Minimum is 0 
+ * (highest quality), and maximum is 15 (lowest quality). Default is 1.0
+ * (visually lossless). 
+ *
+ * As a convenience, you can also use @Q to set @distance. @Q uses
+ * approximately the same scale as regular JPEG.
+ *
+ * Set @lossless to enable lossless compresion.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jxlsave( VipsImage *in, const char *filename, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, filename );
+	result = vips_call_split( "jxlsave", ap, in, filename );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_jxlsave_buffer: (method)
+ * @in: image to save 
+ * @buf: (array length=len) (element-type guint8): return output buffer here
+ * @len: (type gsize): return output length here
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @tier: %gint, decode speed tier
+ * * @distance: %gdouble, maximum encoding error
+ * * @effort: %gint, encoding effort
+ * * @lossless: %gboolean, enables lossless compression
+ * * @Q: %gint, quality setting
+ *
+ * As vips_jxlsave(), but save to a memory buffer.
+ *
+ * See also: vips_jxlsave(), vips_image_write_to_target().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jxlsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
+{
+	va_list ap;
+	VipsArea *area;
+	int result;
+
+	area = NULL; 
+
+	va_start( ap, len );
+	result = vips_call_split( "jxlsave_buffer", ap, in, &area );
+	va_end( ap );
+
+	if( !result &&
+		area ) { 
+		if( buf ) {
+			*buf = area->data;
+			area->free_fn = NULL;
+		}
+		if( len ) 
+			*len = area->length;
+
+		vips_area_unref( area );
+	}
+
+	return( result );
+}
+
+/**
+ * vips_jxlsave_target: (method)
+ * @in: image to save 
+ * @target: save image to this target
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @tier: %gint, decode speed tier
+ * * @distance: %gdouble, maximum encoding error
+ * * @effort: %gint, encoding effort
+ * * @lossless: %gboolean, enables lossless compression
+ * * @Q: %gint, quality setting
+ *
+ * As vips_jxlsave(), but save to a target.
+ *
+ * See also: vips_jxlsave(), vips_image_write_to_target().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_jxlsave_target( VipsImage *in, VipsTarget *target, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, target );
+	result = vips_call_split( "jxlsave_target", ap, in, target );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_pdfload:
+ * @filename: file to load
+ * @out: (out): output image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, load this page, numbered from zero
+ * * @n: %gint, load this many pages
+ * * @dpi: %gdouble, render at this DPI
+ * * @scale: %gdouble, scale render by this factor
+ * * @background: #VipsArrayDouble background colour
+ *
+ * Render a PDF file into a VIPS image. 
+ *
+ * The output image is always RGBA --- CMYK PDFs will be
+ * converted. If you need CMYK bitmaps, you should use vips_magickload()
+ * instead.
+ *
+ * Use @page to select a page to render, numbering from zero.
+ *
+ * Use @n to select the number of pages to render. The default is 1. Pages are
+ * rendered in a vertical column, with each individual page aligned to the
+ * left. Set to -1 to mean "until the end of the document". Use vips_grid() 
+ * to change page layout.
+ *
+ * Use @dpi to set the rendering resolution. The default is 72. Additionally,
+ * you can scale by setting @scale. If you set both, they combine.
+ *
+ * Use @background to set the background RGBA colour. The default is 255 
+ * (solid white), use eg. 0 for a transparent background.
+ *
+ * The operation fills a number of header fields with metadata, for example
+ * "pdf-author". They may be useful. 
+ *
+ * This function only reads the image header and does not render any pixel
+ * data. Rendering occurs when pixels are accessed.
+ *
+ * See also: vips_image_new_from_file(), vips_magickload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_pdfload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "pdfload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_pdfload_buffer:
+ * @buf: (array length=len) (element-type guint8): memory area to load
+ * @len: (type gsize): size of memory area
+ * @out: (out): image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, load this page, numbered from zero
+ * * @n: %gint, load this many pages
+ * * @dpi: %gdouble, render at this DPI
+ * * @scale: %gdouble, scale render by this factor
+ * * @background: #VipsArrayDouble background colour
+ *
+ * Read a PDF-formatted memory buffer into a VIPS image. Exactly as
+ * vips_pdfload(), but read from memory. 
+ *
+ * You must not free the buffer while @out is active. The 
+ * #VipsObject::postclose signal on @out is a good place to free. 
+ *
+ * See also: vips_pdfload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_pdfload_buffer( void *buf, size_t len, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new( NULL, buf, len );
+
+	va_start( ap, out );
+	result = vips_call_split( "pdfload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
+
+/**
+ * vips_pdfload_source:
+ * @source: source to load from
+ * @out: (out): image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @page: %gint, load this page, numbered from zero
+ * * @n: %gint, load this many pages
+ * * @dpi: %gdouble, render at this DPI
+ * * @scale: %gdouble, scale render by this factor
+ * * @background: #VipsArrayDouble background colour
+ *
+ * Exactly as vips_pdfload(), but read from a source. 
+ *
+ * See also: vips_pdfload()
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_pdfload_source( VipsSource *source, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "pdfload_source", ap, source, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_openslideload:
+ * @filename: file to load
+ * @out: (out): decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @level: %gint, load this level
+ * * @associated: %gchararray, load this associated image
+ * * @attach_associated: %gboolean, attach all associated images as metadata
+ * * @autocrop: %gboolean, crop to image bounds
+ *
+ * Read a virtual slide supported by the OpenSlide library into a VIPS image.
+ * OpenSlide supports images in Aperio, Hamamatsu, MIRAX, Sakura, Trestle,
+ * and Ventana formats.
+ *
+ * To facilitate zooming, virtual slide formats include multiple scaled-down
+ * versions of the high-resolution image.  These are typically called
+ * "levels".  By default, vips_openslideload() reads the highest-resolution
+ * level (level 0).  Set @level to the level number you want.
+ *
+ * In addition to the slide image itself, virtual slide formats sometimes
+ * include additional images, such as a scan of the slide's barcode.
+ * OpenSlide calls these "associated images".  To read an associated image,
+ * set @associated to the image's name.
+ * A slide's associated images are listed in the
+ * "slide-associated-images" metadata item.
+ *
+ * If you set @attach_associated, then all associated images are attached as
+ * metadata items. Use vips_image_get_image() on @out to retrieve them. Images
+ * are attached as "openslide-associated-XXXXX", where XXXXX is the name of the
+ * associated image.
+ *
+ * The output of this operator is always RGBA.
+ *
+ * See also: vips_image_new_from_file().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_openslideload( const char *filename, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "openslideload", ap, filename, out );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_openslideload_source:
+ * @source: source to load from
+ * @out: (out): decompressed image
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @level: %gint, load this level
+ * * @associated: %gchararray, load this associated image
+ * * @attach_associated: %gboolean, attach all associated images as metadata
+ * * @autocrop: %gboolean, crop to image bounds
+ *
+ * Exactly as vips_openslideload(), but read from a source. 
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_openslideload_source( VipsSource *source, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_call_split( "openslideload_source", ap, source, out );
+	va_end( ap );
+
+	return( result );
+}
+
 /* Called from iofuncs to init all operations in this dir. Use a plugin system
  * instead?
  */

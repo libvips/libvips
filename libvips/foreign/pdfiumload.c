@@ -747,6 +747,33 @@ vips_foreign_load_pdf_file_build( VipsObject *object )
 		build( object ) );
 }
 
+static gboolean
+vips_foreign_load_pdf_is_a_buffer( const void *buf, size_t len )
+{
+	const guchar *str = (const guchar *) buf;
+
+	if( len >= 4 &&
+		str[0] == '%' && 
+		str[1] == 'P' &&
+		str[2] == 'D' &&
+		str[3] == 'F' )
+		return( 1 );
+
+	return( 0 );
+}
+
+static gboolean
+vips_foreign_load_pdf_is_a( const char *filename )
+{
+	unsigned char buf[4];
+
+	if( vips__get_bytes( filename, buf, 4 ) == 4 &&
+		vips_foreign_load_pdf_is_a_buffer( buf, 4 ) )
+		return( 1 );
+
+	return( 0 );
+}
+
 static void
 vips_foreign_load_pdf_file_class_init( 
 	VipsForeignLoadPdfFileClass *class )
