@@ -67,13 +67,13 @@
 
 /* Try to make an O_BINARY ... sometimes need the leading '_'.
  */
-#ifdef G_PLATFORM_WIN32
+#if defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)
 #ifndef O_BINARY
 #ifdef _O_BINARY
 #define O_BINARY _O_BINARY
 #endif /*_O_BINARY*/
 #endif /*!O_BINARY*/
-#endif /*G_PLATFORM_WIN32*/
+#endif /*defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)*/
 
 /* If we have O_BINARY, add it to a mode flags set.
  */
@@ -698,14 +698,14 @@ vips__file_open_read( const char *filename, const char *fallback_dir,
 	char *mode;
 	FILE *fp;
 
-#ifdef G_PLATFORM_WIN32
+#if defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)
 	if( text_mode )
 		mode = "r";
 	else
 		mode = "rb";
-#else /*!G_PLATFORM_WIN32*/
+#else /*!defined(G_PLATFORM_WIN32) && !defined(G_WITH_CYGWIN)*/
 	mode = "r";
-#endif /*G_PLATFORM_WIN32*/
+#endif /*defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)*/
 
 	if( (fp = vips__fopen( filename, mode )) )
 		return( fp );
@@ -734,14 +734,14 @@ vips__file_open_write( const char *filename, gboolean text_mode )
 	char *mode;
 	FILE *fp;
 
-#ifdef G_PLATFORM_WIN32
+#if defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)
 	if( text_mode )
 		mode = "w";
 	else
 		mode = "wb";
-#else /*!G_PLATFORM_WIN32*/
+#else /*!defined(G_PLATFORM_WIN32) && !defined(G_WITH_CYGWIN)*/
 	mode = "w";
-#endif /*G_PLATFORM_WIN32*/
+#endif /*defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)*/
 
         if( !(fp = vips__fopen( filename, mode )) ) {
 		vips_error_system( errno, "vips__file_open_write", 
