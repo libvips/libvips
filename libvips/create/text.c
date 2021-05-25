@@ -401,14 +401,18 @@ vips_text_build( VipsObject *object )
 	 */
 	if( vips_object_argument_isset( object, "height" ) &&
 		!vips_object_argument_isset( object, "dpi" ) ) {
-		if( vips_text_autofit( text ) )
+		if( vips_text_autofit( text ) ) {
+			g_mutex_unlock( vips_text_lock ); 
 			return( -1 );
+		}
 	}
 
 	/* Layout. Can fail for "", for example.
 	 */
-	if( vips_text_get_extents( text, &extents ) )
+	if( vips_text_get_extents( text, &extents ) ) {
+		g_mutex_unlock( vips_text_lock ); 
 		return( -1 );
+	}
 	if( extents.width == 0 || 
 		extents.height == 0 ) {
 		vips_error( class->nickname, "%s", _( "no text to render" ) );
