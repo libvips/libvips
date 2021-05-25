@@ -834,7 +834,7 @@ vips_image_get_n_pages( VipsImage *image )
 	if( vips_image_get_typeof( image, VIPS_META_N_PAGES ) &&
 		!vips_image_get_int( image, VIPS_META_N_PAGES, &n_pages ) &&
 		n_pages > 1 &&
-		n_pages < 1000 )
+		n_pages < 10000 )
 		return( n_pages );
 
 	return(	1 );
