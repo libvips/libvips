@@ -52,20 +52,9 @@
 
  */
 
-/*
- * TODO:
- * Test for pixel size and use memcpy() on individual pixels once they reach
- * sizes of the order of tens of bytes. char-wise copy is quicker than 
- * memcpy() for smaller pixels.
- *
- * Also, I haven't tested it but int-wise copying may be faster still, as 
- * long as alignment permits it.
- *
- * tcv.  2006-09-01
- */
-
-/* Turn on ADDR() range checks.
-#define DEBUG 1
+/* 
+#define DEBUG 
+#define DEBUG_VERBOSE
  */
 
 #ifdef HAVE_CONFIG_H
@@ -253,6 +242,11 @@ vips_zoom_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	VipsRect s;
 	int left, right, top, bottom;
 	int width, height;
+
+#ifdef DEBUG_VERBOSE
+	printf( "vips_zoom_gen: left=%d, top=%d, width=%d, height=%d\n", 
+		r->left, r->top, r->width, r->height );
+#endif /*DEBUG_VERBOSE*/
 
 	/* Area of input we need. We have to round out, as we may have
 	 * part-pixels all around the edges.
