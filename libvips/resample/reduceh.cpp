@@ -64,6 +64,7 @@ typedef struct _VipsReduceh {
 	VipsResample parent_instance;
 
 	double hshrink;		/* Reduce factor */
+	double xsize;		/* Image source width as double-precision */
 
 	/* The thing we use to make the kernel.
 	 */
@@ -438,12 +439,16 @@ vips_reduceh_build( VipsObject *object )
 		vips_object_local_array( object, 2 );
 
 	VipsImage *in;
-	double width, extra_pixels;
+	int width;
+	double extra_pixels;
 
 	if( VIPS_OBJECT_CLASS( vips_reduceh_parent_class )->build( object ) )
 		return( -1 );
 
-	in = resample->in; 
+	in = resample->in;
+
+	if( !vips_object_argument_isset( object, "xsize" ) )
+		reduceh->xsize = (double) in->Xsize;
 
 	if( reduceh->hshrink < 1 ) { 
 		vips_error( object_class->nickname, 
@@ -466,14 +471,12 @@ vips_reduceh_build( VipsObject *object )
 	/* Output size. We need to always round to nearest, so round(), not
 	 * rint().
 	 */
-	width = VIPS_ROUND_UINT(
-		(double) resample->in->Xsize / reduceh->hshrink );
+	width = VIPS_ROUND_UINT( reduceh->xsize / reduceh->hshrink );
 
 	/* How many pixels we are inventing in the input, -ve for
 	 * discarding.
 	 */
-	extra_pixels =
-		width * reduceh->hshrink - resample->in->Xsize;
+	extra_pixels = width * reduceh->hshrink - reduceh->xsize;
 
 	/* If we are rounding down, we are not using some input
 	 * pixels. We need to move the origin *inside* the input image
@@ -591,6 +594,13 @@ vips_reduceh_class_init( VipsReducehClass *reduceh_class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsReduceh, kernel ),
 		VIPS_TYPE_KERNEL, VIPS_KERNEL_LANCZOS3 );
+
+	VIPS_ARG_DOUBLE( reduceh_class, "xsize", 5, 
+		_( "Xsize" ), 
+		_( "Image source width as double-precision" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsReduceh, xsize ),
+		1, VIPS_MAX_COORD, 1 );
 
 	/* Old name.
 	 */

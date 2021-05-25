@@ -63,6 +63,7 @@ typedef struct _VipsShrink {
 
 	double hshrink;		/* Shrink factors */
 	double vshrink;
+	gboolean ceil;			/* Round operation */
 
 } VipsShrink;
 
@@ -76,7 +77,7 @@ vips_shrink_build( VipsObject *object )
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsShrink *shrink = (VipsShrink *) object;
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( object, 3 );
+		vips_object_local_array( object, 4 );
 
 	int hshrink_int;
 	int vshrink_int;
@@ -94,17 +95,30 @@ vips_shrink_build( VipsObject *object )
 		double xresidual = shrink->hshrink / hshrink_int; 
 		double yresidual = shrink->vshrink / vshrink_int;
 
-		if( vips_shrinkv( resample->in, &t[0], vshrink_int, NULL ) ||
-			vips_shrinkh( t[0], &t[1], hshrink_int, NULL ) )
+		if( vips_shrinkv( resample->in, &t[0], vshrink_int, 
+			"ceil", shrink->ceil, 
+			NULL ) ||
+			vips_shrinkh( t[0], &t[1], hshrink_int, 
+			"ceil", shrink->ceil,
+			 NULL ) )
 			return( -1 ); 
 
-		if( vips_reduce( t[1], &t[2], xresidual, yresidual, NULL ) ||
-			vips_image_write( t[2], resample->out ) )
+		if( vips_reducev( t[1], &t[2], yresidual,
+			"ysize", (double) resample->in->Ysize / vshrink_int,
+			NULL ) ||
+			vips_reduceh( t[2], &t[3], xresidual,
+			"xsize", (double) resample->in->Xsize / hshrink_int,
+			NULL ) ||
+			vips_image_write( t[3], resample->out ) )
 			return( -1 );
 	}
 	else {
-		if( vips_shrinkv( resample->in, &t[0], shrink->vshrink, NULL ) ||
-			vips_shrinkh( t[0], &t[1], shrink->hshrink, NULL ) ||
+		if( vips_shrinkv( resample->in, &t[0], shrink->vshrink,
+			"ceil", shrink->ceil, 
+			NULL ) ||
+			vips_shrinkh( t[0], &t[1], shrink->hshrink, 
+			"ceil", shrink->ceil, 
+			NULL ) ||
 			vips_image_write( t[1], resample->out ) )
 			return( -1 );
 	}
@@ -147,6 +161,13 @@ vips_shrink_class_init( VipsShrinkClass *class )
 		G_STRUCT_OFFSET( VipsShrink, hshrink ),
 		1.0, 1000000.0, 1.0 );
 
+	VIPS_ARG_BOOL( class, "ceil", 10, 
+		_( "Ceil" ), 
+		_( "Round-up output dimensions" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsShrink, ceil ),
+		FALSE );
+
 	/* The old names .. now use h and v everywhere. 
 	 */
 	VIPS_ARG_DOUBLE( class, "xshrink", 8, 
@@ -177,6 +198,10 @@ vips_shrink_init( VipsShrink *shrink )
  * @hshrink: horizontal shrink
  * @vshrink: vertical shrink
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @ceil: round-up output dimensions
  *
  * Shrink @in by a pair of factors with a simple box filter. For non-integer
  * factors, vips_shrink() will first shrink by the integer part with a box
