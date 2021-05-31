@@ -721,7 +721,6 @@ vips_shutdown( void )
 #endif /*HAVE_GSF*/
 
        VIPS_FREE(vips__argv0);
-       g_set_prgname(NULL);
 
 	/* In dev releases, always show leaks. But not more than once, it's
 	 * annoying.
