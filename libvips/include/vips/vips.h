@@ -170,8 +170,8 @@ extern "C" {
 		vips_init( ARGV0 ))
 
 int vips_init( const char *argv0 );
-
 const char *vips_get_argv0( void );
+const char *vips_get_prgname( void );
 void vips_shutdown( void );
 void vips_thread_shutdown( void );
 

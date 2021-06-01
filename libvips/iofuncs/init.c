@@ -126,6 +126,10 @@ GTimer *vips__global_timer = NULL;
  */
 static char *vips__argv0 = NULL;
 
+/* Keep a copy of the last component of argv0 here.
+ */
+static char *vips__prgname = NULL;
+
 /* Leak check on exit.
  */
 int vips__leak = 0;
@@ -143,13 +147,35 @@ static gint64 vips_pipe_read_limit = 1024 * 1024 * 1024;
  *
  * See also: VIPS_INIT().
  *
- * Returns: a pointer to an internal copy of the argv0 string passed to
+ * Returns: (transfer none): a pointer to an internal copy of the 
+ * argv0 string passed to
  * VIPS_INIT(). Do not free this value
  */
 const char *
 vips_get_argv0( void )
 {
 	return( vips__argv0 );
+}
+
+/**
+ * vips_get_prgname:
+ *
+ * Return the program name. This can be useful for the user tio see,.
+ *
+ * See also: VIPS_INIT().
+ *
+ * Returns: (transfer none): a pointer to an internal copy of the program 
+ * name. Do not free this value
+ */
+const char *
+vips_get_prgname( void )
+{
+	const char *prgname;
+
+	if( (prgname = g_get_prgname()) )
+		return( prgname );
+	else
+		return( vips__prgname );
 }
 
 /**
@@ -422,14 +448,7 @@ vips_init( const char *argv0 )
 		vips__global_timer = g_timer_new();
 
 	VIPS_SETSTR( vips__argv0, argv0 );
-
-	if( argv0 ) {
-		char *prgname;
-
-		prgname = g_path_get_basename( argv0 );
-		g_set_prgname( prgname );
-		g_free( prgname );
-	}
+	vips__prgname = g_path_get_basename( argv0 );
 
 	vips__thread_profile_attach( "main" );
 

@@ -760,7 +760,7 @@ vips_image_preeval_cb( VipsImage *image, VipsProgress *progress, int *last )
 		&tile_width, &tile_height, &n_lines );
 	printf( _( "%s %s: %d x %d pixels, %d threads, %d x %d tiles, "
 		"%d lines in buffer" ),
-		g_get_prgname(), image->filename,
+		vips_get_prgname(), image->filename,
 		image->Xsize, image->Ysize,
 		vips_concurrency_get(),
 		tile_width, tile_height, n_lines );
@@ -772,7 +772,7 @@ vips_image_eval_cb( VipsImage *image, VipsProgress *progress, int *last )
 {
 	if( progress->percent != *last ) {
 		printf( _( "%s %s: %d%% complete" ), 
-			g_get_prgname(), image->filename, 
+			vips_get_prgname(), image->filename, 
 			progress->percent );
 		printf( "\r" ); 
 		fflush( stdout );
@@ -791,7 +791,7 @@ vips_image_posteval_cb( VipsImage *image, VipsProgress *progress, void *data )
 	/* Spaces at end help to erase the %complete message we overwrite.
 	 */
 	printf( _( "%s %s: done in %.3gs          \n" ), 
-		g_get_prgname(), image->filename, 
+		vips_get_prgname(), image->filename, 
 		g_timer_elapsed( progress->start, NULL ) );
 }
 

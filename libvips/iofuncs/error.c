@@ -430,7 +430,7 @@ vips_error_exit( const char *fmt, ... )
 	if( fmt ) {
 		va_list ap;
 
-		fprintf( stderr, "%s: ", g_get_prgname() );
+		fprintf( stderr, "%s: ", vips_get_prgname() );
 
 		va_start( ap, fmt );
 		(void) vfprintf( stderr, fmt, ap );
