@@ -739,6 +739,8 @@ vips_shutdown( void )
 	gsf_shutdown(); 
 #endif /*HAVE_GSF*/
 
+       VIPS_FREE(vips__argv0);
+
 	/* In dev releases, always show leaks. But not more than once, it's
 	 * annoying.
 	 */
@@ -754,6 +756,9 @@ vips_shutdown( void )
 
 		done = TRUE;
 	}
+
+       VIPS_FREEF( vips_g_mutex_free, vips__global_lock );
+       VIPS_FREEF( g_timer_destroy, vips__global_timer );
 }
 
 const char *
