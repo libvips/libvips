@@ -56,6 +56,11 @@ user 0m1.273s
 sys 0m0.048s 
 ```
 
+JPEG-XL is still a little immature, so it's not enabled by default in
+libvips 8.11. Hopefully the missing features (metadata, progressive encode
+and decode, animation, etc.) will arrive soon, and the remaining bugs will
+be squeezed out.
+
 # Thread recycling
 
 - new threading model has a single threadpool shared by all 
@@ -67,8 +72,26 @@ sys 0m0.048s
 
 # JPEG2000 support
 
-- add jp2kload, jp2ksave
-- add jp2k compression to tiff load and save
+Thanks to generous sponsorship from Lunaphore, we've added support for the
+(now rather elderly) JPEG2000 format.
+
+The `jp2kload` and `jp2ksave` operations support all the file format
+features: shrink-on-load, 8-, 16- and 32-bit data, any number of
+iamge bands, tiled images, YCC colourspace, lossless compression, and
+optional chroma subsampling. The lossy compression profile (controlled
+by a `Q` parameter) is derived from the [British Museum's JPEG2000
+recommendations](https://purl.pt/24107/1/iPres2013_PDF/An%20Analysis%20of%20Contemporary%20JPEG2000%20Codecs%20for%20Image%20Format%20Migration.pdf).
+
+We've also added support for JPEG2000 as a codec for TIFF load and save. This
+means you can now directly load and save some popular slide image formats.
+This should be useful for people in the medical imaging community.
+
+It's very easy to use -- for example:
+
+```
+$ vips copy k2.jpg x.tif[compression=jp2k,Q=90,tile]
+$ vips copy k2.jpg x.tif[compression=jp2k,lossless]
+```
 
 # More loaders and savers moved to the new source / target framework
 
