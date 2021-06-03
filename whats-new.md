@@ -72,14 +72,16 @@ pipelines and long-running processes, a performance improvement can be observed.
 
 # Loadable modules for some dependencies
 
-libvips now supports building OpenSlide, libheif, Poppler and
-{Image,Graphics}Magick as a dynamically loadable module. This makes it easier
-for distributions to provide separate (optional) packages for these dependencies,
-making the core package much slimmer and thus reducing the attack surface.
+libvips now supports building OpenSlide, libheif, Poppler and libMagick as a
+dynamically loadable module. This makes it easier for distributions to provide
+separate (optional) packages for these dependencies, making the core package
+much slimmer and thus reducing the attack surface. Distributing separate packages
+could also help to comply with GPL licensing (“mere aggregation” clause) or
+patent-encumbered software.
 
 [GModule](https://developer.gnome.org/glib/stable/glib-Dynamic-Loading-of-Modules.html)
-is used to accomplish this in a portable way. We already had a simple plugin system
-based on this, but the build part was not yet implemented.
+is used to accomplish this in a portable way. We already had a simple plugin
+system based on this, but the build part was not yet implemented.
 
 These loadable modules are built automatically when GModule is supported, which
 should be supported on at least Linux, Windows and macOS. It can be disabled
