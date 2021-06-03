@@ -1,6 +1,6 @@
 ### Introduction
 
-This API is a thing layer over the libvips GObject API.  it adds automatic
+This API is a thin layer over the libvips GObject API.  it adds automatic
 reference counting, exceptions, operator overloads, and automatic constant
 expansion.
 
