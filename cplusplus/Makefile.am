@@ -30,7 +30,6 @@ vips-operators.cpp:
 
 if HAVE_DOXYGEN
 html_DATA = html
-endif
 
 html: doxygen.stamp
 
@@ -44,6 +43,7 @@ install-htmlDATA:
 
 uninstall-htmlDATA:
 	rm -rf $(DESTDIR)$(htmldir)/html
+endif
 
 EXTRA_DIST = \
 	README.md \

@@ -1539,13 +1539,15 @@ AC_MSG_RESULT([dnl
 enable debug:                           $enable_debug
 enable deprecated library components:   $enable_deprecated
 enable modules:                         $gmodule_supported_flag
-enable docs with gtkdoc:                $enable_gtk_doc
+enable C docs with gtkdoc:              $enable_gtk_doc
+ (requires gtk-doc 1.14 or later)
 gobject introspection:                  $found_introspection
+ (requires gobject-introspection 1.30 or later)
 RAD load/save:                          $with_radiance
 Analyze7 load/save:                     $with_analyze
 PPM load/save:                          $with_ppm
 GIF load:                               $with_nsgif
-generate C++ docs:                      $with_doxygen
+generate C++ docs with doxygen:         $with_doxygen
 
 ## Optional dependencies
 use fftw3 for FFT:                      $with_fftw
