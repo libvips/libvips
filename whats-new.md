@@ -18,7 +18,43 @@ the new JPEG2000 features, see below.
 
 # Experimental JPEG-XL support
 
-- add JPEG-XL load and save
+(JPEG-XL)[https://jpeg.org/jpegxl/] is a promising new iteration of the JPEG
+standard that's currently being developed. The Chrome web browser supports
+it, though behind a flag. It looks like it might be enabled by default this
+autumn in Chrome 89. libvips 8.11 includes experimental support for JPEG-XL
+load and save.
+
+There have been several attempts to replace JPEG with something better in the
+last few years. HEIC is perhaps the best known: it can compress files to
+about half the size of comparable JPEGs and supports a range of useful
+features, like animations, transparency and lossless
+compression. Unfortunately, it has some patent issues which may limit its
+usefulness.
+
+AVIF is rather like HEIC, but has no patents attached to it. Sadly the
+available load and save libraries are extremely slow.
+
+JPEG-XL looks like it might avoid all these problems: it offers the same great
+compression and useful features as HEIC and AVIF, but has no problems with 
+patents, and is fast enough for practical use. 
+
+I made a sample image. You'll need to zoom in to check details:
+
+![image compression comparison](astronauts.png)
+
+Compression and decompression is quite a bit quicker than HEIC:
+
+```
+$ time vips copy astronauts.png x.jxl
+real 0m0.218s
+user 0m0.291s
+sys 0m0.204s
+
+$ time vips copy astronauts.png x.heic
+real 0m0.413s
+user 0m1.273s
+sys 0m0.048s 
+```
 
 # Thread recycling
 
