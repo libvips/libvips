@@ -14,17 +14,16 @@ the new JPEG2000 features, see below.
 
 # Experimental JPEG-XL support
 
-libvips 8.11 includes experimental support for JPEG-XL load and save.
-
-[JPEG-XL](https://jpeg.org/jpegxl/) is a promising new iteration of the JPEG
-standard that's currently being developed. The Chrome web browser supports
-it, though behind a flag, and it looks like it might be enabled by default
-this autumn in Chrome 89. 
+We've added perimental support for[JPEG-XL](https://jpeg.org/jpegxl/).
+This is a new iteration of the JPEG standard, 
+currently in development. The Chrome web browser supports it
+behind a flag, and it looks like it might be enabled by default this autumn
+in Chrome 89.
 
 There have been several attempts to replace JPEG with something better in the
 last few years. HEIC is perhaps the best known: it can compress files to
 about half the size of comparable JPEGs and supports a range of useful
-features, like animations, transparency and lossless
+features like animations, transparency and lossless
 compression. Unfortunately, it has some patent issues which may limit its
 usefulness.
 
@@ -60,10 +59,11 @@ be squeezed out.
 
 # Thread recycling
 
-The threading system of libvips was revamped, the new implementation uses
-the [thread pool semantics of GLib](https://developer.gnome.org/glib/stable/glib-Thread-Pools.html),
-which is a single thread pool shared across all pipelines. This
-implementation allows the reuse of already started threads.
+We've revamped the libvips threading system.
+The new implementation uses a [GLib thread
+pool](https://developer.gnome.org/glib/stable/glib-Thread-Pools.html)
+to provide a single set of threads for the whole of libvips. This means
+threads get reused rather then being constantly created and destroyed.
 
 This was originally intended for WebAssembly but it turned out to be useful
 for native environments as well. Relative speed-ups are varying between ~4%
@@ -72,20 +72,20 @@ pipelines and long-running processes, a performance improvement can be observed.
 
 # Loadable modules for some dependencies
 
-libvips now supports building OpenSlide, libheif, Poppler and libMagick as a
-dynamically loadable module. This makes it easier for distributions to provide
-separate (optional) packages for these dependencies, making the core package
-much slimmer and thus reducing the attack surface. Distributing separate packages
-could also help to comply with GPL licensing (“mere aggregation” clause) or
-patent-encumbered software.
+libvips now supports building OpenSlide, libheif, Poppler and libMagick
+as dynamically loadable modules. This makes it easier for distributions to
+provide separate (optional) packages for these dependencies, making the core
+package much slimmer and thus reducing the attack surface. Distributing
+separate packages could also help to comply with GPL licensing (“mere
+aggregation” clause) or patent-encumbered software.
 
 [GModule](https://developer.gnome.org/glib/stable/glib-Dynamic-Loading-of-Modules.html)
 is used to accomplish this in a portable way. We already had a simple plugin
 system based on this, but the build part was not yet implemented.
 
-These loadable modules are built automatically when GModule is supported, which
-should be supported on at least Linux, Windows and macOS. It can be disabled
-by passing `--disable-modules` while configuring libvips.
+These loadable modules are built automatically when GModule is supported,
+which should be at least Linux, Windows and macOS. It can be disabled by
+passing `--disable-modules` while configuring libvips.
 
 # Full-colour text rendering
 
@@ -114,7 +114,7 @@ Thanks to generous sponsorship from Lunaphore, we've added support for the
 
 The `jp2kload` and `jp2ksave` operations support all the file format
 features: shrink-on-load, 8-, 16- and 32-bit data, any number of
-iamge bands, tiled images, YCC colourspace, lossless compression, and
+image bands, tiled images, YCC colourspace, lossless compression, and
 optional chroma subsampling. The lossy compression profile (controlled
 by a `Q` parameter) is derived from the [British Museum's JPEG2000
 recommendations](https://purl.pt/24107/1/iPres2013_PDF/An%20Analysis%20of%20Contemporary%20JPEG2000%20Codecs%20for%20Image%20Format%20Migration.pdf).
