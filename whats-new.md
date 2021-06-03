@@ -6,8 +6,8 @@ libvips 8.11 is almost now out, so here's a quick overview of what's new. Check
 the [ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
 if you need more details.
 
-Credit to Zeranoe, DarthSim, Projkt-James, afontenot, erdmann, kleisauke
-and others for their great work on this release.
+Credit to Zeranoe, DarthSim, Projkt-James, afontenot, 781545872, erdmann,
+kleisauke and others for their great work on this release.
 
 [Lunaphore](https://www.lunaphore.ch/) kindly sponsored the development of
 the new JPEG2000 features, see below.
@@ -18,11 +18,12 @@ the new JPEG2000 features, see below.
 
 # Experimental JPEG-XL support
 
+libvips 8.11 includes experimental support for JPEG-XL load and save.
+
 (JPEG-XL)[https://jpeg.org/jpegxl/] is a promising new iteration of the JPEG
 standard that's currently being developed. The Chrome web browser supports
-it, though behind a flag. It looks like it might be enabled by default this
-autumn in Chrome 89. libvips 8.11 includes experimental support for JPEG-XL
-load and save.
+it, though behind a flag, and it looks like it might be enabled by default
+this autumn in Chrome 89. 
 
 There have been several attempts to replace JPEG with something better in the
 last few years. HEIC is perhaps the best known: it can compress files to
@@ -68,7 +69,23 @@ be squeezed out.
 
 # Full-colour text rendering
 
-- add "rgba" flag to `vips_text()` to enable full colour text rendering
+The libvips `text` operator was designed a while ago, when fonts were still
+black and white. It outputs a one-band mask image which you then process with
+the other libvips operations to do things like rendering text on an image.
+
+Many fonts, especially emoji fonts, now have full-colour SVG characters.
+There's a new `rgba` flag to `text` to enable colour rendering. For example:
+
+```
+$ vips text x.png "😀<span foreground='red'>red</span><span background='cyan'>blue</span>" --dpi 300 --rgba
+```
+
+Makes this:
+
+![coloured text](text.png)
+
+You can then use `composite` to render these text RGBA images on to another
+image.
 
 # JPEG2000 support
 
@@ -93,41 +110,51 @@ $ vips copy k2.jpg x.tif[compression=jp2k,Q=90,tile]
 $ vips copy k2.jpg x.tif[compression=jp2k,lossless]
 ```
 
-# More loaders and savers moved to the new source / target framework
-
-- add `vips_jpegload_source()` and `vips_svgload_source()` to public C API
-- add `vips_source_g_input_stream_new()` to load images from a GInputStream
-- add `openslideload_source()`, `vipsload_source()`, `vipssave_target()`
-- vipsthumbnail supports stdin / stdout thumbnailing
-- add `vips_fitsload_source()`, `vips_niftiload_source()`
-- add source load support for pdfium
-
 # C++ API improments
 
-- integrate doxygen in build system to generate C++ API docs
-- improve C++ API doc comments
-- add VipsInterpolate and guint64 support to C++ API 
-- add `VImage::new_from_memory_steal` [Zeranoe]
+We've spent some time improving the C++ API. 
 
-# New and improved image processing operations
+We now use [doxygen](https://www.doxygen.nl) to generate C++ API docs
+automatically, and we've written a set of API comments. Hopefully the [new
+documentation](link-to-cpp-docs) should be a big improvement.
 
-- add "seed" param to perlin, worley and gaussnoise
-- add hist path to rank for large windows on uchar images
-- `hist_find` outputs a double histogram for large images [erdmann]
-- add `black_point_compensation` flag for icc transforms
-- better detection of invalid ICC profiles, better fallback paths
+There are a couple of functional improvements too. There's support for
+`VipsInterpolate`, `guint64` and a new constructor,
+`VImage::new_from_memory_steal`, which can save a copy operation.
 
-# Other
+# Minor improvements
 
-- better 8/16-bit choice for pngsave
-- png and gif load note background colour as metadata [781545872]
-- add GIF load with libnsgif
-- add "premultiply" flag to tiffsave
-- have a lock just for pdfium [DarthSim]
-- avoid NaN in mapim [afontenot]
-- fix ref leaks in mosaicing package
-- run libvips leak test in CI 
-- get pdfium load building again [Projkt-James]
+- The `perlin`, `worley` and `gaussnoise` operators have a new `seed`
+  parameter to set the seed for their random number generator.
+
+- The `rank` operator has a new path for large windows on 8-bit images. It can
+  be up to 20 times faster in some cases.
+
+- Image histograms on large images now use `double` values. Previously,
+  we were limited to images with under 2^32 pixels.
+
+- There's a new `black_point_compensation` for colour operations involving
+  ICC profiles, and detection of bad profiles and fallback to default
+  profiles is much better.
+
+- The loaders and savers for PDFium, OpenSlide, vips, NIfTI, and FITS have
+  been moved to the new libvips IO framework.
+
+- `vipsthumbnail` can now load and save to and from stdin and stdout.
+
+- PNG save selects between 8- and 16-bit output more intelligently, and
+  supports background colour as metadata.
+
+- We've switched GIF load to the excellent libnsgif library, and libvips
+  embeds the library code.
+
+- `tiffsave` can write premultipled alpha.
+
+- PDFium support has been revised. It should now build very simply, and ought
+  to be much faster in threaded applications.
+
+- We've fixed a range of reference leaks in the mosaicing package, and we
+  now run the leak checker as part of CI.
 
 As usual,
 the [ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
