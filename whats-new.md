@@ -61,8 +61,8 @@ be squeezed out.
 # Thread recycling
 
 The threading system of libvips was revamped, the new implementation uses
-[GLib's thread pool](https://developer.gnome.org/glib/stable/glib-Thread-Pools.html)
-semantics, which is a single thread pool shared across all pipelines. This
+the [thread pool semantics of GLib](https://developer.gnome.org/glib/stable/glib-Thread-Pools.html),
+which is a single thread pool shared across all pipelines. This
 implementation allows the reuse of already started threads.
 
 This was originally intended for WebAssembly but it turned out to be useful
