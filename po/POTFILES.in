@@ -237,10 +237,15 @@ libvips/foreign/fitssave.c
 libvips/foreign/foreign.c
 libvips/foreign/heifload.c
 libvips/foreign/heifsave.c
+libvips/foreign/jp2kload.c
+libvips/foreign/jp2ksave.c
 libvips/foreign/jpeg2vips.c
 libvips/foreign/jpegload.c
 libvips/foreign/jpegsave.c
+libvips/foreign/jxlload.c
+libvips/foreign/jxlsave.c
 libvips/foreign/magick2vips.c
+libvips/foreign/magick6load.c
 libvips/foreign/magick7load.c
 libvips/foreign/magick.c
 libvips/foreign/magickload.c
@@ -254,12 +259,11 @@ libvips/foreign/niftisave.c
 libvips/foreign/nsgifload.c
 libvips/foreign/openexr2vips.c
 libvips/foreign/openexrload.c
-libvips/foreign/openslide2vips.c
 libvips/foreign/openslideload.c
 libvips/foreign/pdfiumload.c
-libvips/foreign/pdfload.c
 libvips/foreign/pngload.c
 libvips/foreign/pngsave.c
+libvips/foreign/popplerload.c
 libvips/foreign/ppmload.c
 libvips/foreign/ppmsave.c
 libvips/foreign/quantise.c
@@ -275,6 +279,7 @@ libvips/foreign/tiff.c
 libvips/foreign/tiffload.c
 libvips/foreign/tiffsave.c
 libvips/foreign/vips2jpeg.c
+libvips/foreign/vips2magick.c
 libvips/foreign/vips2tiff.c
 libvips/foreign/vips2webp.c
 libvips/foreign/vipsload.c
@@ -285,6 +290,7 @@ libvips/foreign/webpload.c
 libvips/foreign/webpsave.c
 libvips/foreign/libnsgif/libnsgif.c
 libvips/foreign/libnsgif/lzw.c
+libvips/foreign/libnsgif/test/decode_gif.c
 libvips/freqfilt/freqfilt.c
 libvips/freqfilt/freqmult.c
 libvips/freqfilt/fwfft.c
@@ -344,6 +350,11 @@ libvips/iofuncs/vector.c
 libvips/iofuncs/vips.c
 libvips/iofuncs/vipsmarshal.c
 libvips/iofuncs/window.c
+libvips/module/heif.c
+libvips/module/jxl.c
+libvips/module/magick.c
+libvips/module/openslide.c
+libvips/module/poppler.c
 libvips/morphology/countlines.c
 libvips/morphology/labelregions.c
 libvips/morphology/morph.c
