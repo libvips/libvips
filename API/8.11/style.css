@@ -61,18 +61,6 @@ a:hover
   color: #729fcf;
 }
 
-div.informaltable table
-{
-  border-collapse: separate;
-  border-spacing: 1em 0.3em;
-  border: none;
-}
-
-div.informaltable table td, div.informaltable table th
-{
-  vertical-align: top;
-}
-
 .function_type,
 .variable_type,
 .property_type,
@@ -127,6 +115,7 @@ td p
   margin: 0.25em;
 }
 
+div.informaltable table[border="1"],
 div.table table
 {
   border-collapse: collapse;
@@ -135,6 +124,8 @@ div.table table
   border: solid 1px #babdb6;
 }
 
+div.informaltable table[border="1"] td,
+div.informaltable table th,
 div.table table td, div.table table th
 {
   /* tango:aluminium 3 */
@@ -143,6 +134,7 @@ div.table table td, div.table table th
   vertical-align: top;
 }
 
+div.informaltable table[border="1"] th,
 div.table table th
 {
   /* tango:aluminium 2 */
@@ -463,6 +455,11 @@ acronym,abbr
   }
 }
 
+pre { line-height: 125%; margin: 0; }
+td.linenos pre { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+span.linenos { color: #000000; background-color: #f0f0f0; padding: 0 5px 0 5px; }
+td.linenos pre.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding: 0 5px 0 5px; }
 .hll { background-color: #ffffcc }
 .c { color: #408080; font-style: italic } /* Comment */
 .err { border: 1px solid #FF0000 } /* Error */

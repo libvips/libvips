@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
-<book xmlns="http://www.devhelp.net/book" title="libvips Reference Manual" link="index.html" author="" name="libvips" version="2" language="c" online="http://libvips.github.io/libvips/API/current/">
+<book xmlns="http://www.devhelp.net/book" title="libvips Reference Manual" link="index.html" author="" name="libvips" version="2" language="c" online="/libvips">
   <chapters>
     <sub name="libvips Overview" link="ch01.html">
       <sub name="VIPS from the command-line" link="using-cli.html"/>
@@ -64,6 +64,7 @@
     <keyword type="macro" name="VIPS_INIT()" link="libvips-vips.html#VIPS-INIT:CAPS"/>
     <keyword type="function" name="vips_init ()" link="libvips-vips.html#vips-init"/>
     <keyword type="function" name="vips_get_argv0 ()" link="libvips-vips.html#vips-get-argv0"/>
+    <keyword type="function" name="vips_get_prgname ()" link="libvips-vips.html#vips-get-prgname"/>
     <keyword type="function" name="vips_shutdown ()" link="libvips-vips.html#vips-shutdown"/>
     <keyword type="function" name="vips_thread_shutdown ()" link="libvips-vips.html#vips-thread-shutdown"/>
     <keyword type="function" name="vips_add_option_entries ()" link="libvips-vips.html#vips-add-option-entries"/>
@@ -145,6 +146,7 @@
     <keyword type="function" name="vips_value_set_array_image ()" link="VipsImage.html#vips-value-set-array-image"/>
     <keyword type="function" name="vips_reorder_prepare_many ()" link="VipsImage.html#vips-reorder-prepare-many"/>
     <keyword type="function" name="vips_reorder_margin_hint ()" link="VipsImage.html#vips-reorder-margin-hint"/>
+    <keyword type="function" name="vips_image_free_buffer ()" link="VipsImage.html#vips-image-free-buffer"/>
     <keyword type="macro" name="VIPS_MAGIC_INTEL" link="VipsImage.html#VIPS-MAGIC-INTEL:CAPS"/>
     <keyword type="macro" name="VIPS_MAGIC_SPARC" link="VipsImage.html#VIPS-MAGIC-SPARC:CAPS"/>
     <keyword type="macro" name="VIPS_MAX_COORD" link="VipsImage.html#VIPS-MAX-COORD:CAPS"/>
@@ -226,6 +228,8 @@
     <keyword type="function" name="vips_image_set_image ()" link="libvips-header.html#vips-image-set-image"/>
     <keyword type="function" name="vips_image_set_array_int ()" link="libvips-header.html#vips-image-set-array-int"/>
     <keyword type="function" name="vips_image_get_array_int ()" link="libvips-header.html#vips-image-get-array-int"/>
+    <keyword type="function" name="vips_image_get_array_double ()" link="libvips-header.html#vips-image-get-array-double"/>
+    <keyword type="function" name="vips_image_set_array_double ()" link="libvips-header.html#vips-image-set-array-double"/>
     <keyword type="function" name="vips_image_history_printf ()" link="libvips-header.html#vips-image-history-printf"/>
     <keyword type="function" name="vips_image_history_args ()" link="libvips-header.html#vips-image-history-args"/>
     <keyword type="function" name="vips_image_get_history ()" link="libvips-header.html#vips-image-get-history"/>
@@ -368,6 +372,8 @@
     <keyword type="macro" name="VIPS_COUNT_PIXELS()" link="VipsRegion.html#VIPS-COUNT-PIXELS:CAPS"/>
     <keyword type="macro" name="VIPS_REGION_LSKIP()" link="VipsRegion.html#VIPS-REGION-LSKIP:CAPS"/>
     <keyword type="macro" name="VIPS_REGION_N_ELEMENTS()" link="VipsRegion.html#VIPS-REGION-N-ELEMENTS:CAPS"/>
+    <keyword type="macro" name="VIPS_REGION_SIZEOF_ELEMENT()" link="VipsRegion.html#VIPS-REGION-SIZEOF-ELEMENT:CAPS"/>
+    <keyword type="macro" name="VIPS_REGION_SIZEOF_PEL()" link="VipsRegion.html#VIPS-REGION-SIZEOF-PEL:CAPS"/>
     <keyword type="macro" name="VIPS_REGION_SIZEOF_LINE()" link="VipsRegion.html#VIPS-REGION-SIZEOF-LINE:CAPS"/>
     <keyword type="macro" name="VIPS_REGION_ADDR()" link="VipsRegion.html#VIPS-REGION-ADDR:CAPS"/>
     <keyword type="macro" name="VIPS_REGION_ADDR_TOPLEFT()" link="VipsRegion.html#VIPS-REGION-ADDR-TOPLEFT:CAPS"/>
@@ -570,6 +576,7 @@
     <keyword type="function" name="vips_source_length ()" link="VipsTargetCustom.html#vips-source-length"/>
     <keyword type="function" name="vips_source_custom_new ()" link="VipsTargetCustom.html#vips-source-custom-new"/>
     <keyword type="function" name="vips_g_input_stream_new_from_source ()" link="VipsTargetCustom.html#vips-g-input-stream-new-from-source"/>
+    <keyword type="function" name="vips_source_g_input_stream_new ()" link="VipsTargetCustom.html#vips-source-g-input-stream-new"/>
     <keyword type="function" name="vips_target_new_to_descriptor ()" link="VipsTargetCustom.html#vips-target-new-to-descriptor"/>
     <keyword type="function" name="vips_target_new_to_file ()" link="VipsTargetCustom.html#vips-target-new-to-file"/>
     <keyword type="function" name="vips_target_new_to_memory ()" link="VipsTargetCustom.html#vips-target-new-to-memory"/>
@@ -583,6 +590,8 @@
     <keyword type="function" name="vips_target_writef ()" link="VipsTargetCustom.html#vips-target-writef"/>
     <keyword type="function" name="vips_target_write_amp ()" link="VipsTargetCustom.html#vips-target-write-amp"/>
     <keyword type="function" name="vips_target_custom_new ()" link="VipsTargetCustom.html#vips-target-custom-new"/>
+    <keyword type="struct" name="VipsSourceGInputStream" link="VipsTargetCustom.html#VipsSourceGInputStream"/>
+    <keyword type="struct" name="VipsSourceGInputStreamClass" link="VipsTargetCustom.html#VipsSourceGInputStreamClass"/>
     <keyword type="macro" name="VIPS_TARGET_BUFFER_SIZE" link="VipsTargetCustom.html#VIPS-TARGET-BUFFER-SIZE:CAPS"/>
     <keyword type="macro" name="VIPS_TARGET_CUSTOM_BUFFER_SIZE" link="VipsTargetCustom.html#VIPS-TARGET-CUSTOM-BUFFER-SIZE:CAPS"/>
     <keyword type="property" name="The “descriptor” property" link="VipsTargetCustom.html#VipsConnection--descriptor"/>
@@ -949,8 +958,11 @@
     <keyword type="function" name="vips_foreign_find_save_buffer ()" link="VipsForeignSave.html#vips-foreign-find-save-buffer"/>
     <keyword type="function" name="vips_foreign_find_save_target ()" link="VipsForeignSave.html#vips-foreign-find-save-target"/>
     <keyword type="function" name="vips_vipsload ()" link="VipsForeignSave.html#vips-vipsload"/>
+    <keyword type="function" name="vips_vipsload_source ()" link="VipsForeignSave.html#vips-vipsload-source"/>
     <keyword type="function" name="vips_vipssave ()" link="VipsForeignSave.html#vips-vipssave"/>
+    <keyword type="function" name="vips_vipssave_target ()" link="VipsForeignSave.html#vips-vipssave-target"/>
     <keyword type="function" name="vips_openslideload ()" link="VipsForeignSave.html#vips-openslideload"/>
+    <keyword type="function" name="vips_openslideload_source ()" link="VipsForeignSave.html#vips-openslideload-source"/>
     <keyword type="function" name="vips_jpegload ()" link="VipsForeignSave.html#vips-jpegload"/>
     <keyword type="function" name="vips_jpegload_buffer ()" link="VipsForeignSave.html#vips-jpegload-buffer"/>
     <keyword type="function" name="vips_jpegload_source ()" link="VipsForeignSave.html#vips-jpegload-source"/>
@@ -1023,11 +1035,22 @@
     <keyword type="function" name="vips_heifsave_buffer ()" link="VipsForeignSave.html#vips-heifsave-buffer"/>
     <keyword type="function" name="vips_heifsave_target ()" link="VipsForeignSave.html#vips-heifsave-target"/>
     <keyword type="function" name="vips_niftiload ()" link="VipsForeignSave.html#vips-niftiload"/>
+    <keyword type="function" name="vips_niftiload_source ()" link="VipsForeignSave.html#vips-niftiload-source"/>
     <keyword type="function" name="vips_niftisave ()" link="VipsForeignSave.html#vips-niftisave"/>
+    <keyword type="function" name="vips_jp2kload ()" link="VipsForeignSave.html#vips-jp2kload"/>
+    <keyword type="function" name="vips_jp2kload_buffer ()" link="VipsForeignSave.html#vips-jp2kload-buffer"/>
+    <keyword type="function" name="vips_jp2kload_source ()" link="VipsForeignSave.html#vips-jp2kload-source"/>
+    <keyword type="function" name="vips_jp2ksave ()" link="VipsForeignSave.html#vips-jp2ksave"/>
+    <keyword type="function" name="vips_jp2ksave_buffer ()" link="VipsForeignSave.html#vips-jp2ksave-buffer"/>
+    <keyword type="function" name="vips_jp2ksave_target ()" link="VipsForeignSave.html#vips-jp2ksave-target"/>
+    <keyword type="function" name="vips_jxlload_source ()" link="VipsForeignSave.html#vips-jxlload-source"/>
+    <keyword type="function" name="vips_jxlload_buffer ()" link="VipsForeignSave.html#vips-jxlload-buffer"/>
+    <keyword type="function" name="vips_jxlload ()" link="VipsForeignSave.html#vips-jxlload"/>
     <keyword type="function" name="vips_dzsave ()" link="VipsForeignSave.html#vips-dzsave"/>
     <keyword type="enum" name="enum VipsForeignFlags" link="VipsForeignSave.html#VipsForeignFlags"/>
     <keyword type="enum" name="enum VipsSaveable" link="VipsForeignSave.html#VipsSaveable"/>
-    <keyword type="enum" name="enum VipsForeignJpegSubsample" link="VipsForeignSave.html#VipsForeignJpegSubsample"/>
+    <keyword type="enum" name="enum VipsForeignSubsample" link="VipsForeignSave.html#VipsForeignSubsample"/>
+    <keyword type="enum" name="enum VipsForeignJpegSubsample" link="VipsForeignSave.html#VipsForeignJpegSubsample" deprecated="use #VipsForeignSubsample"/>
     <keyword type="enum" name="enum VipsForeignWebpPreset" link="VipsForeignSave.html#VipsForeignWebpPreset"/>
     <keyword type="enum" name="enum VipsForeignTiffCompression" link="VipsForeignSave.html#VipsForeignTiffCompression"/>
     <keyword type="enum" name="enum VipsForeignTiffPredictor" link="VipsForeignSave.html#VipsForeignTiffPredictor"/>
@@ -1497,6 +1520,10 @@
     <keyword type="constant" name="VIPS_SAVEABLE_RGB_CMYK" link="VipsForeignSave.html#VIPS-SAVEABLE-RGB-CMYK:CAPS"/>
     <keyword type="constant" name="VIPS_SAVEABLE_ANY" link="VipsForeignSave.html#VIPS-SAVEABLE-ANY:CAPS"/>
     <keyword type="constant" name="VIPS_SAVEABLE_LAST" link="VipsForeignSave.html#VIPS-SAVEABLE-LAST:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_SUBSAMPLE_AUTO" link="VipsForeignSave.html#VIPS-FOREIGN-SUBSAMPLE-AUTO:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_SUBSAMPLE_ON" link="VipsForeignSave.html#VIPS-FOREIGN-SUBSAMPLE-ON:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_SUBSAMPLE_OFF" link="VipsForeignSave.html#VIPS-FOREIGN-SUBSAMPLE-OFF:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_SUBSAMPLE_LAST" link="VipsForeignSave.html#VIPS-FOREIGN-SUBSAMPLE-LAST:CAPS"/>
     <keyword type="constant" name="VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO" link="VipsForeignSave.html#VIPS-FOREIGN-JPEG-SUBSAMPLE-AUTO:CAPS"/>
     <keyword type="constant" name="VIPS_FOREIGN_JPEG_SUBSAMPLE_ON" link="VipsForeignSave.html#VIPS-FOREIGN-JPEG-SUBSAMPLE-ON:CAPS"/>
     <keyword type="constant" name="VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF" link="VipsForeignSave.html#VIPS-FOREIGN-JPEG-SUBSAMPLE-OFF:CAPS"/>
@@ -1516,6 +1543,7 @@
     <keyword type="constant" name="VIPS_FOREIGN_TIFF_COMPRESSION_LZW" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-COMPRESSION-LZW:CAPS"/>
     <keyword type="constant" name="VIPS_FOREIGN_TIFF_COMPRESSION_WEBP" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-COMPRESSION-WEBP:CAPS"/>
     <keyword type="constant" name="VIPS_FOREIGN_TIFF_COMPRESSION_ZSTD" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-COMPRESSION-ZSTD:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_TIFF_COMPRESSION_JP2K" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-COMPRESSION-JP2K:CAPS"/>
     <keyword type="constant" name="VIPS_FOREIGN_TIFF_COMPRESSION_LAST" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-COMPRESSION-LAST:CAPS"/>
     <keyword type="constant" name="VIPS_FOREIGN_TIFF_PREDICTOR_NONE" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-PREDICTOR-NONE:CAPS"/>
     <keyword type="constant" name="VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL" link="VipsForeignSave.html#VIPS-FOREIGN-TIFF-PREDICTOR-HORIZONTAL:CAPS"/>

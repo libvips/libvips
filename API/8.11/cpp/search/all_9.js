@@ -1,11 +1,23 @@
 var searchData=
 [
-  ['join_161',['join',['../classVImage.html#a0198db5ef53eeb6af66f1302f9bfa277',1,'VImage']]],
-  ['jpegload_162',['jpegload',['../classVImage.html#a619370115ac9b6212e14890c16d4e4ea',1,'VImage']]],
-  ['jpegload_5fbuffer_163',['jpegload_buffer',['../classVImage.html#a1b61d906923ea61424ea92bfa59c0c0e',1,'VImage']]],
-  ['jpegload_5fsource_164',['jpegload_source',['../classVImage.html#a872b201126badaaedf35623e8bf0de37',1,'VImage']]],
-  ['jpegsave_165',['jpegsave',['../classVImage.html#aa93d3cb51bacc98707bb8911bb6be83b',1,'VImage']]],
-  ['jpegsave_5fbuffer_166',['jpegsave_buffer',['../classVImage.html#a4d5d6aa47c36f1b889c9a3bb55da380b',1,'VImage']]],
-  ['jpegsave_5fmime_167',['jpegsave_mime',['../classVImage.html#a38b21bfb0f3c644d8277fc64234f1c41',1,'VImage']]],
-  ['jpegsave_5ftarget_168',['jpegsave_target',['../classVImage.html#aa3c86e2c9b82d03f7b2f2e2975eb543f',1,'VImage']]]
+  ['join_163',['join',['../classVImage.html#a0198db5ef53eeb6af66f1302f9bfa277',1,'VImage']]],
+  ['jp2kload_164',['jp2kload',['../classVImage.html#a6da29857fd95f13edd1fb13a22d87b35',1,'VImage']]],
+  ['jp2kload_5fbuffer_165',['jp2kload_buffer',['../classVImage.html#a61c3711e3425742681539c72aa02914b',1,'VImage']]],
+  ['jp2kload_5fsource_166',['jp2kload_source',['../classVImage.html#ab062a3fd3e22522c8d7c592a270a4e9d',1,'VImage']]],
+  ['jp2ksave_167',['jp2ksave',['../classVImage.html#a826338a5dfb8823587071a7cfb970bbb',1,'VImage']]],
+  ['jp2ksave_5fbuffer_168',['jp2ksave_buffer',['../classVImage.html#aab1a1e6f8286a18e7d67c4bd5ea5b71c',1,'VImage']]],
+  ['jp2ksave_5ftarget_169',['jp2ksave_target',['../classVImage.html#a58cc1adb109bcb82f2bf716994869a2c',1,'VImage']]],
+  ['jpegload_170',['jpegload',['../classVImage.html#a619370115ac9b6212e14890c16d4e4ea',1,'VImage']]],
+  ['jpegload_5fbuffer_171',['jpegload_buffer',['../classVImage.html#a1b61d906923ea61424ea92bfa59c0c0e',1,'VImage']]],
+  ['jpegload_5fsource_172',['jpegload_source',['../classVImage.html#a872b201126badaaedf35623e8bf0de37',1,'VImage']]],
+  ['jpegsave_173',['jpegsave',['../classVImage.html#aa93d3cb51bacc98707bb8911bb6be83b',1,'VImage']]],
+  ['jpegsave_5fbuffer_174',['jpegsave_buffer',['../classVImage.html#a4d5d6aa47c36f1b889c9a3bb55da380b',1,'VImage']]],
+  ['jpegsave_5fmime_175',['jpegsave_mime',['../classVImage.html#a38b21bfb0f3c644d8277fc64234f1c41',1,'VImage']]],
+  ['jpegsave_5ftarget_176',['jpegsave_target',['../classVImage.html#aa3c86e2c9b82d03f7b2f2e2975eb543f',1,'VImage']]],
+  ['jxlload_177',['jxlload',['../classVImage.html#aba4caee9b1aa18da2d1cbf1c0ce2e1ce',1,'VImage']]],
+  ['jxlload_5fbuffer_178',['jxlload_buffer',['../classVImage.html#ac85b3a390cc680cb8918f56f516c92d1',1,'VImage']]],
+  ['jxlload_5fsource_179',['jxlload_source',['../classVImage.html#af7beb20af4d19e9acac62693de423214',1,'VImage']]],
+  ['jxlsave_180',['jxlsave',['../classVImage.html#a57e0da0504c4ab1b72b2573b5ed3d501',1,'VImage']]],
+  ['jxlsave_5fbuffer_181',['jxlsave_buffer',['../classVImage.html#a7c7ad592b069345b1527e0c023c78979',1,'VImage']]],
+  ['jxlsave_5ftarget_182',['jxlsave_target',['../classVImage.html#a32ecc625af5560a7dddf0b202902d1fd',1,'VImage']]]
 ];

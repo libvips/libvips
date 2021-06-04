@@ -84,6 +84,13 @@ justifications.
 </td>
 </tr>
 <tr>
+<td class="function_type">const <span class="returnvalue">char</span> *
+</td>
+<td class="function_name">
+<a class="link" href="libvips-vips.html#vips-get-prgname" title="vips_get_prgname ()">vips_get_prgname</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
 <td class="function_type">
 <span class="returnvalue">void</span>
 </td>
@@ -293,8 +300,24 @@ vips_get_argv0 (<em class="parameter"><code><span class="type">void</span></code
 <p>See also: <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a>.</p>
 <div class="refsect3">
 <a name="vips-get-argv0.returns"></a><h4>Returns</h4>
-<p> a pointer to an internal copy of the argv0 string passed to
-<a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a>. Do not free this value</p>
+<p>a pointer to an internal copy of the
+argv0 string passed to
+<a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a>. Do not free this value. </p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-get-prgname"></a><h3>vips_get_prgname ()</h3>
+<pre class="programlisting">const <span class="returnvalue">char</span> *
+vips_get_prgname (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>Return the program name. This can be useful for the user tio see,.</p>
+<p>See also: <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a>.</p>
+<div class="refsect3">
+<a name="vips-get-prgname.returns"></a><h4>Returns</h4>
+<p>a pointer to an internal copy of the program
+name. Do not free this value. </p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -316,7 +339,7 @@ vips_thread_shutdown (<em class="parameter"><code><span class="type">void</span>
 <p>Free any thread-private data and flush any profiling information.</p>
 <p>This function needs to be called when a thread that has been using vips
 exits. It is called for you by <a class="link" href="libvips-vips.html#vips-shutdown" title="vips_shutdown ()"><code class="function">vips_shutdown()</code></a> and for any threads created
-by <code class="function">vips_g_thread_new()</code>. </p>
+within the <span class="type">VipsThreadPool</span>. </p>
 <p>You will need to call it from threads created in
 other ways or there will be memory leaks. If you do not call it, vips 
 will generate a warning message.</p>
@@ -327,9 +350,9 @@ calling it. Calling it too often will reduce performance.</p>
 <div class="refsect2">
 <a name="vips-add-option-entries"></a><h3>vips_add_option_entries ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_add_option_entries (<em class="parameter"><code><span class="type">GOptionGroup</span> *option_group</code></em>);</pre>
-<p>Add the standard vips <code class="literal">GOptionEntry</code> to a <code class="literal">GOptionGroup</code>. </p>
-<p>See also: <code class="function">g_option_group_new()</code>.</p>
+vips_add_option_entries (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Commandline-option-parser.html#GOptionGroup"><span class="type">GOptionGroup</span></a> *option_group</code></em>);</pre>
+<p>Add the standard vips <a href="/usr/share/gtk-doc/html/glib/glib-Commandline-option-parser.html#GOptionEntry"><code class="literal">GOptionEntry</code></a> to a <a href="/usr/share/gtk-doc/html/glib/glib-Commandline-option-parser.html#GOptionGroup"><code class="literal">GOptionGroup</code></a>. </p>
+<p>See also: <a href="/usr/share/gtk-doc/html/glib/glib-Commandline-option-parser.html#g-option-group-new"><code class="function">g_option_group_new()</code></a>.</p>
 <div class="refsect3">
 <a name="vips-add-option-entries.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -350,7 +373,7 @@ vips_add_option_entries (<em class="parameter"><code><span class="type">GOptionG
 <div class="refsect2">
 <a name="vips-leak-set"></a><h3>vips_leak_set ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_leak_set (<em class="parameter"><code><span class="type">gboolean</span> leak</code></em>);</pre>
+vips_leak_set (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> leak</code></em>);</pre>
 <p>Turn on or off vips leak checking. See also --vips-leak,
 <a class="link" href="libvips-vips.html#vips-add-option-entries" title="vips_add_option_entries ()"><code class="function">vips_add_option_entries()</code></a> and the <code class="literal">VIPS_LEAK</code> environment variable.</p>
 <p>You should call this very early in your program.</p>
@@ -380,7 +403,7 @@ Do not free.</p>
 <div class="refsect3">
 <a name="vips-version-string.returns"></a><h4>Returns</h4>
 <p>a static version string. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -453,7 +476,7 @@ side effect, sets the environment variable (if it's not set).</p>
 <div class="refsect3">
 <a name="vips-guess-prefix.returns"></a><h4>Returns</h4>
 <p>the install prefix as a static string, do not free. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 <hr>
@@ -496,7 +519,7 @@ side effect, sets the prefix environment variable (if it's not set).</p>
 <div class="refsect3">
 <a name="vips-guess-libdir.returns"></a><h4>Returns</h4>
 <p>the libdir as a static string, do not free. </p>
-<p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
+<p><span class="annotation">[<acronym title="The data is owned by the callee, which is responsible of freeing it."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
 </div>
 </div>
@@ -506,7 +529,7 @@ side effect, sets the prefix environment variable (if it's not set).</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </section>
 
     <script type="text/javascript">

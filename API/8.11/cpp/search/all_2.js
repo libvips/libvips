@@ -16,7 +16,7 @@ var searchData=
   ['complex2_40',['complex2',['../classVImage.html#a843bc3267a964b2f62a616bcbc095d2c',1,'VImage']]],
   ['complexform_41',['complexform',['../classVImage.html#a5e997137ef938014e27462a01943bbc0',1,'VImage']]],
   ['complexget_42',['complexget',['../classVImage.html#a50163d4e72d9868b6e729177a866f7ee',1,'VImage']]],
-  ['composite_43',['composite',['../classVImage.html#aad0180198e383aaf7f58eba59270b7a7',1,'VImage::composite(VImage other, VipsBlendMode mode, VOption *options=0) const'],['../classVImage.html#a3dae69dd8b23a1d6dce4398246ae90de',1,'VImage::composite(std::vector&lt; VImage &gt; in, std::vector&lt; int &gt; mode, VOption *options=0)']]],
+  ['composite_43',['composite',['../classVImage.html#a3dae69dd8b23a1d6dce4398246ae90de',1,'VImage::composite(std::vector&lt; VImage &gt; in, std::vector&lt; int &gt; mode, VOption *options=0)'],['../classVImage.html#aad0180198e383aaf7f58eba59270b7a7',1,'VImage::composite(VImage other, VipsBlendMode mode, VOption *options=0) const']]],
   ['composite2_44',['composite2',['../classVImage.html#ae5456da833bdc74f11a919fa017b238b',1,'VImage']]],
   ['conj_45',['conj',['../classVImage.html#a75f18c97d4aabc9da1ffbf1e0ec9a64a',1,'VImage']]],
   ['conv_46',['conv',['../classVImage.html#a2bf235ead0c3c919794a6231a39076af',1,'VImage']]],

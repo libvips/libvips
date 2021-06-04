@@ -46,7 +46,7 @@
 <p>
       VIPS has a set of operators each of which computes some useful image 
       processing operation. Each operator is 
-      implemented as a <code class="literal">GObject</code> class, for example <code class="code">VipsGamma</code>. 
+      implemented as a <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject-struct"><code class="literal">GObject</code></a> class, for example <code class="code">VipsGamma</code>. 
       Classes are identified by their unique <code class="code">nickname</code>, in this 
       case <code class="code">gamma</code>. 
 
@@ -560,6 +560,11 @@
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-fitsload" title="vips_fitsload ()"><code class="function">vips_fitsload()</code></a></td>
 </tr>
 <tr>
+<td align="left">fitsload_source</td>
+<td align="left">Load fits from a source</td>
+<td align="left"><code class="function">vips_fitsload_source()</code></td>
+</tr>
+<tr>
 <td align="left">fitssave</td>
 <td align="left">Save image to fits file</td>
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-fitssave" title="vips_fitssave ()"><code class="function">vips_fitssave()</code></a></td>
@@ -621,17 +626,17 @@
 </tr>
 <tr>
 <td align="left">gifload</td>
-<td align="left">Load gif with giflib</td>
+<td align="left">Load gif with libnsgif</td>
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-gifload" title="vips_gifload ()"><code class="function">vips_gifload()</code></a></td>
 </tr>
 <tr>
 <td align="left">gifload_buffer</td>
-<td align="left">Load gif with giflib</td>
+<td align="left">Load gif with libnsgif</td>
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-gifload-buffer" title="vips_gifload_buffer ()"><code class="function">vips_gifload_buffer()</code></a></td>
 </tr>
 <tr>
 <td align="left">gifload_source</td>
-<td align="left">Load gif with giflib</td>
+<td align="left">Load gif from source</td>
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-gifload-source" title="vips_gifload_source ()"><code class="function">vips_gifload_source()</code></a></td>
 </tr>
 <tr>
@@ -801,6 +806,36 @@
 <td align="left"><a class="link" href="libvips-conversion.html#vips-join" title="vips_join ()"><code class="function">vips_join()</code></a></td>
 </tr>
 <tr>
+<td align="left">jp2kload</td>
+<td align="left">Load jpeg2000 image</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jp2kload" title="vips_jp2kload ()"><code class="function">vips_jp2kload()</code></a></td>
+</tr>
+<tr>
+<td align="left">jp2kload_buffer</td>
+<td align="left">Load jpeg2000 image</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jp2kload-buffer" title="vips_jp2kload_buffer ()"><code class="function">vips_jp2kload_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">jp2kload_source</td>
+<td align="left">Load jpeg2000 image</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jp2kload-source" title="vips_jp2kload_source ()"><code class="function">vips_jp2kload_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">jp2ksave</td>
+<td align="left">Save image in jpeg2000 format</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jp2ksave" title="vips_jp2ksave ()"><code class="function">vips_jp2ksave()</code></a></td>
+</tr>
+<tr>
+<td align="left">jp2ksave_buffer</td>
+<td align="left">Save image in jpeg2000 format</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jp2ksave-buffer" title="vips_jp2ksave_buffer ()"><code class="function">vips_jp2ksave_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">jp2ksave_target</td>
+<td align="left">Save image in jpeg2000 format</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jp2ksave-target" title="vips_jp2ksave_target ()"><code class="function">vips_jp2ksave_target()</code></a></td>
+</tr>
+<tr>
 <td align="left">jpegload</td>
 <td align="left">Load jpeg from file</td>
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-jpegload" title="vips_jpegload ()"><code class="function">vips_jpegload()</code></a></td>
@@ -834,6 +869,36 @@
 <td align="left">jpegsave_target</td>
 <td align="left">Save image to jpeg target</td>
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-jpegsave-target" title="vips_jpegsave_target ()"><code class="function">vips_jpegsave_target()</code></a></td>
+</tr>
+<tr>
+<td align="left">jxlload</td>
+<td align="left">Load jpeg-xl image</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jxlload" title="vips_jxlload ()"><code class="function">vips_jxlload()</code></a></td>
+</tr>
+<tr>
+<td align="left">jxlload_buffer</td>
+<td align="left">Load jpeg-xl image</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jxlload-buffer" title="vips_jxlload_buffer ()"><code class="function">vips_jxlload_buffer()</code></a></td>
+</tr>
+<tr>
+<td align="left">jxlload_source</td>
+<td align="left">Load jpeg-xl image</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-jxlload-source" title="vips_jxlload_source ()"><code class="function">vips_jxlload_source()</code></a></td>
+</tr>
+<tr>
+<td align="left">jxlsave</td>
+<td align="left">Save image in jpeg-xl format</td>
+<td align="left"><code class="function">vips_jxlsave()</code></td>
+</tr>
+<tr>
+<td align="left">jxlsave_buffer</td>
+<td align="left">Save image in jpeg-xl format</td>
+<td align="left"><code class="function">vips_jxlsave_buffer()</code></td>
+</tr>
+<tr>
+<td align="left">jxlsave_target</td>
+<td align="left">Save image in jpeg-xl format</td>
+<td align="left"><code class="function">vips_jxlsave_target()</code></td>
 </tr>
 <tr>
 <td align="left">labelregions</td>
@@ -1045,8 +1110,13 @@
 </tr>
 <tr>
 <td align="left">niftiload</td>
-<td align="left">Load a nifti image</td>
+<td align="left">Load nifti volume</td>
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-niftiload" title="vips_niftiload ()"><code class="function">vips_niftiload()</code></a></td>
+</tr>
+<tr>
+<td align="left">niftiload_source</td>
+<td align="left">Load nifti volumes</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-niftiload-source" title="vips_niftiload_source ()"><code class="function">vips_niftiload_source()</code></a></td>
 </tr>
 <tr>
 <td align="left">niftisave</td>
@@ -1062,6 +1132,11 @@
 <td align="left">openslideload</td>
 <td align="left">Load file with openslide</td>
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-openslideload" title="vips_openslideload ()"><code class="function">vips_openslideload()</code></a></td>
+</tr>
+<tr>
+<td align="left">openslideload_source</td>
+<td align="left">Load source with openslide</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-openslideload-source" title="vips_openslideload_source ()"><code class="function">vips_openslideload_source()</code></a></td>
 </tr>
 <tr>
 <td align="left">pdfload</td>
@@ -1129,9 +1204,19 @@
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-ppmload" title="vips_ppmload ()"><code class="function">vips_ppmload()</code></a></td>
 </tr>
 <tr>
+<td align="left">ppmload_source</td>
+<td align="left">Load ppm base class</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-ppmload-source" title="vips_ppmload_source ()"><code class="function">vips_ppmload_source()</code></a></td>
+</tr>
+<tr>
 <td align="left">ppmsave</td>
 <td align="left">Save image to ppm file</td>
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-ppmsave" title="vips_ppmsave ()"><code class="function">vips_ppmsave()</code></a></td>
+</tr>
+<tr>
+<td align="left">ppmsave_target</td>
+<td align="left">Save to ppm</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-ppmsave-target" title="vips_ppmsave_target ()"><code class="function">vips_ppmsave_target()</code></a></td>
 </tr>
 <tr>
 <td align="left">premultiply</td>
@@ -1509,9 +1594,19 @@
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-vipsload" title="vips_vipsload ()"><code class="function">vips_vipsload()</code></a></td>
 </tr>
 <tr>
+<td align="left">vipsload_source</td>
+<td align="left">Load vips from source</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-vipsload-source" title="vips_vipsload_source ()"><code class="function">vips_vipsload_source()</code></a></td>
+</tr>
+<tr>
 <td align="left">vipssave</td>
-<td align="left">Save image to vips file</td>
+<td align="left">Save image to file in vips format</td>
 <td align="left"><a class="link" href="VipsForeignSave.html#vips-vipssave" title="vips_vipssave ()"><code class="function">vips_vipssave()</code></a></td>
+</tr>
+<tr>
+<td align="left">vipssave_target</td>
+<td align="left">Save image to target in vips format</td>
+<td align="left"><a class="link" href="VipsForeignSave.html#vips-vipssave-target" title="vips_vipssave_target ()"><code class="function">vips_vipssave_target()</code></a></td>
 </tr>
 <tr>
 <td align="left">webpload</td>
@@ -1576,7 +1671,7 @@
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </section>
 
     <script type="text/javascript">

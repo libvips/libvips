@@ -73,7 +73,7 @@
 <div class="refsect3">
 <a name="using-threads-errors"></a><h4>Error handling</h4>
 <p>
-      libvips has a single error code (-1 or <code class="literal">NULL</code>) returned by all functions 
+      libvips has a single error code (-1 or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>) returned by all functions 
       on error. Error messages are not returned, instead they are logged  
       in a single global error buffer shared by all threads, see 
       <a class="link" href="libvips-error.html#vips-error-buffer" title="vips_error_buffer ()"><code class="function">vips_error_buffer()</code></a>. 
@@ -287,7 +287,7 @@
 <span class="cm"> * TOTAL_TESTS times. </span>
 <span class="cm"> */</span>
 <span class="k">static</span> <span class="kt">int</span>
-<span class="nf">test</span> <span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">filename</span><span class="p">)</span>
+<span class="n">test</span> <span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">filename</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="n">VipsImage</span> <span class="o">*</span><span class="n">im</span><span class="p">,</span> <span class="o">*</span><span class="n">x</span><span class="p">;</span>
   <span class="kt">char</span> <span class="n">output_file</span><span class="p">[</span><span class="mi">256</span><span class="p">];</span>
@@ -297,12 +297,12 @@
   <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">im</span> <span class="o">=</span> <span class="n">vips_image_new_from_file</span> <span class="p">(</span><span class="n">filename</span><span class="p">,</span>
 				       <span class="s">"access"</span><span class="p">,</span> <span class="n">VIPS_ACCESS_SEQUENTIAL</span><span class="p">,</span>
 				       <span class="nb">NULL</span><span class="p">)))</span>
-    <span class="k">return</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+    <span class="k">return</span> <span class="p">(</span><span class="mi">-1</span><span class="p">);</span>
 
   <span class="k">if</span> <span class="p">(</span><span class="n">vips_resize</span> <span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">x</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">))</span>
     <span class="p">{</span>
       <span class="n">g_object_unref</span> <span class="p">(</span><span class="n">im</span><span class="p">);</span>
-      <span class="k">return</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+      <span class="k">return</span> <span class="p">(</span><span class="mi">-1</span><span class="p">);</span>
     <span class="p">}</span>
   <span class="n">g_object_unref</span> <span class="p">(</span><span class="n">im</span><span class="p">);</span>
   <span class="n">im</span> <span class="o">=</span> <span class="n">x</span><span class="p">;</span>
@@ -310,7 +310,7 @@
   <span class="k">if</span> <span class="p">(</span><span class="n">vips_image_write_to_file</span> <span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">))</span>
     <span class="p">{</span>
       <span class="n">g_object_unref</span> <span class="p">(</span><span class="n">im</span><span class="p">);</span>
-      <span class="k">return</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+      <span class="k">return</span> <span class="p">(</span><span class="mi">-1</span><span class="p">);</span>
     <span class="p">}</span>
   <span class="n">g_object_unref</span> <span class="p">(</span><span class="n">im</span><span class="p">);</span>
 
@@ -320,7 +320,7 @@
 <span class="cm">/* What we run as a thread.</span>
 <span class="cm"> */</span>
 <span class="k">static</span> <span class="kt">void</span> <span class="o">*</span>
-<span class="nf">worker</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">data</span><span class="p">)</span>
+<span class="n">worker</span> <span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">data</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">filename</span> <span class="o">=</span> <span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="p">)</span> <span class="n">data</span><span class="p">;</span>
 
@@ -346,7 +346,7 @@
 <span class="p">}</span>
 
 <span class="kt">int</span>
-<span class="nf">main</span> <span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+<span class="n">main</span> <span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
 <span class="p">{</span>
   <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
 
@@ -373,7 +373,7 @@
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </section>
 
     <script type="text/javascript">

@@ -40,20 +40,10 @@
 <div class="refnamediv"><table width="100%"><tr>
 <td valign="top">
 <h2><span class="refentrytitle"><a name="libvips-error.top_of_page"></a>error</span></h2>
-<p>error — error messages and error handling</p>
+<p>error</p>
 </td>
 <td class="gallery_image" valign="top" align="right"></td>
 </tr></table></div>
-<div class="refsect1">
-<a name="libvips-error.stability-level"></a><h2>Stability Level</h2>
-<acronym title="The intention of a Stable interface is to enable arbitrary third parties to
-develop applications to these interfaces, release them, and have confidence that
-they will run on all minor releases of the product (after the one in which the
-interface was introduced, and within the same major release). Even at a major
-release, incompatible changes are expected to be rare, and to have strong
-justifications.
-"><span class="acronym">Stable</span></acronym>, unless otherwise indicated
-</div>
 <div class="refsect1">
 <a name="libvips-error.functions"></a><h2>Functions</h2>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -417,94 +407,7 @@ justifications.
 </table></div>
 </div>
 <div class="refsect1">
-<a name="libvips-error.includes"></a><h2>Includes</h2>
-<pre class="synopsis">#include &lt;vips/vips.h&gt;
-</pre>
-</div>
-<div class="refsect1">
 <a name="libvips-error.description"></a><h2>Description</h2>
-<p>VIPS maintains an error buffer (a log of localised text messages), 
-a set of functions
-for adding messages, and a way to access and clear the buffer.</p>
-<p>The error buffer is global, that is, it is shared between all threads. You
-can add to the buffer from any thread (there is a lock to prevent
-corruption), but it's sensible to only read and clear the buffer from the
-main thread of execution.</p>
-<p>The general principle is: if you detect an error, log a message for the
-user. If a function you call detects an error, just propogate it and don't
-add another message.</p>
-<div class="informalexample">
-  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
-    <tbody>
-      <tr>
-        <td class="listing_lines" align="right"><pre>1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="n">IMAGE</span> <span class="o">*</span><span class="n">im</span><span class="p">;</span>
-
-<span class="k">if</span><span class="p">(</span> <span class="o">!</span><span class="p">(</span><span class="n">im</span> <span class="o">=</span> <span class="n">vips_image_new_from_file</span><span class="p">(</span> <span class="n">filename</span><span class="p">,</span> <span class="nb">NULL</span> <span class="p">))</span> <span class="p">)</span>
-  <span class="c1">// vips_image_new_from_file() will set a message, we don't need to</span>
-  <span class="k">return</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span> <span class="p">);</span>
-
-<span class="k">if</span><span class="p">(</span> <span class="n">vips_image_get_width</span><span class="p">(</span> <span class="n">im</span> <span class="p">)</span> <span class="o">&lt;</span> <span class="mi">100</span> <span class="p">)</span> <span class="p">{</span>
-  <span class="c1">// we have detected an error, we must set a message</span>
-  <span class="n">vips_error</span><span class="p">(</span> <span class="s">"myprogram"</span><span class="p">,</span> <span class="s">"%s"</span><span class="p">,</span> <span class="n">_</span><span class="p">(</span> <span class="s">"width too small"</span> <span class="p">)</span> <span class="p">);</span>
-  <span class="k">return</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span> <span class="p">);</span>
-<span class="p">}</span></pre></td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<p></p>
-<p>The domain argument most of these functions take is not localised and is
-supposed to indicate the component which failed.</p>
-<p>libvips uses <code class="function">g_warning()</code> and <a class="link" href="libvips-util.html#g-info" title="g_info()"><code class="function">g_info()</code></a> to send warning and information
-messages to the user. You can use the usual glib mechanisms to display or
-divert these messages. For example, info messages are hidden by default, but
-you can see them with: </p>
-<div class="informalexample">
-  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
-    <tbody>
-      <tr>
-        <td class="listing_lines" align="right"><pre>1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="err">$</span> <span class="n">G_MESSAGES_DEBUG</span><span class="o">=</span><span class="n">VIPS</span> <span class="n">vipsthumbnail</span> <span class="n">k2</span><span class="p">.</span><span class="n">jpg</span> 
-<span class="n">VIPS</span><span class="o">-</span><span class="nl">INFO</span><span class="p">:</span> <span class="n">thumbnailing</span> <span class="n">k2</span><span class="p">.</span><span class="n">jpg</span>
-<span class="n">VIPS</span><span class="o">-</span><span class="nl">INFO</span><span class="p">:</span> <span class="n">selected</span> <span class="n">loader</span> <span class="n">is</span> <span class="n">VipsForeignLoadJpegFile</span>
-<span class="n">VIPS</span><span class="o">-</span><span class="nl">INFO</span><span class="p">:</span> <span class="n">input</span> <span class="n">size</span> <span class="n">is</span> <span class="mi">1450</span> <span class="n">x</span> <span class="mi">2048</span>
-<span class="n">VIPS</span><span class="o">-</span><span class="nl">INFO</span><span class="p">:</span> <span class="n">loading</span> <span class="n">jpeg</span> <span class="n">with</span> <span class="n">factor</span> <span class="mi">8</span> <span class="n">pre</span><span class="o">-</span><span class="n">shrink</span>
-<span class="n">VIPS</span><span class="o">-</span><span class="nl">INFO</span><span class="p">:</span> <span class="n">converting</span> <span class="n">to</span> <span class="n">processing</span> <span class="n">space</span> <span class="n">srgb</span>
-<span class="n">VIPS</span><span class="o">-</span><span class="nl">INFO</span><span class="p">:</span> <span class="n">residual</span> <span class="n">reducev</span> <span class="n">by</span> <span class="mf">0.5</span>
-<span class="n">VIPS</span><span class="o">-</span><span class="nl">INFO</span><span class="p">:</span> <span class="mi">13</span> <span class="n">point</span> <span class="n">mask</span>
-<span class="n">VIPS</span><span class="o">-</span><span class="nl">INFO</span><span class="p">:</span> <span class="n">using</span> <span class="n">vector</span> <span class="n">path</span>
-<span class="n">VIPS</span><span class="o">-</span><span class="nl">INFO</span><span class="p">:</span> <span class="n">residual</span> <span class="n">reduceh</span> <span class="n">by</span> <span class="mf">0.5</span>
-<span class="n">VIPS</span><span class="o">-</span><span class="nl">INFO</span><span class="p">:</span> <span class="mi">13</span> <span class="n">point</span> <span class="n">mask</span>
-<span class="n">VIPS</span><span class="o">-</span><span class="nl">INFO</span><span class="p">:</span> <span class="n">thumbnailing</span> <span class="n">k2</span><span class="p">.</span><span class="n">jpg</span> <span class="n">as</span> <span class="p">.</span><span class="o">/</span><span class="n">tn_k2</span><span class="p">.</span><span class="n">jpg</span></pre></td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<p></p>
 </div>
 <div class="refsect1">
 <a name="libvips-error.functions_details"></a><h2>Functions</h2>
@@ -723,11 +626,11 @@ usually the value of errno.</p>
 <div class="refsect2">
 <a name="vips-error-g"></a><h3>vips_error_g ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_error_g (<em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
+vips_error_g (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>This function sets the glib error pointer from the vips error buffer and
 clears it. It's handy for returning errors to glib functions from vips.</p>
 <p>See <a class="link" href="libvips-error.html#vips-g-error" title="vips_g_error ()"><code class="function">vips_g_error()</code></a> for the inverse operation.</p>
-<p>See also: <code class="function">g_set_error()</code>, <a class="link" href="libvips-error.html#vips-g-error" title="vips_g_error ()"><code class="function">vips_g_error()</code></a>.</p>
+<p>See also: <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#g-set-error"><code class="function">g_set_error()</code></a>, <a class="link" href="libvips-error.html#vips-g-error" title="vips_g_error ()"><code class="function">vips_g_error()</code></a>.</p>
 <div class="refsect3">
 <a name="vips-error-g.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -748,8 +651,8 @@ clears it. It's handy for returning errors to glib functions from vips.</p>
 <div class="refsect2">
 <a name="vips-g-error"></a><h3>vips_g_error ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-vips_g_error (<em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
-<p>This function adds the <code class="literal">GError</code> to the vips error buffer and clears it. It's
+vips_g_error (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>This function adds the <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><code class="literal">GError</code></a> to the vips error buffer and clears it. It's
 the opposite of <a class="link" href="libvips-error.html#vips-error-g" title="vips_error_g ()"><code class="function">vips_error_g()</code></a>.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error-g" title="vips_error_g ()"><code class="function">vips_error_g()</code></a>.</p>
 <div class="refsect3">
@@ -778,7 +681,7 @@ vips_error_exit (<em class="parameter"><code>const <span class="type">char</span
 error buffer, if any, then shuts down vips and terminates the program with 
 an error code.</p>
 <p><em class="parameter"><code>fmt</code></em>
- may be <code class="literal">NULL</code>, in which case only the error buffer is printed before
+ may be <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, in which case only the error buffer is printed before
 exiting.</p>
 <p>See also: <a class="link" href="libvips-error.html#vips-error" title="vips_error ()"><code class="function">vips_error()</code></a>.</p>
 <div class="refsect3">
@@ -2089,7 +1992,7 @@ and return non-zero.</p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.32</div>
+<hr>Generated by GTK-Doc V1.33.1</div>
 </section>
 
     <script type="text/javascript">
