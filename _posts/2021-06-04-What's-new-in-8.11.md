@@ -14,7 +14,7 @@ the new JPEG2000 features, see below.
 
 # Experimental JPEG-XL support
 
-We've added perimental support for [JPEG-XL](https://jpeg.org/jpegxl/).
+We've added experimental support for [JPEG-XL](https://jpeg.org/jpegxl/).
 This is a new iteration of the JPEG standard, 
 currently in development. The Chrome web browser supports it
 behind a flag and it looks like it might be enabled by default this autumn
