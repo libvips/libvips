@@ -14,10 +14,10 @@ the new JPEG2000 features, see below.
 
 # Experimental JPEG-XL support
 
-We've added perimental support for[JPEG-XL](https://jpeg.org/jpegxl/).
+We've added perimental support for [JPEG-XL](https://jpeg.org/jpegxl/).
 This is a new iteration of the JPEG standard, 
 currently in development. The Chrome web browser supports it
-behind a flag, and it looks like it might be enabled by default this autumn
+behind a flag and it looks like it might be enabled by default this autumn
 in Chrome 89.
 
 There have been several attempts to replace JPEG with something better in the
@@ -32,11 +32,11 @@ available load and save libraries are extremely slow.
 
 JPEG-XL looks like it might avoid all these problems: it offers the same great
 compression and useful features as HEIC and AVIF, but has no problems with 
-patents, and is fast enough for practical use. 
+patents and is fast enough to be practical. 
 
 I made a sample image. You'll need to zoom in to check details:
 
-![image compression comparison](assets/images/astronauts.png)
+![image compression comparison]({{ site.baseurl }}/assets/images/astronauts.png)
 
 Compression and decompression is quite a bit quicker than HEIC:
 
@@ -52,7 +52,7 @@ user 0m1.273s
 sys 0m0.048s 
 ```
 
-JPEG-XL is still a little immature, so it's not enabled by default in
+JPEG-XL is still a little immature so it's not enabled by default in
 libvips 8.11. Hopefully the missing features (metadata, progressive encode
 and decode, animation, etc.) will arrive soon, and the remaining bugs will
 be squeezed out.
@@ -102,7 +102,7 @@ $ vips text x.png "😀<span foreground='red'>red</span><span background='cyan'>
 
 Makes this:
 
-![coloured text](assets/images/text.png)
+![coloured text]({{ site.baseurl }}/assets/images/text.png)
 
 You can then use `composite` to render these text RGBA images on to another
 image.
@@ -136,7 +136,7 @@ We've spent some time improving the C++ API.
 
 We now use [doxygen](https://www.doxygen.nl) to generate C++ API docs
 automatically, and we've written a set of API comments. Hopefully the [new
-documentation](API/8.11/cpp) should be a big improvement.
+documentation]({{ site.baseurl }}/API/8.11/cpp) should be a big improvement.
 
 There are a couple of functional improvements too. There's support for
 `VipsInterpolate`, `guint64` and a new constructor,
