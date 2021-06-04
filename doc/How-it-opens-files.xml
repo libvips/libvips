@@ -25,7 +25,7 @@
     For this to be possible, the file format needs to be a simple dump of a memory array. libvips supports direct access for vips, 8-bit binary ppm/pbm/pnm, analyse and raw.
   </para>
   <para>
-    libvips has a special direct write mode where pixels can be written directly to the file image. This is used for the <link xlink:href="libvips-draw.html">draw operators</link>.
+    libvips has a special direct write mode where pixels can be written directly to the file image. This is used for the <ulink url="libvips-draw.html">draw operators</ulink>.
   </para>
 </refsect3>
 <refsect3 xml:id="random-access-via-load-library">

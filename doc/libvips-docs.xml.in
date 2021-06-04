@@ -5,7 +5,7 @@
 [
   <!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
 ]>
-<book id="index">
+<book id="index" xmlns:xlink="http://www.w3.org/1999/xlink">
   <bookinfo>
     <title>libvips Reference Manual</title>
     <releaseinfo>

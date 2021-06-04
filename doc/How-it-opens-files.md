@@ -34,7 +34,8 @@ array. libvips supports direct access for vips, 8-bit binary ppm/pbm/pnm,
 analyse and raw.
 
 libvips has a special direct write mode where pixels can be written directly
-to the file image. This is used for the [draw operators](libvips-draw.html).
+to the file image. This is used for the <ulink url="libvips-draw.html">draw
+operators</ulink>.
 
 # Random access via load library
 

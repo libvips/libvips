@@ -111,12 +111,13 @@ large images at low cost.
 
 **Run-time code generation**
 
-VIPS uses [Orc](http://code.entropywave.com/orc/), a run-time compiler, to
-generate code for some operations. For example, to compute a convolution
-on an 8-bit image, VIPS will examine the convolution matrix and the source
-image and generate a tiny program to calculate the convolution. This program
-is then "compiled" to the vector instruction set for your CPU, for example
-SSE3 on most x86 processors.
+VIPS uses 
+<ulink url="https://gstreamer.freedesktop.org/modules/orc.html">Orc</ulink>, a
+run-time compiler, to generate code for some operations. For example, to
+compute a convolution on an 8-bit image, VIPS will examine the convolution
+matrix and the source image and generate a tiny program to calculate the
+convolution. This program is then "compiled" to the vector instruction set
+for your CPU, for example SSE3 on most x86 processors.
 
 Run-time vector code generation typically speeds operations up by a factor
 of three or four.
@@ -162,12 +163,12 @@ tiled TIFF files, from binary PPM/PGM/PBM/PFM, from Radiance (HDR) files,
 from FITS images and from tiled OpenEXR images. VIPS will automatically
 unpack other formats to temporary disc files for you but this can
 obviously generate a lot of disc traffic. It also has a special
-sequential mode for streaming operations on non-random-access
-formats. Another section in these docs explains [how libvips opens a
-file](How-it-opens-files.md.html). One
-of the sources uses the [ImageMagick](http://www.imagemagick.org) (or
-optionally [GraphicsMagick](http://www.graphicsmagick.org) library, so
-VIPS can read any image format that these libraries can read.
+sequential mode for streaming operations on non-random-access formats. Another
+section in these docs explains <ulink url="How-it-opens-files.md.html">how
+libvips opens a file</ulink>. One of the sources uses the <ulink
+url="http://www.imagemagick.org">ImageMagick</ulink> (or optionally <ulink
+url="http://www.graphicsmagick.org">GraphicsMagick</ulink> library, so VIPS
+can read any image format that these libraries can read.
 
 VIPS images are held on disc as a 64-byte header containing basic image
 information like width, height, bands and format, then the image data as
@@ -243,16 +244,15 @@ operation is a GObject class. You can use the standard GObject calls to walk
 the class hierarchy and discover operations, and libvips adds a small amount
 of extra introspection metadata to handle things like optional arguments.
 
-The [C API](using-from-c.html) is a set of simple wrappers which create
-class instances for you. The [C++ API](using-from-cpp.html) is a little
-fancier and adds things like automatic object lifetime management. The
-[command-line interface](using-cli.html) uses introspection to run any vips
-operation in the class hierarchy.
+The <ulink url="using-from-c.html">C API</ulink> is a set of simple wrappers
+which create class instances for you. The <ulink url="using-from-cpp.html">C++
+API</ulink> is a little fancier and adds things like automatic object lifetime
+management. The <ulink url="using-cli.html"> command-line interface</ulink>
+uses introspection to run any vips operation in the class hierarchy.
 
-There are bindings for [many other
-languages](https://libvips.github.io/libvips/) on many platforms. Most of
-these bindings use the introspection system to generate the binding at
-run-time.
+There are bindings for <ulink url="https://libvips.github.io/libvips">many
+other languages</ulink> on many platforms. Most of these bindings use the
+introspection system to generate the binding at run-time.
 
 **Snip**
 

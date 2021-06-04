@@ -11,7 +11,8 @@
   <refnamediv> <refname>Pyramids</refname> <refpurpose>How to use libvips to make image pyramids</refpurpose> </refnamediv>
 </para>
 <para>
-  libvips includes <literal>vips_dzsave()</literal>, an operation that can build image pyramids compatible with <link xlink:href="http://en.wikipedia.org/wiki/Deep_Zoom">DeepZoom</link>, Zoomify and <link xlink:href="https://developers.google.com/maps/">Google Maps</link> image viewers. It’s fast and can generate pyramids for large images using only a small amount of memory.
+  libvips includes <literal>vips_dzsave()</literal>, an operation that can build image pyramids compatible with <ulink
+  url="http://en.wikipedia.org/wiki/Deep_Zoom">DeepZoom</ulink>, Zoomify and <ulink url="https://developers.google.com/maps">Google Maps</ulink> image viewers. It’s fast and can generate pyramids for large images using only a small amount of memory.
 </para>
 <para>
   The TIFF writer, <literal>vips_tiffsave()</literal> can also build tiled pyramidal TIFF images, but that’s very simple to use. This page concentrates on the DeepZoom builder.
@@ -103,7 +104,7 @@ $ vips dzsave huge.tif myzoom --layout zoomify
 <refsect3 xml:id="writing-google-maps-pyramids">
   <title>Writing <link xlink:href="https://developers.google.com/maps/">Google Maps</link> pyramids</title>
   <para>
-    Use <literal>--layout google</literal> to write Google maps-style pyramids. These are compatible with <link xlink:href="http://leafletjs.com/">leaflet</link>. For example:
+    Use <literal>--layout google</literal> to write Google maps-style pyramids. These are compatible with <ulink url="http://leafletjs.com">Leaflet</ulink>. For example:
   </para>
   <programlisting>
 $ vips dzsave wtc.tif gmapdir --layout google
