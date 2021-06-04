@@ -1,8 +1,8 @@
 ### Introduction
 
-This API is a thin layer over the libvips GObject API.  it adds automatic
-reference counting, exceptions, operator overloads, and automatic constant
-expansion.
+The libvips C++ API is a thin layer over the libvips GObject API. It adds
+automatic reference counting, exceptions, operator overloads, and automatic
+constant expansion.
 
 You can drop down to the C API at any point, so all the C API docs also
 work for C++.
