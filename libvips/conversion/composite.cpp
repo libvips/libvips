@@ -211,6 +211,7 @@ static inline void *
 vips_alloc_aligned( size_t sz, size_t align )
 {
 	g_assert( !(align & (align - 1)) );
+
 #ifdef HAVE__ALIGNED_MALLOC
 	return _aligned_malloc( sz, align );
 #elif defined(HAVE_POSIX_MEMALIGN)
