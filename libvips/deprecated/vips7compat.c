@@ -5703,16 +5703,3 @@ vips_popenf( const char *fmt, const char *mode, ... )
         return( NULL );
 }
 
-GThread *
-vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
-{
-	vips_error( "vips_g_thread_new", "%s", _( "deprecated" ) );
-	return( NULL );
-}
-
-void *
-vips_g_thread_join( GThread *thread )
-{
-	vips_error( "vips_g_thread_join", "%s", _( "deprecated" ) );
-	return( NULL );
-}
