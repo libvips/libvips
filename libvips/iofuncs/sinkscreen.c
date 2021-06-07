@@ -1045,13 +1045,18 @@ render_thread_main( void *client )
 }
 
 static void *
-vips__sink_screen_init( void *data )
+vips__sink_screen_once( void *data )
 {
 	g_assert( !render_thread ); 
 	g_assert( !render_dirty_lock ); 
 
 	render_dirty_lock = vips_g_mutex_new();
 	vips_semaphore_init( &n_render_dirty_sem, 0, "n_render_dirty" );
+
+	/* Don't use vips__thread_execute() since this thread will only be
+	 * ended by _shutdown, and that isn't always called early enough on
+	 * windows from atexit().
+	 */
 	render_thread = vips_g_thread_new( "sink_screen",
 		render_thread_main, NULL );
 
@@ -1119,7 +1124,7 @@ vips_sink_screen( VipsImage *in, VipsImage *out, VipsImage *mask,
 
 	Render *render;
 
-	VIPS_ONCE( &once, vips__sink_screen_init, NULL );
+	VIPS_ONCE( &once, vips__sink_screen_once, NULL );
 
 	if( tile_width <= 0 || tile_height <= 0 || 
 		max_tiles < -1 ) {
