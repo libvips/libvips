@@ -183,6 +183,77 @@ vips_thread_isworker( void )
 }
 
 typedef struct {
+	const char *domain; 
+	GThreadFunc func; 
+	gpointer data;
+} VipsThreadInfo; 
+
+static void *
+vips_thread_run( gpointer data )
+{
+	VipsThreadInfo *info = (VipsThreadInfo *) data;
+
+	void *result;
+
+	/* Set this to something (anything) to tag this thread as a vips 
+	 * worker.
+	 */
+	g_private_set( is_worker_key, data );
+
+	if( vips__thread_profile ) 
+		vips__thread_profile_attach( info->domain );
+
+	result = info->func( info->data );
+
+	g_free( info ); 
+
+	vips_thread_shutdown();
+
+	return( result ); 
+}
+
+GThread *
+vips_g_thread_new( const char *domain, GThreadFunc func, gpointer data )
+{
+	GThread *thread;
+	VipsThreadInfo *info; 
+	GError *error = NULL;
+
+	info = g_new( VipsThreadInfo, 1 ); 
+	info->domain = domain;
+	info->func = func;
+	info->data = data;
+
+	thread = g_thread_try_new( domain, vips_thread_run, info, &error );
+
+	VIPS_DEBUG_MSG_RED( "vips_g_thread_new: g_thread_create( %s ) = %p\n",
+		domain, thread );
+
+	if( !thread ) {
+		if( error ) 
+			vips_g_error( &error ); 
+		else
+			vips_error( domain, 
+				"%s", _( "unable to create thread" ) );
+	}
+
+	return( thread );
+}
+
+void *
+vips_g_thread_join( GThread *thread )
+{
+	void *result;
+
+	result = g_thread_join( thread );
+
+	VIPS_DEBUG_MSG_RED( "vips_g_thread_join: g_thread_join( %p )\n", 
+		thread );
+
+	return( result ); 
+}
+
+typedef struct {
 	/* An name for this thread.
 	 */
 	const char *name;

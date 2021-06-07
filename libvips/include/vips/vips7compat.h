@@ -1224,11 +1224,6 @@ VipsWindow *vips_window_ref( VipsImage *im, int top, int height );
 FILE *vips_popenf( const char *fmt, const char *mode, ... )
 	__attribute__((format(printf, 1, 3)));
 
-/* old GThread API.
- */
-GThread *vips_g_thread_new( const char *, GThreadFunc, gpointer );
-void *vips_g_thread_join( GThread *thread );
-
 /* This stuff is very, very old and should not be used by anyone now.
  */
 #ifdef VIPS_ENABLE_ANCIENT
