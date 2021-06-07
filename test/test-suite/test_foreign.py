@@ -823,7 +823,7 @@ class TestForeign:
             assert_almost_equal_objects(a, [33, 33, 33, 255])
             assert im.width == 159
             assert im.height == 203
-            assert im.bands == 4
+            assert im.bands == 3
 
         self.file_loader("gifload", GIF_FILE, gif_valid)
         self.buffer_loader("gifload_buffer", GIF_FILE, gif_valid)

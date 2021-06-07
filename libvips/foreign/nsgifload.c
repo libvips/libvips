@@ -125,6 +125,10 @@ typedef struct _VipsForeignLoadNsgif {
 	 */
 	int gif_delay;
 
+	/* If the GIF contains any frames with transparent elements.
+	 */
+	gboolean has_transparency;
+
 } VipsForeignLoadNsgif;
 
 typedef VipsForeignLoadClass VipsForeignLoadNsgifClass;
@@ -275,7 +279,8 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 	VIPS_DEBUG_MSG( "vips_foreign_load_nsgif_set_header:\n" );
 
 	vips_image_init_fields( image,
-		gif->anim->width, gif->anim->height * gif->n, 4,
+		gif->anim->width, gif->anim->height * gif->n, 
+		gif->has_transparency ? 4 : 3,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
 	vips_image_pipelinev( image, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
@@ -388,6 +393,14 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 		return( -1 );
 	}
 
+	/* Check for any transparency.
+	 */
+	for( i = 0; i < gif->frame_count_displayable; i++ ) 
+		if( gif->anim->frames[i].transparency ) {
+			gif->has_transparency = TRUE;
+			break;
+		}
+
 	if( gif->n == -1 )
 		gif->n = gif->frame_count_displayable - gif->page;
 
@@ -456,7 +469,20 @@ vips_foreign_load_nsgif_generate( VipsRegion *or,
 		p = gif->anim->frame_image + 
 			line * gif->anim->width * sizeof( int );
 		q = VIPS_REGION_ADDR( or, 0, r->top + y );
-		memcpy( q, p, VIPS_REGION_SIZEOF_LINE( or ) );
+		if( gif->has_transparency )
+			memcpy( q, p, VIPS_REGION_SIZEOF_LINE( or ) );
+		else {
+			int i;
+
+			for( i = 0; i < r->width; i++ ) {
+				q[0] = p[0];
+				q[1] = p[1];
+				q[2] = p[2];
+
+				q += 3;
+				p += 4;
+			}
+		}
 	}
 
 	return( 0 );
@@ -856,7 +882,8 @@ vips_foreign_load_nsgif_source_init( VipsForeignLoadNsgifSource *source )
  * rendered in a vertical column. Set to -1 to mean "until the end of the
  * document". Use vips_grid() to change page layout.
  *
- * The output image is always RGBA.
+ * The output image is RGBA for GIFs containing transparent elements, RGB
+ * otherwise.
  *
  * See also: vips_image_new_from_file().
  *
