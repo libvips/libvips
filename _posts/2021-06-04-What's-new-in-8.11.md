@@ -15,17 +15,15 @@ the new JPEG2000 features, see below.
 # Experimental JPEG-XL support
 
 We've added experimental support for [JPEG-XL](https://jpeg.org/jpegxl/).
-This is a new iteration of the JPEG standard, 
-currently in development. The Chrome web browser supports it
-behind a flag and it looks like it might be enabled by default this autumn
-in Chrome 89.
+This is a new iteration of the JPEG standard, currently in development. The
+Chrome web browser supports it behind a flag and it looks like it might be
+enabled by default this autumn in Chrome 89.
 
 There have been several attempts to replace JPEG with something better in the
-last few years. HEIC is perhaps the best known: it can compress files to
-about half the size of comparable JPEGs and supports a range of useful
-features like animations, transparency and lossless
-compression. Unfortunately, it has some patent issues which may limit its
-usefulness.
+last few years. HEIC is perhaps the best known: it can compress files to about
+half the size of comparable JPEGs and supports a range of useful features
+like animations, transparency and lossless compression. Unfortunately,
+it has some patent issues which may limit its usefulness.
 
 AVIF is rather like HEIC, but has no patents attached to it. Sadly the
 available load and save libraries are extremely slow.
@@ -52,10 +50,8 @@ user 0m1.273s
 sys 0m0.048s 
 ```
 
-JPEG-XL is still a little immature so it's not enabled by default in
-libvips 8.11. Hopefully the missing features (metadata, progressive encode
-and decode, animation, etc.) will arrive soon, and the remaining bugs will
-be squeezed out.
+The `-all` version of the Windows binaries include `jxlload` and `jxlsave, but
+remember the API is likely to change in 8.12.
 
 # Thread recycling
 
@@ -123,7 +119,7 @@ We've also added support for JPEG2000 as a codec for TIFF load and save. This
 means you can now directly load and save some popular slide image formats.
 This should be useful for people in the medical imaging community.
 
-It's very easy to use -- for example:
+It's easy to use -- for example:
 
 ```
 $ vips copy k2.jpg x.tif[compression=jp2k,Q=90,tile]
@@ -153,9 +149,9 @@ There are a couple of functional improvements too. There's support for
 - Image histograms on large images now use `double` values. Previously,
   we were limited to images with under 2^32 pixels.
 
-- There's a new `black_point_compensation` for colour operations involving
-  ICC profiles, and detection of bad profiles and fallback to default
-  profiles is much better.
+- There's a new `black_point_compensation` option for colour operations
+  involving ICC profiles, and detection of bad profiles and fallback to
+  default profiles is much better.
 
 - The loaders and savers for PDFium, OpenSlide, vips, NIfTI, and FITS have
   been moved to the new libvips IO framework.
