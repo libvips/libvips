@@ -2,7 +2,7 @@
 title: What's new in 8.11
 ---
 
-libvips 8.11 is almost out, so here's a quick overview of what's new. Check
+libvips 8.11 is now out, so here's a quick overview of what's new. Check
 the [ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
 if you need more details.
 
