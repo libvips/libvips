@@ -350,6 +350,7 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 	 * running inside a non-threaded tilecache.
 	 */
 	if( !rsvg_handle_render_cairo( svg->page, cr ) ) {
+		cairo_destroy( cr );
 		vips_operation_invalidate( VIPS_OPERATION( svg ) );
 		vips_error( class->nickname, 
 			"%s", _( "SVG rendering failed" ) );
