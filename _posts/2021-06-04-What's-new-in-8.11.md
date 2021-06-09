@@ -17,7 +17,7 @@ the new JPEG2000 features, see below.
 We've added experimental support for [JPEG-XL](https://jpeg.org/jpegxl/).
 This is a new iteration of the JPEG standard, currently in development. The
 Chrome web browser supports it behind a flag and it looks like it might be
-enabled by default this autumn in Chrome 89.
+enabled by default this autumn in Chrome 93.
 
 There have been several attempts to replace JPEG with something better in the
 last few years. HEIC is perhaps the best known: it can compress files to about
@@ -50,7 +50,7 @@ user 0m1.273s
 sys 0m0.048s 
 ```
 
-The `-all` version of the Windows binaries include `jxlload` and `jxlsave, but
+The `-all` version of the Windows binaries include `jxlload` and `jxlsave`, but
 remember the API is likely to change in 8.12.
 
 # Thread recycling
