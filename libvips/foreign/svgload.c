@@ -19,6 +19,9 @@
  * 	- requires us to use the gio API to librsvg
  * 11/9/19
  * 	- rework as a sequential loader to reduce overcomputation
+ * 11/6/21
+ * 	- switch to rsvg_handle_render_document()
+ * 	- librsvg can no longer render very large images :( 
  */
 
 /*
@@ -75,10 +78,6 @@
 /* The <svg tag must appear within this many bytes of the start of the file.
  */
 #define SVG_HEADER_SIZE (1000)
-
-/* The maximum pixel width librsvg is able to render.
- */
-#define RSVG_MAX_WIDTH (32767)
 
 /* A handy #define for we-will-handle-svgz.
  */
@@ -316,9 +315,9 @@ static int
 vips_foreign_load_svg_generate( VipsRegion *or, 
 	void *seq, void *a, void *b, gboolean *stop )
 {
-	VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) a;
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( svg );
-	VipsRect *r = &or->valid;
+	const VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) a;
+	const VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( svg );
+	const VipsRect *r = &or->valid;
 
 	cairo_surface_t *surface;
 	cairo_t *cr;
@@ -342,22 +341,46 @@ vips_foreign_load_svg_generate( VipsRegion *or,
 	cr = cairo_create( surface );
 	cairo_surface_destroy( surface );
 
+	/* rsvg is single-threaded, but we don't need to lock since we're
+	 * running inside a non-threaded tilecache.
+	 */
+#ifdef HAVE_RSVG_HANDLE_RENDER_DOCUMENT
+{
+	RsvgRectangle viewport;
+	GError *error = NULL;
+
+	cairo_translate( cr, -r->left, -r->top );
+	viewport.x = 0;
+	viewport.y = 0;
+	viewport.width = or->im->Xsize;
+	viewport.height = or->im->Ysize;
+
+	if( !rsvg_handle_render_document( svg->page, cr, &viewport, &error ) ) {
+		cairo_destroy( cr );
+		vips_operation_invalidate( VIPS_OPERATION( svg ) );
+		vips_error( class->nickname, 
+			"%s", _( "SVG rendering failed" ) );
+		vips_g_error( &error );
+		return( -1 );
+	}
+
+	cairo_destroy( cr );
+}
+#else /*!HAVE_RSVG_HANDLE_RENDER_DOCUMENT*/
 	cairo_scale( cr, svg->cairo_scale, svg->cairo_scale );
 	cairo_translate( cr, -r->left / svg->cairo_scale,
 		-r->top / svg->cairo_scale );
 
-	/* rsvg is single-threaded, but we don't need to lock since we're
-	 * running inside a non-threaded tilecache.
-	 */
 	if( !rsvg_handle_render_cairo( svg->page, cr ) ) {
 		cairo_destroy( cr );
 		vips_operation_invalidate( VIPS_OPERATION( svg ) );
-		vips_error( class->nickname, 
+		vips_error( class->nickname,
 			"%s", _( "SVG rendering failed" ) );
 		return( -1 );
 	}
 
 	cairo_destroy( cr );
+#endif /*HAVE_RSVG_HANDLE_RENDER_DOCUMENT*/
 
 	/* Cairo makes pre-multipled BRGA -- we must byteswap and unpremultiply.
 	 */
@@ -376,21 +399,14 @@ vips_foreign_load_svg_load( VipsForeignLoad *load )
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( (VipsObject *) load, 3 );
 
-	/* librsvg starts to fail if any axis in a single render call is over
-	 * RSVG_MAX_WIDTH pixels. vips_sequential() will use a tilecache where 
-	 * each tile is a strip the width of the image and (in this case) 
-	 * 2000 pixels high. To be able to render images wider than 
-	 * RSVG_MAX_WIDTH pixels, we need to chop these strips up.
-	 * We use a small tilecache between the seq and our gen to do this.
-	 *
-	 * Make tiles 2000 pixels high to limit overcomputation. 
+	/* Make tiles 2000 pixels high to limit overcomputation. 
 	 */
 	t[0] = vips_image_new(); 
 	vips_foreign_load_svg_parse( svg, t[0] ); 
 	if( vips_image_generate( t[0], 
 		NULL, vips_foreign_load_svg_generate, NULL, svg, NULL ) ||
 		vips_tilecache( t[0], &t[1],
-			"tile_width", VIPS_MIN( t[0]->Xsize, RSVG_MAX_WIDTH ),
+			"tile_width", t[0]->Xsize,
 			"tile_height", 2000,
 			"max_tiles", 1,
 			NULL ) ||
