@@ -848,9 +848,9 @@ AC_ARG_WITH([libopenjp2],
 
 # 2.4 is the first one to have working threading and tiling
 if test x"$with_libopenjp2" != x"no"; then
-  PKG_CHECK_MODULES(LIBOPENJP2, libopenjp2 >= 2.4,
+  PKG_CHECK_MODULES(LIBOPENJP2, libopenjp2 >= 2.3,
     [AC_DEFINE(HAVE_LIBOPENJP2,1,
-       [define if you have libopenjp2 >=2.4 installed.])
+       [define if you have libopenjp2 >=2.3 installed.])
      with_libopenjp2=yes
      PACKAGES_USED="$PACKAGES_USED libopenjp2"
     ],
