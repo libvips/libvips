@@ -84,6 +84,7 @@
 
 static char *main_option_field = NULL;
 static gboolean main_option_all = FALSE;
+static gboolean version = FALSE;
 
 static GOptionEntry main_option[] = {
 	{ "all", 'a', 0, G_OPTION_ARG_NONE, &main_option_all, 
@@ -92,6 +93,8 @@ static GOptionEntry main_option[] = {
 		N_( "print value of FIELD (\"getext\" reads extension block, "
 			"\"Hist\" reads image history)" ),
 		"FIELD" },
+	{ "version", 'v', 0, G_OPTION_ARG_NONE, &version, 
+		N_( "print version" ), NULL },
 	{ NULL }
 };
 
@@ -206,6 +209,9 @@ main( int argc, char *argv[] )
 	}
 
 	g_option_context_free( context );
+
+	if( version ) 
+		printf( "vips-%s\n", vips_version_string() );
 
 	result = 0;
 

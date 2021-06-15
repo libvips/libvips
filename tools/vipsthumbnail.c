@@ -138,6 +138,7 @@ static gboolean crop_image = FALSE;
 static gboolean no_rotate_image = FALSE;
 static char *smartcrop_image = NULL;
 static char *thumbnail_intent = NULL;
+static gboolean version = FALSE;
 
 /* Deprecated and unused.
  */
@@ -183,6 +184,8 @@ static GOptionEntry options[] = {
 	{ "no-rotate", 0, 0, 
 		G_OPTION_ARG_NONE, &no_rotate_image, 
 		N_( "don't auto-rotate" ), NULL },
+	{ "version", 'v', 0, G_OPTION_ARG_NONE, &version, 
+		N_( "print version" ), NULL },
 
 	{ "format", 'f', G_OPTION_FLAG_HIDDEN, 
 		G_OPTION_ARG_STRING, &output_format, 
@@ -527,6 +530,9 @@ main( int argc, char **argv )
 	}
 
 	g_option_context_free( context );
+
+	if( version ) 
+		printf( "vips-%s\n", vips_version_string() );
 
 	if( thumbnail_size && 
 		thumbnail_parse_geometry( thumbnail_size ) )

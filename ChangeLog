@@ -1,3 +1,6 @@
+14/6/21 started 8.12
+- all tools support `--version`
+
 14/8/20 started 8.11
 - add vips_jpegload_source() and vips_svgload_source() to public C API
 - integrate doxygen in build system to generate C++ API docs

@@ -79,6 +79,7 @@ static char *xoffset = NULL;
 static char *yoffset = NULL;
 static char *endian = NULL;
 static gboolean setext = FALSE;
+static gboolean version = FALSE;
 
 static GOptionEntry entries[] = {
 	{ "endian", 'n', 0, G_OPTION_ARG_STRING, &endian, 
@@ -111,6 +112,8 @@ static GOptionEntry entries[] = {
 		N_( "set Ysize to N (deprecated, use height)" ), "N" },
 	{ "type", 't', 0, G_OPTION_ARG_STRING, &interpretation, 
 		N_( "set Type to T (deprecated, use interpretation)" ), "T" },
+	{ "version", 'v', 0, G_OPTION_ARG_NONE, &version, 
+		N_( "print version" ), NULL },
 	{ NULL }
 };
 
@@ -169,6 +172,9 @@ main( int argc, char **argv )
 	 */
 	for( argc = 0; argv[argc]; argc++ )
 		;
+
+	if( version ) 
+		printf( "vips-%s\n", vips_version_string() );
 
 	if( argc != 2 ) { 
 		fprintf( stderr, _( "usage: %s [OPTION...] vips-file\n" ), 
