@@ -187,6 +187,7 @@ vips_foreign_load_pdf_close( VipsForeignLoadPdf *pdf )
 
 	VIPS_FREEF( FPDF_ClosePage, pdf->page ); 
 	VIPS_FREEF( FPDF_CloseDocument, pdf->doc ); 
+	VIPS_UNREF( pdf->source );
 
 	g_mutex_unlock( vips_pdfium_mutex );
 }
