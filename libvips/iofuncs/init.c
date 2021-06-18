@@ -1226,6 +1226,8 @@ vips_guess_libdir( const char *argv0, const char *env_name )
 	 */
 	if( strcmp( prefix, VIPS_PREFIX ) == 0 ) 
 		libdir = VIPS_LIBDIR;
+	else if ( strstr(VIPS_LIBDIR, "/lib64") )
+		libdir = g_strdup_printf( "%s/lib64", prefix );
 	else
 		libdir = g_strdup_printf( "%s/lib", prefix );
 
