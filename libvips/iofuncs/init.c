@@ -415,6 +415,24 @@ vips_init( const char *argv0 )
 		return( 0 );
 	started = TRUE;
 
+	if( g_getenv( "VIPS_INFO" )
+#if ENABLE_DEPRECATED
+		|| g_getenv( "IM_INFO" )
+#endif
+	)
+		vips_verbose();
+	if( g_getenv( "VIPS_PROFILE" ) )
+		vips_profile_set( TRUE );
+	if( g_getenv( "VIPS_LEAK" ) )
+		vips_leak_set( TRUE );
+	if( g_getenv( "VIPS_TRACE" ) )
+		vips_cache_set_trace( TRUE );
+	if( g_getenv( "VIPS_PIPE_READ_LIMIT" ) ) 
+		vips_pipe_read_limit = 
+			g_ascii_strtoll( g_getenv( "VIPS_PIPE_READ_LIMIT" ),
+				NULL, 10 );
+	vips_pipe_read_limit_set( vips_pipe_read_limit );
+
 #ifdef G_OS_WIN32
 	/* Windows has a limit of 512 files open at once for the fopen() family
 	 * of functions, and 2048 for the _open() family. This raises the limit
@@ -467,24 +485,6 @@ vips_init( const char *argv0 )
 	bindtextdomain( GETTEXT_PACKAGE, locale );
 	g_free( locale );
 	bind_textdomain_codeset( GETTEXT_PACKAGE, "UTF-8" );
-
-	if( g_getenv( "VIPS_INFO" )
-#if ENABLE_DEPRECATED
-		|| g_getenv( "IM_INFO" )
-#endif
-	)
-		vips_verbose();
-	if( g_getenv( "VIPS_PROFILE" ) )
-		vips_profile_set( TRUE );
-	if( g_getenv( "VIPS_LEAK" ) )
-		vips_leak_set( TRUE );
-	if( g_getenv( "VIPS_TRACE" ) )
-		vips_cache_set_trace( TRUE );
-	if( g_getenv( "VIPS_PIPE_READ_LIMIT" ) ) 
-		vips_pipe_read_limit = 
-			g_ascii_strtoll( g_getenv( "VIPS_PIPE_READ_LIMIT" ),
-				NULL, 10 );
-	vips_pipe_read_limit_set( vips_pipe_read_limit );
 
 	/* Register base vips types.
 	 */
