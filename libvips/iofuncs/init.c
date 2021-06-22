@@ -274,9 +274,7 @@ vips_load_plugins( const char *fmt, ... )
         (void) vips_vsnprintf( dir_name, VIPS_PATH_MAX - 1, fmt, ap );
         va_end( ap );
 
-#ifdef DEBUG
-	printf( "vips_load_plugins: searching \"%s\"\n", dir_name );
-#endif /*DEBUG*/
+	g_info( "searching \"%s\"", dir_name );
 
         if( !(dir = g_dir_open( dir_name, 0, NULL )) ) 
 		/* Silent success for dir not there.
@@ -296,9 +294,7 @@ vips_load_plugins( const char *fmt, ... )
 			vips_snprintf( path, VIPS_PATH_MAX - 1, 
 				"%s" G_DIR_SEPARATOR_S "%s", dir_name, name );
 
-#ifdef DEBUG
-			printf( "vips_load_plugins: loading \"%s\"\n", path );
-#endif /*DEBUG*/
+			g_info( "loading \"%s\"", path );
 
 			module = g_module_open( path, G_MODULE_BIND_LAZY );
 			if( !module ) {
@@ -952,10 +948,7 @@ extract_prefix( const char *dir, const char *name )
 	char vname[VIPS_PATH_MAX];
 	int i;
 
-#ifdef DEBUG
-	printf( "extract_prefix: trying for dir = \"%s\", name = \"%s\"\n", 
-		dir, name );
-#endif /*DEBUG*/
+	g_info( "trying for dir = \"%s\", name = \"%s\"", dir, name );
 
 	/* Is dir relative? Prefix with cwd.
 	 */
@@ -991,9 +984,7 @@ extract_prefix( const char *dir, const char *name )
 	if( vips_ispostfix( vname, G_DIR_SEPARATOR_S ) )
 		vname[strlen( vname ) - 1] = '\0';
 
-#ifdef DEBUG
-	printf( "extract_prefix: canonicalised path = \"%s\"\n", vname );
-#endif /*DEBUG*/
+	g_info( "canonicalised path = \"%s\"", vname );
 
 	/* Ought to be a "/bin" at the end now.
 	 */
@@ -1001,9 +992,7 @@ extract_prefix( const char *dir, const char *name )
 		return( NULL );
 	vname[strlen( vname ) - strlen( G_DIR_SEPARATOR_S "bin" )] = '\0';
 
-#ifdef DEBUG
-	printf( "extract_prefix: found \"%s\"\n", vname );
-#endif /*DEBUG*/
+	g_info( "found \"%s\"", vname );
 
 	return( vips_strdup( NULL, vname ) );
 }
@@ -1025,10 +1014,8 @@ scan_path( char *path, const char *name )
 		vips_snprintf( str, VIPS_PATH_MAX, 
 			"%s" G_DIR_SEPARATOR_S "%s", p, name );
 
-#ifdef DEBUG
-		printf( "scan_path: looking in \"%s\" for \"%s\"\n", 
+		g_info( "looking in \"%s\" for \"%s\"", 
 			p, name );
-#endif /*DEBUG*/
 
 		if( vips_existsf( "%s", str ) && 
 			(prefix = extract_prefix( str, name )) ) {
@@ -1051,9 +1038,7 @@ find_file( const char *name )
 	if( !path )
 		return( NULL );
 
-#ifdef DEBUG
-	printf( "vips_guess_prefix: g_getenv( \"PATH\" ) == \"%s\"\n", path );
-#endif /*DEBUG*/
+	g_info( "g_getenv( \"PATH\" ) == \"%s\"", path );
 
 #ifdef G_OS_WIN32
 {
@@ -1090,10 +1075,7 @@ guess_prefix( const char *argv0, const char *name )
 			/* Must point to our executable.
 			 */
 			if( (prefix = extract_prefix( argv0, name )) ) {
-#ifdef DEBUG
-				printf( "vips_guess_prefix: found \"%s\" from "
-					"argv0\n", prefix );
-#endif /*DEBUG*/
+				g_info( "found \"%s\" from argv0", prefix );
 				return( prefix );
 			} 
 		}
@@ -1101,10 +1083,7 @@ guess_prefix( const char *argv0, const char *name )
 		/* Look along path for name.
 		 */
 		if( (prefix = find_file( name )) ) {
-#ifdef DEBUG
-			printf( "vips_guess_prefix: found \"%s\" from "
-				"PATH\n", prefix );
-#endif /*DEBUG*/
+			g_info( "found \"%s\" from PATH", prefix );
 			return( prefix );
 		}
         }
@@ -1127,10 +1106,7 @@ guess_prefix( const char *argv0, const char *name )
 			g_free( resolved );
 
 			if( prefix ) { 
-#ifdef DEBUG
-				printf( "vips_guess_prefix: found \"%s\" "
-					"from cwd\n", prefix );
-#endif /*DEBUG*/
+				g_info( "found \"%s\" from cwd", prefix );
 				return( prefix );
 			}
 		}
@@ -1168,10 +1144,7 @@ vips_guess_prefix( const char *argv0, const char *env_name )
 	/* Already set?
 	 */
         if( (prefix = g_getenv( env_name )) ) {
-#ifdef DEBUG
-		printf( "vips_guess_prefix: found \"%s\" in environment\n", 
-			prefix );
-#endif /*DEBUG*/
+		g_info( "found \"%s\" in environment", prefix );
                 return( prefix );
 	}
 
@@ -1229,12 +1202,10 @@ vips_guess_libdir( const char *argv0, const char *env_name )
 	else
 		libdir = g_strdup_printf( "%s/lib", prefix );
 
-#ifdef DEBUG
-	printf( "vips_guess_libdir: VIPS_PREFIX = %s\n", VIPS_PREFIX );
-	printf( "vips_guess_libdir: VIPS_LIBDIR = %s\n", VIPS_LIBDIR );
-	printf( "vips_guess_libdir: prefix = %s\n", prefix );
-	printf( "vips_guess_libdir: libdir = %s\n", libdir );
-#endif /*DEBUG*/
+	g_info( "VIPS_PREFIX = %s", VIPS_PREFIX );
+	g_info( "VIPS_LIBDIR = %s", VIPS_LIBDIR );
+	g_info( "prefix = %s", prefix );
+	g_info( "libdir = %s", libdir );
 
 	return( libdir );
 }
