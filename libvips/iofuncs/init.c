@@ -475,6 +475,8 @@ vips_init( const char *argv0 )
 
 	/* Try to discover our prefix. 
 	 */
+        if( (prefix = g_getenv( "VIPSHOME" )) )
+		g_info( "VIPSHOME = %s", prefix );
 	if( !(prefix = vips_guess_prefix( argv0, "VIPSHOME" )) || 
 		!(libdir = vips_guess_libdir( argv0, "VIPSHOME" )) ) 
 		return( -1 );
@@ -1078,6 +1080,8 @@ guess_prefix( const char *argv0, const char *name )
 	 */
 	if( vips_existsf( "%s/vips-modules-%d.%d", 
 		VIPS_LIBDIR, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION ) ) {
+		g_info( "found %s/vips-modules-%d.%d", 
+			VIPS_LIBDIR, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION );
 		g_info( "using configure-time prefix" );
 		return( VIPS_PREFIX );
 	}
@@ -1157,10 +1161,8 @@ vips_guess_prefix( const char *argv0, const char *env_name )
 
 	/* Already set?
 	 */
-        if( (prefix = g_getenv( env_name )) ) {
-		g_info( "found \"%s\" in environment", prefix );
+        if( (prefix = g_getenv( env_name )) 
                 return( prefix );
-	}
 
 #ifdef G_OS_WIN32
 	prefix = vips__windows_prefix();
