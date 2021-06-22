@@ -479,6 +479,11 @@ vips_init( const char *argv0 )
 		!(libdir = vips_guess_libdir( argv0, "VIPSHOME" )) ) 
 		return( -1 );
 
+	g_info( "VIPS_PREFIX = %s", VIPS_PREFIX );
+	g_info( "VIPS_LIBDIR = %s", VIPS_LIBDIR );
+	g_info( "prefix = %s", prefix );
+	g_info( "libdir = %s", libdir );
+
 	/* Get i18n .mo files from $VIPSHOME/share/locale/.
 	 */
 	locale = g_build_filename( prefix, "share", "locale", NULL );
@@ -1068,6 +1073,15 @@ guess_prefix( const char *argv0, const char *name )
 {
 	char *prefix;
 
+	/* We've already checked for VIPSHOME. If the configure-time
+	 * library prefix looks OK, use the configure-time prefix.
+	 */
+	if( vips_existsf( "%s/vips-modules-%d.%d", 
+		VIPS_LIBDIR, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION ) ) {
+		g_info( "using configure-time prefix" );
+		return( VIPS_PREFIX );
+	}
+
 	/* Try to guess from argv0.
 	 */
 	if( argv0 ) {
@@ -1201,11 +1215,6 @@ vips_guess_libdir( const char *argv0, const char *env_name )
 		libdir = VIPS_LIBDIR;
 	else
 		libdir = g_strdup_printf( "%s/lib", prefix );
-
-	g_info( "VIPS_PREFIX = %s", VIPS_PREFIX );
-	g_info( "VIPS_LIBDIR = %s", VIPS_LIBDIR );
-	g_info( "prefix = %s", prefix );
-	g_info( "libdir = %s", libdir );
 
 	return( libdir );
 }
