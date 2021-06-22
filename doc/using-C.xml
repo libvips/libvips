@@ -76,9 +76,12 @@
     </para>
 
     <para>
-      See #VipsOperation for more detail on VIPS 
-      reference counting conventions.
+      See #VipsOperation for more detail on VIPS
+      reference counting conventions. See the <link
+      linkend="reference-pools-ref">Reference pools</link>
+      section below for a way to automate reference counting in C.
     </para>
+
   </refsect3>
 
   <refsect3 id="using-C-operations">
@@ -133,21 +136,21 @@ where:
    in           - Input image, input VipsImage
    out          - Output image, output VipsImage
    x            - Left edge of input in output, input gint
-			                default: 0
-			                min: -1000000000, max: 1000000000
+                      default: 0
+                      min: -1000000000, max: 1000000000
    y            - Top edge of input in output, input gint
-			                default: 0
-			                min: -1000000000, max: 1000000000
+                      default: 0
+                      min: -1000000000, max: 1000000000
    width        - Image width in pixels, input gint
-			                default: 1
-			                min: 1, max: 1000000000
+                      default: 1
+                      min: 1, max: 1000000000
    height       - Image height in pixels, input gint
-			                default: 1
-			                min: 1, max: 1000000000
+                      default: 1
+                      min: 1, max: 1000000000
 optional arguments:
    extend       - How to generate the extra pixels, input VipsExtend
-			                default: black
-			                allowed: black, copy, repeat, mirror, white, background
+                      default: black
+                      allowed: black, copy, repeat, mirror, white, background
    background   - Colour for background pixels, input VipsArrayDouble
 operation flags: sequential-unbuffered 
 </programlisting>
@@ -256,6 +259,102 @@ main( int argc, char **argv )
     vips_error_exit( NULL );
 
   g_object_unref( out ); 
+
+  return( 0 );
+}
+</programlisting>
+</example>
+
+  </refsect3>
+
+  <refsect3 id="reference-pools-ref">
+    <title>Reference pools</title>
+    <para>
+      libvips has a simple system to automate at least some reference counting 
+      issues. Reference pools are arrays of object pointers which will be 
+      released automatically when some other object is finalized. 
+    </para>
+
+    <para>
+      The code below crops a many-page image (perhaps a GIF or PDF). It 
+      splits the image into separate pages, crops each page, reassembles the 
+      cropped areas, and saves again. It creates a <code>context</code> 
+      object representing the state of processing, and 
+      <code>crop_animation</code> allocates two reference pools off that using 
+      <code>vips_object_local_array</code>, one to hold the cropped frames, 
+      and one to assemble and copy the result.
+    </para>
+
+    <para>
+      All unreffing is handled by <code>main</code>, and it doesn't need to 
+      know anything about <code>crop_animation</code>.
+    </para>
+
+<example>
+<title>Reference pool example</title>
+<programlisting language="C">
+#include &lt;vips/vips.h&gt;
+
+static int
+crop_animation( VipsObject *context, VipsImage *image, VipsImage **out,
+  int left, int top, int width, int height )
+{
+  int page_height = vips_image_get_page_height( image );
+  int n_pages = image-&gt;Ysize / page_height;
+  VipsImage **page = (VipsImage **) vips_object_local_array( context, n_pages );
+  VipsImage **copy = (VipsImage **) vips_object_local_array( context, 1 );
+
+  int i;
+
+  /* Split the image into cropped frames.
+   */
+  for( i = 0; i &lt; n_pages; i++ )
+    if( vips_crop( image, &amp;page[i],
+      left, page_height * i + top, width, height, NULL ) )
+      return( -1 );
+
+  /* Reassemble the frames and set the page height. You must copy before 
+   * modifying metadata.
+   */
+  if( vips_arrayjoin( page, &amp;copy[0], n_pages, "across", 1, NULL ) ||
+    vips_copy( copy[0], out, NULL ) )
+    return( -1 );
+  vips_image_set_int( *out, "page-height", height );
+
+  return( 0 );
+}
+
+int 
+main( int argc, char **argv )
+{
+  VipsImage *image;
+  VipsObject *context;
+  VipsImage *x;
+
+  if( VIPS_INIT( NULL ) ) 
+    vips_error_exit( NULL ); 
+
+  if( !(image = vips_image_new_from_file( argv[1], 
+    "access", VIPS_ACCESS_SEQUENTIAL,
+    NULL )) )
+    vips_error_exit( NULL ); 
+
+  context = VIPS_OBJECT( vips_image_new() );
+  if( crop_animation( context, image, &amp;x, 10, 10, 500, 500 ) ) {
+    g_object_unref( image );
+    g_object_unref( context );
+    vips_error_exit( NULL ); 
+  }
+  g_object_unref( image );
+  g_object_unref( context );
+  image = x;
+
+  if( vips_image_write_to_file( image, argv[2], NULL ) ) {
+    g_object_unref( image );
+    vips_error_exit( NULL ); 
+  }
+
+  g_object_unref( image );
 
   return( 0 );
 }
