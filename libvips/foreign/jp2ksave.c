@@ -182,17 +182,15 @@ static void
 vips_foreign_save_jp2k_warning_callback( const char *msg, void *client )
 {
 #ifdef DEBUG
-	g_warning( "jp2ksave: %s",  class->nickname, msg );
+	g_warning( "jp2ksave: %s", msg );
 #endif /*DEBUG*/
 }
 
-/* The openjpeg info and warning callbacks are incredibly chatty.
- */
 static void 
 vips_foreign_save_jp2k_info_callback( const char *msg, void *client )
 {
 #ifdef DEBUG
-	g_info( "jp2ksave: %s",  class->nickname, msg );
+	g_info( "jp2ksave: %s", msg );
 #endif /*DEBUG*/
 }
 
