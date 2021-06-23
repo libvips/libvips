@@ -496,9 +496,13 @@ main( int argc, char **argv )
 	textdomain( GETTEXT_PACKAGE );
 	setlocale( LC_ALL, "" );
 
-	/* The operation cache is not useful for processing many files.
-	vips_cache_set_max( 0 );
-	 */
+{
+	char *basename;
+
+	basename = g_path_get_basename( argv[0] );
+	g_set_prgname( basename );
+	g_free( basename );
+}
 
 	/* On Windows, argv is ascii-only .. use this to get a utf-8 version of
 	 * the args.

@@ -4,7 +4,7 @@
 
 AC_INIT([vips], [8.12.0], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
-AC_PREREQ(2.62)
+AC_PREREQ([2.69])
 
 # gobject-introspection recommends -Wno-portability
 # foreign stops complaints about a missing README (we use README.md instead)
@@ -117,8 +117,7 @@ AC_DEFINE_UNQUOTED(G_LOG_DOMAIN, "VIPS", [Domain for glib logging messages.])
 
 m4_define([debug_default], [no])
 AC_ARG_ENABLE(debug,
-  AC_HELP_STRING([--enable-debug=@<:@no/minimum/yes@:>@],
-    [turn on debugging @<:@default=debug_default()@:>@]),,
+  AS_HELP_STRING([--enable-debug=@<:@no/minimum/yes@:>@],[turn on debugging @<:@default=debug_default()@:>@]),,
   enable_debug=debug_default())
 
 if test x"$enable_debug" = x"yes"; then
@@ -180,8 +179,8 @@ AC_DEFINE_UNQUOTED(VIPS_ICC_DIR,"$profile_dir",[default directory for ICC profil
 # we want largefile support, if possible
 AC_SYS_LARGEFILE
 
-# we use libtool
-LT_INIT
+# we use libtool and can generate DLLs cleanly on win32 if necessary
+LT_INIT([win32-dll])
 
 # Checks for programs.
 AC_PROG_AWK
@@ -285,21 +284,6 @@ AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_CHECK_HEADERS([errno.h math.h fcntl.h limits.h stdlib.h string.h sys/file.h sys/ioctl.h sys/param.h sys/time.h sys/mman.h sys/types.h sys/stat.h unistd.h io.h direct.h windows.h])
 
-# uncomment to change which libs we build
-# AC_DISABLE_SHARED
-# AC_DISABLE_STATIC
-AC_LIBTOOL_WIN32_DLL
-AC_CHECK_TOOL(DLLWRAP, dllwrap)
-AC_CHECK_TOOL(DLLTOOL, dlltool)
-AC_CHECK_TOOL(OBJDUMP, objdump)
-AC_CHECK_TOOL(RANLIB, ranlib)
-AC_CHECK_TOOL(STRIP, strip)
-AC_CHECK_TOOL(AR, ar)
-AC_CHECK_TOOL(AS, as)
-AC_CHECK_TOOL(LD, ld)
-AC_PROVIDE([AC_LIBTOOL_WIN32_DLL])
-AC_PROG_LIBTOOL
-
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_RESTRICT
 AX_GCC_VAR_ATTRIBUTE(vector_size)
@@ -322,14 +306,14 @@ fi
 if test x"$ax_cv_have_var_attribute_vector_size" = x"yes"; then
   AC_MSG_CHECKING([for C++ vector shuffle])
   AC_LANG_PUSH([C++])
-  AC_TRY_COMPILE([
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
     typedef float v4f __attribute__((vector_size(4 * sizeof(float)),aligned(16)));
-  ],[
+  ]], [[
     v4f f; f[3] = 99;
-  ],[
+  ]])],[
     AC_MSG_RESULT([yes])
     have_vector_shuffle=yes
-  ], [
+  ],[
     AC_MSG_RESULT([no])
     have_vector_shuffle=no
   ])
@@ -345,15 +329,15 @@ fi
 if test x"$have_vector_shuffle" = x"yes"; then
   AC_MSG_CHECKING([for C++ vector arithmetic])
   AC_LANG_PUSH([C++])
-  AC_TRY_COMPILE([
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
     typedef float v4f __attribute__((vector_size(4 * sizeof(float)),aligned(16)));
-  ],[
+  ]], [[
     v4f f = {1, 2, 3, 4}; f *= 12.0; 
     v4f g = {5, 6, 7, 8}; f = g > 0 ? g : -1 * g;
-  ],[
+  ]])],[
     AC_MSG_RESULT([yes])
     have_vector_arith=yes
-  ], [
+  ],[
     AC_MSG_RESULT([no])
     have_vector_arith=no
   ])
@@ -365,7 +349,7 @@ fi
 if test x"$have_vector_arith" = x"yes"; then
   AC_MSG_CHECKING([for C++ signed constants in vector templates])
   AC_LANG_PUSH([C++])
-  AC_TRY_COMPILE([
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
     typedef float v4f __attribute__((vector_size(4 * sizeof(float)),aligned(16)));
     template <typename T>
     static void
@@ -374,10 +358,10 @@ if test x"$have_vector_arith" = x"yes"; then
         v4f f;
         f = -1 * B;
     }
-  ],[
-  ],[
+  ]], [[
+  ]])],[
     AC_MSG_RESULT([yes])
-  ], [
+  ],[
     AC_MSG_RESULT([no])
     have_vector_arith=no
   ])
@@ -1429,32 +1413,29 @@ fi
 VIPS_CFLAGS="$VIPS_CFLAGS $VIPS_DEBUG_FLAGS $REQUIRED_CFLAGS"
 VIPS_LIBS="$VIPS_LIBS $REQUIRED_LIBS -lm"
 
-# autoconf hates multi-line AC_SUBST so we have to have another copy of this
-# thing
+# build options relevant at runtime ... this becomes `vips --vips-config`
+# output
 VIPS_CONFIG="\
 enable debug: $enable_debug, \
 enable deprecated library components: $enable_deprecated, \
 enable modules: $gmodule_supported_flag, \
-enable docs with gtkdoc: $enable_gtk_doc, \
-gobject introspection:  $found_introspection, \
-RAD load/save: $with_radiance, \
-Analyze7 load/save: $with_analyze, \
-PPM load/save: $with_ppm, \
-GIF load:  $with_nsgif, \
-generate C++ docs: $with_doxygen, \
 use fftw3 for FFT: $with_fftw, \
 accelerate loops with orc: $with_orc, \
 ICC profile support with lcms: $with_lcms, \
 zlib: $with_zlib, \
 text rendering with pangocairo: $with_pangocairo, \
 font file support with fontconfig: $with_fontconfig, \
+RAD load/save: $with_radiance, \
+Analyze7 load/save: $with_analyze, \
+PPM load/save: $with_ppm, \
+GIF load:  $with_nsgif, \
 EXIF metadata support with libexif: $with_libexif, \
 JPEG load/save with libjpeg: $with_jpeg, \
 JXL load/save with libjxl: $with_libjxl (dynamic module: $with_libjxl_module), \
 JPEG2000 load/save with libopenjp2: $with_libopenjp2, \
 PNG load with libspng: $with_libspng, \
 PNG load/save with libpng: $with_png, \
-8bpp PNG quantisation: $with_imagequant, \
+PNG quantisation to 8 bit: $with_imagequant, \
 TIFF load/save with libtiff: $with_tiff, \
 image pyramid save: $with_gsf, \
 HEIC/AVIF load/save with libheif: $with_heif (dynamic module: $with_heif_module), \
@@ -1463,7 +1444,7 @@ PDF load with PDFium:  $with_pdfium, \
 PDF load with poppler-glib: $with_poppler (dynamic module: $with_poppler_module), \
 SVG load with librsvg-2.0: $with_rsvg, \
 EXR load with OpenEXR: $with_OpenEXR, \
-slide load with OpenSlide: $with_openslide (dynamic module: $with_openslide_module), \
+OpenSlide load: $with_openslide (dynamic module: $with_openslide_module), \
 Matlab load with matio: $with_matio, \
 NIfTI load/save with niftiio: $with_nifti, \
 FITS load/save with cfitsio: $with_cfitsio, \
@@ -1568,7 +1549,7 @@ PNG load with libspng:                  $with_libspng
  (requires libspng-0.6 or later)
 PNG load/save with libpng:              $with_png
  (requires libpng-1.2.9 or later)
-8bpp PNG quantisation:                  $with_imagequant
+PNG quantisation to 8 bit:              $with_imagequant
  (requires libimagequant)
 TIFF load/save with libtiff:            $with_tiff
 image pyramid save:                     $with_gsf
@@ -1582,7 +1563,7 @@ PDF load with poppler-glib:             $with_poppler (dynamic module: $with_pop
 SVG load with librsvg-2.0:              $with_rsvg
  (requires librsvg-2.0 2.34.0 or later)
 EXR load with OpenEXR:                  $with_OpenEXR
-slide load with OpenSlide:              $with_openslide (dynamic module: $with_openslide_module)
+OpenSlide support:                      $with_openslide (dynamic module: $with_openslide_module)
  (requires openslide-3.3.0 or later)
 Matlab load with matio:                 $with_matio
 NIfTI load/save with niftiio:           $with_nifti

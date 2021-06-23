@@ -1,6 +1,12 @@
 14/6/21 started 8.12
 - all tools support `--version`
 
+14/8/20 started 8.11.1
+- add more example code to C docs
+- update libtool support in configure.ac 
+- more startup info if VIPS_INFO is set
+- command-line programs set glib prgname (no longer set for you by VIPS_INIT)
+
 14/8/20 started 8.11
 - add vips_jpegload_source() and vips_svgload_source() to public C API
 - integrate doxygen in build system to generate C++ API docs
