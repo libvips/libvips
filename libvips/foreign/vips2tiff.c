@@ -384,11 +384,6 @@ struct _Wtiff {
 	 * and we must compress ourselves. 
 	 */
 	gboolean we_compress;
-
-	/* If we are copying, we need a buffer to read the compressed tile to.
-	 */
-	tdata_t compressed_buf;
-	tsize_t compressed_buf_length;
 };
 
 /* Write an ICC Profile from a file into the JPEG stream.
@@ -959,20 +954,6 @@ wtiff_allocate_layers( Wtiff *wtiff )
 			return( -1 );
 	}
 
-	/* If we will be copying layers we need a buffer large enough to hold
-	 * the largest compressed tile in any page.
-	 *
-	 * Allocate a buffer 2x the uncompressed tile size ... much simpler
-	 * than searching every page for the largest tile with
-	 * TIFFTAG_TILEBYTECOUNTS.
-	 */
-	if( wtiff->pyramid ) {
-		wtiff->compressed_buf_length = 2 * wtiff->tls * wtiff->tileh;
-		if( !(wtiff->compressed_buf = vips_malloc( NULL,
-			wtiff->compressed_buf_length )) )
-			return( -1 );
-	}
-
 	return( 0 );
 }
 
@@ -1032,7 +1013,6 @@ wtiff_free( Wtiff *wtiff )
 	VIPS_FREE( wtiff->tbuf );
 	VIPS_FREEF( layer_free_all, wtiff->layer );
 	VIPS_FREE( wtiff->filename );
-	VIPS_FREE( wtiff->compressed_buf );
 	VIPS_FREE( wtiff );
 }
 
@@ -2029,12 +2009,17 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 	for( tile_no = 0; tile_no < n; tile_no++ ) {
 		tsize_t len;
 
-		len = TIFFReadRawTile( in, tile_no, 
-			wtiff->compressed_buf, wtiff->compressed_buf_length );
-		if( len <= 0 ||
-			TIFFWriteRawTile( out, tile_no, 
-				wtiff->compressed_buf, len ) < 0 )
+		/* TIFFReadRawTile()/TIFFWriteRawTile() would save us
+		 * decompress/recompress, but they won't work for
+		 * JPEG-compressed tiles since they won't copy the 
+		 * JPEG quant tables we need. 
+		 */
+		len = TIFFReadEncodedTile( in, tile_no, buf, -1 );
+		if( len < 0 ||
+			TIFFWriteEncodedTile( out, tile_no, buf, len ) < 0 ) {
+			g_free( buf );
 			return( -1 );
+		}
 	}
 	g_free( buf );
 

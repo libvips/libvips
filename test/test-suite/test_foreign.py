@@ -416,6 +416,12 @@ class TestForeign:
         self.save_load_file(".tif", "[bitdepth=4]", im)
 
         filename = temp_filename(self.tempdir, '.tif')
+        self.colour.write_to_file(filename, pyramid=True, compression="jpeg")
+        x = pyvips.Image.new_from_file(filename, page=2)
+        assert x.width == 72
+        assert abs(x.avg() - 117.3) < 1
+
+        filename = temp_filename(self.tempdir, '.tif')
         x = pyvips.Image.new_from_file(TIF_FILE)
         x = x.copy()
         x.set("orientation", 2)
@@ -894,6 +900,10 @@ class TestForeign:
         x = pyvips.Image.new_from_file(SVG_FILE, dpi=144)
         assert abs(im.width * 2 - x.width) < 2
         assert abs(im.height * 2 - x.height) < 2
+
+        with pytest.raises(pyvips.error.Error):
+            svg = b'<svg viewBox="0 0 0 0"></svg>'
+            im = pyvips.Image.new_from_buffer(svg, "")
 
     def test_csv(self):
         self.save_load("%s.csv", self.mono)

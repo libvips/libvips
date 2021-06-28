@@ -327,7 +327,7 @@ typedef struct _RtiffHeader {
 	 */
 	double stonits;
 
-	/* Number of subifds, if any.
+	/* Number of subifds, 0 for none.
 	 */
 	int subifd_count;
 
@@ -684,7 +684,7 @@ rtiff_set_page( Rtiff *rtiff, int page )
 		}
 
 		if( rtiff->subifd >= 0 ) {
-			int subifd_count;
+			uint16 subifd_count;
 			toff_t *subifd_offsets;
 
 			if( !TIFFGetField( rtiff->tiff, TIFFTAG_SUBIFD, 
@@ -694,8 +694,7 @@ rtiff_set_page( Rtiff *rtiff, int page )
 				return( -1 );
 			}
 
-			if( subifd_count <= 0 || 
-				rtiff->subifd >= subifd_count ) {
+			if( rtiff->subifd >= subifd_count ) {
 				vips_error( "tiff2vips", 
 					_( "subifd %d out of range, "
 						"only 0-%d available" ),
@@ -2437,6 +2436,7 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 	int i;
 	uint16 extra_samples_count;
 	uint16 *extra_samples_types;
+	uint16 subifd_count;
 	toff_t *subifd_offsets;
 	char *image_description;
 
@@ -2545,10 +2545,11 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 			header->separate = TRUE; 
 	}
 
-	/* Stays zero if there's no SUBIFD.
+	/* TIFFGetField needs a uint16 to write count to.
 	 */
-	TIFFGetField( rtiff->tiff, TIFFTAG_SUBIFD, 
-		&header->subifd_count, &subifd_offsets );
+	if( TIFFGetField( rtiff->tiff, TIFFTAG_SUBIFD, 
+		&subifd_count, &subifd_offsets ) )
+		header->subifd_count = subifd_count;
 
 	/* IMAGEDESCRIPTION often has useful metadata. libtiff makes sure 
 	 * that data is null-terminated and contains no embedded null 

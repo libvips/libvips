@@ -212,7 +212,14 @@ vips__tiff_openin_source( VipsSource *source )
 	if( vips_source_rewind( source ) )
 		return( NULL );
 
-	if( !(tiff = TIFFClientOpen( "source input", "rm",
+	/* Disable memory mapped input -- it chews up VM and the performance
+	 * gain is very small. 
+	 *
+	 * C enables strip chopping: very large uncompressed strips are 
+	 * chopped into c. 8kb chunks. This can reduce peak memory use for 
+	 * this type of file.
+	 */
+	if( !(tiff = TIFFClientOpen( "source input", "rmC",
 		(thandle_t) source,
 		openin_source_read,
 		openin_source_write,

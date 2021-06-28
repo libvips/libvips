@@ -1161,7 +1161,7 @@ vips_guess_prefix( const char *argv0, const char *env_name )
 
 	/* Already set?
 	 */
-        if( (prefix = g_getenv( env_name )) ) 
+	if( (prefix = g_getenv( env_name )) )
                 return( prefix );
 
 #ifdef G_OS_WIN32
