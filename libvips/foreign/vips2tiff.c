@@ -384,11 +384,6 @@ struct _Wtiff {
 	 * and we must compress ourselves. 
 	 */
 	gboolean we_compress;
-
-	/* If we are copying, we need a buffer to read the compressed tile to.
-	 */
-	tdata_t compressed_buf;
-	tsize_t compressed_buf_length;
 };
 
 /* Write an ICC Profile from a file into the JPEG stream.
@@ -959,20 +954,6 @@ wtiff_allocate_layers( Wtiff *wtiff )
 			return( -1 );
 	}
 
-	/* If we will be copying layers we need a buffer large enough to hold
-	 * the largest compressed tile in any page.
-	 *
-	 * Allocate a buffer 2x the uncompressed tile size ... much simpler
-	 * than searching every page for the largest tile with
-	 * TIFFTAG_TILEBYTECOUNTS.
-	 */
-	if( wtiff->pyramid ) {
-		wtiff->compressed_buf_length = 2 * wtiff->tls * wtiff->tileh;
-		if( !(wtiff->compressed_buf = vips_malloc( NULL,
-			wtiff->compressed_buf_length )) )
-			return( -1 );
-	}
-
 	return( 0 );
 }
 
@@ -1032,7 +1013,6 @@ wtiff_free( Wtiff *wtiff )
 	VIPS_FREE( wtiff->tbuf );
 	VIPS_FREEF( layer_free_all, wtiff->layer );
 	VIPS_FREE( wtiff->filename );
-	VIPS_FREE( wtiff->compressed_buf );
 	VIPS_FREE( wtiff );
 }
 
