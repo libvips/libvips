@@ -5,6 +5,7 @@
 - command-line programs set glib prgname (no longer set for you by VIPS_INIT)
 - enable strip chopping for TIFF read [DavidStorm]
 - disable modules by default for static builds [kleisauke]
+- fix jpeg tiff pyramid save
 
 14/8/20 started 8.11
 - add vips_jpegload_source() and vips_svgload_source() to public C API
