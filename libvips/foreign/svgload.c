@@ -245,9 +245,11 @@ vips_foreign_load_svg_get_flags( VipsForeignLoad *load )
 	return( VIPS_FOREIGN_SEQUENTIAL );
 }
 
-static void
+static int
 vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( svg );
+
 	RsvgDimensionData dimensions;
 	int width;
 	int height;
@@ -260,6 +262,11 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
 	rsvg_handle_get_dimensions( svg->page, &dimensions );
 	width = dimensions.width;
 	height = dimensions.height;
+
+	if( width <= 0 || height <= 0 ) {
+		vips_error( class->nickname, "%s", _( "bad dimensions" ) );
+		return( -1 );
+	}
 
 	/* Calculate dimensions at required dpi/scale.
 	 */
@@ -300,6 +307,7 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
 	 */
         vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 
+	return( 0 );
 }
 
 static int
@@ -307,9 +315,7 @@ vips_foreign_load_svg_header( VipsForeignLoad *load )
 {
 	VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) load;
 
-	vips_foreign_load_svg_parse( svg, load->out ); 
-
-	return( 0 );
+	return vips_foreign_load_svg_parse( svg, load->out );
 }
 
 static int
@@ -386,9 +392,9 @@ vips_foreign_load_svg_load( VipsForeignLoad *load )
 	 * Make tiles 2000 pixels high to limit overcomputation. 
 	 */
 	t[0] = vips_image_new(); 
-	vips_foreign_load_svg_parse( svg, t[0] ); 
-	if( vips_image_generate( t[0], 
-		NULL, vips_foreign_load_svg_generate, NULL, svg, NULL ) ||
+	if( vips_foreign_load_svg_parse( svg, t[0] ) ||
+		vips_image_generate( t[0], NULL,
+			vips_foreign_load_svg_generate, NULL, svg, NULL ) ||
 		vips_tilecache( t[0], &t[1],
 			"tile_width", VIPS_MIN( t[0]->Xsize, RSVG_MAX_WIDTH ),
 			"tile_height", 2000,
