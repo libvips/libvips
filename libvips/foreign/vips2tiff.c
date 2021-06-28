@@ -2009,15 +2009,15 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 	for( tile_no = 0; tile_no < n; tile_no++ ) {
 		tsize_t len;
 
-                /* TIFFReadRawTile()/TIFFWriteRawTile() would save us
+		/* TIFFReadRawTile()/TIFFWriteRawTile() would save us
 		 * decompress/recompress, but they won't work for
 		 * JPEG-compressed tiles since they won't copy the 
 		 * JPEG quant tables we need. 
-                 */
-                len = TIFFReadEncodedTile( in, tile_no, buf, -1 );
-                if( len < 0 ||
-                        TIFFWriteEncodedTile( out, tile_no, buf, len ) < 0 ) {
-                        g_free( buf );
+		 */
+		len = TIFFReadEncodedTile( in, tile_no, buf, -1 );
+		if( len < 0 ||
+			TIFFWriteEncodedTile( out, tile_no, buf, len ) < 0 ) {
+			g_free( buf );
 			return( -1 );
 		}
 	}
