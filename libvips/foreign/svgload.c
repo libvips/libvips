@@ -806,6 +806,45 @@ vips_svgload_buffer( void *buf, size_t len, VipsImage **out, ... )
 }
 
 /**
+ * vips_svgload_string:
+ * @str: string to load
+ * @out: (out): image to write
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @dpi: %gdouble, render at this DPI
+ * * @scale: %gdouble, scale render by this factor
+ * * @unlimited: %gboolean, allow SVGs of any size
+ *
+ * Exactly as vips_svgload(), but read from a string. This function takes a
+ * copy of the string.
+ *
+ * See also: vips_svgload().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_svgload_string( const char *str, VipsImage **out, ... )
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* Copy the string.
+	 */
+	blob = vips_blob_copy( (const void *) str, strlen( str ) );
+
+	va_start( ap, out );
+	result = vips_call_split( "svgload_buffer", ap, blob, out );
+	va_end( ap );
+
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( result );
+}
+
+/**
  * vips_svgload_source:
  * @source: source to load from
  * @out: (out): image to write
