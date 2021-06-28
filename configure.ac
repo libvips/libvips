@@ -423,8 +423,15 @@ PKG_CHECK_MODULES(HAVE_CHECKED_MUL, glib-2.0 >= 2.48,
 
 AC_MSG_CHECKING([whether to build dynamic modules])
 
+# Disable modules by default when building static libraries
+AS_IF([test x"$enable_static" = x"yes"],
+  [enable_modules_default=no],
+  [enable_modules_default=yes])
+
 AC_ARG_ENABLE([modules], 
-  AS_HELP_STRING([--disable-modules], [disable dynamic modules (default: enabled)]))
+  AS_HELP_STRING([--disable-modules], [disable dynamic modules (default: test)]),
+  [enable_modules="$enableval"],
+  [enable_modules="$enable_modules_default"])
 
 gmodule_supported_bool=false
 gmodule_supported_flag=no
