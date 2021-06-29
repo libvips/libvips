@@ -422,6 +422,12 @@ class TestForeign:
         assert abs(x.avg() - 117.3) < 1
 
         filename = temp_filename(self.tempdir, '.tif')
+        self.colour.write_to_file(filename, pyramid=True, subifd=True, compression="jpeg")
+        x = pyvips.Image.new_from_file(filename, subifd=1)
+        assert x.width == 72
+        assert abs(x.avg() - 117.3) < 1
+
+        filename = temp_filename(self.tempdir, '.tif')
         x = pyvips.Image.new_from_file(TIF_FILE)
         x = x.copy()
         x.set("orientation", 2)
