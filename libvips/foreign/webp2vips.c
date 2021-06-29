@@ -555,9 +555,9 @@ read_header( Read *read, VipsImage *out )
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0 );
-	vips_image_pipelinev( read->frame, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
-
-	if( vips_image_write_prepare( read->frame ) ) 
+	if( vips_image_pipelinev( read->frame, 
+		VIPS_DEMAND_STYLE_THINSTRIP, NULL ) ||
+		vips_image_write_prepare( read->frame ) ) 
 		return( -1 );
 
 	vips_image_init_fields( out,
@@ -566,7 +566,8 @@ read_header( Read *read, VipsImage *out )
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0 );
-	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
+		return( -1 );
 	VIPS_SETSTR( out->filename, 
 		vips_connection_filename( VIPS_CONNECTION( read->source ) ) );
 
@@ -598,9 +599,8 @@ read_frame( Read *read,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0 );
-	vips_image_pipelinev( frame, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
-
-	if( vips_image_write_prepare( frame ) ) {
+	if( vips_image_pipelinev( frame, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) ||
+		vips_image_write_prepare( frame ) ) {
 		g_object_unref( frame );
 		return( NULL );
 	}

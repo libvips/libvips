@@ -992,8 +992,9 @@ vips_foreign_load_start( VipsImage *out, void *a, void *b )
 		/* We have to tell vips that out depends on real. We've set
 		 * the demand hint below, but not given an input there.
 		 */
-		vips_image_pipelinev( load->out, load->out->dhint, 
-			load->real, NULL );
+		if( vips_image_pipelinev( load->out, load->out->dhint, 
+			load->real, NULL ) )
+			return( NULL );
 	}
 
 	return( vips_region_new( load->real ) );
@@ -1099,7 +1100,8 @@ vips_foreign_load_build( VipsObject *object )
 		/* ->header() should set the dhint. It'll default to the safe
 		 * SMALLTILE if header() did not set it.
 		 */
-		vips_image_pipelinev( load->out, load->out->dhint, NULL );
+		if( vips_image_pipelinev( load->out, load->out->dhint, NULL ) )
+			return( -1 );
 
 		/* Then 'start' creates the real image and 'gen' fetches 
 		 * pixels for @out from @real on demand.

@@ -193,7 +193,9 @@ vips_foreign_load_matrix_header( VipsForeignLoad *load )
 	if( result )
 		return( -1 );
 
-	vips_image_pipelinev( load->out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+	if( vips_image_pipelinev( load->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
+		return( -1 );
 	vips_image_init_fields( load->out,
 		width, height, 1, 
 		VIPS_FORMAT_DOUBLE, 
@@ -219,7 +221,9 @@ vips_foreign_load_matrix_load( VipsForeignLoad *load )
 
 	int x, y;
 
-	vips_image_pipelinev( load->real, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+	if( vips_image_pipelinev( load->real, 
+		VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
+		return( -1 );
 	vips_image_init_fields( load->real,
 		load->out->Xsize, load->out->Ysize, 1, 
 		VIPS_FORMAT_DOUBLE, 

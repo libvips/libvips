@@ -440,7 +440,8 @@ vips_foreign_load_jp2k_set_header( VipsForeignLoadJp2k *jp2k, VipsImage *out )
 	 * the cache we are quite happy serving that if anything downstream 
 	 * would like it.
 	 */
-        vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+        if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
+		return( -1 );
 
 	vips_image_init_fields( out,
 		first->w, first->h, jp2k->image->numcomps, format, 

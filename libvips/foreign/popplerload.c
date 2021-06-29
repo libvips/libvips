@@ -263,7 +263,8 @@ vips_foreign_load_pdf_set_image( VipsForeignLoadPdf *pdf, VipsImage *out )
 
 	/* We render to a linecache, so fat strips work well.
 	 */
-        vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
+        if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL ) )
+		return( -1 );
 
 	/* Extract and attach metadata. Set the old name too for compat.
 	 */

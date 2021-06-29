@@ -282,11 +282,10 @@ vips_worley_build( VipsObject *object )
 		VIPS_FORMAT_FLOAT, VIPS_CODING_NONE, 
 		VIPS_INTERPRETATION_MULTIBAND,
 		1.0, 1.0 );
-	vips_image_pipelinev( create->out,
-		VIPS_DEMAND_STYLE_ANY, NULL );
-	if( vips_image_generate( create->out,
-		vips_worley_start, vips_worley_gen, vips_worley_stop, 
-		worley, NULL ) )
+	if( vips_image_pipelinev( create->out, VIPS_DEMAND_STYLE_ANY, NULL ) ||
+		vips_image_generate( create->out,
+			vips_worley_start, vips_worley_gen, vips_worley_stop, 
+			worley, NULL ) )
 		return( -1 );
 
 	return( 0 );

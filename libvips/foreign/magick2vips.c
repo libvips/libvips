@@ -426,7 +426,8 @@ parse_header( Read *read )
 	 */
 	im->Coding = VIPS_CODING_NONE;
 
-	vips_image_pipelinev( im, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
+	if( vips_image_pipelinev( im, VIPS_DEMAND_STYLE_SMALLTILE, NULL ) )
+		return( -1 );
 
 	/* Set vips metadata from ImageMagick profiles.
 	 */

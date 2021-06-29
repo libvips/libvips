@@ -274,11 +274,9 @@ vips_hist_plot_build( VipsObject *object )
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, 
 		VIPS_INTERPRETATION_HISTOGRAM, 
 		1.0, 1.0 ); 
-	vips_image_pipelinev( plot->out, 
-		VIPS_DEMAND_STYLE_ANY, NULL );
-
-	if( vips_image_generate( plot->out, 
-		NULL, generate_fn, NULL, in, NULL ) )
+	if( vips_image_pipelinev( plot->out, VIPS_DEMAND_STYLE_ANY, NULL ) ||
+		vips_image_generate( plot->out, 
+			NULL, generate_fn, NULL, in, NULL ) )
 		return( -1 );
 
 	return( 0 );

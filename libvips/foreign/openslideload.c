@@ -337,10 +337,9 @@ readslide_attach_associated( ReadSlide *rslide, VipsImage *image )
 			*associated_name, &w, &h );
 		vips_image_init_fields( associated, w, h, 4, VIPS_FORMAT_UCHAR,
 			VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
-		vips_image_pipelinev( associated, 
-			VIPS_DEMAND_STYLE_THINSTRIP, NULL );
-
-		if( vips_image_write_prepare( associated ) ) {
+		if( vips_image_pipelinev( associated, 
+			VIPS_DEMAND_STYLE_THINSTRIP, NULL ) ||
+			vips_image_write_prepare( associated ) ) {
 			g_object_unref( associated );
 			return( -1 );
 		}
@@ -417,7 +416,9 @@ readslide_parse( ReadSlide *rslide, VipsImage *image )
 			rslide->associated, &w, &h );
 		vips_image_set_string( image, "slide-associated-image",
 			rslide->associated );
-		vips_image_pipelinev( image, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+		if( vips_image_pipelinev( image, 
+			VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
+			return( -1 );
 	} 
 	else {
 		char buf[256];
@@ -428,7 +429,9 @@ readslide_parse( ReadSlide *rslide, VipsImage *image )
 		rslide->downsample = openslide_get_level_downsample(
 			rslide->osr, rslide->level );
 		vips_image_set_int( image, "slide-level", rslide->level );
-		vips_image_pipelinev( image, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
+		if( vips_image_pipelinev( image, 
+			VIPS_DEMAND_STYLE_SMALLTILE, NULL ) )
+			return( -1 );
 
 		/* Try to get tile width/height. An undocumented, experimental
 		 * feature.

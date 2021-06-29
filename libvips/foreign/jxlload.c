@@ -465,15 +465,16 @@ vips_foreign_load_jxl_set_header( VipsForeignLoadJxl *jxl, VipsImage *out )
 		break;
 	}
 
+	vips_image_init_fields( out,
+		jxl->info.xsize, jxl->info.ysize, jxl->format.num_channels, 
+		format, VIPS_CODING_NONE, interpretation, 1.0, 1.0 );
+
 	/* Even though this is a full image reader, we hint thinstrip since 
 	 * we are quite happy serving that if anything downstream 
 	 * would like it.
 	 */
-        vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
-
-	vips_image_init_fields( out,
-		jxl->info.xsize, jxl->info.ysize, jxl->format.num_channels, 
-		format, VIPS_CODING_NONE, interpretation, 1.0, 1.0 );
+        if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
+		return( -1 );
 
 	if( jxl->icc_data &&
 		jxl->icc_size > 0 ) {

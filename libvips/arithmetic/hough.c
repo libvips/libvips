@@ -55,19 +55,13 @@ vips_hough_new_accumulator( VipsHough *hough )
 
 	accumulator = vips_image_new_memory(); 
 
-	vips_image_pipelinev( accumulator,
-		VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL );
-
-	if( class->init_accumulator( hough, accumulator ) ||
+	if( vips_image_pipelinev( accumulator,
+		VIPS_DEMAND_STYLE_ANY, statistic->ready, NULL ) ||
+		class->init_accumulator( hough, accumulator ) ||
 		vips_image_write_prepare( accumulator ) ) {
 		g_object_unref( accumulator );
 		return( NULL );
 	}
-
-	/* vips does not guarantee image mem is zeroed.
-	 */
-	memset( VIPS_IMAGE_ADDR( accumulator, 0, 0 ), 0,
-		VIPS_IMAGE_SIZEOF_IMAGE( accumulator ) ); 
 
 	return( accumulator );
 }

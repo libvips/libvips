@@ -366,11 +366,13 @@ vips_foreign_load_csv_header( VipsForeignLoad *load )
 	else 
 		height = csv->lines;
 
-	vips_image_pipelinev( load->out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 	vips_image_init_fields( load->out,
 		width, height, 1, 
 		VIPS_FORMAT_DOUBLE, 
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
+	if( vips_image_pipelinev( load->out, 
+		VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
+		return( -1 );
 
 	VIPS_SETSTR( load->out->filename, 
 		vips_connection_filename( VIPS_CONNECTION( csv->source ) ) );
@@ -403,11 +405,13 @@ vips_foreign_load_csv_load( VipsForeignLoad *load )
 			return( -1 );
 		}
 
-	vips_image_pipelinev( load->real, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 	vips_image_init_fields( load->real,
 		load->out->Xsize, load->out->Ysize, 1, 
 		VIPS_FORMAT_DOUBLE, 
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W, 1.0, 1.0 );
+	if( vips_image_pipelinev( load->real, 
+		VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
+		return( -1 );
 
 	csv->lineno = csv->skip + 1;
 	for( y = 0; y < load->real->Ysize; y++ ) {

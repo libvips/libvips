@@ -532,7 +532,8 @@ vips_foreign_load_magick7_parse( VipsForeignLoadMagick7 *magick7,
 	 */
 	out->Coding = VIPS_CODING_NONE;
 
-	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
+	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL ) )
+		return( -1 );
 
 	/* Get all the string metadata.
 	 */

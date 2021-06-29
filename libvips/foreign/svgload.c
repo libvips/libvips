@@ -305,7 +305,8 @@ vips_foreign_load_svg_parse( VipsForeignLoadSvg *svg, VipsImage *out )
 
 	/* We render to a linecache, so fat strips work well.
 	 */
-        vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
+        if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL ) )
+		return( -1 );
 
 	return( 0 );
 }

@@ -428,12 +428,11 @@ vips_text_build( VipsObject *object )
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, 
 		VIPS_INTERPRETATION_sRGB,
 		text->dpi / 25.4, text->dpi / 25.4 );
-
-	vips_image_pipelinev( image, VIPS_DEMAND_STYLE_ANY, NULL );
 	image->Xoffset = extents.left;
 	image->Yoffset = extents.top;
 
-	if( vips_image_write_prepare( image ) ) {
+	if( vips_image_pipelinev( image, VIPS_DEMAND_STYLE_ANY, NULL ) ||
+		vips_image_write_prepare( image ) ) {
 		g_mutex_unlock( vips_text_lock ); 
 		return( -1 );
 	}

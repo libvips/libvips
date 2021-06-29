@@ -877,7 +877,8 @@ rad2vips_get_header( Read *read, VipsImage *out )
 		vips_connection_filename( 
 			VIPS_CONNECTION( read->sbuf->source ) ) );
 
-	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
+		return( -1 );
 
 	vips_image_set_string( out, "rad-format", read->format );
 

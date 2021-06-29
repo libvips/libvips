@@ -333,11 +333,12 @@ vips_fits_get_header( VipsFits *fits, VipsImage *out )
 	else
 		interpretation = VIPS_INTERPRETATION_MULTIBAND;
 
-	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
 	vips_image_init_fields( out,
 		 width, height, bands,
 		 format,
 		 VIPS_CODING_NONE, interpretation, 1.0, 1.0 );
+	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL ) )
+		return( -1 );
 
 	/* Read all keys into meta.
 	 */

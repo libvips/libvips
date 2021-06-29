@@ -580,7 +580,8 @@ read_jpeg_header( ReadJpeg *jpeg, VipsImage *out )
 	VIPS_SETSTR( out->filename, 
 		vips_connection_filename( VIPS_CONNECTION( jpeg->source ) ) );
 
-	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
+	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_FATSTRIP, NULL ) )
+		return( -1 );
 
 	/* cinfo->output_width and cinfo->output_height round up with
 	 * shrink-on-load. For example, if the image is 1801 pixels across and

@@ -137,9 +137,8 @@ vips_gaussmat_build( VipsObject *object )
 		VIPS_FORMAT_DOUBLE, VIPS_CODING_NONE, 
 		VIPS_INTERPRETATION_MULTIBAND,
 		1.0, 1.0 ); 
-	vips_image_pipelinev( create->out, 
-		VIPS_DEMAND_STYLE_ANY, NULL );
-	if( vips_image_write_prepare( create->out ) )
+	if( vips_image_pipelinev( create->out, VIPS_DEMAND_STYLE_ANY, NULL ) ||
+		vips_image_write_prepare( create->out ) )
 		return( -1 );
 
 	sum = 0.0;

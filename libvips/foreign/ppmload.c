@@ -431,7 +431,7 @@ vips_foreign_load_ppm_set_image( VipsForeignLoadPpm *ppm, VipsImage *image )
 		ppm->width, ppm->height, ppm->bands, ppm->format, 
 		VIPS_CODING_NONE, ppm->interpretation, 1.0, 1.0 );
 
-        vips_image_pipelinev( image, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+        (void) vips_image_pipelinev( image, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
 
 	vips_foreign_load_ppm_set_image_metadata( ppm, image );
 

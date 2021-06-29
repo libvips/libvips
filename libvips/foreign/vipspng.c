@@ -361,6 +361,7 @@ png2vips_header( Read *read, VipsImage *out )
 	png_uint_32 width, height;
 	int bitdepth, color_type;
 	int interlace_type;
+	VipsDemandStyle hint;
 
 	png_uint_32 res_x, res_y;
 	int unit_type;
@@ -498,9 +499,11 @@ png2vips_header( Read *read, VipsImage *out )
 		/* Sequential mode needs thinstrip to work with things like
 		 * vips_shrink().
 		 */
-		vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL );
+		hint = VIPS_DEMAND_STYLE_THINSTRIP;
 	else 
-		vips_image_pipelinev( out, VIPS_DEMAND_STYLE_ANY, NULL );
+		hint = VIPS_DEMAND_STYLE_ANY;
+	if( vips_image_pipelinev( out, hint, NULL ) )
+		return( -1 );
 
 	/* Fetch the ICC profile. @name is useless, something like "icc" or
 	 * "ICC Profile" etc. Ignore it.

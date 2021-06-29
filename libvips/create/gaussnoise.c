@@ -136,11 +136,10 @@ vips_gaussnoise_build( VipsObject *object )
 		gaussnoise->width, gaussnoise->height, 1,
 		VIPS_FORMAT_FLOAT, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_MULTIBAND, 1.0, 1.0 );
-	vips_image_pipelinev( create->out, 
-		VIPS_DEMAND_STYLE_ANY, NULL );
 
-	if( vips_image_generate( create->out, 
-		NULL, vips_gaussnoise_gen, NULL, gaussnoise, NULL ) )
+	if( vips_image_pipelinev( create->out, VIPS_DEMAND_STYLE_ANY, NULL ) ||
+		vips_image_generate( create->out, 
+			NULL, vips_gaussnoise_gen, NULL, gaussnoise, NULL ) )
 		return( -1 );
 
 	return( 0 );
