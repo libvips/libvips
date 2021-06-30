@@ -640,6 +640,13 @@ vips_icc_load_profile_blob( VipsBlob *blob,
 	size_t size;
 	cmsHPROFILE profile;
 
+#ifdef DEBUG
+	printf( "loading %s profile, intent %s, from blob %p\n", 
+		direction == LCMS_USED_AS_INPUT ?  _( "input" ) : _( "output" ),
+		vips_enum_nick( VIPS_TYPE_INTENT, intent ),
+		blob );
+#endif /*DEBUG*/
+
 	data = vips_blob_get( blob, &size );
 	if( !(profile = cmsOpenProfileFromMem( data, size )) ) {
 		g_warning( "%s", _( "corrupt profile" ) );
@@ -647,7 +654,7 @@ vips_icc_load_profile_blob( VipsBlob *blob,
 	}
 
 #ifdef DEBUG
-	vips_icc_print_profile( "from blob", profile );
+	vips_icc_print_profile( "loaded from blob to make", profile );
 #endif /*DEBUG*/
 
 	if( image &&
@@ -669,10 +676,10 @@ vips_icc_load_profile_blob( VipsBlob *blob,
 
 	if( !cmsIsIntentSupported( profile, intent, direction ) ) {
 		VIPS_FREEF( cmsCloseProfile, profile );
-		g_warning( _( "%s profile does not support %s intent" ),
+		g_warning( _( "profile does not support %s %s intent" ),
+			vips_enum_nick( VIPS_TYPE_INTENT, intent ),
 			direction == LCMS_USED_AS_INPUT ?
-				_( "input" ) : _( "output" ),
-			vips_enum_nick( VIPS_TYPE_INTENT, intent ) );
+				_( "input" ) : _( "output" ) );
 		return( NULL );
 	}
 
