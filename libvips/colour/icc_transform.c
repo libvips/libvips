@@ -435,7 +435,15 @@ vips_icc_print_profile( const char *name, cmsHPROFILE profile )
 	}
 
 	printf( "profile class: %#x\n", cmsGetDeviceClass( profile ) );
-	printf( "PCS: %#x\n", cmsGetPCS( profile ) );
+{
+	cmsColorSpaceSignature pcs = cmsGetPCS( profile );
+	guint pcs_as_be = GUINT_TO_BE( pcs );
+
+	char name[5];
+
+	vips_strncpy( name, (const char *) &pcs_as_be, 5 );
+	printf( "PCS: %#x (%s)\n", pcs, name );
+}
 
 	printf( "matrix shaper: %d\n", cmsIsMatrixShaper( profile ) );
 	printf( "version: %g\n", cmsGetProfileVersion( profile ) );
