@@ -1205,18 +1205,23 @@ const char *
 vips_guess_libdir( const char *argv0, const char *env_name )
 {
 	const char *prefix = vips_guess_prefix( argv0, env_name );
-        static char *libdir = NULL;
+	static char *libdir = NULL;
+
+	char *suffix;
 
 	if( libdir )
 		return( libdir );
 
 	/* Have we been moved since configure? If not, use the configure-time
-	 * libdir.
+	 * libdir. 
+	 *
+	 * The lib directory name can be eg. "lib", "lib64" etc. depending on
+	 * the platform, so copy that from the configure-time libdir if we can.
 	 */
 	if( strcmp( prefix, VIPS_PREFIX ) == 0 ) 
 		libdir = VIPS_LIBDIR;
-	else if ( strstr(VIPS_LIBDIR, "/lib64") )
-		libdir = g_strdup_printf( "%s/lib64", prefix );
+	else if( (suffix = strrchr( VIPS_LIBDIR, G_DIR_SEPARATOR )) )
+		libdir = g_strdup_printf( "%s%s", prefix, suffix );
 	else
 		libdir = g_strdup_printf( "%s/lib", prefix );
 
