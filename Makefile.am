@@ -18,7 +18,6 @@ EXTRA_DIST = \
 	depcomp \
 	README.md 
 
-pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = vips.pc vips-cpp.pc
 
 dist-hook:
