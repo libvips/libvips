@@ -1907,6 +1907,62 @@ write_strip( VipsRegion *region, VipsRect *area, void *a )
 #define CopyField( tag, v ) \
 	if( TIFFGetField( in, tag, &v ) ) TIFFSetField( out, tag, v )
 
+static int
+wtiff_copy_tiles( Wtiff *wtiff, TIFF *out, TIFF *in )
+{
+	const ttile_t n_tiles = TIFFNumberOfTiles( in );
+
+	tsize_t tile_size;
+	tdata_t buf;
+	ttile_t i;
+
+	if( wtiff->compression == COMPRESSION_JPEG ) 
+		tile_size = TIFFTileSize( in );
+	else 
+		/* If we will be copying raw tiles we need a buffer large 
+		 * enough to hold the largest compressed tile in any page.
+		 *
+		 * Allocate a buffer 2x the uncompressed tile size ... much 
+		 * simpler than searching every page for the largest tile with
+		 * TIFFTAG_TILEBYTECOUNTS.
+		 */
+		tile_size = 2 * wtiff->tls * wtiff->tileh;
+	buf = vips_malloc( NULL, tile_size );
+
+	for( i = 0; i < n_tiles; i++ ) {
+		tsize_t len;
+
+		/* If this is a JPEG-compressed TIFF, we need to decompress 
+		 * and recompress, since tiles are actually written in several 
+		 * places (coefficients go in the tile, huffman tables go 
+		 * elsewhere).
+		 *
+		 * For all other compression types, we can just use 
+		 * TIFFReadRawTile()/TIFFWriteRawTile().
+		 */
+		if( wtiff->compression == COMPRESSION_JPEG ) {
+			len = TIFFReadEncodedTile( in, i, buf, tile_size );
+			if( len <= 0 ||
+				TIFFWriteEncodedTile( out, i, buf, len ) < 0 ) {
+				g_free( buf );
+				return( -1 );
+			}
+		}
+		else {
+			len = TIFFReadRawTile( in, i, buf, tile_size );
+			if( len <= 0 ||
+				TIFFWriteRawTile( out, i, buf, len ) < 0 ) {
+				g_free( buf );
+				return( -1 );
+			}
+		}
+	}
+
+	g_free( buf );
+
+	return( 0 );
+}
+
 /* Copy a TIFF file ... we know we wrote it, so just copy the tags we know 
  * we might have set.
  */
@@ -1917,9 +1973,6 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 	uint16 ui16;
 	uint16 ui16_2;
 	float f;
-	tdata_t buf;
-	ttile_t tile_no;
-	ttile_t n;
 	uint16 *a;
 
 	/* All the fields we might have set.
@@ -2004,24 +2057,8 @@ wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 			wtiff_embed_imagedescription( wtiff, out ) )
 			return( -1 );
 
-	buf = vips_malloc( NULL, TIFFTileSize( in ) );
-	n = TIFFNumberOfTiles( in );
-	for( tile_no = 0; tile_no < n; tile_no++ ) {
-		tsize_t len;
-
-		/* TIFFReadRawTile()/TIFFWriteRawTile() would save us
-		 * decompress/recompress, but they won't work for
-		 * JPEG-compressed tiles since they won't copy the 
-		 * JPEG quant tables we need. 
-		 */
-		len = TIFFReadEncodedTile( in, tile_no, buf, -1 );
-		if( len < 0 ||
-			TIFFWriteEncodedTile( out, tile_no, buf, len ) < 0 ) {
-			g_free( buf );
-			return( -1 );
-		}
-	}
-	g_free( buf );
+	if( wtiff_copy_tiles( wtiff, out, in ) )
+		return( -1 );
 
 	return( 0 );
 }

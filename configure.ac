@@ -246,6 +246,20 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE",
 ALL_LINGUAS="en_GB de"
 AM_GLIB_GNU_GETTEXT
 
+# Compatibility with pkg.m4 < 0.27
+m4_ifdef([PKG_INSTALLDIR], [PKG_INSTALLDIR],
+         [AC_ARG_WITH([pkgconfigdir],
+                      [AS_HELP_STRING([--with-pkgconfigdir],
+                      [install directory for *.pc pkg-config file])],
+                      [],[with_pkgconfigdir='$(libdir)/pkgconfig'])
+          AC_SUBST([pkgconfigdir], [${with_pkgconfigdir}])])
+
+# Compatibility with pkg.m4 < 0.28
+m4_define_default([PKG_CHECK_VAR],
+                  [AC_ARG_VAR([$1], [value of $3 for $2, overriding pkg-config])
+                   AS_IF([test -z "$$1"], [$1=`$PKG_CONFIG --variable="$3" "$2"`])
+                   AS_IF([test -n "$$1"], [$4], [$5])])
+
 # we need to disable some features on some known-bad gcc versions
 # these will be "" for clang etc. 
 #
@@ -433,22 +447,21 @@ AC_ARG_ENABLE([modules],
   [enable_modules="$enableval"],
   [enable_modules="$enable_modules_default"])
 
-gmodule_supported_bool=false
 gmodule_supported_flag=no
 gmodule_with_flag=yes
 
 if test x"$enable_modules" = x"no"; then
-  AC_MSG_RESULT(no)
+  AC_MSG_RESULT([no])
 else
-  AC_MSG_RESULT(yes)
-  AC_MSG_CHECKING(whether dynamic modules work)
-  gmodule_supported_bool=`$PKG_CONFIG gmodule-no-export-2.0 --variable gmodule_supported`
-  if $gmodule_supported_bool; then
+  AC_MSG_RESULT([yes])
+  AC_MSG_CHECKING([whether dynamic modules work])
+  PKG_CHECK_VAR([gmodule_supported], [gmodule-no-export-2.0], [gmodule_supported])
+  if test x"$gmodule_supported" = x"true"; then
     gmodule_supported_flag=yes
     gmodule_with_flag='module'
-    AC_MSG_RESULT(yes)
+    AC_MSG_RESULT([yes])
   else
-    AC_MSG_RESULT(no)
+    AC_MSG_RESULT([no])
   fi
 fi
 
@@ -869,16 +882,16 @@ AS_IF([test x"$with_heif" = x"module"],
 if test x"$with_heif" != x"no"; then
   PKG_CHECK_MODULES(HEIF, libheif >= 1.3.0,
     [with_heif=yes
-     have_h265_decoder=`$PKG_CONFIG libheif --variable builtin_h265_decoder`
-     have_avif_decoder=`$PKG_CONFIG libheif --variable builtin_avif_decoder`
+     PKG_CHECK_VAR([have_h265_decoder], [libheif], [builtin_h265_decoder])
+     PKG_CHECK_VAR([have_avif_decoder], [libheif], [builtin_avif_decoder])
      # test for !=no so that we work for older libheif which does not have
      # this variable
      if test x"$have_h265_decoder" != x"no" -o x"$have_avif_decoder" = x"yes"; then
         AC_DEFINE(HAVE_HEIF_DECODER,1,
              [define if your libheif has decode support.])
      fi
-     have_h265_encoder=`$PKG_CONFIG libheif --variable builtin_h265_encoder`
-     have_avif_encoder=`$PKG_CONFIG libheif --variable builtin_avif_encoder`
+     PKG_CHECK_VAR([have_h265_encoder], [libheif], [builtin_h265_encoder])
+     PKG_CHECK_VAR([have_avif_encoder], [libheif], [builtin_avif_encoder])
      if test x"$have_h265_encoder" != x"no" -o x"$have_avif_encoder" = x"yes"; then
         AC_DEFINE(HAVE_HEIF_ENCODER,1,
              [define if your libheif has encode support.])
@@ -887,7 +900,6 @@ if test x"$with_heif" != x"no"; then
        [PACKAGES_USED="$PACKAGES_USED libheif"])
     ],
     [AC_MSG_WARN([libheif >= 1.3.0 not found; disabling HEIF support])
-     pkg-config --exists --print-errors "libheif >= 1.3.0"
      with_heif=no
      with_heif_module=no
      have_h265_decoder=
