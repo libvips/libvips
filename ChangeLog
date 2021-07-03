@@ -1,11 +1,11 @@
-<<<<<<< HEAD
 14/6/21 started 8.12
 - all tools support `--version`
 - add vips_svgload_string() convenience function
-=======
+
 14/8/20 started 8.11.2
 - better libdir guessing [remi]
->>>>>>> 8.11
+- fix tiff pyramid creation with jp2k compression (was broken by 8.11.1)
+- don't load modules if we're built without modules
 
 14/8/20 started 8.11.1
 - add more example code to C docs

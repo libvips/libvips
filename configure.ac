@@ -459,6 +459,7 @@ else
   if test x"$gmodule_supported" = x"true"; then
     gmodule_supported_flag=yes
     gmodule_with_flag='module'
+    AC_DEFINE(ENABLE_MODULES,1,[define to enable loadable module support.])
     AC_MSG_RESULT([yes])
   else
     AC_MSG_RESULT([no])
