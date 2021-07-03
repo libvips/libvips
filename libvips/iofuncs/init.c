@@ -536,11 +536,17 @@ vips_init( const char *argv0 )
 	vips_mosaicing_operation_init();
 	vips_g_input_stream_get_type(); 
 
+#ifdef ENABLE_MODULES
 	/* Load any vips8 modules from the vips libdir. Keep going, even if
 	 * some modules fail to load. 
+	 *
+	 * Only do this if we have been built as a set of loadable
+	 * modules, or we might try loading an operation into a library that
+	 * already has that operation built in.
 	 */
 	(void) vips_load_plugins( "%s/vips-modules-%d.%d", 
 		libdir, VIPS_MAJOR_VERSION, VIPS_MINOR_VERSION );
+#endif /*ENABLE_MODULES*/
 
 #if ENABLE_DEPRECATED
 	/* Load any vips8 plugins from the vips libdir.
