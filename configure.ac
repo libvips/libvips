@@ -1013,6 +1013,14 @@ if test x"$with_rsvg" != x"no"; then
     AC_DEFINE(HAVE_RSVG,1,[define if you have librsvg-2.0 >= 2.40.3 and cairo >= 1.2 installed.])
     with_rsvg=yes
     PACKAGES_USED="$PACKAGES_USED librsvg-2.0 cairo"
+
+    # 2.46 for rsvg_handle_render_document
+    PKG_CHECK_MODULES(RSVG_HANDLE_RENDER_DOCUMENT, librsvg-2.0 >= 2.46,
+      [AC_DEFINE(HAVE_RSVG_HANDLE_RENDER_DOCUMENT,1,[define if your librsvg has rsvg_handle_render_document().])
+      ],
+      [:
+      ]
+    )
   ], [
     AC_MSG_WARN([librsvg-2.0 >= 2.40.3 or cairo >= 1.2 not found; disabling SVG load via rsvg])
     with_rsvg=no
