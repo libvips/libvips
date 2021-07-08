@@ -60,7 +60,8 @@ VIPS_NAMESPACE_START
 std::vector<double>
 to_vectorv( int n, ... )
 {
-	std::vector<double> vector( n );
+	std::vector<double> vector;
+	vector.reserve( n );
 	va_list ap;
 
 	va_start( ap, n );
@@ -80,7 +81,8 @@ to_vector( double value )
 std::vector<double>
 to_vector( int n, double array[] )
 {
-	std::vector<double> vector( n );
+	std::vector<double> vector;
+	vector.reserve( n );
 
 	for( std::vector<double>::size_type i = 0; i < size_t(n); i++ )
 		vector[i] = array[i];
@@ -91,7 +93,8 @@ to_vector( int n, double array[] )
 std::vector<double>
 negate( std::vector<double> vector )
 {
-	std::vector<double> new_vector( vector.size() );
+	std::vector<double> new_vector;
+	new_vector.reserve( vector.size() );
 
 	for( std::vector<double>::size_type i = 0; i < vector.size(); i++ )
 		new_vector[i] = vector[i] * -1;
@@ -102,7 +105,8 @@ negate( std::vector<double> vector )
 std::vector<double>
 invert( std::vector<double> vector )
 {
-	std::vector<double> new_vector( vector.size() );
+	std::vector<double> new_vector;
+	new_vector.reserve( vector.size() );
 
 	for( std::vector<double>::size_type i = 0; i < vector.size(); i++ )
 		new_vector[i] = 1.0 / vector[i];
