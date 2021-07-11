@@ -767,6 +767,7 @@ std::vector<VImage>
 VImage::bandsplit( VOption *options ) const
 {
 	std::vector<VImage> b;
+	b.reserve(bands());
 
 	for( int i = 0; i < bands(); i++ )
 		b.push_back( extract_band( i ) );
