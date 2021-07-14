@@ -731,6 +731,19 @@ vips_task_free( VipsTask *task )
 	VIPS_FREE( task );
 }
 
+static void *
+vips__thread_once_init( void *data )
+{
+	/* We can have many more than vips__concurrency threads -- each active
+	 * pipeline will make vips__concurrency more, see
+	 * vips_threadpool_run().
+	 */
+	vips__pool = g_thread_pool_new( vips_thread_main_loop, NULL,
+		-1, FALSE, NULL );
+
+	return( NULL );
+}
+
 /**
  * vips__thread_execute:
  * @name: a name for the thread
@@ -747,9 +760,13 @@ vips_task_free( VipsTask *task )
 int
 vips__thread_execute( const char *name, GFunc func, gpointer data )
 {
+	static GOnce once = G_ONCE_INIT;
+
 	VipsThreadExec *exec;
 	GError *error = NULL;
 	gboolean result;
+
+	VIPS_ONCE( &once, vips__thread_once_init, NULL );
 
 	exec = g_new( VipsThreadExec, 1 );
 	exec->name = name;
@@ -948,12 +965,12 @@ vips__threadpool_init( void )
 	if( vips__concurrency == 0 )
 		vips__concurrency = vips__concurrency_get_default();
 
-	/* We can have many more than vips__concurrency threads -- each active
-	 * pipeline will make vips__concurrency more, see
-	 * vips_threadpool_run().
+	/* The threadpool is built in the first vips__thread_execute()
+	 * call, since we want thread creation to happen as late as possible.
+	 *
+	 * Many web platforms start up in a base environment, then fork() for
+	 * each request. We must not make the threadpool before the fork.
 	 */
-	vips__pool = g_thread_pool_new( vips_thread_main_loop, NULL,
-		-1, FALSE, NULL );
 
 	VIPS_DEBUG_MSG( "vips__threadpool_init: (%p)\n", vips__pool );
 }
