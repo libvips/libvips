@@ -40,6 +40,7 @@ vips_operation_math2_get_type( void )
 		static const GEnumValue values[] = {
 			{VIPS_OPERATION_MATH2_POW, "VIPS_OPERATION_MATH2_POW", "pow"},
 			{VIPS_OPERATION_MATH2_WOP, "VIPS_OPERATION_MATH2_WOP", "wop"},
+			{VIPS_OPERATION_MATH2_ATAN2, "VIPS_OPERATION_MATH2_ATAN2", "atan2"},
 			{VIPS_OPERATION_MATH2_LAST, "VIPS_OPERATION_MATH2_LAST", "last"},
 			{0, NULL, NULL}
 		};

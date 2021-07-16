@@ -949,7 +949,7 @@
 <row>
   <entry>math2</entry>
   <entry>Binary math operations</entry>
-  <entry>vips_math2(), vips_pow(), vips_wop()</entry>
+  <entry>vips_math2(), vips_pow(), vips_wop(), vips_atan2()</entry>
 </row>
 <row>
   <entry>math2_const</entry>

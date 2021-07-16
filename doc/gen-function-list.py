@@ -83,7 +83,7 @@ def gen_function_list():
         'extract_area': ['crop'],
         'linear': ['linear1'],
         'math': ['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'exp', 'exp10', 'log', 'log10'],
-        'math2': ['pow', 'wop'],
+        'math2': ['pow', 'wop', 'atan2'],
         'rank': ['median'],
         'relational': ['equal', 'notequal', 'less', 'lesseq', 'more', 'moreeq'],
         'remainder_const': ['remainder_const1'],
