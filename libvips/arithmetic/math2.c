@@ -137,11 +137,16 @@ vips_math2_build( VipsObject *object )
 	double left = (double) (X); \
 	double right = (double) (E); \
 	\
-	/* Division by zero! Difficult to report tho' \
+	/* Special case for **-1 and **0.5, since they are so common. Also \
+	 * watch for /0. \
 	 */ \
-	(Y) = (right == 0.5) \
-		? sqrt( left ) \
-		: (left == 0.0 && right < 0.0) ? 0.0 : pow( left, right ); \
+	(Y) = (left == 0.0) \
+		? 0.0 \
+		: (right == -1) \
+			? 1.0 / left \
+			: (right == 0.5) \
+				? sqrt( left ) \
+				: pow( left, right ); \
 }
 
 #define WOP( Y, X, E ) POW( Y, E, X )
