@@ -420,8 +420,16 @@ vips_text_build( VipsObject *object )
 		return( -1 );
 	}
 
-	/* Set DPI as pixels/mm.
+	/* Cairo can't go over 32k pixels.
 	 */
+	if( extents.width >= 32768  || 
+		extents.height >= 32768 ) {
+		vips_error( class->nickname, 
+			"%s", _( "text image too large" ) );
+		g_mutex_unlock( vips_text_lock ); 
+		return( -1 );
+	}
+
 	image = t[0] = vips_image_new_memory();
 	vips_image_init_fields( image,
 		extents.width, extents.height, 4, 
