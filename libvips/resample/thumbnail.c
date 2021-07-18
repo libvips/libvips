@@ -928,8 +928,13 @@ vips_thumbnail_build( VipsObject *object )
 	/* Crop after rotate so we don't need to rotate the crop box.
 	 */
 	if( thumbnail->crop != VIPS_INTERESTING_NONE ) {
-		g_info( "cropping to %dx%d",
-			thumbnail->width, thumbnail->height ); 
+		/* The image can be smaller than the target. Adjust the
+		 * arguments to vips_smartcrop().
+		 */
+		int crop_width = VIPS_MIN( thumbnail->width, in->Xsize );
+		int crop_height = VIPS_MIN( thumbnail->height, in->Ysize );
+
+		g_info( "cropping to %dx%d", crop_width, crop_height ); 
 
 		/* Need to copy to memory, we have to stay seq.
 		 *
@@ -937,7 +942,7 @@ vips_thumbnail_build( VipsObject *object )
 		 */
 		if( !(t[8] = vips_image_copy_memory( in )) ||
 			vips_smartcrop( t[8], &t[11], 
-				thumbnail->width, thumbnail->height, 
+				crop_width, crop_height, 
 				"interesting", thumbnail->crop,
 				NULL ) )
 			return( -1 ); 
