@@ -699,6 +699,12 @@ int vips_jxlload_buffer( void *buf, size_t len, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_jxlload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_jxlsave( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
+int vips_jxlsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
+	__attribute__((sentinel));
+int vips_jxlsave_target( VipsImage *in, VipsTarget *target, ... )
+	__attribute__((sentinel));
 
 /**
  * VipsForeignDzLayout:
