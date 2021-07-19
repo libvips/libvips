@@ -422,7 +422,7 @@ vips_text_build( VipsObject *object )
 
 	/* Cairo can't go over 32k pixels.
 	 */
-	if( extents.width >= 32768  || 
+	if( extents.width >= 32768 || 
 		extents.height >= 32768 ) {
 		vips_error( class->nickname, 
 			"%s", _( "text image too large" ) );
