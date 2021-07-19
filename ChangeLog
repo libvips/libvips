@@ -1,5 +1,6 @@
 14/7/21 started 8.11.3
 - build threadpool later [kleisauke]
+- add jxlsave prototypes [adil-benameur]
 
 15/6/20 started 8.11.2
 - better libdir guessing [remi]
