@@ -13,6 +13,8 @@ jobs:
         name: [ "Linux x64 (Ubuntu 20.04) - GCC 10" ]
         os: [ ubuntu-20.04 ]
         sanitize: [ false ]
+        # overridden below for m1
+        shell: /bin/bash
         build:
           - { cc: gcc, cxx: g++, linker: ld }
         include:
@@ -28,12 +30,12 @@ jobs:
             os: macos-m1
             sanitize: false
             build: { cc: clang, cxx: clang++, linker: ld.lld }
+            # disable rosetta on M1
+            shell: /usr/bin/arch -arch arm64e /bin/bash -l {0}
 
-    # disable rosetta on M1
     defaults:
-      if: contains(matrix.os, 'm1')
       run:
-        shell: /usr/bin/arch -arch arm64e /bin/bash -l {0}
+        shell: ${{ matrix.shell }} 
 
     steps:
       - name: Checkout code
