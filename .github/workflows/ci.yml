@@ -24,6 +24,16 @@ jobs:
             os: macos-10.15
             sanitize: false
             build: { cc: clang, cxx: clang++, linker: ld.lld }
+          - name: "macOS (10.15) - Xcode 12.3 - M1"
+            os: macos-m1
+            sanitize: false
+            build: { cc: clang, cxx: clang++, linker: ld.lld }
+
+    # disable rosetta on M1
+    defaults:
+      if: contains(matrix.os, 'm1')
+      run:
+        shell: /usr/bin/arch -arch arm64e /bin/bash -l {0}
 
     steps:
       - name: Checkout code
