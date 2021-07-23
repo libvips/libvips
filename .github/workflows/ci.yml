@@ -133,7 +133,7 @@ jobs:
         run: make V=0 check
 
       - name: Install libvips
-        run: make V=0 install
+        run: sudo make V=0 install
 
       - name: Rebuild the shared library cache
         if: contains(matrix.os, 'ubuntu')
