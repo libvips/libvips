@@ -13,10 +13,9 @@ jobs:
         name: [ "Linux x64 (Ubuntu 20.04) - GCC 10" ]
         os: [ ubuntu-20.04 ]
         sanitize: [ false ]
-        # overridden below for m1
         shell: /bin/bash
         build:
-          - { cc: gcc, cxx: g++, linker: ld }
+          - { cc: gcc, cxx: g++, linker: ld, shell: /bin/bash }
         include:
           - name: "Linux x64 (Ubuntu 20.04) - Clang 10 with ASan and UBSan"
             os: ubuntu-20.04
@@ -29,13 +28,11 @@ jobs:
           - name: "macOS (10.15) - Xcode 12.3 - M1"
             os: macos-m1
             sanitize: false
-            build: { cc: clang, cxx: clang++, linker: ld.lld }
-            # disable rosetta on M1
-            shell: /usr/bin/arch -arch arm64e /bin/bash -l {0}
+            build: { cc: clang, cxx: clang++, linker: ld.lld, shell: /usr/bin/arch -arch arm64e /bin/bash -l {0} }
 
     defaults:
       run:
-        shell: ${{ matrix.shell }} 
+        shell: ${{ matrix.build.shell }} 
 
     steps:
       - name: Checkout code
