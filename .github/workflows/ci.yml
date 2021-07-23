@@ -13,7 +13,6 @@ jobs:
         name: [ "Linux x64 (Ubuntu 20.04) - GCC 10" ]
         os: [ ubuntu-20.04 ]
         sanitize: [ false ]
-        shell: /bin/bash
         build:
           - { cc: gcc, cxx: g++, linker: ld, shell: /bin/bash }
         include:
