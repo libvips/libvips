@@ -436,7 +436,7 @@ vips_foreign_load_csv_load( VipsForeignLoad *load )
 				vips_error( class->nickname,
 					_( "line %d has only %d columns" ),
 					csv->lineno, csv->colno );
-				if( load->fail )
+				if( load->fail_on >= VIPS_FAIL_ON_ERROR )
 					return( -1 );
 			}
 
@@ -671,7 +671,7 @@ vips_foreign_load_csv_source_init( VipsForeignLoadCsvSource *source )
  * * @lines: read this many lines from file
  * * @whitespace: set of whitespace characters
  * * @separator: set of separator characters
- * * @fail: %gboolean, fail on errors
+ * * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Load a CSV (comma-separated values) file. The output image is always 1 
  * band (monochrome), #VIPS_FORMAT_DOUBLE. Use vips_bandfold() to turn
@@ -695,7 +695,8 @@ vips_foreign_load_csv_source_init( VipsForeignLoadCsvSource *source )
  * @separator sets the characters that separate fields. 
  * Default ;,<emphasis>tab</emphasis>. Separators are never run together.
  *
- * Setting @fail to %TRUE makes the reader fail on any errors. 
+ * Use @fail_on to set the type of error that will cause load to fail. By
+ * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
  *
  * See also: vips_image_new_from_file(), vips_bandfold().
  *
@@ -726,7 +727,7 @@ vips_csvload( const char *filename, VipsImage **out, ... )
  * * @lines: read this many lines from file
  * * @whitespace: set of whitespace characters
  * * @separator: set of separator characters
- * * @fail: %gboolean, fail on errors
+ * * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Exactly as vips_csvload(), but read from a source. 
  *
@@ -746,7 +747,4 @@ vips_csvload_source( VipsSource *source, VipsImage **out, ... )
 
 	return( result );
 }
-
-
-
 

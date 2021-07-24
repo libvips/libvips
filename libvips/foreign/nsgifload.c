@@ -370,7 +370,7 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 		return( -1 );
 	}
 	else if( result == GIF_INSUFFICIENT_FRAME_DATA &&
-		load->fail ) {
+		load->fail_on >= VIPS_FAIL_ON_ERROR ) {
 		vips_error( class->nickname, "%s", _( "truncated GIF" ) );
 		return( -1 );
 	}
@@ -873,6 +873,7 @@ vips_foreign_load_nsgif_source_init( VipsForeignLoadNsgifSource *source )
  *
  * * @page: %gint, page (frame) to read
  * * @n: %gint, load this many pages
+ * * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Read a GIF file into a libvips image.
  *
@@ -881,6 +882,9 @@ vips_foreign_load_nsgif_source_init( VipsForeignLoadNsgifSource *source )
  * Use @n to select the number of pages to render. The default is 1. Pages are
  * rendered in a vertical column. Set to -1 to mean "until the end of the
  * document". Use vips_grid() to change page layout.
+ *
+ * Use @fail_on to set the type of error that will cause load to fail. By
+ * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
  *
  * The output image is RGBA for GIFs containing transparent elements, RGB
  * otherwise.
@@ -913,6 +917,7 @@ vips_gifload( const char *filename, VipsImage **out, ... )
  *
  * * @page: %gint, page (frame) to read
  * * @n: %gint, load this many pages
+ * * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Read a GIF-formatted memory block into a VIPS image. Exactly as
  * vips_gifload(), but read from a memory buffer.
@@ -954,6 +959,7 @@ vips_gifload_buffer( void *buf, size_t len, VipsImage **out, ... )
  *
  * * @page: %gint, page (frame) to read
  * * @n: %gint, load this many pages
+ * * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Exactly as vips_gifload(), but read from a source.
  *

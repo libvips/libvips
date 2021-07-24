@@ -448,7 +448,7 @@ vips_foreign_load_jpeg_buffer_init( VipsForeignLoadJpegBuffer *buffer )
  * are 1, 2, 4 and 8. Shrinking during read is very much faster than 
  * decompressing the whole image and then shrinking later.
  *
- * Use @fail_on to set the type of load error that will cause load to fail. By
+ * Use @fail_on to set the type of error that will cause load to fail. By
  * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
  *
  * Setting @autorotate to %TRUE will make the loader interpret the 

@@ -129,7 +129,7 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
-	if( vips__png_read_source( png->source, load->real, load->fail ) )
+	if( vips__png_read_source( png->source, load->real, load->fail_on ) )
 		return( -1 );
 
 	return( 0 );
@@ -395,11 +395,18 @@ vips_foreign_load_png_buffer_init( VipsForeignLoadPngBuffer *buffer )
  * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
  *
+ * Optional arguments:
+ *
+ * * @fail_on: #VipsFailOn, types of read error to fail on
+ *
  * Read a PNG file into a VIPS image. It can read all png images, including 8-
  * and 16-bit images, 1 and 3 channel, with and without an alpha channel.
  *
  * Any ICC profile is read and attached to the VIPS image. It also supports
  * XMP metadata.
+ *
+ * Use @fail_on to set the type of error that will cause load to fail. By
+ * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
  *
  * See also: vips_image_new_from_file().
  *
@@ -424,6 +431,10 @@ vips_pngload( const char *filename, VipsImage **out, ... )
  * @len: (type gsize): size of memory area
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Exactly as vips_pngload(), but read from a PNG-formatted memory block.
  *
@@ -459,6 +470,10 @@ vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * @source: source to load from
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Exactly as vips_pngload(), but read from a source. 
  *

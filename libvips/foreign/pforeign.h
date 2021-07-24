@@ -102,16 +102,6 @@ int vips__analyze_read( const char *filename, VipsImage *out );
 
 extern const char *vips__foreign_csv_suffs[];
 
-int vips__csv_read( const char *filename, VipsImage *out,
-	int skip, int lines, const char *whitespace, const char *separator, 
-	gboolean fail );
-int vips__csv_read_header( const char *filename, VipsImage *out,
-	int skip, int lines, const char *whitespace, const char *separator, 
-	gboolean fail );
-
-int vips__csv_write( VipsImage *in, const char *filename, 
-	const char *separator );
-
 int vips__matrix_read_header( const char *filename,
 	int *width, int *height, double *scale, double *offset );
 int vips__matrix_ismatrix( const char *filename );
@@ -180,7 +170,7 @@ int vips__isjpeg_source( VipsSource *source );
 int vips__png_ispng_source( VipsSource *source );
 int vips__png_header_source( VipsSource *source, VipsImage *out );
 int vips__png_read_source( VipsSource *source, VipsImage *out, 
-	gboolean fail );
+	VipsFailOn fail_on );
 gboolean vips__png_isinterlaced_source( VipsSource *source );
 extern const char *vips__png_suffs[];
 

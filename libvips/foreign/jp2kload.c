@@ -827,7 +827,7 @@ vips_foreign_load_jp2k_generate( VipsRegion *out,
 		y += hit.height;
 	}
 
-	if( load->fail &&
+	if( load->fail_on >= VIPS_FAIL_ON_ERROR &&
 		jp2k->n_errors > 0 ) 
 		return( -1 );
 
