@@ -56,6 +56,8 @@ GType vips_combine_mode_get_type (void) G_GNUC_CONST;
 /* enumerations from "../../../libvips/include/vips/foreign.h" */
 GType vips_foreign_flags_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_FOREIGN_FLAGS (vips_foreign_flags_get_type())
+GType vips_fail_on_get_type (void) G_GNUC_CONST;
+#define VIPS_TYPE_FAIL_ON (vips_fail_on_get_type())
 GType vips_saveable_get_type (void) G_GNUC_CONST;
 #define VIPS_TYPE_SAVEABLE (vips_saveable_get_type())
 GType vips_foreign_subsample_get_type (void) G_GNUC_CONST;

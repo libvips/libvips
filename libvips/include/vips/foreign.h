@@ -100,6 +100,24 @@ typedef enum /*< flags >*/ {
 	VIPS_FOREIGN_ALL = 7		/* All flags set */
 } VipsForeignFlags;
 
+/** 
+ * VipsFailOn:
+ * @VIPS_FAIL_ON_NONE: ignore all errors and warnings
+ * @VIPS_FAIL_ON_WARNING: stop on load warning
+ * @VIPS_FAIL_ON_ERROR: stop on load error 
+ * @VIPS_FAIL_ON_TRUNCATED: stop on image truncated
+ *
+ * What kind of load failure to stop on, from never stop to only stop on image
+ * truncation.
+ */
+typedef enum {
+	VIPS_FAIL_ON_NONE,
+	VIPS_FAIL_ON_WARNING,
+	VIPS_FAIL_ON_ERROR,
+	VIPS_FAIL_ON_TRUNCATED,
+	VIPS_FAIL_ON_LAST,
+} VipsFailOn;
+
 #define VIPS_TYPE_FOREIGN_LOAD (vips_foreign_load_get_type())
 #define VIPS_FOREIGN_LOAD( obj ) \
 	(G_TYPE_CHECK_INSTANCE_CAST( (obj), \
@@ -131,12 +149,13 @@ typedef struct _VipsForeignLoad {
 	 */
 	VipsForeignFlags flags;
 
-	/* Stop load on first warning.
+	/* Behaviour on error.
+	 */
+	VipsFailOn fail_on;
+
+	/* Deprecated and unused. Just here for compat.
 	 */
 	gboolean fail;
-
-	/* Deprecated and unused, just here for compat.
-	 */
 	gboolean sequential;
 
 	/*< public >*/
