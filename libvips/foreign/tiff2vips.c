@@ -203,6 +203,8 @@
  * 	- support 2 and 4 bit greyscale load
  * 27/3/21
  * 	- add jp2k decompresion
+ * 24/7/21
+ * 	- add fail_on
  */
 
 /*
@@ -359,6 +361,7 @@ typedef struct _Rtiff {
 	int n;
 	gboolean autorotate;
 	int subifd;
+	VipsFailOn fail_on;
 
 	/* The TIFF we read.
 	 */
@@ -572,7 +575,7 @@ rtiff_minimise_cb( VipsImage *image, Rtiff *rtiff )
 
 static Rtiff *
 rtiff_new( VipsSource *source, VipsImage *out, 
-	int page, int n, gboolean autorotate, int subifd )
+	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on )
 {
 	Rtiff *rtiff;
 
@@ -586,6 +589,7 @@ rtiff_new( VipsSource *source, VipsImage *out,
 	rtiff->n = n;
 	rtiff->autorotate = autorotate;
 	rtiff->subifd = subifd;
+	rtiff->fail_on = fail_on;
 	rtiff->tiff = NULL;
 	rtiff->n_pages = 0;
 	rtiff->current_page = -1;
@@ -2862,13 +2866,14 @@ vips__istifftiled_source( VipsSource *source )
 
 int
 vips__tiff_read_header_source( VipsSource *source, VipsImage *out, 
-	int page, int n, gboolean autorotate, int subifd )
+	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on )
 {
 	Rtiff *rtiff;
 
 	vips__tiff_init();
 
-	if( !(rtiff = rtiff_new( source, out, page, n, autorotate, subifd )) ||
+	if( !(rtiff = rtiff_new( source, out, 
+		page, n, autorotate, subifd, fail_on )) ||
 		rtiff_header_read_all( rtiff ) )
 		return( -1 );
 
@@ -2891,7 +2896,7 @@ vips__tiff_read_header_source( VipsSource *source, VipsImage *out,
 
 int
 vips__tiff_read_source( VipsSource *source, VipsImage *out, 
-	int page, int n, gboolean autorotate, int subifd )
+	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on )
 {
 	Rtiff *rtiff;
 
@@ -2901,7 +2906,8 @@ vips__tiff_read_source( VipsSource *source, VipsImage *out,
 
 	vips__tiff_init();
 
-	if( !(rtiff = rtiff_new( source, out, page, n, autorotate, subifd )) ||
+	if( !(rtiff = rtiff_new( source, out, 
+		page, n, autorotate, subifd, fail_on )) ||
 		rtiff_header_read_all( rtiff ) )
 		return( -1 );
 

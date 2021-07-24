@@ -919,8 +919,7 @@ vips_gifload( const char *filename, VipsImage **out, ... )
  * * @n: %gint, load this many pages
  * * @fail_on: #VipsFailOn, types of read error to fail on
  *
- * Read a GIF-formatted memory block into a VIPS image. Exactly as
- * vips_gifload(), but read from a memory buffer.
+ * Exactly as vips_gifload(), but read from a memory buffer.
  *
  * You must not free the buffer while @out is active. The
  * #VipsObject::postclose signal on @out is a good place to free.
