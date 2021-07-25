@@ -50,6 +50,7 @@ jobs:
     env:
       PREFIX: ${{ matrix.prefix }}
       SUDO: ${{ matrix.sudo }}
+      PKG_CONFIG_PATH: "$PREFIX/lib/pkgconfig"
 
     steps:
       - name: Checkout code
