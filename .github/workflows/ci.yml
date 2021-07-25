@@ -14,34 +14,44 @@ jobs:
         os: [ ubuntu-20.04 ]
         sanitize: [ false ]
         prefix: "/usr/local"
+        shell: bash
+        sudo: "sudo"
         build:
-          - { cc: gcc, cxx: g++, linker: ld, shell: bash }
+          - { cc: gcc, cxx: g++, linker: ld }
         include:
           - name: "Linux x64 (Ubuntu 20.04) - Clang 10 with ASan and UBSan"
             os: ubuntu-20.04
             sanitize: true
             prefix: "/usr/local"
-            build: { cc: clang-10, cxx: clang++-10, linker: ld.lld-10, shell: bash }
+            shell: bash
+            sudo: "sudo"
+            build: { cc: clang-10, cxx: clang++-10, linker: ld.lld-10 }
+
           - name: "macOS (10.15) - Xcode 12.3"
             os: macos-10.15
             sanitize: false
             prefix: "/usr/local"
-            build: { cc: clang, cxx: clang++, linker: ld.lld, shell: bash }
+            shell: bash
+            sudo: "sudo"
+            build: { cc: clang, cxx: clang++, linker: ld.lld }
+
           - name: "macOS (10.15) - Xcode 12.3 - M1"
             os: macos-m1
             sanitize: false
             prefix: "/Users/Administrator/vips"
-            build: { cc: clang, cxx: clang++, linker: ld.lld, shell: "/usr/bin/arch -arch arm64e /bin/bash -l {0}" }
+            shell: "/usr/bin/arch -arch arm64e /bin/bash -l {0}"
+            sudo: "sudo"
+            build: { cc: clang, cxx: clang++, linker: ld.lld }
 
     defaults:
       run:
-        shell: ${{ matrix.build.shell }} 
+        shell: ${{ matrix.shell }} 
+
+    env:
+      PREFIX: ${{ matrix.prefix }}
+      SUDO: ${{ matrix.sudo }}
 
     steps:
-      - name: Set prefix
-        env: 
-          PREFIX: ${{ maxtrix.prefix }}
-
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -131,6 +141,7 @@ jobs:
       - name: Configure libvips
         run:
           ./autogen.sh
+            --prefix=$PREFIX
             --disable-dependency-tracking
             --disable-deprecated || (cat config.log && exit 1)
 
@@ -141,7 +152,7 @@ jobs:
         run: make V=0 check
 
       - name: Install libvips
-        run: sudo make V=0 install
+        run: $SUDO make V=0 install
 
       - name: Rebuild the shared library cache
         if: contains(matrix.os, 'ubuntu')
