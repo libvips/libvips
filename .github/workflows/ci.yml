@@ -14,26 +14,36 @@ jobs:
         os: [ ubuntu-20.04 ]
         sanitize: [ false ]
         build:
-          - { cc: gcc, cxx: g++, linker: ld, shell: bash }
+          - { cc: gcc, cxx: g++, linker: ld }
         include:
           - name: "Linux x64 (Ubuntu 20.04) - Clang 10 with ASan and UBSan"
             os: ubuntu-20.04
             sanitize: true
-            build: { cc: clang-10, cxx: clang++-10, linker: ld.lld-10, shell: bash }
+            build: { cc: clang-10, cxx: clang++-10, linker: ld.lld-10 }
+            shell: bash
+            prefix: "/usr/local"
           - name: "macOS (10.15) - Xcode 12.3"
             os: macos-10.15
             sanitize: false
-            build: { cc: clang, cxx: clang++, linker: ld.lld, shell: bash }
+            build: { cc: clang, cxx: clang++, linker: ld.lld }
+            shell: bash
+            prefix: "/usr/local"
           - name: "macOS (10.15) - Xcode 12.3 - M1"
             os: macos-m1
             sanitize: false
-            build: { cc: clang, cxx: clang++, linker: ld.lld, shell: "/usr/bin/arch -arch arm64e /bin/bash -l {0}" }
+            build: { cc: clang, cxx: clang++, linker: ld.lld }
+            shell: "/usr/bin/arch -arch arm64e /bin/bash -l {0}",
+            prefix: "/Users/Administrator/vips"
 
     defaults:
       run:
         shell: ${{ matrix.build.shell }} 
 
     steps:
+      - name: Set prefix
+        env:
+          PREFIX: ${{ matrix.prefix }}
+
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -123,6 +133,7 @@ jobs:
       - name: Configure libvips
         run:
           ./autogen.sh
+            --prefix=$PREFIX
             --disable-dependency-tracking
             --disable-deprecated || (cat config.log && exit 1)
 
@@ -133,7 +144,10 @@ jobs:
         run: make V=0 check
 
       - name: Install libvips
+        if: !contains(matrix.os, 'macos-m1')
         run: sudo make V=0 install
+        if: contains(matrix.os, 'macos-m1')
+        run: make V=0 install
 
       - name: Rebuild the shared library cache
         if: contains(matrix.os, 'ubuntu')
