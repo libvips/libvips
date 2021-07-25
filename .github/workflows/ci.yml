@@ -14,8 +14,8 @@ jobs:
         os: [ ubuntu-20.04 ]
         sanitize: [ false ]
         prefix: [ "/usr/local" ]
-        shell: bash
-        sudo: "sudo"
+        shell: [ bash ]
+        sudo: [ "sudo" ]
         build:
           - { cc: gcc, cxx: g++, linker: ld }
         include:
