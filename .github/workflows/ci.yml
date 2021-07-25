@@ -13,8 +13,11 @@ jobs:
         name: [ "Linux x64 (Ubuntu 20.04) - GCC 10" ]
         os: [ ubuntu-20.04 ]
         sanitize: [ false ]
-        build:
-          - { cc: gcc, cxx: g++, linker: ld }
+        build: { cc: gcc, cxx: g++, linker: ld }
+        shell: bash
+        prefix: "/usr/local"
+        sudo: "sudo"
+
         include:
           - name: "Linux x64 (Ubuntu 20.04) - Clang 10 with ASan and UBSan"
             os: ubuntu-20.04
@@ -22,18 +25,23 @@ jobs:
             build: { cc: clang-10, cxx: clang++-10, linker: ld.lld-10 }
             shell: bash
             prefix: "/usr/local"
+            sudo: "sudo"
+
           - name: "macOS (10.15) - Xcode 12.3"
             os: macos-10.15
             sanitize: false
             build: { cc: clang, cxx: clang++, linker: ld.lld }
             shell: bash
             prefix: "/usr/local"
+            sudo: "sudo"
+
           - name: "macOS (10.15) - Xcode 12.3 - M1"
             os: macos-m1
             sanitize: false
             build: { cc: clang, cxx: clang++, linker: ld.lld }
             shell: "/usr/bin/arch -arch arm64e /bin/bash -l {0}"
             prefix: "/Users/Administrator/vips"
+            sudo: ""
 
     defaults:
       run:
@@ -43,6 +51,7 @@ jobs:
       - name: Set prefix
         env:
           PREFIX: ${{ matrix.prefix }}
+          SUDO: ${{ matrix.sudo }}
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -143,13 +152,8 @@ jobs:
       - name: Check libvips
         run: make V=0 check
 
-      - name: Install libvips for non-macos-m1
-        if: "!contains(matrix.os, 'macos-m1')"
-        run: sudo make V=0 install
-
-      - name: Install libvips for macos-m1
-        if: contains(matrix.os, 'macos-m1')
-        run: make V=0 install
+      - name: Install libvips 
+        run: $SUDO make V=0 install
 
       - name: Rebuild the shared library cache
         if: contains(matrix.os, 'ubuntu')
