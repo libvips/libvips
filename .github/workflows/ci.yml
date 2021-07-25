@@ -144,7 +144,7 @@ jobs:
         run: make V=0 check
 
       - name: Install libvips for non-macos-m1
-        if: !contains(matrix.os, 'macos-m1')
+        if: ${{ ! contains(matrix.os, 'macos-m1') }}
         run: sudo make V=0 install
 
       - name: Install libvips for macos-m1
