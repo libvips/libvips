@@ -51,6 +51,7 @@ jobs:
       PREFIX: ${{ matrix.prefix }}
       SUDO: ${{ matrix.sudo }}
       PKG_CONFIG_PATH: "$PREFIX/lib/pkgconfig"
+      DYLD_LIBRARY_PATH: "$PREFIX/lib"
 
     steps:
       - name: Checkout code
