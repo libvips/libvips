@@ -32,7 +32,7 @@ jobs:
             os: macos-m1
             sanitize: false
             build: { cc: clang, cxx: clang++, linker: ld.lld }
-            shell: "/usr/bin/arch -arch arm64e /bin/bash -l {0}",
+            shell: "/usr/bin/arch -arch arm64e /bin/bash -l {0}"
             prefix: "/Users/Administrator/vips"
 
     defaults:
