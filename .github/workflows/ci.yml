@@ -13,7 +13,7 @@ jobs:
         name: [ "Linux x64 (Ubuntu 20.04) - GCC 10" ]
         os: [ ubuntu-20.04 ]
         sanitize: [ false ]
-        prefix: "/usr/local"
+        prefix: [ "/usr/local" ]
         shell: bash
         sudo: "sudo"
         build:
