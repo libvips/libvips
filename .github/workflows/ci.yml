@@ -40,7 +40,7 @@ jobs:
             sanitize: false
             prefix: "/Users/Administrator/vips"
             shell: "/usr/bin/arch -arch arm64e /bin/bash -l {0}"
-            sudo: "sudo"
+            sudo: ""
             build: { cc: clang, cxx: clang++, linker: ld.lld }
 
     defaults:
