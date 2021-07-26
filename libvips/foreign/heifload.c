@@ -445,6 +445,13 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 	if( vips_foreign_load_heif_set_page( heif, heif->page, FALSE ) )
 		return( -1 );
 
+	/* Verify dimensions
+	 */
+	if ( heif->page_width < 1 || heif->page_height < 1 ) {
+		vips_error( "heifload", "%s", _( "bad dimensions" ) );
+		return( -1 );
+	}
+
 	heif->has_alpha = heif_image_handle_has_alpha_channel( heif->handle );
 #ifdef DEBUG
 	printf( "heif_image_handle_has_alpha_channel() = %d\n", 
