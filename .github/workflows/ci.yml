@@ -15,7 +15,7 @@ jobs:
         sanitize: [ false ]
         prefix: [ "/usr/local" ]
         shell: [ bash ]
-        sudo: [ "sudo" ]
+        sudo: [ sudo ]
         build:
           - { cc: gcc, cxx: g++, linker: ld }
         include:
@@ -24,7 +24,7 @@ jobs:
             sanitize: true
             prefix: "/usr/local"
             shell: bash
-            sudo: "sudo"
+            sudo: sudo
             build: { cc: clang-10, cxx: clang++-10, linker: ld.lld-10 }
 
           - name: "macOS (10.15) - Xcode 12.3"
@@ -32,7 +32,7 @@ jobs:
             sanitize: false
             prefix: "/usr/local"
             shell: bash
-            sudo: "sudo"
+            sudo: sudo
             build: { cc: clang, cxx: clang++, linker: ld.lld }
 
           - name: "macOS (10.15) - Xcode 12.3 - M1"
@@ -45,9 +45,13 @@ jobs:
 
     defaults:
       run:
-        shell: ${{ matrix.shell }} 
+        shell: ${{ matrix.shell }}
 
     env:
+      CC: ${{ matrix.build.cc }}
+      CXX: ${{ matrix.build.cxx }}
+      LD: ${{ matrix.build.linker }}
+      CPPFLAGS: -Wall
       PREFIX: ${{ matrix.prefix }}
       SUDO: ${{ matrix.sudo }}
       PKG_CONFIG_PATH: "$PREFIX/lib/pkgconfig"
@@ -102,13 +106,6 @@ jobs:
           sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3
             clang-10 libomp-10-dev lld-10 llvm-10
 
-      - name: Prepare build environment
-        run: |
-          echo "CC=${{ matrix.build.cc }}" >> $GITHUB_ENV
-          echo "CXX=${{ matrix.build.cxx }}" >> $GITHUB_ENV
-          echo "LD=${{ matrix.build.linker }}" >> $GITHUB_ENV
-          echo "CPPFLAGS=-Wall" >> $GITHUB_ENV
-
       - name: Prepare Ubuntu environment
         if: contains(matrix.os, 'ubuntu')
         run: echo "JOBS=$(nproc)" >> $GITHUB_ENV
@@ -117,7 +114,7 @@ jobs:
         if: contains(matrix.os, 'macos')
         run: |
           echo "JOBS=$(sysctl -n hw.logicalcpu)" >> $GITHUB_ENV
-          echo "PKG_CONFIG_PATH=/usr/local/opt/jpeg-turbo/lib/pkgconfig:/usr/local/opt/libxml2/lib/pkgconfig:/usr/local/opt/imagemagick@6/lib/pkgconfig" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=$(brew --prefix jpeg-turbo)/lib/pkgconfig:$(brew --prefix libxml2)/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
 
       - name: Prepare sanitizers
         if: matrix.sanitize
@@ -167,4 +164,6 @@ jobs:
         env:
           VIPS_LEAK: 1
           LD_PRELOAD: ${{ env.ASAN_DSO }} ${{ env.DLCLOSE_PRELOAD }}
-        run: python3 -m pytest -sv --log-cli-level=WARNING test/test-suite
+        run: |
+          python3 -c "import ctypes.util; print(ctypes.util.find_library('libvips.42.dylib'))"
+          python3 -m pytest -sv --log-cli-level=WARNING test/test-suite
