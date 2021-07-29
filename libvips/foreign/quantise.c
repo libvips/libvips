@@ -53,11 +53,12 @@
  */
 typedef struct _Quantise {
 	VipsImage *in;
-       	VipsImage **index_out;
-       	VipsImage **palette_out;
-        int colours;
-       	int Q;
-       	double dither;
+	VipsImage **index_out;
+	VipsImage **palette_out;
+	int colours;
+	int Q;
+	double dither;
+	int effort;
 
 	liq_attr *attr;
 	liq_image *input_image;
@@ -83,7 +84,7 @@ vips__quantise_free( Quantise *quantise )
 static Quantise *
 vips__quantise_new( VipsImage *in, 
 	VipsImage **index_out, VipsImage **palette_out,
-        int colours, int Q, double dither )
+        int colours, int Q, double dither, int effort )
 {
 	Quantise *quantise;
 	int i;
@@ -95,6 +96,7 @@ vips__quantise_new( VipsImage *in,
 	quantise->colours = colours;
 	quantise->Q = Q;
 	quantise->dither = dither;
+	quantise->effort = effort;
 	for( i = 0; i < VIPS_NUMBER( quantise->t ); i++ )
 		quantise->t[i] = NULL; 
 
@@ -104,7 +106,7 @@ vips__quantise_new( VipsImage *in,
 int
 vips__quantise_image( VipsImage *in, 
 	VipsImage **index_out, VipsImage **palette_out,
-	int colours, int Q, double dither )
+	int colours, int Q, double dither, int effort )
 {
 	Quantise *quantise;
 	VipsImage *index;
@@ -113,7 +115,7 @@ vips__quantise_image( VipsImage *in,
 	int i;
 
 	quantise = vips__quantise_new( in, index_out, palette_out, 
-		colours, Q, dither );
+		colours, Q, dither, effort );
 
 	/* Ensure input is sRGB. 
 	 */
@@ -145,13 +147,14 @@ vips__quantise_image( VipsImage *in,
 	quantise->attr = liq_attr_create();
 	liq_set_max_colors( quantise->attr, colours );
 	liq_set_quality( quantise->attr, 0, Q );
+	liq_set_speed( quantise->attr, 11 - effort );
 
 	quantise->input_image = liq_image_create_rgba( quantise->attr,
 		VIPS_IMAGE_ADDR( in, 0, 0 ), in->Xsize, in->Ysize, 0 );
 
 	if( liq_image_quantize( quantise->input_image, quantise->attr, 
 		&quantise->quantisation_result ) ) {
-		vips_error( "vips2png", "%s", _( "quantisation failed" ) );
+		vips_error( "quantise", "%s", _( "quantisation failed" ) );
 		vips__quantise_free( quantise ); 
 		return( -1 );
 	}
@@ -171,7 +174,7 @@ vips__quantise_image( VipsImage *in,
 	if( liq_write_remapped_image( quantise->quantisation_result, 
 		quantise->input_image,
 		VIPS_IMAGE_ADDR( index, 0, 0 ), VIPS_IMAGE_N_PELS( index ) ) ) {
-		vips_error( "vips2png", "%s", _( "quantisation failed" ) );
+		vips_error( "quantise", "%s", _( "quantisation failed" ) );
 		vips__quantise_free( quantise ); 
 		return( -1 );
 	}

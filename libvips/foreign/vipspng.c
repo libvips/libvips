@@ -986,7 +986,7 @@ write_vips( Write *write,
 	int compress, int interlace, const char *profile,
 	VipsForeignPngFilter filter, gboolean strip,
 	gboolean palette, int Q, double dither,
-	int bitdepth )
+	int bitdepth, int effort )
 {
 	VipsImage *in = write->in;
 
@@ -1162,7 +1162,7 @@ write_vips( Write *write,
 		int trans_count;
 
 		if( vips__quantise_image( in, &im_index, &im_palette, 
-			1 << bitdepth, Q, dither ) ) 
+			1 << bitdepth, Q, dither, effort ) )
 			return( -1 );
 
 		palette_count = im_palette->Xsize;
@@ -1256,7 +1256,7 @@ vips__png_write_target( VipsImage *in, VipsTarget *target,
 	int compression, int interlace,
 	const char *profile, VipsForeignPngFilter filter, gboolean strip,
 	gboolean palette, int Q, double dither,
-	int bitdepth )
+	int bitdepth, int effort )
 {
 	Write *write;
 
@@ -1265,7 +1265,7 @@ vips__png_write_target( VipsImage *in, VipsTarget *target,
 
 	if( write_vips( write, 
 		compression, interlace, profile, filter, strip, palette,
-		Q, dither, bitdepth ) ) {
+		Q, dither, bitdepth, effort ) ) {
 		write_destroy( write );
 		vips_error( "vips2png", _( "unable to write to target %s" ),
 			vips_connection_nick( VIPS_CONNECTION( target ) ) );
