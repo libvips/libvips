@@ -620,12 +620,17 @@ if test x"$magick6" = x"yes"; then
 fi
 
 if test x"$magick6" = x"yes"; then
-  # the magick6 API varies a lot between magick versions, and between GM and
-  # IM
+  # the magick6 API varies a lot between magick versions, and between GM and IM
+  # set CFLAGS too, since CHECK_FUNCS will try to compile / link / run code.
   save_LIBS="$LIBS"
+  save_CFLAGS="$CFLAGS"
   LIBS="$LIBS $MAGICK_LIBS"
+  CFLAGS="$CFLAGS $MAGICK_CFLAGS"
+
   AC_CHECK_FUNCS([InheritException AcquireExceptionInfo SetImageProperty SetImageExtent AcquireImage GetVirtualPixels ResetImageProfileIterator ResetImageAttributeIterator ResetImagePropertyIterator MagickCoreGenesis SetImageOption BlobToStringInfo OptimizePlusImageLayers OptimizeImageTransparency])
+
   LIBS="$save_LIBS"
+  CFLAGS="$save_CFLAGS"
 fi
 
 if test x"$magick6" = x"yes"; then
@@ -1597,7 +1602,7 @@ Matlab load with matio:                 $with_matio
 NIfTI load/save with niftiio:           $with_nifti
 FITS load/save with cfitsio:            $with_cfitsio
 Magick package:                         $with_magickpackage (dynamic module: $with_magick_module)
-Magick API version:                     $magick_version
+Magick major API version:               $magick_version
 load with libMagickCore:                $enable_magickload
 save with libMagickCore:                $enable_magicksave
 ])

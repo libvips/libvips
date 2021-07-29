@@ -32,9 +32,9 @@
  */
 
 /*
+ */
 #define DEBUG_VERBOSE
 #define DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -199,6 +199,11 @@ vips_foreign_load_jxl_fill_input( VipsForeignLoadJxl *jxl,
 	size_t bytes_remaining )
 {
 	gint64 bytes_read;
+
+#ifdef DEBUG_VERBOSE
+	printf( "vips_foreign_load_jxl_fill_input: %zd bytes requested\n", 
+		INPUT_BUFFER_SIZE - bytes_remaining );
+#endif /*DEBUG_VERBOSE*/
 
 	memcpy( jxl->input_buffer, 
 		jxl->input_buffer + jxl->bytes_in_buffer - bytes_remaining,
@@ -365,13 +370,19 @@ vips_foreign_load_jxl_process( VipsForeignLoadJxl *jxl )
 {
 	JxlDecoderStatus status;
 
+#ifdef DEBUG
+	printf( "vips_foreign_load_jxl_process: starting ...\n" );
+#endif /*DEBUG*/
+
 	while( (status = JxlDecoderProcessInput( jxl->decoder )) == 
 		JXL_DEC_NEED_MORE_INPUT ) {
 		size_t bytes_remaining;
 
 		bytes_remaining = JxlDecoderReleaseInput( jxl->decoder );
-		if( vips_foreign_load_jxl_fill_input( jxl, bytes_remaining ) )
+		if( vips_foreign_load_jxl_fill_input( jxl, bytes_remaining ) ) {
+			printf( "vips_foreign_load_jxl_process: EOF\n" );
 			return( JXL_DEC_ERROR );
+		}
 
 		JxlDecoderSetInput( jxl->decoder,
 			jxl->input_buffer, jxl->bytes_in_buffer );
@@ -554,7 +565,8 @@ vips_foreign_load_jxl_header( VipsForeignLoad *load )
 			break;
 
 		case JXL_DEC_COLOR_ENCODING:
-			if( JxlDecoderGetICCProfileSize( jxl->decoder,
+			if( JXL_DEC_SUCCESS != JxlDecoderGetICCProfileSize( 
+				jxl->decoder,
 				&jxl->format, 
 				JXL_COLOR_PROFILE_TARGET_DATA, 
 				&jxl->icc_size ) ) {
@@ -571,7 +583,8 @@ vips_foreign_load_jxl_header( VipsForeignLoad *load )
 				jxl->icc_size )) ) 
 				return( -1 );
 
-			if( JxlDecoderGetColorAsICCProfile( jxl->decoder, 
+			if( JXL_DEC_SUCCESS != JxlDecoderGetColorAsICCProfile(
+				jxl->decoder, 
 				&jxl->format, 
 				JXL_COLOR_PROFILE_TARGET_DATA,
 				jxl->icc_data, jxl->icc_size ) ) {
