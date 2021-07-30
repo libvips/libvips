@@ -187,7 +187,7 @@ int vips__png_write_target( VipsImage *in, VipsTarget *target,
 	int compress, int interlace, const char *profile,
 	VipsForeignPngFilter filter, gboolean strip,
 	gboolean palette, int Q, double dither,
-	int bitdepth );
+	int bitdepth, int effort );
 
 /* Map WEBP metadata names to vips names.
  */
@@ -217,7 +217,7 @@ int vips__webp_write_target( VipsImage *image, VipsTarget *target,
 
 int vips__quantise_image( VipsImage *in, 
 	VipsImage **index_out, VipsImage **palette_out,
-	int colours, int Q, double dither );
+	int colours, int Q, double dither, int effort );
 
 extern const char *vips_foreign_nifti_suffs[];
 
