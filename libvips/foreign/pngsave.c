@@ -472,8 +472,8 @@ vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
  * * @palette: %gboolean, enable quantisation to 8bpp palette
  * * @Q: %gint, quality for 8bpp quantisation 
  * * @dither: %gdouble, amount of dithering for 8bpp quantization
- * * @bitdepth: %int, set write bit depth to 1, 2, 4 or 8
- * * @effort: %int, quantisation CPU effort
+ * * @bitdepth: %gint, set write bit depth to 1, 2, 4 or 8
+ * * @effort: %gint, quantisation CPU effort
  *
  * Write a VIPS image to a file as PNG.
  *
@@ -546,8 +546,8 @@ vips_pngsave( VipsImage *in, const char *filename, ... )
  * * @palette: %gboolean, enable quantisation to 8bpp palette
  * * @Q: %gint, quality for 8bpp quantisation 
  * * @dither: %gdouble, amount of dithering for 8bpp quantization
- * * @bitdepth: %int, set write bit depth to 1, 2, 4 or 8
- * * @effort: %int, quantisation CPU effort
+ * * @bitdepth: %gint, set write bit depth to 1, 2, 4 or 8
+ * * @effort: %gint, quantisation CPU effort
  *
  * As vips_pngsave(), but save to a memory buffer. 
  *
@@ -602,8 +602,8 @@ vips_pngsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @palette: enable quantisation to 8bpp palette
  * * @Q: quality for 8bpp quantisation 
  * * @dither: amount of dithering for 8bpp quantization
- * * @bitdepth: %int, set write bit depth to 1, 2, 4 or 8
- * * @effort: %int, quantisation CPU effort
+ * * @bitdepth: %gint, set write bit depth to 1, 2, 4 or 8
+ * * @effort: %gint, quantisation CPU effort
  *
  * As vips_pngsave(), but save to a target.
  *

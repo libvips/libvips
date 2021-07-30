@@ -2,6 +2,7 @@
 - all tools support `--version`
 - add vips_svgload_string() convenience function
 - fix thumbnail with small image plus crop plus no upsize [Andrewsville]
+- rename speed / reduction-effort / etc. params as "effort"
 
 14/7/21 started 8.11.3
 - build threadpool later [kleisauke]

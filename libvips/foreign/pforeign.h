@@ -211,7 +211,7 @@ int vips__webp_read_source( VipsSource *source, VipsImage *out,
 int vips__webp_write_target( VipsImage *image, VipsTarget *target,
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
-	int alpha_q, int reduction_effort,
+	int alpha_q, int effort,
 	gboolean min_size, int kmin, int kmax,
 	gboolean strip, const char *profile );
 
