@@ -23,6 +23,8 @@
  * 	- speed up the mask construction for uchar/ushort images
  * 22/4/22 kleisauke
  * 	- add @gap option
+ * 19/10/23 kleisauke
+ * 	- remove seq line cache
  */
 
 /*
@@ -826,7 +828,7 @@ vips_reducev_build(VipsObject *object)
 	VipsResample *resample = VIPS_RESAMPLE(object);
 	VipsReducev *reducev = (VipsReducev *) object;
 	VipsImage **t = (VipsImage **)
-		vips_object_local_array(object, 5);
+		vips_object_local_array(object, 3);
 
 	VipsImage *in;
 	VipsGenerateFn generate;
@@ -978,8 +980,7 @@ vips_reducev_build(VipsObject *object)
 		 */
 		generate = vips_reducev_gen;
 
-	t[3] = vips_image_new();
-	if (vips_image_pipelinev(t[3],
+	if (vips_image_pipelinev(resample->out,
 			VIPS_DEMAND_STYLE_FATSTRIP, in, nullptr))
 		return -1;
 
@@ -990,8 +991,8 @@ vips_reducev_build(VipsObject *object)
 	 * example, vipsthumbnail knows the true reduce factor (including the
 	 * fractional part), we just see the integer part here.
 	 */
-	t[3]->Ysize = height;
-	if (t[3]->Ysize <= 0) {
+	resample->out->Ysize = height;
+	if (resample->out->Ysize <= 0) {
 		vips_error(object_class->nickname,
 			"%s", _("image has shrunk to nothing"));
 		return -1;
@@ -1000,41 +1001,15 @@ vips_reducev_build(VipsObject *object)
 #ifdef DEBUG
 	printf("vips_reducev_build: reducing %d x %d image to %d x %d\n",
 		in->Xsize, in->Ysize,
-		t[3]->Xsize, t[3]->Ysize);
+		resample->out->Xsize, resample->out->Ysize);
 #endif /*DEBUG*/
 
-	if (vips_image_generate(t[3],
+	if (vips_image_generate(resample->out,
 			vips_reducev_start, generate, vips_reducev_stop,
 			in, reducev))
 		return -1;
 
-	in = t[3];
-
-	vips_reorder_margin_hint(in, reducev->n_point);
-
-	/* Large reducev will throw off sequential mode. Suppose thread1 is
-	 * generating tile (0, 0), but stalls. thread2 generates tile
-	 * (0, 1), 128 lines further down the output. After it has done,
-	 * thread1 tries to generate (0, 0), but by then the pixels it needs
-	 * have gone from the input image line cache if the reducev is large.
-	 *
-	 * To fix this, put another seq on the output of reducev. Now we'll
-	 * always have the previous XX lines of the shrunk image, and we won't
-	 * fetch out of order.
-	 */
-	if (vips_image_is_sequential(in)) {
-		g_info("reducev sequential line cache");
-
-		if (vips_sequential(in, &t[4],
-				"tile_height", 10,
-				// "trace", TRUE,
-				nullptr))
-			return -1;
-		in = t[4];
-	}
-
-	if (vips_image_write(in, resample->out))
-		return -1;
+	vips_reorder_margin_hint(resample->out, reducev->n_point);
 
 	return 0;
 }
