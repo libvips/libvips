@@ -2565,8 +2565,6 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 	 */
 	header->tiled = TIFFIsTiled( rtiff->tiff );
 
-
-
 #ifdef DEBUG
 	printf( "rtiff_header_read: header.width = %d\n", 
 		header->width );

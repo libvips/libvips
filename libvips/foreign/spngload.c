@@ -194,9 +194,11 @@ vips_foreign_load_png_set_text( VipsImage *out,
 	}
 }
 
-static void
+static int
 vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( png );
+
 	double xres, yres;
 	struct spng_iccp iccp;
 	struct spng_exif exif;
@@ -243,6 +245,15 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 
 	if( !spng_get_text( png->ctx, NULL, &n_text ) ) {
 		struct spng_text *text;
+
+		/* Very large numbers of text chunks are used in DoS
+		 * attacks.
+		 */
+		if( n_text > 10 ) {
+			vips_error( class->nickname, 
+				"%s", _( "too many text chunks" ) );
+			return( -1 );
+		}
 
 		text = VIPS_ARRAY( VIPS_OBJECT( png ), 
 			n_text, struct spng_text );
@@ -307,6 +318,8 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 			vips_image_set_array_double( image, "background", 
 				array, n );
 	}
+
+	return( 0 );
 }
 
 static int
@@ -456,7 +469,8 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 
 	vips_source_minimise( png->source );
 
-	vips_foreign_load_png_set_header( png, load->out );
+	if( vips_foreign_load_png_set_header( png, load->out ) )
+		return( -1 );
 
 	return( 0 );
 }
@@ -570,8 +584,8 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 		 * buffer, then copy to out.
 		 */
 		t[0] = vips_image_new_memory();
-		vips_foreign_load_png_set_header( png, t[0] );
-		if( vips_image_write_prepare( t[0] ) )
+		if( vips_foreign_load_png_set_header( png, t[0] ) ||
+			vips_image_write_prepare( t[0] ) )
 			return( -1 );
 
 		if( (error = spng_decode_image( png->ctx, 
@@ -592,7 +606,9 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 	}
 	else {
 		t[0] = vips_image_new();
-		vips_foreign_load_png_set_header( png, t[0] );
+
+		if( vips_foreign_load_png_set_header( png, t[0] ) )
+			return( -1 );
 
 		/* We can decode these progressively.
 		 */
