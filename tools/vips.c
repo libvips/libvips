@@ -45,6 +45,8 @@
  * 18/6/20 kleisauke
  * 	- avoid using vips7 symbols
  * 	- remove deprecated vips7 C++ generator
+ * 5/8/21 kleisauke
+ * 	- add --targets
  * 1/11/22
  * 	- add "-c" flag
  */
@@ -98,6 +100,7 @@
 
 #define VIPS_DISABLE_DEPRECATION_WARNINGS
 #include <vips/vips.h>
+#include <vips/vector.h>
 #include <vips/internal.h>
 
 #if ENABLE_DEPRECATED
@@ -105,6 +108,7 @@
 #endif
 
 static char *main_option_plugin = NULL;
+static gboolean main_option_targets;
 static gboolean main_option_version;
 
 static void *
@@ -294,6 +298,8 @@ parse_main_option_completion(const gchar *option_name, const gchar *value,
 }
 
 static GOptionEntry main_option[] = {
+	{ "targets", 't', 0, G_OPTION_ARG_NONE, &main_option_targets,
+		N_("print vector targets"), NULL },
 	{ "list", 'l', G_OPTION_FLAG_OPTIONAL_ARG, G_OPTION_ARG_CALLBACK,
 		(GOptionArgFunc) parse_main_option_list,
 		N_("list objects"),
@@ -629,6 +635,26 @@ add_operation_group(GOptionContext *context, VipsOperation *user_data)
 	return group;
 }
 
+static void
+print_vector_targets(const char *msg, gint64 targets)
+{
+	gint64 x;
+
+	printf("%s", msg);
+
+	if (targets == 0)
+		printf(" none");
+
+	/* For each bit:
+	 */
+	for (x = targets; x != 0; x = x & (x - 1))
+		/* Extract value of least-significant bit.
+		 */
+		printf(" %s", vips_vector_target_name(x & (~x + 1)));
+
+	printf("\n");
+}
+
 /* VIPS universal main program.
  */
 int
@@ -755,6 +781,15 @@ main(int argc, char **argv)
 		g_warning("%s", _("plugin load disabled: "
 						  "libvips built without modules support"));
 #endif /*ENABLE_MODULES*/
+	}
+
+	if (main_option_targets) {
+#ifndef HAVE_ORC
+		print_vector_targets("builtin targets:  ",
+			vips_vector_get_builtin_targets());
+#endif
+		print_vector_targets("supported targets:",
+			vips_vector_get_supported_targets());
 	}
 
 	if (main_option_version)
