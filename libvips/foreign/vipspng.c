@@ -310,11 +310,21 @@ read_new( VipsSource *source, VipsImage *out, gboolean fail )
 	if( !(read->pInfo = png_create_info_struct( read->pPng )) ) 
 		return( NULL );
 
+#ifdef HAVE_PNG_SET_CHUNK_MALLOC_MAX
+
 	/* By default, libpng refuses to open files with a metadata chunk 
 	 * larger than 8mb. We've seen real files with 20mb, so set 50mb.
 	 */
-#ifdef HAVE_PNG_SET_CHUNK_MALLOC_MAX
 	png_set_chunk_malloc_max( read->pPng, 50 * 1024 * 1024 );
+
+	/* This limits the number of chunks. The limit from
+	 * png_set_chunk_malloc_max() times this value is the maximum 
+	 * memory use.
+	 *
+	 * libnpng defaults to 1000, which is rather high.
+	 */
+	png_set_chunk_cache_max( read->pPng, 100 );
+
 #endif /*HAVE_PNG_SET_CHUNK_MALLOC_MAX*/
 
 	png_read_info( read->pPng, read->pInfo );
