@@ -107,49 +107,67 @@ table_init( void *client )
 	return( NULL );
 }
 
+static void
+vips_col_XYZ2Lab_helper( VipsXYZ2Lab *XYZ2Lab,
+	float X, float Y, float Z, float *L, float *a, float *b )
+{
+	static GOnce once = G_ONCE_INIT;
+
+	VIPS_ONCE( &once, table_init, NULL );
+
+	float nX, nY, nZ;
+	int i;
+	float f;
+	float cbx, cby, cbz;
+
+	nX = QUANT_ELEMENTS * X / XYZ2Lab->X0;
+	nY = QUANT_ELEMENTS * Y / XYZ2Lab->Y0;
+	nZ = QUANT_ELEMENTS * Z / XYZ2Lab->Z0;
+
+	/* CLIP is much faster than FCLIP, and we want an int result.
+	 */
+	i = VIPS_CLIP( 0, (int) nX, QUANT_ELEMENTS - 2 );
+	f = nX - i;
+	cbx = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
+
+	i = VIPS_CLIP( 0, (int) nY, QUANT_ELEMENTS - 2 );
+	f = nY - i;
+	cby = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
+
+	i = VIPS_CLIP( 0, (int) nZ, QUANT_ELEMENTS - 2 );
+	f = nZ - i;
+	cbz = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
+
+	*L = 116.0 * cby - 16.0;
+	*a = 500.0 * (cbx - cby);
+	*b = 200.0 * (cby - cbz);
+}
+
 /* Process a buffer of data.
  */
 static void
 vips_XYZ2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 {
-	static GOnce once = G_ONCE_INIT;
-
 	VipsXYZ2Lab *XYZ2Lab = (VipsXYZ2Lab *) colour;
 	float *p = (float *) in[0];
 	float *q = (float *) out;
 
 	int x;
 
-	VIPS_ONCE( &once, table_init, NULL );
-
 	for( x = 0; x < width; x++ ) {
-		float nX, nY, nZ;
-		int i;
-		float f;
-		float cbx, cby, cbz;
+		float X, Y, Z;
+		float L, a, b;
 
-		nX = QUANT_ELEMENTS * p[0] / XYZ2Lab->X0;
-		nY = QUANT_ELEMENTS * p[1] / XYZ2Lab->Y0;
-		nZ = QUANT_ELEMENTS * p[2] / XYZ2Lab->Z0;
+		X = p[0];
+		Y = p[1];
+		Z = p[2];
 		p += 3;
 
-		/* CLIP is much faster than FCLIP, and we want an int result.
-		 */
-		i = VIPS_CLIP( 0, (int) nX, QUANT_ELEMENTS - 2 );
-		f = nX - i;
-		cbx = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
+		vips_col_XYZ2Lab_helper( XYZ2Lab, X, Y, Z, &L, &a, &b );
 
-		i = VIPS_CLIP( 0, (int) nY, QUANT_ELEMENTS - 2 );
-		f = nY - i;
-		cby = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
-
-		i = VIPS_CLIP( 0, (int) nZ, QUANT_ELEMENTS - 2 );
-		f = nZ - i;
-		cbz = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
-
-		q[0] = 116.0 * cby - 16.0;
-		q[1] = 500.0 * (cbx - cby);
-		q[2] = 200.0 * (cby - cbz);
+		q[0] = L;
+		q[1] = a;
+		q[2] = b;
 		q += 3;
 	}
 }
@@ -169,24 +187,13 @@ vips_XYZ2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
  */
 void
 vips_col_XYZ2Lab( float X, float Y, float Z, float *L, float *a, float *b )
-{	
-	float in[3];
-	float out[3];
-	float *x;
+{
 	VipsXYZ2Lab XYZ2Lab;
 
-	in[0] = X;
-	in[1] = Y;
-	in[2] = Z;
-	x = in;
 	XYZ2Lab.X0 = VIPS_D65_X0;
 	XYZ2Lab.Y0 = VIPS_D65_Y0;
 	XYZ2Lab.Z0 = VIPS_D65_Z0;
-	vips_XYZ2Lab_line( (VipsColour *) &XYZ2Lab, 
-		(VipsPel *) out, (VipsPel **) &x, 1 );
-	*L = out[0];
-	*a = out[1];
-	*b = out[2];
+	vips_col_XYZ2Lab_helper( &XYZ2Lab, X, Y, Z, L, a, b );
 }
 
 static int
@@ -273,4 +280,3 @@ vips_XYZ2Lab( VipsImage *in, VipsImage **out, ... )
 
 	return( result );
 }
-
