@@ -57,6 +57,22 @@ typedef VipsColourTransformClass VipsLCh2LabClass;
 
 G_DEFINE_TYPE( VipsLCh2Lab, vips_LCh2Lab, VIPS_TYPE_COLOUR_TRANSFORM );
 
+/**
+ * vips_col_Ch2ab:
+ * @C: Chroma
+ * @h: Hue angle (degrees)
+ * @a: return CIE a* value
+ * @b: return CIE b* value
+ *
+ * Calculate ab from Ch, h in degrees.
+ */
+void
+vips_col_Ch2ab( float C, float h, float *a, float *b )
+{
+	*a = C * cos( VIPS_RAD( h ) );
+	*b = C * sin( VIPS_RAD( h ) );
+}
+
 /* Process a buffer of data.
  */
 static void
@@ -75,8 +91,7 @@ vips_LCh2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 
 		p += 3;
 
-		a = C * cos( VIPS_RAD( h ) );
-		b = C * sin( VIPS_RAD( h ) );
+		vips_col_Ch2ab( C, h, &a, &b );
 
 		q[0] = L;
 		q[1] = a;
@@ -84,35 +99,6 @@ vips_LCh2Lab_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 
 		q += 3;
 	}
-}
-
-/**
- * vips_col_Ch2ab:
- * @C: Chroma
- * @h: Hue angle (degrees)
- * @a: return CIE a* value
- * @b: return CIE b* value
- *
- * Calculate ab from Ch, h in degrees.
- */
-void
-vips_col_Ch2ab( float C, float h, float *a, float *b )
-{
-	float in[3];
-	float out[3];
-	float *x;
-
-	/* could be anything, we don't use this value, but we must supply one
-	 * or static analyzers will complain.
-	 */
-	in[0] = 50.0;
-
-	in[1] = C;
-	in[2] = h;
-	x = &in[0];
-	vips_LCh2Lab_line( NULL, (VipsPel *) out, (VipsPel **) &x, 1 );
-	*a = out[1];
-	*b = out[2];
 }
 
 static void
