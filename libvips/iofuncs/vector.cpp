@@ -77,6 +77,13 @@ vips__vector_init(void)
 	orc_init();
 #endif /*HAVE_ORC*/
 
+	/* Check whether any features are being disabled by the environment.
+	 */
+	const char *env;
+	if ((env = g_getenv("VIPS_VECTOR")))
+		return vips_vector_disable_targets(
+			g_ascii_strtoll(env, NULL, 0));
+
 	/* Look for the deprecated IM_NOVECTOR environment variable as well.
 	 */
 	if (g_getenv("VIPS_NOVECTOR")
@@ -161,5 +168,23 @@ vips_vector_target_name(gint64 target)
 		log2(target));
 #else
 	return NULL;
+#endif
+}
+
+/**
+ * vips_vector_disable_targets:
+ * @disabled_targets: A bitfield of targets to disable at runtime.
+ *
+ * Takes a bitfield of targets to disable on the runtime platform.
+ * Handy for testing and benchmarking purposes.
+ *
+ * This can also be set using the `VIPS_VECTOR` environment variable.
+ */
+void
+vips_vector_disable_targets(gint64 disabled_targets)
+{
+#ifdef HAVE_HWY
+	hwy::SetSupportedTargetsForTest(
+		vips_vector_get_supported_targets() & ~disabled_targets);
 #endif
 }

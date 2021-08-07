@@ -53,6 +53,8 @@ VIPS_API
 gint64 vips_vector_get_supported_targets(void);
 VIPS_API
 const char *vips_vector_target_name(gint64 target);
+VIPS_API
+void vips_vector_disable_targets(gint64 disabled_targets);
 
 #ifdef __cplusplus
 }
