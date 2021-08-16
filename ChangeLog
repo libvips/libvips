@@ -1,3 +1,6 @@
+16/8/21 started 8.11.4
+- fix off-by-one error in new rank fast path
+
 14/7/21 started 8.11.3
 - build threadpool later [kleisauke]
 - add jxlsave prototypes [adil-benameur]
