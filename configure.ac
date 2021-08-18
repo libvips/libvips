@@ -1495,11 +1495,6 @@ AC_SUBST(VIPS_CONFIG)
 AC_SUBST(PACKAGES_USED)
 AC_SUBST(EXTRA_LIBS_USED)
 
-# needed by test/variables.sh.in
-# :( what's a better way to do this, argh
-TOP_SRCDIR=$ac_pwd
-AC_SUBST(TOP_SRCDIR)
-
 AC_CONFIG_FILES([
         vips.pc
         vips-cpp.pc
