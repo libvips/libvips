@@ -43,11 +43,12 @@ jobs:
           DEBIAN_FRONTEND: noninteractive
         run: sudo -E apt-get update -qq -o Acquire::Retries=3
 
-      - name: Add libheif PPA
+      - name: Add Ubuntu PPAs
         if: contains(matrix.os, 'ubuntu')
         run: |
           sudo add-apt-repository ppa:strukturag/libde265
           sudo add-apt-repository ppa:strukturag/libheif
+          sudo add-apt-repository ppa:lovell/cgif
 
       - name: Install Ubuntu dependencies
         if: contains(matrix.os, 'ubuntu')
@@ -64,7 +65,7 @@ jobs:
             liblcms2-dev libpoppler-glib-dev librsvg2-dev
             libgif-dev libopenexr-dev libpango1.0-dev
             libgsf-1-dev libopenslide-dev libffi-dev
-            libopenjp2-7-dev
+            libopenjp2-7-dev libimagequant-dev libcgif-dev
 
       - name: Install macOS dependencies
         if: contains(matrix.os, 'macos')
@@ -72,7 +73,9 @@ jobs:
           brew update
           brew upgrade
           brew install autoconf automake libtool fftw fontconfig gtk-doc gobject-introspection glib libexif libgsf little-cms2 orc pango
-          brew install cfitsio libheif libjpeg-turbo libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
+          brew install cfitsio libheif libimagequant libjpeg-turbo libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
+          brew tap lovell/cgif-packaging https://github.com/lovell/cgif-packaging.git
+          brew install --build-bottle lovell/cgif-packaging/cgif
 
       - name: Install Clang 10
         env:

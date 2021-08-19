@@ -1348,7 +1348,7 @@ VIPS_LIBS="$VIPS_LIBS $PNG_LIBS"
 AC_ARG_WITH([imagequant],
   AS_HELP_STRING([--without-imagequant], [build without imagequant (default: test)]))
 
-if test x"$with_imagequant" != x"no" && test x"$with_png" != x"no"; then
+if test x"$with_imagequant" != x"no"; then
   PKG_CHECK_MODULES(IMAGEQUANT, imagequant,
     [AC_DEFINE(HAVE_IMAGEQUANT,1,[define if you have imagequant installed.])
      with_imagequant=yes
@@ -1436,6 +1436,27 @@ fi
 VIPS_CFLAGS="$VIPS_CFLAGS $EXIF_CFLAGS"
 VIPS_LIBS="$VIPS_LIBS $EXIF_LIBS"
 
+# GIF save with libcgif (requires libimagequant also)
+AC_ARG_WITH([cgif],
+  AS_HELP_STRING([--without-cgif], [build without cgif (default: test)]))
+
+if test x"$with_imagequant" == x"yes" && test x"$with_cgif" != x"no"; then
+  PKG_CHECK_MODULES(CGIF, cgif,
+    [AC_DEFINE(HAVE_CGIF,1,[define if you have cgif installed.])
+      with_cgif=yes
+      PACKAGES_USED="$PACKAGES_USED cgif"
+    ],
+    [AC_MSG_WARN([libcgif not found])
+      with_cgif=no
+    ]
+  )
+else
+  with_cgif=no
+fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $CGIF_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $CGIF_LIBS"
+
 # fuzzing
 AC_ARG_VAR([LIB_FUZZING_ENGINE],
            [fuzzing library, e.g. /path/to/libFuzzer.a])
@@ -1468,7 +1489,7 @@ JXL load/save with libjxl: $with_libjxl (dynamic module: $with_libjxl_module), \
 JPEG2000 load/save with libopenjp2: $with_libopenjp2, \
 PNG load with libspng: $with_libspng, \
 PNG load/save with libpng: $with_png, \
-PNG quantisation to 8 bit: $with_imagequant, \
+quantisation to 8 bit: $with_imagequant, \
 TIFF load/save with libtiff: $with_tiff, \
 image pyramid save: $with_gsf, \
 HEIC/AVIF load/save with libheif: $with_heif (dynamic module: $with_heif_module), \
@@ -1481,6 +1502,7 @@ OpenSlide load: $with_openslide (dynamic module: $with_openslide_module), \
 Matlab load with matio: $with_matio, \
 NIfTI load/save with niftiio: $with_nifti, \
 FITS load/save with cfitsio: $with_cfitsio, \
+GIF save with cgif: $with_cgif, \
 Magick package: $with_magickpackage (dynamic module: $with_magick_module), \
 Magick API version: $magick_version, \
 load with libMagickCore: $enable_magickload, \
@@ -1577,7 +1599,7 @@ PNG load with libspng:                  $with_libspng
  (requires libspng-0.6 or later)
 PNG load/save with libpng:              $with_png
  (requires libpng-1.2.9 or later)
-PNG quantisation to 8 bit:              $with_imagequant
+quantisation to 8 bit:                  $with_imagequant
  (requires libimagequant)
 TIFF load/save with libtiff:            $with_tiff
 image pyramid save:                     $with_gsf
@@ -1596,6 +1618,8 @@ OpenSlide support:                      $with_openslide (dynamic module: $with_o
 Matlab load with matio:                 $with_matio
 NIfTI load/save with niftiio:           $with_nifti
 FITS load/save with cfitsio:            $with_cfitsio
+GIF save with cgif:                     $with_cgif
+ (requires libimagequant)
 Magick package:                         $with_magickpackage (dynamic module: $with_magick_module)
 Magick major API version:               $magick_version
 load with libMagickCore:                $enable_magickload
