@@ -16,9 +16,9 @@ jobs:
             build: { cc: gcc, cxx: g++, linker: ld }
             shell: bash
 
-          - name: "Linux x64 (Ubuntu 20.04) - Clang 10 with ASan and UBSan"
+          - name: "Linux x64 (Ubuntu 20.04) - Clang 12 with ASan and UBSan"
             os: ubuntu-20.04
-            build: { cc: clang-10, cxx: clang++-10, linker: ld.lld-10, sanitize: true }
+            build: { cc: clang-12, cxx: clang++-12, linker: ld.lld-12, sanitize: true }
             shell: bash
 
           - name: "macOS (10.15) - Xcode 12.4"
@@ -82,11 +82,11 @@ jobs:
           brew tap lovell/cgif-packaging https://github.com/lovell/cgif-packaging.git
           brew install --build-bottle lovell/cgif-packaging/cgif
 
-      - name: Install Clang 10
-        if: runner.os == 'Linux' && matrix.build.cc == 'clang-10'
+      - name: Install Clang 12
+        if: runner.os == 'Linux' && matrix.build.cc == 'clang-12'
         run:
           sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3
-            clang-10 libomp-10-dev lld-10 llvm-10
+            clang-12 libomp-12-dev lld-12 llvm-12
 
       - name: Prepare Ubuntu environment
         if: runner.os == 'Linux'
@@ -101,7 +101,7 @@ jobs:
       - name: Prepare sanitizers
         if: matrix.build.sanitize
         env:
-          LLVM_PREFIX: /usr/lib/llvm-10
+          LLVM_PREFIX: /usr/lib/llvm-12
         run: |
           ASAN_DSO=`$CC -print-file-name=libclang_rt.asan-x86_64.so`
           echo "LDSHARED=$CC -shared" >> $GITHUB_ENV
