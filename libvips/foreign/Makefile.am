@@ -6,6 +6,7 @@ libforeign_la_SOURCES = \
 	analyze2vips.c \
 	analyzeload.c \
 	cairo.c \
+	cgifsave.c \
 	csvload.c \
 	csvsave.c \
 	dbh.h \

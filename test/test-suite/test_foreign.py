@@ -1208,6 +1208,40 @@ class TestForeign:
         # im2 = pyvips.Image.new_from_buffer(buf, "")
         # assert (im == im2).min() == 255
 
+    @skip_if_no("gifsave")
+    def test_gifsave(self):
+        # Animated GIF round trip
+        x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
+        b1 = x1.gifsave_buffer()
+        x2 = pyvips.Image.new_from_buffer(b1, "", n=-1)
+        assert x1.width == x2.width
+        assert x1.height == x2.height
+        assert x1.get("n-pages") == x2.get("n-pages")
+        assert x1.get("delay") == x2.get("delay")
+        assert x1.get("page-height") == x2.get("page-height")
+        assert x1.get("loop") == x2.get("loop")
+
+        # Reducing dither will typically reduce file size (and quality)
+        little_dither = self.colour.gifsave_buffer(dither=0.1, effort=1)
+        large_dither = self.colour.gifsave_buffer(dither=0.9, effort=1)
+        assert len(little_dither) < len(large_dither)
+
+        # Reducing effort will typically increase file size (and reduce quality)
+        little_effort = self.colour.gifsave_buffer(effort=1)
+        large_effort = self.colour.gifsave_buffer(effort=10)
+        assert len(little_effort) > len(large_effort)
+
+        if have("webpload"):
+            # Animated WebP to GIF
+            x1 = pyvips.Image.new_from_file(WEBP_ANIMATED_FILE, n=-1)
+            b1 = x1.gifsave_buffer()
+            x2 = pyvips.Image.new_from_buffer(b1, "", n=-1)
+            assert x1.width == x2.width
+            assert x1.height == x2.height
+            assert x1.get("n-pages") == x2.get("n-pages")
+            assert x1.get("delay") == x2.get("delay")
+            assert x1.get("page-height") == x2.get("page-height")
+            assert x1.get("loop") == x2.get("loop")
 
 if __name__ == '__main__':
     pytest.main()
