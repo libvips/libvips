@@ -1,3 +1,8 @@
+/* save as GIF
+ *
+ * 22/8/21 lovell
+ */
+
 /*
 
     This file is part of VIPS.
@@ -20,7 +25,9 @@
  */
 
 /*
+ 
     These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+
  */
 
 #ifdef HAVE_CONFIG_H
@@ -67,10 +74,10 @@ vips_foreign_save_cgif_dispose( GObject *gobject )
 
 /* Minimal callback wrapper around vips_target_write
  */
-static int vips__cgif_write( void* target, const uint8_t* buffer,
+static int vips__cgif_write( void *target, const uint8_t *buffer,
 	const size_t length ) {
-	return vips_target_write( (VipsTarget*) target,
-		(const void*) buffer, (size_t) length );
+	return vips_target_write( (VipsTarget *) target,
+		(const void *) buffer, (size_t) length );
 }
 
 static int
@@ -78,8 +85,9 @@ vips_foreign_save_cgif_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveCgif *cgif = (VipsForeignSaveCgif *) object;
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( cgif ), 6 );
 
-	VipsImage **t;
 	int rgb;
 	int rgba;
 	gboolean has_transparency;
@@ -99,8 +107,6 @@ vips_foreign_save_cgif_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	t = (VipsImage **) vips_object_local_array( VIPS_OBJECT( cgif ), 6 );
-
 	/* Animation properties
 	 */
 	page_height = vips_image_get_page_height( save->ready );
@@ -117,9 +123,9 @@ vips_foreign_save_cgif_build( VipsObject *object )
 		if( vips_extract_band( save->ready, &t[0], 0, "n", 3, NULL ) ||
 			vips_extract_band( save->ready, &t[1], 3, NULL ) ||
 			vips_moreeq_const1( t[1], &t[2], 128, NULL ) ||
-			vips_bandjoin2( t[0], t[2], &t[3], NULL ) ) {
+			vips_bandjoin2( t[0], t[2], &t[3], NULL ) ) 
 			return( -1 );
-		}
+
 		VIPS_UNREF( save->ready );
 		save->ready = t[3];
 		g_object_ref( save->ready );
@@ -133,7 +139,7 @@ vips_foreign_save_cgif_build( VipsObject *object )
 
 	/* Convert palette to RGB
 	 */
-	paletteRgba = (uint8_t*) VIPS_IMAGE_ADDR( t[5], 0, 0 );
+	paletteRgba = (uint8_t *) VIPS_IMAGE_ADDR( t[5], 0, 0 );
 	paletteRgb = g_malloc0( t[5]->Xsize * 3 );
 	for( rgb = 0, rgba = 0; rgb < t[5]->Xsize * 3; rgb += 3 ) {
 		paletteRgb[rgb] = paletteRgba[rgba];
@@ -141,8 +147,9 @@ vips_foreign_save_cgif_build( VipsObject *object )
 		paletteRgb[rgb + 2] = paletteRgba[rgba + 2];
 		rgba += 4;
 	}
-	/* Does the palette contain a transparent pixel value?
-	   This will always the first entry, if any.
+
+	/* Does the palette contain a transparent pixel value? This will 
+	 * always the first entry, if any.
 	 */
 	has_transparency = paletteRgba[3] == 255 ? FALSE : TRUE;
 
@@ -155,32 +162,31 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	cgif_config.numGlobalPaletteEntries = t[5]->Xsize;
 	cgif_config.numLoops = loop;
 	cgif_config.attrFlags = GIF_ATTR_IS_ANIMATED;
-	if( has_transparency ) {
+	if( has_transparency ) 
 		cgif_config.attrFlags |= GIF_ATTR_HAS_TRANSPARENCY;
-	}
 	cgif_config.pWriteFn = vips__cgif_write;
-	cgif_config.pContext = (void*) cgif->target;
+	cgif_config.pContext = (void *) cgif->target;
 	cgif_context = cgif_newgif( &cgif_config );
 	g_free( paletteRgb );
 
 	/* Add each vips page as a cgif frame
 	 */
 	for( top = 0; top < t[4]->Ysize; top += page_height ) {
+		int page_index = top / page_height;
+
 		memset( &cgif_frame_config, 0, sizeof( FrameConfig ) );
-		cgif_frame_config.pImageData = (uint8_t*)
+		cgif_frame_config.pImageData = (uint8_t *)
 			VIPS_IMAGE_ADDR( t[4], 0, top );
-		if( delay ) {
-			int page_index = top / page_height;
-			if( page_index < delay_length )
-				cgif_frame_config.delay =
-					VIPS_RINT( delay[page_index] / 10.0 );
-		}
-		if( !has_transparency ) {
+		if( delay &&
+			page_index < delay_length )
+			cgif_frame_config.delay =
+				VIPS_RINT( delay[page_index] / 10.0 );
+		if( !has_transparency ) 
 			/* Allow cgif to optimise by adding transparency
 			 */
-			cgif_frame_config.genFlags = FRAME_GEN_USE_TRANSPARENCY |
+			cgif_frame_config.genFlags = 
+				FRAME_GEN_USE_TRANSPARENCY |
 				FRAME_GEN_USE_DIFF_WINDOW;
-		}
 		cgif_addframe( cgif_context, &cgif_frame_config );
 	}
 
@@ -210,7 +216,7 @@ vips_foreign_save_cgif_class_init( VipsForeignSaveCgifClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "gifsave_base";
-	object_class->description = _( "save gif" );
+	object_class->description = _( "save as gif" );
 	object_class->build = vips_foreign_save_cgif_build;
 
 	foreign_class->suffs = vips__save_cgif_suffs;
@@ -256,7 +262,8 @@ static int
 vips_foreign_save_cgif_target_build( VipsObject *object )
 {
 	VipsForeignSaveCgif *gif = (VipsForeignSaveCgif *) object;
-	VipsForeignSaveCgifTarget *target = (VipsForeignSaveCgifTarget *) object;
+	VipsForeignSaveCgifTarget *target = 
+		(VipsForeignSaveCgifTarget *) object;
 
 	gif->target = target->target;
 	g_object_ref( gif->target );
@@ -269,7 +276,8 @@ vips_foreign_save_cgif_target_build( VipsObject *object )
 }
 
 static void
-vips_foreign_save_cgif_target_class_init( VipsForeignSaveCgifTargetClass *class )
+vips_foreign_save_cgif_target_class_init( 
+	VipsForeignSaveCgifTargetClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -278,7 +286,6 @@ vips_foreign_save_cgif_target_class_init( VipsForeignSaveCgifTargetClass *class 
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "gifsave_target";
-	object_class->description = _( "save image to target as gif" );
 	object_class->build = vips_foreign_save_cgif_target_build;
 
 	VIPS_ARG_OBJECT( class, "target", 1,
@@ -331,7 +338,6 @@ vips_foreign_save_cgif_file_class_init( VipsForeignSaveCgifFileClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "gifsave";
-	object_class->description = _( "save image to gif file" );
 	object_class->build = vips_foreign_save_cgif_file_build;
 
 	VIPS_ARG_STRING( class, "filename", 1,
@@ -361,7 +367,8 @@ static int
 vips_foreign_save_cgif_buffer_build( VipsObject *object )
 {
 	VipsForeignSaveCgif *gif = (VipsForeignSaveCgif *) object;
-	VipsForeignSaveCgifBuffer *buffer = (VipsForeignSaveCgifBuffer *) object;
+	VipsForeignSaveCgifBuffer *buffer = 
+		(VipsForeignSaveCgifBuffer *) object;
 
 	VipsBlob *blob;
 
@@ -380,7 +387,8 @@ vips_foreign_save_cgif_buffer_build( VipsObject *object )
 }
 
 static void
-vips_foreign_save_cgif_buffer_class_init( VipsForeignSaveCgifBufferClass *class )
+vips_foreign_save_cgif_buffer_class_init( 
+	VipsForeignSaveCgifBufferClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -389,7 +397,6 @@ vips_foreign_save_cgif_buffer_class_init( VipsForeignSaveCgifBufferClass *class 
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "gifsave_buffer";
-	object_class->description = _( "save image to gif buffer" );
 	object_class->build = vips_foreign_save_cgif_buffer_build;
 
 	VIPS_ARG_BOXED( class, "buffer", 1,
