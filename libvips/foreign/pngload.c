@@ -59,6 +59,10 @@ typedef struct _VipsForeignLoadPng {
 	 */
 	VipsSource *source;
 
+	/* Allow any number of text chunks.
+	 */
+	gboolean unlimited;
+
 } VipsForeignLoadPng;
 
 typedef VipsForeignLoadClass VipsForeignLoadPngClass;
@@ -158,6 +162,13 @@ vips_foreign_load_png_class_init( VipsForeignLoadPngClass *class )
 	load_class->header = vips_foreign_load_png_header;
 	load_class->load = vips_foreign_load_png_load;
 
+	VIPS_ARG_BOOL( class, "unlimited", 23,
+		_( "Unlimited" ),
+		_( "Allow any number of text chunks" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadPng, unlimited ),
+		FALSE );
+
 }
 
 static void
@@ -225,6 +236,13 @@ vips_foreign_load_png_source_class_init( VipsForeignLoadPngSourceClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignLoadPngSource, source ),
 		VIPS_TYPE_SOURCE );
+
+	VIPS_ARG_BOOL( class, "unlimited", 23,
+		_( "Unlimited" ),
+		_( "Allow any number of text chunks" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadPng, unlimited ),
+		FALSE );
 
 }
 
@@ -303,6 +321,14 @@ vips_foreign_load_png_file_class_init( VipsForeignLoadPngFileClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignLoadPngFile, filename ),
 		NULL );
+
+	VIPS_ARG_BOOL( class, "unlimited", 23,
+		_( "Unlimited" ),
+		_( "Allow any number of text chunks" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadPng, unlimited ),
+		FALSE );
+
 }
 
 static void
@@ -380,6 +406,13 @@ vips_foreign_load_png_buffer_class_init( VipsForeignLoadPngBufferClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoadPngBuffer, blob ),
 		VIPS_TYPE_BLOB );
 
+	VIPS_ARG_BOOL( class, "unlimited", 23,
+		_( "Unlimited" ),
+		_( "Allow any number of text chunks" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadPngBuffer, unlimited ),
+		FALSE );
+		
 }
 
 static void
@@ -394,6 +427,10 @@ vips_foreign_load_png_buffer_init( VipsForeignLoadPngBuffer *buffer )
  * @filename: file to load
  * @out: (out): decompressed image
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @unlimited: %gboolean, allow any number of text chunks
  *
  * Read a PNG file into a VIPS image. It can read all png images, including 8-
  * and 16-bit images, 1 and 3 channel, with and without an alpha channel.
@@ -424,6 +461,10 @@ vips_pngload( const char *filename, VipsImage **out, ... )
  * @len: (type gsize): size of memory area
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @unlimited: %gboolean, allow any number of text chunks
  *
  * Exactly as vips_pngload(), but read from a PNG-formatted memory block.
  *
@@ -459,6 +500,10 @@ vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * @source: source to load from
  * @out: (out): image to write
  * @...: %NULL-terminated list of optional named arguments
+ *
+ * Optional arguments:
+ *
+ * * @unlimited: %gboolean, allow any number of text chunks
  *
  * Exactly as vips_pngload(), but read from a source. 
  *

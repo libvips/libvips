@@ -564,7 +564,8 @@ png2vips_header( Read *read, VipsImage *out )
 		/* Very large numbers of text chunks are used in DoS
 		 * attacks.
 		 */
-		if( num_text > 10 ) {
+
+		if( !read->unlimited && num_text > 10 ) {
 			vips_error( "vipspng", 
 				"%s", _( "too many text chunks" ) );
 			return( -1 );
