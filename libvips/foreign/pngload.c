@@ -162,13 +162,6 @@ vips_foreign_load_png_class_init( VipsForeignLoadPngClass *class )
 	load_class->header = vips_foreign_load_png_header;
 	load_class->load = vips_foreign_load_png_load;
 
-	VIPS_ARG_BOOL( class, "unlimited", 23,
-		_( "Unlimited" ),
-		_( "Allow any number of text chunks" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignLoadPng, unlimited ),
-		FALSE );
-
 }
 
 static void
