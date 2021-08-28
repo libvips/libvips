@@ -85,9 +85,10 @@ static VipsForeignFlags
 vips_foreign_load_png_get_flags_source( VipsSource *source )
 {
 	VipsForeignFlags flags;
+	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
 	flags = 0;
-	if( vips__png_isinterlaced_source( source ) )
+	if( vips__png_isinterlaced_source( png->source, png->unlimited ) )
 		flags |= VIPS_FOREIGN_PARTIAL;
 	else
 		flags |= VIPS_FOREIGN_SEQUENTIAL;

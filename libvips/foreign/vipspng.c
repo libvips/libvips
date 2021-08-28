@@ -271,7 +271,8 @@ read_new( VipsSource *source, VipsImage *out, gboolean fail, gboolean unlimited 
 	read->pInfo = NULL;
 	read->row_pointer = NULL;
 	read->source = source;
-	read->unlimited = unlimited
+	read->unlimited = unlimited;
+
 	g_object_ref( source );
 
 	g_signal_connect( out, "close", 
@@ -816,7 +817,7 @@ vips__png_read_source( VipsSource *source, VipsImage *out, gboolean fail, gboole
  * served partially from there. Non-interlaced PNGs may be read sequentially.
  */
 gboolean
-vips__png_isinterlaced_source( VipsSource *source )
+vips__png_isinterlaced_source( VipsSource *source, gboolean unlimited )
 {
 	VipsImage *image;
 	Read *read;
@@ -824,7 +825,7 @@ vips__png_isinterlaced_source( VipsSource *source )
 
 	image = vips_image_new();
 
-	if( !(read = read_new( source, image, TRUE )) ) { 
+	if( !(read = read_new( source, image, TRUE, unlimited )) ) { 
 		g_object_unref( image );
 		return( -1 );
 	}

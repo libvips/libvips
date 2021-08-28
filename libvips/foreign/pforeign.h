@@ -180,7 +180,7 @@ int vips__png_ispng_source( VipsSource *source );
 int vips__png_header_source( VipsSource *source, VipsImage *out, gboolean unlimited );
 int vips__png_read_source( VipsSource *source, VipsImage *out, 
 	gboolean fail, gboolean unlimited );
-gboolean vips__png_isinterlaced_source( VipsSource *source );
+gboolean vips__png_isinterlaced_source( VipsSource *source, gboolean unlimited );
 extern const char *vips__png_suffs[];
 
 int vips__png_write_target( VipsImage *in, VipsTarget *target,
