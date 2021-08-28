@@ -148,6 +148,8 @@ vips_foreign_load_png_class_init( VipsForeignLoadPngClass *class )
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_png_dispose;
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pngload_base";
 	object_class->description = _( "load png base class" );
