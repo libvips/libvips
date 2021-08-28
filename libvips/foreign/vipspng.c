@@ -173,6 +173,7 @@ typedef struct {
 	char *name;
 	VipsImage *out;
 	gboolean fail;
+	gboolean unlimited;
 
 	int y_pos;
 	png_structp pPng;
@@ -255,7 +256,7 @@ vips_png_read_source( png_structp pPng, png_bytep data, png_size_t length )
 }
 
 static Read *
-read_new( VipsSource *source, VipsImage *out, gboolean fail )
+read_new( VipsSource *source, VipsImage *out, gboolean fail, gboolean unlimited )
 {
 	Read *read;
 
@@ -270,6 +271,7 @@ read_new( VipsSource *source, VipsImage *out, gboolean fail )
 	read->pInfo = NULL;
 	read->row_pointer = NULL;
 	read->source = source;
+	read->unlimited = unlimited
 	g_object_ref( source );
 
 	g_signal_connect( out, "close", 
@@ -564,7 +566,6 @@ png2vips_header( Read *read, VipsImage *out )
 		/* Very large numbers of text chunks are used in DoS
 		 * attacks.
 		 */
-
 		if( !read->unlimited && num_text > 10 ) {
 			vips_error( "vipspng", 
 				"%s", _( "too many text chunks" ) );
@@ -779,11 +780,11 @@ vips__png_ispng_source( VipsSource *source )
 }
 
 int
-vips__png_header_source( VipsSource *source, VipsImage *out )
+vips__png_header_source( VipsSource *source, VipsImage *out, gboolean unlimited )
 {
 	Read *read;
 
-	if( !(read = read_new( source, out, TRUE )) ||
+	if( !(read = read_new( source, out, TRUE, unlimited )) ||
 		png2vips_header( read, out ) ) {
 		vips_error( "png2vips", _( "unable to read source %s" ),
 			vips_connection_nick( VIPS_CONNECTION( source ) ) );
@@ -796,11 +797,11 @@ vips__png_header_source( VipsSource *source, VipsImage *out )
 }
 
 int
-vips__png_read_source( VipsSource *source, VipsImage *out, gboolean fail )
+vips__png_read_source( VipsSource *source, VipsImage *out, gboolean fail, gboolean unlimited )
 {
 	Read *read;
 
-	if( !(read = read_new( source, out, fail )) ||
+	if( !(read = read_new( source, out, fail, unlimited )) ||
 		png2vips_image( read, out ) ||
 		vips_source_decode( source ) ) {
 		vips_error( "png2vips", _( "unable to read source %s" ),

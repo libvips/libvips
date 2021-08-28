@@ -354,8 +354,10 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 	 * No need to test the decoded image size -- the user can do that if
 	 * they wish.
 	 */
-	spng_set_image_limits( png->ctx, VIPS_MAX_COORD, VIPS_MAX_COORD );
-	spng_set_chunk_limits( png->ctx, 60 * 1024 * 1024, 60 * 1024 * 1024 );
+	if ( !png->unlimited ) {
+		spng_set_image_limits( png->ctx, VIPS_MAX_COORD, VIPS_MAX_COORD );
+		spng_set_chunk_limits( png->ctx, 60 * 1024 * 1024, 60 * 1024 * 1024 );
+	}
 
 	if( vips_source_rewind( png->source ) ) 
 		return( -1 );
@@ -653,6 +655,8 @@ vips_foreign_load_png_class_init( VipsForeignLoadPngClass *class )
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_png_dispose;
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pngload_base";
 	object_class->description = _( "load png base class" );
@@ -667,6 +671,12 @@ vips_foreign_load_png_class_init( VipsForeignLoadPngClass *class )
 	load_class->header = vips_foreign_load_png_header;
 	load_class->load = vips_foreign_load_png_load;
 
+	VIPS_ARG_BOOL( class, "unlimited", 23,
+		_( "Unlimited" ),
+		_( "Allow any number of text chunks" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadPng, unlimited ),
+		FALSE );
 }
 
 static void
@@ -742,13 +752,6 @@ vips_foreign_load_png_source_class_init( VipsForeignLoadPngSourceClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignLoadPngSource, source ),
 		VIPS_TYPE_SOURCE );
-
-	VIPS_ARG_BOOL( class, "unlimited", 23,
-		_( "Unlimited" ),
-		_( "Allow any number of text chunks" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignLoadPng, unlimited ),
-		FALSE );
 
 }
 
@@ -829,14 +832,6 @@ vips_foreign_load_png_file_class_init( VipsForeignLoadPngFileClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignLoadPngFile, filename ),
 		NULL );
-
-	VIPS_ARG_BOOL( class, "unlimited", 23,
-		_( "Unlimited" ),
-		_( "Allow any number of text chunks" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignLoadPng, unlimited ),
-		FALSE );
-
 }
 
 static void
@@ -913,13 +908,6 @@ vips_foreign_load_png_buffer_class_init( VipsForeignLoadPngBufferClass *class )
 		VIPS_ARGUMENT_REQUIRED_INPUT, 
 		G_STRUCT_OFFSET( VipsForeignLoadPngBuffer, blob ),
 		VIPS_TYPE_BLOB );
-
-	VIPS_ARG_BOOL( class, "unlimited", 23,
-		_( "Unlimited" ),
-		_( "Allow any number of text chunks" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignLoadPng, unlimited ),
-		FALSE );
 
 }
 
