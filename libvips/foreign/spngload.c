@@ -63,6 +63,10 @@ typedef struct _VipsForeignLoadPng {
 	 */
 	VipsSource *source;
 
+	/* Remove DoS limits.
+	 */
+	gboolean unlimited;
+
 	spng_ctx *ctx;
 	struct spng_ihdr ihdr;
 	enum spng_format fmt;
@@ -248,7 +252,8 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 		/* Very large numbers of text chunks are used in DoS
 		 * attacks.
 		 */
-		if( n_text > 10 ) {
+
+		if( !png->unlimited && n_text > MAX_PNG_TEXT_CHUNKS ) {
 			vips_error( class->nickname, 
 				"%s", _( "too many text chunks" ) );
 			return( -1 );
@@ -348,8 +353,10 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 	 * No need to test the decoded image size -- the user can do that if
 	 * they wish.
 	 */
-	spng_set_image_limits( png->ctx, VIPS_MAX_COORD, VIPS_MAX_COORD );
-	spng_set_chunk_limits( png->ctx, 60 * 1024 * 1024, 60 * 1024 * 1024 );
+	if ( !png->unlimited ) {
+		spng_set_image_limits( png->ctx, VIPS_MAX_COORD, VIPS_MAX_COORD );
+		spng_set_chunk_limits( png->ctx, 60 * 1024 * 1024, 60 * 1024 * 1024 );
+	}
 
 	if( vips_source_rewind( png->source ) ) 
 		return( -1 );
@@ -647,6 +654,8 @@ vips_foreign_load_png_class_init( VipsForeignLoadPngClass *class )
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_png_dispose;
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pngload_base";
 	object_class->description = _( "load png base class" );
@@ -661,6 +670,12 @@ vips_foreign_load_png_class_init( VipsForeignLoadPngClass *class )
 	load_class->header = vips_foreign_load_png_header;
 	load_class->load = vips_foreign_load_png_load;
 
+	VIPS_ARG_BOOL( class, "unlimited", 23,
+		_( "Unlimited" ),
+		_( "Remove all denial of service limits" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadPng, unlimited ),
+		FALSE );
 }
 
 static void

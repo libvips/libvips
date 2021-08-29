@@ -45,6 +45,8 @@ extern "C" {
 )
 #endif /*HAVE_CHECKED_MUL*/
 
+#define MAX_PNG_TEXT_CHUNKS 20
+
 void vips__tiff_init( void );
 
 int vips__tiff_write( VipsImage *in, const char *filename, 
@@ -177,9 +179,9 @@ int vips__jpeg_read_source( VipsSource *source, VipsImage *out,
 int vips__isjpeg_source( VipsSource *source );
 
 int vips__png_ispng_source( VipsSource *source );
-int vips__png_header_source( VipsSource *source, VipsImage *out );
+int vips__png_header_source( VipsSource *source, VipsImage *out, gboolean unlimited );
 int vips__png_read_source( VipsSource *source, VipsImage *out, 
-	gboolean fail );
+	gboolean fail, gboolean unlimited );
 gboolean vips__png_isinterlaced_source( VipsSource *source );
 extern const char *vips__png_suffs[];
 
