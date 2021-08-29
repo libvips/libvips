@@ -578,6 +578,10 @@ vips_image_guess_interpretation( const VipsImage *image )
 	/* Coding overrides interpretation.
 	 */
 	switch( image->Coding ) {
+	case VIPS_CODING_ERROR:
+		sane = FALSE;
+		break;
+
 	case VIPS_CODING_LABQ:
 		if( image->Type != VIPS_INTERPRETATION_LABQ )
 			sane = FALSE;
@@ -593,6 +597,10 @@ vips_image_guess_interpretation( const VipsImage *image )
 	}
 
 	switch( image->Type ) {
+	case VIPS_INTERPRETATION_ERROR:
+		sane = FALSE;
+		break;
+
 	case VIPS_INTERPRETATION_MULTIBAND: 
 		/* This is a pretty useless generic tag. Always reset it.
 		 */
