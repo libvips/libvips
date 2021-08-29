@@ -1111,13 +1111,11 @@ class TestForeign:
 
     @skip_if_no("heifsave")
     def test_heifsave(self):
+        # TODO: Reduce the threshold once https://github.com/strukturag/libheif/issues/533 is resolved.
         self.save_load_buffer("heifsave_buffer", "heifload_buffer",
-                              self.colour, 80, compression="av1")
-        # TODO: perhaps we should automatically set the compression to
-        # av1 when we save to *.avif?
-        #self.save_load("%s.avif", self.colour)
-        self.save_load_file(".avif", "[compression=av1]",
-                            self.colour, 80)
+                              self.colour, 80, compression="av1",
+                              lossless=True)
+        self.save_load("%s.avif", self.colour)
 
         # uncomment to test lossless mode, will take a while
         #im = pyvips.Image.new_from_file(AVIF_FILE)

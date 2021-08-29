@@ -41,7 +41,6 @@ VIPS_LIBS=""
 # binary interface changed: increment current, reset revision to 0
 #   binary interface changes backwards compatible?: increment age
 #   binary interface changes not backwards compatible?: reset age to 0
-
 LIBRARY_REVISION=0
 LIBRARY_CURRENT=56
 LIBRARY_AGE=14

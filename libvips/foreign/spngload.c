@@ -4,6 +4,8 @@
  * 	- from pngload.c
  * 19/2/21 781545872
  * 	- read out background, if we can
+ * 29/8/21 joshuamsager
+ *	-  add "unlimited" flag to png load
  */
 
 /*
@@ -355,8 +357,10 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 	 * they wish.
 	 */
 	if ( !png->unlimited ) {
-		spng_set_image_limits( png->ctx, VIPS_MAX_COORD, VIPS_MAX_COORD );
-		spng_set_chunk_limits( png->ctx, 60 * 1024 * 1024, 60 * 1024 * 1024 );
+		spng_set_image_limits( png->ctx, 
+			VIPS_MAX_COORD, VIPS_MAX_COORD );
+		spng_set_chunk_limits( png->ctx, 
+			60 * 1024 * 1024, 60 * 1024 * 1024 );
 	}
 
 	if( vips_source_rewind( png->source ) ) 
