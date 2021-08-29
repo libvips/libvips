@@ -59,7 +59,7 @@ typedef struct _VipsForeignLoadPng {
 	 */
 	VipsSource *source;
 
-	/* Allow any number of text chunks.
+	/* remove all denial of service limits.
 	 */
 	gboolean unlimited;
 
@@ -166,7 +166,7 @@ vips_foreign_load_png_class_init( VipsForeignLoadPngClass *class )
 
 	VIPS_ARG_BOOL( class, "unlimited", 23,
 		_( "Unlimited" ),
-		_( "Allow any number of text chunks" ),
+		_( "Remove all denial of service limits" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPng, unlimited ),
 		FALSE );
@@ -409,13 +409,17 @@ vips_foreign_load_png_buffer_init( VipsForeignLoadPngBuffer *buffer )
  *
  * Optional arguments:
  *
- * * @unlimited: %gboolean, allow any number of text chunks
+ * * @unlimited: %gboolean, remove all denial of service limits
  *
  * Read a PNG file into a VIPS image. It can read all png images, including 8-
  * and 16-bit images, 1 and 3 channel, with and without an alpha channel.
  *
  * Any ICC profile is read and attached to the VIPS image. It also supports
  * XMP metadata.
+ *
+ * By default, the PNG loader limits the number of text and data chunks to 
+ * block some denial of service attacks. Set @unlimited to disable these 
+ * limits.
  *
  * See also: vips_image_new_from_file().
  *
@@ -443,7 +447,7 @@ vips_pngload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * * @unlimited: %gboolean, allow any number of text chunks
+ * * @unlimited: %gboolean, Remove all denial of service limits
  *
  * Exactly as vips_pngload(), but read from a PNG-formatted memory block.
  *
@@ -482,7 +486,7 @@ vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
  *
  * Optional arguments:
  *
- * * @unlimited: %gboolean, allow any number of text chunks
+ * * @unlimited: %gboolean, Remove all denial of service limits
  *
  * Exactly as vips_pngload(), but read from a source. 
  *

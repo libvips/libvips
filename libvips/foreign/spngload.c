@@ -63,7 +63,7 @@ typedef struct _VipsForeignLoadPng {
 	 */
 	VipsSource *source;
 
-	/* Allow any number of text chunks.
+	/* Remove DoS limits.
 	 */
 	gboolean unlimited;
 
@@ -254,7 +254,7 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 		 * attacks.
 		 */
 
-		if( !png->unlimited && n_text > 10 ) {
+		if( !png->unlimited && n_text > MAX_PNG_TEXT_CHUNKS ) {
 			vips_error( class->nickname, 
 				"%s", _( "too many text chunks" ) );
 			return( -1 );
@@ -673,7 +673,7 @@ vips_foreign_load_png_class_init( VipsForeignLoadPngClass *class )
 
 	VIPS_ARG_BOOL( class, "unlimited", 23,
 		_( "Unlimited" ),
-		_( "Allow any number of text chunks" ),
+		_( "Remove all denial of service limits" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoadPng, unlimited ),
 		FALSE );

@@ -4562,7 +4562,7 @@ VImage phasecor( VImage in2, VOption *options = 0 ) const;
  *   - **sequential** -- Sequential read only, bool.
  *   - **fail** -- Fail on first error, bool.
  *   - **disc** -- Open to disc, bool.
- *   - **unlimited** -- Allow any number of text chunks.
+ *   - **unlimited** -- Remove all denial of service limits.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -4579,7 +4579,7 @@ static VImage pngload( const char *filename, VOption *options = 0 );
  *   - **sequential** -- Sequential read only, bool.
  *   - **fail** -- Fail on first error, bool.
  *   - **disc** -- Open to disc, bool.
- *   - **unlimited** -- Allow any number of text chunks.
+ *   - **unlimited** -- Remove all denial of service limits.
  *
  * @param buffer Buffer to load from.
  * @param options Set of options.
@@ -4596,7 +4596,7 @@ static VImage pngload_buffer( VipsBlob *buffer, VOption *options = 0 );
  *   - **sequential** -- Sequential read only, bool.
  *   - **fail** -- Fail on first error, bool.
  *   - **disc** -- Open to disc, bool.
- *   - **unlimited** -- Allow any number of text chunks.
+ *   - **unlimited** -- Remove all denial of service limits.
  *
  * @param source Source to load from.
  * @param options Set of options.

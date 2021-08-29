@@ -45,6 +45,8 @@ extern "C" {
 )
 #endif /*HAVE_CHECKED_MUL*/
 
+#define MAX_PNG_TEXT_CHUNKS 20
+
 void vips__tiff_init( void );
 
 int vips__tiff_write( VipsImage *in, const char *filename, 
