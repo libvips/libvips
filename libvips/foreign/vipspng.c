@@ -81,6 +81,8 @@
  * 	- only warn for saving bad profiles, don't fail
  * 19/2/21 781545872
  * 	- read out background, if we can
+ * 29/8/21 joshuamsager
+ *	-  add "unlimited" flag to png load
  */
 
 /*
@@ -256,7 +258,8 @@ vips_png_read_source( png_structp pPng, png_bytep data, png_size_t length )
 }
 
 static Read *
-read_new( VipsSource *source, VipsImage *out, gboolean fail, gboolean unlimited )
+read_new( VipsSource *source, VipsImage *out, 
+	gboolean fail, gboolean unlimited )
 {
 	Read *read;
 
@@ -564,7 +567,8 @@ png2vips_header( Read *read, VipsImage *out )
 		/* Very large numbers of text chunks are used in DoS
 		 * attacks.
 		 */
-		if( !read->unlimited && num_text > MAX_PNG_TEXT_CHUNKS ) {
+		if( !read->unlimited && 
+			num_text > MAX_PNG_TEXT_CHUNKS ) {
 			vips_error( "vipspng", 
 				"%s", _( "too many text chunks" ) );
 			return( -1 );
@@ -778,7 +782,8 @@ vips__png_ispng_source( VipsSource *source )
 }
 
 int
-vips__png_header_source( VipsSource *source, VipsImage *out, gboolean unlimited )
+vips__png_header_source( VipsSource *source, VipsImage *out, 
+	gboolean unlimited )
 {
 	Read *read;
 
@@ -795,7 +800,8 @@ vips__png_header_source( VipsSource *source, VipsImage *out, gboolean unlimited 
 }
 
 int
-vips__png_read_source( VipsSource *source, VipsImage *out, gboolean fail, gboolean unlimited )
+vips__png_read_source( VipsSource *source, VipsImage *out, 
+	gboolean fail, gboolean unlimited )
 {
 	Read *read;
 

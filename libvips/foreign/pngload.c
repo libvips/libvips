@@ -2,6 +2,8 @@
  *
  * 5/12/11
  * 	- from tiffload.c
+ * 29/8/21 joshuamsager
+ *	-  add "unlimited" flag to png load
  */
 
 /*
@@ -133,7 +135,8 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
-	if( vips__png_read_source( png->source, load->real, load->fail, png->unlimited ) )
+	if( vips__png_read_source( png->source, load->real, 
+		load->fail, png->unlimited ) )
 		return( -1 );
 
 	return( 0 );
