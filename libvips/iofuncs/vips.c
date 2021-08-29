@@ -400,6 +400,11 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 	 * are sane.
 	 */
 	switch( im->Coding ) {
+	case VIPS_CODING_ERROR:
+		vips_error( "VipsImage",
+			"%s", _( "unknown coding" ) );
+		return( -1 );
+
 	case VIPS_CODING_NONE:
 		break;
 
