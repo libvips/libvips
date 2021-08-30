@@ -332,6 +332,7 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 {
 	gboolean swap;
 	int i;
+	GEnumValue *value;
 
 #ifdef SHOW_HEADER
 	printf( "vips__read_header_bytes: file bytes:\n" ); 
@@ -383,14 +384,16 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 
 	/* Coding and Type have missing values, so we look up in the enum.
 	 */
-	im->Type = g_enum_get_value( 
-			g_type_class_ref( VIPS_TYPE_INTERPRETATION ), 
-			im->Type ) ?
-		im->Type : VIPS_INTERPRETATION_ERROR;
-	im->Coding = g_enum_get_value( 
-			g_type_class_ref( VIPS_TYPE_CODING ), 
-			im->Coding ) ?
-		im->Coding : VIPS_CODING_ERROR;
+	value = g_enum_get_value( g_type_class_ref( VIPS_TYPE_INTERPRETATION ),
+		im->Type );
+	if( !value ||
+		strcmp( value->value_nick, "last" ) == 0 )
+		im->Type = VIPS_INTERPRETATION_ERROR;
+	value = g_enum_get_value( g_type_class_ref( VIPS_TYPE_CODING ),
+		im->Coding );
+	if( !value ||
+		strcmp( value->value_nick, "last" ) == 0 )
+		im->Coding = VIPS_CODING_ERROR;
 
 	/* Offset, Res, etc. don't affect vips file layout, just 
 	 * pixel interpretation, don't clip them.
