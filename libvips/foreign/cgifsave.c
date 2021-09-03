@@ -99,9 +99,9 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	uint8_t * restrict paletteRgba;
 	uint8_t * restrict paletteRgb;
 
-	GIF *cgif_context;
-	GIFConfig cgif_config;
-	FrameConfig cgif_frame_config;
+	CGIF *cgif_context;
+	CGIF_Config cgif_config;
+	CGIF_FrameConfig cgif_frame_config;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_cgif_parent_class )->
 		build( object ) )
@@ -155,15 +155,15 @@ vips_foreign_save_cgif_build( VipsObject *object )
 
 	/* Initiialise cgif
 	 */
-	memset( &cgif_config, 0, sizeof( GIFConfig ) );
+	memset( &cgif_config, 0, sizeof( CGIF_Config ) );
 	cgif_config.width = t[4]->Xsize;
 	cgif_config.height = page_height;
 	cgif_config.pGlobalPalette = paletteRgb;
 	cgif_config.numGlobalPaletteEntries = t[5]->Xsize;
 	cgif_config.numLoops = loop;
-	cgif_config.attrFlags = GIF_ATTR_IS_ANIMATED;
+	cgif_config.attrFlags = CGIF_ATTR_IS_ANIMATED;
 	if( has_transparency ) 
-		cgif_config.attrFlags |= GIF_ATTR_HAS_TRANSPARENCY;
+		cgif_config.attrFlags |= CGIF_ATTR_HAS_TRANSPARENCY;
 	cgif_config.pWriteFn = vips__cgif_write;
 	cgif_config.pContext = (void *) cgif->target;
 	cgif_context = cgif_newgif( &cgif_config );
@@ -174,7 +174,7 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	for( top = 0; top < t[4]->Ysize; top += page_height ) {
 		int page_index = top / page_height;
 
-		memset( &cgif_frame_config, 0, sizeof( FrameConfig ) );
+		memset( &cgif_frame_config, 0, sizeof( CGIF_FrameConfig ) );
 		cgif_frame_config.pImageData = (uint8_t *)
 			VIPS_IMAGE_ADDR( t[4], 0, top );
 		if( delay &&
@@ -185,8 +185,8 @@ vips_foreign_save_cgif_build( VipsObject *object )
 			/* Allow cgif to optimise by adding transparency
 			 */
 			cgif_frame_config.genFlags = 
-				FRAME_GEN_USE_TRANSPARENCY |
-				FRAME_GEN_USE_DIFF_WINDOW;
+				CGIF_FRAME_GEN_USE_TRANSPARENCY |
+				CGIF_FRAME_GEN_USE_DIFF_WINDOW;
 		cgif_addframe( cgif_context, &cgif_frame_config );
 	}
 
