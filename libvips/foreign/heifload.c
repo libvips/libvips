@@ -621,7 +621,8 @@ vips_foreign_load_heif_set_header( VipsForeignLoadHeif *heif, VipsImage *out )
 	/* FIXME .. we always decode to RGB in generate. We should check for
 	 * all grey images, perhaps. 
 	 */
-	vips_image_pipelinev( out, VIPS_DEMAND_STYLE_SMALLTILE, NULL );
+	if( vips_image_pipelinev( out, VIPS_DEMAND_STYLE_THINSTRIP, NULL ) )
+		return( -1 );
 	vips_image_init_fields( out,
 		heif->page_width, heif->page_height * heif->n, bands, 
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 
