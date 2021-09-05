@@ -2,6 +2,7 @@
 - fix off-by-one error in new rank fast path
 - add "unlimited" flag to png load [joshuamsager]
 - improve filtering of .v enums [lovell]
+- better logic to prevent shrink to nothing in thumbnail [kleisauke]
 
 14/7/21 started 8.11.3
 - build threadpool later [kleisauke]
