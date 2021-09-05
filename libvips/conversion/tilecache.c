@@ -632,7 +632,8 @@ vips_tile_cache_gen( VipsRegion *or,
 	 */
 	work = vips_tile_cache_ref( cache, r );
 
-	while( work ) {
+	while( work &&
+		!*stop ) {
 		/* Search for data tiles: easy, we can just paste those in.
 		 */
 		for(;;) { 
