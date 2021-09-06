@@ -45,8 +45,9 @@
  */
 
 /*
-#define VIPS_DEBUG
 #define TEST_SANITY
+#define VIPS_DEBUG
+#define DEBUG_MINIMISE
  */
 
 #ifdef HAVE_CONFIG_H
@@ -267,7 +268,9 @@ vips_source_finalize( GObject *gobject )
 {
 	VipsSource *source = VIPS_SOURCE( gobject );
 
-	VIPS_DEBUG_MSG( "vips_source_finalize: %p\n", source );
+#ifdef DEBUG_MINIMISE
+	printf( "vips_source_finalize: %p\n", source );
+#endif /*DEBUG_MINIMISE*/
 
 	VIPS_FREEF( g_byte_array_unref, source->header_bytes ); 
 	VIPS_FREEF( g_byte_array_unref, source->sniff ); 
@@ -579,7 +582,12 @@ vips_source_minimise( VipsSource *source )
 		connection->descriptor != -1 &&
 		connection->tracked_descriptor == connection->descriptor &&
 		!source->is_pipe ) {
-		VIPS_DEBUG_MSG( "vips_source_minimise:\n" );
+#ifdef DEBUG_MINIMISE
+		printf( "vips_source_minimise: %p %s\n", 
+			source,
+			vips_connection_nick( VIPS_CONNECTION( source ) ) );
+#endif /*DEBUG_MINIMISE*/
+
 		vips_tracked_close( connection->tracked_descriptor );
 		connection->tracked_descriptor = -1;
 		connection->descriptor = -1;
@@ -609,7 +617,11 @@ vips_source_unminimise( VipsSource *source )
 		connection->filename ) {
 		int fd;
 
-		VIPS_DEBUG_MSG( "vips_source_unminimise: %p\n", source );
+#ifdef DEBUG_MINIMISE
+		printf( "vips_source_unminimise: %p %s\n",
+			source,
+			vips_connection_nick( VIPS_CONNECTION( source ) ) );
+#endif /*DEBUG_MINIMISE*/
 
 		if( (fd = vips_tracked_open( connection->filename, 
 			MODE_READ, 0 )) == -1 ) {
