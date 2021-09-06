@@ -106,13 +106,15 @@ vips__quantise_new( VipsImage *in,
 int
 vips__quantise_image( VipsImage *in, 
 	VipsImage **index_out, VipsImage **palette_out,
-	int colours, int Q, double dither, int effort )
+	int colours, int Q, double dither, int effort,
+	gboolean threshold_alpha )
 {
 	Quantise *quantise;
 	VipsImage *index;
 	VipsImage *palette;
 	const liq_palette *lp;
 	int i;
+	gboolean added_alpha = FALSE;
 
 	quantise = vips__quantise_new( in, index_out, palette_out, 
 		colours, Q, dither, effort );
@@ -135,6 +137,7 @@ vips__quantise_image( VipsImage *in,
 			vips__quantise_free( quantise ); 
 			return( -1 );
 		}
+		added_alpha = TRUE;
 		in = quantise->t[1];
 	}
 
@@ -143,6 +146,19 @@ vips__quantise_image( VipsImage *in,
 		return( -1 );
 	}
 	in = quantise->t[2];
+
+	/* Threshold alpha channel.
+	 */
+	if( threshold_alpha && !added_alpha ) {
+		VipsPel * restrict p = VIPS_IMAGE_ADDR( in, 0, 0 );
+		const guint64 n_pels = VIPS_IMAGE_N_PELS( in );
+		guint64 i;
+
+		for( i = 0; i < n_pels; i++ ) {
+			p[3] = p[3] > 128 ? 255 : 0;
+			p += 4;
+		}
+	}
 
 	quantise->attr = liq_attr_create();
 	liq_set_max_colors( quantise->attr, colours );
@@ -215,7 +231,8 @@ vips__quantise_image( VipsImage *in,
 int
 vips__quantise_image( VipsImage *in, 
 	VipsImage **index_out, VipsImage **palette_out,
-	int colours, int Q, double dither )
+	int colours, int Q, double dither, int effort,
+	gboolean threshold_alpha )
 {
   vips_error( "vips__quantise_image", 
       "%s", _( "libvips not built with quantisation support" ) ); 

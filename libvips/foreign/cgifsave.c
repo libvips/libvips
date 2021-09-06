@@ -86,7 +86,7 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveCgif *cgif = (VipsForeignSaveCgif *) object;
 	VipsImage **t = (VipsImage **) 
-		vips_object_local_array( VIPS_OBJECT( cgif ), 6 );
+		vips_object_local_array( VIPS_OBJECT( cgif ), 2 );
 
 	int rgb;
 	int rgba;
@@ -117,31 +117,17 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	if( vips_image_get_typeof( save->ready, "loop" ) )
 		vips_image_get_int( save->ready, "loop", &loop );
 
-	/* Threshold alpha, if any, to fully transparent or opaque
+	/* Generate indexed image (t[0]) and palette (t[1])
 	 */
-	if( vips_image_hasalpha( save->ready ) ) {
-		if( vips_extract_band( save->ready, &t[0], 0, "n", 3, NULL ) ||
-			vips_extract_band( save->ready, &t[1], 3, NULL ) ||
-			vips_moreeq_const1( t[1], &t[2], 128, NULL ) ||
-			vips_bandjoin2( t[0], t[2], &t[3], NULL ) ) 
-			return( -1 );
-
-		VIPS_UNREF( save->ready );
-		save->ready = t[3];
-		g_object_ref( save->ready );
-	}
-
-	/* Generate indexed image (t[4]) and palette (t[5])
-	 */
-	if( vips__quantise_image( save->ready, &t[4], &t[5],
-		255, 100, cgif->dither, cgif->effort ) )
+	if( vips__quantise_image( save->ready, &t[0], &t[1],
+		255, 100, cgif->dither, cgif->effort, TRUE ) )
 		return( -1 );
 
 	/* Convert palette to RGB
 	 */
-	paletteRgba = (uint8_t *) VIPS_IMAGE_ADDR( t[5], 0, 0 );
-	paletteRgb = g_malloc0( t[5]->Xsize * 3 );
-	for( rgb = 0, rgba = 0; rgb < t[5]->Xsize * 3; rgb += 3 ) {
+	paletteRgba = (uint8_t *) VIPS_IMAGE_ADDR( t[1], 0, 0 );
+	paletteRgb = g_malloc0( t[1]->Xsize * 3 );
+	for( rgb = 0, rgba = 0; rgb < t[1]->Xsize * 3; rgb += 3 ) {
 		paletteRgb[rgb] = paletteRgba[rgba];
 		paletteRgb[rgb + 1] = paletteRgba[rgba + 1];
 		paletteRgb[rgb + 2] = paletteRgba[rgba + 2];
@@ -156,10 +142,10 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	/* Initiialise cgif
 	 */
 	memset( &cgif_config, 0, sizeof( CGIF_Config ) );
-	cgif_config.width = t[4]->Xsize;
+	cgif_config.width = t[0]->Xsize;
 	cgif_config.height = page_height;
 	cgif_config.pGlobalPalette = paletteRgb;
-	cgif_config.numGlobalPaletteEntries = t[5]->Xsize;
+	cgif_config.numGlobalPaletteEntries = t[1]->Xsize;
 	cgif_config.numLoops = loop;
 	cgif_config.attrFlags = CGIF_ATTR_IS_ANIMATED;
 	if( has_transparency ) 
@@ -171,12 +157,12 @@ vips_foreign_save_cgif_build( VipsObject *object )
 
 	/* Add each vips page as a cgif frame
 	 */
-	for( top = 0; top < t[4]->Ysize; top += page_height ) {
+	for( top = 0; top < t[0]->Ysize; top += page_height ) {
 		int page_index = top / page_height;
 
 		memset( &cgif_frame_config, 0, sizeof( CGIF_FrameConfig ) );
 		cgif_frame_config.pImageData = (uint8_t *)
-			VIPS_IMAGE_ADDR( t[4], 0, top );
+			VIPS_IMAGE_ADDR( t[0], 0, top );
 		if( delay &&
 			page_index < delay_length )
 			cgif_frame_config.delay =

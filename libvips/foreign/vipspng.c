@@ -1190,7 +1190,7 @@ write_vips( Write *write,
 		int trans_count;
 
 		if( vips__quantise_image( in, &im_index, &im_palette, 
-			1 << bitdepth, Q, dither, effort ) )
+			1 << bitdepth, Q, dither, effort, FALSE ) )
 			return( -1 );
 
 		palette_count = im_palette->Xsize;
