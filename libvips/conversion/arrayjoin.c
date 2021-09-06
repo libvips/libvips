@@ -68,6 +68,7 @@ typedef struct _VipsArrayjoin {
 
 	int down;
 	VipsRect *rects;
+	gboolean *minimised;
 
 } VipsArrayjoin;
 
@@ -119,23 +120,20 @@ vips_arrayjoin_gen( VipsRegion *or, void *seq,
 	}
 
 	if( vips_image_is_sequential( conversion->out ) ) {
-		/* In sequential mode, we can minimise an input once we've
-		 * fetched the final line of pixels from it.
+		/* In sequential mode, we can minimise an input once our
+		 * generate point is well past the end of it. This can save a
+		 * lot of memory and file descriptors on large image arrays.
 		 *
-		 * Find all inputs whose final line is inside this rect and
-		 * shut them down.
+		 * minimise_all is quite expensive, so only trigger once for
+		 * each input.
 		 */
-		for( i = 0; i < n; i++ ) {
-			VipsRect final_line = { 
-				join->rects[i].left,
-				VIPS_RECT_BOTTOM( &join->rects[i] ) - 1,
-				join->rects[i].width,
-				1
-			};
-
-			if( vips_rect_includesrect( &final_line, r ) ) 
+		for( i = 0; i < n; i++ ) 
+			if( !join->minimised[i] &&
+				r->top > VIPS_RECT_BOTTOM( &join->rects[i] ) +
+				       256 ) {
 				vips_image_minimise_all( in[i] );
-		}
+				join->minimised[i] = TRUE;
+			}
 	}
 
 	return( 0 );
@@ -246,6 +244,12 @@ vips_arrayjoin_build( VipsObject *object )
 			join->rects[i].width = 
 				output_width - join->rects[i].left;
 	}
+
+	/* A thing to track which inputs we've signalled minimise on.
+	 */
+	join->minimised = VIPS_ARRAY( join, n, gboolean ); 
+	for( i = 0; i < n; i++ ) 
+		join->minimised[i] = FALSE;
 
 	/* Each image must be cropped and aligned within an @hspacing by
 	 * @vspacing box.

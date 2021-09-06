@@ -23,6 +23,8 @@
  * 	- re-enable skipahead now we have the single-thread-first-tile idea
  * 6/3/17
  * 	- deprecate @trace, @access now seq is much simpler
+ * 6/9/21
+ * 	- don't set "persistent", it can cause huge memory use
  */
 
 /*
@@ -192,14 +194,17 @@ vips_sequential_build( VipsObject *object )
 	if( VIPS_OBJECT_CLASS( vips_sequential_parent_class )->build( object ) )
 		return( -1 );
 
+	/* We've gone forwards and backwards on sequential caches being
+	 * persistent. Persistent caches can be useful if you want to eg.
+	 * make several crop() operations on a seq image source, but they use
+	 * a lot of memory with eg. arrayjoin.
+	 *
+	 * On balance, if you want to make many crops from one source, use a
+	 * RANDOM image.
+	 */
 	if( vips_linecache( sequential->in, &t, 
 		"tile_height", sequential->tile_height,
 		"access", VIPS_ACCESS_SEQUENTIAL,
-		/* We need seq caches to persist across minimise in case
-		 * someone is trying to read an image with a series of crop
-		 * operations.
-		 */
-		"persistent", TRUE,
 		NULL ) )
 		return( -1 );
 
