@@ -4,6 +4,7 @@
 - fix thumbnail with small image plus crop plus no upsize [Andrewsville]
 - rename speed / reduction-effort / etc. params as "effort"
 - add gifsave [lovell]
+- arrayjoin minimises inputs during processing
 
 16/8/21 started 8.11.4
 - fix off-by-one error in new rank fast path

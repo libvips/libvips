@@ -2,6 +2,8 @@
  *
  * 11/12/15
  * 	- from join.c
+ * 6/9/21
+ * 	- minmise inputs once we've used them
  */
 
 /*
@@ -79,25 +81,62 @@ vips_arrayjoin_gen( VipsRegion *or, void *seq,
 {
 	VipsRegion **ir = (VipsRegion **) seq;
 	VipsArrayjoin *join = (VipsArrayjoin *) b;
+	VipsConversion *conversion = VIPS_CONVERSION( join );
 	VipsRect *r = &or->valid;
-	int n = VIPS_AREA( join->in )->n;
 
+	int n;
+	VipsImage **in;
 	int i;
+	gboolean just_one;
 
-	/* Does this rect fit within one of our inputs? If it does, we
-	 * can pass just the request on.
-	 */
-	for( i = 0; i < n; i++ ) 
-		if( vips_rect_includesrect( &join->rects[i], r ) ) 
-			return( vips__insert_just_one( or, ir[i],
-				join->rects[i].left, join->rects[i].top ) ); 
+	in = vips_array_image_get( join->in, &n );
 
-	/* Output requires more than one input. Paste all touching inputs into
-	 * the output.
+	/* Does this rect fit completely within one of our inputs? 
 	 */
+	just_one = FALSE;
 	for( i = 0; i < n; i++ ) 
-		if( vips__insert_paste_region( or, ir[i], &join->rects[i] ) )
-			return( -1 );
+		if( vips_rect_includesrect( &join->rects[i], r ) ) {
+			just_one = TRUE;
+			break;
+		}
+
+	if( just_one ) {
+		/* Just needs one input, we can forward the request to that
+		 * region.
+		 */
+		if( vips__insert_just_one( or, ir[i],
+			join->rects[i].left, join->rects[i].top ) )
+		       return( -1 );
+	}
+	else {
+		/* Output requires more than one input. Paste all touching 
+		 * inputs into the output.
+		 */
+		for( i = 0; i < n; i++ ) 
+			if( vips__insert_paste_region( or, ir[i], 
+				&join->rects[i] ) )
+				return( -1 );
+	}
+
+	if( vips_image_is_sequential( conversion->out ) ) {
+		/* In sequential mode, we can minimise an input once we've
+		 * fetched the final line of pixels from it.
+		 *
+		 * Find all inputs whose final line is inside this rect and
+		 * shut them down.
+		 */
+		for( i = 0; i < n; i++ ) {
+			VipsRect final_line = { 
+				join->rects[i].left,
+				VIPS_RECT_BOTTOM( &join->rects[i] ) - 1,
+				join->rects[i].width,
+				1
+			};
+
+			if( vips_rect_includesrect( &final_line, r ) ) 
+				vips_image_minimise_all( in[i] );
+		}
+	}
 
 	return( 0 );
 }
