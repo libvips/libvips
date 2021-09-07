@@ -219,7 +219,8 @@ int vips__webp_write_target( VipsImage *image, VipsTarget *target,
 
 int vips__quantise_image( VipsImage *in, 
 	VipsImage **index_out, VipsImage **palette_out,
-	int colours, int Q, double dither, int effort );
+	int colours, int Q, double dither, int effort,
+	gboolean threshold_alpha );
 
 extern const char *vips_foreign_nifti_suffs[];
 
