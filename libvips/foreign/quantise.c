@@ -113,8 +113,9 @@ vips__quantise_image( VipsImage *in,
 	VipsImage *index;
 	VipsImage *palette;
 	const liq_palette *lp;
-	int i;
-	gboolean added_alpha = FALSE;
+	gint64 i;
+	VipsPel * restrict p;
+	gboolean added_alpha;
 
 	quantise = vips__quantise_new( in, index_out, palette_out, 
 		colours, Q, dither, effort );
@@ -132,6 +133,7 @@ vips__quantise_image( VipsImage *in,
 
 	/* Add alpha channel if missing. 
 	 */
+	added_alpha = FALSE;
 	if( !vips_image_hasalpha( in ) ) {
 		if( vips_bandjoin_const1( in, &quantise->t[1], 255, NULL ) ) {
 			vips__quantise_free( quantise ); 
@@ -149,11 +151,11 @@ vips__quantise_image( VipsImage *in,
 
 	/* Threshold alpha channel.
 	 */
-	if( threshold_alpha && !added_alpha ) {
-		VipsPel * restrict p = VIPS_IMAGE_ADDR( in, 0, 0 );
+	if( threshold_alpha && 
+		!added_alpha ) {
 		const guint64 n_pels = VIPS_IMAGE_N_PELS( in );
-		guint64 i;
 
+		p = VIPS_IMAGE_ADDR( in, 0, 0 );
 		for( i = 0; i < n_pels; i++ ) {
 			p[3] = p[3] > 128 ? 255 : 0;
 			p += 4;
@@ -207,13 +209,14 @@ vips__quantise_image( VipsImage *in,
 		return( -1 );
 	}
 
+	p = VIPS_IMAGE_ADDR( palette, 0, 0 );
 	for( i = 0; i < lp->count; i++ ) {
-		unsigned char *p = VIPS_IMAGE_ADDR( palette, i, 0 );
-
 		p[0] = lp->entries[i].r;
 		p[1] = lp->entries[i].g;
 		p[2] = lp->entries[i].b;
 		p[3] = lp->entries[i].a;
+
+		p += 4;
 	}
 
 	*index_out = index;
@@ -234,10 +237,10 @@ vips__quantise_image( VipsImage *in,
 	int colours, int Q, double dither, int effort,
 	gboolean threshold_alpha )
 {
-  vips_error( "vips__quantise_image", 
-      "%s", _( "libvips not built with quantisation support" ) ); 
+	vips_error( "vips__quantise_image", 
+		"%s", _( "libvips not built with quantisation support" ) ); 
 
-  return( -1 );
+	return( -1 );
 }
 
 #endif /*HAVE_IMAGEQUANT*/
