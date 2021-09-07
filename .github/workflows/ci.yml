@@ -6,7 +6,6 @@ jobs:
   CI:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ contains(matrix.os, 'macos') }}
     strategy:
       fail-fast: false
       matrix:
