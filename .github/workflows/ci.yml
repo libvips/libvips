@@ -26,10 +26,11 @@ jobs:
             build: { cc: clang, cxx: clang++, linker: ld.lld }
             shell: bash
 
-          - name: "macOS (10.15) - Xcode 12.4 - M1"
-            os: macos-m1
-            build: { cc: clang, cxx: clang++, linker: ld.lld }
-            shell: "/usr/bin/arch -arch arm64e /bin/bash -l {0}"
+          # TODO: Re-enable self-hosted M1 runner provided by MacStadium
+          #- name: "macOS (10.15) - Xcode 12.4 - M1"
+          #  os: macos-m1
+          #  build: { cc: clang, cxx: clang++, linker: ld.lld }
+          #  shell: "/usr/bin/arch -arch arm64e /bin/bash -l {0}"
 
     defaults:
       run:
