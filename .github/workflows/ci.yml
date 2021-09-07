@@ -130,7 +130,7 @@ jobs:
         run: make V=0 -j$JOBS
 
       - name: Check libvips
-        run: make V=0 check
+        run: make V=0 check || (cat test/test-suite.log && exit 1)
 
       - name: Install libvips
         run: sudo make V=0 install
