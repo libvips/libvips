@@ -56,11 +56,11 @@ main( int argc, char **argv )
 
 	/* Opening an image should read the header, then close the fd.
 	 */
-	printf( "** seq open ..\n" );
+	printf( "** rand open ..\n" );
 	if( !(source = vips_source_new_from_file( argv[1] )) )
 		vips_error_exit( NULL );
 	if( !(image = vips_image_new_from_source( source, "",
-		"access", VIPS_ACCESS_SEQUENTIAL,
+		"access", VIPS_ACCESS_RANDOM,
 		NULL )) )
 		vips_error_exit( NULL );
 	if( count_files( fd_dir ) != n_files )
