@@ -279,7 +279,11 @@ static int
 vips_foreign_load_heif_is_a( const char *buf, int len )
 {
 	if( len >= 12 ) {
-		const guint chunk_len = GUINT_FROM_BE( *((guint32 *) buf) );
+		const guint32 chunk_len = 
+			(guint32) buf[0] << 24 |
+			(guint32) buf[1] << 16 |
+			(guint32) buf[2] << 8 |
+			(guint32) buf[3];
 
 		int i;
 
