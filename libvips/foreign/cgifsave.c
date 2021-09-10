@@ -52,6 +52,7 @@ typedef struct _VipsForeignSaveCgif {
 
 	double dither;
 	int effort;
+	int bitdepth;
 
 	VipsTarget *target;
 } VipsForeignSaveCgif;
@@ -120,7 +121,8 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	/* Generate indexed image (t[0]) and palette (t[1])
 	 */
 	if( vips__quantise_image( save->ready, &t[0], &t[1],
-		255, 100, cgif->dither, cgif->effort, TRUE ) )
+		(1 << cgif->bitdepth) - 1, 100, cgif->dither,
+		cgif->effort, TRUE ) )
 		return( -1 );
 
 	/* Convert palette to RGB
@@ -224,6 +226,13 @@ vips_foreign_save_cgif_class_init( VipsForeignSaveCgifClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveCgif, effort ),
 		1, 10, 7 );
 
+	VIPS_ARG_INT( class, "bitdepth", 12,
+		_( "Bit depth" ),
+		_( "Number of bits per pixel" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveCgif, bitdepth ),
+		1, 8, 8 );
+
 }
 
 static void
@@ -231,6 +240,7 @@ vips_foreign_save_cgif_init( VipsForeignSaveCgif *gif )
 {
 	gif->dither = 1.0;
 	gif->effort = 7;
+	gif->bitdepth = 8;
 }
 
 typedef struct _VipsForeignSaveCgifTarget {
@@ -410,12 +420,18 @@ vips_foreign_save_cgif_buffer_init( VipsForeignSaveCgifBuffer *buffer )
  *
  * * @dither: %double, quantisation dithering level
  * * @effort: %int, quantisation CPU effort
+ * * @bitdepth: %int, number of bits per pixel
  *
  * Write a VIPS image to a file as GIF.
  *
  * Use @dither to set the degree of Floyd-Steinberg dithering
  * and @effort to control the CPU effort (1 is the fastest,
  * 10 is the slowest, 7 is the default).
+ *
+ * Use @bitdepth (from 1 to 8, default 8) to control the number
+ * of colours in the palette. The first entry in the palette is
+ * always reserved for transparency. For example, a bitdepth of
+ * 4 will allow the output to contain up to 15 colours.
  *
  * See also: vips_image_new_from_file().
  *
@@ -445,6 +461,7 @@ vips_gifsave( VipsImage *in, const char *filename, ... )
  *
  * * @dither: %double, quantisation dithering level
  * * @effort: %int, quantisation CPU effort
+ * * @bitdepth: %int, number of bits per pixel
  *
  * As vips_gifsave(), but save to a memory buffer.
  *
@@ -494,6 +511,7 @@ vips_gifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  *
  * * @dither: %double, quantisation dithering level
  * * @effort: %int, quantisation CPU effort
+ * * @bitdepth: %int, number of bits per pixel
  *
  * As vips_gifsave(), but save to a target.
  *

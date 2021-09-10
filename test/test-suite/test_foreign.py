@@ -1229,6 +1229,11 @@ class TestForeign:
         large_effort = self.colour.gifsave_buffer(effort=10)
         assert len(little_effort) > len(large_effort)
 
+        # Reducing bitdepth will typically reduce file size (and reduce quality)
+        bitdepth8 = self.colour.gifsave_buffer(bitdepth=8,effort=1)
+        bitdepth7 = self.colour.gifsave_buffer(bitdepth=7,effort=1)
+        assert len(bitdepth8) > len(bitdepth7)
+
         if have("webpload"):
             # Animated WebP to GIF
             x1 = pyvips.Image.new_from_file(WEBP_ANIMATED_FILE, n=-1)
