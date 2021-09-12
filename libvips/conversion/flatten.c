@@ -9,6 +9,8 @@
  * 	- add max_alpha to match vips_premultiply() etc.
  * 25/5/16
  * 	- max_alpha defaults to 65535 for RGB16/GREY16
+ * 12/9/21
+ * 	- out of range alpha and max_alpha correctly
  */
 
 /*
@@ -177,7 +179,7 @@ vips_flatten_black_gen( VipsRegion *or, void *vseq, void *a, void *b,
 		VipsPel *in = VIPS_REGION_ADDR( ir, r->left, r->top + y ); 
 		VipsPel *out = VIPS_REGION_ADDR( or, r->left, r->top + y ); 
 
-		switch( flatten->in->BandFmt ) { 
+		switch( ir->im->BandFmt ) { 
 		case VIPS_FORMAT_UCHAR: 
 			VIPS_FLATTEN_BLACK_INT( unsigned char ); 
 			break; 
@@ -242,7 +244,7 @@ vips_flatten_gen( VipsRegion *or, void *vseq, void *a, void *b,
 		VipsPel *in = VIPS_REGION_ADDR( ir, r->left, r->top + y ); 
 		VipsPel *out = VIPS_REGION_ADDR( or, r->left, r->top + y ); 
 
-		switch( flatten->in->BandFmt ) { 
+		switch( ir->im->BandFmt ) { 
 		case VIPS_FORMAT_UCHAR: 
 			VIPS_FLATTEN_INT( unsigned char ); 
 			break; 
@@ -285,18 +287,18 @@ vips_flatten_gen( VipsRegion *or, void *vseq, void *a, void *b,
 	return( 0 );
 }
 
-
 static int
 vips_flatten_build( VipsObject *object )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsConversion *conversion = VIPS_CONVERSION( object );
 	VipsFlatten *flatten = (VipsFlatten *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 1 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
 	VipsImage *in;
 	int i;
 	gboolean black;
+	VipsBandFormat original_format;
 
 	if( VIPS_OBJECT_CLASS( vips_flatten_parent_class )->build( object ) )
 		return( -1 );
@@ -315,12 +317,6 @@ vips_flatten_build( VipsObject *object )
 	if( vips_check_noncomplex( class->nickname, in ) )
 		return( -1 );
 
-	if( vips_image_pipelinev( conversion->out, 
-		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
-		return( -1 );
-
-	conversion->out->Bands -= 1;
-
 	/* Is max-alpha unset? Default to the correct value for this
 	 * interpretation.
 	 */
@@ -329,36 +325,71 @@ vips_flatten_build( VipsObject *object )
 			in->Type == VIPS_INTERPRETATION_RGB16 )
 			flatten->max_alpha = 65535;
 
+	/* Is max_alpha less than the numeric range of this image? If it is,
+	 * we can get int overflow. 
+	 *
+	 * This is not a common case, so efficiency is not so important.
+	 * Cast to double, then cast back to the input type right at the end.
+	 */
+	original_format = VIPS_FORMAT_NOTSET;
+	if( vips_band_format_isint( in->BandFmt ) &&
+		flatten->max_alpha < 
+			vips_image_get_format_max( in->BandFmt ) ) {
+		original_format = in->BandFmt;
+		if( vips_cast( in, &t[1], VIPS_FORMAT_DOUBLE, NULL ) )
+			return( -1 );
+		in = t[1];
+	}
+
+	t[2] = vips_image_new();
+	if( vips_image_pipelinev( t[2], 
+		VIPS_DEMAND_STYLE_THINSTRIP, in, NULL ) )
+		return( -1 );
+	t[2]->Bands -= 1;
+
 	/* Is the background black? We have a special path for this.
 	 */
 	black = TRUE;
-	for( i = 0; i < VIPS_AREA( flatten->background )->n; i++ )
-		if( vips_array_double_get( flatten->background, NULL )[i] != 
-			0.0 ) {
+	for( i = 0; i < VIPS_AREA( flatten->background )->n; i++ ) {
+		const double *background = 
+			vips_array_double_get( flatten->background, NULL );
+
+		if( background[i] != 0.0 ) {
 			black = FALSE;
 			break;
 		}
+	}
 
 	if( black ) {
-		if( vips_image_generate( conversion->out,
+		if( vips_image_generate( t[2],
 			vips_start_one, vips_flatten_black_gen, vips_stop_one, 
 			in, flatten ) )
 			return( -1 );
+		in = t[2];
 	}
 	else {
 		/* Convert the background to the image's format.
 		 */
-		if( !(flatten->ink = vips__vector_to_ink( class->nickname, 
-			conversion->out, 
+		if( !(flatten->ink = vips__vector_to_ink( class->nickname, t[2],
 			VIPS_AREA( flatten->background )->data, NULL, 
 			VIPS_AREA( flatten->background )->n )) )
 			return( -1 );
 
-		if( vips_image_generate( conversion->out,
+		if( vips_image_generate( t[2],
 			vips_start_one, vips_flatten_gen, vips_stop_one, 
 			in, flatten ) )
 			return( -1 );
+		in = t[2];
 	}
+
+	if( original_format != VIPS_FORMAT_NOTSET ) {
+		if( vips_cast( in, &t[3], original_format, NULL ) )
+			return( -1 );
+		in = t[3];
+	}
+
+	if( vips_image_write( in, conversion->out ) )
+		return( -1 );
 
 	return( 0 );
 }

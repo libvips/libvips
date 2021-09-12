@@ -8,7 +8,7 @@ import tempfile
 import shutil
 
 import pyvips
-from helpers import IMAGES, JPEG_FILE, unsigned_formats, \
+from helpers import IMAGES, JPEG_FILE, RGBA_FILE, unsigned_formats, \
     signed_formats, float_formats, int_formats, \
     noncomplex_formats, all_formats, max_value, \
     sizeof_format, rot45_angles, rot45_angle_bonds, \
@@ -377,6 +377,21 @@ class TestConversion:
             pixel = im(30, 30)
             for x, y in zip(pixel, predict):
                 assert abs(x - y) < 2
+
+        # if the image has max_alpha less than the numeric range of the
+        # format, we can get out of range values ... check they are clipped
+        # correctly
+        rgba = pyvips.Image.new_from_file(RGBA_FILE)
+
+        im = rgba * 256
+        im = im.cast("ushort")
+        im = im.flatten()
+
+        im2 = rgba * 256
+        im2 = im2.flatten()
+        im2 = im2.cast("ushort")
+
+        assert(abs(im - im2).max() == 0)
 
     def test_premultiply(self):
         for fmt in unsigned_formats + [pyvips.BandFormat.SHORT,
