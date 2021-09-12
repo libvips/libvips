@@ -110,7 +110,7 @@ jobs:
           echo "ASAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/asan.supp" >> $GITHUB_ENV
           echo "LSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/lsan.supp" >> $GITHUB_ENV
           echo "TSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/tsan.supp" >> $GITHUB_ENV
-          echo "UBSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/ubsan.supp:print_stacktrace=1" >> $GITHUB_ENV
+          echo "UBSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/ubsan.supp:halt_on_error=1:abort_on_error=1" >> $GITHUB_ENV
           echo "LD_LIBRARY_PATH=$LLVM_PREFIX/lib:`dirname $ASAN_DSO`" >> $GITHUB_ENV
           echo "$LLVM_PREFIX/bin" >> $GITHUB_PATH
           # workaround for https://github.com/google/sanitizers/issues/89
@@ -128,7 +128,7 @@ jobs:
         run: make V=0 -j$JOBS
 
       - name: Check libvips
-        run: make V=0 check || (cat test/test-suite.log && exit 1)
+        run: make V=0 VERBOSE=1 check
 
       - name: Install libvips
         run: sudo make V=0 install

@@ -84,7 +84,7 @@ vips_scRGB2BW_line_8( VipsPel * restrict q, float * restrict p,
 		q += 1;
 
 		for( j = 0; j < extra_bands; j++ ) 
-			q[j] = p[j];
+			q[j] = VIPS_CLIP( 0, p[j], UCHAR_MAX );
 		p += extra_bands;
 		q += extra_bands;
 	}

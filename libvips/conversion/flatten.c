@@ -83,7 +83,7 @@ G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 
 /* Flatten with black background.
  */
-#define VIPS_FLATTEN_BLACK( TYPE ) { \
+#define VIPS_FLATTEN_BLACK_INT( TYPE ) { \
 	TYPE * restrict p = (TYPE *) in; \
 	TYPE * restrict q = (TYPE *) out; \
 	\
@@ -120,7 +120,7 @@ G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 
 /* Flatten with any background.
  */
-#define VIPS_FLATTEN( TYPE ) { \
+#define VIPS_FLATTEN_INT( TYPE ) { \
 	TYPE * restrict p = (TYPE *) in; \
 	TYPE * restrict q = (TYPE *) out; \
 	\
@@ -179,11 +179,11 @@ vips_flatten_black_gen( VipsRegion *or, void *vseq, void *a, void *b,
 
 		switch( flatten->in->BandFmt ) { 
 		case VIPS_FORMAT_UCHAR: 
-			VIPS_FLATTEN_BLACK( unsigned char ); 
+			VIPS_FLATTEN_BLACK_INT( unsigned char ); 
 			break; 
 
 		case VIPS_FORMAT_CHAR: 
-			VIPS_FLATTEN_BLACK( signed char ); 
+			VIPS_FLATTEN_BLACK_INT( signed char ); 
 			break; 
 
 		case VIPS_FORMAT_USHORT: 
@@ -244,11 +244,11 @@ vips_flatten_gen( VipsRegion *or, void *vseq, void *a, void *b,
 
 		switch( flatten->in->BandFmt ) { 
 		case VIPS_FORMAT_UCHAR: 
-			VIPS_FLATTEN( unsigned char ); 
+			VIPS_FLATTEN_INT( unsigned char ); 
 			break; 
 
 		case VIPS_FORMAT_CHAR: 
-			VIPS_FLATTEN( signed char ); 
+			VIPS_FLATTEN_INT( signed char ); 
 			break; 
 
 		case VIPS_FORMAT_USHORT: 
