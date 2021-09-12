@@ -81,7 +81,6 @@ typedef VipsConversionClass VipsFlattenClass;
 
 G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 
-
 /* Flatten with black background.
  */
 #define VIPS_FLATTEN_BLACK_INT( TYPE ) { \
@@ -188,19 +187,19 @@ vips_flatten_black_gen( VipsRegion *or, void *vseq, void *a, void *b,
 			break; 
 
 		case VIPS_FORMAT_USHORT: 
-      VIPS_FLATTEN_BLACK_FLOAT( unsigned short ); 
+			VIPS_FLATTEN_BLACK_FLOAT( unsigned short ); 
 			break; 
 
 		case VIPS_FORMAT_SHORT: 
-      VIPS_FLATTEN_BLACK_FLOAT( signed short ); 
+			VIPS_FLATTEN_BLACK_FLOAT( signed short ); 
 			break; 
 
 		case VIPS_FORMAT_UINT: 
-      VIPS_FLATTEN_BLACK_FLOAT( unsigned int ); 
+			VIPS_FLATTEN_BLACK_FLOAT( unsigned int ); 
 			break; 
 
 		case VIPS_FORMAT_INT: 
-      VIPS_FLATTEN_BLACK_FLOAT( signed int ); 
+			VIPS_FLATTEN_BLACK_FLOAT( signed int ); 
 			break; 
 
 		case VIPS_FORMAT_FLOAT: 
@@ -253,19 +252,19 @@ vips_flatten_gen( VipsRegion *or, void *vseq, void *a, void *b,
 			break; 
 
 		case VIPS_FORMAT_USHORT: 
-      VIPS_FLATTEN_FLOAT( unsigned short ); 
+			VIPS_FLATTEN_FLOAT( unsigned short ); 
 			break; 
 
 		case VIPS_FORMAT_SHORT: 
-      VIPS_FLATTEN_FLOAT( signed short ); 
+			VIPS_FLATTEN_FLOAT( signed short ); 
 			break; 
 
 		case VIPS_FORMAT_UINT: 
-      VIPS_FLATTEN_FLOAT( unsigned int ); 
+			VIPS_FLATTEN_FLOAT( unsigned int ); 
 			break; 
 
 		case VIPS_FORMAT_INT: 
-      VIPS_FLATTEN_FLOAT( signed int ); 
+			VIPS_FLATTEN_FLOAT( signed int ); 
 			break; 
 
 		case VIPS_FORMAT_FLOAT: 
