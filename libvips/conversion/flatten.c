@@ -81,21 +81,10 @@ typedef VipsConversionClass VipsFlattenClass;
 
 G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 
-/* Cast down from an int.
- */
-#define CAST_UCHAR( X ) VIPS_CLIP( 0, (X), UCHAR_MAX )
-#define CAST_CHAR( X ) VIPS_CLIP( SCHAR_MIN, (X), SCHAR_MAX )
-#define CAST_USHORT( X ) VIPS_CLIP( 0, (X), USHRT_MAX )
-#define CAST_SHORT( X ) VIPS_CLIP( SHRT_MIN, (X), SHRT_MAX )
-
-/* These cast down from gint64 to uint32 or int32. 
- */
-#define CAST_UINT( X ) VIPS_CLIP( 0, (X), UINT_MAX )
-#define CAST_INT( X ) VIPS_CLIP( INT_MIN, (X), INT_MAX )
 
 /* Flatten with black background.
  */
-#define VIPS_FLATTEN_BLACK_INT( TYPE, CAST ) { \
+#define VIPS_FLATTEN_BLACK_INT( TYPE ) { \
 	TYPE * restrict p = (TYPE *) in; \
 	TYPE * restrict q = (TYPE *) out; \
 	\
@@ -104,14 +93,15 @@ G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 		int b; \
 		\
 		for( b = 0; b < bands - 1; b++ ) \
-			q[b] = CAST( ((double) p[b] * alpha) / max_alpha ); \
+			q[b] = (p[b] * alpha) / max_alpha; \
 		\
 		p += bands; \
 		q += bands - 1; \
 	} \
 }
 
-/* Same, but with float arithmetic.
+/* Same, but with float arithmetic. Necessary for short/int to prevent
+ * overflow.
  */
 #define VIPS_FLATTEN_BLACK_FLOAT( TYPE ) { \
 	TYPE * restrict p = (TYPE *) in; \
@@ -131,7 +121,7 @@ G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 
 /* Flatten with any background.
  */
-#define VIPS_FLATTEN_INT( TYPE, CAST ) { \
+#define VIPS_FLATTEN_INT( TYPE ) { \
 	TYPE * restrict p = (TYPE *) in; \
 	TYPE * restrict q = (TYPE *) out; \
 	\
@@ -142,8 +132,7 @@ G_DEFINE_TYPE( VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION );
 		int b; \
 		\
 		for( b = 0; b < bands - 1; b++ ) \
-			q[b] = CAST( ((double) p[b] * alpha + \
-				(double) bg[b] * nalpha) / max_alpha ); \
+			q[b] = (p[b] * alpha + bg[b] * nalpha) / max_alpha; \
 		\
 		p += bands; \
 		q += bands - 1; \
@@ -191,27 +180,27 @@ vips_flatten_black_gen( VipsRegion *or, void *vseq, void *a, void *b,
 
 		switch( flatten->in->BandFmt ) { 
 		case VIPS_FORMAT_UCHAR: 
-			VIPS_FLATTEN_BLACK_INT( unsigned char, CAST_UCHAR ); 
+			VIPS_FLATTEN_BLACK_INT( unsigned char ); 
 			break; 
 
 		case VIPS_FORMAT_CHAR: 
-			VIPS_FLATTEN_BLACK_INT( signed char, CAST_CHAR ); 
+			VIPS_FLATTEN_BLACK_INT( signed char ); 
 			break; 
 
 		case VIPS_FORMAT_USHORT: 
-			VIPS_FLATTEN_BLACK_INT( unsigned short, CAST_USHORT ); 
+      VIPS_FLATTEN_BLACK_FLOAT( unsigned short ); 
 			break; 
 
 		case VIPS_FORMAT_SHORT: 
-			VIPS_FLATTEN_BLACK_INT( signed short, CAST_SHORT ); 
+      VIPS_FLATTEN_BLACK_FLOAT( signed short ); 
 			break; 
 
 		case VIPS_FORMAT_UINT: 
-			VIPS_FLATTEN_BLACK_INT( unsigned int, CAST_UINT ); 
+      VIPS_FLATTEN_BLACK_FLOAT( unsigned int ); 
 			break; 
 
 		case VIPS_FORMAT_INT: 
-			VIPS_FLATTEN_BLACK_INT( signed int, CAST_INT ); 
+      VIPS_FLATTEN_BLACK_FLOAT( signed int ); 
 			break; 
 
 		case VIPS_FORMAT_FLOAT: 
@@ -256,27 +245,27 @@ vips_flatten_gen( VipsRegion *or, void *vseq, void *a, void *b,
 
 		switch( flatten->in->BandFmt ) { 
 		case VIPS_FORMAT_UCHAR: 
-			VIPS_FLATTEN_INT( unsigned char, CAST_UCHAR ); 
+			VIPS_FLATTEN_INT( unsigned char ); 
 			break; 
 
 		case VIPS_FORMAT_CHAR: 
-			VIPS_FLATTEN_INT( signed char, CAST_CHAR ); 
+			VIPS_FLATTEN_INT( signed char ); 
 			break; 
 
 		case VIPS_FORMAT_USHORT: 
-			VIPS_FLATTEN_INT( unsigned short, CAST_USHORT ); 
+      VIPS_FLATTEN_FLOAT( unsigned short ); 
 			break; 
 
 		case VIPS_FORMAT_SHORT: 
-			VIPS_FLATTEN_INT( signed short, CAST_SHORT ); 
+      VIPS_FLATTEN_FLOAT( signed short ); 
 			break; 
 
 		case VIPS_FORMAT_UINT: 
-			VIPS_FLATTEN_INT( unsigned int, CAST_UINT ); 
+      VIPS_FLATTEN_FLOAT( unsigned int ); 
 			break; 
 
 		case VIPS_FORMAT_INT: 
-			VIPS_FLATTEN_INT( signed int, CAST_INT ); 
+      VIPS_FLATTEN_FLOAT( signed int ); 
 			break; 
 
 		case VIPS_FORMAT_FLOAT: 
