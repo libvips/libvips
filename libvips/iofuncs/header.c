@@ -415,6 +415,47 @@ vips_image_get_format( const VipsImage *image )
 }
 
 /**
+ * vips_image_get_format_max: (method)
+ * @image: image to get from
+ *
+ * Returns: the maximum numeric value possible for this format.
+ */
+double
+vips_image_get_format_max( VipsBandFormat format )
+{
+	switch( format ) {
+	case VIPS_FORMAT_UCHAR:
+		return( UCHAR_MAX );
+
+	case VIPS_FORMAT_CHAR:
+		return( SCHAR_MAX );
+
+	case VIPS_FORMAT_USHORT:
+		return( USHRT_MAX );
+
+	case VIPS_FORMAT_SHORT:
+		return( SHRT_MAX );
+
+	case VIPS_FORMAT_UINT:
+		return( UINT_MAX );
+
+	case VIPS_FORMAT_INT:
+		return( INT_MAX );
+
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_COMPLEX:
+		return( FLT_MAX );
+
+	case VIPS_FORMAT_DOUBLE:
+	case VIPS_FORMAT_DPCOMPLEX:
+		return( DBL_MAX );
+
+	default:
+		return( -1 );
+	}
+}
+
+/**
  * vips_image_guess_format: (method)
  * @image: image to guess for
  *
