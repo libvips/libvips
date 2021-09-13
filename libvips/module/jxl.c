@@ -72,10 +72,6 @@ g_module_check_init( GModule *module )
 	vips_foreign_save_jxl_buffer_get_type(); 
 	vips_foreign_save_jxl_target_get_type(); 
 
-	/* We can't be unloaded, there would be chaos.
-	 */
-	g_module_make_resident( module );
-
 	return( NULL );
 }
 

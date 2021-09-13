@@ -64,10 +64,6 @@ g_module_check_init( GModule *module )
 	vips_foreign_load_openslide_file_get_type();
 	vips_foreign_load_openslide_source_get_type();
 
-	/* We can't be unloaded, there would be chaos.
-	 */
-	g_module_make_resident( module );
-
 	return( NULL );
 }
 
