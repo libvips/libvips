@@ -573,7 +573,8 @@ png2vips_header( Read *read, VipsImage *out )
 		if( !read->unlimited && 
 			num_text > MAX_PNG_TEXT_CHUNKS ) {
 			vips_error( "vipspng", 
-				"%s", _( "too many text chunks" ) );
+				_( "%d text chunks, image blocked" ),
+			       num_text );
 			return( -1 );
 		}
 

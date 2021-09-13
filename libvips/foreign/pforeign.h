@@ -45,7 +45,9 @@ extern "C" {
 )
 #endif /*HAVE_CHECKED_MUL*/
 
-#define MAX_PNG_TEXT_CHUNKS 20
+/* We've seen real images with 28 chunks, so set 50.
+ */
+#define MAX_PNG_TEXT_CHUNKS 50
 
 void vips__tiff_init( void );
 
