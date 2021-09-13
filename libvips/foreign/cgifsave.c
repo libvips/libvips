@@ -418,9 +418,9 @@ vips_foreign_save_cgif_buffer_init( VipsForeignSaveCgifBuffer *buffer )
  *
  * Optional arguments:
  *
- * * @dither: %double, quantisation dithering level
- * * @effort: %int, quantisation CPU effort
- * * @bitdepth: %int, number of bits per pixel
+ * * @dither: %gdouble, quantisation dithering level
+ * * @effort: %gint, quantisation CPU effort
+ * * @bitdepth: %gint, number of bits per pixel
  *
  * Write a VIPS image to a file as GIF.
  *
@@ -459,9 +459,9 @@ vips_gifsave( VipsImage *in, const char *filename, ... )
  *
  * Optional arguments:
  *
- * * @dither: %double, quantisation dithering level
- * * @effort: %int, quantisation CPU effort
- * * @bitdepth: %int, number of bits per pixel
+ * * @dither: %gdouble, quantisation dithering level
+ * * @effort: %gint, quantisation CPU effort
+ * * @bitdepth: %gint, number of bits per pixel
  *
  * As vips_gifsave(), but save to a memory buffer.
  *
@@ -509,9 +509,9 @@ vips_gifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  *
  * Optional arguments:
  *
- * * @dither: %double, quantisation dithering level
- * * @effort: %int, quantisation CPU effort
- * * @bitdepth: %int, number of bits per pixel
+ * * @dither: %gdouble, quantisation dithering level
+ * * @effort: %gint, quantisation CPU effort
+ * * @bitdepth: %gint, number of bits per pixel
  *
  * As vips_gifsave(), but save to a target.
  *

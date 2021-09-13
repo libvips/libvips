@@ -6,6 +6,8 @@
 - add gifsave [lovell]
 - arrayjoin minimises inputs during sequential processing, saving a lot of 
   memory and file descriptors
+- add vips_image_get_format_max()
+- flatten handles out of range alpha and max_alpha correctly
 
 16/8/21 started 8.11.4
 - fix off-by-one error in new rank fast path
