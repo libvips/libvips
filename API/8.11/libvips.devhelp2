@@ -1046,6 +1046,9 @@
     <keyword type="function" name="vips_jxlload_source ()" link="VipsForeignSave.html#vips-jxlload-source"/>
     <keyword type="function" name="vips_jxlload_buffer ()" link="VipsForeignSave.html#vips-jxlload-buffer"/>
     <keyword type="function" name="vips_jxlload ()" link="VipsForeignSave.html#vips-jxlload"/>
+    <keyword type="function" name="vips_jxlsave ()" link="VipsForeignSave.html#vips-jxlsave"/>
+    <keyword type="function" name="vips_jxlsave_buffer ()" link="VipsForeignSave.html#vips-jxlsave-buffer"/>
+    <keyword type="function" name="vips_jxlsave_target ()" link="VipsForeignSave.html#vips-jxlsave-target"/>
     <keyword type="function" name="vips_dzsave ()" link="VipsForeignSave.html#vips-dzsave"/>
     <keyword type="enum" name="enum VipsForeignFlags" link="VipsForeignSave.html#VipsForeignFlags"/>
     <keyword type="enum" name="enum VipsSaveable" link="VipsForeignSave.html#VipsSaveable"/>

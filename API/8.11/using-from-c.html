@@ -9,7 +9,7 @@
     <meta name="theme-color" content="#157878">
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Cabin:400,700" rel="stylesheet" type="text/css">
-    <link rel="stylesheet" href="/libvips/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
     <link rel="shortcut icon" type="image/x-icon" href="/libvips/favicon.ico">
   </head>
   <body>
@@ -96,8 +96,9 @@
       else is still using it. 
     </p>
 <p>
-      See <a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> for more detail on VIPS 
-      reference counting conventions.
+      See <a class="link" href="VipsOperation.html" title="VipsOperation"><span class="type">VipsOperation</span></a> for more detail on VIPS
+      reference counting conventions. See the <a class="link" href="using-from-c.html#reference-pools-ref" title="Reference pools">Reference pools</a>
+      section below for a way to automate reference counting in C.
     </p>
 </div>
 <div class="refsect3">
@@ -156,21 +157,21 @@ where:
    in           - Input image, input VipsImage
    out          - Output image, output VipsImage
    x            - Left edge of input in output, input gint
-			                default: 0
-			                min: -1000000000, max: 1000000000
+                      default: 0
+                      min: -1000000000, max: 1000000000
    y            - Top edge of input in output, input gint
-			                default: 0
-			                min: -1000000000, max: 1000000000
+                      default: 0
+                      min: -1000000000, max: 1000000000
    width        - Image width in pixels, input gint
-			                default: 1
-			                min: 1, max: 1000000000
+                      default: 1
+                      min: 1, max: 1000000000
    height       - Image height in pixels, input gint
-			                default: 1
-			                min: 1, max: 1000000000
+                      default: 1
+                      min: 1, max: 1000000000
 optional arguments:
    extend       - How to generate the extra pixels, input VipsExtend
-			                default: black
-			                allowed: black, copy, repeat, mirror, white, background
+                      default: black
+                      allowed: black, copy, repeat, mirror, white, background
    background   - Colour for background pixels, input VipsArrayDouble
 operation flags: sequential-unbuffered 
 </pre>
@@ -314,6 +315,170 @@ x86_64-w64-mingw32-gcc-win32 -mms-bitfields \
     <span class="n">vips_error_exit</span><span class="p">(</span> <span class="nb">NULL</span> <span class="p">);</span>
 
   <span class="n">g_object_unref</span><span class="p">(</span> <span class="n">out</span> <span class="p">);</span> 
+
+  <span class="k">return</span><span class="p">(</span> <span class="mi">0</span> <span class="p">);</span>
+<span class="p">}</span></pre></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+<br class="example-break">
+</div>
+<div class="refsect3">
+<a name="reference-pools-ref"></a><h4>Reference pools</h4>
+<p>
+      libvips has a simple system to automate at least some reference counting 
+      issues. Reference pools are arrays of object pointers which will be 
+      released automatically when some other object is finalized. 
+    </p>
+<p>
+      The code below crops a many-page image (perhaps a GIF or PDF). It 
+      splits the image into separate pages, crops each page, reassembles the 
+      cropped areas, and saves again. It creates a <code class="code">context</code> 
+      object representing the state of processing, and 
+      <code class="code">crop_animation</code> allocates two reference pools off that using 
+      <code class="code">vips_object_local_array</code>, one to hold the cropped frames, 
+      and one to assemble and copy the result.
+    </p>
+<p>
+      All unreffing is handled by <code class="code">main</code>, and it doesn't need to 
+      know anything about <code class="code">crop_animation</code>.
+    </p>
+<div class="example">
+<a name="id-1.2.4.11.5"></a><p class="title"><b>Example 2. Reference pool example</b></p>
+<div class="example-contents">
+  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
+    <tbody>
+      <tr>
+        <td class="listing_lines" align="right"><pre>1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65</pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="cp">#include</span> <span class="cpf">&lt;vips/vips.h&gt;</span><span class="cp"></span>
+
+<span class="k">static</span> <span class="kt">int</span>
+<span class="n">crop_animation</span><span class="p">(</span> <span class="n">VipsObject</span> <span class="o">*</span><span class="n">context</span><span class="p">,</span> <span class="n">VipsImage</span> <span class="o">*</span><span class="n">image</span><span class="p">,</span> <span class="n">VipsImage</span> <span class="o">**</span><span class="n">out</span><span class="p">,</span>
+  <span class="kt">int</span> <span class="n">left</span><span class="p">,</span> <span class="kt">int</span> <span class="n">top</span><span class="p">,</span> <span class="kt">int</span> <span class="n">width</span><span class="p">,</span> <span class="kt">int</span> <span class="n">height</span> <span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">page_height</span> <span class="o">=</span> <span class="n">vips_image_get_page_height</span><span class="p">(</span> <span class="n">image</span> <span class="p">);</span>
+  <span class="kt">int</span> <span class="n">n_pages</span> <span class="o">=</span> <span class="n">image</span><span class="o">-&gt;</span><span class="n">Ysize</span> <span class="o">/</span> <span class="n">page_height</span><span class="p">;</span>
+  <span class="n">VipsImage</span> <span class="o">**</span><span class="n">page</span> <span class="o">=</span> <span class="p">(</span><span class="n">VipsImage</span> <span class="o">**</span><span class="p">)</span> <span class="n">vips_object_local_array</span><span class="p">(</span> <span class="n">context</span><span class="p">,</span> <span class="n">n_pages</span> <span class="p">);</span>
+  <span class="n">VipsImage</span> <span class="o">**</span><span class="n">copy</span> <span class="o">=</span> <span class="p">(</span><span class="n">VipsImage</span> <span class="o">**</span><span class="p">)</span> <span class="n">vips_object_local_array</span><span class="p">(</span> <span class="n">context</span><span class="p">,</span> <span class="mi">1</span> <span class="p">);</span>
+
+  <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
+
+  <span class="cm">/* Split the image into cropped frames.</span>
+<span class="cm">   */</span>
+  <span class="k">for</span><span class="p">(</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">n_pages</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span> <span class="p">)</span>
+    <span class="k">if</span><span class="p">(</span> <span class="n">vips_crop</span><span class="p">(</span> <span class="n">image</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">page</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+      <span class="n">left</span><span class="p">,</span> <span class="n">page_height</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="n">top</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="nb">NULL</span> <span class="p">)</span> <span class="p">)</span>
+      <span class="k">return</span><span class="p">(</span> <span class="mi">-1</span> <span class="p">);</span>
+
+  <span class="cm">/* Reassemble the frames and set the page height. You must copy before </span>
+<span class="cm">   * modifying metadata.</span>
+<span class="cm">   */</span>
+  <span class="k">if</span><span class="p">(</span> <span class="n">vips_arrayjoin</span><span class="p">(</span> <span class="n">page</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">copy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">n_pages</span><span class="p">,</span> <span class="s">"across"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">NULL</span> <span class="p">)</span> <span class="o">||</span>
+    <span class="n">vips_copy</span><span class="p">(</span> <span class="n">copy</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">out</span><span class="p">,</span> <span class="nb">NULL</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="k">return</span><span class="p">(</span> <span class="mi">-1</span> <span class="p">);</span>
+  <span class="n">vips_image_set_int</span><span class="p">(</span> <span class="o">*</span><span class="n">out</span><span class="p">,</span> <span class="s">"page-height"</span><span class="p">,</span> <span class="n">height</span> <span class="p">);</span>
+
+  <span class="k">return</span><span class="p">(</span> <span class="mi">0</span> <span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> 
+<span class="n">main</span><span class="p">(</span> <span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span> <span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">VipsImage</span> <span class="o">*</span><span class="n">image</span><span class="p">;</span>
+  <span class="n">VipsObject</span> <span class="o">*</span><span class="n">context</span><span class="p">;</span>
+  <span class="n">VipsImage</span> <span class="o">*</span><span class="n">x</span><span class="p">;</span>
+
+  <span class="k">if</span><span class="p">(</span> <span class="n">VIPS_INIT</span><span class="p">(</span> <span class="nb">NULL</span> <span class="p">)</span> <span class="p">)</span> 
+    <span class="n">vips_error_exit</span><span class="p">(</span> <span class="nb">NULL</span> <span class="p">);</span> 
+
+  <span class="k">if</span><span class="p">(</span> <span class="o">!</span><span class="p">(</span><span class="n">image</span> <span class="o">=</span> <span class="n">vips_image_new_from_file</span><span class="p">(</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> 
+    <span class="s">"access"</span><span class="p">,</span> <span class="n">VIPS_ACCESS_SEQUENTIAL</span><span class="p">,</span>
+    <span class="nb">NULL</span> <span class="p">))</span> <span class="p">)</span>
+    <span class="n">vips_error_exit</span><span class="p">(</span> <span class="nb">NULL</span> <span class="p">);</span> 
+
+  <span class="n">context</span> <span class="o">=</span> <span class="n">VIPS_OBJECT</span><span class="p">(</span> <span class="n">vips_image_new</span><span class="p">()</span> <span class="p">);</span>
+  <span class="k">if</span><span class="p">(</span> <span class="n">crop_animation</span><span class="p">(</span> <span class="n">context</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">x</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">500</span> <span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="n">g_object_unref</span><span class="p">(</span> <span class="n">image</span> <span class="p">);</span>
+    <span class="n">g_object_unref</span><span class="p">(</span> <span class="n">context</span> <span class="p">);</span>
+    <span class="n">vips_error_exit</span><span class="p">(</span> <span class="nb">NULL</span> <span class="p">);</span> 
+  <span class="p">}</span>
+  <span class="n">g_object_unref</span><span class="p">(</span> <span class="n">image</span> <span class="p">);</span>
+  <span class="n">g_object_unref</span><span class="p">(</span> <span class="n">context</span> <span class="p">);</span>
+  <span class="n">image</span> <span class="o">=</span> <span class="n">x</span><span class="p">;</span>
+
+  <span class="k">if</span><span class="p">(</span> <span class="n">vips_image_write_to_file</span><span class="p">(</span> <span class="n">image</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="nb">NULL</span> <span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+    <span class="n">g_object_unref</span><span class="p">(</span> <span class="n">image</span> <span class="p">);</span>
+    <span class="n">vips_error_exit</span><span class="p">(</span> <span class="nb">NULL</span> <span class="p">);</span> 
+  <span class="p">}</span>
+
+  <span class="n">g_object_unref</span><span class="p">(</span> <span class="n">image</span> <span class="p">);</span>
 
   <span class="k">return</span><span class="p">(</span> <span class="mi">0</span> <span class="p">);</span>
 <span class="p">}</span></pre></td>
