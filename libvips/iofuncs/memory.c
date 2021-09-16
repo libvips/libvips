@@ -100,7 +100,8 @@
  */
 
 /* Track malloc/free and open/close.
-#define DEBUG_VERBOSE
+#define DEBUG_VERBOSE_MEM
+#define DEBUG_VERBOSE_FD
  */
 
 #ifdef DEBUG
@@ -236,9 +237,9 @@ vips_tracked_free( void *s )
 
 	g_mutex_lock( vips_tracked_mutex );
 
-#ifdef DEBUG_VERBOSE
+#ifdef DEBUG_VERBOSE_MEM
 	printf( "vips_tracked_free: %p, %zd bytes\n", s, size ); 
-#endif /*DEBUG_VERBOSE*/
+#endif /*DEBUG_VERBOSE_MEM*/
 
 	if( vips_tracked_allocs <= 0 ) 
 		g_warning( "%s", _( "vips_free: too many frees" ) );
@@ -325,9 +326,9 @@ vips_tracked_malloc( size_t size )
 		vips_tracked_mem_highwater = vips_tracked_mem;
 	vips_tracked_allocs += 1;
 
-#ifdef DEBUG_VERBOSE
+#ifdef DEBUG_VERBOSE_MEM
 	printf( "vips_tracked_malloc: %p, %zd bytes\n", buf, size ); 
-#endif /*DEBUG_VERBOSE*/
+#endif /*DEBUG_VERBOSE_MEM*/
 
 	g_mutex_unlock( vips_tracked_mutex );
 
@@ -368,10 +369,10 @@ vips_tracked_open( const char *pathname, int flags, int mode )
 	g_mutex_lock( vips_tracked_mutex );
 
 	vips_tracked_files += 1;
-#ifdef DEBUG_VERBOSE
+#ifdef DEBUG_VERBOSE_FD
 	printf( "vips_tracked_open: %s = %d (%d)\n", 
 		pathname, fd, vips_tracked_files );
-#endif /*DEBUG_VERBOSE*/
+#endif /*DEBUG_VERBOSE_FD*/
 
 	g_mutex_unlock( vips_tracked_mutex );
 
@@ -400,12 +401,16 @@ vips_tracked_close( int fd )
 
 	g_mutex_lock( vips_tracked_mutex );
 
+	/* libvips uses fd -1 to mean invalid descriptor.
+	 */
+	g_assert( fd != -1 );
 	g_assert( vips_tracked_files > 0 );
 
 	vips_tracked_files -= 1;
-#ifdef DEBUG_VERBOSE
+#ifdef DEBUG_VERBOSE_FD
 	printf( "vips_tracked_close: %d (%d)\n", fd, vips_tracked_files );
-#endif /*DEBUG_VERBOSE*/
+	printf( "   from thread %p\n", g_thread_self() ); 
+#endif /*DEBUG_VERBOSE_FD*/
 
 	g_mutex_unlock( vips_tracked_mutex );
 
