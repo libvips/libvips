@@ -8,6 +8,7 @@
   memory and file descriptors
 - add vips_image_get_format_max()
 - flatten handles out of range alpha and max_alpha correctly
+- don't use atexit for cleanup, it's too unreliable
 
 16/8/21 started 8.11.4
 - fix off-by-one error in new rank fast path

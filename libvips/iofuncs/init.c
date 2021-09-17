@@ -30,6 +30,10 @@
  * 	- hide warnings is VIPS_WARNING is set
  * 20/4/19
  * 	- set the min stack, if we can
+ * 17/9/21
+ * 	- don't use atexit for cleanup, it's too unreliable ... users should
+ * 	  call vips_shutdown explicitly if they want a clean exit, though a
+ * 	  dirty exit is fine
  */
 
 /*
@@ -726,6 +730,9 @@ vips_thread_shutdown( void )
  * Call this to drop caches and close plugins. Run with "--vips-leak" to do 
  * a leak check too. 
  *
+ * vips_shutdown() is optional. If you don't call it, your platform will
+ * clean up for you.
+ *
  * You may call VIPS_INIT() many times and vips_shutdown() many times, but you 
  * must not call VIPS_INIT() after vips_shutdown(). In other words, you cannot
  * stop and restart vips. 
@@ -754,11 +761,8 @@ vips_shutdown( void )
 }
 
 	vips__render_shutdown();
-
 	vips_thread_shutdown();
-
 	vips__thread_profile_stop();
-
 	vips__threadpool_shutdown();
 
 #ifdef HAVE_GSF
