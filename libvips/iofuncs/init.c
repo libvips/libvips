@@ -425,9 +425,10 @@ vips__atexit( void )
 	{
 		static gboolean done = FALSE;
 
-		done = TRUE;
-		if( !done )
+		if( !done ) {
+			done = TRUE;
 			vips_leak();
+		}
 	}
 }
 
