@@ -230,9 +230,6 @@ vips_get_prgname( void )
  * + loads any plugins from $libdir/vips-x.y/, where x and y are the
  *   major and minor version numbers for this VIPS.
  *
- * + if your platform supports atexit(), VIPS_INIT() will ask for
- *   vips_shutdown() to be called on program exit
- *
  * Example:
  *
  * |[
@@ -364,6 +361,28 @@ vips_verbose( void )
 		g_setenv( "G_MESSAGES_DEBUG", new, TRUE );
 
 		g_free( new );
+	}
+}
+
+/* This is not guaranteed to be called, and might be called after many parts
+ * of libvips have been freed. Threads can be in an indeterminate state. 
+ * You must be very careful to avoid segvs.
+ */
+static void
+vips__atexit( void )
+{
+	/* In dev releases, always show leaks. But not more than once, it's
+	 * annoying.
+	 */
+#ifndef DEBUG_LEAK
+	if( vips__leak ) 
+#endif /*DEBUG_LEAK*/
+	{
+		static gboolean done = FALSE;
+
+		done = TRUE;
+		if( !done )
+			vips_leak();
 	}
 }
 
@@ -583,11 +602,8 @@ vips_init( const char *argv0 )
 	gsf_init();
 #endif /*HAVE_GSF*/
 
-	/* Register vips_shutdown(). This may well not get called and many
-	 * platforms don't support it anyway.
-	 */
 #ifdef HAVE_ATEXIT
-	atexit( vips_shutdown );
+	atexit( vips__atexit );
 #endif /*HAVE_ATEXIT*/
 
 #ifdef DEBUG_LEAK
@@ -747,22 +763,6 @@ vips_shutdown( void )
 #ifdef HAVE_GSF
 	gsf_shutdown(); 
 #endif /*HAVE_GSF*/
-
-	/* In dev releases, always show leaks. But not more than once, it's
-	 * annoying.
-	 */
-#ifndef DEBUG_LEAK
-	if( vips__leak ) 
-#endif /*DEBUG_LEAK*/
-	{
-		static gboolean done = FALSE;
-
-		if( !done &&
-			vips_leak() ) 
-			exit( 1 );
-
-		done = TRUE;
-	}
 
 	VIPS_FREE( vips__argv0 );
 	VIPS_FREE( vips__prgname );

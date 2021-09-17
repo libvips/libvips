@@ -1054,8 +1054,7 @@ vips__sink_screen_once( void *data )
 	vips_semaphore_init( &n_render_dirty_sem, 0, "n_render_dirty" );
 
 	/* Don't use vips__thread_execute() since this thread will only be
-	 * ended by _shutdown, and that isn't always called early enough on
-	 * windows from atexit().
+	 * ended by vips_shutdown, and that isn't always called.
 	 */
 	render_thread = vips_g_thread_new( "sink_screen",
 		render_thread_main, NULL );
