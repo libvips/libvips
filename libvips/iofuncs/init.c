@@ -769,9 +769,12 @@ vips_shutdown( void )
 	gsf_shutdown(); 
 #endif /*HAVE_GSF*/
 
+	/* Don't free vips__global_lock -- we want to be able to use
+	 * vips_error_buffer() after vips_shutdown(), since vips_leak() can
+	 * call it.
+	 */
 	VIPS_FREE( vips__argv0 );
 	VIPS_FREE( vips__prgname );
-	VIPS_FREEF( vips_g_mutex_free, vips__global_lock );
 	VIPS_FREEF( g_timer_destroy, vips__global_timer );
 }
 
