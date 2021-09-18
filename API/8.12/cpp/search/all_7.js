@@ -1,0 +1,25 @@
+var searchData=
+[
+  ['has_5falpha_131',['has_alpha',['../classVImage.html#a2dccb75d88e12b3a15b961f46297c9b8',1,'VImage']]],
+  ['heifload_132',['heifload',['../classVImage.html#a7e3aec5e05b7a91276c6c8a295077ec1',1,'VImage']]],
+  ['heifload_5fbuffer_133',['heifload_buffer',['../classVImage.html#a8631b45b2211817989364e184143edfb',1,'VImage']]],
+  ['heifload_5fsource_134',['heifload_source',['../classVImage.html#a3d9a234b60a0458d669f33776d11cae8',1,'VImage']]],
+  ['heifsave_135',['heifsave',['../classVImage.html#a507555886f6e7b724066ab0d84c1d231',1,'VImage']]],
+  ['heifsave_5fbuffer_136',['heifsave_buffer',['../classVImage.html#a75a373fe29ca97ee0afbf6f919fd4d58',1,'VImage']]],
+  ['heifsave_5ftarget_137',['heifsave_target',['../classVImage.html#a7a66f6161b08f1fbe90c5a9d1770e4cc',1,'VImage']]],
+  ['height_138',['height',['../classVImage.html#aa3c3c89d915a976b5b95f0fc8938f4f2',1,'VImage']]],
+  ['hist_5fcum_139',['hist_cum',['../classVImage.html#af0011289912e471a039776361ca27f61',1,'VImage']]],
+  ['hist_5fentropy_140',['hist_entropy',['../classVImage.html#a2d5f8e957e6de9b2c085b3972a667ea9',1,'VImage']]],
+  ['hist_5fequal_141',['hist_equal',['../classVImage.html#a6c04052871f9cd678daf58a8b6a2d2ac',1,'VImage']]],
+  ['hist_5ffind_142',['hist_find',['../classVImage.html#a6bfc1bf30206ce6f9055592502218c13',1,'VImage']]],
+  ['hist_5ffind_5findexed_143',['hist_find_indexed',['../classVImage.html#acc7e257c561539a53377a9e1fa378f3b',1,'VImage']]],
+  ['hist_5ffind_5fndim_144',['hist_find_ndim',['../classVImage.html#a4fe5bb5cd1b6ec465716c454e61a845a',1,'VImage']]],
+  ['hist_5fismonotonic_145',['hist_ismonotonic',['../classVImage.html#a4b39ce0c97b7d43126b9ba6cc385c7d0',1,'VImage']]],
+  ['hist_5flocal_146',['hist_local',['../classVImage.html#a169e5a2f2d6b40559a613b21c61cd03a',1,'VImage']]],
+  ['hist_5fmatch_147',['hist_match',['../classVImage.html#a8309ab41345279a93805a601c0dfcf37',1,'VImage']]],
+  ['hist_5fnorm_148',['hist_norm',['../classVImage.html#a7a7ae5779fc2821f070364e297cc39b9',1,'VImage']]],
+  ['hist_5fplot_149',['hist_plot',['../classVImage.html#a0990485970619199515a2ba2832e3ee8',1,'VImage']]],
+  ['hough_5fcircle_150',['hough_circle',['../classVImage.html#a908145cd7d5ad305dad2920039ff6c0e',1,'VImage']]],
+  ['hough_5fline_151',['hough_line',['../classVImage.html#a6efb78cdb0421d77c71e97fdef913f5f',1,'VImage']]],
+  ['hsv2srgb_152',['HSV2sRGB',['../classVImage.html#a002ed69e6a963364463c0df350f5d76c',1,'VImage']]]
+];
