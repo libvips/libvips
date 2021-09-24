@@ -30,7 +30,9 @@
 
  */
 
+/*
 #define DEBUG_VERBOSE
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -60,6 +62,7 @@ typedef struct _VipsForeignSaveCgif {
 
 	/* Derived write params.
 	 */
+	VipsImage *in;				/* Not a reference */
 	gboolean has_transparency;
 	int *delay;
 	int delay_length;
@@ -79,6 +82,7 @@ typedef struct _VipsForeignSaveCgif {
 	liq_attr *attr;
 	liq_image *input_image;
 	liq_result *quantisation_result;
+	const liq_palette *lp;
 
 	/* The current colourmap, updated on a significant frame change.
 	 *
@@ -140,9 +144,13 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( cgif );
 	VipsRect *frame_rect = &cgif->frame->valid;
-	int page_index = frame_rect->top / cgif->frame->im->Ysize;
+	int page_index = frame_rect->top / frame_rect->height;
+	/* We know this fits in an int since we limit frame size.
+	 */
 	int n_pels = frame_rect->height * frame_rect->width;
 	guint max_sum = 256 * n_pels * 3;
+	VipsPel *frame_bytes = 
+		VIPS_REGION_ADDR( cgif->frame, 0, frame_rect->top );
 
 	VipsPel * restrict p;
 	guint sum;
@@ -157,19 +165,28 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 */
 	VIPS_FREEF( liq_image_destroy, cgif->input_image );
 	cgif->input_image = liq_image_create_rgba( cgif->attr,
-		VIPS_REGION_ADDR( cgif->frame, 0, 0 ), 
-		frame_rect->width, frame_rect->height, 0 );
+		frame_bytes, frame_rect->width, frame_rect->height, 0 );
+
+	/* Threshold alpha channel. It's safe to modify the region, since it's
+	 * a buffer we made.
+	 */
+	if( cgif->has_transparency ) {
+		p = frame_bytes;
+		for( i = 0; i < n_pels; i++ ) {
+			p[3] = p[3] > 128 ? 255 : 0;
+			p += 4;
+		}
+	}
 
 	/* Do we need to compute a new palette? Do it if the frame sum changes
 	 * by more than 20%.
+	 *
+	 * frame_sum 0 means no current colourmap.
 	 */
 	sum = 0;
-	p = VIPS_REGION_ADDR( cgif->frame, 0, 0 );
+	p = frame_bytes;
 	for( i = 0; i < n_pels; i++ )
 		sum += p[i]; 
-
-	/* frame_sum 0 means no current colourmap.
-	 */
 	if( cgif->frame_sum == 0 ||
 		fabs( ((double) sum / max_sum) - 
 			((double) cgif->frame_sum / max_sum)) > 0.2 ) {
@@ -177,7 +194,6 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		printf( "vips_foreign_save_cgif_write_frame: new palette\n" );
 #endif/*DEBUG_VERBOSE*/
 
-		const liq_palette *lp;
 		VipsPel *rgb;
 
 		VIPS_FREEF( liq_result_destroy, cgif->quantisation_result );
@@ -188,16 +204,20 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 			return( -1 );
 		}
 
-		lp = liq_get_palette( cgif->quantisation_result );
+		cgif->lp = liq_get_palette( cgif->quantisation_result );
 		rgb = cgif->palette_rgb;
-		g_assert( lp->count <= 256 );
-		for( i = 0; i < lp->count; i++ ) {
-			rgb[0] = lp->entries[i].r;
-			rgb[1] = lp->entries[i].g;
-			rgb[2] = lp->entries[i].b;
+		g_assert( cgif->lp->count <= 256 );
+		for( i = 0; i < cgif->lp->count; i++ ) {
+			rgb[0] = cgif->lp->entries[i].r;
+			rgb[1] = cgif->lp->entries[i].g;
+			rgb[2] = cgif->lp->entries[i].b;
 
 			rgb += 3;
 		}
+
+#ifdef DEBUG_VERBOSE
+		printf( "  (generated %d item colormap)\n", cgif->lp->count );
+#endif/*DEBUG_VERBOSE*/
 
 		cgif->frame_sum = sum;
 	}
@@ -216,16 +236,14 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	memset( &cgif_frame_config, 0, sizeof( CGIF_FrameConfig ) );
 	cgif_frame_config.pImageData = cgif->index;
 	cgif_frame_config.pLocalPalette = cgif->palette_rgb;
+	cgif_frame_config.attrFlags = cgif->cgif_config.attrFlags;
+	cgif_frame_config.genFlags = cgif->cgif_config.genFlags;
 	if( cgif->delay &&
 		page_index < cgif->delay_length )
 		cgif_frame_config.delay = 
 			VIPS_RINT( cgif->delay[page_index] / 10.0 );
-	if( !cgif->has_transparency ) 
-		/* Allow cgif to optimise by adding transparency
-		 */
-		cgif_frame_config.genFlags = 
-			CGIF_FRAME_GEN_USE_TRANSPARENCY |
-			CGIF_FRAME_GEN_USE_DIFF_WINDOW;
+	cgif_frame_config.numLocalPaletteEntries = cgif->lp->count;
+
 	cgif_addframe( cgif->cgif_context, &cgif_frame_config );
 
 	return( 0 );
@@ -284,7 +302,6 @@ vips_foreign_save_cgif_sink_disc( VipsRegion *region, VipsRect *area, void *a )
 			if( vips_foreign_save_cgif_write_frame( cgif ) ) 
 				return( -1 );
 
-			cgif->write_y += to->height;
 			frame_size.left = 0;
 			frame_size.top = cgif->write_y;
 			frame_size.width = to->width;
@@ -303,6 +320,9 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveCgif *cgif = (VipsForeignSaveCgif *) object;
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( cgif );
+	VipsImage **t = (VipsImage **)
+		vips_object_local_array( VIPS_OBJECT( cgif ), 2 );
+
 
 	int page_height;
 	int loop;
@@ -312,20 +332,39 @@ vips_foreign_save_cgif_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
-	/* FIXME ... need to convert to RGB or RGBA.
+	cgif->in = save->ready;
+
+	/* libimagequant only works with RGBA images.
 	 */
+	if( cgif->in->Type != VIPS_INTERPRETATION_sRGB ) {
+		if( vips_colourspace( cgif->in, &t[0], 
+			VIPS_INTERPRETATION_sRGB, NULL ) ) 
+			return( -1 );
+		cgif->in = t[0];
+	}
+
+	/* Add alpha channel if missing. If we add the alpha, we know it's all
+	 * solid.
+	 */
+	cgif->has_transparency = TRUE;
+	if( !vips_image_hasalpha( cgif->in ) ) {
+		cgif->has_transparency = FALSE;
+		if( vips_addalpha( cgif->in, &t[1], NULL ) ) 
+			return( -1 );
+		cgif->in = t[1];
+	}
 
 	/* Animation properties.
 	 */
-	page_height = vips_image_get_page_height( save->ready );
-	if( vips_image_get_typeof( save->ready, "delay" ) )
-		vips_image_get_array_int( save->ready, "delay",
+	page_height = vips_image_get_page_height( cgif->in );
+	if( vips_image_get_typeof( cgif->in, "delay" ) )
+		vips_image_get_array_int( cgif->in, "delay",
 			&cgif->delay, &cgif->delay_length );
-	if( vips_image_get_typeof( save->ready, "loop" ) )
-		vips_image_get_int( save->ready, "loop", &loop );
+	if( vips_image_get_typeof( cgif->in, "loop" ) )
+		vips_image_get_int( cgif->in, "loop", &loop );
 	frame_size.left = 0;
 	frame_size.top = 0;
-	frame_size.width = save->ready->Xsize;
+	frame_size.width = cgif->in->Xsize;
 	frame_size.height = page_height;
 	if( frame_size.width > 2000 || 
 		frame_size.height > 2000 ) {
@@ -335,13 +374,9 @@ vips_foreign_save_cgif_build( VipsObject *object )
 		return( -1 );
 	}
 
-	/* FIXME.
-	 */
-	cgif->has_transparency = FALSE;
-
 	/* Assemble frames here.
 	 */
-	cgif->frame = vips_region_new( save->ready );
+	cgif->frame = vips_region_new( cgif->in );
 	if( vips_region_buffer( cgif->frame, &frame_size ) ) 
 		return( -1 );
 
@@ -375,13 +410,19 @@ vips_foreign_save_cgif_build( VipsObject *object )
 		CGIF_ATTR_NO_GLOBAL_TABLE;
 	cgif->cgif_config.attrFlags |= 
 		cgif->has_transparency ? CGIF_ATTR_HAS_TRANSPARENCY : 0;
+	if( !cgif->has_transparency ) 
+		/* Allow cgif to optimise by adding transparency
+		 */
+		cgif->cgif_config.genFlags = 
+			CGIF_FRAME_GEN_USE_TRANSPARENCY |
+			CGIF_FRAME_GEN_USE_DIFF_WINDOW;
 	cgif->cgif_config.pWriteFn = vips__cgif_write;
 	cgif->cgif_config.pContext = (void *) cgif->target;
 	cgif->cgif_context = cgif_newgif( &cgif->cgif_config );
 
 	/* Loop down the image, computing it in chunks.
 	 */
-	if( vips_sink_disc( save->ready, 
+	if( vips_sink_disc( cgif->in, 
 		vips_foreign_save_cgif_sink_disc, cgif ) ) 
 		return( -1 );
 
