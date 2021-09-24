@@ -31,8 +31,8 @@
  */
 
 /*
-#define DEBUG_VERBOSE
  */
+#define DEBUG_VERBOSE
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -171,16 +171,14 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	/* Threshold alpha channel. It's safe to modify the region, since it's
 	 * a buffer we made.
 	 */
-	if( cgif->has_transparency ) {
-		p = frame_bytes;
-		for( i = 0; i < n_pels; i++ ) {
-			p[3] = p[3] > 128 ? 255 : 0;
-			p += 4;
-		}
+	p = frame_bytes;
+	for( i = 0; i < n_pels; i++ ) {
+		p[3] = p[3] > 128 ? 255 : 0;
+		p += 4;
 	}
 
 	/* Do we need to compute a new palette? Do it if the frame sum changes
-	 * by more than 20%.
+	 * by more than a few percent.
 	 *
 	 * frame_sum 0 means no current colourmap.
 	 */
@@ -199,7 +197,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 	if( cgif->frame_sum == 0 ||
 		fabs( ((double) sum / max_sum) - 
-			((double) cgif->frame_sum / max_sum)) > 0.2 ) {
+			((double) cgif->frame_sum / max_sum)) > 0.01 ) {
 #ifdef DEBUG_VERBOSE
 		printf( "vips_foreign_save_cgif_write_frame: new palette\n" );
 #endif/*DEBUG_VERBOSE*/
@@ -235,6 +233,10 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 			rgb += 3;
 		}
 
+		/* If there's a transparent pixel, it's always first.
+		 */
+		cgif->has_transparency = cgif->lp->entries[0].a == 0;
+
 #ifdef DEBUG_VERBOSE
 		printf( "  (generated %d item colormap)\n", cgif->lp->count );
 #endif/*DEBUG_VERBOSE*/
@@ -257,14 +259,15 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	if( !cgif->cgif_context ) {
 		cgif->cgif_config.pGlobalPalette = cgif->palette_rgb;
 		cgif->cgif_config.attrFlags = CGIF_ATTR_IS_ANIMATED;
-		cgif->cgif_config.attrFlags |= 
+		cgif->cgif_config.attrFlags |=
 			cgif->has_transparency ? CGIF_ATTR_HAS_TRANSPARENCY : 0;
+		cgif->cgif_config.genFlags =
+			CGIF_FRAME_GEN_USE_DIFF_WINDOW;
 		if( !cgif->has_transparency ) 
 			/* Allow cgif to optimise by adding transparency.
 			 */
-			cgif->cgif_config.genFlags = 
-				CGIF_FRAME_GEN_USE_TRANSPARENCY |
-				CGIF_FRAME_GEN_USE_DIFF_WINDOW;
+			cgif->cgif_config.genFlags |= 
+				CGIF_FRAME_GEN_USE_TRANSPARENCY;
 		cgif->cgif_config.width = frame_rect->width;
 		cgif->cgif_config.height = frame_rect->height;
 		cgif->cgif_config.numGlobalPaletteEntries = cgif->lp->count;;
@@ -285,6 +288,9 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		page_index < cgif->delay_length )
 		cgif_frame_config.delay = 
 			VIPS_RINT( cgif->delay[page_index] / 10.0 );
+
+	/* FIXME ... should we allow has_transparency to vary frame to frame?
+	 */
 
 	/* Attach a local palette, if we need one.
 	 */
@@ -391,12 +397,9 @@ vips_foreign_save_cgif_build( VipsObject *object )
 		cgif->in = t[0];
 	}
 
-	/* Add alpha channel if missing. If we add the alpha, we know it's all
-	 * solid.
+	/* Add alpha channel if missing. 
 	 */
-	cgif->has_transparency = TRUE;
 	if( !vips_image_hasalpha( cgif->in ) ) {
-		cgif->has_transparency = FALSE;
 		if( vips_addalpha( cgif->in, &t[1], NULL ) ) 
 			return( -1 );
 		cgif->in = t[1];
