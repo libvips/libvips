@@ -197,7 +197,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 	if( cgif->frame_sum == 0 ||
 		fabs( ((double) sum / max_sum) - 
-			((double) cgif->frame_sum / max_sum)) > 0.01 ) {
+			((double) cgif->frame_sum / max_sum)) > 0.05 ) {
 #ifdef DEBUG_VERBOSE
 		printf( "vips_foreign_save_cgif_write_frame: new palette\n" );
 #endif/*DEBUG_VERBOSE*/
