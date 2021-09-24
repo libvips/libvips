@@ -189,19 +189,19 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LN_S
 
-AC_ARG_WITH([doxygen], 
-  AS_HELP_STRING([--without-doxygen], [build without doxygen (default: test)]))
+AC_ARG_ENABLE([doxygen], 
+  AS_HELP_STRING([--enable-doxygen], [enable C++ doc build (default: no)]),
+  [enable_doxygen="$enableval"],
+  [enable_doxygen=no])
 
-if test x"$with_doxygen" != x"no"; then
+if test x"$enable_doxygen" = x"yes"; then
   AC_CHECK_PROGS([DOXYGEN], [doxygen])
-  if test "$DOXYGEN"; then
-    with_doxygen=yes
-  else
+  if ! test "$DOXYGEN"; then
     AC_MSG_WARN([doxygen not found; C++ docs will not be generated])
-    with_doxygen=no
+    enable_doxygen=no
   fi
 fi
-AM_CONDITIONAL(HAVE_DOXYGEN, [test x"$with_doxygen" = x"yes"])
+AM_CONDITIONAL(HAVE_DOXYGEN, [test x"$enable_doxygen" = x"yes"])
 
 # we need a fully expanded version of $libdir
 # without this we get something like
@@ -1571,13 +1571,13 @@ enable deprecated library components:   $enable_deprecated
 enable modules:                         $gmodule_supported_flag
 enable C docs with gtkdoc:              $enable_gtk_doc
  (requires gtk-doc 1.14 or later)
+generate C++ docs with doxygen:         $enable_doxygen
 gobject introspection:                  $found_introspection
  (requires gobject-introspection 1.30 or later)
 RAD load/save:                          $with_radiance
 Analyze7 load/save:                     $with_analyze
 PPM load/save:                          $with_ppm
 GIF load:                               $with_nsgif
-generate C++ docs with doxygen:         $with_doxygen
 
 ## Optional dependencies
 use fftw3 for FFT:                      $with_fftw
