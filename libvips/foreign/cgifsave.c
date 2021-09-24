@@ -156,7 +156,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	VipsPel * restrict p;
 	guint sum;
 	int i;
-	CGIF_FrameConfig cgif_frame_config;
+	CGIF_FrameConfig frame_config;
 
 #ifdef DEBUG_VERBOSE
 	printf( "vips_foreign_save_cgif_write_frame: %d\n", page_index );
@@ -188,20 +188,14 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		sum += p[i]; 
 
 #ifdef DEBUG_VERBOSE
-	printf( "  sum = %d\n", sum );
-	printf( "  frame_sum = %d\n", cgif->frame_sum );
-	printf( "  diff = %g\n", 
-		fabs( ((double) sum / max_sum) - 
+	printf( "  diff from palette frame = %.2g%%\n", 
+		100 * fabs( ((double) sum / max_sum) - 
 			((double) cgif->frame_sum / max_sum)) ) ;
 #endif/*DEBUG_VERBOSE*/
 
 	if( cgif->frame_sum == 0 ||
 		fabs( ((double) sum / max_sum) - 
 			((double) cgif->frame_sum / max_sum)) > 0.05 ) {
-#ifdef DEBUG_VERBOSE
-		printf( "vips_foreign_save_cgif_write_frame: new palette\n" );
-#endif/*DEBUG_VERBOSE*/
-
 		VipsPel *rgb;
 
 		cgif->frame_sum = sum;
@@ -238,7 +232,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		cgif->has_transparency = cgif->lp->entries[0].a == 0;
 
 #ifdef DEBUG_VERBOSE
-		printf( "  (generated %d item colormap)\n", cgif->lp->count );
+		printf( "  generated %d item colormap\n", cgif->lp->count );
 #endif/*DEBUG_VERBOSE*/
 	}
 
@@ -261,13 +255,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		cgif->cgif_config.attrFlags = CGIF_ATTR_IS_ANIMATED;
 		cgif->cgif_config.attrFlags |=
 			cgif->has_transparency ? CGIF_ATTR_HAS_TRANSPARENCY : 0;
-		cgif->cgif_config.genFlags =
-			CGIF_FRAME_GEN_USE_DIFF_WINDOW;
-		if( !cgif->has_transparency ) 
-			/* Allow cgif to optimise by adding transparency.
-			 */
-			cgif->cgif_config.genFlags |= 
-				CGIF_FRAME_GEN_USE_TRANSPARENCY;
+		cgif->cgif_config.genFlags = CGIF_FRAME_GEN_USE_DIFF_WINDOW;
 		cgif->cgif_config.width = frame_rect->width;
 		cgif->cgif_config.height = frame_rect->height;
 		cgif->cgif_config.numGlobalPaletteEntries = cgif->lp->count;;
@@ -280,26 +268,37 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 	/* Write frame to cgif.
 	 */
-	memset( &cgif_frame_config, 0, sizeof( CGIF_FrameConfig ) );
-	cgif_frame_config.pImageData = cgif->index;
-	cgif_frame_config.attrFlags = cgif->cgif_config.attrFlags;
-	cgif_frame_config.genFlags = cgif->cgif_config.genFlags;
+	memset( &frame_config, 0, sizeof( CGIF_FrameConfig ) );
+	frame_config.pImageData = cgif->index;
+	frame_config.attrFlags = cgif->cgif_config.attrFlags;
+
+	/* Reset transparency flag for this frame.
+	 */
+	frame_config.attrFlags = 
+		(frame_config.attrFlags & ~CGIF_ATTR_HAS_TRANSPARENCY) |
+		(cgif->has_transparency ? CGIF_ATTR_HAS_TRANSPARENCY : 0);
+
+	frame_config.genFlags = cgif->cgif_config.genFlags;
+
+	/* If this frame has no transparency, let cgif optimise by adding it.
+	 */
+	frame_config.genFlags = 
+		(frame_config.genFlags & ~CGIF_FRAME_GEN_USE_TRANSPARENCY) |
+		(!cgif->has_transparency ? CGIF_FRAME_GEN_USE_TRANSPARENCY : 0);
+
 	if( cgif->delay &&
 		page_index < cgif->delay_length )
-		cgif_frame_config.delay = 
+		frame_config.delay = 
 			VIPS_RINT( cgif->delay[page_index] / 10.0 );
-
-	/* FIXME ... should we allow has_transparency to vary frame to frame?
-	 */
 
 	/* Attach a local palette, if we need one.
 	 */
 	if( cgif->cgif_config.attrFlags & CGIF_FRAME_ATTR_USE_LOCAL_TABLE ) {
-		cgif_frame_config.pLocalPalette = cgif->palette_rgb;
-		cgif_frame_config.numLocalPaletteEntries = cgif->lp->count;
+		frame_config.pLocalPalette = cgif->palette_rgb;
+		frame_config.numLocalPaletteEntries = cgif->lp->count;
 	}
 
-	cgif_addframe( cgif->cgif_context, &cgif_frame_config );
+	cgif_addframe( cgif->cgif_context, &frame_config );
 
 	return( 0 );
 }
