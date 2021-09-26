@@ -210,11 +210,18 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 		cgif->frame_sum = sum;
 
-		/* If this is not our first cmap, make a note that we need to
-		 * attach it as a local cmap when we write.
-		 */
-		if( cgif->quantisation_result )
+		if( cgif->quantisation_result ) {
+			/* If this is not our first cmap, make a note that we need to
+			 * attach it as a local cmap when we write.
+			 */
 			cgif->cgif_config.attrFlags |= CGIF_ATTR_NO_GLOBAL_TABLE;
+
+			/* If there was a previous cmap, reserve a transparent color
+			 * in the output palette created from this image.
+			 */
+			liq_image_add_fixed_color( cgif->input_image,
+				(liq_color){0, 0, 0, 0} );
+		}
 
 		VIPS_FREEF( liq_result_destroy, cgif->quantisation_result );
 		if( liq_image_quantize( cgif->input_image, cgif->attr, 
