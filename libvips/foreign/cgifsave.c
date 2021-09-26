@@ -33,6 +33,7 @@
 /*
 #define DEBUG_VERBOSE
  */
+#define DEBUG_PERCENT
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -102,6 +103,10 @@ typedef struct _VipsForeignSaveCgif {
 	CGIF *cgif_context;
 	CGIF_Config cgif_config;
 
+#ifdef DEBUG_PERCENT
+	int n_cmaps_generated;
+#endif/*DEBUG_PERCENT*/
+
 } VipsForeignSaveCgif;
 
 typedef VipsForeignSaveClass VipsForeignSaveCgifClass;
@@ -113,6 +118,11 @@ static void
 vips_foreign_save_cgif_dispose( GObject *gobject )
 {
 	VipsForeignSaveCgif *cgif = (VipsForeignSaveCgif *) gobject;
+
+#ifdef DEBUG_PERCENT
+	printf( "%d frames\n", cgif->in->Ysize / cgif->frame->valid.height );
+	printf( "%d cmaps\n", cgif->n_cmaps_generated );
+#endif/*DEBUG_PERCENT*/
 
 	VIPS_UNREF( cgif->target );
 	VIPS_UNREF( cgif->frame );
@@ -155,6 +165,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 	VipsPel * restrict p;
 	guint sum;
+	double percent_change;
 	int i;
 	CGIF_FrameConfig frame_config;
 
@@ -186,16 +197,12 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	p = frame_bytes;
 	for( i = 0; i < n_pels; i++ )
 		sum += p[i]; 
-
-#ifdef DEBUG_VERBOSE
-	printf( "  diff from palette frame = %.2g%%\n", 
-		100 * fabs( ((double) sum / max_sum) - 
-			((double) cgif->frame_sum / max_sum)) ) ;
-#endif/*DEBUG_VERBOSE*/
+	percent_change = 100 * 
+		fabs( ((double) sum / max_sum) - 
+			((double) cgif->frame_sum / max_sum) );
 
 	if( cgif->frame_sum == 0 ||
-		fabs( ((double) sum / max_sum) - 
-			((double) cgif->frame_sum / max_sum)) > 0.05 ) {
+		percent_change > 0 ) { 
 		VipsPel *rgb;
 
 		cgif->frame_sum = sum;
@@ -231,9 +238,11 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		 */
 		cgif->has_transparency = cgif->lp->entries[0].a == 0;
 
-#ifdef DEBUG_VERBOSE
-		printf( "  generated %d item colormap\n", cgif->lp->count );
-#endif/*DEBUG_VERBOSE*/
+#ifdef DEBUG_PERCENT
+		printf( "frame %d, %.4g%% change, new %d item colourmap\n",
+			page_index, percent_change, cgif->lp->count );
+		cgif->n_cmaps_generated += 1;
+#endif/*DEBUG_PERCENT*/
 	}
 
 	/* Dither frame.
