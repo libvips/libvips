@@ -120,8 +120,11 @@ vips_foreign_save_cgif_dispose( GObject *gobject )
 	VipsForeignSaveCgif *cgif = (VipsForeignSaveCgif *) gobject;
 
 #ifdef DEBUG_PERCENT
-	printf( "%d frames\n", cgif->in->Ysize / cgif->frame->valid.height );
-	printf( "%d cmaps\n", cgif->n_cmaps_generated );
+	if( cgif->frame ) {
+		printf( "%d frames\n", 
+			cgif->frame->im->Ysize / cgif->frame->valid.height );
+		printf( "%d cmaps\n", cgif->n_cmaps_generated );
+	}
 #endif/*DEBUG_PERCENT*/
 
 	VIPS_UNREF( cgif->target );
