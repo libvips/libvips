@@ -287,10 +287,11 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	frame_config.pImageData = cgif->index;
 
 	/* Allow cgif to optimise by adding transparency. These optimisations
-	 * will be automatically disabled if it's not possible.
+	 * will be automatically disabled if they are not possible.
 	 */
 	frame_config.genFlags = 
-		CGIF_FRAME_GEN_USE_TRANSPARENCY | CGIF_FRAME_GEN_USE_DIFF_WINDOW;
+		CGIF_FRAME_GEN_USE_TRANSPARENCY | 
+		CGIF_FRAME_GEN_USE_DIFF_WINDOW;
 
 	if( cgif->delay &&
 		page_index < cgif->delay_length )
