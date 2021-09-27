@@ -227,6 +227,18 @@ vips_foreign_load_nsgif_is_a_source( VipsSource *source )
 }
 
 #ifdef VERBOSE
+static const char *
+dispose_name( int restore )
+{
+	switch( restore ) {
+	case 1:		return( "combine" );
+	case 2:		return( "clear" );
+	case 3:		return( "restore" );
+	case 4:		return( "quirk restore" );
+	default:	return( "none" );
+	}
+}
+
 static void
 print_frame( gif_frame *frame )
 {
@@ -236,7 +248,9 @@ print_frame( gif_frame *frame )
 	printf( "  virgin = %d\n", frame->virgin );
 	printf( "  opaque = %d\n", frame->opaque );
 	printf( "  redraw_required = %d\n", frame->redraw_required );
-	printf( "  disposal_method = %d\n", frame->disposal_method );
+	printf( "  disposal_method = %d (%s)\n", 
+		frame->disposal_method,
+		dispose_name( frame->disposal_method ) );
 	printf( "  transparency = %d\n", frame->transparency );
 	printf( "  transparency_index = %d\n", frame->transparency_index );
 	printf( "  redraw_x = %d\n", frame->redraw_x );
