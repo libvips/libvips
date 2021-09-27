@@ -319,6 +319,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 	return( 0 );
 }
+
 /* Another chunk of pixels have arrived from the pipeline. Add to frame, and
  * if the frame completes, compress and write to the target.
  */
@@ -392,7 +393,6 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( cgif );
 	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( cgif ), 2 );
-
 
 	int page_height;
 	VipsRect frame_rect;
