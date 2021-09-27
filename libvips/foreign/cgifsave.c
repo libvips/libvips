@@ -220,8 +220,9 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 			/* If there was a previous cmap, reserve a transparent 
 			 * colour in the output palette created from this image.
 			 */
-			liq_image_add_fixed_color( cgif->input_image,
-				(liq_color) {0, 0, 0, 0} );
+			if( !cgif->has_transparency )
+				liq_image_add_fixed_color( cgif->input_image,
+					(liq_color) {0, 0, 0, 0} );
 		}
 
 		VIPS_FREEF( liq_result_destroy, cgif->quantisation_result );
@@ -271,6 +272,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	if( !cgif->cgif_context ) {
 		cgif->cgif_config.pGlobalPalette = cgif->palette_rgb;
 		cgif->cgif_config.attrFlags = CGIF_ATTR_IS_ANIMATED;
+		cgif->cgif_config.attrFlags |= 
+			cgif->has_transparency ? CGIF_ATTR_HAS_TRANSPARENCY : 0;
 		cgif->cgif_config.width = frame_rect->width;
 		cgif->cgif_config.height = frame_rect->height;
 		cgif->cgif_config.numGlobalPaletteEntries = cgif->lp->count;
@@ -282,8 +285,6 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	}
 
 	/* Reset global transparency flag.
-	 * TODO(kleisauke): This should probably be controlled per frame
-	 * (i.e. CGIF_FRAME_ATTR_HAS_TRANSPARENCY).
 	 */
 	cgif->cgif_config.attrFlags = 
 		(cgif->cgif_config.attrFlags & ~CGIF_ATTR_HAS_TRANSPARENCY) |
