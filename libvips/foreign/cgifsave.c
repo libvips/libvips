@@ -183,8 +183,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	cgif->input_image = liq_image_create_rgba( cgif->attr,
 		frame_bytes, frame_rect->width, frame_rect->height, 0 );
 
-	/* Threshold alpha channel. It's safe to modify the region, since it's
-	 * a buffer we made.
+	/* Threshold the alpha channel. It's safe to modify the region since 
+	 * it's a buffer we made.
 	 */
 	p = frame_bytes;
 	for( i = 0; i < n_pels; i++ ) {
@@ -192,8 +192,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		p += 4;
 	}
 
-	/* Do we need to compute a new palette? Do it if the frame sum changes
-	 * by more than a few percent.
+	/* Do we need to compute a new palette? Do it if the frame sum
+	 * changes.
 	 *
 	 * frame_sum 0 means no current colourmap.
 	 */
