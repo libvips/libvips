@@ -167,6 +167,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		VIPS_REGION_ADDR( cgif->frame, 0, frame_rect->top );
 
 	VipsPel * restrict p;
+	VipsPel *rgb;
 	guint sum;
 	double percent_change;
 	int i;
@@ -206,24 +207,13 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 	if( cgif->frame_sum == 0 ||
 		percent_change > 0 ) { 
-		VipsPel *rgb;
-
 		cgif->frame_sum = sum;
 
-		if( cgif->quantisation_result ) {
-			/* If this is not our first cmap, make a note that we 
-			 * need to attach it as a local cmap when we write.
-			 */
-			cgif->cgif_config.attrFlags |= 
-				CGIF_ATTR_NO_GLOBAL_TABLE;
-
-			/* If there was a previous cmap, reserve a transparent 
-			 * colour in the output palette created from this image.
-			 */
-			if( !cgif->has_transparency )
-				liq_image_add_fixed_color( cgif->input_image,
-					(liq_color) {0, 0, 0, 0} );
-		}
+		/* If this is not our first cmap, make a note that we need to
+		 * attach it as a local cmap when we write.
+		 */
+		if( cgif->quantisation_result ) 
+			cgif->cgif_config.attrFlags |= CGIF_ATTR_NO_GLOBAL_TABLE;
 
 		VIPS_FREEF( liq_result_destroy, cgif->quantisation_result );
 		if( liq_image_quantize( cgif->input_image, cgif->attr, 
@@ -233,24 +223,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 			return( -1 );
 		}
 
-		cgif->lp = liq_get_palette( cgif->quantisation_result );
-		rgb = cgif->palette_rgb;
-		g_assert( cgif->lp->count <= 256 );
-		for( i = 0; i < cgif->lp->count; i++ ) {
-			rgb[0] = cgif->lp->entries[i].r;
-			rgb[1] = cgif->lp->entries[i].g;
-			rgb[2] = cgif->lp->entries[i].b;
-
-			rgb += 3;
-		}
-
-		/* If there's a transparent pixel, it's always first.
-		 */
-		cgif->has_transparency = cgif->lp->entries[0].a == 0;
-
 #ifdef DEBUG_PERCENT
-		printf( "frame %d, %.4g%% change, new %d item colourmap\n",
-			page_index, percent_change, cgif->lp->count );
 		cgif->n_cmaps_generated += 1;
 #endif/*DEBUG_PERCENT*/
 	}
@@ -263,6 +236,33 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		vips_error( class->nickname, "%s", _( "dither failed" ) );
 		return( -1 );
 	}
+
+	/* Call liq_get_palette() after liq_write_remapped_image(),
+	 * as palette is improved during remapping.
+	 */
+	cgif->lp = liq_get_palette( cgif->quantisation_result );
+	rgb = cgif->palette_rgb;
+	g_assert( cgif->lp->count <= 256 );
+	for( i = 0; i < cgif->lp->count; i++ ) {
+		rgb[0] = cgif->lp->entries[i].r;
+		rgb[1] = cgif->lp->entries[i].g;
+		rgb[2] = cgif->lp->entries[i].b;
+
+		rgb += 3;
+	}
+
+	/* If there's a transparent pixel, it's always first.
+	 */
+	cgif->has_transparency = cgif->lp->entries[0].a == 0;
+
+#ifdef DEBUG_PERCENT
+	if( percent_change > 0 )
+		printf( "frame %d, %.4g%% change, new %d item colourmap\n",
+			page_index, percent_change, cgif->lp->count );
+	else
+		printf( "frame %d, reusing previous %d item colourmap\n",
+			page_index, cgif->lp->count );
+#endif/*DEBUG_PERCENT*/
 
 	/* Set up cgif on first use, so we can set the first cmap as the global
 	 * one.
