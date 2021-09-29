@@ -1659,8 +1659,8 @@ wtiff_layer_write_strip( Wtiff *wtiff, Layer *layer, VipsRegion *strip )
 	int y;
 
 #ifdef DEBUG_VERBOSE
-	printf( "Writing %d pixel strip at height %d to image %s\n",
-		height, area->top, TIFFFileName( layer->tif ) );
+	printf( "wtiff_layer_write_strip: top %d, height %d, file %s\n",
+		area->top, height, TIFFFileName( layer->tif ) );
 #endif /*DEBUG_VERBOSE*/
 
 	for( y = 0; y < height; y++ ) {
@@ -1842,23 +1842,29 @@ layer_strip_arrived( Layer *layer )
 	return( 0 );
 }
 
-/* Another strip of image pixels from vips_sink_disc(). Write into the top
- * pyramid layer. 
+/* Another few scanlines of pixels. We know the scanlines are all within the 
+ * current page.
  */
 static int
-write_strip( VipsRegion *region, VipsRect *area, void *a )
+wtiff_write_lines( Wtiff *wtiff, VipsRegion *region, VipsRect *lines )
 {
-	Wtiff *wtiff = (Wtiff *) a;
 	Layer *layer = wtiff->layer; 
+	int page_top = wtiff->page_number * wtiff->page_height;
 
 #ifdef DEBUG_VERBOSE
-	printf( "write_strip: strip at %d, height %d\n", 
-		area->top, area->height );
+	printf( "wtiff_write_lines: top %d, height %d\n", 
+		lines->top, lines->height );
 #endif/*DEBUG_VERBOSE*/
 
+	/* Keep filling the current strip of the top layer. Each time it
+	 * fills, write a chunk of pyramid.
+	 *
+	 * lines is in 
+	 */
 	for(;;) {
 		VipsRect *to = &layer->strip->valid;
 		VipsRect target;
+		VipsRect page_lines;
 
 		/* The bit of strip that needs filling.
 		 */
@@ -1868,9 +1874,15 @@ write_strip( VipsRegion *region, VipsRect *area, void *a )
 		target.height = to->height;
 		vips_rect_intersectrect( &target, to, &target );
 
-		/* Clip against what we have available.
+		/* region and lines are in world coordinates, we must subtract
+		 * the top of the current page to get layer coordinates.
 		 */
-		vips_rect_intersectrect( &target, area, &target );
+		page_lines = *lines;
+		page_lines.top -= page_top;
+
+		/* Clip against the lines we've been given.
+		 */
+		vips_rect_intersectrect( &target, &page_lines, &target );
 
 		/* Are we empty? All done.
 		 */
@@ -1883,8 +1895,9 @@ write_strip( VipsRegion *region, VipsRect *area, void *a )
 		 * received, we could skip the copy. Will this happen very
 		 * often? Unclear.
 		 */
+		target.top += page_top;
 		vips_region_copy( region, layer->strip, 
-			&target, target.left, target.top );
+			&target, target.left, target.top - page_top );
 
 		layer->write_y += target.height;
 
@@ -2113,20 +2126,18 @@ wtiff_gather( Wtiff *wtiff )
 	return( 0 );
 }
 
-/* Write one page from our input image, optionally pyramiding it.
- */
 static int
-wtiff_write_page( Wtiff *wtiff, VipsImage *page )
+wtiff_page_start( Wtiff *wtiff )
 {
 #ifdef DEBUG
-	printf( "wtiff_write_page:\n" ); 
+	printf( "wtiff_page_start: page %d\n", wtiff->page_number ); 
 #endif /*DEBUG*/
 
 	/* Init the pyramid framework for this page. This will just make a 
 	 * single layer if we're not pyramiding.
 	 */
 	wtiff_layer_init( wtiff, &wtiff->layer, NULL, 
-		page->Xsize, page->Ysize );
+		wtiff->ready->Xsize, wtiff->page_height );
 
 	/* Fill all the layers and write the TIFF headers.
 	 */
@@ -2158,8 +2169,15 @@ wtiff_write_page( Wtiff *wtiff, VipsImage *page )
 		g_free( subifd_offsets );
 	}
 
-	if( vips_sink_disc( page, write_strip, wtiff ) ) 
-		return( -1 );
+	return( 0 );
+}
+
+static int
+wtiff_page_end( Wtiff *wtiff )
+{
+#ifdef DEBUG
+	printf( "wtiff_page_end: page %d\n", wtiff->page_number ); 
+#endif /*DEBUG*/
 
 	if( !TIFFWriteDirectory( wtiff->layer->tif ) ) 
 		return( -1 );
@@ -2188,35 +2206,70 @@ wtiff_write_page( Wtiff *wtiff, VipsImage *page )
 		VIPS_FREEF( layer_free_all, wtiff->layer->below );
 	}
 
+	wtiff->page_number += 1;
+
 	return( 0 );
 }
 
-/* Write all pages.
+/* A strip of pixels has come in from libvips. Split these strips into pages,
+ * and run the page start / end code.
  */
 static int
-wtiff_write_image( Wtiff *wtiff )
+wtiff_sink_disc_strip( VipsRegion *region, VipsRect *area, void *a )
 {
-	int y;
+	Wtiff *wtiff = ( Wtiff *) a;
 
-	for( y = 0; y < wtiff->ready->Ysize; y += wtiff->page_height ) {
-		VipsImage *page;
+	VipsRect pixels;
 
 #ifdef DEBUG
-		printf( "writing page %d ...\n", wtiff->page_number );
+	printf( "wtiff_sink_disc_strip: top %d, height %d\n", 
+	     	area->top, area->height ); 
 #endif /*DEBUG*/
 
-		if( vips_crop( wtiff->ready, &page, 
-			0, y, wtiff->ready->Xsize, wtiff->page_height,
-			NULL ) )
-			return( -1 ); 
-		if( wtiff_write_page( wtiff, page ) ) {
-			g_object_unref( page );
-			return( -1 );
-		}
-		g_object_unref( page );
+	g_assert( area->width == wtiff->ready->Xsize );
 
-		wtiff->page_number += 1;
-	}
+	/* Loop down this as we write scanlines into pages.
+	 */
+	pixels = *area;
+
+	do {
+		VipsRect page;
+		VipsRect lines;
+
+		/* The rect for the current page.
+		 */
+		page.left = 0;
+		page.top = wtiff->page_height * wtiff->page_number;
+		page.width = wtiff->ready->Xsize;
+		page.height = wtiff->page_height;
+
+		/* The scanlines we have for this page.
+		 */
+		vips_rect_intersectrect( &page, &pixels, &lines );
+
+		/* At the top of the page? Run the page start code.
+		 */
+		if( lines.top == page.top &&
+			wtiff_page_start( wtiff ) ) 
+			return( -1 );
+
+		/* Write the scanlines into the page.
+		 */
+		if( wtiff_write_lines( wtiff, region, &lines ) )
+			return( -1 );
+
+		/* Hit the end of the page? Run the page end code.
+		 */
+		if( VIPS_RECT_BOTTOM( &page ) == VIPS_RECT_BOTTOM( &lines ) &&
+			wtiff_page_end( wtiff ) ) 
+			return( -1 );
+
+		/* Remove the pixels we've written and loop if we have some
+		 * still to write.
+		 */
+		pixels.top += lines.height;
+		pixels.height -= lines.height;
+	} while( !vips_rect_isempty( &pixels ) );
 
 	return( 0 );
 }
@@ -2257,7 +2310,7 @@ vips__tiff_write( VipsImage *input, const char *filename,
 		subifd, premultiply )) )
 		return( -1 );
 
-	if( wtiff_write_image( wtiff ) ) { 
+	if( vips_sink_disc( wtiff->ready, wtiff_sink_disc_strip, wtiff ) ) {
 		wtiff_free( wtiff );
 		return( -1 );
 	}
@@ -2303,7 +2356,7 @@ vips__tiff_write_buf( VipsImage *input,
 	wtiff->obuf = obuf;
 	wtiff->olen = olen;
 
-	if( wtiff_write_image( wtiff ) ) { 
+	if( vips_sink_disc( wtiff->ready, wtiff_sink_disc_strip, wtiff ) ) {
 		wtiff_free( wtiff );
 		return( -1 );
 	}
