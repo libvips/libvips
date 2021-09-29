@@ -197,6 +197,8 @@
  * 	- add support for subifd pyramid layers
  * 6/6/20 MathemanFlo
  * 	- add bitdepth support for 2 and 4 bit greyscale images
+ * 29/9/21 LionelArn2
+ * 	- loop for the whole output image, rather than per page
  */
 
 /*
