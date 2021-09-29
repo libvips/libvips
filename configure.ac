@@ -549,25 +549,31 @@ AS_IF([test x"$with_magick" = x"module"],
   [with_magick_module=no])
 
 AC_ARG_WITH([magickpackage], 
-  AS_HELP_STRING([--with-magickpackage], 
-    [magickpackage to use (default: MagickCore; try GraphicsMagick to build against gm instead)]))
+  AS_HELP_STRING([--with-magickpackage=PACKAGE], 
+    [use magick PACKAGE (default: MagickCore; try GraphicsMagick to build against gm instead)]))
 
-# set the default magick package ... very old imagemagicks called it
-# ImageMagick
-if test x"$with_magickpackage" = x""; then
-  PKG_CHECK_MODULES(MAGICK_WAND, MagickCore,
-    [with_magickpackage=MagickCore
-    ],
-    [PKG_CHECK_MODULES(IMAGE_MAGICK, ImageMagick,
-       [with_magickpackage=ImageMagick
-       ],
-       [AC_MSG_WARN([neither MagickCore nor ImageMagick found; disabling Magick support])
-        with_magick=no
-        with_magick_module=no
-       ]
-     )
-    ]
+if test x"$with_magickpackage" = x"yes"; then
+  AC_MSG_WARN([--with-magickpackage needs an argument, ignoring])
+  with_magick=no
+  with_magick_module=no
+else
+  if test x"$with_magickpackage" = x""; then
+    # set the default magick package ... very old imagemagicks called it
+    # ImageMagick
+    PKG_CHECK_MODULES(MAGICK_WAND, MagickCore,
+      [with_magickpackage=MagickCore
+      ],
+      [PKG_CHECK_MODULES(IMAGE_MAGICK, ImageMagick,
+         [with_magickpackage=ImageMagick
+         ],
+         [AC_MSG_WARN([neither MagickCore nor ImageMagick found; disabling Magick support])
+          with_magick=no
+          with_magick_module=no
+         ]
+       )
+      ]
   )
+  fi
 fi
 
 # we have a separate loader for magick7 with fewer ifdef
