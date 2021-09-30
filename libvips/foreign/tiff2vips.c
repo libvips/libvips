@@ -203,6 +203,8 @@
  * 	- support 2 and 4 bit greyscale load
  * 27/3/21
  * 	- add jp2k decompresion
+ * 30/9/21
+ * 	- fix tiled + packed formats
  */
 
 /*
@@ -1970,7 +1972,8 @@ rtiff_fill_region( VipsRegion *out,
 		r->height == tile_height &&
 		r->left + tile_width <= page_width &&
 		page_y + tile_height <= page_height &&
-		VIPS_REGION_LSKIP( out ) == VIPS_REGION_SIZEOF_LINE( out ) )
+		VIPS_REGION_LSKIP( out ) == VIPS_REGION_SIZEOF_LINE( out ) &&
+		rtiff->memcpy )
 		generate = rtiff_fill_region_aligned;
 	else
 		generate = rtiff_fill_region_unaligned;
