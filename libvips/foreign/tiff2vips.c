@@ -279,8 +279,8 @@ static int rtiff_we_decompress[] = {
  * out as a separate thing.
  */
 typedef struct _RtiffHeader {
-	uint32 width;
-	uint32 height;
+	guint32 width;
+	guint32 height;
 	int samples_per_pixel;
 	int bits_per_sample;
 	int photometric_interpretation;
@@ -293,7 +293,7 @@ typedef struct _RtiffHeader {
 	 * unpremultiply with. -1 for no unpremultiplication.
 	 */
 	int alpha_band;
-	uint16 compression;
+	guint16 compression;
 
 	/* Is this directory tiled.
 	 */
@@ -301,14 +301,14 @@ typedef struct _RtiffHeader {
 
 	/* Fields for tiled images, as returned by libtiff.
 	 */
-	uint32 tile_width;
-	uint32 tile_height;		
+	guint32 tile_width;
+	guint32 tile_height;		
 	tsize_t tile_size;
 	tsize_t tile_row_size;
 
 	/* Fields for strip images, as returned by libtiff.
 	 */
-	uint32 rows_per_strip;
+	guint32 rows_per_strip;
 	tsize_t strip_size;
 	tsize_t scanline_size;
 	int number_of_strips;
@@ -322,7 +322,7 @@ typedef struct _RtiffHeader {
 	 * or 1) and size of the buffer we read to (a scanline, or a strip in
 	 * size).
 	 */
-	uint32 read_height;
+	guint32 read_height;
 	tsize_t read_size;
 
 	/* Scale factor to get absolute cd/m2 from XYZ.
@@ -413,7 +413,7 @@ typedef struct _Rtiff {
 static int
 tfexists( TIFF *tif, ttag_t tag )
 {
-	uint32 a, b;
+	guint32 a, b;
 
 	if( TIFFGetField( tif, tag, &a, &b ) ) 
 		return( 1 );
@@ -421,12 +421,12 @@ tfexists( TIFF *tif, ttag_t tag )
 		return( 0 );
 }
 
-/* Get a uint32 field. 
+/* Get a guint32 field. 
  */
 static int
-tfget32( TIFF *tif, ttag_t tag, uint32 *out )
+tfget32( TIFF *tif, ttag_t tag, guint32 *out )
 {
-	uint32 fld;
+	guint32 fld;
 
 	if( !TIFFGetFieldDefaulted( tif, tag, &fld ) ) {
 		vips_error( "tiff2vips", 
@@ -439,12 +439,12 @@ tfget32( TIFF *tif, ttag_t tag, uint32 *out )
 	return( 1 );
 }
 
-/* Get a uint16 field.
+/* Get a guint16 field.
  */
 static int
 tfget16( TIFF *tif, ttag_t tag, int *out )
 {
-	uint16 fld;
+	guint16 fld;
 
 	if( !TIFFGetFieldDefaulted( tif, tag, &fld ) ) {
 		vips_error( "tiff2vips", 
@@ -512,7 +512,7 @@ static int
 get_sample_format( TIFF *tiff )
 {
 	int sample_format;
-	uint16 v;
+	guint16 v;
 
 	sample_format = SAMPLEFORMAT_INT;
 
@@ -532,7 +532,7 @@ static int
 get_orientation( TIFF *tiff )
 {
 	int orientation;
-	uint16 v;
+	guint16 v;
 
 	orientation = ORIENTATION_TOPLEFT;
 
@@ -686,7 +686,7 @@ rtiff_set_page( Rtiff *rtiff, int page )
 		}
 
 		if( rtiff->subifd >= 0 ) {
-			uint16 subifd_count;
+			guint16 subifd_count;
 			toff_t *subifd_offsets;
 
 			if( !TIFFGetField( rtiff->tiff, TIFFTAG_SUBIFD, 
@@ -1224,7 +1224,7 @@ rtiff_greyscale_line( Rtiff *rtiff,
 
 	switch( format ) {
 	case VIPS_FORMAT_CHAR:
-		GREY_LOOP( guchar, 0 ); 
+		GREY_LOOP( gchar, 0 ); 
 		break;
 
 	case VIPS_FORMAT_UCHAR:
@@ -1646,7 +1646,7 @@ rtiff_pick_reader( Rtiff *rtiff )
 static int
 rtiff_set_header( Rtiff *rtiff, VipsImage *out )
 {
-	uint32 data_length;
+	guint32 data_length;
 	void *data;
 
 	rtiff_set_decode_format( rtiff );
@@ -2437,9 +2437,9 @@ static int
 rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 {
 	int i;
-	uint16 extra_samples_count;
-	uint16 *extra_samples_types;
-	uint16 subifd_count;
+	guint16 extra_samples_count;
+	guint16 *extra_samples_types;
+	guint16 subifd_count;
 	toff_t *subifd_offsets;
 	char *image_description;
 
@@ -2489,7 +2489,7 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 		 *
 		 * tiffcp fails for images like this too.
 		 */
-                uint16 hsub, vsub;
+                guint16 hsub, vsub;
 
                 TIFFGetFieldDefaulted( rtiff->tiff, 
 			TIFFTAG_YCBCRSUBSAMPLING, &hsub, &vsub );
@@ -2548,7 +2548,7 @@ rtiff_header_read( Rtiff *rtiff, RtiffHeader *header )
 			header->separate = TRUE; 
 	}
 
-	/* TIFFGetField needs a uint16 to write count to.
+	/* TIFFGetField needs a guint16 to write count to.
 	 */
 	if( TIFFGetField( rtiff->tiff, TIFFTAG_SUBIFD, 
 		&subifd_count, &subifd_offsets ) )

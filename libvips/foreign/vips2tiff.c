@@ -810,7 +810,7 @@ wtiff_write_header( Wtiff *wtiff, Layer *layer )
 		alpha_bands = VIPS_CLIP( 0, 
 			wtiff->ready->Bands - colour_bands, MAX_ALPHA );
 		if( alpha_bands > 0 ) { 
-			uint16 v[MAX_ALPHA];
+			guint16 v[MAX_ALPHA];
 			int i;
 
 			/* EXTRASAMPLE_UNASSALPHA means generic extra
@@ -1984,11 +1984,11 @@ wtiff_copy_tiles( Wtiff *wtiff, TIFF *out, TIFF *in )
 static int
 wtiff_copy_tiff( Wtiff *wtiff, TIFF *out, TIFF *in )
 {
-	uint32 ui32;
-	uint16 ui16;
-	uint16 ui16_2;
+	guint32 ui32;
+	guint16 ui16;
+	guint16 ui16_2;
 	float f;
-	uint16 *a;
+	guint16 *a;
 
 	/* All the fields we might have set.
 	 */
