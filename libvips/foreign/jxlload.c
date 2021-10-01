@@ -185,7 +185,8 @@ vips_foreign_load_jxl_is_a_source( VipsSource *source )
 	JxlSignature sig;
 
 	return( (p = vips_source_sniff( source, 12 )) &&
-		(sig = JxlSignatureCheck( p, 12 )) == JXL_SIG_CODESTREAM );
+		(sig = JxlSignatureCheck( p, 12 )) != JXL_SIG_INVALID &&
+		sig != JXL_SIG_NOT_ENOUGH_BYTES );
 }
 
 static VipsForeignFlags
