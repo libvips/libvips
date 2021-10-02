@@ -1618,7 +1618,7 @@ Matlab load with matio:                 $with_matio
 NIfTI load/save with niftiio:           $with_nifti
 FITS load/save with cfitsio:            $with_cfitsio
 GIF save with cgif:                     $with_cgif
- (requires libimagequant)
+ (requires cgif, libimagequant)
 Magick package:                         $with_magickpackage (dynamic module: $with_magick_module)
 Magick major API version:               $magick_version
 load with libMagickCore:                $enable_magickload
