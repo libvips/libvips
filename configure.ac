@@ -1571,7 +1571,7 @@ enable deprecated library components:   $enable_deprecated
 enable modules:                         $gmodule_supported_flag
 enable C docs with gtkdoc:              $enable_gtk_doc
  (requires gtk-doc 1.14 or later)
-generate C++ docs with doxygen:         $enable_doxygen
+enable C++ docs with doxygen:           $enable_doxygen
 gobject introspection:                  $found_introspection
  (requires gobject-introspection 1.30 or later)
 RAD load/save:                          $with_radiance
