@@ -174,7 +174,7 @@ int vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	gboolean optimize_coding, gboolean progressive, gboolean strip,
 	gboolean trellis_quant, gboolean overshoot_deringing,
 	gboolean optimize_scans, int quant_table,
-	VipsForeignSubsample subsample_mode );
+	VipsForeignSubsample subsample_mode, int restart_interval );
 
 int vips__jpeg_read_source( VipsSource *source, VipsImage *out,
 	gboolean header_only, int shrink, int fail, gboolean autorotate );
@@ -252,5 +252,3 @@ extern const char *vips__jxl_suffs[];
 #endif /*__cplusplus*/
 
 #endif /*VIPS_PFOREIGN_H*/
-
-
