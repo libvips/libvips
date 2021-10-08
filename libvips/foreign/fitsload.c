@@ -88,17 +88,22 @@ vips_foreign_load_fits_build( VipsObject *object )
 	VipsForeignLoadFits *fits = 
 		(VipsForeignLoadFits *) object;
 
-	/* We can only open source which have an associated filename, since
+	/* We can only open sources which have an associated filename, since
 	 * the fits library works in terms of filenames.
 	 */
 	if( fits->source ) {
-		fits->filename = vips_connection_filename( VIPS_CONNECTION( 
-			fits->source ) );
-		if( !fits->filename ) {
+		VipsConnection *connection = VIPS_CONNECTION( fits->source );
+
+		const char *filename;
+
+		if( !vips_source_is_file( fits->source ) ||
+			!(filename = vips_connection_filename( connection )) ) {
 			vips_error( class->nickname, "%s", 
 				_( "no filename available" ) );
 			return( -1 );
 		}
+
+		fits->filename = filename;
 	}
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_fits_parent_class )->
@@ -296,10 +301,12 @@ vips_foreign_load_fits_source_build( VipsObject *object )
 static gboolean
 vips_foreign_load_fits_source_is_a_source( VipsSource *source )
 {
+	VipsConnection *connection = VIPS_CONNECTION( source );
+
 	const char *filename;
 
-	return( (filename = 
-		vips_connection_filename( VIPS_CONNECTION( source ) )) &&
+	return( vips_source_is_file( source ) &&
+		(filename = vips_connection_filename( connection )) &&
 		vips__fits_isfits( filename ) );
 }
 

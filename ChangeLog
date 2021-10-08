@@ -10,6 +10,7 @@
 - flatten handles out of range alpha and max_alpha correctly
 - don't use atexit for cleanup, it's too unreliable
 - tiff writer loops for the whole image rather than per page [LionelArn2]
+- fix VipsSource with named pipes [vibbix]
 
 16/8/21 started 8.11.4
 - fix off-by-one error in new rank fast path
