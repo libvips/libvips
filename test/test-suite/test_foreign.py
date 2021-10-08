@@ -294,6 +294,15 @@ class TestForeign:
         assert len(q90_subsample_on) < len(q90) 
         assert len(q90_subsample_off) == len(q90_subsample_auto)
 
+        # A non-zero restart_interval should result in a bigger file.
+        # Otherwise, smaller restart intervals will have more restart markers
+        # and therefore be larger
+        r0 = im.jpegsave_buffer(restart_interval=0)
+        r10 = im.jpegsave_buffer(restart_interval=10)
+        r2 = im.jpegsave_buffer(restart_interval=2)
+        assert len(r10) > len(r0)
+        assert len(r2) > len(r10)
+
     @skip_if_no("jpegload")
     def test_truncated(self):
         # This should open (there's enough there for the header)
