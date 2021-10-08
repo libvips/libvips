@@ -303,6 +303,12 @@ class TestForeign:
         assert len(r10) > len(r0)
         assert len(r2) > len(r10)
 
+        # we should be able to reload jpegs with extra MCU markers 
+        im0 = pyvips.Image.jpegload_buffer(r0)
+        im10 = pyvips.Image.jpegload_buffer(r10)
+        assert im0.avg() == im10.avg()
+
+
     @skip_if_no("jpegload")
     def test_truncated(self):
         # This should open (there's enough there for the header)

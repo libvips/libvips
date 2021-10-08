@@ -613,6 +613,7 @@ write_vips( Write *write, int qfac, const char *profile,
 	 */
 	if( restart_interval > 0 )
 		write->cinfo.restart_interval = restart_interval;
+
 #ifdef HAVE_JPEG_EXT_PARAMS
 	/* Apply trellis quantisation to each 8x8 block. Implies 
 	 * "optimize_coding".
@@ -853,7 +854,7 @@ vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	gboolean strip, gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans,
 	int quant_table, VipsForeignSubsample subsample_mode,
-	int restart_interval)
+	int restart_interval )
 {
 	Write *write;
 
