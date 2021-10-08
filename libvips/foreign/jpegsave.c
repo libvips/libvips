@@ -621,6 +621,12 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * For maximum compression with mozjpeg, a useful set of options is `strip, 
  * optimize-coding, interlace, optimize-scans, trellis-quant, quant_table=3`.
  *
+ * By default, the output stream won't have restart markers.  If a non-zero
+ * restart_interval is specified, a restart marker will be added after each
+ * specified number of MCU blocks.  This makes the stream more recoverable
+ * if there are transmission errors, but also allows for some decoders to read
+ * part of the JPEG without decoding the whole stream.
+ *
  * The image is automatically converted to RGB, Monochrome or CMYK before 
  * saving. 
  *

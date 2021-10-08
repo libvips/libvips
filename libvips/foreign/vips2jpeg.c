@@ -611,9 +611,8 @@ write_vips( Write *write, int qfac, const char *profile,
 
 	/* Use a restart interval.
 	 */
-	if( restart_interval > 0 ) {
-		write->cinfo.restart_interval	=	restart_interval;
-	}
+	if( restart_interval > 0 )
+		write->cinfo.restart_interval = restart_interval;
 #ifdef HAVE_JPEG_EXT_PARAMS
 	/* Apply trellis quantisation to each 8x8 block. Implies 
 	 * "optimize_coding".
