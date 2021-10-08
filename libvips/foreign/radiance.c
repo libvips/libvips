@@ -873,7 +873,7 @@ rad2vips_get_header( Read *read, VipsImage *out )
 		interpretation,
 		1, read->aspect );
 
-	VIPS_SETSTR( out->filename, 
+	VIPS_SETSTR( out->filename,
 		vips_connection_filename( 
 			VIPS_CONNECTION( read->sbuf->source ) ) );
 

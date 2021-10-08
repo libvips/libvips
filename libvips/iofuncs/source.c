@@ -10,6 +10,8 @@
  * 26/11/20
  * 	- use _setmode() on win to force binary read for previously opened
  * 	  descriptors
+ * 8/10/21
+ * 	- fix named pipes
  */
 
 /*
@@ -129,6 +131,52 @@ vips_pipe_read_limit_set( gint64 limit )
 
 G_DEFINE_TYPE( VipsSource, vips_source, VIPS_TYPE_CONNECTION );
 
+/* Does this source support seek. You must unminimise before calling this.
+ */
+static int
+vips_source_test_seek( VipsSource *source )
+{
+	if( !source->have_tested_seek ) {
+		VipsSourceClass *class = VIPS_SOURCE_GET_CLASS( source );
+
+		source->have_tested_seek = TRUE;
+
+		VIPS_DEBUG_MSG( "vips_source_can_seek: testing seek ..\n" );
+
+		/* Can we seek this input?
+		 *
+		 * We need to call the method directly rather than via
+		 * vips_source_seek() etc. or we might trigger seek emulation.
+		 */
+		if( source->data ||
+			class->seek( source, 0, SEEK_CUR ) != -1 ) { 
+			gint64 length;
+
+			VIPS_DEBUG_MSG( "    seekable source\n" );
+
+			/* We should be able to get the length of seekable 
+			 * objects.
+			 */
+			if( (length = vips_source_length( source )) == -1 ) 
+				return( -1 );
+
+			source->length = length;
+
+			/* If we can seek, we won't need to save header bytes.
+			 */
+			VIPS_FREEF( g_byte_array_unref, source->header_bytes ); 
+		}
+		else {
+			/* Not seekable. This must be some kind of pipe.
+			 */
+			VIPS_DEBUG_MSG( "    not seekable\n" );
+			source->is_pipe = TRUE;
+		}
+	}
+
+	return( 0 );
+}
+
 /* We can't test for seekability or length during _build, since the read and 
  * seek signal handlers might not have been connected yet. Instead, we test 
  * when we first need to know.
@@ -136,48 +184,9 @@ G_DEFINE_TYPE( VipsSource, vips_source, VIPS_TYPE_CONNECTION );
 static int
 vips_source_test_features( VipsSource *source )
 {
-	VipsSourceClass *class = VIPS_SOURCE_GET_CLASS( source );
-
-	if( source->have_tested_seek ) 
-		return( 0 );
-	source->have_tested_seek = TRUE;
-
-	VIPS_DEBUG_MSG( "vips_source_test_features: testing seek ..\n" );
-
-	/* We'll need a descriptor to test.
-	 */
-	if( vips_source_unminimise( source ) ) 
+	if( vips_source_unminimise( source ) || 
+		vips_source_test_seek( source ) )
 		return( -1 );
-
-	/* Can we seek this input?
-	 *
-	 * We need to call the method directly rather than via
-	 * vips_source_seek() etc. or we might trigger seek emulation.
-	 */
-	if( source->data ||
-		class->seek( source, 0, SEEK_CUR ) != -1 ) { 
-		gint64 length;
-
-		VIPS_DEBUG_MSG( "    seekable source\n" );
-
-		/* We should be able to get the length of seekable 
-		 * objects.
-		 */
-		if( (length = vips_source_length( source )) == -1 ) 
-			return( -1 );
-
-		source->length = length;
-
-		/* If we can seek, we won't need to save header bytes.
-		 */
-		VIPS_FREEF( g_byte_array_unref, source->header_bytes ); 
-	}
-	else {
-		/* Not seekable. This must be some kind of pipe.
-		 */
-		VIPS_DEBUG_MSG( "    not seekable\n" );
-		source->is_pipe = TRUE;
-	}
 
 	return( 0 );
 }
@@ -634,12 +643,19 @@ vips_source_unminimise( VipsSource *source )
 		connection->tracked_descriptor = fd;
 		connection->descriptor = fd;
 
-		VIPS_DEBUG_MSG( "vips_source_unminimise: "
-			"restoring read position %" G_GINT64_FORMAT "\n", 
-			source->read_position );
-		if( vips__seek( connection->descriptor, 
-			source->read_position, SEEK_SET ) == -1 )
-			return( -1 );
+		if( vips_source_test_seek( source ) ) 
+			return( -1 ); 
+
+		/* It might be a named pipe.
+		 */
+		if( !source->is_pipe ) {
+			VIPS_DEBUG_MSG( "vips_source_unminimise: restoring "
+				"read position %" G_GINT64_FORMAT "\n", 
+				source->read_position );
+			if( vips__seek( connection->descriptor, 
+				source->read_position, SEEK_SET ) == -1 )
+				return( -1 );
+		}
 	}
 
 	return( 0 );
@@ -974,6 +990,32 @@ vips_source_is_mappable( VipsSource *source )
 		VIPS_CONNECTION( source )->filename ||
 		(!source->is_pipe && 
 		 VIPS_CONNECTION( source )->descriptor != -1) );
+}
+
+/**
+ * vips_source_is_file:
+ * @source: source to operate on
+ *
+ * Test if this source is a simple file with support for seek. Named pipes,
+ * for example, will fail this test. If TRUE, you can use
+ * vips_connection_filename() to find the filename.
+ *
+ * Use this to add basic source support for older loaders which can only work
+ * on files.
+ *
+ * Returns: %TRUE if the source is a simple file.
+ */
+gboolean 
+vips_source_is_file( VipsSource *source )
+{
+	if( vips_source_unminimise( source ) ||
+		vips_source_test_features( source ) )
+		return( -1 );
+
+	/* There's a filename, and it supports seek.
+	 */
+	return( VIPS_CONNECTION( source )->filename &&
+		!source->is_pipe );
 }
 
 /**

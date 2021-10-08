@@ -110,30 +110,23 @@ vips_foreign_load_vips_get_flags_filename( const char *filename )
 static int
 vips_foreign_load_vips_header( VipsForeignLoad *load )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
 	VipsForeignLoadVips *vips = (VipsForeignLoadVips *) load;
+	VipsConnection *connection = VIPS_CONNECTION( vips->source );
 
 	const char *filename;
 	VipsImage *image;
 	VipsImage *x;
 
-	if( (filename = 
-		vips_connection_filename( VIPS_CONNECTION( vips->source ) )) ) {
-		if( !(image = vips_image_new_mode( filename, "r" )) )
-			return( -1 );
-	}
-	else {
-		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( load );
-
-		/* We could add load vips from memory, fd, via mmap etc. here.
-		 * We should perhaps move iofuncs/vips.c into this file.
-		 *
-		 * For now, just fail unless there's a filename associated
-		 * with this source.
-		 */
+	if( !vips_source_is_file( vips->source ) ||
+		!(filename = vips_connection_filename( connection )) ) {
 		vips_error( class->nickname, 
 			"%s", _( "no filename associated with source" ) );
 		return( -1 );
 	}
+
+	if( !(image = vips_image_new_mode( filename, "r" )) )
+		return( -1 );
 
 	/* What a hack. Remove the @out that's there now and replace it with
 	 * our image. 
@@ -280,10 +273,12 @@ vips_foreign_load_vips_source_build( VipsObject *object )
 static gboolean
 vips_foreign_load_vips_source_is_a_source( VipsSource *source )
 {
+	VipsConnection *connection = VIPS_CONNECTION( source );
+
 	const char *filename;
 
-	return( (filename = 
-		vips_connection_filename( VIPS_CONNECTION( source ) )) &&
+	return( vips_source_is_file( source ) &&
+		(filename = vips_connection_filename( connection )) &&
 		vips__file_magic( filename ) );
 }
 
