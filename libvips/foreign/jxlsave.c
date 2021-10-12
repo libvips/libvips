@@ -261,6 +261,8 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		return( -1 );
 	}
 
+	JxlEncoderInitBasicInfo( &jxl->info );
+
 	switch( save->ready->BandFmt ) {
 	case VIPS_FORMAT_UCHAR:
 		jxl->info.bits_per_sample = 8;
