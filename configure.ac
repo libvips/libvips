@@ -836,9 +836,9 @@ AS_IF([test x"$with_libjxl" = x"module"],
   [with_libjxl_module=no])
 
 if test x"$with_libjxl" != x"no"; then
-  PKG_CHECK_MODULES(LIBJXL, libjxl_threads >= 0.3.7 libjxl >= 0.3.7,
+  PKG_CHECK_MODULES(LIBJXL, libjxl_threads >= 0.6 libjxl >= 0.6,
     [AC_DEFINE(HAVE_LIBJXL,1,
-       [define if you have libjxl >= 0.3.7 installed.])
+       [define if you have libjxl >= 0.6 installed.])
      with_libjxl=yes
      AS_IF([test x"$with_libjxl_module" = x"no"],
        [PACKAGES_USED="$PACKAGES_USED libjxl"])
