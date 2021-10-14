@@ -187,7 +187,7 @@ vips_utf8_strcasestr( const char *haystack_start, const char *needle_start,
 
                         haystack_char = 
 				g_utf8_find_next_char( haystack_char, 
-					haystack_start, + len_bytes );
+					haystack_start + len_bytes );
                         needle_char = 
 				g_utf8_find_next_char( needle_char, NULL );
                 }
