@@ -303,6 +303,11 @@ vips_load_plugins( const char *fmt, ... )
 					path, g_module_error() ); 
 				result = -1;
 			}
+
+			/* Modules will almost certainly create new types, so
+			 * they can't be unloaded.
+			 */
+			g_module_make_resident( module );
                 }
         g_dir_close( dir );
 
