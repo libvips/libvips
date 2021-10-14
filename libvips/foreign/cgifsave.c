@@ -30,6 +30,11 @@
 
  */
 
+/*
+#define DEBUG_VERBOSE
+#define DEBUG_PERCENT
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -43,8 +48,9 @@
 
 #include "pforeign.h"
 
-#ifdef HAVE_CGIF
+#if defined(HAVE_CGIF) && defined(HAVE_IMAGEQUANT)
 
+#include <libimagequant.h>
 #include <cgif.h>
 
 typedef struct _VipsForeignSaveCgif {
@@ -53,8 +59,54 @@ typedef struct _VipsForeignSaveCgif {
 	double dither;
 	int effort;
 	int bitdepth;
-
 	VipsTarget *target;
+
+	/* Derived write params.
+	 */
+	VipsImage *in;				/* Not a reference */
+	gboolean has_transparency;
+	int *delay;
+	int delay_length;
+	int loop;
+
+	/* We save ->ready a frame at a time, regenerating the 
+	 * palette if we see a significant frame to frame change. 
+	 */
+
+	/* The current frame coming from libvips, the y position we write to,
+	 * and some spare pixels we copy down when we move to the next frame.
+	 */
+	VipsRegion *frame;
+	int write_y;
+
+	/* The frame as seen by libimagequant.
+	 */
+	liq_attr *attr;
+	liq_image *input_image;
+	liq_result *quantisation_result;
+	const liq_palette *lp;
+
+	/* The current colourmap, updated on a significant frame change.
+	 *
+	 * frame_sum is 32-bit, so we can handle a max of about 2000 x 2000 
+	 * RGB pixel per frame.
+	 */
+	VipsPel *palette_rgb;
+	guint frame_sum;
+
+	/* The index frame we get libimagequant to generate.
+	 */
+	VipsPel *index;
+
+	/* The frame as written by libcgif.
+	 */
+	CGIF *cgif_context;
+	CGIF_Config cgif_config;
+
+#ifdef DEBUG_PERCENT
+	int n_cmaps_generated;
+#endif/*DEBUG_PERCENT*/
+
 } VipsForeignSaveCgif;
 
 typedef VipsForeignSaveClass VipsForeignSaveCgifClass;
@@ -67,7 +119,25 @@ vips_foreign_save_cgif_dispose( GObject *gobject )
 {
 	VipsForeignSaveCgif *cgif = (VipsForeignSaveCgif *) gobject;
 
+#ifdef DEBUG_PERCENT
+	if( cgif->frame ) {
+		printf( "%d frames\n", 
+			cgif->frame->im->Ysize / cgif->frame->valid.height );
+		printf( "%d cmaps\n", cgif->n_cmaps_generated );
+	}
+#endif/*DEBUG_PERCENT*/
+
 	VIPS_UNREF( cgif->target );
+	VIPS_UNREF( cgif->frame );
+
+	VIPS_FREEF( liq_result_destroy, cgif->quantisation_result );
+	VIPS_FREEF( liq_image_destroy, cgif->input_image );
+	VIPS_FREEF( liq_attr_destroy, cgif->attr );
+
+	VIPS_FREE( cgif->palette_rgb );
+	VIPS_FREE( cgif->index );
+
+	VIPS_FREEF( cgif_close, cgif->cgif_context );
 
 	G_OBJECT_CLASS( vips_foreign_save_cgif_parent_class )->
 		dispose( gobject );
@@ -81,104 +151,328 @@ static int vips__cgif_write( void *target, const uint8_t *buffer,
 		(const void *) buffer, (size_t) length );
 }
 
+/* We have a complete frame --- write!
+ */
+static int
+vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( cgif );
+	VipsRect *frame_rect = &cgif->frame->valid;
+	int page_index = frame_rect->top / frame_rect->height;
+	/* We know this fits in an int since we limit frame size.
+	 */
+	int n_pels = frame_rect->height * frame_rect->width;
+	guint max_sum = 256 * n_pels * 3;
+	VipsPel *frame_bytes = 
+		VIPS_REGION_ADDR( cgif->frame, 0, frame_rect->top );
+
+	VipsPel * restrict p;
+	VipsPel *rgb;
+	guint sum;
+	double percent_change;
+	int i;
+	CGIF_FrameConfig frame_config;
+
+#ifdef DEBUG_VERBOSE
+	printf( "vips_foreign_save_cgif_write_frame: %d\n", page_index );
+#endif/*DEBUG_VERBOSE*/
+
+	/* Set up new frame for libimagequant.
+	 */
+	VIPS_FREEF( liq_image_destroy, cgif->input_image );
+	cgif->input_image = liq_image_create_rgba( cgif->attr,
+		frame_bytes, frame_rect->width, frame_rect->height, 0 );
+
+	/* Threshold the alpha channel. It's safe to modify the region since 
+	 * it's a buffer we made.
+	 */
+	p = frame_bytes;
+	for( i = 0; i < n_pels; i++ ) {
+		p[3] = p[3] > 128 ? 255 : 0;
+		p += 4;
+	}
+
+	/* Do we need to compute a new palette? Do it if the frame sum
+	 * changes.
+	 *
+	 * frame_sum 0 means no current colourmap.
+	 */
+	sum = 0;
+	p = frame_bytes;
+	for( i = 0; i < n_pels; i++ )
+		sum += p[i]; 
+	percent_change = 100 * 
+		fabs( ((double) sum / max_sum) - 
+			((double) cgif->frame_sum / max_sum) );
+
+	if( cgif->frame_sum == 0 ||
+		percent_change > 0 ) { 
+		cgif->frame_sum = sum;
+
+		/* If this is not our first cmap, make a note that we need to
+		 * attach it as a local cmap when we write.
+		 */
+		if( cgif->quantisation_result ) 
+			cgif->cgif_config.attrFlags |= CGIF_ATTR_NO_GLOBAL_TABLE;
+
+		VIPS_FREEF( liq_result_destroy, cgif->quantisation_result );
+		if( liq_image_quantize( cgif->input_image, cgif->attr, 
+			&cgif->quantisation_result ) ) { 
+			vips_error( class->nickname, 
+				"%s", _( "quantisation failed" ) );
+			return( -1 );
+		}
+
+#ifdef DEBUG_PERCENT
+		cgif->n_cmaps_generated += 1;
+#endif/*DEBUG_PERCENT*/
+	}
+
+	/* Dither frame.
+	 */
+	liq_set_dithering_level( cgif->quantisation_result, cgif->dither );
+	if( liq_write_remapped_image( cgif->quantisation_result, 
+		cgif->input_image, cgif->index, n_pels ) ) {
+		vips_error( class->nickname, "%s", _( "dither failed" ) );
+		return( -1 );
+	}
+
+	/* Call liq_get_palette() after liq_write_remapped_image(),
+	 * as palette is improved during remapping.
+	 */
+	cgif->lp = liq_get_palette( cgif->quantisation_result );
+	rgb = cgif->palette_rgb;
+	g_assert( cgif->lp->count <= 256 );
+	for( i = 0; i < cgif->lp->count; i++ ) {
+		rgb[0] = cgif->lp->entries[i].r;
+		rgb[1] = cgif->lp->entries[i].g;
+		rgb[2] = cgif->lp->entries[i].b;
+
+		rgb += 3;
+	}
+
+	/* If there's a transparent pixel, it's always first.
+	 */
+	cgif->has_transparency = cgif->lp->entries[0].a == 0;
+
+#ifdef DEBUG_PERCENT
+	if( percent_change > 0 )
+		printf( "frame %d, %.4g%% change, new %d item colourmap\n",
+			page_index, percent_change, cgif->lp->count );
+	else
+		printf( "frame %d, reusing previous %d item colourmap\n",
+			page_index, cgif->lp->count );
+#endif/*DEBUG_PERCENT*/
+
+	/* Set up cgif on first use, so we can set the first cmap as the global
+	 * one.
+	 *
+	 * We switch to local tables if we find we need a new palette.
+	 */
+	if( !cgif->cgif_context ) {
+		cgif->cgif_config.pGlobalPalette = cgif->palette_rgb;
+		cgif->cgif_config.attrFlags = CGIF_ATTR_IS_ANIMATED;
+		cgif->cgif_config.attrFlags |= 
+			cgif->has_transparency ? CGIF_ATTR_HAS_TRANSPARENCY : 0;
+		cgif->cgif_config.width = frame_rect->width;
+		cgif->cgif_config.height = frame_rect->height;
+		cgif->cgif_config.numGlobalPaletteEntries = cgif->lp->count;
+		cgif->cgif_config.numLoops = cgif->loop;
+		cgif->cgif_config.pWriteFn = vips__cgif_write;
+		cgif->cgif_config.pContext = (void *) cgif->target;
+
+		cgif->cgif_context = cgif_newgif( &cgif->cgif_config );
+	}
+
+	/* Reset global transparency flag.
+	 */
+	cgif->cgif_config.attrFlags = 
+		(cgif->cgif_config.attrFlags & ~CGIF_ATTR_HAS_TRANSPARENCY) |
+		(cgif->has_transparency ? CGIF_ATTR_HAS_TRANSPARENCY : 0);
+
+	/* Write frame to cgif.
+	 */
+	memset( &frame_config, 0, sizeof( CGIF_FrameConfig ) );
+	frame_config.pImageData = cgif->index;
+
+	/* Allow cgif to optimise by adding transparency. These optimisations
+	 * will be automatically disabled if they are not possible.
+	 */
+	frame_config.genFlags = 
+		CGIF_FRAME_GEN_USE_TRANSPARENCY | 
+		CGIF_FRAME_GEN_USE_DIFF_WINDOW;
+
+	if( cgif->delay &&
+		page_index < cgif->delay_length )
+		frame_config.delay = 
+			VIPS_RINT( cgif->delay[page_index] / 10.0 );
+
+	/* Attach a local palette, if we need one.
+	 */
+	if( cgif->cgif_config.attrFlags & CGIF_ATTR_NO_GLOBAL_TABLE ) {
+		frame_config.attrFlags = CGIF_FRAME_ATTR_USE_LOCAL_TABLE;
+		frame_config.pLocalPalette = cgif->palette_rgb;
+		frame_config.numLocalPaletteEntries = cgif->lp->count;
+	}
+
+	cgif_addframe( cgif->cgif_context, &frame_config );
+
+	return( 0 );
+}
+
+/* Another chunk of pixels have arrived from the pipeline. Add to frame, and
+ * if the frame completes, compress and write to the target.
+ */
+static int
+vips_foreign_save_cgif_sink_disc( VipsRegion *region, VipsRect *area, void *a )
+{
+	VipsForeignSaveCgif *cgif = (VipsForeignSaveCgif *) a;
+
+#ifdef DEBUG_VERBOSE
+	printf( "vips_foreign_save_cgif_sink_disc: strip at %d, height %d\n", 
+		area->top, area->height );
+#endif/*DEBUG_VERBOSE*/
+
+	/* Write the new pixels into frame.
+	 */
+	for(;;) {
+		VipsRect *to = &cgif->frame->valid;
+		VipsRect target;
+
+		/* The bit of the frame that needs filling.
+		 */
+		target.left = 0;
+		target.top = cgif->write_y;
+		target.width = to->width;
+		target.height = to->height;
+		vips_rect_intersectrect( &target, to, &target );
+
+		/* Clip against the pixels we have just been given.
+		 */
+		vips_rect_intersectrect( &target, area, &target );
+
+		/* Have we used up all the pixels libvips just gave us? We are 
+		 * done.
+		 */
+		if( vips_rect_isempty( &target ) ) 
+			break;
+
+		/* Write the new pixels into the frame.
+		 */
+		vips_region_copy( region, cgif->frame, 
+			&target, target.left, target.top );
+
+		cgif->write_y += target.height;
+
+		/* If frame has filled, write it, and move the frame down the
+		 * image.
+		 */
+		if( cgif->write_y == VIPS_RECT_BOTTOM( to ) ) {
+			VipsRect frame_rect;
+
+			if( vips_foreign_save_cgif_write_frame( cgif ) ) 
+				return( -1 );
+
+			frame_rect.left = 0;
+			frame_rect.top = cgif->write_y;
+			frame_rect.width = to->width;
+			frame_rect.height = to->height;
+			if( vips_region_buffer( cgif->frame, &frame_rect ) ) 
+				return( -1 );
+		}
+	}
+
+	return( 0 );
+}
+
 static int
 vips_foreign_save_cgif_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveCgif *cgif = (VipsForeignSaveCgif *) object;
-	VipsImage **t = (VipsImage **) 
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( cgif );
+	VipsImage **t = (VipsImage **)
 		vips_object_local_array( VIPS_OBJECT( cgif ), 2 );
 
-	int rgb;
-	int rgba;
-	gboolean has_transparency;
 	int page_height;
-	int *delay;
-	int delay_length;
-	int loop;
-	int top;
-	uint8_t * restrict paletteRgba;
-	uint8_t * restrict paletteRgb;
-
-	CGIF *cgif_context;
-	CGIF_Config cgif_config;
-	CGIF_FrameConfig cgif_frame_config;
+	VipsRect frame_rect;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_cgif_parent_class )->
 		build( object ) )
 		return( -1 );
 
-	/* Animation properties
-	 */
-	page_height = vips_image_get_page_height( save->ready );
-	delay = NULL;
-	if( vips_image_get_typeof( save->ready, "delay" ) )
-		vips_image_get_array_int( save->ready, "delay",
-			&delay, &delay_length );
-	if( vips_image_get_typeof( save->ready, "loop" ) )
-		vips_image_get_int( save->ready, "loop", &loop );
+	cgif->in = save->ready;
 
-	/* Generate indexed image (t[0]) and palette (t[1])
+	/* libimagequant only works with RGBA images.
 	 */
-	if( vips__quantise_image( save->ready, &t[0], &t[1],
-		(1 << cgif->bitdepth) - 1, 100, cgif->dither,
-		cgif->effort, TRUE ) )
+	if( cgif->in->Type != VIPS_INTERPRETATION_sRGB ) {
+		if( vips_colourspace( cgif->in, &t[0], 
+			VIPS_INTERPRETATION_sRGB, NULL ) ) 
+			return( -1 );
+		cgif->in = t[0];
+	}
+
+	/* Add alpha channel if missing. 
+	 */
+	if( !vips_image_hasalpha( cgif->in ) ) {
+		if( vips_addalpha( cgif->in, &t[1], NULL ) ) 
+			return( -1 );
+		cgif->in = t[1];
+	}
+
+	/* Animation properties.
+	 */
+	page_height = vips_image_get_page_height( cgif->in );
+	if( vips_image_get_typeof( cgif->in, "delay" ) )
+		vips_image_get_array_int( cgif->in, "delay",
+			&cgif->delay, &cgif->delay_length );
+	if( vips_image_get_typeof( cgif->in, "loop" ) )
+		vips_image_get_int( cgif->in, "loop", &cgif->loop );
+	frame_rect.left = 0;
+	frame_rect.top = 0;
+	frame_rect.width = cgif->in->Xsize;
+	frame_rect.height = page_height;
+	if( (guint64) frame_rect.width * frame_rect.height > 2000 * 2000 ) {
+		/* RGB sum may overflow a 32-bit uint.
+		 */
+		vips_error( class->nickname, "%s", _( "frame too large" ) );
+		return( -1 );
+	}
+
+	/* Assemble frames here.
+	 */
+	cgif->frame = vips_region_new( cgif->in );
+	if( vips_region_buffer( cgif->frame, &frame_rect ) ) 
 		return( -1 );
 
-	/* Convert palette to RGB
+	/* The regions will get used in the bg thread callback,
+	 * so make sure we don't own them.
 	 */
-	paletteRgba = (uint8_t *) VIPS_IMAGE_ADDR( t[1], 0, 0 );
-	paletteRgb = g_malloc0( t[1]->Xsize * 3 );
-	for( rgb = 0, rgba = 0; rgb < t[1]->Xsize * 3; rgb += 3 ) {
-		paletteRgb[rgb] = paletteRgba[rgba];
-		paletteRgb[rgb + 1] = paletteRgba[rgba + 1];
-		paletteRgb[rgb + 2] = paletteRgba[rgba + 2];
-		rgba += 4;
-	}
+	vips__region_no_ownership( cgif->frame );
 
-	/* Does the palette contain a transparent pixel value? This will 
-	 * always the first entry, if any.
+	/* The RGB cmap we write with, sometimes updated on frame write, and
+	 * the frame index buffer.
 	 */
-	has_transparency = paletteRgba[3] == 255 ? FALSE : TRUE;
+	cgif->palette_rgb = g_malloc0( 256 * 3 );
+	cgif->index = g_malloc0( frame_rect.width * frame_rect.height );
 
-	/* Initiialise cgif
+	/* Set up libimagequant.
 	 */
-	memset( &cgif_config, 0, sizeof( CGIF_Config ) );
-	cgif_config.width = t[0]->Xsize;
-	cgif_config.height = page_height;
-	cgif_config.pGlobalPalette = paletteRgb;
-	cgif_config.numGlobalPaletteEntries = t[1]->Xsize;
-	cgif_config.numLoops = loop;
-	cgif_config.attrFlags = CGIF_ATTR_IS_ANIMATED;
-	if( has_transparency ) 
-		cgif_config.attrFlags |= CGIF_ATTR_HAS_TRANSPARENCY;
-	cgif_config.pWriteFn = vips__cgif_write;
-	cgif_config.pContext = (void *) cgif->target;
-	cgif_context = cgif_newgif( &cgif_config );
-	g_free( paletteRgb );
+	cgif->attr = liq_attr_create();
+	liq_set_max_colors( cgif->attr, (1 << cgif->bitdepth) - 1 );
+	liq_set_quality( cgif->attr, 0, 100 );
+	liq_set_speed( cgif->attr, 11 - cgif->effort );
 
-	/* Add each vips page as a cgif frame
+	/* Set up cgif on first use.
 	 */
-	for( top = 0; top < t[0]->Ysize; top += page_height ) {
-		int page_index = top / page_height;
 
-		memset( &cgif_frame_config, 0, sizeof( CGIF_FrameConfig ) );
-		cgif_frame_config.pImageData = (uint8_t *)
-			VIPS_IMAGE_ADDR( t[0], 0, top );
-		if( delay &&
-			page_index < delay_length )
-			cgif_frame_config.delay =
-				VIPS_RINT( delay[page_index] / 10.0 );
-		if( !has_transparency ) 
-			/* Allow cgif to optimise by adding transparency
-			 */
-			cgif_frame_config.genFlags = 
-				CGIF_FRAME_GEN_USE_TRANSPARENCY |
-				CGIF_FRAME_GEN_USE_DIFF_WINDOW;
-		cgif_addframe( cgif_context, &cgif_frame_config );
-	}
+	/* Loop down the image, computing it in chunks.
+	 */
+	if( vips_sink_disc( cgif->in, 
+		vips_foreign_save_cgif_sink_disc, cgif ) ) 
+		return( -1 );
 
-	cgif_close( cgif_context );
+	VIPS_FREEF( cgif_close, cgif->cgif_context );
 	vips_target_finish( cgif->target );
 
 	return( 0 );
@@ -408,7 +702,7 @@ vips_foreign_save_cgif_buffer_init( VipsForeignSaveCgifBuffer *buffer )
 {
 }
 
-#endif /*HAVE_CGIF*/
+#endif /*defined(HAVE_CGIF) && defined(HAVE_IMAGEQUANT)*/
 
 /**
  * vips_gifsave: (method)
