@@ -1483,7 +1483,7 @@ tile_name( Layer *layer, int x, int y )
 		else {
 			/* IIIF2 "size" is just real tile width, I think.
 			 *
-			 * TODO .. .is this right? shouldn't it be the smaller 
+			 * TODO ... is this right? shouldn't it be the smaller 
 			 * of width and height?
 			 */
 			int size = VIPS_MIN( dz->tile_size, 
