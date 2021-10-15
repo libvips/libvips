@@ -87,6 +87,8 @@
  * 	- add IIIF layout
  * 24/4/20 [IllyaMoskvin]
  * 	- better IIIF tile naming
+ * 15/10/21  martimpassos
+ * 	- add IIIF3 layout
  */
 
 /*
@@ -969,7 +971,7 @@ write_blank( VipsForeignSaveDz *dz )
 	return( 0 );
 }
 
-/* Write IIIF JSON metadata.
+/* Write IIIF/IIF3 JSON metadata.
  */
 static int
 write_json( VipsForeignSaveDz *dz )
@@ -988,25 +990,38 @@ write_json( VipsForeignSaveDz *dz )
 
 	out = vips_gsf_path( dz->tree, "info.json", NULL ); 
 
-	gsf_output_printf( out, 
-		"{\n"
-		"  \"@context\": \"http://iiif.io/api/image/2/context.json\",\n"
-		"  \"@id\": \"%s/%s\",\n" 
-		"  \"profile\": [\n"
-		"    \"http://iiif.io/api/image/2/level0.json\",\n"
-		"    {\n" 
-		"      \"formats\": [\n"
-		"        \"%s\"\n"
-		"      ],\n"
-		"      \"qualities\": [\n"
-		"        \"default\"\n"
-		"      ]\n"
-		"    }\n"
-		"  ],\n"
-		"  \"protocol\": \"http://iiif.io/api/image\",\n", 
-		dz->id ? dz->id : "https://example.com/iiif",
-		name, 
-		suffix );
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF3 ) 
+		gsf_output_printf( out, 
+			"{\n"
+			"  \"@context\": " 
+				"\"http://iiif.io/api/image/3/context.json\",\n"
+			"  \"id\": \"%s/%s\",\n" 
+			"  \"type\": \"ImageService3\",\n" 
+			"  \"profile\": \"level0\",\n"
+			"  \"protocol\": \"http://iiif.io/api/image\",\n", 
+			dz->id ? dz->id : "https://example.com/iiif",
+			name );
+	else
+		gsf_output_printf( out, 
+			"{\n"
+			"  \"@context\": "
+				"\"http://iiif.io/api/image/2/context.json\",\n"
+			"  \"@id\": \"%s/%s\",\n" 
+			"  \"profile\": [\n"
+			"    \"http://iiif.io/api/image/2/level0.json\",\n"
+			"    {\n" 
+			"      \"formats\": [\n"
+			"        \"%s\"\n"
+			"      ],\n"
+			"      \"qualities\": [\n"
+			"        \"default\"\n"
+			"      ]\n"
+			"    }\n"
+			"  ],\n"
+			"  \"protocol\": \"http://iiif.io/api/image\",\n", 
+			dz->id ? dz->id : "https://example.com/iiif",
+			name, 
+			suffix );
 
 	/* "sizes" is needed for the full/ set of untiled images, which we 
 	 * don't yet support. Leave this commented out for now.
@@ -1445,6 +1460,7 @@ tile_name( Layer *layer, int x, int y )
 		break;
 
 	case VIPS_FOREIGN_DZ_LAYOUT_IIIF:
+	case VIPS_FOREIGN_DZ_LAYOUT_IIIF3:
 {
 		/* Tiles are addressed in full resolution coordinates, so
 		 * scale up by layer->sub and dz->tile_size
@@ -1458,18 +1474,24 @@ tile_name( Layer *layer, int x, int y )
 			save->ready->Xsize - left );
 		int height = VIPS_MIN( dz->tile_size * layer->sub, 
 			save->ready->Ysize - top );
-
-		/* IIIF "size" is just real tile width, I think.
-		 *
-		 * TODO .. .is this right? shouldn't it be the smaller of
-		 * width and height?
-		 */
-		int size = VIPS_MIN( dz->tile_size, 
-			layer->width - x * dz->tile_size );
-
 		vips_snprintf( dirname, VIPS_PATH_MAX, "%d,%d,%d,%d",
 			left, top, width, height );
-		vips_snprintf( dirname2, VIPS_PATH_MAX, "%d,", size );
+
+		if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF3 )
+			vips_snprintf( dirname2, VIPS_PATH_MAX, "%d,%d,", 
+				dz->tile_size, dz->tile_size );
+		else {
+			/* IIIF2 "size" is just real tile width, I think.
+			 *
+			 * TODO .. .is this right? shouldn't it be the smaller 
+			 * of width and height?
+			 */
+			int size = VIPS_MIN( dz->tile_size, 
+				layer->width - x * dz->tile_size );
+
+			vips_snprintf( dirname2, VIPS_PATH_MAX, "%d,", size );
+		}
+
 		vips_snprintf( name, VIPS_PATH_MAX, "default%s", 
 			dz->file_suffix );
 
