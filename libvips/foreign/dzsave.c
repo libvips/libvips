@@ -2840,9 +2840,8 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  * programs which wish to use fields from source files loaded via
  * vips_openslideload(). 
  *
- * By default, all tiles are stripped, since very few people want a copy of
- * the metadata on every tile. Set @no_strip if you really want to keep 
- * metadata.
+ * By default, all tiles are stripped since usually you do not want a copy of
+ * all metadata in every tile. Set @no_strip if you want to keep metadata.
  *
  * If @container is set to `zip`, you can set a compression level from -1
  * (use zlib default), 0 (store, compression disabled) to 9 (max compression).
@@ -2859,6 +2858,8 @@ vips_foreign_save_dz_buffer_init( VipsForeignSaveDzBuffer *buffer )
  *
  * In IIIF layout, you can set the base of the `id` property in `info.json` 
  * with @id. The default is `https://example.com/iiif`.
+ *
+ * Use @layout #VIPS_FOREIGN_DZ_LAYOUT_IIIF3 for IIIF v3 layout. 
  * 
  * See also: vips_tiffsave().
  *
