@@ -133,12 +133,13 @@ vips_foreign_load_svg_zfree( void *opaque, void *ptr )
 }
 #endif /*HANDLE_SVGZ*/
 
-/* Find a utf-8 substring within at most the first len bytes (not characters). 
+/* Find a utf-8 substring within the first len_bytes (not characters). 
  *
- *   - Case-insensitive.
- *   - needle must be zero-terminated, but hackstack need not be.
+ *   - case-insensitive
+ *   - needle must be zero-terminated, but hackstack need not be
  *   - haystack can be null-terminated
  *   - if haystack is shorter than len bytes, that'll end the search 
+ *   - if we hit invalid utf-8, we return NULL
  */
 static const char *
 vips_utf8_strcasestr( const char *haystack_start, const char *needle_start, 
@@ -159,30 +160,37 @@ vips_utf8_strcasestr( const char *haystack_start, const char *needle_start,
                 haystack_char = haystack;
                 needle_char = needle_start;
                 for( i = 0; i < needle_len; i++ ) {
-			/* Haystack isn't necessarilly null-terminated, so we
+			/* Haystack isn't necessarily null-terminated and
+			 * might end half-way through a utf-8 character, so we
 			 * need to be careful not to run off the end.
 			 */
-                        gunichar h = 
+                        gunichar a = 
 				g_utf8_get_char_validated( haystack_char, 
 					haystack_start + len_bytes - haystack );
-                        gunichar n = 
+                        gunichar b = 
 				g_utf8_get_char_validated( needle_char, -1 );
 
-                        /* Invalid utf8.
+                        /* Invalid utf8? 
+			 *
+			 * gunichar is a uint32, so we can't compare < 0, we 
+			 * have to look for -1 and -2 (the two possible error 
+			 * values).
                          */
-                        if( n < 0 ||
-                                h < 0 )
+                        if( a == (gunichar) -1 ||
+				a == (gunichar) -2 ||
+				b == (gunichar) -1 ||
+				b == (gunichar) -2 )
                                 return( NULL );
 
                         /* End of haystack. There can't be a complete needle
                          * anywhere.
                          */
-                        if( h == 0 )
+                        if( a == (gunichar) 0 )
                                 return( NULL );
 
                         /* Mismatch.
                          */
-                        if( g_unichar_tolower( n ) != g_unichar_tolower( h ) )
+                        if( g_unichar_tolower( a ) != g_unichar_tolower( b ) )
                                 break;
 
                         haystack_char = 
