@@ -166,9 +166,9 @@ vips_foreign_load_webp_class_init( VipsForeignLoadWebpClass *class )
 	object_class->description = _( "load webp" );
 	object_class->build = vips_foreign_load_webp_build;
 
-	/* is_a() is not that quick ... lower the priority.
+	/* We are fast at is_a(), so high priority.
 	 */
-	foreign_class->priority = -50;
+	foreign_class->priority = 200;
 
 	load_class->get_flags_filename = 
 		vips_foreign_load_webp_get_flags_filename;

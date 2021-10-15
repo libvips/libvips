@@ -22,6 +22,8 @@
  * 11/6/21
  * 	- switch to rsvg_handle_render_document()
  * 	- librsvg can no longer render very large images :( 
+ * 14/10/21
+ * 	- allow utf-8 headers for svg detection
  */
 
 /*
@@ -131,6 +133,85 @@ vips_foreign_load_svg_zfree( void *opaque, void *ptr )
 }
 #endif /*HANDLE_SVGZ*/
 
+/* Find a utf-8 substring within the first len_bytes (not characters). 
+ *
+ *   - case-insensitive
+ *   - needle must be zero-terminated, but hackstack need not be
+ *   - haystack can be null-terminated
+ *   - if haystack is shorter than len bytes, that'll end the search 
+ *   - if we hit invalid utf-8, we return NULL
+ */
+static const char *
+vips_utf8_strcasestr( const char *haystack_start, const char *needle_start, 
+	int len_bytes )
+{
+        int needle_len = g_utf8_strlen( needle_start, -1 );
+        int needle_len_bytes = strlen( needle_start );
+
+	const char *haystack;
+
+	for( haystack = haystack_start; 
+		haystack - haystack_start <= len_bytes - needle_len_bytes; 
+		haystack = g_utf8_find_next_char( haystack, NULL ) ) {
+                const char *needle_char;
+                const char *haystack_char;
+		int i;
+
+                haystack_char = haystack;
+                needle_char = needle_start;
+                for( i = 0; i < needle_len; i++ ) {
+			/* Haystack isn't necessarily null-terminated and
+			 * might end half-way through a utf-8 character, so we
+			 * need to be careful not to run off the end.
+			 */
+                        gunichar a = 
+				g_utf8_get_char_validated( haystack_char, 
+					haystack_start + len_bytes - haystack );
+                        gunichar b = 
+				g_utf8_get_char_validated( needle_char, -1 );
+
+                        /* Invalid utf8? 
+			 *
+			 * gunichar is a uint32, so we can't compare < 0, we 
+			 * have to look for -1 and -2 (the two possible error 
+			 * values).
+                         */
+                        if( a == (gunichar) -1 ||
+				a == (gunichar) -2 ||
+				b == (gunichar) -1 ||
+				b == (gunichar) -2 )
+                                return( NULL );
+
+                        /* End of haystack. There can't be a complete needle
+                         * anywhere.
+                         */
+                        if( a == (gunichar) 0 )
+                                return( NULL );
+
+                        /* Mismatch.
+                         */
+                        if( g_unichar_tolower( a ) != g_unichar_tolower( b ) )
+                                break;
+
+                        haystack_char = 
+				g_utf8_find_next_char( haystack_char, 
+					haystack_start + len_bytes );
+                        needle_char = 
+				g_utf8_find_next_char( needle_char, NULL );
+                }
+
+                if( i == needle_len )
+			/* Walked the whole of needle, so we must have found a 
+			 * complete match.
+			 */
+                        return( haystack );
+        }
+
+        /* Walked the whole of haystack without finding a match.
+         */
+        return( NULL );
+}
+
 /* This is used by both the file and buffer subclasses.
  */
 static gboolean
@@ -144,8 +225,6 @@ vips_foreign_load_svg_is_a( const void *buf, size_t len )
 	 */
 	char obuf[SVG_HEADER_SIZE];
 #endif /*HANDLE_SVGZ*/
-
-	int i;
 
 	/* Start with str pointing at the argument buffer, swap to it pointing
 	 * into obuf if we see zip data.
@@ -200,23 +279,17 @@ vips_foreign_load_svg_is_a( const void *buf, size_t len )
 	 *
 	 * But there can be a doctype in there too. And case and whitespace can
 	 * vary a lot. And the <?xml can be missing. And you can have a comment
-	 * before the <svg line.
+	 * before the <svg line. And it can be utf-8, so non ASCII characters.
 	 *
-	 * Simple rules:
-	 * - first 24 chars are plain ascii (x09-x7F)
-	 * - first SVG_HEADER_SIZE chars contain "<svg", upper or lower case.
+	 * All we do is look for "<svg", any case, within the first
+	 * SVG_HEADER_SIZE bytes, where the bytestream up to the "<svg" is
+	 * valid utf-8.
 	 *
 	 * We could rsvg_handle_new_from_data() on the buffer, but that can be
 	 * horribly slow for large documents. 
 	 */
-	if( len < 24 )
-		return( 0 );
-	for( i = 0; i < 24; i++ )
-		if( !isascii( str[i] ) || str[i] < 9 )
-			return( FALSE );
-	for( i = 0; i < SVG_HEADER_SIZE && i < len - 5; i++ )
-		if( g_ascii_strncasecmp( str + i, "<svg", 4 ) == 0 )
-			return( TRUE );
+	if( vips_utf8_strcasestr( str, "<svg", len ) )
+		return( TRUE );
 
 	return( FALSE );
 }
