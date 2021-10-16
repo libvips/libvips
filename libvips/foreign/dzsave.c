@@ -1467,6 +1467,9 @@ tile_name( Layer *layer, int x, int y )
 		 *
 		 * We always clip against the full-sized image, not the scaled
 		 * up layer.
+		 *
+		 * This will break for overlap != 0, but hopefully no one will
+		 * ever use that.
 		 */
 		int left = x * dz->tile_size * layer->sub;
 		int top = y * dz->tile_size * layer->sub;
@@ -1477,14 +1480,17 @@ tile_name( Layer *layer, int x, int y )
 		vips_snprintf( dirname, VIPS_PATH_MAX, "%d,%d,%d,%d",
 			left, top, width, height );
 
-		if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF3 )
+		if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF3 ) {
+			int xsize = VIPS_MIN( dz->tile_size, 
+				layer->width - x * dz->tile_size );
+			int ysize = VIPS_MIN( dz->tile_size, 
+				layer->height - y * dz->tile_size );
+
 			vips_snprintf( dirname2, VIPS_PATH_MAX, "%d,%d,", 
-				dz->tile_size, dz->tile_size );
+				xsize, ysize );
+		}
 		else {
 			/* IIIF2 "size" is just real tile width, I think.
-			 *
-			 * TODO ... is this right? shouldn't it be the smaller 
-			 * of width and height?
 			 */
 			int size = VIPS_MIN( dz->tile_size, 
 				layer->width - x * dz->tile_size );
@@ -2017,7 +2023,8 @@ vips_foreign_save_dz_build( VipsObject *object )
 	 */
 	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY ||
 		dz->layout == VIPS_FOREIGN_DZ_LAYOUT_GOOGLE ||
-		dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF ) {
+		dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF ||
+		dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF3 ) {
 		if( !vips_object_argument_isset( object, "overlap" ) )
 			dz->overlap = 0;
 		if( !vips_object_argument_isset( object, "suffix" ) )
@@ -2032,9 +2039,10 @@ vips_foreign_save_dz_build( VipsObject *object )
 			dz->tile_size = 256;
 	}
 
-	/* Some iif writers default to 256, some to 512. We pick 512.
+	/* Some iiif writers default to 256, some to 512. We pick 512.
 	 */
-	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF ) {
+	if( dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF ||
+		dz->layout == VIPS_FOREIGN_DZ_LAYOUT_IIIF3 ) {
 		if( !vips_object_argument_isset( object, "tile_size" ) )
 			dz->tile_size = 512;
 	}
@@ -2344,6 +2352,7 @@ vips_foreign_save_dz_build( VipsObject *object )
 		break;
 
 	case VIPS_FOREIGN_DZ_LAYOUT_IIIF:
+	case VIPS_FOREIGN_DZ_LAYOUT_IIIF3:
 		if( write_json( dz ) )
 			return( -1 );
 		break;
