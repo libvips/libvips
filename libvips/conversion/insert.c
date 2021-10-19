@@ -277,6 +277,7 @@ vips__vector_to_pels( const char *domain,
 
 	/* Write to memory, copy to output buffer. 
 	 */
+	vips_image_set_int( in, "hide-progress", 1 );
 	if( !(t[7] = vips_image_new_memory()) ||
 		vips_image_write( in, t[7] ) ) {
 		g_object_unref( context );
