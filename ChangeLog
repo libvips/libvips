@@ -12,6 +12,7 @@
 - tiff writer loops for the whole image rather than per page [LionelArn2]
 - fix VipsSource with named pipes [vibbix]
 - added restart_interval option to jpegsave [manthey]
+- add IIIF3 support to dzsaave [martimpassos]
 
 16/8/21 started 8.11.4
 - fix off-by-one error in new rank fast path

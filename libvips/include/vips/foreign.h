@@ -718,7 +718,8 @@ int vips_jxlsave_target( VipsImage *in, VipsTarget *target, ... )
  * @VIPS_FOREIGN_DZ_LAYOUT_DZ: use DeepZoom directory layout
  * @VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY: use Zoomify directory layout
  * @VIPS_FOREIGN_DZ_LAYOUT_GOOGLE: use Google maps directory layout
- * @VIPS_FOREIGN_DZ_LAYOUT_IIIF: use IIIF directory layout
+ * @VIPS_FOREIGN_DZ_LAYOUT_IIIF: use IIIF v2 directory layout
+ * @VIPS_FOREIGN_DZ_LAYOUT_IIIF3: use IIIF v3 directory layout
  *
  * What directory layout and metadata standard to use. 
  */
@@ -727,6 +728,7 @@ typedef enum {
 	VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY,
 	VIPS_FOREIGN_DZ_LAYOUT_GOOGLE,
 	VIPS_FOREIGN_DZ_LAYOUT_IIIF,
+	VIPS_FOREIGN_DZ_LAYOUT_IIIF3,
 	VIPS_FOREIGN_DZ_LAYOUT_LAST
 } VipsForeignDzLayout;
 
