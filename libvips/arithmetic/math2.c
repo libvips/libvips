@@ -150,7 +150,6 @@ vips_math2_build( VipsObject *object )
 }
 
 #define WOP( Y, X, E ) POW( Y, E, X )
-
  
 #ifdef HAVE_ATAN2 
 #define ATAN2( Y, L, R ) { \

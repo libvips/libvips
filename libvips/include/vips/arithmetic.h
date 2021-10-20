@@ -71,7 +71,7 @@ typedef enum {
  * VipsOperationMath2:
  * @VIPS_OPERATION_MATH2_POW: pow( left, right )
  * @VIPS_OPERATION_MATH2_WOP: pow( right, left ) 
- * @VIPS_OPERATION_MATH2_ATAN2: pow( left, right ) 
+ * @VIPS_OPERATION_MATH2_ATAN2: atan2( left, right ) 
  *
  * See also: vips_math().
  */
