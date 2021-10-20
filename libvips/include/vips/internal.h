@@ -183,11 +183,6 @@ VipsPel *vips__vector_to_pels( const char *domain,
 	double *real, double *imag, int n );
 VipsPel *vips__vector_to_ink( const char *domain, 
 	VipsImage *im, double *real, double *imag, int n );
-double *vips__ink_to_vector( const char *domain, 
-	VipsImage *im, VipsPel *ink, int *n ); 
-
-VipsPel *im__vector_to_ink( const char *domain, 
-	VipsImage *im, int n, double *vec );
 
 int vips__draw_flood_direct( VipsImage *image, VipsImage *test, 
 	int serial, int x, int y );
