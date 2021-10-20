@@ -1143,7 +1143,8 @@ wtiff_new( VipsImage *input, const char *filename,
 	gboolean lossless,
 	VipsForeignDzDepth depth, 
 	gboolean subifd,
-	gboolean premultiply )
+	gboolean premultiply,
+	int page_height )
 {
 	Wtiff *wtiff;
 
@@ -1178,7 +1179,7 @@ wtiff_new( VipsImage *input, const char *filename,
 	wtiff->subifd = subifd;
 	wtiff->premultiply = premultiply;
 	wtiff->toilet_roll = FALSE;
-	wtiff->page_height = vips_image_get_page_height( input );
+	wtiff->page_height = page_height;
 	wtiff->page_number = 0;
 	wtiff->n_pages = 1;
 	wtiff->image_height = input->Ysize;
@@ -1195,9 +1196,13 @@ wtiff_new( VipsImage *input, const char *filename,
 	if( wtiff->ready->Type == VIPS_INTERPRETATION_XYZ ) 
 		wtiff->compression = COMPRESSION_SGILOG;
 
-	/* Multipage image?
+	/* Multipage image? 0 is the default for this argument.
 	 */
-	if( wtiff->page_height < wtiff->ready->Ysize ) {
+	if( wtiff->page_height == 0 )
+		wtiff->page_height = vips_image_get_page_height( input );
+	if( wtiff->page_height > 0 &&
+		wtiff->page_height < wtiff->ready->Ysize &&
+		wtiff->ready->Ysize % wtiff->page_height == 0 ) {
 #ifdef DEBUG
 		printf( "wtiff_new: detected toilet roll image, "
 			"page-height=%d\n", 
@@ -2294,7 +2299,8 @@ vips__tiff_write( VipsImage *input, const char *filename,
 	gboolean lossless,
 	VipsForeignDzDepth depth,
 	gboolean subifd,
-	gboolean premultiply )
+	gboolean premultiply,
+	int page_height )
 {
 	Wtiff *wtiff;
 
@@ -2309,7 +2315,7 @@ vips__tiff_write( VipsImage *input, const char *filename,
                 tile, tile_width, tile_height, pyramid, bitdepth,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
 		properties, strip, region_shrink, level, lossless, depth,
-		subifd, premultiply )) )
+		subifd, premultiply, page_height )) )
 		return( -1 );
 
 	if( vips_sink_disc( wtiff->ready, wtiff_sink_disc_strip, wtiff ) ) {
@@ -2341,7 +2347,8 @@ vips__tiff_write_buf( VipsImage *input,
 	gboolean lossless,
 	VipsForeignDzDepth depth,
 	gboolean subifd,
-	gboolean premultiply )
+	gboolean premultiply,
+	int page_height )
 {
 	Wtiff *wtiff;
 
@@ -2352,7 +2359,7 @@ vips__tiff_write_buf( VipsImage *input,
                 tile, tile_width, tile_height, pyramid, bitdepth,
 		miniswhite, resunit, xres, yres, bigtiff, rgbjpeg, 
 		properties, strip, region_shrink, level, lossless, depth,
-		subifd, premultiply )) )
+		subifd, premultiply, page_height )) )
 		return( -1 );
 
 	wtiff->obuf = obuf;

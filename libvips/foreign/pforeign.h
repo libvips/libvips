@@ -69,7 +69,8 @@ int vips__tiff_write( VipsImage *in, const char *filename,
 	gboolean lossless,
 	VipsForeignDzDepth depth,
 	gboolean subifd, 
-	gboolean premultiply );
+	gboolean premultiply,
+	int page_height );
 
 int vips__tiff_write_buf( VipsImage *in, 
 	void **obuf, size_t *olen, 
@@ -89,7 +90,8 @@ int vips__tiff_write_buf( VipsImage *in,
 	gboolean lossless,
 	VipsForeignDzDepth depth,
 	gboolean subifd,
-	gboolean premultiply );
+	gboolean premultiply,
+	int page_height );
 
 gboolean vips__istiff_source( VipsSource *source );
 gboolean vips__istifftiled_source( VipsSource *source );
