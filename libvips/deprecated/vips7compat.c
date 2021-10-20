@@ -5703,3 +5703,67 @@ vips_popenf( const char *fmt, const char *mode, ... )
         return( NULL );
 }
 
+/* We used to use this for getpoint(), but since it was the only caller in
+ * vips8 it's now deprecated.
+ */
+double *
+vips__ink_to_vector( const char *domain, VipsImage *im, VipsPel *ink, int *n )
+{
+	VipsImage **t = (VipsImage **) 
+		vips_object_local_array( VIPS_OBJECT( im ), 6 );
+
+	double *result;
+
+#ifdef VIPS_DEBUG
+	printf( "vips__ink_to_vector: starting\n" );
+#endif /*VIPS_DEBUG*/
+
+	/* Wrap a VipsImage around ink.
+	 */
+	t[0] = vips_image_new_from_memory( ink, VIPS_IMAGE_SIZEOF_PEL( im ),
+		1, 1, VIPS_IMAGE_SIZEOF_PEL( im ), VIPS_FORMAT_UCHAR );
+	if( vips_copy( t[0], &t[1], 
+		"bands", im->Bands, 
+		"format", im->BandFmt, 
+		"coding", im->Coding, 
+		"interpretation", im->Type, 
+		NULL ) )
+		return( NULL ); 
+
+	/* The image may be coded .. unpack to double.
+	 */
+	if( vips_image_decode( t[1], &t[2] ) ||
+		vips_cast( t[2], &t[3], VIPS_FORMAT_DOUBLE, NULL ) )
+		return( NULL );
+
+	/* To a mem buffer, then copy to out. 
+	 */
+	if( !(t[4] = vips_image_new_memory()) ||
+		vips_image_write( t[3], t[4] ) )
+		return( NULL ); 
+
+	if( !(result = VIPS_ARRAY( im, t[4]->Bands, double )) )
+		return( NULL ); 
+	memcpy( result, t[4]->data, VIPS_IMAGE_SIZEOF_PEL( t[4] ) ); 
+	*n = t[4]->Bands; 
+
+#ifdef VIPS_DEBUG
+{
+	int i;
+
+	printf( "vips__ink_to_vector:\n" );
+	printf( "\tink = " ); 
+	for( i = 0; i < n; i++ )
+		printf( "%d ", ink[i] );
+	printf( "\n" ); 
+
+	printf( "\tvec = " ); 
+	for( i = 0; i < *n; i++ )
+		printf( "%g ", result[i] );
+	printf( "\n" ); 
+}
+#endif /*VIPS_DEBUG*/
+
+	return( result ); 
+}
+
