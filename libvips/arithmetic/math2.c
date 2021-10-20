@@ -24,6 +24,8 @@
  * 	- redone as a class
  * 17/7/12
  * 	- wopconst was broken
+ * 20/10/21 indus
+ * 	- add atan2
  */
 
 /*
