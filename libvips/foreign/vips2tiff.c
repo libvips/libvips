@@ -199,6 +199,9 @@
  * 	- add bitdepth support for 2 and 4 bit greyscale images
  * 29/9/21 LionelArn2
  * 	- loop for the whole output image, rather than per page
+ * 20/10/21 [jacopoabramo]
+ * 	- subifd enables pyramid
+ * 	- add support for page_height param
  */
 
 /*
@@ -230,8 +233,8 @@
 
 /* 
 #define DEBUG_VERBOSE
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1216,6 +1219,22 @@ wtiff_new( VipsImage *input, const char *filename,
 		wtiff->n_pages = wtiff->ready->Ysize / wtiff->page_height;
 	}
 
+	/* subifd turns on pyramid mode.
+	 */
+	if( wtiff->subifd )
+		wtiff->pyramid = TRUE;
+
+	/* Pyramid images must be tiled.
+	 */
+	if( wtiff->pyramid )
+		wtiff->tile = TRUE;
+
+	/* Multi-page pyramids must be in subifd mode.
+	 */
+	if( wtiff->pyramid &&
+		wtiff->toilet_roll )
+		wtiff->subifd = TRUE;
+
 	/* We can only pyramid LABQ and non-complex images. 
 	 */
 	if( wtiff->pyramid ) {
@@ -1228,18 +1247,6 @@ wtiff_new( VipsImage *input, const char *filename,
 			return( NULL );
 		}
 	}
-
-	/* Pyramid images must be tiled.
-	 */
-	if( wtiff->pyramid &&
-		!wtiff->tile )
-		wtiff->tile = TRUE;
-
-	/* Multi-page pyramids must be in subifd mode.
-	 */
-	if( wtiff->pyramid &&
-		wtiff->toilet_roll )
-		wtiff->subifd = TRUE;
 
 	/* If compression is off and we're writing a >4gb image, automatically
 	 * enable bigtiff.
