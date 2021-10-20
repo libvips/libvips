@@ -1468,6 +1468,35 @@ public:
 		return( math2_const( VIPS_OPERATION_MATH2_WOP, 
 			other, options ) );
 	}
+	
+	/**
+	 * Calculate atan2 of each pixel.
+	 */
+	VImage 
+	atan2( VImage other, VOption *options = 0 ) const
+	{
+		return( math2( other, VIPS_OPERATION_MATH2_ATAN2, options ) );
+	}
+
+	/**
+	 * Calculate atan2 of each pixel.
+	 */
+	VImage 
+	atan2( double other, VOption *options = 0 ) const
+	{
+		return( math2_const( VIPS_OPERATION_MATH2_ATAN2, 
+			to_vector( other ), options ) );
+	}
+
+	/**
+	 * Calculate atan2 of each pixel.
+	 */
+	VImage 
+	atan2( std::vector<double> other, VOption *options = 0 ) const
+	{
+		return( math2_const( VIPS_OPERATION_MATH2_ATAN2, 
+			other, options ) );
+	}
 
 	/**
 	 * Use self as a conditional image (not zero meaning TRUE) to pick
