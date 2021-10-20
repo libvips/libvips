@@ -659,7 +659,7 @@ vips_blob_new( VipsCallbackFn free_fn, const void *data, size_t length )
  * @length: number of bytes in @data
  *
  * Like vips_blob_new(), but take a copy of the data. Useful for bindings
- * which strugle with callbacks. 
+ * which struggle with callbacks. 
  *
  * See also: vips_blob_new().
  *
@@ -671,7 +671,7 @@ vips_blob_copy( const void *data, size_t length )
 	void *data_copy; 
 	VipsArea *area;
 
-	data_copy = vips_malloc( NULL, length );
+	data_copy = g_malloc( length );
 	memcpy( data_copy, data, length );
 	area = vips_area_new( (VipsCallbackFn) vips_area_free_cb, data_copy );
 	area->length = length;
