@@ -97,7 +97,9 @@
  * 13/9/20
  * 	- only write JFIF resolution if we don't have EXIF
  * 7/10/21 Manthey
- *  - add restart_interval
+ * 	- add restart_interval
+ * 21/10/21 usualuse 
+ * 	- raise single-chunk limit on APP to 65533
  */
 
 /*
@@ -152,6 +154,11 @@
 #include "pforeign.h"
 
 #include "jpeg.h"
+
+#define ICC_MARKER  (JPEG_APP0 + 2)     /* JPEG marker code for ICC */
+#define ICC_OVERHEAD_LEN  14            /* size of non-profile data in APP2 */
+#define MAX_BYTES_IN_MARKER  65533      /* maximum data len of a JPEG marker */
+#define MAX_DATA_BYTES_IN_MARKER  (MAX_BYTES_IN_MARKER - ICC_OVERHEAD_LEN)
 
 /* New output message method - send to VIPS.
  */
@@ -270,7 +277,7 @@ write_blob( Write *write, const char *field, int app )
 		 *
 		 * For now, just ignore oversize objects and warn.
 		 */
-		if( data_length > 65530 ) 
+		if( data_length > MAX_BYTES_IN_MARKER ) 
 			g_warning( _( "field \"%s\" is too large "
 				"for a single JPEG marker, ignoring" ), 
 				field );
@@ -345,11 +352,6 @@ write_exif( Write *write )
 
 /* ICC writer from lcms, slight tweaks.
  */
-
-#define ICC_MARKER  (JPEG_APP0 + 2)     /* JPEG marker code for ICC */
-#define ICC_OVERHEAD_LEN  14            /* size of non-profile data in APP2 */
-#define MAX_BYTES_IN_MARKER  65533      /* maximum data len of a JPEG marker */
-#define MAX_DATA_BYTES_IN_MARKER  (MAX_BYTES_IN_MARKER - ICC_OVERHEAD_LEN)
 
 /*
  * This routine writes the given ICC profile data into a JPEG file.
