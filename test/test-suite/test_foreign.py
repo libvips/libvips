@@ -1125,6 +1125,7 @@ class TestForeign:
         self.buffer_loader("heifload_buffer", AVIF_FILE, heif_valid)
 
     @skip_if_no("heifsave")
+    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
     def test_heifsave(self):
         # TODO: Reduce the threshold once https://github.com/strukturag/libheif/issues/533 is resolved.
         self.save_load_buffer("heifsave_buffer", "heifload_buffer",
