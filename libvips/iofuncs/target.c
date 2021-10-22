@@ -87,13 +87,15 @@
 #define BINARYIZE(M) (M)
 #endif /*O_BINARY*/
 
-/* If we have O_NOINHERIT, add it to a mode flags set.
+/* If we have O_CLOEXEC or O_NOINHERIT, add it to a mode flags set.
  */
-#ifdef O_NOINHERIT
+#ifdef O_CLOEXEC
+#define CLOEXEC(M) ((M) | O_CLOEXEC)
+#elif defined(O_NOINHERIT)
 #define CLOEXEC(M) ((M) | O_NOINHERIT)
-#else /*!O_NOINHERIT*/
+#else /*!O_CLOEXEC && !O_NOINHERIT*/
 #define CLOEXEC(M) (M)
-#endif /*O_NOINHERIT*/
+#endif /*O_CLOEXEC*/
 
 #define MODE_WRITE CLOEXEC (BINARYIZE (O_WRONLY | O_CREAT | O_TRUNC))
 

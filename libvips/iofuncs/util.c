@@ -88,13 +88,15 @@
 #define BINARYIZE(M) (M)
 #endif /*O_BINARY*/
 
-/* If we have O_NOINHERIT, add it to a mode flags set.
+/* If we have O_CLOEXEC or O_NOINHERIT, add it to a mode flags set.
  */
-#ifdef O_NOINHERIT
+#ifdef O_CLOEXEC
+#define CLOEXEC(M) ((M) | O_CLOEXEC)
+#elif defined(O_NOINHERIT)
 #define CLOEXEC(M) ((M) | O_NOINHERIT)
-#else /*!O_NOINHERIT*/
+#else /*!O_CLOEXEC && !O_NOINHERIT*/
 #define CLOEXEC(M) (M)
-#endif /*O_NOINHERIT*/
+#endif /*O_CLOEXEC*/
 
 #define MODE_READ CLOEXEC (BINARYIZE (O_RDONLY))
 
@@ -707,7 +709,7 @@ vips__file_open_read( const char *filename, const char *fallback_dir,
 	else
 		mode = "rbN";
 #else /*!defined(G_PLATFORM_WIN32) && !defined(G_WITH_CYGWIN)*/
-	mode = "r";
+	mode = "re";
 #endif /*defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)*/
 
 	if( (fp = vips__fopen( filename, mode )) )
@@ -743,7 +745,7 @@ vips__file_open_write( const char *filename, gboolean text_mode )
 	else
 		mode = "wbN";
 #else /*!defined(G_PLATFORM_WIN32) && !defined(G_WITH_CYGWIN)*/
-	mode = "w";
+	mode = "we";
 #endif /*defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)*/
 
         if( !(fp = vips__fopen( filename, mode )) ) {
