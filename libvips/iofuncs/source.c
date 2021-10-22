@@ -77,7 +77,7 @@
 #include <io.h>
 #endif /*G_OS_WIN32*/
 
-/* Try to make an O_BINARY ... sometimes need the leading '_'.
+/* Try to make an O_BINARY and O_NOINHERIT ... sometimes need the leading '_'.
  */
 #if defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)
 #ifndef O_BINARY
@@ -85,6 +85,11 @@
 #define O_BINARY _O_BINARY
 #endif /*_O_BINARY*/
 #endif /*!O_BINARY*/
+#ifndef O_NOINHERIT
+#ifdef _O_NOINHERIT
+#define O_NOINHERIT _O_NOINHERIT
+#endif /*_O_NOINHERIT*/
+#endif /*!O_NOINHERIT*/
 #endif /*defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)*/
 
 /* If we have O_BINARY, add it to a mode flags set.
@@ -95,7 +100,15 @@
 #define BINARYIZE(M) (M)
 #endif /*O_BINARY*/
 
-#define MODE_READ BINARYIZE (O_RDONLY)
+/* If we have O_NOINHERIT, add it to a mode flags set.
+ */
+#ifdef O_NOINHERIT
+#define CLOEXEC(M) ((M) | O_NOINHERIT)
+#else /*!O_NOINHERIT*/
+#define CLOEXEC(M) (M)
+#endif /*O_NOINHERIT*/
+
+#define MODE_READ CLOEXEC (BINARYIZE (O_RDONLY))
 
 /* -1 on a pipe isn't actually unbounded. Have a limit to prevent
  * huge sources accidentally filling memory.
