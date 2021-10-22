@@ -96,8 +96,6 @@
 #endif /*O_BINARY*/
 
 #define MODE_READ BINARYIZE (O_RDONLY)
-#define MODE_READWRITE BINARYIZE (O_RDWR)
-#define MODE_WRITE BINARYIZE (O_WRONLY | O_CREAT | O_TRUNC)
 
 /* -1 on a pipe isn't actually unbounded. Have a limit to prevent
  * huge sources accidentally filling memory.
