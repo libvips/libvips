@@ -66,8 +66,8 @@
  *
  * It also maintains a cache of recent operations. See below. 
  *
- * vips_call(), vips_call_split() and vips_call_split_option_string() are used
- * by vips to implement the C API. They can execute any #VipsOperation,
+ * vips_call(), vips_call_split() and vips_call_split_filename_option_string() 
+ * are used by vips to implement the C API. They can execute any #VipsOperation,
  * passing in a set of required and optional arguments. Normally you would not
  * use these functions directly: every operation has a tiny wrapper function
  * which provides type-safety for the required arguments. For example,
@@ -894,7 +894,8 @@ vips_call_required_optional( VipsOperation **operation,
 
 static int
 vips_call_by_name( const char *operation_name, 
-	const char *option_string, va_list required, va_list optional )
+	const char *filename, const char *option_string, 
+	va_list required, va_list optional )
 {
 	VipsOperation *operation;
 	int result;
@@ -915,6 +916,15 @@ vips_call_by_name( const char *operation_name,
 		g_object_unref( operation ); 
 
 		return( -1 ); 
+	}
+
+	if( filename ) { 
+		GObjectClass *class = G_OBJECT_GET_CLASS( operation );
+
+		if( g_object_class_find_property( class, "filename" ) )
+			g_object_set( operation,
+				"filename", filename,
+				NULL );
 	}
 
 	result = vips_call_required_optional( &operation, required, optional );
@@ -1006,7 +1016,8 @@ vips_call( const char *operation_name, ... )
 	 */
 	g_object_unref( operation ); 
 
-	result = vips_call_by_name( operation_name, NULL, required, optional ); 
+	result = vips_call_by_name( operation_name, NULL, NULL, 
+		required, optional ); 
 
 	va_end( required );
 	va_end( optional );
@@ -1021,13 +1032,32 @@ vips_call_split( const char *operation_name, va_list optional, ... )
 	va_list required;
 
 	va_start( required, optional );
-	result = vips_call_by_name( operation_name, NULL, 
+	result = vips_call_by_name( operation_name, NULL, NULL, 
 		required, optional );
 	va_end( required );
 
 	return( result );
 }
 
+int
+vips_call_split_filename_option_string( const char *operation_name, 
+	const char *filename, const char *option_string, 
+	va_list optional, ... ) 
+{
+	int result;
+	va_list required;
+
+	va_start( required, optional );
+	result = vips_call_by_name( operation_name, filename, option_string, 
+		required, optional );
+	va_end( required );
+
+	return( result );
+}
+
+/* Use vips_call_split_filename_option_string() above instead, this is just
+ * for back compat.
+ */
 int
 vips_call_split_option_string( const char *operation_name, 
 	const char *option_string, va_list optional, ... ) 
@@ -1036,7 +1066,7 @@ vips_call_split_option_string( const char *operation_name,
 	va_list required;
 
 	va_start( required, optional );
-	result = vips_call_by_name( operation_name, option_string, 
+	result = vips_call_by_name( operation_name, NULL, option_string, 
 		required, optional );
 	va_end( required );
 

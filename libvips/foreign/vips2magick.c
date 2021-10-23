@@ -564,6 +564,11 @@ typedef struct _VipsForeignSaveMagickBuffer {
 	 */
 	VipsArea *buf;
 
+	/* The filename (ie. suffix) to save to. We init @foprmat from this if
+	 * format is not set.
+	 */
+	char *filename;
+
 } VipsForeignSaveMagickBuffer;
 
 typedef VipsForeignSaveMagickClass VipsForeignSaveMagickBufferClass;
@@ -582,6 +587,15 @@ vips_foreign_save_magick_buffer_build( VipsObject *object )
 	void *obuf;
 	size_t olen;
 	VipsBlob *blob;
+
+	/* Filenames which start with a "." are suffixes used to set
+	 * the image format.
+	 */
+	if( vips_object_argument_isset( object, "filename" ) &&
+		!vips_object_argument_isset( object, "format" ) &&
+		buffer->filename &&
+		buffer->filename[0] == '.' ) 
+		magick->format = buffer->filename + 1;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_magick_buffer_parent_class )->
 		build( object ) )
@@ -622,6 +636,14 @@ vips_foreign_save_magick_buffer_class_init(
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveMagickBuffer, buf ),
 		VIPS_TYPE_BLOB );
+
+	VIPS_ARG_STRING( class, "filename", 2, 
+		_( "Filename" ),
+		_( "Filename to save to" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveMagickBuffer, filename ),
+		NULL );
+
 
 }
 

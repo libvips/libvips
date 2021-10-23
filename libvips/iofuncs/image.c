@@ -1924,8 +1924,8 @@ vips_image_new_from_file( const char *name, ... )
 		return( NULL );
 
 	va_start( ap, name );
-	result = vips_call_split_option_string( operation_name, 
-		option_string, ap, filename, &out );
+	result = vips_call_split_filename_option_string( operation_name, 
+		NULL, option_string, ap, filename, &out );
 	va_end( ap );
 
 	if( result )
@@ -2155,8 +2155,8 @@ vips_image_new_from_buffer( const void *buf, size_t len,
 	blob = vips_blob_new( NULL, buf, len );
 
 	va_start( ap, option_string );
-	result = vips_call_split_option_string( operation_name,
-		option_string, ap, blob, &out );
+	result = vips_call_split_filename_option_string( operation_name,
+		NULL, option_string, ap, blob, &out );
 	va_end( ap );
 
 	vips_area_unref( VIPS_AREA( blob ) );
@@ -2204,8 +2204,8 @@ vips_image_new_from_source( VipsSource *source,
 
         if( operation_name ) { 
 		va_start( ap, option_string );
-		result = vips_call_split_option_string( operation_name,
-			option_string, ap, source, &out );
+		result = vips_call_split_filename_option_string( operation_name,
+			NULL, option_string, ap, source, &out );
 		va_end( ap );
 	}
 	else if( filename ) {
@@ -2215,8 +2215,8 @@ vips_image_new_from_source( VipsSource *source,
 			return( NULL );
 
 		va_start( ap, option_string );
-		result = vips_call_split_option_string( operation_name, 
-			option_string, ap, filename, &out );
+		result = vips_call_split_filename_option_string( operation_name,
+			NULL, option_string, ap, filename, &out );
 		va_end( ap );
 	}
 	else if( vips_source_is_mappable( source ) ) {
@@ -2237,8 +2237,8 @@ vips_image_new_from_source( VipsSource *source,
 		}
 
                 va_start( ap, option_string );
-                result = vips_call_split_option_string( operation_name,
-                        option_string, ap, blob, &out );
+                result = vips_call_split_filename_option_string( operation_name,
+                        NULL, option_string, ap, blob, &out );
                 va_end( ap );
 
 		vips_area_unref( VIPS_AREA( blob ) );
@@ -2695,16 +2695,16 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
 			return( -1 );
 
 		va_start( ap, name );
-		result = vips_call_split_option_string( operation_name, 
-			option_string, ap, image, target );
+		result = vips_call_split_filename_option_string( operation_name,
+			filename, option_string, ap, image, target );
 		va_end( ap );
 
 		VIPS_UNREF( target );
 	}
 	else if( (operation_name = vips_foreign_find_save( filename )) ) {
 		va_start( ap, name );
-		result = vips_call_split_option_string( operation_name, 
-			option_string, ap, image, filename );
+		result = vips_call_split_filename_option_string( operation_name,
+			NULL, option_string, ap, image, filename );
 		va_end( ap );
 	}
 	else
@@ -2757,8 +2757,8 @@ vips_image_write_to_buffer( VipsImage *in,
 			return( -1 );
 
 		va_start( ap, size );
-		result = vips_call_split_option_string( operation_name, 
-			option_string, ap, in, target );
+		result = vips_call_split_filename_option_string( operation_name,
+			filename, option_string, ap, in, target );
 		va_end( ap );
 
 		if( result ) {
@@ -2773,8 +2773,8 @@ vips_image_write_to_buffer( VipsImage *in,
 		vips_foreign_find_save_buffer( filename )) ) {
 
 		va_start( ap, size );
-		result = vips_call_split_option_string( operation_name, 
-			option_string, ap, in, &blob );
+		result = vips_call_split_filename_option_string( operation_name,
+			filename, option_string, ap, in, &blob );
 		va_end( ap );
 
 		if( result )
@@ -2836,8 +2836,8 @@ vips_image_write_to_target( VipsImage *in,
 		return( -1 );
 
 	va_start( ap, target );
-	result = vips_call_split_option_string( operation_name, option_string, 
-		ap, in, target );
+	result = vips_call_split_filename_option_string( operation_name, 
+		filename, option_string, ap, in, target );
 	va_end( ap );
 
 	if( result )

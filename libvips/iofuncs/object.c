@@ -2507,8 +2507,8 @@ vips_object_set_args( VipsObject *object, const char *p )
 			string2, VIPS_PATH_MAX )) )
 			return( -1 );
 		if( token == VIPS_TOKEN_EQUALS ) {
-			if( !(p = vips__token_segment_need( p, VIPS_TOKEN_STRING,
-				string2, VIPS_PATH_MAX )) )
+			if( !(p = vips__token_segment_need( p, 
+				VIPS_TOKEN_STRING, string2, VIPS_PATH_MAX )) )
 				return( -1 );
 			if( vips_object_set_argument_from_string( object, 
 				string, string2 ) )

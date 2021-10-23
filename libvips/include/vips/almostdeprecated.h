@@ -297,6 +297,8 @@ VipsAngle vips_autorot_get_angle( VipsImage *image );
 /* iofuncs
  */
 int vips_free( void *buf );
+int vips_call_split_option_string( const char *operation_name, 
+	const char *option_string, va_list optional, ... );
 
 #ifdef __cplusplus
 }
