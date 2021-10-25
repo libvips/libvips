@@ -16,6 +16,40 @@
 
   hide from introspection? eg. tag as DEPRECATED
 
+- nope, also fails, since py calls
+
+	pointer = vips_lib.vips_filename_get_options(format_string)
+        options = _to_string_copy(pointer)
+
+        pointer = vips_lib.vips_foreign_find_save_target(format_string)
+        if pointer == ffi.NULL:
+            raise Error('unable to write to target')
+        name = _to_string(pointer)
+
+        return pyvips.Operation.call(name, self, target,
+                                     string_options=options, **kwargs)
+
+  ie. the filename part is stripped before we see it
+
+  we'd need to change pyvips too, and it would need to detect older libvipses
+
+- could add an extra string param to vips_lib.vips_filename_get_options()?
+
+	vips_lib.vips_filename_get_options("x.y[arg=val]")
+
+  could yield
+
+	[arg=val,suffix=.y]
+
+  ie. append a magic extra arg we make
+
+  how fragile and ugly!
+
 - something in pytest is taking FOREVER ... find it and fix it
 
   uses enough memory to kill the laptop
+
+    heifsave is incredibly slow
+		
+      is it testing AVIF too?
+	

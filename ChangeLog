@@ -14,6 +14,8 @@
 - added restart_interval option to jpegsave [manthey]
 - add IIIF3 support to dzsaave [martimpassos]
 - add atan2 [indus]
+- added "string_arguments" ... buffer and target savers which support multiple
+  formats should no longer need special cases
 
 16/8/21 started 8.11.4
 - fix off-by-one error in new rank fast path

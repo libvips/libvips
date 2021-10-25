@@ -795,7 +795,7 @@ vips_object_get_argument( VipsObject *object, const char *name,
 }
 
 /**
- * vips_object_argument_has: 
+ * vips_object_argument_has: (skip)
  * @object: the object to fetch the args from
  * @name: arg name
  *
@@ -803,15 +803,20 @@ vips_object_get_argument( VipsObject *object, const char *name,
  *
  * Returns: %TRUE if the argument exists.
  */
-static gboolean
+int
 vips_object_argument_has( VipsObject *object, const char *name )
 {
-	GParamSpec *pspec;
-	VipsArgumentClass *argument_class;
-	VipsArgumentInstance *argument_instance;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 
-	return( !vips_object_get_argument( object, name,
-		&pspec, &argument_class, &argument_instance ) );
+	GParamSpec pspec;
+
+	if( g_object_class_find_property( G_OBJECT_CLASS( class ), name ) )
+		return( TRUE );
+
+	if( vips__argument_table_lookup( class->argument_table, &pspec ) )
+		return( TRUE );
+
+	return( FALSE );
 }
 
 /**

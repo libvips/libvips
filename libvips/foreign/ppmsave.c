@@ -75,6 +75,10 @@ struct _VipsForeignSavePpm {
 
 	VipsSavePpmFn fn;
 
+	/* Our save options in string form. See target save.
+	 */
+	const char *string_arguments;
+
 	/* Deprecated.
 	 */
 	gboolean squash;
@@ -216,7 +220,6 @@ vips_foreign_save_ppm_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSavePpm *ppm = (VipsForeignSavePpm *) object;
-
 	VipsImage *image;
 	char *magic;
 	char *date;
@@ -237,6 +240,49 @@ vips_foreign_save_ppm_build( VipsObject *object )
 		vips_check_uncoded( "vips2ppm", image ) || 
 		vips_image_pio_input( image ) )
 		return( -1 );
+
+	/* ppm types. We use the suffix (if avail.) to set the defaults for
+	 * bitdepth etc.
+	 *
+	 *   pbm ... 1 band 1 bit
+	 *   pgm ... 1 band many bit
+	 *   ppm ... 3 band many bit
+	 *   pfm ... 1 or 3 bands, 32 bit
+	 */
+	if( ppm->string_arguments ) {
+		VipsImage **t = (VipsImage **) 
+			vips_object_local_array( object, 2 );
+
+		char filename[VIPS_PATH_MAX];
+		char option_string[VIPS_PATH_MAX];
+		VipsBandFormat target_format;
+		VipsInterpretation target_interpretation;
+
+		vips__filename_split8( ppm->string_arguments, 
+			filename, option_string );
+
+		target_format = image->BandFmt;
+		target_interpretation = image->Type;
+
+		if( vips_iscasepostfix( filename, ".pbm" ) ||
+			vips_iscasepostfix( filename, ".pgm" ) )
+			target_interpretation = VIPS_INTERPRETATION_B_W;
+		else if( vips_iscasepostfix( filename, ".ppm" ) )
+			target_interpretation = VIPS_INTERPRETATION_sRGB;
+		else if( vips_iscasepostfix( filename, ".pfm" ) )
+			target_format = VIPS_FORMAT_FLOAT;
+
+		if( vips_cast( image, &t[0], target_format, NULL ) )
+			return( -1 );
+		image = t[0];
+
+		if( image->Type != target_interpretation ) {
+			if( vips_colourspace( image, &t[1], 
+				target_interpretation, NULL ) )
+				return( -1 );
+			image = t[1];
+		}
+	}
 
 	if( ppm->ascii && 
 		image->BandFmt == VIPS_FORMAT_FLOAT ) {
@@ -427,6 +473,16 @@ vips_foreign_save_ppm_class_init( VipsForeignSavePpmClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignSavePpm, squash ),
 		FALSE );
+
+	/* This isn't really deprecated, just internal. We just want to hide 
+	 * it from bindings and the user.
+	 */
+	VIPS_ARG_STRING( class, "string_arguments", 12,
+		_( "String arguments" ),
+		_( "Save options in string form" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED, 
+		G_STRUCT_OFFSET( VipsForeignSavePpm, string_arguments ),
+		NULL );
 
 }
 
