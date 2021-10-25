@@ -9,3 +9,13 @@
 
 - PPM saver as well
 
+- no, option_string is alreadyed used by "thumbnail", we need a new stabdard
+  arg to detect and set ... how about "string_arguments"
+
+  need to add this to ForeignSave so buffer and target can see it
+
+  hide from introspection? eg. tag as DEPRECATED
+
+- something in pytest is taking FOREVER ... find it and fix it
+
+  uses enough memory to kill the laptop

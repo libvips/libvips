@@ -1283,13 +1283,13 @@ vips__token_get( const char *p, VipsToken *token, char *string, int size )
 
 	/* Parse this token with p.
 	 */
-	if( !p )
+	if( !p ) 
 		return( NULL );
 
 	/* Skip initial whitespace.
 	 */
         p += strspn( p, " \t\n\r" );
-	if( !p[0] )
+	if( !p[0] ) 
 		return( NULL );
 
 	switch( (ch = p[0]) ) {
@@ -1338,13 +1338,16 @@ vips__token_get( const char *p, VipsToken *token, char *string, int size )
 			 * string was not truncated, swap the preceding 
 			 * backslash for a quote.
 			 */
-			if( p[n + 1] == ch && p[n] == '\\' && i == n )
+			if( p[n + 1] == ch && 
+				p[n] == '\\' && 
+				i == n )
 				string[i - 1] = ch;
 
 			string += i;
 			size -= i;
 			p += n + 1;
-		} while( p[0] && p[-1] == '\\' );
+		} while( p[0] && 
+			p[-1] == '\\' );
 
 		p += 1;
 
@@ -1367,7 +1370,8 @@ vips__token_get( const char *p, VipsToken *token, char *string, int size )
 		 * hasn't been truncated.
 		 */
 		if( i != size ) 
-			while( i > 0 && isspace( string[i - 1] ) ) {
+			while( i > 0 && 
+				isspace( string[i - 1] ) ) {
 				string[i - 1] = '\0';
 				i--;
 			}

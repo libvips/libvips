@@ -795,6 +795,26 @@ vips_object_get_argument( VipsObject *object, const char *name,
 }
 
 /**
+ * vips_object_argument_has: 
+ * @object: the object to fetch the args from
+ * @name: arg name
+ *
+ * Convenience: true if the object has the named argument.
+ *
+ * Returns: %TRUE if the argument exists.
+ */
+static gboolean
+vips_object_argument_has( VipsObject *object, const char *name )
+{
+	GParamSpec *pspec;
+	VipsArgumentClass *argument_class;
+	VipsArgumentInstance *argument_instance;
+
+	return( !vips_object_get_argument( object, name,
+		&pspec, &argument_class, &argument_instance ) );
+}
+
+/**
  * vips_object_argument_isset: 
  * @object: the object to fetch the args from
  * @name: arg to fetch
@@ -2468,12 +2488,43 @@ vips_object_set( VipsObject *object, ... )
 	return( result );
 }
 
-/* Set object args from a string. The string is something like 
+/* Set object args from a string. Syntax:
+ *	
+ *	args: 
+ *		optional-open arg-list optional-close 
+ *
+ *	optional-open: 
+ *		'[' | 
+ *		empty
+ *
+ *	optional-close: 
+ *		']' | 
+ *		empty
+ *
+ *	arg-list: 
+ *		arg |
+ *		arg ',' arg-list
+ *
+ *	arg:
+ *		segment |
+ *		segment '=' segment
+ *
+ *	segment:
+ *		string |
+ *		string '[' arg-list ']'
+ *
+ * eg.
+ *
  * 	""
  * 	"a=12"
  * 	"a = 12, b = fred[jim]"
+ * 	"[a = 12, b = fred[jim]]"
+ *
  * etc.
  */
+
+#define NEXT() (p = vips__token_get( p, &token, string, VIPS_PATH_MAX ))
+
 static int
 vips_object_set_args( VipsObject *object, const char *p )
 {
@@ -2482,13 +2533,31 @@ vips_object_set_args( VipsObject *object, const char *p )
 	VipsToken token;
 	char string[VIPS_PATH_MAX];
 	char string2[VIPS_PATH_MAX];
+	const char *q;
+	GParamSpec *pspec;
+	VipsArgumentClass *argument_class;
+	VipsArgumentInstance *argument_instance;
 
-	while( vips__token_get( p, &token, string, VIPS_PATH_MAX ) &&
-		token == VIPS_TOKEN_STRING ) {
-		const char *q;
-		GParamSpec *pspec;
-		VipsArgumentClass *argument_class;
-		VipsArgumentInstance *argument_instance;
+	/* p point to the current token, q points to the start of the next
+	 * token.
+	 */
+	if( !(q = vips__token_get( p, &token, string, VIPS_PATH_MAX )) ) 
+		return( 0 );
+
+	/* '['? Step forward.
+	 */
+	if( token == VIPS_TOKEN_LEFT ) {
+		p = q;
+		if( !(q = vips__token_get( p, &token, string, VIPS_PATH_MAX )) )
+			return( -1 );
+	}
+
+	for(;;) {
+		if( token != VIPS_TOKEN_STRING ) {
+			vips_error( class->nickname,
+				"%s", _( "not string at start of argument" ) );
+			return( -1 );
+		}
 
 		/* Read "string[options]".
 		 */
@@ -2497,10 +2566,11 @@ vips_object_set_args( VipsObject *object, const char *p )
 			return( -1 );
 
 		/* Peek the next token. "=" means we need a value, "," means 
-		 * move on to the next arg.
+		 * move on to the next arg, end-of-string means we're done.
 		 */
 		if( !(q = vips__token_get( p, &token, string, VIPS_PATH_MAX )) )
-			break;
+			return( 0 );
+
 		if( token == VIPS_TOKEN_EQUALS ) {
 			/* Get "string[options]" again for the value.
 			 */
@@ -2510,6 +2580,10 @@ vips_object_set_args( VipsObject *object, const char *p )
 			if( vips_object_set_argument_from_string( object, 
 				string, string2 ) )
 				return( -1 );
+
+			if( !(q = vips__token_get( p, &token, 
+				string, VIPS_PATH_MAX )) )
+				return( 0 );
 		}
 		else if( g_object_class_find_property( 
 			G_OBJECT_GET_CLASS( object ), string ) &&
@@ -2535,18 +2609,32 @@ vips_object_set_args( VipsObject *object, const char *p )
 			return( -1 );
 		}
 
-		/* Now step over any ",".
+		/* Something other than ','? We must be at the end of the args.
 		 */
-		if( !(p = vips__token_get( p, &token, string, VIPS_PATH_MAX )) )
+		if( token != VIPS_TOKEN_COMMA )
 			break;
-		if( token != VIPS_TOKEN_COMMA ) {
-			vips_error( class->nickname,
-				"%s", _( "not , after parameter" ) );
-			return( -1 );
-		}
+		p = q;
+		if( !(q = vips__token_get( p, &token, string, VIPS_PATH_MAX )) )
+			return( 0 );
 	}
 
-	return( 0 );
+	/* An optional ']', and we should be at the end of the string.
+	 */
+	if( token != VIPS_TOKEN_RIGHT ) {
+		vips_error( class->nickname,
+			"%s", _( "not ']' at end of arg list" ) );
+		return( -1 );
+	}
+
+	/* And that should be the end of the tokens.
+	 */
+	p = q;
+	if( !(q = vips__token_get( p, &token, string, VIPS_PATH_MAX )) )
+		return( 0 );
+
+	vips_error( class->nickname, 
+		"%s", _( "unexpected tokens at end of arg list" ) );
+	return( -1 );
 }
 
 /**
@@ -2570,6 +2658,17 @@ vips_object_set_from_string( VipsObject *object, const char *string )
 {
 	char filename[VIPS_PATH_MAX];
 	char option_string[VIPS_PATH_MAX];
+
+	/* Note the string on the operation. Eg. ppm save can use the filename
+	 * component to pick a save subtype.
+	 *
+	 * We can't use option_string, unfortunately (the obvious name) since
+	 * "thumbnail" uses that for something else.
+	 */
+	if( vips_object_argument_has( object, "string_arguments" ) )
+		g_object_set( object,
+			"string_arguments", string,
+			NULL );
 
 	/* If the string is of the form "xxxxx[args]", get just args into
 	 * option_string.

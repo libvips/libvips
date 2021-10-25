@@ -179,7 +179,7 @@ class TestResample:
         im2 = pyvips.Image.thumbnail(OME_FILE + "[page=1]", 100)
         assert im2.width == 100
         assert im2.height == 38
-        assert (im1 - im2).abs().max() != 0 
+        assert (im1 - im2).abs().max() != 0
 
         # should be able to thumbnail entire many-page tiff as a toilet-roll
         # image
