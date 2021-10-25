@@ -1126,31 +1126,44 @@ class TestForeign:
 
     @skip_if_no("heifsave")
     @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
-    def test_heifsave(self):
+    def test_avifsave(self):
         # TODO: Reduce the threshold once https://github.com/strukturag/libheif/issues/533 is resolved.
         self.save_load_buffer("heifsave_buffer", "heifload_buffer",
                               self.colour, 80, compression="av1",
                               lossless=True)
         self.save_load("%s.avif", self.colour)
 
-        # uncomment to test lossless mode, will take a while
-        #im = pyvips.Image.new_from_file(AVIF_FILE)
-        #buf = im.heifsave_buffer(lossless=True, compression="av1")
-        #im2 = pyvips.Image.new_from_buffer(buf, "")
+    @skip_if_no("heifsave")
+    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
+    @pytest.mark.skip()
+    def test_avifsave_lossless(self):
+        # this takes FOREVER
+        im = pyvips.Image.new_from_file(AVIF_FILE)
+        buf = im.heifsave_buffer(lossless=True, compression="av1")
+        im2 = pyvips.Image.new_from_buffer(buf, "")
         # not in fact quite lossless
-        #assert abs(im.avg() - im2.avg()) < 3
+        assert abs(im.avg() - im2.avg()) < 3
 
+    @skip_if_no("heifsave")
+    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
+    def test_avifsave_Q(self):
         # higher Q should mean a bigger buffer, needs libheif >= v1.8.0,
         # see: https://github.com/libvips/libvips/issues/1757
         b1 = self.mono.heifsave_buffer(Q=10, compression="av1")
         b2 = self.mono.heifsave_buffer(Q=90, compression="av1")
         assert len(b2) > len(b1)
 
+    @skip_if_no("heifsave")
+    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
+    def test_avifsave_chroma(self):
         # Chroma subsampling should produce smaller file size for same Q
         b1 = self.colour.heifsave_buffer(compression="av1", subsample_mode="on")
         b2 = self.colour.heifsave_buffer(compression="av1", subsample_mode="off")
         assert len(b2) > len(b1)
 
+    @skip_if_no("heifsave")
+    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
+    def test_avifsave_icc(self):
         # try saving an image with an ICC profile and reading it back 
         # not all libheif have profile support, so put it in an if
         buf = self.colour.heifsave_buffer(Q=10, compression="av1")
@@ -1160,19 +1173,21 @@ class TestForeign:
             p2 = im.get("icc-profile-data")
             assert p1 == p2
 
-        # add tests for exif, xmp, ipct
+        # add tests for xmp, ipct
         # the exif test will need us to be able to walk the header,
         # we can't just check exif-data
 
-        # test that exif changes change the output of heifsave
+    @skip_if_no("heifsave")
+    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
+    def test_avifsave_exif(self):
         # first make sure we have exif support
-        z = pyvips.Image.new_from_file(AVIF_FILE)
-        if z.get_typeof("exif-ifd0-Make") != 0:
-            x = z.copy()
-            x.set("exif-ifd0-Make", "banana")
+        x = pyvips.Image.new_from_file(JPEG_FILE)
+        if x.get_typeof("exif-ifd0-Orientation") != 0:
+            x = x.copy()
+            x.set_type(pyvips.GValue.gstr_type, "exif-ifd0-XPComment", "banana")
             buf = x.heifsave_buffer(Q=10, compression="av1")
             y = pyvips.Image.new_from_buffer(buf, "")
-            assert y.get("exif-ifd0-Make").split(" ")[0] == "banana"
+            assert y.get("exif-ifd0-XPComment").startswith("banana")
 
     @skip_if_no("jp2kload")
     def test_jp2kload(self):
