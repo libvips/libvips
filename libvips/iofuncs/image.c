@@ -1925,7 +1925,7 @@ vips_image_new_from_file( const char *name, ... )
 
 	va_start( ap, name );
 	result = vips_call_split_option_string( operation_name, 
-		option_string, ap, filename, &out );
+		name, ap, filename, &out );
 	va_end( ap );
 
 	if( result )
@@ -2126,9 +2126,10 @@ vips_image_new_from_memory_copy( const void *data, size_t size,
  * responsibility for the area of memory, it's up to you to make sure it's
  * freed when the image is closed. See for example #VipsObject::close.
  *
- * Load options may be given in @option_string as "[name=value,...]" or given as
- * a NULL-terminated list of name-value pairs at the end of the arguments.
- * Options given in the function call override options given in the filename. 
+ * Load options may be given in @option_string as ".suffix[name=value,...]" 
+ * or given as a NULL-terminated list of name-value pairs at the end of the 
+ * arguments. Options given in the function call override options given in 
+ * the filename. 
  *
  * See also: vips_image_write_to_buffer().
  *
@@ -2176,9 +2177,10 @@ vips_image_new_from_buffer( const void *buf, size_t len,
  * Loads an image from the formatted source @input, 
  * loader recommended by vips_foreign_find_load_source(). 
  *
- * Load options may be given in @option_string as "[name=value,...]" or given as
- * a NULL-terminated list of name-value pairs at the end of the arguments.
- * Options given in the function call override options given in the string. 
+ * Load options may be given in @option_string as ".suffix[name=value,...]" 
+ * or given as a NULL-terminated list of name-value pairs at the end of 
+ * the arguments. Options given in the function call override options 
+ * given in the string. 
  *
  * See also: vips_image_write_to_target().
  *
@@ -2696,7 +2698,7 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
 
 		va_start( ap, name );
 		result = vips_call_split_option_string( operation_name, 
-			option_string, ap, image, target );
+			name, ap, image, target );
 		va_end( ap );
 
 		VIPS_UNREF( target );
@@ -2704,7 +2706,7 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
 	else if( (operation_name = vips_foreign_find_save( filename )) ) {
 		va_start( ap, name );
 		result = vips_call_split_option_string( operation_name, 
-			option_string, ap, image, filename );
+			name, ap, image, filename );
 		va_end( ap );
 	}
 	else
@@ -2726,8 +2728,6 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
  * Save options may be appended to @suffix as "[name=value,...]" or given as
  * a NULL-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the filename. 
- *
- * Currently only TIFF, JPEG and PNG formats are supported.
  *
  * You can call the various save operations directly if you wish, see
  * vips_jpegsave_buffer(), for example. 
@@ -2758,7 +2758,7 @@ vips_image_write_to_buffer( VipsImage *in,
 
 		va_start( ap, size );
 		result = vips_call_split_option_string( operation_name, 
-			option_string, ap, in, target );
+			suffix, ap, in, target );
 		va_end( ap );
 
 		if( result ) {
@@ -2774,7 +2774,7 @@ vips_image_write_to_buffer( VipsImage *in,
 
 		va_start( ap, size );
 		result = vips_call_split_option_string( operation_name, 
-			option_string, ap, in, &blob );
+			suffix, ap, in, &blob );
 		va_end( ap );
 
 		if( result )
@@ -2836,7 +2836,7 @@ vips_image_write_to_target( VipsImage *in,
 		return( -1 );
 
 	va_start( ap, target );
-	result = vips_call_split_option_string( operation_name, option_string, 
+	result = vips_call_split_option_string( operation_name, suffix, 
 		ap, in, target );
 	va_end( ap );
 

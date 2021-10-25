@@ -1,0 +1,11 @@
+- will py, ruby etc. need these additions too? 
+
+  maybe expose some C API to make a common place to add stuff like this
+
+  could call it suffix rather then filename
+
+- alternative: pass the whole filename down in option_string, savers parse
+  again with filename_split
+
+- PPM saver as well
+

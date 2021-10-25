@@ -34,9 +34,9 @@
  */
 
 /*
+#define DEBUG_REF
 #define DEBUG
 #define VIPS_DEBUG
-#define DEBUG_REF
  */
 
 #ifdef HAVE_CONFIG_H
@@ -2468,8 +2468,11 @@ vips_object_set( VipsObject *object, ... )
 	return( result );
 }
 
-/* Set object args from a string. @p should be the initial left bracket and
- * there should be no tokens after the matching right bracket. @p is modified. 
+/* Set object args from a string. The string is something like 
+ * 	""
+ * 	"a=12"
+ * 	"a = 12, b = fred[jim]"
+ * etc.
  */
 static int
 vips_object_set_args( VipsObject *object, const char *p )
@@ -2479,43 +2482,33 @@ vips_object_set_args( VipsObject *object, const char *p )
 	VipsToken token;
 	char string[VIPS_PATH_MAX];
 	char string2[VIPS_PATH_MAX];
-	GParamSpec *pspec;
-	VipsArgumentClass *argument_class;
-	VipsArgumentInstance *argument_instance;
 
-	if( !(p = vips__token_need( p, VIPS_TOKEN_LEFT, 
-		string, VIPS_PATH_MAX )) )
-		return( -1 );
+	while( vips__token_get( p, &token, string, VIPS_PATH_MAX ) &&
+		token == VIPS_TOKEN_STRING ) {
+		const char *q;
+		GParamSpec *pspec;
+		VipsArgumentClass *argument_class;
+		VipsArgumentInstance *argument_instance;
 
-	if( !(p = vips__token_segment( p, &token, string, VIPS_PATH_MAX )) )
-		return( -1 );
-
-	for(;;) {
-		if( token == VIPS_TOKEN_RIGHT )
-			break;
-		if( token != VIPS_TOKEN_STRING ) {
-			vips_error( class->nickname,
-				_( "expected string or ), saw %s" ), 
-				vips_enum_nick( VIPS_TYPE_TOKEN, token ) );
-			return( -1 );
-		}
-
-		/* We have to look for a '=', ']' or a ',' to see if string is
-		 * a param name or a value.
+		/* Read "string[options]".
 		 */
-		if( !(p = vips__token_segment( p, &token, 
-			string2, VIPS_PATH_MAX )) )
+		if( !(p = vips__token_segment_need( p, VIPS_TOKEN_STRING,
+			string, VIPS_PATH_MAX )) )
 			return( -1 );
+
+		/* Peek the next token. "=" means we need a value, "," means 
+		 * move on to the next arg.
+		 */
+		if( !(q = vips__token_get( p, &token, string, VIPS_PATH_MAX )) )
+			break;
 		if( token == VIPS_TOKEN_EQUALS ) {
-			if( !(p = vips__token_segment_need( p, VIPS_TOKEN_STRING,
-				string2, VIPS_PATH_MAX )) )
+			/* Get "string[options]" again for the value.
+			 */
+			if( !(p = vips__token_segment_need( q, 
+				VIPS_TOKEN_STRING, string2, VIPS_PATH_MAX )) )
 				return( -1 );
 			if( vips_object_set_argument_from_string( object, 
 				string, string2 ) )
-				return( -1 );
-
-			if( !(p = vips__token_must( p, &token,
-				string2, VIPS_PATH_MAX )) )
 				return( -1 );
 		}
 		else if( g_object_class_find_property( 
@@ -2542,24 +2535,15 @@ vips_object_set_args( VipsObject *object, const char *p )
 			return( -1 );
 		}
 
-		/* Now must be a , or a ). 
+		/* Now step over any ",".
 		 */
-		if( token == VIPS_TOKEN_COMMA ) {
-			if( !(p = vips__token_must( p, &token, 
-				string, VIPS_PATH_MAX )) )
-				return( -1 );
-		}
-		else if( token != VIPS_TOKEN_RIGHT ) {
+		if( !(p = vips__token_get( p, &token, string, VIPS_PATH_MAX )) )
+			break;
+		if( token != VIPS_TOKEN_COMMA ) {
 			vips_error( class->nickname,
-				"%s", _( "not , or ) after parameter" ) );
+				"%s", _( "not , after parameter" ) );
 			return( -1 );
 		}
-	}
-
-	if( (p = vips__token_get( p, &token, string, VIPS_PATH_MAX )) ) {
-		vips_error( class->nickname,
-			"%s", _( "extra tokens after ')'" ) );
-		return( -1 );
 	}
 
 	return( 0 );
@@ -2572,7 +2556,7 @@ vips_object_set_args( VipsObject *object, const char *p )
  *
  * Set object arguments from a string. The string can be something like
  * "a=12", or "a = 12, b = 13", or "fred". The string can optionally be
- * enclosed in brackets. 
+ * enclosed in brackets and preceeded by a filename component we ignore. 
  *
  * You'd typically use this between creating the object and building it. 
  *
@@ -2584,23 +2568,15 @@ vips_object_set_args( VipsObject *object, const char *p )
 int
 vips_object_set_from_string( VipsObject *object, const char *string )
 {
-	const char *q;
-	VipsToken token;
-	char buffer[VIPS_PATH_MAX];
-	char str[VIPS_PATH_MAX];
+	char filename[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
 
-	vips_strncpy( buffer, string, VIPS_PATH_MAX );
-
-	/* Does string start with a bracket? If it doesn't, enclose the whole
-	 * thing in [].
+	/* If the string is of the form "xxxxx[args]", get just args into
+	 * option_string.
 	 */
-	if( !(q = vips__token_get( buffer, &token, str, VIPS_PATH_MAX )) ||
-		token != VIPS_TOKEN_LEFT )
-		vips_snprintf( buffer, VIPS_PATH_MAX, "[%s]", string );
-	else
-		vips_strncpy( buffer, string, VIPS_PATH_MAX );
+	vips__filename_split8( string, filename, option_string );
 
-	return( vips_object_set_args( object, buffer ) ); 
+	return( vips_object_set_args( object, option_string ) ); 
 }
 
 VipsObject *
