@@ -2713,6 +2713,18 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
 	return( result );
 }
 
+static VipsImage *
+vips_image_note_format( VipsImage *image, const char *format_string ) 
+{
+	VipsImage *copy;
+
+	if( vips_copy( image, &copy, NULL ) )
+		return( NULL );
+	vips_image_set_string( copy, "format_string", format_string );
+
+	return( copy );
+}
+
 /**
  * vips_image_write_to_buffer: (method)
  * @in: image to write
@@ -2752,14 +2764,22 @@ vips_image_write_to_buffer( VipsImage *in,
 
 	if( (operation_name = vips_foreign_find_save_target( filename )) ) {
 		VipsTarget *target;
+		VipsImage *copy;
 
 		if( !(target = vips_target_new_to_memory()) )
 			return( -1 );
 
+		/* Note the suffix for loaders.
+		 */
+		if( !(copy = vips_image_note_format( in, suffix )) )
+			return( -1 );
+
 		va_start( ap, size );
 		result = vips_call_split_option_string( operation_name, 
-			option_string, ap, in, target );
+			option_string, ap, copy, target );
 		va_end( ap );
+
+		VIPS_UNREF( copy );
 
 		if( result ) {
 			VIPS_UNREF( target );
@@ -2771,11 +2791,19 @@ vips_image_write_to_buffer( VipsImage *in,
 	}
 	else if( (operation_name = 
 		vips_foreign_find_save_buffer( filename )) ) {
+		VipsImage *copy;
+
+		/* Note the suffix for loaders.
+		 */
+		if( !(copy = vips_image_note_format( in, suffix )) )
+			return( -1 );
 
 		va_start( ap, size );
 		result = vips_call_split_option_string( operation_name, 
-			option_string, ap, in, &blob );
+			option_string, ap, copy, &blob );
 		va_end( ap );
+
+		VIPS_UNREF( copy );
 
 		if( result )
 			return( -1 );
@@ -2829,16 +2857,24 @@ vips_image_write_to_target( VipsImage *in,
 	char option_string[VIPS_PATH_MAX];
 	const char *operation_name;
 	va_list ap;
+	VipsImage *copy;
 	int result;
 
 	vips__filename_split8( suffix, filename, option_string );
 	if( !(operation_name = vips_foreign_find_save_target( filename )) )
 		return( -1 );
 
+	/* Note the suffix for loaders.
+	 */
+	if( !(copy = vips_image_note_format( in, suffix )) )
+		return( -1 );
+
 	va_start( ap, target );
 	result = vips_call_split_option_string( operation_name, option_string, 
-		ap, in, target );
+		ap, copy, target );
 	va_end( ap );
+
+	VIPS_UNREF( copy );
 
 	if( result )
 		return( -1 );
