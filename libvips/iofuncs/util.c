@@ -65,7 +65,7 @@
  */
 #define MAX_BUF (100000)
 
-/* Try to make an O_BINARY ... sometimes need the leading '_'.
+/* Try to make an O_BINARY and O_NOINHERIT ... sometimes need the leading '_'.
  */
 #if defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)
 #ifndef O_BINARY
@@ -73,6 +73,11 @@
 #define O_BINARY _O_BINARY
 #endif /*_O_BINARY*/
 #endif /*!O_BINARY*/
+#ifndef O_NOINHERIT
+#ifdef _O_NOINHERIT
+#define O_NOINHERIT _O_NOINHERIT
+#endif /*_O_NOINHERIT*/
+#endif /*!O_NOINHERIT*/
 #endif /*defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)*/
 
 /* If we have O_BINARY, add it to a mode flags set.
@@ -83,17 +88,17 @@
 #define BINARYIZE(M) (M)
 #endif /*O_BINARY*/
 
-/* Open mode for image write ... on some systems, have to set BINARY too.
+/* If we have O_CLOEXEC or O_NOINHERIT, add it to a mode flags set.
  */
-#define MODE_WRITE BINARYIZE (O_WRONLY | O_CREAT | O_TRUNC)
+#ifdef O_CLOEXEC
+#define CLOEXEC(M) ((M) | O_CLOEXEC)
+#elif defined(O_NOINHERIT)
+#define CLOEXEC(M) ((M) | O_NOINHERIT)
+#else /*!O_CLOEXEC && !O_NOINHERIT*/
+#define CLOEXEC(M) (M)
+#endif /*O_CLOEXEC*/
 
-/* Mode for read/write. This is if we might later want to mmaprw () the file.
- */
-#define MODE_READWRITE BINARYIZE (O_RDWR)
-
-/* Mode for read only. This is the fallback if READWRITE fails.
- */
-#define MODE_READONLY BINARYIZE (O_RDONLY)
+#define MODE_READ CLOEXEC (BINARYIZE (O_RDONLY))
 
 /* Test two lists for eqality.
  */
@@ -649,7 +654,7 @@ vips__open( const char *filename, int flags, int mode )
 int 
 vips__open_read( const char *filename )
 {
-	return( vips__open( filename, MODE_READONLY, 0 ) );
+	return( vips__open( filename, MODE_READ, 0 ) );
 }
 
 /* fopen() with utf8 filename and mode, setting errno.
@@ -700,11 +705,11 @@ vips__file_open_read( const char *filename, const char *fallback_dir,
 
 #if defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)
 	if( text_mode )
-		mode = "r";
+		mode = "rN";
 	else
-		mode = "rb";
+		mode = "rbN";
 #else /*!defined(G_PLATFORM_WIN32) && !defined(G_WITH_CYGWIN)*/
-	mode = "r";
+	mode = "re";
 #endif /*defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)*/
 
 	if( (fp = vips__fopen( filename, mode )) )
@@ -736,11 +741,11 @@ vips__file_open_write( const char *filename, gboolean text_mode )
 
 #if defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)
 	if( text_mode )
-		mode = "w";
+		mode = "wN";
 	else
-		mode = "wb";
+		mode = "wbN";
 #else /*!defined(G_PLATFORM_WIN32) && !defined(G_WITH_CYGWIN)*/
-	mode = "w";
+	mode = "we";
 #endif /*defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)*/
 
         if( !(fp = vips__fopen( filename, mode )) ) {

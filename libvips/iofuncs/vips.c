@@ -113,7 +113,7 @@
  * world. See vips_init() and vips_guess_prefix().
  */
 
-/* Try to make an O_BINARY ... sometimes need the leading '_'.
+/* Try to make an O_BINARY and O_NOINHERIT ... sometimes need the leading '_'.
  */
 #if defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)
 #ifndef O_BINARY
@@ -121,6 +121,11 @@
 #define O_BINARY _O_BINARY
 #endif /*_O_BINARY*/
 #endif /*!O_BINARY*/
+#ifndef O_NOINHERIT
+#ifdef _O_NOINHERIT
+#define O_NOINHERIT _O_NOINHERIT
+#endif /*_O_NOINHERIT*/
+#endif /*!O_NOINHERIT*/
 #endif /*defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)*/
 
 /* If we have O_BINARY, add it to a mode flags set.
@@ -131,20 +136,30 @@
 #define BINARYIZE(M) (M)
 #endif /*O_BINARY*/
 
+/* If we have O_CLOEXEC or O_NOINHERIT, add it to a mode flags set.
+ */
+#ifdef O_CLOEXEC
+#define CLOEXEC(M) ((M) | O_CLOEXEC)
+#elif defined(O_NOINHERIT)
+#define CLOEXEC(M) ((M) | O_NOINHERIT)
+#else /*!O_CLOEXEC && !O_NOINHERIT*/
+#define CLOEXEC(M) (M)
+#endif /*O_CLOEXEC*/
+
 /* Open mode for image write ... on some systems, have to set BINARY too.
  *
  * We use O_RDWR not O_WRONLY since after writing we may want to rewind the 
  * image and read from it.
  */
-#define MODE_WRITE BINARYIZE (O_RDWR | O_CREAT | O_TRUNC)
+#define MODE_WRITE CLOEXEC (BINARYIZE (O_RDWR | O_CREAT | O_TRUNC))
 
 /* Mode for read/write. This is if we might later want to mmaprw () the file.
  */
-#define MODE_READWRITE BINARYIZE (O_RDWR)
+#define MODE_READWRITE CLOEXEC (BINARYIZE (O_RDWR))
 
 /* Mode for read only. This is the fallback if READWRITE fails.
  */
-#define MODE_READONLY BINARYIZE (O_RDONLY)
+#define MODE_READONLY CLOEXEC (BINARYIZE (O_RDONLY))
 
 /* Our XML namespace.
  */
