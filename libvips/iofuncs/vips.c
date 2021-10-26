@@ -94,9 +94,13 @@
 #include <expat.h>
 #include <errno.h>
 
+#ifdef G_OS_WIN32
+#include <windows.h>
+#endif /*G_OS_WIN32*/
+
 #include <vips/vips.h>
-#include <vips/internal.h>
 #include <vips/debug.h>
+#include <vips/internal.h>
 
 /**
  * SECTION: vips
@@ -113,40 +117,7 @@
  * world. See vips_init() and vips_guess_prefix().
  */
 
-/* Try to make an O_BINARY and O_NOINHERIT ... sometimes need the leading '_'.
- */
-#if defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)
-#ifndef O_BINARY
-#ifdef _O_BINARY
-#define O_BINARY _O_BINARY
-#endif /*_O_BINARY*/
-#endif /*!O_BINARY*/
-#ifndef O_NOINHERIT
-#ifdef _O_NOINHERIT
-#define O_NOINHERIT _O_NOINHERIT
-#endif /*_O_NOINHERIT*/
-#endif /*!O_NOINHERIT*/
-#endif /*defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)*/
-
-/* If we have O_BINARY, add it to a mode flags set.
- */
-#ifdef O_BINARY
-#define BINARYIZE(M) ((M) | O_BINARY)
-#else /*!O_BINARY*/
-#define BINARYIZE(M) (M)
-#endif /*O_BINARY*/
-
-/* If we have O_CLOEXEC or O_NOINHERIT, add it to a mode flags set.
- */
-#ifdef O_CLOEXEC
-#define CLOEXEC(M) ((M) | O_CLOEXEC)
-#elif defined(O_NOINHERIT)
-#define CLOEXEC(M) ((M) | O_NOINHERIT)
-#else /*!O_CLOEXEC && !O_NOINHERIT*/
-#define CLOEXEC(M) (M)
-#endif /*O_CLOEXEC*/
-
-/* Open mode for image write ... on some systems, have to set BINARY too.
+/* Open mode for image write.
  *
  * We use O_RDWR not O_WRONLY since after writing we may want to rewind the 
  * image and read from it.
