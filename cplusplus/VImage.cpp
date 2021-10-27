@@ -724,9 +724,12 @@ VImage::write_to_buffer( const char *suffix, void **buf, size_t *size,
 		throw VError();
 	}
 
+	VImage copy = this->copy();
+	copy.set("format_string", suffix);
+
 	call_option_string( operation_name, option_string,
 		(options ? options : VImage::option())->
-			set( "in", *this )->
+			set( "in", copy )->
 			set( "buffer", &blob ) );
 
 	if( blob ) {
@@ -755,9 +758,12 @@ VImage::write_to_target( const char *suffix, VTarget target,
 		throw VError();
 	}
 
+	VImage copy = this->copy();
+	copy.set("format_string", suffix);
+
 	call_option_string( operation_name, option_string,
 		(options ? options : VImage::option())->
-			set( "in", *this )->
+			set( "in", copy )->
 			set( "target", target ) );
 }
 
