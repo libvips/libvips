@@ -5,7 +5,7 @@ import pytest
 
 import pyvips
 from helpers import unsigned_formats, float_formats, noncomplex_formats, \
-    all_formats, run_fn, run_image2, run_const, run_cmp, \
+    all_formats, run_fn, run_image2, run_const, run_cmp, run_cmp2, \
     assert_almost_equal_objects
 
 
@@ -32,6 +32,21 @@ class TestArithmetic:
     def run_unary(self, images, fn, fmt=all_formats):
         [self.run_imageunary(fn.__name__ + ' image', x.cast(y), fn)
          for x in images for y in fmt]
+
+    # run a function on a pair of images
+    # 50,50 and 10,10 should have different values on the test image
+    # don't loop over band elements
+    def run_imagebinary(self, message, left, right, fn):
+        run_cmp2(message, left, right, 50, 50, fn)
+        run_cmp2(message, left, right, 10, 10, fn)
+
+    def run_binary(self, images, fn, fmt=all_formats):
+        [self.run_imagebinary(f'{fn.__name__ } {y} {x}',
+                              x.cast(y), x.cast(z), fn)
+         for x in images for y in fmt for z in fmt]
+
+    def versiontuple(version_string):
+        return tuple(map(int, (version_string.split('.'))))
 
     @classmethod
     def setup_class(cls):
@@ -383,8 +398,6 @@ class TestArithmetic:
             assert pytest.approx(y) == 50
             assert pytest.approx(r) == 40
 
-    @pytest.mark.skipif(not pyvips.base.at_least_libvips(8, 7),
-                        reason="requires libvips >= 8.7")
     def test_hough_line(self):
         # hough_line changed the way it codes parameter space in 8.7 ... don't
         # test earlier versions
@@ -458,6 +471,22 @@ class TestArithmetic:
 
         im = (pyvips.Image.black(100, 100) + [1, 2, 3]) / 3.0
         self.run_unary([im], my_atan, fmt=noncomplex_formats)
+
+    # this require pyvips 2.1.16 for atan2
+    @pytest.mark.skipif(versiontuple(pyvips.__version__) < 
+            versiontuple('2.1.16'),
+            reason='your pyvips is too old')
+    def test_atan2(self):
+        def my_atan2(x, y):
+            print(f"my_atan2: x = {x}, y = {y}")
+
+            if isinstance(x, pyvips.Image):
+                return x.atan2(y)
+            else:
+                return math.degrees(math.atan2(x[0], y[0]))
+
+        im = (pyvips.Image.black(100, 100) + [1, 2, 3]) / 3.0
+        self.run_binary(im, my_atan2, fmt=noncomplex_formats)
 
     def test_log(self):
         def my_log(x):

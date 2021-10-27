@@ -1224,6 +1224,12 @@ VipsWindow *vips_window_ref( VipsImage *im, int top, int height );
 FILE *vips_popenf( const char *fmt, const char *mode, ... )
 	__attribute__((format(printf, 1, 3)));
 
+double *vips__ink_to_vector( const char *domain, 
+	VipsImage *im, VipsPel *ink, int *n ); 
+
+VipsPel *im__vector_to_ink( const char *domain, 
+	VipsImage *im, int n, double *vec );
+
 /* This stuff is very, very old and should not be used by anyone now.
  */
 #ifdef VIPS_ENABLE_ANCIENT

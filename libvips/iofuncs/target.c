@@ -56,35 +56,15 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include <vips/vips.h>
-#include <vips/internal.h>
-#include <vips/debug.h>
-
 #ifdef G_OS_WIN32
 #include <io.h>
 #endif /*G_OS_WIN32*/
 
-/* Try to make an O_BINARY ... sometimes need the leading '_'.
- */
-#if defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)
-#ifndef O_BINARY
-#ifdef _O_BINARY
-#define O_BINARY _O_BINARY
-#endif /*_O_BINARY*/
-#endif /*!O_BINARY*/
-#endif /*defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)*/
+#include <vips/vips.h>
+#include <vips/debug.h>
+#include <vips/internal.h>
 
-/* If we have O_BINARY, add it to a mode flags set.
- */
-#ifdef O_BINARY
-#define BINARYIZE(M) ((M) | O_BINARY)
-#else /*!O_BINARY*/
-#define BINARYIZE(M) (M)
-#endif /*O_BINARY*/
-
-#define MODE_READ BINARYIZE (O_RDONLY)
-#define MODE_READWRITE BINARYIZE (O_RDWR)
-#define MODE_WRITE BINARYIZE (O_WRONLY | O_CREAT | O_TRUNC)
+#define MODE_WRITE CLOEXEC (BINARYIZE (O_WRONLY | O_CREAT | O_TRUNC))
 
 G_DEFINE_TYPE( VipsTarget, vips_target, VIPS_TYPE_CONNECTION );
 

@@ -678,10 +678,14 @@ vips_tile_cache_gen( VipsRegion *or,
 				if( cache->threaded ) 
 					g_mutex_unlock( cache->lock );
 
-				result = vips_region_prepare_to( in, 
-					tile->region, 
-					&tile->pos, 
-					tile->pos.left, tile->pos.top );
+				/* Don't compute if we've seen an error
+				 * previously.
+				 */
+				if( !result )
+					result = vips_region_prepare_to( in, 
+						tile->region, 
+						&tile->pos, 
+						tile->pos.left, tile->pos.top );
 
 				if( cache->threaded ) {
 					VIPS_GATE_START( "vips_tile_cache_gen: "

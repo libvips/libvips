@@ -206,8 +206,8 @@ vips_error_buffer_copy( void )
 	return( msg );
 }
 
-/* Some systems do not have va_copy() ... this might work (it does on MSVC),
- * apparently.
+/* Some systems do not have va_copy() ... this might work (it does on MSVC,
+ * apparently).
  *
  * FIXME ... this should be in configure.in
  */

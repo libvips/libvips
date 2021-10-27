@@ -387,6 +387,10 @@ int vips__progress = 0;
  */
 char *vips__disc_threshold = NULL;
 
+/* Minimise needs a lock.
+ */
+static GMutex *vips__minimise_lock = NULL;
+
 static guint vips_image_signals[SIG_LAST] = { 0 };
 
 G_DEFINE_TYPE( VipsImage, vips_image, VIPS_TYPE_OBJECT );
@@ -1322,8 +1326,7 @@ vips_image_class_init( VipsImageClass *class )
 	 *
 	 * The ::minimise signal is emitted when an image has been asked to
 	 * minimise memory usage. All non-essential caches are dropped. 
-	 * See
-	 * vips_image_minimise_all().
+	 * See vips_image_minimise_all().
 	 */
 	vips_image_signals[SIG_MINIMISE] = g_signal_new( "minimise",
 		G_TYPE_FROM_CLASS( class ),
@@ -1333,6 +1336,7 @@ vips_image_class_init( VipsImageClass *class )
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE, 0 );
 
+	vips__minimise_lock = vips_g_mutex_new();
 }
 
 static void
@@ -1446,8 +1450,15 @@ vips_image_minimise_all_cb( VipsImage *image, void *a, void *b )
 void 
 vips_image_minimise_all( VipsImage *image )
 {
+	/* Minimisation will modify things like sources, so we can't run it
+	 * from many threads.
+	 */
+	g_mutex_lock( vips__minimise_lock );
+
 	(void) vips__link_map( image, TRUE,
 		(VipsSListMap2Fn) vips_image_minimise_all_cb, NULL, NULL );
+
+	g_mutex_unlock( vips__minimise_lock );
 }
 
 /**

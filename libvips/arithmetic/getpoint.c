@@ -88,28 +88,35 @@ G_DEFINE_TYPE( VipsGetpoint, vips_getpoint, VIPS_TYPE_OPERATION );
 static int
 vips_getpoint_build( VipsObject *object )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsGetpoint *getpoint = (VipsGetpoint *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
 
 	double *vector;
-	int n;
 	VipsArrayDouble *out_array;
 
 	if( VIPS_OBJECT_CLASS( vips_getpoint_parent_class )->build( object ) )
 		return( -1 );
 
-	t[1] = vips_image_new_memory();
+	/* Crop, decode and unpack to double.
+	 */
 	if( vips_crop( getpoint->in, &t[0], 
 		getpoint->x, getpoint->y, 1, 1, NULL ) ||
-		vips_image_write( t[0], t[1] ) )
-		return( -1 ); 
-
-	if( !(vector = vips__ink_to_vector( class->nickname, 
-		getpoint->in, VIPS_IMAGE_ADDR( t[1], 0, 0 ), &n )) ) 
+		vips_image_decode( t[0], &t[1] ) ||
+		vips_cast( t[1], &t[2], VIPS_FORMAT_DOUBLE, NULL ) )
 		return( -1 );
 
-	out_array = vips_array_double_new( vector, n );
+	/* To a mem buffer, then copy to out. 
+	 */
+	vips_image_set_int( t[2], "hide-progress", 1 );
+	if( !(t[3] = vips_image_new_memory()) ||
+		vips_image_write( t[2], t[3] ) )
+		return( -1 );
+
+	if( !(vector = VIPS_ARRAY( getpoint->in, t[3]->Bands, double )) )
+		return( -1 );
+	memcpy( vector, t[3]->data, VIPS_IMAGE_SIZEOF_PEL( t[3] ) );
+
+	out_array = vips_array_double_new( vector, t[3]->Bands );
 	g_object_set( object, 
 		"out_array", out_array,
 		NULL );

@@ -1468,6 +1468,35 @@ public:
 		return( math2_const( VIPS_OPERATION_MATH2_WOP, 
 			other, options ) );
 	}
+	
+	/**
+	 * Calculate atan2 of each pixel.
+	 */
+	VImage 
+	atan2( VImage other, VOption *options = 0 ) const
+	{
+		return( math2( other, VIPS_OPERATION_MATH2_ATAN2, options ) );
+	}
+
+	/**
+	 * Calculate atan2 of each pixel.
+	 */
+	VImage 
+	atan2( double other, VOption *options = 0 ) const
+	{
+		return( math2_const( VIPS_OPERATION_MATH2_ATAN2, 
+			to_vector( other ), options ) );
+	}
+
+	/**
+	 * Calculate atan2 of each pixel.
+	 */
+	VImage 
+	atan2( std::vector<double> other, VOption *options = 0 ) const
+	{
+		return( math2_const( VIPS_OPERATION_MATH2_ATAN2, 
+			other, options ) );
+	}
 
 	/**
 	 * Use self as a conditional image (not zero meaning TRUE) to pick
@@ -1789,7 +1818,7 @@ public:
 	 */
 
 // headers for vips operations
-// Wed May 12 11:30:00 AM CEST 2021
+// Wed  4 Aug 12:48:13 BST 2021
 // this file is generated automatically, do not edit!
 
 /**
@@ -2933,6 +2962,51 @@ static VImage gifload_buffer( VipsBlob *buffer, VOption *options = 0 );
  * @return Output image.
  */
 static VImage gifload_source( VSource source, VOption *options = 0 );
+
+/**
+ * Save image to gif file.
+ *
+ * **Optional parameters**
+ *   - **dither** -- Amount of dithering, double.
+ *   - **effort** -- Quantisation effort, int.
+ *   - **strip** -- Strip all metadata from image, bool.
+ *   - **background** -- Background value, std::vector<double>.
+ *   - **page_height** -- Set page height for multipage save, int.
+ *
+ * @param filename Filename to save to.
+ * @param options Set of options.
+ */
+void gifsave( const char *filename, VOption *options = 0 ) const;
+
+/**
+ * Save image to gif buffer.
+ *
+ * **Optional parameters**
+ *   - **dither** -- Amount of dithering, double.
+ *   - **effort** -- Quantisation effort, int.
+ *   - **strip** -- Strip all metadata from image, bool.
+ *   - **background** -- Background value, std::vector<double>.
+ *   - **page_height** -- Set page height for multipage save, int.
+ *
+ * @param options Set of options.
+ * @return Buffer to save to.
+ */
+VipsBlob *gifsave_buffer( VOption *options = 0 ) const;
+
+/**
+ * Save image to target as gif.
+ *
+ * **Optional parameters**
+ *   - **dither** -- Amount of dithering, double.
+ *   - **effort** -- Quantisation effort, int.
+ *   - **strip** -- Strip all metadata from image, bool.
+ *   - **background** -- Background value, std::vector<double>.
+ *   - **page_height** -- Set page height for multipage save, int.
+ *
+ * @param target Target to save to.
+ * @param options Set of options.
+ */
+void gifsave_target( VTarget target, VOption *options = 0 ) const;
 
 /**
  * Global balance an image mosaic.
@@ -4517,6 +4591,7 @@ VImage phasecor( VImage in2, VOption *options = 0 ) const;
  *   - **sequential** -- Sequential read only, bool.
  *   - **fail** -- Fail on first error, bool.
  *   - **disc** -- Open to disc, bool.
+ *   - **unlimited** -- Remove all denial of service limits.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -4533,6 +4608,7 @@ static VImage pngload( const char *filename, VOption *options = 0 );
  *   - **sequential** -- Sequential read only, bool.
  *   - **fail** -- Fail on first error, bool.
  *   - **disc** -- Open to disc, bool.
+ *   - **unlimited** -- Remove all denial of service limits.
  *
  * @param buffer Buffer to load from.
  * @param options Set of options.
@@ -4549,6 +4625,7 @@ static VImage pngload_buffer( VipsBlob *buffer, VOption *options = 0 );
  *   - **sequential** -- Sequential read only, bool.
  *   - **fail** -- Fail on first error, bool.
  *   - **disc** -- Open to disc, bool.
+ *   - **unlimited** -- Remove all denial of service limits.
  *
  * @param source Source to load from.
  * @param options Set of options.

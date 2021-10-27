@@ -679,6 +679,13 @@ int vips_gifload_buffer( void *buf, size_t len, VipsImage **out, ... )
 int vips_gifload_source( VipsSource *source, VipsImage **out, ... )
 	__attribute__((sentinel));
 
+int vips_gifsave( VipsImage *in, const char *filename, ... )
+	__attribute__((sentinel));
+int vips_gifsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
+	__attribute__((sentinel));
+int vips_gifsave_target( VipsImage *in, VipsTarget *target, ... )
+	__attribute__((sentinel));
+
 int vips_heifload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_heifload_buffer( void *buf, size_t len, VipsImage **out, ... )
@@ -730,7 +737,8 @@ int vips_jxlsave_target( VipsImage *in, VipsTarget *target, ... )
  * @VIPS_FOREIGN_DZ_LAYOUT_DZ: use DeepZoom directory layout
  * @VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY: use Zoomify directory layout
  * @VIPS_FOREIGN_DZ_LAYOUT_GOOGLE: use Google maps directory layout
- * @VIPS_FOREIGN_DZ_LAYOUT_IIIF: use IIIF directory layout
+ * @VIPS_FOREIGN_DZ_LAYOUT_IIIF: use IIIF v2 directory layout
+ * @VIPS_FOREIGN_DZ_LAYOUT_IIIF3: use IIIF v3 directory layout
  *
  * What directory layout and metadata standard to use. 
  */
@@ -739,6 +747,7 @@ typedef enum {
 	VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY,
 	VIPS_FOREIGN_DZ_LAYOUT_GOOGLE,
 	VIPS_FOREIGN_DZ_LAYOUT_IIIF,
+	VIPS_FOREIGN_DZ_LAYOUT_IIIF3,
 	VIPS_FOREIGN_DZ_LAYOUT_LAST
 } VipsForeignDzLayout;
 

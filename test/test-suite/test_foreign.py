@@ -294,6 +294,21 @@ class TestForeign:
         assert len(q90_subsample_on) < len(q90) 
         assert len(q90_subsample_off) == len(q90_subsample_auto)
 
+        # A non-zero restart_interval should result in a bigger file.
+        # Otherwise, smaller restart intervals will have more restart markers
+        # and therefore be larger
+        r0 = im.jpegsave_buffer(restart_interval=0)
+        r10 = im.jpegsave_buffer(restart_interval=10)
+        r2 = im.jpegsave_buffer(restart_interval=2)
+        assert len(r10) > len(r0)
+        assert len(r2) > len(r10)
+
+        # we should be able to reload jpegs with extra MCU markers 
+        im0 = pyvips.Image.jpegload_buffer(r0)
+        im10 = pyvips.Image.jpegload_buffer(r10)
+        assert im0.avg() == im10.avg()
+
+
     @skip_if_no("jpegload")
     def test_truncated(self):
         # This should open (there's enough there for the header)
@@ -1110,33 +1125,45 @@ class TestForeign:
         self.buffer_loader("heifload_buffer", AVIF_FILE, heif_valid)
 
     @skip_if_no("heifsave")
-    def test_heifsave(self):
+    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
+    def test_avifsave(self):
+        # TODO: Reduce the threshold once https://github.com/strukturag/libheif/issues/533 is resolved.
         self.save_load_buffer("heifsave_buffer", "heifload_buffer",
-                              self.colour, 80, compression="av1")
-        # TODO: perhaps we should automatically set the compression to
-        # av1 when we save to *.avif?
-        #self.save_load("%s.avif", self.colour)
-        self.save_load_file(".avif", "[compression=av1]",
-                            self.colour, 80)
+                              self.colour, 80, compression="av1",
+                              lossless=True)
+        self.save_load("%s.avif", self.colour)
 
-        # uncomment to test lossless mode, will take a while
-        #im = pyvips.Image.new_from_file(AVIF_FILE)
-        #buf = im.heifsave_buffer(lossless=True, compression="av1")
-        #im2 = pyvips.Image.new_from_buffer(buf, "")
+    @skip_if_no("heifsave")
+    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
+    @pytest.mark.skip()
+    def test_avifsave_lossless(self):
+        # this takes FOREVER
+        im = pyvips.Image.new_from_file(AVIF_FILE)
+        buf = im.heifsave_buffer(lossless=True, compression="av1")
+        im2 = pyvips.Image.new_from_buffer(buf, "")
         # not in fact quite lossless
-        #assert abs(im.avg() - im2.avg()) < 3
+        assert abs(im.avg() - im2.avg()) < 3
 
+    @skip_if_no("heifsave")
+    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
+    def test_avifsave_Q(self):
         # higher Q should mean a bigger buffer, needs libheif >= v1.8.0,
         # see: https://github.com/libvips/libvips/issues/1757
         b1 = self.mono.heifsave_buffer(Q=10, compression="av1")
         b2 = self.mono.heifsave_buffer(Q=90, compression="av1")
         assert len(b2) > len(b1)
 
+    @skip_if_no("heifsave")
+    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
+    def test_avifsave_chroma(self):
         # Chroma subsampling should produce smaller file size for same Q
         b1 = self.colour.heifsave_buffer(compression="av1", subsample_mode="on")
         b2 = self.colour.heifsave_buffer(compression="av1", subsample_mode="off")
         assert len(b2) > len(b1)
 
+    @skip_if_no("heifsave")
+    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
+    def test_avifsave_icc(self):
         # try saving an image with an ICC profile and reading it back 
         # not all libheif have profile support, so put it in an if
         buf = self.colour.heifsave_buffer(Q=10, compression="av1")
@@ -1146,19 +1173,21 @@ class TestForeign:
             p2 = im.get("icc-profile-data")
             assert p1 == p2
 
-        # add tests for exif, xmp, ipct
+        # add tests for xmp, ipct
         # the exif test will need us to be able to walk the header,
         # we can't just check exif-data
 
-        # test that exif changes change the output of heifsave
+    @skip_if_no("heifsave")
+    @pytest.mark.skipif(sys.platform == "darwin", reason="fails with latest libheif/aom from Homebrew")
+    def test_avifsave_exif(self):
         # first make sure we have exif support
-        z = pyvips.Image.new_from_file(AVIF_FILE)
-        if z.get_typeof("exif-ifd0-Make") != 0:
-            x = z.copy()
-            x.set("exif-ifd0-Make", "banana")
+        x = pyvips.Image.new_from_file(JPEG_FILE)
+        if x.get_typeof("exif-ifd0-Orientation") != 0:
+            x = x.copy()
+            x.set_type(pyvips.GValue.gstr_type, "exif-ifd0-XPComment", "banana")
             buf = x.heifsave_buffer(Q=10, compression="av1")
             y = pyvips.Image.new_from_buffer(buf, "")
-            assert y.get("exif-ifd0-Make").split(" ")[0] == "banana"
+            assert y.get("exif-ifd0-XPComment").startswith("banana")
 
     @skip_if_no("jp2kload")
     def test_jp2kload(self):
@@ -1208,6 +1237,45 @@ class TestForeign:
         # im2 = pyvips.Image.new_from_buffer(buf, "")
         # assert (im == im2).min() == 255
 
+    @skip_if_no("gifsave")
+    def test_gifsave(self):
+        # Animated GIF round trip
+        x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
+        b1 = x1.gifsave_buffer()
+        x2 = pyvips.Image.new_from_buffer(b1, "", n=-1)
+        assert x1.width == x2.width
+        assert x1.height == x2.height
+        assert x1.get("n-pages") == x2.get("n-pages")
+        assert x1.get("delay") == x2.get("delay")
+        assert x1.get("page-height") == x2.get("page-height")
+        assert x1.get("loop") == x2.get("loop")
+
+        # Reducing dither will typically reduce file size (and quality)
+        little_dither = self.colour.gifsave_buffer(dither=0.1, effort=1)
+        large_dither = self.colour.gifsave_buffer(dither=0.9, effort=1)
+        assert len(little_dither) < len(large_dither)
+
+        # Reducing effort will typically increase file size (and reduce quality)
+        little_effort = self.colour.gifsave_buffer(effort=1)
+        large_effort = self.colour.gifsave_buffer(effort=10)
+        assert len(little_effort) > len(large_effort)
+
+        # Reducing bitdepth will typically reduce file size (and reduce quality)
+        bitdepth8 = self.colour.gifsave_buffer(bitdepth=8,effort=1)
+        bitdepth7 = self.colour.gifsave_buffer(bitdepth=7,effort=1)
+        assert len(bitdepth8) > len(bitdepth7)
+
+        if have("webpload"):
+            # Animated WebP to GIF
+            x1 = pyvips.Image.new_from_file(WEBP_ANIMATED_FILE, n=-1)
+            b1 = x1.gifsave_buffer()
+            x2 = pyvips.Image.new_from_buffer(b1, "", n=-1)
+            assert x1.width == x2.width
+            assert x1.height == x2.height
+            assert x1.get("n-pages") == x2.get("n-pages")
+            assert x1.get("delay") == x2.get("delay")
+            assert x1.get("page-height") == x2.get("page-height")
+            assert x1.get("loop") == x2.get("loop")
 
 if __name__ == '__main__':
     pytest.main()

@@ -10,6 +10,8 @@
  * 26/11/20
  * 	- use _setmode() on win to force binary read for previously opened
  * 	  descriptors
+ * 8/10/21
+ * 	- fix named pipes
  */
 
 /*
@@ -45,8 +47,9 @@
  */
 
 /*
-#define VIPS_DEBUG
 #define TEST_SANITY
+#define VIPS_DEBUG
+#define DEBUG_MINIMISE
  */
 
 #ifdef HAVE_CONFIG_H
@@ -66,35 +69,15 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include <vips/vips.h>
-#include <vips/internal.h>
-#include <vips/debug.h>
-
 #ifdef G_OS_WIN32
 #include <io.h>
 #endif /*G_OS_WIN32*/
 
-/* Try to make an O_BINARY ... sometimes need the leading '_'.
- */
-#if defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)
-#ifndef O_BINARY
-#ifdef _O_BINARY
-#define O_BINARY _O_BINARY
-#endif /*_O_BINARY*/
-#endif /*!O_BINARY*/
-#endif /*defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)*/
+#include <vips/vips.h>
+#include <vips/debug.h>
+#include <vips/internal.h>
 
-/* If we have O_BINARY, add it to a mode flags set.
- */
-#ifdef O_BINARY
-#define BINARYIZE(M) ((M) | O_BINARY)
-#else /*!O_BINARY*/
-#define BINARYIZE(M) (M)
-#endif /*O_BINARY*/
-
-#define MODE_READ BINARYIZE (O_RDONLY)
-#define MODE_READWRITE BINARYIZE (O_RDWR)
-#define MODE_WRITE BINARYIZE (O_WRONLY | O_CREAT | O_TRUNC)
+#define MODE_READ CLOEXEC (BINARYIZE (O_RDONLY))
 
 /* -1 on a pipe isn't actually unbounded. Have a limit to prevent
  * huge sources accidentally filling memory.
@@ -128,6 +111,52 @@ vips_pipe_read_limit_set( gint64 limit )
 
 G_DEFINE_TYPE( VipsSource, vips_source, VIPS_TYPE_CONNECTION );
 
+/* Does this source support seek. You must unminimise before calling this.
+ */
+static int
+vips_source_test_seek( VipsSource *source )
+{
+	if( !source->have_tested_seek ) {
+		VipsSourceClass *class = VIPS_SOURCE_GET_CLASS( source );
+
+		source->have_tested_seek = TRUE;
+
+		VIPS_DEBUG_MSG( "vips_source_can_seek: testing seek ..\n" );
+
+		/* Can we seek this input?
+		 *
+		 * We need to call the method directly rather than via
+		 * vips_source_seek() etc. or we might trigger seek emulation.
+		 */
+		if( source->data ||
+			class->seek( source, 0, SEEK_CUR ) != -1 ) { 
+			gint64 length;
+
+			VIPS_DEBUG_MSG( "    seekable source\n" );
+
+			/* We should be able to get the length of seekable 
+			 * objects.
+			 */
+			if( (length = vips_source_length( source )) == -1 ) 
+				return( -1 );
+
+			source->length = length;
+
+			/* If we can seek, we won't need to save header bytes.
+			 */
+			VIPS_FREEF( g_byte_array_unref, source->header_bytes ); 
+		}
+		else {
+			/* Not seekable. This must be some kind of pipe.
+			 */
+			VIPS_DEBUG_MSG( "    not seekable\n" );
+			source->is_pipe = TRUE;
+		}
+	}
+
+	return( 0 );
+}
+
 /* We can't test for seekability or length during _build, since the read and 
  * seek signal handlers might not have been connected yet. Instead, we test 
  * when we first need to know.
@@ -135,48 +164,9 @@ G_DEFINE_TYPE( VipsSource, vips_source, VIPS_TYPE_CONNECTION );
 static int
 vips_source_test_features( VipsSource *source )
 {
-	VipsSourceClass *class = VIPS_SOURCE_GET_CLASS( source );
-
-	if( source->have_tested_seek ) 
-		return( 0 );
-	source->have_tested_seek = TRUE;
-
-	VIPS_DEBUG_MSG( "vips_source_test_features: testing seek ..\n" );
-
-	/* We'll need a descriptor to test.
-	 */
-	if( vips_source_unminimise( source ) ) 
+	if( vips_source_unminimise( source ) || 
+		vips_source_test_seek( source ) )
 		return( -1 );
-
-	/* Can we seek this input?
-	 *
-	 * We need to call the method directly rather than via
-	 * vips_source_seek() etc. or we might trigger seek emulation.
-	 */
-	if( source->data ||
-		class->seek( source, 0, SEEK_CUR ) != -1 ) { 
-		gint64 length;
-
-		VIPS_DEBUG_MSG( "    seekable source\n" );
-
-		/* We should be able to get the length of seekable 
-		 * objects.
-		 */
-		if( (length = vips_source_length( source )) == -1 ) 
-			return( -1 );
-
-		source->length = length;
-
-		/* If we can seek, we won't need to save header bytes.
-		 */
-		VIPS_FREEF( g_byte_array_unref, source->header_bytes ); 
-	}
-	else {
-		/* Not seekable. This must be some kind of pipe.
-		 */
-		VIPS_DEBUG_MSG( "    not seekable\n" );
-		source->is_pipe = TRUE;
-	}
 
 	return( 0 );
 }
@@ -267,7 +257,9 @@ vips_source_finalize( GObject *gobject )
 {
 	VipsSource *source = VIPS_SOURCE( gobject );
 
-	VIPS_DEBUG_MSG( "vips_source_finalize: %p\n", source );
+#ifdef DEBUG_MINIMISE
+	printf( "vips_source_finalize: %p\n", source );
+#endif /*DEBUG_MINIMISE*/
 
 	VIPS_FREEF( g_byte_array_unref, source->header_bytes ); 
 	VIPS_FREEF( g_byte_array_unref, source->sniff ); 
@@ -579,7 +571,12 @@ vips_source_minimise( VipsSource *source )
 		connection->descriptor != -1 &&
 		connection->tracked_descriptor == connection->descriptor &&
 		!source->is_pipe ) {
-		VIPS_DEBUG_MSG( "vips_source_minimise:\n" );
+#ifdef DEBUG_MINIMISE
+		printf( "vips_source_minimise: %p %s\n", 
+			source,
+			vips_connection_nick( VIPS_CONNECTION( source ) ) );
+#endif /*DEBUG_MINIMISE*/
+
 		vips_tracked_close( connection->tracked_descriptor );
 		connection->tracked_descriptor = -1;
 		connection->descriptor = -1;
@@ -609,7 +606,11 @@ vips_source_unminimise( VipsSource *source )
 		connection->filename ) {
 		int fd;
 
-		VIPS_DEBUG_MSG( "vips_source_unminimise: %p\n", source );
+#ifdef DEBUG_MINIMISE
+		printf( "vips_source_unminimise: %p %s\n",
+			source,
+			vips_connection_nick( VIPS_CONNECTION( source ) ) );
+#endif /*DEBUG_MINIMISE*/
 
 		if( (fd = vips_tracked_open( connection->filename, 
 			MODE_READ, 0 )) == -1 ) {
@@ -622,12 +623,19 @@ vips_source_unminimise( VipsSource *source )
 		connection->tracked_descriptor = fd;
 		connection->descriptor = fd;
 
-		VIPS_DEBUG_MSG( "vips_source_unminimise: "
-			"restoring read position %" G_GINT64_FORMAT "\n", 
-			source->read_position );
-		if( vips__seek( connection->descriptor, 
-			source->read_position, SEEK_SET ) == -1 )
-			return( -1 );
+		if( vips_source_test_seek( source ) ) 
+			return( -1 ); 
+
+		/* It might be a named pipe.
+		 */
+		if( !source->is_pipe ) {
+			VIPS_DEBUG_MSG( "vips_source_unminimise: restoring "
+				"read position %" G_GINT64_FORMAT "\n", 
+				source->read_position );
+			if( vips__seek( connection->descriptor, 
+				source->read_position, SEEK_SET ) == -1 )
+				return( -1 );
+		}
 	}
 
 	return( 0 );
@@ -965,6 +973,32 @@ vips_source_is_mappable( VipsSource *source )
 }
 
 /**
+ * vips_source_is_file:
+ * @source: source to operate on
+ *
+ * Test if this source is a simple file with support for seek. Named pipes,
+ * for example, will fail this test. If TRUE, you can use
+ * vips_connection_filename() to find the filename.
+ *
+ * Use this to add basic source support for older loaders which can only work
+ * on files.
+ *
+ * Returns: %TRUE if the source is a simple file.
+ */
+gboolean 
+vips_source_is_file( VipsSource *source )
+{
+	if( vips_source_unminimise( source ) ||
+		vips_source_test_features( source ) )
+		return( -1 );
+
+	/* There's a filename, and it supports seek.
+	 */
+	return( VIPS_CONNECTION( source )->filename &&
+		!source->is_pipe );
+}
+
+/**
  * vips_source_map:
  * @source: source to operate on
  * @length_out: return the file length here, or NULL
@@ -990,23 +1024,26 @@ vips_source_map( VipsSource *source, size_t *length_out )
 		vips_source_test_features( source ) )
 		return( NULL );
 
-	if( !source->data ) {
-		/* Seekable descriptors can simply be mapped. Seekable sources
-		 * can be read. All other sources must be streamed into memory.
-		 */
-		if( vips_source_is_mappable( source ) ) {
-			if( vips_source_descriptor_to_memory( source ) )
-				return( NULL );
-		}
-		else if( !source->is_pipe ) {
-			if( vips_source_read_to_memory( source ) )
-				return( NULL );
-		}
-		else {
-			if( vips_source_pipe_read_to_position( source, -1 ) )
-				return( NULL );
-		}
-	}
+	/* Try to map the file into memory, if possible. Some filesystems have
+	 * mmap disabled, so we don't give up if this fails.
+	 */
+	if( !source->data &&
+		vips_source_is_mappable( source ) ) 
+		(void) vips_source_descriptor_to_memory( source );
+
+	/* If it's not a pipe, we can rewind, get the length, and read the
+	 * whole thing.
+	 */
+	if( !source->data &&
+		!source->is_pipe &&
+		vips_source_read_to_memory( source ) )
+		return( NULL );
+
+	/* We don't know the length and must read and assemble in chunks.
+	 */
+	if( !source->data &&
+		vips_source_pipe_read_to_position( source, -1 ) )
+		return( NULL );
 
 	if( length_out )
 		*length_out = source->length;

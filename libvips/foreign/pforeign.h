@@ -45,6 +45,10 @@ extern "C" {
 )
 #endif /*HAVE_CHECKED_MUL*/
 
+/* We've seen real images with 28 chunks, so set 50.
+ */
+#define MAX_PNG_TEXT_CHUNKS 50
+
 void vips__tiff_init( void );
 
 int vips__tiff_write( VipsImage *in, const char *filename, 
@@ -65,7 +69,8 @@ int vips__tiff_write( VipsImage *in, const char *filename,
 	gboolean lossless,
 	VipsForeignDzDepth depth,
 	gboolean subifd, 
-	gboolean premultiply );
+	gboolean premultiply,
+	int page_height );
 
 int vips__tiff_write_buf( VipsImage *in, 
 	void **obuf, size_t *olen, 
@@ -85,7 +90,8 @@ int vips__tiff_write_buf( VipsImage *in,
 	gboolean lossless,
 	VipsForeignDzDepth depth,
 	gboolean subifd,
-	gboolean premultiply );
+	gboolean premultiply,
+	int page_height );
 
 gboolean vips__istiff_source( VipsSource *source );
 gboolean vips__istifftiled_source( VipsSource *source );
@@ -160,7 +166,7 @@ int vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	gboolean optimize_coding, gboolean progressive, gboolean strip,
 	gboolean trellis_quant, gboolean overshoot_deringing,
 	gboolean optimize_scans, int quant_table,
-	VipsForeignSubsample subsample_mode );
+	VipsForeignSubsample subsample_mode, int restart_interval );
 
 int vips__jpeg_read_source( VipsSource *source, VipsImage *out,
 	gboolean header_only, int shrink, VipsFailOn fail_on, 
@@ -168,9 +174,10 @@ int vips__jpeg_read_source( VipsSource *source, VipsImage *out,
 int vips__isjpeg_source( VipsSource *source );
 
 int vips__png_ispng_source( VipsSource *source );
-int vips__png_header_source( VipsSource *source, VipsImage *out );
+int vips__png_header_source( VipsSource *source, VipsImage *out, 
+	gboolean unlimited );
 int vips__png_read_source( VipsSource *source, VipsImage *out, 
-	VipsFailOn fail_on );
+	VipsFailOn fail_on, gboolean unlimited );
 gboolean vips__png_isinterlaced_source( VipsSource *source );
 extern const char *vips__png_suffs[];
 
@@ -178,7 +185,7 @@ int vips__png_write_target( VipsImage *in, VipsTarget *target,
 	int compress, int interlace, const char *profile,
 	VipsForeignPngFilter filter, gboolean strip,
 	gboolean palette, int Q, double dither,
-	int bitdepth );
+	int bitdepth, int effort );
 
 /* Map WEBP metadata names to vips names.
  */
@@ -202,13 +209,14 @@ int vips__webp_read_source( VipsSource *source, VipsImage *out,
 int vips__webp_write_target( VipsImage *image, VipsTarget *target,
 	int Q, gboolean lossless, VipsForeignWebpPreset preset,
 	gboolean smart_subsample, gboolean near_lossless,
-	int alpha_q, int reduction_effort,
+	int alpha_q, int effort,
 	gboolean min_size, int kmin, int kmax,
 	gboolean strip, const char *profile );
 
 int vips__quantise_image( VipsImage *in, 
 	VipsImage **index_out, VipsImage **palette_out,
-	int colours, int Q, double dither );
+	int colours, int Q, double dither, int effort,
+	gboolean threshold_alpha );
 
 extern const char *vips_foreign_nifti_suffs[];
 
@@ -238,5 +246,3 @@ extern const char *vips__jxl_suffs[];
 #endif /*__cplusplus*/
 
 #endif /*VIPS_PFOREIGN_H*/
-
-

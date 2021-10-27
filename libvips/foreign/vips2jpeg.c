@@ -96,6 +96,10 @@
  * 	- add subsample_mode, deprecate no_subsample
  * 13/9/20
  * 	- only write JFIF resolution if we don't have EXIF
+ * 7/10/21 Manthey
+ * 	- add restart_interval
+ * 21/10/21 usualuse 
+ * 	- raise single-chunk limit on APP to 65533
  */
 
 /*
@@ -150,6 +154,11 @@
 #include "pforeign.h"
 
 #include "jpeg.h"
+
+#define ICC_MARKER  (JPEG_APP0 + 2)     /* JPEG marker code for ICC */
+#define ICC_OVERHEAD_LEN  14            /* size of non-profile data in APP2 */
+#define MAX_BYTES_IN_MARKER  65533      /* maximum data len of a JPEG marker */
+#define MAX_DATA_BYTES_IN_MARKER  (MAX_BYTES_IN_MARKER - ICC_OVERHEAD_LEN)
 
 /* New output message method - send to VIPS.
  */
@@ -268,7 +277,7 @@ write_blob( Write *write, const char *field, int app )
 		 *
 		 * For now, just ignore oversize objects and warn.
 		 */
-		if( data_length > 65530 ) 
+		if( data_length > MAX_BYTES_IN_MARKER ) 
 			g_warning( _( "field \"%s\" is too large "
 				"for a single JPEG marker, ignoring" ), 
 				field );
@@ -343,11 +352,6 @@ write_exif( Write *write )
 
 /* ICC writer from lcms, slight tweaks.
  */
-
-#define ICC_MARKER  (JPEG_APP0 + 2)     /* JPEG marker code for ICC */
-#define ICC_OVERHEAD_LEN  14            /* size of non-profile data in APP2 */
-#define MAX_BYTES_IN_MARKER  65533      /* maximum data len of a JPEG marker */
-#define MAX_DATA_BYTES_IN_MARKER  (MAX_BYTES_IN_MARKER - ICC_OVERHEAD_LEN)
 
 /*
  * This routine writes the given ICC profile data into a JPEG file.
@@ -540,7 +544,7 @@ write_vips( Write *write, int qfac, const char *profile,
 	gboolean optimize_coding, gboolean progressive, gboolean strip, 
 	gboolean trellis_quant, gboolean overshoot_deringing,
 	gboolean optimize_scans, int quant_table,
-	VipsForeignSubsample subsample_mode )
+	VipsForeignSubsample subsample_mode, int restart_interval )
 {
 	VipsImage *in;
 	J_COLOR_SPACE space;
@@ -606,6 +610,11 @@ write_vips( Write *write, int qfac, const char *profile,
  	/* Compute optimal Huffman coding tables.
 	 */
 	write->cinfo.optimize_coding = optimize_coding;
+
+	/* Use a restart interval.
+	 */
+	if( restart_interval > 0 )
+		write->cinfo.restart_interval = restart_interval;
 
 #ifdef HAVE_JPEG_EXT_PARAMS
 	/* Apply trellis quantisation to each 8x8 block. Implies 
@@ -846,7 +855,8 @@ vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	gboolean optimize_coding, gboolean progressive,
 	gboolean strip, gboolean trellis_quant,
 	gboolean overshoot_deringing, gboolean optimize_scans,
-	int quant_table, VipsForeignSubsample subsample_mode)
+	int quant_table, VipsForeignSubsample subsample_mode,
+	int restart_interval )
 {
 	Write *write;
 
@@ -873,7 +883,7 @@ vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	if( write_vips( write, 
 		Q, profile, optimize_coding, progressive, strip,
 		trellis_quant, overshoot_deringing, optimize_scans, 
-		quant_table, subsample_mode ) ) {
+		quant_table, subsample_mode, restart_interval ) ) {
 		write_destroy( write );
 		return( -1 );
 	}

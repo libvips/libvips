@@ -9,8 +9,8 @@
   <bookinfo>
     <title>libvips Reference Manual</title>
     <releaseinfo>
-      For VIPS @VIPS_VERSION@. The latest version of this documentation can be 
-      found on the <ulink role="online-location" url="/libvips">VIPS 
+      For libvips @VIPS_VERSION@. The latest version of this documentation
+      can be found on the <ulink role="online-location" url="/">libvips
       website</ulink>.
     </releaseinfo>
   </bookinfo>

@@ -2,6 +2,8 @@
  *
  * 11/12/15
  * 	- from join.c
+ * 6/9/21
+ * 	- minmise inputs once we've used them
  */
 
 /*
@@ -66,6 +68,7 @@ typedef struct _VipsArrayjoin {
 
 	int down;
 	VipsRect *rects;
+	gboolean *minimised;
 
 } VipsArrayjoin;
 
@@ -79,25 +82,59 @@ vips_arrayjoin_gen( VipsRegion *or, void *seq,
 {
 	VipsRegion **ir = (VipsRegion **) seq;
 	VipsArrayjoin *join = (VipsArrayjoin *) b;
+	VipsConversion *conversion = VIPS_CONVERSION( join );
 	VipsRect *r = &or->valid;
-	int n = VIPS_AREA( join->in )->n;
 
+	int n;
+	VipsImage **in;
 	int i;
+	gboolean just_one;
 
-	/* Does this rect fit within one of our inputs? If it does, we
-	 * can pass just the request on.
-	 */
-	for( i = 0; i < n; i++ ) 
-		if( vips_rect_includesrect( &join->rects[i], r ) ) 
-			return( vips__insert_just_one( or, ir[i],
-				join->rects[i].left, join->rects[i].top ) ); 
+	in = vips_array_image_get( join->in, &n );
 
-	/* Output requires more than one input. Paste all touching inputs into
-	 * the output.
+	/* Does this rect fit completely within one of our inputs? 
 	 */
+	just_one = FALSE;
 	for( i = 0; i < n; i++ ) 
-		if( vips__insert_paste_region( or, ir[i], &join->rects[i] ) )
-			return( -1 );
+		if( vips_rect_includesrect( &join->rects[i], r ) ) {
+			just_one = TRUE;
+			break;
+		}
+
+	if( just_one ) {
+		/* Just needs one input, we can forward the request to that
+		 * region.
+		 */
+		if( vips__insert_just_one( or, ir[i],
+			join->rects[i].left, join->rects[i].top ) )
+		       return( -1 );
+	}
+	else {
+		/* Output requires more than one input. Paste all touching 
+		 * inputs into the output.
+		 */
+		for( i = 0; i < n; i++ ) 
+			if( vips__insert_paste_region( or, ir[i], 
+				&join->rects[i] ) )
+				return( -1 );
+	}
+
+	if( vips_image_is_sequential( conversion->out ) ) {
+		/* In sequential mode, we can minimise an input once our
+		 * generate point is well past the end of it. This can save a
+		 * lot of memory and file descriptors on large image arrays.
+		 *
+		 * minimise_all is quite expensive, so only trigger once for
+		 * each input.
+		 */
+		for( i = 0; i < n; i++ ) 
+			if( !join->minimised[i] &&
+				r->top > VIPS_RECT_BOTTOM( &join->rects[i] ) +
+				       256 ) {
+				vips_image_minimise_all( in[i] );
+				join->minimised[i] = TRUE;
+			}
+	}
 
 	return( 0 );
 }
@@ -207,6 +244,12 @@ vips_arrayjoin_build( VipsObject *object )
 			join->rects[i].width = 
 				output_width - join->rects[i].left;
 	}
+
+	/* A thing to track which inputs we've signalled minimise on.
+	 */
+	join->minimised = VIPS_ARRAY( join, n, gboolean ); 
+	for( i = 0; i < n; i++ ) 
+		join->minimised[i] = FALSE;
 
 	/* Each image must be cropped and aligned within an @hspacing by
 	 * @vspacing box.

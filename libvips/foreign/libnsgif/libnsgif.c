@@ -549,6 +549,8 @@ static gif_result gif_error_from_lzw(lzw_result l_res)
 		[LZW_BAD_ICODE] = GIF_FRAME_DATA_ERROR,
 		[LZW_BAD_CODE]  = GIF_FRAME_DATA_ERROR,
 	};
+	assert(l_res != LZW_BAD_PARAM);
+	assert(l_res != LZW_NO_COLOUR);
 	return g_res[l_res];
 }
 
@@ -638,9 +640,8 @@ gif__decode_complex(gif_animation *gif,
 	lzw_result res;
 
 	/* Initialise the LZW decoding */
-	res = lzw_decode_init(gif->lzw_ctx, gif->gif_data,
-			gif->buffer_size, gif->buffer_position,
-			minimum_code_size);
+	res = lzw_decode_init(gif->lzw_ctx, minimum_code_size,
+			gif->gif_data, gif->buffer_size, gif->buffer_position);
 	if (res != LZW_OK) {
 		return gif_error_from_lzw(res);
 	}
@@ -675,20 +676,28 @@ gif__decode_complex(gif_animation *gif,
 					}
 					break;
 				}
-				res = lzw_decode_continuous(gif->lzw_ctx,
+				res = lzw_decode(gif->lzw_ctx,
 						&uncompressed, &available);
 			}
 
 			row_available = x < available ? x : available;
 			x -= row_available;
 			available -= row_available;
-			while (row_available-- > 0) {
-				register unsigned int colour;
-				colour = *uncompressed++;
-				if (colour != transparency_index) {
-					*frame_scanline = colour_table[colour];
+			if (transparency_index > 0xFF) {
+				while (row_available-- > 0) {
+					*frame_scanline++ =
+						colour_table[*uncompressed++];
 				}
-				frame_scanline++;
+			} else {
+				while (row_available-- > 0) {
+					register unsigned int colour;
+					colour = *uncompressed++;
+					if (colour != transparency_index) {
+						*frame_scanline =
+							colour_table[colour];
+					}
+					frame_scanline++;
+				}
 			}
 		}
 	}
@@ -710,23 +719,22 @@ gif__decode_simple(gif_animation *gif,
 	gif_result ret = GIF_OK;
 	lzw_result res;
 
-	/* Initialise the LZW decoding */
-	res = lzw_decode_init(gif->lzw_ctx, gif->gif_data,
-			gif->buffer_size, gif->buffer_position,
-			minimum_code_size);
-	if (res != LZW_OK) {
-		return gif_error_from_lzw(res);
-	}
-
 	transparency_index = gif->frames[frame].transparency ?
 			gif->frames[frame].transparency_index :
 			GIF_NO_TRANSPARENCY;
 
+	/* Initialise the LZW decoding */
+	res = lzw_decode_init_map(gif->lzw_ctx,
+			minimum_code_size, transparency_index, colour_table,
+			gif->gif_data, gif->buffer_size, gif->buffer_position);
+	if (res != LZW_OK) {
+		return gif_error_from_lzw(res);
+	}
+
 	frame_data += (offset_y * gif->width);
 
 	while (pixels > 0) {
-		res = lzw_decode_map_continuous(gif->lzw_ctx,
-				transparency_index, colour_table,
+		res = lzw_decode_map(gif->lzw_ctx,
 				frame_data, pixels, &written);
 		pixels -= written;
 		frame_data += written;

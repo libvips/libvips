@@ -94,9 +94,13 @@
 #include <expat.h>
 #include <errno.h>
 
+#ifdef G_OS_WIN32
+#include <windows.h>
+#endif /*G_OS_WIN32*/
+
 #include <vips/vips.h>
-#include <vips/internal.h>
 #include <vips/debug.h>
+#include <vips/internal.h>
 
 /**
  * SECTION: vips
@@ -113,38 +117,20 @@
  * world. See vips_init() and vips_guess_prefix().
  */
 
-/* Try to make an O_BINARY ... sometimes need the leading '_'.
- */
-#if defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)
-#ifndef O_BINARY
-#ifdef _O_BINARY
-#define O_BINARY _O_BINARY
-#endif /*_O_BINARY*/
-#endif /*!O_BINARY*/
-#endif /*defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)*/
-
-/* If we have O_BINARY, add it to a mode flags set.
- */
-#ifdef O_BINARY
-#define BINARYIZE(M) ((M) | O_BINARY)
-#else /*!O_BINARY*/
-#define BINARYIZE(M) (M)
-#endif /*O_BINARY*/
-
-/* Open mode for image write ... on some systems, have to set BINARY too.
+/* Open mode for image write.
  *
  * We use O_RDWR not O_WRONLY since after writing we may want to rewind the 
  * image and read from it.
  */
-#define MODE_WRITE BINARYIZE (O_RDWR | O_CREAT | O_TRUNC)
+#define MODE_WRITE CLOEXEC (BINARYIZE (O_RDWR | O_CREAT | O_TRUNC))
 
 /* Mode for read/write. This is if we might later want to mmaprw () the file.
  */
-#define MODE_READWRITE BINARYIZE (O_RDWR)
+#define MODE_READWRITE CLOEXEC (BINARYIZE (O_RDWR))
 
 /* Mode for read only. This is the fallback if READWRITE fails.
  */
-#define MODE_READONLY BINARYIZE (O_RDONLY)
+#define MODE_READONLY CLOEXEC (BINARYIZE (O_RDONLY))
 
 /* Our XML namespace.
  */
@@ -332,6 +318,7 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 {
 	gboolean swap;
 	int i;
+	GEnumValue *value;
 
 #ifdef SHOW_HEADER
 	printf( "vips__read_header_bytes: file bytes:\n" ); 
@@ -383,14 +370,16 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 
 	/* Coding and Type have missing values, so we look up in the enum.
 	 */
-	im->Type = g_enum_get_value( 
-			g_type_class_ref( VIPS_TYPE_INTERPRETATION ), 
-			im->Type ) ?
-		im->Type : VIPS_INTERPRETATION_ERROR;
-	im->Coding = g_enum_get_value( 
-			g_type_class_ref( VIPS_TYPE_CODING ), 
-			im->Coding ) ?
-		im->Coding : VIPS_CODING_ERROR;
+	value = g_enum_get_value( g_type_class_ref( VIPS_TYPE_INTERPRETATION ),
+		im->Type );
+	if( !value ||
+		strcmp( value->value_nick, "last" ) == 0 )
+		im->Type = VIPS_INTERPRETATION_ERROR;
+	value = g_enum_get_value( g_type_class_ref( VIPS_TYPE_CODING ),
+		im->Coding );
+	if( !value ||
+		strcmp( value->value_nick, "last" ) == 0 )
+		im->Coding = VIPS_CODING_ERROR;
 
 	/* Offset, Res, etc. don't affect vips file layout, just 
 	 * pixel interpretation, don't clip them.
@@ -400,6 +389,11 @@ vips__read_header_bytes( VipsImage *im, unsigned char *from )
 	 * are sane.
 	 */
 	switch( im->Coding ) {
+	case VIPS_CODING_ERROR:
+		vips_error( "VipsImage",
+			"%s", _( "unknown coding" ) );
+		return( -1 );
+
 	case VIPS_CODING_NONE:
 		break;
 

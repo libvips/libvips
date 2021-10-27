@@ -10,6 +10,8 @@
  * 	- revise for new VipsTarget API
  * 14/2/21 kleisauke
  * 	- move GObject part to vips2heif.c
+ * 30/7/21
+ * 	- rename "speed" as "effort" for consistency with other savers
  */
 
 /*
@@ -69,7 +71,7 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	VipsTarget *target;
 
-	/* Coding quality factor (1-100).
+	/* Coding quality factor (1 - 100).
 	 */
 	int Q;
 
@@ -81,9 +83,9 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	VipsForeignHeifCompression compression;
 
-	/* CPU effort (0-8).
+	/* CPU effort (0 - 9).
 	 */
-	int speed;
+	int effort;
 
 	/* Chroma subsampling.
 	 */
@@ -115,6 +117,11 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	uint8_t *data;
 	int stride;
+
+	/* Deprecated ... this is now called effort for consistency with the
+	 * other encoders.
+	 */
+	int speed;
 
 } VipsForeignSaveHeif;
 
@@ -337,6 +344,13 @@ vips_foreign_save_heif_build( VipsObject *object )
 		build( object ) )
 		return( -1 );
 
+	/* If the old, deprecated "speed" param is being used and the new
+	 * "effort" param is not, use speed to init effort.
+	 */
+	if( vips_object_argument_isset( object, "speed" ) &&
+		!vips_object_argument_isset( object, "effort" ) )
+		heif->effort = 9 - heif->speed;
+
 	/* Make a copy of the image in case we modify the metadata eg. for
 	 * exif_update.
 	 */
@@ -378,7 +392,7 @@ vips_foreign_save_heif_build( VipsObject *object )
 	}
 
 	error = heif_encoder_set_parameter_integer( heif->encoder,
-		"speed", heif->speed );
+		"speed", 9 - heif->effort );
 	if( error.code &&
 		error.subcode != heif_suberror_Unsupported_parameter ) {
 		vips__heif_error( &error );
@@ -506,19 +520,19 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 		FALSE );
 
 	VIPS_ARG_ENUM( class, "compression", 14,
-		_( "compression" ),
+		_( "Compression" ),
 		_( "Compression format" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveHeif, compression ),
 		VIPS_TYPE_FOREIGN_HEIF_COMPRESSION,
 		VIPS_FOREIGN_HEIF_COMPRESSION_HEVC );
 
-	VIPS_ARG_INT( class, "speed", 15,
-		_( "speed" ),
+	VIPS_ARG_INT( class, "effort", 15,
+		_( "Effort" ),
 		_( "CPU effort" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveHeif, speed ),
-		0, 9, 5 );
+		G_STRUCT_OFFSET( VipsForeignSaveHeif, effort ),
+		0, 9, 4 );
 
 	VIPS_ARG_ENUM( class, "subsample_mode", 16,
 		_( "Subsample mode" ),
@@ -527,6 +541,14 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveHeif, subsample_mode ),
 		VIPS_TYPE_FOREIGN_SUBSAMPLE,
 		VIPS_FOREIGN_SUBSAMPLE_AUTO );
+
+	VIPS_ARG_INT( class, "speed", 17,
+		_( "Speed" ),
+		_( "CPU effort" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsForeignSaveHeif, speed ),
+		0, 9, 5 );
+
 }
 
 static void
@@ -535,8 +557,12 @@ vips_foreign_save_heif_init( VipsForeignSaveHeif *heif )
 	heif->ctx = heif_context_alloc();
 	heif->Q = 50;
 	heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_HEVC;
-	heif->speed = 5;
+	heif->effort = 4;
 	heif->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_AUTO;
+
+	/* Deprecated.
+	 */
+	heif->speed = 5;
 }
 
 typedef struct _VipsForeignSaveHeifFile {

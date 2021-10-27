@@ -103,6 +103,10 @@ typedef struct _VipsForeignSaveJpeg {
 	 */
 	int quant_table;
 
+	/* Use an MCU restart interval.
+	 */
+	int restart_interval;
+
 } VipsForeignSaveJpeg;
 
 typedef VipsForeignSaveClass VipsForeignSaveJpegClass;
@@ -231,6 +235,14 @@ vips_foreign_save_jpeg_class_init( VipsForeignSaveJpegClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveJpeg, subsample_mode ),
 		VIPS_TYPE_FOREIGN_SUBSAMPLE,
 		VIPS_FOREIGN_SUBSAMPLE_AUTO );
+
+	VIPS_ARG_INT( class, "restart_interval", 20,
+		_( "Restart interval" ),
+		_( "Add restart markers every specified number of mcu" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveJpeg, restart_interval ),
+		0, INT_MAX, 0 );
+
 }
 
 static void
@@ -268,7 +280,8 @@ vips_foreign_save_jpeg_target_build( VipsObject *object )
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->trellis_quant,
 		jpeg->overshoot_deringing, jpeg->optimize_scans,
-		jpeg->quant_table, jpeg->subsample_mode ) )
+		jpeg->quant_table, jpeg->subsample_mode,
+		jpeg->restart_interval ) )
 		return( -1 );
 
 	return( 0 );
@@ -334,7 +347,8 @@ vips_foreign_save_jpeg_file_build( VipsObject *object )
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->trellis_quant,
 		jpeg->overshoot_deringing, jpeg->optimize_scans,
-		jpeg->quant_table, jpeg->subsample_mode ) ) {
+		jpeg->quant_table, jpeg->subsample_mode,
+		jpeg->restart_interval ) ) {
 		VIPS_UNREF( target );
 		return( -1 );
 	}
@@ -404,7 +418,8 @@ vips_foreign_save_jpeg_buffer_build( VipsObject *object )
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->trellis_quant,
 		jpeg->overshoot_deringing, jpeg->optimize_scans,
-		jpeg->quant_table, jpeg->subsample_mode ) ) {
+		jpeg->quant_table, jpeg->subsample_mode,
+		jpeg->restart_interval ) ) {
 		VIPS_UNREF( target );
 		return( -1 );
 	}
@@ -477,7 +492,8 @@ vips_foreign_save_jpeg_mime_build( VipsObject *object )
 		jpeg->Q, jpeg->profile, jpeg->optimize_coding, 
 		jpeg->interlace, save->strip, jpeg->trellis_quant,
 		jpeg->overshoot_deringing, jpeg->optimize_scans,
-		jpeg->quant_table, jpeg->subsample_mode ) ) {
+		jpeg->quant_table, jpeg->subsample_mode,
+		jpeg->restart_interval ) ) {
 		VIPS_UNREF( target );
 		return( -1 );
 	}
@@ -534,6 +550,7 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
  * * @quant_table: %gint, quantization table index
+ * * @restart_interval: %gint, restart interval in mcu
  *
  * Write a VIPS image to a file as JPEG.
  *
@@ -604,6 +621,12 @@ vips_foreign_save_jpeg_mime_init( VipsForeignSaveJpegMime *mime )
  * For maximum compression with mozjpeg, a useful set of options is `strip, 
  * optimize-coding, interlace, optimize-scans, trellis-quant, quant_table=3`.
  *
+ * By default, the output stream won't have restart markers.  If a non-zero
+ * restart_interval is specified, a restart marker will be added after each
+ * specified number of MCU blocks.  This makes the stream more recoverable
+ * if there are transmission errors, but also allows for some decoders to read
+ * part of the JPEG without decoding the whole stream.
+ *
  * The image is automatically converted to RGB, Monochrome or CMYK before 
  * saving. 
  *
@@ -650,6 +673,7 @@ vips_jpegsave( VipsImage *in, const char *filename, ... )
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
  * * @quant_table: %gint, quantization table index
+ * * @restart_interval: %gint, restart interval in mcu
  *
  * As vips_jpegsave(), but save to a target.
  *
@@ -689,6 +713,7 @@ vips_jpegsave_target( VipsImage *in, VipsTarget *target, ... )
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
  * * @quant_table: %gint, quantization table index
+ * * @restart_interval: %gint, restart interval in mcu
  *
  * As vips_jpegsave(), but save to a memory buffer. 
  *
@@ -745,6 +770,7 @@ vips_jpegsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @overshoot_deringing: %gboolean, overshoot samples with extreme values
  * * @optimize_scans: %gboolean, split DCT coefficients into separate scans
  * * @quant_table: %gint, quantization table index
+ * * @restart_interval: %gint, restart interval in mcu
  *
  * As vips_jpegsave(), but save as a mime jpeg on stdout.
  *

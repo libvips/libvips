@@ -175,6 +175,7 @@ vips_rank_generate_uchar( VipsRegion *or,
 	VipsImage *in = seq->ir->im;
 	VipsRect *r = &or->valid;
 	const int bands = in->Bands; 
+	const int last = bands * (rank->width - 1);
 
 	/* Get input and output pointers for this line.
 	 */
@@ -229,7 +230,7 @@ vips_rank_generate_uchar( VipsRegion *or,
 			p1 = p + b;
 			for( j = 0; j < rank->height; j++ ) {
 				hist[p1[0]] -= 1;
-				hist[p1[bands * rank->width]] += 1;
+				hist[p1[last]] += 1;
 
 				p1 += lsk;
 			}

@@ -6,53 +6,60 @@ jobs:
   CI:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ contains(matrix.os, 'macos') }}
     strategy:
       fail-fast: false
       matrix:
-        name: [ "Linux x64 (Ubuntu 20.04) - GCC 10" ]
-        os: [ ubuntu-20.04 ]
-        sanitize: [ false ]
-        build:
-          - { cc: gcc, cxx: g++, linker: ld, shell: bash }
         include:
-          - name: "Linux x64 (Ubuntu 20.04) - Clang 10 with ASan and UBSan"
+          - name: "Linux x64 (Ubuntu 20.04) - GCC 10"
             os: ubuntu-20.04
-            sanitize: true
-            build: { cc: clang-10, cxx: clang++-10, linker: ld.lld-10, shell: bash }
-          - name: "macOS (10.15) - Xcode 12.3"
-            os: macos-10.15
-            sanitize: false
-            build: { cc: clang, cxx: clang++, linker: ld.lld, shell: bash }
-          - name: "macOS (10.15) - Xcode 12.3 - M1"
-            os: macos-m1
-            sanitize: false
-            build: { cc: clang, cxx: clang++, linker: ld.lld, shell: "/usr/bin/arch -arch arm64e /bin/bash -l {0}" }
+            build: { cc: gcc, cxx: g++, linker: ld }
+            shell: bash
+
+          - name: "Linux x64 (Ubuntu 20.04) - Clang 12 with ASan and UBSan"
+            os: ubuntu-20.04
+            build: { cc: clang-12, cxx: clang++-12, linker: ld.lld-12, sanitize: true }
+            shell: bash
+
+          - name: "macOS (11.5) - Xcode 12.5.1"
+            os: macos-11
+            build: { cc: clang, cxx: clang++, linker: ld.lld }
+            shell: bash
+
+          # TODO: Re-enable self-hosted M1 runner provided by MacStadium
+          #- name: "macOS (10.15) - Xcode 12.4 - M1"
+          #  os: macos-m1
+          #  build: { cc: clang, cxx: clang++, linker: ld.lld }
+          #  shell: "/usr/bin/arch -arch arm64e /bin/bash -l {0}"
 
     defaults:
       run:
-        shell: ${{ matrix.build.shell }} 
+        shell: ${{ matrix.shell }}
+
+    env:
+      CC: ${{ matrix.build.cc }}
+      CXX: ${{ matrix.build.cxx }}
+      LD: ${{ matrix.build.linker }}
+      CPPFLAGS: -Wall
+      DEBIAN_FRONTEND: noninteractive
+      HOMEBREW_NO_AUTO_UPDATE: 1
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Update apt
-        if: contains(matrix.os, 'ubuntu')
-        env:
-          DEBIAN_FRONTEND: noninteractive
+        if: runner.os == 'Linux'
         run: sudo -E apt-get update -qq -o Acquire::Retries=3
 
-      - name: Add libheif PPA
-        if: contains(matrix.os, 'ubuntu')
+      - name: Add Ubuntu PPAs
+        if: runner.os == 'Linux'
         run: |
           sudo add-apt-repository ppa:strukturag/libde265
           sudo add-apt-repository ppa:strukturag/libheif
+          sudo add-apt-repository ppa:lovell/cgif
 
       - name: Install Ubuntu dependencies
-        if: contains(matrix.os, 'ubuntu')
-        env:
-          DEBIAN_FRONTEND: noninteractive
+        if: runner.os == 'Linux'
         run:
           sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3
             gtk-doc-tools gobject-introspection
@@ -64,45 +71,36 @@ jobs:
             liblcms2-dev libpoppler-glib-dev librsvg2-dev
             libgif-dev libopenexr-dev libpango1.0-dev
             libgsf-1-dev libopenslide-dev libffi-dev
-            libopenjp2-7-dev
+            libopenjp2-7-dev libimagequant-dev libcgif-dev
 
       - name: Install macOS dependencies
-        if: contains(matrix.os, 'macos')
+        if: runner.os == 'macOS'
         run: |
-          brew update
-          brew upgrade
           brew install autoconf automake libtool fftw fontconfig gtk-doc gobject-introspection glib libexif libgsf little-cms2 orc pango
-          brew install cfitsio libheif libjpeg-turbo libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
+          brew install cfitsio libheif libimagequant libjpeg-turbo libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
+          brew tap lovell/cgif-packaging https://github.com/lovell/cgif-packaging.git
+          brew install --build-bottle lovell/cgif-packaging/cgif
 
-      - name: Install Clang 10
-        env:
-          DEBIAN_FRONTEND: noninteractive
-        if: contains(matrix.os, 'ubuntu') && matrix.build.cc == 'clang-10'
+      - name: Install Clang 12
+        if: runner.os == 'Linux' && matrix.build.cc == 'clang-12'
         run:
           sudo -E apt-get install --fix-missing -qq -o Acquire::Retries=3
-            clang-10 libomp-10-dev lld-10 llvm-10
-
-      - name: Prepare build environment
-        run: |
-          echo "CC=${{ matrix.build.cc }}" >> $GITHUB_ENV
-          echo "CXX=${{ matrix.build.cxx }}" >> $GITHUB_ENV
-          echo "LD=${{ matrix.build.linker }}" >> $GITHUB_ENV
-          echo "CPPFLAGS=-Wall" >> $GITHUB_ENV
+            clang-12 libomp-12-dev lld-12 llvm-12
 
       - name: Prepare Ubuntu environment
-        if: contains(matrix.os, 'ubuntu')
+        if: runner.os == 'Linux'
         run: echo "JOBS=$(nproc)" >> $GITHUB_ENV
 
       - name: Prepare macOS environment
-        if: contains(matrix.os, 'macos')
+        if: runner.os == 'macOS'
         run: |
           echo "JOBS=$(sysctl -n hw.logicalcpu)" >> $GITHUB_ENV
-          echo "PKG_CONFIG_PATH=/usr/local/opt/jpeg-turbo/lib/pkgconfig:/usr/local/opt/libxml2/lib/pkgconfig:/usr/local/opt/imagemagick@6/lib/pkgconfig" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=$(brew --prefix jpeg-turbo)/lib/pkgconfig:$(brew --prefix libxml2)/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
 
       - name: Prepare sanitizers
-        if: matrix.sanitize
+        if: matrix.build.sanitize
         env:
-          LLVM_PREFIX: /usr/lib/llvm-10
+          LLVM_PREFIX: /usr/lib/llvm-12
         run: |
           ASAN_DSO=`$CC -print-file-name=libclang_rt.asan-x86_64.so`
           echo "LDSHARED=$CC -shared" >> $GITHUB_ENV
@@ -112,7 +110,7 @@ jobs:
           echo "ASAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/asan.supp" >> $GITHUB_ENV
           echo "LSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/lsan.supp" >> $GITHUB_ENV
           echo "TSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/tsan.supp" >> $GITHUB_ENV
-          echo "UBSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/ubsan.supp:print_stacktrace=1" >> $GITHUB_ENV
+          echo "UBSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/ubsan.supp:halt_on_error=1:abort_on_error=1" >> $GITHUB_ENV
           echo "LD_LIBRARY_PATH=$LLVM_PREFIX/lib:`dirname $ASAN_DSO`" >> $GITHUB_ENV
           echo "$LLVM_PREFIX/bin" >> $GITHUB_PATH
           # workaround for https://github.com/google/sanitizers/issues/89
@@ -130,13 +128,13 @@ jobs:
         run: make V=0 -j$JOBS
 
       - name: Check libvips
-        run: make V=0 check
+        run: make V=0 VERBOSE=1 check
 
       - name: Install libvips
         run: sudo make V=0 install
 
       - name: Rebuild the shared library cache
-        if: contains(matrix.os, 'ubuntu')
+        if: runner.os == 'Linux'
         run: sudo ldconfig
 
       - name: Install pyvips

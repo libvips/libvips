@@ -80,6 +80,34 @@ typedef VipsColourTransformClass VipsLab2XYZClass;
 
 G_DEFINE_TYPE( VipsLab2XYZ, vips_Lab2XYZ, VIPS_TYPE_COLOUR_TRANSFORM );
 
+static void
+vips_col_Lab2XYZ_helper( VipsLab2XYZ *Lab2XYZ,
+	float L, float a, float b, float *X, float *Y, float *Z )
+{
+	double cby, tmp;
+
+	if( L < 8.0 ) {
+		*Y = (L * Lab2XYZ->Y0) / 903.3;
+		cby = 7.787 * (*Y / Lab2XYZ->Y0) + 16.0 / 116.0;
+	}
+	else {
+		cby = (L + 16.0) / 116.0;
+		*Y = Lab2XYZ->Y0 * cby * cby * cby;
+	}
+
+	tmp = a / 500.0 + cby;
+	if( tmp < 0.2069 )
+		*X = Lab2XYZ->X0 * (tmp - 0.13793) / 7.787;
+	else
+		*X = Lab2XYZ->X0 * tmp * tmp * tmp;
+
+	tmp = cby - b / 200.0;
+	if( tmp < 0.2069 )
+		*Z = Lab2XYZ->Z0 * (tmp - 0.13793) / 7.787;
+	else
+		*Z = Lab2XYZ->Z0 * tmp * tmp * tmp;
+}
+
 /* Process a buffer of data.
  */
 static void
@@ -97,33 +125,13 @@ vips_Lab2XYZ_line( VipsColour *colour, VipsPel *out, VipsPel **in, int width )
 	for( x = 0; x < width; x++ ) {
 		float L, a, b;
 		float X, Y, Z;
-		double cby, tmp;
 
 		L = p[0];
 		a = p[1];
 		b = p[2];
 		p += 3;
 
-		if( L < 8.0 ) {
-			Y = (L * Lab2XYZ->Y0) / 903.3;
-			cby = 7.787 * (Y / Lab2XYZ->Y0) + 16.0 / 116.0;
-		}
-		else {
-			cby = (L + 16.0) / 116.0;
-			Y = Lab2XYZ->Y0 * cby * cby * cby;
-		}
-
-		tmp = a / 500.0 + cby;
-		if( tmp < 0.2069 )
-			X = Lab2XYZ->X0 * (tmp - 0.13793) / 7.787;
-		else    
-			X = Lab2XYZ->X0 * tmp * tmp * tmp;
-
-		tmp = cby - b / 200.0;
-		if( tmp < 0.2069 )
-			Z = Lab2XYZ->Z0 * (tmp - 0.13793) / 7.787;
-		else    
-			Z = Lab2XYZ->Z0 * tmp * tmp * tmp;
+		vips_col_Lab2XYZ_helper( Lab2XYZ, L, a, b, &X, &Y, &Z );
 
 		/* Write.
 		 */
@@ -234,23 +242,11 @@ vips_Lab2XYZ( VipsImage *in, VipsImage **out, ... )
  */
 void
 vips_col_Lab2XYZ( float L, float a, float b, float *X, float *Y, float *Z )
-{	
-	float in[3];
-	float *x;
-	float out[3];
+{
 	VipsLab2XYZ Lab2XYZ;
 
-	in[0] = L;
-	in[1] = a;
-	in[2] = b;
-	x = in;
 	Lab2XYZ.X0 = VIPS_D65_X0;
 	Lab2XYZ.Y0 = VIPS_D65_Y0;
 	Lab2XYZ.Z0 = VIPS_D65_Z0;
-	vips_Lab2XYZ_line( (VipsColour *) &Lab2XYZ, 
-		(VipsPel *) out, (VipsPel **) &x, 1 );
-	*X = out[0];
-	*Y = out[1];
-	*Z = out[2];
+	vips_col_Lab2XYZ_helper( &Lab2XYZ, L, a, b, X, Y, Z );
 }
-

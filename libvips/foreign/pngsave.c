@@ -68,6 +68,7 @@ typedef struct _VipsForeignSavePng {
 	int Q;
 	double dither;
 	int bitdepth;
+	int effort;
 
 	/* Set by subclasses.
 	 */
@@ -153,7 +154,7 @@ vips_foreign_save_png_build( VipsObject *object )
 	if( vips__png_write_target( in, png->target,
 		png->compression, png->interlace, png->profile, png->filter,
 		save->strip, png->palette, png->Q, png->dither,
-		png->bitdepth ) ) {
+		png->bitdepth, png->effort ) ) {
 		g_object_unref( in );
 		return( -1 );
 	}
@@ -262,6 +263,13 @@ vips_foreign_save_png_class_init( VipsForeignSavePngClass *class )
 		G_STRUCT_OFFSET( VipsForeignSavePng, bitdepth ),
 		0, 8, 0 );
 
+	VIPS_ARG_INT( class, "effort", 18,
+		_( "Effort" ),
+		_( "Quantisation CPU effort" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSavePng, effort ),
+		1, 10, 7 );
+
 	VIPS_ARG_INT( class, "colours", 14,
 		_( "Colours" ),
 		_( "Max number of palette colours" ),
@@ -278,6 +286,7 @@ vips_foreign_save_png_init( VipsForeignSavePng *png )
 	png->filter = VIPS_FOREIGN_PNG_FILTER_ALL;
 	png->Q = 100;
 	png->dither = 1.0;
+	png->effort = 7;
 }
 
 typedef struct _VipsForeignSavePngTarget {
@@ -463,7 +472,8 @@ vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
  * * @palette: %gboolean, enable quantisation to 8bpp palette
  * * @Q: %gint, quality for 8bpp quantisation 
  * * @dither: %gdouble, amount of dithering for 8bpp quantization
- * * @bitdepth: %int, set write bit depth to 1, 2, 4 or 8
+ * * @bitdepth: %gint, set write bit depth to 1, 2, 4 or 8
+ * * @effort: %gint, quantisation CPU effort
  *
  * Write a VIPS image to a file as PNG.
  *
@@ -492,8 +502,9 @@ vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
  *
  * Set @palette to %TRUE to enable palette mode for RGB or RGBA images. A
  * palette will be computed with enough space for @bitdepth (1, 2, 4 or 8) 
- * bits. Use @Q to set the optimisation effort, and @dither to set the degree of
- * Floyd-Steinberg dithering.
+ * bits. Use @Q to set the optimisation effort, @dither to set the degree of
+ * Floyd-Steinberg dithering and @effort to control the CPU effort
+ * (1 is the fastest, 10 is the slowest, 7 is the default).
  * This feature requires libvips to be compiled with libimagequant.
  *
  * You can also set @bitdepth for mono and mono + alpha images, and the image
@@ -535,7 +546,8 @@ vips_pngsave( VipsImage *in, const char *filename, ... )
  * * @palette: %gboolean, enable quantisation to 8bpp palette
  * * @Q: %gint, quality for 8bpp quantisation 
  * * @dither: %gdouble, amount of dithering for 8bpp quantization
- * * @bitdepth: %int, set write bit depth to 1, 2, 4 or 8
+ * * @bitdepth: %gint, set write bit depth to 1, 2, 4 or 8
+ * * @effort: %gint, quantisation CPU effort
  *
  * As vips_pngsave(), but save to a memory buffer. 
  *
@@ -590,7 +602,8 @@ vips_pngsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @palette: enable quantisation to 8bpp palette
  * * @Q: quality for 8bpp quantisation 
  * * @dither: amount of dithering for 8bpp quantization
- * * @bitdepth: %int, set write bit depth to 1, 2, 4 or 8
+ * * @bitdepth: %gint, set write bit depth to 1, 2, 4 or 8
+ * * @effort: %gint, quantisation CPU effort
  *
  * As vips_pngsave(), but save to a target.
  *

@@ -2,9 +2,29 @@
 - all tools support `--version`
 - add vips_svgload_string() convenience function
 - fix thumbnail with small image plus crop plus no upsize [Andrewsville]
+- rename speed / reduction-effort / etc. params as "effort"
+- add gifsave [lovell]
+- arrayjoin minimises inputs during sequential processing, saving a lot of 
+  memory and file descriptors
+- add vips_image_get_format_max()
+- flatten handles out of range alpha and max_alpha correctly
+- don't use atexit for cleanup, it's too unreliable
+- tiff writer loops for the whole image rather than per page [LionelArn2]
+- fix VipsSource with named pipes [vibbix]
+- added restart_interval option to jpegsave [manthey]
+- add IIIF3 support to dzsaave [martimpassos]
+- add atan2 [indus]
+
+16/8/21 started 8.11.4
+- fix off-by-one error in new rank fast path
+- add "unlimited" flag to png load [joshuamsager]
+- improve filtering of .v enums [lovell]
+- better logic to prevent shrink to nothing in thumbnail [kleisauke]
 
 14/7/21 started 8.11.3
 - build threadpool later [kleisauke]
+- add jxlsave prototypes [adil-benameur]
+- limit text chunks in PNGs [randy408]
 
 15/6/20 started 8.11.2
 - better libdir guessing [remi]

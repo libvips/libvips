@@ -438,7 +438,8 @@ vips_foreign_save_tiff_file_build( VipsObject *object )
 		tiff->lossless,
 		tiff->depth,
 		tiff->subifd,
-		tiff->premultiply ) )
+		tiff->premultiply,
+		save->page_height ) )
 		return( -1 );
 
 	return( 0 );
@@ -512,7 +513,8 @@ vips_foreign_save_tiff_buffer_build( VipsObject *object )
 		tiff->lossless, 
 		tiff->depth,
 		tiff->subifd,
-		tiff->premultiply ) )
+		tiff->premultiply,
+		save->page_height ) )
 		return( -1 );
 
 	blob = vips_blob_new( (VipsCallbackFn) vips_area_free_cb, obuf, olen );

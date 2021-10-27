@@ -121,13 +121,18 @@ vips_foreign_load_nifti_build( VipsObject *object )
 	 * the nifti library works in terms of filenames.
 	 */
 	if( nifti->source ) {
-		nifti->filename = vips_connection_filename( VIPS_CONNECTION( 
-			nifti->source ) );
-		if( !nifti->filename ) {
-			vips_error( class->nickname, "%s", 
-				_( "no filename available" ) );
+		VipsConnection *connection = VIPS_CONNECTION( nifti->source );
+
+		const char *filename;
+
+		if( !vips_source_is_file( nifti->source ) ||
+			!(filename = vips_connection_filename( connection )) ) {
+			vips_error( class->nickname, 
+				"%s", _( "no filename available" ) );
 			return( -1 );
 		}
+
+		nifti->filename = filename; 
 	}
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_nifti_parent_class )->
@@ -747,10 +752,12 @@ vips_foreign_load_nifti_source_build( VipsObject *object )
 static gboolean
 vips_foreign_load_nifti_source_is_a_source( VipsSource *source )
 {
+	VipsConnection *connection = VIPS_CONNECTION( source );
+
 	const char *filename;
 
-	return( (filename = 
-		vips_connection_filename( VIPS_CONNECTION( source ) )) &&
+	return( vips_source_is_file( source ) &&
+		(filename = vips_connection_filename( connection )) &&
 		vips_foreign_load_nifti_is_a( filename ) );
 }
 

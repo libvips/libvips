@@ -24,6 +24,8 @@
  * 	- redone as a class
  * 17/7/12
  * 	- wopconst was broken
+ * 20/10/21 indus
+ * 	- add atan2
  */
 
 /*
@@ -150,6 +152,24 @@ vips_math2_build( VipsObject *object )
 }
 
 #define WOP( Y, X, E ) POW( Y, E, X )
+ 
+#ifdef HAVE_ATAN2 
+#define ATAN2( Y, L, R ) { \
+	double left = (double) (L); \
+	double right = (double) (R); \
+	\
+	(Y) = VIPS_DEG( atan2( left, right ) ); \
+	if( (Y) < 0.0 ) \
+		(Y) += 360; \
+}
+#else
+#define ATAN2( Y, L, R ) { \
+	double left = (double) (L); \
+	double right = (double) (R); \
+	\
+	(Y) = vips_col_ab2h( left, right ); \
+}
+#endif 
 
 static void
 vips_math2_buffer( VipsArithmetic *arithmetic, 
@@ -164,6 +184,7 @@ vips_math2_buffer( VipsArithmetic *arithmetic,
 	switch( math2->math2 ) {
 	case VIPS_OPERATION_MATH2_POW: 	SWITCH( LOOP, POW ); break;
 	case VIPS_OPERATION_MATH2_WOP: 	SWITCH( LOOP, WOP ); break;
+	case VIPS_OPERATION_MATH2_ATAN2: 	SWITCH( LOOP, ATAN2 ); break;
 
         default:
 		g_assert_not_reached();
@@ -325,6 +346,31 @@ vips_wop( VipsImage *left, VipsImage *right, VipsImage **out, ... )
 	return( result );
 }
 
+/**
+ * vips_atan2:
+ * @left: left-hand input #VipsImage
+ * @right: right-hand input #VipsImage
+ * @out: (out): output #VipsImage
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_MATH2_ATAN2 on a pair of images. See
+ * vips_math2().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_atan2( VipsImage *left, VipsImage *right, VipsImage **out, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, out );
+	result = vips_math2v( left, right, out, VIPS_OPERATION_MATH2_ATAN2, ap );
+	va_end( ap );
+
+	return( result );
+}
+
 
 typedef struct _VipsMath2Const {
 	VipsUnaryConst parent_instance;
@@ -383,6 +429,10 @@ vips_math2_const_buffer( VipsArithmetic *arithmetic,
 
 	case VIPS_OPERATION_MATH2_WOP: 	
 		SWITCH( LOOPC, WOP ); 
+		break;
+
+	case VIPS_OPERATION_MATH2_ATAN2: 	
+		SWITCH( LOOPC, ATAN2 ); 
 		break;
 
         default:
@@ -542,6 +592,33 @@ vips_wop_const( VipsImage *in, VipsImage **out, const double *c, int n, ... )
 }
 
 /**
+ * vips_atan2_const: (method)
+ * @in: left-hand input #VipsImage
+ * @out: (out): output #VipsImage
+ * @c: (array length=n): array of constants
+ * @n: number of constants in @c
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_MATH2_ATAN2 on an image and a constant. See
+ * vips_math2_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_atan2_const( VipsImage *in, VipsImage **out, const double *c, int n, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, n );
+	result = vips_math2_constv( in, out, 
+		VIPS_OPERATION_MATH2_ATAN2, c, n, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
  * vips_math2_const1: (method)
  * @in: input image
  * @out: (out): output image
@@ -615,6 +692,32 @@ vips_wop_const1( VipsImage *in, VipsImage **out, double c, ... )
 	va_start( ap, c );
 	result = vips_math2_constv( in, out, 
 		VIPS_OPERATION_MATH2_WOP, &c, 1, ap );
+	va_end( ap );
+
+	return( result );
+}
+
+/**
+ * vips_atan2_const1: (method)
+ * @in: left-hand input #VipsImage
+ * @out: (out): output #VipsImage
+ * @c: constant 
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * Perform #VIPS_OPERATION_MATH2_ATAN2 on an image and a constant. See
+ * vips_math2_const().
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_atan2_const1( VipsImage *in, VipsImage **out, double c, ... )
+{
+	va_list ap;
+	int result;
+
+	va_start( ap, c );
+	result = vips_math2_constv( in, out, 
+		VIPS_OPERATION_MATH2_ATAN2, &c, 1, ap );
 	va_end( ap );
 
 	return( result );

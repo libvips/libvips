@@ -828,16 +828,16 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	jp2k->parameters.cp_tdx = jp2k->tile_width;
 	jp2k->parameters.cp_tdy = jp2k->tile_height;
 
-	/* Makes three band images smaller, somehow.
+	/* Makes many-band, non-subsampled images smaller, somehow.
 	 */
-	jp2k->parameters.tcp_mct = save->ready->Bands >= 3 ? 1 : 0;
+	jp2k->parameters.tcp_mct = save->ready->Bands >= 3 && !jp2k->subsample;
 
 	/* Number of layers to write. Smallest layer is c. 2^5 on the smallest
 	 * axis.
 	 */
 	jp2k->parameters.numresolution = VIPS_MAX( 1, 
 		log( VIPS_MIN( save->ready->Xsize, save->ready->Ysize ) ) / 
-		log( 2 ) - 4 );
+		log( 2 ) - 5 );
 #ifdef DEBUG
 	printf( "vips_foreign_save_jp2k_build: numresolutions = %d\n", 
 		jp2k->parameters.numresolution );

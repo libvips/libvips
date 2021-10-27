@@ -2,6 +2,8 @@
  *
  * 18/3/20
  * 	- from heifload.c
+ * 1/10/21
+ * 	- reset read point for _load
  */
 
 /*
@@ -185,7 +187,8 @@ vips_foreign_load_jxl_is_a_source( VipsSource *source )
 	JxlSignature sig;
 
 	return( (p = vips_source_sniff( source, 12 )) &&
-		(sig = JxlSignatureCheck( p, 12 )) == JXL_SIG_CODESTREAM );
+		(sig = JxlSignatureCheck( p, 12 )) != JXL_SIG_INVALID &&
+		sig != JXL_SIG_NOT_ENOUGH_BYTES );
 }
 
 static VipsForeignFlags
@@ -200,7 +203,12 @@ vips_foreign_load_jxl_fill_input( VipsForeignLoadJxl *jxl,
 {
 	gint64 bytes_read;
 
-	memcpy( jxl->input_buffer, 
+#ifdef DEBUG_VERBOSE
+	printf( "vips_foreign_load_jxl_fill_input: %zd bytes requested\n", 
+		INPUT_BUFFER_SIZE - bytes_remaining );
+#endif /*DEBUG_VERBOSE*/
+
+	memmove( jxl->input_buffer,
 		jxl->input_buffer + jxl->bytes_in_buffer - bytes_remaining,
 		bytes_remaining );
 	bytes_read = vips_source_read( jxl->source,
@@ -364,6 +372,10 @@ static JxlDecoderStatus
 vips_foreign_load_jxl_process( VipsForeignLoadJxl *jxl )
 {
 	JxlDecoderStatus status;
+
+#ifdef DEBUG
+	printf( "vips_foreign_load_jxl_process: starting ...\n" );
+#endif /*DEBUG*/
 
 	while( (status = JxlDecoderProcessInput( jxl->decoder )) == 
 		JXL_DEC_NEED_MORE_INPUT ) {
@@ -616,6 +628,17 @@ vips_foreign_load_jxl_load( VipsForeignLoad *load )
 	t[0] = vips_image_new();
 	if( vips_foreign_load_jxl_set_header( jxl, t[0] ) ) 
 		return( -1 );
+
+	/* We have to reset the reader ... we can't reply onb the read point
+	 * being left just after the header.
+	 */
+	if( vips_source_rewind( jxl->source ) )
+                return( -1 );
+
+	if( vips_foreign_load_jxl_fill_input( jxl, 0 ) )
+		return( -1 );
+	JxlDecoderSetInput( jxl->decoder, 
+		jxl->input_buffer, jxl->bytes_in_buffer );
 
 	/* Read to the end of the image.
 	 */

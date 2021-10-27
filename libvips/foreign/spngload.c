@@ -4,6 +4,8 @@
  * 	- from pngload.c
  * 19/2/21 781545872
  * 	- read out background, if we can
+ * 29/8/21 joshuamsager
+ *	-  add "unlimited" flag to png load
  */
 
 /*
@@ -62,6 +64,10 @@ typedef struct _VipsForeignLoadPng {
 	/* Set by subclasses.
 	 */
 	VipsSource *source;
+
+	/* Remove DoS limits.
+	 */
+	gboolean unlimited;
 
 	spng_ctx *ctx;
 	struct spng_ihdr ihdr;
@@ -194,9 +200,11 @@ vips_foreign_load_png_set_text( VipsImage *out,
 	}
 }
 
-static void
+static int
 vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( png );
+
 	double xres, yres;
 	struct spng_iccp iccp;
 	struct spng_exif exif;
@@ -243,6 +251,16 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 
 	if( !spng_get_text( png->ctx, NULL, &n_text ) ) {
 		struct spng_text *text;
+
+		/* Very large numbers of text chunks are used in DoS
+		 * attacks.
+		 */
+
+		if( !png->unlimited && n_text > MAX_PNG_TEXT_CHUNKS ) {
+			vips_error( class->nickname, 
+				"%s", _( "too many text chunks" ) );
+			return( -1 );
+		}
 
 		text = VIPS_ARRAY( VIPS_OBJECT( png ), 
 			n_text, struct spng_text );
@@ -307,6 +325,8 @@ vips_foreign_load_png_set_header( VipsForeignLoadPng *png, VipsImage *image )
 			vips_image_set_array_double( image, "background", 
 				array, n );
 	}
+
+	return( 0 );
 }
 
 static int
@@ -336,8 +356,12 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 	 * No need to test the decoded image size -- the user can do that if
 	 * they wish.
 	 */
-	spng_set_image_limits( png->ctx, VIPS_MAX_COORD, VIPS_MAX_COORD );
-	spng_set_chunk_limits( png->ctx, 60 * 1024 * 1024, 60 * 1024 * 1024 );
+	if ( !png->unlimited ) {
+		spng_set_image_limits( png->ctx, 
+			VIPS_MAX_COORD, VIPS_MAX_COORD );
+		spng_set_chunk_limits( png->ctx, 
+			60 * 1024 * 1024, 60 * 1024 * 1024 );
+	}
 
 	if( vips_source_rewind( png->source ) ) 
 		return( -1 );
@@ -456,7 +480,8 @@ vips_foreign_load_png_header( VipsForeignLoad *load )
 
 	vips_source_minimise( png->source );
 
-	vips_foreign_load_png_set_header( png, load->out );
+	if( vips_foreign_load_png_set_header( png, load->out ) )
+		return( -1 );
 
 	return( 0 );
 }
@@ -570,8 +595,8 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 		 * buffer, then copy to out.
 		 */
 		t[0] = vips_image_new_memory();
-		vips_foreign_load_png_set_header( png, t[0] );
-		if( vips_image_write_prepare( t[0] ) )
+		if( vips_foreign_load_png_set_header( png, t[0] ) ||
+			vips_image_write_prepare( t[0] ) )
 			return( -1 );
 
 		if( (error = spng_decode_image( png->ctx, 
@@ -592,7 +617,9 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 	}
 	else {
 		t[0] = vips_image_new();
-		vips_foreign_load_png_set_header( png, t[0] );
+
+		if( vips_foreign_load_png_set_header( png, t[0] ) )
+			return( -1 );
 
 		/* We can decode these progressively.
 		 */
@@ -632,6 +659,8 @@ vips_foreign_load_png_class_init( VipsForeignLoadPngClass *class )
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_png_dispose;
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pngload_base";
 	object_class->description = _( "load png base class" );
@@ -646,6 +675,12 @@ vips_foreign_load_png_class_init( VipsForeignLoadPngClass *class )
 	load_class->header = vips_foreign_load_png_header;
 	load_class->load = vips_foreign_load_png_load;
 
+	VIPS_ARG_BOOL( class, "unlimited", 23,
+		_( "Unlimited" ),
+		_( "Remove all denial of service limits" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoadPng, unlimited ),
+		FALSE );
 }
 
 static void

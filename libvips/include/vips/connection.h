@@ -218,6 +218,7 @@ int vips_source_unminimise( VipsSource *source );
 int vips_source_decode( VipsSource *source );
 gint64 vips_source_read( VipsSource *source, void *data, size_t length );
 gboolean vips_source_is_mappable( VipsSource *source );
+gboolean vips_source_is_file( VipsSource *source );
 const void *vips_source_map( VipsSource *source, size_t *length );
 VipsBlob *vips_source_map_blob( VipsSource *source );
 gint64 vips_source_seek( VipsSource *source, gint64 offset, int whence );

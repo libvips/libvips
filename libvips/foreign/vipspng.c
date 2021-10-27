@@ -81,6 +81,8 @@
  * 	- only warn for saving bad profiles, don't fail
  * 19/2/21 781545872
  * 	- read out background, if we can
+ * 29/8/21 joshuamsager
+ *	-  add "unlimited" flag to png load
  */
 
 /*
@@ -173,6 +175,7 @@ typedef struct {
 	char *name;
 	VipsImage *out;
 	VipsFailOn fail_on;
+	gboolean unlimited;
 
 	int y_pos;
 	png_structp pPng;
@@ -255,7 +258,8 @@ vips_png_read_source( png_structp pPng, png_bytep data, png_size_t length )
 }
 
 static Read *
-read_new( VipsSource *source, VipsImage *out, VipsFailOn fail_on )
+read_new( VipsSource *source, VipsImage *out, 
+	VipsFailOn fail_on, gboolean unlimited )
 {
 	Read *read;
 
@@ -270,6 +274,8 @@ read_new( VipsSource *source, VipsImage *out, VipsFailOn fail_on )
 	read->pInfo = NULL;
 	read->row_pointer = NULL;
 	read->source = source;
+	read->unlimited = unlimited;
+
 	g_object_ref( source );
 
 	g_signal_connect( out, "close", 
@@ -310,11 +316,21 @@ read_new( VipsSource *source, VipsImage *out, VipsFailOn fail_on )
 	if( !(read->pInfo = png_create_info_struct( read->pPng )) ) 
 		return( NULL );
 
+#ifdef HAVE_PNG_SET_CHUNK_MALLOC_MAX
+
 	/* By default, libpng refuses to open files with a metadata chunk 
 	 * larger than 8mb. We've seen real files with 20mb, so set 50mb.
 	 */
-#ifdef HAVE_PNG_SET_CHUNK_MALLOC_MAX
 	png_set_chunk_malloc_max( read->pPng, 50 * 1024 * 1024 );
+
+	/* This limits the number of chunks. The limit from
+	 * png_set_chunk_malloc_max() times this value is the maximum 
+	 * memory use.
+	 *
+	 * libnpng defaults to 1000, which is rather high.
+	 */
+	png_set_chunk_cache_max( read->pPng, 100 );
+
 #endif /*HAVE_PNG_SET_CHUNK_MALLOC_MAX*/
 
 	png_read_info( read->pPng, read->pInfo );
@@ -551,6 +567,17 @@ png2vips_header( Read *read, VipsImage *out )
 		&text_ptr, &num_text ) > 0 ) {
 		int i;
 
+		/* Very large numbers of text chunks are used in DoS
+		 * attacks.
+		 */
+		if( !read->unlimited && 
+			num_text > MAX_PNG_TEXT_CHUNKS ) {
+			vips_error( "vipspng", 
+				_( "%d text chunks, image blocked" ),
+			       num_text );
+			return( -1 );
+		}
+
 		for( i = 0; i < num_text; i++ ) 
 			/* .text is always a null-terminated C string.
 			 */
@@ -759,11 +786,12 @@ vips__png_ispng_source( VipsSource *source )
 }
 
 int
-vips__png_header_source( VipsSource *source, VipsImage *out )
+vips__png_header_source( VipsSource *source, VipsImage *out, 
+	gboolean unlimited )
 {
 	Read *read;
 
-	if( !(read = read_new( source, out, TRUE )) ||
+	if( !(read = read_new( source, out, TRUE, unlimited )) ||
 		png2vips_header( read, out ) ) {
 		vips_error( "png2vips", _( "unable to read source %s" ),
 			vips_connection_nick( VIPS_CONNECTION( source ) ) );
@@ -776,11 +804,12 @@ vips__png_header_source( VipsSource *source, VipsImage *out )
 }
 
 int
-vips__png_read_source( VipsSource *source, VipsImage *out, VipsFailOn fail_on )
+vips__png_read_source( VipsSource *source, VipsImage *out, 
+	VipsFailOn fail_on, gboolean unlimited )
 {
 	Read *read;
 
-	if( !(read = read_new( source, out, fail_on )) ||
+	if( !(read = read_new( source, out, fail_on, unlimited )) ||
 		png2vips_image( read, out ) ||
 		vips_source_decode( source ) ) {
 		vips_error( "png2vips", _( "unable to read source %s" ),
@@ -803,7 +832,7 @@ vips__png_isinterlaced_source( VipsSource *source )
 
 	image = vips_image_new();
 
-	if( !(read = read_new( source, image, TRUE )) ) { 
+	if( !(read = read_new( source, image, TRUE, FALSE )) ) { 
 		g_object_unref( image );
 		return( -1 );
 	}
@@ -986,7 +1015,7 @@ write_vips( Write *write,
 	int compress, int interlace, const char *profile,
 	VipsForeignPngFilter filter, gboolean strip,
 	gboolean palette, int Q, double dither,
-	int bitdepth )
+	int bitdepth, int effort )
 {
 	VipsImage *in = write->in;
 
@@ -1162,7 +1191,7 @@ write_vips( Write *write,
 		int trans_count;
 
 		if( vips__quantise_image( in, &im_index, &im_palette, 
-			1 << bitdepth, Q, dither ) ) 
+			1 << bitdepth, Q, dither, effort, FALSE ) )
 			return( -1 );
 
 		palette_count = im_palette->Xsize;
@@ -1256,7 +1285,7 @@ vips__png_write_target( VipsImage *in, VipsTarget *target,
 	int compression, int interlace,
 	const char *profile, VipsForeignPngFilter filter, gboolean strip,
 	gboolean palette, int Q, double dither,
-	int bitdepth )
+	int bitdepth, int effort )
 {
 	Write *write;
 
@@ -1265,7 +1294,7 @@ vips__png_write_target( VipsImage *in, VipsTarget *target,
 
 	if( write_vips( write, 
 		compression, interlace, profile, filter, strip, palette,
-		Q, dither, bitdepth ) ) {
+		Q, dither, bitdepth, effort ) ) {
 		write_destroy( write );
 		vips_error( "vips2png", _( "unable to write to target %s" ),
 			vips_connection_nick( VIPS_CONNECTION( target ) ) );

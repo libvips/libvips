@@ -6,6 +6,7 @@ FUZZPROGS = \
 	jpegsave_buffer_fuzzer \
 	pngsave_buffer_fuzzer \
 	webpsave_buffer_fuzzer \
+	gifsave_buffer_fuzzer \
 	sharpen_fuzzer \
 	thumbnail_fuzzer \
 	smartcrop_fuzzer \

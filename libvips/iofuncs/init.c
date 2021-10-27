@@ -30,6 +30,10 @@
  * 	- hide warnings is VIPS_WARNING is set
  * 20/4/19
  * 	- set the min stack, if we can
+ * 17/9/21
+ * 	- don't use atexit for cleanup, it's too unreliable ... users should
+ * 	  call vips_shutdown explicitly if they want a clean exit, though a
+ * 	  dirty exit is fine
  */
 
 /*
@@ -230,9 +234,6 @@ vips_get_prgname( void )
  * + loads any plugins from $libdir/vips-x.y/, where x and y are the
  *   major and minor version numbers for this VIPS.
  *
- * + if your platform supports atexit(), VIPS_INIT() will ask for
- *   vips_shutdown() to be called on program exit
- *
  * Example:
  *
  * |[
@@ -302,6 +303,11 @@ vips_load_plugins( const char *fmt, ... )
 					path, g_module_error() ); 
 				result = -1;
 			}
+
+			/* Modules will almost certainly create new types, so
+			 * they can't be unloaded.
+			 */
+			g_module_make_resident( module );
                 }
         g_dir_close( dir );
 
@@ -364,6 +370,74 @@ vips_verbose( void )
 		g_setenv( "G_MESSAGES_DEBUG", new, TRUE );
 
 		g_free( new );
+	}
+}
+
+static int
+vips_leak( void ) 
+{
+	char txt[1024];
+	VipsBuf buf = VIPS_BUF_STATIC( txt );
+	int n_leaks;
+
+	n_leaks = 0;
+
+	n_leaks += vips__object_leak();
+	n_leaks += vips__type_leak();
+	n_leaks += vips_tracked_get_allocs();
+	n_leaks += vips_tracked_get_mem();
+	n_leaks += vips_tracked_get_files();
+
+	if( vips_tracked_get_allocs() || 
+		vips_tracked_get_mem() ||
+		vips_tracked_get_files() ) {
+		vips_buf_appendf( &buf, "memory: %d allocations, %zd bytes\n",
+			vips_tracked_get_allocs(), vips_tracked_get_mem() );
+		vips_buf_appendf( &buf, "files: %d open\n",
+			vips_tracked_get_files() );
+	}
+
+	vips_buf_appendf( &buf, "memory: high-water mark " );
+	vips_buf_append_size( &buf, vips_tracked_get_mem_highwater() );
+	vips_buf_appends( &buf, "\n" );
+
+	if( strlen( vips_error_buffer() ) > 0 ) {
+		vips_buf_appendf( &buf, "error buffer: %s", 
+			vips_error_buffer() );
+		n_leaks += strlen( vips_error_buffer() );
+	}
+
+	fprintf( stderr, "%s", vips_buf_all( &buf ) );
+
+	n_leaks += vips__print_renders();
+
+#ifdef DEBUG
+	vips_buffer_dump_all();
+#endif /*DEBUG*/
+
+	return( n_leaks );
+}
+
+/* This is not guaranteed to be called, and might be called after many parts
+ * of libvips have been freed. Threads can be in an indeterminate state. 
+ * You must be very careful to avoid segvs.
+ */
+static void
+vips__atexit( void )
+{
+	/* In dev releases, always show leaks. But not more than once, it's
+	 * annoying.
+	 */
+#ifndef DEBUG_LEAK
+	if( vips__leak ) 
+#endif /*DEBUG_LEAK*/
+	{
+		static gboolean done = FALSE;
+
+		if( !done ) {
+			done = TRUE;
+			vips_leak();
+		}
 	}
 }
 
@@ -583,11 +657,8 @@ vips_init( const char *argv0 )
 	gsf_init();
 #endif /*HAVE_GSF*/
 
-	/* Register vips_shutdown(). This may well not get called and many
-	 * platforms don't support it anyway.
-	 */
 #ifdef HAVE_ATEXIT
-	atexit( vips_shutdown );
+	atexit( vips__atexit );
 #endif /*HAVE_ATEXIT*/
 
 #ifdef DEBUG_LEAK
@@ -635,51 +706,6 @@ vips_check_init( void )
 		vips_error_clear();
 }
 
-static int
-vips_leak( void ) 
-{
-	char txt[1024];
-	VipsBuf buf = VIPS_BUF_STATIC( txt );
-	int n_leaks;
-
-	n_leaks = 0;
-
-	n_leaks += vips__object_leak();
-	n_leaks += vips__type_leak();
-	n_leaks += vips_tracked_get_allocs();
-	n_leaks += vips_tracked_get_mem();
-	n_leaks += vips_tracked_get_files();
-
-	if( vips_tracked_get_allocs() || 
-		vips_tracked_get_mem() ||
-		vips_tracked_get_files() ) {
-		vips_buf_appendf( &buf, "memory: %d allocations, %zd bytes\n",
-			vips_tracked_get_allocs(), vips_tracked_get_mem() );
-		vips_buf_appendf( &buf, "files: %d open\n",
-			vips_tracked_get_files() );
-	}
-
-	vips_buf_appendf( &buf, "memory: high-water mark " );
-	vips_buf_append_size( &buf, vips_tracked_get_mem_highwater() );
-	vips_buf_appends( &buf, "\n" );
-
-	if( strlen( vips_error_buffer() ) > 0 ) {
-		vips_buf_appendf( &buf, "error buffer: %s", 
-			vips_error_buffer() );
-		n_leaks += strlen( vips_error_buffer() );
-	}
-
-	fprintf( stderr, "%s", vips_buf_all( &buf ) );
-
-	n_leaks += vips__print_renders();
-
-#ifdef DEBUG
-	vips_buffer_dump_all();
-#endif /*DEBUG*/
-
-	return( n_leaks );
-}
-
 /**
  * vips_thread_shutdown: 
  *
@@ -709,6 +735,9 @@ vips_thread_shutdown( void )
  * Call this to drop caches and close plugins. Run with "--vips-leak" to do 
  * a leak check too. 
  *
+ * vips_shutdown() is optional. If you don't call it, your platform will
+ * clean up for you.
+ *
  * You may call VIPS_INIT() many times and vips_shutdown() many times, but you 
  * must not call VIPS_INIT() after vips_shutdown(). In other words, you cannot
  * stop and restart vips. 
@@ -737,36 +766,20 @@ vips_shutdown( void )
 }
 
 	vips__render_shutdown();
-
 	vips_thread_shutdown();
-
 	vips__thread_profile_stop();
-
 	vips__threadpool_shutdown();
 
 #ifdef HAVE_GSF
 	gsf_shutdown(); 
 #endif /*HAVE_GSF*/
 
-	/* In dev releases, always show leaks. But not more than once, it's
-	 * annoying.
+	/* Don't free vips__global_lock -- we want to be able to use
+	 * vips_error_buffer() after vips_shutdown(), since vips_leak() can
+	 * call it.
 	 */
-#ifndef DEBUG_LEAK
-	if( vips__leak ) 
-#endif /*DEBUG_LEAK*/
-	{
-		static gboolean done = FALSE;
-
-		if( !done &&
-			vips_leak() ) 
-			exit( 1 );
-
-		done = TRUE;
-	}
-
 	VIPS_FREE( vips__argv0 );
 	VIPS_FREE( vips__prgname );
-	VIPS_FREEF( vips_g_mutex_free, vips__global_lock );
 	VIPS_FREEF( g_timer_destroy, vips__global_timer );
 }
 

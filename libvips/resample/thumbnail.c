@@ -443,6 +443,11 @@ vips_thumbnail_calculate_shrink( VipsThumbnail *thumbnail,
 		*hshrink = VIPS_MAX( 1, *hshrink );
 		*vshrink = VIPS_MAX( 1, *vshrink );
 	}
+
+	/* We don't want to shrink so much that we send an axis to 0.
+	 */
+	*hshrink = VIPS_MIN( *hshrink, input_width );
+	*vshrink = VIPS_MIN( *vshrink, input_height );
 }
 
 /* Just the common part of the shrink: the bit by which both axes must be
@@ -460,10 +465,6 @@ vips_thumbnail_calculate_common_shrink( VipsThumbnail *thumbnail,
 		&hshrink, &vshrink ); 
 
 	shrink = VIPS_MIN( hshrink, vshrink );
-
-	/* We don't want to shrink so much that we send an axis to 0.
-	 */
-	shrink = VIPS_MIN( shrink, VIPS_MIN( width, height ) ); 
 
 	return( shrink ); 
 }

@@ -5,9 +5,11 @@
  * 29/10/18 
  * 	- add animated webp support
  * 15/1/19 lovell
- * 	- add @reduction_effort 
+ * 	- add @effort 
  * 18/7/20
  * 	- add @profile param to match tiff, jpg, etc.
+ * 30/7/21
+ * 	- rename "reduction-effort" as "effort"
  */
 
 /*
@@ -84,7 +86,7 @@ typedef struct _VipsForeignSaveWebp {
 
 	/* Level of CPU effort to reduce file size.
 	 */
-	int reduction_effort;
+	int effort;
 
 	/* Animated webp options.
 	 */
@@ -204,11 +206,11 @@ vips_foreign_save_webp_class_init( VipsForeignSaveWebpClass *class )
 		G_STRUCT_OFFSET( VipsForeignSaveWebp, kmax ),
 		0, INT_MAX, INT_MAX );
 
-	VIPS_ARG_INT( class, "reduction_effort", 19,
-		_( "Reduction effort" ),
+	VIPS_ARG_INT( class, "effort", 19,
+		_( "Effort" ),
 		_( "Level of CPU effort to reduce file size" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveWebp, reduction_effort ),
+		G_STRUCT_OFFSET( VipsForeignSaveWebp, effort ),
 		0, 6, 4 );
 
 	VIPS_ARG_STRING( class, "profile", 20, 
@@ -217,6 +219,13 @@ vips_foreign_save_webp_class_init( VipsForeignSaveWebpClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveWebp, profile ),
 		NULL );
+
+	VIPS_ARG_INT( class, "reduction-effort", 21,
+		_( "Reduction effort" ),
+		_( "Level of CPU effort to reduce file size" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsForeignSaveWebp, effort ),
+		0, 6, 4 );
 }
 
 static void
@@ -224,7 +233,7 @@ vips_foreign_save_webp_init( VipsForeignSaveWebp *webp )
 {
 	webp->Q = 75;
 	webp->alpha_q = 100;
-	webp->reduction_effort = 4;
+	webp->effort = 4;
 
 	/* ie. keyframes disabled by default.
 	 */
@@ -259,7 +268,7 @@ vips_foreign_save_webp_target_build( VipsObject *object )
 	if( vips__webp_write_target( save->ready, target->target, 
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
-		webp->alpha_q, webp->reduction_effort,
+		webp->alpha_q, webp->effort,
 		webp->min_size, webp->kmin, webp->kmax,
 		save->strip, webp->profile ) )
 		return( -1 );
@@ -327,7 +336,7 @@ vips_foreign_save_webp_file_build( VipsObject *object )
 	if( vips__webp_write_target( save->ready, target,
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
-		webp->alpha_q, webp->reduction_effort,
+		webp->alpha_q, webp->effort,
 		webp->min_size, webp->kmin, webp->kmax,
 		save->strip, webp->profile ) ) {
 		VIPS_UNREF( target );
@@ -399,7 +408,7 @@ vips_foreign_save_webp_buffer_build( VipsObject *object )
 	if( vips__webp_write_target( save->ready, target,
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
-		webp->alpha_q, webp->reduction_effort,
+		webp->alpha_q, webp->effort,
 		webp->min_size, webp->kmin, webp->kmax,
 		save->strip, webp->profile ) ) {
 		VIPS_UNREF( target );
@@ -473,7 +482,7 @@ vips_foreign_save_webp_mime_build( VipsObject *object )
 	if( vips__webp_write_target( save->ready, target,
 		webp->Q, webp->lossless, webp->preset,
 		webp->smart_subsample, webp->near_lossless,
-		webp->alpha_q, webp->reduction_effort,
+		webp->alpha_q, webp->effort,
 		webp->min_size, webp->kmin, webp->kmax,
 		save->strip, webp->profile ) ) {
 		VIPS_UNREF( target );
@@ -528,7 +537,7 @@ vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
  * * @smart_subsample: %gboolean, enables high quality chroma subsampling
  * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
  * * @alpha_q: %gint, set alpha quality in lossless mode
- * * @reduction_effort: %gint, level of CPU effort to reduce file size
+ * * @effort: %gint, level of CPU effort to reduce file size
  * * @min_size: %gboolean, minimise size
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
@@ -549,7 +558,7 @@ vips_foreign_save_webp_mime_init( VipsForeignSaveWebpMime *mime )
  * Use @alpha_q to set the quality for the alpha channel in lossy mode. It has
  * the range 1 - 100, with the default 100.
  *
- * Use @reduction_effort to control how much CPU time to spend attempting to
+ * Use @effort to control how much CPU time to spend attempting to
  * reduce file size. A higher value means more effort and therefore CPU time
  * should be spent. It has the range 0-6 and a default value of 4.
  *
@@ -606,7 +615,7 @@ vips_webpsave( VipsImage *in, const char *filename, ... )
  * * @smart_subsample: %gboolean, enables high quality chroma subsampling
  * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
  * * @alpha_q: %gint, set alpha quality in lossless mode
- * * @reduction_effort: %gint, level of CPU effort to reduce file size
+ * * @effort: %gint, level of CPU effort to reduce file size
  * * @min_size: %gboolean, minimise size
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
@@ -664,7 +673,7 @@ vips_webpsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @smart_subsample: %gboolean, enables high quality chroma subsampling
  * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
  * * @alpha_q: %gint, set alpha quality in lossless mode
- * * @reduction_effort: %gint, level of CPU effort to reduce file size
+ * * @effort: %gint, level of CPU effort to reduce file size
  * * @min_size: %gboolean, minimise size
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes
@@ -704,7 +713,7 @@ vips_webpsave_mime( VipsImage *in, ... )
  * * @smart_subsample: %gboolean, enables high quality chroma subsampling
  * * @near_lossless: %gboolean, preprocess in lossless mode (controlled by Q)
  * * @alpha_q: %gint, set alpha quality in lossless mode
- * * @reduction_effort: %gint, level of CPU effort to reduce file size
+ * * @effort: %gint, level of CPU effort to reduce file size
  * * @min_size: %gboolean, minimise size
  * * @kmin: %gint, minimum number of frames between keyframes
  * * @kmax: %gint, maximum number of frames between keyframes

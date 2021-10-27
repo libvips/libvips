@@ -41,7 +41,6 @@ VIPS_LIBS=""
 # binary interface changed: increment current, reset revision to 0
 #   binary interface changes backwards compatible?: increment age
 #   binary interface changes not backwards compatible?: reset age to 0
-
 LIBRARY_REVISION=0
 LIBRARY_CURRENT=56
 LIBRARY_AGE=14
@@ -190,19 +189,19 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LN_S
 
-AC_ARG_WITH([doxygen], 
-  AS_HELP_STRING([--without-doxygen], [build without doxygen (default: test)]))
+AC_ARG_ENABLE([doxygen], 
+  AS_HELP_STRING([--enable-doxygen], [enable C++ doc build (default: no)]),
+  [enable_doxygen="$enableval"],
+  [enable_doxygen=no])
 
-if test x"$with_doxygen" != x"no"; then
+if test x"$enable_doxygen" = x"yes"; then
   AC_CHECK_PROGS([DOXYGEN], [doxygen])
-  if test "$DOXYGEN"; then
-    with_doxygen=yes
-  else
+  if ! test "$DOXYGEN"; then
     AC_MSG_WARN([doxygen not found; C++ docs will not be generated])
-    with_doxygen=no
+    enable_doxygen=no
   fi
 fi
-AM_CONDITIONAL(HAVE_DOXYGEN, [test x"$with_doxygen" = x"yes"])
+AM_CONDITIONAL(HAVE_DOXYGEN, [test x"$enable_doxygen" = x"yes"])
 
 # we need a fully expanded version of $libdir
 # without this we get something like
@@ -550,25 +549,31 @@ AS_IF([test x"$with_magick" = x"module"],
   [with_magick_module=no])
 
 AC_ARG_WITH([magickpackage], 
-  AS_HELP_STRING([--with-magickpackage], 
-    [magickpackage to use (default: MagickCore; try GraphicsMagick to build against gm instead)]))
+  AS_HELP_STRING([--with-magickpackage=PACKAGE], 
+    [use magick PACKAGE (default: MagickCore; try GraphicsMagick to build against gm instead)]))
 
-# set the default magick package ... very old imagemagicks called it
-# ImageMagick
-if test x"$with_magickpackage" = x""; then
-  PKG_CHECK_MODULES(MAGICK_WAND, MagickCore,
-    [with_magickpackage=MagickCore
-    ],
-    [PKG_CHECK_MODULES(IMAGE_MAGICK, ImageMagick,
-       [with_magickpackage=ImageMagick
-       ],
-       [AC_MSG_WARN([neither MagickCore nor ImageMagick found; disabling Magick support])
-        with_magick=no
-        with_magick_module=no
-       ]
-     )
-    ]
+if test x"$with_magickpackage" = x"yes"; then
+  AC_MSG_WARN([--with-magickpackage needs an argument, ignoring])
+  with_magick=no
+  with_magick_module=no
+else
+  if test x"$with_magickpackage" = x""; then
+    # set the default magick package ... very old imagemagicks called it
+    # ImageMagick
+    PKG_CHECK_MODULES(MAGICK_WAND, MagickCore,
+      [with_magickpackage=MagickCore
+      ],
+      [PKG_CHECK_MODULES(IMAGE_MAGICK, ImageMagick,
+         [with_magickpackage=ImageMagick
+         ],
+         [AC_MSG_WARN([neither MagickCore nor ImageMagick found; disabling Magick support])
+          with_magick=no
+          with_magick_module=no
+         ]
+       )
+      ]
   )
+  fi
 fi
 
 # we have a separate loader for magick7 with fewer ifdef
@@ -620,12 +625,17 @@ if test x"$magick6" = x"yes"; then
 fi
 
 if test x"$magick6" = x"yes"; then
-  # the magick6 API varies a lot between magick versions, and between GM and
-  # IM
+  # the magick6 API varies a lot between magick versions, and between GM and IM
+  # set CFLAGS too, since CHECK_FUNCS will try to compile / link / run code.
   save_LIBS="$LIBS"
+  save_CFLAGS="$CFLAGS"
   LIBS="$LIBS $MAGICK_LIBS"
+  CFLAGS="$CFLAGS $MAGICK_CFLAGS"
+
   AC_CHECK_FUNCS([InheritException AcquireExceptionInfo SetImageProperty SetImageExtent AcquireImage GetVirtualPixels ResetImageProfileIterator ResetImageAttributeIterator ResetImagePropertyIterator MagickCoreGenesis SetImageOption BlobToStringInfo OptimizePlusImageLayers OptimizeImageTransparency])
+
   LIBS="$save_LIBS"
+  CFLAGS="$save_CFLAGS"
 fi
 
 if test x"$magick6" = x"yes"; then
@@ -826,9 +836,9 @@ AS_IF([test x"$with_libjxl" = x"module"],
   [with_libjxl_module=no])
 
 if test x"$with_libjxl" != x"no"; then
-  PKG_CHECK_MODULES(LIBJXL, libjxl_threads >= 0.3.7 libjxl >= 0.3.7,
+  PKG_CHECK_MODULES(LIBJXL, libjxl_threads >= 0.6 libjxl >= 0.6,
     [AC_DEFINE(HAVE_LIBJXL,1,
-       [define if you have libjxl >= 0.3.7 installed.])
+       [define if you have libjxl >= 0.6 installed.])
      with_libjxl=yes
      AS_IF([test x"$with_libjxl_module" = x"no"],
        [PACKAGES_USED="$PACKAGES_USED libjxl"])
@@ -1343,7 +1353,7 @@ VIPS_LIBS="$VIPS_LIBS $PNG_LIBS"
 AC_ARG_WITH([imagequant],
   AS_HELP_STRING([--without-imagequant], [build without imagequant (default: test)]))
 
-if test x"$with_imagequant" != x"no" && test x"$with_png" != x"no"; then
+if test x"$with_imagequant" != x"no"; then
   PKG_CHECK_MODULES(IMAGEQUANT, imagequant,
     [AC_DEFINE(HAVE_IMAGEQUANT,1,[define if you have imagequant installed.])
      with_imagequant=yes
@@ -1431,6 +1441,27 @@ fi
 VIPS_CFLAGS="$VIPS_CFLAGS $EXIF_CFLAGS"
 VIPS_LIBS="$VIPS_LIBS $EXIF_LIBS"
 
+# GIF save with libcgif (requires libimagequant also)
+AC_ARG_WITH([cgif],
+  AS_HELP_STRING([--without-cgif], [build without cgif (default: test)]))
+
+if test x"$with_imagequant" == x"yes" && test x"$with_cgif" != x"no"; then
+  PKG_CHECK_MODULES(CGIF, cgif,
+    [AC_DEFINE(HAVE_CGIF,1,[define if you have cgif installed.])
+      with_cgif=yes
+      PACKAGES_USED="$PACKAGES_USED cgif"
+    ],
+    [AC_MSG_WARN([libcgif not found])
+      with_cgif=no
+    ]
+  )
+else
+  with_cgif=no
+fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $CGIF_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $CGIF_LIBS"
+
 # fuzzing
 AC_ARG_VAR([LIB_FUZZING_ENGINE],
            [fuzzing library, e.g. /path/to/libFuzzer.a])
@@ -1463,7 +1494,7 @@ JXL load/save with libjxl: $with_libjxl (dynamic module: $with_libjxl_module), \
 JPEG2000 load/save with libopenjp2: $with_libopenjp2, \
 PNG load with libspng: $with_libspng, \
 PNG load/save with libpng: $with_png, \
-PNG quantisation to 8 bit: $with_imagequant, \
+quantisation to 8 bit: $with_imagequant, \
 TIFF load/save with libtiff: $with_tiff, \
 image pyramid save: $with_gsf, \
 HEIC/AVIF load/save with libheif: $with_heif (dynamic module: $with_heif_module), \
@@ -1476,6 +1507,7 @@ OpenSlide load: $with_openslide (dynamic module: $with_openslide_module), \
 Matlab load with matio: $with_matio, \
 NIfTI load/save with niftiio: $with_nifti, \
 FITS load/save with cfitsio: $with_cfitsio, \
+GIF save with cgif: $with_cgif, \
 Magick package: $with_magickpackage (dynamic module: $with_magick_module), \
 Magick API version: $magick_version, \
 load with libMagickCore: $enable_magickload, \
@@ -1489,11 +1521,6 @@ AC_SUBST(VIPS_LIBS)
 AC_SUBST(VIPS_CONFIG)
 AC_SUBST(PACKAGES_USED)
 AC_SUBST(EXTRA_LIBS_USED)
-
-# needed by test/variables.sh.in
-# :( what's a better way to do this, argh
-TOP_SRCDIR=$ac_pwd
-AC_SUBST(TOP_SRCDIR)
 
 AC_CONFIG_FILES([
         vips.pc
@@ -1550,13 +1577,13 @@ enable deprecated library components:   $enable_deprecated
 enable modules:                         $gmodule_supported_flag
 enable C docs with gtkdoc:              $enable_gtk_doc
  (requires gtk-doc 1.14 or later)
+enable C++ docs with doxygen:           $enable_doxygen
 gobject introspection:                  $found_introspection
  (requires gobject-introspection 1.30 or later)
 RAD load/save:                          $with_radiance
 Analyze7 load/save:                     $with_analyze
 PPM load/save:                          $with_ppm
 GIF load:                               $with_nsgif
-generate C++ docs with doxygen:         $with_doxygen
 
 ## Optional dependencies
 use fftw3 for FFT:                      $with_fftw
@@ -1577,7 +1604,7 @@ PNG load with libspng:                  $with_libspng
  (requires libspng-0.6 or later)
 PNG load/save with libpng:              $with_png
  (requires libpng-1.2.9 or later)
-PNG quantisation to 8 bit:              $with_imagequant
+quantisation to 8 bit:                  $with_imagequant
  (requires libimagequant)
 TIFF load/save with libtiff:            $with_tiff
 image pyramid save:                     $with_gsf
@@ -1596,8 +1623,10 @@ OpenSlide support:                      $with_openslide (dynamic module: $with_o
 Matlab load with matio:                 $with_matio
 NIfTI load/save with niftiio:           $with_nifti
 FITS load/save with cfitsio:            $with_cfitsio
+GIF save with cgif:                     $with_cgif
+ (requires cgif, libimagequant)
 Magick package:                         $with_magickpackage (dynamic module: $with_magick_module)
-Magick API version:                     $magick_version
+Magick major API version:               $magick_version
 load with libMagickCore:                $enable_magickload
 save with libMagickCore:                $enable_magicksave
 ])
