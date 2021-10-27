@@ -235,7 +235,7 @@ vips_foreign_save_ppm_build( VipsObject *object )
 	/* Try various ways to guess the write suffix.
 	 */
 	filename = NULL;
-	if( !vips_image_get_string( image, "format_string", &format_string ) ) {
+	if( !vips_image_get_string( image, "format-string", &format_string ) ) {
 		vips__filename_split8( format_string, 
 			filename_buffer, option_string );
 		filename = filename_buffer;

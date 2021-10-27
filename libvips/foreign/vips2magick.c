@@ -356,7 +356,7 @@ vips_foreign_save_magick_build( VipsObject *object )
 	 */
 	if( !vips_object_argument_isset( object, "format" ) && 
 		!vips_image_get_string( im, 
-			"format_string", &format_string ) ) {
+			"format-string", &format_string ) ) {
 		char filename[VIPS_PATH_MAX];
 		char option_string[VIPS_PATH_MAX];
 		char *suffix;

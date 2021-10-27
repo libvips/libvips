@@ -725,7 +725,7 @@ VImage::write_to_buffer( const char *suffix, void **buf, size_t *size,
 	}
 
 	VImage copy = this->copy();
-	copy.set("format_string", suffix);
+	copy.set("format-string", suffix);
 
 	call_option_string( operation_name, option_string,
 		(options ? options : VImage::option())->
@@ -759,7 +759,7 @@ VImage::write_to_target( const char *suffix, VTarget target,
 	}
 
 	VImage copy = this->copy();
-	copy.set("format_string", suffix);
+	copy.set("format-string", suffix);
 
 	call_option_string( operation_name, option_string,
 		(options ? options : VImage::option())->

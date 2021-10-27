@@ -364,7 +364,7 @@ vips_foreign_save_heif_build( VipsObject *object )
 	 */
 	filename = NULL;
 	if( !vips_image_get_string( heif->image, 
-		"format_string", &format_string ) ) {
+		"format-string", &format_string ) ) {
 		vips__filename_split8( format_string, 
 			filename_buffer, option_string );
 		filename = filename_buffer;

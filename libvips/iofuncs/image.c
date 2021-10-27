@@ -2720,7 +2720,7 @@ vips_image_note_format( VipsImage *image, const char *format_string )
 
 	if( vips_copy( image, &copy, NULL ) )
 		return( NULL );
-	vips_image_set_string( copy, "format_string", format_string );
+	vips_image_set_string( copy, "format-string", format_string );
 
 	return( copy );
 }
