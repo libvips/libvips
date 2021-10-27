@@ -461,7 +461,8 @@ vips_foreign_load_webp_buffer_init( VipsForeignLoadWebpBuffer *buffer )
  * to change page layout.
  *
  * Use @scale to specify a scale-on-load factor. For example, 2.0 to double
- * the size on load.
+ * the size on load. Animated webp images don't support shrink-on-load, so a
+ * further resize may be necessary.
  *
  * The loader supports ICC, EXIF and XMP metadata. 
  *

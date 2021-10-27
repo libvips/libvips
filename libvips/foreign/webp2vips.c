@@ -26,6 +26,8 @@
  * 	- support array of delays 
  * 14/10/19
  * 	- revise for source IO
+ * 27/10/21
+ * 	- disable shrink-on-load if we need subpixel accuracy in animations
  */
 
 /*
@@ -96,7 +98,7 @@ typedef struct {
 	 */
 	int n;
 
-	/* Scale-on-load factor. Use this to set scaled_width.
+	/* Scale-on-load factor. Use this to set frame_width.
 	 */
 	double scale;
 
@@ -404,23 +406,6 @@ read_header( Read *read, VipsImage *out )
 		return( -1 ); 
 	}
 
-	read->canvas_width = 
-		WebPDemuxGetI( read->demux, WEBP_FF_CANVAS_WIDTH );
-	read->canvas_height = 
-		WebPDemuxGetI( read->demux, WEBP_FF_CANVAS_HEIGHT );
-
-	/* We round-to-nearest cf. pdfload etc.
-	 */
-	read->frame_width = VIPS_RINT( read->canvas_width * read->scale );
-	read->frame_height = VIPS_RINT( read->canvas_height * read->scale );
-
-#ifdef DEBUG
-	printf( "webp2vips: canvas_width = %d\n", read->canvas_width );
-	printf( "webp2vips: canvas_height = %d\n", read->canvas_height );
-	printf( "webp2vips: frame_width = %d\n", read->frame_width );
-	printf( "webp2vips: frame_height = %d\n", read->frame_height );
-#endif /*DEBUG*/
-
 	flags = WebPDemuxGetI( read->demux, WEBP_FF_FORMAT_FLAGS );
 
 	read->alpha = flags & ALPHA_FLAG;
@@ -429,6 +414,11 @@ read_header( Read *read, VipsImage *out )
 	 * save.
 	 */
 	read->config.output.colorspace = MODE_RGBA;
+
+	read->canvas_width = 
+		WebPDemuxGetI( read->demux, WEBP_FF_CANVAS_WIDTH );
+	read->canvas_height = 
+		WebPDemuxGetI( read->demux, WEBP_FF_CANVAS_HEIGHT );
 
 	if( flags & ANIMATION_FLAG ) { 
 		int loop_count;
@@ -453,9 +443,6 @@ read_header( Read *read, VipsImage *out )
 		 */
 		vips_image_set_int( out, "gif-loop", 
 			loop_count == 0 ? 0 : loop_count - 1 );
-		
-		vips_image_set_int( out, 
-			VIPS_META_PAGE_HEIGHT, read->frame_height );
 
 		if( WebPDemuxGetFrame( read->demux, 1, &iter ) ) {
 			int i;
@@ -480,6 +467,15 @@ read_header( Read *read, VipsImage *out )
 					iter.width != read->canvas_width ||
 					iter.height != read->canvas_height ) 
 					read->alpha = TRUE;
+
+				/* We must disable shrink-on-load if any frame
+				 * does not fill the whole canvas. We won't be
+				 * able to shrink-on-load it to the exact
+				 * position in a downsized canvas.
+				 */
+				if( iter.width != read->canvas_width ||
+					iter.height != read->canvas_height ) 
+					read->scale = 1.0;
 			} while( WebPDemuxNextFrame( &iter ) );
 
 			vips_image_set_array_int( out, 
@@ -508,6 +504,23 @@ read_header( Read *read, VipsImage *out )
 		 * not the number of pages in the image we are writing.
 		 */
 		vips_image_set_int( out, VIPS_META_N_PAGES, read->frame_count );
+	}
+
+	/* We round-to-nearest cf. pdfload etc.
+	 */
+	read->frame_width = VIPS_RINT( read->canvas_width * read->scale );
+	read->frame_height = VIPS_RINT( read->canvas_height * read->scale );
+
+#ifdef DEBUG
+	printf( "webp2vips: canvas_width = %d\n", read->canvas_width );
+	printf( "webp2vips: canvas_height = %d\n", read->canvas_height );
+	printf( "webp2vips: frame_width = %d\n", read->frame_width );
+	printf( "webp2vips: frame_height = %d\n", read->frame_height );
+#endif /*DEBUG*/
+
+	if( flags & ANIMATION_FLAG ) { 
+		vips_image_set_int( out, 
+			VIPS_META_PAGE_HEIGHT, read->frame_height );
 
 		read->width = read->frame_width;
 		read->height = read->n * read->frame_height;
