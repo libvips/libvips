@@ -39,6 +39,39 @@
 extern "C" {
 #endif /*__cplusplus*/
 
+/* Try to make an O_BINARY and O_NOINHERIT ... sometimes need the leading '_'.
+ */
+#if defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)
+# ifndef O_BINARY
+#  ifdef _O_BINARY
+#   define O_BINARY _O_BINARY
+#  endif /*_O_BINARY*/
+# endif /*!O_BINARY*/
+# ifndef O_NOINHERIT
+#  ifdef _O_NOINHERIT
+#   define O_NOINHERIT _O_NOINHERIT
+#  endif /*_O_NOINHERIT*/
+# endif /*!O_NOINHERIT*/
+#endif /*defined(G_PLATFORM_WIN32) || defined(G_WITH_CYGWIN)*/
+
+/* If we have O_BINARY, add it to a mode flags set.
+ */
+#ifdef O_BINARY
+# define BINARYIZE(M) ((M) | O_BINARY)
+#else /*!O_BINARY*/
+# define BINARYIZE(M) (M)
+#endif /*O_BINARY*/
+
+/* If we have O_CLOEXEC or O_NOINHERIT, add it to a mode flags set.
+ */
+#ifdef O_CLOEXEC
+# define CLOEXEC(M) ((M) | O_CLOEXEC)
+#elif defined(O_NOINHERIT)
+# define CLOEXEC(M) ((M) | O_NOINHERIT)
+#else /*!O_CLOEXEC && !O_NOINHERIT*/
+# define CLOEXEC(M) (M)
+#endif /*O_CLOEXEC*/
+
 /* << on an int is undefined in C if the int is negative. Imagine a machine
  * that uses 1s complement, for example.
  *
