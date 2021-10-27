@@ -1565,12 +1565,21 @@ void
 vips__filename_split8( const char *name, char *filename, char *option_string )
 {
 	char *p;
+	const char *format;
+	size_t len;
 
 	vips_strncpy( filename, name, VIPS_PATH_MAX );
 	if( (p = (char *) vips__find_rightmost_brackets( filename )) ) {
 		vips_strncpy( option_string, p, VIPS_PATH_MAX );
+		len = strlen( p );
 		*p = '\0';
+		if( (format = strrchr( filename, '.' )) )
+			vips_snprintf( option_string + len - 1, 
+				VIPS_PATH_MAX - len - 1, ",format=%s]", format + 1 );
 	}
+	else if( (format = strrchr( filename, '.' )) )
+		vips_snprintf( option_string, 
+			VIPS_PATH_MAX, "[format=%s]", format + 1 );
 	else
 		vips_strncpy( option_string, "", VIPS_PATH_MAX );
 }

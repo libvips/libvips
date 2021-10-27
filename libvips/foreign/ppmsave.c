@@ -219,10 +219,6 @@ vips_foreign_save_ppm_build( VipsObject *object )
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
 	VipsImage *image;
-	const char *filename;
-	const char *format_string;
-	char filename_buffer[VIPS_PATH_MAX];
-	char option_string[VIPS_PATH_MAX];
 	char *magic;
 	char *date;
 
@@ -232,18 +228,6 @@ vips_foreign_save_ppm_build( VipsObject *object )
 
 	image = save->ready;
 
-	/* Try various ways to guess the write suffix.
-	 */
-	filename = NULL;
-	if( !vips_image_get_string( image, "format-string", &format_string ) ) {
-		vips__filename_split8( format_string, 
-			filename_buffer, option_string );
-		filename = filename_buffer;
-	}
-	else 
-		filename = vips_connection_filename( 
-			VIPS_CONNECTION( ppm->target ) );
-
 	/* ppm types. We use the suffix (if avail.) to set the defaults for
 	 * bitdepth etc.
 	 *
@@ -252,19 +236,19 @@ vips_foreign_save_ppm_build( VipsObject *object )
 	 *   ppm ... 3 band many bit
 	 *   pfm ... 1 or 3 bands, 32 bit
 	 */
-	if( filename ) {
+	if( save->format ) {
 		VipsBandFormat target_format;
 		VipsInterpretation target_interpretation;
 
 		target_format = image->BandFmt;
 		target_interpretation = image->Type;
 
-		if( vips_iscasepostfix( filename, ".pbm" ) ||
-			vips_iscasepostfix( filename, ".pgm" ) )
+		if( g_ascii_strcasecmp( save->format, "pbm" ) == 0 ||
+			g_ascii_strcasecmp( save->format, "pgm" ) == 0 )
 			target_interpretation = VIPS_INTERPRETATION_B_W;
-		else if( vips_iscasepostfix( filename, ".ppm" ) )
+		else if( g_ascii_strcasecmp( save->format, "ppm" ) == 0 )
 			target_interpretation = VIPS_INTERPRETATION_sRGB;
-		else if( vips_iscasepostfix( filename, ".pfm" ) )
+		else if( g_ascii_strcasecmp( save->format, "pfm" ) == 0 )
 			target_format = VIPS_FORMAT_FLOAT;
 
 		if( target_format == VIPS_FORMAT_USHORT &&

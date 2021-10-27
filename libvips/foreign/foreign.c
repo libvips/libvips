@@ -1205,6 +1205,13 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoad, disc ),
 		TRUE );
 
+	VIPS_ARG_STRING( class, "format", 112,
+		_( "Format" ),
+		_( "Format hint" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoad, format ),
+		NULL );
+
 }
 
 static void
@@ -1795,6 +1802,13 @@ vips_foreign_save_class_init( VipsForeignSaveClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSave, page_height ),
 		0, VIPS_MAX_COORD, 0 ); 
+
+	VIPS_ARG_STRING( class, "format", 103,
+		_( "Format" ),
+		_( "Format to save in" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSave, format ),
+		NULL );
 }
 
 static void

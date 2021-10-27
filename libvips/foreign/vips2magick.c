@@ -65,7 +65,6 @@ typedef struct _VipsForeignSaveMagick {
 	/* Parameters.
 	 */
 	char *filename;		/* NULL during buffer output */
-	char *format;
 	int quality;
 	gboolean optimize_gif_frames;
 	gboolean optimize_gif_transparency;
@@ -275,7 +274,6 @@ vips_foreign_save_magick_build( VipsObject *object )
 	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) object;
 
 	VipsImage *im;
-	const char *format_string;
 
 #ifdef DEBUG
 	printf( "vips_foreign_save_magick_build: %p\n", object ); 
@@ -351,28 +349,13 @@ vips_foreign_save_magick_build( VipsObject *object )
 		return( -1 );
 	}
 
-	/* There might be a format_string hint set on the image we are saving.
-	 * Extract the filename component to imagemagick can guess the format.
-	 */
-	if( !vips_object_argument_isset( object, "format" ) && 
-		!vips_image_get_string( im, 
-			"format-string", &format_string ) ) {
-		char filename[VIPS_PATH_MAX];
-		char option_string[VIPS_PATH_MAX];
-		char *suffix;
-
-		vips__filename_split8( format_string, filename, option_string );
-		if( (suffix = strrchr( filename, '.' )) )
-			VIPS_SETSTR( magick->format, suffix + 1 );
-	}
-
-	if( magick->format ) {
+	if( save->format ) {
 		vips_strncpy( magick->image_info->magick,
-			magick->format, MaxPathExtent );
+			save->format, MaxPathExtent );
 		if( magick->filename ) 
 			(void) vips_snprintf( magick->image_info->filename,
 				MaxPathExtent, "%s:%s", 
-				magick->format, magick->filename );
+				save->format, magick->filename );
 	}
 	else if( magick->filename ) {
 		vips_strncpy( magick->image_info->filename,
@@ -470,13 +453,6 @@ vips_foreign_save_magick_class_init( VipsForeignSaveMagickClass *class )
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
 	save_class->format_table = bandfmt_magick;
-
-	VIPS_ARG_STRING( class, "format", 2,
-		_( "Format" ),
-		_( "Format to save in" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSaveMagick, format ),
-		NULL );
 
 	VIPS_ARG_INT( class, "quality", 3,
 		_( "Quality" ),
