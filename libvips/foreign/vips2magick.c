@@ -431,7 +431,7 @@ vips_foreign_save_magick_build( VipsObject *object )
  * Instead, just list the commonly-used formats that all libMagicks support and 
  * that libvips does not.
  */
-static const char *vips__save_magick_suffs[] = { ".gif", ".bmp", NULL };
+static const char *vips__save_magick_suffs[] = { ".bmp", NULL };
 
 /* Save a bit of typing.
  */
