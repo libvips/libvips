@@ -335,8 +335,10 @@ vips_foreign_save_heif_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) object;
 
-	const char *format_string;
 	const char *filename;
+	const char *format_string;
+	char filename_buffer[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
 	struct heif_error error;
 	struct heif_writer writer;
 	char *chroma;
@@ -361,30 +363,21 @@ vips_foreign_save_heif_build( VipsObject *object )
 	/* Try various ways to get the filename.
 	 */
 	filename = NULL;
-
-	/* There might be a format_string hint set on the image we are saving.
-	 * Extract the filename component.
-	 */
-	if( !filename &&
-		!vips_image_get_string( heif->image, 
-			"format_string", &format_string ) ) {
-		char filename_buffer[VIPS_PATH_MAX];
-		char option_string[VIPS_PATH_MAX];
-
+	if( !vips_image_get_string( heif->image, 
+		"format_string", &format_string ) ) {
 		vips__filename_split8( format_string, 
 			filename_buffer, option_string );
 		filename = filename_buffer;
 	}
-
-	if( !filename )
+	else
 		filename = vips_connection_filename( 
 			VIPS_CONNECTION( heif->target ) );
 
 	/* Compression defaults to VIPS_FOREIGN_HEIF_COMPRESSION_AV1 for .avif
 	 * suffix.
 	 */
-	if( !vips_object_argument_isset( object, "compression" ) &&
-		filename &&
+	if( filename &&
+		!vips_object_argument_isset( object, "compression" ) &&
 		vips_iscasepostfix( filename, ".avif" ) )
 		heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_AV1;
 

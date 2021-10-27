@@ -216,8 +216,13 @@ vips_foreign_save_ppm_build( VipsObject *object )
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSavePpm *ppm = (VipsForeignSavePpm *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 2 );
 
 	VipsImage *image;
+	const char *filename;
+	const char *format_string;
+	char filename_buffer[VIPS_PATH_MAX];
+	char option_string[VIPS_PATH_MAX];
 	char *magic;
 	char *date;
 
@@ -226,6 +231,60 @@ vips_foreign_save_ppm_build( VipsObject *object )
 		return( -1 );
 
 	image = save->ready;
+
+	/* Try various ways to guess the write suffix.
+	 */
+	filename = NULL;
+	if( !vips_image_get_string( image, "format_string", &format_string ) ) {
+		vips__filename_split8( format_string, 
+			filename_buffer, option_string );
+		filename = filename_buffer;
+	}
+	else 
+		filename = vips_connection_filename( 
+			VIPS_CONNECTION( ppm->target ) );
+
+	/* ppm types. We use the suffix (if avail.) to set the defaults for
+	 * bitdepth etc.
+	 *
+	 *   pbm ... 1 band 1 bit
+	 *   pgm ... 1 band many bit
+	 *   ppm ... 3 band many bit
+	 *   pfm ... 1 or 3 bands, 32 bit
+	 */
+	if( filename ) {
+		VipsBandFormat target_format;
+		VipsInterpretation target_interpretation;
+
+		target_format = image->BandFmt;
+		target_interpretation = image->Type;
+
+		if( vips_iscasepostfix( filename, ".pbm" ) ||
+			vips_iscasepostfix( filename, ".pgm" ) )
+			target_interpretation = VIPS_INTERPRETATION_B_W;
+		else if( vips_iscasepostfix( filename, ".ppm" ) )
+			target_interpretation = VIPS_INTERPRETATION_sRGB;
+		else if( vips_iscasepostfix( filename, ".pfm" ) )
+			target_format = VIPS_FORMAT_FLOAT;
+
+		if( target_format == VIPS_FORMAT_USHORT &&
+			target_interpretation == VIPS_INTERPRETATION_B_W )
+			target_interpretation = VIPS_INTERPRETATION_GREY16;
+		if( target_format == VIPS_FORMAT_USHORT &&
+			target_interpretation == VIPS_INTERPRETATION_sRGB )
+			target_interpretation = VIPS_INTERPRETATION_RGB16;
+
+		if( vips_cast( image, &t[0], target_format, NULL ) )
+			return( -1 );
+		image = t[0];
+
+		if( image->Type != target_interpretation ) {
+			if( vips_colourspace( image, &t[1], 
+				target_interpretation, NULL ) )
+				return( -1 );
+			image = t[1];
+		}
+	}
 
         /* Handle the deprecated squash parameter.
 	 */
