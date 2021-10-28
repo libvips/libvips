@@ -755,6 +755,7 @@ vips_foreign_save_avif_target_class_init(
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -767,7 +768,7 @@ vips_foreign_save_avif_target_class_init(
 
 	/* Hide from UI.
 	 */
-	object_class->deprecated = TRUE;
+	operation_class->flags = VIPS_OPERATION_DEPRECATED;
 }
 
 static void
