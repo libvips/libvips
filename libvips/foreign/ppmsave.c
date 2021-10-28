@@ -244,7 +244,8 @@ vips_foreign_save_ppm_build( VipsObject *object )
 		target_format = image->BandFmt;
 		target_interpretation = image->Type;
 
-		if( g_ascii_strcasecmp( ppm->format, "pgm" ) == 0 )
+		if( g_ascii_strcasecmp( ppm->format, "pbm" ) == 0 ||
+			g_ascii_strcasecmp( ppm->format, "pgm" ) == 0 )
 			target_interpretation = VIPS_INTERPRETATION_B_W;
 		else if( g_ascii_strcasecmp( ppm->format, "ppm" ) == 0 )
 			target_interpretation = VIPS_INTERPRETATION_sRGB;
