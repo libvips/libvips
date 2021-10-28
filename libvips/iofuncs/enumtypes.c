@@ -644,6 +644,26 @@ vips_foreign_png_filter_get_type( void )
 	return( etype );
 }
 GType
+vips_foreign_ppm_format_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_FOREIGN_PPM_FORMAT_PBM, "VIPS_FOREIGN_PPM_FORMAT_PBM", "pbm"},
+			{VIPS_FOREIGN_PPM_FORMAT_PGM, "VIPS_FOREIGN_PPM_FORMAT_PGM", "pgm"},
+			{VIPS_FOREIGN_PPM_FORMAT_PPM, "VIPS_FOREIGN_PPM_FORMAT_PPM", "ppm"},
+			{VIPS_FOREIGN_PPM_FORMAT_PFM, "VIPS_FOREIGN_PPM_FORMAT_PFM", "pfm"},
+			{VIPS_FOREIGN_PPM_FORMAT_LAST, "VIPS_FOREIGN_PPM_FORMAT_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsForeignPpmFormat", values );
+	}
+
+	return( etype );
+}
+GType
 vips_foreign_dz_layout_get_type( void )
 {
 	static GType etype = 0;

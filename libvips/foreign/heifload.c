@@ -76,6 +76,17 @@
 
 #include "pforeign.h"
 
+const char *vips__heic_suffs[] = {
+	".heic",
+	".heif",
+	NULL
+};
+
+const char *vips__avif_suffs[] = {
+	".avif",
+	NULL
+};
+
 const char *vips__heif_suffs[] = { 
 	".heic",
 	".heif",

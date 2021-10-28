@@ -158,6 +158,10 @@ int vips__mat_header( const char *filename, VipsImage *out );
 int vips__mat_ismat( const char *filename );
 
 extern const char *vips__ppm_suffs[];
+extern const char *vips__save_pbm_suffs[];
+extern const char *vips__save_pgm_suffs[];
+extern const char *vips__save_ppm_suffs[];
+extern const char *vips__save_pfm_suffs[];
 
 int vips__ppm_save_target( VipsImage *in, VipsTarget *target,
 	gboolean ascii, gboolean squash );
@@ -235,6 +239,8 @@ typedef void *(*VipsNiftiMapFn)( const char *name, GValue *value, glong offset,
 	void *a, void *b );
 void *vips__foreign_nifti_map( VipsNiftiMapFn fn, void *a, void *b );
 
+extern const char *vips__heic_suffs[];
+extern const char *vips__avif_suffs[];
 extern const char *vips__heif_suffs[];
 
 extern const char *vips__jp2k_suffs[];

@@ -2750,7 +2750,11 @@ vips_image_write_to_buffer( VipsImage *in,
 
 	vips__filename_split8( suffix, filename, option_string );
 
-	if( (operation_name = vips_foreign_find_save_target( filename )) ) {
+	vips_error_freeze();
+	operation_name = vips_foreign_find_save_target( filename );
+	vips_error_thaw();
+
+	if( operation_name ) {
 		VipsTarget *target;
 
 		if( !(target = vips_target_new_to_memory()) )
