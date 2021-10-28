@@ -268,6 +268,9 @@ vips_foreign_save_ppm_build( VipsObject *object )
 		break;
 
 	default:
+		/* Harmless.
+		 */
+		break;
 	}
 
 	if( vips_cast( image, &t[0], target_format, NULL ) )
