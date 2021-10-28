@@ -2785,6 +2785,8 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_ppm_file_get_type( void ); 
 	extern GType vips_foreign_save_ppm_buffer_get_type( void ); 
 	extern GType vips_foreign_save_ppm_target_get_type( void ); 
+	extern GType vips_foreign_save_pgm_target_get_type( void );
+	extern GType vips_foreign_save_pfm_target_get_type( void ); 
 
 	extern GType vips_foreign_load_png_file_get_type( void ); 
 	extern GType vips_foreign_load_png_buffer_get_type( void ); 
@@ -2843,7 +2845,9 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_magick7_file_get_type( void ); 
 	extern GType vips_foreign_load_magick7_buffer_get_type( void ); 
 	extern GType vips_foreign_save_magick_file_get_type( void );
+	extern GType vips_foreign_save_magick_bmp_file_get_type( void );
 	extern GType vips_foreign_save_magick_buffer_get_type( void );
+	extern GType vips_foreign_save_magick_bmp_buffer_get_type( void );
 
 	extern GType vips_foreign_save_dz_file_get_type( void ); 
 	extern GType vips_foreign_save_dz_buffer_get_type( void ); 
@@ -2881,9 +2885,9 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_heif_buffer_get_type( void ); 
 	extern GType vips_foreign_load_heif_source_get_type( void ); 
 	extern GType vips_foreign_save_heif_file_get_type( void ); 
-	extern GType vips_foreign_save_avif_file_get_type( void ); 
 	extern GType vips_foreign_save_heif_buffer_get_type( void ); 
 	extern GType vips_foreign_save_heif_target_get_type( void ); 
+	extern GType vips_foreign_save_avif_target_get_type( void ); 
 
 	extern GType vips_foreign_load_nifti_file_get_type( void ); 
 	extern GType vips_foreign_load_nifti_source_get_type( void ); 
@@ -2927,6 +2931,8 @@ vips_foreign_operation_init( void )
 	vips_foreign_save_ppm_file_get_type(); 
 	vips_foreign_save_ppm_buffer_get_type(); 
 	vips_foreign_save_ppm_target_get_type(); 
+	vips_foreign_save_pgm_target_get_type(); 
+	vips_foreign_save_pfm_target_get_type(); 
 #endif /*HAVE_PPM*/
 
 #ifdef HAVE_RADIANCE
@@ -3056,7 +3062,9 @@ vips_foreign_operation_init( void )
 
 #if defined(ENABLE_MAGICKSAVE) && !defined(MAGICK_MODULE)
 	vips_foreign_save_magick_file_get_type();
+	vips_foreign_save_magick_bmp_file_get_type();
 	vips_foreign_save_magick_buffer_get_type();
+	vips_foreign_save_magick_bmp_buffer_get_type();
 #endif /*defined(ENABLE_MAGICKSAVE) && !defined(MAGICK_MODULE)*/
 
 #ifdef HAVE_CFITSIO
@@ -3083,9 +3091,9 @@ vips_foreign_operation_init( void )
 
 #if defined(HAVE_HEIF_ENCODER) && !defined(HEIF_MODULE)
 	vips_foreign_save_heif_file_get_type(); 
-	vips_foreign_save_avif_file_get_type(); 
 	vips_foreign_save_heif_buffer_get_type(); 
 	vips_foreign_save_heif_target_get_type(); 
+	vips_foreign_save_avif_target_get_type();
 #endif /*defined(HAVE_HEIF_ENCODER) && !defined(HEIF_MODULE)*/
 
 	vips__foreign_load_operation = 

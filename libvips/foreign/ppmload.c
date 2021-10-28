@@ -141,7 +141,10 @@ static char *magic_names[] = {
 
 /* Shared with ppmsave.
  */
-const char *vips__ppm_suffs[] = { ".ppm", ".pgm", ".pbm", ".pfm", NULL };
+const char *vips__load_ppm_suffs[] = { ".ppm", ".pgm", ".pbm", ".pfm", NULL };
+const char *vips__save_ppm_suffs[] = { ".ppm", NULL };
+const char *vips__save_pgm_suffs[] = { ".pgm", ".pbm", NULL };
+const char *vips__save_pfm_suffs[] = { ".pfm", NULL };
 
 static gboolean
 vips_foreign_load_ppm_is_a_source( VipsSource *source )
@@ -743,7 +746,7 @@ vips_foreign_load_ppm_class_init( VipsForeignLoadPpmClass *class )
 	object_class->description = _( "load ppm base class" );
 	object_class->build = vips_foreign_load_ppm_build;
 
-	foreign_class->suffs = vips__ppm_suffs;
+	foreign_class->suffs = vips__load_ppm_suffs;
 
 	/* We are fast at is_a(), so high priority.
 	 */

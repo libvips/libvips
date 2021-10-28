@@ -157,7 +157,10 @@ int vips__mat_load( const char *filename, VipsImage *out );
 int vips__mat_header( const char *filename, VipsImage *out );
 int vips__mat_ismat( const char *filename );
 
-extern const char *vips__ppm_suffs[];
+extern const char *vips__load_ppm_suffs[];
+extern const char *vips__save_ppm_suffs[];
+extern const char *vips__save_pgm_suffs[];
+extern const char *vips__save_pfm_suffs[];
 
 int vips__ppm_save_target( VipsImage *in, VipsTarget *target,
 	gboolean ascii, gboolean squash );
