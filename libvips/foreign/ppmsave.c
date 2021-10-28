@@ -236,7 +236,8 @@ vips_foreign_save_ppm_build( VipsObject *object )
 	 *   ppm ... 3 band many bit
 	 *   pfm ... 1 or 3 bands, 32 bit
 	 */
-	if( save->format ) {
+	// FIXME(kleisauke): Subclass ppmsave
+	/*if( save->format ) {
 		VipsBandFormat target_format;
 		VipsInterpretation target_interpretation;
 
@@ -268,7 +269,7 @@ vips_foreign_save_ppm_build( VipsObject *object )
 				return( -1 );
 			image = t[1];
 		}
-	}
+	}*/
 
         /* Handle the deprecated squash parameter.
 	 */

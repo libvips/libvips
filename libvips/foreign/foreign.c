@@ -1205,13 +1205,6 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoad, disc ),
 		TRUE );
 
-	VIPS_ARG_STRING( class, "format", 112,
-		_( "Format" ),
-		_( "Format hint" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignLoad, format ),
-		NULL );
-
 }
 
 static void
@@ -1803,12 +1796,6 @@ vips_foreign_save_class_init( VipsForeignSaveClass *class )
 		G_STRUCT_OFFSET( VipsForeignSave, page_height ),
 		0, VIPS_MAX_COORD, 0 ); 
 
-	VIPS_ARG_STRING( class, "format", 103,
-		_( "Format" ),
-		_( "Format to save in" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET( VipsForeignSave, format ),
-		NULL );
 }
 
 static void
@@ -2894,6 +2881,7 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_heif_buffer_get_type( void ); 
 	extern GType vips_foreign_load_heif_source_get_type( void ); 
 	extern GType vips_foreign_save_heif_file_get_type( void ); 
+	extern GType vips_foreign_save_avif_file_get_type( void ); 
 	extern GType vips_foreign_save_heif_buffer_get_type( void ); 
 	extern GType vips_foreign_save_heif_target_get_type( void ); 
 
@@ -3095,6 +3083,7 @@ vips_foreign_operation_init( void )
 
 #if defined(HAVE_HEIF_ENCODER) && !defined(HEIF_MODULE)
 	vips_foreign_save_heif_file_get_type(); 
+	vips_foreign_save_avif_file_get_type(); 
 	vips_foreign_save_heif_buffer_get_type(); 
 	vips_foreign_save_heif_target_get_type(); 
 #endif /*defined(HAVE_HEIF_ENCODER) && !defined(HEIF_MODULE)*/

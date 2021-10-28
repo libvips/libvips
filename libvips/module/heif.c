@@ -62,6 +62,7 @@ g_module_check_init( GModule *module )
 	extern GType vips_foreign_load_heif_buffer_get_type( void ); 
 	extern GType vips_foreign_load_heif_source_get_type( void ); 
 	extern GType vips_foreign_save_heif_file_get_type( void ); 
+	extern GType vips_foreign_save_avif_file_get_type( void ); 
 	extern GType vips_foreign_save_heif_buffer_get_type( void ); 
 	extern GType vips_foreign_save_heif_target_get_type( void ); 
 
@@ -73,6 +74,7 @@ g_module_check_init( GModule *module )
 
 #ifdef HAVE_HEIF_ENCODER
 	vips_foreign_save_heif_file_get_type(); 
+	vips_foreign_save_avif_file_get_type(); 
 	vips_foreign_save_heif_buffer_get_type(); 
 	vips_foreign_save_heif_target_get_type(); 
 #endif /*HAVE_HEIF_ENCODER*/

@@ -235,6 +235,8 @@ typedef void *(*VipsNiftiMapFn)( const char *name, GValue *value, glong offset,
 	void *a, void *b );
 void *vips__foreign_nifti_map( VipsNiftiMapFn fn, void *a, void *b );
 
+extern const char *vips__heic_suffs[];
+extern const char *vips__avif_suffs[];
 extern const char *vips__heif_suffs[];
 
 extern const char *vips__jp2k_suffs[];

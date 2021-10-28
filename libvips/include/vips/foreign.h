@@ -135,10 +135,6 @@ typedef struct _VipsForeignLoad {
 	 */
 	gboolean fail;
 
-	/* Format hint.
-	 */
-	char *format;
-
 	/* Deprecated and unused, just here for compat.
 	 */
 	gboolean sequential;
@@ -306,10 +302,6 @@ typedef struct _VipsForeignSave {
 	/* Set to non-zero to set the page size for multi-page save.
 	 */
 	int page_height;
-
-	/* Format to save in.
-	 */
-	char *format;
 
 	/*< public >*/
 

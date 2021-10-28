@@ -356,14 +356,6 @@ vips_foreign_save_heif_build( VipsObject *object )
 	if( vips_copy( save->ready, &heif->image, NULL ) ) 
 		return( -1 );
 
-	/* Compression defaults to VIPS_FOREIGN_HEIF_COMPRESSION_AV1 for .avif
-	 * suffix.
-	 */
-	if( save->format &&
-		!vips_object_argument_isset( object, "compression" ) &&
-		g_ascii_strcasecmp( save->format, "avif" ) == 0 )
-		heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_AV1;
-
 	error = heif_context_get_encoder_for_format( heif->ctx, 
 		(enum heif_compression_format) heif->compression, 
 		&heif->encoder );
@@ -498,7 +490,7 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 	object_class->description = _( "save image in HEIF format" );
 	object_class->build = vips_foreign_save_heif_build;
 
-	foreign_class->suffs = vips__heif_suffs;
+	foreign_class->suffs = vips__heic_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_RGBA_ONLY;
 	save_class->format_table = vips_heif_bandfmt;
@@ -617,6 +609,50 @@ vips_foreign_save_heif_file_class_init( VipsForeignSaveHeifFileClass *class )
 static void
 vips_foreign_save_heif_file_init( VipsForeignSaveHeifFile *file )
 {
+}
+
+typedef VipsForeignSaveHeifFile VipsForeignSaveAvifFile;
+typedef VipsForeignSaveHeifFileClass VipsForeignSaveAvifFileClass;
+
+G_DEFINE_TYPE( VipsForeignSaveAvifFile, vips_foreign_save_avif_file, 
+	vips_foreign_save_heif_file_get_type() );
+
+static int
+vips_foreign_save_avif_file_build( VipsObject *object )
+{
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_avif_file_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_avif_file_class_init( VipsForeignSaveAvifFileClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "avifsave";
+	object_class->description = _( "save image in AVIF format" );
+	object_class->build = vips_foreign_save_avif_file_build;
+
+	foreign_class->suffs = vips__avif_suffs;
+
+	/* Hide from UI.
+	 */
+	object_class->deprecated = TRUE;
+}
+
+static void
+vips_foreign_save_avif_file_init( VipsForeignSaveAvifFile *file )
+{
+	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) file;
+	heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_AV1;
 }
 
 typedef struct _VipsForeignSaveHeifBuffer {

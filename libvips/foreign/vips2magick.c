@@ -65,6 +65,7 @@ typedef struct _VipsForeignSaveMagick {
 	/* Parameters.
 	 */
 	char *filename;		/* NULL during buffer output */
+	char *format;
 	int quality;
 	gboolean optimize_gif_frames;
 	gboolean optimize_gif_transparency;
@@ -349,13 +350,13 @@ vips_foreign_save_magick_build( VipsObject *object )
 		return( -1 );
 	}
 
-	if( save->format ) {
+	if( magick->format ) {
 		vips_strncpy( magick->image_info->magick,
-			save->format, MaxPathExtent );
+			magick->format, MaxPathExtent );
 		if( magick->filename ) 
 			(void) vips_snprintf( magick->image_info->filename,
 				MaxPathExtent, "%s:%s", 
-				save->format, magick->filename );
+				magick->format, magick->filename );
 	}
 	else if( magick->filename ) {
 		vips_strncpy( magick->image_info->filename,
@@ -453,6 +454,13 @@ vips_foreign_save_magick_class_init( VipsForeignSaveMagickClass *class )
 
 	save_class->saveable = VIPS_SAVEABLE_ANY;
 	save_class->format_table = bandfmt_magick;
+
+	VIPS_ARG_STRING( class, "format", 2,
+		_( "Format" ),
+		_( "Format to save in" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveMagick, format ),
+		NULL );
 
 	VIPS_ARG_INT( class, "quality", 3,
 		_( "Quality" ),
