@@ -522,8 +522,9 @@ vips_foreign_save_ppm_file_build( VipsObject *object )
 		!(ppm->target = vips_target_new_to_file( file->filename )) )
 		return( -1 );
 
-	if( vips_iscasepostfix( file->filename, ".pbm" ) ||
-		vips_iscasepostfix( file->filename, ".pgm" ) )
+	if( vips_iscasepostfix( file->filename, ".pbm" ) )
+		ppm->format = VIPS_FOREIGN_PPM_FORMAT_PBM;
+	else if( vips_iscasepostfix( file->filename, ".pgm" ) )
 		ppm->format = VIPS_FOREIGN_PPM_FORMAT_PGM;
 	else if( vips_iscasepostfix( file->filename, ".pfm" ) )
 		ppm->format = VIPS_FOREIGN_PPM_FORMAT_PFM;
