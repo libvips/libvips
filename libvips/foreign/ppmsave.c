@@ -12,6 +12,8 @@
  * 	- byteswap on save, if necessary [ewelot]
  * 2/12/20
  * 	- don't add date with @strip [ewelot]
+ * 28/10/21
+ * 	- add @format, default type by filename
  */
 
 /*
@@ -70,7 +72,7 @@ struct _VipsForeignSavePpm {
 	VipsForeignSave parent_object;
 
 	VipsTarget *target;
-	char *format;
+	VipsForeignPpmFormat format;
 	gboolean ascii;
 	int bitdepth;
 
@@ -222,53 +224,61 @@ vips_foreign_save_ppm_build( VipsObject *object )
 	VipsImage *image;
 	char *magic;
 	char *date;
+	VipsBandFormat target_format;
+	VipsInterpretation target_interpretation;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_ppm_parent_class )->
 		build( object ) )
 		return( -1 );
 
 	image = save->ready;
+	target_format = image->BandFmt;
+	target_interpretation = image->Type;
 
-	/* ppm types. We use the suffix (if avail.) to set the defaults for
-	 * bitdepth etc.
+	/* ppm types to set the defaults for bitdepth etc.
 	 *
 	 *   pbm ... 1 band 1 bit
 	 *   pgm ... 1 band many bit
 	 *   ppm ... 3 band many bit
 	 *   pfm ... 1 or 3 bands, 32 bit
 	 */
-	if( ppm->format ) {
-		VipsBandFormat target_format;
-		VipsInterpretation target_interpretation;
+	switch( ppm->format ) {
+	case VIPS_FOREIGN_PPM_FORMAT_PBM:
+		if( !vips_object_argument_isset( object, "bitdepth" ) ) 
+			ppm->bitdepth = 1;
+		target_interpretation = VIPS_INTERPRETATION_B_W;
+		break;
 
-		target_format = image->BandFmt;
-		target_interpretation = image->Type;
-
-		if( g_ascii_strcasecmp( ppm->format, "pbm" ) == 0 ||
-			g_ascii_strcasecmp( ppm->format, "pgm" ) == 0 )
-			target_interpretation = VIPS_INTERPRETATION_B_W;
-		else if( g_ascii_strcasecmp( ppm->format, "ppm" ) == 0 )
-			target_interpretation = VIPS_INTERPRETATION_sRGB;
-		else if( g_ascii_strcasecmp( ppm->format, "pfm" ) == 0 )
-			target_format = VIPS_FORMAT_FLOAT;
-
-		if( target_format == VIPS_FORMAT_USHORT &&
-			target_interpretation == VIPS_INTERPRETATION_B_W )
+	case VIPS_FOREIGN_PPM_FORMAT_PGM:
+		if( target_format == VIPS_FORMAT_USHORT )
 			target_interpretation = VIPS_INTERPRETATION_GREY16;
-		if( target_format == VIPS_FORMAT_USHORT &&
-			target_interpretation == VIPS_INTERPRETATION_sRGB )
+		else
+			target_interpretation = VIPS_INTERPRETATION_B_W;
+		break;
+
+	case VIPS_FOREIGN_PPM_FORMAT_PPM:
+		if( target_format == VIPS_FORMAT_USHORT )
 			target_interpretation = VIPS_INTERPRETATION_RGB16;
+		else
+			target_interpretation = VIPS_INTERPRETATION_sRGB;
+		break;
 
-		if( vips_cast( image, &t[0], target_format, NULL ) )
+	case VIPS_FOREIGN_PPM_FORMAT_PFM:
+		target_format = VIPS_FORMAT_FLOAT;
+		break;
+
+	default:
+	}
+
+	if( vips_cast( image, &t[0], target_format, NULL ) )
+		return( -1 );
+	image = t[0];
+
+	if( image->Type != target_interpretation ) {
+		if( vips_colourspace( image, &t[1], 
+			target_interpretation, NULL ) )
 			return( -1 );
-		image = t[0];
-
-		if( image->Type != target_interpretation ) {
-			if( vips_colourspace( image, &t[1], 
-				target_interpretation, NULL ) )
-				return( -1 );
-			image = t[1];
-		}
+		image = t[1];
 	}
 
         /* Handle the deprecated squash parameter.
@@ -451,12 +461,13 @@ vips_foreign_save_ppm_class_init( VipsForeignSavePpmClass *class )
 	save_class->saveable = VIPS_SAVEABLE_RGB;
 	save_class->format_table = bandfmt_ppm;
 
-	VIPS_ARG_STRING( class, "format", 2,
+	VIPS_ARG_ENUM( class, "format", 2,
 		_( "Format" ),
 		_( "Format to save in" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSavePpm, format ),
-		NULL );
+		VIPS_TYPE_FOREIGN_PPM_FORMAT, 
+			VIPS_FOREIGN_PPM_FORMAT_PPM ); 
 
 	VIPS_ARG_BOOL( class, "ascii", 10, 
 		_( "ASCII" ), 
@@ -484,6 +495,7 @@ vips_foreign_save_ppm_class_init( VipsForeignSavePpmClass *class )
 static void
 vips_foreign_save_ppm_init( VipsForeignSavePpm *ppm )
 {
+	ppm->format = VIPS_FOREIGN_PPM_FORMAT_PPM;
 }
 
 typedef struct _VipsForeignSavePpmFile {
@@ -507,6 +519,12 @@ vips_foreign_save_ppm_file_build( VipsObject *object )
 		!(ppm->target = vips_target_new_to_file( file->filename )) )
 		return( -1 );
 
+	if( vips_iscasepostfix( file->filename, ".pbm" ) ||
+		vips_iscasepostfix( file->filename, ".pgm" ) )
+		ppm->format = VIPS_FOREIGN_PPM_FORMAT_PGM;
+	else if( vips_iscasepostfix( file->filename, ".pfm" ) )
+		ppm->format = VIPS_FOREIGN_PPM_FORMAT_PFM;
+
 	return( VIPS_OBJECT_CLASS( vips_foreign_save_ppm_file_parent_class )->
 		build( object ) );
 }
@@ -525,7 +543,7 @@ vips_foreign_save_ppm_file_class_init( VipsForeignSavePpmFileClass *class )
 	object_class->description = _( "save image to ppm file" );
 	object_class->build = vips_foreign_save_ppm_file_build;
 
-	foreign_class->suffs = vips__save_ppm_all_suffs;
+	foreign_class->suffs = vips__ppm_suffs;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
@@ -599,37 +617,54 @@ vips_foreign_save_ppm_target_init( VipsForeignSavePpmTarget *target )
 {
 }
 
+typedef VipsForeignSavePpmTarget VipsForeignSavePbmTarget;
+typedef VipsForeignSavePpmTargetClass VipsForeignSavePbmTargetClass;
+
+G_DEFINE_TYPE( VipsForeignSavePbmTarget, vips_foreign_save_pbm_target, 
+	vips_foreign_save_ppm_target_get_type() );
+
+static void
+vips_foreign_save_pbm_target_class_init( 
+	VipsForeignSavePbmTargetClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
+
+	object_class->nickname = "pbmsave_target";
+	object_class->description = _( "save image in pbm format" );
+
+	foreign_class->suffs = vips__save_pbm_suffs;
+
+	/* Hide from UI.
+	 */
+	operation_class->flags = VIPS_OPERATION_DEPRECATED;
+}
+
+static void
+vips_foreign_save_pbm_target_init( VipsForeignSavePbmTarget *target )
+{
+	VipsForeignSavePpm *ppm = (VipsForeignSavePpm *) target;
+
+	ppm->format = VIPS_FOREIGN_PPM_FORMAT_PBM;
+}
+
 typedef VipsForeignSavePpmTarget VipsForeignSavePgmTarget;
 typedef VipsForeignSavePpmTargetClass VipsForeignSavePgmTargetClass;
 
 G_DEFINE_TYPE( VipsForeignSavePgmTarget, vips_foreign_save_pgm_target, 
 	vips_foreign_save_ppm_target_get_type() );
 
-static int
-vips_foreign_save_pgm_target_build( VipsObject *object )
-{
-	if( VIPS_OBJECT_CLASS( vips_foreign_save_pgm_target_parent_class )->
-		build( object ) )
-		return( -1 );
-
-	return( 0 );
-}
-
 static void
 vips_foreign_save_pgm_target_class_init( 
 	VipsForeignSavePgmTargetClass *class )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsOperationClass *operation_class = (VipsOperationClass *) class;
 
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
-
 	object_class->nickname = "pgmsave_target";
 	object_class->description = _( "save image in pgm format" );
-	object_class->build = vips_foreign_save_pgm_target_build;
 
 	foreign_class->suffs = vips__save_pgm_suffs;
 
@@ -642,7 +677,8 @@ static void
 vips_foreign_save_pgm_target_init( VipsForeignSavePgmTarget *target )
 {
 	VipsForeignSavePpm *ppm = (VipsForeignSavePpm *) target;
-	VIPS_SETSTR( ppm->format, "pgm" );
+
+	ppm->format = VIPS_FOREIGN_PPM_FORMAT_PGM;
 }
 
 typedef VipsForeignSavePpmTarget VipsForeignSavePfmTarget;
@@ -651,31 +687,16 @@ typedef VipsForeignSavePpmTargetClass VipsForeignSavePfmTargetClass;
 G_DEFINE_TYPE( VipsForeignSavePfmTarget, vips_foreign_save_pfm_target, 
 	vips_foreign_save_ppm_target_get_type() );
 
-static int
-vips_foreign_save_pfm_target_build( VipsObject *object )
-{
-	if( VIPS_OBJECT_CLASS( vips_foreign_save_pfm_target_parent_class )->
-		build( object ) )
-		return( -1 );
-
-	return( 0 );
-}
-
 static void
 vips_foreign_save_pfm_target_class_init( 
 	VipsForeignSavePfmTargetClass *class )
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsOperationClass *operation_class = (VipsOperationClass *) class;
 
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
-
 	object_class->nickname = "pfmsave_target";
 	object_class->description = _( "save image in pfm format" );
-	object_class->build = vips_foreign_save_pfm_target_build;
 
 	foreign_class->suffs = vips__save_pfm_suffs;
 
@@ -688,7 +709,8 @@ static void
 vips_foreign_save_pfm_target_init( VipsForeignSavePfmTarget *target )
 {
 	VipsForeignSavePpm *ppm = (VipsForeignSavePpm *) target;
-	VIPS_SETSTR( ppm->format, "pfm" );
+
+	ppm->format = VIPS_FOREIGN_PPM_FORMAT_PFM;
 }
 
 #endif /*HAVE_PPM*/
@@ -701,6 +723,7 @@ vips_foreign_save_pfm_target_init( VipsForeignSavePfmTarget *target )
  *
  * Optional arguments:
  *
+ * * @format: #VipsForeignPpmFormat, format to save in
  * * @ascii: %gboolean, save as ASCII rather than binary
  * * @bitdepth: %gint, bitdepth to save at
  *
@@ -716,6 +739,8 @@ vips_foreign_save_pfm_target_init( VipsForeignSavePfmTarget *target )
  * written in binary. 
  *
  * Set @bitdepth to 1 to write a one-bit image.
+ *
+ * @format defaults to the sub-type for this filename suffix.
  *
  * See also: vips_image_write_to_file().
  *
@@ -742,6 +767,7 @@ vips_ppmsave( VipsImage *in, const char *filename, ... )
  *
  * Optional arguments:
  *
+ * * @format: #VipsForeignPpmFormat, format to save in
  * * @ascii: %gboolean, save as ASCII rather than binary
  * * @bitdepth: %gint, bitdepth to save at
  *

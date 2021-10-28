@@ -612,6 +612,31 @@ int vips_pngsave( VipsImage *in, const char *filename, ... )
 int vips_pngsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
 	__attribute__((sentinel));
 
+/**
+ * VipsForeignPpmFormat:
+ * @VIPS_FOREIGN_PPM_PBM: portable bitmap
+ * @VIPS_FOREIGN_PPM_PGM: portable greymap 
+ * @VIPS_FOREIGN_PPM_PPM: portable pixmap
+ * @VIPS_FOREIGN_PPM_PFM: portable float map
+ *
+ * The netpbm file format to save as.
+ *
+ * #VIPS_FOREIGN_PPM_PBM images are single bit.
+ *
+ * #VIPS_FOREIGN_PPM_PGB images are 8, 16, or 32-bits, one band.
+ *
+ * #VIPS_FOREIGN_PPM_PPM images are 8, 16, or 32-bits, three bands.
+ *
+ * #VIPS_FOREIGN_PPM_PFM images are 32-bit float pixels.
+ */
+typedef enum {
+	VIPS_FOREIGN_PPM_FORMAT_PBM,
+	VIPS_FOREIGN_PPM_FORMAT_PGM,
+	VIPS_FOREIGN_PPM_FORMAT_PPM,
+	VIPS_FOREIGN_PPM_FORMAT_PFM,
+	VIPS_FOREIGN_PPM_FORMAT_LAST
+} VipsForeignPpmFormat;
+
 int vips_ppmload( const char *filename, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_ppmload_source( VipsSource *source, VipsImage **out, ... )
