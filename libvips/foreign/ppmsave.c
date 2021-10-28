@@ -438,7 +438,6 @@ vips_foreign_save_ppm_class_init( VipsForeignSavePpmClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
 	gobject_class->dispose = vips_foreign_save_ppm_dispose;
@@ -448,8 +447,6 @@ vips_foreign_save_ppm_class_init( VipsForeignSavePpmClass *class )
 	object_class->nickname = "ppmsave_base";
 	object_class->description = _( "save to ppm" );
 	object_class->build = vips_foreign_save_ppm_build;
-
-	foreign_class->suffs = vips__save_ppm_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_RGB;
 	save_class->format_table = bandfmt_ppm;
@@ -519,6 +516,7 @@ vips_foreign_save_ppm_file_class_init( VipsForeignSavePpmFileClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -526,6 +524,8 @@ vips_foreign_save_ppm_file_class_init( VipsForeignSavePpmFileClass *class )
 	object_class->nickname = "ppmsave";
 	object_class->description = _( "save image to ppm file" );
 	object_class->build = vips_foreign_save_ppm_file_build;
+
+	foreign_class->suffs = vips__save_ppm_all_suffs;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
@@ -575,12 +575,15 @@ vips_foreign_save_ppm_target_class_init(
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "ppmsave_target";
 	object_class->build = vips_foreign_save_ppm_target_build;
+
+	foreign_class->suffs = vips__save_ppm_suffs;
 
 	VIPS_ARG_OBJECT( class, "target", 1,
 		_( "Target" ),

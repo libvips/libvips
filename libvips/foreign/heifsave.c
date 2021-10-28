@@ -657,12 +657,15 @@ vips_foreign_save_heif_buffer_class_init(
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "heifsave_buffer";
 	object_class->build = vips_foreign_save_heif_buffer_build;
+
+	foreign_class->suffs = vips__heic_suffs;
 
 	VIPS_ARG_BOXED( class, "buffer", 1, 
 		_( "Buffer" ),
@@ -714,12 +717,15 @@ vips_foreign_save_heif_target_class_init(
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "heifsave_target";
 	object_class->build = vips_foreign_save_heif_target_build;
+
+	foreign_class->suffs = vips__heic_suffs;
 
 	VIPS_ARG_OBJECT( class, "target", 1,
 		_( "Target" ),

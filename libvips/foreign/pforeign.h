@@ -161,6 +161,7 @@ extern const char *vips__load_ppm_suffs[];
 extern const char *vips__save_ppm_suffs[];
 extern const char *vips__save_pgm_suffs[];
 extern const char *vips__save_pfm_suffs[];
+extern const char *vips__save_ppm_all_suffs[];
 
 int vips__ppm_save_target( VipsImage *in, VipsTarget *target,
 	gboolean ascii, gboolean squash );
