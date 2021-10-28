@@ -540,70 +540,6 @@ vips_foreign_save_ppm_file_init( VipsForeignSavePpmFile *file )
 {
 }
 
-typedef struct _VipsForeignSavePpmBuffer {
-	VipsForeignSavePpm parent_object;
-
-	/* Save to a buffer.
-	 */
-	VipsArea *buf;
-
-} VipsForeignSavePpmBuffer;
-
-typedef VipsForeignSavePpmClass VipsForeignSavePpmBufferClass;
-
-G_DEFINE_TYPE( VipsForeignSavePpmBuffer, vips_foreign_save_ppm_buffer, 
-	vips_foreign_save_ppm_get_type() );
-
-static int
-vips_foreign_save_ppm_buffer_build( VipsObject *object )
-{
-	VipsForeignSavePpm *ppm = (VipsForeignSavePpm *) object;
-	VipsForeignSavePpmBuffer *buffer = 
-		(VipsForeignSavePpmBuffer *) object;
-
-	VipsBlob *blob;
-
-	if( !(ppm->target = vips_target_new_to_memory()) )
-		return( -1 );
-
-	if( VIPS_OBJECT_CLASS( vips_foreign_save_ppm_buffer_parent_class )->
-		build( object ) )
-		return( -1 );
-
-	g_object_get( ppm->target, "blob", &blob, NULL );
-	g_object_set( buffer, "buffer", blob, NULL );
-	vips_area_unref( VIPS_AREA( blob ) );
-
-	return( 0 );
-}
-
-static void
-vips_foreign_save_ppm_buffer_class_init( 
-	VipsForeignSavePpmBufferClass *class )
-{
-	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
-	VipsObjectClass *object_class = (VipsObjectClass *) class;
-
-	gobject_class->set_property = vips_object_set_property;
-	gobject_class->get_property = vips_object_get_property;
-
-	object_class->nickname = "ppmsave_buffer";
-	object_class->build = vips_foreign_save_ppm_buffer_build;
-
-	VIPS_ARG_BOXED( class, "buffer", 1, 
-		_( "Buffer" ),
-		_( "Buffer to save to" ),
-		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
-		G_STRUCT_OFFSET( VipsForeignSavePpmBuffer, buf ),
-		VIPS_TYPE_BLOB );
-
-}
-
-static void
-vips_foreign_save_ppm_buffer_init( VipsForeignSavePpmBuffer *buffer )
-{
-}
-
 typedef struct _VipsForeignSavePpmTarget {
 	VipsForeignSavePpm parent_object;
 
@@ -788,52 +724,6 @@ vips_ppmsave( VipsImage *in, const char *filename, ... )
 	va_start( ap, filename );
 	result = vips_call_split( "ppmsave", ap, in, filename );
 	va_end( ap );
-
-	return( result );
-}
-
-/**
- * vips_ppmsave_buffer: (method)
- * @in: image to save 
- * @buf: (array length=len) (element-type guint8): return output buffer here
- * @len: (type gsize): return output length here
- * @...: %NULL-terminated list of optional named arguments
- *
- * Optional arguments:
- *
- * * @ascii: %gboolean, save as ASCII rather than binary
- * * @bitdepth: %gint, bitdepth to save at
- *
- * As vips_ppmsave(), but save to a target.
- *
- * See also: vips_ppmsave().
- *
- * Returns: 0 on success, -1 on error.
- */
-int
-vips_ppmsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
-{
-	va_list ap;
-	VipsArea *area;
-	int result;
-
-	area = NULL; 
-
-	va_start( ap, len );
-	result = vips_call_split( "ppmsave_buffer", ap, in, &area );
-	va_end( ap );
-
-	if( !result &&
-		area ) { 
-		if( buf ) {
-			*buf = area->data;
-			area->free_fn = NULL;
-		}
-		if( len ) 
-			*len = area->length;
-
-		vips_area_unref( area );
-	}
 
 	return( result );
 }

@@ -2783,7 +2783,6 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_ppm_file_get_type( void ); 
 	extern GType vips_foreign_load_ppm_source_get_type( void ); 
 	extern GType vips_foreign_save_ppm_file_get_type( void ); 
-	extern GType vips_foreign_save_ppm_buffer_get_type( void ); 
 	extern GType vips_foreign_save_ppm_target_get_type( void ); 
 	extern GType vips_foreign_save_pgm_target_get_type( void );
 	extern GType vips_foreign_save_pfm_target_get_type( void ); 
@@ -2929,7 +2928,6 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_ppm_file_get_type(); 
 	vips_foreign_load_ppm_source_get_type(); 
 	vips_foreign_save_ppm_file_get_type(); 
-	vips_foreign_save_ppm_buffer_get_type(); 
 	vips_foreign_save_ppm_target_get_type(); 
 	vips_foreign_save_pgm_target_get_type(); 
 	vips_foreign_save_pfm_target_get_type(); 

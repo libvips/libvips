@@ -618,8 +618,6 @@ int vips_ppmload_source( VipsSource *source, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_ppmsave( VipsImage *in, const char *filename, ... )
 	__attribute__((sentinel));
-int vips_ppmsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
-	__attribute__((sentinel));
 int vips_ppmsave_target( VipsImage *in, VipsTarget *target, ... )
 	__attribute__((sentinel));
 
