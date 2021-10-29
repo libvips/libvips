@@ -486,9 +486,9 @@ vips_fail_on_get_type( void )
 	if( etype == 0 ) {
 		static const GEnumValue values[] = {
 			{VIPS_FAIL_ON_NONE, "VIPS_FAIL_ON_NONE", "none"},
-			{VIPS_FAIL_ON_WARNING, "VIPS_FAIL_ON_WARNING", "warning"},
-			{VIPS_FAIL_ON_ERROR, "VIPS_FAIL_ON_ERROR", "error"},
 			{VIPS_FAIL_ON_TRUNCATED, "VIPS_FAIL_ON_TRUNCATED", "truncated"},
+			{VIPS_FAIL_ON_ERROR, "VIPS_FAIL_ON_ERROR", "error"},
+			{VIPS_FAIL_ON_WARNING, "VIPS_FAIL_ON_WARNING", "warning"},
 			{VIPS_FAIL_ON_LAST, "VIPS_FAIL_ON_LAST", "last"},
 			{0, NULL, NULL}
 		};

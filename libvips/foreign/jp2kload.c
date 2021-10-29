@@ -827,6 +827,9 @@ vips_foreign_load_jp2k_generate( VipsRegion *out,
 		y += hit.height;
 	}
 
+	/* jp2k files can't be truncated (they fail to open), so all we can
+	 * spot is errors.
+	 */
 	if( load->fail_on >= VIPS_FAIL_ON_ERROR &&
 		jp2k->n_errors > 0 ) 
 		return( -1 );

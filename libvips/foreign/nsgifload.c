@@ -384,7 +384,7 @@ vips_foreign_load_nsgif_header( VipsForeignLoad *load )
 		return( -1 );
 	}
 	else if( result == GIF_INSUFFICIENT_FRAME_DATA &&
-		load->fail_on >= VIPS_FAIL_ON_ERROR ) {
+		load->fail_on >= VIPS_FAIL_ON_TRUNCATED ) {
 		vips_error( class->nickname, "%s", _( "truncated GIF" ) );
 		return( -1 );
 	}

@@ -727,7 +727,7 @@ png2vips_generate( VipsRegion *or,
 			 * message, since the handler we install just does
 			 * g_warning().
 			 */
-			if( read->fail_on >= VIPS_FAIL_ON_ERROR ) {
+			if( read->fail_on >= VIPS_FAIL_ON_TRUNCATED ) {
 				vips_error( "vipspng", 
 					"%s", _( "libpng read error" ) ); 
 				return( -1 );

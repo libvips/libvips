@@ -430,7 +430,8 @@ vips_foreign_load_csv_load( VipsForeignLoad *load )
 
 			csv->colno += 1;
 			ch = vips_foreign_load_csv_read_double( csv, &value );
-			if( ch == EOF ) {
+			if( ch == EOF &&
+				load->fail_on >= VIPS_FAIL_ON_TRUNCATED ) {
 				vips_error( class->nickname,
 					"%s", _( "unexpected end of file" ) );
 				return( -1 );
@@ -440,9 +441,9 @@ vips_foreign_load_csv_load( VipsForeignLoad *load )
 				vips_error( class->nickname,
 					_( "line %d has only %d columns" ),
 					csv->lineno, csv->colno );
-				/* Probably truncated.
+				/* Unequal length lines, but no EOF.
 				 */
-				if( load->fail_on >= VIPS_FAIL_ON_TRUNCATED )
+				if( load->fail_on >= VIPS_FAIL_ON_ERROR )
 					return( -1 );
 			}
 

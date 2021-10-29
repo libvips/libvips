@@ -251,7 +251,7 @@ source_fill_input_buffer( j_decompress_ptr cinfo )
 		src->pub.bytes_in_buffer = read;
 	}
 	else {
-		if( src->jpeg->fail_on >= VIPS_FAIL_ON_ERROR )
+		if( src->jpeg->fail_on >= VIPS_FAIL_ON_TRUNCATED )
 			ERREXIT( cinfo, JERR_INPUT_EOF );
 		else
 			WARNMS( cinfo, JWRN_JPEG_EOF );
@@ -807,11 +807,6 @@ read_jpeg_generate( VipsRegion *or,
 		return( -1 );
 	}
 
-	/* If fail_on is set, we make read fail on any warnings. This
-	 * will stop on any errors from the previous jpeg_read_scanlines().
-	 * libjpeg warnings are used for serious image corruption, like
-	 * truncated files. 
-	 */
 	if( jpeg->eman.pub.num_warnings > 0 &&
 		jpeg->fail_on >= VIPS_FAIL_ON_WARNING ) {
 		VIPS_GATE_STOP( "read_jpeg_generate: work" );

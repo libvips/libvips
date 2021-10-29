@@ -102,22 +102,22 @@ typedef enum /*< flags >*/ {
 
 /** 
  * VipsFailOn:
- * @VIPS_FAIL_ON_WARNING: stop on eveything, even warnings
- * @VIPS_FAIL_ON_ERROR: stop on serious error or tuncation
- * @VIPS_FAIL_ON_TRUNCATED: stop on image truncated, nothing else
  * @VIPS_FAIL_ON_NONE: never stop 
+ * @VIPS_FAIL_ON_TRUNCATED: stop on image truncated, nothing else
+ * @VIPS_FAIL_ON_ERROR: stop on serious error or truncation
+ * @VIPS_FAIL_ON_WARNING: stop on anything, even warnings
  *
- * The error level to stop on, from stop on anything at all, to never
- * stop.
+ * The error type to stop on, from never stop, to stop on the smallest 
+ * warning. 
  * 
- * Each fail level implies the ones after it, so #VIPS_FAIL_ON_ERROR implies
+ * Each one implies the ones before it, so #VIPS_FAIL_ON_ERROR implies
  * #VIPS_FAIL_ON_TRUNCATED.
  */
 typedef enum {
-	VIPS_FAIL_ON_WARNING,
-	VIPS_FAIL_ON_ERROR,
-	VIPS_FAIL_ON_TRUNCATED,
 	VIPS_FAIL_ON_NONE,
+	VIPS_FAIL_ON_TRUNCATED,
+	VIPS_FAIL_ON_ERROR,
+	VIPS_FAIL_ON_WARNING,
 	VIPS_FAIL_ON_LAST
 } VipsFailOn;
 
