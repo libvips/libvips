@@ -335,7 +335,6 @@ vips_foreign_save_heif_build( VipsObject *object )
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) object;
 
-	const char *filename;
 	struct heif_error error;
 	struct heif_writer writer;
 	char *chroma;
@@ -356,15 +355,6 @@ vips_foreign_save_heif_build( VipsObject *object )
 	 */
 	if( vips_copy( save->ready, &heif->image, NULL ) ) 
 		return( -1 );
-
-	/* Compression defaults to VIPS_FOREIGN_HEIF_COMPRESSION_AV1 for .avif
-	 * suffix.
-	 */
-	filename = vips_connection_filename( VIPS_CONNECTION( heif->target ) );
-	if( !vips_object_argument_isset( object, "compression" ) &&
-		filename &&
-		vips_iscasepostfix( filename, ".avif" ) )
-		heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_AV1;
 
 	error = heif_context_get_encoder_for_format( heif->ctx, 
 		(enum heif_compression_format) heif->compression, 
@@ -489,7 +479,6 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
 	gobject_class->dispose = vips_foreign_save_heif_dispose;
@@ -499,8 +488,6 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 	object_class->nickname = "heifsave_base";
 	object_class->description = _( "save image in HEIF format" );
 	object_class->build = vips_foreign_save_heif_build;
-
-	foreign_class->suffs = vips__heif_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_RGBA_ONLY;
 	save_class->format_table = vips_heif_bandfmt;
@@ -588,6 +575,9 @@ vips_foreign_save_heif_file_build( VipsObject *object )
 	if( !(heif->target = vips_target_new_to_file( file->filename )) )
 		return( -1 );
 
+	if( vips_iscasepostfix( file->filename, ".avif" ) )
+		heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_AV1;
+
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_heif_file_parent_class )->
 		build( object ) )
 		return( -1 );
@@ -600,12 +590,15 @@ vips_foreign_save_heif_file_class_init( VipsForeignSaveHeifFileClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "heifsave";
 	object_class->build = vips_foreign_save_heif_file_build;
+
+	foreign_class->suffs = vips__heif_suffs;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
 		_( "Filename" ),
@@ -664,12 +657,15 @@ vips_foreign_save_heif_buffer_class_init(
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "heifsave_buffer";
 	object_class->build = vips_foreign_save_heif_buffer_build;
+
+	foreign_class->suffs = vips__heic_suffs;
 
 	VIPS_ARG_BOXED( class, "buffer", 1, 
 		_( "Buffer" ),
@@ -721,12 +717,15 @@ vips_foreign_save_heif_target_class_init(
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "heifsave_target";
 	object_class->build = vips_foreign_save_heif_target_build;
+
+	foreign_class->suffs = vips__heic_suffs;
 
 	VIPS_ARG_OBJECT( class, "target", 1,
 		_( "Target" ),
@@ -740,6 +739,38 @@ vips_foreign_save_heif_target_class_init(
 static void
 vips_foreign_save_heif_target_init( VipsForeignSaveHeifTarget *target )
 {
+}
+
+typedef VipsForeignSaveHeifTarget VipsForeignSaveAvifTarget;
+typedef VipsForeignSaveHeifTargetClass VipsForeignSaveAvifTargetClass;
+
+G_DEFINE_TYPE( VipsForeignSaveAvifTarget, vips_foreign_save_avif_target, 
+	vips_foreign_save_heif_target_get_type() );
+
+static void
+vips_foreign_save_avif_target_class_init( 
+	VipsForeignSaveAvifTargetClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
+
+	object_class->nickname = "avifsave_target";
+	object_class->description = _( "save image in AVIF format" );
+
+	foreign_class->suffs = vips__avif_suffs;
+
+	/* Hide from UI.
+	 */
+	operation_class->flags = VIPS_OPERATION_DEPRECATED;
+}
+
+static void
+vips_foreign_save_avif_target_init( VipsForeignSaveAvifTarget *target )
+{
+	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) target;
+
+	heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_AV1;
 }
 
 #endif /*HAVE_HEIF_ENCODER*/

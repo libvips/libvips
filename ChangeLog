@@ -14,6 +14,8 @@
 - added restart_interval option to jpegsave [manthey]
 - add IIIF3 support to dzsaave [martimpassos]
 - add atan2 [indus]
+- improve buffer and target save file format selection
+- added VipsForeignPpmFormat, @format arg to ppm savers
 
 16/8/21 started 8.11.4
 - fix off-by-one error in new rank fast path

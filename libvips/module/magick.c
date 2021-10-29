@@ -63,7 +63,9 @@ g_module_check_init( GModule *module )
 	extern GType vips_foreign_load_magick7_file_get_type( void ); 
 	extern GType vips_foreign_load_magick7_buffer_get_type( void ); 
 	extern GType vips_foreign_save_magick_file_get_type( void );
+	extern GType vips_foreign_save_magick_bmp_file_get_type( void );
 	extern GType vips_foreign_save_magick_buffer_get_type( void );
+	extern GType vips_foreign_save_magick_bmp_buffer_get_type( void );
 
 #ifdef ENABLE_MAGICKLOAD
 #ifdef HAVE_MAGICK6
@@ -79,7 +81,9 @@ g_module_check_init( GModule *module )
 
 #ifdef ENABLE_MAGICKSAVE
 	vips_foreign_save_magick_file_get_type();
+	vips_foreign_save_magick_bmp_file_get_type();
 	vips_foreign_save_magick_buffer_get_type();
+	vips_foreign_save_magick_bmp_buffer_get_type();
 #endif /*ENABLE_MAGICKSAVE*/
 
 	return( NULL );

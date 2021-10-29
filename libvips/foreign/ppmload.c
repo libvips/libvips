@@ -141,7 +141,11 @@ static char *magic_names[] = {
 
 /* Shared with ppmsave.
  */
-const char *vips__ppm_suffs[] = { ".ppm", ".pgm", ".pbm", ".pfm", NULL };
+const char *vips__ppm_suffs[] = { ".pbm", ".pgm", ".ppm", ".pfm", NULL };
+const char *vips__save_pbm_suffs[] = { ".pbm", NULL };
+const char *vips__save_pgm_suffs[] = { ".pgm", NULL };
+const char *vips__save_ppm_suffs[] = { ".ppm", NULL };
+const char *vips__save_pfm_suffs[] = { ".pfm", NULL };
 
 static gboolean
 vips_foreign_load_ppm_is_a_source( VipsSource *source )

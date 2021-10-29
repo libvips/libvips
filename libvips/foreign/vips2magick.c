@@ -102,6 +102,7 @@ vips_foreign_save_magick_dispose( GObject *gobject )
 	printf( "vips_foreign_save_magick_dispose: %p\n", gobject ); 
 #endif /*DEBUG*/
 
+	VIPS_FREE( magick->filename );
 	VIPS_FREE( magick->map );
 	VIPS_FREEF( DestroyImageList, magick->images );
 	VIPS_FREEF( DestroyImageInfo, magick->image_info );
@@ -414,7 +415,8 @@ vips_foreign_save_magick_build( VipsObject *object )
  * Instead, just list the commonly-used formats that all libMagicks support and 
  * that libvips does not.
  */
-static const char *vips__save_magick_suffs[] = { ".gif", ".bmp", NULL };
+static const char *vips__save_magick_suffs[] = { NULL };
+static const char *vips__save_magick_bmp_suffs[] = { ".bmp", NULL };
 
 /* Save a bit of typing.
  */
@@ -512,7 +514,7 @@ vips_foreign_save_magick_file_build( VipsObject *object )
 	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) object;
 	VipsForeignSaveMagickFile *file = (VipsForeignSaveMagickFile *) object;
 
-	magick->filename = file->filename;
+	magick->filename = g_strdup( file->filename );
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_magick_file_parent_class )->
 		build( object ) )
@@ -555,6 +557,38 @@ vips_foreign_save_magick_file_class_init(
 static void
 vips_foreign_save_magick_file_init( VipsForeignSaveMagickFile *file )
 {
+}
+
+typedef VipsForeignSaveMagickFile VipsForeignSaveMagickBmpFile;
+typedef VipsForeignSaveMagickFileClass VipsForeignSaveMagickBmpFileClass;
+
+G_DEFINE_TYPE( VipsForeignSaveMagickBmpFile, vips_foreign_save_magick_bmp_file, 
+	vips_foreign_save_magick_file_get_type() );
+
+static void
+vips_foreign_save_magick_bmp_file_class_init( 
+	VipsForeignSaveMagickBmpFileClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
+
+	object_class->nickname = "magicksave_bmp";
+	object_class->description = _( "save bmp image with ImageMagick" );
+
+	foreign_class->suffs = vips__save_magick_bmp_suffs;
+
+	/* Hide from UI.
+	 */
+	operation_class->flags = VIPS_OPERATION_DEPRECATED;
+}
+
+static void
+vips_foreign_save_magick_bmp_file_init( VipsForeignSaveMagickBmpFile *file )
+{
+	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) file;
+
+	VIPS_SETSTR( magick->format, "bmp" );
 }
 
 typedef struct _VipsForeignSaveMagickBuffer {
@@ -628,6 +662,40 @@ vips_foreign_save_magick_buffer_class_init(
 static void
 vips_foreign_save_magick_buffer_init( VipsForeignSaveMagickBuffer *buffer )
 {
+}
+
+typedef VipsForeignSaveMagickBuffer VipsForeignSaveMagickBmpBuffer;
+typedef VipsForeignSaveMagickBufferClass VipsForeignSaveMagickBmpBufferClass;
+
+G_DEFINE_TYPE( VipsForeignSaveMagickBmpBuffer, 
+	vips_foreign_save_magick_bmp_buffer, 
+	vips_foreign_save_magick_buffer_get_type() );
+
+static void
+vips_foreign_save_magick_bmp_buffer_class_init(
+	VipsForeignSaveMagickBmpBufferClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
+
+	object_class->nickname = "magicksave_bmp_buffer";
+	object_class->description = _( "save bmp image to magick buffer" );
+
+	foreign_class->suffs = vips__save_magick_bmp_suffs;
+
+	/* Hide from UI.
+	 */
+	operation_class->flags = VIPS_OPERATION_DEPRECATED;
+}
+
+static void
+vips_foreign_save_magick_bmp_buffer_init( 
+	VipsForeignSaveMagickBmpBuffer *buffer )
+{
+	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) buffer;
+
+	VIPS_SETSTR( magick->format, "bmp" );
 }
 
 #endif /*ENABLE_MAGICKSAVE*/
