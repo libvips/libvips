@@ -1279,18 +1279,21 @@ class TestForeign:
 
     def test_fail_on(self):
         # csvload should spot trunc correctly
-        buf = self.mono.write_to_buffer(".csv")
+        target = pyvips.Target.new_to_memory()
+        self.mono.write_to_target(target, ".csv")
+        buf = target.get("blob")
+
         source = pyvips.Source.new_from_memory(buf)
-        im = pyvips.Image.new_from_source(source, "")
+        im = pyvips.Image.csvload_source(source)
         assert im.avg() > 0
 
-        # should not fail
+        # truncation should be OK by default
         buf_trunc = buf[:-100]
         source = pyvips.Source.new_from_memory(buf_trunc)
         im = pyvips.Image.csvload_source(source)
         assert im.avg() > 0
 
-        # set trun should fail
+        # set trunc should make it fail
         with pytest.raises(Exception) as e_info:
             im = pyvips.Image.csvload_source(source, fail_on="truncated")
             # this will now force parsing of the whole file, which should
