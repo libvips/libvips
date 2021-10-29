@@ -61,6 +61,7 @@
  * @VIPS_KERNEL_NEAREST: The nearest pixel to the point.
  * @VIPS_KERNEL_LINEAR: Convolve with a triangle filter. 
  * @VIPS_KERNEL_CUBIC: Convolve with a cubic filter. 
+ * @VIPS_KERNEL_MITCHELL: Convolve with a Mitchell kernel.
  * @VIPS_KERNEL_LANCZOS2: Convolve with a two-lobe Lanczos kernel.
  * @VIPS_KERNEL_LANCZOS3: Convolve with a three-lobe Lanczos kernel.
  *
