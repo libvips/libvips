@@ -436,6 +436,7 @@ vips__atexit( void )
 
 		if( !done ) {
 			done = TRUE;
+			vips_cache_drop_all();
 			vips_leak();
 		}
 	}
