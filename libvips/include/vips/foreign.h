@@ -102,20 +102,23 @@ typedef enum /*< flags >*/ {
 
 /** 
  * VipsFailOn:
- * @VIPS_FAIL_ON_NONE: ignore all errors and warnings
- * @VIPS_FAIL_ON_WARNING: stop on load warning
- * @VIPS_FAIL_ON_ERROR: stop on load error 
- * @VIPS_FAIL_ON_TRUNCATED: stop on image truncated
+ * @VIPS_FAIL_ON_WARNING: stop on eveything, even warnings
+ * @VIPS_FAIL_ON_ERROR: stop on serious error or tuncation
+ * @VIPS_FAIL_ON_TRUNCATED: stop on image truncated, nothing else
+ * @VIPS_FAIL_ON_NONE: never stop 
  *
- * What kind of load failure to stop on, from never stop to only stop on image
- * truncation.
+ * The error level to stop on, from stop on anything at all, to never
+ * stop.
+ * 
+ * Each fail level implies the ones after it, so #VIPS_FAIL_ON_ERROR implies
+ * #VIPS_FAIL_ON_TRUNCATED.
  */
 typedef enum {
-	VIPS_FAIL_ON_NONE,
 	VIPS_FAIL_ON_WARNING,
 	VIPS_FAIL_ON_ERROR,
 	VIPS_FAIL_ON_TRUNCATED,
-	VIPS_FAIL_ON_LAST,
+	VIPS_FAIL_ON_NONE,
+	VIPS_FAIL_ON_LAST
 } VipsFailOn;
 
 #define VIPS_TYPE_FOREIGN_LOAD (vips_foreign_load_get_type())

@@ -1063,10 +1063,10 @@ vips_foreign_load_build( VipsObject *object )
 	if( sequential )
 		load->nocache = TRUE;
 
-	/* For compat, defaiult the deprecated "fail" field to anything higher
+	/* For compat, default the deprecated "fail" field to anything higher
 	 * than warning.
 	 */
-	load->fail = load->fail_on >= VIPS_FAIL_ON_WARNING;
+	load->fail = load->fail_on >= VIPS_FAIL_ON_ERROR;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_parent_class )->
 		build( object ) )
@@ -1193,7 +1193,7 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 
 	VIPS_ARG_ENUM( class, "fail-on", 109, 
 		_( "Fail on" ), 
-		_( "Type of read error to fail on" ),
+		_( "Error level to fail on" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignLoad, fail_on ),
 		VIPS_TYPE_FAIL_ON, VIPS_FAIL_ON_NONE ); 

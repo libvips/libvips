@@ -421,6 +421,10 @@ vips_foreign_load_csv_load( VipsForeignLoad *load )
 		 */
 		ch = EOF;
 
+		/* Some lines may be shorter.
+		 */
+		memset( csv->linebuf, 0, load->real->Xsize * sizeof( double ) );
+
 		for( x = 0; x < load->real->Xsize; x++ ) {
 			double value;
 
@@ -436,7 +440,9 @@ vips_foreign_load_csv_load( VipsForeignLoad *load )
 				vips_error( class->nickname,
 					_( "line %d has only %d columns" ),
 					csv->lineno, csv->colno );
-				if( load->fail_on >= VIPS_FAIL_ON_ERROR )
+				/* Probably truncated.
+				 */
+				if( load->fail_on >= VIPS_FAIL_ON_TRUNCATED )
 					return( -1 );
 			}
 
