@@ -60,12 +60,11 @@ VIPS_NAMESPACE_START
 std::vector<double>
 to_vectorv( int n, ... )
 {
-	std::vector<double> vector;
-	vector.reserve( n );
+	std::vector<double> vector( n );
 	va_list ap;
 
 	va_start( ap, n );
-	for( std::vector<double>::size_type i = 0; i < size_t(n); i++ )
+	for( int i = 0; i < n; i++ )
 		vector[i] = va_arg( ap, double );
 	va_end( ap );
 
@@ -81,10 +80,9 @@ to_vector( double value )
 std::vector<double>
 to_vector( int n, double array[] )
 {
-	std::vector<double> vector;
-	vector.reserve( n );
+	std::vector<double> vector( n );
 
-	for( std::vector<double>::size_type i = 0; i < size_t(n); i++ )
+	for( int i = 0; i < n; i++ )
 		vector[i] = array[i];
 
 	return( vector );
@@ -93,8 +91,7 @@ to_vector( int n, double array[] )
 std::vector<double>
 negate( std::vector<double> vector )
 {
-	std::vector<double> new_vector;
-	new_vector.reserve( vector.size() );
+	std::vector<double> new_vector( vector.size() );
 
 	for( std::vector<double>::size_type i = 0; i < vector.size(); i++ )
 		new_vector[i] = vector[i] * -1;
@@ -105,8 +102,7 @@ negate( std::vector<double> vector )
 std::vector<double>
 invert( std::vector<double> vector )
 {
-	std::vector<double> new_vector;
-	new_vector.reserve( vector.size() );
+	std::vector<double> new_vector( vector.size() );
 
 	for( std::vector<double>::size_type i = 0; i < vector.size(); i++ )
 		new_vector[i] = 1.0 / vector[i];
@@ -489,8 +485,9 @@ VOption::get_operation( VipsOperation *operation )
 				double *array =
 					vips_value_get_array_double( value,
 					&length );
+
 				((*i)->vvector)->resize( length );
-				for( size_t j = 0; j < length; j++ )
+				for( int j = 0; j < length; j++ )
 					(*((*i)->vvector))[j] = array[j];
 			}
 			else if( type == VIPS_TYPE_BLOB ) {

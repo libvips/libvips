@@ -45,6 +45,13 @@ uninstall-htmlDATA:
 	rm -rf $(DESTDIR)$(htmldir)/html
 endif
 
+# "make tidy" to run the clang-tidy linter
+.PHONY: tidy
+tidy: $(libvips_cpp_la_SOURCES)
+	clang-tidy $^ \
+		-checks=clang-analyzer-*,portability-* \
+		-- $(AM_CPPFLAGS)
+
 EXTRA_DIST = \
 	README.md \
 	vips-operators.cpp \
