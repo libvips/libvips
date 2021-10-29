@@ -94,11 +94,12 @@
 #include <expat.h>
 #include <errno.h>
 
+#include <vips/vips.h>
+
 #ifdef G_OS_WIN32
 #include <windows.h>
 #endif /*G_OS_WIN32*/
 
-#include <vips/vips.h>
 #include <vips/debug.h>
 #include <vips/internal.h>
 
