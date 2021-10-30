@@ -107,8 +107,8 @@ typedef enum /*< flags >*/ {
  * @VIPS_FAIL_ON_ERROR: stop on serious error or truncation
  * @VIPS_FAIL_ON_WARNING: stop on anything, even warnings
  *
- * The error type to stop on, from never stop, to stop on the smallest 
- * warning. 
+ * How sensitive loaders are to errors, from never stop (very insensitive), to 
+ * stop on the smallest warning (very sensitive). 
  * 
  * Each one implies the ones before it, so #VIPS_FAIL_ON_ERROR implies
  * #VIPS_FAIL_ON_TRUNCATED.

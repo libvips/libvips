@@ -1068,7 +1068,8 @@ vips_foreign_load_build( VipsObject *object )
 	if( !vips_object_argument_isset( object, "fail" ) )
 		load->fail = load->fail_on > VIPS_FAIL_ON_NONE;
 	else if( !vips_object_argument_isset( object, "fail-on" ) )
-		load->fail_on = load->fail ? VIPS_FAIL_ON_WARNING : VIPS_FAIL_ON_NONE;
+		load->fail_on = load->fail ? 
+			VIPS_FAIL_ON_WARNING : VIPS_FAIL_ON_NONE;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_parent_class )->
 		build( object ) )
