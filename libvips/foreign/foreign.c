@@ -1063,11 +1063,10 @@ vips_foreign_load_build( VipsObject *object )
 	if( sequential )
 		load->nocache = TRUE;
 
-	/* For compat, default the deprecated "fail" field to anything.
+	/* The deprecated "fail" field sets fail_on warning.
 	 */
-	if( !vips_object_argument_isset( object, "fail" ) )
-		load->fail = load->fail_on > VIPS_FAIL_ON_NONE;
-	else if( !vips_object_argument_isset( object, "fail-on" ) )
+	if( vips_object_argument_isset( object, "fail" ) &&
+		!vips_object_argument_isset( object, "fail_on" ) )
 		load->fail_on = load->fail ? 
 			VIPS_FAIL_ON_WARNING : VIPS_FAIL_ON_NONE;
 
