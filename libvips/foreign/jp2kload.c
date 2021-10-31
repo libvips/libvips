@@ -827,7 +827,10 @@ vips_foreign_load_jp2k_generate( VipsRegion *out,
 		y += hit.height;
 	}
 
-	if( load->fail &&
+	/* jp2k files can't be truncated (they fail to open), so all we can
+	 * spot is errors.
+	 */
+	if( load->fail_on >= VIPS_FAIL_ON_ERROR &&
 		jp2k->n_errors > 0 ) 
 		return( -1 );
 
@@ -1280,19 +1283,20 @@ vips__foreign_load_jp2k_decompress( VipsImage *out,
  * Optional arguments:
  *
  * * @page: %gint, load this page
+ * * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Read a JPEG2000 image. The loader supports 8, 16 and 32-bit int pixel
- * values, signed and unsigned. 
- * It supports greyscale, RGB, YCC, CMYK and
- * multispectral colour spaces. 
- * It will read any ICC profile on
- * the image. 
+ * values, signed and unsigned. It supports greyscale, RGB, YCC, CMYK and
+ * multispectral colour spaces. It will read any ICC profile on the image. 
  *
- * It will only load images where all channels are the same format.
+ * It will only load images where all channels have the same format.
  *
  * Use @page to set the page to load, where page 0 is the base resolution
  * image and higher-numbered pages are x2 reductions. Use the metadata item
  * "n-pages" to find the number of pyramid layers.
+ *
+ * Use @fail_on to set the type of error that will cause load to fail. By
+ * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
  *
  * See also: vips_image_new_from_file().
  *
@@ -1321,8 +1325,12 @@ vips_jp2kload( const char *filename, VipsImage **out, ... )
  * Optional arguments:
  *
  * * @page: %gint, load this page
+ * * @fail_on: #VipsFailOn, types of read error to fail on
  *
- * Exactly as vips_jp2kload(), but read from a source. 
+ * Exactly as vips_jp2kload(), but read from a buffer. 
+ *
+ * You must not free the buffer while @out is active. The
+ * #VipsObject::postclose signal on @out is a good place to free.
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -1355,6 +1363,7 @@ vips_jp2kload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * Optional arguments:
  *
  * * @page: %gint, load this page
+ * * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Exactly as vips_jp2kload(), but read from a source. 
  *

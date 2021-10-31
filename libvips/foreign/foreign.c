@@ -24,6 +24,8 @@
  * 	- block _start if one start fails, see #893
  * 1/4/18
  * 	- drop incompatible ICC profiles before save
+ * 24/7/21
+ * 	- add fail-on
  */
 
 /*
@@ -1061,6 +1063,13 @@ vips_foreign_load_build( VipsObject *object )
 	if( sequential )
 		load->nocache = TRUE;
 
+	/* The deprecated "fail" field sets fail_on warning.
+	 */
+	if( vips_object_argument_isset( object, "fail" ) &&
+		!vips_object_argument_isset( object, "fail_on" ) )
+		load->fail_on = load->fail ? 
+			VIPS_FAIL_ON_WARNING : VIPS_FAIL_ON_NONE;
+
 	if( VIPS_OBJECT_CLASS( vips_foreign_load_parent_class )->
 		build( object ) )
 		return( -1 );
@@ -1184,21 +1193,28 @@ vips_foreign_load_class_init( VipsForeignLoadClass *class )
 		G_STRUCT_OFFSET( VipsForeignLoad, access ),
 		VIPS_TYPE_ACCESS, VIPS_ACCESS_RANDOM ); 
 
-	VIPS_ARG_BOOL( class, "sequential", 109, 
+	VIPS_ARG_ENUM( class, "fail-on", 109, 
+		_( "Fail on" ), 
+		_( "Error level to fail on" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignLoad, fail_on ),
+		VIPS_TYPE_FAIL_ON, VIPS_FAIL_ON_NONE ); 
+
+	VIPS_ARG_BOOL( class, "sequential", 110, 
 		_( "Sequential" ), 
 		_( "Sequential read only" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignLoad, sequential ),
 		FALSE );
 
-	VIPS_ARG_BOOL( class, "fail", 110, 
+	VIPS_ARG_BOOL( class, "fail", 111,
 		_( "Fail" ), 
-		_( "Fail on first error" ),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		_( "Fail on first warning" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsForeignLoad, fail ),
 		FALSE );
 
-	VIPS_ARG_BOOL( class, "disc", 111, 
+	VIPS_ARG_BOOL( class, "disc", 112, 
 		_( "Disc" ), 
 		_( "Open to disc" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
@@ -1212,6 +1228,7 @@ vips_foreign_load_init( VipsForeignLoad *load )
 {
 	load->disc = TRUE;
 	load->access = VIPS_ACCESS_RANDOM;
+	load->fail_on = VIPS_FAIL_ON_NONE;
 }
 
 /*

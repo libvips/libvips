@@ -110,6 +110,8 @@
  * 	- better handling of JFIF res unit 0
  * 13/9/20
  * 	- set resolution unit from JFIF 
+ * 24/7/21
+ * 	- add fail-on support
  */
 
 /*
@@ -171,9 +173,9 @@ typedef struct _ReadJpeg {
 	 */
 	int shrink;
 
-	/* Fail on warning.
+	/* Types of error to cause failure.
 	 */
-	gboolean fail;
+	VipsFailOn fail_on;
 
 	struct jpeg_decompress_struct cinfo;
         ErrorManager eman;
@@ -249,7 +251,7 @@ source_fill_input_buffer( j_decompress_ptr cinfo )
 		src->pub.bytes_in_buffer = read;
 	}
 	else {
-		if( src->jpeg->fail )
+		if( src->jpeg->fail_on >= VIPS_FAIL_ON_TRUNCATED )
 			ERREXIT( cinfo, JERR_INPUT_EOF );
 		else
 			WARNMS( cinfo, JWRN_JPEG_EOF );
@@ -355,7 +357,7 @@ readjpeg_minimise_cb( VipsImage *image, ReadJpeg *jpeg )
 
 static ReadJpeg *
 readjpeg_new( VipsSource *source, VipsImage *out, 
-	int shrink, gboolean fail, gboolean autorotate )
+	int shrink, VipsFailOn fail_on, gboolean autorotate )
 {
 	ReadJpeg *jpeg;
 
@@ -365,7 +367,7 @@ readjpeg_new( VipsSource *source, VipsImage *out,
 	jpeg->source = source;
 	g_object_ref( source );
 	jpeg->shrink = shrink;
-	jpeg->fail = fail;
+	jpeg->fail_on = fail_on;
         jpeg->cinfo.err = jpeg_std_error( &jpeg->eman.pub );
 	jpeg->eman.pub.error_exit = vips__new_error_exit;
 	jpeg->eman.pub.output_message = vips__new_output_message;
@@ -805,13 +807,8 @@ read_jpeg_generate( VipsRegion *or,
 		return( -1 );
 	}
 
-	/* If --fail is set, we make read fail on any warnings. This
-	 * will stop on any errors from the previous jpeg_read_scanlines().
-	 * libjpeg warnings are used for serious image corruption, like
-	 * truncated files. 
-	 */
 	if( jpeg->eman.pub.num_warnings > 0 &&
-		jpeg->fail ) {
+		jpeg->fail_on >= VIPS_FAIL_ON_WARNING ) {
 		VIPS_GATE_STOP( "read_jpeg_generate: work" );
 
 		/* Only fail once.
@@ -952,11 +949,13 @@ vips__jpeg_read( ReadJpeg *jpeg, VipsImage *out, gboolean header_only )
 
 int
 vips__jpeg_read_source( VipsSource *source, VipsImage *out,
-	gboolean header_only, int shrink, int fail, gboolean autorotate )
+	gboolean header_only, int shrink, VipsFailOn fail_on, 
+	gboolean autorotate )
 {
 	ReadJpeg *jpeg;
 
-	if( !(jpeg = readjpeg_new( source, out, shrink, fail, autorotate )) )
+	if( !(jpeg = readjpeg_new( source, out, shrink, fail_on, 
+		autorotate )) )
 		return( -1 );
 
 	if( setjmp( jpeg->eman.jmp ) ) 

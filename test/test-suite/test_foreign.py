@@ -1277,5 +1277,33 @@ class TestForeign:
             assert x1.get("page-height") == x2.get("page-height")
             assert x1.get("loop") == x2.get("loop")
 
+    def test_fail_on(self):
+        # csvload should spot trunc correctly
+        target = pyvips.Target.new_to_memory()
+        self.mono.write_to_target(target, ".csv")
+        buf = target.get("blob")
+
+        source = pyvips.Source.new_from_memory(buf)
+        im = pyvips.Image.csvload_source(source)
+        assert im.avg() > 0
+
+        # truncation should be OK by default
+        buf_trunc = buf[:-100]
+        source = pyvips.Source.new_from_memory(buf_trunc)
+        im = pyvips.Image.csvload_source(source)
+        assert im.avg() > 0
+
+        # set trunc should make it fail
+        with pytest.raises(Exception) as e_info:
+            im = pyvips.Image.csvload_source(source, fail_on="truncated")
+            # this will now force parsing of the whole file, which should
+            # trigger an error
+            im.avg() > 0
+
+        # warn should fail too, since trunc implies warn
+        with pytest.raises(Exception) as e_info:
+            im = pyvips.Image.csvload_source(source, fail_on="warning")
+            im.avg() > 0
+
 if __name__ == '__main__':
     pytest.main()

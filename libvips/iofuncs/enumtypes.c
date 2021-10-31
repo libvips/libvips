@@ -479,6 +479,26 @@ vips_foreign_flags_get_type( void )
 	return( etype );
 }
 GType
+vips_fail_on_get_type( void )
+{
+	static GType etype = 0;
+
+	if( etype == 0 ) {
+		static const GEnumValue values[] = {
+			{VIPS_FAIL_ON_NONE, "VIPS_FAIL_ON_NONE", "none"},
+			{VIPS_FAIL_ON_TRUNCATED, "VIPS_FAIL_ON_TRUNCATED", "truncated"},
+			{VIPS_FAIL_ON_ERROR, "VIPS_FAIL_ON_ERROR", "error"},
+			{VIPS_FAIL_ON_WARNING, "VIPS_FAIL_ON_WARNING", "warning"},
+			{VIPS_FAIL_ON_LAST, "VIPS_FAIL_ON_LAST", "last"},
+			{0, NULL, NULL}
+		};
+		
+		etype = g_enum_register_static( "VipsFailOn", values );
+	}
+
+	return( etype );
+}
+GType
 vips_saveable_get_type( void )
 {
 	static GType etype = 0;

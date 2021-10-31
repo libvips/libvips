@@ -4,6 +4,8 @@
  * 	- wrap a class around the jpeg writer
  * 29/11/11
  * 	- split to make load, load from buffer and load from file
+ * 24/7/21
+ * 	- add fail-on support
  */
 
 /*
@@ -137,7 +139,8 @@ vips_foreign_load_jpeg_header( VipsForeignLoad *load )
 	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
 
 	if( vips__jpeg_read_source( jpeg->source, 
-		load->out, TRUE, jpeg->shrink, load->fail, jpeg->autorotate ) )
+		load->out, TRUE, jpeg->shrink, load->fail_on, 
+		jpeg->autorotate ) )
 		return( -1 );
 
 	return( 0 );
@@ -149,7 +152,7 @@ vips_foreign_load_jpeg_load( VipsForeignLoad *load )
 	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) load;
 
 	if( vips__jpeg_read_source( jpeg->source,
-		load->real, FALSE, jpeg->shrink, load->fail, 
+		load->real, FALSE, jpeg->shrink, load->fail_on, 
 		jpeg->autorotate ) )
 		return( -1 );
 
@@ -435,7 +438,7 @@ vips_foreign_load_jpeg_buffer_init( VipsForeignLoadJpegBuffer *buffer )
  * Optional arguments:
  *
  * * @shrink: %gint, shrink by this much on load
- * * @fail: %gboolean, fail on errors
+ * * @fail_on: #VipsFailOn, types of read error to fail on
  * * @autorotate: %gboolean, rotate image upright during load 
  *
  * Read a JPEG file into a VIPS image. It can read most 8-bit JPEG images, 
@@ -445,9 +448,8 @@ vips_foreign_load_jpeg_buffer_init( VipsForeignLoadJpegBuffer *buffer )
  * are 1, 2, 4 and 8. Shrinking during read is very much faster than 
  * decompressing the whole image and then shrinking later.
  *
- * Setting @fail to %TRUE makes the JPEG reader fail on any errors. 
- * This can be useful for detecting truncated files, for example. Normally 
- * reading these produces a warning, but no fatal error.  
+ * Use @fail_on to set the type of error that will cause load to fail. By
+ * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
  *
  * Setting @autorotate to %TRUE will make the loader interpret the 
  * orientation tag and automatically rotate the image appropriately during
@@ -465,7 +467,7 @@ vips_foreign_load_jpeg_buffer_init( VipsForeignLoadJpegBuffer *buffer )
  * |[
  * vips_jpegload( "fred.jpg", &amp;out,
  * 	"shrink", 8,
- * 	"fail", TRUE,
+ * 	"fail-on", VIPS_FAIL_ON_TRUNCATED,
  * 	NULL );
  * ]|
  *
@@ -517,7 +519,7 @@ vips_jpegload( const char *filename, VipsImage **out, ... )
  * Optional arguments:
  *
  * * @shrink: %gint, shrink by this much on load
- * * @fail: %gboolean, fail on errors
+ * * @fail_on: #VipsFailOn, types of read error to fail on
  * * @autorotate: %gboolean, use exif Orientation tag to rotate the image 
  *   during load
  *
@@ -560,7 +562,7 @@ vips_jpegload_buffer( void *buf, size_t len, VipsImage **out, ... )
  * Optional arguments:
  *
  * * @shrink: %gint, shrink by this much on load
- * * @fail: %gboolean, fail on errors
+ * * @fail_on: #VipsFailOn, types of read error to fail on
  * * @autorotate: %gboolean, use exif Orientation tag to rotate the image 
  *   during load
  *

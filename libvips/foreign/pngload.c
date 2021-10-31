@@ -136,7 +136,7 @@ vips_foreign_load_png_load( VipsForeignLoad *load )
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
 	if( vips__png_read_source( png->source, load->real, 
-		load->fail, png->unlimited ) )
+		load->fail_on, png->unlimited ) )
 		return( -1 );
 
 	return( 0 );
@@ -412,6 +412,7 @@ vips_foreign_load_png_buffer_init( VipsForeignLoadPngBuffer *buffer )
  *
  * Optional arguments:
  *
+ * * @fail_on: #VipsFailOn, types of read error to fail on
  * * @unlimited: %gboolean, remove all denial of service limits
  *
  * Read a PNG file into a VIPS image. It can read all png images, including 8-
@@ -419,6 +420,9 @@ vips_foreign_load_png_buffer_init( VipsForeignLoadPngBuffer *buffer )
  *
  * Any ICC profile is read and attached to the VIPS image. It also supports
  * XMP metadata.
+ *
+ * Use @fail_on to set the type of error that will cause load to fail. By
+ * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
  *
  * By default, the PNG loader limits the number of text and data chunks to 
  * block some denial of service attacks. Set @unlimited to disable these 
@@ -450,6 +454,7 @@ vips_pngload( const char *filename, VipsImage **out, ... )
  *
  * Optional arguments:
  *
+ * * @fail_on: #VipsFailOn, types of read error to fail on
  * * @unlimited: %gboolean, Remove all denial of service limits
  *
  * Exactly as vips_pngload(), but read from a PNG-formatted memory block.
@@ -489,6 +494,7 @@ vips_pngload_buffer( void *buf, size_t len, VipsImage **out, ... )
  *
  * Optional arguments:
  *
+ * * @fail_on: #VipsFailOn, types of read error to fail on
  * * @unlimited: %gboolean, Remove all denial of service limits
  *
  * Exactly as vips_pngload(), but read from a source. 

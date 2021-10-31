@@ -174,7 +174,7 @@ user_warning_function( png_structp png_ptr, png_const_charp warning_msg )
 typedef struct {
 	char *name;
 	VipsImage *out;
-	gboolean fail;
+	VipsFailOn fail_on;
 	gboolean unlimited;
 
 	int y_pos;
@@ -259,7 +259,7 @@ vips_png_read_source( png_structp pPng, png_bytep data, png_size_t length )
 
 static Read *
 read_new( VipsSource *source, VipsImage *out, 
-	gboolean fail, gboolean unlimited )
+	VipsFailOn fail_on, gboolean unlimited )
 {
 	Read *read;
 
@@ -267,7 +267,7 @@ read_new( VipsSource *source, VipsImage *out,
 		return( NULL );
 
 	read->name = NULL;
-	read->fail = fail;
+	read->fail_on = fail_on;
 	read->out = out;
 	read->y_pos = 0;
 	read->pPng = NULL;
@@ -727,7 +727,7 @@ png2vips_generate( VipsRegion *or,
 			 * message, since the handler we install just does
 			 * g_warning().
 			 */
-			if( read->fail ) {
+			if( read->fail_on >= VIPS_FAIL_ON_TRUNCATED ) {
 				vips_error( "vipspng", 
 					"%s", _( "libpng read error" ) ); 
 				return( -1 );
@@ -805,11 +805,11 @@ vips__png_header_source( VipsSource *source, VipsImage *out,
 
 int
 vips__png_read_source( VipsSource *source, VipsImage *out, 
-	gboolean fail, gboolean unlimited )
+	VipsFailOn fail_on, gboolean unlimited )
 {
 	Read *read;
 
-	if( !(read = read_new( source, out, fail, unlimited )) ||
+	if( !(read = read_new( source, out, fail_on, unlimited )) ||
 		png2vips_image( read, out ) ||
 		vips_source_decode( source ) ) {
 		vips_error( "png2vips", _( "unable to read source %s" ),

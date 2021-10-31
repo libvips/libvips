@@ -96,9 +96,9 @@ int vips__tiff_write_buf( VipsImage *in,
 gboolean vips__istiff_source( VipsSource *source );
 gboolean vips__istifftiled_source( VipsSource *source );
 int vips__tiff_read_header_source( VipsSource *source, VipsImage *out, 
-	int page, int n, gboolean autorotate, int subifd );
+	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on );
 int vips__tiff_read_source( VipsSource *source, VipsImage *out,
-	int page, int n, gboolean autorotate, int subifd );
+	int page, int n, gboolean autorotate, int subifd, VipsFailOn fail_on );
 
 extern const char *vips__foreign_tiff_suffs[];
 
@@ -107,16 +107,6 @@ int vips__analyze_read_header( const char *filename, VipsImage *out );
 int vips__analyze_read( const char *filename, VipsImage *out );
 
 extern const char *vips__foreign_csv_suffs[];
-
-int vips__csv_read( const char *filename, VipsImage *out,
-	int skip, int lines, const char *whitespace, const char *separator, 
-	gboolean fail );
-int vips__csv_read_header( const char *filename, VipsImage *out,
-	int skip, int lines, const char *whitespace, const char *separator, 
-	gboolean fail );
-
-int vips__csv_write( VipsImage *in, const char *filename, 
-	const char *separator );
 
 int vips__matrix_read_header( const char *filename,
 	int *width, int *height, double *scale, double *offset );
@@ -183,13 +173,15 @@ int vips__jpeg_write_target( VipsImage *in, VipsTarget *target,
 	VipsForeignSubsample subsample_mode, int restart_interval );
 
 int vips__jpeg_read_source( VipsSource *source, VipsImage *out,
-	gboolean header_only, int shrink, int fail, gboolean autorotate );
+	gboolean header_only, int shrink, VipsFailOn fail_on, 
+	gboolean autorotate );
 int vips__isjpeg_source( VipsSource *source );
 
 int vips__png_ispng_source( VipsSource *source );
-int vips__png_header_source( VipsSource *source, VipsImage *out, gboolean unlimited );
+int vips__png_header_source( VipsSource *source, VipsImage *out, 
+	gboolean unlimited );
 int vips__png_read_source( VipsSource *source, VipsImage *out, 
-	gboolean fail, gboolean unlimited );
+	VipsFailOn fail_on, gboolean unlimited );
 gboolean vips__png_isinterlaced_source( VipsSource *source );
 extern const char *vips__png_suffs[];
 
