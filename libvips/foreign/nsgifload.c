@@ -299,7 +299,10 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 		VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
 	vips_image_pipelinev( image, VIPS_DEMAND_STYLE_FATSTRIP, NULL );
 
-	if( vips_object_argument_isset( VIPS_OBJECT( gif ), "n" ) )
+	/* Only set page-height if we have more than one page, or this could
+	 * accidentally turn into an animated image later.
+	 */
+	if( gif->n > 1 )
 		vips_image_set_int( image,
 			VIPS_META_PAGE_HEIGHT, gif->anim->height );
 	vips_image_set_int( image, VIPS_META_N_PAGES, 
