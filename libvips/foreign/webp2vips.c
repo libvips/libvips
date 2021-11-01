@@ -519,8 +519,12 @@ read_header( Read *read, VipsImage *out )
 #endif /*DEBUG*/
 
 	if( flags & ANIMATION_FLAG ) { 
-		vips_image_set_int( out, 
-			VIPS_META_PAGE_HEIGHT, read->frame_height );
+		/* Only set page-height if we have more than one page, or
+		 * this could accidentally turn into an animated image later.
+		 */
+		if( read->n > 1 )
+			vips_image_set_int( out, 
+				VIPS_META_PAGE_HEIGHT, read->frame_height );
 
 		read->width = read->frame_width;
 		read->height = read->n * read->frame_height;
