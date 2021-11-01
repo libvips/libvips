@@ -194,33 +194,33 @@ vips_logmat_class_init( VipsLogmatClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "logmat";
-	vobject_class->description = _( "make a laplacian of gaussian image" );
+	vobject_class->description = _( "make a Laplacian of Gaussian image" );
 	vobject_class->build = vips_logmat_build;
 
 	VIPS_ARG_DOUBLE( class, "sigma", 2, 
 		_( "Radius" ), 
-		_( "Radius of Logmatian" ),
+		_( "Radius of Gaussian" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsLogmat, sigma ),
 		0.000001, 10000.0, 1.0 );
 
 	VIPS_ARG_DOUBLE( class, "min_ampl", 3, 
 		_( "Width" ), 
-		_( "Minimum amplitude of Logmatian" ),
+		_( "Minimum amplitude of Gaussian" ),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET( VipsLogmat, min_ampl ),
 		0.000001, 10000.0, 0.1 );
 
 	VIPS_ARG_BOOL( class, "separable", 4, 
 		_( "Separable" ), 
-		_( "Generate separable Logmatian" ),
+		_( "Generate separable Gaussian" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsLogmat, separable ),
 		FALSE );
 
 	VIPS_ARG_BOOL( class, "integer", 5, 
 		_( "Integer" ), 
-		_( "Generate integer Logmatian" ),
+		_( "Generate integer Gaussian" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET( VipsLogmat, integer ),
 		FALSE );
