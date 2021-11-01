@@ -90,6 +90,10 @@ def generate_operation(operation_name, declaration_only=False):
     required_output = [name 
         for name in intro.required_output if name != intro.member_x]
 
+    # We are only interested in non-deprecated arguments
+    optional_input = [name
+        for name in intro.optional_input if intro.details[name]['flags'] & _DEPRECATED == 0]
+
     has_output = len(required_output) >= 1
 
     # Add a C++ style comment block with some additional markings (@param,
@@ -97,9 +101,9 @@ def generate_operation(operation_name, declaration_only=False):
     if declaration_only:
         result = f'\n/**\n * {intro.description.capitalize()}.'
 
-        if len(intro.optional_input) > 0:
+        if len(optional_input) > 0:
             result += '\n *\n * **Optional parameters**'
-            for name in intro.optional_input:
+            for name in optional_input:
                 details = intro.details[name]
                 result += f'\n *   - **{cppize(name)}** -- '
                 result += f'{details["blurb"]}, '
