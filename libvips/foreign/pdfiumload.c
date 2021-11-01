@@ -488,7 +488,11 @@ vips_foreign_load_pdf_header( VipsForeignLoad *load )
 	for( i = 1; i < pdf->n; i++ ) 
 		if( pdf->pages[i].height != pdf->pages[0].height )
 			break;
-	if( vips_object_argument_isset( VIPS_OBJECT( pdf ), "n" ) )
+
+	/* Only set page-height if we have more than one page, or this could
+	 * accidentally turn into an animated image later.
+	 */
+	if( pdf->n > 1 )
 		vips_image_set_int( load->out, 
 			VIPS_META_PAGE_HEIGHT, pdf->pages[0].height );
 
