@@ -82,7 +82,7 @@ def gen_function_list():
         'draw_rect': ['draw_rect1', 'draw_point', 'draw_point1'],
         'extract_area': ['crop'],
         'linear': ['linear1'],
-        'math': ['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'exp', 'exp10', 'log', 'log10'],
+        'math': ['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'sinh', 'cosh', 'tanh', 'asinh', 'acosh', 'atanh', 'exp', 'exp10', 'log', 'log10'],
         'math2': ['pow', 'wop', 'atan2'],
         'rank': ['median'],
         'relational': ['equal', 'notequal', 'less', 'lesseq', 'more', 'moreeq'],

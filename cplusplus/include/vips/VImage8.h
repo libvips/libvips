@@ -1376,6 +1376,60 @@ public:
 	}
 
 	/**
+	 * Find the hyperbolic sine of each pixel. Angles are in degrees.
+	 */
+	VImage 
+	sinh( VOption *options = 0 ) const
+	{
+		return( math( VIPS_OPERATION_MATH_SINH, options ) );
+	}
+
+	/**
+	 * Find the hyperbolic cosine of each pixel. Angles are in degrees.
+	 */
+	VImage 
+	cosh( VOption *options = 0 ) const
+	{
+		return( math( VIPS_OPERATION_MATH_COS, options ) );
+	}
+
+	/**
+	 * Find the hyperbolic tangent of each pixel. Angles are in degrees.
+	 */
+	VImage 
+	tanh( VOption *options = 0 ) const
+	{
+		return( math( VIPS_OPERATION_MATH_TANH, options ) );
+	}
+
+	/**
+	 * Find the hyperbolic arc sine of each pixel. Angles are in degrees.
+	 */
+	VImage 
+	asinh( VOption *options = 0 ) const
+	{
+		return( math( VIPS_OPERATION_MATH_ASINH, options ) );
+	}
+
+	/**
+	 * Find the hyperbolic arc cosine of each pixel. Angles are in degrees.
+	 */
+	VImage 
+	acosh( VOption *options = 0 ) const
+	{
+		return( math( VIPS_OPERATION_MATH_ACOSH, options ) );
+	}
+
+	/**
+	 * Find the hyperbolic arc tangent of each pixel. Angles are in degrees.
+	 */
+	VImage 
+	atanh( VOption *options = 0 ) const
+	{
+		return( math( VIPS_OPERATION_MATH_ATANH, options ) );
+	}
+
+	/**
 	 * Find the natural log of each pixel. 
 	 */
 	VImage 
