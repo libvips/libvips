@@ -1818,7 +1818,7 @@ public:
 	 */
 
 // headers for vips operations
-// Wed  4 Aug 12:48:13 BST 2021
+// Mon Nov  1 03:31:09 PM CET 2021
 // this file is generated automatically, do not edit!
 
 /**
@@ -2003,9 +2003,7 @@ VImage affine( std::vector<double> matrix, VOption *options = 0 ) const;
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -2367,7 +2365,6 @@ VImage convsep( VImage mask, VOption *options = 0 ) const;
  * Copy an image.
  *
  * **Optional parameters**
- *   - **swap** -- Swap bytes in image between little and big-endian, bool.
  *   - **width** -- Image width in pixels, int.
  *   - **height** -- Image height in pixels, int.
  *   - **bands** -- Number of bands in image, int.
@@ -2413,9 +2410,7 @@ VImage crop( int left, int top, int width, int height, VOption *options = 0 ) co
  *   - **separator** -- Set of separator characters, const char *.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -2433,9 +2428,7 @@ static VImage csvload( const char *filename, VOption *options = 0 );
  *   - **separator** -- Set of separator characters, const char *.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param source Source to load from.
  * @param options Set of options.
@@ -2601,14 +2594,11 @@ void draw_smudge( int left, int top, int width, int height, VOption *options = 0
  * Save image to deepzoom file.
  *
  * **Optional parameters**
- *   - **dirname** -- Directory name to save to, const char *.
  *   - **basename** -- Base name to save to, const char *.
  *   - **layout** -- Directory layout, VipsForeignDzLayout.
  *   - **suffix** -- Filename suffix for tiles, const char *.
  *   - **overlap** -- Tile overlap in pixels, int.
  *   - **tile_size** -- Tile size in pixels, int.
- *   - **tile_height** -- Tile height in pixels, int.
- *   - **tile_width** -- Tile width in pixels, int.
  *   - **centre** -- Center image in tile, bool.
  *   - **depth** -- Pyramid depth, VipsForeignDzDepth.
  *   - **angle** -- Rotate image during save, VipsAngle.
@@ -2632,14 +2622,11 @@ void dzsave( const char *filename, VOption *options = 0 ) const;
  * Save image to dz buffer.
  *
  * **Optional parameters**
- *   - **dirname** -- Directory name to save to, const char *.
  *   - **basename** -- Base name to save to, const char *.
  *   - **layout** -- Directory layout, VipsForeignDzLayout.
  *   - **suffix** -- Filename suffix for tiles, const char *.
  *   - **overlap** -- Tile overlap in pixels, int.
  *   - **tile_size** -- Tile size in pixels, int.
- *   - **tile_height** -- Tile height in pixels, int.
- *   - **tile_width** -- Tile width in pixels, int.
  *   - **centre** -- Center image in tile, bool.
  *   - **depth** -- Pyramid depth, VipsForeignDzDepth.
  *   - **angle** -- Rotate image during save, VipsAngle.
@@ -2755,9 +2742,7 @@ int find_trim( int *top, int *width, int *height, VOption *options = 0 ) const;
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -2771,9 +2756,7 @@ static VImage fitsload( const char *filename, VOption *options = 0 );
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param source Source to load from.
  * @param options Set of options.
@@ -2875,7 +2858,6 @@ VImage gaussblur( double sigma, VOption *options = 0 ) const;
  *
  * **Optional parameters**
  *   - **separable** -- Generate separable Gaussian, bool.
- *   - **integer** -- Generate integer Gaussian, bool.
  *   - **precision** -- Generate with this precision, VipsPrecision.
  *
  * @param sigma Sigma of Gaussian.
@@ -2917,9 +2899,7 @@ std::vector<double> getpoint( int x, int y, VOption *options = 0 ) const;
  *   - **page** -- Load this page from the file, int.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -2935,9 +2915,7 @@ static VImage gifload( const char *filename, VOption *options = 0 );
  *   - **page** -- Load this page from the file, int.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param buffer Buffer to load from.
  * @param options Set of options.
@@ -2953,9 +2931,7 @@ static VImage gifload_buffer( VipsBlob *buffer, VOption *options = 0 );
  *   - **page** -- Load this page from the file, int.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param source Source to load from.
  * @param options Set of options.
@@ -2964,11 +2940,12 @@ static VImage gifload_buffer( VipsBlob *buffer, VOption *options = 0 );
 static VImage gifload_source( VSource source, VOption *options = 0 );
 
 /**
- * Save image to gif file.
+ * Save as gif.
  *
  * **Optional parameters**
  *   - **dither** -- Amount of dithering, double.
  *   - **effort** -- Quantisation effort, int.
+ *   - **bitdepth** -- Number of bits per pixel, int.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -2979,11 +2956,12 @@ static VImage gifload_source( VSource source, VOption *options = 0 );
 void gifsave( const char *filename, VOption *options = 0 ) const;
 
 /**
- * Save image to gif buffer.
+ * Save as gif.
  *
  * **Optional parameters**
  *   - **dither** -- Amount of dithering, double.
  *   - **effort** -- Quantisation effort, int.
+ *   - **bitdepth** -- Number of bits per pixel, int.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -2994,11 +2972,12 @@ void gifsave( const char *filename, VOption *options = 0 ) const;
 VipsBlob *gifsave_buffer( VOption *options = 0 ) const;
 
 /**
- * Save image to target as gif.
+ * Save as gif.
  *
  * **Optional parameters**
  *   - **dither** -- Amount of dithering, double.
  *   - **effort** -- Quantisation effort, int.
+ *   - **bitdepth** -- Number of bits per pixel, int.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -3065,12 +3044,9 @@ VImage grid( int tile_height, int across, int down, VOption *options = 0 ) const
  *   - **page** -- Load this page from the file, int.
  *   - **n** -- Load this many pages, int.
  *   - **thumbnail** -- Fetch thumbnail image, bool.
- *   - **autorotate** -- Rotate image using exif orientation, bool.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -3085,12 +3061,9 @@ static VImage heifload( const char *filename, VOption *options = 0 );
  *   - **page** -- Load this page from the file, int.
  *   - **n** -- Load this many pages, int.
  *   - **thumbnail** -- Fetch thumbnail image, bool.
- *   - **autorotate** -- Rotate image using exif orientation, bool.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param buffer Buffer to load from.
  * @param options Set of options.
@@ -3105,12 +3078,9 @@ static VImage heifload_buffer( VipsBlob *buffer, VOption *options = 0 );
  *   - **page** -- Load this page from the file, int.
  *   - **n** -- Load this many pages, int.
  *   - **thumbnail** -- Fetch thumbnail image, bool.
- *   - **autorotate** -- Rotate image using exif orientation, bool.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param source Source to load from.
  * @param options Set of options.
@@ -3125,7 +3095,7 @@ static VImage heifload_source( VSource source, VOption *options = 0 );
  *   - **Q** -- Q factor, int.
  *   - **lossless** -- Enable lossless compression, bool.
  *   - **compression** -- Compression format, VipsForeignHeifCompression.
- *   - **speed** -- CPU effort, int.
+ *   - **effort** -- CPU effort, int.
  *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
@@ -3143,7 +3113,7 @@ void heifsave( const char *filename, VOption *options = 0 ) const;
  *   - **Q** -- Q factor, int.
  *   - **lossless** -- Enable lossless compression, bool.
  *   - **compression** -- Compression format, VipsForeignHeifCompression.
- *   - **speed** -- CPU effort, int.
+ *   - **effort** -- CPU effort, int.
  *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
@@ -3161,7 +3131,7 @@ VipsBlob *heifsave_buffer( VOption *options = 0 ) const;
  *   - **Q** -- Q factor, int.
  *   - **lossless** -- Enable lossless compression, bool.
  *   - **compression** -- Compression format, VipsForeignHeifCompression.
- *   - **speed** -- CPU effort, int.
+ *   - **effort** -- CPU effort, int.
  *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
@@ -3438,9 +3408,7 @@ VImage join( VImage in2, VipsDirection direction, VOption *options = 0 ) const;
  *   - **page** -- Load this page from the image, int.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -3455,9 +3423,7 @@ static VImage jp2kload( const char *filename, VOption *options = 0 );
  *   - **page** -- Load this page from the image, int.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param buffer Buffer to load from.
  * @param options Set of options.
@@ -3472,9 +3438,7 @@ static VImage jp2kload_buffer( VipsBlob *buffer, VOption *options = 0 );
  *   - **page** -- Load this page from the image, int.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param source Source to load from.
  * @param options Set of options.
@@ -3544,9 +3508,7 @@ void jp2ksave_target( VTarget target, VOption *options = 0 ) const;
  *   - **autorotate** -- Rotate image using exif orientation, bool.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -3562,9 +3524,7 @@ static VImage jpegload( const char *filename, VOption *options = 0 );
  *   - **autorotate** -- Rotate image using exif orientation, bool.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param buffer Buffer to load from.
  * @param options Set of options.
@@ -3580,9 +3540,7 @@ static VImage jpegload_buffer( VipsBlob *buffer, VOption *options = 0 );
  *   - **autorotate** -- Rotate image using exif orientation, bool.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param source Source to load from.
  * @param options Set of options.
@@ -3598,12 +3556,12 @@ static VImage jpegload_source( VSource source, VOption *options = 0 );
  *   - **profile** -- ICC profile to embed, const char *.
  *   - **optimize_coding** -- Compute optimal Huffman coding tables, bool.
  *   - **interlace** -- Generate an interlaced (progressive) jpeg, bool.
- *   - **no_subsample** -- Disable chroma subsample, bool.
  *   - **trellis_quant** -- Apply trellis quantisation to each 8x8 block, bool.
  *   - **overshoot_deringing** -- Apply overshooting to samples with extreme values, bool.
  *   - **optimize_scans** -- Split spectrum of DCT coefficients into separate scans, bool.
  *   - **quant_table** -- Use predefined quantization table with given index, int.
  *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
+ *   - **restart_interval** -- Add restart markers every specified number of mcu, int.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -3621,12 +3579,12 @@ void jpegsave( const char *filename, VOption *options = 0 ) const;
  *   - **profile** -- ICC profile to embed, const char *.
  *   - **optimize_coding** -- Compute optimal Huffman coding tables, bool.
  *   - **interlace** -- Generate an interlaced (progressive) jpeg, bool.
- *   - **no_subsample** -- Disable chroma subsample, bool.
  *   - **trellis_quant** -- Apply trellis quantisation to each 8x8 block, bool.
  *   - **overshoot_deringing** -- Apply overshooting to samples with extreme values, bool.
  *   - **optimize_scans** -- Split spectrum of DCT coefficients into separate scans, bool.
  *   - **quant_table** -- Use predefined quantization table with given index, int.
  *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
+ *   - **restart_interval** -- Add restart markers every specified number of mcu, int.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -3644,12 +3602,12 @@ VipsBlob *jpegsave_buffer( VOption *options = 0 ) const;
  *   - **profile** -- ICC profile to embed, const char *.
  *   - **optimize_coding** -- Compute optimal Huffman coding tables, bool.
  *   - **interlace** -- Generate an interlaced (progressive) jpeg, bool.
- *   - **no_subsample** -- Disable chroma subsample, bool.
  *   - **trellis_quant** -- Apply trellis quantisation to each 8x8 block, bool.
  *   - **overshoot_deringing** -- Apply overshooting to samples with extreme values, bool.
  *   - **optimize_scans** -- Split spectrum of DCT coefficients into separate scans, bool.
  *   - **quant_table** -- Use predefined quantization table with given index, int.
  *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
+ *   - **restart_interval** -- Add restart markers every specified number of mcu, int.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -3666,12 +3624,12 @@ void jpegsave_mime( VOption *options = 0 ) const;
  *   - **profile** -- ICC profile to embed, const char *.
  *   - **optimize_coding** -- Compute optimal Huffman coding tables, bool.
  *   - **interlace** -- Generate an interlaced (progressive) jpeg, bool.
- *   - **no_subsample** -- Disable chroma subsample, bool.
  *   - **trellis_quant** -- Apply trellis quantisation to each 8x8 block, bool.
  *   - **overshoot_deringing** -- Apply overshooting to samples with extreme values, bool.
  *   - **optimize_scans** -- Split spectrum of DCT coefficients into separate scans, bool.
  *   - **quant_table** -- Use predefined quantization table with given index, int.
  *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
+ *   - **restart_interval** -- Add restart markers every specified number of mcu, int.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -3687,9 +3645,7 @@ void jpegsave_target( VTarget target, VOption *options = 0 ) const;
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -3703,9 +3659,7 @@ static VImage jxlload( const char *filename, VOption *options = 0 );
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param buffer Buffer to load from.
  * @param options Set of options.
@@ -3719,9 +3673,7 @@ static VImage jxlload_buffer( VipsBlob *buffer, VOption *options = 0 );
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param source Source to load from.
  * @param options Set of options.
@@ -3822,7 +3774,6 @@ VImage linecache( VOption *options = 0 ) const;
  *
  * **Optional parameters**
  *   - **separable** -- Generate separable Logmatian, bool.
- *   - **integer** -- Generate integer Logmatian, bool.
  *   - **precision** -- Generate with this precision, VipsPrecision.
  *
  * @param sigma Radius of Logmatian.
@@ -3836,15 +3787,12 @@ static VImage logmat( double sigma, double min_ampl, VOption *options = 0 );
  * Load file with imagemagick.
  *
  * **Optional parameters**
- *   - **all_frames** -- Read all frames from an image, bool.
  *   - **density** -- Canvas resolution for rendering vector formats like SVG, const char *.
  *   - **page** -- Load this page from the file, int.
  *   - **n** -- Load this many pages, int.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -3856,15 +3804,12 @@ static VImage magickload( const char *filename, VOption *options = 0 );
  * Load buffer with imagemagick.
  *
  * **Optional parameters**
- *   - **all_frames** -- Read all frames from an image, bool.
  *   - **density** -- Canvas resolution for rendering vector formats like SVG, const char *.
  *   - **page** -- Load this page from the file, int.
  *   - **n** -- Load this many pages, int.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param buffer Buffer to load from.
  * @param options Set of options.
@@ -4173,9 +4118,7 @@ VImage math2_const( VipsOperationMath2 math2, std::vector<double> c, VOption *op
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -4196,9 +4139,7 @@ VImage matrixinvert( VOption *options = 0 ) const;
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -4212,9 +4153,7 @@ static VImage matrixload( const char *filename, VOption *options = 0 );
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param source Source to load from.
  * @param options Set of options.
@@ -4393,9 +4332,7 @@ VImage multiply( VImage right, VOption *options = 0 ) const;
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -4409,9 +4346,7 @@ static VImage niftiload( const char *filename, VOption *options = 0 );
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param source Source to load from.
  * @param options Set of options.
@@ -4438,9 +4373,7 @@ void niftisave( const char *filename, VOption *options = 0 ) const;
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -4458,9 +4391,7 @@ static VImage openexrload( const char *filename, VOption *options = 0 );
  *   - **associated** -- Load this associated image, const char *.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -4478,9 +4409,7 @@ static VImage openslideload( const char *filename, VOption *options = 0 );
  *   - **associated** -- Load this associated image, const char *.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param source Source to load from.
  * @param options Set of options.
@@ -4499,9 +4428,7 @@ static VImage openslideload_source( VSource source, VOption *options = 0 );
  *   - **background** -- Background value, std::vector<double>.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -4520,9 +4447,7 @@ static VImage pdfload( const char *filename, VOption *options = 0 );
  *   - **background** -- Background value, std::vector<double>.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param buffer Buffer to load from.
  * @param options Set of options.
@@ -4541,9 +4466,7 @@ static VImage pdfload_buffer( VipsBlob *buffer, VOption *options = 0 );
  *   - **background** -- Background value, std::vector<double>.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param source Source to load from.
  * @param options Set of options.
@@ -4586,12 +4509,10 @@ VImage phasecor( VImage in2, VOption *options = 0 ) const;
  * Load png from file.
  *
  * **Optional parameters**
+ *   - **unlimited** -- Remove all denial of service limits, bool.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
- *   - **unlimited** -- Remove all denial of service limits.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -4603,12 +4524,10 @@ static VImage pngload( const char *filename, VOption *options = 0 );
  * Load png from buffer.
  *
  * **Optional parameters**
+ *   - **unlimited** -- Remove all denial of service limits, bool.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
- *   - **unlimited** -- Remove all denial of service limits.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param buffer Buffer to load from.
  * @param options Set of options.
@@ -4620,12 +4539,10 @@ static VImage pngload_buffer( VipsBlob *buffer, VOption *options = 0 );
  * Load png from source.
  *
  * **Optional parameters**
+ *   - **unlimited** -- Remove all denial of service limits, bool.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
- *   - **unlimited** -- Remove all denial of service limits.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param source Source to load from.
  * @param options Set of options.
@@ -4642,10 +4559,10 @@ static VImage pngload_source( VSource source, VOption *options = 0 );
  *   - **profile** -- ICC profile to embed, const char *.
  *   - **filter** -- libpng row filter flag(s), int.
  *   - **palette** -- Quantise to 8bpp palette, bool.
- *   - **colours** -- Max number of palette colours, int.
  *   - **Q** -- Quantisation quality, int.
  *   - **dither** -- Amount of dithering, double.
  *   - **bitdepth** -- Write as a 1, 2, 4 or 8 bit image, int.
+ *   - **effort** -- Quantisation CPU effort, int.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -4664,10 +4581,10 @@ void pngsave( const char *filename, VOption *options = 0 ) const;
  *   - **profile** -- ICC profile to embed, const char *.
  *   - **filter** -- libpng row filter flag(s), int.
  *   - **palette** -- Quantise to 8bpp palette, bool.
- *   - **colours** -- Max number of palette colours, int.
  *   - **Q** -- Quantisation quality, int.
  *   - **dither** -- Amount of dithering, double.
  *   - **bitdepth** -- Write as a 1, 2, 4 or 8 bit image, int.
+ *   - **effort** -- Quantisation CPU effort, int.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -4686,10 +4603,10 @@ VipsBlob *pngsave_buffer( VOption *options = 0 ) const;
  *   - **profile** -- ICC profile to embed, const char *.
  *   - **filter** -- libpng row filter flag(s), int.
  *   - **palette** -- Quantise to 8bpp palette, bool.
- *   - **colours** -- Max number of palette colours, int.
  *   - **Q** -- Quantisation quality, int.
  *   - **dither** -- Amount of dithering, double.
  *   - **bitdepth** -- Write as a 1, 2, 4 or 8 bit image, int.
+ *   - **effort** -- Quantisation CPU effort, int.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
  *   - **page_height** -- Set page height for multipage save, int.
@@ -4705,9 +4622,7 @@ void pngsave_target( VTarget target, VOption *options = 0 ) const;
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -4721,9 +4636,7 @@ static VImage ppmload( const char *filename, VOption *options = 0 );
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param source Source to load from.
  * @param options Set of options.
@@ -4735,8 +4648,8 @@ static VImage ppmload_source( VSource source, VOption *options = 0 );
  * Save image to ppm file.
  *
  * **Optional parameters**
+ *   - **format** -- Format to save in, VipsForeignPpmFormat.
  *   - **ascii** -- save as ascii, bool.
- *   - **squash** -- save as one bit, bool.
  *   - **bitdepth** -- set to 1 to write as a 1 bit image, int.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
@@ -4751,8 +4664,8 @@ void ppmsave( const char *filename, VOption *options = 0 ) const;
  * Save to ppm.
  *
  * **Optional parameters**
+ *   - **format** -- Format to save in, VipsForeignPpmFormat.
  *   - **ascii** -- save as ascii, bool.
- *   - **squash** -- save as one bit, bool.
  *   - **bitdepth** -- set to 1 to write as a 1 bit image, int.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
@@ -4823,9 +4736,7 @@ VImage rad2float( VOption *options = 0 ) const;
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -4839,9 +4750,7 @@ static VImage radload( const char *filename, VOption *options = 0 );
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param buffer Buffer to load from.
  * @param options Set of options.
@@ -4855,9 +4764,7 @@ static VImage radload_buffer( VipsBlob *buffer, VOption *options = 0 );
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param source Source to load from.
  * @param options Set of options.
@@ -4923,9 +4830,7 @@ VImage rank( int width, int height, int index, VOption *options = 0 ) const;
  *   - **interpretation** -- Pixel interpretation, VipsInterpretation.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param width Image width in pixels.
@@ -4975,7 +4880,6 @@ VImage recomb( VImage m, VOption *options = 0 ) const;
  *
  * **Optional parameters**
  *   - **kernel** -- Resampling kernel, VipsKernel.
- *   - **centre** -- Use centre sampling convention, bool.
  *
  * @param hshrink Horizontal shrink factor.
  * @param vshrink Vertical shrink factor.
@@ -4989,7 +4893,6 @@ VImage reduce( double hshrink, double vshrink, VOption *options = 0 ) const;
  *
  * **Optional parameters**
  *   - **kernel** -- Resampling kernel, VipsKernel.
- *   - **centre** -- Use centre sampling convention, bool.
  *
  * @param hshrink Horizontal shrink factor.
  * @param options Set of options.
@@ -5002,7 +4905,6 @@ VImage reduceh( double hshrink, VOption *options = 0 ) const;
  *
  * **Optional parameters**
  *   - **kernel** -- Resampling kernel, VipsKernel.
- *   - **centre** -- Use centre sampling convention, bool.
  *
  * @param vshrink Vertical shrink factor.
  * @param options Set of options.
@@ -5057,12 +4959,8 @@ VImage replicate( int across, int down, VOption *options = 0 ) const;
  * Resize an image.
  *
  * **Optional parameters**
- *   - **interpolate** -- Interpolate pixels with this, VInterpolate.
  *   - **kernel** -- Resampling kernel, VipsKernel.
- *   - **centre** -- Use centre sampling convention, bool.
  *   - **vscale** -- Vertical scale image by this factor, double.
- *   - **idx** -- Horizontal input displacement, double.
- *   - **idy** -- Vertical input displacement, double.
  *
  * @param scale Scale image by this factor.
  * @param options Set of options.
@@ -5173,9 +5071,7 @@ VImage scale( VOption *options = 0 ) const;
  * Check sequential access.
  *
  * **Optional parameters**
- *   - **trace** -- trace pixel requests, bool.
  *   - **tile_height** -- Tile height in pixels, int.
- *   - **access** -- Expected access pattern, VipsAccess.
  *
  * @param options Set of options.
  * @return Output image.
@@ -5186,7 +5082,6 @@ VImage sequential( VOption *options = 0 ) const;
  * Unsharp masking for print.
  *
  * **Optional parameters**
- *   - **radius** -- radius of Gaussian, int.
  *   - **sigma** -- Sigma of Gaussian, double.
  *   - **x1** -- Flat/jaggy threshold, double.
  *   - **y2** -- Maximum brightening, double.
@@ -5360,9 +5255,7 @@ static VImage sum( std::vector<VImage> in, VOption *options = 0 );
  *   - **unlimited** -- Allow SVG of any size, bool.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -5379,9 +5272,7 @@ static VImage svgload( const char *filename, VOption *options = 0 );
  *   - **unlimited** -- Allow SVG of any size, bool.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param buffer Buffer to load from.
  * @param options Set of options.
@@ -5398,9 +5289,7 @@ static VImage svgload_buffer( VipsBlob *buffer, VOption *options = 0 );
  *   - **unlimited** -- Allow SVG of any size, bool.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param source Source to load from.
  * @param options Set of options.
@@ -5461,7 +5350,6 @@ static VImage text( const char *text, VOption *options = 0 );
  *   - **import_profile** -- Fallback import profile, const char *.
  *   - **export_profile** -- Fallback export profile, const char *.
  *   - **intent** -- Rendering intent, VipsIntent.
- *   - **auto_rotate** -- Use orientation tags to rotate image upright, bool.
  *
  * @param filename Filename to read from.
  * @param width Size to this width.
@@ -5483,7 +5371,6 @@ static VImage thumbnail( const char *filename, int width, VOption *options = 0 )
  *   - **import_profile** -- Fallback import profile, const char *.
  *   - **export_profile** -- Fallback export profile, const char *.
  *   - **intent** -- Rendering intent, VipsIntent.
- *   - **auto_rotate** -- Use orientation tags to rotate image upright, bool.
  *
  * @param buffer Buffer to load from.
  * @param width Size to this width.
@@ -5504,7 +5391,6 @@ static VImage thumbnail_buffer( VipsBlob *buffer, int width, VOption *options = 
  *   - **import_profile** -- Fallback import profile, const char *.
  *   - **export_profile** -- Fallback export profile, const char *.
  *   - **intent** -- Rendering intent, VipsIntent.
- *   - **auto_rotate** -- Use orientation tags to rotate image upright, bool.
  *
  * @param width Size to this width.
  * @param options Set of options.
@@ -5525,7 +5411,6 @@ VImage thumbnail_image( int width, VOption *options = 0 ) const;
  *   - **import_profile** -- Fallback import profile, const char *.
  *   - **export_profile** -- Fallback export profile, const char *.
  *   - **intent** -- Rendering intent, VipsIntent.
- *   - **auto_rotate** -- Use orientation tags to rotate image upright, bool.
  *
  * @param source Source to load from.
  * @param width Size to this width.
@@ -5544,9 +5429,7 @@ static VImage thumbnail_source( VSource source, int width, VOption *options = 0 
  *   - **autorotate** -- Rotate image using orientation tag, bool.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -5564,9 +5447,7 @@ static VImage tiffload( const char *filename, VOption *options = 0 );
  *   - **autorotate** -- Rotate image using orientation tag, bool.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param buffer Buffer to load from.
  * @param options Set of options.
@@ -5584,9 +5465,7 @@ static VImage tiffload_buffer( VipsBlob *buffer, VOption *options = 0 );
  *   - **autorotate** -- Rotate image using orientation tag, bool.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param source Source to load from.
  * @param options Set of options.
@@ -5606,14 +5485,12 @@ static VImage tiffload_source( VSource source, VOption *options = 0 );
  *   - **tile_width** -- Tile width in pixels, int.
  *   - **tile_height** -- Tile height in pixels, int.
  *   - **pyramid** -- Write a pyramidal tiff, bool.
- *   - **squash** -- Squash images down to 1 bit, bool.
  *   - **miniswhite** -- Use 0 for white in 1-bit images, bool.
  *   - **bitdepth** -- Write as a 1, 2, 4 or 8 bit image, int.
  *   - **resunit** -- Resolution unit, VipsForeignTiffResunit.
  *   - **xres** -- Horizontal resolution in pixels/mm, double.
  *   - **yres** -- Vertical resolution in pixels/mm, double.
  *   - **bigtiff** -- Write a bigtiff image, bool.
- *   - **rgbjpeg** -- Output RGB JPEG rather than YCbCr, bool.
  *   - **properties** -- Write a properties document to IMAGEDESCRIPTION, bool.
  *   - **region_shrink** -- Method to shrink regions, VipsRegionShrink.
  *   - **level** -- ZSTD compression level, int.
@@ -5642,14 +5519,12 @@ void tiffsave( const char *filename, VOption *options = 0 ) const;
  *   - **tile_width** -- Tile width in pixels, int.
  *   - **tile_height** -- Tile height in pixels, int.
  *   - **pyramid** -- Write a pyramidal tiff, bool.
- *   - **squash** -- Squash images down to 1 bit, bool.
  *   - **miniswhite** -- Use 0 for white in 1-bit images, bool.
  *   - **bitdepth** -- Write as a 1, 2, 4 or 8 bit image, int.
  *   - **resunit** -- Resolution unit, VipsForeignTiffResunit.
  *   - **xres** -- Horizontal resolution in pixels/mm, double.
  *   - **yres** -- Vertical resolution in pixels/mm, double.
  *   - **bigtiff** -- Write a bigtiff image, bool.
- *   - **rgbjpeg** -- Output RGB JPEG rather than YCbCr, bool.
  *   - **properties** -- Write a properties document to IMAGEDESCRIPTION, bool.
  *   - **region_shrink** -- Method to shrink regions, VipsRegionShrink.
  *   - **level** -- ZSTD compression level, int.
@@ -5731,9 +5606,7 @@ VImage unpremultiply( VOption *options = 0 ) const;
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -5747,9 +5620,7 @@ static VImage vipsload( const char *filename, VOption *options = 0 );
  * **Optional parameters**
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param source Source to load from.
  * @param options Set of options.
@@ -5790,12 +5661,9 @@ void vipssave_target( VTarget target, VOption *options = 0 ) const;
  *   - **page** -- Load this page from the file, int.
  *   - **n** -- Load this many pages, int.
  *   - **scale** -- Scale factor on load, double.
- *   - **shrink** -- Shrink factor on load, int.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param filename Filename to load from.
  * @param options Set of options.
@@ -5810,12 +5678,9 @@ static VImage webpload( const char *filename, VOption *options = 0 );
  *   - **page** -- Load this page from the file, int.
  *   - **n** -- Load this many pages, int.
  *   - **scale** -- Scale factor on load, double.
- *   - **shrink** -- Shrink factor on load, int.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param buffer Buffer to load from.
  * @param options Set of options.
@@ -5830,12 +5695,9 @@ static VImage webpload_buffer( VipsBlob *buffer, VOption *options = 0 );
  *   - **page** -- Load this page from the file, int.
  *   - **n** -- Load this many pages, int.
  *   - **scale** -- Scale factor on load, double.
- *   - **shrink** -- Shrink factor on load, int.
  *   - **memory** -- Force open via memory, bool.
  *   - **access** -- Required access pattern for this file, VipsAccess.
- *   - **sequential** -- Sequential read only, bool.
- *   - **fail** -- Fail on first error, bool.
- *   - **disc** -- Open to disc, bool.
+ *   - **fail_on** -- Error level to fail on, VipsFailOn.
  *
  * @param source Source to load from.
  * @param options Set of options.
@@ -5856,7 +5718,7 @@ static VImage webpload_source( VSource source, VOption *options = 0 );
  *   - **min_size** -- Optimise for minium size, bool.
  *   - **kmin** -- Minimum number of frames between key frames, int.
  *   - **kmax** -- Maximum number of frames between key frames, int.
- *   - **reduction_effort** -- Level of CPU effort to reduce file size, int.
+ *   - **effort** -- Level of CPU effort to reduce file size, int.
  *   - **profile** -- ICC profile to embed, const char *.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
@@ -5880,7 +5742,7 @@ void webpsave( const char *filename, VOption *options = 0 ) const;
  *   - **min_size** -- Optimise for minium size, bool.
  *   - **kmin** -- Minimum number of frames between key frames, int.
  *   - **kmax** -- Maximum number of frames between key frames, int.
- *   - **reduction_effort** -- Level of CPU effort to reduce file size, int.
+ *   - **effort** -- Level of CPU effort to reduce file size, int.
  *   - **profile** -- ICC profile to embed, const char *.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
@@ -5904,7 +5766,7 @@ VipsBlob *webpsave_buffer( VOption *options = 0 ) const;
  *   - **min_size** -- Optimise for minium size, bool.
  *   - **kmin** -- Minimum number of frames between key frames, int.
  *   - **kmax** -- Maximum number of frames between key frames, int.
- *   - **reduction_effort** -- Level of CPU effort to reduce file size, int.
+ *   - **effort** -- Level of CPU effort to reduce file size, int.
  *   - **profile** -- ICC profile to embed, const char *.
  *   - **strip** -- Strip all metadata from image, bool.
  *   - **background** -- Background value, std::vector<double>.
