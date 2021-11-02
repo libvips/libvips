@@ -522,7 +522,7 @@ class TestArithmetic:
             else:
                 return math.asinh(x)
 
-        im = (pyvips.Image.black(100, 100) + [1, 2, 3]) / 3.0
+        im = (pyvips.Image.black(100, 100) + [4, 5, 6]) / 3.0
         self.run_unary([im], my_asinh, fmt=noncomplex_formats)
 
     # this requires pyvips 2.1.16 for acosh
@@ -536,7 +536,7 @@ class TestArithmetic:
             else:
                 return math.acosh(x)
 
-        im = (pyvips.Image.black(100, 100) + [1, 2, 3]) / 3.0
+        im = (pyvips.Image.black(100, 100) + [4, 5, 6]) / 3.0
         self.run_unary([im], my_acosh, fmt=noncomplex_formats)
 
     # this requires pyvips 2.1.16 for atanh
@@ -550,7 +550,7 @@ class TestArithmetic:
             else:
                 return math.atanh(x)
 
-        im = (pyvips.Image.black(100, 100) + [1, 2, 3]) / 3.0
+        im = (pyvips.Image.black(100, 100) + [0, 1, 2]) / 3.0
         self.run_unary([im], my_atanh, fmt=noncomplex_formats)
 
     # this requires pyvips 2.1.16 for atan2

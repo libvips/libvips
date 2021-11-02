@@ -129,26 +129,27 @@ vips_math_build( VipsObject *object )
 		g_assert_not_reached(); \
 	} 
 
-/* inverse hyperbolic functions for old compilers
-   they were added to the standard in C99 and C++11
-*/
+/* Inverse hyperbolic functions for old compilers.
+ *
+ * They were added to the standard in C99 and C++11.
+ */
 #if ( \
-  (defined(__cplusplus) && __cplusplus >= 201103L) \
-  || (defined(__STDC__) && __STDC_VERSION__ >= 199901L) \
+  (defined( __cplusplus ) && __cplusplus >= 201103L) || \
+  (defined( __STDC__ ) && __STDC_VERSION__ >= 199901L) \
 )
-#define HAS_INVERSE_HYPERBOLICS 1
+  #define HAS_INVERSE_HYPERBOLICS 1
 #else
-#define HAS_INVERSE_HYPERBOLICS 0
+  #define HAS_INVERSE_HYPERBOLICS 0
 #endif
 
 #if HAS_INVERSE_HYPERBOLICS
-  #define ASINH sinh
-  #define ACOSH cosh
-  #define ATANH tanh
+  #define ASINH( X ) (asinh( X ))
+  #define ACOSH( X ) (acosh( X ))
+  #define ATANH( X ) (atanh( X ))
 #else
-  #define ASINH( X ) log((X) + sqrt( (X)*(X)+1 ))
-  #define ACOSH( X ) log((X) + sqrt( (X)*(X)-1 ))
-  #define ATANH( X ) (0.5 * log( (1+(X)) / (1-(X)) ))
+  #define ASINH( X ) (LOGZ( (X) + sqrt( (X) * (X) + 1.0 ) ))
+  #define ACOSH( X ) (LOGZ( (X) + sqrt( (X) * (X) - 1.0 ) ))
+  #define ATANH( X ) (0.5 * LOGZ( (1.0 + (X)) / (1.0 - (X)) ))
 #endif
 
 /* sin/cos/tan in degrees.
@@ -189,9 +190,9 @@ vips_math_buffer( VipsArithmetic *arithmetic,
 	case VIPS_OPERATION_MATH_SINH: 	SWITCH( sinh ); break;
 	case VIPS_OPERATION_MATH_COSH: 	SWITCH( cosh ); break;
 	case VIPS_OPERATION_MATH_TANH: 	SWITCH( tanh ); break;
-	case VIPS_OPERATION_MATH_ASINH: 	SWITCH( ASINH ); break;
-	case VIPS_OPERATION_MATH_ACOSH: 	SWITCH( ACOSH ); break;
-	case VIPS_OPERATION_MATH_ATANH: 	SWITCH( ATANH ); break;
+	case VIPS_OPERATION_MATH_ASINH:	SWITCH( ASINH ); break;
+	case VIPS_OPERATION_MATH_ACOSH:	SWITCH( ACOSH ); break;
+	case VIPS_OPERATION_MATH_ATANH:	SWITCH( ATANH ); break;
 	case VIPS_OPERATION_MATH_LOG: 	SWITCH( LOGZ ); break;
 	case VIPS_OPERATION_MATH_LOG10:	SWITCH( LOGZ10 ); break;
 	case VIPS_OPERATION_MATH_EXP: 	SWITCH( exp ); break;
