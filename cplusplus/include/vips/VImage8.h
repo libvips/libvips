@@ -1390,7 +1390,7 @@ public:
 	VImage 
 	cosh( VOption *options = 0 ) const
 	{
-		return( math( VIPS_OPERATION_MATH_COS, options ) );
+		return( math( VIPS_OPERATION_MATH_COSH, options ) );
 	}
 
 	/**

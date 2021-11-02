@@ -148,7 +148,7 @@ vips_math_build( VipsObject *object )
 #else
   #define ASINH( X ) log((X) + sqrt( (X)*(X)+1 ))
   #define ACOSH( X ) log((X) + sqrt( (X)*(X)-1 ))
-  #define ATANH( X ) 0.5 * log( (1+(X)) / (1-(X)) )
+  #define ATANH( X ) (0.5 * log( (1+(X)) / (1-(X)) ))
 #endif
 
 /* sin/cos/tan in degrees.
