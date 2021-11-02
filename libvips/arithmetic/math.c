@@ -129,20 +129,9 @@ vips_math_build( VipsObject *object )
 		g_assert_not_reached(); \
 	} 
 
-/* Inverse hyperbolic functions for old compilers.
- *
- * They were added to the standard in C99 and C++11.
+/* If there's asinh, assume we have the other two as well.
  */
-#if ( \
-  (defined( __cplusplus ) && __cplusplus >= 201103L) || \
-  (defined( __STDC__ ) && __STDC_VERSION__ >= 199901L) \
-)
-  #define HAS_INVERSE_HYPERBOLICS 1
-#else
-  #define HAS_INVERSE_HYPERBOLICS 0
-#endif
-
-#if HAS_INVERSE_HYPERBOLICS
+#if HAVE_ASINH
   #define ASINH( X ) (asinh( X ))
   #define ACOSH( X ) (acosh( X ))
   #define ATANH( X ) (atanh( X ))
