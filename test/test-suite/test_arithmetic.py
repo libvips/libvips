@@ -481,7 +481,7 @@ class TestArithmetic:
             if isinstance(x, pyvips.Image):
                 return x.sinh()
             else:
-                return math.sinh(math.radians(x))
+                return math.sinh(x)
 
         self.run_unary(self.all_images, my_sinh, fmt=noncomplex_formats)
 
@@ -494,7 +494,7 @@ class TestArithmetic:
             if isinstance(x, pyvips.Image):
                 return x.cosh()
             else:
-                return math.cosh(math.radians(x))
+                return math.cosh(x)
 
         self.run_unary(self.all_images, my_cosh, fmt=noncomplex_formats)
 
@@ -507,7 +507,7 @@ class TestArithmetic:
             if isinstance(x, pyvips.Image):
                 return x.tanh()
             else:
-                return math.tanh(math.radians(x))
+                return math.tanh(x)
 
         self.run_unary(self.all_images, my_tanh, fmt=noncomplex_formats)
 
@@ -520,7 +520,7 @@ class TestArithmetic:
             if isinstance(x, pyvips.Image):
                 return x.asinh()
             else:
-                return math.degrees(math.asinh(x))
+                return math.asinh(x)
 
         im = (pyvips.Image.black(100, 100) + [1, 2, 3]) / 3.0
         self.run_unary([im], my_asinh, fmt=noncomplex_formats)
@@ -534,7 +534,7 @@ class TestArithmetic:
             if isinstance(x, pyvips.Image):
                 return x.acosh()
             else:
-                return math.degrees(math.acosh(x))
+                return math.acosh(x)
 
         im = (pyvips.Image.black(100, 100) + [1, 2, 3]) / 3.0
         self.run_unary([im], my_acosh, fmt=noncomplex_formats)
@@ -548,7 +548,7 @@ class TestArithmetic:
             if isinstance(x, pyvips.Image):
                 return x.atanh()
             else:
-                return math.degrees(math.atanh(x))
+                return math.atanh(x)
 
         im = (pyvips.Image.black(100, 100) + [1, 2, 3]) / 3.0
         self.run_unary([im], my_atanh, fmt=noncomplex_formats)

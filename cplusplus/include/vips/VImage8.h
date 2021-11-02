@@ -1403,7 +1403,7 @@ public:
 	}
 
 	/**
-	 * Find the hyperbolic arc sine of each pixel. Angles are in degrees.
+	 * Find the hyperbolic arc sine of each pixel. Angles are in radians.
 	 */
 	VImage 
 	asinh( VOption *options = 0 ) const
@@ -1412,7 +1412,7 @@ public:
 	}
 
 	/**
-	 * Find the hyperbolic arc cosine of each pixel. Angles are in degrees.
+	 * Find the hyperbolic arc cosine of each pixel. Angles are in radians.
 	 */
 	VImage 
 	acosh( VOption *options = 0 ) const
@@ -1421,7 +1421,7 @@ public:
 	}
 
 	/**
-	 * Find the hyperbolic arc tangent of each pixel. Angles are in degrees.
+	 * Find the hyperbolic arc tangent of each pixel. Angles are in radians.
 	 */
 	VImage 
 	atanh( VOption *options = 0 ) const

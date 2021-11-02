@@ -159,12 +159,6 @@ vips_math_build( VipsObject *object )
 #define ADSIN( X ) (VIPS_DEG( asin( X ) ))
 #define ADCOS( X ) (VIPS_DEG( acos( X ) ))
 #define ADTAN( X ) (VIPS_DEG( atan( X ) ))
-#define DSINH( X ) (sinh( VIPS_RAD( X ) ))
-#define DCOSH( X ) (cosh( VIPS_RAD( X ) ))
-#define DTANH( X ) (tanh( VIPS_RAD( X ) ))
-#define ADSINH( X ) (VIPS_DEG( ASINH( X ) ))
-#define ADCOSH( X ) (VIPS_DEG( ACOSH( X ) ))
-#define ADTANH( X ) (VIPS_DEG( ATANH( X ) ))
 
 /* exp10() is a gnu extension, use pow().
  */
@@ -192,12 +186,12 @@ vips_math_buffer( VipsArithmetic *arithmetic,
 	case VIPS_OPERATION_MATH_ASIN: 	SWITCH( ADSIN ); break;
 	case VIPS_OPERATION_MATH_ACOS: 	SWITCH( ADCOS ); break;
 	case VIPS_OPERATION_MATH_ATAN: 	SWITCH( ADTAN ); break;
-	case VIPS_OPERATION_MATH_SINH: 	SWITCH( DSINH ); break;
-	case VIPS_OPERATION_MATH_COSH: 	SWITCH( DCOSH ); break;
-	case VIPS_OPERATION_MATH_TANH: 	SWITCH( DTANH ); break;
-	case VIPS_OPERATION_MATH_ASINH: 	SWITCH( ADSINH ); break;
-	case VIPS_OPERATION_MATH_ACOSH: 	SWITCH( ADCOSH ); break;
-	case VIPS_OPERATION_MATH_ATANH: 	SWITCH( ADTANH ); break;
+	case VIPS_OPERATION_MATH_SINH: 	SWITCH( sinh ); break;
+	case VIPS_OPERATION_MATH_COSH: 	SWITCH( cosh ); break;
+	case VIPS_OPERATION_MATH_TANH: 	SWITCH( tanh ); break;
+	case VIPS_OPERATION_MATH_ASINH: 	SWITCH( ASINH ); break;
+	case VIPS_OPERATION_MATH_ACOSH: 	SWITCH( ACOSH ); break;
+	case VIPS_OPERATION_MATH_ATANH: 	SWITCH( ATANH ); break;
 	case VIPS_OPERATION_MATH_LOG: 	SWITCH( LOGZ ); break;
 	case VIPS_OPERATION_MATH_LOG10:	SWITCH( LOGZ10 ); break;
 	case VIPS_OPERATION_MATH_EXP: 	SWITCH( exp ); break;
