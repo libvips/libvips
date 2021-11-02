@@ -714,16 +714,37 @@ VImage::write_to_buffer( const char *suffix, void **buf, size_t *size,
 	const char *operation_name;
 	VipsBlob *blob;
 
+	/* Save with the new target API if we can. Fall back to the older
+	 * mechanism in case the saver we need has not been converted yet.
+	 *
+	 * We need to hide any errors from this first phase.
+	 */
 	vips__filename_split8( suffix, filename, option_string );
-	if( !(operation_name = vips_foreign_find_save_buffer( filename )) ) {
+
+	vips_error_freeze();
+	operation_name = vips_foreign_find_save_target( filename );
+	vips_error_thaw();
+
+	if( operation_name ) {
+		VTarget target = VTarget::new_to_memory();
+
+		call_option_string( operation_name, option_string,
+			(options ? options : VImage::option())->
+				set( "in", *this )->
+				set( "target", target ) );
+
+		g_object_get( target.get_target(), "blob", &blob, NULL );
+	}
+	else if( (operation_name = vips_foreign_find_save_buffer( filename )) ) {
+		call_option_string( operation_name, option_string,
+			(options ? options : VImage::option())->
+				set( "in", *this )->
+				set( "buffer", &blob ) );
+	}
+	else {
 		delete options;
 		throw VError();
 	}
-
-	call_option_string( operation_name, option_string,
-		(options ? options : VImage::option())->
-			set( "in", *this )->
-			set( "buffer", &blob ) );
 
 	if( blob ) {
 		if( buf ) {
