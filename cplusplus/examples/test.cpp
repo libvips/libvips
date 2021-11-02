@@ -9,7 +9,7 @@
  *
  * run with:
  *
- * 	./a.out ~/pics/k2.jpg ~/pics/shark.jpg --vips-leak
+ * 	VIPS_LEAK=1 ./a.out ~/pics/k2.jpg ~/pics/shark.jpg
  * 	valgrind --leak-check=yes ./a.out ~/pics/k2.jpg ~/pics/shark.jpg 
  * 	rm x.tif
  *
@@ -293,6 +293,31 @@ main( int argc, char **argv )
 	printf( "written back to x.tif\n" ); 
 
 	g_free( buf ); 
+}
+
+{
+	// write to a formatted AVIF memory buffer
+	printf( "testing formatted AVIF memory write ...\n" );
+
+	if( vips_type_find("VipsOperation", "avifsave_target") != 0 ) {
+		size_t size;
+		void *buf;
+
+		// speed-up test by setting @effort to 0
+		left.write_to_buffer( ".avif", &buf, &size,
+			VImage::option()->set( "effort", 0 ) );
+		printf( "written to memory %p in AVIF format, %zu bytes\n", buf, size );
+
+		// load from the formatted memory area
+		VImage im = VImage::new_from_buffer( buf, size, "" );
+		printf( "loaded from memory, %d x %d pixel %s image\n",
+			im.width(), im.height(), im.get_string("heif-compression") );
+
+		g_free( buf );
+	}
+	else {
+		printf( "skipped, not compiled against libheif\n" );
+	}
 }
 
 {

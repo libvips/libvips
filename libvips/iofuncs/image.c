@@ -2678,7 +2678,7 @@ vips_image_write_to_file( VipsImage *image, const char *name, ... )
 	int result;
 
 	/* Save with the new target API if we can. Fall back to the older
-	 * mechanism in case the loader we need has not been converted yet.
+	 * mechanism in case the saver we need has not been converted yet.
 	 *
 	 * We need to hide any errors from this first phase.
 	 */
