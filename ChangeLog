@@ -17,6 +17,7 @@
 - improve buffer and target save file format selection
 - added VipsForeignPpmFormat, @format arg to ppm savers
 - add fail-on to give better control over loader error sensitivity
+- add hyperbolic functions sinh, cosh, tanh, asinh, acosh, atanh [hroskes]
 
 16/8/21 started 8.11.4
 - fix off-by-one error in new rank fast path
