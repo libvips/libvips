@@ -129,6 +129,28 @@ vips_math_build( VipsObject *object )
 		g_assert_not_reached(); \
 	} 
 
+/* inverse hyperbolic functions for old compilers
+   they were added to the standard in C99 and C++11
+*/
+#if ( \
+  (defined(__cplusplus) && __cplusplus >= 201103L) \
+  || (defined(__STDC__) && __STDC_VERSION__ >= 199901L) \
+)
+#define HAS_INVERSE_HYPERBOLICS 1
+#else
+#define HAS_INVERSE_HYPERBOLICS 0
+#endif
+
+#if HAS_INVERSE_HYPERBOLICS
+  #define ASINH sinh
+  #define ACOSH cosh
+  #define ATANH tanh
+#else
+  #define ASINH( X ) log((X) + sqrt( (X)*(X)+1 ))
+  #define ACOSH( X ) log((X) + sqrt( (X)*(X)-1 ))
+  #define ATANH( X ) 0.5 * log( (1+(X)) / (1-(X)) )
+#endif
+
 /* sin/cos/tan in degrees.
  */
 #define DSIN( X ) (sin( VIPS_RAD( X ) ))
@@ -140,9 +162,9 @@ vips_math_build( VipsObject *object )
 #define DSINH( X ) (sinh( VIPS_RAD( X ) ))
 #define DCOSH( X ) (cosh( VIPS_RAD( X ) ))
 #define DTANH( X ) (tanh( VIPS_RAD( X ) ))
-#define ADSINH( X ) (VIPS_DEG( asinh( X ) ))
-#define ADCOSH( X ) (VIPS_DEG( acosh( X ) ))
-#define ADTANH( X ) (VIPS_DEG( atanh( X ) ))
+#define ADSINH( X ) (VIPS_DEG( ASINH( X ) ))
+#define ADCOSH( X ) (VIPS_DEG( ACOSH( X ) ))
+#define ADTANH( X ) (VIPS_DEG( ATANH( X ) ))
 
 /* exp10() is a gnu extension, use pow().
  */
