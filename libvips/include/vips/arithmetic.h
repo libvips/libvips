@@ -46,12 +46,12 @@ extern "C" {
  * @VIPS_OPERATION_MATH_ASIN: asin(), angles in degrees
  * @VIPS_OPERATION_MATH_ACOS: acos(), angles in degrees
  * @VIPS_OPERATION_MATH_ATAN: atan(), angles in degrees
- * @VIPS_OPERATION_MATH_SINH: sinh()
- * @VIPS_OPERATION_MATH_COSH: cosh()
- * @VIPS_OPERATION_MATH_TANH: tanh()
- * @VIPS_OPERATION_MATH_ASINH: asinh()
- * @VIPS_OPERATION_MATH_ACOSH: acosh()
- * @VIPS_OPERATION_MATH_ATANH: atanh()
+ * @VIPS_OPERATION_MATH_SINH: sinh(), angles in degrees
+ * @VIPS_OPERATION_MATH_COSH: cosh(), angles in degrees
+ * @VIPS_OPERATION_MATH_TANH: tanh(), angles in degrees
+ * @VIPS_OPERATION_MATH_ASINH: asinh(), angles in degrees
+ * @VIPS_OPERATION_MATH_ACOSH: acosh(), angles in degrees
+ * @VIPS_OPERATION_MATH_ATANH: atanh(), angles in degrees
  * @VIPS_OPERATION_MATH_LOG: log base e 
  * @VIPS_OPERATION_MATH_LOG10: log base 10 
  * @VIPS_OPERATION_MATH_EXP: e to the something
