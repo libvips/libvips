@@ -258,10 +258,10 @@ vips_foreign_save_png_class_init( VipsForeignSavePngClass *class )
 
 	VIPS_ARG_INT( class, "bitdepth", 17,
 		_( "Bit depth" ),
-		_( "Write as a 1, 2, 4 or 8 bit image" ),
+		_( "Write as a 1, 2, 4, 8 or 16 bit image" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSavePng, bitdepth ),
-		0, 8, 0 );
+		0, 16, 0 );
 
 	VIPS_ARG_INT( class, "effort", 18,
 		_( "Effort" ),
@@ -472,7 +472,7 @@ vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
  * * @palette: %gboolean, enable quantisation to 8bpp palette
  * * @Q: %gint, quality for 8bpp quantisation 
  * * @dither: %gdouble, amount of dithering for 8bpp quantization
- * * @bitdepth: %gint, set write bit depth to 1, 2, 4 or 8
+ * * @bitdepth: %gint, set write bit depth to 1, 2, 4, 8 or 16
  * * @effort: %gint, quantisation CPU effort
  *
  * Write a VIPS image to a file as PNG.
@@ -507,6 +507,7 @@ vips_foreign_save_png_buffer_init( VipsForeignSavePngBuffer *buffer )
  * (1 is the fastest, 10 is the slowest, 7 is the default).
  * This feature requires libvips to be compiled with libimagequant.
  *
+ * The default @bitdepth is either 8 or 16 depending on the interpretation.
  * You can also set @bitdepth for mono and mono + alpha images, and the image
  * will be quantized.
  *
@@ -546,7 +547,7 @@ vips_pngsave( VipsImage *in, const char *filename, ... )
  * * @palette: %gboolean, enable quantisation to 8bpp palette
  * * @Q: %gint, quality for 8bpp quantisation 
  * * @dither: %gdouble, amount of dithering for 8bpp quantization
- * * @bitdepth: %gint, set write bit depth to 1, 2, 4 or 8
+ * * @bitdepth: %gint, set write bit depth to 1, 2, 4, 8 or 16
  * * @effort: %gint, quantisation CPU effort
  *
  * As vips_pngsave(), but save to a memory buffer. 
@@ -602,7 +603,7 @@ vips_pngsave_buffer( VipsImage *in, void **buf, size_t *len, ... )
  * * @palette: enable quantisation to 8bpp palette
  * * @Q: quality for 8bpp quantisation 
  * * @dither: amount of dithering for 8bpp quantization
- * * @bitdepth: %gint, set write bit depth to 1, 2, 4 or 8
+ * * @bitdepth: %gint, set write bit depth to 1, 2, 4, 8 or 16
  * * @effort: %gint, quantisation CPU effort
  *
  * As vips_pngsave(), but save to a target.
