@@ -126,11 +126,13 @@ vips_arrayjoin_gen( VipsRegion *or, void *seq,
 		 *
 		 * minimise_all is quite expensive, so only trigger once for
 		 * each input.
+		 *
+		 * We don't lock for minimised[], but it's harmless.
 		 */
 		for( i = 0; i < n; i++ ) 
 			if( !join->minimised[i] &&
 				r->top > VIPS_RECT_BOTTOM( &join->rects[i] ) +
-				       256 ) {
+				       512 ) {
 				vips_image_minimise_all( in[i] );
 				join->minimised[i] = TRUE;
 			}
