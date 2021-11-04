@@ -2,6 +2,8 @@
  *
  * 18/3/20
  * 	- from heifload.c
+ * 4/11/21
+ * 	- add untiled load
  */
 
 /*
@@ -355,6 +357,9 @@ vips_foreign_load_jp2k_print( VipsForeignLoadJp2k *jp2k )
 		jp2k->info->tw, jp2k->info->th );
 	printf( "nbcomps = %u, tile_info = %p\n", 
 		jp2k->info->nbcomps, jp2k->info->tile_info );
+	if( jp2k->info->tw == 1 &&
+		jp2k->info->th == 1 )
+		printf( "untiled\n" );
 }
 #endif /*DEBUG*/
 
@@ -724,10 +729,84 @@ vips_foreign_load_jp2k_ycc_to_rgb( opj_image_t *image, VipsImage *im,
 	}
 }
 
-/* Loop over the output region, painting in tiles from the file.
+/* Read a tile from an untiled jp2k file. 
  */
 static int
-vips_foreign_load_jp2k_generate( VipsRegion *out, 
+vips_foreign_load_jp2k_generate_untiled( VipsRegion *out, 
+	void *seq, void *a, void *b, gboolean *stop )
+{
+	VipsForeignLoad *load = (VipsForeignLoad *) a;
+	VipsForeignLoadJp2k *jp2k = (VipsForeignLoadJp2k *) load;
+	VipsRect *r = &out->valid;
+
+	VipsRect opj;
+	VipsRect image;
+	int y;
+
+#ifdef DEBUG_VERBOSE
+	printf( "vips_foreign_load_jp2k_generate_untiled: "
+		"left = %d, top = %d, width = %d, height = %d\n", 
+		r->left, r->top, r->width, r->height ); 
+#endif /*DEBUG_VERBOSE*/
+
+	/* If openjpeg has flagged an error, the library is not in a known
+	 * state and it's not safe to call again.
+	 */
+	if( jp2k->n_errors )
+		return( 0 );
+
+	/* Coordinates are always in the highest res level.
+	 */
+	opj.left = r->left * jp2k->shrink;
+	opj.top = r->top * jp2k->shrink;
+	opj.width = r->width * jp2k->shrink;
+	opj.height = r->height * jp2k->shrink;
+
+	/* And must be clipped against the image size.
+	 */
+	image.left = 0;
+	image.top = 0;
+	image.width = jp2k->info->tdx;
+	image.height = jp2k->info->tdy;
+	vips_rect_intersectrect( &opj, &image, &opj );
+
+	if( !opj_set_decode_area( jp2k->codec, jp2k->image,
+		opj.left, opj.top, 
+		VIPS_RECT_RIGHT( &opj ), VIPS_RECT_BOTTOM( &opj ) ) )
+		return( -1 );
+
+	if( !opj_decode( jp2k->codec, jp2k->stream, jp2k->image ) )
+		return( -1 );
+
+	/* Unpack decoded pixels to buffer in vips layout. 
+	 */
+	for( y = 0; y < r->height; y++ ) {
+		VipsPel *q = VIPS_REGION_ADDR( out, r->left, r->top + y );
+
+		vips_foreign_load_jp2k_pack( jp2k->upsample, 
+			jp2k->image, out->im, q, 0, y, r->width );
+
+		if( jp2k->ycc_to_rgb )
+			vips_foreign_load_jp2k_ycc_to_rgb( jp2k->image, 
+				out->im, q, r->width );
+	}
+
+	/* jp2k files can't be truncated (they fail to open), so all we can
+	 * spot is errors.
+	 */
+	if( load->fail_on >= VIPS_FAIL_ON_ERROR &&
+		jp2k->n_errors > 0 ) 
+		return( -1 );
+
+	return( 0 );
+}
+
+/* Read a tile from the file. libvips tiles can be much larger or smaller than
+ * openjpeg tiles, so we must loop over the output region, painting in 
+ * tiles from the file.
+ */
+static int
+vips_foreign_load_jp2k_generate_tiled( VipsRegion *out, 
 	void *seq, void *a, void *b, gboolean *stop )
 {
 	VipsForeignLoad *load = (VipsForeignLoad *) a;
@@ -841,16 +920,12 @@ static int
 vips_foreign_load_jp2k_load( VipsForeignLoad *load )
 {
 	VipsForeignLoadJp2k *jp2k = (VipsForeignLoadJp2k *) load;
-
-	/* jp2k tiles get smaller with the layer size, but we don't want tiny
-	 * tiles for the libvips tile cache, so leave them at the base size.
-	 */
-	int tile_width = jp2k->info->tdx;
-	int tile_height = jp2k->info->tdy;
-	int tiles_across = jp2k->info->tw;
-
 	VipsImage **t = (VipsImage **) 
 		vips_object_local_array( VIPS_OBJECT( load ), 3 );
+
+	int vips_tile_width;
+	int vips_tile_height;
+	int vips_tiles_across;
 
 #ifdef DEBUG
 	printf( "vips_foreign_load_jp2k_load:\n" );
@@ -860,19 +935,42 @@ vips_foreign_load_jp2k_load( VipsForeignLoad *load )
 	if( vips_foreign_load_jp2k_set_header( jp2k, t[0] ) ) 
 		return( -1 );
 
-	if( vips_image_generate( t[0], 
-		NULL, vips_foreign_load_jp2k_generate, NULL, jp2k, NULL ) )
-		return( -1 );
+	/* Untiled jp2k images need a different read API.
+	 */
+	if( jp2k->info->tw == 1 &&
+		jp2k->info->th == 1 ) {
+		vips_tile_width = 512;
+		vips_tile_height = 512;
+		vips_tiles_across = 
+			VIPS_ROUND_UP( t[0]->Xsize, vips_tile_width ) / 
+			vips_tile_width;
+
+		if( vips_image_generate( t[0], 
+			NULL, vips_foreign_load_jp2k_generate_untiled, NULL, 
+			jp2k, NULL ) )
+			return( -1 );
+	}
+	else {
+		vips_tile_width = jp2k->info->tdx;
+		vips_tile_height = jp2k->info->tdy;
+		vips_tiles_across =  jp2k->info->tw;
+
+		if( vips_image_generate( t[0], 
+			NULL, vips_foreign_load_jp2k_generate_tiled, NULL, 
+			jp2k, NULL ) )
+			return( -1 );
+	}
 
 	/* Copy to out, adding a cache. Enough tiles for two complete 
 	 * rows, plus 50%.
 	 */
 	if( vips_tilecache( t[0], &t[1], 
-		"tile_width", tile_width,
-		"tile_height", tile_height,
-		"max_tiles", 3 * tiles_across,
+		"tile_width", vips_tile_width,
+		"tile_height", vips_tile_height,
+		"max_tiles", 3 * vips_tiles_across,
 		NULL ) ) 
 		return( -1 );
+
 	if( vips_image_write( t[1], load->real ) ) 
 		return( -1 );
 
