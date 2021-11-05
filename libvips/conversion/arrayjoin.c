@@ -119,7 +119,7 @@ vips_arrayjoin_gen( VipsRegion *or, void *seq,
 				return( -1 );
 	}
 
-	if( vips_image_is_sequential( conversion->out ) ) {
+	if( vips_image_is_sequential( conversion->out ) )
 		/* In sequential mode, we can minimise an input once our
 		 * generate point is well past the end of it. This can save a
 		 * lot of memory and file descriptors on large image arrays.
@@ -132,11 +132,10 @@ vips_arrayjoin_gen( VipsRegion *or, void *seq,
 		for( i = 0; i < n; i++ ) 
 			if( !join->minimised[i] &&
 				r->top > VIPS_RECT_BOTTOM( &join->rects[i] ) +
-				       512 ) {
-				vips_image_minimise_all( in[i] );
+				       1024 ) {
 				join->minimised[i] = TRUE;
+				vips_image_minimise_all( in[i] );
 			}
-	}
 
 	return( 0 );
 }
