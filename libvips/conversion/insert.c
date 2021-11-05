@@ -28,6 +28,8 @@
  * 29/9/11
  * 	- rewrite as a class
  * 	- add expand, bg options
+ * 5/11/21
+ * 	- add minimise for seq pipelines
  */
 
 /*
@@ -93,20 +95,19 @@ typedef struct _VipsInsert {
 	 */
 	VipsPel *ink;
 
-	/* Inputs cast and banded up.
+	/* Inputs cast and banded up, plus a NULL at the end.
 	 */
-	VipsImage *main_processed;
-	VipsImage *sub_processed;
+	VipsImage *processed[3];
 
 	/* Geometry.
 	 */
 	VipsRect rout;		/* Output space */
-	VipsRect rmain;		/* Position of main in output */
-	VipsRect rsub;		/* Position of sub in output */
+	VipsRect rimage[2];	/* Position of main in output */
 
-	/* TRUE if we've minimise sub.
+	/* TRUE if we've minimised an input.
 	 */
-	gboolean sub_minimised;
+	gboolean minimised[2];
+
 } VipsInsert;
 
 typedef VipsConversionClass VipsInsertClass;
@@ -174,46 +175,57 @@ vips_insert_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	VipsRegion **ir = (VipsRegion **) seq;
 	VipsRect *r = &or->valid;
 	VipsInsert *insert = (VipsInsert *) b; 
+	VipsConversion *conversion = VIPS_CONVERSION( insert );
 
-	VipsRect ovl;
+	int i;
 
-	/* The part of the subimage we will use.
+	/* First, does this request fall entirely inside one of our inputs? If
+	 * it does, we can just redirect the request there. Test sub first.
 	 */
-	vips_rect_intersectrect( &or->valid, &insert->rsub, &ovl );
+	for( i = 1; i >= 0; i-- ) {
+		VipsRect *rimage = &insert->rimage[i];
 
-	/* Three cases: we are generating entirely within the sub-image, 
-	 * entirely within the main image, or a mixture.
+		if( vips_rect_includesrect( rimage, r ) ) {
+			if( vips__insert_just_one( or, ir[i], 
+				rimage->left, rimage->top ) )
+				return( -1 );
+
+			break;
+		}
+	}
+
+	/* Otherwise, it requires both (or neither) input.
 	 */
-	if( vips_rect_includesrect( &insert->rsub, &or->valid ) ) {
-		if( vips__insert_just_one( or, ir[1], 
-			insert->rsub.left, insert->rsub.top ) )
-			return( -1 );
-	}
-	else if( vips_rect_includesrect( &insert->rmain, &or->valid ) &&
-		vips_rect_isempty( &ovl ) ) {
-		if( vips__insert_just_one( or, ir[0], 
-			insert->rmain.left, insert->rmain.top ) )
-			return( -1 );
-	}
-	else {
+	if( i < 0 ) {
 		/* Output requires both (or neither) input. If it is not 
 		 * entirely inside both the main and the sub, then there is 
 		 * going to be some background. 
 		 */
-		if( !(vips_rect_includesrect( &insert->rsub, &or->valid ) &&
-			vips_rect_includesrect( &insert->rmain, &or->valid )) )
-			vips_region_paint_pel( or, r, insert->ink );
+		vips_region_paint_pel( or, r, insert->ink );
 
-		/* Paste from main.
+		/* Paste the background first.
 		 */
-		if( vips__insert_paste_region( or, ir[0], &insert->rmain ) )
-			return( -1 );
-
-		/* Paste from sub.
-		 */
-		if( vips__insert_paste_region( or, ir[1], &insert->rsub ) )
-			return( -1 );
+		for( i = 0; i < 2; i++ ) 
+			if( vips__insert_paste_region( or, ir[i], 
+				&insert->rimage[i] ) )
+				return( -1 );
 	}
+
+	/* See arrayjoin for almost this code again. Move into conversion.c?
+	 */
+	if( vips_image_is_sequential( conversion->out ) )
+		for( i = 0; i < 2; i++ ) {
+			int bottom_edge = 
+				VIPS_RECT_BOTTOM( &insert->rimage[i] );
+
+			/* 1024 is a generous margin. 256 is too small.
+			 */
+			if( !insert->minimised[i] &&
+				r->top > bottom_edge + 1024 ) {
+				insert->minimised[i] = TRUE;
+				vips_image_minimise_all( insert->processed[i] );
+			}
+		}
 
 	return( 0 );
 }
@@ -351,8 +363,6 @@ vips_insert_build( VipsObject *object )
 	VipsInsert *insert = (VipsInsert *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array( object, 6 );
 
-	VipsImage **arry;
-
 	if( VIPS_OBJECT_CLASS( vips_insert_parent_class )->build( object ) )
 		return( -1 );
 
@@ -370,48 +380,46 @@ vips_insert_build( VipsObject *object )
 	if( vips__formatalike( insert->main, insert->sub, &t[0], &t[1] ) ||
 		vips__bandalike( class->nickname, t[0], t[1], &t[2], &t[3] ) )
 		return( -1 );
-	insert->main_processed = t[2];
-	insert->sub_processed = t[3];
-	if( !(arry = vips_allocate_input_array( conversion->out, 
-		insert->main_processed, insert->sub_processed, NULL )) )
-		return( -1 );
+	insert->processed[0] = t[2];
+	insert->processed[1] = t[3];
 
 	/* Joins can get very wide (eg. consider joining a set of tiles
 	 * horizontally to make a large image), we don't want mem use to shoot
 	 * up. SMALLTILE will guarantee we keep small and local.
 	 */
 	if( vips_image_pipeline_array( conversion->out, 
-		VIPS_DEMAND_STYLE_SMALLTILE, arry ) )
+		VIPS_DEMAND_STYLE_SMALLTILE, insert->processed ) )
 		return( -1 );
 
 	/* Calculate geometry. 
 	 */
-	insert->rmain.left = 0;
-	insert->rmain.top = 0;
-	insert->rmain.width = insert->main_processed->Xsize;
-	insert->rmain.height = insert->main_processed->Ysize;
-	insert->rsub.left = insert->x;
-	insert->rsub.top = insert->y;
-	insert->rsub.width = insert->sub_processed->Xsize;
-	insert->rsub.height = insert->sub_processed->Ysize;
+	insert->rimage[0].left = 0;
+	insert->rimage[0].top = 0;
+	insert->rimage[0].width = insert->processed[0]->Xsize;
+	insert->rimage[0].height = insert->processed[0]->Ysize;
+
+	insert->rimage[1].left = insert->x;
+	insert->rimage[1].top = insert->y;
+	insert->rimage[1].width = insert->processed[1]->Xsize;
+	insert->rimage[1].height = insert->processed[1]->Ysize;
 
 	if( insert->expand ) {
 		/* Expand output to bounding box of these two.
 		 */
-		vips_rect_unionrect( &insert->rmain, &insert->rsub, 
+		vips_rect_unionrect( &insert->rimage[0], &insert->rimage[1], 
 			&insert->rout );
 
 		/* Translate origin to top LH corner of rout.
 		 */
-		insert->rmain.left -= insert->rout.left;
-		insert->rmain.top -= insert->rout.top;
-		insert->rsub.left -= insert->rout.left;
-		insert->rsub.top -= insert->rout.top;
+		insert->rimage[0].left -= insert->rout.left;
+		insert->rimage[0].top -= insert->rout.top;
+		insert->rimage[1].left -= insert->rout.left;
+		insert->rimage[1].top -= insert->rout.top;
 		insert->rout.left = 0;
 		insert->rout.top = 0;
 	}
 	else 
-		insert->rout = insert->rmain;
+		insert->rout = insert->rimage[0];
 
 	conversion->out->Xsize = insert->rout.width;
 	conversion->out->Ysize = insert->rout.height;
@@ -424,7 +432,7 @@ vips_insert_build( VipsObject *object )
 
 	if( vips_image_generate( conversion->out,
 		vips_start_many, vips_insert_gen, vips_stop_many, 
-		arry, insert ) )
+		insert->processed, insert ) )
 		return( -1 );
 
 	return( 0 );

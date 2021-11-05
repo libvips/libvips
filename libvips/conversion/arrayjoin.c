@@ -129,13 +129,15 @@ vips_arrayjoin_gen( VipsRegion *or, void *seq,
 		 *
 		 * We don't lock for minimised[], but it's harmless.
 		 */
-		for( i = 0; i < n; i++ ) 
+		for( i = 0; i < n; i++ ) {
+			int bottom_edge = VIPS_RECT_BOTTOM( &join->rects[i] );
+
 			if( !join->minimised[i] &&
-				r->top > VIPS_RECT_BOTTOM( &join->rects[i] ) +
-				       1024 ) {
+				r->top > bottom_edge + 1024 ) {
 				join->minimised[i] = TRUE;
 				vips_image_minimise_all( in[i] );
 			}
+		}
 
 	return( 0 );
 }
