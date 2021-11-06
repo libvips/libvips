@@ -267,6 +267,18 @@ vips_exif_get_double( ExifData *ed,
 	return( 0 );
 }
 
+static void
+vips_exif_to_s_human( ExifData *ed, ExifEntry *entry, VipsBuf *buf )
+{
+	char txt[256];
+
+	vips_buf_appendf( buf, "%s, %s, %lu components, %d bytes",
+		exif_entry_get_value( entry, txt, 256 ),
+		exif_format_get_name( entry->format ),
+		entry->components,
+		entry->size );
+}
+
 /* Save an exif value to a string in a way that we can restore. We only bother
  * for the simple formats (that a client might try to change) though.
  *
@@ -289,20 +301,20 @@ vips_exif_to_s( ExifData *ed, ExifEntry *entry, VipsBuf *buf )
 
 		memcpy( txt, entry->data, len );
 		txt[len] = '\0';
-		vips_buf_appendf( buf, "%s ", txt );
+		vips_buf_appendf( buf, "%s", txt );
 	}
 	else if( entry->components < 10 &&
 		!vips_exif_get_int( ed, entry, 0, &iv ) ) {
 		for( i = 0; i < entry->components; i++ ) {
 			vips_exif_get_int( ed, entry, i, &iv );
-			vips_buf_appendf( buf, "%d ", iv );
+			vips_buf_appendf( buf, "%d", iv );
 		}
 	}
 	else if( entry->components < 10 &&
 		!vips_exif_get_rational( ed, entry, 0, &rv ) ) {
 		for( i = 0; i < entry->components; i++ ) {
 			vips_exif_get_rational( ed, entry, i, &rv );
-			vips_buf_appendf( buf, "%u/%u ", 
+			vips_buf_appendf( buf, "%u/%u",
 				rv.numerator, rv.denominator );
 		}
 	}
@@ -310,19 +322,13 @@ vips_exif_to_s( ExifData *ed, ExifEntry *entry, VipsBuf *buf )
 		!vips_exif_get_srational( ed, entry, 0, &srv ) ) {
 		for( i = 0; i < entry->components; i++ ) {
 			vips_exif_get_srational( ed, entry, i, &srv );
-			vips_buf_appendf( buf, "%d/%d ", 
+			vips_buf_appendf( buf, "%d/%d",
 				srv.numerator, srv.denominator );
 		}
 	}
 	else 
-		vips_buf_appendf( buf, "%s ", 
+		vips_buf_appendf( buf, "%s",
 			exif_entry_get_value( entry, txt, 256 ) );
-
-	vips_buf_appendf( buf, "(%s, %s, %lu components, %d bytes)", 
-		exif_entry_get_value( entry, txt, 256 ),
-		exif_format_get_name( entry->format ),
-		entry->components,
-		entry->size );
 }
 
 typedef struct _VipsExifParams {
@@ -352,7 +358,9 @@ vips_exif_attach_entry( ExifEntry *entry, VipsExifParams *params )
 	char vips_name_txt[256];
 	VipsBuf vips_name = VIPS_BUF_STATIC( vips_name_txt );
 	char value_txt[256];
+	char value_txt_human[256];
 	VipsBuf value = VIPS_BUF_STATIC( value_txt );
+	VipsBuf value_human = VIPS_BUF_STATIC( value_txt_human );
 
 	if( !(tag_name = vips_exif_entry_get_name( entry )) )
 		return;
@@ -365,6 +373,11 @@ vips_exif_attach_entry( ExifEntry *entry, VipsExifParams *params )
 	 */
 	(void) vips_image_set_string( params->image, 
 		vips_buf_all( &vips_name ), vips_buf_all( &value ) );
+
+	vips_buf_appendf( &vips_name, "-human" );
+	vips_exif_to_s_human( params->ed, entry, &value_human );
+	(void) vips_image_set_string( params->image,
+		vips_buf_all( &vips_name ), vips_buf_all( &value_human ) );
 }
 
 static void
@@ -808,31 +821,6 @@ vips_exif_alloc_string( ExifEntry *entry, unsigned long components )
 	VIPS_FREEF( exif_mem_unref, mem );
 }
 
-/* The final " (xx, yy, zz, kk)" part of the string (if present) was
- * added by us in _to_s(), we must remove it before setting the string 
- * back again.
- *
- * It may not be there if the user has changed the string.
- */
-static char *
-drop_tail( const char *data )
-{
-	char *str;
-	char *p;
-
-	str = g_strdup( data );
-
-	p = str + strlen( str );
-	if( p > str &&
-		*g_utf8_prev_char( p ) == ')' &&
-		(p = g_utf8_strrchr( str, -1, (gunichar) '(')) &&
-		p > str &&
-		*(p = g_utf8_prev_char( p )) == ' ' )
-		*p = '\0';
-
-	return( str );
-}
-
 /* special header required for EXIF_TAG_USER_COMMENT.
  */
 #define ASCII_COMMENT "ASCII\0\0\0"
@@ -845,16 +833,11 @@ vips_exif_set_string_encoding( ExifData *ed,
 	ExifEntry *entry, unsigned long component, const char *data )
 {
 	char *str;
-	char *ascii;
 	int len;
-
-	str = drop_tail( data );
 
 	/* libexif can only really save ASCII to things like UserComment.
 	 */
-	ascii = g_str_to_ascii( str, NULL );
-	g_free( str );
-	str = ascii;
+	str = g_str_to_ascii( data, NULL );
 
 	/* libexif comment strings are not NULL-terminated, and have an 
 	 * encoding tag (always ASCII) in the first 8 bytes.
@@ -874,26 +857,21 @@ static void
 vips_exif_set_string_ascii( ExifData *ed, 
 	ExifEntry *entry, unsigned long component, const char *data )
 {
-	char *str;
 	char *ascii;
 	int len;
 
-	str = drop_tail( data );
-
 	/* libexif can only really save ASCII to things like UserComment.
 	 */
-	ascii = g_str_to_ascii( str, NULL );
-	g_free( str );
-	str = ascii;
+	ascii = g_str_to_ascii( data, NULL );
 
 	/* ASCII strings are NULL-terminated.
 	 */
-	len = strlen( str );
+	len = strlen( ascii );
 	vips_exif_alloc_string( entry, len + 1 );
-        memcpy( entry->data, str, len + 1 );
+        memcpy( entry->data, ascii, len + 1 );
         entry->format = EXIF_FORMAT_ASCII;
 
-	g_free( str );
+	g_free( ascii );
 }
 
 /* Write a libvips NULL-terminated utf-8 string into a utf16 entry.
@@ -902,13 +880,10 @@ static void
 vips_exif_set_string_utf16( ExifData *ed, 
 	ExifEntry *entry, unsigned long component, const char *data )
 {
-	char *str;
 	gunichar2 *utf16;
 	glong len;
 
-	str = drop_tail( data );
-
-	utf16 = g_utf8_to_utf16( str, -1, NULL, &len, NULL );
+	utf16 = g_utf8_to_utf16( data, -1, NULL, &len, NULL );
 
 	/* libexif utf16 strings are NULL-terminated.
 	 */
@@ -917,7 +892,6 @@ vips_exif_set_string_utf16( ExifData *ed,
         entry->format = EXIF_FORMAT_BYTE;
 
 	g_free( utf16 ); 
-	g_free( str );
 }
 
 /* Write a tag. Update what's there, or make a new one.
@@ -1183,6 +1157,9 @@ vips_exif_image_field( VipsImage *image,
 	ExifTag tag;
 
 	if( !vips_isprefix( "exif-ifd", field ) ) 
+		return( NULL );
+
+	if( vips_ispostfix( field, "-human" ) )
 		return( NULL );
 
 	/* value must be a string.
