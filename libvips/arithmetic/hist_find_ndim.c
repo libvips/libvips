@@ -330,7 +330,8 @@ vips_hist_find_ndim_init( VipsHistFindNDim *ndim )
  * output is 1 x bins, bins x bins, or bins x bins x bins bands.
  * @bins defaults to 10. 
  *
- * Images are cast to uchar or ushort before histogramming.
+ * char and uchar images are cast to uchar before histogramming, all other
+ * image types are cast to ushort.
  *
  * See also: vips_hist_find(), vips_hist_find_indexed().
  *

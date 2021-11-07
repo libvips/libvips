@@ -486,8 +486,12 @@ vips_hist_find_indexed_init( VipsHistFindIndexed *indexed )
  * words, element zero in @out contains the combination of all the pixels in @in
  * whose corresponding pixel in @index is zero.
  *
- * @index must have just one band and be u8 or u16. @in must be
- * non-complex. @out always has the same size and format as @in.
+ * char and uchar @index images are cast to uchar before histogramming, all 
+ * other image types are cast to ushort. @index must have just one band. 
+ *
+ * @in must be non-complex. 
+ *
+ * @out always has the same size and format as @in.
  *
  * Normally, bins are summed, but you can use @combine to set other combine
  * modes. 

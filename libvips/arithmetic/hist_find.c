@@ -444,7 +444,8 @@ vips_hist_find_init( VipsHistFind *hist_find )
  * one-band histogram), or for all bands (producing an n-band histogram) if 
  * @band is -1. 
  *
- * @in is cast to u8 or u16. @out is always u32.
+ * char and uchar images are cast to uchar before histogramming, all other
+ * image types are cast to ushort.
  *
  * See also: vips_hist_find_ndim(), vips_hist_find_indexed().
  *
