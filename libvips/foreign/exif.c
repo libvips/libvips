@@ -1228,18 +1228,32 @@ vips_exif_exif_entry( ExifEntry *entry, VipsExifRemove *ve )
 {
 	const char *tag_name;
 	char vips_name_txt[256];
-	VipsBuf vips_name = VIPS_BUF_STATIC( vips_name_txt );
+	VipsBuf vips_name_buf = VIPS_BUF_STATIC( vips_name_txt );
+
+	const char *vips_name;
+	const char *vips_value;
 
 	if( !(tag_name = vips_exif_entry_get_name( entry )) )
 		return;
 
-	vips_buf_appendf( &vips_name, "exif-ifd%d-%s", 
+	vips_buf_appendf( &vips_name_buf, "exif-ifd%d-%s", 
 		exif_entry_get_ifd( entry ), tag_name );
+	vips_name = vips_buf_all( &vips_name_buf );
+
+	/* Is there a image metadata item for this tag?
+	 */
+	vips_value = NULL;
+	if( vips_image_get_typeof( ve->image, vips_name ) ) {
+		/* No easy way to return an error code from here, sadly.
+		 */
+		if( vips_image_get_string( ve->image, vips_name, &vips_value ) )
+			g_warning( _( "bad exif meta \"%s\"" ), vips_name );
+	}
 
 	/* Does this field exist on the image? If not, schedule it for
 	 * removal.
 	 */
-	if( !vips_image_get_typeof( ve->image, vips_buf_all( &vips_name ) ) ) 
+	if( !vips_value )
 		ve->to_remove = g_slist_prepend( ve->to_remove, entry );
 
 	/* Orientation is really set from the vips
@@ -1247,16 +1261,29 @@ vips_exif_exif_entry( ExifEntry *entry, VipsExifRemove *ve )
 	 * any matching EXIF tags too.
 	 */
 	if( strcmp( tag_name, "Orientation" ) == 0 &&
-		vips_image_get_typeof( ve->image, VIPS_META_ORIENTATION ) )
+		vips_value )
 		ve->to_remove = g_slist_prepend( ve->to_remove, entry );
 
-	/* If this is a string tag, we must also remove it ready for
-	 * recreation, see the comment below.
+	/* If this is a string tag with a new value, we must also remove it 
+	 * ready for recreation, see the comment below.
 	 */
-	if( tag_is_encoding( entry->tag ) ||
-		tag_is_ascii( entry->tag ) ||
-		tag_is_utf16( entry->tag ) )
-		ve->to_remove = g_slist_prepend( ve->to_remove, entry );
+	if( vips_value &&
+		(tag_is_encoding( entry->tag ) ||
+		 tag_is_ascii( entry->tag ) ||
+		 tag_is_utf16( entry->tag )) ) {
+		char value_txt[256];
+		VipsBuf value = VIPS_BUF_STATIC( value_txt );
+
+		/* Render the original exif-data value to a string and see
+		 * if the user has changed it. If they have, remove it ready
+		 * for re-adding.
+		 *
+		 * Leaving it there prevents it being recreated.
+		 */
+		vips_exif_to_s( ve->ed, entry, &value );
+		if( strcmp( vips_buf_all( &value ), vips_value ) != 0 )
+			ve->to_remove = g_slist_prepend( ve->to_remove, entry );
+	}
 }
 
 static void *
@@ -1305,12 +1332,12 @@ vips_exif_update( ExifData *ed, VipsImage *image )
 	 * the image must have been deliberately removed. Remove them from the
 	 * block as well.
 	 *
-	 * If there are any string-valued fields (eg. comment etc.) which
-	 * exist as libvips metadata tags, we must also remove those from the
-	 * exif block.
+	 * Any string-valued fields (eg. comment etc.) which exist as libvips 
+	 * metadata tags with changed  whose values have changed must also be 
+	 * removed.
 	 *
-	 * libexif does not allow you to change string lengths, you must make
-	 * new tags, so we have to remove ready to re-add.
+	 * libexif does not allow you to change string lengths (you must make
+	 * new tags) so we have to remove ready to re-add.
 	 */
 	if( vips_image_get_typeof( image, VIPS_META_EXIF_NAME ) ) {
 		ve.image = image;
