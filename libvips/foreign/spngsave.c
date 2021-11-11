@@ -1,0 +1,741 @@
+/* save to spng
+ *
+ * 2/12/11
+ * 	- wrap a class around the spng writer
+ * 16/7/12
+ * 	- compression should be 0-9, not 1-10
+ * 20/6/18 [felixbuenemann]
+ * 	- support spng8 palette write with palette, colours, Q, dither
+ * 24/6/20
+ * 	- add @bitdepth, deprecate @colours
+ * 11/11/21
+ * 	- use libspng for save
+ */
+
+/*
+
+    This file is part of VIPS.
+    
+    VIPS is free software; you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+    02110-1301  USA
+
+ */
+
+/*
+
+    These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
+
+ */
+
+/*
+#define DEBUG_VERBOSE
+#define DEBUG
+ */
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /*HAVE_CONFIG_H*/
+#include <vips/intl.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <vips/vips.h>
+
+#include "pforeign.h"
+
+#ifdef HAVE_SPNG
+
+#include <spng.h>
+
+typedef struct _VipsForeignSaveSpng {
+	VipsForeignSave parent_object;
+
+	int compression;
+	gboolean interlace;
+	char *profile;
+	VipsForeignSpngFilter filter;
+	gboolean palette;
+	int Q;
+	double dither;
+	int bitdepth;
+	int effort;
+
+	/* Set by subclasses.
+	 */
+	VipsTarget *target;
+
+	/* Deprecated.
+	 */
+	int colours;
+
+	spng_ctx *ctx;
+} VipsForeignSaveSpng;
+
+typedef VipsForeignSaveClass VipsForeignSaveSpngClass;
+
+G_DEFINE_ABSTRACT_TYPE( VipsForeignSaveSpng, vips_foreign_save_spng, 
+	VIPS_TYPE_FOREIGN_SAVE );
+
+static void
+vips_foreign_save_spng_dispose( GObject *gobject )
+{
+	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) gobject;
+
+	if( spng->target ) 
+		vips_target_finish( spng->target );
+	VIPS_UNREF( spng->target );
+	VIPS_FREEF( spng_ctx_free, spng->ctx );
+
+	G_OBJECT_CLASS( vips_foreign_save_spng_parent_class )->
+		dispose( gobject );
+}
+
+static int 
+vips_foreign_save_spng_write_fn( spng_ctx *ctx, void *user, 
+	void *data, size_t n )
+{
+	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) user;
+
+	if( vips_target_write( spng->target, data, n ) )
+		return( SPNG_IO_ERROR );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_save_spng_write_block( VipsRegion *region, VipsRect *area, 
+	void *user )
+{
+	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) user;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( spng );
+
+	int y;
+	int error;
+
+	/* The area to write is always a set of complete scanlines.
+	 */
+	g_assert( area->left == 0 );
+	g_assert( area->width == region->im->Xsize );
+	g_assert( area->top + area->height <= region->im->Ysize );
+
+	for( y = 0; y < area->height; y++ ) {
+		VipsPel *row = VIPS_REGION_ADDR( region, 0, area->top + y );
+
+		if( (error = spng_encode_row( spng->ctx, row, area->width)) )
+			break;
+	}
+
+	if( error != SPNG_EOI ) {
+		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+static int
+vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in ) 
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( spng );
+
+	int error;
+	struct spng_ihdr ihdr;
+	int fmt;
+	enum spng_encode_flags encode_flags;
+
+	spng->ctx = spng_ctx_new( SPNG_CTX_ENCODER );
+
+	if( (error = spng_set_png_stream( spng->ctx, 
+		vips_foreign_save_spng_write_fn, spng )) ) {
+		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
+		return( -1 );
+	}
+
+#ifdef HAVE_IMAGEQUANT
+	/*
+	if( palette ) {
+		VipsImage *im_index;
+		VipsImage *im_palette;
+		int palette_count;
+		png_color *png_palette;
+		png_byte *png_trans;
+		int trans_count;
+
+		if( vips__quantise_image( in, &im_index, &im_palette, 
+			1 << bitdepth, Q, dither, effort, FALSE ) )
+			return( -1 );
+
+		palette_count = im_palette->Xsize;
+
+		g_assert( palette_count <= PNG_MAX_PALETTE_LENGTH );
+
+		png_palette = (png_color *) png_malloc( write->pPng,
+			palette_count * sizeof( png_color ) );
+		png_trans = (png_byte *) png_malloc( write->pPng,
+			palette_count * sizeof( png_byte ) );
+		trans_count = 0;
+		for( i = 0; i < palette_count; i++ ) {
+			VipsPel *p = (VipsPel *) 
+				VIPS_IMAGE_ADDR( im_palette, i, 0 );
+			png_color *col = &png_palette[i];
+
+			col->red = p[0];
+			col->green = p[1];
+			col->blue = p[2];
+			png_trans[i] = p[3];
+			if( p[3] != 255 )
+				trans_count = i + 1;
+			printf( "write_vips: palette[%d] %d %d %d %d\n",
+				i + 1, p[0], p[1], p[2], p[3] );
+		}
+
+		printf( "write_vips: attaching %d color palette\n",
+			palette_count );
+		png_set_PLTE( write->pPng, write->pInfo, png_palette,
+			palette_count );
+		if( trans_count ) {
+			printf( "write_vips: attaching %d alpha values\n",
+				trans_count );
+			png_set_tRNS( write->pPng, write->pInfo, png_trans,
+				trans_count, NULL );
+		}
+
+		png_free( write->pPng, (void *) png_palette );
+		png_free( write->pPng, (void *) png_trans );
+
+		VIPS_UNREF( im_palette );
+
+		VIPS_UNREF( write->memory );
+		write->memory = im_index;
+		in = write->memory;
+	}
+	 */
+#endif /*HAVE_IMAGEQUANT*/
+
+	ihdr.width = in->Xsize;
+	ihdr.height = in->Ysize;
+	ihdr.bit_depth = 8;
+
+	switch( in->Bands ) {
+	case 1:
+		// FIXME ... add
+		//ihdr.color_type =  SPNG_COLOR_TYPE_INDEXED; 
+		ihdr.color_type = SPNG_COLOR_TYPE_GRAYSCALE;
+		break;
+
+	case 2:
+		ihdr.color_type = SPNG_COLOR_TYPE_GRAYSCALE_ALPHA; 
+		break;
+
+	case 3:
+		ihdr.color_type = SPNG_COLOR_TYPE_TRUECOLOR;
+		break;
+
+	case 4: 
+		ihdr.color_type = SPNG_COLOR_TYPE_GRAYSCALE_ALPHA; 
+		break;
+
+	default:
+		vips_error( class->nickname, "%s", _( "bad bands" ) );
+		return( -1 );
+	}
+
+	ihdr.compression_method = 0;
+	ihdr.filter_method = 0;
+
+	/* Can be 1 to write an interlaced image.
+	 */
+	ihdr.interlace_method = 0;
+
+	if( (error = spng_set_ihdr( spng->ctx, &ihdr )) ) {
+		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
+		return( -1 );
+	}
+
+	/* Metadata
+	if( !strip ) {
+		if( profile ) {
+			VipsBlob *blob;
+
+			if( vips_profile_load( profile, &blob, NULL ) )
+				return( -1 );
+			if( blob ) {
+				size_t length;
+				const void *data 
+					= vips_blob_get( blob, &length );
+
+				printf( "write_vips: attaching %zd bytes "
+					"of ICC profile\n", length );
+
+				png_set_iCCP( write->pPng, write->pInfo, 
+					"icc", PNG_COMPRESSION_TYPE_BASE, 
+					(void *) data, length );
+
+				vips_area_unref( (VipsArea *) blob );
+			}
+		}
+		else if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
+			const void *data;
+			size_t length;
+
+			if( vips_image_get_blob( in, VIPS_META_ICC_NAME,
+				&data, &length ) )
+				return( -1 );
+
+			printf( "write_vips: attaching %zd bytes "
+				"of ICC profile\n", length );
+
+				png_set_iCCP( write->pPng, write->pInfo, "icc",
+					PNG_COMPRESSION_TYPE_BASE, 
+					(void *) data, length );
+			}
+		}
+
+		if( vips_image_get_typeof( in, VIPS_META_XMP_NAME ) ) {
+			const void *data;
+			size_t length;
+			char *str;
+
+			if( vips_image_get_blob( in,
+				VIPS_META_XMP_NAME, &data, &length ) )
+				return( -1 );
+
+			str = g_malloc( length + 1 );
+			vips_strncpy( str, data, length + 1 );
+			vips__png_set_text( write->pPng, write->pInfo,
+				"XML:com.adobe.xmp", str );
+			g_free( str );
+		}
+
+		if( vips_image_map( in,
+			write_png_comment, write ) )
+			return( -1 );
+	}
+	 */
+
+	/* Save options
+	 *
+	 * enum spng_option
+{
+    SPNG_KEEP_UNKNOWN_CHUNKS = 1,
+
+    SPNG_IMG_COMPRESSION_LEVEL,
+    SPNG_IMG_WINDOW_BITS,
+    SPNG_IMG_MEM_LEVEL,
+    SPNG_IMG_COMPRESSION_STRATEGY,
+
+    SPNG_TEXT_COMPRESSION_LEVEL,
+    SPNG_TEXT_WINDOW_BITS,
+    SPNG_TEXT_MEM_LEVEL,
+    SPNG_TEXT_COMPRESSION_STRATEGY,
+
+    SPNG_FILTER_CHOICE,
+    SPNG_CHUNK_COUNT_LIMIT,
+    SPNG_ENCODE_TO_BUFFER,
+};
+
+	spng_set_option( ctx, option, (int) value );
+
+	 */
+
+	/* Set resolution. libpng uses pixels per meter.
+	png_set_pHYs( write->pPng, write->pInfo, 
+		VIPS_RINT( in->Xres * 1000 ), VIPS_RINT( in->Yres * 1000 ), 
+		PNG_RESOLUTION_METER );
+	 */
+
+	/* Set up the palette if color_type == SPNG_COLOR_TYPE_INDEXED
+	 *
+	 *     struct spng_plte plte = {0};
+
+		if(plte.n_entries > 0) spng_set_plte(enc, &plte);
+    	 */
+
+	/* SPNG_FMT_PNG is a special value that matches the format in ihdr 
+	 */
+	fmt = SPNG_FMT_PNG;
+
+	encode_flags = SPNG_ENCODE_FINALIZE | 
+		SPNG_ENCODE_PROGRESSIVE;
+	if( (error = spng_encode_image( spng->ctx, 
+		NULL, -1, fmt, encode_flags )) ) {
+		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
+		return( -1 );
+	}
+
+	/*
+	if( interlace ) {
+		if( !(write->memory = vips_image_copy_memory( in )) )
+			return( -1 );
+		in = write->memory;
+	}
+	 */
+
+	if( vips_sink_disc( in, vips_foreign_save_spng_write_block, spng ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_save_spng_build( VipsObject *object )
+{
+	VipsForeignSave *save = (VipsForeignSave *) object;
+	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) object;
+
+	VipsImage *in;
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_spng_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	in = save->ready;
+	g_object_ref( in );
+
+	/* save->ready will have been converted to uint16 for high-bitdepth
+	 * formats (eg. float) ... we need to check Type to see if we want 
+	 * to save as 8 or 16-bits. Eg. imagine a float image tagged as sRGB.
+	 */
+	if( in->Type == VIPS_INTERPRETATION_sRGB ||
+		in->Type == VIPS_INTERPRETATION_B_W ) {
+		VipsImage *x;
+
+		if( vips_cast( in, &x, VIPS_FORMAT_UCHAR, NULL ) ) {
+			g_object_unref( in );
+			return( -1 );
+		}
+		g_object_unref( in );
+		in = x;
+	}
+
+	/* Deprecated "colours" arg just sets bitdepth large enough to hold
+	 * that many colours.
+	 */
+        if( vips_object_argument_isset( object, "colours" ) ) 
+		spng->bitdepth = ceil( log2( spng->colours ) );
+
+        if( !vips_object_argument_isset( object, "bitdepth" ) ) 
+		spng->bitdepth = in->BandFmt == VIPS_FORMAT_UCHAR ? 8 : 16;
+
+	/* Filtering usually reduces the compression ratio for palette images,
+	 * so default off.
+	 */
+        if( !vips_object_argument_isset( object, "filter" ) &&
+		spng->palette )
+		spng->filter = VIPS_FOREIGN_SPNG_FILTER_NONE;
+
+	/* If this is a RGB or RGBA image and a low bit depth has been
+	 * requested, enable palettization.
+	 */
+        if( in->Bands > 2 &&
+		spng->bitdepth < 8 )
+		spng->palette = TRUE;
+
+	if( vips_foreign_save_spng_write( spng, in ) ) {
+		g_object_unref( in );
+		return( -1 );
+	}
+
+	g_object_unref( in );
+
+	return( 0 );
+}
+
+
+/* Except for 8-bit inputs, we send everything else to 16. We decide on spng8
+ * vs. spng16 based on Type in_build(), see above.
+ */
+#define UC VIPS_FORMAT_UCHAR
+#define US VIPS_FORMAT_USHORT
+static int bandfmt_spng[10] = {
+/* UC  C   US  S   UI  I   F   X   D   DX */
+   UC, UC, US, US, US, US, US, US, US, US
+};
+
+static void
+vips_foreign_save_spng_class_init( VipsForeignSaveSpngClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
+
+	gobject_class->dispose = vips_foreign_save_spng_dispose;
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "spngsave_base";
+	object_class->description = _( "save spng" );
+	object_class->build = vips_foreign_save_spng_build;
+
+	foreign_class->suffs = vips__spng_suffs;
+
+	save_class->saveable = VIPS_SAVEABLE_RGBA;
+	save_class->format_table = bandfmt_spng;
+
+	VIPS_ARG_INT( class, "compression", 6, 
+		_( "Compression" ), 
+		_( "Compression factor" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveSpng, compression ),
+		0, 9, 6 );
+
+	VIPS_ARG_BOOL( class, "interlace", 7, 
+		_( "Interlace" ), 
+		_( "Interlace image" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveSpng, interlace ),
+		FALSE );
+
+	VIPS_ARG_STRING( class, "profile", 11, 
+		_( "Profile" ), 
+		_( "ICC profile to embed" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveSpng, profile ),
+		NULL );
+
+	VIPS_ARG_FLAGS( class, "filter", 12,
+		_( "Filter" ),
+		_( "libspng row filter flag(s)" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveSpng, filter ),
+		VIPS_TYPE_FOREIGN_SPNG_FILTER,
+		VIPS_FOREIGN_SPNG_FILTER_ALL );
+
+	VIPS_ARG_BOOL( class, "palette", 13,
+		_( "Palette" ),
+		_( "Quantise to 8bpp palette" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveSpng, palette ),
+		FALSE );
+
+	VIPS_ARG_INT( class, "Q", 15,
+		_( "Quality" ),
+		_( "Quantisation quality" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveSpng, Q ),
+		0, 100, 100 );
+
+	VIPS_ARG_DOUBLE( class, "dither", 16,
+		_( "Dithering" ),
+		_( "Amount of dithering" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveSpng, dither ),
+		0.0, 1.0, 1.0 );
+
+	VIPS_ARG_INT( class, "bitdepth", 17,
+		_( "Bit depth" ),
+		_( "Write as a 1, 2, 4, 8 or 16 bit image" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveSpng, bitdepth ),
+		0, 16, 0 );
+
+	VIPS_ARG_INT( class, "effort", 18,
+		_( "Effort" ),
+		_( "Quantisation CPU effort" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveSpng, effort ),
+		1, 10, 7 );
+
+	VIPS_ARG_INT( class, "colours", 14,
+		_( "Colours" ),
+		_( "Max number of palette colours" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET( VipsForeignSaveSpng, colours ),
+		2, 256, 256 );
+
+}
+
+static void
+vips_foreign_save_spng_init( VipsForeignSaveSpng *spng )
+{
+	spng->compression = 6;
+	spng->filter = VIPS_FOREIGN_SPNG_FILTER_ALL;
+	spng->Q = 100;
+	spng->dither = 1.0;
+	spng->effort = 7;
+}
+
+typedef struct _VipsForeignSaveSpngTarget {
+	VipsForeignSaveSpng parent_object;
+
+	VipsTarget *target;
+} VipsForeignSaveSpngTarget;
+
+typedef VipsForeignSaveSpngClass VipsForeignSaveSpngTargetClass;
+
+G_DEFINE_TYPE( VipsForeignSaveSpngTarget, vips_foreign_save_spng_target, 
+	vips_foreign_save_spng_get_type() );
+
+static int
+vips_foreign_save_spng_target_build( VipsObject *object )
+{
+	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) object;
+	VipsForeignSaveSpngTarget *target = 
+		(VipsForeignSaveSpngTarget *) object;
+
+	spng->target = target->target;
+	g_object_ref( spng->target );
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_spng_target_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_spng_target_class_init( VipsForeignSaveSpngTargetClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "spngsave_target";
+	object_class->description = _( "save image to target as SPNG" );
+	object_class->build = vips_foreign_save_spng_target_build;
+
+	VIPS_ARG_OBJECT( class, "target", 1,
+		_( "Target" ),
+		_( "Target to save to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveSpngTarget, target ),
+		VIPS_TYPE_TARGET );
+
+}
+
+static void
+vips_foreign_save_spng_target_init( VipsForeignSaveSpngTarget *target )
+{
+}
+
+typedef struct _VipsForeignSaveSpngFile {
+	VipsForeignSaveSpng parent_object;
+
+	char *filename; 
+} VipsForeignSaveSpngFile;
+
+typedef VipsForeignSaveSpngClass VipsForeignSaveSpngFileClass;
+
+G_DEFINE_TYPE( VipsForeignSaveSpngFile, vips_foreign_save_spng_file, 
+	vips_foreign_save_spng_get_type() );
+
+static int
+vips_foreign_save_spng_file_build( VipsObject *object )
+{
+	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) object;
+	VipsForeignSaveSpngFile *file = (VipsForeignSaveSpngFile *) object;
+
+	if( !(spng->target = vips_target_new_to_file( file->filename )) )
+		return( -1 );
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_spng_file_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_spng_file_class_init( VipsForeignSaveSpngFileClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "spngsave";
+	object_class->description = _( "save image to spng file" );
+	object_class->build = vips_foreign_save_spng_file_build;
+
+	VIPS_ARG_STRING( class, "filename", 1, 
+		_( "Filename" ),
+		_( "Filename to save to" ),
+		VIPS_ARGUMENT_REQUIRED_INPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveSpngFile, filename ),
+		NULL );
+}
+
+static void
+vips_foreign_save_spng_file_init( VipsForeignSaveSpngFile *file )
+{
+}
+
+typedef struct _VipsForeignSaveSpngBuffer {
+	VipsForeignSaveSpng parent_object;
+
+	VipsArea *buf;
+} VipsForeignSaveSpngBuffer;
+
+typedef VipsForeignSaveSpngClass VipsForeignSaveSpngBufferClass;
+
+G_DEFINE_TYPE( VipsForeignSaveSpngBuffer, vips_foreign_save_spng_buffer, 
+	vips_foreign_save_spng_get_type() );
+
+static int
+vips_foreign_save_spng_buffer_build( VipsObject *object )
+{
+	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) object;
+	VipsForeignSaveSpngBuffer *buffer = 
+		(VipsForeignSaveSpngBuffer *) object;
+
+	VipsBlob *blob;
+
+	if( !(spng->target = vips_target_new_to_memory()) )
+		return( -1 );
+
+	if( VIPS_OBJECT_CLASS( vips_foreign_save_spng_buffer_parent_class )->
+		build( object ) )
+		return( -1 );
+
+	g_object_get( spng->target, "blob", &blob, NULL );
+	g_object_set( buffer, "buffer", blob, NULL );
+	vips_area_unref( VIPS_AREA( blob ) );
+
+	return( 0 );
+}
+
+static void
+vips_foreign_save_spng_buffer_class_init( VipsForeignSaveSpngBufferClass *class )
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "spngsave_buffer";
+	object_class->description = _( "save image to spng buffer" );
+	object_class->build = vips_foreign_save_spng_buffer_build;
+
+	VIPS_ARG_BOXED( class, "buffer", 1, 
+		_( "Buffer" ),
+		_( "Buffer to save to" ),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT, 
+		G_STRUCT_OFFSET( VipsForeignSaveSpngBuffer, buf ),
+		VIPS_TYPE_BLOB );
+}
+
+static void
+vips_foreign_save_spng_buffer_init( VipsForeignSaveSpngBuffer *buffer )
+{
+}
+
+#endif /*HAVE_SPNG*/
