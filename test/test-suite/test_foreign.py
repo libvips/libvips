@@ -634,8 +634,8 @@ class TestForeign:
         with open(TGA_FILE, 'rb') as f:
             buf = f.read()
         im = pyvips.Image.new_from_buffer(buf, "")
-        assert im.width == 512
-        assert im.height == 512
+        assert im.width == 433
+        assert im.height == 433
 
         # load should see metadata like eg. icc profiles 
         im = pyvips.Image.magickload(JPEG_FILE)
