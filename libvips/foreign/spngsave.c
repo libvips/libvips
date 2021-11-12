@@ -78,11 +78,13 @@ typedef struct _VipsForeignSaveSpng {
 	 */
 	VipsTarget *target;
 
+	spng_ctx *ctx;
+	GSList *text_chunks;
+
 	/* Deprecated.
 	 */
 	int colours;
 
-	spng_ctx *ctx;
 } VipsForeignSaveSpng;
 
 typedef VipsForeignSaveClass VipsForeignSaveSpngClass;
@@ -102,6 +104,93 @@ vips_foreign_save_spng_dispose( GObject *gobject )
 
 	G_OBJECT_CLASS( vips_foreign_save_spng_parent_class )->
 		dispose( gobject );
+}
+
+static int
+vips_foreign_save_spng_text( VipsForeignSaveSpng *spng, 
+	const char *keyword, const char *value )
+{
+	struct spng_text *text = VIPS_NEW( NULL, struct spng_text, 1 );
+
+	vips_strncpy( text->keyword, 80, keyword );
+	/* FIXME ... is this right?
+	 */
+	text->type = SPNG_TEXT;
+	text->length = g_strlen( value );
+	text->text = g_strdup( value );
+
+	spng->text_chunks = g_slist_prepend( text_chunks, text );
+	
+	return( 0 );
+}
+
+static int
+vips_foreign_save_spng_metadata( VipsForeignSaveSpng *spng, VipsImage *in ) 
+{
+	struct spng_iccp iccp;
+
+	if( spng->profile ) {
+		VipsBlob *blob;
+
+		if( vips_profile_load( profile, &blob, NULL ) )
+			return( -1 );
+		if( blob ) {
+			size_t length;
+			const void *data = vips_blob_get( blob, &length );
+			char *basename = g_path_get_basename( spng->profile );
+
+			printf( "write_vips: attaching %zd bytes "
+				"of ICC profile\n", length );
+
+			vips_strncpy( iccp.profile_name, 80, basename );
+			iccp.profile_len = length;
+			iccp.profile = data;
+			spng_set_iccp( png->ctx, &iccp );
+
+			vips_area_unref( (VipsArea *) blob );
+			g_free( basename );
+		}
+	}
+	else if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
+		const void *data;
+		size_t length;
+
+		if( vips_image_get_blob( in, VIPS_META_ICC_NAME,
+			&data, &length ) )
+			return( -1 );
+
+		printf( "write_vips: attaching %zd bytes "
+			"of ICC profile\n", length );
+
+		vips_strncpy( iccp.profile_name, 80, "" );
+		iccp.profile_len = length;
+		iccp.profile = data;
+
+		spng_set_iccp( png->ctx, &iccp );
+	}
+
+	if( vips_image_get_typeof( in, VIPS_META_XMP_NAME ) ) {
+		const void *data;
+		size_t length;
+		char *str;
+		struct spng_text text;
+
+		if( vips_image_get_blob( in,
+			VIPS_META_XMP_NAME, &data, &length ) )
+			return( -1 );
+		}
+
+
+		str = g_malloc( length + 1 );
+		vips_strncpy( str, data, length + 1 );
+		vips_foreign_save_spng_text( spng, "XML:com.adobe.xmp", str );
+		g_free( str );
+	}
+
+	if( vips_image_map( in, vips_foreign_save_spng_comment, spng ) )
+		return( -1 );
+
+	return( 0 );
 }
 
 static int 
@@ -153,9 +242,11 @@ static int
 vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in ) 
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( spng );
+	VipsForeignSave *save = (VipsForeignSave *) spng;
 
 	int error;
 	struct spng_ihdr ihdr;
+	struct spng_phys phys;
 	int fmt;
 	enum spng_encode_flags encode_flags;
 
@@ -268,97 +359,25 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 		return( -1 );
 	}
 
-	/* Metadata
-	if( !strip ) {
-		if( profile ) {
-			VipsBlob *blob;
-
-			if( vips_profile_load( profile, &blob, NULL ) )
-				return( -1 );
-			if( blob ) {
-				size_t length;
-				const void *data 
-					= vips_blob_get( blob, &length );
-
-				printf( "write_vips: attaching %zd bytes "
-					"of ICC profile\n", length );
-
-				png_set_iCCP( write->pPng, write->pInfo, 
-					"icc", PNG_COMPRESSION_TYPE_BASE, 
-					(void *) data, length );
-
-				vips_area_unref( (VipsArea *) blob );
-			}
-		}
-		else if( vips_image_get_typeof( in, VIPS_META_ICC_NAME ) ) {
-			const void *data;
-			size_t length;
-
-			if( vips_image_get_blob( in, VIPS_META_ICC_NAME,
-				&data, &length ) )
-				return( -1 );
-
-			printf( "write_vips: attaching %zd bytes "
-				"of ICC profile\n", length );
-
-				png_set_iCCP( write->pPng, write->pInfo, "icc",
-					PNG_COMPRESSION_TYPE_BASE, 
-					(void *) data, length );
-			}
-		}
-
-		if( vips_image_get_typeof( in, VIPS_META_XMP_NAME ) ) {
-			const void *data;
-			size_t length;
-			char *str;
-
-			if( vips_image_get_blob( in,
-				VIPS_META_XMP_NAME, &data, &length ) )
-				return( -1 );
-
-			str = g_malloc( length + 1 );
-			vips_strncpy( str, data, length + 1 );
-			vips__png_set_text( write->pPng, write->pInfo,
-				"XML:com.adobe.xmp", str );
-			g_free( str );
-		}
-
-		if( vips_image_map( in,
-			write_png_comment, write ) )
-			return( -1 );
-	}
-	 */
-
-	/* Save options
-	 *
-	 * enum spng_option
-{
-    SPNG_KEEP_UNKNOWN_CHUNKS = 1,
-
-    SPNG_IMG_COMPRESSION_LEVEL,
-    SPNG_IMG_WINDOW_BITS,
-    SPNG_IMG_MEM_LEVEL,
-    SPNG_IMG_COMPRESSION_STRATEGY,
-
-    SPNG_TEXT_COMPRESSION_LEVEL,
-    SPNG_TEXT_WINDOW_BITS,
-    SPNG_TEXT_MEM_LEVEL,
-    SPNG_TEXT_COMPRESSION_STRATEGY,
-
-    SPNG_FILTER_CHOICE,
-    SPNG_CHUNK_COUNT_LIMIT,
-    SPNG_ENCODE_TO_BUFFER,
-};
-
-	spng_set_option( ctx, option, (int) value );
-
-	 */
+	spng_set_option( spng->ctx, 
+		SPNG_IMG_COMPRESSION_LEVEL, spng->compression );
+	spng_set_option( spng->ctx, 
+		SPNG_TEXT_COMPRESSION_LEVEL, spng->compression );
+	spng_set_option( spng->ctx, 
+		SPNG_FILTER_CHOICE, spng->filter );
 
 	/* Set resolution. libpng uses pixels per meter.
-	png_set_pHYs( write->pPng, write->pInfo, 
-		VIPS_RINT( in->Xres * 1000 ), VIPS_RINT( in->Yres * 1000 ), 
-		PNG_RESOLUTION_METER );
 	 */
+	phys.unit_specifier = 1;
+	phys.ppu_x = in->Xres * 1000.0;
+	phys.ppu_y = in->Xres * 1000.0;
+	spng_set_phys( spng->ctx, &phys );
+
+	/* Metadata.
+	 */
+	if( !save->strip &&
+		vips_foreign_save_spng_metadata( spng, in ) )
+		return( -1 );
 
 	/* Set up the palette if color_type == SPNG_COLOR_TYPE_INDEXED
 	 *
