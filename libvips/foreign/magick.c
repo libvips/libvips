@@ -63,10 +63,11 @@
  * -----------------------------------------------------------
  * |0x00 | 0-255 idlength, skip                              |
  * |0x01 | 0-1, color map present                            |
- * |0x02 | Any of (0, 1, 2, 3, 9, 10, 11, 32, 33), Image type|
+ * |0x02 | Any of (0, 1, 2, 3, 9, 10, 11), Image type|
  * -----------------------------------------------------------
  *
  * References:
+ * * https://www.dca.fee.unicamp.br/~martino/disciplinas/ea978/tgaffs.pdf
  * * http://www.paulbourke.net/dataformats/tga/
  * * https://en.wikipedia.org/wiki/Truevision_TGA#Technical_details
  */
@@ -81,15 +82,13 @@ magick_sniff( const unsigned char *bytes, size_t length )
 		return( "ICO" );
   if( length >= 18 &&
     (bytes[1] == 0 || bytes[1] == 1) &&
-    bytes[2] == 0  ||
+    bytes[2] && 0b111 < 0b100  ||
     bytes[2] == 1  ||
     bytes[2] == 2  ||
     bytes[2] == 3  ||
     bytes[2] == 9  ||
     bytes[2] == 10 ||
-    bytes[2] == 11 ||
-    bytes[2] == 32 ||
-    bytes[2] == 33) {
+    bytes[2] == 11) {
     return( "TGA" );
   }
 
