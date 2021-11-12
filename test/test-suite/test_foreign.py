@@ -637,6 +637,14 @@ class TestForeign:
         assert im.width == 433
         assert im.height == 433
 
+        # Test SGI/RGB files
+        with open(SGI_FILE, 'rb') as f:
+            buf = f.read()
+        im = pyvips.Image.new_from_buffer(buf, "")
+        assert im.width == 433
+        assert im.height == 433
+        
+
         # load should see metadata like eg. icc profiles 
         im = pyvips.Image.magickload(JPEG_FILE)
         assert len(im.get("icc-profile-data")) == 564
