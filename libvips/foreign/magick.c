@@ -80,6 +80,7 @@ magick_sniff( const unsigned char *bytes, size_t length )
 		bytes[2] == 1 &&
 		bytes[3] == 0 )
 		return( "ICO" );
+  /*
   if( length >= 18 &&
     (bytes[1] == 0 || bytes[1] == 1) &&
     bytes[2] && 0b111 < 0b100  ||
@@ -90,6 +91,7 @@ magick_sniff( const unsigned char *bytes, size_t length )
     bytes[2] == 10 ||
     bytes[2] == 11)
     return( "TGA" );
+    */
 
 	return( NULL );
 }
