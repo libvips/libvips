@@ -88,9 +88,8 @@ magick_sniff( const unsigned char *bytes, size_t length )
     bytes[2] == 3  ||
     bytes[2] == 9  ||
     bytes[2] == 10 ||
-    bytes[2] == 11) {
+    bytes[2] == 11)
     return( "TGA" );
-  }
 
 	return( NULL );
 }
