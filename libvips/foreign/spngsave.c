@@ -67,7 +67,7 @@ typedef struct _VipsForeignSaveSpng {
 	int compression;
 	gboolean interlace;
 	char *profile;
-	VipsForeignSpngFilter filter;
+	VipsForeignPngFilter filter;
 	gboolean palette;
 	int Q;
 	double dither;
@@ -132,14 +132,16 @@ vips_foreign_save_spng_write_block( VipsRegion *region, VipsRect *area,
 	g_assert( area->width == region->im->Xsize );
 	g_assert( area->top + area->height <= region->im->Ysize );
 
-	for( y = 0; y < area->height; y++ ) {
-		VipsPel *row = VIPS_REGION_ADDR( region, 0, area->top + y );
-
-		if( (error = spng_encode_row( spng->ctx, row, area->width)) )
+	for( y = 0; y < area->height; y++ ) 
+		if( (error = spng_encode_row( spng->ctx, 
+			VIPS_REGION_ADDR( region, 0, area->top + y ),
+			VIPS_REGION_SIZEOF_LINE( region ) )) )
 			break;
-	}
 
-	if( error != SPNG_EOI ) {
+	/* You can get SPNG_EOI for the final scanline.
+	 */
+	if( error && 
+		error != SPNG_EOI ) {
 		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
 		return( -1 );
 	}
@@ -436,7 +438,7 @@ vips_foreign_save_spng_build( VipsObject *object )
 	 */
         if( !vips_object_argument_isset( object, "filter" ) &&
 		spng->palette )
-		spng->filter = VIPS_FOREIGN_SPNG_FILTER_NONE;
+		spng->filter = VIPS_FOREIGN_PNG_FILTER_NONE;
 
 	/* If this is a RGB or RGBA image and a low bit depth has been
 	 * requested, enable palettization.
@@ -454,7 +456,6 @@ vips_foreign_save_spng_build( VipsObject *object )
 
 	return( 0 );
 }
-
 
 /* Except for 8-bit inputs, we send everything else to 16. We decide on spng8
  * vs. spng16 based on Type in_build(), see above.
@@ -482,7 +483,7 @@ vips_foreign_save_spng_class_init( VipsForeignSaveSpngClass *class )
 	object_class->description = _( "save spng" );
 	object_class->build = vips_foreign_save_spng_build;
 
-	foreign_class->suffs = vips__spng_suffs;
+	foreign_class->suffs = vips__png_suffs;
 
 	save_class->saveable = VIPS_SAVEABLE_RGBA;
 	save_class->format_table = bandfmt_spng;
@@ -513,8 +514,8 @@ vips_foreign_save_spng_class_init( VipsForeignSaveSpngClass *class )
 		_( "libspng row filter flag(s)" ),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveSpng, filter ),
-		VIPS_TYPE_FOREIGN_SPNG_FILTER,
-		VIPS_FOREIGN_SPNG_FILTER_ALL );
+		VIPS_TYPE_FOREIGN_PNG_FILTER,
+		VIPS_FOREIGN_PNG_FILTER_ALL );
 
 	VIPS_ARG_BOOL( class, "palette", 13,
 		_( "Palette" ),
@@ -564,7 +565,7 @@ static void
 vips_foreign_save_spng_init( VipsForeignSaveSpng *spng )
 {
 	spng->compression = 6;
-	spng->filter = VIPS_FOREIGN_SPNG_FILTER_ALL;
+	spng->filter = VIPS_FOREIGN_PNG_FILTER_ALL;
 	spng->Q = 100;
 	spng->dither = 1.0;
 	spng->effort = 7;

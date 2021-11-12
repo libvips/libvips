@@ -1305,10 +1305,13 @@ VIPS_CFLAGS="$VIPS_CFLAGS $SPNG_CFLAGS"
 VIPS_LIBS="$VIPS_LIBS $SPNG_LIBS"
 
 # look for PNG with pkg-config ... fall back to our tester
-# we can have both PNG and SPNG enabled, with SPNG for read and PNG for
-# write
 AC_ARG_WITH([png], 
   AS_HELP_STRING([--without-png], [build without libpng (default: test)]))
+
+# if spng is found, we don't need libpng
+if test x"$with_libspng" = x"yes"; then
+  with_png=no
+fi
 
 if test x"$with_png" != x"no"; then
   PKG_CHECK_MODULES(PNG, libpng >= 1.2.9, 
@@ -1594,7 +1597,7 @@ JPEG load/save with libjpeg:            $with_jpeg
 JXL load/save with libjxl:              $with_libjxl (dynamic module: $with_libjxl_module)
 JPEG2000 load/save with libopenjp2:     $with_libopenjp2
  (requires libopenjp2 2.4 or later)
-PNG load with libspng:                  $with_libspng
+PNG load/save with libspng:             $with_libspng
  (requires spng 0.7 or later)
 PNG load/save with libpng:              $with_png
  (requires libpng-1.2.9 or later)

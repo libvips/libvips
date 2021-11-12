@@ -122,8 +122,6 @@
 #endif /*HAVE_CONFIG_H*/
 #include <vips/intl.h>
 
-#ifdef HAVE_PNG
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -133,6 +131,12 @@
 #include <vips/debug.h>
 
 #include "pforeign.h"
+
+/* Shared with spng load/save.
+ */
+const char *vips__png_suffs[] = { ".png", NULL };
+
+#ifdef HAVE_PNG
 
 #include <png.h>
 
@@ -164,8 +168,6 @@ user_warning_function( png_structp png_ptr, png_const_charp warning_msg )
 
 	g_warning( "%s", warning_msg );
 }
-
-#ifndef HAVE_SPNG
 
 #define INPUT_BUFFER_SIZE (4096)
 
@@ -632,7 +634,7 @@ png2vips_header( Read *read, VipsImage *out )
 				array, n );
 	}
 }
-#endif
+#endif /*PNG_bKGD_SUPPORTED*/
 
 	return( 0 );
 }
@@ -841,10 +843,6 @@ vips__png_isinterlaced_source( VipsSource *source )
 
 	return( interlace_type != PNG_INTERLACE_NONE );
 }
-
-#endif /*!defined(HAVE_SPNG)*/
-
-const char *vips__png_suffs[] = { ".png", NULL };
 
 /* What we track during a PNG write.
  */

@@ -2812,6 +2812,10 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_save_png_buffer_get_type( void ); 
 	extern GType vips_foreign_save_png_target_get_type( void ); 
 
+	extern GType vips_foreign_save_spng_file_get_type( void ); 
+	extern GType vips_foreign_save_spng_buffer_get_type( void ); 
+	extern GType vips_foreign_save_spng_target_get_type( void ); 
+
 	extern GType vips_foreign_load_csv_file_get_type( void ); 
 	extern GType vips_foreign_load_csv_source_get_type( void ); 
 	extern GType vips_foreign_save_csv_file_get_type( void ); 
@@ -3027,6 +3031,9 @@ vips_foreign_operation_init( void )
 	vips_foreign_load_png_file_get_type(); 
 	vips_foreign_load_png_buffer_get_type(); 
 	vips_foreign_load_png_source_get_type(); 
+	vips_foreign_save_spng_file_get_type(); 
+	vips_foreign_save_spng_buffer_get_type(); 
+	vips_foreign_save_spng_target_get_type(); 
 #endif /*HAVE_SPNG*/
 
 #ifdef HAVE_MATIO

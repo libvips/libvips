@@ -36,6 +36,7 @@ libforeign_la_SOURCES = \
 	pdfiumload.c \
 	pforeign.h \
 	pngload.c \
+	spngsave.c \
 	pngsave.c \
 	ppmload.c \
 	ppmsave.c \
