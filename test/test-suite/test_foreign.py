@@ -10,7 +10,7 @@ from helpers import \
     JPEG_FILE, SRGB_FILE, MATLAB_FILE, PNG_FILE, TIF_FILE, OME_FILE, \
     ANALYZE_FILE, GIF_FILE, WEBP_FILE, EXR_FILE, FITS_FILE, OPENSLIDE_FILE, \
     PDF_FILE, SVG_FILE, SVGZ_FILE, SVG_GZ_FILE, GIF_ANIM_FILE, DICOM_FILE, \
-    BMP_FILE, NIFTI_FILE, ICO_FILE, AVIF_FILE, TRUNCATED_FILE, \
+    BMP_FILE, NIFTI_FILE, ICO_FILE, TGA_FILE, AVIF_FILE, TRUNCATED_FILE, \
     GIF_ANIM_EXPECTED_PNG_FILE, GIF_ANIM_DISPOSE_BACKGROUND_FILE, \
     GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE, \
     GIF_ANIM_DISPOSE_PREVIOUS_FILE, \
@@ -629,6 +629,13 @@ class TestForeign:
         im = pyvips.Image.new_from_buffer(buf, "")
         assert im.width == 16
         assert im.height == 16
+
+        # libvips has its own sniffer for TGA, test that
+        with open(TGA_FILE, 'rb') as f:
+            buf = f.read()
+        im = pyvips.Image.new_from_buffer(buf, "")
+        assert im.width == 512
+        assert im.height == 512
 
         # load should see metadata like eg. icc profiles 
         im = pyvips.Image.magickload(JPEG_FILE)
