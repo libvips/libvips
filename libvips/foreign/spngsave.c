@@ -97,10 +97,20 @@ vips_foreign_save_spng_dispose( GObject *gobject )
 {
 	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) gobject;
 
+	GSList *p;
+
 	if( spng->target ) 
 		vips_target_finish( spng->target );
 	VIPS_UNREF( spng->target );
 	VIPS_FREEF( spng_ctx_free, spng->ctx );
+
+	for( p = spng->text_chunks; p; p = p->next ) {
+		struct spng_text *text = (struct spng_text *) p->data;
+
+		VIPS_FREE( text->text );
+		VIPS_FREE( text );
+	}
+	VIPS_FREEF( g_slist_free, spng->text_chunks );
 
 	G_OBJECT_CLASS( vips_foreign_save_spng_parent_class )->
 		dispose( gobject );
@@ -110,29 +120,60 @@ static int
 vips_foreign_save_spng_text( VipsForeignSaveSpng *spng, 
 	const char *keyword, const char *value )
 {
-	struct spng_text *text = VIPS_NEW( NULL, struct spng_text, 1 );
+	struct spng_text *text = VIPS_NEW( NULL, struct spng_text );
 
-	vips_strncpy( text->keyword, 80, keyword );
+	vips_strncpy( text->keyword, keyword, sizeof( text->keyword ) );
 	/* FIXME ... is this right?
 	 */
 	text->type = SPNG_TEXT;
-	text->length = g_strlen( value );
+	text->length = strlen( value );
 	text->text = g_strdup( value );
 
-	spng->text_chunks = g_slist_prepend( text_chunks, text );
+	spng->text_chunks = g_slist_prepend( spng->text_chunks, text );
 	
 	return( 0 );
+}
+
+static void *
+vips_foreign_save_spng_comment( VipsImage *image, 
+	const char *field, GValue *value, void *user_data )
+{
+	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) user_data;
+
+	if( vips_isprefix( "png-comment-", field ) ) { 
+		const char *value;
+		int i;
+		char key[256];
+
+		if( vips_image_get_string( image, field, &value ) )
+			return( image );
+
+		if( strlen( field ) > 256 ||
+			sscanf( field, "png-comment-%d-%80s", &i, key ) != 2 ) {
+			vips_error( "vips2png", 
+				"%s", _( "bad png comment key" ) );
+			return( image );
+		}
+
+		vips_foreign_save_spng_text( spng, key, value );
+	}
+
+	return( NULL );
 }
 
 static int
 vips_foreign_save_spng_metadata( VipsForeignSaveSpng *spng, VipsImage *in ) 
 {
 	struct spng_iccp iccp;
+	uint32_t n_text;
+	struct spng_text *text_chunk_array;
+	int i;
+	GSList *p;
 
 	if( spng->profile ) {
 		VipsBlob *blob;
 
-		if( vips_profile_load( profile, &blob, NULL ) )
+		if( vips_profile_load( spng->profile, &blob, NULL ) )
 			return( -1 );
 		if( blob ) {
 			size_t length;
@@ -142,10 +183,11 @@ vips_foreign_save_spng_metadata( VipsForeignSaveSpng *spng, VipsImage *in )
 			printf( "write_vips: attaching %zd bytes "
 				"of ICC profile\n", length );
 
-			vips_strncpy( iccp.profile_name, 80, basename );
+			vips_strncpy( iccp.profile_name, basename, 
+				sizeof( iccp.profile_name ) );
 			iccp.profile_len = length;
-			iccp.profile = data;
-			spng_set_iccp( png->ctx, &iccp );
+			iccp.profile = (void *) data;
+			spng_set_iccp( spng->ctx, &iccp );
 
 			vips_area_unref( (VipsArea *) blob );
 			g_free( basename );
@@ -162,25 +204,27 @@ vips_foreign_save_spng_metadata( VipsForeignSaveSpng *spng, VipsImage *in )
 		printf( "write_vips: attaching %zd bytes "
 			"of ICC profile\n", length );
 
-		vips_strncpy( iccp.profile_name, 80, "" );
+		vips_strncpy( iccp.profile_name, "", 
+			sizeof( iccp.profile_name ) );
 		iccp.profile_len = length;
-		iccp.profile = data;
+		iccp.profile = (void *) data;
 
-		spng_set_iccp( png->ctx, &iccp );
+		spng_set_iccp( spng->ctx, &iccp );
 	}
 
 	if( vips_image_get_typeof( in, VIPS_META_XMP_NAME ) ) {
 		const void *data;
 		size_t length;
 		char *str;
-		struct spng_text text;
 
 		if( vips_image_get_blob( in,
 			VIPS_META_XMP_NAME, &data, &length ) )
 			return( -1 );
-		}
 
-
+		/* The blob form of the XMP metadata is missing the
+		 * terminating \0 bytes, we have to paste it back,
+		 * unfortunately. See pngload.
+		 */
 		str = g_malloc( length + 1 );
 		vips_strncpy( str, data, length + 1 );
 		vips_foreign_save_spng_text( spng, "XML:com.adobe.xmp", str );
@@ -189,6 +233,17 @@ vips_foreign_save_spng_metadata( VipsForeignSaveSpng *spng, VipsImage *in )
 
 	if( vips_image_map( in, vips_foreign_save_spng_comment, spng ) )
 		return( -1 );
+
+	n_text = g_slist_length( spng->text_chunks );
+	text_chunk_array = VIPS_ARRAY( NULL, n_text, struct spng_text );
+	for( i = 0, p = spng->text_chunks; p; p = p->next, i++ ) {
+		struct spng_text *text = (struct spng_text *) p->data;
+
+		text_chunk_array[i] = *text;
+	}
+	printf( "attaching %u text items\n", n_text );
+	spng_set_text( spng->ctx, text_chunk_array, n_text );
+	VIPS_FREE( text_chunk_array );
 
 	return( 0 );
 }
@@ -627,8 +682,8 @@ vips_foreign_save_spng_target_class_init( VipsForeignSaveSpngTargetClass *class 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "spngsave_target";
-	object_class->description = _( "save image to target as SPNG" );
+	object_class->nickname = "pngsave_target";
+	object_class->description = _( "save image to target as PNG" );
 	object_class->build = vips_foreign_save_spng_target_build;
 
 	VIPS_ARG_OBJECT( class, "target", 1,
@@ -681,8 +736,8 @@ vips_foreign_save_spng_file_class_init( VipsForeignSaveSpngFileClass *class )
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "spngsave";
-	object_class->description = _( "save image to spng file" );
+	object_class->nickname = "pngsave";
+	object_class->description = _( "save image to files as PNG" );
 	object_class->build = vips_foreign_save_spng_file_build;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
@@ -741,8 +796,8 @@ vips_foreign_save_spng_buffer_class_init( VipsForeignSaveSpngBufferClass *class 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
-	object_class->nickname = "spngsave_buffer";
-	object_class->description = _( "save image to spng buffer" );
+	object_class->nickname = "pngsave_buffer";
+	object_class->description = _( "save image to buffer as PNG" );
 	object_class->build = vips_foreign_save_spng_buffer_build;
 
 	VIPS_ARG_BOXED( class, "buffer", 1, 
