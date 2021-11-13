@@ -80,6 +80,7 @@ typedef struct _VipsForeignSaveSpng {
 
 	spng_ctx *ctx;
 	GSList *text_chunks;
+	VipsImage *memory;
 
 	/* Deprecated.
 	 */
@@ -102,6 +103,7 @@ vips_foreign_save_spng_dispose( GObject *gobject )
 	if( spng->target ) 
 		vips_target_finish( spng->target );
 	VIPS_UNREF( spng->target );
+	VIPS_UNREF( spng->memory );
 	VIPS_FREEF( spng_ctx_free, spng->ctx );
 
 	for( p = spng->text_chunks; p; p = p->next ) {
@@ -404,11 +406,7 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 
 	ihdr.compression_method = 0;
 	ihdr.filter_method = 0;
-
-	/* Can be 1 to write an interlaced image.
-	 */
-	ihdr.interlace_method = 0;
-
+	ihdr.interlace_method = spng->interlace ? 1 : 0;
 	if( (error = spng_set_ihdr( spng->ctx, &ihdr )) ) {
 		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
 		return( -1 );
@@ -444,25 +442,43 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 	/* SPNG_FMT_PNG is a special value that matches the format in ihdr 
 	 */
 	fmt = SPNG_FMT_PNG;
-
-	encode_flags = SPNG_ENCODE_FINALIZE | 
-		SPNG_ENCODE_PROGRESSIVE;
+	encode_flags = SPNG_ENCODE_PROGRESSIVE;
 	if( (error = spng_encode_image( spng->ctx, 
 		NULL, -1, fmt, encode_flags )) ) {
 		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
 		return( -1 );
 	}
 
-	/*
-	if( interlace ) {
-		if( !(write->memory = vips_image_copy_memory( in )) )
+	if( spng->interlace ) {
+		if( !(spng->memory = vips_image_copy_memory( in )) )
 			return( -1 );
-		in = write->memory;
-	}
-	 */
+		in = spng->memory;
 
-	if( vips_sink_disc( in, vips_foreign_save_spng_write_block, spng ) )
-		return( -1 );
+		do {
+			struct spng_row_info row_info;
+
+			if( (error = 
+				spng_get_row_info( spng->ctx, &row_info )) )
+				break;
+
+			error = spng_encode_row( spng->ctx, 
+				VIPS_IMAGE_ADDR( in, 0, row_info.row_num ),
+				VIPS_IMAGE_SIZEOF_LINE( in ) );
+		} while( !error );
+
+		if( error != SPNG_EOI ) {
+			vips_error( class->nickname, 
+				"%s", spng_strerror( error ) ); 
+			return( -1 );
+		}
+	}
+	else {
+		if( vips_sink_disc( in, 
+			vips_foreign_save_spng_write_block, spng ) )
+			return( -1 );
+	}
+
+	vips_target_finish( spng->target );
 
 	return( 0 );
 }
