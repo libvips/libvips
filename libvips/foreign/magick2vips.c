@@ -64,6 +64,8 @@
  * 	- added wrapper funcs for exception handling
  * 4/2/19
  * 	- add profile (xmp, ipct, etc.) read
+ * 12/11/21
+ * 	- set "orientation"
  */
 
 /*
@@ -540,6 +542,9 @@ parse_header( Read *read )
 	}
 
 	vips_image_set_int( im, VIPS_META_N_PAGES, read->n_pages );
+
+	vips_image_set_int( im, VIPS_META_ORIENTATION, 
+		VIPS_CLIP( 1, image->orientation, 8 ) );
 
 	return( 0 );
 }
