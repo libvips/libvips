@@ -11,6 +11,8 @@
  * 	- add support for writing string-valued fields
  * 9/7/18 [@Nan619]
  * 	- get tag name from tag plus ifd 
+ * 13/11/21
+ * 	- better handling of strings with embedded metacharacters
  */
 
 /*

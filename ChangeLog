@@ -20,6 +20,7 @@
 - add hyperbolic functions sinh, cosh, tanh, asinh, acosh, atanh [hroskes]
 - add untiled jp2k load
 - "insert" will minimise in seq mode
+- better EXIF string handling [lovell]
 
 16/8/21 started 8.11.4
 - fix off-by-one error in new rank fast path
