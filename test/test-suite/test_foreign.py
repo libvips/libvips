@@ -269,7 +269,7 @@ class TestForeign:
             # format area at the end
             assert y.startswith("hello world")
 
-    @skip_if_no("jpegload")
+    @skip_if_no("jpegsave")
     def test_jpegsave(self):
         im = pyvips.Image.new_from_file(JPEG_FILE)
 
@@ -308,6 +308,40 @@ class TestForeign:
         im10 = pyvips.Image.jpegload_buffer(r10)
         assert im0.avg() == im10.avg()
 
+    @skip_if_no("jpegsave")
+    def test_jpegsave_exif(self):
+        def exif_valid(im):
+            assert im.get("exif-ifd2-UserComment").find("Undefined, 21 components, 21 bytes") != -1
+            assert im.get("exif-ifd0-Software").find("ASCII, 14 components, 14 bytes") != -1
+            assert im.get("exif-ifd0-XPComment").find("Byte, 28 components, 28 bytes") != -1
+
+        def exif_removed(im):
+            assert im.get_typeof("exif-ifd2-UserComment") == 0
+            assert im.get_typeof("exif-ifd0-Software") == 0
+            assert im.get_typeof("exif-ifd0-XPComment") == 0
+
+        # first make sure we have exif support
+        im = pyvips.Image.new_from_file(JPEG_FILE)
+        if im.get_typeof("exif-ifd0-Orientation") != 0:
+            x = im.copy()
+            x.set_type(pyvips.GValue.gstr_type, "exif-ifd2-UserComment", "hello ( there") # tag_is_encoding
+            x.set_type(pyvips.GValue.gstr_type, "exif-ifd0-Software", "hello ( there")    # tag_is_ascii
+            x.set_type(pyvips.GValue.gstr_type, "exif-ifd0-XPComment", "hello ( there")   # tag_is_utf16
+            buf = x.jpegsave_buffer()
+            y = pyvips.Image.new_from_buffer(buf, "")
+            exif_valid(y)
+            # Reproduce https://github.com/libvips/libvips/issues/2388
+            buf = y.jpegsave_buffer()
+            z = pyvips.Image.new_from_buffer(buf, "")
+            exif_valid(z)
+            # Try whether we can remove EXIF, just to be sure
+            z = z.copy()
+            z.remove("exif-ifd2-UserComment")
+            z.remove("exif-ifd0-Software")
+            z.remove("exif-ifd0-XPComment")
+            buf = z.jpegsave_buffer()
+            im = pyvips.Image.new_from_buffer(buf, "")
+            exif_removed(im)
 
     @skip_if_no("jpegload")
     def test_truncated(self):

@@ -559,8 +559,6 @@ class TestArithmetic:
             reason='your pyvips is too old')
     def test_atan2(self):
         def my_atan2(x, y):
-            print(f"my_atan2: x = {x}, y = {y}")
-
             if isinstance(x, pyvips.Image):
                 return x.atan2(y)
             else:
