@@ -52,12 +52,25 @@
 
 #if defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)
 
-/* ImageMagick can't detect some formats, like ICO, by examining the contents --
- * ico.c simply does not have a recogniser.
+/* ImageMagick can't detect some formats, like ICO and TGA, by examining the 
+ * contents -- ico.c and tga.c simply do not have recognisers.
  *
  * For these formats, do the detection ourselves.
- *
  * Return an IM format specifier, or NULL to let IM do the detection.
+ *
+ * For sniffing TGAs, we check that there is at least enough room for the 
+ * header and that the preamble contains valid values:
+ *
+ * -----------------------------------------------------------
+ * |0x00 | 0-255 idlength, skip                              |
+ * |0x01 | 0-1, color map present                            |
+ * |0x02 | Any of (0, 1, 2, 3, 9, 10, 11), Image type        |
+ * -----------------------------------------------------------
+ *
+ * References:
+ * * https://www.dca.fee.unicamp.br/~martino/disciplinas/ea978/tgaffs.pdf
+ * * http://www.paulbourke.net/dataformats/tga/
+ * * https://en.wikipedia.org/wiki/Truevision_TGA#Technical_details
  */
 static const char *
 magick_sniff( const unsigned char *bytes, size_t length )
@@ -68,6 +81,18 @@ magick_sniff( const unsigned char *bytes, size_t length )
 		bytes[2] == 1 &&
 		bytes[3] == 0 )
 		return( "ICO" );
+
+	if( length >= 18 &&
+		(bytes[1] == 0 || 
+		 bytes[1] == 1) &&
+		(bytes[2] == 0 ||
+		 bytes[2] == 1 ||
+		 bytes[2] == 2 ||
+		 bytes[2] == 3 ||
+		 bytes[2] == 9 ||
+		 bytes[2] == 10 ||
+		 bytes[2] == 11) )
+		return( "TGA" );
 
 	return( NULL );
 }
