@@ -40,9 +40,9 @@
  */
 
 /*
- */
 #define DEBUG_VERBOSE
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -310,6 +310,8 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 	int error;
 	struct spng_ihdr ihdr;
 	struct spng_phys phys;
+	struct spng_plte plte = { 0 };
+	struct spng_trns trns = { 0 };
 	int fmt;
 	enum spng_encode_flags encode_flags;
 
@@ -320,6 +322,58 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
 		return( -1 );
 	}
+
+#ifdef HAVE_IMAGEQUANT
+	if( spng->palette ) {
+		VipsImage *im_index;
+		VipsImage *im_palette;
+		int palette_count;
+		int i;
+
+		if( vips__quantise_image( in, &im_index, &im_palette, 
+			1 << spng->bitdepth, 
+			spng->Q, 
+			spng->dither, 
+			spng->effort, 
+			FALSE ) )
+			return( -1 );
+
+		/* spng is 8-bit palettes only.
+		 */
+		palette_count = im_palette->Xsize;
+		g_assert( palette_count <= 256 );
+
+		for( i = 0; i < palette_count; i++ ) {
+			VipsPel *p = (VipsPel *) 
+				VIPS_IMAGE_ADDR( im_palette, i, 0 );
+
+			if( p[3] == 255 ) {
+				struct spng_plte_entry *entry = 
+					&plte.entries[plte.n_entries];
+
+				entry->red = p[0];
+				entry->green = p[1];
+				entry->blue = p[2];
+				plte.n_entries += 1;
+			}
+			else {
+				trns.type3_alpha[trns.n_type3_entries] = p[3];
+				trns.n_type3_entries += 1;
+			}
+		}
+
+#ifdef DEBUG
+		printf( "attaching %d entry palette\n", plte.n_entries );
+		if( trns.n_type3_entries )
+			printf( "attaching %d transparency values\n", 
+			     trns.n_type3_entries );
+#endif /*DEBUG*/
+
+		VIPS_UNREF( im_palette );
+
+		in = spng->memory = im_index;
+	}
+#endif /*HAVE_IMAGEQUANT*/
 
 	ihdr.width = in->Xsize;
 	ihdr.height = in->Ysize;
@@ -380,59 +434,9 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 
 #ifdef HAVE_IMAGEQUANT
 	if( spng->palette ) {
-		VipsImage *im_index;
-		VipsImage *im_palette;
-		int palette_count;
-		struct spng_plte plte = { 0 };
-		struct spng_trns trns = { 0 };
-		int i;
-
-		if( vips__quantise_image( in, &im_index, &im_palette, 
-			1 << spng->bitdepth, 
-			spng->Q, 
-			spng->dither, 
-			spng->effort, 
-			FALSE ) )
-			return( -1 );
-
-		/* spng is 8-bit palettes only.
-		 */
-		palette_count = im_palette->Xsize;
-		g_assert( palette_count <= 256 );
-
-		for( i = 0; i < palette_count; i++ ) {
-			VipsPel *p = (VipsPel *) 
-				VIPS_IMAGE_ADDR( im_palette, i, 0 );
-
-			if( p[3] == 255 ) {
-				struct spng_plte_entry *entry = 
-					&plte.entries[plte.n_entries];
-
-				entry->red = p[0];
-				entry->green = p[1];
-				entry->blue = p[2];
-				plte.n_entries += 1;
-			}
-			else {
-				trns.type3_alpha[trns.n_type3_entries] = p[3];
-				trns.n_type3_entries += 1;
-			}
-		}
-
-#ifdef DEBUG
-		printf( "attaching %d entry palette\n", plte.n_entries );
-		if( trns.n_type3_entries )
-			printf( "attaching %d transparency values\n", 
-			     trns.n_type3_entries );
-#endif /*DEBUG*/
-		
 		spng_set_plte( spng->ctx, &plte );
 		if( trns.n_type3_entries ) 
 			spng_set_trns( spng->ctx, &trns );
-
-		VIPS_UNREF( im_palette );
-
-		in = spng->memory = im_index;
 	}
 #endif /*HAVE_IMAGEQUANT*/
 
