@@ -12,10 +12,10 @@
 - tiff writer loops for the whole image rather than per page [LionelArn2]
 - fix VipsSource with named pipes [vibbix]
 - added restart_interval option to jpegsave [manthey]
-- add IIIF3 support to dzsaave [martimpassos]
+- add IIIF3 support to dzsave [martimpassos]
 - add atan2 to math2 [indus]
 - improve buffer and target save file format selection
-- added VipsForeignPpmFormat, @format arg to ppm savers
+- added VipsForeignPpmFormat, format arg to ppm savers
 - add fail-on to give better control over loader error sensitivity
 - add hyperbolic functions sinh, cosh, tanh, asinh, acosh, atanh [hroskes]
 - add untiled jp2k load
