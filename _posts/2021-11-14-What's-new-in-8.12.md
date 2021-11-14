@@ -162,7 +162,7 @@ The saving in file descriptors is even better: it peaks at under 600. That's
 low enough to be well inside the limit on most machines, so you'll no longer
 need to reconfigure your server to do operations like this.
 
-This ia quite a general system, and operations like `insert`, `join` and
+This is quite a general system, and operations like `insert`, `join` and
 `merge` all benefit.
 
 # Other improvements to loaders and savers
@@ -172,7 +172,7 @@ As usual, there have been many small improvements to file format support.
 - The TIFF writer has better progress feedback for many-page images.
 - The JPEG writer has a new option to set the restart interval.
 - `dzsave` now supports IIIF3.
-- The PPM writer has an option to set the exact save format, abnd is better at
+- The PPM writer has an option to set the exact save format, and is better at
   picking the correct format for you automatically.
 - The jpeg2000 loader is much better with very large, untiled images.
 - EXIF support is fixed for string fields containing metacharacters.
@@ -180,7 +180,7 @@ As usual, there have been many small improvements to file format support.
   can spot image truncation easily now.
 - Target save is better at picking the write format automatically. 
 
-# More trig functions
+# More trigonometric functions
 
 Thanks to work by indus and hroskes, libvips now supports `atan2` and has
 a full set of hyperbolic trig functions.
