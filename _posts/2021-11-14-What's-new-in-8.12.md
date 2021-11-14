@@ -35,8 +35,8 @@ $ /usr/bin/time -f %M:%e vipsthumbnail 3198.gif[n=-1] --size 128 -o x.gif
 46128:2.40
 ```
 
-So now it's 46MB and 2.4s -- twice the speed and five times
-less memory use. Thanks to libimagequant, quality should be better too:
+Now it's 46MB and 2.4s -- twice the speed and five times
+less memory. Thanks to libimagequant, quality should be better too:
 it'll pick a more optimised palette, and dithering should be more accurate.
 
 # Much lower memory and file descriptor use for join operations
@@ -120,7 +120,7 @@ $ /usr/bin/time -f %M:%e ~/try/untile-google.py x x.jpg
 ```
 
 So libvips 8.11 joined 12,154 tiles in 15s and needed 4.5GB of memory. This
-is quite a substantial amount of memory.
+is quite a substantial amount of RAM.
 
 There's another, less obvious problem: this program will need a file
 descriptor for every tile. You can see this with a small shell script:
