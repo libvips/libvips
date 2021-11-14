@@ -637,7 +637,8 @@ class TestForeign:
         assert im.width == 433
         assert im.height == 433
 
-        # Test SGI/RGB files
+        # Test SGI/RGB files to sanity check that sniffers 
+        # aren't too broad
         with open(SGI_FILE, 'rb') as f:
             buf = f.read()
         im = pyvips.Image.new_from_buffer(buf, "")
