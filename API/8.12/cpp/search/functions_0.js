@@ -1,13 +1,17 @@
 var searchData=
 [
-  ['abs_416',['abs',['../classVImage.html#a8510a636ee4e3f8690eabbe40bf63f48',1,'VImage']]],
-  ['acos_417',['acos',['../classVImage.html#aba571aa436767ad7f585ba326b75df3b',1,'VImage']]],
-  ['add_418',['add',['../classVImage.html#aee4d988b575fcde0561536a8263a0fa1',1,'VImage']]],
-  ['affine_419',['affine',['../classVImage.html#aea252649119a06242ad5a2fe673b8738',1,'VImage']]],
-  ['analyzeload_420',['analyzeload',['../classVImage.html#a9500c4045227b6c05daabec7e53b97fc',1,'VImage']]],
-  ['arrayjoin_421',['arrayjoin',['../classVImage.html#a8fa20a480add8a0a6db87ca777d8eb7d',1,'VImage']]],
-  ['asin_422',['asin',['../classVImage.html#a837bd5b23cac8816dd5d7758963e6a37',1,'VImage']]],
-  ['atan_423',['atan',['../classVImage.html#a8544dbbce2ade6d39030c81b509d4a6f',1,'VImage']]],
-  ['autorot_424',['autorot',['../classVImage.html#a16ab3cab075bf0e8509bb4d95984937d',1,'VImage']]],
-  ['avg_425',['avg',['../classVImage.html#a6fd305bd8c7e6111bacc7a2da0ef4856',1,'VImage']]]
+  ['abs_423',['abs',['../classVImage.html#a8510a636ee4e3f8690eabbe40bf63f48',1,'VImage']]],
+  ['acos_424',['acos',['../classVImage.html#aba571aa436767ad7f585ba326b75df3b',1,'VImage']]],
+  ['acosh_425',['acosh',['../classVImage.html#a1d5668f26e048fa969eea851a568c0bf',1,'VImage']]],
+  ['add_426',['add',['../classVImage.html#aee4d988b575fcde0561536a8263a0fa1',1,'VImage']]],
+  ['affine_427',['affine',['../classVImage.html#aea252649119a06242ad5a2fe673b8738',1,'VImage']]],
+  ['analyzeload_428',['analyzeload',['../classVImage.html#a9500c4045227b6c05daabec7e53b97fc',1,'VImage']]],
+  ['arrayjoin_429',['arrayjoin',['../classVImage.html#a8fa20a480add8a0a6db87ca777d8eb7d',1,'VImage']]],
+  ['asin_430',['asin',['../classVImage.html#a837bd5b23cac8816dd5d7758963e6a37',1,'VImage']]],
+  ['asinh_431',['asinh',['../classVImage.html#a1074219e29e7cac52e23c8066603ccbd',1,'VImage']]],
+  ['atan_432',['atan',['../classVImage.html#a8544dbbce2ade6d39030c81b509d4a6f',1,'VImage']]],
+  ['atan2_433',['atan2',['../classVImage.html#acac17d34396ebb1193c0d679fb2b2d91',1,'VImage::atan2(VImage other, VOption *options=0) const'],['../classVImage.html#a2bcb2abe0fd5ed788521af7a8d93a0d1',1,'VImage::atan2(double other, VOption *options=0) const'],['../classVImage.html#a6773eed3c213a28c225109c126654e6a',1,'VImage::atan2(std::vector&lt; double &gt; other, VOption *options=0) const']]],
+  ['atanh_434',['atanh',['../classVImage.html#ac06bc65e1cae8bca755712793659dd15',1,'VImage']]],
+  ['autorot_435',['autorot',['../classVImage.html#a16ab3cab075bf0e8509bb4d95984937d',1,'VImage']]],
+  ['avg_436',['avg',['../classVImage.html#a6fd305bd8c7e6111bacc7a2da0ef4856',1,'VImage']]]
 ];

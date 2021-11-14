@@ -710,6 +710,14 @@ justifications.
 <span class="returnvalue">int</span>
 </td>
 <td class="function_name">
+<a class="link" href="libvips-arithmetic.html#vips-atan2" title="vips_atan2 ()">vips_atan2</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
 <a class="link" href="libvips-arithmetic.html#vips-math2-const" title="vips_math2_const ()">vips_math2_const</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
@@ -734,6 +742,14 @@ justifications.
 <span class="returnvalue">int</span>
 </td>
 <td class="function_name">
+<a class="link" href="libvips-arithmetic.html#vips-atan2-const" title="vips_atan2_const ()">vips_atan2_const</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
 <a class="link" href="libvips-arithmetic.html#vips-math2-const1" title="vips_math2_const1 ()">vips_math2_const1</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
@@ -751,6 +767,14 @@ justifications.
 </td>
 <td class="function_name">
 <a class="link" href="libvips-arithmetic.html#vips-wop-const1" title="vips_wop_const1 ()">vips_wop_const1</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="libvips-arithmetic.html#vips-atan2-const1" title="vips_atan2_const1 ()">vips_atan2_const1</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -5503,6 +5527,53 @@ vips_wop (<em class="parameter"><code><a class="link" href="VipsImage.html" titl
 </div>
 <hr>
 <div class="refsect2">
+<a name="vips-atan2"></a><h3>vips_atan2 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_atan2 (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *left</code></em>,
+            <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *right</code></em>,
+            <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+            <em class="parameter"><code>...</code></em>);</pre>
+<p>Perform <a class="link" href="libvips-arithmetic.html#VIPS-OPERATION-MATH2-ATAN2:CAPS"><span class="type">VIPS_OPERATION_MATH2_ATAN2</span></a> on a pair of images. See
+<a class="link" href="libvips-arithmetic.html#vips-math2" title="vips_math2 ()"><code class="function">vips_math2()</code></a>.</p>
+<div class="refsect3">
+<a name="vips-atan2.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>left</p></td>
+<td class="parameter_description"><p>left-hand input <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>right</p></td>
+<td class="parameter_description"><p>right-hand input <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-atan2.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
 <a name="vips-math2-const"></a><h3>vips_math2_const ()</h3>
 <pre class="programlisting"><span class="returnvalue">int</span>
 vips_math2_const (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
@@ -5690,6 +5761,61 @@ vips_wop_const (<em class="parameter"><code><a class="link" href="VipsImage.html
 </div>
 <hr>
 <div class="refsect2">
+<a name="vips-atan2-const"></a><h3>vips_atan2_const ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_atan2_const (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+                  <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                  <em class="parameter"><code>const <span class="type">double</span> *c</code></em>,
+                  <em class="parameter"><code><span class="type">int</span> n</code></em>,
+                  <em class="parameter"><code>...</code></em>);</pre>
+<p>Perform <a class="link" href="libvips-arithmetic.html#VIPS-OPERATION-MATH2-ATAN2:CAPS"><span class="type">VIPS_OPERATION_MATH2_ATAN2</span></a> on an image and a constant. See
+<a class="link" href="libvips-arithmetic.html#vips-math2-const" title="vips_math2_const ()"><code class="function">vips_math2_const()</code></a>.</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-atan2-const.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>left-hand input <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>c</p></td>
+<td class="parameter_description"><p>array of constants. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>n</p></td>
+<td class="parameter_description"><p>number of constants in <em class="parameter"><code>c</code></em>
+</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-atan2-const.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
 <a name="vips-math2-const1"></a><h3>vips_math2_const1 ()</h3>
 <pre class="programlisting"><span class="returnvalue">int</span>
 vips_math2_const1 (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
@@ -5835,6 +5961,54 @@ vips_wop_const1 (<em class="parameter"><code><a class="link" href="VipsImage.htm
 </div>
 <div class="refsect3">
 <a name="vips-wop-const1.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-atan2-const1"></a><h3>vips_atan2_const1 ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_atan2_const1 (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+                   <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                   <em class="parameter"><code><span class="type">double</span> c</code></em>,
+                   <em class="parameter"><code>...</code></em>);</pre>
+<p>Perform <a class="link" href="libvips-arithmetic.html#VIPS-OPERATION-MATH2-ATAN2:CAPS"><span class="type">VIPS_OPERATION_MATH2_ATAN2</span></a> on an image and a constant. See
+<a class="link" href="libvips-arithmetic.html#vips-math2-const" title="vips_math2_const ()"><code class="function">vips_math2_const()</code></a>.</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-atan2-const1.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>left-hand input <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a></p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>output <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a>. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>c</p></td>
+<td class="parameter_description"><p>constant </p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-atan2-const1.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error</p>
 </div>
 </div>
@@ -6387,9 +6561,8 @@ vips_hist_find (<em class="parameter"><code><a class="link" href="VipsImage.html
 one-band histogram), or for all bands (producing an n-band histogram) if 
 <em class="parameter"><code>band</code></em>
  is -1. </p>
-<p><em class="parameter"><code>in</code></em>
- is cast to u8 or u16. <em class="parameter"><code>out</code></em>
- is always u32.</p>
+<p>char and uchar images are cast to uchar before histogramming, all other
+image types are cast to ushort.</p>
 <p>See also: <a class="link" href="libvips-arithmetic.html#vips-hist-find-ndim" title="vips_hist_find_ndim ()"><code class="function">vips_hist_find_ndim()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-hist-find-indexed" title="vips_hist_find_indexed ()"><code class="function">vips_hist_find_indexed()</code></a>.</p>
 <p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
 <div class="refsect3">
@@ -6440,7 +6613,8 @@ vips_hist_find_ndim (<em class="parameter"><code><a class="link" href="VipsImage
 output is 1 x bins, bins x bins, or bins x bins x bins bands.
 <em class="parameter"><code>bins</code></em>
  defaults to 10. </p>
-<p>Images are cast to uchar or ushort before histogramming.</p>
+<p>char and uchar images are cast to uchar before histogramming, all other
+image types are cast to ushort.</p>
 <p>See also: <a class="link" href="libvips-arithmetic.html#vips-hist-find" title="vips_hist_find ()"><code class="function">vips_hist_find()</code></a>, <a class="link" href="libvips-arithmetic.html#vips-hist-find-indexed" title="vips_hist_find_indexed ()"><code class="function">vips_hist_find_indexed()</code></a>.</p>
 <p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
 <div class="refsect3">
@@ -6494,10 +6668,13 @@ words, element zero in <em class="parameter"><code>out</code></em>
 
 whose corresponding pixel in <em class="parameter"><code>index</code></em>
  is zero.</p>
-<p><em class="parameter"><code>index</code></em>
- must have just one band and be u8 or u16. <em class="parameter"><code>in</code></em>
- must be
-non-complex. <em class="parameter"><code>out</code></em>
+<p>char and uchar <em class="parameter"><code>index</code></em>
+ images are cast to uchar before histogramming, all 
+other image types are cast to ushort. <em class="parameter"><code>index</code></em>
+ must have just one band. </p>
+<p><em class="parameter"><code>in</code></em>
+ must be non-complex. </p>
+<p><em class="parameter"><code>out</code></em>
  always has the same size and format as <em class="parameter"><code>in</code></em>
 .</p>
 <p>Normally, bins are summed, but you can use <em class="parameter"><code>combine</code></em>
@@ -6869,6 +7046,48 @@ left edge to the first non-zero pixel in that row.</p>
 <td class="enum_member_annotations"> </td>
 </tr>
 <tr>
+<td class="enum_member_name"><p><a name="VIPS-OPERATION-MATH-SINH:CAPS"></a>VIPS_OPERATION_MATH_SINH</p></td>
+<td class="enum_member_description">
+<p>sinh(), angles in radians</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-OPERATION-MATH-COSH:CAPS"></a>VIPS_OPERATION_MATH_COSH</p></td>
+<td class="enum_member_description">
+<p>cosh(), angles in radians</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-OPERATION-MATH-TANH:CAPS"></a>VIPS_OPERATION_MATH_TANH</p></td>
+<td class="enum_member_description">
+<p>tanh(), angles in radians</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-OPERATION-MATH-ASINH:CAPS"></a>VIPS_OPERATION_MATH_ASINH</p></td>
+<td class="enum_member_description">
+<p>asinh(), angles in radians</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-OPERATION-MATH-ACOSH:CAPS"></a>VIPS_OPERATION_MATH_ACOSH</p></td>
+<td class="enum_member_description">
+<p>acosh(), angles in radians</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-OPERATION-MATH-ATANH:CAPS"></a>VIPS_OPERATION_MATH_ATANH</p></td>
+<td class="enum_member_description">
+<p>atanh(), angles in radians</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
 <td class="enum_member_name"><p><a name="VIPS-OPERATION-MATH-LAST:CAPS"></a>VIPS_OPERATION_MATH_LAST</p></td>
 <td> </td>
 <td> </td>
@@ -6901,6 +7120,13 @@ left edge to the first non-zero pixel in that row.</p>
 <td class="enum_member_name"><p><a name="VIPS-OPERATION-MATH2-WOP:CAPS"></a>VIPS_OPERATION_MATH2_WOP</p></td>
 <td class="enum_member_description">
 <p>pow( right, left ) </p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-OPERATION-MATH2-ATAN2:CAPS"></a>VIPS_OPERATION_MATH2_ATAN2</p></td>
+<td class="enum_member_description">
+<p>atan2( left, right ) </p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>

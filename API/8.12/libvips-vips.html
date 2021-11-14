@@ -212,8 +212,6 @@ internationalisation --- see <a class="link" href="libvips-vips.html#vips-guess-
 <li class="listitem"><p>creates the main vips types, including <a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> and friends</p></li>
 <li class="listitem"><p>loads any plugins from $libdir/vips-x.y/, where x and y are the
 major and minor version numbers for this VIPS.</p></li>
-<li class="listitem"><p>if your platform supports <code class="function">atexit()</code>, <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a> will ask for
-<a class="link" href="libvips-vips.html#vips-shutdown" title="vips_shutdown ()"><code class="function">vips_shutdown()</code></a> to be called on program exit</p></li>
 </ul></div>
 <p>Example:</p>
 <div class="informalexample">
@@ -330,6 +328,8 @@ name. Do not free this value. </p>
 vips_shutdown (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>Call this to drop caches and close plugins. Run with "--vips-leak" to do 
 a leak check too. </p>
+<p>vips_shutdown() is optional. If you don't call it, your platform will
+clean up for you.</p>
 <p>You may call <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a> many times and <a class="link" href="libvips-vips.html#vips-shutdown" title="vips_shutdown ()"><code class="function">vips_shutdown()</code></a> many times, but you 
 must not call <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a> after <a class="link" href="libvips-vips.html#vips-shutdown" title="vips_shutdown ()"><code class="function">vips_shutdown()</code></a>. In other words, you cannot
 stop and restart vips.</p>

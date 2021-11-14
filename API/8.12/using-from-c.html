@@ -57,8 +57,12 @@
 <p>
       When your program starts, use <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a>
       to start up the VIPS library. You should pass it the name
-      of your program, usually <code class="code">argv[0]</code>. Use
-      <a class="link" href="libvips-vips.html#vips-shutdown" title="vips_shutdown ()"><code class="function">vips_shutdown()</code></a> when you exit. <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a> is a macro to let it check 
+      of your program, usually <code class="code">argv[0]</code>. If you call
+      <a class="link" href="libvips-vips.html#vips-shutdown" title="vips_shutdown ()"><code class="function">vips_shutdown()</code></a> just before you exit, libvips will attempt to free all 
+      resources. This can help leak checking, but is not required.
+    </p>
+<p>
+      <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a> is a macro to let it check 
       that the libvips library you have linked to matches the libvips headers 
       you included. 
     </p>

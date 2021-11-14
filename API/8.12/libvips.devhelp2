@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
-<book xmlns="http://www.devhelp.net/book" title="libvips Reference Manual" link="index.html" author="" name="libvips" version="2" language="c" online="/libvips">
+<book xmlns="http://www.devhelp.net/book" title="libvips Reference Manual" link="index.html" author="" name="libvips" version="2" language="c" online="/">
   <chapters>
     <sub name="libvips Overview" link="ch01.html">
       <sub name="VIPS from the command-line" link="using-cli.html"/>
@@ -185,6 +185,7 @@
     <keyword type="function" name="vips_image_get_height ()" link="libvips-header.html#vips-image-get-height"/>
     <keyword type="function" name="vips_image_get_bands ()" link="libvips-header.html#vips-image-get-bands"/>
     <keyword type="function" name="vips_image_get_format ()" link="libvips-header.html#vips-image-get-format"/>
+    <keyword type="function" name="vips_image_get_format_max ()" link="libvips-header.html#vips-image-get-format-max"/>
     <keyword type="function" name="vips_image_guess_format ()" link="libvips-header.html#vips-image-guess-format"/>
     <keyword type="function" name="vips_image_get_coding ()" link="libvips-header.html#vips-image-get-coding"/>
     <keyword type="function" name="vips_image_get_interpretation ()" link="libvips-header.html#vips-image-get-interpretation"/>
@@ -567,6 +568,7 @@
     <keyword type="function" name="vips_source_decode ()" link="VipsTargetCustom.html#vips-source-decode"/>
     <keyword type="function" name="vips_source_read ()" link="VipsTargetCustom.html#vips-source-read"/>
     <keyword type="function" name="vips_source_is_mappable ()" link="VipsTargetCustom.html#vips-source-is-mappable"/>
+    <keyword type="function" name="vips_source_is_file ()" link="VipsTargetCustom.html#vips-source-is-file"/>
     <keyword type="function" name="vips_source_map ()" link="VipsTargetCustom.html#vips-source-map"/>
     <keyword type="function" name="vips_source_map_blob ()" link="VipsTargetCustom.html#vips-source-map-blob"/>
     <keyword type="function" name="vips_source_seek ()" link="VipsTargetCustom.html#vips-source-seek"/>
@@ -731,12 +733,15 @@
     <keyword type="function" name="vips_math2 ()" link="libvips-arithmetic.html#vips-math2"/>
     <keyword type="function" name="vips_pow ()" link="libvips-arithmetic.html#vips-pow"/>
     <keyword type="function" name="vips_wop ()" link="libvips-arithmetic.html#vips-wop"/>
+    <keyword type="function" name="vips_atan2 ()" link="libvips-arithmetic.html#vips-atan2"/>
     <keyword type="function" name="vips_math2_const ()" link="libvips-arithmetic.html#vips-math2-const"/>
     <keyword type="function" name="vips_pow_const ()" link="libvips-arithmetic.html#vips-pow-const"/>
     <keyword type="function" name="vips_wop_const ()" link="libvips-arithmetic.html#vips-wop-const"/>
+    <keyword type="function" name="vips_atan2_const ()" link="libvips-arithmetic.html#vips-atan2-const"/>
     <keyword type="function" name="vips_math2_const1 ()" link="libvips-arithmetic.html#vips-math2-const1"/>
     <keyword type="function" name="vips_pow_const1 ()" link="libvips-arithmetic.html#vips-pow-const1"/>
     <keyword type="function" name="vips_wop_const1 ()" link="libvips-arithmetic.html#vips-wop-const1"/>
+    <keyword type="function" name="vips_atan2_const1 ()" link="libvips-arithmetic.html#vips-atan2-const1"/>
     <keyword type="function" name="vips_avg ()" link="libvips-arithmetic.html#vips-avg"/>
     <keyword type="function" name="vips_deviate ()" link="libvips-arithmetic.html#vips-deviate"/>
     <keyword type="function" name="vips_min ()" link="libvips-arithmetic.html#vips-min"/>
@@ -1024,10 +1029,14 @@
     <keyword type="function" name="vips_pdfload_source ()" link="VipsForeignSave.html#vips-pdfload-source"/>
     <keyword type="function" name="vips_svgload ()" link="VipsForeignSave.html#vips-svgload"/>
     <keyword type="function" name="vips_svgload_buffer ()" link="VipsForeignSave.html#vips-svgload-buffer"/>
+    <keyword type="function" name="vips_svgload_string ()" link="VipsForeignSave.html#vips-svgload-string"/>
     <keyword type="function" name="vips_svgload_source ()" link="VipsForeignSave.html#vips-svgload-source"/>
     <keyword type="function" name="vips_gifload ()" link="VipsForeignSave.html#vips-gifload"/>
     <keyword type="function" name="vips_gifload_buffer ()" link="VipsForeignSave.html#vips-gifload-buffer"/>
     <keyword type="function" name="vips_gifload_source ()" link="VipsForeignSave.html#vips-gifload-source"/>
+    <keyword type="function" name="vips_gifsave ()" link="VipsForeignSave.html#vips-gifsave"/>
+    <keyword type="function" name="vips_gifsave_buffer ()" link="VipsForeignSave.html#vips-gifsave-buffer"/>
+    <keyword type="function" name="vips_gifsave_target ()" link="VipsForeignSave.html#vips-gifsave-target"/>
     <keyword type="function" name="vips_heifload ()" link="VipsForeignSave.html#vips-heifload"/>
     <keyword type="function" name="vips_heifload_buffer ()" link="VipsForeignSave.html#vips-heifload-buffer"/>
     <keyword type="function" name="vips_heifload_source ()" link="VipsForeignSave.html#vips-heifload-source"/>
@@ -1051,6 +1060,7 @@
     <keyword type="function" name="vips_jxlsave_target ()" link="VipsForeignSave.html#vips-jxlsave-target"/>
     <keyword type="function" name="vips_dzsave ()" link="VipsForeignSave.html#vips-dzsave"/>
     <keyword type="enum" name="enum VipsForeignFlags" link="VipsForeignSave.html#VipsForeignFlags"/>
+    <keyword type="enum" name="enum VipsFailOn" link="VipsForeignSave.html#VipsFailOn"/>
     <keyword type="enum" name="enum VipsSaveable" link="VipsForeignSave.html#VipsSaveable"/>
     <keyword type="enum" name="enum VipsForeignSubsample" link="VipsForeignSave.html#VipsForeignSubsample"/>
     <keyword type="enum" name="enum VipsForeignJpegSubsample" link="VipsForeignSave.html#VipsForeignJpegSubsample" deprecated="use #VipsForeignSubsample"/>
@@ -1059,6 +1069,7 @@
     <keyword type="enum" name="enum VipsForeignTiffPredictor" link="VipsForeignSave.html#VipsForeignTiffPredictor"/>
     <keyword type="enum" name="enum VipsForeignTiffResunit" link="VipsForeignSave.html#VipsForeignTiffResunit"/>
     <keyword type="enum" name="enum VipsForeignPngFilter" link="VipsForeignSave.html#VipsForeignPngFilter"/>
+    <keyword type="enum" name="enum VipsForeignPpmFormat" link="VipsForeignSave.html#VipsForeignPpmFormat"/>
     <keyword type="enum" name="enum VipsForeignDzLayout" link="VipsForeignSave.html#VipsForeignDzLayout"/>
     <keyword type="enum" name="enum VipsForeignDzDepth" link="VipsForeignSave.html#VipsForeignDzDepth"/>
     <keyword type="enum" name="enum VipsForeignDzContainer" link="VipsForeignSave.html#VipsForeignDzContainer"/>
@@ -1066,6 +1077,7 @@
     <keyword type="property" name="The “access” property" link="VipsForeignSave.html#VipsForeignLoad--access"/>
     <keyword type="property" name="The “disc” property" link="VipsForeignSave.html#VipsForeignLoad--disc"/>
     <keyword type="property" name="The “fail” property" link="VipsForeignSave.html#VipsForeignLoad--fail"/>
+    <keyword type="property" name="The “fail-on” property" link="VipsForeignSave.html#VipsForeignLoad--fail-on"/>
     <keyword type="property" name="The “flags” property" link="VipsForeignSave.html#VipsForeignLoad--flags"/>
     <keyword type="property" name="The “memory” property" link="VipsForeignSave.html#VipsForeignLoad--memory"/>
     <keyword type="property" name="The “out” property" link="VipsForeignSave.html#VipsForeignLoad--out"/>
@@ -1397,9 +1409,16 @@
     <keyword type="constant" name="VIPS_OPERATION_MATH_LOG10" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-LOG10:CAPS"/>
     <keyword type="constant" name="VIPS_OPERATION_MATH_EXP" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-EXP:CAPS"/>
     <keyword type="constant" name="VIPS_OPERATION_MATH_EXP10" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-EXP10:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH_SINH" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-SINH:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH_COSH" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-COSH:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH_TANH" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-TANH:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH_ASINH" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-ASINH:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH_ACOSH" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-ACOSH:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH_ATANH" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-ATANH:CAPS"/>
     <keyword type="constant" name="VIPS_OPERATION_MATH_LAST" link="libvips-arithmetic.html#VIPS-OPERATION-MATH-LAST:CAPS"/>
     <keyword type="constant" name="VIPS_OPERATION_MATH2_POW" link="libvips-arithmetic.html#VIPS-OPERATION-MATH2-POW:CAPS"/>
     <keyword type="constant" name="VIPS_OPERATION_MATH2_WOP" link="libvips-arithmetic.html#VIPS-OPERATION-MATH2-WOP:CAPS"/>
+    <keyword type="constant" name="VIPS_OPERATION_MATH2_ATAN2" link="libvips-arithmetic.html#VIPS-OPERATION-MATH2-ATAN2:CAPS"/>
     <keyword type="constant" name="VIPS_OPERATION_MATH2_LAST" link="libvips-arithmetic.html#VIPS-OPERATION-MATH2-LAST:CAPS"/>
     <keyword type="constant" name="VIPS_OPERATION_ROUND_RINT" link="libvips-arithmetic.html#VIPS-OPERATION-ROUND-RINT:CAPS"/>
     <keyword type="constant" name="VIPS_OPERATION_ROUND_CEIL" link="libvips-arithmetic.html#VIPS-OPERATION-ROUND-CEIL:CAPS"/>
@@ -1516,6 +1535,11 @@
     <keyword type="constant" name="VIPS_FOREIGN_BIGENDIAN" link="VipsForeignSave.html#VIPS-FOREIGN-BIGENDIAN:CAPS"/>
     <keyword type="constant" name="VIPS_FOREIGN_SEQUENTIAL" link="VipsForeignSave.html#VIPS-FOREIGN-SEQUENTIAL:CAPS"/>
     <keyword type="constant" name="VIPS_FOREIGN_ALL" link="VipsForeignSave.html#VIPS-FOREIGN-ALL:CAPS"/>
+    <keyword type="constant" name="VIPS_FAIL_ON_NONE" link="VipsForeignSave.html#VIPS-FAIL-ON-NONE:CAPS"/>
+    <keyword type="constant" name="VIPS_FAIL_ON_TRUNCATED" link="VipsForeignSave.html#VIPS-FAIL-ON-TRUNCATED:CAPS"/>
+    <keyword type="constant" name="VIPS_FAIL_ON_ERROR" link="VipsForeignSave.html#VIPS-FAIL-ON-ERROR:CAPS"/>
+    <keyword type="constant" name="VIPS_FAIL_ON_WARNING" link="VipsForeignSave.html#VIPS-FAIL-ON-WARNING:CAPS"/>
+    <keyword type="constant" name="VIPS_FAIL_ON_LAST" link="VipsForeignSave.html#VIPS-FAIL-ON-LAST:CAPS"/>
     <keyword type="constant" name="VIPS_SAVEABLE_MONO" link="VipsForeignSave.html#VIPS-SAVEABLE-MONO:CAPS"/>
     <keyword type="constant" name="VIPS_SAVEABLE_RGB" link="VipsForeignSave.html#VIPS-SAVEABLE-RGB:CAPS"/>
     <keyword type="constant" name="VIPS_SAVEABLE_RGBA" link="VipsForeignSave.html#VIPS-SAVEABLE-RGBA:CAPS"/>
@@ -1561,10 +1585,16 @@
     <keyword type="constant" name="VIPS_FOREIGN_PNG_FILTER_AVG" link="VipsForeignSave.html#VIPS-FOREIGN-PNG-FILTER-AVG:CAPS"/>
     <keyword type="constant" name="VIPS_FOREIGN_PNG_FILTER_PAETH" link="VipsForeignSave.html#VIPS-FOREIGN-PNG-FILTER-PAETH:CAPS"/>
     <keyword type="constant" name="VIPS_FOREIGN_PNG_FILTER_ALL" link="VipsForeignSave.html#VIPS-FOREIGN-PNG-FILTER-ALL:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_PPM_FORMAT_PBM" link="VipsForeignSave.html#VIPS-FOREIGN-PPM-FORMAT-PBM:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_PPM_FORMAT_PGM" link="VipsForeignSave.html#VIPS-FOREIGN-PPM-FORMAT-PGM:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_PPM_FORMAT_PPM" link="VipsForeignSave.html#VIPS-FOREIGN-PPM-FORMAT-PPM:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_PPM_FORMAT_PFM" link="VipsForeignSave.html#VIPS-FOREIGN-PPM-FORMAT-PFM:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_PPM_FORMAT_LAST" link="VipsForeignSave.html#VIPS-FOREIGN-PPM-FORMAT-LAST:CAPS"/>
     <keyword type="constant" name="VIPS_FOREIGN_DZ_LAYOUT_DZ" link="VipsForeignSave.html#VIPS-FOREIGN-DZ-LAYOUT-DZ:CAPS"/>
     <keyword type="constant" name="VIPS_FOREIGN_DZ_LAYOUT_ZOOMIFY" link="VipsForeignSave.html#VIPS-FOREIGN-DZ-LAYOUT-ZOOMIFY:CAPS"/>
     <keyword type="constant" name="VIPS_FOREIGN_DZ_LAYOUT_GOOGLE" link="VipsForeignSave.html#VIPS-FOREIGN-DZ-LAYOUT-GOOGLE:CAPS"/>
     <keyword type="constant" name="VIPS_FOREIGN_DZ_LAYOUT_IIIF" link="VipsForeignSave.html#VIPS-FOREIGN-DZ-LAYOUT-IIIF:CAPS"/>
+    <keyword type="constant" name="VIPS_FOREIGN_DZ_LAYOUT_IIIF3" link="VipsForeignSave.html#VIPS-FOREIGN-DZ-LAYOUT-IIIF3:CAPS"/>
     <keyword type="constant" name="VIPS_FOREIGN_DZ_LAYOUT_LAST" link="VipsForeignSave.html#VIPS-FOREIGN-DZ-LAYOUT-LAST:CAPS"/>
     <keyword type="constant" name="VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL" link="VipsForeignSave.html#VIPS-FOREIGN-DZ-DEPTH-ONEPIXEL:CAPS"/>
     <keyword type="constant" name="VIPS_FOREIGN_DZ_DEPTH_ONETILE" link="VipsForeignSave.html#VIPS-FOREIGN-DZ-DEPTH-ONETILE:CAPS"/>

@@ -706,6 +706,14 @@ justifications.
 <span class="returnvalue">int</span>
 </td>
 <td class="function_name">
+<a class="link" href="VipsForeignSave.html#vips-svgload-string" title="vips_svgload_string ()">vips_svgload_string</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
 <a class="link" href="VipsForeignSave.html#vips-svgload-source" title="vips_svgload_source ()">vips_svgload_source</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
@@ -731,6 +739,30 @@ justifications.
 </td>
 <td class="function_name">
 <a class="link" href="VipsForeignSave.html#vips-gifload-source" title="vips_gifload_source ()">vips_gifload_source</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsForeignSave.html#vips-gifsave" title="vips_gifsave ()">vips_gifsave</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsForeignSave.html#vips-gifsave-buffer" title="vips_gifsave_buffer ()">vips_gifsave_buffer</a> <span class="c_punctuation">()</span>
+</td>
+</tr>
+<tr>
+<td class="function_type">
+<span class="returnvalue">int</span>
+</td>
+<td class="function_name">
+<a class="link" href="VipsForeignSave.html#vips-gifsave-target" title="vips_gifsave_target ()">vips_gifsave_target</a> <span class="c_punctuation">()</span>
 </td>
 </tr>
 <tr>
@@ -937,6 +969,11 @@ justifications.
 <td class="property_flags">Read / Write</td>
 </tr>
 <tr>
+<td class="property_type"><a class="link" href="VipsForeignSave.html#VipsFailOn" title="enum VipsFailOn"><span class="type">VipsFailOn</span></a></td>
+<td class="property_name"><a class="link" href="VipsForeignSave.html#VipsForeignLoad--fail-on" title="The “fail-on” property">fail-on</a></td>
+<td class="property_flags">Read / Write</td>
+</tr>
+<tr>
 <td class="property_type"><a class="link" href="VipsForeignSave.html#VipsForeignFlags" title="enum VipsForeignFlags"><span class="type">VipsForeignFlags</span></a></td>
 <td class="property_name"><a class="link" href="VipsForeignSave.html#VipsForeignLoad--flags" title="The “flags” property">flags</a></td>
 <td class="property_flags">Read / Write</td>
@@ -996,6 +1033,10 @@ justifications.
 </tr>
 <tr>
 <td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="VipsForeignSave.html#VipsFailOn" title="enum VipsFailOn">VipsFailOn</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
 <td class="function_name"><a class="link" href="VipsForeignSave.html#VipsSaveable" title="enum VipsSaveable">VipsSaveable</a></td>
 </tr>
 <tr>
@@ -1025,6 +1066,10 @@ justifications.
 <tr>
 <td class="datatype_keyword">enum</td>
 <td class="function_name"><a class="link" href="VipsForeignSave.html#VipsForeignPngFilter" title="enum VipsForeignPngFilter">VipsForeignPngFilter</a></td>
+</tr>
+<tr>
+<td class="datatype_keyword">enum</td>
+<td class="function_name"><a class="link" href="VipsForeignSave.html#VipsForeignPpmFormat" title="enum VipsForeignPpmFormat">VipsForeignPpmFormat</a></td>
 </tr>
 <tr>
 <td class="datatype_keyword">enum</td>
@@ -2221,8 +2266,8 @@ vips_jpegload (<em class="parameter"><code>const <span class="type">char</span> 
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>shrink</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, shrink by this much on load</p></li>
-<li class="listitem"><p><em class="parameter"><code>fail</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, fail on errors</p></li>
+<li class="listitem"><p><em class="parameter"><code>fail_on</code></em>
+: <a class="link" href="VipsForeignSave.html#VipsFailOn" title="enum VipsFailOn"><span class="type">VipsFailOn</span></a>, types of read error to fail on</p></li>
 <li class="listitem"><p><em class="parameter"><code>autorotate</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, rotate image upright during load </p></li>
 </ul></div>
@@ -2232,10 +2277,9 @@ including CMYK and YCbCr.</p>
  means shrink by this integer factor during load.  Possible values 
 are 1, 2, 4 and 8. Shrinking during read is very much faster than 
 decompressing the whole image and then shrinking later.</p>
-<p>Setting <em class="parameter"><code>fail</code></em>
- to <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> makes the JPEG reader fail on any errors. 
-This can be useful for detecting truncated files, for example. Normally 
-reading these produces a warning, but no fatal error.  </p>
+<p>Use <em class="parameter"><code>fail_on</code></em>
+ to set the type of error that will cause load to fail. By
+default, loaders are permissive, that is, <a class="link" href="VipsForeignSave.html#VIPS-FAIL-ON-NONE:CAPS"><span class="type">VIPS_FAIL_ON_NONE</span></a>.</p>
 <p>Setting <em class="parameter"><code>autorotate</code></em>
  to <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> will make the loader interpret the 
 orientation tag and automatically rotate the image appropriately during
@@ -2258,7 +2302,7 @@ orientation of output images. </p>
 4</pre></td>
         <td class="listing_code"><pre class="programlisting"><span class="n">vips_jpegload</span><span class="p">(</span> <span class="s">"fred.jpg"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">out</span><span class="p">,</span>
 	<span class="s">"shrink"</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span>
-	<span class="s">"fail"</span><span class="p">,</span> <span class="n">TRUE</span><span class="p">,</span>
+	<span class="s">"fail-on"</span><span class="p">,</span> <span class="n">VIPS_FAIL_ON_TRUNCATED</span><span class="p">,</span>
 	<span class="nb">NULL</span> <span class="p">);</span></pre></td>
       </tr>
     </tbody>
@@ -2327,8 +2371,8 @@ vips_jpegload_buffer (<em class="parameter"><code><span class="type">void</span>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>shrink</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, shrink by this much on load</p></li>
-<li class="listitem"><p><em class="parameter"><code>fail</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, fail on errors</p></li>
+<li class="listitem"><p><em class="parameter"><code>fail_on</code></em>
+: <a class="link" href="VipsForeignSave.html#VipsFailOn" title="enum VipsFailOn"><span class="type">VipsFailOn</span></a>, types of read error to fail on</p></li>
 <li class="listitem"><p><em class="parameter"><code>autorotate</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, use exif Orientation tag to rotate the image 
 during load</p></li>
@@ -2388,8 +2432,8 @@ vips_jpegload_source (<em class="parameter"><code><a class="link" href="VipsTarg
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem"><p><em class="parameter"><code>shrink</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, shrink by this much on load</p></li>
-<li class="listitem"><p><em class="parameter"><code>fail</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, fail on errors</p></li>
+<li class="listitem"><p><em class="parameter"><code>fail_on</code></em>
+: <a class="link" href="VipsForeignSave.html#VipsFailOn" title="enum VipsFailOn"><span class="type">VipsFailOn</span></a>, types of read error to fail on</p></li>
 <li class="listitem"><p><em class="parameter"><code>autorotate</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, use exif Orientation tag to rotate the image 
 during load</p></li>
@@ -2458,6 +2502,8 @@ vips_jpegsave_target (<em class="parameter"><code><a class="link" href="VipsImag
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, split DCT coefficients into separate scans</p></li>
 <li class="listitem"><p><em class="parameter"><code>quant_table</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, quantization table index</p></li>
+<li class="listitem"><p><em class="parameter"><code>restart_interval</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, restart interval in mcu</p></li>
 </ul></div>
 <p>As <a class="link" href="VipsForeignSave.html#vips-jpegsave" title="vips_jpegsave ()"><code class="function">vips_jpegsave()</code></a>, but save to a target.</p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-jpegsave" title="vips_jpegsave ()"><code class="function">vips_jpegsave()</code></a>, <a class="link" href="VipsImage.html#vips-image-write-to-target" title="vips_image_write_to_target ()"><code class="function">vips_image_write_to_target()</code></a>.</p>
@@ -2523,6 +2569,8 @@ vips_jpegsave (<em class="parameter"><code><a class="link" href="VipsImage.html"
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, split DCT coefficients into separate scans</p></li>
 <li class="listitem"><p><em class="parameter"><code>quant_table</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, quantization table index</p></li>
+<li class="listitem"><p><em class="parameter"><code>restart_interval</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, restart interval in mcu</p></li>
 </ul></div>
 <p>Write a VIPS image to a file as JPEG.</p>
 <p>Use <em class="parameter"><code>Q</code></em>
@@ -2590,6 +2638,11 @@ Tables 5-7 are based on older research papers, but generally achieve worse
 compression ratios and/or quality than 2 or 4.</p>
 <p>For maximum compression with mozjpeg, a useful set of options is <code class="literal">strip, 
 optimize-coding, interlace, optimize-scans, trellis-quant, quant_table=3</code>.</p>
+<p>By default, the output stream won't have restart markers.  If a non-zero
+restart_interval is specified, a restart marker will be added after each
+specified number of MCU blocks.  This makes the stream more recoverable
+if there are transmission errors, but also allows for some decoders to read
+part of the JPEG without decoding the whole stream.</p>
 <p>The image is automatically converted to RGB, Monochrome or CMYK before 
 saving. </p>
 <p>EXIF data is constructed from <a class="link" href="libvips-header.html#VIPS-META-EXIF-NAME:CAPS" title="VIPS_META_EXIF_NAME"><span class="type">VIPS_META_EXIF_NAME</span></a>, then
@@ -2662,6 +2715,8 @@ vips_jpegsave_buffer (<em class="parameter"><code><a class="link" href="VipsImag
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, split DCT coefficients into separate scans</p></li>
 <li class="listitem"><p><em class="parameter"><code>quant_table</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, quantization table index</p></li>
+<li class="listitem"><p><em class="parameter"><code>restart_interval</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, restart interval in mcu</p></li>
 </ul></div>
 <p>As <a class="link" href="VipsForeignSave.html#vips-jpegsave" title="vips_jpegsave ()"><code class="function">vips_jpegsave()</code></a>, but save to a memory buffer. </p>
 <p>The address of the buffer is returned in <em class="parameter"><code>obuf</code></em>
@@ -2736,6 +2791,8 @@ vips_jpegsave_mime (<em class="parameter"><code><a class="link" href="VipsImage.
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, split DCT coefficients into separate scans</p></li>
 <li class="listitem"><p><em class="parameter"><code>quant_table</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, quantization table index</p></li>
+<li class="listitem"><p><em class="parameter"><code>restart_interval</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, restart interval in mcu</p></li>
 </ul></div>
 <p>As <a class="link" href="VipsForeignSave.html#vips-jpegsave" title="vips_jpegsave ()"><code class="function">vips_jpegsave()</code></a>, but save as a mime jpeg on stdout.</p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-jpegsave" title="vips_jpegsave ()"><code class="function">vips_jpegsave()</code></a>, <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a>.</p>
@@ -2843,7 +2900,8 @@ left. Set to -1 to mean "until the end of the document". Use <a class="link" hre
 to change page layout.</p>
 <p>Use <em class="parameter"><code>scale</code></em>
  to specify a scale-on-load factor. For example, 2.0 to double
-the size on load.</p>
+the size on load. Animated webp images don't support shrink-on-load, so a
+further resize may be necessary.</p>
 <p>The loader supports ICC, EXIF and XMP metadata. </p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
 <div class="refsect3">
@@ -2960,7 +3018,7 @@ vips_webpsave_target (<em class="parameter"><code><a class="link" href="VipsImag
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, preprocess in lossless mode (controlled by Q)</p></li>
 <li class="listitem"><p><em class="parameter"><code>alpha_q</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, set alpha quality in lossless mode</p></li>
-<li class="listitem"><p><em class="parameter"><code>reduction_effort</code></em>
+<li class="listitem"><p><em class="parameter"><code>effort</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, level of CPU effort to reduce file size</p></li>
 <li class="listitem"><p><em class="parameter"><code>min_size</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, minimise size</p></li>
@@ -3029,7 +3087,7 @@ vips_webpsave (<em class="parameter"><code><a class="link" href="VipsImage.html"
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, preprocess in lossless mode (controlled by Q)</p></li>
 <li class="listitem"><p><em class="parameter"><code>alpha_q</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, set alpha quality in lossless mode</p></li>
-<li class="listitem"><p><em class="parameter"><code>reduction_effort</code></em>
+<li class="listitem"><p><em class="parameter"><code>effort</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, level of CPU effort to reduce file size</p></li>
 <li class="listitem"><p><em class="parameter"><code>min_size</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, minimise size</p></li>
@@ -3055,7 +3113,7 @@ default 75.</p>
 <p>Use <em class="parameter"><code>alpha_q</code></em>
  to set the quality for the alpha channel in lossy mode. It has
 the range 1 - 100, with the default 100.</p>
-<p>Use <em class="parameter"><code>reduction_effort</code></em>
+<p>Use <em class="parameter"><code>effort</code></em>
  to control how much CPU time to spend attempting to
 reduce file size. A higher value means more effort and therefore CPU time
 should be spent. It has the range 0-6 and a default value of 4.</p>
@@ -3138,7 +3196,7 @@ vips_webpsave_buffer (<em class="parameter"><code><a class="link" href="VipsImag
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, preprocess in lossless mode (controlled by Q)</p></li>
 <li class="listitem"><p><em class="parameter"><code>alpha_q</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, set alpha quality in lossless mode</p></li>
-<li class="listitem"><p><em class="parameter"><code>reduction_effort</code></em>
+<li class="listitem"><p><em class="parameter"><code>effort</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, level of CPU effort to reduce file size</p></li>
 <li class="listitem"><p><em class="parameter"><code>min_size</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, minimise size</p></li>
@@ -3216,7 +3274,7 @@ vips_webpsave_mime (<em class="parameter"><code><a class="link" href="VipsImage.
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, preprocess in lossless mode (controlled by Q)</p></li>
 <li class="listitem"><p><em class="parameter"><code>alpha_q</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, set alpha quality in lossless mode</p></li>
-<li class="listitem"><p><em class="parameter"><code>reduction_effort</code></em>
+<li class="listitem"><p><em class="parameter"><code>effort</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, level of CPU effort to reduce file size</p></li>
 <li class="listitem"><p><em class="parameter"><code>min_size</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, minimise size</p></li>
@@ -4113,8 +4171,8 @@ vips_csvload (<em class="parameter"><code>const <span class="type">char</span> *
 : set of whitespace characters</p></li>
 <li class="listitem"><p><em class="parameter"><code>separator</code></em>
 : set of separator characters</p></li>
-<li class="listitem"><p><em class="parameter"><code>fail</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, fail on errors</p></li>
+<li class="listitem"><p><em class="parameter"><code>fail_on</code></em>
+: <a class="link" href="VipsForeignSave.html#VipsFailOn" title="enum VipsFailOn"><span class="type">VipsFailOn</span></a>, types of read error to fail on</p></li>
 </ul></div>
 <p>Load a CSV (comma-separated values) file. The output image is always 1 
 band (monochrome), <a class="link" href="VipsImage.html#VIPS-FORMAT-DOUBLE:CAPS"><span class="type">VIPS_FORMAT_DOUBLE</span></a>. Use <a class="link" href="libvips-conversion.html#vips-bandfold" title="vips_bandfold ()"><code class="function">vips_bandfold()</code></a> to turn
@@ -4136,8 +4194,9 @@ Whitespace characters are always run together.</p>
 <p><em class="parameter"><code>separator</code></em>
  sets the characters that separate fields. 
 Default ;,<span class="emphasis"><em>tab</em></span>. Separators are never run together.</p>
-<p>Setting <em class="parameter"><code>fail</code></em>
- to <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> makes the reader fail on any errors. </p>
+<p>Use <em class="parameter"><code>fail_on</code></em>
+ to set the type of error that will cause load to fail. By
+default, loaders are permissive, that is, <a class="link" href="VipsForeignSave.html#VIPS-FAIL-ON-NONE:CAPS"><span class="type">VIPS_FAIL_ON_NONE</span></a>.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>, <a class="link" href="libvips-conversion.html#vips-bandfold" title="vips_bandfold ()"><code class="function">vips_bandfold()</code></a>.</p>
 <div class="refsect3">
 <a name="vips-csvload.parameters"></a><h4>Parameters</h4>
@@ -4188,8 +4247,8 @@ vips_csvload_source (<em class="parameter"><code><a class="link" href="VipsTarge
 : set of whitespace characters</p></li>
 <li class="listitem"><p><em class="parameter"><code>separator</code></em>
 : set of separator characters</p></li>
-<li class="listitem"><p><em class="parameter"><code>fail</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, fail on errors</p></li>
+<li class="listitem"><p><em class="parameter"><code>fail_on</code></em>
+: <a class="link" href="VipsForeignSave.html#VipsFailOn" title="enum VipsFailOn"><span class="type">VipsFailOn</span></a>, types of read error to fail on</p></li>
 </ul></div>
 <p>Exactly as <a class="link" href="VipsForeignSave.html#vips-csvload" title="vips_csvload ()"><code class="function">vips_csvload()</code></a>, but read from a source. </p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-csvload" title="vips_csvload ()"><code class="function">vips_csvload()</code></a>.</p>
@@ -4818,8 +4877,12 @@ vips_pngload_source (<em class="parameter"><code><a class="link" href="VipsTarge
                      <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
                      <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>unlimited</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, Remove all denial of service limits</p></li></ul></div>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>fail_on</code></em>
+: <a class="link" href="VipsForeignSave.html#VipsFailOn" title="enum VipsFailOn"><span class="type">VipsFailOn</span></a>, types of read error to fail on</p></li>
+<li class="listitem"><p><em class="parameter"><code>unlimited</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, Remove all denial of service limits</p></li>
+</ul></div>
 <p>Exactly as <a class="link" href="VipsForeignSave.html#vips-pngload" title="vips_pngload ()"><code class="function">vips_pngload()</code></a>, but read from a source. </p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-pngload" title="vips_pngload ()"><code class="function">vips_pngload()</code></a>.</p>
 <div class="refsect3">
@@ -4862,12 +4925,19 @@ vips_pngload (<em class="parameter"><code>const <span class="type">char</span> *
               <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
               <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>unlimited</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, remove all denial of service limits</p></li></ul></div>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>fail_on</code></em>
+: <a class="link" href="VipsForeignSave.html#VipsFailOn" title="enum VipsFailOn"><span class="type">VipsFailOn</span></a>, types of read error to fail on</p></li>
+<li class="listitem"><p><em class="parameter"><code>unlimited</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, remove all denial of service limits</p></li>
+</ul></div>
 <p>Read a PNG file into a VIPS image. It can read all png images, including 8-
 and 16-bit images, 1 and 3 channel, with and without an alpha channel.</p>
 <p>Any ICC profile is read and attached to the VIPS image. It also supports
 XMP metadata.</p>
+<p>Use <em class="parameter"><code>fail_on</code></em>
+ to set the type of error that will cause load to fail. By
+default, loaders are permissive, that is, <a class="link" href="VipsForeignSave.html#VIPS-FAIL-ON-NONE:CAPS"><span class="type">VIPS_FAIL_ON_NONE</span></a>.</p>
 <p>By default, the PNG loader limits the number of text and data chunks to 
 block some denial of service attacks. Set <em class="parameter"><code>unlimited</code></em>
  to disable these 
@@ -4914,8 +4984,12 @@ vips_pngload_buffer (<em class="parameter"><code><span class="type">void</span> 
                      <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
                      <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>unlimited</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, Remove all denial of service limits</p></li></ul></div>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>fail_on</code></em>
+: <a class="link" href="VipsForeignSave.html#VipsFailOn" title="enum VipsFailOn"><span class="type">VipsFailOn</span></a>, types of read error to fail on</p></li>
+<li class="listitem"><p><em class="parameter"><code>unlimited</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, Remove all denial of service limits</p></li>
+</ul></div>
 <p>Exactly as <a class="link" href="VipsForeignSave.html#vips-pngload" title="vips_pngload ()"><code class="function">vips_pngload()</code></a>, but read from a PNG-formatted memory block.</p>
 <p>You must not free the buffer while <em class="parameter"><code>out</code></em>
  is active. The 
@@ -4983,7 +5057,9 @@ vips_pngsave_target (<em class="parameter"><code><a class="link" href="VipsImage
 <li class="listitem"><p><em class="parameter"><code>dither</code></em>
 : amount of dithering for 8bpp quantization</p></li>
 <li class="listitem"><p><em class="parameter"><code>bitdepth</code></em>
-: <code class="literal">int</code>, set write bit depth to 1, 2, 4 or 8</p></li>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, set write bit depth to 1, 2, 4, 8 or 16</p></li>
+<li class="listitem"><p><em class="parameter"><code>effort</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, quantisation CPU effort</p></li>
 </ul></div>
 <p>As <a class="link" href="VipsForeignSave.html#vips-pngsave" title="vips_pngsave ()"><code class="function">vips_pngsave()</code></a>, but save to a target.</p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-pngsave" title="vips_pngsave ()"><code class="function">vips_pngsave()</code></a>, <a class="link" href="VipsImage.html#vips-image-write-to-target" title="vips_image_write_to_target ()"><code class="function">vips_image_write_to_target()</code></a>.</p>
@@ -5044,7 +5120,9 @@ vips_pngsave (<em class="parameter"><code><a class="link" href="VipsImage.html" 
 <li class="listitem"><p><em class="parameter"><code>dither</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, amount of dithering for 8bpp quantization</p></li>
 <li class="listitem"><p><em class="parameter"><code>bitdepth</code></em>
-: <code class="literal">int</code>, set write bit depth to 1, 2, 4 or 8</p></li>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, set write bit depth to 1, 2, 4, 8 or 16</p></li>
+<li class="listitem"><p><em class="parameter"><code>effort</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, quantisation CPU effort</p></li>
 </ul></div>
 <p>Write a VIPS image to a file as PNG.</p>
 <p><em class="parameter"><code>compression</code></em>
@@ -5075,11 +5153,15 @@ saved as 16-bit PNG, others are saved as 8-bit PNG.</p>
 palette will be computed with enough space for <em class="parameter"><code>bitdepth</code></em>
  (1, 2, 4 or 8) 
 bits. Use <em class="parameter"><code>Q</code></em>
- to set the optimisation effort, and <em class="parameter"><code>dither</code></em>
+ to set the optimisation effort, <em class="parameter"><code>dither</code></em>
  to set the degree of
-Floyd-Steinberg dithering.
+Floyd-Steinberg dithering and <em class="parameter"><code>effort</code></em>
+ to control the CPU effort
+(1 is the fastest, 10 is the slowest, 7 is the default).
 This feature requires libvips to be compiled with libimagequant.</p>
-<p>You can also set <em class="parameter"><code>bitdepth</code></em>
+<p>The default <em class="parameter"><code>bitdepth</code></em>
+ is either 8 or 16 depending on the interpretation.
+You can also set <em class="parameter"><code>bitdepth</code></em>
  for mono and mono + alpha images, and the image
 will be quantized.</p>
 <p>XMP metadata is written to the XMP chunk. PNG comments are written to
@@ -5143,7 +5225,9 @@ vips_pngsave_buffer (<em class="parameter"><code><a class="link" href="VipsImage
 <li class="listitem"><p><em class="parameter"><code>dither</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, amount of dithering for 8bpp quantization</p></li>
 <li class="listitem"><p><em class="parameter"><code>bitdepth</code></em>
-: <code class="literal">int</code>, set write bit depth to 1, 2, 4 or 8</p></li>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, set write bit depth to 1, 2, 4, 8 or 16</p></li>
+<li class="listitem"><p><em class="parameter"><code>effort</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, quantisation CPU effort</p></li>
 </ul></div>
 <p>As <a class="link" href="VipsForeignSave.html#vips-pngsave" title="vips_pngsave ()"><code class="function">vips_pngsave()</code></a>, but save to a memory buffer. </p>
 <p>The address of the buffer is returned in <em class="parameter"><code>buf</code></em>
@@ -5297,10 +5381,12 @@ vips_ppmsave (<em class="parameter"><code><a class="link" href="VipsImage.html" 
               <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
 <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>format</code></em>
+: <a class="link" href="VipsForeignSave.html#VipsForeignPpmFormat" title="enum VipsForeignPpmFormat"><span class="type">VipsForeignPpmFormat</span></a>, format to save in</p></li>
 <li class="listitem"><p><em class="parameter"><code>ascii</code></em>
-: save as ASCII rather than binary</p></li>
-<li class="listitem"><p><em class="parameter"><code>squash</code></em>
-: squash 8-bit images down to one bit</p></li>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, save as ASCII rather than binary</p></li>
+<li class="listitem"><p><em class="parameter"><code>bitdepth</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, bitdepth to save at</p></li>
 </ul></div>
 <p>Write a VIPS image to a file as PPM. It can write 1, 8, 16 or
 32 bit unsigned integer images, float images, colour or monochrome, 
@@ -5311,9 +5397,10 @@ Integer images of more than 8 bits can only be stored in ASCII.</p>
 <p>Set <em class="parameter"><code>ascii</code></em>
  to <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to write as human-readable ASCII. Normally data is
 written in binary. </p>
-<p>Set <em class="parameter"><code>squash</code></em>
- to <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to squash 8-bit images down to one bit. The saver does
-no dithering, that's up to you.</p>
+<p>Set <em class="parameter"><code>bitdepth</code></em>
+ to 1 to write a one-bit image.</p>
+<p><em class="parameter"><code>format</code></em>
+ defaults to the sub-type for this filename suffix.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a>.</p>
 <p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
 <div class="refsect3">
@@ -5355,6 +5442,15 @@ no dithering, that's up to you.</p>
 vips_ppmsave_target (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
                      <em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="type">VipsTarget</span></a> *target</code></em>,
                      <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>format</code></em>
+: <a class="link" href="VipsForeignSave.html#VipsForeignPpmFormat" title="enum VipsForeignPpmFormat"><span class="type">VipsForeignPpmFormat</span></a>, format to save in</p></li>
+<li class="listitem"><p><em class="parameter"><code>ascii</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, save as ASCII rather than binary</p></li>
+<li class="listitem"><p><em class="parameter"><code>bitdepth</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, bitdepth to save at</p></li>
+</ul></div>
 <p>As <a class="link" href="VipsForeignSave.html#vips-ppmsave" title="vips_ppmsave ()"><code class="function">vips_ppmsave()</code></a>, but save to a target.</p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-ppmsave" title="vips_ppmsave ()"><code class="function">vips_ppmsave()</code></a>.</p>
 <p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
@@ -6032,6 +6128,57 @@ vips_svgload_buffer (<em class="parameter"><code><span class="type">void</span> 
 </div>
 <hr>
 <div class="refsect2">
+<a name="vips-svgload-string"></a><h3>vips_svgload_string ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_svgload_string (<em class="parameter"><code>const <span class="type">char</span> *str</code></em>,
+                     <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
+                     <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>dpi</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, render at this DPI</p></li>
+<li class="listitem"><p><em class="parameter"><code>scale</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, scale render by this factor</p></li>
+<li class="listitem"><p><em class="parameter"><code>unlimited</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, allow SVGs of any size</p></li>
+</ul></div>
+<p>Exactly as <a class="link" href="VipsForeignSave.html#vips-svgload" title="vips_svgload ()"><code class="function">vips_svgload()</code></a>, but read from a string. This function takes a
+copy of the string.</p>
+<p>See also: <a class="link" href="VipsForeignSave.html#vips-svgload" title="vips_svgload ()"><code class="function">vips_svgload()</code></a>.</p>
+<div class="refsect3">
+<a name="vips-svgload-string.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>str</p></td>
+<td class="parameter_description"><p>string to load</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>out</p></td>
+<td class="parameter_description"><p>image to write. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-svgload-string.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
 <a name="vips-svgload-source"></a><h3>vips_svgload_source ()</h3>
 <pre class="programlisting"><span class="returnvalue">int</span>
 vips_svgload_source (<em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsSource"><span class="type">VipsSource</span></a> *source</code></em>,
@@ -6084,6 +6231,8 @@ vips_gifload (<em class="parameter"><code>const <span class="type">char</span> *
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, page (frame) to read</p></li>
 <li class="listitem"><p><em class="parameter"><code>n</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this many pages</p></li>
+<li class="listitem"><p><em class="parameter"><code>fail_on</code></em>
+: <a class="link" href="VipsForeignSave.html#VipsFailOn" title="enum VipsFailOn"><span class="type">VipsFailOn</span></a>, types of read error to fail on</p></li>
 </ul></div>
 <p>Read a GIF file into a libvips image.</p>
 <p>Use <em class="parameter"><code>page</code></em>
@@ -6092,6 +6241,9 @@ vips_gifload (<em class="parameter"><code>const <span class="type">char</span> *
  to select the number of pages to render. The default is 1. Pages are
 rendered in a vertical column. Set to -1 to mean "until the end of the
 document". Use <a class="link" href="libvips-conversion.html#vips-grid" title="vips_grid ()"><code class="function">vips_grid()</code></a> to change page layout.</p>
+<p>Use <em class="parameter"><code>fail_on</code></em>
+ to set the type of error that will cause load to fail. By
+default, loaders are permissive, that is, <a class="link" href="VipsForeignSave.html#VIPS-FAIL-ON-NONE:CAPS"><span class="type">VIPS_FAIL_ON_NONE</span></a>.</p>
 <p>The output image is RGBA for GIFs containing transparent elements, RGB
 otherwise.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
@@ -6141,9 +6293,10 @@ vips_gifload_buffer (<em class="parameter"><code><span class="type">void</span> 
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, page (frame) to read</p></li>
 <li class="listitem"><p><em class="parameter"><code>n</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this many pages</p></li>
+<li class="listitem"><p><em class="parameter"><code>fail_on</code></em>
+: <a class="link" href="VipsForeignSave.html#VipsFailOn" title="enum VipsFailOn"><span class="type">VipsFailOn</span></a>, types of read error to fail on</p></li>
 </ul></div>
-<p>Read a GIF-formatted memory block into a VIPS image. Exactly as
-<a class="link" href="VipsForeignSave.html#vips-gifload" title="vips_gifload ()"><code class="function">vips_gifload()</code></a>, but read from a memory buffer.</p>
+<p>Exactly as <a class="link" href="VipsForeignSave.html#vips-gifload" title="vips_gifload ()"><code class="function">vips_gifload()</code></a>, but read from a memory buffer.</p>
 <p>You must not free the buffer while <em class="parameter"><code>out</code></em>
  is active. The
 <a class="link" href="VipsObject.html#VipsObject-postclose" title="The “postclose” signal"><span class="type">“postclose”</span></a> signal on <em class="parameter"><code>out</code></em>
@@ -6199,6 +6352,8 @@ vips_gifload_source (<em class="parameter"><code><a class="link" href="VipsTarge
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, page (frame) to read</p></li>
 <li class="listitem"><p><em class="parameter"><code>n</code></em>
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this many pages</p></li>
+<li class="listitem"><p><em class="parameter"><code>fail_on</code></em>
+: <a class="link" href="VipsForeignSave.html#VipsFailOn" title="enum VipsFailOn"><span class="type">VipsFailOn</span></a>, types of read error to fail on</p></li>
 </ul></div>
 <p>Exactly as <a class="link" href="VipsForeignSave.html#vips-gifload" title="vips_gifload ()"><code class="function">vips_gifload()</code></a>, but read from a source.</p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-gifload" title="vips_gifload ()"><code class="function">vips_gifload()</code></a>.</p>
@@ -6231,6 +6386,180 @@ vips_gifload_source (<em class="parameter"><code><a class="link" href="VipsTarge
 </div>
 <div class="refsect3">
 <a name="vips-gifload-source.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-gifsave"></a><h3>vips_gifsave ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_gifsave (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+              <em class="parameter"><code>const <span class="type">char</span> *filename</code></em>,
+              <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>dither</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, quantisation dithering level</p></li>
+<li class="listitem"><p><em class="parameter"><code>effort</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, quantisation CPU effort</p></li>
+<li class="listitem"><p><em class="parameter"><code>bitdepth</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, number of bits per pixel</p></li>
+</ul></div>
+<p>Write a VIPS image to a file as GIF.</p>
+<p>Use <em class="parameter"><code>dither</code></em>
+ to set the degree of Floyd-Steinberg dithering
+and <em class="parameter"><code>effort</code></em>
+ to control the CPU effort (1 is the fastest,
+10 is the slowest, 7 is the default).</p>
+<p>Use <em class="parameter"><code>bitdepth</code></em>
+ (from 1 to 8, default 8) to control the number
+of colours in the palette. The first entry in the palette is
+always reserved for transparency. For example, a bitdepth of
+4 will allow the output to contain up to 15 colours.</p>
+<p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-gifsave.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>image to save</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>filename</p></td>
+<td class="parameter_description"><p>file to write to</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-gifsave.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-gifsave-buffer"></a><h3>vips_gifsave_buffer ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_gifsave_buffer (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+                     <em class="parameter"><code><span class="type">void</span> **buf</code></em>,
+                     <em class="parameter"><code><span class="type">size_t</span> *len</code></em>,
+                     <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>dither</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, quantisation dithering level</p></li>
+<li class="listitem"><p><em class="parameter"><code>effort</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, quantisation CPU effort</p></li>
+<li class="listitem"><p><em class="parameter"><code>bitdepth</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, number of bits per pixel</p></li>
+</ul></div>
+<p>As <a class="link" href="VipsForeignSave.html#vips-gifsave" title="vips_gifsave ()"><code class="function">vips_gifsave()</code></a>, but save to a memory buffer.</p>
+<p>The address of the buffer is returned in <em class="parameter"><code>buf</code></em>
+, the length of the buffer in
+<em class="parameter"><code>len</code></em>
+. You are responsible for freeing the buffer with <a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a> when you
+are done with it.</p>
+<p>See also: <a class="link" href="VipsForeignSave.html#vips-gifsave" title="vips_gifsave ()"><code class="function">vips_gifsave()</code></a>, <a class="link" href="VipsImage.html#vips-image-write-to-file" title="vips_image_write_to_file ()"><code class="function">vips_image_write_to_file()</code></a>.</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-gifsave-buffer.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>image to save</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>buf</p></td>
+<td class="parameter_description"><p>return output buffer here. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=len][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> guint8]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>len</p></td>
+<td class="parameter_description"><p>return output length here. </p></td>
+<td class="parameter_annotations"><span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> gsize]</span></td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-gifsave-buffer.returns"></a><h4>Returns</h4>
+<p> 0 on success, -1 on error.</p>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="vips-gifsave-target"></a><h3>vips_gifsave_target ()</h3>
+<pre class="programlisting"><span class="returnvalue">int</span>
+vips_gifsave_target (<em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> *in</code></em>,
+                     <em class="parameter"><code><a class="link" href="VipsTargetCustom.html#VipsTarget"><span class="type">VipsTarget</span></a> *target</code></em>,
+                     <em class="parameter"><code>...</code></em>);</pre>
+<p>Optional arguments:</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>dither</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gdouble"><code class="literal">gdouble</code></a>, quantisation dithering level</p></li>
+<li class="listitem"><p><em class="parameter"><code>effort</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, quantisation CPU effort</p></li>
+<li class="listitem"><p><em class="parameter"><code>bitdepth</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, number of bits per pixel</p></li>
+</ul></div>
+<p>As <a class="link" href="VipsForeignSave.html#vips-gifsave" title="vips_gifsave ()"><code class="function">vips_gifsave()</code></a>, but save to a target.</p>
+<p>See also: <a class="link" href="VipsForeignSave.html#vips-gifsave" title="vips_gifsave ()"><code class="function">vips_gifsave()</code></a>, <a class="link" href="VipsImage.html#vips-image-write-to-target" title="vips_image_write_to_target ()"><code class="function">vips_image_write_to_target()</code></a>.</p>
+<p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
+<div class="refsect3">
+<a name="vips-gifsave-target.parameters"></a><h4>Parameters</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="150px" class="parameters_name">
+<col class="parameters_description">
+<col width="200px" class="parameters_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="parameter_name"><p>in</p></td>
+<td class="parameter_description"><p>image to save</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>target</p></td>
+<td class="parameter_description"><p>save image to this target</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+<tr>
+<td class="parameter_name"><p>...</p></td>
+<td class="parameter_description"><p><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated list of optional named arguments</p></td>
+<td class="parameter_annotations"> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect3">
+<a name="vips-gifsave-target.returns"></a><h4>Returns</h4>
 <p> 0 on success, -1 on error.</p>
 </div>
 </div>
@@ -6425,8 +6754,8 @@ vips_heifsave (<em class="parameter"><code><a class="link" href="VipsImage.html"
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, enable lossless encoding</p></li>
 <li class="listitem"><p><em class="parameter"><code>compression</code></em>
 : <a class="link" href="VipsForeignSave.html#VipsForeignHeifCompression" title="enum VipsForeignHeifCompression"><span class="type">VipsForeignHeifCompression</span></a>, write with this compression</p></li>
-<li class="listitem"><p><em class="parameter"><code>speed</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, encoding speed</p></li>
+<li class="listitem"><p><em class="parameter"><code>effort</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, encoding effort</p></li>
 <li class="listitem"><p><em class="parameter"><code>subsample_mode</code></em>
 : <a class="link" href="VipsForeignSave.html#VipsForeignSubsample" title="enum VipsForeignSubsample"><span class="type">VipsForeignSubsample</span></a>, chroma subsampling mode</p></li>
 </ul></div>
@@ -6439,10 +6768,10 @@ what the iphone uses. Q 30 gives about the same quality as JPEG Q 75.</p>
 <p>Use <em class="parameter"><code>compression</code></em>
  to set the encoder e.g. HEVC, AVC, AV1. It defaults to AV1
 if the target filename ends with ".avif", otherwise HEVC.</p>
-<p>Use <em class="parameter"><code>speed</code></em>
+<p>Use <em class="parameter"><code>effort</code></em>
  to control the CPU effort spent improving compression.
-This is currently only applicable to AV1 encoders. Defaults to 5, 0 is
-slowest, 9 is fastest.</p>
+This is currently only applicable to AV1 encoders. Defaults to 4, 0 is
+fastest, 9 is slowest.</p>
 <p>Chroma subsampling is normally automatically disabled for Q &gt;= 90. You can
 force the subsampling mode with <em class="parameter"><code>subsample_mode</code></em>
 .</p>
@@ -6496,8 +6825,8 @@ vips_heifsave_buffer (<em class="parameter"><code><a class="link" href="VipsImag
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, enable lossless encoding</p></li>
 <li class="listitem"><p><em class="parameter"><code>compression</code></em>
 : <a class="link" href="VipsForeignSave.html#VipsForeignHeifCompression" title="enum VipsForeignHeifCompression"><span class="type">VipsForeignHeifCompression</span></a>, write with this compression</p></li>
-<li class="listitem"><p><em class="parameter"><code>speed</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, encoding speed</p></li>
+<li class="listitem"><p><em class="parameter"><code>effort</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, encoding effort</p></li>
 <li class="listitem"><p><em class="parameter"><code>subsample_mode</code></em>
 : <a class="link" href="VipsForeignSave.html#VipsForeignSubsample" title="enum VipsForeignSubsample"><span class="type">VipsForeignSubsample</span></a>, chroma subsampling mode</p></li>
 </ul></div>
@@ -6561,8 +6890,8 @@ vips_heifsave_target (<em class="parameter"><code><a class="link" href="VipsImag
 : <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><code class="literal">gboolean</code></a>, enable lossless encoding</p></li>
 <li class="listitem"><p><em class="parameter"><code>compression</code></em>
 : <a class="link" href="VipsForeignSave.html#VipsForeignHeifCompression" title="enum VipsForeignHeifCompression"><span class="type">VipsForeignHeifCompression</span></a>, write with this compression</p></li>
-<li class="listitem"><p><em class="parameter"><code>speed</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, encoding speed</p></li>
+<li class="listitem"><p><em class="parameter"><code>effort</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, encoding effort</p></li>
 <li class="listitem"><p><em class="parameter"><code>subsample_mode</code></em>
 : <a class="link" href="VipsForeignSave.html#VipsForeignSubsample" title="enum VipsForeignSubsample"><span class="type">VipsForeignSubsample</span></a>, chroma subsampling mode</p></li>
 </ul></div>
@@ -6734,19 +7063,23 @@ vips_jp2kload (<em class="parameter"><code>const <span class="type">char</span> 
                <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
                <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>page</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this page</p></li></ul></div>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>page</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this page</p></li>
+<li class="listitem"><p><em class="parameter"><code>fail_on</code></em>
+: <a class="link" href="VipsForeignSave.html#VipsFailOn" title="enum VipsFailOn"><span class="type">VipsFailOn</span></a>, types of read error to fail on</p></li>
+</ul></div>
 <p>Read a JPEG2000 image. The loader supports 8, 16 and 32-bit int pixel
-values, signed and unsigned. 
-It supports greyscale, RGB, YCC, CMYK and
-multispectral colour spaces. 
-It will read any ICC profile on
-the image. </p>
-<p>It will only load images where all channels are the same format.</p>
+values, signed and unsigned. It supports greyscale, RGB, YCC, CMYK and
+multispectral colour spaces. It will read any ICC profile on the image. </p>
+<p>It will only load images where all channels have the same format.</p>
 <p>Use <em class="parameter"><code>page</code></em>
  to set the page to load, where page 0 is the base resolution
 image and higher-numbered pages are x2 reductions. Use the metadata item
 "n-pages" to find the number of pyramid layers.</p>
+<p>Use <em class="parameter"><code>fail_on</code></em>
+ to set the type of error that will cause load to fail. By
+default, loaders are permissive, that is, <a class="link" href="VipsForeignSave.html#VIPS-FAIL-ON-NONE:CAPS"><span class="type">VIPS_FAIL_ON_NONE</span></a>.</p>
 <p>See also: <a class="link" href="VipsImage.html#vips-image-new-from-file" title="vips_image_new_from_file ()"><code class="function">vips_image_new_from_file()</code></a>.</p>
 <div class="refsect3">
 <a name="vips-jp2kload.parameters"></a><h4>Parameters</h4>
@@ -6789,9 +7122,17 @@ vips_jp2kload_buffer (<em class="parameter"><code><span class="type">void</span>
                       <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
                       <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>page</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this page</p></li></ul></div>
-<p>Exactly as <a class="link" href="VipsForeignSave.html#vips-jp2kload" title="vips_jp2kload ()"><code class="function">vips_jp2kload()</code></a>, but read from a source.</p>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>page</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this page</p></li>
+<li class="listitem"><p><em class="parameter"><code>fail_on</code></em>
+: <a class="link" href="VipsForeignSave.html#VipsFailOn" title="enum VipsFailOn"><span class="type">VipsFailOn</span></a>, types of read error to fail on</p></li>
+</ul></div>
+<p>Exactly as <a class="link" href="VipsForeignSave.html#vips-jp2kload" title="vips_jp2kload ()"><code class="function">vips_jp2kload()</code></a>, but read from a buffer. </p>
+<p>You must not free the buffer while <em class="parameter"><code>out</code></em>
+ is active. The
+<a class="link" href="VipsObject.html#VipsObject-postclose" title="The “postclose” signal"><span class="type">“postclose”</span></a> signal on <em class="parameter"><code>out</code></em>
+ is a good place to free.</p>
 <div class="refsect3">
 <a name="vips-jp2kload-buffer.parameters"></a><h4>Parameters</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -6837,8 +7178,12 @@ vips_jp2kload_source (<em class="parameter"><code><a class="link" href="VipsTarg
                       <em class="parameter"><code><a class="link" href="VipsImage.html" title="VipsImage"><span class="type">VipsImage</span></a> **out</code></em>,
                       <em class="parameter"><code>...</code></em>);</pre>
 <p>Optional arguments:</p>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p><em class="parameter"><code>page</code></em>
-: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this page</p></li></ul></div>
+<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem"><p><em class="parameter"><code>page</code></em>
+: <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><code class="literal">gint</code></a>, load this page</p></li>
+<li class="listitem"><p><em class="parameter"><code>fail_on</code></em>
+: <a class="link" href="VipsForeignSave.html#VipsFailOn" title="enum VipsFailOn"><span class="type">VipsFailOn</span></a>, types of read error to fail on</p></li>
+</ul></div>
 <p>Exactly as <a class="link" href="VipsForeignSave.html#vips-jp2kload" title="vips_jp2kload ()"><code class="function">vips_jp2kload()</code></a>, but read from a source.</p>
 <div class="refsect3">
 <a name="vips-jp2kload-source.parameters"></a><h4>Parameters</h4>
@@ -7464,10 +7809,9 @@ metadata attached to <em class="parameter"><code>in</code></em>
  in an obvious manner. It can be useful for viewing
 programs which wish to use fields from source files loaded via
 <a class="link" href="VipsForeignSave.html#vips-openslideload" title="vips_openslideload ()"><code class="function">vips_openslideload()</code></a>. </p>
-<p>By default, all tiles are stripped, since very few people want a copy of
-the metadata on every tile. Set <em class="parameter"><code>no_strip</code></em>
- if you really want to keep 
-metadata.</p>
+<p>By default, all tiles are stripped since usually you do not want a copy of
+all metadata in every tile. Set <em class="parameter"><code>no_strip</code></em>
+ if you want to keep metadata.</p>
 <p>If <em class="parameter"><code>container</code></em>
  is set to <code class="literal">zip</code>, you can set a compression level from -1
 (use zlib default), 0 (store, compression disabled) to 9 (max compression).
@@ -7484,6 +7828,8 @@ This can save a lot of space for some image types. This option defaults to
 <p>In IIIF layout, you can set the base of the <code class="literal">id</code> property in <code class="literal">info.json</code> 
 with <em class="parameter"><code>id</code></em>
 . The default is <code class="literal">https://example.com/iiif</code>.</p>
+<p>Use <em class="parameter"><code>layout</code></em>
+ <a class="link" href="VipsForeignSave.html#VIPS-FOREIGN-DZ-LAYOUT-IIIF3:CAPS"><span class="type">VIPS_FOREIGN_DZ_LAYOUT_IIIF3</span></a> for IIIF v3 layout. </p>
 <p>See also: <a class="link" href="VipsForeignSave.html#vips-tiffsave" title="vips_tiffsave ()"><code class="function">vips_tiffsave()</code></a>.</p>
 <p><span class="annotation">[<acronym title="This is a method"><span class="acronym">method</span></acronym>]</span></p>
 <div class="refsect3">
@@ -7573,6 +7919,60 @@ need to swap bytes. See <a class="link" href="libvips-conversion.html#vips-copy"
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-FOREIGN-ALL:CAPS"></a>VIPS_FOREIGN_ALL</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsFailOn"></a><h3>enum VipsFailOn</h3>
+<p>How sensitive loaders are to errors, from never stop (very insensitive), to
+
+stop on the smallest warning (very sensitive). </p>
+<p>Each one implies the ones before it, so <a class="link" href="VipsForeignSave.html#VIPS-FAIL-ON-ERROR:CAPS"><span class="type">VIPS_FAIL_ON_ERROR</span></a> implies
+<a class="link" href="VipsForeignSave.html#VIPS-FAIL-ON-TRUNCATED:CAPS"><span class="type">VIPS_FAIL_ON_TRUNCATED</span></a>.</p>
+<div class="refsect3">
+<a name="VipsFailOn.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-FAIL-ON-NONE:CAPS"></a>VIPS_FAIL_ON_NONE</p></td>
+<td class="enum_member_description">
+<p>never stop </p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-FAIL-ON-TRUNCATED:CAPS"></a>VIPS_FAIL_ON_TRUNCATED</p></td>
+<td class="enum_member_description">
+<p>stop on image truncated, nothing else</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-FAIL-ON-ERROR:CAPS"></a>VIPS_FAIL_ON_ERROR</p></td>
+<td class="enum_member_description">
+<p>stop on serious error or truncation</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-FAIL-ON-WARNING:CAPS"></a>VIPS_FAIL_ON_WARNING</p></td>
+<td class="enum_member_description">
+<p>stop on anything, even warnings</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-FAIL-ON-LAST:CAPS"></a>VIPS_FAIL_ON_LAST</p></td>
 <td> </td>
 <td> </td>
 </tr>
@@ -7894,6 +8294,8 @@ need to swap bytes. See <a class="link" href="libvips-conversion.html#vips-copy"
 <hr>
 <div class="refsect2">
 <a name="VipsForeignTiffPredictor"></a><h3>enum VipsForeignTiffPredictor</h3>
+<p>The predictor can help deflate and lzw compression. The values are fixed by
+the tiff library.</p>
 <div class="refsect3">
 <a name="VipsForeignTiffPredictor.members"></a><h4>Members</h4>
 <div class="informaltable"><table class="informaltable" width="100%" border="0">
@@ -7905,18 +8307,24 @@ need to swap bytes. See <a class="link" href="libvips-conversion.html#vips-copy"
 <tbody>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-FOREIGN-TIFF-PREDICTOR-NONE:CAPS"></a>VIPS_FOREIGN_TIFF_PREDICTOR_NONE</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>no prediction</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-FOREIGN-TIFF-PREDICTOR-HORIZONTAL:CAPS"></a>VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>horizontal differencing</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-FOREIGN-TIFF-PREDICTOR-FLOAT:CAPS"></a>VIPS_FOREIGN_TIFF_PREDICTOR_FLOAT</p></td>
-<td> </td>
-<td> </td>
+<td class="enum_member_description">
+<p>float predictor</p>
+</td>
+<td class="enum_member_annotations"> </td>
 </tr>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-FOREIGN-TIFF-PREDICTOR-LAST:CAPS"></a>VIPS_FOREIGN_TIFF_PREDICTOR_LAST</p></td>
@@ -8025,6 +8433,60 @@ The values mirror those of png.h in libpng.</p>
 </div>
 <hr>
 <div class="refsect2">
+<a name="VipsForeignPpmFormat"></a><h3>enum VipsForeignPpmFormat</h3>
+<p>The netpbm file format to save as.</p>
+<p><a class="link" href="VipsForeignSave.html#VIPS-FOREIGN-PPM-FORMAT-PBM:CAPS"><span class="type">VIPS_FOREIGN_PPM_FORMAT_PBM</span></a> images are single bit.</p>
+<p><a class="link" href="VipsForeignSave.html#VIPS-FOREIGN-PPM-FORMAT-PGM:CAPS"><span class="type">VIPS_FOREIGN_PPM_FORMAT_PGM</span></a> images are 8, 16, or 32-bits, one band.</p>
+<p><a class="link" href="VipsForeignSave.html#VIPS-FOREIGN-PPM-FORMAT-PPM:CAPS"><span class="type">VIPS_FOREIGN_PPM_FORMAT_PPM</span></a> images are 8, 16, or 32-bits, three bands.</p>
+<p><a class="link" href="VipsForeignSave.html#VIPS-FOREIGN-PPM-FORMAT-PFM:CAPS"><span class="type">VIPS_FOREIGN_PPM_FORMAT_PFM</span></a> images are 32-bit float pixels.</p>
+<div class="refsect3">
+<a name="VipsForeignPpmFormat.members"></a><h4>Members</h4>
+<div class="informaltable"><table class="informaltable" width="100%" border="0">
+<colgroup>
+<col width="300px" class="enum_members_name">
+<col class="enum_members_description">
+<col width="200px" class="enum_members_annotations">
+</colgroup>
+<tbody>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-FOREIGN-PPM-FORMAT-PBM:CAPS"></a>VIPS_FOREIGN_PPM_FORMAT_PBM</p></td>
+<td class="enum_member_description">
+<p>portable bitmap</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-FOREIGN-PPM-FORMAT-PGM:CAPS"></a>VIPS_FOREIGN_PPM_FORMAT_PGM</p></td>
+<td class="enum_member_description">
+<p>portable greymap</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-FOREIGN-PPM-FORMAT-PPM:CAPS"></a>VIPS_FOREIGN_PPM_FORMAT_PPM</p></td>
+<td class="enum_member_description">
+<p>portable pixmap</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-FOREIGN-PPM-FORMAT-PFM:CAPS"></a>VIPS_FOREIGN_PPM_FORMAT_PFM</p></td>
+<td class="enum_member_description">
+<p>portable float map</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-FOREIGN-PPM-FORMAT-LAST:CAPS"></a>VIPS_FOREIGN_PPM_FORMAT_LAST</p></td>
+<td> </td>
+<td> </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+<hr>
+<div class="refsect2">
 <a name="VipsForeignDzLayout"></a><h3>enum VipsForeignDzLayout</h3>
 <p>What directory layout and metadata standard to use.</p>
 <div class="refsect3">
@@ -8060,7 +8522,14 @@ The values mirror those of png.h in libpng.</p>
 <tr>
 <td class="enum_member_name"><p><a name="VIPS-FOREIGN-DZ-LAYOUT-IIIF:CAPS"></a>VIPS_FOREIGN_DZ_LAYOUT_IIIF</p></td>
 <td class="enum_member_description">
-<p>use IIIF directory layout</p>
+<p>use IIIF v2 directory layout</p>
+</td>
+<td class="enum_member_annotations"> </td>
+</tr>
+<tr>
+<td class="enum_member_name"><p><a name="VIPS-FOREIGN-DZ-LAYOUT-IIIF3:CAPS"></a>VIPS_FOREIGN_DZ_LAYOUT_IIIF3</p></td>
+<td class="enum_member_description">
+<p>use IIIF v3 directory layout</p>
 </td>
 <td class="enum_member_annotations"> </td>
 </tr>
@@ -8234,10 +8703,19 @@ The values mirror those of png.h in libpng.</p>
 <div class="refsect2">
 <a name="VipsForeignLoad--fail"></a><h3>The <code class="literal">“fail”</code> property</h3>
 <pre class="programlisting">  “fail”                     <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a></pre>
-<p>Fail on first error.</p>
+<p>Fail on first warning.</p>
 <p>Owner: VipsForeignLoad</p>
 <p>Flags: Read / Write</p>
 <p>Default value: FALSE</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="VipsForeignLoad--fail-on"></a><h3>The <code class="literal">“fail-on”</code> property</h3>
+<pre class="programlisting">  “fail-on”                  <a class="link" href="VipsForeignSave.html#VipsFailOn" title="enum VipsFailOn"><span class="type">VipsFailOn</span></a></pre>
+<p>Error level to fail on.</p>
+<p>Owner: VipsForeignLoad</p>
+<p>Flags: Read / Write</p>
+<p>Default value: VIPS_FAIL_ON_NONE</p>
 </div>
 <hr>
 <div class="refsect2">
