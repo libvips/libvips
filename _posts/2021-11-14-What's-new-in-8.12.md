@@ -23,7 +23,7 @@ $ /usr/bin/time -f %M:%e vipsthumbnail 3198.gif[n=-1] --size 128 -o x.gif
 221668:5.57
 ```
 
-That's 220 MB of memory and 5.6s of real time to make a 128 x 128 thunmbnail
+That's 220 MB of memory and 5.6s of real time to make a 128 x 128 thumbnail
 video.
 
 Thanks to work by lovell, libvips now has a specialized GIF writer using the
@@ -45,12 +45,12 @@ and operations along the pipeline will do things like dropping caches and
 closing file descriptors.  In 8.12, we've expanded the use of this system
 to help improve the performance of operations like `arrayjoin`.
 
-### The problem
+## The problem
 
 For example, here's how you might use `arrayjoin` to untile a google maps
 pyramid:
 
-```python3
+```python
 #!/usr/bin/python3
 
 # untile a google maps pyramid
@@ -119,8 +119,8 @@ $ /usr/bin/time -f %M:%e ~/try/untile-google.py x x.jpg
 
 So libvips 8.11 joined 12,154 tiles in about 15s, and needed 4.5 GB of memory.
 
-There's a less obvious problem too: this program will need a file descriptor
-for every tile. You can see with a small shell script:
+There's another, less obvious problem: this program will need a file
+descriptor for every tile. You can see with a small shell script:
 
 ```sh
 #!/bin/bash
@@ -134,10 +134,10 @@ while test -d /proc/$pid; do
 done
 ```
 
-This runs the python program above, and counts the number of open file
-descriptors 10 times a second. It peaks at over 12,000 open descriptors!
-You'll probably need to make some tricky changes to your machine if you
-want to be able to run things like this.
+This runs the program above and counts the number of open file descriptors 10
+times a second. It peaks at over 12,000 open descriptors!  You'll probably
+need to make some tricky changes to your machine if you want to be able to
+run things like this.
 
 ## Minimise during processing
 
@@ -176,14 +176,14 @@ As usual, there have been many small improvements to file format support.
   picking the correct format for you automatically.
 - The jpeg2000 loader is much better with very large, untiled images.
 - EXIF support is fixed for string fields containing metacharacters.
-- A new `fail-on` flags gives better control over detecting load errors. You
+- A new `fail-on` flag gives better control over detecting load errors. You
   can spot image truncation easily now.
 - Target save is better at picking the write format automatically. 
 
 # More trig functions
 
 Thanks to work by indus and hroskes, libvips now supports `atan2` and has
-a full set of hyperbolic trig functuions.
+a full set of hyperbolic trig functions.
 
 # Minor improvements
 
