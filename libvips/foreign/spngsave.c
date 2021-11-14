@@ -40,9 +40,9 @@
  */
 
 /*
+ */
 #define DEBUG_VERBOSE
 #define DEBUG
- */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -182,8 +182,10 @@ vips_foreign_save_spng_metadata( VipsForeignSaveSpng *spng, VipsImage *in )
 			const void *data = vips_blob_get( blob, &length );
 			char *basename = g_path_get_basename( spng->profile );
 
+#ifdef DEBUG
 			printf( "write_vips: attaching %zd bytes "
 				"of ICC profile\n", length );
+#endif /*DEBUG*/
 
 			vips_strncpy( iccp.profile_name, basename, 
 				sizeof( iccp.profile_name ) );
@@ -203,8 +205,10 @@ vips_foreign_save_spng_metadata( VipsForeignSaveSpng *spng, VipsImage *in )
 			&data, &length ) )
 			return( -1 );
 
+#ifdef DEBUG
 		printf( "write_vips: attaching %zd bytes "
 			"of ICC profile\n", length );
+#endif /*DEBUG*/
 
 		vips_strncpy( iccp.profile_name, "", 
 			sizeof( iccp.profile_name ) );
@@ -243,7 +247,9 @@ vips_foreign_save_spng_metadata( VipsForeignSaveSpng *spng, VipsImage *in )
 
 		text_chunk_array[i] = *text;
 	}
+#ifdef DEBUG
 	printf( "attaching %u text items\n", n_text );
+#endif /*DEBUG*/
 	spng_set_text( spng->ctx, text_chunk_array, n_text );
 	VIPS_FREE( text_chunk_array );
 
@@ -315,76 +321,16 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 		return( -1 );
 	}
 
-#ifdef HAVE_IMAGEQUANT
-	/*
-	if( palette ) {
-		VipsImage *im_index;
-		VipsImage *im_palette;
-		int palette_count;
-		png_color *png_palette;
-		png_byte *png_trans;
-		int trans_count;
-
-		if( vips__quantise_image( in, &im_index, &im_palette, 
-			1 << bitdepth, Q, dither, effort, FALSE ) )
-			return( -1 );
-
-		palette_count = im_palette->Xsize;
-
-		g_assert( palette_count <= PNG_MAX_PALETTE_LENGTH );
-
-		png_palette = (png_color *) png_malloc( write->pPng,
-			palette_count * sizeof( png_color ) );
-		png_trans = (png_byte *) png_malloc( write->pPng,
-			palette_count * sizeof( png_byte ) );
-		trans_count = 0;
-		for( i = 0; i < palette_count; i++ ) {
-			VipsPel *p = (VipsPel *) 
-				VIPS_IMAGE_ADDR( im_palette, i, 0 );
-			png_color *col = &png_palette[i];
-
-			col->red = p[0];
-			col->green = p[1];
-			col->blue = p[2];
-			png_trans[i] = p[3];
-			if( p[3] != 255 )
-				trans_count = i + 1;
-			printf( "write_vips: palette[%d] %d %d %d %d\n",
-				i + 1, p[0], p[1], p[2], p[3] );
-		}
-
-		printf( "write_vips: attaching %d color palette\n",
-			palette_count );
-		png_set_PLTE( write->pPng, write->pInfo, png_palette,
-			palette_count );
-		if( trans_count ) {
-			printf( "write_vips: attaching %d alpha values\n",
-				trans_count );
-			png_set_tRNS( write->pPng, write->pInfo, png_trans,
-				trans_count, NULL );
-		}
-
-		png_free( write->pPng, (void *) png_palette );
-		png_free( write->pPng, (void *) png_trans );
-
-		VIPS_UNREF( im_palette );
-
-		VIPS_UNREF( write->memory );
-		write->memory = im_index;
-		in = write->memory;
-	}
-	 */
-#endif /*HAVE_IMAGEQUANT*/
-
 	ihdr.width = in->Xsize;
 	ihdr.height = in->Ysize;
 	ihdr.bit_depth = 8;
 
 	switch( in->Bands ) {
 	case 1:
-		// FIXME ... add
-		//ihdr.color_type =  SPNG_COLOR_TYPE_INDEXED; 
-		ihdr.color_type = SPNG_COLOR_TYPE_GRAYSCALE;
+		if( spng->palette )
+			ihdr.color_type = SPNG_COLOR_TYPE_INDEXED; 
+		else
+			ihdr.color_type = SPNG_COLOR_TYPE_GRAYSCALE;
 		break;
 
 	case 2:
@@ -432,12 +378,63 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 		vips_foreign_save_spng_metadata( spng, in ) )
 		return( -1 );
 
-	/* Set up the palette if color_type == SPNG_COLOR_TYPE_INDEXED
-	 *
-	 *     struct spng_plte plte = {0};
+#ifdef HAVE_IMAGEQUANT
+	if( spng->palette ) {
+		VipsImage *im_index;
+		VipsImage *im_palette;
+		int palette_count;
+		struct spng_plte plte = { 0 };
+		struct spng_trns trns = { 0 };
+		int i;
 
-		if(plte.n_entries > 0) spng_set_plte(enc, &plte);
-    	 */
+		if( vips__quantise_image( in, &im_index, &im_palette, 
+			1 << spng->bitdepth, 
+			spng->Q, 
+			spng->dither, 
+			spng->effort, 
+			FALSE ) )
+			return( -1 );
+
+		/* spng is 8-bit palettes only.
+		 */
+		palette_count = im_palette->Xsize;
+		g_assert( palette_count <= 256 );
+
+		for( i = 0; i < palette_count; i++ ) {
+			VipsPel *p = (VipsPel *) 
+				VIPS_IMAGE_ADDR( im_palette, i, 0 );
+
+			if( p[3] == 255 ) {
+				struct spng_plte_entry *entry = 
+					&plte.entries[plte.n_entries];
+
+				entry->red = p[0];
+				entry->green = p[1];
+				entry->blue = p[2];
+				plte.n_entries += 1;
+			}
+			else {
+				trns.type3_alpha[trns.n_type3_entries] = p[3];
+				trns.n_type3_entries += 1;
+			}
+		}
+
+#ifdef DEBUG
+		printf( "attaching %d entry palette\n", plte.n_entries );
+		if( trns.n_type3_entries )
+			printf( "attaching %d transparency values\n", 
+			     trns.n_type3_entries );
+#endif /*DEBUG*/
+		
+		spng_set_plte( spng->ctx, &plte );
+		if( trns.n_type3_entries ) 
+			spng_set_trns( spng->ctx, &trns );
+
+		VIPS_UNREF( im_palette );
+
+		in = spng->memory = im_index;
+	}
+#endif /*HAVE_IMAGEQUANT*/
 
 	/* SPNG_FMT_PNG is a special value that matches the format in ihdr 
 	 */
@@ -450,9 +447,13 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 	}
 
 	if( spng->interlace ) {
-		if( !(spng->memory = vips_image_copy_memory( in )) )
-			return( -1 );
-		in = spng->memory;
+		/* Force the input into memory, if it's not there already.
+		 */
+		if( !spng->memory ) {
+			if( !(spng->memory = vips_image_copy_memory( in )) )
+				return( -1 );
+			in = spng->memory;
+		}
 
 		do {
 			struct spng_row_info row_info;
