@@ -15,39 +15,41 @@ this release.
 Previous libvips versions have used imagemagick for GIF save. This worked
 well, but was slow and needed a *lot* of memory. 
 
-For example, with `3198.gif`, a 140 frame video clip with 300 x 200 pixels per
-frame, I saw:
+For example, with libvips 8.11 and `3198.gif`, a 140 frame video clip with
+300 x 200 pixels per frame, I saw:
 
 ```
 $ /usr/bin/time -f %M:%e vipsthumbnail 3198.gif[n=-1] --size 128 -o x.gif
 221668:5.57
 ```
 
-That's 220 MB of memory and 5.6s of real time to make a 128 x 128 thumbnail
-video.
+That's a peak of 220MB of memory and 5.6s of real time to make a 128 x 128
+thumbnail video.
 
-Thanks to work by lovell, libvips now has a specialized GIF writer using the
-[cgif](https://github.com/dloebl/cgif) library. I see:
+Thanks to work by Lovell Fuller, libvips now has a dedicated GIF
+writer using the [cgif](https://github.com/dloebl/cgif) library and
+[libimagequant](https://github.com/lovell/libimagequant). I see:
 
 ```
 $ /usr/bin/time -f %M:%e vipsthumbnail 3198.gif[n=-1] --size 128 -o x.gif
-56108:2.46
+46128:2.40
 ```
 
-So now it's 56 MB peak memory use, and 2.5s -- twice the speed, and only 25% of
-the memory use. 
+So now it's 46MB and 2.4s -- twice the speed and five times
+less memory use. Thanks to libimagequant, quality should be better too:
+it'll pick a more optimised palette, and dithering should be more accurate.
 
 # Much lower memory and file descriptor use for join operations
 
 libvips has supported minimisation signals for a while now. At the end of
-a save operation, for example, the saver will emit a `minimise` signal,
+a save operation, for example, savers will emit a `minimise` signal,
 and operations along the pipeline will do things like dropping caches and
 closing file descriptors.  In 8.12, we've expanded the use of this system
-to help improve the performance of operations like `arrayjoin`.
+to help improve the performance of things like `arrayjoin`.
 
 ## The problem
 
-For example, here's how you might use `arrayjoin` to untile a google maps
+For example, here's how you might use `arrayjoin` to untile a Google Maps
 pyramid:
 
 ```python
@@ -117,10 +119,11 @@ $ /usr/bin/time -f %M:%e ~/try/untile-google.py x x.jpg
 4487744:15.24
 ```
 
-So libvips 8.11 joined 12,154 tiles in about 15s, and needed 4.5 GB of memory.
+So libvips 8.11 joined 12,154 tiles in 15s and needed 4.5GB of memory. This
+is quite a substantial amount of memory.
 
 There's another, less obvious problem: this program will need a file
-descriptor for every tile. You can see with a small shell script:
+descriptor for every tile. You can see this with a small shell script:
 
 ```sh
 #!/bin/bash
@@ -134,18 +137,18 @@ while test -d /proc/$pid; do
 done
 ```
 
-This runs the program above and counts the number of open file descriptors 10
-times a second. It peaks at over 12,000 open descriptors!  You'll probably
-need to make some tricky changes to your machine if you want to be able to
-run things like this.
+This script runs the program above and counts the number of open file
+descriptors 10 times a second. It peaks at over 12,000 open descriptors!
+You'll probably need to make some tricky changes to your machine if you
+want to be able to run things like this.
 
 ## Minimise during processing
 
 In libvips 8.12, `arrayjoin` will emit `minimise` signals during
-processing. It detects that it is operating in a sequential context, and
-will signal minimise on an input when the point of processing is past an
-input tile. This means that input image resources are discarded during
-computation, not just at the end.
+processing. It detects that it is operating in a sequential context and
+will signal minimise on an input when the point of processing moves beyond
+that tile. This means that input image resources are created and discarded
+during computation, not just at the end.
 
 With libvips 8.12, I see:
 
@@ -156,11 +159,12 @@ $ /usr/bin/time -f %M:%e ~/try/untile-google.py x x.jpg
 2089992:14.66
 ```
 
-So less than half the memory use, and even a little quicker. 
+So less than half the memory use, and it's even a little quicker. 
 
-The saving in file descriptors is even better: it peaks at under 600. That's
-low enough to be well inside the limit on most machines, so you'll no longer
-need to reconfigure your server to do operations like this.
+The saving in file descriptors is even better: it peaks at under 600, about 20
+times fewer. That's low enough to be well inside the limit on most machines,
+so you'll no longer need to reconfigure your server to do operations
+like this.
 
 This is quite a general system, and operations like `insert`, `join` and
 `merge` all benefit.
@@ -174,11 +178,12 @@ As usual, there have been many small improvements to file format support.
 - `dzsave` now supports IIIF3.
 - The PPM writer has an option to set the exact save format, and is better at
   picking the correct format for you automatically.
-- The jpeg2000 loader is much better with very large, untiled images.
+- The JPEG 2000 loader needs much less memory with very large, untiled images.
 - EXIF support is fixed for string fields containing metacharacters.
 - A new `fail-on` flag gives better control over detecting load errors. You
   can spot image truncation easily now.
-- Target save is better at picking the write format automatically. 
+- Save to buffer and target will pick the correct format automatically for 
+  savers which implement multiple formats.
 
 # More trigonometric functions
 
