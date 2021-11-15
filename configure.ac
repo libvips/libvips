@@ -832,7 +832,7 @@ AC_ARG_WITH([libjxl],
   [with_libjxl=test])
 
 # libjxl as a dynamically loadable module
-AS_IF([test x"$with_libjxl" = x"module" -o x"$with_libjxl" = x"tst"],
+AS_IF([test x"$with_libjxl" = x"module" -o x"$with_libjxl" = x"test"],
   [with_libjxl_module=$gmodule_supported_flag],
   [with_libjxl_module=no])
 
