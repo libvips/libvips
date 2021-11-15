@@ -377,7 +377,7 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 
 	ihdr.width = in->Xsize;
 	ihdr.height = in->Ysize;
-	ihdr.bit_depth = 8;
+	ihdr.bit_depth = spng->bitdepth;
 
 	switch( in->Bands ) {
 	case 1:
@@ -495,6 +495,8 @@ vips_foreign_save_spng_build( VipsObject *object )
 	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) object;
 
 	VipsImage *in;
+	VipsInterpretation interpretation;
+	VipsImage *x;
 
 	if( VIPS_OBJECT_CLASS( vips_foreign_save_spng_parent_class )->
 		build( object ) )
@@ -502,22 +504,6 @@ vips_foreign_save_spng_build( VipsObject *object )
 
 	in = save->ready;
 	g_object_ref( in );
-
-	/* save->ready will have been converted to uint16 for high-bitdepth
-	 * formats (eg. float) ... we need to check Type to see if we want 
-	 * to save as 8 or 16-bits. Eg. imagine a float image tagged as sRGB.
-	 */
-	if( in->Type == VIPS_INTERPRETATION_sRGB ||
-		in->Type == VIPS_INTERPRETATION_B_W ) {
-		VipsImage *x;
-
-		if( vips_cast( in, &x, VIPS_FORMAT_UCHAR, NULL ) ) {
-			g_object_unref( in );
-			return( -1 );
-		}
-		g_object_unref( in );
-		in = x;
-	}
 
 	/* Deprecated "colours" arg just sets bitdepth large enough to hold
 	 * that many colours.
@@ -541,6 +527,26 @@ vips_foreign_save_spng_build( VipsObject *object )
         if( in->Bands > 2 &&
 		spng->bitdepth < 8 )
 		spng->palette = TRUE;
+
+	/* save->ready will have been converted to uint16 for high-bitdepth
+	 * formats (eg. float) ... we need to check Type to see if we want 
+	 * to save as 8 or 16-bits. Eg. imagine a float image tagged as sRGB.
+	 */
+	if( spng->bitdepth == 16 ) 
+		interpretation = in->Bands > 2 ?
+			VIPS_INTERPRETATION_RGB16 : 
+			VIPS_INTERPRETATION_GREY16;
+	else
+		interpretation = in->Bands > 2 ?
+			VIPS_INTERPRETATION_sRGB : 
+			VIPS_INTERPRETATION_B_W;
+	
+	if( vips_colourspace( in, &x, interpretation, NULL ) ) {
+		g_object_unref( in );
+		return( -1 );
+	}
+	g_object_unref( in );
+	in = x;
 
 	if( vips_foreign_save_spng_write( spng, in ) ) {
 		g_object_unref( in );
