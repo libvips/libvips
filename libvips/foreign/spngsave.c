@@ -758,7 +758,7 @@ vips_foreign_save_spng_file_class_init( VipsForeignSaveSpngFileClass *class )
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pngsave";
-	object_class->description = _( "save image to files as PNG" );
+	object_class->description = _( "save image to file as PNG" );
 	object_class->build = vips_foreign_save_spng_file_build;
 
 	VIPS_ARG_STRING( class, "filename", 1, 
