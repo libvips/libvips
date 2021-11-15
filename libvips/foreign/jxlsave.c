@@ -261,7 +261,9 @@ vips_foreign_save_jxl_build( VipsObject *object )
 		return( -1 );
 	}
 
+#ifdef HAVE_LIBJXL_JXLENCODERINITBASICINFO
 	JxlEncoderInitBasicInfo( &jxl->info );
+#endif
 
 	switch( save->ready->BandFmt ) {
 	case VIPS_FORMAT_UCHAR:
