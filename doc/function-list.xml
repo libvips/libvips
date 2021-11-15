@@ -577,6 +577,21 @@
   <entry>vips_gifload_source()</entry>
 </row>
 <row>
+  <entry>gifsave</entry>
+  <entry>Save as gif</entry>
+  <entry>vips_gifsave()</entry>
+</row>
+<row>
+  <entry>gifsave_buffer</entry>
+  <entry>Save as gif</entry>
+  <entry>vips_gifsave_buffer()</entry>
+</row>
+<row>
+  <entry>gifsave_target</entry>
+  <entry>Save as gif</entry>
+  <entry>vips_gifsave_target()</entry>
+</row>
+<row>
   <entry>globalbalance</entry>
   <entry>Global balance an image mosaic</entry>
   <entry>vips_globalbalance()</entry>
@@ -742,36 +757,6 @@
   <entry>vips_join()</entry>
 </row>
 <row>
-  <entry>jp2kload</entry>
-  <entry>Load jpeg2000 image</entry>
-  <entry>vips_jp2kload()</entry>
-</row>
-<row>
-  <entry>jp2kload_buffer</entry>
-  <entry>Load jpeg2000 image</entry>
-  <entry>vips_jp2kload_buffer()</entry>
-</row>
-<row>
-  <entry>jp2kload_source</entry>
-  <entry>Load jpeg2000 image</entry>
-  <entry>vips_jp2kload_source()</entry>
-</row>
-<row>
-  <entry>jp2ksave</entry>
-  <entry>Save image in jpeg2000 format</entry>
-  <entry>vips_jp2ksave()</entry>
-</row>
-<row>
-  <entry>jp2ksave_buffer</entry>
-  <entry>Save image in jpeg2000 format</entry>
-  <entry>vips_jp2ksave_buffer()</entry>
-</row>
-<row>
-  <entry>jp2ksave_target</entry>
-  <entry>Save image in jpeg2000 format</entry>
-  <entry>vips_jp2ksave_target()</entry>
-</row>
-<row>
   <entry>jpegload</entry>
   <entry>Load jpeg from file</entry>
   <entry>vips_jpegload()</entry>
@@ -805,36 +790,6 @@
   <entry>jpegsave_target</entry>
   <entry>Save image to jpeg target</entry>
   <entry>vips_jpegsave_target()</entry>
-</row>
-<row>
-  <entry>jxlload</entry>
-  <entry>Load jpeg-xl image</entry>
-  <entry>vips_jxlload()</entry>
-</row>
-<row>
-  <entry>jxlload_buffer</entry>
-  <entry>Load jpeg-xl image</entry>
-  <entry>vips_jxlload_buffer()</entry>
-</row>
-<row>
-  <entry>jxlload_source</entry>
-  <entry>Load jpeg-xl image</entry>
-  <entry>vips_jxlload_source()</entry>
-</row>
-<row>
-  <entry>jxlsave</entry>
-  <entry>Save image in jpeg-xl format</entry>
-  <entry>vips_jxlsave()</entry>
-</row>
-<row>
-  <entry>jxlsave_buffer</entry>
-  <entry>Save image in jpeg-xl format</entry>
-  <entry>vips_jxlsave_buffer()</entry>
-</row>
-<row>
-  <entry>jxlsave_target</entry>
-  <entry>Save image in jpeg-xl format</entry>
-  <entry>vips_jxlsave_target()</entry>
 </row>
 <row>
   <entry>labelregions</entry>
@@ -944,7 +899,7 @@
 <row>
   <entry>math</entry>
   <entry>Apply a math operation to an image</entry>
-  <entry>vips_math(), vips_sin(), vips_cos(), vips_tan(), vips_asin(), vips_acos(), vips_atan(), vips_exp(), vips_exp10(), vips_log(), vips_log10()</entry>
+  <entry>vips_math(), vips_sin(), vips_cos(), vips_tan(), vips_asin(), vips_acos(), vips_atan(), vips_sinh(), vips_cosh(), vips_tanh(), vips_asinh(), vips_acosh(), vips_atanh(), vips_exp(), vips_exp10(), vips_log(), vips_log10()</entry>
 </row>
 <row>
   <entry>math2</entry>
@@ -1113,12 +1068,12 @@
 </row>
 <row>
   <entry>pngsave</entry>
-  <entry>Save image to png file</entry>
+  <entry>Save image to files as png</entry>
   <entry>vips_pngsave()</entry>
 </row>
 <row>
   <entry>pngsave_buffer</entry>
-  <entry>Save image to png buffer</entry>
+  <entry>Save image to buffer as png</entry>
   <entry>vips_pngsave_buffer()</entry>
 </row>
 <row>

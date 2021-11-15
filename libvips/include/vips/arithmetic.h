@@ -249,6 +249,18 @@ int vips_log( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
 int vips_log10( VipsImage *in, VipsImage **out, ... )
 	__attribute__((sentinel));
+int vips_sinh( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_cosh( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_tanh( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_asinh( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_acosh( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
+int vips_atanh( VipsImage *in, VipsImage **out, ... )
+	__attribute__((sentinel));
 
 int vips_complex( VipsImage *in, VipsImage **out, 
 	VipsOperationComplex cmplx, ... )
