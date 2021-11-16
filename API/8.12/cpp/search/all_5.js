@@ -6,7 +6,7 @@ var searchData=
   ['fill_5fnearest_92',['fill_nearest',['../classVImage.html#a205e2fa32bd0fb186b2021267c88fc8c',1,'VImage']]],
   ['find_5ftrim_93',['find_trim',['../classVImage.html#a9bc402c0cc1b3a5f9b3605bae08b3324',1,'VImage']]],
   ['fitsload_94',['fitsload',['../classVImage.html#a549b38278a19f0faa4b2d4da5179ce63',1,'VImage']]],
-  ['fitsload_5fsource_95',['fitsload_source',['../classVImage.html#a2de98ab9a3f6edaab6510b127f25ff65',1,'VImage']]],
+  ['fitsload_5fsource_95',['fitsload_source',['../classVImage.html#af1c2d9efa458af8face0723c60be8288',1,'VImage']]],
   ['fitssave_96',['fitssave',['../classVImage.html#a78f1edc477934062a16c9e898a645cb1',1,'VImage']]],
   ['flatten_97',['flatten',['../classVImage.html#af4acfbab11c640f217b9b9feb2e7c9fc',1,'VImage']]],
   ['flip_98',['flip',['../classVImage.html#abfa24fb0025e490da203a88c94342b5c',1,'VImage']]],

@@ -22,7 +22,7 @@ var searchData=
   ['gifload_5fbuffer_126',['gifload_buffer',['../classVImage.html#adf29a360bcfb7d90f8ff72601ffb5f77',1,'VImage']]],
   ['gifload_5fsource_127',['gifload_source',['../classVImage.html#a2feed9f92509fa7b2b0de748ef74841a',1,'VImage']]],
   ['gifsave_128',['gifsave',['../classVImage.html#a5c7b9a718dcd020d073d00530638ecc2',1,'VImage']]],
-  ['gifsave_5fbuffer_129',['gifsave_buffer',['../classVImage.html#a0053bcd1f63c27bd939a4609a232d106',1,'VImage']]],
+  ['gifsave_5fbuffer_129',['gifsave_buffer',['../classVImage.html#ab56a73e182356d6fed5f61be0fc2b398',1,'VImage']]],
   ['gifsave_5ftarget_130',['gifsave_target',['../classVImage.html#a9670ecd4444b0fa3c3f4836a980616e6',1,'VImage']]],
   ['globalbalance_131',['globalbalance',['../classVImage.html#ab9f8db04711305d697198f161448fca6',1,'VImage']]],
   ['gravity_132',['gravity',['../classVImage.html#a3b1147b879a93b8eeafd32fd66e97846',1,'VImage']]],

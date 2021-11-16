@@ -326,13 +326,15 @@ name. Do not free this value. </p>
 <a name="vips-shutdown"></a><h3>vips_shutdown ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
 vips_shutdown (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
-<p>Call this to drop caches and close plugins. Run with "--vips-leak" to do 
-a leak check too. </p>
+<p>Call this to drop caches, close plugins, terminate background threads, and
+finalize any internal library testing. </p>
 <p>vips_shutdown() is optional. If you don't call it, your platform will
-clean up for you.</p>
+clean up for you. The only negative consequences are that the leak checker
+and the profiler will not work.</p>
 <p>You may call <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a> many times and <a class="link" href="libvips-vips.html#vips-shutdown" title="vips_shutdown ()"><code class="function">vips_shutdown()</code></a> many times, but you 
 must not call <a class="link" href="libvips-vips.html#VIPS-INIT:CAPS" title="VIPS_INIT()"><code class="function">VIPS_INIT()</code></a> after <a class="link" href="libvips-vips.html#vips-shutdown" title="vips_shutdown ()"><code class="function">vips_shutdown()</code></a>. In other words, you cannot
-stop and restart vips.</p>
+stop and restart libvips. </p>
+<p>See also: <code class="function">vips_profile_set()</code>, <a class="link" href="libvips-vips.html#vips-leak-set" title="vips_leak_set ()"><code class="function">vips_leak_set()</code></a>.</p>
 </div>
 <hr>
 <div class="refsect2">
