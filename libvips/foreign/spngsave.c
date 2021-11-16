@@ -378,6 +378,11 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 	ihdr.width = in->Xsize;
 	ihdr.height = in->Ysize;
 	ihdr.bit_depth = spng->bitdepth;
+	/* FIXME ... spng 0.7 does not yet implement 1/2/4 bit packing, so
+	 * you'll see a bad result.
+	 */
+	if( spng->bitdepth < 8 ) 
+		g_warning( "spngsave with bitdepth < 8 not yet supported" );
 
 	switch( in->Bands ) {
 	case 1:
