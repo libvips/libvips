@@ -733,15 +733,18 @@ vips_thread_shutdown( void )
 /**
  * vips_shutdown:
  *
- * Call this to drop caches and close plugins. Run with "--vips-leak" to do 
- * a leak check too. 
+ * Call this to drop caches, close plugins, terminate background threads, and
+ * finalize any internal library testing. 
  *
  * vips_shutdown() is optional. If you don't call it, your platform will
- * clean up for you.
+ * clean up for you. The only negative consequences are that the leak checker
+ * and the profiler will not work.
  *
  * You may call VIPS_INIT() many times and vips_shutdown() many times, but you 
  * must not call VIPS_INIT() after vips_shutdown(). In other words, you cannot
- * stop and restart vips. 
+ * stop and restart libvips. 
+ *
+ * See also: vips_profile_set(), vips_leak_set().
  */
 void
 vips_shutdown( void )
