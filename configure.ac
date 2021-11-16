@@ -837,9 +837,9 @@ AS_IF([test x"$with_libjxl" = x"module"],
   [with_libjxl_module=no])
 
 if test x"$with_libjxl" != x"no"; then
-  PKG_CHECK_MODULES(LIBJXL, libjxl_threads >= 0.6 libjxl >= 0.6,
+  PKG_CHECK_MODULES(LIBJXL, libjxl_threads >= 0.5 libjxl >= 0.5,
     [AC_DEFINE(HAVE_LIBJXL,1,
-       [define if you have libjxl >= 0.6 installed.])
+       [define if you have libjxl >= 0.5 installed.])
      with_libjxl=yes
      AS_IF([test x"$with_libjxl_module" = x"no"],
        [PACKAGES_USED="$PACKAGES_USED libjxl"])
@@ -850,6 +850,19 @@ if test x"$with_libjxl" != x"no"; then
     ]
   )
 fi
+
+if test x"$with_libjxl" = x"yes"; then
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $LIBJXL_LIBS"
+  # Introduced in 0.6
+  AC_CHECK_FUNCS(JxlEncoderInitBasicInfo,[
+     AC_DEFINE(HAVE_LIBJXL_JXLENCODERINITBASICINFO,1,
+               [define if you have heif_image_handle_get_raw_color_profile.])
+   ],[]
+  )
+  LIBS="$save_LIBS"
+fi
+
 
 AS_IF([test x"$with_libjxl_module" = x"yes"],
   [AC_DEFINE([LIBJXL_MODULE], [1], [define to build libjxl as a dynamically loadable module.])],
