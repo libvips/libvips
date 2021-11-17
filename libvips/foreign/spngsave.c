@@ -338,7 +338,7 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 			FALSE ) )
 			return( -1 );
 
-		/* spng is 8-bit palettes only.
+		/* PNG is 8-bit index only.
 		 */
 		palette_count = im_palette->Xsize;
 		g_assert( palette_count <= 256 );
@@ -448,7 +448,7 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 	/* SPNG_FMT_PNG is a special value that matches the format in ihdr 
 	 */
 	fmt = SPNG_FMT_PNG;
-	encode_flags = SPNG_ENCODE_PROGRESSIVE;
+	encode_flags = SPNG_ENCODE_PROGRESSIVE | SPNG_ENCODE_FINALIZE;
 	if( (error = spng_encode_image( spng->ctx, 
 		NULL, -1, fmt, encode_flags )) ) {
 		vips_error( class->nickname, "%s", spng_strerror( error ) ); 
