@@ -77,9 +77,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install autoconf automake libtool fftw fontconfig gtk-doc gobject-introspection glib libexif libgsf little-cms2 orc pango
-          brew install cfitsio libheif libimagequant libjpeg-turbo libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp
-          brew tap lovell/cgif-packaging https://github.com/lovell/cgif-packaging.git
-          brew install --build-bottle lovell/cgif-packaging/cgif
+          brew install cfitsio libheif libimagequant libjpeg-turbo libmatio librsvg libspng libtiff openexr openjpeg openslide poppler webp cgif
 
       - name: Install Clang 12
         if: runner.os == 'Linux' && matrix.build.cc == 'clang-12'
