@@ -127,6 +127,8 @@ vips_foreign_load_png_get_flags_source( VipsSource *source )
 
 	ctx = spng_ctx_new( SPNG_CTX_IGNORE_ADLER32 );
 	spng_set_crc_action( ctx, SPNG_CRC_USE, SPNG_CRC_USE );
+	if( vips_source_rewind( source ) ) 
+		return( 0 );
 	spng_set_png_stream( ctx, 
 		vips_foreign_load_png_stream, source );
 	if( spng_get_ihdr( ctx, &ihdr ) ) {
@@ -533,12 +535,12 @@ vips_foreign_load_png_generate( VipsRegion *or,
 	}
 
 	for( y = 0; y < r->height; y++ ) {
-		error = spng_decode_row( png->ctx, 
-			VIPS_REGION_ADDR( or, 0, r->top + y ),
-			VIPS_REGION_SIZEOF_LINE( or ) );
 		/* libspng returns EOI when successfully reading the 
 		 * final line of input.
 		 */
+		error = spng_decode_row( png->ctx, 
+			VIPS_REGION_ADDR( or, 0, r->top + y ),
+			VIPS_REGION_SIZEOF_LINE( or ) );
 		if( error != 0 &&
 			error != SPNG_EOI ) { 
 			/* We've failed to read some pixels. Knock this 
@@ -739,6 +741,7 @@ vips_foreign_load_png_source_class_init( VipsForeignLoadPngSourceClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
@@ -747,6 +750,8 @@ vips_foreign_load_png_source_class_init( VipsForeignLoadPngSourceClass *class )
 	object_class->nickname = "pngload_source";
 	object_class->description = _( "load png from source" );
 	object_class->build = vips_foreign_load_png_source_build;
+
+	operation_class->flags = VIPS_OPERATION_NOCACHE;
 
 	load_class->is_a_source = vips_foreign_load_png_source_is_a_source;
 

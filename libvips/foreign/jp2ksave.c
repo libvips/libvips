@@ -880,9 +880,11 @@ vips_foreign_save_jp2k_build( VipsObject *object )
 	if( !(jp2k->accumulate = VIPS_ARRAY( NULL, sizeof_line, VipsPel )) )
 		return( -1 );
 
-	/* The line of tiles we are building.
+	/* The line of tiles we are building. It's used by the bg thread, so
+	 * no ownership.
 	 */
 	jp2k->strip = vips_region_new( save->ready );
+        vips__region_no_ownership( jp2k->strip );
 
 	/* Position strip at the top of the image, the height of a row of
 	 * tiles.
