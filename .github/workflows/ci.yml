@@ -121,6 +121,7 @@ jobs:
       - name: Configure libvips
         run:
           ./autogen.sh
+            --enable-debug
             --disable-dependency-tracking
             --disable-deprecated || (cat config.log && exit 1)
 
