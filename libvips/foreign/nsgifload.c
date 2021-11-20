@@ -146,14 +146,11 @@ vips_foreign_load_nsgif_errstr( gif_result result )
 	case GIF_OK:
 		return( _( "OK" ) ); 
 
-	case GIF_INSUFFICIENT_FRAME_DATA:
-		return( _( "Insufficient data to complete frame" ) ); 
-
 	case GIF_FRAME_DATA_ERROR:
 		return( _( "GIF frame data error" ) ); 
 
 	case GIF_INSUFFICIENT_DATA:
-		return( _( "Insufficient data to do anything" ) ); 
+		return( _( "Incomplete data" ) ); 
 
 	case GIF_DATA_ERROR:
 		return( _( "GIF header data error" ) ); 
