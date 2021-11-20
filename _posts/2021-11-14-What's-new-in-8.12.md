@@ -2,7 +2,7 @@
 title: What's new in 8.12
 ---
 
-libvips 8.12 is almost done, so here's a quick overview of what's new. Check
+Here's a quick overview of what's new in libvips 8.12. Check
 the [ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
 if you need more details.
 
