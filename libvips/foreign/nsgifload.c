@@ -310,9 +310,9 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 
 	if( gif->anim->global_colours &&
 		gif->anim->global_colour_table &&
-		gif->anim->background_index >= 0 &&
-		gif->anim->background_index < gif->anim->colour_table_size ) {
-		int index = gif->anim->background_index;
+		gif->anim->bg_index >= 0 &&
+		gif->anim->bg_index < gif->anim->colour_table_size ) {
+		int index = gif->anim->bg_index;
 		unsigned char *entry = (unsigned char *) 
 			&gif->anim->global_colour_table[index];
 
