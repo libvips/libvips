@@ -95,14 +95,15 @@ typedef struct _VipsInsert {
 	 */
 	VipsPel *ink;
 
-	/* Inputs cast and banded up, plus a NULL at the end.
+	/* Inputs cast and banded up, plus a NULL at the end. main is 0, sub
+	 * is 1.
 	 */
 	VipsImage *processed[3];
 
 	/* Geometry.
 	 */
 	VipsRect rout;		/* Output space */
-	VipsRect rimage[2];	/* Position of main in output */
+	VipsRect rimage[2];	/* Position of input in output */
 
 	/* TRUE if we've minimised an input.
 	 */
@@ -179,24 +180,29 @@ vips_insert_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 
 	int i;
 
-	/* First, does this request fall entirely inside one of our inputs? If
-	 * it does, we can just redirect the request there. Test sub first.
+	/* Three cases:
+	 *
+	 * 1. If r is entirely within sub, we can just paint from sub.
+	 * 2. If r is entirely within main and does not touch sub, we can 
+	 *    paint from main.
+	 * 3. We must paint from both, and the background.
 	 */
-	for( i = 1; i >= 0; i-- ) {
-		VipsRect *rimage = &insert->rimage[i];
-
-		if( vips_rect_includesrect( rimage, r ) ) {
-			if( vips__insert_just_one( or, ir[i], 
-				rimage->left, rimage->top ) )
-				return( -1 );
-
-			break;
-		}
+	if( vips_rect_includesrect( &insert->rimage[1], r ) ) {
+		/* Just the subimage.
+		 */
+		if( vips__insert_just_one( or, ir[1],
+			insert->rimage[1].left, insert->rimage[1].top ) )
+			return( -1 );
 	}
-
-	/* Otherwise, it requires both (or neither) input.
-	 */
-	if( i < 0 ) {
+	else if( vips_rect_includesrect( &insert->rimage[0], r ) &&
+		!vips_rect_overlapsrect( &insert->rimage[1], r ) ) {
+		/* Just the main image.
+		 */
+		if( vips__insert_just_one( or, ir[0],
+			insert->rimage[0].left, insert->rimage[0].top ) )
+			return( -1 );
+	}
+	else {
 		/* Output requires both (or neither) input. If it is not 
 		 * entirely inside both the main and the sub, then there is 
 		 * going to be some background. 
