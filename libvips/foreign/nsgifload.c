@@ -146,14 +146,11 @@ vips_foreign_load_nsgif_errstr( gif_result result )
 	case GIF_OK:
 		return( _( "OK" ) ); 
 
-	case GIF_INSUFFICIENT_FRAME_DATA:
-		return( _( "Insufficient data to complete frame" ) ); 
-
 	case GIF_FRAME_DATA_ERROR:
 		return( _( "GIF frame data error" ) ); 
 
 	case GIF_INSUFFICIENT_DATA:
-		return( _( "Insufficient data to do anything" ) ); 
+		return( _( "Incomplete data" ) ); 
 
 	case GIF_DATA_ERROR:
 		return( _( "GIF header data error" ) ); 
@@ -313,9 +310,9 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 
 	if( gif->anim->global_colours &&
 		gif->anim->global_colour_table &&
-		gif->anim->background_index >= 0 &&
-		gif->anim->background_index < gif->anim->colour_table_size ) {
-		int index = gif->anim->background_index;
+		gif->anim->bg_index >= 0 &&
+		gif->anim->bg_index < gif->anim->colour_table_size ) {
+		int index = gif->anim->bg_index;
 		unsigned char *entry = (unsigned char *) 
 			&gif->anim->global_colour_table[index];
 

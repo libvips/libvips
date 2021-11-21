@@ -12,10 +12,13 @@ cp libnsgif/include/libnsgif.h .
 cp libnsgif/src/lzw.[ch] .
 cp libnsgif/src/utils/log.h utils
 
-echo applying patches ...
-for patch in patches/*.patch; do
-  patch -p0 <$patch
-done
+if [ -d "patches" ]
+then
+  echo applying patches ...
+  for patch in patches/*.patch; do
+    patch -p0 <$patch
+  done
+fi
 
 echo cleaning up ...
 rm -rf libnsgif

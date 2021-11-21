@@ -4,6 +4,7 @@
  *                http://www.opensource.org/licenses/mit-license.php
  *
  * Copyright 2017 Michael Drake <michael.drake@codethink.co.uk>
+ * Copyright 2021 Michael Drake <tlsa@netsurf-browser.org>
  */
 
 #ifndef LZW_H_
@@ -19,10 +20,8 @@
 /** Maximum LZW code size in bits */
 #define LZW_CODE_MAX 12
 
-
 /* Declare lzw internal context structure */
 struct lzw_ctx;
-
 
 /** LZW decoding response codes */
 typedef enum lzw_result {
@@ -36,7 +35,6 @@ typedef enum lzw_result {
 	LZW_BAD_PARAM, /**< Error: Bad function parameter. */
 	LZW_BAD_CODE,  /**< Error: Bad LZW code */
 } lzw_result;
-
 
 /**
  * Create an LZW decompression context.
