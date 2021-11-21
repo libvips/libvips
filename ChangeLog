@@ -1,3 +1,6 @@
+21/11/21 started 8.12.1
+- fix insert [chregu]
+
 14/6/21 started 8.12
 - all tools support `--version`
 - add vips_svgload_string() convenience function
