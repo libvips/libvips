@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [8.12.0], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [8.13.0], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ([2.69])
 
@@ -17,7 +17,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # user-visible library versioning
 m4_define([vips_major_version], [8])
-m4_define([vips_minor_version], [12])
+m4_define([vips_minor_version], [13])
 m4_define([vips_micro_version], [0])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
@@ -42,8 +42,8 @@ VIPS_LIBS=""
 #   binary interface changes backwards compatible?: increment age
 #   binary interface changes not backwards compatible?: reset age to 0
 LIBRARY_REVISION=0
-LIBRARY_CURRENT=56
-LIBRARY_AGE=14
+LIBRARY_CURRENT=57
+LIBRARY_AGE=15
 
 # patched into include/vips/version.h
 AC_SUBST(VIPS_VERSION)
@@ -1364,9 +1364,10 @@ VIPS_CFLAGS="$VIPS_CFLAGS $PNG_CFLAGS"
 VIPS_INCLUDES="$VIPS_INCLUDES $PNG_INCLUDES"
 VIPS_LIBS="$VIPS_LIBS $PNG_LIBS"
 
-with_quantization=no
+# quant package we use
+quantisation_package=
 
-# look for libimagequant with pkg-config (only if libpng is enabled)
+# look for libimagequant with pkg-config
 AC_ARG_WITH([imagequant],
   AS_HELP_STRING([--without-imagequant], [build without imagequant (default: test)]))
 
@@ -1374,8 +1375,7 @@ if test x"$with_imagequant" != x"no"; then
   PKG_CHECK_MODULES(IMAGEQUANT, imagequant,
     [AC_DEFINE(HAVE_IMAGEQUANT,1,[define if you have imagequant installed.])
      with_imagequant=yes
-     with_quantization=yes
-     PACKAGES_USED="$PACKAGES_USED imagequant"
+     quantisation_package=imagequant
     ],
     [with_imagequant=no]
   )
@@ -1386,29 +1386,29 @@ fi
 VIPS_CFLAGS="$VIPS_CFLAGS $IMAGEQUANT_CFLAGS"
 VIPS_LIBS="$VIPS_LIBS $IMAGEQUANT_LIBS"
 
-# look for quantizr with pkg-config (only if libpng is enabled)
+# look for quantizr with pkg-config
 AC_ARG_WITH([quantizr],
   AS_HELP_STRING([--without-quantizr], [build without quantizr (default: test)]))
 
-if test x"$with_quantizr" != x"no"; then
-  PKG_CHECK_MODULES(QUANTIZR, quantizr,
-    [AC_DEFINE(HAVE_QUANTIZR,1,[define if you have quantizr installed.])
-     with_quantizr=yes
-     with_quantization=yes
-     PACKAGES_USED="$PACKAGES_USED quantizr"
-    ],
-    [with_quantizr=no]
-  )
-else
-  with_quantizr=no
+# only if libimagequant not found
+if test x"$quantisation_package" == x""; then
+  if test x"$with_quantizr" != x"no"; then
+    PKG_CHECK_MODULES(QUANTIZR, quantizr,
+      [AC_DEFINE(HAVE_QUANTIZR,1,[define if you have quantizr installed.])
+       with_quantizr=yes
+       quantisation_package=quantizr
+      ],
+      [with_quantizr=no]
+    )
+  else
+    with_quantizr=no
+  fi
 fi
 
 VIPS_CFLAGS="$VIPS_CFLAGS $QUANTIZR_CFLAGS"
 VIPS_LIBS="$VIPS_LIBS $QUANTIZR_LIBS"
 
-if test x"$with_quantization" == x"no"; then
-  AC_MSG_WARN([quantizr not found; disabling 8bpp PNG support])
-fi
+PACKAGES_USED="$PACKAGES_USED $quantisation_package"
 
 # look for libjpeg with pkg-config ... fall back to our tester
 AC_ARG_WITH([jpeg], 
@@ -1481,11 +1481,11 @@ fi
 VIPS_CFLAGS="$VIPS_CFLAGS $EXIF_CFLAGS"
 VIPS_LIBS="$VIPS_LIBS $EXIF_LIBS"
 
-# GIF save with libcgif (requires libimagequant also)
+# GIF save with libcgif (requires quantisation_package)
 AC_ARG_WITH([cgif],
   AS_HELP_STRING([--without-cgif], [build without cgif (default: test)]))
 
-if test x"$with_quantization" == x"yes" && test x"$with_cgif" != x"no"; then
+if test x"$quantisation_package" != x"" && test x"$with_cgif" != x"no"; then
   PKG_CHECK_MODULES(CGIF, cgif,
     [AC_DEFINE(HAVE_CGIF,1,[define if you have cgif installed.])
       with_cgif=yes
@@ -1534,7 +1534,7 @@ JXL load/save with libjxl: $with_libjxl (dynamic module: $with_libjxl_module), \
 JPEG2000 load/save with libopenjp2: $with_libopenjp2, \
 PNG load with libspng: $with_libspng, \
 PNG load/save with libpng: $with_png, \
-quantisation to 8 bit: $with_imagequant, \
+selected quantisation package: $quantisation_package, \
 TIFF load/save with libtiff: $with_tiff, \
 image pyramid save: $with_gsf, \
 HEIC/AVIF load/save with libheif: $with_heif (dynamic module: $with_heif_module), \
@@ -1644,8 +1644,7 @@ PNG load with libspng:                  $with_libspng
  (requires libspng-0.6 or later)
 PNG load/save with libpng:              $with_png
  (requires libpng-1.2.9 or later)
-quantisation to 8 bit:                  $with_quantization
- (requires libimagequant or quantizr)
+selected quantisation package:          $quantisation_package
 TIFF load/save with libtiff:            $with_tiff
 image pyramid save:                     $with_gsf
  (requires libgsf-1 1.14.26 or later)
@@ -1664,7 +1663,7 @@ Matlab load with matio:                 $with_matio
 NIfTI load/save with niftiio:           $with_nifti
 FITS load/save with cfitsio:            $with_cfitsio
 GIF save with cgif:                     $with_cgif
- (requires cgif, libimagequant or quantizr)
+ (requires cgif and a quantisation package)
 Magick package:                         $with_magickpackage (dynamic module: $with_magick_module)
 Magick major API version:               $magick_version
 load with libMagickCore:                $enable_magickload
