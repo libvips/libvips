@@ -829,10 +829,10 @@ VIPS_LIBS="$VIPS_LIBS $NIFTI_LIBS"
 AC_ARG_WITH([libjxl],
   AS_HELP_STRING([--without-libjxl], [build without libjxl (default: test)]),
   [with_libjxl=$withval],
-  [with_libjxl=$gmodule_with_flag])
+  [with_libjxl=test])
 
 # libjxl as a dynamically loadable module
-AS_IF([test x"$with_libjxl" = x"module"],
+AS_IF([test x"$with_libjxl" = x"module" -o x"$with_libjxl" = x"test"],
   [with_libjxl_module=$gmodule_supported_flag],
   [with_libjxl_module=no])
 
@@ -843,7 +843,9 @@ if test x"$with_libjxl" != x"no"; then
      AS_IF([test x"$with_libjxl_module" = x"no"],
        [PACKAGES_USED="$PACKAGES_USED libjxl"])
     ],
-    [AC_MSG_WARN([libjxl not found; disabling libjxl support])
+    [AS_IF([test x"$with_libjxl" = x"test"],
+       AC_MSG_WARN([libjxl not found; disabling libjxl support]),
+       AC_MSG_ERROR([libjxl not found]))
      with_libjxl=no
      with_libjxl_module=no
     ]
