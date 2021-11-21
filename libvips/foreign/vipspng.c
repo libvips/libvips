@@ -133,6 +133,7 @@
 #include <vips/debug.h>
 
 #include "pforeign.h"
+#include "quantise.h"
 
 #include <png.h>
 
@@ -1072,7 +1073,7 @@ write_vips( Write *write,
 		return( -1 );
 	}
 
-#ifdef HAVE_IMAGEQUANT
+#ifdef HAVE_QUANTIZATION
 	/* Enable image quantisation to paletted 8bpp PNG if colours is set.
 	 */
 	if( palette ) 
@@ -1081,7 +1082,7 @@ write_vips( Write *write,
 	if( palette )
 		g_warning( "%s",
 			_( "ignoring palette (no quantisation support)" ) );
-#endif /*HAVE_IMAGEQUANT*/
+#endif /*HAVE_QUANTIZATION*/
 
 	interlace_type = interlace ? PNG_INTERLACE_ADAM7 : PNG_INTERLACE_NONE;
 
@@ -1181,7 +1182,7 @@ write_vips( Write *write,
 			return( -1 );
 	}
 
-#ifdef HAVE_IMAGEQUANT
+#ifdef HAVE_QUANTIZATION
 	if( palette ) {
 		VipsImage *im_index;
 		VipsImage *im_palette;
@@ -1244,7 +1245,7 @@ write_vips( Write *write,
 		write->memory = im_index;
 		in = write->memory;
 	}
-#endif /*HAVE_IMAGEQUANT*/
+#endif /*HAVE_QUANTIZATION*/
 
 	png_write_info( write->pPng, write->pInfo );
 

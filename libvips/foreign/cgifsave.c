@@ -47,10 +47,10 @@
 #include <vips/vips.h>
 
 #include "pforeign.h"
+#include "quantise.h"
 
-#if defined(HAVE_CGIF) && defined(HAVE_IMAGEQUANT)
+#if defined(HAVE_CGIF) && defined(HAVE_QUANTIZATION)
 
-#include <libimagequant.h>
 #include <cgif.h>
 
 typedef struct _VipsForeignSaveCgif {
@@ -81,10 +81,10 @@ typedef struct _VipsForeignSaveCgif {
 
 	/* The frame as seen by libimagequant.
 	 */
-	liq_attr *attr;
-	liq_image *input_image;
-	liq_result *quantisation_result;
-	const liq_palette *lp;
+	VipsQuantiseAttr *attr;
+	VipsQuantiseImage *input_image;
+	VipsQuantiseResult *quantisation_result;
+	const VipsQuantisePalette *lp;
 
 	/* The current colourmap, updated on a significant frame change.
 	 *
@@ -130,9 +130,9 @@ vips_foreign_save_cgif_dispose( GObject *gobject )
 	VIPS_UNREF( cgif->target );
 	VIPS_UNREF( cgif->frame );
 
-	VIPS_FREEF( liq_result_destroy, cgif->quantisation_result );
-	VIPS_FREEF( liq_image_destroy, cgif->input_image );
-	VIPS_FREEF( liq_attr_destroy, cgif->attr );
+	VIPS_FREEF( vips__quantise_result_destroy, cgif->quantisation_result );
+	VIPS_FREEF( vips__quantise_image_destroy, cgif->input_image );
+	VIPS_FREEF( vips__quantise_attr_destroy, cgif->attr );
 
 	VIPS_FREE( cgif->palette_rgb );
 	VIPS_FREE( cgif->index );
@@ -179,8 +179,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 	/* Set up new frame for libimagequant.
 	 */
-	VIPS_FREEF( liq_image_destroy, cgif->input_image );
-	cgif->input_image = liq_image_create_rgba( cgif->attr,
+	VIPS_FREEF( vips__quantise_image_destroy, cgif->input_image );
+	cgif->input_image = vips__quantise_image_create_rgba( cgif->attr,
 		frame_bytes, frame_rect->width, frame_rect->height, 0 );
 
 	/* Threshold the alpha channel. It's safe to modify the region since 
@@ -215,8 +215,8 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		if( cgif->quantisation_result ) 
 			cgif->cgif_config.attrFlags |= CGIF_ATTR_NO_GLOBAL_TABLE;
 
-		VIPS_FREEF( liq_result_destroy, cgif->quantisation_result );
-		if( liq_image_quantize( cgif->input_image, cgif->attr, 
+		VIPS_FREEF( vips__quantise_result_destroy, cgif->quantisation_result );
+		if( vips__quantise_image_quantize( cgif->input_image, cgif->attr,
 			&cgif->quantisation_result ) ) { 
 			vips_error( class->nickname, 
 				"%s", _( "quantisation failed" ) );
@@ -230,17 +230,17 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 	/* Dither frame.
 	 */
-	liq_set_dithering_level( cgif->quantisation_result, cgif->dither );
-	if( liq_write_remapped_image( cgif->quantisation_result, 
+	vips__quantise_set_dithering_level( cgif->quantisation_result, cgif->dither );
+	if( vips__quantise_write_remapped_image( cgif->quantisation_result,
 		cgif->input_image, cgif->index, n_pels ) ) {
 		vips_error( class->nickname, "%s", _( "dither failed" ) );
 		return( -1 );
 	}
 
-	/* Call liq_get_palette() after liq_write_remapped_image(),
+	/* Call vips__quantise_get_palette() after vips__quantise_write_remapped_image(),
 	 * as palette is improved during remapping.
 	 */
-	cgif->lp = liq_get_palette( cgif->quantisation_result );
+	cgif->lp = vips__quantise_get_palette( cgif->quantisation_result );
 	rgb = cgif->palette_rgb;
 	g_assert( cgif->lp->count <= 256 );
 	for( i = 0; i < cgif->lp->count; i++ ) {
@@ -458,10 +458,10 @@ vips_foreign_save_cgif_build( VipsObject *object )
 
 	/* Set up libimagequant.
 	 */
-	cgif->attr = liq_attr_create();
-	liq_set_max_colors( cgif->attr, (1 << cgif->bitdepth) - 1 );
-	liq_set_quality( cgif->attr, 0, 100 );
-	liq_set_speed( cgif->attr, 11 - cgif->effort );
+	cgif->attr = vips__quantise_attr_create();
+	vips__quantise_set_max_colors( cgif->attr, (1 << cgif->bitdepth) - 1 );
+	vips__quantise_set_quality( cgif->attr, 0, 100 );
+	vips__quantise_set_speed( cgif->attr, 11 - cgif->effort );
 
 	/* Set up cgif on first use.
 	 */
