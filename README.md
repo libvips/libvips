@@ -227,15 +227,16 @@ is still necessary for save.
 If libspng is not present and libpng is, libvips will load PNG files with
 libpng. It will always save PNG files with libpng.
 
-### libimagequant
+### libimagequant, quantizr
 
-If present, libvips can write 8-bit palette-ised PNGs.
+If one of these quantisation packages is present, libvips can write 8-bit
+palette-ised PNGs and GIFs.
 
 ### ImageMagick, or optionally GraphicsMagick
 
-If available, libvips adds support for loading all libMagick-supported
-image file types. Use `--with-magickpackage=GraphicsMagick` to build against 
-graphicsmagick instead.
+If available, libvips adds support for loading and
+saving all libMagick-supported image file types. Use
+`--with-magickpackage=GraphicsMagick` to build against graphicsmagick instead.
 
 Imagemagick 6.9+ needs to have been built with `--with-modules`. Most packaged
 IMs are, I think.
