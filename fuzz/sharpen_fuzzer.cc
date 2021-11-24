@@ -1,9 +1,13 @@
 #include <vips/vips.h>
 
+// Unpublised libjxl API.
+void SetDecoderMemoryLimitBase_(size_t memory_limit_base);
+
 extern "C" int
 LLVMFuzzerInitialize( int *argc, char ***argv )
 {
 	vips_concurrency_set( 1 );
+	SetDecoderMemoryLimitBase_(1 << 20);
 	return( 0 );
 }
 
