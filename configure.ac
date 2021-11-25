@@ -65,7 +65,7 @@ m4_ifdef([GOBJECT_INTROSPECTION_CHECK], [
         have_introspection=true
     fi
 ], [
-	AM_CONDITIONAL([HAVE_INTROSPECTION], false)
+    AM_CONDITIONAL([HAVE_INTROSPECTION], false)
 ])
 
 # gir needs a list of source files to scan for introspection
