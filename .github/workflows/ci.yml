@@ -69,9 +69,9 @@ jobs:
             libheif-dev libexpat1-dev libcfitsio-dev
             libmatio-dev libnifti-dev liborc-0.4-dev
             liblcms2-dev libpoppler-glib-dev librsvg2-dev
-            libgif-dev libopenexr-dev libpango1.0-dev
-            libgsf-1-dev libopenslide-dev libffi-dev
-            libopenjp2-7-dev libimagequant-dev libcgif-dev
+            libopenexr-dev libpango1.0-dev libgsf-1-dev
+            libopenslide-dev libffi-dev libopenjp2-7-dev
+            libimagequant-dev libcgif-dev
 
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
