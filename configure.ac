@@ -58,11 +58,11 @@ AC_SUBST(LIBRARY_REVISION)
 AC_SUBST(LIBRARY_AGE)
 
 # init introspection support
-have_introspection=false
+have_introspection=no
 m4_ifdef([GOBJECT_INTROSPECTION_CHECK], [
     GOBJECT_INTROSPECTION_CHECK([1.30.0])
     if test "x$found_introspection" = x"yes"; then
-        have_introspection=true
+        have_introspection=yes
     fi
 ], [
     AM_CONDITIONAL([HAVE_INTROSPECTION], false)

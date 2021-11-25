@@ -768,8 +768,7 @@ class TestForeign:
                 y = pyvips.Image.new_from_buffer(buf, "")
                 assert y.get("orientation") == 6
 
-        # try converting an animated gif to webp ... can't do back to gif
-        # again without IM support
+        # try converting an animated gif to webp
         if have("gifload"):
             x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
             w1 = x1.webpsave_buffer(Q=10)
