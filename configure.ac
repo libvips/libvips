@@ -58,13 +58,15 @@ AC_SUBST(LIBRARY_REVISION)
 AC_SUBST(LIBRARY_AGE)
 
 # init introspection support
-GOBJECT_INTROSPECTION_CHECK([1.30.0])
-
-# remove the '(disabled, use --enable-introspection to enable)'
-# suffix from the found_introspection variable
-if test "x$found_introspection" != x"yes"; then
-  found_introspection=no
-fi
+have_introspection=false
+m4_ifdef([GOBJECT_INTROSPECTION_CHECK], [
+    GOBJECT_INTROSPECTION_CHECK([1.30.0])
+    if test "x$found_introspection" = x"yes"; then
+        have_introspection=true
+    fi
+], [
+    AM_CONDITIONAL([HAVE_INTROSPECTION], false)
+])
 
 # gir needs a list of source files to scan for introspection
 #
@@ -1618,7 +1620,7 @@ enable modules:                         $gmodule_supported_flag
 enable C docs with gtkdoc:              $enable_gtk_doc
  (requires gtk-doc 1.14 or later)
 enable C++ docs with doxygen:           $enable_doxygen
-gobject introspection:                  $found_introspection
+gobject introspection:                  $have_introspection
  (requires gobject-introspection 1.30 or later)
 RAD load/save:                          $with_radiance
 Analyze7 load/save:                     $with_analyze
