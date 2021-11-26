@@ -416,10 +416,14 @@ vips_image_resolution_from_exif( VipsImage *image, ExifData *ed )
 	 */
 	if( vips_exif_entry_get_double( ed, 0, EXIF_TAG_X_RESOLUTION, &xres ) ||
 		vips_exif_entry_get_double( ed, 
-			0, EXIF_TAG_Y_RESOLUTION, &yres ) ||
-		vips_exif_entry_get_int( ed, 
-			0, EXIF_TAG_RESOLUTION_UNIT, &unit ) ) 
+			0, EXIF_TAG_Y_RESOLUTION, &yres ) )
 		return( -1 );
+
+	/* resuint is optional and defaults to inch.
+	 */
+	unit = 2;
+	(void) vips_exif_entry_get_int( ed, 
+		0, EXIF_TAG_RESOLUTION_UNIT, &unit );
 
 #ifdef DEBUG
 	printf( "vips_image_resolution_from_exif: seen exif tags "
