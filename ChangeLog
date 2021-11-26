@@ -2,6 +2,9 @@
 - configure fails for requested but unmet dependencies [remicollet]
 - add support for another quantiser [DarthSim]
 
+26/11/21 started 8.12.2
+- make exif resuint optional and default to inch
+
 21/11/21 started 8.12.1
 - fix insert [chregu]
 
