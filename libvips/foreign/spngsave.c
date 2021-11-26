@@ -78,9 +78,13 @@ typedef struct _VipsForeignSaveSpng {
 	 */
 	VipsTarget *target;
 
+	/* Write state.
+	 */
 	spng_ctx *ctx;
 	GSList *text_chunks;
 	VipsImage *memory;
+	size_t sizeof_line;
+	VipsPel *line;
 
 	/* Deprecated.
 	 */
@@ -113,6 +117,8 @@ vips_foreign_save_spng_dispose( GObject *gobject )
 		VIPS_FREE( text );
 	}
 	VIPS_FREEF( g_slist_free, spng->text_chunks );
+
+	VIPS_FREE( spng->line );
 
 	G_OBJECT_CLASS( vips_foreign_save_spng_parent_class )->
 		dispose( gobject );
@@ -256,6 +262,37 @@ vips_foreign_save_spng_metadata( VipsForeignSaveSpng *spng, VipsImage *in )
 	return( 0 );
 }
 
+/* Pack a line of 1/2/4 bit index values.
+ */
+static void
+vips_foreign_save_spng_pack( VipsPel *q, VipsPel *p, size_t n, int bitdepth )
+{
+        int pixel_mask = 8 / bitdepth - 1;
+
+        VipsPel bits;
+        size_t x;
+
+        bits = 0;
+        for( x = 0; x < n; x++ ) {
+                bits <<= bitdepth;
+                bits |= p[x];
+
+                if( (x & pixel_mask) == pixel_mask )
+                        *q++ = bits;
+        }
+
+        /* Any left-over bits? Need to be left-aligned.
+         */
+        if( (x & pixel_mask) != 0 ) {
+                /* The number of bits we've collected and must
+                 * left-align and flush.
+                 */
+                int collected_bits = (x & pixel_mask) << (bitdepth - 1);
+
+                *q++ = bits << (8 - collected_bits);
+        }
+}
+
 static int 
 vips_foreign_save_spng_write_fn( spng_ctx *ctx, void *user, 
 	void *data, size_t n )
@@ -284,11 +321,23 @@ vips_foreign_save_spng_write_block( VipsRegion *region, VipsRect *area,
 	g_assert( area->width == region->im->Xsize );
 	g_assert( area->top + area->height <= region->im->Ysize );
 
-	for( y = 0; y < area->height; y++ ) 
-		if( (error = spng_encode_row( spng->ctx, 
-			VIPS_REGION_ADDR( region, 0, area->top + y ),
-			VIPS_REGION_SIZEOF_LINE( region ) )) )
+	for( y = 0; y < area->height; y++ ) {
+		VipsPel *line;
+		size_t sizeof_line;
+
+		line = VIPS_REGION_ADDR( region, 0, area->top + y );
+		sizeof_line = VIPS_REGION_SIZEOF_LINE( region );
+
+		if( spng->bitdepth < 8 ) {
+			vips_foreign_save_spng_pack( spng->line, line,
+				sizeof_line, spng->bitdepth );
+			line = spng->line;
+			sizeof_line = spng->sizeof_line;
+		}
+
+		if( (error = spng_encode_row( spng->ctx, line, sizeof_line )) )
 			break;
+	}
 
 	/* You can get SPNG_EOI for the final scanline.
 	 */
@@ -378,11 +427,17 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 	ihdr.width = in->Xsize;
 	ihdr.height = in->Ysize;
 	ihdr.bit_depth = spng->bitdepth;
-	/* FIXME ... spng 0.7 does not yet implement 1/2/4 bit packing, so
-	 * you'll see a bad result.
+
+	/* Low-bitdepth write needs an extra buffer for packing pixels.
 	 */
-	if( spng->bitdepth < 8 ) 
-		g_warning( "spngsave with bitdepth < 8 not yet supported" );
+	if( spng->bitdepth < 8 ) {
+		spng->sizeof_line = 1 + VIPS_IMAGE_SIZEOF_LINE( in ) / 
+			(8 / spng->bitdepth);
+
+		if( !(spng->line = 
+			vips_malloc( NULL, VIPS_IMAGE_SIZEOF_LINE( in ) )) )
+			return( -1 );
+	}
 
 	switch( in->Bands ) {
 	case 1:
@@ -466,14 +521,24 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 
 		do {
 			struct spng_row_info row_info;
+			VipsPel *line;
+			size_t sizeof_line;
 
 			if( (error = 
 				spng_get_row_info( spng->ctx, &row_info )) )
 				break;
 
-			error = spng_encode_row( spng->ctx, 
-				VIPS_IMAGE_ADDR( in, 0, row_info.row_num ),
-				VIPS_IMAGE_SIZEOF_LINE( in ) );
+			line = VIPS_IMAGE_ADDR( in, 0, row_info.row_num );
+			sizeof_line = VIPS_IMAGE_SIZEOF_LINE( in );
+
+			if( spng->bitdepth < 8 ) {
+				vips_foreign_save_spng_pack( spng->line, line,
+					sizeof_line, spng->bitdepth );
+				line = spng->line;
+				sizeof_line = spng->sizeof_line;
+			}
+
+			error = spng_encode_row( spng->ctx, line, sizeof_line );
 		} while( !error );
 
 		if( error != SPNG_EOI ) {
