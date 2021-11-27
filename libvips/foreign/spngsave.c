@@ -265,16 +265,17 @@ vips_foreign_save_spng_metadata( VipsForeignSaveSpng *spng, VipsImage *in )
 /* Pack a line of 1/2/4 bit index values.
  */
 static void
-vips_foreign_save_spng_pack( VipsPel *q, VipsPel *p, size_t n, int bitdepth )
+vips_foreign_save_spng_pack( VipsForeignSaveSpng *spng, 
+	VipsPel *q, VipsPel *p, size_t n )
 {
-        int pixel_mask = 8 / bitdepth - 1;
+        int pixel_mask = 8 / spng->bitdepth - 1;
 
         VipsPel bits;
         size_t x;
 
         bits = 0;
         for( x = 0; x < n; x++ ) {
-                bits <<= bitdepth;
+                bits <<= spng->bitdepth;
                 bits |= p[x];
 
                 if( (x & pixel_mask) == pixel_mask )
@@ -287,7 +288,7 @@ vips_foreign_save_spng_pack( VipsPel *q, VipsPel *p, size_t n, int bitdepth )
                 /* The number of bits we've collected and must
                  * left-align and flush.
                  */
-                int collected_bits = (x & pixel_mask) << (bitdepth - 1);
+                int collected_bits = (x & pixel_mask) << (spng->bitdepth - 1);
 
                 *q++ = bits << (8 - collected_bits);
         }
@@ -329,8 +330,8 @@ vips_foreign_save_spng_write_block( VipsRegion *region, VipsRect *area,
 		sizeof_line = VIPS_REGION_SIZEOF_LINE( region );
 
 		if( spng->bitdepth < 8 ) {
-			vips_foreign_save_spng_pack( spng->line, line,
-				sizeof_line, spng->bitdepth );
+			vips_foreign_save_spng_pack( spng,
+				spng->line, line, sizeof_line );
 			line = spng->line;
 			sizeof_line = spng->sizeof_line;
 		}
@@ -532,8 +533,8 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 			sizeof_line = VIPS_IMAGE_SIZEOF_LINE( in );
 
 			if( spng->bitdepth < 8 ) {
-				vips_foreign_save_spng_pack( spng->line, line,
-					sizeof_line, spng->bitdepth );
+				vips_foreign_save_spng_pack( spng,
+					spng->line, line, sizeof_line );
 				line = spng->line;
 				sizeof_line = spng->sizeof_line;
 			}
