@@ -577,6 +577,21 @@
   <entry>vips_gifload_source()</entry>
 </row>
 <row>
+  <entry>gifsave</entry>
+  <entry>Save as gif</entry>
+  <entry>vips_gifsave()</entry>
+</row>
+<row>
+  <entry>gifsave_buffer</entry>
+  <entry>Save as gif</entry>
+  <entry>vips_gifsave_buffer()</entry>
+</row>
+<row>
+  <entry>gifsave_target</entry>
+  <entry>Save as gif</entry>
+  <entry>vips_gifsave_target()</entry>
+</row>
+<row>
   <entry>globalbalance</entry>
   <entry>Global balance an image mosaic</entry>
   <entry>vips_globalbalance()</entry>
@@ -944,7 +959,7 @@
 <row>
   <entry>math</entry>
   <entry>Apply a math operation to an image</entry>
-  <entry>vips_math(), vips_sin(), vips_cos(), vips_tan(), vips_asin(), vips_acos(), vips_atan(), vips_exp(), vips_exp10(), vips_log(), vips_log10()</entry>
+  <entry>vips_math(), vips_sin(), vips_cos(), vips_tan(), vips_asin(), vips_acos(), vips_atan(), vips_sinh(), vips_cosh(), vips_tanh(), vips_asinh(), vips_acosh(), vips_atanh(), vips_exp(), vips_exp10(), vips_log(), vips_log10()</entry>
 </row>
 <row>
   <entry>math2</entry>

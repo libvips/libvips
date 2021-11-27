@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 # walk vips and generate a list of all operators and their descriptions
 # for docs

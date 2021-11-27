@@ -217,11 +217,6 @@ int vips__webp_write_target( VipsImage *image, VipsTarget *target,
 	gboolean min_size, int kmin, int kmax,
 	gboolean strip, const char *profile );
 
-int vips__quantise_image( VipsImage *in, 
-	VipsImage **index_out, VipsImage **palette_out,
-	int colours, int Q, double dither, int effort,
-	gboolean threshold_alpha );
-
 extern const char *vips_foreign_nifti_suffs[];
 
 VipsBandFormat vips__foreign_nifti_datatype2BandFmt( int datatype );

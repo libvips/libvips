@@ -9,9 +9,16 @@ olddir=$(pwd)
 cd $srcdir
 
 (test -f configure.ac) || {
-        echo "*** ERROR: Directory '$srcdir' does not look like the top-level project directory ***"
+        echo "*** ERROR: Directory '$srcdir' does not look like" >&2
+        echo "*** like the top-level project directory" >&2
         exit 1
 }
+
+if ! gtkdocize --version > /dev/null; then
+        echo "*** ERROR: You must have gtkdocize installed" >&2
+        echo "*** to be able to reconfigure libvips." >&2
+        exit 1
+fi
 
 # shellcheck disable=SC2016
 PKG_NAME=$(autoconf --trace 'AC_INIT:$1' configure.ac)

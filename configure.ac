@@ -2,7 +2,7 @@
 
 # also update the version number in the m4 macros below
 
-AC_INIT([vips], [8.12.0], [vipsip@jiscmail.ac.uk])
+AC_INIT([vips], [8.13.0], [vipsip@jiscmail.ac.uk])
 # required for gobject-introspection
 AC_PREREQ([2.69])
 
@@ -17,7 +17,7 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # user-visible library versioning
 m4_define([vips_major_version], [8])
-m4_define([vips_minor_version], [12])
+m4_define([vips_minor_version], [13])
 m4_define([vips_micro_version], [0])
 m4_define([vips_version],
           [vips_major_version.vips_minor_version.vips_micro_version])
@@ -42,8 +42,8 @@ VIPS_LIBS=""
 #   binary interface changes backwards compatible?: increment age
 #   binary interface changes not backwards compatible?: reset age to 0
 LIBRARY_REVISION=0
-LIBRARY_CURRENT=56
-LIBRARY_AGE=14
+LIBRARY_CURRENT=57
+LIBRARY_AGE=15
 
 # patched into include/vips/version.h
 AC_SUBST(VIPS_VERSION)
@@ -58,13 +58,15 @@ AC_SUBST(LIBRARY_REVISION)
 AC_SUBST(LIBRARY_AGE)
 
 # init introspection support
-GOBJECT_INTROSPECTION_CHECK([1.30.0])
-
-# remove the '(disabled, use --enable-introspection to enable)'
-# suffix from the found_introspection variable
-if test "x$found_introspection" != x"yes"; then
-  found_introspection=no
-fi
+have_introspection=no
+m4_ifdef([GOBJECT_INTROSPECTION_CHECK], [
+    GOBJECT_INTROSPECTION_CHECK([1.30.0])
+    if test "x$found_introspection" = x"yes"; then
+        have_introspection=yes
+    fi
+], [
+    AM_CONDITIONAL([HAVE_INTROSPECTION], false)
+])
 
 # gir needs a list of source files to scan for introspection
 #
@@ -795,7 +797,7 @@ AC_ARG_WITH([OpenEXR],
 # require 1.2.2 since 1.2.1 has a broken ImfCloseTiledInputFile()
 if test x"$with_OpenEXR" != x"no"; then
   PKG_CHECK_MODULES(OPENEXR, OpenEXR >= 1.2.2,
-    [AC_DEFINE(HAVE_OPENEXR,1,[define if you have OpenEXR >=1.2.2 installed.])
+    [AC_DEFINE(HAVE_OPENEXR,1,[define if you have OpenEXR >= 1.2.2 installed.])
      with_OpenEXR=yes
      PACKAGES_USED="$PACKAGES_USED OpenEXR"
     ],
@@ -829,27 +831,41 @@ VIPS_LIBS="$VIPS_LIBS $NIFTI_LIBS"
 AC_ARG_WITH([libjxl],
   AS_HELP_STRING([--without-libjxl], [build without libjxl (default: test)]),
   [with_libjxl=$withval],
-  [with_libjxl=$gmodule_with_flag])
+  [with_libjxl=test])
 
 # libjxl as a dynamically loadable module
-AS_IF([test x"$with_libjxl" = x"module"],
+AS_IF([test x"$with_libjxl" = x"module" -o x"$with_libjxl" = x"test"],
   [with_libjxl_module=$gmodule_supported_flag],
   [with_libjxl_module=no])
 
 if test x"$with_libjxl" != x"no"; then
-  PKG_CHECK_MODULES(LIBJXL, libjxl_threads >= 0.6 libjxl >= 0.6,
-    [AC_DEFINE(HAVE_LIBJXL,1,
-       [define if you have libjxl >= 0.6 installed.])
+  PKG_CHECK_MODULES(LIBJXL, libjxl_threads >= 0.5 libjxl >= 0.5,
+    [AC_DEFINE(HAVE_LIBJXL,1,[define if you have libjxl >= 0.5 installed.])
      with_libjxl=yes
      AS_IF([test x"$with_libjxl_module" = x"no"],
        [PACKAGES_USED="$PACKAGES_USED libjxl"])
     ],
-    [AC_MSG_WARN([libjxl not found; disabling libjxl support])
+    [AS_IF([test x"$with_libjxl" = x"test"],
+       AC_MSG_WARN([libjxl not found; disabling libjxl support]),
+       AC_MSG_ERROR([libjxl not found]))
      with_libjxl=no
      with_libjxl_module=no
     ]
   )
 fi
+
+if test x"$with_libjxl" = x"yes"; then
+  save_LIBS="$LIBS"
+  LIBS="$LIBS $LIBJXL_LIBS"
+  # Introduced in 0.6
+  AC_CHECK_FUNCS(JxlEncoderInitBasicInfo,[
+     AC_DEFINE(HAVE_LIBJXL_JXLENCODERINITBASICINFO,1,
+               [define if you have JxlEncoderInitBasicInfo.])
+   ],[]
+  )
+  LIBS="$save_LIBS"
+fi
+
 
 AS_IF([test x"$with_libjxl_module" = x"yes"],
   [AC_DEFINE([LIBJXL_MODULE], [1], [define to build libjxl as a dynamically loadable module.])],
@@ -866,7 +882,7 @@ AC_ARG_WITH([libopenjp2],
 if test x"$with_libopenjp2" != x"no"; then
   PKG_CHECK_MODULES(LIBOPENJP2, libopenjp2 >= 2.4,
     [AC_DEFINE(HAVE_LIBOPENJP2,1,
-       [define if you have libopenjp2 >=2.4 installed.])
+       [define if you have libopenjp2 >= 2.4 installed.])
      with_libopenjp2=yes
      PACKAGES_USED="$PACKAGES_USED libopenjp2"
     ],
@@ -1346,7 +1362,10 @@ VIPS_CFLAGS="$VIPS_CFLAGS $PNG_CFLAGS"
 VIPS_INCLUDES="$VIPS_INCLUDES $PNG_INCLUDES"
 VIPS_LIBS="$VIPS_LIBS $PNG_LIBS"
 
-# look for libimagequant with pkg-config (only if libpng is enabled)
+# quant package we use
+quantisation_package=
+
+# look for libimagequant with pkg-config
 AC_ARG_WITH([imagequant],
   AS_HELP_STRING([--without-imagequant], [build without imagequant (default: test)]))
 
@@ -1354,11 +1373,9 @@ if test x"$with_imagequant" != x"no"; then
   PKG_CHECK_MODULES(IMAGEQUANT, imagequant,
     [AC_DEFINE(HAVE_IMAGEQUANT,1,[define if you have imagequant installed.])
      with_imagequant=yes
-     PACKAGES_USED="$PACKAGES_USED imagequant"
+     quantisation_package=imagequant
     ],
-    [AC_MSG_WARN([libimagequant not found; disabling 8bpp PNG support])
-     with_imagequant=no
-    ]
+    [with_imagequant=no]
   )
 else
   with_imagequant=no
@@ -1366,6 +1383,30 @@ fi
 
 VIPS_CFLAGS="$VIPS_CFLAGS $IMAGEQUANT_CFLAGS"
 VIPS_LIBS="$VIPS_LIBS $IMAGEQUANT_LIBS"
+
+# look for quantizr with pkg-config
+AC_ARG_WITH([quantizr],
+  AS_HELP_STRING([--without-quantizr], [build without quantizr (default: test)]))
+
+# only if libimagequant not found
+if test x"$quantisation_package" == x""; then
+  if test x"$with_quantizr" != x"no"; then
+    PKG_CHECK_MODULES(QUANTIZR, quantizr,
+      [AC_DEFINE(HAVE_QUANTIZR,1,[define if you have quantizr installed.])
+       with_quantizr=yes
+       quantisation_package=quantizr
+      ],
+      [with_quantizr=no]
+    )
+  else
+    with_quantizr=no
+  fi
+fi
+
+VIPS_CFLAGS="$VIPS_CFLAGS $QUANTIZR_CFLAGS"
+VIPS_LIBS="$VIPS_LIBS $QUANTIZR_LIBS"
+
+PACKAGES_USED="$PACKAGES_USED $quantisation_package"
 
 # look for libjpeg with pkg-config ... fall back to our tester
 AC_ARG_WITH([jpeg], 
@@ -1438,11 +1479,11 @@ fi
 VIPS_CFLAGS="$VIPS_CFLAGS $EXIF_CFLAGS"
 VIPS_LIBS="$VIPS_LIBS $EXIF_LIBS"
 
-# GIF save with libcgif (requires libimagequant also)
+# GIF save with libcgif (requires quantisation_package)
 AC_ARG_WITH([cgif],
   AS_HELP_STRING([--without-cgif], [build without cgif (default: test)]))
 
-if test x"$with_imagequant" == x"yes" && test x"$with_cgif" != x"no"; then
+if test x"$quantisation_package" != x"" && test x"$with_cgif" != x"no"; then
   PKG_CHECK_MODULES(CGIF, cgif,
     [AC_DEFINE(HAVE_CGIF,1,[define if you have cgif installed.])
       with_cgif=yes
@@ -1491,7 +1532,7 @@ JXL load/save with libjxl: $with_libjxl (dynamic module: $with_libjxl_module), \
 JPEG2000 load/save with libopenjp2: $with_libopenjp2, \
 PNG load with libspng: $with_libspng, \
 PNG load/save with libpng: $with_png, \
-quantisation to 8 bit: $with_imagequant, \
+selected quantisation package: $quantisation_package, \
 TIFF load/save with libtiff: $with_tiff, \
 image pyramid save: $with_gsf, \
 HEIC/AVIF load/save with libheif: $with_heif (dynamic module: $with_heif_module), \
@@ -1575,7 +1616,7 @@ enable modules:                         $gmodule_supported_flag
 enable C docs with gtkdoc:              $enable_gtk_doc
  (requires gtk-doc 1.14 or later)
 enable C++ docs with doxygen:           $enable_doxygen
-gobject introspection:                  $found_introspection
+gobject introspection:                  $have_introspection
  (requires gobject-introspection 1.30 or later)
 RAD load/save:                          $with_radiance
 Analyze7 load/save:                     $with_analyze
@@ -1601,8 +1642,7 @@ PNG load/save with libspng:             $with_libspng
  (requires spng 0.7 or later)
 PNG load/save with libpng:              $with_png
  (requires libpng-1.2.9 or later)
-quantisation to 8 bit:                  $with_imagequant
- (requires libimagequant)
+selected quantisation package:          $quantisation_package
 TIFF load/save with libtiff:            $with_tiff
 image pyramid save:                     $with_gsf
  (requires libgsf-1 1.14.26 or later)
@@ -1621,7 +1661,7 @@ Matlab load with matio:                 $with_matio
 NIfTI load/save with niftiio:           $with_nifti
 FITS load/save with cfitsio:            $with_cfitsio
 GIF save with cgif:                     $with_cgif
- (requires cgif, libimagequant)
+ (requires cgif and a quantisation package)
 Magick package:                         $with_magickpackage (dynamic module: $with_magick_module)
 Magick major API version:               $magick_version
 load with libMagickCore:                $enable_magickload

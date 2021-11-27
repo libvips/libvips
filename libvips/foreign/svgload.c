@@ -626,6 +626,7 @@ vips_foreign_load_svg_source_class_init( VipsForeignLoadSvgSourceClass *class )
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
@@ -633,6 +634,8 @@ vips_foreign_load_svg_source_class_init( VipsForeignLoadSvgSourceClass *class )
 
 	object_class->nickname = "svgload_source";
 	object_class->description = _( "load svg from source" );
+
+	operation_class->flags = VIPS_OPERATION_NOCACHE;
 
 	load_class->is_a_source = vips_foreign_load_svg_source_is_a_source;
 	load_class->header = vips_foreign_load_svg_source_header;

@@ -96,7 +96,6 @@ struct lzw_ctx {
 	uint8_t stack_base[LZW_TABLE_ENTRY_MAX];
 };
 
-
 /* Exported function, documented in lzw.h */
 lzw_result lzw_context_create(struct lzw_ctx **ctx)
 {
@@ -109,13 +108,11 @@ lzw_result lzw_context_create(struct lzw_ctx **ctx)
 	return LZW_OK;
 }
 
-
 /* Exported function, documented in lzw.h */
 void lzw_context_destroy(struct lzw_ctx *ctx)
 {
 	free(ctx);
 }
-
 
 /**
  * Advance the context to the next sub-block in the input data.
@@ -152,7 +149,6 @@ static lzw_result lzw__block_advance(struct lzw_read_ctx *restrict ctx)
 
 	return LZW_OK;
 }
-
 
 /**
  * Get the next LZW code of given size from the raw input data.
@@ -222,7 +218,6 @@ static inline lzw_result lzw__read_code(
 	*code_out = (code >> current_bit) & ((1 << code_size) - 1);
 	return LZW_OK;
 }
-
 
 /**
  * Handle clear code.

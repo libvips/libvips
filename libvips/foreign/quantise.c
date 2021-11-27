@@ -1,4 +1,4 @@
-/* quantise an image with libimagequant
+/* quantise an image
  *
  * 20/6/18 
  * 	  - from vipspng.c
@@ -43,11 +43,164 @@
 
 #include <vips/vips.h>
 
-#ifdef HAVE_IMAGEQUANT
+#include "quantise.h"
+
+#ifdef HAVE_QUANTIZATION
 
 #include "pforeign.h"
 
-#include <libimagequant.h>
+#if defined(HAVE_IMAGEQUANT)
+
+VipsQuantiseAttr*
+vips__quantise_attr_create()
+{
+	return liq_attr_create();
+}
+
+VipsQuantiseError
+vips__quantise_set_max_colors(VipsQuantiseAttr* attr, int colors)
+{
+	return liq_set_max_colors(attr, colors);
+}
+
+VipsQuantiseError
+vips__quantise_set_quality(VipsQuantiseAttr* attr, int minimum, int maximum)
+{
+	return liq_set_quality(attr, minimum, maximum);
+}
+
+VipsQuantiseError
+vips__quantise_set_speed(VipsQuantiseAttr* attr, int speed)
+{
+	return liq_set_speed(attr, speed);
+}
+
+VipsQuantiseImage*
+vips__quantise_image_create_rgba(const VipsQuantiseAttr *attr, const void *bitmap, int width, int height, double gamma)
+{
+	return liq_image_create_rgba(attr, bitmap, width, height, gamma);
+}
+
+VipsQuantiseError
+vips__quantise_image_quantize(VipsQuantiseImage *const input_image, VipsQuantiseAttr *const options, VipsQuantiseResult **result_output)
+{
+	return liq_image_quantize(input_image, options, result_output);
+}
+
+VipsQuantiseError
+vips__quantise_set_dithering_level(VipsQuantiseResult *res, float dither_level)
+{
+	return liq_set_dithering_level(res, dither_level);
+}
+
+const VipsQuantisePalette*
+vips__quantise_get_palette(VipsQuantiseResult *result)
+{
+	return liq_get_palette(result);
+}
+
+VipsQuantiseError
+vips__quantise_write_remapped_image(VipsQuantiseResult *result, VipsQuantiseImage *input_image, void *buffer, size_t buffer_size)
+{
+	return liq_write_remapped_image(result, input_image, buffer, buffer_size);
+}
+
+void
+vips__quantise_result_destroy(VipsQuantiseResult *result)
+{
+	liq_result_destroy(result);
+}
+
+void
+vips__quantise_image_destroy(VipsQuantiseImage *img)
+{
+	liq_image_destroy(img);
+}
+
+void
+vips__quantise_attr_destroy(VipsQuantiseAttr *attr)
+{
+	liq_attr_destroy(attr);
+}
+
+#elif defined(HAVE_QUANTIZR) /*HAVE_IMAGEQUANT*/
+
+VipsQuantiseAttr*
+vips__quantise_attr_create()
+{
+	return quantizr_new_options();
+}
+
+VipsQuantiseError
+vips__quantise_set_max_colors(VipsQuantiseAttr* attr, int colors)
+{
+	return quantizr_set_max_colors(attr, colors);
+}
+
+VipsQuantiseError
+vips__quantise_set_quality(VipsQuantiseAttr* attr, int minimum, int maximum)
+{
+	// Not supported by quantizr
+	return 0;
+}
+
+VipsQuantiseError
+vips__quantise_set_speed(VipsQuantiseAttr* attr, int speed)
+{
+	// Not supported by quantizr
+	return 0;
+}
+
+VipsQuantiseImage*
+vips__quantise_image_create_rgba(const VipsQuantiseAttr *attr, const void *bitmap, int width, int height, double gamma)
+{
+	return quantizr_create_image_rgba((unsigned char*)bitmap, width, height);
+}
+
+VipsQuantiseError
+vips__quantise_image_quantize(VipsQuantiseImage *const input_image, VipsQuantiseAttr *const options, VipsQuantiseResult **result_output)
+{
+	*result_output = quantizr_quantize(input_image, options);
+	return 0;
+}
+
+VipsQuantiseError
+vips__quantise_set_dithering_level(VipsQuantiseResult *res, float dither_level)
+{
+	return quantizr_set_dithering_level(res, dither_level);
+}
+
+const VipsQuantisePalette*
+vips__quantise_get_palette(VipsQuantiseResult *result)
+{
+	return quantizr_get_palette(result);
+}
+
+VipsQuantiseError
+vips__quantise_write_remapped_image(VipsQuantiseResult *result, VipsQuantiseImage *input_image, void *buffer, size_t buffer_size)
+{
+	return quantizr_remap(result, input_image, buffer, buffer_size);
+}
+
+void
+vips__quantise_result_destroy(VipsQuantiseResult *result)
+{
+	quantizr_free_result(result);
+}
+
+void
+vips__quantise_image_destroy(VipsQuantiseImage *img)
+{
+	quantizr_free_image(img);
+}
+
+void
+vips__quantise_attr_destroy(VipsQuantiseAttr *attr)
+{
+	quantizr_free_options(attr);
+}
+
+#endif /*HAVE_QUANTIZR*/
 
 /* Track during a quantisation.
  */
@@ -60,9 +213,9 @@ typedef struct _Quantise {
 	double dither;
 	int effort;
 
-	liq_attr *attr;
-	liq_image *input_image;
-	liq_result *quantisation_result;
+	VipsQuantiseAttr *attr;
+	VipsQuantiseImage *input_image;
+	VipsQuantiseResult *quantisation_result;
 	VipsImage *t[5];
 } Quantise;
 
@@ -71,9 +224,9 @@ vips__quantise_free( Quantise *quantise )
 {
 	int i;
 
-	VIPS_FREEF( liq_result_destroy, quantise->quantisation_result );
-	VIPS_FREEF( liq_image_destroy, quantise->input_image );
-	VIPS_FREEF( liq_attr_destroy, quantise->attr );
+	VIPS_FREEF( vips__quantise_result_destroy, quantise->quantisation_result );
+	VIPS_FREEF( vips__quantise_image_destroy, quantise->input_image );
+	VIPS_FREEF( vips__quantise_attr_destroy, quantise->attr );
 
 	for( i = 0; i < VIPS_NUMBER( quantise->t ); i++ )
 		VIPS_UNREF( quantise->t[i] ); 
@@ -112,7 +265,7 @@ vips__quantise_image( VipsImage *in,
 	Quantise *quantise;
 	VipsImage *index;
 	VipsImage *palette;
-	const liq_palette *lp;
+	const VipsQuantisePalette *lp;
 	gint64 i;
 	VipsPel * restrict p;
 	gboolean added_alpha;
@@ -162,22 +315,22 @@ vips__quantise_image( VipsImage *in,
 		}
 	}
 
-	quantise->attr = liq_attr_create();
-	liq_set_max_colors( quantise->attr, colours );
-	liq_set_quality( quantise->attr, 0, Q );
-	liq_set_speed( quantise->attr, 11 - effort );
+	quantise->attr = vips__quantise_attr_create();
+	vips__quantise_set_max_colors( quantise->attr, colours );
+	vips__quantise_set_quality( quantise->attr, 0, Q );
+	vips__quantise_set_speed( quantise->attr, 11 - effort );
 
-	quantise->input_image = liq_image_create_rgba( quantise->attr,
+	quantise->input_image = vips__quantise_image_create_rgba( quantise->attr,
 		VIPS_IMAGE_ADDR( in, 0, 0 ), in->Xsize, in->Ysize, 0 );
 
-	if( liq_image_quantize( quantise->input_image, quantise->attr, 
+	if( vips__quantise_image_quantize( quantise->input_image, quantise->attr,
 		&quantise->quantisation_result ) ) {
 		vips_error( "quantise", "%s", _( "quantisation failed" ) );
 		vips__quantise_free( quantise ); 
 		return( -1 );
 	}
 
-	liq_set_dithering_level( quantise->quantisation_result, dither );
+	vips__quantise_set_dithering_level( quantise->quantisation_result, dither );
 
 	index = quantise->t[3] = vips_image_new_memory();
 	vips_image_init_fields( index, 
@@ -189,7 +342,7 @@ vips__quantise_image( VipsImage *in,
 		return( -1 );
 	}
 
-	if( liq_write_remapped_image( quantise->quantisation_result, 
+	if( vips__quantise_write_remapped_image( quantise->quantisation_result,
 		quantise->input_image,
 		VIPS_IMAGE_ADDR( index, 0, 0 ), VIPS_IMAGE_N_PELS( index ) ) ) {
 		vips_error( "quantise", "%s", _( "quantisation failed" ) );
@@ -197,7 +350,7 @@ vips__quantise_image( VipsImage *in,
 		return( -1 );
 	}
 
-	lp = liq_get_palette( quantise->quantisation_result );
+	lp = vips__quantise_get_palette( quantise->quantisation_result );
 
 	palette = quantise->t[4] = vips_image_new_memory();
 	vips_image_init_fields( palette, lp->count, 1, 4,
@@ -229,7 +382,7 @@ vips__quantise_image( VipsImage *in,
 	return( 0 );
 }
 
-#else /*!HAVE_IMAGEQUANT*/
+#else /*!HAVE_QUANTIZATION*/
 
 int
 vips__quantise_image( VipsImage *in, 
@@ -243,5 +396,5 @@ vips__quantise_image( VipsImage *in,
 	return( -1 );
 }
 
-#endif /*HAVE_IMAGEQUANT*/
+#endif /*HAVE_QUANTIZATION*/
 

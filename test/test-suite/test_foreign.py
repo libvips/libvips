@@ -768,8 +768,7 @@ class TestForeign:
                 y = pyvips.Image.new_from_buffer(buf, "")
                 assert y.get("orientation") == 6
 
-        # try converting an animated gif to webp ... can't do back to gif
-        # again without IM support
+        # try converting an animated gif to webp
         if have("gifload"):
             x1 = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
             w1 = x1.webpsave_buffer(Q=10)
@@ -1306,9 +1305,10 @@ class TestForeign:
         assert len(little_dither) < len(large_dither)
 
         # Reducing effort will typically increase file size (and reduce quality)
+        # quantizr does not yet implement effort, so use >=
         little_effort = self.colour.gifsave_buffer(effort=1)
         large_effort = self.colour.gifsave_buffer(effort=10)
-        assert len(little_effort) > len(large_effort)
+        assert len(little_effort) >= len(large_effort)
 
         # Reducing bitdepth will typically reduce file size (and reduce quality)
         bitdepth8 = self.colour.gifsave_buffer(bitdepth=8,effort=1)

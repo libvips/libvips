@@ -1053,6 +1053,7 @@ vips_foreign_load_openslide_source_class_init(
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS( class );
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS( class );
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
@@ -1061,6 +1062,8 @@ vips_foreign_load_openslide_source_class_init(
 	object_class->nickname = "openslideload_source";
 	object_class->description = _( "load source with OpenSlide" );
 	object_class->build = vips_foreign_load_openslide_source_build;
+
+	operation_class->flags = VIPS_OPERATION_NOCACHE;
 
 	load_class->is_a_source = 
 		vips_foreign_load_openslide_source_is_a_source;
