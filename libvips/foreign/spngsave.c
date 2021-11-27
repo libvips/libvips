@@ -56,6 +56,7 @@
 #include <vips/vips.h>
 
 #include "pforeign.h"
+#include "quantise.h"
 
 #ifdef HAVE_SPNG
 
