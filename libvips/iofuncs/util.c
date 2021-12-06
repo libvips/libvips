@@ -618,7 +618,8 @@ vips__open( const char *filename, int flags, int mode )
 	fd = g_open( filename, flags, mode );
 
 #ifdef G_OS_WIN32
-	if( mode & O_CREAT )
+	if( fd != -1 &&
+		(mode & O_CREAT) )
 		vips__set_create_time( fd ); 
 #endif /*G_OS_WIN32*/
 
@@ -641,7 +642,8 @@ vips__fopen( const char *filename, const char *mode )
 	fp = g_fopen( filename, mode );
 
 #ifdef G_OS_WIN32
-	if( fp && mode[0] == 'w' )
+	if( fp && 
+		mode[0] == 'w' )
 		vips__set_create_time( _fileno( fp ) ); 
 #endif /*G_OS_WIN32*/
 
