@@ -4,6 +4,7 @@
 
 26/11/21 started 8.12.2
 - make exif resuint optional and default to inch
+- win: don't set create time on inappropriate file descriptors [lovell]
 
 21/11/21 started 8.12.1
 - fix insert [chregu]
