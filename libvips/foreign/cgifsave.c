@@ -31,8 +31,8 @@
  */
 
 /*
-#define DEBUG_VERBOSE
 #define DEBUG_PERCENT
+#define DEBUG_VERBOSE
  */
 
 #ifdef HAVE_CONFIG_H

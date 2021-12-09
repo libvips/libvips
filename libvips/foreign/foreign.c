@@ -2866,10 +2866,13 @@ vips_foreign_operation_init( void )
 	extern GType vips_foreign_load_magick_buffer_get_type( void ); 
 	extern GType vips_foreign_load_magick7_file_get_type( void ); 
 	extern GType vips_foreign_load_magick7_buffer_get_type( void ); 
+
 	extern GType vips_foreign_save_magick_file_get_type( void );
-	extern GType vips_foreign_save_magick_bmp_file_get_type( void );
 	extern GType vips_foreign_save_magick_buffer_get_type( void );
+	extern GType vips_foreign_save_magick_bmp_file_get_type( void );
 	extern GType vips_foreign_save_magick_bmp_buffer_get_type( void );
+	extern GType vips_foreign_save_magick_gif_file_get_type( void );
+	extern GType vips_foreign_save_magick_gif_buffer_get_type( void );
 
 	extern GType vips_foreign_save_dz_file_get_type( void ); 
 	extern GType vips_foreign_save_dz_buffer_get_type( void ); 
@@ -3084,9 +3087,11 @@ vips_foreign_operation_init( void )
 
 #if defined(ENABLE_MAGICKSAVE) && !defined(MAGICK_MODULE)
 	vips_foreign_save_magick_file_get_type();
-	vips_foreign_save_magick_bmp_file_get_type();
 	vips_foreign_save_magick_buffer_get_type();
+	vips_foreign_save_magick_bmp_file_get_type();
 	vips_foreign_save_magick_bmp_buffer_get_type();
+	vips_foreign_save_magick_gif_file_get_type();
+	vips_foreign_save_magick_gif_buffer_get_type();
 #endif /*defined(ENABLE_MAGICKSAVE) && !defined(MAGICK_MODULE)*/
 
 #ifdef HAVE_CFITSIO
