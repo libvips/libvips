@@ -1530,6 +1530,7 @@ RAD load/save: $with_radiance, \
 Analyze7 load/save: $with_analyze, \
 PPM load/save: $with_ppm, \
 GIF load:  $with_nsgif, \
+GIF save with cgif: $with_cgif, \
 EXIF metadata support with libexif: $with_libexif, \
 JPEG load/save with libjpeg: $with_jpeg, \
 JXL load/save with libjxl: $with_libjxl (dynamic module: $with_libjxl_module), \
@@ -1549,7 +1550,6 @@ OpenSlide load: $with_openslide (dynamic module: $with_openslide_module), \
 Matlab load with matio: $with_matio, \
 NIfTI load/save with niftiio: $with_nifti, \
 FITS load/save with cfitsio: $with_cfitsio, \
-GIF save with cgif: $with_cgif, \
 Magick package: $with_magickpackage (dynamic module: $with_magick_module), \
 Magick API version: $magick_version, \
 load with libMagickCore: $enable_magickload, \

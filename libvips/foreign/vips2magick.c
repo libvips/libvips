@@ -14,6 +14,8 @@
  * 	- support GIF optimization
  * 21/4/21 kleisauke
  * 	- include GObject part from magicksave.c
+ * 9/12/21 [erik-frontify]
+ * 	- add gif save subclass
  */
 
 /*
@@ -417,6 +419,7 @@ vips_foreign_save_magick_build( VipsObject *object )
  */
 static const char *vips__save_magick_suffs[] = { NULL };
 static const char *vips__save_magick_bmp_suffs[] = { ".bmp", NULL };
+static const char *vips__save_magick_gif_suffs[] = { ".gif", NULL };
 
 /* Save a bit of typing.
  */
@@ -559,38 +562,6 @@ vips_foreign_save_magick_file_init( VipsForeignSaveMagickFile *file )
 {
 }
 
-typedef VipsForeignSaveMagickFile VipsForeignSaveMagickBmpFile;
-typedef VipsForeignSaveMagickFileClass VipsForeignSaveMagickBmpFileClass;
-
-G_DEFINE_TYPE( VipsForeignSaveMagickBmpFile, vips_foreign_save_magick_bmp_file, 
-	vips_foreign_save_magick_file_get_type() );
-
-static void
-vips_foreign_save_magick_bmp_file_class_init( 
-	VipsForeignSaveMagickBmpFileClass *class )
-{
-	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
-	VipsOperationClass *operation_class = (VipsOperationClass *) class;
-
-	object_class->nickname = "magicksave_bmp";
-	object_class->description = _( "save bmp image with ImageMagick" );
-
-	foreign_class->suffs = vips__save_magick_bmp_suffs;
-
-	/* Hide from UI.
-	 */
-	operation_class->flags = VIPS_OPERATION_DEPRECATED;
-}
-
-static void
-vips_foreign_save_magick_bmp_file_init( VipsForeignSaveMagickBmpFile *file )
-{
-	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) file;
-
-	VIPS_SETSTR( magick->format, "bmp" );
-}
-
 typedef struct _VipsForeignSaveMagickBuffer {
 	VipsForeignSaveMagick parent_object;
 
@@ -664,6 +635,38 @@ vips_foreign_save_magick_buffer_init( VipsForeignSaveMagickBuffer *buffer )
 {
 }
 
+typedef VipsForeignSaveMagickFile VipsForeignSaveMagickBmpFile;
+typedef VipsForeignSaveMagickFileClass VipsForeignSaveMagickBmpFileClass;
+
+G_DEFINE_TYPE( VipsForeignSaveMagickBmpFile, vips_foreign_save_magick_bmp_file, 
+	vips_foreign_save_magick_file_get_type() );
+
+static void
+vips_foreign_save_magick_bmp_file_class_init( 
+	VipsForeignSaveMagickBmpFileClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
+
+	object_class->nickname = "magicksave_bmp";
+	object_class->description = _( "save bmp image with ImageMagick" );
+
+	foreign_class->suffs = vips__save_magick_bmp_suffs;
+
+	/* Hide from UI.
+	 */
+	operation_class->flags = VIPS_OPERATION_DEPRECATED;
+}
+
+static void
+vips_foreign_save_magick_bmp_file_init( VipsForeignSaveMagickBmpFile *file )
+{
+	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) file;
+
+	VIPS_SETSTR( magick->format, "bmp" );
+}
+
 typedef VipsForeignSaveMagickBuffer VipsForeignSaveMagickBmpBuffer;
 typedef VipsForeignSaveMagickBufferClass VipsForeignSaveMagickBmpBufferClass;
 
@@ -696,6 +699,72 @@ vips_foreign_save_magick_bmp_buffer_init(
 	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) buffer;
 
 	VIPS_SETSTR( magick->format, "bmp" );
+}
+
+typedef VipsForeignSaveMagickFile VipsForeignSaveMagickGifFile;
+typedef VipsForeignSaveMagickFileClass VipsForeignSaveMagickGifFileClass;
+
+G_DEFINE_TYPE( VipsForeignSaveMagickGifFile, vips_foreign_save_magick_gif_file, 
+	vips_foreign_save_magick_file_get_type() );
+
+static void
+vips_foreign_save_magick_gif_file_class_init( 
+	VipsForeignSaveMagickGifFileClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
+
+	object_class->nickname = "magicksave_gif";
+	object_class->description = _( "save gif image with ImageMagick" );
+
+	foreign_class->suffs = vips__save_magick_gif_suffs;
+
+	/* Hide from UI.
+	 */
+	operation_class->flags = VIPS_OPERATION_DEPRECATED;
+}
+
+static void
+vips_foreign_save_magick_gif_file_init( VipsForeignSaveMagickGifFile *file )
+{
+	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) file;
+
+	VIPS_SETSTR( magick->format, "gif" );
+}
+
+typedef VipsForeignSaveMagickBuffer VipsForeignSaveMagickGifBuffer;
+typedef VipsForeignSaveMagickBufferClass VipsForeignSaveMagickGifBufferClass;
+
+G_DEFINE_TYPE( VipsForeignSaveMagickGifBuffer, 
+	vips_foreign_save_magick_gif_buffer, 
+	vips_foreign_save_magick_buffer_get_type() );
+
+static void
+vips_foreign_save_magick_gif_buffer_class_init(
+	VipsForeignSaveMagickGifBufferClass *class )
+{
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
+
+	object_class->nickname = "magicksave_gif_buffer";
+	object_class->description = _( "save gif image to magick buffer" );
+
+	foreign_class->suffs = vips__save_magick_gif_suffs;
+
+	/* Hide from UI.
+	 */
+	operation_class->flags = VIPS_OPERATION_DEPRECATED;
+}
+
+static void
+vips_foreign_save_magick_gif_buffer_init( 
+	VipsForeignSaveMagickGifBuffer *buffer )
+{
+	VipsForeignSaveMagick *magick = (VipsForeignSaveMagick *) buffer;
+
+	VIPS_SETSTR( magick->format, "gif" );
 }
 
 #endif /*ENABLE_MAGICKSAVE*/
