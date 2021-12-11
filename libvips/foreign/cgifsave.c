@@ -68,6 +68,7 @@ typedef struct _VipsForeignSaveCgif {
 	int *delay;
 	int delay_length;
 	int loop;
+	gboolean reuse_tables;
 
 	/* We save ->ready a frame at a time, regenerating the 
 	 * palette if we see a significant frame to frame change. 
@@ -167,11 +168,9 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		VIPS_REGION_ADDR( cgif->frame, 0, frame_rect->top );
 
 	VipsPel * restrict p;
-	VipsPel *rgb;
-	guint sum;
-	double percent_change;
 	int i;
 	CGIF_FrameConfig frame_config;
+	// VipsPel *rgb;
 
 #ifdef DEBUG_VERBOSE
 	printf( "vips_foreign_save_cgif_write_frame: %d\n", page_index );
@@ -197,49 +196,63 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 *
 	 * frame_sum 0 means no current colourmap.
 	 */
-	sum = 0;
-	p = frame_bytes;
-	for( i = 0; i < n_pels; i++ )
-		sum += p[i]; 
-	percent_change = 100 * 
-		fabs( ((double) sum / max_sum) - 
-			((double) cgif->frame_sum / max_sum) );
+	if( cgif->reuse_tables ) {
 
-	if( cgif->frame_sum == 0 ||
-		percent_change > 0 ) { 
-		cgif->frame_sum = sum;
+	}
+	else {
+		guint sum;
+		double percent_change;
 
-		/* If this is not our first cmap, make a note that we need to
-		 * attach it as a local cmap when we write.
-		 */
-		if( cgif->quantisation_result ) 
-			cgif->cgif_config.attrFlags |= CGIF_ATTR_NO_GLOBAL_TABLE;
+		sum = 0;
+		p = frame_bytes;
+		for( i = 0; i < n_pels; i++ )
+			sum += p[i]; 
+		percent_change = 100 * 
+			fabs( ((double) sum / max_sum) - 
+				((double) cgif->frame_sum / max_sum) );
 
-		VIPS_FREEF( vips__quantise_result_destroy, cgif->quantisation_result );
-		if( vips__quantise_image_quantize( cgif->input_image, cgif->attr,
-			&cgif->quantisation_result ) ) { 
-			vips_error( class->nickname, 
-				"%s", _( "quantisation failed" ) );
-			return( -1 );
-		}
+		if( cgif->frame_sum == 0 ||
+			percent_change > 0 ) { 
+			cgif->frame_sum = sum;
+
+			/* If this is not our first cmap, make a note that we 
+			 * need to attach it as a local cmap when we write.
+			 */
+			if( cgif->quantisation_result ) 
+				cgif->cgif_config.attrFlags |= 
+					CGIF_ATTR_NO_GLOBAL_TABLE;
+
+			VIPS_FREEF( vips__quantise_result_destroy, 
+				cgif->quantisation_result );
+			if( vips__quantise_image_quantize( cgif->input_image, 
+				cgif->attr, &cgif->quantisation_result ) ) { 
+				vips_error( class->nickname, 
+					"%s", _( "quantisation failed" ) );
+				return( -1 );
+			}
 
 #ifdef DEBUG_PERCENT
-		cgif->n_cmaps_generated += 1;
+			cgif->n_cmaps_generated += 1;
 #endif/*DEBUG_PERCENT*/
+		}
 	}
 
 	/* Dither frame.
 	 */
-	vips__quantise_set_dithering_level( cgif->quantisation_result, cgif->dither );
+	vips__quantise_set_dithering_level( cgif->quantisation_result, 
+		cgif->dither );
 	if( vips__quantise_write_remapped_image( cgif->quantisation_result,
 		cgif->input_image, cgif->index, n_pels ) ) {
 		vips_error( class->nickname, "%s", _( "dither failed" ) );
 		return( -1 );
 	}
 
-	/* Call vips__quantise_get_palette() after vips__quantise_write_remapped_image(),
-	 * as palette is improved during remapping.
-	 */
+	/* Call vips__quantise_get_palette() after 
+	 * vips__quantise_write_remapped_image(), as palette is improved 
+	 * during remapping.
+	 *
+	 * FIXME urgh wat don't know what to do here
+	 *
 	cgif->lp = vips__quantise_get_palette( cgif->quantisation_result );
 	rgb = cgif->palette_rgb;
 	g_assert( cgif->lp->count <= 256 );
@@ -250,6 +263,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 		rgb += 3;
 	}
+	 */
 
 	/* If there's a transparent pixel, it's always first.
 	 */
@@ -456,6 +470,29 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	cgif->palette_rgb = g_malloc0( 256 * 3 );
 	cgif->index = g_malloc0( frame_rect.width * frame_rect.height );
 
+	/* Try to init from any source table.
+	 */
+	if( cgif->reuse_tables ) {
+		if( vips_image_get_typeof( cgif->in, "gif-tables" ) ) {
+			int *table;
+			int n_entries;
+			int i, j;
+
+			if( vips_image_get_array_int( cgif->in, "gif-tables", 
+				&table, &n_entries ) )
+				return( -1 );
+
+			for( i = 0; i < n_entries; i++ )
+				for( j = 0; j < 3; j++ )
+					cgif->palette_rgb[i * 3 + j] =
+						table[i * 4 + j];
+		}
+		else
+			/* No table was attached ... make sure we compute one.
+			 */
+			cgif->reuse_tables = FALSE;
+	}
+
 	/* Set up libimagequant.
 	 */
 	cgif->attr = vips__quantise_attr_create();
@@ -526,6 +563,13 @@ vips_foreign_save_cgif_class_init( VipsForeignSaveCgifClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveCgif, bitdepth ),
 		1, 8, 8 );
+
+	VIPS_ARG_BOOL( class, "reuse-tables", 13,
+		_( "Reuse tables" ),
+		_( "Reuse the colourmap from the source GIF, if possible" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveCgif, reuse_tables ),
+		FALSE );
 
 }
 

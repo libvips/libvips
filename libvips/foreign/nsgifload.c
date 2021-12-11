@@ -287,10 +287,12 @@ static int
 vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif, 
 	VipsImage *image )
 {
+	gif_animation *anim = gif->anim;
+
 	VIPS_DEBUG_MSG( "vips_foreign_load_nsgif_set_header:\n" );
 
 	vips_image_init_fields( image,
-		gif->anim->width, gif->anim->height * gif->n, 
+		anim->width, anim->height * gif->n, 
 		gif->has_transparency ? 4 : 3,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB, 1.0, 1.0 );
@@ -301,20 +303,20 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 	 */
 	if( gif->n > 1 )
 		vips_image_set_int( image,
-			VIPS_META_PAGE_HEIGHT, gif->anim->height );
+			VIPS_META_PAGE_HEIGHT, anim->height );
 	vips_image_set_int( image, VIPS_META_N_PAGES, 
 		gif->frame_count_displayable );
 	vips_image_set_int( image, "loop", gif->anim->loop_count );
 	vips_image_set_array_int( image, "delay", 
 		gif->delay, gif->frame_count_displayable );
 
-	if( gif->anim->global_colours &&
-		gif->anim->global_colour_table &&
-		gif->anim->bg_index >= 0 &&
-		gif->anim->bg_index < gif->anim->colour_table_size ) {
-		int index = gif->anim->bg_index;
+	if( anim->global_colours &&
+		anim->global_colour_table &&
+		anim->bg_index >= 0 &&
+		anim->bg_index < anim->colour_table_size ) {
+		int index = anim->bg_index;
 		unsigned char *entry = (unsigned char *) 
-			&gif->anim->global_colour_table[index];
+			&anim->global_colour_table[index];
 
 		double array[3];
 
@@ -334,12 +336,21 @@ vips_foreign_load_nsgif_set_header( VipsForeignLoadNsgif *gif,
 	 * but we want to keep the old behavior untouched!
 	 */
 	vips_image_set_int( image,
-		"gif-loop", gif->anim->loop_count == 0 ? 
-			0 : gif->anim->loop_count - 1 );
+		"gif-loop", anim->loop_count == 0 ? 
+			0 : anim->loop_count - 1 );
 
 	/* The deprecated gif-delay field is in centiseconds.
 	 */
 	vips_image_set_int( image, "gif-delay", gif->gif_delay ); 
+
+	/* Attach the global color table.
+	 */
+	if( anim->global_colours &&
+		anim->colour_table_size > 0 &&
+		anim->global_colour_table ) 
+		vips_image_set_array_int( image, "gif-tables", 
+			(int *) anim->global_colour_table, 
+			anim->colour_table_size );
 
 	return( 0 );
 }
