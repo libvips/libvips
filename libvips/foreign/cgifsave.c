@@ -31,9 +31,9 @@
  */
 
 /*
-#define DEBUG_PERCENT
 #define DEBUG_VERBOSE
  */
+#define DEBUG_PERCENT
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -94,6 +94,7 @@ typedef struct _VipsForeignSaveCgif {
 	 */
 	VipsPel *palette_rgb;
 	guint frame_sum;
+	int n_entries;
 
 	/* The index frame we get libimagequant to generate.
 	 */
@@ -170,7 +171,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	VipsPel * restrict p;
 	int i;
 	CGIF_FrameConfig frame_config;
-	// VipsPel *rgb;
+	VipsPel *rgb;
 
 #ifdef DEBUG_VERBOSE
 	printf( "vips_foreign_save_cgif_write_frame: %d\n", page_index );
@@ -191,18 +192,39 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		p += 4;
 	}
 
-	/* Do we need to compute a new palette? Do it if the frame sum
-	 * changes.
-	 *
-	 * frame_sum 0 means no current colourmap.
+	/* Set up the palette we disther with --- either the supplied one, or
+	 * one from the first frame.
 	 */
-	if( cgif->reuse_tables ) {
+	if( cgif->reuse_tables && 
+		!cgif->quantisation_result ) {
+		liq_palette palette;
 
+#ifdef DEBUG_PERCENT
+		printf( "reusing cmap\n" );
+#endif/*DEBUG_PERCENT*/
+
+		palette.count = cgif->n_entries;
+		for( i = 0; i < palette.count; i++) {
+			palette.entries[i].r = cgif->palette_rgb[i * 3 + 0];
+			palette.entries[i].g = cgif->palette_rgb[i * 3 + 1];
+			palette.entries[i].b = cgif->palette_rgb[i * 3 + 2];
+			palette.entries[i].a = 255;
+		}
+
+		if( liq_set_palette( cgif->attr, &palette, 
+			&cgif->quantisation_result ) ) {
+			vips_error( class->nickname, 
+				"%s", _( "unable to set palette" ) );
+			return( -1 );
+		}
 	}
-	else {
+	else if( !cgif->reuse_tables ) {
 		guint sum;
 		double percent_change;
 
+		/* Do we need to compute a new palette? Do it if the frame sum
+		 * changes.
+		 */
 		sum = 0;
 		p = frame_bytes;
 		for( i = 0; i < n_pels; i++ )
@@ -211,7 +233,12 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 			fabs( ((double) sum / max_sum) - 
 				((double) cgif->frame_sum / max_sum) );
 
-		if( cgif->frame_sum == 0 ||
+#ifdef DEBUG_PERCENT
+		printf( "frame %d, %.4g%% change\n",
+			page_index, percent_change );
+#endif/*DEBUG_PERCENT*/
+
+		if( !cgif->quantisation_result ||
 			percent_change > 0 ) { 
 			cgif->frame_sum = sum;
 
@@ -250,9 +277,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	/* Call vips__quantise_get_palette() after 
 	 * vips__quantise_write_remapped_image(), as palette is improved 
 	 * during remapping.
-	 *
-	 * FIXME urgh wat don't know what to do here
-	 *
+	 */
 	cgif->lp = vips__quantise_get_palette( cgif->quantisation_result );
 	rgb = cgif->palette_rgb;
 	g_assert( cgif->lp->count <= 256 );
@@ -263,25 +288,15 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 
 		rgb += 3;
 	}
-	 */
 
 	/* If there's a transparent pixel, it's always first.
 	 */
 	cgif->has_transparency = cgif->lp->entries[0].a == 0;
 
-#ifdef DEBUG_PERCENT
-	if( percent_change > 0 )
-		printf( "frame %d, %.4g%% change, new %d item colourmap\n",
-			page_index, percent_change, cgif->lp->count );
-	else
-		printf( "frame %d, reusing previous %d item colourmap\n",
-			page_index, cgif->lp->count );
-#endif/*DEBUG_PERCENT*/
-
 	/* Set up cgif on first use, so we can set the first cmap as the global
 	 * one.
 	 *
-	 * We switch to local tables if we find we need a new palette.
+	 * We switch to local tables if we make a new palette.
 	 */
 	if( !cgif->cgif_context ) {
 		cgif->cgif_config.pGlobalPalette = cgif->palette_rgb;
@@ -475,14 +490,13 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	if( cgif->reuse_tables ) {
 		if( vips_image_get_typeof( cgif->in, "gif-tables" ) ) {
 			int *table;
-			int n_entries;
 			int i, j;
 
 			if( vips_image_get_array_int( cgif->in, "gif-tables", 
-				&table, &n_entries ) )
+				&table, &cgif->n_entries ) )
 				return( -1 );
 
-			for( i = 0; i < n_entries; i++ )
+			for( i = 0; i < cgif->n_entries; i++ )
 				for( j = 0; j < 3; j++ )
 					cgif->palette_rgb[i * 3 + j] =
 						table[i * 4 + j];
