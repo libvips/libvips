@@ -574,13 +574,12 @@ vips_foreign_load_nsgif_class_init( VipsForeignLoadNsgifClass *class )
 static void *
 vips_foreign_load_nsgif_bitmap_create( int width, int height )
 {
-	/* Enforce max GIF dimensions of 16383 (0x7FFF). This should be enough
-	 * for anyone, and will prevent the worst GIF bombs.
+	/* GIF has a limit of 64k per axis -- double-check this.
 	 */
 	if( width <= 0 ||
-		width > 16383 ||
+		width > 65536 ||
 		height <= 0 ||
-		height > 16383 ) {
+		height > 65536 ) {
 		vips_error( "gifload",
 			"%s", _( "bad image dimensions") );
 		return( NULL );
