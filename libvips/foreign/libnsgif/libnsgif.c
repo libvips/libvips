@@ -295,7 +295,7 @@ static gif_result gif_initialise_frame(gif_animation *gif)
 	gif->frames[frame].virgin = true;
 	gif->frames[frame].disposal_method = 0;
 	gif->frames[frame].transparency = false;
-	gif->frames[frame].frame_delay = 100;
+	gif->frames[frame].frame_delay = 10;
 	gif->frames[frame].redraw_required = false;
 
 	/* Invalidate any previous decoding we have of this frame */
