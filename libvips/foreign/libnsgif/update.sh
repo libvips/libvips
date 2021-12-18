@@ -10,7 +10,6 @@ echo copying out source files ...
 cp libnsgif/src/libnsgif.c .
 cp libnsgif/include/libnsgif.h .
 cp libnsgif/src/lzw.[ch] .
-cp libnsgif/src/utils/log.h utils
 
 if [ -d "patches" ]
 then
@@ -22,4 +21,3 @@ fi
 
 echo cleaning up ...
 rm -rf libnsgif
-

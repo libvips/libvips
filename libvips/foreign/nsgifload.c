@@ -270,7 +270,6 @@ print_animation( gif_animation *anim )
 	printf( "  frame_image = %p\n", anim->frame_image );
 	printf( "  loop_count = %d\n", anim->loop_count );
 	printf( "  frame_holders = %d\n", anim->frame_holders );
-	printf( "  background_index = %d\n", anim->background_index );
 	printf( "  colour_table_size = %d\n", anim->colour_table_size );
 	printf( "  global_colours = %d\n", anim->global_colours );
 	printf( "  global_colour_table = %p\n", anim->global_colour_table );
