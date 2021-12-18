@@ -7,6 +7,7 @@
 - win: don't set create time on inappropriate file descriptors [lovell]
 - fall back to magicksave for gif if cgif is not present [erik-frontify]
 - fix a crash with 0 length vectors 
+- change default frame delay for GIFs from 1s to 0.1s
 
 21/11/21 started 8.12.1
 - fix insert [chregu]
