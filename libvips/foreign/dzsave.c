@@ -89,6 +89,8 @@
  * 	- better IIIF tile naming
  * 15/10/21  martimpassos
  * 	- add IIIF3 layout
+ * 21/12/21  whalehub
+ * 	- remove trailing comma from IIIFv3 folder names
  */
 
 /*
@@ -1486,7 +1488,7 @@ tile_name( Layer *layer, int x, int y )
 			int ysize = VIPS_MIN( dz->tile_size, 
 				layer->height - y * dz->tile_size );
 
-			vips_snprintf( dirname2, VIPS_PATH_MAX, "%d,%d,", 
+			vips_snprintf( dirname2, VIPS_PATH_MAX, "%d,%d", 
 				xsize, ysize );
 		}
 		else {
