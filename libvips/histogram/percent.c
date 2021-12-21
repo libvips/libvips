@@ -144,7 +144,7 @@ vips_percent_init( VipsPercent *percent )
  * below which there are @percent values of @in. For example:
  *
  * |[
- * $ vips precent k2.jpg 90
+ * $ vips percent k2.jpg 90
  * 214
  * ]|
  *
