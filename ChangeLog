@@ -9,6 +9,7 @@
 - fix a crash with 0 length vectors 
 - change default frame delay for GIFs from 1s to 0.1s
 - remove stray trailing comma from iiif3 dirnames [whalehub]
+- fix TTF load [chregu]
 
 21/11/21 started 8.12.1
 - fix insert [chregu]
