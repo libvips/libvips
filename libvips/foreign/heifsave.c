@@ -75,6 +75,10 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	int Q;
 
+	/* bitdepth to save at for >8 bit images. 
+	 */
+	int bitdepth;
+
 	/* Lossless compression.
 	 */
 	gboolean lossless;
@@ -465,13 +469,12 @@ vips_foreign_save_heif_build( VipsObject *object )
 	return( 0 );
 }
 
-/* Save a bit of typing.
- */
 #define UC VIPS_FORMAT_UCHAR
+#define US VIPS_FORMAT_USHORT
 
 static int vips_heif_bandfmt[10] = {
 /* UC  C   US  S   UI  I   F   X   D   DX */
-   UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
+   UC, UC, US, US, US, US, US, US, US, US
 };
 
 static void
@@ -498,6 +501,13 @@ vips_foreign_save_heif_class_init( VipsForeignSaveHeifClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET( VipsForeignSaveHeif, Q ),
 		1, 100, 50 );
+
+	VIPS_ARG_INT( class, "bitdepth", 11,
+		_( "Bit depth" ),
+		_( "Number of bits per pixel" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsForeignSaveHeif, bitdepth ),
+		1, 16, 12 );
 
 	VIPS_ARG_BOOL( class, "lossless", 13,
 		_( "Lossless" ),
@@ -543,6 +553,7 @@ vips_foreign_save_heif_init( VipsForeignSaveHeif *heif )
 {
 	heif->ctx = heif_context_alloc();
 	heif->Q = 50;
+	heif->bitdepth = 12;
 	heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_HEVC;
 	heif->effort = 4;
 	heif->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_AUTO;
