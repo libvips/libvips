@@ -12,6 +12,8 @@
  * 	- move GObject part to vips2heif.c
  * 30/7/21
  * 	- rename "speed" as "effort" for consistency with other savers
+ * 22/12/21
+ * 	- add >8 bit support
  */
 
 /*
@@ -45,6 +47,21 @@
 #define DEBUG_VERBOSE
 #define DEBUG
  */
+
+/*
+ *
+
+TODO:
+
+	what about a 16-bit PNG saved with bitdepth=8? does this work?
+
+		no!
+
+	what about a 8-bit PNG saved with bitdepth=12? does this work?
+
+ * 
+ */
+
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -282,6 +299,73 @@ vips_foreign_save_heif_write_page( VipsForeignSaveHeif *heif, int page )
 }
 
 static int
+vips_foreign_save_heif_pack( VipsForeignSaveHeif *heif, 
+	VipsPel *q, VipsPel *p, int ne )
+{
+	int i;
+
+	if( heif->image->BandFmt == VIPS_FORMAT_UCHAR &&
+		heif->bitdepth == 8 )
+		/* Most common cases -- 8 bit to 8 bit.
+		 */
+		memcpy( q, p, ne );
+	else if( heif->image->BandFmt == VIPS_FORMAT_UCHAR &&
+                heif->bitdepth > 8 ) {
+		/* 8-bit source, write a bigendian short, shifted up.
+		 */
+		int shift = heif->bitdepth - 8;
+
+		for( i = 0; i < ne; i++ ) {
+			guint16 v = p[i] << shift;
+
+			q[0] = v >> 8;
+			q[1] = v;
+
+			q += 2;
+		}
+	}
+	else if( heif->image->BandFmt == VIPS_FORMAT_USHORT &&
+                heif->bitdepth <= 8 ) {
+		/* 16-bit native byte order source, 8 bit write.
+		 */
+		int shift = 16 - heif->bitdepth;
+
+		for( i = 0; i < ne; i++ ) {
+			guint16 v = *((gushort *) p) >> shift;
+
+			q[i] = v;
+
+			p += 2;
+		}
+	}
+	else if( heif->image->BandFmt == VIPS_FORMAT_USHORT &&
+                heif->bitdepth > 8 ) {
+		/* 16-bit native byte order source, 16 bit bigendian write.
+		 */
+		int shift = 16 - heif->bitdepth;
+
+		for( i = 0; i < ne; i++ ) {
+			guint16 v = *((gushort *) p) >> shift;
+
+			q[0] = v >> 8;
+			q[1] = v;
+
+			p += 2;
+			q += 2;
+		}
+	}
+	else {
+		VipsObjectClass *class = VIPS_OBJECT_CLASS( heif );
+
+		vips_error( class->nickname, 
+			"%s", _( "unimplemeted format conversion" ) );
+		return( -1 );
+	}
+
+	return( 0 );
+}
+
+static int
 vips_foreign_save_heif_write_block( VipsRegion *region, VipsRect *area, 
 	void *a )
 {
@@ -301,11 +385,12 @@ vips_foreign_save_heif_write_block( VipsRegion *region, VipsRect *area,
 		 */
 		int page = (area->top + y) / heif->page_height;
 		int line = (area->top + y) % heif->page_height;
-
 		VipsPel *p = VIPS_REGION_ADDR( region, 0, area->top + y );
 		VipsPel *q = heif->data + line * heif->stride;
 
-		memcpy( q, p, VIPS_IMAGE_SIZEOF_LINE( region->im ) );
+		if( vips_foreign_save_heif_pack( heif, 
+			q, p, VIPS_REGION_N_ELEMENTS( region ) ) )
+			return( -1 );
 
 		/* Did we just write the final line? Write as a new page 
 		 * into the output.
@@ -353,6 +438,13 @@ vips_foreign_save_heif_build( VipsObject *object )
 	if( vips_object_argument_isset( object, "speed" ) &&
 		!vips_object_argument_isset( object, "effort" ) )
 		heif->effort = 9 - heif->speed;
+
+	/* Default 12 bit save for ushort. HEIC (for example) implements 
+	 * 8 / 10 / 12.
+	 */
+	if( !vips_object_argument_isset( object, "bitdepth" ) ) 
+		heif->bitdepth = save->ready->BandFmt == VIPS_FORMAT_UCHAR ?
+			8 : 12;
 
 	/* Make a copy of the image in case we modify the metadata eg. for
 	 * exif_update.
@@ -423,9 +515,8 @@ vips_foreign_save_heif_build( VipsObject *object )
 #endif /*DEBUG*/
 	error = heif_image_create( heif->page_width, heif->page_height, 
 		heif_colorspace_RGB, 
-		vips_image_hasalpha( heif->image ) ?
-			heif_chroma_interleaved_RGBA : 
-			heif_chroma_interleaved_RGB,
+		vips__heif_chroma( heif->bitdepth, 
+			vips_image_hasalpha( heif->image ) ),
 		&heif->img );
 	if( error.code ) {
 		vips__heif_error( &error );
@@ -434,7 +525,7 @@ vips_foreign_save_heif_build( VipsObject *object )
 
 	error = heif_image_add_plane( heif->img, heif_channel_interleaved, 
 		heif->page_width, heif->page_height, 
-		vips_image_hasalpha( heif->image ) ? 32 : 24 );
+		heif->bitdepth );
 	if( error.code ) {
 		vips__heif_error( &error );
 		return( -1 );
