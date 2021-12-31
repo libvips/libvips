@@ -188,7 +188,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 */
 	p = frame_bytes;
 	for( i = 0; i < n_pels; i++ ) {
-		p[3] = p[3] > 128 ? 255 : 0;
+		p[3] = p[3] >= 128 ? 255 : 0;
 		p += 4;
 	}
 
