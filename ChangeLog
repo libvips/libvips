@@ -1,6 +1,8 @@
 21/11/21 started 8.13
 - configure fails for requested but unmet dependencies [remicollet]
 - add support for another quantiser [DarthSim]
+- add "extend", "background" and "premultiplied" to mapim to fix edge
+antialiasing [GavinJoyce]
 
 26/11/21 started 8.12.2
 - make exif resuint optional and default to inch

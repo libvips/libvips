@@ -9,6 +9,9 @@
  * 	- we were not offsetting pixel fetches by window_offset
  * 30/1/21 afontenot
  * 	- avoid NaN
+ * 21/12/21
+ * 	- improve edge antialiasing with "background" and "extend"
+ * 	- add "premultiplied" param
  */
 
 /*
@@ -66,6 +69,22 @@ typedef struct _VipsMapim {
 
 	VipsImage *index;
 	VipsInterpolate *interpolate;
+
+	/* How to generate extra edge pixels.
+	 */
+	VipsExtend extend;
+
+	/* Background colour.
+	 */
+	VipsArrayDouble *background;
+
+	/* The [double] converted to the input image format.
+	 */
+	VipsPel *ink;
+
+	/* True if the input is already premultiplied (and we don't need to).
+	 */
+	gboolean premultiplied;
 
 	/* Need an image vector for start_many / stop_many
 	 */
@@ -259,13 +278,13 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 	TYPE * restrict p1 = (TYPE *) p; \
 	\
 	for( x = 0; x < r->width; x++ ) { \
-		TYPE px = p1[0]; \
-		TYPE py = p1[1]; \
+		TYPE px = p1[0] + 1; \
+		TYPE py = p1[1] + 1; \
 		\
 		if( px >= clip_width || \
 			py >= clip_height ) { \
 			for( z = 0; z < ps; z++ )  \
-				q[z] = 0; \
+				q[z] = mapim->ink[z]; \
 		} \
 		else \
 			interpolate( mapim->interpolate, q, ir[0], \
@@ -282,15 +301,15 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 	TYPE * restrict p1 = (TYPE *) p; \
 	\
 	for( x = 0; x < r->width; x++ ) { \
-		TYPE px = p1[0]; \
-		TYPE py = p1[1]; \
+		TYPE px = p1[0] + 1; \
+		TYPE py = p1[1] + 1; \
 		\
 		if( px < 0 || \
 			px >= clip_width || \
 			py < 0 || \
 			py >= clip_height ) { \
 			for( z = 0; z < ps; z++ )  \
-				q[z] = 0; \
+				q[z] = mapim->ink[z]; \
 		} \
 		else \
 			interpolate( mapim->interpolate, q, ir[0], \
@@ -316,12 +335,13 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 			px >= clip_width || \
 			py < 0 || \
 			py >= clip_height ) { \
-			for( z = 0; z < ps; z++ )  \
-				q[z] = 0; \
+			for( z = 0; z < ps; z++ ) \
+				q[z] = mapim->ink[z]; \
 		} \
 		else \
 			interpolate( mapim->interpolate, q, ir[0], \
-				px + window_offset, py + window_offset ); \
+				px + window_offset + 1, \
+				py + window_offset + 1 ); \
 		\
 		p1 += 2; \
 		q += ps; \
@@ -377,6 +397,11 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	bounds.width += window_size - 1;
 	bounds.height += window_size - 1;
 
+	/* Offset by 1 for the antialiasing border,
+	 */
+	bounds.left += 1;
+	bounds.top += 1;
+
 	/* Clip against the expanded image.
 	 */
 	image.left = 0;
@@ -395,7 +420,7 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 #endif /*DEBUG_VERBOSE*/
 
 	if( vips_rect_isempty( &clipped ) ) {
-		vips_region_black( or );
+		vips_region_paint_pel( or, r, mapim->ink );
 		return( 0 );
 	}
 	if( vips_region_prepare( ir[0], &clipped ) )
@@ -450,11 +475,16 @@ vips_mapim_build( VipsObject *object )
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( object );
 	VipsResample *resample = VIPS_RESAMPLE( object );
 	VipsMapim *mapim = (VipsMapim *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array( object, 4 );
+	VipsImage **t = (VipsImage **) vips_object_local_array( object, 6 );
 
 	VipsImage *in;
 	int window_size;
 	int window_offset;
+
+	/* TRUE if we've premultiplied and need to unpremultiply.
+	 */
+	gboolean have_premultiplied;
+	VipsBandFormat unpremultiplied_format;
 
 	if( VIPS_OBJECT_CLASS( vips_mapim_parent_class )->build( object ) )
 		return( -1 );
@@ -474,28 +504,75 @@ vips_mapim_build( VipsObject *object )
 		vips_interpolate_get_window_offset( mapim->interpolate );
 
 	/* Add new pixels around the input so we can interpolate at the edges.
+	 *
+	 * We add the interpolate stencil, plus one extra pixel on all the
+	 * edges. This means when we clip in generate (above) we can be sure 
+	 * we clip outside the real pixels and don't get jaggies on edges.
+	 *
+	 * We allow for the +1 in the adjustment to window_offset in generate.
 	 */
 	if( vips_embed( in, &t[1], 
-		window_offset, window_offset, 
-		in->Xsize + window_size - 1, in->Ysize + window_size - 1,
-		"extend", VIPS_EXTEND_COPY,
+		window_offset + 1, window_offset + 1, 
+		in->Xsize + window_size - 1 + 2, 
+		in->Ysize + window_size - 1 + 2,
+		"extend", mapim->extend,
+		"background", mapim->background,
 		NULL ) )
 		return( -1 );
 	in = t[1];
 
-	if( vips_image_pipelinev( resample->out, VIPS_DEMAND_STYLE_SMALLTILE, 
+	/* If there's an alpha and we've not premultiplied, we have to 
+	 * premultiply before resampling. 
+	 */
+	have_premultiplied = FALSE;
+	if( vips_image_hasalpha( in ) &&
+		!mapim->premultiplied ) { 
+		if( vips_premultiply( in, &t[2], NULL ) ) 
+			return( -1 );
+		have_premultiplied = TRUE;
+
+		/* vips_premultiply() makes a float image. When we
+		 * vips_unpremultiply() below, we need to cast back to the
+		 * pre-premultiply format.
+		 */
+		unpremultiplied_format = in->BandFmt;
+		in = t[2];
+	}
+
+	/* Convert the background to the image's format.
+	 */
+	if( !(mapim->ink = vips__vector_to_ink( class->nickname, 
+		in,
+		VIPS_AREA( mapim->background )->data, NULL, 
+		VIPS_AREA( mapim->background )->n )) )
+		return( -1 );
+
+	t[3] = vips_image_new();
+	if( vips_image_pipelinev( t[3], VIPS_DEMAND_STYLE_SMALLTILE, 
 		in, NULL ) )
 		return( -1 );
 
-	resample->out->Xsize = mapim->index->Xsize;
-	resample->out->Ysize = mapim->index->Ysize;
+	t[3]->Xsize = mapim->index->Xsize;
+	t[3]->Ysize = mapim->index->Ysize;
 
 	mapim->in_array[0] = in;
 	mapim->in_array[1] = mapim->index;
 	mapim->in_array[2] = NULL;
-	if( vips_image_generate( resample->out, 
+	if( vips_image_generate( t[3], 
 		vips_start_many, vips_mapim_gen, vips_stop_many, 
 		mapim->in_array, mapim ) )
+		return( -1 );
+
+	in = t[3];
+
+	if( have_premultiplied ) {
+		if( vips_unpremultiply( in, &t[4], NULL ) || 
+			vips_cast( t[4], &t[5], unpremultiplied_format, NULL ) )
+			return( -1 );
+		in = t[5];
+	}
+
+	if( vips_image_write( in, resample->out ) )
 		return( -1 );
 
 	return( 0 );
@@ -528,12 +605,35 @@ vips_mapim_class_init( VipsMapimClass *class )
 		VIPS_ARGUMENT_OPTIONAL_INPUT, 
 		G_STRUCT_OFFSET( VipsMapim, interpolate ) );
 
+	VIPS_ARG_ENUM( class, "extend", 117, 
+		_( "Extend" ), 
+		_( "How to generate the extra pixels" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsMapim, extend ),
+		VIPS_TYPE_EXTEND, VIPS_EXTEND_BACKGROUND );
+
+	VIPS_ARG_BOXED( class, "background", 116, 
+		_( "Background" ), 
+		_( "Background value" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsMapim, background ),
+		VIPS_TYPE_ARRAY_DOUBLE );
+
+	VIPS_ARG_BOOL( class, "premultiplied", 117,
+		_( "Premultiplied" ),
+		_( "Images have premultiplied alpha" ),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET( VipsMapim, premultiplied ),
+		FALSE );
+
 }
 
 static void
 vips_mapim_init( VipsMapim *mapim )
 {
 	mapim->interpolate = vips_interpolate_new( "bilinear" );
+	mapim->extend = VIPS_EXTEND_BACKGROUND;
+	mapim->background = vips_array_double_newv( 1, 0.0 );
 }
 
 /**
