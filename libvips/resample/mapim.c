@@ -278,8 +278,8 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 	TYPE * restrict p1 = (TYPE *) p; \
 	\
 	for( x = 0; x < r->width; x++ ) { \
-		TYPE px = p1[0] + 1; \
-		TYPE py = p1[1] + 1; \
+		TYPE px = p1[0]; \
+		TYPE py = p1[1]; \
 		\
 		if( px >= clip_width || \
 			py >= clip_height ) { \
@@ -301,8 +301,8 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 	TYPE * restrict p1 = (TYPE *) p; \
 	\
 	for( x = 0; x < r->width; x++ ) { \
-		TYPE px = p1[0] + 1; \
-		TYPE py = p1[1] + 1; \
+		TYPE px = p1[0]; \
+		TYPE py = p1[1]; \
 		\
 		if( px < 0 || \
 			px >= clip_width || \
@@ -326,8 +326,8 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 	TYPE * restrict p1 = (TYPE *) p; \
 	\
 	for( x = 0; x < r->width; x++ ) { \
-		TYPE px = p1[0]; \
-		TYPE py = p1[1]; \
+		TYPE px = p1[0] + 1; \
+		TYPE py = p1[1] + 1; \
 		\
 		if( VIPS_ISNAN( px ) || \
 			VIPS_ISNAN( py ) || \
@@ -340,8 +340,8 @@ vips_mapim_region_minmax( VipsRegion *region, VipsRect *r, VipsRect *bounds )
 		} \
 		else \
 			interpolate( mapim->interpolate, q, ir[0], \
-				px + window_offset + 1, \
-				py + window_offset + 1 ); \
+				px + window_offset, \
+				py + window_offset ); \
 		\
 		p1 += 2; \
 		q += ps; \
@@ -355,7 +355,6 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	VipsRegion **ir = (VipsRegion **) seq;
 	const VipsImage **in_array = (const VipsImage **) a;
 	const VipsMapim *mapim = (VipsMapim *) b; 
-	const VipsResample *resample = VIPS_RESAMPLE( mapim );
 	const VipsImage *in = in_array[0];
 	const int window_size = 
 		vips_interpolate_get_window_size( mapim->interpolate );
@@ -364,8 +363,8 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 	const VipsInterpolateMethod interpolate = 
 		vips_interpolate_get_method( mapim->interpolate );
 	const int ps = VIPS_IMAGE_SIZEOF_PEL( in );
-	const int clip_width = resample->in->Xsize;
-	const int clip_height = resample->in->Ysize;
+	const int clip_width = in->Xsize - window_size;
+	const int clip_height = in->Ysize - window_size;
 
 	VipsRect bounds, image, clipped;
 	int x, y, z;
@@ -428,7 +427,7 @@ vips_mapim_gen( VipsRegion *or, void *seq, void *a, void *b, gboolean *stop )
 
 	VIPS_GATE_START( "vips_mapim_gen: work" ); 
 
-	/* Resample! x/y loop over pixels in the output image (5).
+	/* Resample! x/y loop over pixels in the output (and index) images.
 	 */
 	for( y = 0; y < r->height; y++ ) {
 		VipsPel * restrict p = 
@@ -632,7 +631,7 @@ static void
 vips_mapim_init( VipsMapim *mapim )
 {
 	mapim->interpolate = vips_interpolate_new( "bilinear" );
-	mapim->extend = VIPS_EXTEND_BACKGROUND;
+	mapim->extend = VIPS_EXTEND_BLACK;
 	mapim->background = vips_array_double_newv( 1, 0.0 );
 }
 
