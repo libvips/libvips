@@ -10,6 +10,7 @@
 - change default frame delay for GIFs from 1s to 0.1s
 - remove stray trailing comma from iiif3 dirnames [whalehub]
 - fix TTF load [chregu]
+- revise GIF save alpha threshold [jfcalvo]
 
 21/11/21 started 8.12.1
 - fix insert [chregu]
