@@ -51,7 +51,7 @@ site.github.releases_url }}), then:
 	./configure
 
 Check the summary at the end of `configure` carefully.  libvips must have
-`build-essential`, `pkg-config`, `glib2.0-dev`, `libexpat1-dev`.
+`build-essential`, `pkg-config`, `libglib2.0-dev`, `libexpat1-dev`.
 
 You'll need the dev packages for the file format support you want. For basic
 jpeg and tiff support, you'll need `libtiff5-dev`, `libjpeg-turbo8-dev`,
@@ -91,7 +91,7 @@ And perhaps also:
 
 ## Dependencies 
 
-libvips has to have `glib2.0-dev` and `expat`. Other dependencies are
+libvips has to have `libglib2.0-dev` and `expat`. Other dependencies are
 optional, see below.
 
 ## Optional dependencies
