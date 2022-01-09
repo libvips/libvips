@@ -390,8 +390,8 @@ vips_foreign_save_heif_build( VipsObject *object )
 	}
 
 	chroma = heif->subsample_mode == VIPS_FOREIGN_SUBSAMPLE_OFF ||
-		( heif->subsample_mode == VIPS_FOREIGN_SUBSAMPLE_AUTO &&
-			heif->Q >= 90 ) ? "444" : "420";
+		(heif->subsample_mode == VIPS_FOREIGN_SUBSAMPLE_AUTO &&
+			heif->Q >= 90) ? "444" : "420";
 	error = heif_encoder_set_parameter_string( heif->encoder,
 		"chroma", chroma );
 	if( error.code &&
