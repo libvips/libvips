@@ -11,6 +11,7 @@
 - remove stray trailing comma from iiif3 dirnames [whalehub]
 - fix TTF load [chregu]
 - revise GIF save alpha threshold [jfcalvo]
+- raise libpng pixel size limit from 1m to 10m pixels [jskrzypek]
 
 21/11/21 started 8.12.1
 - fix insert [chregu]

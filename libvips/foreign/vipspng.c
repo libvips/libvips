@@ -83,6 +83,8 @@
  * 	- read out background, if we can
  * 29/8/21 joshuamsager
  *	-  add "unlimited" flag to png load
+ * 13/1/22
+ * 	- raise libpng pixel size limit to VIPS_MAX_COORD 
  */
 
 /*
@@ -304,6 +306,10 @@ read_new( VipsSource *source, VipsImage *out,
 	png_set_crc_action( read->pPng,
 		PNG_CRC_QUIET_USE, PNG_CRC_QUIET_USE );
 #endif /*FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION*/
+
+	/* libpng has a default soft limit of 1m pixels per axis.
+	 */
+	png_set_user_limits( read->pPng, VIPS_MAX_COORD, VIPS_MAX_COORD );
 
 	if( vips_source_rewind( source ) ) 
 		return( NULL );
@@ -1041,7 +1047,8 @@ write_vips( Write *write,
 		if( vips_image_pio_input( in ) )
 			return( -1 );
 	}
-	if( compress < 0 || compress > 9 ) {
+	if( compress < 0 || 
+		compress > 9 ) {
 		vips_error( "vips2png", 
 			"%s", _( "compress should be in [0,9]" ) );
 		return( -1 );
@@ -1079,6 +1086,10 @@ write_vips( Write *write,
 #endif /*HAVE_QUANTIZATION*/
 
 	interlace_type = interlace ? PNG_INTERLACE_ADAM7 : PNG_INTERLACE_NONE;
+
+	/* libpng has a default soft limit of 1m pixels per axis.
+	 */
+	png_set_user_limits( write->pPng, VIPS_MAX_COORD, VIPS_MAX_COORD );
 
 	png_set_IHDR( write->pPng, write->pInfo, 
 		in->Xsize, in->Ysize, bitdepth, color_type, interlace_type, 
