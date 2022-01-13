@@ -458,7 +458,7 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 		break;
 
 	case 4: 
-		ihdr.color_type = SPNG_COLOR_TYPE_GRAYSCALE_ALPHA; 
+		ihdr.color_type = SPNG_COLOR_TYPE_TRUECOLOR_ALPHA; 
 		break;
 
 	default:
