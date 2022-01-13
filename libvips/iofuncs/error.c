@@ -987,7 +987,8 @@ vips_check_uintorf( const char *domain, VipsImage *im )
 int
 vips_check_size_same( const char *domain, VipsImage *im1, VipsImage *im2 )
 {
-	if( im1->Xsize != im2->Xsize || im1->Ysize != im2->Ysize ) {
+	if( im1->Xsize != im2->Xsize || 
+		im1->Ysize != im2->Ysize ) {
 		vips_error( domain, "%s", _( "images must match in size" ) );
 		return( -1 );
 	}
@@ -1157,7 +1158,8 @@ vips_check_vector_length( const char *domain, int n, int len )
  * @im: image to check against
  *
  * Operations with a vector constant need a 1-element vector, or a vector with
- * the same number of elements as there are bands in the image.
+ * the same number of elements as there are bands in the image, or a 1-band
+ * image and a many-element vector.
  *
  * See also: vips_error().
  *
@@ -1166,13 +1168,25 @@ vips_check_vector_length( const char *domain, int n, int len )
 int
 vips_check_vector( const char *domain, int n, VipsImage *im )
 {
-	if( n != 1 && im->Bands != 1 && n != im->Bands ) {
-		vips_error( domain, 
-			_( "vector must have 1 or %d elements" ), im->Bands );
-		return( -1 );
-	}
+	/* Here it's clearer to list the cases that are OK.
+	 */
+	if( n == im->Bands )
+		return( 0 );
+	if( n == 1 )
+		return( 0 );
+	if( im->Bands == 1 &&
+		n > 1 )
+		return( 0 );
 
-	return( 0 );
+	if( im->Bands == 1 )
+		vips_error( domain, 
+			"%s", _( "vector must have 1 element" ) );
+	else
+		vips_error( domain, 
+			_( "vector must have 1 or %d elements" ), 
+			im->Bands );
+
+	return( -1 );
 }
 
 /**
@@ -1191,7 +1205,8 @@ vips_check_vector( const char *domain, int n, VipsImage *im )
 int
 vips_check_hist( const char *domain, VipsImage *im )
 {
-	if( im->Xsize != 1 && im->Ysize != 1 ) {
+	if( im->Xsize != 1 && 
+		im->Ysize != 1 ) {
 		vips_error( domain, "%s", 
 			_( "histograms must have width or height 1" ) );
 		return( -1 );

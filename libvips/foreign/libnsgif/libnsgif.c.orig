@@ -1014,7 +1014,7 @@ static struct gif_frame *gif__get_frame(
 		frame->frame_pointer = gif->buffer_position;
 		frame->redraw_required = false;
 		frame->disposal_method = 0;
-		frame->frame_delay = 10;
+		frame->frame_delay = 100;
 		frame->display = false;
 		frame->virgin = true;
 	}

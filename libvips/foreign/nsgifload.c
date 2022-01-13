@@ -270,7 +270,6 @@ print_animation( gif_animation *anim )
 	printf( "  frame_image = %p\n", anim->frame_image );
 	printf( "  loop_count = %d\n", anim->loop_count );
 	printf( "  frame_holders = %d\n", anim->frame_holders );
-	printf( "  background_index = %d\n", anim->background_index );
 	printf( "  colour_table_size = %d\n", anim->colour_table_size );
 	printf( "  global_colours = %d\n", anim->global_colours );
 	printf( "  global_colour_table = %p\n", anim->global_colour_table );
@@ -574,13 +573,12 @@ vips_foreign_load_nsgif_class_init( VipsForeignLoadNsgifClass *class )
 static void *
 vips_foreign_load_nsgif_bitmap_create( int width, int height )
 {
-	/* Enforce max GIF dimensions of 16383 (0x7FFF). This should be enough
-	 * for anyone, and will prevent the worst GIF bombs.
+	/* GIF has a limit of 64k per axis -- double-check this.
 	 */
 	if( width <= 0 ||
-		width > 16383 ||
+		width > 65536 ||
 		height <= 0 ||
-		height > 16383 ) {
+		height > 65536 ) {
 		vips_error( "gifload",
 			"%s", _( "bad image dimensions") );
 		return( NULL );

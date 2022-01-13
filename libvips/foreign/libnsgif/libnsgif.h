@@ -37,12 +37,12 @@ typedef struct gif_frame {
 	/** whether the frame should be displayed/animated */
 	bool display;
 	/** delay (in cs) before animating the frame */
-	unsigned int frame_delay;
+	uint32_t frame_delay;
 
 	/* Internal members are listed below */
 
 	/** offset (in bytes) to the GIF frame data */
-	unsigned int frame_pointer;
+	uint32_t frame_pointer;
 	/** whether the frame has previously been used */
 	bool virgin;
 	/** whether the frame is totally opaque */
@@ -50,27 +50,27 @@ typedef struct gif_frame {
 	/** whether a full image redraw is required */
 	bool redraw_required;
 	/** how the previous frame should be disposed; affects plotting */
-	unsigned char disposal_method;
+	uint8_t disposal_method;
 	/** whether we acknowledge transparency */
 	bool transparency;
 	/** the index designating a transparent pixel */
-	unsigned int transparency_index;
+	uint32_t transparency_index;
 	/** x co-ordinate of redraw rectangle */
-	unsigned int redraw_x;
+	uint32_t redraw_x;
 	/** y co-ordinate of redraw rectangle */
-	unsigned int redraw_y;
+	uint32_t redraw_y;
 	/** width of redraw rectangle */
-	unsigned int redraw_width;
+	uint32_t redraw_width;
 	/** height of redraw rectangle */
-	unsigned int redraw_height;
+	uint32_t redraw_height;
 	/* Frame flags */
-	unsigned int flags;
+	uint32_t flags;
 } gif_frame;
 
 /* API for Bitmap callbacks */
 typedef void* (*gif_bitmap_cb_create)(int width, int height);
 typedef void (*gif_bitmap_cb_destroy)(void *bitmap);
-typedef unsigned char* (*gif_bitmap_cb_get_buffer)(void *bitmap);
+typedef uint8_t* (*gif_bitmap_cb_get_buffer)(void *bitmap);
 typedef void (*gif_bitmap_cb_set_opaque)(void *bitmap, bool opaque);
 typedef bool (*gif_bitmap_cb_test_opaque)(void *bitmap);
 typedef void (*gif_bitmap_cb_modified)(void *bitmap);
@@ -103,13 +103,13 @@ typedef struct gif_animation {
 	/** pointer to GIF data */
 	const uint8_t *gif_data;
 	/** width of GIF (may increase during decoding) */
-	unsigned int width;
+	uint32_t width;
 	/** height of GIF (may increase during decoding) */
-	unsigned int height;
+	uint32_t height;
 	/** number of frames decoded */
-	unsigned int frame_count;
+	uint32_t frame_count;
 	/** number of frames partially decoded */
-	unsigned int frame_count_partial;
+	uint32_t frame_count_partial;
 	/** decoded frames */
 	gif_frame *frames;
 	/** current frame decoded to bitmap */
@@ -122,27 +122,27 @@ typedef struct gif_animation {
 	/* Internal members are listed below */
 
 	/** current index into GIF data */
-	unsigned int buffer_position;
+	uint32_t buffer_position;
 	/** total number of bytes of GIF data available */
-	unsigned int buffer_size;
+	uint32_t buffer_size;
 	/** current number of frame holders */
-	unsigned int frame_holders;
+	uint32_t frame_holders;
 	/** background index */
-	unsigned int bg_index;
+	uint32_t bg_index;
 	/** background colour */
-	unsigned int bg_colour;
+	uint32_t bg_colour;
 	/** image aspect ratio (ignored) */
-	unsigned int aspect_ratio;
+	uint32_t aspect_ratio;
 	/** size of colour table (in entries) */
-	unsigned int colour_table_size;
+	uint32_t colour_table_size;
 	/** whether the GIF has a global colour table */
 	bool global_colours;
 	/** global colour table */
-	unsigned int *global_colour_table;
+	uint32_t *global_colour_table;
 	/** local colour table */
-	unsigned int *local_colour_table;
+	uint32_t *local_colour_table;
 	/** current colour table */
-	unsigned int *colour_table;
+	uint32_t *colour_table;
 
 	/** previous frame for GIF_FRAME_RESTORE */
 	void *prev_frame;
@@ -184,7 +184,7 @@ gif_result gif_initialise(gif_animation *gif, size_t size, const uint8_t *data);
  *         - GIF_INSUFFICIENT_MEMORY for insufficient memory to process
  *         - GIF_OK for successful decoding
  */
-gif_result gif_decode_frame(gif_animation *gif, unsigned int frame);
+gif_result gif_decode_frame(gif_animation *gif, uint32_t frame);
 
 /**
  * Releases any workspace held by a gif

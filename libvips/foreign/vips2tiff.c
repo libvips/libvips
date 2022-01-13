@@ -977,12 +977,13 @@ wtiff_delete_temps( Wtiff *wtiff )
 			if( layer->lname ) {
 #ifndef DEBUG
 				unlink( layer->lname );
-				VIPS_FREE( layer->buf );
-#else
-				printf( "wtiff_delete_temps: leaving %s\n", 
+#else /*!DEBUG*/
+				printf( "wtiff_delete_temps: "
+					"debug mode, not deleting %s\n", 
 					layer->lname );
 #endif /*DEBUG*/
 
+				VIPS_FREE( layer->buf );
 				layer->lname = NULL;
 			}
 }
@@ -2097,6 +2098,10 @@ wtiff_gather( Wtiff *wtiff )
 {
 	Layer *layer;
 
+#ifdef DEBUG
+	printf( "wtiff_gather:\n" );
+#endif /*DEBUG*/
+
 	if( wtiff->layer &&
 		wtiff->layer->below )
 		for( layer = wtiff->layer->below; layer; 
@@ -2235,10 +2240,10 @@ wtiff_sink_disc_strip( VipsRegion *region, VipsRect *area, void *a )
 
 	VipsRect pixels;
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf( "wtiff_sink_disc_strip: top %d, height %d\n", 
 	     	area->top, area->height ); 
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	g_assert( area->width == wtiff->ready->Xsize );
 

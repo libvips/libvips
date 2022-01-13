@@ -1,0 +1,11 @@
+--- libnsgif.orig.c	2021-12-18 17:58:43.829719505 +0000
++++ libnsgif.c	2021-12-18 17:58:47.773783438 +0000
+@@ -1003,7 +1003,7 @@
+ 		frame->frame_pointer = gif->buffer_position;
+ 		frame->redraw_required = false;
+ 		frame->disposal_method = 0;
+-		frame->frame_delay = 100;
++		frame->frame_delay = 10;
+ 		frame->display = false;
+ 		frame->virgin = true;
+ 	}
