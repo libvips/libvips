@@ -623,13 +623,6 @@ vips_foreign_save_spng_build( VipsObject *object )
 		in = x;
 	}
 
-	/* Filtering usually reduces the compression ratio for palette images,
-	 * so default off.
-	 */
-        if( !vips_object_argument_isset( object, "filter" ) &&
-		spng->palette )
-		spng->filter = VIPS_FOREIGN_PNG_FILTER_NONE;
-
 	/* If this is a RGB or RGBA image and a low bit depth has been
 	 * requested, enable palettization.
 	 */
