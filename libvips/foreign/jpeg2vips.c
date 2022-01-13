@@ -243,12 +243,20 @@ source_fill_input_buffer( j_decompress_ptr cinfo )
 
 	Source *src = (Source *) cinfo->src;
 
+	unsigned char *q;
+	size_t avail;
 	size_t read;
-	
-	if( (read = vips_source_read( src->source, 
-		src->buf, SOURCE_BUFFER_SIZE )) > 0 ) {
+
+	q = src->buf;
+	avail = SOURCE_BUFFER_SIZE;
+	while( (read = vips_source_read( src->source, q, avail )) > 0 ) {
+		q += read;
+		avail -= read;
+	}
+
+	if( avail < SOURCE_BUFFER_SIZE ) {
 		src->pub.next_input_byte = src->buf;
-		src->pub.bytes_in_buffer = read;
+		src->pub.bytes_in_buffer = q - src->buf;
 	}
 	else {
 		if( src->jpeg->fail_on >= VIPS_FAIL_ON_TRUNCATED )
