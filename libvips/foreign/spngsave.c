@@ -484,8 +484,8 @@ vips_foreign_save_spng_write( VipsForeignSaveSpng *spng, VipsImage *in )
 	/* Set resolution. libpng uses pixels per meter.
 	 */
 	phys.unit_specifier = 1;
-	phys.ppu_x = in->Xres * 1000.0;
-	phys.ppu_y = in->Xres * 1000.0;
+	phys.ppu_x = VIPS_RINT( in->Xres * 1000.0 );
+	phys.ppu_y = VIPS_RINT( in->Xres * 1000.0 );
 	spng_set_phys( spng->ctx, &phys );
 
 	/* Metadata.
