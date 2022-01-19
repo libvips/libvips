@@ -100,6 +100,10 @@ typedef struct _VipsForeignSaveCgif {
 	 */
 	VipsPel *index;
 
+	/* frame_bytes before (needed for transparency trick).
+	*/
+	VipsPel *frame_bytes_bef;
+
 	/* The frame as written by libcgif.
 	 */
 	CGIF *cgif_context;
@@ -138,6 +142,7 @@ vips_foreign_save_cgif_dispose( GObject *gobject )
 
 	VIPS_FREE( cgif->palette_rgb );
 	VIPS_FREE( cgif->index );
+	VIPS_FREE( cgif->frame_bytes_bef)
 
 	VIPS_FREEF( cgif_close, cgif->cgif_context );
 
@@ -165,6 +170,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 */
 	int n_pels = frame_rect->height * frame_rect->width;
 	guint max_sum = 256 * n_pels * 4;
+	VipsPel *frame_bytes_cur;
 	VipsPel *frame_bytes = 
 		VIPS_REGION_ADDR( cgif->frame, 0, frame_rect->top );
 
@@ -193,6 +199,12 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 		p[3] = p[3] >= 128 ? 255 : 0;
 		p += 4;
 	}
+
+	/* Keep last frame_bytes in memory for transparency trick
+	*  which avoids the size explosion (#2576).
+	*/
+	frame_bytes_cur = g_malloc0(4 * frame_rect->width * frame_rect->height);
+	memcpy(frame_bytes_cur, frame_bytes, 4 * frame_rect->width * frame_rect->height);
 
 	/* Do we need to compute a new palette? Do it if the frame sum
 	 * changes.
@@ -303,6 +315,20 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	frame_config.genFlags = 
 		CGIF_FRAME_GEN_USE_TRANSPARENCY | 
 		CGIF_FRAME_GEN_USE_DIFF_WINDOW;
+	frame_config.attrFlags = 0;
+
+	/* Do the transparency trick (only possible when no alpha channel present)
+	*/
+	if( !cgif->has_transparency && cgif->frame_bytes_bef ) {
+		const uint8_t transIndex = cgif->lp->count;
+		for(uint32_t i = 0; i < frame_rect->width * frame_rect->height; i++) {
+			if(memcmp(frame_bytes + 4 * i, cgif->frame_bytes_bef + 4 * i, 3) == 0) {
+				cgif->index[i] = transIndex;
+			}
+		}
+		frame_config.attrFlags |= CGIF_FRAME_ATTR_HAS_SET_TRANS;
+		frame_config.transIndex = transIndex;
+	}
 
 	if( cgif->delay &&
 		page_index < cgif->delay_length )
@@ -312,12 +338,14 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	/* Attach a local palette, if we need one.
 	 */
 	if( cgif->cgif_config.attrFlags & CGIF_ATTR_NO_GLOBAL_TABLE ) {
-		frame_config.attrFlags = CGIF_FRAME_ATTR_USE_LOCAL_TABLE;
+		frame_config.attrFlags |= CGIF_FRAME_ATTR_USE_LOCAL_TABLE;
 		frame_config.pLocalPalette = cgif->palette_rgb;
 		frame_config.numLocalPaletteEntries = cgif->lp->count;
 	}
 
 	cgif_addframe( cgif->cgif_context, &frame_config );
+	VIPS_FREE( cgif->frame_bytes_bef)
+	cgif->frame_bytes_bef = frame_bytes_cur;
 
 	return( 0 );
 }
