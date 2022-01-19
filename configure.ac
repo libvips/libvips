@@ -1493,8 +1493,8 @@ AC_ARG_WITH([cgif],
   AS_HELP_STRING([--without-cgif], [build without cgif (default: test)]))
 
 if test x"$quantisation_package" != x"" && test x"$with_cgif" != x"no"; then
-  PKG_CHECK_MODULES(CGIF, cgif,
-    [AC_DEFINE(HAVE_CGIF,1,[define if you have cgif installed.])
+  PKG_CHECK_MODULES(CGIF, cgif >= 0.2.0,
+    [AC_DEFINE(HAVE_CGIF,1,[define if you have cgif >= 0.2.0 installed.])
       with_cgif=yes
       PACKAGES_USED="$PACKAGES_USED cgif"
     ],
