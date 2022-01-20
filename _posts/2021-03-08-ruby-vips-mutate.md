@@ -23,8 +23,8 @@ centre at (50, 50) and radius 10 filled with pixels of value 255, and returns
 this new image as `y`.
 
 Purely functional operations have the huge advantage of allowing safe
-sharing: if another part of your program is using image referred to by
-`x`, it won't see a circle unexpectedly appear on its image. 
+sharing: if another part of your program is using the image referred to by
+`x`, it won't see a circle unexpectedly appear on its image.
 
 All this copying and duplication is fine for small images, but can become
 very slow for large ones. And what if you want to draw a series of circles? It
@@ -75,8 +75,12 @@ x.write_to_file "x.jpg"
 
 It works in simple cases, but actually this is not correct. The `x.set`
 is modifying image `x` (though only modifying the image metadata rather
-than any pixels) and in a large program, `x` could be shared. To be safe,
-you need to make a private copy of the image before you change it, like this:
+than any pixels) and in a large program, `x` could be shared. 
+In some large programs, you can get bizarre behaviour and even races
+and crashes.
+
+To be safe, you need to make a private copy of the image before you change
+it, like this:
 
 ```ruby
 x = Vips::Image.new_from_file "k2.jpg"
@@ -86,8 +90,7 @@ x.write_to_file "x.jpg"
 ```
 
 This is annoying, and worse than that, ruby-vips does not enforce this
-rule. In some large programs, you can get bizarre behaviour and even races
-and crashes.
+rule. 
 
 # The `mutate` block
 
