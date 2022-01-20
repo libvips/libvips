@@ -24,9 +24,11 @@ this new image as `y`.
 
 Purely functional operations have the huge advantage of allowing safe
 sharing: if another part of your program is using image referred to by
-`x`, it won't see a circle unexpectedly appear on its image. This is fine
-for small images, but can become very slow for large ones. And what if you
-want to draw a series of circles? It becomes very painful indeed. For example:
+`x`, it won't see a circle unexpectedly appear on its image. 
+
+All this copying and duplication is fine for small images, but can become
+very slow for large ones. And what if you want to draw a series of circles? It
+can become very painful indeed. For example:
 
 ```ruby
 #!/usr/bin/ruby
@@ -92,6 +94,7 @@ and crashes.
 ruby-vips 2.1 has a new feature that
 tries to fix both these problems: [the `mutate`
 method](https://www.rubydoc.info/gems/ruby-vips/2.1.0/Vips/Image#mutate-instance_method).
+
 You use it like this:
 
 ```ruby
@@ -126,7 +129,7 @@ new `Image` object. Because it manages the transition to `MutableImage` and
 back, ruby-vips can enforce all the obvious rules to guarantee run-time
 safety.
 
-Performance is much better. I see:
+Because there's only one allocate and copy, performance is much better. I see:
 
 ```
 $ /usr/bin/time -f %M:%e ./circles-mutate.rb ~/pics/nina.jpg x.jpg
