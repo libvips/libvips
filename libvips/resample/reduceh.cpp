@@ -633,7 +633,7 @@ vips_reduceh_build(VipsObject *object)
 		generate = vips_reduceh_gen;
 
 	if (vips_image_pipelinev(resample->out,
-			VIPS_DEMAND_STYLE_THINSTRIP, in, (void *) NULL))
+			VIPS_DEMAND_STYLE_FATSTRIP, in, (void *) NULL))
 		return -1;
 
 	/* Don't change xres/yres, leave that to the application layer. For

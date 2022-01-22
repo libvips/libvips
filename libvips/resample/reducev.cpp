@@ -1041,7 +1041,7 @@ vips_reducev_build(VipsObject *object)
 
 	t[3] = vips_image_new();
 	if (vips_image_pipelinev(t[3],
-			VIPS_DEMAND_STYLE_THINSTRIP, in, (void *) NULL))
+			VIPS_DEMAND_STYLE_FATSTRIP, in, (void *) NULL))
 		return -1;
 
 	/* Size output. We need to always round to nearest, so round(), not
