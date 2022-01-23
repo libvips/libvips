@@ -664,13 +664,18 @@ vips_source_decode( VipsSource *source )
 
 	if( !source->decode ) {
 		source->decode = TRUE;
+
 		VIPS_FREEF( g_byte_array_unref, source->sniff ); 
 
 		/* If this is still a pipe source, we can discard the header 
 		 * bytes we saved.
 		 */
-		if( source->is_pipe ) 
+		if( source->is_pipe ) {
+			printf( "vips_source_decode: "
+				"discarding %d bytes of header\n", 
+				source->header_bytes->len );
 			VIPS_FREEF( g_byte_array_unref, source->header_bytes ); 
+		}
 	}
 
 	vips_source_minimise( source );
@@ -1114,6 +1119,9 @@ vips_source_seek( VipsSource *source, gint64 offset, int whence )
 
 	VIPS_DEBUG_MSG( "vips_source_seek: offset = %" G_GINT64_FORMAT 
 		", whence = %d\n", offset, whence );
+
+	if( offset == 0 && whence == SEEK_SET )
+		printf( "vips_source_seek: rewind\n" );
 
 	if( vips_source_unminimise( source ) ||
 		vips_source_test_features( source ) )
