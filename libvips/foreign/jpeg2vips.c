@@ -861,30 +861,6 @@ read_jpeg_image( ReadJpeg *jpeg, VipsImage *out )
 	if( read_jpeg_header( jpeg, t[0] ) )
 		return( -1 );
 
-	{
-		Source *src = (Source *) jpeg->cinfo.src;
-
-		gint64 bytes_in_buffer = src->pub.bytes_in_buffer;
-		gint64 read_position = 
-			vips_source_seek( jpeg->source, 0, SEEK_CUR );
-		gint64 header_length = read_position - bytes_in_buffer;
-
-
-		printf( "read_jpeg_image:\n" );
-		printf( "  %ld bytes still in JPEG read buffer\n",
-			bytes_in_buffer );
-
-		printf( "  source read position = %ld\n",
-			read_position );
-
-		printf( "  JPEG header length = %ld\n",
-			header_length );
-
-		printf( "  next byte to read will be %d\n", 
-			*src->pub.next_input_byte );
-
-	}
-
 	/* Switch to pixel decode.
 	 */
 	if( vips_source_decode( jpeg->source ) )
