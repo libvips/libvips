@@ -14,6 +14,7 @@
 - revise GIF save alpha threshold [jfcalvo]
 - raise libpng pixel size limit from 1m to 10m pixels [jskrzypek]
 - fix gif save change detector [TheEssem] 
+- fix load from pipe with variable size reads
 
 21/11/21 started 8.12.1
 - fix insert [chregu]
