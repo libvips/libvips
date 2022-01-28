@@ -3,6 +3,9 @@
 - add support for another quantiser [DarthSim]
 - jpeg2000 load left-justifies bitdepth
 
+26/11/21 started 8.12.3
+- better arg checking for hist_find_ndim [travisbell]
+
 26/11/21 started 8.12.2
 - make exif resuint optional and default to inch
 - win: don't set create time on inappropriate file descriptors [lovell]
