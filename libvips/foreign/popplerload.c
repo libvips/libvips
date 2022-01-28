@@ -20,6 +20,8 @@
  * 	- allow dpi and scale to both be set [le0daniel]
  * 21/4/21 kleisauke
  * 	- include GObject part from pdfload.c
+ * 28/1/22
+ * 	- add password
  */
 
 /*

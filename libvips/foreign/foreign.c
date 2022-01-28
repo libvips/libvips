@@ -2583,6 +2583,7 @@ vips_jxlsave_target( VipsImage *in, VipsTarget *target, ... )
  * * @dpi: %gdouble, render at this DPI
  * * @scale: %gdouble, scale render by this factor
  * * @background: #VipsArrayDouble background colour
+ * * @password: %gchararray background colour
  *
  * Render a PDF file into a VIPS image. 
  *
@@ -2602,6 +2603,8 @@ vips_jxlsave_target( VipsImage *in, VipsTarget *target, ... )
  *
  * Use @background to set the background RGBA colour. The default is 255 
  * (solid white), use eg. 0 for a transparent background.
+ *
+ * Use @password to supply a decryption password.
  *
  * The operation fills a number of header fields with metadata, for example
  * "pdf-author". They may be useful. 
