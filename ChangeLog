@@ -2,6 +2,7 @@
 - configure fails for requested but unmet dependencies [remicollet]
 - add support for another quantiser [DarthSim]
 - jpeg2000 load left-justifies bitdepth
+- add "password" option to pdfload
 
 26/11/21 started 8.12.3
 - better arg checking for hist_find_ndim [travisbell]
