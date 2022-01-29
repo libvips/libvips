@@ -1310,9 +1310,11 @@ if test x"$with_libspng" != x"no"; then
   # it's sometimes called libspng.pc, sometimes spng.pc, we have to search for both
   PKG_CHECK_MODULES(SPNG, spng >= 0.7,
    [with_libspng=yes
+    PACKAGES_USED="$PACKAGES_USED spng"
    ],
    [PKG_CHECK_MODULES(SPNG, libspng >= 0.7,
      [with_libspng=yes
+      PACKAGES_USED="$PACKAGES_USED libspng"
      ],
      [with_libspng=no
      ]
@@ -1322,7 +1324,6 @@ fi
 
 if test x"$with_libspng" == x"yes"; then
   AC_DEFINE(HAVE_SPNG,1,[define if you have libspng installed.])
-  PACKAGES_USED="$PACKAGES_USED spng"
   VIPS_CFLAGS="$VIPS_CFLAGS $SPNG_CFLAGS"
   VIPS_LIBS="$VIPS_LIBS $SPNG_LIBS"
 fi
