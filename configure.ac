@@ -1301,24 +1301,31 @@ VIPS_CFLAGS="$VIPS_CFLAGS $TIFF_CFLAGS"
 VIPS_INCLUDES="$VIPS_INCLUDES $TIFF_INCLUDES"
 VIPS_LIBS="$VIPS_LIBS $TIFF_LIBS"
 
-# Look for libspng first
-# we need 0.7 for PNG write support
+# Look for libspng before libpng
 AC_ARG_WITH([libspng], 
   AS_HELP_STRING([--without-libspng], [build without libspng (default: test)]))
 
 if test x"$with_libspng" != x"no"; then
+  # we need 0.7 for PNG write support
+  # it's sometimes called libspng.pc, sometimes spng.pc, we have to search for both
   PKG_CHECK_MODULES(SPNG, spng >= 0.7,
-   [AC_DEFINE(HAVE_SPNG,1,[define if you have libspng installed.])
-    with_libspng=yes
-    PACKAGES_USED="$PACKAGES_USED spng"
+   [with_libspng=yes
    ],
-   [with_libspng=no
-   ]
+   [PKG_CHECK_MODULES(SPNG, libspng >= 0.7,
+     [with_libspng=yes
+     ],
+     [with_libspng=no
+     ]
+   )]
   )
 fi
 
-VIPS_CFLAGS="$VIPS_CFLAGS $SPNG_CFLAGS"
-VIPS_LIBS="$VIPS_LIBS $SPNG_LIBS"
+if test x"$with_libspng" == x"yes"; then
+  AC_DEFINE(HAVE_SPNG,1,[define if you have libspng installed.])
+  PACKAGES_USED="$PACKAGES_USED spng"
+  VIPS_CFLAGS="$VIPS_CFLAGS $SPNG_CFLAGS"
+  VIPS_LIBS="$VIPS_LIBS $SPNG_LIBS"
+fi
 
 # look for PNG with pkg-config ... fall back to our tester
 AC_ARG_WITH([png], 
