@@ -664,13 +664,12 @@ vips_source_decode( VipsSource *source )
 
 	if( !source->decode ) {
 		source->decode = TRUE;
+
 		VIPS_FREEF( g_byte_array_unref, source->sniff ); 
 
-		/* If this is still a pipe source, we can discard the header 
-		 * bytes we saved.
+		/* Now decode is set, header_bytes will be freed once it's 
+		 * exhausted, see vips_source_read().
 		 */
-		if( source->is_pipe ) 
-			VIPS_FREEF( g_byte_array_unref, source->header_bytes ); 
 	}
 
 	vips_source_minimise( source );
@@ -765,6 +764,14 @@ vips_source_read( VipsSource *source, void *buffer, size_t length )
 			length -= available;
 			total_read += available;
 		}
+
+		/* We're in pixel decode mode and we've exhausted the header
+		 * cache. We can safely junk it.
+		 */
+		if( source->decode &&
+			source->header_bytes &&
+			source->read_position >= source->header_bytes->len )
+			VIPS_FREEF( g_byte_array_unref, source->header_bytes ); 
 
 		/* Any more bytes requested? Call the read() vfunc.
 		 */

@@ -2,6 +2,11 @@
 - configure fails for requested but unmet dependencies [remicollet]
 - add support for another quantiser [DarthSim]
 - add spngsave
+- jpeg2000 load left-justifies bitdepth
+- add "password" option to pdfload
+
+26/11/21 started 8.12.3
+- better arg checking for hist_find_ndim [travisbell]
 
 26/11/21 started 8.12.2
 - make exif resuint optional and default to inch
@@ -12,6 +17,9 @@
 - remove stray trailing comma from iiif3 dirnames [whalehub]
 - fix TTF load [chregu]
 - revise GIF save alpha threshold [jfcalvo]
+- raise libpng pixel size limit from 1m to 10m pixels [jskrzypek]
+- fix gif save change detector [TheEssem] 
+- fix load from pipe with variable size reads
 
 21/11/21 started 8.12.1
 - fix insert [chregu]

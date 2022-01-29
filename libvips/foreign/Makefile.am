@@ -40,6 +40,7 @@ libforeign_la_SOURCES = \
 	pngsave.c \
 	ppmload.c \
 	ppmsave.c \
+	quantise.h \
 	quantise.c \
 	radiance.c \
 	radload.c \
@@ -93,4 +94,3 @@ libforeign_la_SOURCES += openslideload.c
 endif # !OPENSLIDE_MODULE
 
 AM_CPPFLAGS = -I${top_srcdir}/libvips/include @VIPS_CFLAGS@ @VIPS_INCLUDES@
-

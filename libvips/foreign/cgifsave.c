@@ -1,6 +1,8 @@
 /* save as GIF
  *
  * 22/8/21 lovell
+ * 18/1/22 TheEssem
+ * 	- fix change detector
  */
 
 /*
@@ -162,7 +164,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	/* We know this fits in an int since we limit frame size.
 	 */
 	int n_pels = frame_rect->height * frame_rect->width;
-	guint max_sum = 256 * n_pels * 3;
+	guint max_sum = 256 * n_pels * 4;
 	VipsPel *frame_bytes = 
 		VIPS_REGION_ADDR( cgif->frame, 0, frame_rect->top );
 
@@ -199,7 +201,7 @@ vips_foreign_save_cgif_write_frame( VipsForeignSaveCgif *cgif )
 	 */
 	sum = 0;
 	p = frame_bytes;
-	for( i = 0; i < n_pels; i++ )
+	for( i = 0; i < n_pels * 4; i++ )
 		sum += p[i]; 
 	percent_change = 100 * 
 		fabs( ((double) sum / max_sum) - 
@@ -433,7 +435,7 @@ vips_foreign_save_cgif_build( VipsObject *object )
 	frame_rect.width = cgif->in->Xsize;
 	frame_rect.height = page_height;
 	if( (guint64) frame_rect.width * frame_rect.height > 2000 * 2000 ) {
-		/* RGB sum may overflow a 32-bit uint.
+		/* RGBA sum may overflow a 32-bit uint.
 		 */
 		vips_error( class->nickname, "%s", _( "frame too large" ) );
 		return( -1 );
