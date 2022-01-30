@@ -146,6 +146,10 @@ GQuark vips__image_pixels_quark = 0;
 
 static gint64 vips_pipe_read_limit = 1024 * 1024 * 1024;
 
+/* Block untrusted operations from running.
+ */
+gboolean vips__block_untrusted = FALSE;
+
 /**
  * vips_get_argv0:
  *
@@ -185,9 +189,6 @@ vips_get_prgname( void )
 /**
  * VIPS_INIT:
  * @ARGV0: name of application
- *
- * gtk-doc mistakenly tags this macro as deprecated for unknown reasons. It is
- * *NOT* deprecated, please ignore the warning above. 
  *
  * VIPS_INIT() starts up the world of VIPS. You should call this on
  * program startup before using any other VIPS operations. If you do not call
@@ -442,6 +443,54 @@ vips__atexit( void )
 	}
 }
 
+static void *
+vips_check_untrusted_class( VipsOperationClass *class, GSList **untrusted )
+{
+	if( class->flags & VIPS_OPERATION_UNTRUSTED )
+		*untrusted = g_slist_prepend( *untrusted, 
+			(char *) VIPS_OBJECT_CLASS( class )->nickname );
+
+	return( NULL );
+}
+
+static void
+vips_check_untrusted( void )
+{
+	GSList *untrusted;
+
+	/* Skip the check if we can.
+	 */
+	if( g_getenv( "VIPS_ALLOW_UNTRUSTED" ) ||
+		vips__block_untrusted ||
+		(g_getenv( "HOME" ) &&
+		 vips_existsf( "%s/.vips-allow-untrusted", g_getenv("HOME") )) )
+		return;
+
+	/* See if any untrusted operations are present. 
+	 */
+	untrusted = NULL;
+	(void) vips_class_map_all( VIPS_TYPE_OPERATION, 
+		(VipsClassMapFn) vips_check_untrusted_class, &untrusted );
+	if( untrusted ) {
+		GSList *p;
+
+		fprintf( stderr, "This libvips binary includes untrusted operations: " );
+		for( p = untrusted; p; p = p->next )
+			fprintf( stderr, "%s ", (const char *) p->data );
+		fprintf( stderr, "\n" );
+		fprintf( stderr, "It might not be safe to process images from "
+			"an unknown source.\n" );
+		fprintf( stderr, "Disable this message by either:\n" );
+		fprintf( stderr, "  1. setting the environment variable "
+			"VIPS_ALLOW_UNTRUSTED\n" );
+		fprintf( stderr, "  2. creating the file %s/.vips-allow-untrusted\n", 
+			g_getenv( "HOME" ) );
+		fprintf( stderr, "  3. calling vips_block_untrusted_set(TRUE)\n" );
+
+		g_slist_free( untrusted );
+	}
+}
+
 /**
  * vips_init:
  * @argv0: name of application
@@ -667,8 +716,6 @@ vips_init( const char *argv0 )
 		g_quark_from_static_string( "vips-image-pixels" ); 
 #endif /*DEBUG_LEAK*/
 
-	done = TRUE;
-
 	/* If VIPS_WARNING is defined, suppress all warning messages from vips.
 	 *
 	 * Libraries should not call g_log_set_handler(), it is
@@ -688,6 +735,12 @@ vips_init( const char *argv0 )
 	 */
         if( (vips_min_stack_size = g_getenv( "VIPS_MIN_STACK_SIZE" )) )
 		(void) set_stacksize( vips__parse_size( vips_min_stack_size ) );
+
+	/* Warn about untrusted operations.
+	 */
+	vips_check_untrusted();
+
+	done = TRUE;
 
 	vips__thread_gate_stop( "init: startup" ); 
 
@@ -1330,3 +1383,15 @@ vips__get_sizeof_vipsobject( void )
 	return( sizeof( VipsObject ) ); 
 }
 
+/**
+ * vips_block_untrusted_set:
+ * @block_untrusted: block untrusted operations
+ *
+ * By default, libvips will allow untrusted operations to run. Set this TRUE to block 
+ * all untrusted operations.
+ */
+void
+vips_block_untrusted_set( gboolean block_untrusted )
+{
+	vips__block_untrusted = block_untrusted;
+}

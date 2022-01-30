@@ -1063,7 +1063,13 @@ vips_foreign_load_openslide_source_class_init(
 	object_class->description = _( "load source with OpenSlide" );
 	object_class->build = vips_foreign_load_openslide_source_build;
 
-	operation_class->flags = VIPS_OPERATION_NOCACHE;
+	/* libopenslide does not try to recover from errors, so it's not safe to cache.
+	 * It has not been fuzzed and is largly unmaintained, so should not be used with
+	 * untrusted input unless you are very careful.
+	 */
+	operation_class->flags = 
+		VIPS_OPERATION_NOCACHE |
+		VIPS_OPERATION_UNTRUSTED;
 
 	load_class->is_a_source = 
 		vips_foreign_load_openslide_source_is_a_source;

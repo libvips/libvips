@@ -171,6 +171,7 @@
  * @VIPS_OPERATION_SEQUENTIAL: can work sequentially with a small buffer
  * @VIPS_OPERATION_NOCACHE: must not be cached
  * @VIPS_OPERATION_DEPRECATED: a compatibility thing
+ * @VIPS_OPERATION_UNTRUSTED: operation not safe with untrusted input
  *
  * Flags we associate with an operation.
  *
@@ -193,6 +194,10 @@
  *
  * @VIPS_OPERATION_DEPRECATED means this is an old operation kept in vips for
  * compatibility only and should be hidden from users.
+ *
+ * @VIPS_OPERATION_UNTRUSTED means the operation is potentially unsafe with untrusted
+ * input data. It is used for loaders which use load libraries which have not been
+ * heavilly fuzzed, for example.
  */
 
 /* Abstract base class for operations.
@@ -531,6 +536,32 @@ vips_operation_vips_operation_print_summary_arg( VipsObject *object,
 	return( NULL );
 }
 
+static int
+vips_operation_build( VipsObject *object )
+{
+	VipsOperationClass *class = VIPS_OPERATION_GET_CLASS( object );
+	VipsOperation *operation = VIPS_OPERATION( object );
+
+#ifdef DEBUG
+	printf( "vips_operation_build: " ); 
+	vips_object_print_name( object );
+	printf( "\n" );
+#endif /*DEBUG*/
+
+	if( vips__block_untrusted &&
+		class->flags & VIPS_OPERATION_UNTRUSTED ) {
+		vips_error( VIPS_OBJECT_CLASS( operation )->nickname, 
+			"%s", _( "not a trusted operation" ) ); 
+		return( -1 );
+	}
+
+	if( VIPS_OBJECT_CLASS( vips_operation_parent_class )->
+		build( object ) ) 
+		return( -1 );
+
+	return( 0 );
+}
+
 static void
 vips_operation_summary( VipsObject *object, VipsBuf *buf )
 {
@@ -564,10 +595,11 @@ vips_operation_class_init( VipsOperationClass *class )
 	gobject_class->finalize = vips_operation_finalize;
 	gobject_class->dispose = vips_operation_dispose;
 
-	vobject_class->nickname = "operation";
-	vobject_class->description = _( "operations" );
+	vobject_class->build = vips_operation_build;
 	vobject_class->summary = vips_operation_summary;
 	vobject_class->dump = vips_operation_dump;
+	vobject_class->nickname = "operation";
+	vobject_class->description = _( "operations" );
 
 	class->usage = vips_operation_usage;
 	class->get_flags = vips_operation_real_get_flags;
@@ -636,8 +668,7 @@ vips_operation_invalidate( VipsOperation *operation )
  * Return a new #VipsOperation with the specified nickname. Useful for
  * language bindings. 
  *
- * You'll need to set
- * any arguments and build the operation before you can use it. See
+ * You'll need to set any arguments and build the operation before you can use it. See
  * vips_call() for a higher-level way to make new operations. 
  *
  * Returns: (transfer full): the new operation. 
